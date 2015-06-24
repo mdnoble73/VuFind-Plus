@@ -31,6 +31,20 @@ class SearchSuggestions{
 	}
 
 	function getSpellingSearches($searchTerm){
+		//First check for things we don't want to load spelling suggestions for
+		if (is_numeric($searchTerm)){
+			return array();
+		}
+		if (strpos($searchTerm, '(') !== FALSE || strpos($searchTerm, ')') !== FALSE){
+			return array();
+		}
+		if (preg_match('/http:|mailto:|https:/i', $searchTerm)){
+			return array();
+		}
+		if (strlen($searchTerm) >= 256){
+			return array();
+		}
+
 		$spellingWord = new SpellingWord();
 		$words = explode(" ", $searchTerm);
 		$suggestions = array();

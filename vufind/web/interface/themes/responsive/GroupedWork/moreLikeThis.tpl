@@ -6,7 +6,7 @@
 			{assign var="wrapperId" value="morelikethis"}
 			{assign var="scrollerVariable" value="morelikethisScroller"}
 			{assign var="permanentId" value=$recordDriver->getPermanentId()}
-			{include file='titleScroller.tpl'}
+			{include file='ListWidget/titleScroller.tpl'}
 		</div>
 	</div>
 {/strip}

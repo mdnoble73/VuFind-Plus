@@ -1,6 +1,8 @@
 #!/usr/bin/expect -f
 
-exp_internal 0
+#exp_internal 0
+# set to following setting per James advice. PK-713, plb 6-15-2015
+log_user 0
 
 # BIB_EXTRACT_PIKA.exp
 # James Staub

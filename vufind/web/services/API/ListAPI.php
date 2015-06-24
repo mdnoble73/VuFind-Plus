@@ -86,7 +86,7 @@ class ListAPI extends Action {
 			while ($list->fetch()){
 				$query = "SELECT count(groupedWorkPermanentId) as numTitles FROM user_list_entry where listId = " . $list->id;
 				$numTitleResults = mysql_query($query);
-				$numTitles = mysql_fetch_assoc($numTitleResults);
+				$numTitles = ($numTitleResults) ? mysql_fetch_assoc($numTitleResults): array('numTitles', -1);
 
 				$results[] = array(
 				  'id' => $list->id,
@@ -441,7 +441,7 @@ class ListAPI extends Action {
 		}elseif (preg_match('/search:(.*)/', $listId, $searchInfo)){
 			if (is_numeric($searchInfo[1])){
 				$titles = $this->getSavedSearchTitles($searchInfo[1]);
-				if (count($titles) > 0 ){
+				if ($titles && count($titles) > 0 ){
 					return array('success'=>true, 'listTitle' => $listId, 'listDescription' => "Search Results", 'titles'=>$titles, 'cacheLength'=>4);
 				}else{
 					return array('success'=>false, 'message'=>'The specified search could not be found.');
@@ -735,15 +735,17 @@ class ListAPI extends Action {
 			$searchObj = SearchObjectFactory::initSearchObject();
 			$searchObj->init();
 			$searchObj = $searchObj->restoreSavedSearch($searchId, false, true);
-			if (isset($_REQUEST['numTitles'])){
-				$searchObj->setLimit($_REQUEST['numTitles']);
-			}else{
-				$searchObj->setLimit(25);
-			}
-			$searchObj->processSearch(false, false);
-			$listTitles = $searchObj->getListWidgetTitles();
+			if ($searchObj) { // check that the saved search was retrieved successfully
+				if (isset($_REQUEST['numTitles'])) {
+					$searchObj->setLimit($_REQUEST['numTitles']);
+				} else {
+					$searchObj->setLimit(25);
+				}
+				$searchObj->processSearch(false, false);
+				$listTitles = $searchObj->getListWidgetTitles();
 
-			$memCache->set($cacheId, $listTitles, 0, $configArray['Caching']['list_saved_search']);
+				$memCache->set($cacheId, $listTitles, 0, $configArray['Caching']['list_saved_search']);
+			}
 		}
 
 		return $listTitles;

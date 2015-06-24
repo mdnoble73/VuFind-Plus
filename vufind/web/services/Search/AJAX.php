@@ -27,9 +27,9 @@ class AJAX extends Action {
 		global $analytics;
 		$analytics->disableTracking();
 		$method = $_REQUEST['method'];
-		$text_methods = array('GetAutoSuggestList', 'SysListTitles', 'GetListTitles', 'GetStatusSummaries', 'getEmailForm', 'sendEmail', 'getDplaResults');
+		$text_methods = array('GetAutoSuggestList', 'SysListTitles', 'GetStatusSummaries', 'getEmailForm', 'sendEmail', 'getDplaResults');
 		//TODO reconfig to use the JSON outputting here.
-		$json_methods = array('getMoreSearchResults');
+		$json_methods = array('getMoreSearchResults', 'GetListTitles');
 		// Plain Text Methods //
 		if (in_array($method, $text_methods)) {
 			header('Content-type: text/plain');
@@ -419,7 +419,7 @@ class AJAX extends Action {
 	}
 
 	/**
-	 * @return string JSON encoded data representing the list infromation
+	 * @return string JSON encoded data representing the list information
 	 */
 	function GetListTitles(){
 		/** @var Memcache $memCache */
@@ -428,7 +428,6 @@ class AJAX extends Action {
 		global $timer;
 
 		$listName = strip_tags(isset($_GET['scrollerName']) ? $_GET['scrollerName'] : 'List' . $_GET['id']);
-		$scrollerName = $listName;
 
 		//Determine the caching parameters
 		require_once(ROOT_DIR . '/services/API/ListAPI.php');
@@ -443,62 +442,59 @@ class AJAX extends Action {
 		$listData = $memCache->get($cacheName);
 		if (!$listData || isset($_REQUEST['reload']) || (isset($listData['titles']) && count($listData['titles']) == 0)){
 			global $interface;
+			$interface->assign('listName', $listName);
+
+			$showRatings = isset($_REQUEST['showRatings']) && $_REQUEST['showRatings'];
+			$interface->assign('showRatings', $showRatings); // overwrite values that come from library settings
 
 			$titles = $listAPI->getListTitles();
 			$timer->logTime("getListTitles");
-			$strandsInfo = null;
 			if ($titles['success'] == true){
 				$titles = $titles['titles'];
 				if (is_array($titles)){
 					foreach ($titles as $key => $rawData){
+						$interface->assign('key', $key);
 						// 20131206 James Staub: bookTitle is in the list API and it removes the final frontslash, but I didn't get $rawData['bookTitle'] to load
-						$titleShort = preg_replace('/\:.*?$/','', $rawData['title']);
-						$titleShort = preg_replace('/\s*\/$\s*/','', $titleShort);
+						$titleShort = preg_replace(array('/\:.*?$/', '/\s*\/$\s*/'),'', $rawData['title']);
+//						$titleShort = preg_replace('/\:.*?$/','', $rawData['title']);
+//						$titleShort = preg_replace('/\s*\/$\s*/','', $titleShort);
 						$interface->assign('title', $titleShort);
 						$interface->assign('description', isset($rawData['description']) ? $rawData['description'] : null);
 						$interface->assign('length', isset($rawData['length']) ? $rawData['length'] : null);
 						$interface->assign('publisher', isset($rawData['publisher']) ? $rawData['publisher'] : null);
-						$descriptionInfo = $interface->fetch('Record/ajax-description-popup.tpl') ;
+						$interface->assign('shortId', $rawData['shortId']);
+						$interface->assign('id', $rawData['id']);
 
-						$formattedTitle = "<div id=\"scrollerTitle{$scrollerName}{$key}\" class=\"scrollerTitle\">";
-						$shortId = $rawData['id'];
-						$formattedTitle .= '<a onclick="trackEvent(\'ListWidget\', \'Title Click\', \'' . $listName . '\')" href="' . $configArray['Site']['path'] . "/GroupedWork/" . $rawData['id'] . '" id="descriptionTrigger' . $shortId . '">';
+						$rawData['titleURL'] = $configArray['Site']['path'].'/GroupedWork/'.$rawData['id']; // assumes all are grouped works
+						$interface->assign('titleURL', $rawData['titleURL']);
+
 						$imageUrl = $rawData['small_image'];
 						if (isset($_REQUEST['coverSize']) && $_REQUEST['coverSize'] == 'medium'){
 							$imageUrl = $rawData['image'];
 						}
-						$formattedTitle .= "<img src=\"{$imageUrl}\" class=\"scrollerTitleCover\" alt=\"{$rawData['title']} Cover\"/></a>";
-						if (isset($_REQUEST['showRatings']) && $_REQUEST['showRatings']){
-							$interface->assign('shortId', $rawData['shortId']);
-							$interface->assign('id', $rawData['id']);
+						$interface->assign('imageUrl', $imageUrl);
+
+						if ($showRatings){
 							$interface->assign('ratingData', $rawData['ratingData']);
 							$interface->assign('showNotInterested', false);
-//							$formattedTitle .= $interface->fetch('Record/title-rating.tpl'); // as best I can tell Record/title-rating.tpl doesn't exist any more. plb 12-1-2014
-							$formattedTitle .= $interface->fetch('GroupedWork/title-rating.tpl');
-
 						}
-						$formattedTitle .= "</div>" .
-								"<div id='descriptionPlaceholder{$shortId}' style='display:none' class='loaded'>" .
-									$descriptionInfo .
-								"</div>";
 
-						$rawData['formattedTitle'] = $formattedTitle;
+						$rawData['formattedTitle'] = $interface->fetch('ListWidget/formattedTitle.tpl');
+
 						$titles[$key] = $rawData;
 					}
 				}
 				$currentIndex = count($titles) > 5 ? floor(count($titles) / 2) : 0;
 
-				$return = array('titles' => $titles, 'currentIndex' => $currentIndex);
-				$listData = json_encode($return);
+				$listData = array('titles' => $titles, 'currentIndex' => $currentIndex);
+
+				$memCache->set($cacheInfo['cacheName'], $listData, 0, $cacheInfo['cacheLength']);
 			}else{
-				$return = array('titles' => array(), 'currentIndex' =>0);
-				$listData = json_encode($return);
+				$listData = array('titles' => array(), 'currentIndex' => 0);
+				if ($titles['message']) $listData['error'] = $titles['message']; // send error message to widget javascript
 			}
-
-			$memCache->set($cacheInfo['cacheName'], $listData, 0, $cacheInfo['cacheLength']);
-
 		}
-		echo $listData;
+		return $listData;
 	}
 
 	function getEmailForm(){
@@ -575,10 +571,9 @@ class AJAX extends Action {
 
 		// Process for Display //
 		$recordSet = $searchObject->getResultRecordHTML($displayMode);
-
-		if ($displayMode == 'covers'){
+//		if ($displayMode == 'covers'){
 			$displayTemplate = 'Search/covers-list.tpl'; // structure for bookcover tiles
-		}
+//		}
 //		else { // default
 //			$displayTemplate = 'Search/list-list.tpl'; // structure for regular results
 //		}

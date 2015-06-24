@@ -106,5 +106,23 @@ function getListWidgetUpdates(){
 				"ALTER TABLE `list_widgets` ADD COLUMN `viewMoreLinkMode` ENUM('covers', 'list') NOT NULL DEFAULT 'list'",
 			),
 		),
+
+		'list_widget_style_update' => array(
+			'title' => 'List Widget Style Update',
+			'description' => 'Add Text-Only List as a style option.',
+			'sql' => array(
+				"ALTER TABLE `list_widgets` CHANGE `style` `style` ENUM('vertical', 'horizontal', 'single', 'single-with-next', 'text-list') NOT NULL DEFAULT 'horizontal'",
+				"ALTER TABLE `list_widgets` COMMENT = 'A widget that can be displayed within Pika or within other sites'",
+			),
+		),
+
+		'list_widget_update_5' => array(
+			'title' => 'List Widget Update 5',
+			'description' => 'Switch for displaying or not displaying a widget\'s title bar.',
+			'sql' => array(
+				"ALTER TABLE `list_widgets` ADD COLUMN `showListWidgetTitle` TINYINT NOT NULL DEFAULT '1'",
+			),
+		),
+
 	);
 }

@@ -88,7 +88,9 @@ abstract class Record_Record extends Action
 			$classicId = substr($this->id, 1, strlen($this->id) -2);
 			$interface->assign('classicId', $classicId);
 			$millenniumScope = $interface->getVariable('millenniumScope');
-			$interface->assign('classicUrl', $configArray['Catalog']['linking_url'] . "/record=$classicId&amp;searchscope={$millenniumScope}");
+			if(isset($configArray['Catalog']['linking_url'])){
+				$interface->assign('classicUrl', $configArray['Catalog']['linking_url'] . "/record=$classicId&amp;searchscope={$millenniumScope}");
+			}
 
 		}elseif ($configArray['Catalog']['ils'] == 'Koha'){
 			$interface->assign('classicId', $this->id);

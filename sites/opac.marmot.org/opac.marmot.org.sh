@@ -6,7 +6,8 @@ export JETTY_HOME=/usr/local/vufind-plus/sites/default/solr/jetty
 export SOLR_HOME=/data/vufind-plus/opac.marmot.org/solr
 export JETTY_PORT=8080
 #Max memory should be at least he size of all solr indexes combined. 
-export JAVA_OPTIONS="-server -Xms2g -Xmx26g -XX:+UseParallelGC -XX:NewRatio=5"
+#export JAVA_OPTIONS="-server -Xms2g -Xmx26g -XX:+UseParallelGC -XX:NewRatio=5"
+export JAVA_OPTIONS="-server -Xms2g -Xmx32g -XX:+UseG1GC"
 export JETTY_LOG=/var/log/vufind-plus/opac.marmot.org/jetty
 
 exec /usr/local/vufind-plus/sites/default/vufind.sh $1 $2

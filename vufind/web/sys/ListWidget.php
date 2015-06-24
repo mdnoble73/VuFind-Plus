@@ -26,6 +26,16 @@ class ListWidget extends DB_DataObject
 	public $coverSize; //'small', 'medium'
 	public $showViewMoreLink;
 	public $viewMoreLinkMode;
+	public $showListWidgetTitle; // whether or not the widget title bar is shown
+
+	// List Widget Styles and their labels
+	public $styles = array('horizontal' => 'Horizontal', 'vertical'=> 'Vertical', 'single'=>'Single Title', 'single-with-next' => 'Single Title with a Next Button', 'text-list' => 'Text Only List');
+
+	// List Widget Display Types and their labels
+	public $displayTypes = array(
+		'tabs' => 'Tabbed Display',
+		'dropdown' => 'Drop Down List'
+	);
 
 	/** @var  ListWidgetList[] */
 	private $lists;
@@ -55,35 +65,35 @@ class ListWidget extends DB_DataObject
 		}
 
 		$structure = array(
-      'id' => array(
-        'property'=>'id',
-        'type'=>'hidden',
-        'label'=>'Id',
-        'description'=>'The unique id of the list widget file.',
-        'primaryKey' => true,
-        'storeDb' => true,
-      ),
-      'libraryId' => array('property'=>'libraryId', 'type'=>'enum', 'values'=>$libraryList, 'label'=>'Library', 'description'=>'A link to the library which the location belongs to'),
-      'name' => array(
-        'property'=>'name',
-        'type'=>'text',
-        'label'=>'Name',
-        'description'=>'The name of the widget.',
-        'maxLength' => 255,
-        'size' => 100,
-        'serverValidation' => 'validateName',
-        'storeDb' => true,
-      ),
-      'description' => array(
-        'property'=>'description',
-        'type'=>'textarea',
-        'rows' => 3,
-        'cols'=> 80,
-        'label'=>'Description',
-        'description'=>'A description for the widget',
-        'storeDb' => true,
-        'hideInLists' => true,
-      ),
+			'id' => array(
+				'property'=>'id',
+				'type'=>'hidden',
+				'label'=>'Id',
+				'description'=>'The unique id of the list widget file.',
+				'primaryKey' => true,
+				'storeDb' => true,
+			),
+			'libraryId' => array('property'=>'libraryId', 'type'=>'enum', 'values'=>$libraryList, 'label'=>'Library', 'description'=>'A link to the library which the location belongs to'),
+			'name' => array(
+				'property'=>'name',
+				'type'=>'text',
+				'label'=>'Name',
+				'description'=>'The name of the widget.',
+				'maxLength' => 255,
+				'size' => 100,
+				'serverValidation' => 'validateName',
+				'storeDb' => true,
+			),
+			'description' => array(
+				'property'=>'description',
+				'type'=>'textarea',
+				'rows' => 3,
+				'cols'=> 80,
+				'label'=>'Description',
+				'description'=>'A description for the widget',
+				'storeDb' => true,
+				'hideInLists' => true,
+			),
       /*'showTitleDescriptions' => array(
         'property' => 'showTitleDescriptions',
         'type' => 'checkbox',
@@ -128,22 +138,23 @@ class ListWidget extends DB_DataObject
 				'property' => 'style',
 				'type' => 'enum',
 				'label' => 'The style to use when displaying the list widget',
-				'values' => array('horizontal' => 'Horizontal', 'vertical'=> 'Vertical', 'single'=>'Single Title', 'single-with-next' => 'Single Title with a Next Button'),
+//				'values' => array('horizontal' => 'Horizontal', 'vertical'=> 'Vertical', 'single'=>'Single Title', 'single-with-next' => 'Single Title with a Next Button', 'text-list' => 'Text Only List'),
+				'values' => $this->styles,
 				'storeDb' => true,
 				'default' => 'horizontal',
 				'hideInLists' => true,
 			),
-      'autoRotate' => array(
-        'property' => 'autoRotate',
-        'type' => 'checkbox',
-        'label' => 'Should the widget automatically rotate between titles?',
-        'storeDb' => true,
-        'hideInLists' => true,
-      ),
+			'autoRotate' => array(
+				'property' => 'autoRotate',
+				'type' => 'checkbox',
+				'label' => 'Should the widget automatically rotate between titles?',
+				'storeDb' => true,
+				'hideInLists' => true,
+			),
 			'coverSize' => array(
 				'property' => 'coverSize',
 				'type' => 'enum',
-				'label' => 'The Cover Size to use when showing a Widget',
+				'label' => 'The cover size to use when showing a widget',
 				'values' => array('small' => 'Small', 'medium'=> 'Medium'),
 				'storeDb' => true,
 				'default' => 'small',
@@ -157,33 +168,43 @@ class ListWidget extends DB_DataObject
         'storeDb' => true,
         'hideInLists' => true,
       ),*/
-      'customCss' => array(
-        'property'=>'customCss',
-        'type'=>'url',
-        'label'=>'Custom CSS File',
-        'maxLength' => 255,
-        'size' => 100,
-        'description'=>'The URL to an external css file to be included when rendering as an iFrame.',
-        'storeDb' => true,
-        'required' => false,
-        'hideInLists' => true,
-      ),
-      'listDisplayType' => array(
-        'property'=>'listDisplayType',
-        'type'=>'enum',
-        'values' => array(
-          'tabs' => 'Tabbed Display',
-          'dropdown' => 'Drop Down List'
-        ),
-        'label'=>'Display lists as',
-        'description'=>'The URL to an external css file to be included wen rendering as an iFrame.',
-        'storeDb' => true,
-        'hideInLists' => true,
-      ),
+			'customCss' => array(
+				'property'=>'customCss',
+				'type'=>'url',
+				'label'=>'Custom CSS File',
+				'maxLength' => 255,
+				'size' => 100,
+				'description'=>'The URL to an external css file to be included when rendering as an iFrame.',
+				'storeDb' => true,
+				'required' => false,
+				'hideInLists' => true,
+			),
+			'listDisplayType' => array(
+				'property'=>'listDisplayType',
+				'type'=>'enum',
+				'values' => $this->displayTypes,
+//      'values' => array(
+//          'tabs' => 'Tabbed Display',
+//          'dropdown' => 'Drop Down List'
+//        ),
+				'label'=>'Display lists as',
+				'description'=>'The method used to show the user the multiple lists associated with the widget.',
+				'storeDb' => true,
+				'hideInLists' => true,
+			),
+			'showListWidgetTitle' => array(
+				'property' => 'showListWidgetTitle',
+				'type' => 'checkbox',
+				'label' => 'Show the list widget\'s title bar',
+				'description' => 'Whether or not the widget\'s title bar is shown. (Enabling the Show More Link will force the title bar to be shown as well.)',
+				'storeDb' => true,
+				'hideInLists' => true,
+				'default' => true,
+			),
 			'showViewMoreLink' => array(
 				'property' => 'showViewMoreLink',
 				'type' => 'checkbox',
-				'label' => 'Show the View More link',
+				'label' => 'Show the View More link on the title bar of the widget.',
 				'storeDb' => true,
 				'hideInLists' => true,
 				'default' => false,
@@ -195,26 +216,26 @@ class ListWidget extends DB_DataObject
 					'list' => 'List',
 					'covers' => 'Covers'
 				),
-				'label'=>'Show Results as',
-				'description'=>'The mode to show full results as.',
+				'label'=>'Display mode for search results link',
+				'description'=>'The mode to show full search results in when the View More link is clicked.',
 				'storeDb' => true,
 				'hideInLists' => true,
 			),
-      'lists' => array(
-        'property' => 'lists',
-        'type'=> 'oneToMany',
-        'keyThis' => 'id',
-        'keyOther' => 'listWidgetId',
-        'subObjectType' => 'ListWidgetList',
-        'structure' => ListWidgetList::getObjectStructure(),
-        'label' => 'Lists',
-        'description' => 'The lists to be displayed within the widget.',
-        'sortable' => true,
-        'storeDb' => true,
-        'serverValidation' => 'validateLists',
-        'editLink' => 'ListWidgetsListsLinks',
-        'hideInLists' => true,
-      ),
+			'lists' => array(
+				'property' => 'lists',
+				'type'=> 'oneToMany',
+				'keyThis' => 'id',
+				'keyOther' => 'listWidgetId',
+				'subObjectType' => 'ListWidgetList',
+				'structure' => ListWidgetList::getObjectStructure(),
+				'label' => 'Lists',
+				'description' => 'The lists to be displayed within the widget.',
+				'sortable' => true,
+				'storeDb' => true,
+				'serverValidation' => 'validateLists',
+				'editLink' => 'ListWidgetsListsLinks',
+				'hideInLists' => true,
+			),
 		);
 		foreach ($structure as $fieldName => $field){
 			$field['propertyOld'] = $field['property'] . 'Old';

@@ -142,7 +142,7 @@ class MyAccount_AJAX
 					$search->user_id = $user->id;
 					$search->saved = 1;
 					$saveOk = ($search->update() !== FALSE);
-					$message = $saveOk ? "Your search was saved successfully.  You can view the saved search by clicking on Search History within My Account." : "Sorry, we could not save that search for you.  It may have expired.";
+					$message = $saveOk ? 'Your search was saved successfully.  You can view the saved search by clicking on <a href="/Search/History?require_login">Search History</a> within '.translate('My Account').'.' : "Sorry, we could not save that search for you.  It may have expired.";
 				} else {
 					$saveOk = true;
 					$message = "That search was already saved.";

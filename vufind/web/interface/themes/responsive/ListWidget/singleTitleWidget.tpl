@@ -1,14 +1,16 @@
 {strip}
 <div id="list-{$wrapperId}" {if $display == 'false'}style="display:none"{/if} class="titleScroller singleTitleWidget {if $widget->coverSize == 'medium'}mediumScroller{/if} {if $widget->showRatings}scrollerWithRatings{/if}">
 	<div id="{$wrapperId}" class="titleScrollerWrapper singleTitleWidgetWrapper">
-		<div id="list-{$wrapperId}Header" class="titleScrollerHeader">
-			{if $scrollerTitle}
-				<span class="listTitle resultInformationLabel">{if $scrollerTitle}{$scrollerTitle|escape:"html"}{/if}</span>
-			{/if}
-			{if $showViewMoreLink}
-				<div id="titleScrollerViewMore{$scrollerName}" class="titleScrollerViewMore"><a href="{$fullListLink}">View More</a></div>
-			{/if}
-		</div>
+		{if $showListWidgetTitle || $showViewMoreLink}
+			<div id="list-{$wrapperId}Header" class="titleScrollerHeader">
+				{if $scrollerTitle}
+					<span class="listTitle resultInformationLabel">{if $scrollerTitle}{$scrollerTitle|escape:"html"}{/if}</span>
+				{/if}
+				{if $showViewMoreLink}
+					<div id="titleScrollerViewMore{$scrollerName}" class="titleScrollerViewMore"><a href="{$fullListLink}">View More</a></div>
+				{/if}
+			</div>
+		{/if}
 		<div id="titleScroller{$scrollerName}" class="titleScrollerBody">
 			<div class="scrollerBodyContainer">
 				<div class="scrollerBody" style="display:none"></div>

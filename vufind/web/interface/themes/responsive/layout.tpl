@@ -89,7 +89,7 @@
 					{if $user}
 						<a href="#account-menu"><div class="col-xs-6 text-center">Account Menu</div></a>
 					{else}
-						<a href="{$path}/MyAccount/Home" title='Login' onclick="return VuFind.Account.followLinkIfLoggedIn(this);">
+						<a href="{$path}/MyAccount/Home" title='Login' onclick="return VuFind.Account.followLinkIfLoggedIn(this);" data-login="true">
 							<div class="col-xs-6 text-center">{translate text="Login"}</div>
 						</a>
 					{/if}

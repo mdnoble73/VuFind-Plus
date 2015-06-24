@@ -60,7 +60,8 @@ VuFind.Account = (function(){
 					VuFind.Account.ajaxCallback = null;
 				}
 			} else {
-				var multistep = false;
+				var multistep = false,
+						loginLink = false;
 				if (ajaxCallback != undefined && typeof(ajaxCallback) === "function") {
 					multistep = true;
 				}
@@ -68,15 +69,22 @@ VuFind.Account = (function(){
 				VuFind.Account.closeModalOnAjaxSuccess = closeModalOnAjaxSuccess;
 				if (trigger != undefined && trigger != null) {
 					var dialogTitle = trigger.attr("title") ? trigger.attr("title") : trigger.data("title");
+					loginLink = trigger.data('login');
+					/*
+					  Set the trigger html element attribute data-login="true" to cause the pop-up login dialog
+					  to act as if the only action is login, ie not a multi-step process.
+
+					 */
 				}
 				var dialogDestination = Globals.path + '/MyAccount/AJAX?method=LoginForm';
-				if (multistep){
+				if (multistep && !loginLink){
 					dialogDestination += "&multistep=true";
 				}
 				var modalDialog = $("#modalDialog");
 				$('.modal-body').html("Loading...");
-				var modalBody = $(".modal-content");
-				modalBody.load(dialogDestination);
+				//var modalBody = $(".modal-content");
+				//modalBody.load(dialogDestination);
+				$(".modal-content").load(dialogDestination);
 				$(".modal-title").text(dialogTitle);
 				modalDialog.modal("show");
 			}
@@ -96,26 +104,6 @@ VuFind.Account = (function(){
 			}, true);
 			return false;
 		},
-// Moved to base.js
-		//hasLocalStorage: function () {
-		//	// arguments.callee.haslocalStorage is the function's "static" variable for whether or not we have tested the
-		//	// that the localStorage system is available to us.
-		//
-		//	//console.log(typeof arguments.callee.haslocalStorage);
-		//	if(typeof arguments.callee.haslocalStorage == "undefined") {
-		//		if ("localStorage" in window) {
-		//			try {
-		//				window.localStorage.setItem('_tmptest', 'temp');
-		//				arguments.callee.haslocalStorage = (window.localStorage.getItem('_tmptest') == 'temp');
-		//				// if we get the same info back, we are good. Otherwise, we don't have localStorage.
-		//				window.localStorage.removeItem('_tmptest');
-		//			} catch(error) { // something failed, so we don't have localStorage available.
-		//				arguments.callee.haslocalStorage = false;
-		//			}
-		//		} else arguments.callee.haslocalStorage = false;
-		//	}
-		//	return arguments.callee.haslocalStorage;
-		//},
 
 		preProcessLogin: function (){
 			var username = $("#username").val(),
@@ -162,8 +150,6 @@ VuFind.Account = (function(){
 							// Hide "log in" options and show "log out" options:
 							$('.loginOptions, #loginOptions').hide();
 							$('.logoutOptions, #logoutOptions').show();
-							//$('#loginOptions').hide();
-							//$('#logoutOptions').show();
 
 							// Show user name on page in case page doesn't reload
 							var name = response.result.name.trim();
@@ -567,42 +553,35 @@ VuFind.Account = (function(){
 		},
 
 		freezeSelectedHolds: function (){
+			//TODO: simplified, should be same functionality, double check. plb 5-29-2015
 			var selectedTitles = this.getSelectedTitles();
 			if (selectedTitles.length == 0){
 				return false;
 			}
-			var suspendDate = '';
-			//Check to see whether or not we are using a suspend date.
-			var suspendDateTop = $('#suspendDateTop');
-			var url = '';
-			var queryParams = '';
-			if (suspendDateTop.length){
-				if (suspendDateTop.val().length > 0){
+			var suspendDate = '',
+					suspendDateTop = $('#suspendDateTop'),
+					url = '',
+					queryParams = '';
+			if (suspendDateTop.length) { //Check to see whether or not we are using a suspend date.
+				if (suspendDateTop.val().length > 0) {
 					suspendDate = suspendDateTop.val();
-				}else{
+				} else {
 					suspendDate = $('#suspendDateBottom').val();
 				}
-
-				if (suspendDate.length == 0){
+				if (suspendDate.length == 0) {
 					alert("Please select the date when the hold should be reactivated.");
 					return false;
 				}
-				url = Globals.path + '/MyAccount/Holds?multiAction=freezeSelected&' + selectedTitles + '&suspendDate=' + suspendDate;
-				queryParams = VuFind.getQuerystringParameters();
-				if ($.inArray('section', queryParams)){
-					url += '&section=' + queryParams['section'];
-				}
-				window.location = url;
-			}else{
-				url = Globals.path + '/MyAccount/Holds?multiAction=freezeSelected&' + selectedTitles + '&suspendDate=' + suspendDate;
-				queryParams = VuFind.getQuerystringParameters();
-				if ($.inArray('section', queryParams)){
-					url += '&section=' + queryParams['section'];
-				}
-				window.location = url;
 			}
+			url = Globals.path + '/MyAccount/Holds?multiAction=freezeSelected&' + selectedTitles + '&suspendDate=' + suspendDate;
+			queryParams = VuFind.getQuerystringParameters();
+			if ($.inArray('section', queryParams)){
+				url += '&section=' + queryParams['section'];
+			}
+			window.location = url;
 			return false;
 		},
+
 
 		getSelectedTitles: function(promptForSelectAll){
 			if (promptForSelectAll == undefined){
@@ -691,8 +670,8 @@ VuFind.Account = (function(){
 		},
 
 		thawHold: function(holdId, caller){
-			$popUpBoxTitle = $(caller).text() || "Thawing Hold";  // freezing terminology can be customized, so grab text from click button: caller
-			VuFind.showMessage($popUpBoxTitle, "Updating your hold.  This may take a minute.");
+			var popUpBoxTitle = $(caller).text() || "Thawing Hold";  // freezing terminology can be customized, so grab text from click button: caller
+			VuFind.showMessage(popUpBoxTitle, "Updating your hold.  This may take a minute.");
 			var url = Globals.path + '/MyAccount/AJAX?method=thawHold&holdId=' + holdId;
 			$.getJSON(url, function(data){
 				if (data.result) {

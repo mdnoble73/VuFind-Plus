@@ -67,7 +67,7 @@
 }
 
 .browse-category {
-  color: white;
+  color: #fff;
   font-size: @browse-category-font-size;
   padding: 10px;
   text-shadow: 1px 1px @gray;
@@ -82,7 +82,7 @@
   }
   // a links removed, using the divs below now.
   //a{
-  //  color: white;
+  //  color: #fff;
   //  &:focus {
   //    outline: none; // hide outlining of clicked category
   //  }
@@ -91,7 +91,7 @@
   //  height:80px;
   //}
   div {
-    color: white;
+    color: #fff;
     cursor: pointer;
     &:focus {
       outline: none; // hide outlining of clicked category
@@ -146,7 +146,7 @@
 
 #home-page-browse-content{ // renamed from home-page-results, this is a larger container div
   padding: 15px;
-  background-color: white;
+  background-color: #fff;
 }
 
 .selected-browse-label-mixin(@side: right){
@@ -157,9 +157,9 @@
 }
 
 #selected-browse-label{
-  background-color: white;
-  //  background: linear-gradient(to bottom, white, white 44%, #bbd4e3 45%, #bbd4e3 55%, white 56%);
-  background: linear-gradient(to bottom, white, white 44%, @browse-label-line-color 45%, @browse-label-line-color 55%, white 56%);
+  background-color: #fff;
+  //  background: linear-gradient(to bottom, #fff, #fff 44%, #bbd4e3 45%, #bbd4e3 55%, #fff 56%);
+  background: linear-gradient(to bottom, #fff, #fff 44%, @browse-label-line-color 45%, @browse-label-line-color 55%, #fff 56%);
   margin-bottom: 5px;
 
   // Browse Mode Toggle switch //
@@ -183,7 +183,7 @@
          }
        }
     .selected-browse-label-mixin();
-    //  background-color: white;
+    //  background-color: #fff;
     //  margin-left: 20px;
     //  padding: 0 8px;
   }
@@ -194,7 +194,7 @@
   color: #0072bc;
   vertical-align: top;
   .selected-browse-label-mixin(left);
-  //  background-color: white;
+  //  background-color: #fff;
 //  float: right;
 //  margin-right: 20px;
 //  padding: 0 8px;
@@ -304,4 +304,27 @@
   font-size: 16px;
   padding: 2px;
   cursor: pointer;
+}
+
+// Browse Sub-Categories
+#browse-sub-category-menu {
+  margin-top: @padding-large-vertical;
+
+  button {
+    margin-right: @padding-small-vertical;
+    &.selected {
+      color: @selectedSubCategoryFontColor;
+      background-color: @selectedSubCategoryBackgroundColor;
+    }
+    &:focus {
+      outline: none;
+    }
+
+  }
+}
+.selected-browse-sub-category-label-search-text{
+  //  display: none; // default till content is put in place
+  &::before { // Dividing Character between Main Category Header & Sub-Category
+    content: ' \00bb \00a0'; // html entity &#187; &nbsp;
+  }
 }
