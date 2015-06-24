@@ -47,6 +47,7 @@
 		</div>
 	</div>
 
+	{if $showComments}
 	<div class="row">
 		<div class="col-xs-12 text-center">
 		<span id="userreviewlink{$recordDriver->getPermanentId()}" class="userreviewlink btn btn-sm" title="Add a Review" onclick="return VuFind.GroupedWork.showReviewForm(this, '{$recordDriver->getPermanentId()}')">
@@ -54,4 +55,5 @@
 		</span>
 		</div>
 	</div>
+	{/if}
 </div>
