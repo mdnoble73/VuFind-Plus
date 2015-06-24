@@ -74,4 +74,13 @@ public class NashvilleRecordProcessor extends IlsRecordProcessor {
 
 		return locationCode.matches(".*sup");
 	}
+
+	@Override
+	protected boolean isOrderItemValid(String status, String code3) {
+		if (code3.equals("s")) {
+			return false;
+		}else{
+			return status.equals("o") || status.equals("1") || status.equals("a");
+		}
+	}
 }

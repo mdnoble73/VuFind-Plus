@@ -60,6 +60,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 	protected char orderLocationSubfield;
 	protected char orderCopiesSubfield;
 	protected char orderStatusSubfield;
+	protected char orderCode3Subfield;
 
 	private static boolean loanRuleDataLoaded = false;
 	protected static ArrayList<Long> pTypes = new ArrayList<Long>();
@@ -107,6 +108,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		orderLocationSubfield = getSubfieldIndicatorFromConfig(configIni, "orderLocationSubfield");
 		orderCopiesSubfield = getSubfieldIndicatorFromConfig(configIni, "orderCopiesSubfield");
 		orderStatusSubfield = getSubfieldIndicatorFromConfig(configIni, "orderStatusSubfield");
+		orderCode3Subfield = getSubfieldIndicatorFromConfig(configIni, "orderCode3Subfield");
 
 		String additionalCollectionsString = configIni.get("Reindex", "additionalCollections");
 		if (additionalCollectionsString != null){
@@ -379,8 +381,13 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 				}
 
 				String status = curOrderField.getSubfield(orderStatusSubfield).getData();
+				String code3 = null;
+				if (orderCode3Subfield != ' '){
+					code3 = curOrderField.getSubfield(orderCode3Subfield).getData();
+				}
+
 				//TODO: DO we need to allow customization of active order statuses?
-				if (status.equals("o") || status.equals("1")){
+				if (isOrderItemValid(status, code3)){
 					orderItem.setStatus(status);
 					String location = curOrderField.getSubfield(orderLocationSubfield).getData();
 					if (!location.equals("multi")) {
@@ -413,6 +420,10 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 
 			return orderItems;
 		}
+	}
+
+	protected boolean isOrderItemValid(String status, String code3) {
+		return status.equals("o") || status.equals("1");
 	}
 
 	protected void loadEContentSourcesAndProtectionTypes(GroupedWorkSolr groupedWork, List<EContentIlsItem> econtentItems) {
