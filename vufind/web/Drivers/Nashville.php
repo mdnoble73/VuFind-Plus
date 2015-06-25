@@ -41,6 +41,38 @@ class Nashville extends MillenniumDriver{
 	public function __construct(){
 		$this->fixShortBarcodes = false;
 	}
+
+	/**
+	 * Initialize and configure curl connection
+	 */
+	public function _curl_connect($curl_url){
+		$header = array();
+		$header[0] = "Accept: text/xml,application/xml,application/xhtml+xml,";
+		$header[0] .= "text/html;q=0.9,text/plain;q=0.8,image/png,*/*;q=0.5";
+		$header[] = "Cache-Control: max-age=0";
+		$header[] = "Connection: keep-alive";
+		$header[] = "Accept-Charset: ISO-8859-1,utf-8;q=0.7,*;q=0.7";
+		$header[] = "Accept-Language: en-us,en;q=0.5";
+		$cookie_jar = tempnam ("/tmp", "CURLCOOKIE");
+		$curl_connection = curl_init();
+		curl_setopt($curl_connection, CURLOPT_CONNECTTIMEOUT, 30);
+		curl_setopt($curl_connection, CURLOPT_COOKIEJAR, $cookie_jar);
+		curl_setopt($curl_connection, CURLOPT_COOKIESESSION, true); // JAMES 20150617: ?
+		curl_setopt($curl_connection, CURLOPT_FOLLOWLOCATION, true);
+		curl_setopt($curl_connection, CURLOPT_FORBID_REUSE, false);
+		curl_setopt($curl_connection, CURLOPT_HEADER, false); // should set CURLOPT_HEADER to false[?] in production - JAMES 20140830
+		curl_setopt($curl_connection, CURLOPT_HTTPHEADER, $header);
+		curl_setopt($curl_connection, CURLOPT_RETURNTRANSFER, true); // should set CURLOPT_RETURNTRANSFER to true in production - JAMES 20140830
+		curl_setopt($curl_connection, CURLOPT_SSL_VERIFYPEER, true); // should set CURLOPT_SSL_VERIFYPEER to true in production - JAMES 20140830
+		curl_setopt($curl_connection, CURLOPT_UNRESTRICTED_AUTH, true);
+		curl_setopt($curl_connection, CURLOPT_USERAGENT,"Pika 2015.10.0");
+		curl_setopt($curl_connection, CURLOPT_URL, $curl_url);
+
+		curl_setopt($curl_connection, CURLOPT_HTTPGET, true);
+
+		return($curl_connection);
+	}                                        
+
 	/**
 	 * Login with barcode and pin
 	 *
@@ -80,6 +112,106 @@ class Nashville extends MillenniumDriver{
 				return null;
 			}
 		}else{
+			// if patron attempts to Create New PIN
+			if (isset($_REQUEST['password2']) && strlen($_REQUEST['password2']) > 0){
+				$this->_pin_create($barcode,$_REQUEST['password'],$_REQUEST['password2']);
+			}
+			// check barcode/pin credentials
+			$userValid = $this->_pin_test($barcode, $pin);
+			if ($userValid){
+				//Load the raw information about the patron
+				$patronDump = $this->_getPatronDump($barcode, true);
+				$Fullname = $patronDump['PATRN_NAME']; // James Staub chose this simpler route over some $Fullname replace acrobatics in Millennium.php 20131205
+				$nameParts = explode(',',$Fullname);
+				$lastname = strtolower($nameParts[0]);
+				$middlename = isset($nameParts[2]) ? strtolower($nameParts[2]) : ''; 
+				$firstname = isset($nameParts[1]) ? strtolower($nameParts[1]) : $middlename;
+				$user = array(
+					'id'		=> $barcode,
+					'username'	=> $patronDump['RECORD_#'],
+					'firstname'	=> $firstname,
+					'lastname'	=> $lastname,
+					'fullname'	=> $Fullname,	//Added to array for possible display later.
+					'cat_username'	=> $barcode,	//Should this be $Fullname or $patronDump['PATRN_NAME']
+		                	'cat_password'	=> $pin,
+	                		'email'		=> isset($patronDump['EMAIL_ADDR']) ? $patronDump['EMAIL_ADDR'] : '',
+	                		'major'		=> null,
+	                		'college'	=> null,
+					'patronType'	=> $patronDump['P_TYPE'],
+					'web_note'	=> isset($patronDump['WEB_NOTE']) ? $patronDump['WEB_NOTE'] : '');
+					$timer->logTime("patron logged in successfully");
+					return $user;
+			} else {
+				$timer->logTime("patron login failed");
+				return null;
+			}
+		}
+	}
+
+	public function _getLoginFormValues(){
+		global $user;
+		$loginData = array();
+		$loginData['pin'] = $user->cat_password;
+		$loginData['code'] = $user->cat_username;
+		$loginData['submit'] = 'submit';
+		return $loginData;
+	}
+
+	public function _getBarcode(){
+		global $user;
+		return $user->cat_username;
+	}
+
+	protected function _getHoldResult($holdResultPage){
+		$hold_result = array();
+		//Get rid of header and footer information and just get the main content
+		$matches = array();
+		if (preg_match('/success/', $holdResultPage)){
+			//Hold was successful
+			$hold_result['result'] = true;
+			if (!isset($reason) || strlen($reason) == 0){
+				$hold_result['message'] = 'Your hold was placed successfully';
+			}else{
+				$hold_result['message'] = $reason;
+			}
+		}else if (preg_match('/<font color="red" size="\+2">(.*?)<\/font>/is', $holdResultPage, $reason)){
+			//Got an error message back.
+			$hold_result['result'] = false;
+			$hold_result['message'] = $reason[1];
+		}else{
+			//Didn't get a reason back.  This really shouldn't happen.
+			$hold_result['result'] = false;
+			$hold_result['message'] = 'Did not receive a response from the circulation system.  Please try again in a few minutes.';
+		}
+		return $hold_result;
+	}
+
+	protected function _pin_test($barcode, $pin) {
+		global $configArray;
+		$pin = urlencode($pin);
+		$apiurl = $configArray['OPAC']['patron_host'] . "/PATRONAPI/$barcode/$pin/pintest";
+		$curl_connection = $this->_curl_connect($apiurl);
+		$api_contents = curl_exec($curl_connection);
+		curl_close($curl_connection);
+		$api_contents = trim(strip_tags($api_contents));
+		//$logger->log('PATRONAPI pintest response : ' . $api_contents, PEAR_LOG_DEBUG);
+		$api_array_lines = explode("\n", $api_contents);
+		foreach ($api_array_lines as $api_line) {
+			$api_line_arr = explode("=", $api_line);
+			$api_data[trim($api_line_arr[0])] = trim($api_line_arr[1]);
+		}
+		if (!isset($api_data['RETCOD'])){
+			$userValid = false;
+		}else if ($api_data['RETCOD'] == 0){
+			$userValid = true;
+		}else{
+			$userValid = false;
+		}
+		return $userValid;
+	}
+
+	protected function _pin_create($barcode, $pin1, $pin2) {
+		global $configArray;
 // Case: Millennium patron record does not have PIN. 
 // When a library uses IPSSO - Innovative Patron Single Sign On - the initial login does a redirect and requires additonal parameters.
 // ipsso.html ifpinneeded token is active. Need to do an actual login rather than just checking patron dump
@@ -91,36 +223,12 @@ class Nashville extends MillenniumDriver{
 // 6. PATRONAPI dump
 // 7. PATRONAPI pintest
 // 8. display PATRONAPI error messages
-// 9. redirect patron to /MyResearch/Home
-			if (isset($_REQUEST['password2']) && strlen($_REQUEST['password2']) > 0){
-				$header=array();
-				$header[0] = "Accept: text/xml,application/xml,application/xhtml+xml,";
-				$header[0] .= "text/html;q=0.9,text/plain;q=0.8,image/png,*/*;q=0.5";
-				$header[] = "Cache-Control: max-age=0";
-				$header[] = "Connection: keep-alive";
-				$header[] = "Accept-Charset: ISO-8859-1,utf-8;q=0.7,*;q=0.7";
-				$header[] = "Accept-Language: en-us,en;q=0.5";
-				$cookie = tempnam ("/tmp", "CURLCOOKIE");
-				$curl_connection = curl_init();
-				curl_setopt($curl_connection, CURLOPT_CONNECTTIMEOUT, 30);
-				curl_setopt($curl_connection, CURLOPT_HTTPHEADER, $header);
-				curl_setopt($curl_connection, CURLOPT_USERAGENT,"Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)");
-				curl_setopt($curl_connection, CURLOPT_RETURNTRANSFER, true); // should set CURLOPT_RETURNTRANSFER to true in production - JAMES 20140830
-				curl_setopt($curl_connection, CURLOPT_SSL_VERIFYPEER, true); // should set CURLOPT_SSL_VERIFYPEER to true in production - JAMES 20140830   
-				curl_setopt($curl_connection, CURLOPT_FOLLOWLOCATION, true);
-				curl_setopt($curl_connection, CURLOPT_UNRESTRICTED_AUTH, true);
-				curl_setopt($curl_connection, CURLOPT_COOKIEJAR, $cookie);
-				curl_setopt($curl_connection, CURLOPT_COOKIESESSION, true);
-				curl_setopt($curl_connection, CURLOPT_FORBID_REUSE, false);
-				curl_setopt($curl_connection, CURLOPT_HEADER, true); // should set CURLOPT_HEADER to false[?] in production - JAMES 20140830
-                                        
-				//Go to the login page to scrape the 'lt' value
-				$curl_url = $configArray['Catalog']['url'] . "/patroninfo";
-				curl_setopt($curl_connection, CURLOPT_URL, $curl_url);
-				curl_setopt($curl_connection, CURLOPT_HTTPGET, true);
-				$sresult = curl_exec($curl_connection);
-				//Scrape the 'lt' value from the IPSSO login page
-				if (preg_match('/<input type="hidden" name="lt" value="(.*?)" \/>/si', $sresult, $loginMatches)) {
+// 9. redirect patron to /MyAccount/Home
+		$curl_url = $configArray['Catalog']['url'] . "/patroninfo";
+		$curl_connection = $this->_curl_connect($curl_url);
+		$sresult = curl_exec($curl_connection);
+		//Scrape the 'lt' value from the IPSSO login page
+		if (preg_match('/<input type="hidden" name="lt" value="(.*?)" \/>/si', $sresult, $loginMatches)) {
 					$lt = $loginMatches[1];
 				//POST the first round - pin is blank
 				        $post_data['code'] = $barcode;
@@ -145,8 +253,8 @@ class Nashville extends MillenniumDriver{
 							$lt2 = $loginMatches[1];
 				//POST the second round - pin1 and pin2
 							$post_data['code'] = $barcode;
-							$post_data['pin1'] = $_REQUEST['password'];
-							$post_data['pin2'] = $_REQUEST['password2'];
+							$post_data['pin1'] = $pin1;
+							$post_data['pin2'] = $pin2;
 							$post_data['lt'] = $lt2;
 							$post_data['_eventId'] = 'submit';
 							$post_items = array();
@@ -184,102 +292,10 @@ class Nashville extends MillenniumDriver{
 				} else {
 					//echo("lt not found in sresult\n");
 				}
-				unlink($cookie);
-			}
-			//Load the raw information about the patron
-			$patronDump = $this->_getPatronDump($barcode, true);
-			//Check the pin number that was entered
-			$pin = urlencode($pin);
-			$patronDumpBarcode = $barcode;
-			$host=$configArray['OPAC']['patron_host'];
-			$apiurl = $host . "/PATRONAPI/$patronDumpBarcode/$pin/pintest";
-			$curlConnection = curl_init($apiurl);
-			curl_setopt($curlConnection, CURLOPT_CONNECTTIMEOUT, 30);
-			curl_setopt($curlConnection, CURLOPT_USERAGENT,"Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)");
-			curl_setopt($curlConnection, CURLOPT_RETURNTRANSFER, true);
-			curl_setopt($curlConnection, CURLOPT_SSL_VERIFYPEER, true);
-			curl_setopt($curlConnection, CURLOPT_FOLLOWLOCATION, 1);
-			curl_setopt($curlConnection, CURLOPT_UNRESTRICTED_AUTH, true);
-			//Setup encoding to ignore SSL errors for self signed certs
-			$api_contents = curl_exec($curlConnection);
-			curl_close($curlConnection);
-			$api_contents = trim(strip_tags($api_contents));
-			//$logger->log('PATRONAPI pintest response : ' . $api_contents, PEAR_LOG_DEBUG);
-			$api_array_lines = explode("\n", $api_contents);
-			foreach ($api_array_lines as $api_line) {
-				$api_line_arr = explode("=", $api_line);
-				$api_data[trim($api_line_arr[0])] = trim($api_line_arr[1]);
-			}
-			if (!isset($api_data['RETCOD'])){
-				$userValid = false;
-			}else if ($api_data['RETCOD'] == 0){
-				$userValid = true;
-			}else{
-				$userValid = false;
-			}
-			$Fullname = $patronDump['PATRN_NAME']; // James Staub chose this simpler route over some $Fullname replace acrobatics in Millennium.php 20131205
-			$nameParts = explode(',',$Fullname);
-			$lastname = strtolower($nameParts[0]);
-			$middlename = isset($nameParts[2]) ? strtolower($nameParts[2]) : ''; 
-			$firstname = isset($nameParts[1]) ? strtolower($nameParts[1]) : $middlename;
-			if ($userValid){
-				$user = array(
-					'id'		=> $barcode,
-					'username'	=> $patronDump['RECORD_#'],
-					'firstname'	=> $firstname,
-					'lastname'	=> $lastname,
-					'fullname'	=> $Fullname,	//Added to array for possible display later.
-					'cat_username'	=> $barcode,	//Should this be $Fullname or $patronDump['PATRN_NAME']
-		                	'cat_password'	=> $pin,
-	                		'email'		=> isset($patronDump['EMAIL_ADDR']) ? $patronDump['EMAIL_ADDR'] : '',
-	                		'major'		=> null,
-	                		'college'	=> null,
-					'patronType'	=> $patronDump['P_TYPE'],
-					'web_note'	=> isset($patronDump['WEB_NOTE']) ? $patronDump['WEB_NOTE'] : '');
-					$timer->logTime("patron logged in successfully");
-					return $user;
-			} else {
-				$timer->logTime("patron login failed");
-				return null;
-			}
-		}
+				//unlink($cookie_jar); // 20150617 JAMES commented out while messing around - need to ensure user1 doesn't accidentally get user2 info
 	}
-	public function _getLoginFormValues(){
-		global $user;
-		$loginData = array();
-		$loginData['pin'] = $user->cat_password;
-		$loginData['code'] = $user->cat_username;
-		$loginData['submit'] = 'submit';
-		return $loginData;
-	}
-	public function _getBarcode(){
-		global $user;
-		return $user->cat_username;
-	}
-	protected function _getHoldResult($holdResultPage){
-		$hold_result = array();
-		//Get rid of header and footer information and just get the main content
-		$matches = array();
-		if (preg_match('/success/', $holdResultPage)){
-			//Hold was successful
-			$hold_result['result'] = true;
-			if (!isset($reason) || strlen($reason) == 0){
-				$hold_result['message'] = 'Your hold was placed successfully';
-			}else{
-				$hold_result['message'] = $reason;
-			}
-		}else if (preg_match('/<font color="red" size="\+2">(.*?)<\/font>/is', $holdResultPage, $reason)){
-			//Got an error message back.
-			$hold_result['result'] = false;
-			$hold_result['message'] = $reason[1];
-		}else{
-			//Didn't get a reason back.  This really shouldn't happen.
-			$hold_result['result'] = false;
-			$hold_result['message'] = 'Did not receive a response from the circulation system.  Please try again in a few minutes.';
-		}
-		return $hold_result;
-	}
-	function updatePin(){
+
+	protected function updatePin(){
 		global $user;
 		global $configArray;
 		if (!$user){

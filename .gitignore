@@ -85,6 +85,7 @@ Thumbs.db
 # Dreamweaver Files #
 #####################
 [_]notes/
+*.LCK
 
 # File-watcher mishaps #
 ########################

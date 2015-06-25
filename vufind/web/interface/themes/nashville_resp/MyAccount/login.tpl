@@ -16,23 +16,29 @@
 				<div id ='loginPasswordRow' class='form-group'>
 					<label for="password" class='control-label col-xs-12 col-sm-4'>{$passwordLabel}: </label>
 					<div class='col-xs-12 col-sm-8'>
-						<input type="password" pattern="[0-9]*" name="password" id="password" size="28" onkeypress="return VuFind.submitOnEnter(event, '#loginForm');" class="form-control"/>
-						{if $showForgotPinLink}
-							<p class="help-block">
-								<strong>Forgot PIN?</strong> <a href="{$path}/MyResearch/EmailPin">E-mail my PIN</a>
-							</p>
-						{/if}
-
-						{if $enableSelfRegistration == 1}
-							<p class="help-block">
-								Don't have a library card?  <a href='{$path}/MyAccount/SelfReg'>Register for a new Library Card</a>.
-							</p>
-						{/if}
+						<input type="password" pattern="[0-9]*" name="password" id="password" size="28" class="form-control"/>
 					</div>
-
+				</div>
+ 				<div id ='loginPasswordConfirmRow' class='form-group' style="display:none">
+					<label for="password2" class='control-label col-xs-12 col-sm-4'>{translate text='Confirm pin #'}: </label>
+					<div class='col-xs-12 col-sm-8'>
+						<input type="password" pattern="[0-9]*" name="password2" id="password2" size="28" class="form-control"/>
+					</div>
 				</div>
 				<div id ='loginPasswordRow2' class='form-group'>
 					<div class='col-xs-12 col-sm-offset-4 col-sm-8'>
+						<p class='help-block'><a href="#" onclick="document.getElementById('loginPasswordConfirmRow').style.display='block';">Create new PIN</p>
+						{if $showForgotPinLink}
+							<p class="help-block">
+								<strong><a href="{$path}/MyResearch/EmailPin">Forgot PIN?</a></strong>
+							</p>
+						{/if}
+						{if $enableSelfRegistration == 1}
+							<p class="help-block">
+								<a href='{$path}/MyAccount/SelfReg'>Get a Card</a>
+							</p>
+						{/if}
+
 						<label for="showPwd" class="checkbox">
 							<input type="checkbox" id="showPwd" name="showPwd" onclick="return VuFind.pwdToText('password')"/>
 							{translate text="Reveal Password"}
