@@ -117,7 +117,7 @@ VuFind.Browse = (function(){
 			// Set the new browse category labels (below the carousel)
 			$('.selected-browse-label-search-text,.selected-browse-sub-category-label-search-text').fadeOut(function(){
 				$('.selected-browse-label-search-text').html(newLabel).fadeIn();
-				$('#selected-browse-search-link').attr('href', '')
+				$('#selected-browse-search-link').attr('href', '#')
 			});
 
 			// Hide current sub-categories while fetching new ones
