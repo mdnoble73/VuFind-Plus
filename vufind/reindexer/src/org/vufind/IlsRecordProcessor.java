@@ -380,7 +380,10 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 					orderItem.setCopies(Integer.parseInt(curOrderField.getSubfield(orderCopiesSubfield).getData()));
 				}
 
-				String status = curOrderField.getSubfield(orderStatusSubfield).getData();
+				String status = "";
+				if (curOrderField.getSubfield(orderStatusSubfield) != null) {
+					status = curOrderField.getSubfield(orderStatusSubfield).getData();
+				}
 				String code3 = null;
 				if (orderCode3Subfield != ' ' && curOrderField.getSubfield(orderCode3Subfield) != null){
 					code3 = curOrderField.getSubfield(orderCode3Subfield).getData();
