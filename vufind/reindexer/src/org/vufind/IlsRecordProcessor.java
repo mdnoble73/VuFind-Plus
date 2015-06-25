@@ -382,7 +382,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 
 				String status = curOrderField.getSubfield(orderStatusSubfield).getData();
 				String code3 = null;
-				if (orderCode3Subfield != ' '){
+				if (orderCode3Subfield != ' ' && curOrderField.getSubfield(orderCode3Subfield) != null){
 					code3 = curOrderField.getSubfield(orderCode3Subfield).getData();
 				}
 
