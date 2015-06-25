@@ -416,6 +416,8 @@ class GroupedWork_AJAX {
 			global $interface;
 			$interface->assign('review', $groupedWorkReview);
 			$result['reviewHtml'] = $interface->fetch('GroupedWork/view-user-review.tpl');
+
+		//TODO update side bar as well? call appropriate driver?
 		}
 
 		return json_encode($result);
