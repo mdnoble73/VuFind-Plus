@@ -167,7 +167,8 @@ public class HooplaProcessor extends MarcRecordProcessor {
 		//TODO: Popularity - Hoopla
 		groupedWork.addPopularity(1);
 
-		//TODO: Date added, could this be done based of date first detected in Pika?
+		//Date added, based of date first detected in Pika
+		groupedWork.setDateAdded(indexer.getDateFirstDetected(identifier), owningLocationCodesAndSubdomains);
 
 		//Related Record
 		//TODO: add url? or add url within an item record

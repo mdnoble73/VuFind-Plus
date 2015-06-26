@@ -931,7 +931,7 @@ public class GroupedWorkSolr {
 		targetAudienceFull.add(target_audience);
 	}
 
-	public void setDateAdded(Date date, ArrayList<String> relatedLocations){
+	public void setDateAdded(Date date, Collection<String> relatedLocations){
 		if (dateAdded == null || date.before(dateAdded)){
 			dateAdded = date;
 		}

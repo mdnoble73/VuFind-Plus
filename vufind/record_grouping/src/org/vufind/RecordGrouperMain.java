@@ -11,13 +11,13 @@ import org.json.JSONObject;
 import org.marc4j.MarcPermissiveStreamReader;
 import org.marc4j.MarcReader;
 import org.marc4j.MarcStreamWriter;
-import org.marc4j.marc.DataField;
-import org.marc4j.marc.Record;
-import org.marc4j.marc.Subfield;
-import org.marc4j.marc.VariableField;
+import org.marc4j.marc.*;
 
 import java.io.*;
+import java.nio.file.*;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.sql.*;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.Date;
@@ -39,6 +39,7 @@ public class RecordGrouperMain {
 	public static String groupedWorkPrimaryIdentifiersTableName = "grouped_work_primary_identifiers";
 
 	private static HashMap<String, Long> marcRecordChecksums = new HashMap<String, Long>();
+	private static HashMap<String, Long> marcRecordFirstDetectionDates = new HashMap<String, Long>();
 	private static HashSet<String> marcRecordIdsInDatabase = new HashSet<String>();
 	private static PreparedStatement insertMarcRecordChecksum;
 	private static PreparedStatement removeMarcRecordChecksum;
@@ -1175,7 +1176,7 @@ public class RecordGrouperMain {
 	private static void loadIlsChecksums(Connection vufindConn) {
 		//Load MARC Existing MARC Record checksums from VuFind
 		try{
-			insertMarcRecordChecksum = vufindConn.prepareStatement("INSERT INTO ils_marc_checksums (ilsId, checksum) VALUES (?, ?) ON DUPLICATE KEY UPDATE checksum = VALUES(checksum)");
+			insertMarcRecordChecksum = vufindConn.prepareStatement("INSERT INTO ils_marc_checksums (ilsId, checksum, dateFirstDetected) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE checksum = VALUES(checksum), dateFirstDetected=VALUES(dateFirstDetected)");
 			removeMarcRecordChecksum = vufindConn.prepareStatement("DELETE FROM ils_marc_checksums WHERE ilsId = ?");
 
 			//MDN 2/23/2015 - Always load checksums so we can optimize writing to the database
@@ -1183,6 +1184,10 @@ public class RecordGrouperMain {
 			ResultSet ilsMarcChecksumRS = loadIlsMarcChecksums.executeQuery();
 			while (ilsMarcChecksumRS.next()){
 				marcRecordChecksums.put(ilsMarcChecksumRS.getString("ilsId"), ilsMarcChecksumRS.getLong("checksum"));
+				marcRecordFirstDetectionDates.put(ilsMarcChecksumRS.getString("ilsId"), ilsMarcChecksumRS.getLong("dateFirstDetected"));
+				if (ilsMarcChecksumRS.wasNull()){
+					marcRecordFirstDetectionDates.put(ilsMarcChecksumRS.getString("ilsId"), null);
+				}
 				marcRecordIdsInDatabase.add(ilsMarcChecksumRS.getString("ilsId"));
 			}
 			ilsMarcChecksumRS.close();
@@ -1432,6 +1437,8 @@ public class RecordGrouperMain {
 		return numRecordsProcessed;
 	}
 
+	private static SimpleDateFormat oo8DateFormat = new SimpleDateFormat("yyMMdd");
+	private static SimpleDateFormat oo5DateFormat = new SimpleDateFormat("yyyyMMdd");
 	private static boolean writeIndividualMarc(HashSet<String> existingMarcFiles, String individualMarcPath, Record marcRecord, String recordNumber, int numCharsInPrefix) {
 		boolean marcRecordUpToDate = false;
 		//Copy the record to the individual marc path
@@ -1450,10 +1457,17 @@ public class RecordGrouperMain {
 			if (!marcRecordUpToDate){
 				try {
 					outputMarcRecord(marcRecord, individualFile);
+					getDateAddedForRecord(marcRecord, recordNumber, individualFile);
 					updateMarcRecordChecksum(recordNumber, checksum);
 					//logger.debug("checksum changed for " + recordNumber + " was " + existingChecksum + " now its " + checksum);
 				} catch (IOException e) {
 					logger.error("Error writing marc", e);
+				}
+			}else {
+				//Update date first detected if needed
+				if (marcRecordFirstDetectionDates.containsKey(recordNumber) && marcRecordFirstDetectionDates.get(recordNumber) == null){
+					getDateAddedForRecord(marcRecord, recordNumber, individualFile);
+					updateMarcRecordChecksum(recordNumber, checksum);
 				}
 			}
 		}else{
@@ -1461,6 +1475,53 @@ public class RecordGrouperMain {
 			marcRecordUpToDate = true;
 		}
 		return marcRecordUpToDate;
+	}
+
+	private static void getDateAddedForRecord(Record marcRecord, String recordNumber, File individualFile) {
+		//Set first detection date based on the creation date of the file
+		if (individualFile.exists()){
+			Path filePath = individualFile.toPath();
+			try {
+				//First get the date we first saw the file
+				BasicFileAttributes attributes = Files.readAttributes(filePath, BasicFileAttributes.class);
+				long timeAdded = attributes.creationTime().toMillis() / 1000;
+				//Check within the bib to see if there is an earlier date, first the 008
+				//Which should contain the creation date
+				ControlField oo8 = (ControlField)marcRecord.getVariableField("008");
+				if (oo8 != null){
+					if (oo8.getData().length() >= 6){
+						String dateAddedStr = oo8.getData().substring(0, 6);
+						try {
+							Date dateAdded = oo8DateFormat.parse(dateAddedStr);
+							if (dateAdded.getTime() / 1000 < timeAdded){
+								timeAdded = dateAdded.getTime() / 1000;
+							}
+						}catch(ParseException e){
+							//Could not parse the date, but that's ok
+						}
+					}
+				}
+				//Now the 005 which has last transaction date.   Not ideal, but ok if it's earlier than
+				//what we have.
+				ControlField oo5 = (ControlField)marcRecord.getVariableField("005");
+				if (oo5 != null){
+					if (oo5.getData().length() >= 8){
+						String dateAddedStr = oo5.getData().substring(0, 8);
+						try {
+							Date dateAdded = oo5DateFormat.parse(dateAddedStr);
+							if (dateAdded.getTime() / 1000 < timeAdded){
+								timeAdded = dateAdded.getTime() / 1000;
+							}
+						}catch(ParseException e){
+							//Could not parse the date, but that's ok
+						}
+					}
+				}
+				marcRecordFirstDetectionDates.put(recordNumber, timeAdded);
+			}catch (Exception e){
+				logger.debug("Error loading creation time for " + filePath, e);
+			}
+		}
 	}
 
 	private static boolean checkIfIndividualMarcFileExists(HashSet<String> existingMarcFiles, Boolean marcRecordUpToDate, File individualFile) {
@@ -1512,6 +1573,11 @@ public class RecordGrouperMain {
 		try{
 			insertMarcRecordChecksum.setString(1, recordNumber);
 			insertMarcRecordChecksum.setLong(2, checksum);
+			if (marcRecordFirstDetectionDates.containsKey(recordNumber) && marcRecordFirstDetectionDates.get(recordNumber) != null){
+				insertMarcRecordChecksum.setLong(3, marcRecordFirstDetectionDates.get(recordNumber));
+			}else {
+				insertMarcRecordChecksum.setLong(3, new Date().getTime() / 1000);
+			}
 			insertMarcRecordChecksum.executeUpdate();
 		}catch (SQLException e){
 			logger.error("Unable to update checksum for ils marc record", e);
