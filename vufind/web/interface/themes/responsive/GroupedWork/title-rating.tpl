@@ -1,6 +1,7 @@
 {if $showRatings == 1}
 	<div{if $ratingClass} class="{$ratingClass} rate{$summId}"{/if}>
-		<div class="title-rating" onclick="return VuFind.GroupedWork.showReviewForm(this, '{$summId}');">
+		{*<div class="title-rating" onclick="return VuFind.GroupedWork.showReviewForm(this, '{$summId}');">*}
+		<div class="title-rating rater" {*onclick="return VuFind.GroupedWork.showReviewForm(this, '{$summId}');"*}>
 			<span class="ui-rater-starsOff" style="width:90px">
 				{if $ratingData.user}
 					<span class="ui-rater-starsOn userRated" style="width:{math equation="90*rating/5" rating=$ratingData.user}px"></span>

@@ -16,10 +16,12 @@
 		<script src="{$path}/interface/themes/responsive/js/lib/jquery.tablesorter.min.js"></script>
 		<script src="{$path}/interface/themes/responsive/js/lib/jquery.tablesorter.pager.min.js"></script>
 		<script src="{$path}/interface/themes/responsive/js/lib/jquery.tablesorter.widgets.min.js"></script>
+		{*<script src="{$path}/interface/themes/responsive/js/lib/jquery.validate.js"></script>*}
 		<script src="{$path}/interface/themes/responsive/js/lib/jquery.validate.min.js"></script>
 
 		<script src="{$path}/interface/themes/responsive/js/lib/recaptcha_ajax.js"></script>
-		<script src="{$path}/interface/themes/responsive/js/lib/rater.min.js"></script>
+		{*<script src="{$path}/interface/themes/responsive/js/lib/rater.min.js"></script>*}
+		<script src="{$path}/interface/themes/responsive/js/lib/rater.js"></script>
 		<script src="{$path}/interface/themes/responsive/js/lib/bootstrap.min.js"></script>
 		<script src="{$path}/interface/themes/responsive/js/lib/jcarousel.js"></script>
 		<script src="{$path}/interface/themes/responsive/js/lib/bootstrap-datepicker.js"></script>

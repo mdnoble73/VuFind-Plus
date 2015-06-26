@@ -291,26 +291,26 @@ class GroupedWork_AJAX {
 		$rating = $_REQUEST['rating'];
 		//Save the rating
 		$workReview = new UserWorkReview();
-		$workReview->groupedRecordPermanentId = $_GET['id'];
+		$workReview->groupedRecordPermanentId = $_REQUEST['id'];
 		$workReview->userId = $user->id;
 		$newReview = false;
 		if (!$workReview->find(true)) {
 			$newReview = true;
 		}
 		$workReview->rating = $rating;
-		$workReview->dateRated = time();
 		$workReview->review = '';
 		if ($newReview){
+			$workReview->dateRated = time(); // moved to be consistent with add review behaviour
 			$workReview->insert();
 		}else{
 			$workReview->update();
 		}
 
-		$analytics->addEvent('User Enrichment', 'Rate Title', $_GET['id']);
+		$analytics->addEvent('User Enrichment', 'Rate Title', $_REQUEST['id']);
 
 		/** @var Memcache $memCache */
 		global $memCache;
-		$memCache->delete('rating_' . $_GET['id']);
+		$memCache->delete('rating_' . $_REQUEST['id']);
 
 		return $rating;
 	}

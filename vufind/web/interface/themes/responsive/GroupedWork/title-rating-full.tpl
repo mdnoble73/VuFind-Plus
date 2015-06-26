@@ -2,9 +2,12 @@
 {strip}
 <div class="full-rating">
 	{if $showRatings}
-
 	{if $ratingData.user}
-		<div class="your-rating row" onclick="return VuFind.GroupedWork.showReviewForm(this, '{$recordDriver->getPermanentId()}')">
+		<div class="your-rating row rater" {*onclick="return VuFind.GroupedWork.showReviewForm(this, '{$recordDriver->getPermanentId()}')"*}
+						{* AJAX rater data fields *}
+						data-module="GroupedWork" data-user_rating="{$ratingData.user}" data-average_rating="{$ratingData.average}" data-id="{$recordDriver->getPermanentId()}"
+		        data-show_review="{$showComments}"
+						>
 			<div class="rating-label col-sm-7">Your Rating</div>
 			<div class="col-sm-5">
 				<span class="ui-rater-starsOff" style="width:90px">
@@ -14,7 +17,7 @@
 		</div>
 	{/if}
 
-	<div class="average-rating row" onclick="return VuFind.GroupedWork.showReviewForm(this, '{$recordDriver->getPermanentId()}')">
+	<div class="average-rating row{if !$ratingData.user} rater{/if}" {*onclick="return VuFind.GroupedWork.showReviewForm(this, '{$recordDriver->getPermanentId()}')"*}>
 		<div class="rating-label col-sm-6">Average Rating</div>
 		<div class="col-sm-6">
 			<span class="ui-rater-starsOff" style="width:90px">

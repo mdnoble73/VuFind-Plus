@@ -406,12 +406,10 @@ VuFind.GroupedWork = (function(){
 			if (Globals.loggedIn){
 				var modalDialog = $("#modalDialog");
 				$.getJSON(Globals.path + "/GroupedWork/AJAX?method=getReviewForm&id=" + id, function(data){
-					$('#myModalLabel').html(data.title);
-					$('.modal-body').html(data.modalBody);
-					$('.modal-buttons').html(data.modalButtons);
+					VuFind.showMessageWithButtons(data.title, data.modalBody, data.modalButtons);
+				}).fail(function(){
+					VuFind.showMessage('Request Failed', 'There was an error with this AJAX Request.');
 				});
-				modalDialog.load( );
-				modalDialog.modal('show');
 			}else{
 				VuFind.Account.ajaxLogin($trigger, function (){
 					return VuFind.GroupedWork.showReviewForm($trigger, id);
