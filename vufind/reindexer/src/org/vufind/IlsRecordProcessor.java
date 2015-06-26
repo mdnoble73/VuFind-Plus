@@ -301,6 +301,16 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 			step = "load scoped data";
 			HashSet<IlsRecord> ilsRecords = addRecordAndItemsToAppropriateScopesAndLoadFormats(groupedWork, record, printItems, econtentItems, onOrderItems);
 
+			if (onOrderItems.size() > 0){
+				groupedWork.addKeywords("On Order");
+				groupedWork.addKeywords("Coming Soon");
+				HashSet<String> additionalOrderSubjects = new HashSet<String>();
+				additionalOrderSubjects.add("On Order");
+				additionalOrderSubjects.add("Coming Soon");
+				groupedWork.addTopic(additionalOrderSubjects);
+				groupedWork.addTopicFacet(additionalOrderSubjects);
+			}
+
 			//Do updates based on the overall bib (shared regardless of scoping)
 			step = "update work based on standard data";
 			updateGroupedWorkSolrDataBasedOnStandardMarcData(groupedWork, record, printItems);
