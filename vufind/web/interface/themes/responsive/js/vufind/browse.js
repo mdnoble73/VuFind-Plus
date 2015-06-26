@@ -114,10 +114,11 @@ VuFind.Browse = (function(){
 			$('.browse-category').removeClass('selected');
 			$('#browse-category-' + categoryTextId).addClass('selected');
 
+			$('#selected-browse-search-link').attr('href', '#'); // clear the search results link so that
+
 			// Set the new browse category labels (below the carousel)
 			$('.selected-browse-label-search-text,.selected-browse-sub-category-label-search-text').fadeOut(function(){
-				$('.selected-browse-label-search-text').html(newLabel).fadeIn();
-				$('#selected-browse-search-link').attr('href', '#')
+				$('.selected-browse-label-search-text').html(newLabel).fadeIn()
 			});
 
 			// Hide current sub-categories while fetching new ones
@@ -162,6 +163,7 @@ VuFind.Browse = (function(){
 		},
 
 		changeBrowseSubCategory: function (subCategoryTextId) {
+			console.log('change Browse Sub Category');
 			var url = Globals.path + '/Browse/AJAX',
 					params = {
 						method : 'getBrowseSubCategoryInfo'
@@ -236,7 +238,7 @@ VuFind.Browse = (function(){
 						,pageToLoad : this.curPage + 1
 						,browseMode : this.browseMode
 					},
-					divClass = this.browseModeClasses[this.browseMode];
+					divClass = this.browseModeClasses[this.browseMode]; //|| this.browseModeClasses[Object.keys(this.browseModeClasses)[0]]; // if browseMode isn't set grab the first class
 			$.getJSON(url, params, function(data){
 				if (data.result == false){
 					VuFind.showMessage("Error loading browse information", "Sorry, we were not able to find titles for that category");
