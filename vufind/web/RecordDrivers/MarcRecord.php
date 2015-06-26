@@ -1194,17 +1194,17 @@ class MarcRecord extends IndexRecord
 		if ($sysDetailsValue != null) {
 			if (strpos($sysDetailsValue, "playaway") !== FALSE) {
 				$result[] =  "Playaway";
-			} else if (strpos($sysDetailsValue, "xbox one") !== FALSE) {
+			} else if (strpos($sysDetailsValue, "xbox one") !== FALSE && strpos($sysDetailsValue, 'compatible') === FALSE) {
 				$result[] =  "Xbox One";
 			} else if (strpos($sysDetailsValue, "kinect sensor") !== FALSE) {
 				$result[] =  "Xbox 360 Kinect";
-			} else if (strpos($sysDetailsValue, "xbox") !== FALSE) {
+			} else if (strpos($sysDetailsValue, "xbox") !== FALSE && strpos($sysDetailsValue, 'compatible') === FALSE) {
 				$result[] =  "Xbox 360";
-			} else if (strpos($sysDetailsValue, "playstation 4") !== FALSE) {
+			} else if (strpos($sysDetailsValue, "playstation 4") !== FALSE && strpos($sysDetailsValue, 'compatible') === FALSE) {
+				$result[] =  "PlayStation 4";
+			} else if (strpos($sysDetailsValue, "playstation 3") !== FALSE && strpos($sysDetailsValue, 'compatible') === FALSE) {
 				$result[] =  "PlayStation 3";
-			} else if (strpos($sysDetailsValue, "playstation 3") !== FALSE) {
-				$result[] =  "PlayStation 3";
-			} else if (strpos($sysDetailsValue, "playstation") !== FALSE) {
+			} else if (strpos($sysDetailsValue, "playstation") !== FALSE && strpos($sysDetailsValue, 'compatible') === FALSE) {
 				$result[] =  "PlayStation";
 			} else if (strpos($sysDetailsValue, "wii u") !== FALSE) {
 				$result[] =  "Nintendo Wii U";
