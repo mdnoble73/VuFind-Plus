@@ -58,6 +58,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 	//Fields for loading order information
 	protected String orderTag;
 	protected char orderLocationSubfield;
+	protected char orderLocationsSubfield;
 	protected char orderCopiesSubfield;
 	protected char orderStatusSubfield;
 	protected char orderCode3Subfield;
@@ -106,6 +107,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 
 		orderTag = configIni.get("Reindex", "orderTag");
 		orderLocationSubfield = getSubfieldIndicatorFromConfig(configIni, "orderLocationSubfield");
+		orderLocationsSubfield  = getSubfieldIndicatorFromConfig(configIni, "orderLocationsSubfield");
 		orderCopiesSubfield = getSubfieldIndicatorFromConfig(configIni, "orderCopiesSubfield");
 		orderStatusSubfield = getSubfieldIndicatorFromConfig(configIni, "orderStatusSubfield");
 		orderCode3Subfield = getSubfieldIndicatorFromConfig(configIni, "orderCode3Subfield");
@@ -369,59 +371,88 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 
 			List<DataField> orderFields = getDataFields(record, orderTag);
 			for (DataField curOrderField : orderFields){
-				OnOrderItem orderItem = new OnOrderItem();
-				orderItem.setBibNumber(identifier);
-				String orderNumber = curOrderField.getSubfield('a').getData();
-				orderItem.setOrderNumber(orderNumber);
-				if (curOrderField.getSubfield(orderCopiesSubfield) == null){
-					//Assume one copy
-					orderItem.setCopies(1);
-				}else{
-					orderItem.setCopies(Integer.parseInt(curOrderField.getSubfield(orderCopiesSubfield).getData()));
-				}
+				String location = curOrderField.getSubfield(orderLocationSubfield).getData();
 
-				String status = "";
-				if (curOrderField.getSubfield(orderStatusSubfield) != null) {
-					status = curOrderField.getSubfield(orderStatusSubfield).getData();
-				}
-				String code3 = null;
-				if (orderCode3Subfield != ' ' && curOrderField.getSubfield(orderCode3Subfield) != null){
-					code3 = curOrderField.getSubfield(orderCode3Subfield).getData();
-				}
-
-				//TODO: DO we need to allow customization of active order statuses?
-				if (isOrderItemValid(status, code3)){
-					orderItem.setStatus(status);
-					String location = curOrderField.getSubfield(orderLocationSubfield).getData();
-					if (!location.equals("multi")) {
-						orderItem.setLocationCode(location.trim());
-						for (Scope curScope : indexer.getScopes()) {
-							//Part of scope if the location code is included directly
-							//or if the scope is not limited to only including library/location codes.
-							boolean includedDirectly = curScope.isLocationCodeIncludedDirectly(location, location);
-							if ((!curScope.isIncludeItemsOwnedByTheLibraryOnly() && !curScope.isIncludeItemsOwnedByTheLocationOnly()) ||
-									includedDirectly) {
-								if (includedDirectly) {
-									orderItem.addScopeThisItemIsDirectlyIncludedIn(curScope.getScopeName());
-								}
-								orderItem.addRelatedScope(curScope);
+				int copies = 1;
+				if (location.equals("multi") && orderLocationsSubfield != ' '){
+					//If the location is multi, we actually have several records that should be processed separately
+					List<Subfield> detailedLocationSubfield = curOrderField.getSubfields(orderLocationsSubfield);
+					if (detailedLocationSubfield.size() == 0){
+						//Didn't get detailed locations, just fallback on the old method
+						if (curOrderField.getSubfield(orderCopiesSubfield) != null){
+							copies = Integer.parseInt(curOrderField.getSubfield(orderCopiesSubfield).getData());
+						}
+						createAndAddOrderItem(identifier, curOrderField, location, copies, orderItems);
+					} else{
+						for (Subfield curLocationSubfield : detailedLocationSubfield){
+							String curLocation = curLocationSubfield.getData();
+							if (curLocation.startsWith("(")){
+								//There are multiple copies for this location
+								copies = Integer.parseInt(curLocation.substring(1, curLocation.indexOf(")")));
+								curLocation = curLocation.substring(curLocation.indexOf(")"));
+							}else{
+								copies = 1;
 							}
+							createAndAddOrderItem(identifier, curOrderField, curLocation, copies, orderItems);
 						}
-						orderItems.add(orderItem);
-					}else{
-						orderItem.setLocationCode(location.trim());
-						for (Scope curScope : indexer.getScopes()) {
-							//Part of scope if the location code is included directly
-							//or if the scope is not limited to only including library/location codes.
-							orderItem.addRelatedScope(curScope);
-							orderItem.addScopeThisItemIsDirectlyIncludedIn(curScope.getScopeName());
-						}
-						orderItems.add(orderItem);
 					}
+				}else{
+					if (curOrderField.getSubfield(orderCopiesSubfield) != null){
+						copies = Integer.parseInt(curOrderField.getSubfield(orderCopiesSubfield).getData());
+					}
+					createAndAddOrderItem(identifier, curOrderField, location, copies, orderItems);
 				}
 			}
 
 			return orderItems;
+		}
+	}
+
+	private void createAndAddOrderItem(String identifier, DataField curOrderField, String location, int copies, ArrayList<OnOrderItem> orderItems) {
+		OnOrderItem orderItem = new OnOrderItem();
+		orderItem.setBibNumber(identifier);
+		String orderNumber = curOrderField.getSubfield('a').getData();
+		orderItem.setOrderNumber(orderNumber);
+		orderItem.setCopies(copies);
+
+		String status = "";
+		if (curOrderField.getSubfield(orderStatusSubfield) != null) {
+			status = curOrderField.getSubfield(orderStatusSubfield).getData();
+		}
+		String code3 = null;
+		if (orderCode3Subfield != ' ' && curOrderField.getSubfield(orderCode3Subfield) != null){
+			code3 = curOrderField.getSubfield(orderCode3Subfield).getData();
+		}
+
+		//TODO: DO we need to allow customization of active order statuses?
+		if (isOrderItemValid(status, code3)){
+			orderItem.setStatus(status);
+
+			if (!location.equals("multi")) {
+				orderItem.setLocationCode(location.trim());
+				for (Scope curScope : indexer.getScopes()) {
+					//Part of scope if the location code is included directly
+					//or if the scope is not limited to only including library/location codes.
+					boolean includedDirectly = curScope.isLocationCodeIncludedDirectly(location, location);
+					if ((!curScope.isIncludeItemsOwnedByTheLibraryOnly() && !curScope.isIncludeItemsOwnedByTheLocationOnly()) ||
+							includedDirectly) {
+						if (includedDirectly) {
+							orderItem.addScopeThisItemIsDirectlyIncludedIn(curScope.getScopeName());
+						}
+						orderItem.addRelatedScope(curScope);
+					}
+				}
+				orderItems.add(orderItem);
+			}else{
+				orderItem.setLocationCode(location.trim());
+				for (Scope curScope : indexer.getScopes()) {
+					//Part of scope if the location code is included directly
+					//or if the scope is not limited to only including library/location codes.
+					orderItem.addRelatedScope(curScope);
+					orderItem.addScopeThisItemIsDirectlyIncludedIn(curScope.getScopeName());
+				}
+				orderItems.add(orderItem);
+			}
 		}
 	}
 
@@ -1386,6 +1417,8 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 			printFormats.remove("Book");
 		}else if (printFormats.contains("Book") && printFormats.contains("BookClubKit")){
 			printFormats.remove("Book");
+		}else if (printFormats.contains("Book") && printFormats.contains("Kit")){
+			printFormats.remove("Book");
 		}else if (printFormats.contains("Book") && printFormats.contains("Manuscript")){
 			printFormats.remove("Manuscript");
 		}else if (printFormats.contains("Kinect") || printFormats.contains("XBox360")
@@ -1498,15 +1531,15 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 					result.add("Playaway");
 				} else if (sysDetailsValue.contains("kinect sensor")) {
 					result.add("Kinect");
-				} else if (sysDetailsValue.contains("xbox one")) {
+				} else if (sysDetailsValue.contains("xbox one") && !sysDetailsValue.contains("compatible")) {
 					result.add("XboxOne");
-				} else if (sysDetailsValue.contains("xbox")) {
+				} else if (sysDetailsValue.contains("xbox") && !sysDetailsValue.contains("compatible")) {
 					result.add("Xbox360");
-				} else if (sysDetailsValue.contains("playstation 4")) {
+				} else if (sysDetailsValue.contains("playstation 4") && !sysDetailsValue.contains("compatible")) {
 					result.add("PlayStation4");
-				} else if (sysDetailsValue.contains("playstation 3")) {
+				} else if (sysDetailsValue.contains("playstation 3") && !sysDetailsValue.contains("compatible")) {
 					result.add("PlayStation3");
-				} else if (sysDetailsValue.contains("playstation")) {
+				} else if (sysDetailsValue.contains("playstation") && !sysDetailsValue.contains("compatible")) {
 					result.add("PlayStation");
 				} else if (sysDetailsValue.contains("wii u")) {
 					result.add("WiiU");
