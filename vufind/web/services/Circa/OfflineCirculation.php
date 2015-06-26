@@ -12,7 +12,7 @@ class Circa_OfflineCirculation extends Action{
 	function launch()
 	{
 		global $interface, $configArray;
-		$results = '';
+		$error = '';
 
 		if (isset($_POST['submit'])){
 			require_once ROOT_DIR . '/sys/OfflineCirculationEntry.php';
@@ -30,11 +30,11 @@ class Circa_OfflineCirculation extends Action{
 
 			$loginInfoValid = true;
 			if (strlen($login) == 0){
-				$results .= "Please enter your login";
+				$error .= "Please enter your login.<br>";
 				$loginInfoValid = false;
 			}
 			if (strlen($password1) == 0){
-				$results .= "Please enter your login password";
+				$error .= "Please enter your login password.<br>";
 				$loginInfoValid = false;
 			}
 			/*if (strlen($initials) == 0){
@@ -95,16 +95,18 @@ class Circa_OfflineCirculation extends Action{
 							if ($offlineCirculationEntry->insert()){
 								$numItemsCheckedOut++;
 							}else{
-								$results .= "Could not check out item $barcode to patron {$patronBarcode}.<br/>";
+								$error .= "Could not check out item $barcode to patron {$patronBarcode}.<br>";
 							}
 						}
 					}
 				}
-				$results .= "Successfully checked out {$numItemsCheckedOut} items to patron {$patronBarcode}.<br/>";
+				$results = "Successfully checked out <strong>{$numItemsCheckedOut}</strong> items to patron <strong>{$patronBarcode}</strong>.<br>";
 			}
+			if (isset($results)) $interface->assign('results', $results);
+			else $error .= 'No Items were checked out.<br>';
 		}
 
-		$interface->assign('results', $results);
+		$interface->assign('error', $error);
 
 		$ils_name = $configArray['Catalog']['ils'] ? $configArray['Catalog']['ils'] : 'ILS';
 		$interface->assign('ILSname', $ils_name);
