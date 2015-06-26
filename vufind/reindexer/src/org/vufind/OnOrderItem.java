@@ -62,6 +62,10 @@ public class OnOrderItem {
 		this.locationCode = locationCode;
 	}
 
+	public String getLocationCode(){
+		return this.locationCode;
+	}
+
 	public int getCopies() {
 		return copies;
 	}
