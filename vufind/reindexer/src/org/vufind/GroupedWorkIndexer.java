@@ -65,8 +65,9 @@ public class GroupedWorkIndexer {
 	private TreeSet<Scope> scopes = new TreeSet<Scope>();
 	private ArrayList<String> scopeNames = new ArrayList<String>();
 
-	PreparedStatement getGroupedWorkPrimaryIdentifiers;
-	PreparedStatement getGroupedWorkIdentifiers;
+	private PreparedStatement getGroupedWorkPrimaryIdentifiers;
+	private PreparedStatement getGroupedWorkIdentifiers;
+	private PreparedStatement getDateFirstDetectedStmt;
 
 	public GroupedWorkIndexer(String serverName, Connection vufindConn, Connection econtentConn, Ini configIni, boolean fullReindex, Logger logger) {
 		indexStartTime = new Date().getTime() / 1000;
@@ -126,6 +127,8 @@ public class GroupedWorkIndexer {
 			getGroupedWorkIdentifiers = vufindConn.prepareStatement("SELECT * FROM grouped_work_identifiers inner join grouped_work_identifiers_ref on identifier_id = grouped_work_identifiers.id where grouped_work_id = ?", ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_READ_ONLY);
 			//TODO: Restore this functionality
 			//getGroupedWorkIdentifiers = vufindConn.prepareStatement("SELECT * FROM grouped_work_identifiers inner join grouped_work_identifiers_ref on identifier_id = grouped_work_identifiers.id where grouped_work_id = ? and valid_for_enrichment = 1", ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_READ_ONLY);
+
+			getDateFirstDetectedStmt = vufindConn.prepareStatement("SELECT dateFirstDetected FROM ils_marc_checksums WHERE ilsId = ?", ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_READ_ONLY);
 		} catch (Exception e){
 			logger.error("Could not load statements to get identifiers ", e);
 		}
@@ -1133,6 +1136,24 @@ public class GroupedWorkIndexer {
 	 */
 	public HashSet<String> getHooplaLocationFacets() {
 		return hooplaLocationFacets;
+	}
+
+	public Date getDateFirstDetected(String recordId){
+		Long dateFirstDetected = null;
+		try {
+			getDateFirstDetectedStmt.setString(1, recordId);
+			ResultSet dateFirstDetectedRS = getDateFirstDetectedStmt.executeQuery();
+			if (dateFirstDetectedRS.next()) {
+				dateFirstDetected = dateFirstDetectedRS.getLong("dateFirstDetected");
+			}
+		}catch (Exception e){
+			logger.error("Error loading date first detected for " + recordId);
+		}
+		if (dateFirstDetected != null){
+			return new Date(dateFirstDetected * 1000);
+		}else {
+			return null;
+		}
 	}
 
 }

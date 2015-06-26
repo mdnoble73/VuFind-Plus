@@ -3,7 +3,6 @@ package org.vufind;
 import org.apache.log4j.Logger;
 import org.marc4j.marc.*;
 import org.solrmarc.tools.Utils;
-import sun.plugin2.main.client.ClientPrintHelper;
 
 import java.util.*;
 import java.util.regex.Matcher;

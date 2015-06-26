@@ -301,6 +301,16 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 			step = "load scoped data";
 			HashSet<IlsRecord> ilsRecords = addRecordAndItemsToAppropriateScopesAndLoadFormats(groupedWork, record, printItems, econtentItems, onOrderItems);
 
+			if (onOrderItems.size() > 0){
+				groupedWork.addKeywords("On Order");
+				groupedWork.addKeywords("Coming Soon");
+				HashSet<String> additionalOrderSubjects = new HashSet<String>();
+				additionalOrderSubjects.add("On Order");
+				additionalOrderSubjects.add("Coming Soon");
+				groupedWork.addTopic(additionalOrderSubjects);
+				groupedWork.addTopicFacet(additionalOrderSubjects);
+			}
+
 			//Do updates based on the overall bib (shared regardless of scoping)
 			step = "update work based on standard data";
 			updateGroupedWorkSolrDataBasedOnStandardMarcData(groupedWork, record, printItems);
@@ -328,7 +338,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 			step = "load popularity";
 			loadPopularity(groupedWork, identifier, printItems, econtentItems, onOrderItems);
 			step = "load date added";
-			loadDateAdded(groupedWork, identifier, printItems, econtentItems);
+			loadDateAdded(groupedWork, identifier, printItems, econtentItems, onOrderItems);
 			step = "load iTypes";
 			loadITypes(groupedWork, printItems, econtentItems);
 			step = "load call numbers";
@@ -948,7 +958,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 	}
 
 	private static SimpleDateFormat dateAddedFormatter = null;
-	protected void loadDateAdded(GroupedWorkSolr groupedWork, String identifier, List<PrintIlsItem> printItems, List<EContentIlsItem> econtentItems) {
+	protected void loadDateAdded(GroupedWorkSolr groupedWork, String identifier, List<PrintIlsItem> printItems, List<EContentIlsItem> econtentItems, List<OnOrderItem> onOrderItems) {
 		if (dateAddedFormatter == null){
 			dateAddedFormatter = new SimpleDateFormat(dateAddedFormat);
 		}
@@ -978,6 +988,16 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 				} catch (ParseException e) {
 					logger.error("Error processing date added", e);
 				}
+			}
+		}
+		for (OnOrderItem curItem : onOrderItems){
+			String locationCode = curItem.getLocationCode();
+			if (locationCode != null){
+				//Assume that all On Order Records were created today
+				Date dateAdded = new Date();
+				ArrayList<String> relatedLocations = getLibrarySubdomainsForLocationCode(locationCode);
+				relatedLocations.addAll(getIlsCodesForDetailedLocationCode(locationCode));
+				groupedWork.setDateAdded(dateAdded, relatedLocations);
 			}
 		}
 	}

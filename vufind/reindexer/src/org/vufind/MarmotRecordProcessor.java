@@ -32,10 +32,10 @@ public class MarmotRecordProcessor extends IlsRecordProcessor {
 		super(indexer, vufindConn, configIni, logger);
 
 		marcExportPath = configIni.get("Reindex", "marcPath");
-		loadOrderRecords();
+		//loadOrderRecords();
 	}
 
-	private void loadOrderRecords() {
+	/*private void loadOrderRecords() {
 		File activeOrdersFile = new File(marcExportPath + "/active_orders.csv");
 		if (activeOrdersFile.exists()){
 			try {
@@ -102,7 +102,7 @@ public class MarmotRecordProcessor extends IlsRecordProcessor {
 		}
 
 		return onOrderItems;
-	}
+	}*/
 
 	protected void loadAdditionalOwnershipInformation(GroupedWorkSolr groupedWork, PrintIlsItem printItem){
 		String locationCode = printItem.getLocationCode();
