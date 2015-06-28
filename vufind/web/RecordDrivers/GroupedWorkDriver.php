@@ -1240,8 +1240,8 @@ class GroupedWorkDriver extends RecordInterface{
 				$relatedManifestations[$curRecord['format']]['onOrderCopies'] += $curRecord['onOrderCopies'];
 			}
 			$statusRankings = array(
-				'On Order' => 1,
-				'Currently Unavailable' => 2,
+				'Currently Unavailable' => 1,
+				'On Order' => 2,
 				'Coming Soon' => 3,
 				'Checked Out' => 4,
 				'Library Use Only' => 5,
