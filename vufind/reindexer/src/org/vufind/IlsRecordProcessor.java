@@ -1123,10 +1123,12 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 
 		for (OnOrderItem curOrderItem: onOrderItems){
 			for (Scope curScope : curOrderItem.getRelatedScopes()){
-				if (curScope.isLibraryScope()){
-					owningLibraries.add(curScope.getFacetLabel() + " On Order");
-				}else {
-					owningLocations.add(curScope.getFacetLabel() + " On Order");
+				if (curScope.isLocationCodeIncludedDirectly(curOrderItem.getLocationCode(), curOrderItem.getLocationCode())) {
+					if (curScope.isLibraryScope()) {
+						owningLibraries.add(curScope.getFacetLabel() + " On Order");
+					} else {
+						owningLocations.add(curScope.getFacetLabel() + " On Order");
+					}
 				}
 			}
 		}
