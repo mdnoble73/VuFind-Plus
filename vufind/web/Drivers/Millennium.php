@@ -627,6 +627,8 @@ class MillenniumDriver implements DriverInterface
 			$homeBranchCode = '';
 			$numHoldsAvailable = '?';
 			$numHoldsRequested = '?';
+			$expired = 0;
+			$expireClose = 0;
 
 			if (!$user){
 				$user = new User();
@@ -1316,7 +1318,11 @@ class MillenniumDriver implements DriverInterface
 			$searchLibrary = Library::getSearchLibrary();
 			if (isset($user) && $user != false){
 				$patronDump = $this->_getPatronDump($this->_getBarcode());
-				$this->pType = $patronDump['P_TYPE'];
+				if (isset($patronDump['P_TYPE'])){
+					$this->pType = $patronDump['P_TYPE'];
+				}else{
+					$this->pType = -1;
+				}
 			}else if (isset($searchLocation) && $searchLocation->defaultPType >= 0){
 				$this->pType = $searchLocation->defaultPType;
 			}else if (isset($searchLibrary) && $searchLibrary->defaultPType >= 0){

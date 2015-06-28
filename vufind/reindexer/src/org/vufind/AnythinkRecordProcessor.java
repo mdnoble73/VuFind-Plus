@@ -19,18 +19,14 @@ import java.util.*;
  * Time: 3:00 PM
  */
 public class AnythinkRecordProcessor extends IlsRecordProcessor {
-	private long maxBibNumber = 1;
+	private PreparedStatement getDateAddedStmt;
 	public AnythinkRecordProcessor(GroupedWorkIndexer indexer, Connection vufindConn, Ini configIni, Logger logger) {
 		super(indexer, vufindConn, configIni, logger);
 
-		try {
-			PreparedStatement getMaxBibNumberStmt = vufindConn.prepareStatement("SELECT MAX(CAST(ilsId AS UNSIGNED)) FROM ils_marc_checksums");
-			ResultSet maxBibNumberRS = getMaxBibNumberStmt.executeQuery();
-			if (maxBibNumberRS.next()){
-				maxBibNumber = maxBibNumberRS.getLong(1);
-			}
-		}catch(Exception e){
-			logger.error("Error loading max bib number for Horizon");
+		try{
+			getDateAddedStmt = vufindConn.prepareStatement("SELECT dateFirstDetected FROM ils_marc_checksums WHERE ilsId = ?", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+		}catch (Exception e){
+			logger.error("Unable to setup prepared statement for date added to catalog");
 		}
 	}
 
@@ -105,20 +101,21 @@ public class AnythinkRecordProcessor extends IlsRecordProcessor {
 		groupedWork.addTargetAudiencesFull(indexer.translateCollection("target_audience", targetAudiences));
 	}
 
-	private static SimpleDateFormat dateAddedFormatter = null;
-	private Integer currentYear = null;
-	Calendar curDate;
-	protected void loadDateAdded(GroupedWorkSolr groupedWork, String identfier, List<PrintIlsItem> printItems, List<EContentIlsItem> econtentItems) {
-		//Since date added cannot be extracted from Horizon, we will approximate using the bib number
-		//Formula is:  (bib number / max bib number - 1)  * 365 * (current year - 1950)
-		if (currentYear == null){
-			curDate = GregorianCalendar.getInstance();
-			currentYear = curDate.get(Calendar.YEAR);
+	@Override
+	protected void loadDateAdded(GroupedWorkSolr groupedWork, String identfier, List<PrintIlsItem> printItems, List<EContentIlsItem> econtentItems, List<OnOrderItem> onOrderItems) {
+		try {
+			getDateAddedStmt.setString(1, identfier);
+			ResultSet getDateAddedRS = getDateAddedStmt.executeQuery();
+			if (getDateAddedRS.next()) {
+				long timeAdded = getDateAddedRS.getLong(1);
+				Date curDate = new Date(timeAdded * 1000);
+				groupedWork.setDateAdded(curDate, indexer.getAllScopeNames());
+				getDateAddedRS.close();
+			}else{
+				logger.debug("Could not determine date added for " + identfier);
+			}
+		}catch (Exception e){
+			logger.error("Unable to load date added for " + identfier);
 		}
-		Long identifierNumber = Long.parseLong(identfier);
-		Integer daysSinceAdded = (int)(((float)identifierNumber / (float)maxBibNumber - 1) * 375 * (currentYear - 1950));
-		curDate.setTime(new Date());
-		curDate.add(Calendar.DATE, daysSinceAdded);
-		groupedWork.setDateAdded(curDate.getTime(), indexer.getAllScopeNames());
 	}
 }

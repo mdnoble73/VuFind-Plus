@@ -1802,6 +1802,14 @@ class DBMaintenance extends Admin_Admin {
 					),
 				),
 
+				'ils_marc_checksum_first_detected_signed' => array(
+					'title' => 'ILS MARC Checksums First Detected',
+					'description' => 'Update ILS Marc Checksums to make when the record was first detected a signed value.',
+					'sql' => array(
+						"ALTER TABLE ils_marc_checksums CHANGE dateFirstDetected dateFirstDetected BIGINT SIGNED NULL",
+					),
+				),
+
 				'work_level_ratings' => array(
 					'title' => 'Work Level Ratings',
 					'description' => 'Stores user ratings at the work level rather than the individual record.',

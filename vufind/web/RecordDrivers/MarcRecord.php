@@ -1682,8 +1682,8 @@ class MarcRecord extends IndexRecord
 				//Check to see if we got a better grouped status
 				if (isset($item['groupedStatus'])){
 					$statusRankings = array(
-						'On Order' => 1,
-						'Currently Unavailable' => 2,
+						'Currently Unavailable' => 1,
+						'On Order' => 2,
 						'Coming Soon' => 3,
 						'Checked Out' => 4,
 						'Library Use Only' => 5,
@@ -1954,8 +1954,6 @@ class MarcRecord extends IndexRecord
 					$groupedStatus = null;
 					$inLibraryUseOnly = false;
 					$isHoldable = true;
-					$isLocalItem = false;
-					$isLibraryItem = false;
 
 					if (array_key_exists('item', $itemData)){
 						//New style with item, record, and scope information separated
@@ -1973,6 +1971,10 @@ class MarcRecord extends IndexRecord
 							$groupedStatus = mapValue('item_grouped_status', $itemData['item'][6]);
 							$available = $itemData['item'][3] == 'true';
 							$inLibraryUseOnly = $itemData['item'][4] == 'true';
+							if (!$available && ($status == 'AVAILABLE' || $status == 'On Shelf')){
+								$status = 'Checked Out';
+								$groupedStatus = 'Checked Out';
+							}
 						}
 						//Don't use scoping section yet because it isn't ready for prime time.
 						/*if (array_key_exists('scope', $itemData) && count($itemData['scope']) > 0){

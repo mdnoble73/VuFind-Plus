@@ -1570,14 +1570,16 @@ public class RecordGrouperMain {
 	}
 
 	private static void updateMarcRecordChecksum(String recordNumber, long checksum) {
+		long dateFirstDetected;
+		if (marcRecordFirstDetectionDates.containsKey(recordNumber) && marcRecordFirstDetectionDates.get(recordNumber) != null){
+			dateFirstDetected = marcRecordFirstDetectionDates.get(recordNumber);
+		}else {
+			dateFirstDetected = new Date().getTime() / 1000;
+		}
 		try{
 			insertMarcRecordChecksum.setString(1, recordNumber);
 			insertMarcRecordChecksum.setLong(2, checksum);
-			if (marcRecordFirstDetectionDates.containsKey(recordNumber) && marcRecordFirstDetectionDates.get(recordNumber) != null){
-				insertMarcRecordChecksum.setLong(3, marcRecordFirstDetectionDates.get(recordNumber));
-			}else {
-				insertMarcRecordChecksum.setLong(3, new Date().getTime() / 1000);
-			}
+			insertMarcRecordChecksum.setLong(3, dateFirstDetected);
 			insertMarcRecordChecksum.executeUpdate();
 		}catch (SQLException e){
 			logger.error("Unable to update checksum for ils marc record", e);
