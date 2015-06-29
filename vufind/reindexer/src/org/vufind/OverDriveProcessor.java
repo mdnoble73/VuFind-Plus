@@ -132,14 +132,16 @@ public class OverDriveProcessor {
 					Date dateAdded = new Date(productRS.getLong("dateAdded")* 1000);
 					try {
 						String productDataRaw = productRS.getString("rawData");
-						JSONObject productDataJSON = new JSONObject(productDataRaw);
-						if (productDataJSON.has("dateAdded")) {
-							String dateAddedString = productDataJSON.getString("dateAdded");
-							if (dateAddedString.length() > 10) {
-								dateAddedString = dateAddedString.substring(0, 10);
-							}
+						if (productDataRaw != null) {
+							JSONObject productDataJSON = new JSONObject(productDataRaw);
+							if (productDataJSON.has("dateAdded")) {
+								String dateAddedString = productDataJSON.getString("dateAdded");
+								if (dateAddedString.length() > 10) {
+									dateAddedString = dateAddedString.substring(0, 10);
+								}
 
-							dateAdded = dateAddedParser.parse(dateAddedString);
+								dateAdded = dateAddedParser.parse(dateAddedString);
+							}
 						}
 					}catch (ParseException e){
 						logger.warn("Error parsing date added for Overdrive " + productId, e);
