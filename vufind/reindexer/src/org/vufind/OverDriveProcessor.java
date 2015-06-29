@@ -10,6 +10,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 
@@ -124,6 +125,9 @@ public class OverDriveProcessor {
 					groupedWork.addSeries(productRS.getString("series"));
 					groupedWork.setAuthor(productRS.getString("primaryCreatorName"));
 					groupedWork.setAuthorDisplay(productRS.getString("primaryCreatorName"));
+
+					long dateAdded = productRS.getLong("dateAdded");
+
 					productRS.close();
 
 					HashMap<String, String> metadata = loadOverDriveMetadata(groupedWork, productId);
@@ -221,6 +225,8 @@ public class OverDriveProcessor {
 					groupedWork.addAvailableLocations(availableLibraries, availableSubdomainsAndLocations);
 					groupedWork.addEContentSource("OverDrive", owningSubdomainsAndLocations, new ArrayList<String>());
 					groupedWork.addEContentProtectionType("Limited Access", owningSubdomainsAndLocations, new ArrayList<String>());
+
+					groupedWork.setDateAdded(new Date(dateAdded * 1000), owningSubdomainsAndLocations);
 
 					if (partOfSharedCollection){
 						indexer.indexingStats.get("global").numSuperScopeOverDriveRecords++;

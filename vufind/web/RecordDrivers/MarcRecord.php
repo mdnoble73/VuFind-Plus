@@ -71,7 +71,7 @@ class MarcRecord extends IndexRecord
 	protected $itemsFromIndex;
 	public function setItemsFromIndex($itemsFromIndex, $realTimeStatusNeeded){
 		global $configArray;
-		if ($configArray['Catalog']['supportsRealtimeIndexing'] || !$realTimeStatusNeeded){
+		if ($configArray['Catalog']['supportsRealtimeIndexing'] || !$realTimeStatusNeeded || $configArray['Catalog']['offline']){
 			$this->itemsFromIndex = $itemsFromIndex;
 		}
 	}
@@ -79,7 +79,7 @@ class MarcRecord extends IndexRecord
 	protected $detailedRecordInfoFromIndex;
 	public function setDetailedRecordInfoFromIndex($detailedRecordInfoFromIndex, $realTimeStatusNeeded){
 		global $configArray;
-		if ($configArray['Catalog']['supportsRealtimeIndexing'] || !$realTimeStatusNeeded){
+		if ($configArray['Catalog']['supportsRealtimeIndexing'] || !$realTimeStatusNeeded || $configArray['Catalog']['offline']){
 			$this->detailedRecordInfoFromIndex = $detailedRecordInfoFromIndex;
 		}
 	}
