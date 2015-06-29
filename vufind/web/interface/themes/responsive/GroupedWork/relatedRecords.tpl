@@ -48,13 +48,17 @@
 					<td><a href="{$relatedRecord.url}">{implode subject=$relatedRecord.language glue=","}</a></td>
 				{/display_if_inconsistent}
 				<td>
-					{if $relatedRecord.availableHere && $showItsHere}
+					{if $relatedRecord.availableHere}
 						{if $relatedRecord.availableOnline}
 							<div class="related-manifestation-shelf-status available">Available Online</div>
 						{elseif $relatedRecord.allLibraryUseOnly}
 							<div class="related-manifestation-shelf-status available">It's Here (library use only)</div>
 						{else}
-							<div class="related-manifestation-shelf-status available">It's Here</div>
+							{if $showItsHere}
+								<div class="related-manifestation-shelf-status available">It's Here</div>
+							{else}
+								<div class="related-manifestation-shelf-status available">On Shelf</div>
+							{/if}
 						{/if}
 					{elseif $relatedRecord.availableLocally}
 						{if $relatedRecord.availableOnline}
@@ -73,7 +77,7 @@
 					{elseif $relatedRecord.available && $relatedRecord.hasLocalItem}
 						<div class="related-manifestation-shelf-status availableOther">Checked Out/Available Elsewhere</div>
 					{elseif $relatedRecord.available}
-						<div class="related-manifestation-shelf-status availableOther">Available from another library</div>
+						<div class="related-manifestation-shelf-status availableOther">{translate text='Available from another library'}</div>
 					{else}
 						<div class="related-manifestation-shelf-status checked_out">{$relatedRecord.groupedStatus}</div>
 					{/if}
