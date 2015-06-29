@@ -932,6 +932,9 @@ public class GroupedWorkSolr {
 	}
 
 	public void setDateAdded(Date date, Collection<String> relatedLocations){
+		if (date == null){
+			return;
+		}
 		if (dateAdded == null || date.before(dateAdded)){
 			dateAdded = date;
 		}
