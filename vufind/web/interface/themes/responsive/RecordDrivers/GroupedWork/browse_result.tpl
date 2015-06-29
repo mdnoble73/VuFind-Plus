@@ -15,7 +15,7 @@
 					<img {*class="img-responsive" this is applied within the thumbnail mixin*} src="{$bookCoverUrlMedium}" alt="{$summTitle} by {$summAuthor}" title="{$summTitle} by {$summAuthor}">
 				</div>
 			</a>
-			{if $showComments}
+			{if $showRatings}
 				<div class="browse-rating" onclick="return VuFind.GroupedWork.showReviewForm(this, '{$summId}');"> {* TODO change for separation *}
 				<span class="ui-rater-starsOff" style="width:90px">
 					{if $ratingData.user}

@@ -283,36 +283,29 @@ class GroupedWork_AJAX {
 	function RateTitle(){
 		require_once(ROOT_DIR . '/sys/LocalEnrichment/UserWorkReview.php');
 		global $user;
-		global $analytics;
 		if (!isset($user) || $user == false){
-			header('HTTP/1.0 500 Internal server error');
-			return 'Please login to rate this title.';
+			return json_encode(array('error'=>'Please login to rate this title.'));
 		}
 		$rating = $_REQUEST['rating'];
 		//Save the rating
 		$workReview = new UserWorkReview();
 		$workReview->groupedRecordPermanentId = $_REQUEST['id'];
 		$workReview->userId = $user->id;
-		$newReview = false;
-		if (!$workReview->find(true)) {
-			$newReview = true;
-		}
-		$workReview->rating = $rating;
-		$workReview->review = '';
-		if ($newReview){
+		if ($workReview->find(true)) {
+			$workReview->rating = $rating;
+			$success = $workReview->update();
+		} else {
+			$workReview->rating = $rating;
+			$workReview->review = '';  // default value required for insert statements //TODO alter table structure, null should be default value.
 			$workReview->dateRated = time(); // moved to be consistent with add review behaviour
-			$workReview->insert();
-		}else{
-			$workReview->update();
+			$success = $workReview->insert();
 		}
 
-		$analytics->addEvent('User Enrichment', 'Rate Title', $_REQUEST['id']);
-
-		/** @var Memcache $memCache */
-		global $memCache;
-		$memCache->delete('rating_' . $_REQUEST['id']);
-
-		return $rating;
+		if ($success) {
+			global $analytics;
+			$analytics->addEvent('User Enrichment', 'Rate Title', $_REQUEST['id']);
+			return json_encode(array('rating'=>$rating));
+		} else return json_encode(array('error'=>'Unable to save your rating.'));
 	}
 
 	function getReviewInfo(){

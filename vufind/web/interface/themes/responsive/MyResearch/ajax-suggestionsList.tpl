@@ -19,6 +19,7 @@
         {* Let the user rate this title *}
         {if $showRatings == 1}
         {include file="Record/title-rating.tpl" ratingClass="suggestionRating" recordId=$suggestion.titleInfo.id shortId=$suggestion.titleInfo.shortId starPostFixId=_suggestion$starIndex}
+	        {* Only Grouped Work Ratings implemented now, the above template does not exist. (Is this page in use?) plb 6-29-2015 *}
         {/if}
       </div>
 

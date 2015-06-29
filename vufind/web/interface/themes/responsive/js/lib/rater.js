@@ -1,3 +1,7 @@
+/*
+* Deprecated. Combined with ratings.js  plb 6-29-2015
+* */
+
 //copyright 2008 Jarrett Vance
 //http://jvance.com
 $.fn.rater = function(options) {
@@ -32,11 +36,8 @@ $.fn.rater = function(options) {
 						$on.addClass('ui-rater-starsHover');
 					},
 					function(e) { // Hover out
-						console.log($on);
 						$on.removeClass('ui-rater-starsHover');
 						$on.width(initialRating * opts.size); // restore to original rating if none was selected.
-						//console.log(initialRating);
-						console.log(opts);
 					}
 			).click(function(e) {
 				var r = Math.round($on.width() / $off.width() * (opts.ratings.length * opts.step)) / opts.step;
@@ -47,29 +48,27 @@ $.fn.rater = function(options) {
 	});
 };
 
-
 $.fn.rater.defaults = {
-	postHref : location.href,
+	url : location.href,
 	ratings: ['Hated It', "Didn't Like It", 'Liked It', 'Really Liked It', 'Loved It'],
 	step : 1
 };
 
 $.fn.rater.rate = function($this, opts, rating) {
-	var $on = $this.find('.ui-rater-starsOn'),
-			$off = $this.find('.ui-rater-starsOff');
 	if (Globals.loggedIn){
+		var $on = $this.find('.ui-rater-starsOn'),
+				$off = $this.find('.ui-rater-starsOff');
 		$off.fadeTo(600, 0.4, function() {
-			$.ajax( {
-				url : opts.postHref,
-				type : "POST",
-				data : {id: opts.id, rating: rating},
-				//data : 'id=' + opts.id + '&rating=' + rating,
-				complete : function(req) {
-					if (req.status == 200) { // success
-						opts.rating = parseFloat(req.responseText);
-						$off.unbind('click').unbind('mousemove').unbind('mouseenter').unbind('mouseleave');
-						$off.css('cursor', 'default'); $on.css('cursor', 'default');
-						$off.fadeTo(600, 0.1, function() {
+			$.getJSON(opts.url, {id: opts.id, rating: rating}, function(data) {
+				if (data.error) VuFind.showMessage(data.error);
+				if (data.rating) { // success
+					opts.rating = data.rating;
+					$on.css('cursor', 'default');
+					$off
+						// detach rater.
+							.unbind('click').unbind('mousemove').unbind('mouseenter').unbind('mouseleave')
+						.css('cursor', 'default')
+						.fadeTo(600, 0.1, function() {
 							$on.removeClass('ui-rater-starsHover').width(opts.rating * opts.size).addClass('userRated');
 							$off.fadeTo(500, 1);
 							$this.attr('title', 'Your rating: ' + rating.toFixed(1));
@@ -77,16 +76,15 @@ $.fn.rater.rate = function($this, opts, rating) {
 								//VuFind.Ratings.doRatingReview(rating, opts.module, opts.id);
 								VuFind.Ratings.doRatingReview(opts.id);
 							}
-						});
-					} else { // failure
-						alert(req.responseText);
-						$off.fadeTo(2200, 1);
-					}
+					});
 				}
+					}).fail(function(){
+				VuFind.showMessage('Request Failed', 'There was an error with this AJAX Request.');
 			});
+
 		});
 	}else{
-		ajaxLogin(function(){ //TODO does this signature work?
+		VuFind.Account.ajaxLogin(null, function(){
 			$.fn.rater.rate($this, opts, rating);
 		});
 	}
