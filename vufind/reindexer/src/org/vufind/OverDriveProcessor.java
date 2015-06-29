@@ -129,7 +129,7 @@ public class OverDriveProcessor {
 					groupedWork.setAuthor(productRS.getString("primaryCreatorName"));
 					groupedWork.setAuthorDisplay(productRS.getString("primaryCreatorName"));
 
-					Date dateAdded = new Date(productRS.getLong("dateAdded")* 1000);
+					Date dateAdded = null;
 					try {
 						String productDataRaw = productRS.getString("rawData");
 						if (productDataRaw != null) {
@@ -147,6 +147,9 @@ public class OverDriveProcessor {
 						logger.warn("Error parsing date added for Overdrive " + productId, e);
 					}catch (JSONException e){
 						logger.warn("Error loading date added for Overdrive " + productId, e);
+					}
+					if (dateAdded == null){
+						dateAdded = new Date(productRS.getLong("dateAdded")* 1000);
 					}
 
 					productRS.close();
