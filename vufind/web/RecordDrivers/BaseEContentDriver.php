@@ -76,8 +76,8 @@ abstract class BaseEContentDriver  extends MarcRecord {
 						if (count($itemData) > 6){
 							$fileOrUrl = $itemData[6];
 						}
-						$isLocalItem = isset($libraryLocationCode) && strlen($libraryLocationCode) > 0 && strpos($locationCode, $libraryLocationCode) === 0;
-						$isLibraryItem = isset($homeLocationCode) && strlen($homeLocationCode) > 0 && strpos($locationCode, $homeLocationCode) === 0;
+						$isLocalItem = isset($libraryLocationCode) && strlen($libraryLocationCode) > 0 && preg_match("/^{$libraryLocationCode}/i", $locationCode);
+						$isLibraryItem = isset($homeLocationCode) && strlen($homeLocationCode) > 0 && preg_match("/^$homeLocationCode/i", $locationCode);
 					}
 
 					$actions = $this->getActionsForItem($itemId, $fileOrUrl, null);

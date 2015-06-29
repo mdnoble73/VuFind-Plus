@@ -332,9 +332,9 @@ class MillenniumDriver implements DriverInterface
 
 			$locationCode = $itemField->getSubfield('d') != null ? trim($itemField->getSubfield('d')->getData()) : '';
 			//Do a quick check of location code so we can remove this quickly when scoping is enabled
-			if ($scopingEnabled && strlen(MillenniumDriver::$scopingLocationCode) > 0 && strpos($locationCode, MillenniumDriver::$scopingLocationCode) !== 0){
+			if ($scopingEnabled && strlen(MillenniumDriver::$scopingLocationCode) > 0 && preg_match('/' . MillenniumDriver::$scopingLocationCode . '/i', $locationCode)){
 				global $logger;
-				$logger->log("Removed item because scoping is enabled and the location code $locationCode did not start with " . MillenniumDriver::$scopingLocationCode, PEAR_LOG_DEBUG);
+				$logger->log("Removed item because scoping is enabled and the location code $locationCode did not match " . MillenniumDriver::$scopingLocationCode, PEAR_LOG_DEBUG);
 				continue;
 			}
 			$iType = $itemField->getSubfield($iTypeSubfield) != null ? trim($itemField->getSubfield($iTypeSubfield)->getData()) : '';

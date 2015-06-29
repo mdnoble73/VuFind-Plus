@@ -1985,9 +1985,9 @@ class MarcRecord extends IndexRecord
 						if (!isset($libraryLocationCode) || $libraryLocationCode == ''){
 							$isLibraryItem = true;
 						}else{
-							$isLibraryItem = strpos($locationCode, $libraryLocationCode) === 0;
+							$isLibraryItem = preg_match("/^$libraryLocationCode/i", $locationCode);
 						}
-						$isLocalItem = (isset($homeLocationCode) && strlen($homeLocationCode) > 0 && strpos($locationCode, $homeLocationCode) === 0) || ($extraLocations != '' && preg_match("/^{$extraLocations}$/i", $locationCode));
+						$isLocalItem = (isset($homeLocationCode) && strlen($homeLocationCode) > 0 && preg_match("/^$homeLocationCode/i", $locationCode)) || ($extraLocations != '' && preg_match("/^{$extraLocations}$/i", $locationCode));
 					}else{
 						//Old style where record and item information are combined
 						$shelfLocation = $itemData[2];
@@ -2015,9 +2015,9 @@ class MarcRecord extends IndexRecord
 						if (!isset($libraryLocationCode) || $libraryLocationCode == ''){
 							$isLibraryItem = true;
 						}else{
-							$isLibraryItem = strpos($locationCode, $libraryLocationCode) === 0;
+							$isLibraryItem = preg_match("/^$libraryLocationCode/i", $locationCode);
 						}
-						$isLocalItem = (isset($homeLocationCode) && strlen($homeLocationCode) > 0 && strpos($locationCode, $homeLocationCode) === 0) || ($extraLocations != '' && preg_match("/^{$extraLocations}$/i", $locationCode));
+						$isLocalItem = (isset($homeLocationCode) && strlen($homeLocationCode) > 0 && preg_match("/^$homeLocationCode/i", $locationCode)) || ($extraLocations != '' && preg_match("/^{$extraLocations}$/i", $locationCode));
 					}
 
 					//Try to trim the courier code if any
