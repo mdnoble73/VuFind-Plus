@@ -9,6 +9,8 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -84,6 +86,7 @@ public class OverDriveProcessor {
 		}
 	}
 
+	private static SimpleDateFormat dateAddedParser = new SimpleDateFormat("yyyy-MM-dd");
 	public void processRecord(GroupedWorkSolr groupedWork, String identifier) {
 		try {
 			indexer.overDriveRecordsIndexed.add(identifier);
@@ -126,7 +129,21 @@ public class OverDriveProcessor {
 					groupedWork.setAuthor(productRS.getString("primaryCreatorName"));
 					groupedWork.setAuthorDisplay(productRS.getString("primaryCreatorName"));
 
-					long dateAdded = productRS.getLong("dateAdded");
+					Date dateAdded = new Date(productRS.getLong("dateAdded")* 1000);
+					try {
+						String productDataRaw = productRS.getString("rawData");
+						JSONObject productDataJSON = new JSONObject(productDataRaw);
+						String dateAddedString = productDataJSON.getString("dateAdded");
+						if (dateAddedString.length() > 10){
+							dateAddedString = dateAddedString.substring(0, 10);
+						}
+
+						dateAdded = dateAddedParser.parse(dateAddedString);
+					}catch (ParseException e){
+						logger.warn("Error parsing date added for Overdrive " + productId );
+					}catch (JSONException e){
+						logger.warn("Error loading date added for Overdrive " + productId);
+					}
 
 					productRS.close();
 
@@ -226,7 +243,7 @@ public class OverDriveProcessor {
 					groupedWork.addEContentSource("OverDrive", owningSubdomainsAndLocations, new ArrayList<String>());
 					groupedWork.addEContentProtectionType("Limited Access", owningSubdomainsAndLocations, new ArrayList<String>());
 
-					groupedWork.setDateAdded(new Date(dateAdded * 1000), owningSubdomainsAndLocations);
+					groupedWork.setDateAdded(dateAdded, owningSubdomainsAndLocations);
 
 					if (partOfSharedCollection){
 						indexer.indexingStats.get("global").numSuperScopeOverDriveRecords++;
