@@ -44,7 +44,7 @@ class RestrictedEContentDriver extends BaseEContentDriver{
 			return true;
 		}else{
 			$searchLibrary = Library::getSearchLibrary();
-			if ($searchLibrary == null || (strlen($searchLibrary->ilsCode) > 0 && strpos($locationCode, $searchLibrary->ilsCode) === 0)){
+			if ($searchLibrary == null || (strlen($searchLibrary->ilsCode) > 0 && preg_match("/^{$searchLibrary->ilsCode}/i", $locationCode))){
 				return true;
 			}else{
 				return false;
@@ -57,7 +57,7 @@ class RestrictedEContentDriver extends BaseEContentDriver{
 			return true;
 		}else{
 			$searchLibrary = Library::getSearchLibrary();
-			if ($searchLibrary == null || (strlen($searchLibrary->ilsCode) > 0 && strpos($locationCode, $searchLibrary->ilsCode) === 0)){
+			if ($searchLibrary == null || (strlen($searchLibrary->ilsCode) > 0 && preg_match("/^{$searchLibrary->ilsCode}/i", $locationCode))){
 				return true;
 			}else{
 				return false;
@@ -70,11 +70,11 @@ class RestrictedEContentDriver extends BaseEContentDriver{
 			return true;
 		}else if ($sharing == 'library'){
 			$searchLibrary = Library::getSearchLibrary();
-			if ($searchLibrary == null || (strlen($searchLibrary->ilsCode) > 0 && strpos($locationCode, $searchLibrary->ilsCode) === 0)){
+			if ($searchLibrary == null || (strlen($searchLibrary->ilsCode) > 0 && preg_match("/^{$searchLibrary->ilsCode}/i", $locationCode))){
 				global $user;
 				if ($user){
 					$patronHomeLibrary = Library::getPatronHomeLibrary();
-					return ($patronHomeLibrary == null || (strlen($patronHomeLibrary->ilsCode) > 0 && strpos($locationCode, $patronHomeLibrary->ilsCode) === 0));
+					return ($patronHomeLibrary == null || (strlen($patronHomeLibrary->ilsCode) > 0 && preg_match("/^{$patronHomeLibrary->ilsCode}/i", $locationCode)));
 				}else{
 					return true;
 				}
