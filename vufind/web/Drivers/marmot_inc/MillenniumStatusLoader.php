@@ -92,9 +92,6 @@ class MillenniumStatusLoader{
 			$itemFields = $marcRecord->getFields($marcItemField);
 			$marcItemData = array();
 
-			//TODO: Don't hardcode item subfields
-
-
 			$statusSubfield = $configArray['Reindex']['statusSubfield'];
 			$dueDateSubfield = $configArray['Reindex']['dueDateSubfield'];
 			$locationSubfield = $configArray['Reindex']['locationSubfield'];
@@ -144,24 +141,29 @@ class MillenniumStatusLoader{
 
 			if (count($ret) == 0){
 				//Also check the frameset for links
-				if (preg_match('/<div class="bibDisplayUrls">.*?<table.*?>(.*?)<\/table>.*?<\/div>/si', $millenniumInfo->framesetInfo, $displayUrlInfo)){
+				if (preg_match('/<div class="bibDisplayUrls">(.*?)<\/div>/si', $millenniumInfo->framesetInfo, $displayUrlInfo)){
 					$linksTable = $displayUrlInfo[1];
-					preg_match_all('/<td.*?>.*?<a href="(.*?)".*?>(.*?)<\/a>.*?<\/td>/si', $linksTable, $linkData, PREG_SET_ORDER);
-					for ($i = 0; $i < count($linkData); $i++) {
-						$linkText = $linkData[$i][2];
-						if ($linkText != 'Latest Received'){
-							$newHolding = array(
+
+					//Get the table from the portion we extracted
+					if (preg_match('/.*?<table.*?>(.*?)<\/table>.*?/si', $linksTable, $displayUrlInfo)){
+						$linksTable = $displayUrlInfo[1];
+						preg_match_all('/<td.*?>.*?<a href="(.*?)".*?>(.*?)<\/a>.*?<\/td>/si', $linksTable, $linkData, PREG_SET_ORDER);
+						for ($i = 0; $i < count($linkData); $i++) {
+							$linkText = $linkData[$i][2];
+							if ($linkText != 'Latest Received'){
+								$newHolding = array(
 									'type' => 'holding',
 									'link' => array(),
 									'status' => 'Online',
 									'location' => 'Online'
-							);
-							$newHolding['link'][] = array(
+								);
+								$newHolding['link'][] = array(
 									'link' => $linkData[$i][1],
 									'linkText' => $linkText,
 									'isDownload' => true
-							);
-							$ret[] = $newHolding;
+								);
+								$ret[] = $newHolding;
+							}
 						}
 					}
 				}
