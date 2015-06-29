@@ -148,6 +148,9 @@ public class IlsRecord {
 		for (IlsItem ilsItem : relatedItems){
 			recordScopes.addAll(ilsItem.getRelatedScopes());
 		}
+		for (OnOrderItem orderItem : relatedOrderItems ){
+			recordScopes.addAll(orderItem.getRelatedScopes());
+		}
 		return recordScopes;
 	}
 
