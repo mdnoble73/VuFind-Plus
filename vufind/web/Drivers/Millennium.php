@@ -241,11 +241,7 @@ class MillenniumDriver implements DriverInterface
 	}
 
 	public function getMillenniumRecordInfo($id){
-		global $configArray;
-
 		require_once ROOT_DIR . '/Drivers/marmot_inc/MillenniumCache.php';
-		/** @var Memcache $memCache */
-		global $memCache;
 		$scope = $this->getMillenniumScope();
 		//Load the pages for holdings, order information, and items
 		$millenniumCache = new MillenniumCache();
