@@ -140,9 +140,9 @@ public class OverDriveProcessor {
 
 						dateAdded = dateAddedParser.parse(dateAddedString);
 					}catch (ParseException e){
-						logger.warn("Error parsing date added for Overdrive " + productId );
+						logger.warn("Error parsing date added for Overdrive " + productId, e);
 					}catch (JSONException e){
-						logger.warn("Error loading date added for Overdrive " + productId);
+						logger.warn("Error loading date added for Overdrive " + productId, e);
 					}
 
 					productRS.close();
