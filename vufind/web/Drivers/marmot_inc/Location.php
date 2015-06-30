@@ -250,10 +250,6 @@ class Location extends DB_DataObject
 				'canEdit' => false,
 			),
 		);
-		foreach ($structure as $fieldName => $field){
-			$field['propertyOld'] = $field['property'] . 'Old';
-			$structure[$fieldName] = $field;
-		}
 		return $structure;
 	}
 

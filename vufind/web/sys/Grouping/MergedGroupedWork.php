@@ -56,12 +56,6 @@ class MergedGroupedWork extends DB_DataObject {
 				'required' => true,
 			),
 		);
-		foreach ($structure as $fieldName => $field){
-			if (isset($field['property'])){
-				$field['propertyOld'] = $field['property'] . 'Old';
-				$structure[$fieldName] = $field;
-			}
-		}
 		return $structure;
 	}
 } 

@@ -103,7 +103,4 @@ class LoanRules extends ObjectEditor
 	public function canAddNew(){
 		return false;
 	}
-	public function showExportAndCompare(){
-		return false;
-	}
 }

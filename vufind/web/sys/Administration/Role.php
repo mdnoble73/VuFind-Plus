@@ -25,10 +25,6 @@ class Role extends DB_DataObject
           'name' => array('property'=>'name', 'type'=>'text', 'label'=>'Name', 'maxLength'=>50, 'description'=>'The full name of the role.'),
           'description' => array('property'=>'name', 'type'=>'text', 'label'=>'Name', 'maxLength'=>100, 'description'=>'The full name of the role.'),
 		);
-		foreach ($structure as $fieldName => $field){
-			$field['propertyOld'] = $field['property'] . 'Old';
-			$structure[$fieldName] = $field;
-		}
 		return $structure;
 	}
 

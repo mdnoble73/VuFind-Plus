@@ -24,12 +24,6 @@ class PType extends DB_DataObject
 			'pType' => array('property'=>'pType', 'type'=>'integer', 'label'=>'P-Type', 'description'=>'The P-Type for the patron'),
 			'maxHolds' => array('property'=>'maxHolds', 'type'=>'integer', 'label'=>'Max Holds', 'description'=>'The maximum holds that a patron can have.', 'default' => 300),
 		);
-		foreach ($structure as $fieldName => $field){
-			if (isset($field['property'])){
-				$field['propertyOld'] = $field['property'] . 'Old';
-				$structure[$fieldName] = $field;
-			}
-		}
 		return $structure;
 	}
 }

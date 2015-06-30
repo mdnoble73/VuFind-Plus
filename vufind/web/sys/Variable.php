@@ -43,10 +43,6 @@ class Variable extends DB_DataObject {
 						'size' => 100,
 				),
 		);
-		foreach ($structure as $fieldName => $field) {
-			$field['propertyOld'] = $field['property'] . 'Old';
-			$structure[$fieldName] = $field;
-		}
 		return $structure;
 	}
 } 

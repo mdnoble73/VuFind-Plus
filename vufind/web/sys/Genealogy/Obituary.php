@@ -46,10 +46,6 @@ class Obituary extends DB_DataObject {
 			array('property' => 'contents', 'type' => 'textarea', 'rows' => 10, 'cols' => 80, 'label' => 'Full Text of the Obituary', 'description' => 'The full text of the obituary.', 'storeDb' => true, 'hideInLists' => true),
 			array('property' => 'picture', 'type' => 'image', 'thumbWidth' => 65, 'mediumWidth' => 250, 'label' => 'Picture', 'description' => 'A scanned image of the obituary.', 'storeDb' => true, 'storeSolr' => false, 'hideInLists' => true),
 		);
-		foreach ($structure as $fieldName => $field) {
-			$field['propertyOld'] = $field['property'] . 'Old';
-			$structure[$fieldName] = $field;
-		}
 		return $structure;
 	}
 

@@ -576,12 +576,6 @@ class Library extends DB_DataObject
 				'canEdit' => false,
 			),
 		);
-		foreach ($structure as $fieldName => $field){
-			if (isset($field['property'])){
-				$field['propertyOld'] = $field['property'] . 'Old';
-				$structure[$fieldName] = $field;
-			}
-		}
 		return $structure;
 	}
 

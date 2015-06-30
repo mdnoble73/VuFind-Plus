@@ -32,11 +32,6 @@ class SubBrowseCategories extends DB_DataObject {
 			'weight' => array('property' => 'weight', 'type' => 'numeric', 'label' => 'Weight', 'weight' => 'Defines the order of the sub-categories .  Lower weights are displayed to the left of the screen.', 'required'=> true),
 
 		);
-		// commented this out until it becomes needed (Object Editor Listing functions)
-//		foreach ($structure as $fieldName => $field){
-//			$field['propertyOld'] = $field['property'] . 'Old';
-//			$structure[$fieldName] = $field;
-//		}
 		return $structure;
 	}
 

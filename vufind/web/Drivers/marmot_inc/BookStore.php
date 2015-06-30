@@ -35,10 +35,6 @@ class BookStore extends DB_DataObject
 			'resultRegEx' => array('property'=>'resultRegEx', 'type'=>'text', 'label'=>'No Results RegEx', 'maxLength'=>'100', 'size'=>'80', 'description'=>'The RegEx to determine if the title does not exist at the store.'),
 			'showByDefault' => array('property'=>'showByDefault', 'type'=>'checkbox', 'label'=>'Use by default', 'description'=>'Whether or not to use the bookstore by default if bookstores are not setup for a particular library.')
 		);
-		foreach ($structure as $fieldName => $field){
-			$field['propertyOld'] = $field['property'] . 'Old';
-			$structure[$fieldName] = $field;
-		}
 		return $structure;
 	}
 }
