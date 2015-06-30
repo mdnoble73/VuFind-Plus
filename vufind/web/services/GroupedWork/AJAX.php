@@ -230,7 +230,7 @@ class GroupedWork_AJAX {
 
 	function getWorkInfo(){
 		global $interface;
-		
+
 		//Indicate we are showing search results so we don't get hold buttons
 		$interface->assign('displayingSearchResults', true);
 
@@ -264,11 +264,17 @@ class GroupedWork_AJAX {
 		$escapedId = htmlentities($recordDriver->getPermanentId()); // escape for html
 		$buttonLabel = translate('Add to favorites');
 
+		// button template
+		$interface->assign('escapeId', $escapedId);
+		$interface->assign('buttonLabel', $buttonLabel);
+		$interface->assign('url', $url);
+
 		$results = array(
 				'title' => "<a href='$url'>{$recordDriver->getTitle()}</a>",
-				'modalBody' => $interface->fetch("GroupedWork/work-details.tpl"),
-				'modalButtons' => "<span onclick=\"return VuFind.GroupedWork.showSaveToListForm(this, '$escapedId');\" class=\"modal-buttons btn btn-primary\" style='float: left'>$buttonLabel</span>"
-					."<a href='$url'><span class='modal-buttons btn btn-primary'>More Info</span></a>"
+				'modalBody' => $interface->fetch('GroupedWork/work-details.tpl'),
+				'modalButtons' => $interface->fetch('GroupedWork/work-details-modalButtons.tpl')
+//		'modalButtons' => "<span onclick=\"return VuFind.GroupedWork.showSaveToListForm(this, '$escapedId');\" class=\"modal-buttons btn btn-primary\" style='float: left'>$buttonLabel</span>"
+//					."<a href='$url'><span class='modal-buttons btn btn-primary'>More Info</span></a>"
 		);
 		return json_encode($results);
 
@@ -277,36 +283,29 @@ class GroupedWork_AJAX {
 	function RateTitle(){
 		require_once(ROOT_DIR . '/sys/LocalEnrichment/UserWorkReview.php');
 		global $user;
-		global $analytics;
 		if (!isset($user) || $user == false){
-			header('HTTP/1.0 500 Internal server error');
-			return 'Please login to rate this title.';
+			return json_encode(array('error'=>'Please login to rate this title.'));
 		}
 		$rating = $_REQUEST['rating'];
 		//Save the rating
 		$workReview = new UserWorkReview();
-		$workReview->groupedRecordPermanentId = $_GET['id'];
+		$workReview->groupedRecordPermanentId = $_REQUEST['id'];
 		$workReview->userId = $user->id;
-		$newReview = false;
-		if (!$workReview->find(true)) {
-			$newReview = true;
-		}
-		$workReview->rating = $rating;
-		$workReview->dateRated = time();
-		$workReview->review = '';
-		if ($newReview){
-			$workReview->insert();
-		}else{
-			$workReview->update();
+		if ($workReview->find(true)) {
+			$workReview->rating = $rating;
+			$success = $workReview->update();
+		} else {
+			$workReview->rating = $rating;
+			$workReview->review = '';  // default value required for insert statements //TODO alter table structure, null should be default value.
+			$workReview->dateRated = time(); // moved to be consistent with add review behaviour
+			$success = $workReview->insert();
 		}
 
-		$analytics->addEvent('User Enrichment', 'Rate Title', $_GET['id']);
-
-		/** @var Memcache $memCache */
-		global $memCache;
-		$memCache->delete('rating_' . $_GET['id']);
-
-		return $rating;
+		if ($success) {
+			global $analytics;
+			$analytics->addEvent('User Enrichment', 'Rate Title', $_REQUEST['id']);
+			return json_encode(array('rating'=>$rating));
+		} else return json_encode(array('error'=>'Unable to save your rating.'));
 	}
 
 	function getReviewInfo(){
@@ -353,13 +352,25 @@ class GroupedWork_AJAX {
 	}
 
 	function getReviewForm(){
-		global $interface;
+		global $interface, $library, $user;
 		$id = $_REQUEST['id'];
 		$interface->assign('id', $id);
+
+		// check if rating/review exists for user and work
+		require_once ROOT_DIR . '/sys/LocalEnrichment/UserWorkReview.php';
+		$groupedWorkReview = new UserWorkReview();
+		$groupedWorkReview->userId = $user->id;
+		$groupedWorkReview->groupedRecordPermanentId = $id;
+		if ($groupedWorkReview->find(true)){
+			$interface->assign('userRating', $groupedWorkReview->rating);
+			$interface->assign('userReview', $groupedWorkReview->review);
+		}
+
+		$title = ($library->showFavorites && !$library->showComments) ? 'Rating' : 'Review';
 		$results = array(
-			'title' => 'Review',
+			'title' => $title,
 			'modalBody' => $interface->fetch("GroupedWork/review-form-body.tpl"),
-			'modalButtons' => "<span class='tool btn btn-primary' onclick='VuFind.GroupedWork.saveReview(\"{$id}\"); return false;'>Submit Review</span>"
+			'modalButtons' => "<span class='tool btn btn-primary' onclick='VuFind.GroupedWork.saveReview(\"{$id}\"); return false;'>Submit $title</span>"
 		);
 		return json_encode($results);
 	}
@@ -376,7 +387,7 @@ class GroupedWork_AJAX {
 			$result['result'] = true;
 			$id = $_REQUEST['id'];
 			$rating = $_REQUEST['rating'];
-			$comment = $_REQUEST['comment'];
+			$comment = trim($_REQUEST['comment']);
 
 			$groupedWorkReview = new UserWorkReview();
 			$groupedWorkReview->userId = $user->id;
@@ -386,8 +397,8 @@ class GroupedWork_AJAX {
 				$newReview = false;
 			}
 			$result['newReview'] = $newReview;
-			$groupedWorkReview->rating = $rating;
-			$groupedWorkReview->review = $comment;
+			if (!empty($rating) && is_numeric($rating)) $groupedWorkReview->rating = $rating;
+			if (!empty($comment)) $groupedWorkReview->review = $comment;
 			if ($newReview){
 				$groupedWorkReview->dateRated = time();
 				$groupedWorkReview->insert();
@@ -398,6 +409,8 @@ class GroupedWork_AJAX {
 			global $interface;
 			$interface->assign('review', $groupedWorkReview);
 			$result['reviewHtml'] = $interface->fetch('GroupedWork/view-user-review.tpl');
+
+		//TODO update side bar as well? call appropriate driver?
 		}
 
 		return json_encode($result);
