@@ -245,6 +245,18 @@ class Browse_AJAX extends Action {
 
 				$records = $this->searchObject->getBrowseRecordHTML();
 
+				// Do we need to initialize the ajax ratings?
+				if ($this->browseMode == 'covers') {
+					// Rating Settings
+					global $library, $location;
+					$browseCategoryRatingsMode = null;
+					if ($location) $browseCategoryRatingsMode = $location->browseCategoryRatingsMode; // Try Location Setting
+					if (!$browseCategoryRatingsMode) $browseCategoryRatingsMode = $library->browseCategoryRatingsMode;  // Try Library Setting
+
+					// when the Ajax rating is turned on, they have to be initialized with each load of the category.
+					if ($browseCategoryRatingsMode == 'stars') $records[] = '<script type="text/javascript">VuFind.Ratings.initializeRaters()</script>';
+				}
+
 				$result['searchUrl'] = $this->searchObject->renderSearchUrl();
 
 				//TODO: Check if last page

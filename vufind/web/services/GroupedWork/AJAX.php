@@ -280,6 +280,7 @@ class GroupedWork_AJAX {
 
 	}
 
+
 	function RateTitle(){
 		require_once(ROOT_DIR . '/sys/LocalEnrichment/UserWorkReview.php');
 		global $user;
@@ -384,33 +385,39 @@ class GroupedWork_AJAX {
 			$result['message'] = 'Please login before adding a review.';
 		}else{
 			require_once ROOT_DIR . '/sys/LocalEnrichment/UserWorkReview.php';
-			$result['result'] = true;
 			$id = $_REQUEST['id'];
 			$rating = $_REQUEST['rating'];
-			$comment = trim($_REQUEST['comment']);
+			$comment = isset($_REQUEST['comment']) ? trim($_REQUEST['comment']) : ''; //avoids undefined index notice when doing only ratings.
 
 			$groupedWorkReview = new UserWorkReview();
 			$groupedWorkReview->userId = $user->id;
 			$groupedWorkReview->groupedRecordPermanentId = $id;
 			$newReview = true;
-			if ($groupedWorkReview->find(true)){
+			if ($groupedWorkReview->find(true)){ // check for existing rating by user
 				$newReview = false;
 			}
-			$result['newReview'] = $newReview;
+			// set the user's rating and/or review
 			if (!empty($rating) && is_numeric($rating)) $groupedWorkReview->rating = $rating;
 			if (!empty($comment)) $groupedWorkReview->review = $comment;
 			if ($newReview){
+				if (!$groupedWorkReview->review) $groupedWorkReview->review = ''; // set an empty review when the user was doing only ratings. (per library settings) //TODO there is no default value in the database.
 				$groupedWorkReview->dateRated = time();
-				$groupedWorkReview->insert();
+				$success = $groupedWorkReview->insert();
 			}else{
-				$groupedWorkReview->update();
+				$success = $groupedWorkReview->update();
 			}
-			$result['reviewId'] = $groupedWorkReview->id;
-			global $interface;
-			$interface->assign('review', $groupedWorkReview);
-			$result['reviewHtml'] = $interface->fetch('GroupedWork/view-user-review.tpl');
-
-		//TODO update side bar as well? call appropriate driver?
+			if (!$success) { // if sql save didn't work, let user know.
+				$result['result'] = false;
+				$result['message'] = 'Failed to save.';
+			} else { // successfully saved
+				$result['result'] = true;
+				$result['newReview'] = $newReview;
+				$result['reviewId']  = $groupedWorkReview->id;
+				global $interface;
+				$interface->assign('review', $groupedWorkReview);
+				$result['reviewHtml'] = $interface->fetch('GroupedWork/view-user-review.tpl');
+			}
+		//TODO update side bar as well? call appropriate driver? Update stars in covers mode? (This is called from a variety of places)
 		}
 
 		return json_encode($result);

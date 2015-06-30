@@ -360,7 +360,7 @@ class UserList extends DB_DataObject
 	 * @return UserListEntry|bool
 	 */
 	function cleanListEntry($listEntry){
-		global $configArray;
+//		global $configArray;
 		global $user;
 
 		// Connect to Database
@@ -372,29 +372,23 @@ class UserList extends DB_DataObject
 			global $library;
 			require_once(ROOT_DIR . '/Drivers/marmot_inc/BadWord.php');
 			$badWords = new BadWord();
-			$badWordsList = $badWords->getBadWordExpressions();
+//			$badWordsList = $badWords->getBadWordExpressions();
 
 			//Determine if we should censor bad words or hide the comment completely.
 			$censorWords = true;
 			if (isset($library)) $censorWords = $library->hideCommentsWithBadWords == 0 ? true : false;
 			if ($censorWords){
 				//Filter Title
-				$titleText = $this->title;
-				foreach ($badWordsList as $badWord){
-					$titleText = preg_replace($badWord, '***', $titleText);
-				}
+				$titleText = $badWords->censorBadWords($this->title);
 				$this->title = $titleText;
+
 				//Filter description
-				$descriptionText = $this->description;
-				foreach ($badWordsList as $badWord){
-					$descriptionText = preg_replace($badWord, '***', $descriptionText);
-				}
+				$descriptionText = $badWords->censorBadWords($this->description);
 				$this->description = $descriptionText;
+
 				//Filter notes
-				$notesText = $listEntry->notes;
-				foreach ($badWordsList as $badWord){
-					$notesText = preg_replace($badWord, '***', $notesText);
-				}
+				// TODO: possible problem: $notesText overwrites the above description?
+				$notesText = $badWords->censorBadWords($listEntry->notes);
 				$this->description = $notesText;
 			}else{
 				//Check for bad words in the title or description
@@ -404,11 +398,8 @@ class UserList extends DB_DataObject
 				}
 				//Filter notes
 				$titleText .= ' ' . $listEntry->notes;
-				foreach ($badWordsList as $badWord){
-					if (preg_match($badWord,$titleText)){
-						return false;
-					}
-				}
+
+				if ($badWords->hasBadWords($titleText)) return false;
 			}
 		}
 		return $listEntry;

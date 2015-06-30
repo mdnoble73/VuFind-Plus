@@ -8,15 +8,21 @@
 		</div>
 
 	{else}{*Default Browse Mode (covers) *}
-		<div class="{*browse-title thumbnail *}browse-thumbnail">
-			{* thumbnail styling added to browse-thumbnail as mix in, browse-title not in use. plb 4-27-2015 *}
-			<a onclick="return VuFind.GroupedWork.showGroupedWorkInfo('{$summId}', '{$browseCategoryId}')" href="{$summUrl}">
+		<div class="browse-thumbnail">
+			<a onclick="return VuFind.GroupedWork.showGroupedWorkInfo('{$summId}','{$browseCategoryId}')" href="{$summUrl}">
 				<div>
-					<img {*class="img-responsive" this is applied within the thumbnail mixin*} src="{$bookCoverUrlMedium}" alt="{$summTitle} by {$summAuthor}" title="{$summTitle} by {$summAuthor}">
+					<img src="{$bookCoverUrlMedium}" alt="{$summTitle} by {$summAuthor}" title="{$summTitle} by {$summAuthor}">
 				</div>
 			</a>
-			{if $showRatings}
-				<div class="browse-rating" onclick="return VuFind.GroupedWork.showReviewForm(this, '{$summId}');"> {* TODO change for separation *}
+			{if $showRatings && $browseCategoryRatingsMode != 'none'}
+				<div class="browse-rating{if $browseCategoryRatingsMode == 'stars'} rater{/if}"
+				{if $browseCategoryRatingsMode == 'popup'} onclick="return VuFind.GroupedWork.showReviewForm(this, '{$summId}');" style="cursor: pointer"{/if}
+				{if $browseCategoryRatingsMode == 'stars'}
+					{* AJAX rater data fields *}
+					{if $ratingData.user}data-user_rating="{$ratingData.user}" {/if}data-average_rating="{$ratingData.average}" data-id="{$summId}"
+					data-show_review="{$showComments}"
+				{/if}
+				>
 				<span class="ui-rater-starsOff" style="width:90px">
 					{if $ratingData.user}
 						<span class="ui-rater-starsOn userRated" style="width:{math equation="90*rating/5" rating=$ratingData.user}px"></span>
