@@ -573,6 +573,16 @@ class AJAX extends Action {
 		$recordSet = $searchObject->getResultRecordHTML($displayMode);
 //		if ($displayMode == 'covers'){
 			$displayTemplate = 'Search/covers-list.tpl'; // structure for bookcover tiles
+
+		// Rating Settings
+		global $library, $location;
+		$browseCategoryRatingsMode = null;
+		if ($location) $browseCategoryRatingsMode = $location->browseCategoryRatingsMode; // Try Location Setting
+		if (!$browseCategoryRatingsMode) $browseCategoryRatingsMode = $library->browseCategoryRatingsMode;  // Try Library Setting
+
+		// when the Ajax rating is turned on, they have to be initialized with each load of the category.
+		if ($browseCategoryRatingsMode == 'stars') $recordSet[] = '<script type="text/javascript">VuFind.Ratings.initializeRaters()</script>';
+
 //		}
 //		else { // default
 //			$displayTemplate = 'Search/list-list.tpl'; // structure for regular results

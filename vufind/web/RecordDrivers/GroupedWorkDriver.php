@@ -595,6 +595,17 @@ class GroupedWorkDriver extends RecordInterface{
 		$interface->assign('ratingData', $this->getRatingData());
 		$interface->assign('bookCoverUrl', $this->getBookcoverUrl('small'));
 		$interface->assign('bookCoverUrlMedium', $this->getBookcoverUrl('medium'));
+		// Rating Settings
+		global $library, $location;
+		$browseCategoryRatingsMode = null;
+		if ($location) { // Try Location Setting
+			$browseCategoryRatingsMode = $location->browseCategoryRatingsMode;
+		}
+		if (!$browseCategoryRatingsMode) { // Try Library Setting
+			$browseCategoryRatingsMode = $library->browseCategoryRatingsMode;
+		}
+		if (!$browseCategoryRatingsMode) $browseCategoryRatingsMode = 'popup'; // default
+		$interface->assign('browseCategoryRatingsMode', $browseCategoryRatingsMode);
 
 		return 'RecordDrivers/GroupedWork/browse_result.tpl';
 	}
@@ -1545,6 +1556,15 @@ class GroupedWorkDriver extends RecordInterface{
 
 	public function getUserReviews(){
 		$reviews = array();
+
+		// Determine if we should censor bad words or hide the comment completely.
+		$censorWords = true;
+		global $library;
+		if (isset($library)) $censorWords = !$library->hideCommentsWithBadWords; // censor if not hiding
+		require_once(ROOT_DIR . '/Drivers/marmot_inc/BadWord.php');
+		$badWords = new BadWord();
+
+		// Get the Reviews
 		require_once ROOT_DIR . '/sys/LocalEnrichment/UserWorkReview.php';
 		$userReview = new UserWorkReview();
 		$userReview->groupedRecordPermanentId = $this->getUniqueID();
@@ -1552,6 +1572,7 @@ class GroupedWorkDriver extends RecordInterface{
 		$userReview->joinAdd($joinUser);
 		$userReview->find();
 		while ($userReview->fetch()){
+			// Set the display Name for the review
 			if (!$userReview->displayName){
 				if (strlen(trim($userReview->firstname)) >= 1){
 					$userReview->displayName = substr($userReview->firstname, 0, 1) . '. ' . $userReview->lastname;
@@ -1559,7 +1580,16 @@ class GroupedWorkDriver extends RecordInterface{
 					$userReview->displayName = $userReview->lastname;
 				}
 			}
-			//TODO: Clean the review text
+
+			// Clean-up User Review Text
+			if ($userReview->review) { // if the review has content to check
+				if ($censorWords) { // replace bad words
+					$userReview->review = $badWords->censorBadWords($userReview->review);
+				} else { // skip reviews with bad words
+					if ($badWords->hasBadWords($userReview->review)) continue;
+				}
+			}
+
 			$reviews[] = clone $userReview;
 		}
 		return $reviews;
