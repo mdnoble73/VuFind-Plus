@@ -9,6 +9,7 @@
 			<label for="" class="control-label">Rate the Title</label>
 			<div class="controls">
 				{include file='Record/title-rating.tpl' showNotInterested=false showReviewAfterRating=false}
+				{* Only Grouped Work Ratings implemented now, the above template does not exist. (Is this page in use?) plb 6-29-2015 *}
 			</div>
 		</div>
 		<div class="form-group">
@@ -23,11 +24,12 @@
 	<button class="btn" data-dismiss="modal" id="modalClose">Close</button>
 	<span class="tool btn btn-primary" onclick='VuFind.Record.saveReview("{$id|escape}", "{$shortId}"); return false;'>{translate text="Submit Review"}</span>
 </div>
-{literal}
+	{* Pika Library automatically initializes the Ratings *}
+{*{literal}
 <script type="text/javascript">
 	$(document).ready(function(){
 		VuFind.Ratings.initializeRaters();
 	});
 </script>
-{/literal}
+{/literal}*}
 {/strip}

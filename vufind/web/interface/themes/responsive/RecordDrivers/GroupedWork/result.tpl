@@ -8,7 +8,8 @@
 			</a>
 		{/if}
 		{if $showComments}
-		{include file="GroupedWork/title-rating.tpl" ratingClass="" recordId=$summId shortId=$summShortId ratingData=$summRating}
+		{*{include file="GroupedWork/title-rating.tpl" ratingClass="" recordId=$summId shortId=$summShortId ratingData=$summRating}*}
+		{include file="GroupedWork/title-rating.tpl" ratingClass="" id=$summId ratingData=$summRating}
 		{/if}
 	</div>
 

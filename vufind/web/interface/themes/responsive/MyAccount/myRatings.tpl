@@ -47,7 +47,8 @@
 									{$rating.author}
 								</td>
 								<td class="myAccountCell">
-									{include file='GroupedWork/title-rating.tpl' shortId=$rating.shortId recordId=$rating.fullId ratingData=$rating.ratingData}
+									{*{include file='GroupedWork/title-rating.tpl' shortId=$rating.shortId recordId=$rating.fullId ratingData=$rating.ratingData}*}
+									{include file='GroupedWork/title-rating.tpl' id=$rating.groupedWorkId ratingData=$rating.ratingData}
 									<p>{$rating.review}</p>
 								</td>
 								<td class="myAccountCell">

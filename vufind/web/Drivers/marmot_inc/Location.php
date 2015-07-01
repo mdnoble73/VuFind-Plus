@@ -137,9 +137,6 @@ class Location extends DB_DataObject
 			array('property'=>'displaySection', 'type' => 'section', 'label' =>'Basic Display', 'hideInLists' => true, 'properties' => array(
 				array('property'=>'homeLink', 'type'=>'text', 'label'=>'Home Link', 'description'=>'The location to send the user when they click on the home button or logo.  Use default or blank to go back to the vufind home location.', 'hideInLists' => true, 'size'=>'40'),
 				array('property'=>'additionalCss', 'type'=>'textarea', 'label'=>'Additional CSS', 'description'=>'Extra CSS to apply to the site.  Will apply to all pages.', 'hideInLists' => true),
-				'defaultBrowseMode' => array('property' => 'defaultBrowseMode', 'type' => 'enum', 'label'=>'Default Viewing Mode for Browse Categories', 'description' => 'Sets how browse categories will be displayed when users haven\'t chosen themselves.', 'hideInLists' => true,
-				                             'values'=> array('' => null, 'covers' => 'Show Covers Only', 'grid' => 'Show as Grid'),),
-																					// empty value option is needed so that if no option is specifically chosen for location, the library setting will be used instead.
 				)),
 
 			array('property'=>'ilsSection', 'type' => 'section', 'label' =>'ILS/Account Integration', 'hideInLists' => true, 'properties' => array(
@@ -171,17 +168,20 @@ class Location extends DB_DataObject
 				array('property'=>'systemsToRepeatIn', 'type'=>'text', 'label'=>'Systems To Repeat In', 'description'=>'A list of library codes that you would like to repeat search in separated by pipes |.', 'hideInLists' => true),
 			)),
 
+			// Catalog Enrichment //
 			array('property'=>'enrichmentSection', 'type' => 'section', 'label' =>'Catalog Enrichment', 'hideInLists' => true, 'properties' => array(
 				array('property'=>'showStandardReviews', 'type'=>'checkbox', 'label'=>'Show Standard Reviews', 'description'=>'Whether or not reviews from Content Cafe/Syndetics are displayed on the full record page.', 'hideInLists' => true, 'default'=>true),
 				array('property'=>'showGoodReadsReviews', 'type'=>'checkbox', 'label'=>'Show GoodReads Reviews', 'description'=>'Whether or not reviews from GoodReads are displayed on the full record page.', 'hideInLists' => true, 'default'=>true),
-				'showFavorites'  => array('property'=>'showFavorites', 'type'=>'checkbox', 'label'=>'Show Favorites', 'description'=>'Whether or not users can maintain favorites lists', 'hideInLists' => true, 'default' => 1),
+				'showFavorites'  => array('property'=>'showFavorites', 'type'=>'checkbox', 'label'=>'Enable User Lists', 'description'=>'Whether or not users can maintain favorites lists', 'hideInLists' => true, 'default' => 1),
+				//TODO database column rename?
 			)),
 
+			// Full Record Display //
 			array('property'=>'fullRecordSection', 'type' => 'section', 'label' =>'Full Record Display', 'hideInLists' => true, 'properties' => array(
 				'showTextThis'  => array('property'=>'showTextThis', 'type'=>'checkbox', 'label'=>'Show Text This', 'description'=>'Whether or not the Text This link is shown', 'hideInLists' => true, 'default' => 1),
 				'showEmailThis'  => array('property'=>'showEmailThis', 'type'=>'checkbox', 'label'=>'Show Email This', 'description'=>'Whether or not the Email This link is shown', 'hideInLists' => true, 'default' => 1),
 				'showShareOnExternalSites'  => array('property'=>'showShareOnExternalSites', 'type'=>'checkbox', 'label'=>'Show Sharing To External Sites', 'description'=>'Whether or not sharing on external sites (Twitter, Facebook, Pinterest, etc. is shown)', 'hideInLists' => true, 'default' => 1),
-				'showComments'  => array('property'=>'showComments', 'type'=>'checkbox', 'label'=>'Show Comments', 'description'=>'Whether or not user comments are shown (also disables adding comments)', 'hideInLists' => true, 'default' => 1),
+				'showComments'  => array('property'=>'showComments', 'type'=>'checkbox', 'label'=>'Enable User Reviews', 'description'=>'Whether or not user reviews are shown (also disables adding user reviews)', 'hideInLists' => true, 'default' => 1),
 				'showQRCode'  => array('property'=>'showQRCode', 'type'=>'checkbox', 'label'=>'Show QR Code', 'description'=>'Whether or not the catalog should show a QR Code in full record view', 'hideInLists' => true, 'default' => 1),
 				array('property'=>'showStaffView', 'type'=>'checkbox', 'label'=>'Show Staff View', 'description'=>'Whether or not the staff view is displayed in full record view.', 'hideInLists' => true, 'default'=>true),
 				'moreDetailsOptions' => array(
@@ -199,6 +199,39 @@ class Location extends DB_DataObject
 						'canEdit' => true,
 				),
 			)),
+
+			// Browse Category Section //
+			array('property' => 'browseCategorySection', 'type' => 'section', 'label' => 'Browse Categories', 'hideInLists' => true,
+			      'properties' => array(
+				      'defaultBrowseMode' => array('property' => 'defaultBrowseMode', 'type' => 'enum', 'label'=>'Default Viewing Mode for Browse Categories', 'description' => 'Sets how browse categories will be displayed when users haven\'t chosen themselves.', 'hideInLists' => true,
+				                                   'values'=> array('' => null, // empty value option is needed so that if no option is specifically chosen for location, the library setting will be used instead.
+				                                                    'covers' => 'Show Covers Only',
+				                                                    'grid' => 'Show as Grid'),
+				      ),
+				      'browseCategoryRatingsMode' => array('property' => 'browseCategoryRatingsMode', 'type' => 'enum', 'label' => 'Ratings Mode for Browse Categories ("covers" browse mode only)', 'description' => 'Sets how ratings will be displayed and how user ratings will be enabled when a user is viewing a browse category in the "covers" browse mode. (This only applies when User Ratings have been enabled.)',
+				                                           'values' => array('' => null, // empty value option is needed so that if no option is specifically chosen for location, the library setting will be used instead.
+				                                                             'popup' => 'Show rating stars and enable user rating via pop-up form.',
+				                                                             'stars' => 'Show rating stars and enable user ratings by clicking the stars.',
+				                                                             'none' => 'Do not show rating stars.'
+				                                           ),
+				      ),
+
+				      'browseCategories' => array(
+					      'property'=>'browseCategories',
+					      'type'=>'oneToMany',
+					      'label'=>'Browse Categories',
+					      'description'=>'Browse Categories To Show on the Home Screen',
+					      'keyThis' => 'locationId',
+					      'keyOther' => 'locationId',
+					      'subObjectType' => 'LocationBrowseCategory',
+					      'structure' => $locationBrowseCategoryStructure,
+					      'sortable' => true,
+					      'storeDb' => true,
+					      'allowEdit' => false,
+					      'canEdit' => false,
+				      ),
+			      )),
+
 
 			array('property'=>'overdriveSection', 'type' => 'section', 'label' =>'OverDrive', 'hideInLists' => true, 'properties' => array(
 				'enableOverdriveCollection' => array('property'=>'enableOverdriveCollection', 'type'=>'checkbox', 'label'=>'Enable Overdrive Collection', 'description'=>'Whether or not titles from the Overdrive collection should be included in searches', 'hideInLists' => true, 'default'=>true),
@@ -231,20 +264,6 @@ class Location extends DB_DataObject
 				'canEdit' => true,
 			),
 
-			'browseCategories' => array(
-				'property'=>'browseCategories',
-				'type'=>'oneToMany',
-				'label'=>'Browse Categories',
-				'description'=>'Browse Categories To Show on the Home Screen',
-				'keyThis' => 'locationId',
-				'keyOther' => 'locationId',
-				'subObjectType' => 'LocationBrowseCategory',
-				'structure' => $locationBrowseCategoryStructure,
-				'sortable' => true,
-				'storeDb' => true,
-				'allowEdit' => false,
-				'canEdit' => false,
-			),
 		);
 		foreach ($structure as $fieldName => $field){
 			$field['propertyOld'] = $field['property'] . 'Old';

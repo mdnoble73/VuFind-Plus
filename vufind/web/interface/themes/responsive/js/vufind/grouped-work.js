@@ -245,13 +245,20 @@ VuFind.GroupedWork = (function(){
 		},
 
 		saveReview: function(id){
-			if (Globals.loggedIn){
-				var comment = $('#comment' + id).val();
-				var rating = $('#rating' + id).val();
-
-				var url = Globals.path + "/GroupedWork/" + encodeURIComponent(id) + "/AJAX";
-				var params = "method=saveReview&comment=" + encodeURIComponent(comment) + "&rating=" + encodeURIComponent(rating);
-				$.getJSON(url + '?' + params,
+			if (!Globals.loggedIn){
+				VuFind.Account.ajaxLogin(null, function(){
+					this.saveReview(id)
+				})
+			} else {
+				var comment = $('#comment' + id).val(),
+						rating = $('#rating' + id).val(),
+						url = Globals.path + "/GroupedWork/" + encodeURIComponent(id) + "/AJAX",
+						params =  {
+							method : 'saveReview'
+							,comment : comment
+							,rating : rating
+						};
+				$.getJSON(url, params,
 					function(data) {
 						if (data.result) {
 							if (data.newReview){
@@ -264,7 +271,9 @@ VuFind.GroupedWork = (function(){
 							VuFind.showMessage("Error", data.message);
 						}
 					}
-				);
+				).fail(function(){
+							VuFind.showMessage('Request Failed', 'There was an error with this AJAX Request.');
+				});
 			}
 			return false;
 		},
@@ -397,12 +406,10 @@ VuFind.GroupedWork = (function(){
 			if (Globals.loggedIn){
 				var modalDialog = $("#modalDialog");
 				$.getJSON(Globals.path + "/GroupedWork/AJAX?method=getReviewForm&id=" + id, function(data){
-					$('#myModalLabel').html(data.title);
-					$('.modal-body').html(data.modalBody);
-					$('.modal-buttons').html(data.modalButtons);
+					VuFind.showMessageWithButtons(data.title, data.modalBody, data.modalButtons);
+				}).fail(function(){
+					VuFind.showMessage('Request Failed', 'There was an error with this AJAX Request.');
 				});
-				modalDialog.load( );
-				modalDialog.modal('show');
 			}else{
 				VuFind.Account.ajaxLogin($trigger, function (){
 					return VuFind.GroupedWork.showReviewForm($trigger, id);

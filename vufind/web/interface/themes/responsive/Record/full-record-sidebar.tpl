@@ -27,12 +27,10 @@
 			</div>
 		{/if}
 
-		{if $showComments}
 		<div id="full-record-ratings" class="text-center">
 			{* Let the user rate this title *}
 			{include file="GroupedWork/title-rating-full.tpl" ratingClass="" showFavorites=0 ratingData=$recordDriver->getRatingData() showNotInterested=false}
 		</div>
-		{/if}
 
 		<div id="recordTools" class="full-record-tools">
 			{include file="GroupedWork/result-tools.tpl" showMoreInfo=false summId=$recordDriver->getPermanentId()}
