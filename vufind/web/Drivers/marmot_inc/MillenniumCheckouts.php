@@ -202,6 +202,7 @@ class MillenniumCheckouts {
 					if ($recordDriver->isValid()){
 						$curTitle['coverUrl'] = $recordDriver->getBookcoverUrl('medium');
 						$curTitle['groupedWorkId'] = $recordDriver->getGroupedWorkId();
+						$curTitle['ratingData'] = $recordDriver->getRatingData();
 						$formats = $recordDriver->getFormats();
 						$curTitle['format'] = reset($formats);
 						$curTitle['author'] = $recordDriver->getPrimaryAuthor();

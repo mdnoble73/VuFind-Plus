@@ -32,6 +32,15 @@
 					</div>
 				{/if}
 
+				{if $showRatings && $record.groupedWorkId && $record.ratingData}
+					<div class="row">
+						<div class="result-label col-md-3">Rating&nbsp;</div>
+						<div class="col-md-9 result-value">
+							{include file="GroupedWork/title-rating.tpl" ratingClass="" id=$record.groupedWorkId ratingData=$record.ratingData showNotInterested=false}
+						</div>
+					</div>
+				{/if}
+
 				<div class="row">
 					<div class="result-label col-md-3">{translate text='Expires'}</div>
 					<div class="col-md-9 result-value">{$record.dueDate|replace:' ':'&nbsp;'}</div>
