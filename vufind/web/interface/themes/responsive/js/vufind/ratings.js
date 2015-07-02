@@ -22,7 +22,7 @@ VuFind.Ratings = (function(){
 		doRatingReview: function (id){
 			VuFind.showMessageWithButtons('Add a Review',
 					'Would you like to add a review explaining your rating to help other users?',
-					'<span class="btn btn-primary" onclick="VuFind.GroupedWork.showReviewForm(this, \''+id+'\')">Add a Review</span>'
+					'<button class="btn btn-primary" onclick="VuFind.GroupedWork.showReviewForm(this, \''+id+'\')">Add a Review</button>'
 			);
 			//if (confirm('Would you like to add a review explaining your rating to help other users?')){
 			//	VuFind.GroupedWork.showReviewForm(id);

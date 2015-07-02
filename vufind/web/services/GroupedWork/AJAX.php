@@ -272,9 +272,9 @@ class GroupedWork_AJAX {
 		$results = array(
 				'title' => "<a href='$url'>{$recordDriver->getTitle()}</a>",
 				'modalBody' => $interface->fetch('GroupedWork/work-details.tpl'),
-				'modalButtons' => $interface->fetch('GroupedWork/work-details-modalButtons.tpl')
-//		'modalButtons' => "<span onclick=\"return VuFind.GroupedWork.showSaveToListForm(this, '$escapedId');\" class=\"modal-buttons btn btn-primary\" style='float: left'>$buttonLabel</span>"
-//					."<a href='$url'><span class='modal-buttons btn btn-primary'>More Info</span></a>"
+//				'modalButtons' => $interface->fetch('GroupedWork/work-details-modalButtons.tpl')
+		'modalButtons' => "<button onclick=\"return VuFind.GroupedWork.showSaveToListForm(this, '$escapedId');\" class=\"modal-buttons btn btn-primary\" style='float: left'>$buttonLabel</button>"
+					."<a href='$url'><button class='modal-buttons btn btn-primary'>More Info</button></a>"
 		);
 		return json_encode($results);
 
@@ -287,14 +287,22 @@ class GroupedWork_AJAX {
 		if (!isset($user) || $user == false){
 			return json_encode(array('error'=>'Please login to rate this title.'));
 		}
+		if (empty($_REQUEST['id'])) {
+			return json_encode(array('error'=>'ID for the item to rate is required.'));
+		}
+		if (empty($_REQUEST['rating']) || !ctype_digit($_REQUEST['rating'])) {
+			return json_encode(array('error'=>'Invalid value for rating.'));
+		}
 		$rating = $_REQUEST['rating'];
 		//Save the rating
 		$workReview = new UserWorkReview();
 		$workReview->groupedRecordPermanentId = $_REQUEST['id'];
 		$workReview->userId = $user->id;
 		if ($workReview->find(true)) {
+			if ($rating != $workReview->rating){ // update gives an error if the rating value is the same as stored.
 			$workReview->rating = $rating;
 			$success = $workReview->update();
+			} else $success = true; // pretend success since rating is already set to same value.
 		} else {
 			$workReview->rating = $rating;
 			$workReview->review = '';  // default value required for insert statements //TODO alter table structure, null should be default value.
@@ -371,7 +379,7 @@ class GroupedWork_AJAX {
 		$results = array(
 			'title' => $title,
 			'modalBody' => $interface->fetch("GroupedWork/review-form-body.tpl"),
-			'modalButtons' => "<span class='tool btn btn-primary' onclick='VuFind.GroupedWork.saveReview(\"{$id}\"); return false;'>Submit $title</span>"
+			'modalButtons' => "<button class='tool btn btn-primary' onclick='VuFind.GroupedWork.saveReview(\"{$id}\");'>Submit $title</button>"
 		);
 		return json_encode($results);
 	}
@@ -383,41 +391,48 @@ class GroupedWork_AJAX {
 		if ($user === false) {
 			$result['result'] = false;
 			$result['message'] = 'Please login before adding a review.';
-		}else{
+		}elseif (empty($_REQUEST['id'])) {
+			$result['result'] = false;
+			$result['message'] = 'ID for the item to review is required.';
+		} else {
 			require_once ROOT_DIR . '/sys/LocalEnrichment/UserWorkReview.php';
-			$id = $_REQUEST['id'];
-			$rating = $_REQUEST['rating'];
-			$comment = isset($_REQUEST['comment']) ? trim($_REQUEST['comment']) : ''; //avoids undefined index notice when doing only ratings.
+			$id        = $_REQUEST['id'];
+			$rating    = $_REQUEST['rating'];
+			$HadReview = isset($_REQUEST['comment']); // did form have the review field turned on? (may be only ratings instead)
+			$comment   = $HadReview ? trim($_REQUEST['comment']) : ''; //avoids undefined index notice when doing only ratings.
 
-			$groupedWorkReview = new UserWorkReview();
-			$groupedWorkReview->userId = $user->id;
+			$groupedWorkReview                           = new UserWorkReview();
+			$groupedWorkReview->userId                   = $user->id;
 			$groupedWorkReview->groupedRecordPermanentId = $id;
-			$newReview = true;
-			if ($groupedWorkReview->find(true)){ // check for existing rating by user
+			$newReview                                   = true;
+			if ($groupedWorkReview->find(true)) { // check for existing rating by user
 				$newReview = false;
 			}
 			// set the user's rating and/or review
 			if (!empty($rating) && is_numeric($rating)) $groupedWorkReview->rating = $rating;
-			if (!empty($comment)) $groupedWorkReview->review = $comment;
-			if ($newReview){
-				if (!$groupedWorkReview->review) $groupedWorkReview->review = ''; // set an empty review when the user was doing only ratings. (per library settings) //TODO there is no default value in the database.
+			if ($newReview) {
+				$groupedWorkReview->review = $HadReview ? $comment : ''; // set an empty review when the user was doing only ratings. (per library settings) //TODO there is no default value in the database.
 				$groupedWorkReview->dateRated = time();
 				$success = $groupedWorkReview->insert();
-			}else{
-				$success = $groupedWorkReview->update();
+			} else {
+				if ($rating != $groupedWorkReview->rating || ($HadReview && $comment != $groupedWorkReview->review)) { // update gives an error if the updated values are the same as stored values.
+					if ($HadReview) $groupedWorkReview->review = $comment; // only update the review if the review input was in the form.
+					$success = $groupedWorkReview->update();
+				} else $success = true; // pretend success since values are already set to same values.
 			}
 			if (!$success) { // if sql save didn't work, let user know.
-				$result['result'] = false;
-				$result['message'] = 'Failed to save.';
+				$result['result']  = false;
+				$result['message'] = 'Failed to save rating or review.';
 			} else { // successfully saved
-				$result['result'] = true;
+				$result['result']    = true;
 				$result['newReview'] = $newReview;
 				$result['reviewId']  = $groupedWorkReview->id;
 				global $interface;
 				$interface->assign('review', $groupedWorkReview);
 				$result['reviewHtml'] = $interface->fetch('GroupedWork/view-user-review.tpl');
 			}
-		//TODO update side bar as well? call appropriate driver? Update stars in covers mode? (This is called from a variety of places)
+			//TODO update side bar histogram as well? call appropriate driver? Update stars in covers mode? (This is called from a variety of places)
+
 		}
 
 		return json_encode($result);
@@ -440,7 +455,7 @@ class GroupedWork_AJAX {
 		$results = array(
 				'title' => 'Share via SMS Message',
 				'modalBody' => $interface->fetch("GroupedWork/sms-form-body.tpl"),
-				'modalButtons' => "<span class='tool btn btn-primary' onclick='VuFind.GroupedWork.sendSMS(\"{$id}\"); return false;'>Send Text</span>"
+				'modalButtons' => "<button class='tool btn btn-primary' onclick='VuFind.GroupedWork.sendSMS(\"{$id}\"); return false;'>Send Text</button>"
 		);
 		return json_encode($results);
 	}
@@ -462,7 +477,7 @@ class GroupedWork_AJAX {
 		$results = array(
 				'title' => 'Share via E-mail',
 				'modalBody' => $interface->fetch("GroupedWork/email-form-body.tpl"),
-				'modalButtons' => "<span class='tool btn btn-primary' onclick='VuFind.GroupedWork.sendEmail(\"{$id}\"); return false;'>Send E-mail</span>"
+				'modalButtons' => "<button class='tool btn btn-primary' onclick='VuFind.GroupedWork.sendEmail(\"{$id}\"); return false;'>Send E-mail</button>"
 		);
 		return json_encode($results);
 	}
@@ -636,7 +651,7 @@ class GroupedWork_AJAX {
 		$results = array(
 				'title' => 'Add To List',
 				'modalBody' => $interface->fetch("GroupedWork/save.tpl"),
-				'modalButtons' => "<span class='tool btn btn-primary' onclick='VuFind.GroupedWork.saveToList(\"{$id}\"); return false;'>Save To List</span>"
+				'modalButtons' => "<button class='tool btn btn-primary' onclick='VuFind.GroupedWork.saveToList(\"{$id}\"); return false;'>Save To List</button>"
 		);
 		return json_encode($results);
 	}
@@ -744,7 +759,7 @@ class GroupedWork_AJAX {
 		$results = array(
 				'title' => 'Add Tag',
 				'modalBody' => $interface->fetch("GroupedWork/addtag.tpl"),
-				'modalButtons' => "<span class='tool btn btn-primary' onclick='VuFind.GroupedWork.saveTag(\"{$id}\"); return false;'>Add Tags</span>"
+				'modalButtons' => "<button class='tool btn btn-primary' onclick='VuFind.GroupedWork.saveTag(\"{$id}\"); return false;'>Add Tags</button>"
 		);
 		return json_encode($results);
 	}
