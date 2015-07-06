@@ -153,20 +153,20 @@ class Admin_ListWidgets extends ObjectEditor {
 				switch ($widget->style){
 					case 'horizontal':
 						$width = 650;
-						$height = 275;
+						$height = ($widget->coverSize == 'medium') ? 325 : 275;
 						break;
 					case 'vertical' :
-						$width = 175;
-						$height = 400;
+						$width = ($widget->coverSize == 'medium') ? 275 : 175;
+						$height = ($widget->coverSize == 'medium') ? 700 : 400;
 						break;
 					case 'text-list' :
-						$width = 400;
+						$width = 500;
 						$height = 200;
 						break;
 					case 'single' :
 					case 'single-with-next' :
-						$width = 225;
-						$height = 275;
+						$width = ($widget->coverSize == 'medium') ? 300 : 225;
+						$height = ($widget->coverSize == 'medium') ? 350 : 275;
 						break;
 				}
 				$interface->assign('width', $width);

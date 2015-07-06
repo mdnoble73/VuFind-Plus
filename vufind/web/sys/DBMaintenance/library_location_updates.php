@@ -973,6 +973,15 @@ function getLibraryLocationUpdates(){
 				"ALTER TABLE `location` ADD COLUMN `defaultBrowseMode` VARCHAR(25);",
 			),
 		),
+		'browse_category_ratings_mode' => array(
+			'title' => 'Ratings Mode for Browse Categories',
+			'description' => 'Setting for the Ratings Mode of Browse Categories',
+			'continueOnError' => true,
+			'sql' => array(
+				"ALTER TABLE `library` ADD COLUMN `browseCategoryRatingsMode` VARCHAR(25);",
+				"ALTER TABLE `location` ADD COLUMN `browseCategoryRatingsMode` VARCHAR(25);",
+			),
+		),
 		'logo_linking' => array(
 			'title' => 'Logo Linking',
 			'description' => 'Allow Linking of Logo to the library home page.',
