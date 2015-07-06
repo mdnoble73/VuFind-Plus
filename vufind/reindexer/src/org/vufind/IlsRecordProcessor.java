@@ -564,17 +564,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 					String itemInfo = orderItem.getRecordIdentifier() + "|" + orderItem.getRelatedItemInfo();
 					groupedWork.addRelatedItem(itemInfo);
 					for (Scope scope : orderItem.getRelatedScopes()) {
-						//Add the record to the scope, but only if there are no print titles (which have better information)
-						if (printItems.size() == 0){
-							groupedWork.getScopedWorkDetails().get(scope.getScopeName()).addRelatedRecord(
-									recordIdentifier,
-									printRecord.getPrimaryFormat() != null ? printRecord.getPrimaryFormat() : "Item On Order",
-									printRecord.getEdition(),
-									printRecord.getLanguage(),
-									printRecord.getPublisher(),
-									printRecord.getPublicationDate(),
-									printRecord.getPhysicalDescription()
-							);}
+						//Add the item to the scope, but only if there are no print titles (which have better information)
 						ScopedWorkDetails scopedWorkDetails = groupedWork.getScopedWorkDetails().get(scope.getScopeName());
 						scopedWorkDetails.addRelatedOrderItem(orderItem.getRecordIdentifier(), orderItem);
 						indexer.indexingStats.get(scope.getScopeName()).numSuperScopeOrderItems++;
