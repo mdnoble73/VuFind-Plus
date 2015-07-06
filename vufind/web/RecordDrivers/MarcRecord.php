@@ -1660,7 +1660,6 @@ class MarcRecord extends IndexRecord
 			$hasLocalItem = false;
 			$groupedStatus = "Currently Unavailable";
 			foreach ($items as $item){
-				$totalCopies++;
 				if ($item['availability'] == true){
 					$availableCopies++;
 				}
@@ -1678,6 +1677,9 @@ class MarcRecord extends IndexRecord
 				}
 				if (isset($item['onOrderCopies'])){
 					$onOrderCopies += $item['onOrderCopies'];
+					$totalCopies += $item['onOrderCopies'];
+				}else{
+					$totalCopies++;
 				}
 				//Check to see if we got a better grouped status
 				if (isset($item['groupedStatus'])){
