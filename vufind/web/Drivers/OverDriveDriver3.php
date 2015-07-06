@@ -478,6 +478,8 @@ class OverDriveDriver3 {
 								$bookshelfItem['overdriveRead'] = true;
 							}else if ($format->formatType == 'audiobook-overdrive'){
 									$bookshelfItem['overdriveListen'] = true;
+							}else if ($format->formatType == 'video-streaming'){
+								$bookshelfItem['overdriveVideo'] = true;
 							}else{
 								$bookshelfItem['selectedFormat'] = array(
 									'name' => $this->format_map[$format->formatType],
@@ -491,12 +493,14 @@ class OverDriveDriver3 {
 							if (isset($format->links->self)){
 								$curFormat['downloadUrl'] = $format->links->self->href . '/downloadlink';
 							}
-							if ($format->formatType != 'ebook-overdrive' && $format->formatType != 'audiobook-overdrive'){
+							if ($format->formatType != 'ebook-overdrive' && $format->formatType != 'audiobook-overdrive' && $format->formatType != 'video-streaming'){
 								$bookshelfItem['formats'][] = $curFormat;
 							}else{
 								if (isset($curFormat['downloadUrl'])){
 									if ($format->formatType = 'ebook-overdrive') {
 										$bookshelfItem['overdriveReadUrl'] = $curFormat['downloadUrl'];
+									}else if ($format->formatType == 'video-streaming'){
+										$bookshelfItem['overdriveVideoUrl'] = $curFormat['downloadUrl'];
 									}else{
 										$bookshelfItem['overdriveListenUrl'] = $curFormat['downloadUrl'];
 									}
@@ -921,6 +925,8 @@ class OverDriveDriver3 {
 		if ($format == 'ebook-overdrive'){
 			$url .= '&odreadauthurl=' . urlencode($configArray['Site']['url'] . '/Help/OverDriveReadError');
 		}elseif ($format == 'audiobook-overdrive'){
+			$url .= '&odreadauthurl=' . urlencode($configArray['Site']['url'] . '/Help/OverDriveReadError');
+		}elseif ($format == 'video-streaming'){
 			$url .= '&odreadauthurl=' . urlencode($configArray['Site']['url'] . '/Help/OverDriveReadError');
 		}
 
