@@ -203,5 +203,14 @@ function getGroupedWorkUpdates(){
 				"ALTER TABLE grouped_work_identifiers ADD UNIQUE (`type`, `identifier`)",
 			),
 		),
+
+		'grouped_work_primary_identifier_types' => array(
+			'title' => 'Expand Primary Identifiers Types ',
+			'description' => 'Expand Primary Identifiers so they can be any type to make it easier to index different collections.',
+			'continueOnError' => true,
+			'sql' => array(
+				"ALTER TABLE grouped_work_primary_identifiers CHANGE `type` `type` VARCHAR(50) NOT NULL",
+			),
+		),
 	);
 }

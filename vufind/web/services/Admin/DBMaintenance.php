@@ -1810,6 +1810,15 @@ class DBMaintenance extends Admin_Admin {
 					),
 				),
 
+				'ils_marc_checksum_source' => array(
+					'title' => 'ILS MARC Checksum Source',
+					'description' => 'Add a source to the ILS MARC Checksums table to allow for ',
+					'sql' => array(
+						"ALTER TABLE ils_marc_checksums ADD source VARCHAR(50) NOT NULL DEFAULT 'ils'",
+						"ALTER TABLE ils_marc_checksums ADD UNIQUE (`source`, `ilsId`)",
+					),
+				),
+
 				'work_level_ratings' => array(
 					'title' => 'Work Level Ratings',
 					'description' => 'Stores user ratings at the work level rather than the individual record.',
@@ -2009,6 +2018,70 @@ class DBMaintenance extends Admin_Admin {
 							numHolds INT(11) DEFAULT 0,
 							UNIQUE(ilsId)
 						) ENGINE = INNODB"
+					),
+
+					'indexing_profile' => array(
+						'title' => 'Setup Indexing so ',
+						'description' => 'Setup indexing information table to store information about how to index ',
+						'sql' => array(
+							"CREATE TABLE IF NOT EXISTS `indexing_profiles` (
+							  `id` int(11) NOT NULL AUTO_INCREMENT,
+							  `name` varchar(50) NOT NULL,
+							  `marcPath` varchar(100) NOT NULL,
+							  `individualMarcPath` varchar(100) NOT NULL,
+							  `groupingClass` varchar(50) NOT NULL,
+							  `indexingClass` varchar(50) NOT NULL,
+							  `recordDriver` varchar(50) NOT NULL,
+							  `recordNumberTag` char(3) NOT NULL,
+							  `recordNumberPrefix` varchar(10) NOT NULL,
+							  `suppressItemlessBibs` tinyint(1) NOT NULL DEFAULT '1',
+							  `itemTag` char(3) NOT NULL,
+							  `itemRecordNumber` char(1) DEFAULT NULL,
+							  `useItemBasedCallNumbers` tinyint(1) NOT NULL DEFAULT '1',
+							  `callNumberPrestamp` char(1) DEFAULT NULL,
+							  `callNumber` char(1) DEFAULT NULL,
+							  `callNumberCutter` char(1) DEFAULT NULL,
+							  `location` char(1) DEFAULT NULL,
+							  `subLocation` char(1) DEFAULT NULL,
+							  `collection` char(1) DEFAULT NULL,
+							  `itemUrl` char(1) DEFAULT NULL,
+							  `barcode` char(1) DEFAULT NULL,
+							  `status` char(1) DEFAULT NULL,
+							  `totalCheckouts` char(1) DEFAULT NULL,
+							  `lastYearCheckouts` char(1) DEFAULT NULL,
+							  `yearToDateCheckouts` char(1) DEFAULT NULL,
+							  `totalRenewals` char(1) DEFAULT NULL,
+							  `iType` char(1) DEFAULT NULL,
+							  `dueDate` char(1) DEFAULT NULL,
+							  `dateCreated` char(1) DEFAULT NULL,
+							  `dateCreatedFormat` varchar(20) DEFAULT NULL,
+							  `iCode2` char(1) DEFAULT NULL,
+							  `useICode2Suppression` tinyint(1) NOT NULL DEFAULT '1',
+							  `eContentDescriptor` char(1) DEFAULT NULL,
+							  `orderTag` char(3) DEFAULT NULL,
+							  `orderStatus` char(1) DEFAULT NULL,
+							  `orderLocation` char(1) DEFAULT NULL,
+							  `orderCopies` char(1) DEFAULT NULL,
+							  `orderCode3` char(1) DEFAULT NULL,
+							  PRIMARY KEY (`id`),
+							  UNIQUE KEY `name` (`name`)
+							) ENGINE=InnoDB DEFAULT CHARSET=utf8",
+							"CREATE TABLE IF NOT EXISTS `translation_maps` (
+							  `id` int(11) NOT NULL AUTO_INCREMENT,
+							  `indexingProfileId` int(11) NOT NULL,
+							  `name` varchar(50) NOT NULL,
+							  PRIMARY KEY (`id`),
+							  UNIQUE KEY `profileName` (`indexingProfileId`,`name`)
+							) ENGINE=InnoDB DEFAULT CHARSET=utf8",
+							"CREATE TABLE IF NOT EXISTS `translation_map_values` (
+							  `id` int(11) NOT NULL AUTO_INCREMENT,
+							  `translationMapId` int(11) NOT NULL,
+							  `value` varchar(50) NOT NULL,
+							  `translation` varchar(255) NOT NULL,
+							  PRIMARY KEY (`id`),
+							  UNIQUE KEY (`translationMapId`,`value`)
+							) ENGINE=InnoDB DEFAULT CHARSET=utf8",
+						)
 					),
 
 				),

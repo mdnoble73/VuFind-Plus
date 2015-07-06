@@ -32,7 +32,7 @@ require_once ROOT_DIR . '/sys/DataObjectUtil.php';
  * @author Mark Noble
  *
  */
-class ListWidgets extends ObjectEditor {
+class Admin_ListWidgets extends ObjectEditor {
 	function getObjectType(){
 		return 'ListWidget';
 	}

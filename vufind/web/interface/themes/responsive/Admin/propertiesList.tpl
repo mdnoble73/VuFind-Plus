@@ -25,7 +25,9 @@
 					{foreach from=$structure item=property}
 						{assign var=propName value=$property.property}
 						{assign var=propValue value=$dataItem->$propName}
+
 						{if !isset($property.hideInLists) || $property.hideInLists == false}
+							<td>
 							{if $property.type == 'label'}
 								{if $dataItem->class != 'objectDeleted'}
 									<a href='{$path}/{$module}/{$toolName}?objectAction=edit&amp;id={$id}'>&nbsp;</span>{$propValue}</a>
