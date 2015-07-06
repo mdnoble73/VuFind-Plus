@@ -381,7 +381,11 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 
 			List<DataField> orderFields = getDataFields(record, orderTag);
 			for (DataField curOrderField : orderFields){
-				String location = curOrderField.getSubfield(orderLocationSubfield).getData();
+				//Make sure we get a location
+				String location = "multi";
+				if (curOrderField.getSubfield(orderLocationSubfield) != null) {
+					location = curOrderField.getSubfield(orderLocationSubfield).getData();
+				}
 
 				int copies = 1;
 				if (location.equals("multi") && orderLocationsSubfield != ' '){
