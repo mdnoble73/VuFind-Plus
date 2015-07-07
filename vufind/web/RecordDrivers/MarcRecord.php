@@ -1675,7 +1675,7 @@ class MarcRecord extends IndexRecord
 						$branchAvailableCopies++;
 					}
 				}
-				if (isset($item['onOrderCopies'])){
+				if (isset($item['onOrderCopies']) && $item['onOrderCopies'] > 0){
 					$onOrderCopies += $item['onOrderCopies'];
 					$totalCopies += $item['onOrderCopies'];
 				}else{
