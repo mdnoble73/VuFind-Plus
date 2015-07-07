@@ -226,13 +226,13 @@ class GroupedWork_AJAX {
 		$id = $_REQUEST['id'];
 		$recordDriver = new GroupedWorkDriver($id);
 
-		if (isset($_REQUEST['browseCategoryId'])){
+		if (!empty($_REQUEST['browseCategoryId'])){
 			require_once ROOT_DIR . '/sys/Browse/BrowseCategory.php';
 			$browseCategory = new BrowseCategory();
 			$browseCategory->textId = $_REQUEST['browseCategoryId'];
 			if ($browseCategory->find(true)){
 				$browseCategory->numTitlesClickedOn++;
-				$browseCategory->update();
+				$browseCategory->update_stats_only();
 			}
 		}
 		$interface->assign('recordDriver', $recordDriver);

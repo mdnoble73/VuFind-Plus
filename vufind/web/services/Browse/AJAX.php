@@ -373,10 +373,10 @@ class Browse_AJAX extends Action {
 	private function upBrowseCategoryCounter(){
 		if ($this->browseCategory){
 			$this->browseCategory->numTimesShown += 1;
-			if ($this->subCategories){ // Avoid unneeded sql update calls of subBrowseCategories
-				unset ($this->browseCategory->subBrowseCategories);
-			}
-		$this->browseCategory->update();
+//			if ($this->subCategories){ // Avoid unneeded sql update calls of subBrowseCategories
+//				unset ($this->browseCategory->subBrowseCategories);
+//			}
+		$this->browseCategory->update_stats_only();
 		}
 	}
 
