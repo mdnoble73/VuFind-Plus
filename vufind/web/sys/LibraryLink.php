@@ -8,7 +8,7 @@
  * Time: 8:34 AM
  */
 
-class LibraryLinks extends DB_DataObject{
+class LibraryLink extends DB_DataObject{
 	public $__table = 'library_links';
 	public $id;
 	public $libraryId;
@@ -16,6 +16,7 @@ class LibraryLinks extends DB_DataObject{
 	public $linkText;
 	public $url;
 	public $weight;
+	public $htmlContents;
 
 	static function getObjectStructure(){
 		global $user;
@@ -37,13 +38,14 @@ class LibraryLinks extends DB_DataObject{
 			'category' => array('property'=>'category', 'type'=>'text', 'label'=>'Category', 'description'=>'The category of the link', 'size'=>'80', 'maxLength'=>100),
 			'linkText' => array('property'=>'linkText', 'type'=>'text', 'label'=>'Link Text', 'description'=>'The text to display for the link ', 'size'=>'80', 'maxLength'=>100),
 			'url' => array('property'=>'url', 'type'=>'text', 'label'=>'URL', 'description'=>'The url to link to', 'size'=>'80', 'maxLength'=>255),
+			'htmlContents' => array('property'=>'htmlContents', 'type'=>'html', 'label'=>'HTML Contents', 'description'=>'Optional full HTML contents to show rather than showing a basic link within the sidebar.',),
 			'weight' => array('property' => 'weight', 'type' => 'numeric', 'label' => 'Weight', 'weight' => 'Defines how lists are sorted within the widget.  Lower weights are displayed to the left of the screen.', 'required'=> true),
 
 		);
-		foreach ($structure as $fieldName => $field){
-			$field['propertyOld'] = $field['property'] . 'Old';
-			$structure[$fieldName] = $field;
-		}
 		return $structure;
+	}
+
+	function getEditLink(){
+		return '/Admin/LibraryLinks?objectAction=edit&id=' . $this->id;
 	}
 } 
