@@ -1403,14 +1403,6 @@ abstract class HorizonAPI extends Horizon{
 		global $user;
 		if (count($user->getRoles()) > 0){
 			return true;
-		}else if (isset($configArray['Staff P-Types'])){
-			$staffPTypes = $configArray['Staff P-Types'];
-			$pType = $this->getPType();
-			if (array_key_exists($pType, $staffPTypes)){
-				return true;
-			}else{
-				return false;
-			}
 		}else{
 			return false;
 		}
