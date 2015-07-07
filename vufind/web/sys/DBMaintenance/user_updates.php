@@ -81,5 +81,14 @@ function getUserUpdates(){
 				"ALTER TABLE user ADD initialReadingHistoryLoaded TINYINT DEFAULT 0",
 			),
 		),
+
+		'user_preference_review_prompt' => array(
+			'title' => 'User Preference Prompt for Reviews',
+			'description' => 'Users may opt out of doing a review after giving a rating permanently',
+			'continueOnError' => true,
+			'sql' => array(
+				"ALTER TABLE `user` ADD `noPromptForUserReviews` TINYINT(1) DEFAULT 0",
+			),
+		),
 	);
 }

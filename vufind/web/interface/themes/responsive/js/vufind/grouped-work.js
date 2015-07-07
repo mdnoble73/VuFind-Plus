@@ -404,7 +404,6 @@ VuFind.GroupedWork = (function(){
 		showReviewForm: function(trigger, id){
 			var $trigger = $(trigger);
 			if (Globals.loggedIn){
-				var modalDialog = $("#modalDialog");
 				$.getJSON(Globals.path + "/GroupedWork/AJAX?method=getReviewForm&id=" + id, function(data){
 					VuFind.showMessageWithButtons(data.title, data.modalBody, data.modalButtons);
 				}).fail(function(){

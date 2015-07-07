@@ -482,7 +482,6 @@ class CatalogConnection
 		$memCacheProfileKey = "patronProfile_{$serverName}_";
 		if (is_object($patron)){
 			$memCacheProfileKey .= $patron->username;
-
 		}else{
 			$memCacheProfileKey .= $patron['username'];
 		}
@@ -514,6 +513,7 @@ class CatalogConnection
 			global $configArray;
 			$memCacheResult = $memCache->replace($memCacheProfileKey, $cachedValue, 0, $configArray['Caching']['patron_profile']);
 			// Update the existing key
+			// Note: I see what seem to be fatal calls to the memcache replace method when the updated value matches the stored value. I am not 100% certain that is the actual problem though. plb 7-7-2015
 		}
 
 		return $cachedValue;
