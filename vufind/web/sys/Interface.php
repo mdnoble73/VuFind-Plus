@@ -411,7 +411,7 @@ class UInterface extends Smarty
 				if (!array_key_exists($libraryLink->category, $libraryLinks)){
 					$libraryLinks[$libraryLink->category] = array();
 				}
-				$libraryLinks[$libraryLink->category][$libraryLink->linkText] = $libraryLink->url;
+				$libraryLinks[$libraryLink->category][$libraryLink->linkText] = $libraryLink;
 			}
 			$this->assign('libraryLinks', $libraryLinks);
 
