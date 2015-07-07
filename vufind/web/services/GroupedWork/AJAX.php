@@ -2,7 +2,7 @@
 /**
  * Handles loading asynchronous
  *
- * @category VuFind-Plus 
+ * @category Pika
  * @author Mark Noble <mark@marmot.org>
  * Date: 12/2/13
  * Time: 3:52 PM
@@ -22,26 +22,14 @@ class GroupedWork_AJAX {
 		echo $this->$method();
 	}
 
-	function clearUserRating(){
-		global $user;
-		$id = $_REQUEST['id'];
-		$result = array('result' => false);
-		if (!$user){
-			$result['message'] = 'You must be logged in to delete ratings.';
-		}else{
-			require_once ROOT_DIR . '/sys/LocalEnrichment/UserWorkReview.php';
-			$userWorkReview = new UserWorkReview();
-			$userWorkReview->groupedRecordPermanentId = $id;
-			$userWorkReview->userId = $user->id;
-			if ($userWorkReview->find(true)){
-				$userWorkReview->delete();
-				$result = array('result' => true, 'message' => 'We successfully deleted the rating for you.');
-			}else{
-				$result['message'] = 'Sorry, we could not find that review in the system.';
-			}
-		}
 
-		return json_encode($result);
+	/**
+	 * Alias of deleteUserReview()
+	 *
+	 * @return string
+	 */
+	function clearUserRating(){
+		return $this->deleteUserReview();
 	}
 
 	function deleteUserReview(){
@@ -358,6 +346,50 @@ class GroupedWork_AJAX {
 			'customerReviewsHtml' => $interface->fetch('GroupedWork/view-user-reviews.tpl'),
 		);
 		return json_encode($results);
+	}
+
+	function getPromptforReviewForm() {
+		global $user;
+		if ($user) {
+			if (!$user->noPromptForUserReviews) {
+				global $interface;
+				$id      = $_REQUEST['id'];
+				if (!empty($id)) {
+					$results = array(
+						'prompt' => true,
+						'title' => 'Add a Review',
+						'modalBody' => $interface->fetch("GroupedWork/prompt-for-review-form.tpl"),
+						'modalButtons' => "<button class='tool btn btn-primary' onclick='VuFind.GroupedWork.showReviewForm(\"{$id}\");'>Submit A Review</button>"
+					);
+				} else {
+					$results = array(
+						'error' => true,
+						'message' => 'Invalid ID.'
+					);
+				}
+			} else {
+				// Option already set to don't prompt, so let's don't prompt already.
+				$results = array(
+					'prompt' => false
+				);
+			}
+		} else {
+			$results = array(
+				'error' => true,
+				'message' => 'You are not logged in.'
+			);
+		}
+		return json_encode($results);
+	}
+
+	function setNoMoreReviews(){
+		/* var User $user */
+		global $user;
+		if ($user) {
+			$user->noPromptForUserReviews = 1;
+			$success = $user->update();
+			return json_encode(array('success' => $success));
+		}
 	}
 
 	function getReviewForm(){

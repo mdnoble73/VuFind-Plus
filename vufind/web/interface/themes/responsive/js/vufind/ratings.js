@@ -20,13 +20,30 @@ VuFind.Ratings = (function(){
 		},
 
 		doRatingReview: function (id){
-			VuFind.showMessageWithButtons('Add a Review',
-					'Would you like to add a review explaining your rating to help other users?',
-					'<button class="btn btn-primary" onclick="VuFind.GroupedWork.showReviewForm(this, \''+id+'\')">Add a Review</button>'
-			);
+			$.getJSON(Globals.path + "/GroupedWork/"+id+"/AJAX?method=getPromptforReviewForm", function(data){
+				if (data.prompt) VuFind.showMessageWithButtons(data.title, data.modalBody, data.modalButtons); // only ask if user hasn't set the setting already
+				if (data.error)  VuFind.showMessage('Error', data.message);
+			})
+			// Version 3
+			//VuFind.Account.ajaxLightbox(Globals.path + "/GroupedWork/"+id+"/AJAX?method=getPromptforReviewForm", true);
+			// Version 2
+			//VuFind.showMessageWithButtons('Add a Review',
+			//		'Would you like to add a review explaining your rating to help other users?',
+			//		'<button class="btn btn-primary" onclick="VuFind.GroupedWork.showReviewForm(this, \''+id+'\')">Add a Review</button>'
+			//);
+			// Version 1
 			//if (confirm('Would you like to add a review explaining your rating to help other users?')){
 			//	VuFind.GroupedWork.showReviewForm(id);
 			//}
+		},
+
+		doNoRatingReviews : function (){
+			$.getJSON(Globals.path + "/GroupedWork/AJAX?method=setNoMoreReviews", function(data){
+				if (data.success) VuFind.showMessage('Success', 'You will no longer be asked to give a review.', true)
+				else VuFind.showMessage('Error', 'Failed to save your setting.')
+			}).fail(function(){
+				VuFind.showMessage('Request Failed', 'There was an error with this AJAX Request.')
+			});
 		}
 	};
 }(VuFind.Ratings));
@@ -99,11 +116,13 @@ $.fn.rater.rate = function($this, opts, rating) {
 				}
 				if (data.rating) { // success
 					opts.rating = data.rating;
-					$on.css('cursor', 'default');
+					//$on.css('cursor', 'default');
 					$off
 						// detach rater.
-							.unbind('click').unbind('mousemove').unbind('mouseenter').unbind('mouseleave')
-							.css('cursor', 'default')
+						//	.unbind('click').unbind('mousemove').unbind('mouseenter').unbind('mouseleave')
+							//.css('cursor', 'default')
+
+						// wrap-up
 							.fadeTo(600, 0.1, function() {
 								$on.removeClass('ui-rater-starsHover').width(opts.rating * opts.size).addClass('userRated');
 								$off.fadeTo(500, 1);

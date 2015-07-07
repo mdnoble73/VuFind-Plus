@@ -84,6 +84,8 @@ class MyAccount_Profile extends MyAccount
 
 			}elseif($updateScope == 'catalog'){
 				$user->updateCatalogOptions();
+			}elseif($updateScope == 'userPreference'){
+				$user->updateUserPreferences();
 			}elseif($updateScope == 'overdrive'){
 				// overdrive setting keep changing
 			/*	require_once ROOT_DIR . '/Drivers/OverDriveDriverFactory.php';

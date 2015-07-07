@@ -36,6 +36,7 @@ class User extends DB_DataObject
 	public $overdriveEmail;
 	public $promptForOverdriveEmail;
 	public $preferredLibraryInterface;
+	public $noPromptForUserReviews; //tinyint(1)
 	private $roles;
 	private $data = array();
 
@@ -45,9 +46,12 @@ class User extends DB_DataObject
 	/* the code above is auto generated do not remove the tag below */
 	###END_AUTOCODE
 
-	function __sleep()
-	{
-		return array('id', 'username', 'password', 'cat_username', 'cat_password', 'firstname', 'lastname', 'email', 'phone', 'college', 'major', 'homeLocationId', 'myLocation1Id', 'myLocation2Id', 'trackReadingHistory', 'roles', 'bypassAutoLogout', 'displayName', 'disableRecommendations', 'disableCoverArt', 'patronType', 'overdriveEmail', 'promptForOverdriveEmail', 'preferredLibraryInterface', 'initialReadingHistoryLoaded');
+	/* !Important!
+	 * This function must be updated in order for a value to be saved in the $_SESSION variable. It is called by serialize()
+	 * http://php.net/manual/en/language.oop5.magic.php
+	 * */
+	function __sleep(){
+		return array('id', 'username', 'password', 'cat_username', 'cat_password', 'firstname', 'lastname', 'email', 'phone', 'college', 'major', 'homeLocationId', 'myLocation1Id', 'myLocation2Id', 'trackReadingHistory', 'roles', 'bypassAutoLogout', 'displayName', 'disableRecommendations', 'disableCoverArt', 'patronType', 'overdriveEmail', 'promptForOverdriveEmail', 'noPromptForUserReviews', 'preferredLibraryInterface', 'initialReadingHistoryLoaded');
 	}
 
 	function __wakeup()
@@ -179,8 +183,15 @@ class User extends DB_DataObject
 	}
 
 	function update(){
-		parent::update();
+		$result = parent::update();
 		$this->saveRoles();
+
+		// Every update to object requires clearing the Memcached version of the object & the version stored in the $_SESSION variable
+//		if ($result) {
+			$this->deletePatronProfileCache();
+			$_SESSION['userinfo'] = serialize($this);
+//		}
+		return $result;
 	}
 
 	function insert(){
@@ -192,6 +203,7 @@ class User extends DB_DataObject
 
 		parent::insert();
 		$this->saveRoles();
+		$this->deletePatronProfileCache();
 	}
 
 	function hasRole($roleName){
@@ -258,12 +270,9 @@ class User extends DB_DataObject
 			$this->overdriveEmail = strip_tags($_REQUEST['overdriveEmail']);
 		}
 		$this->update();
-		//Update the serialized instance stored in the session
-		$_SESSION['userinfo'] = serialize($this);
-		/** @var Memcache $memCache */
-		global $memCache;
-		global $serverName;
-		$memCache->delete("patronProfile_{$serverName}_" . $this->username);
+//		//Update the serialized instance stored in the session
+//		$_SESSION['userinfo'] = serialize($this);
+//		$this->deletePatronProfileCache();
 	}
 
 	function updateCatalogOptions(){
@@ -301,12 +310,21 @@ class User extends DB_DataObject
 			$this->myLocation2Id = $_POST['myLocation2'];
 		}
 		$this->update();
-		//Update the serialized instance stored in the session
-		$_SESSION['userinfo'] = serialize($this);
 
+	}
+
+	function updateUserPreferences(){
+
+		$this->noPromptForUserReviews = (isset($_POST['noPromptForUserReviews']) && $_POST['noPromptForUserReviews'] == 'on')? 1 : 0;
+		$success = $this->update();
+	}
+
+	/**
+	 * Clear out the cached version of the patron profile.
+	 */
+	private function deletePatronProfileCache(){
 		/** @var Memcache $memCache */
-		global $memCache;
-		global $serverName;
+		global $memCache, $serverName;
 		$memCache->delete("patronProfile_{$serverName}_" . $this->username);
 	}
 

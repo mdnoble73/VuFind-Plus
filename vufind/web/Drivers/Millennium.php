@@ -25,7 +25,7 @@ require_once ROOT_DIR . '/Drivers/Interface.php';
 require_once ROOT_DIR . '/Drivers/Innovative.php';
 
 /**
- * VuFind Connector for Marmot's Innovative catalog (millenium)
+ * Pika Connector for Marmot's Innovative catalog (millennium)
  *
  * This class uses screen scraping techniques to gather record holdings written
  * by Adam Bryn of the Tri-College consortium.
@@ -790,6 +790,7 @@ class MillenniumDriver implements DriverInterface
 				'email' => ($user && $user->email) ? $user->email : (isset($patronDump) && isset($patronDump['EMAIL_ADDR']) ? $patronDump['EMAIL_ADDR'] : '') ,
 				'overdriveEmail' => ($user) ? $user->overdriveEmail : (isset($patronDump) && isset($patronDump['EMAIL_ADDR']) ? $patronDump['EMAIL_ADDR'] : ''),
 				'promptForOverdriveEmail' => $user ? $user->promptForOverdriveEmail : 1,
+				'noPromptForUserReviews' => $user ? $user->noPromptForUserReviews : 0,
 				'phone' => (isset($patronDump) && isset($patronDump['TELEPHONE'])) ? $patronDump['TELEPHONE'] : (isset($patronDump['HOME_PHONE']) ? $patronDump['HOME_PHONE'] : ''),
 				'workPhone' => (isset($patronDump) && isset($patronDump['G/WK_PHONE'])) ? $patronDump['G/WK_PHONE'] : '',
 				'mobileNumber' => (isset($patronDump) && isset($patronDump['MOBILE_NO'])) ? $patronDump['MOBILE_NO'] : '',
@@ -1959,8 +1960,10 @@ class MillenniumDriver implements DriverInterface
 		}
 	}
 
+	// This function is duplicated in the User Object as deletePatronProfileCache()
 	public function clearPatronProfile() {
-		/** @var Memcache $memCache */
+		/** @var Memcache $memCache
+		 * @var User $user */
 		global $memCache, $user, $serverName;
 		$memCache->delete("patronProfile_{$serverName}_{$user->username}");
 	}

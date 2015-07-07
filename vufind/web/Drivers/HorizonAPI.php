@@ -336,6 +336,7 @@ abstract class HorizonAPI extends Horizon{
 			'overdriveEmail' => ($user) ? $user->overdriveEmail : $Email,
 			// good idea to fall back to profile email ?? plb 4-16-2015
 			'promptForOverdriveEmail' => $user ? $user->promptForOverdriveEmail : 1,
+			'noPromptForUserReviews' => $user ? $user->noPromptForUserReviews : 0,
 			'phone' => isset($lookupMyAccountInfoResponse->phone) ? (string)$lookupMyAccountInfoResponse->phone : '',
 			'workPhone' => '',
 			'mobileNumber' => '',

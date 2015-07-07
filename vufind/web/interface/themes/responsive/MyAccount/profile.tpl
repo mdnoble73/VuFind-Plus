@@ -127,9 +127,9 @@
 								{/if}
 
 								{if $showNoticeTypeInProfile}
-									<div class="alert alert-info">
+									<p class="alert alert-info">
 										The following settings determine how you would like to receive notifications when physical materials are ready for pickup at your library.  Notifications for online content are always delivered via e-mail.
-									</div>
+									</p>
 
 									<div class="form-group">
 										<div class="col-xs-4"><strong>{translate text='Receive notices by'}:</strong></div>
@@ -157,14 +157,7 @@
 										<div class="col-xs-4"><label for="smsNotices">{translate text='Receive SMS/Text Messages'}:</label></div>
 										<div class="col-xs-8">
 											{if $edit == true && $canUpdateContactInfo == true}
-												<input type="checkbox" name="smsNotices" id="smsNotices" {if $profile.mobileNumber}checked='checked'{/if}>
-												<script type="text/javascript">
-													{literal}
-													$(function(){
-														$("#smsNotices").bootstrapSwitch();
-													});
-													{/literal}
-												</script>
+												<input type="checkbox" name="smsNotices" id="smsNotices" {if $profile.mobileNumber}checked='checked'{/if} data-switch="">
 												<p class="help-block alert alert-warning">
 													SMS/Text Messages are sent <strong>in addition</strong> to postal mail/e-mail/phone alerts. <strong>Message and data rates may apply.</strong>
 													<br/><br/>
@@ -273,14 +266,7 @@
 									<div class="col-xs-4"><label for="promptForOverdriveEmail" class="control-label">{translate text='Prompt for OverDrive e-mail'}:</label></div>
 									<div class="col-xs-8">
 										{if $edit == true}
-											<input type="checkbox" name="promptForOverdriveEmail" id="promptForOverdriveEmail" {if $profile.promptForOverdriveEmail==1}checked='checked'{/if}>
-											<script type="text/javascript">
-												{literal}
-												$(function(){
-													$("#promptForOverdriveEmail").bootstrapSwitch();
-												});
-												{/literal}
-											</script>
+											<input type="checkbox" name="promptForOverdriveEmail" id="promptForOverdriveEmail" {if $profile.promptForOverdriveEmail==1}checked='checked'{/if} data-switch="">
 										{else}
 											{if $profile.promptForOverdriveEmail==0}No{else}Yes{/if}
 										{/if}
@@ -321,6 +307,45 @@
 					</div>
 				</div>
 
+				{*User Preference Options*}
+				{if $showRatings && $showComments}{* Since there is only one setting now, only show when the library settings are appropriate *}
+				<div class="panel active">
+					<a data-toggle="collapse" data-parent="#account-settings-accordion" href="#userPreferencePanel">
+						<div class="panel-heading">
+							<div class="panel-title">
+								My Preferences
+							</div>
+						</div>
+					</a>
+					<div id="userPreference" class="panel-collapse collapse in">
+						<div class="panel-body">
+							<form action="{$path}/MyAccount/Profile" method="post" class="form-horizontal">
+								<input type="hidden" name="updateScope" value="userPreference">
+								{if $showRatings && $showComments}
+								<div class="form-group">
+									<div class="col-xs-4"><label for="noPromptForUserReviews" class="control-label">{translate text='No Prompting to Review after Rating'}:</label></div>
+									<div class="col-xs-8">
+										{if $edit == true}
+											<input type="checkbox" name="noPromptForUserReviews" id="noPromptForUserReviews" {if $profile.noPromptForUserReviews==1}checked='checked'{/if} data-switch="">
+										{/if}
+									</div>
+								</div>
+								<p class="alert alert-info">When you rate an item by clicking on the stars, you will be asked to review that item also. Setting this option to <strong>&quot;on&QUOT;</strong> lets us know you don't want to give reviews after you have rated an item by clicking its stars.</p>
+								{/if}
+								{* at this point this user preference could be changed even when offline. plb 7-2-2015 *}
+								{if !$offline && $edit == true}
+									<div class="form-group">
+										<div class="col-xs-8 col-xs-offset-4">
+											<input type='submit' value='Update My Preferences' name='updateMyPreferences' class="btn btn-sm btn-primary">
+										</div>
+									</div>
+								{/if}
+							</form>
+						</div>
+					</div>
+				</div>
+				{/if}
+
 				{* Catalog Settings *}
 				{if $showAlternateLibraryOptions || $userIsStaff}
 					<div class="panel active">
@@ -357,14 +382,7 @@
 										<div class="col-xs-4"><label for="bypassAutoLogout" class="control-label">{translate text='Bypass Automatic Logout'}:</label></div>
 										<div class="col-xs-8">
 											{if $edit == true}
-												<input type="checkbox" name="bypassAutoLogout" id="bypassAutoLogout" {if $profile.bypassAutoLogout==1}checked='checked'{/if}/>
-												<script type="text/javascript">
-													{literal}
-													$(document).ready(function(){
-														$("#bypassAutoLogout").bootstrapSwitch();
-													});
-													{/literal}
-												</script>
+												<input type="checkbox" name="bypassAutoLogout" id="bypassAutoLogout" {if $profile.bypassAutoLogout==1}checked='checked'{/if} data-switch="">
 											{else}
 												{if $profile.bypassAutoLogout==0}No{else}Yes{/if}
 											{/if}
@@ -374,7 +392,7 @@
 								{if !$offline && $edit == true}
 									<div class="form-group">
 										<div class="col-xs-8 col-xs-offset-4">
-											<input type='submit' value='Update Catalog Options' name='updateCatalog' class="btn btn-sm btn-primary"/>
+											<input type='submit' value='Update Catalog Options' name='updateCatalog' class="btn btn-sm btn-primary">
 										</div>
 									</div>
 								{/if}
@@ -404,6 +422,13 @@
 					</div>
 				{/if}
 			</div>
+
+			<script type="text/javascript">
+				{* Initiate any checkbox with a data attribute set to data-switch=""  as a bootstrap switch*}
+				{literal}
+				$(function(){ $('input[type="checkbox"][data-switch]').bootstrapSwitch()})
+				{/literal}
+			</script>
 
 		{else}
 			<div class="page">
