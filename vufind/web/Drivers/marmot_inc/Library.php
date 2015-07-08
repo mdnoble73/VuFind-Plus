@@ -10,7 +10,7 @@ require_once ROOT_DIR . '/Drivers/marmot_inc/LibraryFacetSetting.php';
 require_once ROOT_DIR . '/Drivers/marmot_inc/LibrarySearchSource.php';
 require_once ROOT_DIR . '/sys/Browse/LibraryBrowseCategory.php';
 require_once ROOT_DIR . '/sys/LibraryMoreDetails.php';
-require_once ROOT_DIR . '/sys/LibraryLinks.php';
+require_once ROOT_DIR . '/sys/LibraryLink.php';
 require_once ROOT_DIR . '/sys/LibraryTopLinks.php';
 
 class Library extends DB_DataObject
@@ -196,7 +196,7 @@ class Library extends DB_DataObject
 		unset($libraryMoreDetailsStructure['weight']);
 		unset($libraryMoreDetailsStructure['libraryId']);
 
-		$libraryLinksStructure = LibraryLinks::getObjectStructure();
+		$libraryLinksStructure = LibraryLink::getObjectStructure();
 		unset($libraryLinksStructure['weight']);
 		unset($libraryLinksStructure['libraryId']);
 
@@ -565,12 +565,12 @@ class Library extends DB_DataObject
 				'description'=>'Links To Show in the sidebar',
 				'keyThis' => 'libraryId',
 				'keyOther' => 'libraryId',
-				'subObjectType' => 'LibraryLinks',
+				'subObjectType' => 'LibraryLink',
 				'structure' => $libraryLinksStructure,
 				'sortable' => true,
 				'storeDb' => true,
-				'allowEdit' => false,
-				'canEdit' => false,
+				'allowEdit' => true,
+				'canEdit' => true,
 			),
 
 			'libraryTopLinks' => array(
@@ -750,7 +750,7 @@ class Library extends DB_DataObject
 		}elseif ($name == 'libraryLinks'){
 			if (!isset($this->libraryLinks) && $this->libraryId){
 				$this->libraryLinks = array();
-				$libraryLink = new LibraryLinks();
+				$libraryLink = new LibraryLink();
 				$libraryLink->libraryId = $this->libraryId;
 				$libraryLink->orderBy('weight');
 				$libraryLink->find();
@@ -909,7 +909,7 @@ class Library extends DB_DataObject
 
 	public function saveLibraryLinks(){
 		if (isset ($this->libraryLinks) && is_array($this->libraryLinks)){
-			/** @var LibraryLinks[] $libraryLinks */
+			/** @var LibraryLink[] $libraryLinks */
 			foreach ($this->libraryLinks as $libraryLink){
 				if (isset($libraryLink->deleteOnSave) && $libraryLink->deleteOnSave == true){
 					$libraryLink->delete();
@@ -927,7 +927,7 @@ class Library extends DB_DataObject
 	}
 
 	public function clearLibraryLinks(){
-		$libraryLinks = new LibraryLinks();
+		$libraryLinks = new LibraryLink();
 		$libraryLinks->libraryId = $this->libraryId;
 		$libraryLinks->delete();
 		$this->libraryLinks = array();

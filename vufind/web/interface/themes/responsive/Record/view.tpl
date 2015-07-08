@@ -15,7 +15,8 @@
 	<div class="col-xs-12">
 		{* Display Title *}
 		<h2>
-			{$recordDriver->getTitle()|removeTrailingPunctuation|escape}
+			{$recordDriver->getTitle()|escape}
+			{if $recordDriver->getTitleSection()} {$recordDriver->getTitleSection()|escape}{/if}
 			{if $recordDriver->getFormats()}
 				<br/><small>({implode subject=$recordDriver->getFormats() glue=", "})</small>
 			{/if}

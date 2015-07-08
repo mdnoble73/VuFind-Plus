@@ -7,7 +7,7 @@
 					<th>Sort</th>
 				{/if}
 				{foreach from=$property.structure item=subProperty}
-					{if in_array($subProperty.type, array('text', 'enum', 'date', 'checkbox', 'integer')) }
+					{if in_array($subProperty.type, array('text', 'enum', 'date', 'checkbox', 'integer', 'textarea', 'html')) }
 						<th>{$subProperty.label}</th>
 					{/if}
 				{/foreach}
@@ -25,11 +25,11 @@
 					</td>
 				{/if}
 				{foreach from=$property.structure item=subProperty}
-					{if in_array($subProperty.type, array('text', 'enum', 'date', 'checkbox', 'integer')) }
+					{if in_array($subProperty.type, array('text', 'enum', 'date', 'checkbox', 'integer', 'textarea', 'html')) }
 						<td>
 							{assign var=subPropName value=$subProperty.property}
 							{assign var=subPropValue value=$subObject->$subPropName}
-							{if $subProperty.type=='text' || $subProperty.type=='date' || $subProperty.type=='integer'}
+							{if $subProperty.type=='text' || $subProperty.type=='date' || $subProperty.type=='integer' || $subProperty.type=='textarea' || $subProperty.type=='html'}
 								<input type="text" name="{$propName}_{$subPropName}[{$subObject->id}]" value="{$subPropValue|escape}" class="{if $subProperty.type=='date'}datepicker{elseif $subProperty.type=="integer"}integer{/if}{if $subProperty.required == true} required{/if}"/>
 							{elseif $subProperty.type=='checkbox'}
 								<input type='checkbox' name='{$propName}_{$subPropName}[{$subObject->id}]' {if $subPropValue == 1}checked='checked'{/if}/>
@@ -94,11 +94,11 @@
 				newRow += "</td>";
 			{/if}
 			{foreach from=$property.structure item=subProperty}
-				{if in_array($subProperty.type, array('text', 'enum', 'date', 'checkbox', 'integer')) }
+				{if in_array($subProperty.type, array('text', 'enum', 'date', 'checkbox', 'integer', 'textarea', 'html')) }
 					newRow += "<td>";
 					{assign var=subPropName value=$subProperty.property}
 					{assign var=subPropValue value=$subObject->$subPropName}
-					{if $subProperty.type=='text' || $subProperty.type=='date' || $subProperty.type=='integer'}
+					{if $subProperty.type=='text' || $subProperty.type=='date' || $subProperty.type=='integer' || $subProperty.type=='textarea' || $subProperty.type=='html'}
 						newRow += "<input type='text' name='{$propName}_{$subPropName}[" + numAdditional{$propName} +"]' value='{if $subProperty.default}{$subProperty.default}{/if}' class='{if $subProperty.type=="date"}datepicker{elseif $subProperty.type=="integer"}integer{/if}{if $subProperty.required == true} required{/if}'/>";
 					{elseif $subProperty.type=='checkbox'}
 						newRow += "<input type='checkbox' name='{$propName}_{$subPropName}[" + numAdditional{$propName} +"]' {if $subProperty.default == 1}checked='checked'{/if}/>";

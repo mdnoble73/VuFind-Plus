@@ -835,7 +835,7 @@ class MarcRecord extends IndexRecord
 	 * @access  protected
 	 * @return  string
 	 */
-	protected function getTitleSection()
+	public function getTitleSection()
 	{
 		return $this->getFirstFieldValue('245', array('n', 'p'));
 	}
@@ -1660,7 +1660,6 @@ class MarcRecord extends IndexRecord
 			$hasLocalItem = false;
 			$groupedStatus = "Currently Unavailable";
 			foreach ($items as $item){
-				$totalCopies++;
 				if ($item['availability'] == true){
 					$availableCopies++;
 				}
@@ -1676,8 +1675,11 @@ class MarcRecord extends IndexRecord
 						$branchAvailableCopies++;
 					}
 				}
-				if (isset($item['onOrderCopies'])){
+				if (isset($item['onOrderCopies']) && $item['onOrderCopies'] > 0){
 					$onOrderCopies += $item['onOrderCopies'];
+					$totalCopies += $item['onOrderCopies'];
+				}else{
+					$totalCopies++;
 				}
 				//Check to see if we got a better grouped status
 				if (isset($item['groupedStatus'])){

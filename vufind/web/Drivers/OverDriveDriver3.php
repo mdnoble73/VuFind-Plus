@@ -478,6 +478,8 @@ class OverDriveDriver3 {
 								$bookshelfItem['overdriveRead'] = true;
 							}else if ($format->formatType == 'audiobook-overdrive'){
 									$bookshelfItem['overdriveListen'] = true;
+							}else if ($format->formatType == 'video-streaming'){
+								$bookshelfItem['overdriveVideo'] = true;
 							}else{
 								$bookshelfItem['selectedFormat'] = array(
 									'name' => $this->format_map[$format->formatType],
@@ -491,12 +493,14 @@ class OverDriveDriver3 {
 							if (isset($format->links->self)){
 								$curFormat['downloadUrl'] = $format->links->self->href . '/downloadlink';
 							}
-							if ($format->formatType != 'ebook-overdrive' && $format->formatType != 'audiobook-overdrive'){
+							if ($format->formatType != 'ebook-overdrive' && $format->formatType != 'audiobook-overdrive' && $format->formatType != 'video-streaming'){
 								$bookshelfItem['formats'][] = $curFormat;
 							}else{
 								if (isset($curFormat['downloadUrl'])){
 									if ($format->formatType = 'ebook-overdrive') {
 										$bookshelfItem['overdriveReadUrl'] = $curFormat['downloadUrl'];
+									}else if ($format->formatType == 'video-streaming'){
+										$bookshelfItem['overdriveVideoUrl'] = $curFormat['downloadUrl'];
 									}else{
 										$bookshelfItem['overdriveListenUrl'] = $curFormat['downloadUrl'];
 									}
@@ -919,9 +923,12 @@ class OverDriveDriver3 {
 		$url = $configArray['OverDrive']['patronApiUrl'] . "/v1/patrons/me/checkouts/{$overDriveId}/formats/{$format}/downloadlink";
 		$url .= '?errorpageurl=' . urlencode($configArray['Site']['url'] . '/Help/OverDriveError');
 		if ($format == 'ebook-overdrive'){
-			$url .= '&odreadauthurl=' . urlencode($configArray['Site']['url'] . '/Help/OverDriveReadError');
+			$url .= '&odreadauthurl=' . urlencode($configArray['Site']['url'] . '/Help/OverDriveError');
 		}elseif ($format == 'audiobook-overdrive'){
-			$url .= '&odreadauthurl=' . urlencode($configArray['Site']['url'] . '/Help/OverDriveReadError');
+			$url .= '&odreadauthurl=' . urlencode($configArray['Site']['url'] . '/Help/OverDriveError');
+		}elseif ($format == 'video-streaming'){
+			$url .= '&errorurl=' . urlencode($configArray['Site']['url'] . '/Help/OverDriveError');
+			$url .= '&streamingauthurl=' . urlencode($configArray['Site']['url'] . '/Help/streamingvideoauth');
 		}
 
 		$response = $this->_callPatronUrl($user, $url);

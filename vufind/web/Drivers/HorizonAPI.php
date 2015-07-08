@@ -336,6 +336,7 @@ abstract class HorizonAPI extends Horizon{
 			'overdriveEmail' => ($user) ? $user->overdriveEmail : $Email,
 			// good idea to fall back to profile email ?? plb 4-16-2015
 			'promptForOverdriveEmail' => $user ? $user->promptForOverdriveEmail : 1,
+			'noPromptForUserReviews' => $user ? $user->noPromptForUserReviews : 0,
 			'phone' => isset($lookupMyAccountInfoResponse->phone) ? (string)$lookupMyAccountInfoResponse->phone : '',
 			'workPhone' => '',
 			'mobileNumber' => '',
@@ -1403,14 +1404,6 @@ abstract class HorizonAPI extends Horizon{
 		global $user;
 		if (count($user->getRoles()) > 0){
 			return true;
-		}else if (isset($configArray['Staff P-Types'])){
-			$staffPTypes = $configArray['Staff P-Types'];
-			$pType = $this->getPType();
-			if (array_key_exists($pType, $staffPTypes)){
-				return true;
-			}else{
-				return false;
-			}
 		}else{
 			return false;
 		}

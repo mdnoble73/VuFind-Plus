@@ -399,6 +399,15 @@ function getLibraryLocationUpdates(){
 			),
 		),
 
+		'library_links_show_html' => array(
+			'title' => 'LibraryLinks Update to Show HTML',
+			'description' => 'Allow showing HTML within Sidebar. ',
+			'continueOnError' => true,
+			'sql' => array(
+				"ALTER TABLE `library_links` ADD COLUMN `htmlContents` MEDIUMTEXT",
+			),
+		),
+
 		'library_top_links' => array(
 			'title' => 'Library Top Links',
 			'description' => 'Add configurable links to display within the header. ',

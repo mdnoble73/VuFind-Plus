@@ -654,6 +654,7 @@ class Aspencat implements DriverInterface{
 					'homeLocationId' => isset($location) ? $location->locationId : -1,
 					'homeLocationName' => '',
 					'expires' => $userFromDb['dateexpiry'],
+					'expireclose' => '', //TODO not implemented for aspencat
 					'fines' => sprintf('$%0.2f', $outstandingFines),
 					'finesval' => floatval($outstandingFines),
 					'numHolds' => $numWaitingHolds + $numAvailableHolds,
@@ -661,6 +662,8 @@ class Aspencat implements DriverInterface{
 					'numHoldsRequested' => $numWaitingHolds,
 					'numCheckedOut' => $numCheckouts ,
 					'bypassAutoLogout' => ($user ? $user->bypassAutoLogout : false),
+					'promptForOverdriveEmail' => $user ? $user->promptForOverdriveEmail : 1,
+					'noPromptForUserReviews' => $user ? $user->noPromptForUserReviews : 0,
 				);
 				$profile['noticePreferenceLabel'] = 'Unknown';
 
