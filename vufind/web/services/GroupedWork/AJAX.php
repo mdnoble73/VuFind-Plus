@@ -226,13 +226,13 @@ class GroupedWork_AJAX {
 		$id = $_REQUEST['id'];
 		$recordDriver = new GroupedWorkDriver($id);
 
-		if (isset($_REQUEST['browseCategoryId'])){
+		if (!empty($_REQUEST['browseCategoryId'])){
 			require_once ROOT_DIR . '/sys/Browse/BrowseCategory.php';
 			$browseCategory = new BrowseCategory();
 			$browseCategory->textId = $_REQUEST['browseCategoryId'];
 			if ($browseCategory->find(true)){
 				$browseCategory->numTitlesClickedOn++;
-				$browseCategory->update();
+				$browseCategory->update_stats_only();
 			}
 		}
 		$interface->assign('recordDriver', $recordDriver);
@@ -359,7 +359,7 @@ class GroupedWork_AJAX {
 						'prompt' => true,
 						'title' => 'Add a Review',
 						'modalBody' => $interface->fetch("GroupedWork/prompt-for-review-form.tpl"),
-						'modalButtons' => "<button class='tool btn btn-primary' onclick='VuFind.GroupedWork.showReviewForm(\"{$id}\");'>Submit A Review</button>"
+						'modalButtons' => "<button class='tool btn btn-primary' onclick='VuFind.GroupedWork.showReviewForm(this, \"{$id}\");'>Submit A Review</button>"
 					);
 				} else {
 					$results = array(
@@ -395,24 +395,31 @@ class GroupedWork_AJAX {
 	function getReviewForm(){
 		global $interface, $library, $user;
 		$id = $_REQUEST['id'];
-		$interface->assign('id', $id);
+		if (!empty($id)) {
+			$interface->assign('id', $id);
 
-		// check if rating/review exists for user and work
-		require_once ROOT_DIR . '/sys/LocalEnrichment/UserWorkReview.php';
-		$groupedWorkReview = new UserWorkReview();
-		$groupedWorkReview->userId = $user->id;
-		$groupedWorkReview->groupedRecordPermanentId = $id;
-		if ($groupedWorkReview->find(true)){
-			$interface->assign('userRating', $groupedWorkReview->rating);
-			$interface->assign('userReview', $groupedWorkReview->review);
+			// check if rating/review exists for user and work
+			require_once ROOT_DIR . '/sys/LocalEnrichment/UserWorkReview.php';
+			$groupedWorkReview                           = new UserWorkReview();
+			$groupedWorkReview->userId                   = $user->id;
+			$groupedWorkReview->groupedRecordPermanentId = $id;
+			if ($groupedWorkReview->find(true)) {
+				$interface->assign('userRating', $groupedWorkReview->rating);
+				$interface->assign('userReview', $groupedWorkReview->review);
+			}
+
+			$title   = ($library->showFavorites && !$library->showComments) ? 'Rating' : 'Review';
+			$results = array(
+				'title' => $title,
+				'modalBody' => $interface->fetch("GroupedWork/review-form-body.tpl"),
+				'modalButtons' => "<button class='tool btn btn-primary' onclick='VuFind.GroupedWork.saveReview(\"{$id}\");'>Submit $title</button>"
+			);
+		} else {
+			$results = array(
+				'error' => true,
+				'message' => 'Invalid ID.'
+			);
 		}
-
-		$title = ($library->showFavorites && !$library->showComments) ? 'Rating' : 'Review';
-		$results = array(
-			'title' => $title,
-			'modalBody' => $interface->fetch("GroupedWork/review-form-body.tpl"),
-			'modalButtons' => "<button class='tool btn btn-primary' onclick='VuFind.GroupedWork.saveReview(\"{$id}\");'>Submit $title</button>"
-		);
 		return json_encode($results);
 	}
 

@@ -88,7 +88,22 @@ class BrowseCategory extends DB_DataObject{
 		$ret = parent::update();
 		if ($ret !== FALSE ){
 			$this->saveSubBrowseCategories();
+
+			//delete any cached results for browse category
+			$this->deleteCachedBrowseCategoryResults();
+
 		}
+		return $ret;
+	}
+
+	/**
+	 * call this method when updating the browse categories views statistics, so that all the other functionality
+	 * in update() is avoided (and isn't needed)
+	 *
+	 * @return int
+	 */
+	public function update_stats_only(){
+		$ret = parent::update();
 		return $ret;
 	}
 
@@ -103,6 +118,36 @@ class BrowseCategory extends DB_DataObject{
 			$this->saveSubBrowseCategories();
 		}
 		return $ret;
+	}
+
+	private function deleteCachedBrowseCategoryResults(){
+		// key structure
+		// $key = 'browse_category_' . $this->textId . '_' . $solrScope . '_' . $browseMode;
+
+		$libraries = new Library();
+		$librarySubDomains = $libraries->fetchAll('subdomain');
+		$locations = new Location();
+		$locationCodes = $locations->fetchAll('code');
+		$solrScopes = array_merge($librarySubDomains, $locationCodes);
+
+		if (!empty($solrScopes)) { // don't bother if we didn't get any solr scopes
+			// Valid Browse Modes (taken from class Browse_AJAX)
+			$browseModes = array('covers', 'grid');
+
+			/* @var MemCache $memCache */
+			global $memCache;
+
+			$keyFormat = 'browse_category_' . $this->textId; // delete all stored items with beginning with this key format.
+			foreach ($solrScopes as $solrScope) {
+				foreach ($browseModes as $browseMode) {
+					$key = $keyFormat . '_' . $solrScope . '_' . $browseMode;
+					if ($memCache->get($key)) { // check if this key is in fact storing a value
+//					$success[$key] =
+						$memCache->delete($key);
+					}
+				}
+			}
+		}
 	}
 
 	public function saveSubBrowseCategories(){
