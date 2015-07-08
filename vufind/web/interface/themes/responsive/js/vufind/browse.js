@@ -163,7 +163,7 @@ VuFind.Browse = (function(){
 		},
 
 		changeBrowseSubCategory: function (subCategoryTextId) {
-			console.log('change Browse Sub Category');
+			//console.log('change Browse Sub Category');
 			var url = Globals.path + '/Browse/AJAX',
 					params = {
 						method : 'getBrowseSubCategoryInfo'
