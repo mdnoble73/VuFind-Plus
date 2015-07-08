@@ -835,7 +835,7 @@ class MarcRecord extends IndexRecord
 	 * @access  protected
 	 * @return  string
 	 */
-	protected function getTitleSection()
+	public function getTitleSection()
 	{
 		return $this->getFirstFieldValue('245', array('n', 'p'));
 	}
