@@ -31,7 +31,7 @@ class Record_AJAX extends Action {
 		$analytics->disableTracking();
 		$method = $_GET['method'];
 		$timer->logTime("Starting method $method");
-		if (in_array($method, array('getPlaceHoldForm', 'placeHold', 'reloadCover'))){
+		if (in_array($method, array('getPlaceHoldForm', 'getBookMaterialForm', 'placeHold', 'reloadCover'))){
 			header('Content-type: text/plain');
 			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
 			header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
@@ -407,6 +407,36 @@ class Record_AJAX extends Action {
 					'title' => 'Place Hold on ' . $title,
 					'modalBody' => $interface->fetch("Record/hold-popup.tpl"),
 					'modalButtons' => "<input type='submit' name='submit' id='requestTitleButton' value='Submit Hold Request' class='btn btn-primary' onclick='return VuFind.Record.submitHoldForm();'/>"
+			);
+		}else{
+			$results = array(
+					'title' => 'Please login',
+					'modalBody' => "You must be logged in.  Please close this dialog and login before placing your hold.",
+					'modalButtons' => ""
+			);
+		}
+		return $this->json_utf8_encode($results);
+	}
+
+	function getBookMaterialForm(){
+		global $interface;
+		global $user;
+		if ($user){
+			$id = $_REQUEST['id'];
+			$catalog = CatalogFactory::getCatalogConnectionInstance();
+			$profile = $catalog->getMyProfile($user);
+			$interface->assign('profile', $profile);
+
+			require_once ROOT_DIR . '/RecordDrivers/MarcRecord.php';
+			$marcRecord = new MarcRecord($id);
+			$interface->assign('id', $id);
+			$title = $marcRecord->getTitle();
+//			$interface->assign('title', $title); // Title not referred to in hold-popup.tpl
+			$results = array(
+					'title' => 'Book ' . $title,
+					'modalBody' => $interface->fetch("Record/hold-popup.tpl"),
+//					'modalButtons' => '<button id="BookMaterialButton" class="btn btn-primary" onclick="return VuFind.Record.submitBookMaterialForm();">Book Item</button>'
+					'modalButtons' => '<button class="btn btn-primary" onclick="return VuFind.Record.submitBookMaterialForm();">Book Item</button>'
 			);
 		}else{
 			$results = array(

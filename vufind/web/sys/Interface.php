@@ -297,6 +297,7 @@ class UInterface extends Smarty
 			$this->assign('showSimilarTitles', $library->showSimilarTitles);
 			$this->assign('showSimilarAuthors', $library->showSimilarAuthors);
 			$this->assign('showItsHere', $library->showItsHere);
+			$this->assign('enableMaterialsBooking', $library->enableMaterialsBooking);
 		}else{
 			$this->assign('showLoginButton', 1);
 			$this->assign('showAdvancedSearchbox', 1);
@@ -310,8 +311,9 @@ class UInterface extends Smarty
 			$this->assign('showSimilarTitles', 1);
 			$this->assign('showSimilarAuthors', 1);
 			$this->assign('showItsHere', 0);
+			$this->assign('enableMaterialsBooking', 0);
 		}
-		if (isset($library) && $location != null){
+		if (isset($library) && $location != null){ // library and location
 			$this->assign('showFavorites', $location->showFavorites && $library->showFavorites);
 			$this->assign('showComments', $location->showComments && $library->showComments);
 			$this->assign('showTextThis', $location->showTextThis && $library->showTextThis);
@@ -325,7 +327,8 @@ class UInterface extends Smarty
 			$showHoldButtonInSearchResults = (($location->showHoldButton == 1) && ($library->showHoldButtonInSearchResults == 1)) ? 1 : 0;
 			$this->assign('showSimilarTitles', $library->showSimilarTitles);
 			$this->assign('showSimilarAuthors', $library->showSimilarAuthors);
-		}else if ($location != null){
+			$this->assign('showStandardReviews', (($location->showStandardReviews == 1) && ($library->showStandardReviews == 1)) ? 1 : 0);
+		}else if ($location != null){ // location only
 			$this->assign('showFavorites', $location->showFavorites);
 			$this->assign('showComments', $location->showComments);
 			$this->assign('showTextThis', $location->showTextThis);
@@ -335,8 +338,9 @@ class UInterface extends Smarty
 			$this->assign('showQRCode', $location->showQRCode);
 			$this->assign('showStaffView', $location->showStaffView);
 			$this->assign('showGoodReadsReviews', $location->showGoodReadsReviews);
+			$this->assign('showStandardReviews', $location->showStandardReviews);
 			$showHoldButton = $location->showHoldButton;
-		}else if (isset($library)){
+		}else if (isset($library)){ // library only
 			$this->assign('showFavorites', $library->showFavorites);
 			$showHoldButton = $library->showHoldButton;
 			$showHoldButtonInSearchResults = $library->showHoldButtonInSearchResults;
@@ -348,7 +352,8 @@ class UInterface extends Smarty
 			$this->assign('showQRCode', $library->showQRCode);
 			$this->assign('showStaffView', $library->showStaffView);
 			$this->assign('showGoodReadsReviews', $library->showGoodReadsReviews);
-		}else{
+			$this->assign('showStandardReviews', $library->showStandardReviews);
+		}else{ // neither library nor location
 			$this->assign('showFavorites', 1);
 			$this->assign('showComments', 1);
 			$this->assign('showTextThis', 1);
@@ -357,6 +362,7 @@ class UInterface extends Smarty
 			$this->assign('showQRCode', 1);
 			$this->assign('showStaffView', 1);
 			$this->assign('showGoodReadsReviews', 1);
+			$this->assign('showStandardReviews', 1);
 		}
 		if ($showHoldButton == 0){
 			$showHoldButtonInSearchResults = 0;

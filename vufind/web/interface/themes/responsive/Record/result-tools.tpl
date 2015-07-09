@@ -5,6 +5,10 @@
 		{if $showHoldButton}
 				<a href="#" class="btn btn-sm btn-block btn-primary" onclick="return VuFind.Record.showPlaceHold('{$summId}')" >{translate text="Place Hold"}</a>
 		{/if}
+		{* Book Material link *}
+		{if $enableMaterialsBooking} {* TODO check bookable? *}
+				<a href="#" class="btn btn-sm btn-block btn-warning" onclick="return VuFind.Record.showBookMaterial('{$summId}')" >{translate text="Book Material"}</a>
+		{/if}
 	</div>
 </div>
 {/strip}

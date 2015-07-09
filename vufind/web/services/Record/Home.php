@@ -48,6 +48,7 @@ class Record_Home extends Record_Record{
 
 //		$publicationDetails = $this->recordDriver->getPublicationDetails();
 		$interface->assign('moreDetailsOptions', $this->recordDriver->getMoreDetailsOptions());
+//		$test = $this->recordDriver->getBookableStatus();
 
 		//Build the actual view
 		$interface->assign('sidebar', 'Record/full-record-sidebar.tpl');

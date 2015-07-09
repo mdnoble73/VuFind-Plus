@@ -363,24 +363,33 @@ VuFind.Record = (function(){
 			return false;
 		},
 
+		showBookMaterial: function(id){
+			if (Globals.loggedIn){
+				//VuFind.showMessage('Loading...', 'Loading, please wait.');
+				$.getJSON(Globals.path + "/Record/" + id + "/AJAX?method=getBookMaterialForm", function(data){
+					VuFind.showMessageWithButtons(data.title, data.modalBody, data.modalButtons);
+				});
+			}else{
+				VuFind.Account.ajaxLogin(null, function(){
+					VuFind.Record.showBookMaterial(id);
+				}, false);
+			}
+			return false;
+		},
+
+		submitBookMaterialForm: function(){
+			alert('Book it!') //TODO finish this part
+		},
+
 		submitHoldForm: function(){
 			var id = $('#id').val()
 					,autoLogOut = $('#autologout').prop('checked')
-					,selectedItem = $('#selectedItem');
-			//var params = '&campus=' + $('#campus').val();
-			//params += '&cancelHoldDate=' + $('#cancelHoldDate').text();
-			//if ($('#autologout').prop('checked')){
-			//	params += '&autologout=true';
-			//}
-			//var selectedItem = $('#selectedItem');
-			//if (selectedItem.length > 0){
-			//	params += '&selectedItem=' + selectedItem.val();
-			//}
-			var params = {
-				'method': 'placeHold'
-				,campus: $('#campus').val()
-				,cancelHoldDate: $('#cancelHoldDate').text()
-			}
+					,selectedItem = $('#selectedItem')
+					,params = {
+						'method': 'placeHold'
+						,campus: $('#campus').val()
+						,cancelHoldDate: $('#cancelHoldDate').text()
+					};
 			if (autoLogOut){
 				params['autologout'] = true;
 			}

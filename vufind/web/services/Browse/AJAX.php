@@ -60,9 +60,9 @@ class Browse_AJAX extends Action {
 		// Display Page
 		$interface->assign('searchId', strip_tags($_REQUEST['searchId']));
 		$results = array(
-			'title' => 'Add to Home Page',
+			'title' => 'Add as Browse Category to Home Page',
 			'modalBody' => $interface->fetch('Browse/addBrowseCategoryForm.tpl'),
-			'modalButtons' => "<span class='tool btn btn-primary' onclick='$(\"#createBrowseCategory\").submit();'>Create Category</span>"
+			'modalButtons' => "<button class='tool btn btn-primary' onclick='$(\"#createBrowseCategory\").submit();'>Create Category</button>"
 		);
 		return $results;
 	}
