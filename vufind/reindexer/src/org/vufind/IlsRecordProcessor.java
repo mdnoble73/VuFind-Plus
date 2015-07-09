@@ -425,6 +425,9 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 	private void createAndAddOrderItem(String identifier, DataField curOrderField, String location, int copies, ArrayList<OnOrderItem> orderItems) {
 		OnOrderItem orderItem = new OnOrderItem();
 		orderItem.setBibNumber(identifier);
+		if (curOrderField.getSubfield('a') == null){
+			return;
+		}
 		String orderNumber = curOrderField.getSubfield('a').getData();
 		orderItem.setOrderNumber(orderNumber);
 		orderItem.setCopies(copies);
