@@ -33,59 +33,62 @@ require_once ROOT_DIR . '/sys/DataObjectUtil.php';
  */
 class CreateListWidget extends Action {
 	function launch() 	{
-		global $configArray;
-		global $interface;
+//		global $configArray;
+//		global $interface;
 		global $user;
 
 		$source = $_REQUEST['source'];
 		$sourceId = $_REQUEST['id'];
-		$existingWidget = isset($_REQUEST['widgetId']) ? $_REQUEST['widgetId'] : -1;
-		$widgetName = isset($_REQUEST['widgetName']) ? $_REQUEST['widgetName'] : '';
+		if (!empty($source) && !empty($sourceId)) { // make sure we received this input
+			$existingWidget = isset($_REQUEST['widgetId']) ? $_REQUEST['widgetId'] : -1;
+			$widgetName     = isset($_REQUEST['widgetName']) ? $_REQUEST['widgetName'] : '';
 
-		if ($existingWidget == -1){
-			$widget = new ListWidget();
-			$widget->name = $widgetName;
-			if ($user->hasRole('libraryAdmin') || $user->hasRole('contentEditor')){
-				//Get all widgets for the library
-				$userLibrary = Library::getPatronHomeLibrary();
-				$widget->libraryId = $userLibrary->libraryId;
-			}else{
-				$widget->libraryId = -1;
+			if ($existingWidget == -1) {
+				$widget       = new ListWidget();
+				$widget->name = $widgetName;
+				if ($user->hasRole('libraryAdmin') || $user->hasRole('contentEditor')) {
+					//Get all widgets for the library
+					$userLibrary       = Library::getPatronHomeLibrary();
+					$widget->libraryId = $userLibrary->libraryId;
+				} else {
+					$widget->libraryId = -1;
+				}
+				$widget->customCss             = '';
+				$widget->autoRotate            = 0;
+				$widget->description           = '';
+				$widget->showTitleDescriptions = 1;
+				$widget->onSelectCallback      = '';
+				$widget->fullListLink          = '';
+				$widget->listDisplayType       = 'tabs';
+				$widget->showMultipleTitles    = 1;
+				$widget->insert();
+			} else {
+				$widget     = new ListWidget();
+				$widget->id = $existingWidget;
+				$widget->find(true);
 			}
-			$widget->customCss = '';
-			$widget->autoRotate = 0;
-			$widget->description = '';
-			$widget->showTitleDescriptions = 1;
-			$widget->onSelectCallback = '';
-			$widget->fullListLink = '';
-			$widget->listDisplayType = 'tabs';
-			$widget->showMultipleTitles = 1;
-			$widget->insert();
-		}else{
-			$widget = new ListWidget();
-			$widget->id = $existingWidget;
-			$widget->find(true);
+
+			//Make sure to save the search
+			if ($source == 'search') {
+				$searchObject     = new SearchEntry();
+				$searchObject->id = $sourceId;
+				$searchObject->find(true);
+				$searchObject->saved = 1;
+				$searchObject->update();
+			}
+
+			//Add the list to the widget
+			$widgetList               = new ListWidgetList();
+			$widgetList->listWidgetId = $widget->id;
+			$widgetList->displayFor   = 'all';
+			$widgetList->source       = "$source:$sourceId";
+			$widgetList->name         = $widgetName;
+			$widgetList->weight       = 0;
+			$widgetList->insert();
+
+			//Redirect to the widget
+//		header("Location: $path/Admin/ListWidgets?objectAction=view&id={$widget->id}" ); // path not defined. plb 7-8-2015
+			header("Location: /Admin/ListWidgets?objectAction=view&id={$widget->id}" );
 		}
-
-		//Make sure to save the search
-		if ($source == 'search'){
-			$searchObject = new SearchEntry();
-			$searchObject->id = $sourceId;
-			$searchObject->find(true);
-			$searchObject->saved = 1;
-			$searchObject->update();
-		}
-
-		//Add the list to the widget
-		$widgetList = new ListWidgetList();
-		$widgetList->listWidgetId = $widget->id;
-		$widgetList->displayFor = 'all';
-		$widgetList->source = "$source:$sourceId";
-		$widgetList->name = $widgetName;
-		$widgetList->weight = 0;
-		$widgetList->insert();
-
-		//Redirect to the widget
-		header("Location: $path/Admin/ListWidgets?objectAction=view&id={$widget->id}" );
 	}
 }
