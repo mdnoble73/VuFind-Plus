@@ -401,7 +401,6 @@ class MillenniumDriver implements DriverInterface
 		return $items;
 	}
 
-
 	var $statuses = array();
 	public function getStatus($id){
 		global $timer;
@@ -1504,6 +1503,101 @@ class MillenniumDriver implements DriverInterface
 		}
 
 		return $holdable;
+	}
+
+	function isRecordBookable($marcRecord){
+		global $configArray;
+		$pType = $this->getPType();
+		/** @var File_MARC_Data_Field[] $items */
+		$marcItemField = isset($configArray['Reindex']['itemTag']) ? $configArray['Reindex']['itemTag'] : '989';
+		$iTypeSubfield = isset($configArray['Reindex']['iTypeSubfield']) ? $configArray['Reindex']['iTypeSubfield'] : 'j';
+		$locationSubfield = isset($configArray['Reindex']['locationSubfield']) ? $configArray['Reindex']['locationSubfield'] : 'j';
+		$items = $marcRecord->getFields($marcItemField);
+		$holdable = false;
+		$itemNumber = 0;
+		foreach ($items as $item){
+			$itemNumber++;
+			$subfield_j = $item->getSubfield($iTypeSubfield);
+			if (is_object($subfield_j) && !$subfield_j->isEmpty()){
+				$iType = $subfield_j->getData();
+			}else{
+				$iType = '0';
+			}
+			$subfield_d = $item->getSubfield($locationSubfield);
+			if (is_object($subfield_d) && !$subfield_d->isEmpty()){
+				$locationCode = $subfield_d->getData();
+			}else{
+				$locationCode = '?????';
+			}
+			//$logger->log("$itemNumber) iType = $iType, locationCode = $locationCode", PEAR_LOG_DEBUG);
+
+			//Check the determiner table to see if this matches
+			$holdable = $this->isItemBookableToPatron($locationCode, $iType, $pType);
+
+			if ($holdable){
+				break;
+			}
+		}
+		return $holdable;
+	}
+	public function isItemBookableToPatron(){
+		// TODO: implement checking an Item's status for being booked through the Bookings Module.
+		return true; // todo: for development only
+
+		/** @var Memcache $memCache*/
+		global $memCache;
+		global $configArray;
+		global $timer;
+		$memcacheKey = "loan_rule_material_booking_result_{$locationCode}_{$iType}_{$pType}";
+		$cachedValue = $memCache->get($memcacheKey);
+//		if ($cachedValue !== false && !isset($_REQUEST['reload'])){
+//			return $cachedValue == 'true';
+//		}else
+		{
+			$timer->logTime("Start checking if item is bookable $locationCode, $iType, $pType");
+			$this->loadLoanRules();
+			if (count($this->loanRuleDeterminers) == 0){
+				//If we don't have any loan rules determiners, assume that the item isn't bookable.
+				return false;
+			}
+			$bookable = false;
+			//global $logger;
+			//$logger->log("Checking loan rules for $locationCode, $iType, $pType", PEAR_LOG_DEBUG);
+			foreach ($this->loanRuleDeterminers as $loanRuleDeterminer){
+				//$logger->log("Determiner {$loanRuleDeterminer->rowNumber}", PEAR_LOG_DEBUG);
+				//Check the location to be sure the determiner applies to this item
+				if ($loanRuleDeterminer->matchesLocation($locationCode) ){
+					//$logger->log("{$loanRuleDeterminer->rowNumber}) Location correct $locationCode, {$loanRuleDeterminer->location} ({$loanRuleDeterminer->trimmedLocation()})", PEAR_LOG_DEBUG);
+					//Check that the iType is correct
+					if ($loanRuleDeterminer->itemType == '999' || in_array($iType, $loanRuleDeterminer->iTypeArray())){
+						//$logger->log("{$loanRuleDeterminer->rowNumber}) iType correct $iType, {$loanRuleDeterminer->itemType}", PEAR_LOG_DEBUG);
+						if ($pType == -1 || $loanRuleDeterminer->patronType == '999' || in_array($pType, $loanRuleDeterminer->pTypeArray())){
+							//$logger->log("{$loanRuleDeterminer->rowNumber}) pType correct $pType, {$loanRuleDeterminer->patronType}", PEAR_LOG_DEBUG);
+							$loanRule = $this->loanRules[$loanRuleDeterminer->loanRuleId];
+							//$logger->log("Determiner {$loanRuleDeterminer->rowNumber} indicates Loan Rule {$loanRule->loanRuleId} applies, bookable {$loanRule->bookable}", PEAR_LOG_DEBUG);
+							$bookable = ($loanRule->bookable == 1);
+							if ($bookable || $pType != -1){
+								break;
+							}
+						}
+//						else{
+//							//$logger->log("PType incorrect", PEAR_LOG_DEBUG);
+//						}
+					}
+//					else{
+//						//$logger->log("IType incorrect", PEAR_LOG_DEBUG);
+//					}
+				}
+//				else{
+//					//$logger->log("Location incorrect {$loanRuleDeterminer->location} != {$locationCode}", PEAR_LOG_DEBUG);
+//				}
+			}
+			$memCache->set($memcacheKey, ($bookable ? 'true' : 'false'), 0 , $configArray['Caching']['loan_rule_result']); // TODO: set a different config option for booking results?
+			$timer->logTime("Finished checking if item is bookable $locationCode, $iType, $pType");
+		}
+
+		return $bookable;
+
 	}
 
 	function getCheckInGrid($id, $checkInGridId){

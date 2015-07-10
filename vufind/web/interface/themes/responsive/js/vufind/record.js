@@ -354,6 +354,8 @@ VuFind.Record = (function(){
 				//VuFind.showMessage('Loading...', 'Loading, please wait.');
 				$.getJSON(Globals.path + "/Record/" + id + "/AJAX?method=getPlaceHoldForm", function(data){
 					VuFind.showMessageWithButtons(data.title, data.modalBody, data.modalButtons);
+				}).fail(function(){
+					VuFind.showMessage('Request Failed', 'There was an error with this AJAX Request.');
 				});
 			}else{
 				VuFind.Account.ajaxLogin(null, function(){
@@ -378,7 +380,16 @@ VuFind.Record = (function(){
 		},
 
 		submitBookMaterialForm: function(){
-			alert('Book it!') //TODO finish this part
+			var params = $('#bookMaterialForm').serialize();
+					//startDate = $('#startDate').val();
+			//$.getJSON(Globals.path + "/Record/" + id + "/AJAX", params, function(data){
+			$.getJSON(Globals.path + "/Record/AJAX", params+'&method=bookMaterial', function(data){
+				console.log(data);
+				if (data.success) VuFind.showMessage(data.title, data.message, true);
+				if (data.error) VuFind.showMessage('Error', data.message);
+			}).fail(function(){
+				VuFind.showMessage('Request Failed', 'There was an error with this AJAX Request.');
+			});
 		},
 
 		submitHoldForm: function(){
@@ -406,6 +417,8 @@ VuFind.Record = (function(){
 				}else{
 					VuFind.showMessage('Hold Failed', data.message, false, autoLogOut);
 				}
+			}).fail(function(){
+				VuFind.showMessage('Request Failed', 'There was an error with this AJAX Request.');
 			});
 		},
 
@@ -415,7 +428,9 @@ VuFind.Record = (function(){
 						VuFind.showMessage("Success", data.message, true, true);
 						setTimeout("VuFind.closeLightbox();", 3000);
 					}
-			);
+			).fail(function(){
+						VuFind.showMessage('Request Failed', 'There was an error with this AJAX Request.');
+					});
 			return false;
 		},
 

@@ -31,11 +31,13 @@ class Record_AJAX extends Action {
 		$analytics->disableTracking();
 		$method = $_GET['method'];
 		$timer->logTime("Starting method $method");
-		if (in_array($method, array('getPlaceHoldForm', 'getBookMaterialForm', 'placeHold', 'reloadCover'))){
+
+		// Methods intend to return JSON data
+		if (in_array($method, array('getPlaceHoldForm', 'getBookMaterialForm', 'placeHold', 'reloadCover', 'bookMaterial'))){
 			header('Content-type: text/plain');
 			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
 			header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
-			echo $this->$method();
+			echo $this->json_utf8_encode($this->$method());
 		}else if (in_array($method, array('GetGoDeeperData', 'getPurchaseOptions'))){
 			header('Content-type: text/html');
 			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
@@ -400,13 +402,12 @@ class Record_AJAX extends Action {
 
 			require_once ROOT_DIR . '/RecordDrivers/MarcRecord.php';
 			$marcRecord = new MarcRecord($id);
-			$interface->assign('id', $id);
 			$title = $marcRecord->getTitle();
-//			$interface->assign('title', $title); // Title not referred to in hold-popup.tpl
+			$interface->assign('id', $id);
 			$results = array(
 					'title' => 'Place Hold on ' . $title,
 					'modalBody' => $interface->fetch("Record/hold-popup.tpl"),
-					'modalButtons' => "<input type='submit' name='submit' id='requestTitleButton' value='Submit Hold Request' class='btn btn-primary' onclick='return VuFind.Record.submitHoldForm();'/>"
+					'modalButtons' => "<input type='submit' name='submit' id='requestTitleButton' value='Submit Hold Request' class='btn btn-primary' onclick='return VuFind.Record.submitHoldForm();'>"
 			);
 		}else{
 			$results = array(
@@ -415,7 +416,7 @@ class Record_AJAX extends Action {
 					'modalButtons' => ""
 			);
 		}
-		return $this->json_utf8_encode($results);
+		return $results;
 	}
 
 	function getBookMaterialForm(){
@@ -423,29 +424,34 @@ class Record_AJAX extends Action {
 		global $user;
 		if ($user){
 			$id = $_REQUEST['id'];
-			$catalog = CatalogFactory::getCatalogConnectionInstance();
+/*			$catalog = CatalogFactory::getCatalogConnectionInstance();
 			$profile = $catalog->getMyProfile($user);
-			$interface->assign('profile', $profile);
+			$interface->assign('profile', $profile);*/
 
 			require_once ROOT_DIR . '/RecordDrivers/MarcRecord.php';
 			$marcRecord = new MarcRecord($id);
-			$interface->assign('id', $id);
 			$title = $marcRecord->getTitle();
-//			$interface->assign('title', $title); // Title not referred to in hold-popup.tpl
+			$interface->assign('id', $id);
 			$results = array(
 					'title' => 'Book ' . $title,
-					'modalBody' => $interface->fetch("Record/hold-popup.tpl"),
+					'modalBody' => $interface->fetch("Record/book-materials-form.tpl"),
 //					'modalButtons' => '<button id="BookMaterialButton" class="btn btn-primary" onclick="return VuFind.Record.submitBookMaterialForm();">Book Item</button>'
-					'modalButtons' => '<button class="btn btn-primary" onclick="return VuFind.Record.submitBookMaterialForm();">Book Item</button>'
+					'modalButtons' => '<button class="btn btn-primary" onclick="$(\'#bookMaterialForm\').submit()">Book Item</button>'
+			    // Clicking invokes submit event, which allows the validator to act before calling the ajax handler
 			);
 		}else{
 			$results = array(
 					'title' => 'Please login',
-					'modalBody' => "You must be logged in.  Please close this dialog and login before placing your hold.",
+					'modalBody' => "You must be logged in.  Please close this dialog and login before booking this item.",
 					'modalButtons' => ""
 			);
 		}
-		return $this->json_utf8_encode($results);
+		return $results;
+	}
+
+	function bookMaterial(){
+		$results = array('success' => true);
+		return $results;
 	}
 
 	function json_utf8_encode($result) { // TODO: add to other ajax.php or make part of a ajax base class
@@ -549,7 +555,7 @@ class Record_AJAX extends Action {
 				$results['autologout'] = true;
 			}
 		}
-		return $this->json_utf8_encode($results);
+		return $results;
 	}
 
 	function reloadCover(){
@@ -585,7 +591,7 @@ class Record_AJAX extends Action {
 		$largeCoverUrl = $configArray['Site']['coverUrl'] . str_replace('&amp;', '&', $groupedWorkDriver->getBookcoverUrl('large')) . '&reload';
 		file_get_contents($largeCoverUrl);
 
-		return $this->json_utf8_encode(array('success' => true, 'message' => 'Covers have been reloaded.  You may need to refresh the page to clear your local cache.'));
+		return array('success' => true, 'message' => 'Covers have been reloaded.  You may need to refresh the page to clear your local cache.');
 	}
 
 }

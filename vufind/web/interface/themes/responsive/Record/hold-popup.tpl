@@ -1,9 +1,10 @@
+{strip}
 <div id="page-content" class="content">
 	<form name='placeHoldForm' id='placeHoldForm' action="{$path}/Record/{$id|escape:"url"}/Hold" method="post" class="form">
-		<input type="hidden" name="id" id="id" value="{$id}"/>
+		<input type="hidden" name="id" id="id" value="{$id}">
 		<fieldset>
 			<div class="holdsSummary">
-				<input type="hidden" name="holdCount" id="holdCount" value="1"/>
+				<input type="hidden" name="holdCount" id="holdCount" value="1">
 				<div class="alert alert-warning" id="overHoldCountWarning" {if !$showOverHoldLimit}style="display:none"{/if}>Warning: You have reached the maximum of <span class='maxHolds'>{$maxHolds}</span> holds for your account.  You must cancel a hold before you can place a hold on this title.</div>
 				<div id='holdError' class="pageWarning" style='display: none'></div>
 			</div>
@@ -62,7 +63,7 @@
 						</div>
 					</div>
 				{/if}
-				<br />
+				<br>
 				<div class="form-group">
 					<label for="autologout" class="checkbox"><input type="checkbox" name="autologout" id="autologout" {if $inLibrary == true}checked="checked"{/if}/> Log me out after requesting the item.</label>
 					<input type="hidden" name="holdType" value="hold" />
@@ -72,14 +73,4 @@
 		</fieldset>
 	</form>
 </div>
-{* data-provide attribute loads the datepicker *}
-{*{if $showHoldCancelDate == 1}*}
-{*<script	type="text/javascript">*}
-	{*{literal}*}
-	{*$(function() {*}
-		{*$( "#cancelDatePicker" ).datepicker();*}
-	{*});*}
-	{*{/literal}*}
-{*</script>*}
-{*{/if}*}
-
+{/strip}
