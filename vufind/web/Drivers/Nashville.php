@@ -46,6 +46,7 @@ class Nashville extends MillenniumDriver{
 	 * Initialize and configure curl connection
 	 */
 	public function _curl_connect($curl_url){
+		global $interface;
 		$header = array();
 		$header[0] = "Accept: text/xml,application/xml,application/xhtml+xml,";
 		$header[0] .= "text/html;q=0.9,text/plain;q=0.8,image/png,*/*;q=0.5";
@@ -65,7 +66,8 @@ class Nashville extends MillenniumDriver{
 		curl_setopt($curl_connection, CURLOPT_RETURNTRANSFER, true); // should set CURLOPT_RETURNTRANSFER to true in production - JAMES 20140830
 		curl_setopt($curl_connection, CURLOPT_SSL_VERIFYPEER, true); // should set CURLOPT_SSL_VERIFYPEER to true in production - JAMES 20140830
 		curl_setopt($curl_connection, CURLOPT_UNRESTRICTED_AUTH, true);
-		curl_setopt($curl_connection, CURLOPT_USERAGENT,"Pika 2015.10.0");
+		$gitBranch = $interface->getVariable('gitBranch');
+		curl_setopt($curl_connection, CURLOPT_USERAGENT,"Pika " . $gitBranch); 
 		curl_setopt($curl_connection, CURLOPT_URL, $curl_url);
 
 		curl_setopt($curl_connection, CURLOPT_HTTPGET, true);
@@ -383,64 +385,18 @@ class Nashville extends MillenniumDriver{
 				return "Your pin number was updated sucessfully.";
 			} else if (preg_match('/class="errormessage">(.+?)<\/div>/is', $sresult, $matches)){
 				return trim($matches[1]);
+//POSSIBLE ERRORS FROM /newpin
+//Old PIN does not match PIN in record.
+//New PINs do not match
+//Your pin must consist of numeric characters only.
+//Your pin is not complex enough to be secure. Please select another one.
+//SUCCESS=Your PIN has been modified.
+
 			} else {
-				return "Sorry, we could not update your pin number. Error: Q. Please try again later.";
+				return "Sorry, your PIN has not been modified : unknown error. Please try again later.";
 			}
 		}else{
-			return "Sorry, we could not update your pin number. Error: R. Please try again later.";
-		}
-	}
-	function selfRegister(){
-		global $logger;
-		global $configArray;
-		$firstName = $_REQUEST['firstName'];
-		$middleInitial = $_REQUEST['middleInitial'];
-		$lastName = $_REQUEST['lastName'];
-		$address1 = $_REQUEST['address1'];
-		$address2 = $_REQUEST['address2'];
-		$address3 = $_REQUEST['address3'];
-		$address4 = $_REQUEST['address4'];
-		$email = $_REQUEST['email'];
-		$gender = $_REQUEST['gender'];
-		$birthDate = $_REQUEST['birthDate'];
-		$phone = $_REQUEST['phone'];
-		$cookie = tempnam ("/tmp", "CURLCOOKIE");
-		$curl_url = $configArray['Catalog']['url'] . "/selfreg~S" . $this->getMillenniumScope();
-		$logger->log('Loading page ' . $curl_url, PEAR_LOG_INFO);
-		//echo "$curl_url";
-		$curl_connection = curl_init($curl_url);
-		curl_setopt($curl_connection, CURLOPT_CONNECTTIMEOUT, 30);
-		curl_setopt($curl_connection, CURLOPT_USERAGENT,"Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)");
-		curl_setopt($curl_connection, CURLOPT_RETURNTRANSFER, true);
-		curl_setopt($curl_connection, CURLOPT_SSL_VERIFYPEER, false);
-		curl_setopt($curl_connection, CURLOPT_FOLLOWLOCATION, 1);
-		curl_setopt($curl_connection, CURLOPT_UNRESTRICTED_AUTH, true);
-		$post_data['nfirst'] = $firstName;
-		$post_data['nmiddle'] = $middleInitial;
-		$post_data['nlast'] = $lastName;
-		$post_data['stre_aaddress'] = $address1;
-		$post_data['city_aaddress'] = $address2;
-		$post_data['stre_haddress2'] = $address3;
-		$post_data['city_haddress2'] = $address4;
-		$post_data['zemailaddr'] = $email;
-		$post_data['F045pcode2'] = $gender;
-		$post_data['F051birthdate'] = $birthDate;
-		$post_data['tphone1'] = $phone;
-		foreach ($post_data as $key => $value) {
-			$post_items[] = $key . '=' . urlencode($value);
-		}
-		$post_string = implode ('&', $post_items);
-		curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
-		$sresult = curl_exec($curl_connection);
-		curl_close($curl_connection);
-		//Parse the library card number from the response
-		if (preg_match('/Your temporary library card number is :.*?(\\d+)<\/(b|strong|span)>/si', $sresult, $matches)) {
-			$barcode = $matches[1];
-			return array('success' => true, 'barcode' => $barcode);
-		} else {
-			global $logger;
-			$logger->log("$sresult", PEAR_LOG_DEBUG);
-			return array('success' => false, 'barcode' => null);
+			return "Sorry, we could not update your pin number. Please try again later.";
 		}
 	}
 }
