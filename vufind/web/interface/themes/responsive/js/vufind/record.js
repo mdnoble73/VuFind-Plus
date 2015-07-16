@@ -381,12 +381,12 @@ VuFind.Record = (function(){
 
 		submitBookMaterialForm: function(){
 			var params = $('#bookMaterialForm').serialize();
-					//startDate = $('#startDate').val();
-			//$.getJSON(Globals.path + "/Record/" + id + "/AJAX", params, function(data){
+			VuFind.showMessage('Booking', 'Processing, please wait.');
 			$.getJSON(Globals.path + "/Record/AJAX", params+'&method=bookMaterial', function(data){
-				console.log(data);
-				if (data.success) VuFind.showMessage(data.title, data.message, true);
-				if (data.error) VuFind.showMessage('Error', data.message);
+				if (data.modalBody) VuFind.showMessageWithButtons(data.title, data.modalBody, data.modalButtons);
+					// For errors that can be fixed by the user, the form will be re-displayed
+				if (data.success) VuFind.showMessage('Success', data.message, true);
+				else if (data.message) VuFind.showMessage('Error', data.message);
 			}).fail(function(){
 				VuFind.showMessage('Request Failed', 'There was an error with this AJAX Request.');
 			});

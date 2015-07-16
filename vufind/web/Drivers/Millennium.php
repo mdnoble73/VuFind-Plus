@@ -285,15 +285,15 @@ class MillenniumDriver implements DriverInterface
 	 *
 	 * return is an array of items with the following information:
 	 *  location
-	 *  callnumber
+	 *  call number
 	 *  available
 	 *  holdable
 	 *  lastStatusCheck (time)
 	 *
-	 * @param $id
-	 * @param $scopingEnabled
-	 * @param $marcRecord
-	 * @return mixed
+	 * @param $id              The ID of the Record
+	 * @param $scopingEnabled  Limit Items by scoping
+	 * @param $marcRecord      Pass the MarcRecord Object if it has already been created
+	 * @return mixed           Array of items' information
 	 */
 	public function getItemsFast($id, $scopingEnabled, $marcRecord = null){
 		if ($marcRecord == null){
@@ -478,6 +478,38 @@ class MillenniumDriver implements DriverInterface
 	{
 		return array();
 	}
+
+	/**
+	 * Initialize and configure curl connection
+	 */
+//	public function _curl_connect($curl_url){
+//		//TODO update with new stuff
+//		$header = array();
+//		$header[0] = "Accept: text/xml,application/xml,application/xhtml+xml,";
+//		$header[0] .= "text/html;q=0.9,text/plain;q=0.8,image/png,*/*;q=0.5";
+//		$header[] = "Cache-Control: max-age=0";
+//		$header[] = "Connection: keep-alive";
+//		$header[] = "Accept-Charset: ISO-8859-1,utf-8;q=0.7,*;q=0.7";
+//		$header[] = "Accept-Language: en-us,en;q=0.5";
+//		$cookie_jar = tempnam ("/tmp", "CURLCOOKIE");
+//		$curl_connection = curl_init();
+//		curl_setopt($curl_connection, CURLOPT_CONNECTTIMEOUT, 30);
+//		curl_setopt($curl_connection, CURLOPT_COOKIEJAR, $cookie_jar);
+//		curl_setopt($curl_connection, CURLOPT_COOKIESESSION, true); // JAMES 20150617: ?
+//		curl_setopt($curl_connection, CURLOPT_FOLLOWLOCATION, true);
+//		curl_setopt($curl_connection, CURLOPT_FORBID_REUSE, false);
+//		curl_setopt($curl_connection, CURLOPT_HEADER, false); // should set CURLOPT_HEADER to false[?] in production - JAMES 20140830
+//		curl_setopt($curl_connection, CURLOPT_HTTPHEADER, $header);
+//		curl_setopt($curl_connection, CURLOPT_RETURNTRANSFER, true); // should set CURLOPT_RETURNTRANSFER to true in production - JAMES 20140830
+//		curl_setopt($curl_connection, CURLOPT_SSL_VERIFYPEER, true); // should set CURLOPT_SSL_VERIFYPEER to true in production - JAMES 20140830
+//		curl_setopt($curl_connection, CURLOPT_UNRESTRICTED_AUTH, true);
+//		curl_setopt($curl_connection, CURLOPT_USERAGENT,"Pika 2015.10.0");
+//		curl_setopt($curl_connection, CURLOPT_URL, $curl_url);
+//
+//		curl_setopt($curl_connection, CURLOPT_HTTPGET, true);
+//
+//		return($curl_connection);
+//	}
 
 	/**
 	 * Patron Login
@@ -981,6 +1013,8 @@ class MillenniumDriver implements DriverInterface
 	}
 
 	private $curl_connection;
+	//TODO move curl_connection apparatus here. Create as own class??
+
 	public function getMyTransactions( $page = 1, $recordsPerPage = -1, $sortOption = 'dueDate') {
 		require_once ROOT_DIR . '/Drivers/marmot_inc/MillenniumCheckouts.php';
 		$millenniumCheckouts = new MillenniumCheckouts($this);
@@ -1134,7 +1168,6 @@ class MillenniumDriver implements DriverInterface
 		return $millenniumHolds->placeItemHold($recordId, $itemId, $patronId, $comment, $type);
 	}
 
-
 	public function updateHold($requestId, $patronId, $type, $title){
 		require_once ROOT_DIR . '/Drivers/marmot_inc/MillenniumHolds.php';
 		$millenniumHolds = new MillenniumHolds($this);
@@ -1157,6 +1190,12 @@ class MillenniumDriver implements DriverInterface
 		require_once ROOT_DIR . '/Drivers/marmot_inc/MillenniumCheckouts.php';
 		$millenniumCheckouts = new MillenniumCheckouts($this);
 		return $millenniumCheckouts->renewItem($itemId, $itemIndex);
+	}
+
+	public function bookMaterial($recordId, $startDate, $startTime = null, $endDate = null, $endTime = null) {
+		require_once ROOT_DIR . '/Drivers/marmot_inc/MillenniumBooking.php';
+		$millenniumBooking = new MillenniumBooking($this);
+		return $millenniumBooking->bookMaterial($recordId, $startDate, $startTime, $endDate, $endTime);
 	}
 
 	public function updatePatronInfo($canUpdateContactInfo){

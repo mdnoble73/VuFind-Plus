@@ -548,7 +548,7 @@ class CatalogConnection
 	 * @param   string  $comment    Any comment regarding the hold or recall
 	 * @param   string  $type       Whether to place a hold or recall
 	 * @return  mixed               True if successful, false if unsuccessful
-	 *                              If an error occures, return a PEAR_Error
+	 *                              If an error occurs, return a PEAR_Error
 	 * @access  public
 	 */
 	function placeItemHold($recordId, $itemId, $patronId, $comment, $type)
@@ -575,6 +575,11 @@ class CatalogConnection
 	function updatePatronInfo($canUpdateContactInfo)
 	{
 		return $errors = $this->driver->updatePatronInfo($canUpdateContactInfo);
+	}
+
+	// TODO Millennium only at this time, set other drivers to return false.
+	function bookMaterial($recordId, $startDate, $startTime = null, $endDate = null, $endTime = null){
+		return $this->driver->bookMaterial($recordId, $startDate, $startTime, $endDate, $endTime);
 	}
 
 	function selfRegister(){

@@ -419,19 +419,17 @@ class Record_AJAX extends Action {
 		return $results;
 	}
 
-	function getBookMaterialForm(){
+	function getBookMaterialForm($errorMessage = null){
 		global $interface;
 		global $user;
 		if ($user){
 			$id = $_REQUEST['id'];
-/*			$catalog = CatalogFactory::getCatalogConnectionInstance();
-			$profile = $catalog->getMyProfile($user);
-			$interface->assign('profile', $profile);*/
 
 			require_once ROOT_DIR . '/RecordDrivers/MarcRecord.php';
 			$marcRecord = new MarcRecord($id);
 			$title = $marcRecord->getTitle();
 			$interface->assign('id', $id);
+			if ($errorMessage) $interface->assign('errorMessage', $errorMessage);
 			$results = array(
 					'title' => 'Book ' . $title,
 					'modalBody' => $interface->fetch("Record/book-materials-form.tpl"),
@@ -450,6 +448,33 @@ class Record_AJAX extends Action {
 	}
 
 	function bookMaterial(){
+		if (!empty($_REQUEST['id'])) $recordId = $_REQUEST['id'];
+		else {
+			return array('success' => false, 'message' => 'Item ID is required.');
+		}
+		if (isset($_REQUEST['startDate'])) {
+			$startDate = $_REQUEST['startDate'];
+		} else {
+			return array('success' => false, 'message' => 'Start Date is required.');
+		}
+
+		$startTime = $_REQUEST['startTime'];
+		$endDate = $_REQUEST['endDate'];
+		$endTime = $_REQUEST['endTime'];
+
+		global $user;
+		if ($user) { // The user is already logged in
+			$catalog = CatalogFactory::getCatalogConnectionInstance();
+			$return = $catalog->bookMaterial($recordId, $startDate, $startTime, $endDate, $endTime);
+			if (!empty($return['retry'])) {
+				return $this->getBookMaterialForm($return['message']); // send back error message with form to try again
+			} else { // otherwise return output to user's browser
+				if ($return['success'] == true) $return['message'] .= '<div class="alert alert-success"'.$return['message'].'</div>';
+					// wrap a success message in a success alert
+				return $return;
+			}
+
+		} else return array('success' => false, 'message' => 'User not logged in.');
 		$results = array('success' => true);
 		return $results;
 	}
@@ -490,7 +515,7 @@ class Record_AJAX extends Action {
 		if ($user){
 			//The user is already logged in
 			$barcodeProperty = $configArray['Catalog']['barcodeProperty'];
-			$catalog = CatalogFactory::getCatalogConnectionInstance();;
+			$catalog = CatalogFactory::getCatalogConnectionInstance();
 			if (isset($_REQUEST['selectedItem'])){
 				$return = $catalog->placeItemHold($recordId, $_REQUEST['selectedItem'], $user->$barcodeProperty, '', '');
 			}else{

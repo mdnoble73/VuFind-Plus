@@ -1,8 +1,8 @@
 <?php
 /**
- * Loads and processes holds for Milllennium
+ * Loads and processes holds for Millennium
  *
- * @category VuFind-Plus 
+ * @category Pika
  * @author Mark Noble <mark@marmot.org>
  * Date: 5/20/13
  * Time: 11:33 AM
@@ -208,51 +208,53 @@ class MillenniumHolds{
 		} // End of foreach loop
 
 		$holdUpdateParams = http_build_query($extraGetInfo);
-		if (1) { // just to hide curl ops
 			//Login to the patron's account
-			$cookieJar = tempnam("/tmp", "CURLCOOKIE");
+			$cookieJar = tempnam("/tmp", "CURLCOOKIE"); // TODO: cookie Jar now in _curl_connect, add as class variable?
 			$success   = false;
+//
+//			$curl_url = $configArray['Catalog']['url'] . "/patroninfo";
+//			$logger->log('Loading page ' . $curl_url, PEAR_LOG_INFO);
 
-			$curl_url = $configArray['Catalog']['url'] . "/patroninfo";
-			$logger->log('Loading page ' . $curl_url, PEAR_LOG_INFO);
+//			$curl_connection = curl_init($curl_url);
+//			$header          = array();
+//			$header[0]       = "Accept: text/xml,application/xml,application/xhtml+xml,";
+//			$header[0] .= "text/html;q=0.9,text/plain;q=0.8,image/png,*/*;q=0.5";
+//			$header[] = "Cache-Control: max-age=0";
+//			$header[] = "Connection: keep-alive";
+//			$header[] = "Accept-Charset: ISO-8859-1,utf-8;q=0.7,*;q=0.7";
+//			$header[] = "Accept-Language: en-us,en;q=0.5";
+//			curl_setopt($curl_connection, CURLOPT_CONNECTTIMEOUT, 30);
+//			curl_setopt($curl_connection, CURLOPT_HTTPHEADER, $header);
+//			curl_setopt($curl_connection, CURLOPT_USERAGENT, "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)");
+//			curl_setopt($curl_connection, CURLOPT_RETURNTRANSFER, true);
+//			curl_setopt($curl_connection, CURLOPT_SSL_VERIFYPEER, false);
+//			curl_setopt($curl_connection, CURLOPT_FOLLOWLOCATION, 1);
+//			curl_setopt($curl_connection, CURLOPT_UNRESTRICTED_AUTH, true);
+//			curl_setopt($curl_connection, CURLOPT_COOKIEJAR, $cookieJar);
+//			curl_setopt($curl_connection, CURLOPT_COOKIESESSION, false);
 
-			$curl_connection = curl_init($curl_url);
-			$header          = array();
-			$header[0]       = "Accept: text/xml,application/xml,application/xhtml+xml,";
-			$header[0] .= "text/html;q=0.9,text/plain;q=0.8,image/png,*/*;q=0.5";
-			$header[] = "Cache-Control: max-age=0";
-			$header[] = "Connection: keep-alive";
-			$header[] = "Accept-Charset: ISO-8859-1,utf-8;q=0.7,*;q=0.7";
-			$header[] = "Accept-Language: en-us,en;q=0.5";
-			curl_setopt($curl_connection, CURLOPT_CONNECTTIMEOUT, 30);
-			curl_setopt($curl_connection, CURLOPT_HTTPHEADER, $header);
-			curl_setopt($curl_connection, CURLOPT_USERAGENT, "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)");
-			curl_setopt($curl_connection, CURLOPT_RETURNTRANSFER, true);
-			curl_setopt($curl_connection, CURLOPT_SSL_VERIFYPEER, false);
-			curl_setopt($curl_connection, CURLOPT_FOLLOWLOCATION, 1);
-			curl_setopt($curl_connection, CURLOPT_UNRESTRICTED_AUTH, true);
-			curl_setopt($curl_connection, CURLOPT_COOKIEJAR, $cookieJar);
-			curl_setopt($curl_connection, CURLOPT_COOKIESESSION, false);
-			curl_setopt($curl_connection, CURLOPT_POST, true);
-			$post_data   = $this->driver->_getLoginFormValues();
-			$post_string = http_build_query($post_data);
-			curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
-			//Load the page, but we don't need to do anything with the results.
-			$loginResult = curl_exec($curl_connection);
-
-			//When a library uses Encore, the initial login does a redirect and requires additional parameters.
-			if (preg_match('/<input type="hidden" name="lt" value="(.*?)" \/>/si', $loginResult, $loginMatches)) {
-				//Get the lt value
-				$lt = $loginMatches[1];
-				//Login again
-				$post_data['lt']       = $lt;
-				$post_data['_eventId'] = 'submit';
-
-				$post_string = http_build_query($post_data);
-				curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
-				$loginResult = curl_exec($curl_connection);
-				$curlInfo    = curl_getinfo($curl_connection);
-			}
+//			$curl_connection = $this->_curl_connect($curl_url);
+//			curl_setopt($curl_connection, CURLOPT_POST, true);
+//			$post_data   = $this->driver->_getLoginFormValues();
+//			$post_string = http_build_query($post_data);
+//			curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
+//			//Load the page, but we don't need to do anything with the results.
+//			$loginResult = curl_exec($curl_connection);
+//
+//			//When a library uses Encore, the initial login does a redirect and requires additional parameters.
+//			if (preg_match('/<input type="hidden" name="lt" value="(.*?)" \/>/si', $loginResult, $loginMatches)) {
+//				//Get the lt value
+//				$lt = $loginMatches[1];
+//				//Login again
+//				$post_data['lt']       = $lt;
+//				$post_data['_eventId'] = 'submit';
+//
+//				$post_string = http_build_query($post_data);
+//				curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
+//				$loginResult = curl_exec($curl_connection);
+//				$curlInfo    = curl_getinfo($curl_connection);
+//			}
+			$curl_connection = $this->_curl_login();
 
 			//Issue a post request with the information about what to do with the holds
 			$curl_url = $configArray['Catalog']['url'] . "/patroninfo~S{$scope}/" . $patronDump['RECORD_#'] . "/holds";
@@ -266,7 +268,7 @@ class MillenniumHolds{
 
 			//$holds = $this->parseHoldsPage($sResult);
 			//At this stage, we get messages if there were any errors freezing holds.
-		}
+
 		//Go back to the hold page to check make sure our hold was cancelled
 		// Don't believe the page reload is necessary. same output as above. plb 2-3-2015
 		$curl_url = $configArray['Catalog']['url'] . "/patroninfo~S{$scope}/" . $patronDump['RECORD_#'] . "/holds";
@@ -651,6 +653,82 @@ class MillenniumHolds{
 	}
 
 	/**
+	 * Initialize and configure curl connection
+	 *
+	 * @param null $curl_url optional url passed to curl_init
+	 * @param null|Array $curl_options is an array of curl options to include or overwrite.
+	 *                    Keys is the curl option constant, Values is the value to set the option to.
+	 * @return resource
+	 */
+	public function _curl_connect($curl_url = null, $curl_options = null){
+		// differences from James' version
+//		curl_setopt($curl_connection, CURLOPT_USERAGENT,"Pika 2015.10.0");
+
+		$header = array();
+		$header[0] = "Accept: text/xml,application/xml,application/xhtml+xml,";
+		$header[0] .= "text/html;q=0.9,text/plain;q=0.8,image/png,*/*;q=0.5";
+		$header[] = "Cache-Control: max-age=0";
+		$header[] = "Connection: keep-alive";
+		$header[] = "Accept-Charset: ISO-8859-1,utf-8;q=0.7,*;q=0.7";
+		$header[] = "Accept-Language: en-us,en;q=0.5";
+
+		$cookie = tempnam ("/tmp", "CURLCOOKIE");
+
+		$curl_connection = curl_init($curl_url);
+		curl_setopt($curl_connection, CURLOPT_CONNECTTIMEOUT, 30);
+		curl_setopt($curl_connection, CURLOPT_HTTPHEADER, $header);
+		curl_setopt($curl_connection, CURLOPT_USERAGENT,"Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)");
+		curl_setopt($curl_connection, CURLOPT_RETURNTRANSFER, true);
+		curl_setopt($curl_connection, CURLOPT_SSL_VERIFYPEER, false);
+		curl_setopt($curl_connection, CURLOPT_FOLLOWLOCATION, true);
+		curl_setopt($curl_connection, CURLOPT_UNRESTRICTED_AUTH, true);
+		curl_setopt($curl_connection, CURLOPT_COOKIEJAR, $cookie);
+		curl_setopt($curl_connection, CURLOPT_COOKIESESSION, true);
+		curl_setopt($curl_connection, CURLOPT_FORBID_REUSE, false);
+		curl_setopt($curl_connection, CURLOPT_HEADER, false);
+		curl_setopt($curl_connection, CURLOPT_POST, true);
+
+		if ($curl_options) foreach ($curl_options as $setting => $value) {
+			curl_setopt($curl_connection, $setting, $value);
+		}
+
+		return($curl_connection);
+	}
+
+
+	public function _curl_login() {
+		global $configArray, $logger;
+		$curl_url = $configArray['Catalog']['url'] . "/patroninfo";
+		$logger->log('Loading page ' . $curl_url, PEAR_LOG_INFO);
+
+		$curl_connection = $this->_curl_connect($curl_url);
+		curl_setopt($curl_connection, CURLOPT_POST, true);
+		$post_data   = $this->driver->_getLoginFormValues();
+		$post_string = http_build_query($post_data);
+		curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
+		//Load the page, but we don't need to do anything with the results.
+		$loginResult = curl_exec($curl_connection);
+
+		//When a library uses Encore, the initial login does a redirect and requires additional parameters.
+		if (preg_match('/<input type="hidden" name="lt" value="(.*?)" \/>/si', $loginResult, $loginMatches)) {
+			//Get the lt value
+			$lt = $loginMatches[1];
+			//Login again
+			$post_data['lt']       = $lt;
+			$post_data['_eventId'] = 'submit';
+
+			$post_string = http_build_query($post_data);
+			curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
+			$loginResult = curl_exec($curl_connection);
+//			$curlInfo    = curl_getinfo($curl_connection); // debug info
+		}
+//		return $loginResult; // TODO read $loginResult for a successful login??, then return $success boolean,  or $error
+		return $curl_connection; // TODO don't do connecting, just loggin in?? Have the connection passed in.
+														// TODO Add curl connection as a object variable instead?
+
+	}
+
+	/**
 	 * Place Item Hold
 	 *
 	 * This is responsible for both placing item level holds.
@@ -752,28 +830,31 @@ class MillenniumHolds{
 				list($Month, $Day, $Year)=explode("/", $date);
 
 				//------------BEGIN CURL-----------------------------------------------------------------
-				$header=array();
-				$header[0] = "Accept: text/xml,application/xml,application/xhtml+xml,";
-				$header[0] .= "text/html;q=0.9,text/plain;q=0.8,image/png,*/*;q=0.5";
-				$header[] = "Cache-Control: max-age=0";
-				$header[] = "Connection: keep-alive";
-				$header[] = "Accept-Charset: ISO-8859-1,utf-8;q=0.7,*;q=0.7";
-				$header[] = "Accept-Language: en-us,en;q=0.5";
+//				$header=array();
+//				$header[0] = "Accept: text/xml,application/xml,application/xhtml+xml,";
+//				$header[0] .= "text/html;q=0.9,text/plain;q=0.8,image/png,*/*;q=0.5";
+//				$header[] = "Cache-Control: max-age=0";
+//				$header[] = "Connection: keep-alive";
+//				$header[] = "Accept-Charset: ISO-8859-1,utf-8;q=0.7,*;q=0.7";
+//				$header[] = "Accept-Language: en-us,en;q=0.5";
+//
+//				$cookie = tempnam ("/tmp", "CURLCOOKIE");
+//
+//				$curl_connection = curl_init();
+//				curl_setopt($curl_connection, CURLOPT_CONNECTTIMEOUT, 30);
+//				curl_setopt($curl_connection, CURLOPT_HTTPHEADER, $header);
+//				curl_setopt($curl_connection, CURLOPT_USERAGENT,"Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)");
+//				curl_setopt($curl_connection, CURLOPT_RETURNTRANSFER, true);
+//				curl_setopt($curl_connection, CURLOPT_SSL_VERIFYPEER, false);
+//				curl_setopt($curl_connection, CURLOPT_FOLLOWLOCATION, true);
+//				curl_setopt($curl_connection, CURLOPT_UNRESTRICTED_AUTH, true);
+//				curl_setopt($curl_connection, CURLOPT_COOKIEJAR, $cookie);
+//				curl_setopt($curl_connection, CURLOPT_COOKIESESSION, true);
+//				curl_setopt($curl_connection, CURLOPT_FORBID_REUSE, false);
+//				curl_setopt($curl_connection, CURLOPT_HEADER, false);
 
-				$cookie = tempnam ("/tmp", "CURLCOOKIE");
+				$curl_connection = $this->_curl_connect();
 
-				$curl_connection = curl_init();
-				curl_setopt($curl_connection, CURLOPT_CONNECTTIMEOUT, 30);
-				curl_setopt($curl_connection, CURLOPT_HTTPHEADER, $header);
-				curl_setopt($curl_connection, CURLOPT_USERAGENT,"Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)");
-				curl_setopt($curl_connection, CURLOPT_RETURNTRANSFER, true);
-				curl_setopt($curl_connection, CURLOPT_SSL_VERIFYPEER, false);
-				curl_setopt($curl_connection, CURLOPT_FOLLOWLOCATION, true);
-				curl_setopt($curl_connection, CURLOPT_UNRESTRICTED_AUTH, true);
-				curl_setopt($curl_connection, CURLOPT_COOKIEJAR, $cookie);
-				curl_setopt($curl_connection, CURLOPT_COOKIESESSION, true);
-				curl_setopt($curl_connection, CURLOPT_FORBID_REUSE, false);
-				curl_setopt($curl_connection, CURLOPT_HEADER, false);
 				curl_setopt($curl_connection, CURLOPT_POST, true);
 
 				$lt = null;
@@ -784,14 +865,10 @@ class MillenniumHolds{
 					$post_data['submit.x']="35";
 					$post_data['submit.y']="21";
 					$post_data['submit']="submit";
+					$post_string = http_build_query($post_data);
+					curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
 					curl_setopt($curl_connection, CURLOPT_REFERER,$curl_url);
 					curl_setopt($curl_connection, CURLOPT_URL, $curl_url);
-					$post_items = array();
-					foreach ($post_data as $key => $value) {
-						$post_items[] = $key . '=' . $value;
-					}
-					$post_string = implode ('&', $post_items);
-					curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
 					$loginResult = curl_exec($curl_connection);
 					$curlInfo = curl_getinfo($curl_connection);
 					//When a library uses Encore, the initial login does a redirect and requires additional parameters.
@@ -801,11 +878,7 @@ class MillenniumHolds{
 						//Login again
 						$post_data['lt'] = $lt;
 						$post_data['_eventId'] = 'submit';
-						$post_items = array();
-						foreach ($post_data as $key => $value) {
-							$post_items[] = $key . '=' . $value;
-						}
-						$post_string = implode ('&', $post_items);
+						$post_string = http_build_query($post_data);
 						curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
 						$loginResult = curl_exec($curl_connection);
 						$curlInfo = curl_getinfo($curl_connection);
@@ -842,11 +915,12 @@ class MillenniumHolds{
 					$post_data['_eventId'] = 'submit';
 				}
 
-				$post_items = array();
-				foreach ($post_data as $key => $value) {
-					$post_items[] = $key . '=' . $value;
-				}
-				$post_string = implode ('&', $post_items);
+//				$post_items = array();
+//				foreach ($post_data as $key => $value) {
+//					$post_items[] = $key . '=' . $value;
+//				}
+//				$post_string = implode ('&', $post_items);
+				$post_string = http_build_query($post_data);
 				curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
 				$sResult = curl_exec($curl_connection);
 
