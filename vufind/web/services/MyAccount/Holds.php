@@ -17,38 +17,38 @@ class MyAccount_Holds extends MyAccount{
 		global $user;
 
 		//these actions are being moved to MyAccount/AJAX.php
-		if (isset($_REQUEST['multiAction'])){
-			$multiAction = $_REQUEST['multiAction'];
-			$locationId = isset($_REQUEST['location']) ? $_REQUEST['location'] : null;
-			$cancelId = array();
-			$type = 'update';
-			$freeze = '';
-			if ($multiAction == 'cancelSelected'){
-				$type = 'cancel';
-//				$freeze = ''; // same as default setting.
-			}elseif ($multiAction == 'freezeSelected'){
-//				$type = 'update'; // same as default setting.
-				$freeze = 'on';
-			}elseif ($multiAction == 'thawSelected'){
-//				$type = 'update'; // same as default setting.
-				$freeze = 'off';
-			}
-//			elseif ($multiAction == 'updateSelected'){ // same as default settings.
-
-//				$type = 'update';
-//				$freeze = '';
+//		if (isset($_REQUEST['multiAction'])){
+//			$multiAction = $_REQUEST['multiAction'];
+//			$locationId = isset($_REQUEST['location']) ? $_REQUEST['location'] : null;
+//			$cancelId = array();
+//			$type = 'update';
+//			$freeze = '';
+//			if ($multiAction == 'cancelSelected'){
+//				$type = 'cancel';
+////				$freeze = ''; // same as default setting.
+//			}elseif ($multiAction == 'freezeSelected'){
+////				$type = 'update'; // same as default setting.
+//				$freeze = 'on';
+//			}elseif ($multiAction == 'thawSelected'){
+////				$type = 'update'; // same as default setting.
+//				$freeze = 'off';
 //			}
-			$result = $this->catalog->driver->updateHoldDetailed($user->password, $type, '', null, $cancelId, $locationId, $freeze);
-//			$interface->assign('holdResult', $result);
-
-
-			//Redirect back here without the extra parameters.
-			$redirectUrl = $configArray['Site']['path'] . '/MyAccount/Holds?accountSort=' . ($selectedSortOption = isset($_REQUEST['accountSort']) ? $_REQUEST['accountSort'] : 'title');
-			header("Location: " . $redirectUrl);
-
-
-			die();
-		}
+////			elseif ($multiAction == 'updateSelected'){ // same as default settings.
+//
+////				$type = 'update';
+////				$freeze = '';
+////			}
+//			$result = $this->catalog->driver->updateHoldDetailed($user->password, $type, '', null, $cancelId, $locationId, $freeze);
+////			$interface->assign('holdResult', $result);
+//
+//
+//			//Redirect back here without the extra parameters.
+//			$redirectUrl = $configArray['Site']['path'] . '/MyAccount/Holds?accountSort=' . ($selectedSortOption = isset($_REQUEST['accountSort']) ? $_REQUEST['accountSort'] : 'title');
+//			header("Location: " . $redirectUrl);
+//
+//
+//			die();
+//		}
 
 		$interface->assign('allowFreezeHolds', true);
 

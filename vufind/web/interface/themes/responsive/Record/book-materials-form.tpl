@@ -64,11 +64,6 @@
 			$('#bookMaterialForm').validate({
 				submitHandler: function(){
 					VuFind.Record.submitBookMaterialForm();
-{/literal}	{*				$('#startDate, #endDate').off('changeDate');
-					$('#startDate, #endDate').datepicker('remove');*}
-
-{* remove datepicker objects in case the form gets reloaded via AJAX. Prevents "too much recursion" errors. *}
-{literal}
 				},
 				highlight: function(e){
 					$(e).closest('.form-group').addClass('has-error')
@@ -95,7 +90,7 @@
 				var input = $(this).val();
 				added = ( (input.length == 1 && $.isNumeric(input) && input != 1) // typing first digit of the hour, not a 1
 				|| (input.length == 2 && $.isNumeric(input))  ); // typing the second digit of the hour, 10 & greater
-				if (added) $(this).val(input + ':'); // add ':' after intial numbers typed (treat as hours on 12 hour clock)
+				if (added) $(this).val(input + ':'); // add ':' after initial numbers typed (treat as hours on 12 hour clock)
 			})
 		});
 		{/literal}{if !$errorMessage}{* initial load only (the error message will be populated on subsequent loads)
