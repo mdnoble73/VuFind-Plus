@@ -5,14 +5,13 @@
 				<div id="web_note" class="alert alert-info text-center col-xs-12">{$profile.web_note}</div>
 			</div>
 		{/if}
-		{if $profile.numHoldsAvailableTotal && $profile.numHoldsAvailableTotal > 0}
-			<div class="text-info text-center alert alert-info">You have <span style="font-weight: bold">{$profile.numHoldsAvailableTotal}</span> holds ready for pick up.</div>
-		{/if}
+
+		{include file="MyAccount/availableHoldsNotice.tpl" noLink=1}
 
 		{* Check to see if there is data for the section *}
-		<div class='holdSectionBody'>
+		<div class="holdSectionBody">
 			{if $libraryHoursMessage}
-				<div class='libraryHours alert alert-success'>{$libraryHoursMessage}</div>
+				<div class="libraryHours alert alert-success">{$libraryHoursMessage}</div>
 			{/if}
 
 			{foreach from=$recordList item=sectionData key=sectionKey}
@@ -28,7 +27,7 @@
 				</p>
 				{if is_array($recordList.$sectionKey) && count($recordList.$sectionKey) > 0}
 					{* Make sure there is a break between the form and the table *}
-					<br/>
+					<br>
 					<div class="striped">
 						{foreach from=$recordList.$sectionKey item=record name="recordLoop"}
 							{if $record.holdSource == 'ILS'}

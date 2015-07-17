@@ -5,7 +5,7 @@
 				<div id="web_note" class="alert alert-info text-center col-xs-12">{$profile.web_note}</div>
 			</div>
 		{/if}
-		{include file="availableHoldsNotice.tpl"}
+		{include file="MyAccount/availableHoldsNotice.tpl"}
 
 		{* Check to see if there is data for the section *}
 		<div class="holdSectionBody">

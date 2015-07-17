@@ -6,9 +6,8 @@
 		</div>
 	{/if}
 
-	{if $profile.numHoldsAvailableTotal && $profile.numHoldsAvailableTotal > 0}
-		<div class="text-info text-center alert alert-info"><a href="/MyAccount/Holds">You have <span style="font-weight: bold">{$profile.numHoldsAvailableTotal}</span> holds ready for pick up.</a></div>
-	{/if}
+	{include file="MyAccount/availableHoldsNotice.tpl"}
+
 	<h2>My Materials Requests</h2>
 	{if $error}
 		<div class="error">{$error}</div>
