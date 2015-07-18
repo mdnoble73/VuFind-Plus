@@ -26,26 +26,19 @@ class MyAccount_Bookings extends MyAccount {
 			'status' => 'Status',
 		);
 
-
+		$bookings = $this->catalog->getMyBookings();
+		global $profile;
 		$profile = $this->catalog->getMyProfile($user);
 		// TODO: getMyProfile called for second time. First time on index.php
 
 		$libraryHoursMessage = Location::getLibraryHoursMessage($profile['homeLocationId']);
 		$interface->assign('libraryHoursMessage', $libraryHoursMessage);
+		$interface->assign('recordList', $bookings);
+
 
 		// Build Page //
-		$interface->setPageTitle('My Bookingss');
+		$interface->setPageTitle('My Bookings');
 		$interface->assign('sidebar', 'MyAccount/account-sidebar.tpl');
-//		global $library;
-//		if (!$library->showDetailedHoldNoticeInformation){
-//			$notification_method = '';
-//		}else{
-//			$notification_method = ($profile['noticePreferenceLabel'] != 'Unknown') ? $profile['noticePreferenceLabel'] : '';
-//			if ($notification_method == 'Mail' && $library->treatPrintNoticesAsPhoneNotices){
-//				$notification_method = 'Telephone';
-//			}
-//		}
-//		$interface->assign('notification_method', strtolower($notification_method));
 		$interface->setTemplate('bookings.tpl');
 
 		//print_r($patron);

@@ -139,6 +139,7 @@ class MillenniumDriver implements DriverInterface
 	var $loanRules = null;
 	/** @var LoanRuleDeterminer[] $loanRuleDeterminers */
 	var $loanRuleDeterminers = null;
+
 	protected function loadLoanRules(){
 		if (is_null($this->loanRules)){
 			/** @var Memcache $memCache */
@@ -479,37 +480,6 @@ class MillenniumDriver implements DriverInterface
 		return array();
 	}
 
-	/**
-	 * Initialize and configure curl connection
-	 */
-//	public function _curl_connect($curl_url){
-//		//TODO update with new stuff
-//		$header = array();
-//		$header[0] = "Accept: text/xml,application/xml,application/xhtml+xml,";
-//		$header[0] .= "text/html;q=0.9,text/plain;q=0.8,image/png,*/*;q=0.5";
-//		$header[] = "Cache-Control: max-age=0";
-//		$header[] = "Connection: keep-alive";
-//		$header[] = "Accept-Charset: ISO-8859-1,utf-8;q=0.7,*;q=0.7";
-//		$header[] = "Accept-Language: en-us,en;q=0.5";
-//		$cookie_jar = tempnam ("/tmp", "CURLCOOKIE");
-//		$curl_connection = curl_init();
-//		curl_setopt($curl_connection, CURLOPT_CONNECTTIMEOUT, 30);
-//		curl_setopt($curl_connection, CURLOPT_COOKIEJAR, $cookie_jar);
-//		curl_setopt($curl_connection, CURLOPT_COOKIESESSION, true); // JAMES 20150617: ?
-//		curl_setopt($curl_connection, CURLOPT_FOLLOWLOCATION, true);
-//		curl_setopt($curl_connection, CURLOPT_FORBID_REUSE, false);
-//		curl_setopt($curl_connection, CURLOPT_HEADER, false); // should set CURLOPT_HEADER to false[?] in production - JAMES 20140830
-//		curl_setopt($curl_connection, CURLOPT_HTTPHEADER, $header);
-//		curl_setopt($curl_connection, CURLOPT_RETURNTRANSFER, true); // should set CURLOPT_RETURNTRANSFER to true in production - JAMES 20140830
-//		curl_setopt($curl_connection, CURLOPT_SSL_VERIFYPEER, true); // should set CURLOPT_SSL_VERIFYPEER to true in production - JAMES 20140830
-//		curl_setopt($curl_connection, CURLOPT_UNRESTRICTED_AUTH, true);
-//		curl_setopt($curl_connection, CURLOPT_USERAGENT,"Pika 2015.10.0");
-//		curl_setopt($curl_connection, CURLOPT_URL, $curl_url);
-//
-//		curl_setopt($curl_connection, CURLOPT_HTTPGET, true);
-//
-//		return($curl_connection);
-//	}
 
 	/**
 	 * Patron Login
@@ -738,8 +708,9 @@ class MillenniumDriver implements DriverInterface
 
 						//Update the database
 						$user->update();
+
 						//Update the serialized instance stored in the session
-						$_SESSION['userinfo'] = serialize($user);
+//						$_SESSION['userinfo'] = serialize($user); // now done with $user->update()
 					}
 				}
 			}
@@ -1012,8 +983,109 @@ class MillenniumDriver implements DriverInterface
 		return $patronDump;
 	}
 
-	private $curl_connection;
-	//TODO move curl_connection apparatus here. Create as own class??
+	public function __destruct(){
+		$this->_close_curl();
+	}
+
+// Curl Connection Resources
+	private $cookieJar,
+		$curl_connection;
+
+	public function setCookieJar(){
+		$cookieJar = tempnam("/tmp", "CURLCOOKIE");
+		$this->cookieJar = $cookieJar;
+	}
+
+	/**
+	 * @return mixed CookieJar name
+	 */
+	public function getCookieJar() {
+		if (is_null($this->cookieJar)) $this->setCookieJar();
+		return $this->cookieJar;
+	}
+
+	/**
+	 * Initialize and configure curl connection
+	 *
+	 * @param null $curl_url optional url passed to curl_init
+	 * @param null|Array $curl_options is an array of curl options to include or overwrite.
+	 *                    Keys is the curl option constant, Values is the value to set the option to.
+	 * @return resource
+	 */
+	public function _curl_connect($curlUrl = null, $curl_options = null){
+		// differences from James' version
+//		curl_setopt($this->curl_connection, CURLOPT_USERAGENT,"Pika 2015.10.0");
+
+		$header = array();
+		$header[0] = "Accept: text/xml,application/xml,application/xhtml+xml,";
+		$header[0] .= "text/html;q=0.9,text/plain;q=0.8,image/png,*/*;q=0.5";
+		$header[] = "Cache-Control: max-age=0";
+		$header[] = "Connection: keep-alive";
+		$header[] = "Accept-Charset: ISO-8859-1,utf-8;q=0.7,*;q=0.7";
+		$header[] = "Accept-Language: en-us,en;q=0.5";
+
+		$cookie = $this->getCookieJar();
+
+		$this->curl_connection = curl_init($curlUrl);
+		$default_curl_options = array(
+			CURLOPT_CONNECTTIMEOUT => 30,
+			CURLOPT_HTTPHEADER => $header,
+			CURLOPT_USERAGENT => "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)",
+			CURLOPT_RETURNTRANSFER => true,
+			CURLOPT_SSL_VERIFYPEER => false,
+			CURLOPT_FOLLOWLOCATION => true,
+			CURLOPT_UNRESTRICTED_AUTH => true,
+			CURLOPT_COOKIEJAR => $cookie,
+			CURLOPT_COOKIESESSION => true,
+			CURLOPT_FORBID_REUSE => false,
+			CURLOPT_HEADER => false,
+			//			CURLOPT_HEADER => true, // debugging only
+			//			CURLOPT_VERBOSE => true, // debugging only
+		);
+
+		if ($curl_options) $default_curl_options = array_merge($default_curl_options, $curl_options);
+		$result =
+			curl_setopt_array($this->curl_connection, $default_curl_options);
+
+		return $this->curl_connection;
+	}
+
+	public function _close_curl() {
+		if ($this->curl_connection) curl_close($this->curl_connection);
+		if ($this->cookieJar) unlink($this->cookieJar);
+	}
+
+	public function _curl_login($curlUrl = null) {
+		global $configArray, $logger;
+		if (!$curlUrl) $curlUrl = $configArray['Catalog']['url'] . "/patroninfo";
+		$post_data   = $this->_getLoginFormValues();
+		$post_string = http_build_query($post_data);
+
+		$logger->log('Loading page ' . $curlUrl, PEAR_LOG_INFO);
+
+		$this->_curl_connect($curlUrl);
+		curl_setopt_array($this->curl_connection, array(
+			CURLOPT_POST => true,
+			CURLOPT_POSTFIELDS => $post_string
+		));
+
+		$loginResult = curl_exec($this->curl_connection); // Load the page, but we don't need to do anything with the results.
+
+		//When a library uses Encore, the initial login does a redirect and requires additional parameters.
+		if (preg_match('/<input type="hidden" name="lt" value="(.*?)" \/>/si', $loginResult, $loginMatches)) {
+			$lt = $loginMatches[1]; //G et the lt value
+
+			//Login again
+			$post_data['lt']       = $lt;
+			$post_data['_eventId'] = 'submit';
+			$post_string = http_build_query($post_data);
+			curl_setopt($this->curl_connection, CURLOPT_POSTFIELDS, $post_string);
+
+			$loginResult = curl_exec($this->curl_connection);
+//			$curlInfo    = curl_getinfo($this->curl_connection); // debug info
+		}
+		return $loginResult;// Note: $this->_fetchPatronInfoPage uses the actual html result of this
+	}
 
 	public function getMyTransactions( $page = 1, $recordsPerPage = -1, $sortOption = 'dueDate') {
 		require_once ROOT_DIR . '/Drivers/marmot_inc/MillenniumCheckouts.php';
@@ -1032,69 +1104,74 @@ class MillenniumDriver implements DriverInterface
 	 *
 	 * @return string the result of the page load.
 	 */
+
+	// Old Version, just in case. plb 7-17-2015
+//		public function _fetchPatronInfoPage($patronInfo, $page){
+//		$cookieJar = tempnam ("/tmp", "CURLCOOKIE");
+//		$deleteCookie = true;
+//			global $logger;
+//			//$logger->log('PatronInfo cookie ' . $cookie, PEAR_LOG_INFO);
+//			global $configArray;
+//			$scope = $this->getDefaultScope();
+//			$curlUrl = $configArray['Catalog']['url'] . "/patroninfo~S{$scope}/" . $patronInfo['RECORD_#'] ."/$page";
+//
+//		$logger->log('Loading page ' . $curlUrl, PEAR_LOG_INFO);
+//		//echo "$curlUrl";
+//		$this->curl_connection = curl_init($curlUrl);
+//
+//		curl_setopt($this->curl_connection, CURLOPT_CONNECTTIMEOUT, 30);
+//		curl_setopt($this->curl_connection, CURLOPT_USERAGENT,"Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)");
+//		curl_setopt($this->curl_connection, CURLOPT_RETURNTRANSFER, true);
+//		curl_setopt($this->curl_connection, CURLOPT_SSL_VERIFYPEER, false);
+//		curl_setopt($this->curl_connection, CURLOPT_FOLLOWLOCATION, 1);
+//		curl_setopt($this->curl_connection, CURLOPT_UNRESTRICTED_AUTH, true);
+//		curl_setopt($this->curl_connection, CURLOPT_COOKIEJAR, $cookieJar );
+//		curl_setopt($this->curl_connection, CURLOPT_COOKIESESSION, is_null($cookieJar) ? true : false);
+//
+//		$post_data = $this->_getLoginFormValues();
+//		$post_string = http_build_query($post_data);
+//		curl_setopt($this->curl_connection, CURLOPT_POSTFIELDS, $post_string);
+//		$sResult = curl_exec($this->curl_connection);
+//		//When a library uses Encore, the initial login does a redirect and requires additonal parameters.
+//		if (preg_match('/<input type="hidden" name="lt" value="(.*?)" \/>/si', $sResult, $loginMatches)) {
+//			//Get the lt value
+//			$lt = $loginMatches[1];
+//			//Login again
+//			$post_data['lt'] = $lt;
+//			$post_data['_eventId'] = 'submit';
+//			$post_string = http_build_query($post_data);
+//			$accountPageInfo = curl_getinfo($this->curl_connection);
+//			curl_setopt($this->curl_connection, CURLOPT_URL, $accountPageInfo['url']);
+//			curl_setopt($this->curl_connection, CURLOPT_POSTFIELDS, $post_string);
+//			$sResult = curl_exec($this->curl_connection);
+//		}
+//
+//		if (true){
+//			curl_close($this->curl_connection);
+//		}
+//
+//		//For debugging purposes
+//		//echo "<h1>CURL Results</h1>For URL: $curlUrl<br /> $sresult";
+//		if ($deleteCookie){
+//			unlink($cookieJar);
+//		}
+//
+//		//Strip HTML comments
+//		$sResult = preg_replace("/<!--([^(-->)]*)-->/"," ",$sResult);
+//		return $sResult;
+//	}
+
 	public function _fetchPatronInfoPage($patronInfo, $page){
-		$cookieJar = tempnam ("/tmp", "CURLCOOKIE");
-		$deleteCookie = true;
-		global $logger;
-		//$logger->log('PatronInfo cookie ' . $cookie, PEAR_LOG_INFO);
 		global $configArray;
 		$scope = $this->getDefaultScope();
-		$curl_url = $configArray['Catalog']['url'] . "/patroninfo~S{$scope}/" . $patronInfo['RECORD_#'] ."/$page";
-		$logger->log('Loading page ' . $curl_url, PEAR_LOG_INFO);
-		//echo "$curl_url";
-		$this->curl_connection = curl_init($curl_url);
+		$curlUrl = $configArray['Catalog']['url'] . "/patroninfo~S{$scope}/" . $patronInfo['RECORD_#'] ."/$page";
 
-		curl_setopt($this->curl_connection, CURLOPT_CONNECTTIMEOUT, 30);
-		curl_setopt($this->curl_connection, CURLOPT_USERAGENT,"Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)");
-		curl_setopt($this->curl_connection, CURLOPT_RETURNTRANSFER, true);
-		curl_setopt($this->curl_connection, CURLOPT_SSL_VERIFYPEER, false);
-		curl_setopt($this->curl_connection, CURLOPT_FOLLOWLOCATION, 1);
-		curl_setopt($this->curl_connection, CURLOPT_UNRESTRICTED_AUTH, true);
-		curl_setopt($this->curl_connection, CURLOPT_COOKIEJAR, $cookieJar );
-		curl_setopt($this->curl_connection, CURLOPT_COOKIESESSION, is_null($cookieJar) ? true : false);
-
-		$post_data = $this->_getLoginFormValues();
-//		$post_items = array();
-//		foreach ($post_data as $key => $value) {
-//			$post_items[] = $key . '=' . urlencode($value);
-//		}
-//		$post_string = implode ('&', $post_items);
-		$post_string = http_build_query($post_data);
-		curl_setopt($this->curl_connection, CURLOPT_POSTFIELDS, $post_string);
-		$sResult = curl_exec($this->curl_connection);
-		//When a library uses Encore, the initial login does a redirect and requires additonal parameters.
-		if (preg_match('/<input type="hidden" name="lt" value="(.*?)" \/>/si', $sResult, $loginMatches)) {
-			//Get the lt value
-			$lt = $loginMatches[1];
-			//Login again
-			$post_data['lt'] = $lt;
-			$post_data['_eventId'] = 'submit';
-//			$post_items = array();
-//			foreach ($post_data as $key => $value) {
-//				$post_items[] = $key . '=' . $value;
-//			}
-			$post_string = http_build_query($post_data);
-			$accountPageInfo = curl_getinfo($this->curl_connection);
-			curl_setopt($this->curl_connection, CURLOPT_URL, $accountPageInfo['url']);
-			curl_setopt($this->curl_connection, CURLOPT_POSTFIELDS, $post_string);
-			$sResult = curl_exec($this->curl_connection);
-		}
-
-		if (true){
-			curl_close($this->curl_connection);
-		}
-
-		//For debugging purposes
-		//echo "<h1>CURL Results</h1>For URL: $curl_url<br /> $sresult";
-		if ($deleteCookie){
-			unlink($cookieJar);
-		}
+		$curlResponse = $this->_curl_login($curlUrl);
 
 		//Strip HTML comments
-		$sResult = preg_replace("/<!--([^(-->)]*)-->/"," ",$sResult);
-		return $sResult;
+		$curlResponse = preg_replace("/<!--([^(-->)]*)-->/"," ",$curlResponse);
+		return $curlResponse;
 	}
-
 	public function getReadingHistory($patron, $page = 1, $recordsPerPage = -1, $sortOption = "checkedOut") {
 		require_once ROOT_DIR . '/Drivers/marmot_inc/MillenniumReadingHistory.php';
 		$millenniumReadingHistory = new MillenniumReadingHistory($this);
@@ -1545,6 +1622,7 @@ class MillenniumDriver implements DriverInterface
 	}
 
 	function isRecordBookable($marcRecord){
+		//TODO: finish this, template from Holds
 		global $configArray;
 		$pType = $this->getPType();
 		/** @var File_MARC_Data_Field[] $items */
@@ -1579,6 +1657,7 @@ class MillenniumDriver implements DriverInterface
 		}
 		return $holdable;
 	}
+
 	public function isItemBookableToPatron(){
 		// TODO: implement checking an Item's status for being booked through the Bookings Module.
 		return true; // todo: for development only
@@ -1637,6 +1716,12 @@ class MillenniumDriver implements DriverInterface
 
 		return $bookable;
 
+	}
+
+	public function getMyBookings(){
+		require_once ROOT_DIR . '/Drivers/marmot_inc/MillenniumBooking.php';
+		$millenniumHolds = new MillenniumBooking($this);
+		return $millenniumHolds->getMyBookings();
 	}
 
 	function getCheckInGrid($id, $checkInGridId){

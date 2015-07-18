@@ -1,6 +1,6 @@
 {strip}
 {if $user != false}
-	<br/>
+	<br>
 	{* Setup the accoridon *}
 	<div id="home-account-links" class="sidebar-links row">
 		<div class="panel-group accordion" id="account-link-accordion">
@@ -16,7 +16,8 @@
 				<a data-toggle="collapse" data-parent="#account-link-accordion" href="#myAccountPanel">
 					<div class="panel-heading">
 						<div class="panel-title">
-							MY ACCOUNT
+							{*MY ACCOUNT*}
+							{translate text="My Account"}
 						</div>
 					</div>
 				</a>
@@ -44,27 +45,43 @@
 												Your library card will expire on {$profile.expires}.
 											{/if}
 										</a>
-									</div>
+							</div>
 								{/if}
 							</div>
 							<hr class="menu"/>
 						{/if}
 
-						<div class="myAccountLink{if $pageTemplate=="checkedout.tpl"} active{/if}"><a href="{$path}/MyAccount/CheckedOut" id="checkedOut">Checked Out Titles ({$profile.numCheckedOutTotal})</a></div>
-						<div class="myAccountLink{if $pageTemplate=="holds.tpl"} active{/if}"><a href="{$path}/MyAccount/Holds" id="holds">
-								Titles On Hold ({$profile.numHoldsTotal}
-								{if $profile.numHoldsAvailableTotal && $profile.numHoldsAvailableTotal > 0}
-									, <span style="font-weight: bold;color:red">{$profile.numHoldsAvailableTotal} ready for pick up</span>
-								{/if}
-							  )</a>
+						<div class="myAccountLink{if $pageTemplate=="checkedout.tpl"} active{/if}">
+							<a href="{$path}/MyAccount/CheckedOut" id="checkedOut">
+								Checked Out Titles  <span class="badge">{$profile.numCheckedOutTotal}</span>
+							</a>
 						</div>
-						<div class="myAccountLink{if $pageTemplate=="readingHistory.tpl"} active{/if}"><a href="{$path}/MyAccount/ReadingHistory">Reading History{if $profile.readingHistorySize} ({$profile.readingHistorySize}){/if}</a></div>
+						<div class="myAccountLink{if $pageTemplate=="holds.tpl"} active{/if}">
+							<a href="{$path}/MyAccount/Holds" id="holds">
+								Titles On Hold  <span class="badge">{$profile.numHoldsTotal} </span>
+								{if $profile.numHoldsAvailableTotal && $profile.numHoldsAvailableTotal > 0}
+									, <span class="badge label-success">{$profile.numHoldsAvailableTotal} ready for pick up</span>
+								{/if}
+							</a>
+						</div>
+						{if $enableMaterialsBooking}{* TODO add having booked materials to check *}
+						<div class="myAccountLink{if $pageTemplate=="bookings.tpl"} active{/if}">
+							<a href="{$path}/MyAccount/Bookings" id="checkedOut">
+								Booked Titles  <span class="badge">{$profile.numBookingstTotal}</span>
+							</a>
+						</div>
+						{/if}
+						<div class="myAccountLink{if $pageTemplate=="readingHistory.tpl"} active{/if}"><a href="{$path}/MyAccount/ReadingHistory">Reading History
+								{if $profile.readingHistorySize} <span class="badge">{$profile.readingHistorySize}</span>{/if}
+							</a></div>
 
 						{if $showFines}
 						<div class="myAccountLink{if $pageTemplate=="fines.tpl"} active{/if}" title="Fines and account messages"><a href="{$path}/MyAccount/Fines">{translate text='Fines and Messages'}</a></div>
 						{/if}
 						{if $enableMaterialsRequest}
-						<div class="myAccountLink{if $pageTemplate=="myMaterialRequests.tpl"} active{/if}" title="Materials Requests"><a href="{$path}/MaterialsRequest/MyRequests">{translate text='Materials Requests'} ({$profile.numMaterialsRequests})</a></div>
+						<div class="myAccountLink{if $pageTemplate=="myMaterialRequests.tpl"} active{/if}" title="Materials Requests">
+							<a href="{$path}/MaterialsRequest/MyRequests">{translate text='Materials Requests'} <span class="badge">{$profile.numMaterialsRequests}</span></a>
+						</div>
 						{/if}
 						{if $showRatings}
 							<hr class="menu"/>
@@ -106,6 +123,7 @@
 							{foreach from=$lists item=list}
 								{if $list.id != -1}
 									<div class="myAccountLink"><a href="{$list.url}">{$list.name}{if $list.numTitles} ({$list.numTitles}){/if}</a></div>
+									{*<div class="myAccountLink"><a href="{$list.url}">{$list.name}{if $list.numTitles} <span class="badge">{$list.numTitles}</span>{/if}</a></div>*}
 								{/if}
 							{/foreach}
 						</div>

@@ -433,6 +433,19 @@ VuFind.Account = (function(){
 
 		},
 */
+
+		cancelBooking: function(cancelId){
+			// TODO: code this
+			alert('Cancel Booking!')
+
+		},
+
+		cancelSelectedBookings: function(cancelId){
+			// TODO: code this
+			alert('Cancel Booking!')
+
+		},
+
 		/* update the sort parameter and redirect the user back to the same page */
 		changeAccountSort: function (newSort){
 			// Get the current url

@@ -12,6 +12,7 @@ class MillenniumBooking {
 //	private $bookings = array();
 
 	public function __construct($driver){
+		/** @var  MillenniumDriver $driver */
 		$this->driver = $driver;
 	}
 
@@ -83,8 +84,8 @@ class MillenniumBooking {
 	}
 
 	public function _close_curl() {
-		curl_close($this->curl_connection);
-		unlink($this->cookieJar);
+		if ($this->curl_connection) curl_close($this->curl_connection);
+		if ($this->cookieJar) unlink($this->cookieJar);
 	}
 
 	public function _curl_login() {
@@ -243,9 +244,7 @@ class MillenniumBooking {
 		));
 
 		$curlResponse = curl_exec($this->curl_connection);
-		$curlError = curl_errno($this->curl_connection);
-//		$info = curl_getinfo($this->curl_connection);
-		if ($curlError) {
+		if ($curlError = curl_errno($this->curl_connection)) {
 			//TODO log error as well.
 			return array(
 				'success' => false,
@@ -281,4 +280,96 @@ class MillenniumBooking {
 			'message' => 'There was an unexpected result while booking your material'
 		);
 	}
+
+	public function getMyBookings(){
+		$patronDump = $this->driver->_getPatronDump($this->driver->_getBarcode());
+
+		// Fetch Millennium Webpac Bookings page
+		$html = $this->driver->_fetchPatronInfoPage($patronDump, 'bookings');
+
+		// Parse out Bookings Information
+		$bookings = $this->parseBookingsPage($html);
+
+		require_once ROOT_DIR . '/RecordDrivers/MarcRecord.php';
+			foreach($bookings as /*$key =>*/ &$booking){
+				disableErrorHandler();
+				$recordDriver = new MarcRecord($booking['id']);
+				if ($recordDriver->isValid()){
+//					$booking['id'] = $recordDriver->getUniqueID(); //redundant
+					$booking['shortId'] = $recordDriver->getShortId();
+					//Load title, author, and format information about the title
+					$booking['title'] = $recordDriver->getTitle();
+					$booking['sortTitle'] = $recordDriver->getSortableTitle();
+					$booking['author'] = $recordDriver->getAuthor();
+					$booking['format'] = $recordDriver->getFormat();
+					$booking['isbn'] = $recordDriver->getCleanISBN();
+					$booking['upc'] = $recordDriver->getCleanUPC();
+					$booking['format_category'] = $recordDriver->getFormatCategory();
+
+					//Load rating information
+					$booking['ratingData'] = $recordDriver->getRatingData();
+
+				}
+				enableErrorHandler();
+			}
+
+
+		return $bookings;
+
+	}
+
+	private function parseBookingsPage($html) {
+		$bookings = array();
+
+//		// Column Headers
+//		if(preg_match_all('/<th\\s+class="patFuncHeaders">\\s*(?<columnNames>[\\w\\s]*?)\\s*<\/th>/si', $html, $columnNames, PREG_SET_ORDER)) {
+//			foreach ($columnNames as $i => $col) {
+//				$columnNames[$i] = $col['columnNames'];
+//				$columnNames[$col['columnNames']] = $i; // set keys to get column order
+//			}
+//		}
+
+		// Table Rows for each Booking
+		if(preg_match_all('/<tr\\s+class="patFuncEntry">(?<bookingRow>.*?)<\/tr>/si', $html, $rows, PREG_SET_ORDER)) {
+			foreach ($rows as $index => $row) { // Go through each row
+
+				// Get Record/Title
+				if (!preg_match('/.*?<a href=\\"\/record=(?<recordId>.*?)(?:~S\\d{1,2})\\">(?<title>.*?)<\/a>.*/', $row['bookingRow'], $matches))
+						 preg_match('/.*<a href=".*?\/record\/C__R(?<recordId>.*?)\\?.*?">(?<title>.*?)<\/a>.*/si',    $row['bookingRow'], $matches);
+				// Don't know if this situation comes into play. It is taken from millennium holds parser. plb 7-17-2015
+
+				$shortId = $matches['recordId'];
+				$bibId = '.' . $shortId . $this->driver->getCheckDigit($shortId);
+				$title = strip_tags($matches['title']);
+
+					// Get From & To Dates
+				if (preg_match_all('/.*?<td nowrap class=\\"patFuncBookDate\\">(?<bookingDate>.*?)<\/td>.*/', $row['bookingRow'], $matches, PREG_SET_ORDER)) {
+					$startDateTime = trim($matches[0]['bookingDate']); // time component looks ambiguous
+					$endDateTime   = trim($matches[1]['bookingDate']);
+				} else {
+					$startDateTime = null;
+					$endDateTime = null;
+				}
+
+				// Get Status
+				if (preg_match('/.*?<td nowrap class=\\"patFuncStatus\\">(?<status>.*?)<\/td>.*/', $row['bookingRow'], $matches)) {
+					$status = ($matches['status'] == '&nbsp;') ? '' : $matches['status']; // at this point, I don't know what status we will ever see
+				} else $status = '';
+
+				$bookings[] = array(
+					'id' => $bibId,
+					'title' => $title,
+					'startDateTime' => $startDateTime, //TODO set as DateTime objects?
+					'EndDateTime' => $endDateTime,
+					'status' => $status
+				);
+
+			}
+
+
+		}
+		return $bookings;
+		}
+
+
 }
