@@ -1,28 +1,41 @@
+{strip}
 <div>
 	<div id="createWidgetComments">
-		<p>
+		<p class="alert alert-info">
 			{if count($existingWidgets) > 0}
-				You may either add this {$source} to an existing widget as a new tab, <br/> or you may create a new widget to display this {$source} in.
+				You may either add this {$source} to an existing widget as a new tab, <br> or you may create a new widget to display this {$source} in.
 			{else}
 				Please enter a name for the widget to be created.
 			{/if}
 		</p>
 	</div>
-	<form method="post" name="bulkAddToList" id="bulkAddToList" action="{$path}/Admin/CreateListWidget">
-		<div>
-			<input type="hidden" name="source" value="{$source}" />
-			<input type="hidden" name="id" value="{$id}" />
+	<form method="post" name="bulkAddToList" id="bulkAddToList" action="{$path}/Admin/CreateListWidget" class="form-horizontal">
+			<input type="hidden" name="source" value="{$source}">
+			<input type="hidden" name="id" value="{$id}">
 			{if count($existingWidgets) > 0}
-				<label for="widget"><b>Select a widget</b></label>: 
-				<select id="widgetId" name="widgetId">
-					<option value="-1">Create a new widget</option>
-					{foreach from=$existingWidgets item=widgetName key=widgetId}
-						<option value="{$widgetId}">{$widgetName}</option>
-					{/foreach}
-				</select><br/>
+				<div class="form-group">
+					<label for="widget" class='col-sm-4'>Select a widget:</label>
+					<div class='col-sm-8'>
+						<select id="widgetId" name="widgetId">
+							<option value="-1">Create a new widget</option>
+							{foreach from=$existingWidgets item=widgetName key=widgetId}
+								<option value="{$widgetId}">{$widgetName}</option>
+							{/foreach}
+						</select>
+					</div>
+				</div>
 			{/if}
-			<label for="widgetName"><b>New Widget Name</b></label>: <input type="text" id="widgetName" name="widgetName" value="" />
-			<br/>
-		</div>
+			<div class="form-group">
+				<label for="widgetName" class='col-sm-4'>New Widget Name / New Tab Name:</label>
+				<div class='col-sm-8'>
+					<input type="text" id="widgetName" name="widgetName" value="" class="required">
+				</div>
+			</div>
 	</form>
+	<script type="text/javascript">
+		$(function(){ldelim}
+			$("#bulkAddToList").validate();
+		{rdelim});
+	</script>
 </div>
+{/strip}

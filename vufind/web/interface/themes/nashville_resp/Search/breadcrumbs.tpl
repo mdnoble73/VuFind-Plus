@@ -19,6 +19,6 @@
 				{translate text='of'} {$recordCount|number_format}
 			{/if}
 		{/if}
-		<span class="hidden-phone">
+		{*<span class="hidden-phone">
 			 {translate text='query time'}: {$qtime}s
-		</span>
+		</span>*}
