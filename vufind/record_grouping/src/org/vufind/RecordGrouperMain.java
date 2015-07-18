@@ -38,14 +38,11 @@ public class RecordGrouperMain {
 	public static String groupedWorkIdentifiersRefTableName = "grouped_work_identifiers_ref";
 	public static String groupedWorkPrimaryIdentifiersTableName = "grouped_work_primary_identifiers";
 
-	private static HashMap<String, Long> marcRecordChecksums = new HashMap<String, Long>();
-	private static HashMap<String, Long> marcRecordFirstDetectionDates = new HashMap<String, Long>();
-	private static HashSet<String> marcRecordIdsInDatabase = new HashSet<String>();
+	private static HashMap<String, Long> marcRecordChecksums = new HashMap<>();
+	private static HashMap<String, Long> marcRecordFirstDetectionDates = new HashMap<>();
+	private static HashSet<String> marcRecordIdsInDatabase = new HashSet<>();
 	private static PreparedStatement insertMarcRecordChecksum;
 	private static PreparedStatement removeMarcRecordChecksum;
-
-	private static String recordNumberTag = "";
-	private static String recordNumberPrefix = "";
 
 	private static Long lastGroupingTime;
 	private static Long lastGroupingTimeVariableId;
@@ -85,58 +82,64 @@ public class RecordGrouperMain {
 
 		serverName = args[0];
 
-		if (serverName.equals("benchmark")) {
-			boolean validateNYPL = false;
-			if (args.length > 1){
-				if (args[1].equals("nypl")){
-					validateNYPL = true;
+		switch (serverName) {
+			case "benchmark":
+				boolean validateNYPL = false;
+				if (args.length > 1) {
+					if (args[1].equals("nypl")) {
+						validateNYPL = true;
+					}
 				}
-			}
-			doBenchmarking(validateNYPL);
-		}else if (serverName.equals("loadAuthoritiesFromVIAF")){
-			File log4jFile = new File("./log4j.grouping.properties");
-			if (log4jFile.exists()) {
-				PropertyConfigurator.configure(log4jFile.getAbsolutePath());
-			} else {
-				System.out.println("Could not find log4j configuration " + log4jFile.getAbsolutePath());
-				System.exit(1);
-			}
-			VIAF.loadAuthoritiesFromVIAF();
-		}else if (serverName.equals("generateWorkId")){
-			String title;
-			String author;
-			String format;
-			String subtitle = null;
-			if (args.length >= 4) {
-				title = args[1];
-				author = args[2];
-				format = args[3];
-				if (args.length >= 5) {
-					subtitle = args[4];
+				doBenchmarking(validateNYPL);
+				break;
+			case "loadAuthoritiesFromVIAF":
+				File log4jFile = new File("./log4j.grouping.properties");
+				if (log4jFile.exists()) {
+					PropertyConfigurator.configure(log4jFile.getAbsolutePath());
+				} else {
+					System.out.println("Could not find log4j configuration " + log4jFile.getAbsolutePath());
+					System.exit(1);
 				}
-			}else{
-				title = getInputFromCommandLine("Enter the title");
-				subtitle = getInputFromCommandLine("Enter the subtitle");
-				author = getInputFromCommandLine("Enter the author");
-				format = getInputFromCommandLine("Enter the format");
-			}
-			GroupedWorkBase work = GroupedWorkFactory.getInstance(-1);
-			work.setTitle(title, 0, subtitle);
-			work.setAuthor(author);
-			work.setGroupingCategory(format);
-			JSONObject result = new JSONObject();
-			try {
-				result.put("normalizedAuthor", work.getAuthoritativeAuthor());
-				result.put("normalizedTitle", work.getAuthoritativeTitle());
-				result.put("workId", work.getPermanentId());
-			}catch (Exception e){
-				logger.error("Error generating response", e);
-			}
-			System.out.print(result.toString());
-		}else if (serverName.equals("generateAuthorAuthorities")) {
-			generateAuthorAuthorities(args);
-		}else {
-			doStandardRecordGrouping(args);
+				VIAF.loadAuthoritiesFromVIAF();
+				break;
+			case "generateWorkId":
+				String title;
+				String author;
+				String format;
+				String subtitle = null;
+				if (args.length >= 4) {
+					title = args[1];
+					author = args[2];
+					format = args[3];
+					if (args.length >= 5) {
+						subtitle = args[4];
+					}
+				} else {
+					title = getInputFromCommandLine("Enter the title");
+					subtitle = getInputFromCommandLine("Enter the subtitle");
+					author = getInputFromCommandLine("Enter the author");
+					format = getInputFromCommandLine("Enter the format");
+				}
+				GroupedWorkBase work = GroupedWorkFactory.getInstance(-1);
+				work.setTitle(title, 0, subtitle);
+				work.setAuthor(author);
+				work.setGroupingCategory(format);
+				JSONObject result = new JSONObject();
+				try {
+					result.put("normalizedAuthor", work.getAuthoritativeAuthor());
+					result.put("normalizedTitle", work.getAuthoritativeTitle());
+					result.put("workId", work.getPermanentId());
+				} catch (Exception e) {
+					logger.error("Error generating response", e);
+				}
+				System.out.print(result.toString());
+				break;
+			case "generateAuthorAuthorities":
+				generateAuthorAuthorities(args);
+				break;
+			default:
+				doStandardRecordGrouping(args);
+				break;
 		}
 	}
 
@@ -235,7 +238,7 @@ public class RecordGrouperMain {
 	}
 
 	private static HashMap<String, String> loadManualAuthorities() {
-		HashMap<String, String> manualAuthorAuthorities = new HashMap<String, String>();
+		HashMap<String, String> manualAuthorAuthorities = new HashMap<>();
 		try {
 			CSVReader csvReader = new CSVReader(new FileReader(new File("./manual_author_authorities.properties")));
 			String[] curLine = csvReader.readNext();
@@ -369,9 +372,6 @@ public class RecordGrouperMain {
 
 		logger.debug("Generating authorities for ILS Records");
 
-		recordNumberTag = configIni.get("Reindex", "recordNumberTag");
-		recordNumberPrefix = configIni.get("Reindex", "recordNumberPrefix");
-
 		String marcEncoding = configIni.get("Reindex", "marcEncoding");
 
 		String loadFormatFrom = configIni.get("Reindex", "loadFormatFrom").trim();
@@ -443,8 +443,8 @@ public class RecordGrouperMain {
 		}
 	}
 
-	static HashMap<String, String> altNameToOriginalName = new HashMap<String, String>();
-	static TreeMap<String, String> authoritiesWithSpecialHandling = new TreeMap<String, String>();
+	static HashMap<String, String> altNameToOriginalName = new HashMap<>();
+	static TreeMap<String, String> authoritiesWithSpecialHandling = new TreeMap<>();
 	private static void addAlternateAuthoritiesForWorkToAuthoritiesFile(HashMap<String, String> currentAuthorities, HashMap<String, String> manualAuthorities, CSVWriter authoritiesWriter, GroupedWorkBase work) {
 		String normalizedAuthor = work.getAuthor();
 		if (normalizedAuthor.length() > 0){
@@ -476,7 +476,7 @@ public class RecordGrouperMain {
 	}
 
 	private static HashMap<String, String> loadAuthorAuthorities(CSVWriter authoritiesWriter) {
-		HashMap<String, String> authorAuthorities = new HashMap<String, String>();
+		HashMap<String, String> authorAuthorities = new HashMap<>();
 		try {
 			CSVReader csvReader = new CSVReader(new FileReader(new File("./author_authorities.properties")));
 			String[] curLine = csvReader.readNext();
@@ -696,7 +696,7 @@ public class RecordGrouperMain {
 			loadIlsChecksums(vufindConn);
 
 
-			ArrayList<IndexingProfile> indexingProfiles = new ArrayList<IndexingProfile>();
+			ArrayList<IndexingProfile> indexingProfiles = new ArrayList<>();
 			try{
 				PreparedStatement getIndexingProfilesStmt = vufindConn.prepareStatement("SELECT * FROM indexing_profiles");
 				ResultSet indexingProfilesRS = getIndexingProfilesStmt.executeQuery();
@@ -789,7 +789,7 @@ public class RecordGrouperMain {
 
 			//Setup to write record numbers to file so we can do validation to make sure that
 			//all records are accounted for when we index.
-			TreeSet<String> recordNumbersInExport = new TreeSet<String>();
+			TreeSet<String> recordNumbersInExport = new TreeSet<>();
 
 			logger.debug("Grouping Hoopla Records");
 
@@ -798,7 +798,7 @@ public class RecordGrouperMain {
 
 			//Load all files in the individual marc path.  This allows us to list directories rather than doing millions of
 			//individual look ups
-			HashSet<String> existingMarcFiles = new HashSet<String>();
+			HashSet<String> existingMarcFiles = new HashSet<>();
 			File individualMarcFile = new File(individualMarcPath);
 			logger.debug("Starting to read existing marc files for Hoopla from disc");
 			loadExistingMarcFiles(individualMarcFile, existingMarcFiles);
@@ -875,7 +875,7 @@ public class RecordGrouperMain {
 	 * @return a list of files to be processed.
 	 */
 	private static ArrayList<File> loadHooplaFilesToProcess(Profile.Section hooplaSection, String marcPath, boolean forAuthorities) {
-		ArrayList<File> marcRecordFilesToProcess = new ArrayList<File>();
+		ArrayList<File> marcRecordFilesToProcess = new ArrayList<>();
 		boolean includeAudioBooks = cleanIniValue(hooplaSection.get("includeAudioBooks")).equalsIgnoreCase("true");
 		boolean includeNoPAMusic = cleanIniValue(hooplaSection.get("includeNoPAMusic")).equalsIgnoreCase("true");
 		boolean includePAMusic = cleanIniValue(hooplaSection.get("includePAMusic")).equalsIgnoreCase("true");
@@ -1067,11 +1067,11 @@ public class RecordGrouperMain {
 				getRelatedWorksForIdentifierStmt.setLong(1, secondaryIdentifierId);
 				ResultSet relatedWorksForIdentifier = getRelatedWorksForIdentifierStmt.executeQuery();
 				StringBuilder titles = new StringBuilder();
-				ArrayList<String> titlesBroken = new ArrayList<String>();
+				ArrayList<String> titlesBroken = new ArrayList<>();
 				StringBuilder authors = new StringBuilder();
-				ArrayList<String> authorsBroken = new ArrayList<String>();
+				ArrayList<String> authorsBroken = new ArrayList<>();
 				StringBuilder categories = new StringBuilder();
-				ArrayList<String> categoriesBroken = new ArrayList<String>();
+				ArrayList<String> categoriesBroken = new ArrayList<>();
 
 				while (relatedWorksForIdentifier.next()){
 					titlesBroken.add(relatedWorksForIdentifier.getString("full_title"));
@@ -1269,22 +1269,19 @@ public class RecordGrouperMain {
 			String individualMarcPath = curProfile.individualMarcPath;
 			String marcPath = curProfile.marcPath;
 
-			recordNumberTag = curProfile.recordNumberTag;
-			recordNumberPrefix = curProfile.recordNumberPrefix;
-
 			String marcEncoding = curProfile.marcEncoding;
 
 			//Load all files in the individual marc path.  This allows us to list directories rather than doing millions of
 			//individual look ups
-			HashSet<String> existingMarcFiles = new HashSet<String>();
+			HashSet<String> existingMarcFiles = new HashSet<>();
 			File individualMarcFile = new File(individualMarcPath);
 			logger.debug("Starting to read existing marc files for ILS from disc");
 			loadExistingMarcFiles(individualMarcFile, existingMarcFiles);
 			logger.debug("Finished reading existing marc files for ILS from disc");
 
-			TreeSet<String> recordNumbersInExport = new TreeSet<String>();
-			TreeSet<String> suppressedRecordNumbersInExport = new TreeSet<String>();
-			TreeSet<String> recordNumbersToIndex = new TreeSet<String>();
+			TreeSet<String> recordNumbersInExport = new TreeSet<>();
+			TreeSet<String> suppressedRecordNumbersInExport = new TreeSet<>();
+			TreeSet<String> recordNumbersToIndex = new TreeSet<>();
 
 			File[] catalogBibFiles = new File(marcPath).listFiles();
 			if (catalogBibFiles != null) {
@@ -1297,20 +1294,24 @@ public class RecordGrouperMain {
 							while (catalogReader.hasNext()) {
 								Record curBib = catalogReader.next();
 								RecordIdentifier recordIdentifier = recordGroupingProcessor.getPrimaryIdentifierFromMarcRecord(curBib, curProfile.name);
-								String recordNumber = recordIdentifier.getIdentifier();
-								boolean marcUpToDate = writeIndividualMarc(existingMarcFiles, individualMarcPath, curBib, recordNumber, curProfile.name, 4);
-								recordNumbersInExport.add(recordIdentifier.toString());
-								if (!marcUpToDate || fullRegroupingNoClear) {
-									if (recordGroupingProcessor.processMarcRecord(curBib, !marcUpToDate)) {
-										recordNumbersToIndex.add(recordIdentifier.toString());
-									} else {
-										suppressedRecordNumbersInExport.add(recordIdentifier.toString());
+								if (recordIdentifier == null) {
+									logger.warn("Could not find an identifier for record with control number " + curBib.getControlNumber());
+								}else{
+									String recordNumber = recordIdentifier.getIdentifier();
+									boolean marcUpToDate = writeIndividualMarc(existingMarcFiles, individualMarcPath, curBib, recordNumber, curProfile.name, 4);
+									recordNumbersInExport.add(recordIdentifier.toString());
+									if (!marcUpToDate || fullRegroupingNoClear) {
+										if (recordGroupingProcessor.processMarcRecord(curBib, !marcUpToDate)) {
+											recordNumbersToIndex.add(recordIdentifier.toString());
+										} else {
+											suppressedRecordNumbersInExport.add(recordIdentifier.toString());
+										}
+										numRecordsProcessed++;
 									}
-									numRecordsProcessed++;
+									//Mark that the record was processed
+									marcRecordIdsInDatabase.remove(recordNumber);
+									lastRecordProcessed = recordNumber;
 								}
-								//Mark that the record was processed
-								marcRecordIdsInDatabase.remove(recordNumber);
-								lastRecordProcessed = recordNumber;
 								numRecordsRead++;
 								if (numRecordsRead % 100000 == 0) {
 									recordGroupingProcessor.dumpStats();
@@ -1365,25 +1366,6 @@ public class RecordGrouperMain {
 		}
 	}
 
-	private static String getRecordNumberForBib(Record marcRecord) {
-		String recordNumber = null;
-		List<VariableField> field907 = marcRecord.getVariableFields(recordNumberTag);
-		//Make sure we only get one ils identifier
-		for (VariableField cur907 : field907){
-			if (cur907 instanceof DataField){
-				DataField cur907Data = (DataField)cur907;
-				Subfield subfieldA = cur907Data.getSubfield('a');
-				if (subfieldA != null && (recordNumberPrefix.length() == 0 || subfieldA.getData().length() > recordNumberPrefix.length())){
-					if (cur907Data.getSubfield('a').getData().substring(0,recordNumberPrefix.length()).equals(recordNumberPrefix)){
-						recordNumber = cur907Data.getSubfield('a').getData();
-						break;
-					}
-				}
-			}
-		}
-		return recordNumber;
-	}
-
 	private static int groupOverDriveRecords(Ini configIni, Connection econtentConnection, RecordGroupingProcessor recordGroupingProcessor) {
 		int numRecordsProcessed = 0;
 		try{
@@ -1399,7 +1381,7 @@ public class RecordGrouperMain {
 			PreparedStatement overDriveIdentifiersStmt = econtentConnection.prepareStatement("SELECT * FROM overdrive_api_product_identifiers WHERE id = ?", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 			PreparedStatement overDriveCreatorStmt = econtentConnection.prepareStatement("SELECT fileAs FROM overdrive_api_product_creators WHERE productId = ? AND role like ? ORDER BY id", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 			ResultSet overDriveRecordRS = overDriveRecordsStmt.executeQuery();
-			TreeSet<String> recordNumbersInExport = new TreeSet<String>();
+			TreeSet<String> recordNumbersInExport = new TreeSet<>();
 			while (overDriveRecordRS.next()){
 				Long id = overDriveRecordRS.getLong("id");
 
@@ -1442,7 +1424,7 @@ public class RecordGrouperMain {
 
 				overDriveIdentifiersStmt.setLong(1, id);
 				ResultSet overDriveIdentifierRS = overDriveIdentifiersStmt.executeQuery();
-				HashSet<RecordIdentifier> overDriveIdentifiers = new HashSet<RecordIdentifier>();
+				HashSet<RecordIdentifier> overDriveIdentifiers = new HashSet<>();
 				RecordIdentifier primaryIdentifier = new RecordIdentifier();
 				primaryIdentifier.setValue("overdrive", overdriveId);
 				while (overDriveIdentifierRS.next()){
@@ -1595,7 +1577,7 @@ public class RecordGrouperMain {
 		return individualFile;
 	}
 
-	private static HashSet<String>basePathsValidated = new HashSet<String>();
+	private static HashSet<String>basePathsValidated = new HashSet<>();
 	private static void createBaseDirectory(String basePath) {
 		if (basePathsValidated.contains(basePath)) {
 			return;

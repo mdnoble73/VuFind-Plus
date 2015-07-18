@@ -770,6 +770,23 @@ function getLibraryLocationUpdates(){
 			),
 		),
 
+		'location_sublocation' => array(
+			'title' => 'Location Sub Location',
+			'description' => 'Add more explicit handling of Sub Location to the location table ',
+			'sql' => array(
+				"ALTER TABLE `location` ADD subLocation varchar(50)",
+			),
+		),
+
+		'location_sublocation_uniqueness' => array(
+			'title' => 'SubLocations Uniqueness',
+			'description' => 'Make combination of location and sublocation unique rather than just location',
+			'continueOnError' => true,
+			'sql' => array(
+				"ALTER TABLE location DROP INDEX `code` , ADD UNIQUE `code` ( `code` , `subLocation` ) ",
+			),
+		),
+
 		'search_sources' => array(
 			'title' => 'Search Sources',
 			'description' => 'Setup Library and Location Search Source Table',

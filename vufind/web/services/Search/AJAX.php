@@ -540,17 +540,9 @@ class AJAX extends Action {
 
 		if (isset($_REQUEST['view'])) $_REQUEST['view'] = $displayMode; // overwrite any display setting for now
 
-		/** @var string|LibrarySearchSource|LocationSearchSource $searchSource */
+		/** @var string $searchSource */
 //		$searchSource = isset($searchParams['searchSource']) ? $searchParams['searchSource'] : 'local';
 		$searchSource = isset($_REQUEST['searchSource']) ? $_REQUEST['searchSource'] : 'local';
-		if (preg_match('/library\d+/', $searchSource)){
-			$trimmedId = str_replace('library', '', $searchSource);
-			$searchSourceObj = new LibrarySearchSource();
-			$searchSourceObj->id = $trimmedId;
-			if ($searchSourceObj->find(true)){
-				$searchSource = $searchSourceObj;
-			}
-		}
 
 		// Initialise from the current search globals
 		/** @var SearchObject_Solr $searchObject */

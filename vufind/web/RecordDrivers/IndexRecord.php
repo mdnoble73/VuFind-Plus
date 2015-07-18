@@ -97,12 +97,11 @@ class IndexRecord extends RecordInterface
 	 * we will already have this data available, so we might as well
 	 * just pass it into the constructor.
 	 *
-	 * @param   array   $indexFields    All fields retrieved from the index.
+	 * @param   array   $recordData     Data to construct the driver from
 	 * @access  public
 	 */
-	public function __construct($indexFields)
-	{
-		$this->fields = $indexFields;
+	public function __construct($recordData){
+		$this->fields = $recordData;
 
 		// Load highlighting/snippet preferences:
 		$searchSettings = getExtraConfigArray('searches');

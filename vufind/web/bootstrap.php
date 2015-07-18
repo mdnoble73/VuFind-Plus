@@ -223,7 +223,10 @@ function loadSearchInformation(){
 	//Determine the Search Source, need to do this always.
 	global $searchSource;
 	global $library;
-	global $interface;
+	/** @var Memcache $memCache */
+	global $memCache;
+	global $serverName;
+	global $configArray;
 
 	$module = (isset($_GET['module'])) ? $_GET['module'] : null;
 	$module = preg_replace('/[^\w]/', '', $module);
@@ -257,7 +260,7 @@ function loadSearchInformation(){
 	$solrScope = false;
 	$scopeType = '';
 	if ($searchSource == 'local' || $searchSource == 'econtent'){
-		$locationIsScoped = $searchLocation != null &&
+		/*$locationIsScoped = $searchLocation != null &&
 			($searchLocation->restrictSearchByLocation ||
 				$searchLocation->econtentLocationsToInclude != 'all' ||
 				$searchLocation->useScope ||
@@ -286,6 +289,14 @@ function loadSearchInformation(){
 		}else{
 			$solrScope = $searchLibrary->subdomain;
 			$scopeType = 'Library';
+		}*/
+		if ($searchLibrary){
+			$solrScope = $searchLibrary->subdomain;
+			$scopeType = 'Library';
+		}
+		if ($searchLocation){
+			$solrScope = $searchLocation->code;
+			$scopeType = 'Location';
 		}
 	}elseif($searchSource != 'marmot' && $searchSource != 'global'){
 		$solrScope = $searchSource;
@@ -312,6 +323,22 @@ function loadSearchInformation(){
 	}else{
 		$millenniumScope = isset($configArray['OPAC']['defaultScope']) ? $configArray['OPAC']['defaultScope'] : '93';
 	}
+
+	//Load indexing profiles
+	require_once ROOT_DIR . '/sys/Indexing/IndexingProfile.php';
+	/** @var $indexingProfiles IndexingProfile[] */
+	global $indexingProfiles;
+	//$indexingProfiles = $memCache->get("{$serverName}_indexing_profiles", $indexingProfiles);
+	//if ($indexingProfiles === false || isset($_REQUEST['reload'])){
+		$indexingProfiles = array();
+		$indexingProfile = new IndexingProfile();
+		$indexingProfile->orderBy('name');
+		$indexingProfile->find();
+		while ($indexingProfile->fetch()){
+			$indexingProfiles[$indexingProfile->name] = clone($indexingProfile);
+		}
+		//$memCache->set("{$serverName}_indexing_profiles", $indexingProfiles, 0, $configArray['Caching']['indexing_profiles']);
+	//}
 }
 
 function disableErrorHandler(){

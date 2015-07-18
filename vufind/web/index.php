@@ -139,7 +139,6 @@ $interface->assign('action', $action);
 global $solrScope;
 global $scopeType;
 $interface->assign('solrScope', "$solrScope - $scopeType");
-$interface->assign('millenniumScope', $millenniumScope);
 
 //Set that the interface is a single column by default
 $interface->assign('page_body_style', 'one_column');
@@ -779,6 +778,22 @@ function loadModuleActionId(){
 		$_REQUEST['module'] = $matches[1];
 		$_REQUEST['action'] = $matches[2];
 	}
+
+	//Check to see if the module is a profile
+	if (isset($_REQUEST['module'])){
+		/** @var IndexingProfile[] */
+		/** @var IndexingProfile $profile */
+		global $indexingProfiles;
+		foreach ($indexingProfiles as $profile){
+			if ($profile->recordUrlComponent == $_REQUEST['module']){
+				$_GET['id'] = $profile->name .':' . $_GET['id'];
+				$_GET['module'] = 'Record';
+				$_REQUEST['module'] = 'Record';
+				break;
+			}
+		}
+	}
+
 }
 
 function initializeSession(){

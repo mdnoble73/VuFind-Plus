@@ -1,16 +1,15 @@
 <?php
 /**
- * Information about searches for a particular location
+ * Rules about which records to include in a scope
  *
- * @category VuFind-Plus 
+ * @category Pika
  * @author Mark Noble <mark@marmot.org>
- * Date: 5/13/13
- * Time: 10:42 AM
+ * Date: 7/18/2015
+ * Time: 10:31 AM
  */
-require_once 'SearchSource.php';
-class LibrarySearchSource extends SearchSource {
-	public $__table = 'library_search_source';
-
+require_once ROOT_DIR . '/sys/Indexing/RecordToInclude.php';
+class LibraryRecordToInclude extends RecordToInclude{
+	public $__table = 'library_records_to_include';    // table name
 	public $libraryId;
 
 	static function getObjectStructure(){
@@ -30,9 +29,5 @@ class LibrarySearchSource extends SearchSource {
 		$structure['libraryId'] = array('property'=>'libraryId', 'type'=>'enum', 'values'=>$libraryList, 'label'=>'Library', 'description'=>'The id of a library');
 
 		return $structure;
-	}
-
-	function getEditLink(){
-		return '/Admin/LibrarySearchSources?objectAction=edit&id=' . $this->id;
 	}
 }

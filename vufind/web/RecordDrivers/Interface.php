@@ -32,10 +32,10 @@ abstract class RecordInterface {
 	 * we will already have this data available, so we might as well
 	 * just pass it into the constructor.
 	 *
-	 * @param   array $indexFields All fields retrieved from the index.
+	 * @param   array   $recordData     Data to construct the driver from
 	 * @access  public
 	 */
-	public abstract function __construct($indexFields);
+	public abstract function __construct($recordData);
 
 	/**
 	 * Get text that can be displayed to represent this record in

@@ -37,16 +37,8 @@ class Search_Results extends Action {
 		global $analytics;
 		global $library;
 
-		/** @var string|LibrarySearchSource|LocationSearchSource $searchSource */
+		/** @var string $searchSource */
 		$searchSource = isset($_REQUEST['searchSource']) ? $_REQUEST['searchSource'] : 'local';
-		if (preg_match('/library\d+/', $searchSource)){
-			$trimmedId = str_replace('library', '', $searchSource);
-			$searchSourceObj = new LibrarySearchSource();
-			$searchSourceObj->id = $trimmedId;
-			if ($searchSourceObj->find(true)){
-				$searchSource = $searchSourceObj;
-			}
-		}
 
 		if (isset($_REQUEST['replacementTerm'])){
 			$replacementTerm = $_REQUEST['replacementTerm'];

@@ -14,28 +14,30 @@ import java.sql.SQLException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.regex.Pattern;
 
 /**
  * Processes data that was exported from the ILS.
  *
- * VuFind-Plus
+ * Pika
  * User: Mark Noble
  * Date: 11/26/13
  * Time: 9:30 AM
  */
 public abstract class IlsRecordProcessor extends MarcRecordProcessor {
-	private String individualMarcPath;
+	protected boolean fullReindex;
+	protected String individualMarcPath;
+	protected String profileType;
 
 	protected String recordNumberTag;
 	protected String itemTag;
 	protected char barcodeSubfield;
 	protected char statusSubfieldIndicator;
-	protected char collectionSubfield;
+	protected char shelvingLocationSubfield;
 	protected char dueDateSubfield;
 	protected char dateCreatedSubfield;
 	protected String dateAddedFormat;
 	protected char locationSubfieldIndicator;
+	protected char subLocationSubfield;
 	protected char iTypeSubfield;
 	protected boolean useEContentSubfield = false;
 	protected char eContentSubfieldIndicator;
@@ -58,68 +60,95 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 	//Fields for loading order information
 	protected String orderTag;
 	protected char orderLocationSubfield;
-	protected char orderLocationsSubfield;
 	protected char orderCopiesSubfield;
 	protected char orderStatusSubfield;
 	protected char orderCode3Subfield;
 
-	private static boolean loanRuleDataLoaded = false;
-	protected static ArrayList<Long> pTypes = new ArrayList<Long>();
-	protected static HashMap<String, HashSet<String>> pTypesByLibrary = new HashMap<String, HashSet<String>>();
-	protected static HashMap<String, HashSet<String>> pTypesForSpecialLocationCodes = new HashMap<String, HashSet<String>>();
-	protected static HashSet<String> allPTypes = new HashSet<String>();
-	private static HashMap<Long, LoanRule> loanRules = new HashMap<Long, LoanRule>();
-	private static ArrayList<LoanRuleDeterminer> loanRuleDeterminers = new ArrayList<LoanRuleDeterminer>();
+	private static HashMap<String, Integer> numberOfHoldsByIdentifier = new HashMap<>();
 
-	private static HashMap<String, Integer> numberOfHoldsByIdentifier = new HashMap<String, Integer>();
+	private HashMap<String, TranslationMap> translationMaps = new HashMap<>();
 
-	public IlsRecordProcessor(GroupedWorkIndexer indexer, Connection vufindConn, Ini configIni, Logger logger) {
+	public IlsRecordProcessor(GroupedWorkIndexer indexer, Connection vufindConn, Ini configIni, ResultSet indexingProfileRS, Logger logger, boolean fullReindex) {
 		super(indexer, logger);
+		this.fullReindex = fullReindex;
 		//String marcRecordPath = configIni.get("Reindex", "marcPath");
-		individualMarcPath = configIni.get("Reindex", "individualMarcPath");
+		try {
+			profileType = indexingProfileRS.getString("name");
+			individualMarcPath = indexingProfileRS.getString("individualMarcPath");
 
-		itemTag = configIni.get("Reindex", "itemTag");
-		recordNumberTag = configIni.get("Reindex", "recordNumberTag");
-		useEContentSubfield = Boolean.parseBoolean(configIni.get("Reindex", "useEContentSubfield"));
-		eContentSubfieldIndicator = getSubfieldIndicatorFromConfig(configIni, "eContentSubfield");
-		barcodeSubfield = getSubfieldIndicatorFromConfig(configIni, "barcodeSubfield");
-		collectionSubfield = getSubfieldIndicatorFromConfig(configIni, "collectionSubfield");
-		statusSubfieldIndicator = getSubfieldIndicatorFromConfig(configIni, "statusSubfield");
-		dueDateSubfield = getSubfieldIndicatorFromConfig(configIni, "dueDateSubfield");
-		locationSubfieldIndicator = getSubfieldIndicatorFromConfig(configIni, "locationSubfield");
-		iTypeSubfield = getSubfieldIndicatorFromConfig(configIni, "iTypeSubfield");
-		dateCreatedSubfield = getSubfieldIndicatorFromConfig(configIni, "dateCreatedSubfield");
-		dateAddedFormat = Util.cleanIniValue(configIni.get("Reindex", "dateAddedFormat"));
-		lastYearCheckoutSubfield = getSubfieldIndicatorFromConfig(configIni, "lastYearCheckoutSubfield");
-		ytdCheckoutSubfield = getSubfieldIndicatorFromConfig(configIni, "ytdCheckoutSubfield");
-		totalCheckoutSubfield = getSubfieldIndicatorFromConfig(configIni, "totalCheckoutSubfield");
-		useICode2Suppression = Boolean.parseBoolean(configIni.get("Reindex", "useICode2Suppression"));
-		iCode2Subfield = getSubfieldIndicatorFromConfig(configIni, "iCode2Subfield");
-		callNumberPrestampSubfield = getSubfieldIndicatorFromConfig(configIni, "callNumberPrestampSubfield");
-		callNumberSubfield = getSubfieldIndicatorFromConfig(configIni, "callNumberSubfield");
-		callNumberCutterSubfield = getSubfieldIndicatorFromConfig(configIni, "callNumberCutterSubfield");
-		callNumberPoststampSubfield = getSubfieldIndicatorFromConfig(configIni, "callNumberPoststampSubfield");
-		useItemBasedCallNumbers = Boolean.parseBoolean(configIni.get("Reindex", "useItemBasedCallNumbers"));
-		volumeSubfield = getSubfieldIndicatorFromConfig(configIni, "volumeSubfield");
-		itemRecordNumberSubfieldIndicator = getSubfieldIndicatorFromConfig(configIni, "itemRecordNumberSubfield");
-		itemUrlSubfieldIndicator = getSubfieldIndicatorFromConfig(configIni, "itemUrlSubfield");
-		suppressItemlessBibs = Boolean.parseBoolean(configIni.get("Reindex", "suppressItemlessBibs"));
+			recordNumberTag = indexingProfileRS.getString("recordNumberTag");
+			suppressItemlessBibs = indexingProfileRS.getBoolean("suppressItemlessBibs");
 
-		orderTag = configIni.get("Reindex", "orderTag");
-		orderLocationSubfield = getSubfieldIndicatorFromConfig(configIni, "orderLocationSubfield");
-		orderLocationsSubfield  = getSubfieldIndicatorFromConfig(configIni, "orderLocationsSubfield");
-		orderCopiesSubfield = getSubfieldIndicatorFromConfig(configIni, "orderCopiesSubfield");
-		orderStatusSubfield = getSubfieldIndicatorFromConfig(configIni, "orderStatusSubfield");
-		orderCode3Subfield = getSubfieldIndicatorFromConfig(configIni, "orderCode3Subfield");
+			itemTag = indexingProfileRS.getString("itemTag");
+			itemRecordNumberSubfieldIndicator = getSubfieldIndicatorFromConfig(indexingProfileRS, "itemRecordNumber");
 
-		String additionalCollectionsString = configIni.get("Reindex", "additionalCollections");
-		if (additionalCollectionsString != null){
-			additionalCollections = additionalCollectionsString.split(",");
+			callNumberPrestampSubfield = getSubfieldIndicatorFromConfig(indexingProfileRS, "callNumberPrestamp");
+			callNumberSubfield = getSubfieldIndicatorFromConfig(indexingProfileRS, "callNumber");
+			callNumberCutterSubfield = getSubfieldIndicatorFromConfig(indexingProfileRS, "callNumberCutter");
+			callNumberPoststampSubfield = getSubfieldIndicatorFromConfig(indexingProfileRS, "callNumberPoststamp");
+
+			locationSubfieldIndicator = getSubfieldIndicatorFromConfig(indexingProfileRS, "location");
+			subLocationSubfield = getSubfieldIndicatorFromConfig(indexingProfileRS, "subLocation");
+			shelvingLocationSubfield = getSubfieldIndicatorFromConfig(indexingProfileRS, "shelvingLocation");
+
+			itemUrlSubfieldIndicator = getSubfieldIndicatorFromConfig(indexingProfileRS, "itemUrl");
+			barcodeSubfield = getSubfieldIndicatorFromConfig(indexingProfileRS, "barcode");
+			statusSubfieldIndicator = getSubfieldIndicatorFromConfig(indexingProfileRS, "status");
+			dueDateSubfield = getSubfieldIndicatorFromConfig(indexingProfileRS, "dueDate");
+
+			ytdCheckoutSubfield = getSubfieldIndicatorFromConfig(indexingProfileRS, "yearToDateCheckouts");
+			lastYearCheckoutSubfield = getSubfieldIndicatorFromConfig(indexingProfileRS, "lastYearCheckouts");
+			totalCheckoutSubfield = getSubfieldIndicatorFromConfig(indexingProfileRS, "totalCheckouts");
+
+			iTypeSubfield = getSubfieldIndicatorFromConfig(indexingProfileRS, "iType");
+
+			dateCreatedSubfield = getSubfieldIndicatorFromConfig(indexingProfileRS, "dateCreated");
+			dateAddedFormat = indexingProfileRS.getString("dateCreatedFormat");
+
+			iCode2Subfield = getSubfieldIndicatorFromConfig(indexingProfileRS, "iCode2");
+			useICode2Suppression = indexingProfileRS.getBoolean("useICode2Suppression");
+
+			eContentSubfieldIndicator = getSubfieldIndicatorFromConfig(indexingProfileRS, "eContentDescriptor");
+			useEContentSubfield = eContentSubfieldIndicator != ' ';
+
+			useItemBasedCallNumbers = indexingProfileRS.getBoolean("useItemBasedCallNumbers");
+			volumeSubfield = getSubfieldIndicatorFromConfig(indexingProfileRS, "volume");
+
+
+			orderTag = indexingProfileRS.getString("orderTag");
+			orderCopiesSubfield = getSubfieldIndicatorFromConfig(indexingProfileRS, "orderCopies");
+			orderStatusSubfield = getSubfieldIndicatorFromConfig(indexingProfileRS, "orderStatus");
+			orderCode3Subfield = getSubfieldIndicatorFromConfig(indexingProfileRS, "orderCode3");
+
+			String additionalCollectionsString = configIni.get("Reindex", "additionalCollections");
+			if (additionalCollectionsString != null) {
+				additionalCollections = additionalCollectionsString.split(",");
+			}
+
+			//loadAvailableItemBarcodes(marcRecordPath, logger);
+			loadHoldsByIdentifier(vufindConn, logger);
+
+			loadTranslationMapsForProfile(vufindConn, indexingProfileRS.getLong("id"));
+		}catch (Exception e){
+			logger.error("Error loading indexing profile information from database", e);
 		}
+	}
 
-		//loadAvailableItemBarcodes(marcRecordPath, logger);
-		loadLoanRuleInformation(vufindConn, logger);
-		loadHoldsByIdentifier(vufindConn, logger);
+	private void loadTranslationMapsForProfile(Connection vufindConn, long id) throws SQLException{
+		PreparedStatement getTranslationMapsStmt = vufindConn.prepareStatement("SELECT * from translation_maps WHERE indexingProfileId = ?");
+		PreparedStatement getTranslationMapValuesStmt = vufindConn.prepareStatement("SELECT * from translation_map_values WHERE translationMapId = ?");
+		getTranslationMapsStmt.setLong(1, id);
+		ResultSet translationsMapRS = getTranslationMapsStmt.executeQuery();
+		while (translationsMapRS.next()){
+			TranslationMap map = new TranslationMap(translationsMapRS.getString("name"), fullReindex, logger);
+			Long translationMapId = translationsMapRS.getLong("id");
+			getTranslationMapValuesStmt.setLong(1, translationMapId);
+			ResultSet translationMapValuesRS = getTranslationMapValuesStmt.executeQuery();
+			while (translationMapValuesRS.next()){
+				map.addValue(translationMapValuesRS.getString("value"), translationMapValuesRS.getString("translation"));
+			}
+			translationMaps.put(map.getMapName(), map);
+		}
 	}
 
 	private void loadHoldsByIdentifier(Connection vufindConn, Logger logger) {
@@ -134,113 +163,6 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 			logger.error("Unable to load hold data", e);
 		}
 	}
-
-	private static void loadLoanRuleInformation(Connection vufindConn, Logger logger) {
-		if (!loanRuleDataLoaded){
-			//Load loan rules
-			try {
-				PreparedStatement pTypesStmt = vufindConn.prepareStatement("SELECT pType from ptype", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
-				ResultSet pTypesRS = pTypesStmt.executeQuery();
-				while (pTypesRS.next()) {
-					pTypes.add(pTypesRS.getLong("pType"));
-					allPTypes.add(pTypesRS.getString("pType"));
-				}
-
-				PreparedStatement pTypesByLibraryStmt = vufindConn.prepareStatement("SELECT pTypes, ilsCode, econtentLocationsToInclude from library", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
-				ResultSet pTypesByLibraryRS = pTypesByLibraryStmt.executeQuery();
-				while (pTypesByLibraryRS.next()) {
-					String ilsCode = pTypesByLibraryRS.getString("ilsCode");
-					String pTypes = pTypesByLibraryRS.getString("pTypes");
-					String econtentLocationsToIncludeStr = pTypesByLibraryRS.getString("econtentLocationsToInclude");
-					if (pTypes != null && pTypes.length() > 0){
-						String[] pTypeElements = pTypes.split(",");
-						HashSet<String> pTypesForLibrary = new HashSet<String>();
-						Collections.addAll(pTypesForLibrary, pTypeElements);
-						pTypesByLibrary.put(ilsCode, pTypesForLibrary);
-						if (econtentLocationsToIncludeStr.length() > 0) {
-							String[] econtentLocationsToInclude = econtentLocationsToIncludeStr.split(",");
-							for (String econtentLocationToInclude : econtentLocationsToInclude) {
-								econtentLocationToInclude = econtentLocationToInclude.trim();
-								if (econtentLocationToInclude.length() > 0) {
-									if (!pTypesForSpecialLocationCodes.containsKey(econtentLocationToInclude)) {
-										pTypesForSpecialLocationCodes.put(econtentLocationToInclude, new HashSet<String>());
-									}
-									pTypesForSpecialLocationCodes.get(econtentLocationToInclude).addAll(pTypesForLibrary);
-								}
-							}
-						}
-					}
-				}
-
-				PreparedStatement loanRuleStmt = vufindConn.prepareStatement("SELECT * from loan_rules", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
-				ResultSet loanRulesRS = loanRuleStmt.executeQuery();
-				while (loanRulesRS.next()) {
-					LoanRule loanRule = new LoanRule();
-					loanRule.setLoanRuleId(loanRulesRS.getLong("loanRuleId"));
-					loanRule.setName(loanRulesRS.getString("name"));
-					loanRule.setHoldable(loanRulesRS.getBoolean("holdable"));
-
-					loanRules.put(loanRule.getLoanRuleId(), loanRule);
-				}
-				logger.debug("Loaded " + loanRules.size() + " loan rules");
-
-				PreparedStatement loanRuleDeterminersStmt = vufindConn.prepareStatement("SELECT * from loan_rule_determiners where active = 1 order by rowNumber DESC", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
-				ResultSet loanRuleDeterminersRS = loanRuleDeterminersStmt.executeQuery();
-				while (loanRuleDeterminersRS.next()) {
-					LoanRuleDeterminer loanRuleDeterminer = new LoanRuleDeterminer();
-					loanRuleDeterminer.setLocation(loanRuleDeterminersRS.getString("location"));
-					loanRuleDeterminer.setPatronType(loanRuleDeterminersRS.getString("patronType"));
-					loanRuleDeterminer.setItemType(loanRuleDeterminersRS.getString("itemType"));
-					loanRuleDeterminer.setLoanRuleId(loanRuleDeterminersRS.getLong("loanRuleId"));
-					loanRuleDeterminer.setRowNumber(loanRuleDeterminersRS.getLong("rowNumber"));
-
-					loanRuleDeterminers.add(loanRuleDeterminer);
-				}
-
-				logger.debug("Loaded " + loanRuleDeterminers.size() + " loan rule determiner");
-			} catch (SQLException e) {
-				logger.error("Unable to load loan rules", e);
-			}
-			loanRuleDataLoaded = true;
-		}
-	}
-
-	/*private static void loadAvailableItemBarcodes(String marcRecordPath, Logger logger) {
-		if (!availabilityDataLoaded){
-			File availableItemsFile = new File(marcRecordPath + "/available_items.csv");
-			if (!availableItemsFile.exists()){
-				return;
-			}
-			File checkoutsFile = new File(marcRecordPath + "/checkouts.csv");
-			try{
-				logger.debug("Loading availability for barcodes");
-				getAvailabilityFromMarc = false;
-				BufferedReader availableItemsReader = new BufferedReader(new FileReader(availableItemsFile));
-				String availableBarcode;
-				while ((availableBarcode = availableItemsReader.readLine()) != null){
-					if (availableBarcode.length() > 0){
-						availableItemBarcodes.add(Util.cleanIniValue(availableBarcode).trim());
-					}
-				}
-				availableItemsReader.close();
-				logger.info("Found a total of " + availableItemBarcodes.size() + " barcodes that are available");
-
-				//Remove any items that were checked out
-				logger.debug("removing availability for checked out barcodes");
-				BufferedReader checkoutsReader = new BufferedReader(new FileReader(checkoutsFile));
-				String checkedOutBarcode;
-				while ((checkedOutBarcode = checkoutsReader.readLine()) != null){
-					availableItemBarcodes.remove(Util.cleanIniValue(checkedOutBarcode));
-				}
-				checkoutsReader.close();
-				logger.info("After removing checked out barcodes, there were a total of " + availableItemBarcodes.size() + " barcodes that are available");
-
-			}catch(Exception e){
-				logger.error("Error loading available items", e);
-			}
-			availabilityDataLoaded = true;
-		}
-	}*/
 
 	@Override
 	public void processRecord(GroupedWorkSolr groupedWork, String identifier){
@@ -280,88 +202,59 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 
 	@Override
 	protected void updateGroupedWorkSolrDataBasedOnMarc(GroupedWorkSolr groupedWork, Record record, String identifier) {
-		String step = "start";
 		try{
+			//If the entire bib is suppressed, update stats and bail out now.
 			if (isBibSuppressed(record)){
-				indexer.ilsRecordsSkipped.add(identifier);
 				return;
 			}
-			indexer.ilsRecordsIndexed.add(identifier);
-			//First load a list of print items and econtent items from the MARC record since they are needed to handle
-			//Scoping and availability of records.
-			step = "load print items";
-			List<PrintIlsItem> printItems = getUnsuppressedPrintItems(identifier, record);
-			step = "load eContent items";
-			List<EContentIlsItem> econtentItems = getUnsuppressedEContentItems(identifier, record);
-			step = "load order items";
-			List<OnOrderItem> onOrderItems = getOnOrderItems(identifier, record);
 
-			//Break the MARC record up based on item information and load data that is scoped
-			//i.e. formats, iTypes, date added to catalog, etc
-			step = "load scoped data";
-			HashSet<IlsRecord> ilsRecords = addRecordAndItemsToAppropriateScopesAndLoadFormats(groupedWork, record, printItems, econtentItems, onOrderItems);
+			//For ILS Records, we can create multiple different records, one for print and order items,
+			//and one or more for eContent items.
 
-			if (onOrderItems.size() > 0){
-				groupedWork.addKeywords("On Order");
-				groupedWork.addKeywords("Coming Soon");
-				HashSet<String> additionalOrderSubjects = new HashSet<String>();
-				additionalOrderSubjects.add("On Order");
-				additionalOrderSubjects.add("Coming Soon");
-				groupedWork.addTopic(additionalOrderSubjects);
-				groupedWork.addTopicFacet(additionalOrderSubjects);
+			HashSet<RecordInfo> allRelatedRecords = new HashSet<>();
+
+			// Let's first look for the print/order record
+			RecordInfo recordInfo = groupedWork.addRelatedRecord(profileType, identifier);
+			loadUnsuppressedPrintItems(groupedWork, recordInfo, identifier, record);
+			loadOnOrderItems(groupedWork, recordInfo, record);
+			//If we don't get anything remove the record we just added
+			if (recordInfo.getNumPrintCopies() == 0 && recordInfo.getNumCopiesOnOrder() == 0 && suppressItemlessBibs) {
+				groupedWork.removeRelatedRecord(recordInfo);
+			}else{
+				allRelatedRecords.add(recordInfo);
 			}
+
+			//Now look for any eContent that is defined within the ils
+			List<RecordInfo> econtentRecords = loadUnsuppressedEContentItems(groupedWork, identifier, record);
+			allRelatedRecords.addAll(econtentRecords);
 
 			//Do updates based on the overall bib (shared regardless of scoping)
-			step = "update work based on standard data";
-			updateGroupedWorkSolrDataBasedOnStandardMarcData(groupedWork, record, printItems);
+			updateGroupedWorkSolrDataBasedOnStandardMarcData(groupedWork, record, recordInfo.getRelatedItems());
 
 			//Special processing for ILS Records
-			step = "load description";
 			String fullDescription = Util.getCRSeparatedString(getFieldList(record, "520a"));
-			for (IlsRecord ilsRecord : ilsRecords) {
+			for (RecordInfo ilsRecord : allRelatedRecords) {
 				groupedWork.addDescription(fullDescription, ilsRecord.getPrimaryFormat());
 			}
-			step = "editions, physical description, etc";
-			loadEditions(groupedWork, record, ilsRecords);
-			loadPhysicalDescription(groupedWork, record, ilsRecords);
-			loadLanguageDetails(groupedWork, record, ilsRecords);
-			loadPublicationDetails(groupedWork, record, ilsRecords);
+			loadEditions(groupedWork, record, allRelatedRecords);
+			loadPhysicalDescription(groupedWork, record, allRelatedRecords);
+			loadLanguageDetails(groupedWork, record, allRelatedRecords);
+			loadPublicationDetails(groupedWork, record, allRelatedRecords);
 			loadSystemLists(groupedWork, record);
 
 			//Do updates based on items
-			step = "load ownership info";
-			loadOwnershipInformation(groupedWork, printItems, econtentItems, onOrderItems);
-			step = "load availability";
-			loadAvailability(groupedWork, printItems, econtentItems, ilsRecords);
-			step = "load usability";
-			loadUsability(groupedWork, printItems, econtentItems);
-			step = "load popularity";
-			loadPopularity(groupedWork, identifier, printItems, econtentItems, onOrderItems);
-			step = "load date added";
-			loadDateAdded(groupedWork, identifier, printItems, econtentItems, onOrderItems);
-			step = "load iTypes";
-			loadITypes(groupedWork, printItems, econtentItems);
-			step = "load call numbers";
-			loadLocalCallNumbers(groupedWork, printItems, econtentItems);
+			loadPopularity(groupedWork, identifier);
 			groupedWork.addBarcodes(getFieldList(record, itemTag + barcodeSubfield));
-			groupedWork.setRelatedRecords(ilsRecords);
-			step = "set formats";
-			groupedWork.setFormatInformation(ilsRecords);
 
-			step = "load econtent sources";
-			loadEContentSourcesAndProtectionTypes(groupedWork, econtentItems);
-
-			step = "load order ids";
 			loadOrderIds(groupedWork, record);
 
-			step = "add holdings";
-			int numPrintItems = printItems.size();
+			int numPrintItems = recordInfo.getNumPrintCopies();
 			if (!suppressItemlessBibs && numPrintItems == 0){
 				numPrintItems = 1;
 			}
-			groupedWork.addHoldings(numPrintItems + onOrderItems.size());
+			groupedWork.addHoldings(numPrintItems + recordInfo.getNumCopiesOnOrder());
 		}catch (Exception e){
-			logger.error("Error updating grouped work for MARC record with identifier " + identifier + " on step " + step, e);
+			logger.error("Error updating grouped work for MARC record with identifier " + identifier, e);
 		}
 	}
 
@@ -373,64 +266,64 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		//By default, do nothing
 	}
 
-	protected List<OnOrderItem> getOnOrderItems(String identifier, Record record){
-		if (orderTag == null){
-			return new ArrayList<OnOrderItem>();
-		}else{
-			ArrayList<OnOrderItem> orderItems = new ArrayList<OnOrderItem>();
-
-			List<DataField> orderFields = getDataFields(record, orderTag);
-			for (DataField curOrderField : orderFields){
-				//Make sure we get a location
-				String location = "multi";
-				if (curOrderField.getSubfield(orderLocationSubfield) != null) {
-					location = curOrderField.getSubfield(orderLocationSubfield).getData();
+	protected void loadOnOrderItems(GroupedWorkSolr groupedWork, RecordInfo recordInfo, Record record){
+		List<DataField> orderFields = getDataFields(record, orderTag);
+		for (DataField curOrderField : orderFields){
+			int copies = 0;
+			//If the location is multi, we actually have several records that should be processed separately
+			List<Subfield> detailedLocationSubfield = curOrderField.getSubfields(orderLocationSubfield);
+			if (detailedLocationSubfield.size() == 0){
+				//Didn't get detailed locations
+				if (curOrderField.getSubfield(orderCopiesSubfield) != null){
+					copies = Integer.parseInt(curOrderField.getSubfield(orderCopiesSubfield).getData());
 				}
-
-				int copies = 1;
-				if (location.equals("multi") && orderLocationsSubfield != ' '){
-					//If the location is multi, we actually have several records that should be processed separately
-					List<Subfield> detailedLocationSubfield = curOrderField.getSubfields(orderLocationsSubfield);
-					if (detailedLocationSubfield.size() == 0){
-						//Didn't get detailed locations, just fallback on the old method
-						if (curOrderField.getSubfield(orderCopiesSubfield) != null){
-							copies = Integer.parseInt(curOrderField.getSubfield(orderCopiesSubfield).getData());
-						}
-						createAndAddOrderItem(identifier, curOrderField, location, copies, orderItems);
-					} else{
-						for (Subfield curLocationSubfield : detailedLocationSubfield){
-							String curLocation = curLocationSubfield.getData();
-							if (curLocation.startsWith("(")){
-								//There are multiple copies for this location
-								copies = Integer.parseInt(curLocation.substring(1, curLocation.indexOf(")")));
-								curLocation = curLocation.substring(curLocation.indexOf(")"));
-							}else{
-								copies = 1;
-							}
-							createAndAddOrderItem(identifier, curOrderField, curLocation, copies, orderItems);
-						}
+				createAndAddOrderItem(recordInfo, curOrderField, "multi", copies);
+			} else{
+				for (Subfield curLocationSubfield : detailedLocationSubfield){
+					String curLocation = curLocationSubfield.getData();
+					if (curLocation.startsWith("(")){
+						//There are multiple copies for this location
+						copies = Integer.parseInt(curLocation.substring(1, curLocation.indexOf(")")));
+						curLocation = curLocation.substring(curLocation.indexOf(")"));
+					}else{
+						copies = 1;
 					}
-				}else{
-					if (curOrderField.getSubfield(orderCopiesSubfield) != null){
-						copies = Integer.parseInt(curOrderField.getSubfield(orderCopiesSubfield).getData());
-					}
-					createAndAddOrderItem(identifier, curOrderField, location, copies, orderItems);
+					createAndAddOrderItem(recordInfo, curOrderField, curLocation, copies);
 				}
 			}
-
-			return orderItems;
+		}
+		if (recordInfo.getNumCopiesOnOrder() > 0){
+			groupedWork.addKeywords("On Order");
+			groupedWork.addKeywords("Coming Soon");
+			HashSet<String> additionalOrderSubjects = new HashSet<>();
+			additionalOrderSubjects.add("On Order");
+			additionalOrderSubjects.add("Coming Soon");
+			groupedWork.addTopic(additionalOrderSubjects);
+			groupedWork.addTopicFacet(additionalOrderSubjects);
 		}
 	}
 
-	private void createAndAddOrderItem(String identifier, DataField curOrderField, String location, int copies, ArrayList<OnOrderItem> orderItems) {
-		OnOrderItem orderItem = new OnOrderItem();
-		orderItem.setBibNumber(identifier);
+	private void createAndAddOrderItem(RecordInfo recordInfo, DataField curOrderField, String location, int copies) {
+		ItemInfo itemInfo = new ItemInfo();
 		if (curOrderField.getSubfield('a') == null){
+			//Skip if we have no identifier
 			return;
 		}
 		String orderNumber = curOrderField.getSubfield('a').getData();
-		orderItem.setOrderNumber(orderNumber);
-		orderItem.setCopies(copies);
+		itemInfo.setLocationCode(location);
+		itemInfo.setSubLocationCode("");
+		itemInfo.setItemIdentifier(orderNumber);
+		itemInfo.setNumCopies(copies);
+		itemInfo.setIsEContent(false);
+		itemInfo.setIsOrderItem(true);
+		itemInfo.setCallNumber("ON ORDER");
+		itemInfo.setSortableCallNumber("ON ORDER");
+		//TODO: Format and Format Category
+
+		//Shelf Location also include the name of the ordering branch if possible
+		boolean hasLocationBasedShelfLocation = false;
+		boolean hasSystemBasedShelfLocation = false;
+		itemInfo.setShelfLocation("On Order");
 
 		String status = "";
 		if (curOrderField.getSubfield(orderStatusSubfield) != null) {
@@ -441,34 +334,26 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 			code3 = curOrderField.getSubfield(orderCode3Subfield).getData();
 		}
 
-		//TODO: DO we need to allow customization of active order statuses?
 		if (isOrderItemValid(status, code3)){
-			orderItem.setStatus(status);
-
-			if (!location.equals("multi")) {
-				orderItem.setLocationCode(location.trim());
-				for (Scope curScope : indexer.getScopes()) {
-					//Part of scope if the location code is included directly
-					//or if the scope is not limited to only including library/location codes.
-					boolean includedDirectly = curScope.isLocationCodeIncludedDirectly(location, location);
-					if ((!curScope.isIncludeItemsOwnedByTheLibraryOnly() && !curScope.isIncludeItemsOwnedByTheLocationOnly()) ||
-							includedDirectly) {
-						if (includedDirectly) {
-							orderItem.addScopeThisItemIsDirectlyIncludedIn(curScope.getScopeName());
+			recordInfo.addItem(itemInfo);
+			for (Scope scope: indexer.getScopes()){
+				if (scope.isItemPartOfScope(profileType, location, "", true, true, false)){
+					ScopingInfo scopingInfo = itemInfo.addScope(scope);
+					scopingInfo.setLocallyOwned(scope.isItemOwnedByScope(profileType, location, ""));
+					if (scopingInfo.isLocallyOwned()){
+						if (scope.isLibraryScope() && !hasLocationBasedShelfLocation && !hasSystemBasedShelfLocation){
+							hasSystemBasedShelfLocation = true;
+						}else if (scope.isLocationScope() && !hasLocationBasedShelfLocation){
+							hasLocationBasedShelfLocation = true;
+							itemInfo.setShelfLocation("On Order");
 						}
-						orderItem.addRelatedScope(curScope);
+
 					}
+					scopingInfo.setAvailable(false);
+					scopingInfo.setHoldable(true);
+					scopingInfo.setStatus("On Order");
+					scopingInfo.setGroupedStatus("On Order");
 				}
-				orderItems.add(orderItem);
-			}else{
-				orderItem.setLocationCode(location.trim());
-				for (Scope curScope : indexer.getScopes()) {
-					//Part of scope if the location code is included directly
-					//or if the scope is not limited to only including library/location codes.
-					orderItem.addRelatedScope(curScope);
-					orderItem.addScopeThisItemIsDirectlyIncludedIn(curScope.getScopeName());
-				}
-				orderItems.add(orderItem);
 			}
 		}
 	}
@@ -477,12 +362,8 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		return status.equals("o") || status.equals("1");
 	}
 
-	protected void loadEContentSourcesAndProtectionTypes(GroupedWorkSolr groupedWork, List<EContentIlsItem> econtentItems) {
+	protected void loadEContentSourcesAndProtectionTypes(ItemInfo itemRecord) {
 		//By default, do nothing
-	}
-
-	protected void loadLocalCallNumbers(GroupedWorkSolr groupedWork, List<PrintIlsItem> printItems, List<EContentIlsItem> econtentItems) {
-		//By default, do nothing.
 	}
 
 	private void loadOrderIds(GroupedWorkSolr groupedWork, Record record) {
@@ -495,186 +376,33 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		}
 	}
 
-	/**
-	 * Break the marc record up into individual records based on the information in the record.
-	 * Typically, we will get a single IlsRecord back.  However, we may get multiple records back
-	 * if the original MARC record has both print and econtent records on it.
-	 *
-	 * @param groupedWork The grouped work that we are updating
-	 * @param record The original MARC record
-	 * @param printItems a list of print items from the MARC record
-	 * @param econtentItems a list of econtent items from the MARC record
-	 * @param onOrderItems a list of items that are on order
-	 * @return A list of Ils Records that relate to the original marc
-	 */
-	protected HashSet<IlsRecord> addRecordAndItemsToAppropriateScopesAndLoadFormats(GroupedWorkSolr groupedWork, Record record, List<PrintIlsItem> printItems, List<EContentIlsItem> econtentItems, List<OnOrderItem> onOrderItems) {
-		HashSet<IlsRecord> ilsRecords = new HashSet<IlsRecord>();
-		String recordId = getFirstFieldVal(record, recordNumberTag + "a");
-		String recordIdentifier = "ils:" + recordId;
-
-		HashSet<String> scopesThatContainRecord = new HashSet<String>();
-		HashSet<String> scopesThatContainRecordDirectly = new HashSet<String>();
-		//Add stats to indicate that the record is part of the global scope
-		if (printItems.size() > 0 || onOrderItems.size() > 0 || econtentItems.size() > 0 || !suppressItemlessBibs) {
-			indexer.indexingStats.get("global").numLocalIlsRecords++;
-			indexer.indexingStats.get("global").numSuperScopeIlsRecords++;
-		}else{
-			indexer.ilsRecordsSkipped.add(recordId);
-		}
-
-		if ((printItems.size() > 0 || onOrderItems.size() > 0) || !suppressItemlessBibs) {
-			IlsRecord printRecord = new IlsRecord();
-			printRecord.setRecordId(recordIdentifier);
-			printRecord.addItems(printItems);
-			printRecord.addRelatedOrderItems(onOrderItems);
-			//Load formats for the print record
-			loadPrintFormatInformation(printRecord, record);
-			ilsRecords.add(printRecord);
-			for (PrintIlsItem printItem : printItems) {
-				if (printItem != null) {
-					indexer.indexingStats.get("global").numLocalIlsItems++;
-					indexer.indexingStats.get("global").numSuperScopeIlsItems++;
-
-					String itemInfo = recordIdentifier + "|" + printItem.getRelatedItemInfo();
-					groupedWork.addRelatedItem(itemInfo);
-					for (Scope scope : printItem.getRelatedScopes()) {
-						ScopedWorkDetails scopedWorkDetails = groupedWork.getScopedWorkDetails().get(scope.getScopeName());
-						scopedWorkDetails.addRelatedItem(recordIdentifier, printItem);
-						indexer.indexingStats.get(scope.getScopeName()).numSuperScopeIlsItems++;
-						if (!scopesThatContainRecord.contains(scope.getScopeName())){
-							scopesThatContainRecord.add(scope.getScopeName());
-							indexer.indexingStats.get(scope.getScopeName()).numSuperScopeIlsRecords++;
-						}
-					}
-
-					for (String scope: printItem.getScopesThisItemIsDirectlyIncludedIn()){
-						indexer.indexingStats.get(scope).numLocalIlsItems++;
-						if (!scopesThatContainRecordDirectly.contains(scope)){
-							scopesThatContainRecordDirectly.add(scope);
-							indexer.indexingStats.get(scope).numLocalIlsRecords++;
-							groupedWork.getScopedWorkDetails().get(scope).setLocallyOwned(true);
-						}
-					}
-				}else{
-					logger.warn("Got an invalid print item in loadScopedDataForMarcRecord for " + recordId);
-				}
-			}
-
-			for (OnOrderItem orderItem : onOrderItems) {
-				if (orderItem != null) {
-					indexer.indexingStats.get("global").numLocalOrderItems++;
-					indexer.indexingStats.get("global").numSuperScopeOrderItems++;
-					String itemInfo = orderItem.getRecordIdentifier() + "|" + orderItem.getRelatedItemInfo();
-					groupedWork.addRelatedItem(itemInfo);
-					for (Scope scope : orderItem.getRelatedScopes()) {
-						//Add the item to the scope, but only if there are no print titles (which have better information)
-						ScopedWorkDetails scopedWorkDetails = groupedWork.getScopedWorkDetails().get(scope.getScopeName());
-						scopedWorkDetails.addRelatedOrderItem(orderItem.getRecordIdentifier(), orderItem);
-						indexer.indexingStats.get(scope.getScopeName()).numSuperScopeOrderItems++;
-						if (!scopesThatContainRecord.contains(scope.getScopeName())){
-							scopesThatContainRecord.add(scope.getScopeName());
-							indexer.indexingStats.get(scope.getScopeName()).numSuperScopeIlsRecords++;
-						}
-					}
-					for (String scope: orderItem.getScopesThisItemIsDirectlyIncludedIn()){
-						indexer.indexingStats.get(scope).numLocalOrderItems++;
-						if (!scopesThatContainRecordDirectly.contains(scope)){
-							scopesThatContainRecordDirectly.add(scope);
-							indexer.indexingStats.get(scope).numLocalIlsRecords++;
-						}
-					}
-				} else {
-					logger.warn("Got an invalid order item in loadScopedDataForMarcRecord for " + recordId);
-				}
-			}
-
-			if (!suppressItemlessBibs && printItems.size() == 0 && onOrderItems.size() == 0){
-				for (Scope scope : indexer.getScopes()){
-					ScopedWorkDetails scopedWorkDetails = groupedWork.getScopedWorkDetails().get(scope.getScopeName());
-					scopedWorkDetails.addRelatedRecord(
-							recordIdentifier,
-							printRecord.getPrimaryFormat() != null ? printRecord.getPrimaryFormat() : "Item On Order",
-							printRecord.getEdition(),
-							printRecord.getLanguage(),
-							printRecord.getPublisher(),
-							printRecord.getPublicationDate(),
-							printRecord.getPhysicalDescription()
-					);
-					if (!scopesThatContainRecord.contains(scope.getScopeName())){
-						scopesThatContainRecord.add(scope.getScopeName());
-						indexer.indexingStats.get(scope.getScopeName()).numSuperScopeIlsRecords++;
-					}
-					if (!scopesThatContainRecordDirectly.contains(scope.getScopeName())){
-						scopesThatContainRecordDirectly.add(scope.getScopeName());
-						indexer.indexingStats.get(scope.getScopeName()).numLocalIlsRecords++;
-					}
-				}
-			}
-		}
-
-		for (EContentIlsItem econtentItem : econtentItems) {
-			indexer.indexingStats.get("global").numLocalEContentItems++;
-			indexer.indexingStats.get("global").numSuperScopeEContentItems++;
-			//TODO: Check to see if there is already a record we want to use.
-			IlsRecord econtentRecord = new IlsRecord();
-			econtentRecord.setRecordId(econtentItem.getRecordIdentifier());
-			econtentRecord.addItem(econtentItem);
-			loadEContentFormatInformation(econtentRecord, econtentItem);
-			String itemInfo = econtentItem.getRecordIdentifier() + "|" + econtentItem.getRelatedItemInfo();
-			groupedWork.addRelatedItem(itemInfo);
-			ilsRecords.add(econtentRecord);
-			for (Scope scope : econtentItem.getRelatedScopes()) {
-				ScopedWorkDetails scopedWorkDetails = groupedWork.getScopedWorkDetails().get(scope.getScopeName());
-				scopedWorkDetails.addRelatedEContentItem(econtentItem.getRecordIdentifier(), econtentItem);
-				indexer.indexingStats.get(scope.getScopeName()).numSuperScopeEContentItems++;
-				if (!scopesThatContainRecord.contains(scope.getScopeName())){
-					scopesThatContainRecord.add(scope.getScopeName());
-					indexer.indexingStats.get(scope.getScopeName()).numSuperScopeIlsRecords++;
-				}
-			}
-			for (String scope: econtentItem.getScopesThisItemIsDirectlyIncludedIn()){
-				indexer.indexingStats.get(scope).numLocalEContentItems++;
-				if (!scopesThatContainRecordDirectly.contains(scope)){
-					scopesThatContainRecordDirectly.add(scope);
-					indexer.indexingStats.get(scope).numLocalIlsRecords++;
-				}
-			}
-		}
-		return ilsRecords;
-	}
-
-	protected List<PrintIlsItem> getUnsuppressedPrintItems(String identifier, Record record){
+	protected void loadUnsuppressedPrintItems(GroupedWorkSolr groupedWork, RecordInfo recordInfo, String identifier, Record record){
 		List<DataField> itemRecords = getDataFields(record, itemTag);
-		List<PrintIlsItem> unsuppressedItemRecords = new ArrayList<PrintIlsItem>();
 		for (DataField itemField : itemRecords){
 			if (!isItemSuppressed(itemField)){
-				PrintIlsItem ilsRecord = getPrintIlsItem(record, itemField);
+				getPrintIlsItem(groupedWork, recordInfo, record, itemField);
 				//Can return null if the record does not have status and location
 				//This happens with secondary call numbers sometimes.
-				if (ilsRecord != null) {
-					ilsRecord.setRecordIdentifier(identifier);
-					unsuppressedItemRecords.add(ilsRecord);
-				}
 			}
 		}
-		return unsuppressedItemRecords;
 	}
 
-	protected EContentIlsItem getEContentIlsRecord(Record record, String identifier, DataField itemField){
-		EContentIlsItem ilsEContentItem = new EContentIlsItem();
+	protected RecordInfo getEContentIlsRecord(GroupedWorkSolr groupedWork, Record record, String identifier, DataField itemField){
+		ItemInfo itemInfo = new ItemInfo();
+		RecordInfo relatedRecord = null;
 
-		ilsEContentItem.setDateCreated(getItemSubfieldData(dateCreatedSubfield, itemField));
-		ilsEContentItem.setLocationCode(getItemSubfieldData(locationSubfieldIndicator, itemField));
-		ilsEContentItem.setiType(getItemSubfieldData(iTypeSubfield, itemField));
-		ilsEContentItem.setCallNumberPreStamp(getItemSubfieldData(callNumberPrestampSubfield, itemField));
-		ilsEContentItem.setCallNumber(getItemSubfieldData(callNumberSubfield, itemField));
-		ilsEContentItem.setCallNumberCutter(getItemSubfieldData(callNumberCutterSubfield, itemField));
-		ilsEContentItem.setCallNumberPostStamp(getItemSubfieldData(callNumberPoststampSubfield, itemField));
-		ilsEContentItem.setVolume(getItemSubfieldData(volumeSubfield, itemField));
-		ilsEContentItem.setItemRecordNumber(getItemSubfieldData(itemRecordNumberSubfieldIndicator, itemField));
-		if (collectionSubfield != ' ') {
-			ilsEContentItem.setCollection(getItemSubfieldData(collectionSubfield, itemField));
-		}
+		loadDateAdded(identifier, itemField, itemInfo);
+		String itemLocation = getItemSubfieldData(locationSubfieldIndicator, itemField);
+		String itemSublocation = getItemSubfieldData(subLocationSubfield, itemField);
+		itemInfo.setLocationCode(itemLocation);
+		itemInfo.setSubLocationCode(itemSublocation);
+		itemInfo.setITypeCode(getItemSubfieldData(iTypeSubfield, itemField));
+		itemInfo.setIType(translateValue("itype", getItemSubfieldData(iTypeSubfield, itemField)));
+		loadItemCallNumber(record, itemField, itemInfo);
+		itemInfo.setItemIdentifier(getItemSubfieldData(itemRecordNumberSubfieldIndicator, itemField));
+		itemInfo.setShelfLocation(getShelfLocationForItem(itemField));
+
+		loadEContentSourcesAndProtectionTypes(itemInfo);
 
 		Subfield eContentSubfield = itemField.getSubfield(eContentSubfieldIndicator);
 		if (eContentSubfield != null){
@@ -682,16 +410,16 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 			if (eContentData.indexOf(':') > 0) {
 				String[] eContentFields = eContentData.split(":");
 				//First element is the source, and we will always have at least the source and protection type
-				ilsEContentItem.setSource(eContentFields[0].trim());
-				ilsEContentItem.setProtectionType(eContentFields[1].trim().toLowerCase());
+				itemInfo.seteContentSource(eContentFields[0].trim());
+				itemInfo.seteContentProtectionType(eContentFields[1].trim().toLowerCase());
 				if (eContentFields.length >= 3){
-					ilsEContentItem.setSharing(eContentFields[2].trim().toLowerCase());
+					itemInfo.seteContentSharing(eContentFields[2].trim().toLowerCase());
 				}else{
 					//Sharing depends on the location code
-					if (ilsEContentItem.getLocationCode().startsWith("mdl")){
-						ilsEContentItem.setSharing("shared");
+					if (itemLocation.startsWith("mdl")){
+						itemInfo.seteContentSharing("shared");
 					}else{
-						ilsEContentItem.setSharing("library");
+						itemInfo.seteContentSharing("library");
 					}
 				}
 
@@ -699,48 +427,63 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 				if (eContentFields.length >= 4){
 					//If the 4th field is numeric, it is the number of copies that can be checked out.
 					if (Util.isNumeric(eContentFields[3].trim())){
-						ilsEContentItem.setNumberOfCopies(eContentFields[3].trim());
+						//ilsEContentItem.setNumberOfCopies(eContentFields[3].trim());
 						if (eContentFields.length >= 5){
-							ilsEContentItem.setFilename(eContentFields[4].trim());
+							itemInfo.seteContentFilename(eContentFields[4].trim());
 						}else{
 							logger.warn("Filename for local econtent not specified " + eContentData + " " + identifier);
 						}
-						if (eContentFields.length >= 6){
+						/*if (eContentFields.length >= 6){
 							ilsEContentItem.setAcsId(eContentFields[5].trim());
-						}
+						}*/
 					}else{
 						//Field 4 is the filename
-						ilsEContentItem.setFilename(eContentFields[3].trim());
-						if (eContentFields.length >= 5){
+						itemInfo.seteContentFilename(eContentFields[3].trim());
+						/*if (eContentFields.length >= 5){
 							ilsEContentItem.setAcsId(eContentFields[4].trim());
-						}
+						}*/
 					}
 				}
 			}
 		}else{
 			//This is for a "less advanced" catalog, set some basic info
-			ilsEContentItem.setSource("External eContent");
-			ilsEContentItem.setProtectionType("external");
-			ilsEContentItem.setSharing(getEContentSharing(ilsEContentItem, itemField));
-			ilsEContentItem.setSource(getSourceType(record, itemField));
+			itemInfo.seteContentSource("External eContent");
+			itemInfo.seteContentProtectionType("external");
+			itemInfo.seteContentSharing(getEContentSharing(itemInfo, itemField));
+			itemInfo.seteContentSource(getSourceType(record, itemField));
 		}
 
 		//Set record type
-		String protectionType = ilsEContentItem.getProtectionType();
-		if (protectionType.equals("acs") || protectionType.equals("drm")){
-			ilsEContentItem.setRecordIdentifier("restricted_econtent:" + identifier);
-		}else if (protectionType.equals("public domain") || protectionType.equals("free")){
-			ilsEContentItem.setRecordIdentifier("public_domain_econtent:" + identifier);
-		}else if (protectionType.equals("external")){
-			ilsEContentItem.setRecordIdentifier("external_econtent:" + identifier);
-		}else{
-			logger.warn("Unknown protection type " + protectionType + " found in record " + identifier);
+		String protectionType = itemInfo.geteContentProtectionType();
+		switch (protectionType) {
+			case "acs":
+			case "drm":
+				relatedRecord = groupedWork.addRelatedRecord("restricted_econtent:", identifier);
+				relatedRecord.setSubSource(profileType);
+				relatedRecord.addItem(itemInfo);
+				break;
+			case "public domain":
+			case "free":
+				relatedRecord = groupedWork.addRelatedRecord("public_domain_econtent:", identifier);
+				relatedRecord.setSubSource(profileType);
+				relatedRecord.addItem(itemInfo);
+				break;
+			case "external":
+				relatedRecord = groupedWork.addRelatedRecord("external_econtent:", identifier);
+				relatedRecord.setSubSource(profileType);
+				relatedRecord.addItem(itemInfo);
+				break;
+			default:
+				logger.warn("Unknown protection type " + protectionType + " found in record " + identifier);
+				break;
 		}
+
+		loadEContentFormatInformation(relatedRecord, itemInfo);
 
 		//Get the url if any
 		Subfield urlSubfield = itemField.getSubfield(itemUrlSubfieldIndicator);
 		if (urlSubfield != null){
-			ilsEContentItem.setUrl(urlSubfield.getData().trim());
+			itemInfo.seteContentUrl(urlSubfield.getData().trim());
 		}else if (protectionType.equals("external")){
 			//Check the 856 tag to see if there is a link there
 			List<DataField> urlFields = getDataFields(record, "856");
@@ -750,7 +493,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 					//Try to determine if this is a resource or not.
 					if (urlField.getIndicator1() == '4' || urlField.getIndicator1() == ' ' || urlField.getIndicator1() == '0' || urlField.getIndicator1() == '7'){
 						if (urlField.getIndicator2() == ' ' || urlField.getIndicator2() == '0' || urlField.getIndicator2() == '1' || urlField.getIndicator2() == '8') {
-							ilsEContentItem.setUrl(urlField.getSubfield('u').getData().trim());
+							itemInfo.seteContentUrl(urlField.getSubfield('u').getData().trim());
 							break;
 						}
 					}
@@ -762,32 +505,56 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 
 		//Determine availability
 		boolean available = false;
-		if (protectionType.equals("external")){
-			available = true;
-		}else if (protectionType.equals("public domain") || protectionType.equals("free")){
-			available = true;
-		}else if (protectionType.equals("acs") || protectionType.equals("drm")){
-			//TODO: Determine availability based on if it is checked out in the database
-			available = true;
+		boolean holdable = false;
+		switch (protectionType) {
+			case "external":
+				available = true;
+				break;
+			case "public domain":
+			case "free":
+				available = true;
+				break;
+			case "acs":
+			case "drm":
+				//TODO: Determine availability based on if it is checked out in the database
+				available = true;
+				holdable = true;
+				break;
 		}
-		ilsEContentItem.setAvailable(available);
 
 		//Determine which scopes this title belongs to
 		for (Scope curScope : indexer.getScopes()){
-			boolean includedDirectly = curScope.isEContentDirectlyOwned(ilsEContentItem);
-			if (curScope.isEContentLocationPartOfScope(ilsEContentItem)){
-				ilsEContentItem.addRelatedScope(curScope);
-				if (includedDirectly){
-					ilsEContentItem.addScopeThisItemIsDirectlyIncludedIn(curScope.getScopeName());
+			if (curScope.isItemPartOfScope(profileType, itemLocation, itemSublocation, holdable, false, true)){
+				ScopingInfo scopingInfo = itemInfo.addScope(curScope);
+				scopingInfo.setAvailable(available);
+				if (available) {
+					scopingInfo.setStatus("Available Online");
+					scopingInfo.setGroupedStatus("Available Online");
+				}else{
+					scopingInfo.setStatus("Checked Out");
+					scopingInfo.setGroupedStatus("Checked Out");
 				}
+				scopingInfo.setHoldable(holdable);
+				scopingInfo.setLocallyOwned(curScope.isItemOwnedByScope(profileType, itemLocation, itemSublocation));
 			}
 		}
 
-		//TODO: Determine the format, format category, and boost factor for this title
-		return ilsEContentItem;
+		return relatedRecord;
 	}
 
-	protected String getEContentSharing(EContentIlsItem ilsEContentItem, DataField itemField) {
+	protected void loadDateAdded(String recordIdentifier, DataField itemField, ItemInfo itemInfo) {
+		String dateAddedStr = getItemSubfieldData(dateCreatedSubfield, itemField);
+		if (dateAddedStr != null) {
+			try {
+				Date dateAdded = dateAddedFormatter.parse(dateAddedStr);
+				itemInfo.setDateAdded(dateAdded);
+			} catch (ParseException e) {
+				logger.error("Error processing date added", e);
+			}
+		}
+	}
+
+	protected String getEContentSharing(ItemInfo ilsEContentItem, DataField itemField) {
 		return "shared";
 	}
 
@@ -795,47 +562,141 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		return "Unknown Source";
 	}
 
-	protected String getLocationForItem(DataField itemField){
-		return getItemSubfieldData(locationSubfieldIndicator, itemField);
-	}
-
-	protected String getLibrarySystemCodeForItem(DataField itemField){
-		return getItemSubfieldData(locationSubfieldIndicator, itemField);
-	}
-
-	protected String getShelfLocationCodeForItem(DataField itemField){
-		return getItemSubfieldData(locationSubfieldIndicator, itemField);
-	}
-
-	protected String getCollectionForItem(DataField itemField){
-		return getItemSubfieldData(collectionSubfield, itemField);
-	}
-
-	protected PrintIlsItem getPrintIlsItem(Record record, DataField itemField) {
-		PrintIlsItem ilsItem = new PrintIlsItem();
-
-		//Load base information from the Marc Record
-		String itemStatus = getItemStatus(itemField);
-		ilsItem.setStatus(itemStatus);
-		ilsItem.setLocationCode(getLocationForItem(itemField));
-		ilsItem.setLibrarySystemCode(getLibrarySystemCodeForItem(itemField));
-		ilsItem.setShelfLocationCode(getShelfLocationCodeForItem(itemField));
-		ilsItem.setShelfLocation(getShelfLocationForItem(itemField));
-		//if the status and location are null, we can assume this is not a valid item
-		if (ilsItem.getStatus() == null && ilsItem.getLocationCode() == null){
-			return null;
+	private static SimpleDateFormat dateAddedFormatter = null;
+	protected ItemInfo getPrintIlsItem(GroupedWorkSolr groupedWork, RecordInfo recordInfo, Record record, DataField itemField) {
+		if (dateAddedFormatter == null){
+			dateAddedFormatter = new SimpleDateFormat(dateAddedFormat);
 		}
-		ilsItem.setDateDue(getItemSubfieldData(dueDateSubfield, itemField));
-		ilsItem.setDateCreated(getItemSubfieldData(dateCreatedSubfield, itemField));
-		ilsItem.setiType(getItemSubfieldData(iTypeSubfield, itemField));
-		ilsItem.setLastYearCheckouts(getItemSubfieldData(lastYearCheckoutSubfield, itemField));
-		ilsItem.setYtdCheckouts(getItemSubfieldData(ytdCheckoutSubfield, itemField));
-		ilsItem.setTotalCheckouts(getItemSubfieldData(totalCheckoutSubfield, itemField));
+		ItemInfo itemInfo = new ItemInfo();
+		//Load base information from the Marc Record
+
+		String itemStatus = getItemStatus(itemField);
+
+		String itemLocation = getItemSubfieldData(locationSubfieldIndicator, itemField);
+		itemInfo.setLocationCode(itemLocation);
+		String itemSublocation = getItemSubfieldData(subLocationSubfield, itemField);
+		if (itemSublocation == null){
+			itemSublocation = "";
+		}
+		itemInfo.setSubLocationCode(itemSublocation);
+
+		//if the status and location are null, we can assume this is not a valid item
+		if (!isItemValid(itemStatus, itemLocation)) return null;
+
+		itemInfo.setStatusCode(itemStatus);
+		itemInfo.setShelfLocationCode(getItemSubfieldData(locationSubfieldIndicator, itemField));
+		itemInfo.setShelfLocation(getShelfLocationForItem(itemField));
+
+		loadDateAdded(recordInfo.getRecordIdentifier(), itemField, itemInfo);
+		String dueDateStr = getItemSubfieldData(dueDateSubfield, itemField);
+		itemInfo.setDueDate(dueDateStr);
+
+		itemInfo.setITypeCode(getItemSubfieldData(iTypeSubfield, itemField));
+		itemInfo.setIType(translateValue("itype", getItemSubfieldData(iTypeSubfield, itemField)));
+
+		String totalCheckoutsField = getItemSubfieldData(totalCheckoutSubfield, itemField);
+		int totalCheckouts = 0;
+		if (totalCheckoutsField != null){
+			totalCheckouts = Integer.parseInt(totalCheckoutsField);
+		}
+		String ytdCheckoutsField = getItemSubfieldData(ytdCheckoutSubfield, itemField);
+		int ytdCheckouts = 0;
+		if (ytdCheckoutsField != null){
+			ytdCheckouts = Integer.parseInt(ytdCheckoutsField);
+		}
+		String lastYearCheckoutsField = getItemSubfieldData(lastYearCheckoutSubfield, itemField);
+		int lastYearCheckouts = 0;
+		if (lastYearCheckoutsField != null){
+			lastYearCheckouts = Integer.parseInt(lastYearCheckoutsField);
+		}
+		double itemPopularity = ytdCheckouts + .5 * (lastYearCheckouts) + .1 * (totalCheckouts - lastYearCheckouts - ytdCheckouts);
+		if (itemPopularity == 0){
+			itemPopularity = 1;
+		}
+		groupedWork.addPopularity(itemPopularity);
+
+		loadItemCallNumber(record, itemField, itemInfo);
+		itemInfo.setItemIdentifier(getItemSubfieldData(itemRecordNumberSubfieldIndicator, itemField));
+
+		loadPrintFormatInformation(recordInfo, record);
+
+		//Determine Availability
+		boolean available = isItemAvailable(itemInfo);
+
+		//Determine which scopes have access to this record
+		for (Scope curScope : indexer.getScopes()) {
+			//Check to see if the record is holdable for this scope
+			boolean isHoldable = isItemHoldable(itemInfo, curScope);
+			if (curScope.isItemPartOfScope(profileType, itemLocation, itemSublocation, isHoldable, false, false)){
+				ScopingInfo scopingInfo = itemInfo.addScope(curScope);
+				scopingInfo.setAvailable(available);
+				scopingInfo.setHoldable(isHoldable);
+				scopingInfo.setStatus(translateValue("item_status", itemStatus));
+				scopingInfo.setGroupedStatus(translateValue("item_grouped_status", itemStatus));
+				scopingInfo.setLocallyOwned(curScope.isItemOwnedByScope(profileType, itemLocation, itemSublocation));
+			}
+		}
+
+		recordInfo.addItem(itemInfo);
+		return itemInfo;
+	}
+
+	protected boolean isItemValid(String itemStatus, String itemLocation) {
+		return !(itemStatus == null && itemLocation == null);
+	}
+
+	private void loadItemCallNumber(Record record, DataField itemField, ItemInfo itemInfo) {
 		if (useItemBasedCallNumbers) {
-			ilsItem.setCallNumberPreStamp(getItemSubfieldDataWithoutTrimming(callNumberPrestampSubfield, itemField));
-			ilsItem.setCallNumber(getItemSubfieldDataWithoutTrimming(callNumberSubfield, itemField));
-			ilsItem.setCallNumberCutter(getItemSubfieldDataWithoutTrimming(callNumberCutterSubfield, itemField));
-			ilsItem.setCallNumberPostStamp(getItemSubfieldData(callNumberPoststampSubfield, itemField));
+			String callNumberPreStamp = getItemSubfieldDataWithoutTrimming(callNumberPrestampSubfield, itemField);
+			String callNumber = getItemSubfieldDataWithoutTrimming(callNumberSubfield, itemField);
+			String callNumberCutter = getItemSubfieldDataWithoutTrimming(callNumberCutterSubfield, itemField);
+			String callNumberPostStamp = getItemSubfieldData(callNumberPoststampSubfield, itemField);
+			String volume = getItemSubfieldData(volumeSubfield, itemField);
+
+			StringBuilder fullCallNumber = new StringBuilder();
+			StringBuilder sortableCallNumber = new StringBuilder();
+			if (callNumberPreStamp != null) {
+				fullCallNumber.append(callNumberPreStamp);
+			}
+			if (callNumber != null){
+				if (fullCallNumber.length() > 0 && fullCallNumber.charAt(fullCallNumber.length() - 1) != ' '){
+					fullCallNumber.append(' ');
+				}
+				fullCallNumber.append(callNumber);
+				sortableCallNumber.append(callNumber);
+			}
+			if (callNumberCutter != null){
+				if (fullCallNumber.length() > 0 && fullCallNumber.charAt(fullCallNumber.length() - 1) != ' '){
+					fullCallNumber.append(' ');
+				}
+				fullCallNumber.append(callNumberCutter);
+				if (sortableCallNumber.length() > 0 && sortableCallNumber.charAt(sortableCallNumber.length() - 1) != ' '){
+					sortableCallNumber.append(' ');
+				}
+				sortableCallNumber.append(callNumberCutter);
+			}
+			if (callNumberPostStamp != null){
+				if (fullCallNumber.length() > 0 && fullCallNumber.charAt(fullCallNumber.length() - 1) != ' '){
+					fullCallNumber.append(' ');
+				}
+				fullCallNumber.append(callNumberPostStamp);
+				if (sortableCallNumber.length() > 0 && sortableCallNumber.charAt(sortableCallNumber.length() - 1) != ' '){
+					sortableCallNumber.append(' ');
+				}
+				sortableCallNumber.append(callNumberPostStamp);
+			}
+			if (volume != null){
+				if (fullCallNumber.length() > 0 && fullCallNumber.charAt(fullCallNumber.length() - 1) != ' '){
+					fullCallNumber.append(' ');
+				}
+				fullCallNumber.append(volume);
+				if (sortableCallNumber.length() > 0 && sortableCallNumber.charAt(sortableCallNumber.length() - 1) != ' '){
+					sortableCallNumber.append(' ');
+				}
+				sortableCallNumber.append(volume);
+			}
+			itemInfo.setCallNumber(fullCallNumber.toString());
+			itemInfo.setSortableCallNumber(sortableCallNumber.toString());
 		}else{
 			String callNumber = null;
 			DataField localCallNumberField = (DataField)record.getVariableField("099");
@@ -855,43 +716,19 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 				}
 			}
 			if (callNumber != null) {
-				ilsItem.setCallNumber(callNumber.trim());
+				itemInfo.setCallNumber(callNumber.trim());
+				itemInfo.setSortableCallNumber(callNumber.trim());
 			}
 		}
-		ilsItem.setVolume(getItemSubfieldData(volumeSubfield, itemField));
-		ilsItem.setBarcode(getItemSubfieldData(barcodeSubfield, itemField));
-		ilsItem.setItemRecordNumber(getItemSubfieldData(itemRecordNumberSubfieldIndicator, itemField));
-		ilsItem.setCollection(getCollectionForItem(itemField));
+	}
 
-		//Determine Availability
-		boolean available = false;
-		//if (getAvailabilityFromMarc){
-			if (ilsItem.getStatus() != null) {
-				available = isItemAvailable(ilsItem);
-			}
-		/*}else{
-			if (ilsRecord.getBarcode() != null){
-				available = availableItemBarcodes.contains(ilsRecord.getBarcode());
-			}
-		}*/
-		ilsItem.setAvailable(available);
+	protected boolean isItemHoldable(ItemInfo itemInfo, Scope curScope){
+		return true;
+	}
 
-		if (ilsItem.getiType() != null && ilsItem.getLocationCode() != null) {
-			//Figure out which ptypes are compatible with this itype
-			ilsItem.setCompatiblePTypes(getCompatiblePTypes(ilsItem.getiType(), ilsItem.getLocationCode()));
-		}
-		//Determine which scopes have access to this record
-		for (Scope curScope : indexer.getScopes()) {
-			boolean includedDirectly = curScope.isLocationCodeIncludedDirectly(ilsItem.getLibrarySystemCode(), ilsItem.getLocationCode());
-			if (curScope.isItemPartOfScope(ilsItem.getLibrarySystemCode(), ilsItem.getLocationCode(), ilsItem.getCompatiblePTypes())) {
-				if (includedDirectly){
-					ilsItem.addScopeThisItemIsDirectlyIncludedIn(curScope.getScopeName());
-				}
-				ilsItem.addRelatedScope(curScope);
-			}
-		}
-
-		return ilsItem;
+	//By default we don't need to do anything
+	protected LinkedHashSet<String> getCompatiblePTypes(String iType, String locationCode) {
+		return new LinkedHashSet<>();
 	}
 
 	protected String getShelfLocationForItem(DataField itemField) {
@@ -899,7 +736,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		if (shelfLocation == null || shelfLocation.length() == 0 || shelfLocation.equals("none")){
 			return "";
 		}else {
-			return indexer.translateValue("shelf_location", shelfLocation);
+			return translateValue("shelf_location", shelfLocation);
 		}
 	}
 
@@ -907,7 +744,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		return getItemSubfieldData(statusSubfieldIndicator, itemField);
 	}
 
-	protected abstract boolean isItemAvailable(PrintIlsItem ilsRecord);
+	protected abstract boolean isItemAvailable(ItemInfo itemInfo);
 
 	protected String getItemSubfieldData(char subfieldIndicator, DataField itemField) {
 		if (subfieldIndicator == ' '){
@@ -925,113 +762,16 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		}
 	}
 
-	protected List<EContentIlsItem> getUnsuppressedEContentItems(String identifier, Record record){
-		return new ArrayList<EContentIlsItem>();
+	protected List<RecordInfo> loadUnsuppressedEContentItems(GroupedWorkSolr groupedWork, String identifier, Record record){
+		return new ArrayList<>();
 	}
 
-	private void loadITypes(GroupedWorkSolr groupedWork, List<PrintIlsItem> printItems, List<EContentIlsItem> econtentItems) {
-		for (PrintIlsItem curItem : printItems){
-			String location = curItem.getLocationCode();
-			String iType = curItem.getiType();
-			if (iType != null && location != null){
-				String translatedIType = indexer.translateValue("itype", iType);
-				if (translatedIType != null) {
-					ArrayList<String> relatedSubdomains = getLibrarySubdomainsForLocationCode(location);
-					ArrayList<String> relatedLocations = getRelatedLocationCodesForLocationCode(location);
-					groupedWork.setIType(translatedIType, relatedSubdomains, relatedLocations);
-				}
-			}
-		}
-		for (EContentIlsItem curItem : econtentItems){
-			String iType = curItem.getiType();
-			String location = curItem.getLocationCode();
-			if (iType != null && location != null){
-				String translatedIType = indexer.translateValue("itype", iType);
-				ArrayList<String> relatedSubdomains = getLibrarySubdomainsForLocationCode(location);
-				ArrayList<String> relatedLocations = getRelatedLocationCodesForLocationCode(location);
-				groupedWork.setIType(translatedIType, relatedSubdomains, relatedLocations);
-			}
-		}
-	}
 
-	private static SimpleDateFormat dateAddedFormatter = null;
-	protected void loadDateAdded(GroupedWorkSolr groupedWork, String identifier, List<PrintIlsItem> printItems, List<EContentIlsItem> econtentItems, List<OnOrderItem> onOrderItems) {
-		if (dateAddedFormatter == null){
-			dateAddedFormatter = new SimpleDateFormat(dateAddedFormat);
-		}
-		for (PrintIlsItem curItem : printItems){
-			String locationCode = curItem.getLocationCode();
-			String dateAddedStr = curItem.getDateCreated();
-			if (locationCode != null && dateAddedStr != null){
-				try{
-					Date dateAdded = dateAddedFormatter.parse(dateAddedStr);
-					ArrayList<String> relatedLocations = getLibrarySubdomainsForLocationCode(locationCode);
-					relatedLocations.addAll(getIlsCodesForDetailedLocationCode(locationCode));
-					groupedWork.setDateAdded(dateAdded, relatedLocations);
-				} catch (ParseException e) {
-					logger.error("Error processing date added", e);
-				}
-			}
-		}
-		for (EContentIlsItem curItem : econtentItems){
-			String locationCode = curItem.getLocationCode();
-			String dateAddedStr = curItem.getDateCreated();
-			if (locationCode != null && dateAddedStr != null){
-				try{
-					Date dateAdded = dateAddedFormatter.parse(dateAddedStr);
-					ArrayList<String> relatedLocations = getLibrarySubdomainsForLocationCode(locationCode);
-					relatedLocations.addAll(getIlsCodesForDetailedLocationCode(locationCode));
-					groupedWork.setDateAdded(dateAdded, relatedLocations);
-				} catch (ParseException e) {
-					logger.error("Error processing date added", e);
-				}
-			}
-		}
-		for (OnOrderItem curItem : onOrderItems){
-			String locationCode = curItem.getLocationCode();
-			if (locationCode != null){
-				//Assume that all On Order Records were created today
-				Date dateAdded = new Date();
-				ArrayList<String> relatedLocations = getLibrarySubdomainsForLocationCode(locationCode);
-				relatedLocations.addAll(getIlsCodesForDetailedLocationCode(locationCode));
-				groupedWork.setDateAdded(dateAdded, relatedLocations);
-			}
-		}
-	}
 
-	protected void loadPopularity(GroupedWorkSolr groupedWork, String recordIdentifier, List<PrintIlsItem> printItems, List<EContentIlsItem> econtentItems, List<OnOrderItem> onOrderItems) {
-		float popularity = 0;
-		for (PrintIlsItem itemField : printItems){
-			//Get number of times the title has been checked out
-			String totalCheckoutsField = itemField.getTotalCheckouts();
-			int totalCheckouts = 0;
-			if (totalCheckoutsField != null){
-				totalCheckouts = Integer.parseInt(totalCheckoutsField);
-			}
-			String ytdCheckoutsField = itemField.getYtdCheckouts();
-			int ytdCheckouts = 0;
-			if (ytdCheckoutsField != null){
-				ytdCheckouts = Integer.parseInt(ytdCheckoutsField);
-			}
-			String lastYearCheckoutsField = itemField.getLastYearCheckouts();
-			int lastYearCheckouts = 0;
-			if (lastYearCheckoutsField != null){
-				lastYearCheckouts = Integer.parseInt(lastYearCheckoutsField);
-			}
-			double itemPopularity = ytdCheckouts + .5 * (lastYearCheckouts) + .1 * (totalCheckouts - lastYearCheckouts - ytdCheckouts);
-			//logger.debug("Popularity for item " + itemPopularity + " ytdCheckouts=" + ytdCheckouts + " lastYearCheckouts=" + lastYearCheckouts + " totalCheckouts=" + totalCheckouts);
-			popularity += itemPopularity;
-		}
-
-		//Add popularity based on the number of holds
+	protected void loadPopularity(GroupedWorkSolr groupedWork, String recordIdentifier) {
+		//Add popularity based on the number of holds (we have already done popularity for prior checkouts)
 		//Active holds indicate that a title is more interesting so we will count each hold at double value
-		popularity += 2 * getIlsHoldsForTitle(recordIdentifier);
-
-		//Add popularity based on the number of order records.
-		//Since titles that are on order don't have checkouts (or as many checkouts), give them a boost to improve relevance
-		popularity += 5 * onOrderItems.size();
-
-		//TODO: Load popularity for eContent
+		double popularity = 2 * getIlsHoldsForTitle(recordIdentifier);
 		groupedWork.addPopularity(popularity);
 	}
 
@@ -1043,378 +783,63 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		}
 	}
 
-	protected void loadUsability(GroupedWorkSolr groupedWork, List<PrintIlsItem> printItems, List<EContentIlsItem> econtentItems) {
-		//Load a list of pTypes that can use this record based on loan rules
-		for (PrintIlsItem curItem : printItems){
-			String iType = curItem.getiType();
-			String locationCode = curItem.getLocationCode();
-			if (iType != null && locationCode != null){
-				groupedWork.addCompatiblePTypes(getCompatiblePTypes(iType, locationCode));
-			}
-		}
-	}
-
 	protected boolean isItemSuppressed(DataField curItem) {
 		return false;
 	}
 
-	protected void loadAvailability(GroupedWorkSolr groupedWork, List<PrintIlsItem> printItems, List<EContentIlsItem> econtentItems, HashSet<IlsRecord> ilsRecords) {
-		//Calculate availability based on the record
-		HashSet<String> availableAt = new HashSet<String>();
-		HashSet<String> availableLocationCodes = new HashSet<String>();
-
-		HashSet<String> relatedFormats = new HashSet<String>();
-		for (IlsRecord curRecord : ilsRecords){
-			relatedFormats.addAll(curRecord.getFormats());
-			relatedFormats.addAll(curRecord.getFormatCategories());
-		}
-
-		for (PrintIlsItem curItem : printItems){
-			if (curItem.getLocationCode() != null){
-				HashSet<String> relatedLocations = new HashSet<String>();
-				relatedLocations.addAll(getLocationFacetsForLocationCode(curItem.getLocationCode()));
-				HashSet<String> relatedScopes = new HashSet<String>();
-				relatedScopes.addAll(getRelatedLocationCodesForLocationCode(curItem.getLocationCode()));
-				relatedScopes.addAll(getRelatedSubdomainsForLocationCode(curItem.getLibrarySystemCode()));
-				if (curItem.isAvailable()){
-					availableAt.addAll(relatedLocations);
-					availableLocationCodes.addAll(relatedScopes);
-					//Add subdomains to get related scopes
-					groupedWork.addAvailabilityByFormatForLocation(relatedScopes, relatedFormats, "available");
-				}
-				groupedWork.addAvailabilityByFormatForLocation(relatedScopes, relatedFormats, "local");
-			}
-		}
-
-		//TODO: Process eContent as well?
-
-		groupedWork.addAvailableLocations(availableAt, availableLocationCodes);
-	}
-
-	protected void loadOwnershipInformation(GroupedWorkSolr groupedWork, List<PrintIlsItem> printItems, List<EContentIlsItem> econtentItems, List<OnOrderItem> onOrderItems) {
-		HashSet<String> owningLibraries = new HashSet<String>();
-		HashSet<String> owningLocations = new HashSet<String>();
-		HashSet<String> owningLocationCodes = new HashSet<String>();
-		for (PrintIlsItem curItem : printItems){
-			String librarySystemCode = curItem.getLibrarySystemCode();
-			String locationCode = curItem.getLocationCode();
-			if (locationCode != null){
-				ArrayList<String> owningLibrariesForLocationCode = getLibraryFacetsForLocationCode(librarySystemCode);
-				owningLibraries.addAll(owningLibrariesForLocationCode);
-				ArrayList<String> owningLocationsForLocationCode = getLocationFacetsForLocationCode(locationCode);
-				owningLocations.addAll(owningLocationsForLocationCode);
-				owningLocationCodes.addAll(getRelatedLocationCodesForLocationCode(locationCode));
-				owningLocationCodes.addAll(getRelatedSubdomainsForLocationCode(librarySystemCode));
-
-				loadAdditionalOwnershipInformation(groupedWork, curItem);
-			}
-			for (Scope curScope : curItem.getRelatedScopes()){
-				if (curScope.isLocationScope() && curScope.isLocationCodeIncludedDirectly(librarySystemCode, locationCode)) {
-					if (!owningLocations.contains(curScope.getFacetLabel())) {
-						owningLocations.add(curScope.getFacetLabel());
-					}
-				}
-			}
-		}
-		//TODO: set ownership information for eContent
-
-		for (OnOrderItem curOrderItem: onOrderItems){
-			for (Scope curScope : curOrderItem.getRelatedScopes()){
-				if (curScope.isLocationCodeIncludedDirectly(curOrderItem.getLocationCode(), curOrderItem.getLocationCode())) {
-					if (curScope.isLibraryScope()) {
-						owningLibraries.add(curScope.getFacetLabel() + " On Order");
-					} else {
-						owningLocations.add(curScope.getFacetLabel() + " On Order");
-					}
-				}
-			}
-		}
-		groupedWork.addOwningLibraries(owningLibraries);
-		groupedWork.addOwningLocations(owningLocations);
-		groupedWork.addOwningLocationCodesAndSubdomains(owningLocationCodes);
-	}
-
-	protected void loadAdditionalOwnershipInformation(GroupedWorkSolr groupedWork, PrintIlsItem printItem){
-
-	}
-
-	private HashSet<String> locationsWithoutLibraryFacets = new HashSet<String>();
-	private HashMap<String, Pattern> libraryCodePatterns = new HashMap<String, Pattern>();
-	protected ArrayList<String> getLibraryFacetsForLocationCode(String locationCode) {
-		locationCode = locationCode.trim().toLowerCase();
-		ArrayList<String> libraryFacets = new ArrayList<String>();
-		for(String libraryCode : indexer.getLibraryFacetMap().keySet()){
-			Pattern libraryCodePattern = libraryCodePatterns.get(libraryCode);
-			if (libraryCodePattern == null){
-				libraryCodePattern = Pattern.compile(libraryCode);
-				libraryCodePatterns.put(libraryCode, libraryCodePattern);
-			}
-			if (libraryCodePattern.matcher(locationCode).lookingAt()){
-				libraryFacets.add(indexer.getLibraryFacetMap().get(libraryCode));
-			}
-		}
-		if (libraryFacets.size() == 0){
-			if (!locationsWithoutLibraryFacets.contains(locationCode)){
-				logger.warn("Did not find any library facets for " + locationCode);
-				locationsWithoutLibraryFacets.add(locationCode);
-			}
-		}
-		return libraryFacets;
-	}
-
-	private HashSet<String> locationsWithoutLibraryOnlineFacets = new HashSet<String>();
-	protected ArrayList<String> getLibraryOnlineFacetsForLocationCode(String locationCode) {
-		locationCode = locationCode.toLowerCase();
-		ArrayList<String> libraryOnlineFacets = new ArrayList<String>();
-		for(String libraryCode : indexer.getLibraryOnlineFacetMap().keySet()){
-			Pattern libraryCodePattern = libraryCodePatterns.get(libraryCode);
-			if (libraryCodePattern == null){
-				libraryCodePattern = Pattern.compile(libraryCode);
-				libraryCodePatterns.put(libraryCode, libraryCodePattern);
-			}
-			if (libraryCodePattern.matcher(locationCode).lookingAt()){
-				libraryOnlineFacets.add(indexer.getLibraryOnlineFacetMap().get(libraryCode));
-			}
-		}
-		if (libraryOnlineFacets.size() == 0){
-			if (!locationsWithoutLibraryOnlineFacets.contains(locationCode)){
-				logger.warn("Did not find any online library facets for " + locationCode);
-				locationsWithoutLibraryOnlineFacets.add(locationCode);
-			}
-		}
-		return libraryOnlineFacets;
-	}
-
-	private ArrayList<String> getRelatedSubdomainsForLocationCode(String locationCode) {
-		locationCode = locationCode.toLowerCase();
-		ArrayList<String> subdomains = new ArrayList<String>();
-		for(String libraryCode : indexer.getSubdomainMap().keySet()){
-			Pattern libraryCodePattern = libraryCodePatterns.get(libraryCode);
-			if (libraryCodePattern == null){
-				libraryCodePattern = Pattern.compile(libraryCode);
-				libraryCodePatterns.put(libraryCode, libraryCodePattern);
-			}
-			if (libraryCodePattern.matcher(locationCode).lookingAt()){
-				subdomains.add(indexer.getSubdomainMap().get(libraryCode));
-			}
-		}
-		if (subdomains.size() == 0){
-			logger.warn("Did not find any subdomains for " + locationCode);
-		}
-		return subdomains;
-	}
-
-	protected ArrayList<String> getLibrarySubdomainsForLocationCode(String locationCode) {
-		locationCode = locationCode.toLowerCase();
-		ArrayList<String> librarySubdomains = new ArrayList<String>();
-		for(String libraryCode : indexer.getSubdomainMap().keySet()){
-			Pattern libraryCodePattern = libraryCodePatterns.get(libraryCode);
-			if (libraryCodePattern == null){
-				libraryCodePattern = Pattern.compile(libraryCode);
-				libraryCodePatterns.put(libraryCode, libraryCodePattern);
-			}
-			if (libraryCodePattern.matcher(locationCode).lookingAt()){
-				librarySubdomains.add(indexer.getSubdomainMap().get(libraryCode));
-			}
-		}
-		if (librarySubdomains.size() == 0){
-			logger.warn("Did not find any library subdomains for " + locationCode);
-		}
-		return librarySubdomains;
-	}
-
-	private HashSet<String> locationCodesWithoutFacets = new HashSet<String>();
-	private HashMap<String, ArrayList<String>> locationFacetsForLocationCode = new HashMap<String, ArrayList<String>>();
-	private ArrayList<String> getLocationFacetsForLocationCode(String locationCode) {
-		locationCode = locationCode.toLowerCase();
-		if (locationFacetsForLocationCode.containsKey(locationCode)){
-			return locationFacetsForLocationCode.get(locationCode);
-		}
-		ArrayList<String> locationFacets = new ArrayList<String>();
-		if (locationCode == null || locationCode.length() == 0){
-			locationFacetsForLocationCode.put(locationCode, locationFacets);
-			return locationFacets;
-		}
-		locationCode = locationCode.toLowerCase();
-		for(String libraryCode : indexer.getLocationMap().keySet()){
-			Pattern libraryCodePattern = libraryCodePatterns.get(libraryCode);
-			if (libraryCodePattern == null){
-				libraryCodePattern = Pattern.compile(libraryCode);
-				libraryCodePatterns.put(libraryCode, libraryCodePattern);
-			}
-			if (libraryCodePattern.matcher(locationCode).lookingAt()){
-				locationFacets.add(indexer.getLocationMap().get(libraryCode));
-			}
-		}
-		if (locationFacets.size() == 0){
-			if (!locationCodesWithoutFacets.contains(locationCode)){
-				logger.debug("Did not find any location facets for '" + locationCode + "'");
-				locationCodesWithoutFacets.add(locationCode);
-			}
-		}
-		locationFacetsForLocationCode.put(locationCode, locationFacets);
-		return locationFacets;
-	}
-
-	protected HashMap<String, ArrayList> relatedLocationCodesForLocationCode = new HashMap<String, ArrayList>();
-	protected ArrayList<String> getRelatedLocationCodesForLocationCode(String locationCode){
-		locationCode = locationCode.toLowerCase();
-		if (relatedLocationCodesForLocationCode.containsKey(locationCode)){
-			return relatedLocationCodesForLocationCode.get(locationCode);
-		}
-		ArrayList<String> locationFacets = new ArrayList<String>();
-		if (locationCode == null || locationCode.length() == 0){
-			relatedLocationCodesForLocationCode.put(locationCode, locationFacets);
-			return locationFacets;
-		}
-		for(String libraryCode : indexer.getLocationMap().keySet()){
-			Pattern libraryCodePattern = libraryCodePatterns.get(libraryCode);
-			if (libraryCodePattern == null){
-				libraryCodePattern = Pattern.compile(libraryCode);
-				libraryCodePatterns.put(libraryCode, libraryCodePattern);
-			}
-			if (libraryCodePattern.matcher(locationCode).lookingAt()){
-				locationFacets.add(libraryCode);
-			}
-		}
-		relatedLocationCodesForLocationCode.put(locationCode, locationFacets);
-		return locationFacets;
-	}
-
-	protected HashMap<String, ArrayList> ilsCodesForDetailedLocationCode = new HashMap<String, ArrayList>();
-	private ArrayList<String> getIlsCodesForDetailedLocationCode(String locationCode) {
-		locationCode = locationCode.toLowerCase();
-		if (ilsCodesForDetailedLocationCode.containsKey(locationCode)){
-			return ilsCodesForDetailedLocationCode.get(locationCode);
-		}
-		ArrayList<String> locationCodes = new ArrayList<String>();
-		for(String libraryCode : indexer.getLocationMap().keySet()){
-			Pattern libraryCodePattern = libraryCodePatterns.get(libraryCode);
-			if (libraryCodePattern == null){
-				libraryCodePattern = Pattern.compile(libraryCode);
-				libraryCodePatterns.put(libraryCode, libraryCodePattern);
-			}
-			if (libraryCodePattern.matcher(locationCode).lookingAt()){
-				locationCodes.add(libraryCode);
-			}
-		}
-		ilsCodesForDetailedLocationCode.put(locationCode, locationCodes);
-		return locationCodes;
-	}
-
-	private HashMap<String, LinkedHashSet<String>> ptypesByItypeAndLocation = new HashMap<String, LinkedHashSet<String>>();
-	public LinkedHashSet<String> getCompatiblePTypes(String iType, String locationCode) {
-		if (loanRuleDeterminers.size() == 0){
-			return new LinkedHashSet<String>();
-		}
-		String cacheKey = iType + ":" + locationCode;
-		if (ptypesByItypeAndLocation.containsKey(cacheKey)){
-			return ptypesByItypeAndLocation.get(cacheKey);
-		}else{
-			logger.debug("Did not get cached ptype compatibility for " + cacheKey);
-		}
-		LinkedHashSet<String> result = calculateCompatiblePTypes(iType, locationCode);
-
-		//logger.debug("  " + result.size() + " ptypes can use this");
-		ptypesByItypeAndLocation.put(cacheKey, result);
-		return result;
-	}
-
-	private LinkedHashSet<String> calculateCompatiblePTypes(String iType, String locationCode) {
-		//logger.debug("getCompatiblePTypes for " + cacheKey);
-		LinkedHashSet<String> result = new LinkedHashSet<String>();
-		if (!Util.isNumeric(iType)){
-			logger.warn("IType " + iType + " was not numeric marking as incompatible with everything");
-			return result;
-		}
-		Long iTypeLong = Long.parseLong(iType);
-		//Loop through all patron types to see if the item is holdable
-		for (Long pType : pTypes){
-			//logger.debug("  Checking pType " + pType);
-			//Loop through the loan rules to see if this itype can be used based on the location code
-			for (LoanRuleDeterminer curDeterminer : loanRuleDeterminers){
-				//logger.debug("    " + curDeterminer.getRowNumber() + " matches location");
-				if (curDeterminer.getItemType().equals("999") || curDeterminer.getItemTypes().contains(iTypeLong)){
-					//logger.debug("    " + curDeterminer.getRowNumber() + " matches iType");
-					if (curDeterminer.getPatronType().equals("999") || curDeterminer.getPatronTypes().contains(pType)){
-						//logger.debug("    " + curDeterminer.getRowNumber() + " matches pType");
-						//Make sure the location matches
-						if (curDeterminer.matchesLocation(locationCode)){
-							LoanRule loanRule = loanRules.get(curDeterminer.getLoanRuleId());
-							if (loanRule.getHoldable().equals(Boolean.TRUE)){
-								if (curDeterminer.getPatronType().equals("999")){
-									result.add("all");
-									return result;
-								}else{
-									result.add(pType.toString());
-								}
-							}
-							//We got a match, stop processing
-							//logger.debug("    using determiner " + curDeterminer.getRowNumber() + " for ptype " + pType);
-							break;
-						}
-					}
-				}
-			}
-		}
-		return result;
-	}
-
 	/**
 	 * Determine Record Format(s)
 	 */
 	/**
 	 * Determine Record Format(s)
 	 */
-	public void loadPrintFormatInformation(IlsRecord ilsRecord, Record record){
-		if (ilsRecord.getRelatedItems().size() > 0 || ilsRecord.getRelatedOrderItems().size() > 0){
-			Set<String> printFormats = new LinkedHashSet<String>();
+	public void loadPrintFormatInformation(RecordInfo recordInfo, Record record){
+		LinkedHashSet<String> printFormats = new LinkedHashSet<>();
 
-			String leader = record.getLeader().toString();
-			char leaderBit;
-			ControlField fixedField = (ControlField) record.getVariableField("008");
+		String leader = record.getLeader().toString();
+		char leaderBit;
+		ControlField fixedField = (ControlField) record.getVariableField("008");
 
-			// check for music recordings quickly so we can figure out if it is music
-			// for category (need to do here since checking what is on the Compact
-			// Disc/Phonograph, etc is difficult).
-			if (leader.length() >= 6) {
-				leaderBit = leader.charAt(6);
-				switch (Character.toUpperCase(leaderBit)) {
-					case 'J':
-						printFormats.add("MusicRecording");
-						break;
-				}
+		// check for music recordings quickly so we can figure out if it is music
+		// for category (need to do here since checking what is on the Compact
+		// Disc/Phonograph, etc is difficult).
+		if (leader.length() >= 6) {
+			leaderBit = leader.charAt(6);
+			switch (Character.toUpperCase(leaderBit)) {
+				case 'J':
+					printFormats.add("MusicRecording");
+					break;
 			}
-			getFormatFromPublicationInfo(record, printFormats);
-			getFormatFromNotes(record, printFormats);
-			getFormatFromEdition(record, printFormats);
-			getFormatFromPhysicalDescription(record, printFormats);
-			getFormatFromSubjects(record, printFormats);
-			getFormatFrom007(record, printFormats);
-			getFormatFromTitle(record, printFormats);
-			getFormatFromLeader(printFormats, leader, fixedField);
-
-			if (printFormats.size() == 0){
-				logger.debug("Did not get any formats for print record " + ilsRecord.getRecordId() + ", assuming it is a book ");
-				printFormats.add("Book");
-			}
-
-			filterPrintFormats(printFormats);
-
-			HashSet<String> translatedFormats = indexer.translateCollection("format", printFormats);
-			HashSet<String> translatedFormatCategories = indexer.translateCollection("format_category", printFormats);
-			ilsRecord.addFormats(translatedFormats);
-			ilsRecord.addFormatCategories(translatedFormatCategories);
-			Long formatBoost = 0L;
-			HashSet<String> formatBoosts = indexer.translateCollection("format_boost", printFormats);
-			for (String tmpFormatBoost : formatBoosts){
-				Long tmpFormatBoostLong = Long.parseLong(tmpFormatBoost);
-				if (tmpFormatBoostLong > formatBoost){
-					formatBoost = tmpFormatBoostLong;
-				}
-			}
-			ilsRecord.setFormatBoost(formatBoost);
 		}
+		getFormatFromPublicationInfo(record, printFormats);
+		getFormatFromNotes(record, printFormats);
+		getFormatFromEdition(record, printFormats);
+		getFormatFromPhysicalDescription(record, printFormats);
+		getFormatFromSubjects(record, printFormats);
+		getFormatFrom007(record, printFormats);
+		getFormatFromTitle(record, printFormats);
+		getFormatFromLeader(printFormats, leader, fixedField);
+
+		if (printFormats.size() == 0){
+			logger.debug("Did not get any formats for print record " + recordInfo.getFullIdentifier() + ", assuming it is a book ");
+			printFormats.add("Book");
+		}
+
+		filterPrintFormats(printFormats);
+
+		HashSet<String> translatedFormats = translateCollection("format", printFormats);
+		HashSet<String> translatedFormatCategories = translateCollection("format_category", printFormats);
+		recordInfo.addFormats(translatedFormats);
+		recordInfo.addFormatCategories(translatedFormatCategories);
+		Long formatBoost = 0L;
+		HashSet<String> formatBoosts = translateCollection("format_boost", printFormats);
+		for (String tmpFormatBoost : formatBoosts){
+			Long tmpFormatBoostLong = Long.parseLong(tmpFormatBoost);
+			if (tmpFormatBoostLong > formatBoost){
+				formatBoost = tmpFormatBoostLong;
+			}
+		}
+		recordInfo.setFormatBoost(formatBoost);
 	}
 
 	private void filterPrintFormats(Set<String> printFormats) {
@@ -1980,19 +1405,47 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 	/**
 	 * Load information about eContent formats.
 	 *
-	 * @param econtentRecord
-	 * @param econtentItem
+	 * @param econtentRecord The record to load format information for
+	 * @param econtentItem   The item to load format information for
 	 */
-	protected void loadEContentFormatInformation(IlsRecord econtentRecord, EContentIlsItem econtentItem) {
+	protected void loadEContentFormatInformation(RecordInfo econtentRecord, ItemInfo econtentItem) {
 
 	}
 
-	protected char getSubfieldIndicatorFromConfig(Ini configIni, String subfieldName) {
-		String subfieldString = configIni.get("Reindex", subfieldName);
+	protected char getSubfieldIndicatorFromConfig(ResultSet indexingProfileRS, String subfieldName) throws SQLException{
+		String subfieldString = indexingProfileRS.getString(subfieldName);
 		char subfield = ' ';
-		if (subfieldString != null && subfieldString.length() > 0)  {
+		if (!indexingProfileRS.wasNull() && subfieldString.length() > 0)  {
 			subfield = subfieldString.charAt(0);
 		}
 		return subfield;
+	}
+
+	public String translateValue(String mapName, String value){
+		if (value == null){
+			return null;
+		}
+		TranslationMap translationMap = translationMaps.get(mapName);
+		String translatedValue;
+		if (translationMap == null){
+			logger.error("Unable to find translation map for " + mapName);
+			translatedValue = value;
+		}else{
+			translatedValue = translationMap.translateValue(value);
+		}
+		return translatedValue;
+	}
+
+	public HashSet<String> translateCollection(String mapName, HashSet<String> values) {
+		TranslationMap translationMap = translationMaps.get(mapName);
+		HashSet<String> translatedValues;
+		if (translationMap == null){
+			logger.error("Unable to find translation map for " + mapName);
+			translatedValues = values;
+		}else{
+			translatedValues = translationMap.translateCollection(values);
+		}
+		return translatedValues;
+
 	}
 }

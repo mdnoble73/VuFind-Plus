@@ -3,23 +3,15 @@ package org.vufind;
 import java.util.HashSet;
 
 public class LoanRuleDeterminer {
-	private Long rowNumber;
 	private String location;
 	private String trimmedLocation;
 	private String patronType;
 	private HashSet<Long>	patronTypes;
 	private String itemType;
 	private HashSet<Long> itemTypes;
-	private String ageRange;
 	private Long loanRuleId;
 	private boolean active;
 	
-	public Long getRowNumber() {
-		return rowNumber;
-	}
-	public void setRowNumber(Long rowNumber) {
-		this.rowNumber = rowNumber;
-	}
 	public String getLocation() {
 		return location;
 	}
@@ -33,12 +25,6 @@ public class LoanRuleDeterminer {
 		}
 	}
 	
-	public String getAgeRange() {
-		return ageRange;
-	}
-	public void setAgeRange(String ageRange) {
-		this.ageRange = ageRange;
-	}
 	public Long getLoanRuleId() {
 		return loanRuleId;
 	}
@@ -66,19 +52,19 @@ public class LoanRuleDeterminer {
 		itemTypes = splitNumberRangeString(itemType);
 	}
 	private HashSet<Long> splitNumberRangeString(String numberRangeString) {
-		HashSet<Long> result = new HashSet<Long>();
+		HashSet<Long> result = new HashSet<>();
 		String[] iTypeValues = numberRangeString.split(",");
-		
-		for (int i = 0; i < iTypeValues.length; i++){
-			if (iTypeValues[i].indexOf('-') > 0){
-				String[] iTypeRange = iTypeValues[i].split("-");
+
+		for (String iTypeValue : iTypeValues) {
+			if (iTypeValue.indexOf('-') > 0) {
+				String[] iTypeRange = iTypeValue.split("-");
 				Long iTypeRangeStart = Long.parseLong(iTypeRange[0]);
 				Long iTypeRangeEnd = Long.parseLong(iTypeRange[1]);
-				for (Long j = iTypeRangeStart; j <= iTypeRangeEnd; j++){
+				for (Long j = iTypeRangeStart; j <= iTypeRangeEnd; j++) {
 					result.add(j);
 				}
-			}else{
-				result.add(Long.parseLong(iTypeValues[i]));
+			} else {
+				result.add(Long.parseLong(iTypeValue));
 			}
 		}
 		return result;
@@ -86,10 +72,7 @@ public class LoanRuleDeterminer {
 
 
 	public boolean matchesLocation(String locationCode) {
-		if (location.equals("*") || location.equals("?????")){
-			return true;
-		}
-		return locationCode.toLowerCase().startsWith(this.trimmedLocation);
+		return location.equals("*") || location.equals("?????") || locationCode.toLowerCase().startsWith(this.trimmedLocation);
 	}
 	public HashSet<Long> getPatronTypes() {
 		return patronTypes;

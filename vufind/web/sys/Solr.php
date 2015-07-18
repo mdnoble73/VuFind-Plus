@@ -124,7 +124,7 @@ class Solr implements IndexEngine {
 	 */
 	private $scopingDisabled = false;
 
-	/** @var LibrarySearchSource|LocationSearchSource  */
+	/** @var string  */
 	private $searchSource = null;
 
 	/**
@@ -1457,8 +1457,14 @@ class Solr implements IndexEngine {
 
 		// Enable highlighting
 		if ($this->_highlight) {
+			global $solrScope;
+			$highlightFields = $fields;
+			$highlightFields = str_replace(",related_record_ids_$solrScope", '', $highlightFields);
+			$highlightFields = str_replace(",related_items_$solrScope", '', $highlightFields);
+			$highlightFields = str_replace(",format_$solrScope", '', $highlightFields);
+			$highlightFields = str_replace(",format_category_$solrScope", '', $highlightFields);
 			$options['hl'] = 'true';
-			$options['hl.fl'] = '*';
+			$options['hl.fl'] = $highlightFields;
 			$options['hl.simple.pre'] = '{{{{START_HILITE}}}}';
 			$options['hl.simple.post'] = '{{{{END_HILITE}}}}';
 		}
@@ -1504,13 +1510,17 @@ class Solr implements IndexEngine {
 	public function getScopingFilters($searchLibrary, $searchLocation){
 		global $user;
 		global $configArray;
+		global $solrScope;
 
 		$filter = array();
+
+		//Simplify detecting which works are relevant to our scope
+		$filter[] = "scope_has_related_records:$solrScope";
 
 		//*************************
 		//Marmot overrides for filtering based on library system and location
 		//Only include titles that the user has access to based on pType
-		$pType = 0;
+		/*$pType = 0;
 		$owningSystem = '';
 		$owningLibrary = '';
 		$canUseDefaultPType = !$this->scopingDisabled;
@@ -1545,11 +1555,11 @@ class Solr implements IndexEngine {
 			}
 		}
 		$buildingFacetName = 'owning_location';
-		$institutionFacetName = 'owning_library';
+		$institutionFacetName = 'owning_library';*/
 
 		//This block makes sure that titles are usable by the current user.  It is always run if we have a reasonable idea
 		//who is using the catalog. This enables "super scope" even if the user is doing a repeat search.
-		if ($pType > 0 && $configArray['Index']['enableUsableByFilter'] == true){
+		/*if ($pType > 0 && $configArray['Index']['enableUsableByFilter'] == true){
 			//First check usability.
 			//It is usable if the title is usable by the ptypes in question OR it is owned by the current branch/ system
 			$usableFilter = 'usable_by:('.$pType . ' OR all)';
@@ -1595,11 +1605,11 @@ class Solr implements IndexEngine {
 				$fullFilter .= " OR $onOrderFilter";
 			}
 			$filter[] = $fullFilter;
-		}
+		}*/
 
 		//This block checks whether or not the title is owned by
 		if ($this->scopingDisabled == false){
-			if (isset($searchLibrary)){
+			/*if (isset($searchLibrary)){
 				if ($searchLibrary->restrictSearchByLibrary && $searchLibrary->enableOverdriveCollection){
 					$filter[] = "($institutionFacetName:\"{$owningSystem}\"
 							OR $institutionFacetName:\"Shared Digital Collection\"
@@ -1629,12 +1639,7 @@ class Solr implements IndexEngine {
 					//This doesn't work because it effectively removes anything with both OverDrive and Print titles
 					//$filter[] = "!($buildingFacetName:\"Shared Digital Collection\" OR $buildingFacetName:\"Digital Collection\" OR $buildingFacetName:\"{$searchLibrary->facetLabel} Online\")";
 				}
-			}
-
-			global $defaultCollection;
-			if (isset($defaultCollection) && strlen($defaultCollection) > 0){
-				$filter[] = 'collection_group:"' . $defaultCollection . '"';
-			}
+			}*/
 		}
 
 		if ($this->searchSource == 'econtent'){

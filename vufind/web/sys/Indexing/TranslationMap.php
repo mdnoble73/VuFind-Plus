@@ -120,4 +120,8 @@ class TranslationMap extends DB_DataObject{
 			unset($this->translationMapValues);
 		}
 	}
+
+	public function getEditLink(){
+		return '/Admin/TranslationMaps?objectAction=edit&id=' . $this->id;
+	}
 }

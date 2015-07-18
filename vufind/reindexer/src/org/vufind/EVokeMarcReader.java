@@ -18,7 +18,7 @@ import java.io.IOException;
 /**
  * Utility class to read eVoke MARC records which are in JSON, but are not a standard format.
  *
- * VuFind-Plus
+ * Pika
  * User: Mark Noble
  * Date: 9/24/2014
  * Time: 12:37 PM

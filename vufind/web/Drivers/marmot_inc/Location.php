@@ -7,12 +7,15 @@ require_once 'DB/DataObject/Cast.php';
 require_once ROOT_DIR . '/Drivers/marmot_inc/LocationHours.php';
 require_once ROOT_DIR . '/Drivers/marmot_inc/LocationFacetSetting.php';
 require_once ROOT_DIR . '/sys/Browse/LocationBrowseCategory.php';
+require_once ROOT_DIR . '/sys/Indexing/LocationRecordOwned.php';
+require_once ROOT_DIR . '/sys/Indexing/LocationRecordToInclude.php';
 
 class Location extends DB_DataObject
 {
 	public $__table = 'location';   // table name
 	public $locationId;				//int(11)
 	public $code;					//varchar(5)
+	public $subLocation;
 	public $displayName;			//varchar(40)
 	public $showDisplayNameInHeader;
 	public $libraryId;				//int(11)
@@ -120,8 +123,16 @@ class Location extends DB_DataObject
 		unset($locationMoreDetailsStructure['weight']);
 		unset($locationMoreDetailsStructure['locationId']);
 
+		$locationRecordOwnedStructure = LocationRecordOwned::getObjectStructure();
+		unset($locationRecordOwnedStructure['locationId']);
+
+		$locationRecordToIncludeStructure = LocationRecordToInclude::getObjectStructure();
+		unset($locationRecordToIncludeStructure['locationId']);
+		unset($locationRecordToIncludeStructure['weight']);
+
 		$structure = array(
 			array('property'=>'code', 'type'=>'text', 'label'=>'Code', 'description'=>'The code for use when communicating with Millennium'),
+			array('property'=>'subLocation', 'type'=>'text', 'label'=>'Sub Location Code', 'description'=>'The sub location or collection used to identify this '),
 			array('property'=>'displayName', 'type'=>'text', 'label'=>'Display Name', 'description'=>'The full name of the location for display to the user', 'size'=>'40'),
 			array('property'=>'showDisplayNameInHeader', 'type'=>'checkbox', 'label'=>'Show Display Name in Header', 'description'=>'Whether or not the display name should be shown in the header next to the logo', 'hideInLists' => true, 'default'=>false),
 			array('property'=>'libraryId', 'type'=>'enum', 'values'=>$libraryList, 'label'=>'Library', 'description'=>'A link to the library which the location belongs to'),
@@ -264,6 +275,35 @@ class Location extends DB_DataObject
 				'canEdit' => true,
 			),
 
+			'recordsOwned' => array(
+				'property'=>'recordsOwned',
+				'type'=>'oneToMany',
+				'label'=>'Records Owned',
+				'description'=>'Information about what records are owned by the location',
+				'keyThis' => 'locationId',
+				'keyOther' => 'locationId',
+				'subObjectType' => 'LocationRecordOwned',
+				'structure' => $locationRecordOwnedStructure,
+				'sortable' => true,
+				'storeDb' => true,
+				'allowEdit' => false,
+				'canEdit' => false,
+			),
+
+			'recordsToInclude' => array(
+				'property'=>'recordsToInclude',
+				'type'=>'oneToMany',
+				'label'=>'Records To Include',
+				'description'=>'Information about what records to include in this scope',
+				'keyThis' => 'locationId',
+				'keyOther' => 'locationId',
+				'subObjectType' => 'LocationRecordToInclude',
+				'structure' => $locationRecordToIncludeStructure,
+				'sortable' => true,
+				'storeDb' => true,
+				'allowEdit' => false,
+				'canEdit' => false,
+			),
 		);
 		return $structure;
 	}
@@ -487,18 +527,6 @@ class Location extends DB_DataObject
 	 * @return Location|null
 	 */
 	static function getSearchLocation($searchSource = null){
-		if (is_null($searchSource)){
-			global $searchSource;
-			if (strpos($searchSource, 'library') === 0){
-				$trimmedSearchSource = str_replace('library', '', $searchSource);
-				require_once  ROOT_DIR . '/Drivers/marmot_inc/LibrarySearchSource.php';
-				$librarySearchSource = new LibrarySearchSource();
-				$librarySearchSource->id = $trimmedSearchSource;
-				if ($librarySearchSource->find(true)){
-					$searchSource = $librarySearchSource;
-				}
-			}
-		}
 		if (!array_key_exists($searchSource, Location::$searchLocation)){
 			if (is_object($searchSource)){
 				$scopingSetting = $searchSource->catalogScoping;
@@ -684,6 +712,29 @@ class Location extends DB_DataObject
 				}
 			}
 			return $this->facets;
+		}elseif ($name == 'recordsOwned'){
+			if (!isset($this->recordsOwned) && $this->locationId){
+				$this->recordsOwned = array();
+				$object = new LocationRecordOwned();
+				$object->locationId = $this->locationId;
+				$object->find();
+				while($object->fetch()){
+					$this->recordsOwned[$object->id] = clone($object);
+				}
+			}
+			return $this->recordsOwned;
+		}elseif ($name == 'recordsToInclude'){
+			if (!isset($this->recordsToInclude) && $this->locationId){
+				$this->recordsToInclude = array();
+				$object = new LocationRecordToInclude();
+				$object->locationId = $this->locationId;
+				$object->orderBy('weight');
+				$object->find();
+				while($object->fetch()){
+					$this->recordsToInclude[$object->id] = clone($object);
+				}
+			}
+			return $this->recordsToInclude;
 		}elseif  ($name == 'browseCategories'){
 			if (!isset($this->browseCategories) && $this->locationId){
 				$this->browseCategories = array();
@@ -711,6 +762,10 @@ class Location extends DB_DataObject
 			$this->facets = $value;
 		}elseif ($name == 'browseCategories'){
 			$this->browseCategories = $value;
+		}elseif ($name == 'recordsOwned'){
+			$this->recordsOwned = $value;
+		}elseif ($name == 'recordsToInclude'){
+			$this->recordsToInclude = $value;
 		}else{
 			$this->data[$name] = $value;
 		}
@@ -728,6 +783,8 @@ class Location extends DB_DataObject
 			$this->saveFacets();
 			$this->saveBrowseCategories();
 			$this->saveMoreDetailsOptions();
+			$this->saveRecordsOwned();
+			$this->saveRecordsToInclude();
 		}
 		return $ret;
 	}
@@ -744,6 +801,8 @@ class Location extends DB_DataObject
 			$this->saveFacets();
 			$this->saveBrowseCategories();
 			$this->saveMoreDetailsOptions();
+			$this->saveRecordsOwned();
+			$this->saveRecordsToInclude();
 		}
 		return $ret;
 	}
@@ -949,6 +1008,59 @@ class Location extends DB_DataObject
 		}
 		return $libraryHoursMessage;
 	}
+
+	public function saveRecordsOwned(){
+		if (isset ($this->recordsOwned) && is_array($this->recordsOwned)){
+			/** @var LibraryRecordOwned $object */
+			foreach ($this->recordsOwned as $object){
+				if (isset($object->deleteOnSave) && $object->deleteOnSave == true){
+					$object->delete();
+				}else{
+					if (isset($object->id) && is_numeric($object->id)){
+						$object->update();
+					}else{
+						$object->locationId = $this->locationId;
+						$object->insert();
+					}
+				}
+			}
+			unset($this->recordsOwned);
+		}
+	}
+
+	public function clearRecordsOwned(){
+		$object = new LocationRecordOwned();
+		$object->locationId = $this->locationId;
+		$object->delete();
+		$this->recordsOwned = array();
+	}
+
+	public function saveRecordsToInclude(){
+		if (isset ($this->recordsToInclude) && is_array($this->recordsToInclude)){
+			/** @var LibraryRecordOwned $object */
+			foreach ($this->recordsToInclude as $object){
+				if (isset($object->deleteOnSave) && $object->deleteOnSave == true){
+					$object->delete();
+				}else{
+					if (isset($object->id) && is_numeric($object->id)){
+						$object->update();
+					}else{
+						$object->locationId = $this->locationId;
+						$object->insert();
+					}
+				}
+			}
+			unset($this->recordsToInclude);
+		}
+	}
+
+	public function clearRecordsToInclude(){
+		$object = new LibraryRecordToInclude();
+		$object->locationId = $this->locationId;
+		$object->delete();
+		$this->recordsToInclude = array();
+	}
+
 	static function getDefaultFacets($locationId = -1){
 		global $configArray;
 		$defaultFacets = array();

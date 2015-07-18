@@ -137,6 +137,7 @@ abstract class ObjectEditor extends Admin_Admin
 					$errorDescription = 'Unknown error';
 				}
 				$logger->log('Could not insert new object ' . $ret . ' ' . $errorDescription, PEAR_LOG_DEBUG);
+				$_SESSION['lastError'] = "An error occurred inserting {$this->getObjectType()} <br/>{$errorDescription}";
 				$logger->log(mysql_error(), PEAR_LOG_DEBUG);
 				return false;
 			}
@@ -207,7 +208,6 @@ abstract class ObjectEditor extends Admin_Admin
 	}
 
 	function editObject($objectAction, $structure){
-		global $interface;
 		$errorOccurred = false;
 		//Save or create a new object
 		$id = $_REQUEST['id'];
@@ -215,7 +215,7 @@ abstract class ObjectEditor extends Admin_Admin
 			//Insert a new record
 			$curObject = $this->insertObject($structure);
 			if ($curObject == false){
-				$_SESSION['lastError'] = "An error occurred inserting new {$this->getObjectType()}";
+				//The session lastError is updated
 				$errorOccurred = true;
 			}
 		}else{

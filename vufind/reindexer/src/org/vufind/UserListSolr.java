@@ -7,7 +7,7 @@ import java.util.HashSet;
 
 /**
  * Description goes here
- * VuFind-Plus
+ * Pika
  * User: Mark Noble
  * Date: 5/15/14
  * Time: 9:34 AM
@@ -15,7 +15,7 @@ import java.util.HashSet;
 public class UserListSolr {
 	private final GroupedWorkIndexer groupedWorkIndexer;
 	private long id;
-	private HashSet<String> relatedRecordIds = new HashSet<String>();
+	private HashSet<String> relatedRecordIds = new HashSet<>();
 	private String author;
 	private String title;
 	private String contents = ""; //A list of the titles and authors for the list
@@ -40,15 +40,10 @@ public class UserListSolr {
 		doc.addField("format_category", "list");
 
 		//Also add formats and format categories for all scopes
-		for (String curLibrary : groupedWorkIndexer.getSubdomainMap().values()){
-			doc.addField("format_" + curLibrary, "List");
-			doc.addField("format_category_" + curLibrary, "List");
+		for (Scope scope : groupedWorkIndexer.getScopes()){
+			doc.addField("format_" + scope.getScopeName(), "List");
+			doc.addField("format_category_" + scope.getScopeName(), "List");
 		}
-		for (String curLocation : groupedWorkIndexer.getLocationMap().keySet()){
-			doc.addField("format_" + curLocation, "List");
-			doc.addField("format_category_" + curLocation, "List");
-		}
-
 
 		doc.addField("title", title);
 		doc.addField("title_display", title);
@@ -62,7 +57,7 @@ public class UserListSolr {
 		doc.addField("keywords", description);
 
 		//TODO: Should we count number of views to determine popularity?
-		doc.addField("popularity", Long.toString((long)numTitles));
+		doc.addField("popularity", Long.toString(numTitles));
 		doc.addField("num_holdings", numTitles);
 		doc.addField("num_titles", numTitles);
 

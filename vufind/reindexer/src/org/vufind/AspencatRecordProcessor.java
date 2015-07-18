@@ -7,6 +7,7 @@ import org.marc4j.marc.Record;
 import org.marc4j.marc.VariableField;
 
 import java.sql.Connection;
+import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -14,48 +15,41 @@ import java.util.Set;
 
 /**
  * ILS Indexing with customizations specific to Aspencat
- * VuFind-Plus
+ * Pika
  * User: Mark Noble
  * Date: 2/21/14
  * Time: 3:00 PM
  */
 public class AspencatRecordProcessor extends IlsRecordProcessor {
-	private char shelfLocationSubfield;
-
-	public AspencatRecordProcessor(GroupedWorkIndexer indexer, Connection vufindConn, Ini configIni, Logger logger) {
-		super(indexer, vufindConn, configIni, logger);
-		shelfLocationSubfield = getSubfieldIndicatorFromConfig(configIni, "shelfLocationSubfield");
+	public AspencatRecordProcessor(GroupedWorkIndexer indexer, Connection vufindConn, Ini configIni, ResultSet indexingProfileRS, Logger logger, boolean fullReindex) {
+		super(indexer, vufindConn, configIni, indexingProfileRS, logger, fullReindex);
 	}
 
 	@Override
-	protected boolean isItemAvailable(PrintIlsItem ilsRecord) {
-		if (ilsRecord.getStatus().equals("On Shelf") ||
-				ilsRecord.getStatus().equals("Library Use Only")) {
-			return true;
-		}else{
-			return false;
-		}
+	protected boolean isItemAvailable(ItemInfo itemInfo) {
+		return itemInfo.getStatusCode().equals("On Shelf") ||
+				itemInfo.getStatusCode().equals("Library Use Only");
 	}
 
 	@Override
-	public void loadPrintFormatInformation(IlsRecord ilsRecord, Record record) {
+	public void loadPrintFormatInformation(RecordInfo recordInfo, Record record) {
 		Set<String> printFormatsRaw = getFieldList(record, itemTag + iTypeSubfield);
-		Set<String> printFormats = new HashSet<String>();
+		HashSet<String> printFormats = new HashSet<>();
 		for (String curFormat : printFormatsRaw){
 			printFormats.add(curFormat.toLowerCase());
 		}
 
-		HashSet<String> translatedFormats = indexer.translateCollection("format", printFormats);
+		HashSet<String> translatedFormats = translateCollection("format", printFormats);
 
 		if (translatedFormats.size() == 0){
 			//We didn't get any formats from the collections, get formats from the base method (007, 008, etc).
-			super.loadPrintFormatInformation(ilsRecord, record);
+			super.loadPrintFormatInformation(recordInfo, record);
 		} else{
-			HashSet<String> translatedFormatCategories = indexer.translateCollection("format_category", printFormats);
-			ilsRecord.addFormats(translatedFormats);
-			ilsRecord.addFormatCategories(translatedFormatCategories);
+			HashSet<String> translatedFormatCategories = translateCollection("format_category", printFormats);
+			recordInfo.addFormats(translatedFormats);
+			recordInfo.addFormatCategories(translatedFormatCategories);
 			Long formatBoost = 0L;
-			HashSet<String> formatBoosts = indexer.translateCollection("format_boost", printFormats);
+			HashSet<String> formatBoosts = translateCollection("format_boost", printFormats);
 			for (String tmpFormatBoost : formatBoosts){
 				if (Util.isNumeric(tmpFormatBoost)) {
 					Long tmpFormatBoostLong = Long.parseLong(tmpFormatBoost);
@@ -64,11 +58,11 @@ public class AspencatRecordProcessor extends IlsRecordProcessor {
 					}
 				}
 			}
-			ilsRecord.setFormatBoost(formatBoost);
+			recordInfo.setFormatBoost(formatBoost);
 		}
 	}
 
-	private HashSet<String> additionalStatuses = new HashSet<String>();
+	private HashSet<String> additionalStatuses = new HashSet<>();
 	protected String getItemStatus(DataField itemField){
 		//Determining status for Koha relies on a number of different fields
 		String status = getStatusFromSubfield(itemField, '0', "Withdrawn");
@@ -104,30 +98,33 @@ public class AspencatRecordProcessor extends IlsRecordProcessor {
 							return "Checked Out";
 						}
 					}else if (subfield == '1'){
-						if (fieldData.equals("lost")){
-							return "Lost";
-						}else if (fieldData.equals("missing")){
-							return "Missing";
-						}else if (fieldData.equals("longoverdue")){
-							return "Long Overdue";
-						}else if (fieldData.equals("trace")){
-							return "Trace";
+						switch (fieldData) {
+							case "lost":
+								return "Lost";
+							case "missing":
+								return "Missing";
+							case "longoverdue":
+								return "Long Overdue";
+							case "trace":
+								return "Trace";
 						}
 					}else if (subfield == '7') {
 						//There are several library use only statuses that we do not care about right now.
 						return null;
 					}else if (subfield == 'k') {
-						if (fieldData.equals("CATALOGED") || fieldData.equals("READY")) {
-							return null;
-						}else if (fieldData.equals("BINDERY")){
-							return "Bindery";
-						}else if (fieldData.equals("IN REPAIRS")){
-							return "Repair";
-						}else if (fieldData.equals("trace")){
-							return "Trace";
-						}else{
-							//There are several reserve statuses that we don't care about, just ignore silently.
-							return null;
+						switch (fieldData) {
+							case "CATALOGED":
+							case "READY":
+								return null;
+							case "BINDERY":
+								return "Bindery";
+							case "IN REPAIRS":
+								return "Repair";
+							case "trace":
+								return "Trace";
+							default:
+								//There are several reserve statuses that we don't care about, just ignore silently.
+								return null;
 						}
 					}
 					String status = "|" + subfield + "-" + fieldData;
@@ -141,9 +138,8 @@ public class AspencatRecordProcessor extends IlsRecordProcessor {
 		return null;
 	}
 
-	protected List<PrintIlsItem> getUnsuppressedPrintItems(String identifier, Record record){
+	protected void loadUnsuppressedPrintItems(GroupedWorkSolr groupedWork, RecordInfo recordInfo, String identifier, Record record){
 		List<DataField> itemRecords = getDataFields(record, itemTag);
-		List<PrintIlsItem> unsuppressedItemRecords = new ArrayList<PrintIlsItem>();
 		for (DataField itemField : itemRecords){
 			if (!isItemSuppressed(itemField)){
 				//Check to see if the item has an eContent indicator
@@ -155,19 +151,15 @@ public class AspencatRecordProcessor extends IlsRecordProcessor {
 					}
 				}
 				if (!isEContent){
-					PrintIlsItem printIlsRecord = getPrintIlsItem(record, itemField);
-					if (printIlsRecord != null) {
-						unsuppressedItemRecords.add(printIlsRecord);
-					}
+					getPrintIlsItem(groupedWork, recordInfo, record, itemField);
 				}
 			}
 		}
-		return unsuppressedItemRecords;
 	}
 
-	protected List<EContentIlsItem> getUnsuppressedEContentItems(String identifier, Record record){
+	protected List<RecordInfo> loadUnsuppressedEContentItems(GroupedWorkSolr groupedWork, String identifier, Record record){
 		List<DataField> itemRecords = getDataFields(record, itemTag);
-		List<EContentIlsItem> unsuppressedEcontentRecords = new ArrayList<EContentIlsItem>();
+		List<RecordInfo> unsuppressedEcontentRecords = new ArrayList<>();
 		for (DataField itemField : itemRecords){
 			if (!isItemSuppressed(itemField)){
 				//Check to see if the item has an eContent indicator
@@ -195,14 +187,15 @@ public class AspencatRecordProcessor extends IlsRecordProcessor {
 					}
 				}
 				if (!isOverDrive && !isHoopla && isEContent){
-					unsuppressedEcontentRecords.add(getEContentIlsRecord(record, identifier, itemField));
+					unsuppressedEcontentRecords.add(getEContentIlsRecord(groupedWork, record, identifier, itemField));
 				}
 			}
 		}
 		return unsuppressedEcontentRecords;
 	}
 
-	protected String getEContentSharing(EContentIlsItem ilsEContentItem, DataField itemField) {
+	@Override
+	protected String getEContentSharing(ItemInfo ilsEContentItem, DataField itemField) {
 		if (ilsEContentItem.getLocationCode().equals("ONLINE")) {
 			return "shared";
 		}else{
@@ -210,85 +203,17 @@ public class AspencatRecordProcessor extends IlsRecordProcessor {
 		}
 	}
 
-	protected void loadEContentFormatInformation(IlsRecord econtentRecord, EContentIlsItem econtentItem) {
-		if (econtentItem.getiType() != null) {
-			String iType = econtentItem.getiType().toLowerCase();
-			String translatedFormat = indexer.translateValue("format", iType);
-			String translatedFormatCategory = indexer.translateValue("format_category", iType);
-			String translatedFormatBoost = indexer.translateValue("format_boost", iType);
-			econtentRecord.setFormatInformation(translatedFormat, translatedFormatCategory, translatedFormatBoost);
+	@Override
+	protected void loadEContentFormatInformation(RecordInfo econtentRecord, ItemInfo econtentItem) {
+		if (econtentItem.getITypeCode() != null) {
+			String iType = econtentItem.getITypeCode().toLowerCase();
+			String translatedFormat = translateValue("format", iType);
+			String translatedFormatCategory = translateValue("format_category", iType);
+			String translatedFormatBoost = translateValue("format_boost", iType);
+			econtentItem.setFormat(translatedFormat);
+			econtentItem.setFormatCategory(translatedFormatCategory);
+			econtentRecord.setFormatBoost(Long.parseLong(translatedFormatBoost));
 		}
-	}
-
-	/**
-	 * Do item based determination of econtent sources, and protection types.
-	 * For Marmot also load availability and ownership information for eContent since it is so similar.
-	 *
-	 * @param groupedWork The Work to load sources and protection types for
-	 * @param itemRecords The item records related to the current Marc Record being indexed
-	 */
-	protected void loadEContentSourcesAndProtectionTypes(GroupedWorkSolr groupedWork, List<EContentIlsItem> itemRecords) {
-		for (EContentIlsItem curItem : itemRecords){
-			String locationCode = curItem.getLocationCode();
-			HashSet<String> sources = new HashSet<String>();
-			HashSet<String> protectionTypes = new HashSet<String>();
-
-			String eContentSource = curItem.getSource();
-			String protectionType = curItem.getProtectionType();
-
-			sources.add(eContentSource);
-
-			boolean available = false;
-			if (protectionType.equals("external")){
-				protectionTypes.add("Externally Validated");
-				available = true;
-			}
-
-			boolean shareWithAll = false;
-			String sharing = curItem.getSharing();
-			if (sharing.equalsIgnoreCase("shared")){
-				shareWithAll = true;
-			}
-
-			if (locationCode != null && locationCode.equalsIgnoreCase("online")){
-				//Share with everyone
-				shareWithAll = true;
-			}
-			HashSet<String> owningLibraries = new HashSet<String>();
-			HashSet<String> availableLibraries = new HashSet<String>();
-			HashSet<String> owningSubdomainsAndLocations = new HashSet<String>();
-			HashSet<String> availableSubdomainsAndLocations = new HashSet<String>();
-			if (shareWithAll){
-				//When we share with everyone, we only really want to share with people that want it
-				groupedWork.addEContentSources(sources, curItem.getValidSubdomains() , curItem.getValidLocations());
-				groupedWork.addEContentProtectionTypes(protectionTypes, curItem.getValidSubdomains() , curItem.getValidLocations());
-				//Do not set compatible ptypes for eContent since they are just determined by owning library/location
-				//groupedWork.addCompatiblePTypes(curItem.getCompatiblePTypes());
-				//owningLibraries.add("Shared Digital Collection");
-				owningLibraries.addAll(curItem.getValidLibraryFacets());
-				owningSubdomainsAndLocations.addAll(indexer.getSubdomainMap().values());
-				owningSubdomainsAndLocations.addAll(indexer.getLocationMap().keySet());
-				if (available){
-					availableLibraries.addAll(indexer.getLibraryFacetMap().values());
-					availableSubdomainsAndLocations.addAll(indexer.getSubdomainMap().values());
-					availableSubdomainsAndLocations.addAll(indexer.getLocationMap().keySet());
-				}
-			}else{
-				ArrayList<String> validSubdomains = getLibrarySubdomainsForLocationCode(locationCode);
-				ArrayList<String> validLocationCodes = getRelatedLocationCodesForLocationCode(locationCode);
-				groupedWork.addEContentSources(sources, validSubdomains, validLocationCodes);
-				groupedWork.addEContentProtectionTypes(protectionTypes, validSubdomains, validLocationCodes);
-				owningLibraries.addAll(getLibraryOnlineFacetsForLocationCode(locationCode));
-				if (available){
-					availableLibraries.addAll(getLibraryOnlineFacetsForLocationCode(locationCode));
-					availableSubdomainsAndLocations.addAll(validSubdomains);
-					availableSubdomainsAndLocations.addAll(validLocationCodes);
-				}
-			}
-			groupedWork.addOwningLibraries(owningLibraries);
-			groupedWork.addOwningLocationCodesAndSubdomains(owningSubdomainsAndLocations);
-			groupedWork.addAvailableLocations(availableLibraries, availableSubdomainsAndLocations);
-		}//Has subfield w
 	}
 
 	protected String getSourceType(Record record, DataField itemField) {
@@ -345,53 +270,14 @@ public class AspencatRecordProcessor extends IlsRecordProcessor {
 		return suppressed;
 	}
 
-	@Override
-	protected String getLocationForItem(DataField itemField){
-		String collection = getItemSubfieldData(collectionSubfield, itemField);
-		String location = getItemSubfieldData(locationSubfieldIndicator, itemField);
-		if (collection != null){
-			return collection.toLowerCase();
-		}else{
-			if (location != null) {
-				return location.toLowerCase();
-			}else{
-				return location;
-			}
-		}
-	}
-
-	@Override
-	protected String getLibrarySystemCodeForItem(DataField itemField){
-		String location = getItemSubfieldData(locationSubfieldIndicator, itemField);
-		if (location != null) {
-			return location.toLowerCase();
-		}else{
-			return location;
-		}
-	}
-
-	@Override
-	protected String getShelfLocationCodeForItem(DataField itemField){
-		String shelfLocation = getItemSubfieldData(shelfLocationSubfield, itemField);
-		if (shelfLocation != null) {
-			return shelfLocation.toLowerCase();
-		}else{
-			return shelfLocation;
-		}
-	}
-
 	protected String getShelfLocationForItem(DataField itemField) {
 		String locationCode = getItemSubfieldData(locationSubfieldIndicator, itemField);
-		String shelfLocation = indexer.translateValue("location", locationCode);
-		String collection = getItemSubfieldData(collectionSubfield, itemField);
+		String shelfLocation = translateValue("location", locationCode);
+		String collection = getItemSubfieldData(shelvingLocationSubfield, itemField);
 		if (collection != null && !collection.equals(locationCode)){
-			shelfLocation += " - " + indexer.translateValue("ccode", collection);
+			shelfLocation += " - " + translateValue("ccode", collection);
 		}
 		return shelfLocation;
 	}
 
-	@Override
-	protected String getCollectionForItem(DataField itemField){
-		return null;
-	}
 }

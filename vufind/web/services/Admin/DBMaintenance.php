@@ -2019,19 +2019,23 @@ class DBMaintenance extends Admin_Admin {
 							UNIQUE(ilsId)
 						) ENGINE = INNODB"
 					),
+				),
 
-					'indexing_profile' => array(
-						'title' => 'Setup Indexing so ',
-						'description' => 'Setup indexing information table to store information about how to index ',
-						'sql' => array(
-							"CREATE TABLE IF NOT EXISTS `indexing_profiles` (
+				'indexing_profile' => array(
+					'title' => 'Indexing profile setup',
+					'description' => 'Setup indexing information table to store information about how to index ',
+					'sql' => array(
+						"CREATE TABLE IF NOT EXISTS `indexing_profiles` (
 							  `id` int(11) NOT NULL AUTO_INCREMENT,
 							  `name` varchar(50) NOT NULL,
 							  `marcPath` varchar(100) NOT NULL,
+							  `marcEncoding` enum('MARC8','UTF','UNIMARC','ISO8859_1','BESTGUESS') NOT NULL DEFAULT 'MARC8',
 							  `individualMarcPath` varchar(100) NOT NULL,
-							  `groupingClass` varchar(50) NOT NULL,
+							  `groupingClass` varchar(100) NOT NULL DEFAULT 'MarcRecordGrouper',
 							  `indexingClass` varchar(50) NOT NULL,
-							  `recordDriver` varchar(50) NOT NULL,
+							  `recordDriver` varchar(100) NOT NULL DEFAULT 'MarcRecord',
+							  `recordUrlComponent` varchar(25) NOT NULL DEFAULT 'Record',
+							  `formatSource` enum('bib','item') NOT NULL DEFAULT 'bib',
 							  `recordNumberTag` char(3) NOT NULL,
 							  `recordNumberPrefix` varchar(10) NOT NULL,
 							  `suppressItemlessBibs` tinyint(1) NOT NULL DEFAULT '1',
@@ -2041,12 +2045,16 @@ class DBMaintenance extends Admin_Admin {
 							  `callNumberPrestamp` char(1) DEFAULT NULL,
 							  `callNumber` char(1) DEFAULT NULL,
 							  `callNumberCutter` char(1) DEFAULT NULL,
+							  `callNumberPoststamp` varchar(1) DEFAULT NULL,
 							  `location` char(1) DEFAULT NULL,
+							  `locationsToSuppress` varchar(100) DEFAULT NULL,
 							  `subLocation` char(1) DEFAULT NULL,
-							  `collection` char(1) DEFAULT NULL,
+							  `shelvingLocation` char(1) DEFAULT NULL,
+							  `volume` varchar(1) DEFAULT NULL,
 							  `itemUrl` char(1) DEFAULT NULL,
 							  `barcode` char(1) DEFAULT NULL,
 							  `status` char(1) DEFAULT NULL,
+							  `statusesToSuppress` varchar(100) DEFAULT NULL,
 							  `totalCheckouts` char(1) DEFAULT NULL,
 							  `lastYearCheckouts` char(1) DEFAULT NULL,
 							  `yearToDateCheckouts` char(1) DEFAULT NULL,
@@ -2057,6 +2065,7 @@ class DBMaintenance extends Admin_Admin {
 							  `dateCreatedFormat` varchar(20) DEFAULT NULL,
 							  `iCode2` char(1) DEFAULT NULL,
 							  `useICode2Suppression` tinyint(1) NOT NULL DEFAULT '1',
+							  `format` char(1) DEFAULT NULL,
 							  `eContentDescriptor` char(1) DEFAULT NULL,
 							  `orderTag` char(3) DEFAULT NULL,
 							  `orderStatus` char(1) DEFAULT NULL,
@@ -2065,15 +2074,15 @@ class DBMaintenance extends Admin_Admin {
 							  `orderCode3` char(1) DEFAULT NULL,
 							  PRIMARY KEY (`id`),
 							  UNIQUE KEY `name` (`name`)
-							) ENGINE=InnoDB DEFAULT CHARSET=utf8",
-							"CREATE TABLE IF NOT EXISTS `translation_maps` (
+							) ENGINE=InnoDB  DEFAULT CHARSET=utf8",
+						"CREATE TABLE IF NOT EXISTS `translation_maps` (
 							  `id` int(11) NOT NULL AUTO_INCREMENT,
 							  `indexingProfileId` int(11) NOT NULL,
 							  `name` varchar(50) NOT NULL,
 							  PRIMARY KEY (`id`),
 							  UNIQUE KEY `profileName` (`indexingProfileId`,`name`)
 							) ENGINE=InnoDB DEFAULT CHARSET=utf8",
-							"CREATE TABLE IF NOT EXISTS `translation_map_values` (
+						"CREATE TABLE IF NOT EXISTS `translation_map_values` (
 							  `id` int(11) NOT NULL AUTO_INCREMENT,
 							  `translationMapId` int(11) NOT NULL,
 							  `value` varchar(50) NOT NULL,
@@ -2081,9 +2090,49 @@ class DBMaintenance extends Admin_Admin {
 							  PRIMARY KEY (`id`),
 							  UNIQUE KEY (`translationMapId`,`value`)
 							) ENGINE=InnoDB DEFAULT CHARSET=utf8",
-						)
-					),
-
+						"CREATE TABLE IF NOT EXISTS `library_records_owned` (
+							  `id` int(11) NOT NULL AUTO_INCREMENT,
+							  `libraryId` int(11) NOT NULL,
+							  `indexingProfileId` int(11) NOT NULL,
+							  `location` varchar(100) NOT NULL,
+							  `subLocation` varchar(100) NOT NULL,
+							  PRIMARY KEY (`id`)
+							) ENGINE=InnoDB  DEFAULT CHARSET=utf8",
+						"CREATE TABLE IF NOT EXISTS `library_records_to_include` (
+							  `id` int(11) NOT NULL AUTO_INCREMENT,
+							  `libraryId` int(11) NOT NULL,
+							  `indexingProfileId` int(11) NOT NULL,
+							  `location` varchar(100) NOT NULL,
+							  `subLocation` varchar(100) NOT NULL,
+							  `includeHoldableOnly` tinyint(4) NOT NULL DEFAULT '1',
+							  `includeItemsOnOrder` tinyint(1) NOT NULL DEFAULT '0',
+							  `includeEContent` tinyint(1) NOT NULL DEFAULT '0',
+							  `weight` int(11) NOT NULL,
+							  PRIMARY KEY (`id`),
+							  KEY `libraryId` (`libraryId`,`indexingProfileId`)
+							) ENGINE=InnoDB  DEFAULT CHARSET=utf8",
+						"CREATE TABLE IF NOT EXISTS `location_records_owned` (
+							  `id` int(11) NOT NULL AUTO_INCREMENT,
+							  `locationId` int(11) NOT NULL,
+							  `indexingProfileId` int(11) NOT NULL,
+							  `location` varchar(100) NOT NULL,
+							  `subLocation` varchar(100) NOT NULL,
+							  PRIMARY KEY (`id`)
+							) ENGINE=InnoDB  DEFAULT CHARSET=utf8",
+						"CREATE TABLE IF NOT EXISTS `location_records_to_include` (
+							  `id` int(11) NOT NULL AUTO_INCREMENT,
+							  `locationId` int(11) NOT NULL,
+							  `indexingProfileId` int(11) NOT NULL,
+							  `location` varchar(100) NOT NULL,
+							  `subLocation` varchar(100) NOT NULL,
+							  `includeHoldableOnly` tinyint(4) NOT NULL DEFAULT '1',
+							  `includeItemsOnOrder` tinyint(1) NOT NULL DEFAULT '0',
+							  `includeEContent` tinyint(1) NOT NULL DEFAULT '0',
+							  `weight` int(11) NOT NULL,
+							  PRIMARY KEY (`id`),
+							  KEY `locationId` (`locationId`,`indexingProfileId`)
+							) ENGINE=InnoDB  DEFAULT CHARSET=utf8",
+					)
 				),
 			));
 	}

@@ -46,7 +46,7 @@ class Admin_TranslationMaps extends ObjectEditor {
 
 				foreach ($data as $dataRow){
 					if (strlen(trim($dataRow)) != 0 && $dataRow[0] != '#'){
-						$dataFields = preg_split('/[,=]/', $dataRow);
+						$dataFields = preg_split('/[,=]/', $dataRow, 2);
 						$value = trim(str_replace('"', '',$dataFields[0]));
 						if (array_key_exists($value, $newValues)){
 							$translationMapValue = $newValues[$value];

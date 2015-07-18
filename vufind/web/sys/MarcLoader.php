@@ -46,8 +46,12 @@ class MarcLoader{
 	 * @return File_MARC_Record
 	 */
 	private static $loadedMarcRecords = array();
-	public static function loadMarcRecordByILSId($ilsId, $recordType = 'marc'){
-		global $configArray;
+	public static function loadMarcRecordByILSId($id, $recordType = 'marc'){
+		global $indexingProfiles;
+		$recordInfo = explode(':', $id);
+		$recordType = $recordInfo[0];
+		$ilsId = $recordInfo[1];
+
 		if (array_key_exists($ilsId, MarcLoader::$loadedMarcRecords)){
 			return MarcLoader::$loadedMarcRecords[$ilsId];
 		}
@@ -56,9 +60,11 @@ class MarcLoader{
 			$shortId = str_pad($shortId, 9, "0", STR_PAD_LEFT);
 		}
 		$firstChars = substr($shortId, 0, 4);
-		$individualName = $configArray['Reindex']['individualMarcPath'] . "/{$firstChars}/{$shortId}.mrc";
+		/** @var $indexingProfiles IndexingProfile[] */
+		$indexingProfile = $indexingProfiles[$recordType];
+		$individualName = $indexingProfile->individualMarcPath . "/{$firstChars}/{$shortId}.mrc";
 		$marcRecord = false;
-		if (isset($configArray['Reindex']['individualMarcPath'])){
+		if (isset($indexingProfile->individualMarcPath)){
 			if (file_exists($individualName)){
 				$rawMarc = file_get_contents($individualName);
 				$marc = new File_MARC($rawMarc, File_MARC::SOURCE_STRING);
@@ -71,23 +77,29 @@ class MarcLoader{
 		if (count(MarcLoader::$loadedMarcRecords) > 50){
 			array_shift(MarcLoader::$loadedMarcRecords);
 		}
-		MarcLoader::$loadedMarcRecords[$ilsId] = $marcRecord;
+		MarcLoader::$loadedMarcRecords[$id] = $marcRecord;
 		return $marcRecord;
 	}
 
 	/**
-	 * @param string $ilsId       The id of the record within the ils
+	 * @param string $id       Passed as <type>:<id>
 	 * @return boolean
 	 */
-	public static function marcExistsForILSId($ilsId){
-		global $configArray;
+	public static function marcExistsForILSId($id){
+		global $indexingProfiles;
+		$recordInfo = explode(':', $id);
+		$recordType = $recordInfo[0];
+		$ilsId = $recordInfo[1];
+
 		$shortId = str_replace('.', '', $ilsId);
 		if (strlen($shortId) < 9){
 			$shortId = str_pad($shortId, 9, "0", STR_PAD_LEFT);
 		}
 		$firstChars = substr($shortId, 0, 4);
-		$individualName = $configArray['Reindex']['individualMarcPath'] . "/{$firstChars}/{$shortId}.mrc";
-		if (isset($configArray['Reindex']['individualMarcPath'])){
+		/** @var $indexingProfiles IndexingProfile[] */
+		$indexingProfile = $indexingProfiles[$recordType];
+		$individualName = $indexingProfile->individualMarcPath . "/{$firstChars}/{$shortId}.mrc";
+		if (isset($indexingProfile->individualMarcPath)){
 			return file_exists($individualName);
 		}else{
 			return false;

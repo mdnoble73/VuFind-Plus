@@ -11,6 +11,11 @@
 class CatalogFactory {
 	/** @var array An array of connections keyed by driver name */
 	private static $catalogConnections = array();
+
+	/**
+	 * @param string|null $driver
+	 * @return CatalogConnection
+	 */
 	public static function getCatalogConnectionInstance($driver = null){
 		require_once ROOT_DIR . '/CatalogConnection.php';
 		if ($driver == null){

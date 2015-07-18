@@ -18,9 +18,9 @@ import java.util.Date;
  * @author Mark Noble <mark@marmot.org>
  * 
  */
-public class GroupedReindexProcess {
+public class GroupedReindexMain {
 
-	private static Logger logger	= Logger.getLogger(GroupedReindexProcess.class);
+	private static Logger logger	= Logger.getLogger(GroupedReindexMain.class);
 
 	//General configuration
 	private static String serverName;
@@ -40,8 +40,6 @@ public class GroupedReindexProcess {
 	private static Connection econtentConn = null;
 	
 	private static PreparedStatement addNoteToReindexLogStmt;
-
-	private static String version = "1.0";
 
 	/**
 	 * Starts the re-indexing process
@@ -110,7 +108,7 @@ public class GroupedReindexProcess {
 						logger.error("Unable to process individual work " + individualWorkToProcess, e);
 					}
 				}else{
-					logger.info("Runnning Reindex version " + version);
+					logger.info("Running Reindex");
 					numWorksProcessed = groupedWorkIndexer.processGroupedWorks();
 					numListsProcessed = groupedWorkIndexer.processPublicUserLists();
 				}
