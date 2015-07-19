@@ -219,7 +219,7 @@ class BrowseCategory extends DB_DataObject{
 			'searchTerm' => array('property'=>'searchTerm', 'type'=>'text', 'label'=>'Search Term', 'description'=>'A default search term to apply to the category', 'default'=>'', 'hideInLists' => true),
 			'defaultFilter' => array('property'=>'defaultFilter', 'type'=>'textarea', 'label'=>'Default Filter(s)', 'description'=>'Filters to apply to the search by default.', 'hideInLists' => true, 'rows' => 3, 'cols'=>80),
 			'sourceListId' => array('property' => 'sourceListId', 'type'=>'enum', 'values' => $sourceLists, 'label'=>'Source List', 'description'=>'A public list to display titles from'),
-			'defaultSort' => array('property' => 'defaultSort', 'type' => 'enum', 'label' => 'Default Sort', 'values' => array('relevance' => 'Best Match', 'popularity' => 'Popularity', 'newest_to_oldest' => 'Newest First', 'oldest_to_newest' => 'Oldest First', 'author' => 'Author', 'title' => 'Title', 'user_rating' => 'Rating'), 'description'=>'The default sort for the search if none is specified', 'default'=>'relevance', 'hideInLists' => true),
+			'defaultSort' => array('property' => 'defaultSort', 'type' => 'enum', 'label' => 'Default Sort', 'values' => array('relevance' => 'Best Match', 'popularity' => 'Popularity', 'newest_to_oldest' => 'Date Added', 'author' => 'Author', 'title' => 'Title', 'user_rating' => 'Rating'), 'description'=>'The default sort for the search if none is specified', 'default'=>'relevance', 'hideInLists' => true),
 			'numTimesShown' => array('property'=>'numTimesShown', 'type'=>'label', 'label'=>'Times Shown', 'description'=>'The number of times this category has been shown to users'),
 			'numTitlesClickedOn' => array('property'=>'numTitlesClickedOn', 'type'=>'label', 'label'=>'Titles Clicked', 'description'=>'The number of times users have clicked on titles within this category'),
 		);
@@ -268,8 +268,6 @@ class BrowseCategory extends DB_DataObject{
 			return 'popularity desc';
 		}elseif ($this->defaultSort == 'newest_to_oldest'){
 			return 'days_since_added asc';
-		}elseif ($this->defaultSort == 'oldest_to_newest'){
-			return 'days_since_added desc';
 		}elseif ($this->defaultSort == 'author'){
 			return 'author,title';
 		}elseif ($this->defaultSort == 'title'){
