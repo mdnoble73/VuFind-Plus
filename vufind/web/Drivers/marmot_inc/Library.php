@@ -564,12 +564,10 @@ class Library extends DB_DataObject
 	static $searchLibrary  = array();
 	static function getSearchLibrary($searchSource = null){
 		if (!array_key_exists($searchSource, Library::$searchLibrary)){
-			if (is_object($searchSource)){
-				$scopingSetting = $searchSource->catalogScoping;
-			}else{
-				$scopingSetting = $searchSource;
-			}
-			if ($scopingSetting == 'local' || $scopingSetting == 'econtent' || $scopingSetting == 'library' || $scopingSetting == 'location'){
+			$scopingSetting = $searchSource;
+			if ($scopingSetting == null){
+				return null;
+			} else if ($scopingSetting == 'local' || $scopingSetting == 'econtent' || $scopingSetting == 'library' || $scopingSetting == 'location'){
 				Library::$searchLibrary[$searchSource] = Library::getActiveLibrary();
 			}else if ($scopingSetting == 'marmot' || $scopingSetting == 'unscoped'){
 				Library::$searchLibrary[$searchSource] = null;

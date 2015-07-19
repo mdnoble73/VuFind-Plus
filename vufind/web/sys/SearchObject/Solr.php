@@ -2079,6 +2079,7 @@ class SearchObject_Solr extends SearchObject_Base
 				$fieldsToReturn .= ',format_category_' . $solrScope;
 				$fieldsToReturn .= ',collection_' . $solrScope;
 				$fieldsToReturn .= ',local_time_since_added_' . $solrScope;
+				$fieldsToReturn .= ',local_callnumber_' . $solrScope;
 				$fieldsToReturn .= ',detailed_location_' . $solrScope;
 
 			}else{

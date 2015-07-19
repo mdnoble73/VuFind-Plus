@@ -528,12 +528,10 @@ class Location extends DB_DataObject
 	 */
 	static function getSearchLocation($searchSource = null){
 		if (!array_key_exists($searchSource, Location::$searchLocation)){
-			if (is_object($searchSource)){
-				$scopingSetting = $searchSource->catalogScoping;
-			}else{
-				$scopingSetting = $searchSource;
-			}
-			if ($scopingSetting == 'local' || $scopingSetting == 'econtent' || $scopingSetting == 'location'){
+			$scopingSetting = $searchSource;
+			if ($searchSource == null){
+				Location::$searchLocation[$searchSource] = null;
+			}else  if ($scopingSetting == 'local' || $scopingSetting == 'econtent' || $scopingSetting == 'location'){
 				global $locationSingleton;
 				Location::$searchLocation[$searchSource] = $locationSingleton->getActiveLocation();
 			}else if ($scopingSetting == 'marmot' || $scopingSetting == 'unscoped'){

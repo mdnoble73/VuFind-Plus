@@ -242,17 +242,12 @@ class Search_Results extends Action {
 		if ($solrScope){
 			$searchLibrary = Library::getSearchLibrary();
 			if ($searchLibrary != null && $searchLibrary->showMarmotResultsAtEndOfSearch){
-				if (is_object($searchSource)){
-					$enableUnscopedSearch = $searchSource->catalogScoping != 'unscoped';
+				$searchSources = new SearchSources();
+				$searchOptions = $searchSources->getSearchSources();
+				if (isset($searchOptions['marmot'])){
+					//TODO: change name of search option to 'consortium'
 					$unscopedSearch = clone($searchObject);
-				}else{
-					$searchSources = new SearchSources();
-					$searchOptions = $searchSources->getSearchSources();
-					if (isset($searchOptions['marmot'])){
-						//TODO: change name of search option to 'consortium'
-						$unscopedSearch = clone($searchObject);
-						$enableUnscopedSearch = true;
-					}
+					$enableUnscopedSearch = true;
 				}
 			}
 		}
@@ -279,15 +274,11 @@ class Search_Results extends Action {
 		// Save the URL of this search to the session so we can return to it easily:
 		$_SESSION['lastSearchURL'] = $searchObject->renderSearchUrl();
 
-		if (is_object($searchSource)){
-			$translatedSearch = $searchSource->label;
-		}else{
-			$allSearchSources = SearchSources::getSearchSources();
-			if (!isset($allSearchSources[$searchSource]) && $searchSource == 'marmot'){
-				$searchSource = 'local';
-			}
-			$translatedSearch = $allSearchSources[$searchSource]['name'];
+		$allSearchSources = SearchSources::getSearchSources();
+		if (!isset($allSearchSources[$searchSource]) && $searchSource == 'marmot'){
+			$searchSource = 'local';
 		}
+		$translatedSearch = $allSearchSources[$searchSource]['name'];
 
 		// Save the search for statistics
 		$analytics->addSearch($translatedSearch, $searchObject->displayQuery(), $searchObject->isAdvanced(), $searchObject->getFullSearchType(), $searchObject->hasAppliedFacets(), $searchObject->getResultTotal());

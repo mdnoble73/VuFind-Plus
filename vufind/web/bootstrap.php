@@ -251,8 +251,8 @@ function loadSearchInformation(){
 		}
 	}
 
-	$searchLibrary = Library::getSearchLibrary(null);
-	$searchLocation = Location::getSearchLocation(null);
+	$searchLibrary = Library::getSearchLibrary($searchSource);
+	$searchLocation = Location::getSearchLocation($searchSource);
 
 	//Based on the search source, determine the search scope and set a global variable
 	global $solrScope;
@@ -299,6 +299,7 @@ function loadSearchInformation(){
 			$scopeType = 'Location';
 		}
 	}elseif($searchSource != 'marmot' && $searchSource != 'global'){
+		//Get the default library
 		$solrScope = $searchSource;
 		$scopeType = 'Search Source';
 	}

@@ -258,9 +258,6 @@ class SearchSources{
 	}
 
 	public function getExternalLink($searchSource, $type, $lookFor){
-		if (is_object($searchSource)){
-			$searchSource = $searchSource->searchWhat;
-		}
 		global $library;
 		global $configArray;
 		if ($searchSource =='goldrush'){
