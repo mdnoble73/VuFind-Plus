@@ -1034,5 +1034,14 @@ function getLibraryLocationUpdates(){
 				"ALTER TABLE `library` ADD COLUMN `externalMaterialsRequestUrl` VARCHAR(255);",
 			),
 		),
+
+		'default_library' => array(
+			'title' => 'Default Library',
+			'description' => 'Setup a default library for use when we do not get a defined subdomain',
+			'continueOnError' => true,
+			'sql' => array(
+				"ALTER TABLE `library` ADD COLUMN `default` TINYINT(1);",
+			),
+		),
 	);
 }

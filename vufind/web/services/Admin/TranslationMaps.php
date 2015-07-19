@@ -34,7 +34,12 @@ class Admin_TranslationMaps extends ObjectEditor {
 			if ($translationMap->find(true)){
 				$newValues = array();
 				if ($objectAction == 'doReload'){
+					/** @var TranslationMapValue $value */
+					foreach($translationMap->translationMapValues as $value){
+						$value->delete();
+					}
 					$translationMap->translationMapValues = array();
+					$translationMap->update();
 				}else{
 					foreach($translationMap->translationMapValues as $value){
 						$newValues[$value->value] = $value;

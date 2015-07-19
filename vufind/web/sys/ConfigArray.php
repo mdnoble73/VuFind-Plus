@@ -318,6 +318,17 @@ function updateConfigForScoping($configArray) {
 				if ($Library->N == 1){
 					$Library->fetch();
 					$library = $Library;
+				}else{
+					//Get the default library
+					$Library = new Library();
+					$Library->isDefault = 1;
+					$Library->find();
+					if ($Library->N == 1){
+						$Library->fetch();
+						$library = $Library;
+					}else{
+						echo("Could not determine the correct library to use for this install");
+					}
 				}
 			}
 		}

@@ -53,7 +53,12 @@ class Admin_Libraries extends ObjectEditor
 		return $libraryList;
 	}
 	function getObjectStructure(){
-		return Library::getObjectStructure();
+		$objectStructure = Library::getObjectStructure();
+		global $user;
+		if (!$user->hasRole('opacAdmin')){
+			unset($objectStructure['isDefault']);
+		}
+		return $objectStructure;
 	}
 	function getPrimaryKeyColumn(){
 		return 'subdomain';

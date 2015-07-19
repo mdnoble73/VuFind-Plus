@@ -17,6 +17,7 @@ require_once ROOT_DIR . '/sys/LibraryTopLinks.php';
 class Library extends DB_DataObject
 {
 	public $__table = 'library';    // table name
+	public $isDefault;
 	public $libraryId; 				//int(11)
 	public $subdomain; 				//varchar(15)
 	public $orderAccountingUnit;
@@ -227,6 +228,7 @@ class Library extends DB_DataObject
 		}
 
 		$structure = array(
+			'isDefault' => array('property' => 'isDefault', 'type'=>'checkbox', 'label' => 'Default Library (one per install!)', 'description' => 'The default library instance for loading scoping information etc', 'hideInLists' => true),
 			'libraryId' => array('property'=>'libraryId', 'type'=>'label', 'label'=>'Library Id', 'description'=>'The unique id of the library within the database'),
 			'subdomain' => array('property'=>'subdomain', 'type'=>'text', 'label'=>'Subdomain', 'description'=>'A unique id to identify the library within the system'),
 			'displayName' => array('property'=>'displayName', 'type'=>'text', 'label'=>'Display Name', 'description'=>'A name to identify the library within the system', 'size'=>'40'),
