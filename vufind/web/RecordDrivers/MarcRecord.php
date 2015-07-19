@@ -53,9 +53,14 @@ class MarcRecord extends IndexRecord
 			$this->marcRecord = $recordData;
 		}elseif (is_string($recordData)){
 			require_once ROOT_DIR . '/sys/MarcLoader.php';
-			$recordInfo = explode(':', $recordData);
-			$this->profileType = $recordInfo[0];
-			$this->id = $recordInfo[1];
+			if (strpos($recordData, ':') !== false){
+				$recordInfo = explode(':', $recordData);
+				$this->profileType = $recordInfo[0];
+				$this->id = $recordInfo[1];
+			}else{
+				$this->profileType = 'ils';
+				$this->id = $recordData;
+			}
 
 			global $indexingProfiles;
 			$this->indexingProfile = $indexingProfiles[$this->profileType];

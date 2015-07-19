@@ -87,9 +87,14 @@ class MarcLoader{
 	 */
 	public static function marcExistsForILSId($id){
 		global $indexingProfiles;
-		$recordInfo = explode(':', $id);
-		$recordType = $recordInfo[0];
-		$ilsId = $recordInfo[1];
+		if (strpos($id, ':') !== false){
+			$recordInfo = explode(':', $id);
+			$recordType = $recordInfo[0];
+			$ilsId = $recordInfo[1];
+		}else{
+			$recordType = 'ils';
+			$ilsId = $id;
+		}
 
 		$shortId = str_replace('.', '', $ilsId);
 		if (strlen($shortId) < 9){

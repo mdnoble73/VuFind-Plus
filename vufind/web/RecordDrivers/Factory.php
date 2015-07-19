@@ -115,14 +115,6 @@ class RecordDriverFactory {
 				$logger->log("Unable to load record driver for hoopla record $recordId", PEAR_LOG_WARNING);
 				$recordDriver = null;
 			}
-		}elseif ($recordType == 'ils'){
-			require_once ROOT_DIR . '/RecordDrivers/MarcRecord.php';
-			$recordDriver = new MarcRecord($recordId);
-			if (!$recordDriver->isValid()){
-				global $logger;
-				$logger->log("Unable to load record driver for $recordId", PEAR_LOG_WARNING);
-				$recordDriver = null;
-			}
 		}else{
 			require_once ROOT_DIR . '/sys/Indexing/IndexingProfile.php';
 			$indexingProfile = new IndexingProfile();
