@@ -202,16 +202,15 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 
 	@Override
 	protected void updateGroupedWorkSolrDataBasedOnMarc(GroupedWorkSolr groupedWork, Record record, String identifier) {
+		//For ILS Records, we can create multiple different records, one for print and order items,
+		//and one or more for eContent items.
+		HashSet<RecordInfo> allRelatedRecords = new HashSet<>();
+
 		try{
 			//If the entire bib is suppressed, update stats and bail out now.
 			if (isBibSuppressed(record)){
 				return;
 			}
-
-			//For ILS Records, we can create multiple different records, one for print and order items,
-			//and one or more for eContent items.
-
-			HashSet<RecordInfo> allRelatedRecords = new HashSet<>();
 
 			// Let's first look for the print/order record
 			RecordInfo recordInfo = groupedWork.addRelatedRecord(profileType, identifier);
@@ -394,6 +393,9 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		loadDateAdded(identifier, itemField, itemInfo);
 		String itemLocation = getItemSubfieldData(locationSubfieldIndicator, itemField);
 		String itemSublocation = getItemSubfieldData(subLocationSubfield, itemField);
+		if (itemSublocation == null){
+			itemSublocation = "";
+		}
 		itemInfo.setLocationCode(itemLocation);
 		itemInfo.setSubLocationCode(itemSublocation);
 		itemInfo.setITypeCode(getItemSubfieldData(iTypeSubfield, itemField));
