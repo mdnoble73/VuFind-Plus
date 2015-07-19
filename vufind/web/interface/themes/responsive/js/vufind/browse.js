@@ -230,12 +230,14 @@ VuFind.Browse = (function(){
 		},
 
 		getMoreResults: function(){
+			//Increment the current page in case the button is clicked rapidly
+			this.curPage += 1;
 			var url = Globals.path + '/Browse/AJAX',
 					params = {
 						method : 'getMoreBrowseResults'
 						,textId :  this.curSubCategory || this.curCategory
 						  // if sub-category is currently selected fetch that, otherwise fetch the main category
-						,pageToLoad : this.curPage + 1
+						,pageToLoad : this.curPage
 						,browseMode : this.browseMode
 					},
 					divClass = this.browseModeClasses[this.browseMode]; //|| this.browseModeClasses[Object.keys(this.browseModeClasses)[0]]; // if browseMode isn't set grab the first class
@@ -246,8 +248,9 @@ VuFind.Browse = (function(){
 					var newDiv = $('<div class="'+divClass+' row" />').hide().append(data.records);
 					$('.'+divClass).filter(':last').after(newDiv).after('<hr>');
 					newDiv.fadeIn('slow');
-					if (data.lastPage) $('#more-browse-results').hide(); // hide the load more results TODO: implement server side
-					else VuFind.Browse.curPage++;
+					if (data.lastPage){
+						$('#more-browse-results').hide(); // hide the load more results TODO: implement server side
+					}
 				}
 			}).fail(function(){
 				VuFind.showMessage('Request Failed', 'There was an error with this AJAX Request.');

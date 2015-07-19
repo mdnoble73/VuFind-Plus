@@ -191,6 +191,7 @@ class Browse_AJAX extends Action {
 
 		if ($pageToLoad == 1 && !isset($_REQUEST['reload'])) {
 			// only first page is cached
+			/** @var Memcache $memCache */
 			global $memCache, $solrScope;
 			$key = 'browse_category_' . $this->textId . '_' . $solrScope . '_' . $browseMode;
 			$browseCategoryInfo = $memCache->get($key);
@@ -445,8 +446,9 @@ class Browse_AJAX extends Action {
 
 				// Get Needed Info about sub-category
 				/** @var BrowseCategory $temp */
-				$temp = BrowseCategory::staticGet('id', $subCategory->subCategoryId);
-				if ($temp) {
+				$temp = new BrowseCategory();
+				$temp->id = $subCategory->subCategoryId;
+				if ($temp->fetch(true)) {
 					$this->subCategories[] = $temp;
 					$subCategories[] = array('label' => $temp->label, 'textId' => $temp->textId);
 				}
