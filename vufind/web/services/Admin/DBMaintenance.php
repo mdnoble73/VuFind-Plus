@@ -2134,7 +2134,17 @@ class DBMaintenance extends Admin_Admin {
 							) ENGINE=InnoDB  DEFAULT CHARSET=utf8",
 					)
 				),
-			));
+
+				'indexing_profile_collection' => array(
+					'title' => 'Indexing profile collections',
+					'description' => 'Add handling of collections to indexing profile table',
+					'sql' => array(
+						"ALTER TABLE indexing_profiles ADD COLUMN `collection` char(1) DEFAULT NULL"
+					)
+				),
+
+			)
+		);
 	}
 
 	public function dropBrowseTables(&$update) {

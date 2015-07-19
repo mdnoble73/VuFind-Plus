@@ -623,7 +623,7 @@ public class GroupedWorkIndexer {
 				updateVariableStmt.executeUpdate();
 				updateVariableStmt.close();
 			} else {
-				PreparedStatement insertVariableStmt = vufindConn.prepareStatement("INSERT INTO variables (`name`, `value`) VALUES ('full_reindex_running', ?)", Statement.RETURN_GENERATED_KEYS);
+				PreparedStatement insertVariableStmt = vufindConn.prepareStatement("INSERT INTO variables (`name`, `value`) VALUES ('full_reindex_running', ?) ON DUPLICATE KEY UPDATE value = VALUES(value)", Statement.RETURN_GENERATED_KEYS);
 				insertVariableStmt.setString(1, Boolean.toString(running));
 				insertVariableStmt.executeUpdate();
 				ResultSet generatedKeys = insertVariableStmt.getGeneratedKeys();

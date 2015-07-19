@@ -35,6 +35,7 @@ class IndexingProfile extends DB_DataObject{
 	public $location;
 	public $subLocation;
 	public $shelvingLocation;
+	public $collection;
 	public $volume;
 	public $itemUrl;
 	public $barcode;
@@ -87,7 +88,8 @@ class IndexingProfile extends DB_DataObject{
 			'location' => array('property' => 'location', 'type' => 'text', 'label' => 'Location', 'maxLength' => 1, 'description' => 'Subfield for location'),
 			'locationsToSuppress' => array('property' => 'locationsToSuppress', 'type' => 'text', 'label' => 'Locations To Suppress', 'maxLength' => 100, 'description' => 'A regular expression for any locations that should be suppressed'),
 			'subLocation' => array('property' => 'subLocation', 'type' => 'text', 'label' => 'Sub Location', 'maxLength' => 1, 'description' => 'A secondary subfield to divide locations'),
-			'shelvingLocation' => array('property' => 'shelvingLocation', 'type' => 'text', 'label' => 'Collection', 'maxLength' => 1, 'description' => 'A subfield for shelving location information'),
+			'shelvingLocation' => array('property' => 'shelvingLocation', 'type' => 'text', 'label' => 'Shelving Location', 'maxLength' => 1, 'description' => 'A subfield for shelving location information'),
+			'collection' => array('property' => 'collection', 'type' => 'text', 'label' => 'Collection', 'maxLength' => 1, 'description' => 'A subfield for collection information'),
 			'volume' => array('property' => 'volume', 'type' => 'text', 'label' => 'Volume', 'maxLength' => 1, 'description' => 'A subfield for volume information'),
 			'itemUrl' => array('property' => 'itemUrl', 'type' => 'text', 'label' => 'Item URL', 'maxLength' => 1, 'description' => 'Subfield for a URL specific to the item'),
 			'barcode' => array('property' => 'barcode', 'type' => 'text', 'label' => 'Barcode', 'maxLength' => 1, 'description' => 'Subfield for barcode'),

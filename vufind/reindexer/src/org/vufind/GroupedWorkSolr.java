@@ -37,8 +37,6 @@ public class GroupedWorkSolr {
 	private String callNumberA;
 	private String callNumberFirst;
 	private String callNumberSubject;
-	private HashSet<String> collectionGroup = new HashSet<>();
-	private HashMap<String, HashSet<String>> additionalCollections = new HashMap<>();
 	private HashSet<String> contents = new HashSet<>();
 	private HashSet<String> dateSpans = new HashSet<>();
 	private HashSet<String> description = new HashSet<>();
@@ -67,7 +65,6 @@ public class GroupedWorkSolr {
 	private String lexileCode = "";
 	private HashMap<String, Integer> literaryFormFull = new HashMap<>();
 	private HashMap<String, Integer> literaryForm = new HashMap<>();
-	private String localCallNumber;
 	private HashSet<String> mpaaRatings = new HashSet<>();
 	private Long numHoldings = 0L;
 	private HashSet<String> oclcs = new HashSet<>();
@@ -108,11 +105,7 @@ public class GroupedWorkSolr {
 		//Ownership and location
 		doc.addField("owning_library", getAllOwningLibraries());
 		doc.addField("owning_location", getAllOwningLocations());
-		doc.addField("collection_group", collectionGroup);
-		for (String additionalCollection : additionalCollections.keySet()){
-			doc.addField("collection_" + additionalCollection, additionalCollections.get(additionalCollection));
-		}
-
+		
 		//Title and variations
 		String fullTitle = title;
 		if (subTitle != null){
@@ -235,7 +228,6 @@ public class GroupedWorkSolr {
 		doc.addField("callnumber-a", callNumberA);
 		doc.addField("callnumber-first", callNumberFirst);
 		doc.addField("callnumber-subject", callNumberSubject);
-		doc.addField("local_callnumber", localCallNumber);
 		//relevance determiners
 		doc.addField("popularity", Long.toString((long)popularity));
 		doc.addField("num_holdings", numHoldings);
@@ -320,6 +312,8 @@ public class GroupedWorkSolr {
 					doc.addField("detailed_location_" + scopeName, detailedLocations);
 				}
 
+				doc.addField("collection_" + scopeName, getCollections(scopedItems, scope));
+				
 				if (hasAvailableItemsWithinScope(scopedItems, scope)){
 					availableFacets.add(scope.getFacetLabel());
 				}
@@ -505,6 +499,16 @@ public class GroupedWorkSolr {
 			relatedItemDetails.add(curItem.getDetails(scope));
 		}
 		return relatedItemDetails;
+	}
+	
+	public HashSet<String> getCollections(HashSet<ItemInfo> scopedItems, Scope scope){
+		HashSet<String> relatedCollections = new HashSet<>();
+		for (ItemInfo curItem : scopedItems){
+			if (curItem.isLocallyOwned(scope)) {
+				relatedCollections.add(curItem.getCollection());
+			}
+		}
+		return relatedCollections;
 	}
 
 
@@ -762,17 +766,6 @@ public class GroupedWorkSolr {
 
 	public void setGroupingCategory(String groupingCategory) {
 		this.groupingCategory = groupingCategory;
-	}
-
-	public void addCollectionGroup(String collection_group) {
-		collectionGroup.add(collection_group);
-	}
-
-	public void addAdditionalCollection(String collectionName, String collection) {
-		if (!additionalCollections.containsKey(collectionName)){
-			additionalCollections.put(collectionName, new HashSet<String>());
-		}
-		additionalCollections.get(collectionName).add(collection);
 	}
 
 	public void setAuthorLetter(String authorLetter) {
@@ -1062,12 +1055,6 @@ public class GroupedWorkSolr {
 
 	public void addEContentDevices(HashSet<String> devices){
 		this.econtentDevices.addAll(devices);
-	}
-
-	public void addLocalCallNumber(String fullCallNumber) {
-		if (localCallNumber == null){
-			localCallNumber = fullCallNumber;
-		}
 	}
 
 	public void addKeywords(String keywords){

@@ -33,6 +33,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 	protected char barcodeSubfield;
 	protected char statusSubfieldIndicator;
 	protected char shelvingLocationSubfield;
+	protected char collectionSubfield;
 	protected char dueDateSubfield;
 	protected char dateCreatedSubfield;
 	protected String dateAddedFormat;
@@ -90,6 +91,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 			locationSubfieldIndicator = getSubfieldIndicatorFromConfig(indexingProfileRS, "location");
 			subLocationSubfield = getSubfieldIndicatorFromConfig(indexingProfileRS, "subLocation");
 			shelvingLocationSubfield = getSubfieldIndicatorFromConfig(indexingProfileRS, "shelvingLocation");
+			collectionSubfield = getSubfieldIndicatorFromConfig(indexingProfileRS, "collection");
 
 			itemUrlSubfieldIndicator = getSubfieldIndicatorFromConfig(indexingProfileRS, "itemUrl");
 			barcodeSubfield = getSubfieldIndicatorFromConfig(indexingProfileRS, "barcode");
@@ -548,6 +550,9 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		String dateAddedStr = getItemSubfieldData(dateCreatedSubfield, itemField);
 		if (dateAddedStr != null) {
 			try {
+				if (dateAddedFormatter == null){
+					dateAddedFormatter = new SimpleDateFormat(dateAddedFormat);
+				}
 				Date dateAdded = dateAddedFormatter.parse(dateAddedStr);
 				itemInfo.setDateAdded(dateAdded);
 			} catch (ParseException e) {
@@ -619,6 +624,8 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 
 		loadItemCallNumber(record, itemField, itemInfo);
 		itemInfo.setItemIdentifier(getItemSubfieldData(itemRecordNumberSubfieldIndicator, itemField));
+
+		itemInfo.setCollection(translateValue("collection", getItemSubfieldData(collectionSubfield, itemField)));
 
 		loadPrintFormatInformation(recordInfo, record);
 

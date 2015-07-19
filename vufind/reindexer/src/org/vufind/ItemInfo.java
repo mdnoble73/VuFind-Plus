@@ -33,6 +33,7 @@ public class ItemInfo {
 	private String eContentSharing;
 	private String statusCode;
 	private String dueDate;
+	private String collection;
 	private RecordInfo recordInfo;
 
 	private HashMap<String, ScopingInfo> scopingInfo = new HashMap<>();
@@ -40,6 +41,14 @@ public class ItemInfo {
 
 	public void setRecordInfo(RecordInfo recordInfo) {
 		this.recordInfo = recordInfo;
+	}
+
+	public String getCollection() {
+		return collection;
+	}
+
+	public void setCollection(String collection) {
+		this.collection = collection;
 	}
 
 	public String getStatusCode() {

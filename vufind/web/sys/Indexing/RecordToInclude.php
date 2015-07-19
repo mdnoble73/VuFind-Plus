@@ -37,7 +37,7 @@ class RecordToInclude extends DB_DataObject{
 			'subLocation' => array('property'=>'subLocation', 'type'=>'text', 'label'=>'Sub Location', 'description'=>'A regular expression for sublocation codes to include', 'maxLength' => '100', 'required' => false),
 			'includeHoldableOnly' => array('property'=>'includeHoldableOnly', 'type'=>'checkbox', 'label'=>'Include Holdable Only', 'description'=>'Whether or not non-holdable records are included'),
 			'includeItemsOnOrder' => array('property'=>'includeItemsOnOrder', 'type'=>'checkbox', 'label'=>'Include Items On Order', 'description'=>'Whether or not order records are included'),
-			'includeEContent' => array('property'=>'includeEContent', 'type'=>'checkbox', 'label'=>'Include Items On Order', 'description'=>'Whether or not order records are included'),
+			'includeEContent' => array('property'=>'includeEContent', 'type'=>'checkbox', 'label'=>'Include e-content Items', 'description'=>'Whether or not e-Content should be included'),
 		);
 		return $structure;
 	}

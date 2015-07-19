@@ -36,15 +36,6 @@ public class UserListSolr {
 
 		doc.addField("usable_by", "all");
 
-		doc.addField("format", "list");
-		doc.addField("format_category", "list");
-
-		//Also add formats and format categories for all scopes
-		for (Scope scope : groupedWorkIndexer.getScopes()){
-			doc.addField("format_" + scope.getScopeName(), "List");
-			doc.addField("format_category_" + scope.getScopeName(), "List");
-		}
-
 		doc.addField("title", title);
 		doc.addField("title_display", title);
 		
@@ -63,7 +54,13 @@ public class UserListSolr {
 
 		Date dateAdded = new Date(created * 1000);
 		doc.addField("days_since_added", Util.getDaysSinceAddedForDate(dateAdded));
-		doc.addField("time_since_added", Util.getTimeSinceAddedForDate(dateAdded));
+
+		//Do things based on scoping
+		for (Scope scope: groupedWorkIndexer.getScopes()) {
+			doc.addField("time_since_added_" + scope.getScopeName(), Util.getTimeSinceAddedForDate(dateAdded));
+			doc.addField("format_" + scope.getScopeName(), "list");
+			doc.addField("format_category_" + scope.getScopeName(), "list");
+		}
 
 		return doc;
 	}
