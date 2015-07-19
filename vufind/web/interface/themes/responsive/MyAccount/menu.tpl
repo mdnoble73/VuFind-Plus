@@ -215,7 +215,7 @@
 			{/if}
 
 			{if $user && ($user->hasRole('libraryAdmin') || $user->hasRole('opacAdmin') || $user->hasRole('cataloging'))}
-				{if in_array($action, array('ReindexLog', 'OverDriveExtractLog', 'IndexingStats', 'IndexingProfiles'))}
+				{if in_array($action, array('ReindexLog', 'OverDriveExtractLog', 'IndexingStats', 'IndexingProfiles', 'TranslationMaps'))}
 					{assign var="curSection" value=true}
 				{else}
 					{assign var="curSection" value=false}
@@ -234,6 +234,7 @@
 							<div class="adminMenuLink {if $action == "ReindexLog"}active{/if}"><a href="{$path}/Admin/ReindexLog">Reindex Log</a></div>
 							<div class="adminMenuLink {if $action == "OverDriveExtractLog"}active{/if}"><a href="{$path}/Admin/OverDriveExtractLog">OverDrive Extract Log</a></div>
 							<div class="adminMenuLink {if $action == "IndexingProfiles"}active{/if}"><a href="{$path}/Admin/IndexingProfiles">Indexing Profiles</a></div>
+							<div class="adminMenuLink {if $action == "TranslationMaps"}active{/if}"><a href="{$path}/Admin/TranslationMaps">Translation Maps</a></div>
 						</div>
 					</div>
 				</div>

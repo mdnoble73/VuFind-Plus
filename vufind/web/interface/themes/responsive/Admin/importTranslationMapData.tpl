@@ -26,7 +26,7 @@
 <script type="text/javascript">
 	{literal}
 	function setObjectAction(newValue){
-		$("#objectAction").value(newValue);
+		$("#objectAction").val(newValue);
 	}
 	{/literal}
 </script>

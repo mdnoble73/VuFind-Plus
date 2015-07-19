@@ -328,8 +328,8 @@ function loadSearchInformation(){
 	require_once ROOT_DIR . '/sys/Indexing/IndexingProfile.php';
 	/** @var $indexingProfiles IndexingProfile[] */
 	global $indexingProfiles;
-	//$indexingProfiles = $memCache->get("{$serverName}_indexing_profiles", $indexingProfiles);
-	//if ($indexingProfiles === false || isset($_REQUEST['reload'])){
+	$indexingProfiles = $memCache->get("{$serverName}_indexing_profiles", $indexingProfiles);
+	if ($indexingProfiles === false || isset($_REQUEST['reload'])){
 		$indexingProfiles = array();
 		$indexingProfile = new IndexingProfile();
 		$indexingProfile->orderBy('name');
@@ -337,8 +337,8 @@ function loadSearchInformation(){
 		while ($indexingProfile->fetch()){
 			$indexingProfiles[$indexingProfile->name] = clone($indexingProfile);
 		}
-		//$memCache->set("{$serverName}_indexing_profiles", $indexingProfiles, 0, $configArray['Caching']['indexing_profiles']);
-	//}
+		$memCache->set("{$serverName}_indexing_profiles", $indexingProfiles, 0, $configArray['Caching']['indexing_profiles']);
+	}
 }
 
 function disableErrorHandler(){

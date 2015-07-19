@@ -182,6 +182,10 @@ class IndexingProfile extends DB_DataObject{
 			$this->saveTranslationMaps();
 			$this->saveLocationMaps();
 		}
+		/** @var Memcache $memCache */
+		global $memCache;
+		global $serverName;
+		$memCache->delete("{$serverName}_indexing_profiles");
 		return true;
 	}
 
@@ -198,6 +202,10 @@ class IndexingProfile extends DB_DataObject{
 			$this->saveTranslationMaps();
 			$this->saveLocationMaps();
 		}
+		/** @var Memcache $memCache */
+		global $memCache;
+		global $serverName;
+		$memCache->delete("{$serverName}_indexing_profiles");
 		return true;
 	}
 

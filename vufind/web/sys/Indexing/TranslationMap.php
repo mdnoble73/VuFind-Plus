@@ -52,13 +52,15 @@ class TranslationMap extends DB_DataObject{
 		if ($name == "translationMapValues") {
 			if (!isset($this->translationMapValues)){
 				//Get the list of translation maps
-				$this->translationMapValues = array();
-				$value = new TranslationMapValue();
-				$value->translationMapId = $this->id;
-				$value->orderBy('value ASC');
-				$value->find();
-				while($value->fetch()){
-					$this->translationMapValues[$value->id] = clone($value);
+				if ($this->id){
+					$this->translationMapValues = array();
+					$value = new TranslationMapValue();
+					$value->translationMapId = $this->id;
+					$value->orderBy('value ASC');
+					$value->find();
+					while($value->fetch()){
+						$this->translationMapValues[$value->id] = clone($value);
+					}
 				}
 			}
 			return $this->translationMapValues;
