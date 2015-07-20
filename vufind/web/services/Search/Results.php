@@ -356,7 +356,7 @@ class Search_Results extends Action {
 					// Unexpected error -- let's treat this as a fatal condition.
 				} else {
 					PEAR_Singleton::raiseError(new PEAR_Error('Unable to process query<br />' .
-                        'Solr Returned: ' . $error));
+                        'Solr Returned: ' . print_r($error, true)));
 				}
 			}
 
