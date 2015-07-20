@@ -570,6 +570,9 @@ class Library extends DB_DataObject
 
 	static $searchLibrary  = array();
 	static function getSearchLibrary($searchSource = null){
+		if ($searchSource == null){
+			global $searchSource;
+		}
 		if (!array_key_exists($searchSource, Library::$searchLibrary)){
 			$scopingSetting = $searchSource;
 			if ($scopingSetting == null){

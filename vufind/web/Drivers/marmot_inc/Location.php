@@ -527,6 +527,9 @@ class Location extends DB_DataObject
 	 * @return Location|null
 	 */
 	static function getSearchLocation($searchSource = null){
+		if ($searchSource == null){
+			global $searchSource;
+		}
 		if (!array_key_exists($searchSource, Location::$searchLocation)){
 			$scopingSetting = $searchSource;
 			if ($searchSource == null){

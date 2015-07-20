@@ -2204,11 +2204,11 @@ class DBMaintenance extends Admin_Admin {
 		$ilsIndexingProfile->useICode2Suppression = $configArray['Reindex']['useICode2Suppression'];
 		$ilsIndexingProfile->format = isset($configArray['Reindex']['formatSubfield']) ? $configArray['Reindex']['formatSubfield'] : '';
 		$ilsIndexingProfile->eContentDescriptor = $configArray['Reindex']['eContentSubfield'];
-		$ilsIndexingProfile->orderTag = $configArray['Reindex']['orderTag'];
-		$ilsIndexingProfile->orderStatus = $configArray['Reindex']['orderStatusSubfield'];
-		$ilsIndexingProfile->orderLocation = $configArray['Reindex']['orderLocationsSubfield'];
-		$ilsIndexingProfile->orderCopies = $configArray['Reindex']['orderCopiesSubfield'];
-		$ilsIndexingProfile->orderCode3 = $configArray['Reindex']['orderCode3Subfield'];
+		$ilsIndexingProfile->orderTag = isset($configArray['Reindex']['orderTag']) ? $configArray['Reindex']['orderTag'] : '';
+		$ilsIndexingProfile->orderStatus = isset($configArray['Reindex']['orderStatusSubfield']) ? $configArray['Reindex']['orderStatusSubfield'] : '';
+		$ilsIndexingProfile->orderLocation = isset($configArray['Reindex']['orderLocationsSubfield']) ? $configArray['Reindex']['orderLocationsSubfield'] : '';
+		$ilsIndexingProfile->orderCopies = isset($configArray['Reindex']['orderCopiesSubfield']) ? $configArray['Reindex']['orderCopiesSubfield'] : '';
+		$ilsIndexingProfile->orderCode3 = isset($configArray['Reindex']['orderCode3Subfield']) ? $configArray['Reindex']['orderCode3Subfield'] : '';
 
 		if ($profileExists){
 			$ilsIndexingProfile->update();
