@@ -2143,8 +2143,216 @@ class DBMaintenance extends Admin_Admin {
 					)
 				),
 
+				'setup_default_indexing_profiles' => array(
+					'title' => 'Setup Default Indexing Profiles',
+					'description' => 'Setup indexing profiles based off historic information',
+					'sql' => array(
+						'setupIndexingProfiles'
+					)
+				),
+
 			)
 		);
+	}
+
+	public function setupIndexingProfiles($update){
+		global $configArray;
+		$profileExists = false;
+		//Create a default indexing profile
+		$ilsIndexingProfile = new IndexingProfile();
+		$ilsIndexingProfile->name = 'ils';
+		if ($ilsIndexingProfile->find(true)){
+			$profileExists = true;
+		}
+		$ilsIndexingProfile->marcPath = $configArray['Reindex']['marcPath'];
+		$ilsIndexingProfile->marcEncoding = $configArray['Reindex']['marcEncoding'];
+		$ilsIndexingProfile->individualMarcPath = $configArray['Reindex']['individualMarcPath'];
+		$ilsIndexingProfile->groupingClass = 'MarcRecordGrouper';
+		$ilsIndexingProfile->indexingClass = 'IlsRecordProcessor';
+		$ilsIndexingProfile->recordDriver = 'MarcRecord';
+		$ilsIndexingProfile->recordUrlComponent = 'Record';
+		$ilsIndexingProfile->formatSource = $configArray['Reindex']['useItemBasedCallNumbers'] == true ? 'item' : 'bib';
+		$ilsIndexingProfile->recordNumberTag = $configArray['Reindex']['recordNumberTag'];
+		$ilsIndexingProfile->recordNumberPrefix = $configArray['Reindex']['recordNumberPrefix'];
+		$ilsIndexingProfile->suppressItemlessBibs = $configArray['Reindex']['suppressItemlessBibs'] == true ? 1 : 0;
+		$ilsIndexingProfile->itemTag = $configArray['Reindex']['itemTag'];
+		$ilsIndexingProfile->itemRecordNumber = $configArray['Reindex']['itemRecordNumberSubfield'];
+		$ilsIndexingProfile->useItemBasedCallNumbers = $configArray['Reindex']['useItemBasedCallNumbers'] == true ? 1 : 0;
+		$ilsIndexingProfile->callNumberPrestamp = $configArray['Reindex']['callNumberPrestampSubfield'];
+		$ilsIndexingProfile->callNumber = $configArray['Reindex']['callNumberSubfield'];
+		$ilsIndexingProfile->callNumberCutter = $configArray['Reindex']['callNumberCutterSubfield'];
+		$ilsIndexingProfile->callNumberPoststamp = $configArray['Reindex']['callNumberPoststampSubfield'];
+		$ilsIndexingProfile->location = $configArray['Reindex']['locationSubfield'];
+		$ilsIndexingProfile->locationsToSuppress = isset($configArray['Reindex']['locationsToSuppress']) ? $configArray['Reindex']['locationsToSuppress'] : '';
+		$ilsIndexingProfile->subLocation = '';
+		$ilsIndexingProfile->shelvingLocation = $configArray['Reindex']['locationSubfield'];
+		$ilsIndexingProfile->collection = $configArray['Reindex']['collectionSubfield'];
+		$ilsIndexingProfile->volume = $configArray['Reindex']['volumeSubfield'];
+		$ilsIndexingProfile->itemUrl = $configArray['Reindex']['itemUrlSubfield'];
+		$ilsIndexingProfile->barcode = $configArray['Reindex']['barcodeSubfield'];
+		$ilsIndexingProfile->status = $configArray['Reindex']['statusSubfield'];
+		$ilsIndexingProfile->statusesToSuppress = '';
+		$ilsIndexingProfile->totalCheckouts = $configArray['Reindex']['totalCheckoutSubfield'];
+		$ilsIndexingProfile->lastYearCheckouts = $configArray['Reindex']['lastYearCheckoutSubfield'];
+		$ilsIndexingProfile->yearToDateCheckouts = $configArray['Reindex']['ytdCheckoutSubfield'];
+		$ilsIndexingProfile->totalRenewals = $configArray['Reindex']['totalRenewalSubfield'];
+		$ilsIndexingProfile->iType = $configArray['Reindex']['iTypeSubfield'];
+		$ilsIndexingProfile->dueDate = $configArray['Reindex']['dueDateSubfield'];
+		$ilsIndexingProfile->dateCreated = $configArray['Reindex']['dateCreatedSubfield'];
+		$ilsIndexingProfile->dateCreatedFormat = $configArray['Reindex']['dateAddedFormat'];
+		$ilsIndexingProfile->iCode2 = $configArray['Reindex']['iCode2Subfield'];
+		$ilsIndexingProfile->useICode2Suppression = $configArray['Reindex']['useICode2Suppression'];
+		$ilsIndexingProfile->format = isset($configArray['Reindex']['formatSubfield']) ? $configArray['Reindex']['formatSubfield'] : '';
+		$ilsIndexingProfile->eContentDescriptor = $configArray['Reindex']['eContentSubfield'];
+		$ilsIndexingProfile->orderTag = $configArray['Reindex']['orderTag'];
+		$ilsIndexingProfile->orderStatus = $configArray['Reindex']['orderStatusSubfield'];
+		$ilsIndexingProfile->orderLocation = $configArray['Reindex']['orderLocationsSubfield'];
+		$ilsIndexingProfile->orderCopies = $configArray['Reindex']['orderCopiesSubfield'];
+		$ilsIndexingProfile->orderCode3 = $configArray['Reindex']['orderCode3Subfield'];
+
+		if ($profileExists){
+			$ilsIndexingProfile->update();
+		}else {
+			$ilsIndexingProfile->insert();
+		}
+
+		//Create a profile for hoopla
+		$profileExists = false;
+		$hooplaIndexingProfile = new IndexingProfile();
+		$hooplaIndexingProfile->name = 'hoopla';
+		if ($hooplaIndexingProfile->find(true)){
+			$profileExists = true;
+		}
+		$hooplaIndexingProfile->marcPath = $configArray['Hoopla']['marcPath'];
+		$hooplaIndexingProfile->marcEncoding = $configArray['Hoopla']['marcEncoding'];
+		$hooplaIndexingProfile->individualMarcPath = $configArray['Hoopla']['individualMarcPath'];
+		$hooplaIndexingProfile->groupingClass = 'HooplaRecordGrouper';
+		$hooplaIndexingProfile->indexingClass = 'Hoopla';
+		$hooplaIndexingProfile->recordDriver = 'HooplaDriver';
+		$hooplaIndexingProfile->recordUrlComponent = 'Hoopla';
+		$hooplaIndexingProfile->formatSource = 'bib';
+		$hooplaIndexingProfile->recordNumberTag = '001';
+		$hooplaIndexingProfile->recordNumberPrefix = '';
+		$hooplaIndexingProfile->itemTag = '';
+		if ($profileExists){
+			$hooplaIndexingProfile->update();
+		}else {
+			$hooplaIndexingProfile->insert();
+		}
+
+		//Setup ownership rules and inclusion rules for libraries
+		$allLibraries = new Library();
+		$allLibraries->find();
+		while ($allLibraries->fetch()){
+			$ownershipRule = new LibraryRecordOwned();
+			$ownershipRule->indexingProfileId  = $ilsIndexingProfile->id;
+			$ownershipRule->libraryId = $allLibraries->libraryId;
+			$ownershipRule->location = $allLibraries->ilsCode;
+			$ownershipRule->subLocation = '';
+			$ownershipRule->insert();
+
+			//Other print titles
+			if (!$allLibraries->restrictSearchByLibrary){
+				$inclusionRule = new LibraryRecordToInclude();
+				$inclusionRule->indexingProfileId = $ilsIndexingProfile->id;
+				$inclusionRule->libraryId = $allLibraries->libraryId;
+				$inclusionRule->location = ".*";
+				$inclusionRule->subLocation = '';
+				$inclusionRule->includeHoldableOnly = 1;
+				$inclusionRule->includeEContent = 0;
+				$inclusionRule->includeItemsOnOrder = 0;
+				$inclusionRule->weight = 1;
+				$inclusionRule->insert();
+			}
+
+			//eContent titles
+			if ($allLibraries->econtentLocationsToInclude){
+				$inclusionRule = new LibraryRecordToInclude();
+				$inclusionRule->indexingProfileId = $ilsIndexingProfile->id;
+				$inclusionRule->libraryId = $allLibraries->libraryId;
+				$inclusionRule->location = str_replace(',', '|', $allLibraries->econtentLocationsToInclude);
+				$inclusionRule->subLocation = '';
+				$inclusionRule->includeHoldableOnly = 0;
+				$inclusionRule->includeEContent = 1;
+				$inclusionRule->includeItemsOnOrder = 0;
+				$inclusionRule->weight = 1;
+				$inclusionRule->insert();
+			}
+
+			//Hoopla titles
+			if ($allLibraries->includeHoopla){
+				$inclusionRule = new LibraryRecordToInclude();
+				$inclusionRule->indexingProfileId = $hooplaIndexingProfile->id;
+				$inclusionRule->libraryId = $allLibraries->libraryId;
+				$inclusionRule->location = '.*';
+				$inclusionRule->subLocation = '';
+				$inclusionRule->includeHoldableOnly = 0;
+				$inclusionRule->includeEContent = 1;
+				$inclusionRule->includeItemsOnOrder = 0;
+				$inclusionRule->weight = 1;
+				$inclusionRule->insert();
+			}
+		}
+
+		//Setup ownership rules and inclusion rules for locations
+		$allLocations = new Location();
+		$allLocations->find();
+		while ($allLocations->fetch()){
+			$ownershipRule = new LocationRecordOwned();
+			$ownershipRule->indexingProfileId  = $ilsIndexingProfile->id;
+			$ownershipRule->locationId = $allLocations->locationId;
+			$ownershipRule->location = $allLocations->code;
+			$ownershipRule->subLocation = '';
+			$ownershipRule->insert();
+
+			//Other print titles
+			if ($allLocations->restrictSearchByLocation){
+				$inclusionRule = new LocationRecordToInclude();
+				$inclusionRule->indexingProfileId = $ilsIndexingProfile->id;
+				$inclusionRule->locationId = $allLocations->locationId;
+				$inclusionRule->location = ".*";
+				$inclusionRule->subLocation = '';
+				$inclusionRule->includeHoldableOnly = 1;
+				$inclusionRule->includeEContent = 0;
+				$inclusionRule->includeItemsOnOrder = 0;
+				$inclusionRule->weight = 1;
+				$inclusionRule->insert();
+			}
+
+			//eContent titles
+			if ($allLocations->econtentLocationsToInclude){
+				$inclusionRule = new LocationRecordToInclude();
+				$inclusionRule->indexingProfileId = $ilsIndexingProfile->id;
+				$inclusionRule->locationId = $allLocations->locationId;
+				$inclusionRule->location = str_replace(',', '|', $allLibraries->econtentLocationsToInclude);
+				$inclusionRule->subLocation = '';
+				$inclusionRule->includeHoldableOnly = 0;
+				$inclusionRule->includeEContent = 1;
+				$inclusionRule->includeItemsOnOrder = 0;
+				$inclusionRule->weight = 1;
+				$inclusionRule->insert();
+			}
+
+			//Hoopla titles
+			$relatedLibrary = new Library();
+			$relatedLibrary->libraryId = $allLocations->libraryId;
+			if ($relatedLibrary->find(true) && $relatedLibrary->includeHoopla){
+				$inclusionRule = new LocationRecordToInclude();
+				$inclusionRule->indexingProfileId = $hooplaIndexingProfile->id;
+				$inclusionRule->locationId = $allLocations->locationId;
+				$inclusionRule->location = '.*';
+				$inclusionRule->subLocation = '';
+				$inclusionRule->includeHoldableOnly = 0;
+				$inclusionRule->includeEContent = 1;
+				$inclusionRule->includeItemsOnOrder = 0;
+				$inclusionRule->weight = 1;
+				$inclusionRule->insert();
+			}
+		}
+
+		//Setup translation maps?
+
+
 	}
 
 	public function dropBrowseTables(&$update) {

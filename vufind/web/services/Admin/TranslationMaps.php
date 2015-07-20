@@ -74,6 +74,21 @@ class Admin_TranslationMaps extends ObjectEditor {
 
 			//Show the results
 			$_REQUEST['objectAction'] = 'edit';
+		}else if ($objectAction == 'viewAsINI'){
+			$id = $_REQUEST['id'];
+			$translationMap = new TranslationMap();
+			$translationMap->id = $id;
+			if ($translationMap->find(true)){
+				$interface->assign('id', $id);
+				$interface->assign('translationMapValues', $translationMap->translationMapValues);
+				$interface->setTemplate('../Admin/viewTranslationMapAsIni.tpl');
+				$interface->assign('sidebar', 'MyAccount/account-sidebar.tpl');
+				$interface->setPageTitle("View Translation Map Data");
+				$interface->display('layout.tpl');
+				exit();
+			}else{
+				$interface->assign('error', "Sorry we could not find a translation map with that id");
+			}
 		}
 		parent::launch();
 	}
@@ -124,6 +139,10 @@ class Admin_TranslationMaps extends ObjectEditor {
 			$actions[] = array(
 				'text' => 'Load From CSV/INI',
 				'url' => '/Admin/TranslationMaps?objectAction=loadFromFile&id=' . $existingObject->id,
+			);
+			$actions[] = array(
+				'text' => 'View as INI',
+				'url' => '/Admin/TranslationMaps?objectAction=viewAsINI&id=' . $existingObject->id,
 			);
 		}
 

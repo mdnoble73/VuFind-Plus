@@ -33,6 +33,7 @@ class IndexingProfile extends DB_DataObject{
 	public $callNumberCutter;
 	public $callNumberPoststamp;
 	public $location;
+	public $locationsToSuppress;
 	public $subLocation;
 	public $shelvingLocation;
 	public $collection;
@@ -51,6 +52,7 @@ class IndexingProfile extends DB_DataObject{
 	public $dateCreatedFormat;
 	public $iCode2;
 	public $useICode2Suppression;
+	public $format;
 	public $eContentDescriptor;
 	public $orderTag;
 	public $orderStatus;

@@ -14,7 +14,7 @@ class RecordOwned extends DB_DataObject {
 	public $id;
 	public $indexingProfileId;
 	public $location;
-	public $subLocations;
+	public $subLocation;
 
 	static function getObjectStructure(){
 		$indexingProfiles = array();
