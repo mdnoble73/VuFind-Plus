@@ -1040,7 +1040,7 @@ function getLibraryLocationUpdates(){
 			'description' => 'Setup a default library for use when we do not get a defined subdomain',
 			'continueOnError' => true,
 			'sql' => array(
-				"ALTER TABLE `library` ADD COLUMN `default` TINYINT(1);",
+				"ALTER TABLE `library` ADD COLUMN `isDefault` TINYINT(1);",
 			),
 		),
 	);
