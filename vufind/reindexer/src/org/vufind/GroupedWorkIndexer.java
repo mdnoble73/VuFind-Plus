@@ -909,6 +909,7 @@ public class GroupedWorkIndexer {
 	}
 
 	HashSet<String> unableToTranslateWarnings = new HashSet<>();
+	HashSet<String> missingTranslationMaps = new HashSet<>();
 	public String translateSystemValue(String mapName, String value){
 		if (value == null){
 				return null;
@@ -916,33 +917,36 @@ public class GroupedWorkIndexer {
 		HashMap<String, String> translationMap = translationMaps.get(mapName);
 		String translatedValue;
 		if (translationMap == null){
+			if (!missingTranslationMaps.contains(mapName)) {
+				missingTranslationMaps.add(mapName);
 				logger.error("Unable to find translation map for " + mapName);
-				translatedValue = value;
+			}
+			translatedValue = value;
+		}else{
+			String lowerCaseValue = value.toLowerCase();
+			if (translationMap.containsKey(lowerCaseValue)){
+				translatedValue = translationMap.get(lowerCaseValue);
 			}else{
-				String lowerCaseValue = value.toLowerCase();
-				if (translationMap.containsKey(lowerCaseValue)){
-						translatedValue = translationMap.get(lowerCaseValue);
-					}else{
-						if (translationMap.containsKey("*")){
-								translatedValue = translationMap.get("*");
-							}else{
-								String concatenatedValue = mapName + ":" + value;
-								if (!unableToTranslateWarnings.contains(concatenatedValue)){
-										if (fullReindex) {
-												logger.warn("Could not translate '" + concatenatedValue + "'");
-											}
-										unableToTranslateWarnings.add(concatenatedValue);
-									}
-								translatedValue = value;
-							}
+				if (translationMap.containsKey("*")){
+					translatedValue = translationMap.get("*");
+				}else{
+					String concatenatedValue = mapName + ":" + value;
+					if (!unableToTranslateWarnings.contains(concatenatedValue)){
+						if (fullReindex) {
+							logger.warn("Could not translate '" + concatenatedValue + "'");
+						}
+						unableToTranslateWarnings.add(concatenatedValue);
 					}
+					translatedValue = value;
+				}
 			}
+		}
 		if (translatedValue != null){
-				translatedValue = translatedValue.trim();
-				if (translatedValue.length() == 0){
-						translatedValue = null;
-					}
+			translatedValue = translatedValue.trim();
+			if (translatedValue.length() == 0){
+				translatedValue = null;
 			}
+		}
 		return translatedValue;
 	}
 
