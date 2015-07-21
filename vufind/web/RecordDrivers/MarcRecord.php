@@ -2020,7 +2020,7 @@ class MarcRecord extends IndexRecord
 	static $catalogDriver = null;
 
 	/**
-	 * @return MillenniumDriver|Sierra|Marmot|DriverInterface|HorizonAPI
+	 * @return Millennium|Sierra|Marmot|DriverInterface|HorizonAPI
 	 */
 	protected static function getCatalogDriver(){
 		if (MarcRecord::$catalogDriver == null){

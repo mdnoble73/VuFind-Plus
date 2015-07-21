@@ -38,7 +38,7 @@ require_once ROOT_DIR . '/Drivers/Innovative.php';
  * @author Mark Noble <mnoble@turningleaftech.com>
  * @author CJ O'Hara <cj@marmot.org>
  */
-class MillenniumDriver implements DriverInterface
+class Millennium implements DriverInterface
 {
 	public $fixShortBarcodes = true;
 
@@ -49,56 +49,56 @@ class MillenniumDriver implements DriverInterface
 	public $db;
 
 	private static function loadLibraryLocationInformation() {
-		if (MillenniumDriver::$libraryLocationInformationLoaded == false){
+		if (Millennium::$libraryLocationInformationLoaded == false){
 			//Get a list of all locations for the active library
 			global $library;
 			global $timer;
 			$userLibrary = Library::getPatronHomeLibrary();
-			MillenniumDriver::$libraryLocations = array();
-			MillenniumDriver::$libraryLocationLabels = array();
+			Millennium::$libraryLocations = array();
+			Millennium::$libraryLocationLabels = array();
 			$libraryLocation = new Location();
 			if ($userLibrary){
 				$libraryLocation->libraryId = $userLibrary->libraryId;
 				$libraryLocation->find();
 				while ($libraryLocation->fetch()){
-					MillenniumDriver::$libraryLocations[] = $libraryLocation->code;
-					MillenniumDriver::$libraryLocationLabels[$libraryLocation->code] = $libraryLocation->facetLabel;
+					Millennium::$libraryLocations[] = $libraryLocation->code;
+					Millennium::$libraryLocationLabels[$libraryLocation->code] = $libraryLocation->facetLabel;
 				}
 			}else{
 				$libraryLocation->libraryId = $library->libraryId;
 				$libraryLocation->find();
 				while ($libraryLocation->fetch()){
-					MillenniumDriver::$libraryLocations[] = $libraryLocation->code;
-					MillenniumDriver::$libraryLocationLabels[$libraryLocation->code] = $libraryLocation->facetLabel;
+					Millennium::$libraryLocations[] = $libraryLocation->code;
+					Millennium::$libraryLocationLabels[$libraryLocation->code] = $libraryLocation->facetLabel;
 				}
 			}
-			MillenniumDriver::$homeLocationCode = null;
-			MillenniumDriver::$homeLocationLabel = null;
+			Millennium::$homeLocationCode = null;
+			Millennium::$homeLocationLabel = null;
 			$searchLocation = Location::getSearchLocation();
 			if ($searchLocation){
-				MillenniumDriver::$homeLocationCode = $searchLocation->code;
-				MillenniumDriver::$homeLocationLabel = $searchLocation->facetLabel;
+				Millennium::$homeLocationCode = $searchLocation->code;
+				Millennium::$homeLocationLabel = $searchLocation->facetLabel;
 			}else{
 				$homeLocation = Location::getUserHomeLocation();
 				if ($homeLocation){
-					MillenniumDriver::$homeLocationCode = $homeLocation->code;
-					MillenniumDriver::$homeLocationLabel = $homeLocation->facetLabel;
+					Millennium::$homeLocationCode = $homeLocation->code;
+					Millennium::$homeLocationLabel = $homeLocation->facetLabel;
 				}
 			}
 
 			$timer->logTime("Finished loading location data");
 
-			MillenniumDriver::$scopingLocationCode = '';
+			Millennium::$scopingLocationCode = '';
 
 			$searchLibrary = Library::getSearchLibrary();
 			$searchLocation = Location::getSearchLocation();
 			if (isset($searchLibrary)){
-				MillenniumDriver::$scopingLocationCode = $searchLibrary->ilsCode;
+				Millennium::$scopingLocationCode = $searchLibrary->ilsCode;
 			}
 			if (isset($searchLocation)){
-				MillenniumDriver::$scopingLocationCode = $searchLocation->code;
+				Millennium::$scopingLocationCode = $searchLocation->code;
 			}
-			MillenniumDriver::$libraryLocationInformationLoaded = true;
+			Millennium::$libraryLocationInformationLoaded = true;
 		}
 	}
 
@@ -302,7 +302,7 @@ class MillenniumDriver implements DriverInterface
 			$timer->logTime("Finished loading MARC Record for getItemsFast");
 		}
 
-		MillenniumDriver::loadLibraryLocationInformation();
+		Millennium::loadLibraryLocationInformation();
 
 		//Get the items Fields from the record
 		/** @var File_MARC_Data_Field[] $itemFields */
@@ -328,9 +328,9 @@ class MillenniumDriver implements DriverInterface
 
 			$locationCode = $itemField->getSubfield('d') != null ? trim($itemField->getSubfield('d')->getData()) : '';
 			//Do a quick check of location code so we can remove this quickly when scoping is enabled
-			if ($scopingEnabled && strlen(MillenniumDriver::$scopingLocationCode) > 0 && preg_match('/' . MillenniumDriver::$scopingLocationCode . '/i', $locationCode)){
+			if ($scopingEnabled && strlen(Millennium::$scopingLocationCode) > 0 && preg_match('/' . Millennium::$scopingLocationCode . '/i', $locationCode)){
 				global $logger;
-				$logger->log("Removed item because scoping is enabled and the location code $locationCode did not match " . MillenniumDriver::$scopingLocationCode, PEAR_LOG_DEBUG);
+				$logger->log("Removed item because scoping is enabled and the location code $locationCode did not match " . Millennium::$scopingLocationCode, PEAR_LOG_DEBUG);
 				continue;
 			}
 			$iType = $itemField->getSubfield($iTypeSubfield) != null ? trim($itemField->getSubfield($iTypeSubfield)->getData()) : '';
@@ -338,10 +338,10 @@ class MillenniumDriver implements DriverInterface
 
 			$isLibraryItem = false;
 			$locationLabel = '';
-			foreach (MillenniumDriver::$libraryLocations as $tmpLocation){
+			foreach (Millennium::$libraryLocations as $tmpLocation){
 				if (strpos($locationCode, $tmpLocation) === 0){
 					$isLibraryItem = true;
-					$locationLabel = MillenniumDriver::$libraryLocationLabels[$tmpLocation];
+					$locationLabel = Millennium::$libraryLocationLabels[$tmpLocation];
 					break;
 				}
 			}
@@ -350,9 +350,9 @@ class MillenniumDriver implements DriverInterface
 			//Check to make sure the user has access to this item
 			if ($holdable || $isLibraryItem){
 				$isLocalItem = false;
-				if (MillenniumDriver::$homeLocationCode != null && strpos($locationCode, MillenniumDriver::$homeLocationCode) === 0){
+				if (Millennium::$homeLocationCode != null && strpos($locationCode, Millennium::$homeLocationCode) === 0){
 					$isLocalItem = true;
-					$locationLabel = MillenniumDriver::$homeLocationLabel;
+					$locationLabel = Millennium::$homeLocationLabel;
 				}
 
 				$status = trim($itemField->getSubfield($statusSubfield) != null ? trim($itemField->getSubfield($statusSubfield)->getData()) : '');

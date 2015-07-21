@@ -75,8 +75,8 @@ function requireSystemLibraries(){
 	// Require System Libraries
 	require_once ROOT_DIR . '/sys/Interface.php';
 	$timer->logTime("Include Interface");
-	require_once ROOT_DIR . '/sys/User.php';
-	$timer->logTime("Include User");
+	require_once ROOT_DIR . '/sys/UserAccount.php';
+	$timer->logTime("Include UserAccount");
 	require_once ROOT_DIR . '/sys/Translator.php';
 	$timer->logTime("Include Translator");
 	require_once ROOT_DIR . '/sys/SearchObject/Factory.php';
@@ -317,7 +317,7 @@ function loadSearchInformation(){
 		if ($searchLibrary){
 			$millenniumScope = $searchLibrary->scope;
 		}elseif (isset($searchLocation)){
-			MillenniumDriver::$scopingLocationCode = $searchLocation->code;
+			Millennium::$scopingLocationCode = $searchLocation->code;
 		}else{
 			$millenniumScope = isset($configArray['OPAC']['defaultScope']) ? $configArray['OPAC']['defaultScope'] : '93';
 		}

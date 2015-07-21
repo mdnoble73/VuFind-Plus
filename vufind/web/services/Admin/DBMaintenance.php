@@ -2151,6 +2151,21 @@ class DBMaintenance extends Admin_Admin {
 					)
 				),
 
+				'authentication_profiles' => array(
+					'title' => 'Setup Authentication Profiles',
+					'description' => 'Setup authentication profiles to store information about how to authenticate',
+					'sql' => array(
+						"CREATE TABLE IF NOT EXISTS `account_profiles` (
+						  `id` int(11) NOT NULL AUTO_INCREMENT,
+						  `name` varchar(50) NOT NULL DEFAULT 'ils',
+						  `driver` varchar(50) NOT NULL,
+						  `loginConfiguration` enum('barcode_pin','name_barcode') NOT NULL,
+						  `authenticationMethod` enum('ils','sip2','db','ldap') NOT NULL DEFAULT 'ils',
+						  PRIMARY KEY (`id`),
+						  UNIQUE KEY `name` (`name`)
+						) ENGINE=InnoDB  DEFAULT CHARSET=utf8",
+					)
+				),
 			)
 		);
 	}

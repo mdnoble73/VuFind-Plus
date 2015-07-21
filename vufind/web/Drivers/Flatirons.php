@@ -33,7 +33,7 @@ require_once ROOT_DIR . '/Drivers/Millennium.php';
  * @author CJ O'Hara <cj@marmot.org>
  * 
  */
-class Flatirons extends MillenniumDriver{
+class Flatirons extends Millennium{
 	function combineCityStateZipInSelfRegistration(){
 		return false;
 	}

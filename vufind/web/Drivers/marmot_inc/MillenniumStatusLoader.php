@@ -5,7 +5,7 @@
  * Processes status information from Millennium to load holdings.
  */
 class MillenniumStatusLoader{
-	/** @var  MillenniumDriver $driver */
+	/** @var  Millennium $driver */
 	private $driver;
 
 	public function __construct($driver){

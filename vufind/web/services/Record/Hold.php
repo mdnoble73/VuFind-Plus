@@ -23,7 +23,7 @@ require_once ROOT_DIR . '/CatalogConnection.php';
 require_once ROOT_DIR . '/Action.php';
 
 class Record_Hold extends Action {
-	/** @var  MillenniumDriver|Marmot|Sierra */
+	/** @var  Millennium|Marmot|Sierra */
 	var $catalog;
 
 	function launch() {

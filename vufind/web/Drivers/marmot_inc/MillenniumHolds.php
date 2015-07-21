@@ -8,7 +8,7 @@
  * Time: 11:33 AM
  */
 class MillenniumHolds{
-	/** @var  MillenniumDriver $driver */
+	/** @var  Millennium $driver */
 	private $driver;
 	private $holds = array();
 

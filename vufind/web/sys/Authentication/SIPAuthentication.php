@@ -3,7 +3,11 @@ require_once ROOT_DIR . '/sys/SIP2.php';
 require_once 'Authentication.php';
 
 class SIPAuthentication implements Authentication {
-  private static $processedUsers = array(); 
+  private static $processedUsers = array();
+
+	public function __construct($additionalInfo) {
+
+	}
 	
 	public function validateAccount($username, $password) {
 		global $configArray;

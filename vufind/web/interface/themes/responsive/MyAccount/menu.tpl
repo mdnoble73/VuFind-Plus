@@ -141,7 +141,7 @@
 
 			{* Admin Functionality if Available *}
 			{if $user && ($user->hasRole('opacAdmin') || $user->hasRole('libraryAdmin') || $user->hasRole('contentEditor'))}
-				{if in_array($action, array('Libraries', 'Locations', 'IPAddresses', 'ListWidgets', 'BrowseCategories', 'UserSuggestions', 'BookStores', 'PTypes', 'CirculationStatuses', 'LoanRules', 'LoanRuleDeterminers'))}
+				{if in_array($action, array('Libraries', 'Locations', 'IPAddresses', 'ListWidgets', 'BrowseCategories', 'UserSuggestions', 'BookStores', 'PTypes', 'CirculationStatuses', 'LoanRules', 'LoanRuleDeterminers', 'AccountProfiles'))}
 					{assign var="curSection" value=true}
 				{else}
 					{assign var="curSection" value=false}
@@ -175,6 +175,10 @@
 								<div class="adminMenuLink {if $action == "LoanRules"}active{/if}"><a href="{$path}/Admin/LoanRules">Loan Rules</a></div>
 								<div class="adminMenuLink {if $action == "LoanRuleDeterminers"}active{/if}"><a href="{$path}/Admin/LoanRuleDeterminers">Loan Rule Determiners</a></div>
 							{/if}
+							{if $user->hasRole('opacAdmin')}
+								<div class="adminMenuLink {if $action == "AccountProfiles"}active{/if}"><a href="{$path}/Admin/AccountProfiles">Account Profiles</a></div>
+							{/if}
+
 						</div>
 					</div>
 				</div>

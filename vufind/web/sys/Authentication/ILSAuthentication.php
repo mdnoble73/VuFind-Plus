@@ -5,6 +5,17 @@ require_once ROOT_DIR . '/CatalogConnection.php';
 class ILSAuthentication implements Authentication {
 	private $username;
 	private $password;
+	private $driverName;
+
+	public function __construct($additionalInfo) {
+		if (array_key_exists('driver', $additionalInfo)){
+			$this->driverName = $additionalInfo['driver'];
+		}else{
+			global $configArray;
+			$this->driverName = $configArray['Catalog']['driver'];
+		}
+	}
+
 	public function authenticate(){
 		global $user;
 
@@ -21,8 +32,8 @@ class ILSAuthentication implements Authentication {
 		if($this->username == '' || $this->password == ''){
 			$user = new PEAR_Error('authentication_error_blank');
 		} else {
-			// Connect to Database
-			$catalog = CatalogFactory::getCatalogConnectionInstance();
+			// Connect to the correct catalog depending on the driver for this account
+			$catalog = CatalogFactory::getCatalogConnectionInstance($this->driverName);
 
 			if ($catalog->status) {
 				$patron = $catalog->patronLogin($this->username, $this->password);
@@ -30,7 +41,7 @@ class ILSAuthentication implements Authentication {
 					$user = $this->processILSUser($patron);
 
 					//Also call getPatronProfile to update extra fields
-					$catalog = CatalogFactory::getCatalogConnectionInstance();
+					$catalog = CatalogFactory::getCatalogConnectionInstance($this->driverName);
 					$catalog->getMyProfile($user);
 				} else {
 					$user = new PEAR_Error('authentication_error_invalid');
@@ -100,4 +111,3 @@ class ILSAuthentication implements Authentication {
 		return $user;
 	}
 }
-?>

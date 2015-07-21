@@ -36,7 +36,7 @@ class MyAccount_Login extends Action
 
 		// We should never access this module directly -- this is called by other
 		// actions as a support function.  If accessed directly, just redirect to
-		// the MyResearch home page.
+		// the MyAccount home page.
 		if ($module == 'MyAccount' && $action == 'Login') {
 			header('Location: Home');
 			die();

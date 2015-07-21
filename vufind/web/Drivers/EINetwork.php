@@ -33,7 +33,7 @@ require_once ROOT_DIR . '/Drivers/Millennium.php';
  * @author Mark Noble <mnoble@turningleaftech.com>
  * @author CJ O'Hara <cj@marmot.org>
  */
-class EINetwork extends MillenniumDriver{
+class EINetwork extends Millennium{
 	/**
 	 * Login with barcode and pin
 	 *

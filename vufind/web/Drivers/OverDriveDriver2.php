@@ -349,7 +349,7 @@ class OverDriveDriver2 {
 	public function getOverDriveSummary($user){
 		global $configArray;
 		$libraryILS = $configArray['OverDrive']['LibraryCardILS'];
-		/** @var MillenniumDriver|DriverInterface $catalog */
+		/** @var Millennium|DriverInterface $catalog */
 		$catalog = CatalogFactory::getCatalogConnectionInstance();;
 		$patronBarcode = $catalog->_getBarcode();
 		$apiURL = "https://temp-patron.api.overdrive.com/{$libraryILS}/{$libraryILS}/" . $patronBarcode;

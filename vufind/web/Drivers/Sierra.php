@@ -8,7 +8,7 @@
  * Time: 9:58 AM
  */
 require_once ROOT_DIR . '/Drivers/Millennium.php';
-class Sierra extends MillenniumDriver{
+class Sierra extends Millennium{
 	public function getItemInfo($bibId){
 		global $configArray;
 		$apiVersion = $configArray['Catalog']['api_version'];

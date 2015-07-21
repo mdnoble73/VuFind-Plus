@@ -38,4 +38,3 @@
 class UnknownAuthenticationHandlerException extends Exception
 {
 }
-?>

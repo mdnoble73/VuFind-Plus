@@ -9,7 +9,7 @@
  */
 
 class MillenniumInventory {
-	/** @var  MillenniumDriver $driver */
+	/** @var  Millennium $driver */
 	private $driver;
 	/** @var  Solr $db */
 	private $db;

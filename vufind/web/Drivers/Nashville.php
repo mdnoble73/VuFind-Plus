@@ -37,7 +37,7 @@ require_once ROOT_DIR . '/Drivers/Millennium.php';
  *
  * @author James Staub <james.staub@nashville.gov>
  */
-class Nashville extends MillenniumDriver{
+class Nashville extends Millennium{
 	public function __construct(){
 		$this->fixShortBarcodes = false;
 	}

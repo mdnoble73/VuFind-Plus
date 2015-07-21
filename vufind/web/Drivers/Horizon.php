@@ -291,7 +291,7 @@ abstract class Horizon implements DriverInterface{
 	/** uses SIP2 authentication rather than database authentication **/
 	public function patronLogin($username, $password)
 	{
-		require_once(ROOT_DIR . '/sys/authn/SIPAuthentication.php');
+		require_once(ROOT_DIR . '/sys/Authentication/SIPAuthentication.php');
 		$sipAuth = new SIPAuthentication();
 		$basicInfo = $sipAuth->validateAccount($username, $password);
 		if ($basicInfo){

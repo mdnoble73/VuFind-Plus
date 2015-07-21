@@ -720,7 +720,7 @@ class MyAccount_AJAX
 		global $configArray;
 
 		try {
-			/** @var DriverInterface|MillenniumDriver|Nashville|Marmot|Sierra|Horizon $catalog */
+			/** @var DriverInterface|Millennium|Nashville|Marmot|Sierra|Horizon $catalog */
 			$catalog = CatalogFactory::getCatalogConnectionInstance();;
 
 			$barcode = $_REQUEST['barcode'];

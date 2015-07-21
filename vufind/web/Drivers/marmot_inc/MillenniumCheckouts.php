@@ -9,7 +9,7 @@
  */
 
 class MillenniumCheckouts {
-	/** @var  MillenniumDriver $driver */
+	/** @var  Millennium $driver */
 	private $driver;
 
 	public function __construct($driver){

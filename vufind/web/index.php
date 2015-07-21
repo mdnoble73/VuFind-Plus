@@ -477,7 +477,7 @@ if (!is_null($ipLocation) && $ipLocation != false && !$configArray['Catalog']['o
 	}else{
 		$includeAutoLogoutCode = true;
 		//Get the PType for the user
-		/** @var MillenniumDriver|CatalogConnection $catalog */
+		/** @var Millennium|CatalogConnection $catalog */
 		$catalog = CatalogFactory::getCatalogConnectionInstance();
 		if ($user && $catalog->checkFunction('isUserStaff')){
 			$userIsStaff = $catalog->isUserStaff();
