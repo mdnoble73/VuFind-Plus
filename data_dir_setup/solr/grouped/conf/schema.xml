@@ -218,7 +218,7 @@
 		<field name="time_since_added" type="string" indexed="true" stored="true" multiValued="true"/>
 		<field name="days_since_added" type="integer" indexed="true" stored="true" multiValued="false"/>
 		<dynamicField name="local_time_since_added_*" type="string" indexed="true" stored="true" multiValued="true"/>
-		<dynamicField name="days_since_added_*" type="integer" indexed="true" stored="true" multiValued="false"/>
+		<dynamicField name="local_days_since_added_*" type="integer" indexed="true" stored="true" multiValued="false"/>
 		<dynamicField name="itype_*" type="textFacet" indexed="true" stored="true" multiValued="true"/>
 		<field name="barcode" type="textFacet" indexed="true" stored="true" multiValued="true"/>
 		<!-- awards and ratings -->
