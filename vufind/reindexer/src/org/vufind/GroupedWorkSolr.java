@@ -1,5 +1,6 @@
 package org.vufind;
 
+import com.sun.istack.internal.NotNull;
 import org.apache.log4j.Logger;
 import org.apache.solr.common.SolrInputDocument;
 
@@ -1061,7 +1062,7 @@ public class GroupedWorkSolr {
 		this.keywords.add(keywords);
 	}
 
-	public void addDescription(String description, String recordFormat){
+	public void addDescription(String description, @NotNull String recordFormat){
 		if (description == null || description.length() == 0){
 			return;
 		}

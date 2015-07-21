@@ -894,6 +894,8 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 				printFormats.add("SoundCassette");
 			}else if (titleMedium.contains("large print")){
 				printFormats.add("LargePrint");
+			}else if (titleMedium.contains("book club kit")){
+				printFormats.add("BookClubKit");
 			}
 		}
 		String titlePart = getFirstFieldVal(record, "245p");

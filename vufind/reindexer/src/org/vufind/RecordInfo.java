@@ -120,6 +120,9 @@ public class RecordInfo {
 				timesUsed = relatedFormats.get(curFormat);
 			}
 		}
+		if (mostUsedFormat == null){
+			return "Unknown";
+		}
 		return mostUsedFormat;
 	}
 
