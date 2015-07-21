@@ -79,6 +79,16 @@ class MaterialsRequest_NewRequest extends Action
 		}
 		$interface->assign('useWorldCat', $useWorldCat);
 
+		if (isset($library)){
+			$interface->assign('enableSelfRegistration', $library->enableSelfRegistration);
+			$interface->assign('usernameLabel', $library->loginFormUsernameLabel ? $library->loginFormUsernameLabel : 'Your Name');
+			$interface->assign('passwordLabel', $library->loginFormPasswordLabel ? $library->loginFormPasswordLabel : 'Library Card Number');
+		}else{
+			$interface->assign('enableSelfRegistration', 0);
+			$interface->assign('usernameLabel', 'Your Name');
+			$interface->assign('passwordLabel', 'Library Card Number');
+		}
+
 		$interface->setTemplate('new.tpl');
 		$interface->assign('sidebar', 'Search/home-sidebar.tpl');
 		$interface->setPageTitle('Materials Request');
