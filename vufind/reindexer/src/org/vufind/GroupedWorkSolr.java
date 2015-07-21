@@ -331,6 +331,7 @@ public class GroupedWorkSolr {
 				Date localDateAdded = getLocalDateAdded(scopedItems, scope);
 				if (localDateAdded != null) {
 					doc.addField("local_time_since_added_" + scopeName, Util.getTimeSinceAddedForDate(localDateAdded));
+					doc.addField("days_since_added_" + scopeName, Util.getDaysSinceAddedForDate(localDateAdded));
 				}
 
 				doc.addField("itype_" + scopeName, getLocalITypes(scopedItems, scope));

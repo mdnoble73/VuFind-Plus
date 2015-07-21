@@ -57,7 +57,8 @@ public class UserListSolr {
 
 		//Do things based on scoping
 		for (Scope scope: groupedWorkIndexer.getScopes()) {
-			doc.addField("time_since_added_" + scope.getScopeName(), Util.getTimeSinceAddedForDate(dateAdded));
+			doc.addField("local_time_since_added_" + scope.getScopeName(), Util.getTimeSinceAddedForDate(dateAdded));
+			doc.addField("local_days_since_added_" + scope.getScopeName(), Util.getDaysSinceAddedForDate(dateAdded));
 			doc.addField("format_" + scope.getScopeName(), "list");
 			doc.addField("format_category_" + scope.getScopeName(), "list");
 		}
