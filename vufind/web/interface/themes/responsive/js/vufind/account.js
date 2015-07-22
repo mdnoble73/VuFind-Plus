@@ -328,11 +328,7 @@ VuFind.Account = (function(){
 
 		cancelHold: function(holdIdToCancel){
 			if (confirm("Are you sure you want to cancel this hold?")){
-				if (!Globals.loggedIn) {
-					this.ajaxLogin(null, function () {
-						VuFind.Account.cancelHold(holdIdToCancel);
-					}, false);
-				} else {
+				if (Globals.loggedIn) {
 					VuFind.showMessage('Loading', 'Loading, please wait');
 					$.getJSON(Globals.path + "/MyAccount/AJAX?method=cancelHold&cancelId="+holdIdToCancel, function(data){
 						VuFind.showMessage(data.title, data.modalBody, data.success); // autoclose when successful
@@ -344,19 +340,19 @@ VuFind.Account = (function(){
 						}
 					}).fail(function(){
 						VuFind.showMessage('Request Failed', 'There was an error with this AJAX Request.');
-					});
+					})
+				} else {
+					this.ajaxLogin(null, function () {
+						VuFind.Account.cancelHold(holdIdToCancel)
+					}, false);
 				}
 			}
 
-			return false;
+			return false
 		},
 
 		cancelSelectedHolds: function() {
-			if (!Globals.loggedIn) {
-				this.ajaxLogin(null, function () {
-					VuFind.Account.cancelSelectedHolds();
-				}, false);
-			} else {
+			if (Globals.loggedIn) {
 				var selectedTitles = this.getSelectedTitles()
 								.replace(/waiting|available/g, ''),// strip out of name for now.
 						numHolds = $("input.titleSelect:checked").length;
@@ -365,23 +361,27 @@ VuFind.Account = (function(){
 					VuFind.showMessage('Loading', 'Loading, please wait');
 					$.getJSON(Globals.path + "/MyAccount/AJAX?method=cancelHolds&"+selectedTitles, function(data){
 						VuFind.showMessage(data.title, data.modalBody, data.success); // autoclose when successful
-							if (data.success) {
-								// remove canceled items from page
-								$("input.titleSelect:checked").closest('div.result').remove();
-							} else if (data.failed) { // remove items that didn't fail
-								var searchArray = data.failed.map(function(ele){return ele.toString()});
-								 // convert any number values to string, this is needed bcs inArray() below does strict comparisons
-								 // & id will be a string. (sometimes the id values are of type number )
-								$("input.titleSelect:checked").each(function(){
-									var id = $(this).attr('id').replace(/selected/g, ''); //strip down to just the id part
-									if ($.inArray(id, searchArray) == -1) // if the item isn't one of the failed cancels, get rid of its containing div.
-										$(this).closest('div.result').remove();
-								});
-							}
+						if (data.success) {
+							// remove canceled items from page
+							$("input.titleSelect:checked").closest('div.result').remove();
+						} else if (data.failed) { // remove items that didn't fail
+							var searchArray = data.failed.map(function(ele){return ele.toString()});
+							// convert any number values to string, this is needed bcs inArray() below does strict comparisons
+							// & id will be a string. (sometimes the id values are of type number )
+							$("input.titleSelect:checked").each(function(){
+								var id = $(this).attr('id').replace(/selected/g, ''); //strip down to just the id part
+								if ($.inArray(id, searchArray) == -1) // if the item isn't one of the failed cancels, get rid of its containing div.
+									$(this).closest('div.result').remove();
+							});
+						}
 					}).fail(function(){
 						VuFind.showMessage('Request Failed', 'There was an error with this AJAX Request.');
 					});
 				}
+			} else {
+				this.ajaxLogin(null, function () {
+					VuFind.Account.cancelSelectedHolds();
+				}, false);
 		}
 		return false;
 	},
@@ -435,15 +435,21 @@ VuFind.Account = (function(){
 */
 
 		cancelBooking: function(cancelId){
-			// TODO: code this
 			alert('Cancel Booking!')
-
+			return false
 		},
 
 		cancelSelectedBookings: function(cancelId){
 			// TODO: code this
 			alert('Cancel Booking!')
 
+		},
+
+		cancelAllBookings: function(cancelId){
+			if (confirm('Cancel All Bookings?')) {
+				// TODO: code this
+				alert('Cancel Booking!')
+			}
 		},
 
 		/* update the sort parameter and redirect the user back to the same page */

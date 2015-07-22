@@ -29,8 +29,9 @@
 						<form id="withSelectedHoldsFormBottom"{* action="{$fullPath}"*}>{*TODO: no action set.*}
 							<div>
 								<input type="hidden" name="withSelectedAction" value="" >
-								<div id="bookingsUpdateSelectedBottom" class="bookingsUpdateSelected">
+								<div id="bookingsUpdateSelectedBottom" class="bookingsUpdateSelected btn-group">
 									<input type="submit" class="btn btn-sm btn-warning" name="cancelSelected" value="Cancel Selected" onclick="return VuFind.Account.cancelSelectedBookings()">
+									<input type="submit" class="btn btn-sm btn-danger" name="cancelAll" value="Cancel All" onclick="return VuFind.Account.cancelAllBookings()">
 									{*<input type="submit" class="btn btn-sm btn-default" id="exportToExcel{if $sectionKey=='available'}Available{else}Unavailable{/if}Bottom" name="exportToExcel{if $sectionKey=='available'}Available{else}Unavailable{/if}" value="Export to Excel" />*}
 								</div>
 							</div>
