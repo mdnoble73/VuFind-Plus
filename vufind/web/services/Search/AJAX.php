@@ -93,8 +93,6 @@ class AJAX extends Action {
 
 	function IsLoggedIn()
 	{
-		require_once ROOT_DIR . '/services/MyResearch/lib/User.php';
-
 		echo "<result>" .
 		(UserAccount::isLoggedIn() ? "True" : "False") . "</result>";
 	}

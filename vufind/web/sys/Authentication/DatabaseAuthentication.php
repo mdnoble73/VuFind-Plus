@@ -1,10 +1,12 @@
 <?php
 require_once 'Authentication.php';
-require_once ROOT_DIR . '/services/MyResearch/lib/User.php';
 
 class DatabaseAuthentication implements Authentication {
+	public function __construct($additionalInfo) {
 
-	public function authenticate($additionalInfo) {
+	}
+
+	public function authenticate() {
 		$username = $_POST['username'];
 		$password = $_POST['password'];
 		if (($username == '') || ($password == '')) {

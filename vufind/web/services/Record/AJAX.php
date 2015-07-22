@@ -190,8 +190,6 @@ class Record_AJAX extends Action {
 
 	function IsLoggedIn()
 	{
-		require_once ROOT_DIR . '/services/MyResearch/lib/User.php';
-
 		return "<result>" .
 		(UserAccount::isLoggedIn() ? "True" : "False") . "</result>";
 	}

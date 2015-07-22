@@ -293,7 +293,7 @@
 										</div>
 									{/foreach}
 								{else}
-									<p class="alert alert-info">You can update your OverDrive preferences including checkout periods, maturity levels, and display of mature adult covers by editing your account settings on the <a href="{$overDriveUrl}">OverDrive website</a>.</p>
+									<p class="help-block">You can update your OverDrive preferences including checkout periods, maturity levels, and display of mature adult covers by editing your account settings on the <a href="{$overDriveUrl}">OverDrive website</a>.</p>
 								{/if}
 								{if !$offline && $edit == true}
 									<div class="form-group">
@@ -322,16 +322,17 @@
 							<form action="{$path}/MyAccount/Profile" method="post" class="form-horizontal">
 								<input type="hidden" name="updateScope" value="userPreference">
 								{if $showRatings && $showComments}
-								<div class="form-group">
-									<div class="col-xs-4"><label for="noPromptForUserReviews" class="control-label">{translate text='No Prompting to Review after Rating'}:</label></div>
-									<div class="col-xs-8">
-										{if $edit == true}
-											<input type="checkbox" name="noPromptForUserReviews" id="noPromptForUserReviews" {if $profile.noPromptForUserReviews==1}checked='checked'{/if} data-switch="">
-										{/if}
+									<div class="form-group">
+										<div class="col-xs-4"><label for="noPromptForUserReviews" class="control-label">{translate text='No Prompting to Review after Rating'}:</label></div>
+										<div class="col-xs-8">
+											{if $edit == true}
+												<input type="checkbox" name="noPromptForUserReviews" id="noPromptForUserReviews" {if $profile.noPromptForUserReviews==1}checked='checked'{/if} data-switch="">
+											{/if}
+										</div>
 									</div>
-								</div>
-								<p class="alert alert-info">When you rate an item by clicking on the stars, you will be asked to review that item also. Setting this option to <strong>&quot;on&QUOT;</strong> lets us know you don't want to give reviews after you have rated an item by clicking its stars.</p>
+									<p class="help-block">When you rate an item by clicking on the stars, you will be asked to review that item also. Setting this option to <strong>&quot;on&QUOT;</strong> lets us know you don't want to give reviews after you have rated an item by clicking its stars.</p>
 								{/if}
+
 								{* at this point this user preference could be changed even when offline. plb 7-2-2015 *}
 								{if !$offline && $edit == true}
 									<div class="form-group">
@@ -349,58 +350,96 @@
 				{* Catalog Settings *}
 				{if $showAlternateLibraryOptions || $userIsStaff}
 					<div class="panel active">
-					<a data-toggle="collapse" data-parent="#account-settings-accordion" href="#ilsPanel">
+						<a data-toggle="collapse" data-parent="#account-settings-accordion" href="#ilsPanel">
+							<div class="panel-heading">
+								<div class="panel-title">
+									Catalog Options
+								</div>
+							</div>
+						</a>
+						<div id="ilsPanel" class="panel-collapse collapse in">
+							<div class="panel-body">
+								<form action="{$path}/MyAccount/Profile" method="post" class="form-horizontal">
+									<input type="hidden" name="updateScope" value="catalog"/>
+									{if $showAlternateLibraryOptions}
+										<div class="form-group">
+											<div class="col-xs-4"><label for="myLocation1" class="control-label">{translate text='My First Alternate Library'}:</label></div>
+											<div class="col-xs-8">
+												{if $edit == true}
+													{html_options name="myLocation1" id="myLocation1" class="form-control" options=$locationList selected=$profile.myLocation1Id}
+												{else}
+													{$profile.myLocation1|escape}
+												{/if}
+											</div>
+										</div>
+										<div class="form-group">
+											<div class="col-xs-4"><label for="myLocation2" class="control-label">{translate text='My Second Alternate Library'}:</label></div>
+											<div class="col-xs-8">{if $edit == true}{html_options name="myLocation2" id="myLocation2" class="form-control" options=$locationList selected=$profile.myLocation2Id}{else}{$profile.myLocation2|escape}{/if}</div>
+										</div>
+									{/if}
+
+									{if $userIsStaff}
+										<div class="form-group">
+											<div class="col-xs-4"><label for="bypassAutoLogout" class="control-label">{translate text='Bypass Automatic Logout'}:</label></div>
+											<div class="col-xs-8">
+												{if $edit == true}
+													<input type="checkbox" name="bypassAutoLogout" id="bypassAutoLogout" {if $profile.bypassAutoLogout==1}checked='checked'{/if} data-switch="">
+												{else}
+													{if $profile.bypassAutoLogout==0}No{else}Yes{/if}
+												{/if}
+											</div>
+										</div>
+									{/if}
+									{if !$offline && $edit == true}
+										<div class="form-group">
+											<div class="col-xs-8 col-xs-offset-4">
+												<input type='submit' value='Update Catalog Options' name='updateCatalog' class="btn btn-sm btn-primary">
+											</div>
+										</div>
+									{/if}
+								</form>
+							</div>
+						</div>
+					</div>
+				{/if}
+
+				<div class="panel active">
+					<a data-toggle="collapse" data-parent="#account-settings-accordion" href="#linkedAccountPanel">
 						<div class="panel-heading">
 							<div class="panel-title">
-								Catalog Options
+								Linked Accounts
 							</div>
 						</div>
 					</a>
-					<div id="ilsPanel" class="panel-collapse collapse in">
+					<div id="linkedAccountPanel" class="panel-collapse collapse in">
 						<div class="panel-body">
-							<form action="{$path}/MyAccount/Profile" method="post" class="form-horizontal">
-								<input type="hidden" name="updateScope" value="catalog"/>
-								{if $showAlternateLibraryOptions}
-									<div class="form-group">
-										<div class="col-xs-4"><label for="myLocation1" class="control-label">{translate text='My First Alternate Library'}:</label></div>
-										<div class="col-xs-8">
-											{if $edit == true}
-												{html_options name="myLocation1" id="myLocation1" class="form-control" options=$locationList selected=$profile.myLocation1Id}
-											{else}
-												{$profile.myLocation1|escape}
-											{/if}
-										</div>
-									</div>
-									<div class="form-group">
-										<div class="col-xs-4"><label for="myLocation2" class="control-label">{translate text='My Second Alternate Library'}:</label></div>
-										<div class="col-xs-8">{if $edit == true}{html_options name="myLocation2" id="myLocation2" class="form-control" options=$locationList selected=$profile.myLocation2Id}{else}{$profile.myLocation2|escape}{/if}</div>
-									</div>
-								{/if}
+							<p class="alert alert-info">
+								Linked accounts allow you to easily maintain multiple accounts for the library so you can see all of your information in one place.
+								Information from linked accounts will appear when you view your checkouts, holds, etc in the main account.
+							</p>
+							<div class="lead" >Additional accounts to manage</div>
+							<p>The following accounts can be managed from this account.</p>
+							<ul>
+							{foreach from=$user->linkedUsers item=tmpUser}
+								<li>{$tmpUser->displayName} - {$tmpUser->getHomeLibrarySystemName()}</li>
+							{foreachelse}
+								<li>None</li>
+							{/foreach}
+							</ul>
+							<button class="btn btn-default btn-xs" onclick="VuFind.Account.addAccountLink()">Add an account</button>
+							<div class="lead">Other accounts that can view this account</div>
+							<p>The following accounts can view information from this accounts.</p>
+							<ul>
 
-								{if $userIsStaff}
-									<div class="form-group">
-										<div class="col-xs-4"><label for="bypassAutoLogout" class="control-label">{translate text='Bypass Automatic Logout'}:</label></div>
-										<div class="col-xs-8">
-											{if $edit == true}
-												<input type="checkbox" name="bypassAutoLogout" id="bypassAutoLogout" {if $profile.bypassAutoLogout==1}checked='checked'{/if} data-switch="">
-											{else}
-												{if $profile.bypassAutoLogout==0}No{else}Yes{/if}
-											{/if}
-										</div>
-									</div>
-								{/if}
-								{if !$offline && $edit == true}
-									<div class="form-group">
-										<div class="col-xs-8 col-xs-offset-4">
-											<input type='submit' value='Update Catalog Options' name='updateCatalog' class="btn btn-sm btn-primary">
-										</div>
-									</div>
-								{/if}
-							</form>
+							{foreach from=$user->getViewers() item=tmpUser}
+								<li>{$tmpUser->displayName} - {$tmpUser->getHomeLibrarySystemName()}</li>
+							{foreachelse}
+								<li>None</li>
+							{/foreach}
+							</ul>
 						</div>
 					</div>
 				</div>
-				{/if}
 
 				{* Display user roles if the user has any roles*}
 				{if count($user->roles) > 0}

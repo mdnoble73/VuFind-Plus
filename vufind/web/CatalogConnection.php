@@ -500,11 +500,10 @@ class CatalogConnection
 			}
 
 			$profile['readingHistorySize'] = '';
-			global $user;
-			if ($user && $user->trackReadingHistory && $user->initialReadingHistoryLoaded){
+			if ($patron && $patron->trackReadingHistory && $patron->initialReadingHistoryLoaded){
 				require_once ROOT_DIR . '/sys/ReadingHistoryEntry.php';
 				$readingHistoryDB = new ReadingHistoryEntry();
-				$readingHistoryDB->userId = $user->id;
+				$readingHistoryDB->userId = $patron->id;
 				$readingHistoryDB->deleted = 0;
 				$profile['readingHistorySize'] = $readingHistoryDB->count();
 			}

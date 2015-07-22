@@ -17,11 +17,10 @@ class ILSAuthentication implements Authentication {
 	}
 
 	public function authenticate(){
-		global $user;
-
 		//Check to see if the username and password are provided
 		if (!array_key_exists('username', $_REQUEST) && !array_key_exists('password', $_REQUEST)){
 			//If not, check to see if we have a valid user already authenticated
+			global $user;
 			if ($user){
 				return $user;
 			}
@@ -39,10 +38,6 @@ class ILSAuthentication implements Authentication {
 				$patron = $catalog->patronLogin($this->username, $this->password);
 				if ($patron && !PEAR_Singleton::isError($patron)) {
 					$user = $this->processILSUser($patron);
-
-					//Also call getPatronProfile to update extra fields
-					$catalog = CatalogFactory::getCatalogConnectionInstance($this->driverName);
-					$catalog->getMyProfile($user);
 				} else {
 					$user = new PEAR_Error('authentication_error_invalid');
 				}
@@ -54,12 +49,33 @@ class ILSAuthentication implements Authentication {
 	}
 
 	public function validateAccount($username, $password) {
-		return $this->authenticate();
+		$this->username = $username;
+		$this->password = $password;
+
+		if($this->username == '' || $this->password == ''){
+			$user = new PEAR_Error('authentication_error_blank');
+		} else {
+			// Connect to the correct catalog depending on the driver for this account
+			$catalog = CatalogFactory::getCatalogConnectionInstance($this->driverName);
+
+			if ($catalog->status) {
+				$patron = $catalog->patronLogin($this->username, $this->password);
+				if ($patron && !PEAR_Singleton::isError($patron)) {
+					$user = $this->processILSUser($patron);
+
+					//Also call getPatronProfile to update extra fields
+					//$catalog->getMyProfile($user);
+				} else {
+					$user = new PEAR_Error('authentication_error_invalid');
+				}
+			} else {
+				$user = new PEAR_Error('authentication_error_technical');
+			}
+		}
+		return $user;
 	}
 
 	private function processILSUser($info){
-		require_once ROOT_DIR . "/services/MyResearch/lib/User.php";
-
 		$user = new User();
 		//Marmot make sure we are using the username which is the
 		//unique patron ID in Millennium.

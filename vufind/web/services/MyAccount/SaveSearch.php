@@ -19,7 +19,6 @@
  */
 
 require_once ROOT_DIR . '/services/MyAccount/MyAccount.php';
-require_once ROOT_DIR . '/services/MyResearch/lib/User.php';
 require_once ROOT_DIR . '/services/MyResearch/lib/Search.php';
 
 class SaveSearch extends MyAccount

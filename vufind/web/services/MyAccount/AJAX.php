@@ -26,7 +26,8 @@ class MyAccount_AJAX
 			'saveSearch', 'deleteSavedSearch', // deleteSavedSearch not checked
 			'cancelHold', 'cancelHolds', 'freezeHold', 'thawHold', 'getChangeHoldLocationForm', 'changeHoldLocation',
 				'getReactivationDateForm', //not checked
-			'renewItem', 'renewAll', 'renewSelectedItems', 'getPinResetForm'
+			'renewItem', 'renewAll', 'renewSelectedItems', 'getPinResetForm',
+			'getAddAccountLinkForm', 'addAccountLink'
 		);
 		$method = $_GET['method'];
 		if (in_array($method, $valid_json_methods)) {
@@ -80,8 +81,50 @@ class MyAccount_AJAX
 		}
 	}
 
-	function getBulkAddToListForm()
-	{
+	function addAccountLink(){
+		global $user;
+		$username = $_REQUEST['username'];
+		$password = $_REQUEST['password'];
+
+		$accountToLink = UserAccount::validateAccount($username, $password);
+
+		if ($accountToLink){
+			$user->addLinkedUser($accountToLink);
+			$result = array(
+				'result' => true,
+				'message' => 'Successfully linked accounts.'
+			);
+		}else{
+			$result = array(
+				'result' => false,
+				'message' => 'Sorry, we could not find a user with that information.'
+			);
+		}
+		return $result;
+	}
+
+	function getAddAccountLinkForm(){
+		global $interface;
+		global $library;
+
+		$interface->assign('enableSelfRegistration', 0);
+		if (isset($library)){
+			$interface->assign('usernameLabel', str_replace('Your', '', $library->loginFormUsernameLabel ? $library->loginFormUsernameLabel : 'Your Name'));
+			$interface->assign('passwordLabel', str_replace('Your', '', $library->loginFormPasswordLabel ? $library->loginFormPasswordLabel : 'Library Card Number'));
+		}else{
+			$interface->assign('usernameLabel', 'Name');
+			$interface->assign('passwordLabel', 'Library Card Number');
+		}
+		// Display Page
+		$formDefinition = array(
+			'title' => 'Account to Manage',
+			'modalBody' => $interface->fetch('MyAccount/addAccountLink.tpl'),
+			'modalButtons' => "<span class='tool btn btn-primary' onclick='VuFind.Account.processAddLinkedUser(); return false;'>Add Account</span>"
+		);
+		return $formDefinition;
+	}
+
+	function getBulkAddToListForm()	{
 		global $interface;
 		// Display Page
 		$interface->assign('listId', strip_tags($_REQUEST['listId']));

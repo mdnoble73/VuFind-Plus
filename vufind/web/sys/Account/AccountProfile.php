@@ -18,9 +18,6 @@ class AccountProfile extends DB_DataObject {
 	public $authenticationMethod;
 
 	function getObjectStructure() {
-		$translationMapStructure = TranslationMap::getObjectStructure();
-		unset($translationMapStructure['indexingProfileId']);
-
 		$structure = array(
 			'id' => array('property' => 'id', 'type' => 'label', 'label' => 'Id', 'description' => 'The unique id within the database'),
 			'name' => array('property' => 'name', 'type' => 'text', 'label' => 'Name', 'maxLength' => 50, 'description' => 'A name for this indexing profile', 'required' => true),

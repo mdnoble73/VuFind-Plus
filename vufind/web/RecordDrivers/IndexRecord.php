@@ -19,8 +19,6 @@
  */
 require_once ROOT_DIR . '/RecordDrivers/Interface.php';
 
-require_once ROOT_DIR . '/services/MyResearch/lib/User.php';
-
 /**
  * Index Record Driver
  *

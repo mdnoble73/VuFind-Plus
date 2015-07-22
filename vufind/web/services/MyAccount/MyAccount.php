@@ -22,8 +22,6 @@ require_once ROOT_DIR . '/Action.php';
 
 require_once ROOT_DIR . '/CatalogConnection.php';
 
-require_once ROOT_DIR . '/services/MyResearch/lib/User.php';
-
 abstract class MyAccount extends Action
 {
 	/** @var  SearchObject_Solr|SearchObject_Base */

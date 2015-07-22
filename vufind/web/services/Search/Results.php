@@ -19,7 +19,6 @@
  */
 
 require_once ROOT_DIR . '/Action.php';
-require_once ROOT_DIR . '/services/MyResearch/lib/User.php';
 require_once ROOT_DIR . '/services/MyResearch/lib/Search.php';
 require_once ROOT_DIR . '/Drivers/marmot_inc/Prospector.php';
 

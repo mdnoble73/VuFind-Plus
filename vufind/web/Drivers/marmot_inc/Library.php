@@ -625,12 +625,15 @@ class Library extends DB_DataObject
 		return null;
 	}
 
-	static function getPatronHomeLibrary(){
+	static function getPatronHomeLibrary($tmpUser = null){
 		global $user;
+		if ($tmpUser == null){
+			$tmpUser = $user;
+		}
 		//Finally check to see if the user has logged in and if so, use that library
-		if (isset($user) && $user != false){
+		if (isset($tmpUser) && $tmpUser != false){
 			//Load the library based on the home branch for the user
-			return self::getLibraryForLocation($user->homeLocationId);
+			return self::getLibraryForLocation($tmpUser->homeLocationId);
 		}else{
 			return null;
 		}

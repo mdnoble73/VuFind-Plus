@@ -23,9 +23,6 @@ require_once 'XML/Serializer.php';
 
 require_once ROOT_DIR . '/sys/Authentication/AuthenticationFactory.php';
 
-// This is necessary for unserialize
-require_once ROOT_DIR . '/services/MyResearch/lib/User.php';
-
 class UserAccount
 {
 	// Checks whether the user is logged in.
@@ -53,11 +50,12 @@ class UserAccount
 	// on success, PEAR error on failure.
 	public static function login() {
 		global $configArray;
+		global $user;
 
 		$validUsers = array();
 
 		//Test all valid authentication methods and see which (if any) result in a valid login.
-		require_once ROOT_DIR . '/sys/Authentication/AccountProfile.php';
+		require_once ROOT_DIR . '/sys/Account/AccountProfile.php';
 		$driversToTest = array();
 		$accountProfile = new AccountProfile();
 		$accountProfile->find();
@@ -80,7 +78,7 @@ class UserAccount
 		foreach ($driversToTest as $driverName => $additionalInfo){
 			// Perform authentication:
 			$authN = AuthenticationFactory::initAuthentication($additionalInfo['authenticationMethod'], $additionalInfo);
-			$user = $authN->authenticate($additionalInfo);
+			$user = $authN->authenticate();
 
 			// If we authenticated, store the user in the session:
 			if (!PEAR_Singleton::isError($user)) {
@@ -97,7 +95,9 @@ class UserAccount
 	}
 
 	/**
-	 * Validate the account information (username and password are correct)
+	 * Validate the account information (username and password are correct).
+	 * Returns the account, but does not set the global user variable.
+	 *
 	 * @param $username
 	 * @param $password
 	 *
@@ -109,6 +109,7 @@ class UserAccount
 		// Perform authentication:
 		//Test all valid authentication methods and see which (if any) result in a valid login.
 		$driversToTest = array();
+		require_once ROOT_DIR . '/sys/Account/AccountProfile.php';
 		$accountProfile = new AccountProfile();
 		$accountProfile->find();
 		$user = null;
@@ -128,10 +129,10 @@ class UserAccount
 		}
 
 		foreach ($driversToTest as $driverName => $additionalInfo){
-			$additionalInfo = array('driver' => $accountProfile->driver);
 			$authN = AuthenticationFactory::initAuthentication($additionalInfo['authenticationMethod'], $additionalInfo);
-			if ( $authN->validateAccount($username, $password)){
-				return true;
+			$validatedUser = $authN->validateAccount($username, $password);
+			if ($validatedUser){
+				return $validatedUser;
 			}
 		}
 		return false;

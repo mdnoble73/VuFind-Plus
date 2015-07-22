@@ -77,6 +77,8 @@ function requireSystemLibraries(){
 	$timer->logTime("Include Interface");
 	require_once ROOT_DIR . '/sys/UserAccount.php';
 	$timer->logTime("Include UserAccount");
+	require_once ROOT_DIR . '/sys/Account/User.php';
+	$timer->logTime("Include User");
 	require_once ROOT_DIR . '/sys/Translator.php';
 	$timer->logTime("Include Translator");
 	require_once ROOT_DIR . '/sys/SearchObject/Factory.php';

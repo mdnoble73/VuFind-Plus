@@ -21,8 +21,6 @@
 require_once ROOT_DIR . '/Action.php';
 
 require_once ROOT_DIR . '/sys/LocalEnrichment/UserList.php';
-require_once ROOT_DIR . '/services/MyResearch/lib/User.php';
-
 class MyAccount_ListEdit extends Action
 {
 	private $user;

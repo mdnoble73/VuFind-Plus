@@ -8,6 +8,11 @@ VuFind.Account = (function(){
 		closeModalOnAjaxSuccess: false,
 		//haslocalStorage: null, // disable by default
 
+		addAccountLink: function(){
+			var url = Globals.path + "/MyAccount/AJAX?method=getAddAccountLinkForm";
+			VuFind.Account.ajaxLightbox(url, true);
+		},
+
 		/**
 		 * Creates a new list in the system for the active user.
 		 *
@@ -132,6 +137,35 @@ VuFind.Account = (function(){
 				}
 			}
 			return true;
+		},
+
+		processAddLinkedUser: function (){
+			if(this.preProcessLogin()) {
+				var username = $("#username").val(),
+						password = $("#password").val(),
+						loginErrorElem = $('#loginError'),
+						url = Globals.path + "/MyAccount/AJAX?method=addAccountLink";
+				loginErrorElem.hide();
+				$.ajax({
+					url: url,
+					data: {username: username, password: password},
+					success: function (response) {
+						if (response.result == true) {
+							VuFind.showMessage("Account to Manage", "Successfully linked the account.", true, true);
+						} else {
+							loginErrorElem.text(response.result.message);
+							loginErrorElem.show();
+						}
+					},
+					error: function () {
+						loginErrorElem.text("There was an error processing the account, please try again.")
+								.show();
+					},
+					dataType: 'json',
+					type: 'post'
+				});
+			}
+			return false;
 		},
 
 		processAjaxLogin: function (ajaxCallback) {

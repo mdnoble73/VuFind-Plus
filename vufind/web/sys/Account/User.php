@@ -38,6 +38,8 @@ class User extends DB_DataObject
 	public $preferredLibraryInterface;
 	public $noPromptForUserReviews; //tinyint(1)
 	private $roles;
+	private $linkedUsers;
+	private $viewers;
 	private $data = array();
 
 	/* Static get */
@@ -51,7 +53,7 @@ class User extends DB_DataObject
 	 * http://php.net/manual/en/language.oop5.magic.php
 	 * */
 	function __sleep(){
-		return array('id', 'username', 'password', 'cat_username', 'cat_password', 'firstname', 'lastname', 'email', 'phone', 'college', 'major', 'homeLocationId', 'myLocation1Id', 'myLocation2Id', 'trackReadingHistory', 'roles', 'bypassAutoLogout', 'displayName', 'disableRecommendations', 'disableCoverArt', 'patronType', 'overdriveEmail', 'promptForOverdriveEmail', 'noPromptForUserReviews', 'preferredLibraryInterface', 'initialReadingHistoryLoaded');
+		return array('id', 'username', 'password', 'cat_username', 'cat_password', 'firstname', 'lastname', 'email', 'phone', 'college', 'major', 'homeLocationId', 'myLocation1Id', 'myLocation2Id', 'trackReadingHistory', 'roles', 'bypassAutoLogout', 'displayName', 'disableRecommendations', 'disableCoverArt', 'patronType', 'overdriveEmail', 'promptForOverdriveEmail', 'noPromptForUserReviews', 'preferredLibraryInterface', 'initialReadingHistoryLoaded', 'linkedUsers');
 	}
 
 	function __wakeup()
@@ -98,8 +100,10 @@ class User extends DB_DataObject
 	}
 
 	function __get($name){
-		if ($name == 'roles'){
+		if ($name == 'roles') {
 			return $this->getRoles();
+		}elseif ($name == 'linkedUsers'){
+			return $this->getLinkedUsers();
 		}else{
 			return $this->data[$name];
 		}
@@ -110,6 +114,8 @@ class User extends DB_DataObject
 			$this->roles = $value;
 			//Update the database, first remove existing values
 			$this->saveRoles();
+		}elseif ($name == 'linkedUsers'){
+			return $this->saveLinkedUsers();
 		}else{
 			$this->data[$name] = $value;
 		}
@@ -165,6 +171,15 @@ class User extends DB_DataObject
 		}
 	}
 
+	function getBarcode(){
+		global $configArray;
+		if ($configArray['Catalog']['barcodeProperty'] == 'cat_username'){
+			return $this->cat_username;
+		}else{
+			return $this->cat_password;
+		}
+	}
+
 	function saveRoles(){
 		if (isset($this->id) && isset($this->roles) && is_array($this->roles)){
 			require_once ROOT_DIR . '/sys/Administration/Role.php';
@@ -177,10 +192,90 @@ class User extends DB_DataObject
 					$values[] = "({$this->id},{$roleId})";
 				}
 				$values = join(', ', $values);
-				$role->query("INSERT INTO user_roles ( `userId` , `roleId` ) VALUES " . $values);
+				$role->query("INSERT INTO user_roles ( `userId` , `roleId` ) VALUES $values");
 			}
 		}
 	}
+
+	/**
+	 * @return User[]
+	 */
+	function getLinkedUsers(){
+		if (is_null($this->linkedUsers)){
+			$this->linkedUsers = array();
+			if ($this->id){
+				require_once ROOT_DIR . '/sys/Account/UserLink.php';
+				$userLink = new UserLink();
+				$userLink->primaryAccountId = $this->id;
+				$userLink->find();
+				while ($userLink->fetch()){
+					$linkedUser = new User();
+					$linkedUser->id = $userLink->linkedAccountId;
+					if ($linkedUser->find(true)){
+						$this->linkedUsers[] = clone($linkedUser);
+					}
+				}
+			}
+		}
+		return $this->linkedUsers;
+	}
+
+	/**
+	 * Returns a list of users that can view this account
+	 *
+	 * @return User[]
+	 */
+	function getViewers(){
+		if (is_null($this->viewers)){
+			$this->viewers = array();
+			if ($this->id){
+				require_once ROOT_DIR . '/sys/Account/UserLink.php';
+				$userLink = new UserLink();
+				$userLink->linkedAccountId = $this->id;
+				$userLink->find();
+				while ($userLink->fetch()){
+					$linkedUser = new User();
+					$linkedUser->id = $userLink->primaryAccountId;
+					if ($linkedUser->find(true)){
+						$this->viewers[] = clone($linkedUser);
+					}
+				}
+			}
+		}
+		return $this->viewers;
+	}
+
+	/**
+	 * @param User $user
+	 */
+	function addLinkedUser($user){
+		$linkedUsers = $this->getLinkedUsers();
+		/** @var User $existingUser */
+		foreach ($linkedUsers as $existingUser){
+			if ($existingUser->id == $user->id){
+				//We already have a link to this user
+				return;
+			}
+		}
+		require_once ROOT_DIR . '/sys/Account/UserLink.php';
+		$userLink = new UserLink();
+		$userLink->primaryAccountId = $this->id;
+		$userLink->linkedAccountId = $user->id;
+		$userLink->insert();
+		$this->linkedUsers[] = clone($user);
+	}
+
+	function removeLinkedUser($userId){
+		$userLink = new UserLink();
+		$userLink->primaryAccountId = $this->id;
+		$userLink->linkedAccountId = $userId;
+		$userLink->delete();
+
+		//Force a reload of data
+		$this->linkedUsers = null;
+		$this->getLinkedUsers();
+	}
+
 
 	function update(){
 		$result = parent::update();
@@ -344,5 +439,10 @@ class User extends DB_DataObject
 			}
 		}
 		return false;
+	}
+
+	function getHomeLibrarySystemName(){
+		$homeLibrary = Library::getPatronHomeLibrary($this);
+		return $homeLibrary->displayName;
 	}
 }
