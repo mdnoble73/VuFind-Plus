@@ -428,7 +428,7 @@
 							</ul>
 							<button class="btn btn-default btn-xs" onclick="VuFind.Account.addAccountLink()">Add an account</button>
 							<div class="lead">Other accounts that can view this account</div>
-							<p>The following accounts can view information from this accounts.</p>
+							<p>The following accounts can view checkout and hold information from this account.</p>
 							<ul>
 
 							{foreach from=$user->getViewers() item=tmpUser}
