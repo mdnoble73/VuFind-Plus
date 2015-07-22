@@ -1043,5 +1043,14 @@ function getLibraryLocationUpdates(){
 				"ALTER TABLE `library` ADD COLUMN `isDefault` TINYINT(1);",
 			),
 		),
+
+		'linked_accounts_switch' => array(
+			'title' => 'Enable Linked Accounts',
+			'description' => 'Library configuration switch to enable users to have linked library accounts.',
+			'continueOnError' => true,
+			'sql' => array(
+				"ALTER TABLE `library` ADD COLUMN `allowLinkedAccounts` TINYINT(1) DEFAULT 1;",
+			),
+		),
 	);
 }
