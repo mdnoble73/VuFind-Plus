@@ -346,6 +346,9 @@ class MillenniumBooking {
 				if (preg_match_all('/.*?<td nowrap class=\\"patFuncBookDate\\">(?<bookingDate>.*?)<\/td>.*/', $row['bookingRow'], $matches, PREG_SET_ORDER)) {
 					$startDateTime = trim($matches[0]['bookingDate']); // time component looks ambiguous
 					$endDateTime   = trim($matches[1]['bookingDate']);
+					// pass as timestamps so that the SMARTY template can handle it.
+					$startDateTime = date_timestamp_get(date_create_from_format('m-d-Y g:i', $startDateTime));
+					$endDateTime   = date_timestamp_get(date_create_from_format('m-d-Y g:i', $endDateTime));
 				} else {
 					$startDateTime = null;
 					$endDateTime = null;
@@ -359,8 +362,8 @@ class MillenniumBooking {
 				$bookings[] = array(
 					'id' => $bibId,
 					'title' => $title,
-					'startDateTime' => $startDateTime, //TODO set as DateTime objects?
-					'EndDateTime' => $endDateTime,
+					'startDateTime' => $startDateTime,
+					'endDateTime' => $endDateTime,
 					'status' => $status
 				);
 

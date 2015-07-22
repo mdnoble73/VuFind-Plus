@@ -9,11 +9,11 @@
 						{*{/if}*}
 					</div>
 					<div class="col-xs-9 text-center">
-						{if $record.recordId}
-							<a href="{$path}/Record/{$record.recordId|escape:"url"}?searchId={$searchId}&amp;recordIndex={$recordIndex}&amp;page={$page}">
+						{if $record.id}
+							<a href="{$path}/Record/{$record.id|escape:"url"}{*?searchId={$searchId}&amp;recordIndex={$recordIndex}&amp;page={$page} Needed? plb*}">
 						{/if}
-							<img src="{$coverUrl}/bookcover.php?id={$record.recordId}&amp;issn={$record.issn}&amp;isn={$record.isbn|@formatISBN}&amp;size=small&amp;upc={$record.upc}&amp;category={$record.format_category.0|escape:"url"}" class="listResultImage img-thumbnail img-responsive" alt="{translate text='Cover Image'}"/>
-						{if $record.recordId}
+							<img src="{$coverUrl}/bookcover.php?id={$record.id}&amp;issn={$record.issn}&amp;isn={$record.isbn|@formatISBN}&amp;size=small&amp;upc={$record.upc}&amp;category={$record.format_category.0|escape:"url"}" class="listResultImage img-thumbnail img-responsive" alt="{translate text='Cover Image'}">
+						{if $record.id}
 							</a>
 						{/if}
 					</div>
@@ -24,11 +24,11 @@
 				<div class="row">
 					<div class="col-xs-12">
 						<span class="result-index">{$resultIndex})</span>&nbsp;
-						{if $record.recordId}
-						<a href="{$path}/Record/{$record.recordId|escape:"url"}" class="result-title notranslate">
+						{if $record.id}
+						<a href="{$path}/Record/{$record.id|escape:"url"}" class="result-title notranslate">
 							{/if}
 							{if !$record.title|removeTrailingPunctuation}{translate text='Title not available'}{else}{$record.title|removeTrailingPunctuation|truncate:180:"..."|highlight:$lookfor}{/if}
-							{if $record.recordId}
+							{if $record.id}
 						</a>
 						{/if}
 						{if $record.title2}
@@ -41,6 +41,7 @@
 
 				<div class="row">
 					<div class="resultDetails col-xs-12 col-md-9">
+
 						{if $record.author}
 							<div class="row">
 								<div class="result-label col-xs-3">{translate text='Author'}</div>
@@ -102,13 +103,11 @@
 
 					<div class="col-xs-12 col-md-3">
 						<div class="btn-group btn-group-vertical btn-block">
-								{if $record.cancelable}
-									<button onclick="return VuFind.Account.cancelHold('{$record.cancelId}');" class="btn btn-sm btn-warning">Cancel Hold</button>
-								{/if}
+								{*{if $record.cancelable}*}
+									<button onclick="return VuFind.Account.cancelBooking('{$record.id}');" class="btn btn-sm btn-warning">Cancel Booking</button>
+								{*{/if}*}
 						</div>
 
-						{* Include standard tools *}
-						{* include file='Record/result-tools.tpl' id=$record.id shortId=$record.shortId ratingData=$record.ratingData *}
 					</div>
 				</div>
 			</div>

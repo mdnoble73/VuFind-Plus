@@ -14,24 +14,23 @@ class MyAccount_Bookings extends MyAccount {
 		       $interface,
 		       $user;
 
-		$ils = $configArray['Catalog']['ils'];
-
-		// Define sorting options
-		$sortOptions = array(
-			'title' => 'Title',
-			'author' => 'Author',
-			'format' => 'Format',
-			'placed' => 'Date Placed',
-			'location' => 'Pickup Location',
-			'status' => 'Status',
-		);
+//		$ils = $configArray['Catalog']['ils'];
+//
+//		// Define sorting options
+//		$sortOptions = array(
+//			'title' => 'Title',
+//			'author' => 'Author',
+//			'format' => 'Format',
+//			'placed' => 'Date Placed',
+//			'location' => 'Pickup Location',
+//			'status' => 'Status',
+//		);
 
 		$bookings = $this->catalog->getMyBookings();
-		global $profile;
 		$profile = $this->catalog->getMyProfile($user);
-		// TODO: getMyProfile called for second time. First time on index.php
 
 		$libraryHoursMessage = Location::getLibraryHoursMessage($profile['homeLocationId']);
+		// TODO: $profile the best way to get the home Location?
 		$interface->assign('libraryHoursMessage', $libraryHoursMessage);
 		$interface->assign('recordList', $bookings);
 
