@@ -26,7 +26,7 @@
 <script type="text/javascript">
 {literal}
 	$(document).ready(function() {
-		$("#reportData").tablesorter({cssAsc: 'sortAscHeader', cssDesc: 'sortDescHeader', cssHeader: 'unsortedHeader'});
+		$("#reportData").tablesorter({cssAsc: 'sortAscHeader', cssDesc: 'sortDescHeader', cssHeader: 'unsortedHeader', widgets:['zebra', 'filter']});
 	});
 {/literal}
 </script>

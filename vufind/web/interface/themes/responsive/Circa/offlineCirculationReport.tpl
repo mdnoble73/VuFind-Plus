@@ -64,7 +64,7 @@
 
 			<h2>Offline Circulation</h2>
 			{if count($offlineCirculation) > 0}
-				<table class="citation">
+				<table class="tablesorter table table-striped" id="offlineCirculationReport">
 					<thead>
 					<tr><th>#</th><th>Login</th>{*<th>Initials</th><th>Type</th>*}<th>Item Barcode</th><th>Patron Barcode</th><th>Date Entered</th><th>Status</th><th>Notes</th></tr>
 					</thead>
@@ -84,6 +84,7 @@
 		$(function() {
 			$( "#startDate" ).datepicker({ showOn: "button", buttonImage: "{/literal}{$path}{literal}/images/silk/calendar.png", numberOfMonths: 2,	buttonImageOnly: true});
 			$( "#endDate" ).datepicker({ showOn: "button", buttonImage: "{/literal}{$path}{literal}/images/silk/calendar.png", numberOfMonths: 2,	buttonImageOnly: true});
+			$("#offlineCirculationReport").tablesorter({cssAsc: 'sortAscHeader', cssDesc: 'sortDescHeader', cssHeader: 'unsortedHeader', widgets:['zebra', 'filter'] });
 		});
 		{/literal}
 	</script>

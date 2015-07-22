@@ -31,7 +31,7 @@
 		<div id="main-content">
 			<h2>Offline Holds</h2>
 			{if count($offlineHolds) > 0}
-				<table class="citation">
+				<table class="citation tablesorter" id="offlineHoldsReport" >
 					<thead>
 						<tr><th>Patron Barcode</th><th>Record Id</th><th>Title</th><th>Date Entered</th><th>Status</th><th>Notes</th></tr>
 					</thead>
@@ -51,6 +51,7 @@
 		$(function() {
 			$( "#startDate" ).datepicker({ showOn: "button", buttonImage: "{/literal}{$path}{literal}/images/silk/calendar.png", numberOfMonths: 2,	buttonImageOnly: true});
 			$( "#endDate" ).datepicker({ showOn: "button", buttonImage: "{/literal}{$path}{literal}/images/silk/calendar.png", numberOfMonths: 2,	buttonImageOnly: true});
+			$("#offlineHoldsReport").tablesorter({cssAsc: 'sortAscHeader', cssDesc: 'sortDescHeader', cssHeader: 'unsortedHeader', widgets:['zebra', 'filter'] });
 		});
 		{/literal}
 	</script>

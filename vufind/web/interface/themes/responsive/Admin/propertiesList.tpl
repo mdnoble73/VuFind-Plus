@@ -6,7 +6,7 @@
 	</div>
 {/if}
 <div class='adminTableRegion'>
-	<table class="adminTable table table-striped table-condensed smallText">
+	<table class="adminTable table table-striped table-condensed smallText" id="adminTable">
 		<thead>
 			<tr>
 				{foreach from=$structure item=property key=id}
@@ -106,3 +106,9 @@
 		</div>
 	</form>
 {/foreach}
+
+<script type="text/javascript">
+	{literal}
+	$("#adminTable").tablesorter({cssAsc: 'sortAscHeader', cssDesc: 'sortDescHeader', cssHeader: 'unsortedHeader', widgets:['zebra', 'filter'] });
+	{/literal}
+</script>
