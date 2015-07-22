@@ -266,14 +266,17 @@ class User extends DB_DataObject
 	}
 
 	function removeLinkedUser($userId){
+		require_once ROOT_DIR . '/sys/Account/UserLink.php';
 		$userLink = new UserLink();
 		$userLink->primaryAccountId = $this->id;
 		$userLink->linkedAccountId = $userId;
-		$userLink->delete();
+		$ret = $userLink->delete();
 
 		//Force a reload of data
 		$this->linkedUsers = null;
 		$this->getLinkedUsers();
+
+		return $ret == 1;
 	}
 
 

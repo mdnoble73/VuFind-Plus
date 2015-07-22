@@ -27,7 +27,7 @@ class MyAccount_AJAX
 			'cancelHold', 'cancelHolds', 'freezeHold', 'thawHold', 'getChangeHoldLocationForm', 'changeHoldLocation',
 				'getReactivationDateForm', //not checked
 			'renewItem', 'renewAll', 'renewSelectedItems', 'getPinResetForm',
-			'getAddAccountLinkForm', 'addAccountLink'
+			'getAddAccountLinkForm', 'addAccountLink', 'removeAccountLink'
 		);
 		$method = $_GET['method'];
 		if (in_array($method, $valid_json_methods)) {
@@ -83,22 +83,54 @@ class MyAccount_AJAX
 
 	function addAccountLink(){
 		global $user;
-		$username = $_REQUEST['username'];
-		$password = $_REQUEST['password'];
-
-		$accountToLink = UserAccount::validateAccount($username, $password);
-
-		if ($accountToLink){
-			$user->addLinkedUser($accountToLink);
-			$result = array(
-				'result' => true,
-				'message' => 'Successfully linked accounts.'
-			);
-		}else{
+		if (!$user){
 			$result = array(
 				'result' => false,
-				'message' => 'Sorry, we could not find a user with that information.'
+				'message' => 'Sorry, you must be logged in to manage accounts.'
 			);
+		}else{
+			$username = $_REQUEST['username'];
+			$password = $_REQUEST['password'];
+
+			$accountToLink = UserAccount::validateAccount($username, $password);
+
+			if ($accountToLink){
+				$user->addLinkedUser($accountToLink);
+				$result = array(
+					'result' => true,
+					'message' => 'Successfully linked accounts.'
+				);
+			}else{
+				$result = array(
+					'result' => false,
+					'message' => 'Sorry, we could not find a user with that information.'
+				);
+			}
+		}
+
+		return $result;
+	}
+
+	function removeAccountLink(){
+		global $user;
+		if (!$user){
+			$result = array(
+				'result' => false,
+				'message' => 'Sorry, you must be logged in to manage accounts.'
+			);
+		}else{
+			$accountToRemove = $_REQUEST['idToRemove'];
+			if ($user->removeLinkedUser($accountToRemove)){
+				$result = array(
+					'result' => true,
+					'message' => 'Successfully removed linked account.'
+				);
+			}else{
+				$result = array(
+					'result' => false,
+					'message' => 'Sorry, we could remove that account.'
+				);
+			}
 		}
 		return $result;
 	}

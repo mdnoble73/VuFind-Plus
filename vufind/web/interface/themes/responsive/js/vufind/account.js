@@ -218,6 +218,21 @@ VuFind.Account = (function(){
 			return false;
 		},
 
+		removeLinkedUser: function(idToRemove){
+			if (confirm("Are you sure you want to stop managing this account?")){
+				var url = Globals.path + "/MyAccount/AJAX?method=removeAccountLink&idToRemove=" + idToRemove;
+				$.getJSON(url, function(data){
+					if (data.result == true){
+						VuFind.showMessage('Linked Account Removed', data.message, true, true);
+						//setTimeout(function(){window.location.reload()}, 3000);
+					}else{
+						VuFind.showMessage('Unable to Remove Account Link', data.message);
+					}
+				});
+			}
+			return false;
+		},
+
 		removeTag: function(tag){
 			if (confirm("Are you sure you want to remove the tag \"" + tag + "\" from all titles?")){
 				//var url = Globals.path + "/MyAccount/AJAX?method=removeTag&tag=" + encodeURI(tag);
