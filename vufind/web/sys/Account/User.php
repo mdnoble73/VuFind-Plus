@@ -12,6 +12,7 @@ class User extends DB_DataObject
 
 	public $__table = 'user';                            // table name
 	public $id;                              // int(11)  not_null primary_key auto_increment
+	public $source;
 	public $username;                        // string(30)  not_null unique_key
 	public $displayName;                     // string(30)
 	public $password;                        // string(32)  not_null
@@ -22,8 +23,6 @@ class User extends DB_DataObject
 	public $cat_username;                    // string(50)
 	public $cat_password;                    // string(50)
 	public $patronType;
-	public $college;                         // string(100)  not_null
-	public $major;                           // string(100)  not_null
 	public $created;                         // datetime(19)  not_null binary
 	public $homeLocationId;					 // int(11)
 	public $myLocation1Id;					 // int(11)
@@ -37,9 +36,11 @@ class User extends DB_DataObject
 	public $promptForOverdriveEmail;
 	public $preferredLibraryInterface;
 	public $noPromptForUserReviews; //tinyint(1)
+	public $web_note;
 	private $roles;
 	private $linkedUsers;
 	private $viewers;
+	private $profile;
 	private $data = array();
 
 	/* Static get */
@@ -47,18 +48,6 @@ class User extends DB_DataObject
 
 	/* the code above is auto generated do not remove the tag below */
 	###END_AUTOCODE
-
-	/* !Important!
-	 * This function must be updated in order for a value to be saved in the $_SESSION variable. It is called by serialize()
-	 * http://php.net/manual/en/language.oop5.magic.php
-	 * */
-	function __sleep(){
-		return array('id', 'username', 'password', 'cat_username', 'cat_password', 'firstname', 'lastname', 'email', 'phone', 'college', 'major', 'homeLocationId', 'myLocation1Id', 'myLocation2Id', 'trackReadingHistory', 'roles', 'bypassAutoLogout', 'displayName', 'disableRecommendations', 'disableCoverArt', 'patronType', 'overdriveEmail', 'promptForOverdriveEmail', 'noPromptForUserReviews', 'preferredLibraryInterface', 'initialReadingHistoryLoaded', 'linkedUsers');
-	}
-
-	function __wakeup()
-	{
-	}
 
 	function getTags($id = null){
 		require_once ROOT_DIR . '/sys/LocalEnrichment/UserTag.php';
@@ -97,6 +86,37 @@ class User extends DB_DataObject
 		}
 
 		return $lists;
+	}
+
+	/**
+	 * Return all titles that are currently checked out by the user.
+	 *
+	 * Will check:
+	 * 1) The current ILS for the user
+	 * 2) OverDrive
+	 * 3) eContent stored by Pika
+	 *
+	 * @return array
+	 */
+	function getAllTitlesCheckedOut(){
+
+	}
+
+	/**
+	 * Get a connection to the catalog for the user
+	 *
+	 * @return CatalogConnection
+	 */
+	function getCatalogDriver(){
+		//Based off the source of the user, get the AccountProfile
+		$accountProfile = new AccountProfile();
+		$accountProfile->name = $this->source;
+		$catalogDriver = null;
+		if ($accountProfile->find(true)){
+			$catalogDriver = $accountProfile->driver;
+		}
+		$catalog = CatalogFactory::getCatalogConnectionInstance($catalogDriver);
+		return $catalog;
 	}
 
 	function __get($name){
