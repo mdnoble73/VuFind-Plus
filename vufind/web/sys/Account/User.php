@@ -223,7 +223,9 @@ class User extends DB_DataObject
 	function getLinkedUsers(){
 		if (is_null($this->linkedUsers)){
 			$this->linkedUsers = array();
-			if ($this->id){
+			/* var Library $library */
+			global $library;
+			if ($this->id && $library->allowLinkedAccounts){
 				require_once ROOT_DIR . '/sys/Account/UserLink.php';
 				$userLink = new UserLink();
 				$userLink->primaryAccountId = $this->id;
@@ -248,7 +250,9 @@ class User extends DB_DataObject
 	function getViewers(){
 		if (is_null($this->viewers)){
 			$this->viewers = array();
-			if ($this->id){
+			/* var Library $library */
+			global $library;
+			if ($this->id && $library->allowLinkedAccounts){
 				require_once ROOT_DIR . '/sys/Account/UserLink.php';
 				$userLink = new UserLink();
 				$userLink->linkedAccountId = $this->id;
@@ -269,34 +273,42 @@ class User extends DB_DataObject
 	 * @param User $user
 	 */
 	function addLinkedUser($user){
-		$linkedUsers = $this->getLinkedUsers();
-		/** @var User $existingUser */
-		foreach ($linkedUsers as $existingUser){
-			if ($existingUser->id == $user->id){
-				//We already have a link to this user
-				return;
+		/* var Library $library */
+		global $library;
+		if ($library->allowLinkedAccounts) {
+			$linkedUsers = $this->getLinkedUsers();
+			/** @var User $existingUser */
+			foreach ($linkedUsers as $existingUser) {
+				if ($existingUser->id == $user->id) {
+					//We already have a link to this user
+					return;
+				}
 			}
+			require_once ROOT_DIR . '/sys/Account/UserLink.php';
+			$userLink                   = new UserLink();
+			$userLink->primaryAccountId = $this->id;
+			$userLink->linkedAccountId  = $user->id;
+			$userLink->insert();
+			$this->linkedUsers[] = clone($user);
 		}
-		require_once ROOT_DIR . '/sys/Account/UserLink.php';
-		$userLink = new UserLink();
-		$userLink->primaryAccountId = $this->id;
-		$userLink->linkedAccountId = $user->id;
-		$userLink->insert();
-		$this->linkedUsers[] = clone($user);
 	}
 
 	function removeLinkedUser($userId){
-		require_once ROOT_DIR . '/sys/Account/UserLink.php';
-		$userLink = new UserLink();
-		$userLink->primaryAccountId = $this->id;
-		$userLink->linkedAccountId = $userId;
-		$ret = $userLink->delete();
+		/* var Library $library */
+		global $library;
+		if ($library->allowLinkedAccounts) {
+			require_once ROOT_DIR . '/sys/Account/UserLink.php';
+			$userLink                   = new UserLink();
+			$userLink->primaryAccountId = $this->id;
+			$userLink->linkedAccountId  = $userId;
+			$ret                        = $userLink->delete();
 
-		//Force a reload of data
-		$this->linkedUsers = null;
-		$this->getLinkedUsers();
+			//Force a reload of data
+			$this->linkedUsers = null;
+			$this->getLinkedUsers();
 
-		return $ret == 1;
+			return $ret == 1;
+		}
 	}
 
 
