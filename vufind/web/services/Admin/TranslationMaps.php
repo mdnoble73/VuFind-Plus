@@ -18,10 +18,16 @@ class Admin_TranslationMaps extends ObjectEditor {
 		$objectAction = isset($_REQUEST['objectAction']) ? $_REQUEST['objectAction'] : null;
 		if ($objectAction == 'loadFromFile'){
 			$id = $_REQUEST['id'];
+			$translationMap = new TranslationMap();
+			if ($translationMap->get($id)) {
+				$interface->assign('mapName', $translationMap->name);
+			}
 			$interface->assign('id', $id);
+			$shortPageTitle = "Import Translation Map Data";
+			$interface->assign('shortPageTitle', $shortPageTitle);
 			$interface->setTemplate('../Admin/importTranslationMapData.tpl');
 			$interface->assign('sidebar', 'MyAccount/account-sidebar.tpl');
-			$interface->setPageTitle("Import Translation Map Data");
+			$interface->setPageTitle($shortPageTitle);
 			$interface->display('layout.tpl');
 			exit();
 		}elseif($objectAction == 'doAppend' || $objectAction == 'doReload'){

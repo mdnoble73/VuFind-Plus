@@ -1,12 +1,17 @@
 <div id="main-content">
-	<h1>{$shortPageTitle}</h1>
-	<a class="btn btn-sm btn-default" href='/Admin/TranslationMaps?objectAction=list'>Return to List</a>
-	<div class="helpTextUnsized">
+	{*<h1>{$shortPageTitle}</h1>*}
+
+	<div class="btn-group">
+		<a class="btn btn-sm btn-default" href="/Admin/TranslationMaps?objectAction=edit&amp;id={$id}">Edit Map</a>
+		<a class="btn btn-sm btn-default" href='/Admin/TranslationMaps?objectAction=list'>Return to List</a>
+	</div>
+	<h2>{$mapName}</h2>
+	<div class="helpTextUnsized well">
 		<p>Translation map values can be loaded from either an INI formatted record
 			or from a CSV formatted record.
 			<ol>
-				<li>value = translation</li>
-				<li>value, translation</li>
+				<li><code>value = translation</code></li>
+				<li><code>value, translation</code></li>
 			</ol>
 			The translation and value can optionally have quotes surrounding it.
 		</p>
