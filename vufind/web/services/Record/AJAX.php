@@ -469,7 +469,7 @@ class Record_AJAX extends Action {
 			if (!empty($return['retry'])) {
 				return $this->getBookMaterialForm($return['message']); // send back error message with form to try again
 			} else { // otherwise return output to user's browser
-				if ($return['success'] == true) $return['message'] .= '<div class="alert alert-success"'.$return['message'].'</div>';
+				if ($return['success'] == true) $return['message'] = '<div class="alert alert-success">'.$return['message'].'</div>';
 					// wrap a success message in a success alert
 				return $return;
 			}

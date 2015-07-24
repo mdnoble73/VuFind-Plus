@@ -367,14 +367,14 @@ VuFind.Record = (function(){
 
 		showBookMaterial: function(id){
 			if (Globals.loggedIn){
-				//VuFind.showMessage('Loading...', 'Loading, please wait.');
+				VuFind.loadingMessage();
 				$.getJSON(Globals.path + "/Record/" + id + "/AJAX?method=getBookMaterialForm", function(data){
 					VuFind.showMessageWithButtons(data.title, data.modalBody, data.modalButtons);
-				});
+				}).fail(VuFind.ajaxFail)
 			}else{
 				VuFind.Account.ajaxLogin(null, function(){
 					VuFind.Record.showBookMaterial(id);
-				}, false);
+				}, false)
 			}
 			return false;
 		},
@@ -385,11 +385,9 @@ VuFind.Record = (function(){
 			$.getJSON(Globals.path + "/Record/AJAX", params+'&method=bookMaterial', function(data){
 				if (data.modalBody) VuFind.showMessageWithButtons(data.title, data.modalBody, data.modalButtons);
 					// For errors that can be fixed by the user, the form will be re-displayed
-				if (data.success) VuFind.showMessage('Success', data.message, true);
+				if (data.success) VuFind.showMessage('Success', data.message/*, true*/);
 				else if (data.message) VuFind.showMessage('Error', data.message);
-			}).fail(function(){
-				VuFind.showMessage('Request Failed', 'There was an error with this AJAX Request.');
-			});
+			}).fail(VuFind.ajaxFail);
 		},
 
 		submitHoldForm: function(){

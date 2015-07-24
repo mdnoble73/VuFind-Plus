@@ -117,7 +117,7 @@ class MillenniumBooking {
 			$loginResult = curl_exec($this->curl_connection);
 //			$curlInfo    = curl_getinfo($this->curl_connection); // debug info
 		}
-		return $loginResult; // TODO read $loginResult for a successful login??, then return $success boolean,  or $error
+		return $loginResult;
 	}
 
 	/**
@@ -248,7 +248,7 @@ class MillenniumBooking {
 			//TODO log error as well.
 			return array(
 				'success' => false,
-				'message' => 'There was an error communicating with the library system.'
+				'message' => 'There was an error communicating with the circulation system.'
 			);
 		}
 
@@ -281,6 +281,74 @@ class MillenniumBooking {
 		);
 	}
 
+	public function cancelBookedMaterial($cancelIds) {
+		if (empty($cancelIds)) return array('success' => false, 'message' => 'Item ID required');
+
+		if (!is_array($cancelIds)) $cancelIds = array($cancelIds); // for a single item
+
+		global $configArray;
+		$scope = $this->driver->getLibraryScope(); // TODO: Fix: Not coming back with 100
+		$scope = 100;
+		$patronInfo = $this->driver->_getPatronDump($this->driver->_getBarcode());
+
+		$cancelBookingUrl = $configArray['Catalog']['url'] ."/patroninfo~S$scope?/". $patronInfo['RECORD_#'].'/bookings';
+			// scoping needed for canceling booked materials
+
+		$this->_curl_login();
+		curl_setopt_array($this->curl_connection, array(
+			CURLOPT_URL => $cancelBookingUrl,
+			CURLOPT_POST => true,
+		));
+
+		$post = array(
+			'canbooksome' => 'YES'
+		);
+		foreach ($cancelIds as $i => $cancelId){
+			if (is_numeric($i)) $post['canbook'.$i] = $cancelId; // recreating the cancelName variable canbookX
+			else $post[$i] = $cancelId; // when cancelName is passed back
+		}
+		$post_string = http_build_query($post);
+		curl_setopt($this->curl_connection, CURLOPT_POSTFIELDS, $post_string);
+		$curlResponse = curl_exec($this->curl_connection);
+		$errors = array();
+		if ($curlError = curl_errno($this->curl_connection)) return array(
+			'success' => false,
+			'message' => 'There was an error communicating with the circulation system.'
+		);
+
+		// get the bookings again, to verify that they were in fact really cancelled.
+		curl_setopt_array($this->curl_connection, array(
+			CURLOPT_POSTFIELDS => '',
+			CURLOPT_POST => false
+		));
+		$curlResponse = curl_exec($this->curl_connection);
+
+		foreach ($cancelIds as $cancelId) {
+			// successful cancels return books page without the item
+//			$regEx = '/'.preg_quote($cancelId,'/').'/'; // create a properly escaped regular expression
+//			if (preg_match($regEx, $curlResponse)) { // looking for this booking in results, meaning it failed to cancel.
+//				$errors[$cancelId] = 'Failed to Cancel Booking.'; // TODO Add Title to each Message
+//			}
+			if (strpos($curlResponse, $cancelId) !== false) { // looking for this booking in results, meaning it failed to cancel.
+				if (empty($errors)) $bookings = $this->parseBookingsPage($curlResponse);
+					// get bookings info on the first detected error
+				foreach ($bookings as $booking){
+					if ($booking['cancelValue'] == $cancelId) break;
+				}
+				$errors[$cancelId] = 'Failed to cancel booking for <strong>'.$booking['title'].'</strong> from '.strftime('%b %d, %Y at %I:%M %p', $booking['startDateTime']). ' to '.strftime('%b %d, %Y at %I:%M %p', $booking['endDateTime']);
+			}
+		}
+
+		if (empty($errors)) return array(
+			'success' => true,
+			'message' => 'Your booking'.(count($cancelIds) > 1 ? 's were': ' was').' successfully canceled.'
+		);
+		else return array(
+			'success' => false,
+			'message' => $errors
+		);
+	}
+
 	public function getMyBookings(){
 		$patronDump = $this->driver->_getPatronDump($this->driver->_getBarcode());
 
@@ -307,7 +375,7 @@ class MillenniumBooking {
 					$booking['format_category'] = $recordDriver->getFormatCategory();
 
 					//Load rating information
-					$booking['ratingData'] = $recordDriver->getRatingData();
+//					$booking['ratingData'] = $recordDriver->getRatingData(); // not displaying ratings at this time
 
 				}
 				enableErrorHandler();
@@ -334,7 +402,7 @@ class MillenniumBooking {
 			foreach ($rows as $index => $row) { // Go through each row
 
 				// Get Record/Title
-				if (!preg_match('/.*?<a href=\\"\/record=(?<recordId>.*?)(?:~S\\d{1,2})\\">(?<title>.*?)<\/a>.*/', $row['bookingRow'], $matches))
+				if (!preg_match('/.*?<a href=\\"\/record=(?<recordId>.*?)(?:~S\\d{1,3})\\">(?<title>.*?)<\/a>.*/', $row['bookingRow'], $matches))
 						 preg_match('/.*<a href=".*?\/record\/C__R(?<recordId>.*?)\\?.*?">(?<title>.*?)<\/a>.*/si',    $row['bookingRow'], $matches);
 				// Don't know if this situation comes into play. It is taken from millennium holds parser. plb 7-17-2015
 
@@ -359,12 +427,21 @@ class MillenniumBooking {
 					$status = ($matches['status'] == '&nbsp;') ? '' : $matches['status']; // at this point, I don't know what status we will ever see
 				} else $status = '';
 
+				// Get Cancel Ids
+//				<td class="patFuncMark"><input type="CHECKBOX" name="canbook0" id="canbook0" value="i9459912F08-17-20154:00T08-17-20154:00" /></td>
+				if (preg_match('/.*?<input type="CHECKBOX".*?name=\\"(?<cancelName>.*?)\\".*?value=\\"(?<cancelValue>.*?)\\" \/>.*/', $row['bookingRow'], $matches)) {
+					$cancelName = $matches['cancelName'];
+					$cancelValue = $matches['cancelValue'];
+				} else $cancelValue = $cancelName = '';
+
 				$bookings[] = array(
 					'id' => $bibId,
 					'title' => $title,
 					'startDateTime' => $startDateTime,
 					'endDateTime' => $endDateTime,
-					'status' => $status
+					'status' => $status,
+					'cancelName' => $cancelName,
+					'cancelValue' => $cancelValue,
 				);
 
 			}

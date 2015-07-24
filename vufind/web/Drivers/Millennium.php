@@ -1275,6 +1275,17 @@ class MillenniumDriver implements DriverInterface
 		return $millenniumBooking->bookMaterial($recordId, $startDate, $startTime, $endDate, $endTime);
 	}
 
+	/**
+	 * @param $cancelIds  uses a specific id for canceling a booking, rather than a record Id.
+	 * @return array      data for client-side AJAX responses
+	 */
+	public function cancelBookedMaterial($cancelIds) {
+		require_once ROOT_DIR . '/Drivers/marmot_inc/MillenniumBooking.php';
+		$millenniumBooking = new MillenniumBooking($this);
+		return $millenniumBooking->cancelBookedMaterial($cancelIds);
+
+	}
+
 	public function updatePatronInfo($canUpdateContactInfo){
 		global $user;
 		global $configArray;

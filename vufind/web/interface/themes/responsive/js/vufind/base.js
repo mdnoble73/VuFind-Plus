@@ -252,12 +252,12 @@ var VuFind = (function(){
 
 		// common loading message for lightbox while waiting for AJAX processes to complete.
 		loadingMessage: function() {
-			this.showMessage('Loading', 'Loading, please wait')
+			VuFind.showMessage('Loading', 'Loading, please wait.')
 		},
 
 		// common message for when an AJAX call has failed.
 		ajaxFail: function() {
-			this.showMessage('Request Failed', 'There was an error with this AJAX Request.');
+			VuFind.showMessage('Request Failed', 'There was an error with this AJAX Request.');
 		},
 
 		toggleHiddenElementWithButton: function(button){

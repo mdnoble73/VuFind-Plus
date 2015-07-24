@@ -25,8 +25,10 @@ class MyAccount_AJAX
 			'removeTag',
 			'saveSearch', 'deleteSavedSearch', // deleteSavedSearch not checked
 			'cancelHold', 'cancelHolds', 'freezeHold', 'thawHold', 'getChangeHoldLocationForm', 'changeHoldLocation',
-				'getReactivationDateForm', //not checked
-			'renewItem', 'renewAll', 'renewSelectedItems', 'getPinResetForm'
+
+			'getReactivationDateForm', //not checked
+			'renewItem', 'renewAll', 'renewSelectedItems', 'getPinResetForm',
+			'cancelBooking',
 		);
 		$method = $_GET['method'];
 		if (in_array($method, $valid_json_methods)) {
@@ -196,7 +198,7 @@ class MyAccount_AJAX
 		try {
 			global $configArray,
 			       $user;
-			$catalog = CatalogFactory::getCatalogConnectionInstance();;
+			$catalog = CatalogFactory::getCatalogConnectionInstance();
 
 			// ids grabbed in MillenniumHolds.php in $_REQUEST['waitingholdselected'] & $_REQUEST['availableholdselected']
 			// but we will pass ids here instead.
@@ -235,11 +237,53 @@ class MyAccount_AJAX
 		return $cancelResult;
 	}
 
+	function cancelBooking() {
+		try {
+			global $configArray,
+			       $user;
+			$catalog = CatalogFactory::getCatalogConnectionInstance();
+
+			$cancelId = array();
+			if (!empty($_REQUEST['cancelId'])) {
+					$cancelId = $_REQUEST['cancelId'];
+			}
+			$result = $catalog->driver->cancelBookedMaterial($cancelId);
+
+		} catch (PDOException $e) {
+			// What should we do with this error?
+			if ($configArray['System']['debug']) {
+				echo '<pre>';
+				echo 'DEBUG: ' . $e->getMessage();
+				echo '</pre>';
+			}
+			$result = array(
+				'success' => false,
+				'message' => 'We could not connect to the circulation system, please try again later.'
+			);
+		}
+		$failed = (!$result['success'] && is_array($result['message']) && !empty($result['message'])) ? array_keys($result['message']) : null; //returns failed id for javascript function
+		$numCancelled = $result['success'] ? count($cancelId) : count($cancelId) - count($result['message']);
+		// either all were canceled or total canceled minus the number of errors (1 error per failure)
+
+		global $interface;
+		$interface->assign('cancelResults', $result);
+		$interface->assign('numCancelled', $numCancelled);
+		$interface->assign('totalCancelled', count($cancelId));
+
+		$cancelResult = array(
+			'title' => 'Cancel Booking',
+			'modalBody' => $interface->fetch('MyAccount/cancelBooking.tpl'),
+			'success' => $result['success'],
+			'failed' => $failed
+		);
+		return $cancelResult;
+	}
+
 	function cancelHolds() { // for cancelling multiple holds
 		try {
 			global $configArray,
 			       $user;
-			$catalog = CatalogFactory::getCatalogConnectionInstance();;
+			$catalog = CatalogFactory::getCatalogConnectionInstance();
 
 			// ids grabbed in MillenniumHolds.php in $_REQUEST['waitingholdselected'] & $_REQUEST['availableholdselected']
 			// but we will pass ids here instead.
