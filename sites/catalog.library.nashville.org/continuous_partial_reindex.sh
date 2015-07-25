@@ -103,6 +103,11 @@ do
 	cd /usr/local/vufind-plus/vufind/overdrive_api_extract/
 	nice -n -10 java -jar overdrive_extract.jar ${PIKASERVER} >> ${OUTPUT_FILE}
 
+	#process the export from Library.Solution to give Pika what it needs
+	#echo "Starting Millennium Export - `date`" >> ${OUTPUT_FILE}
+	cd /usr/local/vufind-plus/vufind/library_solution_export/
+	nice -n -10 java -jar library_solution_export.jar ${PIKASERVER} >> ${OUTPUT_FILE}
+
 	#run reindex
 	#echo "Starting Reindexing - `date`" >> ${OUTPUT_FILE}
 	cd /usr/local/vufind-plus/vufind/reindexer
