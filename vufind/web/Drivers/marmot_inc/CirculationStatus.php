@@ -27,10 +27,6 @@ class CirculationStatus extends DB_DataObject
           'holdable' => array('property'=>'holdable', 'type'=>'checkbox', 'label'=>'Holdable', 'description'=>'Whether or not patrons can place holds on items with this status'),
           'available' => array('property'=>'available', 'type'=>'checkbox', 'label'=>'Available', 'description'=>'Whether or not the item is available for immediate usage (if the patron is at that branch)'),
 		);
-		foreach ($structure as $fieldName => $field){
-			$field['propertyOld'] = $field['property'] . 'Old';
-			$structure[$fieldName] = $field;
-		}
 		return $structure;
 	}
 }

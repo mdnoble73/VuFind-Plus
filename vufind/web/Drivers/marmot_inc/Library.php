@@ -7,7 +7,8 @@ require_once 'DB/DataObject/Cast.php';
 require_once ROOT_DIR . '/Drivers/marmot_inc/Holiday.php';
 require_once ROOT_DIR . '/Drivers/marmot_inc/NearbyBookStore.php';
 require_once ROOT_DIR . '/Drivers/marmot_inc/LibraryFacetSetting.php';
-require_once ROOT_DIR . '/Drivers/marmot_inc/LibrarySearchSource.php';
+require_once ROOT_DIR . '/sys/Indexing/LibraryRecordOwned.php';
+require_once ROOT_DIR . '/sys/Indexing/LibraryRecordToInclude.php';
 require_once ROOT_DIR . '/sys/Browse/LibraryBrowseCategory.php';
 require_once ROOT_DIR . '/sys/LibraryMoreDetails.php';
 require_once ROOT_DIR . '/sys/LibraryLink.php';
@@ -16,6 +17,7 @@ require_once ROOT_DIR . '/sys/LibraryTopLinks.php';
 class Library extends DB_DataObject
 {
 	public $__table = 'library';    // table name
+	public $isDefault;
 	public $libraryId; 				//int(11)
 	public $subdomain; 				//varchar(15)
 	public $orderAccountingUnit;
@@ -151,9 +153,9 @@ class Library extends DB_DataObject
 	public $addSMSIndicatorToPhone;
 	public $defaultBrowseMode;
 	public $browseCategoryRatingsMode;
-
 	public $enableMaterialsBooking;
-
+	public $allowLinkedAccounts;
+	
 	// Use this to set which details will be shown in the the Main Details section of the record view.
 	// You should be able to add options here without needing to change the database.
 	// set the key to the desired SMARTY template variable name, set the value to the label to show in the library configuration page
@@ -192,10 +194,6 @@ class Library extends DB_DataObject
 		unset($facetSettingStructure['showAsDropDown']);
 		//unset($facetSettingStructure['sortMode']);
 
-		$searchSourceStructure = LibrarySearchSource::getObjectStructure();
-		unset($searchSourceStructure['weight']);
-		unset($searchSourceStructure['libraryId']);
-
 		$libraryMoreDetailsStructure = LibraryMoreDetails::getObjectStructure();
 		unset($libraryMoreDetailsStructure['weight']);
 		unset($libraryMoreDetailsStructure['libraryId']);
@@ -211,6 +209,13 @@ class Library extends DB_DataObject
 		$libraryBrowseCategoryStructure = LibraryBrowseCategory::getObjectStructure();
 		unset($libraryBrowseCategoryStructure['weight']);
 		unset($libraryBrowseCategoryStructure['libraryId']);
+
+		$libraryRecordOwnedStructure = LibraryRecordOwned::getObjectStructure();
+		unset($libraryRecordOwnedStructure['libraryId']);
+
+		$libraryRecordToIncludeStructure = LibraryRecordToInclude::getObjectStructure();
+		unset($libraryRecordToIncludeStructure['libraryId']);
+		unset($libraryRecordToIncludeStructure['weight']);
 
 		global $user;
 		require_once ROOT_DIR . '/sys/ListWidget.php';
@@ -230,6 +235,7 @@ class Library extends DB_DataObject
 		}
 
 		$structure = array(
+			'isDefault' => array('property' => 'isDefault', 'type'=>'checkbox', 'label' => 'Default Library (one per install!)', 'description' => 'The default library instance for loading scoping information etc', 'hideInLists' => true),
 			'libraryId' => array('property'=>'libraryId', 'type'=>'label', 'label'=>'Library Id', 'description'=>'The unique id of the library within the database'),
 			'subdomain' => array('property'=>'subdomain', 'type'=>'text', 'label'=>'Subdomain', 'description'=>'A unique id to identify the library within the system'),
 			'displayName' => array('property'=>'displayName', 'type'=>'text', 'label'=>'Display Name', 'description'=>'A name to identify the library within the system', 'size'=>'40'),
@@ -272,6 +278,7 @@ class Library extends DB_DataObject
 				'makeOrderRecordsAvailableToOtherLibraries' => array('property'=>'makeOrderRecordsAvailableToOtherLibraries', 'type'=>'checkbox', 'label'=>'Make Order Records Available To Other Libraries', 'description'=>'Whether or not order records should be shown to other libraries', 'hideInLists' => true),
 				'showExpirationWarnings' => array('property'=>'showExpirationWarnings', 'type'=>'checkbox', 'label'=>'Show Expiration Warnings', 'description'=>'Whether or not the user should be shown expiration warnings if their card is nearly expired.', 'hideInLists' => true, 'default' => 1),
 				'enableMaterialsBooking' => array('property'=>'enableMaterialsBooking', 'type'=>'checkbox', 'label'=>'Enable Materials Booking', 'description'=>'Check to enable integration of Sierra\'s Materials Booking module.', 'hideInLists' => true, 'default' => 0),
+				'allowLinkedAccounts' => array('property'=>'allowLinkedAccounts', 'type'=>'checkbox', 'label'=>'Allow Linked Accounts', 'description' => 'Whether or not users can link multiple library cards under a single Pika account.', 'hideInLists' => true, 'default' => 1),
 				'pTypesSection' => array('property' => 'pTypesSectionSection', 'type' => 'section', 'label' => 'P-Types', 'hideInLists' => true, 'properties' => array(
 					'pTypes'  => array('property'=>'pTypes', 'type'=>'text', 'label'=>'P-Types', 'description'=>'A list of pTypes that are valid for the library.  Separate multiple pTypes with commas.'),
 					'defaultPType'  => array('property'=>'defaultPType', 'type'=>'text', 'label'=>'Default P-Type', 'description'=>'The P-Type to use when accessing a subdomain if the patron is not logged in.'),
@@ -345,7 +352,6 @@ class Library extends DB_DataObject
 				'showAdvancedSearchbox'  => array('property'=>'showAdvancedSearchbox', 'type'=>'checkbox', 'label'=>'Show Advanced Search Link', 'description'=>'Whether or not users should see the advanced search link next to the search box.  It will still appear in the footer.', 'hideInLists' => true, 'default' => 1),
 				'applyNumberOfHoldingsBoost' => array('property'=>'applyNumberOfHoldingsBoost', 'type'=>'checkbox', 'label'=>'Apply Number Of Holdings Boost', 'description'=>'Whether or not the relevance will use boosting by number of holdings in the catalog.', 'hideInLists' => true, 'default' => 1),
 				'showSearchTools'  => array('property'=>'showSearchTools', 'type'=>'checkbox', 'label'=>'Show Search Tools', 'description'=>'Turn on to activate search tools (save search, export to excel, rss feed, etc).', 'hideInLists' => true),
-				'recordsToBlackList' => array('property'=>'recordsToBlackList', 'type'=>'textarea', 'label'=>'Records to deaccession', 'description'=>'A list of records to deaccession (hide) in search results.  Enter one record per line.', 'hideInLists' => true,),
 			)),
 
 			// Catalog Enrichment //
@@ -511,23 +517,6 @@ class Library extends DB_DataObject
 				'canEdit' => true,
 			),
 
-
-
-			'searchSources' => array(
-				'property'=>'searchSources',
-				'type'=>'oneToMany',
-				'label'=>'Search Sources',
-				'description'=>'Searches to display to the user',
-				'keyThis' => 'libraryId',
-				'keyOther' => 'libraryId',
-				'subObjectType' => 'LibrarySearchSource',
-				'structure' => $searchSourceStructure,
-				'sortable' => true,
-				'storeDb' => true,
-				'allowEdit' => true,
-				'canEdit' => true,
-			),
-
 			'libraryLinks' => array(
 				'property'=>'libraryLinks',
 				'type'=>'oneToMany',
@@ -557,37 +546,50 @@ class Library extends DB_DataObject
 				'allowEdit' => false,
 				'canEdit' => false,
 			),
+
+			'recordsOwned' => array(
+				'property'=>'recordsOwned',
+				'type'=>'oneToMany',
+				'label'=>'Records Owned',
+				'description'=>'Information about what records are owned by the library',
+				'keyThis' => 'libraryId',
+				'keyOther' => 'libraryId',
+				'subObjectType' => 'LibraryRecordOwned',
+				'structure' => $libraryRecordOwnedStructure,
+				'sortable' => true,
+				'storeDb' => true,
+				'allowEdit' => false,
+				'canEdit' => false,
+			),
+
+			'recordsToInclude' => array(
+				'property'=>'recordsToInclude',
+				'type'=>'oneToMany',
+				'label'=>'Records To Include',
+				'description'=>'Information about what records to include in this scope',
+				'keyThis' => 'libraryId',
+				'keyOther' => 'libraryId',
+				'subObjectType' => 'LibraryRecordToInclude',
+				'structure' => $libraryRecordToIncludeStructure,
+				'sortable' => true,
+				'storeDb' => true,
+				'allowEdit' => false,
+				'canEdit' => false,
+			),
 		);
-		foreach ($structure as $fieldName => $field){
-			if (isset($field['property'])){
-				$field['propertyOld'] = $field['property'] . 'Old';
-				$structure[$fieldName] = $field;
-			}
-		}
 		return $structure;
 	}
 
 	static $searchLibrary  = array();
 	static function getSearchLibrary($searchSource = null){
-		if (is_null($searchSource)){
+		if ($searchSource == null){
 			global $searchSource;
-			if (strpos($searchSource, 'library') === 0){
-				$trimmedSearchSource = str_replace('library', '', $searchSource);
-				require_once  ROOT_DIR . '/Drivers/marmot_inc/LibrarySearchSource.php';
-				$librarySearchSource = new LibrarySearchSource();
-				$librarySearchSource->id = $trimmedSearchSource;
-				if ($librarySearchSource->find(true)){
-					$searchSource = $librarySearchSource;
-				}
-			}
 		}
 		if (!array_key_exists($searchSource, Library::$searchLibrary)){
-			if (is_object($searchSource)){
-				$scopingSetting = $searchSource->catalogScoping;
-			}else{
-				$scopingSetting = $searchSource;
-			}
-			if ($scopingSetting == 'local' || $scopingSetting == 'econtent' || $scopingSetting == 'library' || $scopingSetting == 'location'){
+			$scopingSetting = $searchSource;
+			if ($scopingSetting == null){
+				return null;
+			} else if ($scopingSetting == 'local' || $scopingSetting == 'econtent' || $scopingSetting == 'library' || $scopingSetting == 'location'){
 				Library::$searchLibrary[$searchSource] = Library::getActiveLibrary();
 			}else if ($scopingSetting == 'marmot' || $scopingSetting == 'unscoped'){
 				Library::$searchLibrary[$searchSource] = null;
@@ -635,12 +637,15 @@ class Library extends DB_DataObject
 		return null;
 	}
 
-	static function getPatronHomeLibrary(){
+	static function getPatronHomeLibrary($tmpUser = null){
 		global $user;
+		if ($tmpUser == null){
+			$tmpUser = $user;
+		}
 		//Finally check to see if the user has logged in and if so, use that library
-		if (isset($user) && $user != false){
+		if (isset($tmpUser) && $tmpUser != false){
 			//Load the library based on the home branch for the user
-			return self::getLibraryForLocation($user->homeLocationId);
+			return self::getLibraryForLocation($tmpUser->homeLocationId);
 		}else{
 			return null;
 		}
@@ -711,18 +716,6 @@ class Library extends DB_DataObject
 				}
 			}
 			return $this->facets;
-		}elseif ($name == 'searchSources'){
-			if (!isset($this->searchSources) && $this->libraryId){
-				$this->searchSources = array();
-				$searchSource = new LibrarySearchSource();
-				$searchSource->libraryId = $this->libraryId;
-				$searchSource->orderBy('weight');
-				$searchSource->find();
-				while($searchSource->fetch()){
-					$this->searchSources[$searchSource->id] = clone($searchSource);
-				}
-			}
-			return $this->searchSources;
 		}elseif ($name == 'libraryLinks'){
 			if (!isset($this->libraryLinks) && $this->libraryId){
 				$this->libraryLinks = array();
@@ -747,6 +740,29 @@ class Library extends DB_DataObject
 				}
 			}
 			return $this->libraryTopLinks;
+		}elseif ($name == 'recordsOwned'){
+			if (!isset($this->recordsOwned) && $this->libraryId){
+				$this->recordsOwned = array();
+				$object = new LibraryRecordOwned();
+				$object->libraryId = $this->libraryId;
+				$object->find();
+				while($object->fetch()){
+					$this->recordsOwned[$object->id] = clone($object);
+				}
+			}
+			return $this->recordsOwned;
+		}elseif ($name == 'recordsToInclude'){
+			if (!isset($this->recordsToInclude) && $this->libraryId){
+				$this->recordsToInclude = array();
+				$object = new LibraryRecordToInclude();
+				$object->libraryId = $this->libraryId;
+				$object->orderBy('weight');
+				$object->find();
+				while($object->fetch()){
+					$this->recordsToInclude[$object->id] = clone($object);
+				}
+			}
+			return $this->recordsToInclude;
 		}elseif  ($name == 'browseCategories') {
 			if (!isset($this->browseCategories) && $this->libraryId) {
 				$this->browseCategories    = array();
@@ -773,10 +789,12 @@ class Library extends DB_DataObject
 			$this->moreDetailsOptions = $value;
 		}elseif ($name == "facets") {
 			$this->facets = $value;
-		}elseif ($name == 'searchSources'){
-			$this->searchSources = $value;
 		}elseif ($name == 'libraryLinks'){
 			$this->libraryLinks = $value;
+		}elseif ($name == 'recordsOwned'){
+			$this->recordsOwned = $value;
+		}elseif ($name == 'recordsToInclude'){
+			$this->recordsToInclude = $value;
 		}elseif ($name == 'libraryTopLinks'){
 			$this->libraryTopLinks = $value;
 		}elseif ($name == 'browseCategories') {
@@ -824,7 +842,8 @@ class Library extends DB_DataObject
 			$this->saveHolidays();
 			$this->saveNearbyBookStores();
 			$this->saveFacets();
-			$this->saveSearchSources();
+			$this->saveRecordsOwned();
+			$this->saveRecordsToInclude();
 			$this->saveLibraryLinks();
 			$this->saveLibraryTopLinks();
 			$this->saveBrowseCategories();
@@ -848,7 +867,8 @@ class Library extends DB_DataObject
 			$this->saveHolidays();
 			$this->saveNearbyBookStores();
 			$this->saveFacets();
-			$this->saveSearchSources();
+			$this->saveRecordsOwned();
+			$this->saveRecordsToInclude();
 			$this->saveLibraryLinks();
 			$this->saveLibraryTopLinks();
 			$this->saveBrowseCategories();
@@ -935,30 +955,56 @@ class Library extends DB_DataObject
 		$this->libraryTopLinks = array();
 	}
 
-	public function saveSearchSources(){
-		if (isset ($this->searchSources) && is_array($this->searchSources)){
-			/** @var SearchSource $searchSource */
-			foreach ($this->searchSources as $searchSource){
-				if (isset($searchSource->deleteOnSave) && $searchSource->deleteOnSave == true){
-					$searchSource->delete();
+	public function saveRecordsOwned(){
+		if (isset ($this->recordsOwned) && is_array($this->recordsOwned)){
+			/** @var LibraryRecordOwned $object */
+			foreach ($this->recordsOwned as $object){
+				if (isset($object->deleteOnSave) && $object->deleteOnSave == true){
+					$object->delete();
 				}else{
-					if (isset($searchSource->id) && is_numeric($searchSource->id)){
-						$searchSource->update();
+					if (isset($object->id) && is_numeric($object->id)){
+						$object->update();
 					}else{
-						$searchSource->libraryId = $this->libraryId;
-						$searchSource->insert();
+						$object->libraryId = $this->libraryId;
+						$object->insert();
 					}
 				}
 			}
-			unset($this->searchSources);
+			unset($this->recordsOwned);
 		}
 	}
 
-	public function clearSearchSources(){
-		$facets = new LibrarySearchSource();
-		$facets->libraryId = $this->libraryId;
-		$facets->delete();
-		$this->searchSources = array();
+	public function clearRecordsOwned(){
+		$object = new LibraryRecordOwned();
+		$object->libraryId = $this->libraryId;
+		$object->delete();
+		$this->recordsOwned = array();
+	}
+
+	public function saveRecordsToInclude(){
+		if (isset ($this->recordsToInclude) && is_array($this->recordsToInclude)){
+			/** @var LibraryRecordOwned $object */
+			foreach ($this->recordsToInclude as $object){
+				if (isset($object->deleteOnSave) && $object->deleteOnSave == true){
+					$object->delete();
+				}else{
+					if (isset($object->id) && is_numeric($object->id)){
+						$object->update();
+					}else{
+						$object->libraryId = $this->libraryId;
+						$object->insert();
+					}
+				}
+			}
+			unset($this->recordsToInclude);
+		}
+	}
+
+	public function clearRecordsToInclude(){
+		$object = new LibraryRecordToInclude();
+		$object->libraryId = $this->libraryId;
+		$object->delete();
+		$this->recordsToInclude = array();
 	}
 
 	public function saveMoreDetailsOptions(){

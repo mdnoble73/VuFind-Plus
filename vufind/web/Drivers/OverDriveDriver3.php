@@ -102,7 +102,7 @@ class OverDriveDriver3 {
 	}
 
 	//private function _connectToPatronAPI($patronBarcode, $patronPin = 1234, $forceNewConnection = false){
-	private function _connectToPatronAPI($patronBarcode, $patronPin, $forceNewConnection = false){
+	private function _connectToPatronAPI($user, $patronBarcode, $patronPin, $forceNewConnection = false){
 		/** @var Memcache $memCache */
 		global $memCache;
 		$patronTokenData = $memCache->get('overdrive_patron_token_' . $patronBarcode);
@@ -117,7 +117,7 @@ class OverDriveDriver3 {
 				$websiteId = $configArray['OverDrive']['patronWebsiteId'];
 				//$websiteId = 100300;
 
-				$ilsname = $this->getILSName();
+				$ilsname = $this->getILSName($user);
 				if (!$ilsname) {
 					return false;
 				}
@@ -202,11 +202,11 @@ class OverDriveDriver3 {
 		return null;
 	}
 
-	private function getILSName(){
+	private function getILSName($user){
 		if (!isset($this->ILSName)) {
 			// use library setting if it has a value. if no library setting, use the configuration setting.
 			global $library, $configArray;
-			$patronHomeLibrary = Library::getPatronHomeLibrary();
+			$patronHomeLibrary = Library::getPatronHomeLibrary($user);
 			if (!empty($patronHomeLibrary->overdriveAuthenticationILSName)) {
 				$this->ILSName = $patronHomeLibrary->overdriveAuthenticationILSName;
 			}elseif (!empty($library->overdriveAuthenticationILSName)) {
@@ -218,11 +218,15 @@ class OverDriveDriver3 {
 		return $this->ILSName;
 	}
 
-	private function getRequirePin(){
+	/**
+	 * @param $user User
+	 * @return bool
+	 */
+	private function getRequirePin($user){
 		if (!isset($this->requirePin)) {
 			// use library setting if it has a value. if no library setting, use the configuration setting.
 			global $library, $configArray;
-			$patronHomeLibrary = Library::getPatronHomeLibrary();
+			$patronHomeLibrary = Library::getLibraryForLocation($user->homeLocationId);
 			if (!empty($patronHomeLibrary->overdriveRequirePin)) {
 				$this->requirePin = $patronHomeLibrary->overdriveRequirePin;
 			}elseif (isset($library->overdriveRequirePin)) {
@@ -241,14 +245,14 @@ class OverDriveDriver3 {
 
 		$barcodeProperty = $configArray['Catalog']['barcodeProperty'];
 		$userBarcode = $user->$barcodeProperty;
-		if ($this->getRequirePin()){
+		if ($this->getRequirePin($user)){
 			$userPin = ($barcodeProperty == 'cat_username') ? $user->cat_password : $user->cat_username;
 				// determine which column is the pin by using the opposing field to the barcode. (between pin & username)
-			$tokenData = $this->_connectToPatronAPI($userBarcode, $userPin, false);
+			$tokenData = $this->_connectToPatronAPI($user, $userBarcode, $userPin, false);
 			// this worked for flatirons checkout.  plb 1-13-2015
 //			$tokenData = $this->_connectToPatronAPI($user->cat_username, $user->cat_password, false);
 		}else{
-			$tokenData = $this->_connectToPatronAPI($userBarcode, null, false);
+			$tokenData = $this->_connectToPatronAPI($user, $userBarcode, null, false);
 		}
 		if ($tokenData){
 			$ch = curl_init($url);
@@ -307,8 +311,8 @@ class OverDriveDriver3 {
 		return false;
 	}
 
-	private function _callPatronDeleteUrl($patronBarcode, $patronPin, $url){
-		$tokenData = $this->_connectToPatronAPI($patronBarcode, $patronPin, false);
+	private function _callPatronDeleteUrl($user, $patronBarcode, $patronPin, $url){
+		$tokenData = $this->_connectToPatronAPI($user, $patronBarcode, $patronPin, false);
 		//TODO: Remove || true when oauth works
 		if ($tokenData || true){
 			$ch = curl_init($url);
@@ -738,11 +742,11 @@ class OverDriveDriver3 {
 		$url = $configArray['OverDrive']['patronApiUrl'] . '/v1/patrons/me/holds/' . $overDriveId;
 		$barcodeProperty = $configArray['Catalog']['barcodeProperty'];
 		$userBarcode = $user->$barcodeProperty;
-		if ($this->getRequirePin()){
+		if ($this->getRequirePin($user)){
 			$userPin = ($barcodeProperty == 'cat_username') ? $user->cat_password : $user->cat_username;
-			$response = $this->_callPatronDeleteUrl($userBarcode, $userPin, $url);
+			$response = $this->_callPatronDeleteUrl($user, $userBarcode, $userPin, $url);
 		}else{
-			$response = $this->_callPatronDeleteUrl($userBarcode, null, $url);
+			$response = $this->_callPatronDeleteUrl($user, $userBarcode, null, $url);
 		}
 
 
@@ -835,11 +839,11 @@ class OverDriveDriver3 {
 		$url = $configArray['OverDrive']['patronApiUrl'] . '/v1/patrons/me/checkouts/' . $overDriveId;
 		$barcodeProperty = $configArray['Catalog']['barcodeProperty'];
 		$userBarcode = $user->$barcodeProperty;
-		if ($this->getRequirePin()){
+		if ($this->getRequirePin($user)){
 			$userPin = ($barcodeProperty == 'cat_username') ? $user->cat_password : $user->cat_username;
-			$response = $this->_callPatronDeleteUrl($userBarcode, $userPin, $url);
+			$response = $this->_callPatronDeleteUrl($user, $userBarcode, $userPin, $url);
 		}else{
-			$response = $this->_callPatronDeleteUrl($userBarcode, null, $url);
+			$response = $this->_callPatronDeleteUrl($user, $userBarcode, null, $url);
 		}
 
 		$cancelHoldResult = array();
@@ -894,17 +898,21 @@ class OverDriveDriver3 {
 		return $result;
 	}
 
+	/**
+	 * @param $user  User
+	 * @return bool
+	 */
 	public function isUserValidForOverDrive($user){
 		global $configArray;
 		$barcodeProperty = $configArray['Catalog']['barcodeProperty'];
-		$userBarcode = $user->$barcodeProperty;
-		if ($this->getRequirePin()){
+		$userBarcode = $user->getBarcode();
+		if ($this->getRequirePin($user)){
 			$userPin = ($barcodeProperty == 'cat_username') ? $user->cat_password : $user->cat_username;
 			// determine which column is the pin by using the opposing field to the barcode. (between catalog password & username)
-			$tokenData = $this->_connectToPatronAPI($userBarcode, $userPin, false);
+			$tokenData = $this->_connectToPatronAPI($user, $userBarcode, $userPin, false);
 			// this worked for flatirons checkout.  plb 1-13-2015
 		}else{
-			$tokenData = $this->_connectToPatronAPI($userBarcode, null, false);
+			$tokenData = $this->_connectToPatronAPI($user, $userBarcode, null, false);
 		}
 		return $tokenData !== false;
 	}

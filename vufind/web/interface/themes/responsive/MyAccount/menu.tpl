@@ -23,26 +23,26 @@
 				</a>
 				<div id="myAccountPanel" class="panel-collapse collapse {if $curSection}in{/if}">
 					<div class="panel-body">
-						{if $profile.finesval > 0 || ($showExpirationWarnings && $profile.expireclose)}
+						{if $profile->finesval > 0 || ($showExpirationWarnings && $profile->expireclose)}
 							<div id="myAccountFines">
-								{if $profile.finesval > 0}
-									{if $showEcommerceLink && $profile.finesval > $minimumFineAmount}
+								{if $profile->finesval > 0}
+									{if $showEcommerceLink && $profile->finesval > $minimumFineAmount}
 										<div class="myAccountLink" style="color:red; font-weight:bold;">
-											Your account has {$profile.fines} in fines.
+											Your account has {$profile->fines} in fines.
 										</div>
 										<div class="myAccountLink"><a href='{$ecommerceLink}' >{if $payFinesLinkText}{$payFinesLinkText}{else}Click to Pay Fines Online{/if}</a></div>
 									{else}
-										<div class="myAccountLink" title="Please Contact your local library to pay fines or Charges." style="color:red; font-weight:bold;" onclick="alert('Please Contact your local library to pay fines or Charges.')">Your account has {$profile.fines} in fines.</div>
+										<div class="myAccountLink" title="Please Contact your local library to pay fines or Charges." style="color:red; font-weight:bold;" onclick="alert('Please Contact your local library to pay fines or Charges.')">Your account has {$profile->fines} in fines.</div>
 									{/if}
 								{/if}
 
-								{if $showExpirationWarnings && $profile.expireclose}
+								{if $showExpirationWarnings && $profile->expireclose}
 									<div class="myAccountLink">
 										<a class ="alignright" title="Please contact your local library to have your library card renewed." style="color:red; font-weight:bold;" onclick="alert('Please Contact your local library to have your library card renewed.')" href="#">
-											{if $profile.expired}
-												Your library card expired on {$profile.expires}.
+											{if $profile->expired}
+												Your library card expired on {$profile->expires}.
 											{else}
-												Your library card will expire on {$profile.expires}.
+												Your library card will expire on {$profile->expires}.
 											{/if}
 										</a>
 							</div>
@@ -53,35 +53,37 @@
 
 						<div class="myAccountLink{if $pageTemplate=="checkedout.tpl"} active{/if}">
 							<a href="{$path}/MyAccount/CheckedOut" id="checkedOut">
-								Checked Out Titles  <span class="badge">{$profile.numCheckedOutTotal}</span>
+								Checked Out Titles <span class="badge">{$profile->getNumCheckedOutTotal()}</span>
 							</a>
 						</div>
 						<div class="myAccountLink{if $pageTemplate=="holds.tpl"} active{/if}">
 							<a href="{$path}/MyAccount/Holds" id="holds">
-								Titles On Hold  <span class="badge">{$profile.numHoldsTotal} </span>
-								{if $profile.numHoldsAvailableTotal && $profile.numHoldsAvailableTotal > 0}
-									, <span class="badge label-success">{$profile.numHoldsAvailableTotal} ready for pick up</span>
+								Titles On Hold <span class="badge">{$profile->getNumHoldsTotal()}</span>
+								{if $profile->getNumHoldsAvailableTotal() && $profile->getNumHoldsAvailableTotal() > 0}
+									&nbsp;<span class="label label-success">{$profile->getNumHoldsAvailableTotal()} ready for pick up</span>
 								{/if}
 							</a>
 						</div>
+
 						{if $enableMaterialsBooking}{* TODO add having booked materials to check *}
 						<div class="myAccountLink{if $pageTemplate=="bookings.tpl"} active{/if}">
 							<a href="{$path}/MyAccount/Bookings" id="checkedOut">
-								Booked Titles  <span class="badge">{$profile.numBookingstTotal}</span>
+								Booked Titles  <span class="badge">{$profile->numBookingstTotal}</span>
 							</a>
 						</div>
 						{/if}
-						<div class="myAccountLink{if $pageTemplate=="readingHistory.tpl"} active{/if}"><a href="{$path}/MyAccount/ReadingHistory">Reading History
-								{if $profile.readingHistorySize} <span class="badge">{$profile.readingHistorySize}</span>{/if}
-							</a></div>
+						<div class="myAccountLink{if $pageTemplate=="readingHistory.tpl"} active{/if}"><a href="{$path}/MyAccount/ReadingHistory">
+								Reading History {if $profile->readingHistorySize}<span class="badge">{$profile->readingHistorySize}</span>{/if}
+							</a>
+						</div>
 
 						{if $showFines}
-						<div class="myAccountLink{if $pageTemplate=="fines.tpl"} active{/if}" title="Fines and account messages"><a href="{$path}/MyAccount/Fines">{translate text='Fines and Messages'}</a></div>
+							<div class="myAccountLink{if $pageTemplate=="fines.tpl"} active{/if}" title="Fines and account messages"><a href="{$path}/MyAccount/Fines">{translate text='Fines and Messages'}</a></div>
 						{/if}
 						{if $enableMaterialsRequest}
-						<div class="myAccountLink{if $pageTemplate=="myMaterialRequests.tpl"} active{/if}" title="Materials Requests">
-							<a href="{$path}/MaterialsRequest/MyRequests">{translate text='Materials Requests'} <span class="badge">{$profile.numMaterialsRequests}</span></a>
-						</div>
+							<div class="myAccountLink{if $pageTemplate=="myMaterialRequests.tpl"} active{/if}" title="Materials Requests">
+								<a href="{$path}/MaterialsRequest/MyRequests">{translate text='Materials Requests'} <span class="badge">{$profile->numMaterialsRequests}</span></a>
+							</div>
 						{/if}
 						{if $showRatings}
 							<hr class="menu"/>
@@ -159,7 +161,7 @@
 
 			{* Admin Functionality if Available *}
 			{if $user && ($user->hasRole('opacAdmin') || $user->hasRole('libraryAdmin') || $user->hasRole('contentEditor'))}
-				{if in_array($action, array('Libraries', 'Locations', 'IPAddresses', 'ListWidgets', 'BrowseCategories', 'UserSuggestions', 'BookStores', 'PTypes', 'CirculationStatuses', 'LoanRules', 'LoanRuleDeterminers'))}
+				{if in_array($action, array('Libraries', 'Locations', 'IPAddresses', 'ListWidgets', 'BrowseCategories', 'UserSuggestions', 'BookStores', 'PTypes', 'CirculationStatuses', 'LoanRules', 'LoanRuleDeterminers', 'AccountProfiles'))}
 					{assign var="curSection" value=true}
 				{else}
 					{assign var="curSection" value=false}
@@ -193,6 +195,10 @@
 								<div class="adminMenuLink {if $action == "LoanRules"}active{/if}"><a href="{$path}/Admin/LoanRules">Loan Rules</a></div>
 								<div class="adminMenuLink {if $action == "LoanRuleDeterminers"}active{/if}"><a href="{$path}/Admin/LoanRuleDeterminers">Loan Rule Determiners</a></div>
 							{/if}
+							{if $user->hasRole('opacAdmin')}
+								<div class="adminMenuLink {if $action == "AccountProfiles"}active{/if}"><a href="{$path}/Admin/AccountProfiles">Account Profiles</a></div>
+							{/if}
+
 						</div>
 					</div>
 				</div>
@@ -233,7 +239,7 @@
 			{/if}
 
 			{if $user && ($user->hasRole('libraryAdmin') || $user->hasRole('opacAdmin') || $user->hasRole('cataloging'))}
-				{if in_array($action, array('ReindexLog', 'OverDriveExtractLog', 'IndexingStats'))}
+				{if in_array($action, array('ReindexLog', 'OverDriveExtractLog', 'IndexingStats', 'IndexingProfiles', 'TranslationMaps'))}
 					{assign var="curSection" value=true}
 				{else}
 					{assign var="curSection" value=false}
@@ -251,6 +257,8 @@
 							<div class="adminMenuLink {if $action == "IndexingStats"}active{/if}"><a href="{$path}/Admin/IndexingStats">Indexing Statistics</a></div>
 							<div class="adminMenuLink {if $action == "ReindexLog"}active{/if}"><a href="{$path}/Admin/ReindexLog">Reindex Log</a></div>
 							<div class="adminMenuLink {if $action == "OverDriveExtractLog"}active{/if}"><a href="{$path}/Admin/OverDriveExtractLog">OverDrive Extract Log</a></div>
+							<div class="adminMenuLink {if $action == "IndexingProfiles"}active{/if}"><a href="{$path}/Admin/IndexingProfiles">Indexing Profiles</a></div>
+							<div class="adminMenuLink {if $action == "TranslationMaps"}active{/if}"><a href="{$path}/Admin/TranslationMaps">Translation Maps</a></div>
 						</div>
 					</div>
 				</div>

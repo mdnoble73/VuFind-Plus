@@ -14,7 +14,6 @@ require_once ROOT_DIR . '/services/Admin/Admin.php';
 class IndexingStats extends Admin_Admin{
 	function launch(){
 		global $interface;
-		global $user;
 		global $configArray;
 
 		$interface->setPageTitle('Indexing Statistics');

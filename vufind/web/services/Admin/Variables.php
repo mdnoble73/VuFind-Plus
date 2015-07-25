@@ -43,9 +43,6 @@ class Admin_Variables extends ObjectEditor{
 	function getAllowableRoles(){
 		return array('opacAdmin');
 	}
-	function showExportAndCompare(){
-		return false;
-	}
 	function canAddNew(){
 		return false;
 	}

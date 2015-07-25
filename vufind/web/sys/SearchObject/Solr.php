@@ -44,7 +44,7 @@ class SearchObject_Solr extends SearchObject_Base
 	// Index
 	private $index = null;
 	// Field List
-	private $fields = 'auth_author2,id,mpaaRating,title_display,title_full,title_sub,author,author_display,format_category,isbn,upc,issn,related_record_ids,related_record_items,series,format,recordtype,display_description,literary_form,literary_form_full,num_titles';
+	private $fields = 'auth_author2,id,mpaaRating,title_display,title_full,title_sub,author,author_display,isbn,upc,issn,series,recordtype,display_description,literary_form,literary_form_full,num_titles';
 	private $fieldsFull = '*,score';
 	// HTTP Method
 	//    private $method = HTTP_REQUEST_METHOD_GET;
@@ -203,7 +203,7 @@ class SearchObject_Solr extends SearchObject_Base
 	 *  search parameters in $_REQUEST.
 	 *
 	 * @access  public
-	 * @var string|LibrarySearchSource|LocationSearchSource $searchSource
+	 * @var string $searchSource
 	 * @return  boolean
 	 */
 	public function init($searchSource = null)
@@ -1624,6 +1624,9 @@ class SearchObject_Solr extends SearchObject_Base
 		$relatedHomeLocationFacets = null;
 		$additionalAvailableAtLocations = null;
 		if (!is_null($currentLibrary)){
+			if ($currentLibrary->facetLabel == ''){
+				$currentLibrary->facetLabel = $currentLibrary->displayName;
+			}
 			$relatedLocationFacets = $locationSingleton->getLocationsFacetsForLibrary($currentLibrary->libraryId);
 			if (strlen($currentLibrary->additionalLocationsToShowAvailabilityFor) > 0){
 				$locationsToLookfor = explode('|', $currentLibrary->additionalLocationsToShowAvailabilityFor);
@@ -2076,6 +2079,7 @@ class SearchObject_Solr extends SearchObject_Base
 				$fieldsToReturn .= ',format_category_' . $solrScope;
 				$fieldsToReturn .= ',collection_' . $solrScope;
 				$fieldsToReturn .= ',local_time_since_added_' . $solrScope;
+				$fieldsToReturn .= ',local_callnumber_' . $solrScope;
 				$fieldsToReturn .= ',detailed_location_' . $solrScope;
 
 			}else{

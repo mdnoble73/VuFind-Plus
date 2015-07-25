@@ -90,5 +90,29 @@ function getUserUpdates(){
 				"ALTER TABLE `user` ADD `noPromptForUserReviews` TINYINT(1) DEFAULT 0",
 			),
 		),
+
+		'user_account' => array(
+			'title' => 'User Account Source',
+			'description' => 'Store the source of a user account so we can accommodate multiple ilses',
+			'sql' => array(
+				"ALTER TABLE `user` ADD `source` VARCHAR(50) DEFAULT 'ils'",
+				"ALTER TABLE `user` DROP INDEX `username`",
+				"ALTER TABLE `user` ADD UNIQUE username(`source`, `username`)",
+			),
+		),
+
+		'user_linking' => array(
+			'title' => 'Setup linking of user accounts',
+			'description' => 'Setup linking of user accounts.  This is a one way link.',
+			'sql' => array(
+				"CREATE TABLE IF NOT EXISTS `user_link` (
+					`id` int(11) NOT NULL AUTO_INCREMENT,
+					`primaryAccountId` int(11),
+					`linkedAccountId` int(11),
+					PRIMARY KEY (`id`),
+					UNIQUE KEY `user_link` (`primaryAccountId`, `linkedAccountId`)
+				) ENGINE=InnoDB  DEFAULT CHARSET=utf8",
+			),
+		),
 	);
 }

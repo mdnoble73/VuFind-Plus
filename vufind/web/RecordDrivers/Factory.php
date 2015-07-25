@@ -115,22 +115,27 @@ class RecordDriverFactory {
 				$logger->log("Unable to load record driver for hoopla record $recordId", PEAR_LOG_WARNING);
 				$recordDriver = null;
 			}
-		}elseif ($recordType == 'ils'){
-			require_once ROOT_DIR . '/RecordDrivers/MarcRecord.php';
-			$recordDriver = new MarcRecord($recordId);
-			if (!$recordDriver->isValid()){
+		}else{
+			require_once ROOT_DIR . '/sys/Indexing/IndexingProfile.php';
+			$indexingProfile = new IndexingProfile();
+			$indexingProfile->name = $recordType;
+			if ($indexingProfile->find(true)){
+				$driverName = $indexingProfile->recordDriver;
+				require_once ROOT_DIR . "/RecordDrivers/{$driverName}.php";
+				$recordDriver = new $driverName($id);
+				if (!$recordDriver->isValid()){
+					global $logger;
+					$logger->log("Unable to load record driver for $recordType $recordId", PEAR_LOG_WARNING);
+					$recordDriver = null;
+				}
+			}else{
 				global $logger;
-				$logger->log("Unable to load record driver for $recordId", PEAR_LOG_WARNING);
+				$logger->log("Unknown record type " . $recordType, PEAR_LOG_ERR);
 				$recordDriver = null;
 			}
-		}else{
-			global $logger;
-			$logger->log("Unknown record type " . $recordType, PEAR_LOG_ERR);
-			$recordDriver = null;
 		}
 		enableErrorHandler();
 		RecordDriverFactory::$recordDrivers[$id] = $recordDriver;
 		return $recordDriver;
 	}
 }
-?>

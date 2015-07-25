@@ -6134,6 +6134,9 @@ div.striped > div:nth-child(odd) {
   background-image: url(/images/sort_asc_icon.gif);
   background-color: #3399FF;
 }
+.tablesorter-filter {
+  width: 98%;
+}
 #google_translate_element {
   font-size: smaller;
   padding-left: 5px;

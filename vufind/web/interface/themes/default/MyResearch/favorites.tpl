@@ -9,8 +9,8 @@
 	</div>
 	
 	<div id="main-content">
-		{if $profile.web_note}
-			<div id="web_note">{$profile.web_note}</div>
+		{if $profile->web_note}
+			<div id="web_note">{$profile->web_note}</div>
 		{/if}
 		
 		{* Internal Grid *}

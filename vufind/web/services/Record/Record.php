@@ -24,7 +24,6 @@ require_once 'File/MARC.php';
 
 require_once ROOT_DIR  . '/sys/Language.php';
 
-require_once ROOT_DIR  . '/services/MyResearch/lib/User.php';
 require_once ROOT_DIR  . '/RecordDrivers/Factory.php';
 require_once ROOT_DIR  . '/RecordDrivers/MarcRecord.php';
 

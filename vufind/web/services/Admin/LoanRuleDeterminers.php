@@ -23,9 +23,8 @@ require_once ROOT_DIR . '/services/Admin/ObjectEditor.php';
 require_once ROOT_DIR . '/Drivers/marmot_inc/LoanRuleDeterminer.php';
 require_once 'XML/Unserializer.php';
 
-class LoanRuleDeterminers extends ObjectEditor
-{
-function launch(){
+class LoanRuleDeterminers extends ObjectEditor {
+	function launch(){
 		$objectAction = isset($_REQUEST['objectAction']) ? $_REQUEST['objectAction'] : null;
 		if ($objectAction == 'reloadFromCsv'){
 			global $interface;
@@ -100,9 +99,6 @@ function launch(){
 		return $actions;
 	}
 	public function canAddNew(){
-		return false;
-	}
-	public function showExportAndCompare(){
 		return false;
 	}
 }

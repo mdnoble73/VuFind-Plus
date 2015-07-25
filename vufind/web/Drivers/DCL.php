@@ -23,8 +23,11 @@ require_once ROOT_DIR . '/sys/SIP2.php';
 require_once ROOT_DIR . '/Drivers/Horizon.php';
 
 class DCL extends Horizon {
-	function __construct(){
-		parent::__construct();
+	/**
+	 * @param AccountProfile $accountProfile
+	 */
+	public function __construct($accountProfile){
+		parent::__construct($accountProfile);
 	}
 
 	function translateFineMessageType($code){

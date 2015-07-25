@@ -25,9 +25,9 @@ class MyAccount_AJAX
 			'removeTag',
 			'saveSearch', 'deleteSavedSearch', // deleteSavedSearch not checked
 			'cancelHold', 'cancelHolds', 'freezeHold', 'thawHold', 'getChangeHoldLocationForm', 'changeHoldLocation',
-
 			'getReactivationDateForm', //not checked
 			'renewItem', 'renewAll', 'renewSelectedItems', 'getPinResetForm',
+			'getAddAccountLinkForm', 'addAccountLink', 'removeAccountLink',
 			'cancelBooking',
 		);
 		$method = $_GET['method'];
@@ -82,8 +82,82 @@ class MyAccount_AJAX
 		}
 	}
 
-	function getBulkAddToListForm()
-	{
+	function addAccountLink(){
+		global $user;
+		if (!$user){
+			$result = array(
+				'result' => false,
+				'message' => 'Sorry, you must be logged in to manage accounts.'
+			);
+		}else{
+			$username = $_REQUEST['username'];
+			$password = $_REQUEST['password'];
+
+			$accountToLink = UserAccount::validateAccount($username, $password);
+
+			if ($accountToLink){
+				$user->addLinkedUser($accountToLink);
+				$result = array(
+					'result' => true,
+					'message' => 'Successfully linked accounts.'
+				);
+			}else{
+				$result = array(
+					'result' => false,
+					'message' => 'Sorry, we could not find a user with that information.'
+				);
+			}
+		}
+
+		return $result;
+	}
+
+	function removeAccountLink(){
+		global $user;
+		if (!$user){
+			$result = array(
+				'result' => false,
+				'message' => 'Sorry, you must be logged in to manage accounts.'
+			);
+		}else{
+			$accountToRemove = $_REQUEST['idToRemove'];
+			if ($user->removeLinkedUser($accountToRemove)){
+				$result = array(
+					'result' => true,
+					'message' => 'Successfully removed linked account.'
+				);
+			}else{
+				$result = array(
+					'result' => false,
+					'message' => 'Sorry, we could remove that account.'
+				);
+			}
+		}
+		return $result;
+	}
+
+	function getAddAccountLinkForm(){
+		global $interface;
+		global $library;
+
+		$interface->assign('enableSelfRegistration', 0);
+		if (isset($library)){
+			$interface->assign('usernameLabel', str_replace('Your', '', $library->loginFormUsernameLabel ? $library->loginFormUsernameLabel : 'Your Name'));
+			$interface->assign('passwordLabel', str_replace('Your', '', $library->loginFormPasswordLabel ? $library->loginFormPasswordLabel : 'Library Card Number'));
+		}else{
+			$interface->assign('usernameLabel', 'Name');
+			$interface->assign('passwordLabel', 'Library Card Number');
+		}
+		// Display Page
+		$formDefinition = array(
+			'title' => 'Account to Manage',
+			'modalBody' => $interface->fetch('MyAccount/addAccountLink.tpl'),
+			'modalButtons' => "<span class='tool btn btn-primary' onclick='VuFind.Account.processAddLinkedUser(); return false;'>Add Account</span>"
+		);
+		return $formDefinition;
+	}
+
+	function getBulkAddToListForm()	{
 		global $interface;
 		// Display Page
 		$interface->assign('listId', strip_tags($_REQUEST['listId']));
@@ -473,17 +547,15 @@ class MyAccount_AJAX
 		$password = $_REQUEST['barcode'];
 
 		//Get the list of pickup branch locations for display in the user interface.
-		$patron = $catalog->patronLogin($username, $password);
+		$patron = UserAccount::validateAccount($username, $password);
 		if ($patron == null) {
 			$result = array(
 				'PickupLocations' => array(),
 				'loginFailed' => true
 			);
 		} else {
-			$patronProfile = $catalog->getMyProfile($patron);
-
 			$location = new Location();
-			$locationList = $location->getPickupBranches($patronProfile, $patronProfile['homeLocationId']);
+			$locationList = $location->getPickupBranches($patron, $patronProfile['homeLocationId']);
 			$pickupLocations = array();
 			foreach ($locationList as $curLocation) {
 				$pickupLocations[] = array(
@@ -764,7 +836,7 @@ class MyAccount_AJAX
 		global $configArray;
 
 		try {
-			/** @var DriverInterface|MillenniumDriver|Nashville|Marmot|Sierra|Horizon $catalog */
+			/** @var DriverInterface|Millennium|Nashville|Marmot|Sierra|Horizon $catalog */
 			$catalog = CatalogFactory::getCatalogConnectionInstance();;
 
 			$barcode = $_REQUEST['barcode'];

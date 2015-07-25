@@ -1,23 +1,8 @@
 <?php
 class SearchSources{
 	static function getSearchSources(){
-		$activeLibrary = Library::getActiveLibrary();
-		if ($activeLibrary == null || count($activeLibrary->searchSources) == 0 ){
-			$searchSources = SearchSources::getSearchSourcesDefault();
-		}else{
-			$searchSources = SearchSources::getSearchSourcesLibrary($activeLibrary);
-		}
+		$searchSources = SearchSources::getSearchSourcesDefault();
 		return $searchSources;
-	}
-	private static function getSearchSourcesLibrary($library){
-		$searchOptions = array();
-		foreach ($library->searchSources as $searchSource){
-			$searchOptions['library' . $searchSource->id] = array(
-				'name' => $searchSource->label,
-				'description' => $searchSource->label,
-			);
-		}
-		return $searchOptions;
 	}
 	private static function getSearchSourcesDefault(){
 		$searchOptions = array();
@@ -273,9 +258,6 @@ class SearchSources{
 	}
 
 	public function getExternalLink($searchSource, $type, $lookFor){
-		if (is_object($searchSource)){
-			$searchSource = $searchSource->searchWhat;
-		}
 		global $library;
 		global $configArray;
 		if ($searchSource =='goldrush'){

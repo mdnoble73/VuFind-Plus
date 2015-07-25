@@ -7,27 +7,28 @@ import org.marc4j.marc.Record;
 import org.marc4j.marc.Subfield;
 
 import java.sql.Connection;
+import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  * ILS Indexing with customizations specific to Flatirons Library Consortium
  *
- * VuFind-Plus
+ * Pika
  * User: Mark Noble
  * Date: 12/29/2014
  * Time: 10:25 AM
  */
 public class FlatironsRecordProcessor extends IlsRecordProcessor{
-	public FlatironsRecordProcessor(GroupedWorkIndexer indexer, Connection vufindConn, Ini configIni, Logger logger) {
-		super(indexer, vufindConn, configIni, logger);
+	public FlatironsRecordProcessor(GroupedWorkIndexer indexer, Connection vufindConn, Ini configIni, ResultSet indexingProfileRS, Logger logger, boolean fullReindex) {
+		super(indexer, vufindConn, configIni, indexingProfileRS, logger, fullReindex);
 	}
 
 	@Override
-	protected boolean isItemAvailable(PrintIlsItem ilsRecord) {
+	protected boolean isItemAvailable(ItemInfo itemInfo) {
 		boolean available = false;
-		String status = ilsRecord.getStatus();
-		String dueDate = ilsRecord.getDateDue() == null ? "" : ilsRecord.getDateDue();
+		String status = itemInfo.getStatusCode();
+		String dueDate = itemInfo.getDueDate() == null ? "" : itemInfo.getDueDate();
 		String availableStatus = "-oyj";
 		if (status.length() > 0 && availableStatus.indexOf(status.charAt(0)) >= 0) {
 			if (dueDate.length() == 0) {
@@ -37,87 +38,73 @@ public class FlatironsRecordProcessor extends IlsRecordProcessor{
 		return available;
 	}
 
-	protected List<PrintIlsItem> getUnsuppressedPrintItems(String identifier, Record record){
+	@Override
+	protected void loadUnsuppressedPrintItems(GroupedWorkSolr groupedWork, RecordInfo recordInfo, String identifier, Record record){
 		String bibFormat = getFirstFieldVal(record, "998e");
 		boolean isEContentBibFormat = bibFormat.equals("3") || bibFormat.equals("t") || bibFormat.equals("m") || bibFormat.equals("w") || bibFormat.equals("u");
 		String url = getFirstFieldVal(record, "856u");
 		boolean has856 = url != null;
 
 		List<DataField> itemRecords = getDataFields(record, itemTag);
-		List<PrintIlsItem> unsuppressedItemRecords = new ArrayList<PrintIlsItem>();
 		if (!(isEContentBibFormat && has856)) {
 			//The record is print
 			for (DataField itemField : itemRecords){
 				if (!isItemSuppressed(itemField)){
-					PrintIlsItem printIlsRecord = getPrintIlsItem(record, itemField);
-					if (printIlsRecord != null) {
-						unsuppressedItemRecords.add(printIlsRecord);
-					}
+					getPrintIlsItem(groupedWork, recordInfo, record, itemField);
 				}
 			}
 		}
-		return unsuppressedItemRecords;
 	}
 
-	protected List<EContentIlsItem> getUnsuppressedEContentItems(String identifier, Record record){
+	@Override
+	protected List<RecordInfo> loadUnsuppressedEContentItems(GroupedWorkSolr groupedWork, String identifier, Record record){
 		String bibFormat = getFirstFieldVal(record, "998e").trim();
 		boolean isEContentBibFormat = bibFormat.equals("3") || bibFormat.equals("t") || bibFormat.equals("m") || bibFormat.equals("w") || bibFormat.equals("u");
 		String url = getFirstFieldVal(record, "856u");
 		boolean has856 = url != null;
 
 		List<DataField> itemRecords = getDataFields(record, itemTag);
-		List<EContentIlsItem> unsuppressedEcontentRecords = new ArrayList<EContentIlsItem>();
+		List<RecordInfo> unsuppressedEcontentRecords = new ArrayList<>();
 		if (isEContentBibFormat && has856) {
 			for (DataField itemField : itemRecords) {
 				if (!isItemSuppressed(itemField)) {
 					//Check to see if the item has an eContent indicator
-					unsuppressedEcontentRecords.add(getEContentIlsRecord(record, identifier, itemField));
+					unsuppressedEcontentRecords.add(getEContentIlsRecord(groupedWork, record, identifier, itemField));
 				}
 			}
 			if (itemRecords.size() == 0){
 				//Much of the econtent for flatirons has no items.  Need to determine the location based on the 907b field
 				String eContentLocation = getFirstFieldVal(record, "907b");
 				if (eContentLocation != null) {
-					EContentIlsItem ilsEContentItem = new EContentIlsItem();
-					ilsEContentItem.setLocationCode(eContentLocation);
-					ilsEContentItem.setSource("External eContent");
-					ilsEContentItem.setProtectionType("external");
-					ilsEContentItem.setSharing("library");
+					ItemInfo itemInfo = new ItemInfo();
+					itemInfo.setLocationCode(eContentLocation);
+					itemInfo.seteContentSource("External eContent");
+					itemInfo.seteContentProtectionType("external");
+					itemInfo.seteContentSharing("library");
 					if (url.contains("ebrary.com")) {
-						ilsEContentItem.setSource("ebrary");
+						itemInfo.seteContentSource("ebrary");
 					}else{
-						ilsEContentItem.setSource("Unknown");
+						itemInfo.seteContentSource("Unknown");
 					}
-					ilsEContentItem.setRecordIdentifier("external_econtent:" + identifier);
+					RecordInfo relatedRecord = groupedWork.addRelatedRecord("external_econtent:", identifier);
+					relatedRecord.setSubSource(profileType);
+					relatedRecord.addItem(itemInfo);
 					//Check the 856 tag to see if there is a link there
-					List<DataField> urlFields = getDataFields(record, "856");
-					for (DataField urlField : urlFields){
-						//load url into the item
-						if (urlField.getSubfield('u') != null){
-							//Try to determine if this is a resource or not.
-							if (urlField.getIndicator1() == '4' || urlField.getIndicator1() == ' ' || urlField.getIndicator1() == '0'){
-								if (urlField.getIndicator2() == ' ' || urlField.getIndicator2() == '0' || urlField.getIndicator2() == '1' || urlField.getIndicator2() == '4') {
-									ilsEContentItem.setUrl(urlField.getSubfield('u').getData().trim());
-									break;
-								}
-							}
-
-						}
-					}
-					ilsEContentItem.setAvailable(true);
+					loadEContentUrl(record, itemInfo);
 
 					//Determine which scopes this title belongs to
 					for (Scope curScope : indexer.getScopes()){
-						boolean includedDirectly = curScope.isEContentDirectlyOwned(ilsEContentItem);
-						if (curScope.isEContentLocationPartOfScope(ilsEContentItem)){
-							ilsEContentItem.addRelatedScope(curScope);
-							if (includedDirectly){
-								ilsEContentItem.addScopeThisItemIsDirectlyIncludedIn(curScope.getScopeName());
-							}
+						if (curScope.isItemPartOfScope(profileType, eContentLocation, "", false, false, true)){
+							ScopingInfo scopingInfo = itemInfo.addScope(curScope);
+							scopingInfo.setAvailable(true);
+							scopingInfo.setStatus("Available Online");
+							scopingInfo.setGroupedStatus("Available Online");
+							scopingInfo.setHoldable(false);
+							scopingInfo.setLocallyOwned(curScope.isItemOwnedByScope(profileType, eContentLocation, ""));
 						}
 					}
 
-					unsuppressedEcontentRecords.add(ilsEContentItem);
+					unsuppressedEcontentRecords.add(relatedRecord);
 				}
 			}
 		}
@@ -173,15 +160,17 @@ public class FlatironsRecordProcessor extends IlsRecordProcessor{
 		return false;
 	}
 
-	protected void loadEContentFormatInformation(IlsRecord econtentRecord, EContentIlsItem econtentItem) {
+	protected void loadEContentFormatInformation(RecordInfo econtentRecord, ItemInfo econtentItem) {
 		String collection = "online_resource";
-		String translatedFormat = indexer.translateValue("format", collection);
-		String translatedFormatCategory = indexer.translateValue("format_category", collection);
-		String translatedFormatBoost = indexer.translateValue("format_boost", collection);
-		econtentRecord.setFormatInformation(translatedFormat, translatedFormatCategory, translatedFormatBoost);
+		String translatedFormat = translateValue("format", collection);
+		String translatedFormatCategory = translateValue("format_category", collection);
+		String translatedFormatBoost = translateValue("format_boost", collection);
+		econtentItem.setFormat(translatedFormat);
+		econtentItem.setFormatCategory(translatedFormatCategory);
+		econtentRecord.setFormatBoost(Long.parseLong(translatedFormatBoost));
 	}
 
-	protected String getEContentSharing(EContentIlsItem ilsEContentItem, DataField itemField) {
+	protected String getEContentSharing(ItemInfo ilsEContentItem, DataField itemField) {
 		return "library";
 	}
 }

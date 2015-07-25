@@ -11,7 +11,7 @@ import java.util.regex.PatternSyntaxException;
 
 /**
  * Description goes here
- * VuFind-Plus
+ * Pika
  * User: Mark Noble
  * Date: 9/29/2014
  * Time: 12:01 PM
@@ -21,7 +21,7 @@ public abstract class MarcRecordProcessor {
 	protected GroupedWorkIndexer indexer;
 	Pattern mpaaRatingRegex1 = null;
 	Pattern mpaaRatingRegex2 = null;
-	private HashSet<String> unknownSubjectForms = new HashSet<String>();
+	private HashSet<String> unknownSubjectForms = new HashSet<>();
 
 	public MarcRecordProcessor(GroupedWorkIndexer indexer, Logger logger) {
 		this.indexer = indexer;
@@ -37,7 +37,7 @@ public abstract class MarcRecordProcessor {
 	 */
 	public abstract void processRecord(GroupedWorkSolr groupedWork, String identifier);
 
-	protected void updateGroupedWorkSolrDataBasedOnStandardMarcData(GroupedWorkSolr groupedWork, Record record, List<PrintIlsItem> printItems) {
+	protected void updateGroupedWorkSolrDataBasedOnStandardMarcData(GroupedWorkSolr groupedWork, Record record, HashSet<ItemInfo> printItems) {
 		loadTitles(groupedWork, record);
 		loadAuthors(groupedWork, record);
 		groupedWork.addTopic(getFieldList(record, "600abcdefghjklmnopqrstuvxyz:610abcdefghjklmnopqrstuvxyz:611acdefghklnpqstuvxyz:630abfghklmnoprstvxyz:650abcdevxyz:651abcdevxyz:690a"));
@@ -61,7 +61,7 @@ public abstract class MarcRecordProcessor {
 		loadBibCallNumbers(groupedWork, record);
 		loadLiteraryForms(groupedWork, record);
 		loadTargetAudiences(groupedWork, record, printItems);
-		groupedWork.addMpaaRating(groupedWork, getMpaaRating(record));
+		groupedWork.addMpaaRating(getMpaaRating(record));
 		groupedWork.setAcceleratedReaderInterestLevel(getAcceleratedReaderInterestLevel(record));
 		groupedWork.setAcceleratedReaderReadingLevel(getAcceleratedReaderReadingLevel(record));
 		groupedWork.setAcceleratedReaderPointValue(getAcceleratedReaderPointLevel(record));
@@ -71,7 +71,7 @@ public abstract class MarcRecordProcessor {
 
 	protected void loadAwards(GroupedWorkSolr groupedWork, Record record){
 		Set<String> awardFields = getFieldList(record, "586a");
-		HashSet<String> awards = new HashSet<String>();
+		HashSet<String> awards = new HashSet<>();
 		for (String award : awardFields){
 			//Normalize the award name
 			if (award.contains("Caldecott")) {
@@ -97,7 +97,7 @@ public abstract class MarcRecordProcessor {
 
 
 	protected Set<String> getBisacSubjects(Record record){
-		HashSet<String> bisacSubjects = new HashSet<String>();
+		HashSet<String> bisacSubjects = new HashSet<>();
 		List<DataField> fields = getDataFields(record, "650");
 		for (DataField field : fields){
 			if (field.getIndicator2() == '0' || field.getIndicator2() == '1') {
@@ -121,7 +121,7 @@ public abstract class MarcRecordProcessor {
 
 
 	protected Set<String> getLCSubjects(Record record) {
-		HashSet<String> lcSubjects = new HashSet<String>();
+		HashSet<String> lcSubjects = new HashSet<>();
 		List<DataField> fields = getDataFields(record, "650");
 		for (DataField field : fields){
 			if (field.getIndicator2() == '0' || field.getIndicator2() == '1'){
@@ -143,22 +143,22 @@ public abstract class MarcRecordProcessor {
 
 	protected abstract void updateGroupedWorkSolrDataBasedOnMarc(GroupedWorkSolr groupedWork, Record record, String identifier);
 
-	protected void loadEditions(GroupedWorkSolr groupedWork, Record record, HashSet<IlsRecord> ilsRecords) {
+	protected void loadEditions(GroupedWorkSolr groupedWork, Record record, HashSet<RecordInfo> ilsRecords) {
 		Set<String> editions = getFieldList(record, "250a");
 		if (editions.size() > 0) {
 			String edition = editions.iterator().next();
-			for (IlsRecord ilsRecord : ilsRecords) {
+			for (RecordInfo ilsRecord : ilsRecords) {
 				ilsRecord.setEdition(edition);
 			}
 		}
 		groupedWork.addEditions(editions);
 	}
 
-	protected void loadPhysicalDescription(GroupedWorkSolr groupedWork, Record record, HashSet<IlsRecord> ilsRecords) {
+	protected void loadPhysicalDescription(GroupedWorkSolr groupedWork, Record record, HashSet<RecordInfo> ilsRecords) {
 		Set<String> physicalDescriptions = getFieldList(record, "300abcefg:530abcd");
 		if (physicalDescriptions.size() > 0){
 			String physicalDescription = physicalDescriptions.iterator().next();
-			for(IlsRecord ilsRecord : ilsRecords){
+			for(RecordInfo ilsRecord : ilsRecords){
 				ilsRecord.setPhysicalDescription(physicalDescription);
 			}
 		}
@@ -217,8 +217,8 @@ public abstract class MarcRecordProcessor {
 		}
 	}
 
-	protected void loadTargetAudiences(GroupedWorkSolr groupedWork, Record record, List<PrintIlsItem> printItems) {
-		Set<String> targetAudiences = new LinkedHashSet<String>();
+	protected void loadTargetAudiences(GroupedWorkSolr groupedWork, Record record, HashSet<ItemInfo> printItems) {
+		Set<String> targetAudiences = new LinkedHashSet<>();
 		try {
 			String leader = record.getLeader().toString();
 
@@ -269,13 +269,13 @@ public abstract class MarcRecordProcessor {
 			targetAudiences.add("Unknown");
 		}
 
-		groupedWork.addTargetAudiences(indexer.translateCollection("target_audience", targetAudiences));
-		groupedWork.addTargetAudiencesFull(indexer.translateCollection("target_audience_full", targetAudiences));
+		groupedWork.addTargetAudiences(indexer.translateSystemCollection("target_audience", targetAudiences));
+		groupedWork.addTargetAudiencesFull(indexer.translateSystemCollection("target_audience_full", targetAudiences));
 	}
 
 	protected void loadLiteraryForms(GroupedWorkSolr groupedWork, Record record) {
 		//First get the literary Forms from the 008.  These need translation
-		LinkedHashSet<String> literaryForms = new LinkedHashSet<String>();
+		LinkedHashSet<String> literaryForms = new LinkedHashSet<>();
 		try {
 			String leader = record.getLeader().toString();
 
@@ -314,12 +314,12 @@ public abstract class MarcRecordProcessor {
 			//Uh oh, we have a problem
 			logger.warn("Received multiple literary forms for a single marc record");
 		}
-		groupedWork.addLiteraryForms(indexer.translateCollection("literary_form", literaryForms));
-		groupedWork.addLiteraryFormsFull(indexer.translateCollection("literary_form_full", literaryForms));
+		groupedWork.addLiteraryForms(indexer.translateSystemCollection("literary_form", literaryForms));
+		groupedWork.addLiteraryFormsFull(indexer.translateSystemCollection("literary_form_full", literaryForms));
 
 		//Now get literary forms from the subjects, these don't need translation
-		HashMap<String, Integer> literaryFormsWithCount = new HashMap<String, Integer>();
-		HashMap<String, Integer> literaryFormsFull = new HashMap<String, Integer>();
+		HashMap<String, Integer> literaryFormsWithCount = new HashMap<>();
+		HashMap<String, Integer> literaryFormsFull = new HashMap<>();
 		//Check the subjects
 		Set<String> subjectFormData = getFieldList(record, "650v:651v");
 		for(String subjectForm : subjectFormData){
@@ -442,13 +442,13 @@ public abstract class MarcRecordProcessor {
 		}
 	}
 
-	protected void loadPublicationDetails(GroupedWorkSolr groupedWork, Record record, HashSet<IlsRecord> ilsRecords) {
+	protected void loadPublicationDetails(GroupedWorkSolr groupedWork, Record record, HashSet<RecordInfo> ilsRecords) {
 		//Load publishers
 		Set<String> publishers = this.getPublishers(record);
 		groupedWork.addPublishers(publishers);
 		if (publishers.size() > 0){
 			String publisher = publishers.iterator().next();
-			for(IlsRecord ilsRecord : ilsRecords){
+			for(RecordInfo ilsRecord : ilsRecords){
 				ilsRecord.setPublisher(publisher);
 			}
 		}
@@ -458,7 +458,7 @@ public abstract class MarcRecordProcessor {
 		groupedWork.addPublicationDates(publicationDates);
 		if (publicationDates.size() > 0){
 			String publicationDate = publicationDates.iterator().next();
-			for(IlsRecord ilsRecord : ilsRecords){
+			for(RecordInfo ilsRecord : ilsRecords){
 				ilsRecord.setPublicationDate(publicationDate);
 			}
 		}
@@ -468,7 +468,7 @@ public abstract class MarcRecordProcessor {
 	public Set<String> getPublicationDates(Record record) {
 		@SuppressWarnings("unchecked")
 		List<VariableField> rdaFields = record.getVariableFields("264");
-		HashSet<String> publicationDates = new HashSet<String>();
+		HashSet<String> publicationDates = new HashSet<>();
 		String date;
 		//Try to get from RDA data
 		if (rdaFields.size() > 0){
@@ -494,7 +494,7 @@ public abstract class MarcRecordProcessor {
 	}
 
 	public Set<String> getPublishers(Record record){
-		Set<String> publisher = new LinkedHashSet<String>();
+		Set<String> publisher = new LinkedHashSet<>();
 		//First check for 264 fields
 		@SuppressWarnings("unchecked")
 
@@ -513,27 +513,27 @@ public abstract class MarcRecordProcessor {
 		return publisher;
 	}
 
-	protected void loadLanguageDetails(GroupedWorkSolr groupedWork, Record record, HashSet<IlsRecord> ilsRecords) {
+	protected void loadLanguageDetails(GroupedWorkSolr groupedWork, Record record, HashSet<RecordInfo> ilsRecords) {
 		Set <String> languages = getFieldList(record, "008[35-37]:041a:041d:041j");
-		HashSet<String> translatedLanguages = new HashSet<String>();
+		HashSet<String> translatedLanguages = new HashSet<>();
 		boolean isFirstLanguage = true;
 		for (String language : languages){
-			String tranlatedLanguage = indexer.translateValue("language", language);
+			String tranlatedLanguage = indexer.translateSystemValue("language", language);
 			translatedLanguages.add(tranlatedLanguage);
 			if (isFirstLanguage){
-				for (IlsRecord ilsRecord : ilsRecords){
-					ilsRecord.setLanguage(tranlatedLanguage);
+				for (RecordInfo ilsRecord : ilsRecords){
+					ilsRecord.setPrimaryLanguage(tranlatedLanguage);
 				}
 			}
 			isFirstLanguage = false;
-			String languageBoost = indexer.translateValue("language_boost", language);
+			String languageBoost = indexer.translateSystemValue("language_boost", language);
 			if (languageBoost != null){
 				Long languageBoostVal = Long.parseLong(languageBoost);
 				groupedWork.setLanguageBoost(languageBoostVal);
 			}
-			String languageBoostEs = indexer.translateValue("language_boost_es", language);
+			String languageBoostEs = indexer.translateSystemValue("language_boost_es", language);
 			if (languageBoostEs != null){
-				Long languageBoostVal = Long.parseLong(languageBoost);
+				Long languageBoostVal = Long.parseLong(languageBoostEs);
 				groupedWork.setLanguageBoostSpanish(languageBoostVal);
 			}
 		}
@@ -588,11 +588,11 @@ public abstract class MarcRecordProcessor {
 		groupedWork.setCallNumberA(getFirstFieldVal(record, "099a:090a:050a"));
 		String firstCallNumber = getFirstFieldVal(record, "099a[0]:090a[0]:050a[0]");
 		if (firstCallNumber != null){
-			groupedWork.setCallNumberFirst(indexer.translateValue("callnumber", firstCallNumber));
+			groupedWork.setCallNumberFirst(indexer.translateSystemValue("callnumber", firstCallNumber));
 		}
 		String callNumberSubject = getCallNumberSubject(record, "090a:050a");
 		if (callNumberSubject != null){
-			groupedWork.setCallNumberSubject(indexer.translateValue("callnumber_subject", callNumberSubject));
+			groupedWork.setCallNumberSubject(indexer.translateSystemValue("callnumber_subject", callNumberSubject));
 		}
 	}
 
@@ -607,7 +607,7 @@ public abstract class MarcRecordProcessor {
 
 	protected List<DataField> getDataFields(Record marcRecord, String tag) {
 		List variableFields = marcRecord.getVariableFields(tag);
-		List<DataField> variableFieldsReturn = new ArrayList<DataField>();
+		List<DataField> variableFieldsReturn = new ArrayList<>();
 		for (Object variableField : variableFields){
 			if (variableField instanceof DataField){
 				variableFieldsReturn.add((DataField)variableField);
@@ -813,7 +813,7 @@ public abstract class MarcRecordProcessor {
 	 */
 	protected Set<String> getFieldList(Record record, String tagStr) {
 		String[] tags = tagStr.split(":");
-		Set<String> result = new LinkedHashSet<String>();
+		Set<String> result = new LinkedHashSet<>();
 		for (String tag1 : tags) {
 			// Check to ensure tag length is at least 3 characters
 			if (tag1.length() < 3) {
@@ -891,7 +891,7 @@ public abstract class MarcRecordProcessor {
 	 */
 	@SuppressWarnings("unchecked")
 	protected Set<String> getSubfieldDataAsSet(Record record, String fldTag, String subfield, int beginIx, int endIx) {
-		Set<String> resultSet = new LinkedHashSet<String>();
+		Set<String> resultSet = new LinkedHashSet<>();
 
 		// Process Leader
 		if (fldTag.equals("000")) {
@@ -953,7 +953,7 @@ public abstract class MarcRecordProcessor {
 	 */
 	@SuppressWarnings("unchecked")
 	protected Set<String> getSubfieldDataAsSet(Record record, String fldTag, String subfieldsStr, String separator) {
-		Set<String> resultSet = new LinkedHashSet<String>();
+		Set<String> resultSet = new LinkedHashSet<>();
 
 		// Process Leader
 		if (fldTag.equals("000")) {
@@ -1034,7 +1034,7 @@ public abstract class MarcRecordProcessor {
 	@SuppressWarnings("unchecked")
 	public Set<String> getLinkedFieldValue(Record record, String tag, String subfield, String separator) {
 		// assume brackets expression is a pattern such as [a-z]
-		Set<String> result = new LinkedHashSet<String>();
+		Set<String> result = new LinkedHashSet<>();
 		Pattern subfieldPattern = null;
 		if (subfield.indexOf('[') != -1) {
 			subfieldPattern = Pattern.compile(subfield);
@@ -1087,7 +1087,7 @@ public abstract class MarcRecordProcessor {
 	 */
 	@SuppressWarnings("unchecked")
 	public Set<String> getAllSubfields(Record record, String fieldSpec, String separator) {
-		Set<String> result = new LinkedHashSet<String>();
+		Set<String> result = new LinkedHashSet<>();
 
 		String[] fldTags = fieldSpec.split(":");
 		for (String fldTag1 : fldTags) {
@@ -1124,6 +1124,23 @@ public abstract class MarcRecordProcessor {
 		}
 
 		return result;
+	}
+
+	protected void loadEContentUrl(Record record, ItemInfo itemInfo) {
+		List<DataField> urlFields = getDataFields(record, "856");
+		for (DataField urlField : urlFields){
+			//load url into the item
+			if (urlField.getSubfield('u') != null){
+				//Try to determine if this is a resource or not.
+				if (urlField.getIndicator1() == '4' || urlField.getIndicator1() == ' ' || urlField.getIndicator1() == '0'){
+					if (urlField.getIndicator2() == ' ' || urlField.getIndicator2() == '0' || urlField.getIndicator2() == '1' || urlField.getIndicator2() == '4') {
+						itemInfo.seteContentUrl(urlField.getSubfield('u').getData().trim());
+						break;
+					}
+				}
+
+			}
+		}
 	}
 
 	/**

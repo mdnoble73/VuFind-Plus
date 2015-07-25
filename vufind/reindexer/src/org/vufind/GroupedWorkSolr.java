@@ -1,5 +1,6 @@
 package org.vufind;
 
+import com.sun.istack.internal.NotNull;
 import org.apache.log4j.Logger;
 import org.apache.solr.common.SolrInputDocument;
 
@@ -8,134 +9,92 @@ import java.util.*;
 /**
  * A representation of the grouped record as it will be added to Solr.
  *
- * VuFind-Plus
+ * Pika
  * User: Mark Noble
  * Date: 11/25/13
  * Time: 3:19 PM
  */
 public class GroupedWorkSolr {
 	private String id;
-	private HashSet<String> relatedRecordIds = new HashSet<String>();
-	private HashSet<String> relatedItems = new HashSet<String>();
+
+	private HashMap<String, RecordInfo> relatedRecords = new HashMap<>();
 
 	private String acceleratedReaderInterestLevel;
 	private String acceleratedReaderReadingLevel;
 	private String acceleratedReaderPointValue;
 	private String allFields = "";
-	private HashSet<String> alternateIds = new HashSet<String>();
+	private HashSet<String> alternateIds = new HashSet<>();
 	private String authAuthor;
 	private String author;
 	private String authorLetter;
-	private HashSet<String> authorAdditional = new HashSet<String>();
+	private HashSet<String> authorAdditional = new HashSet<>();
 	private String authorDisplay;
-	private HashSet<String> author2 = new HashSet<String>();
-	private HashSet<String> authAuthor2 = new HashSet<String>();
-	private HashSet<String> author2Role = new HashSet<String>();
-	private HashSet<String> awards = new HashSet<String>();
-	//Available At is a list of all branches where the title is available.
-	//It is filtered in PHP according to what scope is being displayed.
-	//Different from other fields that use a dynamic field to handle scoping
-	private HashSet<String> availableAt = new HashSet<String>();
-	private HashMap<String, HashSet<String>> availabilityToggleByLibrarySystem = new HashMap<String, HashSet<String>>();
-	private HashMap<String, HashSet<String>> availabilityByFormatByLibrarySystem = new HashMap<String, HashSet<String>>();
-	private HashSet<String> barcodes = new HashSet<String>();
-	private HashSet<String> bisacSubjects = new HashSet<String>();
+	private HashSet<String> author2 = new HashSet<>();
+	private HashSet<String> authAuthor2 = new HashSet<>();
+	private HashSet<String> author2Role = new HashSet<>();
+	private HashSet<String> awards = new HashSet<>();
+	private HashSet<String> barcodes = new HashSet<>();
+	private HashSet<String> bisacSubjects = new HashSet<>();
 	private String callNumberA;
 	private String callNumberFirst;
 	private String callNumberSubject;
-	private HashSet<String> collectionGroup = new HashSet<String>();
-	private HashMap<String, HashSet<String>> additionalCollections = new HashMap<String, HashSet<String>>();
-	private HashSet<String> contents = new HashSet<String>();
-	private Date dateAdded = null;
-	private HashSet<String> dateSpans = new HashSet<String>();
-	private HashSet<String> detailedLocation = new HashSet<String>();
-	private HashSet<String> description = new HashSet<String>();
+	private HashSet<String> contents = new HashSet<>();
+	private HashSet<String> dateSpans = new HashSet<>();
+	private HashSet<String> description = new HashSet<>();
 	private String displayDescription = "";
 	private String displayDescriptionFormat = "";
 	private String displayTitle;
 	private Long earliestPublicationDate = null;
-	private HashSet<String> econtentDevices = new HashSet<String>();
-	private HashSet<String> econtentProtectionTypes = new HashSet<String>();
-	private HashSet<String> econtentSources = new HashSet<String>();
-	private HashSet<String> editions = new HashSet<String>();
-	private HashSet<String> eras = new HashSet<String>();
-	private HashSet<String> formats = new HashSet<String>();
-	private HashSet<String> formatCategories = new HashSet<String>();
-	private Long formatBoost = 1L;
-	private HashSet<String> fullTitles = new HashSet<String>();
-	private HashSet<String> genres = new HashSet<String>();
-	private HashSet<String> genreFacets = new HashSet<String>();
-	private HashSet<String> geographic = new HashSet<String>();
-	private HashSet<String> geographicFacets = new HashSet<String>();
+	private HashSet<String> econtentDevices = new HashSet<>();
+	private HashSet<String> editions = new HashSet<>();
+	private HashSet<String> eras = new HashSet<>();
+	private HashSet<String> fullTitles = new HashSet<>();
+	private HashSet<String> genres = new HashSet<>();
+	private HashSet<String> genreFacets = new HashSet<>();
+	private HashSet<String> geographic = new HashSet<>();
+	private HashSet<String> geographicFacets = new HashSet<>();
 	private String groupingCategory;
-	private HashSet<String> isbns = new HashSet<String>();
-	private HashSet<String> issns = new HashSet<String>();
-	private HashSet<String> iTypes = new HashSet<String>();
-	private HashSet<String> keywords = new HashSet<String>();
-	private HashSet<String> languages = new HashSet<String>();
+	private HashSet<String> isbns = new HashSet<>();
+	private HashSet<String> issns = new HashSet<>();
+	private HashSet<String> keywords = new HashSet<>();
+	private HashSet<String> languages = new HashSet<>();
 	private Long languageBoost = 1L;
 	private Long languageBoostSpanish = 1L;
-	private HashSet<String> lccns = new HashSet<String>();
-	private HashSet<String> lcSubjects = new HashSet<String>();
+	private HashSet<String> lccns = new HashSet<>();
+	private HashSet<String> lcSubjects = new HashSet<>();
 	private String lexileScore = "-1";
 	private String lexileCode = "";
-	private HashMap<String, Integer> literaryFormFull = new HashMap<String, Integer>();
-	private HashMap<String, Integer> literaryForm = new HashMap<String, Integer>();
-	private HashMap<String, Long> localBoost = new HashMap<String, Long>();
-	private String localCallNumber;
-	private HashMap<String, HashSet<String>> localCallNumbers = new HashMap<String, HashSet<String>>();
-	private HashMap<String, HashSet<String>> localEContentProtectionTypes = new HashMap<String, HashSet<String>>();
-	private HashMap<String, HashSet<String>> localEContentSources = new HashMap<String, HashSet<String>>();
-	private HashMap<String, HashSet<String>> localITypes = new HashMap<String, HashSet<String>>();
-	private HashMap<String, Date> localTimeSinceAdded = new HashMap<String, Date>();
-	private HashSet<String> mpaaRatings = new HashSet<String>();
+	private HashMap<String, Integer> literaryFormFull = new HashMap<>();
+	private HashMap<String, Integer> literaryForm = new HashMap<>();
+	private HashSet<String> mpaaRatings = new HashSet<>();
 	private Long numHoldings = 0L;
-	private HashSet<String> oclcs = new HashSet<String>();
-	private HashSet<String> owningLibraries = new HashSet<String>();
-	private HashSet<String> owningLocations = new HashSet<String>();
-	private HashSet<String> physicals = new HashSet<String>();
-	private float popularity;
-	private HashSet<String> publishers = new HashSet<String>();
-	private HashSet<String> publicationDates = new HashSet<String>();
+	private HashSet<String> oclcs = new HashSet<>();
+	private HashSet<String> physicals = new HashSet<>();
+	private double popularity;
+	private HashSet<String> publishers = new HashSet<>();
+	private HashSet<String> publicationDates = new HashSet<>();
 	private float rating = 2.5f;
-	private HashSet<String> series = new HashSet<String>();
-	private HashSet<String> series2 = new HashSet<String>();
-	private HashMap<String, String> sortableCallNumbers = new HashMap<String, String>();
+	private HashSet<String> series = new HashSet<>();
+	private HashSet<String> series2 = new HashSet<>();
 	private String subTitle;
-	private HashSet<String> targetAudienceFull = new HashSet<String>();
-	private HashSet<String> targetAudience = new HashSet<String>();
+	private HashSet<String> targetAudienceFull = new HashSet<>();
+	private HashSet<String> targetAudience = new HashSet<>();
 	private String title;
-	private HashSet<String> titleAlt = new HashSet<String>();
-	private HashSet<String> titleOld = new HashSet<String>();
-	private HashSet<String> titleNew = new HashSet<String>();
+	private HashSet<String> titleAlt = new HashSet<>();
+	private HashSet<String> titleOld = new HashSet<>();
+	private HashSet<String> titleNew = new HashSet<>();
 	private String titleSort;
-	private HashSet<String> topics = new HashSet<String>();
-	private HashSet<String> topicFacets = new HashSet<String>();
-	private HashSet<String> upcs = new HashSet<String>();
-	private HashSet<String> usableBy = new HashSet<String>();
-
-	private TreeMap<String, ScopedWorkDetails> scopedWorkDetails = new TreeMap<String, ScopedWorkDetails>();
+	private HashSet<String> topics = new HashSet<>();
+	private HashSet<String> topicFacets = new HashSet<>();
+	private HashSet<String> upcs = new HashSet<>();
 
 	private Logger logger;
 	private GroupedWorkIndexer groupedWorkIndexer;
-	private HashSet<String> systemLists = new HashSet<String>();
+	private HashSet<String> systemLists = new HashSet<>();
 
 	public GroupedWorkSolr(GroupedWorkIndexer groupedWorkIndexer, Logger logger) {
 		this.logger = logger;
 		this.groupedWorkIndexer = groupedWorkIndexer;
-
-		//Setup the scopes for the work
-		createScopes(groupedWorkIndexer.getScopes());
-	}
-
-	private void createScopes(TreeSet<Scope> scopes) {
-		for (Scope curScope : scopes) {
-			this.scopedWorkDetails.put(curScope.getScopeName(), new ScopedWorkDetails(curScope));
-		}
-	}
-
-	public TreeMap<String, ScopedWorkDetails> getScopedWorkDetails(){
-		return this.scopedWorkDetails;
 	}
 
 	public SolrInputDocument getSolrDocument(int availableAtBoostValue, int ownedByBoostValue) {
@@ -144,22 +103,10 @@ public class GroupedWorkSolr {
 		doc.addField("id", id);
 		doc.addField("alternate_ids", alternateIds);
 		doc.addField("recordtype", "grouped_work");
-		//Related records and sources
-		doc.addField("related_record_ids", relatedRecordIds);
-		doc.addField("related_record_items", relatedItems);
 		//Ownership and location
-		doc.addField("owning_library", owningLibraries);
-		doc.addField("owning_location", owningLocations);
-		doc.addField("collection_group", collectionGroup);
-		for (String additionalCollection : additionalCollections.keySet()){
-			doc.addField("collection_" + additionalCollection, additionalCollections.get(additionalCollection));
-		}
-		doc.addField("detailed_location", detailedLocation);
-		doc.addField("available_at", availableAt);
-
-		//Determine who can use the record
-		doc.addField("usable_by", usableBy);
-
+		doc.addField("owning_library", getAllOwningLibraries());
+		doc.addField("owning_location", getAllOwningLocations());
+		
 		//Title and variations
 		String fullTitle = title;
 		if (subTitle != null){
@@ -186,9 +133,7 @@ public class GroupedWorkSolr {
 		doc.addField("author_display", authorDisplay);
 		//format
 		doc.addField("grouping_category", groupingCategory);
-		doc.addField("format", formats);
-		doc.addField("format_category", formatCategories);
-		doc.addField("format_boost", formatBoost);
+		doc.addField("format_boost", getTotalFormatBoost());
 
 		//language related fields
 		doc.addField("language", languages);
@@ -227,6 +172,7 @@ public class GroupedWorkSolr {
 		doc.addField("target_audience", targetAudience);
 		doc.addField("system_list", systemLists);
 		//Date added to catalog
+		Date dateAdded = getDateAdded();
 		doc.addField("date_added", dateAdded);
 		if (dateAdded == null){
 			//Determine date added based on publication date
@@ -247,7 +193,6 @@ public class GroupedWorkSolr {
 			doc.addField("days_since_added", Util.getDaysSinceAddedForDate(dateAdded));
 			doc.addField("time_since_added", Util.getTimeSinceAddedForDate(dateAdded));
 		}
-		doc.addField("itype", iTypes);
 
 		doc.addField("barcode", barcodes);
 		//Awards and ratings
@@ -264,8 +209,9 @@ public class GroupedWorkSolr {
 		doc.addField("accelerated_reader_point_value", acceleratedReaderPointValue);
 		//EContent fields
 		doc.addField("econtent_device", econtentDevices);
-		doc.addField("econtent_source", econtentSources);
-		doc.addField("econtent_protection_type", econtentProtectionTypes);
+
+		HashSet<String> eContentSources = getAllEContentSources();
+		keywords.addAll(eContentSources);
 
 		doc.addField("table_of_contents", contents);
 		//broad search terms
@@ -283,7 +229,6 @@ public class GroupedWorkSolr {
 		doc.addField("callnumber-a", callNumberA);
 		doc.addField("callnumber-first", callNumberFirst);
 		doc.addField("callnumber-subject", callNumberSubject);
-		doc.addField("local_callnumber", localCallNumber);
 		//relevance determiners
 		doc.addField("popularity", Long.toString((long)popularity));
 		doc.addField("num_holdings", numHoldings);
@@ -294,64 +239,293 @@ public class GroupedWorkSolr {
 		doc.addField("display_description", displayDescription);
 
 		//Save information from scopes
-		for (ScopedWorkDetails scopedWorkDetail : scopedWorkDetails.values()){
-			if (scopedWorkDetail.getRelatedRecords().size() > 0) {
-				String scopeName = scopedWorkDetail.getScope().getScopeName();
-				doc.addField("related_record_ids_" + scopeName, scopedWorkDetail.getRelatedRecords());
-				doc.addField("related_items_" + scopeName, scopedWorkDetail.getRelatedItems());
-				doc.addField("format_" + scopeName, scopedWorkDetail.getFormats());
-				doc.addField("format_category_" +scopeName, scopedWorkDetail.getFormatCategories());
-				HashSet<String> detailedLocations = scopedWorkDetail.getDetailedLocations();
-				if (detailedLocations.size() > 0) {
-					doc.addField("detailed_location_" + scopeName, detailedLocations);
-				}
-			}
-		}
-
-		//availability
-		for (String subdomain: availabilityToggleByLibrarySystem.keySet()){
-			HashSet<String> availabilityToggle = availabilityToggleByLibrarySystem.get(subdomain);
-			doc.addField("availability_toggle_" + subdomain, availabilityToggle);
-			if (availabilityToggle.size() == 2){
-				doc.addField("lib_boost_" + subdomain, availableAtBoostValue);
-			}else{
-				doc.addField("lib_boost_" + subdomain, ownedByBoostValue);
-			}
-		}
-		for (String subdomain: availabilityByFormatByLibrarySystem.keySet()){
-			doc.addField("availability_by_format_" + subdomain, availabilityByFormatByLibrarySystem.get(subdomain));
-		}
-		for (String subdomain: localTimeSinceAdded.keySet()){
-			doc.addField("local_time_since_added_" + subdomain, Util.getTimeSinceAddedForDate(localTimeSinceAdded.get(subdomain)));
-		}
-		for (String subdomain: localITypes.keySet()){
-			doc.addField("itype_" + subdomain, localITypes.get(subdomain));
-		}
-		for (String subdomain : localEContentSources.keySet()){
-			doc.addField("econtent_source_" + subdomain, localEContentSources.get(subdomain));
-		}
-		for (String subdomain : localEContentProtectionTypes.keySet()){
-			doc.addField("econtent_protection_type_" + subdomain, localEContentProtectionTypes.get(subdomain));
-		}
-		for (String identifier: localCallNumbers.keySet()){
-			doc.addField("local_callnumber_" + identifier, localCallNumbers.get(identifier));
-		}
-		for (String identifier: sortableCallNumbers.keySet()){
-			doc.addField("callnumber_sort_" + identifier, sortableCallNumbers.get(identifier));
-		}
-		//in library boosts
-		for (String identifier: localBoost.keySet()){
-			doc.addField("lib_boost_" + identifier, localBoost.get(identifier));
-		}
+		addScopedFieldsToDocument(availableAtBoostValue, ownedByBoostValue, doc);
 
 		return doc;
 	}
 
+	private Long getTotalFormatBoost() {
+		long formatBoost = 0;
+		for (RecordInfo curRecord : relatedRecords.values()){
+			formatBoost += curRecord.getFormatBoost();
+		}
+		if (formatBoost == 0){
+			formatBoost = 1;
+		}
+		return formatBoost;
+	}
+
+	private HashSet<String> getAllEContentSources() {
+		HashSet<String> values = new HashSet<>();
+		for (RecordInfo curRecord : relatedRecords.values()){
+			values.addAll(curRecord.getAllEContentSources());
+		}
+		return values;
+	}
+
+	private Date getDateAdded() {
+		Date earliestDate = null;
+		for (RecordInfo curRecord : relatedRecords.values()) {
+			for (ItemInfo curItem : curRecord.getRelatedItems()) {
+				if (curItem.getDateAdded() != null) {
+					if (earliestDate == null || curItem.getDateAdded().before(earliestDate)) {
+						earliestDate = curItem.getDateAdded();
+					}
+				}
+			}
+		}
+		return earliestDate;
+	}
+
+	private HashSet<String> getAllOwningLocations() {
+		HashSet<String> owningLibraryValues = new HashSet<>();
+		for (RecordInfo curRecord : relatedRecords.values()){
+			owningLibraryValues.addAll(curRecord.getAllOwningLocations());
+		}
+		return owningLibraryValues;
+	}
+
+	private HashSet<String> getAllOwningLibraries() {
+		HashSet<String> owningLibraryValues = new HashSet<>();
+		for (RecordInfo curRecord : relatedRecords.values()){
+			owningLibraryValues.addAll(curRecord.getAllOwningLibraries());
+		}
+		return owningLibraryValues;
+	}
+
+	protected void addScopedFieldsToDocument(int availableAtBoostValue, int ownedByBoostValue, SolrInputDocument doc) {
+
+		//Load information based on scopes
+		HashSet<String> scopesWithRecords = new HashSet<>();
+		HashSet<String> availableFacets = new HashSet<>();
+		for (Scope scope : groupedWorkIndexer.getScopes()){
+			HashSet<RecordInfo> scopedRecords = getRelatedRecordForScope(scope);
+			HashSet<ItemInfo> scopedItems = getRelatedItemsForScope(scopedRecords, scope);
+			if (scopedRecords.size() > 0) {
+				String scopeName = scope.getScopeName();
+				scopesWithRecords.add(scopeName);
+				doc.addField("related_record_ids_" + scopeName, getRelatedRecordDetails(scopedRecords));
+				doc.addField("related_items_" + scopeName, getRelatedItemDetails(scopedItems, scope));
+				doc.addField("format_" + scopeName, getScopedFormats(scopedRecords));
+				doc.addField("format_category_" + scopeName, getScopedFormatCategories(scopedRecords));
+				HashSet<String> detailedLocations = getScopedShelfLocations(scopedItems);
+				if (detailedLocations.size() > 0) {
+					doc.addField("detailed_location_" + scopeName, detailedLocations);
+				}
+
+				doc.addField("collection_" + scopeName, getCollections(scopedItems, scope));
+				
+				if (hasAvailableItemsWithinScope(scopedItems, scope)){
+					availableFacets.add(scope.getFacetLabel());
+				}
+
+				doc.addField("availability_toggle_" + scopeName, getAvailabilityToggle(scopedItems, scope));
+				doc.addField("availability_by_format_" + scopeName, getAvailabilityToggleByFormat(scopedItems, scope));
+
+				if (isLocallyOwned(scopedItems, scope)){
+					doc.addField("lib_boost_" + scopeName, availableAtBoostValue);
+				}else{
+					doc.addField("lib_boost_" + scopeName, ownedByBoostValue);
+				}
+
+				Date localDateAdded = getLocalDateAdded(scopedItems, scope);
+				if (localDateAdded != null) {
+					doc.addField("local_time_since_added_" + scopeName, Util.getTimeSinceAddedForDate(localDateAdded));
+					doc.addField("local_days_since_added_" + scopeName, Util.getDaysSinceAddedForDate(localDateAdded));
+				}
+
+				doc.addField("itype_" + scopeName, getLocalITypes(scopedItems, scope));
+				doc.addField("econtent_source_" + scopeName, getLocalEContentSources(scopedItems, scope));
+				doc.addField("econtent_protection_type_" + scopeName, getLocalEContentProtectionTypes(scopedItems, scope));
+				doc.addField("local_callnumber_" + scopeName, getLocalCallNumbers(scopedItems, scope));
+				doc.addField("callnumber_sort_" + scopeName, getSortableLocalCallNumber(scopedItems, scope));
+			}
+		}
+		doc.addField("scope_has_related_records", scopesWithRecords);
+		doc.addField("available_at", availableFacets);
+
+	}
+
+	private boolean isLocallyOwned(HashSet<ItemInfo> scopedItems, Scope scope) {
+		for (ItemInfo curItem : scopedItems){
+			if (curItem.isLocallyOwned(scope)){
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private Date getLocalDateAdded(HashSet<ItemInfo> scopedItems, Scope scope) {
+		Date earliestDate = null;
+		for (ItemInfo curItem : scopedItems){
+			if (curItem.isLocallyOwned(scope) && curItem.getDateAdded() != null) {
+				if (earliestDate == null || curItem.getDateAdded().before(earliestDate)){
+					earliestDate = curItem.getDateAdded();
+				}
+			}
+		}
+		return earliestDate;
+	}
+
+	private String getSortableLocalCallNumber(HashSet<ItemInfo> scopedItems, Scope scope) {
+		for (ItemInfo curItem : scopedItems){
+			if (curItem.isLocallyOwned(scope)) {
+				if (curItem.getSortableCallNumber() != null && curItem.getSortableCallNumber().length() > 0){
+					return curItem.getSortableCallNumber();
+				}
+			}
+		}
+		return "";
+	}
+
+	private HashSet<String> getLocalCallNumbers(HashSet<ItemInfo> scopedItems, Scope scope) {
+		HashSet<String> values = new HashSet<>();
+		for (ItemInfo curItem : scopedItems){
+			if (curItem.isLocallyOwned(scope)) {
+				values.add(curItem.getCallNumber());
+			}
+		}
+		return values;
+	}
+
+	private HashSet<String> getLocalEContentProtectionTypes(HashSet<ItemInfo> scopedItems, Scope scope) {
+		HashSet<String> values = new HashSet<>();
+		for (ItemInfo curItem : scopedItems){
+			if (curItem.isLocallyOwned(scope)) {
+				values.add(curItem.geteContentProtectionType());
+			}
+		}
+		return values;
+	}
+
+	private HashSet<String> getLocalEContentSources(HashSet<ItemInfo> scopedItems, Scope scope) {
+		HashSet<String> values = new HashSet<>();
+		for (ItemInfo curItem : scopedItems){
+			if (curItem.isLocallyOwned(scope)) {
+				values.add(curItem.geteContentSource());
+			}
+		}
+		return values;
+	}
+
+	private HashSet<String> getLocalITypes(HashSet<ItemInfo> scopedItems, Scope scope) {
+		HashSet<String> values = new HashSet<>();
+		for (ItemInfo curItem : scopedItems){
+			if (curItem.isLocallyOwned(scope)) {
+				values.add(curItem.getIType());
+			}
+		}
+		return values;
+	}
+
+	private HashSet<String> getAvailabilityToggleByFormat(HashSet<ItemInfo> scopedItems, Scope scope) {
+		HashSet<String> availabilityToggle = new HashSet<>();
+		for (ItemInfo curItem : scopedItems) {
+			if (curItem.isLocallyOwned(scope)) {
+				availabilityToggle.add(curItem.getFormat() + "_local");
+				availabilityToggle.add(curItem.getFormatCategory() + "_local");
+			}
+			if (curItem.isLocallyAvailableInScope(scope)) {
+				availabilityToggle.add(curItem.getFormat() + "_available");
+				availabilityToggle.add(curItem.getFormatCategory() + "_available");
+			}
+		}
+		return availabilityToggle;
+	}
+
+	private HashSet<String> getAvailabilityToggle(HashSet<ItemInfo> scopedItems, Scope scope) {
+		HashSet<String> availabilityToggle = new HashSet<>();
+		for (ItemInfo curItem : scopedItems) {
+			if (curItem.isLocallyOwned(scope)) {
+				availabilityToggle.add("Entire Collection");
+			}
+			if (curItem.isLocallyAvailableInScope(scope)) {
+				availabilityToggle.add("Available Now");
+			}
+		}
+		return availabilityToggle;
+	}
+
+	private boolean hasAvailableItemsWithinScope(HashSet<ItemInfo> scopedItems, Scope scope) {
+		for (ItemInfo curItem : scopedItems){
+			if (curItem.isAvailableInScope(scope)){
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private HashSet<ItemInfo> getRelatedItemsForScope(HashSet<RecordInfo> scopedRecords, Scope scope) {
+		HashSet<ItemInfo> values = new HashSet<>();
+		for (RecordInfo curRecord : scopedRecords){
+			values.addAll(curRecord.getRelatedItemsForScope(scope));
+		}
+		return values;
+	}
+
+	private HashSet<String> getScopedShelfLocations(HashSet<ItemInfo> scopedItems) {
+		HashSet<String> values = new HashSet<>();
+		for (ItemInfo curRecord : scopedItems){
+			values.add(curRecord.getShelfLocation());
+		}
+		return values;
+	}
+
+	private HashSet<String> getScopedFormatCategories(HashSet<RecordInfo> scopedRecords) {
+		HashSet<String> values = new HashSet<>();
+		for (RecordInfo curRecord : scopedRecords){
+			values.addAll(curRecord.getAllFormatCategories());
+		}
+		return values;
+	}
+
+	private HashSet<String> getScopedFormats(HashSet<RecordInfo> scopedRecords) {
+		HashSet<String> values = new HashSet<>();
+		for (RecordInfo curRecord : scopedRecords){
+			values.addAll(curRecord.getAllFormats());
+		}
+		return values;
+	}
+
+	public HashSet<String> getRelatedRecordDetails(HashSet<RecordInfo> scopedRecords) {
+		HashSet<String> relatedRecordDetails = new HashSet<>();
+		for (RecordInfo curRecord : scopedRecords){
+			relatedRecordDetails.add(curRecord.getDetails());
+		}
+		return relatedRecordDetails;
+	}
+
+	public HashSet<String> getRelatedItemDetails(HashSet<ItemInfo> scopedItems, Scope scope) {
+		HashSet<String> relatedItemDetails = new HashSet<>();
+		for (ItemInfo curItem : scopedItems){
+			relatedItemDetails.add(curItem.getDetails(scope));
+		}
+		return relatedItemDetails;
+	}
+	
+	public HashSet<String> getCollections(HashSet<ItemInfo> scopedItems, Scope scope){
+		HashSet<String> relatedCollections = new HashSet<>();
+		for (ItemInfo curItem : scopedItems){
+			if (curItem.isLocallyOwned(scope)) {
+				relatedCollections.add(curItem.getCollection());
+			}
+		}
+		return relatedCollections;
+	}
+
+
+	private HashSet<RecordInfo> getRelatedRecordForScope(Scope curScope) {
+		HashSet<RecordInfo> scopedRecords = new HashSet<>();
+		for (RecordInfo curRecord : relatedRecords.values()){
+			if (curRecord.isValidForScope(curScope)) {
+				scopedRecords.add(curRecord);
+			}
+		}
+		return scopedRecords;
+	}
+
 	private void checkInconsistentLiteraryForms() {
-		if (literaryForm.size() == 1){
-			//Yay, just one literary form
-			return;
-		}else{
+		if (literaryForm.size() > 1){
 			if (literaryForm.containsKey("Unknown")){
 				//We got unknown and something else, remove the unknown
 				literaryForm.remove("Unknown");
@@ -384,10 +558,7 @@ public class GroupedWorkSolr {
 	}
 
 	private void checkInconsistentLiteraryFormsFull() {
-		if (literaryFormFull.size() == 1){
-			//Yay, just one literary form
-			return;
-		}else{
+		if (literaryFormFull.size() > 1){
 			if (literaryFormFull.containsKey("Unknown")){
 				//We got unknown and something else, remove the unknown
 				literaryFormFull.remove("Unknown");
@@ -396,7 +567,7 @@ public class GroupedWorkSolr {
 				//Hmm, we got multiple forms.  Check to see if there are inconsistent forms
 				// i.e. Fiction and Non-Fiction are incompatible, but Novels and Fiction could be mixed
 				int maxUsage = 0;
-				HashSet<String> highestUsageLiteraryForms = new HashSet<String>();
+				HashSet<String> highestUsageLiteraryForms = new HashSet<>();
 				for (String literaryForm : literaryFormFull.keySet()){
 					int curUsage = literaryFormFull.get(literaryForm);
 					if (curUsage > maxUsage){
@@ -438,7 +609,7 @@ public class GroupedWorkSolr {
 		}
 	}
 
-	static ArrayList<String> nonFictionFullLiteraryForms = new ArrayList<String>();
+	static ArrayList<String> nonFictionFullLiteraryForms = new ArrayList<>();
 	static{
 		nonFictionFullLiteraryForms.add("Non Fiction");
 		nonFictionFullLiteraryForms.add("Essays");
@@ -516,10 +687,6 @@ public class GroupedWorkSolr {
 		}
 	}
 
-	public String getDisplayTitle(){
-		return displayTitle;
-	}
-
 	public void setSubTitle(String subTitle) {
 		if (subTitle != null){
 			//TODO: determine if the subtitle should be changed?
@@ -567,7 +734,7 @@ public class GroupedWorkSolr {
 		keywords.add(author);
 	}
 
-	public String addRelatedRecord(String recordIdentifier, String format, String edition, String language, String publisher, String publicationDate, String physicalDescription) {
+	/*public String addRelatedRecord(String recordIdentifier, String format, String edition, String language, String publisher, String publicationDate, String physicalDescription) {
 		String relatedRecordDetails = recordIdentifier
 				+ "|" + (format == null ? "" : Util.trimTrailingPunctuation(format.replace('|', ' ')))
 				+ "|" + (edition == null ? "" : Util.trimTrailingPunctuation(edition.replace('|', ' ')))
@@ -577,14 +744,8 @@ public class GroupedWorkSolr {
 				+ "|" + (physicalDescription == null ? "" : Util.trimTrailingPunctuation(physicalDescription.replace('|', ' ')));
 		relatedRecordIds.add(relatedRecordDetails);
 		return relatedRecordDetails;
-	}
+	}*/
 
-	public void addLccn(String lccn) {
-		lccns.add(lccn);
-	}
-	public void addOclc(String oclc) {
-		oclcs.add(oclc);
-	}
 	public void addOclcNumbers(Set<String> oclcs) {
 		this.oclcs.addAll(oclcs);
 	}
@@ -594,9 +755,6 @@ public class GroupedWorkSolr {
 	public HashSet<String> getIsbns() {
 		return isbns;
 	}
-	public void addIssn(String issn) {
-		issns.add(issn);
-	}
 	public void addIssns(Set<String> issns) {
 		this.issns.addAll(issns);
 	}
@@ -604,111 +762,12 @@ public class GroupedWorkSolr {
 		upcs.add(upc);
 	}
 
-	public void addRelatedRecords(HashSet<String> relatedRecordIds) {
-		this.relatedRecordIds.addAll(relatedRecordIds);
-	}
-
-	public void addAlternateIds(HashSet<String> alternateIds) {
-		this.alternateIds.addAll(alternateIds);
-	}
 	public void addAlternateId(String alternateId) {
 		this.alternateIds.add(alternateId);
 	}
 
-	public void addOwningLibrary(String owningLibrary) {
-		this.owningLibraries.add(owningLibrary);
-	}
-	public void addOwningLibraries(Collection<String> owningLibraries) {
-		this.owningLibraries.addAll(owningLibraries);
-	}
-
-	public void addOwningLocations(Collection<String> owningLocations) {
-		this.owningLocations.addAll(owningLocations);
-	}
-
 	public void setGroupingCategory(String groupingCategory) {
 		this.groupingCategory = groupingCategory;
-	}
-
-	public void addCollectionGroup(String collection_group) {
-		collectionGroup.add(collection_group);
-	}
-
-	public void addAdditionalCollection(String collectionName, String collection) {
-		if (!additionalCollections.containsKey(collectionName)){
-			additionalCollections.put(collectionName, new HashSet<String>());
-		}
-		additionalCollections.get(collectionName).add(collection);
-	}
-
-	public void addDetailedLocation(String location){
-		detailedLocation.add(location);
-	}
-
-	/**
-	 * Setup available_at and availability toggle for locations
-	 *
-	 * @param availableLocations   - A list of locations where the title is available with the location name spelled out
-	 * @param availableLocationCodesAndSubdomains - a list of location codes and subdomains where the title is available, just the location code
-	 */
-	public void addAvailableLocations(Collection<String> availableLocations, Collection<String> availableLocationCodesAndSubdomains){
-		availableAt.addAll(availableLocations);
-		//By doing it when we add locations, we can simplify the code that determines base availability
-		HashSet<String> availableToggle = new HashSet<String>();
-		availableToggle.add("Entire Collection");
-		availableToggle.add("Available Now");
-		for (String curLocationCode : availableLocationCodesAndSubdomains){
-			availabilityToggleByLibrarySystem.put(curLocationCode, availableToggle);
-		}
-	}
-
-	public void addAvailabilityByFormatForLocation(HashSet<String> scopes, HashSet<String> formats, String availability){
-		for (String scope : scopes) {
-			addAvailabilityByFormatForLocation(scope, formats, availability);
-		}
-	}
-
-	public void addAvailabilityByFormatForLocation(HashSet<String> scopes, String format, String availability){
-		for (String scope : scopes) {
-			addAvailabilityByFormatForLocation(scope, format, availability);
-		}
-	}
-	public void addAvailabilityByFormatForLocation(String scope, HashSet<String> formats, String availability){
-		if (!availabilityByFormatByLibrarySystem.containsKey(scope)) {
-			availabilityByFormatByLibrarySystem.put(scope, new HashSet<String>());
-		}
-		for (String format : formats) {
-			availabilityByFormatByLibrarySystem.get(scope).add(format + "_" + availability);
-		}
-	}
-
-	public void addAvailabilityByFormatForLocation(String scope, String format, String availability){
-		if (!availabilityByFormatByLibrarySystem.containsKey(scope)) {
-			availabilityByFormatByLibrarySystem.put(scope, new HashSet<String>());
-		}
-		availabilityByFormatByLibrarySystem.get(scope).add(format + "_" + availability);
-	}
-
-	public void addOwningLocationCodesAndSubdomains(Collection<String> owningLocationCodes){
-		HashSet<String> availabilityToggle = new HashSet<String>();
-		availabilityToggle.add("Entire Collection");
-		for (String curLocationCode : owningLocationCodes){
-			if (!availabilityToggleByLibrarySystem.containsKey(curLocationCode)){
-				availabilityToggleByLibrarySystem.put(curLocationCode, availabilityToggle);
-			}
-		}
-	}
-
-	public void addCompatiblePTypes(HashSet<String> compatiblePTypes){
-		if (compatiblePTypes != null) {
-			usableBy.addAll(compatiblePTypes);
-		}else{
-			logger.warn("compatiblePTypes was null in addCompatiblePTypes");
-		}
-	}
-
-	public void addCompatiblePType(String pType){
-		usableBy.add(pType);
 	}
 
 	public void setAuthorLetter(String authorLetter) {
@@ -731,31 +790,11 @@ public class GroupedWorkSolr {
 		this.authorAdditional.addAll(fieldList);
 	}
 
-	public void addFormats(Set<String> formats) {
-		this.formats.addAll(formats);
-	}
-
-	public void addFormat(String format) {
-		this.formats.add(format);
-	}
-
-	public void addFormatCategories(HashSet<String> formatCategories) {
-		this.formatCategories.addAll(formatCategories);
-	}
-
-	public void addFormatCategory(String formatCategory){
-		this.formatCategories.add(formatCategory);
-	}
-
-	public void setFormatBoost(Long formatBoost) {
-		this.formatBoost += formatBoost;
-	}
-
 	public void addHoldings(int recordHoldings) {
 		this.numHoldings += recordHoldings;
 	}
 
-	public void addPopularity(float itemPopularity) {
+	public void addPopularity(double itemPopularity) {
 		this.popularity += itemPopularity;
 	}
 
@@ -852,7 +891,7 @@ public class GroupedWorkSolr {
 	}
 
 	public void addPublicationDate(String publicationDate){
-		String cleanDate = GroupedWorkIndexer.cleanDate(publicationDate);
+		String cleanDate = Util.cleanDate(publicationDate);
 		if (cleanDate != null){
 			this.publicationDates.add(cleanDate);
 			//Convert the date to a long and see if it is before the current date
@@ -931,24 +970,8 @@ public class GroupedWorkSolr {
 		targetAudienceFull.add(target_audience);
 	}
 
-	public void setDateAdded(Date date, Collection<String> relatedLocations){
-		if (date == null){
-			return;
-		}
-		if (dateAdded == null || date.before(dateAdded)){
-			dateAdded = date;
-		}
-		for (String relatedLocation : relatedLocations){
-			if (!localTimeSinceAdded.containsKey(relatedLocation)){
-				localTimeSinceAdded.put(relatedLocation, date);
-			}else if (date.before(localTimeSinceAdded.get(relatedLocation))){
-				localTimeSinceAdded.put(relatedLocation, date);
-			}
-		}
-	}
-
 	private Set<String> getRatingFacet(Float rating) {
-		Set<String> ratingFacet = new HashSet<String>();
+		Set<String> ratingFacet = new HashSet<>();
 		if (rating >= 4.75) {
 			ratingFacet.add("fiveStar");
 		}
@@ -970,25 +993,7 @@ public class GroupedWorkSolr {
 		return ratingFacet;
 	}
 
-	public void setIType(String iType, ArrayList<String> relatedSubdomains, ArrayList<String> relatedLocations) {
-		if (iType != null) {
-			this.iTypes.add(iType);
-			for (String subdomain : relatedSubdomains) {
-				if (!localITypes.containsKey(subdomain)) {
-					localITypes.put(subdomain, new HashSet<String>());
-				}
-				localITypes.get(subdomain).add(iType);
-			}
-			for (String location : relatedLocations) {
-				if (!localITypes.containsKey(location)) {
-					localITypes.put(location, new HashSet<String>());
-				}
-				localITypes.get(location).add(iType);
-			}
-		}
-	}
-
-	public void addMpaaRating(GroupedWorkSolr groupedWork, String mpaaRating) {
+	public void addMpaaRating(String mpaaRating) {
 		this.mpaaRatings.add(mpaaRating);
 	}
 
@@ -998,85 +1003,6 @@ public class GroupedWorkSolr {
 
 	public void setRating(float rating) {
 		this.rating = rating;
-	}
-
-	public void addEContentSources(HashSet<String> eContentSources, Collection<String> relatedSubdomains, Collection<String> relatedLocations){
-		econtentSources.addAll(eContentSources);
-		keywords.addAll(eContentSources);
-		for (String subdomain : relatedSubdomains){
-			HashSet<String> valuesForIdentifier = localEContentSources.get(subdomain);
-			if (valuesForIdentifier == null){
-				valuesForIdentifier = new HashSet<String>();
-				localEContentSources.put(subdomain, valuesForIdentifier);
-			}
-			valuesForIdentifier.addAll(eContentSources);
-		}
-		for (String locationCode : relatedLocations){
-			HashSet<String> valuesForIdentifier = localEContentSources.get(locationCode);
-			if (valuesForIdentifier == null){
-				valuesForIdentifier = new HashSet<String>();
-				localEContentSources.put(locationCode, valuesForIdentifier);
-			}
-			valuesForIdentifier.addAll(eContentSources);
-		}
-	}
-	public void addEContentSource(String eContentSource, Collection<String> relatedSubdomains, Collection<String> relatedLocations){
-		econtentSources.add(eContentSource);
-		keywords.add(eContentSource);
-		for (String subdomain : relatedSubdomains){
-			HashSet<String> valuesForIdentifier = localEContentSources.get(subdomain);
-			if (valuesForIdentifier == null){
-				valuesForIdentifier = new HashSet<String>();
-				localEContentSources.put(subdomain, valuesForIdentifier);
-			}
-			valuesForIdentifier.add(eContentSource);
-		}
-		for (String locationCode : relatedLocations){
-			HashSet<String> valuesForIdentifier = localEContentSources.get(locationCode);
-			if (valuesForIdentifier == null){
-				valuesForIdentifier = new HashSet<String>();
-				localEContentSources.put(locationCode, valuesForIdentifier);
-			}
-			valuesForIdentifier.add(eContentSource);
-		}
-	}
-	public void addEContentProtectionTypes(HashSet<String> eContentProtectionTypes, Collection<String> relatedSubdomains, Collection<String> relatedLocations){
-		econtentProtectionTypes.addAll(eContentProtectionTypes);
-		for (String subdomain : relatedSubdomains){
-			HashSet<String> valuesForIdentifier = localEContentProtectionTypes.get(subdomain);
-			if (valuesForIdentifier == null){
-				valuesForIdentifier = new HashSet<String>();
-				localEContentProtectionTypes.put(subdomain, valuesForIdentifier);
-			}
-			valuesForIdentifier.addAll(eContentProtectionTypes);
-		}
-		for (String locationCode : relatedLocations){
-			HashSet<String> valuesForIdentifier = localEContentProtectionTypes.get(locationCode);
-			if (valuesForIdentifier == null){
-				valuesForIdentifier = new HashSet<String>();
-				localEContentProtectionTypes.put(locationCode, valuesForIdentifier);
-			}
-			valuesForIdentifier.addAll(eContentProtectionTypes);
-		}
-	}
-	public void addEContentProtectionType(String eContentProtectionType, Collection<String> relatedSubdomains, Collection<String> relatedLocations){
-		econtentProtectionTypes.add(eContentProtectionType);
-		for (String subdomain : relatedSubdomains){
-			HashSet<String> valuesForIdentifier = localEContentProtectionTypes.get(subdomain);
-			if (valuesForIdentifier == null){
-				valuesForIdentifier = new HashSet<String>();
-				localEContentProtectionTypes.put(subdomain, valuesForIdentifier);
-			}
-			valuesForIdentifier.add(eContentProtectionType);
-		}
-		for (String locationCode : relatedLocations){
-			HashSet<String> valuesForIdentifier = localEContentProtectionTypes.get(locationCode);
-			if (valuesForIdentifier == null){
-				valuesForIdentifier = new HashSet<String>();
-				localEContentProtectionTypes.put(locationCode, valuesForIdentifier);
-			}
-			valuesForIdentifier.add(eContentProtectionType);
-		}
 	}
 
 	public void setLexileScore(String lexileScore) {
@@ -1129,54 +1055,15 @@ public class GroupedWorkSolr {
 		}
 	}
 
-	public void addContents(HashSet<String> contents){
-		this.contents.addAll(contents);
-	}
-
 	public void addEContentDevices(HashSet<String> devices){
 		this.econtentDevices.addAll(devices);
-	}
-
-	public void addLocalCallNumber(String fullCallNumber, ArrayList<String> subdomainsForLocation, ArrayList<String> relatedLocationCodesForLocation) {
-		if (localCallNumber == null){
-			localCallNumber = fullCallNumber;
-		}
-		for (String subdomain : subdomainsForLocation){
-			HashSet<String> curCallNumbers = localCallNumbers.get(subdomain);
-			if (curCallNumbers == null){
-				curCallNumbers = new HashSet<String>();
-				localCallNumbers.put(subdomain, curCallNumbers);
-			}
-			curCallNumbers.add(fullCallNumber);
-		}
-		for (String curCode : relatedLocationCodesForLocation){
-			HashSet<String> curCallNumbers = localCallNumbers.get(curCode);
-			if (curCallNumbers == null){
-				curCallNumbers = new HashSet<String>();
-				localCallNumbers.put(curCode, curCallNumbers);
-			}
-			curCallNumbers.add(fullCallNumber);
-		}
-	}
-
-	public void addCallNumberSort(String sortableCallNumber, ArrayList<String> subdomainsForLocation, ArrayList<String> relatedLocationCodesForLocation) {
-		for (String subdomain : subdomainsForLocation){
-			if (!sortableCallNumbers.containsKey(subdomain)){
-				sortableCallNumbers.put(subdomain, sortableCallNumber);
-			}
-		}
-		for (String curCode : relatedLocationCodesForLocation){
-			if (!sortableCallNumbers.containsKey(curCode)){
-				sortableCallNumbers.put(curCode, sortableCallNumber);
-			}
-		}
 	}
 
 	public void addKeywords(String keywords){
 		this.keywords.add(keywords);
 	}
 
-	public void addDescription(String description, String recordFormat){
+	public void addDescription(String description, @NotNull String recordFormat){
 		if (description == null || description.length() == 0){
 			return;
 		}
@@ -1200,32 +1087,14 @@ public class GroupedWorkSolr {
 		}
 	}
 
-	public void addRelatedItem(String relatedItemInfo) {
-		relatedItems.add(relatedItemInfo);
-	}
-
-	public void setRelatedRecords(HashSet<IlsRecord> ilsRecords) {
-		for(IlsRecord ilsRecord : ilsRecords){
-			addRelatedRecord(ilsRecord.getRecordId(), ilsRecord.getPrimaryFormat(), ilsRecord.getEdition(), ilsRecord.getLanguage(), ilsRecord.getPublisher(), ilsRecord.getPublicationDate(), ilsRecord.getPhysicalDescription());
-			//Now update for scopes
-			for (Scope relatedScope : ilsRecord.getRelatedScopes()){
-				scopedWorkDetails.get(relatedScope.getScopeName()).addRelatedRecord(ilsRecord.getRecordId(), ilsRecord.getPrimaryFormat(), ilsRecord.getEdition(), ilsRecord.getLanguage(), ilsRecord.getPublisher(), ilsRecord.getPublicationDate(), ilsRecord.getPhysicalDescription());
-			}
-		}
-	}
-
-	public void setFormatInformation(HashSet<IlsRecord> ilsRecords) {
-		for(IlsRecord ilsRecord : ilsRecords){
-			addFormats(ilsRecord.getFormats());
-			addFormatCategories(ilsRecord.getFormatCategories());
-			setFormatBoost(ilsRecord.getFormatBoost());
-			//Now update for scopes
-			for (Scope relatedScope : ilsRecord.getRelatedScopes()){
-				ScopedWorkDetails workDetails = scopedWorkDetails.get(relatedScope.getScopeName());
-				workDetails.addFormat(ilsRecord.getFormats());
-				workDetails.addFormatCategories(ilsRecord.getFormatCategories());
-				workDetails.setFormatBoost(ilsRecord.getFormatBoost());
-			}
+	public RecordInfo addRelatedRecord(String source, String recordIdentifier){
+		String recordIdentifierWithType = source + ":" + recordIdentifier;
+		if (relatedRecords.containsKey(recordIdentifierWithType)){
+			return relatedRecords.get(recordIdentifierWithType);
+		}else {
+			RecordInfo newRecord = new RecordInfo(source, recordIdentifier);
+			relatedRecords.put(recordIdentifierWithType, newRecord);
+			return newRecord;
 		}
 	}
 
@@ -1239,5 +1108,9 @@ public class GroupedWorkSolr {
 
 	public void addSystemLists(Set<String> systemLists) {
 		this.systemLists.addAll(systemLists);
+	}
+
+	public void removeRelatedRecord(RecordInfo recordInfo) {
+		this.relatedRecords.remove(recordInfo.getFullIdentifier());
 	}
 }

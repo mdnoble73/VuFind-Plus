@@ -263,25 +263,33 @@ function updateConfigForScoping($configArray) {
 	//split the servername based on
 	global $subdomain;
 	$subdomain = null;
+
+	$subdomainsToTest = array();
 	if(strpos($_SERVER['SERVER_NAME'], '.')){
 		$serverComponents = explode('.', $_SERVER['SERVER_NAME']);
+		$tempSubdomain = '';
 		if (count($serverComponents) >= 3){
 			//URL is probably of the form subdomain.marmot.org or subdomain.opac.marmot.org
-			$subdomain = $serverComponents[0];
+			$subdomainsToTest[] = $serverComponents[0];
+			$tempSubdomain = $serverComponents[0];
 		} else if (count($serverComponents) == 2){
 			//URL could be either subdomain.localhost or marmot.org. Only use the subdomain
 			//If the second component is localhost.
 			if (strcasecmp($serverComponents[1], 'localhost') == 0){
-				$subdomain = $serverComponents[0];
+				$subdomainsToTest[] = $serverComponents[0];
+				$tempSubdomain = $serverComponents[0];
 			}
 		}
 		//Trim off test indicator when doing lookups for library/location
-		if (substr($subdomain, -1) == '2' || substr($subdomain, -1) == '3'){
-			$subdomain = substr($subdomain, 0, -1);
+		if (substr($tempSubdomain, -1) == '2' || substr($tempSubdomain, -1) == '3'){
+			$subdomainsToTest[] = substr($tempSubdomain, 0, -1);
+		}elseif (substr($tempSubdomain, -1) == 't' || substr($tempSubdomain, -1) == 'd'){
+			$subdomainsToTest[] = substr($tempSubdomain, 0, -1);
 		}
 	}
 
 	$timer->logTime('got subdomain');
+
 
 	//Load the library system information
 	global $library;
@@ -289,35 +297,56 @@ function updateConfigForScoping($configArray) {
 	if (isset($_SESSION['library']) && isset($_SESSION['location'])){
 		$library = $_SESSION['library'];
 		$locationSingleton = $_SESSION['library'];
-	}else{
-		$Library = new Library();
-		$Library->whereAdd("subdomain = '$subdomain'");
-		$Library->find();
+	}else {
+		for ($i = 0; $i < count($subdomainsToTest); $i++){
+			$subdomain = $subdomainsToTest[$i];
+			$Library = new Library();
+			$Library->whereAdd("subdomain = '$subdomain'");
+			$Library->find();
 
 
-		if ($Library->N == 1) {
-			$Library->fetch();
-			//Make the library information global so we can work with it later.
-			$library = $Library;
-		}else{
-			//The subdomain can also indicate a location.
-			$Location = new Location();
-			$Location->whereAdd("code = '$subdomain'");
-			$Location->find();
-			if ($Location->N == 1){
-				$Location->fetch();
-				//We found a location for the subdomain, get the library.
-				/** @var Library $librarySingleton */
-				global $librarySingleton;
-				$library = $librarySingleton->getLibraryForLocation($Location->locationId);
-				$locationSingleton->setActiveLocation(clone $Location);
-			}else{
-				//Check to see if there is only one library in the system
-				$Library = new Library();
-				$Library->find();
-				if ($Library->N == 1){
-					$Library->fetch();
-					$library = $Library;
+			if ($Library->N == 1) {
+				$Library->fetch();
+				//Make the library information global so we can work with it later.
+				$library = $Library;
+				break;
+			} else {
+				//The subdomain can also indicate a location.
+				$Location = new Location();
+				$Location->whereAdd("code = '$subdomain'");
+				$Location->find();
+				if ($Location->N == 1) {
+					$Location->fetch();
+					//We found a location for the subdomain, get the library.
+					/** @var Library $librarySingleton */
+					global $librarySingleton;
+					$library = $librarySingleton->getLibraryForLocation($Location->locationId);
+					$locationSingleton->setActiveLocation(clone $Location);
+					break;
+				} else {
+					//Check to see if there is only one library in the system
+					$Library = new Library();
+					$Library->find();
+					if ($Library->N == 1) {
+						$Library->fetch();
+						$library = $Library;
+						break;
+					} else {
+						//If we are on the last subdomain to test, grab the default.
+						if ($i == count($subdomainsToTest) - 1){
+							//Get the default library
+							$Library = new Library();
+							$Library->isDefault = 1;
+							$Library->find();
+							if ($Library->N == 1) {
+								$Library->fetch();
+								$library = $Library;
+							} else {
+								echo("Could not determine the correct library to use for this install");
+							}
+						}
+
+					}
 				}
 			}
 		}

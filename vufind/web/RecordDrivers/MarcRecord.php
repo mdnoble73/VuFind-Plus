@@ -31,28 +31,53 @@ class MarcRecord extends IndexRecord
 {
 	/** @var File_MARC_Record $marcRecord */
 	protected $marcRecord = null;
+
+	protected $profileType;
 	protected $id;
+	/** @var  IndexingProfile $indexingProfile */
+	protected $indexingProfile;
 	protected $valid = true;
 
 	/**
-	 * @param array|File_MARC_Record|string $record
+	 * Constructor.  We build the object using all the data retrieved
+	 * from the (Solr) index.  Since we have to
+	 * make a search call to find out which record driver to construct,
+	 * we will already have this data available, so we might as well
+	 * just pass it into the constructor.
+	 *
+	 * @param   array   $recordData     Data to construct the driver from
+	 * @access  public
 	 */
-	public function __construct($record)
-	{
-		if ($record instanceof File_MARC_Record){
-			$this->marcRecord = $record;
-		}elseif (is_string($record)){
+	public function __construct($recordData){
+		if ($recordData instanceof File_MARC_Record){
+			$this->marcRecord = $recordData;
+		}elseif (is_string($recordData)){
 			require_once ROOT_DIR . '/sys/MarcLoader.php';
-			$this->id = $record;
+			if (strpos($recordData, ':') !== false){
+				$recordInfo = explode(':', $recordData);
+				$this->profileType = $recordInfo[0];
+				$this->id = $recordInfo[1];
+			}else{
+				$this->profileType = 'ils';
+				$this->id = $recordData;
+			}
 
-			$this->valid = MarcLoader::marcExistsForILSId($record);
+			global $indexingProfiles;
+			if (array_key_exists($this->profileType, $indexingProfiles)){
+				$this->indexingProfile = $indexingProfiles[$this->profileType];
+			}else{
+				$this->indexingProfile = $indexingProfiles['ils'];
+			}
+
+
+			$this->valid = MarcLoader::marcExistsForILSId($recordData);
 		}else{
 			// Call the parent's constructor...
-			parent::__construct($record);
+			parent::__construct($recordData);
 
 			// Also process the MARC record:
 			require_once ROOT_DIR . '/sys/MarcLoader.php';
-			$this->marcRecord = MarcLoader::loadMarcRecordFromRecord($record);
+			$this->marcRecord = MarcLoader::loadMarcRecordFromRecord($recordData);
 			if (!$this->marcRecord) {
 				$this->valid = false;
 			}
@@ -963,6 +988,7 @@ class MarcRecord extends IndexRecord
 
 		// Get Holdings
 		try {
+			/** @var CatalogConnection $catalog */
 			$catalog = CatalogFactory::getCatalogConnectionInstance();;
 		} catch (PDOException $e) {
 			return new PEAR_Error('Cannot connect to ILS');
@@ -1613,7 +1639,7 @@ class MarcRecord extends IndexRecord
 		global $configArray;
 		$recordId = $this->getUniqueID();
 
-		return $configArray['Site']['path'] . '/Record/' . $recordId;
+		return $configArray['Site']['path'] . "/{$this->indexingProfile->recordUrlComponent}/$recordId";
 	}
 
 	private $relatedRecords = null;
@@ -1626,7 +1652,7 @@ class MarcRecord extends IndexRecord
 			$recordId = $this->getUniqueID();
 
 			$url = $this->getRecordUrl();
-			$holdUrl = $configArray['Site']['path'] . '/Record/' . $recordId . '/Hold';
+			$holdUrl = $configArray['Site']['path'] . "/{$this->indexingProfile->recordUrlComponent}/{$recordId}/Hold";
 
 			if ($this->detailedRecordInfoFromIndex){
 				$format = $this->detailedRecordInfoFromIndex[1];
@@ -1937,123 +1963,35 @@ class MarcRecord extends IndexRecord
 	public function getItemsFast(){
 		global $timer;
 		if ($this->fastItems == null || isset($_REQUEST['reload'])){
-			$searchLibrary = Library::getSearchLibrary();
-			$extraLocations = '';
-			if ($searchLibrary){
-				$libraryLocationCode = $searchLibrary->ilsCode;
-			}
-			$searchLocation = Location::getSearchLocation();
-			if ($searchLocation){
-				$homeLocationCode = $searchLocation->code;
-				$extraLocations = $searchLocation->extraLocationCodesToInclude;
-			}
 			if ($this->itemsFromIndex){
 				$this->fastItems = array();
 				foreach ($this->itemsFromIndex as $itemData){
-					$isOrderItem = false;
+					$isOrderItem = $itemData[7] == "true";
 					$onOrderCopies = 0;
-					$status = null;
-					$groupedStatus = null;
-					$inLibraryUseOnly = false;
-					$isHoldable = true;
-
-					if (array_key_exists('item', $itemData)){
-						//New style with item, record, and scope information separated
-						$shelfLocation = $itemData['item'][7];
-						$locationCode = $itemData['item'][1];
-						$callNumber = $itemData['item'][2];
-						if (substr($itemData['item'][0], 0, 2) == '.o'){
-							$isOrderItem = true;
-							$onOrderCopies = $itemData['item'][7];
-							$available = false;
-							$shelfLocation = mapValue('shelf_location',$itemData['item'][1]);
-
-						}else{
-							$status = mapValue('item_status', $itemData['item'][6]);
-							$groupedStatus = mapValue('item_grouped_status', $itemData['item'][6]);
-							$available = $itemData['item'][3] == 'true';
-							$inLibraryUseOnly = $itemData['item'][4] == 'true';
-							if (!$available && ($status == 'AVAILABLE' || $status == 'On Shelf')){
-								$status = 'Checked Out';
-								$groupedStatus = 'Checked Out';
-							}
-						}
-						//Don't use scoping section yet because it isn't ready for prime time.
-						/*if (array_key_exists('scope', $itemData) && count($itemData['scope']) > 0){
-							$isHoldable = $itemData['scope'][0] == 'true';
-							$isLocalItem = $itemData['scope'][1] == 'true';
-							$isLibraryItem = $itemData['scope'][2] == 'true';
-						}*/
-						if (!isset($libraryLocationCode) || $libraryLocationCode == ''){
-							$isLibraryItem = true;
-						}else{
-							$isLibraryItem = preg_match("/^$libraryLocationCode/i", $locationCode);
-						}
-						$isLocalItem = (isset($homeLocationCode) && strlen($homeLocationCode) > 0 && preg_match("/^$homeLocationCode/i", $locationCode)) || ($extraLocations != '' && preg_match("/^{$extraLocations}$/i", $locationCode));
-					}else{
-						//Old style where record and item information are combined
-						$shelfLocation = $itemData[2];
-						$locationCode = $itemData[2];
-						if (strpos($shelfLocation, ':') === false){
-							$shelfLocation = mapValue('shelf_location', $itemData[2]);
-						}else{
-							$shelfLocationParts = explode(":", $shelfLocation);
-							$locationCode = $shelfLocationParts[0];
-							$branch = mapValue('shelf_location', $locationCode);
-							$shelfLocationTmp = mapValue('collection', $shelfLocationParts[1]);
-							$shelfLocation = $branch . ' ' . $shelfLocationTmp;
-						}
-						$callNumber = $itemData[3];
-						if (substr($itemData[1], 0, 2) == '.o'){
-							$isOrderItem = true;
-							$onOrderCopies = $itemData[8];
-							$available = false;
-						}else{
-							$status = mapValue('item_status', $itemData[7]);
-							$groupedStatus = mapValue('item_grouped_status', $itemData[7]);
-							$available = $itemData[4] == 'true';
-							$inLibraryUseOnly = $itemData[5] == 'true';
-						}
-						if (!isset($libraryLocationCode) || $libraryLocationCode == ''){
-							$isLibraryItem = true;
-						}else{
-							$isLibraryItem = preg_match("/^$libraryLocationCode/i", $locationCode);
-						}
-						$isLocalItem = (isset($homeLocationCode) && strlen($homeLocationCode) > 0 && preg_match("/^$homeLocationCode/i", $locationCode)) || ($extraLocations != '' && preg_match("/^{$extraLocations}$/i", $locationCode));
+					if ($isOrderItem){
+						$onOrderCopies = $itemData[6];
 					}
+
+					$groupedStatus = $itemData[13];
+					$status = $itemData[14];
+					$isHoldable = $itemData[17] == "true";
+					$inLibraryUseOnly = $itemData[19] == "true";
+
+					//Old style where record and item information are combined
+					$shelfLocation = $itemData[2];
+					$callNumber = $itemData[3];
+
+					$isLibraryItem = $itemData[20] == "true";
+					$isLocalItem = $itemData[15] == "true";
 
 					//Try to trim the courier code if any
 					if (preg_match('/(.*?)\\sC\\d{3}\\w{0,2}$/', $shelfLocation, $locationParts)){
 						$shelfLocation = $locationParts[1];
 					}
 
-					//Determine the structure of the item data based on if it's an order record or not.
-					//TODO: This needs a better way of handling things because .o will only work for Sierra/Millennium systems
-					if ($isOrderItem){
-						$groupedStatus = "On Order";
-						$callNumber = "ON ORDER";
-						$status = "On Order";
-					}else{
-						//This is a regular (physical) item
-						if ($status != null){
-							if (($status == 'On Shelf') && $available != true){
-								$status = 'Checked Out';
-								$groupedStatus = "Checked Out";
-							}
-						}else if ($available){
-							$status = "On Shelf";
-							$groupedStatus = "On Shelf";
-						}else{
-							$status = "Checked Out";
-							$groupedStatus = "Checked Out";
-						}
-					}
-
-
 					$this->fastItems[] = array(
-						'location' => $locationCode,
 						'callnumber' => $callNumber,
-						'availability' => $available,
+						'availability' => $itemData[16] == "true",
 						'holdable' => $isHoldable,
 						'inLibraryUseOnly' => $inLibraryUseOnly,
 						'isLibraryItem' => $isLibraryItem,
@@ -2087,7 +2025,7 @@ class MarcRecord extends IndexRecord
 	static $catalogDriver = null;
 
 	/**
-	 * @return MillenniumDriver|Sierra|Marmot|DriverInterface|HorizonAPI
+	 * @return Millennium|Sierra|Marmot|DriverInterface|HorizonAPI
 	 */
 	protected static function getCatalogDriver(){
 		if (MarcRecord::$catalogDriver == null){
@@ -2359,7 +2297,7 @@ class MarcRecord extends IndexRecord
 	 */
 	public function getMarcRecord(){
 		if ($this->marcRecord == null){
-			$this->marcRecord = MarcLoader::loadMarcRecordByILSId($this->id);
+			$this->marcRecord = MarcLoader::loadMarcRecordByILSId("{$this->profileType}:{$this->id}");
 			global $timer;
 			$timer->logTime("Finished loading marc record for {$this->id}");
 		}

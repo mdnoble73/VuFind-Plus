@@ -9,13 +9,11 @@ import org.marc4j.marc.Subfield;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.*;
 
 /**
  * Description goes here
- * VuFind-Plus
+ * Pika
  * User: Mark Noble
  * Date: 4/25/14
  * Time: 11:02 AM
@@ -25,10 +23,14 @@ public class WCPLRecordProcessor extends IlsRecordProcessor {
 	private String locationsToSuppress;
 
 	private PreparedStatement getDateAddedStmt;
-	public WCPLRecordProcessor(GroupedWorkIndexer indexer, Connection vufindConn, Ini configIni, Logger logger) {
-		super(indexer, vufindConn, configIni, logger);
-		this.statusesToSuppress = configIni.get("Catalog", "statusesToSuppress");
-		this.locationsToSuppress = configIni.get("Catalog", "locationsToSuppress");
+	public WCPLRecordProcessor(GroupedWorkIndexer indexer, Connection vufindConn, Ini configIni, ResultSet indexingProfileRS, Logger logger, boolean fullReindex) {
+		super(indexer, vufindConn, configIni, indexingProfileRS, logger, fullReindex);
+		try {
+			this.statusesToSuppress = indexingProfileRS.getString("statusesToSuppress");
+			this.locationsToSuppress = indexingProfileRS.getString("locationsToSuppress");
+		}catch (Exception e){
+			logger.error("Error loading indexing profile information from database", e);
+		}
 
 		try{
 			getDateAddedStmt = vufindConn.prepareStatement("SELECT dateFirstDetected FROM ils_marc_checksums WHERE ilsId = ?", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
@@ -38,9 +40,9 @@ public class WCPLRecordProcessor extends IlsRecordProcessor {
 	}
 
 	@Override
-	protected boolean isItemAvailable(PrintIlsItem ilsRecord) {
+	protected boolean isItemAvailable(ItemInfo itemInfo) {
 		boolean available = false;
-		String status = ilsRecord.getStatus();
+		String status = itemInfo.getStatusCode();
 		String availableStatus = "is";
 		if (availableStatus.indexOf(status.charAt(0)) >= 0) {
 			available = true;
@@ -49,19 +51,19 @@ public class WCPLRecordProcessor extends IlsRecordProcessor {
 	}
 
 	@Override
-	public void loadPrintFormatInformation(IlsRecord ilsRecord, Record record) {
+	public void loadPrintFormatInformation(RecordInfo ilsRecord, Record record) {
 		Set<String> printFormatsRaw = getFieldList(record, "949c");
-		Set<String> printFormats = new HashSet<String>();
+		HashSet<String> printFormats = new HashSet<>();
 		for (String curFormat : printFormatsRaw){
 			printFormats.add(curFormat.toLowerCase());
 		}
 
-		HashSet<String> translatedFormats = indexer.translateCollection("format", printFormats);
-		HashSet<String> translatedFormatCategories = indexer.translateCollection("format_category", printFormats);
+		HashSet<String> translatedFormats = translateCollection("format", printFormats);
+		HashSet<String> translatedFormatCategories = translateCollection("format_category", printFormats);
 		ilsRecord.addFormats(translatedFormats);
 		ilsRecord.addFormatCategories(translatedFormatCategories);
 		Long formatBoost = 0L;
-		HashSet<String> formatBoosts = indexer.translateCollection("format_boost", printFormats);
+		HashSet<String> formatBoosts = translateCollection("format_boost", printFormats);
 		for (String tmpFormatBoost : formatBoosts){
 			if (Util.isNumeric(tmpFormatBoost)) {
 				Long tmpFormatBoostLong = Long.parseLong(tmpFormatBoost);
@@ -106,14 +108,14 @@ public class WCPLRecordProcessor extends IlsRecordProcessor {
 	}
 
 	@Override
-	protected void loadDateAdded(GroupedWorkSolr groupedWork, String identfier, List<PrintIlsItem> printItems, List<EContentIlsItem> econtentItems, List<OnOrderItem> onOrderItems) {
+	protected void loadDateAdded(String identfier, DataField itemField, ItemInfo itemInfo) {
 		try {
 			getDateAddedStmt.setString(1, identfier);
 			ResultSet getDateAddedRS = getDateAddedStmt.executeQuery();
 			if (getDateAddedRS.next()) {
 				long timeAdded = getDateAddedRS.getLong(1);
 				Date curDate = new Date(timeAdded * 1000);
-				groupedWork.setDateAdded(curDate, indexer.getAllScopeNames());
+				itemInfo.setDateAdded(curDate);
 				getDateAddedRS.close();
 			}else{
 				logger.debug("Could not determine date added for " + identfier);
@@ -123,10 +125,4 @@ public class WCPLRecordProcessor extends IlsRecordProcessor {
 		}
 	}
 
-	protected void loadAdditionalOwnershipInformation(GroupedWorkSolr groupedWork, PrintIlsItem printItem){
-		String collection = printItem.getCollection();
-		if (collection != null && collection.length() > 0){
-			groupedWork.addCollectionGroup(indexer.translateValue("collection_group", collection.toLowerCase()));
-		}
-	}
 }

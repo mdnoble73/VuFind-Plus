@@ -10,6 +10,7 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.channels.FileChannel;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -310,5 +311,109 @@ public class Util {
 
 	private static boolean compareStrings(String curLine1, String curLine2) {
 		return curLine1 == null && curLine2 == null || !(curLine1 == null || curLine2 == null) && curLine1.equals(curLine2);
+	}
+
+	private final static Pattern FOUR_DIGIT_PATTERN_BRACES							= Pattern.compile("\\[[12]\\d{3}\\]");
+	private final static Pattern				FOUR_DIGIT_PATTERN_ONE_BRACE					= Pattern.compile("\\[[12]\\d{3}");
+	private final static Pattern				FOUR_DIGIT_PATTERN_STARTING_WITH_1_2	= Pattern.compile("(20|19|18|17|16|15)[0-9][0-9]");
+	private final static Pattern				FOUR_DIGIT_PATTERN_OTHER_1						= Pattern.compile("l\\d{3}");
+	private final static Pattern				FOUR_DIGIT_PATTERN_OTHER_2						= Pattern.compile("\\[19\\]\\d{2}");
+	private final static Pattern				FOUR_DIGIT_PATTERN_OTHER_3						= Pattern.compile("(20|19|18|17|16|15)[0-9][-?0-9]");
+	private final static Pattern				FOUR_DIGIT_PATTERN_OTHER_4						= Pattern.compile("i.e. (20|19|18|17|16|15)[0-9][0-9]");
+	private final static Pattern				BC_DATE_PATTERN												= Pattern.compile("[0-9]+ [Bb][.]?[Cc][.]?");
+
+	/**
+	 * Cleans non-digits from a String
+	 *
+	 * @param date
+	 *          String to parse
+	 * @return Numeric part of date String (or null)
+	 */
+	public static String cleanDate(final String date) {
+		if (date == null || date.length() == 0){
+			return null;
+		}
+		Matcher matcher_braces = FOUR_DIGIT_PATTERN_BRACES.matcher(date);
+
+		String cleanDate = null; // raises DD-anomaly
+
+		if (matcher_braces.find()) {
+			cleanDate = matcher_braces.group();
+			cleanDate = removeOuterBrackets(cleanDate);
+		} else{
+			Matcher matcher_ie_date = FOUR_DIGIT_PATTERN_OTHER_4.matcher(date);
+			if (matcher_ie_date.find()) {
+				cleanDate = matcher_ie_date.group().replaceAll("i.e. ", "");
+			} else {
+				Matcher matcher_one_brace = FOUR_DIGIT_PATTERN_ONE_BRACE.matcher(date);
+				if (matcher_one_brace.find()) {
+					cleanDate = matcher_one_brace.group();
+					cleanDate = removeOuterBrackets(cleanDate);
+				} else {
+					Matcher matcher_bc_date = BC_DATE_PATTERN.matcher(date);
+					if (matcher_bc_date.find()) {
+						cleanDate = null;
+					} else {
+						Matcher matcher_start_with_1_2 = FOUR_DIGIT_PATTERN_STARTING_WITH_1_2.matcher(date);
+						if (matcher_start_with_1_2.find()) {
+							cleanDate = matcher_start_with_1_2.group();
+						} else {
+							Matcher matcher_l_plus_three_digits = FOUR_DIGIT_PATTERN_OTHER_1.matcher(date);
+							if (matcher_l_plus_three_digits.find()) {
+								cleanDate = matcher_l_plus_three_digits.group().replaceAll("l", "1");
+							} else {
+								Matcher matcher_bracket_19_plus_two_digits = FOUR_DIGIT_PATTERN_OTHER_2.matcher(date);
+								if (matcher_bracket_19_plus_two_digits.find()) {
+									cleanDate = matcher_bracket_19_plus_two_digits.group().replaceAll("\\[", "").replaceAll("\\]", "");
+								} else{
+									Matcher matcher_three_digits_plus_unk = FOUR_DIGIT_PATTERN_OTHER_3.matcher(date);
+									if (matcher_three_digits_plus_unk.find()) {
+										cleanDate = matcher_three_digits_plus_unk.group().replaceAll("[-?]", "0");
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		if (cleanDate != null) {
+			Calendar calendar = Calendar.getInstance();
+			SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy");
+			String thisYear = dateFormat.format(calendar.getTime());
+			try {
+				if (Integer.parseInt(cleanDate) > Integer.parseInt(thisYear) + 1) cleanDate = null;
+			} catch (NumberFormatException nfe) {
+				cleanDate = null;
+			}
+		}
+		return cleanDate;
+	}
+
+	/**
+	 * Remove single square bracket characters if they are the start and/or end
+	 * chars (matched or unmatched) and are the only square bracket chars in the
+	 * string.
+	 */
+	public static String removeOuterBrackets(String origStr) {
+		if (origStr == null || origStr.length() == 0) return origStr;
+
+		String result = origStr.trim();
+
+		if (result.length() > 0) {
+			boolean openBracketFirst = result.charAt(0) == '[';
+			boolean closeBracketLast = result.endsWith("]");
+			if (openBracketFirst && closeBracketLast && result.indexOf('[', 1) == -1 && result.lastIndexOf(']', result.length() - 2) == -1)
+				// only square brackets are at beginning and end
+				result = result.substring(1, result.length() - 1);
+			else if (openBracketFirst && result.indexOf(']') == -1)
+				// starts with '[' but no ']'; remove open bracket
+				result = result.substring(1);
+			else if (closeBracketLast && result.indexOf('[') == -1)
+				// ends with ']' but no '['; remove close bracket
+				result = result.substring(0, result.length() - 1);
+		}
+
+		return result.trim();
 	}
 }

@@ -78,16 +78,18 @@ class SideFacets implements RecommendationInterface
 				if ($solrScope){
 					if ($facet->facetName == 'availability_toggle' && $configArray['Index']['enableDetailedAvailability']){
 						$facetName = 'availability_toggle_' . $solrScope;
-					}elseif ($facet->facetName == 'format' && $configArray['Index']['enableDetailedFormats']){
+					}elseif ($facet->facetName == 'format'){
 						$facetName = 'format_' . $solrScope;
-					}elseif ($facet->facetName == 'format_category' && $configArray['Index']['enableDetailedFormats']){
+					}elseif ($facet->facetName == 'format_category'){
 						$facetName = 'format_category_' . $solrScope;
-					}elseif ($facet->facetName == 'econtent_source' && $configArray['Index']['enableDetailedEContentSources']){
+					}elseif ($facet->facetName == 'econtent_source'){
 						$facetName = 'econtent_source_' . $solrScope;
-					}elseif ($facet->facetName == 'econtent_protection_type' && $configArray['Index']['enableDetailedEContentSources']){
+					}elseif ($facet->facetName == 'econtent_protection_type'){
 						$facetName = 'econtent_protection_type_' . $solrScope;
 					}elseif ($facet->facetName == 'detailed_location'){
 						$facetName = 'detailed_location_' . $solrScope;
+					}elseif ($facet->facetName == 'collection'){
+						$facetName = 'collection_' . $solrScope;
 					}
 				}
 				if (isset($searchLibrary)){

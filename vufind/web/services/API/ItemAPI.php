@@ -47,7 +47,7 @@ require_once ROOT_DIR . '/CatalogConnection.php';
  * @copyright Copyright (C) Douglas County Libraries 2011.
  */
 class ItemAPI extends Action {
-	/** @var  MillenniumDriver|DriverInterface */
+	/** @var  Millennium|DriverInterface */
 	protected $catalog;
 
 	public $id;

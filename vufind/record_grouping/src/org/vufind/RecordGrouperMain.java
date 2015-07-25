@@ -38,14 +38,11 @@ public class RecordGrouperMain {
 	public static String groupedWorkIdentifiersRefTableName = "grouped_work_identifiers_ref";
 	public static String groupedWorkPrimaryIdentifiersTableName = "grouped_work_primary_identifiers";
 
-	private static HashMap<String, Long> marcRecordChecksums = new HashMap<String, Long>();
-	private static HashMap<String, Long> marcRecordFirstDetectionDates = new HashMap<String, Long>();
-	private static HashSet<String> marcRecordIdsInDatabase = new HashSet<String>();
+	private static HashMap<String, Long> marcRecordChecksums = new HashMap<>();
+	private static HashMap<String, Long> marcRecordFirstDetectionDates = new HashMap<>();
+	private static HashSet<String> marcRecordIdsInDatabase = new HashSet<>();
 	private static PreparedStatement insertMarcRecordChecksum;
 	private static PreparedStatement removeMarcRecordChecksum;
-
-	private static String recordNumberTag = "";
-	private static String recordNumberPrefix = "";
 
 	private static Long lastGroupingTime;
 	private static Long lastGroupingTimeVariableId;
@@ -85,58 +82,64 @@ public class RecordGrouperMain {
 
 		serverName = args[0];
 
-		if (serverName.equals("benchmark")) {
-			boolean validateNYPL = false;
-			if (args.length > 1){
-				if (args[1].equals("nypl")){
-					validateNYPL = true;
+		switch (serverName) {
+			case "benchmark":
+				boolean validateNYPL = false;
+				if (args.length > 1) {
+					if (args[1].equals("nypl")) {
+						validateNYPL = true;
+					}
 				}
-			}
-			doBenchmarking(validateNYPL);
-		}else if (serverName.equals("loadAuthoritiesFromVIAF")){
-			File log4jFile = new File("./log4j.grouping.properties");
-			if (log4jFile.exists()) {
-				PropertyConfigurator.configure(log4jFile.getAbsolutePath());
-			} else {
-				System.out.println("Could not find log4j configuration " + log4jFile.getAbsolutePath());
-				System.exit(1);
-			}
-			VIAF.loadAuthoritiesFromVIAF();
-		}else if (serverName.equals("generateWorkId")){
-			String title;
-			String author;
-			String format;
-			String subtitle = null;
-			if (args.length >= 4) {
-				title = args[1];
-				author = args[2];
-				format = args[3];
-				if (args.length >= 5) {
-					subtitle = args[4];
+				doBenchmarking(validateNYPL);
+				break;
+			case "loadAuthoritiesFromVIAF":
+				File log4jFile = new File("./log4j.grouping.properties");
+				if (log4jFile.exists()) {
+					PropertyConfigurator.configure(log4jFile.getAbsolutePath());
+				} else {
+					System.out.println("Could not find log4j configuration " + log4jFile.getAbsolutePath());
+					System.exit(1);
 				}
-			}else{
-				title = getInputFromCommandLine("Enter the title");
-				subtitle = getInputFromCommandLine("Enter the subtitle");
-				author = getInputFromCommandLine("Enter the author");
-				format = getInputFromCommandLine("Enter the format");
-			}
-			GroupedWorkBase work = GroupedWorkFactory.getInstance(-1);
-			work.setTitle(title, 0, subtitle);
-			work.setAuthor(author);
-			work.setGroupingCategory(format);
-			JSONObject result = new JSONObject();
-			try {
-				result.put("normalizedAuthor", work.getAuthoritativeAuthor());
-				result.put("normalizedTitle", work.getAuthoritativeTitle());
-				result.put("workId", work.getPermanentId());
-			}catch (Exception e){
-				logger.error("Error generating response", e);
-			}
-			System.out.print(result.toString());
-		}else if (serverName.equals("generateAuthorAuthorities")) {
-			generateAuthorAuthorities(args);
-		}else {
-			doStandardRecordGrouping(args);
+				VIAF.loadAuthoritiesFromVIAF();
+				break;
+			case "generateWorkId":
+				String title;
+				String author;
+				String format;
+				String subtitle = null;
+				if (args.length >= 4) {
+					title = args[1];
+					author = args[2];
+					format = args[3];
+					if (args.length >= 5) {
+						subtitle = args[4];
+					}
+				} else {
+					title = getInputFromCommandLine("Enter the title");
+					subtitle = getInputFromCommandLine("Enter the subtitle");
+					author = getInputFromCommandLine("Enter the author");
+					format = getInputFromCommandLine("Enter the format");
+				}
+				GroupedWorkBase work = GroupedWorkFactory.getInstance(-1);
+				work.setTitle(title, 0, subtitle);
+				work.setAuthor(author);
+				work.setGroupingCategory(format);
+				JSONObject result = new JSONObject();
+				try {
+					result.put("normalizedAuthor", work.getAuthoritativeAuthor());
+					result.put("normalizedTitle", work.getAuthoritativeTitle());
+					result.put("workId", work.getPermanentId());
+				} catch (Exception e) {
+					logger.error("Error generating response", e);
+				}
+				System.out.print(result.toString());
+				break;
+			case "generateAuthorAuthorities":
+				generateAuthorAuthorities(args);
+				break;
+			default:
+				doStandardRecordGrouping(args);
+				break;
 		}
 	}
 
@@ -235,7 +238,7 @@ public class RecordGrouperMain {
 	}
 
 	private static HashMap<String, String> loadManualAuthorities() {
-		HashMap<String, String> manualAuthorAuthorities = new HashMap<String, String>();
+		HashMap<String, String> manualAuthorAuthorities = new HashMap<>();
 		try {
 			CSVReader csvReader = new CSVReader(new FileReader(new File("./manual_author_authorities.properties")));
 			String[] curLine = csvReader.readNext();
@@ -369,9 +372,6 @@ public class RecordGrouperMain {
 
 		logger.debug("Generating authorities for ILS Records");
 
-		recordNumberTag = configIni.get("Reindex", "recordNumberTag");
-		recordNumberPrefix = configIni.get("Reindex", "recordNumberPrefix");
-
 		String marcEncoding = configIni.get("Reindex", "marcEncoding");
 
 		String loadFormatFrom = configIni.get("Reindex", "loadFormatFrom").trim();
@@ -443,8 +443,8 @@ public class RecordGrouperMain {
 		}
 	}
 
-	static HashMap<String, String> altNameToOriginalName = new HashMap<String, String>();
-	static TreeMap<String, String> authoritiesWithSpecialHandling = new TreeMap<String, String>();
+	static HashMap<String, String> altNameToOriginalName = new HashMap<>();
+	static TreeMap<String, String> authoritiesWithSpecialHandling = new TreeMap<>();
 	private static void addAlternateAuthoritiesForWorkToAuthoritiesFile(HashMap<String, String> currentAuthorities, HashMap<String, String> manualAuthorities, CSVWriter authoritiesWriter, GroupedWorkBase work) {
 		String normalizedAuthor = work.getAuthor();
 		if (normalizedAuthor.length() > 0){
@@ -476,7 +476,7 @@ public class RecordGrouperMain {
 	}
 
 	private static HashMap<String, String> loadAuthorAuthorities(CSVWriter authoritiesWriter) {
-		HashMap<String, String> authorAuthorities = new HashMap<String, String>();
+		HashMap<String, String> authorAuthorities = new HashMap<>();
 		try {
 			CSVReader csvReader = new CSVReader(new FileReader(new File("./author_authorities.properties")));
 			String[] curLine = csvReader.readNext();
@@ -651,6 +651,7 @@ public class RecordGrouperMain {
 			vufindConn = DriverManager.getConnection(databaseConnectionInfo);
 			String econtentDBConnectionInfo = cleanIniValue(configIni.get("Database", "database_econtent_jdbc"));
 			econtentConnection = DriverManager.getConnection(econtentDBConnectionInfo);
+
 		}catch (Exception e){
 			System.out.println("Error connecting to database " + e.toString());
 			System.exit(1);
@@ -694,10 +695,38 @@ public class RecordGrouperMain {
 			clearDatabase(vufindConn, clearDatabasePriorToGrouping);
 			loadIlsChecksums(vufindConn);
 
+
+			ArrayList<IndexingProfile> indexingProfiles = new ArrayList<>();
+			try{
+				PreparedStatement getIndexingProfilesStmt = vufindConn.prepareStatement("SELECT * FROM indexing_profiles");
+				ResultSet indexingProfilesRS = getIndexingProfilesStmt.executeQuery();
+				while (indexingProfilesRS.next()){
+					IndexingProfile profile = new IndexingProfile();
+					profile.id = indexingProfilesRS.getLong(1);
+					profile.name = indexingProfilesRS.getString("name");
+					profile.marcPath = indexingProfilesRS.getString("marcPath");
+					profile.individualMarcPath = indexingProfilesRS.getString("individualMarcPath");
+					profile.groupingClass = indexingProfilesRS.getString("groupingClass");
+					profile.recordNumberTag = indexingProfilesRS.getString("recordNumberTag");
+					profile.recordNumberPrefix = indexingProfilesRS.getString("recordNumberPrefix");
+					profile.marcEncoding = indexingProfilesRS.getString("marcEncoding");
+					profile.formatSource = indexingProfilesRS.getString("formatSource");
+					profile.format = getCharFromRecordSet(indexingProfilesRS, "format");
+					profile.itemTag = indexingProfilesRS.getString("itemTag");
+					profile.eContentDescriptor = getCharFromRecordSet(indexingProfilesRS, "eContentDescriptor");
+
+					indexingProfiles.add(profile);
+				}
+			} catch (Exception e){
+				logger.error("Error loading indexing profiles", e);
+				System.exit(1);
+			}
+
+
 			groupHooplaRecords(configIni, recordGroupingProcessor);
 			groupEVokeRecords(configIni, recordGroupingProcessor);
 			groupOverDriveRecords(configIni, econtentConnection, recordGroupingProcessor);
-			groupIlsRecords(configIni, recordGroupingProcessor);
+			groupIlsRecords(configIni, vufindConn, indexingProfiles);
 		}
 
 		try{
@@ -737,6 +766,15 @@ public class RecordGrouperMain {
 		logger.info("Elapsed Minutes " + (elapsedTime / 60000));
 	}
 
+	private static char getCharFromRecordSet(ResultSet indexingProfilesRS, String fieldName) throws SQLException {
+		char result = ' ';
+		String databaseValue = indexingProfilesRS.getString(fieldName);
+		if (!indexingProfilesRS.wasNull() && databaseValue.length() > 0){
+			result = databaseValue.charAt(0);
+		}
+		return result;
+	}
+
 	private static void groupHooplaRecords(Ini configIni, RecordGroupingProcessor recordGroupingProcessor) {
 		if (configIni.containsKey("Hoopla")){
 			int numRecordsProcessed;
@@ -751,7 +789,7 @@ public class RecordGrouperMain {
 
 			//Setup to write record numbers to file so we can do validation to make sure that
 			//all records are accounted for when we index.
-			TreeSet<String> recordNumbersInExport = new TreeSet<String>();
+			TreeSet<String> recordNumbersInExport = new TreeSet<>();
 
 			logger.debug("Grouping Hoopla Records");
 
@@ -760,7 +798,7 @@ public class RecordGrouperMain {
 
 			//Load all files in the individual marc path.  This allows us to list directories rather than doing millions of
 			//individual look ups
-			HashSet<String> existingMarcFiles = new HashSet<String>();
+			HashSet<String> existingMarcFiles = new HashSet<>();
 			File individualMarcFile = new File(individualMarcPath);
 			logger.debug("Starting to read existing marc files for Hoopla from disc");
 			loadExistingMarcFiles(individualMarcFile, existingMarcFiles);
@@ -780,7 +818,7 @@ public class RecordGrouperMain {
 						//Get the unique record number for the Hoopla record (in this case we will use 001)
 						String recordNumber = curBib.getControlNumber();
 						recordNumbersInExport.add(recordNumber);
-						boolean marcUpToDate = writeIndividualMarc(existingMarcFiles, individualMarcPath, curBib, recordNumber, 7);
+						boolean marcUpToDate = writeIndividualMarc(existingMarcFiles, individualMarcPath, curBib, recordNumber, "hoopla", 7);
 						if (!marcUpToDate || fullRegroupingNoClear){
 							recordGroupingProcessor.processHooplaRecord(curBib, recordNumber, !marcUpToDate);
 							numRecordsProcessed++;
@@ -837,7 +875,7 @@ public class RecordGrouperMain {
 	 * @return a list of files to be processed.
 	 */
 	private static ArrayList<File> loadHooplaFilesToProcess(Profile.Section hooplaSection, String marcPath, boolean forAuthorities) {
-		ArrayList<File> marcRecordFilesToProcess = new ArrayList<File>();
+		ArrayList<File> marcRecordFilesToProcess = new ArrayList<>();
 		boolean includeAudioBooks = cleanIniValue(hooplaSection.get("includeAudioBooks")).equalsIgnoreCase("true");
 		boolean includeNoPAMusic = cleanIniValue(hooplaSection.get("includeNoPAMusic")).equalsIgnoreCase("true");
 		boolean includePAMusic = cleanIniValue(hooplaSection.get("includePAMusic")).equalsIgnoreCase("true");
@@ -1029,11 +1067,11 @@ public class RecordGrouperMain {
 				getRelatedWorksForIdentifierStmt.setLong(1, secondaryIdentifierId);
 				ResultSet relatedWorksForIdentifier = getRelatedWorksForIdentifierStmt.executeQuery();
 				StringBuilder titles = new StringBuilder();
-				ArrayList<String> titlesBroken = new ArrayList<String>();
+				ArrayList<String> titlesBroken = new ArrayList<>();
 				StringBuilder authors = new StringBuilder();
-				ArrayList<String> authorsBroken = new ArrayList<String>();
+				ArrayList<String> authorsBroken = new ArrayList<>();
 				StringBuilder categories = new StringBuilder();
-				ArrayList<String> categoriesBroken = new ArrayList<String>();
+				ArrayList<String> categoriesBroken = new ArrayList<>();
 
 				while (relatedWorksForIdentifier.next()){
 					titlesBroken.add(relatedWorksForIdentifier.getString("full_title"));
@@ -1176,19 +1214,19 @@ public class RecordGrouperMain {
 	private static void loadIlsChecksums(Connection vufindConn) {
 		//Load MARC Existing MARC Record checksums from VuFind
 		try{
-			insertMarcRecordChecksum = vufindConn.prepareStatement("INSERT INTO ils_marc_checksums (ilsId, checksum, dateFirstDetected) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE checksum = VALUES(checksum), dateFirstDetected=VALUES(dateFirstDetected)");
-			removeMarcRecordChecksum = vufindConn.prepareStatement("DELETE FROM ils_marc_checksums WHERE ilsId = ?");
+			insertMarcRecordChecksum = vufindConn.prepareStatement("INSERT INTO ils_marc_checksums (ilsId, source, checksum, dateFirstDetected) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE checksum = VALUES(checksum), dateFirstDetected=VALUES(dateFirstDetected), source=VALUES(source)");
+			removeMarcRecordChecksum = vufindConn.prepareStatement("DELETE FROM ils_marc_checksums WHERE ilsId = ? and source = ?");
 
 			//MDN 2/23/2015 - Always load checksums so we can optimize writing to the database
 			PreparedStatement loadIlsMarcChecksums = vufindConn.prepareStatement("SELECT * from ils_marc_checksums",  ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 			ResultSet ilsMarcChecksumRS = loadIlsMarcChecksums.executeQuery();
 			while (ilsMarcChecksumRS.next()){
-				marcRecordChecksums.put(ilsMarcChecksumRS.getString("ilsId"), ilsMarcChecksumRS.getLong("checksum"));
-				marcRecordFirstDetectionDates.put(ilsMarcChecksumRS.getString("ilsId"), ilsMarcChecksumRS.getLong("dateFirstDetected"));
+				marcRecordChecksums.put(ilsMarcChecksumRS.getString("source") + ":" + ilsMarcChecksumRS.getString("ilsId"), ilsMarcChecksumRS.getLong("checksum"));
+				marcRecordFirstDetectionDates.put(ilsMarcChecksumRS.getString("source") + ":" + ilsMarcChecksumRS.getString("ilsId"), ilsMarcChecksumRS.getLong("dateFirstDetected"));
 				if (ilsMarcChecksumRS.wasNull()){
-					marcRecordFirstDetectionDates.put(ilsMarcChecksumRS.getString("ilsId"), null);
+					marcRecordFirstDetectionDates.put(ilsMarcChecksumRS.getString("source") + ":" + ilsMarcChecksumRS.getString("ilsId"), null);
 				}
-				marcRecordIdsInDatabase.add(ilsMarcChecksumRS.getString("ilsId"));
+				marcRecordIdsInDatabase.add(ilsMarcChecksumRS.getString("source") + ":" + ilsMarcChecksumRS.getString("ilsId"));
 			}
 			ilsMarcChecksumRS.close();
 		}catch (Exception e){
@@ -1213,93 +1251,103 @@ public class RecordGrouperMain {
 		}
 	}
 
-	private static void groupIlsRecords(Ini configIni, RecordGroupingProcessor recordGroupingProcessor) {
-		int numRecordsProcessed = 0;
-		int numRecordsRead = 0;
-		String individualMarcPath = configIni.get("Reindex", "individualMarcPath");
-		String marcPath = configIni.get("Reindex", "marcPath");
+	private static void groupIlsRecords(Ini configIni, Connection dbConnection, ArrayList<IndexingProfile> indexingProfiles) {
+		//Get indexing profiles
+		for (IndexingProfile curProfile : indexingProfiles) {
+			MarcRecordGrouper recordGroupingProcessor;
+			if (curProfile.groupingClass.equals("MarcRecordGrouper")){
+				recordGroupingProcessor = new MarcRecordGrouper(dbConnection, curProfile, logger, fullRegrouping);
+			}else{
+				logger.error("Unknown class for record grouping");
+				continue;
+			}
 
-		recordNumberTag = configIni.get("Reindex", "recordNumberTag");
-		recordNumberPrefix = configIni.get("Reindex", "recordNumberPrefix");
+			logger.debug("Processing profile " + curProfile.name);
 
-		String marcEncoding = configIni.get("Reindex", "marcEncoding");
+			int numRecordsProcessed = 0;
+			int numRecordsRead = 0;
+			String individualMarcPath = curProfile.individualMarcPath;
+			String marcPath = curProfile.marcPath;
 
-		String loadFormatFrom = configIni.get("Reindex", "loadFormatFrom").trim();
-		char formatSubfield = ' ';
-		if (loadFormatFrom.equals("item")){
-			formatSubfield = configIni.get("Reindex", "formatSubfield").trim().charAt(0);
-		}
+			String marcEncoding = curProfile.marcEncoding;
 
-		//Load all files in the individual marc path.  This allows us to list directories rather than doing millions of
-		//individual look ups
-		HashSet<String> existingMarcFiles = new HashSet<String>();
-		File individualMarcFile = new File(individualMarcPath);
-		logger.debug("Starting to read existing marc files for ILS from disc");
-		loadExistingMarcFiles(individualMarcFile, existingMarcFiles);
-		logger.debug("Finished reading existing marc files for ILS from disc");
+			//Load all files in the individual marc path.  This allows us to list directories rather than doing millions of
+			//individual look ups
+			HashSet<String> existingMarcFiles = new HashSet<>();
+			File individualMarcFile = new File(individualMarcPath);
+			logger.debug("Starting to read existing marc files for ILS from disc");
+			loadExistingMarcFiles(individualMarcFile, existingMarcFiles);
+			logger.debug("Finished reading existing marc files for ILS from disc");
 
-		TreeSet<String> recordNumbersInExport = new TreeSet<String>();
-		TreeSet<String> suppressedRecordNumbersInExport = new TreeSet<String>();
-		TreeSet<String> recordNumbersToIndex = new TreeSet<String>();
+			TreeSet<String> recordNumbersInExport = new TreeSet<>();
+			TreeSet<String> suppressedRecordNumbersInExport = new TreeSet<>();
+			TreeSet<String> recordNumbersToIndex = new TreeSet<>();
 
-		File[] catalogBibFiles = new File(marcPath).listFiles();
-		if (catalogBibFiles != null){
-			String lastRecordProcessed = "";
-			for (File curBibFile : catalogBibFiles){
-				if (curBibFile.getName().toLowerCase().endsWith(".mrc") || curBibFile.getName().toLowerCase().endsWith(".marc")){
-					try{
-						FileInputStream marcFileStream = new FileInputStream(curBibFile);
-						MarcReader catalogReader = new MarcPermissiveStreamReader(marcFileStream, true, true, marcEncoding);
-						while (catalogReader.hasNext()){
-							Record curBib = catalogReader.next();
-							String recordNumber = getRecordNumberForBib(curBib);
-							boolean marcUpToDate = writeIndividualMarc(existingMarcFiles, individualMarcPath, curBib, recordNumber, 4);
-							recordNumbersInExport.add(recordNumber);
-							if (!marcUpToDate || fullRegroupingNoClear){
-								if (recordGroupingProcessor.processMarcRecord(curBib, loadFormatFrom, formatSubfield, !marcUpToDate)){
-									recordNumbersToIndex.add(recordNumber);
+			File[] catalogBibFiles = new File(marcPath).listFiles();
+			if (catalogBibFiles != null) {
+				String lastRecordProcessed = "";
+				for (File curBibFile : catalogBibFiles) {
+					if (curBibFile.getName().toLowerCase().endsWith(".mrc") || curBibFile.getName().toLowerCase().endsWith(".marc")) {
+						try {
+							FileInputStream marcFileStream = new FileInputStream(curBibFile);
+							MarcReader catalogReader = new MarcPermissiveStreamReader(marcFileStream, true, true, marcEncoding);
+							while (catalogReader.hasNext()) {
+								Record curBib = catalogReader.next();
+								RecordIdentifier recordIdentifier = recordGroupingProcessor.getPrimaryIdentifierFromMarcRecord(curBib, curProfile.name);
+								if (recordIdentifier == null) {
+									logger.warn("Could not find an identifier for record with control number " + curBib.getControlNumber());
 								}else{
-									suppressedRecordNumbersInExport.add(recordNumber);
+									String recordNumber = recordIdentifier.getIdentifier();
+									boolean marcUpToDate = writeIndividualMarc(existingMarcFiles, individualMarcPath, curBib, recordNumber, curProfile.name, 4);
+									recordNumbersInExport.add(recordIdentifier.toString());
+									if (!marcUpToDate || fullRegroupingNoClear) {
+										if (recordGroupingProcessor.processMarcRecord(curBib, !marcUpToDate)) {
+											recordNumbersToIndex.add(recordIdentifier.toString());
+										} else {
+											suppressedRecordNumbersInExport.add(recordIdentifier.toString());
+										}
+										numRecordsProcessed++;
+									}
+									//Mark that the record was processed
+									marcRecordIdsInDatabase.remove(recordNumber);
+									lastRecordProcessed = recordNumber;
 								}
-								numRecordsProcessed++;
+								numRecordsRead++;
+								if (numRecordsRead % 100000 == 0) {
+									recordGroupingProcessor.dumpStats();
+								}
 							}
-							//Mark that the record was processed
-							marcRecordIdsInDatabase.remove(recordNumber);
-							lastRecordProcessed = recordNumber;
-							numRecordsRead++;
-							if (numRecordsRead % 100000 == 0){
-								recordGroupingProcessor.dumpStats();
-							}
+							marcFileStream.close();
+						} catch (Exception e) {
+							logger.error("Error loading catalog bibs on record " + numRecordsRead + " the last record processed was " + lastRecordProcessed, e);
 						}
-						marcFileStream.close();
-					}catch(Exception e){
-						logger.error("Error loading catalog bibs on record " + numRecordsRead + " the last record processed was " + lastRecordProcessed, e);
+						logger.info("Finished grouping " + numRecordsRead + " records with " + numRecordsProcessed + " actual changes from the ils file " + curBibFile.getName());
 					}
-					logger.info("Finished grouping " + numRecordsRead + " records with " + numRecordsProcessed + " actual changes from the ils file " + curBibFile.getName());
+				}
+
+				logger.info("Deleting " + marcRecordIdsInDatabase.size() + " record ids from the database since they are no longer in the export.");
+				for (String recordNumber : marcRecordIdsInDatabase) {
+					if (!fullRegrouping) {
+						//Remove the record from the grouped work
+						RecordIdentifier primaryIdentifier = new RecordIdentifier();
+						primaryIdentifier.setValue(curProfile.name, recordNumber);
+						recordGroupingProcessor.deletePrimaryIdentifier(primaryIdentifier);
+					}
+					//Remove the record from the ils_marc_checksums table
+					try {
+						removeMarcRecordChecksum.setString(1, recordNumber);
+						removeMarcRecordChecksum.setString(2, curProfile.name);
+						removeMarcRecordChecksum.executeUpdate();
+					} catch (SQLException e) {
+						logger.error("Error removing ILS id " + recordNumber + " from " + " from ils_marc_checksums table", e);
+					}
 				}
 			}
 
-			logger.info("Deleting " + marcRecordIdsInDatabase.size() + " record ids from the database since they are no longer in the export.");
-			for (String recordNumber : marcRecordIdsInDatabase){
-				if (!fullRegrouping){
-					//Remove the record from the grouped work
-					RecordIdentifier primaryIdentifier = new RecordIdentifier();
-					primaryIdentifier.setValue("ils", recordNumber);
-					recordGroupingProcessor.deletePrimaryIdentifier(primaryIdentifier);
-				}
-				//Remove the record from the ils_marc_checksums table
-				try {
-					removeMarcRecordChecksum.setString(1, recordNumber);
-					removeMarcRecordChecksum.executeUpdate();
-				} catch (SQLException e) {
-					logger.error("Error removing ILS id " + recordNumber + " from ils_marc_checksums table", e);
-				}
-			}
+			writeExistingRecordsFile(configIni, recordNumbersInExport, "record_grouping_ils_bibs_in_export");
+			writeExistingRecordsFile(configIni, suppressedRecordNumbersInExport, "record_grouping_ils_bibs_to_ignore");
+			writeExistingRecordsFile(configIni, recordNumbersToIndex, "record_grouping_ils_bibs_to_index");
 		}
-
-		writeExistingRecordsFile(configIni, recordNumbersInExport, "record_grouping_ils_bibs_in_export");
-		writeExistingRecordsFile(configIni, suppressedRecordNumbersInExport, "record_grouping_ils_bibs_to_ignore");
-		writeExistingRecordsFile(configIni, recordNumbersToIndex, "record_grouping_ils_bibs_to_index");
 	}
 
 	private static void loadExistingMarcFiles(File individualMarcPath, HashSet<String> existingFiles) {
@@ -1318,25 +1366,6 @@ public class RecordGrouperMain {
 		}
 	}
 
-	private static String getRecordNumberForBib(Record marcRecord) {
-		String recordNumber = null;
-		List<VariableField> field907 = marcRecord.getVariableFields(recordNumberTag);
-		//Make sure we only get one ils identifier
-		for (VariableField cur907 : field907){
-			if (cur907 instanceof DataField){
-				DataField cur907Data = (DataField)cur907;
-				Subfield subfieldA = cur907Data.getSubfield('a');
-				if (subfieldA != null && (recordNumberPrefix.length() == 0 || subfieldA.getData().length() > recordNumberPrefix.length())){
-					if (cur907Data.getSubfield('a').getData().substring(0,recordNumberPrefix.length()).equals(recordNumberPrefix)){
-						recordNumber = cur907Data.getSubfield('a').getData();
-						break;
-					}
-				}
-			}
-		}
-		return recordNumber;
-	}
-
 	private static int groupOverDriveRecords(Ini configIni, Connection econtentConnection, RecordGroupingProcessor recordGroupingProcessor) {
 		int numRecordsProcessed = 0;
 		try{
@@ -1352,7 +1381,7 @@ public class RecordGrouperMain {
 			PreparedStatement overDriveIdentifiersStmt = econtentConnection.prepareStatement("SELECT * FROM overdrive_api_product_identifiers WHERE id = ?", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 			PreparedStatement overDriveCreatorStmt = econtentConnection.prepareStatement("SELECT fileAs FROM overdrive_api_product_creators WHERE productId = ? AND role like ? ORDER BY id", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 			ResultSet overDriveRecordRS = overDriveRecordsStmt.executeQuery();
-			TreeSet<String> recordNumbersInExport = new TreeSet<String>();
+			TreeSet<String> recordNumbersInExport = new TreeSet<>();
 			while (overDriveRecordRS.next()){
 				Long id = overDriveRecordRS.getLong("id");
 
@@ -1395,7 +1424,7 @@ public class RecordGrouperMain {
 
 				overDriveIdentifiersStmt.setLong(1, id);
 				ResultSet overDriveIdentifierRS = overDriveIdentifiersStmt.executeQuery();
-				HashSet<RecordIdentifier> overDriveIdentifiers = new HashSet<RecordIdentifier>();
+				HashSet<RecordIdentifier> overDriveIdentifiers = new HashSet<>();
 				RecordIdentifier primaryIdentifier = new RecordIdentifier();
 				primaryIdentifier.setValue("overdrive", overdriveId);
 				while (overDriveIdentifierRS.next()){
@@ -1439,14 +1468,15 @@ public class RecordGrouperMain {
 
 	private static SimpleDateFormat oo8DateFormat = new SimpleDateFormat("yyMMdd");
 	private static SimpleDateFormat oo5DateFormat = new SimpleDateFormat("yyyyMMdd");
-	private static boolean writeIndividualMarc(HashSet<String> existingMarcFiles, String individualMarcPath, Record marcRecord, String recordNumber, int numCharsInPrefix) {
+	private static boolean writeIndividualMarc(HashSet<String> existingMarcFiles, String individualMarcPath, Record marcRecord, String recordNumber, String source, int numCharsInPrefix) {
 		boolean marcRecordUpToDate = false;
 		//Copy the record to the individual marc path
 		if (recordNumber != null){
 			Long checksum = getChecksum(marcRecord);
 			File individualFile = getFileForIlsRecord(individualMarcPath, recordNumber, numCharsInPrefix);
 
-			Long existingChecksum = getExistingChecksum(recordNumber);
+			String recordNumberWithSource = source + ":" + recordNumber;
+			Long existingChecksum = getExistingChecksum(recordNumberWithSource);
 			//If we are doing partial regrouping or full regrouping without clearing the previous results,
 			//Check to see if the record needs to be written before writing it.
 			if (!fullRegrouping){
@@ -1457,17 +1487,17 @@ public class RecordGrouperMain {
 			if (!marcRecordUpToDate){
 				try {
 					outputMarcRecord(marcRecord, individualFile);
-					getDateAddedForRecord(marcRecord, recordNumber, individualFile);
-					updateMarcRecordChecksum(recordNumber, checksum);
+					getDateAddedForRecord(marcRecord, recordNumber, source, individualFile);
+					updateMarcRecordChecksum(recordNumber, source, checksum);
 					//logger.debug("checksum changed for " + recordNumber + " was " + existingChecksum + " now its " + checksum);
 				} catch (IOException e) {
 					logger.error("Error writing marc", e);
 				}
 			}else {
 				//Update date first detected if needed
-				if (marcRecordFirstDetectionDates.containsKey(recordNumber) && marcRecordFirstDetectionDates.get(recordNumber) == null){
-					getDateAddedForRecord(marcRecord, recordNumber, individualFile);
-					updateMarcRecordChecksum(recordNumber, checksum);
+				if (marcRecordFirstDetectionDates.containsKey(recordNumberWithSource) && marcRecordFirstDetectionDates.get(recordNumberWithSource) == null){
+					getDateAddedForRecord(marcRecord, recordNumber, source, individualFile);
+					updateMarcRecordChecksum(recordNumber, source, checksum);
 				}
 			}
 		}else{
@@ -1477,7 +1507,7 @@ public class RecordGrouperMain {
 		return marcRecordUpToDate;
 	}
 
-	private static void getDateAddedForRecord(Record marcRecord, String recordNumber, File individualFile) {
+	private static void getDateAddedForRecord(Record marcRecord, String recordNumber, String source, File individualFile) {
 		//Set first detection date based on the creation date of the file
 		if (individualFile.exists()){
 			Path filePath = individualFile.toPath();
@@ -1517,7 +1547,7 @@ public class RecordGrouperMain {
 						}
 					}
 				}
-				marcRecordFirstDetectionDates.put(recordNumber, timeAdded);
+				marcRecordFirstDetectionDates.put(source + ":" + recordNumber, timeAdded);
 			}catch (Exception e){
 				logger.debug("Error loading creation time for " + filePath, e);
 			}
@@ -1547,7 +1577,7 @@ public class RecordGrouperMain {
 		return individualFile;
 	}
 
-	private static HashSet<String>basePathsValidated = new HashSet<String>();
+	private static HashSet<String>basePathsValidated = new HashSet<>();
 	private static void createBaseDirectory(String basePath) {
 		if (basePathsValidated.contains(basePath)) {
 			return;
@@ -1569,17 +1599,19 @@ public class RecordGrouperMain {
 		return shortId;
 	}
 
-	private static void updateMarcRecordChecksum(String recordNumber, long checksum) {
+	private static void updateMarcRecordChecksum(String recordNumber, String source, long checksum) {
 		long dateFirstDetected;
-		if (marcRecordFirstDetectionDates.containsKey(recordNumber) && marcRecordFirstDetectionDates.get(recordNumber) != null){
-			dateFirstDetected = marcRecordFirstDetectionDates.get(recordNumber);
+		String recordNumberWithSource = source + ":" + recordNumber;
+		if (marcRecordFirstDetectionDates.containsKey(recordNumberWithSource) && marcRecordFirstDetectionDates.get(recordNumberWithSource) != null){
+			dateFirstDetected = marcRecordFirstDetectionDates.get(recordNumberWithSource);
 		}else {
 			dateFirstDetected = new Date().getTime() / 1000;
 		}
 		try{
 			insertMarcRecordChecksum.setString(1, recordNumber);
-			insertMarcRecordChecksum.setLong(2, checksum);
-			insertMarcRecordChecksum.setLong(3, dateFirstDetected);
+			insertMarcRecordChecksum.setString(2, source);
+			insertMarcRecordChecksum.setLong(3, checksum);
+			insertMarcRecordChecksum.setLong(4, dateFirstDetected);
 			insertMarcRecordChecksum.executeUpdate();
 		}catch (SQLException e){
 			logger.error("Unable to update checksum for ils marc record", e);

@@ -6,7 +6,7 @@
   <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
 
 	{include file="cssAndJsIncludes.tpl" includeAutoLogoutCode=false}
-	{*TODO a small suite of javascript for List Widgets*}
+	{*TODO a smaller suite of javascript for List Widgets*}
 
   {if $widget->customCss}
   	<link rel="stylesheet" type="text/css" href="{$widget->customCss}" />

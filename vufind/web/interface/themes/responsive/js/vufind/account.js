@@ -6,7 +6,11 @@ VuFind.Account = (function(){
 	return {
 		ajaxCallback: null,
 		closeModalOnAjaxSuccess: false,
-		//haslocalStorage: null, // disable by default
+
+		addAccountLink: function(){
+			var url = Globals.path + "/MyAccount/AJAX?method=getAddAccountLinkForm";
+			VuFind.Account.ajaxLightbox(url, true);
+		},
 
 		/**
 		 * Creates a new list in the system for the active user.
@@ -134,6 +138,35 @@ VuFind.Account = (function(){
 			return true;
 		},
 
+		processAddLinkedUser: function (){
+			if(this.preProcessLogin()) {
+				var username = $("#username").val(),
+						password = $("#password").val(),
+						loginErrorElem = $('#loginError'),
+						url = Globals.path + "/MyAccount/AJAX?method=addAccountLink";
+				loginErrorElem.hide();
+				$.ajax({
+					url: url,
+					data: {username: username, password: password},
+					success: function (response) {
+						if (response.result == true) {
+							VuFind.showMessage("Account to Manage", "Successfully linked the account.", true, true);
+						} else {
+							loginErrorElem.text(response.result.message);
+							loginErrorElem.show();
+						}
+					},
+					error: function () {
+						loginErrorElem.text("There was an error processing the account, please try again.")
+								.show();
+					},
+					dataType: 'json',
+					type: 'post'
+				});
+			}
+			return false;
+		},
+
 		processAjaxLogin: function (ajaxCallback) {
 			if(this.preProcessLogin()) {
 				var username = $("#username").val(),
@@ -179,6 +212,21 @@ VuFind.Account = (function(){
 					},
 					dataType: 'json',
 					type: 'post'
+				});
+			}
+			return false;
+		},
+
+		removeLinkedUser: function(idToRemove){
+			if (confirm("Are you sure you want to stop managing this account?")){
+				var url = Globals.path + "/MyAccount/AJAX?method=removeAccountLink&idToRemove=" + idToRemove;
+				$.getJSON(url, function(data){
+					if (data.result == true){
+						VuFind.showMessage('Linked Account Removed', data.message, true, true);
+						//setTimeout(function(){window.location.reload()}, 3000);
+					}else{
+						VuFind.showMessage('Unable to Remove Account Link', data.message);
+					}
 				});
 			}
 			return false;

@@ -1,13 +1,3 @@
-<script type="text/javascript">
-{literal}
-$(function() {
-	$( "#dateFilterStart" ).datepicker();
-});
-$(function() {
-	$( "#dateFilterEnd" ).datepicker();
-});
-{/literal}
-</script>
 {strip}
 	<div id="main-content" class="col-md-12">
 		{if $user}
@@ -20,7 +10,7 @@ $(function() {
 						<div id="filterLeftColumn">
 							<div id="startDate">
 								Start Date:
-								<input id="dateFilterStart" name="dateFilterStart" value="{$selectedDateStart}" />
+								<input id="dateFilterStart" name="dateFilterStart" value="{$selectedDateStart|date_format:'%m/%d/%Y'}" />
 							</div>
 							<div id="roles">
 								Hosts: <br/>
@@ -34,7 +24,7 @@ $(function() {
 						<div id="filterRightColumn">
 							<div id="endDate">
 								End Date:
-								<input id="dateFilterEnd" name="dateFilterEnd" value="{$selectedDateEnd}" />
+								<input id="dateFilterEnd" name="dateFilterEnd" value="{$selectedDateEnd|date_format:'%m/%d/%Y'}" />
 							</div>
 
 							<div class="filterPlaceholder">
@@ -74,25 +64,29 @@ $(function() {
 		        </select>
 					</div>
 
-					<table border="0" width="100%" class="datatable">
-					  <tr>
-							<th align="center">Record Id</th>
-						  <th align="center">Title</th>
-						  <th align="center">Url</th>
-							<th align="center">Host</th>
-						  <th align="center">Times Followed</th>
-					  </tr>
-						{section name=curLink loop=$resultLinks}
-					    <tr {if $smarty.section.nr.iteration is odd} bgcolor="#efefef"{/if}>
-						    <td><a href='{$resultLinks[curLink].recordUrl}'>{$resultLinks[curLink].recordId}</a></td>
-						    <td>{$resultLinks[curLink].title}</td>
-						    <td>{$resultLinks[curLink].linkUrl}</td>
-					      <td>{$resultLinks[curLink].linkHost}</td>
-								<td>{$resultLinks[curLink].timesFollowed}</td>
-					    </tr>
-						{sectionelse}
-							<tr><td align="center" colspan="4"><br /><b>No External Links Found </b> <br /> </td></tr>
-						{/section}
+					<table border="0" width="100%" class="tablesorter table table-striped" id="externalLinksTable">
+						<thead>
+						  <tr>
+								<th align="center">Record Id</th>
+							  <th align="center">Title</th>
+							  <th align="center">Url</th>
+								<th align="center">Host</th>
+							  <th align="center">Times Followed</th>
+						  </tr>
+					  </thead>
+					  <tbody>
+							{section name=curLink loop=$resultLinks}
+						    <tr {if $smarty.section.nr.iteration is odd} bgcolor="#efefef"{/if}>
+							    <td><a href='{$resultLinks[curLink].recordUrl}'>{$resultLinks[curLink].recordId}</a></td>
+							    <td>{$resultLinks[curLink].title}</td>
+							    <td>{$resultLinks[curLink].linkUrl}</td>
+						      <td>{$resultLinks[curLink].linkHost}</td>
+									<td>{$resultLinks[curLink].timesFollowed}</td>
+						    </tr>
+							{sectionelse}
+								<tr><td align="center" colspan="4"><br /><b>No External Links Found </b> <br /> </td></tr>
+							{/section}
+						</tbody>
 					</table>
 
           {if $pageLinks.all}<div class="pagination" id="pagination-bottom">Page: {$pageLinks.all}</div>{/if}
@@ -106,3 +100,12 @@ $(function() {
 		{/if}
 	</div>
 {/strip}
+<script type="text/javascript">
+	{literal}
+	$(function() {
+		$( "#dateFilterStart" ).datepicker({ showOn: "button", buttonImage: "{/literal}{$path}{literal}/images/silk/calendar.png", numberOfMonths: 2,	buttonImageOnly: true});
+		$( "#dateFilterEnd" ).datepicker({ showOn: "button", buttonImage: "{/literal}{$path}{literal}/images/silk/calendar.png", numberOfMonths: 2,	buttonImageOnly: true});
+		$("#externalLinksTable").tablesorter({cssAsc: 'sortAscHeader', cssDesc: 'sortDescHeader', cssHeader: 'unsortedHeader', widgets:['zebra', 'filter'] });
+	});
+	{/literal}
+</script>

@@ -27,9 +27,11 @@ abstract class Horizon implements DriverInterface{
 	protected $hipUrl;
 	protected $hipProfile;
 	protected $selfRegProfile;
+	public $accountProfile;
 
-	function __construct()
+	function __construct($accountProfile)
 	{
+		$this->accountProfile = $accountProfile;
 		// Load Configuration for this Module
 		global $configArray;
 
@@ -291,7 +293,7 @@ abstract class Horizon implements DriverInterface{
 	/** uses SIP2 authentication rather than database authentication **/
 	public function patronLogin($username, $password)
 	{
-		require_once(ROOT_DIR . '/sys/authn/SIPAuthentication.php');
+		require_once(ROOT_DIR . '/sys/Authentication/SIPAuthentication.php');
 		$sipAuth = new SIPAuthentication();
 		$basicInfo = $sipAuth->validateAccount($username, $password);
 		if ($basicInfo){
@@ -1254,112 +1256,6 @@ public function getMyHoldsViaDB($patron)
 
 	}
 
-	private $patronProfiles = array();
-	public function getMyProfile($patron, $forceReload = false) {
-		global $timer;
-		global $configArray;
-		if (is_object($patron)){
-			$patron = get_object_vars($patron);
-		}
-		if (array_key_exists($patron['username'], $this->patronProfiles) && !$forceReload){
-			$timer->logTime('Retrieved Cached Profile for Patron');
-			return $this->patronProfiles[$patron['username']];
-		}
-
-		$mysip = new sip2;
-		$mysip->hostname = $configArray['SIP2']['host'];
-		$mysip->port = $configArray['SIP2']['port'];
-
-		if ($mysip->connect()) {
-			//send selfcheck status message
-			$in = $mysip->msgSCStatus();
-			$msg_result = $mysip->get_message($in);
-
-			// Make sure the response is 98 as expected
-			if (preg_match("/^98/", $msg_result)) {
-				$result = $mysip->parseACSStatusResponse($msg_result);
-
-				//  Use result to populate SIP2 setings
-				$mysip->AO = $result['variable']['AO'][0]; /* set AO to value returned */
-				$mysip->AN = $result['variable']['AN'][0]; /* set AN to value returned */
-
-				$mysip->patron = $patron['username'];
-				$mysip->patronpwd = $patron['cat_password'];
-
-				$in = $mysip->msgPatronInformation('fine');
-				$msg_result = $mysip->get_message($in);
-
-				// Make sure the response is 24 as expected
-				if (preg_match("/^64/", $msg_result)) {
-					$result = $mysip->parsePatronInfoResponse( $msg_result );
-					$address = $result['variable']['BD'][0];
-					$addressParts = explode(',', $address);
-					$expirationDate = $result['variable']['PE'][0];
-					$formattedExpiration = substr($expirationDate, 4,2) . '/' . substr($expirationDate, 6,2) . '/' . substr($expirationDate, 0,4);
-					//$fines = $this->parseSip2Fines($result['variable']['AV']);
-					$location = new Location();
-					$location->code = $result['variable']['AQ'][0];
-					$location->find();
-					if ($location->N > 0){
-						$location->fetch();
-						$homeLocationId = $location->locationId;
-					}
-					global $user;
-
-					$profile= array(
-            'lastname' => $result['variable']['DJ'][0],
-            'firstname' => isset($result['variable']['DH'][0]) ? $result['variable']['DH'][0] : '',
-            'displayName' => $patron['displayName'],
-            'fullname' => $result['variable']['AE'][0],
-            'address1' => trim($addressParts[0]),
-            'city' => trim($addressParts[1]),
-            'state' => trim($addressParts[2]),
-            'zip' => isset($addressParts[3]) ? trim($addressParts[3]) : '',
-            'phone' => isset($result['variable']['BF'][0]) ? $result['variable']['BF'][0] : '',
-            'email' => isset($result['variable']['BE'][0]) ? $result['variable']['BE'][0] : '',
-            'homeLocationId' => isset($homeLocationId) ? $homeLocationId : -1,
-            'homeLocationName' => $this->translateLocation($result['variable']['AQ'][0]),
-            'expires' => $formattedExpiration,
-            'fines' => isset($result['variable']['BV']) ? sprintf('$%01.2f', $result['variable']['BV'][0]) : 0,
-            'finesval' => isset($result['variable']['BV']) ? $result['variable']['BV'][0] : '',
-            'numHolds' => $result['fixed']['HoldCount'] + $result['fixed']['UnavailableCount'],
-            'numHoldsAvailable' => $result['fixed']['HoldCount'],
-            'numHoldsRequested' => $result['fixed']['UnavailableCount'],
-            'numCheckedOut' => $result['fixed']['ChargedCount'] ,
-					  'bypassAutoLogout' => ($user ? $user->bypassAutoLogout : false),
-					);
-
-					//Get eContent info as well
-					require_once(ROOT_DIR . '/Drivers/EContentDriver.php');
-					$eContentDriver = new EContentDriver();
-					$eContentAccountSummary = $eContentDriver->getAccountSummary();
-					$profile = array_merge($profile, $eContentAccountSummary);
-
-					//Get a count of the materials requests for the user
-					$materialsRequest = new MaterialsRequest();
-					$materialsRequest->createdBy = $user->id;
-					$statusQuery = new MaterialsRequestStatus();
-					$statusQuery->isOpen = 1;
-					$materialsRequest->joinAdd($statusQuery);
-					$materialsRequest->find();
-					$profile['numMaterialsRequests'] = $materialsRequest->N;
-				} else {
-					$profile = new PEAR_Error('patron_info_error_technical');
-				}
-			} else {
-				$profile = new PEAR_Error('patron_info_error_technical');
-			}
-			$mysip->disconnect();
-
-		} else {
-			$profile = new PEAR_Error('patron_info_error_technical');
-		}
-
-		$this->patronProfiles[$patron['username']] = $profile;
-		$timer->logTime('Retrieved Profile for Patron from SIP 2');
-		return $profile;
-	}
-
 	private $transactions = array();
 	public function getMyTransactions($patron, $page = 1, $recordsPerPage = -1, $sortOption = 'dueDate') {
 		global $configArray;
@@ -2115,7 +2011,6 @@ public function renewItem($patronId, $itemId){
 		global $user;
 		global $configArray;
 		global $logger;
-		$profile = $this->getMyProfile($user);
 
 		//Setup Curl
 		$header=array();
@@ -2216,7 +2111,7 @@ public function renewItem($patronId, $itemId){
 			if (isset($_REQUEST['campus'])){
 				$campus=trim($_REQUEST['campus']);
 			}else{
-				$campus = $profile['homeLocationId'];
+				$campus = $user->homeLocationId;
 				//Get the code for the location
 				$locationLookup = new Location();
 				$locationLookup->locationId = $campus;

@@ -46,10 +46,6 @@ class NearbyBookStore extends DB_DataObject
 			'storeId' => array('property'=>'storeId', 'type'=>'enum', 'values'=>$storeList, 'label'=>'Book Store', 'description'=>'The id of a book store'),
 			'weight' => array('property'=>'weight', 'type'=>'text', 'label'=>'Weight', 'description'=>'The sort order of the book store'),
 		);
-		foreach ($structure as $fieldName => $field){
-			$field['propertyOld'] = $field['property'] . 'Old';
-			$structure[$fieldName] = $field;
-		}
 		return $structure;
 	}
 	

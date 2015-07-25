@@ -33,85 +33,155 @@ abstract class HorizonAPI extends Horizon{
 		$username = trim($username);
 		$password = trim($password);
 
-		//Call web service to login
-		if ($configArray['Catalog']['offline'] == true){
-			//The catalog is offline, check the database to see if the user is valid
-			$user = new User();
-			$user->cat_username = $username;
-			if ($user->find(true)){
-				$userValid = false;
-				if ($user->cat_username){
-					list($fullName, $lastName, $firstName) = $this->splitFullName($user->username);
-				}
-				if ($user->cat_password == $password){
-					$userValid = true;
-				}
-				if ($userValid){
-					$returnVal = array(
-						//Don't change the user id and username, was setting to password
-						'id'        => $user->id,
-						'username'  => $user->username,
-						'firstname' => $user->firstname,
-						'lastname'  => $user->lastname,
-						'fullname'  =>$user->lastname . ', ' . $user->firstname,     //Added to array for possible display later.
-						'cat_username' => $username, //Should this be $Fullname or $patronDump['PATRN_NAME']
-						'cat_password' => $password,
+		//Authenticate the user via WebService
+		//First call loginUser
+		list($userValid, $sessionToken, $userID) = $this->loginViaWebService($username, $password);
+		if ($userValid){
+			$lookupMyAccountInfoResponse = $this->getWebServiceResponse($configArray['Catalog']['webServiceUrl'] . '/standard/lookupMyAccountInfo?clientID=' . $configArray['Catalog']['clientId'] . '&sessionToken=' . $sessionToken . '&includeAddressInfo=true&includeHoldInfo=true&includeBlockInfo=true&includeItemsOutInfo=true');
+			if ($lookupMyAccountInfoResponse){
+				$fullName = (string)$lookupMyAccountInfoResponse->name;
+				list($fullName, $lastName, $firstName) = $this->splitFullName($fullName);
 
-						'email' => $user->email,
-						'major' => null,
-						'college' => null,
-						'patronType' => $user->patronType,
-						'web_note' => translate('The catalog is currently down.  You will have limited access to circulation information.'));
-					$timer->logTime("patron logged in successfully");
-					return $returnVal;
-				} else {
-					$timer->logTime("patron login failed");
-					return null;
+				$email = '';
+				if (isset($lookupMyAccountInfoResponse->AddressInfo)){
+					if (isset($lookupMyAccountInfoResponse->AddressInfo->email)){
+						$email = (string)$lookupMyAccountInfoResponse->AddressInfo->email;
+					}
 				}
-			} else {
-				$timer->logTime("patron login failed");
-				return null;
-			}
-		}else{
-			//Authenticate the user via WebService
-			//First call loginUser
-			list($userValid, $sessionToken, $userID) = $this->loginViaWebService($username, $password);
-			if ($userValid){
-				$lookupMyAccountInfoResponse = $this->getWebServiceResponse($configArray['Catalog']['webServiceUrl'] . '/standard/lookupMyAccountInfo?clientID=' . $configArray['Catalog']['clientId'] . '&sessionToken=' . $sessionToken . '&includeAddressInfo=true');
-				if ($lookupMyAccountInfoResponse){
-					$fullName = (string)$lookupMyAccountInfoResponse->name;
-					list($fullName, $lastName, $firstName) = $this->splitFullName($fullName);
 
-					$email = '';
-					if (isset($lookupMyAccountInfoResponse->AddressInfo)){
-						if (isset($lookupMyAccountInfoResponse->AddressInfo->email)){
-							$email = (string)$lookupMyAccountInfoResponse->AddressInfo->email;
+				$userExistsInDB = false;
+				$user = new User();
+				$user->source = $this->accountProfile->name;
+				$user->username = $userID;
+				if ($user->find(true)){
+					$userExistsInDB = true;
+				}
+
+				$user->firstname = isset($firstName) ? $firstName : '';
+				$user->lastname = isset($lastName) ? $lastName : '';
+				$user->fullname = isset($fullName) ? $fullName : '';
+				$user->cat_username = $username;
+				$user->cat_password = $password;
+				$user->email = $email;
+
+				if (isset($lookupMyAccountInfoResponse->AddressInfo)){
+					$Address1 = (string)$lookupMyAccountInfoResponse->AddressInfo->line1;
+					if (isset($lookupMyAccountInfoResponse->AddressInfo->cityState)){
+						$cityState = (string)$lookupMyAccountInfoResponse->AddressInfo->cityState;
+						list($City, $State) = explode(', ', $cityState);
+					}else{
+						$City = "";
+						$State = "";
+					}
+					$Zip = (string)$lookupMyAccountInfoResponse->AddressInfo->postalCode;
+
+				}else{
+					$Address1 = "";
+					$City = "";
+					$State = "";
+					$Zip = "";
+				}
+
+				//Get additional information about the patron's home branch for display.
+				if (isset($lookupMyAccountInfoResponse->locationID)){
+					$homeBranchCode = trim((string)$lookupMyAccountInfoResponse->locationID);
+					//Translate home branch to plain text
+					$location = new Location();
+					$location->code = $homeBranchCode;
+					$location->find(1);
+					if ($location->N == 0){
+						unset($location);
+					}
+				}
+
+				if ($user->homeLocationId == 0 && isset($location)) {
+					$user->homeLocationId = $location->locationId;
+					if ($location->nearbyLocation1 > 0) {
+						$user->myLocation1Id = $location->nearbyLocation1;
+					} else {
+						$user->myLocation1Id = $location->locationId;
+					}
+					if ($location->nearbyLocation2 > 0) {
+						$user->myLocation2Id = $location->nearbyLocation2;
+					} else {
+						$user->myLocation2Id = $location->locationId;
+					}
+				}else if (isset($location) && $location->locationId != $user->homeLocationId){
+					$user->homeLocationId = $location->locationId;
+				}
+
+				//Get display name for preferred location 1
+				$myLocation1 = new Location();
+				$myLocation1->whereAdd("locationId = '$user->myLocation1Id'");
+				$myLocation1->find(1);
+
+				//Get display name for preferred location 1
+				$myLocation2 = new Location();
+				$myLocation2->whereAdd("locationId = '$user->myLocation2Id'");
+				$myLocation2->find(1);
+
+				//TODO: See if we can get information about card expiration date
+				$expireClose = 0;
+
+				$finesVal = 0;
+				if (isset($lookupMyAccountInfoResponse->BlockInfo)){
+					foreach ($lookupMyAccountInfoResponse->BlockInfo as $block){
+						// $block is a simplexml object with attribute info about currency, type casting as below seems to work for adding up. plb 3-27-2015
+						$fineAmount = (float) $block->balance;
+						$finesVal += $fineAmount;
+					}
+				}
+
+				$numHoldsAvailable = 0;
+				$numHoldsRequested = 0;
+				if (isset($lookupMyAccountInfoResponse->HoldInfo)){
+					foreach ($lookupMyAccountInfoResponse->HoldInfo as $hold){
+						if ($hold->status == 'FILLED'){
+							$numHoldsAvailable++;
+						}else{
+							$numHoldsRequested++;
 						}
 					}
-
-					$returnVal = array(
-						'id'        => $userID,
-						//Switch to use patron ID from Horizon
-						//'username'  => $username, //Must be catalog barcode to match the old system.
-						'username'  => $userID, //Must be catalog barcode to match the old system.
-						'firstname' => isset($firstName) ? $firstName : '',
-						'lastname'  => isset($lastName) ? $lastName : '',
-						'fullname'  => isset($fullName) ? $fullName : '',     //Added to array for possible display later.
-						'cat_username' => $username,
-						'cat_password' => $password,
-
-						'email' => $email,
-						'major' => null,
-						'college' => null,
-						'patronType' => '',
-						'web_note' => '',
-					);
-					$timer->logTime("patron logged in successfully");
-					return $returnVal;
-				} else {
-					$timer->logTime("lookupMyAccountInfo failed");
-					return null;
 				}
+
+				$user->address1 = $Address1;
+				$user->address2 = $City . ', ' . $State;
+				$user->city = $City;
+				$user->state = $State;
+				$user->zip = $Zip;
+				$user->phone = isset($lookupMyAccountInfoResponse->phone) ? (string)$lookupMyAccountInfoResponse->phone : '';
+				$user->fines = sprintf('$%01.2f', $finesVal);
+				$user->finesVal = $finesVal;
+				$user->expires = ''; //TODO: Determine if we can get this
+				$user->expireClose = $expireClose;
+				$user->homeLocationCode = isset($homeBranchCode) ? trim($homeBranchCode) : '';
+				$user->homeLocationId = isset($location) ? $location->locationId : 0;
+				$user->homeLocation = isset($location) ? $location->displayName : '';
+				$user->myLocation1Id = ($user) ? $user->myLocation1Id : -1;
+				$user->myLocation1 = isset($myLocation1) ? $myLocation1->displayName : '';
+				$user->myLocation2Id = ($user) ? $user->myLocation2Id : -1;
+				$user->myLocation2 = isset($myLocation2) ? $myLocation2->displayName : '';
+				$user->numCheckedOutIls = isset($lookupMyAccountInfoResponse->ItemsOutInfo) ? count($lookupMyAccountInfoResponse->ItemsOutInfo) : 0;
+				$user->numHoldsIls = $numHoldsAvailable + $numHoldsRequested;
+				$user->numHoldsAvailableIls = $numHoldsAvailable;
+				$user->numHoldsRequestedIls = $numHoldsRequested;
+				$user->patronType = 0;
+				$user->notices = '-';
+				$user->noticePreferenceLabel = 'e-mail';
+				$user->web_note = '';
+
+				if ($userExistsInDB){
+					$user->update();
+				}else{
+					$user->created = date('Y-m-d');
+					$user->insert();
+				}
+
+				$timer->logTime("patron logged in successfully");
+				return $user;
+			} else {
+				$timer->logTime("lookupMyAccountInfo failed");
+				return null;
 			}
 		}
 	}
@@ -135,275 +205,6 @@ abstract class HorizonAPI extends Horizon{
 				return array(false, false, false);
 			}
 		}
-	}
-
-	public function getMyProfile($patron, $forceReload = false){
-		global $timer;
-		global $configArray;
-		/** @var Memcache $memCache */
-		global $memCache;
-
-		global $serverName;
-		$memCacheProfileKey = "patronProfile_{$serverName}_";
-		if (is_object($patron)) {
-			$patron = get_object_vars($patron);
-			$userId = $patron['id'];
-			$patronUserName = $patron['username'];
-			$memCacheProfileKey .= $patron['username'];
-		} else {
-			global $user;
-			$userId = $user->id;
-			$patronUserName = $user->username;
-			$memCacheProfileKey .= $user->username;
-		}
-
-		if (!$forceReload && !isset($_REQUEST['reload'])) {
-			$patronProfile = $memCache->get($memCacheProfileKey);
-			if ($patronProfile){
-				$timer->logTime('Retrieved Cached Profile for Patron');
-				return $patronProfile;
-			}
-		}
-
-		global $user;
-		if ($configArray['Catalog']['offline'] == true){
-			$fullName = $patron['cat_username'];
-
-			$Address1 = "";
-			$City = "";
-			$State = "";
-			$Zip = "";
-			$Email = "";
-			$finesVal = 0;
-			$expireClose = false;
-			$homeBranchCode = '';
-			$numHoldsAvailable = '?';
-			$numHoldsRequested = '?';
-
-			if (!$user){
-				$user = new User();
-				$user->username = $patronUserName;
-
-				if ($user->find(true)){
-					$location = new Location();
-					$location->locationId = $user->homeLocationId;
-					$location->find(1);
-					$homeBranchCode = $location->code;
-				}
-			}
-
-
-		}else{
-			//Load the raw information about the patron from web services
-			if (isset(HorizonAPI::$sessionIdsForUsers[$userId])){
-				$sessionToken = HorizonAPI::$sessionIdsForUsers[$userId];
-				// keys off username
-			}else{
-				//Log the user in
-				$return = $this->loginViaWebService($patron['cat_username'], $patron['cat_password']);
-				if (count($return) == 1){
-					$userValid = $return[0];
-				}else{
-					list($userValid, $sessionToken) = $return;
-				}
-				if (!$userValid){
-					echo("No session id found for user");
-					return PEAR_Singleton::raiseError("Could not login to web service " . $return);
-				}
-			}
-			$lookupMyAccountInfoResponse = $this->getWebServiceResponse($configArray['Catalog']['webServiceUrl'] . '/standard/lookupMyAccountInfo?clientID=' . $configArray['Catalog']['clientId'] . '&sessionToken=' . $sessionToken . '&includeAddressInfo=true&includeHoldInfo=true&includeBlockInfo=true&includeItemsOutInfo=true');
-			if ($lookupMyAccountInfoResponse === false){
-				global $logger;
-				$logger->log("Unable to login", PEAR_LOG_WARNING);
-				return null;
-			}
-
-			if (isset($lookupMyAccountInfoResponse->AddressInfo)){
-				$Address1 = (string)$lookupMyAccountInfoResponse->AddressInfo->line1;
-				if (isset($lookupMyAccountInfoResponse->AddressInfo->cityState)){
-					$cityState = (string)$lookupMyAccountInfoResponse->AddressInfo->cityState;
-					list($City, $State) = explode(', ', $cityState);
-				}else{
-					$City = "";
-					$State = "";
-				}
-				$Zip = (string)$lookupMyAccountInfoResponse->AddressInfo->postalCode;
-
-				if (isset($lookupMyAccountInfoResponse->AddressInfo->email)) {
-					$Email = (string) $lookupMyAccountInfoResponse->AddressInfo->email;
-				}
-			}else{
-				$Address1 = "";
-				$City = "";
-				$State = "";
-				$Zip = "";
-				$Email = '';
-			}
-
-			$fullName = $lookupMyAccountInfoResponse->name;
-
-			//Get additional information about the patron's home branch for display.
-			if (isset($lookupMyAccountInfoResponse->locationID)){
-				$homeBranchCode = trim((string)$lookupMyAccountInfoResponse->locationID);
-				//Translate home branch to plain text
-				$location = new Location();
-				$location->code = $homeBranchCode;
-				$location->find(1);
-				if ($location->N == 0){
-					unset($location);
-				}
-			}
-
-			if ($user) {
-				if ($user->homeLocationId == 0 && isset($location)) {
-					$user->homeLocationId = $location->locationId;
-					if ($location->nearbyLocation1 > 0){
-						$user->myLocation1Id = $location->nearbyLocation1;
-					}else{
-						$user->myLocation1Id = $location->locationId;
-					}
-					if ($location->nearbyLocation2 > 0){
-						$user->myLocation2Id = $location->nearbyLocation2;
-					}else{
-						$user->myLocation2Id = $location->locationId;
-					}
-					if ($user instanceof User) {
-						//Update the database
-						$user->update();
-						//Update the serialized instance stored in the session
-						$_SESSION['userinfo'] = serialize($user);
-					}
-				}else if (isset($location) && $location->locationId != $user->homeLocationId){
-					$user->homeLocationId = $location->locationId;
-
-					//Update the database
-					$user->update();
-					//Update the serialized instance stored in the session
-					$_SESSION['userinfo'] = serialize($user);
-				}
-			}
-
-			//TODO: See if we can get information about card expiration date
-			$expireClose = 0;
-
-			$finesVal = 0;
-			if (isset($lookupMyAccountInfoResponse->BlockInfo)){
-				foreach ($lookupMyAccountInfoResponse->BlockInfo as $block){
-					// $block is a simplexml object with attribute info about currency, type casting as below seems to work for adding up. plb 3-27-2015
-					$fineAmount = (float) $block->balance;
-					$finesVal += $fineAmount;
-				}
-			}
-
-			$numHoldsAvailable = 0;
-			$numHoldsRequested = 0;
-			if (isset($lookupMyAccountInfoResponse->HoldInfo)){
-				foreach ($lookupMyAccountInfoResponse->HoldInfo as $hold){
-					if ($hold->status == 'FILLED'){
-						$numHoldsAvailable++;
-					}else{
-						$numHoldsRequested++;
-					}
-				}
-			}
-		}
-
-		if ($user) {
-			//Get display name for preferred location 1
-			$myLocation1 = new Location();
-			$myLocation1->whereAdd("locationId = '$user->myLocation1Id'");
-			$myLocation1->find(1);
-
-			//Get display name for preferred location 1
-			$myLocation2 = new Location();
-			$myLocation2->whereAdd("locationId = '$user->myLocation2Id'");
-			$myLocation2->find(1);
-		}
-
-		list($fullName, $lastName, $firstName) = $this->splitFullName($fullName);
-		$profile = array('lastname' => $lastName,
-			'firstname' => $firstName,
-			'fullname' => $fullName,
-			'address1' => $Address1,
-			'address2' => $City . ', ' . $State,
-			'city' => $City,
-			'state' => $State,
-			'zip'=> $Zip,
-//			'email' => ($user && $user->email) ? $user->email : (isset($patronDump) && isset($patronDump['EMAIL_ADDR']) ? $patronDump['EMAIL_ADDR'] : '') ,
-//			'overdriveEmail' => ($user) ? $user->overdriveEmail : (isset($patronDump) && isset($patronDump['EMAIL_ADDR']) ? $patronDump['EMAIL_ADDR'] : ''),
-			// $patronDump never declared. probably never comes into use.
-			'email' => ($user && $user->email) ? $user->email : $Email,
-			'overdriveEmail' => ($user) ? $user->overdriveEmail : $Email,
-			// good idea to fall back to profile email ?? plb 4-16-2015
-			'promptForOverdriveEmail' => $user ? $user->promptForOverdriveEmail : 1,
-			'noPromptForUserReviews' => $user ? $user->noPromptForUserReviews : 0,
-			'phone' => isset($lookupMyAccountInfoResponse->phone) ? (string)$lookupMyAccountInfoResponse->phone : '',
-			'workPhone' => '',
-			'mobileNumber' => '',
-			'fines' => sprintf('$%01.2f', $finesVal),
-			'finesval' => $finesVal,
-			'expires' => '', //TODO: Determine if we can get this
-			'expireclose' => $expireClose,
-			'homeLocationCode' => isset($homeBranchCode) ? trim($homeBranchCode) : '',
-			'homeLocationId' => isset($location) ? $location->locationId : 0,
-			'homeLocation' => isset($location) ? $location->displayName : '',
-			'myLocation1Id' => ($user) ? $user->myLocation1Id : -1,
-			'myLocation1' => isset($myLocation1) ? $myLocation1->displayName : '',
-			'myLocation2Id' => ($user) ? $user->myLocation2Id : -1,
-			'myLocation2' => isset($myLocation2) ? $myLocation2->displayName : '',
-			'numCheckedOut' => isset($lookupMyAccountInfoResponse->ItemsOutInfo) ? count($lookupMyAccountInfoResponse->ItemsOutInfo) : 0,
-			'numHolds' => $numHoldsAvailable + $numHoldsRequested,
-			'numHoldsAvailable' => $numHoldsAvailable,
-			'numHoldsRequested' => $numHoldsRequested,
-			'bypassAutoLogout' => ($user) ? $user->bypassAutoLogout : 0,
-			'ptype' => 0,
-			'notices' => '-',
-			'noticePreferenceLabel' => 'e-mail',
-			'web_note' => '',
-		);
-
-		//Get eContent info as well
-		require_once(ROOT_DIR . '/Drivers/EContentDriver.php');
-		$eContentDriver = new EContentDriver();
-		$eContentAccountSummary = $eContentDriver->getAccountSummary();
-		$profile = array_merge($profile, $eContentAccountSummary);
-
-		require_once(ROOT_DIR . '/Drivers/OverDriveDriverFactory.php');
-		$overDriveDriver = OverDriveDriverFactory::getDriver();
-		if ($overDriveDriver->isUserValidForOverDrive($user)){
-			$overDriveSummary = $overDriveDriver->getOverDriveSummary($user);
-			$profile['numOverDriveCheckedOut'] = $overDriveSummary['numCheckedOut'];
-			$profile['numOverDriveHoldsAvailable'] = $overDriveSummary['numAvailableHolds'];
-			$profile['numOverDriveHoldsRequested'] = $overDriveSummary['numUnavailableHolds'];
-			$profile['canUseOverDrive'] = true;
-		}else{
-			$profile['numOverDriveCheckedOut'] = 0;
-			$profile['numOverDriveHoldsAvailable'] = 0;
-			$profile['numOverDriveHoldsRequested'] = 0;
-			$profile['canUseOverDrive'] = false;
-		}
-
-		$profile['numCheckedOutTotal'] = $profile['numCheckedOut'] + $profile['numOverDriveCheckedOut'] + $eContentAccountSummary['numEContentCheckedOut'];
-		$profile['numHoldsAvailableTotal'] = $profile['numHoldsAvailable'] + $profile['numOverDriveHoldsAvailable'] + $eContentAccountSummary['numEContentAvailableHolds'];
-		$profile['numHoldsRequestedTotal'] = $profile['numHoldsRequested'] + $profile['numOverDriveHoldsRequested'] + $eContentAccountSummary['numEContentUnavailableHolds'];
-		$profile['numHoldsTotal'] = $profile['numHoldsAvailableTotal'] + $profile['numHoldsRequestedTotal'];
-
-		//Get a count of the materials requests for the user
-		if ($user){
-			$materialsRequest = new MaterialsRequest();
-			$materialsRequest->createdBy = $user->id;
-			$homeLibrary = Library::getPatronHomeLibrary();
-			$statusQuery = new MaterialsRequestStatus();
-			$statusQuery->isOpen = 1;
-			$statusQuery->libraryId = $homeLibrary->libraryId;
-			$materialsRequest->joinAdd($statusQuery);
-			$materialsRequest->find();
-			$profile['numMaterialsRequests'] = $materialsRequest->N;
-		}
-
-		$timer->logTime("Got Patron Profile");
-		$memCache->set($memCacheProfileKey, $profile, 0, $configArray['Caching']['patron_profile']) ;
-		return $profile;
 	}
 
 	public function getMyHolds($patron= null, $page = 1, $recordsPerPage = -1, $sortOption = 'title'){

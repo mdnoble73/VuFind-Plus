@@ -23,7 +23,7 @@ require_once ROOT_DIR . '/CatalogConnection.php';
 require_once ROOT_DIR . '/Action.php';
 
 class Record_Hold extends Action {
-	/** @var  MillenniumDriver|Marmot|Sierra */
+	/** @var  Millennium|Marmot|Sierra */
 	var $catalog;
 
 	function launch() {
@@ -105,9 +105,6 @@ class Record_Hold extends Action {
 
 			//Showing place hold form.
 			if ($user){
-				$profile = $this->catalog->getMyProfile($user);
-				$interface->assign('profile', $profile);
-
 				//Get information to show a warning if the user does not have sufficient holds
 				require_once ROOT_DIR . '/Drivers/marmot_inc/PType.php';
 				$maxHolds = -1;
@@ -117,7 +114,7 @@ class Record_Hold extends Action {
 				if ($ptype->find(true)){
 					$maxHolds = $ptype->maxHolds;
 				}
-				$currentHolds = $profile['numHolds'];
+				$currentHolds = $user->numHoldsIls;
 				if ($maxHolds != -1 && ($currentHolds + 1 > $maxHolds)){
 					$interface->assign('showOverHoldLimit', true);
 					$interface->assign('maxHolds', $maxHolds);

@@ -10,7 +10,7 @@
 
 class MillenniumReadingHistory {
 	/**
-	 * @var MillenniumDriver $driver;
+	 * @var Millennium $driver;
 	 */
 	private $driver;
 	public function __construct($driver){
@@ -19,10 +19,8 @@ class MillenniumReadingHistory {
 
 	public function getReadingHistory($patron, $page = 1, $recordsPerPage = -1, $sortOption = "checkedOut") {
 		global $timer;
-		$patronDump = $this->driver->_getPatronDump($this->driver->_getBarcode());
-
 		//Load the information from millennium using CURL
-		$pageContents = $this->driver->_fetchPatronInfoPage($patronDump, 'readinghistory');
+		$pageContents = $this->driver->_fetchPatronInfoPage($patron, 'readinghistory');
 
 		//Check to see if there are multiple pages of reading history
 		$hasPagination = preg_match('/<td[^>]*class="browsePager"/', $pageContents);
@@ -42,7 +40,7 @@ class MillenniumReadingHistory {
 		$recordsRead += count($readingHistoryTitles);
 		if (isset($maxPageNum)){
 			for ($pageNum = 2; $pageNum <= $maxPageNum; $pageNum++){
-				$pageContents = $this->driver->_fetchPatronInfoPage($patronDump, 'readinghistory&page=' . $pageNum);
+				$pageContents = $this->driver->_fetchPatronInfoPage($patron, 'readinghistory&page=' . $pageNum);
 				$additionalTitles = $this->parseReadingHistoryPage($pageContents, $patron, $sortOption, $recordsRead);
 				$recordsRead += count($additionalTitles);
 				$readingHistoryTitles = array_merge($readingHistoryTitles, $additionalTitles);
@@ -114,13 +112,11 @@ class MillenniumReadingHistory {
 	 * @param   string  $action         The action to perform
 	 * @param   array   $selectedTitles The titles to do the action on if applicable
 	 */
-	function doReadingHistoryAction($action, $selectedTitles){
-		global $configArray;
+	function doReadingHistoryAction($patron, $action, $selectedTitles){
 		global $analytics;
-		$patronDump = $this->driver->_getPatronDump($this->driver->_getBarcode());
 		//Load the reading history page
 		$scope = $this->driver->getDefaultScope();
-		$curl_url = $configArray['Catalog']['url'] . "/patroninfo~S{$scope}/" . $patronDump['RECORD_#'] ."/readinghistory";
+		$curl_url = $this->driver->getVendorOpacUrl() . "/patroninfo~S{$scope}/" . $patron->username ."/readinghistory";
 
 		$cookie = tempnam ("/tmp", "CURLCOOKIE");
 		$curl_connection = curl_init($curl_url);
@@ -171,7 +167,7 @@ class MillenniumReadingHistory {
 			//Issue a get request to delete the item from the reading history.
 			//Note: Millennium really does issue a malformed url, and it is required
 			//to make the history delete properly.
-			$curl_url = $configArray['Catalog']['url'] . "/patroninfo~S{$scope}/" . $patronDump['RECORD_#'] ."/readinghistory/rsh&" . $title_string;
+			$curl_url = $this->driver->getVendorOpacUrl() . "/patroninfo~S{$scope}/" . $patron->username ."/readinghistory/rsh&" . $title_string;
 			curl_setopt($curl_connection, CURLOPT_HTTPGET, true);
 			curl_setopt($curl_connection, CURLOPT_URL, $curl_url);
 			curl_exec($curl_connection);
@@ -180,7 +176,7 @@ class MillenniumReadingHistory {
 			}
 		}elseif ($action == 'deleteAll'){
 			//load patron page readinghistory/rah
-			$curl_url = $configArray['Catalog']['url'] . "/patroninfo~S{$scope}/" . $patronDump['RECORD_#'] ."/readinghistory/rah";
+			$curl_url = $this->driver->getVendorOpacUrl() . "/patroninfo~S{$scope}/" . $patron->username ."/readinghistory/rah";
 			curl_setopt($curl_connection, CURLOPT_URL, $curl_url);
 			curl_setopt($curl_connection, CURLOPT_HTTPGET, true);
 			curl_exec($curl_connection);
@@ -191,7 +187,7 @@ class MillenniumReadingHistory {
 			//Leave this unimplemented for now.
 		}elseif ($action == 'optOut'){
 			//load patron page readinghistory/OptOut
-			$curl_url = $configArray['Catalog']['url'] . "/patroninfo~S{$scope}/" . $patronDump['RECORD_#'] ."/readinghistory/OptOut";
+			$curl_url = $this->driver->getVendorOpacUrl() . "/patroninfo~S{$scope}/" . $patron->username ."/readinghistory/OptOut";
 			curl_setopt($curl_connection, CURLOPT_URL, $curl_url);
 			curl_setopt($curl_connection, CURLOPT_HTTPGET, true);
 			curl_exec($curl_connection);
@@ -200,7 +196,7 @@ class MillenniumReadingHistory {
 			}
 		}elseif ($action == 'optIn'){
 			//load patron page readinghistory/OptIn
-			$curl_url = $configArray['Catalog']['url'] . "/patroninfo~S{$scope}/" . $patronDump['RECORD_#'] ."/readinghistory/OptIn";
+			$curl_url = $this->driver->getVendorOpacUrl() . "/patroninfo~S{$scope}/" . $patron->username ."/readinghistory/OptIn";
 			curl_setopt($curl_connection, CURLOPT_URL, $curl_url);
 			curl_setopt($curl_connection, CURLOPT_HTTPGET, true);
 			curl_exec($curl_connection);

@@ -37,10 +37,6 @@ class LoanRule extends DB_DataObject
 			'homePickup' => array('property'=>'homePickup', 'type'=>'checkbox', 'label'=>'Home Pickup', 'description'=>'Whether or not items are available for Home Pickup', 'hideInLists' => true),
 			'shippable' => array('property'=>'shippable', 'type'=>'checkbox', 'label'=>'Shippable', 'description'=>'Whether or not items are shippable', 'hideInLists' => true),
 		);
-		foreach ($structure as $fieldName => $field){
-			$field['propertyOld'] = $field['property'] . 'Old';
-			$structure[$fieldName] = $field;
-		}
 		return $structure;
 	}
 
