@@ -9,10 +9,13 @@ set testing false
 # 1. Create a review file of Item records updated today, export the file, 
 # 2. create a diff file form the last export (5 minutes ago),
 # 3. finally, exec java -jar reindexer.jar $site partialReindex
-# Millennium 2011 1.6_3
+# Millennium 2014
 
 # TO DO
 # + Provide details on INNOPAC user privileges necessary
+
+# 20150724
+# + correct query and output fields that got renumbered following Millennium 2014 introduction of ITEMSTICKYS fixed length field (ITEM RECORD # and CREATED)
 
 # 20150624
 # + insert logic for handling unsaved RSA key
@@ -165,8 +168,8 @@ expect {
 }
 expect "I > ITEM list"
 send "I"
-expect "33 UPDATED"
-send "33"
+expect "34 UPDATED"
+send "34"
 expect "Enter boolean condition (=, ~, >, <, G, L, W, N)"
 send "="
 expect "UPDATED ="
@@ -199,8 +202,8 @@ expect "Output Item #2 >"
 send "?" ; # OTHER TYPES
 expect "I > ITEM"
 send "I"
-expect "31 RECORD #"
-send "31" ; # ITEM RECORD NUMBER
+expect "32 RECORD #"
+send "32" ; # ITEM RECORD NUMBER
 expect "Output Item #2 >"
 send "24" ; # ITEM STATUS
 expect "Output Item #3 >"
