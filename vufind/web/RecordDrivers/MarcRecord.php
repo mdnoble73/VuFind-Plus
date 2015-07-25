@@ -63,7 +63,12 @@ class MarcRecord extends IndexRecord
 			}
 
 			global $indexingProfiles;
-			$this->indexingProfile = $indexingProfiles[$this->profileType];
+			if (array_key_exists($this->profileType, $indexingProfiles)){
+				$this->indexingProfile = $indexingProfiles[$this->profileType];
+			}else{
+				$this->indexingProfile = $indexingProfiles['ils'];
+			}
+
 
 			$this->valid = MarcLoader::marcExistsForILSId($recordData);
 		}else{

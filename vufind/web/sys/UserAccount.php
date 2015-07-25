@@ -23,21 +23,53 @@ require_once 'XML/Serializer.php';
 
 require_once ROOT_DIR . '/sys/Authentication/AuthenticationFactory.php';
 
-class UserAccount
-{
-	// Checks whether the user is logged in.
-	public static function isLoggedIn()
-	{
-		if (isset($_SESSION['userinfo'])) {
-			return unserialize($_SESSION['userinfo']);
+class UserAccount {
+
+	/**
+	 * Checks whether the user is logged in.
+	 *
+	 * When logged in we store information the id of the active user within the session.
+	 * The actual user is stored within memcache
+	 *
+	 * @return bool|User
+	 */
+	public static function isLoggedIn() {
+		$userData = false;
+		if (isset($_SESSION['activeUserId'])) {
+			$activeUserId = $_SESSION['activeUserId'];
+			/** @var Memcache $memCache */
+			global $memCache;
+			global $serverName;
+
+			$userData = $memCache->get("user_{$serverName}_{$activeUserId}");
+			if ($userData === false){
+				//Load the user from the database
+				$userData = new User();
+				$userData->id = $activeUserId;
+				if (!$userData->find(true)){
+					$userData = false;
+				}else{
+					//TODO: Load additional profile information that is not stored in the database
+				}
+			}
 		}
-		return false;
+		return $userData;
 	}
 
-	// Updates the user information in the session.
+	/**
+	 * Updates the user information in the session and in memcache
+	 *
+	 * @param User $user
+	 */
 	public static function updateSession($user)
 	{
-		$_SESSION['userinfo'] = serialize($user);
+		$_SESSION['activeUserId'] = $user->id;
+
+		/** @var Memcache $memCache */
+		global $memCache;
+		global $serverName;
+		global $configArray;
+		$memCache->set("user_{$serverName}_{$user->id}", $user, 0, $configArray['Caching']['user']);
 		if (isset($_REQUEST['rememberMe']) && ($_REQUEST['rememberMe'] === "true" || $_REQUEST['rememberMe'] === "on")){
 			$_SESSION['rememberMe'] = true;
 		}else{
@@ -46,95 +78,80 @@ class UserAccount
 		session_commit();
 	}
 
-	// Try to log in the user using current query parameters; return User object
-	// on success, PEAR error on failure.
+	/**
+	 * Try to log in the user using current query parameters
+	 * return User object on success, PEAR error on failure.
+	 *
+	 * @return PEAR_Error|User
+	 * @throws UnknownAuthenticationMethodException
+	 */
 	public static function login() {
-		global $configArray;
 		global $user;
 
 		$validUsers = array();
 
-		//Test all valid authentication methods and see which (if any) result in a valid login.
-		require_once ROOT_DIR . '/sys/Account/AccountProfile.php';
-		$driversToTest = array();
-		$accountProfile = new AccountProfile();
-		$accountProfile->find();
-		$user = null;
-		while ($accountProfile->fetch()){
-			$additionalInfo = array(
-				'driver' => $accountProfile->driver,
-				'authenticationMethod' => $accountProfile->authenticationMethod
-			);
-			$driversToTest[$accountProfile->name] = $additionalInfo;
-		}
-		if (count($driversToTest) == 0){
-			$additionalInfo = array(
-				'driver' => $configArray['Catalog']['driver'],
-				'authenticationMethod' => $configArray['Authentication']['method']
-			);
-			$driversToTest['ils'] = $additionalInfo;
-		}
+		/** @var User $primaryUser */
+		$primaryUser = null;
+		$lastError = null;
+		$driversToTest = self::loadAccountProfiles();
 
-		foreach ($driversToTest as $driverName => $additionalInfo){
+		//Test each driver in turn.  We do test all of them in case an account is valid in
+		//more than one system
+		foreach ($driversToTest as $driverName => $driverData){
 			// Perform authentication:
-			$authN = AuthenticationFactory::initAuthentication($additionalInfo['authenticationMethod'], $additionalInfo);
-			$user = $authN->authenticate();
+			$authN = AuthenticationFactory::initAuthentication($driverData['authenticationMethod'], $driverData);
+			$tempUser = $authN->authenticate();
 
 			// If we authenticated, store the user in the session:
-			if (!PEAR_Singleton::isError($user)) {
-				$validUsers[] = $user;
-				self::updateSession($user);
+			if (!PEAR_Singleton::isError($tempUser)) {
+				$validUsers[] = $tempUser;
+				if ($primaryUser == null){
+					$primaryUser = $tempUser;
+					self::updateSession($primaryUser);
+				}else{
+					//We have more than one account with these credentials, automatically link them
+					$primaryUser->addLinkedUser($tempUser);
+				}
 			}else{
 				global $logger;
-				$logger->log("Error authenticating patron for driver {$accountProfile->driver}\r\n" . print_r($user, true), PEAR_LOG_ERR);
+				$logger->log("Error authenticating patron for driver {$driverName}\r\n" . print_r($user, true), PEAR_LOG_ERR);
+				$lastError = $tempUser;
 			}
 		}
 
 		// Send back the user object (which may be a PEAR error):
-		return $user;
+		if ($primaryUser){
+			return $primaryUser;
+		}else{
+			return $lastError;
+		}
 	}
 
 	/**
 	 * Validate the account information (username and password are correct).
 	 * Returns the account, but does not set the global user variable.
 	 *
-	 * @param $username
-	 * @param $password
+	 * @param $username       string
+	 * @param $password       string
+	 * @param $accountSource  string The source of the user account if known or null to test all sources
 	 *
-	 * @return User|PEAR_Error
+	 * @return User|false
 	 */
-	public static function validateAccount($username, $password){
-		global $configArray;
-
+	public static function validateAccount($username, $password, $accountSource = null){
 		// Perform authentication:
 		//Test all valid authentication methods and see which (if any) result in a valid login.
-		$driversToTest = array();
-		require_once ROOT_DIR . '/sys/Account/AccountProfile.php';
-		$accountProfile = new AccountProfile();
-		$accountProfile->find();
-		$user = null;
-		while ($accountProfile->fetch()){
-			$additionalInfo = array(
-				'driver' => $accountProfile->driver,
-				'authenticationMethod' => $accountProfile->authenticationMethod
-			);
-			$driversToTest[$accountProfile->name] = $additionalInfo;
-		}
-		if (count($driversToTest) == 0){
-			$additionalInfo = array(
-				'driver' => $configArray['Catalog']['driver'],
-				'authenticationMethod' => $configArray['Authentication']['method']
-			);
-			$driversToTest['ils'] = $additionalInfo;
-		}
+		$driversToTest = self::loadAccountProfiles();
 
 		foreach ($driversToTest as $driverName => $additionalInfo){
-			$authN = AuthenticationFactory::initAuthentication($additionalInfo['authenticationMethod'], $additionalInfo);
-			$validatedUser = $authN->validateAccount($username, $password);
-			if ($validatedUser){
-				return $validatedUser;
+			if ($accountSource == null || $accountSource == $additionalInfo['accountProfile']->name) {
+				$authN = AuthenticationFactory::initAuthentication($additionalInfo['authenticationMethod'], $additionalInfo);
+				$validatedUser = $authN->validateAccount($username, $password);
+				if ($validatedUser) {
+					return $validatedUser;
+				}
 			}
 		}
+
 		return false;
 	}
 
@@ -153,8 +170,57 @@ class UserAccount
 	 * preserve hold message and search information
 	 */
 	public static function softLogout(){
-		if (isset($_SESSION['userinfo'])){
-			unset($_SESSION['userinfo']);
+		if (isset($_SESSION['activeUserId'])){
+			unset($_SESSION['activeUserId']);
+			session_commit();
 		}
+	}
+
+	/**
+	 * @return array
+	 */
+	protected static function loadAccountProfiles() {
+		$driversToTest = array();
+
+		//Load a list of authentication methods to test and see which (if any) result in a valid login.
+		require_once ROOT_DIR . '/sys/Account/AccountProfile.php';
+		$accountProfile = new AccountProfile();
+		$accountProfile->find();
+		while ($accountProfile->fetch()) {
+			$additionalInfo = array(
+				'driver' => $accountProfile->driver,
+				'authenticationMethod' => $accountProfile->authenticationMethod,
+				'accountProfile' => clone($accountProfile)
+			);
+			$driversToTest[$accountProfile->name] = $additionalInfo;
+		}
+		if (count($driversToTest) == 0) {
+			global $configArray;
+			//Create default information for historic login.  This will eventually be obsolete
+			$accountProfile = new AccountProfile();
+			$accountProfile->driver = $configArray['Catalog']['driver'];
+			if (isset($configArray['Catalog']['url'])){
+				$accountProfile->vendorOpacUrl = $configArray['Catalog']['url'];
+			}
+			$accountProfile->authenticationMethod = 'ils';
+			if ($configArray['Catalog']['barcodeProperty'] == 'cat_password'){
+				$accountProfile->loginConfiguration = 'username_barcode';
+			}else{
+				$accountProfile->loginConfiguration = 'barcode_pin';
+			}
+			if (isset($configArray['OPAC']['patron_host'])){
+				$accountProfile->patronApiUrl = $configArray['OPAC']['patron_host'];
+			}
+			$accountProfile->recordSource = 'ils';
+			$accountProfile->name = 'ils';
+
+			$additionalInfo = array(
+				'driver' => $configArray['Catalog']['driver'],
+				'authenticationMethod' => $configArray['Authentication']['method'],
+				'accountProfile' => $accountProfile
+			);
+			$driversToTest['ils'] = $additionalInfo;
+		}
+		return $driversToTest;
 	}
 }

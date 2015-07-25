@@ -61,7 +61,11 @@ class MarcLoader{
 		}
 		$firstChars = substr($shortId, 0, 4);
 		/** @var $indexingProfiles IndexingProfile[] */
-		$indexingProfile = $indexingProfiles[$recordType];
+		if (array_key_exists($recordType, $indexingProfiles)){
+			$indexingProfile = $indexingProfiles[$recordType];
+		}else{
+			$indexingProfile = $indexingProfiles['ils'];
+		}
 		$individualName = $indexingProfile->individualMarcPath . "/{$firstChars}/{$shortId}.mrc";
 		$marcRecord = false;
 		if (isset($indexingProfile->individualMarcPath)){
@@ -102,7 +106,11 @@ class MarcLoader{
 		}
 		$firstChars = substr($shortId, 0, 4);
 		/** @var $indexingProfiles IndexingProfile[] */
-		$indexingProfile = $indexingProfiles[$recordType];
+		if (array_key_exists($recordType, $indexingProfiles)){
+			$indexingProfile = $indexingProfiles[$recordType];
+		}else{
+			$indexingProfile = $indexingProfiles['ils'];
+		}
 		$individualName = $indexingProfile->individualMarcPath . "/{$firstChars}/{$shortId}.mrc";
 		if (isset($indexingProfile->individualMarcPath)){
 			return file_exists($individualName);

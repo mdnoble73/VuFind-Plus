@@ -31,6 +31,11 @@ require_once ROOT_DIR . '/sys/Utils/ArrayUtils.php';
 class EContentDriver implements DriverInterface{
 	//local variables for caching
 	private static $holdings = array();
+	protected $accountProfile;
+
+	function __construct($accountProfile) {
+		$this->accountProfile = $accountProfile;
+	}
 
 	/**
 	 * Get Status
@@ -1341,40 +1346,30 @@ class EContentDriver implements DriverInterface{
 		$entry->insert();
 	}
 
-	public function getAccountSummary(){
-		global $user;
-		$accountSummary = array();
+	public function loadAccountSummary($user){
 		if ($user){
 			//Get a count of checked out items
 			$eContentCheckout = new EContentCheckout();
 			$eContentCheckout->status = 'out';
 			$eContentCheckout->userId = $user->id;
 			$eContentCheckout->find();
-			$accountSummary['numEContentCheckedOut'] = $eContentCheckout->N;
+			$user->numCheckedOutEContent = $eContentCheckout->N;
 
 			//Get a count of available holds
 			$eContentHolds = new EContentHold();
 			$eContentHolds->status = 'available';
 			$eContentHolds->userId = $user->id;
 			$eContentHolds->find();
-			$accountSummary['numEContentAvailableHolds'] = $eContentHolds->N;
+			$user->numHoldsAvailableEContent = $eContentHolds->N;
 
 			//Get a count of unavailable holds
 			$eContentHolds = new EContentHold();
 			$eContentHolds->whereAdd("status IN ('active', 'suspended')");
 			$eContentHolds->userId = $user->id;
 			$eContentHolds->find();
-			$accountSummary['numEContentUnavailableHolds'] = $eContentHolds->N;
-		}else{
-			return array(
-				'numEContentCheckedOut' => 0,
-				'numEContentAvailableHolds' => 0,
-				'numEContentUnavailableHolds' => 0,
-				'numEContentWishList' => 0,
-			);
+			$user->numHoldsRequestedEContent = $eContentHolds->N;
 		}
 
-		return $accountSummary;
 	}
 
 	/**
@@ -1392,10 +1387,6 @@ class EContentDriver implements DriverInterface{
 	 */
 	public function getItemsFast($id, $scopingEnabled) {
 		return $this->getStatus($id);
-	}
-
-	public function getMyProfile($patron, $forceReload = false) {
-		// TODO: Implement getMyProfile() method.
 	}
 
 	public function patronLogin($username, $password) {

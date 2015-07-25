@@ -363,9 +363,6 @@ class Record_AJAX extends Action {
 		global $user;
 		if ($user){
 			$id = $_REQUEST['id'];
-			$catalog = CatalogFactory::getCatalogConnectionInstance();
-			$profile = $catalog->getMyProfile($user);
-			$interface->assign('profile', $profile);
 
 			//Get information to show a warning if the user does not have sufficient holds
 			require_once ROOT_DIR . '/Drivers/marmot_inc/PType.php';
@@ -376,7 +373,7 @@ class Record_AJAX extends Action {
 			if ($ptype->find(true)){
 				$maxHolds = $ptype->maxHolds;
 			}
-			$currentHolds = $profile['numHolds'];
+			$currentHolds = $user->numHoldsIls;
 			if ($maxHolds != -1 && ($currentHolds + 1 > $maxHolds)){
 				$interface->assign('showOverHoldLimit', true);
 				$interface->assign('maxHolds', $maxHolds);

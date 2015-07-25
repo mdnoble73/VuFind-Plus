@@ -16,7 +16,7 @@ class CatalogFactory {
 	 * @param string|null $driver
 	 * @return CatalogConnection
 	 */
-	public static function getCatalogConnectionInstance($driver = null){
+	public static function getCatalogConnectionInstance($driver = null, $accountProfile = null){
 		require_once ROOT_DIR . '/CatalogConnection.php';
 		if ($driver == null){
 			global $configArray;
@@ -25,7 +25,7 @@ class CatalogFactory {
 		if (isset(CatalogFactory::$catalogConnections[$driver])){
 			return CatalogFactory::$catalogConnections[$driver];
 		}else{
-			CatalogFactory::$catalogConnections[$driver] = new CatalogConnection($driver);
+			CatalogFactory::$catalogConnections[$driver] = new CatalogConnection($driver, $accountProfile);
 			return CatalogFactory::$catalogConnections[$driver];
 		}
 	}

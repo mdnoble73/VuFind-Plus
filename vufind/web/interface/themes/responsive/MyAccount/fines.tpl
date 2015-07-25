@@ -1,20 +1,20 @@
 {if $user->cat_username}
-	{if $profile.web_note}
+	{if $profile->web_note}
 		<div class="row">
-			<div id="web_note" class="alert alert-info text-center col-xs-12">{$profile.web_note}</div>
+			<div id="web_note" class="alert alert-info text-center col-xs-12">{$profile->web_note}</div>
 		</div>
 	{/if}
 
-	{if $profile.numHoldsAvailableTotal && $profile.numHoldsAvailableTotal > 0}
-		<div class="text-info text-center alert alert-info"><a href="/MyAccount/Holds" class="alert-link">You have {$profile.numHoldsAvailableTotal} holds ready for pick up.</a></div>
+	{if $profile->getNumHoldsAvailableTotal() && $profile->getNumHoldsAvailableTotal() > 0}
+		<div class="text-info text-center alert alert-info"><a href="/MyAccount/Holds" class="alert-link">You have {$profile->getNumHoldsAvailableTotal()} holds ready for pick up.</a></div>
 	{/if}
 
 	<h2>{translate text='Fines'}</h2>
 
 	{if count($fines) > 0}
-		{if $profile.fines}
+		{if $profile->fines}
 			<div class="alert alert-info">
-				Your account has <strong>{$profile.fines}</strong> in fines.
+				Your account has <strong>{$profile->fines}</strong> in fines.
 			</div>
 		{/if}
 
@@ -54,7 +54,7 @@
 		</table>
 
 		{* Pay Fines Button *}
-		{if $showEcommerceLink && $profile.finesval > $minimumFineAmount}
+		{if $showEcommerceLink && $profile->finesval > $minimumFineAmount}
 			<a href='{$ecommerceLink}' ><div class="btn btn-sm btn-primary">{if $payFinesLinkText}{$payFinesLinkText}{else}Click to Pay Fines Online{/if}</div></a>
 		{/if}
 

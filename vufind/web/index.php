@@ -241,7 +241,7 @@ if (isset($_REQUEST['lookfor'])){
 }
 
 //Check to see if the user is already logged in
-/** @var User */
+/** @var User $user */
 global $user;
 $user = UserAccount::isLoggedIn();
 $timer->logTime('Check if user is logged in');
@@ -262,6 +262,11 @@ if ($user) {
 		require_once ROOT_DIR . '/services/MyAccount/Login.php';
 		$launchAction = new MyAccount_Login();
 		$launchAction->launch($user->getMessage());
+		exit();
+	}elseif(!$user){
+		require_once ROOT_DIR . '/services/MyAccount/Login.php';
+		$launchAction = new MyAccount_Login();
+		$launchAction->launch("Unknown error logging in");
 		exit();
 	}
 	$interface->assign('user', $user);
@@ -346,12 +351,11 @@ if ($module == null && $action == null){
 }
 //Override MyAccount Home as needed
 if ($module == 'MyAccount' && $action == 'Home' && $user){
-	$profile = $interface->getVariable('profile');
-	if ($profile['numCheckedOutTotal'] > 0){
+	if ($user->getNumCheckedOutTotal() > 0){
 		$action ='CheckedOut';
 		header('Location:/MyAccount/CheckedOut');
 		exit();
-	}elseif ($profile['numHoldsTotal'] > 0){
+	}elseif ($user->getNumHoldsTotal() > 0){
 		header('Location:/MyAccount/Holds');
 		exit();
 	}
@@ -823,10 +827,9 @@ function loadUserData(){
 	global $user;
 	global $interface;
 
-	//Load profile information
-	$profile = $user->getMyProfile();
-	if (!PEAR_Singleton::isError($profile)) {
-		$interface->assign('profile', $profile);
+	//Assign User information to the interface
+	if (!PEAR_Singleton::isError($user)) {
+		$interface->assign('profile', $user);
 	}
 
 	//Load a list of lists

@@ -16,6 +16,7 @@ class Aspencat implements DriverInterface{
 	private $curl_connection = null;
 
 	private $dbConnection = null;
+	public $accountProfile;
 
 	/**
 	 * @return array
@@ -521,239 +522,9 @@ class Aspencat implements DriverInterface{
 			$updateErrors[] = "Profile Information can not be updated.";
 		}
 		return $updateErrors;
-
-	}
-	/**
-	 * @param User $patron
-	 * @param bool $forceReload
-	 * @return array
-	 */
-	public function getMyProfile($patron, $forceReload = false) {
-		//Update to not use SIP, just screen scrape for performance (sigh)
-		global $timer;
-		/** @var Memcache $memCache */
-		global $memCache;
-
-		if (!is_object($patron)){
-			$tmpPatron = new User();
-			$tmpPatron->username = $patron['username'];
-			$tmpPatron->cat_username = $patron['cat_username'];
-			$tmpPatron->cat_password = $patron['cat_password'];
-			$tmpPatron->firstname = $patron['firstname'];
-			$tmpPatron->lastname = $patron['lastname'];
-			$tmpPatron->email = $patron['email'];
-			$tmpPatron->patronType = $patron['patronType'];
-			$patron = $tmpPatron;
-		}
-
-		if (!$forceReload && !isset($_REQUEST['reload'])) {
-
-			// Check the Object for profile
-			if (array_key_exists($patron->username, $this->patronProfiles)) {
-				$timer->logTime('Retrieved Cached Profile for Patron');
-				return $this->patronProfiles[$patron->username];
-			}
-		}
-
-			// Determine memcache key
-		global $serverName;
-		$memCacheProfileKey = "patronProfile_{$serverName}_";
-			if (is_object($patron) && !isset($tmpPatron)) {
-				// exclude the new patron object $tmpPatron created above. It won't have an id or be stored in memcache
-//				$patron         = get_object_vars($patron);
-//			$memCacheProfileKey = $patron['username'];
-				// $patron needs to remain an object for initial loading below
-				$memCacheProfileKey .= $patron->username;
-			} else {
-				global $user;
-//				$memCacheProfileKey = $user->id;
-				$memCacheProfileKey .= $user->username;
-			}
-
-		// Check MemCache for profile
-		if (!$forceReload && !isset($_REQUEST['reload'])) {
-			$patronProfile = $memCache->get($memCacheProfileKey);
-			if ($patronProfile){
-				//echo("Using cached profile for patron " . $userId);
-				$timer->logTime('Retrieved Cached Profile for Patron');
-				return $patronProfile;
-			}
-		}
-
-		$this->initDatabaseConnection();
-		$this->getUserInfoStmt->bind_param('ss', $patron->cat_username, $patron->cat_username);
-		if ($this->getUserInfoStmt->execute()){
-			if ($userFromDbResultSet = $this->getUserInfoStmt->get_result()){
-				$userFromDb = $userFromDbResultSet->fetch_assoc();
-				$userFromDbResultSet->close();
-
-//				$city = $userFromDb['city'];
-//				$state = "";
-//				$commaPos = strpos($city, ',');
-//				if ($commaPos !== false){ // fix this
-//					$cityState = $city;
-//					$city = substr($cityState, 0, $commaPos);
-//					$state = substr($cityState, $commaPos);
-//				}
-				$city = strtok($userFromDb['city'], ',');
-				$state = strtok(',');
-				$city = trim($city);
-				$state = trim($state);
-
-				//Get fines
-				//Load fines from database
-				$outstandingFines = $this->getOutstandingFineTotal();
-
-				//Get number of items checked out
-				$checkedOutItemsRS = mysqli_query($this->dbConnection, 'SELECT count(*) as numCheckouts FROM issues WHERE borrowernumber = ' . $patron->username);
-				$numCheckouts = 0;
-				if ($checkedOutItemsRS){
-					$checkedOutItems = $checkedOutItemsRS->fetch_assoc();
-					$numCheckouts = $checkedOutItems['numCheckouts'];
-					$checkedOutItemsRS->close();
-				}
-
-				//Get number of available holds
-				$availableHoldsRS = mysqli_query($this->dbConnection, 'SELECT count(*) as numHolds FROM reserves WHERE waitingdate is not null and borrowernumber = ' . $patron->username);
-				$numAvailableHolds = 0;
-				if ($availableHoldsRS){
-					$availableHolds = $availableHoldsRS->fetch_assoc();
-					$numAvailableHolds = $availableHolds['numHolds'];
-					$availableHoldsRS->close();
-				}
-
-				//Get number of unavailable
-				$waitingHoldsRS = mysqli_query($this->dbConnection, 'SELECT count(*) as numHolds FROM reserves WHERE waitingdate is null and borrowernumber = ' . $patron->username);
-				$numWaitingHolds = 0;
-				if ($waitingHoldsRS){
-					$waitingHolds = $waitingHoldsRS->fetch_assoc();
-					$numWaitingHolds = $waitingHolds['numHolds'];
-					$waitingHoldsRS->close();
-				}
-
-				$homeBranchCode = $userFromDb['branchcode'];
-				$location = new Location();
-				$location->code = $homeBranchCode;
-				$location->find(1);
-				if ($location->N == 0){
-					unset($location);
-				}
-
-				global $user;
-				$profile = array(
-					'lastname' => $patron->lastname,
-					'firstname' => $patron->firstname,
-					'displayName' => isset($patron->displayName) ? $patron->displayName : '',
-					'fullname' => $user->lastname . ', ' . $user->firstname,
-					'address1' => trim($userFromDb['streetnumber'] . ' ' . $userFromDb['address'] . ' ' . $userFromDb['address2']),
-					'city' => $city,
-					'state' => $state,
-					'zip' => $userFromDb['zipcode'],
-					'phone' => $userFromDb['phone'],
-					'email' => $userFromDb['email'],
-					'homeLocationId' => isset($location) ? $location->locationId : -1,
-					'homeLocationName' => '',
-					'expires' => $userFromDb['dateexpiry'],
-					'expireclose' => '', //TODO not implemented for aspencat
-					'fines' => sprintf('$%0.2f', $outstandingFines),
-					'finesval' => floatval($outstandingFines),
-					'numHolds' => $numWaitingHolds + $numAvailableHolds,
-					'numHoldsAvailable' => $numAvailableHolds,
-					'numHoldsRequested' => $numWaitingHolds,
-					'numCheckedOut' => $numCheckouts ,
-					'bypassAutoLogout' => ($user ? $user->bypassAutoLogout : false),
-					'promptForOverdriveEmail' => $user ? $user->promptForOverdriveEmail : 1,
-					'noPromptForUserReviews' => $user ? $user->noPromptForUserReviews : 0,
-				);
-				$profile['noticePreferenceLabel'] = 'Unknown';
-
-				//Get eContent info as well
-				require_once(ROOT_DIR . '/Drivers/EContentDriver.php');
-				$eContentDriver = new EContentDriver();
-				$eContentAccountSummary = $eContentDriver->getAccountSummary();
-				$profile = array_merge($profile, $eContentAccountSummary);
-
-				require_once(ROOT_DIR . '/Drivers/OverDriveDriverFactory.php');
-				$overDriveDriver = OverDriveDriverFactory::getDriver();
-				if ($overDriveDriver->isUserValidForOverDrive($user)){
-					$overDriveSummary = $overDriveDriver->getOverDriveSummary($user);
-					$profile['numOverDriveCheckedOut'] = $overDriveSummary['numCheckedOut'];
-					$profile['numOverDriveHoldsAvailable'] = $overDriveSummary['numAvailableHolds'];
-					$profile['numOverDriveHoldsRequested'] = $overDriveSummary['numUnavailableHolds'];
-					$profile['canUseOverDrive'] = true;
-				}else{
-					$profile['numOverDriveCheckedOut'] = 0;
-					$profile['numOverDriveHoldsAvailable'] = 0;
-					$profile['numOverDriveHoldsRequested'] = 0;
-					$profile['canUseOverDrive'] = false;
-				}
-
-				$profile['numCheckedOutTotal'] = $profile['numCheckedOut'] + $profile['numOverDriveCheckedOut'] + $eContentAccountSummary['numEContentCheckedOut'];
-				$profile['numHoldsAvailableTotal'] = $profile['numHoldsAvailable'] + $profile['numOverDriveHoldsAvailable'] + $eContentAccountSummary['numEContentAvailableHolds'];
-				$profile['numHoldsRequestedTotal'] = $profile['numHoldsRequested'] + $profile['numOverDriveHoldsRequested'] + $eContentAccountSummary['numEContentUnavailableHolds'];
-				$profile['numHoldsTotal'] = $profile['numHoldsAvailableTotal'] + $profile['numHoldsRequestedTotal'];
-
-				//Get a count of the materials requests for the user
-				if ($user){
-					$homeLibrary = Library::getPatronHomeLibrary();
-					if ($homeLibrary){
-						$materialsRequest = new MaterialsRequest();
-						$materialsRequest->createdBy = $user->id;
-						$statusQuery = new MaterialsRequestStatus();
-						$statusQuery->isOpen = 1;
-						$statusQuery->libraryId = $homeLibrary->libraryId;
-						$materialsRequest->joinAdd($statusQuery);
-						$materialsRequest->find();
-						$profile['numMaterialsRequests'] = $materialsRequest->N;
-					}else{
-						$profile['numMaterialsRequests'] = 0;
-					}
-
-					if ($user->homeLocationId == 0 && isset($location)) {
-						$user->homeLocationId = $location->locationId;
-						if ($location->nearbyLocation1 > 0){
-							$user->myLocation1Id = $location->nearbyLocation1;
-						}else{
-							$user->myLocation1Id = $location->locationId;
-						}
-						if ($location->nearbyLocation2 > 0){
-							$user->myLocation2Id = $location->nearbyLocation2;
-						}else{
-							$user->myLocation2Id = $location->locationId;
-						}
-						if ($user instanceof User) {
-							//Update the database
-							$user->update();
-							//Update the serialized instance stored in the session
-							$_SESSION['userinfo'] = serialize($user);
-						}
-					}else if (isset($location) && $location->locationId != $user->homeLocationId){
-						$user->homeLocationId = $location->locationId;
-
-						//Update the database
-						$user->update();
-						//Update the serialized instance stored in the session
-						$_SESSION['userinfo'] = serialize($user);
-					}
-				}
-			}else{
-				$profile = PEAR_Singleton::raiseError('patron_info_error_technical - could not load from database');
-			}
-		} else {
-			$profile = PEAR_Singleton::raiseError('patron_info_error_technical - could not execute user info statement');
-		}
-
-		$this->patronProfiles[$patron->username] = $profile;
-		$timer->logTime('Retrieved Profile for Patron from Database');
-		global $configArray, $serverName;
-		$memCache->set($memCacheProfileKey, $profile, 0, $configArray['Caching']['patron_profile']) ;
-		// Looks like all drivers but aspencat use id rather than username.
-		// plb 4-16-2014
-		return $profile;
 	}
 
 	private $transactions = array();
-
 	public function getMyTransactions($page = 1, $recordsPerPage = -1, $sortOption = 'dueDate') {
 		if (true){
 			return $this->getMyTransactionsFromOpac($page, $recordsPerPage, $sortOption);
@@ -1087,103 +858,164 @@ class Aspencat implements DriverInterface{
 
 	/** @var mysqli_stmt  */
 	private $getUserInfoStmt = null;
-	private $loadedUsers = array();
 	public function patronLogin($username, $password) {
 		//Remove any spaces from the barcode
 		$username = trim($username);
 		$password = trim($password);
 
-		if (array_key_exists($username, $this->loadedUsers)){
-			return $this->loadedUsers[$username];
-		}
 		global $timer;
-		global $configArray;
 
-		$this->loadedUsers[$username] = null;
+		//Use MySQL connection to load data
+		$this->initDatabaseConnection();
 
-		if ($configArray['Catalog']['offline'] == true){
-			//The catalog is offline, check the database to see if the user is valid
-			$user = new User();
-			$user->cat_username = $username;
-			if ($user->find(true)){
-				$userValid = false;
-				if ($user->cat_username){
-					$userValid = true;
-				}
-				if ($userValid){
-					$returnVal = array(
-						'id'        => $password,
-						'username'  => $user->username,
-						'firstname' => $user->firstname,
-						'lastname'  => $user->lastname,
-						'fullname'  => $user->firstname . ' ' . $user->lastname,     //Added to array for possible display later.
-						'cat_username' => $username, //Should this be $Fullname or $patronDump['PATRN_NAME']
-						'cat_password' => $password,
-
-						'email' => $user->email,
-						'major' => null,
-						'college' => null,
-						'patronType' => $user->patronType,
-						'web_note' => translate('The catalog is currently down.  You will have limited access to circulation information.'));
-					$timer->logTime("patron logged in successfully");
-					return $returnVal;
-				} else {
-					$timer->logTime("patron login failed");
-					return null;
-				}
-			} else {
-				$timer->logTime("patron login failed");
-				return null;
-			}
-		}else{
-			//Use MySQL connection to load data
-			$this->initDatabaseConnection();
-
-			$barcodesToTest = array();
-			$barcodesToTest[] = $username;
-			//Special processing to allow users to login with short barcodes
-			global $library;
-			if ($library){
-				if ($library->barcodePrefix){
-					if (strpos($username, $library->barcodePrefix) !== 0){
-						//Add the barcode prefix to the barcode
-						$barcodesToTest[] = $library->barcodePrefix . $username;
-					}
+		$barcodesToTest = array();
+		$barcodesToTest[] = $username;
+		//Special processing to allow users to login with short barcodes
+		global $library;
+		if ($library){
+			if ($library->barcodePrefix){
+				if (strpos($username, $library->barcodePrefix) !== 0){
+					//Add the barcode prefix to the barcode
+					$barcodesToTest[] = $library->barcodePrefix . $username;
 				}
 			}
-
-			foreach ($barcodesToTest as $i=>$barcode) {
-				$this->getUserInfoStmt->bind_param('ss', $barcode, $barcode);
-				$encodedPassword = rtrim(base64_encode(pack('H*', md5($password))), '=');
-
-				if ($this->getUserInfoStmt->execute()) {
-					if ($userFromDbResultSet = $this->getUserInfoStmt->get_result()) {
-						$userFromDb = $userFromDbResultSet->fetch_assoc();
-						if ($userFromDb['password'] == $encodedPassword) {
-							$returnVal = array(
-								'username' => $userFromDb['borrowernumber'], //The unique id of the patron in the ILS
-								'firstname' => $userFromDb['firstname'],
-								'lastname' => $userFromDb['surname'],
-								'fullname' => $userFromDb['firstname'] . ' ' . $userFromDb['surname'],     //Added to array for possible display later.
-								'cat_username' => $barcode,
-								'cat_password' => $password,
-
-								'email' => $userFromDb['email'],
-								'major' => null,
-								'college' => null,
-								'patronType' => $userFromDb['categorycode'],
-								'web_note' => ''
-							);
-							$this->loadedUsers[$barcode] = $returnVal;
-							$timer->logTime("patron logged in successfully");
-							return $returnVal;
-						}
-					}
-				}
-			}
-			return null;
 		}
 
+		foreach ($barcodesToTest as $i=>$barcode) {
+			$this->getUserInfoStmt->bind_param('ss', $barcode, $barcode);
+			$encodedPassword = rtrim(base64_encode(pack('H*', md5($password))), '=');
+
+			if ($this->getUserInfoStmt->execute()) {
+				if ($userFromDbResultSet = $this->getUserInfoStmt->get_result()) {
+					$userFromDb = $userFromDbResultSet->fetch_assoc();
+					if ($userFromDb['password'] == $encodedPassword) {
+						$userExistsInDB = false;
+						$user = new User();
+						//Get the unique user id from Millennium
+						$user->source = $this->accountProfile->name;
+						$user->username = $userFromDb['borrowernumber'];
+						if ($user->find(true)){
+							$userExistsInDB = true;
+						}
+						$user->firstname = $userFromDb['firstname'];
+						$user->lastname = $userFromDb['surname'];
+						$user->fullname = $userFromDb['firstname'] . ' ' . $userFromDb['surname'];
+						$user->cat_username = $barcode;
+						$user->cat_password =  $password;
+						$user->email = $userFromDb['email'];
+						$user->patronType = $userFromDb['categorycode'];
+						$user->web_note = '';
+
+						$city = strtok($userFromDb['city'], ',');
+						$state = strtok(',');
+						$city = trim($city);
+						$state = trim($state);
+
+						$user->address1 = trim($userFromDb['streetnumber'] . ' ' . $userFromDb['address'] . ' ' . $userFromDb['address2']);
+						$user->city = $city;
+						$user->state = $state;
+						$user->zip = $userFromDb['zipcode'];
+						$user->phone = $userFromDb['phone'];
+
+						//Get fines
+						//Load fines from database
+						$outstandingFines = $this->getOutstandingFineTotal();
+						$user->fines = sprintf('$%0.2f', $outstandingFines);
+						$user->finesVal = floatval($outstandingFines);
+
+						//Get number of items checked out
+						$checkedOutItemsRS = mysqli_query($this->dbConnection, 'SELECT count(*) as numCheckouts FROM issues WHERE borrowernumber = ' . $user->username);
+						$numCheckouts = 0;
+						if ($checkedOutItemsRS){
+							$checkedOutItems = $checkedOutItemsRS->fetch_assoc();
+							$numCheckouts = $checkedOutItems['numCheckouts'];
+							$checkedOutItemsRS->close();
+						}
+						$user->numCheckedOutIls = $numCheckouts;
+
+						//Get number of available holds
+						$availableHoldsRS = mysqli_query($this->dbConnection, 'SELECT count(*) as numHolds FROM reserves WHERE waitingdate is not null and borrowernumber = ' . $user->username);
+						$numAvailableHolds = 0;
+						if ($availableHoldsRS){
+							$availableHolds = $availableHoldsRS->fetch_assoc();
+							$numAvailableHolds = $availableHolds['numHolds'];
+							$availableHoldsRS->close();
+						}
+						$user->numHoldsAvailableIls = $numAvailableHolds;
+
+						//Get number of unavailable
+						$waitingHoldsRS = mysqli_query($this->dbConnection, 'SELECT count(*) as numHolds FROM reserves WHERE waitingdate is null and borrowernumber = ' . $user->username);
+						$numWaitingHolds = 0;
+						if ($waitingHoldsRS){
+							$waitingHolds = $waitingHoldsRS->fetch_assoc();
+							$numWaitingHolds = $waitingHolds['numHolds'];
+							$waitingHoldsRS->close();
+						}
+						$user->numHoldsRequestedIls = $numWaitingHolds;
+						$user->numHoldsIls = $user->numHoldsAvailableIls + $user->numHoldsRequestedIls;
+
+						$homeBranchCode = $userFromDb['branchcode'];
+						$location = new Location();
+						$location->code = $homeBranchCode;
+						$location->find(1);
+						if ($location->N == 0){
+							unset($location);
+							$user->homeLocationId = -1;
+						}else{
+							//Setup default location information if it hasn't been loaded or has been changed
+							if ($user->homeLocationId == 0 || $location->locationId != $user->homeLocationId) {
+								$user->homeLocationId = $location->locationId;
+								if ($location->nearbyLocation1 > 0){
+									$user->myLocation1Id = $location->nearbyLocation1;
+								}else{
+									$user->myLocation1Id = $location->locationId;
+								}
+								if ($location->nearbyLocation2 > 0){
+									$user->myLocation2Id = $location->nearbyLocation2;
+								}else{
+									$user->myLocation2Id = $location->locationId;
+								}
+							}
+							//Get display names that aren't stored
+							$user->homeLocationCode = $location->code;
+							$user->homeLocation = $location->displayName;
+
+							//Get display name for preferred location 1
+							$myLocation1 = new Location();
+							$myLocation1->whereAdd("locationId = '$user->myLocation1Id'");
+							if ($myLocation1->find(true)){
+								$user->myLocation1 = $myLocation1->displayName;
+							}
+
+							//Get display name for preferred location 2
+							$myLocation2 = new Location();
+							$myLocation2->whereAdd("locationId = '$user->myLocation2Id'");
+							if ($myLocation2->find(true)){
+								$user->myLocation2 = $myLocation2->displayName;
+							}
+						}
+
+						$user->expires = $userFromDb['dateexpiry'];
+						//TODO: Implement determining if the user is expired or if expiration is close
+
+						$user->noticePreferenceLabel = 'Unknown';
+
+						if ($userExistsInDB){
+							$user->update();
+						}else{
+							$user->created = date('Y-m-d');
+							$user->insert();
+						}
+
+						$timer->logTime("patron logged in successfully");
+
+						$userFromDbResultSet->close();
+						return $user;
+					}
+				}
+			}
+		}
+		return null;
 	}
 
 	function initDatabaseConnection(){
@@ -1204,9 +1036,13 @@ class Aspencat implements DriverInterface{
 		}
 	}
 
-	function __construct(){
+	/**
+	 * @param AccountProfile $accountProfile
+	 */
+	public function __construct($accountProfile){
+		$this->accountProfile = $accountProfile;
 		global $timer;
-		$timer->logTime("Created Aspencat Driver");
+		$timer->logTime("Crea11ted Aspencat Driver");
 	}
 
 	function __destruct(){

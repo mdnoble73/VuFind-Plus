@@ -38,42 +38,13 @@ require_once ROOT_DIR . '/Drivers/Millennium.php';
  * @author James Staub <james.staub@nashville.gov>
  */
 class Nashville extends Millennium{
-	public function __construct(){
+	/**
+	 * @param AccountProfile $accountProfile
+	 */
+	public function __construct($accountProfile){
+		parent::__construct($accountProfile);
 		$this->fixShortBarcodes = false;
 	}
-
-	/**
-	 * Initialize and configure curl connection
-	 */
-	public function _curl_connect($curl_url){
-		global $interface;
-		$header = array();
-		$header[0] = "Accept: text/xml,application/xml,application/xhtml+xml,";
-		$header[0] .= "text/html;q=0.9,text/plain;q=0.8,image/png,*/*;q=0.5";
-		$header[] = "Cache-Control: max-age=0";
-		$header[] = "Connection: keep-alive";
-		$header[] = "Accept-Charset: ISO-8859-1,utf-8;q=0.7,*;q=0.7";
-		$header[] = "Accept-Language: en-us,en;q=0.5";
-		$cookie_jar = tempnam ("/tmp", "CURLCOOKIE");
-		$curl_connection = curl_init();
-		curl_setopt($curl_connection, CURLOPT_CONNECTTIMEOUT, 30);
-		curl_setopt($curl_connection, CURLOPT_COOKIEJAR, $cookie_jar);
-		curl_setopt($curl_connection, CURLOPT_COOKIESESSION, true); // JAMES 20150617: ?
-		curl_setopt($curl_connection, CURLOPT_FOLLOWLOCATION, true);
-		curl_setopt($curl_connection, CURLOPT_FORBID_REUSE, false);
-		curl_setopt($curl_connection, CURLOPT_HEADER, false); // should set CURLOPT_HEADER to false[?] in production - JAMES 20140830
-		curl_setopt($curl_connection, CURLOPT_HTTPHEADER, $header);
-		curl_setopt($curl_connection, CURLOPT_RETURNTRANSFER, true); // should set CURLOPT_RETURNTRANSFER to true in production - JAMES 20140830
-		curl_setopt($curl_connection, CURLOPT_SSL_VERIFYPEER, true); // should set CURLOPT_SSL_VERIFYPEER to true in production - JAMES 20140830
-		curl_setopt($curl_connection, CURLOPT_UNRESTRICTED_AUTH, true);
-		$gitBranch = $interface->getVariable('gitBranch');
-		curl_setopt($curl_connection, CURLOPT_USERAGENT,"Pika " . $gitBranch); 
-		curl_setopt($curl_connection, CURLOPT_URL, $curl_url);
-
-		curl_setopt($curl_connection, CURLOPT_HTTPGET, true);
-
-		return($curl_connection);
-	}                                        
 
 	/**
 	 * Login with barcode and pin
@@ -83,78 +54,21 @@ class Nashville extends Millennium{
 	public function patronLogin($barcode, $pin)
 	{
 		global $configArray;
-		global $timer;
-		global $logger;
 		if ($configArray['Catalog']['offline'] == true){
-			//$logger->log("Trying to authenticate in offline mode $barcode, $pin", PEAR_LOG_DEBUG);
-			//The catalog is offline, check the database to see if the user is valid
-			$user = new User();
-			$user->cat_username = $barcode;
-			$user->cat_password = $pin;
-			if ($user->find(true)){
-				//$logger->log("Found the user", PEAR_LOG_DEBUG);
-				$returnVal = array(
-					'id'        => $user->id,
-					'username'  => $user->username,
-					'firstname' => $user->firstname,
-					'lastname'  => $user->lastname,
-					'fullname'  => $user->firstname . ' ' . $user->lastname,     //Added to array for possible display later.
-					'cat_username' => $barcode, //Should this be $Fullname or $patronDump['PATRN_NAME']
-					'cat_password' => $pin,
-					'email' => $user->email,
-					'major' => null,
-					'college' => null,
-					'patronType' => $user->patronType,
-					'web_note' => translate('The catalog is currently down.  You will have limited access to circulation information.'));
-				$timer->logTime("patron logged in successfully");
-				return $returnVal;
-			} else {
-				//$logger->log("Did not find a user for that barcode and pin", PEAR_LOG_DEBUG);
-				$timer->logTime("patron login failed");
-				return null;
-			}
+			return parent::patronLogin($barcode, $pin);
 		}else{
 			// if patron attempts to Create New PIN
 			if (isset($_REQUEST['password2']) && strlen($_REQUEST['password2']) > 0){
 				$this->_pin_create($barcode,$_REQUEST['password'],$_REQUEST['password2']);
 			}
-			// check barcode/pin credentials
-			$userValid = $this->_pin_test($barcode, $pin);
-			if ($userValid){
-				//Load the raw information about the patron
-				$patronDump = $this->_getPatronDump($barcode, true);
-				$Fullname = $patronDump['PATRN_NAME']; // James Staub chose this simpler route over some $Fullname replace acrobatics in Millennium.php 20131205
-				$nameParts = explode(',',$Fullname);
-				$lastname = strtolower($nameParts[0]);
-				$middlename = isset($nameParts[2]) ? strtolower($nameParts[2]) : ''; 
-				$firstname = isset($nameParts[1]) ? strtolower($nameParts[1]) : $middlename;
-				$user = array(
-					'id'		=> $barcode,
-					'username'	=> $patronDump['RECORD_#'],
-					'firstname'	=> $firstname,
-					'lastname'	=> $lastname,
-					'fullname'	=> $Fullname,	//Added to array for possible display later.
-					'cat_username'	=> $barcode,	//Should this be $Fullname or $patronDump['PATRN_NAME']
-		                	'cat_password'	=> $pin,
-	                		'email'		=> isset($patronDump['EMAIL_ADDR']) ? $patronDump['EMAIL_ADDR'] : '',
-	                		'major'		=> null,
-	                		'college'	=> null,
-					'patronType'	=> $patronDump['P_TYPE'],
-					'web_note'	=> isset($patronDump['WEB_NOTE']) ? $patronDump['WEB_NOTE'] : '');
-					$timer->logTime("patron logged in successfully");
-					return $user;
-			} else {
-				$timer->logTime("patron login failed");
-				return null;
-			}
+			return parent::patronLogin($barcode, $pin);
 		}
 	}
 
-	public function _getLoginFormValues(){
-		global $user;
+	public function _getLoginFormValues($patron){
 		$loginData = array();
-		$loginData['pin'] = $user->cat_password;
-		$loginData['code'] = $user->cat_username;
+		$loginData['pin'] = $patron->cat_password;
+		$loginData['code'] = $patron->cat_username;
 		$loginData['submit'] = 'submit';
 		return $loginData;
 	}
@@ -167,7 +81,6 @@ class Nashville extends Millennium{
 	protected function _getHoldResult($holdResultPage){
 		$hold_result = array();
 		//Get rid of header and footer information and just get the main content
-		$matches = array();
 		if (preg_match('/success/', $holdResultPage)){
 			//Hold was successful
 			$hold_result['result'] = true;
@@ -188,29 +101,7 @@ class Nashville extends Millennium{
 		return $hold_result;
 	}
 
-	protected function _pin_test($barcode, $pin) {
-		global $configArray;
-		$pin = urlencode($pin);
-		$apiurl = $configArray['OPAC']['patron_host'] . "/PATRONAPI/$barcode/$pin/pintest";
-		$curl_connection = $this->_curl_connect($apiurl);
-		$api_contents = curl_exec($curl_connection);
-		curl_close($curl_connection);
-		$api_contents = trim(strip_tags($api_contents));
-		//$logger->log('PATRONAPI pintest response : ' . $api_contents, PEAR_LOG_DEBUG);
-		$api_array_lines = explode("\n", $api_contents);
-		foreach ($api_array_lines as $api_line) {
-			$api_line_arr = explode("=", $api_line);
-			$api_data[trim($api_line_arr[0])] = trim($api_line_arr[1]);
-		}
-		if (!isset($api_data['RETCOD'])){
-			$userValid = false;
-		}else if ($api_data['RETCOD'] == 0){
-			$userValid = true;
-		}else{
-			$userValid = false;
-		}
-		return $userValid;
-	}
+
 
 	protected function _pin_create($barcode, $pin1, $pin2) {
 		global $configArray;
@@ -226,7 +117,7 @@ class Nashville extends Millennium{
 // 7. PATRONAPI pintest
 // 8. display PATRONAPI error messages
 // 9. redirect patron to /MyAccount/Home
-		$curl_url = $configArray['Catalog']['url'] . "/patroninfo";
+		$curl_url = $this->getVendorOpacUrl() . "/patroninfo";
 		$curl_connection = $this->_curl_connect($curl_url);
 		$sresult = curl_exec($curl_connection);
 		//Scrape the 'lt' value from the IPSSO login page
@@ -329,7 +220,7 @@ class Nashville extends Millennium{
 		$barcode = $this->_getBarcode();
 		//Attempt to call new PIN popup form for patron record 1. WebPAC will challenge for barcode/PIN. 
 		//After authentication check succeeds, WebPAC (without any help from us) will replace "1" with the patron record number
-		$curl_url = $configArray['Catalog']['url'] . "/patroninfo/1/newpin"; 
+		$curl_url = $this->getVendorOpacUrl() . "/patroninfo/1/newpin";
 		$curl_connection = $this->_curl_connect($curl_url);
                 $sresult = curl_exec($curl_connection);
 		//only bother to log in using the ipsso login page if it appears; user session might allow patron to go directly to newpin page
@@ -372,11 +263,9 @@ class Nashville extends Millennium{
 		$post_string = implode ('&', $post_items);
 		curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
 		$curl_url = curl_getinfo($curl_connection, CURLINFO_EFFECTIVE_URL);
-//		$curl_url = $configArray['Catalog']['url'] . "/patroninfo/" .$patronDump['RECORD_#'] . "/newpin";
 		curl_setopt($curl_connection, CURLOPT_URL, $curl_url);
 		$sresult = curl_exec($curl_connection);
 		curl_close($curl_connection);
-		unlink($cookieJar);
 		if ($sresult){
 			if (preg_match('/Your PIN has been modified/i', $sresult)){
 				$user->cat_password = $pin1;

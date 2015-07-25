@@ -365,8 +365,7 @@ class UserAPI extends Action {
 		global $user;
 		$user = UserAccount::validateAccount($username, $password);
 		if ($user && !PEAR_Singleton::isError($user)){
-			$profile = $this->getCatalogConnection()->getMyProfile($user);
-			return array('success'=>true, 'profile'=>$profile);
+			return array('success'=>true, 'profile'=>$user);
 		}else{
 			return array('success'=>false, 'message'=>'Login unsuccessful');
 		}

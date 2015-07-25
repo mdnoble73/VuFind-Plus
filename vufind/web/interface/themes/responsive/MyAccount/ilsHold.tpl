@@ -14,10 +14,10 @@
 				</div>
 				<div class="col-xs-9 text-center">
 					{if $record.recordId}
-						<a href="{$path}/Record/{$record.recordId|escape:"url"}?searchId={$searchId}&amp;recordIndex={$recordIndex}&amp;page={$page}">
+						<a href="{$record.link}">
 					{/if}
 
-					<img src="{$coverUrl}/bookcover.php?id={$record.recordId}&amp;issn={$record.issn}&amp;isn={$record.isbn|@formatISBN}&amp;size=small&amp;upc={$record.upc}&amp;category={$record.format_category.0|escape:"url"}" class="listResultImage img-thumbnail img-responsive" alt="{translate text='Cover Image'}"/>
+					<img src="{$record.coverUrl}" class="listResultImage img-thumbnail img-responsive" alt="{translate text='Cover Image'}"/>
 					{if $record.recordId}
 						</a>
 					{/if}
@@ -30,7 +30,7 @@
 				<div class="col-xs-12">
 					<span class="result-index">{$resultIndex})</span>&nbsp;
 					{if $record.recordId}
-						<a href="{$path}/Record/{$record.recordId|escape:"url"}" class="result-title notranslate">
+						<a href="{$record.link}" class="result-title notranslate">
 					{/if}
 					{if !$record.title|removeTrailingPunctuation}{translate text='Title not available'}{else}{$record.title|removeTrailingPunctuation|truncate:180:"..."|highlight:$lookfor}{/if}
 					{if $record.recordId}

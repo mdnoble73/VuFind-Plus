@@ -67,19 +67,20 @@ class CatalogConnection
 	 *
 	 * This is responsible for instantiating the driver that has been specified.
 	 *
-	 * @param string $driver The name of the driver to load.
+	 * @param string         $driver         The name of the driver to load.
+	 * @param AccountProfile $accountProfile
 	 * @throws PDOException error if we cannot connect to the driver.
 	 *
 	 * @access public
 	 */
-	public function __construct($driver)
+	public function __construct($driver, $accountProfile)
 	{
 		$path = ROOT_DIR . "/Drivers/{$driver}.php";
 		if (is_readable($path)) {
 			require_once $path;
 
 			try {
-				$this->driver = new $driver;
+				$this->driver = new $driver($accountProfile);
 			} catch (PDOException $e) {
 				throw $e;
 			}
@@ -250,13 +251,133 @@ class CatalogConnection
 	 * @param string $username The patron username
 	 * @param string $password The patron password
 	 *
-	 * @return mixed           Associative array of patron info on successful
-	 * login, null on unsuccessful login, PEAR_Error on error.
+	 * @return User|null     User object or null if the user cannot be logged in
 	 * @access public
 	 */
-	public function patronLogin($username, $password)
-	{
-		return $this->driver->patronLogin($username, $password);
+	public function patronLogin($username, $password) {
+		global $timer;
+		global $configArray;
+
+		//Get the barcode property
+		if ($this->driver->accountProfile->loginConfiguration == 'barcode_pin'){
+			$barcode = $username;
+		}else{
+			$barcode = $password;
+		}
+
+		//Strip any non digit characters from the password
+		//Can't do this any longer since some libraries do have characters in their barcode:
+		//$password = preg_replace('/[a-or-zA-OR-Z\W]/', '', $password);
+		//Remove any spaces from the barcode
+		$barcode = preg_replace('/[^a-zA-Z\d\s]/', '', trim($barcode));
+		if ($configArray['Catalog']['offline'] == true){
+			//The catalog is offline, check the database to see if the user is valid
+			$user = new User();
+			if ($this->driver->accountProfile->loginConfiguration == 'barcode_pin') {
+				$user->cat_username = $barcode;
+			}else{
+				$user->cat_password = $barcode;
+			}
+			if ($user->find(true)){
+				if ($this->driver->accountProfile->loginConfiguration = 'barcode_pin') {
+					//We load the account based on the barcode make sure the pin matches
+					$userValid = $user->cat_password == $password;
+				}else{
+					//We still load based on barcode, make sure the username is similar
+					$userValid = $this->areNamesSimilar($username, $user->cat_username);
+				}
+				if ($userValid){
+					//We have a good user account for additional processing
+				} else {
+					$timer->logTime("offline patron login failed due to invalid name");
+					return null;
+				}
+			} else {
+				$timer->logTime("offline patron login failed because we haven't seen this user before");
+				return null;
+			}
+		}else {
+			$user = $this->driver->patronLogin($username, $password);
+		}
+
+		if ($user){
+			$this->updateUserWithAdditionalRuntimeInformation($user);
+		}
+
+		return $user;
+	}
+
+	public function updateUserWithAdditionalRuntimeInformation($user){
+		//If we have loaded information from the ILS, get additional information that is not ILS specific
+		require_once(ROOT_DIR . '/Drivers/EContentDriver.php');
+		$eContentDriver = new EContentDriver(null);
+		$eContentDriver->loadAccountSummary($user);
+
+		//TODO: Optimize by checking if the patron home library has OverDrive active.
+		require_once(ROOT_DIR . '/Drivers/OverDriveDriverFactory.php');
+		$overDriveDriver = OverDriveDriverFactory::getDriver();
+		if ($overDriveDriver->isUserValidForOverDrive($user)){
+			$overDriveSummary = $overDriveDriver->getOverDriveSummary($user);
+			$user->numCheckedOutOverDrive = $overDriveSummary['numCheckedOut'];
+			$user->numHoldsAvailableOverDrive = $overDriveSummary['numAvailableHolds'];
+			$user->numHoldsRequestedOverDrive = $overDriveSummary['numUnavailableHolds'];
+			$user->canUseOverDrive = true;
+		}else{
+			$user->numCheckedOutOverDrive = 0;
+			$user->numHoldsAvailableOverDrive = 0;
+			$user->numHoldsRequestedOverDrive = 0;
+			$user->canUseOverDrive = false;
+		}
+
+		$materialsRequest = new MaterialsRequest();
+		$materialsRequest->createdBy = $user->id;
+		$homeLibrary = Library::getLibraryForLocation($user->homeLocationId);
+		if ($homeLibrary){
+			$statusQuery = new MaterialsRequestStatus();
+			$statusQuery->isOpen = 1;
+			$statusQuery->libraryId = $homeLibrary->libraryId;
+			$materialsRequest->joinAdd($statusQuery);
+			$materialsRequest->find();
+			$user->numMaterialsRequests = $materialsRequest->N;
+		}else{
+			$user->numMaterialsRequests = 0;
+		}
+
+
+		$user->readingHistorySize = '';
+		if ($user->trackReadingHistory && $user->initialReadingHistoryLoaded){
+			require_once ROOT_DIR . '/sys/ReadingHistoryEntry.php';
+			$readingHistoryDB = new ReadingHistoryEntry();
+			$readingHistoryDB->userId = $user->id;
+			$readingHistoryDB->deleted = 0;
+			$user->readingHistorySize = $readingHistoryDB->count();
+		}
+	}
+
+	/**
+	 * @param $nameFromUser  string
+	 * @param $nameFromIls   string
+	 * @return boolean
+	 */
+	private function areNamesSimilar($nameFromUser, $nameFromIls) {
+		$fullName = str_replace(",", " ", $nameFromIls);
+		$fullName = str_replace(";", " ", $fullName);
+		$fullName = str_replace(";", "'", $fullName);
+		$fullName = preg_replace("/\\s{2,}/", " ", $fullName);
+		$allNameComponents = preg_split('^[\s-]^', strtolower($fullName));
+
+		//Get the first name that the user supplies.
+		//This expects the user to enter one or two names and only
+		//Validates the first name that was entered.
+		$enteredNames = preg_split('^[\s-]^', strtolower($nameFromUser));
+		$userValid = false;
+		foreach ($enteredNames as $name) {
+			if (in_array($name, $allNameComponents, false)) {
+				$userValid = true;
+				break;
+			}
+		}
+		return $userValid;
 	}
 
 	/**
@@ -265,17 +386,15 @@ class CatalogConnection
 	 * This is responsible for retrieving all transactions (i.e. checked out items)
 	 * by a specific patron.
 	 *
-	 * @param integer $page current     page to retrieve data for
-	 * @param integer $recordsPerPage   current page to retrieve data for
-	 * @param string  $sortOption       how the dates should sort.
+	 * @param User $user    The user to load transactions for
 	 *
 	 * @return mixed        Array of the patron's transactions on success,
 	 * PEAR_Error otherwise.
 	 * @access public
 	 */
-	public function getMyTransactions($page = 1, $recordsPerPage = -1, $sortOption = 'dueDate')
+	public function getMyTransactions($user)
 	{
-		return $this->driver->getMyTransactions($page, $recordsPerPage, $sortOption);
+		return $this->driver->getMyTransactions($user);
 	}
 
 	/**
@@ -447,75 +566,15 @@ class CatalogConnection
 	/**
 	 * Get Patron Holds
 	 *
-	 * This is responsible for retrieving all holds by a specific patron.
+	 * This is responsible for retrieving all holds for a specific patron.
 	 *
-	 * @param array|User $patron      The patron array from patronLogin
-	 * @param integer $page           The current page of holds
-	 * @param integer $recordsPerPage The number of records to show per page
-	 * @param string $sortOption      How the records should be sorted
+	 * @param User $user    The user to load transactions for
 	 *
-	 * @return mixed        Array of the patron's holds on success, PEAR_Error
-	 * otherwise.
+	 * @return array        Array of the patron's holds
 	 * @access public
 	 */
-	public function getMyHolds($patron, $page = 1, $recordsPerPage = -1, $sortOption = 'title')
-	{
-		return $this->driver->getMyHolds($patron, $page, $recordsPerPage, $sortOption);
-	}
-
-	/**
-	 * Get Patron Profile
-	 *
-	 * This is responsible for retrieving the profile for a specific patron.
-	 *
-	 * @param array|User $patron The patron array
-	 *
-	 * @return mixed        Array of the patron's profile data on success,
-	 * PEAR_Error otherwise.
-	 * @access public
-	 */
-	public function getMyProfile($patron)
-	{
-		/** @var Memcache $memCache */
-		global $memCache;
-		global $serverName;
-		$memCacheProfileKey = "patronProfile_{$serverName}_";
-		if (is_object($patron)){
-			$memCacheProfileKey .= $patron->username;
-		}else{
-			$memCacheProfileKey .= $patron['username'];
-		}
-
-		$forceReload = isset($_REQUEST['reload']);
-		if (!$forceReload && $memCacheProfileKey) {
-			$cachedValue = $memCache->get($memCacheProfileKey);
-			if (!$cachedValue) $forceReload = true;
-			// when not found in memcache turn on reload to short-circuit redundant memcache checks in each of the ILS drivers for getMyProfile()
-		}
-		if ($forceReload){
-			$profile = $this->driver->getMyProfile($patron, $forceReload);
-			if (PEAR_Singleton::isError($profile)){
-//				echo("Error loading profile " . print_r($profile, true));
-				return $profile;
-			}
-
-			$profile['readingHistorySize'] = '';
-			if ($patron && $patron->trackReadingHistory && $patron->initialReadingHistoryLoaded){
-				require_once ROOT_DIR . '/sys/ReadingHistoryEntry.php';
-				$readingHistoryDB = new ReadingHistoryEntry();
-				$readingHistoryDB->userId = $patron->id;
-				$readingHistoryDB->deleted = 0;
-				$profile['readingHistorySize'] = $readingHistoryDB->count();
-			}
-			$cachedValue = $profile;
-
-			global $configArray;
-			$memCacheResult = $memCache->replace($memCacheProfileKey, $cachedValue, 0, $configArray['Caching']['patron_profile']);
-			// Update the existing key
-			// Note: I see what seem to be fatal calls to the memcache replace method when the updated value matches the stored value. I am not 100% certain that is the actual problem though. plb 7-7-2015
-		}
-
-		return $cachedValue;
+	public function getMyHolds($user) {
+		return $this->driver->getMyHolds($user);
 	}
 
 	/**

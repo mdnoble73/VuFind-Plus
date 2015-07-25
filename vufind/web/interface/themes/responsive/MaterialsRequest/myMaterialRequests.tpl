@@ -1,13 +1,13 @@
 <script type="text/javascript" src="{$path}/MaterialsRequest/ajax.js"></script>
 <div id="main-content">
-	{if $profile.web_note}
+	{if $profile->web_note}
 		<div class="row">
-			<div id="web_note" class="alert alert-info text-center col-xs-12">{$profile.web_note}</div>
+			<div id="web_note" class="alert alert-info text-center col-xs-12">{$profile->web_note}</div>
 		</div>
 	{/if}
 
-	{if $profile.numHoldsAvailableTotal && $profile.numHoldsAvailableTotal > 0}
-		<div class="text-info text-center alert alert-info"><a href="/MyAccount/Holds">You have <span style="font-weight: bold">{$profile.numHoldsAvailableTotal}</span> holds ready for pick up.</a></div>
+	{if $profile->getNumHoldsAvailableTotal() && $profile->getNumHoldsAvailableTotal() > 0}
+		<div class="text-info text-center alert alert-info"><a href="/MyAccount/Holds">You have <span style="font-weight: bold">{$profile->getNumHoldsAvailableTotal()}</span> holds ready for pick up.</a></div>
 	{/if}
 	<h2>My Materials Requests</h2>
 	{if $error}

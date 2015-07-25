@@ -2161,9 +2161,22 @@ class DBMaintenance extends Admin_Admin {
 						  `driver` varchar(50) NOT NULL,
 						  `loginConfiguration` enum('barcode_pin','name_barcode') NOT NULL,
 						  `authenticationMethod` enum('ils','sip2','db','ldap') NOT NULL DEFAULT 'ils',
+						  `vendorOpacUrl` varchar(100) NOT NULL,
+						  `patronApiUrl` varchar(100) NOT NULL,
+						  `recordSource` varchar(50) NOT NULL,
 						  PRIMARY KEY (`id`),
 						  UNIQUE KEY `name` (`name`)
 						) ENGINE=InnoDB  DEFAULT CHARSET=utf8",
+					)
+				),
+
+				'account_profiles_1' => array(
+					'title' => 'Update Account Profiles 1',
+					'description' => 'Update Account Profiles with additional data to make integration easier',
+					'sql' => array(
+						"ALTER TABLE `account_profiles` ADD `vendorOpacUrl` varchar(100) NOT NULL",
+						"ALTER TABLE `account_profiles` ADD `patronApiUrl` varchar(100) NOT NULL",
+						"ALTER TABLE `account_profiles` ADD `recordSource` varchar(50) NOT NULL",
 					)
 				),
 			)

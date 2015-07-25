@@ -12,7 +12,7 @@ class Sierra extends Millennium{
 	public function getItemInfo($bibId){
 		global $configArray;
 		$apiVersion = $configArray['Catalog']['api_version'];
-		$apiUrl = $configArray['Catalog']['url'] . "/iii/sierra-api/v{$apiVersion}/items/{$bibId}";
+		$apiUrl = $this->getVendorOpacUrl() . "/iii/sierra-api/v{$apiVersion}/items/{$bibId}";
 		$itemData = $this->_callUrl($apiUrl);
 		return $itemData;
 	}
@@ -20,7 +20,7 @@ class Sierra extends Millennium{
 	public function getBib($bibId){
 		global $configArray;
 		$apiVersion = $configArray['Catalog']['api_version'];
-		$apiUrl = $configArray['Catalog']['url'] . "/iii/sierra-api/v{$apiVersion}/bibs/{$bibId}";
+		$apiUrl = $this->getVendorOpacUrl() . "/iii/sierra-api/v{$apiVersion}/bibs/{$bibId}";
 		$itemData = $this->_callUrl($apiUrl);
 		return $itemData;
 	}
@@ -28,7 +28,7 @@ class Sierra extends Millennium{
 	public function getMarc($bibId){
 		global $configArray;
 		$apiVersion = $configArray['Catalog']['api_version'];
-		$apiUrl = $configArray['Catalog']['url'] . "/iii/sierra-api/v{$apiVersion}/bibs/{$bibId}/marc";
+		$apiUrl = $this->getVendorOpacUrl() . "/iii/sierra-api/v{$apiVersion}/bibs/{$bibId}/marc";
 		$itemData = $this->_callUrl($apiUrl);
 		return $itemData;
 	}
@@ -36,7 +36,7 @@ class Sierra extends Millennium{
 	public function getItemsForBib($bibId) {
 		global $configArray;
 		$apiVersion = $configArray['Catalog']['api_version'];
-		$apiUrl = $configArray['Catalog']['url'] . "/iii/sierra-api/v{$apiVersion}/items/?bibIds=$bibId";
+		$apiUrl = $this->getVendorOpacUrl() . "/iii/sierra-api/v{$apiVersion}/items/?bibIds=$bibId";
 		$itemData = $this->_callUrl($apiUrl);
 		return $itemData;
 	}
@@ -44,7 +44,7 @@ class Sierra extends Millennium{
 	public function getBibsChangedSince($date, $offset = 0) {
 		global $configArray;
 		$apiVersion = $configArray['Catalog']['api_version'];
-		$apiUrl = $configArray['Catalog']['url'] . "/iii/sierra-api/v{$apiVersion}/bibs/?updatedDate=[$date,]&limit=2000&fields=id&deleted=false&suppressed=false";
+		$apiUrl = $this->getVendorOpacUrl() . "/iii/sierra-api/v{$apiVersion}/bibs/?updatedDate=[$date,]&limit=2000&fields=id&deleted=false&suppressed=false";
 		$itemData = $this->_callUrl($apiUrl);
 		$bibIds = array();
 		if (isset($itemData->entries)){
@@ -62,7 +62,7 @@ class Sierra extends Millennium{
 	public function getBibsDeletedSince($date, $offset = 0) {
 		global $configArray;
 		$apiVersion = $configArray['Catalog']['api_version'];
-		$apiUrl = $configArray['Catalog']['url'] . "/iii/sierra-api/v{$apiVersion}/bibs/?deletedDate=[$date,]&limit=2000&fields=id&offset=$offset";
+		$apiUrl = $this->getVendorOpacUrl() . "/iii/sierra-api/v{$apiVersion}/bibs/?deletedDate=[$date,]&limit=2000&fields=id&offset=$offset";
 		$itemData = $this->_callUrl($apiUrl);
 		$bibIds = array();
 		if (isset($itemData->entries)){
@@ -80,7 +80,7 @@ class Sierra extends Millennium{
 	public function getBibsCreatedSince($date, $offset = 0) {
 		global $configArray;
 		$apiVersion = $configArray['Catalog']['api_version'];
-		$apiUrl = $configArray['Catalog']['url'] . "/iii/sierra-api/v{$apiVersion}/bibs/?createdDate=[$date,]&limit=2000&fields=id&deleted=false&suppressed=false&offset=$offset";
+		$apiUrl = $this->getVendorOpacUrl() . "/iii/sierra-api/v{$apiVersion}/bibs/?createdDate=[$date,]&limit=2000&fields=id&deleted=false&suppressed=false&offset=$offset";
 		$itemData = $this->_callUrl($apiUrl);
 		$bibIds = array();
 		if (isset($itemData->entries)){
@@ -101,7 +101,7 @@ class Sierra extends Millennium{
 		if ($forceNewConnection || $tokenData == false){
 			global $configArray;
 			$apiVersion = $configArray['Catalog']['api_version'];
-			$ch = curl_init($configArray['Catalog']['url'] . "/iii/sierra-api/v{$apiVersion}/token/");
+			$ch = curl_init($this->getVendorOpacUrl() . "/iii/sierra-api/v{$apiVersion}/token/");
 			curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 15);
 			curl_setopt($ch, CURLOPT_USERAGENT,"Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)");
 			curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);

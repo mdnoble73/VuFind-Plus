@@ -6,14 +6,19 @@ class ILSAuthentication implements Authentication {
 	private $username;
 	private $password;
 	private $driverName;
+	/** @var  AccountProfile */
+	private $accountProfile;
+	private $catalogConnection;
 
 	public function __construct($additionalInfo) {
 		if (array_key_exists('driver', $additionalInfo)){
 			$this->driverName = $additionalInfo['driver'];
+			$this->accountProfile = $additionalInfo['accountProfile'];
 		}else{
 			global $configArray;
 			$this->driverName = $configArray['Catalog']['driver'];
 		}
+		$this->catalogConnection = CatalogFactory::getCatalogConnectionInstance($this->driverName, $this->accountProfile);
 	}
 
 	public function authenticate(){
@@ -32,12 +37,14 @@ class ILSAuthentication implements Authentication {
 			$user = new PEAR_Error('authentication_error_blank');
 		} else {
 			// Connect to the correct catalog depending on the driver for this account
-			$catalog = CatalogFactory::getCatalogConnectionInstance($this->driverName);
+			$catalog = $this->catalogConnection;
 
 			if ($catalog->status) {
+				/** @var User $patron */
 				$patron = $catalog->patronLogin($this->username, $this->password);
 				if ($patron && !PEAR_Singleton::isError($patron)) {
-					$user = $this->processILSUser($patron);
+					/** @var User $user */
+					$user = $patron;
 				} else {
 					$user = new PEAR_Error('authentication_error_invalid');
 				}
@@ -61,10 +68,7 @@ class ILSAuthentication implements Authentication {
 			if ($catalog->status) {
 				$patron = $catalog->patronLogin($this->username, $this->password);
 				if ($patron && !PEAR_Singleton::isError($patron)) {
-					$user = $this->processILSUser($patron);
-
-					//Also call getPatronProfile to update extra fields
-					//$catalog->getMyProfile($user);
+					$user = $patron;
 				} else {
 					$user = new PEAR_Error('authentication_error_invalid');
 				}
@@ -72,58 +76,6 @@ class ILSAuthentication implements Authentication {
 				$user = new PEAR_Error('authentication_error_technical');
 			}
 		}
-		return $user;
-	}
-
-	private function processILSUser($info){
-		$user = new User();
-		//Marmot make sure we are using the username which is the
-		//unique patron ID in Millennium.
-		$user->username = $info['username'];
-		if ($user->find(true)) {
-			$insert = false;
-		} else {
-			//Do one more check based on the patron barcode in case we are converting
-			//Clear username temporarily
-			$user->username = null;
-			global $configArray;
-			$barcodeProperty = $configArray['Catalog']['barcodeProperty'];
-			$user->$barcodeProperty = $info[$barcodeProperty];
-			if ($user->find(true)){
-				$insert = false;
-			}else{
-				$insert = true;
-			}
-			//Restore username
-			$user->username = $info['username'];
-		}
-
-		$user->password = $info['cat_password'];
-		$user->firstname    = $info['firstname']    == null ? " " : $info['firstname'];
-		$user->lastname     = $info['lastname']     == null ? " " : $info['lastname'];
-		$user->cat_username = $info['cat_username'] == null ? " " : $info['cat_username'];
-		$user->cat_password = $info['cat_password'] == null ? " " : $info['cat_password'];
-		$user->email        = $info['email']        == null ? " " : $info['email'];
-		$user->major        = $info['major']        == null ? " " : $info['major'];
-		$user->college      = $info['college']      == null ? " " : $info['college'];
-		$user->patronType   = $info['patronType']   == null ? " " : $info['patronType'];
-		$user->web_note     = $info['web_note']     == null ? " " : $info['web_note'];
-
-		if (empty($user->displayName)){
-			if (strlen($user->firstname) >= 1){
-				$user->displayName = substr($user->firstname, 0, 1) . '. ' . $user->lastname;
-			}else{
-				$user->displayName = $user->lastname;
-			}
-	}
-
-		if ($insert) {
-			$user->created = date('Y-m-d');
-			$user->insert();
-		} else {
-			$user->update();
-		}
-
 		return $user;
 	}
 }

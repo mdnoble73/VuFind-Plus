@@ -11,7 +11,7 @@
 require_once ROOT_DIR . '/Action.php';
 require_once ROOT_DIR . '/services/Admin/Admin.php';
 require_once ROOT_DIR . '/services/Admin/ObjectEditor.php';
-require_once ROOT_DIR . '/sys/Authentication/AccountProfile.php';
+require_once ROOT_DIR . '/sys/Account/AccountProfile.php';
 class Admin_AccountProfiles extends ObjectEditor {
 	function getObjectType(){
 		return 'AccountProfile';

@@ -504,17 +504,15 @@ class MyAccount_AJAX
 		$password = $_REQUEST['barcode'];
 
 		//Get the list of pickup branch locations for display in the user interface.
-		$patron = $catalog->patronLogin($username, $password);
+		$patron = UserAccount::validateAccount($username, $password);
 		if ($patron == null) {
 			$result = array(
 				'PickupLocations' => array(),
 				'loginFailed' => true
 			);
 		} else {
-			$patronProfile = $catalog->getMyProfile($patron);
-
 			$location = new Location();
-			$locationList = $location->getPickupBranches($patronProfile, $patronProfile['homeLocationId']);
+			$locationList = $location->getPickupBranches($patron, $patronProfile['homeLocationId']);
 			$pickupLocations = array();
 			foreach ($locationList as $curLocation) {
 				$pickupLocations[] = array(
