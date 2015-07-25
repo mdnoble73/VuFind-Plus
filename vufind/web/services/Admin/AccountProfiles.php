@@ -26,7 +26,7 @@ class Admin_AccountProfiles extends ObjectEditor {
 		$list = array();
 
 		$object = new AccountProfile();
-		$object->orderBy('name');
+		$object->orderBy('weight, name');
 		$object->find();
 		while ($object->fetch()){
 			$list[$object->id] = clone $object;

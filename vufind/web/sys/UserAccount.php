@@ -185,6 +185,7 @@ class UserAccount {
 		//Load a list of authentication methods to test and see which (if any) result in a valid login.
 		require_once ROOT_DIR . '/sys/Account/AccountProfile.php';
 		$accountProfile = new AccountProfile();
+		$accountProfile->orderBy('weight', 'name');
 		$accountProfile->find();
 		while ($accountProfile->fetch()) {
 			$additionalInfo = array(
@@ -198,6 +199,7 @@ class UserAccount {
 			global $configArray;
 			//Create default information for historic login.  This will eventually be obsolete
 			$accountProfile = new AccountProfile();
+			$accountProfile->orderBy('weight', 'name');
 			$accountProfile->driver = $configArray['Catalog']['driver'];
 			if (isset($configArray['Catalog']['url'])){
 				$accountProfile->vendorOpacUrl = $configArray['Catalog']['url'];

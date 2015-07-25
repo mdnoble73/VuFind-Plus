@@ -305,8 +305,19 @@ class LibrarySolution extends ScreenScrapingDriver {
 			'username' => $username,
 		);
 		$loginResponse = $this->_curlPostBodyData($url, $postParams);
-		$decodedResponse = json_decode($loginResponse);
-		$loginSucceeded = $decodedResponse->success == 'true';
+		if (strlen($loginResponse) > 0){
+			$decodedResponse = json_decode($loginResponse);
+			if ($decodedResponse){
+				$loginSucceeded = $decodedResponse->success == 'true';
+			}else{
+				$loginSucceeded = false;
+			}
+		}else{
+			global $logger;
+			$logger->log("Unable to connect to LSS.  Received $loginResponse", PEAR_LOG_WARNING);
+			$loginSucceeded = false;
+		}
+
 		return $loginSucceeded;
 	}
 
