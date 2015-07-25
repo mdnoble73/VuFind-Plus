@@ -75,35 +75,46 @@ class SearchAPI extends Action {
 			$notes[] = 'Full index has never been run';
 		}
 
-		// Partial Index //
-		$lastPartialIndexVariable = new Variable();
-		$lastPartialIndexVariable->name= 'lastPartialReindexFinish';
-		if ($lastPartialIndexVariable->find(true)){
-			//Check to see if the last partial index finished more than PARTIAL_INDEX_INTERVAL seconds ago
-			if ($lastPartialIndexVariable->value >= ($currentTime - self::PARTIAL_INDEX_INTERVAL)){
-				$partialIndexUpToDate = true;
-			}else{
-				$notes[] = 'Partial Index last finished ' . date('m-d-Y H:i:s', $lastPartialIndexVariable->value) . ' - ' . round(($currentTime - $lastPartialIndexVariable->value) / 60, 2) . ' minutes ago';
+		$fullIndexRunningVariable =  new Variable();
+		$fullIndexRunningVariable->name = 'full_reindex_running';
+		$fullIndexRunning = false;
+		if ($fullIndexRunningVariable->find(true)){
+			$fullIndexRunning = $fullIndexRunningVariable->value == 'true';
+		}
+		//Do not check partial index or overdrive extract if there is a full index running since they pause during that period
+		if (!$fullIndexRunning) {
+			// Partial Index //
+			$lastPartialIndexVariable = new Variable();
+			$lastPartialIndexVariable->name = 'lastPartialReindexFinish';
+			if ($lastPartialIndexVariable->find(true)) {
+				//Check to see if the last partial index finished more than PARTIAL_INDEX_INTERVAL seconds ago
+				if ($lastPartialIndexVariable->value >= ($currentTime - self::PARTIAL_INDEX_INTERVAL)) {
+					$partialIndexUpToDate = true;
+				} else {
+					$notes[] = 'Partial Index last finished ' . date('m-d-Y H:i:s', $lastPartialIndexVariable->value) . ' - ' . round(($currentTime - $lastPartialIndexVariable->value) / 60, 2) . ' minutes ago';
+				}
+			} else {
+				$notes[] = 'Partial index has never been run';
+			}
+
+			// OverDrive Extract //
+			$lastOverDriveExtractVariable = new Variable();
+			$lastOverDriveExtractVariable->name = 'last_overdrive_extract_time';
+			if ($lastOverDriveExtractVariable->find(true)) {
+				//Check to see if the last partial index finished more than OVERDRIVE_EXTRACT_INTERVAL seconds ago
+				$lastOverDriveExtractTime = $lastOverDriveExtractVariable->value / 1000;
+				if ($lastOverDriveExtractTime >= ($currentTime - self::OVERDRIVE_EXTRACT_INTERVAL)) {
+					$overDriveExtractUpToDate = true;
+				} else {
+					$notes[] = 'OverDrive Extract last finished ' . date('m-d-Y H:i:s', $lastOverDriveExtractTime) . ' - ' . round(($currentTime - ($lastOverDriveExtractTime)) / 3600, 2) . ' hours ago';
+				}
+			} else {
+				$notes[] = 'OverDrive Extract has never been run';
 			}
 		}else{
-			$notes[] = 'Partial index has never been run';
+			$partialIndexUpToDate = true;
+			$overDriveExtractUpToDate = true;
 		}
-
-		// OverDrive Extract //
-		$lastOverDriveExtractVariable = new Variable();
-		$lastOverDriveExtractVariable->name= 'last_overdrive_extract_time';
-		if ($lastOverDriveExtractVariable->find(true)){
-			//Check to see if the last partial index finished more than OVERDRIVE_EXTRACT_INTERVAL seconds ago
-			$lastOverDriveExtractTime = $lastOverDriveExtractVariable->value / 1000;
-			if ($lastOverDriveExtractTime >= ($currentTime - self::OVERDRIVE_EXTRACT_INTERVAL)){
-				$overDriveExtractUpToDate = true;
-			}else{
-				$notes[] = 'OverDrive Extract last finished ' . date('m-d-Y H:i:s', $lastOverDriveExtractTime) . ' - ' . round(($currentTime - ($lastOverDriveExtractTime)) / 3600, 2) . ' hours ago';
-			}
-		}else{
-			$notes[] = 'OverDrive Extract has never been run';
-		}
-
 
 		// Solr Restart //
 		global $configArray;
