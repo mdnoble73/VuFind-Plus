@@ -167,13 +167,13 @@ class User extends DB_DataObject
 
 	function getRoles(){
 		if (is_null($this->roles)){
+			$this->roles = array();
 			//Load roles for the user from the user
 			require_once ROOT_DIR . '/sys/Administration/Role.php';
 			$role = new Role();
 			$canMasquerade = false;
 			if ($this->id){
 				$role->query("SELECT roles.* FROM roles INNER JOIN user_roles ON roles.roleId = user_roles.roleId WHERE userId = " . $this->id . " ORDER BY name");
-				$this->roles = array();
 				while ($role->fetch()){
 					$this->roles[$role->roleId] = $role->name;
 					if ($role->name == 'userAdmin'){
@@ -190,7 +190,6 @@ class User extends DB_DataObject
 				$testRole = $_COOKIE['test_role'];
 			}
 			if ($canMasquerade && $testRole != ''){
-				$this->roles = array();
 				if (is_array($testRole)){
 					$testRoles = $testRole;
 				}else{
