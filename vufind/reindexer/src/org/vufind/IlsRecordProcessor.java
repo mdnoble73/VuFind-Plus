@@ -601,25 +601,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		itemInfo.setITypeCode(getItemSubfieldData(iTypeSubfield, itemField));
 		itemInfo.setIType(translateValue("itype", getItemSubfieldData(iTypeSubfield, itemField)));
 
-		String totalCheckoutsField = getItemSubfieldData(totalCheckoutSubfield, itemField);
-		int totalCheckouts = 0;
-		if (totalCheckoutsField != null){
-			totalCheckouts = Integer.parseInt(totalCheckoutsField);
-		}
-		String ytdCheckoutsField = getItemSubfieldData(ytdCheckoutSubfield, itemField);
-		int ytdCheckouts = 0;
-		if (ytdCheckoutsField != null){
-			ytdCheckouts = Integer.parseInt(ytdCheckoutsField);
-		}
-		String lastYearCheckoutsField = getItemSubfieldData(lastYearCheckoutSubfield, itemField);
-		int lastYearCheckouts = 0;
-		if (lastYearCheckoutsField != null){
-			lastYearCheckouts = Integer.parseInt(lastYearCheckoutsField);
-		}
-		double itemPopularity = ytdCheckouts + .5 * (lastYearCheckouts) + .1 * (totalCheckouts - lastYearCheckouts - ytdCheckouts);
-		if (itemPopularity == 0){
-			itemPopularity = 1;
-		}
+		double itemPopularity = getItemPopularity(itemField);
 		groupedWork.addPopularity(itemPopularity);
 
 		loadItemCallNumber(record, itemField, itemInfo);
@@ -648,6 +630,29 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 
 		recordInfo.addItem(itemInfo);
 		return itemInfo;
+	}
+
+	protected double getItemPopularity(DataField itemField) {
+		String totalCheckoutsField = getItemSubfieldData(totalCheckoutSubfield, itemField);
+		int totalCheckouts = 0;
+		if (totalCheckoutsField != null){
+			totalCheckouts = Integer.parseInt(totalCheckoutsField);
+		}
+		String ytdCheckoutsField = getItemSubfieldData(ytdCheckoutSubfield, itemField);
+		int ytdCheckouts = 0;
+		if (ytdCheckoutsField != null){
+			ytdCheckouts = Integer.parseInt(ytdCheckoutsField);
+		}
+		String lastYearCheckoutsField = getItemSubfieldData(lastYearCheckoutSubfield, itemField);
+		int lastYearCheckouts = 0;
+		if (lastYearCheckoutsField != null){
+			lastYearCheckouts = Integer.parseInt(lastYearCheckoutsField);
+		}
+		double itemPopularity = ytdCheckouts + .5 * (lastYearCheckouts) + .1 * (totalCheckouts - lastYearCheckouts - ytdCheckouts);
+		if (itemPopularity == 0){
+			itemPopularity = 1;
+		}
+		return itemPopularity;
 	}
 
 	protected boolean isItemValid(String itemStatus, String itemLocation) {
