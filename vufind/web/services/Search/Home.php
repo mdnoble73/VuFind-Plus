@@ -127,8 +127,18 @@ class Search_Home extends Action {
 			}
 		} else { // get All BrowseCategories
 			$browseCategory = new BrowseCategory();
+			$browseCategory->orderBy('numTitlesClickedOn');
+			$browseCategory->limit(0, 20);
 			$browseCategory->find();
 			while($browseCategory->fetch()){
+				//Do not use the browse category if it is a subcategory of any other category
+				$subCategoryInfo = new SubBrowseCategories();
+				$subCategoryInfo->subCategoryId = $browseCategory->id;
+				$subCategoryInfo->find();
+				if ($subCategoryInfo->N > 0){
+					continue;
+				}
+
 //				$browseCategory->getSubCategories(); // add subcategory information to the object
 				$browseCategories[] = clone($browseCategory);
 				if ($specifiedCategory && $_REQUEST['browseCategory'] == $browseCategory->textId) {
