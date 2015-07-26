@@ -1,5 +1,8 @@
 package org.vufind;
 
+import java.util.ArrayList;
+import java.util.TreeMap;
+
 /**
  * Store stats about what has been indexed for each scope.
  *
@@ -11,24 +14,28 @@ package org.vufind;
 public class ScopedIndexingStats {
 	private String scopeName;
 	public int numLocalWorks;
-	public int numSuperScopeWorks;
-	public int numLocalIlsRecords;
-	public int numSuperScopeIlsRecords;
-	public int numLocalIlsItems;
-	public int numSuperScopeIlsItems;
-	public int numLocalEContentItems;
-	public int numSuperScopeEContentItems;
-	public int numLocalOrderItems;
-	public int numSuperScopeOrderItems;
-	public int numLocalOverDriveRecords;
-	public int numSuperScopeOverDriveRecords;
-	public int numHooplaRecords;
+	public int numTotalWorks;
+	public TreeMap<String, RecordProcessorIndexingStats> recordProcessorIndexingStats = new TreeMap<String, RecordProcessorIndexingStats>();
 
-	public ScopedIndexingStats(String scopeName) {
+	public ScopedIndexingStats(String scopeName, ArrayList<String> recordProcessorNames) {
 		this.scopeName = scopeName;
+		for (String processorName : recordProcessorNames){
+			recordProcessorIndexingStats.put(processorName, new RecordProcessorIndexingStats());
+		}
 	}
 
 	public String getScopeName() {
 		return scopeName;
+	}
+
+	public String[] getData() {
+		ArrayList<String> dataFields = new ArrayList<>();
+		dataFields.add(scopeName);
+		dataFields.add(Integer.toString(numLocalWorks));
+		dataFields.add(Integer.toString(numTotalWorks));
+		for (RecordProcessorIndexingStats indexingStats : recordProcessorIndexingStats.values()){
+			indexingStats.getData(dataFields);
+		}
+		return dataFields.toArray(new String[dataFields.size()]);
 	}
 }

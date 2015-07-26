@@ -299,7 +299,7 @@ public class GroupedWorkSolr {
 		HashSet<String> scopesWithRecords = new HashSet<>();
 		HashSet<String> availableFacets = new HashSet<>();
 		for (Scope scope : groupedWorkIndexer.getScopes()){
-			HashSet<RecordInfo> scopedRecords = getRelatedRecordForScope(scope);
+			HashSet<RecordInfo> scopedRecords = getRelatedRecordsForScope(scope);
 			HashSet<ItemInfo> scopedItems = getRelatedItemsForScope(scopedRecords, scope);
 			if (scopedRecords.size() > 0) {
 				String scopeName = scope.getScopeName();
@@ -514,7 +514,7 @@ public class GroupedWorkSolr {
 	}
 
 
-	private HashSet<RecordInfo> getRelatedRecordForScope(Scope curScope) {
+	private HashSet<RecordInfo> getRelatedRecordsForScope(Scope curScope) {
 		HashSet<RecordInfo> scopedRecords = new HashSet<>();
 		for (RecordInfo curRecord : relatedRecords.values()){
 			if (curRecord.isValidForScope(curScope)) {
@@ -733,18 +733,6 @@ public class GroupedWorkSolr {
 		this.authAuthor = author;
 		keywords.add(author);
 	}
-
-	/*public String addRelatedRecord(String recordIdentifier, String format, String edition, String language, String publisher, String publicationDate, String physicalDescription) {
-		String relatedRecordDetails = recordIdentifier
-				+ "|" + (format == null ? "" : Util.trimTrailingPunctuation(format.replace('|', ' ')))
-				+ "|" + (edition == null ? "" : Util.trimTrailingPunctuation(edition.replace('|', ' ')))
-				+ "|" + (language == null ? "" : Util.trimTrailingPunctuation(language.replace('|', ' ')))
-				+ "|" + (publisher == null ? "" : Util.trimTrailingPunctuation(publisher.replace('|', ' ')))
-				+ "|" + (publicationDate == null ? "" : Util.trimTrailingPunctuation(publicationDate.replace('|', ' ')))
-				+ "|" + (physicalDescription == null ? "" : Util.trimTrailingPunctuation(physicalDescription.replace('|', ' ')));
-		relatedRecordIds.add(relatedRecordDetails);
-		return relatedRecordDetails;
-	}*/
 
 	public void addOclcNumbers(Set<String> oclcs) {
 		this.oclcs.addAll(oclcs);
@@ -1113,4 +1101,22 @@ public class GroupedWorkSolr {
 	public void removeRelatedRecord(RecordInfo recordInfo) {
 		this.relatedRecords.remove(recordInfo.getFullIdentifier());
 	}
+
+	public void updateIndexingStats(TreeMap<String, ScopedIndexingStats> indexingStats) {
+		for (Scope scope: groupedWorkIndexer.getScopes()){
+			HashSet<RecordInfo> relatedRecordsForScope = getRelatedRecordsForScope(scope);
+			HashSet<ItemInfo> relatedItems = getRelatedItemsForScope(relatedRecordsForScope, scope);
+			if (relatedRecordsForScope.size() > 0){
+				ScopedIndexingStats stats = indexingStats.get(scope.getScopeName());
+				stats.numTotalWorks++;
+				if (isLocallyOwned(relatedItems, scope)){
+					stats.numLocalWorks++;
+				}
+			}
+		}
+		for (RecordInfo curRecord : relatedRecords.values()){
+			curRecord.updateIndexingStats(indexingStats);
+		}
+	}
+
 }

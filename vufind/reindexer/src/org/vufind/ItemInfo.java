@@ -136,7 +136,12 @@ public class ItemInfo {
 	}
 
 	public int getNumCopies() {
-		return numCopies;
+		//Deal with OverDrive always available
+		if (numCopies > 1000){
+			return 1;
+		}else {
+			return numCopies;
+		}
 	}
 
 	public void setNumCopies(int numCopies) {
@@ -161,27 +166,27 @@ public class ItemInfo {
 
 	public String getDetails(Scope scope){
 		ScopingInfo scopeInfo = this.scopingInfo.get(scope.getScopeName());
-		return recordInfo.getFullIdentifier() + "|" +    //0
-				getCleanDetailValue(itemIdentifier) + "|" +  //1
-				getCleanDetailValue(shelfLocation) + "|" +   //2
-				getCleanDetailValue(callNumber) + "|" +      //3
-				getCleanDetailValue(format) + "|" +          //4
-				getCleanDetailValue(formatCategory) + "|" +  //5
-				numCopies + "|" +                            //6
-				isOrderItem + "|" +                          //7
-				isEContent + "|" +                           //8
-				getCleanDetailValue(eContentSource) + "|" +   //9
-				getCleanDetailValue(eContentFilename) + "|" + //10
-				getCleanDetailValue(eContentUrl) + "|" +     //11
-				getCleanDetailValue(callNumber) + "|" +      //12
-				scopeInfo.getGroupedStatus() + "|" +         //13
-				scopeInfo.getStatus() + "|" +                //14
-				scopeInfo.isLocallyOwned() + "|" +           //15
-				scopeInfo.isAvailable() + "|" +              //16
-				scopeInfo.isHoldable() + "|" +               //17
-				scopeInfo.isBookable() + "|" +               //18
-				scopeInfo.isInLibraryUseOnly() + "|" +       //19
-				scopeInfo.isLibraryOwned()                   //20
+		return new StringBuilder().append(recordInfo.getFullIdentifier()).append("|")
+				.append(getCleanDetailValue(itemIdentifier)).append("|")
+				.append(getCleanDetailValue(shelfLocation)).append("|")
+				.append(getCleanDetailValue(callNumber)).append("|")
+				.append(getCleanDetailValue(format)).append("|")
+				.append(getCleanDetailValue(formatCategory)).append("|")
+				.append(numCopies).append("|")
+				.append(isOrderItem).append("|")
+				.append(isEContent).append("|")
+				.append(getCleanDetailValue(eContentSource)).append("|")
+				.append(getCleanDetailValue(eContentFilename)).append("|")
+				.append(getCleanDetailValue(eContentUrl)).append("|")
+				.append(getCleanDetailValue(callNumber)).append("|")
+				.append(scopeInfo.getGroupedStatus()).append("|")
+				.append(scopeInfo.getStatus()).append("|")
+				.append(scopeInfo.isLocallyOwned()).append("|")
+				.append(scopeInfo.isAvailable()).append("|")
+				.append(scopeInfo.isHoldable()).append("|")
+				.append(scopeInfo.isBookable()).append("|")
+				.append(scopeInfo.isInLibraryUseOnly())
+				.append("|").append(scopeInfo.isLibraryOwned()).toString()
 				;
 	}
 
@@ -285,6 +290,10 @@ public class ItemInfo {
 		return scopingInfo.containsKey(scope.getScopeName());
 	}
 
+	public boolean isValidForScope(String scopeName){
+		return scopingInfo.containsKey(scopeName);
+	}
+
 	public boolean isAvailableInScope(Scope scope) {
 		ScopingInfo scopeData = scopingInfo.get(scope.getScopeName());
 		if (scopeData != null){
@@ -307,6 +316,16 @@ public class ItemInfo {
 
 	public boolean isLocallyOwned(Scope scope) {
 		ScopingInfo scopeData = scopingInfo.get(scope.getScopeName());
+		if (scopeData != null){
+			if (scopeData.isLocallyOwned()){
+				return true;
+			}
+		}
+		return false;
+	}
+
+	public boolean isLocallyOwned(String scopeName) {
+		ScopingInfo scopeData = scopingInfo.get(scopeName);
 		if (scopeData != null){
 			if (scopeData.isLocallyOwned()){
 				return true;

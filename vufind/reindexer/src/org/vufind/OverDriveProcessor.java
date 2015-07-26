@@ -134,7 +134,6 @@ public class OverDriveProcessor {
 					getProductAvailabilityStmt.setLong(1, productId);
 					ResultSet availabilityRS = getProductAvailabilityStmt.executeQuery();
 
-					overDriveRecord.setPrimaryFormat(primaryFormat);
 					overDriveRecord.setEdition("");
 					overDriveRecord.setPrimaryLanguage(primaryLanguage);
 					overDriveRecord.setPublisher(metadata.get("publisher"));

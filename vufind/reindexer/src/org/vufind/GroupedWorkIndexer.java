@@ -210,6 +210,7 @@ public class GroupedWorkIndexer {
 				}
 			}
 
+			setupIndexingStats();
 
 		}catch (Exception e){
 			logger.error("Error loading record processors for ILS records", e);
@@ -234,6 +235,17 @@ public class GroupedWorkIndexer {
 		}
 	}
 
+	protected void setupIndexingStats() {
+		ArrayList<String> recordProcessorNames = new ArrayList<>();
+		recordProcessorNames.addAll(ilsRecordProcessors.keySet());
+		recordProcessorNames.add("overdrive");
+
+		for (Scope curScope : scopes){
+			ScopedIndexingStats scopedIndexingStats = new ScopedIndexingStats(curScope.getScopeName(), recordProcessorNames);
+			indexingStats.put(curScope.getScopeName(), scopedIndexingStats);
+		}
+	}
+
 	public boolean isOkToIndex(){
 		return okToIndex;
 	}
@@ -248,7 +260,6 @@ public class GroupedWorkIndexer {
 	public TreeMap<String, ScopedIndexingStats> indexingStats = new TreeMap<>();
 
 	private void loadScopes() {
-		indexingStats.put("global", new ScopedIndexingStats("global"));
 		if (!libraryAndLocationDataLoaded){
 			//Setup translation maps for system and location
 			try {
@@ -321,7 +332,6 @@ public class GroupedWorkIndexer {
 
 			if (!scopes.contains(locationScopeInfo)){
 				scopes.add(locationScopeInfo);
-				indexingStats.put(locationScopeInfo.getScopeName(), new ScopedIndexingStats(locationScopeInfo.getScopeName()));
 			}else{
 				logger.debug("Not adding location scope because a library scope with the name " + locationScopeInfo.getScopeName() + " exists already.");
 				for (Scope existingLibraryScope : scopes){
@@ -388,7 +398,6 @@ public class GroupedWorkIndexer {
 
 
 			scopes.add(newScope);
-			indexingStats.put(newScope.getScopeName(), new ScopedIndexingStats(newScope.getScopeName()));
 		}
 	}
 
@@ -488,63 +497,29 @@ public class GroupedWorkIndexer {
 			String curDateFormatted = dayFormatter.format(curDate);
 			File recordsFile = new File(dataDir.getAbsolutePath() + "/reindex_stats_" + curDateFormatted + ".csv");
 			CSVWriter recordWriter = new CSVWriter(new FileWriter(recordsFile));
-			recordWriter.writeNext(new String[]{
-					"Scope Name",
-					"Num local works",
-					"Num super scope works",
-					"Num local ils records",
-					"Num super scope ils records",
-					"Num local ils items",
-					"Num super scope ils items",
-					"Num local ils econtent items",
-					"Num super scope ils econtent items",
-					"Num local order items",
-					"Num super scope order items",
-					"Num local overdrive records",
-					"Num super scope overdrive records",
-					"Num hoopla records",
-			});
-
-			//Write global scope
-			ScopedIndexingStats stats = indexingStats.get("global");
-			recordWriter.writeNext(new String[]{
-					stats.getScopeName(),
-					Integer.toString(stats.numLocalWorks),
-					Integer.toString(stats.numSuperScopeWorks),
-					Integer.toString(stats.numLocalIlsRecords),
-					Integer.toString(stats.numSuperScopeIlsRecords),
-					Integer.toString(stats.numLocalIlsItems),
-					Integer.toString(stats.numSuperScopeIlsItems),
-					Integer.toString(stats.numLocalEContentItems),
-					Integer.toString(stats.numSuperScopeEContentItems),
-					Integer.toString(stats.numLocalOrderItems),
-					Integer.toString(stats.numSuperScopeOrderItems),
-					Integer.toString(stats.numLocalOverDriveRecords),
-					Integer.toString(stats.numSuperScopeOverDriveRecords),
-					Integer.toString(stats.numHooplaRecords),
-			});
+			ArrayList<String> headers = new ArrayList<>();
+			headers.add("Scope Name");
+			headers.add("Owned works");
+			headers.add("Total works");
+			TreeSet<String> recordProcessorNames = new TreeSet<>();
+			recordProcessorNames.addAll(ilsRecordProcessors.keySet());
+			recordProcessorNames.add("overdrive");
+			for (String processorName : recordProcessorNames){
+				headers.add("Owned " + processorName + " records");
+				headers.add("Owned " + processorName + " physical items");
+				headers.add("Owned " + processorName + " on order items");
+				headers.add("Owned " + processorName + " e-content items");
+				headers.add("Total " + processorName + " records");
+				headers.add("Total " + processorName + " physical items");
+				headers.add("Total " + processorName + " on order items");
+				headers.add("Total " + processorName + " e-content items");
+			}
+			recordWriter.writeNext(headers.toArray(new String[headers.size()]));
 
 			//Write custom scopes
 			for (String curScope: indexingStats.keySet()){
-				stats = indexingStats.get(curScope);
-				if (!curScope.equals("global")) {
-					recordWriter.writeNext(new String[]{
-							stats.getScopeName(),
-							Integer.toString(stats.numLocalWorks),
-							Integer.toString(stats.numSuperScopeWorks),
-							Integer.toString(stats.numLocalIlsRecords),
-							Integer.toString(stats.numSuperScopeIlsRecords),
-							Integer.toString(stats.numLocalIlsItems),
-							Integer.toString(stats.numSuperScopeIlsItems),
-							Integer.toString(stats.numLocalEContentItems),
-							Integer.toString(stats.numSuperScopeEContentItems),
-							Integer.toString(stats.numLocalOrderItems),
-							Integer.toString(stats.numSuperScopeOrderItems),
-							Integer.toString(stats.numLocalOverDriveRecords),
-							Integer.toString(stats.numSuperScopeOverDriveRecords),
-							Integer.toString(stats.numHooplaRecords),
-					});
-				}
+				ScopedIndexingStats stats = indexingStats.get(curScope);
+				recordWriter.writeNext(stats.getData());
 			}
 			recordWriter.flush();
 			recordWriter.close();
@@ -749,8 +724,9 @@ public class GroupedWorkIndexer {
 		}
 
 		if (numPrimaryIdentifiers > 0) {
-			indexingStats.get("global").numSuperScopeWorks++;
-			indexingStats.get("global").numLocalWorks++;
+			//Add a grouped work to any scopes that are relevant
+			groupedWork.updateIndexingStats(indexingStats);
+
 			//Update the grouped record based on data for each work
 			getGroupedWorkIdentifiers.setLong(1, id);
 			ResultSet groupedWorkIdentifiers = getGroupedWorkIdentifiers.executeQuery();
@@ -771,13 +747,6 @@ public class GroupedWorkIndexer {
 				SolrInputDocument inputDocument = groupedWork.getSolrDocument(availableAtLocationBoostValue, ownedByLocationBoostValue);
 				updateServer.add(inputDocument);
 
-				//TODO: Update tracking of statistics
-				/*for (String scope: groupedWork.getScopedWorkDetails().keySet()){
-					if (groupedWork.getScopedWorkDetails().get(scope).isLocallyOwned()) {
-						indexingStats.get(scope).numLocalWorks++;
-					}
-					indexingStats.get(scope).numSuperScopeWorks++;
-				}*/
 			} catch (Exception e) {
 				logger.error("Error adding record to solr", e);
 			}

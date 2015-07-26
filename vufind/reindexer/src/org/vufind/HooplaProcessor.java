@@ -123,7 +123,6 @@ public class HooplaProcessor extends MarcRecordProcessor {
 
 		//Setup the per Record information
 		RecordInfo recordInfo = groupedWork.addRelatedRecord("hoopla", identifier);
-		recordInfo.setPrimaryFormat(format);
 		recordInfo.setFormatBoost(formatBoost);
 		recordInfo.setEdition(primaryEdition);
 		recordInfo.setPhysicalDescription(physicalDescription);

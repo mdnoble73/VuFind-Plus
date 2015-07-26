@@ -848,9 +848,13 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		Long formatBoost = 0L;
 		HashSet<String> formatBoosts = translateCollection("format_boost", printFormats);
 		for (String tmpFormatBoost : formatBoosts){
-			Long tmpFormatBoostLong = Long.parseLong(tmpFormatBoost);
-			if (tmpFormatBoostLong > formatBoost){
-				formatBoost = tmpFormatBoostLong;
+			try {
+				Long tmpFormatBoostLong = Long.parseLong(tmpFormatBoost);
+				if (tmpFormatBoostLong > formatBoost) {
+					formatBoost = tmpFormatBoostLong;
+				}
+			}catch (NumberFormatException e){
+				logger.warn("Could not load format boost for format " + tmpFormatBoost);
 			}
 		}
 		recordInfo.setFormatBoost(formatBoost);
