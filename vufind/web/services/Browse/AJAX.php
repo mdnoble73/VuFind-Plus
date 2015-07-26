@@ -322,8 +322,9 @@ class Browse_AJAX extends Action {
 	 * @return null         Return the object's textId value
 	 */
 	function setTextId($textId = null){
-		if ($textId) $this->textId = $textId;
-		elseif ($this->textId == null) { // set Id only once
+		if ($textId) {
+			$this->textId = $textId;
+		} elseif ($this->textId == null) { // set Id only once
 			$this->textId = isset($_REQUEST['textId']) ? $_REQUEST['textId'] : null;
 		}
 		return $this->textId;
@@ -437,20 +438,20 @@ class Browse_AJAX extends Action {
 	function getSubCategories() {
 		$this->getBrowseCategory();
 		if ($this->browseCategory){
-			// Set Selected Browse Category
-			$this->browseCategory->getSubCategories(); // add subcategory information to the selected category
-
 			$subCategories = array();
 			/** @var SubBrowseCategories $subCategory */
-			foreach ($this->browseCategory->subBrowseCategories as $subCategory) {
+			foreach ($this->browseCategory->getSubCategories() as $subCategory) {
 
 				// Get Needed Info about sub-category
 				/** @var BrowseCategory $temp */
 				$temp = new BrowseCategory();
 				$temp->id = $subCategory->subCategoryId;
-				if ($temp->fetch(true)) {
+				if ($temp->find(true)) {
 					$this->subCategories[] = $temp;
 					$subCategories[] = array('label' => $temp->label, 'textId' => $temp->textId);
+				}else{
+					global $logger;
+					$logger->log("Did not find subcategory with id {$subCategory->subCategoryId}", PEAR_LOG_WARNING);
 				}
 			}
 			if ($subCategories) {

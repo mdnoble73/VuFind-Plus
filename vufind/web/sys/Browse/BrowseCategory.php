@@ -47,6 +47,7 @@ class BrowseCategory extends DB_DataObject{
 				$this->subBrowseCategories[$subCategory->id] = clone($subCategory);
 			}
 		}
+		return $this->subBrowseCategories;
 	}
 
 	private $data = array();
@@ -152,7 +153,7 @@ class BrowseCategory extends DB_DataObject{
 
 	public function saveSubBrowseCategories(){
 		if (isset ($this->subBrowseCategories) && is_array($this->subBrowseCategories)) {
-			/** @var SubBrowseCategory[] $subBrowseCategories */
+			/** @var SubBrowseCategories[] $subBrowseCategories */
 			foreach ($this->subBrowseCategories as $subCategory) {
 				if (isset($subCategory->deleteOnSave) && $subCategory->deleteOnSave == true) {
 					$subCategory->delete();
