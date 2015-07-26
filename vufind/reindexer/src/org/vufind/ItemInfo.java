@@ -164,21 +164,27 @@ public class ItemInfo {
 		this.isEContent = isEContent;
 	}
 
+
+	private String baseDetails = null;
 	public String getDetails(Scope scope){
 		ScopingInfo scopeInfo = this.scopingInfo.get(scope.getScopeName());
-		return new StringBuilder().append(recordInfo.getFullIdentifier()).append("|")
-				.append(getCleanDetailValue(itemIdentifier)).append("|")
-				.append(getCleanDetailValue(shelfLocation)).append("|")
-				.append(getCleanDetailValue(callNumber)).append("|")
-				.append(getCleanDetailValue(format)).append("|")
-				.append(getCleanDetailValue(formatCategory)).append("|")
-				.append(numCopies).append("|")
-				.append(isOrderItem).append("|")
-				.append(isEContent).append("|")
-				.append(getCleanDetailValue(eContentSource)).append("|")
-				.append(getCleanDetailValue(eContentFilename)).append("|")
-				.append(getCleanDetailValue(eContentUrl)).append("|")
-				.append(getCleanDetailValue(callNumber)).append("|")
+		if (baseDetails == null){
+			//Cache the part that doesn't change depending on the scope
+			baseDetails = new StringBuilder().append(recordInfo.getFullIdentifier()).append("|")
+					.append(getCleanDetailValue(itemIdentifier)).append("|")
+					.append(getCleanDetailValue(shelfLocation)).append("|")
+					.append(getCleanDetailValue(callNumber)).append("|")
+					.append(getCleanDetailValue(format)).append("|")
+					.append(getCleanDetailValue(formatCategory)).append("|")
+					.append(numCopies).append("|")
+					.append(isOrderItem).append("|")
+					.append(isEContent).append("|")
+					.append(getCleanDetailValue(eContentSource)).append("|")
+					.append(getCleanDetailValue(eContentFilename)).append("|")
+					.append(getCleanDetailValue(eContentUrl)).append("|")
+					.append(getCleanDetailValue(callNumber)).append("|").toString();
+		}
+		return new StringBuilder().append(baseDetails).append("|")
 				.append(scopeInfo.getGroupedStatus()).append("|")
 				.append(scopeInfo.getStatus()).append("|")
 				.append(scopeInfo.isLocallyOwned()).append("|")

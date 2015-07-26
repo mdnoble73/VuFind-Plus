@@ -5,8 +5,7 @@ import org.ini4j.Ini;
 import org.marc4j.MarcPermissiveStreamReader;
 import org.marc4j.marc.*;
 
-import java.io.File;
-import java.io.FileInputStream;
+import java.io.*;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -142,7 +141,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		getTranslationMapsStmt.setLong(1, id);
 		ResultSet translationsMapRS = getTranslationMapsStmt.executeQuery();
 		while (translationsMapRS.next()){
-			TranslationMap map = new TranslationMap(translationsMapRS.getString("name"), fullReindex, logger);
+			TranslationMap map = new TranslationMap(profileType, translationsMapRS.getString("name"), fullReindex, logger);
 			Long translationMapId = translationsMapRS.getLong("id");
 			getTranslationMapValuesStmt.setLong(1, translationMapId);
 			ResultSet translationMapValuesRS = getTranslationMapValuesStmt.executeQuery();
@@ -188,16 +187,17 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		String firstChars = shortId.substring(0, 4);
 		String basePath = individualMarcPath + "/" + firstChars;
 		String individualFilename = basePath + "/" + shortId + ".mrc";
-		File individualFile = new File(individualFilename);
 		try {
-			FileInputStream inputStream = new FileInputStream(individualFile);
+			byte[] fileContents = Util.readFileBytes(individualFilename);
+			//FileInputStream inputStream = new FileInputStream(individualFile);
+			InputStream inputStream = new ByteArrayInputStream(fileContents);
 			MarcPermissiveStreamReader marcReader = new MarcPermissiveStreamReader(inputStream, true, true, "UTF-8");
 			if (marcReader.hasNext()){
 				record = marcReader.next();
 			}
 			inputStream.close();
 		} catch (Exception e) {
-			logger.error("Error reading data from ils file " + individualFile.toString(), e);
+			logger.error("Error reading data from ils file " + individualFilename, e);
 		}
 		return record;
 	}
@@ -854,7 +854,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 					formatBoost = tmpFormatBoostLong;
 				}
 			}catch (NumberFormatException e){
-				logger.warn("Could not load format boost for format " + tmpFormatBoost);
+				logger.warn("Could not load format boost for format " + tmpFormatBoost + " profile " + profileType);
 			}
 		}
 		recordInfo.setFormatBoost(formatBoost);
@@ -1448,7 +1448,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		TranslationMap translationMap = translationMaps.get(mapName);
 		String translatedValue;
 		if (translationMap == null){
-			logger.error("Unable to find translation map for " + mapName);
+			logger.error("Unable to find translation map for " + mapName + " in profile " + profileType);
 			translatedValue = value;
 		}else{
 			translatedValue = translationMap.translateValue(value);
@@ -1460,7 +1460,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		TranslationMap translationMap = translationMaps.get(mapName);
 		HashSet<String> translatedValues;
 		if (translationMap == null){
-			logger.error("Unable to find translation map for " + mapName);
+			logger.error("Unable to find translation map for " + mapName + " in profile " + profileType);
 			translatedValues = values;
 		}else{
 			translatedValues = translationMap.translateCollection(values);

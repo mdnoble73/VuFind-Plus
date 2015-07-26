@@ -17,11 +17,13 @@ import java.util.Set;
  */
 public class TranslationMap {
 	private Logger logger;
+	private String profileName;
 	private String mapName;
 	private boolean fullReindex;
 	private HashMap<String, String> translationValues = new HashMap<>();
 
-	public TranslationMap(String mapName, boolean fullReindex, Logger logger){
+	public TranslationMap(String profileName, String mapName, boolean fullReindex, Logger logger){
+		this.profileName = profileName;
 		this.mapName = mapName;
 		this.fullReindex = fullReindex;
 		this. logger = logger;
@@ -29,7 +31,7 @@ public class TranslationMap {
 
 	HashSet<String> unableToTranslateWarnings = new HashSet<>();
 	public String translateValue(String value){
-		String translatedValue = null;
+		String translatedValue;
 		String lowerCaseValue = value.toLowerCase();
 		if (translationValues.containsKey(lowerCaseValue)){
 			translatedValue = translationValues.get(lowerCaseValue);
@@ -40,7 +42,7 @@ public class TranslationMap {
 				String concatenatedValue = mapName + ":" + value;
 				if (!unableToTranslateWarnings.contains(concatenatedValue)){
 					if (fullReindex) {
-						logger.warn("Could not translate '" + concatenatedValue + "'");
+						logger.warn("Could not translate '" + concatenatedValue + "' in profile " + profileName);
 					}
 					unableToTranslateWarnings.add(concatenatedValue);
 				}

@@ -5,8 +5,9 @@ import org.ini4j.Ini;
 import org.marc4j.MarcPermissiveStreamReader;
 import org.marc4j.marc.Record;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.io.FileInputStream;
+import java.io.InputStream;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
@@ -29,26 +30,37 @@ public class HooplaProcessor extends MarcRecordProcessor {
 
 	@Override
 	public void processRecord(GroupedWorkSolr groupedWork, String identifier) {
+		Record record = loadMarcRecordFromDisk(identifier);
+
+		if (record != null) {
+			try {
+				updateGroupedWorkSolrDataBasedOnMarc(groupedWork, record, identifier);
+			} catch (Exception e) {
+				logger.error("Error updating solr based on hoopla marc record", e);
+			}
+		}
+	}
+
+	public Record loadMarcRecordFromDisk(String identifier){
+		Record record = null;
 		//Load the marc record from disc
 		String firstChars = identifier.substring(0, 7);
 		String basePath = individualMarcPath + "/" + firstChars;
 		String individualFilename = basePath + "/" + identifier + ".mrc";
 		File individualFile = new File(individualFilename);
 		try {
-			FileInputStream inputStream = new FileInputStream(individualFile);
+			byte[] fileContents = Util.readFileBytes(individualFilename);
+			InputStream inputStream = new ByteArrayInputStream(fileContents);
+			//FileInputStream inputStream = new FileInputStream(individualFile);
 			MarcPermissiveStreamReader marcReader = new MarcPermissiveStreamReader(inputStream, true, true, "UTF-8");
 			if (marcReader.hasNext()){
-				try{
-					Record record = marcReader.next();
-					updateGroupedWorkSolrDataBasedOnMarc(groupedWork, record, identifier);
-				}catch (Exception e) {
-					logger.error("Error updating solr based on hoopla marc record", e);
-				}
+				record = marcReader.next();
 			}
 			inputStream.close();
 		} catch (Exception e) {
 			logger.error("Error reading data from hoopla file " + individualFile.toString(), e);
 		}
+		return record;
 	}
 
 	@Override

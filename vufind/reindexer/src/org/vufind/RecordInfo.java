@@ -82,15 +82,20 @@ public class RecordInfo {
 		return recordIdentifier;
 	}
 
+	String recordDetails = null;
 	public String getDetails() {
-		return source + ":" + recordIdentifier + "|" +
-				getPrimaryFormat() + "|" +
-				(edition == null ? "" : edition) + "|" +
-				primaryLanguage + "|" +
-				publisher + "|" +
-				publicationDate + "|" +
-				physicalDescription
-			;
+		if (recordDetails == null) {
+			//None of this changes by scope so we can just form it once and then return the previous value
+			recordDetails = source + ":" + recordIdentifier + "|" +
+					getPrimaryFormat() + "|" +
+					(edition == null ? "" : edition) + "|" +
+					primaryLanguage + "|" +
+					publisher + "|" +
+					publicationDate + "|" +
+					physicalDescription
+					;
+		}
+		return recordDetails;
 	}
 
 	protected String getPrimaryFormat() {

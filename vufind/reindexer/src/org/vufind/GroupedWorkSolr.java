@@ -294,13 +294,14 @@ public class GroupedWorkSolr {
 	}
 
 	protected void addScopedFieldsToDocument(int availableAtBoostValue, int ownedByBoostValue, SolrInputDocument doc) {
-
-		//Load information based on scopes
+		//Load information based on scopes.  This has some pretty severe performance implications since we potentially
+		//have a lot of scopes and a lot of items & records.
 		HashSet<String> scopesWithRecords = new HashSet<>();
 		HashSet<String> availableFacets = new HashSet<>();
 		for (Scope scope : groupedWorkIndexer.getScopes()){
-			HashSet<RecordInfo> scopedRecords = getRelatedRecordsForScope(scope);
-			HashSet<ItemInfo> scopedItems = getRelatedItemsForScope(scopedRecords, scope);
+			HashSet<RecordInfo> scopedRecords = new HashSet<>();
+			HashSet<ItemInfo> scopedItems = new HashSet<>();
+			loadRelatedRecordsAndItemsForScope(scope, scopedRecords, scopedItems);
 			if (scopedRecords.size() > 0) {
 				String scopeName = scope.getScopeName();
 				scopesWithRecords.add(scopeName);
@@ -455,14 +456,6 @@ public class GroupedWorkSolr {
 		return false;
 	}
 
-	private HashSet<ItemInfo> getRelatedItemsForScope(HashSet<RecordInfo> scopedRecords, Scope scope) {
-		HashSet<ItemInfo> values = new HashSet<>();
-		for (RecordInfo curRecord : scopedRecords){
-			values.addAll(curRecord.getRelatedItemsForScope(scope));
-		}
-		return values;
-	}
-
 	private HashSet<String> getScopedShelfLocations(HashSet<ItemInfo> scopedItems) {
 		HashSet<String> values = new HashSet<>();
 		for (ItemInfo curRecord : scopedItems){
@@ -514,14 +507,19 @@ public class GroupedWorkSolr {
 	}
 
 
-	private HashSet<RecordInfo> getRelatedRecordsForScope(Scope curScope) {
-		HashSet<RecordInfo> scopedRecords = new HashSet<>();
+	private void loadRelatedRecordsAndItemsForScope(Scope curScope, HashSet<RecordInfo> scopedRecords, HashSet<ItemInfo> scopedItems) {
 		for (RecordInfo curRecord : relatedRecords.values()){
-			if (curRecord.isValidForScope(curScope)) {
+			boolean recordIsValid = false;
+			for (ItemInfo curItem : curRecord.getRelatedItems()){
+				if (curItem.isValidForScope(curScope)){
+					scopedItems.add(curItem);
+					recordIsValid = true;
+				}
+			}
+			if (recordIsValid) {
 				scopedRecords.add(curRecord);
 			}
 		}
-		return scopedRecords;
 	}
 
 	private void checkInconsistentLiteraryForms() {
@@ -1103,9 +1101,11 @@ public class GroupedWorkSolr {
 	}
 
 	public void updateIndexingStats(TreeMap<String, ScopedIndexingStats> indexingStats) {
+		//Update total works
 		for (Scope scope: groupedWorkIndexer.getScopes()){
-			HashSet<RecordInfo> relatedRecordsForScope = getRelatedRecordsForScope(scope);
-			HashSet<ItemInfo> relatedItems = getRelatedItemsForScope(relatedRecordsForScope, scope);
+			HashSet<RecordInfo> relatedRecordsForScope = new HashSet<>();
+			HashSet<ItemInfo> relatedItems = new HashSet<>();
+			loadRelatedRecordsAndItemsForScope(scope, relatedRecordsForScope, relatedItems);
 			if (relatedRecordsForScope.size() > 0){
 				ScopedIndexingStats stats = indexingStats.get(scope.getScopeName());
 				stats.numTotalWorks++;
@@ -1114,6 +1114,7 @@ public class GroupedWorkSolr {
 				}
 			}
 		}
+		//Update stats based on individual record processor
 		for (RecordInfo curRecord : relatedRecords.values()){
 			curRecord.updateIndexingStats(indexingStats);
 		}

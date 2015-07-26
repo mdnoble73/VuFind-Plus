@@ -126,7 +126,7 @@ public class GroupedWorkIndexer {
 
 		//Initialize the updateServer and solr server
 		if (fullReindex){
-			updateServer = new ConcurrentUpdateSolrServer("http://localhost:" + solrPort + "/solr/grouped2", 5000, 10);
+			updateServer = new ConcurrentUpdateSolrServer("http://localhost:" + solrPort + "/solr/grouped2", 100, 4);
 			solrServer = new HttpSolrServer("http://localhost:" + solrPort + "/solr/grouped2");
 			updateFullReindexRunning(true);
 		}else{
@@ -157,7 +157,7 @@ public class GroupedWorkIndexer {
 			}else{
 				updatePartialReindexRunning(true);
 			}
-			updateServer = new ConcurrentUpdateSolrServer("http://localhost:" + solrPort + "/solr/grouped", 5000, 10);
+			updateServer = new ConcurrentUpdateSolrServer("http://localhost:" + solrPort + "/solr/grouped", 100, 4);
 			solrServer = new HttpSolrServer("http://localhost:" + solrPort + "/solr/grouped");
 		}
 
@@ -888,7 +888,7 @@ public class GroupedWorkIndexer {
 		if (translationMap == null){
 			if (!missingTranslationMaps.contains(mapName)) {
 				missingTranslationMaps.add(mapName);
-				logger.error("Unable to find translation map for " + mapName);
+				logger.error("Unable to find system translation map for " + mapName);
 			}
 			translatedValue = value;
 		}else{
