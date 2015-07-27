@@ -1370,7 +1370,28 @@ class Solr implements IndexEngine {
 			if (!is_array($filter)){
 				$filter = array($filter);
 			}
-			$filters = array_merge($filter, $scopingFilters);
+			//Check the filters to make sure they are for the correct scope
+			$validFields = $this->_loadValidFields();
+			$dynamicFields = $this->_loadDynamicFields();
+			global $solrScope;
+			$validFilters = array();
+			foreach ($filter as $id => $filterTerm){
+				list($fieldName, $term) = explode(":", $filterTerm, 2);
+				if (!in_array($fieldName, $validFields)){
+					//Field doesn't exist, check to see if it is a dynamic field
+					//Where we can replace the scope with the current scope
+					foreach ($dynamicFields as $dynamicField){
+						if (preg_match("/^{$dynamicField}[^_]+$/", $fieldName)){
+							//This is a dynamic field with the wrong
+							$validFilters[$id] = $dynamicField . $solrScope . ":" . $term;
+							break;
+						}
+					}
+				}else{
+					$validFilters[$id] = $filterTerm;
+				}
+			}
+			$filters = array_merge($validFilters, $scopingFilters);
 		}else if ($filter == null){
 			$filters = $scopingFilters;
 		}else{
@@ -1642,7 +1663,7 @@ class Solr implements IndexEngine {
 			}*/
 		}
 
-		if ($this->searchSource == 'econtent'){
+		/*if ($this->searchSource == 'econtent'){
 			$onlineFilter = "$buildingFacetName:\"Shared Digital Collection\"";
 			if (isset($searchLibrary)){
 				$onlineFilter .= " OR $institutionFacetName:\"{$searchLibrary->facetLabel} Online\"";
@@ -1651,7 +1672,7 @@ class Solr implements IndexEngine {
 				$onlineFilter .= " OR $institutionFacetName:\"{$searchLocation->facetLabel} Online\"";
 			}
 			$filter[] = $onlineFilter;
-		}
+		}*/
 
 		$blacklistRecords = null;
 		if (isset($searchLocation) && strlen($searchLocation->recordsToBlackList) > 0){
@@ -2483,6 +2504,24 @@ class Solr implements IndexEngine {
 		$this->searchSource = $searchSource;
 	}
 
+	private function _loadDynamicFields(){
+		/** @var Memcache $memCache */
+		global $memCache;
+		global $solrScope;
+		$fields = $memCache->get("schema_dynamic_fields_$solrScope");
+		if (!$fields || isset($_REQUEST['reload'])){
+			global $configArray;
+			$schemaUrl = $configArray['Index']['url'] . '/grouped/admin/file?file=schema.xml&contentType=text/xml;charset=utf-8';
+			$schema = simplexml_load_file($schemaUrl);
+			$fields = array();
+			/** @var SimpleXMLElement $field */
+			foreach ($schema->fields->dynamicField as $field){
+				$fields[] = substr((string)$field['name'], 0, -1);
+			}
+			$memCache->set("schema_dynamic_fields_$solrScope", $fields, 0, 24 * 60 * 60);
+		}
+		return $fields;
+	}
 	private function _loadValidFields(){
 		/** @var Memcache $memCache */
 		global $memCache;
