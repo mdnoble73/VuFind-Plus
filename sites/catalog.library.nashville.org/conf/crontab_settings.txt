@@ -53,6 +53,7 @@
 # CRON for VuFind-Plus (book cover cache cleanup etc.)
 # JAMES should ask about cron.jar argument DatabaseCleanup
 00 */3 * * * cd /usr/local/VuFind-Plus/vufind/cron; java -jar cron.jar catalog.library.nashville.org
+20 0 * * * cd /usr/local/VuFind-Plus/vufind/cron; java -jar cron.jar catalog.library.nashville.org DatabaseCleanup
 
 ###################################
 # Data Extract from other systems #
