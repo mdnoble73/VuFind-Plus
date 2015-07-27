@@ -32,6 +32,8 @@
  */
 interface DriverInterface
 {
+	public function __construct($accountProfile);
+
 	/**
 	 * Loads items information as quickly as possible (no direct calls to the ILS)
 	 *
@@ -49,10 +51,33 @@ interface DriverInterface
 	public function getStatus($id);
 	public function getStatuses($ids);
 	public function getHolding($id);
-	public function getPurchaseHistory($id);
-	public function getMyProfile($patron, $forceReload = false);
 	public function patronLogin($username, $password);
 	public function hasNativeReadingHistory();
 	public function getNumHolds($id);
+
+	/**
+	 * Get Patron Transactions
+	 *
+	 * This is responsible for retrieving all transactions (i.e. checked out items)
+	 * by a specific patron.
+	 *
+	 * @param User $user    The user to load transactions for
+	 *
+	 * @return array        Array of the patron's transactions on success
+	 *                      array has two subelements, transactions, and numTransactions
+	 * @access public
+	 */
+	public function getMyTransactions($user);
+
+	/**
+	 * Get Patron Holds
+	 *
+	 * This is responsible for retrieving all holds for a specific patron.
+	 *
+	 * @param User $user    The user to load transactions for
+	 *
+	 * @return array        Array of the patron's holds
+	 * @access public
+	 */
+	public function getMyHolds($user);
 }
-?>

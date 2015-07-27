@@ -13,8 +13,8 @@
 	
 	<div id="main-content">
 		{if $user->cat_username}
-			{if $profile.web_note}
-				<div id="web_note">{$profile.web_note}</div>
+			{if $profile->web_note}
+				<div id="web_note">{$profile->web_note}</div>
 			{/if}
 		
 			<div class="myAccountTitle">{translate text='Your eContent Wish List'}</div>

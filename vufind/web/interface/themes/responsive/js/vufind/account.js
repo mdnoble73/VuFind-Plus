@@ -6,7 +6,6 @@ VuFind.Account = (function(){
 	return {
 		ajaxCallback: null,
 		closeModalOnAjaxSuccess: false,
-		//haslocalStorage: null, // disable by default
 
 		addAccountLink: function(){
 			var url = Globals.path + "/MyAccount/AJAX?method=getAddAccountLinkForm";
@@ -235,14 +234,11 @@ VuFind.Account = (function(){
 
 		removeTag: function(tag){
 			if (confirm("Are you sure you want to remove the tag \"" + tag + "\" from all titles?")){
-				//var url = Globals.path + "/MyAccount/AJAX?method=removeTag&tag=" + encodeURI(tag);
 				var url = Globals.path + "/MyAccount/AJAX",
 						params = {method:'removeTag', tag: tag};
-				//$.getJSON(url, function(data){
 				$.getJSON(url, params, function(data){
 					if (data.result == true){
 						VuFind.showMessage('Tag Deleted', data.message, true, true);
-						//setTimeout(function(){window.location.reload()}, 3000);
 					}else{
 						VuFind.showMessage('Tag Not Deleted', data.message);
 					}
@@ -252,17 +248,15 @@ VuFind.Account = (function(){
 		},
 
 		renewTitle: function(renewIndicator) {
-			if (!Globals.loggedIn) {
-				this.ajaxLogin(null, function () {
-					this.renewTitle(renewIndicator);
-				}, false);
-			} else {
-				VuFind.showMessage('Loading', 'Loading, please wait');
+			if (Globals.loggedIn) {
+				VuFind.loadingMessage();
 				$.getJSON(Globals.path + "/MyAccount/AJAX?method=renewItem&renewIndicator="+renewIndicator, function(data){
 					VuFind.showMessage(data.title, data.modalBody, data.success, data.success); // autoclose when successful
-				}).fail(function(){
-					VuFind.showMessage('Request Failed', 'There was an error with this AJAX Request.');
-				});
+				}).fail(VuFind.ajaxFail)
+			} else {
+				this.ajaxLogin(null, function () {
+					this.renewTitle(renewIndicator);
+				}, false)
 			}
 			return false;
 		},
@@ -284,7 +278,7 @@ VuFind.Account = (function(){
 							});
 						}
 					}).fail(function(){
-						VuFind.showMessage('Request Failed', 'There was an error with this AJAX Request.');
+						VuFind.ajaxFail()
 					});
 				}
 			return false;
@@ -313,13 +307,6 @@ VuFind.Account = (function(){
 						$.getJSON(Globals.path + "/MyAccount/AJAX?method=renewSelectedItems&"+selectedTitles, function (data) {
 							var reload = data.success || data.renewed > 0;
 							VuFind.showMessage(data.title, data.modalBody, data.success, reload);
-							// autoclose when all successful
-							//if (data.success || data.renewed > 0) {
-							//	// Refresh page on close when a item has been successfully renewed, otherwise stay
-							//	$("#modalDialog").on('hidden.bs.modal', function (e) {
-							//		location.reload(true);
-							//	});
-							//}
 						}).fail(function(){
 							VuFind.showMessage('Request Failed', 'There was an error with this AJAX Request.');
 						});
@@ -377,11 +364,7 @@ VuFind.Account = (function(){
 
 		cancelHold: function(holdIdToCancel){
 			if (confirm("Are you sure you want to cancel this hold?")){
-				if (!Globals.loggedIn) {
-					this.ajaxLogin(null, function () {
-						VuFind.Account.cancelHold(holdIdToCancel);
-					}, false);
-				} else {
+				if (Globals.loggedIn) {
 					VuFind.showMessage('Loading', 'Loading, please wait');
 					$.getJSON(Globals.path + "/MyAccount/AJAX?method=cancelHold&cancelId="+holdIdToCancel, function(data){
 						VuFind.showMessage(data.title, data.modalBody, data.success); // autoclose when successful
@@ -392,45 +375,49 @@ VuFind.Account = (function(){
 							$('div.result').has('#selected'+escapedHoldId).remove();
 						}
 					}).fail(function(){
-						VuFind.showMessage('Request Failed', 'There was an error with this AJAX Request.');
-					});
+						VuFind.ajaxFail()
+					})
+				} else {
+					this.ajaxLogin(null, function () {
+						VuFind.Account.cancelHold(holdIdToCancel)
+					}, false);
 				}
 			}
 
-			return false;
+			return false
 		},
 
 		cancelSelectedHolds: function() {
-			if (!Globals.loggedIn) {
-				this.ajaxLogin(null, function () {
-					VuFind.Account.cancelSelectedHolds();
-				}, false);
-			} else {
+			if (Globals.loggedIn) {
 				var selectedTitles = this.getSelectedTitles()
 								.replace(/waiting|available/g, ''),// strip out of name for now.
 						numHolds = $("input.titleSelect:checked").length;
 				// if numHolds equals 0, quit because user has canceled in getSelectedTitles()
 				if (numHolds > 0 && confirm('Cancel ' + numHolds + ' selected hold' + (numHolds > 1 ? 's' : '') + '?')) {
-					VuFind.showMessage('Loading', 'Loading, please wait');
+					VuFind.loadingMessage();
 					$.getJSON(Globals.path + "/MyAccount/AJAX?method=cancelHolds&"+selectedTitles, function(data){
 						VuFind.showMessage(data.title, data.modalBody, data.success); // autoclose when successful
-							if (data.success) {
-								// remove canceled items from page
-								$("input.titleSelect:checked").closest('div.result').remove();
-							} else if (data.failed) { // remove items that didn't fail
-								var searchArray = data.failed.map(function(ele){return ele.toString()});
-								 // convert any number values to string, this is needed bcs inArray() below does strict comparisons
-								 // & id will be a string. (sometimes the id values are of type number )
-								$("input.titleSelect:checked").each(function(){
-									var id = $(this).attr('id').replace(/selected/g, ''); //strip down to just the id part
-									if ($.inArray(id, searchArray) == -1) // if the item isn't one of the failed cancels, get rid of its containing div.
-										$(this).closest('div.result').remove();
-								});
-							}
+						if (data.success) {
+							// remove canceled items from page
+							$("input.titleSelect:checked").closest('div.result').remove();
+						} else if (data.failed) { // remove items that didn't fail
+							var searchArray = data.failed.map(function(ele){return ele.toString()});
+							// convert any number values to string, this is needed bcs inArray() below does strict comparisons
+							// & id will be a string. (sometimes the id values are of type number )
+							$("input.titleSelect:checked").each(function(){
+								var id = $(this).attr('id').replace(/selected/g, ''); //strip down to just the id part
+								if ($.inArray(id, searchArray) == -1) // if the item isn't one of the failed cancels, get rid of its containing div.
+									$(this).closest('div.result').remove();
+							});
+						}
 					}).fail(function(){
-						VuFind.showMessage('Request Failed', 'There was an error with this AJAX Request.');
+						VuFind.ajaxFail();
 					});
 				}
+			} else {
+				this.ajaxLogin(null, function () {
+					VuFind.Account.cancelSelectedHolds();
+				}, false);
 		}
 		return false;
 	},
@@ -482,6 +469,68 @@ VuFind.Account = (function(){
 
 		},
 */
+
+		cancelBooking: function(cancelId){
+			if (confirm("Are you sure you want to cancel this booking?")){
+				if (Globals.loggedIn) {
+					VuFind.loadingMessage();
+					$.getJSON(Globals.path + "/MyAccount/AJAX", {method:"cancelBooking", cancelId:cancelId}, function(data){
+						VuFind.showMessage(data.title, data.modalBody, data.success); // autoclose when successful
+						if (data.success) {
+							// remove canceled item from page
+							var escapedId = cancelId.replace(/:/g, "\\:"); // needed for jquery selector to work correctly
+							// first backslash for javascript escaping, second for css escaping (within jquery)
+							$('div.result').has('#selected'+escapedId).remove();
+						}
+					}).fail(VuFind.ajaxFail)
+				} else {
+					this.ajaxLogin(null, function () {
+						VuFind.Account.cancelBooking(cancelId)
+					}, false);
+				}
+			}
+
+			return false
+		},
+
+		cancelSelectedBookings: function(){
+			if (Globals.loggedIn) {
+				var selectedTitles = this.getSelectedTitles(),
+						numBookings = $("input.titleSelect:checked").length;
+				// if numBookings equals 0, quit because user has canceled in getSelectedTitles()
+				if (numBookings > 0 && confirm('Cancel ' + numBookings + ' selected booking' + (numBookings > 1 ? 's' : '') + '?')) {
+					VuFind.loadingMessage();
+					$.getJSON(Globals.path + "/MyAccount/AJAX?method=cancelBooking&"+selectedTitles, function(data){
+						VuFind.showMessage(data.title, data.modalBody, data.success); // autoclose when successful
+						if (data.success) {
+							// remove canceled items from page
+							$("input.titleSelect:checked").closest('div.result').remove();
+						} else if (data.failed) { // remove items that didn't fail
+							var searchArray = data.failed.map(function(ele){return ele.toString()});
+							// convert any number values to string, this is needed bcs inArray() below does strict comparisons
+							// & id will be a string. (sometimes the id values are of type number )
+							$("input.titleSelect:checked").each(function(){
+								var id = $(this).attr('id').replace(/selected/g, ''); //strip down to just the id part
+								if ($.inArray(id, searchArray) == -1) // if the item isn't one of the failed cancels, get rid of its containing div.
+									$(this).closest('div.result').remove();
+							});
+						}
+					}).fail(VuFind.ajaxFail);
+				}
+			} else {
+				this.ajaxLogin(null, VuFind.Account.cancelSelectedBookings, false);
+			}
+			return false;
+
+		},
+
+		cancelAllBookings: function(cancelId){
+			if (confirm('Cancel All Bookings?')) {
+				// TODO: code this
+				alert('Cancel Booking!')
+			}
+		},
+
 		/* update the sort parameter and redirect the user back to the same page */
 		changeAccountSort: function (newSort){
 			// Get the current url

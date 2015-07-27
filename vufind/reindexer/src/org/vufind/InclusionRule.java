@@ -39,23 +39,25 @@ public class InclusionRule {
 	}
 
 	public boolean isItemIncluded(String recordType, String locationCode, String subLocationCode, boolean isHoldable, boolean isOnOrder, boolean isEContent){
+		//Do the quick checks first
+		if (includeHoldableOnly && !isHoldable){
+			return false;
+		}
+		if (!includeItemsOnOrder && isOnOrder){
+			return false;
+		}
+		if (!includeEContent && isEContent){
+			return false;
+		}
+		//Now do the longer checks
 		if (!this.recordType.equals(recordType)){
 			return false;
 		}
 		if (locationCodePattern.matcher(locationCode).lookingAt() && subLocationCodePattern.matcher(subLocationCode).lookingAt()){
-			//We got a match based on location
-			if (includeHoldableOnly && !isHoldable){
-				return false;
-			}
-			if (!includeItemsOnOrder && isOnOrder){
-				return false;
-			}
-			if (!includeEContent && isEContent){
-				return false;
-			}
+			//We got a match based on location so this is good to go
+			return true;
 		}else{
 			return false;
 		}
-		return true;
 	}
 }

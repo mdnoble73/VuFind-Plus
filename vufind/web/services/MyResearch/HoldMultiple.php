@@ -160,9 +160,6 @@ class MyAccount_HoldMultiple extends Action
 
 				//Showing place hold form.
 				if ($user){
-					$profile = $this->catalog->getMyProfile($user);
-					$interface->assign('profile', $profile);
-
 					//Get information to show a warning if the user does not have sufficient holds
 					require_once ROOT_DIR . '/Drivers/marmot_inc/PType.php';
 					$maxHolds = -1;
@@ -181,7 +178,7 @@ class MyAccount_HoldMultiple extends Action
 
 					global $locationSingleton;
 					//Get the list of pickup branch locations for display in the user interface.
-					$locations = $locationSingleton->getPickupBranches($profile, $profile['homeLocationId']);
+					$locations = $locationSingleton->getPickupBranches($user, $user->homeLocationId);
 					$interface->assign('pickupLocations', $locations);
 					//set focus to the submit button if the user is logged in since the campus will be correct most of the time.
 					$interface->assign('focusElementId', 'submit');

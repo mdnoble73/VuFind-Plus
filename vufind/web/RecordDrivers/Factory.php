@@ -90,7 +90,7 @@ class RecordDriverFactory {
 		if (isset(RecordDriverFactory::$recordDrivers[$id])){
 			return RecordDriverFactory::$recordDrivers[$id];
 		}
-		$recordInfo = explode(':', $id);
+		$recordInfo = explode(':', $id, 2);
 		$recordType = $recordInfo[0];
 		$recordId = $recordInfo[1];
 

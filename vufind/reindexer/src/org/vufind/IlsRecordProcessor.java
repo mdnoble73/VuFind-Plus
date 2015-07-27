@@ -5,8 +5,7 @@ import org.ini4j.Ini;
 import org.marc4j.MarcPermissiveStreamReader;
 import org.marc4j.marc.*;
 
-import java.io.File;
-import java.io.FileInputStream;
+import java.io.*;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -142,7 +141,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		getTranslationMapsStmt.setLong(1, id);
 		ResultSet translationsMapRS = getTranslationMapsStmt.executeQuery();
 		while (translationsMapRS.next()){
-			TranslationMap map = new TranslationMap(translationsMapRS.getString("name"), fullReindex, logger);
+			TranslationMap map = new TranslationMap(profileType, translationsMapRS.getString("name"), fullReindex, logger);
 			Long translationMapId = translationsMapRS.getLong("id");
 			getTranslationMapValuesStmt.setLong(1, translationMapId);
 			ResultSet translationMapValuesRS = getTranslationMapValuesStmt.executeQuery();
@@ -188,16 +187,17 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		String firstChars = shortId.substring(0, 4);
 		String basePath = individualMarcPath + "/" + firstChars;
 		String individualFilename = basePath + "/" + shortId + ".mrc";
-		File individualFile = new File(individualFilename);
 		try {
-			FileInputStream inputStream = new FileInputStream(individualFile);
+			byte[] fileContents = Util.readFileBytes(individualFilename);
+			//FileInputStream inputStream = new FileInputStream(individualFile);
+			InputStream inputStream = new ByteArrayInputStream(fileContents);
 			MarcPermissiveStreamReader marcReader = new MarcPermissiveStreamReader(inputStream, true, true, "UTF-8");
 			if (marcReader.hasNext()){
 				record = marcReader.next();
 			}
 			inputStream.close();
 		} catch (Exception e) {
-			logger.error("Error reading data from ils file " + individualFile.toString(), e);
+			logger.error("Error reading data from ils file " + individualFilename, e);
 		}
 		return record;
 	}
@@ -462,18 +462,18 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		switch (protectionType) {
 			case "acs":
 			case "drm":
-				relatedRecord = groupedWork.addRelatedRecord("restricted_econtent:", identifier);
+				relatedRecord = groupedWork.addRelatedRecord("restricted_econtent", identifier);
 				relatedRecord.setSubSource(profileType);
 				relatedRecord.addItem(itemInfo);
 				break;
 			case "public domain":
 			case "free":
-				relatedRecord = groupedWork.addRelatedRecord("public_domain_econtent:", identifier);
+				relatedRecord = groupedWork.addRelatedRecord("public_domain_econtent", identifier);
 				relatedRecord.setSubSource(profileType);
 				relatedRecord.addItem(itemInfo);
 				break;
 			case "external":
-				relatedRecord = groupedWork.addRelatedRecord("external_econtent:", identifier);
+				relatedRecord = groupedWork.addRelatedRecord("external_econtent", identifier);
 				relatedRecord.setSubSource(profileType);
 				relatedRecord.addItem(itemInfo);
 				break;
@@ -601,25 +601,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		itemInfo.setITypeCode(getItemSubfieldData(iTypeSubfield, itemField));
 		itemInfo.setIType(translateValue("itype", getItemSubfieldData(iTypeSubfield, itemField)));
 
-		String totalCheckoutsField = getItemSubfieldData(totalCheckoutSubfield, itemField);
-		int totalCheckouts = 0;
-		if (totalCheckoutsField != null){
-			totalCheckouts = Integer.parseInt(totalCheckoutsField);
-		}
-		String ytdCheckoutsField = getItemSubfieldData(ytdCheckoutSubfield, itemField);
-		int ytdCheckouts = 0;
-		if (ytdCheckoutsField != null){
-			ytdCheckouts = Integer.parseInt(ytdCheckoutsField);
-		}
-		String lastYearCheckoutsField = getItemSubfieldData(lastYearCheckoutSubfield, itemField);
-		int lastYearCheckouts = 0;
-		if (lastYearCheckoutsField != null){
-			lastYearCheckouts = Integer.parseInt(lastYearCheckoutsField);
-		}
-		double itemPopularity = ytdCheckouts + .5 * (lastYearCheckouts) + .1 * (totalCheckouts - lastYearCheckouts - ytdCheckouts);
-		if (itemPopularity == 0){
-			itemPopularity = 1;
-		}
+		double itemPopularity = getItemPopularity(itemField);
 		groupedWork.addPopularity(itemPopularity);
 
 		loadItemCallNumber(record, itemField, itemInfo);
@@ -648,6 +630,29 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 
 		recordInfo.addItem(itemInfo);
 		return itemInfo;
+	}
+
+	protected double getItemPopularity(DataField itemField) {
+		String totalCheckoutsField = getItemSubfieldData(totalCheckoutSubfield, itemField);
+		int totalCheckouts = 0;
+		if (totalCheckoutsField != null){
+			totalCheckouts = Integer.parseInt(totalCheckoutsField);
+		}
+		String ytdCheckoutsField = getItemSubfieldData(ytdCheckoutSubfield, itemField);
+		int ytdCheckouts = 0;
+		if (ytdCheckoutsField != null){
+			ytdCheckouts = Integer.parseInt(ytdCheckoutsField);
+		}
+		String lastYearCheckoutsField = getItemSubfieldData(lastYearCheckoutSubfield, itemField);
+		int lastYearCheckouts = 0;
+		if (lastYearCheckoutsField != null){
+			lastYearCheckouts = Integer.parseInt(lastYearCheckoutsField);
+		}
+		double itemPopularity = ytdCheckouts + .5 * (lastYearCheckouts) + .1 * (totalCheckouts - lastYearCheckouts - ytdCheckouts);
+		if (itemPopularity == 0){
+			itemPopularity = 1;
+		}
+		return itemPopularity;
 	}
 
 	protected boolean isItemValid(String itemStatus, String itemLocation) {
@@ -843,9 +848,13 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		Long formatBoost = 0L;
 		HashSet<String> formatBoosts = translateCollection("format_boost", printFormats);
 		for (String tmpFormatBoost : formatBoosts){
-			Long tmpFormatBoostLong = Long.parseLong(tmpFormatBoost);
-			if (tmpFormatBoostLong > formatBoost){
-				formatBoost = tmpFormatBoostLong;
+			try {
+				Long tmpFormatBoostLong = Long.parseLong(tmpFormatBoost);
+				if (tmpFormatBoostLong > formatBoost) {
+					formatBoost = tmpFormatBoostLong;
+				}
+			}catch (NumberFormatException e){
+				logger.warn("Could not load format boost for format " + tmpFormatBoost + " profile " + profileType);
 			}
 		}
 		recordInfo.setFormatBoost(formatBoost);
@@ -1439,7 +1448,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		TranslationMap translationMap = translationMaps.get(mapName);
 		String translatedValue;
 		if (translationMap == null){
-			logger.error("Unable to find translation map for " + mapName);
+			logger.error("Unable to find translation map for " + mapName + " in profile " + profileType);
 			translatedValue = value;
 		}else{
 			translatedValue = translationMap.translateValue(value);
@@ -1451,7 +1460,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		TranslationMap translationMap = translationMaps.get(mapName);
 		HashSet<String> translatedValues;
 		if (translationMap == null){
-			logger.error("Unable to find translation map for " + mapName);
+			logger.error("Unable to find translation map for " + mapName + " in profile " + profileType);
 			translatedValues = values;
 		}else{
 			translatedValues = translationMap.translateCollection(values);

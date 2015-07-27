@@ -297,6 +297,7 @@ class UInterface extends Smarty
 			$this->assign('showSimilarTitles', $library->showSimilarTitles);
 			$this->assign('showSimilarAuthors', $library->showSimilarAuthors);
 			$this->assign('showItsHere', $library->showItsHere);
+			$this->assign('enableMaterialsBooking', $library->enableMaterialsBooking);
 		}else{
 			$this->assign('showLoginButton', 1);
 			$this->assign('showAdvancedSearchbox', 1);
@@ -310,6 +311,7 @@ class UInterface extends Smarty
 			$this->assign('showSimilarTitles', 1);
 			$this->assign('showSimilarAuthors', 1);
 			$this->assign('showItsHere', 0);
+			$this->assign('enableMaterialsBooking', 0);
 		}
 		if (isset($library) && $location != null){ // library and location
 			$this->assign('showFavorites', $location->showFavorites && $library->showFavorites);

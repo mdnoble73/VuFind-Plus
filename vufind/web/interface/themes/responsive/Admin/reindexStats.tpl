@@ -1,6 +1,18 @@
 {strip}
 	<div id="main-content" class="col-md-12">
 		<h3>Indexing Statistics ({$indexingStatsDate})</h3>
+
+		<form id="indexingDateSelection" name="indexingDateSelection" method="get" class="form form-inline">
+			<div class="form-group">
+				<label for="availableDates">Available Dates</label>
+				<select id="availableDates" name="day" class="form-control">
+					{foreach from=$availableDates item=date}
+						<option value="{$date}">{$date}</option>
+					{/foreach}
+				</select>
+			</div>
+			<button type="submit" class="btn btn-default btn-sm">Set Date</button>
+		</form>
 		
 		<div id="reindexingStatsContainer">
 			{if $noStatsFound}

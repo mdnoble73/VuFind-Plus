@@ -5,7 +5,6 @@ interface Authentication {
 	/**
 	 * Authenticate the user in the system
 	 *
-	 * @param array $additionalInfo
 	 * @return mixed
 	 */
 	public function authenticate();

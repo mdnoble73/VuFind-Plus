@@ -354,6 +354,8 @@ VuFind.Record = (function(){
 				//VuFind.showMessage('Loading...', 'Loading, please wait.');
 				$.getJSON(Globals.path + "/Record/" + id + "/AJAX?method=getPlaceHoldForm", function(data){
 					VuFind.showMessageWithButtons(data.title, data.modalBody, data.modalButtons);
+				}).fail(function(){
+					VuFind.showMessage('Request Failed', 'There was an error with this AJAX Request.');
 				});
 			}else{
 				VuFind.Account.ajaxLogin(null, function(){
@@ -363,24 +365,40 @@ VuFind.Record = (function(){
 			return false;
 		},
 
+		showBookMaterial: function(id){
+			if (Globals.loggedIn){
+				VuFind.loadingMessage();
+				$.getJSON(Globals.path + "/Record/" + id + "/AJAX?method=getBookMaterialForm", function(data){
+					VuFind.showMessageWithButtons(data.title, data.modalBody, data.modalButtons);
+				}).fail(VuFind.ajaxFail)
+			}else{
+				VuFind.Account.ajaxLogin(null, function(){
+					VuFind.Record.showBookMaterial(id);
+				}, false)
+			}
+			return false;
+		},
+
+		submitBookMaterialForm: function(){
+			var params = $('#bookMaterialForm').serialize();
+			VuFind.showMessage('Booking', 'Processing, please wait.');
+			$.getJSON(Globals.path + "/Record/AJAX", params+'&method=bookMaterial', function(data){
+				if (data.modalBody) VuFind.showMessageWithButtons(data.title, data.modalBody, data.modalButtons);
+					// For errors that can be fixed by the user, the form will be re-displayed
+				if (data.success) VuFind.showMessage('Success', data.message/*, true*/);
+				else if (data.message) VuFind.showMessage('Error', data.message);
+			}).fail(VuFind.ajaxFail);
+		},
+
 		submitHoldForm: function(){
 			var id = $('#id').val()
 					,autoLogOut = $('#autologout').prop('checked')
-					,selectedItem = $('#selectedItem');
-			//var params = '&campus=' + $('#campus').val();
-			//params += '&cancelHoldDate=' + $('#cancelHoldDate').text();
-			//if ($('#autologout').prop('checked')){
-			//	params += '&autologout=true';
-			//}
-			//var selectedItem = $('#selectedItem');
-			//if (selectedItem.length > 0){
-			//	params += '&selectedItem=' + selectedItem.val();
-			//}
-			var params = {
-				'method': 'placeHold'
-				,campus: $('#campus').val()
-				,cancelHoldDate: $('#cancelHoldDate').text()
-			}
+					,selectedItem = $('#selectedItem')
+					,params = {
+						'method': 'placeHold'
+						,campus: $('#campus').val()
+						,cancelHoldDate: $('#cancelHoldDate').text()
+					};
 			if (autoLogOut){
 				params['autologout'] = true;
 			}
@@ -397,6 +415,8 @@ VuFind.Record = (function(){
 				}else{
 					VuFind.showMessage('Hold Failed', data.message, false, autoLogOut);
 				}
+			}).fail(function(){
+				VuFind.showMessage('Request Failed', 'There was an error with this AJAX Request.');
 			});
 		},
 
@@ -406,7 +426,9 @@ VuFind.Record = (function(){
 						VuFind.showMessage("Success", data.message, true, true);
 						setTimeout("VuFind.closeLightbox();", 3000);
 					}
-			);
+			).fail(function(){
+						VuFind.showMessage('Request Failed', 'There was an error with this AJAX Request.');
+					});
 			return false;
 		},
 

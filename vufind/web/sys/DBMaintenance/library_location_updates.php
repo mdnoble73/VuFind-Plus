@@ -504,6 +504,15 @@ function getLibraryLocationUpdates(){
 			),
 		),
 
+		'library_bookings' => array(
+			'title' => 'Enable Materials Booking',
+			'description' => 'Add a library setting to enable Sierra\'s Materials Booking module.',
+			'continueOnError' => true,
+			'sql' => array(
+				"ALTER TABLE `library` ADD `enableMaterialsBooking` TINYINT NOT NULL DEFAULT 0"
+			),
+		),
+
 		'hours_and_locations_control' => array(
 			'title' => 'Hours and Locations Control',
 			'description' => 'Allow additional control over library hours and locations display.',

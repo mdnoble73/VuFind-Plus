@@ -31,11 +31,13 @@ class Record_AJAX extends Action {
 		$analytics->disableTracking();
 		$method = $_GET['method'];
 		$timer->logTime("Starting method $method");
-		if (in_array($method, array('getPlaceHoldForm', 'placeHold', 'reloadCover'))){
+
+		// Methods intend to return JSON data
+		if (in_array($method, array('getPlaceHoldForm', 'getBookMaterialForm', 'placeHold', 'reloadCover', 'bookMaterial'))){
 			header('Content-type: text/plain');
 			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
 			header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
-			echo $this->$method();
+			echo $this->json_utf8_encode($this->$method());
 		}else if (in_array($method, array('GetGoDeeperData', 'getPurchaseOptions'))){
 			header('Content-type: text/html');
 			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
@@ -363,9 +365,6 @@ class Record_AJAX extends Action {
 		global $user;
 		if ($user){
 			$id = $_REQUEST['id'];
-			$catalog = CatalogFactory::getCatalogConnectionInstance();
-			$profile = $catalog->getMyProfile($user);
-			$interface->assign('profile', $profile);
 
 			//Get information to show a warning if the user does not have sufficient holds
 			require_once ROOT_DIR . '/Drivers/marmot_inc/PType.php';
@@ -376,7 +375,7 @@ class Record_AJAX extends Action {
 			if ($ptype->find(true)){
 				$maxHolds = $ptype->maxHolds;
 			}
-			$currentHolds = $profile['numHolds'];
+			$currentHolds = $user->numHoldsIls;
 			if ($maxHolds != -1 && ($currentHolds + 1 > $maxHolds)){
 				$interface->assign('showOverHoldLimit', true);
 				$interface->assign('maxHolds', $maxHolds);
@@ -398,13 +397,12 @@ class Record_AJAX extends Action {
 
 			require_once ROOT_DIR . '/RecordDrivers/MarcRecord.php';
 			$marcRecord = new MarcRecord($id);
-			$interface->assign('id', $id);
 			$title = $marcRecord->getTitle();
-//			$interface->assign('title', $title); // Title not referred to in hold-popup.tpl
+			$interface->assign('id', $id);
 			$results = array(
 					'title' => 'Place Hold on ' . $title,
 					'modalBody' => $interface->fetch("Record/hold-popup.tpl"),
-					'modalButtons' => "<input type='submit' name='submit' id='requestTitleButton' value='Submit Hold Request' class='btn btn-primary' onclick='return VuFind.Record.submitHoldForm();'/>"
+					'modalButtons' => "<input type='submit' name='submit' id='requestTitleButton' value='Submit Hold Request' class='btn btn-primary' onclick='return VuFind.Record.submitHoldForm();'>"
 			);
 		}else{
 			$results = array(
@@ -413,7 +411,67 @@ class Record_AJAX extends Action {
 					'modalButtons' => ""
 			);
 		}
-		return $this->json_utf8_encode($results);
+		return $results;
+	}
+
+	function getBookMaterialForm($errorMessage = null){
+		global $interface;
+		global $user;
+		if ($user){
+			$id = $_REQUEST['id'];
+
+			require_once ROOT_DIR . '/RecordDrivers/MarcRecord.php';
+			$marcRecord = new MarcRecord($id);
+			$title = $marcRecord->getTitle();
+			$interface->assign('id', $id);
+			if ($errorMessage) $interface->assign('errorMessage', $errorMessage);
+			$results = array(
+					'title' => 'Book ' . $title,
+					'modalBody' => $interface->fetch("Record/book-materials-form.tpl"),
+//					'modalButtons' => '<button id="BookMaterialButton" class="btn btn-primary" onclick="return VuFind.Record.submitBookMaterialForm();">Book Item</button>'
+					'modalButtons' => '<button class="btn btn-primary" onclick="$(\'#bookMaterialForm\').submit()">Book Item</button>'
+			    // Clicking invokes submit event, which allows the validator to act before calling the ajax handler
+			);
+		}else{
+			$results = array(
+					'title' => 'Please login',
+					'modalBody' => "You must be logged in.  Please close this dialog and login before booking this item.",
+					'modalButtons' => ""
+			);
+		}
+		return $results;
+	}
+
+	function bookMaterial(){
+		if (!empty($_REQUEST['id'])) $recordId = $_REQUEST['id'];
+		else {
+			return array('success' => false, 'message' => 'Item ID is required.');
+		}
+		if (isset($_REQUEST['startDate'])) {
+			$startDate = $_REQUEST['startDate'];
+		} else {
+			return array('success' => false, 'message' => 'Start Date is required.');
+		}
+
+		$startTime = $_REQUEST['startTime'];
+		$endDate = $_REQUEST['endDate'];
+		$endTime = $_REQUEST['endTime'];
+
+		global $user;
+		if ($user) { // The user is already logged in
+			$catalog = CatalogFactory::getCatalogConnectionInstance();
+			$return = $catalog->bookMaterial($recordId, $startDate, $startTime, $endDate, $endTime);
+			if (!empty($return['retry'])) {
+				return $this->getBookMaterialForm($return['message']); // send back error message with form to try again
+			} else { // otherwise return output to user's browser
+				if ($return['success'] == true) $return['message'] = '<div class="alert alert-success">'.$return['message'].'</div>';
+					// wrap a success message in a success alert
+				return $return;
+			}
+
+		} else return array('success' => false, 'message' => 'User not logged in.');
+		$results = array('success' => true);
+		return $results;
 	}
 
 	function json_utf8_encode($result) { // TODO: add to other ajax.php or make part of a ajax base class
@@ -452,7 +510,7 @@ class Record_AJAX extends Action {
 		if ($user){
 			//The user is already logged in
 			$barcodeProperty = $configArray['Catalog']['barcodeProperty'];
-			$catalog = CatalogFactory::getCatalogConnectionInstance();;
+			$catalog = CatalogFactory::getCatalogConnectionInstance();
 			if (isset($_REQUEST['selectedItem'])){
 				$return = $catalog->placeItemHold($recordId, $_REQUEST['selectedItem'], $user->$barcodeProperty, '', '');
 			}else{
@@ -517,7 +575,7 @@ class Record_AJAX extends Action {
 				$results['autologout'] = true;
 			}
 		}
-		return $this->json_utf8_encode($results);
+		return $results;
 	}
 
 	function reloadCover(){
@@ -553,7 +611,7 @@ class Record_AJAX extends Action {
 		$largeCoverUrl = $configArray['Site']['coverUrl'] . str_replace('&amp;', '&', $groupedWorkDriver->getBookcoverUrl('large')) . '&reload';
 		file_get_contents($largeCoverUrl);
 
-		return $this->json_utf8_encode(array('success' => true, 'message' => 'Covers have been reloaded.  You may need to refresh the page to clear your local cache.'));
+		return array('success' => true, 'message' => 'Covers have been reloaded.  You may need to refresh the page to clear your local cache.');
 	}
 
 }

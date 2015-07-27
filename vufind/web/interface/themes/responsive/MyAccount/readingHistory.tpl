@@ -2,14 +2,12 @@
 {if $user->cat_username}
 	{strip}
 
-	{if $profile.web_note}
+	{if $profile->web_note}
 		<div class="row">
-			<div id="web_note" class="alert alert-info text-center col-xs-12">{$profile.web_note}</div>
+			<div id="web_note" class="alert alert-info text-center col-xs-12">{$profile->web_note}</div>
 		</div>
 	{/if}
-	{if $profile.numHoldsAvailableTotal && $profile.numHoldsAvailableTotal > 0}
-		<div class="text-info text-center alert alert-info"><a href="/MyAccount/Holds" class="alert-link">You have {$profile.numHoldsAvailableTotal} holds ready for pick up.</a></div>
-	{/if}
+	{include file="MyAccount/availableHoldsNotice.tpl"}
 
 	<h2>{translate text='My Reading History'} {if $historyActive == true}<small><a id='readingListWhatsThis' href="#" onclick="$('#readingListDisclaimer').toggle();return false;">(What's This?)</a></small>{/if}</h2>
 

@@ -309,7 +309,7 @@ class Location extends DB_DataObject
 	}
 
 	/**
-	 * @param array|User $patronProfile
+	 * @param User $patronProfile
 	 * @param int $selectedBranchId
 	 * @return Location[]
 	 */
@@ -317,13 +317,7 @@ class Location extends DB_DataObject
 		//Get the library for the patron's home branch.
 		/** @var Library $librarySingleton */
 		global $librarySingleton;
-		if ($patronProfile){
-			if (is_object($patronProfile)){
-				$patronProfile = get_object_vars($patronProfile);
-			}
-		}
-		$homeLibrary = $librarySingleton->getLibraryForLocation($patronProfile['homeLocationId']);
-
+		$homeLibrary = $librarySingleton->getLibraryForLocation($patronProfile->homeLocationId);
 
 		if (isset($homeLibrary) && $homeLibrary->inSystemPickupsOnly == 1){
 			if (strlen($homeLibrary->validPickupSystems) > 0){
@@ -372,13 +366,13 @@ class Location extends DB_DataObject
 			if (isset($physicalLocation) && $physicalLocation->locationId == $this->locationId){
 				//If the user is in a branch, those holdings come first.
 				$locationList['1' . $this->displayName] = clone $this;
-			} else if ($this->locationId == $patronProfile['homeLocationId']){
+			} else if ($this->locationId == $patronProfile->homeLocationId){
 				//Next come the user's home branch if the user is logged in or has the home_branch cookie set.
 				$locationList['2' . $this->displayName] = clone $this;
-			} else if (isset($patronProfile['myLocation1Id']) && $this->locationId == $patronProfile['myLocation1Id']){
+			} else if (isset($patronProfile->myLocation1Id) && $this->locationId == $patronProfile->myLocation1Id){
 				//Next come nearby locations for the user
 				$locationList['3' . $this->displayName] = clone $this;
-			} else if (isset($patronProfile['myLocation2Id']) && $this->locationId == $patronProfile['myLocation2Id']){
+			} else if (isset($patronProfile->myLocation2Id) && $this->locationId == $patronProfile->myLocation2Id){
 				//Next come nearby locations for the user
 				$locationList['4' . $this->displayName] = clone $this;
 			} else if (isset($homeLibrary) && $this->libraryId == $homeLibrary->libraryId){
@@ -392,7 +386,7 @@ class Location extends DB_DataObject
 		ksort($locationList);
 
 		if (count($locationList) == 0 && (isset($homeLibrary) && $homeLibrary->inSystemPickupsOnly == 1)){
-			$homeLocation = Location::staticGet($patronProfile['homeLocationId']);
+			$homeLocation = Location::staticGet($patronProfile->homeLocationId);
 			if ($homeLocation->showHoldButton == 1){
 				//We didn't find any locations.  This for schools where we want holds available, but don't want the branch to be a
 				//pickup location anywhere else.
@@ -461,16 +455,20 @@ class Location extends DB_DataObject
 	 *
 	 * @return Location
 	 */
-	static function getUserHomeLocation(){
+	static function getUserHomeLocation($userToLoad = null){
 		if (isset(Location::$userHomeLocation) && Location::$userHomeLocation != 'unset') return Location::$userHomeLocation;
 
 		//default value
 		Location::$userHomeLocation = null;
 
-		global $user;
-		if (isset($user) && $user != false){
+		if ($userToLoad == null){
+			global $user;
+			$userToLoad = $user;
+		}
+
+		if (isset($userToLoad) && $userToLoad != false){
 			$homeLocation = new Location();
-			$homeLocation->locationId = $user->homeLocationId;
+			$homeLocation->locationId = $userToLoad->homeLocationId;
 			if ($homeLocation->find(true)){
 				Location::$userHomeLocation = clone($homeLocation);
 			}

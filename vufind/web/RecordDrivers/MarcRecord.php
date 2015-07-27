@@ -45,7 +45,7 @@ class MarcRecord extends IndexRecord
 	 * we will already have this data available, so we might as well
 	 * just pass it into the constructor.
 	 *
-	 * @param   array   $recordData     Data to construct the driver from
+	 * @param   array|File_MARC_Record||string   $recordData     Data to construct the driver from
 	 * @access  public
 	 */
 	public function __construct($recordData){
@@ -63,7 +63,12 @@ class MarcRecord extends IndexRecord
 			}
 
 			global $indexingProfiles;
-			$this->indexingProfile = $indexingProfiles[$this->profileType];
+			if (array_key_exists($this->profileType, $indexingProfiles)){
+				$this->indexingProfile = $indexingProfiles[$this->profileType];
+			}else{
+				$this->indexingProfile = $indexingProfiles['ils'];
+			}
+
 
 			$this->valid = MarcLoader::marcExistsForILSId($recordData);
 		}else{

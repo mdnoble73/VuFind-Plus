@@ -1920,6 +1920,14 @@ class DBMaintenance extends Admin_Admin {
 					),
 				),
 
+				'browse_categories_search_term_length' => array(
+					'title' => 'Browse Category Search Term Length',
+					'description' => 'Increase the length of the search term field',
+					'sql' => array(
+						"ALTER TABLE browse_category CHANGE searchTerm searchTerm VARCHAR(300) NOT NULL DEFAULT ''",
+					),
+				),
+
 				'browse_categories_lists' => array(
 					'title' => 'Browse Categories from Lists',
 					'description' => 'Add a the ability to define a browse category from a list',
@@ -2161,9 +2169,23 @@ class DBMaintenance extends Admin_Admin {
 						  `driver` varchar(50) NOT NULL,
 						  `loginConfiguration` enum('barcode_pin','name_barcode') NOT NULL,
 						  `authenticationMethod` enum('ils','sip2','db','ldap') NOT NULL DEFAULT 'ils',
+						  `vendorOpacUrl` varchar(100) NOT NULL,
+						  `patronApiUrl` varchar(100) NOT NULL,
+						  `recordSource` varchar(50) NOT NULL,
 						  PRIMARY KEY (`id`),
 						  UNIQUE KEY `name` (`name`)
 						) ENGINE=InnoDB  DEFAULT CHARSET=utf8",
+					)
+				),
+
+				'account_profiles_1' => array(
+					'title' => 'Update Account Profiles 1',
+					'description' => 'Update Account Profiles with additional data to make integration easier',
+					'sql' => array(
+						"ALTER TABLE `account_profiles` ADD `vendorOpacUrl` varchar(100) NOT NULL",
+						"ALTER TABLE `account_profiles` ADD `patronApiUrl` varchar(100) NOT NULL",
+						"ALTER TABLE `account_profiles` ADD `recordSource` varchar(50) NOT NULL",
+						"ALTER TABLE `account_profiles` ADD `weight` int(11) NOT NULL",
 					)
 				),
 			)

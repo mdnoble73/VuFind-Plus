@@ -10,7 +10,7 @@
 				<div class="col-xs-10 text-center coverColumn">
 					{if $user->disableCoverArt != 1}
 						{if $record.id && $record.coverUrl}
-							<a href="{$path}/Record/{$record.id|escape:"url"}">
+							<a href="{$record.link}">
 								<img src="{$record.coverUrl}" class="listResultImage img-thumbnail img-responsive" alt="{translate text='Cover Image'}"/>
 							</a>
 						{/if}
@@ -23,7 +23,7 @@
 				<div class="col-xs-12">
 					<span class="result-index">{$resultIndex})</span>&nbsp;
 					{if $record.id}
-						<a href="{$path}/Record/{$record.id|escape:"url"}" class="result-title notranslate">
+						<a href="{$record.link}" class="result-title notranslate">
 					{/if}
 					{if !$record.title|removeTrailingPunctuation}{translate text='Title not available'}{else}{$record.title|removeTrailingPunctuation|truncate:180:"..."|highlight:$lookfor}{/if}
 					{if $record.id}

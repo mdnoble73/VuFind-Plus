@@ -222,15 +222,10 @@ if ($translator == false || isset($_REQUEST['reloadTranslator'])){
 }
 $interface->setLanguage($language);
 
-/** @var User */
-global $user;
-$user = UserAccount::isLoggedIn();
-$timer->logTime('Check if user is logged in');
-
 $deviceName = get_device_name();
 $interface->assign('deviceName', $deviceName);
 
-//Look for spammy searches
+//Look for spammy searches and kill them
 if (isset($_REQUEST['lookfor'])){
 	$searchTerm = $_REQUEST['lookfor'];
 	if (preg_match('/http:|mailto:|https:/i', $searchTerm)){
@@ -245,39 +240,33 @@ if (isset($_REQUEST['lookfor'])){
 	}
 }
 
-if (!$analytics->isTrackingDisabled()){
-	$analytics->setModule($module);
-	$analytics->setAction($action);
-	$analytics->setObjectId(isset($_REQUEST['id']) ? $_REQUEST['id'] : null);
-	$analytics->setMethod(isset($_REQUEST['method']) ? $_REQUEST['method'] : null);
-	$analytics->setLanguage($interface->getLanguage());
-	$analytics->setTheme($interface->getPrimaryTheme());
-	$analytics->setMobile($interface->isMobile() ? 1 : 0);
-	$analytics->setDevice(get_device_name());
-	$analytics->setPhysicalLocation($physicalLocation);
-	if ($user){
-		$analytics->setPatronType($user->patronType);
-		$analytics->setHomeLocationId($user->homeLocationId);
-	}else{
-		$analytics->setPatronType('logged out');
-		$analytics->setHomeLocationId(-1);
-	}
-}
+//Check to see if the user is already logged in
+/** @var User $user */
+global $user;
+$user = UserAccount::isLoggedIn();
+$timer->logTime('Check if user is logged in');
 
 // Process Authentication, must be done here so we can redirect based on user information
 // immediately after logging in.
 $interface->assign('loggedIn', $user == false ? 'false' : 'true');
 if ($user) {
+	//The user is logged in
 	$interface->assign('user', $user);
 	//Create a cookie for the user's home branch so we can sort holdings even if they logout.
 	//Cookie expires in 1 week.
 	setcookie('home_location', $user->homeLocationId, time()+60*60*24*7, '/');
 } else if (isset($_POST['username']) && isset($_POST['password']) && ($action != 'Account' && $module != 'AJAX')) {
+	//The user is trying to log in
 	$user = UserAccount::login();
 	if (PEAR_Singleton::isError($user)) {
 		require_once ROOT_DIR . '/services/MyAccount/Login.php';
 		$launchAction = new MyAccount_Login();
 		$launchAction->launch($user->getMessage());
+		exit();
+	}elseif(!$user){
+		require_once ROOT_DIR . '/services/MyAccount/Login.php';
+		$launchAction = new MyAccount_Login();
+		$launchAction->launch("Unknown error logging in");
 		exit();
 	}
 	$interface->assign('user', $user);
@@ -332,6 +321,26 @@ if ($user && (!isset($_REQUEST['action']) || $_REQUEST['action'] != 'Logout')){
 	$interface->assign('homeLibrary', 'n/a');
 }
 
+//Setup analytics
+if (!$analytics->isTrackingDisabled()){
+	$analytics->setModule($module);
+	$analytics->setAction($action);
+	$analytics->setObjectId(isset($_REQUEST['id']) ? $_REQUEST['id'] : null);
+	$analytics->setMethod(isset($_REQUEST['method']) ? $_REQUEST['method'] : null);
+	$analytics->setLanguage($interface->getLanguage());
+	$analytics->setTheme($interface->getPrimaryTheme());
+	$analytics->setMobile($interface->isMobile() ? 1 : 0);
+	$analytics->setDevice(get_device_name());
+	$analytics->setPhysicalLocation($physicalLocation);
+	if ($user){
+		$analytics->setPatronType($user->patronType);
+		$analytics->setHomeLocationId($user->homeLocationId);
+	}else{
+		$analytics->setPatronType('logged out');
+		$analytics->setHomeLocationId(-1);
+	}
+}
+
 //Find a reasonable default location to go to
 if ($module == null && $action == null){
 	//We have no information about where to go, go to the default location from config
@@ -342,12 +351,11 @@ if ($module == null && $action == null){
 }
 //Override MyAccount Home as needed
 if ($module == 'MyAccount' && $action == 'Home' && $user){
-	$profile = $interface->getVariable('profile');
-	if ($profile['numCheckedOutTotal'] > 0){
+	if ($user->getNumCheckedOutTotal() > 0){
 		$action ='CheckedOut';
 		header('Location:/MyAccount/CheckedOut');
 		exit();
-	}elseif ($profile['numHoldsTotal'] > 0){
+	}elseif ($user->getNumHoldsTotal() > 0){
 		header('Location:/MyAccount/Holds');
 		exit();
 	}
@@ -819,11 +827,9 @@ function loadUserData(){
 	global $user;
 	global $interface;
 
-	//Load profile information
-	$catalog = CatalogFactory::getCatalogConnectionInstance();
-	$profile = $catalog->getMyProfile($user);
-	if (!PEAR_Singleton::isError($profile)) {
-		$interface->assign('profile', $profile);
+	//Assign User information to the interface
+	if (!PEAR_Singleton::isError($user)) {
+		$interface->assign('profile', $user);
 	}
 
 	//Load a list of lists

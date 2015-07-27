@@ -9,6 +9,7 @@ import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -16,6 +17,16 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class Util {
+	public static byte[] readFileBytes(String filename) throws IOException {
+		FileInputStream f = new FileInputStream( filename );
+		FileChannel fileChannel = f.getChannel();
+		long fileSize = fileChannel.size();
+		byte[] fileBytes = new byte[(int)fileSize];
+		ByteBuffer buffer = ByteBuffer.wrap(fileBytes);
+		fileChannel.read(buffer);
+		return fileBytes;
+	}
+
 	public static String getCRSeparatedString(Object values) {
 		StringBuffer crSeparatedString = new StringBuffer();
 		if (values instanceof String){

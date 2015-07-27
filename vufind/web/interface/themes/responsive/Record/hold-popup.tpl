@@ -1,9 +1,10 @@
+{strip}
 <div id="page-content" class="content">
 	<form name='placeHoldForm' id='placeHoldForm' action="{$path}/Record/{$id|escape:"url"}/Hold" method="post" class="form">
-		<input type="hidden" name="id" id="id" value="{$id}"/>
+		<input type="hidden" name="id" id="id" value="{$id}">
 		<fieldset>
 			<div class="holdsSummary">
-				<input type="hidden" name="holdCount" id="holdCount" value="1"/>
+				<input type="hidden" name="holdCount" id="holdCount" value="1">
 				<div class="alert alert-warning" id="overHoldCountWarning" {if !$showOverHoldLimit}style="display:none"{/if}>Warning: You have reached the maximum of <span class='maxHolds'>{$maxHolds}</span> holds for your account.  You must cancel a hold before you can place a hold on this title.</div>
 				<div id='holdError' class="pageWarning" style='display: none'></div>
 			</div>
@@ -15,11 +16,11 @@
 				Holds allow you to request that a title be delivered to your home library.
 				{if $showDetailedHoldNoticeInformation}
 					Once the title arrives at your library you will
-					{if $profile.noticePreferenceLabel eq 'Mail' && !$treatPrintNoticesAsPhoneNotices}
+					{if $profile->noticePreferenceLabel eq 'Mail' && !$treatPrintNoticesAsPhoneNotices}
 						be mailed a notification
-					{elseif $profile.noticePreferenceLabel eq 'Telephone' || ($profile.noticePreferenceLabel eq 'Mail' && $treatPrintNoticesAsPhoneNotices)}
+					{elseif $profile->noticePreferenceLabel eq 'Telephone' || ($profile->noticePreferenceLabel eq 'Mail' && $treatPrintNoticesAsPhoneNotices)}
 						receive a phone call
-					{elseif $profile.noticePreferenceLabel eq 'E-mail'}
+					{elseif $profile->noticePreferenceLabel eq 'E-mail'}
 						be emailed a notification
 					{else}
 						receive a notification
@@ -62,7 +63,7 @@
 						</div>
 					</div>
 				{/if}
-				<br />
+				<br>
 				<div class="form-group">
 					<label for="autologout" class="checkbox"><input type="checkbox" name="autologout" id="autologout" {if $inLibrary == true}checked="checked"{/if}/> Log me out after requesting the item.</label>
 					<input type="hidden" name="holdType" value="hold" />
@@ -72,14 +73,4 @@
 		</fieldset>
 	</form>
 </div>
-{* data-provide attribute loads the datepicker *}
-{*{if $showHoldCancelDate == 1}*}
-{*<script	type="text/javascript">*}
-	{*{literal}*}
-	{*$(function() {*}
-		{*$( "#cancelDatePicker" ).datepicker();*}
-	{*});*}
-	{*{/literal}*}
-{*</script>*}
-{*{/if}*}
-
+{/strip}

@@ -47,6 +47,7 @@ class BrowseCategory extends DB_DataObject{
 				$this->subBrowseCategories[$subCategory->id] = clone($subCategory);
 			}
 		}
+		return $this->subBrowseCategories;
 	}
 
 	private $data = array();
@@ -152,7 +153,7 @@ class BrowseCategory extends DB_DataObject{
 
 	public function saveSubBrowseCategories(){
 		if (isset ($this->subBrowseCategories) && is_array($this->subBrowseCategories)) {
-			/** @var SubBrowseCategory[] $subBrowseCategories */
+			/** @var SubBrowseCategories[] $subBrowseCategories */
 			foreach ($this->subBrowseCategories as $subCategory) {
 				if (isset($subCategory->deleteOnSave) && $subCategory->deleteOnSave == true) {
 					$subCategory->delete();
@@ -216,7 +217,7 @@ class BrowseCategory extends DB_DataObject{
 			),
 
 			'catalogScoping' => array('property'=>'catalogScoping', 'type'=>'enum', 'label'=>'Catalog Scoping', 'values' => array('unscoped' => 'Unscoped', 'library' => 'Current Library', 'location' => 'Current Location'), 'description'=>'What scoping should be used for this search scope?.', 'default'=>'unscoped'),
-			'searchTerm' => array('property'=>'searchTerm', 'type'=>'text', 'label'=>'Search Term', 'description'=>'A default search term to apply to the category', 'default'=>'', 'hideInLists' => true),
+			'searchTerm' => array('property'=>'searchTerm', 'type'=>'text', 'label'=>'Search Term', 'description'=>'A default search term to apply to the category', 'default'=>'', 'hideInLists' => true, 'maxLength' => 300),
 			'defaultFilter' => array('property'=>'defaultFilter', 'type'=>'textarea', 'label'=>'Default Filter(s)', 'description'=>'Filters to apply to the search by default.', 'hideInLists' => true, 'rows' => 3, 'cols'=>80),
 			'sourceListId' => array('property' => 'sourceListId', 'type'=>'enum', 'values' => $sourceLists, 'label'=>'Source List', 'description'=>'A public list to display titles from'),
 			'defaultSort' => array('property' => 'defaultSort', 'type' => 'enum', 'label' => 'Default Sort', 'values' => array('relevance' => 'Best Match', 'popularity' => 'Popularity', 'newest_to_oldest' => 'Date Added', 'author' => 'Author', 'title' => 'Title', 'user_rating' => 'Rating'), 'description'=>'The default sort for the search if none is specified', 'default'=>'relevance', 'hideInLists' => true),

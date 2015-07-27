@@ -12,6 +12,7 @@ class User extends DB_DataObject
 
 	public $__table = 'user';                            // table name
 	public $id;                              // int(11)  not_null primary_key auto_increment
+	public $source;
 	public $username;                        // string(30)  not_null unique_key
 	public $displayName;                     // string(30)
 	public $password;                        // string(32)  not_null
@@ -22,8 +23,6 @@ class User extends DB_DataObject
 	public $cat_username;                    // string(50)
 	public $cat_password;                    // string(50)
 	public $patronType;
-	public $college;                         // string(100)  not_null
-	public $major;                           // string(100)  not_null
 	public $created;                         // datetime(19)  not_null binary
 	public $homeLocationId;					 // int(11)
 	public $myLocation1Id;					 // int(11)
@@ -40,6 +39,45 @@ class User extends DB_DataObject
 	private $roles;
 	private $linkedUsers;
 	private $viewers;
+
+	//Data that we load, but don't store in the User table
+	public $fullname;
+	public $address1;
+	public $address2;
+	public $city;
+	public $state;
+	public $zip;
+	public $workPhone;
+	public $mobileNumber;
+	public $web_note;
+	public $expires;
+	public $expired;
+	public $expireClose;
+	public $fines;
+	public $finesVal;
+	public $homeLocationCode;
+	public $homeLocation;
+	public $myLocation1;
+	public $myLocation2;
+	public $numCheckedOutIls;
+	public $numHoldsIls;
+	public $numHoldsAvailableIls;
+	public $numHoldsRequestedIls;
+	public $numCheckedOutEContent;
+	public $numHoldsEContent;
+	public $numHoldsAvailableEContent;
+	public $numHoldsRequestedEContent;
+	public $numCheckedOutOverDrive;
+	public $canUseOverDrive;
+	public $numHoldsOverDrive;
+	public $numHoldsAvailableOverDrive;
+	public $numHoldsRequestedOverDrive;
+	public $numBookings;
+	public $notices;
+	public $noticePreferenceLabel;
+	public $numMaterialsRequests;
+	public $readingHistorySize;
+
 	private $data = array();
 
 	/* Static get */
@@ -48,19 +86,7 @@ class User extends DB_DataObject
 	/* the code above is auto generated do not remove the tag below */
 	###END_AUTOCODE
 
-	/* !Important!
-	 * This function must be updated in order for a value to be saved in the $_SESSION variable. It is called by serialize()
-	 * http://php.net/manual/en/language.oop5.magic.php
-	 * */
-	function __sleep(){
-		return array('id', 'username', 'password', 'cat_username', 'cat_password', 'firstname', 'lastname', 'email', 'phone', 'college', 'major', 'homeLocationId', 'myLocation1Id', 'myLocation2Id', 'trackReadingHistory', 'roles', 'bypassAutoLogout', 'displayName', 'disableRecommendations', 'disableCoverArt', 'patronType', 'overdriveEmail', 'promptForOverdriveEmail', 'noPromptForUserReviews', 'preferredLibraryInterface', 'initialReadingHistoryLoaded', 'linkedUsers');
-	}
-
-	function __wakeup()
-	{
-	}
-
-	function getTags($id = null){
+	function getTags(){
 		require_once ROOT_DIR . '/sys/LocalEnrichment/UserTag.php';
 		$tagList = array();
 
@@ -99,6 +125,26 @@ class User extends DB_DataObject
 		return $lists;
 	}
 
+	/**
+	 * Get a connection to the catalog for the user
+	 *
+	 * @return CatalogConnection
+	 */
+	function getCatalogDriver(){
+		//Based off the source of the user, get the AccountProfile
+		require_once ROOT_DIR . '/sys/Account/AccountProfile.php';
+		$accountProfile = new AccountProfile();
+		$accountProfile->name = $this->source;
+		$catalogDriver = null;
+		if ($accountProfile->find(true)){
+			$catalogDriver = $accountProfile->driver;
+		}else{
+			$accountProfile = null;
+		}
+		$catalog = CatalogFactory::getCatalogConnectionInstance($catalogDriver, $accountProfile);
+		return $catalog;
+	}
+
 	function __get($name){
 		if ($name == 'roles') {
 			return $this->getRoles();
@@ -114,8 +160,6 @@ class User extends DB_DataObject
 			$this->roles = $value;
 			//Update the database, first remove existing values
 			$this->saveRoles();
-		}elseif ($name == 'linkedUsers'){
-			return $this->saveLinkedUsers();
 		}else{
 			$this->data[$name] = $value;
 		}
@@ -123,13 +167,13 @@ class User extends DB_DataObject
 
 	function getRoles(){
 		if (is_null($this->roles)){
+			$this->roles = array();
 			//Load roles for the user from the user
 			require_once ROOT_DIR . '/sys/Administration/Role.php';
 			$role = new Role();
 			$canMasquerade = false;
 			if ($this->id){
 				$role->query("SELECT roles.* FROM roles INNER JOIN user_roles ON roles.roleId = user_roles.roleId WHERE userId = " . $this->id . " ORDER BY name");
-				$this->roles = array();
 				while ($role->fetch()){
 					$this->roles[$role->roleId] = $role->name;
 					if ($role->name == 'userAdmin'){
@@ -146,7 +190,6 @@ class User extends DB_DataObject
 				$testRole = $_COOKIE['test_role'];
 			}
 			if ($canMasquerade && $testRole != ''){
-				$this->roles = array();
 				if (is_array($testRole)){
 					$testRoles = $testRole;
 				}else{
@@ -173,6 +216,7 @@ class User extends DB_DataObject
 
 	function getBarcode(){
 		global $configArray;
+		//TODO: Check the login configuration for the driver
 		if ($configArray['Catalog']['barcodeProperty'] == 'cat_username'){
 			return $this->cat_username;
 		}else{
@@ -214,6 +258,8 @@ class User extends DB_DataObject
 					$linkedUser = new User();
 					$linkedUser->id = $userLink->linkedAccountId;
 					if ($linkedUser->find(true)){
+						//Load full information from the catalog
+						$linkedUser = UserAccount::validateAccount($linkedUser->cat_username, $linkedUser->cat_password, $linkedUser->source);
 						$this->linkedUsers[] = clone($linkedUser);
 					}
 				}
@@ -289,6 +335,7 @@ class User extends DB_DataObject
 
 			return $ret == 1;
 		}
+		return false;
 	}
 
 
@@ -422,7 +469,7 @@ class User extends DB_DataObject
 	function updateUserPreferences(){
 
 		$this->noPromptForUserReviews = (isset($_POST['noPromptForUserReviews']) && $_POST['noPromptForUserReviews'] == 'on')? 1 : 0;
-		$success = $this->update();
+		return $this->update();
 	}
 
 	/**
@@ -459,5 +506,115 @@ class User extends DB_DataObject
 	function getHomeLibrarySystemName(){
 		$homeLibrary = Library::getPatronHomeLibrary($this);
 		return $homeLibrary->displayName;
+	}
+
+	public function getNumCheckedOutTotal($includeLinkedUsers = true) {
+		$myCheckouts = $this->numCheckedOutIls + $this->numCheckedOutEContent + $this->numCheckedOutOverDrive;
+		if ($includeLinkedUsers) {
+			if ($this->getLinkedUsers() != null) {
+				/** @var User $user */
+				foreach ($this->getLinkedUsers() as $user) {
+					$myCheckouts += $user->getNumCheckedOutTotal(false);
+				}
+			}
+		}
+		return $myCheckouts;
+	}
+
+	public function getNumHoldsTotal($includeLinkedUsers = true) {
+		$myHolds = $this->numHoldsIls + $this->numHoldsEContent + $this->numHoldsOverDrive;
+		if ($includeLinkedUsers) {
+			if ($this->getLinkedUsers() != null) {
+				/** @var User $user */
+				foreach ($this->linkedUsers as $user) {
+					$myHolds += $user->getNumHoldsTotal(false);
+				}
+			}
+		}
+		return $myHolds;
+	}
+
+	public function getNumHoldsAvailableTotal($includeLinkedUsers = true){
+		$myHolds = $this->numHoldsAvailableIls + $this->numHoldsAvailableEContent + $this->numHoldsAvailableOverDrive;
+		if ($includeLinkedUsers){
+			if ($this->getLinkedUsers() != null) {
+				/** @var User $user */
+				foreach ($this->linkedUsers as $user) {
+					$myHolds += $user->getNumHoldsAvailableTotal(false);
+				}
+			}
+		}
+
+		return $myHolds;
+	}
+
+	/**
+	 * Return all titles that are currently checked out by the user.
+	 *
+	 * Will check:
+	 * 1) The current ILS for the user
+	 * 2) OverDrive
+	 * 3) eContent stored by Pika
+	 *
+	 * @param bool $includeLinkedUsers
+	 * @return array
+	 */
+	public function getMyCheckouts($includeLinkedUsers = true){
+		global $timer;
+
+		//Get checked out titles from the ILS
+		$catalogTransactions = $this->getCatalogDriver()->getMyTransactions($this);
+		$timer->logTime("Loaded transactions from catalog.");
+
+		//Get checked out titles from OverDrive
+		require_once ROOT_DIR . '/Drivers/OverDriveDriverFactory.php';
+		$overDriveDriver = OverDriveDriverFactory::getDriver();
+		$overDriveCheckedOutItems = $overDriveDriver->getOverDriveCheckedOutItems($this);
+
+		//Get a list of eContent that has been checked out
+		require_once ROOT_DIR . '/Drivers/EContentDriver.php';
+		$driver = new EContentDriver(null);
+		$eContentCheckedOut = $driver->getMyTransactions($this);
+
+		$allCheckedOut = array_merge($catalogTransactions['transactions'], $overDriveCheckedOutItems['items'], $eContentCheckedOut['transactions']);
+
+		if ($includeLinkedUsers) {
+			if ($this->getLinkedUsers() != null) {
+				/** @var User $user */
+				foreach ($this->getLinkedUsers() as $user) {
+					$allCheckedOut = array_merge($allCheckedOut, $user->getMyCheckouts(false));
+				}
+			}
+		}
+		return $allCheckedOut;
+	}
+
+	public function getMyHolds($includeLinkedUsers = true){
+		$ilsHolds = $this->getCatalogDriver()->getMyHolds($this);
+		if (PEAR_Singleton::isError($ilsHolds)) {
+			$ilsHolds = array();
+		}
+
+		//Get holds from OverDrive
+		require_once ROOT_DIR . '/Drivers/OverDriveDriverFactory.php';
+		$overDriveDriver = OverDriveDriverFactory::getDriver();
+		$overDriveHolds = $overDriveDriver->getOverDriveHolds($this);
+
+		//Get a list of eContent that has been checked out
+		require_once ROOT_DIR . '/Drivers/EContentDriver.php';
+		$driver = new EContentDriver(null);
+		$eContentHolds = $driver->getMyHolds($this);
+
+		$allHolds = array_merge_recursive($ilsHolds, $overDriveHolds, $eContentHolds);
+
+		if ($includeLinkedUsers) {
+			if ($this->getLinkedUsers() != null) {
+				/** @var User $user */
+				foreach ($this->getLinkedUsers() as $user) {
+					$allHolds = array_merge_recursive($allHolds, $user->getMyHolds(false));
+				}
+			}
+		}
+		return $allHolds;
 	}
 }

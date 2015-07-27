@@ -21,8 +21,7 @@ require_once ROOT_DIR . '/sys/Proxy_Request.php';
 require_once ROOT_DIR . '/Drivers/marmot_inc/CirculationStatus.php';
 require_once ROOT_DIR . '/Drivers/marmot_inc/LoanRule.php';
 require_once ROOT_DIR . '/Drivers/marmot_inc/LoanRuleDeterminer.php';
-require_once ROOT_DIR . '/Drivers/Interface.php';
-require_once ROOT_DIR . '/Drivers/Innovative.php';
+require_once ROOT_DIR . '/Drivers/ScreenScrapingDriver.php';
 
 /**
  * Pika Connector for Marmot's Innovative catalog (millennium)
@@ -38,7 +37,7 @@ require_once ROOT_DIR . '/Drivers/Innovative.php';
  * @author Mark Noble <mnoble@turningleaftech.com>
  * @author CJ O'Hara <cj@marmot.org>
  */
-class Millennium implements DriverInterface
+class Millennium extends ScreenScrapingDriver
 {
 	public $fixShortBarcodes = true;
 
@@ -248,13 +247,8 @@ class Millennium implements DriverInterface
 		$millenniumCache = new MillenniumCache();
 		$millenniumCache->recordId = $id;
 		$millenniumCache->scope = $scope;
-		global $configArray;
 		global $timer;
-		if (substr($configArray['Catalog']['url'], -1) == '/') {
-			$host = substr($configArray['Catalog']['url'], 0, -1);
-		} else {
-			$host = $configArray['Catalog']['url'];
-		}
+		$host = $this->getVendorOpacUrl();
 
 		// Strip ID
 		$id_ = substr(str_replace('.b', '', $id), 0, -1);
@@ -291,9 +285,9 @@ class Millennium implements DriverInterface
 	 *  holdable
 	 *  lastStatusCheck (time)
 	 *
-	 * @param $id              The ID of the Record
-	 * @param $scopingEnabled  Limit Items by scoping
-	 * @param $marcRecord      Pass the MarcRecord Object if it has already been created
+	 * @param $id              string The ID of the Record
+	 * @param $scopingEnabled  boolean Limit Items by scoping
+	 * @param $marcRecord      MarcRecord|null  Pass the MarcRecord Object if it has already been created
 	 * @return mixed           Array of items' information
 	 */
 	public function getItemsFast($id, $scopingEnabled, $marcRecord = null){
@@ -480,6 +474,7 @@ class Millennium implements DriverInterface
 		return array();
 	}
 
+
 	/**
 	 * Patron Login
 	 *
@@ -488,187 +483,74 @@ class Millennium implements DriverInterface
 	 *
 	 * @param   string  $username   The patron username
 	 * @param   string  $password   The patron password
-	 * @return  mixed               A string of the user's ID number
+	 * @return  User|null           A string of the user's ID number
 	 *                              If an error occurs, return a PEAR_Error
 	 * @access  public
 	 */
-	public function patronLogin($username, $password)
-	{
+	public function patronLogin($username, $password) {
 		global $timer;
 		global $configArray;
+
+		//Get the barcode property
+		if ($this->accountProfile->loginConfiguration == 'barcode_pin'){
+			$barcode = $username;
+		}else{
+			$barcode = $password;
+		}
 
 		//Strip any non digit characters from the password
 		//Can't do this any longer since some libraries do have characters in their barcode:
 		//$password = preg_replace('/[a-or-zA-OR-Z\W]/', '', $password);
 		//Remove any spaces from the barcode
-		$password = preg_replace('/[^a-zA-Z\d\s]/', '', trim($password));
+		$barcode = preg_replace('/[^a-zA-Z\d\s]/', '', trim($barcode));
 
-		if ($configArray['Catalog']['offline'] == true){
-			//The catalog is offline, check the database to see if the user is valid
-			$user = new User();
-			$user->cat_password = $password;
-			if ($user->find(true)){
-				$userValid = false;
-				if ($user->cat_username){
-					list($fullName, $lastName, $firstName, $userValid) = $this->validatePatronName($username, $user->cat_username);
-				}
-				if ($userValid){
-					$returnVal = array(
-						'id'        => $password,
-						'username'  => $user->username,
-						'firstname' => isset($firstName) ? $firstName : '',
-						'lastname'  => isset($lastName) ? $lastName : '',
-						'fullname'  => isset($fullName) ? $fullName : '',     //Added to array for possible display later.
-						'cat_username' => $username, //Should this be $Fullname or $patronDump['PATRN_NAME']
-						'cat_password' => $password,
+		//Load the raw information about the patron
+		$patronDump = $this->_getPatronDump($barcode);
 
-						'email' => $user->email,
-						'major' => null,
-						'college' => null,
-						'patronType' => $user->patronType,
-						'web_note' => translate('The catalog is currently down.  You will have limited access to circulation information.'));
-					$timer->logTime("patron logged in successfully");
-					return $returnVal;
-				} else {
-					$timer->logTime("patron login failed");
-					return null;
-				}
-			} else {
-				$timer->logTime("patron login failed");
-				return null;
-			}
+		//Create a variety of possible name combinations for testing purposes.
+		$userValid = false;
+		if ($this->accountProfile->loginConfiguration == 'barcode_pin'){
+			$userValid = $this->_doPinTest($username, $password);
 		}else{
-			//Load the raw information about the patron
-			$patronDump = $this->_getPatronDump($password);
-
-			//Create a variety of possible name combinations for testing purposes.
-			$userValid = false;
 			if (isset($patronDump['PATRN_NAME'])){
 				$patronName = $patronDump['PATRN_NAME'];
 				list($fullName, $lastName, $firstName, $userValid) = $this->validatePatronName($username, $patronName);
 			}
-
-			if ($userValid){
-				$user = array(
-					'id'        => $password,
-					'username'  => $patronDump['RECORD_#'],
-					'firstname' => isset($firstName) ? $firstName : '',
-					'lastname'  => isset($lastName) ? $lastName : '',
-					'fullname'  => isset($fullName) ? $fullName : '',     //Added to array for possible display later.
-					'cat_username' => $patronDump['PATRN_NAME'],
-					'cat_password' => $password,
-
-					'email' => isset($patronDump['EMAIL_ADDR']) ? $patronDump['EMAIL_ADDR'] : '',
-					'major' => null,
-					'college' => null,
-					'patronType' => $patronDump['P_TYPE'],
-					'web_note' => isset($patronDump['WEB_NOTE']) ? $patronDump['WEB_NOTE'] : '');
-				$timer->logTime("patron logged in successfully");
-				return $user;
-
-			} else {
-				$timer->logTime("patron login failed");
-				return null;
-			}
-		}
-	}
-
-	/**
-	 * Get Patron Profile
-	 *
-	 * This is responsible for retrieving the profile for a specific patron.
-	 * Interface defined in CatalogConnection.php
-	 *
-	 * @param   array   $patron     The patron array
-	 * @param   boolean $forceReload Whether or not we should force a reload of the data
-	 * @return  array               Array of the patron's profile data
-	 *                              If an error occurs, return a PEAR_Error
-	 * @access  public
-	 */
-	public function getMyProfile($patron, $forceReload = false)
-	{
-		global $timer;
-		global $configArray;
-		/** @var Memcache $memCache */
-		global $memCache;
-		global $serverName;
-		$memCacheProfileKey = "patronProfile_{$serverName}_";
-		if (is_object($patron)){
-			$patron = get_object_vars($patron);
-			$memCacheProfileKey .= $patron['username'];
-			$id2 = $this->_getBarcode($patron);
-		}else{
-			global $user;
-			$memCacheProfileKey .= $user->username;
-			$id2= $patron['cat_password'];
-		}
-		if (!$forceReload && !isset($_REQUEST['reload'])) {
-			$patronProfile = $memCache->get($memCacheProfileKey);
-			if ($patronProfile) {
-				$timer->logTime('Retrieved Cached Profile for Patron');
-				return $patronProfile;
-			}
 		}
 
-		global $user;
-		if ($configArray['Catalog']['offline'] == true){
-			$fullName = $patron['cat_username'];
-
-			$Address1 = "";
-			$City = "";
-			$State = "";
-			$Zip = "";
-			$finesVal = 0;
-			$expireClose = false;
-			$homeBranchCode = '';
-			$numHoldsAvailable = '?';
-			$numHoldsRequested = '?';
-			$expired = 0;
-			$expireClose = 0;
-
-			if (!$user){
-				$user = new User();
-				$user->cat_password = $id2;
-				if ($user->find(true)){
-					$location = new Location();
-					$location->locationId = $user->homeLocationId;
-					$location->find(1);
-					$homeBranchCode = $location->code;
-				}
+		if ($userValid){
+			$userExistsInDB = false;
+			$user = new User();
+			//Get the unique user id from Millennium
+			$user->source = $this->accountProfile->name;
+			$user->username = $patronDump['RECORD_#'];
+			if ($user->find(true)){
+				$userExistsInDB = true;
 			}
-
-
-		}else{
-			//Load the raw information about the patron
-			$patronDump = $this->_getPatronDump($id2);
-
-			if (isset($patronDump['ADDRESS'])){
-				$fullAddress = $patronDump['ADDRESS'];
-				$addressParts =explode('$',$fullAddress);
-				$Address1 = $addressParts[0];
-				$City = isset($addressParts[1]) ? $addressParts[1] : '';
-				$State = isset($addressParts[2]) ? $addressParts[2] : '';
-				$Zip = isset($addressParts[3]) ? $addressParts[3] : '';
-
-				if (preg_match('/(.*?),\\s+(.*)\\s+(\\d*(?:-\\d*)?)/', $City, $matches)) {
-					$City = $matches[1];
-					$State = $matches[2];
-					$Zip = $matches[3];
-				}else if (preg_match('/(.*?)\\s+(\\w{2})\\s+(\\d*(?:-\\d*)?)/', $City, $matches)) {
-					$City = $matches[1];
-					$State = $matches[2];
-					$Zip = $matches[3];
-				}
+			$user->firstname = isset($firstName) ? $firstName : '';
+			$user->lastname = isset($lastName) ? $lastName : '';
+			$user->fullname = isset($fullName) ? $fullName : '';
+			if ($this->accountProfile->loginConfiguration == 'barcode_pin'){
+				$user->cat_username = $username;
+				$user->cat_password = $password;
 			}else{
-				$Address1 = "";
-				$City = "";
-				$State = "";
-				$Zip = "";
+				$user->cat_username = $patronDump['PATRN_NAME'];
+				$user->cat_password = $password;
 			}
 
-			$fullName = $patronDump['PATRN_NAME'];
+			$user->phone = isset($patronDump['TELEPHONE']) ? $patronDump['TELEPHONE'] : (isset($patronDump['HOME_PHONE']) ? $patronDump['HOME_PHONE'] : '');
+			$user->email = isset($patronDump['EMAIL_ADDR']) ? $patronDump['EMAIL_ADDR'] : '';
+			$user->patronType = $patronDump['P_TYPE'];
+			$user->web_note = isset($patronDump['WEB_NOTE']) ? $patronDump['WEB_NOTE'] : '';
+			if (empty($user->displayName)) {
+				if (strlen($user->firstname) >= 1) {
+					$user->displayName = substr($user->firstname, 0, 1) . '. ' . $user->lastname;
+				} else {
+					$user->displayName = $user->lastname;
+				}
+			}
 
-			//Get additional information about the patron's home branch for display.
+			//Setup home location
 			$location = null;
 			if (isset($patronDump['HOME_LIBR']) || isset($patronDump['HOLD_LIBR'])){
 				$homeBranchCode = isset($patronDump['HOME_LIBR']) ? $patronDump['HOME_LIBR'] : $patronDump['HOLD_LIBR'];
@@ -676,15 +558,9 @@ class Millennium implements DriverInterface
 				//Translate home branch to plain text
 				$location = new Location();
 				$location->whereAdd("code = '$homeBranchCode'");
-				$location->find(1);
-				if ($location->N == 0){
-					unset($location);
-				}
-			}
-
-			if ($user) {
-				if (isset($location)){
-					if ($user->homeLocationId == 0) {
+				if ($location->find(true)){
+					//Setup default location information if it hasn't been loaded or has been changed
+					if ($user->homeLocationId == 0 || $location->locationId != $user->homeLocationId) {
 						$user->homeLocationId = $location->locationId;
 						if ($location->nearbyLocation1 > 0){
 							$user->myLocation1Id = $location->nearbyLocation1;
@@ -696,45 +572,81 @@ class Millennium implements DriverInterface
 						}else{
 							$user->myLocation2Id = $location->locationId;
 						}
-						if ($user instanceof User) {
-							//Update the database
-							$user->update();
-							//Update the serialized instance stored in the session
-							$_SESSION['userinfo'] = serialize($user);
-						}
-					}else if ($location->locationId != $user->homeLocationId){
-						$user->homeLocationId = $location->locationId;
-
-						//Update the database
-						$user->update();
-
-						//Update the serialized instance stored in the session
-//						$_SESSION['userinfo'] = serialize($user); // now done with $user->update()
 					}
+					//Get display names that aren't stored
+					$user->homeLocationCode = $location->code;
+					$user->homeLocation = $location->displayName;
+
+					//Get display name for preferred location 1
+					$myLocation1 = new Location();
+					$myLocation1->whereAdd("locationId = '$user->myLocation1Id'");
+					if ($myLocation1->find(true)){
+						$user->myLocation1 = $myLocation1->displayName;
+					}
+
+					//Get display name for preferred location 2
+					$myLocation2 = new Location();
+					$myLocation2->whereAdd("locationId = '$user->myLocation2Id'");
+					if ($myLocation2->find(true)){
+						$user->myLocation2 = $myLocation2->displayName;
+					}
+				}else{
+					unset($location);
 				}
 			}
 
 			//see if expiration date is close
 			if (trim($patronDump['EXP_DATE']) != '-  -'){
+				$user->expires = $patronDump['EXP_DATE'];
 				list ($monthExp, $dayExp, $yearExp) = explode("-",$patronDump['EXP_DATE']);
 				$timeExpire = strtotime($monthExp . "/" . $dayExp . "/" . $yearExp);
 				$timeNow = time();
 				$timeToExpire = $timeExpire - $timeNow;
-				$expired = 0;
+				$user->expired = 0;
 				if ($timeToExpire <= 30 * 24 * 60 * 60){
 					if ($timeToExpire <= 0){
-						$expired = 1;
+						$user->expired = 1;
 					}
-					$expireClose = 1;
+					$user->expireClose = 1;
 				}else{
-					$expireClose = 0;
+					$user->expireClose = 0;
 				}
 			}else{
-				$expired = 0;
-				$expireClose = 0;
+				$user->expired = 0;
+				$user->expireClose = 0;
 			}
 
-			$finesVal = floatval(preg_replace('/[^\\d.]/', '', $patronDump['MONEY_OWED']));
+			//Get additional information that doesn't necessarily get stored in the User Table
+			if (isset($patronDump['ADDRESS'])){
+				$fullAddress = $patronDump['ADDRESS'];
+				$addressParts =explode('$',$fullAddress);
+				$user->address1 = $addressParts[0];
+				$user->city = isset($addressParts[1]) ? $addressParts[1] : '';
+				$user->state = isset($addressParts[2]) ? $addressParts[2] : '';
+				$user->zip = isset($addressParts[3]) ? $addressParts[3] : '';
+
+				if (preg_match('/(.*?),\\s+(.*)\\s+(\\d*(?:-\\d*)?)/', $user->city, $matches)) {
+					$user->city = $matches[1];
+					$user->state = $matches[2];
+					$user->zip = $matches[3];
+				}else if (preg_match('/(.*?)\\s+(\\w{2})\\s+(\\d*(?:-\\d*)?)/', $user->city, $matches)) {
+					$user->city = $matches[1];
+					$user->state = $matches[2];
+					$user->zip = $matches[3];
+				}
+			}else{
+				$user->address1 = "";
+				$user->city = "";
+				$user->state = "";
+				$user->zip = "";
+			}
+			$user->address2 = $user->city . ', ' . $user->state;
+
+			$user->workPhone = (isset($patronDump) && isset($patronDump['G/WK_PHONE'])) ? $patronDump['G/WK_PHONE'] : '';
+			$user->mobileNumber = (isset($patronDump) && isset($patronDump['MOBILE_NO'])) ? $patronDump['MOBILE_NO'] : '';
+
+			$user->finesVal = floatval(preg_replace('/[^\\d.]/', '', $patronDump['MONEY_OWED']));
+			$user->fines = $patronDump['MONEY_OWED'];
 
 			$numHoldsAvailable = 0;
 			$numHoldsRequested = 0;
@@ -748,123 +660,39 @@ class Millennium implements DriverInterface
 					}
 				}
 			}
+			$user->numCheckedOutIls = $patronDump['CUR_CHKOUT'];
+			$user->numHoldsIls = isset($patronDump) ? (isset($patronDump['HOLD']) ? count($patronDump['HOLD']) : 0) : '?';
+			$user->numHoldsAvailableIls = $numHoldsAvailable;
+			$user->numHoldsRequestedIls = $numHoldsRequested;
+
+			$noticeLabels = array(
+				//'-' => 'Mail',  // officially None in Sierra, as in No Preference Selected.
+				'-' => '',  // notification will generally be based on what information is available so can't determine here. plb 12-02-2014
+				'a' => 'Mail', // officially Print in Sierra
+				'p' => 'Telephone',
+				'z' => 'E-mail',
+			);
+			$user->notices = isset($patronDump) ? $patronDump['NOTICE_PREF'] : '-';
+			if (array_key_exists($user->notices, $noticeLabels)){
+				$user->noticePreferenceLabel = $noticeLabels[$user->notices];
+			}else{
+				$user->noticePreferenceLabel = 'Unknown';
+			}
+
+			if ($userExistsInDB){
+				$user->update();
+			}else{
+				$user->created = date('Y-m-d');
+				$user->insert();
+			}
+
+			$timer->logTime("patron logged in successfully");
+			return $user;
+
+		} else {
+			$timer->logTime("patron login failed");
+			return null;
 		}
-
-		$nameParts = explode(', ',$fullName);
-		$lastName = $nameParts[0];
-		$secondName = isset($nameParts[1]) ? $nameParts[1] : '';
-		if (strpos($secondName, ' ')){
-			$nameParts2 = explode(' ', $secondName);
-			$firstName = $nameParts2[0];
-		}else{
-			$firstName = $secondName;
-		}
-
-
-		if ($user) {
-			//Get display name for preferred location 1
-			$myLocation1 = new Location();
-			$myLocation1->whereAdd("locationId = '$user->myLocation1Id'");
-			$myLocation1->find(1);
-
-			//Get display name for preferred location 1
-			$myLocation2 = new Location();
-			$myLocation2->whereAdd("locationId = '$user->myLocation2Id'");
-			$myLocation2->find(1);
-		}
-
-		$noticeLabels = array(
-			//'-' => 'Mail',  // officially None in Sierra, as in No Preference Selected.
-			'-' => '',  // notification will generally be based on what information is available so can't determine here. plb 12-02-2014
-			'a' => 'Mail', // officially Print in Sierra
-			'p' => 'Telephone',
-			'z' => 'E-mail',
-		);
-		$profile = array('lastname' => $lastName,
-				'firstname' => $firstName,
-				'fullname' => $fullName,
-				'address1' => $Address1,
-				'address2' => $City . ', ' . $State,
-				'city' => $City,
-				'state' => $State,
-				'zip'=> $Zip,
-				'email' => ($user && $user->email) ? $user->email : (isset($patronDump) && isset($patronDump['EMAIL_ADDR']) ? $patronDump['EMAIL_ADDR'] : '') ,
-				'overdriveEmail' => ($user) ? $user->overdriveEmail : (isset($patronDump) && isset($patronDump['EMAIL_ADDR']) ? $patronDump['EMAIL_ADDR'] : ''),
-				'promptForOverdriveEmail' => $user ? $user->promptForOverdriveEmail : 1,
-				'noPromptForUserReviews' => $user ? $user->noPromptForUserReviews : 0,
-				'phone' => (isset($patronDump) && isset($patronDump['TELEPHONE'])) ? $patronDump['TELEPHONE'] : (isset($patronDump['HOME_PHONE']) ? $patronDump['HOME_PHONE'] : ''),
-				'workPhone' => (isset($patronDump) && isset($patronDump['G/WK_PHONE'])) ? $patronDump['G/WK_PHONE'] : '',
-				'mobileNumber' => (isset($patronDump) && isset($patronDump['MOBILE_NO'])) ? $patronDump['MOBILE_NO'] : '',
-				'fines' => isset($patronDump) ? $patronDump['MONEY_OWED'] : '0',
-				'finesval' => $finesVal,
-				'expires' => isset($patronDump) ? $patronDump['EXP_DATE'] : '',
-				'expireclose' => $expireClose,
-				'expired' => $expired,
-				'homeLocationCode' => isset($homeBranchCode) ? trim($homeBranchCode) : '',
-				'homeLocationId' => isset($location) ? $location->locationId : 0,
-				'homeLocation' => isset($location) ? $location->displayName : '',
-				'myLocation1Id' => ($user) ? $user->myLocation1Id : -1,
-				'myLocation1' => isset($myLocation1) ? $myLocation1->displayName : '',
-				'myLocation2Id' => ($user) ? $user->myLocation2Id : -1,
-				'myLocation2' => isset($myLocation2) ? $myLocation2->displayName : '',
-				'numCheckedOut' => isset($patronDump) ? $patronDump['CUR_CHKOUT'] : '?',
-				'numHolds' => isset($patronDump) ? (isset($patronDump['HOLD']) ? count($patronDump['HOLD']) : 0) : '?',
-				'numHoldsAvailable' => $numHoldsAvailable,
-				'numHoldsRequested' => $numHoldsRequested,
-				'bypassAutoLogout' => ($user) ? $user->bypassAutoLogout : 0,
-				'ptype' => ($user && $user->patronType) ? $user->patronType : (isset($patronDump) ? $patronDump['P_TYPE'] : 0),
-				'notices' => isset($patronDump) ? $patronDump['NOTICE_PREF'] : '-',
-				'web_note' => isset($patronDump) ? (isset($patronDump['WEB_NOTE']) ? $patronDump['WEB_NOTE'] : '') : '',
-		);
-		if (array_key_exists($profile['notices'], $noticeLabels)){
-			$profile['noticePreferenceLabel'] = $noticeLabels[$profile['notices']];
-		}else{
-			$profile['noticePreferenceLabel'] = 'Unknown';
-		}
-
-
-		//Get eContent info as well
-		require_once(ROOT_DIR . '/Drivers/EContentDriver.php');
-		$eContentDriver = new EContentDriver();
-		$eContentAccountSummary = $eContentDriver->getAccountSummary();
-		$profile = array_merge($profile, $eContentAccountSummary);
-
-		require_once(ROOT_DIR . '/Drivers/OverDriveDriverFactory.php');
-		$overDriveDriver = OverDriveDriverFactory::getDriver();
-		if ($overDriveDriver->isUserValidForOverDrive($user)){
-			$overDriveSummary = $overDriveDriver->getOverDriveSummary($user);
-			$profile['numOverDriveCheckedOut'] = $overDriveSummary['numCheckedOut'];
-			$profile['numOverDriveHoldsAvailable'] = $overDriveSummary['numAvailableHolds'];
-			$profile['numOverDriveHoldsRequested'] = $overDriveSummary['numUnavailableHolds'];
-			$profile['canUseOverDrive'] = true;
-		}else{
-			$profile['numOverDriveCheckedOut'] = 0;
-			$profile['numOverDriveHoldsAvailable'] = 0;
-			$profile['numOverDriveHoldsRequested'] = 0;
-			$profile['canUseOverDrive'] = false;
-		}
-
-		$profile['numCheckedOutTotal'] = $profile['numCheckedOut'] + $profile['numOverDriveCheckedOut'] + $eContentAccountSummary['numEContentCheckedOut'];
-		$profile['numHoldsAvailableTotal'] = $profile['numHoldsAvailable'] + $profile['numOverDriveHoldsAvailable'] + $eContentAccountSummary['numEContentAvailableHolds'];
-		$profile['numHoldsRequestedTotal'] = $profile['numHoldsRequested'] + $profile['numOverDriveHoldsRequested'] + $eContentAccountSummary['numEContentUnavailableHolds'];
-		$profile['numHoldsTotal'] = $profile['numHoldsAvailableTotal'] + $profile['numHoldsRequestedTotal'];
-
-		//Get a count of the materials requests for the user
-		if ($user){
-			$materialsRequest = new MaterialsRequest();
-			$materialsRequest->createdBy = $user->id;
-			$homeLibrary = Library::getPatronHomeLibrary();
-			$statusQuery = new MaterialsRequestStatus();
-			$statusQuery->isOpen = 1;
-			$statusQuery->libraryId = $homeLibrary->libraryId;
-			$materialsRequest->joinAdd($statusQuery);
-			$materialsRequest->find();
-			$profile['numMaterialsRequests'] = $materialsRequest->N;
-		}
-
-		$timer->logTime("Got Patron Profile");
-		$memCache->set($memCacheProfileKey, $profile, 0, $configArray['Caching']['patron_profile']) ;
-		return $profile;
 	}
 
 	/**
@@ -882,11 +710,12 @@ class Millennium implements DriverInterface
 		global $memCache;
 		global $library;
 
-		global $timer;
-
 		$patronDump = $memCache->get("patron_dump_$barcode");
 		if (!$patronDump || $forceReload){
-			$host=$configArray['OPAC']['patron_host'];
+			$host = $this->accountProfile->patronApiUrl;
+			if ($host == null){
+				$host = $configArray['OPAC']['patron_host'];
+			}
 			$barcodesToTest = array();
 			$barcodesToTest[] = $barcode;
 
@@ -937,18 +766,7 @@ class Millennium implements DriverInterface
 		//Sample format of a row is as follows:
 		//P TYPE[p47]=100<BR>
 		$patronApiUrl =  $host . "/PATRONAPI/" . $barcode ."/dump" ;
-		$curlConnection = curl_init($patronApiUrl);
-
-		curl_setopt($curlConnection, CURLOPT_CONNECTTIMEOUT, 30);
-		curl_setopt($curlConnection, CURLOPT_USERAGENT,"Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)");
-		curl_setopt($curlConnection, CURLOPT_RETURNTRANSFER, true);
-		curl_setopt($curlConnection, CURLOPT_SSL_VERIFYPEER, false);
-		curl_setopt($curlConnection, CURLOPT_FOLLOWLOCATION, 1);
-		curl_setopt($curlConnection, CURLOPT_UNRESTRICTED_AUTH, true);
-
-		//Setup encoding to ignore SSL errors for self signed certs
-		$result = curl_exec($curlConnection);
-		curl_close($curlConnection);
+		$result = $this->_curlGetPage($patronApiUrl);
 
 		//Strip the actual contents out of the body of the page.
 		$cleanPatronData = strip_tags($result);
@@ -965,207 +783,70 @@ class Millennium implements DriverInterface
 			}
 		}
 
-		/*foreach ($rows as $row) {
-			if (strlen(trim($row)) > 0){
-				$ret = explode("=",$row, 2);
-				//$patronDump[str_replace(" ", "_", trim($ret[0]))] = str_replace("$", " ",$ret[1]);
-				$patronDumpKey = str_replace(" ", "_", trim($ret[0]));
-				//Holds can be an array, treat them differently.
-				if ($patronDumpKey == 'HOLD'){
-					$patronDump[$patronDumpKey][] = isset($ret[1]) ? $ret[1] : '';
-				}else{
-					$patronDump[$patronDumpKey] = isset($ret[1]) ? $ret[1] : '';
-				}
-			}
-		}*/
 		$timer->logTime("Got patron information from Patron API");
 		return $patronDump;
 	}
 
-	public function __destruct(){
-		$this->_close_curl();
-	}
+	public function _curl_login($patron) {
+		global $logger;
 
-// Curl Connection Resources
-	private $cookieJar,
-		$curl_connection;
-
-	public function setCookieJar(){
-		$cookieJar = tempnam("/tmp", "CURLCOOKIE");
-		$this->cookieJar = $cookieJar;
-	}
-
-	/**
-	 * @return mixed CookieJar name
-	 */
-	public function getCookieJar() {
-		if (is_null($this->cookieJar)) $this->setCookieJar();
-		return $this->cookieJar;
-	}
-
-	/**
-	 * Initialize and configure curl connection
-	 *
-	 * @param null $curl_url optional url passed to curl_init
-	 * @param null|Array $curl_options is an array of curl options to include or overwrite.
-	 *                    Keys is the curl option constant, Values is the value to set the option to.
-	 * @return resource
-	 */
-	public function _curl_connect($curlUrl = null, $curl_options = null){
-		// differences from James' version
-//		curl_setopt($this->curl_connection, CURLOPT_USERAGENT,"Pika 2015.10.0");
-
-		$header = array();
-		$header[0] = "Accept: text/xml,application/xml,application/xhtml+xml,";
-		$header[0] .= "text/html;q=0.9,text/plain;q=0.8,image/png,*/*;q=0.5";
-		$header[] = "Cache-Control: max-age=0";
-		$header[] = "Connection: keep-alive";
-		$header[] = "Accept-Charset: ISO-8859-1,utf-8;q=0.7,*;q=0.7";
-		$header[] = "Accept-Language: en-us,en;q=0.5";
-
-		$cookie = $this->getCookieJar();
-
-		$this->curl_connection = curl_init($curlUrl);
-		$default_curl_options = array(
-			CURLOPT_CONNECTTIMEOUT => 30,
-			CURLOPT_HTTPHEADER => $header,
-			CURLOPT_USERAGENT => "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)",
-			CURLOPT_RETURNTRANSFER => true,
-			CURLOPT_SSL_VERIFYPEER => false,
-			CURLOPT_FOLLOWLOCATION => true,
-			CURLOPT_UNRESTRICTED_AUTH => true,
-			CURLOPT_COOKIEJAR => $cookie,
-			CURLOPT_COOKIESESSION => true,
-			CURLOPT_FORBID_REUSE => false,
-			CURLOPT_HEADER => false,
-			//			CURLOPT_HEADER => true, // debugging only
-			//			CURLOPT_VERBOSE => true, // debugging only
-		);
-
-		if ($curl_options) $default_curl_options = array_merge($default_curl_options, $curl_options);
-		$result =
-			curl_setopt_array($this->curl_connection, $default_curl_options);
-
-		return $this->curl_connection;
-	}
-
-	public function _close_curl() {
-		if ($this->curl_connection) curl_close($this->curl_connection);
-		if ($this->cookieJar) unlink($this->cookieJar);
-	}
-
-	public function _curl_login($curlUrl = null) {
-		global $configArray, $logger;
-		if (!$curlUrl) $curlUrl = $configArray['Catalog']['url'] . "/patroninfo";
-		$post_data   = $this->_getLoginFormValues();
-		$post_string = http_build_query($post_data);
+		$curlUrl = $this->getVendorOpacUrl() . "/patroninfo/";
+		$post_data   = $this->_getLoginFormValues($patron);
 
 		$logger->log('Loading page ' . $curlUrl, PEAR_LOG_INFO);
 
-		$this->_curl_connect($curlUrl);
-		curl_setopt_array($this->curl_connection, array(
-			CURLOPT_POST => true,
-			CURLOPT_POSTFIELDS => $post_string
-		));
+		$loginResult = $this->_curlPostPage($curlUrl, $post_data);
 
-		$loginResult = curl_exec($this->curl_connection); // Load the page, but we don't need to do anything with the results.
-
-		//When a library uses Encore, the initial login does a redirect and requires additional parameters.
+		//When a library uses IPSSO, the initial login does a redirect and requires additional parameters.
 		if (preg_match('/<input type="hidden" name="lt" value="(.*?)" \/>/si', $loginResult, $loginMatches)) {
-			$lt = $loginMatches[1]; //G et the lt value
-
+			$lt = $loginMatches[1]; //Get the lt value
 			//Login again
 			$post_data['lt']       = $lt;
 			$post_data['_eventId'] = 'submit';
+
+			//Don't issue a post, just call the same page (with redirects as needed)
 			$post_string = http_build_query($post_data);
 			curl_setopt($this->curl_connection, CURLOPT_POSTFIELDS, $post_string);
 
 			$loginResult = curl_exec($this->curl_connection);
-//			$curlInfo    = curl_getinfo($this->curl_connection); // debug info
 		}
 		return $loginResult;// Note: $this->_fetchPatronInfoPage uses the actual html result of this
 	}
 
-	public function getMyTransactions( $page = 1, $recordsPerPage = -1, $sortOption = 'dueDate') {
+	/**
+	 * Get Patron Transactions
+	 *
+	 * This is responsible for retrieving all transactions (i.e. checked out items)
+	 * by a specific patron.
+	 *
+	 * @param User $user    The user to load transactions for
+	 *
+	 * @return mixed        Array of the patron's transactions on success,
+	 * PEAR_Error otherwise.
+	 * @access public
+	 */
+	public function getMyTransactions( $user ) {
 		require_once ROOT_DIR . '/Drivers/marmot_inc/MillenniumCheckouts.php';
 		$millenniumCheckouts = new MillenniumCheckouts($this);
-		return $millenniumCheckouts->getMyTransactions($page, $recordsPerPage, $sortOption);
+		return $millenniumCheckouts->getMyTransactions($user);
 	}
 
 	/**
-	 * Uses CURL to fetch a page from millennium and return the raw results
-	 * for further processing.
+	 * Return a page from classic with comments stripped
 	 *
-	 * Performs minimal processing on it's own to remove HTML comments.
-	 *
-	 * @param array     $patronInfo information about a patron fetched from millenium
-	 * @param string    $page       The page to load within millenium
-	 *
-	 * @return string the result of the page load.
+	 * @param $patron             User The unique identifier for the patron
+	 * @param $page               string The page to be loaded
+	 * @return string             The page from classic
 	 */
-
-	// Old Version, just in case. plb 7-17-2015
-//		public function _fetchPatronInfoPage($patronInfo, $page){
-//		$cookieJar = tempnam ("/tmp", "CURLCOOKIE");
-//		$deleteCookie = true;
-//			global $logger;
-//			//$logger->log('PatronInfo cookie ' . $cookie, PEAR_LOG_INFO);
-//			global $configArray;
-//			$scope = $this->getDefaultScope();
-//			$curlUrl = $configArray['Catalog']['url'] . "/patroninfo~S{$scope}/" . $patronInfo['RECORD_#'] ."/$page";
-//
-//		$logger->log('Loading page ' . $curlUrl, PEAR_LOG_INFO);
-//		//echo "$curlUrl";
-//		$this->curl_connection = curl_init($curlUrl);
-//
-//		curl_setopt($this->curl_connection, CURLOPT_CONNECTTIMEOUT, 30);
-//		curl_setopt($this->curl_connection, CURLOPT_USERAGENT,"Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)");
-//		curl_setopt($this->curl_connection, CURLOPT_RETURNTRANSFER, true);
-//		curl_setopt($this->curl_connection, CURLOPT_SSL_VERIFYPEER, false);
-//		curl_setopt($this->curl_connection, CURLOPT_FOLLOWLOCATION, 1);
-//		curl_setopt($this->curl_connection, CURLOPT_UNRESTRICTED_AUTH, true);
-//		curl_setopt($this->curl_connection, CURLOPT_COOKIEJAR, $cookieJar );
-//		curl_setopt($this->curl_connection, CURLOPT_COOKIESESSION, is_null($cookieJar) ? true : false);
-//
-//		$post_data = $this->_getLoginFormValues();
-//		$post_string = http_build_query($post_data);
-//		curl_setopt($this->curl_connection, CURLOPT_POSTFIELDS, $post_string);
-//		$sResult = curl_exec($this->curl_connection);
-//		//When a library uses Encore, the initial login does a redirect and requires additonal parameters.
-//		if (preg_match('/<input type="hidden" name="lt" value="(.*?)" \/>/si', $sResult, $loginMatches)) {
-//			//Get the lt value
-//			$lt = $loginMatches[1];
-//			//Login again
-//			$post_data['lt'] = $lt;
-//			$post_data['_eventId'] = 'submit';
-//			$post_string = http_build_query($post_data);
-//			$accountPageInfo = curl_getinfo($this->curl_connection);
-//			curl_setopt($this->curl_connection, CURLOPT_URL, $accountPageInfo['url']);
-//			curl_setopt($this->curl_connection, CURLOPT_POSTFIELDS, $post_string);
-//			$sResult = curl_exec($this->curl_connection);
-//		}
-//
-//		if (true){
-//			curl_close($this->curl_connection);
-//		}
-//
-//		//For debugging purposes
-//		//echo "<h1>CURL Results</h1>For URL: $curlUrl<br /> $sresult";
-//		if ($deleteCookie){
-//			unlink($cookieJar);
-//		}
-//
-//		//Strip HTML comments
-//		$sResult = preg_replace("/<!--([^(-->)]*)-->/"," ",$sResult);
-//		return $sResult;
-//	}
-
-	public function _fetchPatronInfoPage($patronInfo, $page){
-		global $configArray;
+	public function _fetchPatronInfoPage($patron, $page){
 		$scope = $this->getDefaultScope();
-		$curlUrl = $configArray['Catalog']['url'] . "/patroninfo~S{$scope}/" . $patronInfo['RECORD_#'] ."/$page";
 
-		$curlResponse = $this->_curl_login($curlUrl);
+		//First we have to login to classic
+		$this->_curl_login($patron);
+
+		//Now we can get the page
+		$curlUrl = $this->getVendorOpacUrl() . "/patroninfo~S{$scope}/" . $patron->username ."/$page";
+		$curlResponse = $this->_curlGetPage($curlUrl);
 
 		//Strip HTML comments
 		$curlResponse = preg_replace("/<!--([^(-->)]*)-->/"," ",$curlResponse);
@@ -1187,22 +868,27 @@ class Millennium implements DriverInterface
 	 * @param   string  $action         The action to perform
 	 * @param   array   $selectedTitles The titles to do the action on if applicable
 	 */
-	function doReadingHistoryAction($action, $selectedTitles){
+	function doReadingHistoryAction($patron, $action, $selectedTitles){
 		require_once ROOT_DIR . '/Drivers/marmot_inc/MillenniumReadingHistory.php';
 		$millenniumReadingHistory = new MillenniumReadingHistory($this);
-		$millenniumReadingHistory->doReadingHistoryAction($action, $selectedTitles);
+		$millenniumReadingHistory->doReadingHistoryAction($patron, $action, $selectedTitles);
 	}
 
-	public function getMyHolds($patron, $page = 1, $recordsPerPage = -1, $sortOption = 'title'){
-		require_once ROOT_DIR . '/Drivers/marmot_inc/MillenniumHolds.php';
-		$millenniumHolds = new MillenniumHolds($this);
-		return $millenniumHolds->getMyHolds($patron, $page, $recordsPerPage, $sortOption);
-	}
 
-	public function parseHoldsPage($sresult){
+	/**
+	 * Get Patron Holds
+	 *
+	 * This is responsible for retrieving all holds for a specific patron.
+	 *
+	 * @param User $patron    The user to load transactions for
+	 *
+	 * @return array          Array of the patron's holds
+	 * @access public
+	 */
+	public function getMyHolds($patron){
 		require_once ROOT_DIR . '/Drivers/marmot_inc/MillenniumHolds.php';
 		$millenniumHolds = new MillenniumHolds($this);
-		return $millenniumHolds->parseHoldsPage($sresult);
+		return $millenniumHolds->getMyHolds($patron);
 	}
 
 	/**
@@ -1274,9 +960,18 @@ class Millennium implements DriverInterface
 		return $millenniumBooking->bookMaterial($recordId, $startDate, $startTime, $endDate, $endTime);
 	}
 
+	/**
+	 * @param $cancelIds  array uses a specific id for canceling a booking, rather than a record Id.
+	 * @return array      data for client-side AJAX responses
+	 */
+	public function cancelBookedMaterial($cancelIds) {
+		require_once ROOT_DIR . '/Drivers/marmot_inc/MillenniumBooking.php';
+		$millenniumBooking = new MillenniumBooking($this);
+		return $millenniumBooking->cancelBookedMaterial($cancelIds);
+	}
+
 	public function updatePatronInfo($canUpdateContactInfo){
 		global $user;
-		global $configArray;
 		global $analytics;
 		$updateErrors = array();
 
@@ -1338,7 +1033,7 @@ class Millennium implements DriverInterface
 			$cookieJar = tempnam ("/tmp", "CURLCOOKIE");
 
 			$scope = $this->getMillenniumScope();
-			$curl_url = $configArray['Catalog']['url'] . "/patroninfo~" . $scope;
+			$curl_url = $this->getVendorOpacUrl() . "/patroninfo~" . $scope;
 
 			//TODO: use _curl_login() instead
 
@@ -1352,7 +1047,7 @@ class Millennium implements DriverInterface
 			curl_setopt($curl_connection, CURLOPT_COOKIEJAR, $cookieJar );
 			curl_setopt($curl_connection, CURLOPT_COOKIESESSION, false);
 			curl_setopt($curl_connection, CURLOPT_POST, true);
-			$post_data = $this->_getLoginFormValues();
+			$post_data = $this->_getLoginFormValues($user);
 			$post_string = http_build_query($post_data);
 			curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
 			$loginResult = curl_exec($curl_connection);
@@ -1375,7 +1070,7 @@ class Millennium implements DriverInterface
 			//Issue a post request to update the patron information
 			$patronUpdateParams = http_build_query($extraPostInfo);
 			curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $patronUpdateParams);
-			$curl_url = $configArray['Catalog']['url'] . "/patroninfo~S{$scope}/" . $patronDump['RECORD_#'] ."/modpinfo";
+			$curl_url = $this->getVendorOpacUrl() . "/patroninfo~S{$scope}/" . $patronDump['RECORD_#'] ."/modpinfo";
 			curl_setopt($curl_connection, CURLOPT_URL, $curl_url);
 			$sresult = curl_exec($curl_connection);
 
@@ -1452,10 +1147,14 @@ class Millennium implements DriverInterface
 	 * @return mixed
 	 */
 	public function _getBarcode($patron = null){
-		global $user;
-		if ($user){
-			//Don't rewrite patron barcodes since some use long and some use short.
-			return $user->cat_password;
+		if ($patron == null){
+			global $user;
+			$patron = $user;
+		}
+		if ($patron){
+			return $patron->getBarcode();
+		}else{
+			return '';
 		}
 	}
 
@@ -1779,7 +1478,7 @@ class Millennium implements DriverInterface
 
 		//Login to the site using vufind login.
 		$cookie = tempnam ("/tmp", "CURLCOOKIE");
-		$curl_url = $configArray['Catalog']['url'] . "/patroninfo";
+		$curl_url = $this->getVendorOpacUrl() . "/patroninfo";
 		$logger->log('Loading page ' . $curl_url, PEAR_LOG_INFO);
 		//echo "$curl_url";
 		$curl_connection = curl_init($curl_url);
@@ -1803,7 +1502,7 @@ class Millennium implements DriverInterface
 		foreach ($holdings as $itemNumber => $holding){
 			//Get the staff page for the record
 			//$curl_url = "https://sierra.marmot.org/search~S93?/Ypig&searchscope=93&SORT=D/Ypig&searchscope=93&SORT=D&SUBKEY=pig/1,383,383,B/staffi1~$shortId&FF=Ypig&2,2,";
-			$curl_url = $configArray['Catalog']['url'] . "/search~S{$scope}?/Ypig&searchscope={$scope}&SORT=D/Ypig&searchscope={$scope}&SORT=D&SUBKEY=pig/1,383,383,B/staffi$itemNumber~$shortId&FF=Ypig&2,2,";
+			$curl_url = $this->getVendorOpacUrl() . "/search~S{$scope}?/Ypig&searchscope={$scope}&SORT=D/Ypig&searchscope={$scope}&SORT=D&SUBKEY=pig/1,383,383,B/staffi$itemNumber~$shortId&FF=Ypig&2,2,";
 			$logger->log('Loading page ' . $curl_url, PEAR_LOG_INFO);
 			//echo "$curl_url";
 			curl_setopt($curl_connection, CURLOPT_URL, $curl_url);
@@ -1865,7 +1564,7 @@ class Millennium implements DriverInterface
 		$email = trim($_REQUEST['email']);
 
 		$cookie = tempnam ("/tmp", "CURLCOOKIE");
-		$curl_url = $configArray['Catalog']['url'] . "/selfreg~S" . $this->getLibraryScope();
+		$curl_url = $this->getVendorOpacUrl() . "/selfreg~S" . $this->getLibraryScope();
 		$logger->log('Loading page ' . $curl_url, PEAR_LOG_INFO);
 		//echo "$curl_url";
 		$curl_connection = curl_init($curl_url);
@@ -1926,11 +1625,10 @@ class Millennium implements DriverInterface
 
 	}
 
-	public function _getLoginFormValues(){
+	public function _getLoginFormValues($patron){
 		$loginData = array();
-		global $user;
-		$loginData['name'] = $user->cat_username;
-		$loginData['code'] = $user->cat_password;
+		$loginData['name'] = $patron->cat_username;
+		$loginData['code'] = $patron->cat_password;
 
 		return $loginData;
 	}
@@ -1983,11 +1681,14 @@ class Millennium implements DriverInterface
 		return array($fullName, $lastName, $firstName, $userValid);
 	}
 
+	/**
+	 * @param User $patron
+	 * @param bool $includeMessages
+	 * @return array
+	 */
 	public function getMyFines($patron = null, $includeMessages = false){
-		$patronDump = $this->_getPatronDump($this->_getBarcode());
-
 		//Load the information from millennium using CURL
-		$pageContents = $this->_fetchPatronInfoPage($patronDump, 'overdues');
+		$pageContents = $this->_fetchPatronInfoPage($patron, 'overdues');
 
 		//Get the fines table data
 		$messages = array();
@@ -2013,8 +1714,7 @@ class Millennium implements DriverInterface
 
 	public function requestPinReset($barcode){
 		//Go to the pinreset page
-		global $configArray;
-		$pinResetUrl = $configArray['Catalog']['url'] . '/pinreset';
+		$pinResetUrl = $this->getVendorOpacUrl() . '/pinreset';
 		$cookieJar = tempnam ("/tmp", "CURLCOOKIE");
 		$curl_connection = curl_init();
 		curl_setopt($curl_connection, CURLOPT_CONNECTTIMEOUT, 30);
@@ -2066,7 +1766,7 @@ class Millennium implements DriverInterface
 	 *
 	 * @return array - an array of results including the names of the lists that were imported as well as number of titles.
 	 */
-	function importListsFromIls(){
+	function importListsFromIls($patron){
 		require_once ROOT_DIR . '/sys/LocalEnrichment/UserList.php';
 		global $user;
 		$results = array(
@@ -2074,10 +1774,8 @@ class Millennium implements DriverInterface
 			'totalLists' => 0
 		);
 
-		$patronDump = $this->_getPatronDump($this->_getBarcode());
-
 		//Get the page which contains a table with all lists in them.
-		$listsPage = $this->_fetchPatronInfoPage($patronDump, 'mylists');
+		$listsPage = $this->_fetchPatronInfoPage($patron, 'mylists');
 		//Get the actual table
 		if (preg_match('/<table[^>]*?class="patFunc"[^>]*?>(.*?)<\/table>/si', $listsPage, $listsPageMatches)) {
 			$allListTable = $listsPageMatches[1];
@@ -2100,7 +1798,7 @@ class Millennium implements DriverInterface
 				$currentListTitles = $newList->getListTitles();
 
 				//Get a list of all titles within the list to be imported
-				$listDetailsPage = $this->_fetchPatronInfoPage($patronDump, 'mylists?listNum='. $listId);
+				$listDetailsPage = $this->_fetchPatronInfoPage($patron, 'mylists?listNum='. $listId);
 				//Get the table for the details
 				if (preg_match('/<table[^>]*?class="patFunc"[^>]*?>(.*?)<\/table>/si', $listDetailsPage, $listsDetailsMatches)) {
 					$listTitlesTable = $listsDetailsMatches[1];
@@ -2213,5 +1911,35 @@ class Millennium implements DriverInterface
 
 	public function getNumHolds($id) {
 		return 0;
+	}
+
+	protected function _doPinTest($barcode, $pin) {
+		$pin = urlencode(trim($pin));
+		$barcode = trim($barcode);
+		$pinTestUrl = $this->accountProfile->patronApiUrl . "/PATRONAPI/$barcode/$pin/pintest";
+		$pinTestResultRaw = $this->_curlGetPage($pinTestUrl);
+		//$logger->log('PATRONAPI pintest response : ' . $api_contents, PEAR_LOG_DEBUG);
+		if ($pinTestResultRaw){
+			$pinTestResult = strip_tags($pinTestResultRaw);
+
+			//Parse the page
+			$pinTestData = array();
+			preg_match_all('/(.*?)=(.*)/', $pinTestResult, $patronData, PREG_SET_ORDER);
+			for ($curRow = 0; $curRow < count($patronData); $curRow++) {
+				$patronDumpKey = str_replace(" ", "_", trim($patronData[$curRow][1]));
+				$pinTestData[$patronDumpKey] = isset($patronData[$curRow][2]) ? $patronData[$curRow][2] : '';
+			}
+			if (!isset($pinTestData['RETCOD'])){
+				$userValid = false;
+			}else if ($pinTestData['RETCOD'] == 0){
+				$userValid = true;
+			}else{
+				$userValid = false;
+			}
+		}else{
+			$userValid = false;
+		}
+
+		return $userValid;
 	}
 }

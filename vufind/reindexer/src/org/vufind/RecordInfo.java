@@ -1,8 +1,8 @@
 package org.vufind;
 
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.TreeMap;
 
 /**
  * Information about a Record within the system
@@ -19,9 +19,8 @@ public class RecordInfo {
 
 	//Formats exist at both the item and record level because
 	//Various systems define them in both ways.
-	private String primaryFormat;
-	private HashSet<String> formats = new HashSet<String>();
-	private HashSet<String> formatCategories = new HashSet<String>();
+	private HashSet<String> formats = new HashSet<>();
+	private HashSet<String> formatCategories = new HashSet<>();
 	private long formatBoost = 1;
 
 	private String edition;
@@ -48,10 +47,6 @@ public class RecordInfo {
 		if (formatBoost > this.formatBoost) {
 			this.formatBoost = formatBoost;
 		}
-	}
-
-	public void setPrimaryFormat(String primaryFormat) {
-		this.primaryFormat = primaryFormat;
 	}
 
 	public void setEdition(String edition) {
@@ -87,15 +82,20 @@ public class RecordInfo {
 		return recordIdentifier;
 	}
 
+	String recordDetails = null;
 	public String getDetails() {
-		return source + ":" + recordIdentifier + "|" +
-				getPrimaryFormat() + "|" +
-				(edition == null ? "" : edition) + "|" +
-				primaryLanguage + "|" +
-				publisher + "|" +
-				publicationDate + "|" +
-				physicalDescription
-			;
+		if (recordDetails == null) {
+			//None of this changes by scope so we can just form it once and then return the previous value
+			recordDetails = this.getFullIdentifier() + "|" +
+					getPrimaryFormat() + "|" +
+					(edition == null ? "" : edition) + "|" +
+					primaryLanguage + "|" +
+					publisher + "|" +
+					publicationDate + "|" +
+					physicalDescription
+					;
+		}
+		return recordDetails;
 	}
 
 	protected String getPrimaryFormat() {
@@ -137,14 +137,6 @@ public class RecordInfo {
 			owningLibraryValues.addAll(curItem.getAllOwningLibraries());
 		}
 		return owningLibraryValues;
-	}
-
-	public HashSet<String> getAllITypes() {
-		HashSet<String> values = new HashSet<>();
-		for (ItemInfo curItem : relatedItems){
-			values.add(curItem.getIType());
-		}
-		return values;
 	}
 
 	public HashSet<String> getAllFormats() {
@@ -192,6 +184,16 @@ public class RecordInfo {
 		return values;
 	}
 
+	public HashSet<ItemInfo> getRelatedItemsForScope(String scopeName) {
+		HashSet<ItemInfo> values = new HashSet<>();
+		for (ItemInfo curItem : relatedItems){
+			if (curItem.isValidForScope(scopeName)){
+				values.add(curItem);
+			}
+		}
+		return values;
+	}
+
 	public int getNumCopiesOnOrder() {
 		int numOrders = 0;
 		for (ItemInfo curItem : relatedItems){
@@ -203,7 +205,13 @@ public class RecordInfo {
 	}
 
 	public String getFullIdentifier() {
-		return source + ":" + recordIdentifier;
+		String fullIdentifier;
+		if (subSource != null && subSource.length() > 0){
+			fullIdentifier = source + ":" + subSource + ":" + recordIdentifier;
+		}else{
+			fullIdentifier = source + ":" + recordIdentifier;
+		}
+		return fullIdentifier;
 	}
 
 	public int getNumPrintCopies() {
@@ -224,19 +232,49 @@ public class RecordInfo {
 		return values;
 	}
 
-	public HashSet<String> getAllEContentProtectionTypes() {
-		HashSet<String> values = new HashSet<>();
-		for (ItemInfo curItem : relatedItems){
-			values.add(curItem.geteContentProtectionType());
-		}
-		return values;
-	}
-
 	public void addFormats(HashSet<String> translatedFormats) {
 		this.formats.addAll(translatedFormats);
 	}
 
 	public void addFormatCategories(HashSet<String> translatedFormatCategories) {
 		this.formatCategories.addAll(translatedFormatCategories);
+	}
+
+	public void updateIndexingStats(TreeMap<String, ScopedIndexingStats> indexingStats) {
+		for (ScopedIndexingStats scopedStats : indexingStats.values()){
+			String recordProcessor = this.subSource == null ? this.source : this.subSource;
+			RecordProcessorIndexingStats stats = scopedStats.recordProcessorIndexingStats.get(recordProcessor);
+			HashSet<ItemInfo> itemsForScope = getRelatedItemsForScope(scopedStats.getScopeName());
+			if (itemsForScope.size() > 0) {
+				stats.numRecordsTotal++;
+				boolean recordLocallyOwned = false;
+				for (ItemInfo curItem : itemsForScope){
+					//Check the type (physical, eContent, on order)
+					boolean locallyOwned = curItem.isLocallyOwned(scopedStats.getScopeName());
+					if (locallyOwned){
+						recordLocallyOwned = true;
+					}
+					if (curItem.isEContent()){
+						stats.numEContentTotal += curItem.getNumCopies();
+						if (locallyOwned){
+							stats.numEContentOwned += curItem.getNumCopies();
+						}
+					}else if (curItem.isOrderItem()){
+						stats.numOrderItemsTotal += curItem.getNumCopies();
+						if (locallyOwned){
+							stats.numOrderItemsOwned += curItem.getNumCopies();
+						}
+					}else{
+						stats.numPhysicalItemsTotal += curItem.getNumCopies();
+						if (locallyOwned){
+							stats.numPhysicalItemsOwned += curItem.getNumCopies();
+						}
+					}
+				}
+				if (recordLocallyOwned){
+					stats.numRecordsOwned++;
+				}
+			}
+		}
 	}
 }

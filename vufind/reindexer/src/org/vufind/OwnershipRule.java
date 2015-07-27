@@ -2,6 +2,7 @@ package org.vufind;
 
 import com.sun.istack.internal.NotNull;
 
+import java.util.HashMap;
 import java.util.regex.Pattern;
 
 /**
@@ -31,10 +32,17 @@ public class OwnershipRule {
 		this.subLocationCodePattern = Pattern.compile(subLocationCode);
 	}
 
+	HashMap<String, Boolean> ownershipResults = new HashMap<>();
 	public boolean isItemOwned(@NotNull String recordType, @NotNull String locationCode, @NotNull String subLocationCode){
-		if (!this.recordType.equals(recordType)){
-			return false;
+		String key = recordType + "-" + locationCode + "-" + subLocationCode;
+		if (ownershipResults.containsKey(key)){
+			return ownershipResults.get(key);
 		}
-		return locationCodePattern.matcher(locationCode).lookingAt() && subLocationCodePattern.matcher(subLocationCode).lookingAt();
+		boolean isOwned = false;
+		if (this.recordType.equals(recordType)){
+			isOwned = locationCodePattern.matcher(locationCode).lookingAt() && subLocationCodePattern.matcher(subLocationCode).lookingAt();;
+		}
+		ownershipResults.put(key, isOwned);
+		return  isOwned;
 	}
 }
