@@ -462,18 +462,18 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		switch (protectionType) {
 			case "acs":
 			case "drm":
-				relatedRecord = groupedWork.addRelatedRecord("restricted_econtent:", identifier);
+				relatedRecord = groupedWork.addRelatedRecord("restricted_econtent", identifier);
 				relatedRecord.setSubSource(profileType);
 				relatedRecord.addItem(itemInfo);
 				break;
 			case "public domain":
 			case "free":
-				relatedRecord = groupedWork.addRelatedRecord("public_domain_econtent:", identifier);
+				relatedRecord = groupedWork.addRelatedRecord("public_domain_econtent", identifier);
 				relatedRecord.setSubSource(profileType);
 				relatedRecord.addItem(itemInfo);
 				break;
 			case "external":
-				relatedRecord = groupedWork.addRelatedRecord("external_econtent:", identifier);
+				relatedRecord = groupedWork.addRelatedRecord("external_econtent", identifier);
 				relatedRecord.setSubSource(profileType);
 				relatedRecord.addItem(itemInfo);
 				break;

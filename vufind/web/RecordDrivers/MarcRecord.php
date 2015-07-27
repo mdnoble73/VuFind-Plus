@@ -45,7 +45,7 @@ class MarcRecord extends IndexRecord
 	 * we will already have this data available, so we might as well
 	 * just pass it into the constructor.
 	 *
-	 * @param   array   $recordData     Data to construct the driver from
+	 * @param   array|File_MARC_Record||string   $recordData     Data to construct the driver from
 	 * @access  public
 	 */
 	public function __construct($recordData){

@@ -86,7 +86,7 @@ public class RecordInfo {
 	public String getDetails() {
 		if (recordDetails == null) {
 			//None of this changes by scope so we can just form it once and then return the previous value
-			recordDetails = source + ":" + recordIdentifier + "|" +
+			recordDetails = this.getFullIdentifier() + "|" +
 					getPrimaryFormat() + "|" +
 					(edition == null ? "" : edition) + "|" +
 					primaryLanguage + "|" +
@@ -205,7 +205,13 @@ public class RecordInfo {
 	}
 
 	public String getFullIdentifier() {
-		return source + ":" + recordIdentifier;
+		String fullIdentifier;
+		if (subSource != null && subSource.length() > 0){
+			fullIdentifier = source + ":" + subSource + ":" + recordIdentifier;
+		}else{
+			fullIdentifier = source + ":" + recordIdentifier;
+		}
+		return fullIdentifier;
 	}
 
 	public int getNumPrintCopies() {

@@ -86,7 +86,7 @@ public class FlatironsRecordProcessor extends IlsRecordProcessor{
 					}else{
 						itemInfo.seteContentSource("Unknown");
 					}
-					RecordInfo relatedRecord = groupedWork.addRelatedRecord("external_econtent:", identifier);
+					RecordInfo relatedRecord = groupedWork.addRelatedRecord("external_econtent", identifier);
 					relatedRecord.setSubSource(profileType);
 					relatedRecord.addItem(itemInfo);
 					//Check the 856 tag to see if there is a link there
