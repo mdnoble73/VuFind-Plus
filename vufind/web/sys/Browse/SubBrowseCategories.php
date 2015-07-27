@@ -38,12 +38,19 @@ class SubBrowseCategories extends DB_DataObject {
 	static function listBrowseCategories(){
 		$browseCategoryList = array();
 		require_once ROOT_DIR . '/sys/Browse/BrowseCategory.php';
+//		$browseCategories = new BrowseCategory();
+//		$browseCategories->orderBy('label');
+//		$browseCategories->find();
+//				while($browseCategories->fetch()){
+//			$browseCategoryList[$browseCategories->id] = $browseCategories->label . " ({$browseCategories->textId})";
+//		}
+
 		$browseCategories = new BrowseCategory();
 		$browseCategories->orderBy('label');
-		$browseCategories->find();
-		while($browseCategories->fetch()){
-			$browseCategoryList[$browseCategories->id] = $browseCategories->label . " ({$browseCategories->textId})";
-		}
+		$browseCategories->selectAdd();
+		$browseCategories->selectAdd('id, CONCAT(`label`, " (", `textID`, ")") AS `option`');
+		$browseCategoryList = $browseCategories->fetchAll('id', 'option');
+
 		return $browseCategoryList;
 	}
 
