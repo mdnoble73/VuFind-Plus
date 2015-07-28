@@ -324,7 +324,27 @@ public class ItemInfo {
 		return false;
 	}
 
+	public boolean isLibraryOwned(Scope scope) {
+		ScopingInfo scopeData = scopingInfo.get(scope.getScopeName());
+		if (scopeData != null){
+			if (scopeData.isLibraryOwned()){
+				return true;
+			}
+		}
+		return false;
+	}
+
 	public boolean isLocallyOwned(String scopeName) {
+		ScopingInfo scopeData = scopingInfo.get(scopeName);
+		if (scopeData != null){
+			if (scopeData.isLocallyOwned()){
+				return true;
+			}
+		}
+		return false;
+	}
+
+	public boolean isLibraryOwned(String scopeName) {
 		ScopingInfo scopeData = scopingInfo.get(scopeName);
 		if (scopeData != null){
 			if (scopeData.isLocallyOwned()){

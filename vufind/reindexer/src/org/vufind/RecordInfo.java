@@ -287,7 +287,8 @@ public class RecordInfo {
 				boolean recordLocallyOwned = false;
 				for (ItemInfo curItem : itemsForScope){
 					//Check the type (physical, eContent, on order)
-					boolean locallyOwned = curItem.isLocallyOwned(scopedStats.getScopeName());
+					boolean locallyOwned = curItem.isLocallyOwned(scopedStats.getScopeName())
+							|| curItem.isLibraryOwned(scopedStats.getScopeName());
 					if (locallyOwned){
 						recordLocallyOwned = true;
 					}

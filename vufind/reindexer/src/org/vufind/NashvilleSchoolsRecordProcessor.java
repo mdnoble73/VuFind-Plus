@@ -61,11 +61,7 @@ public class NashvilleSchoolsRecordProcessor extends IlsRecordProcessor {
 	protected boolean isItemAvailable(ItemInfo itemInfo) {
 		//For LSS, the barcode is the item identifier
 		LSSItemInformation itemInformation = allItemInformation.get(itemInfo.getItemIdentifier());
-		if (itemInformation != null){
-			return itemInformation.getItemStatus().equals("I");
-		} else {
-			return false;
-		}
+		return itemInformation != null && itemInformation.getItemStatus().equals("I");
 	}
 
 	@Override
@@ -101,5 +97,11 @@ public class NashvilleSchoolsRecordProcessor extends IlsRecordProcessor {
 
 	protected boolean isItemValid(String itemStatus, String itemLocation) {
 		return itemLocation != null;
+	}
+
+	protected boolean isItemSuppressed(DataField curItem) {
+		//Suppress if the barcode is null or blank
+		String barcode = getItemSubfieldData(barcodeSubfield, curItem);
+		return !(barcode == null || barcode.length() == 0);
 	}
 }

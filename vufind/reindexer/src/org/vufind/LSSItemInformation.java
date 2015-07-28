@@ -1,5 +1,7 @@
 package org.vufind;
 
+import org.marc4j.marc.DataField;
+
 import java.util.Date;
 
 /**

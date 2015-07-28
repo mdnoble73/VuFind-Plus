@@ -452,6 +452,15 @@ public class GroupedWorkSolr {
 		return false;
 	}
 
+	private boolean isLibraryOwned(HashSet<ItemInfo> scopedItems, Scope scope) {
+		for (ItemInfo curItem : scopedItems){
+			if (curItem.isLibraryOwned(scope)){
+				return true;
+			}
+		}
+		return false;
+	}
+
 	private Date getLocalDateAdded(HashSet<ItemInfo> scopedItems, Scope scope) {
 		Date earliestDate = null;
 		for (ItemInfo curItem : scopedItems){
@@ -1205,7 +1214,7 @@ public class GroupedWorkSolr {
 			if (relatedRecordsForScope.size() > 0){
 				ScopedIndexingStats stats = indexingStats.get(scope.getScopeName());
 				stats.numTotalWorks++;
-				if (isLocallyOwned(relatedItems, scope)){
+				if (isLocallyOwned(relatedItems, scope) || isLibraryOwned(relatedItems, scope)){
 					stats.numLocalWorks++;
 				}
 			}
