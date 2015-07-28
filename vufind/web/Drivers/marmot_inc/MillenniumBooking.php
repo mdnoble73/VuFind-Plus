@@ -92,6 +92,7 @@ class MillenniumBooking {
 		global $configArray, $logger;
 		$curl_url = $configArray['Catalog']['url'] . "/patroninfo";
 		$post_data   = $this->driver->_getLoginFormValues();
+		$post_data   = $this->driver->_get;
 		$post_string = http_build_query($post_data);
 
 		$logger->log('Loading page ' . $curl_url, PEAR_LOG_INFO);
@@ -164,8 +165,7 @@ class MillenniumBooking {
 //		$scope = $this->driver->getLibraryScope();
 //		$bookingUrl = $configArray['Catalog']['url'] ."/webbook~S$scope?/$bib=&back=";
 
-		global $configArray;
-		$bookingUrl = $configArray['Catalog']['url'] ."/webbook?/$bib=&back=";
+		$bookingUrl = $this->driver->getVendorOpacUrl() ."/webbook?/$bib=&back=";
 		// the strange get url parameters ?/$bib&back= is needed to avoid a response from the server claiming a 502 proxy error
 		// Scope appears to be unnecessary at this point.
 
@@ -286,12 +286,11 @@ class MillenniumBooking {
 
 		if (!is_array($cancelIds)) $cancelIds = array($cancelIds); // for a single item
 
-		global $configArray;
 		$scope = $this->driver->getLibraryScope(); // TODO: Fix: Not coming back with 100
 		$scope = 100;
 		$patronInfo = $this->driver->_getPatronDump($this->driver->_getBarcode());
 
-		$cancelBookingUrl = $configArray['Catalog']['url'] ."/patroninfo~S$scope?/". $patronInfo['RECORD_#'].'/bookings';
+		$cancelBookingUrl = $this->driver->getVendorOpacUrl() ."/patroninfo~S$scope?/". $patronInfo['RECORD_#'].'/bookings';
 			// scoping needed for canceling booked materials
 
 		$this->_curl_login();
@@ -451,5 +450,54 @@ class MillenniumBooking {
 		return $bookings;
 		}
 
+
+	public function getBookingCalendar($recordId){
+		$bib = $this->getShortId($recordId);
+		$driver = &$this->driver;
+
+		// Create Hourly Calendar URL
+		$scope = $driver->getLibraryScope();
+		global $user;
+		$driver->_curl_login($user);
+		$timestamp = time(); // the webpac hourly calendar give 30 (maybe 31) days worth from the given timestamp.
+				// Since today is the soonest a user could book, let's get from today
+		$hourlyCalendarUrl = $driver->getVendorOpacUrl() . "/webbook~S$scope?/$bib/hourlycal$timestamp=&back=";
+
+		//Can only get the hourly calendar html by submitting the bookings form
+			$post = array(
+				'webbook_pnum' => $user->username, // username seems to be the patron Id
+				'webbook_pagen' => '2', // needed, reading from screen scrape; 2 or 4 are the only values i have seen so far. plb 7-16-2015
+				//			'refresh_cal' => '0', // not needed
+				'webbook_bgn_Month' => '',
+				'webbook_bgn_Day' => '',
+				'webbook_bgn_Year' => '',
+				'webbook_bgn_Hour' => '',
+				'webbook_bgn_Min' => '',
+				'webbook_bgn_AMPM' => '',
+				'webbook_end_n_Month' => '',
+				'webbook_end_n_Day' => '',
+				'webbook_end_n_Year' => '',
+				'webbook_end_n_Hour' => '',
+				'webbook_end_n_Min' => '',
+				'webbook_end_n_AMPM' => '',
+				'webbook_note' => '',
+			);
+			$HourlyCalendarResponse = $driver->_curlPostPage($hourlyCalendarUrl, $post);
+
+			// Extract Hourly Calendar from second response
+			if(preg_match('/<div class="bookingsSelectCal">.*?<table border>(?<HourlyCalendarTable>.*?<\/table>.*?)<\/table>.*?<\/div>/si', $HourlyCalendarResponse, $table)) {
+
+				// Modify Calendar html for our needs
+				$calendarTable = preg_replace('#<th.*?>.*?</th>#s', '<th colspan="2">Date</th><th colspan="17">Time <small>(6 AM - 11 PM)</small></th>', $table['HourlyCalendarTable']); // cut out the table header with the unwanted links in it.
+				$calendarTable = str_replace(array('unavailable', 'available', 'closed', 'am'), array('active', 'success', 'active', ''), $calendarTable);
+
+				$calendarTable = '<table class="table table-condensed">'. $calendarTable . '</table>'; // add table tag with styling attributes
+
+				return $calendarTable;
+
+			}
+
+
+	}
 
 }
