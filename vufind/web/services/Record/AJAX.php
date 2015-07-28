@@ -385,17 +385,17 @@ class Record_AJAX extends Action {
 			}
 
 			//Check to see if the user has linked users that we can place holds for as well
-			$allUsers = array(
-				$user
-			);
+			//If there are linked users, we will add pickup locations for them as well
 			$linkedUsers = $user->getLinkedUsers();
-			$allUsers = array_merge($allUsers, $linkedUsers);
-			$interface->assign('linkedUsers', $allUsers);
 
 			global $locationSingleton;
 			//Get the list of pickup branch locations for display in the user interface.
 			// using $user to be consistent with other code use of getPickupBranches()
 			$locations = $locationSingleton->getPickupBranches($user, $user->homeLocationId);
+			foreach ($linkedUsers as $linkedUser){
+				$linkedUserLocation = new Location();
+				$locations = array_merge($locations, $linkedUserLocation->getPickupBranches($linkedUser, null, true));
+			}
 			$interface->assign('pickupLocations', $locations);
 
 			global $library;
@@ -519,15 +519,32 @@ class Record_AJAX extends Action {
 			//The user is already logged in
 
 			//Check to see what account we should be placing a hold for
+			//Rather than asking the user for this explicitly, we do it based on the pickup location
+			$campus = $_REQUEST['campus'];
+			$location = new Location();
+			/** @var Location[] $userPickupLocations */
+			$userPickupLocations = $location->getPickupBranches($user);
 			$patron = null;
-			$account = $_REQUEST['account'];
-			if ($user->id == $account){
-				$patron = $user;
-			}else{
-				//Check linked accounts
-				foreach ($user->getLinkedUsers() as $tmpUser){
-					if ($tmpUser->id == $account){
-						$patron = $tmpUser;
+			foreach ($userPickupLocations as $tmpLocation){
+				if ($tmpLocation->code == $campus){
+					$patron = $user;
+					break;
+				}
+			}
+			if ($patron == null){
+				//Check linked users
+				$linkedUsers = $user->getLinkedUsers();
+				foreach ($linkedUsers as $tmpUser){
+					$location = new Location();
+					/** @var Location[] $userPickupLocations */
+					$userPickupLocations = $location->getPickupBranches($tmpUser);
+					foreach ($userPickupLocations as $tmpLocation){
+						if ($tmpLocation->code == $campus){
+							$patron = $tmpUser;
+							break;
+						}
+					}
+					if ($patron != null){
 						break;
 					}
 				}
@@ -548,7 +565,6 @@ class Record_AJAX extends Action {
 				}
 
 				if (isset($return['items'])){
-					$campus = $_REQUEST['campus'];
 					$interface->assign('campus', $campus);
 					$items = $return['items'];
 					$interface->assign('items', $items);

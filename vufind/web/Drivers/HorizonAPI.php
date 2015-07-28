@@ -288,6 +288,7 @@ abstract class HorizonAPI extends Horizon{
 					//Load rating information
 					$curHold['ratingData'] = $recordDriver->getRatingData();
 				}
+				$curHold['user'] = $patron->getNameAndLibraryLabel();
 
 				if (!isset($curHold['status']) || strcasecmp($curHold['status'], "filled") != 0){
 					$holds['unavailable'][] = $curHold;
@@ -732,14 +733,12 @@ abstract class HorizonAPI extends Horizon{
 					$sortKey = (isset($curTitle['holdQueueLength']) ? $curTitle['holdQueueLength'] : 0) . '-' . $sortTitle;
 				}
 				$sortKey .= "_$sCount";
+				$curTitle['user'] = $user->getNameAndLibraryLabel();
 				$checkedOutTitles[$sortKey] = $curTitle;
 			}
 		}
 
-		return array(
-			'transactions' => $checkedOutTitles,
-			'numTransactions' => count($checkedOutTitles)
-		);
+		return $checkedOutTitles;
 	}
 
 	public function renewAll(){

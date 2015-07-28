@@ -553,6 +553,8 @@ class OverDriveDriver3 {
 					$bookshelfItem['linkUrl'] = $overDriveRecord->getLinkUrl(false);
 					$bookshelfItem['ratingData'] = $overDriveRecord->getRatingData();
 				}
+				$bookshelfItem['user'] = $user->getNameAndLibraryLabel();
+
 				$key = $bookshelfItem['checkoutSource'] . $bookshelfItem['overDriveId'];
 				$checkedOutTitles[$key] = $bookshelfItem;
 			}
@@ -560,9 +562,7 @@ class OverDriveDriver3 {
 		if (!$forSummary){
 			$this->checkouts[$user->id] = $checkedOutTitles;
 		}
-		return array(
-			'items' => $checkedOutTitles
-		);
+		return $checkedOutTitles;
 	}
 
 	private $holds = array();
@@ -618,6 +618,7 @@ class OverDriveDriver3 {
 					$hold['format'] = $overDriveRecord->getFormats();
 					$hold['ratingData'] = $overDriveRecord->getRatingData();
 				}
+				$hold['user'] = $user->getNameAndLibraryLabel();
 
 				$key = $hold['holdSource'] . $hold['overDriveId'];
 				if ($hold['available']){

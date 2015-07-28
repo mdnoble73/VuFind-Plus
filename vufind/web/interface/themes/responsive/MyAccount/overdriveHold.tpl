@@ -62,6 +62,13 @@
 						</div>
 					{/if}
 
+					<div class="row">
+						<div class="result-label col-xs-3">{translate text='On Hold For'}</div>
+						<div class="col-xs-9 result-value">
+							{$record.user}
+						</div>
+					</div>
+
 					{if $section == 'available'}
 					{* Available Hold *}
 

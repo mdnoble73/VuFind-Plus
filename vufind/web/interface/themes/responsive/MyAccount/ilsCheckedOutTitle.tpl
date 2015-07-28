@@ -82,6 +82,13 @@
 					{/if}
 
 					<div class="row">
+						<div class="result-label col-md-3">{translate text='Checked Out To'}</div>
+						<div class="col-md-9 result-value">
+							{$record.user}
+						</div>
+					</div>
+
+					<div class="row">
 						<div class="result-label col-md-3">{translate text='Due'}</div>
 						<div class="col-md-9 result-value">
 							{$record.duedate|date_format}
@@ -134,9 +141,6 @@
 							Sorry, this title cannot be renewed
 						{/if}
 					</div>
-
-					{* Include standard tools *}
-					{* include file='Record/result-tools.tpl' id=$record.id shortId=$record.shortId ratingData=$record.ratingData *}
 				</div>
 			</div>
 		</div>

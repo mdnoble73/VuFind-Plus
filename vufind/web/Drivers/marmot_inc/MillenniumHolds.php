@@ -524,6 +524,7 @@ class MillenniumHolds{
 		require_once ROOT_DIR . '/RecordDrivers/MarcRecord.php';
 		foreach($holds as $section => $holdSections){
 			foreach($holdSections as $key => $hold){
+				$hold['user'] = $patron->getNameAndLibraryLabel();
 				disableErrorHandler();
 				$recordDriver = new MarcRecord($this->driver->accountProfile->recordSource . ":" . $hold['recordId']);
 				if ($recordDriver->isValid()){
@@ -542,8 +543,8 @@ class MillenniumHolds{
 					$hold['ratingData'] = $recordDriver->getRatingData();
 					$hold['link'] = $recordDriver->getLinkUrl();
 					$hold['coverUrl'] = $recordDriver->getBookcoverUrl('medium');
-					$holds[$section][$key] = $hold;
 				}
+				$holds[$section][$key] = $hold;
 
 				enableErrorHandler();
 			}

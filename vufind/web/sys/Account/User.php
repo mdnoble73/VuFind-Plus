@@ -578,7 +578,7 @@ class User extends DB_DataObject
 		$driver = new EContentDriver(null);
 		$eContentCheckedOut = $driver->getMyTransactions($this);
 
-		$allCheckedOut = array_merge($catalogTransactions['transactions'], $overDriveCheckedOutItems['items'], $eContentCheckedOut['transactions']);
+		$allCheckedOut = array_merge($catalogTransactions, $overDriveCheckedOutItems, $eContentCheckedOut);
 
 		if ($includeLinkedUsers) {
 			if ($this->getLinkedUsers() != null) {
@@ -618,5 +618,9 @@ class User extends DB_DataObject
 			}
 		}
 		return $allHolds;
+	}
+
+	public function getNameAndLibraryLabel(){
+		return $this->displayName . ' - ' . $this->getHomeLibrarySystemName();
 	}
 }

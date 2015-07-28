@@ -313,7 +313,7 @@ class Location extends DB_DataObject
 	 * @param int $selectedBranchId
 	 * @return Location[]
 	 */
-	function getPickupBranches($patronProfile, $selectedBranchId = null) {
+	function getPickupBranches($patronProfile, $selectedBranchId = null, $isLinkedUser = false) {
 		//Get the library for the patron's home branch.
 		/** @var Library $librarySingleton */
 		global $librarySingleton;
@@ -345,9 +345,6 @@ class Location extends DB_DataObject
 			$this->whereAdd("validHoldPickupBranch = 1");
 		}
 
-		/*if (isset($selectedBranchId) && is_numeric($selectedBranchId)){
-			$this->whereAdd("locationId = $selectedBranchId", 'OR');
-		}*/
 		$this->orderBy('displayName');
 
 		$this->find();
@@ -385,13 +382,15 @@ class Location extends DB_DataObject
 		}
 		ksort($locationList);
 
-		if (count($locationList) == 0 && (isset($homeLibrary) && $homeLibrary->inSystemPickupsOnly == 1)){
-			$homeLocation = Location::staticGet($patronProfile->homeLocationId);
-			if ($homeLocation->showHoldButton == 1){
-				//We didn't find any locations.  This for schools where we want holds available, but don't want the branch to be a
-				//pickup location anywhere else.
-				$homeLocation->selected = true;
-				$locationList['1' . $homeLocation->displayName] = clone $homeLocation;
+		if (!$isLinkedUser){
+			if (count($locationList) == 0 && (isset($homeLibrary) && $homeLibrary->inSystemPickupsOnly == 1)){
+				$homeLocation = Location::staticGet($patronProfile->homeLocationId);
+				if ($homeLocation->showHoldButton == 1){
+					//We didn't find any locations.  This for schools where we want holds available, but don't want the branch to be a
+					//pickup location anywhere else.
+					$homeLocation->selected = true;
+					$locationList['1' . $homeLocation->displayName] = clone $homeLocation;
+				}
 			}
 		}
 
