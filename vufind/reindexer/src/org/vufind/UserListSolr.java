@@ -32,9 +32,7 @@ public class UserListSolr {
 		doc.addField("id", "list" + id);
 		doc.addField("recordtype", "list");
 
-		doc.addField("related_record_ids", relatedRecordIds);
-
-		doc.addField("usable_by", "all");
+		doc.addField("record_details", relatedRecordIds);
 
 		doc.addField("title", title);
 		doc.addField("title_display", title);

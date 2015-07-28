@@ -107,13 +107,9 @@ class MillenniumHolds{
 	 * Update a hold that was previously placed in the system.
 	 * Can cancel the hold or update pickup locations.
 	 */
-	public function updateHoldDetailed($patronId, $type, $titles, $xNum, $cancelId, $locationId='', $freezeValue='off')
+	public function updateHoldDetailed($patron, $type, $titles, $xNum, $cancelId, $locationId='', $freezeValue='off')
 	{
 		global $logger;
-		global $configArray;
-
-		$patronId = $this->driver->_getBarcode();
-		$patronDump = $this->driver->_getPatronDump($patronId);
 
 		// Millennium has a "quirk" where you can still freeze and thaw a hold even if it is in the wrong status.
 		// therefore we need to check the current status before we freeze or unfreeze.
@@ -212,10 +208,10 @@ class MillenniumHolds{
 		$cookieJar = tempnam("/tmp", "CURLCOOKIE"); // TODO: cookie Jar now in _curl_connect, add as class variable?
 		$success   = false;
 
-		$curl_connection = $this->_curl_login();
+		$curl_connection = $this->_curl_login($patron);
 
 		//Issue a post request with the information about what to do with the holds
-		$curl_url = $this->driver->getVendorOpacUrl() . "/patroninfo~S{$scope}/" . $patronDump['RECORD_#'] . "/holds";
+		$curl_url = $this->driver->getVendorOpacUrl() . "/patroninfo~S{$scope}/" . $patron->username . "/holds";
 		curl_setopt($curl_connection, CURLOPT_URL, $curl_url);
 		curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $holdUpdateParams);
 		curl_setopt($curl_connection, CURLOPT_POST, true);
@@ -229,7 +225,7 @@ class MillenniumHolds{
 
 		//Go back to the hold page to check make sure our hold was cancelled
 		// Don't believe the page reload is necessary. same output as above. plb 2-3-2015
-		$curl_url = $this->driver->getVendorOpacUrl() . "/patroninfo~S{$scope}/" . $patronDump['RECORD_#'] . "/holds";
+		$curl_url = $this->driver->getVendorOpacUrl() . "/patroninfo~S{$scope}/" . $patron->username . "/holds";
 		curl_setopt($curl_connection, CURLOPT_URL, $curl_url);
 		curl_setopt($curl_connection, CURLOPT_HTTPGET, true);
 		$sResult     = curl_exec($curl_connection);
@@ -276,7 +272,7 @@ class MillenniumHolds{
 		usleep(250);
 
 		//Clear holds for the patron
-		unset($this->holds[$patronId]);
+		unset($this->holds[$patron->username]);
 		$this->driver->clearPatronProfile();
 
 		// Return Results
@@ -618,14 +614,14 @@ class MillenniumHolds{
 	}
 
 
-	public function _curl_login() {
+	public function _curl_login($patron) {
 		global $configArray, $logger;
 		$curl_url = $configArray['Catalog']['url'] . "/patroninfo";
 		$logger->log('Loading page ' . $curl_url, PEAR_LOG_INFO);
 
 		$curl_connection = $this->_curl_connect($curl_url);
 		curl_setopt($curl_connection, CURLOPT_POST, true);
-		$post_data   = $this->driver->_getLoginFormValues();
+		$post_data   = $this->driver->_getLoginFormValues($patron);
 		$post_string = http_build_query($post_data);
 		curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
 		//Load the page, but we don't need to do anything with the results.
@@ -655,17 +651,16 @@ class MillenniumHolds{
 	 *
 	 * This is responsible for both placing item level holds.
 	 *
+	 * @param   User    $patron     The User to place a hold for
 	 * @param   string  $recordId   The id of the bib record
 	 * @param   string  $itemId     The id of the item to hold
-	 * @param   string  $patronId   The id of the patron
 	 * @param   string  $comment    Any comment regarding the hold or recall
 	 * @param   string  $type       Whether to place a hold or recall
-	 * @param   string  $type       The date when the hold should be cancelled if any
 	 * @return  mixed               True if successful, false if unsuccessful
 	 *                              If an error occurs, return a PEAR_Error
 	 * @access  public
 	 */
-	public function placeItemHold($recordId, $itemId, $patronId, $comment, $type){
+	function placeItemHold($patron, $recordId, $itemId, $comment = '', $type = 'request') {
 		global $configArray;
 
 		$bib1= $recordId;
@@ -695,12 +690,11 @@ class MillenniumHolds{
 		}
 
 		if ($configArray['Catalog']['offline']){
-			global $user;
 			require_once ROOT_DIR . '/sys/OfflineHold.php';
 			$offlineHold = new OfflineHold();
 			$offlineHold->bibId = $bib1;
-			$offlineHold->patronBarcode = $patronId;
-			$offlineHold->patronId = $user->id;
+			$offlineHold->patronBarcode = $patron->getBarcode();
+			$offlineHold->patronId = $patron->id;
 			$offlineHold->timeEntered = time();
 			$offlineHold->status = 'Not Processed';
 			if ($offlineHold->insert()){
@@ -720,7 +714,7 @@ class MillenniumHolds{
 		}else{
 			//Cancel a hold
 			if ($type == 'cancel' || $type == 'recall' || $type == 'update') {
-				$result = $this->updateHold($recordId, $patronId, $type, $title);
+				$result = $this->updateHold($patron, $recordId, $type, $title);
 				$result['title'] = $title;
 				$result['bid'] = $bib1;
 				return $result;
@@ -751,30 +745,6 @@ class MillenniumHolds{
 
 				list($Month, $Day, $Year)=explode("/", $date);
 
-				//------------BEGIN CURL-----------------------------------------------------------------
-//				$header=array();
-//				$header[0] = "Accept: text/xml,application/xml,application/xhtml+xml,";
-//				$header[0] .= "text/html;q=0.9,text/plain;q=0.8,image/png,*/*;q=0.5";
-//				$header[] = "Cache-Control: max-age=0";
-//				$header[] = "Connection: keep-alive";
-//				$header[] = "Accept-Charset: ISO-8859-1,utf-8;q=0.7,*;q=0.7";
-//				$header[] = "Accept-Language: en-us,en;q=0.5";
-//
-//				$cookie = tempnam ("/tmp", "CURLCOOKIE");
-//
-//				$curl_connection = curl_init();
-//				curl_setopt($curl_connection, CURLOPT_CONNECTTIMEOUT, 30);
-//				curl_setopt($curl_connection, CURLOPT_HTTPHEADER, $header);
-//				curl_setopt($curl_connection, CURLOPT_USERAGENT,"Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)");
-//				curl_setopt($curl_connection, CURLOPT_RETURNTRANSFER, true);
-//				curl_setopt($curl_connection, CURLOPT_SSL_VERIFYPEER, false);
-//				curl_setopt($curl_connection, CURLOPT_FOLLOWLOCATION, true);
-//				curl_setopt($curl_connection, CURLOPT_UNRESTRICTED_AUTH, true);
-//				curl_setopt($curl_connection, CURLOPT_COOKIEJAR, $cookie);
-//				curl_setopt($curl_connection, CURLOPT_COOKIESESSION, true);
-//				curl_setopt($curl_connection, CURLOPT_FORBID_REUSE, false);
-//				curl_setopt($curl_connection, CURLOPT_HEADER, false);
-
 				$curl_connection = $this->_curl_connect();
 
 				curl_setopt($curl_connection, CURLOPT_POST, true);
@@ -783,7 +753,7 @@ class MillenniumHolds{
 				if (isset($configArray['Catalog']['loginPriorToPlacingHolds']) && $configArray['Catalog']['loginPriorToPlacingHolds'] = true){
 					//User must be logged in as a separate step to placing holds
 					$curl_url = $this->driver->getVendorOpacUrl() . "/patroninfo";
-					$post_data = $this->driver->_getLoginFormValues();
+					$post_data = $this->driver->_getLoginFormValues($patron);
 					$post_data['submit.x']="35";
 					$post_data['submit.y']="21";
 					$post_data['submit']="submit";
@@ -807,9 +777,8 @@ class MillenniumHolds{
 					}
 					$post_data = array();
 				}else{
-					$post_data = $this->driver->_getLoginFormValues();
+					$post_data = $this->driver->_getLoginFormValues($patron);
 				}
-				$scope = $this->driver->getLibraryScope();
 				$curl_url = $this->driver->getVendorOpacUrl() . "/search/.$bib/.$bib/1,1,1,B/request~$bib";
 				//echo "$curl_url";
 				curl_setopt($curl_connection, CURLOPT_URL, $curl_url);
@@ -837,11 +806,6 @@ class MillenniumHolds{
 					$post_data['_eventId'] = 'submit';
 				}
 
-//				$post_items = array();
-//				foreach ($post_data as $key => $value) {
-//					$post_items[] = $key . '=' . $value;
-//				}
-//				$post_string = implode ('&', $post_items);
 				$post_string = http_build_query($post_data);
 				curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
 				$sResult = curl_exec($curl_connection);

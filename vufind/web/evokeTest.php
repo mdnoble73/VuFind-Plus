@@ -69,9 +69,9 @@ $returnResult = $driver->returnTitle($checkedOutTitles['items'][0]['loanId'], $u
 print_r($returnResult);
 
 echo("<h1>Place Hold</h1>");
-$placeHoldResult = $driver->placeHold('00006319', $user);
+$placeHoldResult = $driver->placeHold($user, '00006319');
 print_r($placeHoldResult);
 
 echo("<h1>Cancel Hold</h1>");
-$cancelHoldResult = $driver->cancelHold($placeHoldResult->response->reserveId, $user);
+$cancelHoldResult = $driver->cancelHold($user, $placeHoldResult->response->reserveId);
 print_r($cancelHoldResult);

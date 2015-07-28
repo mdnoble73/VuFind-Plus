@@ -788,6 +788,7 @@ function loadModuleActionId(){
 		$_REQUEST['action'] = $matches[2];
 	}
 
+	global $activeRecordProfile;
 	//Check to see if the module is a profile
 	if (isset($_REQUEST['module'])){
 		/** @var IndexingProfile[] */
@@ -798,6 +799,7 @@ function loadModuleActionId(){
 				$_GET['id'] = $profile->name .':' . $_GET['id'];
 				$_GET['module'] = 'Record';
 				$_REQUEST['module'] = 'Record';
+				$activeRecordProfile = $profile;
 				break;
 			}
 		}

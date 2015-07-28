@@ -28,7 +28,7 @@ class Hold extends Action{
 		global $configArray;
 		global $user;
 
-		$driver = new EContentDriver();
+		$driver = new EContentDriver(null);
 		$id = strip_tags($_REQUEST['id']);
 		$interface->assign('id', $id);
 
@@ -53,7 +53,7 @@ class Hold extends Action{
 
 			if (!PEAR_Singleton::isError($user) && $user){
 				//The user is already logged in
-				$return = $driver->placeHold($id, $user);
+				$return = $driver->placeHold($user, $id);
 				$interface->assign('result', $return['result']);
 				$message = $return['message'];
 				$interface->assign('message', $message);

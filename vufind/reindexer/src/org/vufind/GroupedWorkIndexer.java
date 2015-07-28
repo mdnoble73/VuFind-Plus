@@ -2,6 +2,7 @@ package org.vufind;
 
 import au.com.bytecode.opencsv.CSVWriter;
 import org.apache.solr.client.solrj.SolrServer;
+import org.apache.solr.client.solrj.impl.BinaryRequestWriter;
 import org.apache.solr.client.solrj.impl.ConcurrentUpdateSolrServer;
 import org.apache.solr.client.solrj.impl.HttpSolrServer;
 import org.apache.solr.common.SolrInputDocument;
@@ -126,7 +127,8 @@ public class GroupedWorkIndexer {
 
 		//Initialize the updateServer and solr server
 		if (fullReindex){
-			updateServer = new ConcurrentUpdateSolrServer("http://localhost:" + solrPort + "/solr/grouped2", 100, 4);
+			updateServer = new ConcurrentUpdateSolrServer("http://localhost:" + solrPort + "/solr/grouped2", 500, 8);
+			updateServer.setRequestWriter(new BinaryRequestWriter());
 			solrServer = new HttpSolrServer("http://localhost:" + solrPort + "/solr/grouped2");
 			updateFullReindexRunning(true);
 		}else{
@@ -157,7 +159,7 @@ public class GroupedWorkIndexer {
 			}else{
 				updatePartialReindexRunning(true);
 			}
-			updateServer = new ConcurrentUpdateSolrServer("http://localhost:" + solrPort + "/solr/grouped", 100, 4);
+			updateServer = new ConcurrentUpdateSolrServer("http://localhost:" + solrPort + "/solr/grouped", 500, 8);
 			solrServer = new HttpSolrServer("http://localhost:" + solrPort + "/solr/grouped");
 		}
 
@@ -270,6 +272,7 @@ public class GroupedWorkIndexer {
 				logger.error("Error setting up system maps", e);
 			}
 			libraryAndLocationDataLoaded = true;
+			logger.info("Loaded " + scopes.size() + " scopes");
 		}
 	}
 
@@ -685,8 +688,14 @@ public class GroupedWorkIndexer {
 				processGroupedWork(id, permanentId, grouping_category);
 
 				numWorksProcessed++;
-				if (numWorksProcessed % 5000 == 0){
-					//commitChanges();
+				if (numWorksProcessed % 1000 == 0){
+					//Testing shows that regular commits do seem to improve performance.
+					//Leave in for now.
+					try {
+						updateServer.commit(true, false);
+					}catch (Exception e){
+						logger.warn("Error committing changes", e);
+					}
 					logger.info("Processed " + numWorksProcessed + " grouped works processed.");
 				}
 				if (maxWorksToProcess != -1 && numWorksProcessed >= maxWorksToProcess){
@@ -722,6 +731,7 @@ public class GroupedWorkIndexer {
 			updateGroupedWorkForPrimaryIdentifier(groupedWork, type, identifier);
 			numPrimaryIdentifiers++;
 		}
+		groupedWorkPrimaryIdentifiers.close();
 
 		if (numPrimaryIdentifiers > 0) {
 			//Add a grouped work to any scopes that are relevant
@@ -736,6 +746,7 @@ public class GroupedWorkIndexer {
 				String identifier = groupedWorkIdentifiers.getString("identifier");
 				updateGroupedWorkForSecondaryIdentifier(groupedWork, type, identifier);
 			}
+			groupedWorkIdentifiers.close();
 
 			//Load local (VuFind) enrichment for the work
 			loadLocalEnrichment(groupedWork);
@@ -785,6 +796,7 @@ public class GroupedWorkIndexer {
 					groupedWork.setRating(averageRating);
 				}
 			}
+			ratingsRS.close();
 		}catch (Exception e){
 			logger.error("Unable to load local enrichment", e);
 		}

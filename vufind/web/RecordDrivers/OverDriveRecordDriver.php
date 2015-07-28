@@ -916,6 +916,11 @@ class OverDriveRecordDriver extends RecordInterface {
 		return $this->filterAndSortMoreDetailsOptions($moreDetailsOptions);
 	}
 
+	public function getRecordUrl() {
+		$id = $this->getUniqueID();
+		$linkUrl = '/OverDrive/' . $id . '/Home';
+		return $linkUrl;
+	}
 	public function getLinkUrl($useUnscopedHoldingsSummary = false) {
 		global $interface;
 		$id = $this->getUniqueID();
@@ -1117,5 +1122,23 @@ class OverDriveRecordDriver extends RecordInterface {
 			}
 		}
 		return implode('&', $parts);
+	}
+
+	public function getRecordActions($isAvailable, $isHoldable, $isBookable, $relatedUrls = null) {
+		$actions = array();
+		if ($isAvailable){
+			$actions[] = array(
+				'title' => 'Check Out',
+				'onclick' => "return VuFind.OverDrive.checkoutOverDriveItemOneClick('{$this->id}');",
+				'requireLogin' => false,
+			);
+		}else{
+			$actions[] = array(
+				'title' => 'Place Hold',
+				'onclick' => "return VuFind.OverDrive.placeOverDriveHold('{$this->id}');",
+				'requireLogin' => false,
+			);
+		}
+		return $actions;
 	}
 }

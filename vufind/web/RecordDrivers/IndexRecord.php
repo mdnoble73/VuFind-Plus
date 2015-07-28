@@ -1609,7 +1609,7 @@ class IndexRecord extends RecordInterface
 		global $interface;
 		$linkUrl = $this->getRecordUrl();
 		$extraParams = array();
-		if (strlen($interface->get_template_vars('searchId')) > 0){
+		if ($interface != null && strlen($interface->get_template_vars('searchId')) > 0){
 			$extraParams[] = 'searchId=' . $interface->get_template_vars('searchId');
 			$extraParams[] = 'recordIndex=' . $interface->get_template_vars('recordIndex');
 			$extraParams[] = 'page='  . $interface->get_template_vars('page');
@@ -1752,6 +1752,8 @@ class IndexRecord extends RecordInterface
 		}
 		return implode('&', $parts);
 	}
-}
 
-?>
+	public function getRecordActions($isAvailable, $isHoldable, $isBookable, $relatedUrls = null){
+		return array();
+	}
+}

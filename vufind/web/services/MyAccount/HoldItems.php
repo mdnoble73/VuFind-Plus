@@ -73,7 +73,7 @@ class HoldItems extends Action
 
 		$atLeast1Successful = false;
 		foreach ($selectedTitles as $recordId => $itemNumber){
-			$return = $this->catalog->placeItemHold($recordId, $itemNumber, $user->password, '', $_REQUEST['type']);
+			$return = $this->catalog->placeItemHold($user, $recordId, $itemNumber, '', $_REQUEST['type']);
 			$hold_message_data['titles'][] = $return;
 			if (!$return['result']){
 				$hold_message_data['successful'] = 'partial';

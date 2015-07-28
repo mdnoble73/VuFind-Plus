@@ -1995,12 +1995,25 @@ public function renewItem($patronId, $itemId){
 		return $updateErrors;
 	}
 
-	public function placeHold($recordId, $patronId, $comment, $type){
+	/**
+	 * Place Hold
+	 *
+	 * This is responsible for both placing holds as well as placing recalls.
+	 *
+	 * @param   User    $patron     The User to place a hold for
+	 * @param   string  $recordId   The id of the bib record
+	 * @param   string  $comment    Any comment regarding the hold or recall
+	 * @param   string  $type       Whether to place a hold or recall
+	 * @return  mixed               True if successful, false if unsuccessful
+	 *                              If an error occurs, return a PEAR_Error
+	 * @access  public
+	 */
+	function placeHold($patron, $recordId, $comment = '', $type = 'request') {
 		//Self registered cards need to use HIP to place holds
-		if (preg_match('/^\\d{12}-\\d$/', $patronId)){
-			$result = $this->placeHoldViaHIP($recordId, $patronId, $comment, $type);
+		if (preg_match('/^\\d{12}-\\d$/', $patron->getBarcode())){
+			$result = $this->placeHoldViaHIP($recordId, $patron->getBarcode(), $comment, $type);
 		}else{
-			$result = $this->placeHoldViaSIP($recordId, $patronId, $comment, $type);
+			$result = $this->placeHoldViaSIP($recordId, $patron->getBarcode(), $comment, $type);
 		}
 
 		return $result;

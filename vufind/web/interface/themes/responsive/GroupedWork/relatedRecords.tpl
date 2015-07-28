@@ -30,7 +30,7 @@
 				{$relatedRecord.holdRatio}
 				</td> *}
 				{if $relatedManifestation.format == 'eBook' || $relatedManifestation.format == 'eAudiobook' || $relatedManifestation.format == 'eMagazine'}
-					<td><a href="{$relatedRecord.url}">{$relatedRecord.source}</a></td>
+					<td><a href="{$relatedRecord.url}">{$relatedRecord.eContentSource}</a></td>
 				{/if}
 				{display_if_inconsistent array=$relatedRecords key="edition"}
 					<td><a href="{$relatedRecord.url}">{$relatedRecord.edition}</a></td>

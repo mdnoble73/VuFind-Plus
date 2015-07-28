@@ -1407,21 +1407,16 @@ class Aspencat implements DriverInterface{
 	 *
 	 * This is responsible for both placing item level holds.
 	 *
+	 * @param   User    $patron     The User to place a hold for
 	 * @param   string  $recordId   The id of the bib record
 	 * @param   string  $itemId     The id of the item to hold
-	 * @param   string  $patronId   The id of the patron
 	 * @param   string  $comment    Any comment regarding the hold or recall
 	 * @param   string  $type       Whether to place a hold or recall
-	 * @param   string  $type       The date when the hold should be cancelled if any
 	 * @return  mixed               True if successful, false if unsuccessful
 	 *                              If an error occurs, return a PEAR_Error
 	 * @access  public
 	 */
-	public function placeItemHold(
-		/** @noinspection PhpUnusedParameterInspection */
-		$recordId, $itemId, $patronId, $comment, $type){
-
-		global $user;
+	function placeItemHold($patron, $recordId, $itemId, $comment = '', $type = 'request') {
 		global $configArray;
 
 		$hold_result = array();
@@ -1439,7 +1434,7 @@ class Aspencat implements DriverInterface{
 		if (isset($_REQUEST['campus'])){
 			$campus=trim($_REQUEST['campus']);
 		}else{
-			$campus = $user->homeLocationId;
+			$campus = $patron->homeLocationId;
 			//Get the code for the location
 			$locationLookup = new Location();
 			$locationLookup->locationId = $campus;
@@ -1452,7 +1447,7 @@ class Aspencat implements DriverInterface{
 		$campus = strtoupper($campus);
 
 		//Login before placing the hold
-		$this->loginToKoha($user);
+		$this->loginToKoha($patron);
 
 		//Post the hold to koha
 		$placeHoldPage = $configArray['Catalog']['url'] . '/cgi-bin/koha/opac-reserve.pl';
@@ -1471,7 +1466,7 @@ class Aspencat implements DriverInterface{
 		$hold_result['id'] = $recordId;
 		if (preg_match('/<a href="#opac-user-holds">Holds<\/a>/si', $kohaHoldResult)) {
 			//We redirected to the holds page, everything seems to be good
-			$holds = $this->getMyHolds($user, 1, -1, 'title', $kohaHoldResult);
+			$holds = $this->getMyHolds($patron, 1, -1, 'title', $kohaHoldResult);
 			$hold_result['result'] = true;
 			$hold_result['message'] = "Your hold was placed successfully.";
 			//Find the correct hold (will be unavailable)

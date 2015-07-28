@@ -126,12 +126,13 @@
 		<field name="_version_" type="long" indexed="true" stored="true"/>
 		<!-- Main Id -->
 		<field name="id" type="string" indexed="true" stored="true" omitNorms="true"/>
-		<field name="alternate_ids" type="string" indexed="true" stored="true" multiValued="true" omitNorms="true"/>
+		<field name="alternate_ids" type="string" indexed="true" stored="false" multiValued="true" omitNorms="true"/>
 		<field name="recordtype" type="string" indexed="true" stored="true" multiValued="false" omitNorms="false"/>
-		<!-- Related Record Ids (type:id) -->
+		<!-- Related Record information -->
 		<field name="scope_has_related_records" type="string" indexed="true" stored="true" multiValued="true"/>
-		<dynamicField name="related_record_ids_*" type="string" indexed="false" stored="true" multiValued="true"/>
-		<dynamicField name="related_items_*" type="string" indexed="false" stored="true" multiValued="true"/>
+		<field name="record_details" type="string" indexed="false" stored="true" multiValued="true"/>
+		<field name="item_details" type="string" indexed="false" stored="true" multiValued="true"/>
+		<dynamicField name="scoping_details_*" type="string" indexed="false" stored="true" multiValued="true"/>
 
 		<!-- Fields to determine ownership and location based on location codes -->
 		<field name="owning_library" type="string" indexed="true" stored="true" multiValued="true" omitNorms="false"/>
@@ -142,13 +143,11 @@
 		<!-- Fields to determine availability -->
 		<field name="available_at" type="string" indexed="true" stored="true" multiValued="true" omitNorms="true"/>
 		<dynamicField name="availability_toggle_*" type="textFacet" indexed="true" stored="true" multiValued="true" omitNorms="true"/>
-		<!-- Fields to determine who can use the record -->
-		<field name="usable_by" type="textFacet" indexed="true" stored="true" multiValued="true" omitNorms="true"/>
 		<!-- Title variations -->
 		<field name="title" type="text" indexed="true" stored="true"/>  <!-- basic title -->
 		<field name="title_exact" type="text-exact" indexed="true" stored="true"/>  <!-- basic title -->
 		<field name="title_left" type="text-left" indexed="true" stored="true"/>  <!-- basic title -->
-		<field name="title_proper" type="textProper" indexed="true" stored="true"/>  <!-- basic title -->
+		<field name="title_proper" type="textProper" indexed="true" stored="false"/>  <!-- basic title -->
 		<field name="title_display" type="text" indexed="true" stored="true" multiValued="false"/> <!-- The title to display to the user -->
 		<field name="title_sort" type="alphaOnlySort" indexed="true" stored="true"/> <!-- title for sorting -->
 		<field name="title_sub" type="text" indexed="true" stored="true"/>
@@ -165,15 +164,15 @@
 		<field name="author_display" type="string" indexed="true" stored="true" multiValued="false"/> <!-- The title to display to the user -->
 		<field name="author-letter" type="string" indexed="true" stored="true"/>
 		<field name="authorStr" type="textFacet" indexed="true" stored="true"/>
-		<field name="auth_author" type="textProper" indexed="true" stored="true"/>
-		<field name="auth_authorStr" type="string" indexed="true" stored="true"/>
+		<field name="auth_author" type="textProper" indexed="true" stored="false"/>
+		<field name="auth_authorStr" type="string" indexed="true" stored="false"/>
 		<field name="author2" type="text" indexed="true" stored="true" multiValued="true"/>
 		<field name="author2Str" type="string" indexed="true" stored="true" multiValued="true"/>
 		<field name="author2-role" type="string" indexed="true" stored="true" multiValued="true"/>
 		<field name="auth_author2" type="textProper" indexed="true" stored="true" multiValued="true"/>
-		<field name="auth_author2Str" type="string" indexed="true" stored="true" multiValued="true"/>
+		<field name="auth_author2Str" type="string" indexed="true" stored="false" multiValued="true"/>
 		<field name="author_additional" type="text" indexed="true" stored="true" multiValued="true"/>
-		<field name="author_additionalStr" type="string" indexed="true" stored="true" multiValued="true"/>
+		<field name="author_additionalStr" type="string" indexed="true" stored="false" multiValued="true"/>
 		<!-- format -->
 		<field name="grouping_category" type="string" indexed="true" stored="true" multiValued="false" omitNorms="true"/>
 		<dynamicField name="format_*" type="string" indexed="true" stored="true" multiValued="true" omitNorms="true"/>
@@ -196,20 +195,20 @@
 		<field name="dateSpan" type="string" indexed="true" stored="true" multiValued="true"/>
 		<field name="series" type="text" indexed="true" stored="true" multiValued="true"/>
 		<field name="series2" type="text" indexed="true" stored="true" multiValued="true"/>
-		<field name="series_proper" type="textProper" indexed="true" stored="true" multiValued="true"/>
+		<field name="series_proper" type="textProper" indexed="true" stored="false" multiValued="true"/>
 		<field name="topic" type="text" indexed="true" stored="true" multiValued="true"/>
-		<field name="topic_proper" type="textProper" indexed="true" stored="true" multiValued="true"/>
+		<field name="topic_proper" type="textProper" indexed="true" stored="false" multiValued="true"/>
 		<field name="topic_facet" type="textFacet" indexed="true" stored="true" multiValued="true" termVectors="true"/>
 		<field name="lc_subject" type="textFacet" indexed="true" stored="true" multiValued="true"/>
 		<field name="bisac_subject" type="textFacet" indexed="true" stored="true" multiValued="true"/>
 		<field name="genre" type="text" indexed="true" stored="true" multiValued="true"/>
-		<field name="genre_proper" type="textProper" indexed="true" stored="true" multiValued="true"/>
+		<field name="genre_proper" type="textProper" indexed="true" stored="false" multiValued="true"/>
 		<field name="genre_facet" type="textFacet" indexed="true" stored="true" multiValued="true" termVectors="true"/>
 		<field name="geographic" type="text" indexed="true" stored="true" multiValued="true"/>
-		<field name="geographic_proper" type="textProper" indexed="true" stored="true" multiValued="true"/>
+		<field name="geographic_proper" type="textProper" indexed="true" stored="false" multiValued="true"/>
 		<field name="geographic_facet" type="textFacet" indexed="true" stored="true" multiValued="true" termVectors="true"/>
 		<field name="era" type="textFacet" indexed="true" stored="true" multiValued="true" termVectors="true"/>
-		<field name="era_proper" type="textProper" indexed="true" stored="true" multiValued="true"/>
+		<field name="era_proper" type="textProper" indexed="true" stored="false" multiValued="true"/>
 		<field name="literary_form_full" type="string" indexed="true" stored="true" multiValued="true"/>
 		<field name="literary_form" type="string" indexed="true" stored="true" multiValued="true"/>
 		<field name="target_audience_full" type="string" indexed="true" stored="true" multiValued="true"/>
@@ -220,7 +219,7 @@
 		<dynamicField name="local_time_since_added_*" type="string" indexed="true" stored="true" multiValued="true"/>
 		<dynamicField name="local_days_since_added_*" type="integer" indexed="true" stored="true" multiValued="false"/>
 		<dynamicField name="itype_*" type="textFacet" indexed="true" stored="true" multiValued="true"/>
-		<field name="barcode" type="textFacet" indexed="true" stored="true" multiValued="true"/>
+		<field name="barcode" type="textFacet" indexed="true" stored="false" multiValued="true"/>
 		<!-- awards and ratings -->
 		<field name="mpaa_rating" type="string" indexed="true" stored="true" multiValued="true"/>
 		<field name="awards_facet" type="textFacet" indexed="true" stored="true" multiValued="true" termVectors="true"/>

@@ -2,6 +2,7 @@
 <div id="page-content" class="content">
 	<form name='placeHoldForm' id='placeHoldForm' action="{$path}/Record/{$id|escape:"url"}/Hold" method="post" class="form">
 		<input type="hidden" name="id" id="id" value="{$id}">
+		<input type="hidden" name="recordSource" id="recordSource" value="{$recordSource}">
 		<fieldset>
 			<div class="holdsSummary">
 				<input type="hidden" name="holdCount" id="holdCount" value="1">
@@ -48,6 +49,18 @@
 						</select>
 					</div>
 				</div>
+				{if count($linkedUsers) > 1} {* Linked Users contains the active user as well*}
+					<div id='pickupLocationOptions' class="form-group">
+						<label class='control-label' for="account">{translate text="Place hold for account"}: </label>
+						<div class='controls'>
+							<select name="account" id="account" class="form-control">
+								{foreach from=$linkedUsers item=tmpUser}
+									<option value="{$tmpUser->id}" {if $location->selected == "selected"}selected="selected"{/if}>{$tmpUser->displayName} - {$tmpUser->getHomeLibrarySystemName()}</option>
+								{/foreach}
+							</select>
+						</div>
+					</div>
+				{/if}
 				{if $showHoldCancelDate == 1}
 					<div id='cancelHoldDate' class='form-group'>
 						<label class='control-label' for="canceldate">{translate text="Automatically cancel this hold if not filled by"}:</label>

@@ -340,7 +340,11 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 			for (Scope scope: indexer.getScopes()){
 				if (scope.isItemPartOfScope(profileType, location, "", true, true, false)){
 					ScopingInfo scopingInfo = itemInfo.addScope(scope);
-					scopingInfo.setLocallyOwned(scope.isItemOwnedByScope(profileType, location, ""));
+					if (scope.isLocationScope()) {
+						scopingInfo.setLocallyOwned(scope.isItemOwnedByScope(profileType, location, ""));
+					}else{
+						scopingInfo.setLibraryOwned(scope.isItemOwnedByScope(profileType, location, ""));
+					}
 					if (scopingInfo.isLocallyOwned()){
 						if (scope.isLibraryScope() && !hasLocationBasedShelfLocation && !hasSystemBasedShelfLocation){
 							hasSystemBasedShelfLocation = true;
@@ -390,6 +394,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 
 	protected RecordInfo getEContentIlsRecord(GroupedWorkSolr groupedWork, Record record, String identifier, DataField itemField){
 		ItemInfo itemInfo = new ItemInfo();
+		itemInfo.setIsEContent(true);
 		RecordInfo relatedRecord = null;
 
 		loadDateAdded(identifier, itemField, itemInfo);
@@ -437,21 +442,14 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 						}else{
 							logger.warn("Filename for local econtent not specified " + eContentData + " " + identifier);
 						}
-						/*if (eContentFields.length >= 6){
-							ilsEContentItem.setAcsId(eContentFields[5].trim());
-						}*/
 					}else{
 						//Field 4 is the filename
 						itemInfo.seteContentFilename(eContentFields[3].trim());
-						/*if (eContentFields.length >= 5){
-							ilsEContentItem.setAcsId(eContentFields[4].trim());
-						}*/
 					}
 				}
 			}
 		}else{
 			//This is for a "less advanced" catalog, set some basic info
-			itemInfo.seteContentSource("External eContent");
 			itemInfo.seteContentProtectionType("external");
 			itemInfo.seteContentSharing(getEContentSharing(itemInfo, itemField));
 			itemInfo.seteContentSource(getSourceType(record, itemField));
@@ -539,7 +537,11 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 					scopingInfo.setGroupedStatus("Checked Out");
 				}
 				scopingInfo.setHoldable(holdable);
-				scopingInfo.setLocallyOwned(curScope.isItemOwnedByScope(profileType, itemLocation, itemSublocation));
+				if (curScope.isLocationScope()) {
+					scopingInfo.setLocallyOwned(curScope.isItemOwnedByScope(profileType, itemLocation, itemSublocation));
+				}else if (curScope.isLibraryScope()) {
+					scopingInfo.setLibraryOwned(curScope.isItemOwnedByScope(profileType, itemLocation, itemSublocation));
+				}
 			}
 		}
 
@@ -617,14 +619,22 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		//Determine which scopes have access to this record
 		for (Scope curScope : indexer.getScopes()) {
 			//Check to see if the record is holdable for this scope
-			boolean isHoldable = isItemHoldable(itemInfo, curScope);
+
+
+			Boolean isHoldable = isItemHoldable(itemInfo, curScope);
+			Boolean isBookable = isItemBookable(itemInfo, curScope);
 			if (curScope.isItemPartOfScope(profileType, itemLocation, itemSublocation, isHoldable, false, false)){
 				ScopingInfo scopingInfo = itemInfo.addScope(curScope);
 				scopingInfo.setAvailable(available);
 				scopingInfo.setHoldable(isHoldable);
+				scopingInfo.setBookable(isBookable);
 				scopingInfo.setStatus(translateValue("item_status", itemStatus));
 				scopingInfo.setGroupedStatus(translateValue("item_grouped_status", itemStatus));
-				scopingInfo.setLocallyOwned(curScope.isItemOwnedByScope(profileType, itemLocation, itemSublocation));
+				if (curScope.isLocationScope()) {
+					scopingInfo.setLocallyOwned(curScope.isItemOwnedByScope(profileType, itemLocation, itemSublocation));
+				}else{
+					scopingInfo.setLibraryOwned(curScope.isItemOwnedByScope(profileType, itemLocation, itemSublocation));
+				}
 			}
 		}
 
@@ -738,6 +748,10 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 
 	protected boolean isItemHoldable(ItemInfo itemInfo, Scope curScope){
 		return true;
+	}
+
+	protected boolean isItemBookable(ItemInfo itemInfo, Scope curScope) {
+		return false;
 	}
 
 	//By default we don't need to do anything

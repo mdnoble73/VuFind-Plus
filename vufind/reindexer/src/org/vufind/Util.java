@@ -11,6 +11,9 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.regex.Matcher;
@@ -24,11 +27,13 @@ public class Util {
 		byte[] fileBytes = new byte[(int)fileSize];
 		ByteBuffer buffer = ByteBuffer.wrap(fileBytes);
 		fileChannel.read(buffer);
+		fileChannel.close();
+		f.close();
 		return fileBytes;
 	}
 
 	public static String getCRSeparatedString(Object values) {
-		StringBuffer crSeparatedString = new StringBuffer();
+		StringBuilder crSeparatedString = new StringBuilder();
 		if (values instanceof String){
 			crSeparatedString.append((String)values);
 		}else if (values instanceof Iterable){
@@ -45,7 +50,7 @@ public class Util {
 	}
 	
 	public static String getCRSeparatedStringFromSet(Set<String> values) {
-		StringBuffer crSeparatedString = new StringBuffer();
+		StringBuilder crSeparatedString = new StringBuilder();
 		for (String curValue : values) {
 			if (crSeparatedString.length() > 0) {
 				crSeparatedString.append("\r\n");
@@ -56,7 +61,7 @@ public class Util {
 	}
 
 	public static String getCRSeparatedString(HashSet<String> values) {
-		StringBuffer crSeparatedString = new StringBuffer();
+		StringBuilder crSeparatedString = new StringBuilder();
 		for (String curValue : values) {
 			if (crSeparatedString.length() > 0) {
 				crSeparatedString.append("\r\n");
@@ -71,7 +76,9 @@ public class Util {
 			return false;
 		}
 		if (!destFile.exists()) {
-			destFile.createNewFile();
+			if (!destFile.createNewFile()){
+				return false;
+			}
 		}
 
 		FileChannel source = null;
@@ -120,7 +127,7 @@ public class Util {
 
 	public static URLPostResponse getURL(String url, Logger logger) {
 		URLPostResponse retVal;
-		HttpURLConnection conn = null;
+		HttpURLConnection conn;
 		try {
 			logger.debug("Getting URL " + url);
 			URL emptyIndexURL = new URL(url);
@@ -139,7 +146,7 @@ public class Util {
 			conn.setConnectTimeout(3000);
 			conn.setReadTimeout(450000);
 			//logger.debug("  Opened connection");
-			StringBuffer response = new StringBuffer();
+			StringBuilder response = new StringBuilder();
 			if (conn.getResponseCode() == 200) {
 				//logger.debug("  Got successful response");
 				// Get the response
@@ -176,27 +183,6 @@ public class Util {
 		return retVal;
 	}
 
-	public static String prepForCsv(String input, boolean trimTrailingPunctuation, boolean crSeparatedFields) {
-		if (input == null){
-			return "";
-		}
-		if (trimTrailingPunctuation) {
-			input = trimTrailingPunctuation(input);
-		}
-		input = input.replaceAll("'", "`");
-		input = input.replaceAll("\\|", " ");
-		input = input.replaceAll(";", " ");
-		if (crSeparatedFields){
-			input = input.replaceAll("[\\t]", " ");
-			input = input.replaceAll("\\r\\n|\\r|\\n", ";");
-		}else{
-			input = input.replaceAll("[\\r\\n\\t]", " ");
-		}
-		
-		// input = regex.matcher(input).replaceAll("");
-		return input;
-	}
-
 	public static String trimTrailingPunctuation(String format) {
 		if (format == null){
 			return "";
@@ -208,7 +194,7 @@ public class Util {
 	}
 
 	public static Collection<String> trimTrailingPunctuation(Set<String> fieldList) {
-		HashSet<String> trimmedCollection = new HashSet<String>();
+		HashSet<String> trimmedCollection = new HashSet<>();
 		for (String field : fieldList){
 			trimmedCollection.add(trimTrailingPunctuation(field));
 		}
@@ -246,7 +232,7 @@ public class Util {
 		long timeDifferenceDays = (indexDate.getTime() - curDate.getTime())
 				/ (1000 * 60 * 60 * 24);
 		// System.out.println("Time Difference Days: " + timeDifferenceDays);
-		LinkedHashSet<String> result = new LinkedHashSet<String>();
+		LinkedHashSet<String> result = new LinkedHashSet<>();
 		if (timeDifferenceDays <= 1) {
 			result.add("Day");
 		}
@@ -285,20 +271,6 @@ public class Util {
 			}
 		}
 		return true;
-	}
-
-	public static String getCommaSeparatedString(HashSet<String> values) {
-		if (values == null){
-			return "";
-		}
-		StringBuffer crSeparatedString = new StringBuffer();
-		for (String curValue : values) {
-			if (crSeparatedString.length() > 0) {
-				crSeparatedString.append(",");
-			}
-			crSeparatedString.append(curValue);
-		}
-		return crSeparatedString.toString();
 	}
 
 	public static boolean compareFiles(File file1, File file2, Logger logger){

@@ -85,7 +85,7 @@ class Record_Hold extends Action {
 			if ($user){
 				//The user is already logged in
 				$barcodeProperty = $configArray['Catalog']['barcodeProperty'];
-				$return = $this->catalog->placeHold($recordId, $user->$barcodeProperty, '', $type);
+				$return = $this->catalog->placeHold($user, $recordId, '', $type);
 				$interface->assign('result', $return['result']);
 				$message = $return['message'];
 				$interface->assign('message', $message);

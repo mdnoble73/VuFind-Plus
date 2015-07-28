@@ -44,7 +44,7 @@ class SearchObject_Solr extends SearchObject_Base
 	// Index
 	private $index = null;
 	// Field List
-	private $fields = 'auth_author2,id,mpaaRating,title_display,title_full,title_sub,author,author_display,isbn,upc,issn,series,recordtype,display_description,literary_form,literary_form_full,num_titles';
+	private $fields = 'auth_author2,id,mpaaRating,title_display,title_full,title_sub,author,author_display,isbn,upc,issn,series,recordtype,display_description,literary_form,literary_form_full,num_titles,record_details,item_details';
 	private $fieldsFull = '*,score';
 	// HTTP Method
 	//    private $method = HTTP_REQUEST_METHOD_GET;
@@ -2073,19 +2073,20 @@ class SearchObject_Solr extends SearchObject_Base
 			$fieldsToReturn = $this->fields;
 			global $solrScope;
 			if ($solrScope != false){
-				$fieldsToReturn .= ',related_record_ids_' . $solrScope;
-				$fieldsToReturn .= ',related_items_' . $solrScope;
+				//$fieldsToReturn .= ',related_record_ids_' . $solrScope;
+				//$fieldsToReturn .= ',related_items_' . $solrScope;
 				$fieldsToReturn .= ',format_' . $solrScope;
 				$fieldsToReturn .= ',format_category_' . $solrScope;
 				$fieldsToReturn .= ',collection_' . $solrScope;
 				$fieldsToReturn .= ',local_time_since_added_' . $solrScope;
 				$fieldsToReturn .= ',local_callnumber_' . $solrScope;
 				$fieldsToReturn .= ',detailed_location_' . $solrScope;
+				$fieldsToReturn .= ',scoping_details_' . $solrScope;
 
 			}else{
-				$fieldsToReturn .= ',related_record_ids';
-				$fieldsToReturn .= ',related_record_items';
-				$fieldsToReturn .= ',related_items_related_record_ids';
+				//$fieldsToReturn .= ',related_record_ids';
+				//$fieldsToReturn .= ',related_record_items';
+				//$fieldsToReturn .= ',related_items_related_record_ids';
 				$fieldsToReturn .= ',format';
 				$fieldsToReturn .= ',format_category';
 				$fieldsToReturn .= ',days_since_added';

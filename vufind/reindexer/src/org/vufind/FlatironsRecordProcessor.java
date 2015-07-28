@@ -100,7 +100,11 @@ public class FlatironsRecordProcessor extends IlsRecordProcessor{
 							scopingInfo.setStatus("Available Online");
 							scopingInfo.setGroupedStatus("Available Online");
 							scopingInfo.setHoldable(false);
-							scopingInfo.setLocallyOwned(curScope.isItemOwnedByScope(profileType, eContentLocation, ""));
+							if (curScope.isLocationScope()) {
+								scopingInfo.setLocallyOwned(curScope.isItemOwnedByScope(profileType, eContentLocation, ""));
+							}else{
+								scopingInfo.setLibraryOwned(curScope.isItemOwnedByScope(profileType, eContentLocation, ""));
+							}
 						}
 					}
 

@@ -46,10 +46,8 @@ class UserAccount {
 				//Load the user from the database
 				$userData = new User();
 				$userData->id = $activeUserId;
-				if (!$userData->find(true)){
-					$userData = false;
-				}else{
-					//TODO: Load additional profile information that is not stored in the database
+				if ($userData->find(true)){
+					$userData = UserAccount::validateAccount($userData->cat_username, $userData->cat_password, $userData->source);
 				}
 			}
 		}
@@ -61,15 +59,9 @@ class UserAccount {
 	 *
 	 * @param User $user
 	 */
-	public static function updateSession($user)
-	{
+	public static function updateSession($user) {
 		$_SESSION['activeUserId'] = $user->id;
 
-		/** @var Memcache $memCache */
-		global $memCache;
-		global $serverName;
-		global $configArray;
-		$memCache->set("user_{$serverName}_{$user->id}", $user, 0, $configArray['Caching']['user']);
 		if (isset($_REQUEST['rememberMe']) && ($_REQUEST['rememberMe'] === "true" || $_REQUEST['rememberMe'] === "on")){
 			$_SESSION['rememberMe'] = true;
 		}else{
@@ -104,6 +96,12 @@ class UserAccount {
 
 			// If we authenticated, store the user in the session:
 			if (!PEAR_Singleton::isError($tempUser)) {
+				/** @var Memcache $memCache */
+				global $memCache;
+				global $serverName;
+				global $configArray;
+				$memCache->set("user_{$serverName}_{$tempUser->id}", $tempUser, 0, $configArray['Caching']['user']);
+
 				$validUsers[] = $tempUser;
 				if ($primaryUser == null){
 					$primaryUser = $tempUser;
@@ -147,6 +145,11 @@ class UserAccount {
 				$authN = AuthenticationFactory::initAuthentication($additionalInfo['authenticationMethod'], $additionalInfo);
 				$validatedUser = $authN->validateAccount($username, $password);
 				if ($validatedUser) {
+					/** @var Memcache $memCache */
+					global $memCache;
+					global $serverName;
+					global $configArray;
+					$memCache->set("user_{$serverName}_{$validatedUser->id}", $validatedUser, 0, $configArray['Caching']['user']);
 					return $validatedUser;
 				}
 			}

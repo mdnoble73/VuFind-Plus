@@ -129,7 +129,7 @@ class MillenniumReadingHistory {
 		curl_setopt($curl_connection, CURLOPT_COOKIEJAR, $cookie);
 		curl_setopt($curl_connection, CURLOPT_COOKIESESSION, true);
 		curl_setopt($curl_connection, CURLOPT_POST, true);
-		$post_data = $this->driver->_getLoginFormValues();
+		$post_data = $this->driver->_getLoginFormValues($patron);
 		$post_items = array();
 		foreach ($post_data as $key => $value) {
 			$post_items[] = $key . '=' . urlencode($value);

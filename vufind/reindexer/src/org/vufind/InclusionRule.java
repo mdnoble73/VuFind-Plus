@@ -40,7 +40,7 @@ public class InclusionRule {
 
 	public boolean isItemIncluded(String recordType, String locationCode, String subLocationCode, boolean isHoldable, boolean isOnOrder, boolean isEContent){
 		//Do the quick checks first
-		if (includeHoldableOnly && !isHoldable){
+		if (!isEContent && (includeHoldableOnly && !isHoldable)){
 			return false;
 		}
 		if (!includeItemsOnOrder && isOnOrder){

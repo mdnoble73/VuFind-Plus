@@ -449,6 +449,6 @@ abstract class RecordInterface {
 				'staff' => 'closed',
 		);
 	}
-}
 
-?>
+	public abstract function getRecordActions($isAvailable, $isHoldable, $isBookable, $relatedUrls = null);
+}

@@ -66,7 +66,13 @@ class MarcRecord extends IndexRecord
 			if (array_key_exists($this->profileType, $indexingProfiles)){
 				$this->indexingProfile = $indexingProfiles[$this->profileType];
 			}else{
-				$this->indexingProfile = $indexingProfiles['ils'];
+				//Try to infer the indexing profile from the module
+				global $activeRecordProfile;
+				if ($activeRecordProfile){
+					$this->indexingProfile = $activeRecordProfile;
+				}else{
+					$this->indexingProfile = $indexingProfiles['ils'];
+				}
 			}
 
 
@@ -1645,14 +1651,12 @@ class MarcRecord extends IndexRecord
 	private $relatedRecords = null;
 	function getRelatedRecords($realTimeStatusNeeded = true){
 		if ($this->relatedRecords == null || isset($_REQUEST['reload'])){
-			global $configArray;
 			global $timer;
 			global $interface;
 			$this->relatedRecords = array();
 			$recordId = $this->getUniqueID();
 
 			$url = $this->getRecordUrl();
-			$holdUrl = $configArray['Site']['path'] . "/{$this->indexingProfile->recordUrlComponent}/{$recordId}/Hold";
 
 			if ($this->detailedRecordInfoFromIndex){
 				$format = $this->detailedRecordInfoFromIndex[1];
@@ -1733,7 +1737,6 @@ class MarcRecord extends IndexRecord
 			$relatedRecord = array(
 					'id' => $recordId,
 					'url' => $url,
-					'holdUrl' => $holdUrl,
 					'format' => $format,
 					'formatCategory' => $formatCategory,
 					'edition' => $edition,
@@ -1779,6 +1782,35 @@ class MarcRecord extends IndexRecord
 			$this->relatedRecords[] = $relatedRecord;
 		}
 		return $this->relatedRecords;
+	}
+
+	public function getRecordActions($isAvailable, $isHoldable, $isBookable, $relatedUrls = null){
+		$actions = array();
+		global $interface;
+		if (isset($interface)){
+			$showHoldButton = $interface->getVariable('displayingSearchResults') ? $interface->getVariable('showHoldButtonInSearchResults'): $interface->getVariable('showHoldButton');
+		}else{
+			$showHoldButton = false;
+		}
+
+		if ($isHoldable && $showHoldButton){
+			$actions[] = array(
+				'title' => 'Place Hold',
+				'url' => '',
+				'onclick' => "return VuFind.Record.showPlaceHold('{$this->id}');",
+				'requireLogin' => false,
+			);
+		}
+		if ($isBookable){
+			$actions[] = array(
+				'title' => 'Book Material',
+				'url' => '',
+				'onclick' => "return VuFind.Record.showBookMaterial('{$this->id}');",
+				'requireLogin' => false,
+			);
+		}
+
+		return $actions;
 	}
 
 	protected function isHoldable(){

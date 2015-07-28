@@ -288,7 +288,7 @@ abstract class BaseEContentDriver  extends MarcRecord {
 		//Add a record per source
 		foreach ($sources as $source){
 			foreach ($parentRecords as $relatedRecord){
-				$relatedRecord['source'] = $source;
+				$relatedRecord['eContentSource'] = $source;
 				if ($relatedRecord['available']){
 					$relatedRecord['availableOnline'] = true;
 				}

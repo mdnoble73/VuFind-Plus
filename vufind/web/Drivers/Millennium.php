@@ -896,16 +896,16 @@ class Millennium extends ScreenScrapingDriver
 	 *
 	 * This is responsible for both placing holds as well as placing recalls.
 	 *
+	 * @param   User    $patron     The User to place a hold for
 	 * @param   string  $recordId   The id of the bib record
-	 * @param   string  $patronId   The id of the patron
 	 * @param   string  $comment    Any comment regarding the hold or recall
 	 * @param   string  $type       Whether to place a hold or recall
 	 * @return  mixed               True if successful, false if unsuccessful
-	 *                              If an error occures, return a PEAR_Error
+	 *                              If an error occurs, return a PEAR_Error
 	 * @access  public
 	 */
-	public function placeHold($recordId, $patronId, $comment, $type){
-		$result = $this->placeItemHold($recordId, null, $patronId, $comment, $type);
+	function placeHold($patron, $recordId, $comment = '', $type = 'request') {
+		$result = $this->placeItemHold($patron, $recordId, null, $comment, $type);
 		return $result;
 	}
 
@@ -914,32 +914,31 @@ class Millennium extends ScreenScrapingDriver
 	 *
 	 * This is responsible for both placing item level holds.
 	 *
+	 * @param   User    $patron     The User to place a hold for
 	 * @param   string  $recordId   The id of the bib record
 	 * @param   string  $itemId     The id of the item to hold
-	 * @param   string  $patronId   The id of the patron
 	 * @param   string  $comment    Any comment regarding the hold or recall
 	 * @param   string  $type       Whether to place a hold or recall
-	 * @param   string  $type       The date when the hold should be cancelled if any
 	 * @return  mixed               True if successful, false if unsuccessful
 	 *                              If an error occurs, return a PEAR_Error
 	 * @access  public
 	 */
-	public function placeItemHold($recordId, $itemId, $patronId, $comment, $type){
+	function placeItemHold($patron, $recordId, $itemId, $comment = '', $type = 'request') {
 		require_once ROOT_DIR . '/Drivers/marmot_inc/MillenniumHolds.php';
 		$millenniumHolds = new MillenniumHolds($this);
-		return $millenniumHolds->placeItemHold($recordId, $itemId, $patronId, $comment, $type);
+		return $millenniumHolds->placeItemHold($patron, $recordId, $itemId, $comment, $type);
 	}
 
-	public function updateHold($requestId, $patronId, $type, $title){
+	public function updateHold($patron, $requestId, $type, $title){
 		require_once ROOT_DIR . '/Drivers/marmot_inc/MillenniumHolds.php';
 		$millenniumHolds = new MillenniumHolds($this);
-		return $millenniumHolds->updateHold($requestId, $patronId, $type, $title);
+		return $millenniumHolds->updateHold($patron, $requestId, $type, $title);
 	}
 
-	public function updateHoldDetailed($patronId, $type, $title, $xNum, $cancelId, $locationId, $freezeValue='off'){
+	public function updateHoldDetailed($patron, $type, $title, $xNum, $cancelId, $locationId, $freezeValue='off'){
 		require_once ROOT_DIR . '/Drivers/marmot_inc/MillenniumHolds.php';
 		$millenniumHolds = new MillenniumHolds($this);
-		return $millenniumHolds->updateHoldDetailed($patronId, $type, $title, $xNum, $cancelId, $locationId, $freezeValue);
+		return $millenniumHolds->updateHoldDetailed($patron, $type, $title, $xNum, $cancelId, $locationId, $freezeValue);
 	}
 
 	public function renewAll(){

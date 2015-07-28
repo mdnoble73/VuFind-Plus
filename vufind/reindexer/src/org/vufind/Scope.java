@@ -15,6 +15,7 @@ public class Scope implements Comparable<Scope>{
 	private String scopeName;
 	private String facetLabel;
 	private HashSet<String> relatedPTypes = new HashSet<>();
+	private HashSet<Long> relatedNumericPTypes = new HashSet<>();
 	private boolean includeOverDriveCollection;
 	private Long libraryId;
 	private boolean isLibraryScope;
@@ -37,7 +38,14 @@ public class Scope implements Comparable<Scope>{
 		for (String relatedPType : relatedPTypes) {
 			relatedPType = relatedPType.trim();
 			if (relatedPType.length() > 0) {
-				this.relatedPTypes.add(relatedPType.trim());
+				this.relatedPTypes.add(relatedPType);
+				try{
+					Long numericPType = Long.parseLong(relatedPType);
+					relatedNumericPTypes.add(numericPType);
+				} catch (Exception e){
+					//No need to do anything here.
+				}
+
 			}
 		}
 	}
@@ -150,5 +158,9 @@ public class Scope implements Comparable<Scope>{
 
 	public void addInclusionRule(InclusionRule inclusionRule) {
 		inclusionRules.add(inclusionRule);
+	}
+
+	public HashSet<Long> getRelatedNumericPTypes() {
+		return relatedNumericPTypes;
 	}
 }

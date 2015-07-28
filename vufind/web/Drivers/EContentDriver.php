@@ -695,7 +695,20 @@ class EContentDriver implements DriverInterface{
 		return $links;
 	}
 
-	public function placeHold($id, $user){
+	/**
+	 * Place Hold
+	 *
+	 * This is responsible for both placing holds as well as placing recalls.
+	 *
+	 * @param   User    $patron     The User to place a hold for
+	 * @param   string  $id         The id of the bib record
+	 * @param   string  $comment    Any comment regarding the hold or recall
+	 * @param   string  $type       Whether to place a hold or recall
+	 * @return  mixed               True if successful, false if unsuccessful
+	 *                              If an error occurs, return a PEAR_Error
+	 * @access  public
+	 */
+	function placeHold($patron, $id, $comment = '', $type = 'request') {
 		$id = str_ireplace("econtentrecord", "", $id);
 		$return = array();
 		$eContentRecord = new EContentRecord();
@@ -710,13 +723,13 @@ class EContentDriver implements DriverInterface{
 			if (strcasecmp($eContentRecord->source, 'OverDrive') == 0){
 				require_once ROOT_DIR . '/Drivers/OverDriveDriverFactory.php';
 				$overDriveDriver = OverDriveDriverFactory::getDriver();
-				$overDriveResult = $overDriveDriver->placeOverDriveHold($eContentRecord->externalId, '', $user);
+				$overDriveResult = $overDriveDriver->placeOverDriveHold($eContentRecord->externalId, '', $patron);
 				$return['result'] = $overDriveResult['result'];
 				$return['message'] = $overDriveResult['message'];
 			}else{
 				//Check to see if the user already has a hold placed
 				$holds = new EContentHold();
-				$holds->userId = $user->id;
+				$holds->userId = $patron->id;
 				$holds->recordId = $id;
 				$holds->whereAdd("(status = 'active' or status = 'suspended' or status ='available')");
 				$holds->find();
@@ -726,7 +739,7 @@ class EContentDriver implements DriverInterface{
 				}else{
 					//Check to see if the user already has the record checked out
 					$checkouts = new EContentCheckout();
-					$checkouts->userId = $user->id;
+					$checkouts->userId = $patron->id;
 					$checkouts->status = 'out';
 					$checkouts->recordId = $id;
 					$checkouts->find();
