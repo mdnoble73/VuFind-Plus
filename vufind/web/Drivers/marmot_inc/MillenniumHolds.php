@@ -712,112 +712,103 @@ class MillenniumHolds{
 			}
 
 		}else{
-			//Cancel a hold
-			if ($type == 'cancel' || $type == 'recall' || $type == 'update') {
-				$result = $this->updateHold($patron, $recordId, $type, $title);
-				$result['title'] = $title;
-				$result['bid'] = $bib1;
-				return $result;
+			if (isset($_REQUEST['canceldate']) && !is_null($_REQUEST['canceldate']) && $_REQUEST['canceldate'] != ''){
+				$date = $_REQUEST['canceldate'];
+			}else{
+				//Default to a date 6 months (half a year) in the future.
+				$sixMonthsFromNow = time() + 182.5 * 24 * 60 * 60;
+				$date = date('m/d/Y', $sixMonthsFromNow);
+			}
 
-			} else {
-				if (isset($_REQUEST['canceldate']) && !is_null($_REQUEST['canceldate']) && $_REQUEST['canceldate'] != ''){
-					$date = $_REQUEST['canceldate'];
-				}else{
-					//Default to a date 6 months (half a year) in the future.
-					$sixMonthsFromNow = time() + 182.5 * 24 * 60 * 60;
-					$date = date('m/d/Y', $sixMonthsFromNow);
-				}
+			list($Month, $Day, $Year)=explode("/", $date);
 
-				list($Month, $Day, $Year)=explode("/", $date);
+			$curl_connection = $this->_curl_connect();
 
-				$curl_connection = $this->_curl_connect();
+			curl_setopt($curl_connection, CURLOPT_POST, true);
 
-				curl_setopt($curl_connection, CURLOPT_POST, true);
-
-				$lt = null;
-				if (isset($configArray['Catalog']['loginPriorToPlacingHolds']) && $configArray['Catalog']['loginPriorToPlacingHolds'] = true){
-					//User must be logged in as a separate step to placing holds
-					$curl_url = $this->driver->getVendorOpacUrl() . "/patroninfo";
-					$post_data = $this->driver->_getLoginFormValues($patron);
-					$post_data['submit.x']="35";
-					$post_data['submit.y']="21";
-					$post_data['submit']="submit";
-					$post_string = http_build_query($post_data);
-					curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
-					curl_setopt($curl_connection, CURLOPT_REFERER,$curl_url);
-					curl_setopt($curl_connection, CURLOPT_URL, $curl_url);
-					$loginResult = curl_exec($curl_connection);
-					$curlInfo = curl_getinfo($curl_connection);
-					//When a library uses Encore, the initial login does a redirect and requires additional parameters.
-					if (preg_match('/<input type="hidden" name="lt" value="(.*?)" \/>/si', $loginResult, $loginMatches)) {
-						//Get the lt value
-						$lt = $loginMatches[1];
-						//Login again
-						$post_data['lt'] = $lt;
-						$post_data['_eventId'] = 'submit';
-						$post_string = http_build_query($post_data);
-						curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
-						$loginResult = curl_exec($curl_connection);
-						$curlInfo = curl_getinfo($curl_connection);
-					}
-					$post_data = array();
-				}else{
-					$post_data = $this->driver->_getLoginFormValues($patron);
-				}
-				$curl_url = $this->driver->getVendorOpacUrl() . "/search/.$bib/.$bib/1,1,1,B/request~$bib";
-				//echo "$curl_url";
-				curl_setopt($curl_connection, CURLOPT_URL, $curl_url);
-
-				/** @var Library $librarySingleton */
-        global $librarySingleton;
-        $patronHomeBranch = $librarySingleton->getPatronHomeLibrary();
-        if ($patronHomeBranch->defaultNotNeededAfterDays != -1){
-					$post_data['needby_Month']= $Month;
-					$post_data['needby_Day']= $Day;
-					$post_data['needby_Year']=$Year;
-				}
-
+			$lt = null;
+			if (isset($configArray['Catalog']['loginPriorToPlacingHolds']) && $configArray['Catalog']['loginPriorToPlacingHolds'] = true){
+				//User must be logged in as a separate step to placing holds
+				$curl_url = $this->driver->getVendorOpacUrl() . "/patroninfo";
+				$post_data = $this->driver->_getLoginFormValues($patron);
 				$post_data['submit.x']="35";
 				$post_data['submit.y']="21";
 				$post_data['submit']="submit";
-				$post_data['locx00']= str_pad($pickupBranch, 5-strlen($pickupBranch), '+');
-				if (!is_null($itemId) && $itemId != -1){
-					$post_data['radio']=$itemId;
-				}
-				$post_data['x']="48";
-				$post_data['y']="15";
-				if ($lt != null){
-					$post_data['lt'] = $lt;
-					$post_data['_eventId'] = 'submit';
-				}
-
 				$post_string = http_build_query($post_data);
 				curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
-				$sResult = curl_exec($curl_connection);
-
-				global $logger;
-				$logger->log("Placing hold $curl_url?$post_string", PEAR_LOG_INFO);
-
-				$sResult = preg_replace("/<!--([^(-->)]*)-->/","",$sResult);
-
-				curl_close($curl_connection);
-
-				//Parse the response to get the status message
-				$hold_result = $this->_getHoldResult($sResult);
-				$hold_result['title']  = $title;
-				$hold_result['bid'] = $bib1;
-				global $analytics;
-				if ($analytics){
-					if ($hold_result['result'] == true){
-						$analytics->addEvent('ILS Integration', 'Successful Hold', $title);
-					}else{
-						$analytics->addEvent('ILS Integration', 'Failed Hold', $hold_result['message'] . ' - ' . $title);
-					}
+				curl_setopt($curl_connection, CURLOPT_REFERER,$curl_url);
+				curl_setopt($curl_connection, CURLOPT_URL, $curl_url);
+				$loginResult = curl_exec($curl_connection);
+				$curlInfo = curl_getinfo($curl_connection);
+				//When a library uses Encore, the initial login does a redirect and requires additional parameters.
+				if (preg_match('/<input type="hidden" name="lt" value="(.*?)" \/>/si', $loginResult, $loginMatches)) {
+					//Get the lt value
+					$lt = $loginMatches[1];
+					//Login again
+					$post_data['lt'] = $lt;
+					$post_data['_eventId'] = 'submit';
+					$post_string = http_build_query($post_data);
+					curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
+					$loginResult = curl_exec($curl_connection);
+					$curlInfo = curl_getinfo($curl_connection);
 				}
-				//Clear the patron profile
-				$this->driver->clearPatronProfile();
-				return $hold_result;
+				$post_data = array();
+			}else{
+				$post_data = $this->driver->_getLoginFormValues($patron);
 			}
+			$curl_url = $this->driver->getVendorOpacUrl() . "/search/.$bib/.$bib/1,1,1,B/request~$bib";
+			//echo "$curl_url";
+			curl_setopt($curl_connection, CURLOPT_URL, $curl_url);
+
+			/** @var Library $librarySingleton */
+      global $librarySingleton;
+      $patronHomeBranch = $librarySingleton->getPatronHomeLibrary();
+      if ($patronHomeBranch->defaultNotNeededAfterDays != -1){
+				$post_data['needby_Month']= $Month;
+				$post_data['needby_Day']= $Day;
+				$post_data['needby_Year']=$Year;
+			}
+
+			$post_data['submit.x']="35";
+			$post_data['submit.y']="21";
+			$post_data['submit']="submit";
+			$post_data['locx00']= str_pad($pickupBranch, 5-strlen($pickupBranch), '+');
+			if (!is_null($itemId) && $itemId != -1){
+				$post_data['radio']=$itemId;
+			}
+			$post_data['x']="48";
+			$post_data['y']="15";
+			if ($lt != null){
+				$post_data['lt'] = $lt;
+				$post_data['_eventId'] = 'submit';
+			}
+
+			$post_string = http_build_query($post_data);
+			curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
+			$sResult = curl_exec($curl_connection);
+
+			global $logger;
+			$logger->log("Placing hold $curl_url?$post_string", PEAR_LOG_INFO);
+
+			$sResult = preg_replace("/<!--([^(-->)]*)-->/","",$sResult);
+
+			curl_close($curl_connection);
+
+			//Parse the response to get the status message
+			$hold_result = $this->_getHoldResult($sResult);
+			$hold_result['title']  = $title;
+			$hold_result['bid'] = $bib1;
+			global $analytics;
+			if ($analytics){
+				if ($hold_result['result'] == true){
+					$analytics->addEvent('ILS Integration', 'Successful Hold', $title);
+				}else{
+					$analytics->addEvent('ILS Integration', 'Failed Hold', $hold_result['message'] . ' - ' . $title);
+				}
+			}
+			//Clear the patron profile
+			$this->driver->clearPatronProfile();
+			return $hold_result;
 		}
 	}
 

@@ -386,17 +386,8 @@ class Record_AJAX extends Action {
 
 			//Check to see if the user has linked users that we can place holds for as well
 			//If there are linked users, we will add pickup locations for them as well
-			$linkedUsers = $user->getLinkedUsers();
+			$locations = $user->getValidPickupBranches($recordSource);
 
-			global $locationSingleton;
-			//Get the list of pickup branch locations for display in the user interface.
-			// using $user to be consistent with other code use of getPickupBranches()
-			$locations = $locationSingleton->getPickupBranches($user, $user->homeLocationId);
-			foreach ($linkedUsers as $linkedUser){
-				$linkedUserLocation = new Location();
-				$locations = array_merge($locations, $linkedUserLocation->getPickupBranches($linkedUser, null, true));
-			}
-			ksort($locations);
 			$interface->assign('pickupLocations', $locations);
 
 			global $library;

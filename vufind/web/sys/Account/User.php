@@ -642,6 +642,34 @@ class User extends DB_DataObject
 	}
 
 	/**
+	 * Get a list of locations where a record can be picked up.  Handles liked accounts
+	 * and filtering to make sure that the user is able to
+	 *
+	 * @param $recordSource string   The source of the record that we are placing a hold on
+	 *
+	 * @return Location[]
+	 */
+	public function getValidPickupBranches($recordSource){
+		//Get the list of pickup branch locations for display in the user interface.
+		// using $user to be consistent with other code use of getPickupBranches()
+		$userLocation = new Location();
+		if ($recordSource == $this->source){
+			$locations = $userLocation->getPickupBranches($this, $this->homeLocationId);
+		}else{
+			$locations = array();
+		}
+		$linkedUsers = $this->getLinkedUsers();
+		foreach ($linkedUsers as $linkedUser){
+			if ($recordSource == $linkedUser->source){
+				$linkedUserLocation = new Location();
+				$locations = array_merge($locations, $linkedUserLocation->getPickupBranches($linkedUser, null, true));
+			}
+		}
+		ksort($locations);
+		return $locations;
+	}
+
+	/**
 	 * Place Hold
 	 *
 	 * Place a hold for the current user within their ILS
