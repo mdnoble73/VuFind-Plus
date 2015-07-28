@@ -128,12 +128,12 @@ class MyAccount_HoldMultiple extends Action
 						if (strpos($recordId, 'econtentRecord', 0) === 0){
 							if ($eContentDriver == null){
 								require_once(ROOT_DIR . '/Drivers/EContentDriver.php');
-								$eContentDriver = new EContentDriver();
+								$eContentDriver = new EContentDriver(null);
 							}
 
-							$return = $eContentDriver->placeHold($recordId, $user);
+							$return = $eContentDriver->placeHold($user, $recordId);
 						} else {
-							$return = $this->catalog->placeHold($recordId, $user->password, '', $_REQUEST['holdType']);
+							$return = $this->catalog->placeHold($user, $recordId, '', $_REQUEST['holdType']);
 						}
 						$hold_message_data['titles'][] = $return;
 						if (!$return['result']){

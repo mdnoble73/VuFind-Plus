@@ -351,8 +351,17 @@ VuFind.Record = (function(){
 
 		showPlaceHold: function(id){
 			if (Globals.loggedIn){
+				var source;
+				if (id.indexOf(":") > 0){
+					var idParts = id.split(":", 2);
+					source = idParts[0];
+					id = idParts[1];
+				}else{
+					source = 'ils';
+				}
+				var url = Globals.path + "/Record/" + id + "/AJAX?method=getPlaceHoldForm&recordSource=" + source;
 				//VuFind.showMessage('Loading...', 'Loading, please wait.');
-				$.getJSON(Globals.path + "/Record/" + id + "/AJAX?method=getPlaceHoldForm", function(data){
+				$.getJSON(url, function(data){
 					VuFind.showMessageWithButtons(data.title, data.modalBody, data.modalButtons);
 				}).fail(function(){
 					VuFind.showMessage('Request Failed', 'There was an error with this AJAX Request.');
@@ -398,6 +407,8 @@ VuFind.Record = (function(){
 						'method': 'placeHold'
 						,campus: $('#campus').val()
 						,cancelHoldDate: $('#cancelHoldDate').text()
+						,recordSource: $('#recordSource').val()
+						,account: $('#account').val()
 					};
 			if (autoLogOut){
 				params['autologout'] = true;

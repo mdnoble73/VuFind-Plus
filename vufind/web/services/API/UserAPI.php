@@ -1183,7 +1183,7 @@ class UserAPI extends Action {
 		global $user;
 		$user = UserAccount::validateAccount($username, $password);
 		if ($user && !PEAR_Singleton::isError($user)){
-			$holdMessage = $this->getCatalogConnection()->placeHold($bibId, $user->cat_username, '', 'request');
+			$holdMessage = $this->getCatalogConnection()->placeHold($user, $bibId, '', 'request');
 			return array('success'=> $holdMessage['result'], 'holdMessage'=>$holdMessage['message']);
 		}else{
 			return array('success'=>false, 'message'=>'Login unsuccessful');
@@ -1241,8 +1241,8 @@ class UserAPI extends Action {
 		$user = UserAccount::validateAccount($username, $password);
 		if ($user && !PEAR_Singleton::isError($user)){
 			require_once(ROOT_DIR . '/Drivers/EContentDriver.php');
-			$driver = new EContentDriver();
-			$holdMessage = $driver->placeHold($recordId, $user);
+			$driver = new EContentDriver(null);
+			$holdMessage = $driver->placeHold($user, $recordId, "", 'request');
 			return array('success'=> $holdMessage['result'], 'holdMessage'=>$holdMessage['message']);
 		}else{
 			return array('success'=>false, 'message'=>'Login unsuccessful');

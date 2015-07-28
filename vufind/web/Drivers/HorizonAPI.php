@@ -307,31 +307,44 @@ abstract class HorizonAPI extends Horizon{
 	 *
 	 * This is responsible for both placing holds as well as placing recalls.
 	 *
+	 * @param   User    $patron     The User to place a hold for
 	 * @param   string  $recordId   The id of the bib record
-	 * @param   string  $patronId   The id of the patron
 	 * @param   string  $comment    Any comment regarding the hold or recall
 	 * @param   string  $type       Whether to place a hold or recall
 	 * @return  mixed               True if successful, false if unsuccessful
-	 *                              If an error occures, return a PEAR_Error
+	 *                              If an error occurs, return a PEAR_Error
 	 * @access  public
 	 */
-	public function placeHold($recordId, $patronId, $comment, $type){
-		$result = $this->placeItemHold($recordId, null, $patronId, $comment, $type);
+	function placeHold($patron, $recordId, $comment = '', $type = 'request') {
+		$result = $this->placeItemHold($patron, $recordId, null, $comment, $type);
 		return $result;
 	}
 
-	public function placeItemHold($recordId, $itemId, $patronId, $comment, $type){
+	/**
+	 * Place Item Hold
+	 *
+	 * This is responsible for both placing item level holds.
+	 *
+	 * @param   User    $patron     The User to place a hold for
+	 * @param   string  $recordId   The id of the bib record
+	 * @param   string  $itemId     The id of the item to hold
+	 * @param   string  $comment    Any comment regarding the hold or recall
+	 * @param   string  $type       Whether to place a hold or recall
+	 * @return  mixed               True if successful, false if unsuccessful
+	 *                              If an error occurs, return a PEAR_Error
+	 * @access  public
+	 */
+	function placeItemHold($patron, $recordId, $itemId, $comment = '', $type = 'request') {
 		global $configArray;
 
-		global $user;
-		$userId = $user->id;
+		$userId = $patron->id;
 
 		//Get the session token for the user
 		if (isset(HorizonAPI::$sessionIdsForUsers[$userId])){
 			$sessionToken = HorizonAPI::$sessionIdsForUsers[$userId];
 		}else{
 			//Log the user in
-			list($userValid, $sessionToken) = $this->loginViaWebService($user->cat_username, $user->cat_password);
+			list($userValid, $sessionToken) = $this->loginViaWebService($patron->cat_username, $patron->cat_password);
 			if (!$userValid){
 				return array(
 					'result' => false,
@@ -353,8 +366,8 @@ abstract class HorizonAPI extends Horizon{
 			require_once ROOT_DIR . '/sys/OfflineHold.php';
 			$offlineHold = new OfflineHold();
 			$offlineHold->bibId = $recordId;
-			$offlineHold->patronBarcode = $patronId;
-			$offlineHold->patronId = $user->id;
+			$offlineHold->patronBarcode = $patron->getBarcode();
+			$offlineHold->patronId = $patron->id;
 			$offlineHold->timeEntered = time();
 			$offlineHold->status = 'Not Processed';
 			if ($offlineHold->insert()){
@@ -373,7 +386,7 @@ abstract class HorizonAPI extends Horizon{
 
 		}else{
 			if ($type == 'cancel' || $type == 'recall' || $type == 'update') {
-				$result = $this->updateHold($recordId, $patronId, $type, $title);
+				$result = $this->updateHold($patron, $recordId, $type, $title);
 				$result['title'] = $title;
 				$result['bid'] = $recordId;
 				return $result;

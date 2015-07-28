@@ -20,7 +20,8 @@ class MySQLSession extends SessionInterface {
 			}
 			if ($curTime > $sessionExpirationTime){
 				$s->delete();
-				session_start();
+				//Start a new session.  Ignore previous errors if the last expired
+				@session_start();
 				session_regenerate_id(true);
 				$sess_id = session_id();
 				$_SESSION = array();

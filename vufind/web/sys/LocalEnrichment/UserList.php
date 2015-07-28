@@ -226,13 +226,6 @@ class UserList extends DB_DataObject
 				'storeDb' => false,
 				'storeSolr' => true,
 			),
-			'usable_by' => array(
-				'property'=>'usable_by',
-				'type'=>'method',
-				'methodName'=>'usable_by',
-				'storeDb' => false,
-				'storeSolr' => true,
-			)
 		);
 
 		//Add local formats
@@ -429,10 +422,6 @@ class UserList extends DB_DataObject
 			$this->removeListEntry($listEntry);
 		}
 	}
-	function usable_by(){
-		return 'all';
-	}
-
 	public function getBrowseRecords($start, $numTitles) {
 		global $interface;
 		$browseRecords = array();

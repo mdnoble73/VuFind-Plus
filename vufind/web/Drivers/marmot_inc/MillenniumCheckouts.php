@@ -216,7 +216,7 @@ class MillenniumCheckouts {
 		);
 	}
 
-	public function renewAll(){
+	public function renewAll($patron){
 		global $logger;
 		global $configArray;
 
@@ -241,7 +241,7 @@ class MillenniumCheckouts {
 		curl_setopt($curl_connection, CURLOPT_COOKIEJAR, $cookieJar );
 		curl_setopt($curl_connection, CURLOPT_COOKIESESSION, false);
 		curl_setopt($curl_connection, CURLOPT_POST, true);
-		$post_data = $this->driver->_getLoginFormValues();
+		$post_data = $this->driver->_getLoginFormValues($patron);
 		$post_string = http_build_query($post_data);
 		curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
 		$loginResult = curl_exec($curl_connection);
@@ -366,7 +366,7 @@ class MillenniumCheckouts {
 		return $renew_result;
 	}
 
-	public function renewItem($itemId, $itemIndex){
+	public function renewItem($patron, $itemId, $itemIndex){
 		global $logger;
 		global $configArray;
 		global $analytics;
@@ -397,7 +397,7 @@ class MillenniumCheckouts {
 		curl_setopt($curl_connection, CURLOPT_COOKIEJAR, $cookieJar );
 		curl_setopt($curl_connection, CURLOPT_COOKIESESSION, false);
 		curl_setopt($curl_connection, CURLOPT_POST, true);
-		$post_data = $this->driver->_getLoginFormValues();
+		$post_data = $this->driver->_getLoginFormValues($patron);
 		$post_string = http_build_query($post_data);
 		curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
 		$loginResult = curl_exec($curl_connection);

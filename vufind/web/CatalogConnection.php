@@ -582,17 +582,16 @@ class CatalogConnection
 	 *
 	 * This is responsible for both placing holds as well as placing recalls.
 	 *
+	 * @param   User    $patron     The User to place a hold for
 	 * @param   string  $recordId   The id of the bib record
-	 * @param   string  $patronId   The id of the patron
 	 * @param   string  $comment    Any comment regarding the hold or recall
 	 * @param   string  $type       Whether to place a hold or recall
 	 * @return  mixed               True if successful, false if unsuccessful
 	 *                              If an error occurs, return a PEAR_Error
 	 * @access  public
 	 */
-	function placeHold($recordId, $patronId, $comment, $type)
-	{
-		return $this->driver->placeHold($recordId, $patronId, $comment, $type);
+	function placeHold($patron, $recordId, $comment = '', $type = 'request') {
+		return $this->driver->placeHold($patron, $recordId, $comment, $type);
 	}
 
 	/**
@@ -600,18 +599,17 @@ class CatalogConnection
 	 *
 	 * This is responsible for both placing item level holds.
 	 *
+	 * @param   User    $patron     The User to place a hold for
 	 * @param   string  $recordId   The id of the bib record
 	 * @param   string  $itemId     The id of the item to hold
-	 * @param   string  $patronId   The id of the patron
 	 * @param   string  $comment    Any comment regarding the hold or recall
 	 * @param   string  $type       Whether to place a hold or recall
 	 * @return  mixed               True if successful, false if unsuccessful
 	 *                              If an error occurs, return a PEAR_Error
 	 * @access  public
 	 */
-	function placeItemHold($recordId, $itemId, $patronId, $comment, $type)
-	{
-		return $this->driver->placeItemHold($recordId, $itemId, $patronId, $comment, $type);
+	function placeItemHold($patron, $recordId, $itemId, $comment = '', $type = 'request') {
+		return $this->driver->placeItemHold($patron, $recordId, $itemId, $comment, $type);
 	}
 
 	/**

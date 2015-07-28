@@ -64,7 +64,13 @@ class MarcLoader{
 		if (array_key_exists($recordType, $indexingProfiles)){
 			$indexingProfile = $indexingProfiles[$recordType];
 		}else{
-			$indexingProfile = $indexingProfiles['ils'];
+			//Try to infer the indexing profile from the module
+			global $activeRecordProfile;
+			if ($activeRecordProfile){
+				$indexingProfile = $activeRecordProfile;
+			}else{
+				$indexingProfile = $indexingProfiles['ils'];
+			}
 		}
 		$individualName = $indexingProfile->individualMarcPath . "/{$firstChars}/{$shortId}.mrc";
 		$marcRecord = false;
@@ -96,7 +102,14 @@ class MarcLoader{
 			$recordType = $recordInfo[0];
 			$ilsId = $recordInfo[1];
 		}else{
-			$recordType = 'ils';
+			//Try to infer the indexing profile from the module
+			/** @var IndexingProfile $activeRecordProfile */
+			global $activeRecordProfile;
+			if ($activeRecordProfile){
+				$recordType = $activeRecordProfile->name;
+			}else{
+				$recordType = 'ils';
+			}
 			$ilsId = $id;
 		}
 
