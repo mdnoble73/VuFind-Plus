@@ -396,6 +396,7 @@ class Record_AJAX extends Action {
 				$linkedUserLocation = new Location();
 				$locations = array_merge($locations, $linkedUserLocation->getPickupBranches($linkedUser, null, true));
 			}
+			ksort($locations);
 			$interface->assign('pickupLocations', $locations);
 
 			global $library;
@@ -565,11 +566,10 @@ class Record_AJAX extends Action {
 					'title' => 'Select valid user',
 				);
 			}else{
-				$catalog = CatalogFactory::getCatalogConnectionInstance();
 				if (isset($_REQUEST['selectedItem'])){
-					$return = $catalog->placeItemHold($patron, $recordId, $_REQUEST['selectedItem'], '', '');
+					$return = $patron->placeItemHold($recordId, $recordId, $_REQUEST['selectedItem'], $campus);
 				}else{
-					$return = $catalog->placeHold($patron, $recordId, '', '');
+					$return = $patron->placeHold($recordId, $recordId, $campus);
 				}
 
 				if (isset($return['items'])){

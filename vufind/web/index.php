@@ -794,9 +794,9 @@ function loadModuleActionId(){
 		/** @var IndexingProfile[] */
 		/** @var IndexingProfile $profile */
 		global $indexingProfiles;
-		foreach ($indexingProfiles as $profile){
-			if ($profile->recordUrlComponent == $_REQUEST['module']){
-				$_GET['id'] = $profile->name .':' . $_GET['id'];
+		foreach ($indexingProfiles as $profile) {
+			if ($profile->recordUrlComponent == $_REQUEST['module']) {
+				$_GET['id'] = $profile->name . ':' . $_GET['id'];
 				$_GET['module'] = 'Record';
 				$_REQUEST['module'] = 'Record';
 				$activeRecordProfile = $profile;
@@ -804,7 +804,6 @@ function loadModuleActionId(){
 			}
 		}
 	}
-
 }
 
 function initializeSession(){

@@ -896,16 +896,15 @@ class Millennium extends ScreenScrapingDriver
 	 *
 	 * This is responsible for both placing holds as well as placing recalls.
 	 *
-	 * @param   User    $patron     The User to place a hold for
-	 * @param   string  $recordId   The id of the bib record
-	 * @param   string  $comment    Any comment regarding the hold or recall
-	 * @param   string  $type       Whether to place a hold or recall
-	 * @return  mixed               True if successful, false if unsuccessful
-	 *                              If an error occurs, return a PEAR_Error
+	 * @param   User    $patron       The User to place a hold for
+	 * @param   string  $recordId     The id of the bib record
+	 * @param   string  $pickupBranch The branch where the user wants to pickup the item when available
+	 * @return  mixed                 True if successful, false if unsuccessful
+	 *                                If an error occurs, return a PEAR_Error
 	 * @access  public
 	 */
-	function placeHold($patron, $recordId, $comment = '', $type = 'request') {
-		$result = $this->placeItemHold($patron, $recordId, null, $comment, $type);
+	function placeHold($patron, $recordId, $pickupBranch) {
+		$result = $this->placeItemHold($patron, $recordId, '', $pickupBranch);
 		return $result;
 	}
 
@@ -917,16 +916,15 @@ class Millennium extends ScreenScrapingDriver
 	 * @param   User    $patron     The User to place a hold for
 	 * @param   string  $recordId   The id of the bib record
 	 * @param   string  $itemId     The id of the item to hold
-	 * @param   string  $comment    Any comment regarding the hold or recall
-	 * @param   string  $type       Whether to place a hold or recall
+	 * @param   string  $pickupBranch The branch where the user wants to pickup the item when available
 	 * @return  mixed               True if successful, false if unsuccessful
 	 *                              If an error occurs, return a PEAR_Error
 	 * @access  public
 	 */
-	function placeItemHold($patron, $recordId, $itemId, $comment = '', $type = 'request') {
+	function placeItemHold($patron, $recordId, $itemId, $pickupBranch) {
 		require_once ROOT_DIR . '/Drivers/marmot_inc/MillenniumHolds.php';
 		$millenniumHolds = new MillenniumHolds($this);
-		return $millenniumHolds->placeItemHold($patron, $recordId, $itemId, $comment, $type);
+		return $millenniumHolds->placeItemHold($patron, $recordId, $itemId, $pickupBranch);
 	}
 
 	public function updateHold($patron, $requestId, $type, $title){
@@ -1363,20 +1361,16 @@ public function getBookingCalendar($recordId) {
 		return $holdable;
 	}
 
-	public function isItemBookableToPatron(){
-		// TODO: implement checking an Item's status for being booked through the Bookings Module.
-		return true; // todo: for development only
-
+	public function isItemBookableToPatron($locationCode, $iType, $pType){
 		/** @var Memcache $memCache*/
 		global $memCache;
 		global $configArray;
 		global $timer;
 		$memcacheKey = "loan_rule_material_booking_result_{$locationCode}_{$iType}_{$pType}";
 		$cachedValue = $memCache->get($memcacheKey);
-//		if ($cachedValue !== false && !isset($_REQUEST['reload'])){
-//			return $cachedValue == 'true';
-//		}else
-		{
+		if ($cachedValue !== false && !isset($_REQUEST['reload'])){
+			return $cachedValue == 'true';
+		}else {
 			$timer->logTime("Start checking if item is bookable $locationCode, $iType, $pType");
 			$this->loadLoanRules();
 			if (count($this->loanRuleDeterminers) == 0){

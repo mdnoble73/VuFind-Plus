@@ -84,8 +84,13 @@ class Record_Hold extends Action {
 
 			if ($user){
 				//The user is already logged in
-				$barcodeProperty = $configArray['Catalog']['barcodeProperty'];
-				$return = $this->catalog->placeHold($user, $recordId, '', $type);
+				if (isset($_REQUEST['campus'])){
+					$pickupBranch=trim($_REQUEST['campus']);
+				}else{
+					global $user;
+					$pickupBranch = $user->homeLocationId;
+				}
+				$return = $this->catalog->placeHold($user, $recordId, $pickupBranch);
 				$interface->assign('result', $return['result']);
 				$message = $return['message'];
 				$interface->assign('message', $message);

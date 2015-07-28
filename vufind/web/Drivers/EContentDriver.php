@@ -698,15 +698,14 @@ class EContentDriver implements DriverInterface{
 	 *
 	 * This is responsible for both placing holds as well as placing recalls.
 	 *
-	 * @param   User    $patron     The User to place a hold for
-	 * @param   string  $id         The id of the bib record
-	 * @param   string  $comment    Any comment regarding the hold or recall
-	 * @param   string  $type       Whether to place a hold or recall
-	 * @return  mixed               True if successful, false if unsuccessful
-	 *                              If an error occurs, return a PEAR_Error
+	 * @param   User    $patron       The User to place a hold for
+	 * @param   string  $recordId     The id of the bib record
+	 * @param   string  $pickupBranch The branch where the user wants to pickup the item when available
+	 * @return  mixed                 True if successful, false if unsuccessful
+	 *                                If an error occurs, return a PEAR_Error
 	 * @access  public
 	 */
-	function placeHold($patron, $id, $comment = '', $type = 'request') {
+	public function placeHold($patron, $recordId, $pickupBranch) {
 		$id = str_ireplace("econtentrecord", "", $id);
 		$return = array();
 		$eContentRecord = new EContentRecord();
@@ -775,6 +774,24 @@ class EContentDriver implements DriverInterface{
 		}
 		return $return;
 	}
+
+	/**
+	 * Place Item Hold
+	 *
+	 * This is responsible for both placing item level holds.
+	 *
+	 * @param   User    $patron     The User to place a hold for
+	 * @param   string  $recordId   The id of the bib record
+	 * @param   string  $itemId     The id of the item to hold
+	 * @param   string  $pickupBranch The branch where the user wants to pickup the item when available
+	 * @return  mixed               True if successful, false if unsuccessful
+	 *                              If an error occurs, return a PEAR_Error
+	 * @access  public
+	 */
+	function placeItemHold($patron, $recordId, $itemId, $pickupBranch){
+		return array('result' => false, 'message' => 'Unable to place Item level holds on eContent at this time');
+	}
+
 
 	public function cancelHold($id){
 		global $user;

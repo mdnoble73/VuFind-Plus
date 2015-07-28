@@ -41,12 +41,13 @@ class RestrictedEContent_AJAX extends Action {
 	}
 
 	function placeHold(){
+		global $user;
 		$recordId = $_REQUEST['id'];
 		$itemId = $_REQUEST['itemId'];
 
 		require_once ROOT_DIR . '/RecordDrivers/RestrictedEContentDriver.php';
 		$recordDriver = new RestrictedEContentDriver($recordId);
-		$result = $recordDriver->placeHold($itemId);
+		$result = $recordDriver->placeHold($user, $itemId, null);
 		return json_encode($result);
 	}
 

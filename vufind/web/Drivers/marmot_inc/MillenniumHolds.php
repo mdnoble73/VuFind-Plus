@@ -655,13 +655,12 @@ class MillenniumHolds{
 	 * @param   User    $patron     The User to place a hold for
 	 * @param   string  $recordId   The id of the bib record
 	 * @param   string  $itemId     The id of the item to hold
-	 * @param   string  $comment    Any comment regarding the hold or recall
-	 * @param   string  $type       Whether to place a hold or recall
+	 * @param   string  $pickupBranch The branch where the user wants to pickup the item when available
 	 * @return  mixed               True if successful, false if unsuccessful
 	 *                              If an error occurs, return a PEAR_Error
 	 * @access  public
 	 */
-	function placeItemHold($patron, $recordId, $itemId, $comment = '', $type = 'request') {
+	function placeItemHold($patron, $recordId, $itemId, $pickupBranch) {
 		global $configArray;
 
 		$bib1= $recordId;
@@ -729,21 +728,6 @@ class MillenniumHolds{
 					$date = date('m/d/Y', $sixMonthsFromNow);
 				}
 
-				if (isset($_REQUEST['campus'])){
-					$campus=trim($_REQUEST['campus']);
-				}else{
-					global $user;
-					$campus = $user->homeLocationId;
-				}
-
-				if (is_numeric($campus)){
-					$location = new Location();
-					$location->locationId = $campus;
-					if ($location->find(true)){
-						$campus = $location->code;
-					}
-				}
-
 				list($Month, $Day, $Year)=explode("/", $date);
 
 				$curl_connection = $this->_curl_connect();
@@ -796,7 +780,7 @@ class MillenniumHolds{
 				$post_data['submit.x']="35";
 				$post_data['submit.y']="21";
 				$post_data['submit']="submit";
-				$post_data['locx00']= str_pad($campus, 5-strlen($campus), '+');
+				$post_data['locx00']= str_pad($pickupBranch, 5-strlen($pickupBranch), '+');
 				if (!is_null($itemId) && $itemId != -1){
 					$post_data['radio']=$itemId;
 				}

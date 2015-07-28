@@ -397,4 +397,70 @@ class LibrarySolution extends ScreenScrapingDriver {
 			'numUnavailableHolds' => count($holds['unavailable']),
 		);
 	}
+
+	/**
+	 * Place Hold
+	 *
+	 * This is responsible for both placing holds as well as placing recalls.
+	 *
+	 * @param   User    $patron       The User to place a hold for
+	 * @param   string  $recordId     The id of the bib record
+	 * @param   string  $pickupBranch The branch where the user wants to pickup the item when available
+	 * @return  mixed                 True if successful, false if unsuccessful
+	 *                                If an error occurs, return a PEAR_Error
+	 * @access  public
+	 */
+	function placeHold($patron, $recordId, $pickupBranch) {
+		if ($this->loginPatronToLSS($patron->cat_username, $patron->cat_password)) {
+			$url = $this->getVendorOpacUrl() . '/requests/true?_=' . time() * 1000;
+			//LSS allows multiple holds to be places at once, but we will only do one at a time for now.
+			$postParams[] = array(
+				'bibliographicId' => $recordId,
+				'downloadable' => false,
+				'interfaceType' => 'PAC',
+				'pickupBranchId' => $pickupBranch,
+				'titleLevelHold' => 'true'
+			);
+			$placeHoldResponseRaw = $this->_curlPostBodyData($url, $postParams);
+			$placeHoldResponse = json_decode($placeHoldResponseRaw);
+
+			$recordDriver = RecordDriverFactory::initRecordDriverById($this->accountProfile->recordSource . ':' . $recordId);
+			foreach ($placeHoldResponse->placeHoldInfos as $holdResponse){
+				if ($holdResponse->success){
+					return array(
+						'result' => true,
+						'title' => $recordDriver->getTitle(),
+						'message' => 'Your hold was placed successfully.');
+				}else{
+					return array(
+						'result' => false,
+						'title' => $recordDriver->getTitle(),
+						'message' => 'Sorry, your hold could not be placed.  ' . htmlentities(translate($holdResponse->message)));
+
+				}
+			}
+
+		}else{
+			return array(
+				'result' => false,
+				'message' => 'Sorry, the user supplied was not valid in the catalog. Please try again.');
+		}
+	}
+
+	/**
+	 * Place Item Hold
+	 *
+	 * This is responsible for both placing item level holds.
+	 *
+	 * @param   User    $patron     The User to place a hold for
+	 * @param   string  $recordId   The id of the bib record
+	 * @param   string  $itemId     The id of the item to hold
+	 * @param   string  $pickupBranch The branch where the user wants to pickup the item when available
+	 * @return  mixed               True if successful, false if unsuccessful
+	 *                              If an error occurs, return a PEAR_Error
+	 * @access  public
+	 */
+	function placeItemHold($patron, $recordId, $itemId, $pickupBranch){
+		return array('result' => false, 'message' => 'Unable to place Item level holds in Library.Solution at this time');
+	}
 }

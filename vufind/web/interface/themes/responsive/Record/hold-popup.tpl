@@ -3,6 +3,7 @@
 	<form name='placeHoldForm' id='placeHoldForm' action="{$path}/Record/{$id|escape:"url"}/Hold" method="post" class="form">
 		<input type="hidden" name="id" id="id" value="{$id}">
 		<input type="hidden" name="recordSource" id="recordSource" value="{$recordSource}">
+		<input type='hidden' name='module' id='module' value='{$activeRecordProfileModule}' />
 		<fieldset>
 			<div class="holdsSummary">
 				<input type="hidden" name="holdCount" id="holdCount" value="1">

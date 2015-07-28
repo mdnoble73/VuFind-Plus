@@ -1169,37 +1169,21 @@ class Aspencat implements DriverInterface{
 	 *
 	 * This is responsible for both placing holds as well as placing recalls.
 	 *
-	 * @param   string  $recordId   The id of the bib record
-	 * @param   string  $patronId   The id of the patron
-	 * @param   string  $comment    Any comment regarding the hold or recall
-	 * @param   string  $type       Whether to place a hold or recall
-	 * @return  mixed               True if successful, false if unsuccessful
-	 *                              If an error occurs, return a PEAR_Error
+	 * @param   User    $patron       The User to place a hold for
+	 * @param   string  $recordId     The id of the bib record
+	 * @param   string  $pickupBranch The branch where the user wants to pickup the item when available
+	 * @return  mixed                 True if successful, false if unsuccessful
+	 *                                If an error occurs, return a PEAR_Error
 	 * @access  public
 	 */
-	public function placeHold(
-		/** @noinspection PhpUnusedParameterInspection */
-		$recordId, $patronId, $comment, $type){
+	public function placeHold($patron, $recordId, $pickupBranch){
 		global $user;
 
 		$hold_result = array();
 		$hold_result['result'] = false;
 
 		//Set pickup location
-		if (isset($_REQUEST['campus'])){
-			$campus=trim($_REQUEST['campus']);
-		}else{
-			$campus = $user->homeLocationId;
-			//Get the code for the location
-			$locationLookup = new Location();
-			$locationLookup->locationId = $campus;
-			$locationLookup->find();
-			if ($locationLookup->N > 0){
-				$locationLookup->fetch();
-				$campus = $locationLookup->code;
-			}
-		}
-		$campus = strtoupper($campus);
+		$campus = strtoupper($pickupBranch);
 
 		//Get a specific item number to place a hold on even though we are placing a title level hold.
 		//because.... Koha
@@ -1373,13 +1357,12 @@ class Aspencat implements DriverInterface{
 	 * @param   User    $patron     The User to place a hold for
 	 * @param   string  $recordId   The id of the bib record
 	 * @param   string  $itemId     The id of the item to hold
-	 * @param   string  $comment    Any comment regarding the hold or recall
-	 * @param   string  $type       Whether to place a hold or recall
+	 * @param   string  $pickupBranch The branch where the user wants to pickup the item when available
 	 * @return  mixed               True if successful, false if unsuccessful
 	 *                              If an error occurs, return a PEAR_Error
 	 * @access  public
 	 */
-	function placeItemHold($patron, $recordId, $itemId, $comment = '', $type = 'request') {
+	function placeItemHold($patron, $recordId, $itemId, $pickupBranch) {
 		global $configArray;
 
 		$hold_result = array();

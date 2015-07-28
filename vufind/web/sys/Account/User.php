@@ -623,4 +623,36 @@ class User extends DB_DataObject
 	public function getNameAndLibraryLabel(){
 		return $this->displayName . ' - ' . $this->getHomeLibrarySystemName();
 	}
+
+	/**
+	 * Place Hold
+	 *
+	 * Place a hold for the current user within their ILS
+	 *
+	 * @param   string  $recordId     The id of the bib record
+	 * @param   string  $pickupBranch The branch where the user wants to pickup the item when available
+	 * @return  array                 An array with the following keys
+	 *                                result - true/false
+	 *                                message - the message to display
+	 * @access  public
+	 */
+	function placeHold($recordId, $pickupBranch) {
+		return $this->getCatalogDriver()->placeHold($this, $recordId, $pickupBranch);
+	}
+
+	/**
+	 * Place Item Hold
+	 *
+	 * This is responsible for placing item level holds.
+	 *
+	 * @param   string  $recordId   The id of the bib record
+	 * @param   string  $itemId     The id of the item to hold
+	 * @param   string  $pickupBranch The branch where the user wants to pickup the item when available
+	 * @return  mixed               True if successful, false if unsuccessful
+	 *                              If an error occurs, return a PEAR_Error
+	 * @access  public
+	 */
+	function placeItemHold($recordId, $itemId, $pickupBranch) {
+		return $this->getCatalogDriver()->placeItemHold($this, $recordId, $itemId, $pickupBranch);
+	}
 }

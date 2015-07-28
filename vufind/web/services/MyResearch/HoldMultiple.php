@@ -131,8 +131,14 @@ class MyAccount_HoldMultiple extends Action
 								$eContentDriver = new EContentDriver(null);
 							}
 
-							$return = $eContentDriver->placeHold($user, $recordId);
+							$return = $eContentDriver->placeHold($user, $recordId, null);
 						} else {
+							if (isset($_REQUEST['campus'])){
+								$pickupBranch=trim($_REQUEST['campus']);
+							}else{
+								global $user;
+								$pickupBranch = $user->homeLocationId;
+							}
 							$return = $this->catalog->placeHold($user, $recordId, '', $_REQUEST['holdType']);
 						}
 						$hold_message_data['titles'][] = $return;

@@ -3,6 +3,7 @@
 	<form action='{$path}/MyAccount/HoldItems' method="POST" class="form">
 		<input type='hidden' name='id' id='id' value='{$id}' />
 		<input type='hidden' name='campus' id='campus' value='{$campus}' />
+		<input type='hidden' name='module' id='module' value='{$activeRecordProfileModule}' />
 		{if count($items) == 0}
 			<div class='alert alert-danger'>{$message}</div>
 		{else}

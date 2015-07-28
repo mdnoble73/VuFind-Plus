@@ -2000,28 +2000,25 @@ public function renewItem($patronId, $itemId){
 	 *
 	 * This is responsible for both placing holds as well as placing recalls.
 	 *
-	 * @param   User    $patron     The User to place a hold for
-	 * @param   string  $recordId   The id of the bib record
-	 * @param   string  $comment    Any comment regarding the hold or recall
-	 * @param   string  $type       Whether to place a hold or recall
-	 * @return  mixed               True if successful, false if unsuccessful
-	 *                              If an error occurs, return a PEAR_Error
+	 * @param   User    $patron       The User to place a hold for
+	 * @param   string  $recordId     The id of the bib record
+	 * @param   string  $pickupBranch The branch where the user wants to pickup the item when available
+	 * @return  mixed                 True if successful, false if unsuccessful
+	 *                                If an error occurs, return a PEAR_Error
 	 * @access  public
 	 */
-	function placeHold($patron, $recordId, $comment = '', $type = 'request') {
+	public function placeHold($patron, $recordId, $pickupBranch) {
 		//Self registered cards need to use HIP to place holds
 		if (preg_match('/^\\d{12}-\\d$/', $patron->getBarcode())){
-			$result = $this->placeHoldViaHIP($recordId, $patron->getBarcode(), $comment, $type);
+			$result = $this->placeHoldViaHIP($patron, $recordId, $pickupBranch);
 		}else{
-			$result = $this->placeHoldViaSIP($recordId, $patron->getBarcode(), $comment, $type);
+			$result = $this->placeHoldViaSIP($patron, $recordId, $pickupBranch);
 		}
 
 		return $result;
 	}
 
-	public function placeHoldViaHIP($recordId, $patronId, $comment, $type)
-	{
-		global $user;
+	public function placeHoldViaHIP($patron, $recordId, $pickupBranch) {
 		global $configArray;
 		global $logger;
 
@@ -2093,8 +2090,8 @@ public function renewItem($patronId, $itemId){
 		$post_data['session'] = $sessionId;
 		$post_data['submenu'] = 'none';
 		$post_data['time'] = $curTime;
-		$post_data['sec1'] = $user->cat_username;
-		$post_data['sec2'] = $user->cat_password;
+		$post_data['sec1'] = $patron->cat_username;
+		$post_data['sec2'] = $patron->cat_password;
 		$post_data['uri'] = 'link=direct';
 		$post_string = http_build_query($post_data);
 		$curl_url = $this->hipUrl . "/ipac20/ipac.jsp";
@@ -2121,24 +2118,12 @@ public function renewItem($patronId, $itemId){
 
 		}
 		if (!isset($failureReason)){
-			if (isset($_REQUEST['campus'])){
-				$campus=trim($_REQUEST['campus']);
-			}else{
-				$campus = $user->homeLocationId;
-				//Get the code for the location
-				$locationLookup = new Location();
-				$locationLookup->locationId = $campus;
-				$locationLookup->find();
-				if ($locationLookup->N > 0){
-					$locationLookup->fetch();
-					$campus = $locationLookup->code;
-				}
-			}
+
 			$post_data = array();
 			$post_data['aspect'] = 'none';
 			$post_data['cl'] = 'PlaceRequestjsp';
 			$post_data['notifyby'] = (isset($notifyBy) && !is_null($notifyBy)) ? $notifyBy : 'phone';
-			$post_data['pickuplocation'] = $pickupLocation;
+			$post_data['pickuplocation'] = $pickupBranch;
 			$post_data['profile'] = $this->selfRegProfile;
 			$post_data['session'] = $sessionId;
 			$post_data['request_finish'] = 'Request';
@@ -2187,9 +2172,8 @@ public function renewItem($patronId, $itemId){
 		return $title;
 	}
 
-	public function placeHoldViaSIP($recordId, $patronId, $comment, $type){
+	public function placeHoldViaSIP($patron, $recordId, $pickupBranch){
 		global $configArray;
-		global $user;
 		//Place the hold via SIP 2
 		$mysip = new sip2();
 		$mysip->hostname = $configArray['SIP2']['host'];
@@ -2208,22 +2192,8 @@ public function renewItem($patronId, $itemId){
 				//  Use result to populate SIP2 setings
 				$mysip->AO = $result['variable']['AO'][0]; /* set AO to value returned */
 				$mysip->AN = $result['variable']['AN'][0]; /* set AN to value returned */
-				$mysip->patron = $user->cat_username;
-				$mysip->patronpwd = $user->cat_password;
-
-				if (isset($_REQUEST['campus'])){
-					$campus=trim($_REQUEST['campus']);
-				}else{
-					$campus = $user->homeLocationId;
-					//Get the code for the location
-					$locationLookup = new Location();
-					$locationLookup->locationId = $campus;
-					$locationLookup->find();
-					if ($locationLookup->N > 0){
-						$locationLookup->fetch();
-						$campus = $locationLookup->code;
-					}
-				}
+				$mysip->patron = $patron->cat_username;
+				$mysip->patronpwd = $patron->cat_password;
 
 				//place the hold
 				if ($type == 'cancel' || $type == 'recall'){
@@ -2236,7 +2206,7 @@ public function renewItem($patronId, $itemId){
 
 				//expire the hold in 2 years by default
 				$expirationTime = time() + 2 * 365 * 24 * 60 * 60;
-				$in = $mysip->msgHold($mode, $expirationTime, '2', '', $recordId, '', $campus);
+				$in = $mysip->msgHold($mode, $expirationTime, '2', '', $recordId, '', $pickupBranch);
 				$msg_result = $mysip->get_message($in);
 
 				$hold_result['title'] = $this->getRecordTitle($recordId);

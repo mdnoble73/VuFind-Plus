@@ -365,7 +365,7 @@ class Location extends DB_DataObject
 				$locationList['1' . $this->displayName] = clone $this;
 			} else if ($this->locationId == $patronProfile->homeLocationId){
 				//Next come the user's home branch if the user is logged in or has the home_branch cookie set.
-				$locationList['2' . $this->displayName] = clone $this;
+				$locationList['21' . $this->displayName] = clone $this;
 			} else if (isset($patronProfile->myLocation1Id) && $this->locationId == $patronProfile->myLocation1Id){
 				//Next come nearby locations for the user
 				$locationList['3' . $this->displayName] = clone $this;
@@ -382,14 +382,17 @@ class Location extends DB_DataObject
 		}
 		ksort($locationList);
 
-		if (!$isLinkedUser){
-			if (count($locationList) == 0 && (isset($homeLibrary) && $homeLibrary->inSystemPickupsOnly == 1)){
-				$homeLocation = Location::staticGet($patronProfile->homeLocationId);
-				if ($homeLocation->showHoldButton == 1){
-					//We didn't find any locations.  This for schools where we want holds available, but don't want the branch to be a
-					//pickup location anywhere else.
+
+		if (count($locationList) == 0 && (isset($homeLibrary) && $homeLibrary->inSystemPickupsOnly == 1)){
+			$homeLocation = Location::staticGet($patronProfile->homeLocationId);
+			if ($homeLocation->showHoldButton == 1){
+				//We didn't find any locations.  This for schools where we want holds available, but don't want the branch to be a
+				//pickup location anywhere else.
+				if (!$isLinkedUser) {
 					$homeLocation->selected = true;
 					$locationList['1' . $homeLocation->displayName] = clone $homeLocation;
+				}else{
+					$locationList['22' . $homeLocation->displayName] = clone $homeLocation;
 				}
 			}
 		}

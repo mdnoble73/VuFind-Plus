@@ -80,4 +80,36 @@ interface DriverInterface
 	 * @access public
 	 */
 	public function getMyHolds($user);
+
+	/**
+	 * Place Hold
+	 *
+	 * This is responsible for both placing holds as well as placing recalls.
+	 *
+	 * @param   User    $patron       The User to place a hold for
+	 * @param   string  $recordId     The id of the bib record
+	 * @param   string  $pickupBranch The branch where the user wants to pickup the item when available
+	 * @return  array                 An array with the following keys
+	 *                                result - true/false
+	 *                                message - the message to display (if item holds are required, this is a form to select the item).
+	 *                                needsItemLevelHold - An indicator that item level holds are required
+	 *                                title - the title of the record the user is placing a hold on
+	 * @access  public
+	 */
+	public function placeHold($patron, $recordId, $pickupBranch);
+
+	/**
+	 * Place Item Hold
+	 *
+	 * This is responsible for both placing item level holds.
+	 *
+	 * @param   User    $patron     The User to place a hold for
+	 * @param   string  $recordId   The id of the bib record
+	 * @param   string  $itemId     The id of the item to hold
+	 * @param   string  $pickupBranch The branch where the user wants to pickup the item when available
+	 * @return  mixed               True if successful, false if unsuccessful
+	 *                              If an error occurs, return a PEAR_Error
+	 * @access  public
+	 */
+	function placeItemHold($patron, $recordId, $itemId, $pickupBranch);
 }

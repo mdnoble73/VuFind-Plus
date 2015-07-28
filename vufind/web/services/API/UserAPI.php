@@ -1180,10 +1180,17 @@ class UserAPI extends Action {
 		$username = $_REQUEST['username'];
 		$password = $_REQUEST['password'];
 		$bibId = $_REQUEST['bibId'];
-		global $user;
-		$user = UserAccount::validateAccount($username, $password);
-		if ($user && !PEAR_Singleton::isError($user)){
-			$holdMessage = $this->getCatalogConnection()->placeHold($user, $bibId, '', 'request');
+
+		if (isset($_REQUEST['campus'])){
+			$pickupBranch=trim($_REQUEST['campus']);
+		}else{
+			global $user;
+			$pickupBranch = $user->homeLocationId;
+		}
+
+		$patron = UserAccount::validateAccount($username, $password);
+		if ($patron && !PEAR_Singleton::isError($patron)){
+			$holdMessage = $this->getCatalogConnection()->placeHold($patron, $bibId, $pickupBranch);
 			return array('success'=> $holdMessage['result'], 'holdMessage'=>$holdMessage['message']);
 		}else{
 			return array('success'=>false, 'message'=>'Login unsuccessful');
@@ -1233,16 +1240,21 @@ class UserAPI extends Action {
 		$username = $_REQUEST['username'];
 		$password = $_REQUEST['password'];
 		$recordId = $_REQUEST['recordId'];
+		if (isset($_REQUEST['campus'])){
+			$pickupBranch=trim($_REQUEST['campus']);
+		}else{
+			global $user;
+			$pickupBranch = $user->homeLocationId;
+		}
 		//Trim off econtentRecord from the front of the id if provided
 		if (preg_match('/econtentRecord\d+/i', $recordId)){
 			$recordId = substr($recordId, 14);
 		}
-		global $user;
-		$user = UserAccount::validateAccount($username, $password);
-		if ($user && !PEAR_Singleton::isError($user)){
+		$patron = UserAccount::validateAccount($username, $password);
+		if ($patron && !PEAR_Singleton::isError($patron)){
 			require_once(ROOT_DIR . '/Drivers/EContentDriver.php');
 			$driver = new EContentDriver(null);
-			$holdMessage = $driver->placeHold($user, $recordId, "", 'request');
+			$holdMessage = $driver->placeHold($patron, $recordId, $pickupBranch);
 			return array('success'=> $holdMessage['result'], 'holdMessage'=>$holdMessage['message']);
 		}else{
 			return array('success'=>false, 'message'=>'Login unsuccessful');

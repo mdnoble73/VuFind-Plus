@@ -99,6 +99,10 @@ class MarcRecord extends IndexRecord
 		parent::loadGroupedWork();
 	}
 
+	public function getModule(){
+		return isset($this->indexingProfile) ? $this->indexingProfile->recordUrlComponent : 'Record';
+	}
+
 	protected $itemsFromIndex;
 	public function setItemsFromIndex($itemsFromIndex, $realTimeStatusNeeded){
 		global $configArray;
@@ -1774,7 +1778,7 @@ class MarcRecord extends IndexRecord
 				$relatedRecord['actions'][] = array(
 						'title' => 'Place Hold',
 						'url' => '',
-						'onclick' => "return VuFind.Record.showPlaceHold('{$recordId}');",
+						'onclick' => "return VuFind.Record.showPlaceHold('{$this->getModule()}', '{$recordId}');",
 						'requireLogin' => false,
 				);
 			}
@@ -1798,7 +1802,7 @@ class MarcRecord extends IndexRecord
 			$actions[] = array(
 				'title' => 'Place Hold',
 				'url' => '',
-				'onclick' => "return VuFind.Record.showPlaceHold('{$this->id}');",
+				'onclick' => "return VuFind.Record.showPlaceHold('{$this->getModule()}', '{$this->id}');",
 				'requireLogin' => false,
 			);
 		}
