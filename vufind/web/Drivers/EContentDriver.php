@@ -562,8 +562,6 @@ class EContentDriver implements DriverInterface{
 		$eContentCheckout->userId = $user->id;
 		$eContentCheckout->status = 'out';
 		$eContentCheckout->find();
-		$return['transactions'] = array();
-		$return['numTransactions'] = $eContentCheckout->find();
 		while ($eContentCheckout->fetch()){
 			if ($eContentCheckout->protectionType == 'free'){
 				require_once ROOT_DIR . '/RecordDrivers/PublicEContentDriver.php';
@@ -592,7 +590,7 @@ class EContentDriver implements DriverInterface{
 				}
 
 				//Get Ratings
-				$return['transactions'][] = array(
+				$return[] = array(
 					'id' => $eContentCheckout->recordId,
 					'groupedWorkId' => $recordDriver->getGroupedWorkId(),
 					'recordId' => $recordDriver->getUniqueID(),

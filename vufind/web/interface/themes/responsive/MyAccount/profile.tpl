@@ -419,7 +419,7 @@
 							<p>The following accounts can be managed from this account.</p>
 							<ul>
 							{foreach from=$user->linkedUsers item=tmpUser}
-								<li>{$tmpUser->displayName} - {$tmpUser->getHomeLibrarySystemName()} <a href="#" onclick="VuFind.Account.removeLinkedUser({$tmpUser->id});">Remove</a> </li>
+								<li>{$tmpUser->getNameAndLibraryLabel()} <a href="#" onclick="VuFind.Account.removeLinkedUser({$tmpUser->id});">Remove</a> </li>
 							{foreachelse}
 								<li>None</li>
 							{/foreach}
@@ -430,7 +430,7 @@
 							<ul>
 
 							{foreach from=$user->getViewers() item=tmpUser}
-								<li>{$tmpUser->displayName} - {$tmpUser->getHomeLibrarySystemName()}</li>
+								<li>{$tmpUser->getNameAndLibraryLabel()}</li>
 							{foreachelse}
 								<li>None</li>
 							{/foreach}

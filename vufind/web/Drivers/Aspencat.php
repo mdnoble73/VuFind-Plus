@@ -674,10 +674,7 @@ class Aspencat implements DriverInterface{
 			$transactions = array_slice($transactions, $startRecord, $recordsPerPage);
 		}
 		$this->transactions[$user->id] = $transactions;
-		return array(
-			'transactions' => $transactions,
-			'numTransactions' => $totalTransactions
-		);
+		return $transactions;
 	}
 
 	public function getMyTransactionsFromDB($page = 1, $recordsPerPage = -1, $sortOption = 'dueDate') {
@@ -747,48 +744,14 @@ class Aspencat implements DriverInterface{
 				}
 			}
 
+			$transaction['user'] = $user->getNameAndLibraryLabel();
+
 			$transactions[] = $transaction;
-		}
-
-		//Process sorting
-		$sortKeys = array();
-		$i = 0;
-		foreach ($transactions as $key => $transaction){
-			$sortTitle = isset($transaction['sortTitle']) ? $transaction['sortTitle'] : "Unknown";
-			if ($sortOption == 'title'){
-				$sortKeys[$key] = $sortTitle;
-			}elseif ($sortOption == 'author'){
-				$sortKeys[$key] = (isset($transaction['author']) ? $transaction['author'] : "Unknown") . '-' . $sortTitle;
-			}elseif ($sortOption == 'dueDate'){
-				if (preg_match('/.*?(\\d{1,2})[-\/](\\d{1,2})[-\/](\\d{2,4}).*/', $transaction['duedate'], $matches)) {
-					$sortKeys[$key] = $matches[3] . '-' . $matches[1] . '-' . $matches[2] . '-' . $sortTitle;
-				} else {
-					$sortKeys[$key] = $transaction['duedate'] . '-' . $sortTitle;
-				}
-			}elseif ($sortOption == 'format'){
-				$sortKeys[$key] = (isset($transaction['format']) ? $transaction['format'] : "Unknown") . '-' . $sortTitle;
-			}elseif ($sortOption == 'renewed'){
-				$sortKeys[$key] = (isset($transaction['renewCount']) ? $transaction['renewCount'] : 0) . '-' . $sortTitle;
-			}elseif ($sortOption == 'holdQueueLength'){
-				$sortKeys[$key] = (isset($transaction['holdQueueLength']) ? $transaction['holdQueueLength'] : 0) . '-' . $sortTitle;
-			}
-			$sortKeys[$key] = $sortKeys[$key] . '-' . $i++;
-		}
-		array_multisort($sortKeys, $transactions);
-
-		//Limit to a specific number of records
-		$totalTransactions = count($transactions);
-		if ($recordsPerPage != -1){
-			$startRecord = ($page - 1) * $recordsPerPage;
-			$transactions = array_slice($transactions, $startRecord, $recordsPerPage);
 		}
 
 		$this->transactions[$user->id] = $transactions;
 
-		return array(
-			'transactions' => $transactions,
-			'numTransactions' => $totalTransactions
-		);
+		return $transactions;
 	}
 
 
@@ -1624,6 +1587,7 @@ class Aspencat implements DriverInterface{
 						$curHold['ratingData'] = $recordDriver->getRatingData();
 					}
 				}
+				$curHold['user'] = $patron->getNameAndLibraryLabel();
 				if (!isset($curHold['status']) || !preg_match('/^Item waiting.*/i', $curHold['status'])){
 					$holds['unavailable'][] = $curHold;
 				}else{
@@ -1700,6 +1664,7 @@ class Aspencat implements DriverInterface{
 						$curHold['ratingData'] = $recordDriver->getRatingData();
 					}
 				}
+				$curHold['user'] = $patron->getNameAndLibraryLabel();
 				if (!isset($curHold['status']) || strcasecmp($curHold['status'], "filled") != 0){
 					$holds['unavailable'][] = $curHold;
 				}else{
@@ -1794,6 +1759,7 @@ class Aspencat implements DriverInterface{
 					$curHold['ratingData'] = $recordDriver->getRatingData();
 				}
 			}
+			$curHold['user'] = $patron->getNameAndLibraryLabel();
 
 			if (!isset($curHold['status']) || !preg_match('/^Item waiting.*/i', $curHold['status'])){
 				$holds['unavailable'][] = $curHold;

@@ -201,6 +201,7 @@ class MillenniumCheckouts {
 					}
 					$curTitle['link'] = $recordDriver->getLinkUrl();
 				}
+				$curTitle['user'] = $user->getNameAndLibraryLabel();
 				$checkedOutTitles[] = $curTitle;
 			}
 
@@ -208,12 +209,7 @@ class MillenniumCheckouts {
 		}
 		$timer->logTime("Parsed checkout information");
 
-		$numTransactions = count($checkedOutTitles);
-
-		return array(
-			'transactions' => $checkedOutTitles,
-			'numTransactions' => $numTransactions
-		);
+		return $checkedOutTitles;
 	}
 
 	public function renewAll($patron){

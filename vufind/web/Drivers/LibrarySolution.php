@@ -226,10 +226,7 @@ class LibrarySolution extends ScreenScrapingDriver {
 	 * @access public
 	 */
 	public function getMyTransactions($user){
-		$transactions = array(
-			'transactions' => array(),
-			'numTransactions' => 0
-		);
+		$transactions = array();
 		if ($this->loginPatronToLSS($user->cat_username, $user->cat_password)){
 			//Load transactions from LSS
 			//TODO: Verify that this will load more than 20 loans
@@ -279,8 +276,7 @@ class LibrarySolution extends ScreenScrapingDriver {
 					$curTitle['link'] = $recordDriver->getLinkUrl();
 				}
 
-				$transactions['transactions'][] = $curTitle;
-				$transactions['numTransactions']++;
+				$transactions[] = $curTitle;
 			}
 		}
 

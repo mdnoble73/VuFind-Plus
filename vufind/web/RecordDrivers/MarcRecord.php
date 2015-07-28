@@ -1787,6 +1787,7 @@ class MarcRecord extends IndexRecord
 	public function getRecordActions($isAvailable, $isHoldable, $isBookable, $relatedUrls = null){
 		$actions = array();
 		global $interface;
+		global $library;
 		if (isset($interface)){
 			$showHoldButton = $interface->getVariable('displayingSearchResults') ? $interface->getVariable('showHoldButtonInSearchResults'): $interface->getVariable('showHoldButton');
 		}else{
@@ -1801,7 +1802,7 @@ class MarcRecord extends IndexRecord
 				'requireLogin' => false,
 			);
 		}
-		if ($isBookable){
+		if ($isBookable && $library->enableMaterialsBooking){
 			$actions[] = array(
 				'title' => 'Book Material',
 				'url' => '',

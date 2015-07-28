@@ -43,7 +43,11 @@
 					<div class="row">
 						<div class="result-label col-md-3">{translate text='Format'}</div>
 						<div class="col-md-9 result-value">
-							{implode subject=$record.format glue=", "}
+							{if $record.format}
+								{implode subject=$record.format glue=", "}
+							{else}
+								Unknown
+							{/if}
 						</div>
 					</div>
 
