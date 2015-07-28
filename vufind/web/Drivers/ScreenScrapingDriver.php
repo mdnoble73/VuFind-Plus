@@ -13,7 +13,7 @@ abstract class ScreenScrapingDriver implements DriverInterface {
 	/** @var  AccountProfile $accountProfile */
 	public $accountProfile;
 	private $cookieJar;
-	protected $curl_connection;
+	public $curl_connection; // need access in order to check for curl errors.
 
 
 	/**

@@ -712,7 +712,7 @@ class Millennium extends ScreenScrapingDriver
 
 		$patronDump = $memCache->get("patron_dump_$barcode");
 		if (!$patronDump || $forceReload){
-			$host = $this->accountProfile->patronApiUrl;
+			$host = isset($this->accountProfile->patronApiUrl) ? $this->accountProfile->patronApiUrl : null; // avoid warning notices
 			if ($host == null){
 				$host = $configArray['OPAC']['patron_host'];
 			}
@@ -852,6 +852,7 @@ class Millennium extends ScreenScrapingDriver
 		$curlResponse = preg_replace("/<!--([^(-->)]*)-->/"," ",$curlResponse);
 		return $curlResponse;
 	}
+
 	public function getReadingHistory($patron, $page = 1, $recordsPerPage = -1, $sortOption = "checkedOut") {
 		require_once ROOT_DIR . '/Drivers/marmot_inc/MillenniumReadingHistory.php';
 		$millenniumReadingHistory = new MillenniumReadingHistory($this);
@@ -967,6 +968,15 @@ class Millennium extends ScreenScrapingDriver
 		require_once ROOT_DIR . '/Drivers/marmot_inc/MillenniumBooking.php';
 		$millenniumBooking = new MillenniumBooking($this);
 		return $millenniumBooking->cancelBookedMaterial($cancelIds);
+	}
+
+	/**
+	 * @return array      data for client-side AJAX responses
+	 */
+	public function cancelAllBookedMaterial() {
+		require_once ROOT_DIR . '/Drivers/marmot_inc/MillenniumBooking.php';
+		$millenniumBooking = new MillenniumBooking($this);
+		return $millenniumBooking->cancelAllBookedMaterial();
 	}
 
 public function getBookingCalendar($recordId) {
@@ -1425,8 +1435,8 @@ public function getBookingCalendar($recordId) {
 
 	public function getMyBookings(){
 		require_once ROOT_DIR . '/Drivers/marmot_inc/MillenniumBooking.php';
-		$millenniumHolds = new MillenniumBooking($this);
-		return $millenniumHolds->getMyBookings();
+		$millenniumBookings = new MillenniumBooking($this);
+		return $millenniumBookings->getMyBookings();
 	}
 
 	function getCheckInGrid($id, $checkInGridId){

@@ -65,7 +65,7 @@
 							</a>
 						</div>
 
-						{if $enableMaterialsBooking}{* TODO add having booked materials to check *}
+						{if $enableMaterialsBooking}
 						<div class="myAccountLink{if $pageTemplate=="bookings.tpl"} active{/if}">
 							<a href="{$path}/MyAccount/Bookings" id="checkedOut">
 								Booked Titles  <span class="badge">{$profile->numBookingstTotal}</span>

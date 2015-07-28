@@ -270,8 +270,7 @@ class MyAccount_AJAX
 
 	function cancelHold() {
 		try {
-			global $configArray,
-			       $user;
+			global $user;
 			$catalog = CatalogFactory::getCatalogConnectionInstance();
 
 			// ids grabbed in MillenniumHolds.php in $_REQUEST['waitingholdselected'] & $_REQUEST['availableholdselected']
@@ -285,6 +284,7 @@ class MyAccount_AJAX
 
 		} catch (PDOException $e) {
 			// What should we do with this error?
+			global $configArray;
 			if ($configArray['System']['debug']) {
 				echo '<pre>';
 				echo 'DEBUG: ' . $e->getMessage();
@@ -313,18 +313,22 @@ class MyAccount_AJAX
 
 	function cancelBooking() {
 		try {
-			global $configArray,
-			       $user;
+			global $user;
 			$catalog = CatalogFactory::getCatalogConnectionInstance();
 
-			$cancelId = array();
-			if (!empty($_REQUEST['cancelId'])) {
-					$cancelId = $_REQUEST['cancelId'];
+			if (!empty($_REQUEST['cancelAll'])  && $_REQUEST['cancelAll'] == 1) {
+				$result = $catalog->driver->cancelAllBookedMaterial();
+				$totalCancelled = $numCancelled = null;
+			} else {
+				$cancelId = !empty($_REQUEST['cancelId']) ? $_REQUEST['cancelId'] : array();
+				$result = $catalog->driver->cancelBookedMaterial($cancelId);
+				$numCancelled = $result['success'] ? count($cancelId) : count($cancelId) - count($result['message']);
+				$totalCancelled = count($cancelId);
+				// either all were canceled or total canceled minus the number of errors (1 error per failure)
 			}
-			$result = $catalog->driver->cancelBookedMaterial($cancelId);
-
 		} catch (PDOException $e) {
 			// What should we do with this error?
+			global $configArray;
 			if ($configArray['System']['debug']) {
 				echo '<pre>';
 				echo 'DEBUG: ' . $e->getMessage();
@@ -336,13 +340,11 @@ class MyAccount_AJAX
 			);
 		}
 		$failed = (!$result['success'] && is_array($result['message']) && !empty($result['message'])) ? array_keys($result['message']) : null; //returns failed id for javascript function
-		$numCancelled = $result['success'] ? count($cancelId) : count($cancelId) - count($result['message']);
-		// either all were canceled or total canceled minus the number of errors (1 error per failure)
 
 		global $interface;
 		$interface->assign('cancelResults', $result);
 		$interface->assign('numCancelled', $numCancelled);
-		$interface->assign('totalCancelled', count($cancelId));
+		$interface->assign('totalCancelled', $totalCancelled);
 
 		$cancelResult = array(
 			'title' => 'Cancel Booking',

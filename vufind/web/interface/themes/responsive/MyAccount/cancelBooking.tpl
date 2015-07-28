@@ -4,7 +4,13 @@
 			<div class="alert alert-success">{$cancelResults.message}</div>
 		{else}
 			{if is_array($cancelResults.message)}
-				<div class="alert alert-warning"><strong>{$numCancelled} of {$totalCancelled}</strong> bookings were cancelled successfully.</div>
+				<div class="alert alert-warning">
+					{if $totalCancelled}
+					<strong>{$numCancelled} of {$totalCancelled}</strong> bookings were cancelled successfully.
+					{else}
+						Some of the attempted cancellations failed.
+					{/if}
+				</div>
 				{foreach from=$cancelResults.message item=message}
 					<div class='alert alert-danger'>{$message}</div>
 				{/foreach}

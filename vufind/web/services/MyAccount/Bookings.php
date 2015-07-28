@@ -10,12 +10,9 @@ require_once ROOT_DIR . '/services/MyAccount/MyAccount.php';
 class MyAccount_Bookings extends MyAccount {
 
 	function launch() {
-		global $configArray,
-		       $interface,
+		global $interface,
 		       $user;
 
-//		$ils = $configArray['Catalog']['ils'];
-//
 //		// Define sorting options
 //		$sortOptions = array(
 //			'title' => 'Title',
@@ -26,21 +23,16 @@ class MyAccount_Bookings extends MyAccount {
 //			'status' => 'Status',
 //		);
 
-		$bookings = $this->catalog->getMyBookings();
-		$profile = $this->catalog->getMyProfile($user);
+		$bookings = $user->getMyBookings();
 
-		$libraryHoursMessage = Location::getLibraryHoursMessage($profile['homeLocationId']);
-		// TODO: $profile the best way to get the home Location?
+		$libraryHoursMessage = Location::getLibraryHoursMessage($user->homeLocationId);
 		$interface->assign('libraryHoursMessage', $libraryHoursMessage);
 		$interface->assign('recordList', $bookings);
-
 
 		// Build Page //
 		$interface->setPageTitle('My Bookings');
 		$interface->assign('sidebar', 'MyAccount/account-sidebar.tpl');
 		$interface->setTemplate('bookings.tpl');
-
-		//print_r($patron);
 		$interface->display('layout.tpl');
 	}
 }

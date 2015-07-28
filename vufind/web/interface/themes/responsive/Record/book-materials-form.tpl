@@ -108,7 +108,7 @@
 				if (added) $(this).val(input + ':'); // add ':' after initial numbers typed (treat as hours on 12 hour clock)
 			});
 
-			$.get(Globals.path + '{/literal}{$fullPath|replace:'getBookMaterialForm':'getBookingCalendar'}{literal}',
+			$.get(Globals.path + '/Record/{/literal}{$id}{literal}/AJAX?method=getBookingCalendar',
 							function(data){
 								$('#bookingCalendar').append(data);
 								$('#calendarButton').show(); // show button when we are able to get the calendar

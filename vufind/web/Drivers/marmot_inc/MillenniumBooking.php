@@ -16,115 +16,8 @@ class MillenniumBooking {
 		$this->driver = $driver;
 	}
 
-	public function __destruct(){
-		$this->_close_curl();
-	}
-
- // Curl Connection Resources
-	private $cookieJar,
-		$curl_connection;
-
-	public function setCookieJar(){
-		$cookieJar = tempnam("/tmp", "CURLCOOKIE");
-		$this->cookieJar = $cookieJar;
-	}
-
-	/**
-	 * @return mixed CookieJar name
-	 */
-	public function getCookieJar() {
-		if (is_null($this->cookieJar)) $this->setCookieJar();
-		return $this->cookieJar;
-	}
-
-	/**
-	 * Initialize and configure curl connection
-	 *
-	 * @param null $curl_url optional url passed to curl_init
-	 * @param null|Array $curl_options is an array of curl options to include or overwrite.
-	 *                    Keys is the curl option constant, Values is the value to set the option to.
-	 * @return resource
-	 */
-	public function _curl_connect($curl_url = null, $curl_options = null){
-		// differences from James' version
-//		curl_setopt($this->curl_connection, CURLOPT_USERAGENT,"Pika 2015.10.0");
-
-		$header = array();
-		$header[0] = "Accept: text/xml,application/xml,application/xhtml+xml,";
-		$header[0] .= "text/html;q=0.9,text/plain;q=0.8,image/png,*/*;q=0.5";
-		$header[] = "Cache-Control: max-age=0";
-		$header[] = "Connection: keep-alive";
-		$header[] = "Accept-Charset: ISO-8859-1,utf-8;q=0.7,*;q=0.7";
-		$header[] = "Accept-Language: en-us,en;q=0.5";
-
-		$cookie = $this->getCookieJar();
-
-		$this->curl_connection = curl_init($curl_url);
-		$default_curl_options = array(
-			CURLOPT_CONNECTTIMEOUT => 30,
-			CURLOPT_HTTPHEADER => $header,
-			CURLOPT_USERAGENT => "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)",
-			CURLOPT_RETURNTRANSFER => true,
-			CURLOPT_SSL_VERIFYPEER => false,
-			CURLOPT_FOLLOWLOCATION => true,
-			CURLOPT_UNRESTRICTED_AUTH => true,
-			CURLOPT_COOKIEJAR => $cookie,
-			CURLOPT_COOKIESESSION => true,
-			CURLOPT_FORBID_REUSE => false,
-			CURLOPT_HEADER => false,
-//			CURLOPT_HEADER => true, // debugging only
-//			CURLOPT_VERBOSE => true, // debugging only
-		);
-
-		if ($curl_options) $default_curl_options = array_merge($default_curl_options, $curl_options);
-		$result =
-			curl_setopt_array($this->curl_connection, $default_curl_options);
-
-		return $this->curl_connection;
-	}
-
-	public function _close_curl() {
-		if ($this->curl_connection) curl_close($this->curl_connection);
-		if ($this->cookieJar) unlink($this->cookieJar);
-	}
-
-	public function _curl_login() {
-		global $configArray, $logger;
-		$curl_url = $configArray['Catalog']['url'] . "/patroninfo";
-		$post_data   = $this->driver->_getLoginFormValues();
-		$post_data   = $this->driver->_get;
-		$post_string = http_build_query($post_data);
-
-		$logger->log('Loading page ' . $curl_url, PEAR_LOG_INFO);
-
-		$this->_curl_connect($curl_url);
-		curl_setopt_array($this->curl_connection, array(
-			CURLOPT_POST => true, // default is post
-			CURLOPT_POSTFIELDS => $post_string
-		));
-
-		$loginResult = curl_exec($this->curl_connection); // Load the page, but we don't need to do anything with the results.
-
-		//When a library uses Encore, the initial login does a redirect and requires additional parameters.
-		if (preg_match('/<input type="hidden" name="lt" value="(.*?)" \/>/si', $loginResult, $loginMatches)) {
-			$lt = $loginMatches[1]; //G et the lt value
-
-			//Login again
-			$post_data['lt']       = $lt;
-			$post_data['_eventId'] = 'submit';
-			$post_string = http_build_query($post_data);
-			curl_setopt($this->curl_connection, CURLOPT_POSTFIELDS, $post_string);
-
-			$loginResult = curl_exec($this->curl_connection);
-//			$curlInfo    = curl_getinfo($this->curl_connection); // debug info
-		}
-		return $loginResult;
-	}
-
 	/**
 	 * Taken from the class MarcRecord method getShortId.
-	 *
-	 * TODO: if we end up using that class, use it instead
 	 *
 	 * @param $longId  III record Id with the 8th check digit included
 	 * @return mixed|string the initial dot & the trailing check digit removed
@@ -157,22 +50,27 @@ class MillenniumBooking {
 			return array('success' => false, 'message' => 'Invalid End Date or Time.');
 		}
 
-//		$marc = $this->driver->getItemsFast($recordId, true); // first step to get item location code
+		$driver = &$this->driver;
+		global $user;
+
+//		$marc = $driver->getItemsFast($recordId, true); // first step to get item location code
 
 		// Login to Millennium webPac
-		$this->_curl_login();
+		$driver->_curl_login($user);
 
 //		$scope = $this->driver->getLibraryScope();
 //		$bookingUrl = $configArray['Catalog']['url'] ."/webbook~S$scope?/$bib=&back=";
 
-		$bookingUrl = $this->driver->getVendorOpacUrl() ."/webbook?/$bib=&back=";
+		$bookingUrl = $driver->getVendorOpacUrl() ."/webbook?/$bib=&back=";
 		// the strange get url parameters ?/$bib&back= is needed to avoid a response from the server claiming a 502 proxy error
 		// Scope appears to be unnecessary at this point.
 
 		// Get pagen from form
-		$result = curl_setopt($this->curl_connection, CURLOPT_URL, $bookingUrl);
-		$curlResponse = curl_exec($this->curl_connection);
-//<input name="webbook_pagen" value="2" type="hidden">
+//		$result = curl_setopt($this->curl_connection, CURLOPT_URL, $bookingUrl);
+//		$curlResponse = curl_exec($this->curl_connection);
+////<input name="webbook_pagen" value="2" type="hidden">
+
+		$curlResponse = $driver->_curlGetPage($bookingUrl);
 
 		$tag = 'input';
 		$tag_pattern =
@@ -208,7 +106,6 @@ class MillenniumBooking {
 			}
 		}
 
-		global $user;
 		$patronId = $user->username; // username seems to be the patron Id
 
 		$post = array(
@@ -228,23 +125,20 @@ class MillenniumBooking {
 			'webbook_end_n_Hour' => $endDateTime->format('h'),
 			'webbook_end_n_Min' => $endDateTime->format('i'),
 			'webbook_end_n_AMPM' => $endDateTime->format('H') > 11 ? 'PM' : 'AM', // has to be uppercase for the screenscraping
-			'webbook_note' => '', //TODO
-
-			// hidden items from the confirmation page
-//			'webbook_item' => '',
-//			'webbook_itemnum' => '',
+			'webbook_note' => '', // the web note doesn't seem to be displayed to the user any where after submit
 		);
 		if (!empty($loc)) $post['webbook_loc'] = $loc; // if we have this info add it, don't include otherwise.
-		$postString = http_build_query($post);
-
-		$result = curl_setopt_array($this->curl_connection, array(
-//			CURLOPT_URL => $bookingUrl,
-			CURLOPT_POST => true,
-			CURLOPT_POSTFIELDS => $postString,
-		));
-
-		$curlResponse = curl_exec($this->curl_connection);
-		if ($curlError = curl_errno($this->curl_connection)) {
+//		$postString = http_build_query($post);
+//
+//		$result = curl_setopt_array($this->curl_connection, array(
+////			CURLOPT_URL => $bookingUrl,
+//			CURLOPT_POST => true,
+//			CURLOPT_POSTFIELDS => $postString,
+//		));
+//
+//		$curlResponse = curl_exec($this->curl_connection);
+		$curlResponse = $driver->_curlPostPage($bookingUrl, $post);
+		if ($curlError = curl_errno($driver->curl_connection)) {
 			//TODO log error as well.
 			return array(
 				'success' => false,
@@ -286,18 +180,15 @@ class MillenniumBooking {
 
 		if (!is_array($cancelIds)) $cancelIds = array($cancelIds); // for a single item
 
-		$scope = $this->driver->getLibraryScope(); // TODO: Fix: Not coming back with 100
-		$scope = 100;
-		$patronInfo = $this->driver->_getPatronDump($this->driver->_getBarcode());
+		global $user;
+		$driver = &$this->driver;
+		$scope = $driver->getLibraryScope();
+		$patronInfo = $driver->_getPatronDump($user->getBarcode());
 
-		$cancelBookingUrl = $this->driver->getVendorOpacUrl() ."/patroninfo~S$scope?/". $patronInfo['RECORD_#'].'/bookings';
+		$cancelBookingUrl = $driver->getVendorOpacUrl() ."/patroninfo~S$scope?/". $patronInfo['RECORD_#'].'/bookings';
 			// scoping needed for canceling booked materials
 
-		$this->_curl_login();
-		curl_setopt_array($this->curl_connection, array(
-			CURLOPT_URL => $cancelBookingUrl,
-			CURLOPT_POST => true,
-		));
+		$driver->_curl_login($user);
 
 		$post = array(
 			'canbooksome' => 'YES'
@@ -306,28 +197,20 @@ class MillenniumBooking {
 			if (is_numeric($i)) $post['canbook'.$i] = $cancelId; // recreating the cancelName variable canbookX
 			else $post[$i] = $cancelId; // when cancelName is passed back
 		}
-		$post_string = http_build_query($post);
-		curl_setopt($this->curl_connection, CURLOPT_POSTFIELDS, $post_string);
-		$curlResponse = curl_exec($this->curl_connection);
+
+
+		$initialResponse = $driver->_curlPostPage($cancelBookingUrl, $post);
 		$errors = array();
-		if ($curlError = curl_errno($this->curl_connection)) return array(
+		if ($curlError = curl_errno($driver->curl_connection)) return array(
 			'success' => false,
 			'message' => 'There was an error communicating with the circulation system.'
 		);
 
 		// get the bookings again, to verify that they were in fact really cancelled.
-		curl_setopt_array($this->curl_connection, array(
-			CURLOPT_POSTFIELDS => '',
-			CURLOPT_POST => false
-		));
-		$curlResponse = curl_exec($this->curl_connection);
+		$curlResponse = $driver->_curlPostPage($cancelBookingUrl, array());
 
 		foreach ($cancelIds as $cancelId) {
 			// successful cancels return books page without the item
-//			$regEx = '/'.preg_quote($cancelId,'/').'/'; // create a properly escaped regular expression
-//			if (preg_match($regEx, $curlResponse)) { // looking for this booking in results, meaning it failed to cancel.
-//				$errors[$cancelId] = 'Failed to Cancel Booking.'; // TODO Add Title to each Message
-//			}
 			if (strpos($curlResponse, $cancelId) !== false) { // looking for this booking in results, meaning it failed to cancel.
 				if (empty($errors)) $bookings = $this->parseBookingsPage($curlResponse);
 					// get bookings info on the first detected error
@@ -348,11 +231,57 @@ class MillenniumBooking {
 		);
 	}
 
-	public function getMyBookings(){
-		$patronDump = $this->driver->_getPatronDump($this->driver->_getBarcode());
+	public function cancelAllBookedMaterial() {
+		global $user;
+		$driver = &$this->driver;
+		$scope = $driver->getLibraryScope();
+		$patronInfo = $driver->_getPatronDump($user->getBarcode());
 
-		// Fetch Millennium Webpac Bookings page
-		$html = $this->driver->_fetchPatronInfoPage($patronDump, 'bookings');
+		$cancelBookingUrl = $driver->getVendorOpacUrl() ."/patroninfo~S$scope?/". $patronInfo['RECORD_#'].'/bookings';
+			// scoping needed for canceling booked materials
+
+		$driver->_curl_login($user);
+
+		$post = array(
+			'canbookall' => 'YES'
+		);
+		$initialResponse = $driver->_curlPostPage($cancelBookingUrl, $post);
+		$errors = array();
+		if ($curlError = curl_errno($driver->curl_connection)) return array(
+			'success' => false,
+			'message' => 'There was an error communicating with the circulation system.'
+		);
+
+		// get the bookings again, to verify that they were in fact really cancelled.
+		$curlResponse = $driver->_curlPostPage($cancelBookingUrl, array());
+		if (!strpos($curlResponse, 'No bookings found')) { // 'No bookings found' is our success phrase
+			$bookings = $this->parseBookingsPage($curlResponse);
+			if (!empty($bookings)) { // a booking wasn't canceled
+				foreach ($bookings as $booking) {
+					$errors[$booking['cancelValue']] = 'Failed to cancel booking for <strong>' . $booking['title'] . '</strong> from ' . strftime('%b %d, %Y at %I:%M %p', $booking['startDateTime']) . ' to ' . strftime('%b %d, %Y at %I:%M %p', $booking['endDateTime']);
+				}
+			}
+		}
+
+		if (empty($errors)) return array(
+			'success' => true,
+			'message' => 'Your bookings were successfully canceled.'
+		);
+		else return array(
+			'success' => false,
+			'message' => $errors
+		);
+	}
+
+	public function getMyBookings(){
+		$driver = &$this->driver;
+		global $user;
+
+//		$patronDump = $driver->_getPatronDump($driver->_getBarcode());
+		// looks like this is deprecated now.
+
+		// Fetch Millennium WebPac Bookings page
+		$html = $driver->_fetchPatronInfoPage($user, 'bookings');
 
 		// Parse out Bookings Information
 		$bookings = $this->parseBookingsPage($html);
@@ -375,7 +304,6 @@ class MillenniumBooking {
 
 					//Load rating information
 //					$booking['ratingData'] = $recordDriver->getRatingData(); // not displaying ratings at this time
-
 				}
 				enableErrorHandler();
 			}
@@ -387,14 +315,6 @@ class MillenniumBooking {
 
 	private function parseBookingsPage($html) {
 		$bookings = array();
-
-//		// Column Headers
-//		if(preg_match_all('/<th\\s+class="patFuncHeaders">\\s*(?<columnNames>[\\w\\s]*?)\\s*<\/th>/si', $html, $columnNames, PREG_SET_ORDER)) {
-//			foreach ($columnNames as $i => $col) {
-//				$columnNames[$i] = $col['columnNames'];
-//				$columnNames[$col['columnNames']] = $i; // set keys to get column order
-//			}
-//		}
 
 		// Table Rows for each Booking
 		if(preg_match_all('/<tr\\s+class="patFuncEntry">(?<bookingRow>.*?)<\/tr>/si', $html, $rows, PREG_SET_ORDER)) {
