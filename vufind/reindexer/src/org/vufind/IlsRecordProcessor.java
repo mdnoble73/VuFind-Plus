@@ -442,21 +442,14 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 						}else{
 							logger.warn("Filename for local econtent not specified " + eContentData + " " + identifier);
 						}
-						/*if (eContentFields.length >= 6){
-							ilsEContentItem.setAcsId(eContentFields[5].trim());
-						}*/
 					}else{
 						//Field 4 is the filename
 						itemInfo.seteContentFilename(eContentFields[3].trim());
-						/*if (eContentFields.length >= 5){
-							ilsEContentItem.setAcsId(eContentFields[4].trim());
-						}*/
 					}
 				}
 			}
 		}else{
 			//This is for a "less advanced" catalog, set some basic info
-			itemInfo.seteContentSource("External eContent");
 			itemInfo.seteContentProtectionType("external");
 			itemInfo.seteContentSharing(getEContentSharing(itemInfo, itemField));
 			itemInfo.seteContentSource(getSourceType(record, itemField));
