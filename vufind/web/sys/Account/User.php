@@ -620,6 +620,23 @@ class User extends DB_DataObject
 		return $allHolds;
 	}
 
+	public function getMyBookings($includeLinkedUsers = true){
+		$ilsBookings = $this->getCatalogDriver()->getMyBookings($this);
+		if (PEAR_Singleton::isError($ilsBookings)) {
+			$ilsBookings = array();
+		}
+
+		if ($includeLinkedUsers) {
+			if ($this->getLinkedUsers() != null) {
+				/** @var User $user */
+				foreach ($this->getLinkedUsers() as $user) {
+					$ilsBookings = array_merge_recursive($ilsBookings, $user->getMyBookings(false));
+				}
+			}
+		}
+		return $ilsBookings;
+	}
+	
 	public function getNameAndLibraryLabel(){
 		return $this->displayName . ' - ' . $this->getHomeLibrarySystemName();
 	}

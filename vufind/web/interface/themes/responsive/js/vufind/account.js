@@ -524,11 +524,31 @@ VuFind.Account = (function(){
 
 		},
 
-		cancelAllBookings: function(cancelId){
-			if (confirm('Cancel All Bookings?')) {
-				// TODO: code this
-				alert('Cancel Booking!')
+		cancelAllBookings: function(){
+			if (Globals.loggedIn) {
+				if (confirm('Cancel all of your bookings?')) {
+					VuFind.loadingMessage();
+					$.getJSON(Globals.path + "/MyAccount/AJAX?method=cancelBooking&cancelAll=1", function(data){
+						VuFind.showMessage(data.title, data.modalBody, data.success); // autoclose when successful
+						if (data.success) {
+							// remove canceled items from page
+							$("input.titleSelect").closest('div.result').remove();
+						} else if (data.failed) { // remove items that didn't fail
+							var searchArray = data.failed.map(function(ele){return ele.toString()});
+							// convert any number values to string, this is needed bcs inArray() below does strict comparisons
+							// & id will be a string. (sometimes the id values are of type number )
+							$("input.titleSelect").each(function(){
+								var id = $(this).attr('id').replace(/selected/g, ''); //strip down to just the id part
+								if ($.inArray(id, searchArray) == -1) // if the item isn't one of the failed cancels, get rid of its containing div.
+									$(this).closest('div.result').remove();
+							});
+						}
+					}).fail(VuFind.ajaxFail);
+				}
+			} else {
+				this.ajaxLogin(null, VuFind.Account.cancelAllBookings, false);
 			}
+			return false;
 		},
 
 		/* update the sort parameter and redirect the user back to the same page */
