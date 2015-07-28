@@ -94,8 +94,10 @@ public class ScopingInfo {
 	}
 
 	public String getScopingDetails(){
+		String itemIdentifier = item.getItemIdentifier();
+		if (itemIdentifier == null) itemIdentifier = "";
 		return new StringBuilder().append(item.getFullRecordIdentifier()).append("|")
-				.append(item.getItemIdentifier()).append("|")
+				.append(itemIdentifier).append("|")
 				.append(groupedStatus).append("|")
 				.append(status).append("|")
 				.append(locallyOwned).append("|")

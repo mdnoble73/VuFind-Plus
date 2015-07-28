@@ -1094,10 +1094,10 @@ class GroupedWorkDriver extends RecordInterface{
 				}
 				foreach ($scopingInfoRaw as $tmpItem){
 					$scopingDetails = explode('|', $tmpItem);
-					$scopeKey = $scopingDetails[0] . ':' . $scopingDetails[1];
+					$scopeKey = $scopingDetails[0] . ':' . ($scopingDetails[1] == 'null' ? '' : $scopingDetails[1]);
 					$scopingInfo[$scopeKey] = $scopingDetails;
 					$validRecordIds[] = $scopingDetails[0];
-					$validItemIds[] = $scopingDetails[0] . ':' . $scopingDetails[1];
+					$validItemIds[] = $scopeKey;
 				}
 			}
 
@@ -1203,7 +1203,7 @@ class GroupedWorkDriver extends RecordInterface{
 							$relatedRecord['eContentSource'] = $curItem[9];
 						}
 						//Get Scoping information for this record
-						$scopeKey = $curItem[0] . ':' . $curItem[1];
+						$scopeKey = $curItem[0] . ':' . ($curItem[1] == 'null' ? '' : $curItem[1]);
 						$scopingDetails = $scopingInfo[$scopeKey];
 						$groupedStatus = $scopingDetails[2];
 						$status = $scopingDetails[3];
