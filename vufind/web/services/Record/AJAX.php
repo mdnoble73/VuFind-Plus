@@ -38,7 +38,7 @@ class Record_AJAX extends Action {
 			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
 			header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
 			echo $this->json_utf8_encode($this->$method());
-		}else if (in_array($method, array('GetGoDeeperData', 'getPurchaseOptions'))){
+		}else if (in_array($method, array('GetGoDeeperData', 'getPurchaseOptions', 'getBookingCalendar'))){
 			header('Content-type: text/html');
 			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
 			header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
@@ -440,6 +440,14 @@ class Record_AJAX extends Action {
 			);
 		}
 		return $results;
+	}
+
+	function getBookingCalendar(){
+		$recordId = $_REQUEST['id'];
+		if (!empty($recordId)) {
+			$catalog = CatalogFactory::getCatalogConnectionInstance();
+			return $catalog->getBookingCalendar($recordId);
+		}
 	}
 
 	function bookMaterial(){

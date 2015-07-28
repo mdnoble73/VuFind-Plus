@@ -48,6 +48,21 @@
 		</div>
 	</fieldset>
 </form>
+	<hr>
+	<div class="row">
+		<button id="calendarButton" class="btn btn-info center-block" type="button" data-toggle="collapse" data-target="#bookingCalendar" aria-expanded="false" aria-controls="bookingCalendar" style="display: none; margin-bottom: 10px;">
+			Show/Hide Hourly Calendar
+		</button>
+
+		<div class="col-xs-10 col-xs-offset-1">
+			<style type="text/css" scoped>
+				#bookingCalendar table td.active {ldelim} {* muted text applied to closed and unavailable times. *}
+					color: #999999;
+				{rdelim}
+			</style>
+
+			<div id="bookingCalendar" class="collapse"></div>
+	</div>
 	<script type="text/javascript">
 		{if !$errorMessage}{* don't add this on reload of form *}
 		{literal}
@@ -91,8 +106,17 @@
 				added = ( (input.length == 1 && $.isNumeric(input) && input != 1) // typing first digit of the hour, not a 1
 				|| (input.length == 2 && $.isNumeric(input))  ); // typing the second digit of the hour, 10 & greater
 				if (added) $(this).val(input + ':'); // add ':' after initial numbers typed (treat as hours on 12 hour clock)
-			})
+			});
+
+			$.get(Globals.path + '{/literal}{$fullPath|replace:'getBookMaterialForm':'getBookingCalendar'}{literal}',
+							function(data){
+								$('#bookingCalendar').append(data);
+								$('#calendarButton').show(); // show button when we are able to get the calendar
+
+			}, 'html');
 		});
+
+		/* TODO: not in ready block, is that a mistake? */
 		{/literal}{if !$errorMessage}{* initial load only (the error message will be populated on subsequent loads)
 		The section of code causes "too much recursion" errors on the second load *}{literal}
 		$('#startDate').on('changeDate', function(e){
@@ -100,7 +124,8 @@
 		});
 		$('#endDate').on('changeDate', function(e){
 			if (!$('#startDate').datepicker('getDate')) $('#startDate').datepicker('setEndDate', $(this).datepicker('getDate'))
-		})
+		});
+
 		{/literal}{/if}
 		{* time is an array of valid times to chose from, by 10 minutes intervals.
 
@@ -109,6 +134,7 @@
 		  the autocomplete source uses a custom searching function that matches the term against the start of the valid times.
 		  so typing 3, will return all the times with an hour of 3
 		 *}
+
 	</script>
 {/strip}
 {*
