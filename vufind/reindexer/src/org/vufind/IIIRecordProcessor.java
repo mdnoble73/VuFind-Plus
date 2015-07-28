@@ -152,6 +152,10 @@ public abstract class IIIRecordProcessor extends IlsRecordProcessor{
 	}
 
 	private boolean isPTypeValid(HashSet<Long> determinerPatronTypes, HashSet<Long> pTypesToCheck) {
+		//For our case,
+		if (pTypesToCheck.size() == 0){
+			return true;
+		}
 		for (Long determinerPType : determinerPatronTypes){
 			for (Long pTypeToCheck : pTypesToCheck){
 				if (pTypeToCheck.equals(determinerPType)) {
