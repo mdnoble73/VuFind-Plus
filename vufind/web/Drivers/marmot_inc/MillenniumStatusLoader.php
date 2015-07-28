@@ -29,6 +29,7 @@ class MillenniumStatusLoader{
 	 *  statusfull
 	 *  availability
 	 *  holdable
+	 *  bookable
 	 *  nonHoldableReason
 	 *  reserve
 	 *  holdQueueLength
@@ -361,6 +362,14 @@ class MillenniumStatusLoader{
 						//We won't want to remove titles based on holdability, but we do want to check if it is holdable
 						if (!$this->driver->isItemHoldableToPatron($holding['locationCode'], $holding['iType'], $pType)){
 							$holding['holdable'] = 0;
+						}
+					}
+
+					if ($library->enableMaterialsBooking){
+						if ($this->driver->isItemBookableToPatron($holding['locationCode'], $holding['iType'], $pType)){
+							$holding['bookable'] = 1;
+						}else{
+							$holding['bookable'] = 0;
 						}
 					}
 				}
