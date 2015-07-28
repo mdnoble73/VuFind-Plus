@@ -166,8 +166,7 @@ public class ItemInfo {
 
 
 	private String baseDetails = null;
-	public String getDetails(Scope scope){
-		ScopingInfo scopeInfo = this.scopingInfo.get(scope.getScopeName());
+	public String getDetails(){
 		if (baseDetails == null){
 			//Cache the part that doesn't change depending on the scope
 			baseDetails = new StringBuilder().append(recordInfo.getFullIdentifier()).append("|")
@@ -181,19 +180,10 @@ public class ItemInfo {
 					.append(isEContent).append("|")
 					.append(getCleanDetailValue(eContentSource)).append("|")
 					.append(getCleanDetailValue(eContentFilename)).append("|")
-					.append(getCleanDetailValue(eContentUrl)).append("|")
-					.append(getCleanDetailValue(callNumber)).append("|").toString();
+					.append(getCleanDetailValue(eContentUrl))
+					.toString();
 		}
-		return new StringBuilder().append(baseDetails).append("|")
-				.append(scopeInfo.getGroupedStatus()).append("|")
-				.append(scopeInfo.getStatus()).append("|")
-				.append(scopeInfo.isLocallyOwned()).append("|")
-				.append(scopeInfo.isAvailable()).append("|")
-				.append(scopeInfo.isHoldable()).append("|")
-				.append(scopeInfo.isBookable()).append("|")
-				.append(scopeInfo.isInLibraryUseOnly())
-				.append("|").append(scopeInfo.isLibraryOwned()).toString()
-				;
+		return baseDetails;
 	}
 
 	private String getCleanDetailValue(String value) {
@@ -272,6 +262,10 @@ public class ItemInfo {
 		return scopeInfo;
 	}
 
+	public HashMap<String, ScopingInfo> getScopingInfo() {
+		return scopingInfo;
+	}
+
 	public HashSet<String> getAllOwningLibraries() {
 		HashSet<String> owningLibraryValues = new HashSet<>();
 		for (ScopingInfo curScope : scopingInfo.values()){
@@ -348,4 +342,7 @@ public class ItemInfo {
 		this.shelfLocationCode = shelfLocationCode;
 	}
 
+	public String getFullRecordIdentifier() {
+		return recordInfo.getFullIdentifier();
+	}
 }

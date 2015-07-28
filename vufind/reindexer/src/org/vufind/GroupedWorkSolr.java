@@ -296,17 +296,67 @@ public class GroupedWorkSolr {
 	protected void addScopedFieldsToDocument(int availableAtBoostValue, int ownedByBoostValue, SolrInputDocument doc) {
 		//Load information based on scopes.  This has some pretty severe performance implications since we potentially
 		//have a lot of scopes and a lot of items & records.
-		HashSet<String> scopesWithRecords = new HashSet<>();
-		HashSet<String> availableFacets = new HashSet<>();
-		for (Scope scope : groupedWorkIndexer.getScopes()){
+		for (RecordInfo curRecord : relatedRecords.values()){
+			doc.addField("record_details", curRecord.getDetails());
+			for (ItemInfo curItem : curRecord.getRelatedItems()){
+				doc.addField("item_details", curItem.getDetails());
+				for (String curScopeName : curItem.getScopingInfo().keySet()){
+					ScopingInfo curScope = curItem.getScopingInfo().get(curScopeName);
+					doc.addField("scoping_details_" + curScopeName, curScope.getScopingDetails());
+					addUniqueFieldValue(doc, "scope_has_related_records", curScopeName);
+					addUniqueFieldValue(doc, "format_" + curScopeName, curItem.getFormat());
+					addUniqueFieldValues(doc, "format_" + curScopeName, curRecord.getFormats());
+					addUniqueFieldValue(doc, "format_category_" + curScopeName, curItem.getFormatCategory());
+					addUniqueFieldValues(doc, "format_category_" + curScopeName, curRecord.getFormatCategories());
+					addUniqueFieldValue(doc, "detailed_location_" + curScopeName, curItem.getShelfLocation());
+					if (curScope.isLocallyOwned()) {
+						addUniqueFieldValue(doc, "detailed_location_" + curScopeName, curItem.getCollection());
+					}
+					if (curScope.isAvailable()){
+						addUniqueFieldValue(doc, "available_at", curScope.getScope().getFacetLabel());
+					}
+					//TODO: Different toggles for library and location?
+					addUniqueFieldValue(doc, "availability_toggle_" + curScopeName, "Entire Collection");
+					if (curScope.isLocallyOwned()) {
+						addUniqueFieldValue(doc, "availability_toggle_" + curScopeName, "Library Collection");
+						addUniqueFieldValue(doc, "availability_toggle_" + curScopeName, "Branch Collection");
+						updateMaxValueField(doc, "lib_boost_" + curScopeName, ownedByBoostValue);
+					}else if (curScope.isLibraryOwned()) {
+						addUniqueFieldValue(doc, "availability_toggle_" + curScopeName, "Library Collection");
+						updateMaxValueField(doc, "lib_boost_" + curScopeName, ownedByBoostValue);
+					}
+					if (curScope.isAvailable()){
+						if (curScope.isLocallyOwned()) {
+							addUniqueFieldValue(doc, "availability_toggle_" + curScopeName, "Available Now");
+							addUniqueFieldValue(doc, "availability_toggle_" + curScopeName, "Available Locally");
+							updateMaxValueField(doc, "lib_boost_" + curScopeName, availableAtBoostValue);
+						} else if (curScope.isLibraryOwned()) {
+							addUniqueFieldValue(doc, "availability_toggle_" + curScopeName, "Available Locally");
+						} else{
+							addUniqueFieldValue(doc, "availability_toggle_" + curScopeName, "Available Anywhere");
+						}
+					}
+
+					addUniqueFieldValue(doc, "itype_" + curScopeName, curItem.getIType());
+					if (curItem.isEContent()) {
+						addUniqueFieldValue(doc, "econtent_source_" + curScopeName, curItem.geteContentSource());
+						addUniqueFieldValue(doc, "econtent_protection_type_" + curScopeName, curItem.geteContentProtectionType());
+					}
+					if (curScope.isLocallyOwned() || curScope.isLibraryOwned()) {
+						addUniqueFieldValue(doc, "local_callnumber_" + curScopeName, curItem.getCallNumber());
+						setSingleValuedFieldValue(doc, "callnumber_sort_" + curScopeName, curItem.getSortableCallNumber());
+					}
+				}
+			}
+		}
+
+		/*for (Scope scope : groupedWorkIndexer.getScopes()){
 			HashSet<RecordInfo> scopedRecords = new HashSet<>();
 			HashSet<ItemInfo> scopedItems = new HashSet<>();
 			loadRelatedRecordsAndItemsForScope(scope, scopedRecords, scopedItems);
 			if (scopedRecords.size() > 0) {
 				String scopeName = scope.getScopeName();
 				scopesWithRecords.add(scopeName);
-				doc.addField("related_record_ids_" + scopeName, getRelatedRecordDetails(scopedRecords));
-				doc.addField("related_items_" + scopeName, getRelatedItemDetails(scopedItems, scope));
 				doc.addField("format_" + scopeName, getScopedFormats(scopedRecords));
 				doc.addField("format_category_" + scopeName, getScopedFormatCategories(scopedRecords));
 				HashSet<String> detailedLocations = getScopedShelfLocations(scopedItems);
@@ -343,8 +393,54 @@ public class GroupedWorkSolr {
 			}
 		}
 		doc.addField("scope_has_related_records", scopesWithRecords);
-		doc.addField("available_at", availableFacets);
+		doc.addField("available_at", availableFacets);*/
+	}
 
+	/**
+	 * Update a field that can only contain a single value.  Ignores any subsequent after the first.
+	 *
+	 * @param doc
+	 * @param fieldName
+	 * @param value
+	 */
+	private void setSingleValuedFieldValue(SolrInputDocument doc, String fieldName, String value) {
+		Object curValue = doc.getFieldValue(fieldName);
+		if (curValue == null){
+			doc.addField(fieldName, value);
+		}
+	}
+
+	private void updateMaxValueField(SolrInputDocument doc, String fieldName, int value) {
+		Object curValue = doc.getFieldValue(fieldName);
+		if (curValue == null){
+			doc.addField(fieldName, value);
+		}else{
+			if ((Integer)curValue < value){
+				doc.setField(fieldName, value);
+			}
+		}
+	}
+
+	private void addUniqueFieldValue(SolrInputDocument doc, String fieldName, String value){
+		if (value == null) return;
+		Collection<Object> fieldValues = doc.getFieldValues(fieldName);
+		if (fieldValues == null || !fieldValues.contains(value)){
+			doc.addField(fieldName, value);
+		}
+	}
+
+	private void addUniqueFieldValues(SolrInputDocument doc, String fieldName, Collection<String> values){
+		if (values.size() == 0) return;
+		Collection<Object> fieldValues = doc.getFieldValues(fieldName);
+		if (fieldValues == null){
+			doc.addField(fieldName, values);
+		}else{
+			for (String value : values){
+				if (!fieldValues.contains(value)){
+					doc.addField(fieldName, value);
+				}
+			}
+		}
 	}
 
 	private boolean isLocallyOwned(HashSet<ItemInfo> scopedItems, Scope scope) {
@@ -491,7 +587,7 @@ public class GroupedWorkSolr {
 	public HashSet<String> getRelatedItemDetails(HashSet<ItemInfo> scopedItems, Scope scope) {
 		HashSet<String> relatedItemDetails = new HashSet<>();
 		for (ItemInfo curItem : scopedItems){
-			relatedItemDetails.add(curItem.getDetails(scope));
+			//relatedItemDetails.add(curItem.getDetails(scope));
 		}
 		return relatedItemDetails;
 	}

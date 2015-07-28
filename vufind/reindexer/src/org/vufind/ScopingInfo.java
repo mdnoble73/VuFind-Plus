@@ -92,4 +92,19 @@ public class ScopingInfo {
 	public void setLibraryOwned(boolean libraryOwned) {
 		this.libraryOwned = libraryOwned;
 	}
+
+	public String getScopingDetails(){
+		return new StringBuilder().append(item.getFullRecordIdentifier()).append("|")
+				.append(item.getItemIdentifier()).append("|")
+				.append(groupedStatus).append("|")
+				.append(status).append("|")
+				.append(locallyOwned).append("|")
+				.append(available).append("|")
+				.append(holdable).append("|")
+				.append(bookable).append("|")
+				.append(inLibraryUseOnly).append("|")
+				.append(libraryOwned)
+				.toString()
+				;
+	}
 }

@@ -194,7 +194,11 @@ public class OverDriveProcessor {
 										ScopingInfo scopingInfo = itemInfo.addScope(curScope);
 										scopingInfo.setAvailable(available);
 										scopingInfo.setHoldable(true);
-										scopingInfo.setLocallyOwned(true);
+										if (curScope.isLocationScope()) {
+											scopingInfo.setLocallyOwned(true);
+										}else{
+											scopingInfo.setLibraryOwned(true);
+										}
 									}
 								}
 

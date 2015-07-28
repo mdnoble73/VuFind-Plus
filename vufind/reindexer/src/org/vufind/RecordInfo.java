@@ -88,6 +88,7 @@ public class RecordInfo {
 			//None of this changes by scope so we can just form it once and then return the previous value
 			recordDetails = this.getFullIdentifier() + "|" +
 					getPrimaryFormat() + "|" +
+					getPrimaryFormatCategory() + "|" +
 					(edition == null ? "" : edition) + "|" +
 					primaryLanguage + "|" +
 					publisher + "|" +
@@ -109,6 +110,34 @@ public class RecordInfo {
 					relatedFormats.put(curItem.getFormat(), relatedFormats.get(curItem.getFormat()));
 				} else {
 					relatedFormats.put(curItem.getFormat(), 1);
+				}
+			}
+		}
+		int timesUsed = 0;
+		String mostUsedFormat = null;
+		for (String curFormat : relatedFormats.keySet()){
+			if (relatedFormats.get(curFormat) > timesUsed){
+				mostUsedFormat = curFormat;
+				timesUsed = relatedFormats.get(curFormat);
+			}
+		}
+		if (mostUsedFormat == null){
+			return "Unknown";
+		}
+		return mostUsedFormat;
+	}
+
+	protected String getPrimaryFormatCategory() {
+		HashMap<String, Integer> relatedFormats = new HashMap<>();
+		for (String format : formatCategories){
+			relatedFormats.put(format, 1);
+		}
+		for (ItemInfo curItem : relatedItems){
+			if (curItem.getFormatCategory() != null) {
+				if (relatedFormats.containsKey(curItem.getFormatCategory())) {
+					relatedFormats.put(curItem.getFormatCategory(), relatedFormats.get(curItem.getFormatCategory()));
+				} else {
+					relatedFormats.put(curItem.getFormatCategory(), 1);
 				}
 			}
 		}
@@ -148,6 +177,10 @@ public class RecordInfo {
 		return values;
 	}
 
+	public HashSet<String> getFormats() {
+		return formats;
+	}
+
 	public HashSet<String> getAllFormatCategories() {
 		HashSet<String> values = new HashSet<>();
 		values.addAll(formatCategories);
@@ -155,6 +188,10 @@ public class RecordInfo {
 			values.add(curItem.getFormatCategory());
 		}
 		return values;
+	}
+
+	public HashSet<String> getFormatCategories() {
+		return formatCategories;
 	}
 
 	public HashSet<String> getAllOwningLocations() {
