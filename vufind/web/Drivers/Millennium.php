@@ -779,10 +779,15 @@ class Millennium extends ScreenScrapingDriver
 		preg_match_all('/(.*?)\\[.*?\\]=(.*)/', $cleanPatronData, $patronData, PREG_SET_ORDER);
 		for ($curRow = 0; $curRow < count($patronData); $curRow++) {
 			$patronDumpKey = str_replace(" ", "_", trim($patronData[$curRow][1]));
-			if ($patronDumpKey == 'HOLD'){
-				$patronDump[$patronDumpKey][] = isset($patronData[$curRow][2]) ? $patronData[$curRow][2] : '';
-			}else{
-				$patronDump[$patronDumpKey] = isset($patronData[$curRow][2]) ? $patronData[$curRow][2] : '';
+			switch ($patronDumpKey) {
+				// multiple entries
+				case 'HOLD' :
+				case 'BOOKING' :
+					$patronDump_alt[$patronDumpKey][] = isset($patronData[$curRow][2]) ? $patronData[$curRow][2] : '';
+					break;
+				// single entries
+				default :
+					$patronDump_alt[$patronDumpKey] = isset($patronData[$curRow][2]) ? $patronData[$curRow][2] : '';
 			}
 		}
 
