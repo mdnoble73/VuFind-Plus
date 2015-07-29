@@ -148,6 +148,23 @@ class MarcRecord extends IndexRecord
 	 * @access  public
 	 * @return  string              Unique identifier.
 	 */
+	public function getId()
+	{
+		if (isset($this->id)){
+			return $this->id;
+		}else{
+			return $this->fields['id'];
+		}
+	}
+
+	/**
+	 * Return the unique identifier of this record within the Solr index;
+	 * useful for retrieving additional information (like tags and user
+	 * comments) from the external MySQL database.
+	 *
+	 * @access  public
+	 * @return  string              Unique identifier.
+	 */
 	public function getShortId()
 	{
 		$shortId = '';

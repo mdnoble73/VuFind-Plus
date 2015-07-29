@@ -83,10 +83,10 @@ VuFind.Record = (function(){
 			});
 		},
 
-		loadHoldingsInfo: function (id, shortId, source) {
+		loadHoldingsInfo: function (module, id, shortId, source) {
 			var url;
 			if (source == 'VuFind'){
-				url = Globals.path + "/Record/" + encodeURIComponent(id) + "/AJAX";
+				url = Globals.path + "/" + module + "/" + encodeURIComponent(id) + "/AJAX";
 			}else{
 				url = Globals.path + "/EcontentRecord/" + encodeURIComponent(id) + "/AJAX";
 			}

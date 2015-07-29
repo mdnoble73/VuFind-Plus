@@ -29,6 +29,7 @@ require_once ROOT_DIR  . '/RecordDrivers/MarcRecord.php';
 
 abstract class Record_Record extends Action
 {
+	public $source;
 	public $id;
 
 	/**
@@ -67,6 +68,13 @@ abstract class Record_Record extends Action
 		}else{
 			$this->id = $record_id;
 		}
+		if (strpos($this->id, ':')){
+			list($source, $id) = explode(":", $this->id);
+			$this->source = $source;
+			$this->id = $id;
+		}else{
+			$this->source = 'ils';
+		}
 		$interface->assign('id', $this->id);
 
 		if (preg_match('/^[\da-fA-F-]{36}$/', $this->id)){
@@ -75,7 +83,7 @@ abstract class Record_Record extends Action
 		}
 
 		//Check to see if the record exists within the resources table
-		$this->recordDriver = new MarcRecord($this->id);
+		$this->recordDriver = RecordDriverFactory::initRecordDriverById($this->source . ':' . $this->id);
 		if (!$this->recordDriver->isValid()){
 			$interface->assign('sidebar', 'Record/full-record-sidebar.tpl');
 			$interface->setTemplate('invalidRecord.tpl');
@@ -98,14 +106,11 @@ abstract class Record_Record extends Action
 		}
 
 		// Process MARC Data
-		require_once ROOT_DIR  . '/sys/MarcLoader.php';
-		$marcRecord = MarcLoader::loadMarcRecordByILSId($this->id);
+		$marcRecord = $this->recordDriver->getMarcRecord();
 		if ($marcRecord) {
 			$this->marcRecord = $marcRecord;
 			$interface->assign('marc', $marcRecord);
 
-			require_once ROOT_DIR . '/RecordDrivers/MarcRecord.php';
-			$this->recordDriver = new MarcRecord($marcRecord);
 			$interface->assign('recordDriver', $this->recordDriver);
 		} else {
 			$interface->assign('error', 'Cannot Process MARC Record');

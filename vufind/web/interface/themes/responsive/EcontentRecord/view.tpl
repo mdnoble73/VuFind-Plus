@@ -3,7 +3,7 @@
 {/if}
 <script type="text/javascript">
 {literal}$(document).ready(function(){{/literal}
-	VuFind.Record.loadHoldingsInfo('{$id|escape:"url"}', '{$id|escape:"url"}', 'eContent');
+	VuFind.Record.loadHoldingsInfo('EcontentRecord', {$id|escape:"url"}', '{$id|escape:"url"}', 'eContent');
 	{if $isbn || $upc}
 		VuFind.Record.loadEnrichmentInfo('{$id|escape:"url"}', '{$isbn10|escape:"url"}', '{$upc|escape:"url"}', 'eContent');
 	{/if}
