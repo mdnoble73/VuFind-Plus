@@ -214,7 +214,6 @@ class MillenniumCheckouts {
 
 	public function renewAll($patron){
 		global $logger;
-		global $configArray;
 
 		//Setup the call to Millennium
 		$barcode = $this->driver->_getBarcode();

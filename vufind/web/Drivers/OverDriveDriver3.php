@@ -444,17 +444,13 @@ class OverDriveDriver3 {
 		}
 		global $configArray;
 		if (!$this->isUserValidForOverDrive($user)){
-			return array(
-				'items' => array()
-			);
+			return array();
 		}
 		$url = $configArray['OverDrive']['patronApiUrl'] . '/v1/patrons/me/checkouts';
 		$response = $this->_callPatronUrl($user, $url);
 		if ($response == false){
 			//The user is not authorized to use OverDrive
-			return array(
-					'items' => array()
-			);
+			return array();
 		}
 
 		//print_r($response);
