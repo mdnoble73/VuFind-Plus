@@ -550,6 +550,20 @@ class User extends DB_DataObject
 		return $myHolds;
 	}
 
+	public function getNumBookingsTotal($includeLinkedUsers = true){
+		$myBookings = $this->numBookings;
+		if ($includeLinkedUsers){
+			if ($this->getLinkedUsers() != null) {
+				/** @var User $user */
+				foreach ($this->linkedUsers as $user) {
+					$myBookings += $user->getNumBookingsTotal(false);
+				}
+			}
+		}
+
+		return $myBookings;
+	}
+
 	/**
 	 * Return all titles that are currently checked out by the user.
 	 *

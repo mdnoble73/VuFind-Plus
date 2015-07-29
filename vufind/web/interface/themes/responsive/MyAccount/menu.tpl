@@ -67,8 +67,8 @@
 
 						{if $enableMaterialsBooking}
 						<div class="myAccountLink{if $pageTemplate=="bookings.tpl"} active{/if}">
-							<a href="{$path}/MyAccount/Bookings" id="checkedOut">
-								Booked Titles  <span class="badge">{$profile->numBookingstTotal}</span>
+							<a href="{$path}/MyAccount/Bookings" id="bookings">
+								Booked Titles  <span class="badge">{$profile->getNumBookingsTotal()}</span>
 							</a>
 						</div>
 						{/if}

@@ -664,6 +664,7 @@ class Millennium extends ScreenScrapingDriver
 			$user->numHoldsIls = isset($patronDump) ? (isset($patronDump['HOLD']) ? count($patronDump['HOLD']) : 0) : '?';
 			$user->numHoldsAvailableIls = $numHoldsAvailable;
 			$user->numHoldsRequestedIls = $numHoldsRequested;
+			$user->numBookings = isset($patronDump) ? (isset($patronDump['BOOKING']) ? count($patronDump['BOOKING']) : 0) : '?';
 
 			$noticeLabels = array(
 				//'-' => 'Mail',  // officially None in Sierra, as in No Preference Selected.
