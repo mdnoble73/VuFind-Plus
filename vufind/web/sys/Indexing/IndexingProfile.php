@@ -170,7 +170,6 @@ class IndexingProfile extends DB_DataObject{
 			return $ret;
 		}else{
 			$this->saveTranslationMaps();
-			$this->saveLocationMaps();
 		}
 		/** @var Memcache $memCache */
 		global $memCache;
