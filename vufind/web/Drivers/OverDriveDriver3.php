@@ -664,14 +664,14 @@ class OverDriveDriver3 {
 			//TODO: Optimize so we don't need to load all checkouts and holds
 			$summary = array();
 			$checkedOutItems = $this->getOverDriveCheckedOutItems($user, null, true);
-			$summary['numCheckedOut'] = count($checkedOutItems['items']);
+			$summary['numCheckedOut'] = count($checkedOutItems);
 
 			$holds = $this->getOverDriveHolds($user, null, true);
-			$summary['numAvailableHolds'] = count($holds['holds']['available']);
-			$summary['numUnavailableHolds'] = count($holds['holds']['unavailable']);
+			$summary['numAvailableHolds'] = count($holds['available']);
+			$summary['numUnavailableHolds'] = count($holds['unavailable']);
 
 			$summary['checkedOut'] = $checkedOutItems;
-			$summary['holds'] = $holds['holds'];
+			$summary['holds'] = $holds;
 
 			$timer->logTime("Finished loading titles from overdrive summary");
 			$memCache->set('overdrive_summary_' . $user->id, $summary, 0, $configArray['Caching']['overdrive_summary']);
