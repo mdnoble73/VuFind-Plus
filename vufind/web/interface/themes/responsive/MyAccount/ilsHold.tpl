@@ -1,5 +1,7 @@
 {strip}
+	{* Overall hold*}
 	<div class="result row">
+		{* Cover column *}
 		<div class="col-xs-12 col-sm-3">
 			<div class="row">
 				<div class="selectTitle col-xs-2">
@@ -25,7 +27,9 @@
 			</div>
 		</div>
 
+		{* Details Column*}
 		<div class="col-xs-12 col-sm-9">
+			{* Title *}
 			<div class="row">
 				<div class="col-xs-12">
 					<span class="result-index">{$resultIndex})</span>&nbsp;
@@ -44,7 +48,9 @@
 				</div>
 			</div>
 
+			{* 2 column row to show information and then actions*}
 			<div class="row">
+				{* Information column author, format, etc *}
 				<div class="resultDetails col-xs-12 col-md-9">
 					{if $record.author}
 						<div class="row">
@@ -158,14 +164,11 @@
 							{elseif $record.freezeable}
 								<button onclick="return VuFind.Account.freezeHold('{$record.cancelId}', {if $suspendRequiresReactivationDate}true{else}false{/if}, this);" class="btn btn-sm btn-default">{translate text="Freeze Hold"}</button>
 							{/if}
-							{if $canChangePickupLocation}
+							{if $record.locationUpdateable}
 								<button onclick="return VuFind.Account.changeHoldPickupLocation('{$record.cancelId}');" class="btn btn-sm btn-default">Change Pickup Loc.</button>
 							{/if}
 						{/if}
 					</div>
-
-					{* Include standard tools *}
-					{* include file='Record/result-tools.tpl' id=$record.id shortId=$record.shortId ratingData=$record.ratingData *}
 				</div>
 			</div>
 		</div>

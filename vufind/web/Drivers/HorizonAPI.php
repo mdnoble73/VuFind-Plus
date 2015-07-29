@@ -297,10 +297,7 @@ abstract class HorizonAPI extends Horizon{
 				}
 			}
 		}
-		return array(
-			'holds' => $holds,
-			'numUnavailableHolds' => count($holds['unavailable']),
-		);
+		return $holds;
 	}
 
 	/**

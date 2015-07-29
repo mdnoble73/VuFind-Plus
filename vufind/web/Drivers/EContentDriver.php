@@ -481,10 +481,10 @@ class EContentDriver implements DriverInterface{
 	}
 
 	public function getMyHolds($user){
-		$holds = array();
-		$holds['holds'] = array();
-		$holds['holds']['available'] = array();
-		$holds['holds']['unavailable'] = array();
+		$holds = array(
+			'available' => array(),
+			'unavailable' => array()
+		);
 
 		$availableHolds = new EContentHold();
 		$availableHolds->userId = $user->id;
@@ -522,7 +522,7 @@ class EContentDriver implements DriverInterface{
 			$recordDriver = new RestrictedEContentDriver($unavailableHolds->recordId);
 
 			if ($recordDriver->isValid()){
-				$holds['holds']['unavailable'][] = array(
+				$holds['unavailable'][] = array(
 					'id' => $unavailableHolds->recordId,
 					'recordId' => $recordDriver->getUniqueID(),
 					'source' => $recordDriver->getSources(),

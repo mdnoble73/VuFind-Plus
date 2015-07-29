@@ -16,40 +16,6 @@ class MyAccount_Holds extends MyAccount{
 		global $interface;
 		global $user;
 
-		//these actions are being moved to MyAccount/AJAX.php
-//		if (isset($_REQUEST['multiAction'])){
-//			$multiAction = $_REQUEST['multiAction'];
-//			$locationId = isset($_REQUEST['location']) ? $_REQUEST['location'] : null;
-//			$cancelId = array();
-//			$type = 'update';
-//			$freeze = '';
-//			if ($multiAction == 'cancelSelected'){
-//				$type = 'cancel';
-////				$freeze = ''; // same as default setting.
-//			}elseif ($multiAction == 'freezeSelected'){
-////				$type = 'update'; // same as default setting.
-//				$freeze = 'on';
-//			}elseif ($multiAction == 'thawSelected'){
-////				$type = 'update'; // same as default setting.
-//				$freeze = 'off';
-//			}
-////			elseif ($multiAction == 'updateSelected'){ // same as default settings.
-//
-////				$type = 'update';
-////				$freeze = '';
-////			}
-//			$result = $this->catalog->driver->updateHoldDetailed($user->password, $type, '', null, $cancelId, $locationId, $freeze);
-////			$interface->assign('holdResult', $result);
-//
-//
-//			//Redirect back here without the extra parameters.
-//			$redirectUrl = $configArray['Site']['path'] . '/MyAccount/Holds?accountSort=' . ($selectedSortOption = isset($_REQUEST['accountSort']) ? $_REQUEST['accountSort'] : 'title');
-//			header("Location: " . $redirectUrl);
-//
-//
-//			die();
-//		}
-
 		$interface->assign('allowFreezeHolds', true);
 
 		$ils = $configArray['Catalog']['ils'];
@@ -99,20 +65,15 @@ class MyAccount_Holds extends MyAccount{
 				$interface->assign('sortOptions', $sortOptions);
 				$selectedSortOption = isset($_REQUEST['accountSort']) ? $_REQUEST['accountSort'] : 'dueDate';
 				$interface->assign('defaultSortOption', $selectedSortOption);
-				$page = isset($_REQUEST['page']) ? $_REQUEST['page'] : 1;
 
 				$recordsPerPage = isset($_REQUEST['pagesize']) && (is_numeric($_REQUEST['pagesize'])) ? $_REQUEST['pagesize'] : 25;
 				$interface->assign('recordsPerPage', $recordsPerPage);
-				if (isset($_GET['exportToExcel'])) {
-					$recordsPerPage = -1;
-					$page = 1;
-				}
 
 				//Get Holds from the ILS
 				$allHolds = $user->getMyHolds();
 
 				//Make sure available holds come before unavailable
-				$interface->assign('recordList', $allHolds['holds']);
+				$interface->assign('recordList', $allHolds);
 
 				//make call to export function
 				if ((isset($_GET['exportToExcelAvailable'])) || (isset($_GET['exportToExcelUnavailable']))){
@@ -122,7 +83,7 @@ class MyAccount_Holds extends MyAccount{
 					else {
 						$exportType = "unavailable";
 					}
-					$this->exportToExcel($allHolds['holds'], $exportType, $showDateWhenSuspending, $showPosition, $showExpireTime);
+					$this->exportToExcel($allHolds, $exportType, $showDateWhenSuspending, $showPosition, $showExpireTime);
 				}
 			}
 		}

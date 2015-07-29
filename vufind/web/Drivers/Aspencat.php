@@ -1655,10 +1655,7 @@ class Aspencat implements DriverInterface{
 				}
 			}
 		}
-		return array(
-			'holds' => $holds,
-			'numUnavailableHolds' => count($holds['unavailable']),
-		);
+		return $holds;
 	}
 
 	/**
@@ -1751,10 +1748,7 @@ class Aspencat implements DriverInterface{
 			}
 		}
 
-		return array(
-			'holds' => $holds,
-			'numUnavailableHolds' => count($holds['unavailable']),
-		);
+		return $holds;
 	}
 
 	public function updateHold($requestId, $patronId, $type, $title){

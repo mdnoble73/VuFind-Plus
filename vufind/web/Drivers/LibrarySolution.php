@@ -383,19 +383,17 @@ class LibrarySolution extends ScreenScrapingDriver {
 					$curHold['ratingData'] = $recordDriver->getRatingData();
 				}
 				$curHold['link'] = $recordDriver->getLinkUrl();
+				$curHold['user'] = $user->getNameAndLibraryLabel();
 
 				//TODO: Determine the status of available holds
 				if (!isset($curHold['status']) || $curHold['status'] == 'PE' || $curHold['status'] == 'T'){
-					$holds['unavailable'][] = $curHold;
+					$holds['unavailable'][$curHold['holdSource'] . $curHold['itemId'] . $curHold['cancelId']. $curHold['user']] = $curHold;
 				}else{
-					$holds['available'][] = $curHold;
+					$holds['available'][$curHold['holdSource'] . $curHold['itemId'] . $curHold['cancelId']. $curHold['user']] = $curHold;
 				}
 			}
 		}
-		return array(
-			'holds' => $holds,
-			'numUnavailableHolds' => count($holds['unavailable']),
-		);
+		return $holds;
 	}
 
 	/**

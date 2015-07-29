@@ -38,7 +38,7 @@
 								{include file="MyAccount/eContentHold.tpl" record=$record section=$sectionKey resultIndex=$smarty.foreach.recordLoop.iteration}
 							{else}
 								<div class="row">
-									Unknown record source {$record.checkoutSource}
+									Unknown record source {$record.holdSource}
 								</div>
 							{/if}
 						{/foreach}

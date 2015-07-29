@@ -578,8 +578,7 @@ class OverDriveDriver3 {
 			return $this->holds[$user->id];
 		}
 		global $configArray;
-		$holds = array();
-		$holds['holds'] = array(
+		$holds = array(
 			'available' => array(),
 			'unavailable' => array()
 		);
@@ -620,11 +619,11 @@ class OverDriveDriver3 {
 				}
 				$hold['user'] = $user->getNameAndLibraryLabel();
 
-				$key = $hold['holdSource'] . $hold['overDriveId'];
+				$key = $hold['holdSource'] . $hold['overDriveId'] . $hold['user'];
 				if ($hold['available']){
-					$holds['holds']['available'][$key] = $hold;
+					$holds['available'][$key] = $hold;
 				}else{
-					$holds['holds']['unavailable'][$key] = $hold;
+					$holds['unavailable'][$key] = $hold;
 				}
 			}
 		}

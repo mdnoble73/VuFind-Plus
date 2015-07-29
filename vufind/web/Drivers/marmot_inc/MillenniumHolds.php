@@ -304,7 +304,7 @@ class MillenniumHolds{
 		}
 	}
 
-	public function parseHoldsPage($pageContents){
+	public function parseHoldsPage($pageContents, $userLabel){
 		//global $logger;
 		$availableHolds = array();
 		$unavailableHolds = array();
@@ -342,6 +342,7 @@ class MillenniumHolds{
 			$curHold['create'] = null;
 			$curHold['reqnum'] = null;
 			$curHold['holdSource'] = 'ILS';
+			$curHold['user'] = $userLabel;
 
 			//Holds page occasionally has a header with number of items checked out.
 			for ($i=0; $i < sizeof($sCols); $i++) {
@@ -401,13 +402,13 @@ class MillenniumHolds{
 
 						//Extract the current location for the hold if possible
 						$matches = array();
-						if (preg_match('/<select\\s+name=loc(.*?)x(\\d\\d).*?<option\\s+value="([a-z]{1,5})[+ ]*"\\s+selected="selected">.*/s', $sCols[$i], $matches)){
+						if (preg_match('/<select\\s+name=loc(.*?)x(\\d\\d).*?<option\\s+value="([a-z0-9+]{1,5})"\\s+selected="selected">.*/s', $sCols[$i], $matches)) {
 							$curHold['locationId'] = $matches[1];
 							$curHold['locationXnum'] = $matches[2];
 							$curPickupBranch = new Location();
 							$curPickupBranch->whereAdd("code = '{$matches[3]}'");
 							$curPickupBranch->find(1);
-							if ($curPickupBranch->N > 0){
+							if ($curPickupBranch->N > 0) {
 								$curPickupBranch->fetch();
 								$curHold['currentPickupId'] = $curPickupBranch->locationId;
 								$curHold['currentPickupName'] = $curPickupBranch->displayName;
@@ -417,10 +418,14 @@ class MillenniumHolds{
 
 							//Return the full select box for reference.
 							$curHold['locationSelect'] = $sCols[$i];
+						}elseif (preg_match('/<select.*?>/', $sCols[$i])){
+							//Updateable, but no location set
+							$curHold['locationUpdateable'] = true;
+							$curHold['location'] = 'Not Set';
 						}else{
-							$curHold['location'] = $sCols[$i];
+							$curHold['location'] = trim(strip_tags($sCols[$i], '<select><option>'));
 							//Trim the carrier code if any
-							if (preg_match('/.*\s[\w\d]{4}/', $curHold['location'])){
+							if (preg_match('/.*\s[\w\d]{4}$/', $curHold['location'])){
 								$curHold['location'] = substr($curHold['location'], 0, strlen($curHold['location']) - 5);
 							}
 							$curHold['currentPickupName'] = $curHold['location'];
@@ -488,9 +493,9 @@ class MillenniumHolds{
 
 			//if ($sCount > 1) {
 				if (!isset($curHold['status']) || strcasecmp($curHold['status'], "ready") != 0){
-					$holds['unavailable'][] = $curHold;
+					$holds['unavailable'][$curHold['holdSource'] . $curHold['itemId'] . $curHold['cancelId'] . $userLabel] = $curHold;
 				}else{
-					$holds['available'][] = $curHold;
+					$holds['available'][$curHold['holdSource'] . $curHold['itemId'] . $curHold['cancelId']. $userLabel] = $curHold;
 				}
 			//}
 
@@ -518,13 +523,13 @@ class MillenniumHolds{
 		$sResult = $this->driver->_fetchPatronInfoPage($patron, 'holds');
 		$timer->logTime("Got holds page from Millennium");
 
-		$holds = $this->parseHoldsPage($sResult);
+		$holds = $this->parseHoldsPage($sResult, $patron->getNameAndLibraryLabel());
 		$timer->logTime("Parsed Holds page");
 
 		require_once ROOT_DIR . '/RecordDrivers/MarcRecord.php';
 		foreach($holds as $section => $holdSections){
 			foreach($holdSections as $key => $hold){
-				$hold['user'] = $patron->getNameAndLibraryLabel();
+
 				disableErrorHandler();
 				$recordDriver = new MarcRecord($this->driver->accountProfile->recordSource . ":" . $hold['recordId']);
 				if ($recordDriver->isValid()){
@@ -565,10 +570,7 @@ class MillenniumHolds{
 
 		$this->holds[$patron->getBarcode()] = $holds;
 		$timer->logTime("Processed hold pagination and sorting");
-		return array(
-			'holds' => $holds,
-			'numUnavailableHolds' => $numUnavailableHolds,
-		);
+		return $holds;
 	}
 
 	/**

@@ -89,7 +89,6 @@
 						</div>
 					{/if}
 				</div>
-
 				<div class="col-xs-12 col-md-3">
 					<div class="btn-group btn-group-vertical btn-block">
 						{if $section == 'available'}
