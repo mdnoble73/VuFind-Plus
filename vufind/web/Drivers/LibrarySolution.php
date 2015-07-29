@@ -340,6 +340,11 @@ class LibrarySolution extends ScreenScrapingDriver {
 			$holdInfoRaw = $this->_curlGetPage($url);
 			$holdInfo = json_decode($holdInfoRaw);
 
+			$indexingProfile = new IndexingProfile();
+			$indexingProfile->name = $this->accountProfile->recordSource;
+			if (!$indexingProfile->find(true)){
+				$indexingProfile = null;
+			}
 			foreach ($holdInfo->holds as $hold){
 				$curHold= array();
 				$bibId = $hold->bibliographicId;
@@ -352,11 +357,24 @@ class LibrarySolution extends ScreenScrapingDriver {
 				$curHold['shortId'] = $bibId;
 				$curHold['title'] = $hold->title;
 				$curHold['author'] = $hold->author;
-				$curHold['location'] = $hold->holdPickupBranchId;
+				$curHold['locationId'] = $hold->holdPickupBranchId;
+				$curPickupBranch = new Location();
+				$curPickupBranch->code = $hold->holdPickupBranchId;
+				if ($curPickupBranch->find(true)) {
+					$curHold['currentPickupId'] = $curPickupBranch->locationId;
+					$curHold['currentPickupName'] = $curPickupBranch->displayName;
+					$curHold['location'] = $curPickupBranch->displayName;
+				}
 				//$curHold['locationId'] = $matches[1];
 				$curHold['locationUpdateable'] = false;
 				$curHold['currentPickupName'] = $hold->holdPickupBranch;
-				$curHold['status'] = $hold->status;
+
+				if ($indexingProfile){
+					$curHold['status'] = $indexingProfile->translate('item_status', $hold->status);
+				}else{
+					$curHold['status'] = $hold->status;
+				}
+
 				//$expireDate = (string)$hold->expireDate;
 				//$curHold['expire'] = $expireDate;
 				//$curHold['expireTime'] = strtotime($expireDate);
@@ -386,7 +404,7 @@ class LibrarySolution extends ScreenScrapingDriver {
 				$curHold['user'] = $user->getNameAndLibraryLabel();
 
 				//TODO: Determine the status of available holds
-				if (!isset($curHold['status']) || $curHold['status'] == 'PE' || $curHold['status'] == 'T'){
+				if (!isset($hold->status) || $hold->status == 'PE' || $hold->status == 'T'){
 					$holds['unavailable'][$curHold['holdSource'] . $curHold['itemId'] . $curHold['cancelId']. $curHold['user']] = $curHold;
 				}else{
 					$holds['available'][$curHold['holdSource'] . $curHold['itemId'] . $curHold['cancelId']. $curHold['user']] = $curHold;

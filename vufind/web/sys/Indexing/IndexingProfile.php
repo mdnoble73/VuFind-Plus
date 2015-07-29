@@ -149,18 +149,6 @@ class IndexingProfile extends DB_DataObject{
 				}
 			}
 			return $this->translationMaps;
-		}else if ($name == "locationMaps") {
-			if (!isset($this->locationMaps)){
-				//Get the list of location maps
-				$this->locationMaps = array();
-				$translationMap = new LocationMap();
-				$translationMap->indexingProfileId = $this->id;
-				$translationMap->find();
-				while($translationMap->fetch()){
-					$this->locationMaps[$translationMap->id] = clone($translationMap);
-				}
-			}
-			return $this->locationMaps;
 		}
 		return null;
 	}
@@ -168,8 +156,6 @@ class IndexingProfile extends DB_DataObject{
 	public function __set($name, $value){
 		if ($name == "translationMaps") {
 			$this->translationMaps = $value;
-		}elseif ($name == "locationMaps") {
-			$this->locationMaps = $value;
 		}
 	}
 
@@ -204,7 +190,6 @@ class IndexingProfile extends DB_DataObject{
 			return $ret;
 		}else{
 			$this->saveTranslationMaps();
-			$this->saveLocationMaps();
 		}
 		/** @var Memcache $memCache */
 		global $memCache;
@@ -232,22 +217,21 @@ class IndexingProfile extends DB_DataObject{
 		}
 	}
 
-	public function saveLocationMaps(){
-		if (isset ($this->locationMaps)){
-			foreach ($this->locationMaps as $locationMap){
-				if (isset($locationMap->deleteOnSave) && $locationMap->deleteOnSave == true){
-					$locationMap->delete();
-				}else{
-					if (isset($locationMap->id) && is_numeric($locationMap->id)){
-						$locationMap->update();
-					}else{
-						$locationMap->indexingProfileId = $this->id;
-						$locationMap->insert();
+	public function translate($mapName, $value){
+		$translationMap = new TranslationMap();
+		$translationMap->name = $mapName;
+		$translationMap->indexingProfileId = $this->id;
+		if ($translationMap->find(true)){
+			/** @var TranslationMapValue $mapValue */
+			foreach ($translationMap->translationMapValues as $mapValue){
+				if ($mapValue->value == $value){
+					return $mapValue->translation;
+				}else if (substr($mapValue->value, -1) == '*'){
+					if (substr($value, 0, strlen($mapValue) - 1) == substr($mapValue->value, 0, -1)){
+						return $mapValue->translation;
 					}
 				}
 			}
-			//Clear the location maps so they are reloaded the next time
-			unset($this->locationMaps);
 		}
 	}
 }

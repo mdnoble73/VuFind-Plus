@@ -136,7 +136,7 @@
 							</div>
 						</div>
 
-						{if $showPosition}
+						{if $showPosition && $record.position}
 							<div class="row">
 								<div class="result-label col-xs-3">{translate text='Position'}</div>
 								<div class="col-xs-9 result-value">
