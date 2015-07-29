@@ -112,13 +112,14 @@
 							</div>
 						</div>
 
-						<div class="row">
-							<div class="result-label col-xs-3">{translate text='Expires'}</div>
-							<div class="col-xs-9 result-value">
-								{$record.expire|date_format:"%b %d, %Y"}
+						{if $record.expire}
+							<div class="row">
+								<div class="result-label col-xs-3">{translate text='Expires'}</div>
+								<div class="col-xs-9 result-value">
+									{$record.expire|date_format:"%b %d, %Y"}
+								</div>
 							</div>
-						</div>
-
+						{/if}
 					{else}
 						{* Unavailable hold *}
 						<div class="row">
