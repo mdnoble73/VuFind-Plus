@@ -260,7 +260,7 @@ class User extends DB_DataObject
 					if ($linkedUser->find(true)){
 						//Load full information from the catalog
 						$linkedUser = UserAccount::validateAccount($linkedUser->cat_username, $linkedUser->cat_password, $linkedUser->source);
-						if (!PEAR_Singleton::isError($linkedUser)){
+						if ($linkedUser && !PEAR_Singleton::isError($linkedUser)){
 							$this->linkedUsers[] = clone($linkedUser);
 						}
 					}
