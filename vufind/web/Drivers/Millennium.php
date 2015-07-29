@@ -330,6 +330,7 @@ class Millennium extends ScreenScrapingDriver
 			}
 			$iType = $itemField->getSubfield($iTypeSubfield) != null ? trim($itemField->getSubfield($iTypeSubfield)->getData()) : '';
 			$holdable = $this->isItemHoldableToPatron($locationCode, $iType, $pType);
+			$bookable = $this->isItemBookableToPatron($locationCode, $iType, $pType);
 
 			$isLibraryItem = false;
 			$locationLabel = '';
@@ -377,6 +378,7 @@ class Millennium extends ScreenScrapingDriver
 					'callnumber' => $fullCallNumber,
 					'availability' => $available,
 					'holdable' => $holdable,
+					'bookable' => $bookable,
 					'inLibraryUseOnly' => $inLibraryUseOnly,
 					'isLocalItem' => $isLocalItem,
 					'isLibraryItem' => $isLibraryItem,
@@ -1344,7 +1346,7 @@ public function getBookingCalendar($recordId) {
 		$iTypeSubfield = isset($configArray['Reindex']['iTypeSubfield']) ? $configArray['Reindex']['iTypeSubfield'] : 'j';
 		$locationSubfield = isset($configArray['Reindex']['locationSubfield']) ? $configArray['Reindex']['locationSubfield'] : 'j';
 		$items = $marcRecord->getFields($marcItemField);
-		$holdable = false;
+		$bookable = false;
 		$itemNumber = 0;
 		foreach ($items as $item){
 			$itemNumber++;
@@ -1363,13 +1365,13 @@ public function getBookingCalendar($recordId) {
 			//$logger->log("$itemNumber) iType = $iType, locationCode = $locationCode", PEAR_LOG_DEBUG);
 
 			//Check the determiner table to see if this matches
-			$holdable = $this->isItemBookableToPatron($locationCode, $iType, $pType);
+			$bookable = $this->isItemBookableToPatron($locationCode, $iType, $pType);
 
-			if ($holdable){
+			if ($bookable){
 				break;
 			}
 		}
-		return $holdable;
+		return $bookable;
 	}
 
 	public function isItemBookableToPatron($locationCode, $iType, $pType){

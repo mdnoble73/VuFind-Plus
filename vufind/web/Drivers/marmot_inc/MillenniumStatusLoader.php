@@ -506,6 +506,17 @@ class MillenniumStatusLoader{
 			}
 		}
 
+		//TODO: Implement Bookable from Marc
+//		//Check to see if the title is bookable
+//		$bookable = $this->driver->isRecordBookable($marcRecord);
+//		foreach ($sorted_array as $key => $holding){
+//			//Do not override holdability based on status
+//			if (isset($holding['bookable']) && $holding['bookable'] == 1){
+//				$holding['bookable'] = $bookable ? 1 : 0;
+//				$sorted_array[$key] = $holding;
+//			}
+//		}
+
 		if (!$configArray['Catalog']['offline']){
 			//Load order records, these only show in the full page view, not the item display
 			$orderMatches = array();
@@ -790,6 +801,7 @@ class MillenniumStatusLoader{
 			$summaryInformation['offline'] = true;
 			$summaryInformation['status'] = 'The circulation system is offline, status not available.';
 			$summaryInformation['holdable'] = true;
+			$summaryInformation['showBookMaterial'] = false;
 			$summaryInformation['class'] = "unavailable";
 			$summaryInformation['showPlaceHold'] = true;
 			return $summaryInformation;
@@ -868,6 +880,7 @@ class MillenniumStatusLoader{
 		//  - there is at least one download link for the record.
 		$numAvailableCopies = 0;
 		$numHoldableCopies = 0;
+		$numBookableCopies = 0;
 		$numCopies = 0;
 		$numCopiesOnOrder = 0;
 		$availableLocations = array();
@@ -923,6 +936,9 @@ class MillenniumStatusLoader{
 
 			if (isset($holding['holdable']) && $holding['holdable'] == 1){
 				$numHoldableCopies++;
+			}
+			if (isset($holding['bookable']) && $holding['bookable'] == 1){
+				$numBookableCopies++;
 			}
 			$numCopies++;
 
@@ -1002,6 +1018,11 @@ class MillenniumStatusLoader{
 		if ($numHoldableCopies == 0){
 			$summaryInformation['showPlaceHold'] = false;
 		}
+
+//		$summaryInformation['bookableCopies'] = $numHoldableCopies; // may be wanted in the future
+		$summaryInformation['showBookMaterial'] = $numBookableCopies > 0;
+		// if there are any bookable copies turn on the ShowBookMaterial switch,
+		// this determines whether or not the Book Material Button will be display to the user
 
 		$summaryInformation['numCopiesOnOrder'] = $numCopiesOnOrder;
 		//Do some basic sanity checking to make sure that we show the total copies

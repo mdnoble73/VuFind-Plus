@@ -1,7 +1,7 @@
 {strip}
 <Holdings><![CDATA[{include file="$module/view-holdings.tpl"}]]></Holdings>
 <HoldingsSummary><![CDATA[{include file="$module/holdingsSummary.tpl"}]]></HoldingsSummary>
-<ShowPlaceHold>{$holdingsSummary.showPlaceHold}</ShowPlaceHold>
+<ShowPlaceHold>{$holdingsSummary.showPlaceHold}</ShowPlaceHold> {* Also in Summary Details ? *}
 <ShowCheckout>{$holdingsSummary.showCheckout}</ShowCheckout>
 {if isset($holdingsSummary.showAccessOnline)}
 <ShowAccessOnline>{$holdingsSummary.showAccessOnline}</ShowAccessOnline>
@@ -13,6 +13,7 @@
 	<status>{$holdingsSummary.status|escape}{if $holdingsSummary.holdQueueLength > 0} ({$holdingsSummary.holdQueueLength} people are on the wait list){/if}</status>
 	<callnumber>{$holdingsSummary.callnumber|escape}</callnumber>
 	<showplacehold>{$holdingsSummary.showPlaceHold|escape}</showplacehold>
+	<showBookMaterial>{$holdingsSummary.showBookMaterial|escape}</showBookMaterial>
 	<availablecopies>{$holdingsSummary.availableCopies|escape}</availablecopies>
 	<holdablecopies>{$holdingsSummary.holdableCopies|escape}</holdablecopies>
 	<numcopies>{$holdingsSummary.numCopies|escape}</numcopies>
