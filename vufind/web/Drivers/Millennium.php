@@ -783,11 +783,11 @@ class Millennium extends ScreenScrapingDriver
 				// multiple entries
 				case 'HOLD' :
 				case 'BOOKING' :
-					$patronDump_alt[$patronDumpKey][] = isset($patronData[$curRow][2]) ? $patronData[$curRow][2] : '';
+					$patronDump[$patronDumpKey][] = isset($patronData[$curRow][2]) ? $patronData[$curRow][2] : '';
 					break;
 				// single entries
 				default :
-					$patronDump_alt[$patronDumpKey] = isset($patronData[$curRow][2]) ? $patronData[$curRow][2] : '';
+					$patronDump[$patronDumpKey] = isset($patronData[$curRow][2]) ? $patronData[$curRow][2] : '';
 			}
 		}
 
