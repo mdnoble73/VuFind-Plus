@@ -70,7 +70,7 @@ class LoanRuleDeterminer extends DB_DataObject
 	private $pTypeArray = null;
 	function pTypeArray(){
 		if ($this->pTypeArray == null){
-			$this->pTypeArray = split(',', $this->patronType);
+			$this->pTypeArray = explode(',', rtrim($this->patronType, ','));// trailing comas in $this->patronType will create empty element when split
 			foreach($this->pTypeArray as $key => $pType){
 				if (!is_numeric($pType)){
 					$pTypeRange = explode("-", $pType);
