@@ -2065,7 +2065,15 @@ class GroupedWorkDriver extends RecordInterface{
 		'On Shelf' => 7
 	);
 	private function keepBestGroupedStatus($groupedStatus, $groupedStatus1) {
-		if (GroupedWorkDriver::$statusRankings[$groupedStatus] > GroupedWorkDriver::$statusRankings[$groupedStatus1]){
+		$ranking1 = 1;
+		if (isset(GroupedWorkDriver::$statusRankings[$groupedStatus])){
+			$ranking1 = GroupedWorkDriver::$statusRankings[$groupedStatus];
+		}
+		$ranking2 = 1;
+		if (isset(GroupedWorkDriver::$statusRankings[$groupedStatus1])){
+			$ranking2 = GroupedWorkDriver::$statusRankings[$groupedStatus1];
+		}
+		if ($ranking1 > $ranking2){
 			return $groupedStatus;
 		}else{
 			return $groupedStatus1;
