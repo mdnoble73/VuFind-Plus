@@ -144,7 +144,7 @@ class UserAccount {
 			if ($accountSource == null || $accountSource == $additionalInfo['accountProfile']->name) {
 				$authN = AuthenticationFactory::initAuthentication($additionalInfo['authenticationMethod'], $additionalInfo);
 				$validatedUser = $authN->validateAccount($username, $password);
-				if ($validatedUser) {
+				if ($validatedUser && !PEAR_Singleton::isError($validatedUser)) {
 					/** @var Memcache $memCache */
 					global $memCache;
 					global $serverName;
