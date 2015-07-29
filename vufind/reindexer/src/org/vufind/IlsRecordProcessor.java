@@ -235,7 +235,11 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 			//Special processing for ILS Records
 			String fullDescription = Util.getCRSeparatedString(getFieldList(record, "520a"));
 			for (RecordInfo ilsRecord : allRelatedRecords) {
-				groupedWork.addDescription(fullDescription, ilsRecord.getPrimaryFormat());
+				String primaryFormat = ilsRecord.getPrimaryFormat();
+				if (primaryFormat == null){
+					primaryFormat = "Unknown";
+				}
+				groupedWork.addDescription(fullDescription, primaryFormat);
 			}
 			loadEditions(groupedWork, record, allRelatedRecords);
 			loadPhysicalDescription(groupedWork, record, allRelatedRecords);

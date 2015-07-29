@@ -303,6 +303,8 @@ public class GroupedWorkSolr {
 				for (String curScopeName : curItem.getScopingInfo().keySet()){
 					ScopingInfo curScope = curItem.getScopingInfo().get(curScopeName);
 					doc.addField("scoping_details_" + curScopeName, curScope.getScopingDetails());
+					//TODO: Add scoped fields for owning branches, owning locations, and available at
+					//if we do that, we don't need to filter within PHP
 					addUniqueFieldValue(doc, "scope_has_related_records", curScopeName);
 					addUniqueFieldValue(doc, "format_" + curScopeName, curItem.getFormat());
 					addUniqueFieldValues(doc, "format_" + curScopeName, curRecord.getFormats());
@@ -399,9 +401,9 @@ public class GroupedWorkSolr {
 	/**
 	 * Update a field that can only contain a single value.  Ignores any subsequent after the first.
 	 *
-	 * @param doc
-	 * @param fieldName
-	 * @param value
+	 * @param doc         The document to be updated
+	 * @param fieldName   The field name to update
+	 * @param value       The value to set if no value already exists
 	 */
 	private void setSingleValuedFieldValue(SolrInputDocument doc, String fieldName, String value) {
 		Object curValue = doc.getFieldValue(fieldName);
