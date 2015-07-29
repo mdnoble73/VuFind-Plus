@@ -59,7 +59,7 @@ public class OverDriveProcessor {
 				Long productId = productRS.getLong("id");
 				String title = productRS.getString("title");
 				if (productRS.getInt("deleted") == 1){
-					logger.warn("Not processing deleted overdrive product " + title + " - " + identifier);
+					logger.info("Not processing deleted overdrive product " + title + " - " + identifier);
 					indexer.overDriveRecordsSkipped.add(identifier);
 				}else {
 					RecordInfo overDriveRecord = groupedWork.addRelatedRecord("overdrive", identifier);

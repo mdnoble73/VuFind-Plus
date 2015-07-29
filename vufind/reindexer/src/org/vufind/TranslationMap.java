@@ -36,6 +36,8 @@ public class TranslationMap {
 		if (translationValues.containsKey(lowerCaseValue)){
 			translatedValue = translationValues.get(lowerCaseValue);
 		}else{
+
+
 			if (translationValues.containsKey("*")){
 				translatedValue = translationValues.get("*");
 			}else{
@@ -51,9 +53,13 @@ public class TranslationMap {
 		}
 
 		if (translatedValue != null){
-			translatedValue = translatedValue.trim();
-			if (translatedValue.length() == 0){
-				translatedValue = null;
+			if (translatedValue.equals("nomap")){
+				translatedValue = value;
+			}else {
+				translatedValue = translatedValue.trim();
+				if (translatedValue.length() == 0) {
+					translatedValue = null;
+				}
 			}
 		}
 		return translatedValue;
