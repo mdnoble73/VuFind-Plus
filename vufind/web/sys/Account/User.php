@@ -790,6 +790,14 @@ class User extends DB_DataObject
 		return $this->getCatalogDriver()->cancelHold($this, $recordId, $cancelId);
 	}
 
+	function freezeHold($recordId, $holdId, $reactivationDate){
+		return $this->getCatalogDriver()->freezeHold($this, $recordId, $holdId, $reactivationDate);
+	}
+
+	function thawHold($recordId, $holdId){
+		return $this->getCatalogDriver()->thawHold($this, $recordId, $holdId);
+	}
+
 	function renewItem($recordId, $itemId, $itemIndex){
 		return $this->getCatalogDriver()->renewItem($this, $recordId, $itemId, $itemIndex);
 	}

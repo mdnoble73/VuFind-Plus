@@ -339,7 +339,7 @@ VuFind.Account = (function(){
 				$('#myModalLabel').html("Loading, please wait");
 				$('.modal-body').html("...");
 				$.getJSON(urlToDisplay, function(data){
-					if (data.result){
+					if (data.success){
 						data = data.result;
 					}
 					$('#myModalLabel').html(data.title);
@@ -411,54 +411,6 @@ VuFind.Account = (function(){
 		}
 		return false;
 	},
-/*
-		cancelPendingHold: function(holdIdToCancel, recordId){
-			if (!confirm("Are you sure you want to cancel this hold?")){
-				return false;
-			}
-			var url = Globals.path + '/MyAccount/Holds?multiAction=cancelSelected&waitingholdselected[]=' + holdIdToCancel;
-			url += '&recordId[' + holdIdToCancel + ']=' + recordId;
-			var queryParams = VuFind.getQuerystringParameters();
-			if ($.inArray('section', queryParams) && queryParams['section'] != 'undefined'){
-				url += '&section=' + queryParams['section'];
-			}
-			window.location = url;
-			return false;
-		},
-
-		cancelAvailableHold: function(holdIdToCancel, recordId){
-			if (!confirm("Are you sure you want to cancel this hold?")){
-				return false;
-			}
-			var url = Globals.path + '/MyAccount/Holds?multiAction=cancelSelected&availableholdselected[]=' + holdIdToCancel;
-			url += '&recordId[' + holdIdToCancel + ']=' + recordId;
-			var queryParams = VuFind.getQuerystringParameters();
-			if ($.inArray('section', queryParams) && queryParams['section'] != 'undefined'){
-				url += '&section=' + queryParams['section'];
-			}
-			window.location = url;
-			return false;
-		},
-
-		cancelSelectedHolds: function(){
-			var numHolds = $("input.titleSelect:checked ").length;
-			if (numHolds == 0){
-				alert('Please select one or more titles to cancel.');
-				return false;
-			} else if (!confirm('Cancel '+numHolds +' selected hold'+(numHolds > 1?'s':'') +'?')) {
-					return false;
-			}
-			var selectedTitles = this.getSelectedTitles(false),
-					url = Globals.path + '/MyAccount/Holds?multiAction=cancelSelected&' + selectedTitles,
-					queryParams = VuFind.getQuerystringParameters();
-			if ($.inArray('section', queryParams) && queryParams['section'] != 'undefined'){
-				url += '&section=' + queryParams['section'];
-			}
-			window.location = url;
-			return false;
-
-		},
-*/
 
 		cancelBooking: function(cancelId){
 			if (confirm("Are you sure you want to cancel this booking?")){
@@ -561,12 +513,12 @@ VuFind.Account = (function(){
 			window.location.href = currentLocation;
 		},
 
-		changeHoldPickupLocation: function (holdId){
+		changeHoldPickupLocation: function (patronId, recordId, holdId){
 			if (Globals.loggedIn){
 				var modalDialog = $("#modalDialog");
 				$('#myModalLabel').html('Loading');
 				$('.modal-body').html('');
-				$.getJSON(Globals.path + "/MyAccount/AJAX?method=getChangeHoldLocationForm&holdId=" + holdId, function(data){
+				$.getJSON(Globals.path + "/MyAccount/AJAX?method=getChangeHoldLocationForm&patronId=" + patronId + "&recordId=" + recordId + "&holdId=" + holdId, function(data){
 					$('#myModalLabel').html(data.title);
 					$('.modal-body').html(data.modalBody);
 					$('.modal-buttons').html(data.modalButtons);
@@ -575,7 +527,7 @@ VuFind.Account = (function(){
 				modalDialog.modal('show');
 			}else{
 				VuFind.Account.ajaxLogin(null, function (){
-					return VuFind.Account.changeHoldPickupLocation(holdId);
+					return VuFind.Account.changeHoldPickupLocation(patronId, recordId, holdId);
 				}, false);
 			}
 			return false;
@@ -603,13 +555,15 @@ VuFind.Account = (function(){
 		},
 
 		doChangeHoldLocation: function(){
+			var patronId = $('#patronId').val();
+			var recordId = $('#recordId').val();
 			var holdId = $('#holdId').val();
 			var newLocation = $('#newPickupLocation').val();
-			var url = Globals.path + "/MyAccount/AJAX?method=changeHoldLocation&holdId=" + encodeURIComponent(holdId) + "&newLocation=" + encodeURIComponent(newLocation);
+			var url = Globals.path + "/MyAccount/AJAX?method=changeHoldLocation&patronId=" + patronId + "&recordId=" + recordId + "&holdId=" + encodeURIComponent(holdId) + "&newLocation=" + encodeURIComponent(newLocation);
 			// TODO: use getJSON data parameter for query string, does encoding
 			$.getJSON(url,
 					function(data) {
-						if (data.result) {
+						if (data.success) {
 							VuFind.showMessage("Success", data.message, true, true);
 						} else {
 							VuFind.showMessage("Error", data.message);
@@ -618,12 +572,12 @@ VuFind.Account = (function(){
 			);
 		},
 
-		freezeHold: function(holdId, promptForReactivationDate, caller){
+		freezeHold: function(patronId, recordId, holdId, promptForReactivationDate, caller){
 			if (promptForReactivationDate){
 				//Prompt the user for the date they want to reactivate the hold
 				var modalDialog = $("#modalDialog");
 				//$(".modal-body").html($('#userreview' + id).html());
-				$.getJSON(Globals.path + "/MyAccount/AJAX?method=getReactivationDateForm&holdId=" + holdId, function(data){
+				$.getJSON(Globals.path + "/MyAccount/AJAX?method=getReactivationDateForm&patronId=" + patronId + "&recordId=" + recordId + "&holdId=" + holdId, function(data){
 					$('#myModalLabel').html(data.title);
 					$('.modal-body').html(data.modalBody);
 					$('.modal-buttons').html(data.modalButtons);
@@ -633,9 +587,9 @@ VuFind.Account = (function(){
 			}else{
 				var popUpBoxTitle = $(caller).text() || "Freezing Hold"; // freezing terminology can be customized, so grab text from click button: caller
 				VuFind.showMessage(popUpBoxTitle, "Updating your hold.  This may take a minute.");
-				var url = Globals.path + '/MyAccount/AJAX?method=freezeHold&holdId=' + holdId;
+				var url = Globals.path + '/MyAccount/AJAX?method=freezeHold&patronId=' + patronId + "&recordId=" + recordId + '&holdId=' + holdId;
 				$.getJSON(url, function(data){
-					if (data.result) {
+					if (data.success) {
 						VuFind.showMessage("Success", data.message, true, true);
 					} else {
 						VuFind.showMessage("Error", data.message);
@@ -647,12 +601,14 @@ VuFind.Account = (function(){
 // called by ReactivationDateForm when fn freezeHold above has promptForReactivationDate is set
 		doFreezeHoldWithReactivationDate: function(caller){
 			var popUpBoxTitle = $(caller).text() || "Freezing Hold"; // freezing terminology can be customized, so grab text from click button: caller
+			var patronId = $('#patronId').val();
+			var recordId = $('#recordId').val();
 			var holdId = $("#holdId").val();
 			var reactivationDate = $("#reactivationDate").val();
-			var url = Globals.path + '/MyAccount/AJAX?method=freezeHold&holdId=' + holdId + '&reactivationDate=' + reactivationDate;
+			var url = Globals.path + '/MyAccount/AJAX?method=freezeHold&patronId=' + patronId + "&recordId=" + recordId + '&holdId=' + holdId + '&reactivationDate=' + reactivationDate;
 			VuFind.showMessage(popUpBoxTitle, "Updating your hold.  This may take a minute.");
 			$.getJSON(url, function(data){
-				if (data.result) {
+				if (data.success) {
 					VuFind.showMessage("Success", data.message, true, true);
 				} else {
 					VuFind.showMessage("Error", data.message);
@@ -681,7 +637,7 @@ VuFind.Account = (function(){
 					return false;
 				}
 			}
-			url = Globals.path + '/MyAccount/Holds?multiAction=freezeSelected&' + selectedTitles + '&suspendDate=' + suspendDate;
+			url = Globals.path + '/MyAccount/Holds?multiAction=freezeSelected&patronId=' + patronId + '&recordId=' + recordId + '&' + selectedTitles + '&suspendDate=' + suspendDate;
 			queryParams = VuFind.getQuerystringParameters();
 			if ($.inArray('section', queryParams)){
 				url += '&section=' + queryParams['section'];
@@ -707,26 +663,6 @@ VuFind.Account = (function(){
 			return queryString;
 		},
 
-		/* old version, in case I broke something. plb 2-3-2015
-		getSelectedTitles: function(promptForSelectAll){
-			if (promptForSelectAll == undefined){
-				promptForSelectAll = true;
-			}
-			var selectedTitles = $("input.titleSelect:checked ").map(function() {
-				return $(this).attr('name') + "=" + $(this).val();
-			}).get().join("&");
-			if (selectedTitles.length == 0 && promptForSelectAll){
-				var ret = confirm('You have not selected any items, process all items?');
-				if (ret == true){
-					var titleSelect = $("input.titleSelect");
-					titleSelect.attr('checked', 'checked');
-					selectedTitles = titleSelect.map(function() {
-						return $(this).attr('name') + "=" + $(this).val();
-					}).get().join("&");
-				}
-			}
-			return selectedTitles;
-		},*/
 		saveSearch: function(searchId){
 			if (!Globals.loggedIn){
 				VuFind.Account.ajaxLogin(null, function () {
@@ -738,7 +674,7 @@ VuFind.Account = (function(){
 				//$.getJSON(url + '?' + params,
 				$.getJSON(url, params,
 						function(data) {
-							if (data.result) {
+							if (data.success) {
 								VuFind.showMessage("Success", data.message);
 							} else {
 								VuFind.showMessage("Error", data.message);
@@ -777,12 +713,12 @@ VuFind.Account = (function(){
 			return false;
 		},
 
-		thawHold: function(holdId, caller){
+		thawHold: function(patronId, recordId, holdId, caller){
 			var popUpBoxTitle = $(caller).text() || "Thawing Hold";  // freezing terminology can be customized, so grab text from click button: caller
 			VuFind.showMessage(popUpBoxTitle, "Updating your hold.  This may take a minute.");
-			var url = Globals.path + '/MyAccount/AJAX?method=thawHold&holdId=' + holdId;
+			var url = Globals.path + '/MyAccount/AJAX?method=thawHold&patronId=' + patronId + "&recordId=" + recordId + '&holdId=' + holdId;
 			$.getJSON(url, function(data){
-				if (data.result) {
+				if (data.success) {
 					VuFind.showMessage("Success", data.message, true, true);
 				} else {
 					VuFind.showMessage("Error", data.message);

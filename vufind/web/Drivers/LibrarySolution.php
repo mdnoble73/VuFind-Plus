@@ -431,12 +431,15 @@ class LibrarySolution extends ScreenScrapingDriver {
 
 				//MDN - it looks like holdCancelable is not accurate, setting to true always
 				//$curHold['cancelable'] = $hold->holdCancelable;
-				$curHold['cancelable'] = $hold->true;
+				$curHold['cancelable'] = true;
 				$curHold['frozen'] = $hold->suspendUntilDate != null;
 				if ($curHold['frozen']){
 					$curHold['reactivateTime'] = $hold->suspendUntilDate;
 				}
-				$curHold['freezeable'] = $hold->holdSuspendable;
+				//Although LSS interface shows this is possible, we haven't been able to make it work in the
+				//LSS OPAC, setting to false always
+				//$curHold['freezeable'] = $hold->holdSuspendable;
+				$curHold['freezeable'] = false;
 
 				$curHold['sortTitle'] = $hold->title;
 				$recordDriver = new MarcRecord($this->accountProfile->recordSource . ":" . $bibId);
@@ -542,7 +545,32 @@ class LibrarySolution extends ScreenScrapingDriver {
 			'title' => $recordDriver->getTitle(),
 			'message' => 'Sorry, your hold could not be cancelled.');
 		if ($this->loginPatronToLSS($patron->cat_username, $patron->cat_password)) {
+			//for lss we need additional information about the hold
+			$url = $this->getVendorOpacUrl() . '/requests/0/20/Status?_=' . time() * 1000;
+			$holdInfoRaw = $this->_curlGetPage($url);
+			$holdInfo = json_decode($holdInfoRaw);
 
+			$selectedHold = null;
+			foreach ($holdInfo->holds as $hold) {
+				if ($hold->holdNumber == $cancelId){
+					$selectedHold = $hold;
+				}
+			}
+
+			$url = $this->getVendorOpacUrl() . '/requests/cancel?_=' . time() * 1000;
+			$postParams = '{"cancelHoldInfos":"[{\"desireNumber\":\"' . $cancelId. '\",\"success\":false,\"holdQueueLength\":\"' . $selectedHold->holdQueueLength . '\",\"bibliographicId\":\"' . $recordId. '\",\"whichBranch\":' . $selectedHold->holdPickupBranchId . ',\"status\":\"' . $selectedHold->status . '\",\"downloadable\":false}]"}';
+
+			$responseRaw = $this->_curlPostBodyData($url, $postParams, false);
+			$response = json_decode($responseRaw);
+
+			foreach ($response->cancelHoldInfos as $itemResponse){
+				if ($itemResponse->success){
+					$result['success'] = true;
+					$result['message'] = 'Your hold was cancelled successfully.';
+				}else{
+					$result['message'] = 'Sorry, your hold could not be cancelled.';
+				}
+			}
 		}else{
 			$result['message'] = 'Sorry, the user supplied was not valid in the catalog. Please try again.';
 		}
@@ -556,7 +584,20 @@ class LibrarySolution extends ScreenScrapingDriver {
 			'title' => $recordDriver->getTitle(),
 			'message' => 'Sorry, your hold could not be frozen.');
 		if ($this->loginPatronToLSS($patron->cat_username, $patron->cat_password)) {
+			$url = $this->getVendorOpacUrl() . '/requests/suspend?_=' . time() * 1000;
+			$formattedReactivationDate = $dateToReactivate;
+			$postParams = '{"suspendHoldInfos":"[{\"desireNumber\":\"' . $itemToFreezeId . '\",\"success\":false,\"suspendDate\":\"' . $formattedReactivationDate . '\",\"queuePosition\":\"1\",\"bibliographicId\":\"' . $recordId . '\",\"pickupBranchId\":100,\"downloadable\":false}]"}';
+			$responseRaw = $this->_curlPostBodyData($url, $postParams, false);
+			$response = json_decode($responseRaw);
 
+			foreach ($response->suspendHoldInfos as $itemResponse){
+				if ($itemResponse->success){
+					$result['success'] = true;
+					$result['message'] = 'Your hold was frozen successfully.';
+				}else{
+					$result['message'] = 'Sorry, your hold could not be suspended.';
+				}
+			}
 		}else{
 			$result['message'] = 'Sorry, the user supplied was not valid in the catalog. Please try again.';
 		}
@@ -570,7 +611,7 @@ class LibrarySolution extends ScreenScrapingDriver {
 			'title' => $recordDriver->getTitle(),
 			'message' => 'Sorry, your hold could not be thawed.');
 		if ($this->loginPatronToLSS($patron->cat_username, $patron->cat_password)) {
-
+			$result['message'] = 'This functionality is currently unimplemented';
 		}else{
 			$result['message'] = 'Sorry, the user supplied was not valid in the catalog. Please try again.';
 		}
@@ -584,7 +625,8 @@ class LibrarySolution extends ScreenScrapingDriver {
 			'title' => $recordDriver->getTitle(),
 			'message' => 'Sorry, the pickup location for your hold could not be changed.');
 		if ($this->loginPatronToLSS($patron->cat_username, $patron->cat_password)) {
-
+			//Not possible in LSS
+			$result['message'] = 'This functionality is currently unimplemented';
 		}else{
 			$result['message'] = 'Sorry, the user supplied was not valid in the catalog. Please try again.';
 		}

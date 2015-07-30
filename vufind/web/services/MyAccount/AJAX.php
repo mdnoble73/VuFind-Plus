@@ -284,14 +284,12 @@ class MyAccount_AJAX
 			if ($patronOwningHold == false){
 				$result['message'] = 'Sorry, you do not have access to cancel holds for the supplied user.';
 			}else{
-				// ids grabbed in MillenniumHolds.php in $_REQUEST['waitingholdselected'] & $_REQUEST['availableholdselected']
-				// but we will pass ids here instead.
 				if (empty($_REQUEST['cancelId']) || empty($_REQUEST['recordId'])) {
 					$result['message'] = 'Information about the hold to be cancelled was not provided.';
 				}else{
 					$cancelId = $_REQUEST['cancelId'];
 					$recordId = $_REQUEST['recordId'];
-					$result = $user->cancelHold($recordId, $cancelId);
+					$result = $patronOwningHold->cancelHold($recordId, $cancelId);
 				}
 			}
 		}
@@ -406,51 +404,63 @@ class MyAccount_AJAX
 	}
 
 	function freezeHold() {
-		global $configArray;
+		global $user;
+		$result = array(
+			'success' => false,
+			'message' => 'Error freezing hold.'
+		);
+		if (!$user){
+			$result['message'] = 'You must be logged in to freeze a hold.  Please close this dialog and login again.';
+		}else{
+			$patronId = $_REQUEST['patronId'];
 
-		try {
-			$catalog = CatalogFactory::getCatalogConnectionInstance();;
-			$holdId = $_REQUEST['holdId'];
-			global $user;
+			$patronOwningHold = $user->getUserReferredTo($patronId);
 
-			$result = $catalog->driver->updateHoldDetailed($user->password, 'update', '', null, $holdId, null, 'on');
-			return $result;
-		} catch (PDOException $e) {
-			// What should we do with this error?
-			if ($configArray['System']['debug']) {
-				echo '<pre>';
-				echo 'DEBUG: ' . $e->getMessage();
-				echo '</pre>';
+			if ($patronOwningHold == false){
+				$result['message'] = 'Sorry, you do not have access to freeze holds for the supplied user.';
+			}else{
+				if (empty($_REQUEST['recordId']) || empty($_REQUEST['holdId'])) {
+					$result['message'] = 'Information about the hold to be frozen was not provided.';
+				}else{
+					$recordId = $_REQUEST['recordId'];
+					$holdId = $_REQUEST['holdId'];
+					$reactivationDate = isset($_REQUEST['reactivationDate']) ? $_REQUEST['reactivationDate'] : null;
+					$result = $patronOwningHold->freezeHold($recordId, $holdId, $reactivationDate);
+				}
 			}
 		}
-		return array(
-			'result' => false,
-			'message' => 'We could not connect to the circulation system, please try again later.'
-		);
+
+		return $result;
 	}
 
 	function thawHold() {
-		global $configArray;
+		global $user;
+		$result = array(
+			'success' => false,
+			'message' => 'Error thawing hold.'
+		);
 
-		try {
-			$catalog = CatalogFactory::getCatalogConnectionInstance();;
-			$holdId = $_REQUEST['holdId'];
-			global $user;
+		if (!$user){
+			$result['message'] = 'You must be logged in to thaw a hold.  Please close this dialog and login again.';
+		}else{
+			$patronId = $_REQUEST['patronId'];
 
-			$result = $catalog->driver->updateHoldDetailed($user->password, 'update', '', null, $holdId, null, 'off');
-			return $result;
-		} catch (PDOException $e) {
-			// What should we do with this error?
-			if ($configArray['System']['debug']) {
-				echo '<pre>';
-				echo 'DEBUG: ' . $e->getMessage();
-				echo '</pre>';
+			$patronOwningHold = $user->getUserReferredTo($patronId);
+
+			if ($patronOwningHold == false){
+				$result['message'] = 'Sorry, you do not have access to freeze holds for the supplied user.';
+			}else{
+				if (empty($_REQUEST['recordId']) || empty($_REQUEST['holdId'])) {
+					$result['message'] = 'Information about the hold to be frozen was not provided.';
+				}else{
+					$recordId = $_REQUEST['recordId'];
+					$holdId = $_REQUEST['holdId'];
+					$result = $patronOwningHold->thawHold($recordId, $holdId);
+				}
 			}
 		}
-		return array(
-			'result' => false,
-			'message' => 'We could not connect to the circulation system, please try again later.'
-		);
+
+		return $result;
 	}
 
 	//TODO: Review these methods to see what can be deleted
@@ -559,7 +569,7 @@ class MyAccount_AJAX
 			);
 		} else {
 			$location = new Location();
-			$locationList = $location->getPickupBranches($patron, $patronProfile['homeLocationId']);
+			$locationList = $location->getPickupBranches($patron, $patron->homeLocationId);
 			$pickupLocations = array();
 			foreach ($locationList as $curLocation) {
 				$pickupLocations[] = array(
@@ -572,11 +582,11 @@ class MyAccount_AJAX
 			$maxHolds = -1;
 			//Determine if we should show a warning
 			$ptype = new PType();
-			$ptype->pType = $patronProfile['ptype'];
+			$ptype->pType = $patron->patronType;
 			if ($ptype->find(true)) {
 				$maxHolds = $ptype->maxHolds;
 			}
-			$currentHolds = $patronProfile['numHolds'];
+			$currentHolds = $patron->getNumHoldsTotal(false);
 			$holdCount = $_REQUEST['holdCount'];
 			$showOverHoldLimit = false;
 			if ($maxHolds != -1 && ($currentHolds + $holdCount > $maxHolds)) {
@@ -798,6 +808,8 @@ class MyAccount_AJAX
 		global $user;
 		$id = $_REQUEST['holdId'];
 		$interface->assign('holdId', $id);
+		$interface->assign('patronId', $user->id);
+		$interface->assign('recordId', $_REQUEST['recordId']);
 
 		$title = translate('Freeze Hold'); // language customization
 		$results = array(

@@ -1434,20 +1434,20 @@ class GroupedWorkDriver extends RecordInterface{
 				$relatedManifestations[$curRecord['format']]['onOrderCopies'] += $curRecord['onOrderCopies'];
 			}
 			$statusRankings = array(
-				'Currently Unavailable' => 1,
-				'On Order' => 2,
-				'Coming Soon' => 3,
-				'Checked Out' => 4,
-				'Library Use Only' => 5,
-				'Available Online' => 6,
-				'On Shelf' => 7
+				'currently unavailable' => 1,
+				'on order' => 2,
+				'coming soon' => 3,
+				'checked out' => 4,
+				'library use only' => 5,
+				'available online' => 6,
+				'on shelf' => 7
 			);
 			if (isset($curRecord['groupedStatus']) && $curRecord['groupedStatus'] != ''){
-				$groupedStatus = $relatedManifestations[$curRecord['format']]['groupedStatus'];
+				$groupedStatus = strtolower($relatedManifestations[$curRecord['format']]['groupedStatus']);
 				if ($groupedStatus == ''){
 					$groupedStatus = $curRecord['groupedStatus'];
 				//Check to see if we are getting a better status
-				}elseif ($statusRankings[$curRecord['groupedStatus']] > $statusRankings[$groupedStatus]){
+				}elseif ($statusRankings[strtolower($curRecord['groupedStatus'])] > $statusRankings[$groupedStatus]){
 					$groupedStatus = $curRecord['groupedStatus'];
 				}
 				$relatedManifestations[$curRecord['format']]['groupedStatus'] = $groupedStatus;

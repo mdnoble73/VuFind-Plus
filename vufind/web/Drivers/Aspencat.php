@@ -1541,7 +1541,12 @@ class Aspencat implements DriverInterface{
 							$curHold['cancelId'] = $matches[1];
 						}
 					}elseif ($headerLabels[$col] == 'suspend'){
-						$curHold['freezeable'] = true;
+						if (preg_match('/cannot be suspended/i', $tableCell)){
+							$curHold['freezeable'] = false;
+						}else{
+							$curHold['freezeable'] = true;
+						}
+
 					}
 				}
 				if ($bibId){
@@ -1557,7 +1562,6 @@ class Aspencat implements DriverInterface{
 						$curHold['ratingData'] = $recordDriver->getRatingData();
 					}
 				}
-				$curHold['user'] = $patron->getNameAndLibraryLabel();
 				if (!isset($curHold['status']) || !preg_match('/^Item waiting.*/i', $curHold['status'])){
 					$holds['unavailable'][] = $curHold;
 				}else{
@@ -1755,11 +1759,8 @@ class Aspencat implements DriverInterface{
 	 * Update a hold that was previously placed in the system.
 	 * Can cancel the hold or update pickup locations.
 	 */
-	public function updateHoldDetailed(/** @noinspection PhpUnusedParameterInspection */
-		$patronId, $type, $title, $xNum, $cancelId, $locationId, $freezeValue='off'){
+	public function updateHoldDetailed($patron, $type, $title, $xNum, $cancelId, $locationId, $freezeValue='off'){
 		global $configArray;
-
-		global $user;
 
 		if (!isset($xNum) || empty($xNum)){
 			if (isset($_REQUEST['waitingholdselected']) || isset($_REQUEST['availableholdselected'])){
@@ -1777,11 +1778,11 @@ class Aspencat implements DriverInterface{
 			$holdKeys = $xNum;
 		}
 
-
+		//In all cases, we need to login
+		$result = $this->loginToKoha($patron);
 		if ($type == 'cancel'){
 			$allCancelsSucceed = true;
-			$result = $this->loginToKoha($user);
-			$originalHolds = $this->getMyHolds($user, 1, -1, 'title', $result['summaryPage']);
+			$originalHolds = $this->getMyHolds($patron, 1, -1, 'title', $result['summaryPage']);
 
 			//Post a request to koha
 			foreach ($holdKeys as $holdKey){
@@ -1802,7 +1803,7 @@ class Aspencat implements DriverInterface{
 				$kohaHoldResult = $this->postToKohaPage($cancelUrl, $postParams);
 
 				//Parse the result
-				$updatedHolds = $this->getMyHolds($user, 1, -1, 'title', $kohaHoldResult);
+				$updatedHolds = $this->getMyHolds($patron, 1, -1, 'title', $kohaHoldResult);
 				if ((count($updatedHolds['available']) + count($updatedHolds['unavailable'])) < (count($originalHolds['available']) + count($originalHolds['unavailable']))){
 					//We cancelled the hold
 				}else{
@@ -1848,7 +1849,9 @@ class Aspencat implements DriverInterface{
 						}
 						$catalogUrl = $configArray['Catalog']['url'];
 						$updateUrl = "$catalogUrl/cgi-bin/koha/opac-modrequest.pl";
-						$this->postToKohaPage($updateUrl, $postParams);
+						$kohaUpdateResults = $this->postToKohaPage($updateUrl, $postParams);
+
+						//Check the result of the update
 					}
 					if ($allLocationChangesSucceed){
 						$this->clearPatronProfile();
