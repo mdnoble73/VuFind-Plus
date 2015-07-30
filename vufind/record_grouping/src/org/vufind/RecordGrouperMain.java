@@ -1258,7 +1258,7 @@ public class RecordGrouperMain {
 			if (curProfile.groupingClass.equals("MarcRecordGrouper")){
 				recordGroupingProcessor = new MarcRecordGrouper(dbConnection, curProfile, logger, fullRegrouping);
 			}else{
-				logger.error("Unknown class for record grouping");
+				logger.error("Unknown class for record grouping " + curProfile.groupingClass);
 				continue;
 			}
 
