@@ -184,6 +184,13 @@ VuFind.Record = (function(){
 							$("#checkout" + shortId).show();
 						}
 					}
+					var showBookMaterial = $(data).find("showBookMaterial").text();
+					if (showBookMaterial) {
+						if (showBookMaterial.length > 0 && showBookMaterial == 1) {
+							//$("#bookMaterialButton" + shortId).show(); // needed?, don't know of a
+							$("#bookMaterialButton").show(); // full record view
+						}
+					}
 					var showAccessOnline = $(data).find("ShowAccessOnline").text();
 					if (showAccessOnline) {
 						if (showAccessOnline.length > 0 && showAccessOnline == 1) {
@@ -368,7 +375,7 @@ VuFind.Record = (function(){
 				});
 			}else{
 				VuFind.Account.ajaxLogin(null, function(){
-					VuFind.Record.showPlaceHold(id);
+					VuFind.Record.showPlaceHold(module, id);
 				}, false);
 			}
 			return false;
@@ -377,6 +384,14 @@ VuFind.Record = (function(){
 		showBookMaterial: function(id){
 			if (Globals.loggedIn){
 				VuFind.loadingMessage();
+				//var source; // source not used for booking at this time
+				if (id.indexOf(":") > 0){
+					var idParts = id.split(":", 2);
+					//source = idParts[0];
+					id = idParts[1];
+				//}else{
+				//	source = 'ils';
+				}
 				$.getJSON(Globals.path + "/Record/" + id + "/AJAX?method=getBookMaterialForm", function(data){
 					VuFind.showMessageWithButtons(data.title, data.modalBody, data.modalButtons);
 				}).fail(VuFind.ajaxFail)

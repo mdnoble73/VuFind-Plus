@@ -2029,6 +2029,7 @@ class MarcRecord extends IndexRecord
 					$groupedStatus = $itemData[13];
 					$status = $itemData[14];
 					$isHoldable = $itemData[17] == "true";
+//					$isBookable = $itemData[17] == "true"; // TODO set to real value
 					$inLibraryUseOnly = $itemData[19] == "true";
 
 					//Old style where record and item information are combined
@@ -2047,6 +2048,7 @@ class MarcRecord extends IndexRecord
 						'callnumber' => $callNumber,
 						'availability' => $itemData[16] == "true",
 						'holdable' => $isHoldable,
+//						'bookable' => $isBookable,
 						'inLibraryUseOnly' => $inLibraryUseOnly,
 						'isLibraryItem' => $isLibraryItem,
 						'isLocalItem' => $isLocalItem,
