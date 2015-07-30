@@ -1893,30 +1893,15 @@ class Aspencat implements DriverInterface{
 		}
 	}
 
+	public function hasFastRenewAll(){
+		return false;
+	}
+
 	public function renewAll($patron){
-		//Get all list of all transactions
-		$currentTransactions = $this->getMyCheckouts();
-		$renewResult = array();
-		$renewResult['Total'] = $currentTransactions['numTransactions'];
-		$numRenewals = 0;
-		$failure_messages = array();
-		foreach ($currentTransactions['transactions'] as $transaction){
-			$curResult = $this->renewItem($patron, $transaction['recordId'], $transaction['renewIndicator']);
-			if ($curResult['success']){
-				$numRenewals++;
-			} else {
-				$failure_messages[] = $curResult['message'];
-			}
-		}
-		$renewResult['Renewed'] = $numRenewals;
-		$renewResult['Unrenewed'] = $renewResult['Total'] - $renewResult['Renewed'];
-		if ($renewResult['Unrenewed'] > 0) {
-			$renewResult['success'] = false;
-		}else{
-			$renewResult['success'] = true;
-			$renewResult['message'] = "All items were renewed successfully.";
-		}
-		return $renewResult;
+		return array(
+			'success' => false,
+			'message' => 'Renew All not supported directly, call through Catalog Connection',
+		);
 	}
 
 	public function renewItem($patron, $recordId, $itemId, $itemIndex){

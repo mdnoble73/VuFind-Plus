@@ -69,6 +69,11 @@ interface DriverInterface
 	public function getMyCheckouts($user);
 
 	/**
+	 * @return boolean true if the driver can renew all titles in a single pass
+	 */
+	public function hasFastRenewAll();
+
+	/**
 	 * Renew all titles currently checked out to the user
 	 *
 	 * @param $patron  User

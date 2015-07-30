@@ -966,6 +966,10 @@ class Millennium extends ScreenScrapingDriver
 		return $millenniumHolds->updateHoldDetailed($patron, 'update', '', null, $itemToUpdateId, $newPickupLocation, 'off');
 	}
 
+	public function hasFastRenewAll(){
+		return true;
+	}
+
 	public function renewAll($patron){
 		require_once ROOT_DIR . '/Drivers/marmot_inc/MillenniumCheckouts.php';
 		$millenniumCheckouts = new MillenniumCheckouts($this);

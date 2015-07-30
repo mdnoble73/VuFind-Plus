@@ -279,7 +279,9 @@ class MillenniumCheckouts {
 		//Clear the existing patron info and get new information.
 		$renew_result = array(
 			'success' => false,
-			'messages' => array()
+			'message' => array(),
+			'Renewed' => 0,
+			'Unrenewed' => 0
 		);
 		$renew_result['Total'] = $curCheckedOut;
 		preg_match_all("/RENEWED successfully/si", $checkedOutPageText, $matches);
@@ -298,7 +300,7 @@ class MillenniumCheckouts {
 
 			// The Account is busy
 			elseif (preg_match('/Your record is in use/si', $checkedOutPageText)) {
-				$renew_result['message'] = 'Unable to renew this item now, your account is in use by the system.  Please try again later.';
+				$renew_result['message'][] = 'Unable to renew this item now, your account is in use by the system.  Please try again later.';
 			}
 
 			// Let's Look at the Results

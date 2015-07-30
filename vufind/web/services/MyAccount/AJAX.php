@@ -1085,7 +1085,7 @@ class MyAccount_AJAX
 		);
 		global $user;
 		if ($user){
-			$renewResults = $user->renewAll();
+			$renewResults = $user->renewAll(true);
 		}else{
 			$renewResults['message'] = array('You must be logged in to renew titles');
 		}

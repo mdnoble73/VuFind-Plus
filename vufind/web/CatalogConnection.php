@@ -980,4 +980,43 @@ class CatalogConnection
 		return method_exists($this->driver, 'getBookingCalendar') ?
 			$this->driver->getBookingCalendar($recordId) : null;
 	}
+
+	public function renewItem($patron, $recordId, $itemId, $itemIndex){
+		return $this->driver->renewItem($patron, $recordId, $itemId, $itemIndex);
+	}
+
+	public function renewAll($patron){
+		if ($this->driver->hasFastRenewAll()){
+			return $this->driver->renewAll($patron);
+		}else{
+			//Get all list of all transactions
+			$currentTransactions = $this->driver->getMyCheckouts($patron);
+			$renewResult = array(
+				'success' => true,
+				'message' => array(),
+				'Renewed' => 0,
+				'Unrenewed' => 0
+			);
+			$renewResult['Total'] = count($currentTransactions);
+			$numRenewals = 0;
+			$failure_messages = array();
+			foreach ($currentTransactions as $transaction){
+				$curResult = $this->renewItem($patron, $transaction['recordId'], $transaction['renewIndicator'], null);
+				if ($curResult['success']){
+					$numRenewals++;
+				} else {
+					$failure_messages[] = $curResult['message'];
+				}
+			}
+			$renewResult['Renewed'] += $numRenewals;
+			$renewResult['Unrenewed'] = $renewResult['Total'] - $renewResult['Renewed'];
+			if ($renewResult['Unrenewed'] > 0) {
+				$renewResult['success'] = false;
+				$renewResult['message'] = $failure_messages;
+			}else{
+				$renewResult['message'][] = "All items were renewed successfully.";
+			}
+			return $renewResult;
+		}
+	}
 }

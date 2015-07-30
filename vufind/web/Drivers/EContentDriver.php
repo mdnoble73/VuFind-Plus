@@ -933,6 +933,10 @@ class EContentDriver implements DriverInterface{
 		);
 	}
 
+	function hasFastRenewAll(){
+		return false;
+	}
+
 	function renewAll($patron){
 		return array(
 			'success' => false,

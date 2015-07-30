@@ -805,11 +805,13 @@ class User extends DB_DataObject
 					//Merge results
 					$renewAllResults['Renewed'] += $linkedResults['Renewed'];
 					$renewAllResults['Unrenewed'] += $linkedResults['Unrenewed'];
+					$renewAllResults['Total'] += $linkedResults['Total'];
 					if ($renewAllResults['success'] && !$linkedResults['success']){
 						$renewAllResults['success'] = false;
 						$renewAllResults['message'] = $linkedResults['message'];
 					}else if (!$renewAllResults['success'] && !$linkedResults['success']){
 						//Append the new message
+
 						array_merge($renewAllResults['message'], $linkedResults['message']);
 					}
 				}

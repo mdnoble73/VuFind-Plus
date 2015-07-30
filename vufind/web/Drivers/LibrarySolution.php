@@ -283,17 +283,15 @@ class LibrarySolution extends ScreenScrapingDriver {
 		return $transactions;
 	}
 
-	public function renewAll($patron){
-		$result = array(
-			'success' => false,
-			'messages' => array("Sorry, we were unable to renew all checkouts in {$this->accountProfile->name}.")
-		);
-		if ($this->loginPatronToLSS($patron->cat_username, $patron->cat_password)) {
+	public function hasFastRenewAll(){
+		return false;
+	}
 
-		}else{
-			$result['messages'] = array('Sorry, the user supplied was not valid in the catalog. Please try again.');
-		}
-		return $result;
+	public function renewAll($patron){
+		return array(
+			'success' => false,
+			'message' => 'Renew All not supported directly, call through Catalog Connection',
+		);
 	}
 
 	public function isAuthenticated(){
