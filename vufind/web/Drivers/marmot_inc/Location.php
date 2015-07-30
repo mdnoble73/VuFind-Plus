@@ -63,6 +63,7 @@ class Location extends DB_DataObject
 	public $availabilityToggleLabelLocal;
 	public $availabilityToggleLabelAvailable;
 	public $defaultBrowseMode;
+	public $browseCategoryRatingsMode;
 
 	/** @var  array $data */
 	protected $data;

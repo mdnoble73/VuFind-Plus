@@ -82,7 +82,7 @@ class Browse_AJAX extends Action {
 		$textId = preg_replace('/[^\w\d_]/', '', $textId);
 		if (strlen($textId) == 0){
 			return array(
-				'result' => false,
+				'success' => false,
 				'message' => 'Please enter a category name'
 			);
 		}
@@ -98,7 +98,7 @@ class Browse_AJAX extends Action {
 		$browseCategory->textId = $textId;
 		if ($browseCategory->find(true)){
 			return array(
-				'result' => false,
+				'success' => false,
 				'message' => "Sorry the title of the category was not unique.  Please enter a new name."
 			);
 		}else{
@@ -111,7 +111,7 @@ class Browse_AJAX extends Action {
 
 			if (!$browseCategory->updateFromSearch($searchObj)){
 				return array(
-					'result' => false,
+					'success' => false,
 					'message' => "Sorry, this search is too complex to create a category from."
 				);
 			}
@@ -126,7 +126,7 @@ class Browse_AJAX extends Action {
 			//setup and add the category
 			if (!$browseCategory->insert()){
 				return array(
-					'result' => false,
+					'success' => false,
 					'message' => "There was an error saving the category.  Please contact Marmot."
 				);
 			}
@@ -137,7 +137,7 @@ class Browse_AJAX extends Action {
 				$subCategory->subCategoryId = $id;
 				if (!$subCategory->insert()){
 					return array(
-						'result' => false,
+						'success' => false,
 						'message' => "There was an error saving the category as a sub-category.  Please contact Marmot."
 					);
 				}
@@ -161,7 +161,7 @@ class Browse_AJAX extends Action {
 			}
 
 			return array(
-				'result' => true
+				'success' => true
 			);
 		}
 	}
@@ -200,7 +200,7 @@ class Browse_AJAX extends Action {
 			}
 		}
 
-		$result = array('result' => false);
+		$result = array('success' => false);
 		$browseCategory = $this->getBrowseCategory();
 		if ($browseCategory){
 			global $interface;
@@ -249,7 +249,8 @@ class Browse_AJAX extends Action {
 				// Do we need to initialize the ajax ratings?
 				if ($this->browseMode == 'covers') {
 					// Rating Settings
-					global $library, $location;
+					global $library;
+					$location = Location::getActiveLocation();
 					$browseCategoryRatingsMode = null;
 					if ($location) $browseCategoryRatingsMode = $location->browseCategoryRatingsMode; // Try Location Setting
 					if (!$browseCategoryRatingsMode) $browseCategoryRatingsMode = $library->browseCategoryRatingsMode;  // Try Library Setting
@@ -333,7 +334,7 @@ class Browse_AJAX extends Action {
 	function getBrowseCategoryInfo($textId = null){
 		$textId = $this->setTextId($textId);
 		if ($textId == null){
-			return array('result' => false);
+			return array('success' => false);
 		}
 		$response['textId'] = $textId;
 
@@ -385,7 +386,7 @@ class Browse_AJAX extends Action {
 	function getBrowseSubCategoryInfo(){
 		$subCategoryTextId = isset($_REQUEST['subCategoryTextId']) ? $_REQUEST['subCategoryTextId'] : null;
 		if ($subCategoryTextId == null){
-			return array('result' => false);
+			return array('success' => false);
 		}
 
 		// Get Main Category Info
@@ -420,13 +421,13 @@ class Browse_AJAX extends Action {
 	function getMoreBrowseResults($textId = null, $pageToLoad = null) {
 		$textId = $this->setTextId($textId);
 		if ($textId == null){
-			return array('result' => false);
+			return array('success' => false);
 		}
 
 		// Get More Results requires a defined page to load
 		if ($pageToLoad == null) {
 			$pageToLoad = (int) $_REQUEST['pageToLoad'];
-			if (!is_int($pageToLoad)) return array('result' => false);
+			if (!is_int($pageToLoad)) return array('success' => false);
 		}
 		$result = $this->getBrowseCategoryResults($pageToLoad);
 		return $result;
@@ -435,6 +436,9 @@ class Browse_AJAX extends Action {
 	/** @var  BrowseCategory $subCategories[]   Browse category info for each sub-category */
 	private $subCategories;
 
+	/**
+	 * @return string
+	 */
 	function getSubCategories() {
 		$this->getBrowseCategory();
 		if ($this->browseCategory){

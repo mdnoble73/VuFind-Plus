@@ -130,7 +130,7 @@ VuFind.Browse = (function(){
 			this.resetBrowseResults();
 
 			$.getJSON(url, params, function(data){
-				if (data.result == false){
+				if (data.success == false){
 					VuFind.showMessage("Error loading browse information", "Sorry, we were not able to find titles for that category");
 				}else{
 						$('.selected-browse-label-search-text').html(data.label); // update label
@@ -185,7 +185,7 @@ VuFind.Browse = (function(){
 			this.resetBrowseResults();
 
 			$.getJSON(url, params, function(data){
-				if (data.result == false){
+				if (data.success == false){
 					VuFind.showMessage("Error loading browse information", "Sorry, we were not able to find titles for that category");
 				}else{
 					if (data.label) $('.selected-browse-label-search-text').html(data.label); // update label // needed when sub-category is specified via URL
@@ -218,7 +218,7 @@ VuFind.Browse = (function(){
 							,addAsSubCategoryOf:$('#addAsSubCategoryOfSelect').val()
 							};
 				$.getJSON(url, params, function (data) {
-					if (data.result == false) {
+					if (data.success == false) {
 						VuFind.showMessage("Unable to create category", data.message);
 					} else {
 						VuFind.showMessage("Successfully added", "This search was added to the homepage successfully.", true);
@@ -242,7 +242,7 @@ VuFind.Browse = (function(){
 					},
 					divClass = this.browseModeClasses[this.browseMode]; //|| this.browseModeClasses[Object.keys(this.browseModeClasses)[0]]; // if browseMode isn't set grab the first class
 			$.getJSON(url, params, function(data){
-				if (data.result == false){
+				if (data.success == false){
 					VuFind.showMessage("Error loading browse information", "Sorry, we were not able to find titles for that category");
 				}else{
 					var newDiv = $('<div class="'+divClass+' row" />').hide().append(data.records);
