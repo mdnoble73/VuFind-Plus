@@ -64,10 +64,28 @@ interface DriverInterface
 	 * @param User $user    The user to load transactions for
 	 *
 	 * @return array        Array of the patron's transactions on success
-	 *                      array has two subelements, transactions, and numTransactions
 	 * @access public
 	 */
-	public function getMyTransactions($user);
+	public function getMyCheckouts($user);
+
+	/**
+	 * Renew all titles currently checked out to the user
+	 *
+	 * @param $patron  User
+	 * @return mixed
+	 */
+	public function renewAll($patron);
+
+	/**
+	 * Renew a single title currently checked out to the user
+	 *
+	 * @param $patron     User
+	 * @param $recordId   string
+	 * @param $itemId     string
+	 * @param $itemIndex  string
+	 * @return mixed
+	 */
+	public function renewItem($patron, $recordId, $itemId, $itemIndex);
 
 	/**
 	 * Get Patron Holds
@@ -112,4 +130,20 @@ interface DriverInterface
 	 * @access  public
 	 */
 	function placeItemHold($patron, $recordId, $itemId, $pickupBranch);
+
+	/**
+	 * Cancels a hold for a patron
+	 *
+	 * @param   User    $patron     The User to cancel the hold for
+	 * @param   string  $recordId   The id of the bib record
+	 * @param   string  $cancelId   Information about the hold to be cancelled
+	 * @return  array
+	 */
+	function cancelHold($patron, $recordId, $cancelId);
+
+	function freezeHold($patron, $recordId, $itemToFreezeId, $dateToReactivate);
+
+	function thawHold($patron, $recordId, $itemToThawId);
+
+	function changeHoldPickupLocation($patron, $recordId, $itemToUpdateId, $newPickupLocation);
 }

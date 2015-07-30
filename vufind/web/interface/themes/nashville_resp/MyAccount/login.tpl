@@ -83,7 +83,7 @@ function resetPinReset(){
                 $.getJSON(url, function(data){
                         if (data.error == false){
                                 alert(data.message);
-                                if (data.result == true){
+                                if (data.success == true){
                                         hideLightbox();
                                 }
                       	}else{

@@ -79,9 +79,9 @@ class EVokeDriver {
 				//TODO: Load additional information from record driver
 				//recordId, coverUrl, recordUrl, title, author, linkUrl, ratingData
 				if ($item['status'] == 'waiting'){
-					$result['holds']['unavailable'][] = $item;
+					$result['unavailable'][] = $item;
 				}else{
-					$result['holds']['available'][] = $item;
+					$result['available'][] = $item;
 				}
 
 			}
@@ -132,9 +132,9 @@ class EVokeDriver {
 		return $placeHoldResponse;
 	}
 
-	public function cancelHold($holdId, $user){
+	public function cancelHold($patron, $recordId, $holdId){
 		global $configArray;
-		$this->login($user);
+		$this->login($patron);
 		$url = $configArray['eVoke']['evokeApiUrl'] . "/LoanService/Remove_Reserve?reserveId=$holdId";
 		$cancelHoldResponse = $this->_callUrl($url);
 		return $cancelHoldResponse;

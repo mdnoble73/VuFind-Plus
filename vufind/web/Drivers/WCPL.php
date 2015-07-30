@@ -18,7 +18,7 @@
  *
  */
 
-require_once 'Interface.php';
+require_once 'DriverInterface.php';
 require_once ROOT_DIR . '/Drivers/HorizonAPI.php';
 
 class WCPL extends HorizonAPI

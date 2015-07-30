@@ -705,12 +705,12 @@ class OverDriveDriver3 {
 		$response = $this->_callPatronUrl($user, $url, $params);
 
 		$holdResult = array();
-		$holdResult['result'] = false;
+		$holdResult['success'] = false;
 		$holdResult['message'] = '';
 
 		//print_r($response);
 		if (isset($response->holdListPosition)){
-			$holdResult['result'] = true;
+			$holdResult['success'] = true;
 			$holdResult['message'] = 'Your hold was placed successfully.  You are number ' . $response->holdListPosition . ' on the wait list.';
 			if ($analytics) $analytics->addEvent('OverDrive', 'Place Hold', 'succeeded');
 		}else{
@@ -747,10 +747,10 @@ class OverDriveDriver3 {
 
 
 		$cancelHoldResult = array();
-		$cancelHoldResult['result'] = false;
+		$cancelHoldResult['success'] = false;
 		$cancelHoldResult['message'] = '';
 		if ($response === true){
-			$cancelHoldResult['result'] = true;
+			$cancelHoldResult['success'] = true;
 			$cancelHoldResult['message'] = 'Your hold was cancelled successfully.';
 			if ($analytics) $analytics->addEvent('OverDrive', 'Cancel Hold', 'succeeded');
 		}else{
@@ -790,12 +790,12 @@ class OverDriveDriver3 {
 		$response = $this->_callPatronUrl($user, $url, $params);
 
 		$result = array();
-		$result['result'] = false;
+		$result['success'] = false;
 		$result['message'] = '';
 
 		//print_r($response);
 		if (isset($response->expires)){
-			$result['result'] = true;
+			$result['success'] = true;
 			$result['message'] = 'Your title was checked out successfully. You may now download the title from your Account.';
 			if ($analytics) $analytics->addEvent('OverDrive', 'Checkout Item', 'succeeded');
 		}else{
@@ -843,10 +843,10 @@ class OverDriveDriver3 {
 		}
 
 		$cancelHoldResult = array();
-		$cancelHoldResult['result'] = false;
+		$cancelHoldResult['success'] = false;
 		$cancelHoldResult['message'] = '';
 		if ($response === true){
-			$cancelHoldResult['result'] = true;
+			$cancelHoldResult['success'] = true;
 			$cancelHoldResult['message'] = 'Your item was returned successfully.';
 			if ($analytics) $analytics->addEvent('OverDrive', 'Return Item', 'succeeded');
 		}else{
@@ -875,11 +875,11 @@ class OverDriveDriver3 {
 		//print_r($response);
 
 		$result = array();
-		$result['result'] = false;
+		$result['success'] = false;
 		$result['message'] = '';
 
 		if (isset($response->linkTemplates->downloadLink)){
-			$result['result'] = true;
+			$result['success'] = true;
 			$result['message'] = 'This format was locked in';
 			if ($analytics) $analytics->addEvent('OverDrive', 'Select Download Format', 'succeeded');
 			$downloadLink = $this->getDownloadLink($overDriveId, $formatId, $user);
@@ -939,11 +939,11 @@ class OverDriveDriver3 {
 		//print_r($response);
 
 		$result = array();
-		$result['result'] = false;
+		$result['success'] = false;
 		$result['message'] = '';
 
 		if (isset($response->links->contentlink)){
-			$result['result'] = true;
+			$result['success'] = true;
 			$result['message'] = 'Created Download Link';
 			$result['downloadUrl'] = $response->links->contentlink->href;
 			if ($analytics) $analytics->addEvent('OverDrive', 'Get Download Link', 'succeeded');

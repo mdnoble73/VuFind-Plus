@@ -1,5 +1,5 @@
 <?php
-require_once 'Interface.php';
+require_once 'DriverInterface.php';
 require_once ROOT_DIR . '/sys/eContent/EContentRecord.php';
 require_once ROOT_DIR . '/sys/eContent/EContentItem.php';
 require_once ROOT_DIR . '/sys/eContent/EContentHold.php';
@@ -476,9 +476,6 @@ class EContentDriver implements DriverInterface{
 		}
 		return $summaries;
 	}
-	public function getPurchaseHistory($id){
-
-	}
 
 	public function getMyHolds($user){
 		$holds = array(
@@ -496,7 +493,7 @@ class EContentDriver implements DriverInterface{
 
 			if ($recordDriver->isValid()){
 				$expirationDate = $availableHolds->dateUpdated + 5 * 24 * 60 * 60;
-				$holds['holds']['available'][] = array(
+				$holds['available'][] = array(
 					'id' => $availableHolds->recordId,
 					'recordId' => $recordDriver->getUniqueID(),
 					'source' => $recordDriver->getSources(),
@@ -556,7 +553,7 @@ class EContentDriver implements DriverInterface{
 		return $eContentHold->N + 1;
 	}
 
-	public function getMyTransactions($user){
+	public function getMyCheckouts($user){
 		$return = array();
 		$eContentCheckout = new EContentCheckout();
 		$eContentCheckout->userId = $user->id;
@@ -706,12 +703,12 @@ class EContentDriver implements DriverInterface{
 	 * @access  public
 	 */
 	public function placeHold($patron, $recordId, $pickupBranch) {
-		$id = str_ireplace("econtentrecord", "", $id);
+		$id = str_ireplace("econtentrecord", "", $recordId);
 		$return = array();
 		$eContentRecord = new EContentRecord();
 		$eContentRecord->id = $id;
 		if (!$eContentRecord->find(true)){
-			$return['result'] = false;
+			$return['success'] = false;
 			$return['message'] = "Could not find a record with an id of $id";
 		}else{
 			$return['title'] = $eContentRecord->title;
@@ -721,7 +718,7 @@ class EContentDriver implements DriverInterface{
 				require_once ROOT_DIR . '/Drivers/OverDriveDriverFactory.php';
 				$overDriveDriver = OverDriveDriverFactory::getDriver();
 				$overDriveResult = $overDriveDriver->placeOverDriveHold($eContentRecord->externalId, '', $patron);
-				$return['result'] = $overDriveResult['result'];
+				$return['success'] = $overDriveResult['success'];
 				$return['message'] = $overDriveResult['message'];
 			}else{
 				//Check to see if the user already has a hold placed
@@ -731,7 +728,7 @@ class EContentDriver implements DriverInterface{
 				$holds->whereAdd("(status = 'active' or status = 'suspended' or status ='available')");
 				$holds->find();
 				if ($holds->N > 0){
-					$return['result'] = false;
+					$return['success'] = false;
 					$return['message'] = "That record is already on hold for you, unable to place a second hold.";
 				}else{
 					//Check to see if the user already has the record checked out
@@ -741,7 +738,7 @@ class EContentDriver implements DriverInterface{
 					$checkouts->recordId = $id;
 					$checkouts->find();
 					if ($checkouts->N > 0){
-						$return['result'] = false;
+						$return['success'] = false;
 						$return['message'] = "That record is already checked out to you, unable to place a hold.";
 					}else{
 						//Check to see if there are any available copies and then checkout the record rather than placing a hold
@@ -749,18 +746,18 @@ class EContentDriver implements DriverInterface{
 						$holdingsSummary = $this->getStatusSummary($id, $holdings);
 						if ($holdingsSummary['availableCopies'] > 0 || $eContentRecord->accessType == 'free'){
 							//The record can be checked out directly
-							$ret = $this->checkoutRecord($id, $user);
+							$ret = $this->checkoutRecord($id, $patron);
 							return $ret;
 						}else{
 							//Place the hold for the user
 							$hold = new EContentHold();
-							$hold->userId = $user->id;
+							$hold->userId = $patron->id;
 							$hold->recordId = $id;
 							$hold->status = 'active';
 							$hold->datePlaced = time();
 							$hold->dateUpdated = time();
 							if ($hold->insert()){
-								$return['result'] = true;
+								$return['success'] = true;
 								$holdPosition = $this->_getHoldPosition($hold);
 								$return['message'] = "Your hold was successfully placed, you are number {$holdPosition} in the queue.";
 
@@ -789,20 +786,27 @@ class EContentDriver implements DriverInterface{
 	 * @access  public
 	 */
 	function placeItemHold($patron, $recordId, $itemId, $pickupBranch){
-		return array('result' => false, 'message' => 'Unable to place Item level holds on eContent at this time');
+		return array('success' => false, 'message' => 'Unable to place Item level holds on eContent at this time');
 	}
 
 
-	public function cancelHold($id){
-		global $user;
+	/**
+	 * Cancels a hold for a patron
+	 *
+	 * @param   User    $patron     The User to cancel the hold for
+	 * @param   string  $recordId   The id of the bib record
+	 * @param   string  $cancelId   Information about the hold to be cancelled
+	 * @return  array
+	 */
+	function cancelHold($patron, $recordId, $cancelId){
 		//Check to see if there is an existing hold for the record
 		$record = new EContentRecord();
-		$record->id = $id;
+		$record->id = $recordId;
 		if ($record->find(true)){
 			$title = $record->title;
 			$hold = new EContentHold();
-			$hold->recordId = $id;
-			$hold->userId = $user->id;
+			$hold->recordId = $recordId;
+			$hold->userId = $patron->id;
 			$hold->whereAdd("status in ('active', 'suspended')");
 			$hold->find();
 			if ($hold->N > 0){
@@ -811,41 +815,40 @@ class EContentDriver implements DriverInterface{
 				$hold->dateUpdated = time();
 				$ret = $hold->update();
 				if ($ret == 1){
-					$this->processHoldQueue($id);
+					$this->processHoldQueue($recordId);
 					return array(
 					      'title' => $title,
-					      'result' => true,
+					      'success' => true,
 					      'message' => 'Your hold was cancelled successfully.');
 				}else{
 					return array(
 					      'title' => $title,
-					      'result' => false,
+					      'success' => false,
 					      'message' => 'Unable to update your hold.');
 				}
 			}else{
 				return array(
 				      'title' => $title,
-				      'result' => true,
+				      'success' => true,
 				      'message' => 'Sorry, but we could not find a hold for you for that title.');
 			}
 		}else{
 			return array(
 				      'title' => '',
-				      'result' => false,
+				      'success' => false,
 				      'message' => 'Could not find a record with that title.');
 		}
 	}
 
-	public function reactivateHold($id){
-		global $user;
+	public function thawHold($patron, $recordId, $itemToThawId){
 		//Check to see if there is an existing hold for the record
 		$record = new EContentRecord();
-		$record->id = $id;
+		$record->id = $recordId;
 		if ($record->find(true)){
 			$title = $record->title;
 			$hold = new EContentHold();
-			$hold->recordId = $id;
-			$hold->userId = $user->id;
+			$hold->recordId = $recordId;
+			$hold->userId = $patron->id;
 			$hold->status = 'suspended';
 			$hold->find();
 			if ($hold->N > 0){
@@ -854,76 +857,94 @@ class EContentDriver implements DriverInterface{
 				$hold->dateUpdated = time();
 				$ret = $hold->update();
 				if ($ret == 1){
-					$this->processHoldQueue($id);
+					$this->processHoldQueue($recordId);
 					return array(
 					      'title' => $title,
-					      'result' => true,
+					      'success' => true,
 					      'message' => 'Your hold was activated successfully.');
 				}else{
 					return array(
 					      'title' => $title,
-					      'result' => true,
+					      'success' => true,
 					      'message' => 'Unable to activate your hold.');
 				}
 			}else{
 				return array(
 				      'title' => $title,
-				      'result' => true,
+				      'success' => true,
 				      'message' => 'Sorry, but we could not find a hold for you for that title.');
 			}
 		}else{
 			return array(
 				      'title' => '',
-				      'result' => false,
+				      'success' => false,
 				      'message' => 'Could not find a record with that title.');
 		}
 	}
 
-	public function suspendHolds($ids, $dateToReactivate){
-		global $user;
+	public function freezeHold($patron, $recordId, $itemToFreezeId, $dateToReactivate){
 		$result = array();
-		foreach ($ids as $id){
-			$eContentRecord = new EContentRecord();
-			$eContentRecord->id = $id;
-			if ($eContentRecord->find(true)){
-				//Find the hold for the record
-				$hold = new EContentHold();
-				$hold->recordId = $id;
-				$hold->userId = $user->id;
-				$hold->status = 'active';
-				if ($hold->find(true)){
-					$hold->status = 'suspended';
-					$hold->reactivateDate = $dateToReactivate;
-					$hold->dateUpdated = time();
-					$ret = $hold->update();
-					if ($ret == 1){
-						$result[$id] = array(
-							'success' => true,
-							'title' => $eContentRecord->title,
-							'error' => "The hold was suspended."
-						);
-					}else{
-						$result[$id] = array(
-							'success' => false,
-							'title' => $eContentRecord->title,
-							'error' => "Could not suspend the hold."
-						);
-					}
+		$eContentRecord = new EContentRecord();
+		$eContentRecord->id = $recordId;
+		if ($eContentRecord->find(true)){
+			//Find the hold for the record
+			$hold = new EContentHold();
+			$hold->recordId = $recordId;
+			$hold->userId = $patron->id;
+			$hold->status = 'active';
+			if ($hold->find(true)){
+				$hold->status = 'suspended';
+				$hold->reactivateDate = $dateToReactivate;
+				$hold->dateUpdated = time();
+				$ret = $hold->update();
+				if ($ret == 1){
+					$result = array(
+						'success' => true,
+						'title' => $eContentRecord->title,
+						'error' => "The hold was suspended."
+					);
 				}else{
-					$result[$id] = array(
+					$result = array(
 						'success' => false,
 						'title' => $eContentRecord->title,
-						'error' => "Could not find an active hold to suspend."
+						'error' => "Could not suspend the hold."
 					);
 				}
 			}else{
-				$result[$id] = array(
+				$result = array(
 					'success' => false,
-					'error' => "Could not find a record with that id"
+					'title' => $eContentRecord->title,
+					'error' => "Could not find an active hold to suspend."
 				);
 			}
+		}else{
+			$result = array(
+				'success' => false,
+				'error' => "Could not find a record with that id"
+			);
 		}
 		return $result;
+	}
+
+	function changeHoldPickupLocation($patron, $recordId, $itemToUpdateId, $newPickupLocation){
+		return array(
+			'success' => false,
+			'error' => "Cannot change pickup locations for eContent"
+		);
+	}
+
+	function renewAll($patron){
+		return array(
+			'success' => false,
+			'error' => "Cannot renew eContent"
+		);
+	}
+
+	function renewItem($patron, $recordId, $itemId, $itemIndex){
+		return array(
+			'success' => false,
+			'error' => "Cannot renew eContent"
+		);
 	}
 
 	public function checkoutRecord($id, $user){
@@ -940,7 +961,7 @@ class EContentDriver implements DriverInterface{
 		$checkouts->recordId = $id;
 		$checkouts->find();
 		if ($checkouts->N > 0){
-			$return['result'] = false;
+			$return['success'] = false;
 			$return['message'] = "That record is already checked out to you, unable to check it out again.";
 		}else{
 			//Check to see if the record is on hold for the current user
@@ -958,7 +979,7 @@ class EContentDriver implements DriverInterface{
 					$checkoutRecord = $ret == 1 ;
 				}else{
 					$checkoutRecord = false;
-					$return['result'] = false;
+					$return['success'] = false;
 					$return['message'] = "This title is already on hold for you.";
 				}
 			}else{
@@ -966,7 +987,7 @@ class EContentDriver implements DriverInterface{
 				$holdings = $this->getHolding($id);
 				$statusSummary = $this->getStatusSummary($id, $holdings);
 				if ($statusSummary['availableCopies'] == 0){
-					$return['result'] = false;
+					$return['success'] = false;
 					$return['message'] = "There are no available copies of this title, please place a hold instead.";
 				}else{
 					$checkoutRecord = true;
@@ -984,7 +1005,7 @@ class EContentDriver implements DriverInterface{
 				$checkout->dateDue = time() + $loanTerm * 24 * 60 * 60; //Allow titles to be checked our for 3 weeks
 
 				if ($checkout->insert()){
-					$return['result'] = true;
+					$return['success'] = true;
 					$return['message'] = "The title was checked out to you successfully.  You may read it from Checked Out eBooks and eAudio page within your account.";
 
 					//Record that the record was checked out
@@ -1055,12 +1076,12 @@ class EContentDriver implements DriverInterface{
 		global $user;
 		global $configArray;
 		$eContent = array();
-		$myTransactions = $this->getMyTransactions($user);
+		$myTransactions = $this->getMyCheckouts($user);
 		$eContent['checkedOut'] = $myTransactions['transactions'];
 
 		$myHolds = $this->getMyHolds($user);
-		$eContent['availableHolds'] = $myHolds['holds']['available'];
-		$eContent['unavailableHolds'] = $myHolds['holds']['unavailable'];
+		$eContent['availableHolds'] = $myHolds['available'];
+		$eContent['unavailableHolds'] = $myHolds['unavailable'];
 
 		$myWishList = $this->getMyWishList($user);
 		$eContent['wishlist'] = $myWishList['items'];

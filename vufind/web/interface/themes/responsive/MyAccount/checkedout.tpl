@@ -52,7 +52,9 @@
 				</div>
 
 				<p class="alert alert-info">
-					eBooks and eAudiobooks cannot be renewed before they expire.  If you want to renew, please wait for the title to expire and then check it out again.  You will need to download the title again after checking out the title again.
+					eBooks and eAudiobooks cannot be renewed before they expire.
+					If you want to renew, please wait for the title to expire and then check it out again.  You will need to download the title again after checking out the title again.
+					You may be able to place a new hold on the title a few days before the title expires to help ensure continuous reading/listening.
 				</p>
 
 				<div class="btn-group">

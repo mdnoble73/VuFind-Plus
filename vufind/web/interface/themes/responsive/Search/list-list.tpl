@@ -1,5 +1,4 @@
 {strip}
-{*<form id="addForm" action="{$path}/MyAccount/HoldMultiple" class="">*}
 	<div>
 		{foreach from=$recordSet item=record name="recordLoop"}
 			<div class="result {if ($smarty.foreach.recordLoop.iteration % 2) == 0}alt{/if} record{$smarty.foreach.recordLoop.iteration}">
@@ -8,6 +7,5 @@
 			</div>
 		{/foreach}
 	</div>
-{*</form>*}
 {/strip}
 

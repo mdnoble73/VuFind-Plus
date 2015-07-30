@@ -3,7 +3,7 @@
 	<div class="btn-group btn-group-vertical btn-block">
 		{* Place hold link *}
 		{if $showHoldButton}
-				<a href="#" class="btn btn-sm btn-block btn-primary" onclick="return VuFind.Record.showPlaceHold('{$summId}')" >{translate text="Place Hold"}</a>
+				<a href="#" class="btn btn-sm btn-block btn-primary" onclick="return VuFind.Record.showPlaceHold('{$activeRecordProfileModule}', '{$recordDriver->getIdWithSource()}')" >{translate text="Place Hold"}</a>
 		{/if}
 		{* Book Material link *}
 		{if $enableMaterialsBooking} {* TODO check bookable? *}

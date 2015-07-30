@@ -428,10 +428,10 @@ class GroupedWork_AJAX {
 
 		global $user;
 		if ($user === false) {
-			$result['result'] = false;
+			$result['success'] = false;
 			$result['message'] = 'Please login before adding a review.';
 		}elseif (empty($_REQUEST['id'])) {
-			$result['result'] = false;
+			$result['success'] = false;
 			$result['message'] = 'ID for the item to review is required.';
 		} else {
 			require_once ROOT_DIR . '/sys/LocalEnrichment/UserWorkReview.php';
@@ -460,10 +460,10 @@ class GroupedWork_AJAX {
 				} else $success = true; // pretend success since values are already set to same values.
 			}
 			if (!$success) { // if sql save didn't work, let user know.
-				$result['result']  = false;
+				$result['success']  = false;
 				$result['message'] = 'Failed to save rating or review.';
 			} else { // successfully saved
-				$result['result']    = true;
+				$result['success']    = true;
 				$result['newReview'] = $newReview;
 				$result['reviewId']  = $groupedWorkReview->id;
 				global $interface;
@@ -596,12 +596,12 @@ class GroupedWork_AJAX {
 
 		global $user;
 		if ($user === false) {
-			$result['result'] = false;
+			$result['success'] = false;
 			$result['message'] = 'Please login before adding a title to list.';
 		}else{
 			require_once ROOT_DIR . '/sys/LocalEnrichment/UserList.php';
 			require_once ROOT_DIR . '/sys/LocalEnrichment/UserListEntry.php';
-			$result['result'] = true;
+			$result['success'] = true;
 			$id = $_REQUEST['id'];
 			$listId = $_REQUEST['listId'];
 			$notes = $_REQUEST['notes'];
@@ -618,7 +618,7 @@ class GroupedWork_AJAX {
 			}else{
 				$userList->id = $listId;
 				if (!$userList->find(true)){
-					$result['result'] = false;
+					$result['success'] = false;
 					$result['message'] = 'Sorry, we could not find that list in the system.';
 					$listOk = false;
 				}
@@ -642,7 +642,7 @@ class GroupedWork_AJAX {
 				}
 			}
 
-			$result['result'] = true;
+			$result['success'] = true;
 			$result['message'] = 'This title was saved to your list successfully.';
 		}
 

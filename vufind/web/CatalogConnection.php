@@ -227,23 +227,6 @@ class CatalogConnection
 	}
 
 	/**
-	 * Get Purchase History
-	 *
-	 * This is responsible for retrieving the acquisitions history data for the
-	 * specific record (usually recently received issues of a serial).
-	 *
-	 * @param string $recordId The record id to retrieve the info for
-	 *
-	 * @return mixed           An array with the acquisitions data on success,
-	 * PEAR_Error on failure
-	 * @access public
-	 */
-	public function getPurchaseHistory($recordId)
-	{
-		return $this->driver->getPurchaseHistory($recordId);
-	}
-
-	/**
 	 * Patron Login
 	 *
 	 * This is responsible for authenticating a patron against the catalog.
@@ -392,9 +375,15 @@ class CatalogConnection
 	 * PEAR_Error otherwise.
 	 * @access public
 	 */
-	public function getMyTransactions($user)
+	public function getMyCheckouts($user)
 	{
-		return $this->driver->getMyTransactions($user);
+		$transactions = $this->driver->getMyCheckouts($user);
+		foreach ($transactions as $key => $curTitle){
+			$curTitle['user'] = $user->getNameAndLibraryLabel();
+			$curTitle['userId'] = $user->id;
+			$transactions[$key] = $curTitle;
+		}
+		return $transactions;
 	}
 
 	/**
@@ -574,7 +563,16 @@ class CatalogConnection
 	 * @access public
 	 */
 	public function getMyHolds($user) {
-		return $this->driver->getMyHolds($user);
+		$holds = $this->driver->getMyHolds($user);
+		foreach ($holds as $section => $holdsForSection){
+			foreach ($holdsForSection as $key => $curTitle){
+				$curTitle['user'] = $user->getNameAndLibraryLabel();
+				$curTitle['userId'] = $user->id;
+				$holds[$section][$key] = $curTitle;
+			}
+		}
+
+		return $holds;
 	}
 
 	/**
@@ -590,7 +588,8 @@ class CatalogConnection
 	 * @access  public
 	 */
 	function placeHold($patron, $recordId, $pickupBranch) {
-		return $this->driver->placeHold($patron, $recordId, $pickupBranch);
+		$result =  $this->driver->placeHold($patron, $recordId, $pickupBranch);
+		return $result;
 	}
 
 	/**
@@ -959,4 +958,22 @@ class CatalogConnection
 
 		return $cachedValue;
 	}
+
+	function cancelHold($patron, $recordId, $cancelId) {
+		return $this->driver->cancelHold($patron, $recordId, $cancelId);
+	}
+
+	function freezeHold($patron, $recordId, $itemToFreezeId, $dateToReactivate) {
+		return $this->driver->freezeHold($patron, $recordId, $itemToFreezeId, $dateToReactivate);
+	}
+
+	function thawHold($patron, $recordId, $itemToThawId) {
+		return $this->driver->thawHold($patron, $recordId, $itemToThawId);
+	}
+
+	function changeHoldPickupLocation($patron, $recordId, $itemToUpdateId, $newPickupLocation) {
+		return $this->driver->changeHoldPickupLocation($patron, $recordId, $itemToUpdateId, $newPickupLocation);
+	}
+
+
 }

@@ -469,12 +469,6 @@ class Millennium extends ScreenScrapingDriver
 		return $this->getStatus($id);
 	}
 
-	public function getPurchaseHistory($id)
-	{
-		return array();
-	}
-
-
 	/**
 	 * Patron Login
 	 *
@@ -826,10 +820,10 @@ class Millennium extends ScreenScrapingDriver
 	 * PEAR_Error otherwise.
 	 * @access public
 	 */
-	public function getMyTransactions( $user ) {
+	public function getMyCheckouts( $user ) {
 		require_once ROOT_DIR . '/Drivers/marmot_inc/MillenniumCheckouts.php';
 		$millenniumCheckouts = new MillenniumCheckouts($this);
-		return $millenniumCheckouts->getMyTransactions($user);
+		return $millenniumCheckouts->getMyCheckouts($user);
 	}
 
 	/**
@@ -941,16 +935,40 @@ class Millennium extends ScreenScrapingDriver
 		return $millenniumHolds->updateHoldDetailed($patron, $type, $title, $xNum, $cancelId, $locationId, $freezeValue);
 	}
 
-	public function renewAll(){
-		require_once ROOT_DIR . '/Drivers/marmot_inc/MillenniumCheckouts.php';
-		$millenniumCheckouts = new MillenniumCheckouts($this);
-		return $millenniumCheckouts->renewAll();
+	public function cancelHold($patron, $recordId, $cancelId){
+		require_once ROOT_DIR . '/Drivers/marmot_inc/MillenniumHolds.php';
+		$millenniumHolds = new MillenniumHolds($this);
+		return $millenniumHolds->updateHoldDetailed($patron, 'cancel', '', null, $cancelId, '', '');
 	}
 
-	public function renewItem($itemId, $itemIndex){
+	function freezeHold($patron, $recordId, $itemToFreezeId, $dateToReactivate){
+		require_once ROOT_DIR . '/Drivers/marmot_inc/MillenniumHolds.php';
+		$millenniumHolds = new MillenniumHolds($this);
+		return $millenniumHolds->updateHoldDetailed($patron, 'update', '', null, $itemToFreezeId, '', 'on');
+	}
+
+	function thawHold($patron, $recordId, $itemToThawId){
+		require_once ROOT_DIR . '/Drivers/marmot_inc/MillenniumHolds.php';
+		$millenniumHolds = new MillenniumHolds($this);
+		return $millenniumHolds->updateHoldDetailed($patron, 'update', '', null, $itemToThawId, '', 'off');
+	}
+
+	function changeHoldPickupLocation($patron, $recordId, $itemToUpdateId, $newPickupLocation){
+		require_once ROOT_DIR . '/Drivers/marmot_inc/MillenniumHolds.php';
+		$millenniumHolds = new MillenniumHolds($this);
+		return $millenniumHolds->updateHoldDetailed($patron, 'update', '', null, $itemToUpdateId, $newPickupLocation, 'off');
+	}
+
+	public function renewAll($patron){
 		require_once ROOT_DIR . '/Drivers/marmot_inc/MillenniumCheckouts.php';
 		$millenniumCheckouts = new MillenniumCheckouts($this);
-		return $millenniumCheckouts->renewItem($itemId, $itemIndex);
+		return $millenniumCheckouts->renewAll($patron);
+	}
+
+	public function renewItem($patron, $recordId, $itemId, $itemIndex){
+		require_once ROOT_DIR . '/Drivers/marmot_inc/MillenniumCheckouts.php';
+		$millenniumCheckouts = new MillenniumCheckouts($this);
+		return $millenniumCheckouts->renewItem($patron, $itemId, $itemIndex);
 	}
 
 	public function bookMaterial($recordId, $startDate, $startTime = null, $endDate = null, $endTime = null) {
@@ -1755,7 +1773,7 @@ public function getBookingCalendar($recordId) {
 
 		//Parse the response
 		$result = array(
-			'result' => false,
+			'success' => false,
 			'error' => true,
 			'message' => 'Unknown error resetting pin'
 		);
@@ -1765,7 +1783,7 @@ public function getBookingCalendar($recordId) {
 			$result['message'] = trim($matches[1]);
 		}elseif (preg_match('/<div class="pageContent">.*?<strong>(.*?)<\/strong>/si', $pinResetResultPageHtml, $matches)){
 			$result['error'] = false;
-			$result['result'] = true;
+			$result['success'] = true;
 			$result['message'] = trim($matches[1]);
 		}
 		return $result;

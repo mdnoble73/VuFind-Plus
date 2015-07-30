@@ -21,7 +21,7 @@
 			<span class='checkout_item_title'>
 			{$title_data.title}
 			</span>
-			<br /><span class='{if $title_data.result == true}hold_result_title_ok{else}hold_result_title_failed{/if}'>{$title_data.message}</span>
+			<br /><span class='{if $title_data.success == true}hold_result_title_ok{else}hold_result_title_failed{/if}'>{$title_data.message}</span>
 			</li>
 		{/foreach}
 		</ol>

@@ -8,13 +8,12 @@
  * Time: 10:09 PM
  */
 
-require_once ROOT_DIR . '/Drivers/Interface.php';
 abstract class SIP2Driver implements DriverInterface{
 	/** @var sip2 $sipConnection  */
 	private $sipConnection = null;
 
 	private $transactions = array();
-	public function getMyTransactions($page = 1, $recordsPerPage = -1, $sortOption = 'dueDate') {
+	public function getMyCheckouts($page = 1, $recordsPerPage = -1, $sortOption = 'dueDate') {
 		global $logger;
 		global $user;
 		if (isset($this->transactions[$user->id])){

@@ -83,7 +83,7 @@ class Nashville extends Millennium{
 		//Get rid of header and footer information and just get the main content
 		if (preg_match('/success/', $holdResultPage)){
 			//Hold was successful
-			$hold_result['result'] = true;
+			$hold_result['success'] = true;
 			if (!isset($reason) || strlen($reason) == 0){
 				$hold_result['message'] = 'Your hold was placed successfully';
 			}else{
@@ -91,11 +91,11 @@ class Nashville extends Millennium{
 			}
 		}else if (preg_match('/<font color="red" size="\+2">(.*?)<\/font>/is', $holdResultPage, $reason)){
 			//Got an error message back.
-			$hold_result['result'] = false;
+			$hold_result['success'] = false;
 			$hold_result['message'] = $reason[1];
 		}else{
 			//Didn't get a reason back.  This really shouldn't happen.
-			$hold_result['result'] = false;
+			$hold_result['success'] = false;
 			$hold_result['message'] = 'Did not receive a response from the circulation system.  Please try again in a few minutes.';
 		}
 		return $hold_result;

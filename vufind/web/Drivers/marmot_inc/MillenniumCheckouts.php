@@ -42,7 +42,7 @@ class MillenniumCheckouts {
 	 * PEAR_Error otherwise.
 	 * @access public
 	 */
-	public function getMyTransactions($user) {
+	public function getMyCheckouts($user) {
 		global $timer;
 		$timer->logTime("Ready to load checked out titles from Millennium");
 		//Load the information from millennium using CURL
@@ -201,7 +201,6 @@ class MillenniumCheckouts {
 					}
 					$curTitle['link'] = $recordDriver->getLinkUrl();
 				}
-				$curTitle['user'] = $user->getNameAndLibraryLabel();
 				$checkedOutTitles[] = $curTitle;
 			}
 
@@ -250,8 +249,7 @@ class MillenniumCheckouts {
 
 			$post_string = http_build_query($post_data);
 			curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
-			$loginResult = curl_exec($curl_connection);
-			$curlInfo = curl_getinfo($curl_connection);
+			curl_exec($curl_connection);
 		}
 
 		//Go to the items page
@@ -279,39 +277,34 @@ class MillenniumCheckouts {
 		unlink($cookieJar);
 
 		//Clear the existing patron info and get new information.
-		$renew_result = array();
+		$renew_result = array(
+			'success' => false,
+			'messages' => array()
+		);
 		$renew_result['Total'] = $curCheckedOut;
 		preg_match_all("/RENEWED successfully/si", $checkedOutPageText, $matches);
 		$numRenewals = count($matches[0]);
 		$renew_result['Renewed'] = $numRenewals;
 		$renew_result['Unrenewed'] = $renew_result['Total'] - $renew_result['Renewed'];
 		if ($renew_result['Unrenewed'] > 0) {
-			$renew_result['result'] = false;
+			$renew_result['success'] = false;
 			// Now Extract Failure Messages
 
 			// Overall Failure
 			if (preg_match('/<h2>\\s*You cannot renew items because:\\s*<\/h2><ul><li>(.*?)<\/ul>/si', $checkedOutPageText, $matches)) {
 				$msg = ucfirst(strtolower(trim($matches[1])));
-				$renew_result['message'] = "Unable to renew items: $msg.";
-//				if ($analytics){
-//					$analytics->addEvent('ILS Integration', 'Renew Failed', $msg);
-//				}
+				$renew_result['message'][] = "Unable to renew items: $msg.";
 			}
 
 			// The Account is busy
 			elseif (preg_match('/Your record is in use/si', $checkedOutPageText)) {
 				$renew_result['message'] = 'Unable to renew this item now, your account is in use by the system.  Please try again later.';
-//				if ($analytics){
-//					$analytics->addEvent('ILS Integration', 'Renew Failed', 'Account in Use');
-//				}
 			}
 
 			// Let's Look at the Results
 			elseif (preg_match('/<table border="0" class="patFunc">(.*?)<\/table>/s', $checkedOutPageText, $matches)) {
 				$checkedOutTitleTable = $matches[1];
 				if (preg_match_all('/<tr class="patFuncEntry">(.*?)<\/tr>/s', $checkedOutTitleTable, $rowMatches, PREG_SET_ORDER)){
-//					$rows = array_column($rowMatches, 1); // extract the only column we need. php 5.5
-
 					foreach ($rowMatches as $row) {
 						$row = $row[1];
 
@@ -321,21 +314,6 @@ class MillenniumCheckouts {
 
 								// Add Title to msg
 								$title = $this->extract_title_from_row($row);
-//								if (preg_match('/.*?<a href=\\"\/record=(.*?)(?:~S\\d{1,2})\\">(.*?)<\/a>.*/', $row, $matches)) {
-//									//Standard Millennium WebPAC
-////									$shortId = $matches[1];
-////									$bibid = '.' . $matches[1]; //Technically, this isn't correct since the check digit is missing
-//									$title = strip_tags($matches[2]);
-//								}elseif (preg_match('/.*<a href=".*?\/record\/C__R(.*?)\\?.*?">(.*?)<\/a>.*/si', $row, $matches)){
-//									//Encore
-////									$shortId = $matches[1];
-////									$bibid = '.' . $matches[1]; //Technically, this isn't correct since the check digit is missing
-//									$title = strip_tags($matches[2]);
-//								}else{
-//									$title = strip_tags($row);
-////									$shortId = '';
-////									$bibid = '';
-//								}
 
 								$renew_result['message'][] = "Unable to renew $title: $msg.";
 							}
@@ -346,28 +324,24 @@ class MillenniumCheckouts {
 				}
 			}
 
-
-
-//			$failureMessages = $this->getMyRenewalTransactions($sresult);
-//			foreach ($failureMessages as $index => $failure){
-//				$renew_result['message'][] = $failure;
-//			}
 		}
 		else{
-			$renew_result['result'] = true;
-			$renew_result['message'] = "All items were renewed successfully.";
+			$renew_result['success'] = true;
+			$renew_result['message'][] = "All items were renewed successfully.";
 		}
 
 		return $renew_result;
 	}
 
+	/**
+	 * @param $patron     User
+	 * @param $itemId     string
+	 * @param $itemIndex  string
+	 * @return array
+	 */
 	public function renewItem($patron, $itemId, $itemIndex){
 		global $logger;
-		global $configArray;
 		global $analytics;
-
-		//Setup the call to Millennium
-		$patronDump = $this->driver->_getPatronDump($this->driver->_getBarcode());
 
 		$extraGetInfo = array(
 			'currentsortorder' => 'current_checkout',
@@ -405,19 +379,19 @@ class MillenniumCheckouts {
 			$post_data['_eventId'] = 'submit';
 			$post_string = http_build_query($post_data);
 			curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
-			$loginResult = curl_exec($curl_connection);
-			$curlInfo = curl_getinfo($curl_connection);
+			curl_exec($curl_connection);
+			curl_getinfo($curl_connection);
 		}
 
 		//Go to the items page
 		$scope = $this->driver->getDefaultScope();
-		$curl_url = $this->driver->getVendorOpacUrl() . "/patroninfo~S{$scope}/" . $patronDump['RECORD_#'] ."/items";
+		$curl_url = $this->driver->getVendorOpacUrl() . "/patroninfo~S{$scope}/" . $patron->username ."/items";
 		curl_setopt($curl_connection, CURLOPT_URL, $curl_url);
 		curl_setopt($curl_connection, CURLOPT_HTTPGET, true);
 		curl_exec($curl_connection);
 
 		//Post renewal information
-		$curl_url = $this->driver->getVendorOpacUrl() . "/patroninfo~S{$scope}/" . $patronDump['RECORD_#'] ."/items";
+		$curl_url = $this->driver->getVendorOpacUrl() . "/patroninfo~S{$scope}/" . $patron->username ."/items";
 		curl_setopt($curl_connection, CURLOPT_URL, $curl_url);
 		curl_setopt($curl_connection, CURLOPT_POST, true);
 		curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $renewItemParams);
@@ -483,7 +457,7 @@ class MillenniumCheckouts {
 
 		return array(
 			'itemId' => $itemId,
-			'result'  => $success,
+			'success'  => $success,
 			'message' => $message);
 	}
 }

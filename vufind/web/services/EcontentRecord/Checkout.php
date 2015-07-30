@@ -51,7 +51,7 @@ class Checkout extends Action{
 			if (!PEAR_Singleton::isError($user) && $user){
 				//The user is already logged in
 				$return = $driver->checkoutRecord($id, $user);
-				$interface->assign('result', $return['result']);
+				$interface->assign('result', $return['success']);
 				$message = $return['message'];
 				$interface->assign('message', $message);
 				global $logger;
@@ -82,7 +82,7 @@ class Checkout extends Action{
 
 		if (isset($return) && $showMessage) {
 			$hold_message_data = array(
-              'successful' => $return['result'] ? 'all' : 'none',
+              'successful' => $return['success'] ? 'all' : 'none',
               'error' => isset($return['error']) ? $return['error'] : null,
               'titles' => array(
 			$return,

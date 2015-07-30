@@ -91,7 +91,7 @@ class Record_Hold extends Action {
 					$pickupBranch = $user->homeLocationId;
 				}
 				$return = $this->catalog->placeHold($user, $recordId, $pickupBranch);
-				$interface->assign('result', $return['result']);
+				$interface->assign('result', $return['success']);
 				$message = $return['message'];
 				$interface->assign('message', $message);
 				$showMessage = true;
@@ -180,7 +180,7 @@ class Record_Hold extends Action {
 		$interface->assign('id', $_GET['id']);
 		if ($showMessage && isset($return)) {
 			$hold_message_data = array(
-				'successful' => $return['result'] == true ? 'all' : 'none',
+				'successful' => $return['success'] == true ? 'all' : 'none',
 				'error' => isset($return['error']) ? $return['error'] : '',
 				'titles' => array(
 					$return,

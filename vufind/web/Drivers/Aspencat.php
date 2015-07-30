@@ -7,8 +7,6 @@
  * Date: 10/3/14
  * Time: 5:51 PM
  */
-require_once ROOT_DIR . '/Drivers/Interface.php';
-
 class Aspencat implements DriverInterface{
 	/** @var string $cookieFile A temporary file to store cookies  */
 	private $cookieFile = null;
@@ -511,10 +509,6 @@ class Aspencat implements DriverInterface{
 		return $summaryInformation;
 	}
 
-	public function getPurchaseHistory($id) {
-		// TODO: Implement getPurchaseHistory() method.
-	}
-
 	private $patronProfiles = array();
 	function updatePatronInfo($canUpdateContactInfo){
 		$updateErrors = array();
@@ -525,15 +519,15 @@ class Aspencat implements DriverInterface{
 	}
 
 	private $transactions = array();
-	public function getMyTransactions($page = 1, $recordsPerPage = -1, $sortOption = 'dueDate') {
+	public function getMyCheckouts($page = 1, $recordsPerPage = -1, $sortOption = 'dueDate') {
 		if (true){
-			return $this->getMyTransactionsFromOpac($page, $recordsPerPage, $sortOption);
+			return $this->getMyCheckoutsFromOpac($page, $recordsPerPage, $sortOption);
 		}else{
-			return $this->getMyTransactionsFromDB($page, $recordsPerPage, $sortOption);
+			return $this->getMyCheckoutsFromDB($page, $recordsPerPage, $sortOption);
 		}
 	}
 
-	public function getMyTransactionsFromOpac($page = 1, $recordsPerPage = -1, $sortOption = 'dueDate') {
+	public function getMyCheckoutsFromOpac($page = 1, $recordsPerPage = -1, $sortOption = 'dueDate') {
 		global $logger;
 		global $user;
 		if (isset($this->transactions[$user->id])){
@@ -677,7 +671,7 @@ class Aspencat implements DriverInterface{
 		return $transactions;
 	}
 
-	public function getMyTransactionsFromDB($page = 1, $recordsPerPage = -1, $sortOption = 'dueDate') {
+	public function getMyCheckoutsFromDB($page = 1, $recordsPerPage = -1, $sortOption = 'dueDate') {
 		global $user;
 
 		if (isset($this->transactions[$user->id])){
@@ -1180,7 +1174,7 @@ class Aspencat implements DriverInterface{
 		global $user;
 
 		$hold_result = array();
-		$hold_result['result'] = false;
+		$hold_result['success'] = false;
 
 		//Set pickup location
 		$campus = strtoupper($pickupBranch);
@@ -1218,7 +1212,7 @@ class Aspencat implements DriverInterface{
 		preg_match_all('/<div class="dialog alert">(.*?)<\/div>/s', $placeHoldPage, $matches);
 		if (count($matches) > 0 && count($matches[1]) > 0){
 			$hold_result['title'] = $recordDriver->getTitle();
-			$hold_result['result'] = false;
+			$hold_result['success'] = false;
 			$hold_result['message'] = '';
 			foreach ($matches[1] as $errorMsg){
 				$hold_result['message'] .= $errorMsg . '<br/>';
@@ -1298,7 +1292,7 @@ class Aspencat implements DriverInterface{
 					$message = 'There are no holdable items for this title.';
 				}
 			}
-			$hold_result['result'] = false;
+			$hold_result['success'] = false;
 			$hold_result['message'] = $message;
 			return $hold_result;
 		}else{
@@ -1324,10 +1318,10 @@ class Aspencat implements DriverInterface{
 			if (preg_match('/<a href="#opac-user-holds">Holds<\/a>/si', $kohaHoldResult)) {
 				//We redirected to the holds page, everything seems to be good
 				$holds = $this->getMyHolds($user, 1, -1, 'title', $kohaHoldResult);
-				$hold_result['result'] = true;
+				$hold_result['success'] = true;
 				$hold_result['message'] = "Your hold was placed successfully.";
 				//Find the correct hold (will be unavailable)
-				foreach ($holds['holds']['unavailable'] as $holdInfo){
+				foreach ($holds['unavailable'] as $holdInfo){
 					if ($holdInfo['id'] == $recordId){
 						if (isset($holdInfo['position'])){
 							$hold_result['message'] .= "  You are number <b>" . $holdInfo['position'] . "</b> in the queue.";
@@ -1336,7 +1330,7 @@ class Aspencat implements DriverInterface{
 					}
 				}
 			}else{
-				$hold_result['result'] = false;
+				$hold_result['success'] = false;
 				//Look for an alert message
 				if (preg_match('/<div class="dialog alert">(.*?)<\/div>/', $kohaHoldResult, $matches)){
 					$hold_result['message'] = 'Your hold could not be placed. ' . $matches[1] ;
@@ -1366,7 +1360,7 @@ class Aspencat implements DriverInterface{
 		global $configArray;
 
 		$hold_result = array();
-		$hold_result['result'] = false;
+		$hold_result['success'] = false;
 
 		require_once ROOT_DIR . '/RecordDrivers/MarcRecord.php';
 		$recordDriver = new MarcRecord($recordId);
@@ -1413,10 +1407,10 @@ class Aspencat implements DriverInterface{
 		if (preg_match('/<a href="#opac-user-holds">Holds<\/a>/si', $kohaHoldResult)) {
 			//We redirected to the holds page, everything seems to be good
 			$holds = $this->getMyHolds($patron, 1, -1, 'title', $kohaHoldResult);
-			$hold_result['result'] = true;
+			$hold_result['success'] = true;
 			$hold_result['message'] = "Your hold was placed successfully.";
 			//Find the correct hold (will be unavailable)
-			foreach ($holds['holds']['unavailable'] as $holdInfo){
+			foreach ($holds['unavailable'] as $holdInfo){
 				if ($holdInfo['id'] == $recordId){
 					if (isset($holdInfo['position'])){
 						$hold_result['message'] .= "  You are number <b>" . $holdInfo['position'] . "</b> in the queue.";
@@ -1425,7 +1419,7 @@ class Aspencat implements DriverInterface{
 				}
 			}
 		}else{
-			$hold_result['result'] = false;
+			$hold_result['success'] = false;
 			//Look for an alert message
 			if (preg_match('/<div class="dialog alert">(.*?)<\/div>/', $kohaHoldResult, $matches)){
 				$hold_result['message'] = 'Your hold could not be placed. ' . $matches[1] ;
@@ -1446,7 +1440,6 @@ class Aspencat implements DriverInterface{
 	 * @param integer $page           The current page of holds
 	 * @param integer $recordsPerPage The number of records to show per page
 	 * @param string $sortOption      How the records should be sorted
-	 * @param string $summaryPage     If the summary page has already been loaded, it can be passed in for performance reasons.
 	 *
 	 * @return mixed        Array of the patron's holds on success, PEAR_Error
 	 * otherwise.
@@ -1455,9 +1448,9 @@ class Aspencat implements DriverInterface{
 	public function getMyHolds(/** @noinspection PhpUnusedParameterInspection */
 		$patron, $page = 1, $recordsPerPage = -1, $sortOption = 'title'){
 		if (true){
-			return $this->getMyHoldsFromOpac($patron, $page, $sortOption);
+			return $this->getMyHoldsFromOpac($patron);
 		}else{
-			return $this->getMyHoldsFromDB($patron, $page, $sortOption);
+			return $this->getMyHoldsFromDB($patron);
 		}
 	}
 
@@ -1467,17 +1460,12 @@ class Aspencat implements DriverInterface{
 	 * This is responsible for retrieving all holds by a specific patron.
 	 *
 	 * @param array|User $patron      The patron array from patronLogin
-	 * @param integer $page           The current page of holds
-	 * @param integer $recordsPerPage The number of records to show per page
-	 * @param string $sortOption      How the records should be sorted
-	 * @param string $summaryPage     If the summary page has already been loaded, it can be passed in for performance reasons.
 	 *
 	 * @return mixed        Array of the patron's holds on success, PEAR_Error
 	 * otherwise.
 	 * @access public
 	 */
-	public function getMyHoldsFromOpac(/** @noinspection PhpUnusedParameterInspection */
-		$patron, $page = 1, $recordsPerPage = -1, $sortOption = 'title', $summaryPage = null){
+	public function getMyHoldsFromOpac($patron){
 		global $logger;
 		global $user;
 		$availableHolds = array();
@@ -1487,15 +1475,14 @@ class Aspencat implements DriverInterface{
 			'unavailable' => $unavailableHolds
 		);
 		//Get transactions by screen scraping
-		if ($summaryPage == null){
-			//Login to Koha classic interface
-			$result = $this->loginToKoha($user);
-			if (!$result['success']){
-				return $holds;
-			}
-			//Get the summary page that contains both checked out titles and holds
-			$summaryPage = $result['summaryPage'];
+		//Login to Koha classic interface
+		$result = $this->loginToKoha($user);
+		if (!$result['success']){
+			return $holds;
 		}
+		//Get the summary page that contains both checked out titles and holds
+		$summaryPage = $result['summaryPage'];
+
 		//Get the holds table
 		if (preg_match_all('/<table id="aholdst">(.*?)<\/table>/si', $summaryPage, $holdsTableData, PREG_SET_ORDER)){
 			$holdsTable = $holdsTableData[0][0];
@@ -1774,7 +1761,7 @@ class Aspencat implements DriverInterface{
 
 		global $user;
 
-		if (!isset($xNum) ){
+		if (!isset($xNum) || empty($xNum)){
 			if (isset($_REQUEST['waitingholdselected']) || isset($_REQUEST['availableholdselected'])){
 				$waitingHolds = isset($_REQUEST['waitingholdselected']) ? $_REQUEST['waitingholdselected'] : array();
 				$availableHolds = isset($_REQUEST['availableholdselected']) ? $_REQUEST['availableholdselected'] : array();
@@ -1795,6 +1782,7 @@ class Aspencat implements DriverInterface{
 			$allCancelsSucceed = true;
 			$result = $this->loginToKoha($user);
 			$originalHolds = $this->getMyHolds($user, 1, -1, 'title', $result['summaryPage']);
+
 			//Post a request to koha
 			foreach ($holdKeys as $holdKey){
 				//Get the record Id for the hold
@@ -1815,7 +1803,7 @@ class Aspencat implements DriverInterface{
 
 				//Parse the result
 				$updatedHolds = $this->getMyHolds($user, 1, -1, 'title', $kohaHoldResult);
-				if ((count($updatedHolds['holds']['available']) + count($updatedHolds['holds']['unavailable'])) < (count($originalHolds['holds']['available']) + count($originalHolds['holds']['unavailable']))){
+				if ((count($updatedHolds['available']) + count($updatedHolds['unavailable'])) < (count($originalHolds['available']) + count($originalHolds['unavailable']))){
 					//We cancelled the hold
 				}else{
 					$allCancelsSucceed = false;
@@ -1824,19 +1812,19 @@ class Aspencat implements DriverInterface{
 			if ($allCancelsSucceed){
 				return array(
 					'title' => $title,
-					'result' => true,
+					'success' => true,
 					'message' => count($holdKeys) == 1 ? 'Cancelled 1 hold successfully.' : 'Cancelled ' . count($holdKeys) . ' hold(s) successfully.');
 			}else{
 				return array(
 					'title' => $title,
-					'result' => false,
+					'success' => false,
 					'message' => 'Some holds could not be cancelled.  Please try again later or see your librarian.');
 			}
 		}else{
 			if ($locationId){
 				return array(
 					'title' => $title,
-					'result' => false,
+					'success' => false,
 					'message' => 'Changing location for a hold is not supported.');
 			}else{
 				//Freeze/Thaw the hold
@@ -1866,12 +1854,12 @@ class Aspencat implements DriverInterface{
 						$this->clearPatronProfile();
 						return array(
 							'title' => $title,
-							'result' => true,
+							'success' => true,
 							'message' => 'Your hold(s) were frozen successfully.');
 					}else{
 						return array(
 							'title' => $title,
-							'result' => false,
+							'success' => false,
 							'message' => 'Some holds could not be frozen.  Please try again later or see your librarian.');
 					}
 				}else{
@@ -1892,12 +1880,12 @@ class Aspencat implements DriverInterface{
 					if ($allUnsuspendsSucceed){
 						return array(
 							'title' => $title,
-							'result' => true,
+							'success' => true,
 							'message' => 'Your hold(s) were thawed successfully.');
 					}else{
 						return array(
 							'title' => $title,
-							'result' => false,
+							'success' => false,
 							'message' => 'Some holds could not be thawed.  Please try again later or see your librarian.');
 					}
 				}
@@ -1905,16 +1893,16 @@ class Aspencat implements DriverInterface{
 		}
 	}
 
-	public function renewAll(){
+	public function renewAll($patron){
 		//Get all list of all transactions
-		$currentTransactions = $this->getMyTransactions();
+		$currentTransactions = $this->getMyCheckouts();
 		$renewResult = array();
 		$renewResult['Total'] = $currentTransactions['numTransactions'];
 		$numRenewals = 0;
 		$failure_messages = array();
 		foreach ($currentTransactions['transactions'] as $transaction){
-			$curResult = $this->renewItem($transaction['renewIndicator'], null);
-			if ($curResult['result']){
+			$curResult = $this->renewItem($patron, $transaction['recordId'], $transaction['renewIndicator']);
+			if ($curResult['success']){
 				$numRenewals++;
 			} else {
 				$failure_messages[] = $curResult['message'];
@@ -1923,18 +1911,16 @@ class Aspencat implements DriverInterface{
 		$renewResult['Renewed'] = $numRenewals;
 		$renewResult['Unrenewed'] = $renewResult['Total'] - $renewResult['Renewed'];
 		if ($renewResult['Unrenewed'] > 0) {
-			$renewResult['result'] = false;
+			$renewResult['success'] = false;
 		}else{
-			$renewResult['result'] = true;
+			$renewResult['success'] = true;
 			$renewResult['message'] = "All items were renewed successfully.";
 		}
 		return $renewResult;
 	}
 
-	public function renewItem(/** @noinspection PhpUnusedParameterInspection */
-		$itemId, $itemIndex){
+	public function renewItem($patron, $recordId, $itemId, $itemIndex){
 		global $analytics;
-		global $user;
 		global $configArray;
 
 		//Get the session token for the user
@@ -1944,7 +1930,7 @@ class Aspencat implements DriverInterface{
 			$postParams = array(
 				'from' => 'opac_user',
 				'item' => $itemId,
-				'borrowernumber' => $user->username,
+				'borrowernumber' => $patron->username,
 			);
 			$catalogUrl = $configArray['Catalog']['url'];
 			$kohaUrl = "$catalogUrl/cgi-bin/koha/opac-renew.pl";
@@ -1978,7 +1964,7 @@ class Aspencat implements DriverInterface{
 
 		return array(
 			'itemId' => $itemId,
-			'result'  => $success,
+			'success'  => $success,
 			'message' => $message);
 	}
 
@@ -2253,5 +2239,21 @@ class Aspencat implements DriverInterface{
 		}else{
 			return false;
 		}
+	}
+
+	function cancelHold($patron, $recordId, $cancelId) {
+		return $this->updateHoldDetailed($patron, 'cancel', '', null, $cancelId, '', '');
+	}
+
+	function freezeHold($patron, $recordId, $itemToFreezeId, $dateToReactivate) {
+		return $this->updateHoldDetailed($patron, 'update', '', null, $itemToFreezeId, '', 'on');
+	}
+
+	function thawHold($patron, $recordId, $itemToThawId) {
+		return $this->updateHoldDetailed($patron, 'update', '', null, $itemToThawId, '', 'off');
+	}
+
+	function changeHoldPickupLocation($patron, $recordId, $itemToUpdateId, $newPickupLocation) {
+		return $this->updateHoldDetailed($patron, 'update', '', null, $itemToUpdateId, $newPickupLocation, 'off');
 	}
 }

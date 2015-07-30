@@ -140,6 +140,10 @@ class MarcRecord extends IndexRecord
 		}
 	}
 
+	public function getIdWithSource(){
+		return $this->profileType . ':' . $this->id;
+	}
+
 	/**
 	 * Return the unique identifier of this record within the Solr index;
 	 * useful for retrieving additional information (like tags and user
@@ -1795,7 +1799,7 @@ class MarcRecord extends IndexRecord
 				$relatedRecord['actions'][] = array(
 						'title' => 'Place Hold',
 						'url' => '',
-						'onclick' => "return VuFind.Record.showPlaceHold('{$this->getModule()}', '{$recordId}');",
+						'onclick' => "return VuFind.Record.showPlaceHold('{$this->getModule()}', '{$this->getIdWithSource()}');",
 						'requireLogin' => false,
 				);
 			}
@@ -1819,7 +1823,7 @@ class MarcRecord extends IndexRecord
 			$actions[] = array(
 				'title' => 'Place Hold',
 				'url' => '',
-				'onclick' => "return VuFind.Record.showPlaceHold('{$this->getModule()}', '{$this->id}');",
+				'onclick' => "return VuFind.Record.showPlaceHold('{$this->getModule()}', '{$this->getIdWithSource()}');",
 				'requireLogin' => false,
 			);
 		}
@@ -1827,7 +1831,7 @@ class MarcRecord extends IndexRecord
 			$actions[] = array(
 				'title' => 'Book Material',
 				'url' => '',
-				'onclick' => "return VuFind.Record.showBookMaterial('{$this->id}');",
+				'onclick' => "return VuFind.Record.showBookMaterial('{$this->getIdWithSource()}');",
 				'requireLogin' => false,
 			);
 		}

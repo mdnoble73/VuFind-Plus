@@ -205,7 +205,7 @@ class Browse_AJAX extends Action {
 		if ($browseCategory){
 			global $interface;
 			$interface->assign('browseCategoryId', $this->textId);
-			$result['result'] = true;
+			$result['success'] = true;
 			$result['textId'] = $browseCategory->textId;
 			$result['label'] = $browseCategory->label;
 			//$result['description'] = $browseCategory->description; // the description is not used anywhere on front end. plb 1-2-2015

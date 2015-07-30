@@ -35,8 +35,9 @@ class CancelHold extends Action
 		header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
 		
 		require_once(ROOT_DIR . '/Drivers/EContentDriver.php');
-		$driver = new EContentDriver();
-		$result = $driver->cancelHold($id);
+		$driver = new EContentDriver(null);
+		global $user;
+		$result = $driver->cancelHold($user, $id, $id);
 		
 		echo json_encode($result);
 		exit();

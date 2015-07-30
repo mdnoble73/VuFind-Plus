@@ -35,18 +35,16 @@
 	{* End Listing Options *}
 	
 		{* Display series information *}
-		<form id="addForm" action="{$path}/MyAccount/HoldMultiple">
-			<div id="seriesTitles">
-				{foreach from=$resourceList item=resource name="recordLoop"}
-					<div class="result{if ($smarty.foreach.recordLoop.iteration % 2) == 0} alt{/if}">
-						{* This is raw HTML -- do not escape it: *}
-						{$resource}
-					</div>
+		<div id="seriesTitles">
+			{foreach from=$resourceList item=resource name="recordLoop"}
+				<div class="result{if ($smarty.foreach.recordLoop.iteration % 2) == 0} alt{/if}">
+					{* This is raw HTML -- do not escape it: *}
+					{$resource}
+				</div>
 
-				{/foreach}
-			</div>
-		</form>
-	
+			{/foreach}
+		</div>
+
 	<script type="text/javascript">
 	$(document).ready(function() {literal} { {/literal}
 		doGetStatusSummaries();

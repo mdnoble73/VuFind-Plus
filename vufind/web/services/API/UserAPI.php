@@ -483,15 +483,7 @@ class UserAPI extends Action {
 		global $user;
 		$user = UserAccount::validateAccount($username, $password);
 		if ($user && !PEAR_Singleton::isError($user)){
-			$patronHolds = $this->getCatalogConnection()->getMyHolds($user);
-			if ($includeEContent === true || $includeEContent === 'true'){
-				require_once(ROOT_DIR . '/Drivers/EContentDriver.php');
-				$eContentDriver = new EContentDriver();
-				$eContentHolds = $eContentDriver->getMyHolds($user);
-				$allHolds = array_merge_recursive($eContentHolds['holds'], $patronHolds['holds']);
-			}else{
-				$allHolds = $patronHolds['holds'];
-			}
+			$allHolds = $user->getMyHolds();
 			return array('success'=>true, 'holds'=>$allHolds);
 		}else{
 			return array('success'=>false, 'message'=>'Login unsuccessful');
@@ -570,7 +562,7 @@ class UserAPI extends Action {
 			require_once(ROOT_DIR . '/Drivers/EContentDriver.php');
 			$eContentDriver = new EContentDriver();
 			$eContentHolds = $eContentDriver->getMyHolds($user);
-			return array('success'=>true, 'holds'=>$eContentHolds['holds']);
+			return array('success'=>true, 'holds'=>$eContentHolds);
 		}else{
 			return array('success'=>false, 'message'=>'Login unsuccessful');
 		}
@@ -648,7 +640,7 @@ class UserAPI extends Action {
 			require_once ROOT_DIR . '/Drivers/OverDriveDriverFactory.php';
 			$eContentDriver = OverDriveDriverFactory::getDriver();
 			$eContentHolds = $eContentDriver->getOverDriveHolds($user);
-			return array('success'=>true, 'holds'=>$eContentHolds['holds']);
+			return array('success'=>true, 'holds'=>$eContentHolds);
 		}else{
 			return array('success'=>false, 'message'=>'Login unsuccessful');
 		}
@@ -951,12 +943,12 @@ class UserAPI extends Action {
 		}
 		$user = UserAccount::validateAccount($username, $password);
 		if ($user && !PEAR_Singleton::isError($user)){
-			$catalogTransactions = $this->getCatalogConnection()->getMyTransactions($user);
+			$catalogTransactions = $this->getCatalogConnection()->getMyCheckouts($user);
 
 			if ($includeEContent === true || $includeEContent === 'true'){
 				require_once(ROOT_DIR . '/Drivers/EContentDriver.php');
 				$eContentDriver = new EContentDriver();
-				$eContentCheckedOut = $eContentDriver->getMyTransactions($user);
+				$eContentCheckedOut = $eContentDriver->getMyCheckouts($user);
 			}else{
 				$eContentCheckedOut = array(
 					'transactions' => array()
@@ -1034,7 +1026,7 @@ class UserAPI extends Action {
 		if ($user && !PEAR_Singleton::isError($user)){
 			require_once(ROOT_DIR . '/Drivers/EContentDriver.php');
 			$eContentDriver = new EContentDriver();
-			$eContentTransactions = $eContentDriver->getMyTransactions($user);
+			$eContentTransactions = $eContentDriver->getMyCheckouts($user);
 			$allTransactions = $eContentTransactions['transactions'];
 			return array('success'=>true, 'checkedOutItems'=>$allTransactions);
 		}else{
@@ -1129,7 +1121,7 @@ class UserAPI extends Action {
 		$user = UserAccount::validateAccount($username, $password);
 		if ($user && !PEAR_Singleton::isError($user)){
 			$renewalMessage = $this->getCatalogConnection()->renewAll($user->cat_username);
-			return array('success'=> $renewalMessage['result'], 'renewalMessage'=>$renewalMessage['message']);
+			return array('success'=> $renewalMessage['success'], 'renewalMessage'=>$renewalMessage['message']);
 		}else{
 			return array('success'=>false, 'message'=>'Login unsuccessful');
 		}
@@ -1191,7 +1183,7 @@ class UserAPI extends Action {
 		$patron = UserAccount::validateAccount($username, $password);
 		if ($patron && !PEAR_Singleton::isError($patron)){
 			$holdMessage = $this->getCatalogConnection()->placeHold($patron, $bibId, $pickupBranch);
-			return array('success'=> $holdMessage['result'], 'holdMessage'=>$holdMessage['message']);
+			return $holdMessage;
 		}else{
 			return array('success'=>false, 'message'=>'Login unsuccessful');
 		}
@@ -1255,7 +1247,7 @@ class UserAPI extends Action {
 			require_once(ROOT_DIR . '/Drivers/EContentDriver.php');
 			$driver = new EContentDriver(null);
 			$holdMessage = $driver->placeHold($patron, $recordId, $pickupBranch);
-			return array('success'=> $holdMessage['result'], 'holdMessage'=>$holdMessage['message']);
+			return array('success'=> $holdMessage['success'], 'holdMessage'=>$holdMessage['message']);
 		}else{
 			return array('success'=>false, 'message'=>'Login unsuccessful');
 		}
@@ -1310,7 +1302,7 @@ class UserAPI extends Action {
 			require_once(ROOT_DIR . '/Drivers/EContentDriver.php');
 			$driver = new EContentDriver();
 			$response = $driver->checkoutRecord($recordId, $user);
-			return array('success'=> $response['result'], 'message'=>$response['message']);
+			return array('success'=> $response['success'], 'message'=>$response['message']);
 		}else{
 			return array('success'=>false, 'message'=>'Login unsuccessful');
 		}
@@ -1461,7 +1453,7 @@ class UserAPI extends Action {
 			require_once ROOT_DIR . '/Drivers/OverDriveDriverFactory.php';
 			$driver = OverDriveDriverFactory::getDriver();
 			$holdMessage = $driver->placeOverDriveHold($overDriveId, $format, $user);
-			return array('success'=> $holdMessage['result'], 'message'=>$holdMessage['message']);
+			return array('success'=> $holdMessage['success'], 'message'=>$holdMessage['message']);
 		}else{
 			return array('success'=>false, 'message'=>'Login unsuccessful');
 		}
@@ -1522,7 +1514,7 @@ class UserAPI extends Action {
 			require_once ROOT_DIR . '/Drivers/OverDriveDriverFactory.php';
 			$driver = OverDriveDriverFactory::getDriver();
 			$result = $driver->cancelOverDriveHold($overDriveId, $format, $user);
-			return array('success'=> $result['result'], 'message'=>$result['message']);
+			return array('success'=> $result['success'], 'message'=>$result['message']);
 		}else{
 			return array('success'=>false, 'message'=>'Login unsuccessful');
 		}
@@ -1593,7 +1585,7 @@ class UserAPI extends Action {
 			require_once ROOT_DIR . '/Drivers/OverDriveDriverFactory.php';
 			$driver = OverDriveDriverFactory::getDriver();
 			$holdMessage = $driver->addItemToOverDriveCart($overDriveId, $format, $user);
-			return array('success'=> $holdMessage['result'], 'message'=>$holdMessage['message']);
+			return array('success'=> $holdMessage['success'], 'message'=>$holdMessage['message']);
 		}else{
 			return array('success'=>false, 'message'=>'Login unsuccessful');
 		}
@@ -1655,7 +1647,7 @@ class UserAPI extends Action {
 			$driver = OverDriveDriverFactory::getDriver();
 			$lendingPeriod = isset($_REQUEST['lendingPeriod']) ? $_REQUEST['lendingPeriod'] : -1;
 			$holdMessage = $driver->checkoutOverDriveItem($overDriveId, $format, $lendingPeriod, $user);
-			return array('success'=> $holdMessage['result'], 'message'=>$holdMessage['message']);
+			return array('success'=> $holdMessage['success'], 'message'=>$holdMessage['message']);
 		}else{
 			return array('success'=>false, 'message'=>'Login unsuccessful');
 		}
@@ -1703,7 +1695,7 @@ class UserAPI extends Action {
 			$driver = OverDriveDriverFactory::getDriver();
 			$lendingPeriod = isset($_REQUEST['lendingPeriod']) ? $_REQUEST['lendingPeriod'] : -1;
 			$processCartResult = $driver->processOverDriveCart($user, $lendingPeriod);
-			return array('success'=> $processCartResult['result'], 'message'=>$processCartResult['message']);
+			return array('success'=> $processCartResult['success'], 'message'=>$processCartResult['message']);
 		}else{
 			return array('success'=>false, 'message'=>'Login unsuccessful');
 		}
@@ -1760,7 +1752,7 @@ class UserAPI extends Action {
 		$user = UserAccount::validateAccount($username, $password);
 		if ($user && !PEAR_Singleton::isError($user)){
 			$holdMessage = $this->getCatalogConnection()->updateHoldDetailed('', $user->cat_username, 'cancel');
-			return array('success'=> $holdMessage['result'], 'holdMessage'=>$holdMessage['message']);
+			return array('success'=> $holdMessage['success'], 'holdMessage'=>$holdMessage['message']);
 		}else{
 			return array('success'=>false, 'message'=>'Login unsuccessful');
 		}
@@ -1805,9 +1797,9 @@ class UserAPI extends Action {
 		$user = UserAccount::validateAccount($username, $password);
 		if ($user && !PEAR_Singleton::isError($user)){
 			require_once(ROOT_DIR . '/Drivers/EContentDriver.php');
-			$driver = new EContentDriver();
-			$holdMessage = $driver->cancelHold($recordId);
-			return array('success'=> $holdMessage['result'], 'holdMessage'=>$holdMessage['message']);
+			$driver = new EContentDriver(null);
+			$holdMessage = $driver->cancelHold($user, $recordId, '');
+			return array('success'=> $holdMessage['success'], 'holdMessage'=>$holdMessage['message']);
 		}else{
 			return array('success'=>false, 'message'=>'Login unsuccessful');
 		}
@@ -1854,7 +1846,7 @@ class UserAPI extends Action {
 		$user = UserAccount::validateAccount($username, $password);
 		if ($user && !PEAR_Singleton::isError($user)){
 			$holdMessage = $this->getCatalogConnection()->updateHoldDetailed('', $user->cat_username, 'update', '', null, null, 'on');
-			return array('success'=> $holdMessage['result'], 'holdMessage'=>$holdMessage['message']);
+			return array('success'=> $holdMessage['success'], 'holdMessage'=>$holdMessage['message']);
 		}else{
 			return array('success'=>false, 'message'=>'Login unsuccessful');
 		}
@@ -1966,7 +1958,7 @@ class UserAPI extends Action {
 		$user = UserAccount::validateAccount($username, $password);
 		if ($user && !PEAR_Singleton::isError($user)){
 			$holdMessage = $this->getCatalogConnection()->updateHoldDetailed('', $user->cat_username, 'update', '', null, null, 'off');
-			return array('success'=> $holdMessage['result'], 'holdMessage'=>$holdMessage['message']);
+			return array('success'=> $holdMessage['success'], 'holdMessage'=>$holdMessage['message']);
 		}else{
 			return array('success'=>false, 'message'=>'Login unsuccessful');
 		}

@@ -247,10 +247,10 @@ VuFind.Account = (function(){
 			return false;
 		},
 
-		renewTitle: function(renewIndicator) {
+		renewTitle: function(patronId, recordId, renewIndicator) {
 			if (Globals.loggedIn) {
 				VuFind.loadingMessage();
-				$.getJSON(Globals.path + "/MyAccount/AJAX?method=renewItem&renewIndicator="+renewIndicator, function(data){
+				$.getJSON(Globals.path + "/MyAccount/AJAX?method=renewItem&patronId=" + patronId + "&recordId=" + recordId + "&renewIndicator="+renewIndicator, function(data){
 					VuFind.showMessage(data.title, data.modalBody, data.success, data.success); // autoclose when successful
 				}).fail(VuFind.ajaxFail)
 			} else {
@@ -284,16 +284,6 @@ VuFind.Account = (function(){
 			return false;
 		},
 
-		//// old form submission method. Replacing with ajax calls.
-		//renewSelectedTitles: function () {
-		//	var selectedTitles = VuFind.getSelectedTitles();
-		//	if (selectedTitles.length == 0) {
-		//		return false;
-		//	}
-		//	$('#renewForm').submit();
-		//	return false;
-		//},
-		//
 		renewSelectedTitles: function () {
 			if (!Globals.loggedIn) {
 				this.ajaxLogin(null, function () {
@@ -362,11 +352,11 @@ VuFind.Account = (function(){
 			return false;
 		},
 
-		cancelHold: function(holdIdToCancel){
+		cancelHold: function(patronId, recordId, holdIdToCancel){
 			if (confirm("Are you sure you want to cancel this hold?")){
 				if (Globals.loggedIn) {
 					VuFind.showMessage('Loading', 'Loading, please wait');
-					$.getJSON(Globals.path + "/MyAccount/AJAX?method=cancelHold&cancelId="+holdIdToCancel, function(data){
+					$.getJSON(Globals.path + "/MyAccount/AJAX?method=cancelHold&patronId=" + patronId + "&recordId=" + recordId + "&cancelId="+holdIdToCancel, function(data){
 						VuFind.showMessage(data.title, data.modalBody, data.success); // autoclose when successful
 						if (data.success) {
 							// remove canceled item from page
@@ -379,7 +369,7 @@ VuFind.Account = (function(){
 					})
 				} else {
 					this.ajaxLogin(null, function () {
-						VuFind.Account.cancelHold(holdIdToCancel)
+						VuFind.Account.cancelHold(userId, holdIdToCancel)
 					}, false);
 				}
 			}

@@ -284,15 +284,6 @@ class Record_AJAX extends Action {
 				$holdingData->holdings = array();
 			}
 
-			// Get Acquisitions Data
-			$result = $catalog->getPurchaseHistory($id);
-			if (PEAR_Singleton::isError($result)) {
-				PEAR_Singleton::raiseError($result);
-			}
-			$interface->assign('history', $result);
-			$holdingData->history = $result;
-			$timer->logTime("Loaded purchase history");
-
 			//Holdings summary
 			$result = $catalog->getStatusSummary($id, false);
 			if (PEAR_Singleton::isError($result)) {
@@ -473,14 +464,16 @@ class Record_AJAX extends Action {
 			if (!empty($return['retry'])) {
 				return $this->getBookMaterialForm($return['message']); // send back error message with form to try again
 			} else { // otherwise return output to user's browser
-				if ($return['success'] == true) $return['message'] = '<div class="alert alert-success">'.$return['message'].'</div>';
+				if ($return['success'] == true) {
+					$return['message'] = '<div class="alert alert-success">' . $return['message'] . '</div>';
+				}
 					// wrap a success message in a success alert
 				return $return;
 			}
 
-		} else return array('success' => false, 'message' => 'User not logged in.');
-		$results = array('success' => true);
-		return $results;
+		} else {
+			return array('success' => false, 'message' => 'User not logged in.');
+		}
 	}
 
 	function json_utf8_encode($result) { // TODO: add to other ajax.php or make part of a ajax base class
@@ -558,9 +551,9 @@ class Record_AJAX extends Action {
 				);
 			}else{
 				if (isset($_REQUEST['selectedItem'])){
-					$return = $patron->placeItemHold($recordId, $recordId, $_REQUEST['selectedItem'], $campus);
+					$return = $patron->placeItemHold($recordId, $_REQUEST['selectedItem'], $campus);
 				}else{
-					$return = $patron->placeHold($recordId, $recordId, $campus);
+					$return = $patron->placeHold($recordId, $campus);
 				}
 
 				if (isset($return['items'])){
@@ -583,8 +576,7 @@ class Record_AJAX extends Action {
 					);
 				}else{ // Completed Hold Attempt
 					$interface->assign('message', $return['message']);
-					$success = $return['result'];
-					$interface->assign('success', $success);
+					$interface->assign('success', $return['success']);
 
 					//Get library based on patron home library since that is what controls their notifications rather than the active interface.
 					//$library = Library::getPatronHomeLibrary();
@@ -600,7 +592,7 @@ class Record_AJAX extends Action {
 					$interface->assign('treatPrintNoticesAsPhoneNotices', $library->treatPrintNoticesAsPhoneNotices);
 
 					$results = array(
-						'success' => $success,
+						'success' => $return['success'],
 						'message' => $interface->fetch('Record/hold-success-popup.tpl'),
 						'title' => $return['title'],
 					);

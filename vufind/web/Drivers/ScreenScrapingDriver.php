@@ -8,7 +8,6 @@
  * Time: 2:32 PM
  */
 
-require_once ROOT_DIR . '/Drivers/Interface.php';
 abstract class ScreenScrapingDriver implements DriverInterface {
 	/** @var  AccountProfile $accountProfile */
 	public $accountProfile;
@@ -55,19 +54,20 @@ abstract class ScreenScrapingDriver implements DriverInterface {
 		if (!$this->curl_connection){
 			$header = $this->getCustomHeaders();
 			if ($header == null) {
+				global $interface;
+				$gitBranch = $interface->getVariable('gitBranch');
+				if (substr($gitBranch, -1) == "\n"){
+					$gitBranch = substr($gitBranch, 0, -1);
+				}
 				$header = array();
 				$header[0] = "Accept: text/xml,application/xml,application/xhtml+xml,text/html;q=0.9,text/plain;q=0.8,image/png,*/*;q=0.5";
 				$header[] = "Cache-Control: max-age=0";
 				$header[] = "Connection: keep-alive";
 				$header[] = "Accept-Charset: ISO-8859-1,utf-8;q=0.7,*;q=0.7";
 				$header[] = "Accept-Language: en-us,en;q=0.5";
+				$header[] = "User-Agent: Pika " . $gitBranch;
 			}
 
-			global $interface;
-			$gitBranch = $interface->getVariable('gitBranch');
-			if (substr($gitBranch, -1) == "\n"){
-				$gitBranch = substr($gitBranch, 0, -1);
-			}
 			$cookie = $this->getCookieJar();
 
 			$this->curl_connection = curl_init($curlUrl);
@@ -76,7 +76,7 @@ abstract class ScreenScrapingDriver implements DriverInterface {
 				CURLOPT_TIMEOUT => 30,
 				CURLOPT_HTTPHEADER => $header,
 				//CURLOPT_USERAGENT => 'User-Agent: Mozilla/5.0 (Windows NT 6.2; WOW64; rv:39.0) Gecko/20100101 Firefox/39.0',
-				CURLOPT_USERAGENT => "User-Agent:Pika " . $gitBranch,
+				//CURLOPT_USERAGENT => "User-Agent:Pika " . $gitBranch,
 				CURLOPT_RETURNTRANSFER => true,
 				CURLOPT_SSL_VERIFYPEER => false,
 				CURLOPT_FOLLOWLOCATION => true,
@@ -85,6 +85,7 @@ abstract class ScreenScrapingDriver implements DriverInterface {
 				CURLOPT_COOKIESESSION => false,
 				CURLOPT_FORBID_REUSE => false,
 				CURLOPT_HEADER => false,
+				CURLOPT_AUTOREFERER => true,
 				//  CURLOPT_HEADER => true, // debugging only
 				//  CURLOPT_VERBOSE => true, // debugging only
 			);
@@ -144,13 +145,19 @@ abstract class ScreenScrapingDriver implements DriverInterface {
 	/**
 	 * Uses the POST Method to retrieve content from a page
 	 *
-	 * @param string    $url          The url to post to
-	 * @param string[]  $postParams   Additional Post Params to use
+	 * @param string            $url          The url to post to
+	 * @param string[]|string  $postParams   Additional Post Params to use
+	 * @param boolean   $jsonEncode
 	 *
 	 * @return string   The response from the web page if any
 	 */
-	public function _curlPostBodyData($url, $postParams){
-		$post_string = json_encode($postParams);
+	public function _curlPostBodyData($url, $postParams, $jsonEncode = true){
+		if ($jsonEncode){
+			$post_string = json_encode($postParams);
+		}else{
+			$post_string  = $postParams;
+		}
+
 
 		$this->_curl_connect($url);
 		curl_setopt_array($this->curl_connection, array(
@@ -159,6 +166,12 @@ abstract class ScreenScrapingDriver implements DriverInterface {
 		));
 
 		return curl_exec($this->curl_connection);
+	}
+
+	protected function setupDebugging(){
+		$result1 = curl_setopt($this->curl_connection, CURLOPT_HEADER, true);
+		$result2 = curl_setopt($this->curl_connection, CURLOPT_VERBOSE, true);
+		return $result1 && $result2;
 	}
 
 	public function getVendorOpacUrl(){

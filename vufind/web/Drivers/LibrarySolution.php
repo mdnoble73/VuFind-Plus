@@ -206,7 +206,6 @@ class LibrarySolution extends ScreenScrapingDriver {
 			'Ls2pac-config-type: pac',
 			'Ls2pac-config-name: ysm',
 			'X-Requested-With: XMLHttpRequest',
-			//'Referer: ' . ($this->referer == null ? $this->getVendorOpacUrl() . '/' : $this->referer) ,
 			'Connection: keep-alive',
 			'Pragma: no-cache',
 			'Cache-Control: no-cache',
@@ -225,7 +224,7 @@ class LibrarySolution extends ScreenScrapingDriver {
 	 * PEAR_Error otherwise.
 	 * @access public
 	 */
-	public function getMyTransactions($user){
+	public function getMyCheckouts($user){
 		$transactions = array();
 		if ($this->loginPatronToLSS($user->cat_username, $user->cat_password)){
 			//Load transactions from LSS
@@ -237,6 +236,8 @@ class LibrarySolution extends ScreenScrapingDriver {
 			foreach ($loanInfo->loans as $loan){
 				$curTitle = array();
 				$curTitle['checkoutSource'] = 'ILS';
+				$curTitle['itemId'] = $loan->itemId;
+				$curTitle['renewIndicator'] = $loan->itemId;
 				$curTitle['id'] = $loan->bibliographicId;
 				$curTitle['shortId'] = $loan->bibliographicId;
 				$curTitle['recordId'] = $loan->bibliographicId;
@@ -249,7 +250,6 @@ class LibrarySolution extends ScreenScrapingDriver {
 				$curTitle['barcode']
 				$curTitle['canrenew']
 				$curTitle['itemindex']
-				$curTitle['itemid']
 				$curTitle['renewIndicator']
 				$curTitle['renewMessage']*/
 
@@ -281,6 +281,57 @@ class LibrarySolution extends ScreenScrapingDriver {
 		}
 
 		return $transactions;
+	}
+
+	public function renewAll($patron){
+		$result = array(
+			'success' => false,
+			'messages' => array("Sorry, we were unable to renew all checkouts in {$this->accountProfile->name}.")
+		);
+		if ($this->loginPatronToLSS($patron->cat_username, $patron->cat_password)) {
+
+		}else{
+			$result['messages'] = array('Sorry, the user supplied was not valid in the catalog. Please try again.');
+		}
+		return $result;
+	}
+
+	public function isAuthenticated(){
+		$url = $this->getVendorOpacUrl() . '/isAuthenticated?_=' . time() * 1000;
+		$result = $this->_curlGetPage($url);
+		return $result == 'true';
+	}
+
+	public function renewItem($patron, $recordId, $itemId, $itemIndex){
+		$recordDriver = RecordDriverFactory::initRecordDriverById($this->accountProfile->recordSource . ':' . $recordId);
+		$result = array(
+			'success' => false,
+			'title' => $recordDriver->getTitle(),
+			'message' => "Sorry, we were unable to renew your checkout.");
+		if ($this->loginPatronToLSS($patron->cat_username, $patron->cat_password)) {
+			//$isAuthenticated = $this->isAuthenticated();
+			$url = $this->getVendorOpacUrl() . '/loans/renew?_=' . time() * 1000;
+			$postParams = '{"renewLoanInfos":"[{\"success\":false,\"itemId\":\"' . $itemId . '\",\"date\":' . (time() * 1000) . ',\"downloadable\":false}]"}';
+			//$this->setupDebugging();
+			$renewItemResponseRaw = $this->_curlPostBodyData($url, $postParams, false);
+			$renewItemResponse = json_decode($renewItemResponseRaw);
+			if ($renewItemResponse == null){
+				//We didn't get valid JSON back
+				$result['message'] = "We could not renew your item.  Received an invalid response from the server.";
+			}else{
+				foreach ($renewItemResponse->renewLoanInfos as $renewInfo){
+					if ($renewInfo->success){
+						$result['success'] = 'true';
+						$result['message'] = "Your item was renewed successfully.  It is now due {$renewInfo->dateString}.";
+					}else{
+						$result['message'] = "Your item could not be renewed online.";
+					}
+				}
+			}
+		}else{
+			$result['message'] = 'Sorry, the user supplied was not valid in the catalog. Please try again.';
+		}
+		return $result;
 	}
 
 	/**
@@ -380,7 +431,9 @@ class LibrarySolution extends ScreenScrapingDriver {
 				//$curHold['expireTime'] = strtotime($expireDate);
 				$curHold['reactivate'] = $hold->suspendUntilDateString;
 
-				$curHold['cancelable'] = $hold->holdCancelable;
+				//MDN - it looks like holdCancelable is not accurate, setting to true always
+				//$curHold['cancelable'] = $hold->holdCancelable;
+				$curHold['cancelable'] = $hold->true;
 				$curHold['frozen'] = $hold->suspendUntilDate != null;
 				if ($curHold['frozen']){
 					$curHold['reactivateTime'] = $hold->suspendUntilDate;
@@ -426,7 +479,12 @@ class LibrarySolution extends ScreenScrapingDriver {
 	 *                                If an error occurs, return a PEAR_Error
 	 * @access  public
 	 */
-	function placeHold($patron, $recordId, $pickupBranch) {
+	function placeHold($patron, $pickupBranch, $recordId) {
+		$recordDriver = RecordDriverFactory::initRecordDriverById($this->accountProfile->recordSource . ':' . $recordId);
+		$result = array(
+			'success' => false,
+			'title' => $recordDriver->getTitle(),
+			'message' => 'Sorry, your hold could not be placed.');
 		if ($this->loginPatronToLSS($patron->cat_username, $patron->cat_password)) {
 			$url = $this->getVendorOpacUrl() . '/requests/true?_=' . time() * 1000;
 			//LSS allows multiple holds to be places at once, but we will only do one at a time for now.
@@ -440,27 +498,18 @@ class LibrarySolution extends ScreenScrapingDriver {
 			$placeHoldResponseRaw = $this->_curlPostBodyData($url, $postParams);
 			$placeHoldResponse = json_decode($placeHoldResponseRaw);
 
-			$recordDriver = RecordDriverFactory::initRecordDriverById($this->accountProfile->recordSource . ':' . $recordId);
 			foreach ($placeHoldResponse->placeHoldInfos as $holdResponse){
 				if ($holdResponse->success){
-					return array(
-						'result' => true,
-						'title' => $recordDriver->getTitle(),
-						'message' => 'Your hold was placed successfully.');
+					$result['success'] = true;
+					$result['message'] = 'Your hold was placed successfully.';
 				}else{
-					return array(
-						'result' => false,
-						'title' => $recordDriver->getTitle(),
-						'message' => 'Sorry, your hold could not be placed.  ' . htmlentities(translate($holdResponse->message)));
-
+					$result['message'] = 'Sorry, your hold could not be placed.  ' . htmlentities(translate($holdResponse->message));
 				}
 			}
-
 		}else{
-			return array(
-				'result' => false,
-				'message' => 'Sorry, the user supplied was not valid in the catalog. Please try again.');
+			$result['message'] = 'Sorry, the user supplied was not valid in the catalog. Please try again.';
 		}
+		return $result;
 	}
 
 	/**
@@ -477,6 +526,70 @@ class LibrarySolution extends ScreenScrapingDriver {
 	 * @access  public
 	 */
 	function placeItemHold($patron, $recordId, $itemId, $pickupBranch){
-		return array('result' => false, 'message' => 'Unable to place Item level holds in Library.Solution at this time');
+		return array('success' => false, 'message' => 'Unable to place Item level holds in Library.Solution at this time');
+	}
+
+	/**
+	 * Cancels a hold for a patron
+	 *
+	 * @param   User    $patron     The User to cancel the hold for
+	 * @param   string  $recordId   The id of the bib record
+	 * @param   string  $cancelId   Information about the hold to be cancelled
+	 * @return  array
+	 */
+	function cancelHold($patron, $recordId, $cancelId){
+		$recordDriver = RecordDriverFactory::initRecordDriverById($this->accountProfile->recordSource . ':' . $recordId);
+		$result = array(
+			'success' => false,
+			'title' => $recordDriver->getTitle(),
+			'message' => 'Sorry, your hold could not be cancelled.');
+		if ($this->loginPatronToLSS($patron->cat_username, $patron->cat_password)) {
+
+		}else{
+			$result['message'] = 'Sorry, the user supplied was not valid in the catalog. Please try again.';
+		}
+		return $result;
+	}
+
+	function freezeHold($patron, $recordId, $itemToFreezeId, $dateToReactivate){
+		$recordDriver = RecordDriverFactory::initRecordDriverById($this->accountProfile->recordSource . ':' . $recordId);
+		$result = array(
+			'success' => false,
+			'title' => $recordDriver->getTitle(),
+			'message' => 'Sorry, your hold could not be frozen.');
+		if ($this->loginPatronToLSS($patron->cat_username, $patron->cat_password)) {
+
+		}else{
+			$result['message'] = 'Sorry, the user supplied was not valid in the catalog. Please try again.';
+		}
+		return $result;
+	}
+
+	function thawHold($patron, $recordId, $itemToThawId){
+		$recordDriver = RecordDriverFactory::initRecordDriverById($this->accountProfile->recordSource . ':' . $recordId);
+		$result = array(
+			'success' => false,
+			'title' => $recordDriver->getTitle(),
+			'message' => 'Sorry, your hold could not be thawed.');
+		if ($this->loginPatronToLSS($patron->cat_username, $patron->cat_password)) {
+
+		}else{
+			$result['message'] = 'Sorry, the user supplied was not valid in the catalog. Please try again.';
+		}
+		return $result;
+	}
+
+	function changeHoldPickupLocation($patron, $recordId, $itemToUpdateId, $newPickupLocation){
+		$recordDriver = RecordDriverFactory::initRecordDriverById($this->accountProfile->recordSource . ':' . $recordId);
+		$result = array(
+			'success' => false,
+			'title' => $recordDriver->getTitle(),
+			'message' => 'Sorry, the pickup location for your hold could not be changed.');
+		if ($this->loginPatronToLSS($patron->cat_username, $patron->cat_password)) {
+
+		}else{
+			$result['message'] = 'Sorry, the user supplied was not valid in the catalog. Please try again.';
+		}
+		return $result;
 	}
 }

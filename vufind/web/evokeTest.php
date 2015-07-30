@@ -73,5 +73,5 @@ $placeHoldResult = $driver->placeHold($user, '00006319', null);
 print_r($placeHoldResult);
 
 echo("<h1>Cancel Hold</h1>");
-$cancelHoldResult = $driver->cancelHold($user, $placeHoldResult->response->reserveId);
+$cancelHoldResult = $driver->cancelHold($user, '00006319', $placeHoldResult->response->reserveId);
 print_r($cancelHoldResult);

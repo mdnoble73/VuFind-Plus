@@ -425,7 +425,7 @@ class RestrictedEContentDriver extends BaseEContentDriver{
 	public function placeHold($patron, $recordId, $pickupBranch) {
 		if (!$patron){
 			return array(
-					'result' => false,
+					'success' => false,
 					'message' => 'You must be logged in to place a hold'
 			);
 		}else{
@@ -446,7 +446,7 @@ class RestrictedEContentDriver extends BaseEContentDriver{
 				}
 				if (!$userHasAccess){
 					return array(
-						'result' => false,
+						'success' => false,
 						'message' => "Sorry, you don't have access to this title."
 					);
 				}else{
@@ -456,19 +456,19 @@ class RestrictedEContentDriver extends BaseEContentDriver{
 					$eContentHold->author = $this->getAuthor();
 					if ($eContentHold->insert()){
 						return array(
-							'result' => true,
+							'success' => true,
 							'message' => 'Successfully placed hold for you.'
 						);
 					}else{
 						return array(
-							'result' => false,
+							'success' => false,
 							'message' => 'There was an unknown error placing a hold on this title.'
 						);
 					}
 				}
 			}else{
 				return array(
-						'result' => false,
+						'success' => false,
 						'message' => 'Sorry, this title is already on hold for you.'
 				);
 			}

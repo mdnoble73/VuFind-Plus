@@ -125,24 +125,44 @@ class User extends DB_DataObject
 		return $lists;
 	}
 
+	private $catalogDriver;
 	/**
 	 * Get a connection to the catalog for the user
 	 *
 	 * @return CatalogConnection
 	 */
 	function getCatalogDriver(){
-		//Based off the source of the user, get the AccountProfile
+		if ($this->catalogDriver == null){
+			//Based off the source of the user, get the AccountProfile
+			$accountProfile = $this->getAccountProfile();
+			if ($accountProfile){
+				$catalogDriver = $accountProfile->driver;
+				$this->catalogDriver = CatalogFactory::getCatalogConnectionInstance($catalogDriver, $accountProfile);
+			}
+
+		}
+
+		return $this->catalogDriver;
+	}
+
+	private $accountProfile;
+
+	/**
+	 * @return AccountProfile
+	 */
+	function getAccountProfile(){
+		if ($this->accountProfile != null){
+			return $this->accountProfile;
+		}
 		require_once ROOT_DIR . '/sys/Account/AccountProfile.php';
 		$accountProfile = new AccountProfile();
 		$accountProfile->name = $this->source;
-		$catalogDriver = null;
 		if ($accountProfile->find(true)){
-			$catalogDriver = $accountProfile->driver;
+			$this->accountProfile = $accountProfile;
 		}else{
-			$accountProfile = null;
+			$this->accountProfile = null;
 		}
-		$catalog = CatalogFactory::getCatalogConnectionInstance($catalogDriver, $accountProfile);
-		return $catalog;
+		return $this->accountProfile;
 	}
 
 	function __get($name){
@@ -577,9 +597,10 @@ class User extends DB_DataObject
 	 */
 	public function getMyCheckouts($includeLinkedUsers = true){
 		global $timer;
+		global $configArray;
 
 		//Get checked out titles from the ILS
-		$catalogTransactions = $this->getCatalogDriver()->getMyTransactions($this);
+		$ilsCheckouts = $this->getCatalogDriver()->getMyCheckouts($this);
 		$timer->logTime("Loaded transactions from catalog.");
 
 		//Get checked out titles from OverDrive
@@ -587,12 +608,17 @@ class User extends DB_DataObject
 		$overDriveDriver = OverDriveDriverFactory::getDriver();
 		$overDriveCheckedOutItems = $overDriveDriver->getOverDriveCheckedOutItems($this);
 
-		//Get a list of eContent that has been checked out
-		require_once ROOT_DIR . '/Drivers/EContentDriver.php';
-		$driver = new EContentDriver(null);
-		$eContentCheckedOut = $driver->getMyTransactions($this);
+		if ($configArray['EContent']['hasProtectedEContent']){
+			//Get a list of eContent that has been checked out
+			require_once ROOT_DIR . '/Drivers/EContentDriver.php';
+			$driver = new EContentDriver(null);
+			$eContentCheckedOut = $driver->getMyCheckouts($this);
+		}else{
+			$eContentCheckedOut = array();
+		}
 
-		$allCheckedOut = array_merge($catalogTransactions, $overDriveCheckedOutItems, $eContentCheckedOut);
+
+		$allCheckedOut = array_merge($ilsCheckouts, $overDriveCheckedOutItems, $eContentCheckedOut);
 
 		if ($includeLinkedUsers) {
 			if ($this->getLinkedUsers() != null) {
@@ -616,10 +642,15 @@ class User extends DB_DataObject
 		$overDriveDriver = OverDriveDriverFactory::getDriver();
 		$overDriveHolds = $overDriveDriver->getOverDriveHolds($this);
 
-		//Get a list of eContent that has been checked out
-		require_once ROOT_DIR . '/Drivers/EContentDriver.php';
-		$driver = new EContentDriver(null);
-		$eContentHolds = $driver->getMyHolds($this);
+		global $configArray;
+		if ($configArray['EContent']['hasProtectedEContent']) {
+			//Get a list of eContent that has been checked out
+			require_once ROOT_DIR . '/Drivers/EContentDriver.php';
+			$driver = new EContentDriver(null);
+			$eContentHolds = $driver->getMyHolds($this);
+		}else{
+			$eContentHolds = array();
+		}
 
 		$allHolds = array_merge_recursive($ilsHolds, $overDriveHolds, $eContentHolds);
 
@@ -667,7 +698,7 @@ class User extends DB_DataObject
 		//Get the list of pickup branch locations for display in the user interface.
 		// using $user to be consistent with other code use of getPickupBranches()
 		$userLocation = new Location();
-		if ($recordSource == $this->source){
+		if ($recordSource == $this->getAccountProfile()->recordSource){
 			$locations = $userLocation->getPickupBranches($this, $this->homeLocationId);
 		}else{
 			$locations = array();
@@ -696,7 +727,12 @@ class User extends DB_DataObject
 	 * @access  public
 	 */
 	function placeHold($recordId, $pickupBranch) {
-		return $this->getCatalogDriver()->placeHold($this, $recordId, $pickupBranch);
+		$result = $this->getCatalogDriver()->placeHold($this, $recordId, $pickupBranch);
+		if ($result['success']){
+			$this->numHoldsIls++;
+			$this->numHoldsRequestedIls++;
+		}
+		return $result;
 	}
 
 	/**
@@ -712,6 +748,74 @@ class User extends DB_DataObject
 	 * @access  public
 	 */
 	function placeItemHold($recordId, $itemId, $pickupBranch) {
-		return $this->getCatalogDriver()->placeItemHold($this, $recordId, $itemId, $pickupBranch);
+		$result = $this->getCatalogDriver()->placeItemHold($this, $recordId, $itemId, $pickupBranch);
+		if ($result['success']){
+			$this->numHoldsIls++;
+			$this->numHoldsRequestedIls++;
+		}
+		return $result;
 	}
+
+	/**
+	 * Get the user referred to by id.  Will return false if the specified patron id is not
+	 * the id of this user or one of the users that is linked to this user.
+	 *
+	 * @param $patronId     int  The patron to check
+	 * @return User|false
+	 */
+	function getUserReferredTo($patronId){
+		$patron = false;
+		//Get the correct patron based on the information passed in.
+		if ($patronId == $this->id){
+			$patron = $this;
+		}else{
+			foreach ($this->getLinkedUsers() as $tmpUser){
+				if ($tmpUser->id == $patronId){
+					$patron = $tmpUser;
+				}
+			}
+		}
+		return $patron;
+	}
+
+	/**
+	 * Cancels a hold for the user in their ILS
+	 *
+	 * @param $recordId string  The Id of the record being cancelled
+	 * @param $cancelId string  The Id of the hold to be cancelled.  Structure varies by ILS
+	 *
+	 * @return array            Information about the result of the cancellation process
+	 */
+	function cancelHold($recordId, $cancelId){
+		return $this->getCatalogDriver()->cancelHold($this, $recordId, $cancelId);
+	}
+
+	function renewItem($recordId, $itemId, $itemIndex){
+		return $this->getCatalogDriver()->renewItem($this, $recordId, $itemId, $itemIndex);
+	}
+
+	function renewAll($renewLinkedUsers = false){
+		$renewAllResults = $this->getCatalogDriver()->renewAll($this);
+		//Also renew linked Users if needed
+		if ($renewLinkedUsers) {
+			if ($this->getLinkedUsers() != null) {
+				/** @var User $user */
+				foreach ($this->getLinkedUsers() as $user) {
+					$linkedResults = $user->renewAll(false);
+					//Merge results
+					$renewAllResults['Renewed'] += $linkedResults['Renewed'];
+					$renewAllResults['Unrenewed'] += $linkedResults['Unrenewed'];
+					if ($renewAllResults['success'] && !$linkedResults['success']){
+						$renewAllResults['success'] = false;
+						$renewAllResults['message'] = $linkedResults['message'];
+					}else if (!$renewAllResults['success'] && !$linkedResults['success']){
+						//Append the new message
+						array_merge($renewAllResults['message'], $linkedResults['message']);
+					}
+				}
+			}
+		}
+		return $renewAllResults;
+	}
+
 }

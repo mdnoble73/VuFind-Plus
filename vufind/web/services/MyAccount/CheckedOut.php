@@ -86,7 +86,7 @@ class MyAccount_CheckedOut extends MyAccount{
 					$itemId = isset($curTitle['itemid']) ? $curTitle['itemid'] : null;
 					if ($itemBarcode != null && isset($_SESSION['renew_message'][$itemBarcode])){
 						$renewMessage = $_SESSION['renew_message'][$itemBarcode]['message'];
-						$renewResult = $_SESSION['renew_message'][$itemBarcode]['result'];
+						$renewResult = $_SESSION['renew_message'][$itemBarcode]['success'];
 						$curTitle['renewMessage'] = $renewMessage;
 						$curTitle['renewResult']  = $renewResult;
 						$allCheckedOut[$sortKey] = $curTitle;
@@ -94,7 +94,7 @@ class MyAccount_CheckedOut extends MyAccount{
 						//$logger->log("Found renewal message in session for $itemBarcode", PEAR_LOG_INFO);
 					}else if ($itemId != null && isset($_SESSION['renew_message'][$itemId])){
 						$renewMessage = $_SESSION['renew_message'][$itemId]['message'];
-						$renewResult = $_SESSION['renew_message'][$itemId]['result'];
+						$renewResult = $_SESSION['renew_message'][$itemId]['success'];
 						$curTitle['renewMessage'] = $renewMessage;
 						$curTitle['renewResult']  = $renewResult;
 						$allCheckedOut[$sortKey] = $curTitle;

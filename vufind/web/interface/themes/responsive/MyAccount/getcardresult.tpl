@@ -2,7 +2,7 @@
 	<div id="main-content">
 		<div class="resulthead"><h3>{translate text='Registration Results'}</h3></div>
 		<div class="page">
-		{if $registrationResult.result}
+		{if $registrationResult.success}
 			<p>
 			Here is your temporary barcode to use for future authentication:&nbsp;{$registrationResult.tempBarcode}. 
 			</p>

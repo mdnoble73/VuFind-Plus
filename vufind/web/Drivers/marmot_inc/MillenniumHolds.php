@@ -43,7 +43,7 @@ class MillenniumHolds{
 			$hold_result['title'] = $book;
 			if (preg_match('/success/', $cleanResponse) && preg_match('/request denied/', $cleanResponse) == 0){
 				//Hold was successful
-				$hold_result['result'] = true;
+				$hold_result['success'] = true;
 				if (!isset($reason) || strlen($reason) == 0){
 					$hold_result['message'] = 'Your hold was placed successfully.  It may take up to 45 seconds for the hold to appear on your account.';
 				}else{
@@ -51,12 +51,11 @@ class MillenniumHolds{
 				}
 			}else if (!isset($reason) || strlen($reason) == 0){
 				//Didn't get a reason back.  This really shouldn't happen.
-				$hold_result['result'] = false;
-				$hold_result['result'] = false;
+				$hold_result['success'] = false;
 				$hold_result['message'] = 'Did not receive a response from the circulation system.  Please try again in a few minutes.';
 			}else{
 				//Got an error message back.
-				$hold_result['result'] = false;
+				$hold_result['success'] = false;
 				$hold_result['message'] = $reason;
 			}
 		}else{
@@ -81,7 +80,7 @@ class MillenniumHolds{
 			}else{
 				$message = 'Unable to contact the circulation system.  Please try again in a few minutes.';
 			}
-			$hold_result['result'] = false;
+			$hold_result['success'] = false;
 			$hold_result['message'] = $message;
 
 			global $logger;
@@ -115,10 +114,6 @@ class MillenniumHolds{
 		// therefore we need to check the current status before we freeze or unfreeze.
 		$scope = $this->driver->getDefaultScope();
 
-		//go to the holds page and get the number of holds on the account
-//		$holds = $this->getMyHolds(); // only needed for loading titles at this point. plb 2-3-2015
-//		$numHoldsStart = count($holds['holds']['available'] + $holds['holds']['unavailable']);
-
 		if (!isset($xNum)) {
 			// below requests variables should be deprecated as of now. plb 2-9-2015
 			if (isset($_REQUEST['waitingholdselected']) || isset($_REQUEST['availableholdselected'])) {
@@ -146,8 +141,8 @@ class MillenniumHolds{
 
 		$loadTitles = empty($titles);
 		if ($loadTitles) {
-			$holds = $this->getMyHolds();
-			$combined_holds = array_merge($holds['holds']['unavailable'], $holds['holds']['available']);
+			$holds = $this->getMyHolds($patron);
+			$combined_holds = array_merge($holds['unavailable'], $holds['available']);
 		}
 		$logger->log("Load titles = $loadTitles", PEAR_LOG_DEBUG); // move out of foreach loop
 
@@ -216,7 +211,7 @@ class MillenniumHolds{
 		curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $holdUpdateParams);
 		curl_setopt($curl_connection, CURLOPT_POST, true);
 		$sResult = curl_exec($curl_connection);
-		$hold_original_results = $this->parseHoldsPage($sResult);
+		$hold_original_results = $this->parseHoldsPage($sResult, $patron);
 
 		// TODO: Get Failure Messages
 
@@ -229,7 +224,7 @@ class MillenniumHolds{
 		curl_setopt($curl_connection, CURLOPT_URL, $curl_url);
 		curl_setopt($curl_connection, CURLOPT_HTTPGET, true);
 		$sResult     = curl_exec($curl_connection);
-		$holds       = $this->parseHoldsPage($sResult);
+		$holds       = $this->parseHoldsPage($sResult, $patron);
 		curl_close($curl_connection);
 		unlink($cookieJar);
 
@@ -284,13 +279,13 @@ class MillenniumHolds{
 				$analytics->addEvent('ILS Integration', 'Hold Cancelled', $title_list);
 				return array(
 					'title' => $titles,
-					'result' => true,
+					'success' => true,
 					'message' => 'Your hold'.($plural ? 's were' : ' was' ).' cancelled successfully.');
 			} else { // at least one failure
 				$analytics->addEvent('ILS Integration', 'Hold Not Cancelled', $title_list);
 				return array(
 					'title' => $titles,
-					'result' => false,
+					'success' => false,
 //					'message' => 'Your hold'.($plural ? 's' : '' ).' could not be cancelled.  Please try again later or see your librarian.'
 					'message' => $failure_messages
 				);
@@ -299,13 +294,19 @@ class MillenniumHolds{
 			$analytics->addEvent('ILS Integration', 'Hold(s) Updated', $title_list);
 			return array(
 				'title' => $titles,
-				'result' => true,
+				'success' => true,
 				'message' => 'Your hold'.($plural ? 's were' : ' was' ).' updated successfully.');
 		}
 	}
 
-	public function parseHoldsPage($pageContents, $userLabel){
-		//global $logger;
+	/**
+	 * @param $pageContents string  Tbe raw HTML to be parsed
+	 * @param $patron       User    The user who owns the holds
+	 * @return array
+	 */
+	public function parseHoldsPage($pageContents, $patron){
+		$userLabel = $patron->getNameAndLibraryLabel();
+
 		$availableHolds = array();
 		$unavailableHolds = array();
 		$holds = array(
@@ -342,6 +343,7 @@ class MillenniumHolds{
 			$curHold['create'] = null;
 			$curHold['reqnum'] = null;
 			$curHold['holdSource'] = 'ILS';
+			$curHold['userId'] = $patron->id;
 			$curHold['user'] = $userLabel;
 
 			//Holds page occasionally has a header with number of items checked out.
@@ -483,7 +485,7 @@ class MillenniumHolds{
 							//If we detect an error Freezing the hold, save it so we can report the error to the user later.
 							$shortId = str_replace('.b', 'b', $curHold['id']);
 							$_SESSION['freezeResult'][$shortId]['message'] = $sCols[$i];
-							$_SESSION['freezeResult'][$shortId]['result'] = false;
+							$_SESSION['freezeResult'][$shortId]['success'] = false;
 						}else{
 							$curHold['freezeable'] = false;
 						}
@@ -517,13 +519,13 @@ class MillenniumHolds{
 	 * @return array          Array of the patron's holds
 	 * @access public
 	 */
-	public function getMyHolds($patron = null) {
+	public function getMyHolds($patron) {
 		global $timer;
 		//Load the information from millennium using CURL
 		$sResult = $this->driver->_fetchPatronInfoPage($patron, 'holds');
 		$timer->logTime("Got holds page from Millennium");
 
-		$holds = $this->parseHoldsPage($sResult, $patron->getNameAndLibraryLabel());
+		$holds = $this->parseHoldsPage($sResult, $patron);
 		$timer->logTime("Parsed Holds page");
 
 		require_once ROOT_DIR . '/RecordDrivers/MarcRecord.php';
@@ -553,12 +555,6 @@ class MillenniumHolds{
 
 				enableErrorHandler();
 			}
-		}
-
-		if (isset($holds['unavailable'])){
-			$numUnavailableHolds = count($holds['unavailable']);
-		}else{
-			$numUnavailableHolds = 0;
 		}
 
 		if (!isset($holds['available'])){
@@ -673,7 +669,7 @@ class MillenniumHolds{
 		$bib = substr(str_replace('.b', 'b', $bib1), 0, -1);
 		if (strlen($bib) == 0){
 			return array(
-				'result' => false,
+				'success' => false,
 				'message' => 'A valid record id was not provided. Please try again.');
 		}
 
@@ -703,13 +699,13 @@ class MillenniumHolds{
 				return array(
 					'title' => $title,
 					'bib' => $bib1,
-					'result' => true,
+					'success' => true,
 					'message' => 'The circulation system is currently offline.  This hold will be entered for you automatically when the circulation system is online.');
 			}else{
 				return array(
 					'title' => $title,
 					'bib' => $bib1,
-					'result' => false,
+					'success' => false,
 					'message' => 'The circulation system is currently offline and we could not place this hold.  Please try again later.');
 			}
 
@@ -802,7 +798,7 @@ class MillenniumHolds{
 			$hold_result['bid'] = $bib1;
 			global $analytics;
 			if ($analytics){
-				if ($hold_result['result'] == true){
+				if ($hold_result['success'] == true){
 					$analytics->addEvent('ILS Integration', 'Successful Hold', $title);
 				}else{
 					$analytics->addEvent('ILS Integration', 'Failed Hold', $hold_result['message'] . ' - ' . $title);

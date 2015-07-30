@@ -269,44 +269,46 @@ class MyAccount_AJAX
 	}
 
 	function cancelHold() {
-		try {
-			global $user;
-			$catalog = CatalogFactory::getCatalogConnectionInstance();
+		global $user;
+		$result = array(
+			'success' => false,
+			'message' => 'Error cancelling hold.'
+		);
+		if (!$user){
+			$result['message'] = 'You must be logged in to cancel a hold.  Please close this dialog and login again.';
+		}else{
+			//Determine which user the hold is on so we can cancel it.
+			$patronId = $_REQUEST['patronId'];
+			$patronOwningHold = $user->getUserReferredTo($patronId);
 
-			// ids grabbed in MillenniumHolds.php in $_REQUEST['waitingholdselected'] & $_REQUEST['availableholdselected']
-			// but we will pass ids here instead.
-			$cancelId = array();
-			if (!empty($_REQUEST['cancelId'])) {
+			if ($patronOwningHold == false){
+				$result['message'] = 'Sorry, you do not have access to cancel holds for the supplied user.';
+			}else{
+				// ids grabbed in MillenniumHolds.php in $_REQUEST['waitingholdselected'] & $_REQUEST['availableholdselected']
+				// but we will pass ids here instead.
+				if (empty($_REQUEST['cancelId']) || empty($_REQUEST['recordId'])) {
+					$result['message'] = 'Information about the hold to be cancelled was not provided.';
+				}else{
 					$cancelId = $_REQUEST['cancelId'];
+					$recordId = $_REQUEST['recordId'];
+					$result = $user->cancelHold($recordId, $cancelId);
+				}
 			}
-//			$locationId = isset($_REQUEST['location']) ? $_REQUEST['location'] : null; //not passed via ajax. don't think it's needed
-			$result = $catalog->driver->updateHoldDetailed($user->password, 'cancel', '', null, $cancelId, null/*, ''//shouldn't be needed*/);
-
-		} catch (PDOException $e) {
-			// What should we do with this error?
-			global $configArray;
-			if ($configArray['System']['debug']) {
-				echo '<pre>';
-				echo 'DEBUG: ' . $e->getMessage();
-				echo '</pre>';
-			}
-			$result = array(
-				'success' => false,
-				'message' => 'We could not connect to the circulation system, please try again later.'
-			);
 		}
+
 		global $interface;
 		// if title come back a single item array, set as the title instead. likewise for message
-		if (is_array($result['title']) && count($result['title']) == 1) $result['title'] = current($result['title']);
+		if (isset($result['title'])){
+			if (is_array($result['title']) && count($result['title']) == 1) $result['title'] = current($result['title']);
+		}
 		if (is_array($result['message']) && count($result['message']) == 1) $result['message'] = current($result['message']);
-		$result['success'] = $result['result']; // makes template easier to understand
 
 		$interface->assign('cancelResults', $result);
 
 		$cancelResult = array(
 			'title' => 'Cancel Hold',
 			'modalBody' => $interface->fetch('MyAccount/cancelhold.tpl'),
-			'success' => $result['result']
+			'success' => $result['success']
 		);
 		return $cancelResult;
 	}
@@ -387,7 +389,7 @@ class MyAccount_AJAX
 			unset($result['title']);
 		}
 		global $interface;
-		$result['success'] = $result['result']; // makes template easier to understand
+		$result['success'] = $result['success']; // makes template easier to understand
 		$failed = (is_array($result['message']) && !empty($result['message'])) ? array_keys($result['message']) : null; //returns failed id for javascript function
 		if (isset($result['titles'])) {
 			$result['numCancelled'] = count($result['titles']) - count($failed);
@@ -397,7 +399,7 @@ class MyAccount_AJAX
 		$cancelResult = array(
 			'title' => 'Cancel Hold',
 			'modalBody' => $interface->fetch('MyAccount/cancelhold.tpl'),
-			'success' => $result['result'],
+			'success' => $result['success'],
 		  'failed' => $failed
 		);
 		return $cancelResult;
@@ -461,7 +463,7 @@ class MyAccount_AJAX
 			require_once ROOT_DIR . '/sys/LocalEnrichment/UserList.php';
 			$title = isset($_REQUEST['title']) ? urldecode($_REQUEST['title']) : '';
 			if (strlen(trim($title)) == 0) {
-				$return['result'] = "false";
+				$return['success'] = "false";
 				$return['message'] = "You must provide a title for the list";
 			} else {
 				$list = new UserList();
@@ -493,7 +495,7 @@ class MyAccount_AJAX
 					}
 				}
 
-				$return['result'] = 'true';
+				$return['success'] = 'true';
 				$return['newId'] = $list->id;
 				if ($existingList) {
 					$return['message'] = "Updated list {$title} successfully";
@@ -502,7 +504,7 @@ class MyAccount_AJAX
 				}
 			}
 		} else {
-			$return['result'] = "false";
+			$return['success'] = "false";
 			$return['message'] = "You must be logged in to create a list";
 		}
 
@@ -967,7 +969,7 @@ class MyAccount_AJAX
 	}
 
 	function renewItem() {
-		if (isset($_REQUEST['renewIndicator'])) {
+		if (isset($_REQUEST['patronId']) && isset($_REQUEST['recordId']) && isset($_REQUEST['renewIndicator'])) {
 			if (strpos($_REQUEST['renewIndicator'], '|') > 0){
 				list($itemId, $itemIndex) = explode('|', $_REQUEST['renewIndicator']);
 			}else{
@@ -975,34 +977,25 @@ class MyAccount_AJAX
 				$itemIndex = null;
 			}
 
-			global $configArray;
-			try {
-				$this->catalog = CatalogFactory::getCatalogConnectionInstance();;
-			} catch (PDOException $e) {
-				// What should we do with this error?
-				if ($configArray['System']['debug']) {
-					echo '<pre>';
-					echo 'DEBUG: ' . $e->getMessage();
-					echo '</pre>';
-				}
-			}
-
-			if (method_exists($this->catalog->driver, 'renewItem')) {
-				$tmpResult = $this->catalog->driver->renewItem($itemId, $itemIndex);
-//				returns array(
-//					'itemId' => $itemId,
-//					'result'  => $success,
-//					'message' => $message
-				$renewResults = array(
-					'success' => $tmpResult['result'],
-				  'message' => $tmpResult['message']
-				);
-			} else {
-				PEAR_Singleton::raiseError(new PEAR_Error('Cannot Renew Item - ILS Not Supported'));
+			global $user;
+			if (!$user){
 				$renewResults = array(
 					'success' => false,
-					'message' => 'Cannot Renew Item - ILS Not Supported'
+					'message' => 'Item to renew not specified'
 				);
+			}else{
+				$patronId = $_REQUEST['patronId'];
+				$recordId = $_REQUEST['recordId'];
+				$patron = $user->getUserReferredTo($patronId);
+				if ($patron){
+					$renewResults = $patron->renewItem($recordId, $itemId, $itemIndex);
+				}else{
+					$renewResults = array(
+						'success' => false,
+						'message' => 'Sorry, it looks like you don\'t have access to that patron.'
+					);
+				}
+
 			}
 		} else {
 			//error message
@@ -1044,15 +1037,15 @@ class MyAccount_AJAX
 					list($itemId, $itemIndex) = explode('|', $selected);
 
 					$tmpResult = $this->catalog->driver->renewItem($itemId, $itemIndex);
-					if (!$tmpResult['result']) {
+					if (!$tmpResult['success']) {
 						$failure_messages[] = $tmpResult['message'];
 					}
 				}
 				if ($failure_messages) {
-					$renewResults['result'] = false;
+					$renewResults['success'] = false;
 					$renewResults['message'] = $failure_messages;
 				} else {
-					$renewResults['result'] = true;
+					$renewResults['success'] = true;
 					$renewResults['message'] = "All items were renewed successfully.";
 				}
 				$renewResults['Total'] = count($_REQUEST['selected']);
@@ -1079,37 +1072,30 @@ class MyAccount_AJAX
 		$result = array(
 			'title' => translate('Renew').' Selected Items',
 			'modalBody' => $interface->fetch('Record/renew-results.tpl'),
-			'success' => $renewResults['result'],
+			'success' => $renewResults['success'],
 		  'renewed' => $renewResults['Renewed']
 		);
 		return $result;
 	}
 
 	function renewAll() {
-		global $configArray;
-		try {
-			$this->catalog = CatalogFactory::getCatalogConnectionInstance();;
-		} catch (PDOException $e) {
-			// What should we do with this error?
-			if ($configArray['System']['debug']) {
-				echo '<pre>';
-				echo 'DEBUG: ' . $e->getMessage();
-				echo '</pre>';
-			}
+		$renewResults = array(
+			'success' => false,
+			'message' => array('Unable to renew all titles'),
+		);
+		global $user;
+		if ($user){
+			$renewResults = $user->renewAll();
+		}else{
+			$renewResults['message'] = array('You must be logged in to renew titles');
 		}
 
-		//Renew the hold
-		if (method_exists($this->catalog->driver, 'renewAll')) {
-			$renewResults = $this->catalog->driver->renewAll();
-		} else {
-			PEAR_Singleton::raiseError(new PEAR_Error('Cannot Renew All - ILS Not Supported'));
-		}
 		global $interface;
 		$interface->assign('renew_message_data', $renewResults);
 		$result = array(
 			'title' => translate('Renew').' All',
 			'modalBody' => $interface->fetch('Record/renew-results.tpl'),
-			'success' => $renewResults['result'],
+			'success' => $renewResults['success'],
 			'renewed' => $renewResults['Renewed']
 		);
 		return $result;

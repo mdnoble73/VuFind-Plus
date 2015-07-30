@@ -18,10 +18,11 @@
  *
  */
 
-require_once 'Interface.php';
+require_once 'DriverInterface.php';
 require_once ROOT_DIR . '/Drivers/Horizon.php';
 
 abstract class HorizonAPI extends Horizon{
+
 	//TODO: Additional caching of sessionIds by patron
 	private static $sessionIdsForUsers = array();
 	/** uses SIP2 login the user via web services API **/
@@ -207,20 +208,18 @@ abstract class HorizonAPI extends Horizon{
 		}
 	}
 
-	public function getMyHolds($patron= null, $page = 1, $recordsPerPage = -1, $sortOption = 'title'){
+	/**
+	 * Get Patron Holds
+	 *
+	 * This is responsible for retrieving all holds for a specific patron.
+	 *
+	 * @param User $patron    The user to load transactions for
+	 *
+	 * @return array          Array of the patron's holds
+	 * @access public
+	 */
+	public function getMyHolds($patron){
 		global $configArray;
-
-		if ($patron){
-			if (is_object($patron)) $patron = get_object_vars($patron);
-			$userId = $patron['id'];
-			$userName = $patron['cat_username'];
-			$userPassword = $patron['cat_password'];
-		}else{
-			global $user;
-			$userId = $user->id;
-			$userName = $user->cat_username;
-			$userPassword = $user->cat_password;
-		}
 
 		$availableHolds = array();
 		$unavailableHolds = array();
@@ -230,13 +229,12 @@ abstract class HorizonAPI extends Horizon{
 		);
 
 		//Get the session token for the user
-		if (isset(HorizonAPI::$sessionIdsForUsers[$userId])){
-			$sessionToken = HorizonAPI::$sessionIdsForUsers[$userId];
+		if (isset(HorizonAPI::$sessionIdsForUsers[$patron->id])){
+			$sessionToken = HorizonAPI::$sessionIdsForUsers[$patron->id];
 		}else{
 			//Log the user in
-			list($userValid, $sessionToken) = $this->loginViaWebService($userName, $userPassword);
+			list($userValid, $sessionToken) = $this->loginViaWebService($patron->cat_username, $patron->cat_password);
 			if (!$userValid){
-//				echo("No session id found for user"); //should log this instead
 				return $holds;
 			}
 		}
@@ -344,7 +342,7 @@ abstract class HorizonAPI extends Horizon{
 			list($userValid, $sessionToken) = $this->loginViaWebService($patron->cat_username, $patron->cat_password);
 			if (!$userValid){
 				return array(
-					'result' => false,
+					'success' => false,
 					'message' => 'Sorry, it does not look like you are logged in currently.  Please login and try again');
 			}
 		}
@@ -359,7 +357,6 @@ abstract class HorizonAPI extends Horizon{
 		}
 
 		if ($configArray['Catalog']['offline']){
-			global $user;
 			require_once ROOT_DIR . '/sys/OfflineHold.php';
 			$offlineHold = new OfflineHold();
 			$offlineHold->bibId = $recordId;
@@ -371,13 +368,13 @@ abstract class HorizonAPI extends Horizon{
 				return array(
 					'title' => $title,
 					'bib' => $recordId,
-					'result' => true,
+					'success' => true,
 					'message' => 'The circulation system is currently offline.  This hold will be entered for you automatically when the circulation system is online.');
 			}else{
 				return array(
 					'title' => $title,
 					'bib' => $recordId,
-					'result' => false,
+					'success' => false,
 					'message' => 'The circulation system is currently offline and we could not place this hold.  Please try again later.');
 			}
 
@@ -405,10 +402,10 @@ abstract class HorizonAPI extends Horizon{
 
 				$hold_result = array();
 				if ($createHoldResponse == true){
-					$hold_result['result'] = true;
+					$hold_result['success'] = true;
 					$hold_result['message'] = 'Your hold was placed successfully.';
 				}else{
-					$hold_result['result'] = false;
+					$hold_result['success'] = false;
 					$hold_result['message'] = 'Your hold could not be placed. ';
 					if (isset($createHoldResponse->message)){
 						$hold_result['message'] .= (string)$createHoldResponse->message;
@@ -422,7 +419,7 @@ abstract class HorizonAPI extends Horizon{
 				$hold_result['bid'] = $recordId;
 				global $analytics;
 				if ($analytics){
-					if ($hold_result['result'] == true){
+					if ($hold_result['success'] == true){
 						$analytics->addEvent('ILS Integration', 'Successful Hold', $title);
 					}else{
 						$analytics->addEvent('ILS Integration', 'Failed Hold', $hold_result['message'] . ' - ' . $title);
@@ -434,6 +431,22 @@ abstract class HorizonAPI extends Horizon{
 
 			}
 		}
+	}
+
+	function cancelHold($patron, $recordId, $cancelId) {
+		return $this->updateHoldDetailed($patron, 'cancel', '', null, $cancelId, '', '');
+	}
+
+	function freezeHold($patron, $recordId, $itemToFreezeId, $dateToReactivate) {
+		return $this->updateHoldDetailed($patron, 'update', '', null, $itemToFreezeId, '', 'on');
+	}
+
+	function thawHold($patron, $recordId, $itemToThawId) {
+		return $this->updateHoldDetailed($patron, 'update', '', null, $itemToThawId, '', 'off');
+	}
+
+	function changeHoldPickupLocation($patron, $recordId, $itemToUpdateId, $newPickupLocation) {
+		return $this->updateHoldDetailed($patron, 'update', '', null, $itemToUpdateId, $newPickupLocation, 'off');
 	}
 
 	public function updateHold($requestId, $patronId, $type, $title){
@@ -467,12 +480,12 @@ abstract class HorizonAPI extends Horizon{
 			list($userValid, $sessionToken) = $this->loginViaWebService($user->cat_username, $user->cat_password);
 			if (!$userValid){
 				return array(
-					'result' => false,
+					'success' => false,
 					'message' => 'Sorry, it does not look like you are logged in currently.  Please login and try again');
 			}
 		}
 
-		if (!isset($xNum) ){ //AJAX function passes IDs through $cancelID below shouldn't be needed anymore. plb 2-4-2015
+		if (!isset($xNum)){ //AJAX function passes IDs through $cancelID below shouldn't be needed anymore. plb 2-4-2015
 			if (isset($_REQUEST['waitingholdselected']) || isset($_REQUEST['availableholdselected'])){
 				$waitingHolds = isset($_REQUEST['waitingholdselected']) ? $_REQUEST['waitingholdselected'] : array();
 				$availableHolds = isset($_REQUEST['availableholdselected']) ? $_REQUEST['availableholdselected'] : array();
@@ -484,8 +497,8 @@ abstract class HorizonAPI extends Horizon{
 
 		$loadTitles = empty($titles);
 		if ($loadTitles) {
-			$holds = $this->getMyHolds();
-			$combined_holds = array_merge($holds['holds']['unavailable'], $holds['holds']['available']);
+			$holds = $this->getMyHolds($patronId);
+			$combined_holds = array_merge($holds['unavailable'], $holds['available']);
 		}
 //		$logger->log("Load titles = $loadTitles", PEAR_LOG_DEBUG); // move out of foreach loop
 
@@ -530,13 +543,12 @@ abstract class HorizonAPI extends Horizon{
 
 				return array(
 					'title' => $titles,
-					'result' => true,
+					'success' => true,
 					'message' => 'Your hold'.($plural ? 's were' : ' was' ).' cancelled successfully.');
 			}else{
 				return array(
 					'title' => $titles,
-					'result' => false,
-//					'message' => 'Some holds could not be cancelled.  Please try again later or see your librarian.'
+					'success' => false,
 					'message' => $failure_messages
 				);
 			}
@@ -564,12 +576,12 @@ abstract class HorizonAPI extends Horizon{
 				if ($allLocationChangesSucceed){
 					return array(
 						'title' => $titles,
-						'result' => true,
+						'success' => true,
 						'message' => 'Pickup location for your hold(s) was updated successfully.');
 				}else{
 					return array(
 						'title' => $titles,
-						'result' => false,
+						'success' => false,
 						'message' => 'Pickup location for your hold(s) was could not be updated.  Please try again later or see your librarian.');
 				}
 			}else{
@@ -601,12 +613,12 @@ abstract class HorizonAPI extends Horizon{
 					if ($allLocationChangesSucceed){
 						return array(
 							'title' => $titles,
-							'result' => true,
+							'success' => true,
 							'message' => "Your hold(s) were $frozen successfully.");
 					}else{
 						return array(
 							'title' => $titles,
-							'result' => false,
+							'success' => false,
 							'message' => "Some holds could not be $frozen.  Please try again later or see your librarian.");
 					}
 				}else{
@@ -634,12 +646,12 @@ abstract class HorizonAPI extends Horizon{
 					if ($allUnsuspendsSucceed){
 						return array(
 							'title' => $titles,
-							'result' => true,
+							'success' => true,
 							'message' => "Your hold(s) were $thawed successfully.");
 					}else{
 						return array(
 							'title' => $titles,
-							'result' => false,
+							'success' => false,
 							'message' => "Some holds could not be $thawed.  Please try again later or see your librarian.");
 					}
 				}
@@ -647,7 +659,7 @@ abstract class HorizonAPI extends Horizon{
 		}
 	}
 
-	public function getMyTransactions( $page = 1, $recordsPerPage = -1, $sortOption = 'dueDate') {
+	public function getMyCheckouts( $page = 1, $recordsPerPage = -1, $sortOption = 'dueDate') {
 		global $configArray;
 
 		global $user;
@@ -729,7 +741,6 @@ abstract class HorizonAPI extends Horizon{
 					$sortKey = (isset($curTitle['holdQueueLength']) ? $curTitle['holdQueueLength'] : 0) . '-' . $sortTitle;
 				}
 				$sortKey .= "_$sCount";
-				$curTitle['user'] = $user->getNameAndLibraryLabel();
 				$checkedOutTitles[$sortKey] = $curTitle;
 			}
 		}
@@ -737,16 +748,16 @@ abstract class HorizonAPI extends Horizon{
 		return $checkedOutTitles;
 	}
 
-	public function renewAll(){
+	public function renewAll($patron){
 		//Get all list of all transactions
-		$currentTransactions = $this->getMyTransactions();
+		$currentTransactions = $this->getMyCheckouts();
 		$renewResult = array();
 		$renewResult['Total'] = $currentTransactions['numTransactions'];
 		$numRenewals = 0;
 		$failure_messages = array();
 		foreach ($currentTransactions['transactions'] as $transaction){
-			$curResult = $this->renewItem($transaction['renewIndicator'], null);
-			if ($curResult['result']){
+			$curResult = $this->renewItem($patron, $transaction['recordId'], $transaction['renewIndicator'], null);
+			if ($curResult['success']){
 				$numRenewals++;
 			} else {
 				$failure_messages[] = $curResult['message'];
@@ -755,16 +766,16 @@ abstract class HorizonAPI extends Horizon{
 		$renewResult['Renewed'] = $numRenewals;
 		$renewResult['Unrenewed'] = $renewResult['Total'] - $renewResult['Renewed'];
 		if ($renewResult['Unrenewed'] > 0) {
-			$renewResult['result'] = false;
+			$renewResult['success'] = false;
 			$renewResult['message'] = $failure_messages;
 		}else{
-			$renewResult['result'] = true;
+			$renewResult['success'] = true;
 			$renewResult['message'] = "All items were renewed successfully.";
 		}
 		return $renewResult;
 	}
 
-	public function renewItem($itemId, $itemIndex){
+	public function renewItem($patron, $recordId, $itemId, $itemIndex){
 		global $configArray;
 
 		global $user;
@@ -778,7 +789,7 @@ abstract class HorizonAPI extends Horizon{
 			list($userValid, $sessionToken) = $this->loginViaWebService($user->cat_username, $user->cat_password);
 			if (!$userValid){
 				return array(
-					'result' => false,
+					'success' => false,
 					'message' => 'Sorry, it does not look like you are logged in currently.  Please login and try again');
 			}
 		}
@@ -807,7 +818,7 @@ abstract class HorizonAPI extends Horizon{
 		}
 		return array(
 			'itemId' => $itemId,
-			'result'  => $success,
+			'success'  => $success,
 			'message' => $message);
 	}
 
@@ -996,6 +1007,24 @@ abstract class HorizonAPI extends Horizon{
 		return $holdings;
 	}
 
+	public function getHoldings($idList, $record = null, $mysip = null, $forSummary = false) {
+		$holdings = array();
+		foreach ($idList as $id) {
+			$holdings[] = $this->getHolding($id, $record, $mysip, $forSummary);
+		}
+		return $holdings;
+	}
+
+	public function getStatus($id, $record = null, $mysip = null, $forSummary = false)
+	{
+		return $this->getHolding($id, $record, $mysip, $forSummary);
+	}
+
+	public function getStatuses($idList, $record = null, $mysip = null, $forSummary = false)
+	{
+		return $this->getHoldings($idList, $record, $mysip, $forSummary);
+	}
+
 	public function getNumHolds($id) {
 		global $configArray;
 		if (!$configArray['Catalog']['offline']){
@@ -1048,7 +1077,7 @@ abstract class HorizonAPI extends Horizon{
 			list($userValid, $sessionToken) = $this->loginViaWebService($user->cat_username, $user->cat_password);
 			if (!$userValid){
 				return array(
-					'result' => false,
+					'success' => false,
 					'message' => 'Sorry, it does not look like you are logged in currently.  Please login and try again');
 			}
 		}
@@ -1124,6 +1153,14 @@ abstract class HorizonAPI extends Horizon{
 		return $fields;
 	}
 
+	/**
+	 * Returns a summary of the holdings information for a single id. Used to display
+	 * within the search results and at the top of a full record display to ensure
+	 * the holding information makes sense to all users.
+	 *
+	 * @param string $id the id of the bid to load holdings for
+	 * @return array an associative array with a summary of the holdings.
+	 */
 	public function getStatusSummary($id, $record = null, $mysip = null){
 		$summary = parent::getStatusSummary($id, $record, $mysip);
 		$summary['holdQueueLength'] = $this->getNumHolds($id);
@@ -1217,4 +1254,5 @@ abstract class HorizonAPI extends Horizon{
 			return false;
 		}
 	}
+
 }

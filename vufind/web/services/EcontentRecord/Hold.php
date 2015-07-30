@@ -54,7 +54,7 @@ class Hold extends Action{
 			if (!PEAR_Singleton::isError($user) && $user){
 				//The user is already logged in
 				$return = $driver->placeHold($user, $id, null);
-				$interface->assign('result', $return['result']);
+				$interface->assign('success', $return['success']);
 				$message = $return['message'];
 				$interface->assign('message', $message);
 				$showMessage = true;
@@ -84,7 +84,7 @@ class Hold extends Action{
 
 		if (isset($return) && $showMessage) {
 			$hold_message_data = array(
-              'successful' => $return['result'] ? 'all' : 'none',
+              'successful' => $return['success'] ? 'all' : 'none',
               'error' => $return['error'],
               'titles' => array(
 			$return,

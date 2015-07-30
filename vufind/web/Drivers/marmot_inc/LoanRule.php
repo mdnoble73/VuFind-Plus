@@ -33,7 +33,7 @@ class LoanRule extends DB_DataObject
 			'code' => array('property'=>'code', 'type'=>'text', 'label'=>'Code', 'description'=>'The code for the loan rule'),
 			'normalLoanPeriod' => array('property'=>'normalLoanPeriod', 'type'=>'integer', 'label'=>'Normal Loan Period', 'description'=>'The normal loan period for the loan rule'),
 			'holdable' => array('property'=>'holdable', 'type'=>'checkbox', 'label'=>'Holdable', 'description'=>'Whether or not items are holdable'),
-			'bookable' => array('property'=>'bookable', 'type'=>'checkbox', 'label'=>'Bookable', 'description'=>'Whether or not items are bookable', 'hideInLists' => true),
+			'bookable' => array('property'=>'bookable', 'type'=>'checkbox', 'label'=>'Bookable', 'description'=>'Whether or not items are bookable'),
 			'homePickup' => array('property'=>'homePickup', 'type'=>'checkbox', 'label'=>'Home Pickup', 'description'=>'Whether or not items are available for Home Pickup', 'hideInLists' => true),
 			'shippable' => array('property'=>'shippable', 'type'=>'checkbox', 'label'=>'Shippable', 'description'=>'Whether or not items are shippable', 'hideInLists' => true),
 		);
