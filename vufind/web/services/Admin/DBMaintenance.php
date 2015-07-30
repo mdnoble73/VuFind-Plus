@@ -2181,6 +2181,7 @@ class DBMaintenance extends Admin_Admin {
 				'account_profiles_1' => array(
 					'title' => 'Update Account Profiles 1',
 					'description' => 'Update Account Profiles with additional data to make integration easier',
+					'continueOnError' => true,
 					'sql' => array(
 						"ALTER TABLE `account_profiles` ADD `vendorOpacUrl` varchar(100) NOT NULL",
 						"ALTER TABLE `account_profiles` ADD `patronApiUrl` varchar(100) NOT NULL",
