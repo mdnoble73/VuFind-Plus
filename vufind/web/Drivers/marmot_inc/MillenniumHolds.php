@@ -451,10 +451,12 @@ class MillenniumHolds{
 							}elseif (preg_match('/READY\sFOR\sPICKUP/i', $status, $matches)){
 								$curHold['status'] = 'Ready';
 							}else{
-								$curHold['status'] = $status;
+								#PK-778 - Don't attempt to show status for anything other than ready for pickup since Millennium/Sierra statuses are confusing
+								$curHold['status'] = 'Pending';
 							}
 						}else{
-							$curHold['status'] = "Pending $status";
+							#PK-778 - Don't attempt to show status for anything other than ready for pickup since Millennium/Sierra statuses are confusing
+							$curHold['status'] = "Pending";
 						}
 						$matches = array();
 						$curHold['renewError'] = false;
