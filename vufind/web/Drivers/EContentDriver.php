@@ -193,11 +193,7 @@ class EContentDriver implements DriverInterface{
 				foreach ($items as $key => $item){
 					$item->links = array();
 					if ($addCheckoutLink){
-						if ($configArray['OverDrive']['interfaceVersion'] == 1){
-							$checkoutLink = "return VuFind.OverDrive.checkoutOverDriveItem('{$eContentRecord->externalId}', '{$item->externalFormatNumeric}');";
-						}else{
-							$checkoutLink = "return VuFind.OverDrive.checkoutOverDriveItemOneClick('{$eContentRecord->externalId}', '{$item->externalFormatNumeric}');";
-						}
+						$checkoutLink = "return VuFind.OverDrive.checkOutOverDriveTitle('{$eContentRecord->externalId}');";
 						$item->links[] = array(
 								'onclick' => $checkoutLink,
 								'text' => 'Check Out',

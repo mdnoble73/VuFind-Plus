@@ -290,6 +290,22 @@ class User extends DB_DataObject
 		return $this->linkedUsers;
 	}
 
+	function getRelatedOverDriveUsers(){
+		$overDriveUsers = array();
+		$userHomeLibrary = Library::getPatronHomeLibrary($this);
+		if ($userHomeLibrary->enableOverdriveCollection){
+			$overDriveUsers[] = $this;
+		}
+		foreach ($this->getLinkedUsers() as $linkedUser){
+			$userHomeLibrary = Library::getPatronHomeLibrary($linkedUser);
+			if ($userHomeLibrary->enableOverdriveCollection){
+				$overDriveUsers[] = $linkedUser;
+			}
+		}
+
+		return $overDriveUsers;
+	}
+
 	/**
 	 * Returns a list of users that can view this account
 	 *
