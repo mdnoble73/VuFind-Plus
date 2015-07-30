@@ -42,83 +42,94 @@ class ReadingHistory extends MyAccount
 			$interface->assign('offline', false);
 
 			// Get My Transactions
-			if ($this->catalog->status) {
-				if ($user->cat_username) {
-					$patron = $this->catalog->patronLogin($user->cat_username, $user->cat_password);
-					if (PEAR_Singleton::isError($patron))
-					PEAR_Singleton::raiseError($patron);
+			if ($user) {
+				$linkedUsers = $user->getLinkedUsers();
+				if (isset($_REQUEST['patronId'])){
+					$patronId = $_REQUEST['patronId'];
+				}else{
+					$patronId = $user->id;
+				}
 
-					//Check to see if there is an action to perform.
-					if (isset($_REQUEST['readingHistoryAction']) && strlen($_REQUEST['readingHistoryAction']) > 0 && $_REQUEST['readingHistoryAction'] != 'exportToExcel'){
-						//Perform the requested action
-						$selectedTitles = isset($_REQUEST['selected']) ? $_REQUEST['selected'] : array();
-						$readingHistoryAction = $_REQUEST['readingHistoryAction'];
-						$this->catalog->doReadingHistoryAction($readingHistoryAction, $selectedTitles);
+				$patron = $user->getUserReferredTo($patronId);
+				if (count($linkedUsers) > 0) {
+					array_unshift($linkedUsers, $user);
+					$interface->assign('readingHistoryUsers', $linkedUsers);
+					$interface->assign('selectedUser', $patronId);
+				}
 
-						//redirect back to the current location without the action.
-						$newLocation = "{$configArray['Site']['path']}/MyAccount/ReadingHistory";
-						if (isset($_REQUEST['page']) && $readingHistoryAction != 'deleteAll' && $readingHistoryAction != 'optOut'){
-							$params[] = 'page=' . $_REQUEST['page'];
-						}
-						if (isset($_REQUEST['accountSort'])){
-							$params[] = 'accountSort=' . $_REQUEST['accountSort'];
-						}
-						if (isset($_REQUEST['pagesize'])){
-							$params[] = 'pagesize=' . $_REQUEST['pagesize'];
-						}
-						if (count($params) > 0){
-							$additionalParams = implode('&', $params);
-							$newLocation .= '?' . $additionalParams;
-						}
-						header("Location: $newLocation");
-						die();
+				//Check to see if there is an action to perform.
+				if (isset($_REQUEST['readingHistoryAction']) && strlen($_REQUEST['readingHistoryAction']) > 0 && $_REQUEST['readingHistoryAction'] != 'exportToExcel'){
+					//Perform the requested action
+					$selectedTitles = isset($_REQUEST['selected']) ? $_REQUEST['selected'] : array();
+					$readingHistoryAction = $_REQUEST['readingHistoryAction'];
+					$patron->doReadingHistoryAction($readingHistoryAction, $selectedTitles);
+
+					//redirect back to the current location without the action.
+					$newLocation = "{$configArray['Site']['path']}/MyAccount/ReadingHistory";
+					if (isset($_REQUEST['page']) && $readingHistoryAction != 'deleteAll' && $readingHistoryAction != 'optOut'){
+						$params[] = 'page=' . $_REQUEST['page'];
 					}
+					if (isset($_REQUEST['accountSort'])){
+						$params[] = 'accountSort=' . $_REQUEST['accountSort'];
+					}
+					if (isset($_REQUEST['pagesize'])){
+						$params[] = 'pagesize=' . $_REQUEST['pagesize'];
+					}
+					if (isset($_REQUEST['patronId'])){
+						$params[] = 'patronId=' . $_REQUEST['patronId'];
+					}
+					if (count($params) > 0){
+						$additionalParams = implode('&', $params);
+						$newLocation .= '?' . $additionalParams;
+					}
+					header("Location: $newLocation");
+					die();
+				}
 
-					// Define sorting options
-					$sortOptions = array('title' => 'Title',
-					                     'author' => 'Author',
-					                     'checkedOut' => 'Checkout Date',
-					                     'format' => 'Format',
-					);
-					$selectedSortOption = isset($_REQUEST['accountSort']) ? $_REQUEST['accountSort'] : 'checkedOut';
-					$interface->assign('sortOptions', $sortOptions);
+				// Define sorting options
+				$sortOptions = array('title' => 'Title',
+				                     'author' => 'Author',
+				                     'checkedOut' => 'Checkout Date',
+				                     'format' => 'Format',
+				);
+				$selectedSortOption = isset($_REQUEST['accountSort']) ? $_REQUEST['accountSort'] : 'checkedOut';
+				$interface->assign('sortOptions', $sortOptions);
 
-					$interface->assign('defaultSortOption', $selectedSortOption);
-					$page = isset($_REQUEST['page']) ? $_REQUEST['page'] : 1;
-					$interface->assign('page', $page);
+				$interface->assign('defaultSortOption', $selectedSortOption);
+				$page = isset($_REQUEST['page']) ? $_REQUEST['page'] : 1;
+				$interface->assign('page', $page);
 
-					$recordsPerPage = isset($_REQUEST['pagesize']) && (is_numeric($_REQUEST['pagesize'])) ? $_REQUEST['pagesize'] : 25;
-					$interface->assign('recordsPerPage', $recordsPerPage);
+				$recordsPerPage = isset($_REQUEST['pagesize']) && (is_numeric($_REQUEST['pagesize'])) ? $_REQUEST['pagesize'] : 25;
+				$interface->assign('recordsPerPage', $recordsPerPage);
+				if (isset($_REQUEST['readingHistoryAction']) && $_REQUEST['readingHistoryAction'] == 'exportToExcel'){
+					$recordsPerPage = -1;
+					$page = 1;
+				}
+
+				$result = $patron->getReadingHistory($page, $recordsPerPage, $selectedSortOption);
+
+				$link = $_SERVER['REQUEST_URI'];
+				if (preg_match('/[&?]page=/', $link)){
+					$link = preg_replace("/page=\\d+/", "page=%d", $link);
+				}else if (strpos($link, "?") > 0){
+					$link .= "&page=%d";
+				}else{
+					$link .= "?page=%d";
+				}
+				if ($recordsPerPage != '-1'){
+					$options = array('totalItems' => $result['numTitles'],
+					                 'fileName'   => $link,
+					                 'perPage'    => $recordsPerPage,
+					                 'append'    => false,
+					                 );
+					$pager = new VuFindPager($options);
+					$interface->assign('pageLinks', $pager->getLinks());
+				}
+				if (!PEAR_Singleton::isError($result)) {
+					$interface->assign('historyActive', $result['historyActive']);
+					$interface->assign('transList', $result['titles']);
 					if (isset($_REQUEST['readingHistoryAction']) && $_REQUEST['readingHistoryAction'] == 'exportToExcel'){
-						$recordsPerPage = -1;
-						$page = 1;
-					}
-
-					$result = $this->catalog->getReadingHistory($patron, $page, $recordsPerPage, $selectedSortOption);
-
-					$link = $_SERVER['REQUEST_URI'];
-					if (preg_match('/[&?]page=/', $link)){
-						$link = preg_replace("/page=\\d+/", "page=%d", $link);
-					}else if (strpos($link, "?") > 0){
-						$link .= "&page=%d";
-					}else{
-						$link .= "?page=%d";
-					}
-					if ($recordsPerPage != '-1'){
-						$options = array('totalItems' => $result['numTitles'],
-						                 'fileName'   => $link,
-						                 'perPage'    => $recordsPerPage,
-						                 'append'    => false,
-						                 );
-						$pager = new VuFindPager($options);
-						$interface->assign('pageLinks', $pager->getLinks());
-					}
-					if (!PEAR_Singleton::isError($result)) {
-						$interface->assign('historyActive', $result['historyActive']);
-						$interface->assign('transList', $result['titles']);
-						if (isset($_REQUEST['readingHistoryAction']) && $_REQUEST['readingHistoryAction'] == 'exportToExcel'){
-							$this->exportToExcel($result['titles']);
-						}
+						$this->exportToExcel($result['titles']);
 					}
 				}
 			}

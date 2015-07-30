@@ -844,4 +844,12 @@ class User extends DB_DataObject
 		return $renewAllResults;
 	}
 
+	public function getReadingHistory($page, $recordsPerPage, $selectedSortOption) {
+		return $this->getCatalogDriver()->getReadingHistory($this, $page, $recordsPerPage, $selectedSortOption);
+	}
+
+	public function doReadingHistoryAction($readingHistoryAction, $selectedTitles){
+		$this->getCatalogDriver()->doReadingHistoryAction($this, $readingHistoryAction, $selectedTitles);
+	}
+
 }
