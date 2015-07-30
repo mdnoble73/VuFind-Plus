@@ -197,6 +197,7 @@ class SierraStatusLoader extends MillenniumStatusLoader{
 				'type' => 'holding',
 				'availability' => $item['availability'],
 				'holdable' => $item['holdable'] ? 1 : 0,
+				'bookable' => $item['bookable'] ? 1 : 0,
 				'libraryDisplayName' => $item['shelfLocation'],
 				'locationCode' => $item['location'],
 				'iType' => $item['iType'],
@@ -235,6 +236,7 @@ class SierraStatusLoader extends MillenniumStatusLoader{
 			$summaryInformation['offline'] = true;
 			$summaryInformation['status'] = 'The circulation system is offline, status not available.';
 			$summaryInformation['holdable'] = true;
+			$summaryInformation['showBookMaterial'] = false;
 			$summaryInformation['class'] = "unavailable";
 			$summaryInformation['showPlaceHold'] = true;
 			return $summaryInformation;
@@ -313,6 +315,7 @@ class SierraStatusLoader extends MillenniumStatusLoader{
 		//  - there is at least one download link for the record.
 		$numAvailableCopies = 0;
 		$numHoldableCopies = 0;
+		$numBookableCopies = 0;
 		$numCopies = 0;
 		$numCopiesOnOrder = 0;
 		$availableLocations = array();
@@ -368,6 +371,9 @@ class SierraStatusLoader extends MillenniumStatusLoader{
 
 			if (isset($holding['holdable']) && $holding['holdable'] == 1){
 				$numHoldableCopies++;
+			}
+			if (isset($holding['bookable']) && $holding['bookable'] == 1){
+				$numBookableCopies++;
 			}
 			$numCopies++;
 
@@ -447,6 +453,11 @@ class SierraStatusLoader extends MillenniumStatusLoader{
 		if ($numHoldableCopies == 0){
 			$summaryInformation['showPlaceHold'] = false;
 		}
+
+//		$summaryInformation['bookableCopies'] = $numHoldableCopies; // may be wanted in the future
+		$summaryInformation['showBookMaterial'] = $numBookableCopies > 0;
+			// if there are any bookable copies turn on the ShowBookMaterial switch,
+			// this determines whether or not the Book Material Button will be display to the user
 
 		$summaryInformation['numCopiesOnOrder'] = $numCopiesOnOrder;
 		//Do some basic sanity checking to make sure that we show the total copies

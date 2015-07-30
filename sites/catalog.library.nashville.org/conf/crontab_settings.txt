@@ -59,7 +59,7 @@
 ###################################
 
 # SCHOOL copy files from ftp drop spot 
-5 * * * * expect /usr/local/vufind-plus/vufind/library_solution_extract/SCHOOLDATA.exp
+5 * * * * expect /usr/local/vufind-plus/vufind/library_solution_export/SCHOOLDATA.exp
 
 # Library supplied covers
 # JAMES should institute library-supplied covers workflow for Nashville 20150216

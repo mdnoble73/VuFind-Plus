@@ -975,5 +975,9 @@ class CatalogConnection
 		return $this->driver->changeHoldPickupLocation($patron, $recordId, $itemToUpdateId, $newPickupLocation);
 	}
 
-
+	public function getBookingCalendar($recordId) {
+		// Graceful degradation -- return null if method not supported by driver.
+		return method_exists($this->driver, 'getBookingCalendar') ?
+			$this->driver->getBookingCalendar($recordId) : null;
+	}
 }
