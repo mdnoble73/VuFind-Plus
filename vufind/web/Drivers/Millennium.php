@@ -868,6 +868,7 @@ class Millennium extends ScreenScrapingDriver
 	 * exportList
 	 * optOut
 	 *
+	 * @param   User    $patron
 	 * @param   string  $action         The action to perform
 	 * @param   array   $selectedTitles The titles to do the action on if applicable
 	 */

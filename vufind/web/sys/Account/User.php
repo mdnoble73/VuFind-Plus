@@ -290,6 +290,22 @@ class User extends DB_DataObject
 		return $this->linkedUsers;
 	}
 
+	function getRelatedOverDriveUsers(){
+		$overDriveUsers = array();
+		$userHomeLibrary = Library::getPatronHomeLibrary($this);
+		if ($userHomeLibrary->enableOverdriveCollection){
+			$overDriveUsers[] = $this;
+		}
+		foreach ($this->getLinkedUsers() as $linkedUser){
+			$userHomeLibrary = Library::getPatronHomeLibrary($linkedUser);
+			if ($userHomeLibrary->enableOverdriveCollection){
+				$overDriveUsers[] = $linkedUser;
+			}
+		}
+
+		return $overDriveUsers;
+	}
+
 	/**
 	 * Returns a list of users that can view this account
 	 *
@@ -790,6 +806,14 @@ class User extends DB_DataObject
 		return $this->getCatalogDriver()->cancelHold($this, $recordId, $cancelId);
 	}
 
+	function freezeHold($recordId, $holdId, $reactivationDate){
+		return $this->getCatalogDriver()->freezeHold($this, $recordId, $holdId, $reactivationDate);
+	}
+
+	function thawHold($recordId, $holdId){
+		return $this->getCatalogDriver()->thawHold($this, $recordId, $holdId);
+	}
+
 	function renewItem($recordId, $itemId, $itemIndex){
 		return $this->getCatalogDriver()->renewItem($this, $recordId, $itemId, $itemIndex);
 	}
@@ -818,6 +842,14 @@ class User extends DB_DataObject
 			}
 		}
 		return $renewAllResults;
+	}
+
+	public function getReadingHistory($page, $recordsPerPage, $selectedSortOption) {
+		return $this->getCatalogDriver()->getReadingHistory($this, $page, $recordsPerPage, $selectedSortOption);
+	}
+
+	public function doReadingHistoryAction($readingHistoryAction, $selectedTitles){
+		$this->getCatalogDriver()->doReadingHistoryAction($this, $readingHistoryAction, $selectedTitles);
 	}
 
 }

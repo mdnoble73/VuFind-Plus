@@ -72,8 +72,8 @@ abstract class ScreenScrapingDriver implements DriverInterface {
 
 			$this->curl_connection = curl_init($curlUrl);
 			$default_curl_options = array(
-				CURLOPT_CONNECTTIMEOUT => 5,
-				CURLOPT_TIMEOUT => 30,
+				CURLOPT_CONNECTTIMEOUT => 20,
+				CURLOPT_TIMEOUT => 60,
 				CURLOPT_HTTPHEADER => $header,
 				//CURLOPT_USERAGENT => 'User-Agent: Mozilla/5.0 (Windows NT 6.2; WOW64; rv:39.0) Gecko/20100101 Firefox/39.0',
 				//CURLOPT_USERAGENT => "User-Agent:Pika " . $gitBranch,

@@ -17,6 +17,13 @@ class MillenniumReadingHistory {
 		$this->driver = $driver;
 	}
 
+	/**
+	 * @param User $patron
+	 * @param int $page
+	 * @param int $recordsPerPage
+	 * @param string $sortOption
+	 * @return array
+	 */
 	public function getReadingHistory($patron, $page = 1, $recordsPerPage = -1, $sortOption = "checkedOut") {
 		global $timer;
 		//Load the information from millennium using CURL
@@ -70,7 +77,7 @@ class MillenniumReadingHistory {
 			if (isset($historyEntry['shortId']) && strlen($historyEntry['shortId']) > 0){
 				$historyEntry['recordId'] = "." . $historyEntry['shortId'] . $this->driver->getCheckDigit($historyEntry['shortId']);
 				require_once ROOT_DIR . '/RecordDrivers/MarcRecord.php';
-				$recordDriver = new MarcRecord($historyEntry['recordId']);
+				$recordDriver = new MarcRecord($this->driver->accountProfile->recordSource . ':' . $historyEntry['recordId']);
 				if ($recordDriver->isValid()){
 					$historyEntry['ratingData'] = $recordDriver->getRatingData();
 					$historyEntry['permanentId'] = $recordDriver->getPermanentId();
@@ -86,17 +93,14 @@ class MillenniumReadingHistory {
 		//The history is active if there is an opt out link.
 		$historyActive = (strpos($pageContents, 'OptOut') > 0);
 		$timer->logTime("Loaded Reading history for patron");
-		global $user;
-		if ($historyActive && !$user->trackReadingHistory){
+		if ($historyActive && !$patron->trackReadingHistory){
 			//The user does have reading history even though we hadn't detected it before.
-			$user->trackReadingHistory = true;
-			$user->update();
-			$_SESSION['userinfo'] = serialize($user);
-		}if (!$historyActive && $user->trackReadingHistory){
+			$patron->trackReadingHistory = true;
+			$patron->update();
+		}if (!$historyActive && $patron->trackReadingHistory){
 			//The user does have reading history even though we hadn't detected it before.
-			$user->trackReadingHistory = false;
-			$user->update();
-			$_SESSION['userinfo'] = serialize($user);
+			$patron->trackReadingHistory = false;
+			$patron->update();
 		}
 
 		return array('historyActive'=>$historyActive, 'titles'=>$readingHistoryTitles, 'numTitles'=> $numTitles);
@@ -109,6 +113,7 @@ class MillenniumReadingHistory {
 	 * exportList
 	 * optOut
 	 *
+	 * @param   User    $patron
 	 * @param   string  $action         The action to perform
 	 * @param   array   $selectedTitles The titles to do the action on if applicable
 	 */
@@ -194,6 +199,8 @@ class MillenniumReadingHistory {
 			if ($analytics){
 				$analytics->addEvent('ILS Integration', 'Opt Out of Reading History');
 			}
+			$patron->trackReadingHistory = false;
+			$patron->update();
 		}elseif ($action == 'optIn'){
 			//load patron page readinghistory/OptIn
 			$curl_url = $this->driver->getVendorOpacUrl() . "/patroninfo~S{$scope}/" . $patron->username ."/readinghistory/OptIn";
@@ -203,6 +210,8 @@ class MillenniumReadingHistory {
 			if ($analytics){
 				$analytics->addEvent('ILS Integration', 'Opt in to Reading History');
 			}
+			$patron->trackReadingHistory = true;
+			$patron->update();
 		}
 		curl_close($curl_connection);
 		unlink($cookie);

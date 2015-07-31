@@ -407,7 +407,7 @@ class CatalogConnection
 	 *
 	 * This is responsible for retrieving a history of checked out items for the patron.
 	 *
-	 * @param   array   $patron     The patron array
+	 * @param   User   $patron     The patron array
 	 * @param   int     $page
 	 * @param   int     $recordsPerPage
 	 * @param   string  $sortOption
@@ -418,25 +418,23 @@ class CatalogConnection
 	 */
 	function getReadingHistory($patron, $page = 1, $recordsPerPage = -1, $sortOption = "checkedOut"){
 		//Get reading history from the database unless we specifically want to load from the driver.
-		global $user;
-		if (($user->trackReadingHistory && $user->initialReadingHistoryLoaded) || !$this->driver->hasNativeReadingHistory()){
-			if ($user->trackReadingHistory){
+		if (($patron->trackReadingHistory && $patron->initialReadingHistoryLoaded) || !$this->driver->hasNativeReadingHistory()){
+			if ($patron->trackReadingHistory){
 				//Make sure initial reading history loaded is set to true if we are here since
 				//The only way it wouldn't be here is if the user has elected to start tracking reading history
 				//And they don't have reading history currently specified.  We get what is checked out below though
 				//So that takes care of the initial load
-				if (!$user->initialReadingHistoryLoaded){
+				if (!$patron->initialReadingHistoryLoaded){
 					//Load the initial reading history
-					$user->initialReadingHistoryLoaded = 1;
-					$user->update();
-					$_SESSION['userinfo'] = serialize($user);
+					$patron->initialReadingHistoryLoaded = 1;
+					$patron->update();
 				}
 
-				$this->updateReadingHistoryBasedOnCurrentCheckouts();
+				$this->updateReadingHistoryBasedOnCurrentCheckouts($patron);
 
 				require_once ROOT_DIR . '/sys/ReadingHistoryEntry.php';
 				$readingHistoryDB = new ReadingHistoryEntry();
-				$readingHistoryDB->userId = $user->id;
+				$readingHistoryDB->userId = $patron->id;
 				$readingHistoryDB->deleted = 0; //Only show titles that have not been deleted
 				if ($sortOption == "checkedOut"){
 					$readingHistoryDB->orderBy('checkOutDate DESC, title ASC');
@@ -462,14 +460,14 @@ class CatalogConnection
 				}
 
 				$readingHistoryDB = new ReadingHistoryEntry();
-				$readingHistoryDB->userId = $user->id;
+				$readingHistoryDB->userId = $patron->id;
 				$readingHistoryDB->deleted = 0;
 				$numTitles = $readingHistoryDB->count();
 
-				return array('historyActive'=>$user->trackReadingHistory, 'titles'=>$readingHistoryTitles, 'numTitles'=> $numTitles);
+				return array('historyActive'=>$patron->trackReadingHistory, 'titles'=>$readingHistoryTitles, 'numTitles'=> $numTitles);
 			}else{
 				//Reading history disabled
-				return array('historyActive'=>$user->trackReadingHistory, 'titles'=>array(), 'numTitles'=> 0);
+				return array('historyActive'=>$patron->trackReadingHistory, 'titles'=>array(), 'numTitles'=> 0);
 			}
 
 		}else{
@@ -485,18 +483,18 @@ class CatalogConnection
 	 * exportList
 	 * optOut
 	 *
+	 * @param   User    $patron         The user to do the reading history action on
 	 * @param   string  $action         The action to perform
 	 * @param   array   $selectedTitles The titles to do the action on if applicable
 	 */
-	function doReadingHistoryAction($action, $selectedTitles){
-		global $user;
-		if (($user->trackReadingHistory && $user->initialReadingHistoryLoaded) || ! $this->driver->hasNativeReadingHistory()){
+	function doReadingHistoryAction($patron, $action, $selectedTitles){
+		if (($patron->trackReadingHistory && $patron->initialReadingHistoryLoaded) || ! $this->driver->hasNativeReadingHistory()){
 			if ($action == 'deleteMarked'){
 				//Remove titles from database (do not remove from ILS)
 				foreach ($selectedTitles as $titleId){
 					list($source, $sourceId) = explode('_', $titleId);
 					$readingHistoryDB = new ReadingHistoryEntry();
-					$readingHistoryDB->userId = $user->id;
+					$readingHistoryDB->userId = $patron->id;
 					$readingHistoryDB->id = str_replace('rsh', '', $titleId);
 					if ($readingHistoryDB->find(true)){
 						$readingHistoryDB->deleted = 1;
@@ -506,7 +504,7 @@ class CatalogConnection
 			}elseif ($action == 'deleteAll'){
 				//Remove all titles from database (do not remove from ILS)
 				$readingHistoryDB = new ReadingHistoryEntry();
-				$readingHistoryDB->userId = $user->id;
+				$readingHistoryDB->userId = $patron->id;
 				$readingHistoryDB->find();
 				while ($readingHistoryDB->fetch()){
 					$readingHistoryDB->deleted = 1;
@@ -520,34 +518,32 @@ class CatalogConnection
 				//Opt out within the ILS if possible
 				if ($driverHasReadingHistory){
 					//First run delete all
-					$result = $this->driver->doReadingHistoryAction('deleteAll', $selectedTitles);
+					$result = $this->driver->doReadingHistoryAction($patron, 'deleteAll', $selectedTitles);
 
-					$result = $this->driver->doReadingHistoryAction($action, $selectedTitles);
+					$result = $this->driver->doReadingHistoryAction($patron, $action, $selectedTitles);
 				}
 
 				//Delete the reading history (permanently this time sine we are opting out)
 				$readingHistoryDB = new ReadingHistoryEntry();
-				$readingHistoryDB->userId = $user->id;
+				$readingHistoryDB->userId = $patron->id;
 				$readingHistoryDB->delete();
 
 				//Opt out within Pika since the ILS does not seem to implement this functionality
-				$user->trackReadingHistory = false;
-				$user->update();
-				$_SESSION['userinfo'] = serialize($user);
+				$patron->trackReadingHistory = false;
+				$patron->update();
 			}elseif ($action == 'optIn'){
 				$driverHasReadingHistory = $this->driver->hasNativeReadingHistory();
 				//Opt in within the ILS if possible
 				if ($driverHasReadingHistory){
-					$result = $this->driver->doReadingHistoryAction($action, $selectedTitles);
+					$result = $this->driver->doReadingHistoryAction($patron, $action, $selectedTitles);
 				}
 
 				//Opt in within Pika since the ILS does not seem to implement this functionality
-				$user->trackReadingHistory = true;
-				$user->update();
-				$_SESSION['userinfo'] = serialize($user);
+				$patron->trackReadingHistory = true;
+				$patron->update();
 			}
 		}else{
-			return $this->driver->doReadingHistoryAction($action, $selectedTitles);
+			return $this->driver->doReadingHistoryAction($patron, $action, $selectedTitles);
 		}
 	}
 
@@ -839,13 +835,11 @@ class CatalogConnection
 		return $historyEntry;
 	}
 
-	private function updateReadingHistoryBasedOnCurrentCheckouts() {
-		global $user;
-
+	private function updateReadingHistoryBasedOnCurrentCheckouts($patron) {
 		require_once ROOT_DIR . '/sys/ReadingHistoryEntry.php';
 		//Note, include deleted titles here so they are not added multiple times.
 		$readingHistoryDB = new ReadingHistoryEntry();
-		$readingHistoryDB->userId = $user->id;
+		$readingHistoryDB->userId = $patron->id;
 		$readingHistoryDB->whereAdd('checkInDate IS NULL');
 		$readingHistoryDB->find();
 
@@ -861,7 +855,7 @@ class CatalogConnection
 		require_once ROOT_DIR . '/services/API/UserAPI.php';
 		$userAPI = new UserAPI();
 		$checkouts = $userAPI->getPatronCheckedOutItems();
-		foreach ($checkouts['checkedOutItems'] as $checkout){
+		foreach ($checkouts as $checkout){
 			$sourceId = '?';
 			$source = $checkout['checkoutSource'];
 			if ($source == 'OverDrive'){
@@ -877,7 +871,7 @@ class CatalogConnection
 				unset($activeHistoryTitles[$key]);
 			}else{
 				$historyEntryDB = new ReadingHistoryEntry();
-				$historyEntryDB->userId = $user->id;
+				$historyEntryDB->userId = $patron->id;
 				if (isset($checkout['groupedWorkId'])){
 					$historyEntryDB->groupedWorkPermanentId = $checkout['groupedWorkId'] == null ? '' : $checkout['groupedWorkId'];
 				}else{

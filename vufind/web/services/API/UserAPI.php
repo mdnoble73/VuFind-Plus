@@ -933,39 +933,9 @@ class UserAPI extends Action {
 		}else{
 			$password = '';
 		}
-		$includeEContent = true;
-		$includeOverDrive = true;
-		if (isset($_REQUEST['includeEContent'])){
-			$includeEContent = $_REQUEST['includeEContent'];
-		}
-		if (isset($_REQUEST['includeOverDrive'])){
-			$includeOverDrive = $_REQUEST['includeOverDrive'];
-		}
 		$user = UserAccount::validateAccount($username, $password);
 		if ($user && !PEAR_Singleton::isError($user)){
-			$catalogTransactions = $this->getCatalogConnection()->getMyCheckouts($user);
-
-			if ($includeEContent === true || $includeEContent === 'true'){
-				require_once(ROOT_DIR . '/Drivers/EContentDriver.php');
-				$eContentDriver = new EContentDriver();
-				$eContentCheckedOut = $eContentDriver->getMyCheckouts($user);
-			}else{
-				$eContentCheckedOut = array(
-					'transactions' => array()
-				);
-			}
-
-			if ($includeOverDrive === true || $includeOverDrive === 'true'){
-				require_once ROOT_DIR . '/Drivers/OverDriveDriverFactory.php';
-				$overDriveDriver = OverDriveDriverFactory::getDriver();
-				$overDriveCheckedOutItems = $overDriveDriver->getOverDriveCheckedOutItems($user);
-			}else{
-				$overDriveCheckedOutItems = array(
-					'items' => array()
-				);
-			}
-
-			$allCheckedOut = array_merge($catalogTransactions['transactions'], $overDriveCheckedOutItems['items'], $eContentCheckedOut['transactions']);
+			$allCheckedOut = $user->getMyCheckouts(false);
 
 			return array('success'=>true, 'checkedOutItems'=>$allCheckedOut);
 		}else{

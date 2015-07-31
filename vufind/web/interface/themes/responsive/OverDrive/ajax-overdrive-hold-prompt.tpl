@@ -1,6 +1,19 @@
 <form method="post" action="" id="overdriveHoldPromptsForm" class="form">
 	<div>
 		<input type="hidden" name="overdriveId" value="{$overDriveId}"/>
+		{if count($overDriveUsers) > 1} {* Linked Users contains the active user as well*}
+			<div id='pickupLocationOptions' class="form-group">
+				<label class='control-label' for="account">{translate text="Place hold for account"}: </label>
+				<div class='controls'>
+					<select name="patronId" id="patronId" class="form-control">
+						{foreach from=$overDriveUsers item=tmpUser}
+							<option value="{$tmpUser->id}" {if $location->selected == "selected"}selected="selected"{/if}>{$tmpUser->displayName} - {$tmpUser->getHomeLibrarySystemName()}</option>
+						{/foreach}
+					</select>
+				</div>
+			</div>
+		{/if}
+
 		{if $promptForEmail}
 			<div class="form-group">
 				<label for="overdriveEmail" class="control-label">{translate text="Enter an e-mail to be notified when the title is ready for you."}</label>

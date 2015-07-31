@@ -550,6 +550,7 @@ class OverDriveDriver3 {
 					$bookshelfItem['ratingData'] = $overDriveRecord->getRatingData();
 				}
 				$bookshelfItem['user'] = $user->getNameAndLibraryLabel();
+				$bookshelfItem['userId'] = $user->id;
 
 				$key = $bookshelfItem['checkoutSource'] . $bookshelfItem['overDriveId'];
 				$checkedOutTitles[$key] = $bookshelfItem;
@@ -614,6 +615,7 @@ class OverDriveDriver3 {
 					$hold['ratingData'] = $overDriveRecord->getRatingData();
 				}
 				$hold['user'] = $user->getNameAndLibraryLabel();
+				$hold['userId'] = $user->id;
 
 				$key = $hold['holdSource'] . $hold['overDriveId'] . $hold['user'];
 				if ($hold['available']){
@@ -692,7 +694,7 @@ class OverDriveDriver3 {
 	 *
 	 * @return array (result, message)
 	 */
-	public function placeOverDriveHold($overDriveId, $format, $user){
+	public function placeOverDriveHold($overDriveId, $user){
 		global $configArray;
 		global $analytics;
 		global $memCache;
@@ -725,19 +727,18 @@ class OverDriveDriver3 {
 	}
 
 	/**
-	 * @param User $user
-	 * @param string $overDriveId
-	 * @param string $format
+	 * @param string  $overDriveId
+	 * @param User    $user
 	 * @return array
 	 */
-	public function cancelOverDriveHold($overDriveId, $format, $user){
+	public function cancelOverDriveHold($overDriveId, $user){
 		global $configArray;
 		global $analytics;
 		global $memCache;
 
 		$url = $configArray['OverDrive']['patronApiUrl'] . '/v1/patrons/me/holds/' . $overDriveId;
 		$barcodeProperty = $configArray['Catalog']['barcodeProperty'];
-		$userBarcode = $user->$barcodeProperty;
+		$userBarcode = $user->getBarcode();
 		if ($this->getRequirePin($user)){
 			$userPin = ($barcodeProperty == 'cat_username') ? $user->cat_password : $user->cat_username;
 			$response = $this->_callPatronDeleteUrl($user, $userBarcode, $userPin, $url);
@@ -768,13 +769,11 @@ class OverDriveDriver3 {
 	 * Add an item to the cart in overdrive and then process the cart so it is checked out.
 	 *
 	 * @param string $overDriveId
-	 * @param int $format
-	 * @param int $lendingPeriod  the number of days that the user would like to have the title chacked out. or -1 to use the default
 	 * @param User $user
 	 *
 	 * @return array results (result, message)
 	 */
-	public function checkoutOverDriveItem($overDriveId, $format, $lendingPeriod, $user){
+	public function checkoutOverDriveItem($overDriveId, $user){
 
 		global $configArray;
 		global $analytics;
@@ -784,9 +783,6 @@ class OverDriveDriver3 {
 		$params = array(
 			'reserveId' => $overDriveId,
 		);
-		if ($format){
-			$params['formatType'] = $format;
-		}
 		$response = $this->_callPatronUrl($user, $url, $params);
 
 		$result = array();
@@ -990,11 +986,7 @@ class OverDriveDriver3 {
 		foreach ($items as $key => $item){
 			$item->links = array();
 			if ($addCheckoutLink){
-				if ($configArray['OverDrive']['interfaceVersion'] == 1){
-					$checkoutLink = "return VuFind.OverDrive.checkoutOverDriveItem('{$overDriveRecordDriver->getUniqueID()}', '{$item->numericId}');";
-				}else{
-					$checkoutLink = "return VuFind.OverDrive.checkoutOverDriveItemOneClick('{$overDriveRecordDriver->getUniqueID()}', '{$item->numericId}');";
-				}
+				$checkoutLink = "return VuFind.OverDrive.checkOutOverDriveTitle('{$overDriveRecordDriver->getUniqueID()}');";
 				$item->links[] = array(
 					'onclick' => $checkoutLink,
 					'text' => 'Check Out',

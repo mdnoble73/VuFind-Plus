@@ -577,7 +577,7 @@ class OverDriveRecordDriver extends RecordInterface {
 		if ($available){
 			$relatedRecord['actions'][] = array(
 				'title' => 'Check Out',
-				'onclick' => "return VuFind.OverDrive.checkoutOverDriveItemOneClick('{$recordId}');",
+				'onclick' => "return VuFind.OverDrive.checkOutOverDriveTitle('{$recordId}');",
 				'requireLogin' => false,
 			);
 		}else{
@@ -1129,7 +1129,7 @@ class OverDriveRecordDriver extends RecordInterface {
 		if ($isAvailable){
 			$actions[] = array(
 				'title' => 'Check Out',
-				'onclick' => "return VuFind.OverDrive.checkoutOverDriveItemOneClick('{$this->id}');",
+				'onclick' => "return VuFind.OverDrive.checkOutOverDriveTitle('{$this->id}');",
 				'requireLogin' => false,
 			);
 		}else{

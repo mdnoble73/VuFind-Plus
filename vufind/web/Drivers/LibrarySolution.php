@@ -38,15 +38,447 @@ class LibrarySolution extends ScreenScrapingDriver {
 	}
 
 	public function getStatus($id) {
-		// TODO: Implement getStatus() method.
+		return $this->getHolding($id);
 	}
 
 	public function getStatuses($ids) {
-		// TODO: Implement getStatuses() method.
+		return $this->getHoldings($ids);
 	}
 
+	/**
+	 * Returns a summary of the holdings information for a single id. Used to display
+	 * within the search results and at the top of a full record display to ensure
+	 * the holding information makes sense to all users.
+	 *
+	 * @param string $id the id of the bid to load holdings for
+	 * @return array an associative array with a summary of the holdings.
+	 */
+	public function getStatusSummary($id, $record = null, $mysip = null) {
+		global $timer;
+		global $library;
+		global $locationSingleton;
+		global $configArray;
+		global $memCache;
+		//Holdings summaries need to be cached based on the actual location since part of the information
+		//includes local call numbers and statuses.
+		$ipLocation = $locationSingleton->getPhysicalLocation();
+		$location = $ipLocation;
+		if (!isset($location) && $location == null) {
+			$location = $locationSingleton->getUserHomeLocation();
+		}
+		$ipLibrary = null;
+		if (isset($ipLocation)) {
+			$ipLibrary = new Library();
+			$ipLibrary->libraryId = $ipLocation->getLibraryId;
+			if (!$ipLibrary->find(true)) {
+				$ipLibrary = null;
+			}
+		}
+		if (!isset($location) && $location == null) {
+			$locationId = -1;
+		} else {
+			$locationId = $location->locationId;
+		}
+		$summaryInformation = $memCache->get("holdings_summary_{$id}_{$locationId}");
+		if ($summaryInformation == false) {
+
+			$canShowHoldButton = true;
+			if ($library && $library->showHoldButton == 0) {
+				$canShowHoldButton = false;
+			}
+			if ($location != null && $location->showHoldButton == 0) {
+				$canShowHoldButton = false;
+			}
+
+			$holdings = $this->getStatus($id, $record, $mysip, true);
+			$timer->logTime('Retrieved Status of holding');
+
+			$counter = 0;
+			$summaryInformation = array();
+			$summaryInformation['recordId'] = $id;
+			$summaryInformation['shortId'] = $id;
+			$summaryInformation['isDownloadable'] = false; //Default value, reset later if needed.
+			$summaryInformation['holdQueueLength'] = 0;
+
+			//Check to see if we are getting issue summaries or actual holdings
+			$isIssueSummary = false;
+			$numSubscriptions = 0;
+			if (count($holdings) > 0) {
+				$lastHolding = end($holdings);
+				if (isset($lastHolding['type']) && ($lastHolding['type'] == 'issueSummary' || $lastHolding['type'] == 'issue')) {
+					$isIssueSummary = true;
+					$issueSummaries = $holdings;
+					$numSubscriptions = count($issueSummaries);
+					$holdings = array();
+					foreach ($issueSummaries as $issueSummary) {
+						if (isset($issueSummary['holdings'])) {
+							$holdings = array_merge($holdings, $issueSummary['holdings']);
+						} else {
+							//Create a fake holding for subscriptions so something
+							//will be displayed in the holdings summary.
+							$holdings[$issueSummary['location']] = array(
+								'availability' => '1',
+								'location' => $issueSummary['location'],
+								'libraryDisplayName' => $issueSummary['location'],
+								'callnumber' => $issueSummary['cALL'],
+								'status' => 'Lib Use Only',
+								'statusfull' => 'In Library Use Only',
+							);
+						}
+					}
+				}
+			}
+			$timer->logTime('Processed for subscriptions');
+
+			//Valid statuses are:
+			//Available by Request
+			//  - not at the user's home branch or preferred location, but at least one copy is not checked out
+			//  - do not show the call number
+			//  - show place hold button
+			//Checked Out
+			//  - all copies are checked out
+			//  - show the call number for the local library if any
+			//  - show place hold button
+			//Downloadable
+			//  - there is at least one download link for the record.
+			$numAvailableCopies = 0;
+			$numHoldableCopies = 0;
+			$numCopies = 0;
+			$numCopiesOnOrder = 0;
+			$availableLocations = array();
+			$unavailableStatus = null;
+			//The status of all items.  Will be set to an actual status if all are the same
+			//or null if the item statuses are inconsistent
+			$allItemStatus = '';
+			$firstAvailableBarcode = '';
+			$availableHere = false;
+			foreach ($holdings as $holdingKey => $holding) {
+				if (is_null($allItemStatus)) {
+					//Do nothing, the status is not distinct
+				} else {
+					if ($allItemStatus == '') {
+						$allItemStatus = $holding['statusfull'];
+					} elseif ($allItemStatus != $holding['statusfull']) {
+						$allItemStatus = null;
+					}
+				}
+				if ($holding['availability'] == true) {
+					if ($ipLocation && strcasecmp($holding['locationCode'], $ipLocation->code) == 0) {
+						$availableHere = true;
+					}
+					$numAvailableCopies++;
+				} else {
+					if ($unavailableStatus == null) {
+						$unavailableStatus = $holding['statusfull'];
+					}
+				}
+
+				if (isset($holding['holdable']) && $holding['holdable'] == 1) {
+					$numHoldableCopies++;
+				}
+				$numCopies++;
+				//Check to see if the holding has a download link and if so, set that info.
+				if (isset($holding['link'])) {
+					foreach ($holding['link'] as $link) {
+						if ($link['isDownload']) {
+							$summaryInformation['status'] = "Available for Download";
+							$summaryInformation['class'] = 'here';
+							$summaryInformation['isDownloadable'] = true;
+							$summaryInformation['downloadLink'] = $link['link'];
+							$summaryInformation['downloadText'] = $link['linkText'];
+						}
+					}
+				}
+				//Only show a call number if the book is at the user's home library, one of their preferred libraries, or in the library they are in.
+				if (!isset($summaryInformation['callnumber'])) {
+					$summaryInformation['callnumber'] = $holding['callnumber'];
+				}
+				if ($holding['availability'] == 1) {
+					//The item is available within the physical library.  Patron should go get it off the shelf
+					$summaryInformation['status'] = "Available At";
+					if ($numHoldableCopies > 0) {
+						$summaryInformation['showPlaceHold'] = $canShowHoldButton;
+					} else {
+						$summaryInformation['showPlaceHold'] = 0;
+					}
+					$summaryInformation['class'] = 'available';
+				}
+				if ($holding['holdQueueLength'] > $summaryInformation['holdQueueLength']) {
+					$summaryInformation['holdQueueLength'] = $holding['holdQueueLength'];
+				}
+				if ($firstAvailableBarcode == '' && $holding['availability'] == true) {
+					$firstAvailableBarcode = $holding['barcode'];
+				}
+			}
+			$timer->logTime('Processed copies');
+
+			//If all items are checked out the status will still be blank
+			$summaryInformation['availableCopies'] = $numAvailableCopies;
+			$summaryInformation['holdableCopies'] = $numHoldableCopies;
+
+			$summaryInformation['numCopiesOnOrder'] = $numCopiesOnOrder;
+			//Do some basic sanity checking to make sure that we show the total copies
+			//With at least as many copies as the number of copies on order.
+			if ($numCopies < $numCopiesOnOrder) {
+				$summaryInformation['numCopies'] = $numCopiesOnOrder;
+			} else {
+				$summaryInformation['numCopies'] = $numCopies;
+			}
+
+			$showItsHere = ($ipLibrary == null) ? true : ($ipLibrary->showItsHere == 1);
+			if ($availableHere && $showItsHere) {
+				$summaryInformation['status'] = "It's Here";
+				$summaryInformation['class'] = 'here';
+				unset($availableLocations[$location->code]);
+				$summaryInformation['currentLocation'] = $location->displayName;
+				$summaryInformation['availableAt'] = join(', ', $availableLocations);
+				$summaryInformation['numAvailableOther'] = count($availableLocations);
+			} else {
+				//Replace all spaces in the name of a location with no break spaces
+				$summaryInformation['availableAt'] = join(', ', $availableLocations);
+				$summaryInformation['numAvailableOther'] = count($availableLocations);
+			}
+
+			//If Status is still not set, apply some logic based on number of copies
+			if (!isset($summaryInformation['status'])) {
+				if ($numCopies == 0) {
+					if ($numCopiesOnOrder > 0) {
+						//No copies are currently available, but we do have some that are on order.
+						//show the status as on order and make it available.
+						$summaryInformation['status'] = "On Order";
+						$summaryInformation['class'] = 'available';
+						$summaryInformation['showPlaceHold'] = $canShowHoldButton;
+					} else {
+						//Deal with weird cases where there are no items by saying it is unavailable
+						$summaryInformation['status'] = "Unavailable";
+						$summaryInformation['showPlaceHold'] = false;
+						$summaryInformation['class'] = 'unavailable';
+					}
+				} else {
+					if ($numHoldableCopies == 0 && $canShowHoldButton && (isset($summaryInformation['showPlaceHold']) && $summaryInformation['showPlaceHold'] != true)) {
+						$summaryInformation['status'] = "Not Available For Checkout";
+						$summaryInformation['showPlaceHold'] = false;
+						$summaryInformation['class'] = 'reserve';
+					} else {
+						$summaryInformation['status'] = "Checked Out";
+						$summaryInformation['showPlaceHold'] = $canShowHoldButton;
+						$summaryInformation['class'] = 'checkedOut';
+					}
+				}
+			}
+
+			//Reset status if the status for all items is consistent.
+			//That way it will jive with the actual full record display.
+			if ($allItemStatus != null && $allItemStatus != '') {
+				//Only override this for statuses that don't have special meaning
+				if ($summaryInformation['status'] != 'Marmot' && $summaryInformation['status'] != 'Available At' && $summaryInformation['status'] != "It's Here") {
+					$summaryInformation['status'] = $allItemStatus;
+				}
+			}
+			if ($allItemStatus == 'In Library Use Only') {
+				$summaryInformation['inLibraryUseOnly'] = true;
+			} else {
+				$summaryInformation['inLibraryUseOnly'] = false;
+			}
+
+
+			if ($summaryInformation['availableCopies'] == 0 && $summaryInformation['isDownloadable'] == true) {
+				$summaryInformation['showAvailabilityLine'] = false;
+			} else {
+				$summaryInformation['showAvailabilityLine'] = true;
+			}
+			$timer->logTime('Finished building summary');
+
+			$memCache->set("holdings_summary_{$id}_{$locationId}", $summaryInformation, 0, $configArray['Caching']['holdings_summary']);
+		}
+		return $summaryInformation;
+	}
+
+	private static $loadedHoldings = array();
 	public function getHolding($id) {
-		// TODO: Implement getHolding() method.
+		if (array_key_exists($id, LibrarySolution::$loadedHoldings)){
+			return LibrarySolution::$loadedHoldings[$id];
+		}
+
+		global $configArray;
+		global $library;
+		//Get location information so we can put things into sections
+		global $locationSingleton; /** @var $locationSingleton Location */
+		$physicalLocation = $locationSingleton->getPhysicalLocation();
+		if ($physicalLocation != null){
+			$physicalBranch = $physicalLocation->holdingBranchLabel;
+		}else{
+			$physicalBranch = '';
+		}
+		$homeBranch    = '';
+		$homeBranchId  = 0;
+		$nearbyBranch1 = '';
+		$nearbyBranch1Id = 0;
+		$nearbyBranch2 = '';
+		$nearbyBranch2Id = 0;
+
+		//Set location information based on the user login.  This will override information based
+		if (isset($user) && $user != false){
+			$homeBranchId = $user->homeLocationId;
+			$nearbyBranch1Id = $user->myLocation1Id;
+			$nearbyBranch2Id = $user->myLocation2Id;
+		} else {
+			//Check to see if the cookie for home location is set.
+			if (isset($_COOKIE['home_location']) && is_numeric($_COOKIE['home_location'])) {
+				$cookieLocation = new Location();
+				$locationId = $_COOKIE['home_location'];
+				$cookieLocation->whereAdd("locationId = '$locationId'");
+				$cookieLocation->find();
+				if ($cookieLocation->N == 1) {
+					$cookieLocation->fetch();
+					$homeBranchId = $cookieLocation->locationId;
+					$nearbyBranch1Id = $cookieLocation->nearbyLocation1;
+					$nearbyBranch2Id = $cookieLocation->nearbyLocation2;
+				}
+			}
+		}
+
+		//Load the holding label for the user's home location.
+		$userLocation = new Location();
+		$userLocation->whereAdd("locationId = '$homeBranchId'");
+		$userLocation->find();
+		if ($userLocation->N == 1) {
+			$userLocation->fetch();
+			$homeBranch = $userLocation->holdingBranchLabel;
+		}
+		//Load nearby branch 1
+		$nearbyLocation1 = new Location();
+		$nearbyLocation1->whereAdd("locationId = '$nearbyBranch1Id'");
+		$nearbyLocation1->find();
+		if ($nearbyLocation1->N == 1) {
+			$nearbyLocation1->fetch();
+			$nearbyBranch1 = $nearbyLocation1->holdingBranchLabel;
+		}
+		//Load nearby branch 2
+		$nearbyLocation2 = new Location();
+		$nearbyLocation2->whereAdd();
+		$nearbyLocation2->whereAdd("locationId = '$nearbyBranch2Id'");
+		$nearbyLocation2->find();
+		if ($nearbyLocation2->N == 1) {
+			$nearbyLocation2->fetch();
+			$nearbyBranch2 = $nearbyLocation2->holdingBranchLabel;
+		}
+
+		list($type, $shortId) = explode(':', $id);
+		//Call LSS to get details about the record
+		$url = $this->getVendorOpacUrl() . '/resource/byHostRecordId/' . $shortId;
+		$recordInfoRaw = $this->_curlGetPage($url);
+		$recordInfo = json_decode($recordInfoRaw);
+		$holdings = array();
+		if ($recordInfo){
+			$resourceId = $recordInfo->id;
+
+			$postData = array();
+			foreach ($recordInfo->holdingsInformations as $holdingInfo){
+				$postData[] = array(
+					'itemIdentifier' => $holdingInfo->barcode,
+					'resourceId' => $resourceId
+				);
+			}
+
+			//Get updated availability
+			$availabilityUrl = $this->getVendorOpacUrl() . '/availability';
+			$availabilityResponseRaw = $this->_curlPostBodyData($availabilityUrl, $postData);
+			$availabilityResponse = json_decode($availabilityResponseRaw);
+
+			$i=0;
+			foreach ($recordInfo->holdingsInformations as $holdingInfo){
+				$shelfLocation = $holdingInfo->branchName;
+				if (isset($holdingInfo->collection)){
+					$shelfLocation .= ' ' . $holdingInfo->collection;
+				}
+				$holding = array(
+					'id' => $holdingInfo->barcode,
+					'number' => $i,
+					'type' => 'holding',
+					'status' => '',
+					'statusfull' => '',
+					'availability' => false,
+					'holdable' => true,
+					'reserve' => $holdingInfo->reserved ? 'Y' : 'N',
+					'holdQueueLength' => '',
+					'dueDate' => '',
+					'locationCode' => $holdingInfo->branchIdentifier,
+					'location' => $holdingInfo->branchName,
+					'callnumber' => trim($holdingInfo->callPrefix . ' ' . $holdingInfo->callClass . ' ' . $holdingInfo->callCutter),
+					'isDownload' => false,
+					'barcode' => $holdingInfo->barcode,
+					'isLocalItem' => false,
+					'isLibraryItem' => true,
+					'locationLabel' => $shelfLocation,
+					'shelfLocation' => $shelfLocation,
+				);
+
+				//Get that status
+				foreach ($availabilityResponse->itemAvailabilities as $availability){
+					if ($availability->itemIdentifier == $holdingInfo->barcode){
+						$holding['status'] = $availability->statusCode;
+						$holding['statusfull'] = $availability->status;
+						$holding['availability'] = $availability->available;
+						$holding['dueDate'] = $availability->dueDateString;
+						$holding['holdable'] = !$availability->nonCirculating;
+					}
+				}
+
+				$holding['groupedStatus'] = mapValue('item_grouped_status', $holding['status']);
+
+				$paddedNumber = str_pad($i, 3, '0', STR_PAD_LEFT);
+				$sortString = $holding['location'] . '-'. $paddedNumber;
+				//$sortString = $holding['location'] . $holding['callnumber']. $i;
+				if (strlen($physicalBranch) > 0 && stripos($holding['location'], $physicalBranch) !== false){
+					//If the user is in a branch, those holdings come first.
+					$holding['section'] = 'In this library';
+					$holding['sectionId'] = 1;
+					$holding['isLocalItem'] = true;
+					$sorted_array['1' . $sortString] = $holding;
+				} else if (strlen($homeBranch) > 0 && stripos($holding['location'], $homeBranch) !== false){
+					//Next come the user's home branch if the user is logged in or has the home_branch cookie set.
+					$holding['section'] = 'Your library';
+					$holding['sectionId'] = 2;
+					$holding['isLocalItem'] = true;
+					$sorted_array['2' . $sortString] = $holding;
+				} else if ((strlen($nearbyBranch1) > 0 && stripos($holding['location'], $nearbyBranch1) !== false)){
+					//Next come nearby locations for the user
+					$holding['section'] = 'Nearby Libraries';
+					$holding['sectionId'] = 3;
+					$sorted_array['3' . $sortString] = $holding;
+				} else if ((strlen($nearbyBranch2) > 0 && stripos($holding['location'], $nearbyBranch2) !== false)){
+					//Next come nearby locations for the user
+					$holding['section'] = 'Nearby Libraries';
+					$holding['sectionId'] = 4;
+					$sorted_array['4' . $sortString] = $holding;
+					//MDN 11/17 - taken out because all Horizon libraries are single institution (so far)
+					/*} else if (strlen($libraryLocationLabels) > 0 && preg_match($libraryLocationLabels, $holding['location'])){
+							//Next come any locations within the same system we are in.
+							$holding['section'] = $library->displayName;
+							$holding['sectionId'] = 5;
+							$sorted_array['5' . $sortString] = $holding;
+						*/
+				} else {
+					//Finally, all other holdings are shown sorted alphabetically.
+					$holding['section'] = $library->displayName;
+					$holding['sectionId'] = 5;
+					$sorted_array['5' . $sortString] = $holding;
+				}
+
+				$holdings[] = $holding;
+			}
+		}
+
+		return $holdings;
+	}
+
+	public function getHoldings($ids) {
+		$holdings = array();
+		foreach ($ids as $id) {
+			$holdings[] = $this->getHolding($id);
+		}
+		return $holdings;
 	}
 
 	/**
@@ -188,7 +620,68 @@ class LibrarySolution extends ScreenScrapingDriver {
 	}
 
 	public function hasNativeReadingHistory() {
-		// TODO: Implement hasNativeReadingHistory() method.
+		return true;
+	}
+
+	/**
+	 * @param User $patron
+	 * @param int $page
+	 * @param int $recordsPerPage
+	 * @param string $sortOption
+	 * @return array
+	 */
+	public function getReadingHistory($patron, $page = 1, $recordsPerPage = -1, $sortOption = "checkedOut") {
+		$readingHistory = array();
+		if ($this->loginPatronToLSS($patron->cat_username, $patron->cat_password)){
+			//Load transactions from LSS
+			//TODO: Verify that this will load more than 20 loans
+			$url = $this->getVendorOpacUrl() . '/loans/history/0/20/OutDate?_=' . time() * 1000;
+			$loanInfoRaw = $this->_curlGetPage($url);
+			$loanInfo = json_decode($loanInfoRaw);
+
+			foreach ($loanInfo->loanHistory as $loan){
+				$curTitle = array();
+				$curTitle['itemId'] = $loan->itemId;
+				$curTitle['id'] = $loan->bibliographicId;
+				$curTitle['shortId'] = $loan->bibliographicId;
+				$curTitle['recordId'] = $loan->bibliographicId;
+				$curTitle['title'] = utf8_encode($loan->title);
+				$curTitle['author'] = utf8_encode($loan->author);
+				$curTitle['duedate'] = $loan->dueDate;
+				$curTitle['checkout'] = $loan->outDateString;
+				$curTitle['borrower_num'] = $patron->id;
+				$curTitle['title_sort'] = preg_replace('/[^a-z\s]/', '', strtolower($curTitle['title']));
+
+				//Get additional information from MARC Record
+				if ($curTitle['shortId'] && strlen($curTitle['shortId']) > 0){
+					require_once ROOT_DIR . '/RecordDrivers/MarcRecord.php';
+					$recordDriver = new MarcRecord( $this->accountProfile->recordSource . ":" . $curTitle['recordId']);
+					if ($recordDriver->isValid()){
+						$historyEntry['permanentId'] = $recordDriver->getPermanentId();
+						$curTitle['coverUrl'] = $recordDriver->getBookcoverUrl('medium');
+						$curTitle['groupedWorkId'] = $recordDriver->getGroupedWorkId();
+						$curTitle['ratingData'] = $recordDriver->getRatingData();
+						$formats = $recordDriver->getFormats();
+						$curTitle['format'] = reset($formats);
+						$curTitle['author'] = $recordDriver->getPrimaryAuthor();
+						if (!isset($curTitle['title']) || empty($curTitle['title'])){
+							$curTitle['title'] = $recordDriver->getTitle();
+						}
+					}else{
+						$historyEntry['permanentId'] = null;
+						$curTitle['coverUrl'] = "";
+						$curTitle['groupedWorkId'] = "";
+						$curTitle['format'] = "Unknown";
+						$curTitle['author'] = "";
+					}
+					$curTitle['linkUrl'] = $recordDriver->getLinkUrl();
+				}
+
+				$readingHistory[] = $curTitle;
+			}
+		}
+
+		return array('historyActive'=>true, 'titles'=>$readingHistory, 'numTitles'=> count($readingHistory));
 	}
 
 	public function getNumHolds($id) {
@@ -431,12 +924,15 @@ class LibrarySolution extends ScreenScrapingDriver {
 
 				//MDN - it looks like holdCancelable is not accurate, setting to true always
 				//$curHold['cancelable'] = $hold->holdCancelable;
-				$curHold['cancelable'] = $hold->true;
+				$curHold['cancelable'] = true;
 				$curHold['frozen'] = $hold->suspendUntilDate != null;
 				if ($curHold['frozen']){
 					$curHold['reactivateTime'] = $hold->suspendUntilDate;
 				}
-				$curHold['freezeable'] = $hold->holdSuspendable;
+				//Although LSS interface shows this is possible, we haven't been able to make it work in the
+				//LSS OPAC, setting to false always
+				//$curHold['freezeable'] = $hold->holdSuspendable;
+				$curHold['freezeable'] = false;
 
 				$curHold['sortTitle'] = $hold->title;
 				$recordDriver = new MarcRecord($this->accountProfile->recordSource . ":" . $bibId);
@@ -477,7 +973,7 @@ class LibrarySolution extends ScreenScrapingDriver {
 	 *                                If an error occurs, return a PEAR_Error
 	 * @access  public
 	 */
-	function placeHold($patron, $pickupBranch, $recordId) {
+	function placeHold($patron, $recordId, $pickupBranch) {
 		$recordDriver = RecordDriverFactory::initRecordDriverById($this->accountProfile->recordSource . ':' . $recordId);
 		$result = array(
 			'success' => false,
@@ -542,7 +1038,32 @@ class LibrarySolution extends ScreenScrapingDriver {
 			'title' => $recordDriver->getTitle(),
 			'message' => 'Sorry, your hold could not be cancelled.');
 		if ($this->loginPatronToLSS($patron->cat_username, $patron->cat_password)) {
+			//for lss we need additional information about the hold
+			$url = $this->getVendorOpacUrl() . '/requests/0/20/Status?_=' . time() * 1000;
+			$holdInfoRaw = $this->_curlGetPage($url);
+			$holdInfo = json_decode($holdInfoRaw);
 
+			$selectedHold = null;
+			foreach ($holdInfo->holds as $hold) {
+				if ($hold->holdNumber == $cancelId){
+					$selectedHold = $hold;
+				}
+			}
+
+			$url = $this->getVendorOpacUrl() . '/requests/cancel?_=' . time() * 1000;
+			$postParams = '{"cancelHoldInfos":"[{\"desireNumber\":\"' . $cancelId. '\",\"success\":false,\"holdQueueLength\":\"' . $selectedHold->holdQueueLength . '\",\"bibliographicId\":\"' . $recordId. '\",\"whichBranch\":' . $selectedHold->holdPickupBranchId . ',\"status\":\"' . $selectedHold->status . '\",\"downloadable\":false}]"}';
+
+			$responseRaw = $this->_curlPostBodyData($url, $postParams, false);
+			$response = json_decode($responseRaw);
+
+			foreach ($response->cancelHoldInfos as $itemResponse){
+				if ($itemResponse->success){
+					$result['success'] = true;
+					$result['message'] = 'Your hold was cancelled successfully.';
+				}else{
+					$result['message'] = 'Sorry, your hold could not be cancelled.';
+				}
+			}
 		}else{
 			$result['message'] = 'Sorry, the user supplied was not valid in the catalog. Please try again.';
 		}
@@ -556,7 +1077,20 @@ class LibrarySolution extends ScreenScrapingDriver {
 			'title' => $recordDriver->getTitle(),
 			'message' => 'Sorry, your hold could not be frozen.');
 		if ($this->loginPatronToLSS($patron->cat_username, $patron->cat_password)) {
+			$url = $this->getVendorOpacUrl() . '/requests/suspend?_=' . time() * 1000;
+			$formattedReactivationDate = $dateToReactivate;
+			$postParams = '{"suspendHoldInfos":"[{\"desireNumber\":\"' . $itemToFreezeId . '\",\"success\":false,\"suspendDate\":\"' . $formattedReactivationDate . '\",\"queuePosition\":\"1\",\"bibliographicId\":\"' . $recordId . '\",\"pickupBranchId\":100,\"downloadable\":false}]"}';
+			$responseRaw = $this->_curlPostBodyData($url, $postParams, false);
+			$response = json_decode($responseRaw);
 
+			foreach ($response->suspendHoldInfos as $itemResponse){
+				if ($itemResponse->success){
+					$result['success'] = true;
+					$result['message'] = 'Your hold was frozen successfully.';
+				}else{
+					$result['message'] = 'Sorry, your hold could not be suspended.';
+				}
+			}
 		}else{
 			$result['message'] = 'Sorry, the user supplied was not valid in the catalog. Please try again.';
 		}
@@ -570,7 +1104,7 @@ class LibrarySolution extends ScreenScrapingDriver {
 			'title' => $recordDriver->getTitle(),
 			'message' => 'Sorry, your hold could not be thawed.');
 		if ($this->loginPatronToLSS($patron->cat_username, $patron->cat_password)) {
-
+			$result['message'] = 'This functionality is currently unimplemented';
 		}else{
 			$result['message'] = 'Sorry, the user supplied was not valid in the catalog. Please try again.';
 		}
@@ -584,7 +1118,8 @@ class LibrarySolution extends ScreenScrapingDriver {
 			'title' => $recordDriver->getTitle(),
 			'message' => 'Sorry, the pickup location for your hold could not be changed.');
 		if ($this->loginPatronToLSS($patron->cat_username, $patron->cat_password)) {
-
+			//Not possible in LSS
+			$result['message'] = 'This functionality is currently unimplemented';
 		}else{
 			$result['message'] = 'Sorry, the user supplied was not valid in the catalog. Please try again.';
 		}

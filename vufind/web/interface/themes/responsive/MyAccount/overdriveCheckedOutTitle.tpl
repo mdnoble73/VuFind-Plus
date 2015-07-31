@@ -69,7 +69,7 @@
 										<option value="{$format.id}">{$format.name}</option>
 									{/foreach}
 								</select>
-								<a href="#" onclick="VuFind.OverDrive.selectOverDriveDownloadFormat('{$record.overDriveId}')" class="btn btn-sm btn-primary">Download</a>
+								<a href="#" onclick="VuFind.OverDrive.selectOverDriveDownloadFormat('{$record.userId}', '{$record.overDriveId}')" class="btn btn-sm btn-primary">Download</a>
 							</div>
 						{/if}
 					</div>
@@ -79,20 +79,20 @@
 			<div class="col-xs-12 col-md-3">
 				<div class="btn-group btn-group-vertical btn-block">
 					{if $record.overdriveRead}
-						<a href="#" onclick="return VuFind.OverDrive.followOverDriveDownloadLink('{$record.overDriveId}', 'ebook-overdrive')" class="btn btn-sm btn-primary">Read&nbsp;Online</a>
+						<a href="#" onclick="return VuFind.OverDrive.followOverDriveDownloadLink('{$record.userId}', '{$record.overDriveId}', 'ebook-overdrive')" class="btn btn-sm btn-primary">Read&nbsp;Online</a>
 					{/if}
 					{if $record.overdriveListen}
-						<a href="#" onclick="return VuFind.OverDrive.followOverDriveDownloadLink('{$record.overDriveId}', 'audiobook-overdrive')" class="btn btn-sm btn-primary">Listen&nbsp;Online</a>
+						<a href="#" onclick="return VuFind.OverDrive.followOverDriveDownloadLink('{$record.userId}', '{$record.overDriveId}', 'audiobook-overdrive')" class="btn btn-sm btn-primary">Listen&nbsp;Online</a>
 					{/if}
 					{if $record.overdriveVideo}
-						<a href="#" onclick="return VuFind.OverDrive.followOverDriveDownloadLink('{$record.overDriveId}', 'video-streaming')" class="btn btn-sm btn-primary">Watch&nbsp;Online</a>
+						<a href="#" onclick="return VuFind.OverDrive.followOverDriveDownloadLink('{$record.userId}', '{$record.overDriveId}', 'video-streaming')" class="btn btn-sm btn-primary">Watch&nbsp;Online</a>
 					{/if}
 					{if $record.formatSelected && !$record.overdriveVideo}
-						<a href="#" onclick="return VuFind.OverDrive.followOverDriveDownloadLink('{$record.overDriveId}', '{$record.selectedFormat.format}')" class="btn btn-sm btn-primary">Download&nbsp;Again</a>
+						<a href="#" onclick="return VuFind.OverDrive.followOverDriveDownloadLink('{$record.userId}', '{$record.overDriveId}', '{$record.selectedFormat.format}')" class="btn btn-sm btn-primary">Download&nbsp;Again</a>
 					{/if}
 
 					{if $record.earlyReturn}
-						<a href="#" onclick="return VuFind.OverDrive.returnOverDriveTitle('{$record.overDriveId}', '{$record.transactionId}');" class="btn btn-sm btn-warning">Return&nbsp;Now</a>
+						<a href="#" onclick="return VuFind.OverDrive.returnOverDriveTitle('{$record.userId}', '{$record.overDriveId}', '{$record.transactionId}');" class="btn btn-sm btn-warning">Return&nbsp;Now</a>
 					{/if}
 				</div>
 
