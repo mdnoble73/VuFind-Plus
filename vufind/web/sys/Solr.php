@@ -852,7 +852,7 @@ class Solr implements IndexEngine {
 			$values['and'] = $andQuery;
 			$values['or'] = $orQuery;
 			$singleWordRemoval = "";
-			if (count($tokenized) < 3){
+			if (count($tokenized) < 4){
 				$singleWordRemoval = '"' . str_replace('"', '', implode(' ', $tokenized)) . '"';
 			}else{
 				for ($i = 0; $i < count($tokenized); $i++){
