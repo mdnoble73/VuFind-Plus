@@ -176,26 +176,34 @@
 					</a>
 					<div id="vufindMenuGroup" class="panel-collapse collapse {if $curSection}in{/if}">
 						<div class="panel-body">
+							{* Library Admin Actions *}
 							{if ($user->hasRole('opacAdmin') || $user->hasRole('libraryAdmin'))}
 								<div class="adminMenuLink {if $action == "Libraries"}active{/if}"><a href="{$path}/Admin/Libraries">Library Systems</a></div>
 								<div class="adminMenuLink {if $action == "Locations"}active{/if}"><a href="{$path}/Admin/Locations">Locations</a></div>
+								<div class="adminMenuLink {if $action == "BlockPatronAccountLinks"}active{/if}"><a href="{$path}/Admin/BlockPatronAccountLinks">Block Patron Account Linking</a></div>
 							{/if}
+
+							{* OPAC Admin Actions*}
 							{if $user->hasRole('opacAdmin')}
 								<div class="adminMenuLink {if $action == "IPAddresses"}active{/if}"><a href="{$path}/Admin/IPAddresses">IP Addresses</a></div>
 							{/if}
+
+							{* Content Editor Actions *}
 							<div class="adminMenuLink {if $action == "ListWidgets"}active{/if}"><a href="{$path}/Admin/ListWidgets">List Widgets</a></div>
 							<div class="adminMenuLink {if $action == "BrowseCategories"}active{/if}"><a href="{$path}/Admin/BrowseCategories">Browse Categories</a></div>
+
+							{* OPAC Admin Actions*}
 							{if $user->hasRole('opacAdmin')}
 								<div class="adminMenuLink {if $action == "UserSuggestions"}active{/if}"><a href="{$path}/Admin/UserSuggestions">User Suggestions</a></div>
 								<div class="adminMenuLink {if $action == "BookStores"}active{/if}"><a href="{$path}/Admin/BookStores">Book Stores</a></div>
-							{/if}
-							{if ($ils == 'Millennium' || $ils == 'Sierra') && $user->hasRole('opacAdmin')}
+								{* Sierra/Millennium OPAC Admin Actions*}
+								{if ($ils == 'Millennium' || $ils == 'Sierra')}
 								<div class="adminMenuLink {if $action == "PTypes"}active{/if}"><a href="{$path}/Admin/PTypes">P-Types</a></div>
 								<div class="adminMenuLink {if $action == "CirculationStatuses"}active{/if}"><a href="{$path}/Admin/CirculationStatuses">Circulation Statuses</a></div>
 								<div class="adminMenuLink {if $action == "LoanRules"}active{/if}"><a href="{$path}/Admin/LoanRules">Loan Rules</a></div>
 								<div class="adminMenuLink {if $action == "LoanRuleDeterminers"}active{/if}"><a href="{$path}/Admin/LoanRuleDeterminers">Loan Rule Determiners</a></div>
-							{/if}
-							{if $user->hasRole('opacAdmin')}
+								{/if}
+								{* OPAC Admin Actions*}
 								<div class="adminMenuLink {if $action == "AccountProfiles"}active{/if}"><a href="{$path}/Admin/AccountProfiles">Account Profiles</a></div>
 							{/if}
 

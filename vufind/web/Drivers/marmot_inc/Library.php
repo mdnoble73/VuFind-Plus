@@ -417,6 +417,7 @@ class Library extends DB_DataObject
 					                                     ), 'default' => 'popup'
 				),
 
+				// The specific categories displayed in the carousel
 			'browseCategories' => array(
 			'property'=>'browseCategories',
 			'type'=>'oneToMany',
@@ -431,8 +432,6 @@ class Library extends DB_DataObject
 			'allowEdit' => false,
 			'canEdit' => false,
 		),
-
-
 			)),
 
 			array('property'=>'holdingsSummarySection', 'type' => 'section', 'label' =>'Holdings Summary', 'hideInLists' => true, 'properties' => array(
@@ -804,7 +803,7 @@ class Library extends DB_DataObject
 		}
 	}
 	/**
-	 * Override the fetch functionality to save related objects
+	 * Override the fetch functionality to fetch related objects
 	 *
 	 * @see DB/DB_DataObject::fetch()
 	 */
@@ -853,7 +852,7 @@ class Library extends DB_DataObject
 	}
 
 	/**
-	 * Override the update functionality to save the related objects
+	 * Override the insert functionality to save the related objects
 	 *
 	 * @see DB/DB_DataObject::insert()
 	 */

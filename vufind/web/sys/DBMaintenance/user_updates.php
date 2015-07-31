@@ -114,5 +114,21 @@ function getUserUpdates(){
 				) ENGINE=InnoDB  DEFAULT CHARSET=utf8",
 			),
 		),
+
+		'user_link_blocking' => array(
+			'title' => 'Setup blocking controls for the linking of user accounts',
+			'description' => 'Setup for the blocking of linking user accounts. Either an account can not link to any account, or a specific account can link to a specific account.',
+			'sql' => array(
+				"CREATE TABLE `user_link_blocks` (
+					`id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+					`primaryAccountId` INT UNSIGNED NOT NULL,
+					`blockedLinkAccountId` INT UNSIGNED NULL COMMENT 'A specific account primaryAccountId will not be linked to.',
+					`blockLinking` TINYINT UNSIGNED NULL COMMENT 'Indicates primaryAccountId will not be linked to any other accounts.',
+					PRIMARY KEY (`id`))
+					ENGINE = InnoDB
+					DEFAULT CHARACTER SET = utf8;"
+			),
+		),
+
 	);
 }
