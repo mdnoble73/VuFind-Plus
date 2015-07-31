@@ -188,7 +188,68 @@ class LibrarySolution extends ScreenScrapingDriver {
 	}
 
 	public function hasNativeReadingHistory() {
-		// TODO: Implement hasNativeReadingHistory() method.
+		return true;
+	}
+
+	/**
+	 * @param User $patron
+	 * @param int $page
+	 * @param int $recordsPerPage
+	 * @param string $sortOption
+	 * @return array
+	 */
+	public function getReadingHistory($patron, $page = 1, $recordsPerPage = -1, $sortOption = "checkedOut") {
+		$readingHistory = array();
+		if ($this->loginPatronToLSS($patron->cat_username, $patron->cat_password)){
+			//Load transactions from LSS
+			//TODO: Verify that this will load more than 20 loans
+			$url = $this->getVendorOpacUrl() . '/loans/history/0/20/OutDate?_=' . time() * 1000;
+			$loanInfoRaw = $this->_curlGetPage($url);
+			$loanInfo = json_decode($loanInfoRaw);
+
+			foreach ($loanInfo->loanHistory as $loan){
+				$curTitle = array();
+				$curTitle['itemId'] = $loan->itemId;
+				$curTitle['id'] = $loan->bibliographicId;
+				$curTitle['shortId'] = $loan->bibliographicId;
+				$curTitle['recordId'] = $loan->bibliographicId;
+				$curTitle['title'] = utf8_encode($loan->title);
+				$curTitle['author'] = utf8_encode($loan->author);
+				$curTitle['duedate'] = $loan->dueDate;
+				$curTitle['checkout'] = $loan->outDateString;
+				$curTitle['borrower_num'] = $patron->id;
+				$curTitle['title_sort'] = preg_replace('/[^a-z\s]/', '', strtolower($curTitle['title']));
+
+				//Get additional information from MARC Record
+				if ($curTitle['shortId'] && strlen($curTitle['shortId']) > 0){
+					require_once ROOT_DIR . '/RecordDrivers/MarcRecord.php';
+					$recordDriver = new MarcRecord( $this->accountProfile->recordSource . ":" . $curTitle['recordId']);
+					if ($recordDriver->isValid()){
+						$historyEntry['permanentId'] = $recordDriver->getPermanentId();
+						$curTitle['coverUrl'] = $recordDriver->getBookcoverUrl('medium');
+						$curTitle['groupedWorkId'] = $recordDriver->getGroupedWorkId();
+						$curTitle['ratingData'] = $recordDriver->getRatingData();
+						$formats = $recordDriver->getFormats();
+						$curTitle['format'] = reset($formats);
+						$curTitle['author'] = $recordDriver->getPrimaryAuthor();
+						if (!isset($curTitle['title']) || empty($curTitle['title'])){
+							$curTitle['title'] = $recordDriver->getTitle();
+						}
+					}else{
+						$historyEntry['permanentId'] = null;
+						$curTitle['coverUrl'] = "";
+						$curTitle['groupedWorkId'] = "";
+						$curTitle['format'] = "Unknown";
+						$curTitle['author'] = "";
+					}
+					$curTitle['linkUrl'] = $recordDriver->getLinkUrl();
+				}
+
+				$readingHistory[] = $curTitle;
+			}
+		}
+
+		return array('historyActive'=>true, 'titles'=>$readingHistory, 'numTitles'=> count($readingHistory));
 	}
 
 	public function getNumHolds($id) {
