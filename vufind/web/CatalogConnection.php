@@ -134,7 +134,13 @@ class CatalogConnection
 	{
 		/** @var Memcache $memCache */
 		global $memCache;
-		$key = 'record_status_' . $recordId . '_' . $forSearch;
+
+		//Cache status by search library and location in addition to id since we do scoping
+		global $library;
+		$searchLocation = Location::getSearchLocation();
+
+		$locationKey = $library->subdomain . '_' . ($searchLocation == null ? '' : $searchLocation->code);
+		$key = 'record_status_' . $recordId . '_' . $forSearch . '_' . $locationKey;
 		$cachedValue = $memCache->get($key);
 		if ($cachedValue == false || isset($_REQUEST['reload'])){
 			global $configArray;
@@ -175,7 +181,12 @@ class CatalogConnection
 	 */
 	public function getStatusSummary($id, $forSearch = false){
 		global $memCache;
-		$key = 'status_summary_' . $id . '_' . $forSearch;
+		//Cache status summary by search library and location in addition to id since we do scoping
+		global $library;
+		$searchLocation = Location::getSearchLocation();
+
+		$locationKey = $library->subdomain . '_' . ($searchLocation == null ? '' : $searchLocation->code);
+		$key = 'status_summary_' . $id . '_' . $forSearch . '_' . $locationKey;
 		$cachedValue = $memCache->get($key);
 		if ($cachedValue == false || isset($_REQUEST['reload'])){
 			global $configArray;
