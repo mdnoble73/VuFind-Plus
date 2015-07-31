@@ -48,7 +48,7 @@ class SierraStatusLoader extends MillenniumStatusLoader{
 	 * @return array A list of holdings for the record
 	 */
 	public function getStatus($id){
-		$recordDriver = RecordDriverFactory::initRecordDriverById('ils:' . $id);
+		$recordDriver = RecordDriverFactory::initRecordDriverById($id);
 		$format = $recordDriver->getFormat();
 		if ($format[0] == 'Journal'){
 			return parent::getStatus($id);
