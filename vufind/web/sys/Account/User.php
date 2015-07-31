@@ -80,6 +80,7 @@ class User extends DB_DataObject
 
 	private $data = array();
 
+
 	/* Static get */
 	function staticGet($k,$v=NULL) { return DB_DataObject::staticGet('User',$k,$v); }
 
@@ -275,19 +276,52 @@ class User extends DB_DataObject
 				$userLink->primaryAccountId = $this->id;
 				$userLink->find();
 				while ($userLink->fetch()){
-					$linkedUser = new User();
-					$linkedUser->id = $userLink->linkedAccountId;
-					if ($linkedUser->find(true)){
-						//Load full information from the catalog
-						$linkedUser = UserAccount::validateAccount($linkedUser->cat_username, $linkedUser->cat_password, $linkedUser->source);
-						if ($linkedUser && !PEAR_Singleton::isError($linkedUser)){
-							$this->linkedUsers[] = clone($linkedUser);
+					if (!$this->isBlockedAccount($userLink->id)) {
+						$linkedUser = new User();
+						$linkedUser->id = $userLink->linkedAccountId;
+						if ($linkedUser->find(true)){
+							//Load full information from the catalog
+							$linkedUser = UserAccount::validateAccount($linkedUser->cat_username, $linkedUser->cat_password, $linkedUser->source);
+							if ($linkedUser && !PEAR_Singleton::isError($linkedUser)) {
+								$this->linkedUsers[] = clone($linkedUser);
+							}
 						}
 					}
 				}
 			}
 		}
 		return $this->linkedUsers;
+	}
+
+	// Account Blocks //
+	private $blockAll = null; // set to null to signal unset, boolean when set
+	private $blockedAccounts = null; // set to null to signal unset, array when set
+
+	/**
+	 * Checks if there is any settings disallowing the account $accountIdToCheck to be linked to this user.
+	 *
+	 * @param  $accountIdToCheck string   linked account Id to check for blocking
+	 * @return bool                       true for blocking, false for no blocking
+	 */
+	public function isBlockedAccount($accountIdToCheck) {
+		if (is_null($this->blockAll)) $this->setAccountBlocks();
+		return $this->blockAll || in_array($accountIdToCheck, $this->blockedAccounts);
+	}
+
+	private function setAccountBlocks() {
+		// default settings
+		$this->blockAll = false;
+		$this->blockedAccounts = array();
+
+		require_once '/sys/Administration/BlockPatronAccountLink.php';
+		$accountBlock = new BlockPatronAccountLink();
+		$accountBlock->primaryAccountId = $this->id;
+		if ($accountBlock->find()) {
+			while ($accountBlock->fetch(false)) {
+				if ($accountBlock->blockLinking) $this->blockAll = true; // any one row that has block all on will set this setting to true for this account.
+				if ($accountBlock->blockedLinkAccountId) $this->blockedAccounts[] = $accountBlock->blockedLinkAccountId;
+			}
+		}
 	}
 
 	function getRelatedOverDriveUsers(){
@@ -348,12 +382,18 @@ class User extends DB_DataObject
 					return;
 				}
 			}
+
+			// Check for Account Blocks
+			if ($this->isBlockedAccount($user->id)) return false;
+
+			// Add Account Link
 			require_once ROOT_DIR . '/sys/Account/UserLink.php';
 			$userLink                   = new UserLink();
 			$userLink->primaryAccountId = $this->id;
 			$userLink->linkedAccountId  = $user->id;
-			$userLink->insert();
+			$result = $userLink->insert();
 			$this->linkedUsers[] = clone($user);
+			return true == $result; // return success or failure
 		}
 	}
 

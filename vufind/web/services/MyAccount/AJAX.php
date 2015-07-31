@@ -96,11 +96,23 @@ class MyAccount_AJAX
 			$accountToLink = UserAccount::validateAccount($username, $password);
 
 			if ($accountToLink){
-				$user->addLinkedUser($accountToLink);
-				$result = array(
-					'result' => true,
-					'message' => 'Successfully linked accounts.'
-				);
+				$addResult = $user->addLinkedUser($accountToLink);
+				if (is_null($addResult)) { // existing links
+					$result = array(
+						'result' => true,
+						'message' => 'Account is already linked.'
+					);
+				}elseif ($addResult === true) {
+					$result = array(
+						'result' => true,
+						'message' => 'Successfully linked accounts.'
+					);
+				}else { // insert failure or user is blocked from linking account
+					$result = array(
+						'result' => false,
+						'message' => 'Sorry, we failed to link the account.'
+					);
+				}
 			}else{
 				$result = array(
 					'result' => false,
