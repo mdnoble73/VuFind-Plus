@@ -942,6 +942,7 @@ class LibrarySolution extends ScreenScrapingDriver {
 				$curHold['freezeable'] = false;
 
 				$curHold['sortTitle'] = $hold->title;
+				require_once ROOT_DIR . '/RecordDrivers/MarcRecord.php';
 				$recordDriver = new MarcRecord($this->accountProfile->recordSource . ":" . $bibId);
 				if ($recordDriver->isValid()){
 					$curHold['sortTitle'] = $recordDriver->getSortableTitle();

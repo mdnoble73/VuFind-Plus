@@ -485,11 +485,8 @@ if (!is_null($ipLocation) && $ipLocation != false && !$configArray['Catalog']['o
 		$interface->assign('includeAutoLogoutCode', false);
 	}else{
 		$includeAutoLogoutCode = true;
-		//Get the PType for the user
-		/** @var Millennium|CatalogConnection $catalog */
-		$catalog = CatalogFactory::getCatalogConnectionInstance();
-		if ($user && $catalog->checkFunction('isUserStaff')){
-			$userIsStaff = $catalog->isUserStaff();
+		if ($user){
+			$userIsStaff = $user->isStaff();
 			$interface->assign('userIsStaff', $userIsStaff);
 			if ($userIsStaff){
 				//Check to see if the user has overridden the auto logout code.
