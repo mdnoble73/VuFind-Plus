@@ -300,8 +300,9 @@ class LibrarySolution extends ScreenScrapingDriver {
 			return LibrarySolution::$loadedHoldings[$id];
 		}
 
-		global $configArray;
 		global $library;
+		global $searchLocation;
+		$searchLocation = Location::getSearchLocation();
 		//Get location information so we can put things into sections
 		global $locationSingleton; /** @var $locationSingleton Location */
 		$physicalLocation = $locationSingleton->getPhysicalLocation();
@@ -388,6 +389,11 @@ class LibrarySolution extends ScreenScrapingDriver {
 
 			$i=0;
 			foreach ($recordInfo->holdingsInformations as $holdingInfo){
+				//Scope holdings for LSS based on the search location
+				if (isset($searchLocation) && $searchLocation->code != $holdingInfo->branchIdentifier){
+					continue;
+				}
+
 				$shelfLocation = $holdingInfo->branchName;
 				if (isset($holdingInfo->collection)){
 					$shelfLocation .= ' ' . $holdingInfo->collection;
