@@ -390,7 +390,7 @@ class Record_AJAX extends Action {
 			require_once ROOT_DIR . '/RecordDrivers/MarcRecord.php';
 			$marcRecord = new MarcRecord($id);
 			$title = $marcRecord->getTitle();
-			$interface->assign('id', $id);
+			$interface->assign('id', $marcRecord->getId());
 			$results = array(
 					'title' => 'Place Hold on ' . $title,
 					'modalBody' => $interface->fetch("Record/hold-popup.tpl"),
@@ -507,6 +507,7 @@ class Record_AJAX extends Action {
 		global $analytics;
 		$analytics->enableTracking();
 		$recordId = $_REQUEST['id'];
+		list($source, $shortId) = explode(':', $recordId);
 		global $user;
 		if ($user){
 			//The user is already logged in
@@ -551,9 +552,9 @@ class Record_AJAX extends Action {
 				);
 			}else{
 				if (isset($_REQUEST['selectedItem'])){
-					$return = $patron->placeItemHold($recordId, $_REQUEST['selectedItem'], $campus);
+					$return = $patron->placeItemHold($shortId, $_REQUEST['selectedItem'], $campus);
 				}else{
-					$return = $patron->placeHold($recordId, $campus);
+					$return = $patron->placeHold($shortId, $campus);
 				}
 
 				if (isset($return['items'])){

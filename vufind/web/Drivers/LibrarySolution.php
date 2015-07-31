@@ -38,15 +38,196 @@ class LibrarySolution extends ScreenScrapingDriver {
 	}
 
 	public function getStatus($id) {
-		// TODO: Implement getStatus() method.
+		return $this->getHolding($id);
 	}
 
 	public function getStatuses($ids) {
-		// TODO: Implement getStatuses() method.
+		return $this->getHoldings($ids);
 	}
 
+	private static $loadedHoldings = array();
 	public function getHolding($id) {
-		// TODO: Implement getHolding() method.
+		if (array_key_exists($id, LibrarySolution::$loadedHoldings)){
+			return LibrarySolution::$loadedHoldings[$id];
+		}
+
+		global $configArray;
+		global $library;
+		//Get location information so we can put things into sections
+		global $locationSingleton; /** @var $locationSingleton Location */
+		$physicalLocation = $locationSingleton->getPhysicalLocation();
+		if ($physicalLocation != null){
+			$physicalBranch = $physicalLocation->holdingBranchLabel;
+		}else{
+			$physicalBranch = '';
+		}
+		$homeBranch    = '';
+		$homeBranchId  = 0;
+		$nearbyBranch1 = '';
+		$nearbyBranch1Id = 0;
+		$nearbyBranch2 = '';
+		$nearbyBranch2Id = 0;
+
+		//Set location information based on the user login.  This will override information based
+		if (isset($user) && $user != false){
+			$homeBranchId = $user->homeLocationId;
+			$nearbyBranch1Id = $user->myLocation1Id;
+			$nearbyBranch2Id = $user->myLocation2Id;
+		} else {
+			//Check to see if the cookie for home location is set.
+			if (isset($_COOKIE['home_location']) && is_numeric($_COOKIE['home_location'])) {
+				$cookieLocation = new Location();
+				$locationId = $_COOKIE['home_location'];
+				$cookieLocation->whereAdd("locationId = '$locationId'");
+				$cookieLocation->find();
+				if ($cookieLocation->N == 1) {
+					$cookieLocation->fetch();
+					$homeBranchId = $cookieLocation->locationId;
+					$nearbyBranch1Id = $cookieLocation->nearbyLocation1;
+					$nearbyBranch2Id = $cookieLocation->nearbyLocation2;
+				}
+			}
+		}
+
+		//Load the holding label for the user's home location.
+		$userLocation = new Location();
+		$userLocation->whereAdd("locationId = '$homeBranchId'");
+		$userLocation->find();
+		if ($userLocation->N == 1) {
+			$userLocation->fetch();
+			$homeBranch = $userLocation->holdingBranchLabel;
+		}
+		//Load nearby branch 1
+		$nearbyLocation1 = new Location();
+		$nearbyLocation1->whereAdd("locationId = '$nearbyBranch1Id'");
+		$nearbyLocation1->find();
+		if ($nearbyLocation1->N == 1) {
+			$nearbyLocation1->fetch();
+			$nearbyBranch1 = $nearbyLocation1->holdingBranchLabel;
+		}
+		//Load nearby branch 2
+		$nearbyLocation2 = new Location();
+		$nearbyLocation2->whereAdd();
+		$nearbyLocation2->whereAdd("locationId = '$nearbyBranch2Id'");
+		$nearbyLocation2->find();
+		if ($nearbyLocation2->N == 1) {
+			$nearbyLocation2->fetch();
+			$nearbyBranch2 = $nearbyLocation2->holdingBranchLabel;
+		}
+
+		list($type, $shortId) = explode(':', $id);
+		//Call LSS to get details about the record
+		$url = $this->getVendorOpacUrl() . '/resource/byHostRecordId/' . $shortId;
+		$recordInfoRaw = $this->_curlGetPage($url);
+		$recordInfo = json_decode($recordInfoRaw);
+		$resourceId = $recordInfo->id;
+
+		$postData = array();
+		foreach ($recordInfo->holdingsInformations as $holdingInfo){
+			$postData[] = array(
+				'itemIdentifier' => $holdingInfo->barcode,
+				'resourceId' => $resourceId
+			);
+		}
+
+		//Get updated availability
+		$availabilityUrl = $this->getVendorOpacUrl() . '/availability';
+		$availabilityResponseRaw = $this->_curlPostBodyData($availabilityUrl, $postData);
+		$availabilityResponse = json_decode($availabilityResponseRaw);
+
+		$holdings = array();
+		$i=0;
+		foreach ($recordInfo->holdingsInformations as $holdingInfo){
+			$shelfLocation = $holdingInfo->branchName;
+			if (isset($holdingInfo->collection)){
+				$shelfLocation .= ' ' . $holdingInfo->collection;
+			}
+			$holding = array(
+				'id' => $holdingInfo->barcode,
+				'number' => $i,
+				'type' => 'holding',
+				'status' => '',
+				'statusfull' => '',
+				'availability' => false,
+				'holdable' => true,
+				'reserve' => $holdingInfo->reserved ? 'Y' : 'N',
+				'holdQueueLength' => '',
+				'dueDate' => '',
+				'locationCode' => $holdingInfo->branchIdentifier,
+				'location' => $holdingInfo->branchName,
+				'callnumber' => trim($holdingInfo->callPrefix . ' ' . $holdingInfo->callClass . ' ' . $holdingInfo->callCutter),
+				'isDownload' => false,
+				'barcode' => $holdingInfo->barcode,
+				'isLocalItem' => false,
+				'isLibraryItem' => true,
+				'locationLabel' => $shelfLocation,
+				'shelfLocation' => $shelfLocation,
+			);
+
+			//Get that status
+			foreach ($availabilityResponse->itemAvailabilities as $availability){
+				if ($availability->itemIdentifier == $holdingInfo->barcode){
+					$holding['status'] = $availability->statusCode;
+					$holding['statusfull'] = $availability->status;
+					$holding['availability'] = $availability->available;
+					$holding['dueDate'] = $availability->dueDateString;
+					$holding['holdable'] = !$availability->nonCirculating;
+				}
+			}
+
+			$holding['groupedStatus'] = mapValue('item_grouped_status', $holding['status']);
+
+			$paddedNumber = str_pad($i, 3, '0', STR_PAD_LEFT);
+			$sortString = $holding['location'] . '-'. $paddedNumber;
+			//$sortString = $holding['location'] . $holding['callnumber']. $i;
+			if (strlen($physicalBranch) > 0 && stripos($holding['location'], $physicalBranch) !== false){
+				//If the user is in a branch, those holdings come first.
+				$holding['section'] = 'In this library';
+				$holding['sectionId'] = 1;
+				$holding['isLocalItem'] = true;
+				$sorted_array['1' . $sortString] = $holding;
+			} else if (strlen($homeBranch) > 0 && stripos($holding['location'], $homeBranch) !== false){
+				//Next come the user's home branch if the user is logged in or has the home_branch cookie set.
+				$holding['section'] = 'Your library';
+				$holding['sectionId'] = 2;
+				$holding['isLocalItem'] = true;
+				$sorted_array['2' . $sortString] = $holding;
+			} else if ((strlen($nearbyBranch1) > 0 && stripos($holding['location'], $nearbyBranch1) !== false)){
+				//Next come nearby locations for the user
+				$holding['section'] = 'Nearby Libraries';
+				$holding['sectionId'] = 3;
+				$sorted_array['3' . $sortString] = $holding;
+			} else if ((strlen($nearbyBranch2) > 0 && stripos($holding['location'], $nearbyBranch2) !== false)){
+				//Next come nearby locations for the user
+				$holding['section'] = 'Nearby Libraries';
+				$holding['sectionId'] = 4;
+				$sorted_array['4' . $sortString] = $holding;
+			//MDN 11/17 - taken out because all Horizon libraries are single institution (so far)
+			/*} else if (strlen($libraryLocationLabels) > 0 && preg_match($libraryLocationLabels, $holding['location'])){
+					//Next come any locations within the same system we are in.
+					$holding['section'] = $library->displayName;
+					$holding['sectionId'] = 5;
+					$sorted_array['5' . $sortString] = $holding;
+				*/
+			} else {
+				//Finally, all other holdings are shown sorted alphabetically.
+				$holding['section'] = $library->displayName;
+				$holding['sectionId'] = 5;
+				$sorted_array['5' . $sortString] = $holding;
+			}
+
+			$holdings[] = $holding;
+		}
+		//Call Library.Solution to get real-time availability
+		return $holdings;
+	}
+
+	public function getHoldings($ids) {
+		$holdings = array();
+		foreach ($ids as $id) {
+			$holdings[] = $this->getHolding($id);
+		}
+		return $holdings;
 	}
 
 	/**
@@ -541,7 +722,7 @@ class LibrarySolution extends ScreenScrapingDriver {
 	 *                                If an error occurs, return a PEAR_Error
 	 * @access  public
 	 */
-	function placeHold($patron, $pickupBranch, $recordId) {
+	function placeHold($patron, $recordId, $pickupBranch) {
 		$recordDriver = RecordDriverFactory::initRecordDriverById($this->accountProfile->recordSource . ':' . $recordId);
 		$result = array(
 			'success' => false,
