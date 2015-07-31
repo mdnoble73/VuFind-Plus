@@ -105,7 +105,7 @@ abstract class Horizon implements DriverInterface{
 		$ipLibrary = null;
 		if (isset($ipLocation)) {
 			$ipLibrary = new Library();
-			$ipLibrary->libraryId = $ipLocation->getLibraryId;
+			$ipLibrary->libraryId = $ipLocation->libraryId;
 			if (!$ipLibrary->find(true)) {
 				$ipLibrary = null;
 			}

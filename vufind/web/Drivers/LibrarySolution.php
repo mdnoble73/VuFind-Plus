@@ -69,7 +69,7 @@ class LibrarySolution extends ScreenScrapingDriver {
 		$ipLibrary = null;
 		if (isset($ipLocation)) {
 			$ipLibrary = new Library();
-			$ipLibrary->libraryId = $ipLocation->getLibraryId;
+			$ipLibrary->libraryId = $ipLocation->libraryId;
 			if (!$ipLibrary->find(true)) {
 				$ipLibrary = null;
 			}
@@ -319,7 +319,7 @@ class LibrarySolution extends ScreenScrapingDriver {
 			$nearbyBranch2 = $nearbyLocation2->holdingBranchLabel;
 		}
 
-		list($type, $shortId) = explode(':', $id);
+		list($recordType, $shortId) = explode(':', $id);
 		//Call LSS to get details about the record
 		$url = $this->getVendorOpacUrl() . '/resource/byHostRecordId/' . $shortId;
 		$recordInfoRaw = $this->_curlGetPage($url);
@@ -341,10 +341,63 @@ class LibrarySolution extends ScreenScrapingDriver {
 			$availabilityResponseRaw = $this->_curlPostBodyData($availabilityUrl, $postData);
 			$availabilityResponse = json_decode($availabilityResponseRaw);
 
+			//Get the active indexing profile
+			global $indexingProfiles;
+			if (array_key_exists($recordType, $indexingProfiles)){
+				$locationsToInclude = '^';
+				$indexingProfile = $indexingProfiles[$recordType];
+				$numRulesAdded = 0;
+				//Determine what records to include based on ownership and inclusion rules for search location or library
+				if ($searchLocation){
+					//Load from our search library
+					/** @var LocationRecordOwned $ownershipRule */
+					foreach ($searchLocation->recordsOwned as $ownershipRule) {
+						if ($ownershipRule->indexingProfileId == $indexingProfile->id) {
+							if ($numRulesAdded > 0){
+								$locationsToInclude .= '|';
+							}
+							$locationsToInclude .= '(' . $ownershipRule->location . ')';
+						}
+					}
+					/** @var LocationRecordToInclude $inclusionRule */
+					foreach ($searchLocation->recordsToInclude as $inclusionRule) {
+						if ($inclusionRule->indexingProfileId == $indexingProfile->id) {
+							if ($numRulesAdded > 0){
+								$locationsToInclude .= '|';
+							}
+							$locationsToInclude .= '(' . $ownershipRule->location . ')';
+						}
+					}
+				}else {
+					//Load from the library
+					/** @var LibraryRecordOwned $ownershipRule */
+					foreach ($library->recordsOwned as $ownershipRule) {
+						if ($ownershipRule->indexingProfileId == $indexingProfile->id) {
+							if ($numRulesAdded > 0){
+								$locationsToInclude .= '|';
+							}
+							$locationsToInclude .= '(' . $ownershipRule->location . ')';
+						}
+					}
+					/** @var LibraryRecordToInclude $inclusionRule */
+					foreach ($library->recordsToInclude as $inclusionRule) {
+						if ($inclusionRule->indexingProfileId == $indexingProfile->id) {
+							if ($numRulesAdded > 0){
+								$locationsToInclude .= '|';
+							}
+							$locationsToInclude .= '(' . $ownershipRule->location . ')';
+						}
+					}
+				}
+				$locationsToInclude .= '$';
+			}else{
+				$locationsToInclude = ".*";
+			}
+
 			$i=0;
 			foreach ($recordInfo->holdingsInformations as $holdingInfo){
-				//Scope holdings for LSS based on the search location
-				if (isset($searchLocation) && $searchLocation->restrictSearchByLocation && ($searchLocation->code != $holdingInfo->branchIdentifier)){
+				//Scope holdings for LSS based on information loaded from the indexing profile
+				if (!preg_match('/{$locationsToInclude}/i', $holdingInfo->branchIdentifier)){
 					continue;
 				}
 
