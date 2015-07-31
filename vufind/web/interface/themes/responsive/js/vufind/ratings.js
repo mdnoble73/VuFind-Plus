@@ -1,5 +1,5 @@
 VuFind.Ratings = (function(){
-	$(document).ready(function(){
+	$(function(){
 		VuFind.Ratings.initializeRaters();
 	});
 	return{
@@ -23,7 +23,7 @@ VuFind.Ratings = (function(){
 			$.getJSON(Globals.path + "/GroupedWork/"+id+"/AJAX?method=getPromptforReviewForm", function(data){
 				if (data.prompt) VuFind.showMessageWithButtons(data.title, data.modalBody, data.modalButtons); // only ask if user hasn't set the setting already
 				if (data.error)  VuFind.showMessage('Error', data.message);
-			})
+			}).fail(VuFind.ajaxFail)
 			// Version 3
 			//VuFind.Account.ajaxLightbox(Globals.path + "/GroupedWork/"+id+"/AJAX?method=getPromptforReviewForm", true);
 			// Version 2
@@ -133,7 +133,7 @@ $.fn.rater.rate = function($this, opts, rating) {
 							});
 				}
 			}).fail(function(){
-				VuFind.showMessage('Request Failed', 'There was an error with this AJAX Request.');
+				VuFind.ajaxFail();
 				$off.fadeTo(500, 1).mouseleave(); // Reset rater in light of failure
 			});
 
@@ -141,6 +141,6 @@ $.fn.rater.rate = function($this, opts, rating) {
 	}else{
 		VuFind.Account.ajaxLogin(null, function(){
 			$.fn.rater.rate($this, opts, rating);
-		});
+		}, true);
 	}
 };
