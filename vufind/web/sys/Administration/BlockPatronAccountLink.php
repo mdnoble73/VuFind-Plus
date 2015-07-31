@@ -35,10 +35,16 @@ class BlockPatronAccountLink extends DB_DataObject
 	 * Override the fetch functionality to fetch Account BarCodes
 	 *
 	 * @see DB/DB_DataObject::fetch()
+	 * @param bool $includeBarCodes  short-circuit the fetching of barcodes when not needed.
+	 * @return bool
 	 */
-	function fetch(){
+	function fetch($includeBarCodes = true){
 		$return = parent::fetch();
-		if ($return) {
+		if ($return & $includeBarCodes) {
+			// Default values (clear out any previous values
+			$this->blockedAccountBarCode = null;
+			$this->primaryAccountBarCode = null;
+
 			$barcode = $this->getBarcode();
 			$user = new User();
 			if($user->get($this->primaryAccountId)) {

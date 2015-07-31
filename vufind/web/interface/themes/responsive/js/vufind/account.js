@@ -152,7 +152,7 @@ VuFind.Account = (function(){
 						if (response.result == true) {
 							VuFind.showMessage("Account to Manage", "Successfully linked the account.", true, true);
 						} else {
-							loginErrorElem.text(response.result.message);
+							loginErrorElem.text(response.message);
 							loginErrorElem.show();
 						}
 					},
