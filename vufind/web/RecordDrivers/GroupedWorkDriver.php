@@ -1137,7 +1137,6 @@ class GroupedWorkDriver extends RecordInterface{
 
 			//Generate record information based on teh information we have in the index
 			$relatedRecords = array();
-			/** @var IndexingProfile[] $indexingProfiles */
 			foreach ($recordsFromIndex as $recordDetails){
 				list($source, $id) = explode(':', $recordDetails[0], 2);
 				require_once ROOT_DIR . '/RecordDrivers/Factory.php';

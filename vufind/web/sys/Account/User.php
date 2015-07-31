@@ -313,7 +313,7 @@ class User extends DB_DataObject
 		$this->blockAll = false;
 		$this->blockedAccounts = array();
 
-		require_once '/sys/Administration/BlockPatronAccountLink.php';
+		require_once ROOT_DIR . '/sys/Administration/BlockPatronAccountLink.php';
 		$accountBlock = new BlockPatronAccountLink();
 		$accountBlock->primaryAccountId = $this->id;
 		if ($accountBlock->find()) {
@@ -369,6 +369,8 @@ class User extends DB_DataObject
 
 	/**
 	 * @param User $user
+	 *
+	 * @return boolean
 	 */
 	function addLinkedUser($user){
 		/* var Library $library */
@@ -379,7 +381,7 @@ class User extends DB_DataObject
 			foreach ($linkedUsers as $existingUser) {
 				if ($existingUser->id == $user->id) {
 					//We already have a link to this user
-					return;
+					return true;
 				}
 			}
 
@@ -395,6 +397,7 @@ class User extends DB_DataObject
 			$this->linkedUsers[] = clone($user);
 			return true == $result; // return success or failure
 		}
+		return false;
 	}
 
 	function removeLinkedUser($userId){
@@ -892,4 +895,20 @@ class User extends DB_DataObject
 		$this->getCatalogDriver()->doReadingHistoryAction($this, $readingHistoryAction, $selectedTitles);
 	}
 
+	public function isStaff(){
+		global $configArray;
+		if (count($this->getRoles()) > 0){
+			return true;
+		}else if (isset($configArray['Staff P-Types'])){
+			$staffPTypes = $configArray['Staff P-Types'];
+			$pType = $this->patronType();
+			if (array_key_exists($pType, $staffPTypes)){
+				return true;
+			}else{
+				return false;
+			}
+		}else{
+			return false;
+		}
+	}
 }

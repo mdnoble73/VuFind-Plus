@@ -54,6 +54,8 @@ class CatalogConnection
 	 */
 	public $status = false;
 
+	public $accountProfile;
+
 	/**
 	 * The object of the appropriate driver.
 	 *
@@ -85,6 +87,7 @@ class CatalogConnection
 				throw $e;
 			}
 
+			$this->accountProfile = $accountProfile;
 			$this->status = true;
 		}
 	}
