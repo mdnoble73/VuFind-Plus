@@ -57,8 +57,6 @@ class LibrarySolution extends ScreenScrapingDriver {
 		global $timer;
 		global $library;
 		global $locationSingleton;
-		global $configArray;
-		global $memCache;
 		//Holdings summaries need to be cached based on the actual location since part of the information
 		//includes local call numbers and statuses.
 		$ipLocation = $locationSingleton->getPhysicalLocation();
@@ -74,11 +72,6 @@ class LibrarySolution extends ScreenScrapingDriver {
 				$ipLibrary = null;
 			}
 		}
-		if (!isset($location) && $location == null) {
-			$locationId = -1;
-		} else {
-			$locationId = $location->locationId;
-		}
 
 		$canShowHoldButton = true;
 		if ($library && $library->showHoldButton == 0) {
@@ -91,7 +84,6 @@ class LibrarySolution extends ScreenScrapingDriver {
 		$holdings = $this->getStatus($id, $record, $mysip, true);
 		$timer->logTime('Retrieved Status of holding');
 
-		$counter = 0;
 		$summaryInformation = array();
 		$summaryInformation['recordId'] = $id;
 		$summaryInformation['shortId'] = $id;
@@ -357,6 +349,7 @@ class LibrarySolution extends ScreenScrapingDriver {
 								$locationsToInclude .= '|';
 							}
 							$locationsToInclude .= '(' . $ownershipRule->location . ')';
+							$numRulesAdded++;
 						}
 					}
 					/** @var LocationRecordToInclude $inclusionRule */
@@ -366,6 +359,7 @@ class LibrarySolution extends ScreenScrapingDriver {
 								$locationsToInclude .= '|';
 							}
 							$locationsToInclude .= '(' . $ownershipRule->location . ')';
+							$numRulesAdded++;
 						}
 					}
 				}else {
@@ -397,7 +391,7 @@ class LibrarySolution extends ScreenScrapingDriver {
 			$i=0;
 			foreach ($recordInfo->holdingsInformations as $holdingInfo){
 				//Scope holdings for LSS based on information loaded from the indexing profile
-				if (!preg_match('/{$locationsToInclude}/i', $holdingInfo->branchIdentifier)){
+				if (!preg_match("/{$locationsToInclude}/i", $holdingInfo->branchIdentifier)){
 					continue;
 				}
 
