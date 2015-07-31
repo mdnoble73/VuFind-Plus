@@ -7,7 +7,7 @@
 				<img src="{$bookCoverUrlMedium}" class="listResultImage img-thumbnail img-responsive" alt="{translate text='Cover Image'}" />
 			</a>
 		{/if}
-		{if $showComments}
+		{if $showRatings}
 		{*{include file="GroupedWork/title-rating.tpl" ratingClass="" recordId=$summId shortId=$summShortId ratingData=$summRating}*}
 		{include file="GroupedWork/title-rating.tpl" ratingClass="" id=$summId ratingData=$summRating}
 		{/if}
