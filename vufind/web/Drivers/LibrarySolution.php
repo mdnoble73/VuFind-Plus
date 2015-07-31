@@ -167,18 +167,6 @@ class LibrarySolution extends ScreenScrapingDriver {
 						$availableHere = true;
 					}
 					$numAvailableCopies++;
-					$addToAvailableLocation = false;
-					$addToAdditionalAvailableLocation = false;
-					//Check to see if the location should be listed in the list of locations that the title is available at.
-					//Can only be in this system if there is a system active.
-					if (!in_array($holding['locationCode'], array_keys($availableLocations))) {
-						$locationMapLink = $this->getLocationMapLink($holding['locationCode']);
-						if (strlen($locationMapLink) > 0) {
-							$availableLocations[$holding['locationCode']] = "<a href='$locationMapLink' target='_blank'>" . preg_replace('/\s/', '&nbsp;', $holding['location']) . "</a>";
-						} else {
-							$availableLocations[$holding['locationCode']] = $holding['location'];
-						}
-					}
 				} else {
 					if ($unavailableStatus == null) {
 						$unavailableStatus = $holding['statusfull'];
