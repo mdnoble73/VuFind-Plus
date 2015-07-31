@@ -796,7 +796,9 @@ function loadModuleActionId(){
 		global $indexingProfiles;
 		foreach ($indexingProfiles as $profile) {
 			if ($profile->recordUrlComponent == $_REQUEST['module']) {
-				$_GET['id'] = $profile->name . ':' . $_GET['id'];
+				$newId = $profile->name . ':' . $_REQUEST['id'];;
+				$_GET['id'] = $newId;
+				$_REQUEST['id'] = $newId;
 				$_GET['module'] = 'Record';
 				$_REQUEST['module'] = 'Record';
 				$activeRecordProfile = $profile;

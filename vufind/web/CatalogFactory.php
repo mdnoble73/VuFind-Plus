@@ -13,14 +13,30 @@ class CatalogFactory {
 	private static $catalogConnections = array();
 
 	/**
-	 * @param string|null $driver
+	 * @param string|null     $driver
+	 * @param AccountProfile  $accountProfile
 	 * @return CatalogConnection
 	 */
 	public static function getCatalogConnectionInstance($driver = null, $accountProfile = null){
 		require_once ROOT_DIR . '/CatalogConnection.php';
 		if ($driver == null){
-			global $configArray;
-			$driver = $configArray['Catalog']['driver'];
+			/** @var IndexingProfile $activeRecordProfile */
+			global $activeRecordProfile;
+			if ($activeRecordProfile == null || strlen($activeRecordProfile->catalogDriver) == 0){
+				global $configArray;
+				$driver = $configArray['Catalog']['driver'];
+			}else{
+				$driver = $activeRecordProfile->catalogDriver;
+
+				//Load the account profile based on the indexing profile
+				$accountProfile = new AccountProfile();
+				$accountProfile->recordSource = $activeRecordProfile->name;
+				if (!$accountProfile->find(true)){
+					$accountProfile = null;
+				}
+			}
+
+
 		}
 		if (isset(CatalogFactory::$catalogConnections[$driver])){
 			return CatalogFactory::$catalogConnections[$driver];

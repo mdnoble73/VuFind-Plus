@@ -2151,6 +2151,14 @@ class DBMaintenance extends Admin_Admin {
 					)
 				),
 
+				'indexing_profile_catalog_driver' => array(
+					'title' => 'Indexing profile catalog driver',
+					'description' => 'Add handling catalog driver to indexing profile table',
+					'sql' => array(
+						"ALTER TABLE indexing_profiles ADD COLUMN `catalogDriver` char(50) DEFAULT NULL"
+					)
+				),
+
 				'setup_default_indexing_profiles' => array(
 					'title' => 'Setup Default Indexing Profiles',
 					'description' => 'Setup indexing profiles based off historic information',
@@ -2207,6 +2215,7 @@ class DBMaintenance extends Admin_Admin {
 		$ilsIndexingProfile->individualMarcPath = $configArray['Reindex']['individualMarcPath'];
 		$ilsIndexingProfile->groupingClass = 'MarcRecordGrouper';
 		$ilsIndexingProfile->indexingClass = 'IlsRecordProcessor';
+		$ilsIndexingProfile->catalogDriver = $configArray['Catalog']['driver'];
 		$ilsIndexingProfile->recordDriver = 'MarcRecord';
 		$ilsIndexingProfile->recordUrlComponent = 'Record';
 		$ilsIndexingProfile->formatSource = $configArray['Reindex']['useItemBasedCallNumbers'] == true ? 'item' : 'bib';
