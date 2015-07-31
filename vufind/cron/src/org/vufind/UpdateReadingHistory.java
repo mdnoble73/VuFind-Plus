@@ -308,33 +308,33 @@ public class UpdateReadingHistory implements IProcessHandler {
 	}
 	
 	private boolean processCheckedOutTitle(JSONObject checkedOutItem, long userId, ArrayList<CheckedOutTitle> checkedOutTitles) throws JSONException, SQLException, IOException{
-		// System.out.println(checkedOutItem.toString());
-		String source = checkedOutItem.getString("checkoutSource");
-		String sourceId = "?";
-		if (source.equals("OverDrive")){
-			sourceId = checkedOutItem.getString("overDriveId");
-		}else if (source.equals("ILS")){
-			sourceId = checkedOutItem.getString("id");
-		}else if (source.equals("eContent")){
-			source = checkedOutItem.getString("recordType");
-			sourceId = checkedOutItem.getString("id");
-		}
+		try {
+			// System.out.println(checkedOutItem.toString());
+			String source = checkedOutItem.getString("checkoutSource");
+			String sourceId = "?";
+			if (source.equals("OverDrive")){
+				sourceId = checkedOutItem.getString("overDriveId");
+			}else if (source.equals("ILS")){
+				sourceId = checkedOutItem.getString("id");
+			}else if (source.equals("eContent")){
+				source = checkedOutItem.getString("recordType");
+				sourceId = checkedOutItem.getString("id");
+			}
 
-		//Check to see if this is an existing checkout.  If it is, skipp inserting
-		if (checkedOutTitles != null) {
-			for (CheckedOutTitle curTitle : checkedOutTitles) {
-				if (
-						(curTitle.getSource().equals(source) && curTitle.getSourceId().equals(sourceId)) ||
-						curTitle.getTitle().equals(checkedOutItem.getString("title"))
-					 ) {
-					checkedOutTitles.remove(curTitle);
-					return true;
+			//Check to see if this is an existing checkout.  If it is, skipp inserting
+			if (checkedOutTitles != null) {
+				for (CheckedOutTitle curTitle : checkedOutTitles) {
+					if (
+							(curTitle.getSource().equals(source) && curTitle.getSourceId().equals(sourceId)) ||
+							curTitle.getTitle().equals(checkedOutItem.getString("title"))
+						 ) {
+						checkedOutTitles.remove(curTitle);
+						return true;
+					}
 				}
 			}
-		}
 
 		//This is a newly checked out title
-		try {
 			insertReadingHistoryStmt.setLong(1, userId);
 			String groupedWorkId = checkedOutItem.has("groupedWorkId") ? checkedOutItem.getString("groupedWorkId") : "";
 			if (groupedWorkId == null){
@@ -351,7 +351,7 @@ public class UpdateReadingHistory implements IProcessHandler {
 			insertReadingHistoryStmt.executeUpdate();
 			processLog.incUpdated();
 			return true;
-		}catch (SQLException e){
+		}catch (Exception e){
 			logger.error("Error adding title for user " + userId + " " + checkedOutItem.getString("title"), e);
 			processLog.incErrors();
 			return false;
