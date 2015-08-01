@@ -201,7 +201,7 @@ class ExternalEContentDriver extends BaseEContentDriver{
 	public function getRecordActions($isAvailable, $isHoldable, $isBookable, $relatedUrls = null){
 		$actions = array();
 		foreach ($relatedUrls as $urlInfo){
-			$title = 'Access Online ' . $urlInfo['source'];
+			$title = 'Online ' . $urlInfo['source'];
 			$fileOrUrl = isset($urlInfo['url']) ? $urlInfo['url'] : $urlInfo['file'];
 			if (strlen($fileOrUrl) > 0){
 				if (strlen($fileOrUrl) >= 3){
