@@ -84,6 +84,7 @@ public abstract class IIIRecordProcessor extends IlsRecordProcessor{
 				ResultSet loanRuleDeterminersRS = loanRuleDeterminersStmt.executeQuery();
 				while (loanRuleDeterminersRS.next()) {
 					LoanRuleDeterminer loanRuleDeterminer = new LoanRuleDeterminer();
+					loanRuleDeterminer.setRowNumber(loanRuleDeterminersRS.getLong("rowNumber"));
 					loanRuleDeterminer.setLocation(loanRuleDeterminersRS.getString("location"));
 					loanRuleDeterminer.setPatronType(loanRuleDeterminersRS.getString("patronType"));
 					loanRuleDeterminer.setItemType(loanRuleDeterminersRS.getString("itemType"));
@@ -130,18 +131,20 @@ public abstract class IIIRecordProcessor extends IlsRecordProcessor{
 			return relevantLoanRules;
 		}
 		Long iTypeLong = Long.parseLong(iType);
-		for (LoanRuleDeterminer curDeterminer : loanRuleDeterminers){
+		for (int j = 0 ; j < loanRuleDeterminers.size(); j++){
+			LoanRuleDeterminer curDeterminer = loanRuleDeterminers.get(j);
 			if (curDeterminer.isActive()){
-				//logger.debug("    " + curDeterminer.getRowNumber() + " matches location");
-				if (curDeterminer.getItemType().equals("999") || curDeterminer.getItemTypes().contains(iTypeLong)) {
-					//logger.debug("    " + curDeterminer.getRowNumber() + " matches iType");
-					if (curDeterminer.getPatronType().equals("999") || isPTypeValid(curDeterminer.getPatronTypes(), pTypesToCheck)) {
-						//logger.debug("    " + curDeterminer.getRowNumber() + " matches pType");
-						//Make sure the location matches
-						if (curDeterminer.matchesLocation(locationCode)) {
+				//Make sure the location matches
+				if (curDeterminer.matchesLocation(locationCode)) {
+					//logger.debug("    " + curDeterminer.getRowNumber() + " matches location");
+					if (curDeterminer.getItemType().equals("999") || curDeterminer.getItemTypes().contains(iTypeLong)) {
+						//logger.debug("    " + curDeterminer.getRowNumber() + " matches iType");
+						if (curDeterminer.getPatronType().equals("999") || isPTypeValid(curDeterminer.getPatronTypes(), pTypesToCheck)) {
+							//logger.debug("    " + curDeterminer.getRowNumber() + " matches pType");
 							LoanRule loanRule = loanRules.get(curDeterminer.getLoanRuleId());
 							relevantLoanRules.add(loanRule);
-							break;
+							//We want all relevant loan rules, do not break
+							//break;
 						}
 					}
 				}

@@ -49,9 +49,7 @@ class MillenniumStatusLoader{
 	 * @return array A list of holdings for the record
 	 */
 	public function getStatus($id){
-		if (array_key_exists($id, MillenniumStatusLoader::$loadedStatus)){
-			return MillenniumStatusLoader::$loadedStatus[$id];
-		}
+
 		global $library;
 		global $user;
 		global $timer;
@@ -60,6 +58,11 @@ class MillenniumStatusLoader{
 
 		$pType = $this->driver->getPType();
 		$scope = $this->driver->getMillenniumScope();
+
+		$cachingKey = $id . '-' . $pType . '-' . $scope;
+		if (array_key_exists($cachingKey, MillenniumStatusLoader::$loadedStatus)){
+			return MillenniumStatusLoader::$loadedStatus[$cachingKey];
+		}
 
 		if (!$configArray['Catalog']['offline']){
 			//Get information about holdings, order information, and issue information
@@ -602,7 +605,7 @@ class MillenniumStatusLoader{
 		}else{
 			$status = $sorted_array;
 		}
-		MillenniumStatusLoader::$loadedStatus[$id] = $status;
+		MillenniumStatusLoader::$loadedStatus[$cachingKey] = $status;
 		return $status;
 	}
 

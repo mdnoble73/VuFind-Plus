@@ -623,8 +623,6 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		//Determine which scopes have access to this record
 		for (Scope curScope : indexer.getScopes()) {
 			//Check to see if the record is holdable for this scope
-
-
 			Boolean isHoldable = isItemHoldable(itemInfo, curScope);
 			Boolean isBookable = isItemBookable(itemInfo, curScope);
 			if (curScope.isItemPartOfScope(profileType, itemLocation, itemSublocation, isHoldable, false, false)){

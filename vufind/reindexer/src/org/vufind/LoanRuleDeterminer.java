@@ -11,7 +11,16 @@ public class LoanRuleDeterminer {
 	private HashSet<Long> itemTypes;
 	private Long loanRuleId;
 	private boolean active;
-	
+	private Long rowNumber;
+
+	public Long getRowNumber() {
+		return rowNumber;
+	}
+
+	public void setRowNumber(Long rowNumber) {
+		this.rowNumber = rowNumber;
+	}
+
 	public String getLocation() {
 		return location;
 	}
