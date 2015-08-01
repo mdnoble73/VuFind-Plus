@@ -3,6 +3,7 @@ package org.vufind;
 import com.sun.istack.internal.NotNull;
 import org.apache.log4j.Logger;
 import org.apache.solr.common.SolrInputDocument;
+import org.apache.solr.common.SolrInputField;
 
 import java.util.*;
 
@@ -174,6 +175,7 @@ public class GroupedWorkSolr {
 		//Date added to catalog
 		Date dateAdded = getDateAdded();
 		doc.addField("date_added", dateAdded);
+
 		if (dateAdded == null){
 			//Determine date added based on publication date
 			if (earliestPublicationDate != null){
@@ -319,6 +321,7 @@ public class GroupedWorkSolr {
 					}
 					//TODO: Different toggles for library and location?
 					addUniqueFieldValue(doc, "availability_toggle_" + curScopeName, "Entire Collection");
+
 					if (curScope.isLocallyOwned()) {
 						addUniqueFieldValue(doc, "availability_toggle_" + curScopeName, "Library Collection");
 						addUniqueFieldValue(doc, "availability_toggle_" + curScopeName, "Branch Collection");
@@ -327,6 +330,32 @@ public class GroupedWorkSolr {
 						addUniqueFieldValue(doc, "availability_toggle_" + curScopeName, "Library Collection");
 						updateMaxValueField(doc, "lib_boost_" + curScopeName, ownedByBoostValue);
 					}
+
+					//Date Added To Catalog needs to be the earliest date added for the catalog.
+					if (curScope.isLocallyOwned() || curScope.isLibraryOwned()) {
+						Date dateAdded = curItem.getDateAdded();
+						long daysSinceAdded;
+						//See if we need to override based on publication date if not provided.
+						//Should be set by individual driver though.
+						if (dateAdded == null){
+							if (earliestPublicationDate != null){
+								//Return number of days since the given year
+								Calendar publicationDate = GregorianCalendar.getInstance();
+								publicationDate.set(earliestPublicationDate.intValue(), Calendar.DECEMBER, 31);
+
+								long indexTime = Util.getIndexDate().getTime();
+								long publicationTime = publicationDate.getTime().getTime();
+								daysSinceAdded = (indexTime - publicationTime) / (long)(1000 * 60 * 60 * 24);
+							}else{
+								daysSinceAdded = Integer.MAX_VALUE;
+							}
+						}else{
+							daysSinceAdded = Util.getDaysSinceAddedForDate(curItem.getDateAdded());
+						}
+
+						updateMaxValueField(doc, "local_days_since_added_" + curScopeName, (int)daysSinceAdded);
+					}
+
 					if (curScope.isAvailable()){
 						if (curScope.isLocallyOwned()) {
 							addUniqueFieldValue(doc, "availability_toggle_" + curScopeName, "Available Now");
@@ -349,6 +378,15 @@ public class GroupedWorkSolr {
 						setSingleValuedFieldValue(doc, "callnumber_sort_" + curScopeName, curItem.getSortableCallNumber());
 					}
 				}
+			}
+		}
+
+		//Now that we know the latest number of days added for each scope, we can set the time since added facet
+		for (Scope scope : groupedWorkIndexer.getScopes()){
+			SolrInputField field = doc.getField("local_days_since_added_" + scope.getScopeName());
+			if (field != null){
+				Integer daysSinceAdded = (Integer)field.getFirstValue();
+				doc.addField("local_time_since_added_" + scope.getScopeName(), Util.getTimeSinceAdded(daysSinceAdded));
 			}
 		}
 

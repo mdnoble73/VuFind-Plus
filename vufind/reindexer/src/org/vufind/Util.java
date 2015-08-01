@@ -237,11 +237,14 @@ public class Util {
 		return indexDate;
 	}
 	public static LinkedHashSet<String> getTimeSinceAddedForDate(Date curDate) {
-		if (curDate == null){
+		if (curDate == null) {
 			return null;
 		}
 		long timeDifferenceDays = (indexDate.getTime() - curDate.getTime())
 				/ (1000 * 60 * 60 * 24);
+		return getTimeSinceAdded(timeDifferenceDays);
+	}
+	public static LinkedHashSet<String> getTimeSinceAdded(long timeDifferenceDays){
 		// System.out.println("Time Difference Days: " + timeDifferenceDays);
 		LinkedHashSet<String> result = new LinkedHashSet<>();
 		if (timeDifferenceDays <= 1) {
