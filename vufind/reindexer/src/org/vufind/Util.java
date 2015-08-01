@@ -71,6 +71,17 @@ public class Util {
 		return crSeparatedString.toString();
 	}
 
+	public static String getCsvSeparatedString(HashSet<String> values) {
+		StringBuilder crSeparatedString = new StringBuilder();
+		for (String curValue : values) {
+			if (crSeparatedString.length() > 0) {
+				crSeparatedString.append(",");
+			}
+			crSeparatedString.append(curValue);
+		}
+		return crSeparatedString.toString();
+	}
+
 	public static boolean copyFile(File sourceFile, File destFile) throws IOException {
 		if (!sourceFile.exists()){
 			return false;

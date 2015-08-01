@@ -16,6 +16,7 @@ public class ItemInfo {
 	private String locationCode;
 	private String subLocationCode;
 	private String format;
+	private String subFormat;
 	private String formatCategory;
 	private int numCopies = 1;
 	private boolean isOrderItem;
@@ -135,6 +136,10 @@ public class ItemInfo {
 		this.format = format;
 	}
 
+	public void setSubFormats(String subFormats){
+		this.subFormat = subFormats;
+	}
+
 	public int getNumCopies() {
 		//Deal with OverDrive always available
 		if (numCopies > 1000){
@@ -180,7 +185,8 @@ public class ItemInfo {
 					.append(isEContent).append("|")
 					.append(getCleanDetailValue(eContentSource)).append("|")
 					.append(getCleanDetailValue(eContentFilename)).append("|")
-					.append(getCleanDetailValue(eContentUrl))
+					.append(getCleanDetailValue(eContentUrl)).append("|")
+					.append(getCleanDetailValue(subFormat)).append("|")
 					.toString();
 		}
 		return baseDetails;

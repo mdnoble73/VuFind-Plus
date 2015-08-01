@@ -691,6 +691,7 @@ public class RecordGrouperMain {
 		RecordGroupingProcessor recordGroupingProcessor = null;
 		if (!onlyDoCleanup) {
 			recordGroupingProcessor = new RecordGroupingProcessor(vufindConn, serverName, configIni, logger, fullRegrouping);
+			markRecordGroupingRunning(vufindConn, true);
 
 			clearDatabase(vufindConn, clearDatabasePriorToGrouping);
 			loadIlsChecksums(vufindConn);
@@ -749,6 +750,8 @@ public class RecordGrouperMain {
 			logger.error("Error in grouped work post processing", e);
 		}
 
+		markRecordGroupingRunning(vufindConn, false);
+
 		try{
 			vufindConn.close();
 		}catch (Exception e){
@@ -764,6 +767,16 @@ public class RecordGrouperMain {
 		long endTime = new Date().getTime();
 		long elapsedTime = endTime - processStartTime;
 		logger.info("Elapsed Minutes " + (elapsedTime / 60000));
+	}
+
+	private static void markRecordGroupingRunning(Connection vufindConn, boolean isRunning) {
+		try {
+			PreparedStatement updateRecordGroupingRunningStmt = vufindConn.prepareStatement("INSERT INTO variables (name, value) VALUES('record_grouping_running', ?) ON DUPLICATE KEY UPDATE value = VALUES(value)");
+			updateRecordGroupingRunningStmt.setString(1, isRunning ? "true" : "false");
+			updateRecordGroupingRunningStmt.executeUpdate();
+		}catch (Exception e){
+			logger.error("Unable to set record_grouping_running variable", e);
+		}
 	}
 
 	private static char getCharFromRecordSet(ResultSet indexingProfilesRS, String fieldName) throws SQLException {

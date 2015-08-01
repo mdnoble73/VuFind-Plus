@@ -129,6 +129,22 @@ public class OverDriveProcessor {
 
 					//Load the formats for the record.  For OverDrive, we will create a separate item for each format.
 					HashSet<String> validFormats = loadOverDriveFormats(groupedWork, productId);
+					String detailedFormats = Util.getCsvSeparatedString(validFormats);
+					overDriveRecord.addFormats(validFormats);
+
+					long maxFormatBoost = 1;
+					for (String curFormat : validFormats){
+						long formatBoost = 1;
+						try{
+							formatBoost = Long.parseLong(indexer.translateSystemValue("format_boost_overdrive", curFormat.replace(' ', '_')));
+						}catch (Exception e){
+							logger.warn("Could not translate format boost for " + primaryFormat);
+						}
+						if (formatBoost > maxFormatBoost){
+							maxFormatBoost = formatBoost;
+						}
+					}
+					overDriveRecord.setFormatBoost(maxFormatBoost);
 
 					//Load availability & determine which scopes are valid for the record
 					getProductAvailabilityStmt.setLong(1, productId);
@@ -140,72 +156,61 @@ public class OverDriveProcessor {
 					overDriveRecord.setPublicationDate(metadata.get("publicationDate"));
 					overDriveRecord.setPhysicalDescription("");
 
-					long maxFormatBoost = 1;
 					while (availabilityRS.next()) {
-						for (String curFormat : validFormats) {
-							ItemInfo itemInfo = new ItemInfo();
-							itemInfo.seteContentSource("OverDrive");
-							itemInfo.seteContentProtectionType("Limited Access");
-							itemInfo.setIsEContent(true);
-							itemInfo.setShelfLocation("Online OverDrive Collection");
-							itemInfo.setCallNumber("Online OverDrive");
-							itemInfo.setSortableCallNumber("Online OverDrive");
-							itemInfo.setDateAdded(dateAdded);
+						//Just create one item for each with a list of sub formats.
+						ItemInfo itemInfo = new ItemInfo();
+						itemInfo.seteContentSource("OverDrive");
+						itemInfo.seteContentProtectionType("Limited Access");
+						itemInfo.setIsEContent(true);
+						itemInfo.setShelfLocation("Online OverDrive Collection");
+						itemInfo.setCallNumber("Online OverDrive");
+						itemInfo.setSortableCallNumber("Online OverDrive");
+						itemInfo.setDateAdded(dateAdded);
 
-							overDriveRecord.addItem(itemInfo);
+						overDriveRecord.addItem(itemInfo);
 
-							long libraryId = availabilityRS.getLong("libraryId");
-							boolean available = availabilityRS.getBoolean("available");
-							long formatBoost = 1;
-							try{
-								formatBoost = Long.parseLong(indexer.translateSystemValue("format_boost_overdrive", curFormat.replace(' ', '_')));
-							}catch (Exception e){
-								logger.warn("Could not translate format boost for " + curFormat);
-							}
-							if (formatBoost > maxFormatBoost){
-								maxFormatBoost = formatBoost;
-							}
-							itemInfo.setFormat(curFormat);
-							itemInfo.setFormatCategory(formatCategory);
+						long libraryId = availabilityRS.getLong("libraryId");
+						boolean available = availabilityRS.getBoolean("available");
 
-							//TODO: Check to see if this is a pre-release title.  If not, suppress if the
-							//record has 0 copies owned
-							int copiesOwned = availabilityRS.getInt("copiesOwned");
-							itemInfo.setNumCopies(copiesOwned);
-							if (libraryId == -1) {
-								for (Scope scope : indexer.getScopes()) {
-									if (scope.isIncludeOverDriveCollection()) {
-										ScopingInfo scopingInfo = itemInfo.addScope(scope);
-										scopingInfo.setAvailable(available);
-										scopingInfo.setHoldable(true);
+						itemInfo.setFormat(primaryFormat);
+						itemInfo.setSubFormats(detailedFormats);
+						itemInfo.setFormatCategory(formatCategory);
 
-										if (available){
-											scopingInfo.setStatus("Available Online");
-											scopingInfo.setGroupedStatus("Available Online");
-										} else {
-											scopingInfo.setStatus("Checked Out");
-											scopingInfo.setGroupedStatus("Checked Out");
-										}
+						//TODO: Check to see if this is a pre-release title.  If not, suppress if the record has 0 copies owned
+						int copiesOwned = availabilityRS.getInt("copiesOwned");
+						itemInfo.setNumCopies(copiesOwned);
+						if (libraryId == -1) {
+							for (Scope scope : indexer.getScopes()) {
+								if (scope.isIncludeOverDriveCollection()) {
+									ScopingInfo scopingInfo = itemInfo.addScope(scope);
+									scopingInfo.setAvailable(available);
+									scopingInfo.setHoldable(true);
+
+									if (available){
+										scopingInfo.setStatus("Available Online");
+										scopingInfo.setGroupedStatus("Available Online");
+									} else {
+										scopingInfo.setStatus("Checked Out");
+										scopingInfo.setGroupedStatus("Checked Out");
 									}
 								}
-							} else {
-								for (Scope curScope : indexer.getScopes()) {
-									if (curScope.isIncludeOverDriveCollection() && curScope.getLibraryId().equals(libraryId)) {
-										ScopingInfo scopingInfo = itemInfo.addScope(curScope);
-										scopingInfo.setAvailable(available);
-										scopingInfo.setHoldable(true);
-										if (curScope.isLocationScope()) {
-											scopingInfo.setLocallyOwned(true);
-										}else{
-											scopingInfo.setLibraryOwned(true);
-										}
+							}
+						} else {
+							for (Scope curScope : indexer.getScopes()) {
+								if (curScope.isIncludeOverDriveCollection() && curScope.getLibraryId().equals(libraryId)) {
+									ScopingInfo scopingInfo = itemInfo.addScope(curScope);
+									scopingInfo.setAvailable(available);
+									scopingInfo.setHoldable(true);
+									if (curScope.isLocationScope()) {
+										scopingInfo.setLocallyOwned(true);
+									}else{
+										scopingInfo.setLibraryOwned(true);
 									}
 								}
+							}
 
-							}//End processing availability
-						}
+						}//End processing availability
 					}
-					overDriveRecord.setFormatBoost(maxFormatBoost);
 				}
 			}
 			productRS.close();
