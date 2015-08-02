@@ -275,8 +275,12 @@ public class ItemInfo {
 	public HashSet<String> getAllOwningLibraries() {
 		HashSet<String> owningLibraryValues = new HashSet<>();
 		for (ScopingInfo curScope : scopingInfo.values()){
-			if (curScope.isLocallyOwned() && curScope.getScope().isLibraryScope()){
-				owningLibraryValues.add(curScope.getScope().getFacetLabel());
+			if (curScope.isLibraryOwned() && curScope.getScope().isLibraryScope()) {
+				if (isEContent()) {
+					owningLibraryValues.add(curScope.getScope().getFacetLabel() + " Online");
+				}else{
+					owningLibraryValues.add(curScope.getScope().getFacetLabel());
+				}
 			}
 		}
 		return owningLibraryValues;
@@ -285,7 +289,9 @@ public class ItemInfo {
 	public HashSet<String> getAllOwningLocations() {
 		HashSet<String> owningLibraryValues = new HashSet<>();
 		for (ScopingInfo curScope : scopingInfo.values()){
-			if (curScope.isLocallyOwned() && curScope.getScope().isLocationScope()){
+			if (curScope.isLibraryOwned() && isEContent() && curScope.getScope().isLibraryScope()){
+				owningLibraryValues.add(curScope.getScope().getFacetLabel() + " Online");
+			}else if (curScope.isLocallyOwned() && curScope.getScope().isLocationScope()){
 				owningLibraryValues.add(curScope.getScope().getFacetLabel());
 			}
 		}

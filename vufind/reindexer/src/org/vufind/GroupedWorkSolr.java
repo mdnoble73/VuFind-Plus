@@ -316,20 +316,31 @@ public class GroupedWorkSolr {
 					if (curScope.isLocallyOwned()) {
 						addUniqueFieldValue(doc, "detailed_location_" + curScopeName, curItem.getCollection());
 					}
-					if (curScope.isAvailable()){
+					if (curScope.isAvailable() && curScope.isLocallyOwned() && !curItem.isEContent()) {
 						addUniqueFieldValue(doc, "available_at", curScope.getScope().getFacetLabel());
+						addUniqueFieldValue(doc, "availability_toggle_" + curScopeName, "Available Now");
 					}
-					//TODO: Different toggles for library and location?
-					addUniqueFieldValue(doc, "availability_toggle_" + curScopeName, "Entire Collection");
+					if (curItem.isEContent() && curScope.getScope().isLibraryScope()) {
+						addUniqueFieldValue(doc, "available_at", curScope.getScope().getFacetLabel() + " Online");
+						addUniqueFieldValue(doc, "availability_toggle_" + curScopeName, "Available Now");
+					}
 
-					if (curScope.isLocallyOwned()) {
+					//TODO: Different toggles for library and location?
+					if (curScope.isLocallyOwned() && curScope.getScope().isLocationScope()){
+						addUniqueFieldValue(doc, "availability_toggle_" + curScopeName, "Entire Collection");
+					}
+					if (curScope.isLibraryOwned() && curScope.getScope().isLibraryScope()){
+						addUniqueFieldValue(doc, "availability_toggle_" + curScopeName, "Entire Collection");
+					}
+
+					/*if (curScope.isLocallyOwned()) {
 						addUniqueFieldValue(doc, "availability_toggle_" + curScopeName, "Library Collection");
 						addUniqueFieldValue(doc, "availability_toggle_" + curScopeName, "Branch Collection");
 						updateMaxValueField(doc, "lib_boost_" + curScopeName, ownedByBoostValue);
 					}else if (curScope.isLibraryOwned()) {
 						addUniqueFieldValue(doc, "availability_toggle_" + curScopeName, "Library Collection");
 						updateMaxValueField(doc, "lib_boost_" + curScopeName, ownedByBoostValue);
-					}
+					}*/
 
 					//Date Added To Catalog needs to be the earliest date added for the catalog.
 					if (curScope.isLocallyOwned() || curScope.isLibraryOwned()) {
