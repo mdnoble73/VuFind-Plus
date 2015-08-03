@@ -16,6 +16,7 @@ public class ItemInfo {
 	private String locationCode;
 	private String subLocationCode;
 	private String format;
+	private String subFormat;
 	private String formatCategory;
 	private int numCopies = 1;
 	private boolean isOrderItem;
@@ -135,6 +136,10 @@ public class ItemInfo {
 		this.format = format;
 	}
 
+	public void setSubFormats(String subFormats){
+		this.subFormat = subFormats;
+	}
+
 	public int getNumCopies() {
 		//Deal with OverDrive always available
 		if (numCopies > 1000){
@@ -180,7 +185,8 @@ public class ItemInfo {
 					.append(isEContent).append("|")
 					.append(getCleanDetailValue(eContentSource)).append("|")
 					.append(getCleanDetailValue(eContentFilename)).append("|")
-					.append(getCleanDetailValue(eContentUrl))
+					.append(getCleanDetailValue(eContentUrl)).append("|")
+					.append(getCleanDetailValue(subFormat)).append("|")
 					.toString();
 		}
 		return baseDetails;
@@ -269,8 +275,12 @@ public class ItemInfo {
 	public HashSet<String> getAllOwningLibraries() {
 		HashSet<String> owningLibraryValues = new HashSet<>();
 		for (ScopingInfo curScope : scopingInfo.values()){
-			if (curScope.isLocallyOwned() && curScope.getScope().isLibraryScope()){
-				owningLibraryValues.add(curScope.getScope().getFacetLabel());
+			if (curScope.isLibraryOwned() && curScope.getScope().isLibraryScope()) {
+				if (isEContent()) {
+					owningLibraryValues.add(curScope.getScope().getFacetLabel() + " Online");
+				}else{
+					owningLibraryValues.add(curScope.getScope().getFacetLabel());
+				}
 			}
 		}
 		return owningLibraryValues;
@@ -279,7 +289,9 @@ public class ItemInfo {
 	public HashSet<String> getAllOwningLocations() {
 		HashSet<String> owningLibraryValues = new HashSet<>();
 		for (ScopingInfo curScope : scopingInfo.values()){
-			if (curScope.isLocallyOwned() && curScope.getScope().isLocationScope()){
+			if (curScope.isLibraryOwned() && isEContent() && curScope.getScope().isLibraryScope()){
+				owningLibraryValues.add(curScope.getScope().getFacetLabel() + " Online");
+			}else if (curScope.isLocallyOwned() && curScope.getScope().isLocationScope()){
 				owningLibraryValues.add(curScope.getScope().getFacetLabel());
 			}
 		}

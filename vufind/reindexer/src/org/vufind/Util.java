@@ -71,6 +71,17 @@ public class Util {
 		return crSeparatedString.toString();
 	}
 
+	public static String getCsvSeparatedString(HashSet<String> values) {
+		StringBuilder crSeparatedString = new StringBuilder();
+		for (String curValue : values) {
+			if (crSeparatedString.length() > 0) {
+				crSeparatedString.append(",");
+			}
+			crSeparatedString.append(curValue);
+		}
+		return crSeparatedString.toString();
+	}
+
 	public static boolean copyFile(File sourceFile, File destFile) throws IOException {
 		if (!sourceFile.exists()){
 			return false;
@@ -226,11 +237,14 @@ public class Util {
 		return indexDate;
 	}
 	public static LinkedHashSet<String> getTimeSinceAddedForDate(Date curDate) {
-		if (curDate == null){
+		if (curDate == null) {
 			return null;
 		}
 		long timeDifferenceDays = (indexDate.getTime() - curDate.getTime())
 				/ (1000 * 60 * 60 * 24);
+		return getTimeSinceAdded(timeDifferenceDays);
+	}
+	public static LinkedHashSet<String> getTimeSinceAdded(long timeDifferenceDays){
 		// System.out.println("Time Difference Days: " + timeDifferenceDays);
 		LinkedHashSet<String> result = new LinkedHashSet<>();
 		if (timeDifferenceDays <= 1) {

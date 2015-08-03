@@ -576,13 +576,13 @@ class OverDriveRecordDriver extends RecordInterface {
 		$relatedRecord['formatCategory'] = $formatCategory;
 		if ($available){
 			$relatedRecord['actions'][] = array(
-				'title' => 'Check Out',
+				'title' => 'Check Out OverDrive',
 				'onclick' => "return VuFind.OverDrive.checkOutOverDriveTitle('{$recordId}');",
 				'requireLogin' => false,
 			);
 		}else{
 			$relatedRecord['actions'][] = array(
-				'title' => 'Place Hold',
+				'title' => 'Place Hold OverDrive',
 				'onclick' => "return VuFind.OverDrive.placeOverDriveHold('{$recordId}');",
 				'requireLogin' => false,
 			);
@@ -1128,13 +1128,13 @@ class OverDriveRecordDriver extends RecordInterface {
 		$actions = array();
 		if ($isAvailable){
 			$actions[] = array(
-				'title' => 'Check Out',
+				'title' => 'Check Out OverDrive',
 				'onclick' => "return VuFind.OverDrive.checkOutOverDriveTitle('{$this->id}');",
 				'requireLogin' => false,
 			);
 		}else{
 			$actions[] = array(
-				'title' => 'Place Hold',
+				'title' => 'Place Hold OverDrive',
 				'onclick' => "return VuFind.OverDrive.placeOverDriveHold('{$this->id}');",
 				'requireLogin' => false,
 			);

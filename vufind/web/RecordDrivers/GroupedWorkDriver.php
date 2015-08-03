@@ -1443,13 +1443,17 @@ class GroupedWorkDriver extends RecordInterface{
 			);
 			if (isset($curRecord['groupedStatus']) && $curRecord['groupedStatus'] != ''){
 				$groupedStatus = strtolower($relatedManifestations[$curRecord['format']]['groupedStatus']);
-				if ($groupedStatus == ''){
-					$groupedStatus = $curRecord['groupedStatus'];
-				//Check to see if we are getting a better status
-				}elseif ($statusRankings[strtolower($curRecord['groupedStatus'])] > $statusRankings[$groupedStatus]){
-					$groupedStatus = $curRecord['groupedStatus'];
+
+				//Check to see if we have a better status here
+				if (array_key_exists(strtolower($curRecord['groupedStatus']), $statusRankings)){
+					if ($groupedStatus == ''){
+						$groupedStatus = $curRecord['groupedStatus'];
+						//Check to see if we are getting a better status
+					}elseif ($statusRankings[strtolower($curRecord['groupedStatus'])] > $statusRankings[$groupedStatus]){
+						$groupedStatus = $curRecord['groupedStatus'];
+					}
+					$relatedManifestations[$curRecord['format']]['groupedStatus'] = $groupedStatus;
 				}
-				$relatedManifestations[$curRecord['format']]['groupedStatus'] = $groupedStatus;
 			}
 		}
 		$timer->logTime("Finished initial processing of related records");

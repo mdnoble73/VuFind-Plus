@@ -1829,7 +1829,7 @@ class MarcRecord extends IndexRecord
 		}
 		if ($isBookable && $library->enableMaterialsBooking){
 			$actions[] = array(
-				'title' => 'Book Material',
+				'title' => 'Schedule Item',
 				'url' => '',
 				'onclick' => "return VuFind.Record.showBookMaterial('{$this->getIdWithSource()}');",
 				'requireLogin' => false,
