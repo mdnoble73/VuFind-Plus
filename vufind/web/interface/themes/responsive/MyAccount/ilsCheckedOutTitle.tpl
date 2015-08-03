@@ -4,7 +4,7 @@
 			<div class="row">
 				<div class="selectTitle col-xs-2">
 					{if !isset($record.renewable) || $record.renewable == true}
-					<input type="checkbox" name="selected[{$record.renewIndicator}]" class="titleSelect" id="selected{$record.itemid}"/>
+					<input type="checkbox" name="selected[{$record.userId}|{$record.recordId}|{$record.renewIndicator}]" class="titleSelect" id="selected{$record.itemid}"/>
 					{/if}
 				</div>
 				<div class="col-xs-10 text-center coverColumn">
