@@ -110,7 +110,7 @@ class MillenniumBooking {
 
 		$post = array(
 			'webbook_pnum' => $patronId,
-			'webbook_pagen' => $pageN ? $pageN : '2', // needed, reading from screen scrape; 2 or 4 are the only values i have seen so far. plb 7-16-2015
+			'webbook_pagen' => empty($pageN) ? '2' : $pageN, // needed, reading from screen scrape; 2 or 4 are the only values i have seen so far. plb 7-16-2015
 //			'refresh_cal' => '0', // not needed
 //			'webbook_loc' => 'flmdv', // this may only be needed when the scoping is used
 		  'webbook_bgn_Month' => $startDateTime->format('m'),
