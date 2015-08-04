@@ -740,7 +740,24 @@ class User extends DB_DataObject
 		}
 		return $ilsBookings;
 	}
-	
+
+	public function getMyFines($includeLinkedUsers = true){
+		$ilsFines[$this->id] = $this->getCatalogDriver()->getMyFines($this);
+		if (PEAR_Singleton::isError($ilsFines)) {
+			$ilsFines[$this->id] = array();
+		}
+
+		if ($includeLinkedUsers) {
+			if ($this->getLinkedUsers() != null) {
+				/** @var User $user */
+				foreach ($this->getLinkedUsers() as $user) {
+					$ilsFines += $user->getMyFines(false); // keep keys as userId
+				}
+			}
+		}
+		return $ilsFines;
+	}
+
 	public function getNameAndLibraryLabel(){
 		return $this->displayName . ' - ' . $this->getHomeLibrarySystemName();
 	}
@@ -831,6 +848,7 @@ class User extends DB_DataObject
 			foreach ($this->getLinkedUsers() as $tmpUser){
 				if ($tmpUser->id == $patronId){
 					$patron = $tmpUser;
+					break;
 				}
 			}
 		}

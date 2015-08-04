@@ -1997,7 +1997,7 @@ class Aspencat implements DriverInterface{
 					'reason' => $allFeesRow['accounttype'],
 					'message' => $allFeesRow['description'],
 					'amount' => $allFeesRow['amount'],
-					'amount_outstanding' => $amountOutstanding,
+					'amountOutstanding' => $amountOutstanding,
 				);
 				$fines[] = $curFine;
 			}
