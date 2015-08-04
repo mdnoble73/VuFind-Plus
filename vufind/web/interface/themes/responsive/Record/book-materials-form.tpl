@@ -4,7 +4,7 @@
 	{/if}
 	<form{* name="placeHoldForm"*} id="bookMaterialForm" {*action="{$path}/Record/{$id|escape:"url"}/Booking" method="post"*}>
 	{* TODO: the fallback POST action of form is not implemented *}
-	<input type="hidden" name="id" value="{$id}">
+	<input type="hidden" name="id" value="{$id|replace:'ils:':''}">
 	<fieldset>
 		<div class="row">
 			<div class="form-group col-sm-5">
@@ -108,11 +108,12 @@
 				if (added) $(this).val(input + ':'); // add ':' after initial numbers typed (treat as hours on 12 hour clock)
 			});
 
-			$.get(Globals.path + '/Record/{/literal}{$id}{literal}/AJAX?method=getBookingCalendar',
+			$.get(Globals.path + '/Record/{/literal}{$id|replace:'ils:':''}{literal}/AJAX?method=getBookingCalendar',
 							function(data){
-								$('#bookingCalendar').append(data);
-								$('#calendarButton').show(); // show button when we are able to get the calendar
-
+								if (data) {
+									$('#bookingCalendar').append(data);
+									$('#calendarButton').show(); // show button when we are able to get the calendar
+								}
 			}, 'html');
 		});
 

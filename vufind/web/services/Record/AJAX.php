@@ -436,15 +436,21 @@ class Record_AJAX extends Action {
 
 	function getBookingCalendar(){
 		$recordId = $_REQUEST['id'];
+		if (strpos($recordId, ':') !== false) list(,$recordId) = explode(':', $recordId, 2); // remove any prefix from the recordId
 		if (!empty($recordId)) {
-			$catalog = CatalogFactory::getCatalogConnectionInstance();
+			global $user;
+			$catalog = $user->getCatalogDriver();
+//			$catalog = CatalogFactory::getCatalogConnectionInstance();
 			return $catalog->getBookingCalendar($recordId);
 		}
 	}
 
 	function bookMaterial(){
-		if (!empty($_REQUEST['id'])) $recordId = $_REQUEST['id'];
-		else {
+		if (!empty($_REQUEST['id'])){
+			$recordId = $_REQUEST['id'];
+			if (strpos($recordId, ':') !== false) list(,$recordId) = explode(':', $recordId, 2); // remove any prefix from the recordId
+		}
+		if (empty($recordId)) {
 			return array('success' => false, 'message' => 'Item ID is required.');
 		}
 		if (isset($_REQUEST['startDate'])) {
@@ -459,7 +465,8 @@ class Record_AJAX extends Action {
 
 		global $user;
 		if ($user) { // The user is already logged in
-			$catalog = CatalogFactory::getCatalogConnectionInstance();
+//			$catalog = CatalogFactory::getCatalogConnectionInstance();
+			$catalog = $user->getCatalogDriver();
 			$return = $catalog->bookMaterial($recordId, $startDate, $startTime, $endDate, $endTime);
 			if (!empty($return['retry'])) {
 				return $this->getBookMaterialForm($return['message']); // send back error message with form to try again
