@@ -97,19 +97,12 @@ class MyAccount_AJAX
 
 			if ($accountToLink){
 				$addResult = $user->addLinkedUser($accountToLink);
-				if (is_null($addResult)) { // existing links
-					$result = array(
-						'result' => true,
-						'message' => 'Account is already linked.'
-//						'message' => '<div class="alert alert-success">Account is already linked.</div>'
-					);
-				}elseif ($addResult === true) {
+				if ($addResult === true) {
 					$result = array(
 						'result' => true,
 						'message' => 'Successfully linked accounts.'
-//						'message' => '<div class="alert alert-success">Successfully linked accounts.</div>'
 					);
-				}else { // insert failure or user is blocked from linking account
+				}else { // insert failure or user is blocked from linking account or account & account to link are the same account
 					$result = array(
 						'result' => false,
 						'message' => 'Sorry, we failed to link the account.'

@@ -373,7 +373,7 @@ class User extends DB_DataObject
 	function addLinkedUser($user){
 		/* var Library $library */
 		global $library;
-		if ($library->allowLinkedAccounts) {
+		if ($library->allowLinkedAccounts && $user->id != $this->id) { // library allows linked accounts and the account to link is not itself
 			$linkedUsers = $this->getLinkedUsers();
 			/** @var User $existingUser */
 			foreach ($linkedUsers as $existingUser) {
