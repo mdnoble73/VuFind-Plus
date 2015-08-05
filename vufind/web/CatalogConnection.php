@@ -635,9 +635,9 @@ class CatalogConnection
 		return $this->driver->getHoldLink($recordId);
 	}
 
-	function updatePatronInfo($canUpdateContactInfo)
+	function updatePatronInfo($user, $canUpdateContactInfo)
 	{
-		return $errors = $this->driver->updatePatronInfo($canUpdateContactInfo);
+		return $errors = $this->driver->updatePatronInfo($user, $canUpdateContactInfo);
 	}
 
 	// TODO Millennium only at this time, set other drivers to return false.

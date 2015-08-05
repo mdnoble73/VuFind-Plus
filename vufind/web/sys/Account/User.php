@@ -140,9 +140,7 @@ class User extends DB_DataObject
 				$catalogDriver = $accountProfile->driver;
 				$this->catalogDriver = CatalogFactory::getCatalogConnectionInstance($catalogDriver, $accountProfile);
 			}
-
 		}
-
 		return $this->catalogDriver;
 	}
 
@@ -423,12 +421,7 @@ class User extends DB_DataObject
 	function update(){
 		$result = parent::update();
 		$this->saveRoles();
-
-		// Every update to object requires clearing the Memcached version of the object & the version stored in the $_SESSION variable
-//		if ($result) {
-			$this->deletePatronProfileCache();
-			$_SESSION['userinfo'] = serialize($this);
-//		}
+		$this->deletePatronProfileCache(); // Every update to object requires clearing the Memcached version of the object
 		return $result;
 	}
 
@@ -504,13 +497,10 @@ class User extends DB_DataObject
 			$this->overdriveEmail = strip_tags($_REQUEST['overdriveEmail']);
 		}
 		$this->update();
-//		//Update the serialized instance stored in the session
-//		$_SESSION['userinfo'] = serialize($this);
-//		$this->deletePatronProfileCache();
 	}
 
-	function updateCatalogOptions(){
-		//Validate that the input data is correct
+	function updateUserPreferences(){
+		// Validate that the input data is correct
 		if (isset($_POST['myLocation1']) && preg_match('/^\d{1,3}$/', $_POST['myLocation1']) == 0){
 			PEAR_Singleton::raiseError('The 1st location had an incorrect format.');
 		}
@@ -526,28 +516,22 @@ class User extends DB_DataObject
 		//Make sure the selected location codes are in the database.
 		if (isset($_POST['myLocation1'])){
 			$location = new Location();
-			$location->whereAdd("locationId = '{$_POST['myLocation1']}'");
-			$location->find();
+			$location->get('locationId', $_POST['myLocation1'] );
 			if ($location->N != 1) {
 				PEAR_Singleton::raiseError('The 1st location could not be found in the database.');
+			} else {
+				$this->myLocation1Id = $_POST['myLocation1'];
 			}
-			$this->myLocation1Id = $_POST['myLocation1'];
 		}
 		if (isset($_POST['myLocation2'])){
 			$location = new Location();
-			$location->whereAdd();
-			$location->whereAdd("locationId = '{$_POST['myLocation2']}'");
-			$location->find();
+			$location->get('locationId', $_POST['myLocation2'] );
 			if ($location->N != 1) {
 				PEAR_Singleton::raiseError('The 2nd location could not be found in the database.');
+			} else {
+				$this->myLocation2Id = $_POST['myLocation2'];
 			}
-			$this->myLocation2Id = $_POST['myLocation2'];
 		}
-		$this->update();
-
-	}
-
-	function updateUserPreferences(){
 
 		$this->noPromptForUserReviews = (isset($_POST['noPromptForUserReviews']) && $_POST['noPromptForUserReviews'] == 'on')? 1 : 0;
 		return $this->update();
@@ -556,10 +540,11 @@ class User extends DB_DataObject
 	/**
 	 * Clear out the cached version of the patron profile.
 	 */
-	private function deletePatronProfileCache(){
+	function deletePatronProfileCache(){
 		/** @var Memcache $memCache */
 		global $memCache, $serverName;
-		$memCache->delete("patronProfile_{$serverName}_" . $this->username);
+		$memCache->delete("user_{$serverName}_" . $this->id); // now stored by User object id column
+//		$memCache->delete("patronProfile_{$serverName}_" . $this->username);
 	}
 
 	/**
@@ -913,20 +898,33 @@ class User extends DB_DataObject
 		$this->getCatalogDriver()->doReadingHistoryAction($this, $readingHistoryAction, $selectedTitles);
 	}
 
+	/**
+	 * Used by Account Profile, to show users any additional Admin roles they may have.
+	 * @return bool
+	 */
 	public function isStaff(){
 		global $configArray;
 		if (count($this->getRoles()) > 0){
 			return true;
-		}else if (isset($configArray['Staff P-Types'])){
+		}elseif (isset($configArray['Staff P-Types'])){
 			$staffPTypes = $configArray['Staff P-Types'];
 			$pType = $this->patronType();
-			if (array_key_exists($pType, $staffPTypes)){
+			if ($pType && array_key_exists($pType, $staffPTypes)){
 				return true;
-			}else{
-				return false;
 			}
-		}else{
-			return false;
 		}
+		return false;
+	}
+
+	public function patronType(){
+		$catalog = $this->getCatalogDriver();
+		if (method_exists($catalog, 'patronType')) { // TODO implement in drivers
+			return $catalog->patronType();
+		}
+		return false;
+	}
+
+	public function updatePatronInfo($canUpdateContactInfo){
+		return $this->getCatalogDriver()->updatePatronInfo($this, $canUpdateContactInfo);
 	}
 }
