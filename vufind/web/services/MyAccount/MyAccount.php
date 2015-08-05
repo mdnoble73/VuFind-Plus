@@ -83,4 +83,17 @@ abstract class MyAccount extends Action
 			}
 		}
 	}
+
+	/**
+	 * @param $mainContentTemplate  Name of the SMARTY template file for the main content of the Account Page
+	 * @param string $pageTitle     What to display is the html title tag
+	 * @param bool|true $sidebar    enables the account sidebar on the page to be displayed
+	 */
+	function display($mainContentTemplate, $pageTitle= 'My Account', $sidebar=true) {
+		global $interface;
+		if ($sidebar) $interface->assign('sidebar', 'MyAccount/account-sidebar.tpl');
+		$interface->setTemplate($mainContentTemplate);
+		$interface->setPageTitle(translate($pageTitle));
+		$interface->display('layout.tpl');
+	}
 }

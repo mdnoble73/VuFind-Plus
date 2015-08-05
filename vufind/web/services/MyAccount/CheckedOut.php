@@ -125,10 +125,7 @@ class MyAccount_CheckedOut extends MyAccount{
 
 		}
 
-		$interface->assign('sidebar', 'MyAccount/account-sidebar.tpl');
-		$interface->setTemplate('checkedout.tpl');
-		$interface->setPageTitle('Checked Out Items');
-		$interface->display('layout.tpl');
+		$this->display('checkedout.tpl', 'Checked Out Items');
 	}
 
 	public function exportToExcel($checkedOutItems, $showOut, $showRenewed, $showWaitList) {

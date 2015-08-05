@@ -44,16 +44,12 @@ class ReadingHistory extends MyAccount
 			// Get My Transactions
 			if ($user) {
 				$linkedUsers = $user->getLinkedUsers();
-				if (isset($_REQUEST['patronId'])){
-					$patronId = $_REQUEST['patronId'];
-				}else{
-					$patronId = $user->id;
-				}
+				$patronId = isset($_REQUEST['patronId']) ? $_REQUEST['patronId'] : $user->id;
 
 				$patron = $user->getUserReferredTo($patronId);
 				if (count($linkedUsers) > 0) {
 					array_unshift($linkedUsers, $user);
-					$interface->assign('readingHistoryUsers', $linkedUsers);
+					$interface->assign('linkedUsers', $linkedUsers);
 					$interface->assign('selectedUser', $patronId);
 				}
 
@@ -135,10 +131,7 @@ class ReadingHistory extends MyAccount
 			}
 		}
 
-		$interface->assign('sidebar', 'MyAccount/account-sidebar.tpl');
-		$interface->setTemplate('readingHistory.tpl');
-		$interface->setPageTitle('Reading History');
-		$interface->display('layout.tpl');
+		$this->display('readHistory.tpl', 'Reading History');
 	}
 
 	public function exportToExcel($readingHistory) {

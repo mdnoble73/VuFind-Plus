@@ -28,45 +28,6 @@ class MyAccount_Profile extends MyAccount
 		global $interface;
 		global $user;
 
-		/** @var Library $librarySingleton */
-		global $librarySingleton;
-		$activeLibrary = $librarySingleton->getActiveLibrary();
-		if ($activeLibrary == null){
-			$canUpdateContactInfo = true;
-			$canUpdateAddress = true;
-			$showWorkPhoneInProfile = false;
-			$showNoticeTypeInProfile = true;
-			$showPickupLocationInProfile = false;
-			$treatPrintNoticesAsPhoneNotices = false;
-			$allowPinReset = false;
-			$showAlternateLibraryOptionsInProfile = true;
-		}else{
-			$canUpdateContactInfo = ($activeLibrary->allowProfileUpdates == 1);
-			$canUpdateAddress = ($activeLibrary->allowPatronAddressUpdates == 1);
-			$showWorkPhoneInProfile = ($activeLibrary->showWorkPhoneInProfile == 1);
-			$showNoticeTypeInProfile = ($activeLibrary->showNoticeTypeInProfile == 1);
-			$treatPrintNoticesAsPhoneNotices = ($activeLibrary->treatPrintNoticesAsPhoneNotices == 1);
-			$showPickupLocationInProfile = ($activeLibrary->showPickupLocationInProfile == 1);
-			$allowPinReset = ($activeLibrary->allowPinReset == 1);
-			$showAlternateLibraryOptionsInProfile = ($activeLibrary->showAlternateLibraryOptionsInProfile == 1);
-		}
-		if ($showPickupLocationInProfile) { // only grab pickup locations if needed.
-			global $locationSingleton;
-			//Get the list of pickup branch locations for display in the user interface.
-			$locations = $locationSingleton->getPickupBranches($user, $user->homeLocationId);
-			$interface->assign('pickupLocations', $locations);
-		}
-
-		$interface->assign('canUpdateContactInfo', $canUpdateContactInfo);
-		$interface->assign('canUpdateAddress', $canUpdateAddress);
-		$interface->assign('showWorkPhoneInProfile', $showWorkPhoneInProfile);
-		$interface->assign('showPickupLocationInProfile', $showPickupLocationInProfile);
-		$interface->assign('showNoticeTypeInProfile', $showNoticeTypeInProfile);
-		$interface->assign('treatPrintNoticesAsPhoneNotices', $treatPrintNoticesAsPhoneNotices);
-		$interface->assign('allowPinReset', $allowPinReset);
-		$interface->assign('showAlternateLibraryOptions', $showAlternateLibraryOptionsInProfile);
-
-
 		$ils = $configArray['Catalog']['ils'];
 		$interface->assign('showSMSNoticesInProfile', $ils == 'Sierra');
 		if ($configArray['Catalog']['offline']){
@@ -75,87 +36,140 @@ class MyAccount_Profile extends MyAccount
 			$interface->assign('offline', false);
 		}
 
-		if (isset($_POST['updateScope']) && !$configArray['Catalog']['offline']) {
-			$updateScope = $_REQUEST['updateScope'];
-			if ($updateScope == 'contact'){
-				$errors = $this->catalog->updatePatronInfo($canUpdateContactInfo);
-				session_start(); // any writes to the session storage also closes session. Happens in updatePatronInfo (for Horizon). plb 4-21-2015
-				$_SESSION['profileUpdateErrors'] = $errors;
+		if ($user) {
 
-			}elseif($updateScope == 'catalog'){
-				$user->updateCatalogOptions();
-			}elseif($updateScope == 'userPreference'){
-				$user->updateUserPreferences();
-			}elseif($updateScope == 'overdrive'){
-				// overdrive setting keep changing
-			/*	require_once ROOT_DIR . '/Drivers/OverDriveDriverFactory.php';
-				$overDriveDriver = OverDriveDriverFactory::getDriver();
-				$result = $overDriveDriver->updateLendingOptions();
-*/
-				$user->updateOverDriveOptions();
-			}elseif ($updateScope == 'pin') {
-				$errors = $this->catalog->updatePin();
-				session_start(); // any writes to the session storage also closes session. possibly happens in updatePin. plb 4-21-2015
-				$_SESSION['profileUpdateErrors'] = $errors;
+			// Determine which user we are showing/updating settings for
+			$linkedUsers = $user->getLinkedUsers();
+			$patronId    = isset($_REQUEST['patronId']) ? $_REQUEST['patronId'] : $user->id;
+			$patron = $user->getUserReferredTo($patronId);
+
+			// Linked Accounts Selection Form set-up
+			if (count($linkedUsers) > 0) {
+				array_unshift($linkedUsers, $user);
+				$interface->assign('linkedUsers', $linkedUsers);
+				$interface->assign('selectedUser', $patronId);
 			}
 
-			session_write_close();
-			header("Location: " . $configArray['Site']['path'] . '/MyAccount/Profile');
-			exit();
-		}elseif (!$configArray['Catalog']['offline']){
-			$interface->assign('edit', true);
-		}else{
-			$interface->assign('edit', false);
-		}
+			/** @var Library $librarySingleton */
+			global $librarySingleton;
+			// Get Library Settings from the home library of the current user-account being displayed
+			$patronHomeLibrary = $librarySingleton->getPatronHomeLibrary($patron);
+			if ($patronHomeLibrary == null){
+				$canUpdateContactInfo = true;
+				$canUpdateAddress = true;
+				$showWorkPhoneInProfile = false;
+				$showNoticeTypeInProfile = true;
+				$showPickupLocationInProfile = false;
+				$treatPrintNoticesAsPhoneNotices = false;
+				$allowPinReset = false;
+				$showAlternateLibraryOptionsInProfile = true;
+			}else{
+				$canUpdateContactInfo = ($patronHomeLibrary->allowProfileUpdates == 1);
+				$canUpdateAddress = ($patronHomeLibrary->allowPatronAddressUpdates == 1);
+				$showWorkPhoneInProfile = ($patronHomeLibrary->showWorkPhoneInProfile == 1);
+				$showNoticeTypeInProfile = ($patronHomeLibrary->showNoticeTypeInProfile == 1);
+				$treatPrintNoticesAsPhoneNotices = ($patronHomeLibrary->treatPrintNoticesAsPhoneNotices == 1);
+				$showPickupLocationInProfile = ($patronHomeLibrary->showPickupLocationInProfile == 1);
+				$allowPinReset = ($patronHomeLibrary->allowPinReset == 1);
+				$showAlternateLibraryOptionsInProfile = ($patronHomeLibrary->showAlternateLibraryOptionsInProfile == 1);
+			}
 
-		/*require_once ROOT_DIR . '/Drivers/OverDriveDriverFactory.php';
-		$overDriveDriver = OverDriveDriverFactory::getDriver();
-		if ($overDriveDriver->version >= 2){
-			$lendingPeriods = $overDriveDriver->getLendingPeriods($user);
-			$interface->assign('overDriveLendingOptions', $lendingPeriods);
-		}*/
-		$interface->assign('overDriveUrl', $configArray['OverDrive']['url']);
+			$interface->assign('canUpdateContactInfo', $canUpdateContactInfo);
+			$interface->assign('canUpdateAddress', $canUpdateAddress);
+			$interface->assign('showWorkPhoneInProfile', $showWorkPhoneInProfile);
+			$interface->assign('showPickupLocationInProfile', $showPickupLocationInProfile);
+			$interface->assign('showNoticeTypeInProfile', $showNoticeTypeInProfile);
+			$interface->assign('treatPrintNoticesAsPhoneNotices', $treatPrintNoticesAsPhoneNotices);
+			$interface->assign('allowPinReset', $allowPinReset);
+			$interface->assign('showAlternateLibraryOptions', $showAlternateLibraryOptionsInProfile);
 
-		if (isset($_SESSION['profileUpdateErrors'])){
-			$interface->assign('profileUpdateErrors', $_SESSION['profileUpdateErrors']);
-			unset($_SESSION['profileUpdateErrors']);
-		}
+			// Determine Pickup Locations
+			if ($showPickupLocationInProfile) { // only grab pickup locations if needed.
+				global $locationSingleton;
+				//Get the list of pickup branch locations for display in the user interface.
+				$locations = $locationSingleton->getPickupBranches($patron, $patron->homeLocationId); // TODO getPickUpBranches has a $isLinkedUser parameter, needed?
+				$interface->assign('pickupLocations', $locations);
+			}
 
-		//Get the list of locations for display in the user interface.
-		$location = new Location();
-		$location->validHoldPickupBranch = 1;
-		$location->find();
+			// Save/Update Actions
+			if (isset($_POST['updateScope']) && !$configArray['Catalog']['offline']) {
+				$updateScope = $_REQUEST['updateScope'];
+				if ($updateScope == 'contact') {
+					$errors = $patron->updatePatronInfo($canUpdateContactInfo);
+					session_start(); // any writes to the session storage also closes session. Happens in updatePatronInfo (for Horizon). plb 4-21-2015
+					$_SESSION['profileUpdateErrors'] = $errors;
 
-		$locationList = array();
-		while ($location->fetch()) {
-			$locationList[$location->locationId] = $location->displayName;
-		}
-		$interface->assign('locationList', $locationList);
+				}  elseif ($updateScope == 'userPreference') {
+					$patron->updateUserPreferences();
+				} elseif ($updateScope == 'overdrive') {
+					// overdrive setting keep changing
+					/*	require_once ROOT_DIR . '/Drivers/OverDriveDriverFactory.php';
+						$overDriveDriver = OverDriveDriverFactory::getDriver();
+						$result = $overDriveDriver->updateLendingOptions();
+		*/
+					$patron->updateOverDriveOptions();
+				} elseif ($updateScope == 'pin') {
+//				$errors = $this->catalog->updatePin();
+					$errors = $patron->updatePin();
+					session_start(); // any writes to the session storage also closes session. possibly happens in updatePin. plb 4-21-2015
+					$_SESSION['profileUpdateErrors'] = $errors;
+				}
 
-		if ($this->catalog->checkFunction('isUserStaff')){
-			$userIsStaff = $this->catalog->isUserStaff();
+				session_write_close();
+				$actionUrl = $configArray['Site']['path'] . '/MyAccount/Profile' . ( $patronId == $user->id ? '' : '?patronId='.$patronId ); // redirect after form submit completion
+				header("Location: " . $actionUrl);
+				exit();
+			} elseif (!$configArray['Catalog']['offline']) {
+				$interface->assign('edit', true);
+			} else {
+				$interface->assign('edit', false);
+			}
+
+
+			/*require_once ROOT_DIR . '/Drivers/OverDriveDriverFactory.php';
+			$overDriveDriver = OverDriveDriverFactory::getDriver();
+			if ($overDriveDriver->version >= 2){
+				$lendingPeriods = $overDriveDriver->getLendingPeriods($user);
+				$interface->assign('overDriveLendingOptions', $lendingPeriods);
+			}*/
+			$interface->assign('overDriveUrl', $configArray['OverDrive']['url']);
+
+			if (isset($_SESSION['profileUpdateErrors'])) {
+				$interface->assign('profileUpdateErrors', $_SESSION['profileUpdateErrors']);
+				unset($_SESSION['profileUpdateErrors']);
+			}
+
+			//Get the list of locations for display in the user interface.
+			$location                        = new Location();
+			$location->validHoldPickupBranch = 1;
+			$location->find();
+
+			$locationList = array();
+			while ($location->fetch()) {
+				$locationList[$location->locationId] = $location->displayName;
+			}
+			$interface->assign('locationList', $locationList);
+
+			$userIsStaff = $patron->isStaff();
+//			$userIsStaff = $patron->checkFunction('isUserStaff') ? $patron->isUserStaff() : false;
 			$interface->assign('userIsStaff', $userIsStaff);
-		}else{
-			$interface->assign('userIsStaff', false);
+
+			$interface->assign('profile', $patron); //
 		}
 
-		// switch for hack for Millenium driver profile updating when updating is allowed but address updating is not allowed.
+		// old version of isStaff check
+//		if ($this->catalog->checkFunction('isUserStaff')){
+//			$userIsStaff = $this->catalog->isUserStaff();
+//			$interface->assign('userIsStaff', $userIsStaff);
+//		}else{
+//			$interface->assign('userIsStaff', false);
+//		}
+
+		// switch for hack for Millennium driver profile updating when updating is allowed but address updating is not allowed.
 		$millenniumNoAddress = $canUpdateContactInfo && !$canUpdateAddress && in_array($ils, array('Millennium', 'Sierra'));
 		$interface->assign('millenniumNoAddress', $millenniumNoAddress);
 
-
-		$this->display();
-//		$interface->assign('sidebar', 'MyAccount/account-sidebar.tpl');
-//		$interface->setTemplate('profile.tpl');
-//		$interface->setPageTitle(translate('Account Settings'));
-//		$interface->display('layout.tpl');
+		$this->display('profile.tpl', 'Account Settings');
 	}
 
-	function display($mainContentTemplate = 'profile.tpl', $sidebar=true) {
-		global $interface;
-		if ($sidebar) $interface->assign('sidebar', 'MyAccount/account-sidebar.tpl');
-		$interface->setTemplate($mainContentTemplate);
-		$interface->setPageTitle(translate('Account Settings'));
-		$interface->display('layout.tpl');
-	}
 }

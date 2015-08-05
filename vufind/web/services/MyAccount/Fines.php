@@ -74,10 +74,7 @@ class Fines extends MyAccount
 			if ($useOutstanding) $interface->assign('outstandingTotal', $outstandingTotal);
 		}
 
-		$interface->assign('sidebar', 'MyAccount/account-sidebar.tpl');
-		$interface->setTemplate('fines.tpl');
-		$interface->setPageTitle('My Fines');
-		$interface->display('layout.tpl');
+		$this->display('fines.tpl', 'My Fines');
 	}
 
 }
