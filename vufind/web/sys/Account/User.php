@@ -92,8 +92,8 @@ class User extends DB_DataObject
 		$tagList = array();
 
 		$sql = "SELECT id, groupedRecordPermanentId, tag, COUNT(groupedRecordPermanentId) AS cnt " .
-               "FROM user_tags WHERE " .
-               "userId = '{$this->id}' ";
+							 "FROM user_tags WHERE " .
+							 "userId = '{$this->id}' ";
 		$sql .= "GROUP BY tag ORDER BY tag ASC";
 		$tag = new UserTag();
 		$tag->query($sql);
@@ -113,8 +113,8 @@ class User extends DB_DataObject
 		$lists = array();
 
 		$sql = "SELECT user_list.* FROM user_list " .
-               "WHERE user_list.user_id = '$this->id' " .
-               "ORDER BY user_list.title";
+							 "WHERE user_list.user_id = '$this->id' " .
+							 "ORDER BY user_list.title";
 		$list = new UserList();
 		$list->query($sql);
 		if ($list->N) {
@@ -448,9 +448,9 @@ class User extends DB_DataObject
 		$roleList = Role::getLookup();
 
 		$structure = array(
-          'id' => array('property'=>'id', 'type'=>'label', 'label'=>'Administrator Id', 'description'=>'The unique id of the in the system'),
-          'firstname' => array('property'=>'firstname', 'type'=>'label', 'label'=>'First Name', 'description'=>'The first name for the user.'),
-          'lastname' => array('property'=>'lastname', 'type'=>'label', 'label'=>'Last Name', 'description'=>'The last name of the user.'),
+					'id' => array('property'=>'id', 'type'=>'label', 'label'=>'Administrator Id', 'description'=>'The unique id of the in the system'),
+					'firstname' => array('property'=>'firstname', 'type'=>'label', 'label'=>'First Name', 'description'=>'The first name for the user.'),
+					'lastname' => array('property'=>'lastname', 'type'=>'label', 'label'=>'Last Name', 'description'=>'The last name of the user.'),
 		);
 
 		global $configArray;
@@ -926,5 +926,30 @@ class User extends DB_DataObject
 
 	public function updatePatronInfo($canUpdateContactInfo){
 		return $this->getCatalogDriver()->updatePatronInfo($this, $canUpdateContactInfo);
+	}
+
+	public function updatePin(){
+		if (isset($_REQUEST['pin'])){
+			$oldpin = $_REQUEST['pin'];
+		}else{
+			return "Please enter your current pin number";
+		}
+		if ($this->cat_password != $oldpin){
+			return "The old pin number is incorrect";
+		}
+		if (!empty($_REQUEST['pin1'])){
+			$newPin = $_REQUEST['pin1'];
+		}else{
+			return "Please enter the new pin number";
+		}
+		if (!empty($_REQUEST['pin2'])){
+			$confirmNewPin = $_REQUEST['pin2'];
+		}else{
+			return "Please enter the new pin number again";
+		}
+		if ($newPin != $confirmNewPin){
+			return "New PINs do not match. Please try again.";
+		}
+		return $this->getCatalogDriver()->updatePin($this, $oldpin, $newPin, $confirmNewPin);
 	}
 }

@@ -1022,35 +1022,8 @@ abstract class HorizonAPI extends Horizon{
 		return 0;
 	}
 
-	function updatePin($user){
-//		global $user;
+	function updatePin($user, $oldPin, $newPin, $confirmNewPin){
 		global $configArray;
-		if (!$user){
-			return "You must be logged in to update your pin number.";
-		}
-		if (isset($_REQUEST['pin'])){
-			$pin = $_REQUEST['pin'];
-		}else{
-			return "Please enter your current pin number";
-		}
-		if ($user->cat_password != $pin){
-			return "The current pin number is incorrect";
-		}
-		if (isset($_REQUEST['pin1'])){
-			$pin1 = $_REQUEST['pin1'];
-		}else{
-			return "Please enter the new pin number";
-		}
-		if (isset($_REQUEST['pin2'])){
-			$pin2 = $_REQUEST['pin2'];
-		}else{
-			return "Please enter the new pin number again";
-		}
-		if ($pin1 != $pin2){
-			return "The pin number does not match the confirmed number, please try again.";
-		}
-
-//		global $user;
 		$userId = $user->id;
 
 		//Get the session token for the user
@@ -1060,20 +1033,16 @@ abstract class HorizonAPI extends Horizon{
 			//Log the user in
 			list($userValid, $sessionToken) = $this->loginViaWebService($user->cat_username, $user->cat_password);
 			if (!$userValid){
-// all other returns, only return a message.
-//				return array(
-//					'success' => false,
-//					'message' => 'Sorry, it does not look like you are logged in currently.  Please login and try again');
 				return 'Sorry, it does not look like you are logged in currently.  Please login and try again';
 			}
 		}
 
 		//create the hold using the web service
-		$updatePinUrl = $configArray['Catalog']['webServiceUrl'] . '/standard/changeMyPin?clientID=' . $configArray['Catalog']['clientId'] . '&sessionToken=' . $sessionToken . '&currentPin=' . $pin . '&newPin=' . $pin1;
+		$updatePinUrl = $configArray['Catalog']['webServiceUrl'] . '/standard/changeMyPin?clientID=' . $configArray['Catalog']['clientId'] . '&sessionToken=' . $sessionToken . '&currentPin=' . $oldPin . '&newPin=' . $newPin;
 		$updatePinResponse = $this->getWebServiceResponse($updatePinUrl);
 
 		if ($updatePinResponse){
-			$user->cat_password = $pin1;
+			$user->cat_password = $newPin;
 			$user->update();
 //			UserAccount::updateSession($user);  //TODO only if $user is the primary user
 			return "Your pin number was updated successfully.";
