@@ -505,6 +505,8 @@ class Millennium extends ScreenScrapingDriver
 
 		//Create a variety of possible name combinations for testing purposes.
 		$userValid = false;
+		//Break up the patron name into first name, last name and middle name based on the
+		list($fullName, $lastName, $firstName, $userValid) = $this->validatePatronName($username, $patronName);
 		if ($this->accountProfile->loginConfiguration == 'barcode_pin'){
 			$userValid = $this->_doPinTest($username, $password);
 		}else{
@@ -515,6 +517,12 @@ class Millennium extends ScreenScrapingDriver
 		}
 
 		if ($userValid){
+			if ($patronName == null){
+				if (isset($patronDump['PATRN_NAME'])){
+					$patronName = $patronDump['PATRN_NAME'];
+					list($fullName, $lastName, $firstName) = $this->validatePatronName($username, $patronName);
+				}
+			}
 			$userExistsInDB = false;
 			$user = new User();
 			//Get the unique user id from Millennium
