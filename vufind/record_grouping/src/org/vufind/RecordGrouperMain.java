@@ -1268,8 +1268,11 @@ public class RecordGrouperMain {
 		//Get indexing profiles
 		for (IndexingProfile curProfile : indexingProfiles) {
 			MarcRecordGrouper recordGroupingProcessor;
-			if (curProfile.groupingClass.equals("MarcRecordGrouper")){
+			if (curProfile.groupingClass.equals("MarcRecordGrouper")) {
 				recordGroupingProcessor = new MarcRecordGrouper(dbConnection, curProfile, logger, fullRegrouping);
+			}else if (curProfile.groupingClass.equals("HooplaRecordGrouper")){
+				//Ignore hoopla records since those group separately
+				continue;
 			}else{
 				logger.error("Unknown class for record grouping " + curProfile.groupingClass);
 				continue;
