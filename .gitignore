@@ -81,6 +81,7 @@ ehthumbs.db
 Icon?
 Thumbs.db
 ~$*.docx
+~$*.doc
 
 # Dreamweaver Files #
 #####################
