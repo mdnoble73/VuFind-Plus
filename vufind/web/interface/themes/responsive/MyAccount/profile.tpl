@@ -33,6 +33,7 @@
 					</a>
 					<div id="contactPanel" class="panel-collapse collapse in">
 						<div class="panel-body">
+							{* Empty action attribute uses the page loaded. this keeps the selected user patronId in the parameters passed back to server *}
 							<form action="" method="post" class="form-horizontal" id="contactUpdateForm">
 								<input type="hidden" name="updateScope" value="contact"/>
 								<div class="form-group">
@@ -212,31 +213,43 @@
 							<div class="panel-body">
 
 								{* Empty action attribute uses the page loaded. this keeps the selected user patronId in the parameters passed back to server *}
-								<form action="" method="post" class="form-horizontal">
+								<form action="" method="post" class="form-horizontal" id="pinForm">
 									<input type="hidden" name="updateScope" value="pin">
 									<div class="form-group">
 										<div class="col-xs-4"><label for="pin" class="control-label">{translate text='Old PIN'}:</label></div>
 										<div class="col-xs-8">
-											<input type='password' name='pin' id="pin" value='' size='4' maxlength='4' class="form-control">
+											<input type="password" name="pin" id="pin" value="" size="4" maxlength="4" class="form-control required digits">
 										</div>
 									</div>
 									<div class="form-group">
 										<div class="col-xs-4"><label for="pin1" class="control-label">{translate text='New PIN'}:</label></div>
 										<div class="col-xs-8">
-											<input type='password' name='pin1' id='pin1' value='' size='4' maxlength='4' class="form-control">
+											<input type="password" name="pin1" id="pin1" value="" size="4" maxlength="4" class="form-control required digits">
 										</div>
 									</div>
 									<div class="form-group">
 										<div class="col-xs-4"><label for="pin2" class="control-label">{translate text='Re-enter New PIN'}:</label></div>
 										<div class="col-xs-8">
-												<input type='password' name='pin2' id='pin2' value='' size='4' maxlength='4' class="form-control">
+												<input type="password" name="pin2" id="pin2" value="" size="4" maxlength="4" class="form-control required digits">
 										</div>
 									</div>
 									<div class="form-group">
 										<div class="col-xs-8 col-xs-offset-4">
-											<input type='submit' value='Update' name='update' class="btn btn-primary">
+											<input type="submit" value="Update" name="update" class="btn btn-primary">
 										</div>
 									</div>
+									<script type="text/javascript">
+										{* input classes  'required', 'digits' are validation rules for the validation plugin *}
+										{literal}
+										$("#pinForm").validate({
+											rules: {
+												pin2: {
+													equalTo: "#pin1"
+												}
+											}
+										});
+										{/literal}
+									</script>
 								</form>
 							</div>
 						</div>
@@ -254,6 +267,7 @@
 					</a>
 					<div id="overdrivePanel" class="panel-collapse collapse in">
 						<div class="panel-body">
+							{* Empty action attribute uses the page loaded. this keeps the selected user patronId in the parameters passed back to server *}
 							<form action="" method="post" class="form-horizontal">
 								<input type="hidden" name="updateScope" value="overdrive"/>
 								<div class="form-group">
@@ -319,6 +333,7 @@
 					</a>
 					<div id="userPreference" class="panel-collapse collapse in">
 						<div class="panel-body">
+							{* Empty action attribute uses the page loaded. this keeps the selected user patronId in the parameters passed back to server *}
 							<form action="" method="post" class="form-horizontal">
 								<input type="hidden" name="updateScope" value="userPreference">
 
