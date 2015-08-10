@@ -208,7 +208,12 @@ public class KohaExportMain {
 				int wthdrawn = itemChangeRS.getInt("wthdrawn");
 				int suppress = itemChangeRS.getInt("suppress");
 				String restricted = itemChangeRS.getString("restricted");
-				String onloan = itemChangeRS.getString("onloan");
+				String onloan = "";
+				try {
+					onloan = itemChangeRS.getString("onloan");
+				}catch (SQLException e){
+					logger.warn("Invalid onloan value for bib " + bibNumber + " item " + itemNumber);
+				}
 
 				ItemChangeInfo changeInfo = new ItemChangeInfo();
 				changeInfo.setItemId(itemNumber);
