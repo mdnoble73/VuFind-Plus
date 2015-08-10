@@ -25,11 +25,11 @@ public class OwnershipRule {
 		if (locationCode.length() == 0){
 			locationCode = ".*";
 		}
-		this.locationCodePattern = Pattern.compile(locationCode);
+		this.locationCodePattern = Pattern.compile(locationCode, Pattern.CASE_INSENSITIVE);
 		if (subLocationCode.length() == 0){
 			subLocationCode = ".*";
 		}
-		this.subLocationCodePattern = Pattern.compile(subLocationCode);
+		this.subLocationCodePattern = Pattern.compile(subLocationCode, Pattern.CASE_INSENSITIVE);
 	}
 
 	HashMap<String, Boolean> ownershipResults = new HashMap<>();

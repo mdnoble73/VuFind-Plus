@@ -276,11 +276,14 @@ public class ItemInfo {
 		HashSet<String> owningLibraryValues = new HashSet<>();
 		for (ScopingInfo curScope : scopingInfo.values()){
 			if (curScope.isLibraryOwned() && curScope.getScope().isLibraryScope()) {
-				if (isEContent()) {
+				if (isEContent) {
 					owningLibraryValues.add(curScope.getScope().getFacetLabel() + " Online");
 				}else{
 					owningLibraryValues.add(curScope.getScope().getFacetLabel());
 				}
+			}else if (isEContent){
+				//Show that the collection that this is part of
+				owningLibraryValues.add(shelfLocation);
 			}
 		}
 		return owningLibraryValues;
@@ -293,6 +296,9 @@ public class ItemInfo {
 				owningLibraryValues.add(curScope.getScope().getFacetLabel() + " Online");
 			}else if (curScope.isLocallyOwned() && curScope.getScope().isLocationScope()){
 				owningLibraryValues.add(curScope.getScope().getFacetLabel());
+			}else if (isEContent){
+				//Show that the collection that this is part of
+				owningLibraryValues.add(shelfLocation);
 			}
 		}
 		return owningLibraryValues;
