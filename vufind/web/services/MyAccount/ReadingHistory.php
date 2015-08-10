@@ -131,7 +131,7 @@ class ReadingHistory extends MyAccount
 			}
 		}
 
-		$this->display('readHistory.tpl', 'Reading History');
+		$this->display('readingHistory.tpl', 'Reading History');
 	}
 
 	public function exportToExcel($readingHistory) {
