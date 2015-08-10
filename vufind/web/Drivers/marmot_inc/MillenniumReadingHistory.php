@@ -97,7 +97,8 @@ class MillenniumReadingHistory {
 			//The user does have reading history even though we hadn't detected it before.
 			$patron->trackReadingHistory = true;
 			$patron->update();
-		}if (!$historyActive && $patron->trackReadingHistory){
+		}
+		if (!$historyActive && $patron->trackReadingHistory){
 			//The user does have reading history even though we hadn't detected it before.
 			$patron->trackReadingHistory = false;
 			$patron->update();

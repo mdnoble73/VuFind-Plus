@@ -40,11 +40,11 @@
 		</div>
 	</div>
 
-	<form id='readingListForm' action ="{$fullPath}" class="form-inline">
+	<form id="readingListForm" action="{$fullPath}" class="form-inline">
 		<div class="row">
-			<input type="hidden" name="page" value="{$page}" />
-			<input type="hidden" name="patronId" value="{$selectedUser}" />
-			<input name='readingHistoryAction' id='readingHistoryAction' value='' type='hidden' />
+			<input type="hidden" name="page" value="{$page}">
+			<input type="hidden" name="patronId" value="{$selectedUser}">
+			<input name="readingHistoryAction" id="readingHistoryAction" value="" type="hidden">
 			<div id="readingListActionsTop" class="col-xs-12">
 				<div class="btn-group btn-group-sm">
 					{if $historyActive == true}
