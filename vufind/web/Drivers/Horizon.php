@@ -18,10 +18,10 @@
  *
  */
 
-require_once 'DriverInterface.php';
 require_once ROOT_DIR . '/sys/SIP2.php';
+require_once ROOT_DIR . '/Drivers/ScreenScrapingDriver.php';
+abstract class Horizon extends ScreenScrapingDriver{
 
-abstract class Horizon implements DriverInterface{
 	protected $db;
 	protected $useDb = true;
 	protected $hipUrl;
@@ -588,11 +588,15 @@ abstract class Horizon implements DriverInterface{
 
 	}
 
-	function updatePatronInfo($canUpdateContactInfo){
+	/**
+	 * @param User $user                     The User Object to make updates to
+	 * @param boolean $canUpdateContactInfo  Permission check that updating is allowed
+	 * @return array                         Array of error messages for errors that occurred
+	 */
+	function updatePatronInfo($user, $canUpdateContactInfo){
 		$updateErrors = array();
 		if ($canUpdateContactInfo) {
 			global $configArray;
-			global $user;
 			//Check to make sure the patron alias is valid if provided
 			if (isset($_REQUEST['displayName']) && $_REQUEST['displayName'] != $user->displayName && strlen($_REQUEST['displayName']) > 0) {
 				//make sure the display name is less than 15 characters
@@ -603,14 +607,7 @@ abstract class Horizon implements DriverInterface{
 					//Make sure that we are not using bad words
 					require_once ROOT_DIR . '/Drivers/marmot_inc/BadWord.php';
 					$badWords     = new BadWord();
-					$badWordsList = $badWords->getBadWordExpressions();
-					$okToAdd      = true;
-					foreach ($badWordsList as $badWord) {
-						if (preg_match($badWord, $_REQUEST['displayName'])) {
-							$okToAdd = false;
-							break;
-						}
-					}
+					$okToAdd = $badWords->hasBadWords($_REQUEST['displayName']);
 					if (!$okToAdd) {
 						$updateErrors[] = 'Sorry, that name is in use or invalid.';
 						return $updateErrors;
@@ -625,35 +622,17 @@ abstract class Horizon implements DriverInterface{
 				}
 			}
 
+			// TODO Use screen scraping driver for curl ops
 			//Setup Curl
-			$header    = array();
-			$header[0] = "Accept: text/xml,application/xml,application/xhtml+xml,";
-			$header[0] .= "text/html;q=0.9,text/plain;q=0.8,image/png,*/*;q=0.5";
-			$header[] = "Cache-Control: max-age=0";
-			$header[] = "Connection: keep-alive";
-			$header[] = "Accept-Charset: ISO-8859-1,utf-8;q=0.7,*;q=0.7";
-			$header[] = "Accept-Language: en-us,en;q=0.5";
-			$cookie   = tempnam("/tmp", "CURLCOOKIE");
+			$curl_url        = $this->hipUrl . "/ipac20/ipac.jsp?profile={$configArray['Catalog']['hipProfile']}&menu=account";
+			$this->_curl_connect($curl_url, array(
+				CURLOPT_COOKIESESSION => true,
+			));
 
 			//Start at My Account Page
-			$curl_url        = $this->hipUrl . "/ipac20/ipac.jsp?profile={$configArray['Catalog']['hipProfile']}&menu=account";
-			$curl_connection = curl_init($curl_url);
-			curl_setopt($curl_connection, CURLOPT_CONNECTTIMEOUT, 30);
-			curl_setopt($curl_connection, CURLOPT_HTTPHEADER, $header);
-			curl_setopt($curl_connection, CURLOPT_USERAGENT, "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)");
-			curl_setopt($curl_connection, CURLOPT_RETURNTRANSFER, true);
-			curl_setopt($curl_connection, CURLOPT_SSL_VERIFYPEER, false);
-			curl_setopt($curl_connection, CURLOPT_FOLLOWLOCATION, true);
-			curl_setopt($curl_connection, CURLOPT_UNRESTRICTED_AUTH, true);
-			curl_setopt($curl_connection, CURLOPT_COOKIEJAR, $cookie);
-			curl_setopt($curl_connection, CURLOPT_COOKIESESSION, true);
-			curl_setopt($curl_connection, CURLOPT_REFERER, $curl_url);
-			curl_setopt($curl_connection, CURLOPT_FORBID_REUSE, false);
-			curl_setopt($curl_connection, CURLOPT_HEADER, false);
-			curl_setopt($curl_connection, CURLOPT_HTTPGET, true);
-			$sresult = curl_exec($curl_connection);
+			$sresult = $this->_curlGetPage($curl_url);
 			global $logger;
-			$logger->log("Loading Full Record $curl_url", PEAR_LOG_INFO);
+			$logger->log("Logging into user account from updatePatronInfo $curl_url", PEAR_LOG_INFO);
 
 			//Extract the session id from the requestcopy javascript on the page
 			if (preg_match('/\\?session=(.*?)&/s', $sresult, $matches)) {
@@ -663,7 +642,6 @@ abstract class Horizon implements DriverInterface{
 			}
 
 			//Login by posting username and password
-			curl_setopt($curl_connection, CURLOPT_POST, true);
 			$post_data   = array(
 				'aspect' => 'overview',
 				'button' => 'Login to Your Account',
@@ -679,14 +657,11 @@ abstract class Horizon implements DriverInterface{
 				'session' => $sessionId,
 				//'spp' => '20'
 			);
-			$post_string = http_build_query($post_data);
 			$curl_url    = $this->hipUrl . "/ipac20/ipac.jsp";
-			curl_setopt($curl_connection, CURLOPT_URL, $curl_url);
-			curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
-			$sresult = curl_exec($curl_connection);
+			$sresult = $this->_curlPostPage($curl_url, $post_data);
 
-			/** @var Memcache $memCache */
-			global $memCache; // needed here?
+//			/** @var Memcache $memCache */
+//			global $memCache; // needed here?
 
 			//update patron information.  Use HIP to update the e-mail to make sure that all business rules are followed.
 			if (isset($_REQUEST['email'])) {
@@ -701,9 +676,7 @@ abstract class Horizon implements DriverInterface{
 					'submenu' => 'info',
 					'updateemail' => 'Update',
 				);
-				$post_string = http_build_query($post_data);
-				curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
-				$sresult = curl_exec($curl_connection);
+				$sresult =$this->_curlPostPage($curl_url, $post_data);
 
 				//check for errors in boldRedFont1
 				if (preg_match('/<td.*?class="boldRedFont1".*?>(.*?)(?:<br>)*<\/td>/si', $sresult, $matches)) {
@@ -726,9 +699,7 @@ abstract class Horizon implements DriverInterface{
 					'submenu' => 'info',
 					'updatepin' => 'Update',
 				);
-				$post_string = http_build_query($post_data);
-				curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
-				$sresult = curl_exec($curl_connection);
+				$sresult =$this->_curlPostPage($curl_url, $post_data);
 
 				//check for errors in boldRedFont1
 				if (preg_match('/<td.*?class="boldRedFont1".*?>(.*?)(?:<br>)*<\/td>/', $sresult, $matches)) {
@@ -771,10 +742,9 @@ abstract class Horizon implements DriverInterface{
 
 			// update Pika user data & clear cache of patron profile
 			$user->update();
-			UserAccount::updateSession($user);
-			$this->clearPatronProfile(); // Make sure to clear any cached data
+//			UserAccount::updateSession($user); //TODO if this is required it must be determined that the user being updated is the same as the session holding user.
+			$user->deletePatronProfileCache();
 
-			unlink($cookie);
 		} else $updateErrors[] = 'You do not have permission to update profile information.';
 		return $updateErrors;
 	}
@@ -897,10 +867,17 @@ abstract class Horizon implements DriverInterface{
 		return $result;
 	}
 
-	public function clearPatronProfile() {
-		/** @var Memcache $memCache */
-		global $memCache, $user, $serverName;
-		$memCache->delete("patronProfile_{$serverName}_{$user->username}");
+	// This function is duplicated in the User Object as deletePatronProfileCache()
+	// That function should be preferred over this now. plb 8-5-2015
+	/**
+	 * @param null|User $patron
+	 */
+	public function clearPatronProfile($patron = null) {
+		if (is_null($patron)) {
+			global $user;
+			$patron = $user;
+		}
+		$patron->deletePatronProfileCache();
 	}
 
 	abstract function translateCollection($collection);

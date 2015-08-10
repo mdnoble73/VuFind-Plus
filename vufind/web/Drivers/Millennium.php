@@ -171,6 +171,7 @@ class Millennium extends ScreenScrapingDriver
 		}
 	}
 
+	// use User->isStaff() instead
 	public function isUserStaff(){
 		global $configArray;
 		global $user;
@@ -1022,15 +1023,19 @@ public function getBookingCalendar($recordId) {
 	return $millenniumBooking->getBookingCalendar($recordId);
 }
 
-	public function updatePatronInfo($canUpdateContactInfo){
-		global $user;
-		global $analytics;
+	/**
+	 * @param User $user                     The User Object to make updates to
+	 * @param boolean $canUpdateContactInfo  Permission check that updating is allowed
+	 * @return array                         Array of error messages for errors that occurred
+	 */
+	public function updatePatronInfo($user, $canUpdateContactInfo){
 		$updateErrors = array();
 
-		//Setup the call to Millennium
-		$patronDump = $this->_getPatronDump($this->_getBarcode());
-
 		if ($canUpdateContactInfo){
+			//Setup the call to Millennium
+			$barcode = $this->_getBarcode($user);
+			$patronDump = $this->_getPatronDump($barcode);
+
 			//Update profile information
 			$extraPostInfo = array();
 			if (isset($_REQUEST['address1'])){
@@ -1058,7 +1063,6 @@ public function getBookingCalendar($recordId) {
 			}
 
 			if (isset($_REQUEST['mobileNumber'])){
-//				$ils = $configArray['Catalog']['ils']; // code not used anywhere. plb 4-29-2015
 				$extraPostInfo['mobile'] = preg_replace('/\D/', '', $_REQUEST['mobileNumber']);
 				if (strlen($_REQUEST['mobileNumber']) > 0 && $_REQUEST['smsNotices'] == 'on'){
 					$extraPostInfo['optin'] = 'on';
@@ -1082,62 +1086,20 @@ public function getBookingCalendar($recordId) {
 			}
 
 			//Login to the patron's account
-			$cookieJar = tempnam ("/tmp", "CURLCOOKIE");
-
-			$scope = $this->getMillenniumScope();
-			$curl_url = $this->getVendorOpacUrl() . "/patroninfo~" . $scope;
-
-			//TODO: use _curl_login() instead
-
-			$curl_connection = curl_init($curl_url);
-			curl_setopt($curl_connection, CURLOPT_CONNECTTIMEOUT, 30);
-			curl_setopt($curl_connection, CURLOPT_USERAGENT,"Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)");
-			curl_setopt($curl_connection, CURLOPT_RETURNTRANSFER, true);
-			curl_setopt($curl_connection, CURLOPT_SSL_VERIFYPEER, false);
-			curl_setopt($curl_connection, CURLOPT_FOLLOWLOCATION, 1);
-			curl_setopt($curl_connection, CURLOPT_UNRESTRICTED_AUTH, true);
-			curl_setopt($curl_connection, CURLOPT_COOKIEJAR, $cookieJar );
-			curl_setopt($curl_connection, CURLOPT_COOKIESESSION, false);
-			curl_setopt($curl_connection, CURLOPT_POST, true);
-			$post_data = $this->_getLoginFormValues($user);
-			$post_string = http_build_query($post_data);
-			curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
-			$loginResult = curl_exec($curl_connection);
-
-			//TODO: success check for login? Expired cards will be rejected
-
-			//When a library uses Encore, the initial login does a redirect and requires additional parameters.
-			if (preg_match('/<input type="hidden" name="lt" value="(.*?)" \/>/si', $loginResult, $loginMatches)) {
-				//Get the lt value
-				$lt = $loginMatches[1];
-				//Login again
-				$post_data['lt'] = $lt;
-				$post_data['_eventId'] = 'submit';
-				$post_string = http_build_query($post_data);
-				curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
-				$loginResult = curl_exec($curl_connection);
-				$curlInfo = curl_getinfo($curl_connection);
-			}
+			$this->_curl_login($user);
 
 			//Issue a post request to update the patron information
-			$patronUpdateParams = http_build_query($extraPostInfo);
-			curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $patronUpdateParams);
+			$scope = $this->getMillenniumScope();
 			$curl_url = $this->getVendorOpacUrl() . "/patroninfo~S{$scope}/" . $patronDump['RECORD_#'] ."/modpinfo";
-			curl_setopt($curl_connection, CURLOPT_URL, $curl_url);
-			$sresult = curl_exec($curl_connection);
-
-			curl_close($curl_connection);
-			unlink($cookieJar);
-
+			$sresult = $this->_curlPostPage($curl_url, $extraPostInfo);
 
 		// Update Patron Information on success
+			global $analytics;
 		if (isset($sresult) && strpos($sresult, 'Patron information updated') !== false){
 			$user->phone = $_REQUEST['phone'];
 			$user->email = $_REQUEST['email'];
 			$user->update();
 
-			//Update the serialized instance stored in the session
-			$_SESSION['userinfo'] = serialize($user);
 			if ($analytics){
 				$analytics->addEvent('ILS Integration', 'Profile updated successfully');
 			}
@@ -1153,8 +1115,9 @@ public function getBookingCalendar($recordId) {
 		//Make sure to clear any cached data
 		/** @var Memcache $memCache */
 		global $memCache;
-		$memCache->delete("patron_dump_{$this->_getBarcode()}");
-		$this->clearPatronProfile();
+		$memCache->delete("patron_dump_$barcode");
+			$user->deletePatronProfileCache();
+//		$this->clearPatronProfile();
 
 		} else $updateErrors[] = 'You can not update your information.';
 		return $updateErrors;
@@ -1926,11 +1889,19 @@ public function getBookingCalendar($recordId) {
 	}
 
 	// This function is duplicated in the User Object as deletePatronProfileCache()
-	public function clearPatronProfile() {
-		/** @var Memcache $memCache
-		 * @var User $user */
-		global $memCache, $user, $serverName;
-		$memCache->delete("patronProfile_{$serverName}_{$user->username}");
+	// That function should be preferred over this now. plb 8-5-2015
+	/**
+	 * @param null|User $patron
+	 */
+	public function clearPatronProfile($patron = null) {
+		if (is_null($patron)) {
+			global $user;
+			$patron = $user;
+		}
+		$patron->deletePatronProfileCache();
+//		/** @var Memcache $memCache */
+//		global $memCache, $serverName;
+//		$memCache->delete("patronProfile_{$serverName}_{$patron->username}");
 	}
 
 	public function getSelfRegistrationFields(){

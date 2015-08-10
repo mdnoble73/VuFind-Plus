@@ -1133,4 +1133,12 @@ class LibrarySolution extends ScreenScrapingDriver {
 		}
 		return $result;
 	}
+
+	function updatePin($user, $oldPin, $newPin, $confirmNewPin){
+		/* var Logger $logger */
+		global $logger;
+		$logger->log('Call to updatePin(), function not implemented.', PEAR_LOG_WARNING);
+
+		return 'Can not update Pins';
+	}
 }

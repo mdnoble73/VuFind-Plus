@@ -24,76 +24,88 @@ require_once 'Structures/DataGrid.php';
 
 class Fines extends MyAccount
 {
+	private $currency_symbol = '$';
+
 	function launch()
 	{
-		global $interface;
-		global $finesIndexEngine;
-		global $configArray;
+		global $interface,
+		       $user,
+		       $configArray;
 
 		$ils = $configArray['Catalog']['ils'];
 		$interface->assign('showDate', $ils == 'Koha' || $ils == 'Horizon');
 		$interface->assign('showReason', $ils != 'Koha');
-		$interface->assign('showOutstanding', $ils == 'Koha');
+		$useOutstanding = $ils == 'Koha';
+		$interface->assign('showOutstanding', $useOutstanding);
 
-		// Get My Fines
-		if ($patron = $this->catalogLogin()) {
-			if (PEAR_Singleton::isError($patron)){
-				PEAR_Singleton::raiseError($patron);
-			}
-			if ($this->catalog->checkFunction('getMyFines')){
-				$result = $this->catalog->getMyFines($patron, true);
-				if (!PEAR_Singleton::isError($result)) {
-					$interface->assign('fines', $result);
-				}else{
-					PEAR_Singleton::raiseError($result);
+		if ($user) {
+			// Get My Fines
+			$fines = $user->getMyFines();
+			$interface->assign('userFines', $fines);
+//			$minimumFineAmount = $interface->get_template_vars('minimumFineAmount');
+//			$canShowPayFineButton = false;
+
+			// Get Account Labels, Add Up Totals
+			foreach($fines as $userId => $finesDetails) {
+				$userAccountLabel[$userId] = $user->getUserReferredTo($userId)->getNameAndLibraryLabel();
+				$total = $totalOutstanding = 0;
+				foreach ($finesDetails as $fine) {
+					$amount = ltrim($fine['amount'], $this->currency_symbol);
+					if (is_numeric($amount)) $total += $amount;
+					if ($useOutstanding && $fine['amountOutstanding']) {
+						$outstanding = ltrim($fine['amountOutstanding'], $this->currency_symbol);
+						if (is_numeric($outstanding)) $totalOutstanding += $outstanding;
+					}
 				}
-			}else{
-				$interface->assign('finesData', translate('This catalog does not support listing fines.'));
+
+//				if ($total > $minimumFineAmount) $canShowPayFineButton = true;
+				$fineTotals[$userId] = $this->currency_symbol . number_format($total, 2);
+//				$fineTotals[$userId] = formatNumber($total);  // formatNumber code below doesn't seem to work on $total
+
+				if ($useOutstanding) {
+//					if ($totalOutstanding > $minimumFineAmount) $canShowPayFineButton = true;
+					$outstandingTotal[$userId] = $this->currency_symbol . number_format($totalOutstanding, 2);
+				}
 			}
+
+//			$interface->assign('canShowPayFineButton', $canShowPayFineButton);
+			$interface->assign('userAccountLabel', $userAccountLabel);
+			$interface->assign('fineTotals', $fineTotals);
+			if ($useOutstanding) $interface->assign('outstandingTotal', $outstandingTotal);
 		}
 
-		$interface->assign('sidebar', 'MyAccount/account-sidebar.tpl');
-		$interface->setTemplate('fines.tpl');
-		$interface->setPageTitle('My Fines');
-		$interface->display('layout.tpl');
+		$this->display('fines.tpl', 'My Fines');
 	}
 
 }
 
-function printLink($params)
+// Doesn't look to be in use any longer. plb 8-3-2015
+//function printLink($params)
+//{
+//	global $configArray;
+//	global $finesIndexEngine;
+//
+//	extract($params);
+//
+//	if ($record['id']) {
+//		$record = $finesIndexEngine->getRecord($record['id']);
+//		return '<a href="' . $configArray['Site']['path'] . '/Record/' . urlencode($record['id']) . '">' . htmlspecialchars($record['title_short']) . '</a>';
+//	} else {
+//		if ($record['comment']){
+//			$record['comment'];
+//		}else{
+//			return "Unknown";
+//		}
+//
+//	}
+//}
+
+/**
+ * @param $number          number to be displayed as monetary value
+ * @return mixed|string    string to be displayed
+ */
+function formatNumber($number)
 {
-	global $configArray;
-	global $finesIndexEngine;
-
-	extract($params);
-
-	if ($record['id']) {
-		$record = $finesIndexEngine->getRecord($record['id']);
-		return '<a href="' . $configArray['Site']['path'] . '/Record/' . urlencode($record['id']) . '">' . htmlspecialchars($record['title_short']) . '</a>';
-	} else {
-		if ($record['comment']){
-			$record['comment'];
-		}else{
-			return "Unknown";
-		}
-
-	}
-}
-
-function formatNumber($params)
-{
-	extract($params);
-	if ($record[$fieldName]) {
-		// Insert the decimal point in the appropriate place (we're converting a
-		// value represented in pennies).  Note that we need to force the fractional
-		// portion of the number to two decimal places in order to prevent $0.05
-		// turning into $0.50:
-		$number = substr($record[$fieldName], 0, -2) . '.' .
-		sprintf("%02d", substr($record[$fieldName], -2));
-	} else {
-		$number = 0;
-	}
-
 	// money_format() does not exist on windows
 	if (function_exists('money_format')) {
 		return money_format('%.2n', $number);
@@ -101,6 +113,29 @@ function formatNumber($params)
 		return safeMoneyFormat($number);
 	}
 }
+
+// A previous version
+//function formatNumber($params)
+//{
+//	extract($params);
+//	if ($record[$fieldName]) {
+//		// Insert the decimal point in the appropriate place (we're converting a
+//		// value represented in pennies).  Note that we need to force the fractional
+//		// portion of the number to two decimal places in order to prevent $0.05
+//		// turning into $0.50:
+//		$number = substr($record[$fieldName], 0, -2) . '.' .
+//		sprintf("%02d", substr($record[$fieldName], -2));
+//	} else {
+//		$number = 0;
+//	}
+//
+//	// money_format() does not exist on windows
+//	if (function_exists('money_format')) {
+//		return money_format('%.2n', $number);
+//	} else {
+//		return safeMoneyFormat($number);
+//	}
+//}
 
 // Windows alternatives
 function safeMoneyFormat($number)
@@ -242,4 +277,3 @@ function safeMoneyFormatMakeUTF8($instr){
 	}
 	return $outstr;
 }
-?>

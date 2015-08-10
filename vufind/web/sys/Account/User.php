@@ -92,8 +92,8 @@ class User extends DB_DataObject
 		$tagList = array();
 
 		$sql = "SELECT id, groupedRecordPermanentId, tag, COUNT(groupedRecordPermanentId) AS cnt " .
-               "FROM user_tags WHERE " .
-               "userId = '{$this->id}' ";
+							 "FROM user_tags WHERE " .
+							 "userId = '{$this->id}' ";
 		$sql .= "GROUP BY tag ORDER BY tag ASC";
 		$tag = new UserTag();
 		$tag->query($sql);
@@ -113,8 +113,8 @@ class User extends DB_DataObject
 		$lists = array();
 
 		$sql = "SELECT user_list.* FROM user_list " .
-               "WHERE user_list.user_id = '$this->id' " .
-               "ORDER BY user_list.title";
+							 "WHERE user_list.user_id = '$this->id' " .
+							 "ORDER BY user_list.title";
 		$list = new UserList();
 		$list->query($sql);
 		if ($list->N) {
@@ -140,9 +140,7 @@ class User extends DB_DataObject
 				$catalogDriver = $accountProfile->driver;
 				$this->catalogDriver = CatalogFactory::getCatalogConnectionInstance($catalogDriver, $accountProfile);
 			}
-
 		}
-
 		return $this->catalogDriver;
 	}
 
@@ -375,7 +373,7 @@ class User extends DB_DataObject
 	function addLinkedUser($user){
 		/* var Library $library */
 		global $library;
-		if ($library->allowLinkedAccounts) {
+		if ($library->allowLinkedAccounts && $user->id != $this->id) { // library allows linked accounts and the account to link is not itself
 			$linkedUsers = $this->getLinkedUsers();
 			/** @var User $existingUser */
 			foreach ($linkedUsers as $existingUser) {
@@ -423,12 +421,7 @@ class User extends DB_DataObject
 	function update(){
 		$result = parent::update();
 		$this->saveRoles();
-
-		// Every update to object requires clearing the Memcached version of the object & the version stored in the $_SESSION variable
-//		if ($result) {
-			$this->deletePatronProfileCache();
-			$_SESSION['userinfo'] = serialize($this);
-//		}
+		$this->deletePatronProfileCache(); // Every update to object requires clearing the Memcached version of the object
 		return $result;
 	}
 
@@ -455,9 +448,9 @@ class User extends DB_DataObject
 		$roleList = Role::getLookup();
 
 		$structure = array(
-          'id' => array('property'=>'id', 'type'=>'label', 'label'=>'Administrator Id', 'description'=>'The unique id of the in the system'),
-          'firstname' => array('property'=>'firstname', 'type'=>'label', 'label'=>'First Name', 'description'=>'The first name for the user.'),
-          'lastname' => array('property'=>'lastname', 'type'=>'label', 'label'=>'Last Name', 'description'=>'The last name of the user.'),
+					'id' => array('property'=>'id', 'type'=>'label', 'label'=>'Administrator Id', 'description'=>'The unique id of the in the system'),
+					'firstname' => array('property'=>'firstname', 'type'=>'label', 'label'=>'First Name', 'description'=>'The first name for the user.'),
+					'lastname' => array('property'=>'lastname', 'type'=>'label', 'label'=>'Last Name', 'description'=>'The last name of the user.'),
 		);
 
 		global $configArray;
@@ -504,13 +497,10 @@ class User extends DB_DataObject
 			$this->overdriveEmail = strip_tags($_REQUEST['overdriveEmail']);
 		}
 		$this->update();
-//		//Update the serialized instance stored in the session
-//		$_SESSION['userinfo'] = serialize($this);
-//		$this->deletePatronProfileCache();
 	}
 
-	function updateCatalogOptions(){
-		//Validate that the input data is correct
+	function updateUserPreferences(){
+		// Validate that the input data is correct
 		if (isset($_POST['myLocation1']) && preg_match('/^\d{1,3}$/', $_POST['myLocation1']) == 0){
 			PEAR_Singleton::raiseError('The 1st location had an incorrect format.');
 		}
@@ -526,28 +516,22 @@ class User extends DB_DataObject
 		//Make sure the selected location codes are in the database.
 		if (isset($_POST['myLocation1'])){
 			$location = new Location();
-			$location->whereAdd("locationId = '{$_POST['myLocation1']}'");
-			$location->find();
+			$location->get('locationId', $_POST['myLocation1'] );
 			if ($location->N != 1) {
 				PEAR_Singleton::raiseError('The 1st location could not be found in the database.');
+			} else {
+				$this->myLocation1Id = $_POST['myLocation1'];
 			}
-			$this->myLocation1Id = $_POST['myLocation1'];
 		}
 		if (isset($_POST['myLocation2'])){
 			$location = new Location();
-			$location->whereAdd();
-			$location->whereAdd("locationId = '{$_POST['myLocation2']}'");
-			$location->find();
+			$location->get('locationId', $_POST['myLocation2'] );
 			if ($location->N != 1) {
 				PEAR_Singleton::raiseError('The 2nd location could not be found in the database.');
+			} else {
+				$this->myLocation2Id = $_POST['myLocation2'];
 			}
-			$this->myLocation2Id = $_POST['myLocation2'];
 		}
-		$this->update();
-
-	}
-
-	function updateUserPreferences(){
 
 		$this->noPromptForUserReviews = (isset($_POST['noPromptForUserReviews']) && $_POST['noPromptForUserReviews'] == 'on')? 1 : 0;
 		return $this->update();
@@ -556,10 +540,11 @@ class User extends DB_DataObject
 	/**
 	 * Clear out the cached version of the patron profile.
 	 */
-	private function deletePatronProfileCache(){
+	function deletePatronProfileCache(){
 		/** @var Memcache $memCache */
 		global $memCache, $serverName;
-		$memCache->delete("patronProfile_{$serverName}_" . $this->username);
+		$memCache->delete("user_{$serverName}_" . $this->id); // now stored by User object id column
+//		$memCache->delete("patronProfile_{$serverName}_" . $this->username);
 	}
 
 	/**
@@ -740,7 +725,24 @@ class User extends DB_DataObject
 		}
 		return $ilsBookings;
 	}
-	
+
+	public function getMyFines($includeLinkedUsers = true){
+		$ilsFines[$this->id] = $this->getCatalogDriver()->getMyFines($this);
+		if (PEAR_Singleton::isError($ilsFines)) {
+			$ilsFines[$this->id] = array();
+		}
+
+		if ($includeLinkedUsers) {
+			if ($this->getLinkedUsers() != null) {
+				/** @var User $user */
+				foreach ($this->getLinkedUsers() as $user) {
+					$ilsFines += $user->getMyFines(false); // keep keys as userId
+				}
+			}
+		}
+		return $ilsFines;
+	}
+
 	public function getNameAndLibraryLabel(){
 		return $this->displayName . ' - ' . $this->getHomeLibrarySystemName();
 	}
@@ -831,6 +833,7 @@ class User extends DB_DataObject
 			foreach ($this->getLinkedUsers() as $tmpUser){
 				if ($tmpUser->id == $patronId){
 					$patron = $tmpUser;
+					break;
 				}
 			}
 		}
@@ -895,20 +898,58 @@ class User extends DB_DataObject
 		$this->getCatalogDriver()->doReadingHistoryAction($this, $readingHistoryAction, $selectedTitles);
 	}
 
+	/**
+	 * Used by Account Profile, to show users any additional Admin roles they may have.
+	 * @return bool
+	 */
 	public function isStaff(){
 		global $configArray;
 		if (count($this->getRoles()) > 0){
 			return true;
-		}else if (isset($configArray['Staff P-Types'])){
+		}elseif (isset($configArray['Staff P-Types'])){
 			$staffPTypes = $configArray['Staff P-Types'];
 			$pType = $this->patronType();
-			if (array_key_exists($pType, $staffPTypes)){
+			if ($pType && array_key_exists($pType, $staffPTypes)){
 				return true;
-			}else{
-				return false;
 			}
-		}else{
-			return false;
 		}
+		return false;
+	}
+
+	public function patronType(){
+		$catalog = $this->getCatalogDriver();
+		if (method_exists($catalog, 'patronType')) { // TODO implement in drivers
+			return $catalog->patronType();
+		}
+		return false;
+	}
+
+	public function updatePatronInfo($canUpdateContactInfo){
+		return $this->getCatalogDriver()->updatePatronInfo($this, $canUpdateContactInfo);
+	}
+
+	public function updatePin(){
+		if (isset($_REQUEST['pin'])){
+			$oldpin = $_REQUEST['pin'];
+		}else{
+			return "Please enter your current pin number";
+		}
+		if ($this->cat_password != $oldpin){
+			return "The old pin number is incorrect";
+		}
+		if (!empty($_REQUEST['pin1'])){
+			$newPin = $_REQUEST['pin1'];
+		}else{
+			return "Please enter the new pin number";
+		}
+		if (!empty($_REQUEST['pin2'])){
+			$confirmNewPin = $_REQUEST['pin2'];
+		}else{
+			return "Please enter the new pin number again";
+		}
+		if ($newPin != $confirmNewPin){
+			return "New PINs do not match. Please try again.";
+		}
+		return $this->getCatalogDriver()->updatePin($this, $oldpin, $newPin, $confirmNewPin);
 	}
 }

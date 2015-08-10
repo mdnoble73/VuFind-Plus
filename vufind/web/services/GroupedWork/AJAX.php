@@ -408,7 +408,8 @@ class GroupedWork_AJAX {
 				$interface->assign('userReview', $groupedWorkReview->review);
 			}
 
-			$title   = ($library->showFavorites && !$library->showComments) ? 'Rating' : 'Review';
+//			$title   = ($library->showFavorites && !$library->showComments) ? 'Rating' : 'Review'; // the library object doesn't seem to have the up-to-date settings.
+			$title   = ($interface->get_template_vars('showRatings') && !$interface->get_template_vars('showComments')) ? 'Rating' : 'Review';
 			$results = array(
 				'title' => $title,
 				'modalBody' => $interface->fetch("GroupedWork/review-form-body.tpl"),
@@ -436,7 +437,7 @@ class GroupedWork_AJAX {
 		} else {
 			require_once ROOT_DIR . '/sys/LocalEnrichment/UserWorkReview.php';
 			$id        = $_REQUEST['id'];
-			$rating    = $_REQUEST['rating'];
+			$rating    = isset($_REQUEST['rating']) ? $_REQUEST['rating'] : '';
 			$HadReview = isset($_REQUEST['comment']); // did form have the review field turned on? (may be only ratings instead)
 			$comment   = $HadReview ? trim($_REQUEST['comment']) : ''; //avoids undefined index notice when doing only ratings.
 
@@ -454,7 +455,7 @@ class GroupedWork_AJAX {
 				$groupedWorkReview->dateRated = time();
 				$success = $groupedWorkReview->insert();
 			} else {
-				if ($rating != $groupedWorkReview->rating || ($HadReview && $comment != $groupedWorkReview->review)) { // update gives an error if the updated values are the same as stored values.
+				if ((!empty($rating) && $rating != $groupedWorkReview->rating) || ($HadReview && $comment != $groupedWorkReview->review)) { // update gives an error if the updated values are the same as stored values.
 					if ($HadReview) $groupedWorkReview->review = $comment; // only update the review if the review input was in the form.
 					$success = $groupedWorkReview->update();
 				} else $success = true; // pretend success since values are already set to same values.
@@ -470,8 +471,6 @@ class GroupedWork_AJAX {
 				$interface->assign('review', $groupedWorkReview);
 				$result['reviewHtml'] = $interface->fetch('GroupedWork/view-user-review.tpl');
 			}
-			//TODO update side bar histogram as well? call appropriate driver? Update stars in covers mode? (This is called from a variety of places)
-
 		}
 
 		return json_encode($result);

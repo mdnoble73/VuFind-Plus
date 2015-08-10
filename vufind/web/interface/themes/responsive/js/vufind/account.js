@@ -150,7 +150,7 @@ VuFind.Account = (function(){
 					data: {username: username, password: password},
 					success: function (response) {
 						if (response.result == true) {
-							VuFind.showMessage("Account to Manage", "Successfully linked the account.", true, true);
+							VuFind.showMessage("Account to Manage", response.message ? response.message : "Successfully linked the account.", true, true);
 						} else {
 							loginErrorElem.text(response.message);
 							loginErrorElem.show();
@@ -262,11 +262,8 @@ VuFind.Account = (function(){
 		},
 
 		renewAll: function() {
-			if (!Globals.loggedIn) {
-				this.ajaxLogin(null, function () {
-					this.renewAll();
-				}, false);
-			} else if (confirm('Renew All Items?')) {
+			if (Globals.loggedIn) {
+				if (confirm('Renew All Items?')) {
 					VuFind.showMessage('Loading', 'Loading, please wait');
 					$.getJSON(Globals.path + "/MyAccount/AJAX?method=renewAll", function (data) {
 						VuFind.showMessage(data.title, data.modalBody, data.success);
@@ -277,31 +274,30 @@ VuFind.Account = (function(){
 								location.reload(true);
 							});
 						}
-					}).fail(function(){
-						VuFind.ajaxFail()
-					});
+					}).fail(VuFind.ajaxFail);
 				}
+			} else {
+				this.ajaxLogin(null, this.renewAll, true);
+				//auto close so that if user opts out of renew, the login window closes; if the users continues, follow-up operations will reopen modal
+			}
 			return false;
 		},
 
 		renewSelectedTitles: function () {
-			if (!Globals.loggedIn) {
-				this.ajaxLogin(null, function () {
-					this.renewSelectedTitles();
-				}, false);
-			} else {
+			if (Globals.loggedIn) {
 				var selectedTitles = VuFind.getSelectedTitles();
 				if (selectedTitles) {
 					if (confirm('Renew selected Items?')) {
-						VuFind.showMessage('Loading', 'Loading, please wait');
-						$.getJSON(Globals.path + "/MyAccount/AJAX?method=renewSelectedItems&"+selectedTitles, function (data) {
+						VuFind.loadingMessage();
+						$.getJSON(Globals.path + "/MyAccount/AJAX?method=renewSelectedItems&" + selectedTitles, function (data) {
 							var reload = data.success || data.renewed > 0;
 							VuFind.showMessage(data.title, data.modalBody, data.success, reload);
-						}).fail(function(){
-							VuFind.showMessage('Request Failed', 'There was an error with this AJAX Request.');
-						});
+						}).fail(VuFind.ajaxFail);
 					}
 				}
+			} else {
+				this.ajaxLogin(null, this.renewSelectedTitles, true);
+				 //auto close so that if user opts out of renew, the login window closes; if the users continues, follow-up operations will reopen modal
 			}
 			return false
 		},

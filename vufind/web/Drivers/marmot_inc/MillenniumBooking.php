@@ -110,7 +110,7 @@ class MillenniumBooking {
 
 		$post = array(
 			'webbook_pnum' => $patronId,
-			'webbook_pagen' => $pageN ? $pageN : '2', // needed, reading from screen scrape; 2 or 4 are the only values i have seen so far. plb 7-16-2015
+			'webbook_pagen' => empty($pageN) ? '2' : $pageN, // needed, reading from screen scrape; 2 or 4 are the only values i have seen so far. plb 7-16-2015
 //			'refresh_cal' => '0', // not needed
 //			'webbook_loc' => 'flmdv', // this may only be needed when the scoping is used
 		  'webbook_bgn_Month' => $startDateTime->format('m'),
@@ -212,7 +212,7 @@ class MillenniumBooking {
 		foreach ($cancelIds as $cancelId) {
 			// successful cancels return books page without the item
 			if (strpos($curlResponse, $cancelId) !== false) { // looking for this booking in results, meaning it failed to cancel.
-				if (empty($errors)) $bookings = $this->parseBookingsPage($curlResponse);
+				if (empty($errors)) $bookings = $this->parseBookingsPage($curlResponse); // get current bookings on first error
 					// get bookings info on the first detected error
 				foreach ($bookings as $booking){
 					if ($booking['cancelValue'] == $cancelId) break;
@@ -221,18 +221,24 @@ class MillenniumBooking {
 			}
 		}
 
-		if (empty($errors)) return array(
-			'success' => true,
-			'message' => 'Your booking'.(count($cancelIds) > 1 ? 's were': ' was').' successfully canceled.'
-		);
-		else return array(
-			'success' => false,
-			'message' => $errors
-		);
+
+		if (empty($errors)) {
+			return array(
+				'success' => true,
+				'message' => 'Your booking' . (count($cancelIds) > 1 ? 's were' : ' was') . ' successfully canceled.'
+			);
+		}
+		else {
+			return array(
+				'success' => false,
+				'message' => $errors
+			);
+		}
 	}
 
 	public function cancelAllBookedMaterial() {
 		global $user;
+		/** @var Millennium $driver */
 		$driver = &$this->driver;
 		$scope = $driver->getLibraryScope();
 		$patronInfo = $driver->_getPatronDump($user->getBarcode());
@@ -372,6 +378,7 @@ class MillenniumBooking {
 
 
 	public function getBookingCalendar($recordId){
+		if (strpos($recordId, ':') !== false) list(,$recordId) = explode(':', $recordId, 2); // remove any prefix from the recordId
 		$bib = $this->getShortId($recordId);
 		$driver = &$this->driver;
 

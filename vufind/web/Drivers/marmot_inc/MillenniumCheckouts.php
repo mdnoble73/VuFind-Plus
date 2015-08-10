@@ -213,68 +213,72 @@ class MillenniumCheckouts {
 
 	public function renewAll($patron){
 		global $logger;
+		$driver = &$this->driver;
 
 		//Setup the call to Millennium
-		$barcode = $this->driver->_getBarcode();
-		$patronDump = $this->driver->_getPatronDump($barcode);
+		$barcode = $driver->_getBarcode($patron);
+		$patronDump = $driver->_getPatronDump($barcode);
 		$curCheckedOut = $patronDump['CUR_CHKOUT'];
 
 		//Login to the patron's account
-		$cookieJar = tempnam ("/tmp", "CURLCOOKIE");
-
-		$curl_url = $this->driver->getVendorOpacUrl() . "/patroninfo";
-		$logger->log('Loading page ' . $curl_url, PEAR_LOG_INFO);
-
-		$curl_connection = curl_init($curl_url);
-		curl_setopt($curl_connection, CURLOPT_CONNECTTIMEOUT, 30);
-		curl_setopt($curl_connection, CURLOPT_USERAGENT,"Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)");
-		curl_setopt($curl_connection, CURLOPT_RETURNTRANSFER, true);
-		curl_setopt($curl_connection, CURLOPT_SSL_VERIFYPEER, false);
-		curl_setopt($curl_connection, CURLOPT_FOLLOWLOCATION, 1);
-		curl_setopt($curl_connection, CURLOPT_UNRESTRICTED_AUTH, true);
-		curl_setopt($curl_connection, CURLOPT_COOKIEJAR, $cookieJar );
-		curl_setopt($curl_connection, CURLOPT_COOKIESESSION, false);
-		curl_setopt($curl_connection, CURLOPT_POST, true);
-		$post_data = $this->driver->_getLoginFormValues($patron);
-		$post_string = http_build_query($post_data);
-		curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
-		$loginResult = curl_exec($curl_connection);
-		//When a library uses Encore, the initial login does a redirect and requires additional parameters.
-		if (preg_match('/<input type="hidden" name="lt" value="(.*?)" \/>/si', $loginResult, $loginMatches)) {
-			//Get the lt value
-			$lt = $loginMatches[1];
-			//Login again
-			$post_data['lt'] = $lt;
-			$post_data['_eventId'] = 'submit';
-
-			$post_string = http_build_query($post_data);
-			curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
-			curl_exec($curl_connection);
-		}
+//		$cookieJar = tempnam ("/tmp", "CURLCOOKIE");
+//
+//		$curl_url = $this->driver->getVendorOpacUrl() . "/patroninfo";
+//		$logger->log('Loading page ' . $curl_url, PEAR_LOG_INFO);
+//
+//		$curl_connection = curl_init($curl_url);
+//		curl_setopt($curl_connection, CURLOPT_CONNECTTIMEOUT, 30);
+//		curl_setopt($curl_connection, CURLOPT_USERAGENT,"Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)");
+//		curl_setopt($curl_connection, CURLOPT_RETURNTRANSFER, true);
+//		curl_setopt($curl_connection, CURLOPT_SSL_VERIFYPEER, false);
+//		curl_setopt($curl_connection, CURLOPT_FOLLOWLOCATION, 1);
+//		curl_setopt($curl_connection, CURLOPT_UNRESTRICTED_AUTH, true);
+//		curl_setopt($curl_connection, CURLOPT_COOKIEJAR, $cookieJar );
+//		curl_setopt($curl_connection, CURLOPT_COOKIESESSION, false);
+//		curl_setopt($curl_connection, CURLOPT_POST, true);
+//		$post_data = $this->driver->_getLoginFormValues($patron);
+//		$post_string = http_build_query($post_data);
+//		curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
+//		$loginResult = curl_exec($curl_connection);
+//		//When a library uses Encore, the initial login does a redirect and requires additional parameters.
+//		if (preg_match('/<input type="hidden" name="lt" value="(.*?)" \/>/si', $loginResult, $loginMatches)) {
+//			//Get the lt value
+//			$lt = $loginMatches[1];
+//			//Login again
+//			$post_data['lt'] = $lt;
+//			$post_data['_eventId'] = 'submit';
+//
+//			$post_string = http_build_query($post_data);
+//			curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
+//			curl_exec($curl_connection);
+//		}
+		$driver->_curl_login($patron);
 
 		//Go to the items page
-		$scope = $this->driver->getDefaultScope();
+		$scope = $driver->getDefaultScope();
+//		$curl_url = $driver->getVendorOpacUrl() . "/patroninfo~S{$scope}/" . $patronDump['RECORD_#'] ."/items";
+//		curl_setopt($curl_connection, CURLOPT_URL, $curl_url);
+//		curl_setopt($curl_connection, CURLOPT_HTTPGET, true);
+//		curl_exec($curl_connection);
+
 		$curl_url = $this->driver->getVendorOpacUrl() . "/patroninfo~S{$scope}/" . $patronDump['RECORD_#'] ."/items";
-		curl_setopt($curl_connection, CURLOPT_URL, $curl_url);
-		curl_setopt($curl_connection, CURLOPT_HTTPGET, true);
-		curl_exec($curl_connection);
+		$checkedOutPageText = $driver->_curlGetPage($curl_url);
 
 		//Post renewal information
-		$extraGetInfo = array(
+		$renewAllPostVariables = array(
 			'currentsortorder' => 'current_checkout',
 			'renewall' => 'YES',
 		);
 
-		$renewItemParams = http_build_query($extraGetInfo);
-		$curl_url = $this->driver->getVendorOpacUrl() . "/patroninfo~S{$scope}/" . $patronDump['RECORD_#'] ."/items";
-		curl_setopt($curl_connection, CURLOPT_URL, $curl_url);
-		curl_setopt($curl_connection, CURLOPT_POST, true);
-		curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $renewItemParams);
-		$checkedOutPageText = curl_exec($curl_connection);
+//		$renewItemParams = http_build_query($renewAllPostVariables);
+//		curl_setopt($curl_connection, CURLOPT_URL, $curl_url);
+//		curl_setopt($curl_connection, CURLOPT_POST, true);
+//		curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $renewItemParams);
+		$checkedOutPageText = $driver->_curlPostPage($curl_url, $renewAllPostVariables);
 		//$logger->log("Result of Renew All\r\n" . $sresult, PEAR_LOG_INFO);
 
-		curl_close($curl_connection);
-		unlink($cookieJar);
+//		curl_close($curl_connection);
+//		unlink($cookieJar);
 
 		//Clear the existing patron info and get new information.
 		$renew_result = array(
@@ -345,59 +349,22 @@ class MillenniumCheckouts {
 		global $logger;
 		global $analytics;
 
-		$extraGetInfo = array(
+		$driver = &$this->driver;
+
+		$driver->_curl_login($patron);
+
+		//Go to the items page
+		$scope = $driver->getDefaultScope();
+		$curl_url = $driver->getVendorOpacUrl() . "/patroninfo~S{$scope}/" . $patron->username ."/items";
+//		$driver->_curlGetPage($curl_url);
+		// Doesn't look like this curl call will be necessary to complete renewals
+
+		$renewPostVariables = array(
 			'currentsortorder' => 'current_checkout',
 			'renewsome' => 'YES',
 			'renew' . $itemIndex => $itemId,
 		);
-		$renewItemParams = http_build_query($extraGetInfo);
-
-		//Login to the patron's account
-		$cookieJar = tempnam ("/tmp", "CURLCOOKIE");
-
-		$curl_url = $this->driver->getVendorOpacUrl() . "/patroninfo";
-		//$logger->log('Loading page ' . $curl_url, PEAR_LOG_INFO);
-
-		$curl_connection = curl_init($curl_url);
-		curl_setopt($curl_connection, CURLOPT_CONNECTTIMEOUT, 30);
-		curl_setopt($curl_connection, CURLOPT_USERAGENT,"Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)");
-		curl_setopt($curl_connection, CURLOPT_RETURNTRANSFER, true);
-		curl_setopt($curl_connection, CURLOPT_SSL_VERIFYPEER, false);
-		curl_setopt($curl_connection, CURLOPT_FOLLOWLOCATION, 1);
-		curl_setopt($curl_connection, CURLOPT_UNRESTRICTED_AUTH, true);
-		curl_setopt($curl_connection, CURLOPT_COOKIEJAR, $cookieJar );
-		curl_setopt($curl_connection, CURLOPT_COOKIESESSION, false);
-		curl_setopt($curl_connection, CURLOPT_POST, true);
-		$post_data = $this->driver->_getLoginFormValues($patron);
-		$post_string = http_build_query($post_data);
-		curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
-		$loginResult = curl_exec($curl_connection);
-		//When a library uses Encore, the initial login does a redirect and requires additional parameters.
-		if (preg_match('/<input type="hidden" name="lt" value="(.*?)" \/>/si', $loginResult, $loginMatches)) {
-			//Get the lt value
-			$lt = $loginMatches[1];
-			//Login again
-			$post_data['lt'] = $lt;
-			$post_data['_eventId'] = 'submit';
-			$post_string = http_build_query($post_data);
-			curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
-			curl_exec($curl_connection);
-			curl_getinfo($curl_connection);
-		}
-
-		//Go to the items page
-		$scope = $this->driver->getDefaultScope();
-		$curl_url = $this->driver->getVendorOpacUrl() . "/patroninfo~S{$scope}/" . $patron->username ."/items";
-		curl_setopt($curl_connection, CURLOPT_URL, $curl_url);
-		curl_setopt($curl_connection, CURLOPT_HTTPGET, true);
-		curl_exec($curl_connection);
-
-		//Post renewal information
-		$curl_url = $this->driver->getVendorOpacUrl() . "/patroninfo~S{$scope}/" . $patron->username ."/items";
-		curl_setopt($curl_connection, CURLOPT_URL, $curl_url);
-		curl_setopt($curl_connection, CURLOPT_POST, true);
-		curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $renewItemParams);
-		$checkedOutPageText = curl_exec($curl_connection);
+		$checkedOutPageText = $driver->_curlPostPage($curl_url, $renewPostVariables);
 
 		//Parse the checked out titles into individual rows
 		$message = 'Unable to load renewal information for this entry.';
@@ -454,8 +421,6 @@ class MillenniumCheckouts {
 				$analytics->addEvent('ILS Integration', 'Renew Successful');
 			}
 		}
-		curl_close($curl_connection);
-		unlink($cookieJar);
 
 		return array(
 			'itemId' => $itemId,

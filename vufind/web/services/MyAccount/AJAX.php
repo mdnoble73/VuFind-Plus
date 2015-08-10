@@ -97,17 +97,12 @@ class MyAccount_AJAX
 
 			if ($accountToLink){
 				$addResult = $user->addLinkedUser($accountToLink);
-				if (is_null($addResult)) { // existing links
-					$result = array(
-						'result' => true,
-						'message' => 'Account is already linked.'
-					);
-				}elseif ($addResult === true) {
+				if ($addResult === true) {
 					$result = array(
 						'result' => true,
 						'message' => 'Successfully linked accounts.'
 					);
-				}else { // insert failure or user is blocked from linking account
+				}else { // insert failure or user is blocked from linking account or account & account to link are the same account
 					$result = array(
 						'result' => false,
 						'message' => 'Sorry, we failed to link the account.'
@@ -1005,7 +1000,7 @@ class MyAccount_AJAX
 			if (!$user){
 				$renewResults = array(
 					'success' => false,
-					'message' => 'Item to renew not specified'
+					'message' => 'Not Logged in.'
 				);
 			}else{
 				$patronId = $_REQUEST['patronId'];
@@ -1039,57 +1034,74 @@ class MyAccount_AJAX
 	}
 
 	function renewSelectedItems() {
-		if (isset($_REQUEST['selected'])) {
-
-			global $configArray;
-			try {
-				$this->catalog = CatalogFactory::getCatalogConnectionInstance();;
-			} catch (PDOException $e) {
-				// What should we do with this error?
-				if ($configArray['System']['debug']) {
-					echo '<pre>';
-					echo 'DEBUG: ' . $e->getMessage();
-					echo '</pre>';
-				}
-			}
-
-			if (method_exists($this->catalog->driver, 'renewItem')) {
-
-				$failure_messages = array();
-				$renewResults = array();
-				foreach ($_REQUEST['selected'] as $selected => $ignore) {
-					list($itemId, $itemIndex) = explode('|', $selected);
-
-					$tmpResult = $this->catalog->driver->renewItem($itemId, $itemIndex);
-					if (!$tmpResult['success']) {
-						$failure_messages[] = $tmpResult['message'];
-					}
-				}
-				if ($failure_messages) {
-					$renewResults['success'] = false;
-					$renewResults['message'] = $failure_messages;
-				} else {
-					$renewResults['success'] = true;
-					$renewResults['message'] = "All items were renewed successfully.";
-				}
-				$renewResults['Total'] = count($_REQUEST['selected']);
-				$renewResults['Unrenewed'] = count($failure_messages);
-				$renewResults['Renewed'] = $renewResults['Total'] - $renewResults['Unrenewed'];
-			} else {
-				PEAR_Singleton::raiseError(new PEAR_Error('Cannot Renew Item - ILS Not Supported'));
-				$renewResults = array(
-					'success' => false,
-					'message' => 'Cannot Renew Items - ILS Not Supported.'
-				);
-			}
-
-
-		} else {
-			//error message
+		global $user;
+		if (!$user){
 			$renewResults = array(
 				'success' => false,
-				'message' => 'Items to renew not specified.'
+				'message' => 'Not Logged in.'
 			);
+		} else {
+			if (isset($_REQUEST['selected'])) {
+
+//			global $configArray;
+//			try {
+//				$this->catalog = CatalogFactory::getCatalogConnectionInstance();
+//			} catch (PDOException $e) {
+//				// What should we do with this error?
+//				if ($configArray['System']['debug']) {
+//					echo '<pre>';
+//					echo 'DEBUG: ' . $e->getMessage();
+//					echo '</pre>';
+//				}
+//			}
+
+
+				if (method_exists($user, 'renewItem')) {
+
+					$failure_messages = array();
+					$renewResults     = array();
+					foreach ($_REQUEST['selected'] as $selected => $ignore) {
+						list($patronId, $recordId, $itemId, $itemIndex) = explode('|', $selected);
+						$patron = $user->getUserReferredTo($patronId);
+						if ($patron){
+							$tmpResult = $patron->renewItem($recordId, $itemId, $itemIndex);
+						}else{
+							$tmpResult = array(
+								'success' => false,
+								'message' => 'Sorry, it looks like you don\'t have access to that patron.'
+							);
+						}
+
+						if (!$tmpResult['success']) {
+							$failure_messages[] = $tmpResult['message'];
+						}
+					}
+					if ($failure_messages) {
+						$renewResults['success'] = false;
+						$renewResults['message'] = $failure_messages;
+					} else {
+						$renewResults['success'] = true;
+						$renewResults['message'] = "All items were renewed successfully.";
+					}
+					$renewResults['Total']     = count($_REQUEST['selected']);
+					$renewResults['Unrenewed'] = count($failure_messages);
+					$renewResults['Renewed']   = $renewResults['Total'] - $renewResults['Unrenewed'];
+				} else {
+					PEAR_Singleton::raiseError(new PEAR_Error('Cannot Renew Item - ILS Not Supported'));
+					$renewResults = array(
+						'success' => false,
+						'message' => 'Cannot Renew Items - ILS Not Supported.'
+					);
+				}
+
+
+			} else {
+				//error message
+				$renewResults = array(
+					'success' => false,
+					'message' => 'Items to renew not specified.'
+				);
+			}
 		}
 		global $interface;
 		$interface->assign('renew_message_data', $renewResults);

@@ -32,7 +32,7 @@ class HoldItems extends Action
 		global $user;
 
 		try {
-			$this->catalog = CatalogFactory::getCatalogConnectionInstance();;
+			$this->catalog = CatalogFactory::getCatalogConnectionInstance();
 		} catch (PDOException $e) {
 			// What should we do with this error?
 			if ($configArray['System']['debug']) {

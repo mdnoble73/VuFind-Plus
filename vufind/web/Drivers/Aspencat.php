@@ -510,7 +510,13 @@ class Aspencat implements DriverInterface{
 	}
 
 	private $patronProfiles = array();
-	function updatePatronInfo($canUpdateContactInfo){
+
+	/**
+	 * @param User $user              The User Object to make updates to
+	 * @param $canUpdateContactInfo   Permission check that updating is allowed
+	 * @return array                  Array of error messages for errors that occurred
+	 */
+	function updatePatronInfo($user, $canUpdateContactInfo){
 		$updateErrors = array();
 		if ($canUpdateContactInfo) {
 			$updateErrors[] = "Profile Information can not be updated.";
@@ -1997,7 +2003,7 @@ class Aspencat implements DriverInterface{
 					'reason' => $allFeesRow['accounttype'],
 					'message' => $allFeesRow['description'],
 					'amount' => $allFeesRow['amount'],
-					'amount_outstanding' => $amountOutstanding,
+					'amountOutstanding' => $amountOutstanding,
 				);
 				$fines[] = $curFine;
 			}
@@ -2211,6 +2217,7 @@ class Aspencat implements DriverInterface{
 		return $amountOutstanding ;
 	}
 
+	// use User->isStaff() instead
 	public function isUserStaff(){
 		global $configArray;
 		global $user;
