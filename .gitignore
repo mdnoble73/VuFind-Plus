@@ -10,6 +10,7 @@ vufind/web/interface/compile/*
 vufind/web/phpinfo.php
 vufind/web/images/fiveStar/*
 vufind/web/images/charts/*
+vufind/web/repository_images/*
 vufind/web/files/medium/*
 vufind/web/files/thumbnail/*
 vufind/web/files/original/*
