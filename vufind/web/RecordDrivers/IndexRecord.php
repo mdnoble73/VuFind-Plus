@@ -582,7 +582,7 @@ class IndexRecord extends RecordInterface
 	}
 
 	function getBookcoverUrl($size = 'small'){
-		$id = $this->getUniqueID();
+		$id = $this->getIdWithSource();
 		$formatCategory = $this->getFormatCategory();
 		if (is_array($formatCategory)){
 			$formatCategory = reset($formatCategory);
@@ -1602,6 +1602,7 @@ class IndexRecord extends RecordInterface
 		global $configArray;
 		$recordId = $this->getUniqueID();
 
+		//TODO: This should have the correct module set
 		return $configArray['Site']['path'] . '/Record/' . $recordId;
 	}
 
