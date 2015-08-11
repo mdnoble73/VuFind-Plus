@@ -48,9 +48,6 @@ class UInterface extends Smarty
 			$this->assign('google_included_languages', $configArray['Translation']['includedLanguages']);
 		}
 
-		$thisYear = new Date();
-		$this->assign('lastYear', $thisYear->getYear() -1);
-
 		if (isset($_REQUEST['print'])) {
 			$this->assign('print', true);
 		}
