@@ -79,27 +79,6 @@ class Fines extends MyAccount
 
 }
 
-// Doesn't look to be in use any longer. plb 8-3-2015
-//function printLink($params)
-//{
-//	global $configArray;
-//	global $finesIndexEngine;
-//
-//	extract($params);
-//
-//	if ($record['id']) {
-//		$record = $finesIndexEngine->getRecord($record['id']);
-//		return '<a href="' . $configArray['Site']['path'] . '/Record/' . urlencode($record['id']) . '">' . htmlspecialchars($record['title_short']) . '</a>';
-//	} else {
-//		if ($record['comment']){
-//			$record['comment'];
-//		}else{
-//			return "Unknown";
-//		}
-//
-//	}
-//}
-
 /**
  * @param $number          number to be displayed as monetary value
  * @return mixed|string    string to be displayed
@@ -113,29 +92,6 @@ function formatNumber($number)
 		return safeMoneyFormat($number);
 	}
 }
-
-// A previous version
-//function formatNumber($params)
-//{
-//	extract($params);
-//	if ($record[$fieldName]) {
-//		// Insert the decimal point in the appropriate place (we're converting a
-//		// value represented in pennies).  Note that we need to force the fractional
-//		// portion of the number to two decimal places in order to prevent $0.05
-//		// turning into $0.50:
-//		$number = substr($record[$fieldName], 0, -2) . '.' .
-//		sprintf("%02d", substr($record[$fieldName], -2));
-//	} else {
-//		$number = 0;
-//	}
-//
-//	// money_format() does not exist on windows
-//	if (function_exists('money_format')) {
-//		return money_format('%.2n', $number);
-//	} else {
-//		return safeMoneyFormat($number);
-//	}
-//}
 
 // Windows alternatives
 function safeMoneyFormat($number)

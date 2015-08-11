@@ -7,12 +7,12 @@
  */
 
 class MillenniumBooking {
-	/** @var  MillenniumDriver $driver */
+	/** @var  Millennium $driver */
 	private $driver;
 //	private $bookings = array();
 
 	public function __construct($driver){
-		/** @var  MillenniumDriver $driver */
+		/** @var  Millennium $driver */
 		$this->driver = $driver;
 	}
 

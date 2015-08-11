@@ -502,7 +502,7 @@ class Millennium extends ScreenScrapingDriver
 		}
 
 		if ($userValid){
-			if ($patronName == null){
+			if (!isset($patronName) || $patronName == null){
 				if (isset($patronDump['PATRN_NAME'])){
 					$patronName = $patronDump['PATRN_NAME'];
 					list($fullName, $lastName, $firstName) = $this->validatePatronName($username, $patronName);
@@ -1562,7 +1562,6 @@ public function getBookingCalendar($recordId) {
 	}
 	function selfRegister(){
 		global $logger;
-		global $configArray;
 		global $library;
 
 		$firstName = trim($_REQUEST['firstName']);

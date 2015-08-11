@@ -795,9 +795,12 @@ class MillenniumStatusLoader{
 	public function getStatusSummary($id, $forSearch = false){
 		global $configArray;
 		$holdings = MillenniumStatusLoader::getStatus($id);
+
+		if (strpos($id, ':') !== false) list(,$recordId) = explode(':', $id, 2); // remove any prefix from the recordId
+
 		$summaryInformation = array();
-		$summaryInformation['recordId'] = $id;
-		$summaryInformation['shortId'] = substr($id, 1);
+		$summaryInformation['recordId'] = $recordId;
+		$summaryInformation['shortId'] = substr($recordId, 1);
 		$summaryInformation['isDownloadable'] = false; //Default value, reset later if needed.
 
 		if ($configArray['Catalog']['offline']){

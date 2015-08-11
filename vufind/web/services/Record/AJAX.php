@@ -219,8 +219,12 @@ class Record_AJAX extends Action {
 		}else{
 			$interface->assign('offline', false);
 		}
-		$id = strip_tags($_REQUEST['id']);
-		$interface->assign('id', $id);
+		$fullId = $_REQUEST['id'];
+		$recordInfo = explode(':', $fullId);
+		$recordType = $recordInfo[0];
+		$ilsId = $recordInfo[1];
+		$interface->assign('id', $ilsId);
+		$interface->assign('recordType', $recordType);
 
 		$showCopiesLineInHoldingsSummary = true;
 		$showCheckInGrid = true;
@@ -250,7 +254,7 @@ class Record_AJAX extends Action {
 		$holdingData = new stdClass();
 		// Get Holdings Data
 		if ($catalog->status) {
-			$result = $catalog->getHolding($id);
+			$result = $catalog->getHolding($fullId);
 			$timer->logTime("Loaded Holding Data from catalog");
 			if (PEAR_Singleton::isError($result)) {
 				PEAR_Singleton::raiseError($result);
@@ -285,7 +289,7 @@ class Record_AJAX extends Action {
 			}
 
 			//Holdings summary
-			$result = $catalog->getStatusSummary($id, false);
+			$result = $catalog->getStatusSummary($fullId, false);
 			if (PEAR_Singleton::isError($result)) {
 				PEAR_Singleton::raiseError($result);
 			}
