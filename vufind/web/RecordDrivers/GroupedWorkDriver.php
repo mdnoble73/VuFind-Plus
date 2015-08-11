@@ -1135,7 +1135,7 @@ class GroupedWorkDriver extends RecordInterface{
 				}
 			}
 
-			//Generate record information based on teh information we have in the index
+			//Generate record information based on the information we have in the index
 			$relatedRecords = array();
 			foreach ($recordsFromIndex as $recordDetails){
 				list($source, $id) = explode(':', $recordDetails[0], 2);
@@ -1252,6 +1252,7 @@ class GroupedWorkDriver extends RecordInterface{
 							if ($localCallNumber == null) $localCallNumber = $callNumber;
 							if ($available && !$isEcontent){
 								$relatedRecord['availableHere'] = true;
+								$relatedRecord['availableLocally'] = true;
 							}
 							$relatedRecord['localCopies'] += $numCopies;
 							$relatedRecord['hasLocalItem'] = true;
