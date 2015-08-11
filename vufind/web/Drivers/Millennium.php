@@ -171,25 +171,6 @@ class Millennium extends ScreenScrapingDriver
 		}
 	}
 
-	// use User->isStaff() instead
-	public function isUserStaff(){
-		global $configArray;
-		global $user;
-		if (count($user->getRoles()) > 0){
-			return true;
-		}else if (isset($configArray['Staff P-Types'])){
-			$staffPTypes = $configArray['Staff P-Types'];
-			$pType = $this->getPType();
-			if (array_key_exists($pType, $staffPTypes)){
-				return true;
-			}else{
-				return false;
-			}
-		}else{
-			return false;
-		}
-	}
-
 	public function getMillenniumScope(){
 		if (isset($_REQUEST['useUnscopedHoldingsSummary'])){
 			return $this->getDefaultScope();
@@ -251,6 +232,10 @@ class Millennium extends ScreenScrapingDriver
 		global $timer;
 		$host = $this->getVendorOpacUrl();
 
+		//If we get an identifier type, strip that
+		if (strpos($id, ':') > 0){
+			$id = substr($id, strpos($id, ':') + 1);
+		}
 		// Strip ID
 		$id_ = substr(str_replace('.b', '', $id), 0, -1);
 
@@ -306,7 +291,7 @@ class Millennium extends ScreenScrapingDriver
 		global $timer;
 		$timer->logTime("Finished loading item fields for $id, found " . count($itemFields));
 		$items = array();
-		$pType = $this->getPType();
+		$pTypes = $this->getPTypes();
 		//$timer->logTime("Finished loading pType");
 
 		global $configArray;
@@ -330,8 +315,8 @@ class Millennium extends ScreenScrapingDriver
 				continue;
 			}
 			$iType = $itemField->getSubfield($iTypeSubfield) != null ? trim($itemField->getSubfield($iTypeSubfield)->getData()) : '';
-			$holdable = $this->isItemHoldableToPatron($locationCode, $iType, $pType);
-			$bookable = $this->isItemBookableToPatron($locationCode, $iType, $pType);
+			$holdable = $this->isItemHoldableToPatron($locationCode, $iType, $pTypes);
+			$bookable = $this->isItemBookableToPatron($locationCode, $iType, $pTypes);
 
 			$isLibraryItem = false;
 			$locationLabel = '';
@@ -507,7 +492,6 @@ class Millennium extends ScreenScrapingDriver
 		//Create a variety of possible name combinations for testing purposes.
 		$userValid = false;
 		//Break up the patron name into first name, last name and middle name based on the
-		list($fullName, $lastName, $firstName, $userValid) = $this->validatePatronName($username, $patronName);
 		if ($this->accountProfile->loginConfiguration == 'barcode_pin'){
 			$userValid = $this->_doPinTest($username, $password);
 		}else{
@@ -1123,16 +1107,18 @@ public function getBookingCalendar($recordId) {
 		return $updateErrors;
 	}
 
-	var $pType;
+	/** @var  int[] */
+	var $pTypes;
 	/**
 	 * returns the patron type identifier if a patron is logged in or if the patron
 	 * is not logged in, it will return the default PType for the library domain.
 	 * If a domain is not in use it will return -1.
 	 *
-	 * @return int
+	 * @return int[]
 	 */
-	public function getPType(){
-		if ($this->pType == null){
+	public function getPTypes(){
+		if ($this->pTypes == null){
+			$this->pTypes = array();
 			/** @var $user User */
 			global $user;
 			/** @var $locationSingleton Location */
@@ -1140,21 +1126,28 @@ public function getBookingCalendar($recordId) {
 			$searchLocation = $locationSingleton->getSearchLocation();
 			$searchLibrary = Library::getSearchLibrary();
 			if (isset($user) && $user != false){
-				$patronDump = $this->_getPatronDump($this->_getBarcode());
-				if (isset($patronDump['P_TYPE'])){
-					$this->pType = $patronDump['P_TYPE'];
+				if (is_numeric($user->patronType)){
+					$this->pTypes[] = $user->patronType;
 				}else{
-					$this->pType = -1;
+					$this->pTypes[] = -1;
+				}
+				//Add PTypes for any linked accounts
+				foreach ($user->getLinkedUsers() as $tmpUser){
+					if (is_numeric($tmpUser->patronType)){
+						$this->pTypes[] = $tmpUser->patronType;
+					}else{
+						$this->pTypes[] = -1;
+					}
 				}
 			}else if (isset($searchLocation) && $searchLocation->defaultPType >= 0){
-				$this->pType = $searchLocation->defaultPType;
+				$this->pTypes[] = $searchLocation->defaultPType;
 			}else if (isset($searchLibrary) && $searchLibrary->defaultPType >= 0){
-				$this->pType = $searchLibrary->defaultPType;
+				$this->pTypes[] = $searchLibrary->defaultPType;
 			}else{
-				$this->pType = -1;
+				$this->pTypes[] = -1;
 			}
 		}
-		return $this->pType;
+		return $this->pTypes;
 	}
 
 	/**
@@ -1250,7 +1243,7 @@ public function getBookingCalendar($recordId) {
 	 */
 	function isRecordHoldable($marcRecord){
 		global $configArray;
-		$pType = $this->getPType();
+		$pTypes = $this->getPTypes();
 		/** @var File_MARC_Data_Field[] $items */
 		$marcItemField = isset($configArray['Reindex']['itemTag']) ? $configArray['Reindex']['itemTag'] : '989';
 		$iTypeSubfield = isset($configArray['Reindex']['iTypeSubfield']) ? $configArray['Reindex']['iTypeSubfield'] : 'j';
@@ -1275,7 +1268,7 @@ public function getBookingCalendar($recordId) {
 			//$logger->log("$itemNumber) iType = $iType, locationCode = $locationCode", PEAR_LOG_DEBUG);
 
 			//Check the determiner table to see if this matches
-			$holdable = $this->isItemHoldableToPatron($locationCode, $iType, $pType);
+			$holdable = $this->isItemHoldableToPatron($locationCode, $iType, $pTypes);
 
 			if ($holdable){
 				break;
@@ -1284,17 +1277,18 @@ public function getBookingCalendar($recordId) {
 		return $holdable;
 	}
 
-	function isItemHoldableToPatron($locationCode, $iType, $pType){
+	function isItemHoldableToPatron($locationCode, $iType, $pTypes){
 		/** @var Memcache $memCache*/
 		global $memCache;
 		global $configArray;
 		global $timer;
-		$memcacheKey = "loan_rule_result_{$locationCode}_{$iType}_{$pType}";
+		$pTypeString = implode(',', $pTypes);
+		$memcacheKey = "loan_rule_result_{$locationCode}_{$iType}_{$pTypeString}";
 		$cachedValue = $memCache->get($memcacheKey);
 		if ($cachedValue !== false && !isset($_REQUEST['reload'])){
 			return $cachedValue == 'true';
 		}else{
-			$timer->logTime("Start checking if item is holdable $locationCode, $iType, $pType");
+			$timer->logTime("Start checking if item is holdable $locationCode, $iType, $pTypeString");
 			$this->loadLoanRules();
 			if (count($this->loanRuleDeterminers) == 0){
 				//If we don't have any loan rules determiners, assume that the item is holdable.
@@ -1311,17 +1305,20 @@ public function getBookingCalendar($recordId) {
 					//Check that the iType is correct
 					if ($loanRuleDeterminer->itemType == '999' || in_array($iType, $loanRuleDeterminer->iTypeArray())){
 						//$logger->log("{$loanRuleDeterminer->rowNumber}) iType correct $iType, {$loanRuleDeterminer->itemType}", PEAR_LOG_DEBUG);
-						if ($pType == -1 || $loanRuleDeterminer->patronType == '999' || in_array($pType, $loanRuleDeterminer->pTypeArray())){
-							//$logger->log("{$loanRuleDeterminer->rowNumber}) pType correct $pType, {$loanRuleDeterminer->patronType}", PEAR_LOG_DEBUG);
-							$loanRule = $this->loanRules[$loanRuleDeterminer->loanRuleId];
-							//$logger->log("Determiner {$loanRuleDeterminer->rowNumber} indicates Loan Rule {$loanRule->loanRuleId} applies, holdable {$loanRule->holdable}", PEAR_LOG_DEBUG);
-							$holdable = ($loanRule->holdable == 1);
-							if ($holdable || $pType != -1){
-								break;
+						foreach ($pTypes as $pType){
+							if ($pType == -1 || $loanRuleDeterminer->patronType == '999' || in_array($pType, $loanRuleDeterminer->pTypeArray())){
+								//$logger->log("{$loanRuleDeterminer->rowNumber}) pType correct $pType, {$loanRuleDeterminer->patronType}", PEAR_LOG_DEBUG);
+								$loanRule = $this->loanRules[$loanRuleDeterminer->loanRuleId];
+								//$logger->log("Determiner {$loanRuleDeterminer->rowNumber} indicates Loan Rule {$loanRule->loanRuleId} applies, holdable {$loanRule->holdable}", PEAR_LOG_DEBUG);
+								$holdable = ($loanRule->holdable == 1);
+								if ($holdable || $pType != -1){
+									break;
+								}
+							}else{
+								//$logger->log("PType incorrect", PEAR_LOG_DEBUG);
 							}
-						}else{
-							//$logger->log("PType incorrect", PEAR_LOG_DEBUG);
 						}
+
 					}else{
 						//$logger->log("IType incorrect", PEAR_LOG_DEBUG);
 					}
@@ -1330,7 +1327,7 @@ public function getBookingCalendar($recordId) {
 				}
 			}
 			$memCache->set($memcacheKey, ($holdable ? 'true' : 'false'), 0 , $configArray['Caching']['loan_rule_result']);
-			$timer->logTime("Finished checking if item is holdable $locationCode, $iType, $pType");
+			$timer->logTime("Finished checking if item is holdable $locationCode, $iType, $pTypeString");
 		}
 
 		return $holdable;
@@ -1339,7 +1336,7 @@ public function getBookingCalendar($recordId) {
 	function isRecordBookable($marcRecord){
 		//TODO: finish this, template from Holds
 		global $configArray;
-		$pType = $this->getPType();
+		$pTypes = $this->getPTypes();
 		/** @var File_MARC_Data_Field[] $items */
 		$marcItemField = isset($configArray['Reindex']['itemTag']) ? $configArray['Reindex']['itemTag'] : '989';
 		$iTypeSubfield = isset($configArray['Reindex']['iTypeSubfield']) ? $configArray['Reindex']['iTypeSubfield'] : 'j';
@@ -1364,7 +1361,7 @@ public function getBookingCalendar($recordId) {
 			//$logger->log("$itemNumber) iType = $iType, locationCode = $locationCode", PEAR_LOG_DEBUG);
 
 			//Check the determiner table to see if this matches
-			$bookable = $this->isItemBookableToPatron($locationCode, $iType, $pType);
+			$bookable = $this->isItemBookableToPatron($locationCode, $iType, $pTypes);
 
 			if ($bookable){
 				break;
@@ -1373,17 +1370,18 @@ public function getBookingCalendar($recordId) {
 		return $bookable;
 	}
 
-	public function isItemBookableToPatron($locationCode, $iType, $pType){
+	public function isItemBookableToPatron($locationCode, $iType, $pTypes){
 		/** @var Memcache $memCache*/
 		global $memCache;
 		global $configArray;
 		global $timer;
-		$memcacheKey = "loan_rule_material_booking_result_{$locationCode}_{$iType}_{$pType}";
+		$pTypeString = implode(',', $pTypes);
+		$memcacheKey = "loan_rule_material_booking_result_{$locationCode}_{$iType}_{$pTypeString}";
 		$cachedValue = $memCache->get($memcacheKey);
 		if ($cachedValue !== false && !isset($_REQUEST['reload'])){
 			return $cachedValue == 'true';
 		}else {
-			$timer->logTime("Start checking if item is bookable $locationCode, $iType, $pType");
+			$timer->logTime("Start checking if item is bookable $locationCode, $iType, $pTypeString");
 			$this->loadLoanRules();
 			if (count($this->loanRuleDeterminers) == 0){
 				//If we don't have any loan rules determiners, assume that the item isn't bookable.
@@ -1400,18 +1398,20 @@ public function getBookingCalendar($recordId) {
 					//Check that the iType is correct
 					if ($loanRuleDeterminer->itemType == '999' || in_array($iType, $loanRuleDeterminer->iTypeArray())){
 						//$logger->log("{$loanRuleDeterminer->rowNumber}) iType correct $iType, {$loanRuleDeterminer->itemType}", PEAR_LOG_DEBUG);
-						if ($pType == -1 || $loanRuleDeterminer->patronType == '999' || in_array($pType, $loanRuleDeterminer->pTypeArray())){
-							//$logger->log("{$loanRuleDeterminer->rowNumber}) pType correct $pType, {$loanRuleDeterminer->patronType}", PEAR_LOG_DEBUG);
-							$loanRule = $this->loanRules[$loanRuleDeterminer->loanRuleId];
-							//$logger->log("Determiner {$loanRuleDeterminer->rowNumber} indicates Loan Rule {$loanRule->loanRuleId} applies, bookable {$loanRule->bookable}", PEAR_LOG_DEBUG);
-							$bookable = ($loanRule->bookable == 1);
-							if ($bookable || $pType != -1){
-								break;
+						foreach ($pTypes as $pType){
+							if ($pType == -1 || $loanRuleDeterminer->patronType == '999' || in_array($pType, $loanRuleDeterminer->pTypeArray())){
+								//$logger->log("{$loanRuleDeterminer->rowNumber}) pType correct $pType, {$loanRuleDeterminer->patronType}", PEAR_LOG_DEBUG);
+								$loanRule = $this->loanRules[$loanRuleDeterminer->loanRuleId];
+								//$logger->log("Determiner {$loanRuleDeterminer->rowNumber} indicates Loan Rule {$loanRule->loanRuleId} applies, bookable {$loanRule->bookable}", PEAR_LOG_DEBUG);
+								$bookable = ($loanRule->bookable == 1);
+								if ($bookable || $pType != -1){
+									break;
+								}
 							}
-						}
 //						else{
 //							//$logger->log("PType incorrect", PEAR_LOG_DEBUG);
 //						}
+						}
 					}
 //					else{
 //						//$logger->log("IType incorrect", PEAR_LOG_DEBUG);

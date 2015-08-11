@@ -1199,14 +1199,4 @@ abstract class HorizonAPI extends Horizon{
 		return false;
 	}
 
-	// use User->isStaff() instead
-	public function isUserStaff(){
-		global $user;
-		if (count($user->getRoles()) > 0){
-			return true;
-		}else{
-			return false;
-		}
-	}
-
 }

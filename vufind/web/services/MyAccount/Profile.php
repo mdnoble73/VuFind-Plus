@@ -151,19 +151,10 @@ class MyAccount_Profile extends MyAccount
 			$interface->assign('locationList', $locationList);
 
 			$userIsStaff = $patron->isStaff();
-//			$userIsStaff = $patron->checkFunction('isUserStaff') ? $patron->isUserStaff() : false;
 			$interface->assign('userIsStaff', $userIsStaff);
 
 			$interface->assign('profile', $patron); //
 		}
-
-		// old version of isStaff check
-//		if ($this->catalog->checkFunction('isUserStaff')){
-//			$userIsStaff = $this->catalog->isUserStaff();
-//			$interface->assign('userIsStaff', $userIsStaff);
-//		}else{
-//			$interface->assign('userIsStaff', false);
-//		}
 
 		// switch for hack for Millennium driver profile updating when updating is allowed but address updating is not allowed.
 		$millenniumNoAddress = $canUpdateContactInfo && !$canUpdateAddress && in_array($ils, array('Millennium', 'Sierra'));

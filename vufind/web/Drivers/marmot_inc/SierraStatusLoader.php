@@ -16,6 +16,17 @@ class SierraStatusLoader extends MillenniumStatusLoader{
 	}
 
 	private static $loadedStatus = array();
+
+	public function getStatus($id){
+		$recordDriver = RecordDriverFactory::initRecordDriverById($id);
+		$format = $recordDriver->getFormat();
+		if ($format[0] == 'Journal'){
+			return parent::getStatus($id);
+		}else{
+			return $this->getStatusFromIndex($recordDriver, $id);
+		}
+
+	}
 	/**
 	 * In Sierra, all status information is up to date within the MARC record
 	 * due to the export so we don't need to screen scrape!
@@ -47,12 +58,7 @@ class SierraStatusLoader extends MillenniumStatusLoader{
 	 * @param string            $id     the id of the record
 	 * @return array A list of holdings for the record
 	 */
-	public function getStatus($id){
-		$recordDriver = RecordDriverFactory::initRecordDriverById($id);
-		$format = $recordDriver->getFormat();
-		if ($format[0] == 'Journal'){
-			return parent::getStatus($id);
-		}
+	public function getStatusFromIndex($recordDriver, $id){
 		if (array_key_exists($id, SierraStatusLoader::$loadedStatus)){
 			return SierraStatusLoader::$loadedStatus[$id];
 		}
@@ -155,7 +161,6 @@ class SierraStatusLoader extends MillenniumStatusLoader{
 		$i = 0;
 		foreach ($items as $item){
 			//Determine what section this holding is in
-			$sectionId = 1;
 			$location = $item['shelfLocation'];
 			if (strlen($physicalBranch) > 0 && stripos($location, $physicalBranch) !== false){
 				//If the user is in a branch, those holdings come first.
@@ -532,7 +537,6 @@ class SierraStatusLoader extends MillenniumStatusLoader{
 		}else{
 			$summaryInformation['inLibraryUseOnly'] = false;
 		}
-
 
 		if ($summaryInformation['availableCopies'] == 0 && $summaryInformation['isDownloadable'] == true){
 			$summaryInformation['showAvailabilityLine'] = false;

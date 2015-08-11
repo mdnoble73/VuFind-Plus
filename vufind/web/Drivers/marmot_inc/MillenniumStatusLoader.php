@@ -56,10 +56,10 @@ class MillenniumStatusLoader{
 		global $logger;
 		global $configArray;
 
-		$pType = $this->driver->getPType();
+		$pType = $this->driver->getPTypes();
 		$scope = $this->driver->getMillenniumScope();
 
-		$cachingKey = $id . '-' . $pType . '-' . $scope;
+		$cachingKey = $id . '-' . implode(",", $pType) . '-' . $scope;
 		if (array_key_exists($cachingKey, MillenniumStatusLoader::$loadedStatus)){
 			return MillenniumStatusLoader::$loadedStatus[$cachingKey];
 		}

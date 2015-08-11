@@ -908,18 +908,10 @@ class User extends DB_DataObject
 			return true;
 		}elseif (isset($configArray['Staff P-Types'])){
 			$staffPTypes = $configArray['Staff P-Types'];
-			$pType = $this->patronType();
+			$pType = $this->patronType;
 			if ($pType && array_key_exists($pType, $staffPTypes)){
 				return true;
 			}
-		}
-		return false;
-	}
-
-	public function patronType(){
-		$catalog = $this->getCatalogDriver();
-		if (method_exists($catalog, 'patronType')) { // TODO implement in drivers
-			return $catalog->patronType();
 		}
 		return false;
 	}
