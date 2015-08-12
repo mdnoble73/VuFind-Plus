@@ -157,7 +157,7 @@ class MillenniumBooking {
 
 		// Catch all Failure
 		global $logger;
-		$logger->log('Unkown error during booking, code: ', PEAR_LOG_ERR);
+		$logger->log('Unkown error during booking', PEAR_LOG_ERR);
 		return array(
 			'success' => false,
 			'message' => 'There was an unexpected result while scheduling your item'
