@@ -66,10 +66,6 @@ class MillenniumBooking {
 		// Scope appears to be unnecessary at this point.
 
 		// Get pagen from form
-//		$result = curl_setopt($this->curl_connection, CURLOPT_URL, $bookingUrl);
-//		$curlResponse = curl_exec($this->curl_connection);
-////<input name="webbook_pagen" value="2" type="hidden">
-
 		$curlResponse = $driver->_curlGetPage($bookingUrl);
 
 		$tag = 'input';
@@ -128,18 +124,10 @@ class MillenniumBooking {
 			'webbook_note' => '', // the web note doesn't seem to be displayed to the user any where after submit
 		);
 		if (!empty($loc)) $post['webbook_loc'] = $loc; // if we have this info add it, don't include otherwise.
-//		$postString = http_build_query($post);
-//
-//		$result = curl_setopt_array($this->curl_connection, array(
-////			CURLOPT_URL => $bookingUrl,
-//			CURLOPT_POST => true,
-//			CURLOPT_POSTFIELDS => $postString,
-//		));
-//
-//		$curlResponse = curl_exec($this->curl_connection);
 		$curlResponse = $driver->_curlPostPage($bookingUrl, $post);
 		if ($curlError = curl_errno($driver->curl_connection)) {
-			//TODO log error as well.
+			global $logger;
+			$logger->log('Curl error during booking, code: '.$curlError, PEAR_LOG_WARNING);
 			return array(
 				'success' => false,
 				'message' => 'There was an error communicating with the circulation system.'
@@ -168,10 +156,11 @@ class MillenniumBooking {
 		}
 
 		// Catch all Failure
-		//TODO: log error
+		global $logger;
+		$logger->log('Unkown error during booking, code: ', PEAR_LOG_ERR);
 		return array(
 			'success' => false,
-			'message' => 'There was an unexpected result while booking your material'
+			'message' => 'There was an unexpected result while scheduling your item'
 		);
 	}
 
@@ -217,7 +206,7 @@ class MillenniumBooking {
 				foreach ($bookings as $booking){
 					if ($booking['cancelValue'] == $cancelId) break;
 				}
-				$errors[$cancelId] = 'Failed to cancel booking for <strong>'.$booking['title'].'</strong> from '.strftime('%b %d, %Y at %I:%M %p', $booking['startDateTime']). ' to '.strftime('%b %d, %Y at %I:%M %p', $booking['endDateTime']);
+				$errors[$cancelId] = 'Failed to cancel scheduled item for <strong>'.$booking['title'].'</strong> from '.strftime('%b %d, %Y at %I:%M %p', $booking['startDateTime']). ' to '.strftime('%b %d, %Y at %I:%M %p', $booking['endDateTime']);
 			}
 		}
 
@@ -225,7 +214,7 @@ class MillenniumBooking {
 		if (empty($errors)) {
 			return array(
 				'success' => true,
-				'message' => 'Your booking' . (count($cancelIds) > 1 ? 's were' : ' was') . ' successfully canceled.'
+				'message' => 'Your scheduled item' . (count($cancelIds) > 1 ? 's were' : ' was') . ' successfully canceled.'
 			);
 		}
 		else {
@@ -264,14 +253,14 @@ class MillenniumBooking {
 			$bookings = $this->parseBookingsPage($curlResponse);
 			if (!empty($bookings)) { // a booking wasn't canceled
 				foreach ($bookings as $booking) {
-					$errors[$booking['cancelValue']] = 'Failed to cancel booking for <strong>' . $booking['title'] . '</strong> from ' . strftime('%b %d, %Y at %I:%M %p', $booking['startDateTime']) . ' to ' . strftime('%b %d, %Y at %I:%M %p', $booking['endDateTime']);
+					$errors[$booking['cancelValue']] = 'Failed to cancel item scheduling for <strong>' . $booking['title'] . '</strong> from ' . strftime('%b %d, %Y at %I:%M %p', $booking['startDateTime']) . ' to ' . strftime('%b %d, %Y at %I:%M %p', $booking['endDateTime']);
 				}
 			}
 		}
 
 		if (empty($errors)) return array(
 			'success' => true,
-			'message' => 'Your bookings were successfully canceled.'
+			'message' => 'Your item schedulings were successfully canceled.'
 		);
 		else return array(
 			'success' => false,

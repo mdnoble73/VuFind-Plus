@@ -12,7 +12,7 @@
 				<div class='libraryHours alert alert-success'>{$libraryHoursMessage}</div>
 			{/if}
 
-				<h3>My Bookings</h3>
+				<h3>My Scheduled Items</h3>
 				<p class="alert alert-info">
 						{translate text="booking summary"}
 				</p>
@@ -38,7 +38,7 @@
 						</form>
 					</div>
 				{else} {* Check to see if records are available *}
-						{translate text='You do not have any pending bookings.'}
+						{translate text='You do not have any items scheduled.'}
 			{/if}
 
 		</div>

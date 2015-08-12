@@ -30,9 +30,6 @@ class MyAccount_Bookings extends MyAccount {
 		$interface->assign('recordList', $bookings);
 
 		// Build Page //
-		$interface->setPageTitle('My Bookings');
-		$interface->assign('sidebar', 'MyAccount/account-sidebar.tpl');
-		$interface->setTemplate('bookings.tpl');
-		$interface->display('layout.tpl');
+		$this->display('bookings.tpl', 'My Scheduled Items');
 	}
 }
