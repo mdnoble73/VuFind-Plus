@@ -149,7 +149,7 @@ public class LibrarySolutionExportMain {
 
 			//Mark the appropriate records as changed in the database
 			try {
-				PreparedStatement markGroupedWorkForBibAsChangedStmt = vufindConn.prepareStatement("UPDATE grouped_work SET date_updated = ? where id = (SELECT grouped_work_id from grouped_work_primary_identifiers WHERE type = 'ils' and identifier = ?)");
+				PreparedStatement markGroupedWorkForBibAsChangedStmt = vufindConn.prepareStatement("UPDATE grouped_work SET date_updated = ? where id = (SELECT grouped_work_id from grouped_work_primary_identifiers WHERE type = 'lss' and identifier = ?)");
 				vufindConn.setAutoCommit(false);
 				int numUpdates = 0;
 				for (String curBibId : updatedControlNumbers){
