@@ -422,16 +422,15 @@ class Record_AJAX extends Action {
 			$interface->assign('id', $id);
 			if ($errorMessage) $interface->assign('errorMessage', $errorMessage);
 			$results = array(
-					'title' => 'Book ' . $title,
+					'title' => 'Schedule ' . $title,
 					'modalBody' => $interface->fetch("Record/book-materials-form.tpl"),
-//					'modalButtons' => '<button id="BookMaterialButton" class="btn btn-primary" onclick="return VuFind.Record.submitBookMaterialForm();">Book Item</button>'
-					'modalButtons' => '<button class="btn btn-primary" onclick="$(\'#bookMaterialForm\').submit()">Book Item</button>'
+					'modalButtons' => '<button class="btn btn-primary" onclick="$(\'#bookMaterialForm\').submit()">Schedule Item</button>'
 			    // Clicking invokes submit event, which allows the validator to act before calling the ajax handler
 			);
 		}else{
 			$results = array(
 					'title' => 'Please login',
-					'modalBody' => "You must be logged in.  Please close this dialog and login before booking this item.",
+					'modalBody' => "You must be logged in.  Please close this dialog and login before scheduling this item.",
 					'modalButtons' => ""
 			);
 		}
