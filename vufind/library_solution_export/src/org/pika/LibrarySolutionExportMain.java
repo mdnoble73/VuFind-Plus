@@ -79,8 +79,10 @@ public class LibrarySolutionExportMain {
 		//Load existing item information
 		HashMap<String, String[]> existingItemInformation = new HashMap<>();
 		String itemInfoPath = lssExportPath + "/schoolsitemupdatedaily.txt";
+		long dailyUpdateLastModifiedTime = 0;
 		try {
 			File itemInfoFile = new File(itemInfoPath);
+			dailyUpdateLastModifiedTime = itemInfoFile.lastModified();
 			CSVReader itemInfoReader = new CSVReader(new FileReader(itemInfoFile));
 			//read the header
 			itemInfoReader.readNext();
@@ -97,10 +99,10 @@ public class LibrarySolutionExportMain {
 
 		HashSet<String> updatedControlNumbers = new HashSet<>();
 		//Load new item information
-		String updatedInfoPath = lssExportPath + "/schoolsitemupdatedaily.txt";
+		String updatedInfoPath = lssExportPath + "/schoolsitemupdate.txt";
 		try {
 			File itemInfoFile = new File(updatedInfoPath);
-			if (!itemInfoFile.exists()){
+			if (!itemInfoFile.exists() || itemInfoFile.lastModified() < dailyUpdateLastModifiedTime){
 				//There is nothing to merge, quite early
 				return;
 			}
@@ -112,7 +114,7 @@ public class LibrarySolutionExportMain {
 				String barcode = updatedItemInfoRow[1];
 				String[] existingValues = existingItemInformation.get(barcode);
 				if (existingValues == null){
-					//This is a new value add to the file, but we won't index it since it didn't exist previousl
+					//This is a new value add to the file, but we won't index it since it didn't exist previously
 					existingItemInformation.put(barcode, updatedItemInfoRow);
 				}else{
 					//Only update if the data is different
