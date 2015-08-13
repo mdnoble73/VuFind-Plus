@@ -83,6 +83,7 @@ class BookCoverProcessor{
 
 	private function getHooplaCover($id){
 		require_once ROOT_DIR . '/RecordDrivers/HooplaDriver.php';
+		list(, $id) = explode(":", $id);
 		$driver = new HooplaRecordDriver($id);
 		/** @var File_MARC_Data_Field[] $linkFields */
 		$linkFields = $driver->getMarcRecord()->getFields('856');
@@ -99,6 +100,7 @@ class BookCoverProcessor{
 		require_once ROOT_DIR . '/sys/OverDrive/OverDriveAPIProduct.php';
 		require_once ROOT_DIR . '/sys/OverDrive/OverDriveAPIProductMetaData.php';
 		$overDriveProduct = new OverDriveAPIProduct();
+		list(, $id) = explode(":", $id);
 		$overDriveProduct->overdriveId = $id == null ? $this->id : $id;
 		if ($overDriveProduct->find(true)){
 			$overDriveMetadata = new OverDriveAPIProductMetaData();
@@ -237,7 +239,16 @@ class BookCoverProcessor{
 		}
 		$this->id = isset($_GET['id']) ? $_GET['id'] : null;
 		$this->isEContent = isset($_GET['econtent']);
-		$this->type = isset($_GET['type']) ? $_GET['type'] : 'ils';
+		if (isset($_GET['type'])){
+			$this->type =  $_GET['type'];
+		}else{
+			if (preg_match('/[a-f\\d]{8}-[a-f\\d]{4}-[a-f\\d]{4}-[a-f\\d]{4}-[a-f\\d]{12}/', $this->id)){
+				$this->type = 'grouped_work';
+			}else{
+				$this->type = 'ils';
+			}
+		}
+
 
 		$this->category = isset($_GET['category']) ? strtolower($_GET['category']) : null;
 		$this->format = isset($_GET['format']) ? strtolower($_GET['format']) : null;
@@ -934,11 +945,11 @@ class BookCoverProcessor{
 			//Have not found a grouped work based on isbn or upc, check based on related records
 			$relatedRecords = $this->groupedWork->getRelatedRecords(false);
 			foreach ($relatedRecords as $relatedRecord){
-				if ($relatedRecord['source'] == 'OverDrive'){
+				if (strcasecmp($relatedRecord['source'], 'OverDrive') == 0){
 					if ($this->getOverDriveCover($relatedRecord['id'])){
 						return true;
 					}
-				}elseif ($relatedRecord['source'] == 'Hoopla'){
+				}elseif (strcasecmp($relatedRecord['source'], 'Hoopla')  == 0){
 					if ($this->getHooplaCover($relatedRecord['id'])){
 						return true;
 					}
