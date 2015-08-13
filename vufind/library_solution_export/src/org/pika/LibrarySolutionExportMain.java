@@ -122,7 +122,7 @@ public class LibrarySolutionExportMain {
 						//The information has changed, add to the updates file and mark the work as changed
 						existingItemInformation.put(barcode, updatedItemInfoRow);
 
-						String updatedControlNumber = updatedItemInfoRow[4];
+						String updatedControlNumber = updatedItemInfoRow[0];
 						updatedControlNumbers.add(updatedControlNumber);
 						logger.debug("Control number " + updatedControlNumber + " changed");
 					}
@@ -156,7 +156,7 @@ public class LibrarySolutionExportMain {
 				for (String curBibId : updatedControlNumbers){
 					//Update the database
 					try {
-						logger.debug("Updating grouped work in database updateTime=" + updateTime + " curBibId=" + updateTime);
+						logger.debug("Updating grouped work in database updateTime=" + updateTime + " curBibId=" + curBibId);
 						markGroupedWorkForBibAsChangedStmt.setLong(1, updateTime);
 						markGroupedWorkForBibAsChangedStmt.setString(2, curBibId);
 						markGroupedWorkForBibAsChangedStmt.executeUpdate();
