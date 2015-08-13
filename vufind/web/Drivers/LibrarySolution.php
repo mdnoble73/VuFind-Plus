@@ -654,8 +654,8 @@ class LibrarySolution extends ScreenScrapingDriver {
 				$curTitle['recordId'] = $loan->bibliographicId;
 				$curTitle['title'] = utf8_encode($loan->title);
 				$curTitle['author'] = utf8_encode($loan->author);
-				$curTitle['duedate'] = $loan->dueDate;
-				$curTitle['checkout'] = $loan->outDateString;
+				$curTitle['duedate'] = $loan->dueDate;        // item likely will not have a dueDate, (get null value)
+				$curTitle['checkout'] = $loan->outDateString; // item always has a outDateString
 				$curTitle['borrower_num'] = $patron->id;
 				$curTitle['title_sort'] = preg_replace('/[^a-z\s]/', '', strtolower($curTitle['title']));
 
@@ -679,7 +679,7 @@ class LibrarySolution extends ScreenScrapingDriver {
 						$curTitle['coverUrl'] = "";
 						$curTitle['groupedWorkId'] = "";
 						$curTitle['format'] = "Unknown";
-						$curTitle['author'] = "";
+						$curTitle['author'] = ""; //TODO Why does author get nulled out.  (Library Solutions does give an author)
 					}
 					$curTitle['linkUrl'] = $recordDriver->getLinkUrl();
 				}
@@ -1140,5 +1140,21 @@ class LibrarySolution extends ScreenScrapingDriver {
 		$logger->log('Call to updatePin(), function not implemented.', PEAR_LOG_WARNING);
 
 		return 'Can not update Pins';
+	}
+
+	/**
+	 * @param User $patron patron to get fines for
+	 * @return array  Array of messages
+	 */
+	function getMyFines($patron) {
+		//TODO implement
+/* template from millennium driver
+		$messages[] = array(
+			'reason' =>
+			'message' =>
+			'amount' =>
+		);*/
+
+		return array();
 	}
 }

@@ -409,7 +409,7 @@ VuFind.Account = (function(){
 	},
 
 		cancelBooking: function(cancelId){
-			if (confirm("Are you sure you want to cancel this booking?")){
+			if (confirm("Are you sure you want to cancel this scheduled item?")){
 				if (Globals.loggedIn) {
 					VuFind.loadingMessage();
 					$.getJSON(Globals.path + "/MyAccount/AJAX", {method:"cancelBooking", cancelId:cancelId}, function(data){
@@ -436,7 +436,7 @@ VuFind.Account = (function(){
 				var selectedTitles = this.getSelectedTitles(),
 						numBookings = $("input.titleSelect:checked").length;
 				// if numBookings equals 0, quit because user has canceled in getSelectedTitles()
-				if (numBookings > 0 && confirm('Cancel ' + numBookings + ' selected booking' + (numBookings > 1 ? 's' : '') + '?')) {
+				if (numBookings > 0 && confirm('Cancel ' + numBookings + ' selected scheduled items' + (numBookings > 1 ? 's' : '') + '?')) {
 					VuFind.loadingMessage();
 					$.getJSON(Globals.path + "/MyAccount/AJAX?method=cancelBooking&"+selectedTitles, function(data){
 						VuFind.showMessage(data.title, data.modalBody, data.success); // autoclose when successful
@@ -464,7 +464,7 @@ VuFind.Account = (function(){
 
 		cancelAllBookings: function(){
 			if (Globals.loggedIn) {
-				if (confirm('Cancel all of your bookings?')) {
+				if (confirm('Cancel all of your scheduled items?')) {
 					VuFind.loadingMessage();
 					$.getJSON(Globals.path + "/MyAccount/AJAX?method=cancelBooking&cancelAll=1", function(data){
 						VuFind.showMessage(data.title, data.modalBody, data.success); // autoclose when successful

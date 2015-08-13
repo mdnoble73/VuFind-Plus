@@ -405,7 +405,7 @@ VuFind.Record = (function(){
 
 		submitBookMaterialForm: function(){
 			var params = $('#bookMaterialForm').serialize();
-			VuFind.showMessage('Booking', 'Processing, please wait.');
+			VuFind.showMessage('Scheduling', 'Processing, please wait.');
 			$.getJSON(Globals.path + "/Record/AJAX", params+'&method=bookMaterial', function(data){
 				if (data.modalBody) VuFind.showMessageWithButtons(data.title, data.modalBody, data.modalButtons);
 					// For errors that can be fixed by the user, the form will be re-displayed

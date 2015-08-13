@@ -200,10 +200,10 @@ class MillenniumHolds{
 
 		$holdUpdateParams = http_build_query($extraGetInfo);
 		//Login to the patron's account
-		$cookieJar = tempnam("/tmp", "CURLCOOKIE"); // TODO: cookie Jar now in _curl_connect, add as class variable?
+		$cookieJar = tempnam("/tmp", "CURLCOOKIE"); // TODO: use screen scaping driver
 		$success   = false;
 
-		$curl_connection = $this->_curl_login($patron);
+		$curl_connection = $this->_curl_login($patron);  // TODO use screen scaping driver
 
 		//Issue a post request with the information about what to do with the holds
 		$curl_url = $this->driver->getVendorOpacUrl() . "/patroninfo~S{$scope}/" . $patron->username . "/holds";
@@ -404,7 +404,10 @@ class MillenniumHolds{
 
 						//Extract the current location for the hold if possible
 						$matches = array();
-						if (preg_match('/<select\\s+name=loc(.*?)x(\\d\\d).*?<option\\s+value="([a-z0-9+]{1,5})"\\s+selected="selected">.*/s', $sCols[$i], $matches)) {
+//						if (preg_match('/<select\\s+name=loc(.*?)x(\\d\\d).*?<option\\s+value="([a-z0-9+]{1,5})"\\s+selected="selected">.*/s', $sCols[$i], $matches)) {
+						if (preg_match('/<select\\s+name=loc(.*?)x(\\d\\d).*?<option\\s+value="([a-z0-9+ ]{1,5})"\\s+selected="selected">.*/s', $sCols[$i], $matches)) {
+									// new regex above includes a space in the value capture now. This seems to be the result of our setting of the pickup location on the place hold side.
+									// plb 8-12-2015
 							$curHold['locationId'] = $matches[1];
 							$curHold['locationXnum'] = $matches[2];
 							$curPickupBranch = new Location();
@@ -676,6 +679,7 @@ class MillenniumHolds{
 		}
 
 		//Get the title of the book.
+		// TODO Is this block needed?
 		$class = $configArray['Index']['engine'];
 		$url = $configArray['Index']['url'];
 		$this->driver->db = new $class($url);
@@ -712,7 +716,7 @@ class MillenniumHolds{
 			}
 
 		}else{
-			if (isset($_REQUEST['canceldate']) && !is_null($_REQUEST['canceldate']) && $_REQUEST['canceldate'] != ''){
+			if (!empty($_REQUEST['canceldate'])){
 				$date = $_REQUEST['canceldate'];
 			}else{
 				//Default to a date 6 months (half a year) in the future.
@@ -724,7 +728,7 @@ class MillenniumHolds{
 
 			$curl_connection = $this->_curl_connect();
 
-			curl_setopt($curl_connection, CURLOPT_POST, true);
+//			curl_setopt($curl_connection, CURLOPT_POST, true);
 
 			$lt = null;
 			if (isset($configArray['Catalog']['loginPriorToPlacingHolds']) && $configArray['Catalog']['loginPriorToPlacingHolds'] = true){
@@ -734,12 +738,9 @@ class MillenniumHolds{
 				$post_data['submit.x']="35";
 				$post_data['submit.y']="21";
 				$post_data['submit']="submit";
-				$post_string = http_build_query($post_data);
-				curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
-				curl_setopt($curl_connection, CURLOPT_REFERER,$curl_url);
-				curl_setopt($curl_connection, CURLOPT_URL, $curl_url);
-				$loginResult = curl_exec($curl_connection);
-				$curlInfo = curl_getinfo($curl_connection);
+				$loginResult = $this->driver->_curlPostPage($curl_url, $post_data);
+//				$curlInfo = curl_getinfo($curl_connection); // for debugging only
+
 				//When a library uses Encore, the initial login does a redirect and requires additional parameters.
 				if (preg_match('/<input type="hidden" name="lt" value="(.*?)" \/>/si', $loginResult, $loginMatches)) {
 					//Get the lt value
@@ -747,23 +748,19 @@ class MillenniumHolds{
 					//Login again
 					$post_data['lt'] = $lt;
 					$post_data['_eventId'] = 'submit';
-					$post_string = http_build_query($post_data);
-					curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
-					$loginResult = curl_exec($curl_connection);
-					$curlInfo = curl_getinfo($curl_connection);
+					$loginResult = $this->driver->_curlPostPage($curl_url, $post_data);
+//					$curlInfo = curl_getinfo($curl_connection); // for debugging only
 				}
 				$post_data = array();
 			}else{
 				$post_data = $this->driver->_getLoginFormValues($patron);
 			}
 			$curl_url = $this->driver->getVendorOpacUrl() . "/search/.$bib/.$bib/1,1,1,B/request~$bib";
-			//echo "$curl_url";
-			curl_setopt($curl_connection, CURLOPT_URL, $curl_url);
 
 			/** @var Library $librarySingleton */
-      global $librarySingleton;
-      $patronHomeBranch = $librarySingleton->getPatronHomeLibrary();
-      if ($patronHomeBranch->defaultNotNeededAfterDays != -1){
+			global $librarySingleton;
+			$patronHomeBranch = $librarySingleton->getPatronHomeLibrary($patron);
+			if ($patronHomeBranch->defaultNotNeededAfterDays != -1){
 				$post_data['needby_Month']= $Month;
 				$post_data['needby_Day']= $Day;
 				$post_data['needby_Year']=$Year;
@@ -772,8 +769,8 @@ class MillenniumHolds{
 			$post_data['submit.x']="35";
 			$post_data['submit.y']="21";
 			$post_data['submit']="submit";
-			$post_data['locx00']= str_pad($pickupBranch, 5-strlen($pickupBranch), '+');
-			if (!is_null($itemId) && $itemId != -1){
+			$post_data['locx00']= str_pad($pickupBranch, 5); // padded with spaces, which will get url-encoded into plus signs by httpd_build_query() in the _curlPostPage() method.
+			if (!empty($itemId) && $itemId != -1){
 				$post_data['radio']=$itemId;
 			}
 			$post_data['x']="48";
@@ -783,16 +780,12 @@ class MillenniumHolds{
 				$post_data['_eventId'] = 'submit';
 			}
 
-			$post_string = http_build_query($post_data);
-			curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
-			$sResult = curl_exec($curl_connection);
+			$sResult = $this->driver->_curlPostPage($curl_url, $post_data);
 
 			global $logger;
-			$logger->log("Placing hold $curl_url?$post_string", PEAR_LOG_INFO);
+			$logger->log("Placing hold $recordId : $title", PEAR_LOG_INFO);
 
 			$sResult = preg_replace("/<!--([^(-->)]*)-->/","",$sResult);
-
-			curl_close($curl_connection);
 
 			//Parse the response to get the status message
 			$hold_result = $this->_getHoldResult($sResult);

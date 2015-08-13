@@ -786,6 +786,7 @@ class MyAccount_AJAX
 
 	function getChangeHoldLocationForm()
 	{
+		// TODO must handle linked accounts
 		global $interface;
 		/** @var $interface UInterface
 		 * @var $user User */
