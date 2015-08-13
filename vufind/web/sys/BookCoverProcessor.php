@@ -248,6 +248,9 @@ class BookCoverProcessor{
 				$this->type = 'ils';
 			}
 		}
+		if (strpos($this->id, ':') > 0){
+			list($this->type, $this->id) = explode(':', $this->id);
+		}
 
 
 		$this->category = isset($_GET['category']) ? strtolower($_GET['category']) : null;
@@ -406,8 +409,8 @@ class BookCoverProcessor{
 				}else{
 					$marcRecord = false;
 				}
-			}elseif ($this->type == 'ils'){
-				$marcRecord = MarcLoader::loadMarcRecordByILSId($this->id);
+			}elseif ($this->type != 'overdrive' && $this->type != 'hoopla'){
+				$marcRecord = MarcLoader::loadMarcRecordByILSId($this->type . ':' . $this->id);
 			}
 		}
 
@@ -749,7 +752,10 @@ class BookCoverProcessor{
 		}
 
 		$url = isset($this->configArray['Syndetics']['url']) ? $this->configArray['Syndetics']['url'] : 'http://syndetics.com';
-		$url .= "/index.aspx?type=xw12&isbn={$this->isn}&pagename={$size}&client={$key}";
+		$url .= "/index.aspx?type=xw12&pagename={$size}&client={$key}";
+		if ($this->isn){
+			$url .= "&isbn=" . (!is_null($this->isn) ? $this->isn : '');
+		}
 		if ($this->upc){
 			$url .= "&upc=" . (!is_null($this->upc) ? $this->upc : '');
 		}
