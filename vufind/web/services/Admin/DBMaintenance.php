@@ -1928,6 +1928,14 @@ class DBMaintenance extends Admin_Admin {
 					),
 				),
 
+				'browse_categories_search_term_length' => array(
+					'title' => 'Browse Category Search Term Length',
+					'description' => 'Increase the length of the search term field',
+					'sql' => array(
+						"ALTER TABLE browse_category CHANGE searchTerm searchTerm VARCHAR(500) NOT NULL DEFAULT ''",
+					),
+				),
+
 				'browse_categories_lists' => array(
 					'title' => 'Browse Categories from Lists',
 					'description' => 'Add a the ability to define a browse category from a list',
