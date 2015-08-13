@@ -172,7 +172,9 @@ public class RecordInfo {
 		HashSet<String> values = new HashSet<>();
 		values.addAll(formats);
 		for (ItemInfo curItem : relatedItems){
-			values.add(curItem.getFormat());
+			if (curItem.getFormat() != null) {
+				values.add(curItem.getFormat());
+			}
 		}
 		return values;
 	}
@@ -185,7 +187,9 @@ public class RecordInfo {
 		HashSet<String> values = new HashSet<>();
 		values.addAll(formatCategories);
 		for (ItemInfo curItem : relatedItems){
-			values.add(curItem.getFormatCategory());
+			if (curItem.getFormatCategory() != null) {
+				values.add(curItem.getFormatCategory());
+			}
 		}
 		return values;
 	}

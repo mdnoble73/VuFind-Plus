@@ -87,7 +87,7 @@ class SideFacets implements RecommendationInterface
 						$facetName = 'econtent_protection_type_' . $solrScope;
 					}elseif ($facet->facetName == 'detailed_location'){
 						$facetName = 'detailed_location_' . $solrScope;
-					}elseif ($facet->facetName == 'collection'){
+					}elseif ($facet->facetName == 'collection' || $facet->facetName == 'collection_group'){
 						$facetName = 'collection_' . $solrScope;
 					}
 				}

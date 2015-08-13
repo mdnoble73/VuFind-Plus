@@ -238,7 +238,7 @@ abstract class SearchObject_Base
 					$field = 'econtent_source_' . $solrScope;
 				}elseif ($field == 'econtent_protection_type'){
 					$field = 'econtent_protection_type_' . $solrScope;
-				}elseif ($field == 'collection'){
+				}elseif ($field == 'collection' || $field == 'collection_group'){
 					$field = 'collection_' . $solrScope;
 				}
 			}

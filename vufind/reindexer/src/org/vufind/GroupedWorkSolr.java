@@ -319,31 +319,47 @@ public class GroupedWorkSolr {
 					if (curScope.isAvailable() && curScope.isLocallyOwned() && !curItem.isEContent()) {
 						addUniqueFieldValue(doc, "available_at", curScope.getScope().getFacetLabel());
 						addUniqueFieldValue(doc, "availability_toggle_" + curScopeName, "Available Now");
+						for (String format : curRecord.getAllFormats()) {
+							addUniqueFieldValue(doc, "availability_by_format_" + curScopeName, format + "_available");
+						}
+						for (String formatCategory : curRecord.getAllFormatCategories()) {
+							addUniqueFieldValue(doc, "availability_by_format_" + curScopeName, formatCategory + "_available");
+						}
 					}
 					if (curItem.isEContent() && curScope.getScope().isLibraryScope()) {
 						addUniqueFieldValue(doc, "available_at", curScope.getScope().getFacetLabel() + " Online");
 						addUniqueFieldValue(doc, "availability_toggle_" + curScopeName, "Available Now");
+						for (String format : curRecord.getAllFormats()) {
+							addUniqueFieldValue(doc, "availability_by_format_" + curScopeName, format + "_available");
+						}
+						for (String formatCategory : curRecord.getAllFormatCategories()) {
+							addUniqueFieldValue(doc, "availability_by_format_" + curScopeName, formatCategory + "_available");
+						}
 					}
 
 					//TODO: Different toggles for library and location?
 					if (curScope.isLocallyOwned() && curScope.getScope().isLocationScope()){
 						addUniqueFieldValue(doc, "availability_toggle_" + curScopeName, "Entire Collection");
+						for (String format : curRecord.getAllFormats()) {
+							addUniqueFieldValue(doc, "availability_by_format_" + curScopeName, format + "_local");
+						}
+						for (String formatCategory : curRecord.getAllFormatCategories()) {
+							addUniqueFieldValue(doc, "availability_by_format_" + curScopeName, formatCategory + "_local");
+						}
 					}
 					if (curScope.isLibraryOwned() && curScope.getScope().isLibraryScope()){
 						addUniqueFieldValue(doc, "availability_toggle_" + curScopeName, "Entire Collection");
+						for (String format : curRecord.getAllFormats()) {
+							addUniqueFieldValue(doc, "availability_by_format_" + curScopeName, format + "_local");
+						}
+						for (String formatCategory : curRecord.getAllFormatCategories()) {
+							addUniqueFieldValue(doc, "availability_by_format_" + curScopeName, formatCategory + "_local");
+						}
 					}
-
-					/*if (curScope.isLocallyOwned()) {
-						addUniqueFieldValue(doc, "availability_toggle_" + curScopeName, "Library Collection");
-						addUniqueFieldValue(doc, "availability_toggle_" + curScopeName, "Branch Collection");
-						updateMaxValueField(doc, "lib_boost_" + curScopeName, ownedByBoostValue);
-					}else if (curScope.isLibraryOwned()) {
-						addUniqueFieldValue(doc, "availability_toggle_" + curScopeName, "Library Collection");
-						updateMaxValueField(doc, "lib_boost_" + curScopeName, ownedByBoostValue);
-					}*/
 
 					//Date Added To Catalog needs to be the earliest date added for the catalog.
 					if (curScope.isLocallyOwned() || curScope.isLibraryOwned()) {
+						addUniqueFieldValue(doc, "collection_" + curScopeName, curItem.getCollection());
 						Date dateAdded = curItem.getDateAdded();
 						long daysSinceAdded;
 						//See if we need to override based on publication date if not provided.
@@ -370,12 +386,15 @@ public class GroupedWorkSolr {
 					if (curScope.isAvailable()){
 						if (curScope.isLocallyOwned()) {
 							addUniqueFieldValue(doc, "availability_toggle_" + curScopeName, "Available Now");
-							addUniqueFieldValue(doc, "availability_toggle_" + curScopeName, "Available Locally");
 							updateMaxValueField(doc, "lib_boost_" + curScopeName, availableAtBoostValue);
+							for (String format : curRecord.getFormats()) {
+								addUniqueFieldValue(doc, "availability_by_format_" + curScopeName, format + "_available");
+							}
+							for (String formatCategory : curRecord.getFormatCategories()) {
+								addUniqueFieldValue(doc, "availability_by_format_" + curScopeName, formatCategory + "_available");
+							}
 						} else if (curScope.isLibraryOwned()) {
-							addUniqueFieldValue(doc, "availability_toggle_" + curScopeName, "Available Locally");
-						} else{
-							addUniqueFieldValue(doc, "availability_toggle_" + curScopeName, "Available Anywhere");
+							addUniqueFieldValue(doc, "availability_toggle_" + curScopeName, "Available Now");
 						}
 					}
 
