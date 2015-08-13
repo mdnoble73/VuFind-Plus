@@ -2349,7 +2349,11 @@ class MarcRecord extends IndexRecord
 	}
 
 	protected function getRecordType(){
-		return 'ils';
+		if ($this->profileType){
+			return $this->profileType;
+		}else{
+			return 'ils';
+		}
 	}
 
 	/**
