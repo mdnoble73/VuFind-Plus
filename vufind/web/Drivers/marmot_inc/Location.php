@@ -318,7 +318,9 @@ class Location extends DB_DataObject
 		//Get the library for the patron's home branch.
 		/** @var Library $librarySingleton */
 		global $librarySingleton;
-		$homeLibrary = $librarySingleton->getLibraryForLocation($patronProfile->homeLocationId);
+		if ($patronProfile){
+			$homeLibrary = $librarySingleton->getLibraryForLocation($patronProfile->homeLocationId);
+		}
 
 		if (isset($homeLibrary) && $homeLibrary->inSystemPickupsOnly == 1){
 			if (strlen($homeLibrary->validPickupSystems) > 0){
@@ -364,7 +366,7 @@ class Location extends DB_DataObject
 			if (isset($physicalLocation) && $physicalLocation->locationId == $this->locationId){
 				//If the user is in a branch, those holdings come first.
 				$locationList['1' . $this->displayName] = clone $this;
-			} else if ($this->locationId == $patronProfile->homeLocationId){
+			} else if (!empty($patronProfile) &&  $this->locationId == $patronProfile->homeLocationId){
 				//Next come the user's home branch if the user is logged in or has the home_branch cookie set.
 				$locationList['21' . $this->displayName] = clone $this;
 			} else if (isset($patronProfile->myLocation1Id) && $this->locationId == $patronProfile->myLocation1Id){
