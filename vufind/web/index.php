@@ -798,8 +798,10 @@ function loadModuleActionId(){
 				$newId = $profile->name . ':' . $_REQUEST['id'];;
 				$_GET['id'] = $newId;
 				$_REQUEST['id'] = $newId;
-				$_GET['module'] = 'Record';
-				$_REQUEST['module'] = 'Record';
+				if (!file_exists(ROOT_DIR . '/services/' . $_REQUEST['module'])){
+					$_GET['module'] = 'Record';
+					$_REQUEST['module'] = 'Record';
+				}
 				$activeRecordProfile = $profile;
 				break;
 			}

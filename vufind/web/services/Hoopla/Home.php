@@ -37,7 +37,8 @@ class Hoopla_Home extends Action{
 			$interface->assign('searchId', $_SESSION['searchId']);
 		}
 
-		$this->id = strip_tags($_REQUEST['id']);
+		list($type, $id) = explode(':', $_REQUEST['id']);
+		$this->id = $id;
 		$interface->assign('id', $this->id);
 		$recordDriver = new HooplaRecordDriver($this->id);
 
