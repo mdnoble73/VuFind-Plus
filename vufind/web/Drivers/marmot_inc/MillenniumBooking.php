@@ -406,9 +406,8 @@ class MillenniumBooking {
 			if(preg_match('/<div class="bookingsSelectCal">.*?<table border>(?<HourlyCalendarTable>.*?<\/table>.*?)<\/table>.*?<\/div>/si', $HourlyCalendarResponse, $table)) {
 
 				// Modify Calendar html for our needs
-				$calendarTable = preg_replace('#<th.*?>.*?</th>#s', '<th colspan="2">Date</th><th colspan="17">Time <small>(6 AM - 11 PM)&nbsp; Times in green are available.</small></th>', $table['HourlyCalendarTable']); // cut out the table header with the unwanted links in it.
-				$calendarTable = str_replace(array('unavailable', 'available', 'closed', 'am'), array('active', 'success', 'active', ''), $calendarTable);
-
+				$calendarTable = str_replace(array('unavailable', 'available', 'closed', 'am'), array('active', 'success', 'active', ''), $table['HourlyCalendarTable']);
+				$calendarTable = preg_replace('#<th.*?>.*?</th>#s', '<th colspan="2">Date</th><th colspan="17">Time <small>(6 AM - 11 PM)&nbsp; Times in green are Available.</small></th>', $calendarTable); // cut out the table header with the unwanted links in it.
 				$calendarTable = '<table class="table table-condensed">'. $calendarTable . '</table>'; // add table tag with styling attributes
 
 				return $calendarTable;
