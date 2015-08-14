@@ -512,11 +512,11 @@ class Aspencat implements DriverInterface{
 	private $patronProfiles = array();
 
 	/**
-	 * @param User $user              The User Object to make updates to
+	 * @param User $patron            The User Object to make updates to
 	 * @param $canUpdateContactInfo   Permission check that updating is allowed
 	 * @return array                  Array of error messages for errors that occurred
 	 */
-	function updatePatronInfo($user, $canUpdateContactInfo){
+	function updatePatronInfo($patron, $canUpdateContactInfo){
 		$updateErrors = array();
 		if ($canUpdateContactInfo) {
 			$updateErrors[] = "Profile Information can not be updated.";
@@ -882,7 +882,7 @@ class Aspencat implements DriverInterface{
 
 						//Get fines
 						//Load fines from database
-						$outstandingFines = $this->getOutstandingFineTotal();
+						$outstandingFines = $this->getOutstandingFineTotal($user);
 						$user->fines = sprintf('$%0.2f', $outstandingFines);
 						$user->finesVal = floatval($outstandingFines);
 
@@ -1676,7 +1676,6 @@ class Aspencat implements DriverInterface{
 	 */
 	public function getMyHoldsFromDB(/** @noinspection PhpUnusedParameterInspection */
 		$patron, $page = 1, $recordsPerPage = -1, $sortOption = 'title'){
-		global $user;
 
 		$availableHolds = array();
 		$unavailableHolds = array();
@@ -1689,7 +1688,7 @@ class Aspencat implements DriverInterface{
 
 		$sql = "SELECT *, title, author FROM reserves inner join biblio on biblio.biblionumber = reserves.biblionumber where borrowernumber = ?";
 		$holdsStmt = mysqli_prepare($this->dbConnection, $sql);
-		$holdsStmt->bind_param('i', $user->username);
+		$holdsStmt->bind_param('i', $patron->username);
 		$holdsStmt->execute();
 
 		$results = $holdsStmt->get_result();
@@ -1864,7 +1863,7 @@ class Aspencat implements DriverInterface{
 						//Check the result of the update
 					}
 					if ($allLocationChangesSucceed){
-						$this->clearPatronProfile();
+						$this->clearPatronProfile($patron);
 						return array(
 							'title' => $title,
 							'success' => true,
@@ -1888,7 +1887,7 @@ class Aspencat implements DriverInterface{
 						$catalogUrl = $configArray['Catalog']['url'];
 						$updateUrl = "$catalogUrl/cgi-bin/koha/opac-modrequest.pl";
 						$this->postToKohaPage($updateUrl, $postParams);
-						$this->clearPatronProfile();
+						$this->clearPatronProfile($patron);
 					}
 					if ($allUnsuspendsSucceed){
 						return array(
@@ -1941,7 +1940,7 @@ class Aspencat implements DriverInterface{
 				$success = true;
 				$message = 'Your item was successfully renewed.';
 				//Clear the patron profile
-				$this->clearPatronProfile();
+				$this->clearPatronProfile($patron);
 				if ($analytics){
 					$analytics->addEvent('ILS Integration', 'Renew Successful');
 				}
@@ -1974,11 +1973,8 @@ class Aspencat implements DriverInterface{
 	 * @param bool $includeMessages
 	 * @return array
 	 */
-	public function getMyFines(
-			/** @noinspection PhpUnusedParameterInspection */
-			$patron = null, $includeMessages = false){
+	public function getMyFines($patron, $includeMessages = false){
 
-		global $user;
 
 		$this->initDatabaseConnection();
 
@@ -1986,7 +1982,7 @@ class Aspencat implements DriverInterface{
 		$query = "SELECT * FROM fees JOIN fee_transactions AS ft on(id = fee_id) WHERE borrowernumber = ? and accounttype in (select accounttype from accounttypes where class='fee' or class='invoice') ";
 
 		$allFeesStmt = mysqli_prepare($this->dbConnection, $query);
-		$allFeesStmt->bind_param('i', $user->username);
+		$allFeesStmt->bind_param('i', $patron->username);
 		$allFeesStmt->execute( );
 		$allFeesRS = $allFeesStmt->get_result();
 
@@ -2026,12 +2022,11 @@ class Aspencat implements DriverInterface{
 	 * @param   string  $action         The action to perform
 	 * @param   array   $selectedTitles The titles to do the action on if applicable
 	 */
-	function doReadingHistoryAction($action, /** @noinspection PhpUnusedParameterInspection */
+	function doReadingHistoryAction($patron, $action, /** @noinspection PhpUnusedParameterInspection */
 	                                $selectedTitles){
 		global $configArray;
 		global $analytics;
-		global $user;
-		if (!$this->loginToKoha($user)){
+		if (!$this->loginToKoha($patron)){
 			return;
 		}else{
 			if ($action == 'deleteMarked'){
@@ -2065,14 +2060,16 @@ class Aspencat implements DriverInterface{
 					$analytics->addEvent('ILS Integration', 'Opt in to Reading History');
 				}
 			}
-			$this->clearPatronProfile();
+			$this->clearPatronProfile($patron);
 		}
 	}
 
-	public function clearPatronProfile() {
-		/** @var Memcache $memCache */
-		global $memCache, $user, $serverName;
-		$memCache->delete("patronProfile_{$serverName}_{$user->username}");
+	public function clearPatronProfile($patron = null) {
+		if (is_null($patron)) {
+			global $user;
+			$patron = $user;
+		}
+		$patron->deletePatronProfileCache();
 	}
 
 	private $holdsByBib = array();
@@ -2196,21 +2193,20 @@ class Aspencat implements DriverInterface{
 	 *
 	 * @return mixed
 	 */
-	private function getOutstandingFineTotal() {
-		global $user;
+	private function getOutstandingFineTotal($patron) {
 		//Since borrowernumber is stored in fees and payments, not fee_transactions,
 		//this is done with two queries: the first gets all outstanding charges, the second
 		//picks up any unallocated credits.
 		$this->initDatabaseConnection();
 		$stmt = mysqli_prepare($this->dbConnection, "SELECT SUM(amount) FROM fees LEFT JOIN fee_transactions on(fees.id = fee_transactions.fee_id) where fees.borrowernumber = ?");
-		$stmt->bind_param('i', $user->username);
+		$stmt->bind_param('i', $patron->username);
 		/** @var mysqli_result $result */
 		$stmt->execute( );
 		$amountOutstanding = $stmt->get_result()->fetch_array();
 		$amountOutstanding = $amountOutstanding[0];
 
 		$creditStmt = mysqli_prepare($this->dbConnection, "SELECT SUM(amount) FROM payments LEFT JOIN fee_transactions on(payments.id = fee_transactions.payment_id) where payments.borrowernumber = ? and fee_id is null" );
-		$creditStmt->bind_param('i', $user->username);
+		$creditStmt->bind_param('i', $patron->username);
 		$creditStmt->execute();
 		$credit = $creditStmt->get_result()->fetch_array();
 		$credit = $credit[0];
