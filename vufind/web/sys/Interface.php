@@ -267,6 +267,7 @@ class UInterface extends Smarty
 		$location = $locationSingleton->getActiveLocation();
 		$showHoldButton = 1;
 		$showHoldButtonInSearchResults = 1;
+		$showHoldButtonForUnavailableOnly = 0;
 		$this->assign('logoLink', $configArray['Site']['path']);
 		if (isset($library) && $library->useHomeLinkForLogo){
 			if (isset($location) && strlen($location->homeLink) > 0 && $location->homeLink != 'default'){
@@ -301,6 +302,7 @@ class UInterface extends Smarty
 			$this->assign('showSimilarAuthors', $library->showSimilarAuthors);
 			$this->assign('showItsHere', $library->showItsHere);
 			$this->assign('enableMaterialsBooking', $library->enableMaterialsBooking);
+			$this->assign('showHoldButtonForUnavailableOnly', $library->showHoldButtonForUnavailableOnly);
 		}else{
 			$this->assign('showLoginButton', 1);
 			$this->assign('showAdvancedSearchbox', 1);
@@ -315,6 +317,7 @@ class UInterface extends Smarty
 			$this->assign('showSimilarAuthors', 1);
 			$this->assign('showItsHere', 0);
 			$this->assign('enableMaterialsBooking', 0);
+			$this->assign('showHoldButtonForUnavailableOnly', 0);
 		}
 		if (isset($library) && $location != null){ // library and location
 			$this->assign('showFavorites', $location->showFavorites && $library->showFavorites);

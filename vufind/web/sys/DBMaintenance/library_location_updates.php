@@ -1053,6 +1053,15 @@ function getLibraryLocationUpdates(){
 			),
 		),
 
+		'show_place_hold_on_unavailable' => array(
+			'title' => 'Show place hold button for unavailable records only',
+			'description' => 'Setup showing place hold button for unavailable records only',
+			'continueOnError' => true,
+			'sql' => array(
+				"ALTER TABLE `library` ADD COLUMN `showHoldButtonForUnavailableOnly` TINYINT(1) DEFAULT '0';",
+			),
+		),
+
 		'linked_accounts_switch' => array(
 			'title' => 'Enable Linked Accounts',
 			'description' => 'Library configuration switch to enable users to have linked library accounts.',

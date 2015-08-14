@@ -216,7 +216,7 @@ public abstract class IIIRecordProcessor extends IlsRecordProcessor{
 		ArrayList<LoanRule> relevantLoanRules = getRelevantLoanRules(itemInfo.getITypeCode(), itemInfo.getLocationCode(), curScope.getRelatedNumericPTypes());
 		for (LoanRule loanRule : relevantLoanRules){
 			if (loanRule.getHoldable()){
-				return true;
+				return super.isItemHoldable(itemInfo, curScope);
 			}
 		}
 		return false;

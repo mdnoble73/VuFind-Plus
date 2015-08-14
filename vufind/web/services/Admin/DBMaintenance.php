@@ -2163,7 +2163,17 @@ class DBMaintenance extends Admin_Admin {
 					'title' => 'Indexing profile catalog driver',
 					'description' => 'Add handling catalog driver to indexing profile table',
 					'sql' => array(
-						"ALTER TABLE indexing_profiles ADD COLUMN `catalogDriver` char(50) DEFAULT NULL"
+						"ALTER TABLE indexing_profiles ADD COLUMN `catalogDriver` varchar(50) DEFAULT NULL"
+					)
+				),
+
+				'indexing_profile_holdability' => array(
+					'title' => 'Setup additional holdability filters',
+					'description' => 'Setup additional filters for determining if something is holdable',
+					'sql' => array(
+						"ALTER TABLE indexing_profiles ADD COLUMN `nonHoldableITypes` varchar(255) DEFAULT NULL",
+						"ALTER TABLE indexing_profiles ADD COLUMN `nonHoldableStatuses` varchar(255) DEFAULT NULL",
+						"ALTER TABLE indexing_profiles ADD COLUMN `nonHoldableLocations` varchar(512) DEFAULT NULL",
 					)
 				),
 

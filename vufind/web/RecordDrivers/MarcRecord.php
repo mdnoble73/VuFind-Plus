@@ -1814,9 +1814,16 @@ class MarcRecord extends IndexRecord
 		global $interface;
 		global $library;
 		if (isset($interface)){
-			$showHoldButton = $interface->getVariable('displayingSearchResults') ? $interface->getVariable('showHoldButtonInSearchResults'): $interface->getVariable('showHoldButton');
+			if ($interface->getVariable('displayingSearchResults')){
+				$showHoldButton =  $interface->getVariable('showHoldButtonInSearchResults');
+			}else{
+				$interface->getVariable('showHoldButton');
+			}
 		}else{
 			$showHoldButton = false;
+		}
+		if ($showHoldButton && $isAvailable){
+			$showHoldButton = !$interface->getVariable('showHoldButtonForUnavailableOnly');
 		}
 
 		if ($isHoldable && $showHoldButton){
