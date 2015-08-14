@@ -9,9 +9,9 @@
 			</div>
 			<div class="col-xs-9 text-center">
 				{if $record.id}
-				<a href="{$path}/Record/{$record.id|escape:"url"}{*?searchId={$searchId}&amp;recordIndex={$recordIndex}&amp;page={$page} Needed? plb*}">
+				<a href="{$record.linkUrl}">
 					{/if}
-					<img src="{$coverUrl}/bookcover.php?id={$record.id}&amp;issn={$record.issn}&amp;isn={$record.isbn|@formatISBN}&amp;size=small&amp;upc={$record.upc}&amp;category={$record.format_category.0|escape:"url"}" class="listResultImage img-thumbnail img-responsive" alt="{translate text='Cover Image'}">
+					<img src="{$record.coverUrl}" class="listResultImage img-thumbnail img-responsive" alt="{translate text='Cover Image'}">
 					{if $record.id}
 				</a>
 				{/if}

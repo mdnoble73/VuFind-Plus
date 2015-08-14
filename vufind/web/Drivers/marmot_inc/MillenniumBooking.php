@@ -293,9 +293,11 @@ class MillenniumBooking {
 					$booking['sortTitle'] = $recordDriver->getSortableTitle();
 					$booking['author'] = $recordDriver->getAuthor();
 					$booking['format'] = $recordDriver->getFormat();
-					$booking['isbn'] = $recordDriver->getCleanISBN();
-					$booking['upc'] = $recordDriver->getCleanUPC();
+					$booking['isbn'] = $recordDriver->getCleanISBN(); //TODO these may not be used anywhere now that the links are built here, have to check
+					$booking['upc'] = $recordDriver->getCleanUPC();   //TODO these may not be used anywhere now that the links are built here, have to check
 					$booking['format_category'] = $recordDriver->getFormatCategory();
+					$booking['linkUrl'] = $recordDriver->getLinkUrl();
+					$booking['coverUrl'] = $recordDriver->getBookcoverUrl('medium');
 
 					//Load rating information
 //					$booking['ratingData'] = $recordDriver->getRatingData(); // not displaying ratings at this time
