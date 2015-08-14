@@ -19,7 +19,7 @@
 						<a href="{$record.link}">
 					{/if}
 
-					<img src="{$record.coverUrl}" class="listResultImage img-thumbnail img-responsive" alt="{translate text='Cover Image'}"/>
+					<img src="{$record.coverUrl}" class="listResultImage img-thumbnail img-responsive" alt="{translate text='Cover Image'}">
 					{if $record.recordId}
 						</a>
 					{/if}

@@ -547,8 +547,8 @@ class MillenniumHolds{
 					$hold['sortTitle'] = $recordDriver->getSortableTitle();
 					$hold['author'] = $recordDriver->getAuthor();
 					$hold['format'] = $recordDriver->getFormat();
-					$hold['isbn'] = $recordDriver->getCleanISBN();
-					$hold['upc'] = $recordDriver->getCleanUPC();
+					$hold['isbn'] = $recordDriver->getCleanISBN();  //TODO these may not be used anywhere now that the links are built here, have to check
+					$hold['upc'] = $recordDriver->getCleanUPC();    //TODO these may not be used anywhere now that the links are built here, have to check
 					$hold['format_category'] = $recordDriver->getFormatCategory();
 
 					//Load rating information
@@ -588,6 +588,7 @@ class MillenniumHolds{
 	 * @access  public
 	 */
 	function placeItemHold($patron, $recordId, $itemId, $pickupBranch) {
+		global $logger;
 		global $configArray;
 
 		$bib1= $recordId;
@@ -612,11 +613,13 @@ class MillenniumHolds{
 		require_once ROOT_DIR . '/RecordDrivers/Factory.php';
 		$record = RecordDriverFactory::initRecordDriverById($this->driver->accountProfile->recordSource . ':' . $bib1);
 		if (!$record) {
+			$logger->log('Place Hold: Failed to get Marc Record', PEAR_LOG_INFO);
 			$title = null;
 		}else{
 			$title = $record->getTitle();
 		}
 
+		// Offline Holds
 		if ($configArray['Catalog']['offline']){
 			require_once ROOT_DIR . '/sys/OfflineHold.php';
 			$offlineHold = new OfflineHold();
@@ -638,6 +641,7 @@ class MillenniumHolds{
 					'success' => false,
 					'message' => 'The circulation system is currently offline and we could not place this hold.  Please try again later.');
 			}
+
 
 		}else{
 			if (!empty($_REQUEST['canceldate'])){
@@ -685,7 +689,6 @@ class MillenniumHolds{
 
 			$sResult = $this->driver->_curlPostPage($curl_url, $post_data);
 
-			global $logger;
 			$logger->log("Placing hold $recordId : $title", PEAR_LOG_INFO);
 
 			$sResult = preg_replace("/<!--([^(-->)]*)-->/","",$sResult);

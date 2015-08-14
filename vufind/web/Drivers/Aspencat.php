@@ -1036,7 +1036,7 @@ class Aspencat implements DriverInterface{
 	 *
 	 * This is responsible for retrieving a history of checked out items for the patron.
 	 *
-	 * @param   array   $patron     The patron array
+	 * @param   User   $patron     The patron account
 	 * @param   int     $page
 	 * @param   int     $recordsPerPage
 	 * @param   string  $sortOption
@@ -1045,20 +1045,23 @@ class Aspencat implements DriverInterface{
 	 *                              If an error occurs, return a PEAR_Error
 	 * @access  public
 	 */
-	public function getReadingHistory(
-		/** @noinspection PhpUnusedParameterInspection */
-		$patron = null, $page = 1, $recordsPerPage = -1, $sortOption = "checkedOut") {
-		global $user;
-
+	public function getReadingHistory($patron, $page = 1, $recordsPerPage = -1, $sortOption = "checkedOut") {
+		// TODO implement sorting, currently only done in catalogConnection for aspencat reading history
 		$this->initDatabaseConnection();
 
 		//Figure out if the user is opted in to reading history
 
-		$sql = "select disable_reading_history from borrowers where borrowernumber = {$user->username}";
+		$sql = "select disable_reading_history from borrowers where borrowernumber = {$patron->username}";
 		$historyEnabledRS = mysqli_query($this->dbConnection, $sql);
 		if ($historyEnabledRS){
 			$historyEnabledRow = $historyEnabledRS->fetch_assoc();
 			$historyEnabled = !$historyEnabledRow['disable_reading_history'];
+
+			// Update patron's setting in Pika if the setting has changed in Koha
+			if ($historyEnabled != $patron->trackReadingHistory) {
+				$patron->trackReadingHistory = (boolean) $historyEnabled;
+				$patron->update();
+			}
 
 			if (!$historyEnabled){
 				return array('historyActive'=>false, 'titles'=>array(), 'numTitles'=> 0);
@@ -1081,7 +1084,7 @@ class Aspencat implements DriverInterface{
 					LEFT JOIN biblioitems ON items.biblioitemnumber=biblioitems.biblioitemnumber
 					WHERE borrowernumber=?";
 				$readingHistoryTitleStmt = mysqli_prepare($this->dbConnection, $readingHistoryTitleSql);
-				$readingHistoryTitleStmt->bind_param('ii', $user->username, $user->username);
+				$readingHistoryTitleStmt->bind_param('ii', $patron->username, $patron->username);
 				if ($readingHistoryTitleStmt->execute()){
 					$readingHistoryTitleRS = $readingHistoryTitleStmt->get_result();
 					while ($readingHistoryTitleRow = $readingHistoryTitleRS->fetch_assoc()){
@@ -1113,7 +1116,8 @@ class Aspencat implements DriverInterface{
 				$historyEntry['linkUrl'] = null;
 				$historyEntry['coverUrl'] = null;
 				$historyEntry['format'] = array();
-				if (isset($historyEntry['recordId']) && strlen($historyEntry['recordId']) > 0){
+				if (!empty($historyEntry['recordId'])){
+					if (is_int($historyEntry['recordId'])) $historyEntry['recordId'] = (string) $historyEntry['recordId']; // Marc Record Contructor expects the recordId as a string.
 					require_once ROOT_DIR . '/RecordDrivers/MarcRecord.php';
 					$recordDriver = new MarcRecord($historyEntry['recordId']);
 					if ($recordDriver->isValid()){
@@ -1918,7 +1922,7 @@ class Aspencat implements DriverInterface{
 		global $configArray;
 
 		//Get the session token for the user
-		$loginResult = $this->loginToKoha($user);
+		$loginResult = $this->loginToKoha($patron);
 		if ($loginResult['success']){
 			global $analytics;
 			$postParams = array(
