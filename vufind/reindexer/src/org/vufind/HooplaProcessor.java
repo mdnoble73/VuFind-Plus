@@ -172,8 +172,9 @@ public class HooplaProcessor extends MarcRecordProcessor {
 				scopingInfo.setHoldable(false);
 				if (curScope.isLocationScope()) {
 					scopingInfo.setLocallyOwned(curScope.isItemOwnedByScope("hoopla", "", ""));
-				}else{
-					scopingInfo.setLibraryOwned(curScope.isItemOwnedByScope("hoopla", "", ""));
+				}
+				if (curScope.isLibraryScope()) {
+					 scopingInfo.setLibraryOwned(curScope.isItemOwnedByScope("hoopla", "", ""));
 				}
 			}
 		}

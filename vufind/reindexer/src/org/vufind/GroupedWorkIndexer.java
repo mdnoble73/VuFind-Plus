@@ -278,7 +278,7 @@ public class GroupedWorkIndexer {
 
 	private void loadLocationScopes() throws SQLException {
 		PreparedStatement locationInformationStmt = vufindConn.prepareStatement("SELECT library.libraryId, locationId, code, ilsCode, " +
-				"library.subdomain, location.facetLabel, location.displayName, library.pTypes, " +
+				"library.subdomain, location.facetLabel, location.displayName, library.pTypes, library.restrictOwningBranchesAndSystems, " +
 				"library.enableOverdriveCollection as enableOverdriveCollectionLibrary, " +
 				"location.enableOverdriveCollection as enableOverdriveCollectionLocation " +
 				"FROM location INNER JOIN library on library.libraryId = location.libraryId ORDER BY code ASC",
@@ -313,6 +313,7 @@ public class GroupedWorkIndexer {
 			locationScopeInfo.setRelatedPTypes(pTypes.split(","));
 			locationScopeInfo.setFacetLabel(facetLabel);
 			locationScopeInfo.setIncludeOverDriveCollection(includeOverDriveCollectionLibrary && includeOverDriveCollectionLocation);
+			locationScopeInfo.setRestrictOwningLibraryAndLocationFacets(locationInformationRS.getBoolean("restrictOwningBranchesAndSystems"));
 
 			//Load information about what should be included in the scope
 			locationOwnedRecordRulesStmt.setLong(1, locationId);
@@ -334,11 +335,19 @@ public class GroupedWorkIndexer {
 			}
 
 			if (!scopes.contains(locationScopeInfo)){
+				//Connect this scope to the library scopes
+				for (Scope curScope : scopes){
+					if (curScope.isLibraryScope() && Objects.equals(curScope.getLibraryId(), libraryId)){
+						curScope.addLocationScope(locationScopeInfo);
+						locationScopeInfo.setLibraryScope(curScope);
+						break;
+					}
+				}
 				scopes.add(locationScopeInfo);
 			}else{
 				logger.debug("Not adding location scope because a library scope with the name " + locationScopeInfo.getScopeName() + " exists already.");
 				for (Scope existingLibraryScope : scopes){
-					if (existingLibraryScope.equals(locationScopeInfo)){
+					if (existingLibraryScope.getScopeName().equals(locationScopeInfo.getScopeName())){
 						existingLibraryScope.setIsLocationScope(true);
 						break;
 					}
@@ -349,7 +358,7 @@ public class GroupedWorkIndexer {
 
 	private void loadLibraryScopes() throws SQLException {
 		PreparedStatement libraryInformationStmt = vufindConn.prepareStatement("SELECT libraryId, ilsCode, subdomain, " +
-				"displayName, facetLabel, pTypes, enableOverdriveCollection " +
+				"displayName, facetLabel, pTypes, enableOverdriveCollection, restrictOwningBranchesAndSystems " +
 				"FROM library ORDER BY ilsCode ASC",
 				ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_READ_ONLY);
 		PreparedStatement libraryOwnedRecordRulesStmt = vufindConn.prepareStatement("SELECT library_records_owned.*, indexing_profiles.name from library_records_owned INNER JOIN indexing_profiles ON indexingProfileId = indexing_profiles.id WHERE libraryId = ?", ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_READ_ONLY);
@@ -379,6 +388,7 @@ public class GroupedWorkIndexer {
 			newScope.setFacetLabel(facetLabel);
 			newScope.setRelatedPTypes(pTypes.split(","));
 			newScope.setIncludeOverDriveCollection(includeOverdrive);
+			newScope.setRestrictOwningLibraryAndLocationFacets(libraryInformationRS.getBoolean("restrictOwningBranchesAndSystems"));
 
 			//Load information about what should be included in the scope
 			libraryOwnedRecordRulesStmt.setLong(1, libraryId);

@@ -240,6 +240,14 @@ abstract class SearchObject_Base
 					$field = 'econtent_protection_type_' . $solrScope;
 				}elseif ($field == 'collection' || $field == 'collection_group'){
 					$field = 'collection_' . $solrScope;
+				}elseif ($field == 'detailed_location' || $field == 'detailed_location'){
+					$field = 'detailed_location_' . $solrScope;
+				}elseif ($field == 'owning_location' || $field == 'owning_location'){
+					$field = 'owning_location_' . $solrScope;
+				}elseif ($field == 'owning_system' || $field == 'owning_system'){
+					$field = 'owning_system_' . $solrScope;
+				}elseif ($field == 'available_at' || $field == 'available_at'){
+					$field = 'available_at_' . $solrScope;
 				}
 			}
 

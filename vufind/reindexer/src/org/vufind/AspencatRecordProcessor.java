@@ -272,12 +272,12 @@ public class AspencatRecordProcessor extends IlsRecordProcessor {
 
 	protected String getShelfLocationForItem(DataField itemField) {
 		String locationCode = getItemSubfieldData(locationSubfieldIndicator, itemField);
-		String shelfLocation = translateValue("location", locationCode);
-		String collection = getItemSubfieldData(shelvingLocationSubfield, itemField);
-		if (collection != null && !collection.equals(locationCode)){
-			shelfLocation += " - " + translateValue("ccode", collection);
+		String location = translateValue("location", locationCode);
+		String shelvingLocation = getItemSubfieldData(shelvingLocationSubfield, itemField);
+		if (shelvingLocation != null && !shelvingLocation.equals(locationCode)){
+			location += " - " + translateValue("shelf_location", shelvingLocation);
 		}
-		return shelfLocation;
+		return location;
 	}
 
 }

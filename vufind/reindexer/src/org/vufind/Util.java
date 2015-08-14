@@ -194,14 +194,22 @@ public class Util {
 		return retVal;
 	}
 
+	static Pattern trimPunctuationPattern = Pattern.compile("^(.*?)[\\s/,\\.;]+$");
 	public static String trimTrailingPunctuation(String format) {
 		if (format == null){
 			return "";
 		}
-		while (format.endsWith("/") || format.endsWith(",") || format.endsWith(".") || format.endsWith(";")) {
+		Matcher trimPunctuationMatcher = trimPunctuationPattern.matcher(format);
+		if (trimPunctuationMatcher.matches()){
+			return trimPunctuationMatcher.group(1);
+		}else{
+			return format;
+		}
+
+		/*while (format.endsWith("/") || format.endsWith(",") || format.endsWith(".") || format.endsWith(";")) {
 			format = format.substring(0, format.length() - 1).trim();
 		}
-		return format;
+		return format;*/
 	}
 
 	public static Collection<String> trimTrailingPunctuation(Set<String> fieldList) {

@@ -14,13 +14,21 @@ import java.util.HashSet;
 public class Scope implements Comparable<Scope>{
 	private String scopeName;
 	private String facetLabel;
+
 	private HashSet<String> relatedPTypes = new HashSet<>();
 	private HashSet<Long> relatedNumericPTypes = new HashSet<>();
 	private boolean includeOverDriveCollection;
 	private Long libraryId;
-	private boolean isLibraryScope;
-	private boolean isLocationScope;
 
+	//Determine if this is a library scope or location scope and store related information
+	private boolean isLibraryScope;
+	//If this is a library scope, we want to store pointers to the individual location scopes
+	private HashSet<Scope> locationScopes = new HashSet<>();
+
+	private boolean isLocationScope;
+	private Scope libraryScope;
+
+	private boolean restrictOwningLibraryAndLocationFacets;
 	//Ownership rules indicate direct ownership of a record
 	private HashSet<OwnershipRule> ownershipRules = new HashSet<>();
 	//Inclusion rules indicate records owned by someone else that should be shown within the scope
@@ -162,5 +170,29 @@ public class Scope implements Comparable<Scope>{
 
 	public HashSet<Long> getRelatedNumericPTypes() {
 		return relatedNumericPTypes;
+	}
+
+	public void addLocationScope(Scope locationScope) {
+		this.locationScopes.add(locationScope);
+	}
+
+	public void setLibraryScope(Scope libraryScope) {
+		this.libraryScope = libraryScope;
+	}
+
+	public Scope getLibraryScope() {
+		return libraryScope;
+	}
+
+	public boolean isRestrictOwningLibraryAndLocationFacets() {
+		return restrictOwningLibraryAndLocationFacets;
+	}
+
+	public void setRestrictOwningLibraryAndLocationFacets(boolean restrictOwningLibraryAndLocationFacets) {
+		this.restrictOwningLibraryAndLocationFacets = restrictOwningLibraryAndLocationFacets;
+	}
+
+	public HashSet<Scope> getLocationScopes() {
+		return locationScopes;
 	}
 }
