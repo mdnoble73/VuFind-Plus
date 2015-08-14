@@ -522,96 +522,108 @@ class Record_AJAX extends Action {
 		if ($user){
 			//The user is already logged in
 
-			//Check to see what account we should be placing a hold for
-			//Rather than asking the user for this explicitly, we do it based on the pickup location
-			$campus = $_REQUEST['campus'];
-			$location = new Location();
-			/** @var Location[] $userPickupLocations */
-			$userPickupLocations = $location->getPickupBranches($user);
-			$patron = null;
-			foreach ($userPickupLocations as $tmpLocation){
-				if ($tmpLocation->code == $campus){
-					$patron = $user;
-					break;
-				}
-			}
-			if ($patron == null){
-				//Check linked users
-				$linkedUsers = $user->getLinkedUsers();
-				foreach ($linkedUsers as $tmpUser){
-					$location = new Location();
-					/** @var Location[] $userPickupLocations */
-					$userPickupLocations = $location->getPickupBranches($tmpUser);
-					foreach ($userPickupLocations as $tmpLocation){
-						if ($tmpLocation->code == $campus){
-							$patron = $tmpUser;
-							break;
-						}
-					}
-					if ($patron != null){
+			if (!empty($_REQUEST['campus'])) {
+			 //Check to see what account we should be placing a hold for
+				//Rather than asking the user for this explicitly, we do it based on the pickup location
+				$campus   = $_REQUEST['campus'];
+				$location = new Location();
+				/** @var Location[] $userPickupLocations */
+				$userPickupLocations = $location->getPickupBranches($user);
+				$patron              = null;
+				foreach ($userPickupLocations as $tmpLocation) {
+					if ($tmpLocation->code == $campus) {
+						$patron = $user;
 						break;
 					}
 				}
-			}
-
-			if ($patron == null){
-				$results = array(
-					'success' => false,
-					'message' => 'You must select a valid user to place the hold for.',
-					'title' => 'Select valid user',
-				);
-			}else{
-				if (isset($_REQUEST['selectedItem'])){
-					$return = $patron->placeItemHold($shortId, $_REQUEST['selectedItem'], $campus);
-				}else{
-					$return = $patron->placeHold($shortId, $campus);
-				}
-
-				if (isset($return['items'])){
-					$interface->assign('campus', $campus);
-					$items = $return['items'];
-					$interface->assign('items', $items);
-					$interface->assign('message', $return['message']);
-					$interface->assign('id', $recordId);
-
-					global $library;
-					$interface->assign('showDetailedHoldNoticeInformation', $library->showDetailedHoldNoticeInformation);
-					$interface->assign('treatPrintNoticesAsPhoneNotices', $library->treatPrintNoticesAsPhoneNotices);
-
-					//Need to place item level holds.
-					$results = array(
-						'success' => true,
-						'needsItemLevelHold' => true,
-						'message' => $interface->fetch('Record/item-hold-popup.tpl'),
-						'title' => $return['title'],
-					);
-				}else{ // Completed Hold Attempt
-					$interface->assign('message', $return['message']);
-					$interface->assign('success', $return['success']);
-
-					//Get library based on patron home library since that is what controls their notifications rather than the active interface.
-					//$library = Library::getPatronHomeLibrary();
-					global $library;
-					$canUpdateContactInfo = $library->allowProfileUpdates == 1;
-					// set update permission based on active library's settings. Or allow by default.
-					$canChangeNoticePreference = $library->showNoticeTypeInProfile == 1;
-					// when user preference isn't set, they will be shown a link to account profile. this link isn't needed if the user can not change notification preference.
-					$interface->assign('canUpdate', $canUpdateContactInfo);
-					$interface->assign('canChangeNoticePreference', $canChangeNoticePreference);
-
-					$interface->assign('showDetailedHoldNoticeInformation', $library->showDetailedHoldNoticeInformation);
-					$interface->assign('treatPrintNoticesAsPhoneNotices', $library->treatPrintNoticesAsPhoneNotices);
-
-					$results = array(
-						'success' => $return['success'],
-						'message' => $interface->fetch('Record/hold-success-popup.tpl'),
-						'title' => $return['title'],
-					);
-					if (isset($_REQUEST['autologout'])){
-						UserAccount::softLogout();
-						$results['autologout'] = true;
+				if ($patron == null) {
+					//Check linked users
+					$linkedUsers = $user->getLinkedUsers();
+					foreach ($linkedUsers as $tmpUser) {
+						$location = new Location();
+						/** @var Location[] $userPickupLocations */
+						$userPickupLocations = $location->getPickupBranches($tmpUser);
+						foreach ($userPickupLocations as $tmpLocation) {
+							if ($tmpLocation->code == $campus) {
+								$patron = $tmpUser;
+								break;
+							}
+						}
+						if ($patron != null) {
+							break;
+						}
 					}
 				}
+
+				if ($patron == null) {
+					$results = array(
+						'success' => false,
+						'message' => 'You must select a valid user to place the hold for.',
+						'title' => 'Select valid user',
+					);
+				} else {
+					if (isset($_REQUEST['selectedItem'])) {
+						$return = $patron->placeItemHold($shortId, $_REQUEST['selectedItem'], $campus);
+					} else {
+						$return = $patron->placeHold($shortId, $campus);
+					}
+
+					if (isset($return['items'])) {
+						$interface->assign('campus', $campus);
+						$items = $return['items'];
+						$interface->assign('items', $items);
+						$interface->assign('message', $return['message']);
+						$interface->assign('id', $recordId);
+
+						global $library;
+						$interface->assign('showDetailedHoldNoticeInformation', $library->showDetailedHoldNoticeInformation);
+						$interface->assign('treatPrintNoticesAsPhoneNotices', $library->treatPrintNoticesAsPhoneNotices);
+
+						//Need to place item level holds.
+						$results = array(
+							'success' => true,
+							'needsItemLevelHold' => true,
+							'message' => $interface->fetch('Record/item-hold-popup.tpl'),
+							'title' => $return['title'],
+						);
+					} else { // Completed Hold Attempt
+						$interface->assign('message', $return['message']);
+						$interface->assign('success', $return['success']);
+
+						//Get library based on patron home library since that is what controls their notifications rather than the active interface.
+						//$library = Library::getPatronHomeLibrary();
+						global $library;
+						$canUpdateContactInfo = $library->allowProfileUpdates == 1;
+						// set update permission based on active library's settings. Or allow by default.
+						$canChangeNoticePreference = $library->showNoticeTypeInProfile == 1;
+						// when user preference isn't set, they will be shown a link to account profile. this link isn't needed if the user can not change notification preference.
+						$interface->assign('canUpdate', $canUpdateContactInfo);
+						$interface->assign('canChangeNoticePreference', $canChangeNoticePreference);
+
+						$interface->assign('showDetailedHoldNoticeInformation', $library->showDetailedHoldNoticeInformation);
+						$interface->assign('treatPrintNoticesAsPhoneNotices', $library->treatPrintNoticesAsPhoneNotices);
+
+						$results = array(
+							'success' => $return['success'],
+							'message' => $interface->fetch('Record/hold-success-popup.tpl'),
+							'title' => $return['title'],
+						);
+						if (isset($_REQUEST['autologout'])) {
+							UserAccount::softLogout();
+							$results['autologout'] = true;
+						}
+					}
+				}
+			} else {
+				$results = array(
+					'success' => false,
+					'message' => 'No pick-up location is set.  Please choose a Location for the title to be picked up at.',
+				);
+			}
+
+			if (isset($_REQUEST['autologout'])){
+				UserAccount::softLogout();
+				$results['autologout'] = true;
 			}
 		} else {
 			$results = array(
@@ -619,10 +631,6 @@ class Record_AJAX extends Action {
 				'message' => 'You must be logged in to place a hold.  Please close this dialog and login.',
 				'title' => 'Please login',
 			);
-			if (isset($_REQUEST['autologout'])){
-				UserAccount::softLogout();
-				$results['autologout'] = true;
-			}
 		}
 		return $results;
 	}
