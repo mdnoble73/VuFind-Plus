@@ -1165,7 +1165,7 @@ class GroupedWorkDriver extends RecordInterface{
 					'localAvailableCopies' => 0,
 					'localCopies' => 0,
 					'numHolds' => 0,
-					'hasLocalItem' => 0,
+					'hasLocalItem' => false,
 					'holdRatio' => 0,
 					'locationLabel' => '',
 					'shelfLocation' => '',
@@ -1264,6 +1264,9 @@ class GroupedWorkDriver extends RecordInterface{
 								$relatedRecord['availableLocally'] = true;
 							}
 							$relatedRecord['localCopies'] += $numCopies;
+							if ($searchLocation == null || $isEcontent){
+								$relatedRecord['hasLocalItem'] = true;
+							}
 							$key = '2 ' . $description;
 						}else{
 							$key = '3 ' . $description;
