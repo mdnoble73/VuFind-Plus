@@ -575,82 +575,6 @@ class MillenniumHolds{
 	}
 
 	/**
-	 * Initialize and configure curl connection
-	 *
-	 * @param null $curl_url optional url passed to curl_init
-	 * @param null|Array $curl_options is an array of curl options to include or overwrite.
-	 *                    Keys is the curl option constant, Values is the value to set the option to.
-	 * @return resource
-	 */
-	public function _curl_connect($curl_url = null, $curl_options = null){
-		// differences from James' version
-//		curl_setopt($curl_connection, CURLOPT_USERAGENT,"Pika 2015.10.0");
-
-		$header = array();
-		$header[0] = "Accept: text/xml,application/xml,application/xhtml+xml,";
-		$header[0] .= "text/html;q=0.9,text/plain;q=0.8,image/png,*/*;q=0.5";
-		$header[] = "Cache-Control: max-age=0";
-		$header[] = "Connection: keep-alive";
-		$header[] = "Accept-Charset: ISO-8859-1,utf-8;q=0.7,*;q=0.7";
-		$header[] = "Accept-Language: en-us,en;q=0.5";
-
-		$cookie = tempnam ("/tmp", "CURLCOOKIE");
-
-		$curl_connection = curl_init($curl_url);
-		curl_setopt($curl_connection, CURLOPT_CONNECTTIMEOUT, 30);
-		curl_setopt($curl_connection, CURLOPT_HTTPHEADER, $header);
-		curl_setopt($curl_connection, CURLOPT_USERAGENT,"Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)");
-		curl_setopt($curl_connection, CURLOPT_RETURNTRANSFER, true);
-		curl_setopt($curl_connection, CURLOPT_SSL_VERIFYPEER, false);
-		curl_setopt($curl_connection, CURLOPT_FOLLOWLOCATION, true);
-		curl_setopt($curl_connection, CURLOPT_UNRESTRICTED_AUTH, true);
-		curl_setopt($curl_connection, CURLOPT_COOKIEJAR, $cookie);
-		curl_setopt($curl_connection, CURLOPT_COOKIESESSION, true);
-		curl_setopt($curl_connection, CURLOPT_FORBID_REUSE, false);
-		curl_setopt($curl_connection, CURLOPT_HEADER, false);
-		curl_setopt($curl_connection, CURLOPT_POST, true);
-
-		if ($curl_options) foreach ($curl_options as $setting => $value) {
-			curl_setopt($curl_connection, $setting, $value);
-		}
-
-		return($curl_connection);
-	}
-
-
-	public function _curl_login($patron) {
-		global $configArray, $logger;
-		$curl_url = $configArray['Catalog']['url'] . "/patroninfo";
-		$logger->log('Loading page ' . $curl_url, PEAR_LOG_INFO);
-
-		$curl_connection = $this->_curl_connect($curl_url);
-		curl_setopt($curl_connection, CURLOPT_POST, true);
-		$post_data   = $this->driver->_getLoginFormValues($patron);
-		$post_string = http_build_query($post_data);
-		curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
-		//Load the page, but we don't need to do anything with the results.
-		$loginResult = curl_exec($curl_connection);
-
-		//When a library uses Encore, the initial login does a redirect and requires additional parameters.
-		if (preg_match('/<input type="hidden" name="lt" value="(.*?)" \/>/si', $loginResult, $loginMatches)) {
-			//Get the lt value
-			$lt = $loginMatches[1];
-			//Login again
-			$post_data['lt']       = $lt;
-			$post_data['_eventId'] = 'submit';
-
-			$post_string = http_build_query($post_data);
-			curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
-			$loginResult = curl_exec($curl_connection);
-//			$curlInfo    = curl_getinfo($curl_connection); // debug info
-		}
-//		return $loginResult; // TODO read $loginResult for a successful login??, then return $success boolean,  or $error
-		return $curl_connection; // TODO don't do connecting, just loggin in?? Have the connection passed in.
-														// TODO Add curl connection as a object variable instead?
-
-	}
-
-	/**
 	 * Place Item Hold
 	 *
 	 * This is responsible for both placing item level holds.
@@ -686,7 +610,7 @@ class MillenniumHolds{
 
 		// Retrieve Full Marc Record
 		require_once ROOT_DIR . '/RecordDrivers/Factory.php';
-		$record = RecordDriverFactory::initRecordDriverById('ils:' . $bib1);
+		$record = RecordDriverFactory::initRecordDriverById($this->driver->accountProfile->recordSource . ':' . $bib1);
 		if (!$record) {
 			$title = null;
 		}else{
@@ -726,35 +650,13 @@ class MillenniumHolds{
 
 			list($Month, $Day, $Year)=explode("/", $date);
 
-			$curl_connection = $this->_curl_connect();
+			//Make sure to connect via the driver so cookies will be correct
+			$curl_connection = $this->driver->_curl_connect();
 
 //			curl_setopt($curl_connection, CURLOPT_POST, true);
 
-			$lt = null;
-			if (isset($configArray['Catalog']['loginPriorToPlacingHolds']) && $configArray['Catalog']['loginPriorToPlacingHolds'] = true){
-				//User must be logged in as a separate step to placing holds
-				$curl_url = $this->driver->getVendorOpacUrl() . "/patroninfo";
-				$post_data = $this->driver->_getLoginFormValues($patron);
-				$post_data['submit.x']="35";
-				$post_data['submit.y']="21";
-				$post_data['submit']="submit";
-				$loginResult = $this->driver->_curlPostPage($curl_url, $post_data);
-//				$curlInfo = curl_getinfo($curl_connection); // for debugging only
+			$loginResult = $this->driver->_curl_login($patron);
 
-				//When a library uses Encore, the initial login does a redirect and requires additional parameters.
-				if (preg_match('/<input type="hidden" name="lt" value="(.*?)" \/>/si', $loginResult, $loginMatches)) {
-					//Get the lt value
-					$lt = $loginMatches[1];
-					//Login again
-					$post_data['lt'] = $lt;
-					$post_data['_eventId'] = 'submit';
-					$loginResult = $this->driver->_curlPostPage($curl_url, $post_data);
-//					$curlInfo = curl_getinfo($curl_connection); // for debugging only
-				}
-				$post_data = array();
-			}else{
-				$post_data = $this->driver->_getLoginFormValues($patron);
-			}
 			$curl_url = $this->driver->getVendorOpacUrl() . "/search/.$bib/.$bib/1,1,1,B/request~$bib";
 
 			/** @var Library $librarySingleton */
@@ -775,10 +677,11 @@ class MillenniumHolds{
 			}
 			$post_data['x']="48";
 			$post_data['y']="15";
-			if ($lt != null){
+			//MDN 8/14 lt is apparently not required for placing a hold although it is required for login.
+			/*if ($lt != null){
 				$post_data['lt'] = $lt;
 				$post_data['_eventId'] = 'submit';
-			}
+			}*/
 
 			$sResult = $this->driver->_curlPostPage($curl_url, $post_data);
 

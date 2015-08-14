@@ -135,13 +135,13 @@
 		<dynamicField name="scoping_details_*" type="string" indexed="false" stored="true" multiValued="true"/>
 
 		<!-- Fields to determine ownership and location based on location codes -->
-		<field name="owning_library" type="string" indexed="true" stored="true" multiValued="true" omitNorms="false"/>
-		<field name="owning_location" type="string" indexed="true" stored="true" multiValued="true" omitNorms="false"/>
+		<dynamicField name="owning_library_*" type="string" indexed="true" stored="true" multiValued="true" omitNorms="false"/>
+		<dynamicField name="owning_location_*" type="string" indexed="true" stored="true" multiValued="true" omitNorms="false"/>
 		<field name="collection_group" type="string" indexed="true" stored="true" multiValued="true" omitNorms="false"/>
 		<dynamicField name="collection_*" type="string" indexed="true" stored="true" multiValued="true" omitNorms="false"/>
 		<dynamicField name="detailed_location_*" type="textFacet" indexed="true" stored="true" multiValued="true" omitNorms="true"/>
 		<!-- Fields to determine availability -->
-		<field name="available_at" type="string" indexed="true" stored="true" multiValued="true" omitNorms="true"/>
+		<dynamicField name="available_at_*" type="string" indexed="true" stored="true" multiValued="true" omitNorms="true"/>
 		<dynamicField name="availability_toggle_*" type="textFacet" indexed="true" stored="true" multiValued="true" omitNorms="true"/>
 		<!-- Title variations -->
 		<field name="title" type="text" indexed="true" stored="true"/>  <!-- basic title -->

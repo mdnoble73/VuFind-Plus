@@ -104,10 +104,7 @@ public class GroupedWorkSolr {
 		doc.addField("id", id);
 		doc.addField("alternate_ids", alternateIds);
 		doc.addField("recordtype", "grouped_work");
-		//Ownership and location
-		doc.addField("owning_library", getAllOwningLibraries());
-		doc.addField("owning_location", getAllOwningLocations());
-		
+
 		//Title and variations
 		String fullTitle = title;
 		if (subTitle != null){
@@ -279,22 +276,6 @@ public class GroupedWorkSolr {
 		return earliestDate;
 	}
 
-	private HashSet<String> getAllOwningLocations() {
-		HashSet<String> owningLibraryValues = new HashSet<>();
-		for (RecordInfo curRecord : relatedRecords.values()){
-			owningLibraryValues.addAll(curRecord.getAllOwningLocations());
-		}
-		return owningLibraryValues;
-	}
-
-	private HashSet<String> getAllOwningLibraries() {
-		HashSet<String> owningLibraryValues = new HashSet<>();
-		for (RecordInfo curRecord : relatedRecords.values()){
-			owningLibraryValues.addAll(curRecord.getAllOwningLibraries());
-		}
-		return owningLibraryValues;
-	}
-
 	protected void addScopedFieldsToDocument(int availableAtBoostValue, int ownedByBoostValue, SolrInputDocument doc) {
 		//Load information based on scopes.  This has some pretty severe performance implications since we potentially
 		//have a lot of scopes and a lot of items & records.
@@ -312,54 +293,96 @@ public class GroupedWorkSolr {
 					addUniqueFieldValues(doc, "format_" + curScopeName, curRecord.getFormats());
 					addUniqueFieldValue(doc, "format_category_" + curScopeName, curItem.getFormatCategory());
 					addUniqueFieldValues(doc, "format_category_" + curScopeName, curRecord.getFormatCategories());
-					addUniqueFieldValue(doc, "detailed_location_" + curScopeName, curItem.getShelfLocation());
-					if (curScope.isLocallyOwned()) {
-						addUniqueFieldValue(doc, "detailed_location_" + curScopeName, curItem.getCollection());
-					}
-					if (curScope.isAvailable() && curScope.isLocallyOwned() && !curItem.isEContent()) {
-						addUniqueFieldValue(doc, "available_at", curScope.getScope().getFacetLabel());
-						addUniqueFieldValue(doc, "availability_toggle_" + curScopeName, "Available Now");
-						for (String format : curRecord.getAllFormats()) {
-							addUniqueFieldValue(doc, "availability_by_format_" + curScopeName, format + "_available");
-						}
-						for (String formatCategory : curRecord.getAllFormatCategories()) {
-							addUniqueFieldValue(doc, "availability_by_format_" + curScopeName, formatCategory + "_available");
-						}
-					}
-					if (curItem.isEContent() && curScope.getScope().isLibraryScope()) {
-						addUniqueFieldValue(doc, "available_at", curScope.getScope().getFacetLabel() + " Online");
-						addUniqueFieldValue(doc, "availability_toggle_" + curScopeName, "Available Now");
-						for (String format : curRecord.getAllFormats()) {
-							addUniqueFieldValue(doc, "availability_by_format_" + curScopeName, format + "_available");
-						}
-						for (String formatCategory : curRecord.getAllFormatCategories()) {
-							addUniqueFieldValue(doc, "availability_by_format_" + curScopeName, formatCategory + "_available");
-						}
-					}
 
-					//TODO: Different toggles for library and location?
+					//Setup ownership & availability toggle values
+					boolean addLocationOwnership = false;
+					boolean addLibraryOwnership = false;
+					HashSet<String> availabilityToggleValues = new HashSet<>();
 					if (curScope.isLocallyOwned() && curScope.getScope().isLocationScope()){
-						addUniqueFieldValue(doc, "availability_toggle_" + curScopeName, "Entire Collection");
-						for (String format : curRecord.getAllFormats()) {
-							addUniqueFieldValue(doc, "availability_by_format_" + curScopeName, format + "_local");
-						}
-						for (String formatCategory : curRecord.getAllFormatCategories()) {
-							addUniqueFieldValue(doc, "availability_by_format_" + curScopeName, formatCategory + "_local");
-						}
+						addLocationOwnership = true;
+						addLibraryOwnership = true;
+						availabilityToggleValues.add("Entire Collection");
 					}
 					if (curScope.isLibraryOwned() && curScope.getScope().isLibraryScope()){
-						addUniqueFieldValue(doc, "availability_toggle_" + curScopeName, "Entire Collection");
-						for (String format : curRecord.getAllFormats()) {
-							addUniqueFieldValue(doc, "availability_by_format_" + curScopeName, format + "_local");
-						}
-						for (String formatCategory : curRecord.getAllFormatCategories()) {
-							addUniqueFieldValue(doc, "availability_by_format_" + curScopeName, formatCategory + "_local");
-						}
+						addLibraryOwnership = true;
+						availabilityToggleValues.add("Entire Collection");
+					}
+					if (curItem.isEContent()){
+						//If the item is eContent, we will count it as part of the collection since it will be available.
+						availabilityToggleValues.add("Entire Collection");
 					}
 
-					//Date Added To Catalog needs to be the earliest date added for the catalog.
+					if (curScope.isLocallyOwned() && curScope.isAvailable()) {
+						availabilityToggleValues.add("Available Now");
+					}
+					if (curItem.isEContent() && curScope.isAvailable()){
+						availabilityToggleValues.add("Available Now");
+					}
+
+
+					//Apply ownership and availability toggles
+					if (addLocationOwnership) {
+
+						//We do different ownership display depending on if this is eContent or not
+						String owningLocationValue = curScope.getScope().getFacetLabel();
+						if (curItem.isEContent()){
+							owningLocationValue = curItem.getShelfLocation();
+						}else if (curItem.isOrderItem()){
+							owningLocationValue = curScope.getScope().getFacetLabel() + " On Order";
+						}
+
+						//Save values for this scope
+						addUniqueFieldValue(doc, "owning_location_" + curScopeName, owningLocationValue);
+
+						if (curScope.isAvailable()) {
+							addUniqueFieldValue(doc, "available_at_" + curScopeName, owningLocationValue);
+						}
+
+						if (curScope.getScope().isLocationScope()) {
+							//Also add the location to the system
+							if (curScope.getScope().getLibraryScope() != null && !curScope.getScope().getLibraryScope().getScopeName().equals(curScopeName)) {
+								addUniqueFieldValue(doc, "owning_location_" + curScope.getScope().getLibraryScope().getScopeName(), owningLocationValue);
+								addAvailabilityToggleValues(doc, curRecord, curScope.getScope().getLibraryScope().getScopeName(), availabilityToggleValues);
+								if (curScope.isAvailable()) {addUniqueFieldValue(doc, "available_at_" + curScope.getScope().getLibraryScope().getScopeName(), owningLocationValue);}
+							}
+						}
+						//finally add to any scopes where we show all owning locations
+						for (String scopeToShowAllName : curItem.getScopingInfo().keySet()){
+							ScopingInfo scopeToShowAll = curItem.getScopingInfo().get(scopeToShowAllName);
+							if (!scopeToShowAll.getScope().isRestrictOwningLibraryAndLocationFacets()){
+								addAvailabilityToggleValues(doc, curRecord, scopeToShowAll.getScope().getScopeName(), availabilityToggleValues);
+								addUniqueFieldValue(doc, "owning_location_" + scopeToShowAll.getScope().getScopeName(), owningLocationValue);
+								if (curScope.isAvailable()) {addUniqueFieldValue(doc, "available_at_" + scopeToShowAll.getScope().getScopeName(), owningLocationValue);}
+							}
+						}
+					}
+					if (addLibraryOwnership){
+						//We do different ownership display depending on if this is eContent or not
+						String owningLibraryValue = curScope.getScope().getFacetLabel();
+						if (curItem.isEContent()){
+							owningLibraryValue = curScope.getScope().getFacetLabel() + " Online";
+						}else if (curItem.isOrderItem()) {
+							owningLibraryValue = curScope.getScope().getFacetLabel() + " On Order";
+						}
+						addUniqueFieldValue(doc, "owning_library_" + curScopeName, owningLibraryValue);
+						for (Scope locationScope : curScope.getScope().getLocationScopes() ){
+							addUniqueFieldValue(doc, "owning_library_" + locationScope.getScopeName(), owningLibraryValue);
+						}
+						//finally add to any scopes where we show all owning libraries
+						for (String scopeToShowAllName : curItem.getScopingInfo().keySet()){
+							ScopingInfo scopeToShowAll = curItem.getScopingInfo().get(scopeToShowAllName);
+							if (!scopeToShowAll.getScope().isRestrictOwningLibraryAndLocationFacets()){
+								addUniqueFieldValue(doc, "owning_library_" + scopeToShowAll.getScope().getScopeName(), owningLibraryValue);
+							}
+						}
+					}
+					//Make sure we always add availability toggles to this scope even if they are blank
+					addAvailabilityToggleValues(doc, curRecord, curScopeName, availabilityToggleValues);
+
 					if (curScope.isLocallyOwned() || curScope.isLibraryOwned()) {
 						addUniqueFieldValue(doc, "collection_" + curScopeName, curItem.getCollection());
+						addUniqueFieldValue(doc, "detailed_location_" + curScopeName, curItem.getShelfLocation());
+						//Date Added To Catalog needs to be the earliest date added for the catalog.
 						Date dateAdded = curItem.getDateAdded();
 						long daysSinceAdded;
 						//See if we need to override based on publication date if not provided.
@@ -383,18 +406,11 @@ public class GroupedWorkSolr {
 						updateMaxValueField(doc, "local_days_since_added_" + curScopeName, (int)daysSinceAdded);
 					}
 
-					if (curScope.isAvailable()){
-						if (curScope.isLocallyOwned()) {
-							addUniqueFieldValue(doc, "availability_toggle_" + curScopeName, "Available Now");
+					if (curScope.isLocallyOwned() || curScope.isLibraryOwned()) {
+						if (curScope.isAvailable()) {
 							updateMaxValueField(doc, "lib_boost_" + curScopeName, availableAtBoostValue);
-							for (String format : curRecord.getFormats()) {
-								addUniqueFieldValue(doc, "availability_by_format_" + curScopeName, format + "_available");
-							}
-							for (String formatCategory : curRecord.getFormatCategories()) {
-								addUniqueFieldValue(doc, "availability_by_format_" + curScopeName, formatCategory + "_available");
-							}
-						} else if (curScope.isLibraryOwned()) {
-							addUniqueFieldValue(doc, "availability_toggle_" + curScopeName, "Available Now");
+						}else {
+							updateMaxValueField(doc, "lib_boost_" + curScopeName, ownedByBoostValue);
 						}
 					}
 
@@ -464,6 +480,16 @@ public class GroupedWorkSolr {
 		}
 		doc.addField("scope_has_related_records", scopesWithRecords);
 		doc.addField("available_at", availableFacets);*/
+	}
+
+	private void addAvailabilityToggleValues(SolrInputDocument doc, RecordInfo curRecord, String curScopeName, HashSet<String> availabilityToggleValues) {
+		addUniqueFieldValues(doc, "availability_toggle_" + curScopeName, availabilityToggleValues);
+		for (String format : curRecord.getAllFormats()) {
+			addUniqueFieldValues(doc, "availability_by_format_" + curScopeName + "_" + format, availabilityToggleValues);
+		}
+		for (String formatCategory : curRecord.getAllFormatCategories()) {
+			addUniqueFieldValues(doc, "availability_by_format_" + curScopeName + "_" + formatCategory, availabilityToggleValues);
+		}
 	}
 
 	/**

@@ -517,7 +517,12 @@ class Record_AJAX extends Action {
 		global $analytics;
 		$analytics->enableTracking();
 		$recordId = $_REQUEST['id'];
-		list($source, $shortId) = explode(':', $recordId);
+		if (strpos($recordId, ':') > 0){
+			list($source, $shortId) = explode(':', $recordId);
+		}else{
+			$shortId = $recordId;
+		}
+
 		global $user;
 		if ($user){
 			//The user is already logged in

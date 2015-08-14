@@ -346,17 +346,18 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 					ScopingInfo scopingInfo = itemInfo.addScope(scope);
 					if (scope.isLocationScope()) {
 						scopingInfo.setLocallyOwned(scope.isItemOwnedByScope(profileType, location, ""));
-					}else{
-						scopingInfo.setLibraryOwned(scope.isItemOwnedByScope(profileType, location, ""));
+					}
+					if (scope.isLibraryScope()) {
+						 scopingInfo.setLibraryOwned(scope.isItemOwnedByScope(profileType, location, ""));
 					}
 					if (scopingInfo.isLocallyOwned()){
 						if (scope.isLibraryScope() && !hasLocationBasedShelfLocation && !hasSystemBasedShelfLocation){
 							hasSystemBasedShelfLocation = true;
-						}else if (scope.isLocationScope() && !hasLocationBasedShelfLocation){
+						}
+						if (scope.isLocationScope() && !hasLocationBasedShelfLocation){
 							hasLocationBasedShelfLocation = true;
 							itemInfo.setShelfLocation("On Order");
 						}
-
 					}
 					scopingInfo.setAvailable(false);
 					scopingInfo.setHoldable(true);
@@ -543,7 +544,8 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 				scopingInfo.setHoldable(holdable);
 				if (curScope.isLocationScope()) {
 					scopingInfo.setLocallyOwned(curScope.isItemOwnedByScope(profileType, itemLocation, itemSublocation));
-				}else if (curScope.isLibraryScope()) {
+				}
+				if (curScope.isLibraryScope()) {
 					scopingInfo.setLibraryOwned(curScope.isItemOwnedByScope(profileType, itemLocation, itemSublocation));
 				}
 			}
@@ -634,7 +636,8 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 				scopingInfo.setGroupedStatus(translateValue("item_grouped_status", itemStatus));
 				if (curScope.isLocationScope()) {
 					scopingInfo.setLocallyOwned(curScope.isItemOwnedByScope(profileType, itemLocation, itemSublocation));
-				}else{
+				}
+				if (curScope.isLibraryScope()) {
 					scopingInfo.setLibraryOwned(curScope.isItemOwnedByScope(profileType, itemLocation, itemSublocation));
 				}
 			}

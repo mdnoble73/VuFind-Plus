@@ -102,7 +102,8 @@ public class FlatironsRecordProcessor extends IlsRecordProcessor{
 							scopingInfo.setHoldable(false);
 							if (curScope.isLocationScope()) {
 								scopingInfo.setLocallyOwned(curScope.isItemOwnedByScope(profileType, eContentLocation, ""));
-							}else{
+							}
+							if (curScope.isLibraryScope()) {
 								scopingInfo.setLibraryOwned(curScope.isItemOwnedByScope(profileType, eContentLocation, ""));
 							}
 						}

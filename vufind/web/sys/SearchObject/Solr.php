@@ -1276,16 +1276,11 @@ class SearchObject_Solr extends SearchObject_Base
 		//Check to see if we have both a format and availability facet applied.
 		if ($availabilityToggleValue != null && ($formatCategoryValue != null || $formatValue != null)){
 			global $solrScope;
-			if ($availabilityToggleValue == 'Available Now'){
-				$available = 'available';
-			}else{
-				$available = 'local';
-			}
 			//Make sure to process the more specific format first
 			if ($formatValue != null){
-				$filterQuery[] = 'availability_by_format_' . $solrScope . ':"' . $formatValue . '_' . $available . '"';
+				$filterQuery[] = 'availability_by_format_' . $solrScope . '_' . $formatValue . ':"' . $availabilityToggleValue . '"';
 			}else{
-				$filterQuery[] = 'availability_by_format_' . $solrScope . ':"' . $formatCategoryValue . '_' . $available . '"';
+				$filterQuery[] = 'availability_by_format_' . $solrScope . '_' . $formatCategoryValue . ':"' . $availabilityToggleValue . '"';
 			}
 		}
 
@@ -1594,6 +1589,7 @@ class SearchObject_Solr extends SearchObject_Base
 	 */
 	public function getFacetList($filter = null, $expandingLinks = false)
 	{
+		global $solrScope;
 		// If there is no filter, we'll use all facets as the filter:
 		if (is_null($filter)) {
 			$filter = $this->facetConfig;
@@ -1662,12 +1658,12 @@ class SearchObject_Solr extends SearchObject_Base
 			$doBranchProcessing = false;
 
 			//Marmot specific processing to do custom resorting of facets.
-			if ($field == 'owning_library' && isset($currentLibrary) && !is_null($currentLibrary)){
+			if (strpos($field, 'owning_library') === 0 && isset($currentLibrary) && !is_null($currentLibrary)){
 				$doInstitutionProcessing = true;
 			}
-			if ($field == 'owning_location' && (!is_null($relatedLocationFacets) || !is_null($activeLocationFacet))){
+			if (strpos($field, 'owning_location') === 0 && (!is_null($relatedLocationFacets) || !is_null($activeLocationFacet))){
 				$doBranchProcessing = true;
-			}elseif($field == 'available_at'){
+			}elseif(strpos($field, 'available_at') === 0){
 				$doBranchProcessing = true;
 			}
 			// Should we translate values for the current facet?
@@ -1720,7 +1716,7 @@ class SearchObject_Solr extends SearchObject_Base
 						$foundInstitution = true;
 						$numValidLibraries++;
 					}else if (!is_null($currentLibrary) && $currentLibrary->restrictOwningBranchesAndSystems == 1){
-						$okToAdd = false;
+						//$okToAdd = false;
 					}
 				}else if ($doBranchProcessing){
 					if (strlen($facet[0]) > 0){
@@ -1753,7 +1749,7 @@ class SearchObject_Solr extends SearchObject_Base
 							$valueKey = '5' . $valueKey;
 							$numValidRelatedLocations++;
 						}else if (!is_null($currentLibrary) && $currentLibrary->restrictOwningBranchesAndSystems == 1){
-							$okToAdd = false;
+							//$okToAdd = false;
 						}
 					}
 				}
@@ -1791,11 +1787,11 @@ class SearchObject_Solr extends SearchObject_Base
 
 			//How many facets should be shown by default
 			//Only show one system unless we are in the global scope
-			if ($field == 'owning_library' && isset($currentLibrary)){
+			if ($field == 'owning_library_' . $solrScope && isset($currentLibrary)){
 				$list[$field]['valuesToShow'] = $numValidLibraries;
-			}else if ($field == 'owning_location' && isset($relatedLocationFacets) && $numValidRelatedLocations > 0){
+			}else if ($field == 'owning_location_' . $solrScope && isset($relatedLocationFacets) && $numValidRelatedLocations > 0){
 				$list[$field]['valuesToShow'] = $numValidRelatedLocations;
-			}else if ($field == 'available_at'){
+			}else if ($field == 'available_at_' . $solrScope){
 				$list[$field]['valuesToShow'] = count($list[$field]['list']);
 			}else{
 				$list[$field]['valuesToShow'] = 5;
@@ -1803,7 +1799,8 @@ class SearchObject_Solr extends SearchObject_Base
 
 			//Sort the facet alphabetically?
 			//Sort the system and location alphabetically unless we are in the global scope
-			if (in_array($field, array('owning_library', 'owning_location', 'available_at'))  && isset($currentLibrary) ){
+			global $solrScope;
+			if (in_array($field, array('owning_library_' . $solrScope, 'owning_location_' . $solrScope, 'available_at_' . $solrScope))  && isset($currentLibrary) ){
 				$list[$field]['showAlphabetically'] = true;
 			}else{
 				$list[$field]['showAlphabetically'] = false;
@@ -2082,6 +2079,9 @@ class SearchObject_Solr extends SearchObject_Base
 				$fieldsToReturn .= ',local_callnumber_' . $solrScope;
 				$fieldsToReturn .= ',detailed_location_' . $solrScope;
 				$fieldsToReturn .= ',scoping_details_' . $solrScope;
+				$fieldsToReturn .= ',owning_location_' . $solrScope;
+				$fieldsToReturn .= ',owning_library_' . $solrScope;
+				$fieldsToReturn .= ',available_at_' . $solrScope;
 
 			}else{
 				//$fieldsToReturn .= ',related_record_ids';
@@ -2092,6 +2092,9 @@ class SearchObject_Solr extends SearchObject_Base
 				$fieldsToReturn .= ',days_since_added';
 				$fieldsToReturn .= ',local_callnumber';
 				$fieldsToReturn .= ',detailed_location';
+				$fieldsToReturn .= ',owning_location';
+				$fieldsToReturn .= ',owning_library';
+				$fieldsToReturn .= ',available_at';
 			}
 			$fieldsToReturn .= ',score';
 		}

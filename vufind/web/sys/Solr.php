@@ -1423,7 +1423,7 @@ class Solr implements IndexEngine {
 				$options['facet.field'] = $facet['field'];
 				if ($options['facet.field'] && is_array($options['facet.field'])){
 					foreach($options['facet.field'] as $key => $facetName){
-						if (strpos($facetName, 'availability_toggle') === 0){
+						if (strpos($facetName, 'availability_toggle') === 0 || strpos($facetName, 'availability_by_format') === 0){
 							$options['facet.field'][$key] = '{!ex=avail}' . $facetName;
 							$options["f.{$facetName}.facet.missing"] = 'true';
 						}
