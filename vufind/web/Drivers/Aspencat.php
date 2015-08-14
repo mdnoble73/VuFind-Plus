@@ -1113,7 +1113,8 @@ class Aspencat implements DriverInterface{
 				$historyEntry['linkUrl'] = null;
 				$historyEntry['coverUrl'] = null;
 				$historyEntry['format'] = array();
-				if (isset($historyEntry['recordId']) && strlen($historyEntry['recordId']) > 0){
+				if (!empty($historyEntry['recordId'])){
+					if (is_int($historyEntry['recordId'])) $historyEntry['recordId'] = (string) $historyEntry['recordId']; // Marc Record Contructor expects the recordId as a string.
 					require_once ROOT_DIR . '/RecordDrivers/MarcRecord.php';
 					$recordDriver = new MarcRecord($historyEntry['recordId']);
 					if ($recordDriver->isValid()){
