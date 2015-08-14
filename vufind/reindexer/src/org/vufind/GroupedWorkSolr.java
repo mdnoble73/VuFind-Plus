@@ -283,16 +283,23 @@ public class GroupedWorkSolr {
 			doc.addField("record_details", curRecord.getDetails());
 			for (ItemInfo curItem : curRecord.getRelatedItems()){
 				doc.addField("item_details", curItem.getDetails());
-				for (String curScopeName : curItem.getScopingInfo().keySet()){
+				Set<String> scopingNames = curItem.getScopingInfo().keySet();
+				for (String curScopeName : scopingNames){
 					ScopingInfo curScope = curItem.getScopingInfo().get(curScopeName);
 					doc.addField("scoping_details_" + curScopeName, curScope.getScopingDetails());
 					//TODO: Add scoped fields for owning branches, owning locations, and available at
 					//if we do that, we don't need to filter within PHP
 					addUniqueFieldValue(doc, "scope_has_related_records", curScopeName);
-					addUniqueFieldValue(doc, "format_" + curScopeName, curItem.getFormat());
-					addUniqueFieldValues(doc, "format_" + curScopeName, curRecord.getFormats());
-					addUniqueFieldValue(doc, "format_category_" + curScopeName, curItem.getFormatCategory());
-					addUniqueFieldValues(doc, "format_category_" + curScopeName, curRecord.getFormatCategories());
+					if (curItem.getFormat() != null) {
+						addUniqueFieldValue(doc, "format_" + curScopeName, curItem.getFormat());
+					}else {
+						addUniqueFieldValues(doc, "format_" + curScopeName, curRecord.getFormats());
+					}
+					if (curItem.getFormatCategory() != null) {
+						addUniqueFieldValue(doc, "format_category_" + curScopeName, curItem.getFormatCategory());
+					}else {
+						addUniqueFieldValues(doc, "format_category_" + curScopeName, curRecord.getFormatCategories());
+					}
 
 					//Setup ownership & availability toggle values
 					boolean addLocationOwnership = false;
@@ -520,22 +527,18 @@ public class GroupedWorkSolr {
 	private void addUniqueFieldValue(SolrInputDocument doc, String fieldName, String value){
 		if (value == null) return;
 		Collection<Object> fieldValues = doc.getFieldValues(fieldName);
-		if (fieldValues == null || !fieldValues.contains(value)){
+		if (fieldValues == null){
 			doc.addField(fieldName, value);
+		}else if (!fieldValues.contains(value)){
+			fieldValues.add(value);
+			doc.setField(fieldName, fieldValues);
 		}
 	}
 
 	private void addUniqueFieldValues(SolrInputDocument doc, String fieldName, Collection<String> values){
 		if (values.size() == 0) return;
-		Collection<Object> fieldValues = doc.getFieldValues(fieldName);
-		if (fieldValues == null){
-			doc.addField(fieldName, values);
-		}else{
-			for (String value : values){
-				if (!fieldValues.contains(value)){
-					doc.addField(fieldName, value);
-				}
-			}
+		for (String value : values){
+			addUniqueFieldValue(doc, fieldName, value);
 		}
 	}
 

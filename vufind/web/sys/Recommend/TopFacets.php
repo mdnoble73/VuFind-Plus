@@ -77,8 +77,10 @@ class TopFacets implements RecommendationInterface
 					if ($solrScope){
 						if ($facet->facetName == 'availability_toggle' && $configArray['Index']['enableDetailedAvailability']){
 							$facetName = 'availability_toggle_' . $solrScope;
-						}else if ($facet->facetName == 'format_category' && $configArray['Index']['enableDetailedFormats']){
+						}else if ($facet->facetName == 'format_category'){
 							$facetName = 'format_category_' . $solrScope;
+						}else if ($facet->facetName == 'format'){
+							$facetName = 'format_' . $solrScope;
 						}
 					}
 					$this->facets[$facetName] = $facet->displayName;

@@ -13,6 +13,7 @@ import java.sql.SQLException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.regex.Pattern;
 
 /**
  * Processes data that was exported from the ILS.
@@ -31,14 +32,17 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 	protected String itemTag;
 	protected char barcodeSubfield;
 	protected char statusSubfieldIndicator;
+	protected Pattern nonHoldableStatuses;
 	protected char shelvingLocationSubfield;
 	protected char collectionSubfield;
 	protected char dueDateSubfield;
 	protected char dateCreatedSubfield;
 	protected String dateAddedFormat;
 	protected char locationSubfieldIndicator;
+	protected Pattern nonHoldableLocations;
 	protected char subLocationSubfield;
 	protected char iTypeSubfield;
+	protected Pattern nonHoldableITypes;
 	protected boolean useEContentSubfield = false;
 	protected char eContentSubfieldIndicator;
 	protected char lastYearCheckoutSubfield;
@@ -88,6 +92,14 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 			callNumberPoststampSubfield = getSubfieldIndicatorFromConfig(indexingProfileRS, "callNumberPoststamp");
 
 			locationSubfieldIndicator = getSubfieldIndicatorFromConfig(indexingProfileRS, "location");
+			try {
+				String pattern = indexingProfileRS.getString("nonHoldableLocations");
+				if (pattern != null && pattern.length() > 0) {
+					nonHoldableLocations = Pattern.compile("^(" + pattern + ")$");
+				}
+			}catch (Exception e){
+				logger.error("Could not load non holdable locations", e);
+			}
 			subLocationSubfield = getSubfieldIndicatorFromConfig(indexingProfileRS, "subLocation");
 			shelvingLocationSubfield = getSubfieldIndicatorFromConfig(indexingProfileRS, "shelvingLocation");
 			collectionSubfield = getSubfieldIndicatorFromConfig(indexingProfileRS, "collection");
@@ -95,6 +107,15 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 			itemUrlSubfieldIndicator = getSubfieldIndicatorFromConfig(indexingProfileRS, "itemUrl");
 			barcodeSubfield = getSubfieldIndicatorFromConfig(indexingProfileRS, "barcode");
 			statusSubfieldIndicator = getSubfieldIndicatorFromConfig(indexingProfileRS, "status");
+			try {
+				String pattern = indexingProfileRS.getString("nonHoldableStatuses");
+				if (pattern != null && pattern.length() > 0) {
+					nonHoldableStatuses = Pattern.compile("^(" + pattern + ")$");
+				}
+			}catch (Exception e){
+				logger.error("Could not load non holdable statuses", e);
+			}
+
 			dueDateSubfield = getSubfieldIndicatorFromConfig(indexingProfileRS, "dueDate");
 
 			ytdCheckoutSubfield = getSubfieldIndicatorFromConfig(indexingProfileRS, "yearToDateCheckouts");
@@ -102,6 +123,14 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 			totalCheckoutSubfield = getSubfieldIndicatorFromConfig(indexingProfileRS, "totalCheckouts");
 
 			iTypeSubfield = getSubfieldIndicatorFromConfig(indexingProfileRS, "iType");
+			try {
+				String pattern = indexingProfileRS.getString("nonHoldableITypes");
+				if (pattern != null && pattern.length() > 0) {
+					nonHoldableITypes = Pattern.compile("^(" + pattern + ")$");
+				}
+			}catch (Exception e){
+				logger.error("Could not load non holdable iTypes", e);
+			}
 
 			dateCreatedSubfield = getSubfieldIndicatorFromConfig(indexingProfileRS, "dateCreated");
 			dateAddedFormat = indexingProfileRS.getString("dateCreatedFormat");
@@ -752,6 +781,21 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 	}
 
 	protected boolean isItemHoldable(ItemInfo itemInfo, Scope curScope){
+		if (nonHoldableITypes != null && itemInfo.getITypeCode() != null && itemInfo.getITypeCode().length() > 0){
+			if (nonHoldableITypes.matcher(itemInfo.getITypeCode()).matches()){
+				return false;
+			}
+		}
+		if (nonHoldableLocations != null && itemInfo.getLocationCode() != null && itemInfo.getLocationCode().length() > 0){
+			if (nonHoldableLocations.matcher(itemInfo.getLocationCode()).matches()){
+				return false;
+			}
+		}
+		if (nonHoldableStatuses != null && itemInfo.getStatusCode() != null && itemInfo.getStatusCode().length() > 0){
+			if (nonHoldableStatuses.matcher(itemInfo.getStatusCode()).matches()){
+				return false;
+			}
+		}
 		return true;
 	}
 
