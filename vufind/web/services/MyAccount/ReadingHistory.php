@@ -56,7 +56,7 @@ class ReadingHistory extends MyAccount
 				$interface->assign('selectedUser', $patronId); // needs to be set even when there is only one user so that the patronId hidden input gets a value in the reading history form.
 
 				//Check to see if there is an action to perform.
-				if (isset($_REQUEST['readingHistoryAction']) && strlen($_REQUEST['readingHistoryAction']) > 0 && $_REQUEST['readingHistoryAction'] != 'exportToExcel'){
+				if (!empty($_REQUEST['readingHistoryAction']) && $_REQUEST['readingHistoryAction'] != 'exportToExcel'){
 					//Perform the requested action
 					$selectedTitles = isset($_REQUEST['selected']) ? $_REQUEST['selected'] : array();
 					$readingHistoryAction = $_REQUEST['readingHistoryAction'];
