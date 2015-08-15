@@ -385,8 +385,9 @@ class Location extends DB_DataObject
 		}
 		ksort($locationList);
 
-
-		if (count($locationList) == 0 && (isset($homeLibrary) && $homeLibrary->inSystemPickupsOnly == 1)){
+		//MDN 8/14/2015 always add the home location #PK-81
+		//if (count($locationList) == 0 && (isset($homeLibrary) && $homeLibrary->inSystemPickupsOnly == 1)){
+		if ($patronProfile->homeLocationId != 0){
 			$homeLocation = Location::staticGet($patronProfile->homeLocationId);
 			if ($homeLocation->showHoldButton == 1){
 				//We didn't find any locations.  This for schools where we want holds available, but don't want the branch to be a

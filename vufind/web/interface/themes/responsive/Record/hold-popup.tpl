@@ -15,6 +15,7 @@
 			{/if}
 
 			<p class="alert alert-info">
+				{/strip}
 				Holds allow you to request that a title be delivered to your home library.
 				{if $showDetailedHoldNoticeInformation}
 					Once the title arrives at your library you will
@@ -32,6 +33,7 @@
 					Once the title arrives at your library you will receive a notification informing you that the title is ready for you.
 				{/if}
 				You will then have {translate text='Hold Pickup Period'} to pick up the title from your home library.
+				{strip}
 			</p>
 
 			{* Responsive theme enforces that the user is always logged in before getting here*}

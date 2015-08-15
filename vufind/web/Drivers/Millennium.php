@@ -546,7 +546,7 @@ class Millennium extends ScreenScrapingDriver
 				$homeBranchCode = str_replace('+', '', $homeBranchCode);
 				//Translate home branch to plain text
 				$location = new Location();
-				$location->whereAdd("code = '$homeBranchCode'");
+				$location->code = $homeBranchCode;
 				if ($location->find(true)){
 					//Setup default location information if it hasn't been loaded or has been changed
 					if ($user->homeLocationId == 0 || $location->locationId != $user->homeLocationId) {
