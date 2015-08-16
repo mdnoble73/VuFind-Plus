@@ -602,8 +602,8 @@ class LibrarySolution extends ScreenScrapingDriver {
 			$user->state = $accountSummary->patron->state;
 			$user->zip = $accountSummary->patron->zipcode;
 
-			$user->fines = $accountSummary->patron->fees;
-			$user->finesVal = floatval(preg_replace('/[^\\d.]/', '', $user->fines));
+			$user->fines = $accountSummary->patron->fees / 100;
+			$user->finesVal = floatval(preg_replace('/[^\\d.]/', '', $user->fines / 100));
 
 			$user->numCheckedOutIls = $accountSummary->accountSummary->loanCount;
 			$user->numHoldsAvailableIls = $accountSummary->accountSummary->arrivedHolds;
@@ -1146,15 +1146,25 @@ class LibrarySolution extends ScreenScrapingDriver {
 	 * @param User $patron patron to get fines for
 	 * @return array  Array of messages
 	 */
-	function getMyFines($patron) {
-		//TODO implement
-/* template from millennium driver
-		$messages[] = array(
-			'reason' =>
-			'message' =>
-			'amount' =>
-		);*/
+	function getMyFines($patron, $includeMessages = false) {
+		$fines = array();
 
-		return array();
+		if ($this->loginPatronToLSS($patron->cat_username, $patron->cat_password)) {
+			//Load transactions from LSS
+			//TODO: Verify that this will load more than 10000 fines
+			$url = $this->getVendorOpacUrl() . '/fees/0/10000/OutDate?_=' . time() * 1000;
+			$feeInfoRaw = $this->_curlGetPage($url);
+			$feeInfo = json_decode($feeInfoRaw);
+
+			foreach ($feeInfo->fees as $fee){
+				$fines[] = array(
+					'reason' => $fee->title,
+					'message' => $fee->feeComment,
+					'amount' => '$' . sprintf('%0.2f', $fee->fee / 100),
+				);
+			}
+		}
+
+		return $fines;
 	}
 }
