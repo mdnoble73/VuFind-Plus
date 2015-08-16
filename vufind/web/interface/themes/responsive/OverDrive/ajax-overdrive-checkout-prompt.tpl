@@ -1,3 +1,4 @@
+strip}
 <form method="post" action="" id="overdriveCheckoutPromptsForm" class="form">
 	<div>
 		<input type="hidden" name="overdriveId" value="{$overDriveId}"/>
@@ -15,3 +16,4 @@
 		{/if}
 	</div>
 </form>
+{/strip}

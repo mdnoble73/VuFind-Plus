@@ -167,7 +167,7 @@ class OverDrive_AJAX extends Action {
 
 		$interface->assign('overdriveEmail', $user->overdriveEmail);
 		$interface->assign('promptForEmail', $promptForEmail);
-		if ($promptForEmail || count($overDriveUsers) > 0){
+		if ($promptForEmail || count($overDriveUsers) > 1){
 			$promptTitle = 'OverDrive Hold Options';
 			return json_encode(
 				array(
@@ -198,7 +198,7 @@ class OverDrive_AJAX extends Action {
 		$overDriveUsers = $user->getRelatedOverDriveUsers();
 		$interface->assign('overDriveUsers', $overDriveUsers);
 
-		if (count($overDriveUsers) > 0){
+		if (count($overDriveUsers) > 1){
 			$promptTitle = 'OverDrive Checkout Options';
 			return json_encode(
 				array(

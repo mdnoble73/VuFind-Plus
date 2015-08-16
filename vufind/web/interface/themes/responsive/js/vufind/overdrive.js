@@ -108,7 +108,7 @@ VuFind.OverDrive = (function(){
 		},
 
 		doOverDriveHold: function(patronId, overDriveId, overdriveEmail, promptForOverdriveEmail){
-			var url = Globals.path + "/OverDrive/AJAX?method=PlaceOverDriveHold&patronId=" + patronId + "&overDriveId=" + overDriveId + "&formatId=" + formatId + "&overdriveEmail=" + overdriveEmail + "&promptForOverdriveEmail=" + promptForOverdriveEmail;
+			var url = Globals.path + "/OverDrive/AJAX?method=PlaceOverDriveHold&patronId=" + patronId + "&overDriveId=" + overDriveId + "&overdriveEmail=" + overdriveEmail + "&promptForOverdriveEmail=" + promptForOverdriveEmail;
 			$.ajax({
 				url: url,
 				cache: false,
