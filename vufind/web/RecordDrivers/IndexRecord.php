@@ -1564,6 +1564,10 @@ class IndexRecord extends RecordInterface
 		return null;
 	}
 
+	public function getIdWithSource(){
+		return $this->profileType . ':' . $this->id;
+	}
+
 	public function getFormat(){
 		if (isset($this->fields['format'])){
 			if (is_array($this->fields['format'])){
@@ -1752,6 +1756,20 @@ class IndexRecord extends RecordInterface
 			}
 		}
 		return implode('&', $parts);
+	}
+
+	/**
+	 * Load Record actions when we don't have detailed information about the record yet
+	 */
+	public function getRecordActionsFromIndex(){
+		$groupedWork = $this->getGroupedWorkDriver();
+		$relatedRecords = $groupedWork->getRelatedRecords();
+		foreach ($relatedRecords as $relatedRecord){
+			if ($relatedRecord['id'] == $this->getIdWithSource()){
+				return $relatedRecord['actions'];
+			}
+		}
+		return array();
 	}
 
 	public function getRecordActions($isAvailable, $isHoldable, $isBookable, $relatedUrls = null){

@@ -98,28 +98,6 @@ $interface->assign('productionServer', $productionServer);
 
 $location = $locationSingleton->getActiveLocation();
 
-// Moved this block to $interface->loadDisplayOptions() method. keeping in case there is something I am missing plb 7-9-2015
-//if (isset($library)){
-//
-//	if ($location != null){
-//		$interface->assign('showStandardReviews', (($location->showStandardReviews == 1) && ($library->showStandardReviews == 1)) ? 1 : 0);
-//		$interface->assign('showHoldButton', (($location->showHoldButton == 1) && ($library->showHoldButton == 1)) ? 1 : 0); // Already set by $interface->loadDisplayOptions(). plb 7-9-2015
-//	}else{ // library only
-//		$interface->assign('showStandardReviews', $library->showStandardReviews);
-//		$interface->assign('showHoldButton', $library->showHoldButton);  // Already set by $interface->loadDisplayOptions(). plb 7-9-2015
-//	}
-//}else{
-//
-//	if ($location != null){ //location only
-//		$interface->assign('showStandardReviews', $location->showStandardReviews);
-//		$interface->assign('showHoldButton', $location->showHoldButton); // Already set by $interface->loadDisplayOptions(). plb 7-9-2015
-//	}else{ //neither
-//		$interface->assign('showStandardReviews', 1);
-//		$interface->assign('showHoldButton', 1);// Already set by $interface->loadDisplayOptions(). plb 7-9-2015
-//	}
-//}
-//$timer->logTime('Interface checks for library and location');
-
 // Determine Module and Action
 $module = (isset($_GET['module'])) ? $_GET['module'] : null;
 $module = preg_replace('/[^\w]/', '', $module);

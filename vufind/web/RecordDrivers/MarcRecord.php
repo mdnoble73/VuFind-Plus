@@ -140,10 +140,6 @@ class MarcRecord extends IndexRecord
 		}
 	}
 
-	public function getIdWithSource(){
-		return $this->profileType . ':' . $this->id;
-	}
-
 	/**
 	 * Return the unique identifier of this record within the Solr index;
 	 * useful for retrieving additional information (like tags and user
@@ -1817,7 +1813,7 @@ class MarcRecord extends IndexRecord
 			if ($interface->getVariable('displayingSearchResults')){
 				$showHoldButton =  $interface->getVariable('showHoldButtonInSearchResults');
 			}else{
-				$interface->getVariable('showHoldButton');
+				$showHoldButton = $interface->getVariable('showHoldButton');
 			}
 		}else{
 			$showHoldButton = false;
