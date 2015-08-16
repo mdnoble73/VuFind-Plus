@@ -96,6 +96,7 @@ class MaterialsRequest_AJAX extends Action{
 			$materialsRequest->id = $id;
 			if ($materialsRequest->find(true)){
 				$canUpdate = false;
+				$isAdminUser = false;
 				//Load user information
 				$requestUser = new User();
 				$requestUser->id = $materialsRequest->createdBy;
@@ -107,14 +108,18 @@ class MaterialsRequest_AJAX extends Action{
 				if ($user){
 					if ($user->hasRole('cataloging')){
 						$canUpdate = true;
+						$isAdminUser = true;
 					}elseif ($user->id == $materialsRequest->createdBy){
 						$canUpdate = true;
 					}else if ($user->hasRole('library_material_requests')){
 						//User can update if the home library of the requester is their library
 						$canUpdate = Library::getLibraryForLocation($requestUser->homeLocationId)->libraryId == Library::getLibraryForLocation($user->homeLocationId)->libraryId;
+						$isAdminUser = true;
 					}
 				}
+
 				if ($canUpdate){
+					$interface->assign('isAdminUser', $isAdminUser);
 					//Get a list of formats to show 
 					$availableFormats = MaterialsRequest::getFormats();
 					$interface->assign('availableFormats', $availableFormats);
