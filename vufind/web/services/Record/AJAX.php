@@ -578,7 +578,8 @@ class Record_AJAX extends Action {
 						$items = $return['items'];
 						$interface->assign('items', $items);
 						$interface->assign('message', $return['message']);
-						$interface->assign('id', $recordId);
+						$interface->assign('id', $shortId);
+						$interface->assign('patronId', $patron->id);
 
 						global $library;
 						$interface->assign('showDetailedHoldNoticeInformation', $library->showDetailedHoldNoticeInformation);

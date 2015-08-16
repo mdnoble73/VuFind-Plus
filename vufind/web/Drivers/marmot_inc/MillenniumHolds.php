@@ -226,7 +226,7 @@ class MillenniumHolds{
 		curl_setopt($this->driver->curl_connection, CURLOPT_HTTPGET, true);
 		$sResult     = curl_exec($this->driver->curl_connection);
 		$holds       = $this->parseHoldsPage($sResult, $patron);
-		
+
 		if ($hold_original_results != $holds) { //test if they are the same
 			$logger->log('Original Hold Results are different from the second Round!', PEAR_LOG_WARNING);
 		}
