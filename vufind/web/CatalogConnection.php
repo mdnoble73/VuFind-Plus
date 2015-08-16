@@ -256,7 +256,7 @@ class CatalogConnection
 		global $configArray;
 
 		//Get the barcode property
-		if ($this->driver->accountProfile->loginConfiguration == 'barcode_pin'){
+		if ($this->accountProfile->loginConfiguration == 'barcode_pin'){
 			$barcode = $username;
 		}else{
 			$barcode = $password;

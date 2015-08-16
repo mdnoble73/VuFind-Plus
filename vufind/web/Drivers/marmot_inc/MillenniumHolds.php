@@ -131,10 +131,11 @@ class MillenniumHolds{
 			$location->find();
 			if ($location->N == 1) {
 				$location->fetch();
-				$paddedLocation = str_pad(trim($location->code), 5, "+");
+				$paddedLocation = str_pad(trim($location->code), 5, " ");
 			}
 		} else {
 			$paddedLocation = isset($locationId) ? $locationId : null;
+			$paddedLocation = str_pad(trim($paddedLocation), 5, " ");
 		}
 
 		$cancelValue = ($type == 'cancel' || $type == 'recall') ? 'on' : 'off';
@@ -203,14 +204,14 @@ class MillenniumHolds{
 		$cookieJar = tempnam("/tmp", "CURLCOOKIE"); // TODO: use screen scaping driver
 		$success   = false;
 
-		$curl_connection = $this->_curl_login($patron);  // TODO use screen scaping driver
+		$this->driver->_curl_login($patron);  // TODO use screen scaping driver
 
 		//Issue a post request with the information about what to do with the holds
 		$curl_url = $this->driver->getVendorOpacUrl() . "/patroninfo~S{$scope}/" . $patron->username . "/holds";
-		curl_setopt($curl_connection, CURLOPT_URL, $curl_url);
-		curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $holdUpdateParams);
-		curl_setopt($curl_connection, CURLOPT_POST, true);
-		$sResult = curl_exec($curl_connection);
+		curl_setopt($this->driver->curl_connection, CURLOPT_URL, $curl_url);
+		curl_setopt($this->driver->curl_connection, CURLOPT_POSTFIELDS, $holdUpdateParams);
+		curl_setopt($this->driver->curl_connection, CURLOPT_POST, true);
+		$sResult = curl_exec($this->driver->curl_connection);
 		$hold_original_results = $this->parseHoldsPage($sResult, $patron);
 
 		// TODO: Get Failure Messages
@@ -221,13 +222,11 @@ class MillenniumHolds{
 		//Go back to the hold page to check make sure our hold was cancelled
 		// Don't believe the page reload is necessary. same output as above. plb 2-3-2015
 		$curl_url = $this->driver->getVendorOpacUrl() . "/patroninfo~S{$scope}/" . $patron->username . "/holds";
-		curl_setopt($curl_connection, CURLOPT_URL, $curl_url);
-		curl_setopt($curl_connection, CURLOPT_HTTPGET, true);
-		$sResult     = curl_exec($curl_connection);
+		curl_setopt($this->driver->curl_connection, CURLOPT_URL, $curl_url);
+		curl_setopt($this->driver->curl_connection, CURLOPT_HTTPGET, true);
+		$sResult     = curl_exec($this->driver->curl_connection);
 		$holds       = $this->parseHoldsPage($sResult, $patron);
-		curl_close($curl_connection);
-		unlink($cookieJar);
-
+		
 		if ($hold_original_results != $holds) { //test if they are the same
 			$logger->log('Original Hold Results are different from the second Round!', PEAR_LOG_WARNING);
 		}
@@ -262,6 +261,7 @@ class MillenniumHolds{
 		}
 
 		//Make sure to clear any cached data
+		/** @var Memcache $memCache */
 		global $memCache;
 		$memCache->delete("patron_dump_{$this->driver->_getBarcode()}");
 		usleep(250);

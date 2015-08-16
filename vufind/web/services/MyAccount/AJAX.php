@@ -791,11 +791,15 @@ class MyAccount_AJAX
 		/** @var $interface UInterface
 		 * @var $user User */
 		global $user;
+		$patronId = $_REQUEST['patronId'];
+		$interface->assign('patronId', $patronId);
+		$patronOwningHold = $user->getUserReferredTo($patronId);
+
 		$id = $_REQUEST['holdId'];
 		$interface->assign('holdId', $id);
 
 		$location = new Location();
-		$pickupBranches = $location->getPickupBranches($user, null);
+		$pickupBranches = $location->getPickupBranches($patronOwningHold, null);
 		$locationList = array();
 		foreach ($pickupBranches as $curLocation) {
 			$locationList[$curLocation->code] = $curLocation->displayName;
@@ -839,7 +843,11 @@ class MyAccount_AJAX
 			$newPickupLocation = $_REQUEST['newLocation'];
 			global $user;
 
-			$result = $catalog->driver->updateHoldDetailed($user->password, 'update', '', null, $holdId, $newPickupLocation, null);
+			$patronId = $_REQUEST['patronId'];
+			$patronOwningHold = $user->getUserReferredTo($patronId);
+
+
+			$result = $catalog->driver->updateHoldDetailed($patronOwningHold, 'update', '', null, $holdId, $newPickupLocation, null);
 			return $result;
 		} catch (PDOException $e) {
 			// What should we do with this error?
