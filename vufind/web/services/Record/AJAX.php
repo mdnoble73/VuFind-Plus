@@ -395,11 +395,20 @@ class Record_AJAX extends Action {
 			$marcRecord = new MarcRecord($id);
 			$title = $marcRecord->getTitle();
 			$interface->assign('id', $marcRecord->getId());
-			$results = array(
+			if (count($locations) == 0){
+				$results = array(
+					'title' => 'Unable to place hold',
+					'modalBody' => '<p>Sorry, no copies of this title are available to your account.</p>',
+					'modalButtons' => ""
+				);
+			}else{
+				$results = array(
 					'title' => 'Place Hold on ' . $title,
 					'modalBody' => $interface->fetch("Record/hold-popup.tpl"),
 					'modalButtons' => "<input type='submit' name='submit' id='requestTitleButton' value='Submit Hold Request' class='btn btn-primary' onclick='return VuFind.Record.submitHoldForm();'>"
-			);
+				);
+			}
+
 		}else{
 			$results = array(
 					'title' => 'Please login',
