@@ -486,7 +486,11 @@ class CatalogConnection
 
 		}else{
 			//Don't know enough to load internally, check the ILS.
-			return $this->driver->getReadingHistory($patron, $page, $recordsPerPage, $sortOption);
+			$result = $this->driver->getReadingHistory($patron, $page, $recordsPerPage, $sortOption);
+			//We have now read the initial reading history from the ILS
+			$patron->initialReadingHistoryLoaded = true;
+			$patron->update();
+			return $result;
 		}
 	}
 
@@ -849,6 +853,9 @@ class CatalogConnection
 		return $historyEntry;
 	}
 
+	/**
+	 * @param User $patron
+	 */
 	private function updateReadingHistoryBasedOnCurrentCheckouts($patron) {
 		require_once ROOT_DIR . '/sys/ReadingHistoryEntry.php';
 		//Note, include deleted titles here so they are not added multiple times.
@@ -866,9 +873,7 @@ class CatalogConnection
 		}
 
 		//Update reading history based on current checkouts.  That way it never looks out of date
-		require_once ROOT_DIR . '/services/API/UserAPI.php';
-		$userAPI = new UserAPI();
-		$checkouts = $userAPI->getPatronCheckedOutItems();
+		$checkouts = $patron->getMyCheckouts(false);
 		foreach ($checkouts as $checkout){
 			$sourceId = '?';
 			$source = $checkout['checkoutSource'];

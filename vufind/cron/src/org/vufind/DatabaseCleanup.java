@@ -219,6 +219,20 @@ public class DatabaseCleanup implements IProcessHandler {
 			processLog.saveToDatabase(vufindConn, logger);
 		}
 
+		//Remove invalid reading history entries
+		try{
+			PreparedStatement removeInvalidReadingHistoryEntriesStmt = vufindConn.prepareStatement("DELETE FROM user_reading_history_work WHERE groupedWorkPermanentId = 'L'");
+			int numUpdates = removeInvalidReadingHistoryEntriesStmt.executeUpdate();
+			processLog.addNote("Removed " + numUpdates + " invalid reading history entries");
+			processLog.incUpdated();
+
+		} catch (Exception e){
+			processLog.incErrors();
+			processLog.addNote("Error removing invalid reading history entriee. " + e.toString());
+			logger.error("Error removing invalid reading history entriee", e);
+			processLog.saveToDatabase(vufindConn, logger);
+		}
+
 		processLog.setFinished();
 		processLog.saveToDatabase(vufindConn, logger);
 	}
