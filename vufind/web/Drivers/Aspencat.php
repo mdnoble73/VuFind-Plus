@@ -525,17 +525,16 @@ class Aspencat implements DriverInterface{
 	}
 
 	private $transactions = array();
-	public function getMyCheckouts($page = 1, $recordsPerPage = -1, $sortOption = 'dueDate') {
+	public function getMyCheckouts($user) {
 		if (true){
-			return $this->getMyCheckoutsFromOpac($page, $recordsPerPage, $sortOption);
+			return $this->getMyCheckoutsFromOpac($user);
 		}else{
-			return $this->getMyCheckoutsFromDB($page, $recordsPerPage, $sortOption);
+			return $this->getMyCheckoutsFromDB($user);
 		}
 	}
 
-	public function getMyCheckoutsFromOpac($page = 1, $recordsPerPage = -1, $sortOption = 'dueDate') {
+	public function getMyCheckoutsFromOpac($user) {
 		global $logger;
-		global $user;
 		if (isset($this->transactions[$user->id])){
 			return $this->transactions[$user->id];
 		}
@@ -638,44 +637,11 @@ class Aspencat implements DriverInterface{
 				$transactions[] = $transaction;
 			}
 		}
-		//Process sorting
-		$sortKeys = array();
-		$i = 0;
-		foreach ($transactions as $key => $transaction){
-			$sortTitle = isset($transaction['sortTitle']) ? $transaction['sortTitle'] : "Unknown";
-			if ($sortOption == 'title'){
-				$sortKeys[$key] = $sortTitle;
-			}elseif ($sortOption == 'author'){
-				$sortKeys[$key] = (isset($transaction['author']) ? $transaction['author'] : "Unknown") . '-' . $sortTitle;
-			}elseif ($sortOption == 'dueDate'){
-				if (preg_match('/.*?(\\d{1,2})[-\/](\\d{1,2})[-\/](\\d{2,4}).*/', $transaction['dueDate'], $matches)) {
-					$sortKeys[$key] = $matches[3] . '-' . $matches[1] . '-' . $matches[2] . '-' . $sortTitle;
-				} else {
-					$sortKeys[$key] = $transaction['dueDate'] . '-' . $sortTitle;
-				}
-			}elseif ($sortOption == 'format'){
-				$sortKeys[$key] = (isset($transaction['format']) ? $transaction['format'] : "Unknown") . '-' . $sortTitle;
-			}elseif ($sortOption == 'renewed'){
-				$sortKeys[$key] = (isset($transaction['renewCount']) ? $transaction['renewCount'] : 0) . '-' . $sortTitle;
-			}elseif ($sortOption == 'holdQueueLength'){
-				$sortKeys[$key] = (isset($transaction['holdQueueLength']) ? $transaction['holdQueueLength'] : 0) . '-' . $sortTitle;
-			}
-			$sortKeys[$key] = $sortKeys[$key] . '-' . $i++;
-		}
-		array_multisort($sortKeys, $transactions);
-		//Limit to a specific number of records
-		$totalTransactions = count($transactions);
-		if ($recordsPerPage != -1){
-			$startRecord = ($page - 1) * $recordsPerPage;
-			$transactions = array_slice($transactions, $startRecord, $recordsPerPage);
-		}
 		$this->transactions[$user->id] = $transactions;
 		return $transactions;
 	}
 
-	public function getMyCheckoutsFromDB($page = 1, $recordsPerPage = -1, $sortOption = 'dueDate') {
-		global $user;
-
+	public function getMyCheckoutsFromDB($user) {
 		if (isset($this->transactions[$user->id])){
 			return $this->transactions[$user->id];
 		}

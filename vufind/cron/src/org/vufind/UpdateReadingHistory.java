@@ -208,6 +208,9 @@ public class UpdateReadingHistory implements IProcessHandler {
 		String sourceId = "";
 		if (readingHistoryTitle.has("recordId")) {
 			sourceId = readingHistoryTitle.getString("recordId");
+		}else{
+			//No title found
+			return false;
 		}
 		SimpleDateFormat checkoutDateFormat = new SimpleDateFormat("MM-dd-yyyy");
 
@@ -218,7 +221,7 @@ public class UpdateReadingHistory implements IProcessHandler {
 			insertReadingHistoryStmt.setString(3, source);
 			insertReadingHistoryStmt.setString(4, sourceId);
 			insertReadingHistoryStmt.setString(5, Util.trimTo(150, readingHistoryTitle.getString("title")));
-			insertReadingHistoryStmt.setString(6, Util.trimTo(75, readingHistoryTitle.getString("author")));
+			insertReadingHistoryStmt.setString(6, Util.trimTo(75, readingHistoryTitle.has("author") ? readingHistoryTitle.getString("author") : ""));
 			String format = readingHistoryTitle.getString("format");
 			if (format.startsWith("[")){
 				//This is an array of formats, just grab one
