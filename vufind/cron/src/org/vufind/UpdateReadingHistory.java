@@ -208,8 +208,9 @@ public class UpdateReadingHistory implements IProcessHandler {
 		String sourceId = "";
 		if (readingHistoryTitle.has("recordId")) {
 			sourceId = readingHistoryTitle.getString("recordId");
-		}else{
-			//No title found
+		}
+		if (sourceId == null || sourceId.length() == 0){
+			//Don't try to add records we know nothing about.
 			return false;
 		}
 		SimpleDateFormat checkoutDateFormat = new SimpleDateFormat("MM-dd-yyyy");
