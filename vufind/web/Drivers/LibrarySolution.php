@@ -654,7 +654,8 @@ class LibrarySolution extends ScreenScrapingDriver {
 				$curTitle['recordId'] = $loan->bibliographicId;
 				$curTitle['title'] = utf8_encode($loan->title);
 				$curTitle['author'] = utf8_encode($loan->author);
-				$curTitle['duedate'] = $loan->dueDate;        // item likely will not have a dueDate, (get null value)
+				$dueDate = $loan->dueDate;
+				$curTitle['dueDate'] = $dueDate;        // item likely will not have a dueDate, (get null value)
 				$curTitle['checkout'] = $loan->outDateString; // item always has a outDateString
 				$curTitle['borrower_num'] = $patron->id;
 				$curTitle['title_sort'] = preg_replace('/[^a-z\s]/', '', strtolower($curTitle['title']));
@@ -750,10 +751,12 @@ class LibrarySolution extends ScreenScrapingDriver {
 				$curTitle['recordId'] = $loan->bibliographicId;
 				$curTitle['title'] = utf8_encode($loan->title);
 				$curTitle['author'] = utf8_encode($loan->author);
-				$curTitle['duedate'] = $loan->dueDate;
-				/*$curTitle['overdue']
-				$curTitle['daysUntilDue']
-				$curTitle['renewCount']
+				$dueDate = $loan->dueDate;
+				if ($dueDate){
+					$dueDate = strtotime($dueDate);
+				}
+				$curTitle['dueDate'] = $dueDate;
+				/*$curTitle['renewCount']
 				$curTitle['barcode']
 				$curTitle['canrenew']
 				$curTitle['itemindex']

@@ -116,7 +116,7 @@ class MillenniumCheckouts {
 					}
 
 					if (stripos($sKeys[$i],"STATUS") > -1) {
-						// $sret[$scount-2]['duedate'] = strip_tags($scols[$i]);
+						// $sret[$scount-2]['dueDate'] = strip_tags($scols[$i]);
 						$due = trim(str_replace("DUE", "", strip_tags($scols[$i])));
 						$renewCount = 0;
 						if (preg_match('/FINE\(up to now\) (\$\d+\.\d+)/i', $due, $matches)){
@@ -139,11 +139,7 @@ class MillenniumCheckouts {
 							$dueTime = strtotime($due);
 						}
 						if ($dueTime != null){
-							$daysUntilDue = ceil(($dueTime - time()) / (24 * 60 * 60));
-							$overdue = $daysUntilDue < 0;
-							$curTitle['duedate'] = $dueTime;
-							$curTitle['overdue'] = $overdue;
-							$curTitle['daysUntilDue'] = $daysUntilDue;
+							$curTitle['dueDate'] = $dueTime;
 						}
 						$curTitle['renewCount'] = $renewCount;
 
