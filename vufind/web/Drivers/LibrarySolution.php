@@ -688,6 +688,13 @@ class LibrarySolution extends ScreenScrapingDriver {
 			}
 		}
 
+		//LSS does not have a way to disable reading history so we will always set to true.
+		if (!$patron->trackReadingHistory){
+			$patron->trackReadingHistory = 1;
+			$patron->update();
+		}
+
+
 		return array('historyActive'=>true, 'titles'=>$readingHistory, 'numTitles'=> count($readingHistory));
 	}
 
