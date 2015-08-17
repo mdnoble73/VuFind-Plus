@@ -395,6 +395,7 @@ class CatalogConnection
 		foreach ($transactions as $key => $curTitle){
 			$curTitle['user'] = $user->getNameAndLibraryLabel();
 			$curTitle['userId'] = $user->id;
+			$curTitle['fullId'] = $this->accountProfile->recordSource . ':' . $curTitle['id'];
 			$transactions[$key] = $curTitle;
 		}
 		return $transactions;
@@ -880,7 +881,7 @@ class CatalogConnection
 			if ($source == 'OverDrive'){
 				$sourceId = $checkout['overDriveId'];
 			}elseif ($source == 'ILS'){
-				$sourceId = $checkout['id'];
+				$sourceId = $checkout['fullId'];
 			}elseif ($source == 'eContent'){
 				$source = $checkout['recordType'];
 				$sourceId = $checkout['id'];
