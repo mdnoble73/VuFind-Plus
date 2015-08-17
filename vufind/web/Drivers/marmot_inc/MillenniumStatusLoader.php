@@ -33,7 +33,7 @@ class MillenniumStatusLoader{
 	 *  nonHoldableReason
 	 *  reserve
 	 *  holdQueueLength
-	 *  duedate
+	 *  dueDate
 	 *  location
 	 *  libraryDisplayName
 	 *  locationLink
@@ -754,7 +754,7 @@ class MillenniumStatusLoader{
 							if (stripos($cellValue,$stat_due) > -1) {
 								$p = substr($cellValue,stripos($cellValue,$stat_due));
 								$s = trim($p, $stat_due);
-								$curHolding['duedate'] = $s;
+								$curHolding['dueDate'] = $s;
 							}
 
 							$statfull = strip_tags($cellValue);

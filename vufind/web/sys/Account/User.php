@@ -326,12 +326,14 @@ class User extends DB_DataObject
 		$overDriveUsers = array();
 		$userHomeLibrary = Library::getPatronHomeLibrary($this);
 		if ($userHomeLibrary->enableOverdriveCollection){
-			$overDriveUsers[] = $this;
+			$overDriveUsers[$this->cat_username . ':' . $this->cat_password] = $this;
 		}
 		foreach ($this->getLinkedUsers() as $linkedUser){
 			$userHomeLibrary = Library::getPatronHomeLibrary($linkedUser);
 			if ($userHomeLibrary->enableOverdriveCollection){
-				$overDriveUsers[] = $linkedUser;
+				if (array_key_exists($linkedUser->cat_username . ':' . $linkedUser->cat_password, $overDriveUsers)){
+					$overDriveUsers[$linkedUser->cat_username . ':' . $linkedUser->cat_password] = $linkedUser;
+				}
 			}
 		}
 
@@ -484,6 +486,10 @@ class User extends DB_DataObject
 		}else{
 			return false;
 		}
+	}
+
+	function updateRuntimeInformation(){
+		$this->getCatalogDriver()->updateUserWithAdditionalRuntimeInformation($this);
 	}
 
 	function updateOverDriveOptions(){

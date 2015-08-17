@@ -693,13 +693,8 @@ abstract class HorizonAPI extends Horizon{
 				$curTitle['title'] = (string)$itemOut->title;
 				$curTitle['author'] = (string)$itemOut->author;
 
-				$curTitle['duedate'] = (string)$itemOut->dueDate;
+				$curTitle['dueDate'] = strtotime((string)$itemOut->dueDate);
 				$curTitle['checkoutdate'] = (string)$itemOut->ckoDate;
-				$dueTime = strtotime($curTitle['duedate']);
-				$daysUntilDue = ceil(($dueTime - time()) / (24 * 60 * 60));
-				$overdue = $daysUntilDue < 0;
-				$curTitle['overdue'] = $overdue;
-				$curTitle['daysUntilDue'] = $daysUntilDue;
 				$curTitle['renewCount'] = (string)$itemOut->renewals;
 				$curTitle['canrenew'] = true; //TODO: Figure out if the user can renew the title or not
 				$curTitle['renewIndicator'] = (string)$itemOut->itemBarcode;
@@ -726,11 +721,11 @@ abstract class HorizonAPI extends Horizon{
 				}elseif ($sortOption == 'author'){
 					$sortKey = (isset($curTitle['author']) ? $curTitle['author'] : "Unknown") . '-' . $sortTitle;
 				}elseif ($sortOption == 'dueDate'){
-					if (isset($curTitle['duedate'])){
-						if (preg_match('/.*?(\\d{1,2})[-\/](\\d{1,2})[-\/](\\d{2,4}).*/', $curTitle['duedate'], $matches)) {
+					if (isset($curTitle['dueDate'])){
+						if (preg_match('/.*?(\\d{1,2})[-\/](\\d{1,2})[-\/](\\d{2,4}).*/', $curTitle['dueDate'], $matches)) {
 							$sortKey = $matches[3] . '-' . $matches[1] . '-' . $matches[2] . '-' . $sortTitle;
 						} else {
-							$sortKey = $curTitle['duedate'] . '-' . $sortTitle;
+							$sortKey = $curTitle['dueDate'] . '-' . $sortTitle;
 						}
 					}
 				}elseif ($sortOption == 'format'){
@@ -826,7 +821,7 @@ abstract class HorizonAPI extends Horizon{
 	 *  nonHoldableReason
 	 *  reserve
 	 *  holdQueueLength
-	 *  duedate
+	 *  dueDate
 	 *  location
 	 *  libraryDisplayName
 	 *  locationCode

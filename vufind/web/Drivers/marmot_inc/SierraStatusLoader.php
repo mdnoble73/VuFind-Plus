@@ -44,7 +44,7 @@ class SierraStatusLoader extends MillenniumStatusLoader{
 	 *  statusfull
 	 *  reserve
 	 *  holdQueueLength
-	 *  duedate
+	 *  dueDate
 	 *  location
 	 *  locationLink
 	 *  callnumber
@@ -193,7 +193,7 @@ class SierraStatusLoader extends MillenniumStatusLoader{
 				'reserve' => stripos($item['shelfLocation'], 'reserve') !== false ? 'Y' : 'N',
 				'callnumber' => $item['callnumber'],
 				'status' => $item['status'],
-				'duedate' => $item['dueDate'],
+				'dueDate' => $item['dueDate'],
 				'lastCheckinDate' => $item['lastCheckinDate'],
 				'statusfull' => $this->translateStatusCode($item['status'], $item['dueDate']),
 				'id' => $id,
