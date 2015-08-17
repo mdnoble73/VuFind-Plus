@@ -1047,6 +1047,7 @@ class Aspencat implements DriverInterface{
 	 */
 	public function getReadingHistory($patron, $page = 1, $recordsPerPage = -1, $sortOption = "checkedOut") {
 		// TODO implement sorting, currently only done in catalogConnection for aspencat reading history
+		//TODO prepend indexProfileType
 		$this->initDatabaseConnection();
 
 		//Figure out if the user is opted in to reading history
@@ -1093,7 +1094,9 @@ class Aspencat implements DriverInterface{
 						$curTitle['shortId'] = $readingHistoryTitleRow['biblionumber'];
 						$curTitle['recordId'] = $readingHistoryTitleRow['biblionumber'];
 						$curTitle['title'] = $readingHistoryTitleRow['title'];
-						$curTitle['checkout'] = $readingHistoryTitleRow['itemstimestamp'];
+
+						$checkOutDate = new DateTime($readingHistoryTitleRow['itemstimestamp']);
+						$curTitle['checkout'] = $checkOutDate->format('m-d-Y'); // this format is expected by Pika's java cron program.
 
 						$readingHistoryTitles[] = $curTitle;
 					}
@@ -1117,9 +1120,9 @@ class Aspencat implements DriverInterface{
 				$historyEntry['coverUrl'] = null;
 				$historyEntry['format'] = array();
 				if (!empty($historyEntry['recordId'])){
-					if (is_int($historyEntry['recordId'])) $historyEntry['recordId'] = (string) $historyEntry['recordId']; // Marc Record Contructor expects the recordId as a string.
+//					if (is_int($historyEntry['recordId'])) $historyEntry['recordId'] = (string) $historyEntry['recordId']; // Marc Record Contructor expects the recordId as a string.
 					require_once ROOT_DIR . '/RecordDrivers/MarcRecord.php';
-					$recordDriver = new MarcRecord($historyEntry['recordId']);
+					$recordDriver = new MarcRecord($this->accountProfile->recordSource.':'.$historyEntry['recordId']);
 					if ($recordDriver->isValid()){
 						$historyEntry['ratingData'] = $recordDriver->getRatingData();
 						$historyEntry['permanentId'] = $recordDriver->getPermanentId();
