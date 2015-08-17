@@ -1156,6 +1156,7 @@ class GroupedWorkDriver extends RecordInterface{
 					'physical' => $recordDetails[7],
 					'callNumber' => '',
 					'available' => false,
+					'availableOnline' => false,
 					'availableLocally' => false,
 					'availableHere' => false,
 					'inLibraryUseOnly' => false,
@@ -1169,6 +1170,8 @@ class GroupedWorkDriver extends RecordInterface{
 					'holdRatio' => 0,
 					'locationLabel' => '',
 					'shelfLocation' => '',
+					'bookable' => false,
+					'holdable' => false,
 					'itemSummary' => array(),
 					'groupedStatus' => 'Currently Unavailable',
 					'source' => $source,
@@ -1536,38 +1539,44 @@ class GroupedWorkDriver extends RecordInterface{
 			}
 		}
 		if ($formatComparison == 0){
-			//Put english titles before spanish by default
+			//1) Compare by language to put english titles before spanish by default
 			$languageComparison = GroupedWorkDriver::compareLanguagesForRecords($a, $b);
 			if ($languageComparison == 0){
-				//Compare editions if available
+				//2) Compare editions for non-fiction if available
 				$editionComparisonResult = GroupedWorkDriver::compareEditionsForRecords($literaryForm, $a, $b);
 				if ($editionComparisonResult == 0){
-					//Put anything with a local copy higher
-					$localItemComparisonResult = GroupedWorkDriver::compareLocalItemsForRecords($a, $b);
-					if ($localItemComparisonResult == 0){
-						//Anything that is available goes higher
+					//3) Put anything with locally available items first
+					$localAvailableItemComparisonResult = GroupedWorkDriver::compareLocalAvailableItemsForRecords($a, $b);
+					if ($localAvailableItemComparisonResult == 0){
+						//4) Anything that is available elsewhere goes higher
 						$availabilityComparisonResults = GroupedWorkDriver::compareAvailabilityForRecords($a, $b);
 						if ($availabilityComparisonResults == 0){
-							//All else being equal, sort by hold ratio
-							if ($a['holdRatio'] == $b['holdRatio']){
-								//Hold Ratio is the same, last thing to check is the number of copies
-								if ($a['copies'] == $b['copies']){
-									return 0;
-								}elseif ($a['copies'] > $b['copies']){
+							//5) Put anything with a local copy higher
+							$localItemComparisonResult = GroupedWorkDriver::compareLocalItemsForRecords($a, $b);
+							if ($localItemComparisonResult == 0){
+								//6) All else being equal, sort by hold ratio
+								if ($a['holdRatio'] == $b['holdRatio']){
+									//Hold Ratio is the same, last thing to check is the number of copies
+									if ($a['copies'] == $b['copies']){
+										return 0;
+									}elseif ($a['copies'] > $b['copies']){
+										return -1;
+									}else{
+										return 1;
+									}
+								}elseif ($a['holdRatio'] > $b['holdRatio']){
 									return -1;
 								}else{
 									return 1;
 								}
-							}elseif ($a['holdRatio'] > $b['holdRatio']){
-								return -1;
 							}else{
-								return 1;
+								return $localItemComparisonResult;
 							}
 						}else{
 							return $availabilityComparisonResults;
 						}
 					}else{
-						return $localItemComparisonResult;
+						return $localAvailableItemComparisonResult;
 					}
 				}else{
 					return $editionComparisonResult;
@@ -1643,10 +1652,10 @@ class GroupedWorkDriver extends RecordInterface{
 	static function compareAvailabilityForRecords($a, $b){
 		$availableLocallyA = isset($a['availableLocally']) && $a['availableLocally'];
 		$availableLocallyB = isset($b['availableLocally']) && $b['availableLocally'];
-		if (($availableLocallyA && $availableLocallyB) || (!$availableLocallyA && !$availableLocallyB)){
-			$availableA = isset($a['available']) && $a['available'];
-			$availableB = isset($b['available']) && $b['available'];
-			if (($availableA && $availableB) || (!$availableA && !$availableB)){
+		if (($availableLocallyA == $availableLocallyB)){
+			$availableA = isset($a['available']) && $a['available'] && $a['holdable'];
+			$availableB = isset($b['available']) && $b['available'] && $b['holdable'];
+			if (($availableA == $availableB)){
 				return 0;
 			}elseif ($availableA){
 				return -1;
@@ -1657,6 +1666,16 @@ class GroupedWorkDriver extends RecordInterface{
 			return -1;
 		}else{
 			return 1;
+		}
+	}
+
+	static function compareLocalAvailableItemsForRecords($a, $b){
+		if (($a['availableLocally'] || $a['availableOnline']) && ($b['availableLocally'] || $b['availableOnline'])){
+			return 0;
+		}elseif ($a['availableLocally'] || $a['availableOnline']){
+			return -1;
+		}else{
+			return 0;
 		}
 	}
 
