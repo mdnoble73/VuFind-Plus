@@ -223,7 +223,7 @@ class CatalogConnection
 	 * place a hold or recall on an item
 	 *
 	 * @return mixed     On success, an associative array with the following keys:
-	 * id, availability (boolean), status, location, reserve, callnumber, duedate,
+	 * id, availability (boolean), status, location, reserve, callnumber, dueDate,
 	 * number, barcode; on failure, a PEAR_Error.
 	 * @access public
 	 */
@@ -396,6 +396,14 @@ class CatalogConnection
 			$curTitle['user'] = $user->getNameAndLibraryLabel();
 			$curTitle['userId'] = $user->id;
 			$curTitle['fullId'] = $this->accountProfile->recordSource . ':' . $curTitle['id'];
+
+			if ($curTitle['dueDate']){
+				$daysUntilDue = ceil(($curTitle['dueDate'] - time()) / (24 * 60 * 60));
+				$overdue = $daysUntilDue < 0;
+				$curTitle['overdue'] = $overdue;
+				$curTitle['daysUntilDue'] = $daysUntilDue;
+			}
+			//Determine if the record
 			$transactions[$key] = $curTitle;
 		}
 		return $transactions;

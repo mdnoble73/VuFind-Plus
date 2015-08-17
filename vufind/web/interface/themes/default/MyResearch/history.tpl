@@ -48,7 +48,7 @@
 		
 										<br />
 										
-										<b>{translate text='Due'}: {$resource.duedate|escape}</b>
+										<b>{translate text='Due'}: {$resource.dueDate|escape}</b>
 		
 									</div>
 								</div>

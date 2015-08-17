@@ -75,11 +75,7 @@ abstract class SIP2Driver implements DriverInterface{
 							$dueTime = strtotime($tableCell);
 						}
 						if ($dueTime != null){
-							$daysUntilDue = ceil(($dueTime - time()) / (24 * 60 * 60));
-							$overdue = $daysUntilDue < 0;
-							$transaction['duedate'] = $dueTime;
-							$transaction['overdue'] = $overdue;
-							$transaction['daysUntilDue'] = $daysUntilDue;
+							$transaction['dueDate'] = $dueTime;
 						}
 					}elseif ($headerLabels[$col] == 'renew'){
 						if (preg_match('/item=(\\d+).*?\\((\\d+) of (\\d+) renewals/si', $tableCell, $renewalData)) {
@@ -125,10 +121,10 @@ abstract class SIP2Driver implements DriverInterface{
 			}elseif ($sortOption == 'author'){
 				$sortKeys[$key] = (isset($transaction['author']) ? $transaction['author'] : "Unknown") . '-' . $sortTitle;
 			}elseif ($sortOption == 'dueDate'){
-				if (preg_match('/.*?(\\d{1,2})[-\/](\\d{1,2})[-\/](\\d{2,4}).*/', $transaction['duedate'], $matches)) {
+				if (preg_match('/.*?(\\d{1,2})[-\/](\\d{1,2})[-\/](\\d{2,4}).*/', $transaction['dueDate'], $matches)) {
 					$sortKeys[$key] = $matches[3] . '-' . $matches[1] . '-' . $matches[2] . '-' . $sortTitle;
 				} else {
-					$sortKeys[$key] = $transaction['duedate'] . '-' . $sortTitle;
+					$sortKeys[$key] = $transaction['dueDate'] . '-' . $sortTitle;
 				}
 			}elseif ($sortOption == 'format'){
 				$sortKeys[$key] = (isset($transaction['format']) ? $transaction['format'] : "Unknown") . '-' . $sortTitle;
@@ -168,9 +164,9 @@ abstract class SIP2Driver implements DriverInterface{
 				if (preg_match("/^18/", $msg_result)) {
 					$result = $this->sipConnection->parseItemInfoResponse( $msg_result );
 					if (isset($result['variable']['AH']) && $itemStatus != 'i'){
-						$itemSip2Data['duedate'] = $result['variable']['AH'][0];
+						$itemSip2Data['dueDate'] = $result['variable']['AH'][0];
 					}else{
-						$itemSip2Data['duedate'] = '';
+						$itemSip2Data['dueDate'] = '';
 					}
 					if (isset($result['variable']['CF'][0])){
 						$itemSip2Data['holdQueueLength'] = intval($result['variable']['CF'][0]);

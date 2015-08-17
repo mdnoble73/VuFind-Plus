@@ -58,7 +58,10 @@ class MyAccount_CheckedOut extends MyAccount{
 				$allCheckedOut = $user->getMyCheckouts();
 
 				$interface->assign('showNotInterested', false);
+				//Do sorting now that we have all records
+				$curTransaction = 0;
 				foreach ($allCheckedOut as $i => $curTitle) {
+					$curTransaction++;
 					$sortTitle = isset($curTitle['title_sort']) ? $curTitle['title_sort'] : $curTitle['title'];
 					$sortKey = $sortTitle;
 					if ($selectedSortOption == 'title'){
@@ -66,11 +69,11 @@ class MyAccount_CheckedOut extends MyAccount{
 					}elseif ($selectedSortOption == 'author'){
 						$sortKey = (isset($curTitle['author']) ? $curTitle['author'] : "Unknown") . '-' . $sortTitle;
 					}elseif ($selectedSortOption == 'dueDate'){
-						if (isset($curTitle['duedate'])){
-							if (preg_match('/.*?(\\d{1,2})[-\/](\\d{1,2})[-\/](\\d{2,4}).*/', $curTitle['duedate'], $matches)) {
+						if (isset($curTitle['dueDate'])){
+							if (preg_match('/.*?(\\d{1,2})[-\/](\\d{1,2})[-\/](\\d{2,4}).*/', $curTitle['dueDate'], $matches)) {
 								$sortKey = $matches[3] . '-' . $matches[1] . '-' . $matches[2] . '-' . $sortTitle;
 							} else {
-								$sortKey = $curTitle['duedate'] . '-' . $sortTitle;
+								$sortKey = $curTitle['dueDate'] . '-' . $sortTitle;
 							}
 						}
 					}elseif ($selectedSortOption == 'format'){
@@ -80,7 +83,7 @@ class MyAccount_CheckedOut extends MyAccount{
 					}elseif ($selectedSortOption == 'holdQueueLength'){
 						$sortKey = str_pad((isset($curTitle['holdQueueLength']) ? $curTitle['holdQueueLength'] : 0), 3, '0', STR_PAD_LEFT) . '-' . $sortTitle;
 					}
-					$sortKey = utf8_encode($sortKey);
+					$sortKey = utf8_encode($sortKey. '-' . $curTransaction);
 
 					$itemBarcode = isset($curTitle['barcode']) ? $curTitle['barcode'] : null;
 					$itemId = isset($curTitle['itemid']) ? $curTitle['itemid'] : null;
@@ -200,14 +203,14 @@ class MyAccount_CheckedOut extends MyAccount{
 			if ($showOut){
 				$activeSheet->setCellValueByColumnAndRow($curCol++, $a, date('M d, Y', $row['checkoutdate']));
 			}
-			if (isset($row['duedate'])){
-				$activeSheet->setCellValueByColumnAndRow($curCol++, $a, date('M d, Y', $row['duedate']));
+			if (isset($row['dueDate'])){
+				$activeSheet->setCellValueByColumnAndRow($curCol++, $a, date('M d, Y', $row['dueDate']));
 			}else{
 				$activeSheet->setCellValueByColumnAndRow($curCol++, $a, '');
 			}
 
 			if ($showRenewed){
-				if (isset($row['duedate'])) {
+				if (isset($row['dueDate'])) {
 					$activeSheet->setCellValueByColumnAndRow($curCol++, $a, $row['renewCount']);
 				}else{
 					$activeSheet->setCellValueByColumnAndRow($curCol++, $a, '');

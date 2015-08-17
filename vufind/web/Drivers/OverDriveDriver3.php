@@ -463,7 +463,7 @@ class OverDriveDriver3 {
 				$bookshelfItem['overDriveId'] = $curTitle->reserveId;
 				$bookshelfItem['expiresOn'] = $curTitle->expires;
 				$expirationDate = new DateTime($curTitle->expires);
-				$bookshelfItem['dueDate'] = $expirationDate->format('M j, Y g:ha');
+				$bookshelfItem['dueDate'] = $expirationDate->getTimestamp();
 				$bookshelfItem['overdriveRead'] = false;
 				if (isset($curTitle->isFormatLockedIn) && $curTitle->isFormatLockedIn == 1){
 					$bookshelfItem['formatSelected'] = true;
@@ -961,7 +961,7 @@ class OverDriveDriver3 {
 	 * @param   OverDriveRecordDriver  $overDriveRecordDriver   The record id to retrieve the holdings for
 	 * @return  mixed               An associative array with the following keys:
 	 *                              availability (boolean), status, location,
-	 *                              reserve, callnumber, duedate, number,
+	 *                              reserve, callnumber, dueDate, number,
 	 *                              holding summary, holding notes
 	 *                              If an error occurs, return a PEAR_Error
 	 * @access  public

@@ -592,7 +592,7 @@ class EContentDriver implements DriverInterface{
 					'title' => $recordDriver->getTitle(),
 					'author' => $recordDriver->getPrimaryAuthor(),
 					'format' => $recordDriver->getFormatCategory(),
-					'duedate' => $eContentCheckout->dateDue,
+					'dueDate' => $eContentCheckout->dateDue,
 					'checkoutdate' => $eContentCheckout->dateCheckedOut,
 					'daysUntilDue' => $daysUntilDue,
 					//'holdQueueLength' => $waitList,

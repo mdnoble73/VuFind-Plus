@@ -91,7 +91,7 @@
 					<div class="row">
 						<div class="result-label col-md-3">{translate text='Due'}</div>
 						<div class="col-md-9 result-value">
-							{$record.duedate|date_format}
+							{$record.dueDate|date_format}
 							{if $record.overdue}
 								<span class='overdueLabel'> OVERDUE</span>
 							{elseif $record.daysUntilDue == 0}

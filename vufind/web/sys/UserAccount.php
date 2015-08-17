@@ -41,6 +41,7 @@ class UserAccount {
 			global $memCache;
 			global $serverName;
 
+			/** @var User $userData */
 			$userData = $memCache->get("user_{$serverName}_{$activeUserId}");
 			if ($userData === false){
 				//Load the user from the database
@@ -49,6 +50,8 @@ class UserAccount {
 				if ($userData->find(true)){
 					$userData = UserAccount::validateAccount($userData->cat_username, $userData->cat_password, $userData->source);
 				}
+			}else{
+				$userData->updateRuntimeInformation();
 			}
 		}
 		return $userData;
