@@ -164,6 +164,9 @@ class OverDrive_AJAX extends Action {
 
 		$overDriveUsers = $user->getRelatedOverDriveUsers();
 		$interface->assign('overDriveUsers', $overDriveUsers);
+		if (count($overDriveUsers) == 1){
+			$interface->assign('patronId', reset($overDriveUsers)->id);
+		}
 
 		$interface->assign('overdriveEmail', $user->overdriveEmail);
 		$interface->assign('promptForEmail', $promptForEmail);
@@ -180,7 +183,7 @@ class OverDrive_AJAX extends Action {
 		}else{
 			return json_encode(
 				array(
-					'patronId' => $overDriveUsers[0]->id,
+					'patronId' => reset($overDriveUsers)->id,
 					'promptNeeded' => false,
 					'overdriveEmail' => $user->overdriveEmail,
 					'promptForOverdriveEmail' => $promptForEmail,
@@ -211,7 +214,7 @@ class OverDrive_AJAX extends Action {
 		}else{
 			return json_encode(
 				array(
-					'patronId' => $overDriveUsers[0]->id,
+					'patronId' => reset($overDriveUsers)->id,
 					'promptNeeded' => false,
 				)
 			);

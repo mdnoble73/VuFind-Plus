@@ -353,13 +353,7 @@ VuFind.Account = (function(){
 				if (Globals.loggedIn) {
 					VuFind.showMessage('Loading', 'Loading, please wait');
 					$.getJSON(Globals.path + "/MyAccount/AJAX?method=cancelHold&patronId=" + patronId + "&recordId=" + recordId + "&cancelId="+holdIdToCancel, function(data){
-						VuFind.showMessage(data.title, data.modalBody, data.success); // autoclose when successful
-						if (data.success) {
-							// remove canceled item from page
-							var escapedHoldId = holdIdToCancel.replace("~", "\\~"); // needed for jquery selector to work correctly
-							// first backslash for javascript escaping, second for css escaping (within jquery)
-							$('div.result').has('#selected'+escapedHoldId).remove();
-						}
+						VuFind.showMessage(data.title, data.modalBody, data.success, data.success); // autoclose when successful
 					}).fail(function(){
 						VuFind.ajaxFail()
 					})

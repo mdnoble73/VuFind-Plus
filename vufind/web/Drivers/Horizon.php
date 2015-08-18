@@ -743,7 +743,7 @@ abstract class Horizon extends ScreenScrapingDriver{
 			// update Pika user data & clear cache of patron profile
 			$user->update();
 //			UserAccount::updateSession($user); //TODO if this is required it must be determined that the user being updated is the same as the session holding user.
-			$user->deletePatronProfileCache();
+			$user->clearCache();
 
 		} else $updateErrors[] = 'You do not have permission to update profile information.';
 		return $updateErrors;
@@ -865,19 +865,6 @@ abstract class Horizon extends ScreenScrapingDriver{
 			);
 		}
 		return $result;
-	}
-
-	// This function is duplicated in the User Object as deletePatronProfileCache()
-	// That function should be preferred over this now. plb 8-5-2015
-	/**
-	 * @param null|User $patron
-	 */
-	public function clearPatronProfile($patron = null) {
-		if (is_null($patron)) {
-			global $user;
-			$patron = $user;
-		}
-		$patron->deletePatronProfileCache();
 	}
 
 	abstract function translateCollection($collection);

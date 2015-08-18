@@ -423,7 +423,7 @@ class User extends DB_DataObject
 	function update(){
 		$result = parent::update();
 		$this->saveRoles();
-		$this->deletePatronProfileCache(); // Every update to object requires clearing the Memcached version of the object
+		$this->clearCache(); // Every update to object requires clearing the Memcached version of the object
 		return $result;
 	}
 
@@ -436,7 +436,7 @@ class User extends DB_DataObject
 
 		parent::insert();
 		$this->saveRoles();
-		$this->deletePatronProfileCache();
+		$this->clearCache();
 	}
 
 	function hasRole($roleName){
@@ -540,17 +540,17 @@ class User extends DB_DataObject
 		}
 
 		$this->noPromptForUserReviews = (isset($_POST['noPromptForUserReviews']) && $_POST['noPromptForUserReviews'] == 'on')? 1 : 0;
+		$this->clearCache();
 		return $this->update();
 	}
 
 	/**
 	 * Clear out the cached version of the patron profile.
 	 */
-	function deletePatronProfileCache(){
+	function clearCache(){
 		/** @var Memcache $memCache */
 		global $memCache, $serverName;
 		$memCache->delete("user_{$serverName}_" . $this->id); // now stored by User object id column
-//		$memCache->delete("patronProfile_{$serverName}_" . $this->username);
 	}
 
 	/**
@@ -796,8 +796,7 @@ class User extends DB_DataObject
 	function placeHold($recordId, $pickupBranch) {
 		$result = $this->getCatalogDriver()->placeHold($this, $recordId, $pickupBranch);
 		if ($result['success']){
-			$this->numHoldsIls++;
-			$this->numHoldsRequestedIls++;
+			$this->clearCache();
 		}
 		return $result;
 	}
@@ -817,8 +816,7 @@ class User extends DB_DataObject
 	function placeItemHold($recordId, $itemId, $pickupBranch) {
 		$result = $this->getCatalogDriver()->placeItemHold($this, $recordId, $itemId, $pickupBranch);
 		if ($result['success']){
-			$this->numHoldsIls++;
-			$this->numHoldsRequestedIls++;
+			$this->clearCache();
 		}
 		return $result;
 	}
@@ -855,19 +853,27 @@ class User extends DB_DataObject
 	 * @return array            Information about the result of the cancellation process
 	 */
 	function cancelHold($recordId, $cancelId){
-		return $this->getCatalogDriver()->cancelHold($this, $recordId, $cancelId);
+		$result = $this->getCatalogDriver()->cancelHold($this, $recordId, $cancelId);
+		$this->clearCache();
+		return $result;
 	}
 
 	function freezeHold($recordId, $holdId, $reactivationDate){
-		return $this->getCatalogDriver()->freezeHold($this, $recordId, $holdId, $reactivationDate);
+		$result = $this->getCatalogDriver()->freezeHold($this, $recordId, $holdId, $reactivationDate);
+		$this->clearCache();
+		return $result;
 	}
 
 	function thawHold($recordId, $holdId){
-		return $this->getCatalogDriver()->thawHold($this, $recordId, $holdId);
+		$result = $this->getCatalogDriver()->thawHold($this, $recordId, $holdId);
+		$this->clearCache();
+		return $result;
 	}
 
 	function renewItem($recordId, $itemId, $itemIndex){
-		return $this->getCatalogDriver()->renewItem($this, $recordId, $itemId, $itemIndex);
+		$result = $this->getCatalogDriver()->renewItem($this, $recordId, $itemId, $itemIndex);
+		$this->clearCache();
+		return $result;
 	}
 
 	function renewAll($renewLinkedUsers = false){
@@ -893,6 +899,7 @@ class User extends DB_DataObject
 				}
 			}
 		}
+		$this->clearCache();
 		return $renewAllResults;
 	}
 
@@ -901,7 +908,9 @@ class User extends DB_DataObject
 	}
 
 	public function doReadingHistoryAction($readingHistoryAction, $selectedTitles){
-		$this->getCatalogDriver()->doReadingHistoryAction($this, $readingHistoryAction, $selectedTitles);
+		$result = $this->getCatalogDriver()->doReadingHistoryAction($this, $readingHistoryAction, $selectedTitles);
+		$this->clearCache();
+		return $result;
 	}
 
 	/**
@@ -923,7 +932,9 @@ class User extends DB_DataObject
 	}
 
 	public function updatePatronInfo($canUpdateContactInfo){
-		return $this->getCatalogDriver()->updatePatronInfo($this, $canUpdateContactInfo);
+		$result = $this->getCatalogDriver()->updatePatronInfo($this, $canUpdateContactInfo);
+		$this->clearCache();
+		return $result;
 	}
 
 	public function updatePin(){
@@ -948,6 +959,8 @@ class User extends DB_DataObject
 		if ($newPin != $confirmNewPin){
 			return "New PINs do not match. Please try again.";
 		}
-		return $this->getCatalogDriver()->updatePin($this, $oldpin, $newPin, $confirmNewPin);
+		$result = $this->getCatalogDriver()->updatePin($this, $oldpin, $newPin, $confirmNewPin);
+		$this->clearCache();
+		return $result;
 	}
 }

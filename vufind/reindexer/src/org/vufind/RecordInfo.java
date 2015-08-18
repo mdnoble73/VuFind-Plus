@@ -89,11 +89,11 @@ public class RecordInfo {
 			recordDetails = this.getFullIdentifier() + "|" +
 					getPrimaryFormat() + "|" +
 					getPrimaryFormatCategory() + "|" +
-					(edition == null ? "" : edition) + "|" +
-					primaryLanguage + "|" +
-					publisher + "|" +
-					publicationDate + "|" +
-					physicalDescription
+					Util.getCleanDetailValue(edition) + "|" +
+					Util.getCleanDetailValue(primaryLanguage) + "|" +
+					Util.getCleanDetailValue(publisher) + "|" +
+					Util.getCleanDetailValue(publicationDate) + "|" +
+					Util.getCleanDetailValue(physicalDescription)
 					;
 		}
 		return recordDetails;

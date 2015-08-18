@@ -426,7 +426,6 @@ abstract class HorizonAPI extends Horizon{
 					}
 				}
 				//Clear the patron profile
-				$this->clearPatronProfile();
 				return $hold_result;
 
 			}
@@ -530,7 +529,6 @@ abstract class HorizonAPI extends Horizon{
 				global $analytics;
 				if ($cancelHoldResponse){
 					//Clear the patron profile
-					$this->clearPatronProfile();
 					$analytics->addEvent('ILS Integration', 'Hold Cancelled', $title);
 				}else{
 					$allCancelsSucceed = false;
@@ -566,7 +564,6 @@ abstract class HorizonAPI extends Horizon{
 					global $analytics;
 					if ($changePickupLocationResponse){
 						//Clear the patron profile
-						$this->clearPatronProfile();
 						$analytics->addEvent('ILS Integration', 'Hold Suspended', $titles);
 					}else{
 						$allLocationChangesSucceed = false;
@@ -601,7 +598,6 @@ abstract class HorizonAPI extends Horizon{
 						global $analytics;
 						if ($changePickupLocationResponse){
 							//Clear the patron profile
-							$this->clearPatronProfile();
 							$analytics->addEvent('ILS Integration', 'Hold Suspended', $titles);
 						}else{
 							$allLocationChangesSucceed = false;
@@ -634,7 +630,6 @@ abstract class HorizonAPI extends Horizon{
 						global $analytics;
 						if ($changePickupLocationResponse){
 							//Clear the patron profile
-							$this->clearPatronProfile();
 							$analytics->addEvent('ILS Integration', 'Hold Suspended', $titles);
 						}else{
 							$allUnsuspendsSucceed = false;
@@ -783,7 +778,6 @@ abstract class HorizonAPI extends Horizon{
 			$success = true;
 			$message = 'Your item was successfully renewed.  The title is now due on ' . $renewItemResponse->dueDate;
 			//Clear the patron profile
-			$this->clearPatronProfile();
 			if ($analytics){
 				$analytics->addEvent('ILS Integration', 'Renew Successful');
 			}
