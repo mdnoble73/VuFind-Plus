@@ -121,7 +121,4 @@ do
 			mail -s "Continuous Extract and Reindexing - ${PIKASERVER}" $EMAIL < ${OUTPUT_FILE}
 	fi
 
-	#MDN 3-6-2015 
-	#Wait at 2 minutes between runs to make sure we don't run too often. 
-	sleep 120
 done
