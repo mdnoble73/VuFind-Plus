@@ -211,7 +211,7 @@ class MyAccount_CheckedOut extends MyAccount{
 
 			if ($showRenewed){
 				if (isset($row['dueDate'])) {
-					$activeSheet->setCellValueByColumnAndRow($curCol++, $a, $row['renewCount']);
+					$activeSheet->setCellValueByColumnAndRow($curCol++, $a, isset($row['renewCount']) ? $row['renewCount'] : '');
 				}else{
 					$activeSheet->setCellValueByColumnAndRow($curCol++, $a, '');
 				}
