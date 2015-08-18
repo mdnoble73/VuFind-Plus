@@ -4,17 +4,18 @@
 		{* Cover column *}
 		<div class="col-xs-12 col-sm-3">
 			<div class="row">
+				{*
 				<div class="selectTitle col-xs-2">
 					{if $record.cancelable}
 						{if $section == 'available'}
-							{* TODO: Determine is difference between availableholdselected & waitingholdselected is necessary *}
 							<input type="checkbox" name="availableholdselected[]" value="{$record.cancelId}" id="selected{$record.cancelId|escape:"url"}" class="titleSelect{$sectionKey} titleSelect"/>&nbsp;
 						{else}
 							<input type="checkbox" name="waitingholdselected[]" value="{$record.cancelId}" id="selected{$record.cancelId|escape:"url"}" class="titleSelect{$sectionKey} titleSelect"/>&nbsp;
 						{/if}
 					{/if}
 				</div>
-				<div class="col-xs-9 text-center">
+				*}
+				<div class="col-xs-12 text-center">
 					{if $record.recordId}
 						<a href="{$record.link}">
 					{/if}
