@@ -318,6 +318,7 @@ class CatalogConnection
 			$user->numCheckedOutOverDrive = $overDriveSummary['numCheckedOut'];
 			$user->numHoldsAvailableOverDrive = $overDriveSummary['numAvailableHolds'];
 			$user->numHoldsRequestedOverDrive = $overDriveSummary['numUnavailableHolds'];
+			$user->numHoldsOverDrive = $overDriveSummary['numAvailableHolds'] + $overDriveSummary['numUnavailableHolds'];
 			$user->canUseOverDrive = true;
 		}else{
 			$user->numCheckedOutOverDrive = 0;

@@ -2,10 +2,12 @@
 	<div class="row">
 		<div class="col-md-3">
 			<div class="row">
+				{*
 				<div class="selectTitle col-md-2">
 					<input type="checkbox" name="econtentHoldSelected[{$record.id}]" value="{$record.recordId}" id="selected{$record.id|escape:"url"}" class="titleSelect{$sectionKey} titleSelect"/>&nbsp;
 				</div>
-				<div class="col-md-9 text-center">
+				*}
+				<div class="col-xs-12 text-center">
 					{if $record.recordId}
 					<a href="{$record.recordUrl|escape:"url"}">
 						{/if}
