@@ -650,6 +650,19 @@ class User extends DB_DataObject
 		return $myBookings;
 	}
 
+	public function getTotalFines($includeLinkedUsers = true){
+		$totalFines = $this->finesVal;
+		if ($includeLinkedUsers){
+			if ($this->getLinkedUsers() != null) {
+				/** @var User $user */
+				foreach ($this->linkedUsers as $user) {
+					$totalFines += $user->getTotalFines(false);
+				}
+			}
+		}
+		return $totalFines;
+	}
+
 	/**
 	 * Return all titles that are currently checked out by the user.
 	 *
