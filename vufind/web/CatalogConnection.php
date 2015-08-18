@@ -318,6 +318,7 @@ class CatalogConnection
 			$user->numCheckedOutOverDrive = $overDriveSummary['numCheckedOut'];
 			$user->numHoldsAvailableOverDrive = $overDriveSummary['numAvailableHolds'];
 			$user->numHoldsRequestedOverDrive = $overDriveSummary['numUnavailableHolds'];
+			$user->numHoldsOverDrive = $overDriveSummary['numAvailableHolds'] + $overDriveSummary['numUnavailableHolds'];
 			$user->canUseOverDrive = true;
 		}else{
 			$user->numCheckedOutOverDrive = 0;
@@ -496,9 +497,43 @@ class CatalogConnection
 		}else{
 			//Don't know enough to load internally, check the ILS.
 			$result = $this->driver->getReadingHistory($patron, $page, $recordsPerPage, $sortOption);
-			//We have now read the initial reading history from the ILS
-			$patron->initialReadingHistoryLoaded = true;
-			$patron->update();
+
+			//Do not try to mark that the initial load has been done since we only load a subset of the reading history above.
+
+			//Sort the records
+			$count = 0;
+			foreach ($result['titles'] as $key => $historyEntry){
+				$count++;
+				if (!isset($historyEntry['title_sort'])){
+					$historyEntry['title_sort'] = preg_replace('/[^a-z\s]/', '', strtolower($historyEntry['title']));
+				}
+				if ($sortOption == "title"){
+					$titleKey = $historyEntry['title_sort'];
+				}elseif ($sortOption == "author"){
+					$titleKey = $historyEntry['author'] . "_" . $historyEntry['title_sort'];
+				}elseif ($sortOption == "checkedOut" || $sortOption == "returned"){
+					$checkoutTime = DateTime::createFromFormat('m-d-Y', $historyEntry['checkout']) ;
+					if ($checkoutTime){
+						$titleKey = $checkoutTime->getTimestamp() . "_" . $historyEntry['title_sort'];
+					}else{
+						//print_r($historyEntry);
+						$titleKey = $historyEntry['title_sort'];
+					}
+				}elseif ($sortOption == "format"){
+					$titleKey = $historyEntry['format'] . "_" . $historyEntry['title_sort'];
+				}else{
+					$titleKey = $historyEntry['title_sort'];
+				}
+				$titleKey .= '_' . ($count);
+				$result['titles'][$titleKey] = $historyEntry;
+				unset($result['titles'][$key]);
+			}
+			if ($sortOption == "checkedOut" || $sortOption == "returned"){
+				krsort($result['titles']);
+			}else{
+				ksort($result['titles']);
+			}
+
 			return $result;
 		}
 	}

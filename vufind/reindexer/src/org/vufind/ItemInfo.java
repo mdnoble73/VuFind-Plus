@@ -175,25 +175,21 @@ public class ItemInfo {
 		if (baseDetails == null){
 			//Cache the part that doesn't change depending on the scope
 			baseDetails = new StringBuilder().append(recordInfo.getFullIdentifier()).append("|")
-					.append(getCleanDetailValue(itemIdentifier)).append("|")
-					.append(getCleanDetailValue(shelfLocation)).append("|")
-					.append(getCleanDetailValue(callNumber)).append("|")
-					.append(getCleanDetailValue(format)).append("|")
-					.append(getCleanDetailValue(formatCategory)).append("|")
+					.append(Util.getCleanDetailValue(itemIdentifier)).append("|")
+					.append(Util.getCleanDetailValue(shelfLocation)).append("|")
+					.append(Util.getCleanDetailValue(callNumber)).append("|")
+					.append(Util.getCleanDetailValue(format)).append("|")
+					.append(Util.getCleanDetailValue(formatCategory)).append("|")
 					.append(numCopies).append("|")
 					.append(isOrderItem).append("|")
 					.append(isEContent).append("|")
-					.append(getCleanDetailValue(eContentSource)).append("|")
-					.append(getCleanDetailValue(eContentFilename)).append("|")
-					.append(getCleanDetailValue(eContentUrl)).append("|")
-					.append(getCleanDetailValue(subFormat)).append("|")
+					.append(Util.getCleanDetailValue(eContentSource)).append("|")
+					.append(Util.getCleanDetailValue(eContentFilename)).append("|")
+					.append(Util.getCleanDetailValue(eContentUrl)).append("|")
+					.append(Util.getCleanDetailValue(subFormat)).append("|")
 					.toString();
 		}
 		return baseDetails;
-	}
-
-	private String getCleanDetailValue(String value) {
-		return value == null ? "" : value;
 	}
 
 	public Date getDateAdded() {

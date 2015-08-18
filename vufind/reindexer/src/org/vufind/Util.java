@@ -421,4 +421,9 @@ public class Util {
 
 		return result.trim();
 	}
+
+	public static String getCleanDetailValue(String value) {
+		return value == null ? "" : value;
+	}
+
 }

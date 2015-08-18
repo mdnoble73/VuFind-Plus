@@ -1079,31 +1079,25 @@ public function getBookingCalendar($recordId) {
 
 		// Update Patron Information on success
 			global $analytics;
-		if (isset($sresult) && strpos($sresult, 'Patron information updated') !== false){
-			$user->phone = $_REQUEST['phone'];
-			$user->email = $_REQUEST['email'];
-			$user->update();
+			if (isset($sresult) && strpos($sresult, 'Patron information updated') !== false){
+				$user->phone = $_REQUEST['phone'];
+				$user->email = $_REQUEST['email'];
+				$user->update();
 
-			if ($analytics){
-				$analytics->addEvent('ILS Integration', 'Profile updated successfully');
+				if ($analytics){
+					$analytics->addEvent('ILS Integration', 'Profile updated successfully');
+				}
+			}else{
+				// Doesn't look like the millennium (actually sierra) server ever provides error messages. plb 4-29-2015
+				$errorMsg = 'There were errors updating your information.'; // generic error message
+				$updateErrors[] = $errorMsg;
+				if ($analytics){
+					$analytics->addEvent('ILS Integration', 'Profile update failed');
+				}
 			}
-		}else{
-			// Doesn't look like the millennium (actually sierra) server ever provides error messages. plb 4-29-2015
-			$errorMsg = 'There were errors updating your information.'; // generic error message
-			$updateErrors[] = $errorMsg;
-			if ($analytics){
-				$analytics->addEvent('ILS Integration', 'Profile update failed');
-			}
+		} else {
+			$updateErrors[] = 'You can not update your information.';
 		}
-
-		//Make sure to clear any cached data
-		/** @var Memcache $memCache */
-		global $memCache;
-		$memCache->delete("patron_dump_$barcode");
-			$user->deletePatronProfileCache();
-//		$this->clearPatronProfile();
-
-		} else $updateErrors[] = 'You can not update your information.';
 		return $updateErrors;
 	}
 
@@ -1885,22 +1879,6 @@ public function getBookingCalendar($recordId) {
 				return $modValue;
 			}
 		}
-	}
-
-	// This function is duplicated in the User Object as deletePatronProfileCache()
-	// That function should be preferred over this now. plb 8-5-2015
-	/**
-	 * @param null|User $patron
-	 */
-	public function clearPatronProfile($patron = null) {
-		if (is_null($patron)) {
-			global $user;
-			$patron = $user;
-		}
-		$patron->deletePatronProfileCache();
-//		/** @var Memcache $memCache */
-//		global $memCache, $serverName;
-//		$memCache->delete("patronProfile_{$serverName}_{$patron->username}");
 	}
 
 	public function getSelfRegistrationFields(){
