@@ -13,6 +13,8 @@
 					</select>
 				</div>
 			</div>
+		{else}
+			<input type="hidden" name="patronId" id="patronId" value="{$patronId}">
 		{/if}
 
 		{if $promptForEmail}
