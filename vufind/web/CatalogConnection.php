@@ -245,13 +245,14 @@ class CatalogConnection
 	 *
 	 * This is responsible for authenticating a patron against the catalog.
 	 *
-	 * @param string $username The patron username
-	 * @param string $password The patron password
+	 * @param string $username        The patron username
+	 * @param string $password        The patron password
+	 * @param User   $parentAccount   A parent account that we are linking from if any
 	 *
 	 * @return User|null     User object or null if the user cannot be logged in
 	 * @access public
 	 */
-	public function patronLogin($username, $password) {
+	public function patronLogin($username, $password, $parentAccount) {
 		global $timer;
 		global $configArray;
 
@@ -298,12 +299,16 @@ class CatalogConnection
 		}
 
 		if ($user){
+			$user->setParentUser($parentAccount);
 			$this->updateUserWithAdditionalRuntimeInformation($user);
 		}
 
 		return $user;
 	}
 
+	/**
+	 * @param User $user
+	 */
 	public function updateUserWithAdditionalRuntimeInformation($user){
 		//If we have loaded information from the ILS, get additional information that is not ILS specific
 		require_once(ROOT_DIR . '/Drivers/EContentDriver.php');
@@ -313,7 +318,7 @@ class CatalogConnection
 		//TODO: Optimize by checking if the patron home library has OverDrive active.
 		require_once(ROOT_DIR . '/Drivers/OverDriveDriverFactory.php');
 		$overDriveDriver = OverDriveDriverFactory::getDriver();
-		if ($overDriveDriver->isUserValidForOverDrive($user)){
+		if ($user->isValidForOverDrive() && $overDriveDriver->isUserValidForOverDrive($user)){
 			$overDriveSummary = $overDriveDriver->getOverDriveSummary($user);
 			$user->numCheckedOutOverDrive = $overDriveSummary['numCheckedOut'];
 			$user->numHoldsAvailableOverDrive = $overDriveSummary['numAvailableHolds'];
