@@ -43,7 +43,7 @@ class UserAccount {
 
 			/** @var User $userData */
 			$userData = $memCache->get("user_{$serverName}_{$activeUserId}");
-			if ($userData === false){
+			if ($userData === false || isset($_REQUEST['reload'])){
 				//Load the user from the database
 				$userData = new User();
 				$userData->id = $activeUserId;
