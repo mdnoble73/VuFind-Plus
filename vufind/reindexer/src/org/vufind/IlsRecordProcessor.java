@@ -254,6 +254,9 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 				allRelatedRecords.add(recordInfo);
 			}
 
+			//Sing print formats are loaded at the record level, do it after we have loaded items
+			loadPrintFormatInformation(recordInfo, record);
+
 			//Now look for any eContent that is defined within the ils
 			List<RecordInfo> econtentRecords = loadUnsuppressedEContentItems(groupedWork, identifier, record);
 			allRelatedRecords.addAll(econtentRecords);
@@ -352,7 +355,8 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		itemInfo.setIsOrderItem(true);
 		itemInfo.setCallNumber("ON ORDER");
 		itemInfo.setSortableCallNumber("ON ORDER");
-		//TODO: Format and Format Category
+		//Format and Format Category should be set at the record level, so we don't need to set them here.
+
 
 		//Shelf Location also include the name of the ordering branch if possible
 		boolean hasLocationBasedShelfLocation = false;
@@ -645,8 +649,6 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		itemInfo.setItemIdentifier(getItemSubfieldData(itemRecordNumberSubfieldIndicator, itemField));
 
 		itemInfo.setCollection(translateValue("collection", getItemSubfieldData(collectionSubfield, itemField)));
-
-		loadPrintFormatInformation(recordInfo, record);
 
 		//Determine Availability
 		boolean available = isItemAvailable(itemInfo);
