@@ -1821,7 +1821,6 @@ class Aspencat implements DriverInterface{
 						//Check the result of the update
 					}
 					if ($allLocationChangesSucceed){
-						$this->clearPatronProfile($patron);
 						return array(
 							'title' => $title,
 							'success' => true,
@@ -1845,7 +1844,6 @@ class Aspencat implements DriverInterface{
 						$catalogUrl = $configArray['Catalog']['url'];
 						$updateUrl = "$catalogUrl/cgi-bin/koha/opac-modrequest.pl";
 						$this->postToKohaPage($updateUrl, $postParams);
-						$this->clearPatronProfile($patron);
 					}
 					if ($allUnsuspendsSucceed){
 						return array(
@@ -1898,7 +1896,6 @@ class Aspencat implements DriverInterface{
 				$success = true;
 				$message = 'Your item was successfully renewed.';
 				//Clear the patron profile
-				$this->clearPatronProfile($patron);
 				if ($analytics){
 					$analytics->addEvent('ILS Integration', 'Renew Successful');
 				}
@@ -2018,16 +2015,7 @@ class Aspencat implements DriverInterface{
 					$analytics->addEvent('ILS Integration', 'Opt in to Reading History');
 				}
 			}
-			$this->clearPatronProfile($patron);
 		}
-	}
-
-	public function clearPatronProfile($patron = null) {
-		if (is_null($patron)) {
-			global $user;
-			$patron = $user;
-		}
-		$patron->deletePatronProfileCache();
 	}
 
 	private $holdsByBib = array();

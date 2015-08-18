@@ -720,7 +720,7 @@ class OverDriveDriver3 {
 			if (isset($response->message)) $holdResult['message'] .= "  {$response->message}";
 			if ($analytics) $analytics->addEvent('OverDrive', 'Place Hold', 'failed');
 		}
-		$this->clearPatronProfile();
+		$user->clearCache();
 		$memCache->delete('overdrive_summary_' . $user->id);
 
 		return $holdResult;
@@ -760,7 +760,7 @@ class OverDriveDriver3 {
 			if ($analytics) $analytics->addEvent('OverDrive', 'Cancel Hold', 'failed');
 		}
 		$memCache->delete('overdrive_summary_' . $user->id);
-		$this->clearPatronProfile();
+		$user->clearCache();
 		return $cancelHoldResult;
 	}
 
@@ -810,7 +810,7 @@ class OverDriveDriver3 {
 		}
 
 		$memCache->delete('overdrive_summary_' . $user->id);
-		$this->clearPatronProfile();
+		$user->clearCache();
 		return $result;
 	}
 
@@ -852,7 +852,7 @@ class OverDriveDriver3 {
 		}
 
 		$memCache->delete('overdrive_summary_' . $user->id);
-		$this->clearPatronProfile();
+		$user->clearCache();
 		return $cancelHoldResult;
 	}
 
@@ -1123,10 +1123,4 @@ class OverDriveDriver3 {
 		return $statusSummary;
 	}
 
-	public function clearPatronProfile() {
-		/** @var Memcache $memCache */
-		global $memCache, $user, $serverName;
-		$memCache->delete("patronProfile_{$serverName}_{$user->username}");
-		// TODO: test the functionality of this change
-	}
 }

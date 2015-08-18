@@ -268,7 +268,6 @@ class MillenniumHolds{
 
 		//Clear holds for the patron
 		unset($this->holds[$patron->username]);
-		$this->driver->clearPatronProfile();
 
 		// Return Results
 		$plural = count($xNum) > 1;
@@ -705,8 +704,6 @@ class MillenniumHolds{
 					$analytics->addEvent('ILS Integration', 'Failed Hold', $hold_result['message'] . ' - ' . $title);
 				}
 			}
-			//Clear the patron profile
-			$this->driver->clearPatronProfile();
 			return $hold_result;
 		}
 	}
