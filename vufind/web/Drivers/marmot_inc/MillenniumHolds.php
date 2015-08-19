@@ -452,6 +452,8 @@ class MillenniumHolds{
 
 							}elseif (preg_match('/READY\sFOR\sPICKUP/i', $status, $matches)){
 								$curHold['status'] = 'Ready';
+							}elseif (preg_match('/\d+\sof\s\d+\sholds/i', $status, $matches)){
+								$curHold['status'] = $status;
 							}else{
 								#PK-778 - Don't attempt to show status for anything other than ready for pickup since Millennium/Sierra statuses are confusing
 								$curHold['status'] = 'Pending';
