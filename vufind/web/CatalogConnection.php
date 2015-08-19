@@ -252,7 +252,7 @@ class CatalogConnection
 	 * @return User|null     User object or null if the user cannot be logged in
 	 * @access public
 	 */
-	public function patronLogin($username, $password, $parentAccount) {
+	public function patronLogin($username, $password, $parentAccount = null) {
 		global $timer;
 		global $configArray;
 
@@ -299,7 +299,7 @@ class CatalogConnection
 		}
 
 		if ($user){
-			$user->setParentUser($parentAccount);
+			if ($parentAccount) $user->setParentUser($parentAccount); // only set when the parent account is passed.
 			$this->updateUserWithAdditionalRuntimeInformation($user);
 		}
 
