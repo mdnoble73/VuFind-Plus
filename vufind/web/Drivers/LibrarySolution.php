@@ -603,7 +603,7 @@ class LibrarySolution extends ScreenScrapingDriver {
 			$user->zip = $accountSummary->patron->zipcode;
 
 			$user->fines = $accountSummary->patron->fees / 100;
-			$user->finesVal = floatval(preg_replace('/[^\\d.]/', '', $user->fines / 100));
+			$user->finesVal = floatval(preg_replace('/[^\\d.]/', '', $user->fines));
 
 			$user->numCheckedOutIls = $accountSummary->accountSummary->loanCount;
 			$user->numHoldsAvailableIls = $accountSummary->accountSummary->arrivedHolds;

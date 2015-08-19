@@ -135,10 +135,11 @@ class UserAccount {
 	 * @param $username       string
 	 * @param $password       string
 	 * @param $accountSource  string The source of the user account if known or null to test all sources
+	 * @param $parentAccount  User   The parent user if any
 	 *
 	 * @return User|false
 	 */
-	public static function validateAccount($username, $password, $accountSource = null){
+	public static function validateAccount($username, $password, $accountSource = null, $parentAccount = null){
 		// Perform authentication:
 		//Test all valid authentication methods and see which (if any) result in a valid login.
 		$driversToTest = self::loadAccountProfiles();
@@ -146,7 +147,7 @@ class UserAccount {
 		foreach ($driversToTest as $driverName => $additionalInfo){
 			if ($accountSource == null || $accountSource == $additionalInfo['accountProfile']->name) {
 				$authN = AuthenticationFactory::initAuthentication($additionalInfo['authenticationMethod'], $additionalInfo);
-				$validatedUser = $authN->validateAccount($username, $password);
+				$validatedUser = $authN->validateAccount($username, $password, $parentAccount);
 				if ($validatedUser && !PEAR_Singleton::isError($validatedUser)) {
 					/** @var Memcache $memCache */
 					global $memCache;

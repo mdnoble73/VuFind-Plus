@@ -37,6 +37,10 @@ class User extends DB_DataObject
 	public $preferredLibraryInterface;
 	public $noPromptForUserReviews; //tinyint(1)
 	private $roles;
+
+	/** @var User $parentUser */
+	private $parentUser;
+	/** @var User[] $linkedUsers */
 	private $linkedUsers;
 	private $viewers;
 
@@ -279,7 +283,7 @@ class User extends DB_DataObject
 						$linkedUser->id = $userLink->linkedAccountId;
 						if ($linkedUser->find(true)){
 							//Load full information from the catalog
-							$linkedUser = UserAccount::validateAccount($linkedUser->cat_username, $linkedUser->cat_password, $linkedUser->source);
+							$linkedUser = UserAccount::validateAccount($linkedUser->cat_username, $linkedUser->cat_password, $linkedUser->source, $this);
 							if ($linkedUser && !PEAR_Singleton::isError($linkedUser)) {
 								$this->linkedUsers[] = clone($linkedUser);
 							}
@@ -289,6 +293,10 @@ class User extends DB_DataObject
 			}
 		}
 		return $this->linkedUsers;
+	}
+
+	public function setParentUser($user){
+		$this->parentUser =  $user;
 	}
 
 	// Account Blocks //
@@ -324,13 +332,11 @@ class User extends DB_DataObject
 
 	function getRelatedOverDriveUsers(){
 		$overDriveUsers = array();
-		$userHomeLibrary = Library::getPatronHomeLibrary($this);
-		if ($userHomeLibrary->enableOverdriveCollection){
+		if ($this->isValidForOverDrive()){
 			$overDriveUsers[$this->cat_username . ':' . $this->cat_password] = $this;
 		}
 		foreach ($this->getLinkedUsers() as $linkedUser){
-			$userHomeLibrary = Library::getPatronHomeLibrary($linkedUser);
-			if ($userHomeLibrary->enableOverdriveCollection){
+			if ($linkedUser->isValidForOverDrive()){
 				if (array_key_exists($linkedUser->cat_username . ':' . $linkedUser->cat_password, $overDriveUsers)){
 					$overDriveUsers[$linkedUser->cat_username . ':' . $linkedUser->cat_password] = $linkedUser;
 				}
@@ -338,6 +344,16 @@ class User extends DB_DataObject
 		}
 
 		return $overDriveUsers;
+	}
+
+	function isValidForOverDrive(){
+		if (!$this->parentUser || ($this->getBarcode() != $this->parentUser->getBarcode())){
+			$userHomeLibrary = Library::getPatronHomeLibrary($this);
+			if ($userHomeLibrary->enableOverdriveCollection){
+				return true;
+			}
+		}
+		return false;
 	}
 
 	/**
@@ -634,6 +650,19 @@ class User extends DB_DataObject
 		return $myBookings;
 	}
 
+	public function getTotalFines($includeLinkedUsers = true){
+		$totalFines = $this->finesVal;
+		if ($includeLinkedUsers){
+			if ($this->getLinkedUsers() != null) {
+				/** @var User $user */
+				foreach ($this->linkedUsers as $user) {
+					$totalFines += $user->getTotalFines(false);
+				}
+			}
+		}
+		return $totalFines;
+	}
+
 	/**
 	 * Return all titles that are currently checked out by the user.
 	 *
@@ -654,9 +683,14 @@ class User extends DB_DataObject
 		$timer->logTime("Loaded transactions from catalog.");
 
 		//Get checked out titles from OverDrive
-		require_once ROOT_DIR . '/Drivers/OverDriveDriverFactory.php';
-		$overDriveDriver = OverDriveDriverFactory::getDriver();
-		$overDriveCheckedOutItems = $overDriveDriver->getOverDriveCheckedOutItems($this);
+		//Do not load OverDrive titles if the parent barcode (if any) is the same as the current barcode
+		if ($this->isValidForOverDrive()){
+			require_once ROOT_DIR . '/Drivers/OverDriveDriverFactory.php';
+			$overDriveDriver = OverDriveDriverFactory::getDriver();
+			$overDriveCheckedOutItems = $overDriveDriver->getOverDriveCheckedOutItems($this);
+		}else{
+			$overDriveCheckedOutItems = array();
+		}
 
 		if ($configArray['EContent']['hasProtectedEContent']){
 			//Get a list of eContent that has been checked out
@@ -688,9 +722,13 @@ class User extends DB_DataObject
 		}
 
 		//Get holds from OverDrive
-		require_once ROOT_DIR . '/Drivers/OverDriveDriverFactory.php';
-		$overDriveDriver = OverDriveDriverFactory::getDriver();
-		$overDriveHolds = $overDriveDriver->getOverDriveHolds($this);
+		if ($this->isValidForOverDrive()){
+			require_once ROOT_DIR . '/Drivers/OverDriveDriverFactory.php';
+			$overDriveDriver = OverDriveDriverFactory::getDriver();
+			$overDriveHolds = $overDriveDriver->getOverDriveHolds($this);
+		}else{
+			$overDriveHolds = array();
+		}
 
 		global $configArray;
 		if ($configArray['EContent']['hasProtectedEContent']) {

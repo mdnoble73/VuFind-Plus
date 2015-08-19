@@ -23,16 +23,16 @@
 				</a>
 				<div id="myAccountPanel" class="panel-collapse collapse {if $curSection}in{/if}">
 					<div class="panel-body">
-						{if $profile->finesval > 0 || ($showExpirationWarnings && $profile->expireclose)}
+						{if $profile->getTotalFines() > 0 || ($showExpirationWarnings && $profile->expireclose)}
 							<div id="myAccountFines">
-								{if $profile->finesval > 0}
-									{if $showEcommerceLink && $profile->finesval > $minimumFineAmount}
+								{if $profile->getTotalFines() > 0}
+									{if $showEcommerceLink && $profile->getTotalFines() > $minimumFineAmount}
 										<div class="myAccountLink" style="color:red; font-weight:bold;">
-											Your account has {$profile->fines} in fines.
+											Your account has ${$profile->getTotalFines()|number_format:2} in fines.
 										</div>
 										<div class="myAccountLink"><a href='{$ecommerceLink}' >{if $payFinesLinkText}{$payFinesLinkText}{else}Click to Pay Fines Online{/if}</a></div>
 									{else}
-										<div class="myAccountLink" title="Please Contact your local library to pay fines or Charges." style="color:red; font-weight:bold;" onclick="alert('Please Contact your local library to pay fines or Charges.')">Your account has {$profile->fines} in fines.</div>
+										<div class="myAccountLink" title="Please Contact your local library to pay fines or Charges." style="color:red; font-weight:bold;" onclick="alert('Please Contact your local library to pay fines or Charges.')">Your account has ${$profile->getTotalFines()|number_format:2} in fines.</div>
 									{/if}
 								{/if}
 
