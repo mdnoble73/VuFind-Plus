@@ -14,6 +14,10 @@ set testing false
 # TO DO
 # + Provide details on INNOPAC user privileges necessary
 
+# 20150818
+# + read config.pwd.ini isProduction
+# + if production, build update file in Millennium; else yank update files from Millennium OS
+
 # 20150724
 # + correct query and output fields that got renumbered following Millennium 2014 introduction of ITEMSTICKYS fixed length field (ITEM RECORD # and CREATED)
 
@@ -99,13 +103,13 @@ while {![eof $fd]} {
 	set line [string trim [gets $fd] " "]
         if {$line == ""} continue
 	switch -regexp -nocase -- $line {
-		"^\\[Catalog Extract\\]" {
+		"^\\[(Catalog Extract|Site)\\]" {
 			set section true
 		}
 		"^\\[" {
 			set section false
 		}
-		^(INNOPAC|os) {
+		^(INNOPAC|isProduction|os) {
 			if {$section == true} {
 				set pair [split $line =]
 				set variable [string trim [lindex $pair 0]]
@@ -121,8 +125,12 @@ close $fd
 
 puts $logFile "[clock format [clock seconds] -format "%y%m%d %H:%M:%S"] >> Read Config Files"
 
-# During testing, use an IF FALSE block to NOT run the INNOPAC commands - and thus save a couple minutes
-if {$testing == false} { 
+# During testing or running on a non-production server,
+# use an IF FALSE block to NOT run the INNOPAC commands
+# and thus save a couple minutes and login and review file 
+# and export resources
+
+if {$testing == false && $isProduction == "true"} {
 
 # INNOPAC : CONNECT
 spawn ssh $INNOPACuser@$host

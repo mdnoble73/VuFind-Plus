@@ -1,9 +1,18 @@
 #!/bin/bash
 # Mark Noble, Marmot Library Network
 # James Staub, Nashville Public Library
-# 20150218
 # Script executes continuous re-indexing.
-# Millennium 1.6_3
+# For Pika discovery partners using Millennium 2014 2.0.0_15
+
+# TO DO:
+#	+ until pika is in production, galacto is considered production
+#               and pika is considered test
+#	+ test to ensure non-production use of Millennium login/review file/export
+#		does not cause conflict with production use of those resources
+
+# 20150818 : changes in preparation for pika moving from dev to test
+        + eliminate checkProhibitedTimes; was not being used in continuous
+# 20150218 : version 1.0
 
 # CONFIGURATION
 # PLEASE SET CONFLICTING PROCESSES AND PROHIBITED TIMES IN FUNCTION CALLS IN SCRIPT MAIN DO LOOP
@@ -33,43 +42,8 @@ function checkConflictingProcesses() {
 	echo ${numInitialConflicts};
 }
 
-# Prohibited time ranges - for, e.g., ILS backup
-function checkProhibitedTimes() {
-	start=$(date --date=$1 +%s)
-	stop=$(date --date=$2 +%s)
-	NOW=$(date +%H:%M:%S)
-	NOW=$(date --date=$NOW +%s)
-
-	hasConflicts=0
-	if (( $start < $stop ))
-	then
-		if (( $NOW > $start && $NOW < $stop ))
-		then
-			#echo "Sleeping:" $(($stop - $NOW))
-			sleep $(($stop - $NOW))
-			hasConflicts = 1
-		fi
-	elif (( $start > $stop ))
-	then
-		if (( $NOW < $stop ))
-		then
-			sleep $(($stop - $NOW))
-			hasConflicts = 1
-		elif (( $NOW > $start ))
-		then
-			sleep $(($stop + 86400 - $NOW))
-			hasConflicts = 1
-		fi
-	fi
-	echo ${hasConflicts};
-}	
-
 while true 
 do
-
-	#####
-	# Check to make sure this is a good time to run.
-	#####
 
 	# Make sure we are not running a Full Record Group/Reindex process
 	hasConflicts=$(checkConflictingProcesses "full_update.sh")
@@ -77,7 +51,6 @@ do
 	if (($hasConflicts != 0)); then
 		continue
 	fi
-
 
 	#####
 	# Start of the actual indexing code
