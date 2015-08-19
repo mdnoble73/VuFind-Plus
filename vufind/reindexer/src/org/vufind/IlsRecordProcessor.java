@@ -331,6 +331,8 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 						copies = 1;
 					}
 					createAndAddOrderItem(recordInfo, curOrderField, curLocation, copies);
+					//For On Order Items, increment popularity based on number of copies that are being purchased.
+					groupedWork.addPopularity(copies);
 				}
 			}
 		}
