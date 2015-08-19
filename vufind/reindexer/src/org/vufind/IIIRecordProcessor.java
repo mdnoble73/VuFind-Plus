@@ -2,6 +2,7 @@ package org.vufind;
 
 import org.apache.log4j.Logger;
 import org.ini4j.Ini;
+import org.marc4j.marc.DataField;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -231,5 +232,35 @@ public abstract class IIIRecordProcessor extends IlsRecordProcessor{
 			}
 		}
 		return false;
+	}
+
+	protected String getDisplayGroupedStatus(ItemInfo itemInfo) {
+		String statusCode = itemInfo.getStatusCode();
+		if (statusCode.equals("-")){
+			//We need to override based on due date
+			String dueDate = itemInfo.getDueDate() == null ? "" : itemInfo.getDueDate();
+			if (dueDate.length() == 0 || dueDate.trim().equals("-  -")){
+				return "On Shelf";
+			}else{
+				return "Checked Out";
+			}
+		}else {
+			return translateValue("item_grouped_status", statusCode);
+		}
+	}
+
+	protected String getDisplayStatus(ItemInfo itemInfo) {
+		String statusCode = itemInfo.getStatusCode();
+		if (statusCode.equals("-")){
+			//We need to override based on due date
+			String dueDate = itemInfo.getDueDate() == null ? "" : itemInfo.getDueDate();
+			if (dueDate.length() == 0 || dueDate.trim().equals("-  -")){
+				return "On Shelf";
+			}else{
+				return "Checked Out";
+			}
+		}else {
+			return translateValue("item_status", statusCode);
+		}
 	}
 }

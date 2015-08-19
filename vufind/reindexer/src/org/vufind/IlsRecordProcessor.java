@@ -675,6 +675,9 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		boolean available = isItemAvailable(itemInfo);
 
 		//Determine which scopes have access to this record
+		String displayStatus = getDisplayStatus(itemInfo);
+		String groupedDisplayStatus = getDisplayGroupedStatus(itemInfo);
+
 		for (Scope curScope : indexer.getScopes()) {
 			//Check to see if the record is holdable for this scope
 			Boolean isHoldable = isItemHoldable(itemInfo, curScope);
@@ -684,8 +687,9 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 				scopingInfo.setAvailable(available);
 				scopingInfo.setHoldable(isHoldable);
 				scopingInfo.setBookable(isBookable);
-				scopingInfo.setStatus(translateValue("item_status", itemStatus));
-				scopingInfo.setGroupedStatus(translateValue("item_grouped_status", itemStatus));
+
+				scopingInfo.setStatus(displayStatus);
+				scopingInfo.setGroupedStatus(groupedDisplayStatus);
 				if (curScope.isLocationScope()) {
 					scopingInfo.setLocallyOwned(curScope.isItemOwnedByScope(profileType, itemLocation, itemSublocation));
 				}
@@ -697,6 +701,14 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 
 		recordInfo.addItem(itemInfo);
 		return itemInfo;
+	}
+
+	protected String getDisplayGroupedStatus(ItemInfo itemInfo) {
+		return translateValue("item_grouped_status", itemInfo.getStatusCode());
+	}
+
+	protected String getDisplayStatus(ItemInfo itemInfo) {
+		return translateValue("item_status", itemInfo.getStatusCode());
 	}
 
 	protected double getItemPopularity(DataField itemField) {
