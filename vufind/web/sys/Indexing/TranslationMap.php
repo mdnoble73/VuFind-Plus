@@ -15,6 +15,7 @@ class TranslationMap extends DB_DataObject{
 	public $id;
 	public $indexingProfileId;
 	public $name;
+	public $usesRegularExpressions;
 
 	function getObjectStructure(){
 		$indexingProfiles = array();
@@ -29,6 +30,7 @@ class TranslationMap extends DB_DataObject{
 			'id' => array('property'=>'id', 'type'=>'label', 'label'=>'Id', 'description'=>'The unique id within the database'),
 			'indexingProfileId' => array('property' => 'indexingProfileId', 'type' => 'enum', 'values' => $indexingProfiles, 'label' => 'Indexing Profile Id', 'description' => 'The Indexing Profile this map is associated with'),
 			'name' => array('property'=>'name', 'type'=>'text', 'label'=>'Name', 'description'=>'The name of the translation map', 'maxLength' => '50', 'required' => true),
+			'usesRegularExpressions' => array('property'=>'usesRegularExpressions', 'type'=>'checkbox', 'label'=>'Use Regular Expressions', 'description'=>'When on, values will be treated as regular expressions', 'hideInLists' => false, 'default'=>false),
 
 			'translationMapValues' => array(
 				'property' => 'translationMapValues',
