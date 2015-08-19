@@ -2177,6 +2177,14 @@ class DBMaintenance extends Admin_Admin {
 					)
 				),
 
+				'translation_map_regex' => array(
+					'title' => 'Translation Maps Regex',
+					'description' => 'Setup Translation Maps to use regular expressions',
+					'sql' => array(
+						"ALTER TABLE translation_maps ADD COLUMN `usesRegularExpressions` tinyint(1) DEFAULT 0",
+					)
+				),
+
 				'setup_default_indexing_profiles' => array(
 					'title' => 'Setup Default Indexing Profiles',
 					'description' => 'Setup indexing profiles based off historic information',

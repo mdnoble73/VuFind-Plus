@@ -30,6 +30,8 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 
 	protected String recordNumberTag;
 	protected String itemTag;
+	protected boolean loadFormatFromItems;
+	protected char formatSubfield;
 	protected char barcodeSubfield;
 	protected char statusSubfieldIndicator;
 	protected Pattern nonHoldableStatuses;
@@ -105,6 +107,9 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 			collectionSubfield = getSubfieldIndicatorFromConfig(indexingProfileRS, "collection");
 
 			itemUrlSubfieldIndicator = getSubfieldIndicatorFromConfig(indexingProfileRS, "itemUrl");
+
+			loadFormatFromItems = indexingProfileRS.getString("formatSource").equals("item");
+			formatSubfield = getSubfieldIndicatorFromConfig(indexingProfileRS, "format");
 			barcodeSubfield = getSubfieldIndicatorFromConfig(indexingProfileRS, "barcode");
 			statusSubfieldIndicator = getSubfieldIndicatorFromConfig(indexingProfileRS, "status");
 			try {
@@ -170,7 +175,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		getTranslationMapsStmt.setLong(1, id);
 		ResultSet translationsMapRS = getTranslationMapsStmt.executeQuery();
 		while (translationsMapRS.next()){
-			TranslationMap map = new TranslationMap(profileType, translationsMapRS.getString("name"), fullReindex, logger);
+			TranslationMap map = new TranslationMap(profileType, translationsMapRS.getString("name"), fullReindex, translationsMapRS.getBoolean("usesRegularExpressions"), logger);
 			Long translationMapId = translationsMapRS.getLong("id");
 			getTranslationMapValuesStmt.setLong(1, translationMapId);
 			ResultSet translationMapValuesRS = getTranslationMapValuesStmt.executeQuery();
@@ -650,6 +655,20 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 
 		itemInfo.setCollection(translateValue("collection", getItemSubfieldData(collectionSubfield, itemField)));
 
+		if (loadFormatFromItems){
+			String format = getItemSubfieldData(formatSubfield, itemField);
+			itemInfo.setFormat(translateValue("format", format));
+			itemInfo.setFormatCategory(translateValue("format_category", format));
+			String formatBoost = translateValue("format_boost", format);
+			try {
+				if (formatBoost != null && formatBoost.length() > 0) {
+					recordInfo.setFormatBoost(Integer.parseInt(formatBoost));
+				}
+			}catch (Exception e){
+				logger.warn("Could not get boost for format " + format);
+			}
+		}
+
 		//Determine Availability
 		boolean available = isItemAvailable(itemInfo);
 
@@ -874,6 +893,11 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 	 */
 	public void loadPrintFormatInformation(RecordInfo recordInfo, Record record){
 		LinkedHashSet<String> printFormats = new LinkedHashSet<>();
+
+		//We should already have formats based on the items
+		if (loadFormatFromItems){
+			return;
+		}
 
 		String leader = record.getLeader().toString();
 		char leaderBit;
