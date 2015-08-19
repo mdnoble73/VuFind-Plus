@@ -1160,6 +1160,7 @@ class GroupedWorkDriver extends RecordInterface{
 					'availableLocally' => false,
 					'availableHere' => false,
 					'inLibraryUseOnly' => false,
+					'isEContent' => false,
 					'availableCopies' => 0,
 					'copies' => 0,
 					'onOrderCopies' => 0,
@@ -1203,6 +1204,7 @@ class GroupedWorkDriver extends RecordInterface{
 								'url' => $curItem[11]
 							);
 							$relatedRecord['eContentSource'] = $curItem[9];
+							$relatedRecord['isEContent'] = true;
 						}
 						//Get Scoping information for this record
 						$scopeKey = $curItem[0] . ':' . ($curItem[1] == 'null' ? '' : $curItem[1]);
@@ -1229,9 +1231,9 @@ class GroupedWorkDriver extends RecordInterface{
 							}
 							$relatedRecord['availableCopies'] += $numCopies;
 							if ($searchLocation){
-								$displayByDefault = $locallyOwned;
+								$displayByDefault = $locallyOwned || $isEcontent;
 							}elseif ($library){
-								$displayByDefault = $libraryOwned;
+								$displayByDefault = $libraryOwned || $isEcontent;
 							}
 						}
 						if ($isOrderItem){
@@ -1379,6 +1381,7 @@ class GroupedWorkDriver extends RecordInterface{
 					'numHolds' => 0,
 					'available' => false,
 					'hasLocalItem' => false,
+					'isEContent' => false,
 					'relatedRecords' => array(),
 					'preferredEdition' => null,
 					'statusMessage' => '',
@@ -1405,6 +1408,9 @@ class GroupedWorkDriver extends RecordInterface{
 			}
 			if (isset($curRecord['availableOnline']) && $curRecord['availableOnline']){
 				$relatedManifestations[$curRecord['format']]['availableOnline'] = true;
+			}
+			if (isset($curRecord['isEContent']) && $curRecord['isEContent']){
+				$relatedManifestations[$curRecord['format']]['isEContent'] = true;
 			}
 			if (!$relatedManifestations[$curRecord['format']]['available'] && $curRecord['available']){
 				$relatedManifestations[$curRecord['format']]['available'] = $curRecord['available'];
@@ -1505,7 +1511,7 @@ class GroupedWorkDriver extends RecordInterface{
 			}
 			if ($selectedAvailability == 'Available Now' && !($manifestation['availableLocally'] || $manifestation['availableOnline'])){
 				$manifestation['hideByDefault'] = true;
-			}elseif($selectedAvailability == 'Entire Collection' && !($manifestation['hasLocalItem'])){
+			}elseif($selectedAvailability == 'Entire Collection' && (!($manifestation['hasLocalItem']) && !$manifestation['isEContent'])){
 				$manifestation['hideByDefault'] = true;
 			}
 
