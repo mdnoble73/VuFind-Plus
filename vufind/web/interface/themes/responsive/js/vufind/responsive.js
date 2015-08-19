@@ -14,11 +14,19 @@ VuFind.Responsive = (function(){
 				$(this).height( this.scrollHeight );
 			}
 		}).on( 'keydown', function (event ){
-			if (event.which == 13){
+			if (event.which == 13 || event.which == 10){
 				event.preventDefault();
+				event.stopPropagation();
 				$("#searchForm").submit();
+				return false;
 			}
-		}).keyup();
+		}).on( 'keypress', function (event ){
+			if (event.which == 13 || event.which == 10){
+				event.preventDefault();
+				event.stopPropagation();
+				return false;
+			}
+		}).keyup(); //This keyup triggers the resize
 	});
 
 	try{
