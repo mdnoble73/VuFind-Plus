@@ -349,7 +349,7 @@ class User extends DB_DataObject
 	function isValidForOverDrive(){
 		if (!$this->parentUser || ($this->getBarcode() != $this->parentUser->getBarcode())){
 			$userHomeLibrary = Library::getPatronHomeLibrary($this);
-			if ($userHomeLibrary->enableOverdriveCollection){
+			if ($userHomeLibrary && $userHomeLibrary->enableOverdriveCollection){
 				return true;
 			}
 		}
