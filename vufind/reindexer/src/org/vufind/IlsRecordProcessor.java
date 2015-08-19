@@ -151,6 +151,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 
 
 			orderTag = indexingProfileRS.getString("orderTag");
+			orderLocationSubfield = getSubfieldIndicatorFromConfig(indexingProfileRS, "orderLocation");
 			orderCopiesSubfield = getSubfieldIndicatorFromConfig(indexingProfileRS, "orderCopies");
 			orderStatusSubfield = getSubfieldIndicatorFromConfig(indexingProfileRS, "orderStatus");
 			orderCode3Subfield = getSubfieldIndicatorFromConfig(indexingProfileRS, "orderCode3");
@@ -251,7 +252,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 			// Let's first look for the print/order record
 			RecordInfo recordInfo = groupedWork.addRelatedRecord(profileType, identifier);
 			loadUnsuppressedPrintItems(groupedWork, recordInfo, identifier, record);
-			loadOnOrderItems(groupedWork, recordInfo, record);
+			loadOnOrderItems(groupedWork, recordInfo, record, recordInfo.getNumPrintCopies() > 0);
 			//If we don't get anything remove the record we just added
 			if (recordInfo.getNumPrintCopies() == 0 && recordInfo.getNumCopiesOnOrder() == 0 && suppressItemlessBibs) {
 				groupedWork.removeRelatedRecord(recordInfo);
@@ -308,7 +309,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		//By default, do nothing
 	}
 
-	protected void loadOnOrderItems(GroupedWorkSolr groupedWork, RecordInfo recordInfo, Record record){
+	protected void loadOnOrderItems(GroupedWorkSolr groupedWork, RecordInfo recordInfo, Record record, boolean hasTangibleItems){
 		List<DataField> orderFields = getDataFields(record, orderTag);
 		for (DataField curOrderField : orderFields){
 			int copies = 0;
@@ -336,7 +337,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 				}
 			}
 		}
-		if (recordInfo.getNumCopiesOnOrder() > 0){
+		if (recordInfo.getNumCopiesOnOrder() > 0 && !hasTangibleItems){
 			groupedWork.addKeywords("On Order");
 			groupedWork.addKeywords("Coming Soon");
 			HashSet<String> additionalOrderSubjects = new HashSet<>();
