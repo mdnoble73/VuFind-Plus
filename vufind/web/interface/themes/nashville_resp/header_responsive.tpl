@@ -1,12 +1,16 @@
 {strip}
 
 	<div class="col-xs-12 col-sm-6 col-md-5 col-lg-4">
+<div id="header-logo">
 		<a href="{$logoLink}/">
+<!--
 			<img src="{if $responsiveLogo}{$responsiveLogo}{else}{img filename="logo_responsive.png"}{/if}" alt="{$librarySystemName}" title="Return to Catalog Home" id="header-logo" {if $showDisplayNameInHeader && $librarySystemName}class="pull-left"{/if}/>
+-->
 			{if $showDisplayNameInHeader && $librarySystemName}
 				<span id="library-name-header" class="hidden-xs visible-sm">{$librarySystemName}</span>
 			{/if}
 		</a>
+</div>
 	</div>
 
 	<div class="logoutOptions" {if !$user} style="display: none;"{/if}>
