@@ -20,10 +20,10 @@
 #		+ ensure SSH keys are set up appropriately
 
 # 20150818 : changes in preparation for pika moving from dev to test
-	+ check isProduction value from config.ini
-	+ eliminate checkProhibitedTimes; Pika uses a different set of 
-		Review Files than VF+ and the non-production pika
-		machine should simply scp files from production server
+#	+ check isProduction value from config.ini
+#	+ eliminate checkProhibitedTimes; Pika uses a different set of 
+#		Review Files than VF+ and the non-production pika
+#		machine should simply scp files from production server
 
 # 20150219 : version 1.0
 
@@ -144,7 +144,7 @@ cd /usr/local/vufind-plus/vufind/record_grouping;
 java -server -Xmx6G -XX:+UseParallelGC -XX:ParallelGCThreads=2 -jar record_grouping.jar ${PIKASERVER} fullRegroupingNoClear >> ${OUTPUT_FILE}
 
 #Full Reindex
-cd /usr/local/vufind-plus/vufind/reindexer; nice -n -3 java -jar reindexer.jar ${PIKASERVER} fullReindex >> ${OUTPUT_FILE}
+#cd /usr/local/vufind-plus/vufind/reindexer; nice -n -3 java -jar reindexer.jar ${PIKASERVER} fullReindex >> ${OUTPUT_FILE}
 cd /usr/local/vufind-plus/vufind/reindexer; 
 java -server -Xmx6G -XX:+UseParallelGC -XX:ParallelGCThreads=2 -jar reindexer.jar ${PIKASERVER} fullReindex >> ${OUTPUT_FILE}
 
