@@ -83,7 +83,10 @@ class BookCoverProcessor{
 
 	private function getHooplaCover($id){
 		require_once ROOT_DIR . '/RecordDrivers/HooplaDriver.php';
-		list(, $id) = explode(":", $id);
+		if (strpos($id, ':') !== false){
+			list(, $id) = explode(":", $id);
+		}
+
 		$driver = new HooplaRecordDriver($id);
 		/** @var File_MARC_Data_Field[] $linkFields */
 		$linkFields = $driver->getMarcRecord()->getFields('856');
