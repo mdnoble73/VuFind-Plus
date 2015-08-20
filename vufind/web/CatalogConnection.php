@@ -583,12 +583,10 @@ class CatalogConnection
 				$driverHasReadingHistory = $this->driver->hasNativeReadingHistory();
 
 				//Opt out within the ILS if possible
-				if ($driverHasReadingHistory){
+				if ($driverHasReadingHistory && $this->checkFunction('doReadingHistoryAction')){
 					//First run delete all
-					if ($this->checkFunction('doReadingHistoryAction')){
-						$result = $this->driver->doReadingHistoryAction($patron, 'deleteAll', $selectedTitles);
-					}
-
+					$result = $this->driver->doReadingHistoryAction($patron, 'deleteAll', $selectedTitles);
+					
 					$result = $this->driver->doReadingHistoryAction($patron, $action, $selectedTitles);
 				}
 
