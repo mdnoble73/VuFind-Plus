@@ -122,12 +122,14 @@ public abstract class IIIRecordProcessor extends IlsRecordProcessor{
 	}
 
 
-	private HashMap<String, ArrayList<LoanRule>> cachedRelevantLoanRules = new HashMap<>();
-	private ArrayList<LoanRule> getRelevantLoanRules(String iType, String locationCode, HashSet<Long> pTypesToCheck){
+	private HashMap<String, HashSet<LoanRule>> cachedRelevantLoanRules = new HashMap<>();
+	private HashSet<LoanRule> getRelevantLoanRules(String iType, String locationCode, HashSet<Long> pTypesToCheck){
+		HashSet<Long> pTypesNotAccountedFor = new HashSet<>();
+		pTypesNotAccountedFor.addAll(pTypesToCheck);
 		String key = iType + locationCode + pTypesToCheck.toString();
-		ArrayList<LoanRule> relevantLoanRules = cachedRelevantLoanRules.get(key);
+		HashSet<LoanRule> relevantLoanRules = cachedRelevantLoanRules.get(key);
 		if (relevantLoanRules == null){
-			relevantLoanRules = new ArrayList<>();
+			relevantLoanRules = new HashSet<>();
 		}else{
 			return relevantLoanRules;
 		}
@@ -140,10 +142,22 @@ public abstract class IIIRecordProcessor extends IlsRecordProcessor{
 					//logger.debug("    " + curDeterminer.getRowNumber() + " matches location");
 					if (curDeterminer.getItemType().equals("999") || curDeterminer.getItemTypes().contains(iTypeLong)) {
 						//logger.debug("    " + curDeterminer.getRowNumber() + " matches iType");
-						if (curDeterminer.getPatronType().equals("999") || isPTypeValid(curDeterminer.getPatronTypes(), pTypesToCheck)) {
+						if (curDeterminer.getPatronType().equals("999") || isPTypeValid(curDeterminer.getPatronTypes(), pTypesNotAccountedFor)) {
 							//logger.debug("    " + curDeterminer.getRowNumber() + " matches pType");
 							LoanRule loanRule = loanRules.get(curDeterminer.getLoanRuleId());
 							relevantLoanRules.add(loanRule);
+
+							//Stop once we have accounted for all ptypes
+							if (curDeterminer.getPatronType().equals("999")){
+								//999 accounts for all pTypes
+								break;
+							}else{
+								pTypesNotAccountedFor.removeAll(curDeterminer.getPatronTypes());
+								if (pTypesNotAccountedFor.size() == 0){
+									break;
+								}
+							}
+
 							//We want all relevant loan rules, do not break
 							//break;
 						}
@@ -214,7 +228,7 @@ public abstract class IIIRecordProcessor extends IlsRecordProcessor{
 
 	@Override
 	protected boolean isItemHoldable(ItemInfo itemInfo, Scope curScope) {
-		ArrayList<LoanRule> relevantLoanRules = getRelevantLoanRules(itemInfo.getITypeCode(), itemInfo.getLocationCode(), curScope.getRelatedNumericPTypes());
+		HashSet<LoanRule> relevantLoanRules = getRelevantLoanRules(itemInfo.getITypeCode(), itemInfo.getLocationCode(), curScope.getRelatedNumericPTypes());
 		for (LoanRule loanRule : relevantLoanRules){
 			if (loanRule.getHoldable()){
 				return super.isItemHoldable(itemInfo, curScope);
@@ -225,7 +239,7 @@ public abstract class IIIRecordProcessor extends IlsRecordProcessor{
 
 	@Override
 	protected boolean isItemBookable(ItemInfo itemInfo, Scope curScope) {
-		ArrayList<LoanRule> relevantLoanRules = getRelevantLoanRules(itemInfo.getITypeCode(), itemInfo.getLocationCode(), curScope.getRelatedNumericPTypes());
+		HashSet<LoanRule> relevantLoanRules = getRelevantLoanRules(itemInfo.getITypeCode(), itemInfo.getLocationCode(), curScope.getRelatedNumericPTypes());
 		for (LoanRule loanRule : relevantLoanRules){
 			if (loanRule.getBookable()){
 				return true;
