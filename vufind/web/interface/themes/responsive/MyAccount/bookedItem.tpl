@@ -64,32 +64,35 @@
 						</div>
 					</div>
 				{/if}
-				{* TODO: location needed for Bookings?
-										<div class="row">
-											<div class="result-label col-xs-3">{translate text='Pickup'}</div>
-											<div class="col-xs-9 result-value">
-												{$record.location}
-											</div>
-										</div>*}
 
-				{if $record.startDateTime}
+				{if $record.startDateTime == $record.endDateTime}
+					{* Items Booked for a day will have the same start & end. (time is usually 4) *}
 					<div class="row">
-						<div class="result-label col-xs-3">{translate text='Starting at'}</div>
+						<div class="result-label col-xs-3">{translate text='Scheduled for'}</div>
 						<div class="col-xs-9 result-value">
-							{$record.startDateTime|date_format:"%b %d, %Y at %l:%M %p"}
+							{$record.startDateTime|date_format:"%b %d, %Y"} (All Day)
 						</div>
 					</div>
-				{/if}
+				{else}
 
-				{if $record.endDateTime}
-					<div class="row">
-						<div class="result-label col-xs-3">{translate text='Ending at'}</div>
-						<div class="col-xs-9 result-value">
-							{$record.endDateTime|date_format:"%b %d, %Y at %l:%M %p"}
+					{if $record.startDateTime}
+						<div class="row">
+							<div class="result-label col-xs-3">{translate text='Starting at'}</div>
+							<div class="col-xs-9 result-value">
+								{$record.startDateTime|date_format:"%b %d, %Y at %l:%M %p"}
+							</div>
 						</div>
-					</div>
-				{/if}
+					{/if}
 
+					{if $record.endDateTime}
+						<div class="row">
+							<div class="result-label col-xs-3">{translate text='Ending at'}</div>
+							<div class="col-xs-9 result-value">
+								{$record.endDateTime|date_format:"%b %d, %Y at %l:%M %p"}
+							</div>
+						</div>
+					{/if}
+				{/if}
 				{if $record.status}
 					<div class="row">
 						<div class="result-label col-xs-3">{translate text='Status'}</div>
