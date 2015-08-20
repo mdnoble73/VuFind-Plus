@@ -1160,7 +1160,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 							boolean okToAdd = false;
 							if (field.getSubfield('v') != null){
 								String subfieldVData = field.getSubfield('v').getData().toLowerCase();
-								if (!subfieldVData.contains("Television adaptation")){
+								if (!subfieldVData.contains("television adaptation")){
 									okToAdd = true;
 								}else{
 									System.out.println("Not including graphic novel format");
