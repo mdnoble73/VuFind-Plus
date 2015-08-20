@@ -236,7 +236,7 @@ class UserAccount {
 				);
 				$accountProfiles['ils'] = $additionalInfo;
 			}
-			$memCache->set('account_profiles_' . $serverName, $accountProfiles, 0, 'account_profiles');
+			$memCache->set('account_profiles_' . $serverName, $accountProfiles, 0, $configArray['Caching']['account_profiles']);
 			global $timer;
 			$timer->logTime("Loaded Account Profiles");
 		}
