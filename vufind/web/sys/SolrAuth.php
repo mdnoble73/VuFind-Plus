@@ -55,4 +55,3 @@ class SolrAuth extends Solr
 		$this->searchSpecsFile = 'conf/authsearchspecs.yaml';
 	}
 }
-?>

@@ -21,10 +21,14 @@
 /** CORE APPLICATION CONTROLLER **/
 require_once 'bootstrap.php';
 
+global $timer;
+
 //Do additional tasks that are only needed when running the full website
 loadModuleActionId();
+$timer->logTime("Loaded Module and Action Id");
 spl_autoload_register('vufind_autoloader');
 initializeSession();
+$timer->logTime("Initialized session");
 
 if (isset($_REQUEST['test_role'])){
 	if ($_REQUEST['test_role'] == ''){
@@ -36,7 +40,6 @@ if (isset($_REQUEST['test_role'])){
 
 // Start Interface
 $interface = new UInterface();
-global $timer;
 $timer->logTime('Create interface');
 if (isset($configArray['Site']['responsiveLogo'])){
 	$interface->assign('responsiveLogo', $configArray['Site']['responsiveLogo']);
@@ -56,12 +59,14 @@ global $locationSingleton;
 getGitBranch();
 
 $interface->loadDisplayOptions();
+$timer->logTime('Loaded display options within interface');
 
 require_once ROOT_DIR . '/sys/Analytics.php';
 //Define tracking to be done
 global $analytics;
 global $active_ip;
 $analytics = new Analytics($active_ip, $startTime);
+$timer->logTime('Setup Analytics');
 
 $googleAnalyticsId = isset($configArray['Analytics']['googleAnalyticsId']) ? $configArray['Analytics']['googleAnalyticsId'] : false;
 $interface->assign('googleAnalyticsId', $googleAnalyticsId);
@@ -236,6 +241,7 @@ if ($user) {
 } else if (isset($_POST['username']) && isset($_POST['password']) && ($action != 'Account' && $module != 'AJAX')) {
 	//The user is trying to log in
 	$user = UserAccount::login();
+	$timer->logTime('Login the user');
 	if (PEAR_Singleton::isError($user)) {
 		require_once ROOT_DIR . '/services/MyAccount/Login.php';
 		$launchAction = new MyAccount_Login();
@@ -288,12 +294,14 @@ $timer->logTime('User authentication');
 //Load user data for the user as long as we aren't in the act of logging out.
 if ($user && (!isset($_REQUEST['action']) || $_REQUEST['action'] != 'Logout')){
 	loadUserData();
+	$timer->logTime('Load user data');
 
 	$interface->assign('pType', $user->patronType);
 	$homeLibrary = Library::getLibraryForLocation($user->homeLocationId);
 	if (isset($homeLibrary)){
 		$interface->assign('homeLibrary', $homeLibrary->displayName);
 	}
+	$timer->logTime('Load patron pType');
 }else{
 	$interface->assign('pType', 'logged out');
 	$interface->assign('homeLibrary', 'n/a');
@@ -318,6 +326,7 @@ if (!$analytics->isTrackingDisabled()){
 		$analytics->setHomeLocationId(-1);
 	}
 }
+$timer->logTime('Setup Analytics');
 
 //Find a reasonable default location to go to
 if ($module == null && $action == null){
@@ -808,6 +817,7 @@ function initializeSession(){
 function loadUserData(){
 	global $user;
 	global $interface;
+	global $timer;
 
 	//Assign User information to the interface
 	if (!PEAR_Singleton::isError($user)) {
@@ -833,10 +843,12 @@ function loadUserData(){
 		}
 	}
 	$interface->assign('lists', $lists);
+	$timer->logTime("Load Lists");
 
 	// Get My Tags
 	$tagList = $user->getTags();
 	$interface->assign('tagList', $tagList);
+	$timer->logTime("Load Tags");
 
 	if ($user->hasRole('opacAdmin') || $user->hasRole('libraryAdmin') || $user->hasRole('cataloging')){
 		$variable = new Variable();
@@ -853,5 +865,6 @@ function loadUserData(){
 		}else{
 			$interface->assign('lastPartialReindexFinish', 'Unknown');
 		}
+		$timer->logTime("Load Information about Index status");
 	}
 }

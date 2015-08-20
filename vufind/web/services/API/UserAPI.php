@@ -365,6 +365,15 @@ class UserAPI extends Action {
 		global $user;
 		$user = UserAccount::validateAccount($username, $password);
 		if ($user && !PEAR_Singleton::isError($user)){
+			//Remove a bunch of junk from the user data
+			unset($user->N);
+			unset($user->query);
+			foreach ($user as $key => $value) {
+				if (substr($key, 0, 1) == '_'){
+					unset($user->$key);
+				}
+			}
+
 			return array('success'=>true, 'profile'=>$user);
 		}else{
 			return array('success'=>false, 'message'=>'Login unsuccessful');

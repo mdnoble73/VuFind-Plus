@@ -187,49 +187,59 @@ class UserAccount {
 	 * @return array
 	 */
 	protected static function loadAccountProfiles() {
-		$driversToTest = array();
+		/** @var Memcache $memCache */
+		global $memCache;
+		global $serverName;
+		$accountProfiles = $memCache->get('account_profiles_' . $serverName);
 
-		//Load a list of authentication methods to test and see which (if any) result in a valid login.
-		require_once ROOT_DIR . '/sys/Account/AccountProfile.php';
-		$accountProfile = new AccountProfile();
-		$accountProfile->orderBy('weight', 'name');
-		$accountProfile->find();
-		while ($accountProfile->fetch()) {
-			$additionalInfo = array(
-				'driver' => $accountProfile->driver,
-				'authenticationMethod' => $accountProfile->authenticationMethod,
-				'accountProfile' => clone($accountProfile)
-			);
-			$driversToTest[$accountProfile->name] = $additionalInfo;
-		}
-		if (count($driversToTest) == 0) {
-			global $configArray;
-			//Create default information for historic login.  This will eventually be obsolete
+		if ($accountProfiles == false){
+			$accountProfiles = array();
+
+			//Load a list of authentication methods to test and see which (if any) result in a valid login.
+			require_once ROOT_DIR . '/sys/Account/AccountProfile.php';
 			$accountProfile = new AccountProfile();
 			$accountProfile->orderBy('weight', 'name');
-			$accountProfile->driver = $configArray['Catalog']['driver'];
-			if (isset($configArray['Catalog']['url'])){
-				$accountProfile->vendorOpacUrl = $configArray['Catalog']['url'];
+			$accountProfile->find();
+			while ($accountProfile->fetch()) {
+				$additionalInfo = array(
+					'driver' => $accountProfile->driver,
+					'authenticationMethod' => $accountProfile->authenticationMethod,
+					'accountProfile' => clone($accountProfile)
+				);
+				$accountProfiles[$accountProfile->name] = $additionalInfo;
 			}
-			$accountProfile->authenticationMethod = 'ils';
-			if ($configArray['Catalog']['barcodeProperty'] == 'cat_password'){
-				$accountProfile->loginConfiguration = 'username_barcode';
-			}else{
-				$accountProfile->loginConfiguration = 'barcode_pin';
-			}
-			if (isset($configArray['OPAC']['patron_host'])){
-				$accountProfile->patronApiUrl = $configArray['OPAC']['patron_host'];
-			}
-			$accountProfile->recordSource = 'ils';
-			$accountProfile->name = 'ils';
+			if (count($accountProfiles) == 0) {
+				global $configArray;
+				//Create default information for historic login.  This will eventually be obsolete
+				$accountProfile = new AccountProfile();
+				$accountProfile->orderBy('weight', 'name');
+				$accountProfile->driver = $configArray['Catalog']['driver'];
+				if (isset($configArray['Catalog']['url'])){
+					$accountProfile->vendorOpacUrl = $configArray['Catalog']['url'];
+				}
+				$accountProfile->authenticationMethod = 'ils';
+				if ($configArray['Catalog']['barcodeProperty'] == 'cat_password'){
+					$accountProfile->loginConfiguration = 'username_barcode';
+				}else{
+					$accountProfile->loginConfiguration = 'barcode_pin';
+				}
+				if (isset($configArray['OPAC']['patron_host'])){
+					$accountProfile->patronApiUrl = $configArray['OPAC']['patron_host'];
+				}
+				$accountProfile->recordSource = 'ils';
+				$accountProfile->name = 'ils';
 
-			$additionalInfo = array(
-				'driver' => $configArray['Catalog']['driver'],
-				'authenticationMethod' => $configArray['Authentication']['method'],
-				'accountProfile' => $accountProfile
-			);
-			$driversToTest['ils'] = $additionalInfo;
+				$additionalInfo = array(
+					'driver' => $configArray['Catalog']['driver'],
+					'authenticationMethod' => $configArray['Authentication']['method'],
+					'accountProfile' => $accountProfile
+				);
+				$accountProfiles['ils'] = $additionalInfo;
+			}
+			$memCache->set('account_profiles_' . $serverName, $accountProfiles, 0, 'account_profiles');
+			global $timer;
+			$timer->logTime("Loaded Account Profiles");
 		}
-		return $driversToTest;
+		return $accountProfiles;
 	}
 }

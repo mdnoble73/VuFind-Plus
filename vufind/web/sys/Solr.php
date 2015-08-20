@@ -162,6 +162,7 @@ class Solr implements IndexEngine {
 			// Return the file path (note that all ini files are in the conf/ directory)
 			$this->searchSpecsFile = ROOT_DIR . "/../../sites/default/conf/searchspecs.yaml";
 		}
+		$timer->logTime("Load search specs");
 
 		$this->host = $host . '/' . $index;
 
