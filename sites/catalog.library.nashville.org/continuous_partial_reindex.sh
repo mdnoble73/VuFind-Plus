@@ -9,9 +9,9 @@
 #               and pika is considered test
 #	+ test to ensure non-production use of Millennium login/review file/export
 #		does not cause conflict with production use of those resources
-
+#
 # 20150818 : changes in preparation for pika moving from dev to test
-        + eliminate checkProhibitedTimes; was not being used in continuous
+#       + eliminate checkProhibitedTimes; was not being used in continuous
 # 20150218 : version 1.0
 
 # CONFIGURATION
