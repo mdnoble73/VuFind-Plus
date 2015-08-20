@@ -478,8 +478,7 @@ class Record_AJAX extends Action {
 		global $user;
 		if ($user) { // The user is already logged in
 //			$catalog = CatalogFactory::getCatalogConnectionInstance();
-			$catalog = $user->getCatalogDriver();
-			$return = $catalog->bookMaterial($recordId, $startDate, $startTime, $endDate, $endTime);
+			return $user->bookMaterial($recordId, $startDate, $startTime, $endDate, $endTime);
 			if (!empty($return['retry'])) {
 				return $this->getBookMaterialForm($return['message']); // send back error message with form to try again
 			} else { // otherwise return output to user's browser

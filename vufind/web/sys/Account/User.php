@@ -839,6 +839,14 @@ class User extends DB_DataObject
 		return $result;
 	}
 
+	function bookMaterial($recordId, $startDate, $startTime, $endDate, $endTime){
+		$result = $this->getCatalogDriver()->bookMaterial($recordId, $startDate, $startTime, $endDate, $endTime);
+		if ($result['success']){
+			$this->clearCache();
+		}
+		return $result;
+	}
+
 	/**
 	 * Place Item Hold
 	 *
