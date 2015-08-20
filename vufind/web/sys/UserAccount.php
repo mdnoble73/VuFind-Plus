@@ -190,6 +190,7 @@ class UserAccount {
 		/** @var Memcache $memCache */
 		global $memCache;
 		global $serverName;
+		global $configArray;
 		$accountProfiles = $memCache->get('account_profiles_' . $serverName);
 
 		if ($accountProfiles == false){
