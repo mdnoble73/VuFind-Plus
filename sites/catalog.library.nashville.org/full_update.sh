@@ -29,7 +29,7 @@
 
 
 # this version emails script output as a round finishes
-EMAIL=james.staub@nashville.gov,mark@marmot.org,pascal@marmot.org
+EMAIL=james.staub@nashville.gov,Mark.Noble@nashville.gov,Pascal.Brammeier@nashville.gov
 ILSSERVER=waldo.library.nashville.org
 PIKASERVER=catalog.library.nashville.org
 OUTPUT_FILE="/var/log/vufind-plus/${PIKASERVER}/full_update_output.log"
