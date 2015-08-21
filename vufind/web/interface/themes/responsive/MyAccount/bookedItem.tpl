@@ -4,7 +4,8 @@
 		<div class="row">
 			<div class="selectTitle col-xs-2">
 				{if $record.cancelValue}
-					<input type="checkbox" name="cancelId[{$record.cancelName}]" value="{$record.cancelValue}" id="selected{$record.cancelValue}" class="titleSelect">&nbsp;
+					{*<input type="checkbox" name="cancelId[{if $record.userId}{$record.userId}:{/if}{$record.cancelName}]" value="{$record.cancelValue}" id="selected{$record.cancelValue}" class="titleSelect">&nbsp;*}
+					<input type="checkbox" name="cancelId[{$record.userId}][{$record.cancelName}]" value="{$record.cancelValue}" id="selected{$record.cancelValue}" class="titleSelect">&nbsp;
 				{/if}
 			</div>
 			<div class="col-xs-9 text-center">
@@ -65,16 +66,26 @@
 					</div>
 				{/if}
 
+				{if $record.user}
+				<div class="row">
+					<div class="result-label col-xs-3">{translate text='Scheduled For'}</div>
+					<div class="col-xs-9 result-value">
+						{$record.user}
+					</div>
+				</div>
+				{/if}
+
 				{if $record.startDateTime == $record.endDateTime}
 					{* Items Booked for a day will have the same start & end. (time is usually 4) *}
 					<div class="row">
-						<div class="result-label col-xs-3">{translate text='Scheduled for'}</div>
+						<div class="result-label col-xs-3">{translate text='Scheduled Date'}</div>
 						<div class="col-xs-9 result-value">
 							{$record.startDateTime|date_format:"%b %d, %Y"} (All Day)
 						</div>
 					</div>
 				{else}
 
+					{* Otherwise display full datetime for start & end *}
 					{if $record.startDateTime}
 						<div class="row">
 							<div class="result-label col-xs-3">{translate text='Starting at'}</div>
@@ -105,7 +116,7 @@
 			<div class="col-xs-12 col-md-3">
 				<div class="btn-group btn-group-vertical btn-block">
 					{if $record.cancelValue}
-						<button onclick="return VuFind.Account.cancelBooking('{$record.cancelValue}')" class="btn btn-sm btn-warning">Cancel Item</button>
+						<button onclick="return VuFind.Account.cancelBooking('{$record.userId}', '{$record.cancelValue}')" class="btn btn-sm btn-warning">Cancel Item</button>
 					{/if}
 				</div>
 			</div>

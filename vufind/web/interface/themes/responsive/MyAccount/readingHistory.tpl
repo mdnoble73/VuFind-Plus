@@ -13,22 +13,6 @@
 
 		{include file="MyAccount/switch-linked-user-form.tpl" label="View Reading History for" actionPath="/MyAccount/ReadingHistory"}
 
-		{*		{if count($linkedUsers) > 1} *}{* Linked Users contains the active user as well *}{*
-			<form action="{$path}/MyAccount/ReadingHistory" method="get" class="form form-inline">
-				<div id="linkedUserOptions" class="form-group">
-					<label class="control-label" for="account">{translate text="View Reading History for"}: </label>
-					<div class="controls">
-						<select name="patronId" id="patronId" class="form-control">
-							{foreach from=$linkedUsers item=tmpUser}
-								<option value="{$tmpUser->id}" {if $selectedUser == $tmpUser->id}selected="selected"{/if}>{$tmpUser->displayName} - {$tmpUser->getHomeLibrarySystemName()}</option>
-							{/foreach}
-						</select>
-						<button type="submit" class="btn btn-default">Change Account</button>
-					</div>
-				</div>
-			</form>
-		{/if}*}
-
 	<br>
 
 	<div class="row">

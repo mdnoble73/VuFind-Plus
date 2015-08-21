@@ -164,12 +164,11 @@ class MillenniumBooking {
 		);
 	}
 
-	public function cancelBookedMaterial($cancelIds) {
+	public function cancelBookedMaterial($user, $cancelIds) {
 		if (empty($cancelIds)) return array('success' => false, 'message' => 'Item ID required');
 
 		if (!is_array($cancelIds)) $cancelIds = array($cancelIds); // for a single item
 
-		global $user;
 		$driver = &$this->driver;
 		$scope = $driver->getLibraryScope();
 		$patronInfo = $driver->_getPatronDump($user->getBarcode());
@@ -206,7 +205,10 @@ class MillenniumBooking {
 				foreach ($bookings as $booking){
 					if ($booking['cancelValue'] == $cancelId) break;
 				}
-				$errors[$cancelId] = 'Failed to cancel scheduled item for <strong>'.$booking['title'].'</strong> from '.strftime('%b %d, %Y at %I:%M %p', $booking['startDateTime']). ' to '.strftime('%b %d, %Y at %I:%M %p', $booking['endDateTime']);
+//					$errors[$booking['cancelValue']] = 'Failed to cancel scheduled item <strong>' . $booking['title'] . '</strong> from ' . strftime('%b %d, %Y at %I:%M %p', $booking['startDateTime']) . ' to ' . strftime('%b %d, %Y at %I:%M %p', $booking['endDateTime']);
+				// Time included
+				$errors[$booking['cancelValue']] = 'Failed to cancel scheduled item <strong>' . $booking['title'] . '</strong> from ' . strftime('%b %d, %Y', $booking['startDateTime']) . ' to ' . strftime('%b %d, %Y', $booking['endDateTime']);
+				// Dates only
 			}
 		}
 
@@ -225,8 +227,7 @@ class MillenniumBooking {
 		}
 	}
 
-	public function cancelAllBookedMaterial() {
-		global $user;
+	public function cancelAllBookedMaterial($user) {
 		/** @var Millennium $driver */
 		$driver = &$this->driver;
 		$scope = $driver->getLibraryScope();
@@ -253,14 +254,17 @@ class MillenniumBooking {
 			$bookings = $this->parseBookingsPage($curlResponse);
 			if (!empty($bookings)) { // a booking wasn't canceled
 				foreach ($bookings as $booking) {
-					$errors[$booking['cancelValue']] = 'Failed to cancel item scheduling for <strong>' . $booking['title'] . '</strong> from ' . strftime('%b %d, %Y at %I:%M %p', $booking['startDateTime']) . ' to ' . strftime('%b %d, %Y at %I:%M %p', $booking['endDateTime']);
+//					$errors[$booking['cancelValue']] = 'Failed to cancel scheduled item <strong>' . $booking['title'] . '</strong> from ' . strftime('%b %d, %Y at %I:%M %p', $booking['startDateTime']) . ' to ' . strftime('%b %d, %Y at %I:%M %p', $booking['endDateTime']);
+					// Time included
+					$errors[$booking['cancelValue']] = 'Failed to cancel scheduled item <strong>' . $booking['title'] . '</strong> from ' . strftime('%b %d, %Y', $booking['startDateTime']) . ' to ' . strftime('%b %d, %Y', $booking['endDateTime']);
+					// Dates only
 				}
 			}
 		}
 
 		if (empty($errors)) return array(
 			'success' => true,
-			'message' => 'Your item schedulings were successfully canceled.'
+			'message' => 'Your scheduled items were successfully canceled.'
 		);
 		else return array(
 			'success' => false,
@@ -268,9 +272,12 @@ class MillenniumBooking {
 		);
 	}
 
-	public function getMyBookings(){
+	/**
+	 * @param User $user  The user to fetch bookings for
+	 * @return array
+	 */
+	public function getMyBookings($user){
 		$driver = &$this->driver;
-		global $user;
 
 //		$patronDump = $driver->_getPatronDump($driver->_getBarcode());
 		// looks like this is deprecated now.
@@ -283,7 +290,7 @@ class MillenniumBooking {
 
 		require_once ROOT_DIR . '/RecordDrivers/MarcRecord.php';
 			foreach($bookings as /*$key =>*/ &$booking){
-				disableErrorHandler();
+				disableErrorHandler(); // QUESTION: modeled after getMyHoldings, not sure why needed.
 				$recordDriver = new MarcRecord($booking['id']);
 				if ($recordDriver->isValid()){
 //					$booking['id'] = $recordDriver->getUniqueID(); //redundant
@@ -305,9 +312,7 @@ class MillenniumBooking {
 				enableErrorHandler();
 			}
 
-
 		return $bookings;
-
 	}
 
 	private function parseBookingsPage($html) {

@@ -983,29 +983,30 @@ class Millennium extends ScreenScrapingDriver
 	}
 
 	/**
+	 * @param User $user  User to cancel for
 	 * @param $cancelIds  array uses a specific id for canceling a booking, rather than a record Id.
-	 * @return array      data for client-side AJAX responses
+	 * @return array data for client-side AJAX responses
 	 */
-	public function cancelBookedMaterial($cancelIds) {
+	public function cancelBookedMaterial($user, $cancelIds) {
 		require_once ROOT_DIR . '/Drivers/marmot_inc/MillenniumBooking.php';
 		$millenniumBooking = new MillenniumBooking($this);
-		return $millenniumBooking->cancelBookedMaterial($cancelIds);
+		return $millenniumBooking->cancelBookedMaterial($user, $cancelIds);
 	}
 
 	/**
 	 * @return array      data for client-side AJAX responses
 	 */
-	public function cancelAllBookedMaterial() {
+	public function cancelAllBookedMaterial($patron) {
 		require_once ROOT_DIR . '/Drivers/marmot_inc/MillenniumBooking.php';
 		$millenniumBooking = new MillenniumBooking($this);
-		return $millenniumBooking->cancelAllBookedMaterial();
+		return $millenniumBooking->cancelAllBookedMaterial($patron);
 	}
 
-public function getBookingCalendar($recordId) {
-	require_once ROOT_DIR . '/Drivers/marmot_inc/MillenniumBooking.php';
-	$millenniumBooking = new MillenniumBooking($this);
-	return $millenniumBooking->getBookingCalendar($recordId);
-}
+	public function getBookingCalendar($recordId) {
+		require_once ROOT_DIR . '/Drivers/marmot_inc/MillenniumBooking.php';
+		$millenniumBooking = new MillenniumBooking($this);
+		return $millenniumBooking->getBookingCalendar($recordId);
+	}
 
 	/**
 	 * @param User $user                     The User Object to make updates to
@@ -1423,10 +1424,10 @@ public function getBookingCalendar($recordId) {
 
 	}
 
-	public function getMyBookings(){
+	public function getMyBookings($patron){
 		require_once ROOT_DIR . '/Drivers/marmot_inc/MillenniumBooking.php';
 		$millenniumBookings = new MillenniumBooking($this);
-		return $millenniumBookings->getMyBookings();
+		return $millenniumBookings->getMyBookings($patron);
 	}
 
 	function getCheckInGrid($id, $checkInGridId){

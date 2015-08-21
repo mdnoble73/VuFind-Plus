@@ -351,7 +351,7 @@ VuFind.Account = (function(){
 		cancelHold: function(patronId, recordId, holdIdToCancel){
 			if (confirm("Are you sure you want to cancel this hold?")){
 				if (Globals.loggedIn) {
-					VuFind.showMessage('Loading', 'Loading, please wait');
+					VuFind.loadingMessage();
 					$.getJSON(Globals.path + "/MyAccount/AJAX?method=cancelHold&patronId=" + patronId + "&recordId=" + recordId + "&cancelId="+holdIdToCancel, function(data){
 						VuFind.showMessage(data.title, data.modalBody, data.success, data.success); // autoclose when successful
 					}).fail(function(){
@@ -402,11 +402,15 @@ VuFind.Account = (function(){
 		return false;
 	},
 
-		cancelBooking: function(cancelId){
+		cancelBooking: function(patronId, cancelId){
 			if (confirm("Are you sure you want to cancel this scheduled item?")){
 				if (Globals.loggedIn) {
 					VuFind.loadingMessage();
-					$.getJSON(Globals.path + "/MyAccount/AJAX", {method:"cancelBooking", cancelId:cancelId}, function(data){
+					var c = {};
+					c[patronId] = cancelId;
+					console.log(c);
+					//$.getJSON(Globals.path + "/MyAccount/AJAX", {method:"cancelBooking", patronId:patronId, cancelId:cancelId}, function(data){
+					$.getJSON(Globals.path + "/MyAccount/AJAX", {method:"cancelBooking", cancelId:c}, function(data){
 						VuFind.showMessage(data.title, data.modalBody, data.success); // autoclose when successful
 						if (data.success) {
 							// remove canceled item from page
@@ -430,7 +434,7 @@ VuFind.Account = (function(){
 				var selectedTitles = this.getSelectedTitles(),
 						numBookings = $("input.titleSelect:checked").length;
 				// if numBookings equals 0, quit because user has canceled in getSelectedTitles()
-				if (numBookings > 0 && confirm('Cancel ' + numBookings + ' selected scheduled items' + (numBookings > 1 ? 's' : '') + '?')) {
+				if (numBookings > 0 && confirm('Cancel ' + numBookings + ' selected scheduled item' + (numBookings > 1 ? 's' : '') + '?')) {
 					VuFind.loadingMessage();
 					$.getJSON(Globals.path + "/MyAccount/AJAX?method=cancelBooking&"+selectedTitles, function(data){
 						VuFind.showMessage(data.title, data.modalBody, data.success); // autoclose when successful

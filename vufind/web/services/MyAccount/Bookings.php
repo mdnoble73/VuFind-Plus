@@ -23,11 +23,13 @@ class MyAccount_Bookings extends MyAccount {
 //			'status' => 'Status',
 //		);
 
+		// Get Booked Items
 		$bookings = $user->getMyBookings();
+		$interface->assign('recordList', $bookings);
 
+		// Additional Template Settings
 		$libraryHoursMessage = Location::getLibraryHoursMessage($user->homeLocationId);
 		$interface->assign('libraryHoursMessage', $libraryHoursMessage);
-		$interface->assign('recordList', $bookings);
 
 		// Build Page //
 		$this->display('bookings.tpl', 'My Scheduled Items');
