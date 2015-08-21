@@ -278,7 +278,7 @@ class User extends DB_DataObject
 				$userLink->primaryAccountId = $this->id;
 				$userLink->find();
 				while ($userLink->fetch()){
-					if (!$this->isBlockedAccount($userLink->id)) {
+					if (!$this->isBlockedAccount($userLink->linkedAccountId)) {
 						$linkedUser = new User();
 						$linkedUser->id = $userLink->linkedAccountId;
 						if ($linkedUser->find(true)){
