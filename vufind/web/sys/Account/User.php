@@ -375,7 +375,9 @@ class User extends DB_DataObject
 					$linkedUser = new User();
 					$linkedUser->id = $userLink->primaryAccountId;
 					if ($linkedUser->find(true)){
-						$this->viewers[] = clone($linkedUser);
+						if (!$linkedUser->isBlockedAccount($this->id)) {
+							$this->viewers[] = clone($linkedUser);
+						}
 					}
 				}
 			}
@@ -844,6 +846,36 @@ class User extends DB_DataObject
 		if ($result['success']){
 			$this->clearCache();
 		}
+		return $result;
+	}
+
+	function cancelBookedMaterial($cancelId){
+		$result = $this->getCatalogDriver()->cancelBookedMaterial($this, $cancelId);
+		$this->clearCache();
+		return $result;
+	}
+
+	function cancelAllBookedMaterial($includeLinkedUsers = true){
+		$result = $this->getCatalogDriver()->cancelAllBookedMaterial($this);
+		$this->clearCache();
+
+		if ($includeLinkedUsers) {
+			if ($this->getLinkedUsers() != null) {
+				/** @var User $user */
+				foreach ($this->getLinkedUsers() as $user) {
+
+					$additionalResults = $user->cancelAllBookedMaterial(false);
+					if (!$additionalResults['success']) { // if we recieved failures
+						if ($result['success']) {
+							$result = $additionalResults; // first set of failures, overwrite currently successful results
+						} else { // if there were already failures, add the extra failure messages
+							$result['message'] = array_merge($result['message'], $additionalResults['message']);
+						}
+					}
+				}
+			}
+		}
+
 		return $result;
 	}
 

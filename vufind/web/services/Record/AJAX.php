@@ -471,9 +471,9 @@ class Record_AJAX extends Action {
 			return array('success' => false, 'message' => 'Start Date is required.');
 		}
 
-		$startTime = $_REQUEST['startTime'];
-		$endDate = $_REQUEST['endDate'];
-		$endTime = $_REQUEST['endTime'];
+		$startTime = empty($_REQUEST['startTime']) ? null : $_REQUEST['startTime'];
+		$endDate   = empty($_REQUEST['endDate'])   ? null : $_REQUEST['endDate'];
+		$endTime   = empty($_REQUEST['endTime'])   ? null : $_REQUEST['endTime'];
 
 		global $user;
 		if ($user) { // The user is already logged in

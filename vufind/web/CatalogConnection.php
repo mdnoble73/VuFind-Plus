@@ -698,6 +698,28 @@ class CatalogConnection
 		return $this->driver->bookMaterial($recordId, $startDate, $startTime, $endDate, $endTime);
 	}
 
+	// TODO Millennium only at this time, set other drivers to return false.
+	function cancelBookedMaterial($patron, $cancelIds){
+		return $this->driver->cancelBookedMaterial($patron, $cancelIds);
+	}
+
+	// TODO Millennium only at this time, set other drivers to return false.
+	function cancelAllBookedMaterial($patron){
+		return $this->driver->cancelAllBookedMaterial($patron);
+	}
+
+	/**
+	 * @param User $patron
+	 */
+	function getMyBookings($patron){
+		$bookings = $this->driver->getMyBookings($patron);
+		foreach ($bookings as &$booking) {
+			$booking['user'] = $patron->getNameAndLibraryLabel();
+			$booking['userId'] = $patron->id;
+		}
+		return $bookings;
+	}
+
 	function selfRegister(){
 		return $this->driver->selfRegister();
 	}
