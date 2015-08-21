@@ -33,6 +33,7 @@ public class Scope implements Comparable<Scope>{
 	private HashSet<OwnershipRule> ownershipRules = new HashSet<>();
 	//Inclusion rules indicate records owned by someone else that should be shown within the scope
 	private HashSet<InclusionRule> inclusionRules = new HashSet<>();
+	private String ilsCode;
 
 	public String getScopeName() {
 		return scopeName;
@@ -194,5 +195,13 @@ public class Scope implements Comparable<Scope>{
 
 	public HashSet<Scope> getLocationScopes() {
 		return locationScopes;
+	}
+
+	public String getIlsCode() {
+		return ilsCode;
+	}
+
+	public void setIlsCode(String ilsCode) {
+		this.ilsCode = ilsCode;
 	}
 }

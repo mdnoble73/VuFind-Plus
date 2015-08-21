@@ -314,6 +314,7 @@ public class GroupedWorkIndexer {
 			locationScopeInfo.setFacetLabel(facetLabel);
 			locationScopeInfo.setIncludeOverDriveCollection(includeOverDriveCollectionLibrary && includeOverDriveCollectionLocation);
 			locationScopeInfo.setRestrictOwningLibraryAndLocationFacets(locationInformationRS.getBoolean("restrictOwningBranchesAndSystems"));
+			locationScopeInfo.setIlsCode(code);
 
 			//Load information about what should be included in the scope
 			locationOwnedRecordRulesStmt.setLong(1, locationId);
@@ -389,6 +390,7 @@ public class GroupedWorkIndexer {
 			newScope.setRelatedPTypes(pTypes.split(","));
 			newScope.setIncludeOverDriveCollection(includeOverdrive);
 			newScope.setRestrictOwningLibraryAndLocationFacets(libraryInformationRS.getBoolean("restrictOwningBranchesAndSystems"));
+			newScope.setIlsCode(libraryInformationRS.getString("ilsCode"));
 
 			//Load information about what should be included in the scope
 			libraryOwnedRecordRulesStmt.setLong(1, libraryId);

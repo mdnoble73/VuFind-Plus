@@ -2,7 +2,6 @@ package org.vufind;
 
 import org.apache.log4j.Logger;
 import org.ini4j.Ini;
-import org.marc4j.marc.DataField;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -124,8 +123,7 @@ public abstract class IIIRecordProcessor extends IlsRecordProcessor{
 
 	private HashMap<String, HashSet<LoanRule>> cachedRelevantLoanRules = new HashMap<>();
 	private HashSet<LoanRule> getRelevantLoanRules(String iType, String locationCode, HashSet<Long> pTypesToCheck){
-		HashSet<Long> pTypesNotAccountedFor = new HashSet<>();
-		pTypesNotAccountedFor.addAll(pTypesToCheck);
+		//Look for ac cached value
 		String key = iType + locationCode + pTypesToCheck.toString();
 		HashSet<LoanRule> relevantLoanRules = cachedRelevantLoanRules.get(key);
 		if (relevantLoanRules == null){
@@ -133,6 +131,9 @@ public abstract class IIIRecordProcessor extends IlsRecordProcessor{
 		}else{
 			return relevantLoanRules;
 		}
+
+		HashSet<Long> pTypesNotAccountedFor = new HashSet<>();
+		pTypesNotAccountedFor.addAll(pTypesToCheck);
 		Long iTypeLong = Long.parseLong(iType);
 		for (int j = 0 ; j < loanRuleDeterminers.size(); j++){
 			LoanRuleDeterminer curDeterminer = loanRuleDeterminers.get(j);
@@ -228,7 +229,15 @@ public abstract class IIIRecordProcessor extends IlsRecordProcessor{
 
 	@Override
 	protected boolean isItemHoldable(ItemInfo itemInfo, Scope curScope) {
-		HashSet<LoanRule> relevantLoanRules = getRelevantLoanRules(itemInfo.getITypeCode(), itemInfo.getLocationCode(), curScope.getRelatedNumericPTypes());
+		String locationCode;
+		if (loanRulesAreBasedOnCheckoutLocation()) {
+			//Loan rule determiner by lending location
+			locationCode = curScope.getIlsCode();
+		}else{
+			//Loan rule determiner by owning location
+			locationCode = itemInfo.getLocationCode();
+		}
+		HashSet<LoanRule> relevantLoanRules = getRelevantLoanRules(itemInfo.getITypeCode(), locationCode, curScope.getRelatedNumericPTypes());
 		for (LoanRule loanRule : relevantLoanRules){
 			if (loanRule.getHoldable()){
 				return super.isItemHoldable(itemInfo, curScope);
@@ -239,7 +248,15 @@ public abstract class IIIRecordProcessor extends IlsRecordProcessor{
 
 	@Override
 	protected boolean isItemBookable(ItemInfo itemInfo, Scope curScope) {
-		HashSet<LoanRule> relevantLoanRules = getRelevantLoanRules(itemInfo.getITypeCode(), itemInfo.getLocationCode(), curScope.getRelatedNumericPTypes());
+		String locationCode;
+		if (loanRulesAreBasedOnCheckoutLocation()) {
+			//Loan rule determiner by lending location
+			locationCode = curScope.getIlsCode();
+		}else{
+			//Loan rule determiner by owning location
+			locationCode = itemInfo.getLocationCode();
+		}
+		HashSet<LoanRule> relevantLoanRules = getRelevantLoanRules(itemInfo.getITypeCode(), locationCode, curScope.getRelatedNumericPTypes());
 		for (LoanRule loanRule : relevantLoanRules){
 			if (loanRule.getBookable()){
 				return true;
@@ -277,4 +294,6 @@ public abstract class IIIRecordProcessor extends IlsRecordProcessor{
 			return translateValue("item_status", statusCode);
 		}
 	}
+
+	protected abstract boolean loanRulesAreBasedOnCheckoutLocation();
 }

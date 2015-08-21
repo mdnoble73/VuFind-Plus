@@ -186,4 +186,8 @@ public class MarmotRecordProcessor extends IIIRecordProcessor {
 				break;
 		}
 	}
+
+	protected boolean loanRulesAreBasedOnCheckoutLocation(){
+		return true;
+	}
 }

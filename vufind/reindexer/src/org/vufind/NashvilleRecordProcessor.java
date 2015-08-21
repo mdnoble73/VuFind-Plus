@@ -76,4 +76,8 @@ public class NashvilleRecordProcessor extends IIIRecordProcessor {
 	protected boolean isOrderItemValid(String status, String code3) {
 		return !(code3 == null || code3.equals("s")) && (status.equals("o") || status.equals("1") || status.equals("a"));
 	}
+
+	protected boolean loanRulesAreBasedOnCheckoutLocation(){
+		return true;
+	}
 }

@@ -19,7 +19,7 @@ import java.util.List;
  * Date: 12/29/2014
  * Time: 10:25 AM
  */
-public class FlatironsRecordProcessor extends IlsRecordProcessor{
+public class FlatironsRecordProcessor extends IIIRecordProcessor{
 	public FlatironsRecordProcessor(GroupedWorkIndexer indexer, Connection vufindConn, Ini configIni, ResultSet indexingProfileRS, Logger logger, boolean fullReindex) {
 		super(indexer, vufindConn, configIni, indexingProfileRS, logger, fullReindex);
 	}
@@ -177,5 +177,9 @@ public class FlatironsRecordProcessor extends IlsRecordProcessor{
 
 	protected String getEContentSharing(ItemInfo ilsEContentItem, DataField itemField) {
 		return "library";
+	}
+
+	protected boolean loanRulesAreBasedOnCheckoutLocation(){
+		return false;
 	}
 }
