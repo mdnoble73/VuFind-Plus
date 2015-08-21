@@ -2,7 +2,7 @@
 /**
  * Asynchronous functionality for MyAccount module
  *
- * @category VuFind-Plus 
+ * @category Pika
  * @author Mark Noble <mark@marmot.org>
  * Date: 3/25/14
  * Time: 4:26 PM
@@ -187,9 +187,9 @@ class MyAccount_AJAX
 			'modalButtons' => "<span class='tool btn btn-primary' onclick='VuFind.Account.resetPinReset(); return false;'>Add To List</span>"
 		);
 		return $formDefinition;
-		$pageContent = $interface->fetch('MyResearch/resetPinPopup.tpl');
-		$interface->assign('popupContent', $pageContent);
-		return $interface->fetch('popup-wrapper.tpl');
+//		$pageContent = $interface->fetch('MyResearch/resetPinPopup.tpl');
+//		$interface->assign('popupContent', $pageContent);
+//		return $interface->fetch('popup-wrapper.tpl');
 	}
 
 	function removeTag()
@@ -321,26 +321,40 @@ class MyAccount_AJAX
 	function cancelBooking() {
 		try {
 			global $user;
-			$catalog = CatalogFactory::getCatalogConnectionInstance();
 
-			if (!empty($_REQUEST['cancelAll'])  && $_REQUEST['cancelAll'] == 1) {
-				$result = $catalog->driver->cancelAllBookedMaterial();
+			if (!empty($_REQUEST['cancelAll']) && $_REQUEST['cancelAll'] == 1) {
+				$result = $user->cancelAllBookedMaterial();
 				$totalCancelled = $numCancelled = null;
 			} else {
-				$cancelId = !empty($_REQUEST['cancelId']) ? $_REQUEST['cancelId'] : array();
-				$result = $catalog->driver->cancelBookedMaterial($cancelId);
-				$numCancelled = $result['success'] ? count($cancelId) : count($cancelId) - count($result['message']);
-				$totalCancelled = count($cancelId);
-				// either all were canceled or total canceled minus the number of errors (1 error per failure)
+				$cancelIds = !empty($_REQUEST['cancelId']) ? $_REQUEST['cancelId'] : array();
+
+				$totalCancelled = 0;
+				$numCancelled = 0;
+				$result = array(
+					'success' => true,
+					'message' => 'Your scheduled items were successfully canceled.'
+				);
+				foreach ($cancelIds as $userId => $cancelId) {
+					$patron = $user->getUserReferredTo($userId);
+					$userResult      = $patron->cancelBookedMaterial($cancelId);
+					$numCancelled   += $userResult['success'] ? count($cancelId) : count($cancelId) - count($userResult['message']);
+					$totalCancelled += count($cancelId);
+					// either all were canceled or total canceled minus the number of errors (1 error per failure)
+
+					if (!$userResult['success']) {
+						if ($result['success']) { // the first failure
+							$result = $userResult;
+						} else { // additional failures
+							$result['message'] = array_merge($result['message'], $userResult['message']);
+						}
+					}
+				}
 			}
 		} catch (PDOException $e) {
-			// What should we do with this error?
-			global $configArray;
-			if ($configArray['System']['debug']) {
-				echo '<pre>';
-				echo 'DEBUG: ' . $e->getMessage();
-				echo '</pre>';
-			}
+			/** @var Logger $logger */
+			global $logger;
+			$logger->log('Booking : '.$e->getMessage(), PEAR_LOG_ERR);
+
 			$result = array(
 				'success' => false,
 				'message' => 'We could not connect to the circulation system, please try again later.'

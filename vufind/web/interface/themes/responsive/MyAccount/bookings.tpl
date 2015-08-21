@@ -13,7 +13,8 @@
 			{/if}
 
 				<h3>My Scheduled Items</h3>
-				<p class="alert alert-info">
+
+			<p class="alert alert-info">
 						{translate text="booking summary"}
 				</p>
 			{if $recordList}
