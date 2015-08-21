@@ -1211,6 +1211,12 @@ class MarcRecord extends IndexRecord
 		return $this->getFormat();
 	}
 
+	/**
+	 * Load the format for the record based off of information stored within the grouped work.
+	 * Which was calculated at index time.
+	 *
+	 * @return string[]
+	 */
 	function getFormat(){
 		//Rather than loading formats here, let's leverage the work we did at index time
 		$recordDetails = $this->getGroupedWorkDriver()->getSolrField('record_details');

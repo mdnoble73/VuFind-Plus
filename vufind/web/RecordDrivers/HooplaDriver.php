@@ -22,6 +22,7 @@ class HooplaRecordDriver extends MarcRecord {
 			$this->marcRecord = $record;
 		}elseif (is_string($record)){
 			require_once ROOT_DIR . '/sys/MarcLoader.php';
+			$this->profileType = 'hoopla';
 			$this->id = $record;
 
 			$this->valid = MarcLoader::marcExistsForHooplaId($record);
