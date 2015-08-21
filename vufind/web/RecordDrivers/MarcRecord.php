@@ -1214,11 +1214,16 @@ class MarcRecord extends IndexRecord
 	function getFormat(){
 		//Rather than loading formats here, let's leverage the work we did at index time
 		$recordDetails = $this->getGroupedWorkDriver()->getSolrField('record_details');
-		foreach ($recordDetails as $recordDetailRaw){
-			$recordDetail = explode('|', $recordDetailRaw);
-			if ($recordDetail[0] == $this->getIdWithSource()){
-				return array($recordDetail[1]);
+		if ($recordDetails){
+			if (!is_array($recordDetails)){ $recordDetails = array($recordDetails); }
+			foreach ($recordDetails as $recordDetailRaw){
+				$recordDetail = explode('|', $recordDetailRaw);
+				if ($recordDetail[0] == $this->getIdWithSource()){
+					return array($recordDetail[1]);
+				}
 			}
+		}else{
+			return array('Unknown');
 		}
 	}
 
