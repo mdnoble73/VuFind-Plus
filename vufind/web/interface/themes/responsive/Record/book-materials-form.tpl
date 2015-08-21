@@ -7,7 +7,8 @@
 	<input type="hidden" name="id" value="{$id|replace:'ils:':''}">
 	<fieldset>
 		<div class="row">
-			<div class="form-group col-sm-5">
+			{*<div class="form-group col-sm-5">*}
+			<div class="form-group col-sm-6 col-sm-offset-3">
 				<label for="startDate" class="control-label">Start Date</label>
 				<div class="input-group">
 					<input id="startDate" name="startDate" type="text" class="form-control required" placeholder="mm/dd/yyyy"
@@ -18,18 +19,20 @@
 					<span class="input-group-addon"><span class="glyphicon glyphicon-calendar" onclick="$('#startDate').datepicker('show')" aria-hidden="true"></span></span>
 				</div>
 			</div>
-			<div class="form-group col-sm-5 ui-front">
+			{*<div class="form-group col-sm-5 ui-front">
 				<label for="startTime" class="control-label">Start Time</label>
 				<input id="startTime" name="startTime" type="text" class="form-control bookingTime required"  placeholder="{$smarty.now|date_format:'%l:%M%p'|lower}"
 				       {if $smarty.request.startTime} value="{$smarty.request.startTime}" {/if}
 								>
-				{* the class ui-front ensures the jquery autocomplete attaches to the input's parent, thus ensuring it is displayed within/on top of the modal box*}
-			</div>
+				*}{* the class ui-front ensures the jquery autocomplete attaches to the input's parent, thus ensuring it is displayed within/on top of the modal box*}{*
+			</div>*}
 		</div>
 		<hr>
 		<div class="row">
-			<div class="form-group col-sm-5">
-				<label for="endDate" class="control-label" >End Date</label>
+			{*<div class="form-group col-sm-5">*}
+			<div class="form-group col-sm-6 col-sm-offset-3">
+
+			<label for="endDate" class="control-label" >End Date</label>
 				<div class="input-group input-append date">
 					<input id="endDate" name="endDate" type="text" class="form-control required" placeholder="mm/dd/yyyy"
 					       {if $smarty.request.endDate} value="{$smarty.request.endDate}" {/if}
@@ -39,12 +42,12 @@
 					<span class="input-group-addon"><span class="glyphicon glyphicon-calendar" onclick="$('#endDate').focus().datepicker('show')" aria-hidden="true"></span></span>
 				</div>
 			</div>
-			<div class="form-group col-sm-5 ui-front">
+			{*<div class="form-group col-sm-5 ui-front">
 				<label for="endTime" class="control-label">End Time</label>
 				<input id="endTime" name="endTime" type="text" class="form-control bookingTime required" placeholder="{$smarty.now|date_format:'%l:%M%p'|lower}"
 				       {if $smarty.request.endTime} value="{$smarty.request.endTime}" {/if}
 								>
-			</div>
+			</div>*}
 		</div>
 	</fieldset>
 </form>
@@ -65,7 +68,7 @@
 	</div>
 	<script type="text/javascript">
 		{if !$errorMessage}{* don't add this on reload of form *}
-		{literal}
+{*		{literal}
 		var time = [], hours = [1,2,3,4,5,6,7,8,9,10,11,12], mins = ['00',10,20,30,40,50], meridian = ['pm','am'];
 		meridian.forEach(function(ampm){hours.forEach(function(hour){mins.forEach(function(min){time[time.length] = hour + ':' + min + ampm})})});
 
@@ -73,7 +76,7 @@
 							return this.optional(element) || /^([0-9]|1[0-2])\:[0-5][0-9][a,p]m$/.test(value);
 						}, "Please enter a valid time"
 		);
-		{/literal}{/if}{literal}
+		{/literal}*}{/if}{literal}
 
 		$(function(){
 			$('#bookMaterialForm').validate({
@@ -88,25 +91,29 @@
 				}
  			});
 
-			var added = false; // flag for ':' being added on the last key press
+			{/literal}{*
+				var added = false; // flag for ':' being added on the last key press
 //			$('#endTime, #startTime').autocomplete({source:time})
-			$('#endTime, #startTime').autocomplete({source:function(req, response){
-				response(time.filter(function(t){
-					return new RegExp('^'+req.term, 'i').test(t)
-				}))
-			}})
-			.keydown(function(e) {
-				if (added && e.which == 8){
-					var input = $(this).val();
-					$(this).val(input.substr(0, input.length - 1)); // strip out ':' & and previous character
-				}
-			})
-			.keyup(function(){
-				var input = $(this).val();
-				added = ( (input.length == 1 && $.isNumeric(input) && input != 1) // typing first digit of the hour, not a 1
-				|| (input.length == 2 && $.isNumeric(input))  ); // typing the second digit of the hour, 10 & greater
-				if (added) $(this).val(input + ':'); // add ':' after initial numbers typed (treat as hours on 12 hour clock)
-			});
+				$('#endTime, #startTime').autocomplete({
+					source: function (req, response) {
+						response(time.filter(function (t) {
+							return new RegExp('^' + req.term, 'i').test(t)
+						}))
+					}
+				})
+								.keydown(function (e) {
+									if (added && e.which == 8) {
+										var input = $(this).val();
+										$(this).val(input.substr(0, input.length - 1)); // strip out ':' & and previous character
+									}
+								})
+								.keyup(function () {
+									var input = $(this).val();
+									added = ( (input.length == 1 && $.isNumeric(input) && input != 1) // typing first digit of the hour, not a 1
+									|| (input.length == 2 && $.isNumeric(input))  ); // typing the second digit of the hour, 10 & greater
+									if (added) $(this).val(input + ':'); // add ':' after initial numbers typed (treat as hours on 12 hour clock)
+								});
+			*}{literal}
 
 			$.get(Globals.path + '/Record/{/literal}{$id|replace:'ils:':''}{literal}/AJAX?method=getBookingCalendar',
 							function(data){

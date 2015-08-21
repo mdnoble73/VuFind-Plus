@@ -90,7 +90,8 @@
 						<div class="row">
 							<div class="result-label col-xs-3">{translate text='Starting at'}</div>
 							<div class="col-xs-9 result-value">
-								{$record.startDateTime|date_format:"%b %d, %Y at %l:%M %p"}
+								{*{$record.startDateTime|date_format:"%b %d, %Y at %l:%M %p"}*}
+								{$record.startDateTime|date_format:"%b %d, %Y"}
 							</div>
 						</div>
 					{/if}
@@ -99,7 +100,8 @@
 						<div class="row">
 							<div class="result-label col-xs-3">{translate text='Ending at'}</div>
 							<div class="col-xs-9 result-value">
-								{$record.endDateTime|date_format:"%b %d, %Y at %l:%M %p"}
+								{*{$record.endDateTime|date_format:"%b %d, %Y at %l:%M %p"}*}
+								{$record.endDateTime|date_format:"%b %d, %Y"}
 							</div>
 						</div>
 					{/if}
