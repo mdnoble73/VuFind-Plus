@@ -43,6 +43,10 @@ class GroupedWorkDriver extends RecordInterface{
 		}
 	}
 
+	public function getSolrField($fieldName){
+		return $this->fields[$fieldName];
+	}
+
 	private static function normalizeEdition($edition) {
 		$edition = strtolower($edition);
 		$edition = str_replace('first', '1', $edition);
