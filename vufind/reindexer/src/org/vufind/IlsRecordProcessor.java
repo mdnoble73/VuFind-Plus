@@ -1163,7 +1163,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 								if (!subfieldVData.contains("television adaptation")){
 									okToAdd = true;
 								}else{
-									System.out.println("Not including graphic novel format");
+									//System.out.println("Not including graphic novel format");
 								}
 							}else{
 								okToAdd = true;
@@ -1199,7 +1199,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 								if (!subfieldVData.contains("Television adaptation")){
 									okToAdd = true;
 								}else{
-									System.out.println("Not including graphic novel format");
+									//System.out.println("Not including graphic novel format");
 								}
 							}else{
 								okToAdd = true;

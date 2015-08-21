@@ -96,7 +96,7 @@ public class MillenniumExportMain{
 		}
 
 		//Load holds into the database from BIB_HOLDS _EXTRACT
-		File holdsExport = new File(exportPath + "/BIB_HOLDS_EXTRACT_VUFIND.TXT");
+		File holdsExport = new File(exportPath + "/BIB_HOLDS_EXTRACT_PIKA.TXT");
 		if (holdsExport.exists()){
 			loadHolds(holdsExport);
 		}
