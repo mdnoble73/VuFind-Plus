@@ -168,7 +168,8 @@ class Aspencat implements DriverInterface{
 
 		$sorted_array = array();
 
-		$holdingsFromKoha  = $this->getHoldingsFromKohaDB($id);
+		$bibHolds = $this->getInTransitHoldsForBibFromKohaDB($id);
+		$holdingsFromKoha  = $this->getHoldingsFromKohaDB($id, $bibHolds);
 		$timer->logTime("Finished loading holdings from Koha");
 
 		/** @var array $items */
@@ -185,6 +186,7 @@ class Aspencat implements DriverInterface{
 			$itemData['locationLabel'] = $item['library'];
 
 			$groupedStatus = mapValue('item_grouped_status', $item['status']);
+
 			if ($groupedStatus == 'On Shelf' || $groupedStatus == 'Available Online'){
 				$itemData['availability'] = true;
 			}else{
@@ -2053,6 +2055,39 @@ class Aspencat implements DriverInterface{
 	}
 
 	/** @var mysqli_stmt  */
+	private $getHoldsForBibStmt = null;
+
+	private function getInTransitHoldsForBibFromKohaDB($recordId){
+		$holdsForBib = array();
+
+		if (strpos($recordId, ':') > 0){
+			list($type, $recordId) = explode(':', $recordId);
+		}
+
+		$this->initDatabaseConnection();
+
+		if ($this->getHoldsForBibStmt == null){
+			$sql = "SELECT branchcode, itemnumber from reserves WHERE biblionumber = ? AND found = 'T'";
+			$this->getHoldsForBibStmt = mysqli_prepare($this->dbConnection, $sql);
+		}
+		$this->getHoldsForBibStmt->bind_param("i", $recordId);
+
+		if (!$this->getHoldsForBibStmt->execute()){
+			global $logger;
+			$logger->log("Unable to load holdings from Koha ({$this->getHoldingsStmt->errno}) {$this->getHoldingsStmt->error}", PEAR_LOG_ERR);
+		}else{
+			//Read the information
+			$results = $this->getHoldsForBibStmt->get_result();
+			while ($curRow = $results->fetch_assoc()){
+				$holdsForBib[$curRow['itemnumber']] = $curRow['itemnumber'];
+			}
+			$results->close();
+		}
+
+		return $holdsForBib;
+	}
+
+	/** @var mysqli_stmt  */
 	private $getHoldingsStmt = null;
 
 	/**
@@ -2060,10 +2095,11 @@ class Aspencat implements DriverInterface{
 	 *
 	 * Uses some code based on C4::Items GetItemsInfo in koha
 	 *
-	 * @param $recordId
+	 * @param $recordId string
+	 * @param $bibHolds string[]
 	 * @return array
 	 */
-	private function getHoldingsFromKohaDB($recordId){
+	private function getHoldingsFromKohaDB($recordId, $bibHolds){
 		$holdingsFromKoha = array();
 
 		if (strpos($recordId, ':') > 0){
@@ -2105,7 +2141,9 @@ class Aspencat implements DriverInterface{
 				$curItem['dueDate'] = $curRow['onloan'];
 
 				//Figure out status based on all of the fields that make up the status
-				if ($curRow['damaged'] == 1){
+				if (array_key_exists($curItem['id'], $bibHolds)){
+					$curItem['status'] = 'In Transit';
+				}else if ($curRow['damaged'] == 1){
 					$curItem['status'] = "Damaged";
 				}else if ($curRow['itemlost'] != null){
 					if ($curRow['itemlost'] == 'longoverdue'){
