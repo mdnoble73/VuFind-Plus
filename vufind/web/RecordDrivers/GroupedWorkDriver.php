@@ -1077,6 +1077,9 @@ class GroupedWorkDriver extends RecordInterface{
 	 */
 	public function getRelatedRecords($realTimeStatusNeeded = true) {
 		global $timer;
+		global $configArray;
+		/** @var IndexingProfile[] $indexingProfiles */
+		global $indexingProfiles;
 		if ($this->relatedRecords == null || isset($_REQUEST['reload'])){
 			$timer->logTime("Starting to load related records for {$this->getUniqueID()}");
 
@@ -1104,6 +1107,7 @@ class GroupedWorkDriver extends RecordInterface{
 					$validItemIds[] = $scopeKey;
 				}
 			}
+			$timer->logTime("Loaded Scoping Details from the index");
 
 			//Get related records from the index filtered according to
 			$relatedRecordFieldName = "record_details";
@@ -1121,6 +1125,7 @@ class GroupedWorkDriver extends RecordInterface{
 					}
 				}
 			}
+			$timer->logTime("Loaded Record Details from the index");
 
 			//Get a list of related items filtered according to scoping
 			$relatedItemsFieldName = 'item_details';
@@ -1130,14 +1135,16 @@ class GroupedWorkDriver extends RecordInterface{
 				if (!is_array($itemsFromIndexRaw)) {
 					$itemsFromIndexRaw = array($itemsFromIndexRaw);
 				}
-				foreach ($itemsFromIndexRaw as $tmpItem){
+				foreach ($itemsFromIndexRaw as $tmpItem) {
 					$itemDetails = explode('|', $tmpItem);
 					$itemIdentifier = $itemDetails[0] . ':' . $itemDetails[1];
-					if (in_array($itemIdentifier, $validItemIds)){
+					if (in_array($itemIdentifier, $validItemIds)) {
 						$itemsFromIndex[] = $itemDetails;
 					}
 				}
 			}
+			$timer->logTime("Loaded Item Details from the index");
+
 
 			//Generate record information based on the information we have in the index
 			$relatedRecords = array();
@@ -1145,6 +1152,7 @@ class GroupedWorkDriver extends RecordInterface{
 				list($source, $id) = explode(':', $recordDetails[0], 2);
 				require_once ROOT_DIR . '/RecordDrivers/Factory.php';
 				$recordDriver = RecordDriverFactory::initRecordDriverById($recordDetails[0]);
+				$timer->logTime("Loaded Record Driver for  . $recordDetails[0]");
 
 				//Setup the base record
 				$relatedRecord = array(
@@ -1182,6 +1190,7 @@ class GroupedWorkDriver extends RecordInterface{
 					'source' => $source,
 					'actions' => array()
 				);
+				$timer->logTime("Setup base related record");
 
 				//Process the items for the record and add additional information as needed
 				$localShelfLocation = null;
@@ -1315,53 +1324,20 @@ class GroupedWorkDriver extends RecordInterface{
 				}elseif($libraryCallNumber != null){
 					$relatedRecord['callNumber'] = $libraryCallNumber;
 				}
+				ksort($relatedRecord['itemSummary']);
+				$timer->logTime("Setup record items");
 
 				$relatedRecord['actions'] = $recordDriver->getRecordActions($recordAvailable, $recordHoldable, $recordBookable, $relatedUrls);
-				ksort($relatedRecord['itemSummary']);
+				$timer->logTime("Loaded actions");
 				$relatedRecords[] = $relatedRecord;
 			}
 
-				/*foreach ($recordsFromIndex as $relatedRecordInfo){
-					$hasDetailedRecordInfo = true;
-					$relatedRecordId = $relatedRecordInfo[0];
-					require_once ROOT_DIR . '/RecordDrivers/Factory.php';
-					$recordDriver = RecordDriverFactory::initRecordDriverById($relatedRecordId);
-					if ($recordDriver != null && $recordDriver->isValid()){
-						if ($itemsFromIndex != null){
-							$filteredItemsFromIndex = array();
-							foreach ($itemsFromIndex as $item){
-								if (array_key_exists('record', $item)){
-									if ($item['record'][0] == $relatedRecordId){
-										$filteredItemsFromIndex[] = $item;
-									}
-								}else{
-									if ($item[0] == $relatedRecordId){
-										$filteredItemsFromIndex[] = $item;
-									}
-								}
-							}
-							$recordDriver->setItemsFromIndex($filteredItemsFromIndex, $realTimeStatusNeeded);
-						}
-						if ($hasDetailedRecordInfo){
-							$recordDriver->setDetailedRecordInfoFromIndex($relatedRecordInfo, $realTimeStatusNeeded);
-						}
-						$timer->logTime("Initialized Record Driver for $relatedRecordId");
-
-						$recordDriver->setScopingEnabled($this->scopingEnabled);
-						$relatedRecordsForBib = $recordDriver->getRelatedRecords($realTimeStatusNeeded);
-						foreach ($relatedRecordsForBib as $relatedRecord){
-							$relatedRecord['driver'] = $recordDriver;
-							$relatedRecords[] = $relatedRecord;
-						}
-					}
-					$timer->logTime("Finished loading related records for $relatedRecordId");
-				}*/
 				//Sort the records based on format and then edition
 				usort($relatedRecords, array($this, "compareRelatedRecords"));
 
 			$this->relatedRecords = $relatedRecords;
 		}
-		$timer->logTime("Finished loading related records");
+		$timer->logTime("Finished loading related records {$this->getUniqueID()}");
 		return $this->relatedRecords;
 	}
 

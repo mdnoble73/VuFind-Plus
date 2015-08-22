@@ -116,10 +116,11 @@ class RecordDriverFactory {
 				$recordDriver = null;
 			}
 		}else{
-			require_once ROOT_DIR . '/sys/Indexing/IndexingProfile.php';
-			$indexingProfile = new IndexingProfile();
-			$indexingProfile->name = $recordType;
-			if ($indexingProfile->find(true)){
+			/** @var IndexingProfile[] $indexingProfiles */
+			global $indexingProfiles;
+
+			if (array_key_exists($recordType, $indexingProfiles)){
+				$indexingProfile = $indexingProfiles[$recordType];
 				$driverName = $indexingProfile->recordDriver;
 				require_once ROOT_DIR . "/RecordDrivers/{$driverName}.php";
 				$recordDriver = new $driverName($id);

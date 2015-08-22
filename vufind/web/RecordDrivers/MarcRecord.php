@@ -74,9 +74,6 @@ class MarcRecord extends IndexRecord
 					$this->indexingProfile = $indexingProfiles['ils'];
 				}
 			}
-
-
-			$this->valid = MarcLoader::marcExistsForILSId($recordData);
 		}else{
 			// Call the parent's constructor...
 			parent::__construct($recordData);
@@ -96,6 +93,8 @@ class MarcRecord extends IndexRecord
 				$this->id = $idField->getSubfield('a')->getData();
 			}
 		}
+		global $timer;
+		$timer->logTime("Base initialization of MarcRecord Driver");
 		parent::loadGroupedWork();
 	}
 
@@ -120,6 +119,9 @@ class MarcRecord extends IndexRecord
 	}
 
 	public function isValid(){
+		if ($this->valid == null){
+			$this->valid = MarcLoader::marcExistsForILSId($this->getIdWithSource());
+		}
 		return $this->valid;
 	}
 

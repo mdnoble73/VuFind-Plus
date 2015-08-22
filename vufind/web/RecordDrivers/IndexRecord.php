@@ -1028,6 +1028,7 @@ class IndexRecord extends RecordInterface
 	 */
 	public function loadGroupedWork() {
 		if ($this->groupedWork == null){
+			global $timer;
 			require_once ROOT_DIR . '/sys/Grouping/GroupedWorkPrimaryIdentifier.php';
 			require_once ROOT_DIR . '/sys/Grouping/GroupedWork.php';
 			$groupedWork = new GroupedWork();
@@ -1038,6 +1039,7 @@ class IndexRecord extends RecordInterface
 				$groupedWork->fetch();
 				$this->groupedWork = clone $groupedWork;
 			}
+			$timer->logTime("Loaded Grouped Work for record");
 		}
 	}
 
