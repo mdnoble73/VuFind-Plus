@@ -17,7 +17,7 @@
 # CONFIGURATION
 # PLEASE SET CONFLICTING PROCESSES AND PROHIBITED TIMES IN FUNCTION CALLS IN SCRIPT MAIN DO LOOP
 # this version emails script output as a round finishes
-EMAIL=James.Staub@nashville.gov,mark@marmot.org,pascal@marmot.org
+EMAIL=James.Staub@nashville.gov,Mark.Noble@nashville.gov,Pascal.Brammeier@nashville.gov
 PIKASERVER=catalog.library.nashville.org
 ILSSERVER=waldo.library.nashville.org
 OUTPUT_FILE="/var/log/vufind-plus/${PIKASERVER}/continuous_partial_reindex_output.log"

@@ -375,7 +375,9 @@ class User extends DB_DataObject
 					$linkedUser = new User();
 					$linkedUser->id = $userLink->primaryAccountId;
 					if ($linkedUser->find(true)){
-						$this->viewers[] = clone($linkedUser);
+						if (!$linkedUser->isBlockedAccount($this->id)) {
+							$this->viewers[] = clone($linkedUser);
+						}
 					}
 				}
 			}

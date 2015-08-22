@@ -2,7 +2,7 @@
 # Script executes continuous re-indexing.
 #
 # this version emails script output as a round finishes
-EMAIL=James.Staub@nashville.gov,mark@marmot.org,pascal@marmot.org
+EMAIL=James.Staub@nashville.gov,Mark.Noble@nashville.gov,Pascal.Brammeier@nashville.gov
 PIKASERVER=catalog.library.nashville.org
 ILSSERVER=waldo.library.nashville.org
 OUTPUT_FILE="/var/log/vufind-plus/${PIKASERVER}/extract_and_reindex_output.log"

@@ -1568,15 +1568,18 @@ class IndexRecord extends RecordInterface
 		return $this->profileType . ':' . $this->id;
 	}
 
+	/**
+	 * @return string[]
+	 */
 	public function getFormat(){
 		if (isset($this->fields['format'])){
 			if (is_array($this->fields['format'])){
-				return reset($this->fields['format']);
-			}else{
 				return $this->fields['format'];
+			}else{
+				return array($this->fields['format']);
 			}
 		}else{
-			return "Implement this when not backed by Solr data";
+			return array("Unknown");
 		}
 	}
 

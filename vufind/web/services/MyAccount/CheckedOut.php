@@ -14,7 +14,6 @@ class MyAccount_CheckedOut extends MyAccount{
 		global $configArray;
 		global $interface;
 		global $user;
-		global $timer;
 
 		$allCheckedOut = array();
 		if ($configArray['Catalog']['offline']){
