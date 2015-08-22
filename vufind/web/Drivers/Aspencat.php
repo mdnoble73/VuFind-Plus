@@ -941,7 +941,7 @@ class Aspencat implements DriverInterface{
 		if ($this->dbConnection == null){
 			$this->dbConnection = mysqli_connect($configArray['Catalog']['db_host'], $configArray['Catalog']['db_user'], $configArray['Catalog']['db_pwd'], $configArray['Catalog']['db_name']);
 
-			if (mysqli_errno($this->dbConnection) != 0){
+			if (!$this->dbConnection || mysqli_errno($this->dbConnection) != 0){
 				global $logger;
 				$logger->log("Error connecting to Koha database " . mysqli_error($this->dbConnection), PEAR_LOG_ERR);
 				$this->dbConnection = null;
@@ -2065,6 +2065,10 @@ class Aspencat implements DriverInterface{
 	 */
 	private function getHoldingsFromKohaDB($recordId){
 		$holdingsFromKoha = array();
+
+		if (strpos($recordId, ':') > 0){
+			list($type, $recordId) = explode(':', $recordId);
+		}
 
 		$this->initDatabaseConnection();
 
