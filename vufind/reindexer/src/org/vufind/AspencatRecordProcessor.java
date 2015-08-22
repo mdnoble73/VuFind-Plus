@@ -7,6 +7,8 @@ import org.marc4j.marc.Record;
 import org.marc4j.marc.VariableField;
 
 import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -21,12 +23,39 @@ import java.util.Set;
  * Time: 3:00 PM
  */
 public class AspencatRecordProcessor extends IlsRecordProcessor {
+	private HashSet<String> inTransitItems = new HashSet<>();
 	public AspencatRecordProcessor(GroupedWorkIndexer indexer, Connection vufindConn, Ini configIni, ResultSet indexingProfileRS, Logger logger, boolean fullReindex) {
 		super(indexer, vufindConn, configIni, indexingProfileRS, logger, fullReindex);
+
+		//Connect to the AspenCat database
+		Connection kohaConn = null;
+		try {
+			String kohaConnectionJDBC = "jdbc:mysql://" +
+					Util.cleanIniValue(configIni.get("Catalog", "db_host")) +
+					"/" + Util.cleanIniValue(configIni.get("Catalog", "db_name") +
+					"?user=" + Util.cleanIniValue(configIni.get("Catalog", "db_user")) +
+					"&password=" + Util.cleanIniValue(configIni.get("Catalog", "db_pwd")) +
+					"&useUnicode=yes&characterEncoding=UTF-8");
+			kohaConn = DriverManager.getConnection(kohaConnectionJDBC);
+
+			//Get a list of all items that are in transit
+			PreparedStatement getInTransitItemsStmt = kohaConn.prepareStatement("SELECT itemnumber from reserves WHERE found = 'T'");
+			ResultSet inTransitItemsRS = getInTransitItemsStmt.executeQuery();
+			while (inTransitItemsRS.next()){
+				inTransitItems.add(inTransitItemsRS.getString("itemnumber"));
+			}
+		} catch (Exception e) {
+			logger.error("Error connecting to koha database ", e);
+			System.exit(1);
+		}
+
 	}
 
 	@Override
 	protected boolean isItemAvailable(ItemInfo itemInfo) {
+		if (inTransitItems.contains(itemInfo.getItemIdentifier())){
+			return false;
+		}
 		return itemInfo.getStatusCode().equals("On Shelf") ||
 				itemInfo.getStatusCode().equals("Library Use Only");
 	}
@@ -64,6 +93,10 @@ public class AspencatRecordProcessor extends IlsRecordProcessor {
 
 	private HashSet<String> additionalStatuses = new HashSet<>();
 	protected String getItemStatus(DataField itemField){
+		String itemIdentifier = getItemSubfieldData(itemRecordNumberSubfieldIndicator, itemField);
+		if (inTransitItems.contains(itemIdentifier)){
+			return "In Transit";
+		}
 		//Determining status for Koha relies on a number of different fields
 		String status = getStatusFromSubfield(itemField, '0', "Withdrawn");
 		if (status != null) return status;

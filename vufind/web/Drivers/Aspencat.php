@@ -2067,7 +2067,7 @@ class Aspencat implements DriverInterface{
 		$this->initDatabaseConnection();
 
 		if ($this->getHoldsForBibStmt == null){
-			$sql = "SELECT branchcode, itemnumber from reserves WHERE biblionumber = ? AND found = 'T'";
+			$sql = "SELECT itemnumber from reserves WHERE biblionumber = ? AND found = 'T'";
 			$this->getHoldsForBibStmt = mysqli_prepare($this->dbConnection, $sql);
 		}
 		$this->getHoldsForBibStmt->bind_param("i", $recordId);
