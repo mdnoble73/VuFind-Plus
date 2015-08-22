@@ -46,14 +46,14 @@ public class RecordGroupingProcessor {
 	protected boolean fullRegrouping;
 	protected long startTime = new Date().getTime();
 
-	protected HashMap<String, HashMap<String, String>> translationMaps = new HashMap<String, HashMap<String, String>>();
+	protected HashMap<String, HashMap<String, String>> translationMaps = new HashMap<>();
 
 	//TODO: Determine if we can avoid this by simply using the ON DUPLICATE KEY UPDATE FUNCTIONALITY
 	//Would also want to mark merged works as changed (at least once) to make sure they get reindexed.
-	protected HashMap<String, Long> existingGroupedWorks = new HashMap<String, Long>();
+	protected HashMap<String, Long> existingGroupedWorks = new HashMap<>();
 
 	//A list of grouped works that have been manually merged.
-	protected HashMap<String, String> mergedGroupedWorks = new HashMap<String, String>();
+	protected HashMap<String, String> mergedGroupedWorks = new HashMap<>();
 
 	/**
 	 * Default constructor for use by subclasses
@@ -130,10 +130,6 @@ public class RecordGroupingProcessor {
 			subfield = subfieldString.charAt(0);
 		}
 		return subfield;
-	}
-
-	protected RecordIdentifier getPrimaryIdentifierFromMarcRecord(Record marcRecord){
-		return getPrimaryIdentifierFromMarcRecord(marcRecord, "ils");
 	}
 
 	protected RecordIdentifier getPrimaryIdentifierFromMarcRecord(Record marcRecord, String recordType){
@@ -215,7 +211,7 @@ public class RecordGroupingProcessor {
 		}
 	}
 	protected HashSet<RecordIdentifier> getIdentifiersFromMarcRecord(Record marcRecord) {
-		HashSet<RecordIdentifier> identifiers = new HashSet<RecordIdentifier>();
+		HashSet<RecordIdentifier> identifiers = new HashSet<>();
 		//Load identifiers
 		List<DataField> identifierFields = getDataFields(marcRecord, new String[]{"020", "024"});
 		for (DataField identifierField : identifierFields){
@@ -236,7 +232,7 @@ public class RecordGroupingProcessor {
 					identifierType = "upc";
 				}
 				RecordIdentifier identifier = new RecordIdentifier();
-				if (identifierValue.length() > 20){
+				if (identifierValue == null || identifierValue.length() > 20){
 					continue;
 				}else if (identifierValue.length() == 0){
 					continue;
@@ -252,7 +248,7 @@ public class RecordGroupingProcessor {
 
 	private List<DataField> getDataFields(Record marcRecord, String tag) {
 		List variableFields = marcRecord.getVariableFields(tag);
-		List<DataField> variableFieldsReturn = new ArrayList<DataField>();
+		List<DataField> variableFieldsReturn = new ArrayList<>();
 		for (Object variableField : variableFields){
 			if (variableField instanceof DataField){
 				variableFieldsReturn.add((DataField)variableField);
@@ -263,35 +259,13 @@ public class RecordGroupingProcessor {
 
 	private List<DataField> getDataFields(Record marcRecord, String[] tags) {
 		List variableFields = marcRecord.getVariableFields(tags);
-		List<DataField> variableFieldsReturn = new ArrayList<DataField>();
+		List<DataField> variableFieldsReturn = new ArrayList<>();
 		for (Object variableField : variableFields){
 			if (variableField instanceof DataField){
 				variableFieldsReturn.add((DataField)variableField);
 			}
 		}
 		return variableFieldsReturn;
-	}
-
-	public boolean processMarcRecord(Record marcRecord, String loadFormatFrom, char formatSubfield, boolean primaryDataChanged){
-		RecordIdentifier primaryIdentifier = getPrimaryIdentifierFromMarcRecord(marcRecord);
-		return processMarcRecord(marcRecord, primaryIdentifier, loadFormatFrom, formatSubfield, primaryDataChanged);
-	}
-
-	public boolean processMarcRecord(Record marcRecord, RecordIdentifier primaryIdentifier, String loadFormatFrom, char formatSubfield, boolean primaryDataChanged){
-		if (primaryIdentifier != null){
-			//Get data for the grouped record
-			GroupedWorkBase workForTitle = setupBasicWorkForIlsRecord(marcRecord, loadFormatFrom, formatSubfield);
-
-			//Identifiers
-			HashSet<RecordIdentifier> identifiers = getIdentifiersFromMarcRecord(marcRecord);
-			workForTitle.setIdentifiers(identifiers);
-
-			addGroupedWorkToDatabase(primaryIdentifier, workForTitle, primaryDataChanged);
-			return true;
-		}else{
-			//The record is suppressed
-			return false;
-		}
 	}
 
 	public GroupedWorkBase setupBasicWorkForIlsRecord(Record marcRecord, String loadFormatFrom, char formatSubfield) {
@@ -1206,13 +1180,17 @@ public class RecordGroupingProcessor {
 		return translationMap;
 	}
 
-	HashSet<String> unableToTranslateWarnings = new HashSet<String>();
+	HashSet<String> unableToTranslateWarnings = new HashSet<>();
 	public String translateValue(String mapName, String value){
 		value = value.toLowerCase();
 		HashMap<String, String> translationMap = translationMaps.get(mapName);
 		String translatedValue;
 		if (translationMap == null){
-			logger.error("Unable to find translation map for " + mapName);
+			if (!unableToTranslateWarnings.contains("unable_to_find_" + mapName)){
+				logger.error("Unable to find translation map for " + mapName);
+				unableToTranslateWarnings.add("unable_to_find_" + mapName);
+			}
+
 			translatedValue = value;
 		}else{
 			if (translationMap.containsKey(value)){

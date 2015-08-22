@@ -1311,7 +1311,7 @@ public class RecordGrouperMain {
 								Record curBib = catalogReader.next();
 								RecordIdentifier recordIdentifier = recordGroupingProcessor.getPrimaryIdentifierFromMarcRecord(curBib, curProfile.name);
 								if (recordIdentifier == null) {
-									logger.warn("Could not find an identifier for record with control number " + curBib.getControlNumber());
+									logger.info("Record with control number " + curBib.getControlNumber() + " was suppressed or is eContent");
 								}else{
 									String recordNumber = recordIdentifier.getIdentifier();
 									boolean marcUpToDate = writeIndividualMarc(existingMarcFiles, individualMarcPath, curBib, recordNumber, curProfile.name, 4);
