@@ -260,7 +260,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 				allRelatedRecords.add(recordInfo);
 			}
 
-			//Sing print formats are loaded at the record level, do it after we have loaded items
+			//Since print formats are loaded at the record level, do it after we have loaded items
 			loadPrintFormatInformation(recordInfo, record);
 
 			//Now look for any eContent that is defined within the ils
@@ -658,17 +658,19 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 
 		itemInfo.setCollection(translateValue("collection", getItemSubfieldData(collectionSubfield, itemField)));
 
-		if (loadFormatFromItems){
+		if (loadFormatFromItems && formatSubfield != ' '){
 			String format = getItemSubfieldData(formatSubfield, itemField);
-			itemInfo.setFormat(translateValue("format", format));
-			itemInfo.setFormatCategory(translateValue("format_category", format));
-			String formatBoost = translateValue("format_boost", format);
-			try {
-				if (formatBoost != null && formatBoost.length() > 0) {
-					recordInfo.setFormatBoost(Integer.parseInt(formatBoost));
+			if (format != null) {
+				itemInfo.setFormat(translateValue("format", format));
+				itemInfo.setFormatCategory(translateValue("format_category", format));
+				String formatBoost = translateValue("format_boost", format);
+				try {
+					if (formatBoost != null && formatBoost.length() > 0) {
+						recordInfo.setFormatBoost(Integer.parseInt(formatBoost));
+					}
+				} catch (Exception e) {
+					logger.warn("Could not get boost for format " + format);
 				}
-			}catch (Exception e){
-				logger.warn("Could not get boost for format " + format);
 			}
 		}
 
@@ -910,7 +912,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		LinkedHashSet<String> printFormats = new LinkedHashSet<>();
 
 		//We should already have formats based on the items
-		if (loadFormatFromItems){
+		if (loadFormatFromItems && formatSubfield != ' ' && recordInfo.hasItemFormats()){
 			return;
 		}
 

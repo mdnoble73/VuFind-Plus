@@ -319,4 +319,13 @@ public class RecordInfo {
 			}
 		}
 	}
+
+	public boolean hasItemFormats() {
+		for (ItemInfo curItem : relatedItems){
+			if (curItem.getFormat() != null){
+				return true;
+			}
+		}
+		return false;
+	}
 }
