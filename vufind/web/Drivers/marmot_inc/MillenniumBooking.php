@@ -68,6 +68,13 @@ class MillenniumBooking {
 		// Get pagen from form
 		$curlResponse = $driver->_curlGetPage($bookingUrl);
 
+		if (preg_match('/You cannot book this material/i', $curlResponse)){
+			return array(
+				'success' => false,
+				'message' => 'Sorry, you cannot schedule this item.'
+			);
+		}
+
 		$tag = 'input';
 		$tag_pattern =
 			'@<(?P<tag>'.$tag.')           # <tag
