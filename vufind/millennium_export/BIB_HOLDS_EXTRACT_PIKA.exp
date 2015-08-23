@@ -6,6 +6,9 @@
 
 log_user 0 ; # do NOT send screens to stdout
 
+# 20150823 : added sleep after exporting file to give time to write to disk
+# http://marmot.myjetbrains.com/youtrack/issue/PK-769
+
 # 20150227
 # + do not send screens to stdout
 # + LOGGING
@@ -170,6 +173,7 @@ expect "File $name.out already exists!  Overwrite it? (y/n)"
 send "y"
 expect "Output the file now? (y/n)"
 send "n"
+sleep 10
 close
 puts $logFile "[clock format [clock seconds] -format "%y%m%d %H:%M:%S"] >> Export file prepared on $host"
 
