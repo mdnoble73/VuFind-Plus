@@ -1463,6 +1463,8 @@ class GroupedWorkDriver extends RecordInterface{
 					$selectedFormat = urldecode($matches[1]);
 				}elseif (preg_match('/^availability_toggle(?:\w*):"?(.+?)"?$/', $filter, $matches)){
 					$selectedAvailability = urldecode($matches[1]);
+				}elseif (preg_match('/^availability_by_format(?:[\w_]*):"?(.+?)"?$/', $filter, $matches)){
+					$selectedAvailability = urldecode($matches[1]);
 				}
 			}
 		}

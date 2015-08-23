@@ -75,7 +75,7 @@ class SideFacets implements RecommendationInterface
 				$facetName = $facet->facetName;
 				//Adjust facet name for local scoping
 				if ($solrScope){
-					if ($facet->facetName == 'availability_toggle' && $configArray['Index']['enableDetailedAvailability']){
+					if ($facet->facetName == 'availability_toggle'){
 						$facetName = 'availability_toggle_' . $solrScope;
 					}elseif ($facet->facetName == 'format'){
 						$facetName = 'format_' . $solrScope;

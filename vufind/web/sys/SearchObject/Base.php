@@ -259,7 +259,7 @@ abstract class SearchObject_Base
 			if (isset($searchLocation)){
 				if ($field == 'time_since_added' && $searchLocation->restrictSearchByLocation){
 					$field = 'local_time_since_added_' . $searchLocation->code;
-				}elseif ($field == 'availability_toggle' && $configArray['Index']['enableDetailedAvailability']){
+				}elseif ($field == 'availability_toggle'){
 					$field = 'availability_toggle_' . $searchLocation->code;
 				}
 			}

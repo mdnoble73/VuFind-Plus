@@ -387,19 +387,19 @@ class SearchObject_Solr extends SearchObject_Base
 					$facetName = 'itype_' . $searchLibrary->subdomain;
 				}elseif ($facet->facetName == 'detailed_location'){
 					$facetName = 'detailed_location_' . $searchLibrary->subdomain;
-				}elseif ($facet->facetName == 'availability_toggle' && $configArray['Index']['enableDetailedAvailability']){
+				}elseif ($facet->facetName == 'availability_toggle'){
 					$facetName = 'availability_toggle_' . $searchLibrary->subdomain;
 				}
 			}
 			if (isset($userLocation)){
-				if ($facet->facetName == 'availability_toggle' && $configArray['Index']['enableDetailedAvailability']){
+				if ($facet->facetName == 'availability_toggle'){
 					$facetName = 'availability_toggle_' . $userLocation->code;
 				}
 			}
 			if (isset($searchLocation)){
 				if ($facet->facetName == 'time_since_added' && $searchLocation->restrictSearchByLocation){
 					$facetName = 'local_time_since_added_' . $searchLocation->code;
-				}elseif ($facet->facetName == 'availability_toggle' && $configArray['Index']['enableDetailedAvailability']){
+				}elseif ($facet->facetName == 'availability_toggle'){
 					$facetName = 'availability_toggle_' . $searchLocation->code;
 				}
 			}
@@ -1253,8 +1253,10 @@ class SearchObject_Solr extends SearchObject_Base
 		foreach ($this->filterList as $field => $filter) {
 			foreach ($filter as $value) {
 				$analytics->addEvent('Apply Facet', $field, $value);
+				$isAvailabilityToggle = false;
 				if (substr($field, 0, strlen('availability_toggle')) == 'availability_toggle'){
 					$availabilityToggleValue = $value;
+					$isAvailabilityToggle = true;
 				}elseif (substr($field, 0, strlen('format_category')) == 'format_category'){
 					$formatCategoryValue = $value;
 				}elseif (substr($field, 0, strlen('format')) == 'format'){
@@ -1267,21 +1269,28 @@ class SearchObject_Solr extends SearchObject_Base
 					$filterQuery[] = "$field:$value";
 				} else {
 					if (!empty($value)){
-						$filterQuery[] = "$field:\"$value\"";
+						if ($isAvailabilityToggle){
+							$filterQuery['availability_toggle'] = "$field:\"$value\"";
+						}else{
+							$filterQuery[] = "$field:\"$value\"";
+						}
 					}
 				}
 			}
 		}
 
 		//Check to see if we have both a format and availability facet applied.
+		$availabilityByFormatFieldName = null;
 		if ($availabilityToggleValue != null && ($formatCategoryValue != null || $formatValue != null)){
 			global $solrScope;
 			//Make sure to process the more specific format first
 			if ($formatValue != null){
-				$filterQuery[] = 'availability_by_format_' . $solrScope . '_' . $formatValue . ':"' . $availabilityToggleValue . '"';
+				$availabilityByFormatFieldName = 'availability_by_format_' . $solrScope . '_' . strtolower(preg_replace('/\W/', '_', $formatValue));
 			}else{
-				$filterQuery[] = 'availability_by_format_' . $solrScope . '_' . $formatCategoryValue . ':"' . $availabilityToggleValue . '"';
+				$availabilityByFormatFieldName = 'availability_by_format_' . $solrScope . '_' . strtolower(preg_replace('/\W/', '_', $formatCategoryValue));
 			}
+			$filterQuery['availability_toggle'] = $availabilityByFormatFieldName . ':"' . $availabilityToggleValue . '"';
+
 		}
 
 
@@ -1296,7 +1305,15 @@ class SearchObject_Solr extends SearchObject_Base
 		if (!empty($this->facetConfig)) {
 			$facetSet['limit'] = $this->facetLimit;
 			foreach ($this->facetConfig as $facetField => $facetName) {
-				$facetSet['field'][] = $facetField;
+				if (strpos($facetField, 'availability_toggle') === 0){
+					if ($availabilityByFormatFieldName){
+						$facetSet['field'][] = $availabilityByFormatFieldName;
+					}else{
+						$facetSet['field'][] = $facetField;
+					}
+				}else{
+					$facetSet['field'][] = $facetField;
+				}
 			}
 			if ($this->facetOffset != null) {
 				$facetSet['offset'] = $this->facetOffset;
@@ -1644,7 +1661,20 @@ class SearchObject_Solr extends SearchObject_Base
 		foreach ($allFacets as $field => $data) {
 			// Skip filtered fields and empty arrays:
 			if (!in_array($field, $validFields) || count($data) < 1) {
-				continue;
+				$isValid = false;
+				//Check to see if we are overriding availability toggle
+				if (strpos($field, 'availability_by_format') === 0){
+					foreach ($validFields as $validFieldName){
+						if (strpos($validFieldName, 'availability_toggle') === 0){
+							$field = $validFieldName;
+							$isValid  = true;
+							break;
+						}
+					}
+				}
+				if (!$isValid){
+					continue;
+				}
 			}
 			// Initialize the settings for the current field
 			$list[$field] = array();

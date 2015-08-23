@@ -1379,13 +1379,19 @@ class Solr implements IndexEngine {
 			foreach ($filter as $id => $filterTerm){
 				list($fieldName, $term) = explode(":", $filterTerm, 2);
 				if (!in_array($fieldName, $validFields)){
-					//Field doesn't exist, check to see if it is a dynamic field
-					//Where we can replace the scope with the current scope
-					foreach ($dynamicFields as $dynamicField){
-						if (preg_match("/^{$dynamicField}[^_]+$/", $fieldName)){
-							//This is a dynamic field with the wrong
-							$validFilters[$id] = $dynamicField . $solrScope . ":" . $term;
-							break;
+					//Special handling for availability_by_format
+					if (preg_match("/^availability_by_format_([^_]+)_[\\w_]+$/", $fieldName)){
+						//This is a valid field
+						$validFilters[$id] = $filterTerm;
+					}else{
+						//Field doesn't exist, check to see if it is a dynamic field
+						//Where we can replace the scope with the current scope
+						foreach ($dynamicFields as $dynamicField){
+							if (preg_match("/^{$dynamicField}[^_]+$/", $fieldName)){
+								//This is a dynamic field with the wrong scope
+								$validFilters[$id] = $dynamicField . $solrScope . ":" . $term;
+								break;
+							}
 						}
 					}
 				}else{
@@ -1457,7 +1463,7 @@ class Solr implements IndexEngine {
 		//Check to see if there are filters we want to show all values for
 		if (isset($filters) && is_array($filters)){
 			foreach ($filters as $key => $value){
-				if (strpos($value, 'availability_toggle') === 0){
+				if (strpos($value, 'availability_toggle') === 0 || strpos($value, 'availability_by_format') === 0){
 					$filters[$key] = '{!tag=avail}' . $value;
 				}
 			}

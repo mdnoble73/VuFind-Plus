@@ -441,60 +441,15 @@ public class GroupedWorkSolr {
 				doc.addField("local_time_since_added_" + scope.getScopeName(), Util.getTimeSinceAdded(daysSinceAdded));
 			}
 		}
-
-		/*for (Scope scope : groupedWorkIndexer.getScopes()){
-			HashSet<RecordInfo> scopedRecords = new HashSet<>();
-			HashSet<ItemInfo> scopedItems = new HashSet<>();
-			loadRelatedRecordsAndItemsForScope(scope, scopedRecords, scopedItems);
-			if (scopedRecords.size() > 0) {
-				String scopeName = scope.getScopeName();
-				scopesWithRecords.add(scopeName);
-				doc.addField("format_" + scopeName, getScopedFormats(scopedRecords));
-				doc.addField("format_category_" + scopeName, getScopedFormatCategories(scopedRecords));
-				HashSet<String> detailedLocations = getScopedShelfLocations(scopedItems);
-				if (detailedLocations.size() > 0) {
-					doc.addField("detailed_location_" + scopeName, detailedLocations);
-				}
-
-				doc.addField("collection_" + scopeName, getCollections(scopedItems, scope));
-				
-				if (hasAvailableItemsWithinScope(scopedItems, scope)){
-					availableFacets.add(scope.getFacetLabel());
-				}
-
-				doc.addField("availability_toggle_" + scopeName, getAvailabilityToggle(scopedItems, scope));
-				doc.addField("availability_by_format_" + scopeName, getAvailabilityToggleByFormat(scopedItems, scope));
-
-				if (isLocallyOwned(scopedItems, scope)){
-					doc.addField("lib_boost_" + scopeName, availableAtBoostValue);
-				}else{
-					doc.addField("lib_boost_" + scopeName, ownedByBoostValue);
-				}
-
-				Date localDateAdded = getLocalDateAdded(scopedItems, scope);
-				if (localDateAdded != null) {
-					doc.addField("local_time_since_added_" + scopeName, Util.getTimeSinceAddedForDate(localDateAdded));
-					doc.addField("local_days_since_added_" + scopeName, Util.getDaysSinceAddedForDate(localDateAdded));
-				}
-
-				doc.addField("itype_" + scopeName, getLocalITypes(scopedItems, scope));
-				doc.addField("econtent_source_" + scopeName, getLocalEContentSources(scopedItems, scope));
-				doc.addField("econtent_protection_type_" + scopeName, getLocalEContentProtectionTypes(scopedItems, scope));
-				doc.addField("local_callnumber_" + scopeName, getLocalCallNumbers(scopedItems, scope));
-				doc.addField("callnumber_sort_" + scopeName, getSortableLocalCallNumber(scopedItems, scope));
-			}
-		}
-		doc.addField("scope_has_related_records", scopesWithRecords);
-		doc.addField("available_at", availableFacets);*/
 	}
 
 	private void addAvailabilityToggleValues(SolrInputDocument doc, RecordInfo curRecord, String curScopeName, HashSet<String> availabilityToggleValues) {
 		addUniqueFieldValues(doc, "availability_toggle_" + curScopeName, availabilityToggleValues);
 		for (String format : curRecord.getAllFormats()) {
-			addUniqueFieldValues(doc, "availability_by_format_" + curScopeName + "_" + format, availabilityToggleValues);
+			addUniqueFieldValues(doc, "availability_by_format_" + curScopeName + "_" + format.replaceAll("\\W", "_").toLowerCase(), availabilityToggleValues);
 		}
 		for (String formatCategory : curRecord.getAllFormatCategories()) {
-			addUniqueFieldValues(doc, "availability_by_format_" + curScopeName + "_" + formatCategory, availabilityToggleValues);
+			addUniqueFieldValues(doc, "availability_by_format_" + curScopeName + "_" + formatCategory.replaceAll("\\W", "_").toLowerCase(), availabilityToggleValues);
 		}
 	}
 
