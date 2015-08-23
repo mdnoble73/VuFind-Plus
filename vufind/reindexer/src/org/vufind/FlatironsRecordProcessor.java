@@ -9,6 +9,7 @@ import org.marc4j.marc.Subfield;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 /**
@@ -181,5 +182,18 @@ public class FlatironsRecordProcessor extends IIIRecordProcessor{
 
 	protected boolean loanRulesAreBasedOnCheckoutLocation(){
 		return false;
+	}
+
+	protected void loadTargetAudiences(GroupedWorkSolr groupedWork, Record record, HashSet<ItemInfo> printItems) {
+		//For Flatirons, load audiences based on the final character of the location codes
+		HashSet<String> targetAudiences = new HashSet<>();
+		for (ItemInfo printItem : printItems){
+			String locationCode = printItem.getLocationCode();
+			String lastCharacter = locationCode.substring(locationCode.length() -1);
+			targetAudiences.add(lastCharacter);
+		}
+
+		groupedWork.addTargetAudiences(translateCollection("target_audience", targetAudiences));
+		groupedWork.addTargetAudiencesFull(translateCollection("target_audience", targetAudiences));
 	}
 }
