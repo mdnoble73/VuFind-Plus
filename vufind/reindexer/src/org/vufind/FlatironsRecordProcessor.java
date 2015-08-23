@@ -93,6 +93,8 @@ public class FlatironsRecordProcessor extends IIIRecordProcessor{
 					//Check the 856 tag to see if there is a link there
 					loadEContentUrl(record, itemInfo);
 
+					loadEContentFormatInformation(record, relatedRecord, itemInfo);
+
 					//Determine which scopes this title belongs to
 					for (Scope curScope : indexer.getScopes()){
 						if (curScope.isItemPartOfScope(profileType, eContentLocation, "", false, false, true)){
@@ -166,11 +168,47 @@ public class FlatironsRecordProcessor extends IIIRecordProcessor{
 		return false;
 	}
 
-	protected void loadEContentFormatInformation(RecordInfo econtentRecord, ItemInfo econtentItem) {
-		String collection = "online_resource";
-		String translatedFormat = translateValue("format", collection);
-		String translatedFormatCategory = translateValue("format_category", collection);
-		String translatedFormatBoost = translateValue("format_boost", collection);
+	protected void loadEContentFormatInformation(Record record, RecordInfo econtentRecord, ItemInfo econtentItem) {
+		//Load the eContent Format from the mat type
+		String bibFormat = getFirstFieldVal(record, "998e").trim();
+		String format;
+		switch (bibFormat){
+			case "3":
+				format = "eBook";
+				break;
+			case "v":
+				format = "eVideo";
+				break;
+			case "u":
+				format = "eAudioBook";
+				break;
+			case "y":
+				format = "eMusic";
+				break;
+			case "t":
+				//Check to see if this is a serial resource
+				String leader = record.getLeader().toString();
+				boolean isSerial = false;
+				if (leader.length() >= 7) {
+					// check the Leader at position 7
+					char leaderBit = leader.charAt(7);
+					if (leaderBit == 's' || leaderBit == 'S') {
+						isSerial = true;
+					}
+				}
+				if (isSerial){
+					format = "eJournal";
+				}else {
+					format = "online_resource";
+				}
+				break;
+			default:
+				format = "Unknown";
+		}
+
+		String translatedFormat = translateValue("format", format);
+		String translatedFormatCategory = translateValue("format_category", format);
+		String translatedFormatBoost = translateValue("format_boost", format);
 		econtentItem.setFormat(translatedFormat);
 		econtentItem.setFormatCategory(translatedFormatCategory);
 		econtentRecord.setFormatBoost(Long.parseLong(translatedFormatBoost));

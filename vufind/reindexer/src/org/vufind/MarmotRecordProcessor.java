@@ -123,7 +123,7 @@ public class MarmotRecordProcessor extends IIIRecordProcessor {
 	}
 
 	@Override
-	protected void loadEContentFormatInformation(RecordInfo econtentRecord, ItemInfo econtentItem) {
+	protected void loadEContentFormatInformation(Record record, RecordInfo econtentRecord, ItemInfo econtentItem) {
 		String protectionType = econtentItem.geteContentProtectionType();
 		switch (protectionType) {
 			case "acs":

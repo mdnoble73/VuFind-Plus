@@ -526,7 +526,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 				break;
 		}
 
-		loadEContentFormatInformation(relatedRecord, itemInfo);
+		loadEContentFormatInformation(record, relatedRecord, itemInfo);
 
 		//Get the url if any
 		Subfield urlSubfield = itemField.getSubfield(itemUrlSubfieldIndicator);
@@ -1529,10 +1529,11 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 	/**
 	 * Load information about eContent formats.
 	 *
+	 * @param record
 	 * @param econtentRecord The record to load format information for
 	 * @param econtentItem   The item to load format information for
 	 */
-	protected void loadEContentFormatInformation(RecordInfo econtentRecord, ItemInfo econtentItem) {
+	protected void loadEContentFormatInformation(Record record, RecordInfo econtentRecord, ItemInfo econtentItem) {
 
 	}
 

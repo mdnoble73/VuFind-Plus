@@ -237,7 +237,7 @@ public class AspencatRecordProcessor extends IlsRecordProcessor {
 	}
 
 	@Override
-	protected void loadEContentFormatInformation(RecordInfo econtentRecord, ItemInfo econtentItem) {
+	protected void loadEContentFormatInformation(Record record, RecordInfo econtentRecord, ItemInfo econtentItem) {
 		if (econtentItem.getITypeCode() != null) {
 			String iType = econtentItem.getITypeCode().toLowerCase();
 			String translatedFormat = translateValue("format", iType);
