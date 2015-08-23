@@ -729,9 +729,8 @@ class Solr implements IndexEngine {
 	 */
 	private function _applySearchSpecs($structure, $values, $joiner = "OR")
 	{
-		global $configArray;
+		global $solrScope;
 		$clauses = array();
-		$searchLibrary = Library::getSearchLibrary($this->searchSource);
 		foreach ($structure as $field => $clauseArray) {
 			if (is_numeric($field)) {
 				// shift off the join string and weight
@@ -747,9 +746,9 @@ class Solr implements IndexEngine {
 				// push it onto the stack of clauses
 				$clauses[] = $searchString;
 			} else {
-				if ($searchLibrary && $configArray['Index']{'enableLocalCallNumberSearch'}){
+				if ($solrScope){
 					if ($field == 'local_callnumber' || $field == 'local_callnumber_left' || $field == 'local_callnumber_exact'){
-						$field .= '_' . $searchLibrary->subdomain;
+						$field .= '_' . $solrScope;
 					}
 				}
 				// Otherwise, we've got a (list of) [munge, weight] pairs to deal with

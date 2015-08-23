@@ -425,7 +425,7 @@ public class GroupedWorkSolr {
 						addUniqueFieldValue(doc, "econtent_source_" + curScopeName, curItem.geteContentSource());
 						addUniqueFieldValue(doc, "econtent_protection_type_" + curScopeName, curItem.geteContentProtectionType());
 					}
-					if (curScope.isLocallyOwned() || curScope.isLibraryOwned()) {
+					if (curScope.isLocallyOwned() || curScope.isLibraryOwned() || !curScope.getScope().isRestrictOwningLibraryAndLocationFacets()) {
 						addUniqueFieldValue(doc, "local_callnumber_" + curScopeName, curItem.getCallNumber());
 						setSingleValuedFieldValue(doc, "callnumber_sort_" + curScopeName, curItem.getSortableCallNumber());
 					}
