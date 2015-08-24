@@ -438,13 +438,14 @@ class ListAPI extends Action {
 				$listId = $listInfo[1];
 			}
 			return $this->_getUserListTitles($listId);
-		}elseif (preg_match('/search:(.*)/', $listId, $searchInfo)){
+		}
+		elseif (preg_match('/search:(?<searchID>.*)/', $listId, $searchInfo)){
 			if (is_numeric($searchInfo[1])){
 				$titles = $this->getSavedSearchTitles($searchInfo[1]);
-				if ($titles && count($titles) > 0 ){
+				if ($titles === false) { // Didn't find saved search
+					return array('success'=>false, 'message' => 'The specified search could not be found.');
+				} else { // successful search with or without any results. (javascript can handle no results returned.)
 					return array('success'=>true, 'listTitle' => $listId, 'listDescription' => "Search Results", 'titles'=>$titles, 'cacheLength'=>4);
-				}else{
-					return array('success'=>false, 'message'=>'The specified search could not be found.');
 				}
 			}else{
 				//Do a default search
