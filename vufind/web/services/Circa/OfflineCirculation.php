@@ -100,7 +100,7 @@ class Circa_OfflineCirculation extends Action{
 						}
 					}
 				}
-				$results = "Successfully checked out <strong>{$numItemsCheckedOut}</strong> items to patron <strong>{$patronBarcode}</strong>.<br>";
+				$results = "Successfully added <strong>{$numItemsCheckedOut}</strong> items to offline circulation transactions for patron <strong>{$patronBarcode}</strong>.<br>";
 			}
 			if (isset($results)) $interface->assign('results', $results);
 			else $error .= 'No Items were checked out.<br>';
