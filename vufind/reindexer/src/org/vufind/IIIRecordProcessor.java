@@ -102,25 +102,6 @@ public abstract class IIIRecordProcessor extends IlsRecordProcessor{
 		}
 	}
 
-	private HashMap<String, LinkedHashSet<String>> ptypesByItypeAndLocation = new HashMap<>();
-	protected LinkedHashSet<String> getCompatiblePTypes(String iType, String locationCode) {
-		if (loanRuleDeterminers.size() == 0){
-			return new LinkedHashSet<>();
-		}
-		String cacheKey = iType + ":" + locationCode;
-		if (ptypesByItypeAndLocation.containsKey(cacheKey)){
-			return ptypesByItypeAndLocation.get(cacheKey);
-		}else{
-			logger.debug("Did not get cached ptype compatibility for " + cacheKey);
-		}
-		LinkedHashSet<String> result = calculateCompatiblePTypes(iType, locationCode);
-
-		//logger.debug("  " + result.size() + " ptypes can use this");
-		ptypesByItypeAndLocation.put(cacheKey, result);
-		return result;
-	}
-
-
 	private HashMap<String, HashSet<LoanRule>> cachedRelevantLoanRules = new HashMap<>();
 	private HashSet<LoanRule> getRelevantLoanRules(String iType, String locationCode, HashSet<Long> pTypesToCheck){
 		//Look for ac cached value
@@ -135,9 +116,8 @@ public abstract class IIIRecordProcessor extends IlsRecordProcessor{
 		HashSet<Long> pTypesNotAccountedFor = new HashSet<>();
 		pTypesNotAccountedFor.addAll(pTypesToCheck);
 		Long iTypeLong = Long.parseLong(iType);
-		for (int j = 0 ; j < loanRuleDeterminers.size(); j++){
-			LoanRuleDeterminer curDeterminer = loanRuleDeterminers.get(j);
-			if (curDeterminer.isActive()){
+		for (LoanRuleDeterminer curDeterminer : loanRuleDeterminers) {
+			if (curDeterminer.isActive()) {
 				//Make sure the location matches
 				if (curDeterminer.matchesLocation(locationCode)) {
 					//logger.debug("    " + curDeterminer.getRowNumber() + " matches location");
@@ -149,12 +129,12 @@ public abstract class IIIRecordProcessor extends IlsRecordProcessor{
 							relevantLoanRules.add(loanRule);
 
 							//Stop once we have accounted for all ptypes
-							if (curDeterminer.getPatronType().equals("999")){
+							if (curDeterminer.getPatronType().equals("999")) {
 								//999 accounts for all pTypes
 								break;
-							}else{
+							} else {
 								pTypesNotAccountedFor.removeAll(curDeterminer.getPatronTypes());
-								if (pTypesNotAccountedFor.size() == 0){
+								if (pTypesNotAccountedFor.size() == 0) {
 									break;
 								}
 							}
@@ -183,48 +163,6 @@ public abstract class IIIRecordProcessor extends IlsRecordProcessor{
 			}
 		}
 		return false;
-	}
-
-	private LinkedHashSet<String> calculateCompatiblePTypes(String iType, String locationCode) {
-		//logger.debug("getCompatiblePTypes for " + cacheKey);
-		LinkedHashSet<String> result = new LinkedHashSet<>();
-		if (!Util.isNumeric(iType)){
-			logger.warn("IType " + iType + " was not numeric marking as incompatible with everything");
-			return result;
-		}
-		Long iTypeLong = Long.parseLong(iType);
-		//Loop through all patron types to see if the item is holdable
-		for (Long pType : pTypes){
-			//logger.debug("  Checking pType " + pType);
-			//Loop through the loan rules to see if this itype can be used based on the location code
-			for (LoanRuleDeterminer curDeterminer : loanRuleDeterminers){
-				if (curDeterminer.isActive()){
-					//logger.debug("    " + curDeterminer.getRowNumber() + " matches location");
-					if (curDeterminer.getItemType().equals("999") || curDeterminer.getItemTypes().contains(iTypeLong)) {
-						//logger.debug("    " + curDeterminer.getRowNumber() + " matches iType");
-						if (curDeterminer.getPatronType().equals("999") || curDeterminer.getPatronTypes().contains(pType)) {
-							//logger.debug("    " + curDeterminer.getRowNumber() + " matches pType");
-							//Make sure the location matches
-							if (curDeterminer.matchesLocation(locationCode)) {
-								LoanRule loanRule = loanRules.get(curDeterminer.getLoanRuleId());
-								if (loanRule.getHoldable().equals(Boolean.TRUE)) {
-									if (curDeterminer.getPatronType().equals("999")) {
-										result.add("all");
-										return result;
-									} else {
-										result.add(pType.toString());
-									}
-								}
-								//We got a match, stop processing
-								//logger.debug("    using determiner " + curDeterminer.getRowNumber() + " for ptype " + pType);
-								break;
-							}
-						}
-					}
-				}
-			}
-		}
-		return result;
 	}
 
 	@Override

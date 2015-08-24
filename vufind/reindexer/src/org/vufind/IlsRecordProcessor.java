@@ -445,13 +445,13 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 
 		loadDateAdded(identifier, itemField, itemInfo);
 		String itemLocation = getItemSubfieldData(locationSubfieldIndicator, itemField);
+		itemInfo.setLocationCode(itemLocation);
 		String itemSublocation = getItemSubfieldData(subLocationSubfield, itemField);
 		if (itemSublocation == null){
 			itemSublocation = "";
 		}
-		itemInfo.setLocationCode(itemLocation);
 		itemInfo.setSubLocationCode(itemSublocation);
-		if (itemSublocation != null && itemSublocation.length() > 0){
+		if (itemSublocation.length() > 0){
 			itemInfo.setSubLocation(translateValue("sub_location", itemSublocation));
 		}
 		itemInfo.setITypeCode(getItemSubfieldData(iTypeSubfield, itemField));
@@ -640,7 +640,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 			itemSublocation = "";
 		}
 		itemInfo.setSubLocationCode(itemSublocation);
-		if (itemSublocation != null){
+		if (itemSublocation.length() > 0){
 			itemInfo.setSubLocation(translateValue("sub_location", itemSublocation));
 		}
 
@@ -847,11 +847,6 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 
 	protected boolean isItemBookable(ItemInfo itemInfo, Scope curScope) {
 		return false;
-	}
-
-	//By default we don't need to do anything
-	protected LinkedHashSet<String> getCompatiblePTypes(String iType, String locationCode) {
-		return new LinkedHashSet<>();
 	}
 
 	protected String getShelfLocationForItem(DataField itemField) {
