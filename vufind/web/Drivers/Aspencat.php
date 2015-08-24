@@ -2132,7 +2132,7 @@ class Aspencat implements DriverInterface{
 				$curItem['locationCode'] = $curRow['location'];
 				$curItem['library'] = mapValue('location', $curRow['holdingbranch']);
 				$curItem['location'] = $curRow['location'];
-				$curItem['collection'] = mapValue('ccode', $curRow['ccode']);
+				$curItem['collection'] = mapValue('sub_location', $curRow['ccode']);
 				$curItem['callnumber'] = $curRow['itemcallnumber'];
 				$curItem['volInfo'] = $curRow['enumchron'];
 				$curItem['copy'] = $curRow['itemcallnumber'];

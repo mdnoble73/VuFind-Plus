@@ -15,6 +15,7 @@ public class ItemInfo {
 	private String itemIdentifier;
 	private String locationCode;
 	private String subLocationCode;
+	private String subLocation;
 	private String format;
 	private String subFormat;
 	private String formatCategory;
@@ -378,5 +379,13 @@ public class ItemInfo {
 
 	public String getFullRecordIdentifier() {
 		return recordInfo.getFullIdentifier();
+	}
+
+	public String getSubLocation() {
+		return subLocation;
+	}
+
+	public void setSubLocation(String subLocation) {
+		this.subLocation = subLocation;
 	}
 }

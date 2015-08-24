@@ -451,6 +451,9 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		}
 		itemInfo.setLocationCode(itemLocation);
 		itemInfo.setSubLocationCode(itemSublocation);
+		if (itemSublocation != null && itemSublocation.length() > 0){
+			itemInfo.setSubLocation(translateValue("sub_location", itemSublocation));
+		}
 		itemInfo.setITypeCode(getItemSubfieldData(iTypeSubfield, itemField));
 		itemInfo.setIType(translateValue("itype", getItemSubfieldData(iTypeSubfield, itemField)));
 		loadItemCallNumber(record, itemField, itemInfo);
@@ -637,6 +640,9 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 			itemSublocation = "";
 		}
 		itemInfo.setSubLocationCode(itemSublocation);
+		if (itemSublocation != null){
+			itemInfo.setSubLocation(translateValue("sub_location", itemSublocation));
+		}
 
 		//if the status and location are null, we can assume this is not a valid item
 		if (!isItemValid(itemStatus, itemLocation)) return null;
