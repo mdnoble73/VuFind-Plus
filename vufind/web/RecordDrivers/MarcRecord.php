@@ -36,7 +36,7 @@ class MarcRecord extends IndexRecord
 	protected $id;
 	/** @var  IndexingProfile $indexingProfile */
 	protected $indexingProfile;
-	protected $valid = true;
+	protected $valid = null;
 
 	/**
 	 * Constructor.  We build the object using all the data retrieved
