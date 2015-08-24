@@ -1230,6 +1230,8 @@ class MarcRecord extends IndexRecord
 					return array($recordDetail[1]);
 				}
 			}
+			//We did not find a record for this in the index.  It's probably been deleted.
+			return array('Unknown');
 		}else{
 			return array('Unknown');
 		}
