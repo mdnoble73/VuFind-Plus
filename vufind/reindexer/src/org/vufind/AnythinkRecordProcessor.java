@@ -61,7 +61,7 @@ public class AnythinkRecordProcessor extends IlsRecordProcessor {
 				return true;
 			}
 		}
-		return false;
+		return super.isItemSuppressed(curItem);
 	}
 
 	@Override
@@ -109,5 +109,15 @@ public class AnythinkRecordProcessor extends IlsRecordProcessor {
 		}catch (Exception e){
 			logger.error("Unable to load date added for " + identfier);
 		}
+	}
+
+	protected String getShelfLocationForItem(ItemInfo itemInfo, DataField itemField) {
+		String locationCode = getItemSubfieldData(locationSubfieldIndicator, itemField);
+		String location = translateValue("location", locationCode);
+		String shelvingLocation = getItemSubfieldData(shelvingLocationSubfield, itemField);
+		if (shelvingLocation != null && !shelvingLocation.equals(locationCode)){
+			location += " - " + translateValue("shelf_location", shelvingLocation);
+		}
+		return location;
 	}
 }

@@ -110,7 +110,7 @@ public class NashvilleSchoolsRecordProcessor extends IlsRecordProcessor {
 		if (barcode == null || barcode.length() == 0){
 			return true;
 		}else{
-			return false;
+			return super.isItemSuppressed(curItem);
 		}
 	}
 }

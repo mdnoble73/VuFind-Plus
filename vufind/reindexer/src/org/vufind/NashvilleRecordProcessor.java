@@ -69,7 +69,11 @@ public class NashvilleRecordProcessor extends IIIRecordProcessor {
 		}
 		String locationCode = locationCodeSubfield.getData().trim();
 
-		return locationCode.matches(".*sup");
+		if (locationCode.matches(".*sup")){
+			return true;
+		}else{
+			return super.isItemSuppressed(curItem);
+		}
 	}
 
 	@Override

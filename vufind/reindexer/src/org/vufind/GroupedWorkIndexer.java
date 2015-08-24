@@ -700,8 +700,9 @@ public class GroupedWorkIndexer {
 				processGroupedWork(id, permanentId, grouping_category);
 
 				numWorksProcessed++;
-				if (numWorksProcessed % 1000 == 0){
+				if (numWorksProcessed % 5000 == 0){
 					//Testing shows that regular commits do seem to improve performance.
+					//However, we can't do it too often or we get errors with too many searchers warming. n
 					//Leave in for now.
 					try {
 						updateServer.commit(true, false);
