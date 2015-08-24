@@ -610,7 +610,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 				Date dateAdded = dateAddedFormatter.parse(dateAddedStr);
 				itemInfo.setDateAdded(dateAdded);
 			} catch (ParseException e) {
-				logger.error("Error processing date added", e);
+				logger.error("Error processing date added for record identifier " + recordIdentifier + " profile " + profileType, e);
 			}
 		}
 	}
