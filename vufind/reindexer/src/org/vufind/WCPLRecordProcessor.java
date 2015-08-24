@@ -125,4 +125,17 @@ public class WCPLRecordProcessor extends IlsRecordProcessor {
 		}
 	}
 
+	protected String getShelfLocationForItem(ItemInfo itemInfo, DataField itemField) {
+		String locationCode = getItemSubfieldData(locationSubfieldIndicator, itemField);
+		String location = translateValue("location", locationCode);
+		String shelvingLocation = getItemSubfieldData(shelvingLocationSubfield, itemField);
+		if (shelvingLocation != null && !shelvingLocation.equals(locationCode)){
+			if (location == null){
+				location = translateValue("shelf_location", shelvingLocation);
+			}else {
+				location += " - " + translateValue("shelf_location", shelvingLocation);
+			}
+		}
+		return location;
+	}
 }
