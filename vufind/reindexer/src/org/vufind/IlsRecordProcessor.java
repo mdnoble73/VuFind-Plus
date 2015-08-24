@@ -457,6 +457,8 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		itemInfo.setItemIdentifier(getItemSubfieldData(itemRecordNumberSubfieldIndicator, itemField));
 		itemInfo.setShelfLocation(getShelfLocationForItem(itemField));
 
+		itemInfo.setCollection(translateValue("collection", getItemSubfieldData(collectionSubfield, itemField)));
+
 		loadEContentSourcesAndProtectionTypes(itemInfo);
 
 		Subfield eContentSubfield = itemField.getSubfield(eContentSubfieldIndicator);
