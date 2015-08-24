@@ -941,6 +941,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		getFormatFromSubjects(record, printFormats);
 		getFormatFrom007(record, printFormats);
 		getFormatFromTitle(record, printFormats);
+		getFormatFromDigitalFileCharacteristics(record, printFormats);
 		getFormatFromLeader(printFormats, leader, fixedField);
 
 		if (printFormats.size() == 0){
@@ -967,6 +968,17 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 			}
 		}
 		recordInfo.setFormatBoost(formatBoost);
+	}
+
+	private void getFormatFromDigitalFileCharacteristics(Record record, LinkedHashSet<String> printFormats) {
+		Set<String> fields = getFieldList(record, "347b");
+		for (String curField : fields){
+			if (curField.equalsIgnoreCase("Blu-Ray")){
+				printFormats.add("Blu-ray");
+			}else if (curField.equalsIgnoreCase("DVD video")){
+				printFormats.add("DVD");
+			}
+		}
 	}
 
 	private void filterPrintFormats(Set<String> printFormats) {
