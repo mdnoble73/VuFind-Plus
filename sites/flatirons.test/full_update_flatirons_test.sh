@@ -83,9 +83,10 @@ checkConflictingProcesses "reindexer.jar flatirons.test"
 cd /usr/local/vufind-plus/sites/${PIKASERVER}; ./${PIKASERVER}.sh restart
 
 #Extract from ILS
-#TODO copy extracts from production servers
-#cd /usr/local/vufind-plus/vufind/millennium_export/; expect BIB_HOLDS_EXTRACT_PIKA_4_Flatirons.exp ${PIKASERVER} ${ILSSERVER} >> ${OUTPUT_FILE}
-#cd /usr/local/vufind-plus/vufind/millennium_export/; expect BIB_EXTRACT_PIKA_4_Flatirons.exp ${PIKASERVER} ${ILSSERVER} >> ${OUTPUT_FILE}
+#copy extracts from production servers
+cd /data/vufind-plus/flatirons.test/marc
+wget http://flc.flatironslibrary.org/BIB_EXTRACT_PIKA.MRC
+wget http://flc.flatironslibrary.org/BIB_HOLDS_EXTRACT_PIKA.TXT
 
 #Extract from Hoopla
 #No need to copy on marmot test server
