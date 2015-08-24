@@ -248,8 +248,11 @@ expect "already exists. Overwrite it?"
 send "y"
 expect "Output the file now?"
 send "n"
-sleep 5; # Allows INNOPAC to complete writing, otherwise data could be truncated
+# sleep 10; # Allows INNOPAC to complete writing, otherwise data could be truncated
+set timeout -1
+expect "Your review file" ; # "Your review file, [name], has [number] records in it ready to be output
 close
+set timeout $wait
 puts $logFile "[clock format [clock seconds] -format "%y%m%d %H:%M:%S"] >> $name for $site on $host: Export file prepared"
 #puts "[clock format [clock seconds] -format "%y%m%d %H:%M:%S"] >> $name for $site on $host: Export file prepared"
 
