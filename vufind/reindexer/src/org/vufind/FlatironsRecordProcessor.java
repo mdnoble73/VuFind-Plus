@@ -165,7 +165,7 @@ public class FlatironsRecordProcessor extends IIIRecordProcessor{
 				return true;
 			}
 		}
-		return false;
+		return super.isItemSuppressed(curItem);
 	}
 
 	protected void loadEContentFormatInformation(Record record, RecordInfo econtentRecord, ItemInfo econtentItem) {

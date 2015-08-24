@@ -34,6 +34,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 	protected char formatSubfield;
 	protected char barcodeSubfield;
 	protected char statusSubfieldIndicator;
+	protected String statusesToSuppress;
 	protected Pattern nonHoldableStatuses;
 	protected char shelvingLocationSubfield;
 	protected char collectionSubfield;
@@ -42,6 +43,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 	protected String dateAddedFormat;
 	protected char locationSubfieldIndicator;
 	protected Pattern nonHoldableLocations;
+	protected String locationsToSuppress;
 	protected char subLocationSubfield;
 	protected char iTypeSubfield;
 	protected Pattern nonHoldableITypes;
@@ -105,6 +107,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 			subLocationSubfield = getSubfieldIndicatorFromConfig(indexingProfileRS, "subLocation");
 			shelvingLocationSubfield = getSubfieldIndicatorFromConfig(indexingProfileRS, "shelvingLocation");
 			collectionSubfield = getSubfieldIndicatorFromConfig(indexingProfileRS, "collection");
+			locationsToSuppress = indexingProfileRS.getString("locationsToSuppress");
 
 			itemUrlSubfieldIndicator = getSubfieldIndicatorFromConfig(indexingProfileRS, "itemUrl");
 
@@ -112,6 +115,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 			formatSubfield = getSubfieldIndicatorFromConfig(indexingProfileRS, "format");
 			barcodeSubfield = getSubfieldIndicatorFromConfig(indexingProfileRS, "barcode");
 			statusSubfieldIndicator = getSubfieldIndicatorFromConfig(indexingProfileRS, "status");
+			statusesToSuppress = indexingProfileRS.getString("statusesToSuppress");
 			try {
 				String pattern = indexingProfileRS.getString("nonHoldableStatuses");
 				if (pattern != null && pattern.length() > 0) {
@@ -610,7 +614,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 				Date dateAdded = dateAddedFormatter.parse(dateAddedStr);
 				itemInfo.setDateAdded(dateAdded);
 			} catch (ParseException e) {
-				logger.error("Error processing date added for record identifier " + recordIdentifier + " profile " + profileType, e);
+				logger.error("Error processing date added for record identifier " + recordIdentifier + " profile " + profileType + " using format " + dateAddedFormat, e);
 			}
 		}
 	}
@@ -902,6 +906,22 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 	}
 
 	protected boolean isItemSuppressed(DataField curItem) {
+		Subfield statusSubfield = curItem.getSubfield(statusSubfieldIndicator);
+		if (statusSubfield == null){
+			return true;
+		}else{
+			if (statusSubfield.getData().matches(statusesToSuppress)){
+				return true;
+			}
+		}
+		Subfield locationSubfield = curItem.getSubfield(locationSubfieldIndicator);
+		if (locationSubfield == null){
+			return true;
+		}else{
+			if (locationSubfield.getData().matches(locationsToSuppress)){
+				return true;
+			}
+		}
 		return false;
 	}
 

@@ -61,7 +61,7 @@ public class AnythinkRecordProcessor extends IlsRecordProcessor {
 				return true;
 			}
 		}
-		return false;
+		return super.isItemSuppressed(curItem);
 	}
 
 	@Override

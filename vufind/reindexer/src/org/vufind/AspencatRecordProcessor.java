@@ -300,7 +300,11 @@ public class AspencatRecordProcessor extends IlsRecordProcessor {
 		if (!suppressed && curItem.getSubfield(iTypeSubfield) != null){
 			suppressed = curItem.getSubfield(iTypeSubfield).getData().equalsIgnoreCase("ill");
 		}
-		return suppressed;
+		if (suppressed){
+			return suppressed;
+		} else {
+			return super.isItemSuppressed(curItem);
+		}
 	}
 
 	protected String getShelfLocationForItem(ItemInfo itemInfo, DataField itemField) {

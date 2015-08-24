@@ -19,18 +19,9 @@ import java.util.*;
  * Time: 11:02 AM
  */
 public class WCPLRecordProcessor extends IlsRecordProcessor {
-	private String statusesToSuppress;
-	private String locationsToSuppress;
-
 	private PreparedStatement getDateAddedStmt;
 	public WCPLRecordProcessor(GroupedWorkIndexer indexer, Connection vufindConn, Ini configIni, ResultSet indexingProfileRS, Logger logger, boolean fullReindex) {
 		super(indexer, vufindConn, configIni, indexingProfileRS, logger, fullReindex);
-		try {
-			this.statusesToSuppress = indexingProfileRS.getString("statusesToSuppress");
-			this.locationsToSuppress = indexingProfileRS.getString("locationsToSuppress");
-		}catch (Exception e){
-			logger.error("Error loading indexing profile information from database", e);
-		}
 
 		try{
 			getDateAddedStmt = vufindConn.prepareStatement("SELECT dateFirstDetected FROM ils_marc_checksums WHERE ilsId = ?", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
@@ -81,22 +72,6 @@ public class WCPLRecordProcessor extends IlsRecordProcessor {
 	}
 
 	protected boolean isItemSuppressed(DataField curItem) {
-		Subfield statusSubfield = curItem.getSubfield(statusSubfieldIndicator);
-		if (statusSubfield == null){
-			return true;
-		}else{
-			if (statusSubfield.getData().matches(statusesToSuppress)){
-				return true;
-			}
-		}
-		Subfield locationSubfield = curItem.getSubfield(locationSubfieldIndicator);
-		if (locationSubfield == null){
-			return true;
-		}else{
-			if (locationSubfield.getData().matches(locationsToSuppress)){
-				return true;
-			}
-		}
 		//Finally suppress staff items
 		Subfield staffSubfield = curItem.getSubfield('o');
 		if (staffSubfield != null){
@@ -104,7 +79,7 @@ public class WCPLRecordProcessor extends IlsRecordProcessor {
 				return true;
 			}
 		}
-		return false;
+		return super.isItemSuppressed(curItem);
 	}
 
 	@Override

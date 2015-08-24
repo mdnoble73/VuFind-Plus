@@ -68,18 +68,22 @@ public class MarmotRecordProcessor extends IIIRecordProcessor {
 	}
 
 	protected boolean isItemSuppressed(DataField curItem) {
+		boolean suppressed = false;
 		Subfield icode2Subfield = curItem.getSubfield(iCode2Subfield);
-		if (icode2Subfield == null){
-			return false;
-		}
-		String icode2 = icode2Subfield.getData().toLowerCase().trim();
-		Subfield locationCodeSubfield = curItem.getSubfield(locationSubfieldIndicator);
-		if (locationCodeSubfield == null)                                                 {
-			return false;
-		}
-		String locationCode = locationCodeSubfield.getData().trim();
+		if (icode2Subfield != null){
+			String icode2 = icode2Subfield.getData().toLowerCase().trim();
+			Subfield locationCodeSubfield = curItem.getSubfield(locationSubfieldIndicator);
+			if (locationCodeSubfield != null)                                                 {
+				String locationCode = locationCodeSubfield.getData().trim();
 
-		return icode2.equals("n") || icode2.equals("x") || locationCode.equals("zzzz");
+				suppressed = icode2.equals("n") || icode2.equals("x") || locationCode.equals("zzzz");
+			}
+		}
+		if (suppressed){
+			return suppressed;
+		}else{
+			return super.isItemSuppressed(curItem);
+		}
 	}
 
 	@Override
