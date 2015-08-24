@@ -458,7 +458,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		itemInfo.setIType(translateValue("itype", getItemSubfieldData(iTypeSubfield, itemField)));
 		loadItemCallNumber(record, itemField, itemInfo);
 		itemInfo.setItemIdentifier(getItemSubfieldData(itemRecordNumberSubfieldIndicator, itemField));
-		itemInfo.setShelfLocation(getShelfLocationForItem(itemField));
+		itemInfo.setShelfLocation(getShelfLocationForItem(itemInfo, itemField));
 
 		itemInfo.setCollection(translateValue("collection", getItemSubfieldData(collectionSubfield, itemField)));
 
@@ -649,7 +649,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 
 		itemInfo.setStatusCode(itemStatus);
 		itemInfo.setShelfLocationCode(getItemSubfieldData(locationSubfieldIndicator, itemField));
-		itemInfo.setShelfLocation(getShelfLocationForItem(itemField));
+		itemInfo.setShelfLocation(getShelfLocationForItem(itemInfo, itemField));
 
 		loadDateAdded(recordInfo.getRecordIdentifier(), itemField, itemInfo);
 		String dueDateStr = getItemSubfieldData(dueDateSubfield, itemField);
@@ -849,7 +849,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		return false;
 	}
 
-	protected String getShelfLocationForItem(DataField itemField) {
+	protected String getShelfLocationForItem(ItemInfo itemInfo, DataField itemField) {
 		String shelfLocation = getItemSubfieldData(locationSubfieldIndicator, itemField);
 		if (shelfLocation == null || shelfLocation.length() == 0 || shelfLocation.equals("none")){
 			return "";
