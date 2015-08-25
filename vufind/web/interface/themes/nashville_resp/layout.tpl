@@ -18,11 +18,14 @@
 
 		{include file="cssAndJsIncludes.tpl"}
 		{/strip}
-        {literal}
-        <!-- Typekit JavaScript for Akagi Pro Typeface -->
-        <script src="//use.typekit.net/uew0ppi.js"></script>
-		<script>try{Typekit.load();}catch(e){}</script>
-        {/literal}
+			{*
+			MDN Remove typekit since it never seems to load properly
+			{literal}
+				<!-- Typekit JavaScript for Akagi Pro Typeface -->
+				<script src="//use.typekit.net/uew0ppi.js"></script>
+				<script>try{Typekit.load();}catch(e){}</script>
+			{/literal}
+			*}
 	</head>
 	<body class="module_{$module} action_{$action}" id="{$module}-{$action}">
 		{strip}
