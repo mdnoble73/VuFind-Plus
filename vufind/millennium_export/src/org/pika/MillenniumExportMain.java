@@ -137,10 +137,13 @@ public class MillenniumExportMain{
 			while (holdsRow != null){
 				String bibId = holdsRow[0];
 				bibId = "." + bibId;
+				//Get the number of holds for this record
+				String[] holdDetails = holdsRow[1].split("\\|");
+
 				if (numHoldsByBib.containsKey(bibId)){
-					numHoldsByBib.put(bibId, 1 + numHoldsByBib.get(bibId));
+					numHoldsByBib.put(bibId, (holdDetails.length) + numHoldsByBib.get(bibId));
 				}else{
-					numHoldsByBib.put(bibId, 1L);
+					numHoldsByBib.put(bibId, (long)holdDetails.length);
 				}
 				holdsRow = holdsReader.readNext();
 			}
