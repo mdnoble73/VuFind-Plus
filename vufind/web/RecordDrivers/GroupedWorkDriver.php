@@ -1152,7 +1152,7 @@ class GroupedWorkDriver extends RecordInterface{
 				list($source, $id) = explode(':', $recordDetails[0], 2);
 				require_once ROOT_DIR . '/RecordDrivers/Factory.php';
 				$recordDriver = RecordDriverFactory::initRecordDriverById($recordDetails[0]);
-				$timer->logTime("Loaded Record Driver for  . $recordDetails[0]");
+				$timer->logTime("Loaded Record Driver for  $recordDetails[0]");
 
 				//Setup the base record
 				$relatedRecord = array(
