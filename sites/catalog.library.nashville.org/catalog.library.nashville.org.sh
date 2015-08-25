@@ -6,7 +6,7 @@ export JETTY_HOME=/usr/local/VuFind-Plus/sites/default/solr/jetty
 export SOLR_HOME=/data/vufind-plus/catalog.library.nashville.org/solr     
 export JETTY_PORT=8080
 # Max memory should be at least he size of all solr indexes combined. 
-export JAVA_OPTIONS="-server -Xms1g -Xmx16g -XX:+UseG1GC"
+export JAVA_OPTIONS="-server -Xms2g -Xmx12g -XX:+UseG1GC"
 export JETTY_LOG=/var/log/vufind-plus/catalog.library.nashville.org/jetty
 
 exec /usr/local/VuFind-Plus/sites/default/vufind.sh $1 $2
