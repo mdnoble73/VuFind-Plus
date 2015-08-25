@@ -85,8 +85,9 @@ cd /usr/local/vufind-plus/sites/${PIKASERVER}; ./${PIKASERVER}.sh restart
 #Extract from ILS
 #copy extracts from production servers
 cd /data/vufind-plus/flatirons.test/marc
-wget http://flc.flatironslibrary.org/BIB_EXTRACT_PIKA.MRC
-wget http://flc.flatironslibrary.org/BIB_HOLDS_EXTRACT_PIKA.TXT
+wget --no-verbose http://flc.flatironslibrary.org/BIB_EXTRACT_PIKA.MRC
+wget --no-verbose http://flc.flatironslibrary.org/BIB_HOLDS_EXTRACT_PIKA.TXT
+# --no-verbose Turn off verbose without being completely quiet (use -q for that), which means that error messages and basic information still get printed.
 
 #Extract from Hoopla
 #No need to copy on marmot test server
@@ -94,7 +95,7 @@ wget http://flc.flatironslibrary.org/BIB_HOLDS_EXTRACT_PIKA.TXT
 
 #Extract Lexile Data
 #No need to copy on marmot test server
-#cd /data/vufind-plus/; rm lexileTitles.txt*; wget http://venus.marmot.org/lexileTitles.txt
+#cd /data/vufind-plus/; rm lexileTitles.txt*; wget --no-verbose http://venus.marmot.org/lexileTitles.txt
 
 #Do a full extract from OverDrive just once a week to catch anything that doesn't
 #get caught in the regular extract

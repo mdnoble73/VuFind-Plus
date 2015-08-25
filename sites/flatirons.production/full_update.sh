@@ -90,7 +90,7 @@ cd /usr/local/vufind-plus/vufind/millennium_export/; expect BIB_EXTRACT_PIKA_4_F
 cd /usr/local/vufind-plus/vufind/cron;./HOOPLA.sh ${PIKASERVER} >> ${OUTPUT_FILE}
 
 #Extract Lexile Data
-cd /data/vufind-plus/; rm lexileTitles.txt*; wget http://venus.marmot.org/lexileTitles.txt
+cd /data/vufind-plus/; rm lexileTitles.txt*; wget --no-verbose http://venus.marmot.org/lexileTitles.txt
 
 #Do a full extract from OverDrive just once a week to catch anything that doesn't
 #get caught in the regular extract
