@@ -96,7 +96,7 @@ class OverDrive_AJAX extends Action {
 			if ($patron) {
 				require_once ROOT_DIR . '/Drivers/OverDriveDriverFactory.php';
 				$driver = OverDriveDriverFactory::getDriver();
-				$result = $driver->returnOverDriveItem($overDriveId, $transactionId, $user);
+				$result = $driver->returnOverDriveItem($overDriveId, $transactionId, $patron);
 				//$logger->log("Checkout result = $result", PEAR_LOG_INFO);
 				return json_encode($result);
 			}else{
@@ -231,7 +231,7 @@ class OverDrive_AJAX extends Action {
 			if ($patron) {
 				require_once ROOT_DIR . '/Drivers/OverDriveDriverFactory.php';
 				$driver = OverDriveDriverFactory::getDriver();
-				$result = $driver->cancelOverDriveHold($overDriveId, $user);
+				$result = $driver->cancelOverDriveHold($overDriveId, $patron);
 				return json_encode($result);
 			}else{
 				return json_encode(array('result'=>false, 'message'=>'Sorry, it looks like you don\'t have permissions to download cancel holds for that user.'));

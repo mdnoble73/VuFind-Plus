@@ -124,11 +124,12 @@ class RecordDriverFactory {
 				$driverName = $indexingProfile->recordDriver;
 				require_once ROOT_DIR . "/RecordDrivers/{$driverName}.php";
 				$recordDriver = new $driverName($id);
-				if (!$recordDriver->isValid()){
+				//Do not automatically validate record drivers for performance
+				/*if (!$recordDriver->isValid()){
 					global $logger;
 					$logger->log("Unable to load record driver for $recordType $recordId", PEAR_LOG_WARNING);
 					$recordDriver = null;
-				}
+				}*/
 			}else{
 				global $logger;
 				$logger->log("Unknown record type " . $recordType, PEAR_LOG_ERR);

@@ -331,7 +331,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 					if (curLocation.startsWith("(")){
 						//There are multiple copies for this location
 						copies = Integer.parseInt(curLocation.substring(1, curLocation.indexOf(")")));
-						curLocation = curLocation.substring(curLocation.indexOf(")"));
+						curLocation = curLocation.substring(curLocation.indexOf(")") + 1);
 					}else{
 						copies = 1;
 					}

@@ -285,12 +285,12 @@ class MillenniumStatusLoader{
 
 				//Determine if the holding is available or not.
 				//First check the status
-				if (preg_match('/^(' . $this->driver->availableStatiRegex . ')$/', $holding['status'])){
+				if (preg_match('/^(' . $this->driver->availableStatiRegex . ')$/i', $holding['status'])){
 					$holding['availability'] = 1;
 				}else{
 					$holding['availability'] = 0;
 				}
-				if (preg_match('/^(' . $this->driver->holdableStatiRegex . ')$/', $holding['status'])){
+				if (preg_match('/^(' . $this->driver->holdableStatiRegex . ')$/i', $holding['status'])){
 					$holding['holdable'] = 1;
 				}else{
 					$holding['holdable'] = 0;
@@ -504,7 +504,9 @@ class MillenniumStatusLoader{
 		foreach ($sorted_array as $key => $holding){
 			//Do not override holdability based on status
 			if (isset($holding['holdable']) && $holding['holdable'] == 1){
-				$holding['holdable'] = $holdable ? 1 : 0;
+				if (!$holdable){
+					$holding['holdable'] = 0;
+				}
 				$sorted_array[$key] = $holding;
 			}
 		}

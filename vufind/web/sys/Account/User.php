@@ -337,7 +337,7 @@ class User extends DB_DataObject
 		}
 		foreach ($this->getLinkedUsers() as $linkedUser){
 			if ($linkedUser->isValidForOverDrive()){
-				if (array_key_exists($linkedUser->cat_username . ':' . $linkedUser->cat_password, $overDriveUsers)){
+				if (!array_key_exists($linkedUser->cat_username . ':' . $linkedUser->cat_password, $overDriveUsers)){
 					$overDriveUsers[$linkedUser->cat_username . ':' . $linkedUser->cat_password] = $linkedUser;
 				}
 			}
@@ -347,7 +347,7 @@ class User extends DB_DataObject
 	}
 
 	function isValidForOverDrive(){
-		if (!$this->parentUser || ($this->getBarcode() != $this->parentUser->getBarcode())){
+		if ($this->parentUser == null || ($this->getBarcode() != $this->parentUser->getBarcode())){
 			$userHomeLibrary = Library::getPatronHomeLibrary($this);
 			if ($userHomeLibrary && $userHomeLibrary->enableOverdriveCollection){
 				return true;
