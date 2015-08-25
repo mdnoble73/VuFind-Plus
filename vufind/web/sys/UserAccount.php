@@ -52,6 +52,8 @@ class UserAccount {
 				}
 			}else{
 				$userData->updateRuntimeInformation();
+				global $timer;
+				$timer->logTime("Updated Runtime Information");
 			}
 		}
 		return $userData;

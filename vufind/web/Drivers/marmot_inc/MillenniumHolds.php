@@ -201,7 +201,6 @@ class MillenniumHolds{
 
 		$holdUpdateParams = http_build_query($extraGetInfo);
 		//Login to the patron's account
-		$cookieJar = tempnam("/tmp", "CURLCOOKIE"); // TODO: use screen scaping driver
 		$success   = false;
 
 		$this->driver->_curl_login($patron);  // TODO use screen scaping driver
