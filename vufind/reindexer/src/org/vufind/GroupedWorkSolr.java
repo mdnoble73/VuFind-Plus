@@ -448,10 +448,10 @@ public class GroupedWorkSolr {
 
 	private void addAvailabilityToggleValues(SolrInputDocument doc, RecordInfo curRecord, String curScopeName, HashSet<String> availabilityToggleValues) {
 		addUniqueFieldValues(doc, "availability_toggle_" + curScopeName, availabilityToggleValues);
-		for (String format : curRecord.getAllFormats()) {
-			addUniqueFieldValues(doc, "availability_by_format_" + curScopeName + "_" + format.replaceAll("\\W", "_").toLowerCase(), availabilityToggleValues);
+		for (String format : curRecord.getAllSolrFieldEscapedFormats()) {
+			addUniqueFieldValues(doc, "availability_by_format_" + curScopeName + "_" + format, availabilityToggleValues);
 		}
-		for (String formatCategory : curRecord.getAllFormatCategories()) {
+		for (String formatCategory : curRecord.getAllSolrFieldEscapedFormatCategories()) {
 			addUniqueFieldValues(doc, "availability_by_format_" + curScopeName + "_" + formatCategory.replaceAll("\\W", "_").toLowerCase(), availabilityToggleValues);
 		}
 	}

@@ -906,12 +906,14 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 	}
 
 	protected boolean isItemSuppressed(DataField curItem) {
-		Subfield statusSubfield = curItem.getSubfield(statusSubfieldIndicator);
-		if (statusSubfield == null){
-			return true;
-		}else{
-			if (statusSubfield.getData().matches(statusesToSuppress)){
+		if (statusSubfieldIndicator != ' ') {
+			Subfield statusSubfield = curItem.getSubfield(statusSubfieldIndicator);
+			if (statusSubfield == null) {
 				return true;
+			} else {
+				if (statusSubfield.getData().matches(statusesToSuppress)) {
+					return true;
+				}
 			}
 		}
 		Subfield locationSubfield = curItem.getSubfield(locationSubfieldIndicator);
