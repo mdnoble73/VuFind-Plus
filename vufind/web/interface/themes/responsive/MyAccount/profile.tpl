@@ -356,7 +356,7 @@
 
 								{if $showRatings && $showComments}
 									<div class="form-group">
-										<div class="col-xs-4"><label for="noPromptForUserReviews" class="control-label">{translate text='Do not prompt for reviews'}:</label></div>
+										<div class="col-xs-4"><label for="noPromptForUserReviews" class="control-label">{translate text='Do not prompt me for reviews after rating titles'}:</label></div>
 										<div class="col-xs-8">
 											{if $edit == true}
 												<input type="checkbox" name="noPromptForUserReviews" id="noPromptForUserReviews" {if $profile->noPromptForUserReviews==1}checked='checked'{/if} data-switch="">
