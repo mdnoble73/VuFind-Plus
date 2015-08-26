@@ -5,7 +5,6 @@
 require_once 'DB/DataObject.php';
 require_once 'DB/DataObject/Cast.php';
 require_once ROOT_DIR . '/Drivers/marmot_inc/Holiday.php';
-require_once ROOT_DIR . '/Drivers/marmot_inc/NearbyBookStore.php';
 require_once ROOT_DIR . '/Drivers/marmot_inc/LibraryFacetSetting.php';
 require_once ROOT_DIR . '/sys/Indexing/LibraryRecordOwned.php';
 require_once ROOT_DIR . '/sys/Indexing/LibraryRecordToInclude.php';
@@ -183,10 +182,6 @@ class Library extends DB_DataObject
 		// we don't want to make the libraryId property editable
 		// because it is associated with this library system only
 		unset($holidaysStructure['libraryId']);
-
-		$nearbyBookStoreStructure = NearbyBookStore::getObjectStructure();
-		unset($nearbyBookStoreStructure['weight']);
-		unset($nearbyBookStoreStructure['libraryId']);
 
 		$facetSettingStructure = LibraryFacetSetting::getObjectStructure();
 		unset($facetSettingStructure['weight']);
@@ -490,19 +485,6 @@ class Library extends DB_DataObject
 				'storeDb' => true
 			),
 
-			'nearbyBookStores' => array(
-				'property'=>'nearbyBookStores',
-				'type'=>'oneToMany',
-				'label'=>'Nearby Book Stores',
-				'description'=>'A list of book stores to search',
-				'keyThis' => 'libraryId',
-				'keyOther' => 'libraryId',
-				'subObjectType' => 'NearbyBookStore',
-				'structure' => $nearbyBookStoreStructure,
-				'sortable' => true,
-				'storeDb' => true
-			),
-
 			'facets' => array(
 				'property'=>'facets',
 				'type'=>'oneToMany',
@@ -681,18 +663,6 @@ class Library extends DB_DataObject
 				}
 			}
 			return $this->holidays;
-		}elseif ($name == "nearbyBookStores") {
-			if (!isset($this->nearbyBookStores) && $this->libraryId){
-				$this->nearbyBookStores = array();
-				$store = new NearbyBookStore();
-				$store->libraryId = $this->libraryId;
-				$store->orderBy('weight');
-				$store->find();
-				while($store->fetch()){
-					$this->nearbyBookStores[$store->id] = clone($store);
-				}
-			}
-			return $this->nearbyBookStores;
 		}elseif ($name == "moreDetailsOptions") {
 			if (!isset($this->moreDetailsOptions) && $this->libraryId){
 				$this->moreDetailsOptions = array();
@@ -784,8 +754,6 @@ class Library extends DB_DataObject
 	public function __set($name, $value){
 		if ($name == "holidays") {
 			$this->holidays = $value;
-		}elseif ($name == "nearbyBookStores") {
-			$this->nearbyBookStores = $value;
 		}elseif ($name == "moreDetailsOptions") {
 			$this->moreDetailsOptions = $value;
 		}elseif ($name == "facets") {
@@ -841,7 +809,6 @@ class Library extends DB_DataObject
 		$ret = parent::update();
 		if ($ret !== FALSE ){
 			$this->saveHolidays();
-			$this->saveNearbyBookStores();
 			$this->saveFacets();
 			$this->saveRecordsOwned();
 			$this->saveRecordsToInclude();
@@ -866,7 +833,6 @@ class Library extends DB_DataObject
 		$ret = parent::insert();
 		if ($ret !== FALSE ){
 			$this->saveHolidays();
-			$this->saveNearbyBookStores();
 			$this->saveFacets();
 			$this->saveRecordsOwned();
 			$this->saveRecordsToInclude();
@@ -1076,34 +1042,6 @@ class Library extends DB_DataObject
 				}
 			}
 			unset($this->holidays);
-		}
-	}
-
-	public function saveNearByBookStores(){
-		if (isset ($this->nearbyBookStores) && is_array($this->nearbyBookStores)){
-			/** @var NearbyBookStore $store */
-			foreach ($this->nearbyBookStores as $store){
-				if (isset($store->deleteOnSave) && $store->deleteOnSave == true){
-					$store->delete();
-				}else{
-					if (isset($store->id) && is_numeric($store->id)){
-						$store->update();
-					}else{
-						$store->libraryId = $this->libraryId;
-						$store->insert();
-					}
-				}
-			}
-			unset($this->nearbyBookStores);
-		}
-	}
-
-	static function getBookStores(){
-		$library = Library::getActiveLibrary();
-		if ($library) {
-			return NearbyBookStore::getBookStores($library->libraryId);
-		} else {
-			return NearbyBookStore::getDefaultBookStores();
 		}
 	}
 

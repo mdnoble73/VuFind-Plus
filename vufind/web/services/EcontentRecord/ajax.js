@@ -260,7 +260,3 @@ function editItem(id, itemId){
 	VuFind.Account.ajaxLightbox(url+ "?" + params, true);
 	return false;
 }
-function showEcontentPurchaseOptions(id){
-	var url = path + "/EcontentRecord/" + id + "/AJAX?method=getPurchaseOptions";
-	VuFind.Account.ajaxLightbox(url, false)
-}

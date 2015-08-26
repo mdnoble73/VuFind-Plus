@@ -403,8 +403,3 @@ libraryThingWidgetsLoaded = function(){
 		$("#ltfl_related_button").show();
 	}
 };
-
-function showPurchaseOptions(id){
-	var url = path + "/Record/" + id + "/AJAX?method=getPurchaseOptions";
-	VuFind.Account.ajaxLightbox(url, false)
-}

@@ -19,7 +19,7 @@ class EContentRecord_AJAX extends Action {
 			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
 			header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
 			echo $this->$method();
-		}else if (in_array($method, array('GetGoDeeperData', 'AddItem', 'EditItem', 'getPurchaseOptions', 'getDescription'))){
+		}else if (in_array($method, array('GetGoDeeperData', 'AddItem', 'EditItem', 'getDescription'))){
 			header('Content-type: text/html');
 			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
 			header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
@@ -438,49 +438,5 @@ class EContentRecord_AJAX extends Action {
 			$return = array('result' => false, 'message' => 'You do not have permissions to delete this item.');
 		}
 		return json_encode($return);
-	}
-
-	function getPurchaseOptions(){
-		global $interface;
-		if (isset($_REQUEST['id'])){
-			$id = $_REQUEST['id'];
-			$interface->assign('id', $id);
-			$eContentRecord = new EContentRecord();
-			$eContentRecord->id = $id;
-			if ($eContentRecord->find(true)){
-				$purchaseLinks = array();
-				if ($eContentRecord->purchaseUrl != null){
-					$purchaseLinks[] = array(
-						'link' => $eContentRecord->purchaseUrl,
-						'linkText' => 'Buy from ' . $eContentRecord->publisher,
-						'storeName' => $eContentRecord->publisher,
-						'field856Index' => 1,
-					);
-				}
-
-				if (count($purchaseLinks) > 0){
-					$interface->assign('purchaseLinks', $purchaseLinks);
-				}else{
-					$title = $eContentRecord->title;
-					$author = $eContentRecord->author;
-					require_once ROOT_DIR . '/services/Record/Purchase.php';
-					$purchaseLinks = Record_Purchase::getStoresForTitle($title, $author);
-
-					if (count($purchaseLinks) > 0){
-						$interface->assign('purchaseLinks', $purchaseLinks);
-					}else{
-						$interface->assign('errors', array("Sorry we couldn't find any stores that offer this title."));
-					}
-				}
-			}else{
-				$errors = array("Could not load record for that id.");
-				$interface->assign('errors', $errors);
-			}
-		}else{
-			$errors = array("You must provide the id of the title to be purchased. ");
-			$interface->assign('errors', $errors);
-		}
-
-		echo $interface->fetch('EcontentRecord/ajax-purchase-options.tpl');
 	}
 }

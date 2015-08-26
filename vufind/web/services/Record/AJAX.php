@@ -38,7 +38,7 @@ class Record_AJAX extends Action {
 			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
 			header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
 			echo $this->json_utf8_encode($this->$method());
-		}else if (in_array($method, array('GetGoDeeperData', 'getPurchaseOptions', 'getBookingCalendar'))){
+		}else if (in_array($method, array('getBookingCalendar'))){
 			header('Content-type: text/html');
 			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
 			header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
@@ -80,131 +80,10 @@ class Record_AJAX extends Action {
 		echo($marcData->toRaw());
 	}
 
-	function getPurchaseOptions(){
-		global $interface;
-		if (isset($_REQUEST['id'])){
-			$id = $_REQUEST['id'];
-			$interface->assign('id', $id);
-			$marcRecord = MarcLoader::loadMarcRecordByILSId($id);
-			if ($marcRecord){
-				$linkFields = $marcRecord->getFields('856') ;
-				$purchaseLinks = array();
-				if ($linkFields){
-					$field856Index = 0;
-					/** @var File_MARC_Data_Field[] $linkFields */
-					foreach ($linkFields as $marcField){
-						$field856Index++;
-						//Get the link
-						if ($marcField->getSubfield('u')){
-							$link = $marcField->getSubfield('u')->getData();
-							if ($marcField->getSubfield('3')){
-								$linkText = $marcField->getSubfield('3')->getData();
-							}elseif ($marcField->getSubfield('y')){
-								$linkText = $marcField->getSubfield('y')->getData();
-							}elseif ($marcField->getSubfield('z')){
-								$linkText = $marcField->getSubfield('z')->getData();
-							}else{
-								$linkText = $link;
-							}
-							//Process some links differently so we can either hide them
-							//or show them in different areas of the catalog.
-							if (preg_match('/purchase|buy/i', $linkText) ||
-							preg_match('/barnesandnoble|tatteredcover|amazon\.com/i', $link)){
-								if (preg_match('/barnesandnoble/i', $link)){
-									$purchaseLinks[] = array(
-		        		  	  'link' => $link,
-	                    'linkText' => 'Buy from Barnes & Noble',
-		        		  		'storeName' => 'Barnes & Noble',
-											'image' => '/images/barnes_and_noble.png',
-											'field856Index' => $field856Index,
-									);
-								}else if (preg_match('/tatteredcover/i', $link)){
-									$purchaseLinks[] = array(
-	                    'link' => $link,
-	                    'linkText' => 'Buy from Tattered Cover',
-		        		  		'storeName' => 'Tattered Cover',
-											'image' => '/images/tattered_cover.png',
-											'field856Index' => $field856Index,
-									);
-								}else if (preg_match('/amazon\.com/i', $link)){
-									$purchaseLinks[] = array(
-	                    'link' => $link,
-	                    'linkText' => 'Buy from Amazon',
-	                  	'storeName' => 'Amazon',
-											'image' => '/images/amazon.png',
-											'field856Index' => $field856Index,
-									);
-								}else if (preg_match('/smashwords\.com/i', $link)){
-									$purchaseLinks[] = array(
-	                    'link' => $link,
-	                    'linkText' => 'Buy from Smashwords',
-	                  	'storeName' => 'Smashwords',
-											'image' => '/images/smashwords.png',
-											'field856Index' => $field856Index,
-									);
-								}else{
-									$purchaseLinks[] = array(
-	                    'link' => $link,
-	                    'linkText' => $linkText,
-	                  	'storeName' => 'Smashwords',
-											'image' => '',
-											'field856Index' => $field856Index,
-									);
-								}
-							}
-						}
-					}
-				} //End checking for purchase information in the marc record
-
-
-				if (count($purchaseLinks) > 0){
-					$interface->assign('purchaseLinks', $purchaseLinks);
-				}else{
-					require_once ROOT_DIR . '/RecordDrivers/MarcRecord.php';
-					$recordDriver = new MarcRecord($id);
-					if ($recordDriver->isValid()){
-						$title = $recordDriver->getTitle();
-						$author = $recordDriver->getAuthor();
-
-						require_once ROOT_DIR . '/services/Record/Purchase.php';
-						$purchaseLinks = Record_Purchase::getStoresForTitle($title, $author);
-
-						if (count($purchaseLinks) > 0){
-							$interface->assign('purchaseLinks', $purchaseLinks);
-						}else{
-							$interface->assign('errors', array("Sorry we couldn't find any stores that offer this title."));
-						}
-					}else{
-						$interface->assign('errors', array("Sorry we couldn't find a resource for that id."));
-					}
-				}
-			}else{
-				$errors = array("Could not load marc information for that id.");
-				$interface->assign('errors', $errors);
-			}
-		}else{
-			$errors = array("You must provide the id of the title to be purchased. ");
-			$interface->assign('errors', $errors);
-		}
-
-		echo $interface->fetch('Record/ajax-purchase-options.tpl');
-	}
-
 	function IsLoggedIn()
 	{
 		return "<result>" .
 		(UserAccount::isLoggedIn() ? "True" : "False") . "</result>";
-	}
-
-	function GetGoDeeperData(){
-		require_once(ROOT_DIR . '/Drivers/marmot_inc/GoDeeperData.php');
-		$dataType = $_REQUEST['dataType'];
-		$upc = $_REQUEST['upc'];
-		$isbn = $_REQUEST['isbn'];
-
-		$formattedData = GoDeeperData::getHtmlData($dataType, 'Record', $isbn, $upc);
-		return $formattedData;
-
 	}
 
 	function GetHoldingsInfo(){
@@ -342,17 +221,6 @@ class Record_AJAX extends Action {
 		$prospectorResults = $prospector->getTopSearchResults($searchTerms, 10, $prospectorDetails);
 		$interface->assign('prospectorResults', $prospectorResults);
 		return $interface->fetch('Record/ajax-prospector.tpl');
-	}
-
-	function GetReviewInfo(){
-		require_once 'Reviews.php';
-		$isbn = $_REQUEST['isbn'];
-		$id = $_REQUEST['id'];
-		$enrichmentData = Record_Reviews::loadReviews($id, $isbn);
-		global $interface;
-		$interface->assign('id', $id);
-		$interface->assign('enrichment', $enrichmentData);
-		return $interface->fetch('Record/ajax-reviews.tpl');
 	}
 
 	function getPlaceHoldForm(){
