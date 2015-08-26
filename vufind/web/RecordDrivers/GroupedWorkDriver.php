@@ -1484,7 +1484,9 @@ class GroupedWorkDriver extends RecordInterface{
 			if ($selectedFormat && $selectedFormat != $manifestation['format']){
 				//Do a secondary check to see if we have a more detailed format in the facet
 				$detailedFormat = mapValue('format_by_detailed_format', $selectedFormat);
-				if ($manifestation['format'] != $detailedFormat){
+				//Also check the reverse
+				$detailedFormat2 = mapValue('format_by_detailed_format', $manifestation['format']);
+				if ($manifestation['format'] != $detailedFormat && $detailedFormat2 != $selectedFormat){
 					$manifestation['hideByDefault'] = true;
 				}
 			}
