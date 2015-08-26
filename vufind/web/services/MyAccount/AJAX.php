@@ -676,7 +676,6 @@ class MyAccount_AJAX
 
 		$return = array('titles' => $titles, 'currentIndex' => 0);
 		return $return;
-		//return $interface->fetch('MyResearch/ajax-suggestionsList.tpl');
 	}
 
 	function GetListTitles()

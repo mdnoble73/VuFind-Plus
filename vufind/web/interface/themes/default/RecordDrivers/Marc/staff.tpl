@@ -8,7 +8,7 @@
 <div class="row">
 	<div class="col-xs-12">
 		<a href="{$path}/GroupedWork/{$recordDriver->getPermanentId()}" class="btn btn-sm btn-default">Go To Grouped Work</a>
-		<button onclick="return VuFind.Record.reloadCover('{$id}')" class="btn btn-sm btn-default">Reload Cover</button>
+		<button onclick="return VuFind.Record.reloadCover('{$recordDriver->getModule()}', '{$id}')" class="btn btn-sm btn-default">Reload Cover</button>
 		<button onclick="return VuFind.GroupedWork.reloadEnrichment('{$recordDriver->getPermanentId()}')" class="btn btn-sm btn-default" >Reload Enrichment</button>
 		{if $classicUrl}
 			<a href="{$classicUrl}" class="btn btn-sm btn-info">View in Classic</a>

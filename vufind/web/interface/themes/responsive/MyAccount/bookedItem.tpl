@@ -25,7 +25,7 @@
 			<div class="col-xs-12">
 				<span class="result-index">{$resultIndex})</span>&nbsp;
 				{if $record.id}
-					<a href="{$path}/Record/{$record.id|escape:"url"}" class="result-title notranslate">
+					<a href="{$record.linkUrl}" class="result-title notranslate">
 				{/if}
 				{if !$record.title|removeTrailingPunctuation}{translate text='Title not available'}{else}{$record.title|removeTrailingPunctuation|truncate:180:"..."|highlight:$lookfor}{/if}
 				{if $record.id}
