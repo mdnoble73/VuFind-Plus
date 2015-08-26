@@ -2,9 +2,10 @@
 	{if $errorMessage}
 		<div class="alert alert-danger">{$errorMessage}</div>
 	{/if}
-	<form{* name="placeHoldForm"*} id="bookMaterialForm" {*action="{$path}/Record/{$id|escape:"url"}/Booking" method="post"*}>
+	<form{* name="placeHoldForm"*} id="bookMaterialForm">
 	{* TODO: the fallback POST action of form is not implemented *}
-	<input type="hidden" name="id" value="{$id|replace:'ils:':''}">
+		<input type='hidden' name='module' id='module' value='{$activeRecordProfileModule}' />
+		<input type="hidden" name="id" value="{$id|replace:'ils:':''}">
 	<fieldset>
 		<div class="row">
 			{*<div class="form-group col-sm-5">*}
@@ -115,7 +116,7 @@
 								});
 			*}{literal}
 
-			$.get(Globals.path + '/Record/{/literal}{$id|replace:'ils:':''}{literal}/AJAX?method=getBookingCalendar',
+			$.get(Globals.path + '/{$activeRecordProfileModule}/{/literal}{$id|replace:'ils:':''}{literal}/AJAX?method=getBookingCalendar',
 							function(data){
 								if (data) {
 									$('#bookingCalendar').append(data);

@@ -249,8 +249,6 @@ abstract class Record_Record extends Action
 
 		$timer->logTime('Got detailed data from Marc Record');
 
-		$notes = array();
-
 		if (isset($library) && strlen($library->notesTabName) > 0){
 			$interface->assign('notesTabName', $library->notesTabName);
 		}else{

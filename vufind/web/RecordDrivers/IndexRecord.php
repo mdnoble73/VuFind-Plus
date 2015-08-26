@@ -442,6 +442,7 @@ class IndexRecord extends RecordInterface
 		}else{
 			$interface->assign('summShortId', $id);
 		}
+		$interface->assign('module', $this->getModule());
 
 		$interface->assign('summUrl', $this->getLinkUrl($useUnscopedHoldingsSummary));
 		$formats = $this->getFormats();
@@ -525,7 +526,6 @@ class IndexRecord extends RecordInterface
 	public function getSupplementalSearchResult(){
 		global $configArray;
 		global $interface;
-		global $user;
 
 		$id = $this->getUniqueID();
 		$interface->assign('summId', $id);
@@ -534,6 +534,8 @@ class IndexRecord extends RecordInterface
 		}else{
 			$interface->assign('summShortId', $id);
 		}
+		$interface->assign('module', $this->getModule());
+
 		$formats = $this->getFormats();
 		$interface->assign('summFormats', $formats);
 		$formatCategories = $this->getFormatCategory();
@@ -572,6 +574,8 @@ class IndexRecord extends RecordInterface
 		//Determine the cover to use
 		$interface->assign('bookCoverUrl', $this->getBookcoverUrl('small'));
 		$interface->assign('bookCoverUrlMedium', $this->getBookcoverUrl('medium'));
+
+		$interface->assign('summUrl', $this->getRecordUrl());
 
 		// By default, do not display AJAX status; we won't assume that all
 		// records exist in the ILS.  Child classes can override this setting
@@ -1564,10 +1568,6 @@ class IndexRecord extends RecordInterface
 			return $this->fields['id'];
 		}
 		return null;
-	}
-
-	public function getIdWithSource(){
-		return $this->profileType . ':' . $this->id;
 	}
 
 	/**

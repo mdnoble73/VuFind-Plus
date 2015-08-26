@@ -858,14 +858,12 @@ abstract class SearchObject_Base
 		// View
 		if ($this->view != null) {
 			$params[] = "view=" . urlencode($this->view);
+		}else if (isset($_REQUEST['view'])){
+			$params[] = "view=" . urlencode(strip_tags($_REQUEST['view']));
 		}
 
 		if (isset($_REQUEST['searchSource'])){
 			$params[] = "searchSource=" . urlencode(strip_tags($_REQUEST['searchSource']));
-		}
-
-		if (isset($_REQUEST['view'])){
-			$params[] = "view=" . urlencode(strip_tags($_REQUEST['view']));
 		}
 
 		// Join all parameters with an escaped ampersand,

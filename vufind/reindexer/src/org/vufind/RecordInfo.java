@@ -160,38 +160,40 @@ public class RecordInfo {
 		itemInfo.setRecordInfo(this);
 	}
 
-	public HashSet<String> getAllOwningLibraries() {
-		HashSet<String> owningLibraryValues = new HashSet<>();
-		for (ItemInfo curItem : relatedItems){
-			owningLibraryValues.addAll(curItem.getAllOwningLibraries());
-		}
-		return owningLibraryValues;
-	}
-
-	public HashSet<String> getAllFormats() {
-		HashSet<String> values = new HashSet<>();
-		values.addAll(formats);
-		for (ItemInfo curItem : relatedItems){
-			if (curItem.getFormat() != null) {
-				values.add(curItem.getFormat());
+	private HashSet<String> allFormats = null;
+	public HashSet<String> getAllSolrFieldEscapedFormats() {
+		if (allFormats == null){
+			allFormats = new HashSet<>();
+			for (String curFormat : formats){
+				allFormats.add(curFormat.replaceAll("\\W", "_").toLowerCase());
+			}
+			for (ItemInfo curItem : relatedItems){
+				if (curItem.getFormat() != null) {
+					allFormats.add(curItem.getFormat().replaceAll("\\W", "_").toLowerCase());
+				}
 			}
 		}
-		return values;
+		return allFormats;
 	}
 
 	public HashSet<String> getFormats() {
 		return formats;
 	}
 
-	public HashSet<String> getAllFormatCategories() {
-		HashSet<String> values = new HashSet<>();
-		values.addAll(formatCategories);
-		for (ItemInfo curItem : relatedItems){
-			if (curItem.getFormatCategory() != null) {
-				values.add(curItem.getFormatCategory());
+	private HashSet<String> allFormatCategories = null;
+	public HashSet<String> getAllSolrFieldEscapedFormatCategories() {
+		if (allFormatCategories == null) {
+			allFormatCategories = new HashSet<>();
+			for (String curFormat : formatCategories){
+				allFormatCategories.add(curFormat.replaceAll("\\W", "_").toLowerCase());
+			}
+			for (ItemInfo curItem : relatedItems) {
+				if (curItem.getFormatCategory() != null) {
+					allFormatCategories.add(curItem.getFormatCategory().replaceAll("\\W", "_").toLowerCase());
+				}
 			}
 		}
-		return values;
+		return allFormatCategories;
 	}
 
 	public HashSet<String> getFormatCategories() {

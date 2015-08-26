@@ -43,15 +43,15 @@ public class TranslationMap {
 			return cachedTranslations.get(value);
 		}
 		if (usesRegularExpressions){
-			boolean martchFound = false;
+			boolean matchFound = false;
 			for (Pattern pattern : translationValuePatterns.keySet()){
 				if (pattern.matcher(value).matches()){
-					martchFound = true;
+					matchFound = true;
 					translatedValue = translationValuePatterns.get(pattern);
 					break;
 				}
 			}
-			if (!martchFound) {
+			if (!matchFound) {
 				String concatenatedValue = mapName + ":" + value;
 				if (!unableToTranslateWarnings.contains(concatenatedValue)) {
 					if (fullReindex) {

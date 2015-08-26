@@ -8,7 +8,7 @@
 		{* Book Material link *}
 		{if $enableMaterialsBooking}
 		 {* hidden and only shown if bookable via the ajax call for GetHoldingsInfo *}
-				<a id="bookMaterialButton" href="#" class="btn btn-sm btn-block btn-warning" onclick="return VuFind.Record.showBookMaterial('{$summId|replace:'ils:':''}')" style="display: none">{translate text="Schedule Item"}</a>
+				<a id="bookMaterialButton" href="#" class="btn btn-sm btn-block btn-warning" onclick="return VuFind.Record.showBookMaterial('{$module}', '{$summId|replace:'ils:':''}')" style="display: none">{translate text="Schedule Item"}</a>
 			{* source prefex stripped out for now. *}
 		{/if}
 	</div>

@@ -906,12 +906,14 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 	}
 
 	protected boolean isItemSuppressed(DataField curItem) {
-		Subfield statusSubfield = curItem.getSubfield(statusSubfieldIndicator);
-		if (statusSubfield == null){
-			return true;
-		}else{
-			if (statusSubfield.getData().matches(statusesToSuppress)){
+		if (statusSubfieldIndicator != ' ') {
+			Subfield statusSubfield = curItem.getSubfield(statusSubfieldIndicator);
+			if (statusSubfield == null) {
 				return true;
+			} else {
+				if (statusSubfield.getData().matches(statusesToSuppress)) {
+					return true;
+				}
 			}
 		}
 		Subfield locationSubfield = curItem.getSubfield(locationSubfieldIndicator);
@@ -1010,6 +1012,8 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 			printFormats.remove("SoundRecording");
 		}else if (printFormats.contains("Playaway") && printFormats.contains("SoundRecording")){
 			printFormats.remove("SoundRecording");
+		}else if (printFormats.contains("Playaway") && printFormats.contains("Video")){
+			printFormats.remove("Video");
 		}else if (printFormats.contains("Book") && printFormats.contains("LargePrint")){
 			printFormats.remove("Book");
 		}else if (printFormats.contains("Book") && printFormats.contains("Manuscript")){

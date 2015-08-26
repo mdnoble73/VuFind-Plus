@@ -160,60 +160,6 @@ function getGoDeeperData(dataType, recordType, id, isbn, upc) {
 	});
 }
 
-var seriesScroller;
-var similarScroller;
-
-function GetEnrichmentInfo(id, isbn, upc, econtent) {
-	var url = path + "/Record/" + encodeURIComponent(id) + "/AJAX";
-	var params = "method=GetEnrichmentInfo&isbn=" + encodeURIComponent(isbn) + "&upc=" + encodeURIComponent(upc);
-	var fullUrl = url + "?" + params;
-	$.ajax( {
-		url : fullUrl,
-		success : function(data) {
-			try{
-				var seriesData = $(data).find("SeriesInfo").text();
-				if (seriesData && seriesData.length > 0) {
-
-					seriesScroller = new TitleScroller('titleScrollerSeries', 'Series', 'seriesList');
-
-					seriesData = $.parseJSON(seriesData);
-					if (seriesData.titles.length > 0){
-						$('#list-series-tab').show();
-						$('#relatedTitleInfo').show();
-						seriesScroller.loadTitlesFromJsonData(seriesData);
-					}
-				}
-
-				var similarTitlesData = $(data).find("SimilarTitleInfo").text();
-				if (similarTitlesData && similarTitlesData.length > 0) {
-
-					similarScroller = new TitleScroller('titleScrollerSimilar', 'Similar', 'similarList');
-
-					similarTitlesData = $.parseJSON(similarTitlesData);
-					if (similarTitlesData.titles.length > 0){
-						$('#similarTitleInfo').show();
-						similarScroller.loadTitlesFromJsonData(similarTitlesData);
-					}
-				}
-
-				var showGoDeeperData = $(data).find("ShowGoDeeperData").text();
-				if (showGoDeeperData) {
-					$('#goDeeperLink').show();
-				}
-				var relatedContentData = $(data).find("RelatedContent").text();
-				if (relatedContentData && relatedContentData.length > 0) {
-					$("#relatedContentPlaceholder").html(relatedContentData);
-				}
-			} catch (e) {
-				alert("error during autocomplete setup" + e);
-			}
-		},
-		failure : function(jqXHR, textStatus, errorThrown) {
-		  alert('Error: Could Not Load Holdings information.  Please try again in a few minutes');
-	  }
-	});
-}
-
 function GetProspectorInfo(id) {
 	var url = path + "/Record/" + encodeURIComponent(id) + "/AJAX";
 	var params = "method=GetProspectorInfo";
@@ -403,8 +349,3 @@ libraryThingWidgetsLoaded = function(){
 		$("#ltfl_related_button").show();
 	}
 };
-
-function showPurchaseOptions(id){
-	var url = path + "/Record/" + id + "/AJAX?method=getPurchaseOptions";
-	VuFind.Account.ajaxLightbox(url, false)
-}

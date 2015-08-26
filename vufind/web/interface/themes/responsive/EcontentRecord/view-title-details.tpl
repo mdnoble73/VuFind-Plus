@@ -68,7 +68,7 @@
 			{if count($seriesList) > 0}
 				<dt>{translate text='Series'}:</dt>
 				{foreach from=$seriesList item=seriesListItem name=loop}
-					<dd><a href="{$path}/Search/Results?lookfor=%22{$seriesListItem|escape:"url"}%22&amp;basicType=Series">{$seriesListItem|escape}</a></dd>
+					<dd><a href="{$path}/Search/Results?lookfor=Series%3A%22{$seriesListItem|escape:"url"}%22">{$seriesListItem|escape}</a></dd>
 				{/foreach}
 			{/if}
 
