@@ -507,7 +507,11 @@ class User extends DB_DataObject
 	}
 
 	function updateRuntimeInformation(){
-		$this->getCatalogDriver()->updateUserWithAdditionalRuntimeInformation($this);
+		if ($this->getCatalogDriver()){
+			$this->getCatalogDriver()->updateUserWithAdditionalRuntimeInformation($this);
+		}else{
+			echo("Catalog Driver is not configured properly.  Please update indexing profiles and setup Account Profiles");
+		}
 	}
 
 	function updateOverDriveOptions(){

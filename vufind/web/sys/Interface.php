@@ -291,7 +291,6 @@ class UInterface extends Smarty
 			$this->assign('generalContactLink', $library->generalContactLink);
 			$this->assign('showLoginButton', $library->showLoginButton);
 			$this->assign('showAdvancedSearchbox', $library->showAdvancedSearchbox);
-			$this->assign('enablePurchaseLinks', count($library->getBookStores()) > 0);
 			$this->assign('enablePospectorIntegration', $library->enablePospectorIntegration);
 			$this->assign('showTagging', $library->showTagging);
 			$this->assign('showRatings', $library->showRatings);
@@ -306,7 +305,6 @@ class UInterface extends Smarty
 		}else{
 			$this->assign('showLoginButton', 1);
 			$this->assign('showAdvancedSearchbox', 1);
-			$this->assign('enablePurchaseLinks', 1);
 			$this->assign('enablePospectorIntegration', isset($configArray['Content']['Prospector']) && $configArray['Content']['Prospector'] == true ? 1 : 0);
 			$this->assign('showTagging', 1);
 			$this->assign('showRatings', 1);

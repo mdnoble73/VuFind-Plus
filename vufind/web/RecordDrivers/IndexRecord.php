@@ -442,6 +442,7 @@ class IndexRecord extends RecordInterface
 		}else{
 			$interface->assign('summShortId', $id);
 		}
+		$interface->assign('module', $this->getModule());
 
 		$interface->assign('summUrl', $this->getLinkUrl($useUnscopedHoldingsSummary));
 		$formats = $this->getFormats();
@@ -533,6 +534,8 @@ class IndexRecord extends RecordInterface
 		}else{
 			$interface->assign('summShortId', $id);
 		}
+		$interface->assign('module', $this->getModule());
+
 		$formats = $this->getFormats();
 		$interface->assign('summFormats', $formats);
 		$formatCategories = $this->getFormatCategory();
@@ -1565,10 +1568,6 @@ class IndexRecord extends RecordInterface
 			return $this->fields['id'];
 		}
 		return null;
-	}
-
-	public function getIdWithSource(){
-		return $this->profileType . ':' . $this->id;
 	}
 
 	/**

@@ -23,7 +23,7 @@
 				</a>
 				<div id="myAccountPanel" class="panel-collapse collapse {if $curSection}in{/if}">
 					<div class="panel-body">
-						{if $profile->getTotalFines() > 0 || ($showExpirationWarnings && $profile->expireclose)}
+						{if $profile->getTotalFines() > 0 || ($showExpirationWarnings && $profile->expireClose)}
 							<div id="myAccountFines">
 								{if $profile->getTotalFines() > 0}
 									{if $showEcommerceLink && $profile->getTotalFines() > $minimumFineAmount}
@@ -36,7 +36,7 @@
 									{/if}
 								{/if}
 
-								{if $showExpirationWarnings && $profile->expireclose}
+								{if $showExpirationWarnings && $profile->expireClose}
 									<div class="myAccountLink">
 										<a class ="alignright" title="Please contact your local library to have your library card renewed." style="color:red; font-weight:bold;" onclick="alert('Please Contact your local library to have your library card renewed.')" href="#">
 											{if $profile->expired}
@@ -161,7 +161,7 @@
 
 			{* Admin Functionality if Available *}
 			{if $user && ($user->hasRole('opacAdmin') || $user->hasRole('libraryAdmin') || $user->hasRole('contentEditor'))}
-				{if in_array($action, array('Libraries', 'Locations', 'IPAddresses', 'ListWidgets', 'BrowseCategories', 'UserSuggestions', 'BookStores', 'PTypes', 'CirculationStatuses', 'LoanRules', 'LoanRuleDeterminers', 'AccountProfiles'))}
+				{if in_array($action, array('Libraries', 'Locations', 'IPAddresses', 'ListWidgets', 'BrowseCategories', 'UserSuggestions', 'PTypes', 'CirculationStatuses', 'LoanRules', 'LoanRuleDeterminers', 'AccountProfiles'))}
 					{assign var="curSection" value=true}
 				{else}
 					{assign var="curSection" value=false}
@@ -195,7 +195,6 @@
 							{* OPAC Admin Actions*}
 							{if $user->hasRole('opacAdmin')}
 								<div class="adminMenuLink {if $action == "UserSuggestions"}active{/if}"><a href="{$path}/Admin/UserSuggestions">User Suggestions</a></div>
-								<div class="adminMenuLink {if $action == "BookStores"}active{/if}"><a href="{$path}/Admin/BookStores">Book Stores</a></div>
 								{* Sierra/Millennium OPAC Admin Actions*}
 								{if ($ils == 'Millennium' || $ils == 'Sierra')}
 								<div class="adminMenuLink {if $action == "PTypes"}active{/if}"><a href="{$path}/Admin/PTypes">P-Types</a></div>

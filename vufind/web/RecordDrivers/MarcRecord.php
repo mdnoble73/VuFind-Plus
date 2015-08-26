@@ -159,6 +159,10 @@ class MarcRecord extends IndexRecord
 		}
 	}
 
+	public function getIdWithSource(){
+		return $this->profileType . ':' . $this->id;
+	}
+
 	/**
 	 * Return the unique identifier of this record within the Solr index;
 	 * useful for retrieving additional information (like tags and user
@@ -277,7 +281,6 @@ class MarcRecord extends IndexRecord
 
 		// Load Stylesheet
 		$style = new DOMDocument;
-		//$style->load('services/Record/xsl/MARC21slim2RDFDC.xsl');
 		$style->load('services/Record/xsl/record-rdf-mods.xsl');
 
 		// Setup XSLT
@@ -328,22 +331,6 @@ class MarcRecord extends IndexRecord
 	public function getStaffView()
 	{
 		global $interface;
-
-		// Get Record as MARCXML
-		/*$xml = trim($this->getMarcRecord()->toXML());
-
-		// Transform MARCXML
-		$style = new DOMDocument;
-		$style->load('services/Record/xsl/record-marc.xsl');
-		$xsl = new XSLTProcessor();
-		$xsl->importStyleSheet($style);
-		$doc = new DOMDocument;
-		if ($doc->loadXML($xml)) {
-			$html = $xsl->transformToXML($doc);
-			$interface->assign('details', $html);
-		}else{
-			$interface->assign('details', 'MARC record could not be read.');
-		}*/
 
 		$interface->assign('marcRecord', $this->getMarcRecord());
 
