@@ -16,7 +16,7 @@
 				{foreach from=$purchaseLinks item=purchaseLink}
 					<tr>
 					<td>
-					<a href='/Record/{$id}/Purchase?store={$purchaseLink.storeName|escape:"url"}{if $purchaseLink.field856Index}&index={$purchaseLink.field856Index}{/if}' target='_blank'>
+					<a href='/{$activeRecordProfileModule}/{$id}/Purchase?store={$purchaseLink.storeName|escape:"url"}{if $purchaseLink.field856Index}&index={$purchaseLink.field856Index}{/if}' target='_blank'>
 					{if $purchaseLink.image}
 						<img src="{$purchaseLink.image}" alt="{$purchaseLink.storeName}" />
 					{else}
@@ -24,7 +24,7 @@
 					{/if}
 					</a>
 					</td>
-					<td><div class='purchaseTitle button'><a href='/Record/{$id}/Purchase?store={$purchaseLink.storeName|escape:"url"}{if $purchaseLink.field856Index}&index={$purchaseLink.field856Index}{/if}' target='_blank'>Buy Now</a></div></td>
+					<td><div class='purchaseTitle button'><a href='/{$activeRecordProfileModule}/{$id}/Purchase?store={$purchaseLink.storeName|escape:"url"}{if $purchaseLink.field856Index}&index={$purchaseLink.field856Index}{/if}' target='_blank'>Buy Now</a></div></td>
 					
 					</tr>
 				{/foreach}

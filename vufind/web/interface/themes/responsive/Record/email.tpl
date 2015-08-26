@@ -5,7 +5,7 @@
 <div class="modal-body">
 	{if $message}<div class="error">{$message|translate}</div>{/if}
 
-	<form action="{$path}/Record/{$id|escape:"url"}/Email" method="post" id="emailForm" name="emailForm" class="form-horizontal">
+	<form action="{$path}/{$activeRecordProfileModule}/{$id|escape:"url"}/Email" method="post" id="emailForm" name="emailForm" class="form-horizontal">
 		<div class="form-group">
 			<label for="to" class="control-label">{translate text='To'}:</label>
 			<div class="controls">

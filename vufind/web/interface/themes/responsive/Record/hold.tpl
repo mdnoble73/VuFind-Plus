@@ -1,5 +1,5 @@
 <div id="page-content" class="content">
-	<form name='placeHoldForm' id='placeHoldForm' action="{$path}/Record/{$id|escape:"url"}/Hold" method="post">
+	<form name='placeHoldForm' id='placeHoldForm' action="{$path}/{$activeRecordProfileModule}/{$id|escape:"url"}/Hold" method="post">
 		<fieldset>
 			<div class="holdsSummary">
 				<h3>Placing hold on <span id='newHoldCount'>1</span> title.</h3>

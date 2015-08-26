@@ -140,7 +140,7 @@
 					<span id='showCheckInGrid-{$smarty.foreach.summaryLoop.iteration}' class='btn btn-sm btn-info'>Show Check-in Grid</span>
 					<script	type="text/javascript">
 						$('#showCheckInGrid-{$smarty.foreach.summaryLoop.iteration}').click(function(){literal} { {/literal}
-							VuFind.Account.ajaxLightbox('{$path}/Record/{$id}/CheckInGrid?lookfor={$issueSummary.checkInGridId}', false);
+							VuFind.Account.ajaxLightbox('{$path}/{$activeRecordProfileModule}/{$id}/CheckInGrid?lookfor={$issueSummary.checkInGridId}', false);
 						{literal} }); {/literal}
 					</script>
 					{/if}
