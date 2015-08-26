@@ -694,8 +694,8 @@ class CatalogConnection
 	}
 
 	// TODO Millennium only at this time, set other drivers to return false.
-	function bookMaterial($recordId, $startDate, $startTime = null, $endDate = null, $endTime = null){
-		return $this->driver->bookMaterial($recordId, $startDate, $startTime, $endDate, $endTime);
+	function bookMaterial($patron, $recordId, $startDate, $startTime = null, $endDate = null, $endTime = null){
+		return $this->driver->bookMaterial($patron, $recordId, $startDate, $startTime, $endDate, $endTime);
 	}
 
 	// TODO Millennium only at this time, set other drivers to return false.
