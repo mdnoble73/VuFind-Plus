@@ -23,7 +23,7 @@
 				</a>
 				<div id="myAccountPanel" class="panel-collapse collapse {if $curSection}in{/if}">
 					<div class="panel-body">
-						{if $profile->getTotalFines() > 0 || ($showExpirationWarnings && $profile->expireclose)}
+						{if $profile->getTotalFines() > 0 || ($showExpirationWarnings && $profile->expireClose)}
 							<div id="myAccountFines">
 								{if $profile->getTotalFines() > 0}
 									{if $showEcommerceLink && $profile->getTotalFines() > $minimumFineAmount}
@@ -36,7 +36,7 @@
 									{/if}
 								{/if}
 
-								{if $showExpirationWarnings && $profile->expireclose}
+								{if $showExpirationWarnings && $profile->expireClose}
 									<div class="myAccountLink">
 										<a class ="alignright" title="Please contact your local library to have your library card renewed." style="color:red; font-weight:bold;" onclick="alert('Please Contact your local library to have your library card renewed.')" href="#">
 											{if $profile->expired}
