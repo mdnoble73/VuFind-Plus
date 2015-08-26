@@ -1012,6 +1012,8 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 			printFormats.remove("SoundRecording");
 		}else if (printFormats.contains("Playaway") && printFormats.contains("SoundRecording")){
 			printFormats.remove("SoundRecording");
+		}else if (printFormats.contains("Playaway") && printFormats.contains("Video")){
+			printFormats.remove("Video");
 		}else if (printFormats.contains("Book") && printFormats.contains("LargePrint")){
 			printFormats.remove("Book");
 		}else if (printFormats.contains("Book") && printFormats.contains("Manuscript")){
