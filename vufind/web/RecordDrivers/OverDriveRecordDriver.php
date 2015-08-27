@@ -55,6 +55,10 @@ class OverDriveRecordDriver extends RecordInterface {
 		}
 	}
 
+	public function getModule(){
+		return 'OverDrive';
+	}
+
 	protected $itemsFromIndex;
 	public function setItemsFromIndex($itemsFromIndex, $realTimeStatusNeeded){
 		$this->itemsFromIndex = $itemsFromIndex;
