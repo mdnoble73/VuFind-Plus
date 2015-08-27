@@ -68,7 +68,7 @@ class BookCoverProcessor{
 			return;
 		}
 
-		if ($this->getCoverFromMarc()){
+		if ($this->type != 'grouped_work' && $this->getCoverFromMarc()){
 			return;
 		}
 
