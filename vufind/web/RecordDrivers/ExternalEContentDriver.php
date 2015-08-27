@@ -201,7 +201,10 @@ class ExternalEContentDriver extends BaseEContentDriver{
 	public function getRecordActions($isAvailable, $isHoldable, $isBookable, $relatedUrls = null){
 		$actions = array();
 		foreach ($relatedUrls as $urlInfo){
-			$title = 'Online ' . $urlInfo['source'];
+			//Revert to access online per Karen at CCU.  If people want to switch it back, we can add a per library switch
+			//$title = 'Online ' . $urlInfo['source'];
+			$title = 'Access Online';
+			$alt = 'Available online from ' . $urlInfo['source'];
 			$fileOrUrl = isset($urlInfo['url']) ? $urlInfo['url'] : $urlInfo['file'];
 			if (strlen($fileOrUrl) > 0){
 				if (strlen($fileOrUrl) >= 3){
@@ -214,6 +217,7 @@ class ExternalEContentDriver extends BaseEContentDriver{
 					'url' => $fileOrUrl,
 					'title' => $title,
 					'requireLogin' => false,
+					'alt' => $alt,
 				);
 			}
 		}
