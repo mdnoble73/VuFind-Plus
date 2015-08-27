@@ -1077,15 +1077,24 @@ class GroupedWorkDriver extends RecordInterface{
 	 */
 	public function getRelatedRecords($realTimeStatusNeeded = true) {
 		global $timer;
-		global $configArray;
-		/** @var IndexingProfile[] $indexingProfiles */
-		global $indexingProfiles;
 		if ($this->relatedRecords == null || isset($_REQUEST['reload'])){
 			$timer->logTime("Starting to load related records for {$this->getUniqueID()}");
 
 			global $solrScope;
 			global $library;
+			global $user;
+
 			$searchLocation = Location::getSearchLocation();
+			$activePTypes = array();
+			if ($user){
+				$activePTypes = array_merge($activePTypes, $user->getRelatedPTypes());
+			}
+			if ($searchLocation){
+				$activePTypes[$searchLocation->defaultPType] = $searchLocation->defaultPType;
+			}
+			if ($library){
+				$activePTypes[$library->defaultPType] = $library->defaultPType;
+			}
 
 			//First load scoping information from the index.  This is stored as multiple values
 			//within the scoping details field for the scope.
@@ -1228,11 +1237,28 @@ class GroupedWorkDriver extends RecordInterface{
 						$available = $scopingDetails[5] == 'true';
 						if ($available) $recordAvailable = true;
 						$holdable = $scopingDetails[6] == 'true';
-						if ($holdable) $recordHoldable = true;
 						$bookable = $scopingDetails[7] == 'true';
-						if ($bookable) $recordBookable = true;
 						$inLibraryUseOnly = $scopingDetails[8] == 'true';
 						$libraryOwned = $scopingDetails[9] == 'true';
+						$holdablePTypes = isset($scopingDetails[10]) ? $scopingDetails[10] : '';
+						$bookablePTypes = isset($scopingDetails[11]) ? $scopingDetails[11] : '';
+						if (strlen($holdablePTypes) > 0 && $holdablePTypes != '999'){
+							$holdablePTypes = explode(',', $holdablePTypes);
+							$matchingPTypes = array_intersect($holdablePTypes, $activePTypes);
+							if (count($matchingPTypes) == 0){
+								$holdable = false;
+							}
+						}
+						if ($holdable) $recordHoldable = true;
+
+						if (strlen($bookablePTypes) > 0 && $bookablePTypes != '999'){
+							$bookablePTypes = explode(',', $bookablePTypes);
+							$matchingPTypes = array_intersect($bookablePTypes, $activePTypes);
+							if (count($matchingPTypes) == 0){
+								$bookable = false;
+							}
+						}
+						if ($bookable) $recordBookable = true;
 
 						//Update the record with information from the item and from scoping.
 						$displayByDefault = false;
@@ -1263,7 +1289,7 @@ class GroupedWorkDriver extends RecordInterface{
 						if ($bookable){
 							$relatedRecord['bookable'] = true;
 						}
-						$relatedRecord['groupedStatus'] = $this->keepBestGroupedStatus($relatedRecord['groupedStatus'], $groupedStatus);
+						$relatedRecord['groupedStatus'] = GroupedWorkDriver::keepBestGroupedStatus($relatedRecord['groupedStatus'], $groupedStatus);
 						$description = $shelfLocation . ':' . $callNumber;
 						if ($locallyOwned){
 							if ($localShelfLocation == null) $localShelfLocation = $shelfLocation;
@@ -1299,8 +1325,13 @@ class GroupedWorkDriver extends RecordInterface{
 							'availableCopies' => ($available && !$isOrderItem) ? $numCopies : 0,
 							'isLocalItem' => $locallyOwned,
 							'isLibraryItem' => $libraryOwned,
+							'inLibraryUseOnly' => $inLibraryUseOnly,
 							'displayByDefault' => $displayByDefault,
 							'onOrderCopies' => $isOrderItem ? $numCopies : 0,
+							'status' => $groupedStatus,
+							'statusFull' => $status,
+							'available' => $available,
+							'holdable' => $holdable,
 						);
 						if (isset($relatedRecord['itemSummary'][$key])){
 							$relatedRecord['itemSummary'][$key]['totalCopies']++;
@@ -2080,7 +2111,7 @@ class GroupedWorkDriver extends RecordInterface{
 		'Available Online' => 6,
 		'On Shelf' => 7
 	);
-	private function keepBestGroupedStatus($groupedStatus, $groupedStatus1) {
+	public static function keepBestGroupedStatus($groupedStatus, $groupedStatus1) {
 		$ranking1 = 1;
 		if (isset(GroupedWorkDriver::$statusRankings[$groupedStatus])){
 			$ranking1 = GroupedWorkDriver::$statusRankings[$groupedStatus];
