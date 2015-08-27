@@ -738,7 +738,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 	}
 
 	protected void setDetailedStatus(ItemInfo itemInfo, DataField itemField, String itemStatus) {
-		itemInfo.setDetailedStatus(translateValue("detailed_status", itemStatus));
+		itemInfo.setDetailedStatus(translateValue("item_status", itemStatus));
 	}
 
 	protected String getDisplayGroupedStatus(ItemInfo itemInfo) {

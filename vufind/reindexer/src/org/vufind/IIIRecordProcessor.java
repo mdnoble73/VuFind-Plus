@@ -253,7 +253,7 @@ public abstract class IIIRecordProcessor extends IlsRecordProcessor{
 		if (itemStatus.equals("-") && !(itemInfo.getDueDate().length() == 0 || itemInfo.getDueDate().trim().equals("-  -"))){
 			itemInfo.setDetailedStatus("Due " + getDisplayDueDate(itemInfo.getDueDate()));
 		}else {
-			itemInfo.setDetailedStatus(translateValue("detailed_status", itemStatus));
+			itemInfo.setDetailedStatus(translateValue("item_status", itemStatus));
 		}
 	}
 
