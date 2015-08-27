@@ -237,10 +237,6 @@ class Person extends SolrDataObject
 			array('property'=>'obituarySource', 'type'=>'method', 'description'=>'Marriage Date for searching within Solr', 'storeDb' => false, 'storeSolr' => true, 'hideInLists' => true),
 			array('property'=>'obituaryText', 'type'=>'method', 'description'=>'Marriage Comments for searching within Solr', 'storeDb' => false, 'storeSolr' => true, 'hideInLists' => true),
 		);
-		foreach ($structure as $fieldName => $field){
-			$field['propertyOld'] = $field['property'] . 'Old';
-			$structure[$fieldName] = $field;
-		}
 		return $structure;
 	}
 

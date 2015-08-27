@@ -2,7 +2,7 @@
 	{* Pull in comments from a separate file -- this separation allows the same template
 		 to be used for refreshing this list via AJAX. *}
 	{foreach from=$userReviews item=review}
-		{if $review->review || $showRatings}{* Don't show any items that are only user ratings when ratings are turned off. (it is implied that show user reviews is on.) *}
+		{if $review->review}{* Don't show any items that are only user ratings. (it is implied that show user reviews is on.) *}
 			{include file="GroupedWork/view-user-review.tpl"}
 			{assign var="atLeastOneReview" value=true}
 		{/if}

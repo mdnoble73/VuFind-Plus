@@ -9,38 +9,12 @@
  */
 
 class MillenniumCheckouts {
-	/** @var  MillenniumDriver $driver */
+	/** @var  Millennium $driver */
 	private $driver;
 
 	public function __construct($driver){
 		$this->driver = $driver;
 	}
-
-//	private function extract_title_and_ids_from_row($row) {
-//		//Standard Millennium WebPAC
-//		if (preg_match('/.*?<a href=\\"\/record=(.*?)(?:~S\\d{1,2})\\">(.*?)<\/a>.*/', $row, $matches)) {
-//			return array(
-//				'title' => trim(strip_tags($matches[2])),
-//				'shortId' => $matches[1],
-//				'bibid' => '.' . $matches[1], //Technically, this isn't correct since the check digit is missing
-//			);
-//		}
-//		//Encore
-//		elseif (preg_match('/.*<a href=".*?\/record\/C__R(.*?)\\?.*?">(.*?)<\/a>.*/si', $row, $matches)){
-//			return array(
-//				'title' => trim(strip_tags($matches[2])),
-//				'shortId' => $matches[1],
-//				'bibid' => '.' . $matches[1], //Technically, this isn't correct since the check digit is missing
-//			);
-//		}else{
-//			return array(
-//				'title' => trim(strip_tags($row)),
-//				'shortId' => '',
-//				'bibid' => '',
-//			);
-//		}
-//	}
-
 
 	private function extract_title_from_row($row) {
 		//Standard Millennium WebPAC
@@ -56,13 +30,23 @@ class MillenniumCheckouts {
 	}
 
 
-	public function getMyTransactions($page = 1, $recordsPerPage = -1, $sortOption = 'dueDate') {
+	/**
+	 * Get Patron Transactions
+	 *
+	 * This is responsible for retrieving all transactions (i.e. checked out items)
+	 * by a specific patron.
+	 *
+	 * @param User $user    The user to load transactions for
+	 *
+	 * @return mixed        Array of the patron's transactions on success,
+	 * PEAR_Error otherwise.
+	 * @access public
+	 */
+	public function getMyCheckouts($user) {
 		global $timer;
-		$patronDump = $this->driver->_getPatronDump($this->driver->_getBarcode());
-
 		$timer->logTime("Ready to load checked out titles from Millennium");
 		//Load the information from millennium using CURL
-		$sResult = $this->driver->_fetchPatronInfoPage($patronDump, 'items');
+		$sResult = $this->driver->_fetchPatronInfoPage($user, 'items');
 		$timer->logTime("Loaded checked out titles from Millennium");
 
 		$sResult = preg_replace("/<[^<]+?>\\W<[^<]+?>\\W\\d* ITEM.? CHECKED OUT<[^<]+?>\\W<[^<]+?>/i", "", $sResult);
@@ -85,7 +69,7 @@ class MillenniumCheckouts {
 		/** @var Location $patronLocation */
 		$patronLocation = $locationSingleton->getUserHomeLocation();
 		if (isset($patronLocation)){
-			$patronPType = $this->driver->getPType();
+			$patronPType = $user->patronType;
 			$patronCanRenew = false;
 			if ($patronLocation->ptypesToAllowRenewals == '*'){
 				$patronCanRenew = true;
@@ -132,7 +116,7 @@ class MillenniumCheckouts {
 					}
 
 					if (stripos($sKeys[$i],"STATUS") > -1) {
-						// $sret[$scount-2]['duedate'] = strip_tags($scols[$i]);
+						// $sret[$scount-2]['dueDate'] = strip_tags($scols[$i]);
 						$due = trim(str_replace("DUE", "", strip_tags($scols[$i])));
 						$renewCount = 0;
 						if (preg_match('/FINE\(up to now\) (\$\d+\.\d+)/i', $due, $matches)){
@@ -155,11 +139,7 @@ class MillenniumCheckouts {
 							$dueTime = strtotime($due);
 						}
 						if ($dueTime != null){
-							$daysUntilDue = ceil(($dueTime - time()) / (24 * 60 * 60));
-							$overdue = $daysUntilDue < 0;
-							$curTitle['duedate'] = $dueTime;
-							$curTitle['overdue'] = $overdue;
-							$curTitle['daysUntilDue'] = $daysUntilDue;
+							$curTitle['dueDate'] = $dueTime;
 						}
 						$curTitle['renewCount'] = $renewCount;
 
@@ -192,13 +172,13 @@ class MillenniumCheckouts {
 
 			}
 			if ($sCount > 1){
-				//Get additional information from resources table
+				//Get additional information from the MARC Record
 				if ($curTitle['shortId'] && strlen($curTitle['shortId']) > 0){
 					$checkDigit = $this->driver->getCheckDigit($curTitle['shortId']);
 					$curTitle['recordId'] = '.' . $curTitle['shortId'] . $checkDigit;
 					$curTitle['id'] = '.' . $curTitle['shortId'] . $checkDigit;
 					require_once ROOT_DIR . '/RecordDrivers/MarcRecord.php';
-					$recordDriver = new MarcRecord($curTitle['recordId']);
+					$recordDriver = new MarcRecord( $this->driver->accountProfile->recordSource . ":" . $curTitle['recordId']);
 					if ($recordDriver->isValid()){
 						$curTitle['coverUrl'] = $recordDriver->getBookcoverUrl('medium');
 						$curTitle['groupedWorkId'] = $recordDriver->getGroupedWorkId();
@@ -215,273 +195,85 @@ class MillenniumCheckouts {
 						$curTitle['format'] = "Unknown";
 						$curTitle['author'] = "";
 					}
+					$curTitle['link'] = $recordDriver->getLinkUrl();
 				}
-				$sortTitle = isset($curTitle['title_sort']) ? $curTitle['title_sort'] : $curTitle['title'];
-				$sortKey = $sortTitle;
-				if ($sortOption == 'title'){
-					$sortKey = $sortTitle;
-				}elseif ($sortOption == 'author'){
-					$sortKey = (isset($curTitle['author']) ? $curTitle['author'] : "Unknown") . '-' . $sortTitle;
-				}elseif ($sortOption == 'dueDate'){
-					if (isset($curTitle['duedate'])){
-						if (preg_match('/.*?(\\d{1,2})[-\/](\\d{1,2})[-\/](\\d{2,4}).*/', $curTitle['duedate'], $matches)) {
-							$sortKey = $matches[3] . '-' . $matches[1] . '-' . $matches[2] . '-' . $sortTitle;
-						} else {
-							$sortKey = $curTitle['duedate'] . '-' . $sortTitle;
-						}
-					}
-				}elseif ($sortOption == 'format'){
-					$sortKey = (isset($curTitle['format']) ? $curTitle['format'] : "Unknown") . '-' . $sortTitle;
-				}elseif ($sortOption == 'renewed'){
-					$sortKey = (isset($curTitle['renewCount']) ? $curTitle['renewCount'] : 0) . '-' . $sortTitle;
-				}elseif ($sortOption == 'holdQueueLength'){
-					$sortKey = (isset($curTitle['holdQueueLength']) ? $curTitle['holdQueueLength'] : 0) . '-' . $sortTitle;
-				}
-				$sortKey .= "_$sCount";
-				$checkedOutTitles[utf8_encode($sortKey)] = $curTitle;
-
+				$checkedOutTitles[] = $curTitle;
 			}
 
 			$sCount++;
 		}
-		ksort($checkedOutTitles);
 		$timer->logTime("Parsed checkout information");
 
-		$numTransactions = count($checkedOutTitles);
-		//Process pagination
-		if ($recordsPerPage != -1){
-			$startRecord = ($page - 1) * $recordsPerPage;
-			if ($startRecord > $numTransactions){
-				$startRecord = 0;
-			}
-			$checkedOutTitles = array_slice($checkedOutTitles, $startRecord, $recordsPerPage);
-		}
-
-		return array(
-			'transactions' => $checkedOutTitles,
-			'numTransactions' => $numTransactions
-		);
+		return $checkedOutTitles;
 	}
 
-	/* Old Version of the renewAll function
-	 *
-	  public function renewAll(){
+	public function renewAll($patron){
 		global $logger;
-		global $configArray;
+		$driver = &$this->driver;
 
 		//Setup the call to Millennium
-		$barcode = $this->driver->_getBarcode();
-		$patronDump = $this->driver->_getPatronDump($barcode);
+		$barcode = $driver->_getBarcode($patron);
+		$patronDump = $driver->_getPatronDump($barcode);
 		$curCheckedOut = $patronDump['CUR_CHKOUT'];
 
 		//Login to the patron's account
-		$cookieJar = tempnam ("/tmp", "CURLCOOKIE");
-
-		$curl_url = $configArray['Catalog']['url'] . "/patroninfo";
-		$logger->log('Loading page ' . $curl_url, PEAR_LOG_INFO);
-
-		$curl_connection = curl_init($curl_url);
-		curl_setopt($curl_connection, CURLOPT_CONNECTTIMEOUT, 30);
-		curl_setopt($curl_connection, CURLOPT_USERAGENT,"Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)");
-		curl_setopt($curl_connection, CURLOPT_RETURNTRANSFER, true);
-		curl_setopt($curl_connection, CURLOPT_SSL_VERIFYPEER, false);
-		curl_setopt($curl_connection, CURLOPT_FOLLOWLOCATION, 1);
-		curl_setopt($curl_connection, CURLOPT_UNRESTRICTED_AUTH, true);
-		curl_setopt($curl_connection, CURLOPT_COOKIEJAR, $cookieJar );
-		curl_setopt($curl_connection, CURLOPT_COOKIESESSION, false);
-		curl_setopt($curl_connection, CURLOPT_POST, true);
-		$post_data = $this->driver->_getLoginFormValues();
-		$post_string = http_build_query($post_data);
-		curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
-		$loginResult = curl_exec($curl_connection);
-		//When a library uses Encore, the initial login does a redirect and requires additional parameters.
-		if (preg_match('/<input type="hidden" name="lt" value="(.*?)" \/>/si', $loginResult, $loginMatches)) {
-			//Get the lt value
-			$lt = $loginMatches[1];
-			//Login again
-			$post_data['lt'] = $lt;
-			$post_data['_eventId'] = 'submit';
-
-			$post_string = http_build_query($post_data);
-			curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
-			$loginResult = curl_exec($curl_connection);
-			$curlInfo = curl_getinfo($curl_connection);
-		}
+		$driver->_curl_login($patron);
 
 		//Go to the items page
-		$scope = $this->driver->getDefaultScope();
-		$curl_url = $configArray['Catalog']['url'] . "/patroninfo~S{$scope}/" . $patronDump['RECORD_#'] ."/items";
-		curl_setopt($curl_connection, CURLOPT_URL, $curl_url);
-		curl_setopt($curl_connection, CURLOPT_HTTPGET, true);
-		curl_exec($curl_connection);
+		$scope = $driver->getDefaultScope();
+		$curl_url = $this->driver->getVendorOpacUrl() . "/patroninfo~S{$scope}/" . $patronDump['RECORD_#'] ."/items";
+		$checkedOutPageText = $driver->_curlGetPage($curl_url); // TODO Initial page load needed?
 
 		//Post renewal information
-		$extraGetInfo = array(
+		$renewAllPostVariables = array(
 			'currentsortorder' => 'current_checkout',
 			'renewall' => 'YES',
 		);
 
-
-		$renewItemParams = http_build_query($extraGetInfo);
-		$curl_url = $configArray['Catalog']['url'] . "/patroninfo~S{$scope}/" . $patronDump['RECORD_#'] ."/items";
-		curl_setopt($curl_connection, CURLOPT_URL, $curl_url);
-		curl_setopt($curl_connection, CURLOPT_POST, true);
-		curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $renewItemParams);
-		$sresult = curl_exec($curl_connection);
+		$checkedOutPageText = $driver->_curlPostPage($curl_url, $renewAllPostVariables);
 		//$logger->log("Result of Renew All\r\n" . $sresult, PEAR_LOG_INFO);
 
-		curl_close($curl_connection);
-		unlink($cookieJar);
-
 		//Clear the existing patron info and get new information.
-		$renew_result = array();
-		$renew_result['Total'] = $curCheckedOut;
-		preg_match_all("/RENEWED successfully/si", $sresult, $matches);
-		$numRenewals = count($matches[0]);
-		$renew_result['Renewed'] = $numRenewals;
-		$renew_result['Unrenewed'] = $renew_result['Total'] - $renew_result['Renewed'];
-		if ($renew_result['Unrenewed'] > 0) {
-			$renew_result['result'] = false;
-			// Now Extract Failure Messages
-			$failureMessages = $this->getMyRenewalTransactions($sresult);
-			foreach ($failureMessages as $index => $failure){
-				$renew_result['message'][] = $failure;
-			}
-		}
-		else{
-			$renew_result['result'] = true;
-			$renew_result['message'] = "All items were renewed successfully.";
-		}
-
-		return $renew_result;
-	}*/
-
-
-	public function renewAll(){
-		global $logger;
-		global $configArray;
-
-		//Setup the call to Millennium
-		$barcode = $this->driver->_getBarcode();
-		$patronDump = $this->driver->_getPatronDump($barcode);
-		$curCheckedOut = $patronDump['CUR_CHKOUT'];
-
-		//Login to the patron's account
-		$cookieJar = tempnam ("/tmp", "CURLCOOKIE");
-
-		$curl_url = $configArray['Catalog']['url'] . "/patroninfo";
-		$logger->log('Loading page ' . $curl_url, PEAR_LOG_INFO);
-
-		$curl_connection = curl_init($curl_url);
-		curl_setopt($curl_connection, CURLOPT_CONNECTTIMEOUT, 30);
-		curl_setopt($curl_connection, CURLOPT_USERAGENT,"Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)");
-		curl_setopt($curl_connection, CURLOPT_RETURNTRANSFER, true);
-		curl_setopt($curl_connection, CURLOPT_SSL_VERIFYPEER, false);
-		curl_setopt($curl_connection, CURLOPT_FOLLOWLOCATION, 1);
-		curl_setopt($curl_connection, CURLOPT_UNRESTRICTED_AUTH, true);
-		curl_setopt($curl_connection, CURLOPT_COOKIEJAR, $cookieJar );
-		curl_setopt($curl_connection, CURLOPT_COOKIESESSION, false);
-		curl_setopt($curl_connection, CURLOPT_POST, true);
-		$post_data = $this->driver->_getLoginFormValues();
-		$post_string = http_build_query($post_data);
-		curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
-		$loginResult = curl_exec($curl_connection);
-		//When a library uses Encore, the initial login does a redirect and requires additional parameters.
-		if (preg_match('/<input type="hidden" name="lt" value="(.*?)" \/>/si', $loginResult, $loginMatches)) {
-			//Get the lt value
-			$lt = $loginMatches[1];
-			//Login again
-			$post_data['lt'] = $lt;
-			$post_data['_eventId'] = 'submit';
-
-			$post_string = http_build_query($post_data);
-			curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
-			$loginResult = curl_exec($curl_connection);
-			$curlInfo = curl_getinfo($curl_connection);
-		}
-
-		//Go to the items page
-		$scope = $this->driver->getDefaultScope();
-		$curl_url = $configArray['Catalog']['url'] . "/patroninfo~S{$scope}/" . $patronDump['RECORD_#'] ."/items";
-		curl_setopt($curl_connection, CURLOPT_URL, $curl_url);
-		curl_setopt($curl_connection, CURLOPT_HTTPGET, true);
-		curl_exec($curl_connection);
-
-		//Post renewal information
-		$extraGetInfo = array(
-			'currentsortorder' => 'current_checkout',
-			'renewall' => 'YES',
+		$renew_result = array(
+			'success' => false,
+			'message' => array(),
+			'Renewed' => 0,
+			'Unrenewed' => 0
 		);
-
-		$renewItemParams = http_build_query($extraGetInfo);
-		$curl_url = $configArray['Catalog']['url'] . "/patroninfo~S{$scope}/" . $patronDump['RECORD_#'] ."/items";
-		curl_setopt($curl_connection, CURLOPT_URL, $curl_url);
-		curl_setopt($curl_connection, CURLOPT_POST, true);
-		curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $renewItemParams);
-		$checkedOutPageText = curl_exec($curl_connection);
-		//$logger->log("Result of Renew All\r\n" . $sresult, PEAR_LOG_INFO);
-
-		curl_close($curl_connection);
-		unlink($cookieJar);
-
-		//Clear the existing patron info and get new information.
-		$renew_result = array();
 		$renew_result['Total'] = $curCheckedOut;
-		preg_match_all("/RENEWED successfully/si", $checkedOutPageText, $matches);
-		$numRenewals = count($matches[0]);
+
+		// pattern from marmot sierra :  <b>  RENEWED</b> 
+		$numRenewals = preg_match_all("/<b>\s*RENEWED<\/b>/si", $checkedOutPageText, $matches);
 		$renew_result['Renewed'] = $numRenewals;
 		$renew_result['Unrenewed'] = $renew_result['Total'] - $renew_result['Renewed'];
 		if ($renew_result['Unrenewed'] > 0) {
-			$renew_result['result'] = false;
+			$renew_result['success'] = false;
 			// Now Extract Failure Messages
 
 			// Overall Failure
 			if (preg_match('/<h2>\\s*You cannot renew items because:\\s*<\/h2><ul><li>(.*?)<\/ul>/si', $checkedOutPageText, $matches)) {
 				$msg = ucfirst(strtolower(trim($matches[1])));
-				$renew_result['message'] = "Unable to renew items: $msg.";
-//				if ($analytics){
-//					$analytics->addEvent('ILS Integration', 'Renew Failed', $msg);
-//				}
+				$renew_result['message'][] = "Unable to renew items: $msg.";
 			}
 
 			// The Account is busy
 			elseif (preg_match('/Your record is in use/si', $checkedOutPageText)) {
-				$renew_result['message'] = 'Unable to renew this item now, your account is in use by the system.  Please try again later.';
-//				if ($analytics){
-//					$analytics->addEvent('ILS Integration', 'Renew Failed', 'Account in Use');
-//				}
+				$renew_result['message'][] = 'Unable to renew this item now, your account is in use by the system.  Please try again later.';
 			}
 
 			// Let's Look at the Results
 			elseif (preg_match('/<table border="0" class="patFunc">(.*?)<\/table>/s', $checkedOutPageText, $matches)) {
 				$checkedOutTitleTable = $matches[1];
 				if (preg_match_all('/<tr class="patFuncEntry">(.*?)<\/tr>/s', $checkedOutTitleTable, $rowMatches, PREG_SET_ORDER)){
-//					$rows = array_column($rowMatches, 1); // extract the only column we need. php 5.5
-
 					foreach ($rowMatches as $row) {
 						$row = $row[1];
 
-							//Extract failure  message
+							//Extract failure message
 							if (preg_match('/<td align="left" class="patFuncStatus">.*?<em><font color="red">(.*?)<\/font><\/em>.*?<\/td>/s', $row, $statusMatches)){
 								$msg = ucfirst(strtolower(trim( $statusMatches[1])));
 
-								// Add Title to msg
+								// Add Title to message
 								$title = $this->extract_title_from_row($row);
-//								if (preg_match('/.*?<a href=\\"\/record=(.*?)(?:~S\\d{1,2})\\">(.*?)<\/a>.*/', $row, $matches)) {
-//									//Standard Millennium WebPAC
-////									$shortId = $matches[1];
-////									$bibid = '.' . $matches[1]; //Technically, this isn't correct since the check digit is missing
-//									$title = strip_tags($matches[2]);
-//								}elseif (preg_match('/.*<a href=".*?\/record\/C__R(.*?)\\?.*?">(.*?)<\/a>.*/si', $row, $matches)){
-//									//Encore
-////									$shortId = $matches[1];
-////									$bibid = '.' . $matches[1]; //Technically, this isn't correct since the check digit is missing
-//									$title = strip_tags($matches[2]);
-//								}else{
-//									$title = strip_tags($row);
-////									$shortId = '';
-////									$bibid = '';
-//								}
 
 								$renew_result['message'][] = "Unable to renew $title: $msg.";
 							}
@@ -492,82 +284,41 @@ class MillenniumCheckouts {
 				}
 			}
 
-
-
-//			$failureMessages = $this->getMyRenewalTransactions($sresult);
-//			foreach ($failureMessages as $index => $failure){
-//				$renew_result['message'][] = $failure;
-//			}
 		}
 		else{
-			$renew_result['result'] = true;
-			$renew_result['message'] = "All items were renewed successfully.";
+			$renew_result['success'] = true;
+			$renew_result['message'][] = "All items were renewed successfully.";
 		}
 
 		return $renew_result;
 	}
 
-	public function renewItem($itemId, $itemIndex){
+	/**
+	 * @param $patron     User
+	 * @param $itemId     string
+	 * @param $itemIndex  string
+	 * @return array
+	 */
+	public function renewItem($patron, $itemId, $itemIndex){
 		global $logger;
-		global $configArray;
 		global $analytics;
 
-		//Setup the call to Millennium
-		$patronDump = $this->driver->_getPatronDump($this->driver->_getBarcode());
+		$driver = &$this->driver;
 
-		$extraGetInfo = array(
+		$driver->_curl_login($patron);
+
+		//Go to the items page
+		$scope = $driver->getDefaultScope();
+		$curl_url = $driver->getVendorOpacUrl() . "/patroninfo~S{$scope}/" . $patron->username ."/items";
+//		$driver->_curlGetPage($curl_url);
+		// Doesn't look like this curl call will be necessary to complete renewals
+
+		$renewPostVariables = array(
 			'currentsortorder' => 'current_checkout',
 			'renewsome' => 'YES',
 			'renew' . $itemIndex => $itemId,
 		);
-		$renewItemParams = http_build_query($extraGetInfo);
-
-		//Login to the patron's account
-		$cookieJar = tempnam ("/tmp", "CURLCOOKIE");
-
-		$curl_url = $configArray['Catalog']['url'] . "/patroninfo";
-		//$logger->log('Loading page ' . $curl_url, PEAR_LOG_INFO);
-
-		$curl_connection = curl_init($curl_url);
-		curl_setopt($curl_connection, CURLOPT_CONNECTTIMEOUT, 30);
-		curl_setopt($curl_connection, CURLOPT_USERAGENT,"Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)");
-		curl_setopt($curl_connection, CURLOPT_RETURNTRANSFER, true);
-		curl_setopt($curl_connection, CURLOPT_SSL_VERIFYPEER, false);
-		curl_setopt($curl_connection, CURLOPT_FOLLOWLOCATION, 1);
-		curl_setopt($curl_connection, CURLOPT_UNRESTRICTED_AUTH, true);
-		curl_setopt($curl_connection, CURLOPT_COOKIEJAR, $cookieJar );
-		curl_setopt($curl_connection, CURLOPT_COOKIESESSION, false);
-		curl_setopt($curl_connection, CURLOPT_POST, true);
-		$post_data = $this->driver->_getLoginFormValues();
-		$post_string = http_build_query($post_data);
-		curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
-		$loginResult = curl_exec($curl_connection);
-		//When a library uses Encore, the initial login does a redirect and requires additional parameters.
-		if (preg_match('/<input type="hidden" name="lt" value="(.*?)" \/>/si', $loginResult, $loginMatches)) {
-			//Get the lt value
-			$lt = $loginMatches[1];
-			//Login again
-			$post_data['lt'] = $lt;
-			$post_data['_eventId'] = 'submit';
-			$post_string = http_build_query($post_data);
-			curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
-			$loginResult = curl_exec($curl_connection);
-			$curlInfo = curl_getinfo($curl_connection);
-		}
-
-		//Go to the items page
-		$scope = $this->driver->getDefaultScope();
-		$curl_url = $configArray['Catalog']['url'] . "/patroninfo~S{$scope}/" . $patronDump['RECORD_#'] ."/items";
-		curl_setopt($curl_connection, CURLOPT_URL, $curl_url);
-		curl_setopt($curl_connection, CURLOPT_HTTPGET, true);
-		curl_exec($curl_connection);
-
-		//Post renewal information
-		$curl_url = $configArray['Catalog']['url'] . "/patroninfo~S{$scope}/" . $patronDump['RECORD_#'] ."/items";
-		curl_setopt($curl_connection, CURLOPT_URL, $curl_url);
-		curl_setopt($curl_connection, CURLOPT_POST, true);
-		curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $renewItemParams);
-		$checkedOutPageText = curl_exec($curl_connection);
+		$checkedOutPageText = $driver->_curlPostPage($curl_url, $renewPostVariables);
 
 		//Parse the checked out titles into individual rows
 		$message = 'Unable to load renewal information for this entry.';
@@ -624,12 +375,10 @@ class MillenniumCheckouts {
 				$analytics->addEvent('ILS Integration', 'Renew Successful');
 			}
 		}
-		curl_close($curl_connection);
-		unlink($cookieJar);
 
 		return array(
 			'itemId' => $itemId,
-			'result'  => $success,
+			'success'  => $success,
 			'message' => $message);
 	}
 }

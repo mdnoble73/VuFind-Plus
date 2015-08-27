@@ -7,8 +7,6 @@
  * Date: 10/3/14
  * Time: 5:51 PM
  */
-require_once ROOT_DIR . '/Drivers/Interface.php';
-
 class Aspencat implements DriverInterface{
 	/** @var string $cookieFile A temporary file to store cookies  */
 	private $cookieFile = null;
@@ -16,6 +14,7 @@ class Aspencat implements DriverInterface{
 	private $curl_connection = null;
 
 	private $dbConnection = null;
+	public $accountProfile;
 
 	/**
 	 * @return array
@@ -169,7 +168,8 @@ class Aspencat implements DriverInterface{
 
 		$sorted_array = array();
 
-		$holdingsFromKoha  = $this->getHoldingsFromKohaDB($id);
+		$bibHolds = $this->getInTransitHoldsForBibFromKohaDB($id);
+		$holdingsFromKoha  = $this->getHoldingsFromKohaDB($id, $bibHolds);
 		$timer->logTime("Finished loading holdings from Koha");
 
 		/** @var array $items */
@@ -186,6 +186,7 @@ class Aspencat implements DriverInterface{
 			$itemData['locationLabel'] = $item['library'];
 
 			$groupedStatus = mapValue('item_grouped_status', $item['status']);
+
 			if ($groupedStatus == 'On Shelf' || $groupedStatus == 'Available Online'){
 				$itemData['availability'] = true;
 			}else{
@@ -510,261 +511,32 @@ class Aspencat implements DriverInterface{
 		return $summaryInformation;
 	}
 
-	public function getPurchaseHistory($id) {
-		// TODO: Implement getPurchaseHistory() method.
-	}
-
 	private $patronProfiles = array();
-	function updatePatronInfo($canUpdateContactInfo){
+
+	/**
+	 * @param User $patron            The User Object to make updates to
+	 * @param $canUpdateContactInfo   Permission check that updating is allowed
+	 * @return array                  Array of error messages for errors that occurred
+	 */
+	function updatePatronInfo($patron, $canUpdateContactInfo){
 		$updateErrors = array();
 		if ($canUpdateContactInfo) {
 			$updateErrors[] = "Profile Information can not be updated.";
 		}
 		return $updateErrors;
-
-	}
-	/**
-	 * @param User $patron
-	 * @param bool $forceReload
-	 * @return array
-	 */
-	public function getMyProfile($patron, $forceReload = false) {
-		//Update to not use SIP, just screen scrape for performance (sigh)
-		global $timer;
-		/** @var Memcache $memCache */
-		global $memCache;
-
-		if (!is_object($patron)){
-			$tmpPatron = new User();
-			$tmpPatron->username = $patron['username'];
-			$tmpPatron->cat_username = $patron['cat_username'];
-			$tmpPatron->cat_password = $patron['cat_password'];
-			$tmpPatron->firstname = $patron['firstname'];
-			$tmpPatron->lastname = $patron['lastname'];
-			$tmpPatron->email = $patron['email'];
-			$tmpPatron->patronType = $patron['patronType'];
-			$patron = $tmpPatron;
-		}
-
-		if (!$forceReload && !isset($_REQUEST['reload'])) {
-
-			// Check the Object for profile
-			if (array_key_exists($patron->username, $this->patronProfiles)) {
-				$timer->logTime('Retrieved Cached Profile for Patron');
-				return $this->patronProfiles[$patron->username];
-			}
-		}
-
-			// Determine memcache key
-		global $serverName;
-		$memCacheProfileKey = "patronProfile_{$serverName}_";
-			if (is_object($patron) && !isset($tmpPatron)) {
-				// exclude the new patron object $tmpPatron created above. It won't have an id or be stored in memcache
-//				$patron         = get_object_vars($patron);
-//			$memCacheProfileKey = $patron['username'];
-				// $patron needs to remain an object for initial loading below
-				$memCacheProfileKey .= $patron->username;
-			} else {
-				global $user;
-//				$memCacheProfileKey = $user->id;
-				$memCacheProfileKey .= $user->username;
-			}
-
-		// Check MemCache for profile
-		if (!$forceReload && !isset($_REQUEST['reload'])) {
-			$patronProfile = $memCache->get($memCacheProfileKey);
-			if ($patronProfile){
-				//echo("Using cached profile for patron " . $userId);
-				$timer->logTime('Retrieved Cached Profile for Patron');
-				return $patronProfile;
-			}
-		}
-
-		$this->initDatabaseConnection();
-		$this->getUserInfoStmt->bind_param('ss', $patron->cat_username, $patron->cat_username);
-		if ($this->getUserInfoStmt->execute()){
-			if ($userFromDbResultSet = $this->getUserInfoStmt->get_result()){
-				$userFromDb = $userFromDbResultSet->fetch_assoc();
-				$userFromDbResultSet->close();
-
-//				$city = $userFromDb['city'];
-//				$state = "";
-//				$commaPos = strpos($city, ',');
-//				if ($commaPos !== false){ // fix this
-//					$cityState = $city;
-//					$city = substr($cityState, 0, $commaPos);
-//					$state = substr($cityState, $commaPos);
-//				}
-				$city = strtok($userFromDb['city'], ',');
-				$state = strtok(',');
-				$city = trim($city);
-				$state = trim($state);
-
-				//Get fines
-				//Load fines from database
-				$outstandingFines = $this->getOutstandingFineTotal();
-
-				//Get number of items checked out
-				$checkedOutItemsRS = mysqli_query($this->dbConnection, 'SELECT count(*) as numCheckouts FROM issues WHERE borrowernumber = ' . $patron->username);
-				$numCheckouts = 0;
-				if ($checkedOutItemsRS){
-					$checkedOutItems = $checkedOutItemsRS->fetch_assoc();
-					$numCheckouts = $checkedOutItems['numCheckouts'];
-					$checkedOutItemsRS->close();
-				}
-
-				//Get number of available holds
-				$availableHoldsRS = mysqli_query($this->dbConnection, 'SELECT count(*) as numHolds FROM reserves WHERE waitingdate is not null and borrowernumber = ' . $patron->username);
-				$numAvailableHolds = 0;
-				if ($availableHoldsRS){
-					$availableHolds = $availableHoldsRS->fetch_assoc();
-					$numAvailableHolds = $availableHolds['numHolds'];
-					$availableHoldsRS->close();
-				}
-
-				//Get number of unavailable
-				$waitingHoldsRS = mysqli_query($this->dbConnection, 'SELECT count(*) as numHolds FROM reserves WHERE waitingdate is null and borrowernumber = ' . $patron->username);
-				$numWaitingHolds = 0;
-				if ($waitingHoldsRS){
-					$waitingHolds = $waitingHoldsRS->fetch_assoc();
-					$numWaitingHolds = $waitingHolds['numHolds'];
-					$waitingHoldsRS->close();
-				}
-
-				$homeBranchCode = $userFromDb['branchcode'];
-				$location = new Location();
-				$location->code = $homeBranchCode;
-				$location->find(1);
-				if ($location->N == 0){
-					unset($location);
-				}
-
-				global $user;
-				$profile = array(
-					'lastname' => $patron->lastname,
-					'firstname' => $patron->firstname,
-					'displayName' => isset($patron->displayName) ? $patron->displayName : '',
-					'fullname' => $user->lastname . ', ' . $user->firstname,
-					'address1' => trim($userFromDb['streetnumber'] . ' ' . $userFromDb['address'] . ' ' . $userFromDb['address2']),
-					'city' => $city,
-					'state' => $state,
-					'zip' => $userFromDb['zipcode'],
-					'phone' => $userFromDb['phone'],
-					'email' => $userFromDb['email'],
-					'homeLocationId' => isset($location) ? $location->locationId : -1,
-					'homeLocationName' => '',
-					'expires' => $userFromDb['dateexpiry'],
-					'expireclose' => '', //TODO not implemented for aspencat
-					'fines' => sprintf('$%0.2f', $outstandingFines),
-					'finesval' => floatval($outstandingFines),
-					'numHolds' => $numWaitingHolds + $numAvailableHolds,
-					'numHoldsAvailable' => $numAvailableHolds,
-					'numHoldsRequested' => $numWaitingHolds,
-					'numCheckedOut' => $numCheckouts ,
-					'bypassAutoLogout' => ($user ? $user->bypassAutoLogout : false),
-					'promptForOverdriveEmail' => $user ? $user->promptForOverdriveEmail : 1,
-					'noPromptForUserReviews' => $user ? $user->noPromptForUserReviews : 0,
-				);
-				$profile['noticePreferenceLabel'] = 'Unknown';
-
-				//Get eContent info as well
-				require_once(ROOT_DIR . '/Drivers/EContentDriver.php');
-				$eContentDriver = new EContentDriver();
-				$eContentAccountSummary = $eContentDriver->getAccountSummary();
-				$profile = array_merge($profile, $eContentAccountSummary);
-
-				require_once(ROOT_DIR . '/Drivers/OverDriveDriverFactory.php');
-				$overDriveDriver = OverDriveDriverFactory::getDriver();
-				if ($overDriveDriver->isUserValidForOverDrive($user)){
-					$overDriveSummary = $overDriveDriver->getOverDriveSummary($user);
-					$profile['numOverDriveCheckedOut'] = $overDriveSummary['numCheckedOut'];
-					$profile['numOverDriveHoldsAvailable'] = $overDriveSummary['numAvailableHolds'];
-					$profile['numOverDriveHoldsRequested'] = $overDriveSummary['numUnavailableHolds'];
-					$profile['canUseOverDrive'] = true;
-				}else{
-					$profile['numOverDriveCheckedOut'] = 0;
-					$profile['numOverDriveHoldsAvailable'] = 0;
-					$profile['numOverDriveHoldsRequested'] = 0;
-					$profile['canUseOverDrive'] = false;
-				}
-
-				$profile['numCheckedOutTotal'] = $profile['numCheckedOut'] + $profile['numOverDriveCheckedOut'] + $eContentAccountSummary['numEContentCheckedOut'];
-				$profile['numHoldsAvailableTotal'] = $profile['numHoldsAvailable'] + $profile['numOverDriveHoldsAvailable'] + $eContentAccountSummary['numEContentAvailableHolds'];
-				$profile['numHoldsRequestedTotal'] = $profile['numHoldsRequested'] + $profile['numOverDriveHoldsRequested'] + $eContentAccountSummary['numEContentUnavailableHolds'];
-				$profile['numHoldsTotal'] = $profile['numHoldsAvailableTotal'] + $profile['numHoldsRequestedTotal'];
-
-				//Get a count of the materials requests for the user
-				if ($user){
-					$homeLibrary = Library::getPatronHomeLibrary();
-					if ($homeLibrary){
-						$materialsRequest = new MaterialsRequest();
-						$materialsRequest->createdBy = $user->id;
-						$statusQuery = new MaterialsRequestStatus();
-						$statusQuery->isOpen = 1;
-						$statusQuery->libraryId = $homeLibrary->libraryId;
-						$materialsRequest->joinAdd($statusQuery);
-						$materialsRequest->find();
-						$profile['numMaterialsRequests'] = $materialsRequest->N;
-					}else{
-						$profile['numMaterialsRequests'] = 0;
-					}
-
-					if ($user->homeLocationId == 0 && isset($location)) {
-						$user->homeLocationId = $location->locationId;
-						if ($location->nearbyLocation1 > 0){
-							$user->myLocation1Id = $location->nearbyLocation1;
-						}else{
-							$user->myLocation1Id = $location->locationId;
-						}
-						if ($location->nearbyLocation2 > 0){
-							$user->myLocation2Id = $location->nearbyLocation2;
-						}else{
-							$user->myLocation2Id = $location->locationId;
-						}
-						if ($user instanceof User) {
-							//Update the database
-							$user->update();
-							//Update the serialized instance stored in the session
-							$_SESSION['userinfo'] = serialize($user);
-						}
-					}else if (isset($location) && $location->locationId != $user->homeLocationId){
-						$user->homeLocationId = $location->locationId;
-
-						//Update the database
-						$user->update();
-						//Update the serialized instance stored in the session
-						$_SESSION['userinfo'] = serialize($user);
-					}
-				}
-			}else{
-				$profile = PEAR_Singleton::raiseError('patron_info_error_technical - could not load from database');
-			}
-		} else {
-			$profile = PEAR_Singleton::raiseError('patron_info_error_technical - could not execute user info statement');
-		}
-
-		$this->patronProfiles[$patron->username] = $profile;
-		$timer->logTime('Retrieved Profile for Patron from Database');
-		global $configArray, $serverName;
-		$memCache->set($memCacheProfileKey, $profile, 0, $configArray['Caching']['patron_profile']) ;
-		// Looks like all drivers but aspencat use id rather than username.
-		// plb 4-16-2014
-		return $profile;
 	}
 
 	private $transactions = array();
-
-	public function getMyTransactions($page = 1, $recordsPerPage = -1, $sortOption = 'dueDate') {
+	public function getMyCheckouts($user) {
 		if (true){
-			return $this->getMyTransactionsFromOpac($page, $recordsPerPage, $sortOption);
+			return $this->getMyCheckoutsFromOpac($user);
 		}else{
-			return $this->getMyTransactionsFromDB($page, $recordsPerPage, $sortOption);
+			return $this->getMyCheckoutsFromDB($user);
 		}
 	}
 
-	public function getMyTransactionsFromOpac($page = 1, $recordsPerPage = -1, $sortOption = 'dueDate') {
+	public function getMyCheckoutsFromOpac($user) {
 		global $logger;
-		global $user;
 		if (isset($this->transactions[$user->id])){
 			return $this->transactions[$user->id];
 		}
@@ -824,11 +596,7 @@ class Aspencat implements DriverInterface{
 							$dueTime = strtotime($tableCell);
 						}
 						if ($dueTime != null){
-							$daysUntilDue = ceil(($dueTime - time()) / (24 * 60 * 60));
-							$overdue = $daysUntilDue < 0;
-							$transaction['duedate'] = $dueTime;
-							$transaction['overdue'] = $overdue;
-							$transaction['daysUntilDue'] = $daysUntilDue;
+							$transaction['dueDate'] = $dueTime;
 						}
 					}elseif ($headerLabels[$col] == 'renew'){
 						if (preg_match('/item=(\\d+).*?\\((\\d+) of (\\d+) renewals/si', $tableCell, $renewalData)) {
@@ -871,47 +639,11 @@ class Aspencat implements DriverInterface{
 				$transactions[] = $transaction;
 			}
 		}
-		//Process sorting
-		$sortKeys = array();
-		$i = 0;
-		foreach ($transactions as $key => $transaction){
-			$sortTitle = isset($transaction['sortTitle']) ? $transaction['sortTitle'] : "Unknown";
-			if ($sortOption == 'title'){
-				$sortKeys[$key] = $sortTitle;
-			}elseif ($sortOption == 'author'){
-				$sortKeys[$key] = (isset($transaction['author']) ? $transaction['author'] : "Unknown") . '-' . $sortTitle;
-			}elseif ($sortOption == 'dueDate'){
-				if (preg_match('/.*?(\\d{1,2})[-\/](\\d{1,2})[-\/](\\d{2,4}).*/', $transaction['duedate'], $matches)) {
-					$sortKeys[$key] = $matches[3] . '-' . $matches[1] . '-' . $matches[2] . '-' . $sortTitle;
-				} else {
-					$sortKeys[$key] = $transaction['duedate'] . '-' . $sortTitle;
-				}
-			}elseif ($sortOption == 'format'){
-				$sortKeys[$key] = (isset($transaction['format']) ? $transaction['format'] : "Unknown") . '-' . $sortTitle;
-			}elseif ($sortOption == 'renewed'){
-				$sortKeys[$key] = (isset($transaction['renewCount']) ? $transaction['renewCount'] : 0) . '-' . $sortTitle;
-			}elseif ($sortOption == 'holdQueueLength'){
-				$sortKeys[$key] = (isset($transaction['holdQueueLength']) ? $transaction['holdQueueLength'] : 0) . '-' . $sortTitle;
-			}
-			$sortKeys[$key] = $sortKeys[$key] . '-' . $i++;
-		}
-		array_multisort($sortKeys, $transactions);
-		//Limit to a specific number of records
-		$totalTransactions = count($transactions);
-		if ($recordsPerPage != -1){
-			$startRecord = ($page - 1) * $recordsPerPage;
-			$transactions = array_slice($transactions, $startRecord, $recordsPerPage);
-		}
 		$this->transactions[$user->id] = $transactions;
-		return array(
-			'transactions' => $transactions,
-			'numTransactions' => $totalTransactions
-		);
+		return $transactions;
 	}
 
-	public function getMyTransactionsFromDB($page = 1, $recordsPerPage = -1, $sortOption = 'dueDate') {
-		global $user;
-
+	public function getMyCheckoutsFromDB($user) {
 		if (isset($this->transactions[$user->id])){
 			return $this->transactions[$user->id];
 		}
@@ -943,14 +675,7 @@ class Aspencat implements DriverInterface{
 			}else{
 				$dueTime = null;
 			}
-			$transaction['duedate'] = $dueTime;
-			if ($dueTime != null){
-				$daysUntilDue = ceil(($dueTime - time()) / (24 * 60 * 60));
-				$overdue = $daysUntilDue < 0;
-				$transaction['duedate'] = $dueTime;
-				$transaction['overdue'] = $overdue;
-				$transaction['daysUntilDue'] = $daysUntilDue;
-			}
+			$transaction['dueDate'] = $dueTime;
 			$transaction['itemid'] = $curRow['id'];
 			$transaction['renewIndicator'] = $curRow['id'];
 			$transaction['renewCount'] = $curRow['renewals'];
@@ -976,48 +701,14 @@ class Aspencat implements DriverInterface{
 				}
 			}
 
+			$transaction['user'] = $user->getNameAndLibraryLabel();
+
 			$transactions[] = $transaction;
-		}
-
-		//Process sorting
-		$sortKeys = array();
-		$i = 0;
-		foreach ($transactions as $key => $transaction){
-			$sortTitle = isset($transaction['sortTitle']) ? $transaction['sortTitle'] : "Unknown";
-			if ($sortOption == 'title'){
-				$sortKeys[$key] = $sortTitle;
-			}elseif ($sortOption == 'author'){
-				$sortKeys[$key] = (isset($transaction['author']) ? $transaction['author'] : "Unknown") . '-' . $sortTitle;
-			}elseif ($sortOption == 'dueDate'){
-				if (preg_match('/.*?(\\d{1,2})[-\/](\\d{1,2})[-\/](\\d{2,4}).*/', $transaction['duedate'], $matches)) {
-					$sortKeys[$key] = $matches[3] . '-' . $matches[1] . '-' . $matches[2] . '-' . $sortTitle;
-				} else {
-					$sortKeys[$key] = $transaction['duedate'] . '-' . $sortTitle;
-				}
-			}elseif ($sortOption == 'format'){
-				$sortKeys[$key] = (isset($transaction['format']) ? $transaction['format'] : "Unknown") . '-' . $sortTitle;
-			}elseif ($sortOption == 'renewed'){
-				$sortKeys[$key] = (isset($transaction['renewCount']) ? $transaction['renewCount'] : 0) . '-' . $sortTitle;
-			}elseif ($sortOption == 'holdQueueLength'){
-				$sortKeys[$key] = (isset($transaction['holdQueueLength']) ? $transaction['holdQueueLength'] : 0) . '-' . $sortTitle;
-			}
-			$sortKeys[$key] = $sortKeys[$key] . '-' . $i++;
-		}
-		array_multisort($sortKeys, $transactions);
-
-		//Limit to a specific number of records
-		$totalTransactions = count($transactions);
-		if ($recordsPerPage != -1){
-			$startRecord = ($page - 1) * $recordsPerPage;
-			$transactions = array_slice($transactions, $startRecord, $recordsPerPage);
 		}
 
 		$this->transactions[$user->id] = $transactions;
 
-		return array(
-			'transactions' => $transactions,
-			'numTransactions' => $totalTransactions
-		);
+		return $transactions;
 	}
 
 
@@ -1087,103 +778,164 @@ class Aspencat implements DriverInterface{
 
 	/** @var mysqli_stmt  */
 	private $getUserInfoStmt = null;
-	private $loadedUsers = array();
 	public function patronLogin($username, $password) {
 		//Remove any spaces from the barcode
 		$username = trim($username);
 		$password = trim($password);
 
-		if (array_key_exists($username, $this->loadedUsers)){
-			return $this->loadedUsers[$username];
-		}
 		global $timer;
-		global $configArray;
 
-		$this->loadedUsers[$username] = null;
+		//Use MySQL connection to load data
+		$this->initDatabaseConnection();
 
-		if ($configArray['Catalog']['offline'] == true){
-			//The catalog is offline, check the database to see if the user is valid
-			$user = new User();
-			$user->cat_username = $username;
-			if ($user->find(true)){
-				$userValid = false;
-				if ($user->cat_username){
-					$userValid = true;
-				}
-				if ($userValid){
-					$returnVal = array(
-						'id'        => $password,
-						'username'  => $user->username,
-						'firstname' => $user->firstname,
-						'lastname'  => $user->lastname,
-						'fullname'  => $user->firstname . ' ' . $user->lastname,     //Added to array for possible display later.
-						'cat_username' => $username, //Should this be $Fullname or $patronDump['PATRN_NAME']
-						'cat_password' => $password,
-
-						'email' => $user->email,
-						'major' => null,
-						'college' => null,
-						'patronType' => $user->patronType,
-						'web_note' => translate('The catalog is currently down.  You will have limited access to circulation information.'));
-					$timer->logTime("patron logged in successfully");
-					return $returnVal;
-				} else {
-					$timer->logTime("patron login failed");
-					return null;
-				}
-			} else {
-				$timer->logTime("patron login failed");
-				return null;
-			}
-		}else{
-			//Use MySQL connection to load data
-			$this->initDatabaseConnection();
-
-			$barcodesToTest = array();
-			$barcodesToTest[] = $username;
-			//Special processing to allow users to login with short barcodes
-			global $library;
-			if ($library){
-				if ($library->barcodePrefix){
-					if (strpos($username, $library->barcodePrefix) !== 0){
-						//Add the barcode prefix to the barcode
-						$barcodesToTest[] = $library->barcodePrefix . $username;
-					}
+		$barcodesToTest = array();
+		$barcodesToTest[] = $username;
+		//Special processing to allow users to login with short barcodes
+		global $library;
+		if ($library){
+			if ($library->barcodePrefix){
+				if (strpos($username, $library->barcodePrefix) !== 0){
+					//Add the barcode prefix to the barcode
+					$barcodesToTest[] = $library->barcodePrefix . $username;
 				}
 			}
-
-			foreach ($barcodesToTest as $i=>$barcode) {
-				$this->getUserInfoStmt->bind_param('ss', $barcode, $barcode);
-				$encodedPassword = rtrim(base64_encode(pack('H*', md5($password))), '=');
-
-				if ($this->getUserInfoStmt->execute()) {
-					if ($userFromDbResultSet = $this->getUserInfoStmt->get_result()) {
-						$userFromDb = $userFromDbResultSet->fetch_assoc();
-						if ($userFromDb['password'] == $encodedPassword) {
-							$returnVal = array(
-								'username' => $userFromDb['borrowernumber'], //The unique id of the patron in the ILS
-								'firstname' => $userFromDb['firstname'],
-								'lastname' => $userFromDb['surname'],
-								'fullname' => $userFromDb['firstname'] . ' ' . $userFromDb['surname'],     //Added to array for possible display later.
-								'cat_username' => $barcode,
-								'cat_password' => $password,
-
-								'email' => $userFromDb['email'],
-								'major' => null,
-								'college' => null,
-								'patronType' => $userFromDb['categorycode'],
-								'web_note' => ''
-							);
-							$this->loadedUsers[$barcode] = $returnVal;
-							$timer->logTime("patron logged in successfully");
-							return $returnVal;
-						}
-					}
-				}
-			}
-			return null;
 		}
 
+		foreach ($barcodesToTest as $i=>$barcode) {
+			$this->getUserInfoStmt->bind_param('ss', $barcode, $barcode);
+			$encodedPassword = rtrim(base64_encode(pack('H*', md5($password))), '=');
+
+			if ($this->getUserInfoStmt->execute()) {
+				if ($userFromDbResultSet = $this->getUserInfoStmt->get_result()) {
+					$userFromDb = $userFromDbResultSet->fetch_assoc();
+					if ($userFromDb['password'] == $encodedPassword) {
+						$userExistsInDB = false;
+						$user = new User();
+						//Get the unique user id from Millennium
+						$user->source = $this->accountProfile->name;
+						$user->username = $userFromDb['borrowernumber'];
+						if ($user->find(true)){
+							$userExistsInDB = true;
+						}
+						$user->firstname = $userFromDb['firstname'];
+						$user->lastname = $userFromDb['surname'];
+						$user->fullname = $userFromDb['firstname'] . ' ' . $userFromDb['surname'];
+						$user->cat_username = $barcode;
+						$user->cat_password =  $password;
+						$user->email = $userFromDb['email'];
+						$user->patronType = $userFromDb['categorycode'];
+						$user->web_note = '';
+
+						$city = strtok($userFromDb['city'], ',');
+						$state = strtok(',');
+						$city = trim($city);
+						$state = trim($state);
+
+						$user->address1 = trim($userFromDb['streetnumber'] . ' ' . $userFromDb['address'] . ' ' . $userFromDb['address2']);
+						$user->city = $city;
+						$user->state = $state;
+						$user->zip = $userFromDb['zipcode'];
+						$user->phone = $userFromDb['phone'];
+
+						//Get fines
+						//Load fines from database
+						$outstandingFines = $this->getOutstandingFineTotal($user);
+						$user->fines = sprintf('$%0.2f', $outstandingFines);
+						$user->finesVal = floatval($outstandingFines);
+
+						//Get number of items checked out
+						$checkedOutItemsRS = mysqli_query($this->dbConnection, 'SELECT count(*) as numCheckouts FROM issues WHERE borrowernumber = ' . $user->username);
+						$numCheckouts = 0;
+						if ($checkedOutItemsRS){
+							$checkedOutItems = $checkedOutItemsRS->fetch_assoc();
+							$numCheckouts = $checkedOutItems['numCheckouts'];
+							$checkedOutItemsRS->close();
+						}
+						$user->numCheckedOutIls = $numCheckouts;
+
+						//Get number of available holds
+						$availableHoldsRS = mysqli_query($this->dbConnection, 'SELECT count(*) as numHolds FROM reserves WHERE found = "W" and borrowernumber = ' . $user->username);
+						$numAvailableHolds = 0;
+						if ($availableHoldsRS){
+							$availableHolds = $availableHoldsRS->fetch_assoc();
+							$numAvailableHolds = $availableHolds['numHolds'];
+							$availableHoldsRS->close();
+						}
+						$user->numHoldsAvailableIls = $numAvailableHolds;
+
+						//Get number of unavailable
+						$waitingHoldsRS = mysqli_query($this->dbConnection, 'SELECT count(*) as numHolds FROM reserves WHERE found <> "W" and borrowernumber = ' . $user->username);
+						$numWaitingHolds = 0;
+						if ($waitingHoldsRS){
+							$waitingHolds = $waitingHoldsRS->fetch_assoc();
+							$numWaitingHolds = $waitingHolds['numHolds'];
+							$waitingHoldsRS->close();
+						}
+						$user->numHoldsRequestedIls = $numWaitingHolds;
+						$user->numHoldsIls = $user->numHoldsAvailableIls + $user->numHoldsRequestedIls;
+
+						$homeBranchCode = $userFromDb['branchcode'];
+						$location = new Location();
+						$location->code = $homeBranchCode;
+						$location->find(1);
+						if ($location->N == 0){
+							unset($location);
+							$user->homeLocationId = -1;
+						}else{
+							//Setup default location information if it hasn't been loaded or has been changed
+							if ($user->homeLocationId == 0 || $location->locationId != $user->homeLocationId) {
+								$user->homeLocationId = $location->locationId;
+								if ($location->nearbyLocation1 > 0){
+									$user->myLocation1Id = $location->nearbyLocation1;
+								}else{
+									$user->myLocation1Id = $location->locationId;
+								}
+								if ($location->nearbyLocation2 > 0){
+									$user->myLocation2Id = $location->nearbyLocation2;
+								}else{
+									$user->myLocation2Id = $location->locationId;
+								}
+							}
+							//Get display names that aren't stored
+							$user->homeLocationCode = $location->code;
+							$user->homeLocation = $location->displayName;
+
+							//Get display name for preferred location 1
+							$myLocation1 = new Location();
+							$myLocation1->whereAdd("locationId = '$user->myLocation1Id'");
+							if ($myLocation1->find(true)){
+								$user->myLocation1 = $myLocation1->displayName;
+							}
+
+							//Get display name for preferred location 2
+							$myLocation2 = new Location();
+							$myLocation2->whereAdd("locationId = '$user->myLocation2Id'");
+							if ($myLocation2->find(true)){
+								$user->myLocation2 = $myLocation2->displayName;
+							}
+						}
+
+						$user->expires = $userFromDb['dateexpiry'];
+						//TODO: Implement determining if the user is expired or if expiration is close
+
+						$user->noticePreferenceLabel = 'Unknown';
+
+						if ($userExistsInDB){
+							$user->update();
+						}else{
+							$user->created = date('Y-m-d');
+							$user->insert();
+						}
+
+						$timer->logTime("patron logged in successfully");
+
+						$userFromDbResultSet->close();
+						return $user;
+					}
+				}
+			}
+		}
+		return null;
 	}
 
 	function initDatabaseConnection(){
@@ -1191,7 +943,7 @@ class Aspencat implements DriverInterface{
 		if ($this->dbConnection == null){
 			$this->dbConnection = mysqli_connect($configArray['Catalog']['db_host'], $configArray['Catalog']['db_user'], $configArray['Catalog']['db_pwd'], $configArray['Catalog']['db_name']);
 
-			if (mysqli_errno($this->dbConnection) != 0){
+			if (!$this->dbConnection || mysqli_errno($this->dbConnection) != 0){
 				global $logger;
 				$logger->log("Error connecting to Koha database " . mysqli_error($this->dbConnection), PEAR_LOG_ERR);
 				$this->dbConnection = null;
@@ -1204,9 +956,13 @@ class Aspencat implements DriverInterface{
 		}
 	}
 
-	function __construct(){
+	/**
+	 * @param AccountProfile $accountProfile
+	 */
+	public function __construct($accountProfile){
+		$this->accountProfile = $accountProfile;
 		global $timer;
-		$timer->logTime("Created Aspencat Driver");
+		$timer->logTime("Crea11ted Aspencat Driver");
 	}
 
 	function __destruct(){
@@ -1237,7 +993,7 @@ class Aspencat implements DriverInterface{
 	 *
 	 * This is responsible for retrieving a history of checked out items for the patron.
 	 *
-	 * @param   array   $patron     The patron array
+	 * @param   User   $patron     The patron account
 	 * @param   int     $page
 	 * @param   int     $recordsPerPage
 	 * @param   string  $sortOption
@@ -1246,20 +1002,24 @@ class Aspencat implements DriverInterface{
 	 *                              If an error occurs, return a PEAR_Error
 	 * @access  public
 	 */
-	public function getReadingHistory(
-		/** @noinspection PhpUnusedParameterInspection */
-		$patron = null, $page = 1, $recordsPerPage = -1, $sortOption = "checkedOut") {
-		global $user;
-
+	public function getReadingHistory($patron, $page = 1, $recordsPerPage = -1, $sortOption = "checkedOut") {
+		// TODO implement sorting, currently only done in catalogConnection for aspencat reading history
+		//TODO prepend indexProfileType
 		$this->initDatabaseConnection();
 
 		//Figure out if the user is opted in to reading history
 
-		$sql = "select disable_reading_history from borrowers where borrowernumber = {$user->username}";
+		$sql = "select disable_reading_history from borrowers where borrowernumber = {$patron->username}";
 		$historyEnabledRS = mysqli_query($this->dbConnection, $sql);
 		if ($historyEnabledRS){
 			$historyEnabledRow = $historyEnabledRS->fetch_assoc();
 			$historyEnabled = !$historyEnabledRow['disable_reading_history'];
+
+			// Update patron's setting in Pika if the setting has changed in Koha
+			if ($historyEnabled != $patron->trackReadingHistory) {
+				$patron->trackReadingHistory = (boolean) $historyEnabled;
+				$patron->update();
+			}
 
 			if (!$historyEnabled){
 				return array('historyActive'=>false, 'titles'=>array(), 'numTitles'=> 0);
@@ -1282,7 +1042,7 @@ class Aspencat implements DriverInterface{
 					LEFT JOIN biblioitems ON items.biblioitemnumber=biblioitems.biblioitemnumber
 					WHERE borrowernumber=?";
 				$readingHistoryTitleStmt = mysqli_prepare($this->dbConnection, $readingHistoryTitleSql);
-				$readingHistoryTitleStmt->bind_param('ii', $user->username, $user->username);
+				$readingHistoryTitleStmt->bind_param('ii', $patron->username, $patron->username);
 				if ($readingHistoryTitleStmt->execute()){
 					$readingHistoryTitleRS = $readingHistoryTitleStmt->get_result();
 					while ($readingHistoryTitleRow = $readingHistoryTitleRS->fetch_assoc()){
@@ -1291,7 +1051,9 @@ class Aspencat implements DriverInterface{
 						$curTitle['shortId'] = $readingHistoryTitleRow['biblionumber'];
 						$curTitle['recordId'] = $readingHistoryTitleRow['biblionumber'];
 						$curTitle['title'] = $readingHistoryTitleRow['title'];
-						$curTitle['checkout'] = $readingHistoryTitleRow['itemstimestamp'];
+
+						$checkOutDate = new DateTime($readingHistoryTitleRow['itemstimestamp']);
+						$curTitle['checkout'] = $checkOutDate->format('m-d-Y'); // this format is expected by Pika's java cron program.
 
 						$readingHistoryTitles[] = $curTitle;
 					}
@@ -1314,9 +1076,10 @@ class Aspencat implements DriverInterface{
 				$historyEntry['linkUrl'] = null;
 				$historyEntry['coverUrl'] = null;
 				$historyEntry['format'] = array();
-				if (isset($historyEntry['recordId']) && strlen($historyEntry['recordId']) > 0){
+				if (!empty($historyEntry['recordId'])){
+//					if (is_int($historyEntry['recordId'])) $historyEntry['recordId'] = (string) $historyEntry['recordId']; // Marc Record Contructor expects the recordId as a string.
 					require_once ROOT_DIR . '/RecordDrivers/MarcRecord.php';
-					$recordDriver = new MarcRecord($historyEntry['recordId']);
+					$recordDriver = new MarcRecord($this->accountProfile->recordSource.':'.$historyEntry['recordId']);
 					if ($recordDriver->isValid()){
 						$historyEntry['ratingData'] = $recordDriver->getRatingData();
 						$historyEntry['permanentId'] = $recordDriver->getPermanentId();
@@ -1370,37 +1133,21 @@ class Aspencat implements DriverInterface{
 	 *
 	 * This is responsible for both placing holds as well as placing recalls.
 	 *
-	 * @param   string  $recordId   The id of the bib record
-	 * @param   string  $patronId   The id of the patron
-	 * @param   string  $comment    Any comment regarding the hold or recall
-	 * @param   string  $type       Whether to place a hold or recall
-	 * @return  mixed               True if successful, false if unsuccessful
-	 *                              If an error occurs, return a PEAR_Error
+	 * @param   User    $patron       The User to place a hold for
+	 * @param   string  $recordId     The id of the bib record
+	 * @param   string  $pickupBranch The branch where the user wants to pickup the item when available
+	 * @return  mixed                 True if successful, false if unsuccessful
+	 *                                If an error occurs, return a PEAR_Error
 	 * @access  public
 	 */
-	public function placeHold(
-		/** @noinspection PhpUnusedParameterInspection */
-		$recordId, $patronId, $comment, $type){
+	public function placeHold($patron, $recordId, $pickupBranch){
 		global $user;
 
 		$hold_result = array();
-		$hold_result['result'] = false;
+		$hold_result['success'] = false;
 
 		//Set pickup location
-		if (isset($_REQUEST['campus'])){
-			$campus=trim($_REQUEST['campus']);
-		}else{
-			$campus = $user->homeLocationId;
-			//Get the code for the location
-			$locationLookup = new Location();
-			$locationLookup->locationId = $campus;
-			$locationLookup->find();
-			if ($locationLookup->N > 0){
-				$locationLookup->fetch();
-				$campus = $locationLookup->code;
-			}
-		}
-		$campus = strtoupper($campus);
+		$campus = strtoupper($pickupBranch);
 
 		//Get a specific item number to place a hold on even though we are placing a title level hold.
 		//because.... Koha
@@ -1435,7 +1182,7 @@ class Aspencat implements DriverInterface{
 		preg_match_all('/<div class="dialog alert">(.*?)<\/div>/s', $placeHoldPage, $matches);
 		if (count($matches) > 0 && count($matches[1]) > 0){
 			$hold_result['title'] = $recordDriver->getTitle();
-			$hold_result['result'] = false;
+			$hold_result['success'] = false;
 			$hold_result['message'] = '';
 			foreach ($matches[1] as $errorMsg){
 				$hold_result['message'] .= $errorMsg . '<br/>';
@@ -1515,7 +1262,7 @@ class Aspencat implements DriverInterface{
 					$message = 'There are no holdable items for this title.';
 				}
 			}
-			$hold_result['result'] = false;
+			$hold_result['success'] = false;
 			$hold_result['message'] = $message;
 			return $hold_result;
 		}else{
@@ -1541,10 +1288,10 @@ class Aspencat implements DriverInterface{
 			if (preg_match('/<a href="#opac-user-holds">Holds<\/a>/si', $kohaHoldResult)) {
 				//We redirected to the holds page, everything seems to be good
 				$holds = $this->getMyHolds($user, 1, -1, 'title', $kohaHoldResult);
-				$hold_result['result'] = true;
+				$hold_result['success'] = true;
 				$hold_result['message'] = "Your hold was placed successfully.";
 				//Find the correct hold (will be unavailable)
-				foreach ($holds['holds']['unavailable'] as $holdInfo){
+				foreach ($holds['unavailable'] as $holdInfo){
 					if ($holdInfo['id'] == $recordId){
 						if (isset($holdInfo['position'])){
 							$hold_result['message'] .= "  You are number <b>" . $holdInfo['position'] . "</b> in the queue.";
@@ -1553,7 +1300,7 @@ class Aspencat implements DriverInterface{
 					}
 				}
 			}else{
-				$hold_result['result'] = false;
+				$hold_result['success'] = false;
 				//Look for an alert message
 				if (preg_match('/<div class="dialog alert">(.*?)<\/div>/', $kohaHoldResult, $matches)){
 					$hold_result['message'] = 'Your hold could not be placed. ' . $matches[1] ;
@@ -1571,25 +1318,19 @@ class Aspencat implements DriverInterface{
 	 *
 	 * This is responsible for both placing item level holds.
 	 *
+	 * @param   User    $patron     The User to place a hold for
 	 * @param   string  $recordId   The id of the bib record
 	 * @param   string  $itemId     The id of the item to hold
-	 * @param   string  $patronId   The id of the patron
-	 * @param   string  $comment    Any comment regarding the hold or recall
-	 * @param   string  $type       Whether to place a hold or recall
-	 * @param   string  $type       The date when the hold should be cancelled if any
+	 * @param   string  $pickupBranch The branch where the user wants to pickup the item when available
 	 * @return  mixed               True if successful, false if unsuccessful
 	 *                              If an error occurs, return a PEAR_Error
 	 * @access  public
 	 */
-	public function placeItemHold(
-		/** @noinspection PhpUnusedParameterInspection */
-		$recordId, $itemId, $patronId, $comment, $type){
-
-		global $user;
+	function placeItemHold($patron, $recordId, $itemId, $pickupBranch) {
 		global $configArray;
 
 		$hold_result = array();
-		$hold_result['result'] = false;
+		$hold_result['success'] = false;
 
 		require_once ROOT_DIR . '/RecordDrivers/MarcRecord.php';
 		$recordDriver = new MarcRecord($recordId);
@@ -1603,7 +1344,7 @@ class Aspencat implements DriverInterface{
 		if (isset($_REQUEST['campus'])){
 			$campus=trim($_REQUEST['campus']);
 		}else{
-			$campus = $user->homeLocationId;
+			$campus = $patron->homeLocationId;
 			//Get the code for the location
 			$locationLookup = new Location();
 			$locationLookup->locationId = $campus;
@@ -1616,7 +1357,7 @@ class Aspencat implements DriverInterface{
 		$campus = strtoupper($campus);
 
 		//Login before placing the hold
-		$this->loginToKoha($user);
+		$this->loginToKoha($patron);
 
 		//Post the hold to koha
 		$placeHoldPage = $configArray['Catalog']['url'] . '/cgi-bin/koha/opac-reserve.pl';
@@ -1635,11 +1376,11 @@ class Aspencat implements DriverInterface{
 		$hold_result['id'] = $recordId;
 		if (preg_match('/<a href="#opac-user-holds">Holds<\/a>/si', $kohaHoldResult)) {
 			//We redirected to the holds page, everything seems to be good
-			$holds = $this->getMyHolds($user, 1, -1, 'title', $kohaHoldResult);
-			$hold_result['result'] = true;
+			$holds = $this->getMyHolds($patron, 1, -1, 'title', $kohaHoldResult);
+			$hold_result['success'] = true;
 			$hold_result['message'] = "Your hold was placed successfully.";
 			//Find the correct hold (will be unavailable)
-			foreach ($holds['holds']['unavailable'] as $holdInfo){
+			foreach ($holds['unavailable'] as $holdInfo){
 				if ($holdInfo['id'] == $recordId){
 					if (isset($holdInfo['position'])){
 						$hold_result['message'] .= "  You are number <b>" . $holdInfo['position'] . "</b> in the queue.";
@@ -1648,7 +1389,7 @@ class Aspencat implements DriverInterface{
 				}
 			}
 		}else{
-			$hold_result['result'] = false;
+			$hold_result['success'] = false;
 			//Look for an alert message
 			if (preg_match('/<div class="dialog alert">(.*?)<\/div>/', $kohaHoldResult, $matches)){
 				$hold_result['message'] = 'Your hold could not be placed. ' . $matches[1] ;
@@ -1669,7 +1410,6 @@ class Aspencat implements DriverInterface{
 	 * @param integer $page           The current page of holds
 	 * @param integer $recordsPerPage The number of records to show per page
 	 * @param string $sortOption      How the records should be sorted
-	 * @param string $summaryPage     If the summary page has already been loaded, it can be passed in for performance reasons.
 	 *
 	 * @return mixed        Array of the patron's holds on success, PEAR_Error
 	 * otherwise.
@@ -1678,9 +1418,9 @@ class Aspencat implements DriverInterface{
 	public function getMyHolds(/** @noinspection PhpUnusedParameterInspection */
 		$patron, $page = 1, $recordsPerPage = -1, $sortOption = 'title'){
 		if (true){
-			return $this->getMyHoldsFromOpac($patron, $page, $sortOption);
+			return $this->getMyHoldsFromOpac($patron);
 		}else{
-			return $this->getMyHoldsFromDB($patron, $page, $sortOption);
+			return $this->getMyHoldsFromDB($patron);
 		}
 	}
 
@@ -1690,17 +1430,12 @@ class Aspencat implements DriverInterface{
 	 * This is responsible for retrieving all holds by a specific patron.
 	 *
 	 * @param array|User $patron      The patron array from patronLogin
-	 * @param integer $page           The current page of holds
-	 * @param integer $recordsPerPage The number of records to show per page
-	 * @param string $sortOption      How the records should be sorted
-	 * @param string $summaryPage     If the summary page has already been loaded, it can be passed in for performance reasons.
 	 *
 	 * @return mixed        Array of the patron's holds on success, PEAR_Error
 	 * otherwise.
 	 * @access public
 	 */
-	public function getMyHoldsFromOpac(/** @noinspection PhpUnusedParameterInspection */
-		$patron, $page = 1, $recordsPerPage = -1, $sortOption = 'title', $summaryPage = null){
+	public function getMyHoldsFromOpac($patron){
 		global $logger;
 		global $user;
 		$availableHolds = array();
@@ -1710,15 +1445,14 @@ class Aspencat implements DriverInterface{
 			'unavailable' => $unavailableHolds
 		);
 		//Get transactions by screen scraping
-		if ($summaryPage == null){
-			//Login to Koha classic interface
-			$result = $this->loginToKoha($user);
-			if (!$result['success']){
-				return $holds;
-			}
-			//Get the summary page that contains both checked out titles and holds
-			$summaryPage = $result['summaryPage'];
+		//Login to Koha classic interface
+		$result = $this->loginToKoha($user);
+		if (!$result['success']){
+			return $holds;
 		}
+		//Get the summary page that contains both checked out titles and holds
+		$summaryPage = $result['summaryPage'];
+
 		//Get the holds table
 		if (preg_match_all('/<table id="aholdst">(.*?)<\/table>/si', $summaryPage, $holdsTableData, PREG_SET_ORDER)){
 			$holdsTable = $holdsTableData[0][0];
@@ -1777,7 +1511,12 @@ class Aspencat implements DriverInterface{
 							$curHold['cancelId'] = $matches[1];
 						}
 					}elseif ($headerLabels[$col] == 'suspend'){
-						$curHold['freezeable'] = true;
+						if (preg_match('/cannot be suspended/i', $tableCell)){
+							$curHold['freezeable'] = false;
+						}else{
+							$curHold['freezeable'] = true;
+						}
+
 					}
 				}
 				if ($bibId){
@@ -1869,6 +1608,7 @@ class Aspencat implements DriverInterface{
 						$curHold['ratingData'] = $recordDriver->getRatingData();
 					}
 				}
+				$curHold['user'] = $patron->getNameAndLibraryLabel();
 				if (!isset($curHold['status']) || strcasecmp($curHold['status'], "filled") != 0){
 					$holds['unavailable'][] = $curHold;
 				}else{
@@ -1876,10 +1616,7 @@ class Aspencat implements DriverInterface{
 				}
 			}
 		}
-		return array(
-			'holds' => $holds,
-			'numUnavailableHolds' => count($holds['unavailable']),
-		);
+		return $holds;
 	}
 
 	/**
@@ -1899,7 +1636,6 @@ class Aspencat implements DriverInterface{
 	 */
 	public function getMyHoldsFromDB(/** @noinspection PhpUnusedParameterInspection */
 		$patron, $page = 1, $recordsPerPage = -1, $sortOption = 'title'){
-		global $user;
 
 		$availableHolds = array();
 		$unavailableHolds = array();
@@ -1912,7 +1648,7 @@ class Aspencat implements DriverInterface{
 
 		$sql = "SELECT *, title, author FROM reserves inner join biblio on biblio.biblionumber = reserves.biblionumber where borrowernumber = ?";
 		$holdsStmt = mysqli_prepare($this->dbConnection, $sql);
-		$holdsStmt->bind_param('i', $user->username);
+		$holdsStmt->bind_param('i', $patron->username);
 		$holdsStmt->execute();
 
 		$results = $holdsStmt->get_result();
@@ -1963,18 +1699,16 @@ class Aspencat implements DriverInterface{
 					$curHold['ratingData'] = $recordDriver->getRatingData();
 				}
 			}
+			$curHold['user'] = $patron->getNameAndLibraryLabel();
 
-			if (!isset($curHold['status']) || !preg_match('/^Item waiting.*/i', $curHold['status'])){
+			if (!isset($curHold['status']) || !preg_match('/^Ready to Pickup.*/i', $curHold['status'])){
 				$holds['unavailable'][] = $curHold;
 			}else{
 				$holds['available'][] = $curHold;
 			}
 		}
 
-		return array(
-			'holds' => $holds,
-			'numUnavailableHolds' => count($holds['unavailable']),
-		);
+		return $holds;
 	}
 
 	public function updateHold($requestId, $patronId, $type, $title){
@@ -1994,13 +1728,10 @@ class Aspencat implements DriverInterface{
 	 * Update a hold that was previously placed in the system.
 	 * Can cancel the hold or update pickup locations.
 	 */
-	public function updateHoldDetailed(/** @noinspection PhpUnusedParameterInspection */
-		$patronId, $type, $title, $xNum, $cancelId, $locationId, $freezeValue='off'){
+	public function updateHoldDetailed($patron, $type, $title, $xNum, $cancelId, $locationId, $freezeValue='off'){
 		global $configArray;
 
-		global $user;
-
-		if (!isset($xNum) ){
+		if (!isset($xNum) || empty($xNum)){
 			if (isset($_REQUEST['waitingholdselected']) || isset($_REQUEST['availableholdselected'])){
 				$waitingHolds = isset($_REQUEST['waitingholdselected']) ? $_REQUEST['waitingholdselected'] : array();
 				$availableHolds = isset($_REQUEST['availableholdselected']) ? $_REQUEST['availableholdselected'] : array();
@@ -2016,11 +1747,12 @@ class Aspencat implements DriverInterface{
 			$holdKeys = $xNum;
 		}
 
-
+		//In all cases, we need to login
+		$result = $this->loginToKoha($patron);
 		if ($type == 'cancel'){
 			$allCancelsSucceed = true;
-			$result = $this->loginToKoha($user);
-			$originalHolds = $this->getMyHolds($user, 1, -1, 'title', $result['summaryPage']);
+			$originalHolds = $this->getMyHolds($patron, 1, -1, 'title', $result['summaryPage']);
+
 			//Post a request to koha
 			foreach ($holdKeys as $holdKey){
 				//Get the record Id for the hold
@@ -2040,8 +1772,8 @@ class Aspencat implements DriverInterface{
 				$kohaHoldResult = $this->postToKohaPage($cancelUrl, $postParams);
 
 				//Parse the result
-				$updatedHolds = $this->getMyHolds($user, 1, -1, 'title', $kohaHoldResult);
-				if ((count($updatedHolds['holds']['available']) + count($updatedHolds['holds']['unavailable'])) < (count($originalHolds['holds']['available']) + count($originalHolds['holds']['unavailable']))){
+				$updatedHolds = $this->getMyHolds($patron, 1, -1, 'title', $kohaHoldResult);
+				if ((count($updatedHolds['available']) + count($updatedHolds['unavailable'])) < (count($originalHolds['available']) + count($originalHolds['unavailable']))){
 					//We cancelled the hold
 				}else{
 					$allCancelsSucceed = false;
@@ -2050,19 +1782,19 @@ class Aspencat implements DriverInterface{
 			if ($allCancelsSucceed){
 				return array(
 					'title' => $title,
-					'result' => true,
+					'success' => true,
 					'message' => count($holdKeys) == 1 ? 'Cancelled 1 hold successfully.' : 'Cancelled ' . count($holdKeys) . ' hold(s) successfully.');
 			}else{
 				return array(
 					'title' => $title,
-					'result' => false,
+					'success' => false,
 					'message' => 'Some holds could not be cancelled.  Please try again later or see your librarian.');
 			}
 		}else{
 			if ($locationId){
 				return array(
 					'title' => $title,
-					'result' => false,
+					'success' => false,
 					'message' => 'Changing location for a hold is not supported.');
 			}else{
 				//Freeze/Thaw the hold
@@ -2086,18 +1818,19 @@ class Aspencat implements DriverInterface{
 						}
 						$catalogUrl = $configArray['Catalog']['url'];
 						$updateUrl = "$catalogUrl/cgi-bin/koha/opac-modrequest.pl";
-						$this->postToKohaPage($updateUrl, $postParams);
+						$kohaUpdateResults = $this->postToKohaPage($updateUrl, $postParams);
+
+						//Check the result of the update
 					}
 					if ($allLocationChangesSucceed){
-						$this->clearPatronProfile();
 						return array(
 							'title' => $title,
-							'result' => true,
+							'success' => true,
 							'message' => 'Your hold(s) were frozen successfully.');
 					}else{
 						return array(
 							'title' => $title,
-							'result' => false,
+							'success' => false,
 							'message' => 'Some holds could not be frozen.  Please try again later or see your librarian.');
 					}
 				}else{
@@ -2113,17 +1846,16 @@ class Aspencat implements DriverInterface{
 						$catalogUrl = $configArray['Catalog']['url'];
 						$updateUrl = "$catalogUrl/cgi-bin/koha/opac-modrequest.pl";
 						$this->postToKohaPage($updateUrl, $postParams);
-						$this->clearPatronProfile();
 					}
 					if ($allUnsuspendsSucceed){
 						return array(
 							'title' => $title,
-							'result' => true,
+							'success' => true,
 							'message' => 'Your hold(s) were thawed successfully.');
 					}else{
 						return array(
 							'title' => $title,
-							'result' => false,
+							'success' => false,
 							'message' => 'Some holds could not be thawed.  Please try again later or see your librarian.');
 					}
 				}
@@ -2131,46 +1863,29 @@ class Aspencat implements DriverInterface{
 		}
 	}
 
-	public function renewAll(){
-		//Get all list of all transactions
-		$currentTransactions = $this->getMyTransactions();
-		$renewResult = array();
-		$renewResult['Total'] = $currentTransactions['numTransactions'];
-		$numRenewals = 0;
-		$failure_messages = array();
-		foreach ($currentTransactions['transactions'] as $transaction){
-			$curResult = $this->renewItem($transaction['renewIndicator'], null);
-			if ($curResult['result']){
-				$numRenewals++;
-			} else {
-				$failure_messages[] = $curResult['message'];
-			}
-		}
-		$renewResult['Renewed'] = $numRenewals;
-		$renewResult['Unrenewed'] = $renewResult['Total'] - $renewResult['Renewed'];
-		if ($renewResult['Unrenewed'] > 0) {
-			$renewResult['result'] = false;
-		}else{
-			$renewResult['result'] = true;
-			$renewResult['message'] = "All items were renewed successfully.";
-		}
-		return $renewResult;
+	public function hasFastRenewAll(){
+		return false;
 	}
 
-	public function renewItem(/** @noinspection PhpUnusedParameterInspection */
-		$itemId, $itemIndex){
+	public function renewAll($patron){
+		return array(
+			'success' => false,
+			'message' => 'Renew All not supported directly, call through Catalog Connection',
+		);
+	}
+
+	public function renewItem($patron, $recordId, $itemId, $itemIndex){
 		global $analytics;
-		global $user;
 		global $configArray;
 
 		//Get the session token for the user
-		$loginResult = $this->loginToKoha($user);
+		$loginResult = $this->loginToKoha($patron);
 		if ($loginResult['success']){
 			global $analytics;
 			$postParams = array(
 				'from' => 'opac_user',
 				'item' => $itemId,
-				'borrowernumber' => $user->username,
+				'borrowernumber' => $patron->username,
 			);
 			$catalogUrl = $configArray['Catalog']['url'];
 			$kohaUrl = "$catalogUrl/cgi-bin/koha/opac-renew.pl";
@@ -2183,7 +1898,6 @@ class Aspencat implements DriverInterface{
 				$success = true;
 				$message = 'Your item was successfully renewed.';
 				//Clear the patron profile
-				$this->clearPatronProfile();
 				if ($analytics){
 					$analytics->addEvent('ILS Integration', 'Renew Successful');
 				}
@@ -2204,7 +1918,7 @@ class Aspencat implements DriverInterface{
 
 		return array(
 			'itemId' => $itemId,
-			'result'  => $success,
+			'success'  => $success,
 			'message' => $message);
 	}
 
@@ -2216,11 +1930,8 @@ class Aspencat implements DriverInterface{
 	 * @param bool $includeMessages
 	 * @return array
 	 */
-	public function getMyFines(
-			/** @noinspection PhpUnusedParameterInspection */
-			$patron = null, $includeMessages = false){
+	public function getMyFines($patron, $includeMessages = false){
 
-		global $user;
 
 		$this->initDatabaseConnection();
 
@@ -2228,7 +1939,7 @@ class Aspencat implements DriverInterface{
 		$query = "SELECT * FROM fees JOIN fee_transactions AS ft on(id = fee_id) WHERE borrowernumber = ? and accounttype in (select accounttype from accounttypes where class='fee' or class='invoice') ";
 
 		$allFeesStmt = mysqli_prepare($this->dbConnection, $query);
-		$allFeesStmt->bind_param('i', $user->username);
+		$allFeesStmt->bind_param('i', $patron->username);
 		$allFeesStmt->execute( );
 		$allFeesRS = $allFeesStmt->get_result();
 
@@ -2249,7 +1960,7 @@ class Aspencat implements DriverInterface{
 					'reason' => $allFeesRow['accounttype'],
 					'message' => $allFeesRow['description'],
 					'amount' => $allFeesRow['amount'],
-					'amount_outstanding' => $amountOutstanding,
+					'amountOutstanding' => $amountOutstanding,
 				);
 				$fines[] = $curFine;
 			}
@@ -2268,12 +1979,11 @@ class Aspencat implements DriverInterface{
 	 * @param   string  $action         The action to perform
 	 * @param   array   $selectedTitles The titles to do the action on if applicable
 	 */
-	function doReadingHistoryAction($action, /** @noinspection PhpUnusedParameterInspection */
+	function doReadingHistoryAction($patron, $action, /** @noinspection PhpUnusedParameterInspection */
 	                                $selectedTitles){
 		global $configArray;
 		global $analytics;
-		global $user;
-		if (!$this->loginToKoha($user)){
+		if (!$this->loginToKoha($patron)){
 			return;
 		}else{
 			if ($action == 'deleteMarked'){
@@ -2307,14 +2017,7 @@ class Aspencat implements DriverInterface{
 					$analytics->addEvent('ILS Integration', 'Opt in to Reading History');
 				}
 			}
-			$this->clearPatronProfile();
 		}
-	}
-
-	public function clearPatronProfile() {
-		/** @var Memcache $memCache */
-		global $memCache, $user, $serverName;
-		$memCache->delete("patronProfile_{$serverName}_{$user->username}");
 	}
 
 	private $holdsByBib = array();
@@ -2352,6 +2055,39 @@ class Aspencat implements DriverInterface{
 	}
 
 	/** @var mysqli_stmt  */
+	private $getHoldsForBibStmt = null;
+
+	private function getInTransitHoldsForBibFromKohaDB($recordId){
+		$holdsForBib = array();
+
+		if (strpos($recordId, ':') > 0){
+			list($type, $recordId) = explode(':', $recordId);
+		}
+
+		$this->initDatabaseConnection();
+
+		if ($this->getHoldsForBibStmt == null){
+			$sql = "SELECT itemnumber from reserves WHERE biblionumber = ? AND found = 'T'";
+			$this->getHoldsForBibStmt = mysqli_prepare($this->dbConnection, $sql);
+		}
+		$this->getHoldsForBibStmt->bind_param("i", $recordId);
+
+		if (!$this->getHoldsForBibStmt->execute()){
+			global $logger;
+			$logger->log("Unable to load holdings from Koha ({$this->getHoldingsStmt->errno}) {$this->getHoldingsStmt->error}", PEAR_LOG_ERR);
+		}else{
+			//Read the information
+			$results = $this->getHoldsForBibStmt->get_result();
+			while ($curRow = $results->fetch_assoc()){
+				$holdsForBib[$curRow['itemnumber']] = $curRow['itemnumber'];
+			}
+			$results->close();
+		}
+
+		return $holdsForBib;
+	}
+
+	/** @var mysqli_stmt  */
 	private $getHoldingsStmt = null;
 
 	/**
@@ -2359,11 +2095,16 @@ class Aspencat implements DriverInterface{
 	 *
 	 * Uses some code based on C4::Items GetItemsInfo in koha
 	 *
-	 * @param $recordId
+	 * @param $recordId string
+	 * @param $bibHolds string[]
 	 * @return array
 	 */
-	private function getHoldingsFromKohaDB($recordId){
+	private function getHoldingsFromKohaDB($recordId, $bibHolds){
 		$holdingsFromKoha = array();
+
+		if (strpos($recordId, ':') > 0){
+			list($type, $recordId) = explode(':', $recordId);
+		}
 
 		$this->initDatabaseConnection();
 
@@ -2391,7 +2132,7 @@ class Aspencat implements DriverInterface{
 				$curItem['locationCode'] = $curRow['location'];
 				$curItem['library'] = mapValue('location', $curRow['holdingbranch']);
 				$curItem['location'] = $curRow['location'];
-				$curItem['collection'] = mapValue('ccode', $curRow['ccode']);
+				$curItem['collection'] = mapValue('sub_location', $curRow['ccode']);
 				$curItem['callnumber'] = $curRow['itemcallnumber'];
 				$curItem['volInfo'] = $curRow['enumchron'];
 				$curItem['copy'] = $curRow['itemcallnumber'];
@@ -2400,7 +2141,9 @@ class Aspencat implements DriverInterface{
 				$curItem['dueDate'] = $curRow['onloan'];
 
 				//Figure out status based on all of the fields that make up the status
-				if ($curRow['damaged'] == 1){
+				if (array_key_exists($curItem['id'], $bibHolds)){
+					$curItem['status'] = 'In Transit';
+				}else if ($curRow['damaged'] == 1){
 					$curItem['status'] = "Damaged";
 				}else if ($curRow['itemlost'] != null){
 					if ($curRow['itemlost'] == 'longoverdue'){
@@ -2438,21 +2181,20 @@ class Aspencat implements DriverInterface{
 	 *
 	 * @return mixed
 	 */
-	private function getOutstandingFineTotal() {
-		global $user;
+	private function getOutstandingFineTotal($patron) {
 		//Since borrowernumber is stored in fees and payments, not fee_transactions,
 		//this is done with two queries: the first gets all outstanding charges, the second
 		//picks up any unallocated credits.
 		$this->initDatabaseConnection();
 		$stmt = mysqli_prepare($this->dbConnection, "SELECT SUM(amount) FROM fees LEFT JOIN fee_transactions on(fees.id = fee_transactions.fee_id) where fees.borrowernumber = ?");
-		$stmt->bind_param('i', $user->username);
+		$stmt->bind_param('i', $patron->username);
 		/** @var mysqli_result $result */
 		$stmt->execute( );
 		$amountOutstanding = $stmt->get_result()->fetch_array();
 		$amountOutstanding = $amountOutstanding[0];
 
 		$creditStmt = mysqli_prepare($this->dbConnection, "SELECT SUM(amount) FROM payments LEFT JOIN fee_transactions on(payments.id = fee_transactions.payment_id) where payments.borrowernumber = ? and fee_id is null" );
-		$creditStmt->bind_param('i', $user->username);
+		$creditStmt->bind_param('i', $patron->username);
 		$creditStmt->execute();
 		$credit = $creditStmt->get_result()->fetch_array();
 		$credit = $credit[0];
@@ -2463,21 +2205,19 @@ class Aspencat implements DriverInterface{
 		return $amountOutstanding ;
 	}
 
-	public function isUserStaff(){
-		global $configArray;
-		global $user;
-		if (count($user->getRoles()) > 0){
-			return true;
-		}else if (isset($configArray['Staff P-Types'])){
-			$staffPTypes = $configArray['Staff P-Types'];
-			$pType = $this->getPType();
-			if (array_key_exists($pType, $staffPTypes)){
-				return true;
-			}else{
-				return false;
-			}
-		}else{
-			return false;
-		}
+	function cancelHold($patron, $recordId, $cancelId) {
+		return $this->updateHoldDetailed($patron, 'cancel', '', null, $cancelId, '', '');
+	}
+
+	function freezeHold($patron, $recordId, $itemToFreezeId, $dateToReactivate) {
+		return $this->updateHoldDetailed($patron, 'update', '', null, $itemToFreezeId, '', 'on');
+	}
+
+	function thawHold($patron, $recordId, $itemToThawId) {
+		return $this->updateHoldDetailed($patron, 'update', '', null, $itemToThawId, '', 'off');
+	}
+
+	function changeHoldPickupLocation($patron, $recordId, $itemToUpdateId, $newPickupLocation) {
+		return $this->updateHoldDetailed($patron, 'update', '', null, $itemToUpdateId, $newPickupLocation, 'off');
 	}
 }

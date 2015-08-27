@@ -128,7 +128,7 @@ class MyAccount_MyList extends MyAccount {
 						$list->removeListEntry($id);
 					}
 				}elseif ($actionToPerform == 'deleteAll'){
-					$list->removeAllListEntries(isset($_GET['tag']) ? $_GET['tag'] : null);
+					$list->removeAllListEntries();
 				}
 				$list->update();
 			}elseif (isset($_REQUEST['delete'])) {

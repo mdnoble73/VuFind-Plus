@@ -23,7 +23,7 @@ require_once ROOT_DIR . '/CatalogConnection.php';
 require_once ROOT_DIR . '/Action.php';
 
 class Record_Hold extends Action {
-	/** @var  MillenniumDriver|Marmot|Sierra */
+	/** @var  Millennium|Marmot|Sierra */
 	var $catalog;
 
 	function launch() {
@@ -84,9 +84,14 @@ class Record_Hold extends Action {
 
 			if ($user){
 				//The user is already logged in
-				$barcodeProperty = $configArray['Catalog']['barcodeProperty'];
-				$return = $this->catalog->placeHold($recordId, $user->$barcodeProperty, '', $type);
-				$interface->assign('result', $return['result']);
+				if (isset($_REQUEST['campus'])){
+					$pickupBranch=trim($_REQUEST['campus']);
+				}else{
+					global $user;
+					$pickupBranch = $user->homeLocationId;
+				}
+				$return = $this->catalog->placeHold($user, $recordId, $pickupBranch);
+				$interface->assign('result', $return['success']);
 				$message = $return['message'];
 				$interface->assign('message', $message);
 				$showMessage = true;
@@ -105,9 +110,6 @@ class Record_Hold extends Action {
 
 			//Showing place hold form.
 			if ($user){
-				$profile = $this->catalog->getMyProfile($user);
-				$interface->assign('profile', $profile);
-
 				//Get information to show a warning if the user does not have sufficient holds
 				require_once ROOT_DIR . '/Drivers/marmot_inc/PType.php';
 				$maxHolds = -1;
@@ -117,7 +119,7 @@ class Record_Hold extends Action {
 				if ($ptype->find(true)){
 					$maxHolds = $ptype->maxHolds;
 				}
-				$currentHolds = $profile['numHolds'];
+				$currentHolds = $user->numHoldsIls;
 				if ($maxHolds != -1 && ($currentHolds + 1 > $maxHolds)){
 					$interface->assign('showOverHoldLimit', true);
 					$interface->assign('maxHolds', $maxHolds);
@@ -178,7 +180,7 @@ class Record_Hold extends Action {
 		$interface->assign('id', $_GET['id']);
 		if ($showMessage && isset($return)) {
 			$hold_message_data = array(
-				'successful' => $return['result'] == true ? 'all' : 'none',
+				'successful' => $return['success'] == true ? 'all' : 'none',
 				'error' => isset($return['error']) ? $return['error'] : '',
 				'titles' => array(
 					$return,

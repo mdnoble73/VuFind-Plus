@@ -107,23 +107,6 @@ class History extends Action {
 		//Load profile information for display in My Account menu
 		//This code is also in MyResearch.php
 		if ($user !== false){
-			global $configArray;
-			$this->catalog = CatalogFactory::getCatalogConnectionInstance();;
-			// Get My Profile
-			if ($this->catalog->status) {
-				if ($user->cat_username) {
-					$patron = $this->catalog->patronLogin($user->cat_username, $user->cat_password);
-					if (PEAR_Singleton::isError($patron)){
-						PEAR_Singleton::raiseError($patron);
-					}
-
-					$result = $this->catalog->getMyProfile($patron);
-					if (!PEAR_Singleton::isError($result)) {
-						$interface->assign('profile', $result);
-					}
-				}
-			}
-
 			//Figure out if we should show a link to classic opac to pay holds.
 			global $library;
 			$homeLibrary = $library->getLibraryForLocation($user->homeLocationId);

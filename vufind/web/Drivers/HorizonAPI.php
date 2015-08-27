@@ -18,10 +18,11 @@
  *
  */
 
-require_once 'Interface.php';
+require_once 'DriverInterface.php';
 require_once ROOT_DIR . '/Drivers/Horizon.php';
 
 abstract class HorizonAPI extends Horizon{
+
 	//TODO: Additional caching of sessionIds by patron
 	private static $sessionIdsForUsers = array();
 	/** uses SIP2 login the user via web services API **/
@@ -33,85 +34,155 @@ abstract class HorizonAPI extends Horizon{
 		$username = trim($username);
 		$password = trim($password);
 
-		//Call web service to login
-		if ($configArray['Catalog']['offline'] == true){
-			//The catalog is offline, check the database to see if the user is valid
-			$user = new User();
-			$user->cat_username = $username;
-			if ($user->find(true)){
-				$userValid = false;
-				if ($user->cat_username){
-					list($fullName, $lastName, $firstName) = $this->splitFullName($user->username);
-				}
-				if ($user->cat_password == $password){
-					$userValid = true;
-				}
-				if ($userValid){
-					$returnVal = array(
-						//Don't change the user id and username, was setting to password
-						'id'        => $user->id,
-						'username'  => $user->username,
-						'firstname' => $user->firstname,
-						'lastname'  => $user->lastname,
-						'fullname'  =>$user->lastname . ', ' . $user->firstname,     //Added to array for possible display later.
-						'cat_username' => $username, //Should this be $Fullname or $patronDump['PATRN_NAME']
-						'cat_password' => $password,
+		//Authenticate the user via WebService
+		//First call loginUser
+		list($userValid, $sessionToken, $userID) = $this->loginViaWebService($username, $password);
+		if ($userValid){
+			$lookupMyAccountInfoResponse = $this->getWebServiceResponse($configArray['Catalog']['webServiceUrl'] . '/standard/lookupMyAccountInfo?clientID=' . $configArray['Catalog']['clientId'] . '&sessionToken=' . $sessionToken . '&includeAddressInfo=true&includeHoldInfo=true&includeBlockInfo=true&includeItemsOutInfo=true');
+			if ($lookupMyAccountInfoResponse){
+				$fullName = (string)$lookupMyAccountInfoResponse->name;
+				list($fullName, $lastName, $firstName) = $this->splitFullName($fullName);
 
-						'email' => $user->email,
-						'major' => null,
-						'college' => null,
-						'patronType' => $user->patronType,
-						'web_note' => translate('The catalog is currently down.  You will have limited access to circulation information.'));
-					$timer->logTime("patron logged in successfully");
-					return $returnVal;
-				} else {
-					$timer->logTime("patron login failed");
-					return null;
+				$email = '';
+				if (isset($lookupMyAccountInfoResponse->AddressInfo)){
+					if (isset($lookupMyAccountInfoResponse->AddressInfo->email)){
+						$email = (string)$lookupMyAccountInfoResponse->AddressInfo->email;
+					}
 				}
-			} else {
-				$timer->logTime("patron login failed");
-				return null;
-			}
-		}else{
-			//Authenticate the user via WebService
-			//First call loginUser
-			list($userValid, $sessionToken, $userID) = $this->loginViaWebService($username, $password);
-			if ($userValid){
-				$lookupMyAccountInfoResponse = $this->getWebServiceResponse($configArray['Catalog']['webServiceUrl'] . '/standard/lookupMyAccountInfo?clientID=' . $configArray['Catalog']['clientId'] . '&sessionToken=' . $sessionToken . '&includeAddressInfo=true');
-				if ($lookupMyAccountInfoResponse){
-					$fullName = (string)$lookupMyAccountInfoResponse->name;
-					list($fullName, $lastName, $firstName) = $this->splitFullName($fullName);
 
-					$email = '';
-					if (isset($lookupMyAccountInfoResponse->AddressInfo)){
-						if (isset($lookupMyAccountInfoResponse->AddressInfo->email)){
-							$email = (string)$lookupMyAccountInfoResponse->AddressInfo->email;
+				$userExistsInDB = false;
+				$user = new User();
+				$user->source = $this->accountProfile->name;
+				$user->username = $userID;
+				if ($user->find(true)){
+					$userExistsInDB = true;
+				}
+
+				$user->firstname = isset($firstName) ? $firstName : '';
+				$user->lastname = isset($lastName) ? $lastName : '';
+				$user->fullname = isset($fullName) ? $fullName : '';
+				$user->cat_username = $username;
+				$user->cat_password = $password;
+				$user->email = $email;
+
+				if (isset($lookupMyAccountInfoResponse->AddressInfo)){
+					$Address1 = (string)$lookupMyAccountInfoResponse->AddressInfo->line1;
+					if (isset($lookupMyAccountInfoResponse->AddressInfo->cityState)){
+						$cityState = (string)$lookupMyAccountInfoResponse->AddressInfo->cityState;
+						list($City, $State) = explode(', ', $cityState);
+					}else{
+						$City = "";
+						$State = "";
+					}
+					$Zip = (string)$lookupMyAccountInfoResponse->AddressInfo->postalCode;
+
+				}else{
+					$Address1 = "";
+					$City = "";
+					$State = "";
+					$Zip = "";
+				}
+
+				//Get additional information about the patron's home branch for display.
+				if (isset($lookupMyAccountInfoResponse->locationID)){
+					$homeBranchCode = trim((string)$lookupMyAccountInfoResponse->locationID);
+					//Translate home branch to plain text
+					$location = new Location();
+					$location->code = $homeBranchCode;
+					$location->find(1);
+					if ($location->N == 0){
+						unset($location);
+					}
+				}
+
+				if ($user->homeLocationId == 0 && isset($location)) {
+					$user->homeLocationId = $location->locationId;
+					if ($location->nearbyLocation1 > 0) {
+						$user->myLocation1Id = $location->nearbyLocation1;
+					} else {
+						$user->myLocation1Id = $location->locationId;
+					}
+					if ($location->nearbyLocation2 > 0) {
+						$user->myLocation2Id = $location->nearbyLocation2;
+					} else {
+						$user->myLocation2Id = $location->locationId;
+					}
+				}else if (isset($location) && $location->locationId != $user->homeLocationId){
+					$user->homeLocationId = $location->locationId;
+				}
+
+				//Get display name for preferred location 1
+				$myLocation1 = new Location();
+				$myLocation1->whereAdd("locationId = '$user->myLocation1Id'");
+				$myLocation1->find(1);
+
+				//Get display name for preferred location 1
+				$myLocation2 = new Location();
+				$myLocation2->whereAdd("locationId = '$user->myLocation2Id'");
+				$myLocation2->find(1);
+
+				//TODO: See if we can get information about card expiration date
+				$expireClose = 0;
+
+				$finesVal = 0;
+				if (isset($lookupMyAccountInfoResponse->BlockInfo)){
+					foreach ($lookupMyAccountInfoResponse->BlockInfo as $block){
+						// $block is a simplexml object with attribute info about currency, type casting as below seems to work for adding up. plb 3-27-2015
+						$fineAmount = (float) $block->balance;
+						$finesVal += $fineAmount;
+					}
+				}
+
+				$numHoldsAvailable = 0;
+				$numHoldsRequested = 0;
+				if (isset($lookupMyAccountInfoResponse->HoldInfo)){
+					foreach ($lookupMyAccountInfoResponse->HoldInfo as $hold){
+						if ($hold->status == 'FILLED'){
+							$numHoldsAvailable++;
+						}else{
+							$numHoldsRequested++;
 						}
 					}
-
-					$returnVal = array(
-						'id'        => $userID,
-						//Switch to use patron ID from Horizon
-						//'username'  => $username, //Must be catalog barcode to match the old system.
-						'username'  => $userID, //Must be catalog barcode to match the old system.
-						'firstname' => isset($firstName) ? $firstName : '',
-						'lastname'  => isset($lastName) ? $lastName : '',
-						'fullname'  => isset($fullName) ? $fullName : '',     //Added to array for possible display later.
-						'cat_username' => $username,
-						'cat_password' => $password,
-
-						'email' => $email,
-						'major' => null,
-						'college' => null,
-						'patronType' => '',
-						'web_note' => '',
-					);
-					$timer->logTime("patron logged in successfully");
-					return $returnVal;
-				} else {
-					$timer->logTime("lookupMyAccountInfo failed");
-					return null;
 				}
+
+				$user->address1 = $Address1;
+				$user->address2 = $City . ', ' . $State;
+				$user->city = $City;
+				$user->state = $State;
+				$user->zip = $Zip;
+				$user->phone = isset($lookupMyAccountInfoResponse->phone) ? (string)$lookupMyAccountInfoResponse->phone : '';
+				$user->fines = sprintf('$%01.2f', $finesVal);
+				$user->finesVal = $finesVal;
+				$user->expires = ''; //TODO: Determine if we can get this
+				$user->expireClose = $expireClose;
+				$user->homeLocationCode = isset($homeBranchCode) ? trim($homeBranchCode) : '';
+				$user->homeLocationId = isset($location) ? $location->locationId : 0;
+				$user->homeLocation = isset($location) ? $location->displayName : '';
+				$user->myLocation1Id = ($user) ? $user->myLocation1Id : -1;
+				$user->myLocation1 = isset($myLocation1) ? $myLocation1->displayName : '';
+				$user->myLocation2Id = ($user) ? $user->myLocation2Id : -1;
+				$user->myLocation2 = isset($myLocation2) ? $myLocation2->displayName : '';
+				$user->numCheckedOutIls = isset($lookupMyAccountInfoResponse->ItemsOutInfo) ? count($lookupMyAccountInfoResponse->ItemsOutInfo) : 0;
+				$user->numHoldsIls = $numHoldsAvailable + $numHoldsRequested;
+				$user->numHoldsAvailableIls = $numHoldsAvailable;
+				$user->numHoldsRequestedIls = $numHoldsRequested;
+				$user->patronType = 0;
+				$user->notices = '-';
+				$user->noticePreferenceLabel = 'e-mail';
+				$user->web_note = '';
+
+				if ($userExistsInDB){
+					$user->update();
+				}else{
+					$user->created = date('Y-m-d');
+					$user->insert();
+				}
+
+				$timer->logTime("patron logged in successfully");
+				return $user;
+			} else {
+				$timer->logTime("lookupMyAccountInfo failed");
+				return null;
 			}
 		}
 	}
@@ -137,289 +208,18 @@ abstract class HorizonAPI extends Horizon{
 		}
 	}
 
-	public function getMyProfile($patron, $forceReload = false){
-		global $timer;
+	/**
+	 * Get Patron Holds
+	 *
+	 * This is responsible for retrieving all holds for a specific patron.
+	 *
+	 * @param User $patron    The user to load transactions for
+	 *
+	 * @return array          Array of the patron's holds
+	 * @access public
+	 */
+	public function getMyHolds($patron){
 		global $configArray;
-		/** @var Memcache $memCache */
-		global $memCache;
-
-		global $serverName;
-		$memCacheProfileKey = "patronProfile_{$serverName}_";
-		if (is_object($patron)) {
-			$patron = get_object_vars($patron);
-			$userId = $patron['id'];
-			$patronUserName = $patron['username'];
-			$memCacheProfileKey .= $patron['username'];
-		} else {
-			global $user;
-			$userId = $user->id;
-			$patronUserName = $user->username;
-			$memCacheProfileKey .= $user->username;
-		}
-
-		if (!$forceReload && !isset($_REQUEST['reload'])) {
-			$patronProfile = $memCache->get($memCacheProfileKey);
-			if ($patronProfile){
-				$timer->logTime('Retrieved Cached Profile for Patron');
-				return $patronProfile;
-			}
-		}
-
-		global $user;
-		if ($configArray['Catalog']['offline'] == true){
-			$fullName = $patron['cat_username'];
-
-			$Address1 = "";
-			$City = "";
-			$State = "";
-			$Zip = "";
-			$Email = "";
-			$finesVal = 0;
-			$expireClose = false;
-			$homeBranchCode = '';
-			$numHoldsAvailable = '?';
-			$numHoldsRequested = '?';
-
-			if (!$user){
-				$user = new User();
-				$user->username = $patronUserName;
-
-				if ($user->find(true)){
-					$location = new Location();
-					$location->locationId = $user->homeLocationId;
-					$location->find(1);
-					$homeBranchCode = $location->code;
-				}
-			}
-
-
-		}else{
-			//Load the raw information about the patron from web services
-			if (isset(HorizonAPI::$sessionIdsForUsers[$userId])){
-				$sessionToken = HorizonAPI::$sessionIdsForUsers[$userId];
-				// keys off username
-			}else{
-				//Log the user in
-				$return = $this->loginViaWebService($patron['cat_username'], $patron['cat_password']);
-				if (count($return) == 1){
-					$userValid = $return[0];
-				}else{
-					list($userValid, $sessionToken) = $return;
-				}
-				if (!$userValid){
-					echo("No session id found for user");
-					return PEAR_Singleton::raiseError("Could not login to web service " . $return);
-				}
-			}
-			$lookupMyAccountInfoResponse = $this->getWebServiceResponse($configArray['Catalog']['webServiceUrl'] . '/standard/lookupMyAccountInfo?clientID=' . $configArray['Catalog']['clientId'] . '&sessionToken=' . $sessionToken . '&includeAddressInfo=true&includeHoldInfo=true&includeBlockInfo=true&includeItemsOutInfo=true');
-			if ($lookupMyAccountInfoResponse === false){
-				global $logger;
-				$logger->log("Unable to login", PEAR_LOG_WARNING);
-				return null;
-			}
-
-			if (isset($lookupMyAccountInfoResponse->AddressInfo)){
-				$Address1 = (string)$lookupMyAccountInfoResponse->AddressInfo->line1;
-				if (isset($lookupMyAccountInfoResponse->AddressInfo->cityState)){
-					$cityState = (string)$lookupMyAccountInfoResponse->AddressInfo->cityState;
-					list($City, $State) = explode(', ', $cityState);
-				}else{
-					$City = "";
-					$State = "";
-				}
-				$Zip = (string)$lookupMyAccountInfoResponse->AddressInfo->postalCode;
-
-				if (isset($lookupMyAccountInfoResponse->AddressInfo->email)) {
-					$Email = (string) $lookupMyAccountInfoResponse->AddressInfo->email;
-				}
-			}else{
-				$Address1 = "";
-				$City = "";
-				$State = "";
-				$Zip = "";
-				$Email = '';
-			}
-
-			$fullName = $lookupMyAccountInfoResponse->name;
-
-			//Get additional information about the patron's home branch for display.
-			if (isset($lookupMyAccountInfoResponse->locationID)){
-				$homeBranchCode = trim((string)$lookupMyAccountInfoResponse->locationID);
-				//Translate home branch to plain text
-				$location = new Location();
-				$location->code = $homeBranchCode;
-				$location->find(1);
-				if ($location->N == 0){
-					unset($location);
-				}
-			}
-
-			if ($user) {
-				if ($user->homeLocationId == 0 && isset($location)) {
-					$user->homeLocationId = $location->locationId;
-					if ($location->nearbyLocation1 > 0){
-						$user->myLocation1Id = $location->nearbyLocation1;
-					}else{
-						$user->myLocation1Id = $location->locationId;
-					}
-					if ($location->nearbyLocation2 > 0){
-						$user->myLocation2Id = $location->nearbyLocation2;
-					}else{
-						$user->myLocation2Id = $location->locationId;
-					}
-					if ($user instanceof User) {
-						//Update the database
-						$user->update();
-						//Update the serialized instance stored in the session
-						$_SESSION['userinfo'] = serialize($user);
-					}
-				}else if (isset($location) && $location->locationId != $user->homeLocationId){
-					$user->homeLocationId = $location->locationId;
-
-					//Update the database
-					$user->update();
-					//Update the serialized instance stored in the session
-					$_SESSION['userinfo'] = serialize($user);
-				}
-			}
-
-			//TODO: See if we can get information about card expiration date
-			$expireClose = 0;
-
-			$finesVal = 0;
-			if (isset($lookupMyAccountInfoResponse->BlockInfo)){
-				foreach ($lookupMyAccountInfoResponse->BlockInfo as $block){
-					// $block is a simplexml object with attribute info about currency, type casting as below seems to work for adding up. plb 3-27-2015
-					$fineAmount = (float) $block->balance;
-					$finesVal += $fineAmount;
-				}
-			}
-
-			$numHoldsAvailable = 0;
-			$numHoldsRequested = 0;
-			if (isset($lookupMyAccountInfoResponse->HoldInfo)){
-				foreach ($lookupMyAccountInfoResponse->HoldInfo as $hold){
-					if ($hold->status == 'FILLED'){
-						$numHoldsAvailable++;
-					}else{
-						$numHoldsRequested++;
-					}
-				}
-			}
-		}
-
-		if ($user) {
-			//Get display name for preferred location 1
-			$myLocation1 = new Location();
-			$myLocation1->whereAdd("locationId = '$user->myLocation1Id'");
-			$myLocation1->find(1);
-
-			//Get display name for preferred location 1
-			$myLocation2 = new Location();
-			$myLocation2->whereAdd("locationId = '$user->myLocation2Id'");
-			$myLocation2->find(1);
-		}
-
-		list($fullName, $lastName, $firstName) = $this->splitFullName($fullName);
-		$profile = array('lastname' => $lastName,
-			'firstname' => $firstName,
-			'fullname' => $fullName,
-			'address1' => $Address1,
-			'address2' => $City . ', ' . $State,
-			'city' => $City,
-			'state' => $State,
-			'zip'=> $Zip,
-//			'email' => ($user && $user->email) ? $user->email : (isset($patronDump) && isset($patronDump['EMAIL_ADDR']) ? $patronDump['EMAIL_ADDR'] : '') ,
-//			'overdriveEmail' => ($user) ? $user->overdriveEmail : (isset($patronDump) && isset($patronDump['EMAIL_ADDR']) ? $patronDump['EMAIL_ADDR'] : ''),
-			// $patronDump never declared. probably never comes into use.
-			'email' => ($user && $user->email) ? $user->email : $Email,
-			'overdriveEmail' => ($user) ? $user->overdriveEmail : $Email,
-			// good idea to fall back to profile email ?? plb 4-16-2015
-			'promptForOverdriveEmail' => $user ? $user->promptForOverdriveEmail : 1,
-			'noPromptForUserReviews' => $user ? $user->noPromptForUserReviews : 0,
-			'phone' => isset($lookupMyAccountInfoResponse->phone) ? (string)$lookupMyAccountInfoResponse->phone : '',
-			'workPhone' => '',
-			'mobileNumber' => '',
-			'fines' => sprintf('$%01.2f', $finesVal),
-			'finesval' => $finesVal,
-			'expires' => '', //TODO: Determine if we can get this
-			'expireclose' => $expireClose,
-			'homeLocationCode' => isset($homeBranchCode) ? trim($homeBranchCode) : '',
-			'homeLocationId' => isset($location) ? $location->locationId : 0,
-			'homeLocation' => isset($location) ? $location->displayName : '',
-			'myLocation1Id' => ($user) ? $user->myLocation1Id : -1,
-			'myLocation1' => isset($myLocation1) ? $myLocation1->displayName : '',
-			'myLocation2Id' => ($user) ? $user->myLocation2Id : -1,
-			'myLocation2' => isset($myLocation2) ? $myLocation2->displayName : '',
-			'numCheckedOut' => isset($lookupMyAccountInfoResponse->ItemsOutInfo) ? count($lookupMyAccountInfoResponse->ItemsOutInfo) : 0,
-			'numHolds' => $numHoldsAvailable + $numHoldsRequested,
-			'numHoldsAvailable' => $numHoldsAvailable,
-			'numHoldsRequested' => $numHoldsRequested,
-			'bypassAutoLogout' => ($user) ? $user->bypassAutoLogout : 0,
-			'ptype' => 0,
-			'notices' => '-',
-			'noticePreferenceLabel' => 'e-mail',
-			'web_note' => '',
-		);
-
-		//Get eContent info as well
-		require_once(ROOT_DIR . '/Drivers/EContentDriver.php');
-		$eContentDriver = new EContentDriver();
-		$eContentAccountSummary = $eContentDriver->getAccountSummary();
-		$profile = array_merge($profile, $eContentAccountSummary);
-
-		require_once(ROOT_DIR . '/Drivers/OverDriveDriverFactory.php');
-		$overDriveDriver = OverDriveDriverFactory::getDriver();
-		if ($overDriveDriver->isUserValidForOverDrive($user)){
-			$overDriveSummary = $overDriveDriver->getOverDriveSummary($user);
-			$profile['numOverDriveCheckedOut'] = $overDriveSummary['numCheckedOut'];
-			$profile['numOverDriveHoldsAvailable'] = $overDriveSummary['numAvailableHolds'];
-			$profile['numOverDriveHoldsRequested'] = $overDriveSummary['numUnavailableHolds'];
-			$profile['canUseOverDrive'] = true;
-		}else{
-			$profile['numOverDriveCheckedOut'] = 0;
-			$profile['numOverDriveHoldsAvailable'] = 0;
-			$profile['numOverDriveHoldsRequested'] = 0;
-			$profile['canUseOverDrive'] = false;
-		}
-
-		$profile['numCheckedOutTotal'] = $profile['numCheckedOut'] + $profile['numOverDriveCheckedOut'] + $eContentAccountSummary['numEContentCheckedOut'];
-		$profile['numHoldsAvailableTotal'] = $profile['numHoldsAvailable'] + $profile['numOverDriveHoldsAvailable'] + $eContentAccountSummary['numEContentAvailableHolds'];
-		$profile['numHoldsRequestedTotal'] = $profile['numHoldsRequested'] + $profile['numOverDriveHoldsRequested'] + $eContentAccountSummary['numEContentUnavailableHolds'];
-		$profile['numHoldsTotal'] = $profile['numHoldsAvailableTotal'] + $profile['numHoldsRequestedTotal'];
-
-		//Get a count of the materials requests for the user
-		if ($user){
-			$materialsRequest = new MaterialsRequest();
-			$materialsRequest->createdBy = $user->id;
-			$homeLibrary = Library::getPatronHomeLibrary();
-			$statusQuery = new MaterialsRequestStatus();
-			$statusQuery->isOpen = 1;
-			$statusQuery->libraryId = $homeLibrary->libraryId;
-			$materialsRequest->joinAdd($statusQuery);
-			$materialsRequest->find();
-			$profile['numMaterialsRequests'] = $materialsRequest->N;
-		}
-
-		$timer->logTime("Got Patron Profile");
-		$memCache->set($memCacheProfileKey, $profile, 0, $configArray['Caching']['patron_profile']) ;
-		return $profile;
-	}
-
-	public function getMyHolds($patron= null, $page = 1, $recordsPerPage = -1, $sortOption = 'title'){
-		global $configArray;
-
-		if ($patron){
-			if (is_object($patron)) $patron = get_object_vars($patron);
-			$userId = $patron['id'];
-			$userName = $patron['cat_username'];
-			$userPassword = $patron['cat_password'];
-		}else{
-			global $user;
-			$userId = $user->id;
-			$userName = $user->cat_username;
-			$userPassword = $user->cat_password;
-		}
 
 		$availableHolds = array();
 		$unavailableHolds = array();
@@ -429,13 +229,12 @@ abstract class HorizonAPI extends Horizon{
 		);
 
 		//Get the session token for the user
-		if (isset(HorizonAPI::$sessionIdsForUsers[$userId])){
-			$sessionToken = HorizonAPI::$sessionIdsForUsers[$userId];
+		if (isset(HorizonAPI::$sessionIdsForUsers[$patron->id])){
+			$sessionToken = HorizonAPI::$sessionIdsForUsers[$patron->id];
 		}else{
 			//Log the user in
-			list($userValid, $sessionToken) = $this->loginViaWebService($userName, $userPassword);
+			list($userValid, $sessionToken) = $this->loginViaWebService($patron->cat_username, $patron->cat_password);
 			if (!$userValid){
-//				echo("No session id found for user"); //should log this instead
 				return $holds;
 			}
 		}
@@ -487,6 +286,7 @@ abstract class HorizonAPI extends Horizon{
 					//Load rating information
 					$curHold['ratingData'] = $recordDriver->getRatingData();
 				}
+				$curHold['user'] = $patron->getNameAndLibraryLabel();
 
 				if (!isset($curHold['status']) || strcasecmp($curHold['status'], "filled") != 0){
 					$holds['unavailable'][] = $curHold;
@@ -495,10 +295,7 @@ abstract class HorizonAPI extends Horizon{
 				}
 			}
 		}
-		return array(
-			'holds' => $holds,
-			'numUnavailableHolds' => count($holds['unavailable']),
-		);
+		return $holds;
 	}
 
 	/**
@@ -506,34 +303,46 @@ abstract class HorizonAPI extends Horizon{
 	 *
 	 * This is responsible for both placing holds as well as placing recalls.
 	 *
-	 * @param   string  $recordId   The id of the bib record
-	 * @param   string  $patronId   The id of the patron
-	 * @param   string  $comment    Any comment regarding the hold or recall
-	 * @param   string  $type       Whether to place a hold or recall
-	 * @return  mixed               True if successful, false if unsuccessful
-	 *                              If an error occures, return a PEAR_Error
+	 * @param   User    $patron       The User to place a hold for
+	 * @param   string  $recordId     The id of the bib record
+	 * @param   string  $pickupBranch The branch where the user wants to pickup the item when available
+	 * @return  mixed                 True if successful, false if unsuccessful
+	 *                                If an error occurs, return a PEAR_Error
 	 * @access  public
 	 */
-	public function placeHold($recordId, $patronId, $comment, $type){
-		$result = $this->placeItemHold($recordId, null, $patronId, $comment, $type);
+	public function placeHold($patron, $recordId, $pickupBranch) {
+		$result = $this->placeItemHold($patron, $recordId, null, $pickupBranch);
 		return $result;
 	}
 
-	public function placeItemHold($recordId, $itemId, $patronId, $comment, $type){
+	/**
+	 * Place Item Hold
+	 *
+	 * This is responsible for both placing item level holds.
+	 *
+	 * @param   User    $patron     The User to place a hold for
+	 * @param   string  $recordId   The id of the bib record
+	 * @param   string  $itemId     The id of the item to hold
+	 * @param   string  $comment    Any comment regarding the hold or recall
+	 * @param   string  $type       Whether to place a hold or recall
+	 * @return  mixed               True if successful, false if unsuccessful
+	 *                              If an error occurs, return a PEAR_Error
+	 * @access  public
+	 */
+	function placeItemHold($patron, $recordId, $itemId, $comment = '', $type = 'request') {
 		global $configArray;
 
-		global $user;
-		$userId = $user->id;
+		$userId = $patron->id;
 
 		//Get the session token for the user
 		if (isset(HorizonAPI::$sessionIdsForUsers[$userId])){
 			$sessionToken = HorizonAPI::$sessionIdsForUsers[$userId];
 		}else{
 			//Log the user in
-			list($userValid, $sessionToken) = $this->loginViaWebService($user->cat_username, $user->cat_password);
+			list($userValid, $sessionToken) = $this->loginViaWebService($patron->cat_username, $patron->cat_password);
 			if (!$userValid){
 				return array(
-					'result' => false,
+					'success' => false,
 					'message' => 'Sorry, it does not look like you are logged in currently.  Please login and try again');
 			}
 		}
@@ -548,31 +357,30 @@ abstract class HorizonAPI extends Horizon{
 		}
 
 		if ($configArray['Catalog']['offline']){
-			global $user;
 			require_once ROOT_DIR . '/sys/OfflineHold.php';
 			$offlineHold = new OfflineHold();
 			$offlineHold->bibId = $recordId;
-			$offlineHold->patronBarcode = $patronId;
-			$offlineHold->patronId = $user->id;
+			$offlineHold->patronBarcode = $patron->getBarcode();
+			$offlineHold->patronId = $patron->id;
 			$offlineHold->timeEntered = time();
 			$offlineHold->status = 'Not Processed';
 			if ($offlineHold->insert()){
 				return array(
 					'title' => $title,
 					'bib' => $recordId,
-					'result' => true,
+					'success' => true,
 					'message' => 'The circulation system is currently offline.  This hold will be entered for you automatically when the circulation system is online.');
 			}else{
 				return array(
 					'title' => $title,
 					'bib' => $recordId,
-					'result' => false,
+					'success' => false,
 					'message' => 'The circulation system is currently offline and we could not place this hold.  Please try again later.');
 			}
 
 		}else{
 			if ($type == 'cancel' || $type == 'recall' || $type == 'update') {
-				$result = $this->updateHold($recordId, $patronId, $type, $title);
+				$result = $this->updateHold($patron, $recordId, $type, $title);
 				$result['title'] = $title;
 				$result['bid'] = $recordId;
 				return $result;
@@ -594,10 +402,10 @@ abstract class HorizonAPI extends Horizon{
 
 				$hold_result = array();
 				if ($createHoldResponse == true){
-					$hold_result['result'] = true;
+					$hold_result['success'] = true;
 					$hold_result['message'] = 'Your hold was placed successfully.';
 				}else{
-					$hold_result['result'] = false;
+					$hold_result['success'] = false;
 					$hold_result['message'] = 'Your hold could not be placed. ';
 					if (isset($createHoldResponse->message)){
 						$hold_result['message'] .= (string)$createHoldResponse->message;
@@ -611,18 +419,33 @@ abstract class HorizonAPI extends Horizon{
 				$hold_result['bid'] = $recordId;
 				global $analytics;
 				if ($analytics){
-					if ($hold_result['result'] == true){
+					if ($hold_result['success'] == true){
 						$analytics->addEvent('ILS Integration', 'Successful Hold', $title);
 					}else{
 						$analytics->addEvent('ILS Integration', 'Failed Hold', $hold_result['message'] . ' - ' . $title);
 					}
 				}
 				//Clear the patron profile
-				$this->clearPatronProfile();
 				return $hold_result;
 
 			}
 		}
+	}
+
+	function cancelHold($patron, $recordId, $cancelId) {
+		return $this->updateHoldDetailed($patron, 'cancel', '', null, $cancelId, '', '');
+	}
+
+	function freezeHold($patron, $recordId, $itemToFreezeId, $dateToReactivate) {
+		return $this->updateHoldDetailed($patron, 'update', '', null, $itemToFreezeId, '', 'on');
+	}
+
+	function thawHold($patron, $recordId, $itemToThawId) {
+		return $this->updateHoldDetailed($patron, 'update', '', null, $itemToThawId, '', 'off');
+	}
+
+	function changeHoldPickupLocation($patron, $recordId, $itemToUpdateId, $newPickupLocation) {
+		return $this->updateHoldDetailed($patron, 'update', '', null, $itemToUpdateId, $newPickupLocation, 'off');
 	}
 
 	public function updateHold($requestId, $patronId, $type, $title){
@@ -656,12 +479,12 @@ abstract class HorizonAPI extends Horizon{
 			list($userValid, $sessionToken) = $this->loginViaWebService($user->cat_username, $user->cat_password);
 			if (!$userValid){
 				return array(
-					'result' => false,
+					'success' => false,
 					'message' => 'Sorry, it does not look like you are logged in currently.  Please login and try again');
 			}
 		}
 
-		if (!isset($xNum) ){ //AJAX function passes IDs through $cancelID below shouldn't be needed anymore. plb 2-4-2015
+		if (!isset($xNum)){ //AJAX function passes IDs through $cancelID below shouldn't be needed anymore. plb 2-4-2015
 			if (isset($_REQUEST['waitingholdselected']) || isset($_REQUEST['availableholdselected'])){
 				$waitingHolds = isset($_REQUEST['waitingholdselected']) ? $_REQUEST['waitingholdselected'] : array();
 				$availableHolds = isset($_REQUEST['availableholdselected']) ? $_REQUEST['availableholdselected'] : array();
@@ -673,8 +496,8 @@ abstract class HorizonAPI extends Horizon{
 
 		$loadTitles = empty($titles);
 		if ($loadTitles) {
-			$holds = $this->getMyHolds();
-			$combined_holds = array_merge($holds['holds']['unavailable'], $holds['holds']['available']);
+			$holds = $this->getMyHolds($patronId);
+			$combined_holds = array_merge($holds['unavailable'], $holds['available']);
 		}
 //		$logger->log("Load titles = $loadTitles", PEAR_LOG_DEBUG); // move out of foreach loop
 
@@ -706,7 +529,6 @@ abstract class HorizonAPI extends Horizon{
 				global $analytics;
 				if ($cancelHoldResponse){
 					//Clear the patron profile
-					$this->clearPatronProfile();
 					$analytics->addEvent('ILS Integration', 'Hold Cancelled', $title);
 				}else{
 					$allCancelsSucceed = false;
@@ -719,13 +541,12 @@ abstract class HorizonAPI extends Horizon{
 
 				return array(
 					'title' => $titles,
-					'result' => true,
+					'success' => true,
 					'message' => 'Your hold'.($plural ? 's were' : ' was' ).' cancelled successfully.');
 			}else{
 				return array(
 					'title' => $titles,
-					'result' => false,
-//					'message' => 'Some holds could not be cancelled.  Please try again later or see your librarian.'
+					'success' => false,
 					'message' => $failure_messages
 				);
 			}
@@ -743,7 +564,6 @@ abstract class HorizonAPI extends Horizon{
 					global $analytics;
 					if ($changePickupLocationResponse){
 						//Clear the patron profile
-						$this->clearPatronProfile();
 						$analytics->addEvent('ILS Integration', 'Hold Suspended', $titles);
 					}else{
 						$allLocationChangesSucceed = false;
@@ -753,12 +573,12 @@ abstract class HorizonAPI extends Horizon{
 				if ($allLocationChangesSucceed){
 					return array(
 						'title' => $titles,
-						'result' => true,
+						'success' => true,
 						'message' => 'Pickup location for your hold(s) was updated successfully.');
 				}else{
 					return array(
 						'title' => $titles,
-						'result' => false,
+						'success' => false,
 						'message' => 'Pickup location for your hold(s) was could not be updated.  Please try again later or see your librarian.');
 				}
 			}else{
@@ -778,7 +598,6 @@ abstract class HorizonAPI extends Horizon{
 						global $analytics;
 						if ($changePickupLocationResponse){
 							//Clear the patron profile
-							$this->clearPatronProfile();
 							$analytics->addEvent('ILS Integration', 'Hold Suspended', $titles);
 						}else{
 							$allLocationChangesSucceed = false;
@@ -790,12 +609,12 @@ abstract class HorizonAPI extends Horizon{
 					if ($allLocationChangesSucceed){
 						return array(
 							'title' => $titles,
-							'result' => true,
+							'success' => true,
 							'message' => "Your hold(s) were $frozen successfully.");
 					}else{
 						return array(
 							'title' => $titles,
-							'result' => false,
+							'success' => false,
 							'message' => "Some holds could not be $frozen.  Please try again later or see your librarian.");
 					}
 				}else{
@@ -811,7 +630,6 @@ abstract class HorizonAPI extends Horizon{
 						global $analytics;
 						if ($changePickupLocationResponse){
 							//Clear the patron profile
-							$this->clearPatronProfile();
 							$analytics->addEvent('ILS Integration', 'Hold Suspended', $titles);
 						}else{
 							$allUnsuspendsSucceed = false;
@@ -823,12 +641,12 @@ abstract class HorizonAPI extends Horizon{
 					if ($allUnsuspendsSucceed){
 						return array(
 							'title' => $titles,
-							'result' => true,
+							'success' => true,
 							'message' => "Your hold(s) were $thawed successfully.");
 					}else{
 						return array(
 							'title' => $titles,
-							'result' => false,
+							'success' => false,
 							'message' => "Some holds could not be $thawed.  Please try again later or see your librarian.");
 					}
 				}
@@ -836,7 +654,7 @@ abstract class HorizonAPI extends Horizon{
 		}
 	}
 
-	public function getMyTransactions( $page = 1, $recordsPerPage = -1, $sortOption = 'dueDate') {
+	public function getMyCheckouts( $page = 1, $recordsPerPage = -1, $sortOption = 'dueDate') {
 		global $configArray;
 
 		global $user;
@@ -870,13 +688,8 @@ abstract class HorizonAPI extends Horizon{
 				$curTitle['title'] = (string)$itemOut->title;
 				$curTitle['author'] = (string)$itemOut->author;
 
-				$curTitle['duedate'] = (string)$itemOut->dueDate;
+				$curTitle['dueDate'] = strtotime((string)$itemOut->dueDate);
 				$curTitle['checkoutdate'] = (string)$itemOut->ckoDate;
-				$dueTime = strtotime($curTitle['duedate']);
-				$daysUntilDue = ceil(($dueTime - time()) / (24 * 60 * 60));
-				$overdue = $daysUntilDue < 0;
-				$curTitle['overdue'] = $overdue;
-				$curTitle['daysUntilDue'] = $daysUntilDue;
 				$curTitle['renewCount'] = (string)$itemOut->renewals;
 				$curTitle['canrenew'] = true; //TODO: Figure out if the user can renew the title or not
 				$curTitle['renewIndicator'] = (string)$itemOut->itemBarcode;
@@ -903,11 +716,11 @@ abstract class HorizonAPI extends Horizon{
 				}elseif ($sortOption == 'author'){
 					$sortKey = (isset($curTitle['author']) ? $curTitle['author'] : "Unknown") . '-' . $sortTitle;
 				}elseif ($sortOption == 'dueDate'){
-					if (isset($curTitle['duedate'])){
-						if (preg_match('/.*?(\\d{1,2})[-\/](\\d{1,2})[-\/](\\d{2,4}).*/', $curTitle['duedate'], $matches)) {
+					if (isset($curTitle['dueDate'])){
+						if (preg_match('/.*?(\\d{1,2})[-\/](\\d{1,2})[-\/](\\d{2,4}).*/', $curTitle['dueDate'], $matches)) {
 							$sortKey = $matches[3] . '-' . $matches[1] . '-' . $matches[2] . '-' . $sortTitle;
 						} else {
-							$sortKey = $curTitle['duedate'] . '-' . $sortTitle;
+							$sortKey = $curTitle['dueDate'] . '-' . $sortTitle;
 						}
 					}
 				}elseif ($sortOption == 'format'){
@@ -922,40 +735,21 @@ abstract class HorizonAPI extends Horizon{
 			}
 		}
 
+		return $checkedOutTitles;
+	}
+
+	public function hasFastRenewAll(){
+		return false;
+	}
+
+	public function renewAll($patron){
 		return array(
-			'transactions' => $checkedOutTitles,
-			'numTransactions' => count($checkedOutTitles)
+			'success' => false,
+			'message' => 'Renew All not supported directly, call through Catalog Connection',
 		);
 	}
 
-	public function renewAll(){
-		//Get all list of all transactions
-		$currentTransactions = $this->getMyTransactions();
-		$renewResult = array();
-		$renewResult['Total'] = $currentTransactions['numTransactions'];
-		$numRenewals = 0;
-		$failure_messages = array();
-		foreach ($currentTransactions['transactions'] as $transaction){
-			$curResult = $this->renewItem($transaction['renewIndicator'], null);
-			if ($curResult['result']){
-				$numRenewals++;
-			} else {
-				$failure_messages[] = $curResult['message'];
-			}
-		}
-		$renewResult['Renewed'] = $numRenewals;
-		$renewResult['Unrenewed'] = $renewResult['Total'] - $renewResult['Renewed'];
-		if ($renewResult['Unrenewed'] > 0) {
-			$renewResult['result'] = false;
-			$renewResult['message'] = $failure_messages;
-		}else{
-			$renewResult['result'] = true;
-			$renewResult['message'] = "All items were renewed successfully.";
-		}
-		return $renewResult;
-	}
-
-	public function renewItem($itemId, $itemIndex){
+	public function renewItem($patron, $recordId, $itemId, $itemIndex){
 		global $configArray;
 
 		global $user;
@@ -969,7 +763,7 @@ abstract class HorizonAPI extends Horizon{
 			list($userValid, $sessionToken) = $this->loginViaWebService($user->cat_username, $user->cat_password);
 			if (!$userValid){
 				return array(
-					'result' => false,
+					'success' => false,
 					'message' => 'Sorry, it does not look like you are logged in currently.  Please login and try again');
 			}
 		}
@@ -984,7 +778,6 @@ abstract class HorizonAPI extends Horizon{
 			$success = true;
 			$message = 'Your item was successfully renewed.  The title is now due on ' . $renewItemResponse->dueDate;
 			//Clear the patron profile
-			$this->clearPatronProfile();
 			if ($analytics){
 				$analytics->addEvent('ILS Integration', 'Renew Successful');
 			}
@@ -998,7 +791,7 @@ abstract class HorizonAPI extends Horizon{
 		}
 		return array(
 			'itemId' => $itemId,
-			'result'  => $success,
+			'success'  => $success,
 			'message' => $message);
 	}
 
@@ -1022,7 +815,7 @@ abstract class HorizonAPI extends Horizon{
 	 *  nonHoldableReason
 	 *  reserve
 	 *  holdQueueLength
-	 *  duedate
+	 *  dueDate
 	 *  location
 	 *  libraryDisplayName
 	 *  locationCode
@@ -1187,6 +980,24 @@ abstract class HorizonAPI extends Horizon{
 		return $holdings;
 	}
 
+	public function getHoldings($idList, $record = null, $mysip = null, $forSummary = false) {
+		$holdings = array();
+		foreach ($idList as $id) {
+			$holdings[] = $this->getHolding($id, $record, $mysip, $forSummary);
+		}
+		return $holdings;
+	}
+
+	public function getStatus($id, $record = null, $mysip = null, $forSummary = false)
+	{
+		return $this->getHolding($id, $record, $mysip, $forSummary);
+	}
+
+	public function getStatuses($idList, $record = null, $mysip = null, $forSummary = false)
+	{
+		return $this->getHoldings($idList, $record, $mysip, $forSummary);
+	}
+
 	public function getNumHolds($id) {
 		global $configArray;
 		if (!$configArray['Catalog']['offline']){
@@ -1200,35 +1011,8 @@ abstract class HorizonAPI extends Horizon{
 		return 0;
 	}
 
-	function updatePin(){
-		global $user;
+	function updatePin($user, $oldPin, $newPin, $confirmNewPin){
 		global $configArray;
-		if (!$user){
-			return "You must be logged in to update your pin number.";
-		}
-		if (isset($_REQUEST['pin'])){
-			$pin = $_REQUEST['pin'];
-		}else{
-			return "Please enter your current pin number";
-		}
-		if ($user->cat_password != $pin){
-			return "The current pin number is incorrect";
-		}
-		if (isset($_REQUEST['pin1'])){
-			$pin1 = $_REQUEST['pin1'];
-		}else{
-			return "Please enter the new pin number";
-		}
-		if (isset($_REQUEST['pin2'])){
-			$pin2 = $_REQUEST['pin2'];
-		}else{
-			return "Please enter the new pin number again";
-		}
-		if ($pin1 != $pin2){
-			return "The pin numberdoes not match the confirmed number, please try again.";
-		}
-
-		global $user;
 		$userId = $user->id;
 
 		//Get the session token for the user
@@ -1238,21 +1022,18 @@ abstract class HorizonAPI extends Horizon{
 			//Log the user in
 			list($userValid, $sessionToken) = $this->loginViaWebService($user->cat_username, $user->cat_password);
 			if (!$userValid){
-				return array(
-					'result' => false,
-					'message' => 'Sorry, it does not look like you are logged in currently.  Please login and try again');
+				return 'Sorry, it does not look like you are logged in currently.  Please login and try again';
 			}
 		}
 
 		//create the hold using the web service
-		$updatePinUrl = $configArray['Catalog']['webServiceUrl'] . '/standard/changeMyPin?clientID=' . $configArray['Catalog']['clientId'] . '&sessionToken=' . $sessionToken . '&currentPin=' . $pin . '&newPin=' . $pin1;
-
+		$updatePinUrl = $configArray['Catalog']['webServiceUrl'] . '/standard/changeMyPin?clientID=' . $configArray['Catalog']['clientId'] . '&sessionToken=' . $sessionToken . '&currentPin=' . $oldPin . '&newPin=' . $newPin;
 		$updatePinResponse = $this->getWebServiceResponse($updatePinUrl);
 
 		if ($updatePinResponse){
-			$user->cat_password = $pin1;
+			$user->cat_password = $newPin;
 			$user->update();
-			UserAccount::updateSession($user);
+//			UserAccount::updateSession($user);  //TODO only if $user is the primary user
 			return "Your pin number was updated successfully.";
 		}else{
 			return "Sorry, we could not update your pin number. Please try again later.";
@@ -1315,6 +1096,14 @@ abstract class HorizonAPI extends Horizon{
 		return $fields;
 	}
 
+	/**
+	 * Returns a summary of the holdings information for a single id. Used to display
+	 * within the search results and at the top of a full record display to ensure
+	 * the holding information makes sense to all users.
+	 *
+	 * @param string $id the id of the bid to load holdings for
+	 * @return array an associative array with a summary of the holdings.
+	 */
 	public function getStatusSummary($id, $record = null, $mysip = null){
 		$summary = parent::getStatusSummary($id, $record, $mysip);
 		$summary['holdQueueLength'] = $this->getNumHolds($id);
@@ -1399,13 +1188,4 @@ abstract class HorizonAPI extends Horizon{
 		return false;
 	}
 
-	public function isUserStaff(){
-		global $configArray;
-		global $user;
-		if (count($user->getRoles()) > 0){
-			return true;
-		}else{
-			return false;
-		}
-	}
 }

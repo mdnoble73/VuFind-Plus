@@ -74,16 +74,16 @@ function requireSystemLibraries(){
 	global $timer;
 	// Require System Libraries
 	require_once ROOT_DIR . '/sys/Interface.php';
-	$timer->logTime("Include Interface");
-	require_once ROOT_DIR . '/sys/User.php';
-	$timer->logTime("Include User");
+	require_once ROOT_DIR . '/sys/UserAccount.php';
+	require_once ROOT_DIR . '/sys/Account/User.php';
+	require_once ROOT_DIR . '/sys/Account/AccountProfile.php';
 	require_once ROOT_DIR . '/sys/Translator.php';
-	$timer->logTime("Include Translator");
 	require_once ROOT_DIR . '/sys/SearchObject/Factory.php';
-	$timer->logTime("Include Search Object Factory");
 	require_once ROOT_DIR . '/Drivers/marmot_inc/Library.php';
 	require_once ROOT_DIR . '/Drivers/marmot_inc/Location.php';
-	$timer->logTime("Include Library and Location");
+	require_once ROOT_DIR . '/Drivers/DriverInterface.php';
+	require_once ROOT_DIR . '/RecordDrivers/Factory.php';
+
 }
 
 function initLocale(){
@@ -223,7 +223,10 @@ function loadSearchInformation(){
 	//Determine the Search Source, need to do this always.
 	global $searchSource;
 	global $library;
-	global $interface;
+	/** @var Memcache $memCache */
+	global $memCache;
+	global $serverName;
+	global $configArray;
 
 	$module = (isset($_GET['module'])) ? $_GET['module'] : null;
 	$module = preg_replace('/[^\w]/', '', $module);
@@ -248,8 +251,8 @@ function loadSearchInformation(){
 		}
 	}
 
-	$searchLibrary = Library::getSearchLibrary(null);
-	$searchLocation = Location::getSearchLocation(null);
+	$searchLibrary = Library::getSearchLibrary($searchSource);
+	$searchLocation = Location::getSearchLocation($searchSource);
 
 	//Based on the search source, determine the search scope and set a global variable
 	global $solrScope;
@@ -257,7 +260,7 @@ function loadSearchInformation(){
 	$solrScope = false;
 	$scopeType = '';
 	if ($searchSource == 'local' || $searchSource == 'econtent'){
-		$locationIsScoped = $searchLocation != null &&
+		/*$locationIsScoped = $searchLocation != null &&
 			($searchLocation->restrictSearchByLocation ||
 				$searchLocation->econtentLocationsToInclude != 'all' ||
 				$searchLocation->useScope ||
@@ -286,8 +289,17 @@ function loadSearchInformation(){
 		}else{
 			$solrScope = $searchLibrary->subdomain;
 			$scopeType = 'Library';
+		}*/
+		if ($searchLibrary){
+			$solrScope = $searchLibrary->subdomain;
+			$scopeType = 'Library';
+		}
+		if ($searchLocation){
+			$solrScope = $searchLocation->code;
+			$scopeType = 'Location';
 		}
 	}elseif($searchSource != 'marmot' && $searchSource != 'global'){
+		//Get the default library
 		$solrScope = $searchSource;
 		$scopeType = 'Search Source';
 	}
@@ -305,12 +317,28 @@ function loadSearchInformation(){
 		if ($searchLibrary){
 			$millenniumScope = $searchLibrary->scope;
 		}elseif (isset($searchLocation)){
-			MillenniumDriver::$scopingLocationCode = $searchLocation->code;
+			Millennium::$scopingLocationCode = $searchLocation->code;
 		}else{
 			$millenniumScope = isset($configArray['OPAC']['defaultScope']) ? $configArray['OPAC']['defaultScope'] : '93';
 		}
 	}else{
 		$millenniumScope = isset($configArray['OPAC']['defaultScope']) ? $configArray['OPAC']['defaultScope'] : '93';
+	}
+
+	//Load indexing profiles
+	require_once ROOT_DIR . '/sys/Indexing/IndexingProfile.php';
+	/** @var $indexingProfiles IndexingProfile[] */
+	global $indexingProfiles;
+	$indexingProfiles = $memCache->get("{$serverName}_indexing_profiles", $indexingProfiles);
+	if ($indexingProfiles === false || isset($_REQUEST['reload'])){
+		$indexingProfiles = array();
+		$indexingProfile = new IndexingProfile();
+		$indexingProfile->orderBy('name');
+		$indexingProfile->find();
+		while ($indexingProfile->fetch()){
+			$indexingProfiles[$indexingProfile->name] = clone($indexingProfile);
+		}
+		$memCache->set("{$serverName}_indexing_profiles", $indexingProfiles, 0, $configArray['Caching']['indexing_profiles']);
 	}
 }
 

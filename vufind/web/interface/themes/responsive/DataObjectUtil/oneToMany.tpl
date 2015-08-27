@@ -52,9 +52,13 @@
 						<span class="glyphicon glyphicon-link" title="edit links">&nbsp;</span>
 					</a>
 				{elseif $property.canEdit}
-					&nbsp;<a href='{$subObject->getEditLink()}' alt='Edit' title='Edit'>
-						<span class="glyphicon glyphicon-edit" title="edit">&nbsp;</span>
-					</a>
+					{if method_exists($subObject, 'getEditLink')}
+						&nbsp;<a href='{$subObject->getEditLink()}' alt='Edit' title='Edit'>
+							<span class="glyphicon glyphicon-edit" title="edit">&nbsp;</span>
+						</a>
+					{else}
+						Please add a getEditLink method to this object
+					{/if}
 				{/if}
 				</td>
 			</tr>

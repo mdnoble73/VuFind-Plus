@@ -3,7 +3,7 @@
 {/if}
 <script type="text/javascript">
 {literal}$(document).ready(function(){{/literal}
-	VuFind.Record.loadHoldingsInfo('{$id|escape:"url"}', '{$shortId}', 'VuFind');
+	VuFind.Record.loadHoldingsInfo('{$activeRecordProfileModule}', '{$id|escape:"url"}', '{$shortId}', 'VuFind');
 	VuFind.GroupedWork.loadEnrichmentInfo('{$recordDriver->getPermanentId()|escape:"url"}');
 	VuFind.GroupedWork.loadReviewInfo('{$recordDriver->getPermanentId()|escape:"url"}');
 	{if $enablePospectorIntegration == 1}
@@ -36,7 +36,7 @@
 					<br>
 
 					<div id="recordTools" class="col-xs-12 col-sm-3">
-						{include file="Record/result-tools.tpl" showMoreInfo=false summShortId=$shortId summId=$id summTitle=$title recordUrl=$recordUrl}
+						{include file="Record/result-tools.tpl" showMoreInfo=false summShortId=$shortId module=$activeRecordProfileModule summId=$id summTitle=$title recordUrl=$recordUrl}
 					</div>
 				</div>
 

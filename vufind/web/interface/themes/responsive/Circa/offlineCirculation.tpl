@@ -10,7 +10,7 @@
 		{/if}
 
 		{if $results}
-			<div class="alert alert-info">
+			<div class="alert alert-info" id="offline-circulation-result">
 				{$results}
 			</div>
 		{/if}
@@ -18,11 +18,11 @@
 		<div class="row">
 			<div class="col-xs-3">
 				<div><label for="login">{$ILSname} Username</label>:</div>
-				<div><input type="text" name="login" id="login" value="{$lastLogin}" class="required"> </div>
+				<div><input type="text" name="login" id="login" value="{$lastLogin}" class="required" onchange="clearOfflineCircResults();"> </div>
 			</div>
 			<div class="col-xs-3">
 				<div><label for="password1">{$ILSname} Password</label>:</div>
-				<div><input type="password" name="password1" id="password1" value="{$lastPassword1}" class="required"></div>
+				<div><input type="password" name="password1" id="password1" value="{$lastPassword1}" class="required" onchange="clearOfflineCircResults();"></div>
 			</div>
 		</div>
 		<div class="row">
@@ -30,11 +30,11 @@
 				<legend class="col-xs-12" style="margin-top: 10px">Checkout titles</legend>
 				<div class="col-xs-12">
 					<div><label for="patronBarcode">Patron Barcode</label>:</div>
-					<div><input type="text" name="patronBarcode" id="patronBarcode" class="required"></div>
+					<div><input type="text" name="patronBarcode" id="patronBarcode" class="required" onchange="clearOfflineCircResults();"></div>
 				</div>
 				<div class="col-xs-12">
 					<div><label for="barcodesToCheckOut">Enter barcodes to check out (one per line)</label>:</div>
-					<textarea rows="10" cols="20" name="barcodesToCheckOut" id="barcodesToCheckOut" class="required"></textarea>
+					<textarea rows="10" cols="20" name="barcodesToCheckOut" id="barcodesToCheckOut" class="required" onchange="clearOfflineCircResults();"></textarea>
 				</div>
 				<div class="col-xs-12">
 					<button name="submit" class="btn btn-primary pull-right" {*onclick="return $('#offlineCircForm').submit()"*}>Submit Offline Checkouts</button>
@@ -55,7 +55,9 @@
 
 {literal}
 <script type="text/javascript">
-
+	function clearOfflineCircResults(){
+		$("#offline-circulation-result").hide();
+	}
 	function checkCptKey(e)
 	{
 		var shouldBubble = true;

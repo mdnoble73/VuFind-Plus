@@ -2,13 +2,9 @@ package org.vufind;
 
 import au.com.bytecode.opencsv.CSVWriter;
 import org.apache.solr.client.solrj.SolrServer;
-import org.apache.solr.client.solrj.SolrServerException;
+import org.apache.solr.client.solrj.impl.BinaryRequestWriter;
 import org.apache.solr.client.solrj.impl.ConcurrentUpdateSolrServer;
 import org.apache.solr.client.solrj.impl.HttpSolrServer;
-import org.apache.solr.client.solrj.SolrQuery;
-import org.apache.solr.client.solrj.response.QueryResponse;
-import org.apache.solr.common.SolrDocument;
-import org.apache.solr.common.SolrDocumentList;
 import org.apache.solr.common.SolrInputDocument;
 import org.ini4j.Ini;
 
@@ -17,16 +13,13 @@ import java.sql.*;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.Date;
-import java.util.concurrent.ThreadFactory;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import org.apache.log4j.Logger;
 
 /**
  * Indexes records extracted from the ILS
  *
- * VuFind-Plus
+ * Pika
  * User: Mark Noble
  * Date: 11/25/13
  * Time: 2:26 PM
@@ -39,12 +32,11 @@ public class GroupedWorkIndexer {
 	private SolrServer solrServer;
 	private Long indexStartTime;
 	private ConcurrentUpdateSolrServer updateServer;
-	private IlsRecordProcessor ilsRecordProcessor;
+	private HashMap<String, MarcRecordProcessor> ilsRecordProcessors = new HashMap<>();
 	private OverDriveProcessor overDriveProcessor;
 	private EVokeProcessor evokeProcessor;
-	private HooplaProcessor hooplaProcessor;
-	private HashMap<String, HashMap<String, String>> translationMaps = new HashMap<String, HashMap<String, String>>();
-	private HashMap<String, LexileTitle> lexileInformation = new HashMap<String, LexileTitle>();
+	private HashMap<String, HashMap<String, String>> translationMaps = new HashMap<>();
+	private HashMap<String, LexileTitle> lexileInformation = new HashMap<>();
 	private Long maxWorksToProcess = -1L;
 
 	private PreparedStatement getRatingStmt;
@@ -58,12 +50,12 @@ public class GroupedWorkIndexer {
 	private Long lastReindexTimeVariableId;
 	private boolean partialReindexRunning;
 	private Long partialReindexRunningVariableId;
+	private Long fullReindexRunningVariableId;
 	private boolean okToIndex = true;
 
 
-	private HashSet<String> worksWithInvalidLiteraryForms = new HashSet<String>();
-	private TreeSet<Scope> scopes = new TreeSet<Scope>();
-	private ArrayList<String> scopeNames = new ArrayList<String>();
+	private HashSet<String> worksWithInvalidLiteraryForms = new HashSet<>();
+	private TreeSet<Scope> scopes = new TreeSet<>();
 
 	private PreparedStatement getGroupedWorkPrimaryIdentifiers;
 	private PreparedStatement getGroupedWorkIdentifiers;
@@ -125,7 +117,7 @@ public class GroupedWorkIndexer {
 			//MDN 4/14 - Do not restrict by valid for enrichment since many popular titles
 			//Wind up with different work id's due to differences in cataloging.
 			getGroupedWorkIdentifiers = vufindConn.prepareStatement("SELECT * FROM grouped_work_identifiers inner join grouped_work_identifiers_ref on identifier_id = grouped_work_identifiers.id where grouped_work_id = ?", ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_READ_ONLY);
-			//TODO: Restore this functionality
+			//TODO: Restore functionality to not include any identifiers that aren't tagged as valid for enrichment
 			//getGroupedWorkIdentifiers = vufindConn.prepareStatement("SELECT * FROM grouped_work_identifiers inner join grouped_work_identifiers_ref on identifier_id = grouped_work_identifiers.id where grouped_work_id = ? and valid_for_enrichment = 1", ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_READ_ONLY);
 
 			getDateFirstDetectedStmt = vufindConn.prepareStatement("SELECT dateFirstDetected FROM ils_marc_checksums WHERE ilsId = ?", ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_READ_ONLY);
@@ -135,8 +127,10 @@ public class GroupedWorkIndexer {
 
 		//Initialize the updateServer and solr server
 		if (fullReindex){
-			updateServer = new ConcurrentUpdateSolrServer("http://localhost:" + solrPort + "/solr/grouped2", 5000, 10);
+			updateServer = new ConcurrentUpdateSolrServer("http://localhost:" + solrPort + "/solr/grouped2", 500, 8);
+			updateServer.setRequestWriter(new BinaryRequestWriter());
 			solrServer = new HttpSolrServer("http://localhost:" + solrPort + "/solr/grouped2");
+			updateFullReindexRunning(true);
 		}else{
 			//Check to make sure that at least a couple of minutes have elapsed since the last index
 			//Periodically in the middle of the night we get indexes every minute or multiple times a minute
@@ -147,54 +141,86 @@ public class GroupedWorkIndexer {
 				try {
 					logger.debug("Pausing between indexes, last index ran " + Math.ceil(elapsedTime / 60) + " minutes ago");
 					logger.debug("Pausing for " + (minIndexingInterval - elapsedTime) + " seconds");
-					GroupedReindexProcess.addNoteToReindexLog("Pausing between indexes, last index ran " + Math.ceil(elapsedTime / 60) + " minutes ago");
-					GroupedReindexProcess.addNoteToReindexLog("Pausing for " + (minIndexingInterval - elapsedTime) + " seconds");
+					GroupedReindexMain.addNoteToReindexLog("Pausing between indexes, last index ran " + Math.ceil(elapsedTime / 60) + " minutes ago");
+					GroupedReindexMain.addNoteToReindexLog("Pausing for " + (minIndexingInterval - elapsedTime) + " seconds");
 					Thread.sleep((minIndexingInterval - elapsedTime) * 1000);
 				} catch (InterruptedException e) {
 					logger.warn("Pause was interrupted while pausing between indexes");
 				}
 			}else{
-				GroupedReindexProcess.addNoteToReindexLog("Index last ran " + (elapsedTime) + " seconds ago");
+				GroupedReindexMain.addNoteToReindexLog("Index last ran " + (elapsedTime) + " seconds ago");
 			}
 
 			if (partialReindexRunning){
 				//Oops, a reindex is already running.
 				//No longer really care about this since it doesn't happen and there are other ways of finding a stuck process
 				//logger.warn("A partial reindex is already running, check to make sure that reindexes don't overlap since that can cause poor performance");
-				GroupedReindexProcess.addNoteToReindexLog("A partial reindex is already running, check to make sure that reindexes don't overlap since that can cause poor performance");
+				GroupedReindexMain.addNoteToReindexLog("A partial reindex is already running, check to make sure that reindexes don't overlap since that can cause poor performance");
 			}else{
 				updatePartialReindexRunning(true);
 			}
-			updateServer = new ConcurrentUpdateSolrServer("http://localhost:" + solrPort + "/solr/grouped", 5000, 10);
+			updateServer = new ConcurrentUpdateSolrServer("http://localhost:" + solrPort + "/solr/grouped", 500, 8);
 			solrServer = new HttpSolrServer("http://localhost:" + solrPort + "/solr/grouped");
 		}
 
-		loadSystemAndLocationData();
+		loadScopes();
 
-		//Initialize processors
-		String ilsIndexingClassString = configIni.get("Reindex", "ilsIndexingClass");
-		if (ilsIndexingClassString.equals("Marmot")){
-			ilsRecordProcessor = new MarmotRecordProcessor(this, vufindConn, configIni, logger);
-		}else if(ilsIndexingClassString.equals("Nashville")){
-			ilsRecordProcessor = new NashvilleRecordProcessor(this, vufindConn, configIni, logger);
-		}else if(ilsIndexingClassString.equals("WCPL")){
-			ilsRecordProcessor = new WCPLRecordProcessor(this, vufindConn, configIni, logger);
-		}else if(ilsIndexingClassString.equals("Anythink")){
-			ilsRecordProcessor = new AnythinkRecordProcessor(this, vufindConn, configIni, logger);
-		}else if(ilsIndexingClassString.equals("Aspencat")){
-			ilsRecordProcessor = new AspencatRecordProcessor(this, vufindConn, configIni, logger);
-		}else if(ilsIndexingClassString.equals("Flatirons")){
-			ilsRecordProcessor = new FlatironsRecordProcessor(this, vufindConn, configIni, logger);
-		}else{
-			logger.error("Unknown indexing class " + ilsIndexingClassString);
-			okToIndex = false;
-			return;
+		//Initialize processors based on our indexing profiles and the primary identifiers for the records.
+		try {
+			PreparedStatement uniqueIdentifiersStmt = vufindConn.prepareStatement("SELECT DISTINCT type FROM grouped_work_primary_identifiers");
+			PreparedStatement getIndexingProfile = vufindConn.prepareStatement("SELECT * from indexing_profiles where name = ?");
+			ResultSet uniqueIdentifiersRS = uniqueIdentifiersStmt.executeQuery();
+
+			while (uniqueIdentifiersRS.next()){
+				String curIdentifier = uniqueIdentifiersRS.getString("type");
+				getIndexingProfile.setString(1, curIdentifier);
+				ResultSet indexingProfileRS = getIndexingProfile.executeQuery();
+				if (indexingProfileRS.next()){
+					String ilsIndexingClassString =    indexingProfileRS.getString("indexingClass");
+					switch (ilsIndexingClassString) {
+						case "Marmot":
+							ilsRecordProcessors.put(curIdentifier, new MarmotRecordProcessor(this, vufindConn, configIni, indexingProfileRS, logger, fullReindex));
+							break;
+						case "Nashville":
+							ilsRecordProcessors.put(curIdentifier, new NashvilleRecordProcessor(this, vufindConn, configIni, indexingProfileRS, logger, fullReindex));
+							break;
+						case "NashvilleSchools":
+							ilsRecordProcessors.put(curIdentifier, new NashvilleSchoolsRecordProcessor(this, vufindConn, configIni, indexingProfileRS, logger, fullReindex));
+							break;
+						case "WCPL":
+							ilsRecordProcessors.put(curIdentifier, new WCPLRecordProcessor(this, vufindConn, configIni, indexingProfileRS, logger, fullReindex));
+							break;
+						case "Anythink":
+							ilsRecordProcessors.put(curIdentifier, new AnythinkRecordProcessor(this, vufindConn, configIni, indexingProfileRS, logger, fullReindex));
+							break;
+						case "Aspencat":
+							ilsRecordProcessors.put(curIdentifier, new AspencatRecordProcessor(this, vufindConn, configIni, indexingProfileRS, logger, fullReindex));
+							break;
+						case "Flatirons":
+							ilsRecordProcessors.put(curIdentifier, new FlatironsRecordProcessor(this, vufindConn, configIni, indexingProfileRS, logger, fullReindex));
+							break;
+						case "Hoopla":
+							ilsRecordProcessors.put(curIdentifier, new HooplaProcessor(this, configIni, logger));
+							break;
+						default:
+							logger.error("Unknown indexing class " + ilsIndexingClassString);
+							okToIndex = false;
+							return;
+					}
+				}else{
+					logger.debug("Could not find indexing profile for type " + curIdentifier);
+				}
+			}
+
+			setupIndexingStats();
+
+		}catch (Exception e){
+			logger.error("Error loading record processors for ILS records", e);
 		}
-		overDriveProcessor = new OverDriveProcessor(this, vufindConn, econtentConn, logger);
-		evokeProcessor = new EVokeProcessor(this, vufindConn, configIni, logger);
-		hooplaProcessor = new HooplaProcessor(this, configIni, logger);
+		overDriveProcessor = new OverDriveProcessor(this, econtentConn, logger);
+		evokeProcessor = new EVokeProcessor(this, configIni, logger);
 		//Load translation maps
-		loadTranslationMaps();
+		loadSystemTranslationMaps();
 
 		//Setup prepared statements to load local enrichment
 		try {
@@ -211,187 +237,182 @@ public class GroupedWorkIndexer {
 		}
 	}
 
+	protected void setupIndexingStats() {
+		ArrayList<String> recordProcessorNames = new ArrayList<>();
+		recordProcessorNames.addAll(ilsRecordProcessors.keySet());
+		recordProcessorNames.add("overdrive");
+
+		for (Scope curScope : scopes){
+			ScopedIndexingStats scopedIndexingStats = new ScopedIndexingStats(curScope.getScopeName(), recordProcessorNames);
+			indexingStats.put(curScope.getScopeName(), scopedIndexingStats);
+		}
+	}
+
 	public boolean isOkToIndex(){
 		return okToIndex;
 	}
 
 	private boolean libraryAndLocationDataLoaded = false;
-	protected HashMap<String, String> libraryFacetMap = new HashMap<String, String>();
-	protected HashMap<String, String> libraryOnlineFacetMap = new HashMap<String, String>();
-	protected HashSet<String> hooplaLocationFacets = new HashSet<String>();
-	protected HashSet<String> hooplaLocationCodes = new HashSet<String>();
-	protected HashMap<String, String> locationMap = new HashMap<String, String>();
-	protected HashMap<String, String> subdomainMap = new HashMap<String, String>();
 
 	//Keep track of what we are indexing for validation purposes
-	public TreeSet<String> ilsRecordsIndexed = new TreeSet<String>();
-	public TreeSet<String> hooplaRecordsIndexed = new TreeSet<String>();
-	public TreeSet<String> overDriveRecordsIndexed = new TreeSet<String>();
-	public TreeSet<String> ilsRecordsSkipped = new TreeSet<String>();
-	public TreeSet<String> hooplaRecordsSkipped = new TreeSet<String>();
-	public TreeSet<String> overDriveRecordsSkipped = new TreeSet<String>();
-	public TreeMap<String, ScopedIndexingStats> indexingStats = new TreeMap<String, ScopedIndexingStats>();
+	public TreeMap<String, TreeSet<String>> ilsRecordsIndexed = new TreeMap<>();
+	public TreeSet<String> overDriveRecordsIndexed = new TreeSet<>();
+	public TreeMap<String, TreeSet<String>> ilsRecordsSkipped = new TreeMap<>();
+	public TreeSet<String> overDriveRecordsSkipped = new TreeSet<>();
+	public TreeMap<String, ScopedIndexingStats> indexingStats = new TreeMap<>();
 
-	private void loadSystemAndLocationData() {
-		indexingStats.put("global", new ScopedIndexingStats("global"));
+	private void loadScopes() {
 		if (!libraryAndLocationDataLoaded){
 			//Setup translation maps for system and location
 			try {
-				PreparedStatement libraryInformationStmt = vufindConn.prepareStatement("SELECT libraryId, ilsCode, subdomain, " +
-						"displayName, facetLabel, pTypes, restrictSearchByLibrary, econtentLocationsToInclude, enableOverdriveCollection, " +
-						"includeOutOfSystemExternalLinks, useScope, orderAccountingUnit, includeHoopla FROM library ORDER BY ilsCode ASC",
-						ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_READ_ONLY);
-				ResultSet libraryInformationRS = libraryInformationStmt.executeQuery();
-				while (libraryInformationRS.next()){
-					String code = libraryInformationRS.getString("ilsCode").toLowerCase();
-					String facetLabel = libraryInformationRS.getString("facetLabel");
-					String subdomain = libraryInformationRS.getString("subdomain");
-					String displayName = libraryInformationRS.getString("displayName");
-					boolean includeHoopla = libraryInformationRS.getBoolean("includeHoopla");
-					if (facetLabel.length() == 0){
-						facetLabel = displayName;
-					}
-					if (facetLabel.length() > 0){
-						String onlineFacetLabel = facetLabel + " Online";
-						libraryFacetMap.put(code, facetLabel);
-						libraryOnlineFacetMap.put(code, onlineFacetLabel);
-						if (includeHoopla){
-							hooplaLocationFacets.add(onlineFacetLabel);
-						}
-					}
-					subdomainMap.put(code, subdomain);
-					//These options determine how scoping is done
-					Long libraryId = libraryInformationRS.getLong("libraryId");
-					String pTypes = libraryInformationRS.getString("pTypes");
-					if (pTypes == null) {pTypes = "";}
-					boolean restrictSearchByLibrary = libraryInformationRS.getBoolean("restrictSearchByLibrary");
-					String econtentLocationsToInclude = libraryInformationRS.getString("econtentLocationsToInclude");
-					if (econtentLocationsToInclude == null) {econtentLocationsToInclude = "all";}
-					boolean includeOutOfSystemExternalLinks = libraryInformationRS.getBoolean("includeOutOfSystemExternalLinks");
-					boolean useScope = libraryInformationRS.getBoolean("useScope");
-					boolean includeOverdrive = libraryInformationRS.getBoolean("enableOverdriveCollection");
+				loadLibraryScopes();
 
-
-					//Determine if we need to build a scope for this library
-					//MDN 10/1/2014 always build scopes because it makes coding more consistent elsewhere.
-					//We need to build a scope
-					Scope newScope = new Scope();
-					newScope.setIsLibraryScope(true);
-					newScope.setIsLocationScope(false);
-					newScope.setScopeName(subdomain);
-					newScope.setLibraryId(libraryId);
-					newScope.setFacetLabel(facetLabel);
-					newScope.setLibraryLocationCodePrefix(code);
-					newScope.setIncludeOutOfSystemExternalLinks(includeOutOfSystemExternalLinks);
-					newScope.setRelatedPTypes(pTypes.split(","));
-					newScope.setIncludeBibsOwnedByTheLibraryOnly(restrictSearchByLibrary);
-					newScope.setIncludeItemsOwnedByTheLibraryOnly(useScope);
-					newScope.setEContentLocationCodesToInclude(econtentLocationsToInclude.split(","));
-					newScope.setIncludeOverDriveCollection(includeOverdrive);
-					newScope.setIncludeHoopla(includeHoopla);
-					scopes.add(newScope);
-					scopeNames.add(newScope.getScopeName());
-					indexingStats.put(newScope.getScopeName(), new ScopedIndexingStats(newScope.getScopeName()));
-				}
-
-				PreparedStatement locationInformationStmt = vufindConn.prepareStatement("SELECT library.libraryId, code, ilsCode, " +
-						"library.subdomain, location.facetLabel, location.displayName, library.pTypes, library.useScope as useScopeLibrary, " +
-						"location.useScope as useScopeLocation, library.scope AS libraryScope, location.scope AS locationScope, " +
-						"restrictSearchByLocation, restrictSearchByLibrary, library.econtentLocationsToInclude as econtentLocationsToIncludeLibrary, " +
-						"location.econtentLocationsToInclude as econtentLocationsToIncludeLocation, library.enableOverdriveCollection as enableOverdriveCollectionLibrary, " +
-						"location.enableOverdriveCollection as enableOverdriveCollectionLocation, includeOutOfSystemExternalLinks, " +
-						"extraLocationCodesToInclude, includeHoopla " +
-						"FROM location INNER JOIN library on library.libraryId = location.libraryid ORDER BY code ASC",
-						ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_READ_ONLY);
-				ResultSet locationInformationRS = locationInformationStmt.executeQuery();
-				while (locationInformationRS.next()){
-					String code = locationInformationRS.getString("code").toLowerCase();
-					String libraryIlsCode = locationInformationRS.getString("ilsCode").toLowerCase();
-					String facetLabel = locationInformationRS.getString("facetLabel");
-					String extraLocationCodesToInclude = locationInformationRS.getString("extraLocationCodesToInclude").toLowerCase();
-					String displayName = locationInformationRS.getString("displayName");
-					if (facetLabel.length() == 0){
-						facetLabel = displayName;
-					}
-					locationMap.put(code, facetLabel);
-
-					//Determine if we need to build a scope for this location
-					Long libraryId = locationInformationRS.getLong("libraryId");
-					String pTypes = locationInformationRS.getString("pTypes");
-					if (pTypes == null) pTypes = "";
-					boolean restrictSearchByLibrary = locationInformationRS.getBoolean("restrictSearchByLibrary");
-					boolean restrictSearchByLocation = locationInformationRS.getBoolean("restrictSearchByLocation");
-					boolean includeOverDriveCollectionLibrary = locationInformationRS.getBoolean("enableOverdriveCollectionLibrary");
-					boolean includeOverDriveCollectionLocation = locationInformationRS.getBoolean("enableOverdriveCollectionLocation");
-					String econtentLocationsToIncludeLibrary = locationInformationRS.getString("econtentLocationsToIncludeLibrary");
-					if (econtentLocationsToIncludeLibrary == null){
-						econtentLocationsToIncludeLibrary = "all";
-					}
-					String econtentLocationsToIncludeLocation = locationInformationRS.getString("econtentLocationsToIncludeLocation");
-					if (econtentLocationsToIncludeLocation == null || econtentLocationsToIncludeLocation.length() == 0){
-						econtentLocationsToIncludeLocation = econtentLocationsToIncludeLibrary;
-					}
-					boolean includeOutOfSystemExternalLinks = locationInformationRS.getBoolean("includeOutOfSystemExternalLinks");
-					boolean useScopeLibrary = locationInformationRS.getBoolean("useScopeLibrary");
-					Integer libraryScope = locationInformationRS.getInt("libraryScope");
-					boolean useScopeLocation = locationInformationRS.getBoolean("useScopeLocation");
-					Integer locationScope = locationInformationRS.getInt("locationScope");
-					boolean includeHoopla = locationInformationRS.getBoolean("includeHoopla");
-					if (includeHoopla){
-						hooplaLocationCodes.add(code);
-					}
-					if (pTypes.length() == 0 && !restrictSearchByLocation && econtentLocationsToIncludeLocation.equalsIgnoreCase("all") && includeOutOfSystemExternalLinks && !useScopeLocation){
-						logger.debug("Not creating a scope for locations because there are no restrictions for the location " + code);
-					}else{
-						//Check to see if the location has the same restrictions as the library.
-						boolean needLocationScope = false;
-						if (restrictSearchByLocation || !econtentLocationsToIncludeLibrary.equals(econtentLocationsToIncludeLocation)){
-							needLocationScope = true;
-						}else if (useScopeLocation && !libraryScope.equals(locationScope)){
-							needLocationScope = true;
-						}
-						if (needLocationScope){
-							Scope locationScopeInfo = new Scope();
-							locationScopeInfo.setIsLibraryScope(false);
-							locationScopeInfo.setIsLocationScope(true);
-							locationScopeInfo.setScopeName(code);
-							locationScopeInfo.setLibraryId(libraryId);
-							locationScopeInfo.setLibraryLocationCodePrefix(libraryIlsCode);
-							locationScopeInfo.setLocationLocationCodePrefix(code);
-							locationScopeInfo.setRelatedPTypes(pTypes.split(","));
-							locationScopeInfo.setFacetLabel(facetLabel);
-							locationScopeInfo.setIncludeBibsOwnedByTheLibraryOnly(restrictSearchByLibrary);
-							locationScopeInfo.setIncludeBibsOwnedByTheLocationOnly(restrictSearchByLocation);
-							locationScopeInfo.setIncludeItemsOwnedByTheLibraryOnly(useScopeLibrary);
-							locationScopeInfo.setIncludeItemsOwnedByTheLocationOnly(useScopeLocation);
-							locationScopeInfo.setEContentLocationCodesToInclude(econtentLocationsToIncludeLocation.split(","));
-							locationScopeInfo.setIncludeOutOfSystemExternalLinks(includeOutOfSystemExternalLinks);
-							locationScopeInfo.setIncludeOverDriveCollection(includeOverDriveCollectionLibrary && includeOverDriveCollectionLocation);
-							locationScopeInfo.setIncludeHoopla(includeHoopla);
-							locationScopeInfo.setExtraLocationCodes(extraLocationCodesToInclude);
-
-							if (!scopes.contains(locationScopeInfo)){
-								scopes.add(locationScopeInfo);
-								scopeNames.add(locationScopeInfo.getScopeName());
-								indexingStats.put(locationScopeInfo.getScopeName(), new ScopedIndexingStats(locationScopeInfo.getScopeName()));
-							}else{
-								logger.debug("Not adding location scope because a library scope with the name " + locationScopeInfo.getScopeName() + " exists already.");
-								for (Scope existingLibraryScope : scopes){
-									if (existingLibraryScope.equals(locationScopeInfo)){
-										existingLibraryScope.setIsLocationScope(true);
-										break;
-									}
-								}
-							}
-						}else{
-							logger.debug("No scope needed for " + code + " because the library scope works just fine");
-						}
-					}
-				}
+				loadLocationScopes();
 			} catch (SQLException e) {
 				logger.error("Error setting up system maps", e);
 			}
 			libraryAndLocationDataLoaded = true;
+			logger.info("Loaded " + scopes.size() + " scopes");
+		}
+	}
+
+	private void loadLocationScopes() throws SQLException {
+		PreparedStatement locationInformationStmt = vufindConn.prepareStatement("SELECT library.libraryId, locationId, code, ilsCode, " +
+				"library.subdomain, location.facetLabel, location.displayName, library.pTypes, library.restrictOwningBranchesAndSystems, " +
+				"library.enableOverdriveCollection as enableOverdriveCollectionLibrary, " +
+				"location.enableOverdriveCollection as enableOverdriveCollectionLocation " +
+				"FROM location INNER JOIN library on library.libraryId = location.libraryId ORDER BY code ASC",
+				ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_READ_ONLY);
+		PreparedStatement locationOwnedRecordRulesStmt = vufindConn.prepareStatement("SELECT location_records_owned.*, indexing_profiles.name FROM location_records_owned INNER JOIN indexing_profiles ON indexingProfileId = indexing_profiles.id WHERE locationId = ?",
+				ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+		PreparedStatement locationRecordInclusionRulesStmt = vufindConn.prepareStatement("SELECT location_records_to_include.*, indexing_profiles.name FROM location_records_to_include INNER JOIN indexing_profiles ON indexingProfileId = indexing_profiles.id WHERE locationId = ?",
+				ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_READ_ONLY);
+
+		ResultSet locationInformationRS = locationInformationStmt.executeQuery();
+		while (locationInformationRS.next()){
+			String code = locationInformationRS.getString("code").toLowerCase();
+			String facetLabel = locationInformationRS.getString("facetLabel");
+			String displayName = locationInformationRS.getString("displayName");
+			if (facetLabel.length() == 0){
+				facetLabel = displayName;
+			}
+
+			//Determine if we need to build a scope for this location
+			Long libraryId = locationInformationRS.getLong("libraryId");
+			Long locationId = locationInformationRS.getLong("locationId");
+			String pTypes = locationInformationRS.getString("pTypes");
+			if (pTypes == null) pTypes = "";
+			boolean includeOverDriveCollectionLibrary = locationInformationRS.getBoolean("enableOverdriveCollectionLibrary");
+			boolean includeOverDriveCollectionLocation = locationInformationRS.getBoolean("enableOverdriveCollectionLocation");
+
+			Scope locationScopeInfo = new Scope();
+			locationScopeInfo.setIsLibraryScope(false);
+			locationScopeInfo.setIsLocationScope(true);
+			locationScopeInfo.setScopeName(code);
+			locationScopeInfo.setLibraryId(libraryId);
+			locationScopeInfo.setRelatedPTypes(pTypes.split(","));
+			locationScopeInfo.setFacetLabel(facetLabel);
+			locationScopeInfo.setIncludeOverDriveCollection(includeOverDriveCollectionLibrary && includeOverDriveCollectionLocation);
+			locationScopeInfo.setRestrictOwningLibraryAndLocationFacets(locationInformationRS.getBoolean("restrictOwningBranchesAndSystems"));
+			locationScopeInfo.setIlsCode(code);
+
+			//Load information about what should be included in the scope
+			locationOwnedRecordRulesStmt.setLong(1, locationId);
+			ResultSet locationOwnedRecordRulesRS = locationOwnedRecordRulesStmt.executeQuery();
+			while (locationOwnedRecordRulesRS.next()){
+				locationScopeInfo.addOwnershipRule(new OwnershipRule(locationOwnedRecordRulesRS.getString("name"), locationOwnedRecordRulesRS.getString("location"), locationOwnedRecordRulesRS.getString("subLocation")));
+			}
+
+			locationRecordInclusionRulesStmt.setLong(1, locationId);
+			ResultSet locationRecordInclusionRulesRS = locationRecordInclusionRulesStmt.executeQuery();
+			while (locationRecordInclusionRulesRS.next()){
+				locationScopeInfo.addInclusionRule(new InclusionRule(locationRecordInclusionRulesRS.getString("name"),
+						locationRecordInclusionRulesRS.getString("location"),
+						locationRecordInclusionRulesRS.getString("subLocation"),
+						locationRecordInclusionRulesRS.getBoolean("includeHoldableOnly"),
+						locationRecordInclusionRulesRS.getBoolean("includeItemsOnOrder"),
+						locationRecordInclusionRulesRS.getBoolean("includeEContent")
+				));
+			}
+
+			if (!scopes.contains(locationScopeInfo)){
+				//Connect this scope to the library scopes
+				for (Scope curScope : scopes){
+					if (curScope.isLibraryScope() && Objects.equals(curScope.getLibraryId(), libraryId)){
+						curScope.addLocationScope(locationScopeInfo);
+						locationScopeInfo.setLibraryScope(curScope);
+						break;
+					}
+				}
+				scopes.add(locationScopeInfo);
+			}else{
+				logger.debug("Not adding location scope because a library scope with the name " + locationScopeInfo.getScopeName() + " exists already.");
+				for (Scope existingLibraryScope : scopes){
+					if (existingLibraryScope.getScopeName().equals(locationScopeInfo.getScopeName())){
+						existingLibraryScope.setIsLocationScope(true);
+						break;
+					}
+				}
+			}
+		}
+	}
+
+	private void loadLibraryScopes() throws SQLException {
+		PreparedStatement libraryInformationStmt = vufindConn.prepareStatement("SELECT libraryId, ilsCode, subdomain, " +
+				"displayName, facetLabel, pTypes, enableOverdriveCollection, restrictOwningBranchesAndSystems " +
+				"FROM library ORDER BY ilsCode ASC",
+				ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_READ_ONLY);
+		PreparedStatement libraryOwnedRecordRulesStmt = vufindConn.prepareStatement("SELECT library_records_owned.*, indexing_profiles.name from library_records_owned INNER JOIN indexing_profiles ON indexingProfileId = indexing_profiles.id WHERE libraryId = ?", ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_READ_ONLY);
+		PreparedStatement libraryRecordInclusionRulesStmt = vufindConn.prepareStatement("SELECT library_records_to_include.*, indexing_profiles.name from library_records_to_include INNER JOIN indexing_profiles ON indexingProfileId = indexing_profiles.id WHERE libraryId = ?", ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_READ_ONLY);
+		ResultSet libraryInformationRS = libraryInformationStmt.executeQuery();
+		while (libraryInformationRS.next()){
+			String facetLabel = libraryInformationRS.getString("facetLabel");
+			String subdomain = libraryInformationRS.getString("subdomain");
+			String displayName = libraryInformationRS.getString("displayName");
+			if (facetLabel.length() == 0){
+				facetLabel = displayName;
+			}
+			//These options determine how scoping is done
+			Long libraryId = libraryInformationRS.getLong("libraryId");
+			String pTypes = libraryInformationRS.getString("pTypes");
+			if (pTypes == null) {pTypes = "";}
+			boolean includeOverdrive = libraryInformationRS.getBoolean("enableOverdriveCollection");
+
+			//Determine if we need to build a scope for this library
+			//MDN 10/1/2014 always build scopes because it makes coding more consistent elsewhere.
+			//We need to build a scope
+			Scope newScope = new Scope();
+			newScope.setIsLibraryScope(true);
+			newScope.setIsLocationScope(false);
+			newScope.setScopeName(subdomain);
+			newScope.setLibraryId(libraryId);
+			newScope.setFacetLabel(facetLabel);
+			newScope.setRelatedPTypes(pTypes.split(","));
+			newScope.setIncludeOverDriveCollection(includeOverdrive);
+			newScope.setRestrictOwningLibraryAndLocationFacets(libraryInformationRS.getBoolean("restrictOwningBranchesAndSystems"));
+			newScope.setIlsCode(libraryInformationRS.getString("ilsCode"));
+
+			//Load information about what should be included in the scope
+			libraryOwnedRecordRulesStmt.setLong(1, libraryId);
+			ResultSet libraryOwnedRecordRulesRS = libraryOwnedRecordRulesStmt.executeQuery();
+			while (libraryOwnedRecordRulesRS.next()){
+				newScope.addOwnershipRule(new OwnershipRule(libraryOwnedRecordRulesRS.getString("name"), libraryOwnedRecordRulesRS.getString("location"), libraryOwnedRecordRulesRS.getString("subLocation")));
+			}
+
+			libraryRecordInclusionRulesStmt.setLong(1, libraryId);
+			ResultSet libraryRecordInclusionRulesRS = libraryRecordInclusionRulesStmt.executeQuery();
+			while (libraryRecordInclusionRulesRS.next()){
+				newScope.addInclusionRule(new InclusionRule(libraryRecordInclusionRulesRS.getString("name"),
+						libraryRecordInclusionRulesRS.getString("location"),
+						libraryRecordInclusionRulesRS.getString("subLocation"),
+						libraryRecordInclusionRulesRS.getBoolean("includeHoldableOnly"),
+						libraryRecordInclusionRulesRS.getBoolean("includeItemsOnOrder"),
+						libraryRecordInclusionRulesRS.getBoolean("includeEContent")
+				));
+			}
+
+
+			scopes.add(newScope);
 		}
 	}
 
@@ -471,11 +492,14 @@ public class GroupedWorkIndexer {
 		}
 		writeWorksWithInvalidLiteraryForms();
 		updateLastReindexTime();
-		updatePartialReindexRunning(false);
+
 		//Write validation information
 		if (fullReindex) {
 			writeValidationInformation();
 			writeStats();
+			updateFullReindexRunning(false);
+		}else{
+			updatePartialReindexRunning(false);
 		}
 	}
 
@@ -488,63 +512,29 @@ public class GroupedWorkIndexer {
 			String curDateFormatted = dayFormatter.format(curDate);
 			File recordsFile = new File(dataDir.getAbsolutePath() + "/reindex_stats_" + curDateFormatted + ".csv");
 			CSVWriter recordWriter = new CSVWriter(new FileWriter(recordsFile));
-			recordWriter.writeNext(new String[]{
-					"Scope Name",
-					"Num local works",
-					"Num super scope works",
-					"Num local ils records",
-					"Num super scope ils records",
-					"Num local ils items",
-					"Num super scope ils items",
-					"Num local ils econtent items",
-					"Num super scope ils econtent items",
-					"Num local order items",
-					"Num super scope order items",
-					"Num local overdrive records",
-					"Num super scope overdrive records",
-					"Num hoopla records",
-			});
-
-			//Write global scope
-			ScopedIndexingStats stats = indexingStats.get("global");
-			recordWriter.writeNext(new String[]{
-					stats.getScopeName(),
-					Integer.toString(stats.numLocalWorks),
-					Integer.toString(stats.numSuperScopeWorks),
-					Integer.toString(stats.numLocalIlsRecords),
-					Integer.toString(stats.numSuperScopeIlsRecords),
-					Integer.toString(stats.numLocalIlsItems),
-					Integer.toString(stats.numSuperScopeIlsItems),
-					Integer.toString(stats.numLocalEContentItems),
-					Integer.toString(stats.numSuperScopeEContentItems),
-					Integer.toString(stats.numLocalOrderItems),
-					Integer.toString(stats.numSuperScopeOrderItems),
-					Integer.toString(stats.numLocalOverDriveRecords),
-					Integer.toString(stats.numSuperScopeOverDriveRecords),
-					Integer.toString(stats.numHooplaRecords),
-			});
+			ArrayList<String> headers = new ArrayList<>();
+			headers.add("Scope Name");
+			headers.add("Owned works");
+			headers.add("Total works");
+			TreeSet<String> recordProcessorNames = new TreeSet<>();
+			recordProcessorNames.addAll(ilsRecordProcessors.keySet());
+			recordProcessorNames.add("overdrive");
+			for (String processorName : recordProcessorNames){
+				headers.add("Owned " + processorName + " records");
+				headers.add("Owned " + processorName + " physical items");
+				headers.add("Owned " + processorName + " on order items");
+				headers.add("Owned " + processorName + " e-content items");
+				headers.add("Total " + processorName + " records");
+				headers.add("Total " + processorName + " physical items");
+				headers.add("Total " + processorName + " on order items");
+				headers.add("Total " + processorName + " e-content items");
+			}
+			recordWriter.writeNext(headers.toArray(new String[headers.size()]));
 
 			//Write custom scopes
 			for (String curScope: indexingStats.keySet()){
-				stats = indexingStats.get(curScope);
-				if (!curScope.equals("global")) {
-					recordWriter.writeNext(new String[]{
-							stats.getScopeName(),
-							Integer.toString(stats.numLocalWorks),
-							Integer.toString(stats.numSuperScopeWorks),
-							Integer.toString(stats.numLocalIlsRecords),
-							Integer.toString(stats.numSuperScopeIlsRecords),
-							Integer.toString(stats.numLocalIlsItems),
-							Integer.toString(stats.numSuperScopeIlsItems),
-							Integer.toString(stats.numLocalEContentItems),
-							Integer.toString(stats.numSuperScopeEContentItems),
-							Integer.toString(stats.numLocalOrderItems),
-							Integer.toString(stats.numSuperScopeOrderItems),
-							Integer.toString(stats.numLocalOverDriveRecords),
-							Integer.toString(stats.numSuperScopeOverDriveRecords),
-							Integer.toString(stats.numHooplaRecords),
-					});
-				}
+				ScopedIndexingStats stats = indexingStats.get(curScope);
+				recordWriter.writeNext(stats.getData());
 			}
 			recordWriter.flush();
 			recordWriter.close();
@@ -554,12 +544,15 @@ public class GroupedWorkIndexer {
 	}
 
 	private void writeValidationInformation() {
-		writeExistingRecordsFile(hooplaRecordsIndexed, "reindexer_hoopla_records_processed");
-		writeExistingRecordsFile(hooplaRecordsSkipped, "reindexer_hoopla_records_skipped");
+		for (String recordType : ilsRecordsIndexed.keySet()){
+			writeExistingRecordsFile(ilsRecordsIndexed.get(recordType), "reindexer_" + recordType + "_records_processed");
+		}
+		for (String recordType : ilsRecordsSkipped.keySet()){
+			writeExistingRecordsFile(ilsRecordsSkipped.get(recordType), "reindexer_" + recordType + "_records_skipped");
+		}
+
 		writeExistingRecordsFile(overDriveRecordsIndexed, "reindexer_overdrive_records_processed");
 		writeExistingRecordsFile(overDriveRecordsSkipped, "reindexer_overdrive_records_skipped");
-		writeExistingRecordsFile(ilsRecordsIndexed, "reindexer_ils_records_processed");
-		writeExistingRecordsFile(ilsRecordsSkipped, "reindexer_ils_records_skipped");
 	}
 
 	private static SimpleDateFormat dayFormatter = new SimpleDateFormat("yyyy-MM-dd");
@@ -606,6 +599,31 @@ public class GroupedWorkIndexer {
 			} catch (Exception e) {
 				logger.error("Error setting last grouping time", e);
 			}
+		}
+	}
+
+	private void updateFullReindexRunning(boolean running) {
+		logger.info("Updating full reindex running");
+		//Update the last grouping time in the variables table
+		try {
+			if (fullReindexRunningVariableId != null) {
+				PreparedStatement updateVariableStmt = vufindConn.prepareStatement("UPDATE variables set value = ? WHERE id = ?");
+				updateVariableStmt.setString(1, Boolean.toString(running));
+				updateVariableStmt.setLong(2, fullReindexRunningVariableId);
+				updateVariableStmt.executeUpdate();
+				updateVariableStmt.close();
+			} else {
+				PreparedStatement insertVariableStmt = vufindConn.prepareStatement("INSERT INTO variables (`name`, `value`) VALUES ('full_reindex_running', ?) ON DUPLICATE KEY UPDATE value = VALUES(value)", Statement.RETURN_GENERATED_KEYS);
+				insertVariableStmt.setString(1, Boolean.toString(running));
+				insertVariableStmt.executeUpdate();
+				ResultSet generatedKeys = insertVariableStmt.getGeneratedKeys();
+				if (generatedKeys.next()){
+					fullReindexRunningVariableId = generatedKeys.getLong(1);
+				}
+				insertVariableStmt.close();
+			}
+		} catch (Exception e) {
+			logger.error("Error setting that full index is running", e);
 		}
 	}
 
@@ -668,7 +686,7 @@ public class GroupedWorkIndexer {
 			ResultSet numWorksToIndexRS = getNumWorksToIndex.executeQuery();
 			numWorksToIndexRS.next();
 			Long numWorksToIndex = numWorksToIndexRS.getLong(1);
-			GroupedReindexProcess.addNoteToReindexLog("Starting to process " + numWorksToIndex + " grouped works");
+			GroupedReindexMain.addNoteToReindexLog("Starting to process " + numWorksToIndex + " grouped works");
 
 			ResultSet groupedWorks = getAllGroupedWorks.executeQuery();
 			while (groupedWorks.next()){
@@ -683,7 +701,14 @@ public class GroupedWorkIndexer {
 
 				numWorksProcessed++;
 				if (numWorksProcessed % 5000 == 0){
-					//commitChanges();
+					//Testing shows that regular commits do seem to improve performance.
+					//However, we can't do it too often or we get errors with too many searchers warming. n
+					//Leave in for now.
+					try {
+						updateServer.commit(true, false);
+					}catch (Exception e){
+						logger.warn("Error committing changes", e);
+					}
 					logger.info("Processed " + numWorksProcessed + " grouped works processed.");
 				}
 				if (maxWorksToProcess != -1 && numWorksProcessed >= maxWorksToProcess){
@@ -719,10 +744,12 @@ public class GroupedWorkIndexer {
 			updateGroupedWorkForPrimaryIdentifier(groupedWork, type, identifier);
 			numPrimaryIdentifiers++;
 		}
+		groupedWorkPrimaryIdentifiers.close();
 
 		if (numPrimaryIdentifiers > 0) {
-			indexingStats.get("global").numSuperScopeWorks++;
-			indexingStats.get("global").numLocalWorks++;
+			//Add a grouped work to any scopes that are relevant
+			groupedWork.updateIndexingStats(indexingStats);
+
 			//Update the grouped record based on data for each work
 			getGroupedWorkIdentifiers.setLong(1, id);
 			ResultSet groupedWorkIdentifiers = getGroupedWorkIdentifiers.executeQuery();
@@ -732,6 +759,7 @@ public class GroupedWorkIndexer {
 				String identifier = groupedWorkIdentifiers.getString("identifier");
 				updateGroupedWorkForSecondaryIdentifier(groupedWork, type, identifier);
 			}
+			groupedWorkIdentifiers.close();
 
 			//Load local (VuFind) enrichment for the work
 			loadLocalEnrichment(groupedWork);
@@ -743,17 +771,12 @@ public class GroupedWorkIndexer {
 				SolrInputDocument inputDocument = groupedWork.getSolrDocument(availableAtLocationBoostValue, ownedByLocationBoostValue);
 				updateServer.add(inputDocument);
 
-				for (String scope: groupedWork.getScopedWorkDetails().keySet()){
-					if (groupedWork.getScopedWorkDetails().get(scope).isLocallyOwned()) {
-						indexingStats.get(scope).numLocalWorks++;
-					}
-					indexingStats.get(scope).numSuperScopeWorks++;
-				}
 			} catch (Exception e) {
 				logger.error("Error adding record to solr", e);
 			}
 		}else{
 			//Log that this record did not have primary identifiers after
+			logger.debug("Grouped work " + permanentId + " did not have any primary identifiers for it, suppressing");
 		}
 	}
 
@@ -763,7 +786,7 @@ public class GroupedWorkIndexer {
 				LexileTitle lexileTitle = lexileInformation.get(isbn);
 				String lexileCode = lexileTitle.getLexileCode();
 				if (lexileCode.length() > 0){
-					groupedWork.setLexileCode(this.translateValue("lexile_code", lexileCode));
+					groupedWork.setLexileCode(this.translateSystemValue("lexile_code", lexileCode));
 				}
 				groupedWork.setLexileScore(lexileTitle.getLexileScore());
 				groupedWork.addAwards(lexileTitle.getAwards());
@@ -782,10 +805,11 @@ public class GroupedWorkIndexer {
 			ResultSet ratingsRS = getRatingStmt.executeQuery();
 			if (ratingsRS.next()){
 				Float averageRating = ratingsRS.getFloat("averageRating");
-				if (averageRating != null){
+				if (!ratingsRS.wasNull()){
 					groupedWork.setRating(averageRating);
 				}
 			}
+			ratingsRS.close();
 		}catch (Exception e){
 			logger.error("Unable to load local enrichment", e);
 		}
@@ -794,17 +818,21 @@ public class GroupedWorkIndexer {
 	private void updateGroupedWorkForPrimaryIdentifier(GroupedWorkSolr groupedWork, String type, String identifier) {
 		groupedWork.addAlternateId(identifier);
 		type = type.toLowerCase();
-		if (type.equals("ils")){
-			//Get the ils record from the individual marc records
-			ilsRecordProcessor.processRecord(groupedWork, identifier);
-		}else if (type.equals("overdrive")){
-			overDriveProcessor.processRecord(groupedWork, identifier);
-		}else if (type.equals("evoke")) {
-			evokeProcessor.processRecord(groupedWork, identifier);
-		}else if (type.equals("hoopla")){
-			hooplaProcessor.processRecord(groupedWork, identifier);
-		}else{
-			logger.warn("Unknown identifier type " + type);
+		switch (type) {
+			case "overdrive":
+				overDriveProcessor.processRecord(groupedWork, identifier);
+				break;
+			case "evoke":
+				evokeProcessor.processRecord(groupedWork, identifier);
+				break;
+			default:
+				if (ilsRecordProcessors.containsKey(type)) {
+					ilsRecordProcessors.get(type).processRecord(groupedWork, identifier);
+				}else{
+					logger.debug("Could not find a record processor for type " + type);
+				}
+				break;
+
 		}
 	}
 
@@ -822,7 +850,14 @@ public class GroupedWorkIndexer {
 		}
 	}
 
-	private void loadTranslationMaps(){
+	/**
+	 * System translation maps are used for things that are not customizable (or that shouldn't be customized)
+	 * by library.  For example, translations of language codes, or things where MARC standards define the values.
+	 *
+	 * We can also load translation maps that are specific to an indexing profile.  That is done within
+	 * the record processor itself.
+	 */
+	private void loadSystemTranslationMaps(){
 		//Load all translationMaps, first from default, then from the site specific configuration
 		File defaultTranslationMapDirectory = new File("../../sites/default/translation_maps");
 		File[] defaultTranslationMapFiles = defaultTranslationMapDirectory.listFiles(new FilenameFilter() {
@@ -843,23 +878,23 @@ public class GroupedWorkIndexer {
 		for (File curFile : defaultTranslationMapFiles){
 			String mapName = curFile.getName().replace(".properties", "");
 			mapName = mapName.replace("_map", "");
-			translationMaps.put(mapName, loadTranslationMap(curFile));
+			translationMaps.put(mapName, loadSystemTranslationMap(curFile));
 		}
 		for (File curFile : serverTranslationMapFiles){
 			String mapName = curFile.getName().replace(".properties", "");
 			mapName = mapName.replace("_map", "");
-			translationMaps.put(mapName, loadTranslationMap(curFile));
+			translationMaps.put(mapName, loadSystemTranslationMap(curFile));
 		}
 	}
 
-	private HashMap<String, String> loadTranslationMap(File translationMapFile) {
+	private HashMap<String, String> loadSystemTranslationMap(File translationMapFile) {
 		Properties props = new Properties();
 		try {
 			props.load(new FileReader(translationMapFile));
 		} catch (IOException e) {
 			logger.error("Could not read translation map, " + translationMapFile.getAbsolutePath(), e);
 		}
-		HashMap<String, String> translationMap = new HashMap<String, String>();
+		HashMap<String, String> translationMap = new HashMap<>();
 		for (Object keyObj : props.keySet()){
 			String key = (String)keyObj;
 			translationMap.put(key.toLowerCase(), props.getProperty(key));
@@ -867,15 +902,19 @@ public class GroupedWorkIndexer {
 		return translationMap;
 	}
 
-	HashSet<String> unableToTranslateWarnings = new HashSet<String>();
-	public String translateValue(String mapName, String value){
+	HashSet<String> unableToTranslateWarnings = new HashSet<>();
+	HashSet<String> missingTranslationMaps = new HashSet<>();
+	public String translateSystemValue(String mapName, String value){
 		if (value == null){
-			return value;
-		}
+				return null;
+			}
 		HashMap<String, String> translationMap = translationMaps.get(mapName);
 		String translatedValue;
 		if (translationMap == null){
-			logger.error("Unable to find translation map for " + mapName);
+			if (!missingTranslationMaps.contains(mapName)) {
+				missingTranslationMaps.add(mapName);
+				logger.error("Unable to find system translation map for " + mapName);
+			}
 			translatedValue = value;
 		}else{
 			String lowerCaseValue = value.toLowerCase();
@@ -905,237 +944,25 @@ public class GroupedWorkIndexer {
 		return translatedValue;
 	}
 
-	public LinkedHashSet<String> translateCollection(String mapName, Set<String> values) {
-		LinkedHashSet<String> translatedCollection = new LinkedHashSet<String>();
+	public LinkedHashSet<String> translateSystemCollection(String mapName, Set<String> values) {
+		LinkedHashSet<String> translatedCollection = new LinkedHashSet<>();
 		for (String value : values){
-			String translatedValue = translateValue(mapName, value);
-			if (translatedValue != null) {
-				translatedCollection.add(translatedValue);
+				String translatedValue = translateSystemValue(mapName, value);
+				if (translatedValue != null) {
+						translatedCollection.add(translatedValue);
+					}
 			}
-		}
 		return  translatedCollection;
 	}
 
-	private final static Pattern FOUR_DIGIT_PATTERN_BRACES							= Pattern.compile("\\[[12]\\d{3}\\]");
-	private final static Pattern				FOUR_DIGIT_PATTERN_ONE_BRACE					= Pattern.compile("\\[[12]\\d{3}");
-	private final static Pattern				FOUR_DIGIT_PATTERN_STARTING_WITH_1_2	= Pattern.compile("(20|19|18|17|16|15)[0-9][0-9]");
-	private final static Pattern				FOUR_DIGIT_PATTERN_OTHER_1						= Pattern.compile("l\\d{3}");
-	private final static Pattern				FOUR_DIGIT_PATTERN_OTHER_2						= Pattern.compile("\\[19\\]\\d{2}");
-	private final static Pattern				FOUR_DIGIT_PATTERN_OTHER_3						= Pattern.compile("(20|19|18|17|16|15)[0-9][-?0-9]");
-	private final static Pattern				FOUR_DIGIT_PATTERN_OTHER_4						= Pattern.compile("i.e. (20|19|18|17|16|15)[0-9][0-9]");
-	private final static Pattern				BC_DATE_PATTERN												= Pattern.compile("[0-9]+ [Bb][.]?[Cc][.]?");
 
-	/**
-	 * Cleans non-digits from a String
-	 *
-	 * @param date
-	 *          String to parse
-	 * @return Numeric part of date String (or null)
-	 */
-	public static String cleanDate(final String date) {
-		if (date == null || date.length() == 0){
-			return null;
-		}
-		Matcher matcher_braces = FOUR_DIGIT_PATTERN_BRACES.matcher(date);
-
-		String cleanDate = null; // raises DD-anomaly
-
-		if (matcher_braces.find()) {
-			cleanDate = matcher_braces.group();
-			cleanDate = removeOuterBrackets(cleanDate);
-		} else{
-			Matcher matcher_ie_date = FOUR_DIGIT_PATTERN_OTHER_4.matcher(date);
-			if (matcher_ie_date.find()) {
-				cleanDate = matcher_ie_date.group().replaceAll("i.e. ", "");
-			} else {
-				Matcher matcher_one_brace = FOUR_DIGIT_PATTERN_ONE_BRACE.matcher(date);
-				if (matcher_one_brace.find()) {
-					cleanDate = matcher_one_brace.group();
-					cleanDate = removeOuterBrackets(cleanDate);
-				} else {
-					Matcher matcher_bc_date = BC_DATE_PATTERN.matcher(date);
-					if (matcher_bc_date.find()) {
-						cleanDate = null;
-					} else {
-						Matcher matcher_start_with_1_2 = FOUR_DIGIT_PATTERN_STARTING_WITH_1_2.matcher(date);
-						if (matcher_start_with_1_2.find()) {
-							cleanDate = matcher_start_with_1_2.group();
-						} else {
-							Matcher matcher_l_plus_three_digits = FOUR_DIGIT_PATTERN_OTHER_1.matcher(date);
-							if (matcher_l_plus_three_digits.find()) {
-								cleanDate = matcher_l_plus_three_digits.group().replaceAll("l", "1");
-							} else {
-								Matcher matcher_bracket_19_plus_two_digits = FOUR_DIGIT_PATTERN_OTHER_2.matcher(date);
-								if (matcher_bracket_19_plus_two_digits.find()) {
-									cleanDate = matcher_bracket_19_plus_two_digits.group().replaceAll("\\[", "").replaceAll("\\]", "");
-								} else{
-									Matcher matcher_three_digits_plus_unk = FOUR_DIGIT_PATTERN_OTHER_3.matcher(date);
-									if (matcher_three_digits_plus_unk.find()) {
-										cleanDate = matcher_three_digits_plus_unk.group().replaceAll("[-?]", "0");
-									}
-								}
-							}
-						}
-					}
-				}
-			}
-		}
-		if (cleanDate != null) {
-			Calendar calendar = Calendar.getInstance();
-			SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy");
-			String thisYear = dateFormat.format(calendar.getTime());
-			try {
-				if (Integer.parseInt(cleanDate) > Integer.parseInt(thisYear) + 1) cleanDate = null;
-			} catch (NumberFormatException nfe) {
-				cleanDate = null;
-			}
-		}
-		return cleanDate;
-	}
-
-	/**
-	 * Remove single square bracket characters if they are the start and/or end
-	 * chars (matched or unmatched) and are the only square bracket chars in the
-	 * string.
-	 */
-	public static String removeOuterBrackets(String origStr) {
-		if (origStr == null || origStr.length() == 0) return origStr;
-
-		String result = origStr.trim();
-
-		if (result.length() > 0) {
-			boolean openBracketFirst = result.charAt(0) == '[';
-			boolean closeBracketLast = result.endsWith("]");
-			if (openBracketFirst && closeBracketLast && result.indexOf('[', 1) == -1 && result.lastIndexOf(']', result.length() - 2) == -1)
-				// only square brackets are at beginning and end
-				result = result.substring(1, result.length() - 1);
-			else if (openBracketFirst && result.indexOf(']') == -1)
-				// starts with '[' but no ']'; remove open bracket
-				result = result.substring(1);
-			else if (closeBracketLast && result.indexOf('[') == -1)
-				// ends with ']' but no '['; remove close bracket
-				result = result.substring(0, result.length() - 1);
-		}
-
-		return result.trim();
-	}
-
-	public Long processPublicUserLists() {
-		Long numListsProcessed = 0l;
-		try{
-			PreparedStatement listsStmt;
-			if (fullReindex){
-				//Delete all lists from the index
-				updateServer.deleteByQuery("recordtype:list");
-				//Get a list of all public lists
-				listsStmt = vufindConn.prepareStatement("SELECT user_list.id as id, deleted, public, title, description, user_list.created, dateUpdated, firstname, lastname, displayName, homeLocationId from user_list INNER JOIN user on user_id = user.id WHERE public = 1 AND deleted = 0");
-			}else{
-				//Get a list of all lists that are were changed since the last update
-				listsStmt = vufindConn.prepareStatement("SELECT user_list.id as id, deleted, public, title, description, user_list.created, dateUpdated, firstname, lastname, displayName, homeLocationId from user_list INNER JOIN user on user_id = user.id WHERE dateUpdated > ?");
-				listsStmt.setLong(1, lastReindexTime);
-			}
-
-			PreparedStatement getTitlesForListStmt = vufindConn.prepareStatement("SELECT groupedWorkPermanentId, notes from user_list_entry WHERE listId = ?");
-			ResultSet allPublicListsRS = listsStmt.executeQuery();
-			while (allPublicListsRS.next()){
-				updateSolrForList(getTitlesForListStmt, allPublicListsRS);
-				numListsProcessed++;
-			}
-			updateServer.commit();
-
-		}catch (Exception e){
-			logger.error("Error processing public lists", e);
-		}
-		logger.info("Finished processing public lists");
-		return numListsProcessed;
-	}
-
-	private void updateSolrForList(PreparedStatement getTitlesForListStmt, ResultSet allPublicListsRS) throws SQLException, SolrServerException, IOException {
-		UserListSolr userListSolr = new UserListSolr(this);
-		Long listId = allPublicListsRS.getLong("id");
-
-		int deleted = allPublicListsRS.getInt("deleted");
-		int isPublic = allPublicListsRS.getInt("public");
-		if (deleted == 1 || isPublic == 0){
-			updateServer.deleteByQuery("id:list");
-		}else{
-			userListSolr.setId(listId);
-			userListSolr.setTitle(allPublicListsRS.getString("title"));
-			userListSolr.setDescription(allPublicListsRS.getString("description"));
-			userListSolr.setCreated(allPublicListsRS.getLong("created"));
-
-			String displayName = allPublicListsRS.getString("displayName");
-			String firstName = allPublicListsRS.getString("firstname");
-			String lastName = allPublicListsRS.getString("lastname");
-			if (displayName != null && displayName.length() > 0){
-				userListSolr.setAuthor(displayName);
-			}else{
-				if (firstName == null) firstName = "";
-				if (lastName == null) lastName = "";
-				String firstNameFirstChar = "";
-				if (firstName.length() > 0){
-					firstNameFirstChar = firstName.charAt(0) + ". ";
-				}
-				userListSolr.setAuthor(firstNameFirstChar + lastName);
-			}
-
-			//Get information about all of the list titles.
-			getTitlesForListStmt.setLong(1, listId);
-			ResultSet allTitlesRS = getTitlesForListStmt.executeQuery();
-			while (allTitlesRS.next()){
-				String groupedWorkId = allTitlesRS.getString("groupedWorkPermanentId");
-				SolrQuery query = new SolrQuery();
-				query.setQuery("id:" + groupedWorkId + " AND recordtype:grouped_work");
-				query.setFields("title", "author");
-
-				QueryResponse response = solrServer.query(query);
-				SolrDocumentList results = response.getResults();
-				//Should only ever get one response
-				for (Object result : results) {
-					SolrDocument curWork = (SolrDocument) result;
-					userListSolr.addListTitle(groupedWorkId, curWork.getFieldValue("title"), curWork.getFieldValue("author"));
-				}
-			}
-
-			updateServer.add(userListSolr.getSolrDocument(availableAtLocationBoostValue, ownedByLocationBoostValue));
-		}
-	}
 
 	public void addWorkWithInvalidLiteraryForms(String id) {
 		this.worksWithInvalidLiteraryForms.add(id);
 	}
 
-	public HashMap<String, String> getSubdomainMap() {
-		return subdomainMap;
-	}
-
-	public HashMap<String, String> getLocationMap() {
-		return locationMap;
-	}
-
-	public HashMap<String, String> getLibraryFacetMap() {
-		return libraryFacetMap;
-	}
-
-	public HashMap<String, String> getLibraryOnlineFacetMap() {
-		return libraryOnlineFacetMap;
-	}
-
 	public TreeSet<Scope> getScopes() {
 		return this.scopes;
-	}
-
-	public ArrayList<String> getAllScopeNames(){
-		return scopeNames;
-	}
-
-	/**
-	 * A list of facets (library system display name + Online) which have access to Hoopla
-	 *
-	 * @return A list of facets
-	 */
-	public HashSet<String> getHooplaLocationFacets() {
-		return hooplaLocationFacets;
 	}
 
 	public Date getDateFirstDetected(String recordId){
@@ -1156,4 +983,8 @@ public class GroupedWorkIndexer {
 		}
 	}
 
+	public long processPublicUserLists() {
+		UserListProcessor listProcessor = new UserListProcessor(this, vufindConn, logger, fullReindex, availableAtLocationBoostValue, ownedByLocationBoostValue);
+		return listProcessor.processPublicUserLists(lastReindexTime, updateServer, solrServer);
+	}
 }

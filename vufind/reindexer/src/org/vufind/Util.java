@@ -9,14 +9,31 @@ import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class Util {
+	public static byte[] readFileBytes(String filename) throws IOException {
+		FileInputStream f = new FileInputStream( filename );
+		FileChannel fileChannel = f.getChannel();
+		long fileSize = fileChannel.size();
+		byte[] fileBytes = new byte[(int)fileSize];
+		ByteBuffer buffer = ByteBuffer.wrap(fileBytes);
+		fileChannel.read(buffer);
+		fileChannel.close();
+		f.close();
+		return fileBytes;
+	}
+
 	public static String getCRSeparatedString(Object values) {
-		StringBuffer crSeparatedString = new StringBuffer();
+		StringBuilder crSeparatedString = new StringBuilder();
 		if (values instanceof String){
 			crSeparatedString.append((String)values);
 		}else if (values instanceof Iterable){
@@ -33,7 +50,7 @@ public class Util {
 	}
 	
 	public static String getCRSeparatedStringFromSet(Set<String> values) {
-		StringBuffer crSeparatedString = new StringBuffer();
+		StringBuilder crSeparatedString = new StringBuilder();
 		for (String curValue : values) {
 			if (crSeparatedString.length() > 0) {
 				crSeparatedString.append("\r\n");
@@ -44,7 +61,7 @@ public class Util {
 	}
 
 	public static String getCRSeparatedString(HashSet<String> values) {
-		StringBuffer crSeparatedString = new StringBuffer();
+		StringBuilder crSeparatedString = new StringBuilder();
 		for (String curValue : values) {
 			if (crSeparatedString.length() > 0) {
 				crSeparatedString.append("\r\n");
@@ -54,12 +71,36 @@ public class Util {
 		return crSeparatedString.toString();
 	}
 
+	public static String getCsvSeparatedString(HashSet<String> values) {
+		StringBuilder crSeparatedString = new StringBuilder();
+		for (String curValue : values) {
+			if (crSeparatedString.length() > 0) {
+				crSeparatedString.append(",");
+			}
+			crSeparatedString.append(curValue.toString());
+		}
+		return crSeparatedString.toString();
+	}
+
+	public static String getCsvSeparatedStringFromLongs(HashSet<Long> values) {
+		StringBuilder crSeparatedString = new StringBuilder();
+		for (Long curValue : values) {
+			if (crSeparatedString.length() > 0) {
+				crSeparatedString.append(",");
+			}
+			crSeparatedString.append(curValue.toString());
+		}
+		return crSeparatedString.toString();
+	}
+
 	public static boolean copyFile(File sourceFile, File destFile) throws IOException {
 		if (!sourceFile.exists()){
 			return false;
 		}
 		if (!destFile.exists()) {
-			destFile.createNewFile();
+			if (!destFile.createNewFile()){
+				return false;
+			}
 		}
 
 		FileChannel source = null;
@@ -108,7 +149,7 @@ public class Util {
 
 	public static URLPostResponse getURL(String url, Logger logger) {
 		URLPostResponse retVal;
-		HttpURLConnection conn = null;
+		HttpURLConnection conn;
 		try {
 			logger.debug("Getting URL " + url);
 			URL emptyIndexURL = new URL(url);
@@ -127,7 +168,7 @@ public class Util {
 			conn.setConnectTimeout(3000);
 			conn.setReadTimeout(450000);
 			//logger.debug("  Opened connection");
-			StringBuffer response = new StringBuffer();
+			StringBuilder response = new StringBuilder();
 			if (conn.getResponseCode() == 200) {
 				//logger.debug("  Got successful response");
 				// Get the response
@@ -164,39 +205,26 @@ public class Util {
 		return retVal;
 	}
 
-	public static String prepForCsv(String input, boolean trimTrailingPunctuation, boolean crSeparatedFields) {
-		if (input == null){
-			return "";
-		}
-		if (trimTrailingPunctuation) {
-			input = trimTrailingPunctuation(input);
-		}
-		input = input.replaceAll("'", "`");
-		input = input.replaceAll("\\|", " ");
-		input = input.replaceAll(";", " ");
-		if (crSeparatedFields){
-			input = input.replaceAll("[\\t]", " ");
-			input = input.replaceAll("\\r\\n|\\r|\\n", ";");
-		}else{
-			input = input.replaceAll("[\\r\\n\\t]", " ");
-		}
-		
-		// input = regex.matcher(input).replaceAll("");
-		return input;
-	}
-
+	static Pattern trimPunctuationPattern = Pattern.compile("^(.*?)[\\s/,\\.;]+$");
 	public static String trimTrailingPunctuation(String format) {
 		if (format == null){
 			return "";
 		}
-		while (format.endsWith("/") || format.endsWith(",") || format.endsWith(".") || format.endsWith(";")) {
+		Matcher trimPunctuationMatcher = trimPunctuationPattern.matcher(format);
+		if (trimPunctuationMatcher.matches()){
+			return trimPunctuationMatcher.group(1);
+		}else{
+			return format;
+		}
+
+		/*while (format.endsWith("/") || format.endsWith(",") || format.endsWith(".") || format.endsWith(";")) {
 			format = format.substring(0, format.length() - 1).trim();
 		}
-		return format;
+		return format;*/
 	}
 
 	public static Collection<String> trimTrailingPunctuation(Set<String> fieldList) {
-		HashSet<String> trimmedCollection = new HashSet<String>();
+		HashSet<String> trimmedCollection = new HashSet<>();
 		for (String field : fieldList){
 			trimmedCollection.add(trimTrailingPunctuation(field));
 		}
@@ -228,13 +256,16 @@ public class Util {
 		return indexDate;
 	}
 	public static LinkedHashSet<String> getTimeSinceAddedForDate(Date curDate) {
-		if (curDate == null){
+		if (curDate == null) {
 			return null;
 		}
 		long timeDifferenceDays = (indexDate.getTime() - curDate.getTime())
 				/ (1000 * 60 * 60 * 24);
+		return getTimeSinceAdded(timeDifferenceDays);
+	}
+	public static LinkedHashSet<String> getTimeSinceAdded(long timeDifferenceDays){
 		// System.out.println("Time Difference Days: " + timeDifferenceDays);
-		LinkedHashSet<String> result = new LinkedHashSet<String>();
+		LinkedHashSet<String> result = new LinkedHashSet<>();
 		if (timeDifferenceDays <= 1) {
 			result.add("Day");
 		}
@@ -275,20 +306,6 @@ public class Util {
 		return true;
 	}
 
-	public static String getCommaSeparatedString(HashSet<String> values) {
-		if (values == null){
-			return "";
-		}
-		StringBuffer crSeparatedString = new StringBuffer();
-		for (String curValue : values) {
-			if (crSeparatedString.length() > 0) {
-				crSeparatedString.append(",");
-			}
-			crSeparatedString.append(curValue);
-		}
-		return crSeparatedString.toString();
-	}
-
 	public static boolean compareFiles(File file1, File file2, Logger logger){
 		try {
 			BufferedReader reader1 = new BufferedReader(new FileReader(file1));
@@ -311,4 +328,113 @@ public class Util {
 	private static boolean compareStrings(String curLine1, String curLine2) {
 		return curLine1 == null && curLine2 == null || !(curLine1 == null || curLine2 == null) && curLine1.equals(curLine2);
 	}
+
+	private final static Pattern FOUR_DIGIT_PATTERN_BRACES							= Pattern.compile("\\[[12]\\d{3}\\]");
+	private final static Pattern				FOUR_DIGIT_PATTERN_ONE_BRACE					= Pattern.compile("\\[[12]\\d{3}");
+	private final static Pattern				FOUR_DIGIT_PATTERN_STARTING_WITH_1_2	= Pattern.compile("(20|19|18|17|16|15)[0-9][0-9]");
+	private final static Pattern				FOUR_DIGIT_PATTERN_OTHER_1						= Pattern.compile("l\\d{3}");
+	private final static Pattern				FOUR_DIGIT_PATTERN_OTHER_2						= Pattern.compile("\\[19\\]\\d{2}");
+	private final static Pattern				FOUR_DIGIT_PATTERN_OTHER_3						= Pattern.compile("(20|19|18|17|16|15)[0-9][-?0-9]");
+	private final static Pattern				FOUR_DIGIT_PATTERN_OTHER_4						= Pattern.compile("i.e. (20|19|18|17|16|15)[0-9][0-9]");
+	private final static Pattern				BC_DATE_PATTERN												= Pattern.compile("[0-9]+ [Bb][.]?[Cc][.]?");
+
+	/**
+	 * Cleans non-digits from a String
+	 *
+	 * @param date
+	 *          String to parse
+	 * @return Numeric part of date String (or null)
+	 */
+	public static String cleanDate(final String date) {
+		if (date == null || date.length() == 0){
+			return null;
+		}
+		Matcher matcher_braces = FOUR_DIGIT_PATTERN_BRACES.matcher(date);
+
+		String cleanDate = null; // raises DD-anomaly
+
+		if (matcher_braces.find()) {
+			cleanDate = matcher_braces.group();
+			cleanDate = removeOuterBrackets(cleanDate);
+		} else{
+			Matcher matcher_ie_date = FOUR_DIGIT_PATTERN_OTHER_4.matcher(date);
+			if (matcher_ie_date.find()) {
+				cleanDate = matcher_ie_date.group().replaceAll("i.e. ", "");
+			} else {
+				Matcher matcher_one_brace = FOUR_DIGIT_PATTERN_ONE_BRACE.matcher(date);
+				if (matcher_one_brace.find()) {
+					cleanDate = matcher_one_brace.group();
+					cleanDate = removeOuterBrackets(cleanDate);
+				} else {
+					Matcher matcher_bc_date = BC_DATE_PATTERN.matcher(date);
+					if (matcher_bc_date.find()) {
+						cleanDate = null;
+					} else {
+						Matcher matcher_start_with_1_2 = FOUR_DIGIT_PATTERN_STARTING_WITH_1_2.matcher(date);
+						if (matcher_start_with_1_2.find()) {
+							cleanDate = matcher_start_with_1_2.group();
+						} else {
+							Matcher matcher_l_plus_three_digits = FOUR_DIGIT_PATTERN_OTHER_1.matcher(date);
+							if (matcher_l_plus_three_digits.find()) {
+								cleanDate = matcher_l_plus_three_digits.group().replaceAll("l", "1");
+							} else {
+								Matcher matcher_bracket_19_plus_two_digits = FOUR_DIGIT_PATTERN_OTHER_2.matcher(date);
+								if (matcher_bracket_19_plus_two_digits.find()) {
+									cleanDate = matcher_bracket_19_plus_two_digits.group().replaceAll("\\[", "").replaceAll("\\]", "");
+								} else{
+									Matcher matcher_three_digits_plus_unk = FOUR_DIGIT_PATTERN_OTHER_3.matcher(date);
+									if (matcher_three_digits_plus_unk.find()) {
+										cleanDate = matcher_three_digits_plus_unk.group().replaceAll("[-?]", "0");
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		if (cleanDate != null) {
+			Calendar calendar = Calendar.getInstance();
+			SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy");
+			String thisYear = dateFormat.format(calendar.getTime());
+			try {
+				if (Integer.parseInt(cleanDate) > Integer.parseInt(thisYear) + 1) cleanDate = null;
+			} catch (NumberFormatException nfe) {
+				cleanDate = null;
+			}
+		}
+		return cleanDate;
+	}
+
+	/**
+	 * Remove single square bracket characters if they are the start and/or end
+	 * chars (matched or unmatched) and are the only square bracket chars in the
+	 * string.
+	 */
+	public static String removeOuterBrackets(String origStr) {
+		if (origStr == null || origStr.length() == 0) return origStr;
+
+		String result = origStr.trim();
+
+		if (result.length() > 0) {
+			boolean openBracketFirst = result.charAt(0) == '[';
+			boolean closeBracketLast = result.endsWith("]");
+			if (openBracketFirst && closeBracketLast && result.indexOf('[', 1) == -1 && result.lastIndexOf(']', result.length() - 2) == -1)
+				// only square brackets are at beginning and end
+				result = result.substring(1, result.length() - 1);
+			else if (openBracketFirst && result.indexOf(']') == -1)
+				// starts with '[' but no ']'; remove open bracket
+				result = result.substring(1);
+			else if (closeBracketLast && result.indexOf('[') == -1)
+				// ends with ']' but no '['; remove close bracket
+				result = result.substring(0, result.length() - 1);
+		}
+
+		return result.trim();
+	}
+
+	public static String getCleanDetailValue(String value) {
+		return value == null ? "" : value;
+	}
+
 }

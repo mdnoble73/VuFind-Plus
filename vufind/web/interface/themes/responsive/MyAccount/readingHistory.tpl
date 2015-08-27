@@ -2,16 +2,18 @@
 {if $user->cat_username}
 	{strip}
 
-	{if $profile.web_note}
+	{if $profile->web_note}
 		<div class="row">
-			<div id="web_note" class="alert alert-info text-center col-xs-12">{$profile.web_note}</div>
+			<div id="web_note" class="alert alert-info text-center col-xs-12">{$profile->web_note}</div>
 		</div>
 	{/if}
-	{if $profile.numHoldsAvailableTotal && $profile.numHoldsAvailableTotal > 0}
-		<div class="text-info text-center alert alert-info"><a href="/MyAccount/Holds" class="alert-link">You have {$profile.numHoldsAvailableTotal} holds ready for pick up.</a></div>
-	{/if}
+	{include file="MyAccount/availableHoldsNotice.tpl"}
 
 	<h2>{translate text='My Reading History'} {if $historyActive == true}<small><a id='readingListWhatsThis' href="#" onclick="$('#readingListDisclaimer').toggle();return false;">(What's This?)</a></small>{/if}</h2>
+
+		{include file="MyAccount/switch-linked-user-form.tpl" label="View Reading History for" actionPath="/MyAccount/ReadingHistory"}
+
+	<br>
 
 	<div class="row">
 		<div id='readingListDisclaimer' {if $historyActive == true}style='display: none'{/if} class="alert alert-info">
@@ -22,10 +24,11 @@
 		</div>
 	</div>
 
-	<form id='readingListForm' action ="{$fullPath}" class="form-inline">
+	<form id="readingListForm" action="{$fullPath}" class="form-inline">
 		<div class="row">
-			<input type="hidden" name="page" value="{$page}" />
-			<input name='readingHistoryAction' id='readingHistoryAction' value='' type='hidden' />
+			<input type="hidden" name="page" value="{$page}">
+			<input type="hidden" name="patronId" value="{$selectedUser}">
+			<input name="readingHistoryAction" id="readingHistoryAction" value="" type="hidden">
 			<div id="readingListActionsTop" class="col-xs-12">
 				<div class="btn-group btn-group-sm">
 					{if $historyActive == true}

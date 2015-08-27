@@ -2,6 +2,13 @@
 	<div class="error">{$error}</div>
 {else}
 	{if $showUserInformation}
+		{if $isAdminUser}
+			<h3>Request Information</h3>
+			<div class="request_detail_field row">
+				<div class="request_detail_field_label col-sm-3">Id: </div>
+				<div class="request_detail_field_value col-sm-9">{$materialsRequest->id}</div>
+			</div>
+		{/if}
 		<h3>Submitted By</h3>
 		<div class="request_detail_field row">
 			<div class="request_detail_field_label col-sm-3">Username: </div>

@@ -10,19 +10,24 @@
 
 class MillenniumReadingHistory {
 	/**
-	 * @var MillenniumDriver $driver;
+	 * @var Millennium $driver;
 	 */
 	private $driver;
 	public function __construct($driver){
 		$this->driver = $driver;
 	}
 
+	/**
+	 * @param User $patron
+	 * @param int $page
+	 * @param int $recordsPerPage
+	 * @param string $sortOption
+	 * @return array
+	 */
 	public function getReadingHistory($patron, $page = 1, $recordsPerPage = -1, $sortOption = "checkedOut") {
 		global $timer;
-		$patronDump = $this->driver->_getPatronDump($this->driver->_getBarcode());
-
 		//Load the information from millennium using CURL
-		$pageContents = $this->driver->_fetchPatronInfoPage($patronDump, 'readinghistory');
+		$pageContents = $this->driver->_fetchPatronInfoPage($patron, 'readinghistory');
 
 		//Check to see if there are multiple pages of reading history
 		$hasPagination = preg_match('/<td[^>]*class="browsePager"/', $pageContents);
@@ -42,7 +47,7 @@ class MillenniumReadingHistory {
 		$recordsRead += count($readingHistoryTitles);
 		if (isset($maxPageNum)){
 			for ($pageNum = 2; $pageNum <= $maxPageNum; $pageNum++){
-				$pageContents = $this->driver->_fetchPatronInfoPage($patronDump, 'readinghistory&page=' . $pageNum);
+				$pageContents = $this->driver->_fetchPatronInfoPage($patron, 'readinghistory&page=' . $pageNum);
 				$additionalTitles = $this->parseReadingHistoryPage($pageContents, $patron, $sortOption, $recordsRead);
 				$recordsRead += count($additionalTitles);
 				$readingHistoryTitles = array_merge($readingHistoryTitles, $additionalTitles);
@@ -72,7 +77,7 @@ class MillenniumReadingHistory {
 			if (isset($historyEntry['shortId']) && strlen($historyEntry['shortId']) > 0){
 				$historyEntry['recordId'] = "." . $historyEntry['shortId'] . $this->driver->getCheckDigit($historyEntry['shortId']);
 				require_once ROOT_DIR . '/RecordDrivers/MarcRecord.php';
-				$recordDriver = new MarcRecord($historyEntry['recordId']);
+				$recordDriver = new MarcRecord($this->driver->accountProfile->recordSource . ':' . $historyEntry['recordId']);
 				if ($recordDriver->isValid()){
 					$historyEntry['ratingData'] = $recordDriver->getRatingData();
 					$historyEntry['permanentId'] = $recordDriver->getPermanentId();
@@ -88,17 +93,15 @@ class MillenniumReadingHistory {
 		//The history is active if there is an opt out link.
 		$historyActive = (strpos($pageContents, 'OptOut') > 0);
 		$timer->logTime("Loaded Reading history for patron");
-		global $user;
-		if ($historyActive && !$user->trackReadingHistory){
+		if ($historyActive && !$patron->trackReadingHistory){
 			//The user does have reading history even though we hadn't detected it before.
-			$user->trackReadingHistory = true;
-			$user->update();
-			$_SESSION['userinfo'] = serialize($user);
-		}if (!$historyActive && $user->trackReadingHistory){
+			$patron->trackReadingHistory = true;
+			$patron->update();
+		}
+		if (!$historyActive && $patron->trackReadingHistory){
 			//The user does have reading history even though we hadn't detected it before.
-			$user->trackReadingHistory = false;
-			$user->update();
-			$_SESSION['userinfo'] = serialize($user);
+			$patron->trackReadingHistory = false;
+			$patron->update();
 		}
 
 		return array('historyActive'=>$historyActive, 'titles'=>$readingHistoryTitles, 'numTitles'=> $numTitles);
@@ -111,16 +114,15 @@ class MillenniumReadingHistory {
 	 * exportList
 	 * optOut
 	 *
+	 * @param   User    $patron
 	 * @param   string  $action         The action to perform
 	 * @param   array   $selectedTitles The titles to do the action on if applicable
 	 */
-	function doReadingHistoryAction($action, $selectedTitles){
-		global $configArray;
+	function doReadingHistoryAction($patron, $action, $selectedTitles){
 		global $analytics;
-		$patronDump = $this->driver->_getPatronDump($this->driver->_getBarcode());
 		//Load the reading history page
 		$scope = $this->driver->getDefaultScope();
-		$curl_url = $configArray['Catalog']['url'] . "/patroninfo~S{$scope}/" . $patronDump['RECORD_#'] ."/readinghistory";
+		$curl_url = $this->driver->getVendorOpacUrl() . "/patroninfo~S{$scope}/" . $patron->username ."/readinghistory";
 
 		$cookie = tempnam ("/tmp", "CURLCOOKIE");
 		$curl_connection = curl_init($curl_url);
@@ -133,7 +135,7 @@ class MillenniumReadingHistory {
 		curl_setopt($curl_connection, CURLOPT_COOKIEJAR, $cookie);
 		curl_setopt($curl_connection, CURLOPT_COOKIESESSION, true);
 		curl_setopt($curl_connection, CURLOPT_POST, true);
-		$post_data = $this->driver->_getLoginFormValues();
+		$post_data = $this->driver->_getLoginFormValues($patron);
 		$post_items = array();
 		foreach ($post_data as $key => $value) {
 			$post_items[] = $key . '=' . urlencode($value);
@@ -171,7 +173,7 @@ class MillenniumReadingHistory {
 			//Issue a get request to delete the item from the reading history.
 			//Note: Millennium really does issue a malformed url, and it is required
 			//to make the history delete properly.
-			$curl_url = $configArray['Catalog']['url'] . "/patroninfo~S{$scope}/" . $patronDump['RECORD_#'] ."/readinghistory/rsh&" . $title_string;
+			$curl_url = $this->driver->getVendorOpacUrl() . "/patroninfo~S{$scope}/" . $patron->username ."/readinghistory/rsh&" . $title_string;
 			curl_setopt($curl_connection, CURLOPT_HTTPGET, true);
 			curl_setopt($curl_connection, CURLOPT_URL, $curl_url);
 			curl_exec($curl_connection);
@@ -180,7 +182,7 @@ class MillenniumReadingHistory {
 			}
 		}elseif ($action == 'deleteAll'){
 			//load patron page readinghistory/rah
-			$curl_url = $configArray['Catalog']['url'] . "/patroninfo~S{$scope}/" . $patronDump['RECORD_#'] ."/readinghistory/rah";
+			$curl_url = $this->driver->getVendorOpacUrl() . "/patroninfo~S{$scope}/" . $patron->username ."/readinghistory/rah";
 			curl_setopt($curl_connection, CURLOPT_URL, $curl_url);
 			curl_setopt($curl_connection, CURLOPT_HTTPGET, true);
 			curl_exec($curl_connection);
@@ -191,22 +193,26 @@ class MillenniumReadingHistory {
 			//Leave this unimplemented for now.
 		}elseif ($action == 'optOut'){
 			//load patron page readinghistory/OptOut
-			$curl_url = $configArray['Catalog']['url'] . "/patroninfo~S{$scope}/" . $patronDump['RECORD_#'] ."/readinghistory/OptOut";
+			$curl_url = $this->driver->getVendorOpacUrl() . "/patroninfo~S{$scope}/" . $patron->username ."/readinghistory/OptOut";
 			curl_setopt($curl_connection, CURLOPT_URL, $curl_url);
 			curl_setopt($curl_connection, CURLOPT_HTTPGET, true);
 			curl_exec($curl_connection);
 			if ($analytics){
 				$analytics->addEvent('ILS Integration', 'Opt Out of Reading History');
 			}
+			$patron->trackReadingHistory = false;
+			$patron->update();
 		}elseif ($action == 'optIn'){
 			//load patron page readinghistory/OptIn
-			$curl_url = $configArray['Catalog']['url'] . "/patroninfo~S{$scope}/" . $patronDump['RECORD_#'] ."/readinghistory/OptIn";
+			$curl_url = $this->driver->getVendorOpacUrl() . "/patroninfo~S{$scope}/" . $patron->username ."/readinghistory/OptIn";
 			curl_setopt($curl_connection, CURLOPT_URL, $curl_url);
 			curl_setopt($curl_connection, CURLOPT_HTTPGET, true);
 			curl_exec($curl_connection);
 			if ($analytics){
 				$analytics->addEvent('ILS Integration', 'Opt in to Reading History');
 			}
+			$patron->trackReadingHistory = true;
+			$patron->update();
 		}
 		curl_close($curl_connection);
 		unlink($cookie);

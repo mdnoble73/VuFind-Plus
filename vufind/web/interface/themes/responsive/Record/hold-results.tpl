@@ -25,7 +25,7 @@
 			{foreach from=$hold_message_data.titles item=title_data}
 			<li class='title_hold_result'>
 				<span class='hold_result_item_title'> {if $title_data.title} {$title_data.title} {else} {$title_data.bid} {/if} </span> <br />
-				<span class='{if $title_data.result == true}hold_result_title_ok{else}hold_result_title_failed{/if}'>{$title_data.message}</span>
+				<span class='{if $title_data.success == true}hold_result_title_ok{else}hold_result_title_failed{/if}'>{$title_data.message}</span>
 				{if $title_data.items}
 					<select name="title[{$title_data.bid}]">
 						{if !array_key_exists($title_data.items, -1)}

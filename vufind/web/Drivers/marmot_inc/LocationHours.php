@@ -51,10 +51,6 @@ class LocationHours extends DB_DataObject
 			'open' => array('property'=>'open', 'type'=>'enum', 'values'=>$timeList, 'label'=>'Opening Hour', 'description'=>'The opening hour. Use 24 hour format HH:MM, eg: 08:30'),
 			'close' => array('property'=>'close', 'type'=>'enum', 'values'=>$timeList, 'label'=>'Closing Hour', 'description'=>'The closing hour. Use 24 hour format HH:MM, eg: 16:30'),
 		);
-		foreach ($structure as $fieldName => $field){
-			$field['propertyOld'] = $field['property'] . 'Old';
-			$structure[$fieldName] = $field;
-		}
 		return $structure;
 	}
 }

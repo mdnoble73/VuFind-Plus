@@ -19,7 +19,6 @@
  */
 
 require_once ROOT_DIR . '/Action.php';
-require_once ROOT_DIR . '/services/MyResearch/lib/User.php';
 require_once ROOT_DIR . '/services/MyResearch/lib/Search.php';
 require_once ROOT_DIR . '/Drivers/marmot_inc/Prospector.php';
 
@@ -37,16 +36,8 @@ class Search_Results extends Action {
 		global $analytics;
 		global $library;
 
-		/** @var string|LibrarySearchSource|LocationSearchSource $searchSource */
+		/** @var string $searchSource */
 		$searchSource = isset($_REQUEST['searchSource']) ? $_REQUEST['searchSource'] : 'local';
-		if (preg_match('/library\d+/', $searchSource)){
-			$trimmedId = str_replace('library', '', $searchSource);
-			$searchSourceObj = new LibrarySearchSource();
-			$searchSourceObj->id = $trimmedId;
-			if ($searchSourceObj->find(true)){
-				$searchSource = $searchSourceObj;
-			}
-		}
 
 		if (isset($_REQUEST['replacementTerm'])){
 			$replacementTerm = $_REQUEST['replacementTerm'];
@@ -250,17 +241,12 @@ class Search_Results extends Action {
 		if ($solrScope){
 			$searchLibrary = Library::getSearchLibrary();
 			if ($searchLibrary != null && $searchLibrary->showMarmotResultsAtEndOfSearch){
-				if (is_object($searchSource)){
-					$enableUnscopedSearch = $searchSource->catalogScoping != 'unscoped';
+				$searchSources = new SearchSources();
+				$searchOptions = $searchSources->getSearchSources();
+				if (isset($searchOptions['marmot'])){
+					//TODO: change name of search option to 'consortium'
 					$unscopedSearch = clone($searchObject);
-				}else{
-					$searchSources = new SearchSources();
-					$searchOptions = $searchSources->getSearchSources();
-					if (isset($searchOptions['marmot'])){
-						//TODO: change name of search option to 'consortium'
-						$unscopedSearch = clone($searchObject);
-						$enableUnscopedSearch = true;
-					}
+					$enableUnscopedSearch = true;
 				}
 			}
 		}
@@ -287,15 +273,11 @@ class Search_Results extends Action {
 		// Save the URL of this search to the session so we can return to it easily:
 		$_SESSION['lastSearchURL'] = $searchObject->renderSearchUrl();
 
-		if (is_object($searchSource)){
-			$translatedSearch = $searchSource->label;
-		}else{
-			$allSearchSources = SearchSources::getSearchSources();
-			if (!isset($allSearchSources[$searchSource]) && $searchSource == 'marmot'){
-				$searchSource = 'local';
-			}
-			$translatedSearch = $allSearchSources[$searchSource]['name'];
+		$allSearchSources = SearchSources::getSearchSources();
+		if (!isset($allSearchSources[$searchSource]) && $searchSource == 'marmot'){
+			$searchSource = 'local';
 		}
+		$translatedSearch = $allSearchSources[$searchSource]['name'];
 
 		// Save the search for statistics
 		$analytics->addSearch($translatedSearch, $searchObject->displayQuery(), $searchObject->isAdvanced(), $searchObject->getFullSearchType(), $searchObject->hasAppliedFacets(), $searchObject->getResultTotal());
@@ -373,7 +355,7 @@ class Search_Results extends Action {
 					// Unexpected error -- let's treat this as a fatal condition.
 				} else {
 					PEAR_Singleton::raiseError(new PEAR_Error('Unable to process query<br />' .
-                        'Solr Returned: ' . $error));
+                        'Solr Returned: ' . print_r($error, true)));
 				}
 			}
 

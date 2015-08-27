@@ -14,6 +14,20 @@ abstract class BaseEContentDriver  extends MarcRecord {
 	abstract function getModuleName();
 	abstract function getValidProtectionTypes();
 
+	/**
+	 * Constructor.  We build the object using all the data retrieved
+	 * from the (Solr) index.  Since we have to
+	 * make a search call to find out which record driver to construct,
+	 * we will already have this data available, so we might as well
+	 * just pass it into the constructor.
+	 *
+	 * @param   array|File_MARC_Record||string   $recordData     Data to construct the driver from
+	 * @access  public
+	 */
+	public function __construct($recordData){
+		parent::__construct($recordData);
+	}
+
 	protected $itemsFromIndex;
 	public function setItemsFromIndex($itemsFromIndex, $realTimeStatusNeeded){
 		$this->itemsFromIndex = $itemsFromIndex;
@@ -274,7 +288,7 @@ abstract class BaseEContentDriver  extends MarcRecord {
 		//Add a record per source
 		foreach ($sources as $source){
 			foreach ($parentRecords as $relatedRecord){
-				$relatedRecord['source'] = $source;
+				$relatedRecord['eContentSource'] = $source;
 				if ($relatedRecord['available']){
 					$relatedRecord['availableOnline'] = true;
 				}

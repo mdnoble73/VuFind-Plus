@@ -48,9 +48,6 @@ class UInterface extends Smarty
 			$this->assign('google_included_languages', $configArray['Translation']['includedLanguages']);
 		}
 
-		$thisYear = new Date();
-		$this->assign('lastYear', $thisYear->getYear() -1);
-
 		if (isset($_REQUEST['print'])) {
 			$this->assign('print', true);
 		}
@@ -156,7 +153,7 @@ class UInterface extends Smarty
 			$this->assign('debugCss', true);
 		}
 
-// Detect Internet Explorer 8 to include respond.js for responsive css support
+		// Detect Internet Explorer 8 to include respond.js for responsive css support
 		if (isset($_SERVER['HTTP_USER_AGENT'])) {
 			$ie8 = stristr($_SERVER['HTTP_USER_AGENT'], 'msie 8') || stristr($_SERVER['HTTP_USER_AGENT'], 'trident/5'); //trident/5 should catch ie9 compability modes
 			$this->assign('ie8', $ie8);
@@ -168,6 +165,12 @@ class UInterface extends Smarty
 			$this->assign('session', session_id() . ', remember me ' . $session->remember_me);
 		}else{
 			$this->assign('session', session_id() . ' - not saved');
+		}
+
+		/** @var IndexingProfile $activeRecordProfile */
+		global $activeRecordProfile;
+		if ($activeRecordProfile){
+			$this->assign('activeRecordProfileModule', $activeRecordProfile->recordUrlComponent);
 		}
 	}
 
@@ -264,6 +267,7 @@ class UInterface extends Smarty
 		$location = $locationSingleton->getActiveLocation();
 		$showHoldButton = 1;
 		$showHoldButtonInSearchResults = 1;
+		$showHoldButtonForUnavailableOnly = 0;
 		$this->assign('logoLink', $configArray['Site']['path']);
 		if (isset($library) && $library->useHomeLinkForLogo){
 			if (isset($location) && strlen($location->homeLink) > 0 && $location->homeLink != 'default'){
@@ -287,7 +291,6 @@ class UInterface extends Smarty
 			$this->assign('generalContactLink', $library->generalContactLink);
 			$this->assign('showLoginButton', $library->showLoginButton);
 			$this->assign('showAdvancedSearchbox', $library->showAdvancedSearchbox);
-			$this->assign('enablePurchaseLinks', count($library->getBookStores()) > 0);
 			$this->assign('enablePospectorIntegration', $library->enablePospectorIntegration);
 			$this->assign('showTagging', $library->showTagging);
 			$this->assign('showRatings', $library->showRatings);
@@ -297,10 +300,11 @@ class UInterface extends Smarty
 			$this->assign('showSimilarTitles', $library->showSimilarTitles);
 			$this->assign('showSimilarAuthors', $library->showSimilarAuthors);
 			$this->assign('showItsHere', $library->showItsHere);
+			$this->assign('enableMaterialsBooking', $library->enableMaterialsBooking);
+			$this->assign('showHoldButtonForUnavailableOnly', $library->showHoldButtonForUnavailableOnly);
 		}else{
 			$this->assign('showLoginButton', 1);
 			$this->assign('showAdvancedSearchbox', 1);
-			$this->assign('enablePurchaseLinks', 1);
 			$this->assign('enablePospectorIntegration', isset($configArray['Content']['Prospector']) && $configArray['Content']['Prospector'] == true ? 1 : 0);
 			$this->assign('showTagging', 1);
 			$this->assign('showRatings', 1);
@@ -310,8 +314,10 @@ class UInterface extends Smarty
 			$this->assign('showSimilarTitles', 1);
 			$this->assign('showSimilarAuthors', 1);
 			$this->assign('showItsHere', 0);
+			$this->assign('enableMaterialsBooking', 0);
+			$this->assign('showHoldButtonForUnavailableOnly', 0);
 		}
-		if (isset($library) && $location != null){
+		if (isset($library) && $location != null){ // library and location
 			$this->assign('showFavorites', $location->showFavorites && $library->showFavorites);
 			$this->assign('showComments', $location->showComments && $library->showComments);
 			$this->assign('showTextThis', $location->showTextThis && $library->showTextThis);
@@ -325,7 +331,8 @@ class UInterface extends Smarty
 			$showHoldButtonInSearchResults = (($location->showHoldButton == 1) && ($library->showHoldButtonInSearchResults == 1)) ? 1 : 0;
 			$this->assign('showSimilarTitles', $library->showSimilarTitles);
 			$this->assign('showSimilarAuthors', $library->showSimilarAuthors);
-		}else if ($location != null){
+			$this->assign('showStandardReviews', (($location->showStandardReviews == 1) && ($library->showStandardReviews == 1)) ? 1 : 0);
+		}else if ($location != null){ // location only
 			$this->assign('showFavorites', $location->showFavorites);
 			$this->assign('showComments', $location->showComments);
 			$this->assign('showTextThis', $location->showTextThis);
@@ -335,8 +342,9 @@ class UInterface extends Smarty
 			$this->assign('showQRCode', $location->showQRCode);
 			$this->assign('showStaffView', $location->showStaffView);
 			$this->assign('showGoodReadsReviews', $location->showGoodReadsReviews);
+			$this->assign('showStandardReviews', $location->showStandardReviews);
 			$showHoldButton = $location->showHoldButton;
-		}else if (isset($library)){
+		}else if (isset($library)){ // library only
 			$this->assign('showFavorites', $library->showFavorites);
 			$showHoldButton = $library->showHoldButton;
 			$showHoldButtonInSearchResults = $library->showHoldButtonInSearchResults;
@@ -348,7 +356,8 @@ class UInterface extends Smarty
 			$this->assign('showQRCode', $library->showQRCode);
 			$this->assign('showStaffView', $library->showStaffView);
 			$this->assign('showGoodReadsReviews', $library->showGoodReadsReviews);
-		}else{
+			$this->assign('showStandardReviews', $library->showStandardReviews);
+		}else{ // neither library nor location
 			$this->assign('showFavorites', 1);
 			$this->assign('showComments', 1);
 			$this->assign('showTextThis', 1);
@@ -357,6 +366,7 @@ class UInterface extends Smarty
 			$this->assign('showQRCode', 1);
 			$this->assign('showStaffView', 1);
 			$this->assign('showGoodReadsReviews', 1);
+			$this->assign('showStandardReviews', 1);
 		}
 		if ($showHoldButton == 0){
 			$showHoldButtonInSearchResults = 0;

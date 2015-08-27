@@ -260,7 +260,7 @@ VuFind.GroupedWork = (function(){
 						};
 				$.getJSON(url, params,
 					function(data) {
-						if (data.result) {
+						if (data.success) {
 							if (data.newReview){
 								$("#customerReviewPlaceholder").append(data.reviewHtml);
 							}else{
@@ -271,9 +271,7 @@ VuFind.GroupedWork = (function(){
 							VuFind.showMessage("Error", data.message);
 						}
 					}
-				).fail(function(){
-							VuFind.showMessage('Request Failed', 'There was an error with this AJAX Request.');
-				});
+				).fail(VuFind.ajaxFail);
 			}
 			return false;
 		},

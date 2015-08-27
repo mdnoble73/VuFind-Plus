@@ -41,9 +41,7 @@ class TopFacets implements RecommendationInterface
 	 * @param   object  $searchObject   The SearchObject requesting recommendations.
 	 * @param   string  $params         Additional settings from the searches.ini.
 	 */
-	public function __construct($searchObject, $params)
-	{
-		global $configArray;
+	public function __construct($searchObject, $params) {
 		// Save the basic parameters:
 		/** @var SearchObject_Solr|SearchObject_Base searchObject */
 		$this->searchObject = $searchObject;
@@ -60,7 +58,6 @@ class TopFacets implements RecommendationInterface
 			$searchLibrary = Library::getActiveLibrary();
 			global $locationSingleton;
 			$searchLocation = $locationSingleton->getActiveLocation();
-			$userLocation = Location::getUserHomeLocation();
 			$hasSearchLibraryFacets = ($searchLibrary != null && (count($searchLibrary->facets) > 0));
 			$hasSearchLocationFacets = ($searchLocation != null && (count($searchLocation->facets) > 0));
 			if ($hasSearchLocationFacets){
@@ -75,20 +72,16 @@ class TopFacets implements RecommendationInterface
 				if ($facet->showAboveResults == 1){
 					$facetName = $facet->facetName;
 					if ($solrScope){
-						if ($facet->facetName == 'availability_toggle' && $configArray['Index']['enableDetailedAvailability']){
+						if ($facet->facetName == 'availability_toggle'){
 							$facetName = 'availability_toggle_' . $solrScope;
-						}else if ($facet->facetName == 'format_category' && $configArray['Index']['enableDetailedFormats']){
+						}else if ($facet->facetName == 'format_category'){
 							$facetName = 'format_category_' . $solrScope;
+						}else if ($facet->facetName == 'format'){
+							$facetName = 'format_' . $solrScope;
 						}
 					}
 					$this->facets[$facetName] = $facet->displayName;
 					$this->facetSettings[$facetName] = $facet;
-					if (!$solrScope && $facet->facetName == 'availability_toggle'){
-						//Don't do availability toggles in the global scope.
-						//TODO: Base this off the default scope (i.e. mercury/responsive).
-						unset($this->facets[$facetName]);
-						unset($this->facetSettings[$facetName]);
-					}
 				}
 			}
 		}
@@ -260,4 +253,3 @@ function format_category_comparator($a, $b){
 	$b = $formatCategorySortOrder[$b];
 	if ($a==$b){return 0;}else{return ($a > $b ? 1 : -1);}
 };
-?>

@@ -57,7 +57,7 @@
 					{if $recordType == 'RestrictedEContent'}
 						<div class="row">
 							<div class="result-label col-xs-3">{translate text='Expires'}</div>
-							<div class="col-xs-9 result-value">{$record.duedate|date_format}</div>
+							<div class="col-xs-9 result-value">{$record.dueDate|date_format}</div>
 						</div>
 
 						<div class="row">

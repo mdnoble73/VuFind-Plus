@@ -39,8 +39,8 @@
 #####################
 # Daily full update #
 #####################
-# Set the start for 11:55
-55 23 * * * cd /usr/local/vufind-plus/sites/catalog.library.nashville.org; ./full_update.sh
+# Set the start for 1:10AM
+10 1 * * * cd /usr/local/vufind-plus/sites/catalog.library.nashville.org; ./full_update.sh
 
 ################
 # Pika Cleanup #
@@ -51,12 +51,15 @@
 27 0 * * * cd /tmp; rm -rf epb*
 
 # CRON for VuFind-Plus (book cover cache cleanup etc.)
-# JAMES should ask about cron.jar argument DatabaseCleanup
 00 */3 * * * cd /usr/local/VuFind-Plus/vufind/cron; java -jar cron.jar catalog.library.nashville.org
+20 0 * * * cd /usr/local/VuFind-Plus/vufind/cron; java -jar cron.jar catalog.library.nashville.org DatabaseCleanup
 
 ###################################
 # Data Extract from other systems #
 ###################################
+
+# SCHOOL copy files from ftp drop spot 
+5 * * * * expect /usr/local/vufind-plus/vufind/library_solution_export/SCHOOLDATA.exp
 
 # Library supplied covers
 # JAMES should institute library-supplied covers workflow for Nashville 20150216

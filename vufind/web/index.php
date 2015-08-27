@@ -21,10 +21,14 @@
 /** CORE APPLICATION CONTROLLER **/
 require_once 'bootstrap.php';
 
+global $timer;
+
 //Do additional tasks that are only needed when running the full website
 loadModuleActionId();
+$timer->logTime("Loaded Module and Action Id");
 spl_autoload_register('vufind_autoloader');
 initializeSession();
+$timer->logTime("Initialized session");
 
 if (isset($_REQUEST['test_role'])){
 	if ($_REQUEST['test_role'] == ''){
@@ -36,7 +40,6 @@ if (isset($_REQUEST['test_role'])){
 
 // Start Interface
 $interface = new UInterface();
-global $timer;
 $timer->logTime('Create interface');
 if (isset($configArray['Site']['responsiveLogo'])){
 	$interface->assign('responsiveLogo', $configArray['Site']['responsiveLogo']);
@@ -56,12 +59,14 @@ global $locationSingleton;
 getGitBranch();
 
 $interface->loadDisplayOptions();
+$timer->logTime('Loaded display options within interface');
 
 require_once ROOT_DIR . '/sys/Analytics.php';
 //Define tracking to be done
 global $analytics;
 global $active_ip;
 $analytics = new Analytics($active_ip, $startTime);
+$timer->logTime('Setup Analytics');
 
 $googleAnalyticsId = isset($configArray['Analytics']['googleAnalyticsId']) ? $configArray['Analytics']['googleAnalyticsId'] : false;
 $interface->assign('googleAnalyticsId', $googleAnalyticsId);
@@ -98,27 +103,6 @@ $interface->assign('productionServer', $productionServer);
 
 $location = $locationSingleton->getActiveLocation();
 
-if (isset($library)){
-
-	if ($location != null){
-		$interface->assign('showStandardReviews', (($location->showStandardReviews == 1) && ($library->showStandardReviews == 1)) ? 1 : 0);
-		$interface->assign('showHoldButton', (($location->showHoldButton == 1) && ($library->showHoldButton == 1)) ? 1 : 0);
-	}else{
-		$interface->assign('showStandardReviews', $library->showStandardReviews);
-		$interface->assign('showHoldButton', $library->showHoldButton);
-	}
-}else{
-
-	if ($location != null){
-		$interface->assign('showStandardReviews', $location->showStandardReviews);
-		$interface->assign('showHoldButton', $location->showHoldButton);
-	}else{
-		$interface->assign('showStandardReviews', 1);
-		$interface->assign('showHoldButton', 1);
-	}
-}
-$timer->logTime('Interface checks for library and location');
-
 // Determine Module and Action
 $module = (isset($_GET['module'])) ? $_GET['module'] : null;
 $module = preg_replace('/[^\w]/', '', $module);
@@ -139,7 +123,6 @@ $interface->assign('action', $action);
 global $solrScope;
 global $scopeType;
 $interface->assign('solrScope', "$solrScope - $scopeType");
-$interface->assign('millenniumScope', $millenniumScope);
 
 //Set that the interface is a single column by default
 $interface->assign('page_body_style', 'one_column');
@@ -222,15 +205,10 @@ if ($translator == false || isset($_REQUEST['reloadTranslator'])){
 }
 $interface->setLanguage($language);
 
-/** @var User */
-global $user;
-$user = UserAccount::isLoggedIn();
-$timer->logTime('Check if user is logged in');
-
 $deviceName = get_device_name();
 $interface->assign('deviceName', $deviceName);
 
-//Look for spammy searches
+//Look for spammy searches and kill them
 if (isset($_REQUEST['lookfor'])){
 	$searchTerm = $_REQUEST['lookfor'];
 	if (preg_match('/http:|mailto:|https:/i', $searchTerm)){
@@ -245,39 +223,34 @@ if (isset($_REQUEST['lookfor'])){
 	}
 }
 
-if (!$analytics->isTrackingDisabled()){
-	$analytics->setModule($module);
-	$analytics->setAction($action);
-	$analytics->setObjectId(isset($_REQUEST['id']) ? $_REQUEST['id'] : null);
-	$analytics->setMethod(isset($_REQUEST['method']) ? $_REQUEST['method'] : null);
-	$analytics->setLanguage($interface->getLanguage());
-	$analytics->setTheme($interface->getPrimaryTheme());
-	$analytics->setMobile($interface->isMobile() ? 1 : 0);
-	$analytics->setDevice(get_device_name());
-	$analytics->setPhysicalLocation($physicalLocation);
-	if ($user){
-		$analytics->setPatronType($user->patronType);
-		$analytics->setHomeLocationId($user->homeLocationId);
-	}else{
-		$analytics->setPatronType('logged out');
-		$analytics->setHomeLocationId(-1);
-	}
-}
+//Check to see if the user is already logged in
+/** @var User $user */
+global $user;
+$user = UserAccount::isLoggedIn();
+$timer->logTime('Check if user is logged in');
 
 // Process Authentication, must be done here so we can redirect based on user information
 // immediately after logging in.
 $interface->assign('loggedIn', $user == false ? 'false' : 'true');
 if ($user) {
+	//The user is logged in
 	$interface->assign('user', $user);
 	//Create a cookie for the user's home branch so we can sort holdings even if they logout.
 	//Cookie expires in 1 week.
 	setcookie('home_location', $user->homeLocationId, time()+60*60*24*7, '/');
 } else if (isset($_POST['username']) && isset($_POST['password']) && ($action != 'Account' && $module != 'AJAX')) {
+	//The user is trying to log in
 	$user = UserAccount::login();
+	$timer->logTime('Login the user');
 	if (PEAR_Singleton::isError($user)) {
 		require_once ROOT_DIR . '/services/MyAccount/Login.php';
 		$launchAction = new MyAccount_Login();
 		$launchAction->launch($user->getMessage());
+		exit();
+	}elseif(!$user){
+		require_once ROOT_DIR . '/services/MyAccount/Login.php';
+		$launchAction = new MyAccount_Login();
+		$launchAction->launch("Unknown error logging in");
 		exit();
 	}
 	$interface->assign('user', $user);
@@ -321,16 +294,39 @@ $timer->logTime('User authentication');
 //Load user data for the user as long as we aren't in the act of logging out.
 if ($user && (!isset($_REQUEST['action']) || $_REQUEST['action'] != 'Logout')){
 	loadUserData();
+	$timer->logTime('Load user data');
 
 	$interface->assign('pType', $user->patronType);
 	$homeLibrary = Library::getLibraryForLocation($user->homeLocationId);
 	if (isset($homeLibrary)){
 		$interface->assign('homeLibrary', $homeLibrary->displayName);
 	}
+	$timer->logTime('Load patron pType');
 }else{
 	$interface->assign('pType', 'logged out');
 	$interface->assign('homeLibrary', 'n/a');
 }
+
+//Setup analytics
+if (!$analytics->isTrackingDisabled()){
+	$analytics->setModule($module);
+	$analytics->setAction($action);
+	$analytics->setObjectId(isset($_REQUEST['id']) ? $_REQUEST['id'] : null);
+	$analytics->setMethod(isset($_REQUEST['method']) ? $_REQUEST['method'] : null);
+	$analytics->setLanguage($interface->getLanguage());
+	$analytics->setTheme($interface->getPrimaryTheme());
+	$analytics->setMobile($interface->isMobile() ? 1 : 0);
+	$analytics->setDevice(get_device_name());
+	$analytics->setPhysicalLocation($physicalLocation);
+	if ($user){
+		$analytics->setPatronType($user->patronType);
+		$analytics->setHomeLocationId($user->homeLocationId);
+	}else{
+		$analytics->setPatronType('logged out');
+		$analytics->setHomeLocationId(-1);
+	}
+}
+$timer->logTime('Setup Analytics');
 
 //Find a reasonable default location to go to
 if ($module == null && $action == null){
@@ -342,12 +338,11 @@ if ($module == null && $action == null){
 }
 //Override MyAccount Home as needed
 if ($module == 'MyAccount' && $action == 'Home' && $user){
-	$profile = $interface->getVariable('profile');
-	if ($profile['numCheckedOutTotal'] > 0){
+	if ($user->getNumCheckedOutTotal() > 0){
 		$action ='CheckedOut';
 		header('Location:/MyAccount/CheckedOut');
 		exit();
-	}elseif ($profile['numHoldsTotal'] > 0){
+	}elseif ($user->getNumHoldsTotal() > 0){
 		header('Location:/MyAccount/Holds');
 		exit();
 	}
@@ -477,11 +472,8 @@ if (!is_null($ipLocation) && $ipLocation != false && !$configArray['Catalog']['o
 		$interface->assign('includeAutoLogoutCode', false);
 	}else{
 		$includeAutoLogoutCode = true;
-		//Get the PType for the user
-		/** @var MillenniumDriver|CatalogConnection $catalog */
-		$catalog = CatalogFactory::getCatalogConnectionInstance();
-		if ($user && $catalog->checkFunction('isUserStaff')){
-			$userIsStaff = $catalog->isUserStaff();
+		if ($user){
+			$userIsStaff = $user->isStaff();
 			$interface->assign('userIsStaff', $userIsStaff);
 			if ($userIsStaff){
 				//Check to see if the user has overridden the auto logout code.
@@ -531,6 +523,8 @@ processShards();
 $timer->logTime('Process Shards');
 
 // Call Action
+// Note: ObjectEditor classes typically have the class name of DB_Object with an 's' added to the end.
+//       This distinction prevents the DB_Object from being mistakenly called as the Action class.
 if (is_readable("services/$module/$action.php")) {
 	$actionFile = ROOT_DIR . "/services/$module/$action.php";
 	require_once $actionFile;
@@ -779,6 +773,27 @@ function loadModuleActionId(){
 		$_REQUEST['module'] = $matches[1];
 		$_REQUEST['action'] = $matches[2];
 	}
+
+	global $activeRecordProfile;
+	//Check to see if the module is a profile
+	if (isset($_REQUEST['module'])){
+		/** @var IndexingProfile[] */
+		/** @var IndexingProfile $profile */
+		global $indexingProfiles;
+		foreach ($indexingProfiles as $profile) {
+			if ($profile->recordUrlComponent == $_REQUEST['module']) {
+				$newId = $profile->name . ':' . $_REQUEST['id'];;
+				$_GET['id'] = $newId;
+				$_REQUEST['id'] = $newId;
+				if (!file_exists(ROOT_DIR . '/services/' . $_REQUEST['module'])){
+					$_GET['module'] = 'Record';
+					$_REQUEST['module'] = 'Record';
+				}
+				$activeRecordProfile = $profile;
+				break;
+			}
+		}
+	}
 }
 
 function initializeSession(){
@@ -802,12 +817,11 @@ function initializeSession(){
 function loadUserData(){
 	global $user;
 	global $interface;
+	global $timer;
 
-	//Load profile information
-	$catalog = CatalogFactory::getCatalogConnectionInstance();
-	$profile = $catalog->getMyProfile($user);
-	if (!PEAR_Singleton::isError($profile)) {
-		$interface->assign('profile', $profile);
+	//Assign User information to the interface
+	if (!PEAR_Singleton::isError($user)) {
+		$interface->assign('profile', $user);
 	}
 
 	//Load a list of lists
@@ -829,10 +843,12 @@ function loadUserData(){
 		}
 	}
 	$interface->assign('lists', $lists);
+	$timer->logTime("Load Lists");
 
 	// Get My Tags
 	$tagList = $user->getTags();
 	$interface->assign('tagList', $tagList);
+	$timer->logTime("Load Tags");
 
 	if ($user->hasRole('opacAdmin') || $user->hasRole('libraryAdmin') || $user->hasRole('cataloging')){
 		$variable = new Variable();
@@ -849,5 +865,6 @@ function loadUserData(){
 		}else{
 			$interface->assign('lastPartialReindexFinish', 'Unknown');
 		}
+		$timer->logTime("Load Information about Index status");
 	}
 }

@@ -23,9 +23,6 @@ require_once ROOT_DIR . '/RecordDrivers/ExternalEContentDriver.php';
 class ExternalEContent_Home extends Action{
 	/** @var  SearchObject_Solr $db */
 	private $id;
-	private $isbn;
-	private $issn;
-	private $recordDriver;
 
 	function launch(){
 		global $interface;

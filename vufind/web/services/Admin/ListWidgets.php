@@ -32,7 +32,7 @@ require_once ROOT_DIR . '/sys/DataObjectUtil.php';
  * @author Mark Noble
  *
  */
-class ListWidgets extends ObjectEditor {
+class Admin_ListWidgets extends ObjectEditor {
 	function getObjectType(){
 		return 'ListWidget';
 	}
@@ -71,10 +71,6 @@ class ListWidgets extends ObjectEditor {
 	function getIdKeyColumn(){
 		return 'id';
 	}
-	function showExportAndCompare(){
-		global $user;
-		return $user->hasRole('opacAdmin');
-	}
 	function canAddNew(){
 		global $user;
 		return $user->hasRole('opacAdmin') || $user->hasRole('libraryAdmin') || $user->hasRole('contentEditor');
@@ -90,7 +86,6 @@ class ListWidgets extends ObjectEditor {
 		$interface->assign('canAddNew', $this->canAddNew());
 		$interface->assign('canDelete', $this->canDelete());
 		$interface->assign('showReturnToList', $this->showReturnToList());
-		$interface->assign('showExportAndCompare', $this->showExportAndCompare());
 
 		//Figure out what mode we are in
 		if (isset($_REQUEST['objectAction'])){

@@ -107,6 +107,6 @@
 {literal}
 	$("#startDate").datepicker();
 	$("#endDate").datepicker();
-	$("#requestedMaterials").tablesorter({cssAsc: 'sortAscHeader', cssDesc: 'sortDescHeader', cssHeader: 'unsortedHeader', headers: { 0: { sorter: false}, 65: {sorter : 'date'}, 6: { sorter: false} } });
+	$("#requestedMaterials").tablesorter({cssAsc: 'sortAscHeader', cssDesc: 'sortDescHeader', cssHeader: 'unsortedHeader', widgets:['zebra', 'filter'], headers: { 0: { sorter: false}, 65: {sorter : 'date'}, 6: { sorter: false} } });
 {/literal}
 </script>

@@ -237,10 +237,6 @@ class ListWidget extends DB_DataObject
 				'hideInLists' => true,
 			),
 		);
-		foreach ($structure as $fieldName => $field){
-			$field['propertyOld'] = $field['property'] . 'Old';
-			$structure[$fieldName] = $field;
-		}
 		return $structure;
 	}
 

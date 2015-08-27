@@ -21,10 +21,6 @@ class LocationFacetSetting extends FacetSetting {
 		$structure = parent::getObjectStructure();
 		$structure['locationId'] = array('property'=>'locationId', 'type'=>'enum', 'values'=>$locationList, 'label'=>'Location', 'description'=>'The id of a location');
 
-		foreach ($structure as $fieldName => $field){
-			$field['propertyOld'] = $field['property'] . 'Old';
-			$structure[$fieldName] = $field;
-		}
 		return $structure;
 	}
 

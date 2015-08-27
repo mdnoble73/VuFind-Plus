@@ -102,7 +102,7 @@ class OverDriveDriver3 {
 	}
 
 	//private function _connectToPatronAPI($patronBarcode, $patronPin = 1234, $forceNewConnection = false){
-	private function _connectToPatronAPI($patronBarcode, $patronPin, $forceNewConnection = false){
+	private function _connectToPatronAPI($user, $patronBarcode, $patronPin, $forceNewConnection = false){
 		/** @var Memcache $memCache */
 		global $memCache;
 		$patronTokenData = $memCache->get('overdrive_patron_token_' . $patronBarcode);
@@ -117,7 +117,7 @@ class OverDriveDriver3 {
 				$websiteId = $configArray['OverDrive']['patronWebsiteId'];
 				//$websiteId = 100300;
 
-				$ilsname = $this->getILSName();
+				$ilsname = $this->getILSName($user);
 				if (!$ilsname) {
 					return false;
 				}
@@ -202,11 +202,11 @@ class OverDriveDriver3 {
 		return null;
 	}
 
-	private function getILSName(){
+	private function getILSName($user){
 		if (!isset($this->ILSName)) {
 			// use library setting if it has a value. if no library setting, use the configuration setting.
 			global $library, $configArray;
-			$patronHomeLibrary = Library::getPatronHomeLibrary();
+			$patronHomeLibrary = Library::getPatronHomeLibrary($user);
 			if (!empty($patronHomeLibrary->overdriveAuthenticationILSName)) {
 				$this->ILSName = $patronHomeLibrary->overdriveAuthenticationILSName;
 			}elseif (!empty($library->overdriveAuthenticationILSName)) {
@@ -218,11 +218,15 @@ class OverDriveDriver3 {
 		return $this->ILSName;
 	}
 
-	private function getRequirePin(){
+	/**
+	 * @param $user User
+	 * @return bool
+	 */
+	private function getRequirePin($user){
 		if (!isset($this->requirePin)) {
 			// use library setting if it has a value. if no library setting, use the configuration setting.
 			global $library, $configArray;
-			$patronHomeLibrary = Library::getPatronHomeLibrary();
+			$patronHomeLibrary = Library::getLibraryForLocation($user->homeLocationId);
 			if (!empty($patronHomeLibrary->overdriveRequirePin)) {
 				$this->requirePin = $patronHomeLibrary->overdriveRequirePin;
 			}elseif (isset($library->overdriveRequirePin)) {
@@ -241,14 +245,14 @@ class OverDriveDriver3 {
 
 		$barcodeProperty = $configArray['Catalog']['barcodeProperty'];
 		$userBarcode = $user->$barcodeProperty;
-		if ($this->getRequirePin()){
+		if ($this->getRequirePin($user)){
 			$userPin = ($barcodeProperty == 'cat_username') ? $user->cat_password : $user->cat_username;
 				// determine which column is the pin by using the opposing field to the barcode. (between pin & username)
-			$tokenData = $this->_connectToPatronAPI($userBarcode, $userPin, false);
+			$tokenData = $this->_connectToPatronAPI($user, $userBarcode, $userPin, false);
 			// this worked for flatirons checkout.  plb 1-13-2015
 //			$tokenData = $this->_connectToPatronAPI($user->cat_username, $user->cat_password, false);
 		}else{
-			$tokenData = $this->_connectToPatronAPI($userBarcode, null, false);
+			$tokenData = $this->_connectToPatronAPI($user, $userBarcode, null, false);
 		}
 		if ($tokenData){
 			$ch = curl_init($url);
@@ -307,8 +311,8 @@ class OverDriveDriver3 {
 		return false;
 	}
 
-	private function _callPatronDeleteUrl($patronBarcode, $patronPin, $url){
-		$tokenData = $this->_connectToPatronAPI($patronBarcode, $patronPin, false);
+	private function _callPatronDeleteUrl($user, $patronBarcode, $patronPin, $url){
+		$tokenData = $this->_connectToPatronAPI($user, $patronBarcode, $patronPin, false);
 		//TODO: Remove || true when oauth works
 		if ($tokenData || true){
 			$ch = curl_init($url);
@@ -440,17 +444,13 @@ class OverDriveDriver3 {
 		}
 		global $configArray;
 		if (!$this->isUserValidForOverDrive($user)){
-			return array(
-				'items' => array()
-			);
+			return array();
 		}
 		$url = $configArray['OverDrive']['patronApiUrl'] . '/v1/patrons/me/checkouts';
 		$response = $this->_callPatronUrl($user, $url);
 		if ($response == false){
 			//The user is not authorized to use OverDrive
-			return array(
-					'items' => array()
-			);
+			return array();
 		}
 
 		//print_r($response);
@@ -463,7 +463,7 @@ class OverDriveDriver3 {
 				$bookshelfItem['overDriveId'] = $curTitle->reserveId;
 				$bookshelfItem['expiresOn'] = $curTitle->expires;
 				$expirationDate = new DateTime($curTitle->expires);
-				$bookshelfItem['dueDate'] = $expirationDate->format('M j, Y g:ha');
+				$bookshelfItem['dueDate'] = $expirationDate->getTimestamp();
 				$bookshelfItem['overdriveRead'] = false;
 				if (isset($curTitle->isFormatLockedIn) && $curTitle->isFormatLockedIn == 1){
 					$bookshelfItem['formatSelected'] = true;
@@ -549,6 +549,9 @@ class OverDriveDriver3 {
 					$bookshelfItem['linkUrl'] = $overDriveRecord->getLinkUrl(false);
 					$bookshelfItem['ratingData'] = $overDriveRecord->getRatingData();
 				}
+				$bookshelfItem['user'] = $user->getNameAndLibraryLabel();
+				$bookshelfItem['userId'] = $user->id;
+
 				$key = $bookshelfItem['checkoutSource'] . $bookshelfItem['overDriveId'];
 				$checkedOutTitles[$key] = $bookshelfItem;
 			}
@@ -556,9 +559,7 @@ class OverDriveDriver3 {
 		if (!$forSummary){
 			$this->checkouts[$user->id] = $checkedOutTitles;
 		}
-		return array(
-			'items' => $checkedOutTitles
-		);
+		return $checkedOutTitles;
 	}
 
 	private $holds = array();
@@ -574,8 +575,7 @@ class OverDriveDriver3 {
 			return $this->holds[$user->id];
 		}
 		global $configArray;
-		$holds = array();
-		$holds['holds'] = array(
+		$holds = array(
 			'available' => array(),
 			'unavailable' => array()
 		);
@@ -614,12 +614,14 @@ class OverDriveDriver3 {
 					$hold['format'] = $overDriveRecord->getFormats();
 					$hold['ratingData'] = $overDriveRecord->getRatingData();
 				}
+				$hold['user'] = $user->getNameAndLibraryLabel();
+				$hold['userId'] = $user->id;
 
-				$key = $hold['holdSource'] . $hold['overDriveId'];
+				$key = $hold['holdSource'] . $hold['overDriveId'] . $hold['user'];
 				if ($hold['available']){
-					$holds['holds']['available'][$key] = $hold;
+					$holds['available'][$key] = $hold;
 				}else{
-					$holds['holds']['unavailable'][$key] = $hold;
+					$holds['unavailable'][$key] = $hold;
 				}
 			}
 		}
@@ -660,14 +662,14 @@ class OverDriveDriver3 {
 			//TODO: Optimize so we don't need to load all checkouts and holds
 			$summary = array();
 			$checkedOutItems = $this->getOverDriveCheckedOutItems($user, null, true);
-			$summary['numCheckedOut'] = count($checkedOutItems['items']);
+			$summary['numCheckedOut'] = count($checkedOutItems);
 
 			$holds = $this->getOverDriveHolds($user, null, true);
-			$summary['numAvailableHolds'] = count($holds['holds']['available']);
-			$summary['numUnavailableHolds'] = count($holds['holds']['unavailable']);
+			$summary['numAvailableHolds'] = count($holds['available']);
+			$summary['numUnavailableHolds'] = count($holds['unavailable']);
 
 			$summary['checkedOut'] = $checkedOutItems;
-			$summary['holds'] = $holds['holds'];
+			$summary['holds'] = $holds;
 
 			$timer->logTime("Finished loading titles from overdrive summary");
 			$memCache->set('overdrive_summary_' . $user->id, $summary, 0, $configArray['Caching']['overdrive_summary']);
@@ -692,7 +694,7 @@ class OverDriveDriver3 {
 	 *
 	 * @return array (result, message)
 	 */
-	public function placeOverDriveHold($overDriveId, $format, $user){
+	public function placeOverDriveHold($overDriveId, $user){
 		global $configArray;
 		global $analytics;
 		global $memCache;
@@ -705,12 +707,12 @@ class OverDriveDriver3 {
 		$response = $this->_callPatronUrl($user, $url, $params);
 
 		$holdResult = array();
-		$holdResult['result'] = false;
+		$holdResult['success'] = false;
 		$holdResult['message'] = '';
 
 		//print_r($response);
 		if (isset($response->holdListPosition)){
-			$holdResult['result'] = true;
+			$holdResult['success'] = true;
 			$holdResult['message'] = 'Your hold was placed successfully.  You are number ' . $response->holdListPosition . ' on the wait list.';
 			if ($analytics) $analytics->addEvent('OverDrive', 'Place Hold', 'succeeded');
 		}else{
@@ -718,39 +720,38 @@ class OverDriveDriver3 {
 			if (isset($response->message)) $holdResult['message'] .= "  {$response->message}";
 			if ($analytics) $analytics->addEvent('OverDrive', 'Place Hold', 'failed');
 		}
-		$this->clearPatronProfile();
+		$user->clearCache();
 		$memCache->delete('overdrive_summary_' . $user->id);
 
 		return $holdResult;
 	}
 
 	/**
-	 * @param User $user
-	 * @param string $overDriveId
-	 * @param string $format
+	 * @param string  $overDriveId
+	 * @param User    $user
 	 * @return array
 	 */
-	public function cancelOverDriveHold($overDriveId, $format, $user){
+	public function cancelOverDriveHold($overDriveId, $user){
 		global $configArray;
 		global $analytics;
 		global $memCache;
 
 		$url = $configArray['OverDrive']['patronApiUrl'] . '/v1/patrons/me/holds/' . $overDriveId;
 		$barcodeProperty = $configArray['Catalog']['barcodeProperty'];
-		$userBarcode = $user->$barcodeProperty;
-		if ($this->getRequirePin()){
+		$userBarcode = $user->getBarcode();
+		if ($this->getRequirePin($user)){
 			$userPin = ($barcodeProperty == 'cat_username') ? $user->cat_password : $user->cat_username;
-			$response = $this->_callPatronDeleteUrl($userBarcode, $userPin, $url);
+			$response = $this->_callPatronDeleteUrl($user, $userBarcode, $userPin, $url);
 		}else{
-			$response = $this->_callPatronDeleteUrl($userBarcode, null, $url);
+			$response = $this->_callPatronDeleteUrl($user, $userBarcode, null, $url);
 		}
 
 
 		$cancelHoldResult = array();
-		$cancelHoldResult['result'] = false;
+		$cancelHoldResult['success'] = false;
 		$cancelHoldResult['message'] = '';
 		if ($response === true){
-			$cancelHoldResult['result'] = true;
+			$cancelHoldResult['success'] = true;
 			$cancelHoldResult['message'] = 'Your hold was cancelled successfully.';
 			if ($analytics) $analytics->addEvent('OverDrive', 'Cancel Hold', 'succeeded');
 		}else{
@@ -759,7 +760,7 @@ class OverDriveDriver3 {
 			if ($analytics) $analytics->addEvent('OverDrive', 'Cancel Hold', 'failed');
 		}
 		$memCache->delete('overdrive_summary_' . $user->id);
-		$this->clearPatronProfile();
+		$user->clearCache();
 		return $cancelHoldResult;
 	}
 
@@ -768,13 +769,11 @@ class OverDriveDriver3 {
 	 * Add an item to the cart in overdrive and then process the cart so it is checked out.
 	 *
 	 * @param string $overDriveId
-	 * @param int $format
-	 * @param int $lendingPeriod  the number of days that the user would like to have the title chacked out. or -1 to use the default
 	 * @param User $user
 	 *
 	 * @return array results (result, message)
 	 */
-	public function checkoutOverDriveItem($overDriveId, $format, $lendingPeriod, $user){
+	public function checkoutOverDriveItem($overDriveId, $user){
 
 		global $configArray;
 		global $analytics;
@@ -784,18 +783,15 @@ class OverDriveDriver3 {
 		$params = array(
 			'reserveId' => $overDriveId,
 		);
-		if ($format){
-			$params['formatType'] = $format;
-		}
 		$response = $this->_callPatronUrl($user, $url, $params);
 
 		$result = array();
-		$result['result'] = false;
+		$result['success'] = false;
 		$result['message'] = '';
 
 		//print_r($response);
 		if (isset($response->expires)){
-			$result['result'] = true;
+			$result['success'] = true;
 			$result['message'] = 'Your title was checked out successfully. You may now download the title from your Account.';
 			if ($analytics) $analytics->addEvent('OverDrive', 'Checkout Item', 'succeeded');
 		}else{
@@ -814,7 +810,7 @@ class OverDriveDriver3 {
 		}
 
 		$memCache->delete('overdrive_summary_' . $user->id);
-		$this->clearPatronProfile();
+		$user->clearCache();
 		return $result;
 	}
 
@@ -835,18 +831,18 @@ class OverDriveDriver3 {
 		$url = $configArray['OverDrive']['patronApiUrl'] . '/v1/patrons/me/checkouts/' . $overDriveId;
 		$barcodeProperty = $configArray['Catalog']['barcodeProperty'];
 		$userBarcode = $user->$barcodeProperty;
-		if ($this->getRequirePin()){
+		if ($this->getRequirePin($user)){
 			$userPin = ($barcodeProperty == 'cat_username') ? $user->cat_password : $user->cat_username;
-			$response = $this->_callPatronDeleteUrl($userBarcode, $userPin, $url);
+			$response = $this->_callPatronDeleteUrl($user, $userBarcode, $userPin, $url);
 		}else{
-			$response = $this->_callPatronDeleteUrl($userBarcode, null, $url);
+			$response = $this->_callPatronDeleteUrl($user, $userBarcode, null, $url);
 		}
 
 		$cancelHoldResult = array();
-		$cancelHoldResult['result'] = false;
+		$cancelHoldResult['success'] = false;
 		$cancelHoldResult['message'] = '';
 		if ($response === true){
-			$cancelHoldResult['result'] = true;
+			$cancelHoldResult['success'] = true;
 			$cancelHoldResult['message'] = 'Your item was returned successfully.';
 			if ($analytics) $analytics->addEvent('OverDrive', 'Return Item', 'succeeded');
 		}else{
@@ -856,7 +852,7 @@ class OverDriveDriver3 {
 		}
 
 		$memCache->delete('overdrive_summary_' . $user->id);
-		$this->clearPatronProfile();
+		$user->clearCache();
 		return $cancelHoldResult;
 	}
 
@@ -875,11 +871,11 @@ class OverDriveDriver3 {
 		//print_r($response);
 
 		$result = array();
-		$result['result'] = false;
+		$result['success'] = false;
 		$result['message'] = '';
 
 		if (isset($response->linkTemplates->downloadLink)){
-			$result['result'] = true;
+			$result['success'] = true;
 			$result['message'] = 'This format was locked in';
 			if ($analytics) $analytics->addEvent('OverDrive', 'Select Download Format', 'succeeded');
 			$downloadLink = $this->getDownloadLink($overDriveId, $formatId, $user);
@@ -894,17 +890,21 @@ class OverDriveDriver3 {
 		return $result;
 	}
 
+	/**
+	 * @param $user  User
+	 * @return bool
+	 */
 	public function isUserValidForOverDrive($user){
 		global $configArray;
 		$barcodeProperty = $configArray['Catalog']['barcodeProperty'];
-		$userBarcode = $user->$barcodeProperty;
-		if ($this->getRequirePin()){
+		$userBarcode = $user->getBarcode();
+		if ($this->getRequirePin($user)){
 			$userPin = ($barcodeProperty == 'cat_username') ? $user->cat_password : $user->cat_username;
 			// determine which column is the pin by using the opposing field to the barcode. (between catalog password & username)
-			$tokenData = $this->_connectToPatronAPI($userBarcode, $userPin, false);
+			$tokenData = $this->_connectToPatronAPI($user, $userBarcode, $userPin, false);
 			// this worked for flatirons checkout.  plb 1-13-2015
 		}else{
-			$tokenData = $this->_connectToPatronAPI($userBarcode, null, false);
+			$tokenData = $this->_connectToPatronAPI($user, $userBarcode, null, false);
 		}
 		return $tokenData !== false;
 	}
@@ -935,11 +935,11 @@ class OverDriveDriver3 {
 		//print_r($response);
 
 		$result = array();
-		$result['result'] = false;
+		$result['success'] = false;
 		$result['message'] = '';
 
 		if (isset($response->links->contentlink)){
-			$result['result'] = true;
+			$result['success'] = true;
 			$result['message'] = 'Created Download Link';
 			$result['downloadUrl'] = $response->links->contentlink->href;
 			if ($analytics) $analytics->addEvent('OverDrive', 'Get Download Link', 'succeeded');
@@ -961,7 +961,7 @@ class OverDriveDriver3 {
 	 * @param   OverDriveRecordDriver  $overDriveRecordDriver   The record id to retrieve the holdings for
 	 * @return  mixed               An associative array with the following keys:
 	 *                              availability (boolean), status, location,
-	 *                              reserve, callnumber, duedate, number,
+	 *                              reserve, callnumber, dueDate, number,
 	 *                              holding summary, holding notes
 	 *                              If an error occurs, return a PEAR_Error
 	 * @access  public
@@ -986,11 +986,7 @@ class OverDriveDriver3 {
 		foreach ($items as $key => $item){
 			$item->links = array();
 			if ($addCheckoutLink){
-				if ($configArray['OverDrive']['interfaceVersion'] == 1){
-					$checkoutLink = "return VuFind.OverDrive.checkoutOverDriveItem('{$overDriveRecordDriver->getUniqueID()}', '{$item->numericId}');";
-				}else{
-					$checkoutLink = "return VuFind.OverDrive.checkoutOverDriveItemOneClick('{$overDriveRecordDriver->getUniqueID()}', '{$item->numericId}');";
-				}
+				$checkoutLink = "return VuFind.OverDrive.checkOutOverDriveTitle('{$overDriveRecordDriver->getUniqueID()}');";
 				$item->links[] = array(
 					'onclick' => $checkoutLink,
 					'text' => 'Check Out',
@@ -1127,10 +1123,4 @@ class OverDriveDriver3 {
 		return $statusSummary;
 	}
 
-	public function clearPatronProfile() {
-		/** @var Memcache $memCache */
-		global $memCache, $user, $serverName;
-		$memCache->delete("patronProfile_{$serverName}_{$user->username}");
-		// TODO: test the functionality of this change
-	}
 }

@@ -504,6 +504,15 @@ function getLibraryLocationUpdates(){
 			),
 		),
 
+		'library_bookings' => array(
+			'title' => 'Enable Materials Booking',
+			'description' => 'Add a library setting to enable Sierra\'s Materials Booking module.',
+			'continueOnError' => true,
+			'sql' => array(
+				"ALTER TABLE `library` ADD `enableMaterialsBooking` TINYINT NOT NULL DEFAULT 0"
+			),
+		),
+
 		'hours_and_locations_control' => array(
 			'title' => 'Hours and Locations Control',
 			'description' => 'Allow additional control over library hours and locations display.',
@@ -770,6 +779,23 @@ function getLibraryLocationUpdates(){
 			),
 		),
 
+		'location_sublocation' => array(
+			'title' => 'Location Sub Location',
+			'description' => 'Add more explicit handling of Sub Location to the location table ',
+			'sql' => array(
+				"ALTER TABLE `location` ADD subLocation varchar(50)",
+			),
+		),
+
+		'location_sublocation_uniqueness' => array(
+			'title' => 'SubLocations Uniqueness',
+			'description' => 'Make combination of location and sublocation unique rather than just location',
+			'continueOnError' => true,
+			'sql' => array(
+				"ALTER TABLE location DROP INDEX `code` , ADD UNIQUE `code` ( `code` , `subLocation` ) ",
+			),
+		),
+
 		'search_sources' => array(
 			'title' => 'Search Sources',
 			'description' => 'Setup Library and Location Search Source Table',
@@ -1015,6 +1041,33 @@ function getLibraryLocationUpdates(){
 			'continueOnError' => true,
 			'sql' => array(
 				"ALTER TABLE `library` ADD COLUMN `externalMaterialsRequestUrl` VARCHAR(255);",
+			),
+		),
+
+		'default_library' => array(
+			'title' => 'Default Library',
+			'description' => 'Setup a default library for use when we do not get a defined subdomain',
+			'continueOnError' => true,
+			'sql' => array(
+				"ALTER TABLE `library` ADD COLUMN `isDefault` TINYINT(1);",
+			),
+		),
+
+		'show_place_hold_on_unavailable' => array(
+			'title' => 'Show place hold button for unavailable records only',
+			'description' => 'Setup showing place hold button for unavailable records only',
+			'continueOnError' => true,
+			'sql' => array(
+				"ALTER TABLE `library` ADD COLUMN `showHoldButtonForUnavailableOnly` TINYINT(1) DEFAULT '0';",
+			),
+		),
+
+		'linked_accounts_switch' => array(
+			'title' => 'Enable Linked Accounts',
+			'description' => 'Library configuration switch to enable users to have linked library accounts.',
+			'continueOnError' => true,
+			'sql' => array(
+				"ALTER TABLE `library` ADD COLUMN `allowLinkedAccounts` TINYINT(1) DEFAULT 1;",
 			),
 		),
 	);

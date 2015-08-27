@@ -32,23 +32,25 @@ class SubBrowseCategories extends DB_DataObject {
 			'weight' => array('property' => 'weight', 'type' => 'numeric', 'label' => 'Weight', 'weight' => 'Defines the order of the sub-categories .  Lower weights are displayed to the left of the screen.', 'required'=> true),
 
 		);
-		// commented this out until it becomes needed (Object Editor Listing functions)
-//		foreach ($structure as $fieldName => $field){
-//			$field['propertyOld'] = $field['property'] . 'Old';
-//			$structure[$fieldName] = $field;
-//		}
 		return $structure;
 	}
 
 	static function listBrowseCategories(){
 		$browseCategoryList = array();
 		require_once ROOT_DIR . '/sys/Browse/BrowseCategory.php';
+//		$browseCategories = new BrowseCategory();
+//		$browseCategories->orderBy('label');
+//		$browseCategories->find();
+//				while($browseCategories->fetch()){
+//			$browseCategoryList[$browseCategories->id] = $browseCategories->label . " ({$browseCategories->textId})";
+//		}
+
 		$browseCategories = new BrowseCategory();
 		$browseCategories->orderBy('label');
-		$browseCategories->find();
-		while($browseCategories->fetch()){
-			$browseCategoryList[$browseCategories->id] = $browseCategories->label . " ({$browseCategories->textId})";
-		}
+		$browseCategories->selectAdd();
+		$browseCategories->selectAdd('id, CONCAT(`label`, " (", `textID`, ")") AS `option`');
+		$browseCategoryList = $browseCategories->fetchAll('id', 'option');
+
 		return $browseCategoryList;
 	}
 

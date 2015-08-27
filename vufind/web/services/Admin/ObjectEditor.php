@@ -36,7 +36,6 @@ abstract class ObjectEditor extends Admin_Admin
 		$interface->assign('canAddNew', $this->canAddNew());
 		$interface->assign('canDelete', $this->canDelete());
 		$interface->assign('showReturnToList', $this->showReturnToList());
-		$interface->assign('showExportAndCompare', $this->showExportAndCompare());
 
 		$interface->assign('objectType', $this->getObjectType());
 		$interface->assign('toolName', $this->getToolName());
@@ -47,16 +46,9 @@ abstract class ObjectEditor extends Admin_Admin
 		$objectAction = isset($_REQUEST['objectAction']) ? $_REQUEST['objectAction'] : null;
 		$customListActions = $this->customListActions();
 		$interface->assign('customListActions', $customListActions);
+		$interface->assign('instructions', $this->getInstructions());
 		if (is_null($objectAction) || $objectAction == 'list'){
 			$this->viewExistingObjects();
-		}elseif ($objectAction == 'export'){
-			$this->exportObjectsToFile($structure);
-			exit();
-		}elseif ($objectAction == 'import' || $objectAction == 'compare'){
-			$quit = $this->importOrCompareFile($objectAction, $structure);
-			if ($quit){
-				die();
-			}
 		}elseif (($objectAction == 'save' || $objectAction == 'delete') && isset($_REQUEST['id'])){
 			$this->editObject($objectAction, $structure);
 		}else{
@@ -146,6 +138,7 @@ abstract class ObjectEditor extends Admin_Admin
 					$errorDescription = 'Unknown error';
 				}
 				$logger->log('Could not insert new object ' . $ret . ' ' . $errorDescription, PEAR_LOG_DEBUG);
+				$_SESSION['lastError'] = "An error occurred inserting {$this->getObjectType()} <br/>{$errorDescription}";
 				$logger->log(mysql_error(), PEAR_LOG_DEBUG);
 				return false;
 			}
@@ -215,171 +208,7 @@ abstract class ObjectEditor extends Admin_Admin
 		$interface->setTemplate('../Admin/objectEditor.tpl');
 	}
 
-	function exportObjectsToFile($structure){
-		//Load all of the rows in the table
-		$objects = $this->getAllObjects();
-
-		$curDate = date('Y-m-d-H-i');
-
-		//Output to the browser.
-		header('Expires: 0');
-		header('Cache-control: private');
-		header('Cache-Control: must-revalidate, post-check=0, pre-check=0');
-		header('Content-Description: File Transfer');
-		header('Content-Type: text/csv');
-		header("Content-disposition: attachment; filename=\"{$_SERVER['SERVER_NAME']}_{$this->getObjectType()}_$curDate.csv\"");
-
-		//Output system and date
-		$curRow = array(
-          'Export Of:',
-		$this->getObjectType(),
-          'Export From:',
-		$_SERVER['SERVER_NAME'],
-          'On:',
-		$curDate
-		);
-		echo(implode(',',$curRow) . "\n");
-
-		//Output column headers
-		$curRow = array();
-		$objectIdColumn = $this->getIdKeyColumn();
-		$curRow[] = '"' . $objectIdColumn . '"';
-		foreach($structure as $property){
-			$curRow[] = '"' . $property['property'] . '"';
-		}
-		echo(implode(',',$curRow) . "\n");
-		//Output each row
-		foreach ($objects as $object){
-			$curRow = array();
-			$curRow[] = '"' . $object->$objectIdColumn . '"';
-			foreach($structure as $property){
-				$propertyName = $property['property'];
-				$curRow[] = '"' . $object->$propertyName . '"';
-			}
-			echo( implode(',',$curRow) . "\n");
-		}
-	}
-
-	/**
-	 * Import objects from a file or compare the existing information in a file
-	 * to the objects currently in the system.
-	 */
-	function importOrCompareFile($objectAction, $structure){
-		global $interface;
-		//Import the information from the file
-		if ($_FILES['uploadedfile']['error'] > 0){
-			echo "Error uploading file " . $_FILES['uploadedfile']['error'];
-			die();
-		}else{
-			//Open the file and begin processing it.
-			$filepath = $_FILES['uploadedfile']['tmp_name'];
-			$handle = fopen($filepath, "r");
-			$row = 1;
-			$columnHeaders = null;
-			$importedData = array();
-			$objectType = $this->getObjectType();
-			$primaryKey = $this->getPrimaryKeyColumn();
-			$objectIdColumn = $this->getIdKeyColumn();
-			$existingObjects = $this->getAllObjects();
-
-			while (($data = fgetcsv($handle, 1000, ",", '"')) != FALSE){
-				if ($row == 1){
-					//System row
-					if (count($data) < 6){
-						echo "This file does not appear to have been created from VuFind.";
-						die();
-					}
-					if ($data[1] != $this->getObjectType()){
-						echo "This file was saved from a different object type.";
-						die();
-					}
-				}else if ($row == 2){
-					//Column Headers
-					$columnHeaders = $data;
-				}else{
-					if (count($data) != count($columnHeaders)){
-						echo "Invalid file, row $row did not have the same number of columns as the header.";
-						die();
-					}
-					//Data row
-					/** @var DB_DataObject $object */
-					$object = new $objectType;
-					$columnNumber = 0;
-					foreach ($data as $cell){
-						$columnName = $columnHeaders[$columnNumber];
-						$object->$columnName = trim($cell);
-						$columnNumber++;
-					}
-
-					//Check to see if the object is new or not
-					$primaryKeyValue = $object->$primaryKey;
-					$existingObject = $this->getExistingObjectByPrimaryKey($objectType, $primaryKeyValue);
-					if (is_null($existingObject)){
-						if ($objectAction == 'import'){
-							$object->insert();
-						}else{
-							//Mark the record as being new.
-							$object->class='objectInserted';
-						}
-					}else{
-						if ($objectAction == 'import'){
-							//set the id
-							//Update the record
-							$object->update();
-						}else{
-							//Compare the record
-							$updated = false;
-							foreach ($structure as $property){
-								$propertyName = $property['property'];
-								$oldPropertyName = $property['propertyOld'];
-								$oldValue = $existingObject->$propertyName;
-								$newValue = $object->$propertyName;
-								if ($newValue != $oldValue){
-									$updated = true;
-									$object->$oldPropertyName = $oldValue;
-								}
-							}
-							if ($updated){
-								$object->class='objectUpdated';
-							}
-						}
-					}
-					//Add to the import list
-					$objectId = $object->$objectIdColumn;
-					$importedData[$objectId] = $object;
-				}
-
-				$row++;
-			}
-
-			//Check for any deleted objects.
-			/** @var DB_DataObject $existingObject */
-			foreach ($existingObjects as $key => $existingObject){
-				if (!array_key_exists($key, $importedData)){
-					if ($objectAction == 'import'){
-						$existingObject->delete();
-					}else{
-						$existingObject->class = 'objectDeleted';
-						$importedData[$key] = $existingObject;
-					}
-				}
-			}
-
-			if ($objectAction == 'import'){
-				global $configArray;
-				header("Location: {$configArray['Site']['path']}/Admin/{$this->getToolName()}");
-				return true;
-			}else{
-				//Show the grid with the comparison results
-				$interface->assign('dataList', $importedData);
-				$interface->setTemplate('propertiesList.tpl');
-				return false;
-			}
-		}
-	}
-
 	function editObject($objectAction, $structure){
-		global $interface;
 		$errorOccurred = false;
 		//Save or create a new object
 		$id = $_REQUEST['id'];
@@ -387,7 +216,7 @@ abstract class ObjectEditor extends Admin_Admin
 			//Insert a new record
 			$curObject = $this->insertObject($structure);
 			if ($curObject == false){
-				$_SESSION['lastError'] = "An error occurred inserting new {$this->getObjectType()}";
+				//The session lastError is updated
 				$errorOccurred = true;
 			}
 		}else{
@@ -485,11 +314,11 @@ abstract class ObjectEditor extends Admin_Admin
 		return array();
 	}
 
-	public function showExportAndCompare(){
-		return true;
-	}
-
 	function getAdditionalObjectActions($existingObject){
 		return array();
+	}
+
+	function getInstructions(){
+		return '';
 	}
 }

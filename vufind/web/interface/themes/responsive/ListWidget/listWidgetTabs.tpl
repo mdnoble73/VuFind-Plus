@@ -104,13 +104,13 @@
 
 		$(window).bind('beforeunload', function(e) {ldelim}
 			{if !isset($widget->listDisplayType) || $widget->listDisplayType == 'tabs'}
-				$('#listWidget{$widget->id}').tabs({literal}{ selected: 0 }{/literal});
+			{*//	$('#listWidget{$widget->id}').tabs({literal}{ selected: 0 }{/literal}); {* .tabs function isn't recognized as a function. No longer part of the library? tabs seem to still work. plb 7-8-2015*}
+
 			{else}
 				var availableListsSelector = $("#availableLists{$widget->id}");
 				var availableLists = availableListsSelector[0];
 				var selectedOption = availableLists.options[0];
 				var selectedValue = selectedOption.value;
-				{* $('#availableLists{$widget->id}').val(selectedValue); // this is replaced w/ below. should be the same. plb 12-1-2014 *}
 			availableListsSelector.val(selectedValue)
 			{/if}
 		{rdelim});

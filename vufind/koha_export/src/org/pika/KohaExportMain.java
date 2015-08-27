@@ -117,7 +117,7 @@ public class KohaExportMain {
 
 			PreparedStatement addIlsHoldSummary = vufindConn.prepareStatement("INSERT INTO ils_hold_summary (ilsId, numHolds) VALUES (?, ?)");
 
-			HashMap<String, Long> numHoldsByBib = new HashMap<String, Long>();
+			HashMap<String, Long> numHoldsByBib = new HashMap<>();
 			//Export bib level holds
 			PreparedStatement bibHoldsStmt = kohaConn.prepareStatement("select count(reservenumber) as numHolds, biblionumber from reserves group by biblionumber", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 			ResultSet bibHoldsRS = bibHoldsStmt.executeQuery();
@@ -198,7 +198,7 @@ public class KohaExportMain {
 			getChangedItemsFromKohaStmt.setLong(2, maxRecordsToUpdateDuringExtract);
 
 			ResultSet itemChangeRS = getChangedItemsFromKohaStmt.executeQuery();
-			HashMap<String, ArrayList<ItemChangeInfo>> changedBibs = new HashMap<String, ArrayList<ItemChangeInfo>>();
+			HashMap<String, ArrayList<ItemChangeInfo>> changedBibs = new HashMap<>();
 			while (itemChangeRS.next()){
 				String bibNumber = itemChangeRS.getString("biblionumber");
 				String itemNumber = itemChangeRS.getString("itemnumber");
@@ -208,7 +208,12 @@ public class KohaExportMain {
 				int wthdrawn = itemChangeRS.getInt("wthdrawn");
 				int suppress = itemChangeRS.getInt("suppress");
 				String restricted = itemChangeRS.getString("restricted");
-				String onloan = itemChangeRS.getString("onloan");
+				String onloan = "";
+				try {
+					onloan = itemChangeRS.getString("onloan");
+				}catch (SQLException e){
+					logger.warn("Invalid onloan value for bib " + bibNumber + " item " + itemNumber);
+				}
 
 				ItemChangeInfo changeInfo = new ItemChangeInfo();
 				changeInfo.setItemId(itemNumber);
@@ -224,7 +229,7 @@ public class KohaExportMain {
 				if (changedBibs.containsKey(bibNumber)) {
 					itemChanges = changedBibs.get(bibNumber);
 				}else{
-					itemChanges = new ArrayList<ItemChangeInfo>();
+					itemChanges = new ArrayList<>();
 					changedBibs.put(bibNumber, itemChanges);
 				}
 				itemChanges.add(changeInfo);

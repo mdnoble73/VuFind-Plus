@@ -197,4 +197,28 @@ class ExternalEContentDriver extends BaseEContentDriver{
 
 		return $actions;
 	}
+
+	public function getRecordActions($isAvailable, $isHoldable, $isBookable, $relatedUrls = null){
+		$actions = array();
+		foreach ($relatedUrls as $urlInfo){
+			$title = 'Online ' . $urlInfo['source'];
+			$fileOrUrl = isset($urlInfo['url']) ? $urlInfo['url'] : $urlInfo['file'];
+			if (strlen($fileOrUrl) > 0){
+				if (strlen($fileOrUrl) >= 3){
+					$extension =strtolower(substr($fileOrUrl, strlen($fileOrUrl), 3));
+					if ($extension == 'pdf'){
+						$title = 'Access PDF';
+					}
+				}
+				$actions[] = array(
+					'url' => $fileOrUrl,
+					'title' => $title,
+					'requireLogin' => false,
+				);
+			}
+		}
+
+
+		return $actions;
+	}
 }

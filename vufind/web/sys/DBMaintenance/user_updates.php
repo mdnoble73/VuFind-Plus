@@ -90,5 +90,45 @@ function getUserUpdates(){
 				"ALTER TABLE `user` ADD `noPromptForUserReviews` TINYINT(1) DEFAULT 0",
 			),
 		),
+
+		'user_account' => array(
+			'title' => 'User Account Source',
+			'description' => 'Store the source of a user account so we can accommodate multiple ilses',
+			'sql' => array(
+				"ALTER TABLE `user` ADD `source` VARCHAR(50) DEFAULT 'ils'",
+				"ALTER TABLE `user` DROP INDEX `username`",
+				"ALTER TABLE `user` ADD UNIQUE username(`source`, `username`)",
+			),
+		),
+
+		'user_linking' => array(
+			'title' => 'Setup linking of user accounts',
+			'description' => 'Setup linking of user accounts.  This is a one way link.',
+			'sql' => array(
+				"CREATE TABLE IF NOT EXISTS `user_link` (
+					`id` int(11) NOT NULL AUTO_INCREMENT,
+					`primaryAccountId` int(11),
+					`linkedAccountId` int(11),
+					PRIMARY KEY (`id`),
+					UNIQUE KEY `user_link` (`primaryAccountId`, `linkedAccountId`)
+				) ENGINE=InnoDB  DEFAULT CHARSET=utf8",
+			),
+		),
+
+		'user_link_blocking' => array(
+			'title' => 'Setup blocking controls for the linking of user accounts',
+			'description' => 'Setup for the blocking of linking user accounts. Either an account can not link to any account, or a specific account can link to a specific account.',
+			'sql' => array(
+				"CREATE TABLE `user_link_blocks` (
+					`id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+					`primaryAccountId` INT UNSIGNED NOT NULL,
+					`blockedLinkAccountId` INT UNSIGNED NULL COMMENT 'A specific account primaryAccountId will not be linked to.',
+					`blockLinking` TINYINT UNSIGNED NULL COMMENT 'Indicates primaryAccountId will not be linked to any other accounts.',
+					PRIMARY KEY (`id`))
+					ENGINE = InnoDB
+					DEFAULT CHARACTER SET = utf8;"
+			),
+		),
+
 	);
 }

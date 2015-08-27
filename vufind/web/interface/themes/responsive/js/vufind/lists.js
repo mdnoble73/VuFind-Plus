@@ -50,28 +50,6 @@ VuFind.Lists = (function(){
 			//return false;
 		},
 
-/* Multiple Holds deprecated. plb 12-04-2014
-		requestMarkedAction: function (){
-			var myListFormItem = $('#myListFormItem');
-			myListFormItem.attr('action', Globals.path + "/MyAccount/HoldMultiple");
-			myListFormItem.submit();
-			return false;
-		},
- */
-		/* No References to these functions for now, commented out plb 5-19-2014
-		deletedMarkedListItemsAction: function (){
-			if (confirm("Are you sure you want to delete the selected titles from this list?  This cannot be undone.")){
-				this.submitListForm('deleteMarked');
-				//$('#myListActionItem').val('deleteMarked');
-				//$('#myListFormItem').submit();
-			}
-			return false;
-		},
-		moveMarkedAction: function (){
-			alert("Not implemented yet.");
-			return false;
-		}, */
-
 		deleteAllListItemsAction: function (){
 			if (confirm("Are you sure you want to delete all titles from this list?  This cannot be undone.")){
 				this.submitListForm('deleteAll');

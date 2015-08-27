@@ -59,7 +59,6 @@ class SideFacets implements RecommendationInterface
 			$searchLibrary = Library::getActiveLibrary();
 			global $locationSingleton;
 			$searchLocation = $locationSingleton->getActiveLocation();
-			$userLocation = Location::getUserHomeLocation();
 			$hasSearchLibraryFacets = ($searchLibrary != null && (count($searchLibrary->facets) > 0));
 			$hasSearchLocationFacets = ($searchLocation != null && (count($searchLocation->facets) > 0));
 			if ($hasSearchLocationFacets){
@@ -76,18 +75,26 @@ class SideFacets implements RecommendationInterface
 				$facetName = $facet->facetName;
 				//Adjust facet name for local scoping
 				if ($solrScope){
-					if ($facet->facetName == 'availability_toggle' && $configArray['Index']['enableDetailedAvailability']){
+					if ($facet->facetName == 'availability_toggle'){
 						$facetName = 'availability_toggle_' . $solrScope;
-					}elseif ($facet->facetName == 'format' && $configArray['Index']['enableDetailedFormats']){
+					}elseif ($facet->facetName == 'format'){
 						$facetName = 'format_' . $solrScope;
-					}elseif ($facet->facetName == 'format_category' && $configArray['Index']['enableDetailedFormats']){
+					}elseif ($facet->facetName == 'format_category'){
 						$facetName = 'format_category_' . $solrScope;
-					}elseif ($facet->facetName == 'econtent_source' && $configArray['Index']['enableDetailedEContentSources']){
+					}elseif ($facet->facetName == 'econtent_source'){
 						$facetName = 'econtent_source_' . $solrScope;
-					}elseif ($facet->facetName == 'econtent_protection_type' && $configArray['Index']['enableDetailedEContentSources']){
+					}elseif ($facet->facetName == 'econtent_protection_type'){
 						$facetName = 'econtent_protection_type_' . $solrScope;
 					}elseif ($facet->facetName == 'detailed_location'){
 						$facetName = 'detailed_location_' . $solrScope;
+					}elseif ($facet->facetName == 'owning_location'){
+						$facetName = 'owning_location_' . $solrScope;
+					}elseif ($facet->facetName == 'owning_library'){
+						$facetName = 'owning_library_' . $solrScope;
+					}elseif ($facet->facetName == 'available_at'){
+						$facetName = 'available_at_' . $solrScope;
+					}elseif ($facet->facetName == 'collection' || $facet->facetName == 'collection_group'){
+						$facetName = 'collection_' . $solrScope;
 					}
 				}
 				if (isset($searchLibrary)){

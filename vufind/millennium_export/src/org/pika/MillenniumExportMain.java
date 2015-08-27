@@ -96,7 +96,7 @@ public class MillenniumExportMain{
 		}
 
 		//Load holds into the database from BIB_HOLDS _EXTRACT
-		File holdsExport = new File(exportPath + "/BIB_HOLDS_EXTRACT_VUFIND.TXT");
+		File holdsExport = new File(exportPath + "/BIB_HOLDS_EXTRACT_PIKA.TXT");
 		if (holdsExport.exists()){
 			loadHolds(holdsExport);
 		}
@@ -137,10 +137,13 @@ public class MillenniumExportMain{
 			while (holdsRow != null){
 				String bibId = holdsRow[0];
 				bibId = "." + bibId;
+				//Get the number of holds for this record
+				String[] holdDetails = holdsRow[1].split("\\|");
+
 				if (numHoldsByBib.containsKey(bibId)){
-					numHoldsByBib.put(bibId, 1 + numHoldsByBib.get(bibId));
+					numHoldsByBib.put(bibId, (holdDetails.length) + numHoldsByBib.get(bibId));
 				}else{
-					numHoldsByBib.put(bibId, 1L);
+					numHoldsByBib.put(bibId, (long)holdDetails.length);
 				}
 				holdsRow = holdsReader.readNext();
 			}

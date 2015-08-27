@@ -32,19 +32,10 @@ class Search_Home extends Action {
 		global $user;
 
 		// Include Search Engine Class
-		require_once ROOT_DIR . "/sys/{$configArray['Index']['engine']}.php";
+		require_once ROOT_DIR . '/sys/' . $configArray['Index']['engine'] . '.php';
 		$timer->logTime('Include search engine');
 
 		$interface->assign('showBreadcrumbs', 0);
-
-		if ($user){
-			$catalog = CatalogFactory::getCatalogConnectionInstance();
-			$patron = $catalog->patronLogin($user->cat_username, $user->cat_password);
-			$profile = $catalog->getMyProfile($patron);
-			if (!PEAR_Singleton::isError($profile)) {
-				$interface->assign('profile', $profile);
-			}
-		}
 
 		// Load browse categories
 		require_once ROOT_DIR . '/sys/Browse/BrowseCategory.php';
@@ -136,8 +127,18 @@ class Search_Home extends Action {
 			}
 		} else { // get All BrowseCategories
 			$browseCategory = new BrowseCategory();
+			$browseCategory->orderBy('numTitlesClickedOn');
+			$browseCategory->limit(0, 20);
 			$browseCategory->find();
 			while($browseCategory->fetch()){
+				//Do not use the browse category if it is a subcategory of any other category
+				$subCategoryInfo = new SubBrowseCategories();
+				$subCategoryInfo->subCategoryId = $browseCategory->id;
+				$subCategoryInfo->find();
+				if ($subCategoryInfo->N > 0){
+					continue;
+				}
+
 //				$browseCategory->getSubCategories(); // add subcategory information to the object
 				$browseCategories[] = clone($browseCategory);
 				if ($specifiedCategory && $_REQUEST['browseCategory'] == $browseCategory->textId) {

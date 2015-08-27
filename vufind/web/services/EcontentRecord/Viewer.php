@@ -20,8 +20,6 @@
 
 require_once ROOT_DIR . '/Action.php';
 
-require_once ROOT_DIR . '/services/MyResearch/lib/User.php';
-
 class Viewer extends Action
 {
 	private $user;

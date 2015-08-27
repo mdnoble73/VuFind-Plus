@@ -7,12 +7,15 @@ require_once 'DB/DataObject/Cast.php';
 require_once ROOT_DIR . '/Drivers/marmot_inc/LocationHours.php';
 require_once ROOT_DIR . '/Drivers/marmot_inc/LocationFacetSetting.php';
 require_once ROOT_DIR . '/sys/Browse/LocationBrowseCategory.php';
+require_once ROOT_DIR . '/sys/Indexing/LocationRecordOwned.php';
+require_once ROOT_DIR . '/sys/Indexing/LocationRecordToInclude.php';
 
 class Location extends DB_DataObject
 {
 	public $__table = 'location';   // table name
 	public $locationId;				//int(11)
 	public $code;					//varchar(5)
+	public $subLocation;
 	public $displayName;			//varchar(40)
 	public $showDisplayNameInHeader;
 	public $libraryId;				//int(11)
@@ -60,6 +63,7 @@ class Location extends DB_DataObject
 	public $availabilityToggleLabelLocal;
 	public $availabilityToggleLabelAvailable;
 	public $defaultBrowseMode;
+	public $browseCategoryRatingsMode;
 
 	/** @var  array $data */
 	protected $data;
@@ -120,8 +124,16 @@ class Location extends DB_DataObject
 		unset($locationMoreDetailsStructure['weight']);
 		unset($locationMoreDetailsStructure['locationId']);
 
+		$locationRecordOwnedStructure = LocationRecordOwned::getObjectStructure();
+		unset($locationRecordOwnedStructure['locationId']);
+
+		$locationRecordToIncludeStructure = LocationRecordToInclude::getObjectStructure();
+		unset($locationRecordToIncludeStructure['locationId']);
+		unset($locationRecordToIncludeStructure['weight']);
+
 		$structure = array(
 			array('property'=>'code', 'type'=>'text', 'label'=>'Code', 'description'=>'The code for use when communicating with Millennium'),
+			array('property'=>'subLocation', 'type'=>'text', 'label'=>'Sub Location Code', 'description'=>'The sub location or collection used to identify this '),
 			array('property'=>'displayName', 'type'=>'text', 'label'=>'Display Name', 'description'=>'The full name of the location for display to the user', 'size'=>'40'),
 			array('property'=>'showDisplayNameInHeader', 'type'=>'checkbox', 'label'=>'Show Display Name in Header', 'description'=>'Whether or not the display name should be shown in the header next to the logo', 'hideInLists' => true, 'default'=>false),
 			array('property'=>'libraryId', 'type'=>'enum', 'values'=>$libraryList, 'label'=>'Library', 'description'=>'A link to the library which the location belongs to'),
@@ -264,30 +276,51 @@ class Location extends DB_DataObject
 				'canEdit' => true,
 			),
 
+			'recordsOwned' => array(
+				'property'=>'recordsOwned',
+				'type'=>'oneToMany',
+				'label'=>'Records Owned',
+				'description'=>'Information about what records are owned by the location',
+				'keyThis' => 'locationId',
+				'keyOther' => 'locationId',
+				'subObjectType' => 'LocationRecordOwned',
+				'structure' => $locationRecordOwnedStructure,
+				'sortable' => true,
+				'storeDb' => true,
+				'allowEdit' => false,
+				'canEdit' => false,
+			),
+
+			'recordsToInclude' => array(
+				'property'=>'recordsToInclude',
+				'type'=>'oneToMany',
+				'label'=>'Records To Include',
+				'description'=>'Information about what records to include in this scope',
+				'keyThis' => 'locationId',
+				'keyOther' => 'locationId',
+				'subObjectType' => 'LocationRecordToInclude',
+				'structure' => $locationRecordToIncludeStructure,
+				'sortable' => true,
+				'storeDb' => true,
+				'allowEdit' => false,
+				'canEdit' => false,
+			),
 		);
-		foreach ($structure as $fieldName => $field){
-			$field['propertyOld'] = $field['property'] . 'Old';
-			$structure[$fieldName] = $field;
-		}
 		return $structure;
 	}
 
 	/**
-	 * @param array|User $patronProfile
+	 * @param User $patronProfile
 	 * @param int $selectedBranchId
 	 * @return Location[]
 	 */
-	function getPickupBranches($patronProfile, $selectedBranchId = null) {
+	function getPickupBranches($patronProfile, $selectedBranchId = null, $isLinkedUser = false) {
 		//Get the library for the patron's home branch.
 		/** @var Library $librarySingleton */
 		global $librarySingleton;
 		if ($patronProfile){
-			if (is_object($patronProfile)){
-				$patronProfile = get_object_vars($patronProfile);
-			}
+			$homeLibrary = $librarySingleton->getLibraryForLocation($patronProfile->homeLocationId);
 		}
-		$homeLibrary = $librarySingleton->getLibraryForLocation($patronProfile['homeLocationId']);
-
 
 		if (isset($homeLibrary) && $homeLibrary->inSystemPickupsOnly == 1){
 			if (strlen($homeLibrary->validPickupSystems) > 0){
@@ -315,9 +348,6 @@ class Location extends DB_DataObject
 			$this->whereAdd("validHoldPickupBranch = 1");
 		}
 
-		/*if (isset($selectedBranchId) && is_numeric($selectedBranchId)){
-			$this->whereAdd("locationId = $selectedBranchId", 'OR');
-		}*/
 		$this->orderBy('displayName');
 
 		$this->find();
@@ -336,13 +366,13 @@ class Location extends DB_DataObject
 			if (isset($physicalLocation) && $physicalLocation->locationId == $this->locationId){
 				//If the user is in a branch, those holdings come first.
 				$locationList['1' . $this->displayName] = clone $this;
-			} else if ($this->locationId == $patronProfile['homeLocationId']){
+			} else if (!empty($patronProfile) &&  $this->locationId == $patronProfile->homeLocationId){
 				//Next come the user's home branch if the user is logged in or has the home_branch cookie set.
-				$locationList['2' . $this->displayName] = clone $this;
-			} else if (isset($patronProfile['myLocation1Id']) && $this->locationId == $patronProfile['myLocation1Id']){
+				$locationList['21' . $this->displayName] = clone $this;
+			} else if (isset($patronProfile->myLocation1Id) && $this->locationId == $patronProfile->myLocation1Id){
 				//Next come nearby locations for the user
 				$locationList['3' . $this->displayName] = clone $this;
-			} else if (isset($patronProfile['myLocation2Id']) && $this->locationId == $patronProfile['myLocation2Id']){
+			} else if (isset($patronProfile->myLocation2Id) && $this->locationId == $patronProfile->myLocation2Id){
 				//Next come nearby locations for the user
 				$locationList['4' . $this->displayName] = clone $this;
 			} else if (isset($homeLibrary) && $this->libraryId == $homeLibrary->libraryId){
@@ -355,13 +385,19 @@ class Location extends DB_DataObject
 		}
 		ksort($locationList);
 
-		if (count($locationList) == 0 && (isset($homeLibrary) && $homeLibrary->inSystemPickupsOnly == 1)){
-			$homeLocation = Location::staticGet($patronProfile['homeLocationId']);
+		//MDN 8/14/2015 always add the home location #PK-81
+		//if (count($locationList) == 0 && (isset($homeLibrary) && $homeLibrary->inSystemPickupsOnly == 1)){
+		if ($patronProfile->homeLocationId != 0){
+			$homeLocation = Location::staticGet($patronProfile->homeLocationId);
 			if ($homeLocation->showHoldButton == 1){
 				//We didn't find any locations.  This for schools where we want holds available, but don't want the branch to be a
 				//pickup location anywhere else.
-				$homeLocation->selected = true;
-				$locationList['1' . $homeLocation->displayName] = clone $homeLocation;
+				if (!$isLinkedUser) {
+					$homeLocation->selected = true;
+					$locationList['1' . $homeLocation->displayName] = clone $homeLocation;
+				}else{
+					$locationList['22' . $homeLocation->displayName] = clone $homeLocation;
+				}
 			}
 		}
 
@@ -425,16 +461,20 @@ class Location extends DB_DataObject
 	 *
 	 * @return Location
 	 */
-	static function getUserHomeLocation(){
+	static function getUserHomeLocation($userToLoad = null){
 		if (isset(Location::$userHomeLocation) && Location::$userHomeLocation != 'unset') return Location::$userHomeLocation;
 
 		//default value
 		Location::$userHomeLocation = null;
 
-		global $user;
-		if (isset($user) && $user != false){
+		if ($userToLoad == null){
+			global $user;
+			$userToLoad = $user;
+		}
+
+		if (isset($userToLoad) && $userToLoad != false){
 			$homeLocation = new Location();
-			$homeLocation->locationId = $user->homeLocationId;
+			$homeLocation->locationId = $userToLoad->homeLocationId;
 			if ($homeLocation->find(true)){
 				Location::$userHomeLocation = clone($homeLocation);
 			}
@@ -491,25 +531,14 @@ class Location extends DB_DataObject
 	 * @return Location|null
 	 */
 	static function getSearchLocation($searchSource = null){
-		if (is_null($searchSource)){
+		if ($searchSource == null){
 			global $searchSource;
-			if (strpos($searchSource, 'library') === 0){
-				$trimmedSearchSource = str_replace('library', '', $searchSource);
-				require_once  ROOT_DIR . '/Drivers/marmot_inc/LibrarySearchSource.php';
-				$librarySearchSource = new LibrarySearchSource();
-				$librarySearchSource->id = $trimmedSearchSource;
-				if ($librarySearchSource->find(true)){
-					$searchSource = $librarySearchSource;
-				}
-			}
 		}
 		if (!array_key_exists($searchSource, Location::$searchLocation)){
-			if (is_object($searchSource)){
-				$scopingSetting = $searchSource->catalogScoping;
-			}else{
-				$scopingSetting = $searchSource;
-			}
-			if ($scopingSetting == 'local' || $scopingSetting == 'econtent' || $scopingSetting == 'location'){
+			$scopingSetting = $searchSource;
+			if ($searchSource == null){
+				Location::$searchLocation[$searchSource] = null;
+			}else  if ($scopingSetting == 'local' || $scopingSetting == 'econtent' || $scopingSetting == 'location'){
 				global $locationSingleton;
 				Location::$searchLocation[$searchSource] = $locationSingleton->getActiveLocation();
 			}else if ($scopingSetting == 'marmot' || $scopingSetting == 'unscoped'){
@@ -688,6 +717,29 @@ class Location extends DB_DataObject
 				}
 			}
 			return $this->facets;
+		}elseif ($name == 'recordsOwned'){
+			if (!isset($this->recordsOwned) && $this->locationId){
+				$this->recordsOwned = array();
+				$object = new LocationRecordOwned();
+				$object->locationId = $this->locationId;
+				$object->find();
+				while($object->fetch()){
+					$this->recordsOwned[$object->id] = clone($object);
+				}
+			}
+			return $this->recordsOwned;
+		}elseif ($name == 'recordsToInclude'){
+			if (!isset($this->recordsToInclude) && $this->locationId){
+				$this->recordsToInclude = array();
+				$object = new LocationRecordToInclude();
+				$object->locationId = $this->locationId;
+				$object->orderBy('weight');
+				$object->find();
+				while($object->fetch()){
+					$this->recordsToInclude[$object->id] = clone($object);
+				}
+			}
+			return $this->recordsToInclude;
 		}elseif  ($name == 'browseCategories'){
 			if (!isset($this->browseCategories) && $this->locationId){
 				$this->browseCategories = array();
@@ -715,6 +767,10 @@ class Location extends DB_DataObject
 			$this->facets = $value;
 		}elseif ($name == 'browseCategories'){
 			$this->browseCategories = $value;
+		}elseif ($name == 'recordsOwned'){
+			$this->recordsOwned = $value;
+		}elseif ($name == 'recordsToInclude'){
+			$this->recordsToInclude = $value;
 		}else{
 			$this->data[$name] = $value;
 		}
@@ -732,6 +788,8 @@ class Location extends DB_DataObject
 			$this->saveFacets();
 			$this->saveBrowseCategories();
 			$this->saveMoreDetailsOptions();
+			$this->saveRecordsOwned();
+			$this->saveRecordsToInclude();
 		}
 		return $ret;
 	}
@@ -748,6 +806,8 @@ class Location extends DB_DataObject
 			$this->saveFacets();
 			$this->saveBrowseCategories();
 			$this->saveMoreDetailsOptions();
+			$this->saveRecordsOwned();
+			$this->saveRecordsToInclude();
 		}
 		return $ret;
 	}
@@ -953,6 +1013,59 @@ class Location extends DB_DataObject
 		}
 		return $libraryHoursMessage;
 	}
+
+	public function saveRecordsOwned(){
+		if (isset ($this->recordsOwned) && is_array($this->recordsOwned)){
+			/** @var LibraryRecordOwned $object */
+			foreach ($this->recordsOwned as $object){
+				if (isset($object->deleteOnSave) && $object->deleteOnSave == true){
+					$object->delete();
+				}else{
+					if (isset($object->id) && is_numeric($object->id)){
+						$object->update();
+					}else{
+						$object->locationId = $this->locationId;
+						$object->insert();
+					}
+				}
+			}
+			unset($this->recordsOwned);
+		}
+	}
+
+	public function clearRecordsOwned(){
+		$object = new LocationRecordOwned();
+		$object->locationId = $this->locationId;
+		$object->delete();
+		$this->recordsOwned = array();
+	}
+
+	public function saveRecordsToInclude(){
+		if (isset ($this->recordsToInclude) && is_array($this->recordsToInclude)){
+			/** @var LibraryRecordOwned $object */
+			foreach ($this->recordsToInclude as $object){
+				if (isset($object->deleteOnSave) && $object->deleteOnSave == true){
+					$object->delete();
+				}else{
+					if (isset($object->id) && is_numeric($object->id)){
+						$object->update();
+					}else{
+						$object->locationId = $this->locationId;
+						$object->insert();
+					}
+				}
+			}
+			unset($this->recordsToInclude);
+		}
+	}
+
+	public function clearRecordsToInclude(){
+		$object = new LibraryRecordToInclude();
+		$object->locationId = $this->locationId;
+		$object->delete();
+		$this->recordsToInclude = array();
+	}
+
 	static function getDefaultFacets($locationId = -1){
 		global $configArray;
 		$defaultFacets = array();

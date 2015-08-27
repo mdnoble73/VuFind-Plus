@@ -39,7 +39,7 @@ abstract class SearchObject_Base
 	protected $sort = null;
 	protected $defaultSort = 'relevance';
 	protected $defaultSortByType = array();
-	/** @var string|LibrarySearchSource|LocationSearchSource */
+	/** @var string */
 	protected $searchSource = 'local';
 
 	// Filters
@@ -228,28 +228,38 @@ abstract class SearchObject_Base
 			}
 
 			if ($solrScope){
-				if ($field == 'availability_toggle' && $configArray['Index']['enableDetailedAvailability']){
+				if ($field == 'availability_toggle'){
 					$field = 'availability_toggle_' . $solrScope;
-				}elseif ($field == 'format' && $configArray['Index']['enableDetailedFormats']){
+				}elseif ($field == 'format'){
 					$field = 'format_' . $solrScope;
-				}elseif ($field == 'format_category' && $configArray['Index']['enableDetailedFormats']){
+				}elseif ($field == 'format_category'){
 					$field = 'format_category_' . $solrScope;
-				}elseif ($field == 'econtent_source' && $configArray['Index']['enableDetailedEContentSources']){
+				}elseif ($field == 'econtent_source'){
 					$field = 'econtent_source_' . $solrScope;
-				}elseif ($field == 'econtent_protection_type' && $configArray['Index']['enableDetailedEContentSources']){
+				}elseif ($field == 'econtent_protection_type'){
 					$field = 'econtent_protection_type_' . $solrScope;
+				}elseif ($field == 'collection' || $field == 'collection_group'){
+					$field = 'collection_' . $solrScope;
+				}elseif ($field == 'detailed_location' || $field == 'detailed_location'){
+					$field = 'detailed_location_' . $solrScope;
+				}elseif ($field == 'owning_location' || $field == 'owning_location'){
+					$field = 'owning_location_' . $solrScope;
+				}elseif ($field == 'owning_system' || $field == 'owning_system'){
+					$field = 'owning_system_' . $solrScope;
+				}elseif ($field == 'available_at' || $field == 'available_at'){
+					$field = 'available_at_' . $solrScope;
 				}
 			}
 
 			if (isset($userLocation)){
-				if ($field == 'availability_toggle' && $configArray['Index']['enableDetailedAvailability']){
+				if ($field == 'availability_toggle'){
 					$field = 'availability_toggle_' . $userLocation->code;
 				}
 			}
 			if (isset($searchLocation)){
 				if ($field == 'time_since_added' && $searchLocation->restrictSearchByLocation){
 					$field = 'local_time_since_added_' . $searchLocation->code;
-				}elseif ($field == 'availability_toggle' && $configArray['Index']['enableDetailedAvailability']){
+				}elseif ($field == 'availability_toggle'){
 					$field = 'availability_toggle_' . $searchLocation->code;
 				}
 			}
@@ -848,14 +858,12 @@ abstract class SearchObject_Base
 		// View
 		if ($this->view != null) {
 			$params[] = "view=" . urlencode($this->view);
+		}else if (isset($_REQUEST['view'])){
+			$params[] = "view=" . urlencode(strip_tags($_REQUEST['view']));
 		}
 
 		if (isset($_REQUEST['searchSource'])){
 			$params[] = "searchSource=" . urlencode(strip_tags($_REQUEST['searchSource']));
-		}
-
-		if (isset($_REQUEST['view'])){
-			$params[] = "view=" . urlencode(strip_tags($_REQUEST['view']));
 		}
 
 		// Join all parameters with an escaped ampersand,
@@ -1518,7 +1526,7 @@ abstract class SearchObject_Base
 	 *  search parameters in $_REQUEST.
 	 *
 	 * @access  public
-	 * @var string|LibrarySearchSource|LocationSearchSource $searchSource
+	 * @var string $searchSource
 	 * @return  boolean
 	 */
 	public function init($searchSource = null)

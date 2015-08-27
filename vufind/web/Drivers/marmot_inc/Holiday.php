@@ -37,10 +37,6 @@ class Holiday extends DB_DataObject
 			'date' => array('property'=>'date', 'type'=>'date', 'label'=>'Date', 'description'=>'The date of a holiday.', 'required'=>true),
 			'name' => array('property'=>'name', 'type'=>'text', 'label'=>'Holiday Name', 'description'=>'The name of a holiday')
 		);
-		foreach ($structure as $fieldName => $field){
-			$field['propertyOld'] = $field['property'] . 'Old';
-			$structure[$fieldName] = $field;
-		}
 		return $structure;
 	}
 }
