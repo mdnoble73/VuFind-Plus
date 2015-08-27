@@ -846,7 +846,7 @@ class User extends DB_DataObject
 	}
 
 	function bookMaterial($recordId, $startDate, $startTime, $endDate, $endTime){
-		$result = $this->getCatalogDriver()->bookMaterial($recordId, $startDate, $startTime, $endDate, $endTime);
+		$result = $this->getCatalogDriver()->bookMaterial($this, $recordId, $startDate, $startTime, $endDate, $endTime);
 		if ($result['success']){
 			$this->clearCache();
 		}

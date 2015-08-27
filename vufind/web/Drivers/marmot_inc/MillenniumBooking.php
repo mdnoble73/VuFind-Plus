@@ -28,7 +28,7 @@ class MillenniumBooking {
 		return $shortId;
 	}
 
-	public function bookMaterial($recordId, $startDate, $startTime = null, $endDate = null, $endTime = null){
+	public function bookMaterial($user, $recordId, $startDate, $startTime = null, $endDate = null, $endTime = null){
 		if (empty($recordId) || empty($startDate)) { // at least these two fields should be required input
 			if (!$recordId) return array('success' => false, 'message' => 'Item ID required');
 			else return array('success' => false, 'message' => 'Start Date Required.');
@@ -51,7 +51,6 @@ class MillenniumBooking {
 		}
 
 		$driver = &$this->driver;
-		global $user;
 
 //		$marc = $driver->getItemsFast($recordId, true); // first step to get item location code
 
@@ -141,6 +140,19 @@ class MillenniumBooking {
 			);
 		}
 
+		// Look for Account Error Messages
+		// <h1>There is a problem with your record.  Please see a librarian.</h1>
+		$numMatches = preg_match('/<h1>(?P<error>There is a problem with your record\..\sPlease see a librarian.)<\/h1>/', $curlResponse, $matches);
+		// ?P<name> syntax will creates named matches in the matches array
+		if ($numMatches) {
+			return array(
+				'success' => false,
+				'message' => is_array($matches['error']) ? implode('<br>', $matches['error']) : $matches['error'],
+				'retry' => true, // communicate back that we think the user could adjust their input to get success
+			);
+		}
+
+
 		// Look for Error Messages
 		$numMatches = preg_match('/<span.\s?class="errormessage">(?P<error>.+?)<\/span>/', $curlResponse, $matches);
 		// ?P<name> syntax will creates named matches in the matches array
@@ -154,7 +166,6 @@ class MillenniumBooking {
 
 		// Look for Success Messages
 		$numMatches = preg_match('/<span.\s?class="bookingsConfirmMsg">(?P<success>.+?)<\/span>/', $curlResponse, $matches);
-
 		if ($numMatches) {
 			return array(
 				'success' => true,
@@ -297,7 +308,7 @@ class MillenniumBooking {
 
 		require_once ROOT_DIR . '/RecordDrivers/MarcRecord.php';
 			foreach($bookings as /*$key =>*/ &$booking){
-				disableErrorHandler(); // QUESTION: modeled after getMyHoldings, not sure why needed.
+//				disableErrorHandler(); // TODO: Test by deleting the marc record file.
 				$recordDriver = new MarcRecord($booking['id']);
 				if ($recordDriver->isValid()){
 //					$booking['id'] = $recordDriver->getUniqueID(); //redundant
@@ -316,7 +327,7 @@ class MillenniumBooking {
 					//Load rating information
 //					$booking['ratingData'] = $recordDriver->getRatingData(); // not displaying ratings at this time
 				}
-				enableErrorHandler();
+//				enableErrorHandler();
 			}
 
 		return $bookings;

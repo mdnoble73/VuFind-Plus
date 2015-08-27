@@ -976,10 +976,10 @@ class Millennium extends ScreenScrapingDriver
 		return $millenniumCheckouts->renewItem($patron, $itemId, $itemIndex);
 	}
 
-	public function bookMaterial($recordId, $startDate, $startTime = null, $endDate = null, $endTime = null) {
+	public function bookMaterial($patron, $recordId, $startDate, $startTime = null, $endDate = null, $endTime = null) {
 		require_once ROOT_DIR . '/Drivers/marmot_inc/MillenniumBooking.php';
 		$millenniumBooking = new MillenniumBooking($this);
-		return $millenniumBooking->bookMaterial($recordId, $startDate, $startTime, $endDate, $endTime);
+		return $millenniumBooking->bookMaterial($patron, $recordId, $startDate, $startTime, $endDate, $endTime);
 	}
 
 	/**
