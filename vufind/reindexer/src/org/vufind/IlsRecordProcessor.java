@@ -367,6 +367,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		itemInfo.setIsOrderItem(true);
 		itemInfo.setCallNumber("ON ORDER");
 		itemInfo.setSortableCallNumber("ON ORDER");
+		itemInfo.setDetailedStatus("On Order");
 		//Format and Format Category should be set at the record level, so we don't need to set them here.
 
 
@@ -579,6 +580,11 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 				break;
 		}
 
+		if (available){
+			itemInfo.setDetailedStatus("Available Online");
+		}else{
+			itemInfo.setDetailedStatus("Checked Out");
+		}
 		//Determine which scopes this title belongs to
 		for (Scope curScope : indexer.getScopes()){
 			if (curScope.isItemPartOfScope(profileType, itemLocation, itemSublocation, holdable, false, true)){
@@ -627,7 +633,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		return "Unknown Source";
 	}
 
-	private static SimpleDateFormat dateAddedFormatter = null;
+	protected static SimpleDateFormat dateAddedFormatter = null;
 	protected ItemInfo getPrintIlsItem(GroupedWorkSolr groupedWork, RecordInfo recordInfo, Record record, DataField itemField) {
 		if (dateAddedFormatter == null){
 			dateAddedFormatter = new SimpleDateFormat(dateAddedFormat);
@@ -651,7 +657,6 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		//if the status and location are null, we can assume this is not a valid item
 		if (!isItemValid(itemStatus, itemLocation)) return null;
 
-		itemInfo.setStatusCode(itemStatus);
 		itemInfo.setShelfLocationCode(getItemSubfieldData(locationSubfieldIndicator, itemField));
 		itemInfo.setShelfLocation(getShelfLocationForItem(itemInfo, itemField));
 
@@ -669,6 +674,12 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		itemInfo.setItemIdentifier(getItemSubfieldData(itemRecordNumberSubfieldIndicator, itemField));
 
 		itemInfo.setCollection(translateValue("collection", getItemSubfieldData(collectionSubfield, itemField)));
+
+		//set status towards the end so we can access date added and other things that may need to
+		itemInfo.setStatusCode(itemStatus);
+		if (itemStatus != null) {
+			setDetailedStatus(itemInfo, itemField, itemStatus);
+		}
 
 		if (loadFormatFromItems && formatSubfield != ' '){
 			String format = getItemSubfieldData(formatSubfield, itemField);
@@ -695,13 +706,17 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 
 		for (Scope curScope : indexer.getScopes()) {
 			//Check to see if the record is holdable for this scope
-			Boolean isHoldable = isItemHoldable(itemInfo, curScope);
-			Boolean isBookable = isItemBookable(itemInfo, curScope);
-			if (curScope.isItemPartOfScope(profileType, itemLocation, itemSublocation, isHoldable, false, false)){
+			HoldabilityInformation isHoldable = isItemHoldable(itemInfo, curScope);
+			BookabilityInformation isBookable = isItemBookable(itemInfo, curScope);
+			if (curScope.isItemPartOfScope(profileType, itemLocation, itemSublocation, isHoldable.isHoldable(), false, false)){
 				ScopingInfo scopingInfo = itemInfo.addScope(curScope);
 				scopingInfo.setAvailable(available);
-				scopingInfo.setHoldable(isHoldable);
-				scopingInfo.setBookable(isBookable);
+				scopingInfo.setHoldable(isHoldable.isHoldable());
+				scopingInfo.setHoldablePTypes(isHoldable.getHoldablePTypes().toString());
+				scopingInfo.setBookable(isBookable.isBookable());
+				scopingInfo.setBookablePTypes(isBookable.getBookablePTypes().toString());
+
+				scopingInfo.setInLibraryUseOnly(determineLibraryUseOnly(itemInfo, curScope));
 
 				scopingInfo.setStatus(displayStatus);
 				scopingInfo.setGroupedStatus(groupedDisplayStatus);
@@ -716,6 +731,14 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 
 		recordInfo.addItem(itemInfo);
 		return itemInfo;
+	}
+
+	protected boolean determineLibraryUseOnly(ItemInfo itemInfo, Scope curScope) {
+		return false;
+	}
+
+	protected void setDetailedStatus(ItemInfo itemInfo, DataField itemField, String itemStatus) {
+		itemInfo.setDetailedStatus(translateValue("detailed_status", itemStatus));
 	}
 
 	protected String getDisplayGroupedStatus(ItemInfo itemInfo) {
@@ -830,27 +853,27 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		}
 	}
 
-	protected boolean isItemHoldable(ItemInfo itemInfo, Scope curScope){
+	protected HoldabilityInformation isItemHoldable(ItemInfo itemInfo, Scope curScope){
 		if (nonHoldableITypes != null && itemInfo.getITypeCode() != null && itemInfo.getITypeCode().length() > 0){
 			if (nonHoldableITypes.matcher(itemInfo.getITypeCode()).matches()){
-				return false;
+				return new HoldabilityInformation(false, new HashSet<Long>());
 			}
 		}
 		if (nonHoldableLocations != null && itemInfo.getLocationCode() != null && itemInfo.getLocationCode().length() > 0){
 			if (nonHoldableLocations.matcher(itemInfo.getLocationCode()).matches()){
-				return false;
+				return new HoldabilityInformation(false, new HashSet<Long>());
 			}
 		}
 		if (nonHoldableStatuses != null && itemInfo.getStatusCode() != null && itemInfo.getStatusCode().length() > 0){
 			if (nonHoldableStatuses.matcher(itemInfo.getStatusCode()).matches()){
-				return false;
+				return new HoldabilityInformation(false, new HashSet<Long>());
 			}
 		}
-		return true;
+		return new HoldabilityInformation(true, new HashSet<Long>());
 	}
 
-	protected boolean isItemBookable(ItemInfo itemInfo, Scope curScope) {
-		return false;
+	protected BookabilityInformation isItemBookable(ItemInfo itemInfo, Scope curScope) {
+		return new BookabilityInformation(false, new HashSet<Long>());
 	}
 
 	protected String getShelfLocationForItem(ItemInfo itemInfo, DataField itemField) {

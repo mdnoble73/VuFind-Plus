@@ -179,6 +179,12 @@ public class OverDriveProcessor {
 						//TODO: Check to see if this is a pre-release title.  If not, suppress if the record has 0 copies owned
 						int copiesOwned = availabilityRS.getInt("copiesOwned");
 						itemInfo.setNumCopies(copiesOwned);
+
+						if (available){
+							itemInfo.setDetailedStatus("Available Online");
+						}else{
+							itemInfo.setDetailedStatus("Checked Out");
+						}
 						if (libraryId == -1) {
 							for (Scope scope : indexer.getScopes()) {
 								if (scope.isIncludeOverDriveCollection()) {

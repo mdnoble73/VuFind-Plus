@@ -77,7 +77,18 @@ public class Util {
 			if (crSeparatedString.length() > 0) {
 				crSeparatedString.append(",");
 			}
-			crSeparatedString.append(curValue);
+			crSeparatedString.append(curValue.toString());
+		}
+		return crSeparatedString.toString();
+	}
+
+	public static String getCsvSeparatedStringFromLongs(HashSet<Long> values) {
+		StringBuilder crSeparatedString = new StringBuilder();
+		for (Long curValue : values) {
+			if (crSeparatedString.length() > 0) {
+				crSeparatedString.append(",");
+			}
+			crSeparatedString.append(curValue.toString());
 		}
 		return crSeparatedString.toString();
 	}

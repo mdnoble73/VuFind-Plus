@@ -34,6 +34,7 @@ public class ItemInfo {
 	private String eContentUrl;
 	private String eContentSharing;
 	private String statusCode;
+	private String detailedStatus;
 	private String dueDate;
 	private String collection;
 	private RecordInfo recordInfo;
@@ -59,6 +60,10 @@ public class ItemInfo {
 
 	public void setStatusCode(String statusCode) {
 		this.statusCode = statusCode;
+	}
+
+	public void setDetailedStatus(String detailedStatus) {
+		this.detailedStatus = detailedStatus;
 	}
 
 	public String getLocationCode() {
@@ -188,6 +193,7 @@ public class ItemInfo {
 					.append(Util.getCleanDetailValue(eContentFilename)).append("|")
 					.append(Util.getCleanDetailValue(eContentUrl)).append("|")
 					.append(Util.getCleanDetailValue(subFormat)).append("|")
+					.append(Util.getCleanDetailValue(detailedStatus)).append("|")
 					.toString();
 		}
 		return baseDetails;

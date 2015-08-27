@@ -95,6 +95,8 @@ public class FlatironsRecordProcessor extends IIIRecordProcessor{
 
 					loadEContentFormatInformation(record, relatedRecord, itemInfo);
 
+					itemInfo.setDetailedStatus("Available Online");
+
 					//Determine which scopes this title belongs to
 					for (Scope curScope : indexer.getScopes()){
 						if (curScope.isItemPartOfScope(profileType, eContentLocation, "", false, false, true)){

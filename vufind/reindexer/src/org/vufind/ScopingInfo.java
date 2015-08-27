@@ -19,22 +19,24 @@ public class ScopingInfo {
 	private boolean bookable;
 	private boolean inLibraryUseOnly;
 	private boolean libraryOwned;
+	private String holdablePTypes;
+	private String bookablePTypes;
 
 	public ScopingInfo(Scope scope, ItemInfo item){
 		this.item = item;
 		this.scope = scope;
 	}
 
-	public String getStatus() {
-		return status;
-	}
-
 	public void setStatus(String status) {
 		this.status = status;
 	}
 
-	public String getGroupedStatus() {
-		return groupedStatus;
+	public void setHoldablePTypes(String holdablePTypes) {
+		this.holdablePTypes = holdablePTypes;
+	}
+
+	public void setBookablePTypes(String bookablePTypes) {
+		this.bookablePTypes = bookablePTypes;
 	}
 
 	public void setGroupedStatus(String groupedStatus) {
@@ -47,10 +49,6 @@ public class ScopingInfo {
 
 	public void setAvailable(boolean available) {
 		this.available = available;
-	}
-
-	public boolean isHoldable() {
-		return holdable;
 	}
 
 	public void setHoldable(boolean holdable) {
@@ -69,16 +67,8 @@ public class ScopingInfo {
 		return scope;
 	}
 
-	public boolean isBookable() {
-		return bookable;
-	}
-
 	public void setBookable(boolean bookable) {
 		this.bookable = bookable;
-	}
-
-	public boolean isInLibraryUseOnly() {
-		return inLibraryUseOnly;
 	}
 
 	public void setInLibraryUseOnly(boolean inLibraryUseOnly) {
@@ -105,7 +95,9 @@ public class ScopingInfo {
 				.append(holdable).append("|")
 				.append(bookable).append("|")
 				.append(inLibraryUseOnly).append("|")
-				.append(libraryOwned)
+				.append(libraryOwned).append("|")
+				.append(Util.getCleanDetailValue(holdablePTypes)).append("|")
+				.append(Util.getCleanDetailValue(bookablePTypes)).append("|")
 				.toString()
 				;
 	}
