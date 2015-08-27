@@ -55,7 +55,8 @@ class SierraStatusLoader extends MillenniumStatusLoader{
 	 *
 	 * Includes both physical titles as well as titles on order
 	 *
-	 * @param string            $id     the id of the record
+	 * @param MarcRecord   $recordDriver  the driver for the record
+	 * @param string       $id            the id of the record
 	 * @return array A list of holdings for the record
 	 */
 	public function getStatusFromIndex($recordDriver, $id){
