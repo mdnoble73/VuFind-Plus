@@ -46,7 +46,22 @@ foreach file $files {
 
 	# COPY FILE FROM SFTP DROP SPOT
 	spawn scp -p -i /home/limitless/.ssh/id_rsa $sourceUser:$sourcePath$file $destinationPath
-	# 2015 07 28 James set up SSH key authentication between pika and catalog; password not needed
+
+# requires setting up SSH keys for limitless:
+#	on test or dev, log in as limitless
+#	$ ssh-keygen # if and only if .ssh/id_rsa.pub does not already exist
+#	[accept defaults]
+#	$ cat .ssh/id_rsa.pub
+#	copy public key
+#	on production, log in as limitless
+#	$ nano .ssh/authorized_keys
+#	paste public key
+#	save
+#	$ chmod 700 .ssh
+#	$ chmod 640 authorized_keys
+# 2015 07 28 James set up SSH key authentication between pika and catalog; password not needed
+# 2015 08 27 James set up SSH key authentication between galacto and catalog; password not needed
+
 	#expect "$sourceUser\'s password:"
 	#send "$sourcePassword\r"
 	wait
@@ -61,13 +76,17 @@ foreach file $files {
 	}
 
 	# SCHOOLS: UNZIP
-	spawn unzip -ouB $destinationPath$file -d $destinationPath
-	expect "password:"
+#	spawn unzip -ouB $destinationPath$file -d $destinationPath
+#	expect "password:"
+#	send "$unzipPassword\r"
+#	expect "inflating"
+#	wait
+	spawn 7za e -y -o$destinationPath $destinationPath$file
+	expect "Enter password (will not be echoed) :"
 	send "$unzipPassword\r"
-	expect "inflating"
+	expect "Everything is Ok"
 	wait
 	close
-
 }
 
 exit
