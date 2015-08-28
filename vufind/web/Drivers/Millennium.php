@@ -299,6 +299,7 @@ class Millennium extends ScreenScrapingDriver
 		$iTypeSubfield = $configArray['Reindex']['iTypeSubfield'];
 		$dueDateSubfield = $configArray['Reindex']['dueDateSubfield'];
 		$lastCheckinDateSubfield = $configArray['Reindex']['lastCheckinDateSubfield'];
+		$locationSubfield = $configArray['Reindex']['locationSubfield'];
 
 		foreach ($itemFields as $itemField){
 			//Ignore eContent items
@@ -307,7 +308,7 @@ class Millennium extends ScreenScrapingDriver
 				continue;
 			}
 
-			$locationCode = $itemField->getSubfield('d') != null ? trim($itemField->getSubfield('d')->getData()) : '';
+			$locationCode = $itemField->getSubfield($locationSubfield) != null ? trim($itemField->getSubfield($locationSubfield)->getData()) : '';
 			//Do a quick check of location code so we can remove this quickly when scoping is enabled
 			if ($scopingEnabled && strlen(Millennium::$scopingLocationCode) > 0 && preg_match('/' . Millennium::$scopingLocationCode . '/i', $locationCode)){
 				global $logger;
@@ -1277,8 +1278,9 @@ class Millennium extends ScreenScrapingDriver
 		global $memCache;
 		global $configArray;
 		global $timer;
+		global $serverName;
 		$pTypeString = implode(',', $pTypes);
-		$memcacheKey = "loan_rule_result_{$locationCode}_{$iType}_{$pTypeString}";
+		$memcacheKey = "loan_rule_result_{$serverName}_{$locationCode}_{$iType}_{$pTypeString}";
 		$cachedValue = $memCache->get($memcacheKey);
 		if ($cachedValue !== false && !isset($_REQUEST['reload'])){
 			return $cachedValue == 'true';
@@ -1320,6 +1322,7 @@ class Millennium extends ScreenScrapingDriver
 				}else{
 					//$logger->log("Location incorrect {$loanRuleDeterminer->location} != {$locationCode}", PEAR_LOG_DEBUG);
 				}
+				if ($holdable) break;
 			}
 			$memCache->set($memcacheKey, ($holdable ? 'true' : 'false'), 0 , $configArray['Caching']['loan_rule_result']);
 			$timer->logTime("Finished checking if item is holdable $locationCode, $iType, $pTypeString");

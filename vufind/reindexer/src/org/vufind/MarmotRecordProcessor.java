@@ -73,7 +73,7 @@ public class MarmotRecordProcessor extends IIIRecordProcessor {
 		if (icode2Subfield != null){
 			String icode2 = icode2Subfield.getData().toLowerCase().trim();
 			Subfield locationCodeSubfield = curItem.getSubfield(locationSubfieldIndicator);
-			if (locationCodeSubfield != null)                                                 {
+			if (locationCodeSubfield != null) {
 				String locationCode = locationCodeSubfield.getData().trim();
 
 				suppressed = icode2.equals("n") || icode2.equals("x") || locationCode.equals("zzzz");
