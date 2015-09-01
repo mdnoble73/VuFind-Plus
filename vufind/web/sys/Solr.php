@@ -2319,8 +2319,14 @@ class Solr implements IndexEngine {
 		//Remove any exclamation marks that Solr will handle incorrectly.
 		$input = str_replace('!', ' ', $input);
 
+		//Remove any semi-colons that Solr will handle incorrectly.
+		$input = str_replace(';', ' ', $input);
+
 		//Remove any slashes that Solr will handle incorrectly.
 		$input = str_replace('\\', ' ', $input);
+
+		//Look for any colons that are not identifying fields
+		
 
 		return $input;
 	}
