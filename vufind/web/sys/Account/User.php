@@ -1053,7 +1053,7 @@ class User extends DB_DataObject
 			if ($this->getLinkedUsers() != null) {
 				/** @var User $user */
 				foreach ($this->getLinkedUsers() as $user) {
-					$relatedPTypes = array_merge($relatedPTypes, $user->getRelatedPTypes());
+					$relatedPTypes = array_merge($relatedPTypes, $user->getRelatedPTypes(false));
 				}
 			}
 		}
