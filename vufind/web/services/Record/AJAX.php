@@ -456,7 +456,7 @@ class Record_AJAX extends Action {
 						$interface->assign('message', $return['message']);
 						$interface->assign('id', $shortId);
 						$interface->assign('patronId', $patron->id);
-						$interface->assign('autologout', $_REQUEST['autologout']); // carry user selection to Item Hold Form
+						if (!empty($_REQUEST['autologout'])) $interface->assign('autologout', $_REQUEST['autologout']); // carry user selection to Item Hold Form
 
 						global $library;
 						$interface->assign('showDetailedHoldNoticeInformation', $library->showDetailedHoldNoticeInformation);
