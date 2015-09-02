@@ -837,6 +837,12 @@ abstract class HorizonAPI extends Horizon{
 		}
 		global $configArray;
 		global $library;
+
+		$fullId = $_REQUEST['id'];
+		$recordInfo = explode(':', $fullId);
+		$recordType = $recordInfo[0];
+		$ilsId = $recordInfo[1];
+
 		//Get location information so we can put things into sections
 		global $locationSingleton; /** @var $locationSingleton Location */
 		$physicalLocation = $locationSingleton->getPhysicalLocation();
@@ -899,7 +905,7 @@ abstract class HorizonAPI extends Horizon{
 		}
 
 		//Get a list of items from Horizon
-		$lookupTitleInfoUrl = $configArray['Catalog']['webServiceUrl'] . '/standard/lookupTitleInfo?clientID=' . $configArray['Catalog']['clientId'] . '&titleKey=' . $id . '&includeItemInfo=true&includeHoldCount=true' ;
+		$lookupTitleInfoUrl = $configArray['Catalog']['webServiceUrl'] . '/standard/lookupTitleInfo?clientID=' . $configArray['Catalog']['clientId'] . '&titleKey=' . $ilsId . '&includeItemInfo=true&includeHoldCount=true' ;
 
 		$lookupTitleInfoResponse = $this->getWebServiceResponse($lookupTitleInfoUrl);
 		$holdings = array();
