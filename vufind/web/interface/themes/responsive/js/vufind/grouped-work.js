@@ -303,20 +303,23 @@ VuFind.GroupedWork = (function(){
 
 		saveToList: function(id){
 			if (Globals.loggedIn){
-				var listId = $('#addToList-list').val();
-				var notes = $('#addToList-notes').val();
-
-				var url = Globals.path + "/GroupedWork/" + encodeURIComponent(id) + "/AJAX";
-				var params = "method=saveToList&notes=" + encodeURIComponent(notes) + "&listId=" + encodeURIComponent(listId);
-				$.getJSON(url + '?' + params,
+				var listId = $('#addToList-list').val(),
+						notes  = $('#addToList-notes').val(),
+						url    = Globals.path + "/GroupedWork/" + encodeURIComponent(id) + "/AJAX",
+						params = {
+							'method':'saveToList'
+							,notes:notes
+							,listId:listId
+						};
+				$.getJSON(url, params,
 						function(data) {
-							if (data.result) {
+							if (data.success) {
 								VuFind.showMessage("Added Successfully", data.message, 2000); // auto-close after 2 seconds.
 							} else {
 								VuFind.showMessage("Error", data.message);
 							}
 						}
-				);
+				).fail(VuFind.ajaxFail);
 			}
 			return false;
 		},
@@ -417,13 +420,11 @@ VuFind.GroupedWork = (function(){
 
 		showSaveToListForm: function (trigger, id){
 			if (Globals.loggedIn){
-				VuFind.showMessage('Loading', 'Loading, please wait');
+				VuFind.loadingMessage();
 				var url = Globals.path + "/GroupedWork/" + id + "/AJAX?method=getSaveToListForm";
 				$.getJSON(url, function(data){
 					VuFind.showMessageWithButtons(data.title, data.modalBody, data.modalButtons);
-				}).fail(function(){
-					VuFind.showMessage('Request Failed', 'There was an error with this AJAX Request.');
-				});
+				}).fail(VuFind.ajaxFail);
 			}else{
 				trigger = $(trigger);
 				VuFind.Account.ajaxLogin(trigger, function (){
