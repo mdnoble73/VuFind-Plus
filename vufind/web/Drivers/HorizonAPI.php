@@ -654,7 +654,7 @@ abstract class HorizonAPI extends Horizon{
 		}
 	}
 
-	public function getMyCheckouts( $page = 1, $recordsPerPage = -1, $sortOption = 'dueDate') {
+	public function getMyCheckouts($page = 1, $recordsPerPage = -1, $sortOption = 'dueDate') {
 		global $configArray;
 
 		global $user;
@@ -669,7 +669,7 @@ abstract class HorizonAPI extends Horizon{
 			//Log the user in
 			list($userValid, $sessionToken) = $this->loginViaWebService($user->cat_username, $user->cat_password);
 			if (!$userValid){
-				echo("No session id found for user");
+//				echo("No session id found for user");
 				return $checkedOutTitles;
 			}
 		}
@@ -837,6 +837,12 @@ abstract class HorizonAPI extends Horizon{
 		}
 		global $configArray;
 		global $library;
+
+		$fullId = $_REQUEST['id'];
+		$recordInfo = explode(':', $fullId);
+		$recordType = $recordInfo[0];
+		$ilsId = $recordInfo[1];
+
 		//Get location information so we can put things into sections
 		global $locationSingleton; /** @var $locationSingleton Location */
 		$physicalLocation = $locationSingleton->getPhysicalLocation();
@@ -899,7 +905,7 @@ abstract class HorizonAPI extends Horizon{
 		}
 
 		//Get a list of items from Horizon
-		$lookupTitleInfoUrl = $configArray['Catalog']['webServiceUrl'] . '/standard/lookupTitleInfo?clientID=' . $configArray['Catalog']['clientId'] . '&titleKey=' . $id . '&includeItemInfo=true&includeHoldCount=true' ;
+		$lookupTitleInfoUrl = $configArray['Catalog']['webServiceUrl'] . '/standard/lookupTitleInfo?clientID=' . $configArray['Catalog']['clientId'] . '&titleKey=' . $ilsId . '&includeItemInfo=true&includeHoldCount=true' ;
 
 		$lookupTitleInfoResponse = $this->getWebServiceResponse($lookupTitleInfoUrl);
 		$holdings = array();

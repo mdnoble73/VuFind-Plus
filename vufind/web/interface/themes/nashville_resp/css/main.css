@@ -8876,10 +8876,8 @@ h6,
 }
 #header-logo {
   margin: 10px 10px 0 0;
-  background-image: url(http://galacto.library.nashville.org/interface/themes/nashville_resp/images/logo_responsive.png);
-  background-repeat: no-repeat;
-  width: 90px;
-  height: 75px;
+  position: absolute;
+  top: -10px;
 }
 @media (max-width: 767px) {
   #header-logo {

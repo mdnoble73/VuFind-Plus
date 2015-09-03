@@ -226,7 +226,7 @@ class Record_AJAX extends Action {
 	function getPlaceHoldForm(){
 		global $interface;
 		global $user;
-		if ($user){
+		if ($user) {
 			$id = $_REQUEST['id'];
 			$recordSource = $_REQUEST['recordSource'];
 			$interface->assign('recordSource', $recordSource);
@@ -456,12 +456,13 @@ class Record_AJAX extends Action {
 						$interface->assign('message', $return['message']);
 						$interface->assign('id', $shortId);
 						$interface->assign('patronId', $patron->id);
+						if (!empty($_REQUEST['autologout'])) $interface->assign('autologout', $_REQUEST['autologout']); // carry user selection to Item Hold Form
 
 						global $library;
 						$interface->assign('showDetailedHoldNoticeInformation', $library->showDetailedHoldNoticeInformation);
 						$interface->assign('treatPrintNoticesAsPhoneNotices', $library->treatPrintNoticesAsPhoneNotices);
 
-						//Need to place item level holds.
+						// Need to place item level holds.
 						$results = array(
 							'success' => true,
 							'needsItemLevelHold' => true,
@@ -503,7 +504,8 @@ class Record_AJAX extends Action {
 				);
 			}
 
-			if (isset($_REQUEST['autologout'])){
+			if (isset($_REQUEST['autologout']) && !(isset($results['needsItemLevelHold']) && $results['needsItemLevelHold'])) {
+				// Only go through the auto-logout when the holds process is completed. Item level holds require another round of interaction with the user.
 				UserAccount::softLogout();
 				$results['autologout'] = true;
 			}

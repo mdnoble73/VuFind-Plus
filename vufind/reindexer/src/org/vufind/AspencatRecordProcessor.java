@@ -46,7 +46,7 @@ public class AspencatRecordProcessor extends IlsRecordProcessor {
 			}
 		} catch (Exception e) {
 			logger.error("Error connecting to koha database ", e);
-			System.exit(1);
+			//System.exit(1);
 		}
 
 	}
@@ -142,6 +142,10 @@ public class AspencatRecordProcessor extends IlsRecordProcessor {
 								return "Trace";
 						}
 					}else if (subfield == '7') {
+						switch (fieldData) {
+							case "-1":
+								return "On Order";
+						}
 						//There are several library use only statuses that we do not care about right now.
 						return null;
 					}else if (subfield == 'k') {
@@ -308,15 +312,19 @@ public class AspencatRecordProcessor extends IlsRecordProcessor {
 	}
 
 	protected String getShelfLocationForItem(ItemInfo itemInfo, DataField itemField) {
-		String locationCode = getItemSubfieldData(locationSubfieldIndicator, itemField);
-		String location = translateValue("location", locationCode);
+		/*String locationCode = getItemSubfieldData(locationSubfieldIndicator, itemField);
+		String location = translateValue("location", locationCode);*/
+		String location = "";
 		String subLocationCode = getItemSubfieldData(subLocationSubfield, itemField);
-		if (subLocationCode != null && !subLocationCode.equals(locationCode)){
-			location += " - " + translateValue("sub_location", subLocationCode);
+		if (subLocationCode != null && subLocationCode.length() > 0){
+			location += translateValue("sub_location", subLocationCode);
 		}
 		String shelvingLocation = getItemSubfieldData(shelvingLocationSubfield, itemField);
-		if (shelvingLocation != null && !shelvingLocation.equals(locationCode)){
-			location += " - " + translateValue("shelf_location", shelvingLocation);
+		if (shelvingLocation != null && shelvingLocation.length() > 0){
+			if (location.length() > 0){
+				location += " - ";
+			}
+			location += translateValue("shelf_location", shelvingLocation);
 		}
 		return location;
 	}
