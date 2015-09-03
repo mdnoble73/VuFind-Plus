@@ -494,7 +494,7 @@ abstract class HorizonAPI extends Horizon{
 
 		$loadTitles = empty($titles);
 		if ($loadTitles) {
-			$holds = $this->getMyHolds($patronId);
+			$holds = $this->getMyHolds($patron);
 			$combined_holds = array_merge($holds['unavailable'], $holds['available']);
 		}
 //		$logger->log("Load titles = $loadTitles", PEAR_LOG_DEBUG); // move out of foreach loop
