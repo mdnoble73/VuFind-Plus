@@ -1070,5 +1070,14 @@ function getLibraryLocationUpdates(){
 				"ALTER TABLE `library` ADD COLUMN `allowLinkedAccounts` TINYINT(1) DEFAULT 1;",
 			),
 		),
+
+		'theme_name_length' => array(
+			'title' => 'Increase length of theme name',
+			'description' => 'Increase the length of theme name to allow for more nesting of themes.',
+			'continueOnError' => true,
+			'sql' => array(
+				"ALTER TABLE `library` CHANGE COLUMN `themeName` `themeName` VARCHAR(60);",
+			),
+		),
 	);
 }
