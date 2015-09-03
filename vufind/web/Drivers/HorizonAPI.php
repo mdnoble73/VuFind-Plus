@@ -654,7 +654,7 @@ abstract class HorizonAPI extends Horizon{
 		}
 	}
 
-	public function getMyCheckouts( $page = 1, $recordsPerPage = -1, $sortOption = 'dueDate') {
+	public function getMyCheckouts($page = 1, $recordsPerPage = -1, $sortOption = 'dueDate') {
 		global $configArray;
 
 		global $user;
@@ -669,7 +669,7 @@ abstract class HorizonAPI extends Horizon{
 			//Log the user in
 			list($userValid, $sessionToken) = $this->loginViaWebService($user->cat_username, $user->cat_password);
 			if (!$userValid){
-				echo("No session id found for user");
+//				echo("No session id found for user");
 				return $checkedOutTitles;
 			}
 		}
