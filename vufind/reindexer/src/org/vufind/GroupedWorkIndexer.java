@@ -277,7 +277,7 @@ public class GroupedWorkIndexer {
 	}
 
 	private void loadLocationScopes() throws SQLException {
-		PreparedStatement locationInformationStmt = vufindConn.prepareStatement("SELECT library.libraryId, locationId, code, ilsCode, " +
+		PreparedStatement locationInformationStmt = vufindConn.prepareStatement("SELECT library.libraryId, locationId, code, subLocation, ilsCode, " +
 				"library.subdomain, location.facetLabel, location.displayName, library.pTypes, library.restrictOwningBranchesAndSystems, " +
 				"library.enableOverdriveCollection as enableOverdriveCollectionLibrary, " +
 				"location.enableOverdriveCollection as enableOverdriveCollectionLocation " +
@@ -291,6 +291,7 @@ public class GroupedWorkIndexer {
 		ResultSet locationInformationRS = locationInformationStmt.executeQuery();
 		while (locationInformationRS.next()){
 			String code = locationInformationRS.getString("code").toLowerCase();
+			String subLocation = locationInformationRS.getString("subLocation");
 			String facetLabel = locationInformationRS.getString("facetLabel");
 			String displayName = locationInformationRS.getString("displayName");
 			if (facetLabel.length() == 0){
@@ -308,7 +309,11 @@ public class GroupedWorkIndexer {
 			Scope locationScopeInfo = new Scope();
 			locationScopeInfo.setIsLibraryScope(false);
 			locationScopeInfo.setIsLocationScope(true);
-			locationScopeInfo.setScopeName(code);
+			String scopeName = code;
+			if (subLocation != null && subLocation.length() > 0){
+				scopeName = subLocation.toLowerCase();
+			}
+			locationScopeInfo.setScopeName(scopeName);
 			locationScopeInfo.setLibraryId(libraryId);
 			locationScopeInfo.setRelatedPTypes(pTypes.split(","));
 			locationScopeInfo.setFacetLabel(facetLabel);

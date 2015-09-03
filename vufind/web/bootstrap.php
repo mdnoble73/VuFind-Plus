@@ -296,6 +296,9 @@ function loadSearchInformation(){
 		}
 		if ($searchLocation){
 			$solrScope = $searchLocation->code;
+			if (!empty($searchLocation->subLocation)){
+				$solrScope = $searchLocation->subLocation;
+			}
 			$scopeType = 'Location';
 		}
 	}elseif($searchSource != 'marmot' && $searchSource != 'global'){

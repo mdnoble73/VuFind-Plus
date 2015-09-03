@@ -145,14 +145,14 @@ public class GroupedReindexMain {
 
 			logger.debug("Copying " + "../../data_dir_setup/solr/grouped/conf/schema.xml" + " to " + "../../data_dir_setup/solr/grouped2/conf/schema.xml");
 			if (!Util.copyFile(new File("../../data_dir_setup/solr/grouped/conf/schema.xml"), new File("../../data_dir_setup/solr/grouped2/conf/schema.xml"))){
-				logger.warn("Unable to copy schema.xml to grouped2");
-				addNoteToReindexLog("Unable to copy schema.xml to grouped2");
+				logger.warn("Unable to copy default schema.xml to grouped2 in data_dir_setup");
+				addNoteToReindexLog("Unable to copy default schema.xml to grouped2 in data_dir_setup");
 			}
 			//Synonyms
 			logger.debug("Copying " + "../../data_dir_setup/solr/grouped/conf/synonyms.txt" + " to " + "../../data_dir_setup/solr/grouped2/conf/synonyms.txt");
 			if (!Util.copyFile(new File("../../data_dir_setup/solr/grouped/conf/synonyms.txt"), new File("../../data_dir_setup/solr/grouped2/conf/synonyms.txt"))){
-				logger.warn("Unable to copy synonyms.txt to grouped2");
-				addNoteToReindexLog("Unable to copy synonyms.txt to grouped2");
+				logger.warn("Unable to copy default synonyms.txt to grouped2 in data_dir_setup");
+				addNoteToReindexLog("Unable to copy default synonyms.txt to grouped2 in data_dir_setup");
 			}
 		} catch (IOException e) {
 			logger.error("error reloading copying default scehmas", e);
