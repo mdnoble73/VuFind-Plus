@@ -80,7 +80,7 @@ class MaterialsRequest_NewRequest extends Action
 		}
 		$interface->assign('useWorldCat', $useWorldCat);
 
-		// Set up for User
+		// Set up for User Log in
 		if (isset($library)){
 			$interface->assign('enableSelfRegistration', $library->enableSelfRegistration);
 			$interface->assign('usernameLabel', $library->loginFormUsernameLabel ? $library->loginFormUsernameLabel : 'Your Name');
