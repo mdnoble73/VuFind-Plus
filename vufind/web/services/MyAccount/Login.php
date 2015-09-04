@@ -118,4 +118,3 @@ class MyAccount_Login extends Action
 	}
 }
 
-?>
