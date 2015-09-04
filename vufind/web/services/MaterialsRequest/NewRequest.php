@@ -32,10 +32,11 @@ class MaterialsRequest_NewRequest extends Action
 
 	function launch()
 	{
-		global $configArray;
-		global $interface;
-		global $user;
-		global $locationSingleton;
+		global $configArray,
+		       $interface,
+		       $user,
+		       $library,
+		       $locationSingleton;
 		
 		if ($user){
 			$interface->assign('defaultPhone', $user->phone);
