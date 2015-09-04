@@ -389,8 +389,7 @@ abstract class HorizonAPI extends Horizon{
 				if (isset($_REQUEST['campus'])){
 					$campus=trim($_REQUEST['campus']);
 				}else{
-					global $user;
-					$campus = $user->homeLocationId;
+					$campus = $patron->homeLocationId;
 				}
 				//create the hold using the web service
 				$createHoldUrl = $configArray['Catalog']['webServiceUrl'] . '/standard/createMyHold?clientID=' . $configArray['Catalog']['clientId'] . '&sessionToken=' . $sessionToken . '&pickupLocation=' . $campus . '&titleKey=' . $recordId ;
@@ -465,18 +464,17 @@ abstract class HorizonAPI extends Horizon{
 	 * Update a hold that was previously placed in the system.
 	 * Can cancel the hold or update pickup locations.
 	 */
-	public function updateHoldDetailed($patronId, $type, $titles, $xNum, $cancelId, $locationId, $freezeValue='off'){
+	public function updateHoldDetailed($patron, $type, $titles, $xNum, $cancelId, $locationId, $freezeValue='off'){
 		global $configArray;
 
-		global $user;
-		$userId = $user->id;
+		$patronId = $patron->id;
 
 		//Get the session token for the user
-		if (isset(HorizonAPI::$sessionIdsForUsers[$userId])){
-			$sessionToken = HorizonAPI::$sessionIdsForUsers[$userId];
+		if (isset(HorizonAPI::$sessionIdsForUsers[$patronId])){
+			$sessionToken = HorizonAPI::$sessionIdsForUsers[$patronId];
 		}else{
 			//Log the user in
-			list($userValid, $sessionToken) = $this->loginViaWebService($user->cat_username, $user->cat_password);
+			list($userValid, $sessionToken) = $this->loginViaWebService($patron->cat_username, $patron->cat_password);
 			if (!$userValid){
 				return array(
 					'success' => false,
@@ -496,7 +494,7 @@ abstract class HorizonAPI extends Horizon{
 
 		$loadTitles = empty($titles);
 		if ($loadTitles) {
-			$holds = $this->getMyHolds($patronId);
+			$holds = $this->getMyHolds($patron);
 			$combined_holds = array_merge($holds['unavailable'], $holds['available']);
 		}
 //		$logger->log("Load titles = $loadTitles", PEAR_LOG_DEBUG); // move out of foreach loop
@@ -654,11 +652,10 @@ abstract class HorizonAPI extends Horizon{
 		}
 	}
 
-	public function getMyCheckouts($page = 1, $recordsPerPage = -1, $sortOption = 'dueDate') {
+	public function getMyCheckouts($patron, $page = 1, $recordsPerPage = -1, $sortOption = 'dueDate') {
 		global $configArray;
 
-		global $user;
-		$userId = $user->id;
+		$userId = $patron->id;
 
 		$checkedOutTitles = array();
 
@@ -667,7 +664,7 @@ abstract class HorizonAPI extends Horizon{
 			$sessionToken = HorizonAPI::$sessionIdsForUsers[$userId];
 		}else{
 			//Log the user in
-			list($userValid, $sessionToken) = $this->loginViaWebService($user->cat_username, $user->cat_password);
+			list($userValid, $sessionToken) = $this->loginViaWebService($patron->cat_username, $patron->cat_password);
 			if (!$userValid){
 //				echo("No session id found for user");
 				return $checkedOutTitles;
@@ -749,18 +746,18 @@ abstract class HorizonAPI extends Horizon{
 		);
 	}
 
+	// TODO: Test with linked accounts (9-3-2015)
 	public function renewItem($patron, $recordId, $itemId, $itemIndex){
 		global $configArray;
 
-		global $user;
-		$userId = $user->id;
+		$userId = $patron->id;
 
 		//Get the session token for the user
 		if (isset(HorizonAPI::$sessionIdsForUsers[$userId])){
 			$sessionToken = HorizonAPI::$sessionIdsForUsers[$userId];
 		}else{
 			//Log the user in
-			list($userValid, $sessionToken) = $this->loginViaWebService($user->cat_username, $user->cat_password);
+			list($userValid, $sessionToken) = $this->loginViaWebService($patron->cat_username, $patron->cat_password);
 			if (!$userValid){
 				return array(
 					'success' => false,
@@ -859,6 +856,7 @@ abstract class HorizonAPI extends Horizon{
 		$nearbyBranch2Id = 0;
 
 		//Set location information based on the user login.  This will override information based
+		//QUESTION global $user needed here? TODO: does this if block get used?
 		if (isset($user) && $user != false){
 			$homeBranchId = $user->homeLocationId;
 			$nearbyBranch1Id = $user->myLocation1Id;

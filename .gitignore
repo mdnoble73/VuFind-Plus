@@ -95,11 +95,15 @@ Thumbs.db
 
 # Nashville Symbolic Links #
 ############################
+sites/galacto.library.nashville.org
+sites/limitless.library.nashville.org
+sites/limitlesst.library.nashville.org
 sites/nplencore.library.nashville.org
 sites/pika.library.nashville.org
 sites/school.library.nashville.org
 sites/schoold.library.nashville.org
-sites/170.190.30.108/
+sites/schoolt.library.nashville.org
+sites/170.190.30.108
 sites/170.190.30.208
 sites/100.library.nashville.org
 sites/100d.library.nashville.org
@@ -308,6 +312,8 @@ sites/595.library.nashville.org
 sites/595t.library.nashville.org
 sites/600.library.nashville.org
 sites/600t.library.nashville.org
+sites/601.library.nashville.org
+sites/601t.library.nashville.org
 sites/610.library.nashville.org
 sites/610t.library.nashville.org
 sites/612.library.nashville.org
