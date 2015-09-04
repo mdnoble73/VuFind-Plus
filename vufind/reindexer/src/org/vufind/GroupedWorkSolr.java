@@ -332,7 +332,8 @@ public class GroupedWorkSolr {
 						//We do different ownership display depending on if this is eContent or not
 						String owningLocationValue = curScope.getScope().getFacetLabel();
 						if (curItem.getSubLocation() != null){
-							owningLocationValue += " - " + curItem.getSubLocation();
+							//owningLocationValue += " - " + curItem.getSubLocation();
+							owningLocationValue = curItem.getSubLocation();
 						}
 						if (curItem.isEContent()){
 							owningLocationValue = curItem.getShelfLocation();
