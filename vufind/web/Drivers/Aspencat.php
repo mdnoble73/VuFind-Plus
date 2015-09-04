@@ -1528,6 +1528,8 @@ class Aspencat implements DriverInterface{
 						$curHold['isbn'] = $recordDriver->getCleanISBN();
 						$curHold['upc'] = $recordDriver->getCleanUPC();
 						$curHold['format_category'] = $recordDriver->getFormatCategory();
+						$curHold['coverUrl'] = $recordDriver->getBookcoverUrl();
+						$curHold['link'] = $recordDriver->getRecordUrl();
 						//Load rating information
 						$curHold['ratingData'] = $recordDriver->getRatingData();
 					}
@@ -1694,6 +1696,8 @@ class Aspencat implements DriverInterface{
 					$curHold['isbn'] = $recordDriver->getCleanISBN();
 					$curHold['upc'] = $recordDriver->getCleanUPC();
 					$curHold['format_category'] = $recordDriver->getFormatCategory();
+					$curHold['coverUrl'] = $recordDriver->getBookcoverUrl();
+					$curHold['link'] = $recordDriver->getRecordUrl();
 
 					//Load rating information
 					$curHold['ratingData'] = $recordDriver->getRatingData();
