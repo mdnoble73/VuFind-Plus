@@ -368,7 +368,7 @@ public class ItemInfo {
 	public boolean isLibraryOwned(String scopeName) {
 		ScopingInfo scopeData = scopingInfo.get(scopeName);
 		if (scopeData != null){
-			if (scopeData.isLocallyOwned()){
+			if (scopeData.isLibraryOwned()){
 				return true;
 			}
 		}
