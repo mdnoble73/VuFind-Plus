@@ -846,7 +846,7 @@ abstract class HorizonAPI extends Horizon{
 		global $locationSingleton; /** @var $locationSingleton Location */
 		$physicalLocation = $locationSingleton->getPhysicalLocation();
 		if ($physicalLocation != null){
-			$physicalBranch = $physicalLocation->holdingBranchLabel;
+			$physicalBranch = $physicalLocation->code;
 		}else{
 			$physicalBranch = '';
 		}
@@ -859,6 +859,7 @@ abstract class HorizonAPI extends Horizon{
 
 		//Set location information based on the user login.  This will override information based
 		//QUESTION global $user needed here? TODO: does this if block get used?
+		global $user;
 		if (isset($user) && $user != false){
 			$homeBranchId = $user->homeLocationId;
 			$nearbyBranch1Id = $user->myLocation1Id;
@@ -884,7 +885,7 @@ abstract class HorizonAPI extends Horizon{
 		$userLocation->find();
 		if ($userLocation->N == 1) {
 			$userLocation->fetch();
-			$homeBranch = $userLocation->holdingBranchLabel;
+			$homeBranch = $userLocation->code;
 		}
 		//Load nearby branch 1
 		$nearbyLocation1 = new Location();
@@ -892,7 +893,7 @@ abstract class HorizonAPI extends Horizon{
 		$nearbyLocation1->find();
 		if ($nearbyLocation1->N == 1) {
 			$nearbyLocation1->fetch();
-			$nearbyBranch1 = $nearbyLocation1->holdingBranchLabel;
+			$nearbyBranch1 = $nearbyLocation1->code;
 		}
 		//Load nearby branch 2
 		$nearbyLocation2 = new Location();
@@ -901,7 +902,7 @@ abstract class HorizonAPI extends Horizon{
 		$nearbyLocation2->find();
 		if ($nearbyLocation2->N == 1) {
 			$nearbyLocation2->fetch();
-			$nearbyBranch2 = $nearbyLocation2->holdingBranchLabel;
+			$nearbyBranch2 = $nearbyLocation2->code;
 		}
 
 		//Get a list of items from Horizon
@@ -944,24 +945,24 @@ abstract class HorizonAPI extends Horizon{
 				$paddedNumber = str_pad($i, 3, '0', STR_PAD_LEFT);
 				$sortString = $holding['location'] . '-'. $paddedNumber;
 				//$sortString = $holding['location'] . $holding['callnumber']. $i;
-				if (strlen($physicalBranch) > 0 && stripos($holding['location'], $physicalBranch) !== false){
+				if (strlen($physicalBranch) > 0 && strcasecmp($holding['locationCode'], $physicalBranch) === 0){
 					//If the user is in a branch, those holdings come first.
 					$holding['section'] = 'In this library';
 					$holding['sectionId'] = 1;
 					$holding['isLocalItem'] = true;
 					$sorted_array['1' . $sortString] = $holding;
-				} else if (strlen($homeBranch) > 0 && stripos($holding['location'], $homeBranch) !== false){
+				} else if (strlen($homeBranch) > 0 && strcasecmp($holding['locationCode'], $homeBranch) === 0){
 					//Next come the user's home branch if the user is logged in or has the home_branch cookie set.
 					$holding['section'] = 'Your library';
 					$holding['sectionId'] = 2;
 					$holding['isLocalItem'] = true;
 					$sorted_array['2' . $sortString] = $holding;
-				} else if ((strlen($nearbyBranch1) > 0 && stripos($holding['location'], $nearbyBranch1) !== false)){
+				} else if ((strlen($nearbyBranch1) > 0 && strcasecmp($holding['locationCode'], $nearbyBranch1) === 0)){
 					//Next come nearby locations for the user
 					$holding['section'] = 'Nearby Libraries';
 					$holding['sectionId'] = 3;
 					$sorted_array['3' . $sortString] = $holding;
-				} else if ((strlen($nearbyBranch2) > 0 && stripos($holding['location'], $nearbyBranch2) !== false)){
+				} else if ((strlen($nearbyBranch2) > 0 && strcasecmp($holding['locationCode'], $nearbyBranch2) === 0)){
 					//Next come nearby locations for the user
 					$holding['section'] = 'Nearby Libraries';
 					$holding['sectionId'] = 4;
@@ -981,9 +982,9 @@ abstract class HorizonAPI extends Horizon{
 
 				$holdings[] = $holding;
 			}
-
+			ksort($sorted_array);
 		}
-		return $holdings;
+		return $sorted_array;
 	}
 
 	public function getHoldings($idList, $record = null, $mysip = null, $forSummary = false) {
