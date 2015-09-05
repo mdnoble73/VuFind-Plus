@@ -3,11 +3,18 @@
 # SCHOOLDATA.exp
 # James Staub
 # Nashville Public Library
-# 20150726
 # Limitless Libraries : move and unzip school full extract, daily item extract, hourly item update files
 # Millennium 2014
 
 # to do: delete schoolsitemupdate.txt if schoolsitemupdatedaily.txt was downloaded
+
+# 20150904 : add stout output lines to track down scp issue
+# 20150726 : v.1
+
+
+#exp_internal 1 ; # verbose debugging to stdout
+#log_user 1 ; # send screens to stdout
+log_user 0 ; # do NOT send screens to stdout
 
 set wait "2" ; # timeout
 set confpwd "/usr/local/VuFind-Plus/sites/catalog.library.nashville.org/conf/config.pwd.ini"
@@ -48,19 +55,19 @@ foreach file $files {
 	spawn scp -p -i /home/limitless/.ssh/id_rsa $sourceUser:$sourcePath$file $destinationPath
 
 # requires setting up SSH keys for limitless:
-#	on test or dev, log in as limitless
+#	on source, log in as limitless
 #	$ ssh-keygen # if and only if .ssh/id_rsa.pub does not already exist
 #	[accept defaults]
 #	$ cat .ssh/id_rsa.pub
 #	copy public key
-#	on production, log in as limitless
+#	on target, log in as limitless
 #	$ nano .ssh/authorized_keys
 #	paste public key
 #	save
-#	$ chmod 700 .ssh
-#	$ chmod 640 authorized_keys
-# 2015 07 28 James set up SSH key authentication between pika and catalog; password not needed
-# 2015 08 27 James set up SSH key authentication between galacto and catalog; password not needed
+#	$ chmod 755 .ssh
+#	$ chmod 644 authorized_keys
+# 2015 09 03 James set up SSH key authentication between galacto and catalog; password not needed
+# 2015 09 03 James set up SSH key authentication between catalog and catalog; password not needed
 
 	#expect "$sourceUser\'s password:"
 	#send "$sourcePassword\r"
