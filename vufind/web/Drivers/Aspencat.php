@@ -511,11 +511,9 @@ class Aspencat implements DriverInterface{
 		return $summaryInformation;
 	}
 
-	private $patronProfiles = array();
-
 	/**
-	 * @param User $patron            The User Object to make updates to
-	 * @param $canUpdateContactInfo   Permission check that updating is allowed
+	 * @param User $patron                    The User Object to make updates to
+	 * @param boolean $canUpdateContactInfo   Permission check that updating is allowed
 	 * @return array                  Array of error messages for errors that occurred
 	 */
 	function updatePatronInfo($patron, $canUpdateContactInfo){
@@ -643,7 +641,11 @@ class Aspencat implements DriverInterface{
 		return $transactions;
 	}
 
-	public function getMyCheckoutsFromDB($user) {
+	/**
+	 * @param User $patron
+	 * @return array
+	 */
+	public function getMyCheckoutsFromDB($patron) {
 		if (isset($this->transactions[$user->id])){
 			return $this->transactions[$user->id];
 		}
@@ -1141,8 +1143,6 @@ class Aspencat implements DriverInterface{
 	 * @access  public
 	 */
 	public function placeHold($patron, $recordId, $pickupBranch){
-		global $user;
-
 		$hold_result = array();
 		$hold_result['success'] = false;
 
@@ -1177,7 +1177,7 @@ class Aspencat implements DriverInterface{
 		}
 
 		//Get the items the user can place a hold on
-		$this->loginToKoha($user);
+		$this->loginToKoha($patron);
 		$placeHoldPage = $this->getKohaPage($configArray['Catalog']['url'] . '/cgi-bin/koha/opac-reserve.pl?biblionumber=' . $recordId);
 		preg_match_all('/<div class="dialog alert">(.*?)<\/div>/s', $placeHoldPage, $matches);
 		if (count($matches) > 0 && count($matches[1]) > 0){
@@ -1287,7 +1287,7 @@ class Aspencat implements DriverInterface{
 			$hold_result['id'] = $recordId;
 			if (preg_match('/<a href="#opac-user-holds">Holds<\/a>/si', $kohaHoldResult)) {
 				//We redirected to the holds page, everything seems to be good
-				$holds = $this->getMyHolds($user, 1, -1, 'title', $kohaHoldResult);
+				$holds = $this->getMyHolds($patron, 1, -1, 'title', $kohaHoldResult);
 				$hold_result['success'] = true;
 				$hold_result['message'] = "Your hold was placed successfully.";
 				//Find the correct hold (will be unavailable)
@@ -1437,7 +1437,6 @@ class Aspencat implements DriverInterface{
 	 */
 	public function getMyHoldsFromOpac($patron){
 		global $logger;
-		global $user;
 		$availableHolds = array();
 		$unavailableHolds = array();
 		$holds = array(
@@ -1446,7 +1445,7 @@ class Aspencat implements DriverInterface{
 		);
 		//Get transactions by screen scraping
 		//Login to Koha classic interface
-		$result = $this->loginToKoha($user);
+		$result = $this->loginToKoha($patron);
 		if (!$result['success']){
 			return $holds;
 		}
@@ -1630,7 +1629,6 @@ class Aspencat implements DriverInterface{
 	 * @param integer $page           The current page of holds
 	 * @param integer $recordsPerPage The number of records to show per page
 	 * @param string $sortOption      How the records should be sorted
-	 * @param string $summaryPage     If the summary page has already been loaded, it can be passed in for performance reasons.
 	 *
 	 * @return mixed        Array of the patron's holds on success, PEAR_Error
 	 * otherwise.
