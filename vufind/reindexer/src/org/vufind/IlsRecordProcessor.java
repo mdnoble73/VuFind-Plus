@@ -657,7 +657,11 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		//if the status and location are null, we can assume this is not a valid item
 		if (!isItemValid(itemStatus, itemLocation)) return null;
 
-		itemInfo.setShelfLocationCode(getItemSubfieldData(locationSubfieldIndicator, itemField));
+		if (shelvingLocationSubfield != ' '){
+			itemInfo.setShelfLocationCode(getItemSubfieldData(shelvingLocationSubfield, itemField));
+		}else {
+			itemInfo.setShelfLocationCode(getItemSubfieldData(locationSubfieldIndicator, itemField));
+		}
 		itemInfo.setShelfLocation(getShelfLocationForItem(itemInfo, itemField));
 
 		loadDateAdded(recordInfo.getRecordIdentifier(), itemField, itemInfo);

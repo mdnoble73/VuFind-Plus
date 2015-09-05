@@ -89,8 +89,9 @@ public class AnythinkRecordProcessor extends IlsRecordProcessor {
 			}
 		}
 
-		groupedWork.addTargetAudiences(translateCollection("target_audience", targetAudiences));
-		groupedWork.addTargetAudiencesFull(translateCollection("target_audience", targetAudiences));
+		HashSet<String> translatedAudiences = translateCollection("target_audience", targetAudiences);
+		groupedWork.addTargetAudiences(translatedAudiences);
+		groupedWork.addTargetAudiencesFull(translatedAudiences);
 	}
 
 	@Override
