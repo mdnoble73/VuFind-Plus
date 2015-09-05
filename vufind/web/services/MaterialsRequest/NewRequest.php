@@ -32,10 +32,11 @@ class MaterialsRequest_NewRequest extends Action
 
 	function launch()
 	{
-		global $configArray;
-		global $interface;
-		global $user;
-		global $locationSingleton;
+		global $configArray,
+		       $interface,
+		       $user,
+		       $library,
+		       $locationSingleton;
 		
 		if ($user){
 			$interface->assign('defaultPhone', $user->phone);
@@ -55,7 +56,7 @@ class MaterialsRequest_NewRequest extends Action
 		$interface->assign('new', true);
 		if (isset($_REQUEST['lookfor']) && strlen ($_REQUEST['lookfor']) > 0){ 
 			$request = new MaterialsRequest();
-			$searchType = isset($_REQUEST['basicType']) ? $_REQUEST['basicType'] : (isset($_REQUEST['type']) ? $_REQUEST['type                                 '] : 'Keyword');
+			$searchType = isset($_REQUEST['basicType']) ? $_REQUEST['basicType'] : (isset($_REQUEST['type']) ? $_REQUEST['type'] : 'Keyword');
 			if (strcasecmp($searchType, 'author') == 0){
 				$request->author = $_REQUEST['lookfor'];
 			}else{
@@ -79,6 +80,7 @@ class MaterialsRequest_NewRequest extends Action
 		}
 		$interface->assign('useWorldCat', $useWorldCat);
 
+		// Set up for User Log in
 		if (isset($library)){
 			$interface->assign('enableSelfRegistration', $library->enableSelfRegistration);
 			$interface->assign('usernameLabel', $library->loginFormUsernameLabel ? $library->loginFormUsernameLabel : 'Your Name');

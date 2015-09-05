@@ -128,4 +128,27 @@ class TranslationMap extends DB_DataObject{
 	public function getEditLink(){
 		return '/Admin/TranslationMaps?objectAction=edit&id=' . $this->id;
 	}
+
+	public function mapValue($valueToMap){
+		/** @var TranslationMapValue[] $value */
+		$default = null;
+		foreach ($this->translationMapValues as $value){
+			if ($value->value == '#'){
+				$default = $value->translation;
+			}else{
+				if ($this->usesRegularExpressions){
+					if (preg_match('/' . $value->value . '/', $valueToMap)){
+						return $valueToMap;
+					}else{
+						if (strcasecmp($value, $valueToMap)){
+							return $valueToMap;
+						}
+					}
+				}
+			}
+		}
+		if ($default){
+			return $default;
+		}
+	}
 }

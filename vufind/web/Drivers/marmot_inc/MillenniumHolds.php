@@ -53,6 +53,10 @@ class MillenniumHolds{
 				//Didn't get a reason back.  This really shouldn't happen.
 				$hold_result['success'] = false;
 				$hold_result['message'] = 'Did not receive a response from the circulation system.  Please try again in a few minutes.';
+
+				//global $logger;
+				//$logger->log("Did not receive a response from the circulation system.  Please try again in a few minutes.", PEAR_LOG_WARNING);
+				//$logger->log($holdResultPage, PEAR_LOG_WARNING);
 			}else{
 				//Got an error message back.
 				$hold_result['success'] = false;
@@ -655,7 +659,7 @@ class MillenniumHolds{
 			list($Month, $Day, $Year)=explode("/", $date);
 
 			//Make sure to connect via the driver so cookies will be correct
-			$curl_connection = $this->driver->_curl_connect();
+			$this->driver->_curl_connect();
 
 //			curl_setopt($curl_connection, CURLOPT_POST, true);
 

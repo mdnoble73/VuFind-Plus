@@ -1528,6 +1528,8 @@ class Aspencat implements DriverInterface{
 						$curHold['isbn'] = $recordDriver->getCleanISBN();
 						$curHold['upc'] = $recordDriver->getCleanUPC();
 						$curHold['format_category'] = $recordDriver->getFormatCategory();
+						$curHold['coverUrl'] = $recordDriver->getBookcoverUrl();
+						$curHold['link'] = $recordDriver->getRecordUrl();
 						//Load rating information
 						$curHold['ratingData'] = $recordDriver->getRatingData();
 					}
@@ -1694,6 +1696,8 @@ class Aspencat implements DriverInterface{
 					$curHold['isbn'] = $recordDriver->getCleanISBN();
 					$curHold['upc'] = $recordDriver->getCleanUPC();
 					$curHold['format_category'] = $recordDriver->getFormatCategory();
+					$curHold['coverUrl'] = $recordDriver->getBookcoverUrl();
+					$curHold['link'] = $recordDriver->getRecordUrl();
 
 					//Load rating information
 					$curHold['ratingData'] = $recordDriver->getRatingData();
@@ -2120,6 +2124,18 @@ class Aspencat implements DriverInterface{
 		}else{
 			//Read the information
 			$results = $this->getHoldingsStmt->get_result();
+
+			$subLocationMap = new TranslationMap();
+			$subLocationMap->name = 'sub_location';
+			$subLocationMap->find(true);
+
+			$locationMap = new TranslationMap();
+			$locationMap->name = 'location';
+			$locationMap->find(true);
+
+			$iTypeMap = new TranslationMap();
+			$iTypeMap->name = 'itype';
+			$iTypeMap->find(true);
 			while ($curRow = $results->fetch_assoc()){
 				if ($curRow['itype'] == 'EAUDIO' || $curRow['itype'] == 'EBOOK' || $curRow['itype'] == 'ONLINE'){
 					continue;
@@ -2128,11 +2144,12 @@ class Aspencat implements DriverInterface{
 				$curItem['type'] = 'holding';
 				$curItem['id'] = $curRow['itemnumber'];
 				$curItem['barcode'] = $curRow['barcode'];
-				$curItem['itemType'] = mapValue('itype', $curRow['itype']);
+				//TODO: these things htat are translated should come straight from the index instead of being recalculated
+				$curItem['itemType'] = $iTypeMap->mapValue($curRow['itype']);
 				$curItem['locationCode'] = $curRow['location'];
-				$curItem['library'] = mapValue('location', $curRow['holdingbranch']);
+				$curItem['library'] = $locationMap->mapValue($curRow['holdingbranch']);
 				$curItem['location'] = $curRow['location'];
-				$curItem['collection'] = mapValue('sub_location', $curRow['ccode']);
+				$curItem['collection'] = $subLocationMap->mapValue($curRow['ccode']);
 				$curItem['callnumber'] = $curRow['itemcallnumber'];
 				$curItem['volInfo'] = $curRow['enumchron'];
 				$curItem['copy'] = $curRow['itemcallnumber'];
