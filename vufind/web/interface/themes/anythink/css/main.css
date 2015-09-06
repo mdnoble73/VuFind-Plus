@@ -8442,12 +8442,17 @@ a.browse-thumbnail.active {
 .checkInCell {
   border: 1px solid #3e63a6;
   float: left;
-  height: 5em;
+  min-height: 8em;
   padding: 4px;
   width: 150px;
 }
 .citation th {
   vertical-align: top;
+}
+.issue-summary-row {
+  border-bottom: 1px solid;
+  padding-bottom: 5px;
+  padding-top: 5px;
 }
 /**
  * Additional styling specific to the results list.
