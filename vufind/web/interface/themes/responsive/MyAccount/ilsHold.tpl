@@ -16,11 +16,13 @@
 				</div>
 				*}
 				<div class="col-xs-12 text-center">
-					{if $record.recordId}
+					{if $record.link}
 						<a href="{$record.link}">
 					{/if}
 
-					<img src="{$record.coverUrl}" class="listResultImage img-thumbnail img-responsive" alt="{translate text='Cover Image'}">
+					{if $record.coverUrl}
+						<img src="{$record.coverUrl}" class="listResultImage img-thumbnail img-responsive" alt="{translate text='Cover Image'}">
+					{/if}
 					{if $record.recordId}
 						</a>
 					{/if}
@@ -34,7 +36,7 @@
 			<div class="row">
 				<div class="col-xs-12">
 					<span class="result-index">{$resultIndex})</span>&nbsp;
-					{if $record.recordId}
+					{if $record.link}
 						<a href="{$record.link}" class="result-title notranslate">
 					{/if}
 					{if !$record.title|removeTrailingPunctuation}{translate text='Title not available'}{else}{$record.title|removeTrailingPunctuation|truncate:180:"..."|highlight:$lookfor}{/if}
