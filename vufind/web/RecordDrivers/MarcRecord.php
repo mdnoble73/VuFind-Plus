@@ -1396,7 +1396,7 @@ class MarcRecord extends IndexRecord
 			$actions[] = array(
 				'title' => 'Schedule Item',
 				'url' => '',
-				'onclick' => "return VuFind.Record.showBookMaterial('{$this->getIdWithSource()}');",
+				'onclick' => "return VuFind.Record.showBookMaterial('{$this->getModule()}', '{$this->getId()}');",
 				'requireLogin' => false,
 			);
 		}
