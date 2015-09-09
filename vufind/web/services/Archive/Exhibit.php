@@ -8,10 +8,34 @@
  * Time: 7:55 AM
  */
 
+//Include code we need to use Tuque without Drupal
+require_once(ROOT_DIR . '/sys/tuque/Cache.php');
+require_once(ROOT_DIR . '/sys/tuque/FedoraApi.php');
+require_once(ROOT_DIR . '/sys/tuque/FedoraApiSerializer.php');
+require_once(ROOT_DIR . '/sys/tuque/Object.php');
+require_once(ROOT_DIR . '/sys/tuque/Repository.php');
+require_once(ROOT_DIR . '/sys/tuque/RepositoryConnection.php');
+
 class Archive_Exhibit {
 	function launch(){
 		global $interface;
 		global $configArray;
+
+		//Connect to Fedora via TUQUE
+		// These components need to be instantiated to load the object.
+		try{
+			$serializer = new FedoraApiSerializer();
+			$cache = new SimpleCache();
+			$connection = new RepositoryConnection('http://islandora.marmot.org:8080', 'username', 'password');
+			$api = new FedoraApi($connection, $serializer);
+			$repository = new FedoraRepository($api, $cache);
+
+			// Replace 'object:pid' with the PID of the object to be loaded.
+			$object = $repository->getObject('object:pid');
+		}catch (Exception $e){
+			global $logger;
+			$logger->log("Error connecting to repository $e", PEAR_LOG_ERR);
+		}
 
 		//TODO: load content from someplace that isn't hardcoded!
 		$title = "Mandala on the Yampa 2015";
