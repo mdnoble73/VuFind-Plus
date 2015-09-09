@@ -2,7 +2,7 @@
 /**
  * Displays Information about Digital Repository (Islandora) Exhibit
  *
- * @category VuFind-Plus-2014 
+ * @category Pika
  * @author Mark Noble <mark@marmot.org>
  * Date: 8/7/2015
  * Time: 7:55 AM
@@ -48,6 +48,33 @@ class Archive_Exhibit {
 			'shortTitle' => '',
 		);
 		$interface->assign('relatedImages', $relatedImages);
+
+		// Additional Demo Variables
+		$videoImage = 'mandalaoc3.JPG'; //TODO set
+		$interface->assign('videoImage', $videoImage);
+		$videoLink = ''; //TODO set
+		$interface->assign('videoLink', $videoLink);
+
+		// Define The Section List for the explore more
+		$AdditionalSections[0] = array(
+			'title' => 'Images',
+			'image' => 'mandalaoc2_thumb.JPG',
+			'link' => '',
+		);
+
+		$AdditionalSections[1] = array(
+			'title' => 'Videos',
+			'image' => 'mandalaoc3_thumb.JPG',
+			'link' => '',
+		);
+
+		$AdditionalSections[2] = array(
+			'title' => 'Articles',
+			'image' => 'mandalaoc4_thumb.JPG',
+			'link' => '',
+		);
+
+		$interface->assign('sectionList', $AdditionalSections);
 
 		//Load related content
 		//TODO: load this from someplace real (like Islandora)
