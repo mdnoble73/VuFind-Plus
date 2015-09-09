@@ -8,7 +8,7 @@
  * Time: 7:55 AM
  */
 
-class Repository_Exhibit {
+class Archive_Exhibit {
 	function launch(){
 		global $interface;
 		global $configArray;
