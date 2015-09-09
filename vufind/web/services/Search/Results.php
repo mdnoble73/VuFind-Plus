@@ -501,6 +501,10 @@ class Search_Results extends Action {
 
 			$exploreMoreOptions = array();
 			foreach ($response->response->docs as $solrDoc){
+				$title = $solrDoc->{'dc.title'};
+				if (is_array($title)){
+					$title = reset($title);
+				}
 				if (isset($solrDoc->{'dsmd_OBJ.Content-Type'}) || isset($solrDoc->{'dc.type_s'})){
 					if (isset($solrDoc->{'dsmd_OBJ.Content-Type'})){
 						$objectContentType = $solrDoc->{'dsmd_OBJ.Content-Type'};
@@ -517,18 +521,19 @@ class Search_Results extends Action {
 					$exploreMoreOptions[$objectContentType][] = array(
 						'PID' => $solrDoc->PID,
 						'type' => 'archive-' . $objectContentType,
-						'title' => $solrDoc->{'dc.title'},
+						'title' => $title,
 						'description' => isset($solrDoc->{'dc.description'}) ? $solrDoc->{'dc.description'} : '',
 
 					);
 				}else{
-					$exploreMoreOptions[][] = array(
+					//This is an exhibit for display
+					$exploreMoreOptions[] = array(
 						'PID' => $solrDoc->PID,
 						'type' => 'archive-collection',
-						'title' => $solrDoc->{'dc.title'},
+						'title' => $title,
 						'description' => isset($solrDoc->{'dc.description'}) ? $solrDoc->{'dc.description'} : '',
 						'link' => $configArray['Site']['path'] . '/Archive/' . $solrDoc->PID .'/Exhibit',
-						'thumbnail' => '',
+						'thumbnail' => $configArray['Islandora']['fedoraUrl'] . '/objects/' . $solrDoc->PID .'/datastreams/TN/content',
 					);
 				}
 			}
