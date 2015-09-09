@@ -13,6 +13,7 @@ require_once(ROOT_DIR . '/sys/tuque/Cache.php');
 require_once(ROOT_DIR . '/sys/tuque/FedoraApi.php');
 require_once(ROOT_DIR . '/sys/tuque/FedoraApiSerializer.php');
 require_once(ROOT_DIR . '/sys/tuque/Object.php');
+require_once(ROOT_DIR . '/sys/tuque/HttpConnection.php');
 require_once(ROOT_DIR . '/sys/tuque/Repository.php');
 require_once(ROOT_DIR . '/sys/tuque/RepositoryConnection.php');
 
@@ -26,15 +27,22 @@ class Archive_Exhibit {
 		try{
 			$serializer = new FedoraApiSerializer();
 			$cache = new SimpleCache();
-			$connection = new RepositoryConnection('http://islandora.marmot.org:8080', 'username', 'password');
+			$fedoraUrl = $configArray['Islandora']['fedoraUrl'];
+			$fedoraPassword = $configArray['Islandora']['fedoraPassword'];
+			$fedoraUser = $configArray['Islandora']['fedoraUsername'];
+			$connection = new RepositoryConnection($fedoraUrl, $fedoraUser, $fedoraPassword);
 			$api = new FedoraApi($connection, $serializer);
 			$repository = new FedoraRepository($api, $cache);
 
 			// Replace 'object:pid' with the PID of the object to be loaded.
-			$object = $repository->getObject('object:pid');
+			$id = $_REQUEST['id'];
+			$object = $repository->getObject('ssb:17');
+
+			//print_r($object);
 		}catch (Exception $e){
 			global $logger;
 			$logger->log("Error connecting to repository $e", PEAR_LOG_ERR);
+
 		}
 
 		//TODO: load content from someplace that isn't hardcoded!

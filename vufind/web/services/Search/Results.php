@@ -491,12 +491,12 @@ class Search_Results extends Action {
 		//Get data from the repository
 		global $interface;
 		global $configArray;
-		if (isset($configArray['Islandora']) && isset($configArray['Islandora']['repositoryUrl']) && isset($_GET['lookfor']) && !empty($_GET['lookfor'])){
-			$islandoraUrl = $configArray['Islandora']['repositoryUrl'];
+		if (isset($configArray['Islandora']) && isset($configArray['Islandora']['solrUrl']) && isset($_GET['lookfor']) && !empty($_GET['lookfor'])){
+			$islandoraUrl = $configArray['Islandora']['solrUrl'];
 			//TODO: This should be done with a Solr search object and we should setup searchspecs, etc.
 			//Setup a basic query
-			$searchTerm = $_GET['lookfor'];
-			$query = $islandoraUrl . '/islandora/select?q=dc.title:' . $searchTerm . '&wt=json&fl=PID,dc.title,dc.description,dc.type_s,dc.format_s,dsmd_OBJ.Content-Type';
+			$searchTerm = urlencode($_GET['lookfor']);
+			$query = $islandoraUrl . '/islandora/select?q=dc.title:' . $searchTerm . '+OR+dc.subject:' . $searchTerm . '&wt=json&fl=PID,dc.title,dc.description,dc.type_s,dc.format_s,dsmd_OBJ.Content-Type';
 			$response = json_decode(file_get_contents($query));
 
 			$exploreMoreOptions = array();
@@ -519,6 +519,7 @@ class Search_Results extends Action {
 						'type' => 'archive-' . $objectContentType,
 						'title' => $solrDoc->{'dc.title'},
 						'description' => isset($solrDoc->{'dc.description'}) ? $solrDoc->{'dc.description'} : '',
+
 					);
 				}else{
 					$exploreMoreOptions[][] = array(
@@ -526,6 +527,8 @@ class Search_Results extends Action {
 						'type' => 'archive-collection',
 						'title' => $solrDoc->{'dc.title'},
 						'description' => isset($solrDoc->{'dc.description'}) ? $solrDoc->{'dc.description'} : '',
+						'link' => $configArray['Site']['path'] . '/Archive/' . $solrDoc->PID .'/Exhibit',
+						'thumbnail' => '',
 					);
 				}
 			}
