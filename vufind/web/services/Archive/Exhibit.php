@@ -54,19 +54,19 @@ class Archive_Exhibit {
 		$exploreMoreMainLinks = array();
 		$exploreMoreMainLinks[] = array(
 			'title' => 'Day by Day',
-			'url' => $configArray['Site']['path'] . '/Repository/2/Exhibit'
+			'url' => $configArray['Site']['path'] . '/Archive/Exhibit'
 		);
 		$exploreMoreMainLinks[] = array(
 			'title' => 'Community Mandala',
-			'url' => $configArray['Site']['path'] . '/Repository/3/Exhibit'
+			'url' => $configArray['Site']['path'] . '/Archive/3/Exhibit'
 		);
 		$exploreMoreMainLinks[] = array(
 			'title' => 'In the News',
-			'url' => $configArray['Site']['path'] . '/Repository/4/Exhibit'
+			'url' => $configArray['Site']['path'] . '/Archive/4/Exhibit'
 		);
 		$exploreMoreMainLinks[] = array(
 			'title' => '2010 Mandala',
-			'url' => $configArray['Site']['path'] . '/Repository/5/Exhibit'
+			'url' => $configArray['Site']['path'] . '/Archive/5/Exhibit'
 		);
 		$interface->assign('exploreMoreMainLinks', $exploreMoreMainLinks);
 
