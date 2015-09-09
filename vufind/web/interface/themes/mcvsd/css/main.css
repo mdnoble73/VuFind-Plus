@@ -9023,7 +9023,7 @@ a.browse-thumbnail.active {
   background: linear-gradient(to bottom, #00703c, #006234);
 }
 #explore-more-header {
-  padding: 10px 25px 5px 0px;
+  padding: 10px 25px 5px 0;
   margin-bottom: 5px;
   text-align: right;
   color: white;
@@ -9033,4 +9033,21 @@ a.browse-thumbnail.active {
 }
 #explore-more-body {
   background-color: white;
+}
+#explore-more-body .sectionHeader {
+  text-transform: uppercase;
+  font-weight: bold;
+  color: #000075;
+  border-bottom: 2px solid #00b3ee;
+  margin-bottom: 10px;
+}
+#explore-more-body .section .row {
+  margin-bottom: 10px;
+}
+#explore-more-body .subsectionTitle {
+  color: #000075;
+}
+.related-exhibit-images img {
+  padding-left: 10px;
+  padding-right: 10px;
 }
