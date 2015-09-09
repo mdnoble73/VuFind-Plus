@@ -440,7 +440,7 @@ class Search_Results extends Action {
 		$interface->assign('subpage', $displayTemplate);
 		$interface->assign('displayMode', $displayMode); // For user toggle switches
 
-		// Suplementary Unscoped Search //
+		// Supplementary Unscoped Search //
 		if ($enableUnscopedSearch && isset($unscopedSearch) ){
 			// Total & Link will be shown in result header even if none of these results will be shown on this page
 			$unscopedSearch->setLimit($numUnscopedTitlesToLoad * 4);
@@ -472,6 +472,9 @@ class Search_Results extends Action {
 		$interface->assign('recordSet', $recordSet);
 		$timer->logTime('load result records');
 
+		//Load explore more data
+		$this->loadExploreMoreBar();
+
 		if ($configArray['Statistics']['enabled'] && isset( $_GET['lookfor']) && !is_array($_GET['lookfor'])) {
 			require_once(ROOT_DIR . '/Drivers/marmot_inc/SearchStatNew.php');
 			$searchStat = new SearchStatNew();
@@ -483,4 +486,51 @@ class Search_Results extends Action {
 		$interface->assign('sidebar', 'Search/results-sidebar.tpl');
 		$interface->display('layout.tpl');
 	} // End launch()
+
+	function loadExploreMoreBar(){
+		//Get data from the repository
+		global $interface;
+		global $configArray;
+		if (isset($configArray['Islandora']) && isset($configArray['Islandora']['repositoryUrl']) && isset($_GET['lookfor']) && !empty($_GET['lookfor'])){
+			$islandoraUrl = $configArray['Islandora']['repositoryUrl'];
+			//TODO: This should be done with a Solr search object and we should setup searchspecs, etc.
+			//Setup a basic query
+			$searchTerm = $_GET['lookfor'];
+			$query = $islandoraUrl . '/islandora/select?q=dc.title:' . $searchTerm . '&wt=json&fl=PID,dc.title,dc.description,dc.type_s,dc.format_s,dsmd_OBJ.Content-Type';
+			$response = json_decode(file_get_contents($query));
+
+			$exploreMoreOptions = array();
+			foreach ($response->response->docs as $solrDoc){
+				if (isset($solrDoc->{'dsmd_OBJ.Content-Type'}) || isset($solrDoc->{'dc.type_s'})){
+					if (isset($solrDoc->{'dsmd_OBJ.Content-Type'})){
+						$objectContentType = $solrDoc->{'dsmd_OBJ.Content-Type'};
+					}else{
+						$objectContentType = $solrDoc->{'dc.type_s'};
+					}
+
+					if (is_array($objectContentType)){
+						$objectContentType = $objectContentType[0];
+					}
+					if (!isset($exploreMoreOptions[$objectContentType])){
+						$exploreMoreOptions[$objectContentType] = array();
+					}
+					$exploreMoreOptions[$objectContentType][] = array(
+						'PID' => $solrDoc->PID,
+						'type' => 'archive-' . $objectContentType,
+						'title' => $solrDoc->{'dc.title'},
+						'description' => isset($solrDoc->{'dc.description'}) ? $solrDoc->{'dc.description'} : '',
+					);
+				}else{
+					$exploreMoreOptions[][] = array(
+						'PID' => $solrDoc->PID,
+						'type' => 'archive-collection',
+						'title' => $solrDoc->{'dc.title'},
+						'description' => isset($solrDoc->{'dc.description'}) ? $solrDoc->{'dc.description'} : '',
+					);
+				}
+			}
+			ksort($exploreMoreOptions);
+			$interface->assign('exploreMoreOptions', $exploreMoreOptions);
+		}
+	}
 }
