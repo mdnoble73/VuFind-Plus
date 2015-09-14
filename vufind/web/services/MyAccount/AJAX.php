@@ -432,15 +432,17 @@ class MyAccount_AJAX
 		);
 		if (!$user){
 			$result['message'] = 'You must be logged in to freeze a hold.  Please close this dialog and login again.';
-		}else{
+		} elseif (!empty($_REQUEST['patronId'])) {
 			$patronId = $_REQUEST['patronId'];
-
 			$patronOwningHold = $user->getUserReferredTo($patronId);
 
 			if ($patronOwningHold == false){
 				$result['message'] = 'Sorry, you do not have access to freeze holds for the supplied user.';
 			}else{
 				if (empty($_REQUEST['recordId']) || empty($_REQUEST['holdId'])) {
+					// We aren't getting all the expected data, so make a log entry & tell user.
+					global $logger;
+					$logger->log('Freeze Hold, no record or hold Id was passed in AJAX call.', PEAR_LOG_ERR);
 					$result['message'] = 'Information about the hold to be frozen was not provided.';
 				}else{
 					$recordId = $_REQUEST['recordId'];
@@ -449,6 +451,11 @@ class MyAccount_AJAX
 					$result = $patronOwningHold->freezeHold($recordId, $holdId, $reactivationDate);
 				}
 			}
+		} else {
+			// We aren't getting all the expected data, so make a log entry & tell user.
+			global $logger;
+			$logger->log('Freeze Hold, no patron Id was passed in AJAX call.', PEAR_LOG_ERR);
+			$result['message'] = 'No Patron was specified.';
 		}
 
 		return $result;
@@ -463,9 +470,8 @@ class MyAccount_AJAX
 
 		if (!$user){
 			$result['message'] = 'You must be logged in to thaw a hold.  Please close this dialog and login again.';
-		}else{
+		} elseif (!empty($_REQUEST['patronId'])) {
 			$patronId = $_REQUEST['patronId'];
-
 			$patronOwningHold = $user->getUserReferredTo($patronId);
 
 			if ($patronOwningHold == false){
@@ -479,6 +485,11 @@ class MyAccount_AJAX
 					$result = $patronOwningHold->thawHold($recordId, $holdId);
 				}
 			}
+		} else {
+			// We aren't getting all the expected data, so make a log entry & tell user.
+			global $logger;
+			$logger->log('Thaw Hold, no patron Id was passed in AJAX call.', PEAR_LOG_ERR);
+			$result['message'] = 'No Patron was specified.';
 		}
 
 		return $result;

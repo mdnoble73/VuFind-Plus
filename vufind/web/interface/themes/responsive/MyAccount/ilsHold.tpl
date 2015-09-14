@@ -1,5 +1,5 @@
 {strip}
-	{* Overall hold*}
+	{* Overall hold *}
 	<div class="result row">
 		{* Cover column *}
 		<div class="col-xs-12 col-sm-3">
