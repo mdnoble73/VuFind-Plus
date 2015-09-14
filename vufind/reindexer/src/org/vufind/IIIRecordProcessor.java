@@ -118,6 +118,7 @@ public abstract class IIIRecordProcessor extends IlsRecordProcessor{
 		HashSet<Long> pTypesNotAccountedFor = new HashSet<>();
 		pTypesNotAccountedFor.addAll(pTypesToCheck);
 		Long iTypeLong = Long.parseLong(iType);
+		boolean hasDefaultPType = pTypesToCheck.contains(-1L);
 		for (LoanRuleDeterminer curDeterminer : loanRuleDeterminers) {
 			if (curDeterminer.isActive()) {
 				//Make sure the location matches
@@ -125,7 +126,7 @@ public abstract class IIIRecordProcessor extends IlsRecordProcessor{
 					//logger.debug("    " + curDeterminer.getRowNumber() + " matches location");
 					if (curDeterminer.getItemType().equals("999") || curDeterminer.getItemTypes().contains(iTypeLong)) {
 						//logger.debug("    " + curDeterminer.getRowNumber() + " matches iType");
-						if (curDeterminer.getPatronType().equals("999") || isPTypeValid(curDeterminer.getPatronTypes(), pTypesNotAccountedFor)) {
+						if (hasDefaultPType || curDeterminer.getPatronType().equals("999") || isPTypeValid(curDeterminer.getPatronTypes(), pTypesNotAccountedFor)) {
 							//logger.debug("    " + curDeterminer.getRowNumber() + " matches pType");
 							LoanRule loanRule = loanRules.get(curDeterminer.getLoanRuleId());
 							relevantLoanRules.add(new RelevantLoanRule(loanRule, curDeterminer.getPatronTypes()));
@@ -169,30 +170,38 @@ public abstract class IIIRecordProcessor extends IlsRecordProcessor{
 
 	@Override
 	protected HoldabilityInformation isItemHoldable(ItemInfo itemInfo, Scope curScope) {
-		String locationCode;
-		if (loanRulesAreBasedOnCheckoutLocation()) {
-			//Loan rule determiner by lending location
-			locationCode = curScope.getIlsCode();
+		//Check to make sure this isn't an unscoped record
+		if (curScope.getRelatedNumericPTypes().contains(-1L)){
+			//This is an unscoped scope (everything should be holdable unless the location/itype/status is not holdable
+			return super.isItemHoldable(itemInfo, curScope);
 		}else{
-			//Loan rule determiner by owning location
-			locationCode = itemInfo.getLocationCode();
-		}
-		HashSet<RelevantLoanRule> relevantLoanRules = getRelevantLoanRules(itemInfo.getITypeCode(), locationCode, curScope.getRelatedNumericPTypes());
-		HashSet<Long> holdablePTypes = new HashSet<>();
-		//First check to see if the overall record is not holdable based on suppression rules
-		HoldabilityInformation holdability = super.isItemHoldable(itemInfo, curScope);
-		boolean holdable = false;
-		if (holdability.isHoldable()) {
-			//Set back to false and then prove true
-			holdable = false;
-			for (RelevantLoanRule loanRule : relevantLoanRules) {
-				if (loanRule.getLoanRule().getHoldable()) {
-					holdablePTypes.addAll(loanRule.getPatronTypes());
-					holdable = true;
+			String locationCode;
+			if (loanRulesAreBasedOnCheckoutLocation()) {
+				//Loan rule determiner by lending location
+				locationCode = curScope.getIlsCode();
+			}else{
+				//Loan rule determiner by owning location
+				locationCode = itemInfo.getLocationCode();
+			}
+
+			HashSet<RelevantLoanRule> relevantLoanRules = getRelevantLoanRules(itemInfo.getITypeCode(), locationCode, curScope.getRelatedNumericPTypes());
+			HashSet<Long> holdablePTypes = new HashSet<>();
+			//First check to see if the overall record is not holdable based on suppression rules
+			HoldabilityInformation holdability = super.isItemHoldable(itemInfo, curScope);
+			boolean holdable = false;
+			if (holdability.isHoldable()) {
+				//Set back to false and then prove true
+				holdable = false;
+				for (RelevantLoanRule loanRule : relevantLoanRules) {
+					if (loanRule.getLoanRule().getHoldable()) {
+						holdablePTypes.addAll(loanRule.getPatronTypes());
+						holdable = true;
+					}
 				}
 			}
+			return new HoldabilityInformation(holdable, holdablePTypes);
 		}
-		return new HoldabilityInformation(holdable, holdablePTypes);
+
 	}
 
 	@Override
