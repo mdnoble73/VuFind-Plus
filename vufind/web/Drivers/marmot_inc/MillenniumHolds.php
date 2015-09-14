@@ -120,6 +120,7 @@ class MillenniumHolds{
 
 		if (!isset($xNum)) {
 			// below requests variables should be deprecated as of now. plb 2-9-2015
+			// TODO: comment out this block
 			if (isset($_REQUEST['waitingholdselected']) || isset($_REQUEST['availableholdselected'])) {
 				$waitingHolds   = isset($_REQUEST['waitingholdselected']) ? $_REQUEST['waitingholdselected'] : array();
 				$availableHolds = isset($_REQUEST['availableholdselected']) ? $_REQUEST['availableholdselected'] : array();
@@ -149,7 +150,7 @@ class MillenniumHolds{
 			$holds = $this->getMyHolds($patron);
 			$combined_holds = array_merge($holds['unavailable'], $holds['available']);
 		}
-		$logger->log("Load titles = $loadTitles", PEAR_LOG_DEBUG); // move out of foreach loop
+//		$logger->log("Load titles = $loadTitles", PEAR_LOG_DEBUG); // move out of foreach loop
 
 
 		$extraGetInfo = array(
@@ -265,6 +266,8 @@ class MillenniumHolds{
 
 		//Make sure to clear any cached data
 		/** @var Memcache $memCache */
+		//TODO: need to be removed?
+		//QUESTION: keep?
 		global $memCache;
 		$memCache->delete("patron_dump_{$this->driver->_getBarcode()}");
 		usleep(250);
