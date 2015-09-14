@@ -9044,6 +9044,9 @@ a.browse-thumbnail.active {
   border-bottom: 2px solid #00b3ee;
   margin-bottom: 10px;
 }
+#explore-more-body .section {
+  margin-bottom: 20px;
+}
 #explore-more-body .section .row {
   margin-bottom: 10px;
 }
@@ -9053,6 +9056,27 @@ a.browse-thumbnail.active {
 .related-exhibit-images img {
   padding-left: 10px;
   padding-right: 10px;
+}
+.exploreMoreBar {
+  border-top: solid 3px #00b3ee;
+  border-bottom: solid 3px #00b3ee;
+  margin-bottom: 20px;
+  margin-top: 20px;
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+.exploreMoreBar .explore-more-option {
+  float: left;
+  padding-left: 10px;
+  padding-right: 10px;
+}
+.exploreMoreBar .explore-more-option .thumbnail {
+  margin-bottom: 0px;
+}
+.exploreMoreBar .explore-more-option figcaption {
+  margin-top: 4px;
+  margin-bottom: 4px;
+  font-weight: 100;
 }
 /* ---------------- Base Changes ---------------- */
 body {
