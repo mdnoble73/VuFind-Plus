@@ -204,7 +204,7 @@ class MillenniumHolds{
 			}
 		} // End of foreach loop
 
-		$holdUpdateParams = http_build_query($extraGetInfo);
+//		$holdUpdateParams = http_build_query($extraGetInfo);
 		//Login to the patron's account
 		$success   = false;
 
@@ -212,11 +212,13 @@ class MillenniumHolds{
 
 		//Issue a post request with the information about what to do with the holds
 		$curl_url = $this->driver->getVendorOpacUrl() . "/patroninfo~S{$scope}/" . $patron->username . "/holds";
-		curl_setopt($this->driver->curl_connection, CURLOPT_URL, $curl_url);
-		curl_setopt($this->driver->curl_connection, CURLOPT_POSTFIELDS, $holdUpdateParams);
-		curl_setopt($this->driver->curl_connection, CURLOPT_POST, true);
-		$sResult = curl_exec($this->driver->curl_connection);
+//		curl_setopt($this->driver->curl_connection, CURLOPT_URL, $curl_url);
+//		curl_setopt($this->driver->curl_connection, CURLOPT_POSTFIELDS, $holdUpdateParams);
+//		curl_setopt($this->driver->curl_connection, CURLOPT_POST, true);
+//		$sResult = curl_exec($this->driver->curl_connection);
+		$sResult = $this->driver->_curlPostPage($curl_url, $extraGetInfo);
 		$hold_original_results = $this->parseHoldsPage($sResult, $patron);
+			// Note:  Only $hold_original_results above will capture freeze hold errors
 
 		// TODO: Get Failure Messages
 
@@ -225,20 +227,25 @@ class MillenniumHolds{
 
 		//Go back to the hold page to check make sure our hold was cancelled
 		// Don't believe the page reload is necessary. same output as above. plb 2-3-2015
-		$curl_url = $this->driver->getVendorOpacUrl() . "/patroninfo~S{$scope}/" . $patron->username . "/holds";
-		curl_setopt($this->driver->curl_connection, CURLOPT_URL, $curl_url);
-		curl_setopt($this->driver->curl_connection, CURLOPT_HTTPGET, true);
-		$sResult     = curl_exec($this->driver->curl_connection);
-		$holds       = $this->parseHoldsPage($sResult, $patron);
+//		$curl_url = $this->driver->getVendorOpacUrl() . "/patroninfo~S{$scope}/" . $patron->username . "/holds";
+//		curl_setopt($this->driver->curl_connection, CURLOPT_URL, $curl_url);
+//		curl_setopt($this->driver->curl_connection, CURLOPT_HTTPGET, true);
+//		$sResult     = curl_exec($this->driver->curl_connection);
+		$sResult = $this->driver->_curlGetPage($curl_url);
+		$holds   = $this->parseHoldsPage($sResult, $patron);
 
-		if ($hold_original_results != $holds) { //test if they are the same
+		if ($hold_original_results != $holds) { // test if they are the same
 			$logger->log('Original Hold Results are different from the second Round!', PEAR_LOG_WARNING);
+
+			$holds = $hold_original_results; // sets to first page-load to get freeze error results
+			//TODO : Figure out cases where the page reload of holds is necessary. Because the original results are
+			//       necessary for extracting a freeze error/determining that freeze failed.
 		}
 
 		$combined_holds = array_merge($holds['unavailable'], $holds['available']);
 //		$numHoldsEnd = count($combined_holds);
 		//Finally, check to see if the update was successful.
-		if ($type == 'cancel' || $type=='recall'){
+		if ($type == 'cancel' || $type == 'recall'){
 			$failure_messages = array();
 //			$success_messages = array();
 			foreach ($xNum as $tmpXnumInfo){
@@ -262,6 +269,40 @@ class MillenniumHolds{
 			$success = empty($failure_messages);
 			if ($success) $logger->log('Cancelled ok', PEAR_LOG_INFO);
 
+		}
+		elseif ($type == 'update') {
+			// Thaw Hold
+			if ($freezeValue == 'off') {
+			}
+			// Freeze Hold
+			elseif ($freezeValue == 'on') {
+				$failure_messages = array();
+//			$success_messages = array();
+				foreach ($xNum as $tmpXnumInfo) {
+					list($tmpBib) = explode('~', $tmpXnumInfo);
+//				$failed = false;
+					foreach ($combined_holds as $hold) {
+						if ($tmpBib == $hold['shortId']) { // this hold failed (item still on hold)
+							$title = (array_key_exists($tmpBib, $titles) && $titles[$tmpBib] != '') ? $titles[$tmpBib] : 'an item';
+
+							if (isset($hold['freezeError'])) {
+								$failure_messages[$tmpXnumInfo] = "The hold for $title could not be frozen.  Please try again later or see your librarian.";
+							}
+							// use original id as index so that javascript functions can pick out failed cancels
+
+//						$failed = true;
+							break;
+						}
+					}
+//				Currently individual success messages not used.
+//				if (!$failed){
+//					$success_messages[] = "The hold for {$titles[$tmpBib]} was successfully cancelled.";
+//				}
+				}
+			}
+			// Change Pick-up Location
+			elseif ($freezeValue == '') {
+			}
 		}
 
 		//Make sure to clear any cached data
@@ -291,11 +332,48 @@ class MillenniumHolds{
 				return array(
 					'title' => $titles,
 					'success' => false,
-//					'message' => 'Your hold'.($plural ? 's' : '' ).' could not be cancelled.  Please try again later or see your librarian.'
 					'message' => $failure_messages
 				);
 			}
-		}else{
+		}
+		elseif ($type == 'update') {
+			// Thaw Hold
+			if ($freezeValue == 'off') {
+				return array(
+					'title' => $titles,
+					'success' => true,
+					'message' => 'Your hold'.($plural ? 's were' : ' was' ).' updated successfully.');
+			}
+			// Freeze Hold
+			elseif ($freezeValue == 'on') {
+				//TODO check for error messages
+				if ($success) { // All were successful
+					$analytics->addEvent('ILS Integration', 'Hold Frozen', $title_list);
+					return array(
+						'title' => $titles,
+						'success' => true,
+						'message' => 'Your hold' . ($plural ? 's were' : ' was') . ' frozen successfully.');
+				} else { // at least one failure
+					$analytics->addEvent('ILS Integration', 'Hold Not Frozen', $title_list);
+					return array(
+						'title' => $titles,
+						'success' => false,
+						'message' => $failure_messages
+					);
+				}
+			}
+			// Change Pick-up Location
+			elseif ($freezeValue == '') {
+				//TODO check for error messages
+				return array(
+					'title' => $titles,
+					'success' => true,
+					'message' => 'Your hold'.($plural ? 's were' : ' was' ).' updated successfully.');
+			}
+
+		}
+
+		else{
 			$analytics->addEvent('ILS Integration', 'Hold(s) Updated', $title_list);
 			return array(
 				'title' => $titles,
@@ -318,6 +396,9 @@ class MillenniumHolds{
 			'available'=> $availableHolds,
 			'unavailable' => $unavailableHolds
 		);
+
+		//Fix presentation error for notice when freezing a hold has failed
+		$pageContents = str_replace('<em>This hold can not be frozen.</em></tr>', '<em>This hold can not be frozen.</em></td></tr>', $pageContents);
 
 		//Get the headers from the table
 		preg_match_all('/<th\\s+class="patFuncHeaders">\\s*([\\w\\s]*?)\\s*<\/th>/si', $pageContents, $result, PREG_SET_ORDER);
@@ -376,7 +457,7 @@ class MillenniumHolds{
 						}
 					}
 
-					if (stripos($sKeys[$i],"TITLE") > -1) {
+					elseif (stripos($sKeys[$i],"TITLE") > -1) {
 						if (preg_match('/.*?<a href=\\"\/record=(.*?)(?:~S\\d{1,2})\\">(.*?)<\/a>.*/', $sCols[$i], $matches)) {
 							$shortId = $matches[1];
 							$bibid = '.' . $matches[1] . $this->driver->getCheckDigit($shortId);
@@ -401,11 +482,11 @@ class MillenniumHolds{
 						$curHold['shortId'] = $shortId;
 						$curHold['title'] = $title;
 					}
-					if (stripos($sKeys[$i],"Ratings") > -1) {
+					elseif (stripos($sKeys[$i],"Ratings") > -1) {
 						$curHold['request'] = "STARS";
 					}
 
-					if (stripos($sKeys[$i],"PICKUP LOCATION") > -1) {
+					elseif (stripos($sKeys[$i],"PICKUP LOCATION") > -1) {
 
 						//Extract the current location for the hold if possible
 						$matches = array();
@@ -443,7 +524,7 @@ class MillenniumHolds{
 						}
 					}
 
-					if (stripos($sKeys[$i],"STATUS") > -1) {
+					elseif (stripos($sKeys[$i],"STATUS") > -1) {
 						$status = trim(strip_tags($sCols[$i]));
 						$status = strtolower($status);
 						$status = ucwords($status);
@@ -481,10 +562,10 @@ class MillenniumHolds{
 						}
 						//$logger->log('Status for item ' . $curHold['id'] . '=' . $sCols[$i], PEAR_LOG_INFO);
 					}
-					if (stripos($sKeys[$i],"CANCEL IF NOT FILLED BY") > -1) {
+					elseif (stripos($sKeys[$i],"CANCEL IF NOT FILLED BY") > -1) {
 						//$curHold['expire'] = strip_tags($scols[$i]);
 					}
-					if (stripos($sKeys[$i],"FREEZE") > -1) {
+					elseif (stripos($sKeys[$i],"FREEZE") > -1) {
 						$matches = array();
 						$curHold['frozen'] = false;
 						if (preg_match('/<input.*name="freeze(.*?)"\\s*(\\w*)\\s*\/>/', $sCols[$i], $matches)){
@@ -493,11 +574,13 @@ class MillenniumHolds{
 								$curHold['frozen'] = true;
 								$curHold['status'] = 'Frozen';
 							}
-						}elseif (preg_match('/This hold can\s?not be frozen/i', $sCols[$i], $matches)){
+						} elseif (preg_match('/This hold can\s?not be frozen/i', $sCols[$i], $matches)){
 							//If we detect an error Freezing the hold, save it so we can report the error to the user later.
 							$shortId = str_replace('.b', 'b', $curHold['id']);
+							//TODO: Return as part of results. Using the Session variable no longer workable path to user feedback.
 							$_SESSION['freezeResult'][$shortId]['message'] = $sCols[$i];
 							$_SESSION['freezeResult'][$shortId]['success'] = false;
+							$curHold['freezeError'] = strip_tags($sCols[$i]);
 						}else{
 							$curHold['freezeable'] = false;
 						}

@@ -449,6 +449,11 @@ class MyAccount_AJAX
 					$holdId = $_REQUEST['holdId'];
 					$reactivationDate = isset($_REQUEST['reactivationDate']) ? $_REQUEST['reactivationDate'] : null;
 					$result = $patronOwningHold->freezeHold($recordId, $holdId, $reactivationDate);
+					if (!$result['success'] && is_array($result['message'])) {
+						$result['message'] = implode('; ', $result['message']);
+						// Millennium Holds assumes there can be more than one item processed. Here we know only one got processed,
+						// but do implode as a fallback
+					}
 				}
 			}
 		} else {
