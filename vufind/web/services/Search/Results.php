@@ -523,7 +523,7 @@ class Search_Results extends Action {
 						'type' => 'archive-' . $objectContentType,
 						'title' => $title,
 						'description' => isset($solrDoc->{'dc.description'}) ? $solrDoc->{'dc.description'} : '',
-
+						'thumbnail' => $configArray['Islandora']['fedoraUrl'] . '/objects/' . $solrDoc->PID .'/datastreams/TN/content',
 					);
 				}else{
 					//This is an exhibit for display
@@ -537,8 +537,33 @@ class Search_Results extends Action {
 					);
 				}
 			}
-			ksort($exploreMoreOptions);
-			$interface->assign('exploreMoreOptions', $exploreMoreOptions);
+			$sortedOptions = array();
+			//Add all the collections first
+			foreach ($exploreMoreOptions as $option){
+				if (isset($option['type']) && $option['type'] == 'archive-collection'){
+					$sortedOptions[] = $option;
+				}
+			}
+			foreach ($exploreMoreOptions as $type => $option){
+				if (!isset($option['type']) || $option['type'] != 'archive-collection'){
+					//Create information about how to link based off the collected documents
+					$optionByFormat = reset($option);
+					$add = false;
+					if ($type == 'MovingImage' ){
+						$optionByFormat['title'] = 'Videos';
+					}else if ($type == 'Text' ){
+						$optionByFormat['title'] = 'Articles';
+					}else if ($type == 'image/jpeg' ){
+						$optionByFormat['title'] = 'Images';
+						$add = true;
+					}
+					if ($add){
+						$sortedOptions[] = $optionByFormat;
+					}
+
+				}
+			}
+			$interface->assign('exploreMoreOptions', $sortedOptions);
 		}
 	}
 }
