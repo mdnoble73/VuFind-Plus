@@ -549,13 +549,20 @@ VuFind.Account = (function(){
 		},
 
 		doChangeHoldLocation: function(){
-			var patronId = $('#patronId').val();
-			var recordId = $('#recordId').val();
-			var holdId = $('#holdId').val();
-			var newLocation = $('#newPickupLocation').val();
-			var url = Globals.path + "/MyAccount/AJAX?method=changeHoldLocation&patronId=" + patronId + "&recordId=" + recordId + "&holdId=" + encodeURIComponent(holdId) + "&newLocation=" + encodeURIComponent(newLocation);
-			// TODO: use getJSON data parameter for query string, does encoding
-			$.getJSON(url,
+			var //patronId = $('#patronId').val()
+					//,recordId = $('#recordId').val()
+					//,holdId = $('#holdId').val()
+					//,newLocation = $('#newPickupLocation').val()
+					url = Globals.path + "/MyAccount/AJAX"
+					,params = {
+						'method': 'changeHoldLocation'
+						,patronId : $('#patronId').val()
+						,recordId : $('#recordId').val()
+						,holdId : $('#holdId').val()
+						,newLocation : $('#newPickupLocation').val()
+					};
+
+			$.getJSON(url, params,
 					function(data) {
 						if (data.success) {
 							VuFind.showMessage("Success", data.message, true, true);
@@ -563,32 +570,35 @@ VuFind.Account = (function(){
 							VuFind.showMessage("Error", data.message);
 						}
 					}
-			);
+			).fail(VuFind.ajaxFail);
 		},
 
 		freezeHold: function(patronId, recordId, holdId, promptForReactivationDate, caller){
+			VuFind.loadingMessage();
+			var url = Globals.path + '/MyAccount/AJAX',
+					params = {
+						patronId : patronId
+						,recordId : recordId
+						,holdId : holdId
+					};
 			if (promptForReactivationDate){
 				//Prompt the user for the date they want to reactivate the hold
-				var modalDialog = $("#modalDialog");
-				//$(".modal-body").html($('#userreview' + id).html());
-				$.getJSON(Globals.path + "/MyAccount/AJAX?method=getReactivationDateForm&patronId=" + patronId + "&recordId=" + recordId + "&holdId=" + holdId, function(data){
-					$('#myModalLabel').html(data.title);
-					$('.modal-body').html(data.modalBody);
-					$('.modal-buttons').html(data.modalButtons);
-				});
-				modalDialog.load( );
-				modalDialog.modal('show');
+				params['method'] = 'getReactivationDateForm'; // set method for this form
+				$.getJSON(url, params, function (data) {
+					VuFind.showMessageWithButtons(data.title, data.modalBody, data.modalButtons)
+				}).fail(VuFind.ajaxFail);
+
 			}else{
 				var popUpBoxTitle = $(caller).text() || "Freezing Hold"; // freezing terminology can be customized, so grab text from click button: caller
 				VuFind.showMessage(popUpBoxTitle, "Updating your hold.  This may take a minute.");
-				var url = Globals.path + '/MyAccount/AJAX?method=freezeHold&patronId=' + patronId + "&recordId=" + recordId + '&holdId=' + holdId;
-				$.getJSON(url, function(data){
+				params['method'] = 'freezeHold'; //set method for this ajax call
+				$.getJSON(url, params, function(data){
 					if (data.success) {
 						VuFind.showMessage("Success", data.message, true, true);
 					} else {
 						VuFind.showMessage("Error", data.message);
 					}
-				});
+				}).fail(VuFind.ajaxFail);
 			}
 		},
 
@@ -607,8 +617,11 @@ VuFind.Account = (function(){
 				} else {
 					VuFind.showMessage("Error", data.message);
 				}
-			});
+			}).fail(VuFind.ajaxFail);
 		},
+
+		/* Hide this code for now. I should be to re-enable when re-enable selections
+		plb 9-14-2015
 
 		freezeSelectedHolds: function (){
 			//TODO: simplified, should be same functionality, double check. plb 5-29-2015
@@ -639,6 +652,7 @@ VuFind.Account = (function(){
 			window.location = url;
 			return false;
 		},
+		*/
 
 
 		getSelectedTitles: function(promptForSelectAll){
@@ -674,31 +688,21 @@ VuFind.Account = (function(){
 								VuFind.showMessage("Error", data.message);
 							}
 						}
-				);
+				).fail(VuFind.ajaxFail);
 			}
 			return false;
 		},
 
 		showCreateListForm: function(id){
 			if (Globals.loggedIn){
-				var modalDialog = $("#modalDialog");
-				//$(".modal-body").html($('#userreview' + id).html());
-				//var url = Globals.path + "/MyAccount/AJAX?method=getCreateListForm";
-				//if (id != undefined){
-				//	url += '&recordId=' + encodeURIComponent(id);
-				//}
 				var url = Globals.path + "/MyAccount/AJAX",
 						params = {method:"getCreateListForm"};
 				if (id != undefined){
 					params.recordId= id;
 				}
 				$.getJSON(url, params, function(data){
-					$('#myModalLabel').html(data.title);
-					$('.modal-body').html(data.modalBody);
-					$('.modal-buttons').html(data.modalButtons);
-				});
-				//modalDialog.load( );
-				modalDialog.modal('show');
+					VuFind.showMessageWithButtons(data.title, data.modalBody, data.modalButtons);
+				}).fail(VuFind.ajaxFail);
 			}else{
 				VuFind.Account.ajaxLogin($trigger, function (){
 					return VuFind.GroupedWork.showEmailForm(trigger, id);
@@ -717,7 +721,7 @@ VuFind.Account = (function(){
 				} else {
 					VuFind.showMessage("Error", data.message);
 				}
-			});
+			}).fail(VuFind.ajaxFail);
 		}
 
 	};
