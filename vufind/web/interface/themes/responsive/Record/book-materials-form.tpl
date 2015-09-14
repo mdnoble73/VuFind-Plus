@@ -116,7 +116,7 @@
 								});
 			*}{literal}
 
-			$.get(Globals.path + '/{$activeRecordProfileModule}/{/literal}{$id|replace:'ils:':''}{literal}/AJAX?method=getBookingCalendar',
+			$.get(Globals.path + '/{/literal}{$activeRecordProfileModule}/{$id|replace:'ils:':''}{literal}/AJAX?method=getBookingCalendar',
 							function(data){
 								if (data) {
 									$('#bookingCalendar').append(data);
