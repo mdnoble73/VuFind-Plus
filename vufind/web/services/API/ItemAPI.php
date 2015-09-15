@@ -252,7 +252,7 @@ class ItemAPI extends Action {
 			return array('error', 'Record does not exist');
 		}
 		$this->record = $record;
-		if ($record['recordtype'] == 'econtentRecord'){
+		/*if ($record['recordtype'] == 'econtentRecord'){
 			require_once(ROOT_DIR . '/sys/eContent/EContentRecord.php');
 			$eContentRecord = new EContentRecord();
 			$eContentRecord->id = substr($record['id'], strlen('econtentRecord'));
@@ -284,7 +284,7 @@ class ItemAPI extends Action {
 				$driver = new EContentDriver();
 				$itemData['holdings'] = $driver->getHolding($eContentRecord->id);
 			}
-		}else{
+		}else{*/
 
 			$this->recordDriver = RecordDriverFactory::initRecordDriver($record);
 			$timer->logTime('Initialized the Record Driver');
@@ -377,7 +377,7 @@ class ItemAPI extends Action {
 			if ($this->marcRecord){
 				$itemData['marc'] = $this->marcRecord->toJSON();
 			}
-		}
+		//}
 
 		return $itemData;
 	}
@@ -522,7 +522,54 @@ class ItemAPI extends Action {
 		$this->id = $_GET['id'];
 		$itemData['id'] = $this->id;
 
-		// Setup Search Engine Connection
+		$fullId = 'ils:' . $this->id;
+
+		//Update to use same method of loading that we do within AJAX
+		try {
+			$catalog = CatalogFactory::getCatalogConnectionInstance();;
+			$timer->logTime("Connected to catalog");
+		} catch (PDOException $e) {
+			// What should we do with this error?
+			if ($configArray['System']['debug']) {
+				echo '<pre>';
+				echo 'DEBUG: ' . $e->getMessage();
+				echo '</pre>';
+			}
+			return null;
+		}
+
+		if ($catalog->status) {
+			$result = $catalog->getHolding($fullId);
+			$timer->logTime("Loaded Holding Data from catalog");
+			if (PEAR_Singleton::isError($result)) {
+				PEAR_Singleton::raiseError($result);
+			}
+			if (count($result)) {
+				$holdings = array();
+				$issueSummaries = array();
+				foreach ($result as $copy) {
+					if (isset($copy['type']) && $copy['type'] == 'issueSummary') {
+						$issueSummaries = $result;
+						break;
+					} else {
+						$hasLastCheckinData = (isset($copy['lastCheckinDate']) && $copy['lastCheckinDate'] != null) || $hasLastCheckinData; // if $hasLastCheckinData was true keep that value even when first check is false.
+						// flag for at least 1 lastCheckinDate
+
+						$key = $copy['location'];
+						$key = preg_replace('~\W~', '_', $key);
+						$holdings[$key][] = $copy;
+					}
+				}
+				if (isset($issueSummaries) && count($issueSummaries) > 0) {
+					$itemData['holdings'] = $issueSummaries;
+				} else {
+					$itemData['holdings'] = $holdings;
+				}
+			} else {
+				$itemData['holdings'] = array();
+			}
+		}
+		/*// Setup Search Engine Connection
 		$class = $configArray['Index']['engine'];
 		$url = $configArray['Index']['url'];
 		$this->db = new $class($url);
@@ -560,8 +607,7 @@ class ItemAPI extends Action {
 				$itemData['holdings'] = Record_Holdings::loadHoldings($this->id);
 				$timer->logTime('Loaded Holdings');
 			}
-		}
-
+		}*/
 
 		return $itemData;
 	}
