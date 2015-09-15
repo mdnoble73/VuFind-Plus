@@ -156,6 +156,11 @@ class SierraStatusLoader extends MillenniumStatusLoader{
 		}
 
 		//In Sierra, we can just load data from the MARC Record/Index
+		global $library;
+		if ($library->useScope){
+			$recordDriver->setScopingEnabled(true);
+		}
+
 		$items = $recordDriver->getItemsFast();
 		$holdQueueLength = $recordDriver->getNumHolds();
 		$itemStatus = array();

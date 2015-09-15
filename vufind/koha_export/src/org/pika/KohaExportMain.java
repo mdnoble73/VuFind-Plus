@@ -212,7 +212,7 @@ public class KohaExportMain {
 				try {
 					onloan = itemChangeRS.getString("onloan");
 				}catch (SQLException e){
-					logger.warn("Invalid onloan value for bib " + bibNumber + " item " + itemNumber);
+					logger.info("Invalid onloan value for bib " + bibNumber + " item " + itemNumber);
 				}
 
 				ItemChangeInfo changeInfo = new ItemChangeInfo();

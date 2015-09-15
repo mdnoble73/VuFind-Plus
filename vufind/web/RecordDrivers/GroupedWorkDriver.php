@@ -1560,56 +1560,71 @@ class GroupedWorkDriver extends RecordInterface{
 			}
 		}
 		if ($formatComparison == 0){
-			//1) Compare by language to put english titles before spanish by default
-			$languageComparison = GroupedWorkDriver::compareLanguagesForRecords($a, $b);
-			if ($languageComparison == 0){
-				//2) Compare editions for non-fiction if available
-				$editionComparisonResult = GroupedWorkDriver::compareEditionsForRecords($literaryForm, $a, $b);
-				if ($editionComparisonResult == 0){
-					//3) Put anything with locally available items first
-					$localAvailableItemComparisonResult = GroupedWorkDriver::compareLocalAvailableItemsForRecords($a, $b);
-					if ($localAvailableItemComparisonResult == 0){
-						//4) Anything that is available elsewhere goes higher
-						$availabilityComparisonResults = GroupedWorkDriver::compareAvailabilityForRecords($a, $b);
-						if ($availabilityComparisonResults == 0){
-							//5) Put anything with a local copy higher
-							$localItemComparisonResult = GroupedWorkDriver::compareLocalItemsForRecords($a, $b);
-							if ($localItemComparisonResult == 0){
-								//6) All else being equal, sort by hold ratio
-								if ($a['holdRatio'] == $b['holdRatio']){
-									//Hold Ratio is the same, last thing to check is the number of copies
-									if ($a['copies'] == $b['copies']){
-										return 0;
-									}elseif ($a['copies'] > $b['copies']){
+			//1) Put anything that is holdable first
+			$holdabilityComparison = GroupedWorkDriver::compareHoldability($a, $b);
+			if ($holdabilityComparison == 0) {
+				//2) Compare by language to put english titles before spanish by default
+				$languageComparison = GroupedWorkDriver::compareLanguagesForRecords($a, $b);
+				if ($languageComparison == 0) {
+					//3) Compare editions for non-fiction if available
+					$editionComparisonResult = GroupedWorkDriver::compareEditionsForRecords($literaryForm, $a, $b);
+					if ($editionComparisonResult == 0) {
+						//4) Put anything with locally available items first
+						$localAvailableItemComparisonResult = GroupedWorkDriver::compareLocalAvailableItemsForRecords($a, $b);
+						if ($localAvailableItemComparisonResult == 0) {
+							//5) Anything that is available elsewhere goes higher
+							$availabilityComparisonResults = GroupedWorkDriver::compareAvailabilityForRecords($a, $b);
+							if ($availabilityComparisonResults == 0) {
+								//6) Put anything with a local copy higher
+								$localItemComparisonResult = GroupedWorkDriver::compareLocalItemsForRecords($a, $b);
+								if ($localItemComparisonResult == 0) {
+									//7) All else being equal, sort by hold ratio
+									if ($a['holdRatio'] == $b['holdRatio']) {
+										//Hold Ratio is the same, last thing to check is the number of copies
+										if ($a['copies'] == $b['copies']) {
+											return 0;
+										} elseif ($a['copies'] > $b['copies']) {
+											return -1;
+										} else {
+											return 1;
+										}
+									} elseif ($a['holdRatio'] > $b['holdRatio']) {
 										return -1;
-									}else{
+									} else {
 										return 1;
 									}
-								}elseif ($a['holdRatio'] > $b['holdRatio']){
-									return -1;
-								}else{
-									return 1;
+								} else {
+									return $localItemComparisonResult;
 								}
-							}else{
-								return $localItemComparisonResult;
+							} else {
+								return $availabilityComparisonResults;
 							}
-						}else{
-							return $availabilityComparisonResults;
+						} else {
+							return $localAvailableItemComparisonResult;
 						}
-					}else{
-						return $localAvailableItemComparisonResult;
+					} else {
+						return $editionComparisonResult;
 					}
-				}else{
-					return $editionComparisonResult;
+				} else {
+					return $languageComparison;
 				}
-			}else{
-				return $languageComparison;
+			} else {
+				return $holdabilityComparison;
 			}
 		}else {
 			return $formatComparison;
 		}
 	}
 
+	static function compareHoldability($a, $b){
+		if ($a['holdable'] == $b['holdable']){
+			return 0;
+		}else if ($a['holdable']){
+			return -1;
+		}else{
+			return 1;
+		}
+	}
 	static function compareLanguagesForRecords($a, $b){
 		$aHasEnglish = false;
 		if (is_array($a['language'])){
