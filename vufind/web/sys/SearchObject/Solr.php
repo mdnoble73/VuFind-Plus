@@ -1915,6 +1915,7 @@ class SearchObject_Solr extends SearchObject_Base
 				$image = $groupedWorkDriver->getBookcoverUrl('medium');
 				$description = "<img src='$image'/> " . $groupedWorkDriver->getDescriptionFast();
 				$result['response']['docs'][$i]['description'] = $description;
+				$result['response']['docs'][$i]['title'] = $result['response']['docs'][$i]['title_full'];
 
 			}else{
 				$id = $result['response']['docs'][$i]['id'];
