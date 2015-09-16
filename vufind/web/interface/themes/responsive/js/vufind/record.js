@@ -218,9 +218,7 @@ VuFind.Record = (function(){
 				}else{
 					VuFind.showMessage('Hold Failed', data.message, false, autoLogOut);
 				}
-			}).fail(function(){
-				VuFind.showMessage('Request Failed', 'There was an error with this AJAX Request.');
-			});
+			}).fail(VuFind.ajaxFail);
 		},
 
 		reloadCover: function(module, id){
@@ -229,9 +227,7 @@ VuFind.Record = (function(){
 						VuFind.showMessage("Success", data.message, true, true);
 						setTimeout("VuFind.closeLightbox();", 3000);
 					}
-			).fail(function(){
-						VuFind.showMessage('Request Failed', 'There was an error with this AJAX Request.');
-					});
+			).fail(VuFind.ajaxFail);
 			return false;
 		},
 

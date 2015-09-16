@@ -39,9 +39,7 @@ VuFind.Account = (function(){
 					} else {
 						VuFind.showMessage("Error", data.message);
 					}
-			}).fail(function(){
-					VuFind.showMessage("Error creating list", "There was an unexpected error creating your list")
-			});
+			}).fail(VuFind.ajaxFail);
 			return false;
 		},
 
@@ -354,9 +352,7 @@ VuFind.Account = (function(){
 					VuFind.loadingMessage();
 					$.getJSON(Globals.path + "/MyAccount/AJAX?method=cancelHold&patronId=" + patronId + "&recordId=" + recordId + "&cancelId="+holdIdToCancel, function(data){
 						VuFind.showMessage(data.title, data.modalBody, data.success, data.success); // autoclose when successful
-					}).fail(function(){
-						VuFind.ajaxFail()
-					})
+					}).fail(VuFind.ajaxFail)
 				} else {
 					this.ajaxLogin(null, function () {
 						VuFind.Account.cancelHold(userId, holdIdToCancel)
@@ -604,12 +600,12 @@ VuFind.Account = (function(){
 
 // called by ReactivationDateForm when fn freezeHold above has promptForReactivationDate is set
 		doFreezeHoldWithReactivationDate: function(caller){
-			var popUpBoxTitle = $(caller).text() || "Freezing Hold"; // freezing terminology can be customized, so grab text from click button: caller
-			var patronId = $('#patronId').val();
-			var recordId = $('#recordId').val();
-			var holdId = $("#holdId").val();
-			var reactivationDate = $("#reactivationDate").val();
-			var url = Globals.path + '/MyAccount/AJAX?method=freezeHold&patronId=' + patronId + "&recordId=" + recordId + '&holdId=' + holdId + '&reactivationDate=' + reactivationDate;
+			var popUpBoxTitle = $(caller).text() || "Freezing Hold" // freezing terminology can be customized, so grab text from click button: caller
+					,patronId = $('#patronId').val()
+					,recordId = $('#recordId').val()
+					,holdId = $("#holdId").val()
+					,reactivationDate = $("#reactivationDate").val()
+					,url = Globals.path + '/MyAccount/AJAX?method=freezeHold&patronId=' + patronId + "&recordId=" + recordId + '&holdId=' + holdId + '&reactivationDate=' + reactivationDate;
 			VuFind.showMessage(popUpBoxTitle, "Updating your hold.  This may take a minute.");
 			$.getJSON(url, function(data){
 				if (data.success) {
@@ -620,11 +616,10 @@ VuFind.Account = (function(){
 			}).fail(VuFind.ajaxFail);
 		},
 
-		/* Hide this code for now. I should be to re-enable when re-enable selections
+		/* Hide this code for now. I should be to re-enable when re-enable selections for Holds
 		plb 9-14-2015
 
 		freezeSelectedHolds: function (){
-			//TODO: simplified, should be same functionality, double check. plb 5-29-2015
 			var selectedTitles = this.getSelectedTitles();
 			if (selectedTitles.length == 0){
 				return false;
@@ -714,8 +709,14 @@ VuFind.Account = (function(){
 		thawHold: function(patronId, recordId, holdId, caller){
 			var popUpBoxTitle = $(caller).text() || "Thawing Hold";  // freezing terminology can be customized, so grab text from click button: caller
 			VuFind.showMessage(popUpBoxTitle, "Updating your hold.  This may take a minute.");
-			var url = Globals.path + '/MyAccount/AJAX?method=thawHold&patronId=' + patronId + "&recordId=" + recordId + '&holdId=' + holdId;
-			$.getJSON(url, function(data){
+			var url = Globals.path + '/MyAccount/AJAX',
+					params = {
+						'method' : 'thawHold'
+						,patronId : patronId
+						,recordId : recordId
+						,holdId : holdId
+					};
+			$.getJSON(url, params, function(data){
 				if (data.success) {
 					VuFind.showMessage("Success", data.message, true, true);
 				} else {
