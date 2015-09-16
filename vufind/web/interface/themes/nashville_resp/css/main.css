@@ -8974,9 +8974,11 @@ h6,
   text-shadow: 0px 0px #999;
   text-align: center;
 }
+/*
+Renable login from sidebar per James
 #home-page-login {
-  display: none;
-}
+  display:none;
+}*/
 div#returnToSearch {
   display: none;
 }
