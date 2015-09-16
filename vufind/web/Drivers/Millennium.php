@@ -310,7 +310,7 @@ class Millennium extends ScreenScrapingDriver
 
 			$locationCode = $itemField->getSubfield($locationSubfield) != null ? trim($itemField->getSubfield($locationSubfield)->getData()) : '';
 			//Do a quick check of location code so we can remove this quickly when scoping is enabled
-			if ($scopingEnabled && strlen(Millennium::$scopingLocationCode) > 0 && preg_match('/' . Millennium::$scopingLocationCode . '/i', $locationCode)){
+			if ($scopingEnabled && strlen(Millennium::$scopingLocationCode) > 0 && !preg_match('/^' . Millennium::$scopingLocationCode . '.*$/i', $locationCode)){
 				global $logger;
 				$logger->log("Removed item because scoping is enabled and the location code $locationCode did not match " . Millennium::$scopingLocationCode, PEAR_LOG_DEBUG);
 				continue;

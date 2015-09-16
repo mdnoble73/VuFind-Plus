@@ -1032,8 +1032,8 @@ class CatalogConnection
 	public function getItemsFast($id, $scopingEnabled, $marcRecord = null){
 		/** @var Memcache $memCache */
 		global $memCache;
-		global $serverName;
-		$key = 'items_fast_' . $serverName . '_' . $id . '_' . $scopingEnabled;
+		global $solrScope;
+		$key = 'items_fast_' . $solrScope . '_' . $id . '_' . $scopingEnabled;
 		$cachedValue = $memCache->get($key);
 		if ($cachedValue == false || isset($_REQUEST['reload'])){
 			global $configArray;
