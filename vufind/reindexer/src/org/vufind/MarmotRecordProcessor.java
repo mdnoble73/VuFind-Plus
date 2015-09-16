@@ -192,7 +192,7 @@ public class MarmotRecordProcessor extends IIIRecordProcessor {
 	}
 
 	protected boolean loanRulesAreBasedOnCheckoutLocation(){
-		return true;
+		return false;
 	}
 
 	protected boolean determineLibraryUseOnly(ItemInfo itemInfo, Scope curScope) {
