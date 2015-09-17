@@ -302,7 +302,10 @@ class MillenniumCheckouts {
 	 * @return array
 	 */
 	public function renewItem($patron, $itemId, $itemIndex){
-		global $logger;
+		/** var Logger $logger
+		 *  var Timer $timer
+		 * */
+		global $logger, $timer;
 		global $analytics;
 
 		$driver = &$this->driver;
@@ -337,6 +340,7 @@ class MillenniumCheckouts {
 			$success = false;
 			$message = 'Unable to renew this item now, your account is in use by the system.  Please try again later.';
 			$logger->log('Account is busy error while attempting renewal', PEAR_LOG_WARNING);
+			$timer->logTime('Got System Busy Error while attempting renewal');
 			if ($analytics){
 				$analytics->addEvent('ILS Integration', 'Renew Failed', 'Account in Use');
 			}
@@ -363,7 +367,7 @@ class MillenniumCheckouts {
 							$success = true;
 							$message = 'Your item was successfully renewed';
 						}
-						$logger->log("Renew success = ".($success?'true':'false').", $message", PEAR_LOG_DEBUG);
+						$logger->log("Renew success = ".($success ? 'true' : 'false').", $message", PEAR_LOG_DEBUG);
 						break; // found our item, get out of loop.
 					}
 				}
@@ -378,6 +382,8 @@ class MillenniumCheckouts {
 				$analytics->addEvent('ILS Integration', 'Renew Successful');
 			}
 		}
+
+		$timer->logTime('Finished Renew Item attempt');
 
 		return array(
 			'itemId' => $itemId,
