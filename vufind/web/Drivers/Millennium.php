@@ -976,7 +976,17 @@ class Millennium extends ScreenScrapingDriver
 	public function renewItem($patron, $recordId, $itemId, $itemIndex){
 		require_once ROOT_DIR . '/Drivers/marmot_inc/MillenniumCheckouts.php';
 		$millenniumCheckouts = new MillenniumCheckouts($this);
-		return $millenniumCheckouts->renewItem($patron, $itemId, $itemIndex);
+		$result = $millenniumCheckouts->renewItem($patron, $itemId, $itemIndex);
+		// If we get an account busy error let's try one more time after a delay
+		if (!$result['success'] && strpos($result['message'], 'your account is in use by the system.')) {
+			usleep(400);
+			$result = $millenniumCheckouts->renewItem($patron, $itemId, $itemIndex);
+			if (!$result['success'] && strpos($result['message'], 'your account is in use by the system.')) {
+				global $logger;
+				$logger->log('System still busy after to attempts at renewel', PEAR_LOG_ERR);
+			}
+		}
+		return $result;
 	}
 
 	public function bookMaterial($patron, $recordId, $startDate, $startTime = null, $endDate = null, $endTime = null) {
