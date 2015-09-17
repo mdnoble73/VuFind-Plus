@@ -242,7 +242,7 @@ class MillenniumCheckouts {
 		);
 		$renew_result['Total'] = $curCheckedOut;
 
-		// pattern from marmot sierra :  <b>  RENEWED</b> 
+		// pattern from marmot sierra :  <b>  RENEWED</b>
 		$numRenewals = preg_match_all("/<b>\s*RENEWED<\/b>/si", $checkedOutPageText, $matches);
 		$renew_result['Renewed'] = $numRenewals;
 		$renew_result['Unrenewed'] = $renew_result['Total'] - $renew_result['Renewed'];
@@ -259,6 +259,8 @@ class MillenniumCheckouts {
 			// The Account is busy
 			elseif (preg_match('/Your record is in use/si', $checkedOutPageText)) {
 				$renew_result['message'][] = 'Unable to renew this item now, your account is in use by the system.  Please try again later.';
+				$logger->log('Account is busy error while attempting renewal', PEAR_LOG_WARNING);
+
 			}
 
 			// Let's Look at the Results
@@ -334,6 +336,7 @@ class MillenniumCheckouts {
 		elseif (preg_match('/Your record is in use/si', $checkedOutPageText, $matches)) {
 			$success = false;
 			$message = 'Unable to renew this item now, your account is in use by the system.  Please try again later.';
+			$logger->log('Account is busy error while attempting renewal', PEAR_LOG_WARNING);
 			if ($analytics){
 				$analytics->addEvent('ILS Integration', 'Renew Failed', 'Account in Use');
 			}
@@ -360,7 +363,7 @@ class MillenniumCheckouts {
 							$success = true;
 							$message = 'Your item was successfully renewed';
 						}
-						$logger->log("Renew success = $success, $message", PEAR_LOG_DEBUG);
+						$logger->log("Renew success = ".($success?'true':'false').", $message", PEAR_LOG_DEBUG);
 						break; // found our item, get out of loop.
 					}
 				}
