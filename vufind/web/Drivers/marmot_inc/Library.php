@@ -621,8 +621,8 @@ class Library extends DB_DataObject
 	}
 
 	static function getPatronHomeLibrary($tmpUser = null){
-		global $user;
 		if ($tmpUser == null){
+			global $user;
 			$tmpUser = $user;
 		}
 		//Finally check to see if the user has logged in and if so, use that library
