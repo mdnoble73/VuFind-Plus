@@ -679,11 +679,11 @@ class Millennium extends ScreenScrapingDriver
 				$user->insert();
 			}
 
-			$timer->logTime("patron logged in successfully");
+			$timer->logTime("Patron logged in successfully");
 			return $user;
 
 		} else {
-			$timer->logTime("patron login failed");
+			$timer->logTime("Patron login failed");
 			return null;
 		}
 	}
@@ -702,6 +702,7 @@ class Millennium extends ScreenScrapingDriver
 		/** @var Memcache $memCache */
 		global $memCache;
 		global $library;
+		global $timer;
 
 		$patronDump = $memCache->get("patron_dump_$barcode");
 		if (!$patronDump || $forceReload){
@@ -741,6 +742,7 @@ class Millennium extends ScreenScrapingDriver
 					//check the next barcode
 				}else{
 
+					$timer->logTime('Finished loading patron dump from ILS.');
 					$memCache->set("patron_dump_$barcode", $patronDump, 0, $configArray['Caching']['patron_dump']);
 					//Need to wait a little bit since getting the patron api locks the record in the DB
 					usleep(250);
@@ -748,6 +750,8 @@ class Millennium extends ScreenScrapingDriver
 				}
 			}
 
+		} else {
+			$timer->logTime('Loaded Patron Dump from memcache');
 		}
 		return $patronDump;
 	}
@@ -979,11 +983,13 @@ class Millennium extends ScreenScrapingDriver
 		$result = $millenniumCheckouts->renewItem($patron, $itemId, $itemIndex);
 		// If we get an account busy error let's try one more time after a delay
 		if (!$result['success'] && strpos($result['message'], 'your account is in use by the system.')) {
-			usleep(400);
+			usleep(400000);
+			global $timer;
+			$timer->logTime('Delayed 400 milliseconds');
 			$result = $millenniumCheckouts->renewItem($patron, $itemId, $itemIndex);
 			if (!$result['success'] && strpos($result['message'], 'your account is in use by the system.')) {
 				global $logger;
-				$logger->log('System still busy after to attempts at renewel', PEAR_LOG_ERR);
+				$logger->log('System still busy after two attempts at renewel', PEAR_LOG_ERR);
 			}
 		}
 		return $result;
