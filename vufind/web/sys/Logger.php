@@ -57,7 +57,7 @@ class Logger
 
 		// Activate email logging, if applicable:
 		if (isset($configArray['Logging']['email'])) {
-			$config = array('subject' => 'VuFind Log Message');
+			$config = array('subject' => 'Pika Log Message');
 			$this->addLogger($configArray['Logging']['email'], 'mail', $config);
 		}
 	}
@@ -77,7 +77,7 @@ class Logger
 		if ($configString) {
 			// Construct the log object:
 			list($name, $levels) = explode(':', $configString);
-			$ident = 'vufind';
+			$ident = 'pika';
 			$logger = Log::factory($loggerType, $name, $ident, $config);
 
 			// Only add the object to our array if it exists and at least one level

@@ -7666,11 +7666,13 @@ hr.menu {
 @media (max-width: 540px) {
   .formatCategoryLabel {
     float: none;
+    clear: both;
   }
 }
 @media (min-width: 768px) and (max-width: 999px) {
   .formatCategoryLabel {
     float: none;
+    clear: both;
   }
 }
 #lookfor {
