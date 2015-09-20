@@ -291,7 +291,8 @@ class MyAccount_AJAX
 			if ($patronOwningHold == false){
 				$result['message'] = 'Sorry, you do not have access to cancel holds for the supplied user.';
 			}else{
-				if (empty($_REQUEST['cancelId']) || empty($_REQUEST['recordId'])) {
+				//MDN 9/20/2015 The recordId can be empty for Prospector holds
+				if (empty($_REQUEST['cancelId']) && empty($_REQUEST['recordId'])) {
 					$result['message'] = 'Information about the hold to be cancelled was not provided.';
 				}else{
 					$cancelId = $_REQUEST['cancelId'];
