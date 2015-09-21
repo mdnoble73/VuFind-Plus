@@ -7341,7 +7341,7 @@ hr.menu {
   color: #cccccc;
 }
 #system-message-header {
-  background-color: white;
+  background-color: #ffffff;
   color: black;
   text-align: center;
   padding: 3px;
@@ -7349,8 +7349,8 @@ hr.menu {
 #header-container {
   padding-top: 0px;
   height: 90px;
-  background-color: white;
-  background: linear-gradient(to bottom, white, white 85%, white);
+  background-color: #ffffff;
+  background: linear-gradient(to bottom, #ffffff, #ffffff 85%, #ffffff);
   border-bottom: 8px solid #9e1b32;
   margin-bottom: 0px;
   min-height: 110px;
@@ -7367,7 +7367,7 @@ hr.menu {
 .header-button {
   text-align: center;
   height: 82px !important;
-  border-bottom: 4px solid white;
+  border-bottom: 4px solid #ffffff;
 }
 .header-button > a {
   line-height: 82px !important;
@@ -7384,8 +7384,8 @@ hr.menu {
   border-bottom: 4px solid #2a6496;
 }
 .header-primary {
-  border-left: 2px solid white;
-  border-right: 2px solid white;
+  border-left: 2px solid #ffffff;
+  border-right: 2px solid #ffffff;
 }
 #library-name-header {
   font-size: 30px;
@@ -7730,22 +7730,22 @@ hr.menu {
   left: auto;
 }
 #home-page-browse-header {
-  background-color: white;
+  background-color: #ffffff;
   padding-bottom: 15px;
 }
 #home-page-browse-content {
-  background-color: white;
+  background-color: #ffffff;
 }
 #browse-label {
   height: 5px;
-  background-color: white;
+  background-color: #ffffff;
   margin-top: 15px;
   margin-bottom: 15px;
   margin-right: -15px;
   z-index: -1;
 }
 .browse-label-text {
-  background-color: white;
+  background-color: #ffffff;
   font-size: 22px;
   color: #998e85;
   line-height: 5px;
@@ -7811,40 +7811,40 @@ hr.menu {
   font-size: 33px;
 }
 .browse-category.category0 {
-  background-color: white;
-  background: linear-gradient(to bottom, white, white 82%, white 83%, white 84%, white 88%, white 89%, white 90%, white);
+  background-color: #ffffff;
+  background: linear-gradient(to bottom, #ffffff, #ffffff 82%, #ffffff 83%, #ffffff 84%, #ffffff 88%, #ffffff 89%, #ffffff 90%, #ffffff);
 }
 .browse-category.category1 {
-  background-color: white;
-  background: linear-gradient(to bottom, white, white 82%, white 83%, white 84%, white 88%, white 89%, white 90%, white);
+  background-color: #ffffff;
+  background: linear-gradient(to bottom, #ffffff, #ffffff 82%, #ffffff 83%, #ffffff 84%, #ffffff 88%, #ffffff 89%, #ffffff 90%, #ffffff);
 }
 .browse-category.category2 {
-  background-color: white;
-  background: linear-gradient(to bottom, white, white 82%, white 83%, white 84%, white 88%, white 89%, white 90%, white);
+  background-color: #ffffff;
+  background: linear-gradient(to bottom, #ffffff, #ffffff 82%, #ffffff 83%, #ffffff 84%, #ffffff 88%, #ffffff 89%, #ffffff 90%, #ffffff);
 }
 .browse-category.category3 {
-  background-color: white;
-  background: linear-gradient(to bottom, white, white 82%, white 83%, white 84%, white 88%, white 89%, white 90%, white);
+  background-color: #ffffff;
+  background: linear-gradient(to bottom, #ffffff, #ffffff 82%, #ffffff 83%, #ffffff 84%, #ffffff 88%, #ffffff 89%, #ffffff 90%, #ffffff);
 }
 .browse-category.category4 {
-  background-color: white;
-  background: linear-gradient(to bottom, white, white 82%, white 83%, white 84%, white 88%, white 89%, white 90%, white);
+  background-color: #ffffff;
+  background: linear-gradient(to bottom, #ffffff, #ffffff 82%, #ffffff 83%, #ffffff 84%, #ffffff 88%, #ffffff 89%, #ffffff 90%, #ffffff);
 }
 .browse-category.category5 {
-  background-color: white;
-  background: linear-gradient(to bottom, white, white 82%, white 83%, white 84%, white 88%, white 89%, white 90%, white);
+  background-color: #ffffff;
+  background: linear-gradient(to bottom, #ffffff, #ffffff 82%, #ffffff 83%, #ffffff 84%, #ffffff 88%, #ffffff 89%, #ffffff 90%, #ffffff);
 }
 .browse-category.category6 {
-  background-color: white;
-  background: linear-gradient(to bottom, white, white 82%, white 83%, white 84%, white 88%, white 89%, white 90%, white);
+  background-color: #ffffff;
+  background: linear-gradient(to bottom, #ffffff, #ffffff 82%, #ffffff 83%, #ffffff 84%, #ffffff 88%, #ffffff 89%, #ffffff 90%, #ffffff);
 }
 .browse-category.category7 {
-  background-color: white;
-  background: linear-gradient(to bottom, white, white 82%, white 83%, white 84%, white 88%, white 89%, white 90%, white);
+  background-color: #ffffff;
+  background: linear-gradient(to bottom, #ffffff, #ffffff 82%, #ffffff 83%, #ffffff 84%, #ffffff 88%, #ffffff 89%, #ffffff 90%, #ffffff);
 }
 .browse-category.category8 {
-  background-color: white;
-  background: linear-gradient(to bottom, white, white 82%, white 83%, white 84%, white 88%, white 89%, white 90%, white);
+  background-color: #ffffff;
+  background: linear-gradient(to bottom, #ffffff, #ffffff 82%, #ffffff 83%, #ffffff 84%, #ffffff 88%, #ffffff 89%, #ffffff 90%, #ffffff);
 }
 #home-page-browse-content {
   padding: 15px;
@@ -7852,7 +7852,7 @@ hr.menu {
 }
 #selected-browse-label {
   background-color: #fff;
-  background: linear-gradient(to bottom, #ffffff, #ffffff 44%, white 45%, white 55%, #ffffff 56%);
+  background: linear-gradient(to bottom, #ffffff, #ffffff 44%, #ffffff 45%, #ffffff 55%, #ffffff 56%);
   margin-bottom: 5px;
 }
 #selected-browse-label > div.btn-group {
@@ -8086,7 +8086,7 @@ a.browse-thumbnail.active {
 }
 #browse-sub-category-menu button.selected {
   color: #ffffff;
-  background-color: white;
+  background-color: #ffffff;
 }
 #browse-sub-category-menu button:focus {
   outline: none;
@@ -9060,7 +9060,7 @@ div.bottom-border-line {
   border: none;
   background-color: #a1988c;
   background: #a1988c;
-  background: linear-gradient(to bottom, #a1988c 0%, #a1988c 75%, white 75%, white 80%, #e6e3e0 80%, white 100%);
+  background: linear-gradient(to bottom, #a1988c 0%, #a1988c 75%, #ffffff 75%, #ffffff 80%, #e6e3e0 80%, #ffffff 100%);
 }
 .browse-category.selected div {
   color: white;

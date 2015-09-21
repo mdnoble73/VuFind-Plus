@@ -616,6 +616,17 @@ public abstract class MarcRecordProcessor {
 		return variableFieldsReturn;
 	}
 
+	protected ControlField getControlField(Record marcRecord, String tag){
+		List variableFields = marcRecord.getVariableFields(tag);
+		ControlField variableFieldReturn = null;
+		for (Object variableField : variableFields){
+			if (variableField instanceof ControlField){
+				variableFieldReturn = (ControlField)variableField;
+			}
+		}
+		return variableFieldReturn;
+	}
+
 	private static Pattern arNumberPattern = Pattern.compile("([\\d.]+)", Pattern.CANON_EQ | Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE);
 	public String getAcceleratedReaderReadingLevel(Record marcRecord) {
 		String result;

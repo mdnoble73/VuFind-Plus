@@ -1318,202 +1318,197 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 	private void getFormatFrom007(Record record, Set<String> result) {
 		char formatCode;// check the 007 - this is a repeating field
 		@SuppressWarnings("unchecked")
-		List<DataField> fields = getDataFields(record, "007");
-		if (fields != null) {
-			Iterator<DataField> fieldsIter = fields.iterator();
-			ControlField formatField;
-			while (fieldsIter.hasNext()) {
-				formatField = (ControlField) fieldsIter.next();
-				if (formatField.getData() == null || formatField.getData().length() < 2) {
-					continue;
-				}
-				// Check for blu-ray (s in position 4)
-				// This logic does not appear correct.
-				/*
-				 * if (formatField.getData() != null && formatField.getData().length()
-				 * >= 4){ if (formatField.getData().toUpperCase().charAt(4) == 'S'){
-				 * result.add("Blu-ray"); break; } }
-				 */
-				formatCode = formatField.getData().toUpperCase().charAt(0);
-				switch (formatCode) {
-					case 'A':
-						switch (formatField.getData().toUpperCase().charAt(1)) {
-							case 'D':
-								result.add("Atlas");
-								break;
-							default:
-								result.add("Map");
-								break;
-						}
-						break;
-					case 'C':
-						switch (formatField.getData().toUpperCase().charAt(1)) {
-							case 'A':
-								result.add("TapeCartridge");
-								break;
-							case 'B':
-								result.add("ChipCartridge");
-								break;
-							case 'C':
-								result.add("DiscCartridge");
-								break;
-							case 'F':
-								result.add("TapeCassette");
-								break;
-							case 'H':
-								result.add("TapeReel");
-								break;
-							case 'J':
-								result.add("FloppyDisk");
-								break;
-							case 'M':
-							case 'O':
-								result.add("CDROM");
-								break;
-							case 'R':
-								// Do not return - this will cause anything with an
-								// 856 field to be labeled as "Electronic"
-								break;
-							default:
-								result.add("Software");
-								break;
-						}
-						break;
-					case 'D':
-						result.add("Globe");
-						break;
-					case 'F':
-						result.add("Braille");
-						break;
-					case 'G':
-						switch (formatField.getData().toUpperCase().charAt(1)) {
-							case 'C':
-							case 'D':
-								result.add("Filmstrip");
-								break;
-							case 'T':
-								result.add("Transparency");
-								break;
-							default:
-								result.add("Slide");
-								break;
-						}
-						break;
-					case 'H':
-						result.add("Microfilm");
-						break;
-					case 'K':
-						switch (formatField.getData().toUpperCase().charAt(1)) {
-							case 'C':
-								result.add("Collage");
-								break;
-							case 'D':
-								result.add("Drawing");
-								break;
-							case 'E':
-								result.add("Painting");
-								break;
-							case 'F':
-								result.add("Print");
-								break;
-							case 'G':
-								result.add("Photonegative");
-								break;
-							case 'J':
-								result.add("Print");
-								break;
-							case 'L':
-								result.add("Drawing");
-								break;
-							case 'O':
-								result.add("FlashCard");
-								break;
-							case 'N':
-								result.add("Chart");
-								break;
-							default:
-								result.add("Photo");
-								break;
-						}
-						break;
-					case 'M':
-						switch (formatField.getData().toUpperCase().charAt(1)) {
-							case 'F':
-								result.add("VideoCassette");
-								break;
-							case 'R':
-								result.add("Filmstrip");
-								break;
-							default:
-								result.add("MotionPicture");
-								break;
-						}
-						break;
-					case 'O':
-						result.add("Kit");
-						break;
-					case 'Q':
-						result.add("MusicalScore");
-						break;
-					case 'R':
-						result.add("SensorImage");
-						break;
-					case 'S':
-						switch (formatField.getData().toUpperCase().charAt(1)) {
-							case 'D':
-								if (formatField.getData().length() >= 4) {
-									char speed = formatField.getData().toUpperCase().charAt(3);
-									if (speed >= 'A' && speed <= 'E') {
-										result.add("Phonograph");
-									} else if (speed == 'F') {
-										result.add("CompactDisc");
-									} else if (speed >= 'K' && speed <= 'R') {
-										result.add("TapeRecording");
-									} else {
-										result.add("SoundDisc");
-									}
+		ControlField formatField = getControlField(record, "007");
+		if (formatField != null){
+			if (formatField.getData() == null || formatField.getData().length() < 2) {
+				return;
+			}
+			// Check for blu-ray (s in position 4)
+			// This logic does not appear correct.
+			/*
+			 * if (formatField.getData() != null && formatField.getData().length()
+			 * >= 4){ if (formatField.getData().toUpperCase().charAt(4) == 'S'){
+			 * result.add("Blu-ray"); break; } }
+			 */
+			formatCode = formatField.getData().toUpperCase().charAt(0);
+			switch (formatCode) {
+				case 'A':
+					switch (formatField.getData().toUpperCase().charAt(1)) {
+						case 'D':
+							result.add("Atlas");
+							break;
+						default:
+							result.add("Map");
+							break;
+					}
+					break;
+				case 'C':
+					switch (formatField.getData().toUpperCase().charAt(1)) {
+						case 'A':
+							result.add("TapeCartridge");
+							break;
+						case 'B':
+							result.add("ChipCartridge");
+							break;
+						case 'C':
+							result.add("DiscCartridge");
+							break;
+						case 'F':
+							result.add("TapeCassette");
+							break;
+						case 'H':
+							result.add("TapeReel");
+							break;
+						case 'J':
+							result.add("FloppyDisk");
+							break;
+						case 'M':
+						case 'O':
+							result.add("CDROM");
+							break;
+						case 'R':
+							// Do not return - this will cause anything with an
+							// 856 field to be labeled as "Electronic"
+							break;
+						default:
+							result.add("Software");
+							break;
+					}
+					break;
+				case 'D':
+					result.add("Globe");
+					break;
+				case 'F':
+					result.add("Braille");
+					break;
+				case 'G':
+					switch (formatField.getData().toUpperCase().charAt(1)) {
+						case 'C':
+						case 'D':
+							result.add("Filmstrip");
+							break;
+						case 'T':
+							result.add("Transparency");
+							break;
+						default:
+							result.add("Slide");
+							break;
+					}
+					break;
+				case 'H':
+					result.add("Microfilm");
+					break;
+				case 'K':
+					switch (formatField.getData().toUpperCase().charAt(1)) {
+						case 'C':
+							result.add("Collage");
+							break;
+						case 'D':
+							result.add("Drawing");
+							break;
+						case 'E':
+							result.add("Painting");
+							break;
+						case 'F':
+							result.add("Print");
+							break;
+						case 'G':
+							result.add("Photonegative");
+							break;
+						case 'J':
+							result.add("Print");
+							break;
+						case 'L':
+							result.add("Drawing");
+							break;
+						case 'O':
+							result.add("FlashCard");
+							break;
+						case 'N':
+							result.add("Chart");
+							break;
+						default:
+							result.add("Photo");
+							break;
+					}
+					break;
+				case 'M':
+					switch (formatField.getData().toUpperCase().charAt(1)) {
+						case 'F':
+							result.add("VideoCassette");
+							break;
+						case 'R':
+							result.add("Filmstrip");
+							break;
+						default:
+							result.add("MotionPicture");
+							break;
+					}
+					break;
+				case 'O':
+					result.add("Kit");
+					break;
+				case 'Q':
+					result.add("MusicalScore");
+					break;
+				case 'R':
+					result.add("SensorImage");
+					break;
+				case 'S':
+					switch (formatField.getData().toUpperCase().charAt(1)) {
+						case 'D':
+							if (formatField.getData().length() >= 4) {
+								char speed = formatField.getData().toUpperCase().charAt(3);
+								if (speed >= 'A' && speed <= 'E') {
+									result.add("Phonograph");
+								} else if (speed == 'F') {
+									result.add("CompactDisc");
+								} else if (speed >= 'K' && speed <= 'R') {
+									result.add("TapeRecording");
 								} else {
 									result.add("SoundDisc");
 								}
-								break;
-							case 'S':
-								result.add("SoundCassette");
-								break;
-							default:
-								result.add("SoundRecording");
-								break;
-						}
-						break;
-					case 'T':
-						switch (formatField.getData().toUpperCase().charAt(1)) {
-							case 'A':
-								result.add("Book");
-								break;
-							case 'B':
-								result.add("LargePrint");
-								break;
-						}
-						break;
-					case 'V':
-						switch (formatField.getData().toUpperCase().charAt(1)) {
-							case 'C':
-								result.add("VideoCartridge");
-								break;
-							case 'D':
-								result.add("VideoDisc");
-								break;
-							case 'F':
-								result.add("VideoCassette");
-								break;
-							case 'R':
-								result.add("VideoReel");
-								break;
-							default:
-								result.add("Video");
-								break;
-						}
-						break;
-				}
+							} else {
+								result.add("SoundDisc");
+							}
+							break;
+						case 'S':
+							result.add("SoundCassette");
+							break;
+						default:
+							result.add("SoundRecording");
+							break;
+					}
+					break;
+				case 'T':
+					switch (formatField.getData().toUpperCase().charAt(1)) {
+						case 'A':
+							result.add("Book");
+							break;
+						case 'B':
+							result.add("LargePrint");
+							break;
+					}
+					break;
+				case 'V':
+					switch (formatField.getData().toUpperCase().charAt(1)) {
+						case 'C':
+							result.add("VideoCartridge");
+							break;
+						case 'D':
+							result.add("VideoDisc");
+							break;
+						case 'F':
+							result.add("VideoCassette");
+							break;
+						case 'R':
+							result.add("VideoReel");
+							break;
+						default:
+							result.add("Video");
+							break;
+					}
+					break;
 			}
 		}
 	}
