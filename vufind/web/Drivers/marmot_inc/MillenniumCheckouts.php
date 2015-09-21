@@ -316,7 +316,7 @@ class MillenniumCheckouts {
 		$driver->_curl_login($patron);
 
 		//Pause briefly between logging in and posting the actual renewal
-		usleep(100000);
+		usleep(150000);
 
 		//Go to the items page
 		$scope = $driver->getDefaultScope();
