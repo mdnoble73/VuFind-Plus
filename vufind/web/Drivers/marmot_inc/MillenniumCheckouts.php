@@ -308,9 +308,15 @@ class MillenniumCheckouts {
 		global $logger, $timer;
 		global $analytics;
 
+		//Force loading patron API since that seems to be unlocking the patron record in Millennium for Flatirons
+		$this->driver->_getPatronDump($patron->getBarcode(), true);
+
 		$driver = &$this->driver;
 
 		$driver->_curl_login($patron);
+
+		//Pause briefly between logging in and posting the actual renewal
+		usleep(100000);
 
 		//Go to the items page
 		$scope = $driver->getDefaultScope();
