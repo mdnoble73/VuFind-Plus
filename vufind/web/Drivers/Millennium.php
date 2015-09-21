@@ -982,14 +982,16 @@ class Millennium extends ScreenScrapingDriver
 		$millenniumCheckouts = new MillenniumCheckouts($this);
 		$result = $millenniumCheckouts->renewItem($patron, $itemId, $itemIndex);
 		// If we get an account busy error let's try one more time after a delay
-		if (!$result['success'] && strpos($result['message'], 'your account is in use by the system.')) {
+		$numTries = 1;
+		while (!$result['success'] && strpos($result['message'], 'your account is in use by the system.') && $numTries <= 3){
+			$numTries++;
 			usleep(400000);
 			global $timer;
 			$timer->logTime('Delayed 400 milliseconds');
 			$result = $millenniumCheckouts->renewItem($patron, $itemId, $itemIndex);
 			if (!$result['success'] && strpos($result['message'], 'your account is in use by the system.')) {
 				global $logger;
-				$logger->log('System still busy after two attempts at renewel', PEAR_LOG_ERR);
+				$logger->log("System still busy after $numTries attempts at renewal", PEAR_LOG_ERR);
 			}
 		}
 		return $result;
