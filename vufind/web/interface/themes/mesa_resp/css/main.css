@@ -2882,6 +2882,9 @@ input[type="button"].btn-block {
 .glyphicon-tree-deciduous:before {
   content: "\e200";
 }
+.glyphicon-menu-hamburger:before {
+  content: "\e236";
+}
 .caret {
   display: inline-block;
   width: 0;
@@ -7540,6 +7543,39 @@ hr.menu {
 #home-page-login a {
   color: #fff;
 }
+#header-container .visible-xs.btn-group {
+  margin-right: 5px;
+  float: right;
+  padding: 0 5px;
+}
+#header-container .visible-xs.btn-group .account-icon,
+#header-container .visible-xs.btn-group .logout-icon,
+#header-container .visible-xs.btn-group .login-icon {
+  position: relative;
+  top: 1px;
+  display: inline-block;
+  font-family: 'Glyphicons Halflings';
+  font-style: normal;
+  font-weight: normal;
+  line-height: 1;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  color: #333333;
+}
+#header-container .visible-xs.btn-group .account-icon:empty,
+#header-container .visible-xs.btn-group .logout-icon:empty,
+#header-container .visible-xs.btn-group .login-icon:empty {
+  width: 1em;
+}
+#header-container .visible-xs.btn-group .account-icon:before {
+  content: "\e236";
+}
+#header-container .visible-xs.btn-group .logout-icon:before {
+  content: "\e163";
+}
+#header-container .visible-xs.btn-group .login-icon:before {
+  content: "\e161";
+}
 #home-page-library-section {
   background-color: #eeeeee;
   padding: 15px 0px;
@@ -8841,5 +8877,5 @@ a.browse-thumbnail.active {
   color: #336fa3 !important;
 }
 .header-button:hover {
-  border-bottom: 0px;
+  border-bottom: 0;
 }
