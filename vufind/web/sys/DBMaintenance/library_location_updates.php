@@ -1079,5 +1079,16 @@ function getLibraryLocationUpdates(){
 				"ALTER TABLE `library` CHANGE COLUMN `themeName` `themeName` VARCHAR(60);",
 			),
 		),
+
+		'ils_code_records_owned_length' => array(
+			'title' => 'Increase length of ils code and records owned fields',
+			'description' => 'Increase the length of ils code and records owned fields for Koha.',
+			'continueOnError' => true,
+			'sql' => array(
+				"ALTER TABLE `library` CHANGE COLUMN `ilsCode` `ilsCode` VARCHAR(75);",
+				"ALTER TABLE `location` CHANGE COLUMN `code` `code` VARCHAR(75);",
+			),
+		),
+
 	);
 }

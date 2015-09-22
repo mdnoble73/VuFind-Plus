@@ -59,9 +59,9 @@
   color: #fff;
   padding: 3px 0px;
   margin-bottom: 15px;
-}
-.sidebar-bold-button a{
-  color: #fff;
+  a {
+    color:#fff;
+  }
 }
 
 #home-page-login{
@@ -71,10 +71,35 @@
   text-shadow: 1px 1px @gray-light;
   padding: 5px;
   margin-bottom: 5px;
+  a {
+    color:#fff;
+  }
 }
-#home-page-login a{
-  color:#fff;
+
+// Mobile Header Login/Account buttons
+#header-container {
+  .visible-xs.btn-group {
+    margin-right: @padding-xs-horizontal;
+    float: right;
+    padding: 0 @padding-xs-horizontal;
+
+    .account-icon,.logout-icon ,.login-icon {
+      .glyphicon;
+      color: @btn-default-color;
+    }
+    .account-icon {
+      .glyphicon-menu-hamburger;
+    }
+    .logout-icon {
+      .glyphicon-log-out;
+    }
+    .login-icon {
+      .glyphicon-log-in;
+    }
+  }
 }
+
+
 #home-page-library-section{
   background-color: #eeeeee;
   padding: 15px 0px;
@@ -87,9 +112,9 @@
   color: #fff;
   padding: 3px 0px;
   margin-bottom: 15px;
-}
-.sidebar-button a{
-  color: #fff;
+  a {
+    color:#fff;
+  }
 }
 
 // Library Link Formatting
