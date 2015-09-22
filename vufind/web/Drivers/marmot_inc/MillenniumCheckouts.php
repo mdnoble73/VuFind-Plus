@@ -219,6 +219,9 @@ class MillenniumCheckouts {
 		//Login to the patron's account
 		$driver->_curl_login($patron);
 
+		//Pause briefly between logging in and posting the actual renewal
+		usleep(150000);
+
 		//Go to the items page
 		$scope = $driver->getDefaultScope();
 		$curl_url = $this->driver->getVendorOpacUrl() . "/patroninfo~S{$scope}/" . $patronDump['RECORD_#'] ."/items";
