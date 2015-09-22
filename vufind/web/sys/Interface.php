@@ -48,6 +48,11 @@ class UInterface extends Smarty
 			$this->assign('google_included_languages', $configArray['Translation']['includedLanguages']);
 		}
 
+		//Check to see if we have a google site verification key
+		if (isset($configArray['Site']['google_verification_key']) && strlen($configArray['Site']['google_verification_key']) > 0){
+			$this->assign('google_verification_key', $configArray['Site']['google_verification_key']);
+		}
+
 		if (isset($_REQUEST['print'])) {
 			$this->assign('print', true);
 		}
