@@ -1,15 +1,33 @@
 {strip}
 
 	<div class="col-xs-12 col-sm-6 col-md-5 col-lg-4">
-<div id="header-logo">
-		<a href="{$logoLink}/">
+		<div id="header-logo">
+			<a href="{$logoLink}/">
 
-			<img src="{if $responsiveLogo}{$responsiveLogo}{else}{img filename="logo_responsive.png"}{/if}" alt="{$librarySystemName}" title="Return to Catalog Home" id="header-logo" {if $showDisplayNameInHeader && $librarySystemName}class="pull-left"{/if}/>
-			{if $showDisplayNameInHeader && $librarySystemName}
-				<span id="library-name-header" class="hidden-xs visible-sm">{$librarySystemName}</span>
+				<img src="{if $responsiveLogo}{$responsiveLogo}{else}{img filename="logo_responsive.png"}{/if}" alt="{$librarySystemName}" title="Return to Catalog Home" id="header-logo" {if $showDisplayNameInHeader && $librarySystemName}class="pull-left"{/if}>
+				{if $showDisplayNameInHeader && $librarySystemName}
+					<span id="library-name-header" class="hidden-xs visible-sm">{$librarySystemName}</span>
+				{/if}
+			</a>
+		</div>
+
+		{* Small view-port menu *}
+		<div class="visible-xs btn-group btn-group-sm">
+			{if $user}{* Logged In *}
+				{*<a href="#myAccountPanel" class="btn btn-sm btn-default" title="Account"><span class="account-icon"></span></a>*}
+				<a href="#account-menu" class="btn btn-sm btn-default" title="Account">
+					<span class="account-icon"></span>
+				</a>
+				<a href="{$path}/MyAccount/Logout" id="logoutLink" class="btn btn-sm btn-default" title="{translate text="Log Out"}">
+					<span class="logout-icon"></span>
+				</a>
+			{else} {* Not Logged In *}
+				{*<button class="btn btn-sm btn-default" title="Log in"><span class="login-icon"></span></button>*}
+				<a href="{$path}/MyAccount/Home" class="btn btn-sm btn-default" data-login="true" title="{translate text="Login"}" {*onclick="return VuFind.Account.followLinkIfLoggedIn(this);" //Turned off for Nashville. plb 9-21-2015*}>
+					<span class="account-icon"></span>
+				</a>
 			{/if}
-		</a>
-</div>
+		</div>
 	</div>
 
 	<div class="logoutOptions" {if !$user} style="display: none;"{/if}>
@@ -21,7 +39,7 @@
 			</div>
 		</div>
 		<div class="hidden-xs col-xs-3 col-sm-2 col-md-2 col-lg-2">
-			<div class="header-button header-logout" >
+			<div class="header-button header-logout">
 				<a href="{$path}/MyAccount/Logout" id="logoutLink" >{translate text="Log Out"}</a>
 			</div>
 		</div>

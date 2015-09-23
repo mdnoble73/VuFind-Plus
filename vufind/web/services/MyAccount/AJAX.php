@@ -291,7 +291,8 @@ class MyAccount_AJAX
 			if ($patronOwningHold == false){
 				$result['message'] = 'Sorry, you do not have access to cancel holds for the supplied user.';
 			}else{
-				if (empty($_REQUEST['cancelId']) || empty($_REQUEST['recordId'])) {
+				//MDN 9/20/2015 The recordId can be empty for Prospector holds
+				if (empty($_REQUEST['cancelId']) && empty($_REQUEST['recordId'])) {
 					$result['message'] = 'Information about the hold to be cancelled was not provided.';
 				}else{
 					$cancelId = $_REQUEST['cancelId'];
@@ -428,22 +429,22 @@ class MyAccount_AJAX
 		global $user;
 		$result = array(
 			'success' => false,
-			'message' => 'Error freezing hold.'
+			'message' => 'Error '.translate('freezing').' hold.'
 		);
 		if (!$user){
-			$result['message'] = 'You must be logged in to freeze a hold.  Please close this dialog and login again.';
+			$result['message'] = 'You must be logged in to '. translate('freeze') .' a hold.  Please close this dialog and login again.';
 		} elseif (!empty($_REQUEST['patronId'])) {
 			$patronId = $_REQUEST['patronId'];
 			$patronOwningHold = $user->getUserReferredTo($patronId);
 
 			if ($patronOwningHold == false){
-				$result['message'] = 'Sorry, you do not have access to freeze holds for the supplied user.';
+				$result['message'] = 'Sorry, you do not have access to '. translate('freeze') .' holds for the supplied user.';
 			}else{
 				if (empty($_REQUEST['recordId']) || empty($_REQUEST['holdId'])) {
 					// We aren't getting all the expected data, so make a log entry & tell user.
 					global $logger;
 					$logger->log('Freeze Hold, no record or hold Id was passed in AJAX call.', PEAR_LOG_ERR);
-					$result['message'] = 'Information about the hold to be frozen was not provided.';
+					$result['message'] = 'Information about the hold to be '. translate('frozen') .' was not provided.';
 				}else{
 					$recordId = $_REQUEST['recordId'];
 					$holdId = $_REQUEST['holdId'];
@@ -468,22 +469,22 @@ class MyAccount_AJAX
 
 	function thawHold() {
 		global $user;
-		$result = array(
+		$result = array( // set default response
 			'success' => false,
 			'message' => 'Error thawing hold.'
 		);
 
 		if (!$user){
-			$result['message'] = 'You must be logged in to thaw a hold.  Please close this dialog and login again.';
+			$result['message'] = 'You must be logged in to '. translate('thaw') .' a hold.  Please close this dialog and login again.';
 		} elseif (!empty($_REQUEST['patronId'])) {
 			$patronId = $_REQUEST['patronId'];
 			$patronOwningHold = $user->getUserReferredTo($patronId);
 
 			if ($patronOwningHold == false){
-				$result['message'] = 'Sorry, you do not have access to freeze holds for the supplied user.';
+				$result['message'] = 'Sorry, you do not have access to '. translate('thaw') .' holds for the supplied user.';
 			}else{
 				if (empty($_REQUEST['recordId']) || empty($_REQUEST['holdId'])) {
-					$result['message'] = 'Information about the hold to be frozen was not provided.';
+					$result['message'] = 'Information about the hold to be '. translate('thawed') .' was not provided.';
 				}else{
 					$recordId = $_REQUEST['recordId'];
 					$holdId = $_REQUEST['holdId'];
@@ -631,6 +632,7 @@ class MyAccount_AJAX
 			}
 
 			//Also determine if the hold can be cancelled.
+			/* var Library $librarySingleton */
 			global $librarySingleton;
 			$patronHomeBranch = $librarySingleton->getPatronHomeLibrary();
 			$showHoldCancelDate = 0;
@@ -712,7 +714,8 @@ class MyAccount_AJAX
 
 		$listData = $memCache->get($cacheInfo['cacheName']);
 
-		if (!$listData || isset($_REQUEST['reload']) || (isset($listData['titles']) && count($listData['titles'] == 0))) {
+		$return = false; // default response
+		if (!$listData || isset($_REQUEST['reload']) || (isset($listData['titles']) && count($listData['titles']) == 0)) {
 			global $interface;
 
 			$titles = $listAPI->getListTitles();
@@ -728,7 +731,8 @@ class MyAccount_AJAX
 					foreach ($titles as $key => $rawData) {
 
 						$interface->assign('title', $rawData['title']);
-						$interface->assign('description', $rawData['description'] . 'w00t!');
+//						$interface->assign('description', $rawData['description'] . 'w00t!');
+						$interface->assign('description', $rawData['description']); // Looks like not in use currently
 						$interface->assign('length', $rawData['length']);
 						$interface->assign('publisher', $rawData['publisher']);
 						$descriptionInfo = $interface->fetch('Record/ajax-description-popup.tpl');
@@ -898,7 +902,7 @@ class MyAccount_AJAX
 
 		try {
 			/** @var DriverInterface|Millennium|Nashville|Marmot|Sierra|Horizon $catalog */
-			$catalog = CatalogFactory::getCatalogConnectionInstance();;
+			$catalog = CatalogFactory::getCatalogConnectionInstance();
 
 			$barcode = $_REQUEST['barcode'];
 
@@ -933,78 +937,85 @@ class MyAccount_AJAX
 		global $interface, $user;
 
 		// Get data from AJAX request
-		if (isset($_REQUEST['listId']) && ctype_digit($_REQUEST['listId'])) $listId = $_REQUEST['listId'];
-		else { // Invalid listId
-			// TODO
-		}
-		$to = $_REQUEST['to'];
-		$from = $_REQUEST['from'];
-		$message = $_REQUEST['message'];
+		if (isset($_REQUEST['listId']) && ctype_digit($_REQUEST['listId'])) { // validly formatted List Id
+			$listId = $_REQUEST['listId'];
+			$to = $_REQUEST['to'];
+			$from = $_REQUEST['from'];
+			$message = $_REQUEST['message'];
 
-		//Load the list
-		require_once ROOT_DIR . '/sys/LocalEnrichment/UserList.php';
-		$list = new UserList();
-		$list->id = $listId;
-		if ($list->find(true)){
-			// Build Favorites List
-			$titles = $list->getListTitles();
-			$interface->assign('listEntries', $titles); // TODO: if not used, i would like to remove
+			//Load the list
+			require_once ROOT_DIR . '/sys/LocalEnrichment/UserList.php';
+			$list = new UserList();
+			$list->id = $listId;
+			if ($list->find(true)){
+				// Build Favorites List
+				$titles = $list->getListTitles();
+				$interface->assign('listEntries', $titles); // TODO: if not used, i would like to remove
 
-			// Load the User object for the owner of the list (if necessary):
-			if ($list->public == true || ($user && $user->id == $list->user_id)) {
-				//The user can access the list
-				require_once ROOT_DIR . '/services/MyResearch/lib/FavoriteHandler.php';
+				// Load the User object for the owner of the list (if necessary):
+				if ($list->public == true || ($user && $user->id == $list->user_id)) {
+					//The user can access the list
+					require_once ROOT_DIR . '/services/MyResearch/lib/FavoriteHandler.php';
 //				$favoriteHandler = new FavoriteHandler($titles, $user, $list->id, false);
-				$favoriteHandler = new FavoriteHandler($list, $user, false);
-				$titleDetails = $favoriteHandler->getTitles(count($titles));
-				 // get all titles for email list, not just a page's worth
-				$interface->assign('titles', $titleDetails);
-				$interface->assign('list', $list);
+					$favoriteHandler = new FavoriteHandler($list, $user, false);
+					$titleDetails = $favoriteHandler->getTitles(count($titles));
+					// get all titles for email list, not just a page's worth
+					$interface->assign('titles', $titleDetails);
+					$interface->assign('list', $list);
 
-				if (strpos($message, 'http') === false && strpos($message, 'mailto') === false && $message == strip_tags($message)){
-					$interface->assign('message', $message);
-					$body = $interface->fetch('Emails/my-list.tpl');
+					if (strpos($message, 'http') === false && strpos($message, 'mailto') === false && $message == strip_tags($message)){
+						$interface->assign('message', $message);
+						$body = $interface->fetch('Emails/my-list.tpl');
 
-					require_once ROOT_DIR . '/sys/Mailer.php';
-					$mail = new VuFindMailer();
-					$subject = $list->title;
-					$emailResult = $mail->send($to, $from, $subject, $body);
+						require_once ROOT_DIR . '/sys/Mailer.php';
+						$mail = new VuFindMailer();
+						$subject = $list->title;
+						$emailResult = $mail->send($to, $from, $subject, $body);
 
-					if ($emailResult === true){
-						$result = array(
-							'result' => true,
-							'message' => 'Your e-mail was sent successfully.'
-						);
-					} elseif (PEAR_Singleton::isError($emailResult)){
-						$result = array(
-							'result' => false,
-							'message' => "Your e-mail message could not be sent: {$emailResult->message}."
-							// should error messages be passed back to user? plb 10-15-2014  DEBUG_REMOVE
-						);
+						if ($emailResult === true){
+							$result = array(
+								'result' => true,
+								'message' => 'Your e-mail was sent successfully.'
+							);
+						} elseif (PEAR_Singleton::isError($emailResult)){
+							$result = array(
+								'result' => false,
+								'message' => "Your e-mail message could not be sent: {$emailResult->message}."
+								//QUESTION should error messages be passed back to user? plb 10-15-2014  DEBUG_REMOVE
+							);
+						} else {
+							$result = array(
+								'result' => false,
+								'message' => 'Your e-mail message could not be sent due to an unknown error.'
+							);
+							global $logger;
+							$logger->log("Mail List Failure (unknown reason), parameters: $to, $from, $subject, $body", PEAR_LOG_ERR);
+						}
 					} else {
 						$result = array(
 							'result' => false,
-							'message' => 'Your e-mail message could not be sent due to an unknown error.'
+							'message' => 'Sorry, we can&apos;t send e-mails with html or other data in it.'
 						);
 					}
-				}else{
+
+				} else {
 					$result = array(
 						'result' => false,
-						'message' => 'Sorry, we can&apos;t send e-mails with html or other data in it.'
+						'message' => 'You do not have access to this list.'
 					);
-				}
 
+				}
 			} else {
 				$result = array(
 					'result' => false,
-					'message' => 'You do not have access to this list.'
+					'message' => 'Unable to read list.'
 				);
-
 			}
-		} else {
+		}
+		else { // Invalid listId
 			$result = array(
 				'result' => false,
-				'message' => 'Unable to read list.'
+				'message' => "Invalid List Id. Your e-mail message could not be sent."
 			);
 		}
 

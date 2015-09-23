@@ -8,6 +8,9 @@
 		{if $google_translate_key}
 			<meta name="google-translate-customization" content="{$google_translate_key}" />
 		{/if}
+		{if $google_verification_key}
+			<meta name="google-site-verification" content="{$google_verification_key}" />
+		{/if}
 		{if $addHeader}{$addHeader}{/if}
 
 		{if $metadataTemplate}
@@ -103,8 +106,8 @@
         <div id="footer-container" class="row">
             {include file="footer_responsive.tpl"}
         </div>
-        
-        			<div id="navigation-controls" class="navbar navbar-fixed-bottom row visible-xs hidden-sm hidden-md hidden-lg">
+
+{*			<div id="navigation-controls" class="navbar navbar-fixed-bottom row visible-xs hidden-sm hidden-md hidden-lg">
 				<a href="#top"><div class="col-xs-6 text-center">Back To Top</div></a>
 				{if $showLoginButton == 1}
 					{if $user}
@@ -115,7 +118,7 @@
 						</a>
 					{/if}
 				{/if}
-			</div>
+			</div>*}
 
 		{include file="modal_dialog.tpl"}
 

@@ -78,6 +78,7 @@ public class FlatironsRecordProcessor extends IIIRecordProcessor{
 				String eContentLocation = getFirstFieldVal(record, "907b");
 				if (eContentLocation != null) {
 					ItemInfo itemInfo = new ItemInfo();
+					itemInfo.setIsEContent(true);
 					itemInfo.setLocationCode(eContentLocation);
 					itemInfo.seteContentSource("External eContent");
 					itemInfo.seteContentProtectionType("external");
@@ -87,6 +88,8 @@ public class FlatironsRecordProcessor extends IIIRecordProcessor{
 					}else{
 						itemInfo.seteContentSource("Unknown");
 					}
+					itemInfo.setCallNumber("Online");
+					itemInfo.setShelfLocation(itemInfo.geteContentSource());
 					RecordInfo relatedRecord = groupedWork.addRelatedRecord("external_econtent", identifier);
 					relatedRecord.setSubSource(profileType);
 					relatedRecord.addItem(itemInfo);

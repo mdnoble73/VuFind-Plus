@@ -219,6 +219,9 @@ class MillenniumCheckouts {
 		//Login to the patron's account
 		$driver->_curl_login($patron);
 
+		//Pause briefly between logging in and posting the actual renewal
+		usleep(150000);
+
 		//Go to the items page
 		$scope = $driver->getDefaultScope();
 		$curl_url = $this->driver->getVendorOpacUrl() . "/patroninfo~S{$scope}/" . $patronDump['RECORD_#'] ."/items";
@@ -242,7 +245,7 @@ class MillenniumCheckouts {
 		);
 		$renew_result['Total'] = $curCheckedOut;
 
-		// pattern from marmot sierra :  <b>  RENEWED</b> 
+		// pattern from marmot sierra :  <b>  RENEWED</b>
 		$numRenewals = preg_match_all("/<b>\s*RENEWED<\/b>/si", $checkedOutPageText, $matches);
 		$renew_result['Renewed'] = $numRenewals;
 		$renew_result['Unrenewed'] = $renew_result['Total'] - $renew_result['Renewed'];
@@ -259,6 +262,8 @@ class MillenniumCheckouts {
 			// The Account is busy
 			elseif (preg_match('/Your record is in use/si', $checkedOutPageText)) {
 				$renew_result['message'][] = 'Unable to renew this item now, your account is in use by the system.  Please try again later.';
+				$logger->log('Account is busy error while attempting renewal', PEAR_LOG_WARNING);
+
 			}
 
 			// Let's Look at the Results
@@ -300,12 +305,21 @@ class MillenniumCheckouts {
 	 * @return array
 	 */
 	public function renewItem($patron, $itemId, $itemIndex){
-		global $logger;
+		/** var Logger $logger
+		 *  var Timer $timer
+		 * */
+		global $logger, $timer;
 		global $analytics;
+
+		//Force loading patron API since that seems to be unlocking the patron record in Millennium for Flatirons
+		$this->driver->_getPatronDump($patron->getBarcode(), true);
 
 		$driver = &$this->driver;
 
 		$driver->_curl_login($patron);
+
+		//Pause briefly between logging in and posting the actual renewal
+		usleep(150000);
 
 		//Go to the items page
 		$scope = $driver->getDefaultScope();
@@ -334,6 +348,8 @@ class MillenniumCheckouts {
 		elseif (preg_match('/Your record is in use/si', $checkedOutPageText, $matches)) {
 			$success = false;
 			$message = 'Unable to renew this item now, your account is in use by the system.  Please try again later.';
+			$logger->log('Account is busy error while attempting renewal', PEAR_LOG_WARNING);
+			$timer->logTime('Got System Busy Error while attempting renewal');
 			if ($analytics){
 				$analytics->addEvent('ILS Integration', 'Renew Failed', 'Account in Use');
 			}
@@ -360,7 +376,7 @@ class MillenniumCheckouts {
 							$success = true;
 							$message = 'Your item was successfully renewed';
 						}
-						$logger->log("Renew success = $success, $message", PEAR_LOG_DEBUG);
+						$logger->log("Renew success = ".($success ? 'true' : 'false').", $message", PEAR_LOG_DEBUG);
 						break; // found our item, get out of loop.
 					}
 				}
@@ -375,6 +391,8 @@ class MillenniumCheckouts {
 				$analytics->addEvent('ILS Integration', 'Renew Successful');
 			}
 		}
+
+		$timer->logTime('Finished Renew Item attempt');
 
 		return array(
 			'itemId' => $itemId,

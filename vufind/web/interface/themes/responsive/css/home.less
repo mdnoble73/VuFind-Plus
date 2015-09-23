@@ -59,9 +59,9 @@
   color: #fff;
   padding: 3px 0px;
   margin-bottom: 15px;
-}
-.sidebar-bold-button a{
-  color: #fff;
+  a {
+    color:#fff;
+  }
 }
 
 #home-page-login{
@@ -71,10 +71,44 @@
   text-shadow: 1px 1px @gray-light;
   padding: 5px;
   margin-bottom: 5px;
+  a {
+    color:#fff;
+  }
 }
-#home-page-login a{
-  color:#fff;
+
+// Mobile Header Login/Account buttons
+@header-buttons-z-index: 100;
+#header-container {
+  .visible-xs.btn-group {
+    // sticks to top-right of view port
+    position: fixed;
+    top: @padding-xs-horizontal;
+    right: @padding-xs-horizontal;
+    z-index: @header-buttons-z-index;
+
+    //margin-right: @padding-xs-horizontal;
+    //float: right;
+    padding: 0 @padding-xs-horizontal;
+
+    .account-icon,.logout-icon
+    //, .login-icon
+    {
+      .glyphicon;
+      color: @btn-default-color;
+    }
+    .account-icon {
+      .glyphicon-menu-hamburger;
+    }
+    .logout-icon {
+      .glyphicon-log-out;
+    }
+    //.login-icon {
+    //  .glyphicon-log-in;
+    //}
+  }
 }
+
+
 #home-page-library-section{
   background-color: #eeeeee;
   padding: 15px 0px;
@@ -87,9 +121,9 @@
   color: #fff;
   padding: 3px 0px;
   margin-bottom: 15px;
-}
-.sidebar-button a{
-  color: #fff;
+  a {
+    color:#fff;
+  }
 }
 
 // Library Link Formatting
@@ -204,6 +238,7 @@
 @media (max-width: 540px) {
   .formatCategoryLabel {
     float: none;
+    clear: both;
   }
 }
 // shrink icons for a range where the labels slightly overlap & the sidebar still acts as a sidebar
@@ -215,6 +250,7 @@
   // this is probably a better fix for this than shrinking the icons.
   .formatCategoryLabel {
     float: none;
+    clear: both;
   }
 }
 // Fix searchbox border radius

@@ -6,7 +6,7 @@ class Timer{
 	private $timingsEnabled = false;
 	private $minTimeToLog = 0;
 
-	public function Timer($startTime){
+	public function Timer($startTime = null){
 		global $configArray;
 		if ($configArray){
 			if (isset($configArray['System']['timings'])) {
@@ -19,11 +19,12 @@ class Timer{
 			$this->timingsEnabled = true;
 		}
 
-		$startTime = microtime(true);
+		if (!$startTime) $startTime = microtime(true);
 		$this->lastTime = $startTime;
 		$this->firstTime = $startTime;
 		$this->timingMessages = array();
 	}
+
 	public function logTime($message){
 		if ($this->timingsEnabled){
 			$curTime = microtime(true);

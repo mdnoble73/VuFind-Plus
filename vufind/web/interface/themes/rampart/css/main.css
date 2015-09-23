@@ -2882,6 +2882,9 @@ input[type="button"].btn-block {
 .glyphicon-tree-deciduous:before {
   content: "\e200";
 }
+.glyphicon-menu-hamburger:before {
+  content: "\e236";
+}
 .caret {
   display: inline-block;
   width: 0;
@@ -7540,6 +7543,36 @@ hr.menu {
 #home-page-login a {
   color: #fff;
 }
+#header-container .visible-xs.btn-group {
+  position: fixed;
+  top: 5px;
+  right: 5px;
+  z-index: 100;
+  padding: 0 5px;
+}
+#header-container .visible-xs.btn-group .account-icon,
+#header-container .visible-xs.btn-group .logout-icon {
+  position: relative;
+  top: 1px;
+  display: inline-block;
+  font-family: 'Glyphicons Halflings';
+  font-style: normal;
+  font-weight: normal;
+  line-height: 1;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  color: #333333;
+}
+#header-container .visible-xs.btn-group .account-icon:empty,
+#header-container .visible-xs.btn-group .logout-icon:empty {
+  width: 1em;
+}
+#header-container .visible-xs.btn-group .account-icon:before {
+  content: "\e236";
+}
+#header-container .visible-xs.btn-group .logout-icon:before {
+  content: "\e163";
+}
 #home-page-library-section {
   background-color: #eeeeee;
   padding: 15px 0px;
@@ -7656,11 +7689,13 @@ hr.menu {
 @media (max-width: 540px) {
   .formatCategoryLabel {
     float: none;
+    clear: both;
   }
 }
 @media (min-width: 768px) and (max-width: 999px) {
   .formatCategoryLabel {
     float: none;
+    clear: both;
   }
 }
 #lookfor {
