@@ -83,13 +83,14 @@
   color: #fff;
 }
 #header-container .visible-xs.btn-group {
-  margin-right: 5px;
-  float: right;
+  position: fixed;
+  top: 5px;
+  right: 5px;
+  z-index: 100;
   padding: 0 5px;
 }
 #header-container .visible-xs.btn-group .account-icon,
-#header-container .visible-xs.btn-group .logout-icon,
-#header-container .visible-xs.btn-group .login-icon {
+#header-container .visible-xs.btn-group .logout-icon {
   position: relative;
   top: 1px;
   display: inline-block;
@@ -102,8 +103,7 @@
   color: #333333;
 }
 #header-container .visible-xs.btn-group .account-icon:empty,
-#header-container .visible-xs.btn-group .logout-icon:empty,
-#header-container .visible-xs.btn-group .login-icon:empty {
+#header-container .visible-xs.btn-group .logout-icon:empty {
   width: 1em;
 }
 #header-container .visible-xs.btn-group .account-icon:before {
@@ -111,9 +111,6 @@
 }
 #header-container .visible-xs.btn-group .logout-icon:before {
   content: "\e163";
-}
-#header-container .visible-xs.btn-group .login-icon:before {
-  content: "\e161";
 }
 #home-page-library-section {
   background-color: #eeeeee;

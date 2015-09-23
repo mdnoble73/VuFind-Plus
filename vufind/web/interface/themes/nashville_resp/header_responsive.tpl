@@ -15,11 +15,17 @@
 		<div class="visible-xs btn-group btn-group-sm">
 			{if $user}{* Logged In *}
 				{*<a href="#myAccountPanel" class="btn btn-sm btn-default" title="Account"><span class="account-icon"></span></a>*}
-				<a href="#account-menu" class="btn btn-sm btn-default" title="Account"><span class="account-icon"></span></a>
-				<a href="{$path}/MyAccount/Logout" id="logoutLink" class="btn btn-sm btn-default" title="{translate text="Log Out"}"><span class="logout-icon"></span></a>
+				<a href="#account-menu" class="btn btn-sm btn-default" title="Account">
+					<span class="account-icon"></span>
+				</a>
+				<a href="{$path}/MyAccount/Logout" id="logoutLink" class="btn btn-sm btn-default" title="{translate text="Log Out"}">
+					<span class="logout-icon"></span>
+				</a>
 			{else} {* Not Logged In *}
 				{*<button class="btn btn-sm btn-default" title="Log in"><span class="login-icon"></span></button>*}
-				<a href="{$path}/MyAccount/Home" class="btn btn-sm btn-default" data-login="true" title="{translate text="Login"}" {*onclick="return VuFind.Account.followLinkIfLoggedIn(this);" //Turned off for Nashville. plb 9-21-2015*}><span class="login-icon"></span></a>
+				<a href="{$path}/MyAccount/Home" class="btn btn-sm btn-default" data-login="true" title="{translate text="Login"}" {*onclick="return VuFind.Account.followLinkIfLoggedIn(this);" //Turned off for Nashville. plb 9-21-2015*}>
+					<span class="account-icon"></span>
+				</a>
 			{/if}
 		</div>
 	</div>

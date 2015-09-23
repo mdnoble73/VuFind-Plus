@@ -728,6 +728,9 @@ public class RecordGrouperMain {
 			groupEVokeRecords(configIni, recordGroupingProcessor);
 			groupOverDriveRecords(configIni, econtentConnection, recordGroupingProcessor);
 			groupIlsRecords(configIni, vufindConn, indexingProfiles);
+
+			//Remove deleted records
+			removeDeletedRecords(recordGroupingProcessor);
 		}
 
 		try{
@@ -767,6 +770,27 @@ public class RecordGrouperMain {
 		long endTime = new Date().getTime();
 		long elapsedTime = endTime - processStartTime;
 		logger.info("Elapsed Minutes " + (elapsedTime / 60000));
+	}
+
+	private static void removeDeletedRecords(RecordGroupingProcessor recordGroupingProcessor) {
+		logger.info("Deleting " + marcRecordIdsInDatabase.size() + " record ids from the database since they are no longer in the export.");
+		for (String recordNumber : marcRecordIdsInDatabase) {
+			String[] recordNumberParts = recordNumber.split(":");
+			if (!fullRegrouping) {
+				//Remove the record from the grouped work
+				RecordIdentifier primaryIdentifier = new RecordIdentifier();
+				primaryIdentifier.setValue(recordNumberParts[0], recordNumberParts[1]);
+				recordGroupingProcessor.deletePrimaryIdentifier(primaryIdentifier);
+			}
+			//Remove the record from the ils_marc_checksums table
+			try {
+				removeMarcRecordChecksum.setString(1, recordNumberParts[0]);
+				removeMarcRecordChecksum.setString(2, recordNumberParts[1]);
+				removeMarcRecordChecksum.executeUpdate();
+			} catch (SQLException e) {
+				logger.error("Error removing ILS id " + recordNumber + " from " + " from ils_marc_checksums table", e);
+			}
+		}
 	}
 
 	private static void markRecordGroupingRunning(Connection vufindConn, boolean isRunning) {
@@ -837,7 +861,10 @@ public class RecordGrouperMain {
 							numRecordsProcessed++;
 						}
 						//Mark that the record was processed
-						marcRecordIdsInDatabase.remove(recordNumber);
+						if (!marcRecordIdsInDatabase.remove("hoopla:" + recordNumber)){
+							//This happens for newly added records
+							//logger.warn("Did not find hoopla:" + recordNumber + " in marcRecordIdsInDatabase");
+						}
 						numRecordsRead++;
 						if (numRecordsRead % 100000 == 0){
 							recordGroupingProcessor.dumpStats();
@@ -1325,7 +1352,10 @@ public class RecordGrouperMain {
 										numRecordsProcessed++;
 									}
 									//Mark that the record was processed
-									marcRecordIdsInDatabase.remove(recordNumber);
+									if (!marcRecordIdsInDatabase.remove(curProfile.name + ":" + recordNumber)){
+										//This happens for newly added records
+										//logger.warn("Did not find " + curProfile.name + ":" + recordNumber + " in marcRecordIdsInDatabase");
+									}
 									lastRecordProcessed = recordNumber;
 								}
 								numRecordsRead++;
@@ -1338,24 +1368,6 @@ public class RecordGrouperMain {
 							logger.error("Error loading catalog bibs on record " + numRecordsRead + " the last record processed was " + lastRecordProcessed, e);
 						}
 						logger.info("Finished grouping " + numRecordsRead + " records with " + numRecordsProcessed + " actual changes from the ils file " + curBibFile.getName());
-					}
-				}
-
-				logger.info("Deleting " + marcRecordIdsInDatabase.size() + " record ids from the database since they are no longer in the export.");
-				for (String recordNumber : marcRecordIdsInDatabase) {
-					if (!fullRegrouping) {
-						//Remove the record from the grouped work
-						RecordIdentifier primaryIdentifier = new RecordIdentifier();
-						primaryIdentifier.setValue(curProfile.name, recordNumber);
-						recordGroupingProcessor.deletePrimaryIdentifier(primaryIdentifier);
-					}
-					//Remove the record from the ils_marc_checksums table
-					try {
-						removeMarcRecordChecksum.setString(1, recordNumber);
-						removeMarcRecordChecksum.setString(2, curProfile.name);
-						removeMarcRecordChecksum.executeUpdate();
-					} catch (SQLException e) {
-						logger.error("Error removing ILS id " + recordNumber + " from " + " from ils_marc_checksums table", e);
 					}
 				}
 			}

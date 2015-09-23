@@ -2283,6 +2283,13 @@ class Solr implements IndexEngine {
 			$input = str_replace(array('(', ')'), '', $input);
 		}
 
+		// Check to make sure we have an even number of quotes
+		$numQuotes = preg_match_all('/"/', $input, $tmp);
+		if ($numQuotes % 2 != 0){
+			//We have an uneven number of quotes, delete the last one
+			$input = substr_replace($input, '', strrpos($input, '"'), 1);
+		}
+
 		// Ensure ^ is used properly
 		$cnt = preg_match_all('/\^/', $input, $tmp);
 		$matches = preg_match_all('/.+\^[0-9]/', $input, $tmp);

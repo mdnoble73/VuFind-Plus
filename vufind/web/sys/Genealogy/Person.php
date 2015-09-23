@@ -357,6 +357,7 @@ class Person extends SolrDataObject
 			$this->saveMarriages();
 			$this->saveObituaries();
 		}
+		sleep(2);
 		return $ret;
 	}
 
