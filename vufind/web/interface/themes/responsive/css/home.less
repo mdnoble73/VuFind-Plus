@@ -77,13 +77,22 @@
 }
 
 // Mobile Header Login/Account buttons
+@header-buttons-z-index: 100;
 #header-container {
   .visible-xs.btn-group {
-    margin-right: @padding-xs-horizontal;
-    float: right;
+    // sticks to top-right of view port
+    position: fixed;
+    top: @padding-xs-horizontal;
+    right: @padding-xs-horizontal;
+    z-index: @header-buttons-z-index;
+
+    //margin-right: @padding-xs-horizontal;
+    //float: right;
     padding: 0 @padding-xs-horizontal;
 
-    .account-icon,.logout-icon ,.login-icon {
+    .account-icon,.logout-icon
+    //, .login-icon
+    {
       .glyphicon;
       color: @btn-default-color;
     }
@@ -93,9 +102,9 @@
     .logout-icon {
       .glyphicon-log-out;
     }
-    .login-icon {
-      .glyphicon-log-in;
-    }
+    //.login-icon {
+    //  .glyphicon-log-in;
+    //}
   }
 }
 
