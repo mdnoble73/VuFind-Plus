@@ -330,7 +330,8 @@ class SearchAPI extends Action {
 		if ($configArray['Statistics']['enabled'] && isset( $_GET['lookfor'])) {
 			require_once(ROOT_DIR . '/Drivers/marmot_inc/SearchStatNew.php');
 			$searchStat = new SearchStatNew();
-			$searchStat->saveSearch( strip_tags($_GET['lookfor']), strip_tags($_GET['type']), $searchObject->getResultTotal());
+			$type = isset($_GET['type']) ? strip_tags($_GET['type']) : 'Keyword';
+			$searchStat->saveSearch( strip_tags($_GET['lookfor']), $type, $searchObject->getResultTotal());
 		}
 
 		// Save the ID of this search to the session so we can return to it easily:
