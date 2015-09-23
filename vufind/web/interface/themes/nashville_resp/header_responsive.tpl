@@ -34,7 +34,7 @@
 		<div class="hidden-xs col-sm-2 col-sm-offset-2 col-md-2 col-md-offset-3 col-lg-2 col-lg-offset-4">
 			<div class="header-button header-primary">
 				<a id="myAccountNameLink" href="{$path}/MyAccount/Home">
-					{translate text="Your Account"}
+					{$user->firstname|capitalize} {$user->lastname|capitalize|substr:0:1}'s Account
 				</a>
 			</div>
 		</div>
