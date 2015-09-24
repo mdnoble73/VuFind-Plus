@@ -64,7 +64,7 @@ public class UserListProcessor {
 				numListsProcessed++;
 			}
 			if (numListsProcessed > 0) {
-				GroupedReindexMain.addNoteToReindexLog("Committing changes for public lists");
+				GroupedReindexMain.addNoteToReindexLog("Committing changes for public lists, processed " + numListsProcessed);
 				updateServer.commit(true, true);
 			}
 
