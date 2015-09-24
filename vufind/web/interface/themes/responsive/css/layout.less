@@ -15,13 +15,13 @@ body{
   @media(min-width: @screen-sm-min){
     width: 100%;
   }
-  padding: 0px;
+  padding: 0;
 }
 
 hr.menu{
   margin-top: 3px;
   margin-bottom: 3px;
-  height: 0px;
+  height: 0;
   border-top: 1px solid #d3d3d3;
 }
 
@@ -31,12 +31,12 @@ hr.menu{
   padding: 3px;
 }
 .breadcrumb{
-  padding: 0px;
-  margin-bottom: 0px;
+  padding: 0;
+  margin-bottom: 0;
   > li {
     display: inline-block;
     + li:before {
-      content: ""; // Override default separator since we add wone in code
+      content: ""; // Override default separator since we add one in code
       padding: 0 5px;
       color: @breadcrumb-color;
     }
@@ -51,12 +51,12 @@ hr.menu{
 }
 //Define the header elements
 #header-container{
-  padding-top: 0px;
+  padding-top: 0;
   height: @header-height;
   background-color: @header-top-color;
   background: linear-gradient(to bottom, @header-top-color, @header-middle-color 85%, @header-bottom-color);
   border-bottom: 8px solid @header-bottom-border-color;
-  margin-bottom: 0px;
+  margin-bottom: 0;
   min-height: 110px;
 }
 #header-logo{
@@ -76,7 +76,7 @@ hr.menu{
   line-height: @header-height - 8px !important;
   text-align: center;
   vertical-align: middle;
-  padding:0px;
+  padding: 0;
   color: @header-link-color !important;
   text-shadow: 1px 1px #fff;
 }
@@ -107,7 +107,7 @@ hr.menu{
   border-right: 1px solid #0078ae;
 }
 #header-links .header-link-wrapper:last-of-type{
-  border-right: 0px solid black;
+  border-right: 0 solid black;
 }
 .header-link-wrapper a{
   font-size: 16px;
@@ -127,7 +127,7 @@ hr.menu{
   margin-right: 15px;
 }
 .connect-icon{
-  padding: 0px 3px 0px 3px;
+  padding: 0 3px 0 3px;
 }
 
 //Fixed navigation in footer
@@ -140,21 +140,21 @@ hr.menu{
 }
 //Sidebar & Main content
 #side-bar{
-  // padding-left: 0px;
+  // padding-left: 0;
   @media print {
     display: none;
   }
 }
 #main-content-with-sidebar{
-  padding-right: 0px;
+  padding-right: 0;
   padding-bottom: 15px;
   @media print{
     width:100%;
     display: block !important;
   }
-}
-#main-content-with-sidebar > .row{
-  margin-right: -30px;
+  & > .row{
+    margin-right: -30px;
+  }
 }
 
 //Modal

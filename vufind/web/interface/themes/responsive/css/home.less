@@ -35,14 +35,14 @@
 #lookfor:-ms-input-placeholder{.placeholder-mixin;}
 
 .searchTypeHome{
-  margin: 5px 0px 0px;
+  margin: 5px 0 0;
   color: #fff;
   background-color: @home-search-bottom-color;
   border: none;
   width: 90% !important;
 }
 #searchSource{
-  margin: 5px 0px 0px;
+  margin: 5px 0 0;
   color: #fff;
   background-color: @home-search-bottom-color;
   border: none;
@@ -57,7 +57,7 @@
   background-color: #7c7c7d;
   background: linear-gradient(to bottom, #7c7c7d, #3d4244);
   color: #fff;
-  padding: 3px 0px;
+  padding: 3px 0;
   margin-bottom: 15px;
   a {
     color:#fff;
@@ -78,40 +78,38 @@
 
 // Mobile Header Login/Account buttons
 @header-buttons-z-index: 100;
-#header-container {
-  .visible-xs.btn-group {
+
+#mobile-menu {
+  position: absolute;
+  top: @padding-xs-horizontal;
+  right: @padding-xs-vertical;
+
+  padding: 0 @padding-xs-horizontal;
+
+  &.sticky-mobile-menu {
     // sticks to top-right of view port
     position: fixed;
     top: @padding-xs-horizontal;
-    right: @padding-xs-horizontal;
+    right: @padding-large-vertical;
     z-index: @header-buttons-z-index;
+  }
 
-    //margin-right: @padding-xs-horizontal;
-    //float: right;
-    padding: 0 @padding-xs-horizontal;
-
-    .account-icon,.logout-icon
-    //, .login-icon
-    {
-      .glyphicon;
-      color: @btn-default-color;
-    }
-    .account-icon {
-      .glyphicon-menu-hamburger;
-    }
-    .logout-icon {
-      .glyphicon-log-out;
-    }
-    //.login-icon {
-    //  .glyphicon-log-in;
-    //}
+  .account-icon,.logout-icon
+  {
+    .glyphicon;
+    color: @btn-default-color;
+  }
+  .account-icon {
+    .glyphicon-menu-hamburger;
+  }
+  .logout-icon {
+    .glyphicon-log-out;
   }
 }
 
-
 #home-page-library-section{
   background-color: #eeeeee;
-  padding: 15px 0px;
+  padding: 15px 0;
   height: 100%;
 }
 .sidebar-button{
@@ -119,7 +117,7 @@
   background-color: #7c7c7d;
   background: linear-gradient(to bottom, #7c7c7d, #3d4244);
   color: #fff;
-  padding: 3px 0px;
+  padding: 3px 0;
   margin-bottom: 15px;
   a {
     color:#fff;
@@ -128,7 +126,7 @@
 
 // Library Link Formatting
 .sidebar-links .panel-group .panel + .panel{
-  margin-top: 0px;
+  margin-top: 0;
 }
 .sidebar-links .panel-heading{
   padding: 5px 15px;
@@ -220,9 +218,9 @@
       color: #ffffff;
       text-decoration: none;
       background-color: #0088cc;
-      border-radius: 0px;
-      -webkit-border-radius: 0px;
-      -moz-border-radius: 0px;
+      border-radius: 0;
+      -webkit-border-radius: 0;
+      -moz-border-radius: 0;
       background-image: none;
     }
   }
@@ -274,7 +272,7 @@
     background-color: @background-color;
     margin-top: 20px;
     height: 60px !important;
-    border: 0px;
+    border: 0;
   }
   .header-button > a{
     color: #fff !important;
@@ -285,7 +283,7 @@
     color: #fff !important;
   }
   .header-button:hover {
-    border-bottom: 0px;
+    border-bottom: 0;
     box-shadow: 2px 2px 5px #fff;
   }
 }
