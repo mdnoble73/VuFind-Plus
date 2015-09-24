@@ -4,20 +4,20 @@
 		<title>{$pageTitle|truncate:64:"..."}</title>
 		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
-		<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+		<meta http-equiv="Content-Type" content="text/html;charset=utf-8">
 		{if $google_translate_key}
-			<meta name="google-translate-customization" content="{$google_translate_key}" />
+			<meta name="google-translate-customization" content="{$google_translate_key}">
 		{/if}
 		{if $google_verification_key}
-			<meta name="google-site-verification" content="{$google_verification_key}" />
+			<meta name="google-site-verification" content="{$google_verification_key}">
 		{/if}
 		{if $addHeader}{$addHeader}{/if}
 
 		{if $metadataTemplate}
 			{include file=$metadataTemplate}
 		{/if}
-		<link type="image/x-icon" href="{img filename=favicon.png}" rel="shortcut icon" />
-		<link rel="search" type="application/opensearchdescription+xml" title="{$site.title} Catalog Search" href="{$path}/Search/OpenSearch?method=describe" />
+		<link type="image/x-icon" href="{img filename=favicon.png}" rel="shortcut icon">
+		<link rel="search" type="application/opensearchdescription+xml" title="{$site.title} Catalog Search" href="{$path}/Search/OpenSearch?method=describe">
 
 		{include file="cssAndJsIncludes.tpl"}
 		{/strip}
@@ -36,6 +36,9 @@
 						{include file="$module/breadcrumbs.tpl"}
 					</ul>
 					{/if}
+
+					{include file="mobile-header-menu.tpl"}
+
 				</div>
 				<a id="top"></a>
 				<div class="col-xs-12 col-sm-3 text-right">

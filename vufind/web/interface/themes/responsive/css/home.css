@@ -43,14 +43,14 @@
   border: 0;
 }
 .searchTypeHome {
-  margin: 5px 0px 0px;
+  margin: 5px 0 0;
   color: #fff;
   background-color: #147ce2;
   border: none;
   width: 90% !important;
 }
 #searchSource {
-  margin: 5px 0px 0px;
+  margin: 5px 0 0;
   color: #fff;
   background-color: #147ce2;
   border: none;
@@ -65,7 +65,7 @@
   background-color: #7c7c7d;
   background: linear-gradient(to bottom, #7c7c7d, #3d4244);
   color: #fff;
-  padding: 3px 0px;
+  padding: 3px 0;
   margin-bottom: 15px;
 }
 .sidebar-bold-button a {
@@ -82,15 +82,20 @@
 #home-page-login a {
   color: #fff;
 }
-#header-container .visible-xs.btn-group {
-  position: fixed;
+#mobile-menu {
+  position: absolute;
   top: 5px;
-  right: 5px;
-  z-index: 100;
+  right: 1px;
   padding: 0 5px;
 }
-#header-container .visible-xs.btn-group .account-icon,
-#header-container .visible-xs.btn-group .logout-icon {
+#mobile-menu.sticky-mobile-menu {
+  position: fixed;
+  top: 5px;
+  right: 10px;
+  z-index: 100;
+}
+#mobile-menu .account-icon,
+#mobile-menu .logout-icon {
   position: relative;
   top: 1px;
   display: inline-block;
@@ -102,19 +107,19 @@
   -moz-osx-font-smoothing: grayscale;
   color: #333333;
 }
-#header-container .visible-xs.btn-group .account-icon:empty,
-#header-container .visible-xs.btn-group .logout-icon:empty {
+#mobile-menu .account-icon:empty,
+#mobile-menu .logout-icon:empty {
   width: 1em;
 }
-#header-container .visible-xs.btn-group .account-icon:before {
+#mobile-menu .account-icon:before {
   content: "\e236";
 }
-#header-container .visible-xs.btn-group .logout-icon:before {
+#mobile-menu .logout-icon:before {
   content: "\e163";
 }
 #home-page-library-section {
   background-color: #eeeeee;
-  padding: 15px 0px;
+  padding: 15px 0;
   height: 100%;
 }
 .sidebar-button {
@@ -122,14 +127,14 @@
   background-color: #7c7c7d;
   background: linear-gradient(to bottom, #7c7c7d, #3d4244);
   color: #fff;
-  padding: 3px 0px;
+  padding: 3px 0;
   margin-bottom: 15px;
 }
 .sidebar-button a {
   color: #fff;
 }
 .sidebar-links .panel-group .panel + .panel {
-  margin-top: 0px;
+  margin-top: 0;
 }
 .sidebar-links .panel-heading {
   padding: 5px 15px;
@@ -216,9 +221,9 @@
   color: #ffffff;
   text-decoration: none;
   background-color: #0088cc;
-  border-radius: 0px;
-  -webkit-border-radius: 0px;
-  -moz-border-radius: 0px;
+  border-radius: 0;
+  -webkit-border-radius: 0;
+  -moz-border-radius: 0;
   background-image: none;
 }
 .categoryValue img {
