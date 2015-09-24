@@ -467,9 +467,11 @@ public class GroupedWorkIndexer {
 		GroupedReindexMain.addNoteToReindexLog("Finishing indexing");
 		logger.info("Finishing indexing");
 		try {
-			GroupedReindexMain.addNoteToReindexLog("Calling final commit");
-			logger.info("Calling commit");
-			updateServer.commit(true, true);
+			if (fullReindex) {
+				GroupedReindexMain.addNoteToReindexLog("Calling final commit");
+				logger.info("Calling commit");
+				updateServer.commit(true, true);
+			}
 		} catch (Exception e) {
 			logger.error("Error calling final commit", e);
 		}

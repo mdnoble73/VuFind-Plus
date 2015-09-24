@@ -63,7 +63,7 @@ public class UserListProcessor {
 				updateSolrForList(updateServer, solrServer, getTitlesForListStmt, allPublicListsRS);
 				numListsProcessed++;
 			}
-			if (numListsProcessed > 0) {
+			if (numListsProcessed > 0 && fullReindex){
 				GroupedReindexMain.addNoteToReindexLog("Committing changes for public lists, processed " + numListsProcessed);
 				updateServer.commit(true, true);
 			}
