@@ -1180,7 +1180,7 @@ class GroupedWorkDriver extends RecordInterface{
 					'availableOnline' => false,
 					'availableLocally' => false,
 					'availableHere' => false,
-					'inLibraryUseOnly' => false,
+					'inLibraryUseOnly' => true,
 					'isEContent' => false,
 					'availableCopies' => 0,
 					'copies' => 0,
@@ -1280,8 +1280,8 @@ class GroupedWorkDriver extends RecordInterface{
 						}else{
 							$relatedRecord['copies'] += $numCopies;
 						}
-						if ($inLibraryUseOnly){
-							$relatedRecord['inLibraryUseOnly'] = true;
+						if (!$inLibraryUseOnly){
+							$relatedRecord['inLibraryUseOnly'] = false;
 						}
 						if ($holdable){
 							$relatedRecord['holdable'] = true;

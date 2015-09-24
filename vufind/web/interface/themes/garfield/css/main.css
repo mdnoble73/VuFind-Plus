@@ -7306,7 +7306,7 @@ body {
   color: #6b6b6b;
 }
 #content-container {
-  padding: 0px;
+  padding: 0;
 }
 @media (max-width: 768px) {
   #content-container {
@@ -7321,7 +7321,7 @@ body {
 hr.menu {
   margin-top: 3px;
   margin-bottom: 3px;
-  height: 0px;
+  height: 0;
   border-top: 1px solid #d3d3d3;
 }
 .breadcrumbs {
@@ -7329,8 +7329,8 @@ hr.menu {
   padding: 3px;
 }
 .breadcrumb {
-  padding: 0px;
-  margin-bottom: 0px;
+  padding: 0;
+  margin-bottom: 0;
 }
 .breadcrumb > li {
   display: inline-block;
@@ -7347,12 +7347,12 @@ hr.menu {
   padding: 3px;
 }
 #header-container {
-  padding-top: 0px;
+  padding-top: 0;
   height: 90px;
   background-color: #f2f2f2;
   background: linear-gradient(to bottom, #f2f2f2, #dddddd 85%, #e0e0e0);
   border-bottom: 8px solid #b7b7b7;
-  margin-bottom: 0px;
+  margin-bottom: 0;
   min-height: 110px;
 }
 #header-logo {
@@ -7373,7 +7373,7 @@ hr.menu {
   line-height: 82px !important;
   text-align: center;
   vertical-align: middle;
-  padding: 0px;
+  padding: 0;
   color: #8b8b8b !important;
   text-shadow: 1px 1px #fff;
 }
@@ -7404,7 +7404,7 @@ hr.menu {
   border-right: 1px solid #0078ae;
 }
 #header-links .header-link-wrapper:last-of-type {
-  border-right: 0px solid black;
+  border-right: 0 solid black;
 }
 .header-link-wrapper a {
   font-size: 16px;
@@ -7423,7 +7423,7 @@ hr.menu {
   margin-right: 15px;
 }
 .connect-icon {
-  padding: 0px 3px 0px 3px;
+  padding: 0 3px 0 3px;
 }
 #navigation-controls {
   border-top: 8px solid #088ec6;
@@ -7440,7 +7440,7 @@ hr.menu {
   }
 }
 #main-content-with-sidebar {
-  padding-right: 0px;
+  padding-right: 0;
   padding-bottom: 15px;
 }
 @media print {
@@ -7504,14 +7504,14 @@ hr.menu {
   border: 0;
 }
 .searchTypeHome {
-  margin: 5px 0px 0px;
+  margin: 5px 0 0;
   color: #fff;
   background-color: #147ce2;
   border: none;
   width: 90% !important;
 }
 #searchSource {
-  margin: 5px 0px 0px;
+  margin: 5px 0 0;
   color: #fff;
   background-color: #147ce2;
   border: none;
@@ -7526,7 +7526,7 @@ hr.menu {
   background-color: #7c7c7d;
   background: linear-gradient(to bottom, #7c7c7d, #3d4244);
   color: #fff;
-  padding: 3px 0px;
+  padding: 3px 0;
   margin-bottom: 15px;
 }
 .sidebar-bold-button a {
@@ -7543,15 +7543,20 @@ hr.menu {
 #home-page-login a {
   color: #fff;
 }
-#header-container .visible-xs.btn-group {
-  position: fixed;
+#mobile-menu {
+  position: absolute;
   top: 5px;
-  right: 5px;
-  z-index: 100;
+  right: 1px;
   padding: 0 5px;
 }
-#header-container .visible-xs.btn-group .account-icon,
-#header-container .visible-xs.btn-group .logout-icon {
+#mobile-menu.sticky-mobile-menu {
+  position: fixed;
+  top: 5px;
+  right: 10px;
+  z-index: 100;
+}
+#mobile-menu .account-icon,
+#mobile-menu .logout-icon {
   position: relative;
   top: 1px;
   display: inline-block;
@@ -7563,19 +7568,19 @@ hr.menu {
   -moz-osx-font-smoothing: grayscale;
   color: #333333;
 }
-#header-container .visible-xs.btn-group .account-icon:empty,
-#header-container .visible-xs.btn-group .logout-icon:empty {
+#mobile-menu .account-icon:empty,
+#mobile-menu .logout-icon:empty {
   width: 1em;
 }
-#header-container .visible-xs.btn-group .account-icon:before {
+#mobile-menu .account-icon:before {
   content: "\e236";
 }
-#header-container .visible-xs.btn-group .logout-icon:before {
+#mobile-menu .logout-icon:before {
   content: "\e163";
 }
 #home-page-library-section {
   background-color: #eeeeee;
-  padding: 15px 0px;
+  padding: 15px 0;
   height: 100%;
 }
 .sidebar-button {
@@ -7583,14 +7588,14 @@ hr.menu {
   background-color: #7c7c7d;
   background: linear-gradient(to bottom, #7c7c7d, #3d4244);
   color: #fff;
-  padding: 3px 0px;
+  padding: 3px 0;
   margin-bottom: 15px;
 }
 .sidebar-button a {
   color: #fff;
 }
 .sidebar-links .panel-group .panel + .panel {
-  margin-top: 0px;
+  margin-top: 0;
 }
 .sidebar-links .panel-heading {
   padding: 5px 15px;
@@ -7677,9 +7682,9 @@ hr.menu {
   color: #ffffff;
   text-decoration: none;
   background-color: #0088cc;
-  border-radius: 0px;
-  -webkit-border-radius: 0px;
-  -moz-border-radius: 0px;
+  border-radius: 0;
+  -webkit-border-radius: 0;
+  -moz-border-radius: 0;
   background-image: none;
 }
 .categoryValue img {
