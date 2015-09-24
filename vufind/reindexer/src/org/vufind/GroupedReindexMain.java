@@ -260,6 +260,7 @@ public class GroupedReindexMain {
 			addNoteToReindexLogStmt.setLong(2, new Date().getTime() / 1000);
 			addNoteToReindexLogStmt.setLong(3, reindexLogId);
 			addNoteToReindexLogStmt.executeUpdate();
+			logger.info(note);
 		} catch (SQLException e) {
 			logger.error("Error adding note to Reindex Log", e);
 		}
