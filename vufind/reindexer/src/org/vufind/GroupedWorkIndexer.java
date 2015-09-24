@@ -126,6 +126,7 @@ public class GroupedWorkIndexer {
 		}
 
 		//Initialize the updateServer and solr server
+		GroupedReindexMain.addNoteToReindexLog("Setting up update server and solr server");
 		if (fullReindex){
 			updateServer = new ConcurrentUpdateSolrServer("http://localhost:" + solrPort + "/solr/grouped2", 500, 8);
 			updateServer.setRequestWriter(new BinaryRequestWriter());
@@ -160,6 +161,7 @@ public class GroupedWorkIndexer {
 				updatePartialReindexRunning(true);
 			}
 			updateServer = new ConcurrentUpdateSolrServer("http://localhost:" + solrPort + "/solr/grouped", 500, 8);
+			updateServer.setRequestWriter(new BinaryRequestWriter());
 			solrServer = new HttpSolrServer("http://localhost:" + solrPort + "/solr/grouped");
 		}
 
@@ -479,8 +481,8 @@ public class GroupedWorkIndexer {
 				GroupedReindexMain.addNoteToReindexLog("Optimizing index");
 				logger.info("Optimizing index");
 				updateServer.optimize(true, true);
+				logger.info("Finished Optimizing index");
 			}
-			logger.info("Finished Optimizing index");
 		} catch (Exception e) {
 			logger.error("Error optimizing index", e);
 		}
@@ -994,7 +996,6 @@ public class GroupedWorkIndexer {
 	}
 
 	public long processPublicUserLists() {
-		GroupedReindexMain.addNoteToReindexLog("Processing public lists");
 		UserListProcessor listProcessor = new UserListProcessor(this, vufindConn, logger, fullReindex, availableAtLocationBoostValue, ownedByLocationBoostValue);
 		return listProcessor.processPublicUserLists(lastReindexTime, updateServer, solrServer);
 	}
