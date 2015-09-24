@@ -462,8 +462,10 @@ public class GroupedWorkIndexer {
 	}
 
 	public void finishIndexing(){
+		GroupedReindexMain.addNoteToReindexLog("Finishing indexing");
 		logger.info("Finishing indexing");
 		try {
+			GroupedReindexMain.addNoteToReindexLog("Calling final commit");
 			logger.info("Calling commit");
 			updateServer.commit(true, true);
 		} catch (Exception e) {
@@ -473,8 +475,9 @@ public class GroupedWorkIndexer {
 		try {
 			//Optimize to trigger improved performance.  If we're doing a full reindex, need to wait for the searcher since
 			// we are going to swap in a minute.
-			logger.info("Optimizing index");
 			if (fullReindex) {
+				GroupedReindexMain.addNoteToReindexLog("Optimizing index");
+				logger.info("Optimizing index");
 				updateServer.optimize(true, true);
 			}
 			logger.info("Finished Optimizing index");
@@ -482,6 +485,7 @@ public class GroupedWorkIndexer {
 			logger.error("Error optimizing index", e);
 		}
 		try {
+			GroupedReindexMain.addNoteToReindexLog("Shutting down the update server");
 			logger.info("Shutting down the update server");
 			updateServer.shutdown();
 		} catch (Exception e) {
@@ -489,6 +493,7 @@ public class GroupedWorkIndexer {
 		}
 		//Swap the indexes
 		if (fullReindex)  {
+			GroupedReindexMain.addNoteToReindexLog("Swapping indexes");
 			try {
 				Util.getURL("http://localhost:" + solrPort + "/solr/admin/cores?action=SWAP&core=grouped2&other=grouped", logger);
 			} catch (Exception e) {
@@ -705,7 +710,7 @@ public class GroupedWorkIndexer {
 				processGroupedWork(id, permanentId, grouping_category);
 
 				numWorksProcessed++;
-				if (numWorksProcessed % 5000 == 0){
+				if (fullReindex && numWorksProcessed % 5000 == 0){
 					//Testing shows that regular commits do seem to improve performance.
 					//However, we can't do it too often or we get errors with too many searchers warming. n
 					//Leave in for now.
@@ -989,6 +994,7 @@ public class GroupedWorkIndexer {
 	}
 
 	public long processPublicUserLists() {
+		GroupedReindexMain.addNoteToReindexLog("Processing public lists");
 		UserListProcessor listProcessor = new UserListProcessor(this, vufindConn, logger, fullReindex, availableAtLocationBoostValue, ownedByLocationBoostValue);
 		return listProcessor.processPublicUserLists(lastReindexTime, updateServer, solrServer);
 	}
