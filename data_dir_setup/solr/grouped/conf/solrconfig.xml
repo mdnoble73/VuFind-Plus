@@ -369,7 +369,7 @@
       class="solr.FastLRUCache"
       size="30000"
       initialSize="5000"
-      autowarmCount="10"/>
+      autowarmCount="1000"/>
 
    <!-- queryResultCache caches results of searches - ordered lists of
          document ids (DocList) based on a query, a sort, and the range
@@ -378,15 +378,14 @@
       class="solr.LRUCache"
       size="10000"
       initialSize="5000"
-      autowarmCount="10"/>
+      autowarmCount="1000"/>
 
   <!-- documentCache caches Lucene Document objects (the stored fields for each document).
        Since Lucene internal document ids are transient, this cache will not be autowarmed.  -->
     <documentCache
       class="solr.LRUCache"
       size="5000"
-      initialSize="500"
-      autowarmCount="0"/>
+      initialSize="5000"/>
 
 	  <!-- custom cache currently used by block join -->
 	  <cache name="perSegFilter"
@@ -491,13 +490,28 @@
 	  <!-- QuerySenderListener takes an array of NamedList and executes a
 			 local query request for each NamedList in sequence.
 		-->
-	  <listener event="newSearcher" class="solr.QuerySenderListener">
-		  <!--
-	    <arr name="queries">
-				 <lst><str name="q"></str></lst>
-		  </arr>
-		  -->
-	  </listener>
+		<listener event="newSearcher" class="solr.QuerySenderListener">
+			<arr name="queries">
+				<lst><str name="q"></str></lst>
+				<lst><str name="q">Fiction</str></lst>
+				<lst><str name="q">dvd</str></lst>
+				<lst><str name="q">movies</str></lst>
+				<lst><str name="q">good and evil</str></lst>
+				<lst><str name="q">Harry Potter</str></lst>
+				<lst><str name="q">audio books</str></lst>
+				<lst><str name="q">star wars</str></lst>
+				<lst><str name="q">murder victims fiction</str></lst>
+				<lst><str name="q">james patterson</str></lst>
+				<lst><str name="q">divergent</str></lst>
+				<lst><str name="q">gone girl</str></lst>
+				<lst><str name="q">game of thrones</str></lst>
+				<lst><str name="q">documentary videos</str></lst>
+				<lst><str name="q">all the light we cannot see</str></lst>
+				<lst><str name="q">dogs</str></lst>
+				<lst><str name="q">cats</str></lst>
+				<lst><str name="q">hunger games</str></lst>
+			</arr>
+		</listener>
 	  <listener event="firstSearcher" class="solr.QuerySenderListener">
 	    <!--
 		  <arr name="queries">
@@ -526,7 +540,7 @@
 			 Recommend values of 1-2 for read-only slaves, higher for
 			 masters w/o cache warming.
 		-->
-	  <maxWarmingSearchers>2</maxWarmingSearchers>
+	  <maxWarmingSearchers>5</maxWarmingSearchers>
 
   </query>
 
