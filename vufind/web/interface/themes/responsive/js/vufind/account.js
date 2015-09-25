@@ -669,7 +669,7 @@ VuFind.Account = (function(){
 		saveSearch: function(searchId){
 			if (!Globals.loggedIn){
 				VuFind.Account.ajaxLogin(null, function () {
-					VuFind.Searches.saveSearch(searchId);
+					VuFind.Account.saveSearch(searchId);
 				}, false);
 			}else{
 				var url = Globals.path + "/MyAccount/AJAX";
@@ -677,7 +677,7 @@ VuFind.Account = (function(){
 				//$.getJSON(url + '?' + params,
 				$.getJSON(url, params,
 						function(data) {
-							if (data.success) {
+							if (data.result) {
 								VuFind.showMessage("Success", data.message);
 							} else {
 								VuFind.showMessage("Error", data.message);
