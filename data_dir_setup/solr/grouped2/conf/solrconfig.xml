@@ -256,7 +256,7 @@
 			-->
 		<autoCommit>
 			<maxDocs>${solr.autoCommit.maxDocs:5000}</maxDocs>
-			<maxTime>${solr.autoCommit.maxTime:120000}</maxTime>
+			<maxTime>${solr.autoCommit.maxTime:3600000}</maxTime>
 			<openSearcher>false</openSearcher>
 		</autoCommit>
 
@@ -267,7 +267,7 @@
 			-->
 
 		<autoSoftCommit>
-			<maxTime>${solr.autoSoftCommit.maxTime:1000}</maxTime>
+			<maxTime>${solr.autoSoftCommit.maxTime:-1}</maxTime>
 		</autoSoftCommit>
 
 		<!-- Update Related Event Listeners
