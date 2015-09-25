@@ -267,7 +267,7 @@
 			-->
 
 		<autoSoftCommit>
-			<maxTime>${solr.autoSoftCommit.maxTime:-1}</maxTime>
+			<maxTime>${solr.autoSoftCommit.maxTime:60000}</maxTime>
 		</autoSoftCommit>
 
 		<!-- Update Related Event Listeners
@@ -367,26 +367,26 @@
          -->
     <filterCache
       class="solr.FastLRUCache"
-      size="300000"
-      initialSize="300000"
-      autowarmCount="50000"/>
+      size="30000"
+      initialSize="30000"
+      autowarmCount="5000"/>
 
    <!-- queryResultCache caches results of searches - ordered lists of
          document ids (DocList) based on a query, a sort, and the range
          of documents requested.  -->
     <queryResultCache
       class="solr.LRUCache"
-      size="100000"
-      initialSize="100000"
-      autowarmCount="50000"/>
+      size="10000"
+      initialSize="10000"
+      autowarmCount="5000"/>
 
   <!-- documentCache caches Lucene Document objects (the stored fields for each document).
        Since Lucene internal document ids are transient, this cache will not be autowarmed.  -->
     <documentCache
       class="solr.LRUCache"
-      size="50000"
-      initialSize="50000"
-      autowarmCount="10000"/>
+      size="5000"
+      initialSize="5000"
+      autowarmCount="1000"/>
 
 	  <!-- custom cache currently used by block join -->
 	  <cache name="perSegFilter"
@@ -491,23 +491,21 @@
 	  <!-- QuerySenderListener takes an array of NamedList and executes a
 			 local query request for each NamedList in sequence.
 		-->
+	  <!--
 	  <listener event="newSearcher" class="solr.QuerySenderListener">
 		  <arr name="queries">
-			  <!--
 				 <lst><str name="q">solr</str><str name="sort">price asc</str></lst>
 				 <lst><str name="q">rocks</str><str name="sort">weight asc</str></lst>
-				-->
 		  </arr>
 	  </listener>
 	  <listener event="firstSearcher" class="solr.QuerySenderListener">
 		  <arr name="queries">
-			  <!--
 			  <lst>
 				  <str name="q">static firstSearcher warming in solrconfig.xml</str>
 			  </lst>
-			  -->
 		  </arr>
 	  </listener>
+	  -->
 
 	  <!-- Use Cold Searcher
 
@@ -527,7 +525,7 @@
 			 Recommend values of 1-2 for read-only slaves, higher for
 			 masters w/o cache warming.
 		-->
-	  <maxWarmingSearchers>5</maxWarmingSearchers>
+	  <maxWarmingSearchers>2</maxWarmingSearchers>
 
   </query>
 
