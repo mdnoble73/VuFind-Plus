@@ -369,7 +369,7 @@
       class="solr.FastLRUCache"
       size="30000"
       initialSize="5000"
-      autowarmCount="1000"/>
+      autowarmCount="10"/>
 
    <!-- queryResultCache caches results of searches - ordered lists of
          document ids (DocList) based on a query, a sort, and the range
@@ -378,15 +378,15 @@
       class="solr.LRUCache"
       size="10000"
       initialSize="5000"
-      autowarmCount="1000"/>
+      autowarmCount="10"/>
 
   <!-- documentCache caches Lucene Document objects (the stored fields for each document).
        Since Lucene internal document ids are transient, this cache will not be autowarmed.  -->
     <documentCache
       class="solr.LRUCache"
       size="5000"
-      initialSize="1000"
-      autowarmCount="500"/>
+      initialSize="500"
+      autowarmCount="0"/>
 
 	  <!-- custom cache currently used by block join -->
 	  <cache name="perSegFilter"
@@ -491,21 +491,22 @@
 	  <!-- QuerySenderListener takes an array of NamedList and executes a
 			 local query request for each NamedList in sequence.
 		-->
-	  <!--
 	  <listener event="newSearcher" class="solr.QuerySenderListener">
-		  <arr name="queries">
-				 <lst><str name="q">solr</str><str name="sort">price asc</str></lst>
-				 <lst><str name="q">rocks</str><str name="sort">weight asc</str></lst>
+		  <!--
+	    <arr name="queries">
+				 <lst><str name="q"></str></lst>
 		  </arr>
+		  -->
 	  </listener>
 	  <listener event="firstSearcher" class="solr.QuerySenderListener">
+	    <!--
 		  <arr name="queries">
 			  <lst>
 				  <str name="q">static firstSearcher warming in solrconfig.xml</str>
 			  </lst>
 		  </arr>
+		  -->
 	  </listener>
-	  -->
 
 	  <!-- Use Cold Searcher
 
