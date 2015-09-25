@@ -255,7 +255,8 @@
 				 have some sort of hard autoCommit to limit the log size.
 			-->
 		<autoCommit>
-			<maxTime>${solr.autoCommit.maxTime:15000}</maxTime>
+			<maxDocs>${solr.autoCommit.maxDocs:5000}</maxDocs>
+			<maxTime>${solr.autoCommit.maxTime:120000}</maxTime>
 			<openSearcher>false</openSearcher>
 		</autoCommit>
 
@@ -266,7 +267,7 @@
 			-->
 
 		<autoSoftCommit>
-			<maxTime>${solr.autoSoftCommit.maxTime:-1}</maxTime>
+			<maxTime>${solr.autoSoftCommit.maxTime:1000}</maxTime>
 		</autoSoftCommit>
 
 		<!-- Update Related Event Listeners
