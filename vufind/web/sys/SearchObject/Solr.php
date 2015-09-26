@@ -2018,7 +2018,7 @@ class SearchObject_Solr extends SearchObject_Base
 			$curCol = 0;
 			//Output the row to excel
 			$sheet->setCellValueByColumnAndRow($curCol++, $curRow, isset($curDoc['id']) ? $curDoc['id'] : '');
-			$sheet->setCellValueByColumnAndRow($curCol++, $curRow, isset($curDoc['title']) ? $curDoc['title'] : '');
+			$sheet->setCellValueByColumnAndRow($curCol++, $curRow, isset($curDoc['title_display']) ? $curDoc['title_display'] : '');
 			$sheet->setCellValueByColumnAndRow($curCol++, $curRow, isset($curDoc['author']) ? $curDoc['author'] : '');
 			$sheet->setCellValueByColumnAndRow($curCol++, $curRow, isset($curDoc['publisher']) ? implode(', ', $curDoc['publisher']) : '');
 			$sheet->setCellValueByColumnAndRow($curCol++, $curRow, isset($curDoc['publishDate']) ? implode(', ', $curDoc['publishDate']) : '');
