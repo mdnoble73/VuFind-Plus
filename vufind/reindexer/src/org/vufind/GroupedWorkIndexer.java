@@ -802,7 +802,7 @@ public class GroupedWorkIndexer {
 				LexileTitle lexileTitle = lexileInformation.get(isbn);
 				String lexileCode = lexileTitle.getLexileCode();
 				if (lexileCode.length() > 0){
-					groupedWork.setLexileCode(this.translateSystemValue("lexile_code", lexileCode));
+					groupedWork.setLexileCode(this.translateSystemValue("lexile_code", lexileCode, groupedWork.getId()));
 				}
 				groupedWork.setLexileScore(lexileTitle.getLexileScore());
 				groupedWork.addAwards(lexileTitle.getAwards());
@@ -920,7 +920,7 @@ public class GroupedWorkIndexer {
 
 	HashSet<String> unableToTranslateWarnings = new HashSet<>();
 	HashSet<String> missingTranslationMaps = new HashSet<>();
-	public String translateSystemValue(String mapName, String value){
+	public String translateSystemValue(String mapName, String value, String identifier){
 		if (value == null){
 				return null;
 			}
@@ -943,7 +943,7 @@ public class GroupedWorkIndexer {
 					String concatenatedValue = mapName + ":" + value;
 					if (!unableToTranslateWarnings.contains(concatenatedValue)){
 						if (fullReindex) {
-							logger.warn("Could not translate '" + concatenatedValue + "'");
+							logger.warn("Could not translate '" + concatenatedValue + "' sample record " + identifier);
 						}
 						unableToTranslateWarnings.add(concatenatedValue);
 					}
@@ -960,10 +960,10 @@ public class GroupedWorkIndexer {
 		return translatedValue;
 	}
 
-	public LinkedHashSet<String> translateSystemCollection(String mapName, Set<String> values) {
+	public LinkedHashSet<String> translateSystemCollection(String mapName, Set<String> values, String identifier) {
 		LinkedHashSet<String> translatedCollection = new LinkedHashSet<>();
 		for (String value : values){
-				String translatedValue = translateSystemValue(mapName, value);
+				String translatedValue = translateSystemValue(mapName, value, identifier);
 				if (translatedValue != null) {
 						translatedCollection.add(translatedValue);
 					}

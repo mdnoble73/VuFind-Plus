@@ -28,7 +28,7 @@ public class AspencatRecordProcessor extends IlsRecordProcessor {
 		super(indexer, vufindConn, configIni, indexingProfileRS, logger, fullReindex);
 
 		//Connect to the AspenCat database
-		Connection kohaConn = null;
+		Connection kohaConn;
 		try {
 			String kohaConnectionJDBC = "jdbc:mysql://" +
 					Util.cleanIniValue(configIni.get("Catalog", "db_host")) +
@@ -68,17 +68,17 @@ public class AspencatRecordProcessor extends IlsRecordProcessor {
 			printFormats.add(curFormat.toLowerCase());
 		}
 
-		HashSet<String> translatedFormats = translateCollection("format", printFormats);
+		HashSet<String> translatedFormats = translateCollection("format", printFormats, recordInfo.getRecordIdentifier());
 
 		if (translatedFormats.size() == 0){
 			//We didn't get any formats from the collections, get formats from the base method (007, 008, etc).
 			super.loadPrintFormatInformation(recordInfo, record);
 		} else{
-			HashSet<String> translatedFormatCategories = translateCollection("format_category", printFormats);
+			HashSet<String> translatedFormatCategories = translateCollection("format_category", printFormats, recordInfo.getRecordIdentifier());
 			recordInfo.addFormats(translatedFormats);
 			recordInfo.addFormatCategories(translatedFormatCategories);
 			Long formatBoost = 0L;
-			HashSet<String> formatBoosts = translateCollection("format_boost", printFormats);
+			HashSet<String> formatBoosts = translateCollection("format_boost", printFormats, recordInfo.getRecordIdentifier());
 			for (String tmpFormatBoost : formatBoosts){
 				if (Util.isNumeric(tmpFormatBoost)) {
 					Long tmpFormatBoostLong = Long.parseLong(tmpFormatBoost);
@@ -244,9 +244,9 @@ public class AspencatRecordProcessor extends IlsRecordProcessor {
 	protected void loadEContentFormatInformation(Record record, RecordInfo econtentRecord, ItemInfo econtentItem) {
 		if (econtentItem.getITypeCode() != null) {
 			String iType = econtentItem.getITypeCode().toLowerCase();
-			String translatedFormat = translateValue("format", iType);
-			String translatedFormatCategory = translateValue("format_category", iType);
-			String translatedFormatBoost = translateValue("format_boost", iType);
+			String translatedFormat = translateValue("format", iType, econtentRecord.getRecordIdentifier());
+			String translatedFormatCategory = translateValue("format_category", iType, econtentRecord.getRecordIdentifier());
+			String translatedFormatBoost = translateValue("format_boost", iType, econtentRecord.getRecordIdentifier());
 			econtentItem.setFormat(translatedFormat);
 			econtentItem.setFormatCategory(translatedFormatCategory);
 			econtentRecord.setFormatBoost(Long.parseLong(translatedFormatBoost));
@@ -305,29 +305,29 @@ public class AspencatRecordProcessor extends IlsRecordProcessor {
 			suppressed = curItem.getSubfield(iTypeSubfield).getData().equalsIgnoreCase("ill");
 		}
 		if (suppressed){
-			return suppressed;
+			return true;
 		} else {
 			return super.isItemSuppressed(curItem);
 		}
 	}
 
-	protected String getShelfLocationForItem(ItemInfo itemInfo, DataField itemField) {
+	protected String getShelfLocationForItem(ItemInfo itemInfo, DataField itemField, String identifier) {
 		/*String locationCode = getItemSubfieldData(locationSubfieldIndicator, itemField);
 		String location = translateValue("location", locationCode);*/
 		String location = "";
 		String subLocationCode = getItemSubfieldData(subLocationSubfield, itemField);
 		if (subLocationCode != null && subLocationCode.length() > 0){
-			location += translateValue("sub_location", subLocationCode);
+			location += translateValue("sub_location", subLocationCode, identifier);
 		}else{
 			String locationCode = getItemSubfieldData(locationSubfieldIndicator, itemField);
-			location = translateValue("location", locationCode);
+			location = translateValue("location", locationCode, identifier);
 		}
 		String shelvingLocation = getItemSubfieldData(shelvingLocationSubfield, itemField);
 		if (shelvingLocation != null && shelvingLocation.length() > 0){
 			if (location.length() > 0){
 				location += " - ";
 			}
-			location += translateValue("shelf_location", shelvingLocation);
+			location += translateValue("shelf_location", shelvingLocation, identifier);
 		}
 		return location;
 	}
