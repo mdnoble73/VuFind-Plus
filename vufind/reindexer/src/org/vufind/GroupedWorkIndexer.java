@@ -489,9 +489,10 @@ public class GroupedWorkIndexer {
 			logger.error("Error optimizing index", e);
 		}
 		try {
-			GroupedReindexMain.addNoteToReindexLog("Doing a soft commit to make sure changes are saved");
-			updateServer.commit(false, false, true);
+			/*GroupedReindexMain.addNoteToReindexLog("Doing a soft commit to make sure changes are saved");
+			updateServer.commit(false, false, true);*/
 			GroupedReindexMain.addNoteToReindexLog("Shutting down the update server");
+			updateServer.blockUntilFinished();
 			updateServer.shutdown();
 		} catch (Exception e) {
 			logger.error("Error shutting down update server", e);
@@ -784,7 +785,7 @@ public class GroupedWorkIndexer {
 			//Write the record to Solr.
 			try {
 				SolrInputDocument inputDocument = groupedWork.getSolrDocument(availableAtLocationBoostValue, ownedByLocationBoostValue);
-				updateServer.add(inputDocument);
+				updateServer.add(inputDocument, 60000);
 
 			} catch (Exception e) {
 				logger.error("Error adding record to solr", e);

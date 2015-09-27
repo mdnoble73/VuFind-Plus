@@ -122,7 +122,7 @@ public class UserListProcessor {
 				}
 			}
 
-			updateServer.add(userListSolr.getSolrDocument(availableAtLocationBoostValue, ownedByLocationBoostValue));
+			updateServer.add(userListSolr.getSolrDocument(availableAtLocationBoostValue, ownedByLocationBoostValue), 60000);
 		}
 	}
 }

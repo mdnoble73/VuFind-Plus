@@ -84,4 +84,8 @@ public class NashvilleRecordProcessor extends IIIRecordProcessor {
 	protected boolean loanRulesAreBasedOnCheckoutLocation(){
 		return true;
 	}
+
+	protected boolean determineLibraryUseOnly(ItemInfo itemInfo, Scope curScope) {
+		return itemInfo.getStatusCode().equals("o");
+	}
 }
