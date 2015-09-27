@@ -790,15 +790,21 @@ class OverDriveDriver3 {
 		$result['message'] = '';
 
 		//print_r($response);
-		if (isset($response->expires)){
+		if (isset($response->expires)) {
 			$result['success'] = true;
 			$result['message'] = 'Your title was checked out successfully. You may now download the title from your Account.';
-			if ($analytics) $analytics->addEvent('OverDrive', 'Checkout Item', 'succeeded');
+			if ($analytics) {
+				$analytics->addEvent('OverDrive', 'Checkout Item', 'succeeded');
+			}
 		}else{
 			$result['message'] = 'Sorry, we could not checkout this title to you.';
+			if ($response->errorCode == 'PatronHasExceededCheckoutLimit'){
+				$result['message'] .= "\r\n\r\nYou have reached the maximum number of OverDrive titles you can checkout one time.";
+			}else{
+				if (isset($response->message)) $result['message'] .= "  {$response->message}";
+			}
 
-			if (isset($response->message)) $result['message'] .= "  {$response->message}";
-			if (isset($response->errorCode) && $response->errorCode == 'NoCopiesAvailable') {
+			if (isset($response->errorCode) && ($response->errorCode == 'NoCopiesAvailable' || $response->errorCode == 'PatronHasExceededCheckoutLimit')) {
 				$result['noCopies'] = true;
 				$result['message'] .= "\r\n\r\nWould you like to place a hold instead?";
 			}else{
