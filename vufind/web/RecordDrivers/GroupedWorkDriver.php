@@ -44,7 +44,7 @@ class GroupedWorkDriver extends RecordInterface{
 	}
 
 	public function getSolrField($fieldName){
-		return $this->fields[$fieldName];
+		return isset($this->fields[$fieldName]) ? $this->fields[$fieldName] : null;
 	}
 
 	private static function normalizeEdition($edition) {
