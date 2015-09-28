@@ -139,9 +139,9 @@ public class MarmotRecordProcessor extends IIIRecordProcessor {
 					//Did not get a filename, use the iType as a placeholder
 					String iType = econtentItem.getITypeCode();
 					if (iType != null) {
-						String translatedFormat = translateValue("econtent_itype_format", iType);
-						String translatedFormatCategory = translateValue("econtent_itype_format_category", iType);
-						String translatedFormatBoost = translateValue("econtent_itype_format_boost", iType);
+						String translatedFormat = translateValue("econtent_itype_format", iType, econtentRecord.getRecordIdentifier());
+						String translatedFormatCategory = translateValue("econtent_itype_format_category", iType, econtentRecord.getRecordIdentifier());
+						String translatedFormatBoost = translateValue("econtent_itype_format_boost", iType, econtentRecord.getRecordIdentifier());
 						econtentItem.setFormat(translatedFormat);
 						econtentItem.setFormatCategory(translatedFormatCategory);
 						econtentRecord.setFormatBoost(Long.parseLong(translatedFormatBoost));
@@ -155,18 +155,18 @@ public class MarmotRecordProcessor extends IIIRecordProcessor {
 						String tmpFilename = filename.replace(".noimages", "");
 						fileExtension = tmpFilename.substring(tmpFilename.lastIndexOf('.') + 1);
 					}
-					String translatedFormat = translateValue("format", fileExtension);
-					String translatedFormatCategory = translateValue("format_category", fileExtension);
-					String translatedFormatBoost = translateValue("format_boost", fileExtension);
+					String translatedFormat = translateValue("format", fileExtension, econtentRecord.getRecordIdentifier());
+					String translatedFormatCategory = translateValue("format_category", fileExtension, econtentRecord.getRecordIdentifier());
+					String translatedFormatBoost = translateValue("format_boost", fileExtension, econtentRecord.getRecordIdentifier());
 					econtentItem.setFormat(translatedFormat);
 					econtentItem.setFormatCategory(translatedFormatCategory);
 					econtentRecord.setFormatBoost(Long.parseLong(translatedFormatBoost));
 				} else {
 					//For now we know these are folders of MP3 files
 					//TODO: Probably should actually open the folder to make sure that it contains MP3 files
-					String translatedFormat = translateValue("format", "mp3");
-					String translatedFormatCategory = translateValue("format_category", "mp3");
-					String translatedFormatBoost = translateValue("format_boost", "mp3");
+					String translatedFormat = translateValue("format", "mp3", econtentRecord.getRecordIdentifier());
+					String translatedFormatCategory = translateValue("format_category", "mp3", econtentRecord.getRecordIdentifier());
+					String translatedFormatBoost = translateValue("format_boost", "mp3", econtentRecord.getRecordIdentifier());
 					econtentItem.setFormat(translatedFormat);
 					econtentItem.setFormatCategory(translatedFormatCategory);
 					econtentRecord.setFormatBoost(Long.parseLong(translatedFormatBoost));
@@ -175,9 +175,9 @@ public class MarmotRecordProcessor extends IIIRecordProcessor {
 			case "external":
 				String iType = econtentItem.getITypeCode();
 				if (iType != null) {
-					String translatedFormat = translateValue("econtent_itype_format", iType);
-					String translatedFormatCategory = translateValue("econtent_itype_format_category", iType);
-					String translatedFormatBoost = translateValue("econtent_itype_format_boost", iType);
+					String translatedFormat = translateValue("econtent_itype_format", iType, econtentRecord.getRecordIdentifier());
+					String translatedFormatCategory = translateValue("econtent_itype_format_category", iType, econtentRecord.getRecordIdentifier());
+					String translatedFormatBoost = translateValue("econtent_itype_format_boost", iType, econtentRecord.getRecordIdentifier());
 					econtentItem.setFormat(translatedFormat);
 					econtentItem.setFormatCategory(translatedFormatCategory);
 					econtentRecord.setFormatBoost(Long.parseLong(translatedFormatBoost));

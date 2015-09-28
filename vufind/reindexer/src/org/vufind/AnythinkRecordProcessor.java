@@ -37,12 +37,12 @@ public class AnythinkRecordProcessor extends IlsRecordProcessor {
 			printFormats.add(curFormat.toLowerCase());
 		}
 
-		HashSet<String> translatedFormats = translateCollection("format", printFormats);
-		HashSet<String> translatedFormatCategories = translateCollection("format_category", printFormats);
+		HashSet<String> translatedFormats = translateCollection("format", printFormats, recordInfo.getRecordIdentifier());
+		HashSet<String> translatedFormatCategories = translateCollection("format_category", printFormats, recordInfo.getRecordIdentifier());
 		recordInfo.addFormats(translatedFormats);
 		recordInfo.addFormatCategories(translatedFormatCategories);
 		Long formatBoost = 0L;
-		HashSet<String> formatBoosts = translateCollection("format_boost", printFormats);
+		HashSet<String> formatBoosts = translateCollection("format_boost", printFormats, recordInfo.getRecordIdentifier());
 		for (String tmpFormatBoost : formatBoosts){
 			if (Util.isNumeric(tmpFormatBoost)) {
 				Long tmpFormatBoostLong = Long.parseLong(tmpFormatBoost);
@@ -79,7 +79,7 @@ public class AnythinkRecordProcessor extends IlsRecordProcessor {
 		return getFieldList(record, "690a");
 	}
 
-	protected void loadTargetAudiences(GroupedWorkSolr groupedWork, Record record, HashSet<ItemInfo> printItems) {
+	protected void loadTargetAudiences(GroupedWorkSolr groupedWork, Record record, HashSet<ItemInfo> printItems, String identifier) {
 		//For Anythink, load audiences based on collection code rather than based on the 008 and 006 fields
 		HashSet<String> targetAudiences = new HashSet<>();
 		for (ItemInfo printItem : printItems){
@@ -89,7 +89,7 @@ public class AnythinkRecordProcessor extends IlsRecordProcessor {
 			}
 		}
 
-		HashSet<String> translatedAudiences = translateCollection("target_audience", targetAudiences);
+		HashSet<String> translatedAudiences = translateCollection("target_audience", targetAudiences, identifier);
 		groupedWork.addTargetAudiences(translatedAudiences);
 		groupedWork.addTargetAudiencesFull(translatedAudiences);
 	}
@@ -112,12 +112,12 @@ public class AnythinkRecordProcessor extends IlsRecordProcessor {
 		}
 	}
 
-	protected String getShelfLocationForItem(ItemInfo itemInfo, DataField itemField) {
+	protected String getShelfLocationForItem(ItemInfo itemInfo, DataField itemField, String identifier) {
 		String locationCode = getItemSubfieldData(locationSubfieldIndicator, itemField);
-		String location = translateValue("location", locationCode);
+		String location = translateValue("location", locationCode, identifier);
 		String shelvingLocation = getItemSubfieldData(shelvingLocationSubfield, itemField);
 		if (shelvingLocation != null && !shelvingLocation.equals(locationCode)){
-			location += " - " + translateValue("shelf_location", shelvingLocation);
+			location += " - " + translateValue("shelf_location", shelvingLocation, identifier);
 		}
 		return location;
 	}

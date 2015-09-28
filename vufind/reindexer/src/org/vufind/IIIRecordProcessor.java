@@ -226,7 +226,7 @@ public abstract class IIIRecordProcessor extends IlsRecordProcessor{
 		return new BookabilityInformation(isBookable, bookablePTypes);
 	}
 
-	protected String getDisplayGroupedStatus(ItemInfo itemInfo) {
+	protected String getDisplayGroupedStatus(ItemInfo itemInfo, String identifier) {
 		String statusCode = itemInfo.getStatusCode();
 		if (statusCode.equals("-")){
 			//We need to override based on due date
@@ -237,11 +237,11 @@ public abstract class IIIRecordProcessor extends IlsRecordProcessor{
 				return "Checked Out";
 			}
 		}else {
-			return translateValue("item_grouped_status", statusCode);
+			return translateValue("item_grouped_status", statusCode, identifier);
 		}
 	}
 
-	protected String getDisplayStatus(ItemInfo itemInfo) {
+	protected String getDisplayStatus(ItemInfo itemInfo, String identifier) {
 		String statusCode = itemInfo.getStatusCode();
 		if (statusCode.equals("-")){
 			//We need to override based on due date
@@ -252,17 +252,17 @@ public abstract class IIIRecordProcessor extends IlsRecordProcessor{
 				return "Checked Out";
 			}
 		}else {
-			return translateValue("item_status", statusCode);
+			return translateValue("item_status", statusCode, identifier);
 		}
 	}
 
 	protected abstract boolean loanRulesAreBasedOnCheckoutLocation();
 
-	protected void setDetailedStatus(ItemInfo itemInfo, DataField itemField, String itemStatus) {
+	protected void setDetailedStatus(ItemInfo itemInfo, DataField itemField, String itemStatus, String identifier) {
 		if (itemStatus.equals("-") && !(itemInfo.getDueDate().length() == 0 || itemInfo.getDueDate().trim().equals("-  -"))){
 			itemInfo.setDetailedStatus("Due " + getDisplayDueDate(itemInfo.getDueDate()));
 		}else {
-			itemInfo.setDetailedStatus(translateValue("item_status", itemStatus));
+			itemInfo.setDetailedStatus(translateValue("item_status", itemStatus, identifier));
 		}
 	}
 

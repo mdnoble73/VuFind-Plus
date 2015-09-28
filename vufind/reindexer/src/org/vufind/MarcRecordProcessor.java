@@ -37,7 +37,7 @@ public abstract class MarcRecordProcessor {
 	 */
 	public abstract void processRecord(GroupedWorkSolr groupedWork, String identifier);
 
-	protected void updateGroupedWorkSolrDataBasedOnStandardMarcData(GroupedWorkSolr groupedWork, Record record, HashSet<ItemInfo> printItems) {
+	protected void updateGroupedWorkSolrDataBasedOnStandardMarcData(GroupedWorkSolr groupedWork, Record record, HashSet<ItemInfo> printItems, String identifier) {
 		loadTitles(groupedWork, record);
 		loadAuthors(groupedWork, record);
 		groupedWork.addTopic(getFieldList(record, "600abcdefghjklmnopqrstuvxyz:610abcdefghjklmnopqrstuvxyz:611acdefghklnpqstuvxyz:630abfghklmnoprstvxyz:650abcdevxyz:651abcdevxyz:690a"));
@@ -58,9 +58,9 @@ public abstract class MarcRecordProcessor {
 		groupedWork.addIssns(getFieldList(record, "022a"));
 		groupedWork.addOclcNumbers(getFieldList(record, "035a"));
 		loadAwards(groupedWork, record);
-		loadBibCallNumbers(groupedWork, record);
-		loadLiteraryForms(groupedWork, record);
-		loadTargetAudiences(groupedWork, record, printItems);
+		loadBibCallNumbers(groupedWork, record, identifier);
+		loadLiteraryForms(groupedWork, record, identifier);
+		loadTargetAudiences(groupedWork, record, printItems, identifier);
 		groupedWork.addMpaaRating(getMpaaRating(record));
 		groupedWork.setAcceleratedReaderInterestLevel(getAcceleratedReaderInterestLevel(record));
 		groupedWork.setAcceleratedReaderReadingLevel(getAcceleratedReaderReadingLevel(record));
@@ -217,7 +217,7 @@ public abstract class MarcRecordProcessor {
 		}
 	}
 
-	protected void loadTargetAudiences(GroupedWorkSolr groupedWork, Record record, HashSet<ItemInfo> printItems) {
+	protected void loadTargetAudiences(GroupedWorkSolr groupedWork, Record record, HashSet<ItemInfo> printItems, String identifier) {
 		Set<String> targetAudiences = new LinkedHashSet<>();
 		try {
 			String leader = record.getLeader().toString();
@@ -269,11 +269,11 @@ public abstract class MarcRecordProcessor {
 			targetAudiences.add("Unknown");
 		}
 
-		groupedWork.addTargetAudiences(indexer.translateSystemCollection("target_audience", targetAudiences));
-		groupedWork.addTargetAudiencesFull(indexer.translateSystemCollection("target_audience_full", targetAudiences));
+		groupedWork.addTargetAudiences(indexer.translateSystemCollection("target_audience", targetAudiences, identifier));
+		groupedWork.addTargetAudiencesFull(indexer.translateSystemCollection("target_audience_full", targetAudiences, identifier));
 	}
 
-	protected void loadLiteraryForms(GroupedWorkSolr groupedWork, Record record) {
+	protected void loadLiteraryForms(GroupedWorkSolr groupedWork, Record record, String identifier) {
 		//First get the literary Forms from the 008.  These need translation
 		LinkedHashSet<String> literaryForms = new LinkedHashSet<>();
 		try {
@@ -314,8 +314,8 @@ public abstract class MarcRecordProcessor {
 			//Uh oh, we have a problem
 			logger.warn("Received multiple literary forms for a single marc record");
 		}
-		groupedWork.addLiteraryForms(indexer.translateSystemCollection("literary_form", literaryForms));
-		groupedWork.addLiteraryFormsFull(indexer.translateSystemCollection("literary_form_full", literaryForms));
+		groupedWork.addLiteraryForms(indexer.translateSystemCollection("literary_form", literaryForms, identifier));
+		groupedWork.addLiteraryFormsFull(indexer.translateSystemCollection("literary_form_full", literaryForms, identifier));
 
 		//Now get literary forms from the subjects, these don't need translation
 		HashMap<String, Integer> literaryFormsWithCount = new HashMap<>();
@@ -513,12 +513,12 @@ public abstract class MarcRecordProcessor {
 		return publisher;
 	}
 
-	protected void loadLanguageDetails(GroupedWorkSolr groupedWork, Record record, HashSet<RecordInfo> ilsRecords) {
+	protected void loadLanguageDetails(GroupedWorkSolr groupedWork, Record record, HashSet<RecordInfo> ilsRecords, String identifier) {
 		Set <String> languages = getFieldList(record, "008[35-37]:041a:041d:041j");
 		HashSet<String> translatedLanguages = new HashSet<>();
 		boolean isFirstLanguage = true;
 		for (String language : languages){
-			String tranlatedLanguage = indexer.translateSystemValue("language", language);
+			String tranlatedLanguage = indexer.translateSystemValue("language", language, identifier);
 			translatedLanguages.add(tranlatedLanguage);
 			if (isFirstLanguage){
 				for (RecordInfo ilsRecord : ilsRecords){
@@ -526,12 +526,12 @@ public abstract class MarcRecordProcessor {
 				}
 			}
 			isFirstLanguage = false;
-			String languageBoost = indexer.translateSystemValue("language_boost", language);
+			String languageBoost = indexer.translateSystemValue("language_boost", language, identifier);
 			if (languageBoost != null){
 				Long languageBoostVal = Long.parseLong(languageBoost);
 				groupedWork.setLanguageBoost(languageBoostVal);
 			}
-			String languageBoostEs = indexer.translateSystemValue("language_boost_es", language);
+			String languageBoostEs = indexer.translateSystemValue("language_boost_es", language, identifier);
 			if (languageBoostEs != null){
 				Long languageBoostVal = Long.parseLong(languageBoostEs);
 				groupedWork.setLanguageBoostSpanish(languageBoostVal);
@@ -584,15 +584,15 @@ public abstract class MarcRecordProcessor {
 		groupedWork.addNewTitles(this.getFieldList(record, "785ast"));
 	}
 
-	protected void loadBibCallNumbers(GroupedWorkSolr groupedWork, Record record) {
+	protected void loadBibCallNumbers(GroupedWorkSolr groupedWork, Record record, String identifier) {
 		groupedWork.setCallNumberA(getFirstFieldVal(record, "099a:090a:050a"));
 		String firstCallNumber = getFirstFieldVal(record, "099a[0]:090a[0]:050a[0]");
 		if (firstCallNumber != null){
-			groupedWork.setCallNumberFirst(indexer.translateSystemValue("callnumber", firstCallNumber));
+			groupedWork.setCallNumberFirst(indexer.translateSystemValue("callnumber", firstCallNumber, identifier));
 		}
 		String callNumberSubject = getCallNumberSubject(record, "090a:050a");
 		if (callNumberSubject != null){
-			groupedWork.setCallNumberSubject(indexer.translateSystemValue("callnumber_subject", callNumberSubject));
+			groupedWork.setCallNumberSubject(indexer.translateSystemValue("callnumber_subject", callNumberSubject, identifier));
 		}
 	}
 

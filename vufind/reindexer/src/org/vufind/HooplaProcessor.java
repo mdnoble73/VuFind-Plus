@@ -66,7 +66,7 @@ public class HooplaProcessor extends MarcRecordProcessor {
 	@Override
 	protected void updateGroupedWorkSolrDataBasedOnMarc(GroupedWorkSolr groupedWork, Record record, String identifier) {
 		//Do updates based on the overall bib (shared regardless of scoping)
-		updateGroupedWorkSolrDataBasedOnStandardMarcData(groupedWork, record, null);
+		updateGroupedWorkSolrDataBasedOnStandardMarcData(groupedWork, record, null, identifier);
 
 		//Do special processing for Hoopla which does not have individual items within the record
 		//Instead, each record has essentially unlimited items that can be used at one time.
@@ -75,8 +75,8 @@ public class HooplaProcessor extends MarcRecordProcessor {
 		//First get format
 		String format = getFirstFieldVal(record, "099a");
 		format = format.replace(" hoopla", "");
-		String formatCategory = indexer.translateSystemValue("format_category_hoopla", format);
-		String formatBoostStr = indexer.translateSystemValue("format_boost_hoopla", format);
+		String formatCategory = indexer.translateSystemValue("format_category_hoopla", format, identifier);
+		String formatBoostStr = indexer.translateSystemValue("format_boost_hoopla", format, identifier);
 		Long formatBoost = Long.parseLong(formatBoostStr);
 
 		//Load editions
@@ -89,18 +89,18 @@ public class HooplaProcessor extends MarcRecordProcessor {
 
 		//Load Languages
 		Set <String> languages = getFieldList(record, "008[35-37]:041a:041d:041j");
-		HashSet<String> translatedLanguages = indexer.translateSystemCollection("language", languages);
+		HashSet<String> translatedLanguages = indexer.translateSystemCollection("language", languages, identifier);
 		String primaryLanguage = null;
 		for (String language : languages){
 			if (primaryLanguage == null){
-				primaryLanguage = indexer.translateSystemValue("language", language);
+				primaryLanguage = indexer.translateSystemValue("language", language, identifier);
 			}
-			String languageBoost = indexer.translateSystemValue("language_boost", language);
+			String languageBoost = indexer.translateSystemValue("language_boost", language, identifier);
 			if (languageBoost != null){
 				Long languageBoostVal = Long.parseLong(languageBoost);
 				groupedWork.setLanguageBoost(languageBoostVal);
 			}
-			String languageBoostEs = indexer.translateSystemValue("language_boost_es", language);
+			String languageBoostEs = indexer.translateSystemValue("language_boost_es", language, identifier);
 			if (languageBoostEs != null){
 				Long languageBoostVal = Long.parseLong(languageBoostEs);
 				groupedWork.setLanguageBoostSpanish(languageBoostVal);

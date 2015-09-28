@@ -385,8 +385,7 @@
     <documentCache
       class="solr.LRUCache"
       size="5000"
-      initialSize="1000"
-      autowarmCount="500"/>
+      initialSize="5000"/>
 
 	  <!-- custom cache currently used by block join -->
 	  <cache name="perSegFilter"
@@ -491,21 +490,37 @@
 	  <!-- QuerySenderListener takes an array of NamedList and executes a
 			 local query request for each NamedList in sequence.
 		-->
-	  <!--
-	  <listener event="newSearcher" class="solr.QuerySenderListener">
-		  <arr name="queries">
-				 <lst><str name="q">solr</str><str name="sort">price asc</str></lst>
-				 <lst><str name="q">rocks</str><str name="sort">weight asc</str></lst>
-		  </arr>
-	  </listener>
+		<listener event="newSearcher" class="solr.QuerySenderListener">
+			<arr name="queries">
+				<lst><str name="q"></str></lst>
+				<lst><str name="q">Fiction</str></lst>
+				<lst><str name="q">dvd</str></lst>
+				<lst><str name="q">movies</str></lst>
+				<lst><str name="q">good and evil</str></lst>
+				<lst><str name="q">Harry Potter</str></lst>
+				<lst><str name="q">audio books</str></lst>
+				<lst><str name="q">star wars</str></lst>
+				<lst><str name="q">murder victims fiction</str></lst>
+				<lst><str name="q">james patterson</str></lst>
+				<lst><str name="q">divergent</str></lst>
+				<lst><str name="q">gone girl</str></lst>
+				<lst><str name="q">game of thrones</str></lst>
+				<lst><str name="q">documentary videos</str></lst>
+				<lst><str name="q">all the light we cannot see</str></lst>
+				<lst><str name="q">dogs</str></lst>
+				<lst><str name="q">cats</str></lst>
+				<lst><str name="q">hunger games</str></lst>
+			</arr>
+		</listener>
 	  <listener event="firstSearcher" class="solr.QuerySenderListener">
+	    <!--
 		  <arr name="queries">
 			  <lst>
 				  <str name="q">static firstSearcher warming in solrconfig.xml</str>
 			  </lst>
 		  </arr>
+		  -->
 	  </listener>
-	  -->
 
 	  <!-- Use Cold Searcher
 
@@ -525,7 +540,7 @@
 			 Recommend values of 1-2 for read-only slaves, higher for
 			 masters w/o cache warming.
 		-->
-	  <maxWarmingSearchers>2</maxWarmingSearchers>
+	  <maxWarmingSearchers>5</maxWarmingSearchers>
 
   </query>
 

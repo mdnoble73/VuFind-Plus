@@ -124,11 +124,11 @@ public class OverDriveProcessor {
 					productRS.close();
 
 					HashMap<String, String> metadata = loadOverDriveMetadata(groupedWork, productId);
-					String primaryLanguage = loadOverDriveLanguages(groupedWork, productId);
+					String primaryLanguage = loadOverDriveLanguages(groupedWork, productId, identifier);
 					loadOverDriveSubjects(groupedWork, productId);
 
 					//Load the formats for the record.  For OverDrive, we will create a separate item for each format.
-					HashSet<String> validFormats = loadOverDriveFormats(groupedWork, productId);
+					HashSet<String> validFormats = loadOverDriveFormats(groupedWork, productId, identifier);
 					String detailedFormats = Util.getCsvSeparatedString(validFormats);
 					overDriveRecord.addFormats(validFormats);
 
@@ -136,7 +136,7 @@ public class OverDriveProcessor {
 					for (String curFormat : validFormats){
 						long formatBoost = 1;
 						try{
-							formatBoost = Long.parseLong(indexer.translateSystemValue("format_boost_overdrive", curFormat.replace(' ', '_')));
+							formatBoost = Long.parseLong(indexer.translateSystemValue("format_boost_overdrive", curFormat.replace(' ', '_'), identifier));
 						}catch (Exception e){
 							logger.warn("Could not translate format boost for " + primaryFormat);
 						}
@@ -299,7 +299,7 @@ public class OverDriveProcessor {
 		}
 	}
 
-	private String loadOverDriveLanguages(GroupedWorkSolr groupedWork, Long productId) throws SQLException {
+	private String loadOverDriveLanguages(GroupedWorkSolr groupedWork, Long productId, String identifier) throws SQLException {
 		String primaryLanguage = null;
 		//Load languages
 		getProductLanguagesStmt.setLong(1, productId);
@@ -312,12 +312,12 @@ public class OverDriveProcessor {
 				primaryLanguage = language;
 			}
 			String languageCode = languagesRS.getString("code");
-			String languageBoost = indexer.translateSystemValue("language_boost", languageCode);
+			String languageBoost = indexer.translateSystemValue("language_boost", languageCode, identifier);
 			if (languageBoost != null){
 				Long languageBoostVal = Long.parseLong(languageBoost);
 				groupedWork.setLanguageBoost(languageBoostVal);
 			}
-			String languageBoostEs = indexer.translateSystemValue("language_boost_es", languageCode);
+			String languageBoostEs = indexer.translateSystemValue("language_boost_es", languageCode, identifier);
 			if (languageBoostEs != null){
 				Long languageBoostVal = Long.parseLong(languageBoostEs);
 				groupedWork.setLanguageBoostSpanish(languageBoostVal);
@@ -331,7 +331,7 @@ public class OverDriveProcessor {
 		return primaryLanguage;
 	}
 
-	private HashSet<String> loadOverDriveFormats(GroupedWorkSolr groupedWork, Long productId) throws SQLException {
+	private HashSet<String> loadOverDriveFormats(GroupedWorkSolr groupedWork, Long productId, String identifier) throws SQLException {
 		//Load formats
 		getProductFormatsStmt.setLong(1, productId);
 		ResultSet formatsRS = getProductFormatsStmt.executeQuery();
@@ -341,12 +341,12 @@ public class OverDriveProcessor {
 		while (formatsRS.next()){
 			String format = formatsRS.getString("name");
 			formats.add(format);
-			String deviceString = indexer.translateSystemValue("device_compatibility", format.replace(' ', '_'));
+			String deviceString = indexer.translateSystemValue("device_compatibility", format.replace(' ', '_'), identifier);
 			String[] devices = deviceString.split("\\|");
 			for (String device : devices){
 				eContentDevices.add(device.trim());
 			}
-			String formatBoostStr = indexer.translateSystemValue("format_boost_overdrive", format.replace(' ', '_'));
+			String formatBoostStr = indexer.translateSystemValue("format_boost_overdrive", format.replace(' ', '_'), identifier);
 			try{
 				Long curFormatBoost = Long.parseLong(formatBoostStr);
 				if (curFormatBoost > formatBoost){
