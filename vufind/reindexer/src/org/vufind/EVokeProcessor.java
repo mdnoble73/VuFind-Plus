@@ -45,7 +45,7 @@ public class EVokeProcessor extends MarcRecordProcessor{
 		//Get a list of items for the record
 
 		//Do updates based on the overall bib (shared regardless of scoping)
-		updateGroupedWorkSolrDataBasedOnStandardMarcData(groupedWork, record, null);
+		updateGroupedWorkSolrDataBasedOnStandardMarcData(groupedWork, record, null, identifier);
 
 		//Do special processing for eVoke
 		String fullDescription = Util.getCRSeparatedString(getFieldList(record, "520a"));

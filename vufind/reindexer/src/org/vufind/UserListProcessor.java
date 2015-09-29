@@ -42,6 +42,7 @@ public class UserListProcessor {
 	}
 
 	public Long processPublicUserLists(long lastReindexTime, ConcurrentUpdateSolrServer updateServer, SolrServer solrServer) {
+		GroupedReindexMain.addNoteToReindexLog("Starting to process public lists");
 		Long numListsProcessed = 0l;
 		try{
 			PreparedStatement listsStmt;
@@ -62,12 +63,15 @@ public class UserListProcessor {
 				updateSolrForList(updateServer, solrServer, getTitlesForListStmt, allPublicListsRS);
 				numListsProcessed++;
 			}
-			updateServer.commit();
+			if (numListsProcessed > 0 && fullReindex){
+				GroupedReindexMain.addNoteToReindexLog("Committing changes for public lists, processed " + numListsProcessed);
+				updateServer.commit(true, true);
+			}
 
 		}catch (Exception e){
 			logger.error("Error processing public lists", e);
 		}
-		logger.info("Finished processing public lists");
+		GroupedReindexMain.addNoteToReindexLog("Finished processing public lists");
 		return numListsProcessed;
 	}
 

@@ -36,7 +36,7 @@ public class TranslationMap {
 
 	HashSet<String> unableToTranslateWarnings = new HashSet<>();
 	public HashMap<String, String> cachedTranslations = new HashMap<>();
-	public String translateValue(String value){
+	public String translateValue(String value, String identifier){
 		String translatedValue = null;
 		String lowerCaseValue = value.toLowerCase();
 		if (cachedTranslations.containsKey(value)){
@@ -55,7 +55,7 @@ public class TranslationMap {
 				String concatenatedValue = mapName + ":" + value;
 				if (!unableToTranslateWarnings.contains(concatenatedValue)) {
 					if (fullReindex) {
-						logger.warn("Could not translate '" + concatenatedValue + "' in profile " + profileName);
+						logger.warn("Could not translate '" + concatenatedValue + "' in profile " + profileName + " sample record " + identifier);
 					}
 					unableToTranslateWarnings.add(concatenatedValue);
 				}
@@ -70,7 +70,7 @@ public class TranslationMap {
 					String concatenatedValue = mapName + ":" + value;
 					if (!unableToTranslateWarnings.contains(concatenatedValue)) {
 						if (fullReindex) {
-							logger.warn("Could not translate '" + concatenatedValue + "' in profile " + profileName);
+							logger.warn("Could not translate '" + concatenatedValue + "' in profile " + profileName + " sample record " + identifier);
 						}
 						unableToTranslateWarnings.add(concatenatedValue);
 					}
@@ -92,10 +92,10 @@ public class TranslationMap {
 		return translatedValue;
 	}
 
-	public LinkedHashSet<String> translateCollection(Set<String> values) {
+	public LinkedHashSet<String> translateCollection(Set<String> values, String identifier) {
 		LinkedHashSet<String> translatedCollection = new LinkedHashSet<>();
 		for (String value : values){
-			String translatedValue = translateValue(value);
+			String translatedValue = translateValue(value, identifier);
 			if (translatedValue != null) {
 				translatedCollection.add(translatedValue);
 			}

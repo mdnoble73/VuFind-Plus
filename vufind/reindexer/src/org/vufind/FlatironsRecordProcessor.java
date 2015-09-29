@@ -211,9 +211,9 @@ public class FlatironsRecordProcessor extends IIIRecordProcessor{
 				format = "Unknown";
 		}
 
-		String translatedFormat = translateValue("format", format);
-		String translatedFormatCategory = translateValue("format_category", format);
-		String translatedFormatBoost = translateValue("format_boost", format);
+		String translatedFormat = translateValue("format", format, econtentRecord.getRecordIdentifier());
+		String translatedFormatCategory = translateValue("format_category", format, econtentRecord.getRecordIdentifier());
+		String translatedFormatBoost = translateValue("format_boost", format, econtentRecord.getRecordIdentifier());
 		econtentItem.setFormat(translatedFormat);
 		econtentItem.setFormatCategory(translatedFormatCategory);
 		econtentRecord.setFormatBoost(Long.parseLong(translatedFormatBoost));
@@ -227,7 +227,7 @@ public class FlatironsRecordProcessor extends IIIRecordProcessor{
 		return false;
 	}
 
-	protected void loadTargetAudiences(GroupedWorkSolr groupedWork, Record record, HashSet<ItemInfo> printItems) {
+	protected void loadTargetAudiences(GroupedWorkSolr groupedWork, Record record, HashSet<ItemInfo> printItems, String identifier) {
 		//For Flatirons, load audiences based on the final character of the location codes
 		HashSet<String> targetAudiences = new HashSet<>();
 		for (ItemInfo printItem : printItems){
@@ -236,7 +236,7 @@ public class FlatironsRecordProcessor extends IIIRecordProcessor{
 			targetAudiences.add(lastCharacter);
 		}
 
-		groupedWork.addTargetAudiences(translateCollection("target_audience", targetAudiences));
-		groupedWork.addTargetAudiencesFull(translateCollection("target_audience", targetAudiences));
+		groupedWork.addTargetAudiences(translateCollection("target_audience", targetAudiences, identifier));
+		groupedWork.addTargetAudiencesFull(translateCollection("target_audience", targetAudiences, identifier));
 	}
 }

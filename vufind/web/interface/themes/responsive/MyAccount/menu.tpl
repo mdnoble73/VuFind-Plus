@@ -231,7 +231,9 @@
 							{if $user->hasRole('userAdmin')}
 								<div class="adminMenuLink {if $action == "Administrators"}active{/if}"><a href="{$path}/Admin/Administrators">Administrators</a></div>
 							{/if}
+							<!--
 							<div class="adminMenuLink {if $action == "TransferAccountInfo"}active{/if}"><a href="{$path}/Admin/TransferAccountInfo">Transfer Account Information</a></div>
+							-->
 							<div class="adminMenuLink {if $action == "DBMaintenance"}active{/if}"><a href="{$path}/Admin/DBMaintenance">DB Maintenance - Pika</a></div>
 							<div class="adminMenuLink {if $action == "DBMaintenanceEContent"}active{/if}"><a href="{$path}/Admin/DBMaintenanceEContent">DB Maintenance - EContent</a></div>
 							<div class="adminMenuLink {if $module == 'Admin' && $action == "Home"}active{/if}"><a href="{$path}/Admin/Home">Solr Information</a></div>

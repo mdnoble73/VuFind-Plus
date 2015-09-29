@@ -49,12 +49,12 @@ public class WCPLRecordProcessor extends IlsRecordProcessor {
 			printFormats.add(curFormat.toLowerCase());
 		}
 
-		HashSet<String> translatedFormats = translateCollection("format", printFormats);
-		HashSet<String> translatedFormatCategories = translateCollection("format_category", printFormats);
+		HashSet<String> translatedFormats = translateCollection("format", printFormats, ilsRecord.getRecordIdentifier());
+		HashSet<String> translatedFormatCategories = translateCollection("format_category", printFormats, ilsRecord.getRecordIdentifier());
 		ilsRecord.addFormats(translatedFormats);
 		ilsRecord.addFormatCategories(translatedFormatCategories);
 		Long formatBoost = 0L;
-		HashSet<String> formatBoosts = translateCollection("format_boost", printFormats);
+		HashSet<String> formatBoosts = translateCollection("format_boost", printFormats, ilsRecord.getRecordIdentifier());
 		for (String tmpFormatBoost : formatBoosts){
 			if (Util.isNumeric(tmpFormatBoost)) {
 				Long tmpFormatBoostLong = Long.parseLong(tmpFormatBoost);
@@ -100,15 +100,15 @@ public class WCPLRecordProcessor extends IlsRecordProcessor {
 		}
 	}
 
-	protected String getShelfLocationForItem(ItemInfo itemInfo, DataField itemField) {
+	protected String getShelfLocationForItem(ItemInfo itemInfo, DataField itemField, String identifier) {
 		String locationCode = getItemSubfieldData(locationSubfieldIndicator, itemField);
-		String location = translateValue("location", locationCode);
+		String location = translateValue("location", locationCode, identifier);
 		String shelvingLocation = getItemSubfieldData(shelvingLocationSubfield, itemField);
 		if (shelvingLocation != null && !shelvingLocation.equals(locationCode)){
 			if (location == null){
-				location = translateValue("shelf_location", shelvingLocation);
+				location = translateValue("shelf_location", shelvingLocation, identifier);
 			}else {
-				location += " - " + translateValue("shelf_location", shelvingLocation);
+				location += " - " + translateValue("shelf_location", shelvingLocation, identifier);
 			}
 		}
 		return location;

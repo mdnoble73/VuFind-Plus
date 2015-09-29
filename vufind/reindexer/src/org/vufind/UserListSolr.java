@@ -59,6 +59,7 @@ public class UserListSolr {
 			doc.addField("local_days_since_added_" + scope.getScopeName(), Util.getDaysSinceAddedForDate(dateAdded));
 			doc.addField("format_" + scope.getScopeName(), "list");
 			doc.addField("format_category_" + scope.getScopeName(), "list");
+			doc.addField("scope_has_related_records", scope.getScopeName());
 		}
 
 		return doc;

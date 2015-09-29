@@ -126,6 +126,7 @@ public class GroupedWorkIndexer {
 		}
 
 		//Initialize the updateServer and solr server
+		GroupedReindexMain.addNoteToReindexLog("Setting up update server and solr server");
 		if (fullReindex){
 			updateServer = new ConcurrentUpdateSolrServer("http://localhost:" + solrPort + "/solr/grouped2", 500, 8);
 			updateServer.setRequestWriter(new BinaryRequestWriter());
@@ -136,7 +137,7 @@ public class GroupedWorkIndexer {
 			//Periodically in the middle of the night we get indexes every minute or multiple times a minute
 			//which is annoying especially since it generally means nothing is changing.
 			long elapsedTime = indexStartTime - lastReindexTime;
-			long minIndexingInterval = 4 * 60;
+			long minIndexingInterval = 5 * 60;
 			if (elapsedTime < minIndexingInterval) {
 				try {
 					logger.debug("Pausing between indexes, last index ran " + Math.ceil(elapsedTime / 60) + " minutes ago");
@@ -160,6 +161,7 @@ public class GroupedWorkIndexer {
 				updatePartialReindexRunning(true);
 			}
 			updateServer = new ConcurrentUpdateSolrServer("http://localhost:" + solrPort + "/solr/grouped", 500, 8);
+			updateServer.setRequestWriter(new BinaryRequestWriter());
 			solrServer = new HttpSolrServer("http://localhost:" + solrPort + "/solr/grouped");
 		}
 
@@ -455,17 +457,21 @@ public class GroupedWorkIndexer {
 		logger.info("Clearing existing marc records from index");
 		try {
 			updateServer.deleteByQuery("recordtype:grouped_work", 10);
-			updateServer.commit(true, true);
+			updateServer.commit(true, true, false);
 		} catch (Exception e) {
 			logger.error("Error deleting from index", e);
 		}
 	}
 
 	public void finishIndexing(){
+		GroupedReindexMain.addNoteToReindexLog("Finishing indexing");
 		logger.info("Finishing indexing");
 		try {
-			logger.info("Calling commit");
-			updateServer.commit(true, true);
+			if (fullReindex) {
+				GroupedReindexMain.addNoteToReindexLog("Calling final commit");
+				logger.info("Calling commit");
+				updateServer.commit(true, true, false);
+			}
 		} catch (Exception e) {
 			logger.error("Error calling final commit", e);
 		}
@@ -473,22 +479,27 @@ public class GroupedWorkIndexer {
 		try {
 			//Optimize to trigger improved performance.  If we're doing a full reindex, need to wait for the searcher since
 			// we are going to swap in a minute.
-			logger.info("Optimizing index");
 			if (fullReindex) {
+				GroupedReindexMain.addNoteToReindexLog("Optimizing index");
+				logger.info("Optimizing index");
 				updateServer.optimize(true, true);
+				logger.info("Finished Optimizing index");
 			}
-			logger.info("Finished Optimizing index");
 		} catch (Exception e) {
 			logger.error("Error optimizing index", e);
 		}
 		try {
-			logger.info("Shutting down the update server");
+			GroupedReindexMain.addNoteToReindexLog("Doing a soft commit to make sure changes are saved");
+			updateServer.commit(false, false, true);
+			GroupedReindexMain.addNoteToReindexLog("Shutting down the update server");
+			updateServer.blockUntilFinished();
 			updateServer.shutdown();
 		} catch (Exception e) {
 			logger.error("Error shutting down update server", e);
 		}
 		//Swap the indexes
 		if (fullReindex)  {
+			GroupedReindexMain.addNoteToReindexLog("Swapping indexes");
 			try {
 				Util.getURL("http://localhost:" + solrPort + "/solr/admin/cores?action=SWAP&core=grouped2&other=grouped", logger);
 			} catch (Exception e) {
@@ -705,12 +716,12 @@ public class GroupedWorkIndexer {
 				processGroupedWork(id, permanentId, grouping_category);
 
 				numWorksProcessed++;
-				if (numWorksProcessed % 5000 == 0){
+				if (fullReindex && numWorksProcessed % 5000 == 0){
 					//Testing shows that regular commits do seem to improve performance.
 					//However, we can't do it too often or we get errors with too many searchers warming. n
 					//Leave in for now.
 					try {
-						updateServer.commit(true, false);
+						updateServer.commit(false, false, true);
 					}catch (Exception e){
 						logger.warn("Error committing changes", e);
 					}
@@ -791,7 +802,7 @@ public class GroupedWorkIndexer {
 				LexileTitle lexileTitle = lexileInformation.get(isbn);
 				String lexileCode = lexileTitle.getLexileCode();
 				if (lexileCode.length() > 0){
-					groupedWork.setLexileCode(this.translateSystemValue("lexile_code", lexileCode));
+					groupedWork.setLexileCode(this.translateSystemValue("lexile_code", lexileCode, groupedWork.getId()));
 				}
 				groupedWork.setLexileScore(lexileTitle.getLexileScore());
 				groupedWork.addAwards(lexileTitle.getAwards());
@@ -909,7 +920,7 @@ public class GroupedWorkIndexer {
 
 	HashSet<String> unableToTranslateWarnings = new HashSet<>();
 	HashSet<String> missingTranslationMaps = new HashSet<>();
-	public String translateSystemValue(String mapName, String value){
+	public String translateSystemValue(String mapName, String value, String identifier){
 		if (value == null){
 				return null;
 			}
@@ -932,7 +943,7 @@ public class GroupedWorkIndexer {
 					String concatenatedValue = mapName + ":" + value;
 					if (!unableToTranslateWarnings.contains(concatenatedValue)){
 						if (fullReindex) {
-							logger.warn("Could not translate '" + concatenatedValue + "'");
+							logger.warn("Could not translate '" + concatenatedValue + "' sample record " + identifier);
 						}
 						unableToTranslateWarnings.add(concatenatedValue);
 					}
@@ -949,10 +960,10 @@ public class GroupedWorkIndexer {
 		return translatedValue;
 	}
 
-	public LinkedHashSet<String> translateSystemCollection(String mapName, Set<String> values) {
+	public LinkedHashSet<String> translateSystemCollection(String mapName, Set<String> values, String identifier) {
 		LinkedHashSet<String> translatedCollection = new LinkedHashSet<>();
 		for (String value : values){
-				String translatedValue = translateSystemValue(mapName, value);
+				String translatedValue = translateSystemValue(mapName, value, identifier);
 				if (translatedValue != null) {
 						translatedCollection.add(translatedValue);
 					}
