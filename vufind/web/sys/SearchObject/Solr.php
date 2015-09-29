@@ -2008,9 +2008,13 @@ class SearchObject_Solr extends SearchObject_Base
 		$sheet->setCellValueByColumnAndRow($curCol++, $curRow, 'Author');
 		$sheet->setCellValueByColumnAndRow($curCol++, $curRow, 'Publisher');
 		$sheet->setCellValueByColumnAndRow($curCol++, $curRow, 'Published');
+		$sheet->setCellValueByColumnAndRow($curCol++, $curRow, 'Call Number');
+		$sheet->setCellValueByColumnAndRow($curCol++, $curRow, 'Item Type');
+		$sheet->setCellValueByColumnAndRow($curCol++, $curRow, 'Location');
 
 		$maxColumn = $curCol -1;
 
+		global $solrScope;
 		for ($i = 0; $i < count($result['response']['docs']); $i++) {
 			//Output the row to excel
 			$curDoc = $result['response']['docs'][$i];
@@ -2022,6 +2026,21 @@ class SearchObject_Solr extends SearchObject_Base
 			$sheet->setCellValueByColumnAndRow($curCol++, $curRow, isset($curDoc['author']) ? $curDoc['author'] : '');
 			$sheet->setCellValueByColumnAndRow($curCol++, $curRow, isset($curDoc['publisher']) ? implode(', ', $curDoc['publisher']) : '');
 			$sheet->setCellValueByColumnAndRow($curCol++, $curRow, isset($curDoc['publishDate']) ? implode(', ', $curDoc['publishDate']) : '');
+			$callNumber = '';
+			if (isset($curDoc['local_callnumber_' . $solrScope])){
+				$callNumber = is_array($curDoc['local_callnumber_' . $solrScope]) ? $curDoc['local_callnumber_' . $solrScope][0] : $curDoc['local_callnumber_' . $solrScope];
+			}
+			$sheet->setCellValueByColumnAndRow($curCol++, $curRow, $callNumber);
+			$iType = '';
+			if (isset($curDoc['itype_' . $solrScope])){
+				$iType = is_array($curDoc['itype_' . $solrScope]) ? $curDoc['itype_' . $solrScope][0] : $curDoc['itype_' . $solrScope];
+			}
+			$sheet->setCellValueByColumnAndRow($curCol++, $curRow, $iType);
+			$location = '';
+			if (isset($curDoc['detailed_location_' . $solrScope])){
+				$location = is_array($curDoc['detailed_location_' . $solrScope]) ? $curDoc['detailed_location_' . $solrScope][0] : $curDoc['detailed_location_' . $solrScope];
+			}
+			$sheet->setCellValueByColumnAndRow($curCol++, $curRow, $location);
 		}
 
 		for ($i = 0; $i < $maxColumn; $i++){
@@ -2113,6 +2132,7 @@ class SearchObject_Solr extends SearchObject_Base
 				$fieldsToReturn .= ',owning_location_' . $solrScope;
 				$fieldsToReturn .= ',owning_library_' . $solrScope;
 				$fieldsToReturn .= ',available_at_' . $solrScope;
+				$fieldsToReturn .= ',itype_' . $solrScope;
 
 			}else{
 				//$fieldsToReturn .= ',related_record_ids';
@@ -2126,6 +2146,7 @@ class SearchObject_Solr extends SearchObject_Base
 				$fieldsToReturn .= ',owning_location';
 				$fieldsToReturn .= ',owning_library';
 				$fieldsToReturn .= ',available_at';
+				$fieldsToReturn .= ',itype';
 			}
 			$fieldsToReturn .= ',score';
 		}

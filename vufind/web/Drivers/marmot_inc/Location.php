@@ -392,7 +392,7 @@ class Location extends DB_DataObject
 		//if (count($locationList) == 0 && (isset($homeLibrary) && $homeLibrary->inSystemPickupsOnly == 1)){
 		if (!empty($patronProfile) && $patronProfile->homeLocationId != 0){
 			$homeLocation = Location::staticGet($patronProfile->homeLocationId);
-			if ($homeLocation->showHoldButton == 1){
+			//if ($homeLocation->showHoldButton == 1){
 				//We didn't find any locations.  This for schools where we want holds available, but don't want the branch to be a
 				//pickup location anywhere else.
 				if (!$isLinkedUser) {
@@ -401,7 +401,7 @@ class Location extends DB_DataObject
 				}else{
 					$locationList['22' . $homeLocation->displayName] = clone $homeLocation;
 				}
-			}
+			//}
 		}
 
 		return $locationList;
