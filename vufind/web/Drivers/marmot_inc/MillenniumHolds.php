@@ -119,15 +119,17 @@ class MillenniumHolds{
 		$scope = $this->driver->getDefaultScope();
 
 		if (!isset($xNum)) {
+			$xNum = is_array($cancelId) ? $cancelId : array($cancelId);
+
 			// below requests variables should be deprecated as of now. plb 2-9-2015
-			// TODO: comment out this block
-			if (isset($_REQUEST['waitingholdselected']) || isset($_REQUEST['availableholdselected'])) {
-				$waitingHolds   = isset($_REQUEST['waitingholdselected']) ? $_REQUEST['waitingholdselected'] : array();
-				$availableHolds = isset($_REQUEST['availableholdselected']) ? $_REQUEST['availableholdselected'] : array();
-				$xNum           = array_merge($waitingHolds, $availableHolds);
-			} else {
-				$xNum = is_array($cancelId) ? $cancelId : array($cancelId);
-			}
+			// PLB commented out 9-29-2015, starting in 2015.11.6
+//			if (isset($_REQUEST['waitingholdselected']) || isset($_REQUEST['availableholdselected'])) {
+//				$waitingHolds   = isset($_REQUEST['waitingholdselected']) ? $_REQUEST['waitingholdselected'] : array();
+//				$availableHolds = isset($_REQUEST['availableholdselected']) ? $_REQUEST['availableholdselected'] : array();
+//				$xNum           = array_merge($waitingHolds, $availableHolds);
+//			} else {
+//				$xNum = is_array($cancelId) ? $cancelId : array($cancelId);
+//			}
 		}
 
 		$location = new Location();
@@ -153,7 +155,7 @@ class MillenniumHolds{
 //		$logger->log("Load titles = $loadTitles", PEAR_LOG_DEBUG); // move out of foreach loop
 
 
-		$extraGetInfo = array(
+		$POSTVariables = array(
 			'updateholdssome' => 'YES',
 			'currentsortorder' => 'current_pickup',
 		);
@@ -161,7 +163,7 @@ class MillenniumHolds{
 		foreach ($xNum as $tmpXnumInfo) {
 			list($tmpBib, $tmpXnum) = explode('~', $tmpXnumInfo);
 			if ($type == 'cancel') {
-				$extraGetInfo['cancel' . $tmpBib . 'x' . $tmpXnum] = $cancelValue;
+				$POSTVariables['cancel' . $tmpBib . 'x' . $tmpXnum] = $cancelValue;
 			}
 			elseif ($type == 'update') {
 //				$holdForXNum = $this->getHoldByXNum($holds, $tmpXnum); //$holds isn't actually used by the function
@@ -184,10 +186,10 @@ class MillenniumHolds{
 				}
 				if ($canUpdate) {
 					if (isset($paddedLocation)) {
-						$extraGetInfo['loc' . $tmpBib . 'x' . $tmpXnum] = $paddedLocation;
+						$POSTVariables['loc' . $tmpBib . 'x' . $tmpXnum] = $paddedLocation;
 					}
 					if (!empty($freezeValue)) {
-						$extraGetInfo['freeze' . $tmpBib . 'x' . $tmpXnum] = $freezeValue;
+						$POSTVariables['freeze' . $tmpBib . 'x' . $tmpXnum] = $freezeValue;
 					}
 				} else {
 					$logger->log('Call to update a hold when the update is not needed.', PEAR_LOG_WARNING);
@@ -211,9 +213,12 @@ class MillenniumHolds{
 		//Login to the patron's account
 		$this->driver->_curl_login($patron);
 
+		//Pause briefly between logging in and posting the actual renewal
+		usleep(150000);
+
 		//Issue a post request with the information about what to do with the holds
 		$curl_url = $this->driver->getVendorOpacUrl() . "/patroninfo~S{$scope}/" . $patron->username . "/holds";
-		$sResult = $this->driver->_curlPostPage($curl_url, $extraGetInfo);
+		$sResult = $this->driver->_curlPostPage($curl_url, $POSTVariables);
 		$hold_original_results = $this->parseHoldsPage($sResult, $patron);
 			// Note:  Only $hold_original_results above will capture freeze hold errors
 
@@ -228,6 +233,8 @@ class MillenniumHolds{
 			$holds = $hold_original_results; // sets to first page-load to get freeze error results
 			//TODO : Figure out cases where the page reload of holds is necessary. Because the original results are
 			//       necessary for extracting a freeze error/determining that freeze failed.
+
+			//    cancel holds? is it needed to verify when a hold has been canceled successfully
 		}
 
 		$combined_holds = array_merge($holds['unavailable'], $holds['available']);
@@ -238,9 +245,17 @@ class MillenniumHolds{
 			foreach ($xNum as $tmpXnumInfo){
 				list($tmpBib) = explode('~', $tmpXnumInfo);
 				foreach ($combined_holds as $hold) {
-					if ($tmpBib == $hold['shortId']) { // this hold failed (item still on hold)
-						$title = (array_key_exists($tmpBib, $titles) && $titles[$tmpBib] != '') ? $titles[$tmpBib] : 'an item';
-							$failure_messages[$tmpXnumInfo] = "The hold for $title could not be cancelled.  Please try again later or see your librarian.";
+					$tmpCancelId = strstr($hold['cancelId'], '~', true); // get the cancel id without the position component
+					if ($tmpBib == $hold['shortId'] || $tmpBib == $tmpCancelId) { // this hold failed (item still listed as on hold)
+						// $tmpBib may be an item id instead of a bib id. in that case, need to check against cancel ids as well.
+						if (!empty($hold['title'])) {
+							$title = $hold['title'];
+						}
+						else {
+//							$title = (array_key_exists($tmpBib, $titles) && $titles[$tmpBib] != '') ? $titles[$tmpBib] : 'an item';
+							$title = (!empty($titles[$tmpBib])) ? $titles[$tmpBib] : 'an item';
+						}
+						$failure_messages[$tmpXnumInfo] = "The hold for $title could not be cancelled.  Please try again later or see your librarian.";
 							// use original id as index so that javascript functions can pick out failed cancels
 						break;
 					}
@@ -289,12 +304,10 @@ class MillenniumHolds{
 		}
 
 		//Make sure to clear any cached data
-		//TODO: need to be removed?
-		//QUESTION: keep?
 		/** @var Memcache $memCache */
 		global $memCache;
 		$memCache->delete("patron_dump_{$this->driver->_getBarcode()}");
-		usleep(250); //QUESTION: keep?
+		usleep(250); // Pause for Hold Cancels, so that sierra will have updated the canceled hold.
 
 
 		//Clear holds for the patron
