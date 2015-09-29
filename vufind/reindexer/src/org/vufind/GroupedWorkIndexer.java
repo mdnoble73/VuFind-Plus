@@ -137,7 +137,7 @@ public class GroupedWorkIndexer {
 			//Periodically in the middle of the night we get indexes every minute or multiple times a minute
 			//which is annoying especially since it generally means nothing is changing.
 			long elapsedTime = indexStartTime - lastReindexTime;
-			long minIndexingInterval = 2 * 60;
+			long minIndexingInterval = 5 * 60;
 			if (elapsedTime < minIndexingInterval) {
 				try {
 					logger.debug("Pausing between indexes, last index ran " + Math.ceil(elapsedTime / 60) + " minutes ago");
@@ -489,8 +489,8 @@ public class GroupedWorkIndexer {
 			logger.error("Error optimizing index", e);
 		}
 		try {
-			/*GroupedReindexMain.addNoteToReindexLog("Doing a soft commit to make sure changes are saved");
-			updateServer.commit(false, false, true);*/
+			GroupedReindexMain.addNoteToReindexLog("Doing a soft commit to make sure changes are saved");
+			updateServer.commit(false, false, true);
 			GroupedReindexMain.addNoteToReindexLog("Shutting down the update server");
 			updateServer.blockUntilFinished();
 			updateServer.shutdown();
@@ -785,7 +785,7 @@ public class GroupedWorkIndexer {
 			//Write the record to Solr.
 			try {
 				SolrInputDocument inputDocument = groupedWork.getSolrDocument(availableAtLocationBoostValue, ownedByLocationBoostValue);
-				updateServer.add(inputDocument, 60000);
+				updateServer.add(inputDocument);
 
 			} catch (Exception e) {
 				logger.error("Error adding record to solr", e);
