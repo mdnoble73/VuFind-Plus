@@ -103,6 +103,10 @@ abstract class ScreenScrapingDriver implements DriverInterface {
 		return $this->curl_connection;
 	}
 
+	/**
+	 *  Cleans up after curl operations.
+	 *  Is ran automatically as the class is being shutdown.
+	 */
 	public function _close_curl() {
 		if ($this->curl_connection) curl_close($this->curl_connection);
 		if ($this->cookieJar) unlink($this->cookieJar);
@@ -118,7 +122,11 @@ abstract class ScreenScrapingDriver implements DriverInterface {
 	public function _curlGetPage($url){
 		$this->_curl_connect($url);
 		$return = curl_exec($this->curl_connection);
-		//$info = curl_getinfo($this->curl_connection);
+//		$info = curl_getinfo($this->curl_connection);
+		if (!$return) { // log curl error
+			global $logger;
+			$logger->log('curl get error : '.curl_error($this->curl_connection), PEAR_LOG_ERR);
+		}
 		return $return;
 	}
 
@@ -138,8 +146,12 @@ abstract class ScreenScrapingDriver implements DriverInterface {
 			CURLOPT_POST => true,
 			CURLOPT_POSTFIELDS => $post_string
 		));
-
-		return curl_exec($this->curl_connection);
+		$return = curl_exec($this->curl_connection);
+		if (!$return) { // log curl error
+			global $logger;
+			$logger->log('curl post error : '.curl_error($this->curl_connection), PEAR_LOG_ERR);
+		}
+		return $return;
 	}
 
 	/**
@@ -157,7 +169,6 @@ abstract class ScreenScrapingDriver implements DriverInterface {
 		}else{
 			$post_string  = $postParams;
 		}
-
 
 		$this->_curl_connect($url);
 		curl_setopt_array($this->curl_connection, array(
