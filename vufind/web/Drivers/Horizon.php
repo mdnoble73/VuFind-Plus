@@ -284,6 +284,7 @@ abstract class Horizon extends ScreenScrapingDriver{
 				// Process MARC Data
 				require_once ROOT_DIR . '/sys/MarcLoader.php';
 				$marcRecord = MarcLoader::loadMarcRecordByILSId($id);
+				$linkText = ''; // set default value
 				if ($marcRecord) {
 					//Check the 856 tag to see if there is a URL
 					if ($linkField = $marcRecord->getField('856')) {
@@ -622,26 +623,26 @@ abstract class Horizon extends ScreenScrapingDriver{
 				}
 			}
 
-			// TODO Use screen scraping driver for curl ops
-			//Setup Curl
-			$curl_url        = $this->hipUrl . "/ipac20/ipac.jsp?profile={$configArray['Catalog']['hipProfile']}&menu=account";
-			$this->_curl_connect($curl_url, array(
-				CURLOPT_COOKIESESSION => true,
-			));
-
 			//Start at My Account Page
-			$sresult = $this->_curlGetPage($curl_url);
-			global $logger;
-			$logger->log("Logging into user account from updatePatronInfo $curl_url", PEAR_LOG_INFO);
+			$curl_url = $this->hipUrl . "/ipac20/ipac.jsp?profile={$configArray['Catalog']['hipProfile']}&menu=account";
+			$sResult = $this->_curlGetPage($curl_url);
 
 			//Extract the session id from the requestcopy javascript on the page
-			if (preg_match('/\\?session=(.*?)&/s', $sresult, $matches)) {
+			if (preg_match('/\\?session=(.*?)&/s', $sResult, $matches)) {
 				$sessionId = $matches[1];
 			} else {
 				PEAR_Singleton::raiseError('Could not load session information from page.');
 			}
 
+			// Now Enable Cookie Session (This must come after the first page fetch, or there will be no curl response.)
+			// It looks like this setting is not needed at all. Retaining in the case that is not always true
+//			curl_setopt_array($this->curl_connection, array(
+//				CURLOPT_COOKIESESSION => true,
+//			));
+
 			//Login by posting username and password
+			global $logger;
+			$logger->log("Logging into user account from updatePatronInfo $curl_url", PEAR_LOG_INFO);
 			$post_data   = array(
 				'aspect' => 'overview',
 				'button' => 'Login to Your Account',
@@ -658,12 +659,10 @@ abstract class Horizon extends ScreenScrapingDriver{
 				//'spp' => '20'
 			);
 			$curl_url    = $this->hipUrl . "/ipac20/ipac.jsp";
-			$sresult = $this->_curlPostPage($curl_url, $post_data);
+			$sResult = $this->_curlPostPage($curl_url, $post_data);
+			//TODO check for Login success
 
-//			/** @var Memcache $memCache */
-//			global $memCache; // needed here?
-
-			//update patron information.  Use HIP to update the e-mail to make sure that all business rules are followed.
+			//Update patron information.  Use HIP to update the e-mail to make sure that all business rules are followed.
 			if (isset($_REQUEST['email'])) {
 				$post_data   = array(
 					'menu' => 'account',
@@ -676,18 +675,18 @@ abstract class Horizon extends ScreenScrapingDriver{
 					'submenu' => 'info',
 					'updateemail' => 'Update',
 				);
-				$sresult =$this->_curlPostPage($curl_url, $post_data);
+				$sResult = $this->_curlPostPage($curl_url, $post_data);
 
 				//check for errors in boldRedFont1
-				if (preg_match('/<td.*?class="boldRedFont1".*?>(.*?)(?:<br>)*<\/td>/si', $sresult, $matches)) {
+				if (preg_match('/<td.*?class="boldRedFont1".*?>(.*?)(?:<br>)*<\/td>/si', $sResult, $matches)) {
 					$updateErrors[] = $matches[1];
 				} else {
-					// Update the users cat_password in the Pika database
+					// Update the users email address in the Pika database
 					$user->email = $_REQUEST['email'];
 				}
 			}
-			if (isset($_REQUEST['oldPin']) && strlen($_REQUEST['oldPin']) > 0 && isset($_REQUEST['newPin']) && strlen($_REQUEST['newPin']) > 0) {
 
+			if (isset($_REQUEST['oldPin']) && strlen($_REQUEST['oldPin']) > 0 && isset($_REQUEST['newPin']) && strlen($_REQUEST['newPin']) > 0) {
 				$post_data   = array(
 					'menu' => 'account',
 					'newemailtext' => $_REQUEST['email'],
@@ -699,10 +698,10 @@ abstract class Horizon extends ScreenScrapingDriver{
 					'submenu' => 'info',
 					'updatepin' => 'Update',
 				);
-				$sresult =$this->_curlPostPage($curl_url, $post_data);
+				$sResult =$this->_curlPostPage($curl_url, $post_data);
 
 				//check for errors in boldRedFont1
-				if (preg_match('/<td.*?class="boldRedFont1".*?>(.*?)(?:<br>)*<\/td>/', $sresult, $matches)) {
+				if (preg_match('/<td.*?class="boldRedFont1".*?>(.*?)(?:<br>)*<\/td>/', $sResult, $matches)) {
 					$updateErrors[] = $matches[1];
 				} else {
 					//Update the users cat_password in the Pika database
@@ -743,7 +742,7 @@ abstract class Horizon extends ScreenScrapingDriver{
 			// update Pika user data & clear cache of patron profile
 			$user->update();
 //			UserAccount::updateSession($user); //TODO if this is required it must be determined that the user being updated is the same as the session holding user.
-			$user->clearCache();
+//			$user->clearCache(); // Done in User object now by calling method
 
 		} else $updateErrors[] = 'You do not have permission to update profile information.';
 		return $updateErrors;
