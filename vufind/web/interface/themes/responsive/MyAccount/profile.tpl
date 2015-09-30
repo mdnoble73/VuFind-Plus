@@ -45,12 +45,13 @@
 									{/if}
 								<div class="form-group"><div class="col-xs-4"><strong>{translate text='Home Library'}:</strong></div><div class="col-xs-8">{$profile->homeLocation|escape}</div></div>
 								{if !$offline}
+									{* Don't show inputs for the Horizon ILS as updating those account settings has not been implemented in the Horizon Driver. *}
 									<div class="form-group">
 										<div class="col-xs-4">
 											<label for="address1">{translate text='Address'}:</label>
 										</div>
 										<div class="col-xs-8">
-											{if $edit && $canUpdateContactInfo && $canUpdateAddress}
+											{if $edit && $canUpdateContactInfo && $canUpdateAddress && $ils != 'Horizon'}
 												<input name='address1' id="address1" value='{$profile->address1|escape}' size='50' maxlength='75' class="form-control required">
 											{elseif $edit && $millenniumNoAddress}
 												<input name='address1' id="address1" value='{$profile->address1|escape}' type="hidden">
@@ -63,7 +64,7 @@
 									<div class="form-group">
 										<div class="col-xs-4"><label for="city">{translate text='City'}:</label></div>
 										<div class="col-xs-8">
-											{if $edit && $canUpdateContactInfo && $canUpdateAddress}<input name='city' id="city" value='{$profile->city|escape}' size='50' maxlength='75' class="form-control required">
+											{if $edit && $canUpdateContactInfo && $canUpdateAddress && $ils != 'Horizon'}<input name='city' id="city" value='{$profile->city|escape}' size='50' maxlength='75' class="form-control required">
 											{elseif $edit && $millenniumNoAddress}
 												<input name='city' id="city" value='{$profile->city|escape}' type="hidden">
 												{$profile->city|escape}
@@ -73,7 +74,7 @@
 									<div class="form-group">
 										<div class="col-xs-4"><label for="state">{translate text='State'}:</label></div>
 										<div class="col-xs-8">
-											{if $edit && $canUpdateContactInfo && $canUpdateAddress}<input name='state' id="state" value='{$profile->state|escape}' size='50' maxlength='75' class="form-control required">
+											{if $edit && $canUpdateContactInfo && $canUpdateAddress && $ils != 'Horizon'}<input name='state' id="state" value='{$profile->state|escape}' size='50' maxlength='75' class="form-control required">
 											{elseif $edit && $millenniumNoAddress}
 												<input name='state' id="state" value='{$profile->state|escape}' type="hidden">
 												{$profile->state|escape}
@@ -83,7 +84,7 @@
 									<div class="form-group">
 										<div class="col-xs-4"><label for="zip">{translate text='Zip'}:</label></div>
 										<div class="col-xs-8">
-											{if $edit && $canUpdateContactInfo && $canUpdateAddress}
+											{if $edit && $canUpdateContactInfo && $canUpdateAddress && $ils != 'Horizon'}
 												<input name='zip' id="zip" value='{$profile->zip|escape}' size='50' maxlength='75' class="form-control required">
 											{elseif $edit && $millenniumNoAddress}
 												<input name='zip' id="zip" value='{$profile->zip|escape}' type="hidden">
@@ -93,12 +94,12 @@
 									</div>
 									<div class="form-group">
 										<div class="col-xs-4"><label for="phone">{translate text='Primary Phone Number'}:</label></div>
-										<div class="col-xs-8">{if $edit == true && $canUpdateContactInfo == true}<input type="tel" name='phone' id="phone" value='{$profile->phone|replace:'TEXT ONLY':''|escape}' size='50' maxlength='75' class="form-control">{else}{$profile->phone|escape}{/if}</div>
+										<div class="col-xs-8">{if $edit && $canUpdateContactInfo && $ils != 'Horizon'}<input type="tel" name='phone' id="phone" value='{$profile->phone|replace:'TEXT ONLY':''|escape}' size='50' maxlength='75' class="form-control">{else}{$profile->phone|escape}{/if}</div>
 									</div>
 									{if $showWorkPhoneInProfile}
 										<div class="form-group">
 											<div class="col-xs-4"><label for="workPhone">{translate text='Work Phone Number'}:</label></div>
-											<div class="col-xs-8">{if $edit == true && $canUpdateContactInfo == true}<input name='workPhone' id="workPhone" value='{$profile->workPhone|escape}' size='50' maxlength='75' class="form-control">{else}{$profile->workPhone|escape}{/if}</div>
+											<div class="col-xs-8">{if $edit && $canUpdateContactInfo && $ils != 'Horizon'}<input name='workPhone' id="workPhone" value='{$profile->workPhone|escape}' size='50' maxlength='75' class="form-control">{else}{$profile->workPhone|escape}{/if}</div>
 										</div>
 									{/if}
 								{/if}
