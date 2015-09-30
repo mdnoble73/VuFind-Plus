@@ -208,13 +208,14 @@ class MillenniumHolds{
 			}
 		} // End of foreach loop
 
-		$success   = false;
+		$success = false;
 
 		//Login to the patron's account
 		$this->driver->_curl_login($patron);
 
-		//Pause briefly between logging in and posting the actual renewal
-		usleep(150000);
+//		//Pause briefly between logging in and posting the actual renewal
+//		usleep(150000);
+		// moved to millenium driver _curl_login()
 
 		//Issue a post request with the information about what to do with the holds
 		$curl_url = $this->driver->getVendorOpacUrl() . "/patroninfo~S{$scope}/" . $patron->username . "/holds";

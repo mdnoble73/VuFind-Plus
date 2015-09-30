@@ -220,7 +220,8 @@ class MillenniumCheckouts {
 		$driver->_curl_login($patron);
 
 		//Pause briefly between logging in and posting the actual renewal
-		usleep(150000);
+//		usleep(150000);
+		// moved to millenium driver _curl_login()
 
 		//Go to the items page
 		$scope = $driver->getDefaultScope();
@@ -319,7 +320,8 @@ class MillenniumCheckouts {
 		$driver->_curl_login($patron);
 
 		//Pause briefly between logging in and posting the actual renewal
-		usleep(150000);
+//		usleep(150000);
+		// moved to millenium driver _curl_login()
 
 		//Go to the items page
 		$scope = $driver->getDefaultScope();

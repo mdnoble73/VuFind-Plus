@@ -812,6 +812,10 @@ class Millennium extends ScreenScrapingDriver
 
 			$loginResult = curl_exec($this->curl_connection);
 		}
+
+		// Pause briefly after logging in as some follow-up millennium operations (done via curl) will fail if done too quickly
+		usleep(150000);
+
 		return $loginResult;// Note: $this->_fetchPatronInfoPage uses the actual html result of this
 	}
 
