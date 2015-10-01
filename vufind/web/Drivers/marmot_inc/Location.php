@@ -312,6 +312,7 @@ class Location extends DB_DataObject
 	/**
 	 * @param User $patronProfile
 	 * @param int $selectedBranchId
+	 * @param bool $isLinkedUser
 	 * @return Location[]
 	 */
 	function getPickupBranches($patronProfile, $selectedBranchId = null, $isLinkedUser = false) {

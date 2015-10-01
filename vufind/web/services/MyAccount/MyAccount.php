@@ -63,7 +63,7 @@ abstract class MyAccount extends Action
 		//This code is also in Search/History since that page displays in the My Account menu as well.
 		//It is also in MyList.php and Admin.php
 		if ($user !== false){
-			$interface->assign('user', $user);
+			$interface->assign('user', $user); // TODO already assigned in index.php. Needed?
 
 			//Figure out if we should show a link to classic opac to pay holds.
 			$ecommerceLink = $configArray['Site']['ecommerceLink'];
@@ -85,7 +85,7 @@ abstract class MyAccount extends Action
 	}
 
 	/**
-	 * @param $mainContentTemplate  Name of the SMARTY template file for the main content of the Account Page
+	 * @param string $mainContentTemplate  Name of the SMARTY template file for the main content of the Account Page
 	 * @param string $pageTitle     What to display is the html title tag
 	 * @param bool|true $sidebar    enables the account sidebar on the page to be displayed
 	 */

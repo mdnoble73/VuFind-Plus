@@ -28,6 +28,8 @@ class MyAccount_Profile extends MyAccount
 		global $interface;
 		global $user;
 
+		global $memCache; //TODO temporary can remove.
+
 		$ils = $configArray['Catalog']['ils'];
 		$interface->assign('showSMSNoticesInProfile', $ils == 'Sierra');
 		if ($configArray['Catalog']['offline']){
@@ -41,7 +43,7 @@ class MyAccount_Profile extends MyAccount
 			// Determine which user we are showing/updating settings for
 			$linkedUsers = $user->getLinkedUsers();
 			$patronId    = isset($_REQUEST['patronId']) ? $_REQUEST['patronId'] : $user->id;
-			$patron = $user->getUserReferredTo($patronId);
+			$patron      = $user->getUserReferredTo($patronId);
 
 			// Linked Accounts Selection Form set-up
 			if (count($linkedUsers) > 0) {
@@ -134,7 +136,7 @@ class MyAccount_Profile extends MyAccount
 			}*/
 			$interface->assign('overDriveUrl', $configArray['OverDrive']['url']);
 
-			if (isset($_SESSION['profileUpdateErrors'])) {
+			if (!empty($_SESSION['profileUpdateErrors'])) {
 				$interface->assign('profileUpdateErrors', $_SESSION['profileUpdateErrors']);
 				unset($_SESSION['profileUpdateErrors']);
 			}

@@ -587,25 +587,21 @@ class Millennium extends ScreenScrapingDriver
 				}
 			}
 
-			//see if expiration date is close
+			$user->expired     = 0; // default setting
+			$user->expireClose = 0;
+			//See if expiration date is close
 			if (trim($patronDump['EXP_DATE']) != '-  -'){
 				$user->expires = $patronDump['EXP_DATE'];
 				list ($monthExp, $dayExp, $yearExp) = explode("-",$patronDump['EXP_DATE']);
 				$timeExpire = strtotime($monthExp . "/" . $dayExp . "/" . $yearExp);
 				$timeNow = time();
 				$timeToExpire = $timeExpire - $timeNow;
-				$user->expired = 0;
 				if ($timeToExpire <= 30 * 24 * 60 * 60){
 					if ($timeToExpire <= 0){
 						$user->expired = 1;
 					}
 					$user->expireClose = 1;
-				}else{
-					$user->expireClose = 0;
 				}
-			}else{
-				$user->expired = 0;
-				$user->expireClose = 0;
 			}
 
 			//Get additional information that doesn't necessarily get stored in the User Table
@@ -1107,6 +1103,9 @@ class Millennium extends ScreenScrapingDriver
 				$user->phone = $_REQUEST['phone'];
 				$user->email = $_REQUEST['email'];
 				$user->update();
+				/* @var Memcache $memCache */
+				global $memCache;
+				$memCache->delete("patron_dump_$barcode"); // because the update will affect the patron dump information also clear that cache as well
 
 				if ($analytics){
 					$analytics->addEvent('ILS Integration', 'Profile updated successfully');
