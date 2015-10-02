@@ -79,6 +79,13 @@
 				</div>
 			</div>
 		{/if}
+
+		{if $inLibrary}
+			<div class="text-right">
+				<a href="https://www.volgistics.com/ex/portal.dll/?FROM=15495">VOLUNTEER LOGIN</a>
+			</div>
+		{/if}
+
 </div>
     </div>
 </div>
