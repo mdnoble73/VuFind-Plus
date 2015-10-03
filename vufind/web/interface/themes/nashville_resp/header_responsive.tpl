@@ -10,7 +10,7 @@
 				{/if}
 			</a>
 		</div>
-
+	</div>
 	<div class="logoutOptions" {if !$user} style="display: none;"{/if}>
 		<div class="hidden-xs col-sm-2 col-sm-offset-2 col-md-2 col-md-offset-3 col-lg-2 col-lg-offset-4">
 			<div class="header-button header-primary">
