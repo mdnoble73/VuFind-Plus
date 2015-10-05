@@ -1,6 +1,7 @@
 {strip}
 
-	<div class="col-xs-12 col-sm-6 col-md-5 col-lg-4">
+	{*<div class="col-xs-12 col-sm-6 col-md-5 col-lg-4">*}
+	<div class="col-xs-12 col-sm-3 col-md-3 col-lg-3">
 		<div id="header-logo">
 			<a href="{$logoLink}/">
 
@@ -11,22 +12,35 @@
 			</a>
 		</div>
 
-	<div class="logoutOptions" {if !$user} style="display: none;"{/if}>
-		<div class="hidden-xs col-sm-2 col-sm-offset-2 col-md-2 col-md-offset-3 col-lg-2 col-lg-offset-4">
+	{* Heading Info Div *}
+	<div id="headingInfo" class="hidden-xs hidden-sm col-md-5 col-lg-5">
+		{if !empty($headerText)}
+			<div id="headerTextDiv">{*An id of headerText would clash with the input textarea on the Admin Page*}
+				{$headerText}
+			</div>
+		{/if}
+		</div>
+
+	<div class="logoutOptions"{if !$user} style="display: none;"{/if}>
+		{*<div class="hidden-xs col-sm-2 col-sm-offset-2 col-md-2 col-md-offset-3 col-lg-2 col-lg-offset-4">*}
+		<div class="hidden-xs col-sm-2 col-sm-offset-5 col-md-2 col-md-offset-0 col-lg-2 col-lg-offset-0">
 			<div class="header-button header-primary">
 				<a id="myAccountNameLink" href="{$path}/MyAccount/Home">
 					{$user->firstname|capitalize} {$user->lastname|capitalize|substr:0:1}'s Account
 				</a>
 			</div>
 		</div>
-		<div class="hidden-xs col-xs-3 col-sm-2 col-md-2 col-lg-2">
+
+		{*<div class="hidden-xs col-xs-3 col-sm-2 col-md-2 col-lg-2">*}
+		<div class="hidden-xs col-sm-2 col-md-2 col-lg-2">
 			<div class="header-button header-logout">
 				<a href="{$path}/MyAccount/Logout" id="logoutLink" >{translate text="Log Out"}</a>
 			</div>
 		</div>
 	</div>
 
-	<div class="loginOptions col-xs-3 col-xs-offset-4 col-sm-2 col-sm-offset-4 col-md-2 col-md-offset-5 col-lg-2 col-lg-offset-6"{if $user} style="display: none;"{/if}>
+	{*<div class="loginOptions col-xs-3 col-xs-offset-4 col-sm-2 col-sm-offset-4 col-md-2 col-md-offset-5 col-lg-2 col-lg-offset-6"{if $user} style="display: none;"{/if}>*}
+	<div class="loginOptions col-sm-2 col-sm-offset-7 col-md-2 col-md-offset-2 col-lg-offset-2 col-lg-2"{if $user} style="display: none;"{/if}>
 		{if $showLoginButton == 1}
 			<div class="hidden-xs header-button header-primary">
 				<a id="headerLoginLink" href="{$path}/MyAccount/Home" class='loginLink' data-login="true" title='Login'>{translate text="LOGIN"}</a>
