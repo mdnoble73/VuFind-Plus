@@ -11,6 +11,7 @@
 				{/if}
 			</a>
 		</div>
+	</div>
 
 	{* Heading Info Div *}
 	<div id="headingInfo" class="hidden-xs hidden-sm col-md-5 col-lg-5">
@@ -19,7 +20,7 @@
 				{$headerText}
 			</div>
 		{/if}
-		</div>
+	</div>
 
 	<div class="logoutOptions"{if !$user} style="display: none;"{/if}>
 		{*<div class="hidden-xs col-sm-2 col-sm-offset-2 col-md-2 col-md-offset-3 col-lg-2 col-lg-offset-4">*}
