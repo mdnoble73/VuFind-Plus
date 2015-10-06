@@ -406,6 +406,12 @@ class User extends DB_DataObject
 			// Check for Account Blocks
 			if ($this->isBlockedAccount($user->id)) return false;
 
+			//Check to make sure the account we are linking to allows linking
+			$linkLibrary = $user->getHomeLibrary();
+			if (!$linkLibrary->allowLinkedAccounts){
+				return false;
+			}
+
 			// Add Account Link
 			require_once ROOT_DIR . '/sys/Account/UserLink.php';
 			$userLink                   = new UserLink();
@@ -595,6 +601,11 @@ class User extends DB_DataObject
 			}
 		}
 		return false;
+	}
+
+	function getHomeLibrary(){
+		$homeLibrary = Library::getPatronHomeLibrary($this);
+		return $homeLibrary;
 	}
 
 	function getHomeLibrarySystemName(){
