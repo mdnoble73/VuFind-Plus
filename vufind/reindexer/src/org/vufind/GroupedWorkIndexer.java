@@ -61,7 +61,8 @@ public class GroupedWorkIndexer {
 	private PreparedStatement getGroupedWorkIdentifiers;
 	private PreparedStatement getDateFirstDetectedStmt;
 
-	public GroupedWorkIndexer(String serverName, Connection vufindConn, Connection econtentConn, Ini configIni, boolean fullReindex, Logger logger) {
+
+	public GroupedWorkIndexer(String serverName, Connection vufindConn, Connection econtentConn, Ini configIni, boolean fullReindex, boolean singleWorkIndex, Logger logger) {
 		indexStartTime = new Date().getTime() / 1000;
 		this.serverName = serverName;
 		this.logger = logger;
@@ -138,7 +139,7 @@ public class GroupedWorkIndexer {
 			//which is annoying especially since it generally means nothing is changing.
 			long elapsedTime = indexStartTime - lastReindexTime;
 			long minIndexingInterval = 5 * 60;
-			if (elapsedTime < minIndexingInterval) {
+			if (elapsedTime < minIndexingInterval && !singleWorkIndex) {
 				try {
 					logger.debug("Pausing between indexes, last index ran " + Math.ceil(elapsedTime / 60) + " minutes ago");
 					logger.debug("Pausing for " + (minIndexingInterval - elapsedTime) + " seconds");
