@@ -290,40 +290,42 @@ class Search_Results extends Action {
 			$autoSwitchSearch = false;
 			$disallowReplacements = isset($_REQUEST['disallowReplacements']) || isset($_REQUEST['replacementTerm']);
 			if (!$disallowReplacements && (!isset($facetSet) || count($facetSet) == 0)){
-				require_once ROOT_DIR . '/services/Search/lib/SearchSuggestions.php';
-				$searchSuggestions = new SearchSuggestions();
-				$commonSearches = $searchSuggestions->getAllSuggestions($searchObject->displayQuery(), $searchObject->getSearchIndex());
+				//We can try to find a suggestion, but only if we are not doing a phrase search.
+				if (strpos($searchObject->displayQuery(), '"') === false){
+					require_once ROOT_DIR . '/services/Search/lib/SearchSuggestions.php';
+					$searchSuggestions = new SearchSuggestions();
+					$commonSearches = $searchSuggestions->getAllSuggestions($searchObject->displayQuery(), $searchObject->getSearchIndex());
 
-				//assign here before we start popping stuff off
-				$interface->assign('searchSuggestions', $commonSearches);
+					//assign here before we start popping stuff off
+					$interface->assign('searchSuggestions', $commonSearches);
 
-				//If the first search in the list is used 10 times more than the next, just show results for that
-				$numSuggestions = count($commonSearches);
-				if ($numSuggestions == 1){
-					$firstSearch = array_pop($commonSearches);
-					$autoSwitchSearch = true;
-				}elseif ($numSuggestions >= 2){
-					$firstSearch = array_shift($commonSearches);
-					$secondSearch = array_shift($commonSearches);
-					$firstTimesSearched = $firstSearch['numSearches'];
-					$secondTimesSearched = $secondSearch['numSearches'];
-					if ($secondTimesSearched > 0 && $firstTimesSearched / $secondTimesSearched > 10){ // avoids division by zero
+					//If the first search in the list is used 10 times more than the next, just show results for that
+					$numSuggestions = count($commonSearches);
+					if ($numSuggestions == 1){
+						$firstSearch = array_pop($commonSearches);
 						$autoSwitchSearch = true;
+					}elseif ($numSuggestions >= 2){
+						$firstSearch = array_shift($commonSearches);
+						$secondSearch = array_shift($commonSearches);
+						$firstTimesSearched = $firstSearch['numSearches'];
+						$secondTimesSearched = $secondSearch['numSearches'];
+						if ($secondTimesSearched > 0 && $firstTimesSearched / $secondTimesSearched > 10){ // avoids division by zero
+							$autoSwitchSearch = true;
+						}
 					}
-				}
 
-				// Switch to search with a better search term //
+					// Switch to search with a better search term //
 //				$interface->assign('autoSwitchSearch', $autoSwitchSearch);
-				if ($autoSwitchSearch){
-					//Get search results for the new search
+					if ($autoSwitchSearch){
+						//Get search results for the new search
 //					$interface->assign('oldTerm', $searchObject->displayQuery());
 //					$interface->assign('newTerm', $commonSearches[0]['phrase']);
-					// The above assignments probably do nothing when there is a redirect below
-					$thisUrl = $_SERVER['REQUEST_URI'] . "&replacementTerm=" . urlencode($firstSearch['phrase']);
-					header("Location: " . $thisUrl);
-					exit();
+						// The above assignments probably do nothing when there is a redirect below
+						$thisUrl = $_SERVER['REQUEST_URI'] . "&replacementTerm=" . urlencode($firstSearch['phrase']);
+						header("Location: " . $thisUrl);
+						exit();
+					}
 				}
-
 			}
 
 			// No record found
@@ -440,7 +442,7 @@ class Search_Results extends Action {
 		$interface->assign('subpage', $displayTemplate);
 		$interface->assign('displayMode', $displayMode); // For user toggle switches
 
-		// Suplementary Unscoped Search //
+		// Supplementary Unscoped Search //
 		if ($enableUnscopedSearch && isset($unscopedSearch) ){
 			// Total & Link will be shown in result header even if none of these results will be shown on this page
 			$unscopedSearch->setLimit($numUnscopedTitlesToLoad * 4);
@@ -472,6 +474,9 @@ class Search_Results extends Action {
 		$interface->assign('recordSet', $recordSet);
 		$timer->logTime('load result records');
 
+		//Load explore more data
+		$this->loadExploreMoreBar();
+
 		if ($configArray['Statistics']['enabled'] && isset( $_GET['lookfor']) && !is_array($_GET['lookfor'])) {
 			require_once(ROOT_DIR . '/Drivers/marmot_inc/SearchStatNew.php');
 			$searchStat = new SearchStatNew();
@@ -483,4 +488,92 @@ class Search_Results extends Action {
 		$interface->assign('sidebar', 'Search/results-sidebar.tpl');
 		$interface->display('layout.tpl');
 	} // End launch()
+
+	function loadExploreMoreBar(){
+		//Get data from the repository
+		global $interface;
+		global $configArray;
+		if (isset($configArray['Islandora']) && isset($configArray['Islandora']['solrUrl']) && isset($_GET['lookfor']) && !empty($_GET['lookfor'])){
+			$islandoraUrl = $configArray['Islandora']['solrUrl'];
+			//TODO: This should be done with a Solr search object and we should setup searchspecs, etc.
+			//Setup a basic query
+			$searchTerm = urlencode($_GET['lookfor']);
+			$username = $configArray['Islandora']['fedoraUsername'];
+			$password = $configArray['Islandora']['fedoraPassword'];
+			$options = array(
+				'http' => array(
+					'header'  => "Authorization: Basic " . base64_encode("$username:$password")
+				)
+			);
+			$context = stream_context_create($options);
+			$query = $islandoraUrl . '/islandora/select?q=dc.title:' . $searchTerm . '+OR+dc.subject:' . $searchTerm . '&wt=json&fl=PID,dc.title,dc.description,dc.type_s,dc.format_s,dsmd_OBJ.Content-Type';
+			$response = json_decode(file_get_contents($query, false, $context));
+
+			$exploreMoreOptions = array();
+			foreach ($response->response->docs as $solrDoc){
+				$title = $solrDoc->{'dc.title'};
+				if (is_array($title)){
+					$title = reset($title);
+				}
+				if (isset($solrDoc->{'dsmd_OBJ.Content-Type'}) || isset($solrDoc->{'dc.type_s'})){
+					if (isset($solrDoc->{'dsmd_OBJ.Content-Type'})){
+						$objectContentType = $solrDoc->{'dsmd_OBJ.Content-Type'};
+					}else{
+						$objectContentType = $solrDoc->{'dc.type_s'};
+					}
+
+					if (is_array($objectContentType)){
+						$objectContentType = $objectContentType[0];
+					}
+					if (!isset($exploreMoreOptions[$objectContentType])){
+						$exploreMoreOptions[$objectContentType] = array();
+					}
+					$exploreMoreOptions[$objectContentType][] = array(
+						'PID' => $solrDoc->PID,
+						'type' => 'archive-' . $objectContentType,
+						'title' => $title,
+						'description' => isset($solrDoc->{'dc.description'}) ? $solrDoc->{'dc.description'} : '',
+						'thumbnail' => $configArray['Islandora']['fedoraUrl'] . '/objects/' . $solrDoc->PID .'/datastreams/TN/content',
+					);
+				}else{
+					//This is an exhibit for display
+					$exploreMoreOptions[] = array(
+						'PID' => $solrDoc->PID,
+						'type' => 'archive-collection',
+						'title' => $title,
+						'description' => isset($solrDoc->{'dc.description'}) ? $solrDoc->{'dc.description'} : '',
+						'link' => $configArray['Site']['path'] . '/Archive/' . $solrDoc->PID .'/Exhibit',
+						'thumbnail' => $configArray['Islandora']['fedoraUrl'] . '/objects/' . $solrDoc->PID .'/datastreams/TN/content',
+					);
+				}
+			}
+			$sortedOptions = array();
+			//Add all the collections first
+			foreach ($exploreMoreOptions as $option){
+				if (isset($option['type']) && $option['type'] == 'archive-collection'){
+					$sortedOptions[] = $option;
+				}
+			}
+			foreach ($exploreMoreOptions as $type => $option){
+				if (!isset($option['type']) || $option['type'] != 'archive-collection'){
+					//Create information about how to link based off the collected documents
+					$optionByFormat = reset($option);
+					$add = false;
+					if ($type == 'MovingImage' ){
+						$optionByFormat['title'] = 'Videos';
+					}else if ($type == 'Text' ){
+						$optionByFormat['title'] = 'Articles';
+					}else if ($type == 'image/jpeg' ){
+						$optionByFormat['title'] = 'Images';
+						$add = true;
+					}
+					if ($add){
+						$sortedOptions[] = $optionByFormat;
+					}
+
+				}
+			}
+			$interface->assign('exploreMoreOptions', $sortedOptions);
+		}
+	}
 }

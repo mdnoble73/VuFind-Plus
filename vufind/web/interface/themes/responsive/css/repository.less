@@ -1,0 +1,78 @@
+@import (reference) "bootstrap/less/variables.less";
+@import (reference) "variables.less";
+
+// Color Variables
+// TODO need to move so that location rules can overwrite
+
+@bottom-line-color: #00b3ee;
+@title-color: #000075;
+
+#explore-more-sidebar{
+  background-color: @home-search-top-color;
+  background: linear-gradient(to bottom, @home-search-top-color, @home-search-bottom-color);
+}
+#explore-more-header{
+  padding: 10px 25px 5px 0;
+  margin-bottom:5px;
+  text-align: right;
+  color: white;
+  font-variant: small-caps;
+  font-weight: bold;
+  font-size: 16px;
+}
+#explore-more-body{
+  background-color: white;
+
+  .sectionHeader {
+    text-transform: uppercase;
+    font-weight: bold;
+    color: @title-color;
+    border-bottom: 2px solid @bottom-line-color;
+    margin-bottom: 10px;
+  }
+  .section {
+    .row {
+      margin-bottom: 10px;
+    }
+    margin-bottom: 20px;
+
+  }
+  .subsectionTitle {
+    color: @title-color;
+
+  }
+  .subsection {
+
+  }
+}
+
+.related-exhibit-images img {
+  padding-left: 10px;
+  padding-right: 10px;
+}
+
+// Styling for Explore More Bar in Search Results
+.exploreMoreBar {
+  border-top: solid 3px @bottom-line-color;
+  border-bottom: solid 3px @bottom-line-color;
+  margin-bottom: 20px;
+  margin-top: 20px;
+  padding-top: 10px;
+  padding-bottom: 10px;
+
+  .explore-more-option {
+    float: left; // stack in a single row
+    padding-left: 10px;
+    padding-right: 10px;
+
+    .thumbnail {
+      margin-bottom: 0px;
+    }
+    figcaption {
+      margin-top: 4px;
+      margin-bottom: 4px;
+      font-weight: +100;
+    }
+  }
+  //clear:both; //
+}

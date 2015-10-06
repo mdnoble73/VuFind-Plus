@@ -122,6 +122,12 @@ class UInterface extends Smarty
 		$this->assign('template_dir',$this->template_dir);
 		$this->assign('url', $url);
 		$this->assign('coverUrl', $configArray['Site']['coverUrl']);
+		if (isset($configArray['Site']['repositoryUrl'])) {
+			//TODO: This is currently only used for supplemental images during development.
+			//We can delete eventually
+			$this->assign('repositoryUrl', $configArray['Site']['repositoryUrl']);
+		}
+
 		$this->assign('fullPath', str_replace('&', '&amp;', $_SERVER['REQUEST_URI']));
 		$this->assign('requestHasParams', strpos($_SERVER['REQUEST_URI'], '?') > 0);
 		if (isset($configArray['Site']['email'])) {
@@ -337,7 +343,7 @@ class UInterface extends Smarty
 			$this->assign('showSimilarTitles', $library->showSimilarTitles);
 			$this->assign('showSimilarAuthors', $library->showSimilarAuthors);
 			$this->assign('showStandardReviews', (($location->showStandardReviews == 1) && ($library->showStandardReviews == 1)) ? 1 : 0);
-		}else if ($location != null){ // location only
+		}elseif ($location != null){ // location only
 			$this->assign('showFavorites', $location->showFavorites);
 			$this->assign('showComments', $location->showComments);
 			$this->assign('showTextThis', $location->showTextThis);
@@ -349,7 +355,7 @@ class UInterface extends Smarty
 			$this->assign('showGoodReadsReviews', $location->showGoodReadsReviews);
 			$this->assign('showStandardReviews', $location->showStandardReviews);
 			$showHoldButton = $location->showHoldButton;
-		}else if (isset($library)){ // library only
+		}elseif (isset($library)){ // library only
 			$this->assign('showFavorites', $library->showFavorites);
 			$showHoldButton = $library->showHoldButton;
 			$showHoldButtonInSearchResults = $library->showHoldButtonInSearchResults;
@@ -376,16 +382,22 @@ class UInterface extends Smarty
 		if ($showHoldButton == 0){
 			$showHoldButtonInSearchResults = 0;
 		}
-		if ($library && $library->additionalCss){
+		if (!empty($library->additionalCss)){
 			$this->assign('additionalCss', $library->additionalCss);
 		}
-		if ($location != null && $location->additionalCss){
+		if (!empty($location->additionalCss)){
 			$this->assign('additionalCss', $location->additionalCss);
+		}
+		if (!empty($library->headerText)){
+			$this->assign('headerText', $library->headerText);
+		}
+		if (!empty($location->headerText)){
+			$this->assign('headerText', $location->headerText);
 		}
 		$this->assign('showHoldButton', $showHoldButton);
 		$this->assign('showHoldButtonInSearchResults', $showHoldButtonInSearchResults);
 		$this->assign('showNotInterested', true);
-		$this->assign('librarySystemName', 'Marmot');
+		$this->assign('librarySystemName', 'Marmot'); //TODO: need better default
 		if (isset($library)){
 			$this->assign('showRatings', $library->showRatings);
 			$this->assign('allowPinReset', $library->allowPinReset);

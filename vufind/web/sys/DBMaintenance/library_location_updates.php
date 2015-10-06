@@ -1090,5 +1090,14 @@ function getLibraryLocationUpdates(){
 			),
 		),
 
+		'header_text' => array(
+			'title' => 'Library and Location Header Text',
+			'description' => 'Text that can be displayed in the header between the logo and log-in buttons for libraries and locations',
+			'sql' => array(
+				"ALTER TABLE `library` ADD `headerText` MEDIUMTEXT AFTER `showDisplayNameInHeader`",
+				"ALTER TABLE `location` ADD `headerText` MEDIUMTEXT AFTER `showDisplayNameInHeader`",
+			),
+		),
+
 	);
 }

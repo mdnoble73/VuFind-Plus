@@ -97,7 +97,7 @@ class ExternalEContentDriver extends BaseEContentDriver{
 		$isbn = $this->getCleanISBN();
 
 		//Get Related Records to make sure we initialize items
-		$this->getGroupedWorkDriver()->getRelatedRecords(false);
+		$relatedRecords = $this->getGroupedWorkDriver()->getRelatedRecords(false);
 
 		$items = $this->getItemsFast();
 		$interface->assign('items', $items);
