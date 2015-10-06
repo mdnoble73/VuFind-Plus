@@ -105,13 +105,13 @@ class MyAccount_AJAX
 				}else { // insert failure or user is blocked from linking account or account & account to link are the same account
 					$result = array(
 						'result' => false,
-						'message' => 'Sorry, we failed to link the account.'
+						'message' => 'Sorry, we could not link to that account.  Accounts cannot be linked if all libraries do not allow account linking.  Please contact your local library if you have questions.'
 					);
 				}
 			}else{
 				$result = array(
 					'result' => false,
-					'message' => 'Sorry, we could not find a user with that information.'
+					'message' => 'Sorry, we could not find a user with that information to link to.'
 				);
 			}
 		}

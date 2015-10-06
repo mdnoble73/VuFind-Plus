@@ -751,6 +751,13 @@ function loadModuleActionId(){
 		$_REQUEST['module'] = $matches[1];
 		$_REQUEST['action'] = $matches[2];
 		$_REQUEST['id'] = '';
+	}elseif (preg_match('/\/Archive\/([\\w\\d:]+)\/([^\/?]+)/', $requestURI, $matches)){
+		$_GET['module'] = 'Archive';
+		$_GET['id'] = $matches[1];
+		$_GET['action'] = $matches[2];
+		$_REQUEST['module'] = 'Archive';
+		$_REQUEST['id'] = $matches[1];
+		$_REQUEST['action'] = $matches[2];
 
 	//Redirect things /Record/.b3246786/Home to the proper action
 	//Also things like /OverDrive/84876507-043b-b3ce-2930-91af93d2a4f0/Home

@@ -395,45 +395,47 @@
 				</div>
 				{/if}
 
-				<div class="panel active">
-					<a data-toggle="collapse" data-parent="#account-settings-accordion" href="#linkedAccountPanel">
-						<div class="panel-heading">
-							<div class="panel-title">
-								Linked Accounts
+				{if $allowAccountLinking}
+					<div class="panel active">
+						<a data-toggle="collapse" data-parent="#account-settings-accordion" href="#linkedAccountPanel">
+							<div class="panel-heading">
+								<div class="panel-title">
+									Linked Accounts
+								</div>
+							</div>
+						</a>
+						<div id="linkedAccountPanel" class="panel-collapse collapse in">
+							<div class="panel-body">
+								<p class="alert alert-info">
+									Linked accounts allow you to easily maintain multiple accounts for the library so you can see all of your information in one place. Information from linked accounts will appear when you view your checkouts, holds, etc in the main account.
+								</p>
+									<div class="lead">Additional accounts to manage</div>
+									<p>The following accounts can be managed from this account.</p>
+									<ul>
+										{foreach from=$profile->linkedUsers item=tmpUser} {* Show linking for the account currently chosen for display in account settings *}
+											<li>{$tmpUser->getNameAndLibraryLabel()} <a href="#" onclick="VuFind.Account.removeLinkedUser({$tmpUser->id});">Remove</a> </li>
+											{foreachelse}
+											<li>None</li>
+										{/foreach}
+									</ul>
+								{if $user->id == $profile->id}{* Only allow account adding for the actual account user is logged in with *}
+									<button class="btn btn-default btn-xs" onclick="VuFind.Account.addAccountLink()">Add an Account</button>
+								{else}
+									<p>Log into this account to add other accounts to it.</p>
+								{/if}
+								<div class="lead">Other accounts that can view this account</div>
+								<p>The following accounts can view checkout and hold information from this account.  If someone is viewing your account that you do not want to not have access, please contact library staff.</p>
+								<ul>
+								{foreach from=$profile->getViewers() item=tmpUser}
+									<li>{$tmpUser->getNameAndLibraryLabel()}</li>
+								{foreachelse}
+									<li>None</li>
+								{/foreach}
+								</ul>
 							</div>
 						</div>
-					</a>
-					<div id="linkedAccountPanel" class="panel-collapse collapse in">
-						<div class="panel-body">
-							<p class="alert alert-info">
-								Linked accounts allow you to easily maintain multiple accounts for the library so you can see all of your information in one place. Information from linked accounts will appear when you view your checkouts, holds, etc in the main account.
-							</p>
-								<div class="lead">Additional accounts to manage</div>
-								<p>The following accounts can be managed from this account.</p>
-								<ul>
-									{foreach from=$profile->linkedUsers item=tmpUser} {* Show linking for the account currently chosen for display in account settings *}
-										<li>{$tmpUser->getNameAndLibraryLabel()} <a href="#" onclick="VuFind.Account.removeLinkedUser({$tmpUser->id});">Remove</a> </li>
-										{foreachelse}
-										<li>None</li>
-									{/foreach}
-								</ul>
-							{if $user->id == $profile->id}{* Only allow account adding for the actual account user is logged in with *}
-								<button class="btn btn-default btn-xs" onclick="VuFind.Account.addAccountLink()">Add an Account</button>
-							{else}
-								<p>Log into this account to add other accounts to it.</p>
-							{/if}
-							<div class="lead">Other accounts that can view this account</div>
-							<p>The following accounts can view checkout and hold information from this account.  If someone is viewing your account that you do not want to not have access, please contact library staff.</p>
-							<ul>
-							{foreach from=$profile->getViewers() item=tmpUser}
-								<li>{$tmpUser->getNameAndLibraryLabel()}</li>
-							{foreachelse}
-								<li>None</li>
-							{/foreach}
-							</ul>
-						</div>
 					</div>
-				</div>
+				{/if}
 
 				{* Display user roles if the user has any roles*}
 				{if count($profile->roles) > 0}

@@ -72,7 +72,27 @@
 			</div>
 
 			<div id="content-container" class="row">
-				{if isset($sidebar)}
+				{if isset($sidebar) && $showExploreMore}
+					{* Setup the left bar *}
+					<div class="col-xs-12 col-sm-4 col-md-2 col-lg-2" id="side-bar">
+						{include file="$sidebar"}
+					</div>
+					<div class="hidden-xs visible-sm col-xs-12 col-sm-8 col-md-8 col-lg-8" id="main-content-with-sidebar">
+						{include file="$module/$pageTemplate"}
+					</div>
+					{* TODO: Fix other sizes*}
+					<div class="hidden-xs visible-sm col-xs-12 col-sm-8 col-md-2 col-lg-2" id="explore-more-sidebar">
+						{include file="explore-more-sidebar.tpl"}
+					</div>
+				{elseif $showExploreMore}
+					<div class="hidden-xs visible-sm col-xs-12 col-sm-8 col-md-9 col-lg-8" id="main-content-with-sidebar">
+						{include file="$module/$pageTemplate"}
+					</div>
+					{* Setup the explore more side bar *}
+					<div class="col-xs-12 col-sm-4 col-md-3 col-lg-4" id="explore-more-sidebar">
+						{include file="explore-more-sidebar.tpl"}
+					</div>
+				{elseif isset($sidebar)}
 					{* Setup the left bar *}
 					<div class="col-xs-12 col-sm-4 col-md-3 col-lg-3" id="side-bar">
 						{include file="$sidebar"}
@@ -81,6 +101,7 @@
 						{include file="$module/$pageTemplate"}
 					</div>
 				{else}
+
 					{include file="$module/$pageTemplate"}
 				{/if}
 			</div>

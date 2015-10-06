@@ -90,7 +90,7 @@ public class GroupedReindexMain {
 		long numWorksProcessed = 0;
 		long numListsProcessed = 0;
 		try {
-			GroupedWorkIndexer groupedWorkIndexer = new GroupedWorkIndexer(serverName, vufindConn, econtentConn, configIni, fullReindex, logger);
+			GroupedWorkIndexer groupedWorkIndexer = new GroupedWorkIndexer(serverName, vufindConn, econtentConn, configIni, fullReindex, individualWorkToProcess != null, logger);
 			if (groupedWorkIndexer.isOkToIndex()) {
 				if (individualWorkToProcess != null) {
 					//Get more information about the work

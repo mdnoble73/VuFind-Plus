@@ -24,6 +24,7 @@ config.pwd.ini
 author_authorities.properties.temp
 author_authorities.v1.properties
 hcl_solr_bib_export.properties
+horizon_export.properties
 
 # Compiled source #                                                                                   
 ###################

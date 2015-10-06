@@ -28,16 +28,6 @@ abstract class BaseEContentDriver  extends MarcRecord {
 		parent::__construct($recordData);
 	}
 
-	protected $itemsFromIndex;
-	public function setItemsFromIndex($itemsFromIndex, $realTimeStatusNeeded){
-		$this->itemsFromIndex = $itemsFromIndex;
-	}
-
-	protected $detailedRecordInfoFromIndex;
-	public function setDetailedRecordInfoFromIndex($detailedRecordInfoFromIndex, $realTimeStatusNeeded){
-		$this->detailedRecordInfoFromIndex = $detailedRecordInfoFromIndex;
-	}
-
 	public function getItems(){
 		return $this->getItemsFast();
 	}

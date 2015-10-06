@@ -490,6 +490,23 @@ class BookCoverProcessor{
 			}
 		}
 
+		//Check for Flatirons covers
+		$marcFields = $marcRecord->getFields('962');
+		if ($marcFields){
+			$this->log("Found 962 field", PEAR_LOG_INFO);
+			foreach ($marcFields as $marcField){
+				if ($marcField->getSubfield('u')){
+					$this->log("Found 962u subfield", PEAR_LOG_INFO);
+					$subfield_u = $marcField->getSubfield('u')->getData();
+					if ($this->processImageURL($subfield_u, true)){
+						return true;
+					}
+				}else{
+					//no image link available on this link
+				}
+			}
+		}
+
 		return false;
 	}
 

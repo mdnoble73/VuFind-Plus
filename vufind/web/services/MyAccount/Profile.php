@@ -65,6 +65,7 @@ class MyAccount_Profile extends MyAccount
 				$treatPrintNoticesAsPhoneNotices = false;
 				$allowPinReset = false;
 				$showAlternateLibraryOptionsInProfile = true;
+				$allowAccountLinking = true;
 			}else{
 				$canUpdateContactInfo = ($patronHomeLibrary->allowProfileUpdates == 1);
 				$canUpdateAddress = ($patronHomeLibrary->allowPatronAddressUpdates == 1);
@@ -74,6 +75,7 @@ class MyAccount_Profile extends MyAccount
 				$showPickupLocationInProfile = ($patronHomeLibrary->showPickupLocationInProfile == 1);
 				$allowPinReset = ($patronHomeLibrary->allowPinReset == 1);
 				$showAlternateLibraryOptionsInProfile = ($patronHomeLibrary->showAlternateLibraryOptionsInProfile == 1);
+				$allowAccountLinking = ($patronHomeLibrary->allowLinkedAccounts == 1);
 			}
 
 			$interface->assign('canUpdateContactInfo', $canUpdateContactInfo);
@@ -84,6 +86,7 @@ class MyAccount_Profile extends MyAccount
 			$interface->assign('treatPrintNoticesAsPhoneNotices', $treatPrintNoticesAsPhoneNotices);
 			$interface->assign('allowPinReset', $allowPinReset);
 			$interface->assign('showAlternateLibraryOptions', $showAlternateLibraryOptionsInProfile);
+			$interface->assign('allowAccountLinking', $allowAccountLinking);
 
 			// Determine Pickup Locations
 			if ($showPickupLocationInProfile) { // only grab pickup locations if needed.
