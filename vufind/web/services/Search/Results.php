@@ -290,40 +290,42 @@ class Search_Results extends Action {
 			$autoSwitchSearch = false;
 			$disallowReplacements = isset($_REQUEST['disallowReplacements']) || isset($_REQUEST['replacementTerm']);
 			if (!$disallowReplacements && (!isset($facetSet) || count($facetSet) == 0)){
-				require_once ROOT_DIR . '/services/Search/lib/SearchSuggestions.php';
-				$searchSuggestions = new SearchSuggestions();
-				$commonSearches = $searchSuggestions->getAllSuggestions($searchObject->displayQuery(), $searchObject->getSearchIndex());
+				//We can try to find a suggestion, but only if we are not doing a phrase search.
+				if (strpos($searchObject->displayQuery(), '"') === false){
+					require_once ROOT_DIR . '/services/Search/lib/SearchSuggestions.php';
+					$searchSuggestions = new SearchSuggestions();
+					$commonSearches = $searchSuggestions->getAllSuggestions($searchObject->displayQuery(), $searchObject->getSearchIndex());
 
-				//assign here before we start popping stuff off
-				$interface->assign('searchSuggestions', $commonSearches);
+					//assign here before we start popping stuff off
+					$interface->assign('searchSuggestions', $commonSearches);
 
-				//If the first search in the list is used 10 times more than the next, just show results for that
-				$numSuggestions = count($commonSearches);
-				if ($numSuggestions == 1){
-					$firstSearch = array_pop($commonSearches);
-					$autoSwitchSearch = true;
-				}elseif ($numSuggestions >= 2){
-					$firstSearch = array_shift($commonSearches);
-					$secondSearch = array_shift($commonSearches);
-					$firstTimesSearched = $firstSearch['numSearches'];
-					$secondTimesSearched = $secondSearch['numSearches'];
-					if ($secondTimesSearched > 0 && $firstTimesSearched / $secondTimesSearched > 10){ // avoids division by zero
+					//If the first search in the list is used 10 times more than the next, just show results for that
+					$numSuggestions = count($commonSearches);
+					if ($numSuggestions == 1){
+						$firstSearch = array_pop($commonSearches);
 						$autoSwitchSearch = true;
+					}elseif ($numSuggestions >= 2){
+						$firstSearch = array_shift($commonSearches);
+						$secondSearch = array_shift($commonSearches);
+						$firstTimesSearched = $firstSearch['numSearches'];
+						$secondTimesSearched = $secondSearch['numSearches'];
+						if ($secondTimesSearched > 0 && $firstTimesSearched / $secondTimesSearched > 10){ // avoids division by zero
+							$autoSwitchSearch = true;
+						}
 					}
-				}
 
-				// Switch to search with a better search term //
+					// Switch to search with a better search term //
 //				$interface->assign('autoSwitchSearch', $autoSwitchSearch);
-				if ($autoSwitchSearch){
-					//Get search results for the new search
+					if ($autoSwitchSearch){
+						//Get search results for the new search
 //					$interface->assign('oldTerm', $searchObject->displayQuery());
 //					$interface->assign('newTerm', $commonSearches[0]['phrase']);
-					// The above assignments probably do nothing when there is a redirect below
-					$thisUrl = $_SERVER['REQUEST_URI'] . "&replacementTerm=" . urlencode($firstSearch['phrase']);
-					header("Location: " . $thisUrl);
-					exit();
+						// The above assignments probably do nothing when there is a redirect below
+						$thisUrl = $_SERVER['REQUEST_URI'] . "&replacementTerm=" . urlencode($firstSearch['phrase']);
+						header("Location: " . $thisUrl);
+						exit();
+					}
 				}
-
 			}
 
 			// No record found
