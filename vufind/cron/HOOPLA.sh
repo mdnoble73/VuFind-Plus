@@ -4,6 +4,7 @@
 # James Staub
 # Nashville Public Library
 
+# 20151006: Correct for new ALL directory name 'Only libraries loading All'
 # 20150522: Grab USA_ALL_*.marc files for Comic, eBook, and Music
 # 20150130: Grab Hoopla marc records for Pika. Read Hoopla ftp user and password from ... site/[site]/config/config.pwd.ini
 
@@ -60,4 +61,4 @@ fi
 cd /data/vufind-plus/hoopla/marc
 #wget -N --user=$HooplaFtpUser --password=$HooplaFtpPassword ftp://ftp.midwesttapes.com/*_removed.mrc; # test
 wget -N -q --user=$HooplaFtpUser --password=$HooplaFtpPassword ftp://ftp.midwesttapes.com/USA_*.mrc
-wget -N -q --user=$HooplaFtpUser --password=$HooplaFtpPassword 'ftp://ftp.midwesttapes.com/Only libraries loading All Music/USA_ALL_*.mrc'
+wget -N -q --user=$HooplaFtpUser --password=$HooplaFtpPassword 'ftp://ftp.midwesttapes.com/Only libraries loading All/USA_ALL_*.mrc'
