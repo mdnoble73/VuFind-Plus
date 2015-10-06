@@ -44,7 +44,7 @@ class SearchObject_Solr extends SearchObject_Base
 	// Index
 	private $index = null;
 	// Field List
-	private $fields = 'auth_author2,id,mpaaRating,title_display,title_full,title_sub,author,author_display,isbn,upc,issn,series,recordtype,display_description,literary_form,literary_form_full,num_titles,record_details,item_details';
+	private $fields = 'auth_author2,id,mpaaRating,title_display,title_full,title_sub,author,author_display,isbn,upc,issn,series,recordtype,display_description,literary_form,literary_form_full,num_titles,record_details,item_details,publisherStr,publishDate';
 	private $fieldsFull = '*,score';
 	// HTTP Method
 	//    private $method = HTTP_REQUEST_METHOD_GET;
@@ -2024,7 +2024,7 @@ class SearchObject_Solr extends SearchObject_Base
 			$sheet->setCellValueByColumnAndRow($curCol++, $curRow, isset($curDoc['id']) ? $curDoc['id'] : '');
 			$sheet->setCellValueByColumnAndRow($curCol++, $curRow, isset($curDoc['title_display']) ? $curDoc['title_display'] : '');
 			$sheet->setCellValueByColumnAndRow($curCol++, $curRow, isset($curDoc['author']) ? $curDoc['author'] : '');
-			$sheet->setCellValueByColumnAndRow($curCol++, $curRow, isset($curDoc['publisher']) ? implode(', ', $curDoc['publisher']) : '');
+			$sheet->setCellValueByColumnAndRow($curCol++, $curRow, isset($curDoc['publisherStr']) ? implode(', ', $curDoc['publisherStr']) : '');
 			$sheet->setCellValueByColumnAndRow($curCol++, $curRow, isset($curDoc['publishDate']) ? implode(', ', $curDoc['publishDate']) : '');
 			$callNumber = '';
 			if (isset($curDoc['local_callnumber_' . $solrScope])){
