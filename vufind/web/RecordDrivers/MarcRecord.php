@@ -1860,6 +1860,7 @@ class MarcRecord extends IndexRecord
 			$standardSubjects = array();
 			$bisacSubjects = array();
 			$oclcFastSubjects = array();
+			$localSubjects = array();
 			foreach ($subjectFields as $subjectField){
 				/** @var File_MARC_Data_Field[] $marcFields */
 				$marcFields = $marcRecord->getFields($subjectField);
@@ -1876,6 +1877,9 @@ class MarcRecord extends IndexRecord
 							}elseif (preg_match('/fast/i', $subjectSource->getData())){
 								$type = 'fast';
 							}
+						}
+						if ($marcField->getTag() == '690'){
+							$type = 'local';
 						}
 
 						foreach ($marcField->getSubFields() as $subField){
@@ -1898,6 +1902,10 @@ class MarcRecord extends IndexRecord
 						}elseif ($type == 'fast'){
 							//Suppress fast subjects by default
 							$oclcFastSubjects[] = $subject;
+						}elseif ($type == 'local'){
+							//Suppress fast subjects by default
+							$localSubjects[] = $subject;
+							$subjects[] = $subject;
 						}else{
 							$subjects[] = $subject;
 							$standardSubjects[] = $subject;
@@ -1910,6 +1918,7 @@ class MarcRecord extends IndexRecord
 			$interface->assign('standardSubjects', $standardSubjects);
 			$interface->assign('bisacSubjects', $bisacSubjects);
 			$interface->assign('oclcFastSubjects', $oclcFastSubjects);
+			$interface->assign('localSubjects', $localSubjects);
 		}
 	}
 

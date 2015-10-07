@@ -10,6 +10,8 @@
 
 # TO DO: 
 #	+ add similar isProduction logic to continuous_partial_reindex.sh
+
+# 201509xx : changes below for moving to production
 # 	+ until pika is in production, galacto is considered production
 #		and pika is considered test
 #	+ when pika moves to production: 
@@ -108,10 +110,10 @@ if [ ${PRODUCTION} == "false" ]; then
 #
 	cd /data/vufind-plus/catalog.library.nashville.org/marc/; 
 	cp BIB_EXTRACT_PIKA.MRC BIB_EXTRACT_PIKA.SAV
-	scp -p -i /home/vufind/.ssh/id_rsa vufind@galacto.library.nashville.org:/data/vufind-plus/catalog.library.nashville.org/marc/BIB_EXTRACT_PIKA.MRC ./;
+	scp -p -i /home/vufind/.ssh/id_rsa vufind@catalog.library.nashville.org:/data/vufind-plus/catalog.library.nashville.org/marc/BIB_EXTRACT_PIKA.MRC ./;
 	chown vufind:vufind BIB_EXTRACT_PIKA.MRC
 	chmod 664 BIB_EXTRACT_PIKA.MRC
-	scp -p -i /home/vufind/.ssh/id_rsa vufind@galacto.library.nashville.org:/data/vufind-plus/catalog.library.nashville.org/marc/BIB_HOLDS_EXTRACT_PIKA.TXT ./;
+	scp -p -i /home/vufind/.ssh/id_rsa vufind@catalog.library.nashville.org:/data/vufind-plus/catalog.library.nashville.org/marc/BIB_HOLDS_EXTRACT_PIKA.TXT ./;
 	chown vufind:vufind BIB_HOLDS_EXTRACT_PIKA.TXT
 	chmod 664 BIB_HOLDS_EXTRACT_PIKA.TXT
 elif [ ${PRODUCTION} == "true" ]; then
