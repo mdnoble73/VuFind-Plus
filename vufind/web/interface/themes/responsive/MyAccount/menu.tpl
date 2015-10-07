@@ -31,10 +31,10 @@
 										<div class="myAccountLink" style="color:red; font-weight:bold;">
 											Your account{if count($user->getLinkedUsers())>0}s have{else} has{/if} ${$totalFines|number_format:2} in fines.
 										</div>
-										<div class="myAccountLink"><a href="{$ecommerceLink}">{if $payFinesLinkText}{$payFinesLinkText}{else}Click to Pay Fines Online{/if}</a></div>
+										<div class="myAccountLink"><a href="{$ecommerceLink}">{if $payFinesLinkText}{$payFinesLinkText}{else}Pay Fines Online{/if}</a></div>
 									{else}
 										<div class="myAccountLink" title="Please Contact your local library to pay fines or Charges." style="color:red; font-weight:bold;" onclick="alert('Please Contact your local library to pay fines or Charges.')">
-											Your account has ${$totalFines|number_format:2} in fines.
+											Your account{if count($user->getLinkedUsers())>0}s have{else} has{/if} ${$totalFines|number_format:2} in fines.
 										</div>
 									{/if}
 								{/if}
