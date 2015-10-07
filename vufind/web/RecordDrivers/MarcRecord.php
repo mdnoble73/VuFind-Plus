@@ -1860,6 +1860,7 @@ class MarcRecord extends IndexRecord
 			$standardSubjects = array();
 			$bisacSubjects = array();
 			$oclcFastSubjects = array();
+			$localSubjects = array();
 			foreach ($subjectFields as $subjectField){
 				/** @var File_MARC_Data_Field[] $marcFields */
 				$marcFields = $marcRecord->getFields($subjectField);
