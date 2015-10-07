@@ -1877,6 +1877,9 @@ class MarcRecord extends IndexRecord
 								$type = 'fast';
 							}
 						}
+						if ($marcField->getTag() == '690'){
+							$type = 'local';
+						}
 
 						foreach ($marcField->getSubFields() as $subField){
 							/** @var File_MARC_Subfield $subField */
@@ -1898,6 +1901,10 @@ class MarcRecord extends IndexRecord
 						}elseif ($type == 'fast'){
 							//Suppress fast subjects by default
 							$oclcFastSubjects[] = $subject;
+						}elseif ($type == 'local'){
+							//Suppress fast subjects by default
+							$localSubjects[] = $subject;
+							$subjects[] = $subject;
 						}else{
 							$subjects[] = $subject;
 							$standardSubjects[] = $subject;
@@ -1910,6 +1917,7 @@ class MarcRecord extends IndexRecord
 			$interface->assign('standardSubjects', $standardSubjects);
 			$interface->assign('bisacSubjects', $bisacSubjects);
 			$interface->assign('oclcFastSubjects', $oclcFastSubjects);
+			$interface->assign('localSubjects', $localSubjects);
 		}
 	}
 
