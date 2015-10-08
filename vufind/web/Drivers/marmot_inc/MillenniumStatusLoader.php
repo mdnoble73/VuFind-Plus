@@ -143,8 +143,8 @@ class MillenniumStatusLoader{
 			//Process each row in the callnumber table.
 			$ret = $this->parseHoldingRows($id, $rows);
 
-			if (count($ret) == 0){
-				//Also check the frameset for links
+			if (count($ret) == 0 || $this->driver->showLinksForRecordsWithItems()){
+				//Also check the frameset for links, but only if we don't have items.
 				if (preg_match('/<div class="bibDisplayUrls">(.*?)<\/div>/si', $millenniumInfo->framesetInfo, $displayUrlInfo)){
 					$linksTable = $displayUrlInfo[1];
 

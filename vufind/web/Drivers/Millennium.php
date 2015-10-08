@@ -1963,4 +1963,8 @@ class Millennium extends ScreenScrapingDriver
 
 		return $userValid;
 	}
+
+	public function showLinksForRecordsWithItems() {
+		return false;
+	}
 }

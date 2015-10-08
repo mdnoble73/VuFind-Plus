@@ -400,4 +400,7 @@ class Nashville extends Millennium{
 //			return "Sorry, we could not update your pin number. Please try again later.";
 //		}
 //	}
+	public function showLinksForRecordsWithItems() {
+		return true;
+	}
 }
