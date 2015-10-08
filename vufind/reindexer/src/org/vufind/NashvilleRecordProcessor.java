@@ -83,6 +83,9 @@ public class NashvilleRecordProcessor extends IIIRecordProcessor {
 
 		//Check to see if we should add a supplemental record:
 		String url = getFirstFieldVal(record, "856u");
+		if (url == null){
+			return  unsuppressedEcontentRecords;
+		}
 		if (url.contains("digital.library.nashville.org") || url.contains("www.library.nashville.org/localhistory/findingaids") || url.contains("nashville.contentdm.oclc.org")){
 			//Much of the econtent for flatirons has no items.  Need to determine the location based on the 907b field
 			String eContentLocation = getFirstFieldVal(record, "945l");
