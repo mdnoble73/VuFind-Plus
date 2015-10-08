@@ -22,6 +22,7 @@
 				{/if}
 				{strip}
 				{include file="Record/title-rating.tpl" ratingClass="" recordId=$summId shortId=$summShortId ratingData=$summRating}
+				{* Only Grouped Work Ratings implemented now, the above template does not exist. (Is this page in use?) plb 6-29-2015 *}
 			</div>
 		</div>
 	</div>
@@ -144,7 +145,7 @@
 			</div>
 
 			<div class="resultActions col-md-3">
-				{include file='Record/result-tools.tpl' id=$summId shortId=$shortId summTitle=$summTitle ratingData=$summRating recordUrl=$summUrl}
+				{include file='Record/result-tools.tpl' id=$summId shortId=$shortId module=$summModule summTitle=$summTitle ratingData=$summRating recordUrl=$summUrl}
 			</div>
 		</div>
 	</div>

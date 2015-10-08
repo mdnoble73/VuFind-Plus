@@ -16,6 +16,17 @@ class SierraStatusLoader extends MillenniumStatusLoader{
 	}
 
 	private static $loadedStatus = array();
+
+	public function getStatus($id){
+		$recordDriver = RecordDriverFactory::initRecordDriverById($id);
+		$format = $recordDriver->getFormat();
+		if ($format[0] == 'Journal'){
+			return parent::getStatus($id);
+		}else{
+			return $this->getStatusFromIndex($recordDriver, $id);
+		}
+
+	}
 	/**
 	 * In Sierra, all status information is up to date within the MARC record
 	 * due to the export so we don't need to screen scrape!
@@ -33,7 +44,7 @@ class SierraStatusLoader extends MillenniumStatusLoader{
 	 *  statusfull
 	 *  reserve
 	 *  holdQueueLength
-	 *  duedate
+	 *  dueDate
 	 *  location
 	 *  locationLink
 	 *  callnumber
@@ -44,15 +55,11 @@ class SierraStatusLoader extends MillenniumStatusLoader{
 	 *
 	 * Includes both physical titles as well as titles on order
 	 *
-	 * @param string            $id     the id of the record
+	 * @param MarcRecord   $recordDriver  the driver for the record
+	 * @param string       $id            the id of the record
 	 * @return array A list of holdings for the record
 	 */
-	public function getStatus($id){
-		$recordDriver = RecordDriverFactory::initRecordDriverById('ils:' . $id);
-		$format = $recordDriver->getFormat();
-		if ($format[0] == 'Journal'){
-			return parent::getStatus($id);
-		}
+	public function getStatusFromIndex($recordDriver, $id){
 		if (array_key_exists($id, SierraStatusLoader::$loadedStatus)){
 			return SierraStatusLoader::$loadedStatus[$id];
 		}
@@ -149,13 +156,17 @@ class SierraStatusLoader extends MillenniumStatusLoader{
 		}
 
 		//In Sierra, we can just load data from the MARC Record/Index
+		global $library;
+		if ($library->useScope){
+			$recordDriver->setScopingEnabled(true);
+		}
+
 		$items = $recordDriver->getItemsFast();
 		$holdQueueLength = $recordDriver->getNumHolds();
 		$itemStatus = array();
 		$i = 0;
 		foreach ($items as $item){
 			//Determine what section this holding is in
-			$sectionId = 1;
 			$location = $item['shelfLocation'];
 			if (strlen($physicalBranch) > 0 && stripos($location, $physicalBranch) !== false){
 				//If the user is in a branch, those holdings come first.
@@ -188,7 +199,7 @@ class SierraStatusLoader extends MillenniumStatusLoader{
 				'reserve' => stripos($item['shelfLocation'], 'reserve') !== false ? 'Y' : 'N',
 				'callnumber' => $item['callnumber'],
 				'status' => $item['status'],
-				'duedate' => $item['dueDate'],
+				'dueDate' => $item['dueDate'],
 				'lastCheckinDate' => $item['lastCheckinDate'],
 				'statusfull' => $this->translateStatusCode($item['status'], $item['dueDate']),
 				'id' => $id,
@@ -197,6 +208,7 @@ class SierraStatusLoader extends MillenniumStatusLoader{
 				'type' => 'holding',
 				'availability' => $item['availability'],
 				'holdable' => $item['holdable'] ? 1 : 0,
+				'bookable' => $item['bookable'] ? 1 : 0,
 				'libraryDisplayName' => $item['shelfLocation'],
 				'locationCode' => $item['location'],
 				'iType' => $item['iType'],
@@ -235,6 +247,7 @@ class SierraStatusLoader extends MillenniumStatusLoader{
 			$summaryInformation['offline'] = true;
 			$summaryInformation['status'] = 'The circulation system is offline, status not available.';
 			$summaryInformation['holdable'] = true;
+			$summaryInformation['showBookMaterial'] = false;
 			$summaryInformation['class'] = "unavailable";
 			$summaryInformation['showPlaceHold'] = true;
 			return $summaryInformation;
@@ -313,6 +326,7 @@ class SierraStatusLoader extends MillenniumStatusLoader{
 		//  - there is at least one download link for the record.
 		$numAvailableCopies = 0;
 		$numHoldableCopies = 0;
+		$numBookableCopies = 0;
 		$numCopies = 0;
 		$numCopiesOnOrder = 0;
 		$availableLocations = array();
@@ -368,6 +382,9 @@ class SierraStatusLoader extends MillenniumStatusLoader{
 
 			if (isset($holding['holdable']) && $holding['holdable'] == 1){
 				$numHoldableCopies++;
+			}
+			if (isset($holding['bookable']) && $holding['bookable'] == 1){
+				$numBookableCopies++;
 			}
 			$numCopies++;
 
@@ -448,6 +465,11 @@ class SierraStatusLoader extends MillenniumStatusLoader{
 			$summaryInformation['showPlaceHold'] = false;
 		}
 
+//		$summaryInformation['bookableCopies'] = $numHoldableCopies; // may be wanted in the future
+		$summaryInformation['showBookMaterial'] = $numBookableCopies > 0;
+			// if there are any bookable copies turn on the ShowBookMaterial switch,
+			// this determines whether or not the Book Material Button will be display to the user
+
 		$summaryInformation['numCopiesOnOrder'] = $numCopiesOnOrder;
 		//Do some basic sanity checking to make sure that we show the total copies
 		//With at least as many copies as the number of copies on order.
@@ -521,7 +543,6 @@ class SierraStatusLoader extends MillenniumStatusLoader{
 		}else{
 			$summaryInformation['inLibraryUseOnly'] = false;
 		}
-
 
 		if ($summaryInformation['availableCopies'] == 0 && $summaryInformation['isDownloadable'] == true){
 			$summaryInformation['showAvailabilityLine'] = false;

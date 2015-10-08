@@ -2882,6 +2882,9 @@ input[type="button"].btn-block {
 .glyphicon-tree-deciduous:before {
   content: "\e200";
 }
+.glyphicon-menu-hamburger:before {
+  content: "\e236";
+}
 .caret {
   display: inline-block;
   width: 0;

@@ -41,12 +41,18 @@ abstract class Report_AnalyticsReport extends Report_Report{
 		//Load date based filters
 		if (isset($_REQUEST['startDate'])){
 			$startDate = DateTime::createFromFormat('m-d-Y', $_REQUEST['startDate']);
+			if (count(DateTime::getLastErrors()) != 0){
+				$startDate = DateTime::createFromFormat('m/d/Y', $_REQUEST['startDate']);
+			}
 		}else{
 			$startDate = new DateTime();
 			$startDate->modify('-1 month');
 		}
 		if (isset($_REQUEST['endDate'])){
 			$endDate = DateTime::createFromFormat('m-d-Y', $_REQUEST['endDate']);
+			if (count(DateTime::getLastErrors()) != 0){
+				$endDate = DateTime::createFromFormat('m/d/Y', $_REQUEST['endDate']);
+			}
 		}else{
 			$endDate = new DateTime();
 		}

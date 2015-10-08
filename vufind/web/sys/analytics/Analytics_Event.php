@@ -17,12 +17,18 @@ class Analytics_Event extends DB_DataObject{
 	public function addDateFilters(){
 		if (isset($_REQUEST['startDate'])){
 			$startDate = DateTime::createFromFormat('m-d-Y', $_REQUEST['startDate']);
+			if (count(DateTime::getLastErrors()) != 0){
+				$startDate = DateTime::createFromFormat('m/d/Y', $_REQUEST['startDate']);
+			}
 			$startDate->setTime(0, 0, 0);
 			$this->whereAdd("eventTime  >= " . $startDate->getTimestamp());
 		}
 		if (isset($_REQUEST['endDate'])){
 			$endDate = DateTime::createFromFormat('m-d-Y', $_REQUEST['endDate']);
-			$startDate->setTime(24, 0, 0);
+			if (count(DateTime::getLastErrors()) != 0){
+				$endDate = DateTime::createFromFormat('m/d/Y', $_REQUEST['endDate']);
+			}
+			$endDate->setTime(24, 0, 0);
 			$this->whereAdd("eventTime < " . $endDate->getTimestamp());
 		}
 	}

@@ -1,14 +1,14 @@
 <?php
 /**
- * Loads and processes holds for Milllennium
+ * Loads and processes holds for Millennium
  *
- * @category VuFind-Plus 
+ * @category Pika
  * @author Mark Noble <mark@marmot.org>
  * Date: 5/20/13
  * Time: 11:33 AM
  */
 class MillenniumHolds{
-	/** @var  MillenniumDriver $driver */
+	/** @var  Millennium $driver */
 	private $driver;
 	private $holds = array();
 
@@ -43,7 +43,7 @@ class MillenniumHolds{
 			$hold_result['title'] = $book;
 			if (preg_match('/success/', $cleanResponse) && preg_match('/request denied/', $cleanResponse) == 0){
 				//Hold was successful
-				$hold_result['result'] = true;
+				$hold_result['success'] = true;
 				if (!isset($reason) || strlen($reason) == 0){
 					$hold_result['message'] = 'Your hold was placed successfully.  It may take up to 45 seconds for the hold to appear on your account.';
 				}else{
@@ -51,12 +51,15 @@ class MillenniumHolds{
 				}
 			}else if (!isset($reason) || strlen($reason) == 0){
 				//Didn't get a reason back.  This really shouldn't happen.
-				$hold_result['result'] = false;
-				$hold_result['result'] = false;
+				$hold_result['success'] = false;
 				$hold_result['message'] = 'Did not receive a response from the circulation system.  Please try again in a few minutes.';
+
+				//global $logger;
+				//$logger->log("Did not receive a response from the circulation system.  Please try again in a few minutes.", PEAR_LOG_WARNING);
+				//$logger->log($holdResultPage, PEAR_LOG_WARNING);
 			}else{
 				//Got an error message back.
-				$hold_result['result'] = false;
+				$hold_result['success'] = false;
 				$hold_result['message'] = $reason;
 			}
 		}else{
@@ -81,7 +84,7 @@ class MillenniumHolds{
 			}else{
 				$message = 'Unable to contact the circulation system.  Please try again in a few minutes.';
 			}
-			$hold_result['result'] = false;
+			$hold_result['success'] = false;
 			$hold_result['message'] = $message;
 
 			global $logger;
@@ -107,31 +110,26 @@ class MillenniumHolds{
 	 * Update a hold that was previously placed in the system.
 	 * Can cancel the hold or update pickup locations.
 	 */
-	public function updateHoldDetailed($patronId, $type, $titles, $xNum, $cancelId, $locationId='', $freezeValue='off')
+	public function updateHoldDetailed($patron, $type, $titles, $xNum, $cancelId, $locationId='', $freezeValue='off')
 	{
 		global $logger;
-		global $configArray;
-
-		$patronId = $this->driver->_getBarcode();
-		$patronDump = $this->driver->_getPatronDump($patronId);
 
 		// Millennium has a "quirk" where you can still freeze and thaw a hold even if it is in the wrong status.
 		// therefore we need to check the current status before we freeze or unfreeze.
 		$scope = $this->driver->getDefaultScope();
 
-		//go to the holds page and get the number of holds on the account
-//		$holds = $this->getMyHolds(); // only needed for loading titles at this point. plb 2-3-2015
-//		$numHoldsStart = count($holds['holds']['available'] + $holds['holds']['unavailable']);
-
 		if (!isset($xNum)) {
+			$xNum = is_array($cancelId) ? $cancelId : array($cancelId);
+
 			// below requests variables should be deprecated as of now. plb 2-9-2015
-			if (isset($_REQUEST['waitingholdselected']) || isset($_REQUEST['availableholdselected'])) {
-				$waitingHolds   = isset($_REQUEST['waitingholdselected']) ? $_REQUEST['waitingholdselected'] : array();
-				$availableHolds = isset($_REQUEST['availableholdselected']) ? $_REQUEST['availableholdselected'] : array();
-				$xNum           = array_merge($waitingHolds, $availableHolds);
-			} else {
-				$xNum = is_array($cancelId) ? $cancelId : array($cancelId);
-			}
+			// PLB commented out 9-29-2015, starting in 2015.11.6
+//			if (isset($_REQUEST['waitingholdselected']) || isset($_REQUEST['availableholdselected'])) {
+//				$waitingHolds   = isset($_REQUEST['waitingholdselected']) ? $_REQUEST['waitingholdselected'] : array();
+//				$availableHolds = isset($_REQUEST['availableholdselected']) ? $_REQUEST['availableholdselected'] : array();
+//				$xNum           = array_merge($waitingHolds, $availableHolds);
+//			} else {
+//				$xNum = is_array($cancelId) ? $cancelId : array($cancelId);
+//			}
 		}
 
 		$location = new Location();
@@ -140,23 +138,24 @@ class MillenniumHolds{
 			$location->find();
 			if ($location->N == 1) {
 				$location->fetch();
-				$paddedLocation = str_pad(trim($location->code), 5, "+");
+				$paddedLocation = str_pad(trim($location->code), 5, " ");
 			}
 		} else {
 			$paddedLocation = isset($locationId) ? $locationId : null;
+			$paddedLocation = str_pad(trim($paddedLocation), 5, " ");
 		}
 
 		$cancelValue = ($type == 'cancel' || $type == 'recall') ? 'on' : 'off';
 
 		$loadTitles = empty($titles);
 		if ($loadTitles) {
-			$holds = $this->getMyHolds();
-			$combined_holds = array_merge($holds['holds']['unavailable'], $holds['holds']['available']);
+			$holds = $this->getMyHolds($patron);
+			$combined_holds = array_merge($holds['unavailable'], $holds['available']);
 		}
-		$logger->log("Load titles = $loadTitles", PEAR_LOG_DEBUG); // move out of foreach loop
+//		$logger->log("Load titles = $loadTitles", PEAR_LOG_DEBUG); // move out of foreach loop
 
 
-		$extraGetInfo = array(
+		$POSTVariables = array(
 			'updateholdssome' => 'YES',
 			'currentsortorder' => 'current_pickup',
 		);
@@ -164,7 +163,7 @@ class MillenniumHolds{
 		foreach ($xNum as $tmpXnumInfo) {
 			list($tmpBib, $tmpXnum) = explode('~', $tmpXnumInfo);
 			if ($type == 'cancel') {
-				$extraGetInfo['cancel' . $tmpBib . 'x' . $tmpXnum] = $cancelValue;
+				$POSTVariables['cancel' . $tmpBib . 'x' . $tmpXnum] = $cancelValue;
 			}
 			elseif ($type == 'update') {
 //				$holdForXNum = $this->getHoldByXNum($holds, $tmpXnum); //$holds isn't actually used by the function
@@ -187,11 +186,13 @@ class MillenniumHolds{
 				}
 				if ($canUpdate) {
 					if (isset($paddedLocation)) {
-						$extraGetInfo['loc' . $tmpBib . 'x' . $tmpXnum] = $paddedLocation;
+						$POSTVariables['loc' . $tmpBib . 'x' . $tmpXnum] = $paddedLocation;
 					}
 					if (!empty($freezeValue)) {
-						$extraGetInfo['freeze' . $tmpBib . 'x' . $tmpXnum] = $freezeValue;
+						$POSTVariables['freeze' . $tmpBib . 'x' . $tmpXnum] = $freezeValue;
 					}
+				} else {
+					$logger->log('Call to update a hold when the update is not needed.', PEAR_LOG_WARNING);
 				}
 			}
 
@@ -207,120 +208,115 @@ class MillenniumHolds{
 			}
 		} // End of foreach loop
 
-		$holdUpdateParams = http_build_query($extraGetInfo);
-		if (1) { // just to hide curl ops
-			//Login to the patron's account
-			$cookieJar = tempnam("/tmp", "CURLCOOKIE");
-			$success   = false;
+		$success = false;
 
-			$curl_url = $configArray['Catalog']['url'] . "/patroninfo";
-			$logger->log('Loading page ' . $curl_url, PEAR_LOG_INFO);
+		//Login to the patron's account
+		$this->driver->_curl_login($patron);
 
-			$curl_connection = curl_init($curl_url);
-			$header          = array();
-			$header[0]       = "Accept: text/xml,application/xml,application/xhtml+xml,";
-			$header[0] .= "text/html;q=0.9,text/plain;q=0.8,image/png,*/*;q=0.5";
-			$header[] = "Cache-Control: max-age=0";
-			$header[] = "Connection: keep-alive";
-			$header[] = "Accept-Charset: ISO-8859-1,utf-8;q=0.7,*;q=0.7";
-			$header[] = "Accept-Language: en-us,en;q=0.5";
-			curl_setopt($curl_connection, CURLOPT_CONNECTTIMEOUT, 30);
-			curl_setopt($curl_connection, CURLOPT_HTTPHEADER, $header);
-			curl_setopt($curl_connection, CURLOPT_USERAGENT, "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)");
-			curl_setopt($curl_connection, CURLOPT_RETURNTRANSFER, true);
-			curl_setopt($curl_connection, CURLOPT_SSL_VERIFYPEER, false);
-			curl_setopt($curl_connection, CURLOPT_FOLLOWLOCATION, 1);
-			curl_setopt($curl_connection, CURLOPT_UNRESTRICTED_AUTH, true);
-			curl_setopt($curl_connection, CURLOPT_COOKIEJAR, $cookieJar);
-			curl_setopt($curl_connection, CURLOPT_COOKIESESSION, false);
-			curl_setopt($curl_connection, CURLOPT_POST, true);
-			$post_data   = $this->driver->_getLoginFormValues();
-			$post_string = http_build_query($post_data);
-			curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
-			//Load the page, but we don't need to do anything with the results.
-			$loginResult = curl_exec($curl_connection);
+//		//Pause briefly between logging in and posting the actual renewal
+//		usleep(150000);
+		// moved to millenium driver _curl_login()
 
-			//When a library uses Encore, the initial login does a redirect and requires additional parameters.
-			if (preg_match('/<input type="hidden" name="lt" value="(.*?)" \/>/si', $loginResult, $loginMatches)) {
-				//Get the lt value
-				$lt = $loginMatches[1];
-				//Login again
-				$post_data['lt']       = $lt;
-				$post_data['_eventId'] = 'submit';
+		//Issue a post request with the information about what to do with the holds
+		$curl_url = $this->driver->getVendorOpacUrl() . "/patroninfo~S{$scope}/" . $patron->username . "/holds";
+		$sResult = $this->driver->_curlPostPage($curl_url, $POSTVariables);
+		$hold_original_results = $this->parseHoldsPage($sResult, $patron);
+			// Note:  Only $hold_original_results above will capture freeze hold errors
 
-				$post_string = http_build_query($post_data);
-				curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
-				$loginResult = curl_exec($curl_connection);
-				$curlInfo    = curl_getinfo($curl_connection);
-			}
-
-			//Issue a post request with the information about what to do with the holds
-			$curl_url = $configArray['Catalog']['url'] . "/patroninfo~S{$scope}/" . $patronDump['RECORD_#'] . "/holds";
-			curl_setopt($curl_connection, CURLOPT_URL, $curl_url);
-			curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $holdUpdateParams);
-			curl_setopt($curl_connection, CURLOPT_POST, true);
-			$sResult = curl_exec($curl_connection);
-			$hold_original_results = $this->parseHoldsPage($sResult);
-
-			// TODO: Get Failure Messages
-
-			//$holds = $this->parseHoldsPage($sResult);
-			//At this stage, we get messages if there were any errors freezing holds.
-		}
 		//Go back to the hold page to check make sure our hold was cancelled
 		// Don't believe the page reload is necessary. same output as above. plb 2-3-2015
-		$curl_url = $configArray['Catalog']['url'] . "/patroninfo~S{$scope}/" . $patronDump['RECORD_#'] . "/holds";
-		curl_setopt($curl_connection, CURLOPT_URL, $curl_url);
-		curl_setopt($curl_connection, CURLOPT_HTTPGET, true);
-		$sResult     = curl_exec($curl_connection);
-		$holds       = $this->parseHoldsPage($sResult);
-		curl_close($curl_connection);
-		unlink($cookieJar);
+		$sResult = $this->driver->_curlGetPage($curl_url);
+		$holds   = $this->parseHoldsPage($sResult, $patron);
 
-		if ($hold_original_results != $holds) { //test if they are the same
+		if ($hold_original_results != $holds) { // test if they are the same
 			$logger->log('Original Hold Results are different from the second Round!', PEAR_LOG_WARNING);
+
+			$holds = $hold_original_results; // sets to first page-load to get freeze error results
+			//TODO : Figure out cases where the page reload of holds is necessary. Because the original results are
+			//       necessary for extracting a freeze error/determining that freeze failed.
+
+			//    cancel holds? is it needed to verify when a hold has been canceled successfully
 		}
 
 		$combined_holds = array_merge($holds['unavailable'], $holds['available']);
 //		$numHoldsEnd = count($combined_holds);
 		//Finally, check to see if the update was successful.
-		if ($type == 'cancel' || $type=='recall'){
+		if ($type == 'cancel' || $type == 'recall'){
 			$failure_messages = array();
-//			$success_messages = array();
 			foreach ($xNum as $tmpXnumInfo){
 				list($tmpBib) = explode('~', $tmpXnumInfo);
-//				$failed = false;
 				foreach ($combined_holds as $hold) {
-					if ($tmpBib == $hold['shortId']) { // this hold failed (item still on hold)
-						$title = (array_key_exists($tmpBib, $titles) && $titles[$tmpBib] != '') ? $titles[$tmpBib] : 'an item';
-							$failure_messages[$tmpXnumInfo] = "The hold for $title could not be cancelled.  Please try again later or see your librarian.";
+					$tmpCancelId = strstr($hold['cancelId'], '~', true); // get the cancel id without the position component
+					if ($tmpBib == $hold['shortId'] || $tmpBib == $tmpCancelId) { // this hold failed (item still listed as on hold)
+						// $tmpBib may be an item id instead of a bib id. in that case, need to check against cancel ids as well.
+						if (!empty($hold['title'])) {
+							$title = $hold['title'];
+						}
+						else {
+//							$title = (array_key_exists($tmpBib, $titles) && $titles[$tmpBib] != '') ? $titles[$tmpBib] : 'an item';
+							$title = (!empty($titles[$tmpBib])) ? $titles[$tmpBib] : 'an item';
+						}
+						$failure_messages[$tmpXnumInfo] = "The hold for $title could not be cancelled.  Please try again later or see your librarian.";
 							// use original id as index so that javascript functions can pick out failed cancels
-
-//						$failed = true;
 						break;
 					}
 				}
-//				Currently individual success messages not used.
-//				if (!$failed){
-//					$success_messages[] = "The hold for {$titles[$tmpBib]} was successfully cancelled.";
-//				}
 			}
 			$success = empty($failure_messages);
 			if ($success) $logger->log('Cancelled ok', PEAR_LOG_INFO);
 
 		}
+		elseif ($type == 'update') {
+			// Thaw Hold
+			if ($freezeValue == 'off') {
+				// TODO Collect errors here.
+				$success = true;
+//				$success = empty($failure_messages);
+//				if ($success) $logger->log('Thawed ok', PEAR_LOG_INFO);
+			}
+			// Freeze Hold
+			elseif ($freezeValue == 'on') {
+				$failure_messages = array();
+				foreach ($xNum as $tmpXnumInfo) {
+					list($tmpBib) = explode('~', $tmpXnumInfo);
+					foreach ($combined_holds as $hold) {
+						if ($tmpBib == $hold['shortId']) { // this hold failed (item still on hold)
+							$title = (array_key_exists($tmpBib, $titles) && $titles[$tmpBib] != '') ? $titles[$tmpBib] : 'an item';
+
+							if (isset($hold['freezeError'])) {
+								$failure_messages[$tmpXnumInfo] = "The hold for $title could not be ". translate('frozen') .'.  Please try again later or see your librarian.';
+								// use original id as index so that javascript functions can pick out failed cancels
+							}
+
+							break;
+						}
+					}
+				}
+				$success = empty($failure_messages);
+				if ($success) $logger->log('Froze Hold ok', PEAR_LOG_INFO);
+			}
+			// Change Pick-up Location
+			elseif ($freezeValue == '') {
+				// TODO Collect errors here.
+				$success = true;
+//				$success = empty($failure_messages);
+//				if ($success) $logger->log('Change Pick-up Location ok', PEAR_LOG_INFO);
+			}
+		}
 
 		//Make sure to clear any cached data
+		/** @var Memcache $memCache */
 		global $memCache;
 		$memCache->delete("patron_dump_{$this->driver->_getBarcode()}");
-		usleep(250);
+		usleep(250); // Pause for Hold Cancels, so that sierra will have updated the canceled hold.
+
 
 		//Clear holds for the patron
-		unset($this->holds[$patronId]);
-		$this->driver->clearPatronProfile();
+		unset($this->holds[$patron->username]); //QUESTION: keep? move to user object at least
+
 
 		// Return Results
-		$plural = count($xNum) > 1;
+		$isPlural = count($xNum) > 1;
 		global $analytics;
 		$title_list = is_array($titles) ? implode(', ', $titles) : $titles;
 		if ($type == 'cancel' || $type == 'recall'){
@@ -328,34 +324,80 @@ class MillenniumHolds{
 				$analytics->addEvent('ILS Integration', 'Hold Cancelled', $title_list);
 				return array(
 					'title' => $titles,
-					'result' => true,
-					'message' => 'Your hold'.($plural ? 's were' : ' was' ).' cancelled successfully.');
+					'success' => true,
+					'message' => 'Your hold'.($isPlural ? 's were' : ' was' ).' cancelled successfully.');
 			} else { // at least one failure
 				$analytics->addEvent('ILS Integration', 'Hold Not Cancelled', $title_list);
 				return array(
 					'title' => $titles,
-					'result' => false,
-//					'message' => 'Your hold'.($plural ? 's' : '' ).' could not be cancelled.  Please try again later or see your librarian.'
+					'success' => false,
 					'message' => $failure_messages
 				);
 			}
-		}else{
+		}
+		elseif ($type == 'update') {
+			// Thaw Hold
+			if ($freezeValue == 'off') {
+				return array(
+					'title' => $titles,
+					'success' => true,
+					'message' => 'Your hold'.($isPlural ? 's were' : ' was' ).' '. translate('thawed') .' successfully.');
+			}
+			// Freeze Hold
+			elseif ($freezeValue == 'on') {
+				//TODO check for error messages
+				if ($success) { // All were successful
+					$analytics->addEvent('ILS Integration', 'Hold Frozen', $title_list);
+					return array(
+						'title' => $titles,
+						'success' => true,
+						'message' => 'Your hold' . ($isPlural ? 's were' : ' was') . ' '. translate('frozen') .' successfully.');
+				} else { // at least one failure
+					$analytics->addEvent('ILS Integration', 'Hold Not Frozen', $title_list);
+					return array(
+						'title' => $titles,
+						'success' => false,
+						'message' => $failure_messages
+					);
+				}
+			}
+			// Change Pick-up Location
+			elseif ($freezeValue == '') {
+				//TODO check for error messages
+				return array(
+					'title' => $titles,
+					'success' => true,
+					'message' => 'Your hold'.($isPlural ? 's were' : ' was' ).' updated successfully.');
+			}
+
+		}
+
+		else{
 			$analytics->addEvent('ILS Integration', 'Hold(s) Updated', $title_list);
 			return array(
 				'title' => $titles,
-				'result' => true,
-				'message' => 'Your hold'.($plural ? 's were' : ' was' ).' updated successfully.');
+				'success' => true,
+				'message' => 'Your hold'.($isPlural ? 's were' : ' was' ).' updated successfully.');
 		}
 	}
 
-	public function parseHoldsPage($pageContents){
-		//global $logger;
+	/**
+	 * @param $pageContents string  Tbe raw HTML to be parsed
+	 * @param $patron       User    The user who owns the holds
+	 * @return array
+	 */
+	public function parseHoldsPage($pageContents, $patron){
+		$userLabel = $patron->getNameAndLibraryLabel();
+
 		$availableHolds = array();
 		$unavailableHolds = array();
 		$holds = array(
 			'available'=> $availableHolds,
 			'unavailable' => $unavailableHolds
 		);
+
+		//Fix presentation error for notice when freezing a hold has failed
+		$pageContents = str_replace('<em>This hold can not be frozen.</em></tr>', '<em>This hold can not be frozen.</em></td></tr>', $pageContents);
 
 		//Get the headers from the table
 		preg_match_all('/<th\\s+class="patFuncHeaders">\\s*([\\w\\s]*?)\\s*<\/th>/si', $pageContents, $result, PREG_SET_ORDER);
@@ -386,6 +428,8 @@ class MillenniumHolds{
 			$curHold['create'] = null;
 			$curHold['reqnum'] = null;
 			$curHold['holdSource'] = 'ILS';
+			$curHold['userId'] = $patron->id;
+			$curHold['user'] = $userLabel;
 
 			//Holds page occasionally has a header with number of items checked out.
 			for ($i=0; $i < sizeof($sCols); $i++) {
@@ -412,7 +456,7 @@ class MillenniumHolds{
 						}
 					}
 
-					if (stripos($sKeys[$i],"TITLE") > -1) {
+					elseif (stripos($sKeys[$i],"TITLE") > -1) {
 						if (preg_match('/.*?<a href=\\"\/record=(.*?)(?:~S\\d{1,2})\\">(.*?)<\/a>.*/', $sCols[$i], $matches)) {
 							$shortId = $matches[1];
 							$bibid = '.' . $matches[1] . $this->driver->getCheckDigit($shortId);
@@ -437,21 +481,24 @@ class MillenniumHolds{
 						$curHold['shortId'] = $shortId;
 						$curHold['title'] = $title;
 					}
-					if (stripos($sKeys[$i],"Ratings") > -1) {
+					elseif (stripos($sKeys[$i],"Ratings") > -1) {
 						$curHold['request'] = "STARS";
 					}
 
-					if (stripos($sKeys[$i],"PICKUP LOCATION") > -1) {
+					elseif (stripos($sKeys[$i],"PICKUP LOCATION") > -1) {
 
 						//Extract the current location for the hold if possible
 						$matches = array();
-						if (preg_match('/<select\\s+name=loc(.*?)x(\\d\\d).*?<option\\s+value="([a-z]{1,5})[+ ]*"\\s+selected="selected">.*/s', $sCols[$i], $matches)){
+//						if (preg_match('/<select\\s+name=loc(.*?)x(\\d\\d).*?<option\\s+value="([a-z0-9+]{1,5})"\\s+selected="selected">.*/s', $sCols[$i], $matches)) {
+						if (preg_match('/<select\\s+name=loc(.*?)x(\\d\\d).*?<option\\s+value="([a-z0-9+ ]{1,5})"\\s+selected="selected">.*/s', $sCols[$i], $matches)) {
+									// new regex above includes a space in the value capture now. This seems to be the result of our setting of the pickup location on the place hold side.
+									// plb 8-12-2015
 							$curHold['locationId'] = $matches[1];
 							$curHold['locationXnum'] = $matches[2];
 							$curPickupBranch = new Location();
 							$curPickupBranch->whereAdd("code = '{$matches[3]}'");
 							$curPickupBranch->find(1);
-							if ($curPickupBranch->N > 0){
+							if ($curPickupBranch->N > 0) {
 								$curPickupBranch->fetch();
 								$curHold['currentPickupId'] = $curPickupBranch->locationId;
 								$curHold['currentPickupName'] = $curPickupBranch->displayName;
@@ -461,10 +508,14 @@ class MillenniumHolds{
 
 							//Return the full select box for reference.
 							$curHold['locationSelect'] = $sCols[$i];
+						}elseif (preg_match('/<select.*?>/', $sCols[$i])){
+							//Updateable, but no location set
+							$curHold['locationUpdateable'] = true;
+							$curHold['location'] = 'Not Set';
 						}else{
-							$curHold['location'] = $sCols[$i];
+							$curHold['location'] = trim(strip_tags($sCols[$i], '<select><option>'));
 							//Trim the carrier code if any
-							if (preg_match('/.*\s[\w\d]{4}/', $curHold['location'])){
+							if (preg_match('/.*\s[\w\d]{4}$/', $curHold['location'])){
 								$curHold['location'] = substr($curHold['location'], 0, strlen($curHold['location']) - 5);
 							}
 							$curHold['currentPickupName'] = $curHold['location'];
@@ -472,7 +523,7 @@ class MillenniumHolds{
 						}
 					}
 
-					if (stripos($sKeys[$i],"STATUS") > -1) {
+					elseif (stripos($sKeys[$i],"STATUS") > -1) {
 						$status = trim(strip_tags($sCols[$i]));
 						$status = strtolower($status);
 						$status = ucwords($status);
@@ -487,11 +538,15 @@ class MillenniumHolds{
 
 							}elseif (preg_match('/READY\sFOR\sPICKUP/i', $status, $matches)){
 								$curHold['status'] = 'Ready';
-							}else{
+							}elseif (preg_match('/\d+\sof\s\d+\sholds/i', $status, $matches)){
 								$curHold['status'] = $status;
+							}else{
+								#PK-778 - Don't attempt to show status for anything other than ready for pickup since Millennium/Sierra statuses are confusing
+								$curHold['status'] = 'Pending';
 							}
 						}else{
-							$curHold['status'] = "Pending $status";
+							#PK-778 - Don't attempt to show status for anything other than ready for pickup since Millennium/Sierra statuses are confusing
+							$curHold['status'] = "Pending";
 						}
 						$matches = array();
 						$curHold['renewError'] = false;
@@ -506,10 +561,10 @@ class MillenniumHolds{
 						}
 						//$logger->log('Status for item ' . $curHold['id'] . '=' . $sCols[$i], PEAR_LOG_INFO);
 					}
-					if (stripos($sKeys[$i],"CANCEL IF NOT FILLED BY") > -1) {
+					elseif (stripos($sKeys[$i],"CANCEL IF NOT FILLED BY") > -1) {
 						//$curHold['expire'] = strip_tags($scols[$i]);
 					}
-					if (stripos($sKeys[$i],"FREEZE") > -1) {
+					elseif (stripos($sKeys[$i],"FREEZE") > -1) {
 						$matches = array();
 						$curHold['frozen'] = false;
 						if (preg_match('/<input.*name="freeze(.*?)"\\s*(\\w*)\\s*\/>/', $sCols[$i], $matches)){
@@ -518,11 +573,13 @@ class MillenniumHolds{
 								$curHold['frozen'] = true;
 								$curHold['status'] = 'Frozen';
 							}
-						}elseif (preg_match('/This hold can\s?not be frozen/i', $sCols[$i], $matches)){
+						} elseif (preg_match('/This hold can\s?not be frozen/i', $sCols[$i], $matches)){
 							//If we detect an error Freezing the hold, save it so we can report the error to the user later.
 							$shortId = str_replace('.b', 'b', $curHold['id']);
+							//TODO: Return as part of results. Using the Session variable no longer workable path to user feedback.
 							$_SESSION['freezeResult'][$shortId]['message'] = $sCols[$i];
-							$_SESSION['freezeResult'][$shortId]['result'] = false;
+							$_SESSION['freezeResult'][$shortId]['success'] = false;
+							$curHold['freezeError'] = strip_tags($sCols[$i]);
 						}else{
 							$curHold['freezeable'] = false;
 						}
@@ -532,9 +589,9 @@ class MillenniumHolds{
 
 			//if ($sCount > 1) {
 				if (!isset($curHold['status']) || strcasecmp($curHold['status'], "ready") != 0){
-					$holds['unavailable'][] = $curHold;
+					$holds['unavailable'][$curHold['holdSource'] . $curHold['itemId'] . $curHold['cancelId'] . $userLabel] = $curHold;
 				}else{
-					$holds['available'][] = $curHold;
+					$holds['available'][$curHold['holdSource'] . $curHold['itemId'] . $curHold['cancelId']. $userLabel] = $curHold;
 				}
 			//}
 
@@ -545,23 +602,32 @@ class MillenniumHolds{
 		return $holds;
 	}
 
-	public function getMyHolds($patron = null, $page = 1, $recordsPerPage = -1, $sortOption = 'title')
-	{
-		global $timer;
-		$patronDump = $this->driver->_getPatronDump($this->driver->_getBarcode());
 
+	/**
+	 * Get Patron Holds
+	 *
+	 * This is responsible for retrieving all holds for a specific patron.
+	 *
+	 * @param User $patron    The user to load transactions for
+	 *
+	 * @return array          Array of the patron's holds
+	 * @access public
+	 */
+	public function getMyHolds($patron) {
+		global $timer;
 		//Load the information from millennium using CURL
-		$sResult = $this->driver->_fetchPatronInfoPage($patronDump, 'holds');
+		$sResult = $this->driver->_fetchPatronInfoPage($patron, 'holds');
 		$timer->logTime("Got holds page from Millennium");
 
-		$holds = $this->parseHoldsPage($sResult);
+		$holds = $this->parseHoldsPage($sResult, $patron);
 		$timer->logTime("Parsed Holds page");
 
 		require_once ROOT_DIR . '/RecordDrivers/MarcRecord.php';
 		foreach($holds as $section => $holdSections){
 			foreach($holdSections as $key => $hold){
+
 				disableErrorHandler();
-				$recordDriver = new MarcRecord($hold['recordId']);
+				$recordDriver = new MarcRecord($this->driver->accountProfile->recordSource . ":" . $hold['recordId']);
 				if ($recordDriver->isValid()){
 					$hold['id'] = $recordDriver->getUniqueID();
 					$hold['shortId'] = $recordDriver->getShortId();
@@ -570,66 +636,19 @@ class MillenniumHolds{
 					$hold['sortTitle'] = $recordDriver->getSortableTitle();
 					$hold['author'] = $recordDriver->getAuthor();
 					$hold['format'] = $recordDriver->getFormat();
-					$hold['isbn'] = $recordDriver->getCleanISBN();
-					$hold['upc'] = $recordDriver->getCleanUPC();
+					$hold['isbn'] = $recordDriver->getCleanISBN();  //TODO these may not be used anywhere now that the links are built here, have to check
+					$hold['upc'] = $recordDriver->getCleanUPC();    //TODO these may not be used anywhere now that the links are built here, have to check
 					$hold['format_category'] = $recordDriver->getFormatCategory();
 
 					//Load rating information
 					$hold['ratingData'] = $recordDriver->getRatingData();
-
-					$holds[$section][$key] = $hold;
+					$hold['link'] = $recordDriver->getRecordUrl();
+					$hold['coverUrl'] = $recordDriver->getBookcoverUrl('medium');
 				}
+				$holds[$section][$key] = $hold;
+
 				enableErrorHandler();
 			}
-		}
-
-		//Process sorting
-		//echo ("<br/>\r\nSorting by $sortOption");
-		foreach ($holds as $sectionName => $section){
-			$sortKeys = array();
-			$i = 0;
-			foreach ($section as $key => $hold){
-				$sortTitle = isset($hold['sortTitle']) ? $hold['sortTitle'] : (isset($hold['title']) ? $hold['title'] : "Unknown");
-				if ($sectionName == 'available'){
-					$sortKeys[$key] = $sortTitle;
-				}else{
-					if ($sortOption == 'title'){
-						$sortKeys[$key] = $sortTitle;
-					}elseif ($sortOption == 'author'){
-						$sortKeys[$key] = (isset($hold['author']) ? $hold['author'] : "Unknown") . '-' . $sortTitle;
-					}elseif ($sortOption == 'placed'){
-						$sortKeys[$key] = $hold['createTime'] . '-' . $sortTitle;
-					}elseif ($sortOption == 'format'){
-						$sortKeys[$key] = (isset($hold['format']) ? $hold['format'] : "Unknown") . '-' . $sortTitle;
-					}elseif ($sortOption == 'location'){
-						$sortKeys[$key] = (isset($hold['location']) ? $hold['location'] : "Unknown") . '-' . $sortTitle;
-					}elseif ($sortOption == 'holdQueueLength'){
-						$sortKeys[$key] = (isset($hold['holdQueueLength']) ? $hold['holdQueueLength'] : 0) . '-' . $sortTitle;
-					}elseif ($sortOption == 'position'){
-						$sortKeys[$key] = str_pad((isset($hold['position']) ? $hold['position'] : 1), 3, "0", STR_PAD_LEFT) . '-' . $sortTitle;
-					}elseif ($sortOption == 'status'){
-						$sortKeys[$key] = (isset($hold['status']) ? $hold['status'] : "Unknown") . '-' . (isset($hold['reactivateTime']) ? $hold['reactivateTime'] : "0") . '-' . $sortTitle;
-					}else{
-						$sortKeys[$key] = $sortTitle;
-					}
-					//echo ("<br/>\r\nSort Key for $key = {$sortKeys[$key]}");
-				}
-
-				$sortKeys[$key] = strtolower($sortKeys[$key] . '-' . $i++);
-			}
-			array_multisort($sortKeys, $section);
-			$holds[$sectionName] = $section;
-		}
-
-		//Limit to a specific number of records
-		if (isset($holds['unavailable'])){
-			$numUnavailableHolds = count($holds['unavailable']);
-			if ($recordsPerPage != -1){
-				$startRecord = ($page - 1) * $recordsPerPage;
-				$holds['unavailable'] = array_slice($holds['unavailable'], $startRecord, $recordsPerPage);
-			}
-		}else{
-			$numUnavailableHolds = 0;
 		}
 
 		if (!isset($holds['available'])){
@@ -638,16 +657,10 @@ class MillenniumHolds{
 		if (!isset($holds['unavailable'])){
 			$holds['unavailable'] = array();
 		}
-		//Sort the hold sections so available holds are first.
-		ksort($holds);
 
-		$patronId = isset($patron) ? $patron['id'] : $this->driver->_getBarcode();
-		$this->holds[$patronId] = $holds;
+		$this->holds[$patron->getBarcode()] = $holds;
 		$timer->logTime("Processed hold pagination and sorting");
-		return array(
-			'holds' => $holds,
-			'numUnavailableHolds' => $numUnavailableHolds,
-		);
+		return $holds;
 	}
 
 	/**
@@ -655,17 +668,16 @@ class MillenniumHolds{
 	 *
 	 * This is responsible for both placing item level holds.
 	 *
+	 * @param   User    $patron     The User to place a hold for
 	 * @param   string  $recordId   The id of the bib record
 	 * @param   string  $itemId     The id of the item to hold
-	 * @param   string  $patronId   The id of the patron
-	 * @param   string  $comment    Any comment regarding the hold or recall
-	 * @param   string  $type       Whether to place a hold or recall
-	 * @param   string  $type       The date when the hold should be cancelled if any
+	 * @param   string  $pickupBranch The branch where the user wants to pickup the item when available
 	 * @return  mixed               True if successful, false if unsuccessful
 	 *                              If an error occurs, return a PEAR_Error
 	 * @access  public
 	 */
-	public function placeItemHold($recordId, $itemId, $patronId, $comment, $type){
+	function placeItemHold($patron, $recordId, $itemId, $pickupBranch) {
+		global $logger;
 		global $configArray;
 
 		$bib1= $recordId;
@@ -676,203 +688,113 @@ class MillenniumHolds{
 		$bib = substr(str_replace('.b', 'b', $bib1), 0, -1);
 		if (strlen($bib) == 0){
 			return array(
-				'result' => false,
+				'success' => false,
 				'message' => 'A valid record id was not provided. Please try again.');
 		}
 
 		//Get the title of the book.
+		// TODO Is this block needed?
 		$class = $configArray['Index']['engine'];
 		$url = $configArray['Index']['url'];
 		$this->driver->db = new $class($url);
 
 		// Retrieve Full Marc Record
 		require_once ROOT_DIR . '/RecordDrivers/Factory.php';
-		$record = RecordDriverFactory::initRecordDriverById('ils:' . $bib1);
+		$record = RecordDriverFactory::initRecordDriverById($this->driver->accountProfile->recordSource . ':' . $bib1);
 		if (!$record) {
+			$logger->log('Place Hold: Failed to get Marc Record', PEAR_LOG_INFO);
 			$title = null;
 		}else{
 			$title = $record->getTitle();
 		}
 
+		// Offline Holds
 		if ($configArray['Catalog']['offline']){
-			global $user;
 			require_once ROOT_DIR . '/sys/OfflineHold.php';
 			$offlineHold = new OfflineHold();
 			$offlineHold->bibId = $bib1;
-			$offlineHold->patronBarcode = $patronId;
-			$offlineHold->patronId = $user->id;
+			$offlineHold->patronBarcode = $patron->getBarcode();
+			$offlineHold->patronId = $patron->id;
 			$offlineHold->timeEntered = time();
 			$offlineHold->status = 'Not Processed';
 			if ($offlineHold->insert()){
 				return array(
 					'title' => $title,
 					'bib' => $bib1,
-					'result' => true,
+					'success' => true,
 					'message' => 'The circulation system is currently offline.  This hold will be entered for you automatically when the circulation system is online.');
 			}else{
 				return array(
 					'title' => $title,
 					'bib' => $bib1,
-					'result' => false,
+					'success' => false,
 					'message' => 'The circulation system is currently offline and we could not place this hold.  Please try again later.');
 			}
 
+
 		}else{
-			//Cancel a hold
-			if ($type == 'cancel' || $type == 'recall' || $type == 'update') {
-				$result = $this->updateHold($recordId, $patronId, $type, $title);
-				$result['title'] = $title;
-				$result['bid'] = $bib1;
-				return $result;
-
-			} else {
-				if (isset($_REQUEST['canceldate']) && !is_null($_REQUEST['canceldate']) && $_REQUEST['canceldate'] != ''){
-					$date = $_REQUEST['canceldate'];
-				}else{
-					//Default to a date 6 months (half a year) in the future.
-					$sixMonthsFromNow = time() + 182.5 * 24 * 60 * 60;
-					$date = date('m/d/Y', $sixMonthsFromNow);
-				}
-
-				if (isset($_REQUEST['campus'])){
-					$campus=trim($_REQUEST['campus']);
-				}else{
-					global $user;
-					$campus = $user->homeLocationId;
-				}
-
-				if (is_numeric($campus)){
-					$location = new Location();
-					$location->locationId = $campus;
-					if ($location->find(true)){
-						$campus = $location->code;
-					}
-				}
-
-				list($Month, $Day, $Year)=explode("/", $date);
-
-				//------------BEGIN CURL-----------------------------------------------------------------
-				$header=array();
-				$header[0] = "Accept: text/xml,application/xml,application/xhtml+xml,";
-				$header[0] .= "text/html;q=0.9,text/plain;q=0.8,image/png,*/*;q=0.5";
-				$header[] = "Cache-Control: max-age=0";
-				$header[] = "Connection: keep-alive";
-				$header[] = "Accept-Charset: ISO-8859-1,utf-8;q=0.7,*;q=0.7";
-				$header[] = "Accept-Language: en-us,en;q=0.5";
-
-				$cookie = tempnam ("/tmp", "CURLCOOKIE");
-
-				$curl_connection = curl_init();
-				curl_setopt($curl_connection, CURLOPT_CONNECTTIMEOUT, 30);
-				curl_setopt($curl_connection, CURLOPT_HTTPHEADER, $header);
-				curl_setopt($curl_connection, CURLOPT_USERAGENT,"Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)");
-				curl_setopt($curl_connection, CURLOPT_RETURNTRANSFER, true);
-				curl_setopt($curl_connection, CURLOPT_SSL_VERIFYPEER, false);
-				curl_setopt($curl_connection, CURLOPT_FOLLOWLOCATION, true);
-				curl_setopt($curl_connection, CURLOPT_UNRESTRICTED_AUTH, true);
-				curl_setopt($curl_connection, CURLOPT_COOKIEJAR, $cookie);
-				curl_setopt($curl_connection, CURLOPT_COOKIESESSION, true);
-				curl_setopt($curl_connection, CURLOPT_FORBID_REUSE, false);
-				curl_setopt($curl_connection, CURLOPT_HEADER, false);
-				curl_setopt($curl_connection, CURLOPT_POST, true);
-
-				$lt = null;
-				if (isset($configArray['Catalog']['loginPriorToPlacingHolds']) && $configArray['Catalog']['loginPriorToPlacingHolds'] = true){
-					//User must be logged in as a separate step to placing holds
-					$curl_url = $configArray['Catalog']['url'] . "/patroninfo";
-					$post_data = $this->driver->_getLoginFormValues();
-					$post_data['submit.x']="35";
-					$post_data['submit.y']="21";
-					$post_data['submit']="submit";
-					curl_setopt($curl_connection, CURLOPT_REFERER,$curl_url);
-					curl_setopt($curl_connection, CURLOPT_URL, $curl_url);
-					$post_items = array();
-					foreach ($post_data as $key => $value) {
-						$post_items[] = $key . '=' . $value;
-					}
-					$post_string = implode ('&', $post_items);
-					curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
-					$loginResult = curl_exec($curl_connection);
-					$curlInfo = curl_getinfo($curl_connection);
-					//When a library uses Encore, the initial login does a redirect and requires additional parameters.
-					if (preg_match('/<input type="hidden" name="lt" value="(.*?)" \/>/si', $loginResult, $loginMatches)) {
-						//Get the lt value
-						$lt = $loginMatches[1];
-						//Login again
-						$post_data['lt'] = $lt;
-						$post_data['_eventId'] = 'submit';
-						$post_items = array();
-						foreach ($post_data as $key => $value) {
-							$post_items[] = $key . '=' . $value;
-						}
-						$post_string = implode ('&', $post_items);
-						curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
-						$loginResult = curl_exec($curl_connection);
-						$curlInfo = curl_getinfo($curl_connection);
-					}
-					$post_data = array();
-				}else{
-					$post_data = $this->driver->_getLoginFormValues();
-				}
-				$scope = $this->driver->getLibraryScope();
-				$curl_url = $configArray['Catalog']['url'] . "/search/.$bib/.$bib/1,1,1,B/request~$bib";
-				//echo "$curl_url";
-				curl_setopt($curl_connection, CURLOPT_URL, $curl_url);
-
-				/** @var Library $librarySingleton */
-        global $librarySingleton;
-        $patronHomeBranch = $librarySingleton->getPatronHomeLibrary();
-        if ($patronHomeBranch->defaultNotNeededAfterDays != -1){
-					$post_data['needby_Month']= $Month;
-					$post_data['needby_Day']= $Day;
-					$post_data['needby_Year']=$Year;
-				}
-
-				$post_data['submit.x']="35";
-				$post_data['submit.y']="21";
-				$post_data['submit']="submit";
-				$post_data['locx00']= str_pad($campus, 5-strlen($campus), '+');
-				if (!is_null($itemId) && $itemId != -1){
-					$post_data['radio']=$itemId;
-				}
-				$post_data['x']="48";
-				$post_data['y']="15";
-				if ($lt != null){
-					$post_data['lt'] = $lt;
-					$post_data['_eventId'] = 'submit';
-				}
-
-				$post_items = array();
-				foreach ($post_data as $key => $value) {
-					$post_items[] = $key . '=' . $value;
-				}
-				$post_string = implode ('&', $post_items);
-				curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
-				$sResult = curl_exec($curl_connection);
-
-				global $logger;
-				$logger->log("Placing hold $curl_url?$post_string", PEAR_LOG_INFO);
-
-				$sResult = preg_replace("/<!--([^(-->)]*)-->/","",$sResult);
-
-				curl_close($curl_connection);
-
-				//Parse the response to get the status message
-				$hold_result = $this->_getHoldResult($sResult);
-				$hold_result['title']  = $title;
-				$hold_result['bid'] = $bib1;
-				global $analytics;
-				if ($analytics){
-					if ($hold_result['result'] == true){
-						$analytics->addEvent('ILS Integration', 'Successful Hold', $title);
-					}else{
-						$analytics->addEvent('ILS Integration', 'Failed Hold', $hold_result['message'] . ' - ' . $title);
-					}
-				}
-				//Clear the patron profile
-				$this->driver->clearPatronProfile();
-				return $hold_result;
+			if (!empty($_REQUEST['canceldate'])){
+				$date = $_REQUEST['canceldate'];
+			}else{
+				//Default to a date 6 months (half a year) in the future.
+				$sixMonthsFromNow = time() + 182.5 * 24 * 60 * 60;
+				$date = date('m/d/Y', $sixMonthsFromNow);
 			}
+
+			list($Month, $Day, $Year)=explode("/", $date);
+
+			//Make sure to connect via the driver so cookies will be correct
+			$this->driver->_curl_connect();
+
+//			curl_setopt($curl_connection, CURLOPT_POST, true);
+
+			$loginResult = $this->driver->_curl_login($patron);
+
+			$curl_url = $this->driver->getVendorOpacUrl() . "/search/.$bib/.$bib/1,1,1,B/request~$bib";
+
+			/** @var Library $librarySingleton */
+			global $librarySingleton;
+			$patronHomeBranch = $librarySingleton->getPatronHomeLibrary($patron);
+			if ($patronHomeBranch->defaultNotNeededAfterDays != -1){
+				$post_data['needby_Month']= $Month;
+				$post_data['needby_Day']= $Day;
+				$post_data['needby_Year']=$Year;
+			}
+
+			$post_data['submit.x']="35";
+			$post_data['submit.y']="21";
+			$post_data['submit']="submit";
+			$post_data['locx00']= str_pad($pickupBranch, 5); // padded with spaces, which will get url-encoded into plus signs by httpd_build_query() in the _curlPostPage() method.
+			if (!empty($itemId) && $itemId != -1){
+				$post_data['radio']=$itemId;
+			}
+			$post_data['x']="48";
+			$post_data['y']="15";
+			//MDN 8/14 lt is apparently not required for placing a hold although it is required for login.
+			/*if ($lt != null){
+				$post_data['lt'] = $lt;
+				$post_data['_eventId'] = 'submit';
+			}*/
+
+			$sResult = $this->driver->_curlPostPage($curl_url, $post_data);
+
+			$logger->log("Placing hold $recordId : $title", PEAR_LOG_INFO);
+
+			$sResult = preg_replace("/<!--([^(-->)]*)-->/","",$sResult);
+
+			//Parse the response to get the status message
+			$hold_result = $this->_getHoldResult($sResult);
+			$hold_result['title']  = $title;
+			$hold_result['bid'] = $bib1;
+			global $analytics;
+			if ($analytics){
+				if ($hold_result['success'] == true){
+					$analytics->addEvent('ILS Integration', 'Successful Hold', $title);
+				}else{
+					$analytics->addEvent('ILS Integration', 'Failed Hold', $hold_result['message'] . ' - ' . $title);
+				}
+			}
+			return $hold_result;
 		}
 	}
 

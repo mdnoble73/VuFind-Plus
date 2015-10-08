@@ -40,6 +40,10 @@
 		</div>
 	{/if}
 
+	{if $exploreMoreOptions}
+		{include file="Search/explore-more-bar.tpl"}
+	{/if}
+
 	{if $spellingSuggestions}
 		<div class="correction">{translate text='nohit_spelling'}:<br/>
 		{foreach from=$spellingSuggestions item=details key=term name=termLoop}

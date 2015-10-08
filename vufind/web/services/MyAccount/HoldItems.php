@@ -32,7 +32,7 @@ class HoldItems extends Action
 		global $user;
 
 		try {
-			$this->catalog = CatalogFactory::getCatalogConnectionInstance();;
+			$this->catalog = CatalogFactory::getCatalogConnectionInstance();
 		} catch (PDOException $e) {
 			// What should we do with this error?
 			if ($configArray['System']['debug']) {
@@ -73,9 +73,9 @@ class HoldItems extends Action
 
 		$atLeast1Successful = false;
 		foreach ($selectedTitles as $recordId => $itemNumber){
-			$return = $this->catalog->placeItemHold($recordId, $itemNumber, $user->password, '', $_REQUEST['type']);
+			$return = $this->catalog->placeItemHold($user, $recordId, $itemNumber, '', $_REQUEST['type']);
 			$hold_message_data['titles'][] = $return;
-			if (!$return['result']){
+			if (!$return['success']){
 				$hold_message_data['successful'] = 'partial';
 			}else{
 				$atLeast1Successful = true;

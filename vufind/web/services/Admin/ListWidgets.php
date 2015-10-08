@@ -32,7 +32,7 @@ require_once ROOT_DIR . '/sys/DataObjectUtil.php';
  * @author Mark Noble
  *
  */
-class ListWidgets extends ObjectEditor {
+class Admin_ListWidgets extends ObjectEditor {
 	function getObjectType(){
 		return 'ListWidget';
 	}
@@ -71,10 +71,6 @@ class ListWidgets extends ObjectEditor {
 	function getIdKeyColumn(){
 		return 'id';
 	}
-	function showExportAndCompare(){
-		global $user;
-		return $user->hasRole('opacAdmin');
-	}
 	function canAddNew(){
 		global $user;
 		return $user->hasRole('opacAdmin') || $user->hasRole('libraryAdmin') || $user->hasRole('contentEditor');
@@ -90,7 +86,6 @@ class ListWidgets extends ObjectEditor {
 		$interface->assign('canAddNew', $this->canAddNew());
 		$interface->assign('canDelete', $this->canDelete());
 		$interface->assign('showReturnToList', $this->showReturnToList());
-		$interface->assign('showExportAndCompare', $this->showExportAndCompare());
 
 		//Figure out what mode we are in
 		if (isset($_REQUEST['objectAction'])){
@@ -158,20 +153,20 @@ class ListWidgets extends ObjectEditor {
 				switch ($widget->style){
 					case 'horizontal':
 						$width = 650;
-						$height = 275;
+						$height = ($widget->coverSize == 'medium') ? 325 : 275;
 						break;
 					case 'vertical' :
-						$width = 175;
-						$height = 400;
+						$width = ($widget->coverSize == 'medium') ? 275 : 175;
+						$height = ($widget->coverSize == 'medium') ? 700 : 400;
 						break;
 					case 'text-list' :
-						$width = 400;
+						$width = 500;
 						$height = 200;
 						break;
 					case 'single' :
 					case 'single-with-next' :
-						$width = 225;
-						$height = 275;
+						$width = ($widget->coverSize == 'medium') ? 300 : 225;
+						$height = ($widget->coverSize == 'medium') ? 350 : 275;
 						break;
 				}
 				$interface->assign('width', $width);

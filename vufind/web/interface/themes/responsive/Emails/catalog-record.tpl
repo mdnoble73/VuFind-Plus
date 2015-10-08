@@ -2,7 +2,7 @@
 {$from} has sent you a record from the Anythink catalog.
 ------------------------------------------------------------
 
-{$emailDetails}  {translate text="email_link"}: {$url}/Record/{$recordID|escape:"url"}
+{$emailDetails}  {translate text="email_link"}: {$url}/{$activeRecordProfileModule}/{$recordID|escape:"url"}
 ------------------------------------------------------------
 
 {if !empty($message)}

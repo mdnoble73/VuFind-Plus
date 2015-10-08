@@ -6,12 +6,10 @@ import org.marc4j.marc.Record;
 
 import java.io.File;
 import java.sql.Connection;
-import java.util.HashSet;
-import java.util.List;
 
 /**
- * Description goes here
- * VuFind-Plus
+ * A record processor to handle processing eVoke (Odilo) records
+ * Pika
  * User: Mark Noble
  * Date: 9/29/2014
  * Time: 11:27 AM
@@ -20,7 +18,7 @@ public class EVokeProcessor extends MarcRecordProcessor{
 	private String individualMarcPath;
 	private Logger logger;
 
-	public EVokeProcessor(GroupedWorkIndexer groupedWorkIndexer, Connection vufindConn, Ini configIni, Logger logger){
+	public EVokeProcessor(GroupedWorkIndexer groupedWorkIndexer, Ini configIni, Logger logger){
 		super(groupedWorkIndexer, logger);
 		this.indexer = groupedWorkIndexer;
 		this.logger = logger;
@@ -47,7 +45,7 @@ public class EVokeProcessor extends MarcRecordProcessor{
 		//Get a list of items for the record
 
 		//Do updates based on the overall bib (shared regardless of scoping)
-		updateGroupedWorkSolrDataBasedOnStandardMarcData(groupedWork, record, null);
+		updateGroupedWorkSolrDataBasedOnStandardMarcData(groupedWork, record, null, identifier);
 
 		//Do special processing for eVoke
 		String fullDescription = Util.getCRSeparatedString(getFieldList(record, "520a"));

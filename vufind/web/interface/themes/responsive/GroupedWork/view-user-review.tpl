@@ -1,20 +1,22 @@
+{strip}
 <div class='review' id="review_{$review->id}">
 	<div class="reviewHeader">
-		<div class="posted">
-			{translate text='By'} {if strlen($review->displayName) > 0}{$review->displayName}{else}{$review->fullname}{/if}
+			<h5>{translate text='By'} <cite>{if strlen($review->displayName) > 0}{$review->displayName} {else}{$review->fullname} {/if}</cite>
 			{if $review->dateRated != null && $review->dateRated > 0}
-				On <span class='reviewDate'>{$review->dateRated|date_format}</span>
+				on <span class='reviewDate'>{$review->dateRated|date_format}</span>
 			{/if}
-			{if $review->rating > 0}
+			{if $showRatings && $review->rating > 0}
 				{* Display the rating the user gave it. *}
 				<span class="ui-rater-starsOff" style="width:90px">
-					<span class="ui-rater-starsOn" style="width:{math equation="90*rating/5" rating=$review->rating}px"></span>
+					<span class="ui-rater-starsOn{if $user && ($review->userid == $user->id)} userRated{/if}" style="width:{math equation="90*rating/5" rating=$review->rating}px"></span>
 				</span>
 			{/if}
 			{if $user && ($review->userid == $user->id || $user->hasRole('opacAdmin'))}
-				<span onclick='return VuFind.GroupedWork.deleteReview("{$id|escape:"url"}", "{$review->id}");' class="btn btn-sm"><i class="icon-minus-sign"></i> {translate text='Delete'}</span>
-			{/if}
-		</div>
+				&nbsp;<span onclick='return VuFind.GroupedWork.deleteReview("{$id|escape:"url"}", "{$review->id}");' class="btn btn-danger btn-xs">&times; {translate text='Delete'}</span>
+			{/if}</h5>
 	</div>
-	{$review->review|escape:"html"}
+	{if $review->review}
+		<blockquote style="white-space: pre-line">{$review->review|escape:"html"}</blockquote>
+	{/if}
 </div>
+{/strip}

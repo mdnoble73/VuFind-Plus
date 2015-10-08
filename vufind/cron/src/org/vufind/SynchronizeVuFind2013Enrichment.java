@@ -461,7 +461,11 @@ public class SynchronizeVuFind2013Enrichment implements IProcessHandler {
 						Date dateRated = ratingsWithReviewsRS.getDate("created");
 						Long timeRated = dateRated == null ? null : dateRated.getTime() / 1000;
 						addWorkReview(groupedWorkId, userId, rating, review, timeRated);
+					}else{
+						logger.warn("Did not find grouped work id for source " + ratingsWithReviewsRS.getString("source") + " " + ratingsWithReviewsRS.getString("record_id"));
 					}
+				}else{
+					logger.warn("Did not get a user for " + username);
 				}
 			}
 
@@ -475,7 +479,11 @@ public class SynchronizeVuFind2013Enrichment implements IProcessHandler {
 					if (groupedWorkId != null){
 						Integer rating = ratingsWithoutReviewsRS.getInt("rating");
 						addWorkReview(groupedWorkId, userId, rating, "", null);
+					}else{
+						logger.warn("Did not find grouped work id for source " + ratingsWithoutReviewsRS.getString("source") + " " + ratingsWithoutReviewsRS.getString("record_id"));
 					}
+				}else{
+					logger.warn("Did not get a user for " + username);
 				}
 			}
 
@@ -491,7 +499,11 @@ public class SynchronizeVuFind2013Enrichment implements IProcessHandler {
 						Date dateRated = reviewsWithoutRatingsRS.getDate("created");
 						Long timeRated = dateRated == null ? null : dateRated.getTime() / 1000;
 						addWorkReview(groupedWorkId, userId, -1, review, timeRated);
+					}else{
+						logger.warn("Did not find grouped work id for source " + ratingsWithoutReviewsRS.getString("source") + " " + ratingsWithoutReviewsRS.getString("record_id"));
 					}
+				}else{
+					logger.warn("Did not get a user for " + username);
 				}
 			}
 		}catch (Exception e){
@@ -516,7 +528,11 @@ public class SynchronizeVuFind2013Enrichment implements IProcessHandler {
 				}else{
 					addWorkReviewStmt.setLong(5, dateRated);
 				}
-				addWorkReviewStmt.executeUpdate();
+				if (addWorkReviewStmt.executeUpdate() == 0){
+					logger.debug("Did not add a review for  " + groupedWorkId + " " + userId + " update count was 0");
+				}
+			}else{
+				logger.debug("Found an existing review, not adding a duplicate " + groupedWorkId + " " + userId);
 			}
 		}catch (Exception e){
 			logger.error("Error adding work review", e);

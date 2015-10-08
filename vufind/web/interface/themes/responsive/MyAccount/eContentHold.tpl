@@ -2,10 +2,12 @@
 	<div class="row">
 		<div class="col-md-3">
 			<div class="row">
+				{*
 				<div class="selectTitle col-md-2">
 					<input type="checkbox" name="econtentHoldSelected[{$record.id}]" value="{$record.recordId}" id="selected{$record.id|escape:"url"}" class="titleSelect{$sectionKey} titleSelect"/>&nbsp;
 				</div>
-				<div class="col-md-9 text-center">
+				*}
+				<div class="col-xs-12 text-center">
 					{if $record.recordId}
 					<a href="{$record.recordUrl|escape:"url"}">
 						{/if}
@@ -43,7 +45,11 @@
 					<div class="row">
 						<div class="result-label col-md-3">{translate text='Format'}</div>
 						<div class="col-md-9 result-value">
-							{implode subject=$record.format glue=", "}
+							{if $record.format}
+								{implode subject=$record.format glue=", "}
+							{else}
+								Unknown
+							{/if}
 						</div>
 					</div>
 

@@ -4,6 +4,16 @@ public class LoanRule {
 	private Long loanRuleId;
 	private String name;
 	private Boolean holdable;
+	private Boolean bookable;
+
+	public Boolean getBookable() {
+		return bookable;
+	}
+
+	public void setBookable(Boolean bookable) {
+		this.bookable = bookable;
+	}
+
 	public Long getLoanRuleId() {
 		return loanRuleId;
 	}

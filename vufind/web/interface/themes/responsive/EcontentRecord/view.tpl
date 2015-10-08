@@ -3,22 +3,10 @@
 {/if}
 <script type="text/javascript">
 {literal}$(document).ready(function(){{/literal}
-	VuFind.Record.loadHoldingsInfo('{$id|escape:"url"}', '{$id|escape:"url"}', 'eContent');
-	{if $isbn || $upc}
-		VuFind.Record.loadEnrichmentInfo('{$id|escape:"url"}', '{$isbn10|escape:"url"}', '{$upc|escape:"url"}', 'eContent');
-	{/if}
-	{if $isbn && ($showComments || $showAmazonReviews || $showStandardReviews)}
-		VuFind.Record.loadReviewInfo('{$id|escape:"url"}', '{$isbn|escape:"url"}', 'eContent');
-	{/if}
-	{if $enablePospectorIntegration == 1}
-		VuFind.Prospector.loadRelatedProspectorTitles('{$id|escape:"url"}', 'eContent');
-	{/if}
-	{if $user}
-		//getSaveStatus('{$id|escape:"javascript"}', 'saveLink');
-	{/if}
-	{if (isset($title)) }
-		//alert("{$title}");
-	{/if}
+	VuFind.Record.loadHoldingsInfo('EcontentRecord', {$id|escape:"url"}', '{$id|escape:"url"}', 'eContent');
+	VuFind.GroupedWork.loadEnrichmentInfo('{$recordDriver->getPermanentId()|escape:"url"}');
+	VuFind.GroupedWork.loadReviewInfo('{$recordDriver->getPermanentId()|escape:"url"}');
+	VuFind.Prospector.loadRelatedProspectorTitles('{$recordDriver->getPermanentId()|escape:"url"}');
 {literal}});{/literal}
 </script>
 {strip}

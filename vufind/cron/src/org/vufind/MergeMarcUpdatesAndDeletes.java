@@ -7,7 +7,6 @@ import org.marc4j.*;
 import org.marc4j.marc.DataField;
 import org.marc4j.marc.Record;
 import org.marc4j.marc.Subfield;
-import sun.java2d.pipe.SpanShapeRenderer;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -45,6 +44,10 @@ public class MergeMarcUpdatesAndDeletes implements IProcessHandler{
 		recordNumberTag = configIni.get("Reindex", "recordNumberTag");
 		recordNumberPrefix = configIni.get("Reindex", "recordNumberPrefix");
 
+		int numUpdates = 0;
+		int numDeletions = 0;
+		int numAdditions = 0;
+
 		File[] filesInExport = new File(exportPath).listFiles();
 		if (filesInExport != null) {
 			for (File exportFile : filesInExport) {
@@ -63,7 +66,7 @@ public class MergeMarcUpdatesAndDeletes implements IProcessHandler{
 				processLog.saveToDatabase(vufindConn, logger);
 			}else {
 				boolean errorOccurred = false;
-				HashMap<String, Record> recordsToUpdate = new HashMap<String, Record>();
+				HashMap<String, Record> recordsToUpdate = new HashMap<>();
 				if (updatesFile != null) {
 					try {
 						FileInputStream marcFileStream = new FileInputStream(updatesFile);
@@ -84,7 +87,7 @@ public class MergeMarcUpdatesAndDeletes implements IProcessHandler{
 					}
 				}
 
-				HashSet<String> recordsToDelete = new HashSet<String>();
+				HashSet<String> recordsToDelete = new HashSet<>();
 				if (deletesFile != null) {
 					try {
 						FileInputStream marcFileStream = new FileInputStream(deletesFile);
@@ -121,10 +124,19 @@ public class MergeMarcUpdatesAndDeletes implements IProcessHandler{
 						if (recordsToUpdate.containsKey(recordId)) {
 							//Write the updated record
 							mainWriter.write(recordsToUpdate.get(recordId));
+							recordsToUpdate.remove(recordId);
+							numUpdates++;
 						} else if (!recordsToDelete.contains(recordId)) {
 							//Unless the record is marked for deletion, write it
 							mainWriter.write(curBib);
+							numDeletions++;
 						}
+					}
+
+					//Anything left in the updates file is new and should be added
+					for (Record newMarc : recordsToUpdate.values()){
+						mainWriter.write(newMarc);
+						numAdditions++;
 					}
 					mainWriter.close();
 					marcFileStream.close();
@@ -181,11 +193,20 @@ public class MergeMarcUpdatesAndDeletes implements IProcessHandler{
 							processLog.addNote("Unable to move merged file to main file.");
 							logger.error("Unable to move merged file to main file");
 							processLog.saveToDatabase(vufindConn, logger);
+						}else {
+							logger.debug("Added " + numAdditions);
+							logger.debug("Updated " + numUpdates);
+							logger.debug("Deleted " + numDeletions);
+
+							processLog.addNote("Added " + numAdditions);
+							processLog.addNote("Updated " + numUpdates);
+							processLog.addNote("Deleted " + numDeletions);
+							processLog.saveToDatabase(vufindConn, logger);
 						}
 					}
 				}
 			}
-		}else{
+		} else {
 			logger.error("No files were found in " + exportPath);
 		}
 		processLog.setFinished();
@@ -208,7 +229,7 @@ public class MergeMarcUpdatesAndDeletes implements IProcessHandler{
 
 	private List<DataField> getDataFields(Record marcRecord, String tag) {
 		List variableFields = marcRecord.getVariableFields(tag);
-		List<DataField> variableFieldsReturn = new ArrayList<DataField>();
+		List<DataField> variableFieldsReturn = new ArrayList<>();
 		for (Object variableField : variableFields){
 			if (variableField instanceof DataField){
 				variableFieldsReturn.add((DataField)variableField);

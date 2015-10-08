@@ -93,8 +93,6 @@ class AJAX extends Action {
 
 	function IsLoggedIn()
 	{
-		require_once ROOT_DIR . '/services/MyResearch/lib/User.php';
-
 		echo "<result>" .
 		(UserAccount::isLoggedIn() ? "True" : "False") . "</result>";
 	}
@@ -540,17 +538,9 @@ class AJAX extends Action {
 
 		if (isset($_REQUEST['view'])) $_REQUEST['view'] = $displayMode; // overwrite any display setting for now
 
-		/** @var string|LibrarySearchSource|LocationSearchSource $searchSource */
+		/** @var string $searchSource */
 //		$searchSource = isset($searchParams['searchSource']) ? $searchParams['searchSource'] : 'local';
 		$searchSource = isset($_REQUEST['searchSource']) ? $_REQUEST['searchSource'] : 'local';
-		if (preg_match('/library\d+/', $searchSource)){
-			$trimmedId = str_replace('library', '', $searchSource);
-			$searchSourceObj = new LibrarySearchSource();
-			$searchSourceObj->id = $trimmedId;
-			if ($searchSourceObj->find(true)){
-				$searchSource = $searchSourceObj;
-			}
-		}
 
 		// Initialise from the current search globals
 		/** @var SearchObject_Solr $searchObject */
@@ -573,6 +563,16 @@ class AJAX extends Action {
 		$recordSet = $searchObject->getResultRecordHTML($displayMode);
 //		if ($displayMode == 'covers'){
 			$displayTemplate = 'Search/covers-list.tpl'; // structure for bookcover tiles
+
+		// Rating Settings
+		global $library, $location;
+		$browseCategoryRatingsMode = null;
+		if ($location) $browseCategoryRatingsMode = $location->browseCategoryRatingsMode; // Try Location Setting
+		if (!$browseCategoryRatingsMode) $browseCategoryRatingsMode = $library->browseCategoryRatingsMode;  // Try Library Setting
+
+		// when the Ajax rating is turned on, they have to be initialized with each load of the category.
+		if ($browseCategoryRatingsMode == 'stars') $recordSet[] = '<script type="text/javascript">VuFind.Ratings.initializeRaters()</script>';
+
 //		}
 //		else { // default
 //			$displayTemplate = 'Search/list-list.tpl'; // structure for regular results

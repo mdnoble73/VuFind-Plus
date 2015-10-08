@@ -4,7 +4,7 @@ import java.util.HashSet;
 
 /**
  * Description goes here
- * VuFind-Plus
+ * Pika
  * User: Mark Noble
  * Date: 3/6/14
  * Time: 8:56 AM
@@ -15,7 +15,7 @@ public class LexileTitle {
 	private String lexileCode;
 	private String lexileScore;
 	private String series;
-	private HashSet<String> awards = new HashSet<String>();
+	private HashSet<String> awards = new HashSet<>();
 	private String description;
 
 	public String getDescription() {

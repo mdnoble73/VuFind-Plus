@@ -2,10 +2,16 @@
 	<div class="result row" id="overDriveHold_{$record.overDriveId}">
 		<div class="col-xs-12 col-sm-3">
 			<div class="row">
+				{*
 				<div class="selectTitle col-xs-2">
-					&nbsp;
+					{if $section == 'available'}
+						<input type="checkbox" name="availableholdselected[]" value="{$record.userId}~{$record.overDriveId}~{$record.overDriveId}" id="selected{$record.cancelId|escape:"url"}" class="titleSelect{$sectionKey} titleSelect"/>&nbsp;
+					{else}
+						<input type="checkbox" name="waitingholdselected[]" value="{$record.userId}~{$record.overDriveId}~{$record.overDriveId}" id="selected{$record.cancelId|escape:"url"}" class="titleSelect{$sectionKey} titleSelect"/>&nbsp;
+					{/if}
 				</div>
-				<div class="col-xs-9 text-center">
+				*}
+				<div class="col-xs-12 text-center">
 					{if $record.recordId}
 					<a href="{$record.linkUrl}">
 						{/if}
@@ -62,6 +68,13 @@
 						</div>
 					{/if}
 
+					<div class="row">
+						<div class="result-label col-xs-3">{translate text='On Hold For'}</div>
+						<div class="col-xs-9 result-value">
+							{$record.user}
+						</div>
+					</div>
+
 					{if $section == 'available'}
 					{* Available Hold *}
 
@@ -82,13 +95,12 @@
 						</div>
 					{/if}
 				</div>
-
 				<div class="col-xs-12 col-md-3">
 					<div class="btn-group btn-group-vertical btn-block">
 						{if $section == 'available'}
-							<a href="#" onclick="return VuFind.OverDrive.checkoutOverDriveItemOneClick('{$record.overDriveId}');" class="btn btn-sm btn-primary">Checkout</a>
+							<a href="#" onclick="return VuFind.OverDrive.doOverDriveCheckout('{$record.userId}', '{$record.overDriveId}');" class="btn btn-sm btn-primary">Checkout</a>
 						{/if}
-						<a href="#" onclick="return VuFind.OverDrive.cancelOverDriveHold('{$record.overDriveId}');" class="btn btn-sm btn-warning">Cancel Hold</a>
+						<a href="#" onclick="return VuFind.OverDrive.cancelOverDriveHold('{$record.userId}', '{$record.overDriveId}');" class="btn btn-sm btn-warning">Cancel Hold</a>
 					</div>
 
 				</div>

@@ -7,7 +7,7 @@
 	<div class = "content">
 		<ol>
 		{foreach from=$renew_results item=renewalResult}
-			<li class='{if $renewalResult.result == true}renewPassed{else}renewFailed{/if}'>{$renewalResult.title} - {$renewalResult.message}</li>
+			<li class='{if $renewalResult.success == true}renewPassed{else}renewFailed{/if}'>{$renewalResult.title} - {$renewalResult.message}</li>
 		{/foreach}
 		</ol>
 	</div>

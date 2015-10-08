@@ -55,6 +55,10 @@ class OverDriveRecordDriver extends RecordInterface {
 		}
 	}
 
+	public function getModule(){
+		return 'OverDrive';
+	}
+
 	protected $itemsFromIndex;
 	public function setItemsFromIndex($itemsFromIndex, $realTimeStatusNeeded){
 		$this->itemsFromIndex = $itemsFromIndex;
@@ -576,13 +580,13 @@ class OverDriveRecordDriver extends RecordInterface {
 		$relatedRecord['formatCategory'] = $formatCategory;
 		if ($available){
 			$relatedRecord['actions'][] = array(
-				'title' => 'Check Out',
-				'onclick' => "return VuFind.OverDrive.checkoutOverDriveItemOneClick('{$recordId}');",
+				'title' => 'Check Out OverDrive',
+				'onclick' => "return VuFind.OverDrive.checkOutOverDriveTitle('{$recordId}');",
 				'requireLogin' => false,
 			);
 		}else{
 			$relatedRecord['actions'][] = array(
-				'title' => 'Place Hold',
+				'title' => 'Place Hold OverDrive',
 				'onclick' => "return VuFind.OverDrive.placeOverDriveHold('{$recordId}');",
 				'requireLogin' => false,
 			);
@@ -916,6 +920,11 @@ class OverDriveRecordDriver extends RecordInterface {
 		return $this->filterAndSortMoreDetailsOptions($moreDetailsOptions);
 	}
 
+	public function getRecordUrl() {
+		$id = $this->getUniqueID();
+		$linkUrl = '/OverDrive/' . $id . '/Home';
+		return $linkUrl;
+	}
 	public function getLinkUrl($useUnscopedHoldingsSummary = false) {
 		global $interface;
 		$id = $this->getUniqueID();
@@ -1117,5 +1126,23 @@ class OverDriveRecordDriver extends RecordInterface {
 			}
 		}
 		return implode('&', $parts);
+	}
+
+	public function getRecordActions($isAvailable, $isHoldable, $isBookable, $relatedUrls = null) {
+		$actions = array();
+		if ($isAvailable){
+			$actions[] = array(
+				'title' => 'Check Out OverDrive',
+				'onclick' => "return VuFind.OverDrive.checkOutOverDriveTitle('{$this->id}');",
+				'requireLogin' => false,
+			);
+		}else{
+			$actions[] = array(
+				'title' => 'Place Hold OverDrive',
+				'onclick' => "return VuFind.OverDrive.placeOverDriveHold('{$this->id}');",
+				'requireLogin' => false,
+			);
+		}
+		return $actions;
 	}
 }

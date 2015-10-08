@@ -44,7 +44,7 @@ class SearchObject_Solr extends SearchObject_Base
 	// Index
 	private $index = null;
 	// Field List
-	private $fields = 'auth_author2,id,mpaaRating,title_display,title_full,title_sub,author,author_display,format_category,isbn,upc,issn,related_record_ids,related_record_items,series,format,recordtype,display_description,literary_form,literary_form_full,num_titles';
+	private $fields = 'auth_author2,id,mpaaRating,title_display,title_full,title_sub,author,author_display,isbn,upc,issn,series,recordtype,display_description,literary_form,literary_form_full,num_titles,record_details,item_details,publisherStr,publishDate';
 	private $fieldsFull = '*,score';
 	// HTTP Method
 	//    private $method = HTTP_REQUEST_METHOD_GET;
@@ -203,7 +203,7 @@ class SearchObject_Solr extends SearchObject_Base
 	 *  search parameters in $_REQUEST.
 	 *
 	 * @access  public
-	 * @var string|LibrarySearchSource|LocationSearchSource $searchSource
+	 * @var string $searchSource
 	 * @return  boolean
 	 */
 	public function init($searchSource = null)
@@ -387,19 +387,19 @@ class SearchObject_Solr extends SearchObject_Base
 					$facetName = 'itype_' . $searchLibrary->subdomain;
 				}elseif ($facet->facetName == 'detailed_location'){
 					$facetName = 'detailed_location_' . $searchLibrary->subdomain;
-				}elseif ($facet->facetName == 'availability_toggle' && $configArray['Index']['enableDetailedAvailability']){
+				}elseif ($facet->facetName == 'availability_toggle'){
 					$facetName = 'availability_toggle_' . $searchLibrary->subdomain;
 				}
 			}
 			if (isset($userLocation)){
-				if ($facet->facetName == 'availability_toggle' && $configArray['Index']['enableDetailedAvailability']){
+				if ($facet->facetName == 'availability_toggle'){
 					$facetName = 'availability_toggle_' . $userLocation->code;
 				}
 			}
 			if (isset($searchLocation)){
 				if ($facet->facetName == 'time_since_added' && $searchLocation->restrictSearchByLocation){
 					$facetName = 'local_time_since_added_' . $searchLocation->code;
-				}elseif ($facet->facetName == 'availability_toggle' && $configArray['Index']['enableDetailedAvailability']){
+				}elseif ($facet->facetName == 'availability_toggle'){
 					$facetName = 'availability_toggle_' . $searchLocation->code;
 				}
 			}
@@ -1253,8 +1253,10 @@ class SearchObject_Solr extends SearchObject_Base
 		foreach ($this->filterList as $field => $filter) {
 			foreach ($filter as $value) {
 				$analytics->addEvent('Apply Facet', $field, $value);
+				$isAvailabilityToggle = false;
 				if (substr($field, 0, strlen('availability_toggle')) == 'availability_toggle'){
 					$availabilityToggleValue = $value;
+					$isAvailabilityToggle = true;
 				}elseif (substr($field, 0, strlen('format_category')) == 'format_category'){
 					$formatCategoryValue = $value;
 				}elseif (substr($field, 0, strlen('format')) == 'format'){
@@ -1267,26 +1269,28 @@ class SearchObject_Solr extends SearchObject_Base
 					$filterQuery[] = "$field:$value";
 				} else {
 					if (!empty($value)){
-						$filterQuery[] = "$field:\"$value\"";
+						if ($isAvailabilityToggle){
+							$filterQuery['availability_toggle'] = "$field:\"$value\"";
+						}else{
+							$filterQuery[] = "$field:\"$value\"";
+						}
 					}
 				}
 			}
 		}
 
 		//Check to see if we have both a format and availability facet applied.
+		$availabilityByFormatFieldName = null;
 		if ($availabilityToggleValue != null && ($formatCategoryValue != null || $formatValue != null)){
 			global $solrScope;
-			if ($availabilityToggleValue == 'Available Now'){
-				$available = 'available';
-			}else{
-				$available = 'local';
-			}
 			//Make sure to process the more specific format first
 			if ($formatValue != null){
-				$filterQuery[] = 'availability_by_format_' . $solrScope . ':"' . $formatValue . '_' . $available . '"';
+				$availabilityByFormatFieldName = 'availability_by_format_' . $solrScope . '_' . strtolower(preg_replace('/\W/', '_', $formatValue));
 			}else{
-				$filterQuery[] = 'availability_by_format_' . $solrScope . ':"' . $formatCategoryValue . '_' . $available . '"';
+				$availabilityByFormatFieldName = 'availability_by_format_' . $solrScope . '_' . strtolower(preg_replace('/\W/', '_', $formatCategoryValue));
 			}
+			$filterQuery['availability_toggle'] = $availabilityByFormatFieldName . ':"' . $availabilityToggleValue . '"';
+
 		}
 
 
@@ -1301,7 +1305,15 @@ class SearchObject_Solr extends SearchObject_Base
 		if (!empty($this->facetConfig)) {
 			$facetSet['limit'] = $this->facetLimit;
 			foreach ($this->facetConfig as $facetField => $facetName) {
-				$facetSet['field'][] = $facetField;
+				if (strpos($facetField, 'availability_toggle') === 0){
+					if ($availabilityByFormatFieldName){
+						$facetSet['field'][] = $availabilityByFormatFieldName;
+					}else{
+						$facetSet['field'][] = $facetField;
+					}
+				}else{
+					$facetSet['field'][] = $facetField;
+				}
 			}
 			if ($this->facetOffset != null) {
 				$facetSet['offset'] = $this->facetOffset;
@@ -1594,6 +1606,7 @@ class SearchObject_Solr extends SearchObject_Base
 	 */
 	public function getFacetList($filter = null, $expandingLinks = false)
 	{
+		global $solrScope;
 		// If there is no filter, we'll use all facets as the filter:
 		if (is_null($filter)) {
 			$filter = $this->facetConfig;
@@ -1624,6 +1637,9 @@ class SearchObject_Solr extends SearchObject_Base
 		$relatedHomeLocationFacets = null;
 		$additionalAvailableAtLocations = null;
 		if (!is_null($currentLibrary)){
+			if ($currentLibrary->facetLabel == ''){
+				$currentLibrary->facetLabel = $currentLibrary->displayName;
+			}
 			$relatedLocationFacets = $locationSingleton->getLocationsFacetsForLibrary($currentLibrary->libraryId);
 			if (strlen($currentLibrary->additionalLocationsToShowAvailabilityFor) > 0){
 				$locationsToLookfor = explode('|', $currentLibrary->additionalLocationsToShowAvailabilityFor);
@@ -1645,7 +1661,20 @@ class SearchObject_Solr extends SearchObject_Base
 		foreach ($allFacets as $field => $data) {
 			// Skip filtered fields and empty arrays:
 			if (!in_array($field, $validFields) || count($data) < 1) {
-				continue;
+				$isValid = false;
+				//Check to see if we are overriding availability toggle
+				if (strpos($field, 'availability_by_format') === 0){
+					foreach ($validFields as $validFieldName){
+						if (strpos($validFieldName, 'availability_toggle') === 0){
+							$field = $validFieldName;
+							$isValid  = true;
+							break;
+						}
+					}
+				}
+				if (!$isValid){
+					continue;
+				}
 			}
 			// Initialize the settings for the current field
 			$list[$field] = array();
@@ -1659,12 +1688,12 @@ class SearchObject_Solr extends SearchObject_Base
 			$doBranchProcessing = false;
 
 			//Marmot specific processing to do custom resorting of facets.
-			if ($field == 'owning_library' && isset($currentLibrary) && !is_null($currentLibrary)){
+			if (strpos($field, 'owning_library') === 0 && isset($currentLibrary) && !is_null($currentLibrary)){
 				$doInstitutionProcessing = true;
 			}
-			if ($field == 'owning_location' && (!is_null($relatedLocationFacets) || !is_null($activeLocationFacet))){
+			if (strpos($field, 'owning_location') === 0 && (!is_null($relatedLocationFacets) || !is_null($activeLocationFacet))){
 				$doBranchProcessing = true;
-			}elseif($field == 'available_at'){
+			}elseif(strpos($field, 'available_at') === 0){
 				$doBranchProcessing = true;
 			}
 			// Should we translate values for the current facet?
@@ -1717,7 +1746,7 @@ class SearchObject_Solr extends SearchObject_Base
 						$foundInstitution = true;
 						$numValidLibraries++;
 					}else if (!is_null($currentLibrary) && $currentLibrary->restrictOwningBranchesAndSystems == 1){
-						$okToAdd = false;
+						//$okToAdd = false;
 					}
 				}else if ($doBranchProcessing){
 					if (strlen($facet[0]) > 0){
@@ -1750,7 +1779,7 @@ class SearchObject_Solr extends SearchObject_Base
 							$valueKey = '5' . $valueKey;
 							$numValidRelatedLocations++;
 						}else if (!is_null($currentLibrary) && $currentLibrary->restrictOwningBranchesAndSystems == 1){
-							$okToAdd = false;
+							//$okToAdd = false;
 						}
 					}
 				}
@@ -1788,11 +1817,11 @@ class SearchObject_Solr extends SearchObject_Base
 
 			//How many facets should be shown by default
 			//Only show one system unless we are in the global scope
-			if ($field == 'owning_library' && isset($currentLibrary)){
+			if ($field == 'owning_library_' . $solrScope && isset($currentLibrary)){
 				$list[$field]['valuesToShow'] = $numValidLibraries;
-			}else if ($field == 'owning_location' && isset($relatedLocationFacets) && $numValidRelatedLocations > 0){
+			}else if ($field == 'owning_location_' . $solrScope && isset($relatedLocationFacets) && $numValidRelatedLocations > 0){
 				$list[$field]['valuesToShow'] = $numValidRelatedLocations;
-			}else if ($field == 'available_at'){
+			}else if ($field == 'available_at_' . $solrScope){
 				$list[$field]['valuesToShow'] = count($list[$field]['list']);
 			}else{
 				$list[$field]['valuesToShow'] = 5;
@@ -1800,7 +1829,8 @@ class SearchObject_Solr extends SearchObject_Base
 
 			//Sort the facet alphabetically?
 			//Sort the system and location alphabetically unless we are in the global scope
-			if (in_array($field, array('owning_library', 'owning_location', 'available_at'))  && isset($currentLibrary) ){
+			global $solrScope;
+			if (in_array($field, array('owning_library_' . $solrScope, 'owning_location_' . $solrScope, 'available_at_' . $solrScope))  && isset($currentLibrary) ){
 				$list[$field]['showAlphabetically'] = true;
 			}else{
 				$list[$field]['showAlphabetically'] = false;
@@ -1885,6 +1915,7 @@ class SearchObject_Solr extends SearchObject_Base
 				$image = $groupedWorkDriver->getBookcoverUrl('medium');
 				$description = "<img src='$image'/> " . $groupedWorkDriver->getDescriptionFast();
 				$result['response']['docs'][$i]['description'] = $description;
+				$result['response']['docs'][$i]['title'] = $result['response']['docs'][$i]['title_full'];
 
 			}else{
 				$id = $result['response']['docs'][$i]['id'];
@@ -1977,9 +2008,13 @@ class SearchObject_Solr extends SearchObject_Base
 		$sheet->setCellValueByColumnAndRow($curCol++, $curRow, 'Author');
 		$sheet->setCellValueByColumnAndRow($curCol++, $curRow, 'Publisher');
 		$sheet->setCellValueByColumnAndRow($curCol++, $curRow, 'Published');
+		$sheet->setCellValueByColumnAndRow($curCol++, $curRow, 'Call Number');
+		$sheet->setCellValueByColumnAndRow($curCol++, $curRow, 'Item Type');
+		$sheet->setCellValueByColumnAndRow($curCol++, $curRow, 'Location');
 
 		$maxColumn = $curCol -1;
 
+		global $solrScope;
 		for ($i = 0; $i < count($result['response']['docs']); $i++) {
 			//Output the row to excel
 			$curDoc = $result['response']['docs'][$i];
@@ -1987,10 +2022,25 @@ class SearchObject_Solr extends SearchObject_Base
 			$curCol = 0;
 			//Output the row to excel
 			$sheet->setCellValueByColumnAndRow($curCol++, $curRow, isset($curDoc['id']) ? $curDoc['id'] : '');
-			$sheet->setCellValueByColumnAndRow($curCol++, $curRow, isset($curDoc['title']) ? $curDoc['title'] : '');
+			$sheet->setCellValueByColumnAndRow($curCol++, $curRow, isset($curDoc['title_display']) ? $curDoc['title_display'] : '');
 			$sheet->setCellValueByColumnAndRow($curCol++, $curRow, isset($curDoc['author']) ? $curDoc['author'] : '');
-			$sheet->setCellValueByColumnAndRow($curCol++, $curRow, isset($curDoc['publisher']) ? implode(', ', $curDoc['publisher']) : '');
+			$sheet->setCellValueByColumnAndRow($curCol++, $curRow, isset($curDoc['publisherStr']) ? implode(', ', $curDoc['publisherStr']) : '');
 			$sheet->setCellValueByColumnAndRow($curCol++, $curRow, isset($curDoc['publishDate']) ? implode(', ', $curDoc['publishDate']) : '');
+			$callNumber = '';
+			if (isset($curDoc['local_callnumber_' . $solrScope])){
+				$callNumber = is_array($curDoc['local_callnumber_' . $solrScope]) ? $curDoc['local_callnumber_' . $solrScope][0] : $curDoc['local_callnumber_' . $solrScope];
+			}
+			$sheet->setCellValueByColumnAndRow($curCol++, $curRow, $callNumber);
+			$iType = '';
+			if (isset($curDoc['itype_' . $solrScope])){
+				$iType = is_array($curDoc['itype_' . $solrScope]) ? $curDoc['itype_' . $solrScope][0] : $curDoc['itype_' . $solrScope];
+			}
+			$sheet->setCellValueByColumnAndRow($curCol++, $curRow, $iType);
+			$location = '';
+			if (isset($curDoc['detailed_location_' . $solrScope])){
+				$location = is_array($curDoc['detailed_location_' . $solrScope]) ? $curDoc['detailed_location_' . $solrScope][0] : $curDoc['detailed_location_' . $solrScope];
+			}
+			$sheet->setCellValueByColumnAndRow($curCol++, $curRow, $location);
 		}
 
 		for ($i = 0; $i < $maxColumn; $i++){
@@ -2070,23 +2120,33 @@ class SearchObject_Solr extends SearchObject_Base
 			$fieldsToReturn = $this->fields;
 			global $solrScope;
 			if ($solrScope != false){
-				$fieldsToReturn .= ',related_record_ids_' . $solrScope;
-				$fieldsToReturn .= ',related_items_' . $solrScope;
+				//$fieldsToReturn .= ',related_record_ids_' . $solrScope;
+				//$fieldsToReturn .= ',related_items_' . $solrScope;
 				$fieldsToReturn .= ',format_' . $solrScope;
 				$fieldsToReturn .= ',format_category_' . $solrScope;
 				$fieldsToReturn .= ',collection_' . $solrScope;
 				$fieldsToReturn .= ',local_time_since_added_' . $solrScope;
+				$fieldsToReturn .= ',local_callnumber_' . $solrScope;
 				$fieldsToReturn .= ',detailed_location_' . $solrScope;
+				$fieldsToReturn .= ',scoping_details_' . $solrScope;
+				$fieldsToReturn .= ',owning_location_' . $solrScope;
+				$fieldsToReturn .= ',owning_library_' . $solrScope;
+				$fieldsToReturn .= ',available_at_' . $solrScope;
+				$fieldsToReturn .= ',itype_' . $solrScope;
 
 			}else{
-				$fieldsToReturn .= ',related_record_ids';
-				$fieldsToReturn .= ',related_record_items';
-				$fieldsToReturn .= ',related_items_related_record_ids';
+				//$fieldsToReturn .= ',related_record_ids';
+				//$fieldsToReturn .= ',related_record_items';
+				//$fieldsToReturn .= ',related_items_related_record_ids';
 				$fieldsToReturn .= ',format';
 				$fieldsToReturn .= ',format_category';
 				$fieldsToReturn .= ',days_since_added';
 				$fieldsToReturn .= ',local_callnumber';
 				$fieldsToReturn .= ',detailed_location';
+				$fieldsToReturn .= ',owning_location';
+				$fieldsToReturn .= ',owning_library';
+				$fieldsToReturn .= ',available_at';
+				$fieldsToReturn .= ',itype';
 			}
 			$fieldsToReturn .= ',score';
 		}

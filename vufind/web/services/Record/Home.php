@@ -46,7 +46,10 @@ class Record_Home extends Record_Record{
 			$interface->assign($detailoption, true);
 		}
 
-//		$publicationDetails = $this->recordDriver->getPublicationDetails();
+		//Get the actions for the record
+		$actions = $this->recordDriver->getRecordActionsFromIndex();
+		$interface->assign('actions', $actions);
+
 		$interface->assign('moreDetailsOptions', $this->recordDriver->getMoreDetailsOptions());
 
 		//Build the actual view

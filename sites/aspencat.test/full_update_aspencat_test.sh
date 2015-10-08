@@ -65,6 +65,9 @@ cd /usr/local/vufind-plus/vufind/record_grouping; java -server -Xmx6G -XX:+UsePa
 #Full Reindex
 cd /usr/local/vufind-plus/vufind/reindexer; nice -n -3 java -jar reindexer.jar ${PIKASERVER} fullReindex >> ${OUTPUT_FILE}
 
+#Restart Solr
+cd /usr/local/vufind-plus/sites/${PIKASERVER}; ./${PIKASERVER}.sh restart
+
 #Email results
 FILESIZE=$(stat -c%s ${OUTPUT_FILE})
 if [[ ${FILESIZE} > 0 ]]

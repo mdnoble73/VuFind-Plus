@@ -97,7 +97,7 @@ class ExternalEContentDriver extends BaseEContentDriver{
 		$isbn = $this->getCleanISBN();
 
 		//Get Related Records to make sure we initialize items
-		$this->getGroupedWorkDriver()->getRelatedRecords(false);
+		$relatedRecords = $this->getGroupedWorkDriver()->getRelatedRecords(false);
 
 		$items = $this->getItemsFast();
 		$interface->assign('items', $items);
@@ -194,6 +194,34 @@ class ExternalEContentDriver extends BaseEContentDriver{
 				'requireLogin' => false,
 			);
 		}
+
+		return $actions;
+	}
+
+	public function getRecordActions($isAvailable, $isHoldable, $isBookable, $relatedUrls = null){
+		$actions = array();
+		foreach ($relatedUrls as $urlInfo){
+			//Revert to access online per Karen at CCU.  If people want to switch it back, we can add a per library switch
+			//$title = 'Online ' . $urlInfo['source'];
+			$title = 'Access Online';
+			$alt = 'Available online from ' . $urlInfo['source'];
+			$fileOrUrl = isset($urlInfo['url']) ? $urlInfo['url'] : $urlInfo['file'];
+			if (strlen($fileOrUrl) > 0){
+				if (strlen($fileOrUrl) >= 3){
+					$extension =strtolower(substr($fileOrUrl, strlen($fileOrUrl), 3));
+					if ($extension == 'pdf'){
+						$title = 'Access PDF';
+					}
+				}
+				$actions[] = array(
+					'url' => $fileOrUrl,
+					'title' => $title,
+					'requireLogin' => false,
+					'alt' => $alt,
+				);
+			}
+		}
+
 
 		return $actions;
 	}

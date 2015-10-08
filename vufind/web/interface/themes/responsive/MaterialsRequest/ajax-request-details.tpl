@@ -4,6 +4,13 @@
 	<div>
 		{if $showUserInformation}
 			<fieldset>
+				<legend>Request Information</legend>
+				<div class="request_detail_field row">
+					<label class="request_detail_field_label col-sm-3">Request Id: </label>
+					<div class="request_detail_field_value col-sm-9">{$materialsRequest->id}</div>
+				</div>
+			</fieldset>
+			<fieldset>
 				<legend>User Information</legend>
 				<div class="request_detail_field row">
 					<label class="request_detail_field_label col-sm-3">Username: </label>

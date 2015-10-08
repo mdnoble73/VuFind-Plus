@@ -31,12 +31,13 @@
 		<div id="main-content">
 			<h2>Offline Holds</h2>
 			{if count($offlineHolds) > 0}
-				<table class="citation">
+				<table class="citation tablesorter" id="offlineHoldsReport" >
 					<thead>
 						<tr><th>Patron Barcode</th><th>Record Id</th><th>Title</th><th>Date Entered</th><th>Status</th><th>Notes</th></tr>
 					</thead>
 					<tbody>
 						{foreach from=$offlineHolds item=offlineHold}
+							{* TODO Update this to work with multi-ils installations*}
 							<tr><td>{$offlineHold.patronBarcode}</td><td>{$offlineHold.bibId}</td><td><a href="{$path}/Record/{$offlineHold.bibId}">{$offlineHold.title}</a></td><td>{$offlineHold.timeEntered|date_format}</td><td>{$offlineHold.status}</td><td>{$offlineHold.notes}</td></tr>
 						{/foreach}
 					</tbody>
@@ -51,6 +52,7 @@
 		$(function() {
 			$( "#startDate" ).datepicker({ showOn: "button", buttonImage: "{/literal}{$path}{literal}/images/silk/calendar.png", numberOfMonths: 2,	buttonImageOnly: true});
 			$( "#endDate" ).datepicker({ showOn: "button", buttonImage: "{/literal}{$path}{literal}/images/silk/calendar.png", numberOfMonths: 2,	buttonImageOnly: true});
+			$("#offlineHoldsReport").tablesorter({cssAsc: 'sortAscHeader', cssDesc: 'sortDescHeader', cssHeader: 'unsortedHeader', widgets:['zebra', 'filter'] });
 		});
 		{/literal}
 	</script>

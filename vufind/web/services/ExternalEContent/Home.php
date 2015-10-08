@@ -23,9 +23,6 @@ require_once ROOT_DIR . '/RecordDrivers/ExternalEContentDriver.php';
 class ExternalEContent_Home extends Action{
 	/** @var  SearchObject_Solr $db */
 	private $id;
-	private $isbn;
-	private $issn;
-	private $recordDriver;
 
 	function launch(){
 		global $interface;
@@ -40,8 +37,12 @@ class ExternalEContent_Home extends Action{
 		$this->id = strip_tags($_REQUEST['id']);
 		$interface->assign('id', $this->id);
 		//$recordDriver = new ExternalEContentDriver($this->id);
+
+		global $activeRecordProfile;
+		$subType = isset($activeRecordProfile) ? $activeRecordProfile : 'ils';
+
 		/** @var ExternalEContentDriver $recordDriver */
-		$recordDriver = RecordDriverFactory::initRecordDriverById('external_econtent:' . $this->id);
+		$recordDriver = RecordDriverFactory::initRecordDriverById('external_econtent:' . $subType . ':'. $this->id);
 
 		if (!$recordDriver->isValid()){
 			$interface->setTemplate('../Record/invalidRecord.tpl');

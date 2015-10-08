@@ -14,7 +14,6 @@ require_once ROOT_DIR . '/services/Admin/Admin.php';
 class IndexingStats extends Admin_Admin{
 	function launch(){
 		global $interface;
-		global $user;
 		global $configArray;
 
 		$interface->setPageTitle('Indexing Statistics');
@@ -30,6 +29,7 @@ class IndexingStats extends Admin_Admin{
 			}
 		}
 		krsort($indexingStatFiles);
+		$interface->assign('availableDates', array_keys($indexingStatFiles));
 
 		if (count($indexingStatFiles) != 0){
 			//Get the specified file, the file for today, or the most recent file

@@ -44,7 +44,7 @@ class RestrictedEContentDriver extends BaseEContentDriver{
 			return true;
 		}else{
 			$searchLibrary = Library::getSearchLibrary();
-			if ($searchLibrary == null || (strlen($searchLibrary->ilsCode) > 0 && strpos($locationCode, $searchLibrary->ilsCode) === 0)){
+			if ($searchLibrary == null || (strlen($searchLibrary->ilsCode) > 0 && preg_match("/^{$searchLibrary->ilsCode}/i", $locationCode))){
 				return true;
 			}else{
 				return false;
@@ -57,7 +57,7 @@ class RestrictedEContentDriver extends BaseEContentDriver{
 			return true;
 		}else{
 			$searchLibrary = Library::getSearchLibrary();
-			if ($searchLibrary == null || (strlen($searchLibrary->ilsCode) > 0 && strpos($locationCode, $searchLibrary->ilsCode) === 0)){
+			if ($searchLibrary == null || (strlen($searchLibrary->ilsCode) > 0 && preg_match("/^{$searchLibrary->ilsCode}/i", $locationCode))){
 				return true;
 			}else{
 				return false;
@@ -70,11 +70,11 @@ class RestrictedEContentDriver extends BaseEContentDriver{
 			return true;
 		}else if ($sharing == 'library'){
 			$searchLibrary = Library::getSearchLibrary();
-			if ($searchLibrary == null || (strlen($searchLibrary->ilsCode) > 0 && strpos($locationCode, $searchLibrary->ilsCode) === 0)){
+			if ($searchLibrary == null || (strlen($searchLibrary->ilsCode) > 0 && preg_match("/^{$searchLibrary->ilsCode}/i", $locationCode))){
 				global $user;
 				if ($user){
 					$patronHomeLibrary = Library::getPatronHomeLibrary();
-					return ($patronHomeLibrary == null || (strlen($patronHomeLibrary->ilsCode) > 0 && strpos($locationCode, $patronHomeLibrary->ilsCode) === 0));
+					return ($patronHomeLibrary == null || (strlen($patronHomeLibrary->ilsCode) > 0 && preg_match("/^{$patronHomeLibrary->ilsCode}/i", $locationCode)));
 				}else{
 					return true;
 				}
@@ -410,33 +410,43 @@ class RestrictedEContentDriver extends BaseEContentDriver{
 		}
 	}
 
-	public function placeHold($itemId) {
-		global $user;
-
-		if (!$user){
+	/**
+	 * Place Hold
+	 *
+	 * This is responsible for both placing holds as well as placing recalls.
+	 *
+	 * @param   User    $patron       The User to place a hold for
+	 * @param   string  $recordId     The id of the bib record
+	 * @param   string  $pickupBranch The branch where the user wants to pickup the item when available
+	 * @return  mixed                 True if successful, false if unsuccessful
+	 *                                If an error occurs, return a PEAR_Error
+	 * @access  public
+	 */
+	public function placeHold($patron, $recordId, $pickupBranch) {
+		if (!$patron){
 			return array(
-					'result' => false,
+					'success' => false,
 					'message' => 'You must be logged in to place a hold'
 			);
 		}else{
 			require_once ROOT_DIR . '/sys/eContent/EContentHold.php';
 			$eContentHold = new EContentHold();
-			$eContentHold->userId = $user->id;
+			$eContentHold->userId = $patron->id;
 			$eContentHold->recordId = $this->getUniqueID();
-			$eContentHold->itemId = $itemId;
+			$eContentHold->itemId = $recordId;
 			$eContentHold->whereAdd("status NOT IN ('cancelled', 'filled')");
 			if (!$eContentHold->find(true)){
 				//Make sure the user has access to the title
 				$items = $this->getItems();
 				$userHasAccess = false;
 				foreach ($items as $item){
-					if ($item['itemId'] == $itemId){
+					if ($item['itemId'] == $recordId){
 						$userHasAccess = true;
 					}
 				}
 				if (!$userHasAccess){
 					return array(
-						'result' => false,
+						'success' => false,
 						'message' => "Sorry, you don't have access to this title."
 					);
 				}else{
@@ -446,19 +456,19 @@ class RestrictedEContentDriver extends BaseEContentDriver{
 					$eContentHold->author = $this->getAuthor();
 					if ($eContentHold->insert()){
 						return array(
-							'result' => true,
+							'success' => true,
 							'message' => 'Successfully placed hold for you.'
 						);
 					}else{
 						return array(
-							'result' => false,
+							'success' => false,
 							'message' => 'There was an unknown error placing a hold on this title.'
 						);
 					}
 				}
 			}else{
 				return array(
-						'result' => false,
+						'success' => false,
 						'message' => 'Sorry, this title is already on hold for you.'
 				);
 			}

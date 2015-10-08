@@ -85,7 +85,7 @@ ED {$field|getvalue:'a'}
 {/foreach}
 {/if}
 
-UL {$path}/Record/{$id|escape:"url"}
+UL {$path}/{$activeRecordProfileModule}/{$id|escape:"url"}
 
 {assign var=marcField value=$marc->getField('520')}
 {if $marcField}

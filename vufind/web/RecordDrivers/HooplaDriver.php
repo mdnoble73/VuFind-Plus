@@ -22,6 +22,7 @@ class HooplaRecordDriver extends MarcRecord {
 			$this->marcRecord = $record;
 		}elseif (is_string($record)){
 			require_once ROOT_DIR . '/sys/MarcLoader.php';
+			$this->profileType = 'hoopla';
 			$this->id = $record;
 
 			$this->valid = MarcLoader::marcExistsForHooplaId($record);
@@ -168,6 +169,20 @@ class HooplaRecordDriver extends MarcRecord {
 		if ($fileOrUrl != null){
 			$actions[] = array(
 				'url' => $fileOrUrl,
+				'title' => $title,
+				'requireLogin' => false,
+			);
+		}
+
+		return $actions;
+	}
+
+	function getRecordActions($recordAvailable, $recordHoldable, $recordBookable, $relatedUrls = null){
+		$actions = array();
+		$title = translate('hoopla_checkout_action');
+		foreach ($relatedUrls as $url){
+			$actions[] = array(
+				'url' => $url['url'],
 				'title' => $title,
 				'requireLogin' => false,
 			);

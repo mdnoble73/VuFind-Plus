@@ -19,8 +19,6 @@
  */
 require_once ROOT_DIR . '/RecordDrivers/Interface.php';
 
-require_once ROOT_DIR . '/services/MyResearch/lib/User.php';
-
 /**
  * Index Record Driver
  *
@@ -55,7 +53,7 @@ class IndexRecord extends RecordInterface
 	'author', 'author-letter', 'title', 'title_short', 'title_full',
 	'title_full_unstemmed', 'title_auth', 'title_sub', 'spelling', 'id',
 	'allfields', 'allfields_proper', 'fulltext_unstemmed', 'econtentText_unstemmed', 'keywords_proper',
-	'spellingShingle', 'collection', 'owning_library', 'owning_location', 'title_proper',
+	'spellingShingle', 'collection', 'title_proper',
 	'contents_proper', 'genre_proper', 'geographic_proper'
 	);
 
@@ -97,12 +95,11 @@ class IndexRecord extends RecordInterface
 	 * we will already have this data available, so we might as well
 	 * just pass it into the constructor.
 	 *
-	 * @param   array   $indexFields    All fields retrieved from the index.
+	 * @param   array|File_MARC_Record||string   $recordData     Data to construct the driver from
 	 * @access  public
 	 */
-	public function __construct($indexFields)
-	{
-		$this->fields = $indexFields;
+	public function __construct($recordData){
+		$this->fields = $recordData;
 
 		// Load highlighting/snippet preferences:
 		$searchSettings = getExtraConfigArray('searches');
@@ -445,6 +442,7 @@ class IndexRecord extends RecordInterface
 		}else{
 			$interface->assign('summShortId', $id);
 		}
+		$interface->assign('module', $this->getModule());
 
 		$interface->assign('summUrl', $this->getLinkUrl($useUnscopedHoldingsSummary));
 		$formats = $this->getFormats();
@@ -528,7 +526,6 @@ class IndexRecord extends RecordInterface
 	public function getSupplementalSearchResult(){
 		global $configArray;
 		global $interface;
-		global $user;
 
 		$id = $this->getUniqueID();
 		$interface->assign('summId', $id);
@@ -537,6 +534,8 @@ class IndexRecord extends RecordInterface
 		}else{
 			$interface->assign('summShortId', $id);
 		}
+		$interface->assign('module', $this->getModule());
+
 		$formats = $this->getFormats();
 		$interface->assign('summFormats', $formats);
 		$formatCategories = $this->getFormatCategory();
@@ -576,6 +575,8 @@ class IndexRecord extends RecordInterface
 		$interface->assign('bookCoverUrl', $this->getBookcoverUrl('small'));
 		$interface->assign('bookCoverUrlMedium', $this->getBookcoverUrl('medium'));
 
+		$interface->assign('summUrl', $this->getRecordUrl());
+
 		// By default, do not display AJAX status; we won't assume that all
 		// records exist in the ILS.  Child classes can override this setting
 		// to turn on AJAX as needed:
@@ -585,7 +586,7 @@ class IndexRecord extends RecordInterface
 	}
 
 	function getBookcoverUrl($size = 'small'){
-		$id = $this->getUniqueID();
+		$id = $this->getIdWithSource();
 		$formatCategory = $this->getFormatCategory();
 		if (is_array($formatCategory)){
 			$formatCategory = reset($formatCategory);
@@ -1031,6 +1032,7 @@ class IndexRecord extends RecordInterface
 	 */
 	public function loadGroupedWork() {
 		if ($this->groupedWork == null){
+			global $timer;
 			require_once ROOT_DIR . '/sys/Grouping/GroupedWorkPrimaryIdentifier.php';
 			require_once ROOT_DIR . '/sys/Grouping/GroupedWork.php';
 			$groupedWork = new GroupedWork();
@@ -1041,6 +1043,7 @@ class IndexRecord extends RecordInterface
 				$groupedWork->fetch();
 				$this->groupedWork = clone $groupedWork;
 			}
+			$timer->logTime("Loaded Grouped Work for record");
 		}
 	}
 
@@ -1567,15 +1570,18 @@ class IndexRecord extends RecordInterface
 		return null;
 	}
 
+	/**
+	 * @return string[]
+	 */
 	public function getFormat(){
 		if (isset($this->fields['format'])){
 			if (is_array($this->fields['format'])){
-				return reset($this->fields['format']);
-			}else{
 				return $this->fields['format'];
+			}else{
+				return array($this->fields['format']);
 			}
 		}else{
-			return "Implement this when not backed by Solr data";
+			return array("Unknown");
 		}
 	}
 
@@ -1605,6 +1611,7 @@ class IndexRecord extends RecordInterface
 		global $configArray;
 		$recordId = $this->getUniqueID();
 
+		//TODO: This should have the correct module set
 		return $configArray['Site']['path'] . '/Record/' . $recordId;
 	}
 
@@ -1612,7 +1619,7 @@ class IndexRecord extends RecordInterface
 		global $interface;
 		$linkUrl = $this->getRecordUrl();
 		$extraParams = array();
-		if (strlen($interface->get_template_vars('searchId')) > 0){
+		if ($interface != null && strlen($interface->get_template_vars('searchId')) > 0){
 			$extraParams[] = 'searchId=' . $interface->get_template_vars('searchId');
 			$extraParams[] = 'recordIndex=' . $interface->get_template_vars('recordIndex');
 			$extraParams[] = 'page='  . $interface->get_template_vars('page');
@@ -1755,6 +1762,22 @@ class IndexRecord extends RecordInterface
 		}
 		return implode('&', $parts);
 	}
-}
 
-?>
+	/**
+	 * Load Record actions when we don't have detailed information about the record yet
+	 */
+	public function getRecordActionsFromIndex(){
+		$groupedWork = $this->getGroupedWorkDriver();
+		$relatedRecords = $groupedWork->getRelatedRecords();
+		foreach ($relatedRecords as $relatedRecord){
+			if ($relatedRecord['id'] == $this->getIdWithSource()){
+				return $relatedRecord['actions'];
+			}
+		}
+		return array();
+	}
+
+	public function getRecordActions($isAvailable, $isHoldable, $isBookable, $relatedUrls = null){
+		return array();
+	}
+}

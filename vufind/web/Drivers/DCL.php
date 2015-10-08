@@ -18,13 +18,16 @@
  *
  */
 
-require_once 'Interface.php';
+require_once 'DriverInterface.php';
 require_once ROOT_DIR . '/sys/SIP2.php';
 require_once ROOT_DIR . '/Drivers/Horizon.php';
 
-class DCL extends Horizon {
-	function __construct(){
-		parent::__construct();
+class DCL extends HorizonAPI {
+	/**
+	 * @param AccountProfile $accountProfile
+	 */
+	public function __construct($accountProfile){
+		parent::__construct($accountProfile);
 	}
 
 	function translateFineMessageType($code){
@@ -433,4 +436,3 @@ class DCL extends Horizon {
         return isset($locationMap[$locationCode]) ? $locationMap[$locationCode] : '' ;
 	}
 }
-?>

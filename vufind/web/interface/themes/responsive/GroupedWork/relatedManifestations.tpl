@@ -28,13 +28,17 @@
 							{/if}
 						</div>
 						<div class="col-xs-8 col-md-5 col-lg-6">
-							{if $relatedManifestation.availableHere && $showItsHere}
+							{if $relatedManifestation.availableHere}
 								{if $relatedManifestation.availableOnline}
 									<div class="related-manifestation-shelf-status available">Available Online</div>
 								{elseif $relatedManifestation.allLibraryUseOnly}
 									<div class="related-manifestation-shelf-status available">It's Here (library use only)</div>
 								{else}
-									<div class="related-manifestation-shelf-status available">It's Here</div>
+									{if $showItsHere}
+										<div class="related-manifestation-shelf-status available">It's Here</div>
+									{else}
+										<div class="related-manifestation-shelf-status available">On Shelf</div>
+									{/if}
 								{/if}
 							{elseif $relatedManifestation.availableLocally}
 								{if $relatedManifestation.availableOnline}
@@ -53,7 +57,7 @@
 							{elseif $relatedManifestation.available && $relatedManifestation.hasLocalItem}
 								<div class="related-manifestation-shelf-status availableOther">Checked Out/Available Elsewhere</div>
 							{elseif $relatedManifestation.available}
-								<div class="related-manifestation-shelf-status availableOther">Available from another library</div>
+								<div class="related-manifestation-shelf-status availableOther">{translate text='Available from another library'}</div>
 							{else}
 								<div class="related-manifestation-shelf-status checked_out">
 									{if $relatedManifestation.groupedStatus}{$relatedManifestation.groupedStatus}{else}Checked Out{/if}
@@ -79,9 +83,9 @@
 								<div class="btn-group btn-group-vertical btn-block">
 									{foreach from=$relatedManifestation.actions item=curAction}
 										{if $curAction.url && strlen($curAction.url) > 0}
-											<a href="{$curAction.url}" class="btn btn-sm btn-primary" onclick="{if $curAction.requireLogin}return VuFind.Account.followLinkIfLoggedIn(this, '{$curAction.url}');{/if}">{$curAction.title}</a>
+											<a href="{$curAction.url}" class="btn btn-sm btn-primary" onclick="{if $curAction.requireLogin}return VuFind.Account.followLinkIfLoggedIn(this, '{$curAction.url}');{/if}" {if $curAction.alt}title="{$curAction.alt}"{/if}>{$curAction.title}</a>
 										{else}
-											<a href="#" class="btn btn-sm btn-primary" onclick="{$curAction.onclick}">{$curAction.title}</a>
+											<a href="#" class="btn btn-sm btn-primary" onclick="{$curAction.onclick}" {if $curAction.alt}title="{$curAction.alt}"{/if}>{$curAction.title}</a>
 										{/if}
 									{/foreach}
 								</div>

@@ -49,7 +49,7 @@ class Renew extends Action
 			$_SESSION['renew_message']['Total'] = 1;
 			$_SESSION['renew_message']['Renewed'] = 0;
 			$_SESSION['renew_message']['Unrenewed'] = 0;
-			if ($renewResult['result']){
+			if ($renewResult['success']){
 				$_SESSION['renew_message']['Renewed']++;
 			}else{
 				$_SESSION['renew_message']['Unrenewed']++;

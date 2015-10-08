@@ -8,46 +8,41 @@ import org.marc4j.marc.Record;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.text.SimpleDateFormat;
 import java.util.*;
 
 /**
  * ILS Indexing with customizations specific to Anythink
- * VuFind-Plus
+ * Pika
  * User: Mark Noble
  * Date: 2/21/14
  * Time: 3:00 PM
  */
 public class AnythinkRecordProcessor extends IlsRecordProcessor {
-	private long maxBibNumber = 1;
-	public AnythinkRecordProcessor(GroupedWorkIndexer indexer, Connection vufindConn, Ini configIni, Logger logger) {
-		super(indexer, vufindConn, configIni, logger);
+	private PreparedStatement getDateAddedStmt;
+	public AnythinkRecordProcessor(GroupedWorkIndexer indexer, Connection vufindConn, Ini configIni, ResultSet indexingProfileRS, Logger logger, boolean fullReindex) {
+		super(indexer, vufindConn, configIni, indexingProfileRS, logger, fullReindex);
 
-		try {
-			PreparedStatement getMaxBibNumberStmt = vufindConn.prepareStatement("SELECT MAX(CAST(ilsId AS UNSIGNED)) FROM ils_marc_checksums");
-			ResultSet maxBibNumberRS = getMaxBibNumberStmt.executeQuery();
-			if (maxBibNumberRS.next()){
-				maxBibNumber = maxBibNumberRS.getLong(1);
-			}
-		}catch(Exception e){
-			logger.error("Error loading max bib number for Horizon");
+		try{
+			getDateAddedStmt = vufindConn.prepareStatement("SELECT dateFirstDetected FROM ils_marc_checksums WHERE ilsId = ?", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+		}catch (Exception e){
+			logger.error("Unable to setup prepared statement for date added to catalog");
 		}
 	}
 
 	@Override
-	public void loadPrintFormatInformation(IlsRecord ilsRecord, Record record) {
+	public void loadPrintFormatInformation(RecordInfo recordInfo, Record record) {
 		Set<String> printFormatsRaw = getFieldList(record, "949c");
-		Set<String> printFormats = new HashSet<String>();
+		HashSet<String> printFormats = new HashSet<>();
 		for (String curFormat : printFormatsRaw){
 			printFormats.add(curFormat.toLowerCase());
 		}
 
-		HashSet<String> translatedFormats = indexer.translateCollection("format", printFormats);
-		HashSet<String> translatedFormatCategories = indexer.translateCollection("format_category", printFormats);
-		ilsRecord.addFormats(translatedFormats);
-		ilsRecord.addFormatCategories(translatedFormatCategories);
+		HashSet<String> translatedFormats = translateCollection("format", printFormats, recordInfo.getRecordIdentifier());
+		HashSet<String> translatedFormatCategories = translateCollection("format_category", printFormats, recordInfo.getRecordIdentifier());
+		recordInfo.addFormats(translatedFormats);
+		recordInfo.addFormatCategories(translatedFormatCategories);
 		Long formatBoost = 0L;
-		HashSet<String> formatBoosts = indexer.translateCollection("format_boost", printFormats);
+		HashSet<String> formatBoosts = translateCollection("format_boost", printFormats, recordInfo.getRecordIdentifier());
 		for (String tmpFormatBoost : formatBoosts){
 			if (Util.isNumeric(tmpFormatBoost)) {
 				Long tmpFormatBoostLong = Long.parseLong(tmpFormatBoost);
@@ -56,7 +51,7 @@ public class AnythinkRecordProcessor extends IlsRecordProcessor {
 				}
 			}
 		}
-		ilsRecord.setFormatBoost(formatBoost);
+		recordInfo.setFormatBoost(formatBoost);
 	}
 
 	protected boolean isItemSuppressed(DataField curItem) {
@@ -66,13 +61,13 @@ public class AnythinkRecordProcessor extends IlsRecordProcessor {
 				return true;
 			}
 		}
-		return false;
+		return super.isItemSuppressed(curItem);
 	}
 
 	@Override
-	protected boolean isItemAvailable(PrintIlsItem ilsRecord) {
+	protected boolean isItemAvailable(ItemInfo itemInfo) {
 		boolean available = false;
-		String status = ilsRecord.getStatus();
+		String status = itemInfo.getStatusCode();
 		String availableStatus = "is";
 		if (availableStatus.indexOf(status.charAt(0)) >= 0) {
 			available = true;
@@ -80,45 +75,50 @@ public class AnythinkRecordProcessor extends IlsRecordProcessor {
 		return available;
 	}
 
-	protected void loadAdditionalOwnershipInformation(GroupedWorkSolr groupedWork, PrintIlsItem printItem){
-		String collection = printItem.getCollection();
-		if (collection != null && collection.length() > 0){
-			groupedWork.addCollectionGroup(indexer.translateValue("collection_group", collection.toLowerCase()));
-		}
-	}
-
 	protected Set<String> getBisacSubjects(Record record){
 		return getFieldList(record, "690a");
 	}
 
-	protected void loadTargetAudiences(GroupedWorkSolr groupedWork, Record record, List<PrintIlsItem> printItems) {
+	protected void loadTargetAudiences(GroupedWorkSolr groupedWork, Record record, HashSet<ItemInfo> printItems, String identifier) {
 		//For Anythink, load audiences based on collection code rather than based on the 008 and 006 fields
-		HashSet<String> targetAudiences = new HashSet<String>();
-		for (PrintIlsItem printItem : printItems){
-			String collection = printItem.getCollection();
+		HashSet<String> targetAudiences = new HashSet<>();
+		for (ItemInfo printItem : printItems){
+			String collection = printItem.getShelfLocationCode();
 			if (collection != null) {
 				targetAudiences.add(collection.toLowerCase());
 			}
 		}
 
-		groupedWork.addTargetAudiences(indexer.translateCollection("target_audience", targetAudiences));
-		groupedWork.addTargetAudiencesFull(indexer.translateCollection("target_audience", targetAudiences));
+		HashSet<String> translatedAudiences = translateCollection("target_audience", targetAudiences, identifier);
+		groupedWork.addTargetAudiences(translatedAudiences);
+		groupedWork.addTargetAudiencesFull(translatedAudiences);
 	}
 
-	private static SimpleDateFormat dateAddedFormatter = null;
-	private Integer currentYear = null;
-	Calendar curDate;
-	protected void loadDateAdded(GroupedWorkSolr groupedWork, String identfier, List<PrintIlsItem> printItems, List<EContentIlsItem> econtentItems) {
-		//Since date added cannot be extracted from Horizon, we will approximate using the bib number
-		//Formula is:  (bib number / max bib number - 1)  * 365 * (current year - 1950)
-		if (currentYear == null){
-			curDate = GregorianCalendar.getInstance();
-			currentYear = curDate.get(Calendar.YEAR);
+	@Override
+	protected void loadDateAdded(String identfier, DataField itemField, ItemInfo itemInfo) {
+		try {
+			getDateAddedStmt.setString(1, identfier);
+			ResultSet getDateAddedRS = getDateAddedStmt.executeQuery();
+			if (getDateAddedRS.next()) {
+				long timeAdded = getDateAddedRS.getLong(1);
+				Date curDate = new Date(timeAdded * 1000);
+				itemInfo.setDateAdded(curDate);
+				getDateAddedRS.close();
+			}else{
+				logger.debug("Could not determine date added for " + identfier);
+			}
+		}catch (Exception e){
+			logger.error("Unable to load date added for " + identfier);
 		}
-		Long identifierNumber = Long.parseLong(identfier);
-		Integer daysSinceAdded = (int)(((float)identifierNumber / (float)maxBibNumber - 1) * 375 * (currentYear - 1950));
-		curDate.setTime(new Date());
-		curDate.add(Calendar.DATE, daysSinceAdded);
-		groupedWork.setDateAdded(curDate.getTime(), indexer.getAllScopeNames());
+	}
+
+	protected String getShelfLocationForItem(ItemInfo itemInfo, DataField itemField, String identifier) {
+		String locationCode = getItemSubfieldData(locationSubfieldIndicator, itemField);
+		String location = translateValue("location", locationCode, identifier);
+		String shelvingLocation = getItemSubfieldData(shelvingLocationSubfield, itemField);
+		if (shelvingLocation != null && !shelvingLocation.equals(locationCode)){
+			location += " - " + translateValue("shelf_location", shelvingLocation, identifier);
+		}
+		return location;
 	}
 }

@@ -16,40 +16,45 @@
 				<div id ='loginPasswordRow' class='form-group'>
 					<label for="password" class='control-label col-xs-12 col-sm-4'>{$passwordLabel}: </label>
 					<div class='col-xs-12 col-sm-8'>
-						<input type="password" pattern="[0-9]*" name="password" id="password" size="28" onkeypress="return VuFind.submitOnEnter(event, '#loginForm');" class="form-control"/>
-						{if $showForgotPinLink}
-							<p class="help-block">
-								<strong>Forgot PIN?</strong> <a href="{$path}/MyResearch/EmailPin">E-mail my PIN</a>
-							</p>
-						{/if}
-
+						<input type="password" pattern="[0-9]*" name="password" id="password" size="28" class="form-control"/>
+					</div>
+				</div>
+ 				<div id ='loginPasswordConfirmRow' class='form-group' style="display:none">
+					<label for="password2" class='control-label col-xs-12 col-sm-4'>{translate text='Confirm pin #'}: </label>
+					<div class='col-xs-12 col-sm-8'>
+						<input type="password" pattern="[0-9]*" name="password2" id="password2" size="28" class="form-control"/>
+					</div>
+				</div>
+				<div id ='loginHelpRow' class='form-group'>
+					<div class='col-xs-12 col-sm-offset-4 col-sm-8'>
+						<p class='help-block'><a href="{$path}/MyAccount/RequestPinReset">Forgot your PIN?</a></p>
+						<p class='help-block'><a href="#" onclick="document.getElementById('loginPasswordConfirmRow').style.display='block';">Create new PIN</p>
 						{if $enableSelfRegistration == 1}
 							<p class="help-block">
-								Don't have a library card?  <a href='{$path}/MyAccount/SelfReg'>Register for a new Library Card</a>.
+								<a href='{$path}/MyAccount/SelfReg'>Get a Card [PIKA SELFREG]</a>
+							</p>
+						{else}
+							<p class="help-block">
+								<a href='http://library.nashville.org/card/crd_getcard.asp'>Get a Card</a>
 							</p>
 						{/if}
-					</div>
 
-				</div>
-				<div id ='loginPasswordRow2' class='form-group'>
-					<div class='col-xs-12 col-sm-offset-4 col-sm-8'>
 						<label for="showPwd" class="checkbox">
 							<input type="checkbox" id="showPwd" name="showPwd" onclick="return VuFind.pwdToText('password')"/>
 							{translate text="Reveal Password"}
 						</label>
 
-						{if !$inLibrary}
-							<label for="rememberMe" class="checkbox">
-								<input type="checkbox" id="rememberMe" name="rememberMe"/>
-								{translate text="Remember Me"}
-							</label>
-							{/if}
+						<label for="rememberMe" class="checkbox">
+							<input type="checkbox" id="rememberMe" name="rememberMe"/>
+							{translate text="Remember Me"}
+						</label>
 					</div>
 				</div>
 
-				<div id ='loginPasswordRow2' class='form-group'>
+				<div id ='loginSubmitRow' class='form-group'>
 					<div class='col-xs-12 col-sm-offset-4 col-sm-8'>
-						<input type="submit" name="submit" value="Login" id="loginFormSubmit" class="btn btn-primary" onclick="return VuFind.Account.preProcessLogin();"/>
+						<input type="submit" name="submit" value="Login" id="loginFormSubmit" class="btn btn-primary" onclick="return VuFind.Account.preProcessLogin();" />
+						<input type="cancel" name="cancel" value="Cancel" id="loginFormCancel" class="btn btn-primary" onclick="Location.reload()" style="display:none;" />
 						{if $followup}<input type="hidden" name="followup" value="{$followup}"/>{/if}
 						{if $followupModule}<input type="hidden" name="followupModule" value="{$followupModule}"/>{/if}
 						{if $followupAction}<input type="hidden" name="followupAction" value="{$followupAction}"/>{/if}
@@ -66,6 +71,32 @@
 			</div>
 		</form>
 	</div>
+
+{literal}
+<script>
+function resetPinReset(){
+	var barcode = $('#card_number').val();
+	if (barcode.length == 0){
+		alert("Please enter your library card number");
+	}else{
+                var url = path + '/MyAccount/AJAX?method=requestPinReset&barcode=' + barcode;
+                $.getJSON(url, function(data){
+                        if (data.error == false){
+                                alert(data.message);
+                                if (data.success == true){
+                                        hideLightbox();
+                                }
+                      	}else{
+                                alert("There was an error requesting your pin reset information.  Please contact the library for additional information.");
+                        }
+                });
+        }
+        return false;
+}
+</script>
+{/literal}
+
+
 </div>
 {/strip}
 {literal}

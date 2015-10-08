@@ -68,7 +68,7 @@ class BookCoverProcessor{
 			return;
 		}
 
-		if ($this->getCoverFromMarc()){
+		if ($this->type != 'grouped_work' && $this->getCoverFromMarc()){
 			return;
 		}
 
@@ -83,6 +83,10 @@ class BookCoverProcessor{
 
 	private function getHooplaCover($id){
 		require_once ROOT_DIR . '/RecordDrivers/HooplaDriver.php';
+		if (strpos($id, ':') !== false){
+			list(, $id) = explode(":", $id);
+		}
+
 		$driver = new HooplaRecordDriver($id);
 		/** @var File_MARC_Data_Field[] $linkFields */
 		$linkFields = $driver->getMarcRecord()->getFields('856');
@@ -99,6 +103,7 @@ class BookCoverProcessor{
 		require_once ROOT_DIR . '/sys/OverDrive/OverDriveAPIProduct.php';
 		require_once ROOT_DIR . '/sys/OverDrive/OverDriveAPIProductMetaData.php';
 		$overDriveProduct = new OverDriveAPIProduct();
+		list(, $id) = explode(":", $id);
 		$overDriveProduct->overdriveId = $id == null ? $this->id : $id;
 		if ($overDriveProduct->find(true)){
 			$overDriveMetadata = new OverDriveAPIProductMetaData();
@@ -237,7 +242,19 @@ class BookCoverProcessor{
 		}
 		$this->id = isset($_GET['id']) ? $_GET['id'] : null;
 		$this->isEContent = isset($_GET['econtent']);
-		$this->type = isset($_GET['type']) ? $_GET['type'] : 'ils';
+		if (isset($_GET['type'])){
+			$this->type =  $_GET['type'];
+		}else{
+			if (preg_match('/[a-f\\d]{8}-[a-f\\d]{4}-[a-f\\d]{4}-[a-f\\d]{4}-[a-f\\d]{12}/', $this->id)){
+				$this->type = 'grouped_work';
+			}else{
+				$this->type = 'ils';
+			}
+		}
+		if (strpos($this->id, ':') > 0){
+			list($this->type, $this->id) = explode(':', $this->id);
+		}
+
 
 		$this->category = isset($_GET['category']) ? strtolower($_GET['category']) : null;
 		$this->format = isset($_GET['format']) ? strtolower($_GET['format']) : null;
@@ -395,8 +412,8 @@ class BookCoverProcessor{
 				}else{
 					$marcRecord = false;
 				}
-			}elseif ($this->type == 'ils'){
-				$marcRecord = MarcLoader::loadMarcRecordByILSId($this->id);
+			}elseif ($this->type != 'overdrive' && $this->type != 'hoopla'){
+				$marcRecord = MarcLoader::loadMarcRecordByILSId($this->type . ':' . $this->id);
 			}
 		}
 
@@ -466,6 +483,23 @@ class BookCoverProcessor{
 						if ($this->processImageURL($filename, true)){
 							return true;
 						}
+					}
+				}else{
+					//no image link available on this link
+				}
+			}
+		}
+
+		//Check for Flatirons covers
+		$marcFields = $marcRecord->getFields('962');
+		if ($marcFields){
+			$this->log("Found 962 field", PEAR_LOG_INFO);
+			foreach ($marcFields as $marcField){
+				if ($marcField->getSubfield('u')){
+					$this->log("Found 962u subfield", PEAR_LOG_INFO);
+					$subfield_u = $marcField->getSubfield('u')->getData();
+					if ($this->processImageURL($subfield_u, true)){
+						return true;
 					}
 				}else{
 					//no image link available on this link
@@ -738,7 +772,10 @@ class BookCoverProcessor{
 		}
 
 		$url = isset($this->configArray['Syndetics']['url']) ? $this->configArray['Syndetics']['url'] : 'http://syndetics.com';
-		$url .= "/index.aspx?type=xw12&isbn={$this->isn}&pagename={$size}&client={$key}";
+		$url .= "/index.aspx?type=xw12&pagename={$size}&client={$key}";
+		if ($this->isn){
+			$url .= "&isbn=" . (!is_null($this->isn) ? $this->isn : '');
+		}
 		if ($this->upc){
 			$url .= "&upc=" . (!is_null($this->upc) ? $this->upc : '');
 		}
@@ -934,11 +971,11 @@ class BookCoverProcessor{
 			//Have not found a grouped work based on isbn or upc, check based on related records
 			$relatedRecords = $this->groupedWork->getRelatedRecords(false);
 			foreach ($relatedRecords as $relatedRecord){
-				if ($relatedRecord['source'] == 'OverDrive'){
+				if (strcasecmp($relatedRecord['source'], 'OverDrive') == 0){
 					if ($this->getOverDriveCover($relatedRecord['id'])){
 						return true;
 					}
-				}elseif ($relatedRecord['source'] == 'Hoopla'){
+				}elseif (strcasecmp($relatedRecord['source'], 'Hoopla')  == 0){
 					if ($this->getHooplaCover($relatedRecord['id'])){
 						return true;
 					}

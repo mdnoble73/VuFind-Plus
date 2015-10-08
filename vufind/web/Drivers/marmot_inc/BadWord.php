@@ -40,4 +40,18 @@ class BadWord extends DB_DataObject
 		return $badWordsList;
 	}
 
+	function censorBadWords($search, $replacement = '***') {
+		$badWordsList = $this->getBadWordExpressions();
+		$result = preg_replace($badWordsList, $replacement, $search);
+		return $result;
+	}
+
+	function hasBadWords($search){
+		$badWordsList = $this->getBadWordExpressions();
+		foreach ($badWordsList as $badWord) {
+			if (preg_match($badWord, $search)) return true;
+		}
+		return false;
+	}
+
 }

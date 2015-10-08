@@ -174,28 +174,32 @@ class Report_ReportExternalLinks extends Report_Report{
 			while ($r=mysql_fetch_array($resPurchases)) {
 				$recordId = $r['recordId'];
 				$fullId = $r['recordId'];
+				$title = null;
 
 				if (preg_match('/econtentRecord(\d+)/', $recordId, $matches)){
-					require_once ROOT_DIR . '/sys/eContent/EContentRecord.php';
+					/*require_once ROOT_DIR . '/sys/eContent/EContentRecord.php';
 					$econtentRecord = new EContentRecord();
 					$econtentRecord->id = $matches[1];
 					$econtentRecord->find(true);
 					$recordId = $econtentRecord->ilsId;
-					$title = $econtentRecord->title;
+					$title = $econtentRecord->title;*/
 				}else{
 					require_once ROOT_DIR . '/RecordDrivers/MarcRecord.php';
 					$recordDriver = new MarcRecord($recordId);
 					$title = $recordDriver->getTitle();
 				}
 
-				$tmp = array(
-					'recordId' => $recordId,
-					'recordUrl' => '/Record/' . $fullId,
-					'title' => $title,
-					'timesFollowed' => $r['timesFollowed'],
-					'linkHost' => $r['linkHost'],
-					'linkUrl' => $r['linkUrl']
-				);
+				if ($title != null){
+					$tmp = array(
+						'recordId' => $recordId,
+						'recordUrl' => '/Record/' . $fullId,
+						'title' => $title,
+						'timesFollowed' => $r['timesFollowed'],
+						'linkHost' => $r['linkHost'],
+						'linkUrl' => $r['linkUrl']
+					);
+				}
+
 				$resultsPurchases[$i++] = $tmp;
 			}
 		}
@@ -285,9 +289,11 @@ class Report_ReportExternalLinks extends Report_Report{
 		
 		//Chart section
 		$reportData = new pData();
-		while ($r=mysql_fetch_array($dailyUsage)) {
-			$linkHost = $r['linkHost'];
-			$linkUsageByHostByDay[$linkHost][$r['date']] = $r['timesFollowed'];
+		if ($dailyUsage){
+			while ($r=mysql_fetch_array($dailyUsage)) {
+				$linkHost = $r['linkHost'];
+				$linkUsageByHostByDay[$linkHost][$r['date']] = $r['timesFollowed'];
+			}
 		}
 
 		foreach ($linkUsageByHostByDay as $hostName => $dailyResults){

@@ -1,10 +1,10 @@
 {strip}
 <div class="btn-toolbar">
 	<div class="btn-group btn-group-vertical btn-block">
-		{* Place hold link *}
-		{if $showHoldButton}
-				<a href="#" class="btn btn-sm btn-block btn-primary" onclick="return VuFind.Record.showPlaceHold('{$summId}')" >{translate text="Place Hold"}</a>
-		{/if}
+		{* actions *}
+		{foreach from=$actions item=curAction}
+			<a href="{$curAction.url}" {if $curAction.onclick}onclick="{$curAction.onclick}"{/if} class="btn btn-sm btn-primary">{$curAction.title}</a>
+		{/foreach}
 	</div>
 </div>
 {/strip}

@@ -7,7 +7,7 @@
 					<th>Sort</th>
 				{/if}
 				{foreach from=$property.structure item=subProperty}
-					{if in_array($subProperty.type, array('text', 'enum', 'date', 'checkbox', 'integer')) }
+					{if in_array($subProperty.type, array('text', 'enum', 'date', 'checkbox', 'integer', 'textarea', 'html')) }
 						<th>{$subProperty.label}</th>
 					{/if}
 				{/foreach}
@@ -25,11 +25,11 @@
 					</td>
 				{/if}
 				{foreach from=$property.structure item=subProperty}
-					{if in_array($subProperty.type, array('text', 'enum', 'date', 'checkbox', 'integer')) }
+					{if in_array($subProperty.type, array('text', 'enum', 'date', 'checkbox', 'integer', 'textarea', 'html')) }
 						<td>
 							{assign var=subPropName value=$subProperty.property}
 							{assign var=subPropValue value=$subObject->$subPropName}
-							{if $subProperty.type=='text' || $subProperty.type=='date' || $subProperty.type=='integer'}
+							{if $subProperty.type=='text' || $subProperty.type=='date' || $subProperty.type=='integer' || $subProperty.type=='textarea' || $subProperty.type=='html'}
 								<input type="text" name="{$propName}_{$subPropName}[{$subObject->id}]" value="{$subPropValue|escape}" class="{if $subProperty.type=='date'}datepicker{elseif $subProperty.type=="integer"}integer{/if}{if $subProperty.required == true} required{/if}"/>
 							{elseif $subProperty.type=='checkbox'}
 								<input type='checkbox' name='{$propName}_{$subPropName}[{$subObject->id}]' {if $subPropValue == 1}checked='checked'{/if}/>
@@ -45,16 +45,24 @@
 				{/foreach}
 				<td>
 				{* link to delete*}
-				<input type="hidden" id="{$propName}Deleted_{$subObject->id}" name="{$propName}Deleted[{$subObject->id}]" value="false"/>
-				<a href="#" onclick="if (confirm('Are you sure you want to delete this?')){literal}{{/literal}$('#{$propName}Deleted_{$subObject->id}').val('true');$('#{$propName}{$subObject->id}').hide(){literal}}{/literal};return false;"><img src="{$path}/images/silk/delete.png" alt="delete" /></a>{* link to delete *}
+				<input type="hidden" id="{$propName}Deleted_{$subObject->id}" name="{$propName}Deleted[{$subObject->id}]" value="false">
+					{* link to delete *}
+				<a href="#" onclick="if (confirm('Are you sure you want to delete this?')){literal}{{/literal}$('#{$propName}Deleted_{$subObject->id}').val('true');$('#{$propName}{$subObject->id}').hide().find('.required').removeClass('required'){literal}}{/literal};return false;">
+					{* On delete action, also remove class 'required' to turn off form validation of the deleted input; so that the form can be submitted by the user  *}
+					<img src="{$path}/images/silk/delete.png" alt="delete">
+				</a>
 				{if $property.editLink neq ''}
 					&nbsp;<a href='{$property.editLink}?objectAction=edit&widgetListId={$subObject->id}&widgetId={$widgetid}' alt='Edit SubLinks' title='Edit SubLinks'>
 						<span class="glyphicon glyphicon-link" title="edit links">&nbsp;</span>
 					</a>
 				{elseif $property.canEdit}
-					&nbsp;<a href='{$subObject->getEditLink()}' alt='Edit' title='Edit'>
-						<span class="glyphicon glyphicon-edit" title="edit">&nbsp;</span>
-					</a>
+					{if method_exists($subObject, 'getEditLink')}
+						&nbsp;<a href='{$subObject->getEditLink()}' alt='Edit' title='Edit'>
+							<span class="glyphicon glyphicon-edit" title="edit">&nbsp;</span>
+						</a>
+					{else}
+						Please add a getEditLink method to this object
+					{/if}
 				{/if}
 				</td>
 			</tr>
@@ -94,11 +102,11 @@
 				newRow += "</td>";
 			{/if}
 			{foreach from=$property.structure item=subProperty}
-				{if in_array($subProperty.type, array('text', 'enum', 'date', 'checkbox', 'integer')) }
+				{if in_array($subProperty.type, array('text', 'enum', 'date', 'checkbox', 'integer', 'textarea', 'html')) }
 					newRow += "<td>";
 					{assign var=subPropName value=$subProperty.property}
 					{assign var=subPropValue value=$subObject->$subPropName}
-					{if $subProperty.type=='text' || $subProperty.type=='date' || $subProperty.type=='integer'}
+					{if $subProperty.type=='text' || $subProperty.type=='date' || $subProperty.type=='integer' || $subProperty.type=='textarea' || $subProperty.type=='html'}
 						newRow += "<input type='text' name='{$propName}_{$subPropName}[" + numAdditional{$propName} +"]' value='{if $subProperty.default}{$subProperty.default}{/if}' class='{if $subProperty.type=="date"}datepicker{elseif $subProperty.type=="integer"}integer{/if}{if $subProperty.required == true} required{/if}'/>";
 					{elseif $subProperty.type=='checkbox'}
 						newRow += "<input type='checkbox' name='{$propName}_{$subPropName}[" + numAdditional{$propName} +"]' {if $subProperty.default == 1}checked='checked'{/if}/>";

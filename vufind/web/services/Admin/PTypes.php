@@ -62,10 +62,6 @@ class PTypes extends ObjectEditor
 	function getAllowableRoles(){
 		return array('opacAdmin');
 	}
-	function showExportAndCompare(){
-		global $user;
-		return $user->hasRole('opacAdmin');
-	}
 	function canAddNew(){
 		global $user;
 		return $user->hasRole('opacAdmin');

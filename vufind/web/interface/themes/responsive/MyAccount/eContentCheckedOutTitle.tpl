@@ -25,10 +25,20 @@
 			</div>
 			<div class="row">
 				<div class="resultDetails col-xs-9">
-					{if strlen($record.record->author) > 0}
+					{*{if strlen($record.record->author) > 0}*}
+					{if $record.author}{* simplified from above, plb 7-1-2015*}
 						<div class="row">
 							<div class="result-label col-xs-3">{translate text='Author'}</div>
 							<div class="col-xs-9 result-value">{$record.author}</div>
+						</div>
+					{/if}
+
+					{if $showRatings && $record.groupedWorkId && $record.ratingData}
+						<div class="row">
+							<div class="result-label col-md-3">Rating&nbsp;</div>
+							<div class="col-md-9 result-value">
+								{include file="GroupedWork/title-rating.tpl" ratingClass="" id=$record.groupedWorkId ratingData=$record.ratingData showNotInterested=false}
+							</div>
 						</div>
 					{/if}
 
@@ -47,7 +57,7 @@
 					{if $recordType == 'RestrictedEContent'}
 						<div class="row">
 							<div class="result-label col-xs-3">{translate text='Expires'}</div>
-							<div class="col-xs-9 result-value">{$record.duedate|date_format}</div>
+							<div class="col-xs-9 result-value">{$record.dueDate|date_format}</div>
 						</div>
 
 						<div class="row">

@@ -255,7 +255,8 @@
 				 have some sort of hard autoCommit to limit the log size.
 			-->
 		<autoCommit>
-			<maxTime>${solr.autoCommit.maxTime:15000}</maxTime>
+			<maxDocs>${solr.autoCommit.maxDocs:5000}</maxDocs>
+			<maxTime>${solr.autoCommit.maxTime:3600000}</maxTime>
 			<openSearcher>false</openSearcher>
 		</autoCommit>
 
@@ -366,26 +367,25 @@
          -->
     <filterCache
       class="solr.FastLRUCache"
-      size="300000"
-      initialSize="300000"
-      autowarmCount="50000"/>
+      size="30000"
+      initialSize="5000"
+      autowarmCount="1000"/>
 
    <!-- queryResultCache caches results of searches - ordered lists of
          document ids (DocList) based on a query, a sort, and the range
          of documents requested.  -->
     <queryResultCache
       class="solr.LRUCache"
-      size="100000"
-      initialSize="100000"
-      autowarmCount="50000"/>
+      size="10000"
+      initialSize="5000"
+      autowarmCount="1000"/>
 
   <!-- documentCache caches Lucene Document objects (the stored fields for each document).
        Since Lucene internal document ids are transient, this cache will not be autowarmed.  -->
     <documentCache
       class="solr.LRUCache"
-      size="50000"
-      initialSize="50000"
-      autowarmCount="10000"/>
+      size="5000"
+      initialSize="5000"/>
 
 	  <!-- custom cache currently used by block join -->
 	  <cache name="perSegFilter"
@@ -490,22 +490,36 @@
 	  <!-- QuerySenderListener takes an array of NamedList and executes a
 			 local query request for each NamedList in sequence.
 		-->
-	  <listener event="newSearcher" class="solr.QuerySenderListener">
-		  <arr name="queries">
-			  <!--
-				 <lst><str name="q">solr</str><str name="sort">price asc</str></lst>
-				 <lst><str name="q">rocks</str><str name="sort">weight asc</str></lst>
-				-->
-		  </arr>
-	  </listener>
+		<listener event="newSearcher" class="solr.QuerySenderListener">
+			<arr name="queries">
+				<lst><str name="q"></str></lst>
+				<lst><str name="q">Fiction</str></lst>
+				<lst><str name="q">dvd</str></lst>
+				<lst><str name="q">movies</str></lst>
+				<lst><str name="q">good and evil</str></lst>
+				<lst><str name="q">Harry Potter</str></lst>
+				<lst><str name="q">audio books</str></lst>
+				<lst><str name="q">star wars</str></lst>
+				<lst><str name="q">murder victims fiction</str></lst>
+				<lst><str name="q">james patterson</str></lst>
+				<lst><str name="q">divergent</str></lst>
+				<lst><str name="q">gone girl</str></lst>
+				<lst><str name="q">game of thrones</str></lst>
+				<lst><str name="q">documentary videos</str></lst>
+				<lst><str name="q">all the light we cannot see</str></lst>
+				<lst><str name="q">dogs</str></lst>
+				<lst><str name="q">cats</str></lst>
+				<lst><str name="q">hunger games</str></lst>
+			</arr>
+		</listener>
 	  <listener event="firstSearcher" class="solr.QuerySenderListener">
+	    <!--
 		  <arr name="queries">
-			  <!--
 			  <lst>
 				  <str name="q">static firstSearcher warming in solrconfig.xml</str>
 			  </lst>
-			  -->
 		  </arr>
+		  -->
 	  </listener>
 
 	  <!-- Use Cold Searcher

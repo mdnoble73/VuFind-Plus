@@ -67,10 +67,6 @@ class Locations extends ObjectEditor
 	function getAllowableRoles(){
 		return array('opacAdmin', 'libraryAdmin');
 	}
-	function showExportAndCompare(){
-		global $user;
-		return $user->hasRole('opacAdmin');
-	}
 	function canAddNew(){
 		global $user;
 		return $user->hasRole('opacAdmin');

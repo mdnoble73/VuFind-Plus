@@ -24,12 +24,12 @@ require_once 'File/MARC.php';
 
 require_once ROOT_DIR  . '/sys/Language.php';
 
-require_once ROOT_DIR  . '/services/MyResearch/lib/User.php';
 require_once ROOT_DIR  . '/RecordDrivers/Factory.php';
 require_once ROOT_DIR  . '/RecordDrivers/MarcRecord.php';
 
 abstract class Record_Record extends Action
 {
+	public $source;
 	public $id;
 
 	/**
@@ -68,6 +68,13 @@ abstract class Record_Record extends Action
 		}else{
 			$this->id = $record_id;
 		}
+		if (strpos($this->id, ':')){
+			list($source, $id) = explode(":", $this->id);
+			$this->source = $source;
+			$this->id = $id;
+		}else{
+			$this->source = 'ils';
+		}
 		$interface->assign('id', $this->id);
 
 		if (preg_match('/^[\da-fA-F-]{36}$/', $this->id)){
@@ -76,8 +83,8 @@ abstract class Record_Record extends Action
 		}
 
 		//Check to see if the record exists within the resources table
-		$this->recordDriver = new MarcRecord($this->id);
-		if (!$this->recordDriver->isValid()){
+		$this->recordDriver = RecordDriverFactory::initRecordDriverById($this->source . ':' . $this->id);
+		if (is_null($this->recordDriver) || !$this->recordDriver->isValid()){  // initRecordDriverById itself does a validity check and returns null if not.
 			$interface->assign('sidebar', 'Record/full-record-sidebar.tpl');
 			$interface->setTemplate('invalidRecord.tpl');
 			$interface->display('layout.tpl');
@@ -99,14 +106,11 @@ abstract class Record_Record extends Action
 		}
 
 		// Process MARC Data
-		require_once ROOT_DIR  . '/sys/MarcLoader.php';
-		$marcRecord = MarcLoader::loadMarcRecordByILSId($this->id);
+		$marcRecord = $this->recordDriver->getMarcRecord();
 		if ($marcRecord) {
 			$this->marcRecord = $marcRecord;
 			$interface->assign('marc', $marcRecord);
 
-			require_once ROOT_DIR . '/RecordDrivers/MarcRecord.php';
-			$this->recordDriver = new MarcRecord($marcRecord);
 			$interface->assign('recordDriver', $this->recordDriver);
 		} else {
 			$interface->assign('error', 'Cannot Process MARC Record');
@@ -244,8 +248,6 @@ abstract class Record_Record extends Action
 		$interface->assign('recordLanguage', $this->recordDriver->getLanguage());
 
 		$timer->logTime('Got detailed data from Marc Record');
-
-		$notes = array();
 
 		if (isset($library) && strlen($library->notesTabName) > 0){
 			$interface->assign('notesTabName', $library->notesTabName);

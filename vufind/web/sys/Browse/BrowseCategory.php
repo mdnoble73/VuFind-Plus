@@ -47,6 +47,7 @@ class BrowseCategory extends DB_DataObject{
 				$this->subBrowseCategories[$subCategory->id] = clone($subCategory);
 			}
 		}
+		return $this->subBrowseCategories;
 	}
 
 	private $data = array();
@@ -88,7 +89,22 @@ class BrowseCategory extends DB_DataObject{
 		$ret = parent::update();
 		if ($ret !== FALSE ){
 			$this->saveSubBrowseCategories();
+
+			//delete any cached results for browse category
+			$this->deleteCachedBrowseCategoryResults();
+
 		}
+		return $ret;
+	}
+
+	/**
+	 * call this method when updating the browse categories views statistics, so that all the other functionality
+	 * in update() is avoided (and isn't needed)
+	 *
+	 * @return int
+	 */
+	public function update_stats_only(){
+		$ret = parent::update();
 		return $ret;
 	}
 
@@ -105,9 +121,39 @@ class BrowseCategory extends DB_DataObject{
 		return $ret;
 	}
 
+	private function deleteCachedBrowseCategoryResults(){
+		// key structure
+		// $key = 'browse_category_' . $this->textId . '_' . $solrScope . '_' . $browseMode;
+
+		$libraries = new Library();
+		$librarySubDomains = $libraries->fetchAll('subdomain');
+		$locations = new Location();
+		$locationCodes = $locations->fetchAll('code');
+		$solrScopes = array_merge($librarySubDomains, $locationCodes);
+
+		if (!empty($solrScopes)) { // don't bother if we didn't get any solr scopes
+			// Valid Browse Modes (taken from class Browse_AJAX)
+			$browseModes = array('covers', 'grid');
+
+			/* @var MemCache $memCache */
+			global $memCache;
+
+			$keyFormat = 'browse_category_' . $this->textId; // delete all stored items with beginning with this key format.
+			foreach ($solrScopes as $solrScope) {
+				foreach ($browseModes as $browseMode) {
+					$key = $keyFormat . '_' . $solrScope . '_' . $browseMode;
+					if ($memCache->get($key)) { // check if this key is in fact storing a value
+//					$success[$key] =
+						$memCache->delete($key);
+					}
+				}
+			}
+		}
+	}
+
 	public function saveSubBrowseCategories(){
 		if (isset ($this->subBrowseCategories) && is_array($this->subBrowseCategories)) {
-			/** @var SubBrowseCategory[] $subBrowseCategories */
+			/** @var SubBrowseCategories[] $subBrowseCategories */
 			foreach ($this->subBrowseCategories as $subCategory) {
 				if (isset($subCategory->deleteOnSave) && $subCategory->deleteOnSave == true) {
 					$subCategory->delete();
@@ -171,21 +217,14 @@ class BrowseCategory extends DB_DataObject{
 			),
 
 			'catalogScoping' => array('property'=>'catalogScoping', 'type'=>'enum', 'label'=>'Catalog Scoping', 'values' => array('unscoped' => 'Unscoped', 'library' => 'Current Library', 'location' => 'Current Location'), 'description'=>'What scoping should be used for this search scope?.', 'default'=>'unscoped'),
-			'searchTerm' => array('property'=>'searchTerm', 'type'=>'text', 'label'=>'Search Term', 'description'=>'A default search term to apply to the category', 'default'=>'', 'hideInLists' => true),
+			'searchTerm' => array('property'=>'searchTerm', 'type'=>'text', 'label'=>'Search Term', 'description'=>'A default search term to apply to the category', 'default'=>'', 'hideInLists' => true, 'maxLength' => 500),
 			'defaultFilter' => array('property'=>'defaultFilter', 'type'=>'textarea', 'label'=>'Default Filter(s)', 'description'=>'Filters to apply to the search by default.', 'hideInLists' => true, 'rows' => 3, 'cols'=>80),
 			'sourceListId' => array('property' => 'sourceListId', 'type'=>'enum', 'values' => $sourceLists, 'label'=>'Source List', 'description'=>'A public list to display titles from'),
-			'defaultSort' => array('property' => 'defaultSort', 'type' => 'enum', 'label' => 'Default Sort', 'values' => array('relevance' => 'Best Match', 'popularity' => 'Popularity', 'newest_to_oldest' => 'Newest First', 'oldest_to_newest' => 'Oldest First', 'author' => 'Author', 'title' => 'Title', 'user_rating' => 'Rating'), 'description'=>'The default sort for the search if none is specified', 'default'=>'relevance', 'hideInLists' => true),
+			'defaultSort' => array('property' => 'defaultSort', 'type' => 'enum', 'label' => 'Default Sort', 'values' => array('relevance' => 'Best Match', 'popularity' => 'Popularity', 'newest_to_oldest' => 'Date Added', 'author' => 'Author', 'title' => 'Title', 'user_rating' => 'Rating'), 'description'=>'The default sort for the search if none is specified', 'default'=>'relevance', 'hideInLists' => true),
 			'numTimesShown' => array('property'=>'numTimesShown', 'type'=>'label', 'label'=>'Times Shown', 'description'=>'The number of times this category has been shown to users'),
 			'numTitlesClickedOn' => array('property'=>'numTitlesClickedOn', 'type'=>'label', 'label'=>'Titles Clicked', 'description'=>'The number of times users have clicked on titles within this category'),
 		);
 
-		// used by Object Editor to make a list of Browse Categories for Admin interface
-		foreach ($structure as $fieldName => $field){
-			if (isset($field['property'])){
-				$field['propertyOld'] = $field['property'] . 'Old';
-				$structure[$fieldName] = $field;
-			}
-		}
 		return $structure;
 	}
 
@@ -230,8 +269,6 @@ class BrowseCategory extends DB_DataObject{
 			return 'popularity desc';
 		}elseif ($this->defaultSort == 'newest_to_oldest'){
 			return 'days_since_added asc';
-		}elseif ($this->defaultSort == 'oldest_to_newest'){
-			return 'days_since_added desc';
 		}elseif ($this->defaultSort == 'author'){
 			return 'author,title';
 		}elseif ($this->defaultSort == 'title'){

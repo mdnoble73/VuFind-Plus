@@ -9,10 +9,21 @@ set testing false
 # 1. Create a review file of Item records updated today, export the file, 
 # 2. create a diff file form the last export (5 minutes ago),
 # 3. finally, exec java -jar reindexer.jar $site partialReindex
-# Millennium 2011 1.6_3
+# Millennium 2014 2.0.0_15
 
 # TO DO
 # + Provide details on INNOPAC user privileges necessary
+
+# 20150818
+# + read config.pwd.ini isProduction
+# + if production, build update file in Millennium; else yank update files from Millennium OS
+
+# 20150724
+# + correct query and output fields that got renumbered following Millennium 2014 introduction of ITEMSTICKYS fixed length field (ITEM RECORD # and CREATED)
+
+# 20150624
+# + insert logic for handling unsaved RSA key
+# + insert logic for handling an unexpected empty review file
 
 # 20150302
 # + removed conflictingProcesses because continuous_partial_reindex.sh includes a similar function
@@ -92,13 +103,13 @@ while {![eof $fd]} {
 	set line [string trim [gets $fd] " "]
         if {$line == ""} continue
 	switch -regexp -nocase -- $line {
-		"^\\[Catalog Extract\\]" {
+		"^\\[(Catalog Extract|Site)\\]" {
 			set section true
 		}
 		"^\\[" {
 			set section false
 		}
-		^(INNOPAC|os) {
+		^(INNOPAC|isProduction|os) {
 			if {$section == true} {
 				set pair [split $line =]
 				set variable [string trim [lindex $pair 0]]
@@ -114,24 +125,35 @@ close $fd
 
 puts $logFile "[clock format [clock seconds] -format "%y%m%d %H:%M:%S"] >> Read Config Files"
 
-# During testing, use an IF FALSE block to NOT run the INNOPAC commands - and thus save a couple minutes
-if {$testing == false} { 
+# During testing or running on a non-production server,
+# use an IF FALSE block to NOT run the INNOPAC commands
+# and thus save a couple minutes and login and review file 
+# and export resources
 
-# CONNECT TO INNOPAC
+if {$testing == false && $isProduction == "true"} {
+
+# INNOPAC : CONNECT
 spawn ssh $INNOPACuser@$host
-#expect "Are you sure you want to continue connecting (yes/no)?" ; # if RSA key for host is not yet set
-#send "yes\r"
-#expect "login as:"
-#send "$INNOPACuser\r"
-expect "Password:"
-send "$INNOPACuserPassword\r"
+expect {
+	# if RSA key for host is not yet set
+	"Are you sure you want to continue connecting (yes/no)?" {
+		send "yes\r"
+		#expect "login as:"
+		send "$INNOPACuser\r"
+		expect "Password:"
+		send "$INNOPACuserPassword\r"
+	}
+	"Password:" {
+		send "$INNOPACuserPassword\r"
+	}
+}
 expect "What kind of Terminal are you using?"
 send "v"
 expect "Please confirm: are you using a VT100 or compatible terminal?"
 send "y"
 puts $logFile "[clock format [clock seconds] -format "%y%m%d %H:%M:%S"] >> Connected to INNOPAC"
 
-# CREATE LIST
+# INNOPAC : CREATE LIST
 expect "M > MANAGEMENT information"
 send "M"
 expect "L > Create LISTS of records"
@@ -140,16 +162,22 @@ expect "Please key your initials :"
 send "$INNOPACinitials\r"
 expect "Please key your password :"
 send "$INNOPACinitialsPassword\r"
-expect "$INNOPACreviewFile > $name"
+expect "Select review file to work on :"
 send $INNOPACreviewFile
-expect "N > NEW BOOLEAN search, delete the review file"
-send "N"
-expect "Are you sure you want to delete the current review file?"
-send "Y"
+expect {
+	"2 > Create a new file" { 
+		send "2" 
+	}
+	"N > NEW BOOLEAN search, delete the review file" {
+		send "N"
+		expect "Are you sure you want to delete the current review file?"
+		send "Y"
+	}
+}
 expect "I > ITEM list"
 send "I"
-expect "33 UPDATED"
-send "33"
+expect "34 UPDATED"
+send "34"
 expect "Enter boolean condition (=, ~, >, <, G, L, W, N)"
 send "="
 expect "UPDATED ="
@@ -182,8 +210,8 @@ expect "Output Item #2 >"
 send "?" ; # OTHER TYPES
 expect "I > ITEM"
 send "I"
-expect "31 RECORD #"
-send "31" ; # ITEM RECORD NUMBER
+expect "32 RECORD #"
+send "32" ; # ITEM RECORD NUMBER
 expect "Output Item #2 >"
 send "24" ; # ITEM STATUS
 expect "Output Item #3 >"
@@ -220,8 +248,11 @@ expect "already exists. Overwrite it?"
 send "y"
 expect "Output the file now?"
 send "n"
-sleep 5; # Allows INNOPAC to complete writing, otherwise data could be truncated
+# sleep 10; # Allows INNOPAC to complete writing, otherwise data could be truncated
+set timeout -1
+expect "Your review file" ; # "Your review file, [name], has [number] records in it ready to be output
 close
+set timeout $wait
 puts $logFile "[clock format [clock seconds] -format "%y%m%d %H:%M:%S"] >> $name for $site on $host: Export file prepared"
 #puts "[clock format [clock seconds] -format "%y%m%d %H:%M:%S"] >> $name for $site on $host: Export file prepared"
 

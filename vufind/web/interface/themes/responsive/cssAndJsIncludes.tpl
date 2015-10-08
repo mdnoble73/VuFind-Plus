@@ -16,16 +16,20 @@
 		<script src="{$path}/interface/themes/responsive/js/lib/jquery.tablesorter.min.js"></script>
 		<script src="{$path}/interface/themes/responsive/js/lib/jquery.tablesorter.pager.min.js"></script>
 		<script src="{$path}/interface/themes/responsive/js/lib/jquery.tablesorter.widgets.min.js"></script>
+		{*<script src="{$path}/interface/themes/responsive/js/lib/jquery.validate.js"></script>*}
 		<script src="{$path}/interface/themes/responsive/js/lib/jquery.validate.min.js"></script>
 
 		<script src="{$path}/interface/themes/responsive/js/lib/recaptcha_ajax.js"></script>
-		<script src="{$path}/interface/themes/responsive/js/lib/rater.min.js"></script>
+		{* Combined into ratings.js (part of the vufind.min.js)*}
+		{*<script src="{$path}/interface/themes/responsive/js/lib/rater.min.js"></script>*}
+		{*<script src="{$path}/interface/themes/responsive/js/lib/rater.js"></script>*}
 		<script src="{$path}/interface/themes/responsive/js/lib/bootstrap.min.js"></script>
 		<script src="{$path}/interface/themes/responsive/js/lib/jcarousel.js"></script>
 		<script src="{$path}/interface/themes/responsive/js/lib/bootstrap-datepicker.js"></script>
 		<script src="{$path}/interface/themes/responsive/js/lib/jquery-ui-1.10.4.custom.min.js"></script>
 		<script src="{$path}/interface/themes/responsive/js/lib/bootstrap-switch.min.js"></script>
 		<script src="{$path}/interface/themes/responsive/js/lib/jquery.touchwipe.min.js"></script>
+		<script src="{$path}/interface/themes/responsive/js/lib/lightbox.js"></script>
 
 		{* Load application specific Javascript *}
 		<script src="{$path}/interface/themes/responsive/js/vufind/globals.js"></script>

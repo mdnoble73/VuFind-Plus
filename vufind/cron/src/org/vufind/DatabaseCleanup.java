@@ -1,10 +1,18 @@
 package org.vufind;
 
+import java.io.File;
+import java.io.FilenameFilter;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
+import java.util.GregorianCalendar;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.log4j.Logger;
 import org.ini4j.Ini;
@@ -112,20 +120,76 @@ public class DatabaseCleanup implements IProcessHandler {
 			logger.error("Error deleting long searches", e);
 			processLog.saveToDatabase(vufindConn, logger);
 		}
-		
+
+		cleanupReadingHistory(vufindConn, logger, processLog);
+
+		//Remove indexing reports
+		try{
+			//Get the data directory where reports are stored
+			File dataDir = new File(configIni.get("Reindex", "marcPath"));
+			dataDir = dataDir.getParentFile();
+			//Get a list of dates that should be kept
+			SimpleDateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd");
+			GregorianCalendar today = new GregorianCalendar();
+			ArrayList<String> validDatesToKeep = new ArrayList<>();
+			//Keep the last 7 days
+			for (int i = 0; i < 7; i++) {
+				validDatesToKeep.add(dateFormatter.format(today.getTime()));
+				today.add(Calendar.DATE, -1);
+			}
+			//Keep the last 12 months
+			today.setTime(new Date());
+			today.set(Calendar.DAY_OF_MONTH, 1);
+			for (int i = 0; i < 12; i++) {
+				validDatesToKeep.add(dateFormatter.format(today.getTime()));
+				today.add(Calendar.MONTH, -1);
+			}
+
+			//List all csv files in the directory
+			File[] filesToCheck = dataDir.listFiles(new FilenameFilter() {
+				@Override
+				public boolean accept(File dir, String name) {
+					return name.matches(".*\\d{4}-\\d{2}-\\d{2}\\.csv");
+				}
+			});
+
+			//Check to see if we should keep or delete the file
+			Pattern getDatePattern = Pattern.compile("(\\d{4}-\\d{2}-\\d{2})", Pattern.CANON_EQ);
+			for (File curFile : filesToCheck){
+				//Get the date from the file
+				Matcher fileMatcher = getDatePattern.matcher(curFile.getName());
+				if (fileMatcher.find()) {
+					String date = fileMatcher.group();
+					if (!validDatesToKeep.contains(date)){
+						curFile.delete();
+					}
+				}
+			}
+
+		} catch (Exception e){
+			processLog.incErrors();
+			processLog.addNote("Error removing old indexing reports. " + e.toString());
+			logger.error("Error removing old indexing reports", e);
+			processLog.saveToDatabase(vufindConn, logger);
+		}
+
+		processLog.setFinished();
+		processLog.saveToDatabase(vufindConn, logger);
+	}
+
+	protected void cleanupReadingHistory(Connection vufindConn, Logger logger, CronProcessLogEntry processLog) {
 		//Remove reading history entries that are duplicate based on being renewed
 		//Get a list of duplicate titles
 		try {
-			PreparedStatement duplicateRecordsToPreserveStmt = vufindConn.prepareStatement("SELECT COUNT(id) as numRecords, userId, groupedWorkPermanentId, source, sourceId, checkOutDate, MAX(checkInDate) as lastCheckIn FROM user_reading_history_work where deleted = 0 GROUP BY userId, source, sourceId, checkOutDate having numRecords > 1", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
-			PreparedStatement deleteDuplicateRecordStmt = vufindConn.prepareStatement("UPDATE user_reading_history_work SET deleted = 1 WHERE userId = ? AND groupedWorkPermanentId = ? AND source = ? and sourceId = ? and checkOutDate = ? AND checkInDate != ?");
+			//Add a filter so that we are looking at 1 week resolution rather than exact.
+			PreparedStatement duplicateRecordsToPreserveStmt = vufindConn.prepareStatement("SELECT COUNT(id) as numRecords, userId, groupedWorkPermanentId, source, sourceId, FLOOR(checkOutDate/604800) as checkoutWeek , MIN(id) as idToPreserve FROM user_reading_history_work where deleted = 0 GROUP BY userId, groupedWorkPermanentId, FLOOR(checkOutDate/604800) having numRecords > 1", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+			PreparedStatement deleteDuplicateRecordStmt = vufindConn.prepareStatement("UPDATE user_reading_history_work SET deleted = 1 WHERE userId = ? AND groupedWorkPermanentId = ? AND FLOOR(checkOutDate/604800) = ? AND id != ?");
 			ResultSet duplicateRecordsRS = duplicateRecordsToPreserveStmt.executeQuery();
 			while (duplicateRecordsRS.next()){
 				deleteDuplicateRecordStmt.setLong(1, duplicateRecordsRS.getLong("userId"));
 				deleteDuplicateRecordStmt.setString(2, duplicateRecordsRS.getString("groupedWorkPermanentId"));
-				deleteDuplicateRecordStmt.setString(3, duplicateRecordsRS.getString("source"));
-				deleteDuplicateRecordStmt.setString(4, duplicateRecordsRS.getString("sourceId"));
-				deleteDuplicateRecordStmt.setLong(5, duplicateRecordsRS.getLong("checkoutDate"));
-				deleteDuplicateRecordStmt.setLong(6, duplicateRecordsRS.getLong("lastCheckIn"));
+				deleteDuplicateRecordStmt.setLong(3, duplicateRecordsRS.getLong("checkoutWeek"));
+				deleteDuplicateRecordStmt.setLong(4, duplicateRecordsRS.getLong("idToPreserve"));
 				deleteDuplicateRecordStmt.executeUpdate();
 
 				//int numDeletions = deleteDuplicateRecordStmt.executeUpdate();
@@ -135,17 +199,15 @@ public class DatabaseCleanup implements IProcessHandler {
 				}*/
 			}
 
-			//Now look for additional duplicates where the check in date is the same
-			duplicateRecordsToPreserveStmt = vufindConn.prepareStatement("SELECT COUNT(id) as numRecords, userId, groupedWorkPermanentId, source, sourceId, checkOutDate, MIN(id) as idToPreserve FROM user_reading_history_work where deleted = 0 GROUP BY userId, source, sourceId, checkOutDate having numRecords > 1", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
-			deleteDuplicateRecordStmt = vufindConn.prepareStatement("UPDATE user_reading_history_work SET deleted = 1 WHERE userId = ? AND groupedWorkPermanentId = ? AND source = ? and sourceId = ? and checkOutDate = ? AND id != ?");
+			//Now look for additional duplicates where the check in date is within a week
+			duplicateRecordsToPreserveStmt = vufindConn.prepareStatement("SELECT COUNT(id) as numRecords, userId, groupedWorkPermanentId, source, sourceId, FLOOR(checkInDate/604800) checkInWeek, MIN(id) as idToPreserve FROM user_reading_history_work where deleted = 0 GROUP BY userId, groupedWorkPermanentId, FLOOR(checkInDate/604800) having numRecords > 1", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+			deleteDuplicateRecordStmt = vufindConn.prepareStatement("UPDATE user_reading_history_work SET deleted = 1 WHERE userId = ? AND groupedWorkPermanentId = ? AND FLOOR(checkInDate/604800) = ? AND id != ?");
 			duplicateRecordsRS = duplicateRecordsToPreserveStmt.executeQuery();
 			while (duplicateRecordsRS.next()){
 				deleteDuplicateRecordStmt.setLong(1, duplicateRecordsRS.getLong("userId"));
 				deleteDuplicateRecordStmt.setString(2, duplicateRecordsRS.getString("groupedWorkPermanentId"));
-				deleteDuplicateRecordStmt.setString(3, duplicateRecordsRS.getString("source"));
-				deleteDuplicateRecordStmt.setString(4, duplicateRecordsRS.getString("sourceId"));
-				deleteDuplicateRecordStmt.setLong(5, duplicateRecordsRS.getLong("checkoutDate"));
-				deleteDuplicateRecordStmt.setLong(6, duplicateRecordsRS.getLong("idToPreserve"));
+				deleteDuplicateRecordStmt.setLong(3, duplicateRecordsRS.getLong("checkInWeek"));
+				deleteDuplicateRecordStmt.setLong(4, duplicateRecordsRS.getLong("idToPreserve"));
 				deleteDuplicateRecordStmt.executeUpdate();
 
 				//int numDeletions = deleteDuplicateRecordStmt.executeUpdate();
@@ -160,8 +222,20 @@ public class DatabaseCleanup implements IProcessHandler {
 			logger.error("Error deleting duplicate reading history entries", e);
 			processLog.saveToDatabase(vufindConn, logger);
 		}
-		processLog.setFinished();
-		processLog.saveToDatabase(vufindConn, logger);
+
+		//Remove invalid reading history entries
+		try{
+			PreparedStatement removeInvalidReadingHistoryEntriesStmt = vufindConn.prepareStatement("DELETE FROM user_reading_history_work WHERE groupedWorkPermanentId = 'L'");
+			int numUpdates = removeInvalidReadingHistoryEntriesStmt.executeUpdate();
+			processLog.addNote("Removed " + numUpdates + " invalid reading history entries");
+			processLog.incUpdated();
+
+		} catch (Exception e){
+			processLog.incErrors();
+			processLog.addNote("Error removing invalid reading history entriee. " + e.toString());
+			logger.error("Error removing invalid reading history entriee", e);
+			processLog.saveToDatabase(vufindConn, logger);
+		}
 	}
 
 }

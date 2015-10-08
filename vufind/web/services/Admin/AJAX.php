@@ -187,15 +187,13 @@ class Admin_AJAX extends Action {
 			$userLibrary = Library::getPatronHomeLibrary();
 			$listWidget->libraryId = $userLibrary->libraryId;
 		}
-		$listWidget->find();
-		while ($listWidget->fetch()){
-			$existingWidgets[$listWidget->id] = $listWidget->name;
-		}
+		$listWidget->orderBy('name');
+		$existingWidgets = $listWidget->fetchAll('id', 'name');
 		$interface->assign('existingWidgets', $existingWidgets);
 		$results = array(
 				'title' => 'Create a Widget',
 				'modalBody' => $interface->fetch('Admin/addToWidgetForm.tpl'),
-				'modalButtons' => "<span class='tool btn btn-primary' onclick='$(\"#bulkAddToList\").submit();'>Create Widget</span>"
+				'modalButtons' => "<button class='tool btn btn-primary' onclick='$(\"#bulkAddToList\").submit();'>Create Widget</button>"
 		);
 		return json_encode($results);
 	}

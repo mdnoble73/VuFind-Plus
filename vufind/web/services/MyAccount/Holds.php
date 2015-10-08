@@ -16,40 +16,6 @@ class MyAccount_Holds extends MyAccount{
 		global $interface;
 		global $user;
 
-		//these actions are being moved to MyAccount/AJAX.php
-		if (isset($_REQUEST['multiAction'])){
-			$multiAction = $_REQUEST['multiAction'];
-			$locationId = isset($_REQUEST['location']) ? $_REQUEST['location'] : null;
-			$cancelId = array();
-			$type = 'update';
-			$freeze = '';
-			if ($multiAction == 'cancelSelected'){
-				$type = 'cancel';
-//				$freeze = ''; // same as default setting.
-			}elseif ($multiAction == 'freezeSelected'){
-//				$type = 'update'; // same as default setting.
-				$freeze = 'on';
-			}elseif ($multiAction == 'thawSelected'){
-//				$type = 'update'; // same as default setting.
-				$freeze = 'off';
-			}
-//			elseif ($multiAction == 'updateSelected'){ // same as default settings.
-
-//				$type = 'update';
-//				$freeze = '';
-//			}
-			$result = $this->catalog->driver->updateHoldDetailed($user->password, $type, '', null, $cancelId, $locationId, $freeze);
-//			$interface->assign('holdResult', $result);
-
-
-			//Redirect back here without the extra parameters.
-			$redirectUrl = $configArray['Site']['path'] . '/MyAccount/Holds?accountSort=' . ($selectedSortOption = isset($_REQUEST['accountSort']) ? $_REQUEST['accountSort'] : 'title');
-			header("Location: " . $redirectUrl);
-
-
-			die();
-		}
-
 		$interface->assign('allowFreezeHolds', true);
 
 		$ils = $configArray['Catalog']['ils'];
@@ -76,10 +42,7 @@ class MyAccount_Holds extends MyAccount{
 		$selectedSortOption = isset($_REQUEST['accountSort']) ? $_REQUEST['accountSort'] : 'title';
 		$interface->assign('defaultSortOption', $selectedSortOption);
 
-		$profile = $this->catalog->getMyProfile($user);
-		// TODO: getMyProfile called for second time. First time on index.php
-
-		$libraryHoursMessage = Location::getLibraryHoursMessage($profile['homeLocationId']);
+		$libraryHoursMessage = Location::getLibraryHoursMessage($user->homeLocationId);
 		$interface->assign('libraryHoursMessage', $libraryHoursMessage);
 
 		$allowChangeLocation = ($ils == 'Millennium' || $ils == 'Sierra');
@@ -98,73 +61,31 @@ class MyAccount_Holds extends MyAccount{
 		if ($configArray['Catalog']['offline']){
 			$interface->assign('offline', true);
 		}else{
-			$patron = null;
-			if ($this->catalog->status) {
-				if ($user->cat_username) {
-					$patron = $this->catalog->patronLogin($user->cat_username, $user->cat_password);
-					$patronResult = $this->catalog->getMyProfile($patron);
-					// TODO: getMyProfile called above already. Is this call necessary?
-					if (!PEAR_Singleton::isError($patronResult)) {
-						$interface->assign('profile', $patronResult);
+			if ($user){
+				$interface->assign('sortOptions', $sortOptions);
+				$selectedSortOption = isset($_REQUEST['accountSort']) ? $_REQUEST['accountSort'] : 'dueDate';
+				$interface->assign('defaultSortOption', $selectedSortOption);
+
+				$recordsPerPage = isset($_REQUEST['pagesize']) && (is_numeric($_REQUEST['pagesize'])) ? $_REQUEST['pagesize'] : 25;
+				$interface->assign('recordsPerPage', $recordsPerPage);
+
+				//Get Holds from the ILS
+				$allHolds = $user->getMyHolds();
+
+				//Make sure available holds come before unavailable
+				$interface->assign('recordList', $allHolds);
+
+				//make call to export function
+				if ((isset($_GET['exportToExcelAvailable'])) || (isset($_GET['exportToExcelUnavailable']))){
+					if (isset($_GET['exportToExcelAvailable'])) {
+						$exportType = "available";
 					}
-
-					$interface->assign('sortOptions', $sortOptions);
-					$selectedSortOption = isset($_REQUEST['accountSort']) ? $_REQUEST['accountSort'] : 'dueDate';
-					$interface->assign('defaultSortOption', $selectedSortOption);
-					$page = isset($_REQUEST['page']) ? $_REQUEST['page'] : 1;
-
-					$recordsPerPage = isset($_REQUEST['pagesize']) && (is_numeric($_REQUEST['pagesize'])) ? $_REQUEST['pagesize'] : 25;
-					$interface->assign('recordsPerPage', $recordsPerPage);
-					if (isset($_GET['exportToExcel'])) {
-						$recordsPerPage = -1;
-						$page = 1;
+					else {
+						$exportType = "unavailable";
 					}
-
-					//Get Holds from the ILS
-					$ilsHolds = $this->catalog->getMyHolds($patron, 1, -1, $selectedSortOption);
-					if (PEAR_Singleton::isError($ilsHolds)) {
-						$ilsHolds = array();
-					}
-
-					//Get holds from OverDrive
-					require_once ROOT_DIR . '/Drivers/OverDriveDriverFactory.php';
-					$overDriveDriver = OverDriveDriverFactory::getDriver();
-					$overDriveHolds = $overDriveDriver->getOverDriveHolds($user);
-
-					//Get a list of eContent that has been checked out
-					require_once ROOT_DIR . '/Drivers/EContentDriver.php';
-					$driver = new EContentDriver();
-					$eContentHolds = $driver->getMyHolds($user);
-
-
-					$allHolds = array_merge_recursive($ilsHolds, $overDriveHolds, $eContentHolds);
-
-
-					/* pickUpLocations doesn't seem to be used by the Holds summary page. plb 1-26-2015
-					$location = new Location();
-					$pickupBranches = $location->getPickupBranches($patronResult, null);
-					$locationList = array();
-					foreach ($pickupBranches as $curLocation) {
-						$locationList[$curLocation->locationId] = $curLocation->displayName;
-					}
-					$interface->assign('pickupLocations', $locationList); */
-
-					//Make sure available holds come before unavailable
-					$interface->assign('recordList', $allHolds['holds']);
-
-					//make call to export function
-					if ((isset($_GET['exportToExcelAvailable'])) || (isset($_GET['exportToExcelUnavailable']))){
-						if (isset($_GET['exportToExcelAvailable'])) {
-							$exportType = "available";
-						}
-						else {
-							$exportType = "unavailable";
-						}
-						$this->exportToExcel($allHolds['holds'], $exportType, $showDateWhenSuspending, $showPosition, $showExpireTime);
-					}
+					$this->exportToExcel($allHolds, $exportType, $showDateWhenSuspending, $showPosition, $showExpireTime);
 				}
 			}
-			$interface->assign('patron',$patron);
 		}
 
 		//Load holds that have been entered offline
@@ -202,7 +123,7 @@ class MyAccount_Holds extends MyAccount{
 		if (!$library->showDetailedHoldNoticeInformation){
 			$notification_method = '';
 		}else{
-			$notification_method = ($profile['noticePreferenceLabel'] != 'Unknown') ? $profile['noticePreferenceLabel'] : '';
+			$notification_method = ($user->noticePreferenceLabel != 'Unknown') ? $user->noticePreferenceLabel : '';
 			if ($notification_method == 'Mail' && $library->treatPrintNoticesAsPhoneNotices){
 				$notification_method = 'Telephone';
 			}

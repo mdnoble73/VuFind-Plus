@@ -399,6 +399,15 @@ function getLibraryLocationUpdates(){
 			),
 		),
 
+		'library_links_show_html' => array(
+			'title' => 'LibraryLinks Update to Show HTML',
+			'description' => 'Allow showing HTML within Sidebar. ',
+			'continueOnError' => true,
+			'sql' => array(
+				"ALTER TABLE `library_links` ADD COLUMN `htmlContents` MEDIUMTEXT",
+			),
+		),
+
 		'library_top_links' => array(
 			'title' => 'Library Top Links',
 			'description' => 'Add configurable links to display within the header. ',
@@ -492,6 +501,15 @@ function getLibraryLocationUpdates(){
 			'description' => 'A list of pTypes that are valid for the library',
 			'sql' => array(
 				"ALTER TABLE library ADD pTypes VARCHAR(255)",
+			),
+		),
+
+		'library_bookings' => array(
+			'title' => 'Enable Materials Booking',
+			'description' => 'Add a library setting to enable Sierra\'s Materials Booking module.',
+			'continueOnError' => true,
+			'sql' => array(
+				"ALTER TABLE `library` ADD `enableMaterialsBooking` TINYINT NOT NULL DEFAULT 0"
 			),
 		),
 
@@ -761,6 +779,23 @@ function getLibraryLocationUpdates(){
 			),
 		),
 
+		'location_sublocation' => array(
+			'title' => 'Location Sub Location',
+			'description' => 'Add more explicit handling of Sub Location to the location table ',
+			'sql' => array(
+				"ALTER TABLE `location` ADD subLocation varchar(50)",
+			),
+		),
+
+		'location_sublocation_uniqueness' => array(
+			'title' => 'SubLocations Uniqueness',
+			'description' => 'Make combination of location and sublocation unique rather than just location',
+			'continueOnError' => true,
+			'sql' => array(
+				"ALTER TABLE location DROP INDEX `code` , ADD UNIQUE `code` ( `code` , `subLocation` ) ",
+			),
+		),
+
 		'search_sources' => array(
 			'title' => 'Search Sources',
 			'description' => 'Setup Library and Location Search Source Table',
@@ -973,6 +1008,15 @@ function getLibraryLocationUpdates(){
 				"ALTER TABLE `location` ADD COLUMN `defaultBrowseMode` VARCHAR(25);",
 			),
 		),
+		'browse_category_ratings_mode' => array(
+			'title' => 'Ratings Mode for Browse Categories',
+			'description' => 'Setting for the Ratings Mode of Browse Categories',
+			'continueOnError' => true,
+			'sql' => array(
+				"ALTER TABLE `library` ADD COLUMN `browseCategoryRatingsMode` VARCHAR(25);",
+				"ALTER TABLE `location` ADD COLUMN `browseCategoryRatingsMode` VARCHAR(25);",
+			),
+		),
 		'logo_linking' => array(
 			'title' => 'Logo Linking',
 			'description' => 'Allow Linking of Logo to the library home page.',
@@ -999,5 +1043,61 @@ function getLibraryLocationUpdates(){
 				"ALTER TABLE `library` ADD COLUMN `externalMaterialsRequestUrl` VARCHAR(255);",
 			),
 		),
+
+		'default_library' => array(
+			'title' => 'Default Library',
+			'description' => 'Setup a default library for use when we do not get a defined subdomain',
+			'continueOnError' => true,
+			'sql' => array(
+				"ALTER TABLE `library` ADD COLUMN `isDefault` TINYINT(1);",
+			),
+		),
+
+		'show_place_hold_on_unavailable' => array(
+			'title' => 'Show place hold button for unavailable records only',
+			'description' => 'Setup showing place hold button for unavailable records only',
+			'continueOnError' => true,
+			'sql' => array(
+				"ALTER TABLE `library` ADD COLUMN `showHoldButtonForUnavailableOnly` TINYINT(1) DEFAULT '0';",
+			),
+		),
+
+		'linked_accounts_switch' => array(
+			'title' => 'Enable Linked Accounts',
+			'description' => 'Library configuration switch to enable users to have linked library accounts.',
+			'continueOnError' => true,
+			'sql' => array(
+				"ALTER TABLE `library` ADD COLUMN `allowLinkedAccounts` TINYINT(1) DEFAULT 1;",
+			),
+		),
+
+		'theme_name_length' => array(
+			'title' => 'Increase length of theme name',
+			'description' => 'Increase the length of theme name to allow for more nesting of themes.',
+			'continueOnError' => true,
+			'sql' => array(
+				"ALTER TABLE `library` CHANGE COLUMN `themeName` `themeName` VARCHAR(60);",
+			),
+		),
+
+		'ils_code_records_owned_length' => array(
+			'title' => 'Increase length of ils code and records owned fields',
+			'description' => 'Increase the length of ils code and records owned fields for Koha.',
+			'continueOnError' => true,
+			'sql' => array(
+				"ALTER TABLE `library` CHANGE COLUMN `ilsCode` `ilsCode` VARCHAR(75);",
+				"ALTER TABLE `location` CHANGE COLUMN `code` `code` VARCHAR(75);",
+			),
+		),
+
+		'header_text' => array(
+			'title' => 'Library and Location Header Text',
+			'description' => 'Text that can be displayed in the header between the logo and log-in buttons for libraries and locations',
+			'sql' => array(
+				"ALTER TABLE `library` ADD `headerText` MEDIUMTEXT AFTER `showDisplayNameInHeader`",
+				"ALTER TABLE `location` ADD `headerText` MEDIUMTEXT AFTER `showDisplayNameInHeader`",
+			),
+		),
+
 	);
 }

@@ -30,7 +30,7 @@
 				{$relatedRecord.holdRatio}
 				</td> *}
 				{if $relatedManifestation.format == 'eBook' || $relatedManifestation.format == 'eAudiobook' || $relatedManifestation.format == 'eMagazine'}
-					<td><a href="{$relatedRecord.url}">{$relatedRecord.source}</a></td>
+					<td><a href="{$relatedRecord.url}">{$relatedRecord.eContentSource}</a></td>
 				{/if}
 				{display_if_inconsistent array=$relatedRecords key="edition"}
 					<td><a href="{$relatedRecord.url}">{$relatedRecord.edition}</a></td>
@@ -48,13 +48,17 @@
 					<td><a href="{$relatedRecord.url}">{implode subject=$relatedRecord.language glue=","}</a></td>
 				{/display_if_inconsistent}
 				<td>
-					{if $relatedRecord.availableHere && $showItsHere}
+					{if $relatedRecord.availableHere}
 						{if $relatedRecord.availableOnline}
 							<div class="related-manifestation-shelf-status available">Available Online</div>
 						{elseif $relatedRecord.allLibraryUseOnly}
 							<div class="related-manifestation-shelf-status available">It's Here (library use only)</div>
 						{else}
-							<div class="related-manifestation-shelf-status available">It's Here</div>
+							{if $showItsHere}
+								<div class="related-manifestation-shelf-status available">It's Here</div>
+							{else}
+								<div class="related-manifestation-shelf-status available">On Shelf</div>
+							{/if}
 						{/if}
 					{elseif $relatedRecord.availableLocally}
 						{if $relatedRecord.availableOnline}
@@ -73,7 +77,7 @@
 					{elseif $relatedRecord.available && $relatedRecord.hasLocalItem}
 						<div class="related-manifestation-shelf-status availableOther">Checked Out/Available Elsewhere</div>
 					{elseif $relatedRecord.available}
-						<div class="related-manifestation-shelf-status availableOther">Available from another library</div>
+						<div class="related-manifestation-shelf-status availableOther">{translate text='Available from another library'}</div>
 					{else}
 						<div class="related-manifestation-shelf-status checked_out">{$relatedRecord.groupedStatus}</div>
 					{/if}
@@ -99,7 +103,7 @@
 					<div class="btn-group btn-group-vertical btn-group-sm">
 						<a href="{$relatedRecord.url}" class="btn btn-sm btn-info">More Info</a>
 						{foreach from=$relatedRecord.actions item=curAction}
-							<a href="{$curAction.url}" {if $curAction.onclick}onclick="{$curAction.onclick}"{/if} class="btn btn-sm btn-default">{$curAction.title}</a>
+							<a href="{$curAction.url}" {if $curAction.onclick}onclick="{$curAction.onclick}"{/if} class="btn btn-sm btn-default" {if $curAction.alt}title="{$curAction.alt}"{/if}>{$curAction.title}</a>
 						{/foreach}
 					</div>
 				</td>

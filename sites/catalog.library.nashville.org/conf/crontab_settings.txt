@@ -39,8 +39,13 @@
 #####################
 # Daily full update #
 #####################
-# Set the start for 11:55
-55 23 * * * cd /usr/local/vufind-plus/sites/catalog.library.nashville.org; ./full_update.sh
+# Set the start for 10:10PM
+# Criteria for start time:
+# Have both the library and schools closed for business? M-Th 8PM; F 6PM; Sat-Sun 5PM
+# Has the nightly schools extract completed? 9:45PM-ish
+# Has the nightly schools extract been zipped? 10:02PM-ish
+# Has the nightly schools extract been delivered to limitless@catalog.library.nashville.org? 10:03PM-ish
+10 22 * * * cd /usr/local/vufind-plus/sites/catalog.library.nashville.org; ./full_update.sh
 
 ################
 # Pika Cleanup #
@@ -51,16 +56,19 @@
 27 0 * * * cd /tmp; rm -rf epb*
 
 # CRON for VuFind-Plus (book cover cache cleanup etc.)
-# JAMES should ask about cron.jar argument DatabaseCleanup
 00 */3 * * * cd /usr/local/VuFind-Plus/vufind/cron; java -jar cron.jar catalog.library.nashville.org
+01 22 * * * cd /usr/local/VuFind-Plus/vufind/cron; java -jar cron.jar catalog.library.nashville.org DatabaseCleanup
 
 ###################################
 # Data Extract from other systems #
 ###################################
 
+# SCHOOL copy files from ftp drop spot 
+5 * * * * expect /usr/local/vufind-plus/vufind/library_solution_export/SCHOOLDATA.exp
+
 # Library supplied covers
 # JAMES should institute library-supplied covers workflow for Nashville 20150216
-# sparky - I could not find this script.  Thu Feb 26 11:19:47 CST 2015
+# sparky - I could not find this script.  Thu Feb 26 11:19:47 CST 2015 # james: "this is a marmot script on marmot assets that delivers covers via ftp"
 #*/10 * * * * /root/cron/copyCovers.sh
 # Every 10 minutes. fixed 11-14-2014 plb. (previously every hour 10 past the hour)
 
@@ -70,4 +78,10 @@
 # LEXILE : download file from Marmot
 00 4 1 * * cd /data/vufind-plus/; rm lexileTitles.txt*; wget http://venus.marmot.org/lexileTitles.txt  
 
+#################################
+# hacks to keep things afloat until Sparky increases RAM
+# RAM was increased to 32G 2015 09 11; JAMES is keeping these lines commented out here for emergencies
+#################################
+#25 23 * * * rm -rf /data/vufind-plus/catalog.library.nashville.org/covers/small; rm -rf /data/vufind-plus/catalog.library.nashville.org/covers/medium; rm -rf /data/vufind-plus/catalog.library.nashville.org/covers/large; mkdir -m 775 /data/vufind-plus/catalog.library.nashville.org/covers/small; mkdir -m 775 /data/vufind-plus/catalog.library.nashville.org/covers/medium; mkdir -m 775 /data/vufind-plus/catalog.library.nashville.org/covers/large; chown root:apache /data/vufind-plus/catalog.library.nashville.org/covers/small; chown root:apache /data/vufind-plus/catalog.library.nashville.org/covers/medium; chown root:apache /data/vufind-plus/catalog.library.nashville.org/covers/large'
+#10 * * * * cd /usr/local/vufind-plus/sites/catalog.library.nashville.org; ./pika_restart.sh 
 

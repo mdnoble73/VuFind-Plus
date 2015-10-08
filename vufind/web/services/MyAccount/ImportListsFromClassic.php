@@ -23,7 +23,7 @@ class ImportListsFromClassic extends MyAccount{
 		global $user;
 
 		//Import Lists from the ILS
-		/** @var MillenniumDriver $catalog */
+		/** @var Millennium $catalog */
 		$catalog = $this->catalog;
 		$results = $catalog->importListsFromIls();
 		$interface->assign('importResults', $results);

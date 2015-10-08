@@ -14,7 +14,6 @@ class MyAccount_CheckedOut extends MyAccount{
 		global $configArray;
 		global $interface;
 		global $user;
-		global $timer;
 
 		$allCheckedOut = array();
 		if ($configArray['Catalog']['offline']){
@@ -49,133 +48,98 @@ class MyAccount_CheckedOut extends MyAccount{
 			$interface->assign('sortOptions', $sortOptions);
 			$selectedSortOption = isset($_REQUEST['accountSort']) ? $_REQUEST['accountSort'] : 'dueDate';
 			$interface->assign('defaultSortOption', $selectedSortOption);
-			$page = isset($_REQUEST['page']) ? $_REQUEST['page'] : 1;
 
-			$recordsPerPage = isset($_REQUEST['pagesize']) && (is_numeric($_REQUEST['pagesize'])) ? $_REQUEST['pagesize'] : 25;
-			$interface->assign('recordsPerPage', $recordsPerPage);
-			if (isset($_GET['exportToExcel'])) {
-				$recordsPerPage = -1;
-				$page = 1;
-			}
+			$libraryHoursMessage = Location::getLibraryHoursMessage($user->homeLocationId);
+			$interface->assign('libraryHoursMessage', $libraryHoursMessage);
 
-			// Get My Transactions
-			if ($this->catalog->status) {
-				if ($user->cat_username) {
-					$patron = $this->catalog->patronLogin($user->cat_username, $user->cat_password);
-					$timer->logTime("Logged in patron to get checked out items.");
-					if (PEAR_Singleton::isError($patron))
-						PEAR_Singleton::raiseError($patron);
+			if ($user){
+				// Get My Transactions
+				$allCheckedOut = $user->getMyCheckouts();
 
-					$patronResult = $this->catalog->getMyProfile($patron);
-					if (!PEAR_Singleton::isError($patronResult)) {
-						$interface->assign('profile', $patronResult);
-					}
-					$timer->logTime("Got patron profile to get checked out items.");
-
-					$libraryHoursMessage = Location::getLibraryHoursMessage($patronResult['homeLocationId']);
-					$interface->assign('libraryHoursMessage', $libraryHoursMessage);
-
-					//Get checked out titles from the ILS
-					$catalogTransactions = $this->catalog->getMyTransactions(1, -1, $selectedSortOption);
-					$timer->logTime("Loaded transactions from catalog.");
-
-					//Get checked out titles from OverDrive
-					require_once ROOT_DIR . '/Drivers/OverDriveDriverFactory.php';
-					$overDriveDriver = OverDriveDriverFactory::getDriver();
-					$overDriveCheckedOutItems = $overDriveDriver->getOverDriveCheckedOutItems($user);
-
-					//Get a list of eContent that has been checked out
-					require_once ROOT_DIR . '/Drivers/EContentDriver.php';
-					$driver = new EContentDriver();
-					$eContentCheckedOut = $driver->getMyTransactions($user);
-
-					$allCheckedOut = array_merge($catalogTransactions['transactions'], $overDriveCheckedOutItems['items'], $eContentCheckedOut['transactions']);
-					if (!PEAR_Singleton::isError($catalogTransactions)) {
-
-						$interface->assign('showNotInterested', false);
-						foreach ($allCheckedOut as $i => $curTitle) {
-							$sortTitle = isset($curTitle['title_sort']) ? $curTitle['title_sort'] : $curTitle['title'];
-							$sortKey = $sortTitle;
-							if ($selectedSortOption == 'title'){
-								$sortKey = $sortTitle;
-							}elseif ($selectedSortOption == 'author'){
-								$sortKey = (isset($curTitle['author']) ? $curTitle['author'] : "Unknown") . '-' . $sortTitle;
-							}elseif ($selectedSortOption == 'dueDate'){
-								if (isset($curTitle['duedate'])){
-									if (preg_match('/.*?(\\d{1,2})[-\/](\\d{1,2})[-\/](\\d{2,4}).*/', $curTitle['duedate'], $matches)) {
-										$sortKey = $matches[3] . '-' . $matches[1] . '-' . $matches[2] . '-' . $sortTitle;
-									} else {
-										$sortKey = $curTitle['duedate'] . '-' . $sortTitle;
-									}
-								}
-							}elseif ($selectedSortOption == 'format'){
-								$sortKey = (isset($curTitle['format']) ? $curTitle['format'] : "Unknown") . '-' . $sortTitle;
-							}elseif ($selectedSortOption == 'renewed'){
-								$sortKey = str_pad((isset($curTitle['renewCount']) ? $curTitle['renewCount'] : 0), 3, '0', STR_PAD_LEFT) . '-' . $sortTitle;
-							}elseif ($selectedSortOption == 'holdQueueLength'){
-								$sortKey = str_pad((isset($curTitle['holdQueueLength']) ? $curTitle['holdQueueLength'] : 0), 3, '0', STR_PAD_LEFT) . '-' . $sortTitle;
+				$interface->assign('showNotInterested', false);
+				//Do sorting now that we have all records
+				$curTransaction = 0;
+				foreach ($allCheckedOut as $i => $curTitle) {
+					$curTransaction++;
+					$sortTitle = isset($curTitle['title_sort']) ? $curTitle['title_sort'] : $curTitle['title'];
+					$sortKey = $sortTitle;
+					if ($selectedSortOption == 'title'){
+						$sortKey = $sortTitle;
+					}elseif ($selectedSortOption == 'author'){
+						$sortKey = (isset($curTitle['author']) ? $curTitle['author'] : "Unknown") . '-' . $sortTitle;
+					}elseif ($selectedSortOption == 'dueDate'){
+						if (isset($curTitle['dueDate'])){
+							if (preg_match('/.*?(\\d{1,2})[-\/](\\d{1,2})[-\/](\\d{2,4}).*/', $curTitle['dueDate'], $matches)) {
+								$sortKey = $matches[3] . '-' . $matches[1] . '-' . $matches[2] . '-' . $sortTitle;
+							} else {
+								$sortKey = $curTitle['dueDate'] . '-' . $sortTitle;
 							}
-
-							$itemBarcode = isset($curTitle['barcode']) ? $curTitle['barcode'] : null;
-							$itemId = isset($curTitle['itemid']) ? $curTitle['itemid'] : null;
-							if ($itemBarcode != null && isset($_SESSION['renew_message'][$itemBarcode])){
-								$renewMessage = $_SESSION['renew_message'][$itemBarcode]['message'];
-								$renewResult = $_SESSION['renew_message'][$itemBarcode]['result'];
-								$curTitle['renewMessage'] = $renewMessage;
-								$curTitle['renewResult']  = $renewResult;
-								$allCheckedOut[$sortKey] = $curTitle;
-								unset($_SESSION['renew_message'][$itemBarcode]);
-								//$logger->log("Found renewal message in session for $itemBarcode", PEAR_LOG_INFO);
-							}else if ($itemId != null && isset($_SESSION['renew_message'][$itemId])){
-								$renewMessage = $_SESSION['renew_message'][$itemId]['message'];
-								$renewResult = $_SESSION['renew_message'][$itemId]['result'];
-								$curTitle['renewMessage'] = $renewMessage;
-								$curTitle['renewResult']  = $renewResult;
-								$allCheckedOut[$sortKey] = $curTitle;
-								unset($_SESSION['renew_message'][$itemId]);
-								//$logger->log("Found renewal message in session for $itemBarcode", PEAR_LOG_INFO);
-							}else{
-								$allCheckedOut[$sortKey] = $curTitle;
-								$renewMessage = null;
-								$renewResult = null;
-							}
-							unset($allCheckedOut[$i]);
 						}
-
-						//Now that we have all the transactions we can sort them
-						if ($selectedSortOption == 'renewed' || $selectedSortOption == 'holdQueueLength'){
-							krsort($allCheckedOut);
-						}else{
-							ksort($allCheckedOut);
-						}
-
-						$interface->assign('transList', $allCheckedOut);
-						unset($_SESSION['renew_message']);
+					}elseif ($selectedSortOption == 'format'){
+						$sortKey = (isset($curTitle['format']) ? $curTitle['format'] : "Unknown") . '-' . $sortTitle;
+					}elseif ($selectedSortOption == 'renewed'){
+						$sortKey = str_pad((isset($curTitle['renewCount']) ? $curTitle['renewCount'] : 0), 3, '0', STR_PAD_LEFT) . '-' . $sortTitle;
+					}elseif ($selectedSortOption == 'holdQueueLength'){
+						$sortKey = str_pad((isset($curTitle['holdQueueLength']) ? $curTitle['holdQueueLength'] : 0), 3, '0', STR_PAD_LEFT) . '-' . $sortTitle;
 					}
+					$sortKey = utf8_encode($sortKey. '-' . $curTransaction);
+
+					$itemBarcode = isset($curTitle['barcode']) ? $curTitle['barcode'] : null;
+					$itemId = isset($curTitle['itemid']) ? $curTitle['itemid'] : null;
+					if ($itemBarcode != null && isset($_SESSION['renew_message'][$itemBarcode])){
+						$renewMessage = $_SESSION['renew_message'][$itemBarcode]['message'];
+						$renewResult = $_SESSION['renew_message'][$itemBarcode]['success'];
+						$curTitle['renewMessage'] = $renewMessage;
+						$curTitle['renewResult']  = $renewResult;
+						$allCheckedOut[$sortKey] = $curTitle;
+						unset($_SESSION['renew_message'][$itemBarcode]);
+						//$logger->log("Found renewal message in session for $itemBarcode", PEAR_LOG_INFO);
+					}else if ($itemId != null && isset($_SESSION['renew_message'][$itemId])){
+						$renewMessage = $_SESSION['renew_message'][$itemId]['message'];
+						$renewResult = $_SESSION['renew_message'][$itemId]['success'];
+						$curTitle['renewMessage'] = $renewMessage;
+						$curTitle['renewResult']  = $renewResult;
+						$allCheckedOut[$sortKey] = $curTitle;
+						unset($_SESSION['renew_message'][$itemId]);
+						//$logger->log("Found renewal message in session for $itemBarcode", PEAR_LOG_INFO);
+					}else{
+						$allCheckedOut[$sortKey] = $curTitle;
+						$renewMessage = null;
+						$renewResult = null;
+					}
+					unset($allCheckedOut[$i]);
 				}
+
+				//Now that we have all the transactions we can sort them
+				if ($selectedSortOption == 'renewed' || $selectedSortOption == 'holdQueueLength'){
+					krsort($allCheckedOut);
+				}else{
+					ksort($allCheckedOut);
+				}
+
+				$interface->assign('transList', $allCheckedOut);
+				unset($_SESSION['renew_message']);
 			}
+
+			if (isset($_GET['exportToExcel']) && isset($allCheckedOut)) {
+				$this->exportToExcel($allCheckedOut, $showOut, $showRenewed, $showWaitList);
+			}
+
 		}
 
-
-
-		if (isset($_GET['exportToExcel']) && isset($allCheckedOut)) {
-			$this->exportToExcel($allCheckedOut, $showOut, $showRenewed, $showWaitList);
-		}
-
-		$interface->assign('sidebar', 'MyAccount/account-sidebar.tpl');
-		$interface->setTemplate('checkedout.tpl');
-		$interface->setPageTitle('Checked Out Items');
-		$interface->display('layout.tpl');
+		$this->display('checkedout.tpl', 'Checked Out Items');
 	}
 
 	public function exportToExcel($checkedOutItems, $showOut, $showRenewed, $showWaitList) {
+		global $interface;
 		//PHPEXCEL
 		// Create new PHPExcel object
 		$objPHPExcel = new PHPExcel();
 
 		// Set properties
-		$objPHPExcel->getProperties()->setCreator("VuFind Plus")
-		->setLastModifiedBy("VuFind Plus")
+		$gitBranch = $interface->getVariable('gitBranch');
+		$objPHPExcel->getProperties()->setCreator("Pika " . $gitBranch)
+		->setLastModifiedBy("Pika " . $gitBranch)
 		->setTitle("Office 2007 XLSX Document")
 		->setSubject("Office 2007 XLSX Document")
 		->setDescription("Office 2007 XLSX, generated using PHP.")
@@ -238,15 +202,15 @@ class MyAccount_CheckedOut extends MyAccount{
 			if ($showOut){
 				$activeSheet->setCellValueByColumnAndRow($curCol++, $a, date('M d, Y', $row['checkoutdate']));
 			}
-			if (isset($row['duedate'])){
-				$activeSheet->setCellValueByColumnAndRow($curCol++, $a, date('M d, Y', $row['duedate']));
+			if (isset($row['dueDate'])){
+				$activeSheet->setCellValueByColumnAndRow($curCol++, $a, date('M d, Y', $row['dueDate']));
 			}else{
 				$activeSheet->setCellValueByColumnAndRow($curCol++, $a, '');
 			}
 
 			if ($showRenewed){
-				if (isset($row['duedate'])) {
-					$activeSheet->setCellValueByColumnAndRow($curCol++, $a, $row['renewCount']);
+				if (isset($row['dueDate'])) {
+					$activeSheet->setCellValueByColumnAndRow($curCol++, $a, isset($row['renewCount']) ? $row['renewCount'] : '');
 				}else{
 					$activeSheet->setCellValueByColumnAndRow($curCol++, $a, '');
 				}

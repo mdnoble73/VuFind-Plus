@@ -53,7 +53,12 @@ class Admin_Libraries extends ObjectEditor
 		return $libraryList;
 	}
 	function getObjectStructure(){
-		return Library::getObjectStructure();
+		$objectStructure = Library::getObjectStructure();
+		global $user;
+		if (!$user->hasRole('opacAdmin')){
+			unset($objectStructure['isDefault']);
+		}
+		return $objectStructure;
 	}
 	function getPrimaryKeyColumn(){
 		return 'subdomain';
@@ -63,10 +68,6 @@ class Admin_Libraries extends ObjectEditor
 	}
 	function getAllowableRoles(){
 		return array('opacAdmin', 'libraryAdmin');
-	}
-	function showExportAndCompare(){
-		global $user;
-		return $user->hasRole('opacAdmin');
 	}
 	function canAddNew(){
 		global $user;
@@ -90,10 +91,6 @@ class Admin_Libraries extends ObjectEditor
 			$objectActions[] = array(
 				'text' => 'Copy Library Facets',
 				'url' => '/Admin/Libraries?id=' . $existingObject->libraryId . '&amp;objectAction=copyFacetsFromLibrary',
-			);
-			$objectActions[] = array(
-				'text' => 'Copy Library Search Sources',
-				'url' => '/Admin/Libraries?id=' . $existingObject->libraryId . '&amp;objectAction=copySearchSourcesFromLibrary',
 			);
 		}else{
 			echo("Existing object is null");
@@ -187,42 +184,4 @@ class Admin_Libraries extends ObjectEditor
 		header("Location: /Admin/Libraries?objectAction=edit&id=" . $libraryId);
 	}
 
-	function copySearchSourcesFromLibrary(){
-		$libraryId = $_REQUEST['id'];
-		if (isset($_REQUEST['submit'])){
-			$library = new Library();
-			$library->libraryId = $libraryId;
-			$library->find(true);
-			$library->clearSearchSources();
-
-			$libraryToCopyFromId = $_REQUEST['libraryToCopyFrom'];
-			$libraryToCopyFrom = new Library();
-			$libraryToCopyFrom->libraryId = $libraryToCopyFromId;
-			$library->find(true);
-
-			$searchSourcesToCopy = $libraryToCopyFrom->searchSources;
-			foreach ($searchSourcesToCopy as $searchKey => $searchSources){
-				$searchSources->libraryId = $libraryId;
-				$searchSources->id = null;
-				$searchSourcesToCopy[$searchKey] = $searchSources;
-			}
-			$library->searchSources = $searchSourcesToCopy;
-			$library->update();
-			header("Location: /Admin/Libraries?objectAction=edit&id=" . $libraryId);
-		}else{
-			//Prompt user for the library to copy from
-			$allLibraries = $this->getAllObjects();
-
-			unset($allLibraries[$libraryId]);
-			foreach ($allLibraries as $key => $library){
-				if (count($library->searchSources) == 0){
-					unset($allLibraries[$key]);
-				}
-			}
-			global $interface;
-			$interface->assign('allLibraries', $allLibraries);
-			$interface->assign('id', $libraryId);
-			$interface->setTemplate('../Admin/copyLibrarySearchSources.tpl');
-		}
-	}
 }

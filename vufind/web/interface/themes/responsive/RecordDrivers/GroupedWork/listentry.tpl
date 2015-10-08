@@ -3,7 +3,8 @@
 		<a name="record{$summId|escape:"url"}"></a>
 		<div class="col-sm-3 col-md-3 col-lg-2 text-center">
 			<img src="{$bookCoverUrlMedium}" class="listResultImage img-thumbnail img-responsive" alt="{translate text='Cover Image'}">
-			{include file="GroupedWork/title-rating.tpl" ratingClass="" recordId=$summId shortId=$summShortId ratingData=$summRating showNotInterested=false}
+			{*{include file="GroupedWork/title-rating.tpl" ratingClass="" recordId=$summId shortId=$summShortId ratingData=$summRating showNotInterested=false}*}
+			{include file="GroupedWork/title-rating.tpl" ratingClass="" id=$summId ratingData=$summRating showNotInterested=false}
 		</div>
 		<div class="col-sm-7 col-md-7 col-lg-9">
 			<div class="row">

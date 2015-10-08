@@ -43,4 +43,19 @@
 			</div>
 		</div>
 	{/if}
+
+	{if $localSubjects}
+		<div class="row">
+			<div class="result-label col-xs-3">{translate text='Local Subjects'}</div>
+			<div class="col-xs-9 result-value">
+				{foreach from=$localSubjects item=subject name=loop}
+					{foreach from=$subject item=subjectPart name=subloop}
+						{if !$smarty.foreach.subloop.first} -- {/if}
+						<a href="{$path}/Search/Results?lookfor=%22{$subjectPart.search|escape:"url"}%22&amp;basicType=Subject">{$subjectPart.title|escape}</a>
+					{/foreach}
+					<br/>
+				{/foreach}
+			</div>
+		</div>
+	{/if}
 {/strip}

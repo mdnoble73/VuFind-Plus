@@ -15,6 +15,11 @@
 				Your library card number is <strong>{$selfRegResult.barcode}</strong>.
 			</div>
 		{else}
+			{img_assign filename='self_reg_banner.png' var=selfRegBanner}
+			{if $selfRegBanner}
+				<img src="{$selfRegBanner}" alt="Self Register for a new library card" class="img-responsive" />
+			{/if}
+
 			<div id="selfRegDescription" class="alert alert-info">
 				{if $selfRegistrationFormMessage}
 					{$selfRegistrationFormMessage}

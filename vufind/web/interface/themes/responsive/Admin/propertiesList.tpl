@@ -6,7 +6,7 @@
 	</div>
 {/if}
 <div class='adminTableRegion'>
-	<table class="adminTable table table-striped table-condensed smallText">
+	<table class="adminTable table table-striped table-condensed smallText" id="adminTable">
 		<thead>
 			<tr>
 				{foreach from=$structure item=property key=id}
@@ -24,19 +24,18 @@
 
 					{foreach from=$structure item=property}
 						{assign var=propName value=$property.property}
-						{assign var=propOldName value=$property.propertyOld}
 						{assign var=propValue value=$dataItem->$propName}
-						{assign var=propOldValue value=$dataItem->$propOldName}
+
 						{if !isset($property.hideInLists) || $property.hideInLists == false}
-							<td {if $propOldValue}class='fieldUpdated'{/if}>
+							<td>
 							{if $property.type == 'label'}
 								{if $dataItem->class != 'objectDeleted'}
-									<a href='{$path}/{$module}/{$toolName}?objectAction=edit&amp;id={$id}'>&nbsp;</span>{$propValue}{if $propOldValue} ({$propOldValue}){/if}</a>
+									<a href='{$path}/{$module}/{$toolName}?objectAction=edit&amp;id={$id}'>&nbsp;</span>{$propValue}</a>
 								{/if}
 							{elseif $property.type == 'text' || $property.type == 'hidden' || $property.type == 'file' || $property.type == 'integer'}
-								{$propValue}{if $propOldValue} ({$propOldValue}){/if}
+								{$propValue}
 							{elseif $property.type == 'date'}
-								{$propValue}{if $propOldValue} ({$propOldValue}){/if}
+								{$propValue}
 							{elseif $property.type == 'partialDate'}
 								{assign var=propNameMonth value=$property.propNameMonth}
 								{assign var=propMonthValue value=$dataItem->$propNameMonth}
@@ -47,16 +46,11 @@
 								{if $propMonthValue}$propMonthValue{else}??{/if}/{if $propDayValue}$propDayValue{else}??{/if}/{if $propYearValue}$propYearValue{else}??{/if}
 							{elseif $property.type == 'currency'}
 								{assign var=propDisplayFormat value=$property.displayFormat}
-								${$propValue|string_format:$propDisplayFormat}{if $propOldValue} (${$propOldValue|string_format:$propDisplayFormat}){/if}
+								${$propValue|string_format:$propDisplayFormat}
 							{elseif $property.type == 'enum'}
 								{foreach from=$property.values item=propertyName key=propertyValue}
 									{if $propValue == $propertyValue}{$propertyName}{/if}
 								{/foreach}
-								{if $propOldValue}
-									{foreach from=$property.values item=propertyName key=propertyValue}
-										{if $propOldValue == $propertyValue} ({$propertyName}){/if}
-									 {/foreach}
-								{/if}
 							{elseif $property.type == 'multiSelect'}
 								{if is_array($propValue) && count($propValue) > 0}
 									{foreach from=$property.values item=propertyName key=propertyValue}
@@ -73,9 +67,6 @@
 								{/if}
 							{elseif $property.type == 'checkbox'}
 								{if ($propValue == 1)}Yes{else}No{/if}
-								{if $propOldValue}
-								{if ($propOldValue == 1)} (Yes){else} (No){/if}
-								{/if}
 							{else}
 								Unknown type to display {$property.type}
 							{/if}
@@ -116,29 +107,10 @@
 	</form>
 {/foreach}
 
-{if $showExportAndCompare && false}
-	<br/>
-	<form action="" method="get" class="form-horizontal">
-		<div>
-			<input type='hidden' name='objectAction' value='export' />
-			<button type='submit' value='export' class="btn btn-small btn-default">Export to file</button>
-		</div>
-	</form>
-	<br/>
-	<form action="" enctype="multipart/form-data" method="post" class="form-horizontal">
-		<div>
-			<input type="hidden" name="MAX_FILE_SIZE" value="100000" />
-			<input type="hidden" name='objectAction' value='compare' />
-			<label for="uploadedFileCompare">Choose a file to compare: </label><input name="uploadedfile" id="uploadedFileCompare" type="file" /> <input type="submit" value="Compare File" class="btn btn-small btn-default"/>
-		</div>
-	</form>
-	<br/>
-	<form action="" enctype="multipart/form-data" method="post" class="form-horizontal">
-		<div>
-			<input type="hidden" name="MAX_FILE_SIZE" value="100000" />
-			<input type="hidden" name='objectAction' value='import' />
-			<label for="uploadedFileImport">Choose a file to import: </label><input name="uploadedfile" id="uploadedFileImport" type="file" /> <input type="submit" value="Import File" class="btn btn-small btn-default"/>
-			<p>This should be a file that was exported from the Pika Admin console. Trying to import another file could result in having a very long day of trying to put things back together.	In short, don't do it!</p>
-		</div>
-	</form>
+{if isset($dataList) && is_array($dataList) && count($dataList) > 5}
+<script type="text/javascript">
+	{literal}
+	$("#adminTable").tablesorter({cssAsc: 'sortAscHeader', cssDesc: 'sortDescHeader', cssHeader: 'unsortedHeader', widgets:['zebra', 'filter'] });
+	{/literal}
+</script>
 {/if}

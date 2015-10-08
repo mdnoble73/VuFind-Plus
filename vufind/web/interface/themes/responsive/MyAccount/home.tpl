@@ -1,16 +1,16 @@
 {strip}
 	<div data-role="content">
 		{if $user->cat_username}
-			{if $profile.web_note}
-				<div id="web_note" class="text-info text-center alert alert-warning"><strong>{$profile.web_note}</strong></div>
+			{if $profile->web_note}
+				<div id="web_note" class="text-info text-center alert alert-warning"><strong>{$profile->web_note}</strong></div>
 			{/if}
 
 			<h3>{translate text='Account Summary'}</h3>
 			<div>
 				You currently have:
 				<ul>
-					<li><strong>{$profile.numCheckedOutTotal}</strong> titles <a href="{$path}/MyAccount/CheckedOut">checked out</a></li>
-					<li><strong>{$profile.numHoldsTotal}</strong> titles on <a href="{$path}/MyAccount/Holds">hold</a></li>
+					<li><strong>{$profile->getNumCheckedOutTotal()}</strong> titles <a href="{$path}/MyAccount/CheckedOut">checked out</a></li>
+					<li><strong>{$profile->getNumHoldsTotal()}</strong> titles on <a href="{$path}/MyAccount/Holds">hold</a></li>
 				</ul>
 				{* TODO: Show an alert if any titles are expired or are going to expire *}
 				{* TODO: Show an alert if any titles ready for pickup *}

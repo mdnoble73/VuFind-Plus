@@ -58,7 +58,7 @@ class RenewMultiple extends Action
 				$renewResult = $this->catalog->driver->renewItem($itemId, $itemIndex);
 				$_SESSION['renew_message'][$renewResult['itemId']] = $renewResult;
 				$_SESSION['renew_message']['Total']++;
-				if ($renewResult['result']){
+				if ($renewResult['success']){
 					$_SESSION['renew_message']['Renewed']++;
 				}else{
 					$_SESSION['renew_message']['Unrenewed']++;

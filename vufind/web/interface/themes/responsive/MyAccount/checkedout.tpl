@@ -1,14 +1,12 @@
 {strip}
 	{if $user->cat_username}
-		{if $profile.web_note}
+		{if $profile->web_note}
 			<div class="row">
-				<div id="web_note" class="alert alert-info text-center col-xs-12">{$profile.web_note}</div>
+				<div id="web_note" class="alert alert-info text-center col-xs-12">{$profile->web_note}</div>
 			</div>
 		{/if}
 
-		{if $profile.numHoldsAvailableTotal && $profile.numHoldsAvailableTotal > 0}
-			<div class="text-info text-center alert alert-info"><a href="/MyAccount/Holds" class="alert-link">You have {$profile.numHoldsAvailableTotal} holds ready for pick up.</a></div>
-		{/if}
+		{include file="MyAccount/availableHoldsNotice.tpl"}
 
 		<h2>{translate text='Checked Out Titles'}</h2>
 
@@ -54,7 +52,9 @@
 				</div>
 
 				<p class="alert alert-info">
-					eBooks and eAudiobooks cannot be renewed before they expire.  If you want to renew, please wait for the title to expire and then check it out again.  You will need to download the title again after checking out the title again.
+					eBooks and eAudiobooks cannot be renewed before they expire.
+					If you want to renew, please wait for the title to expire and then check it out again.  You will need to download the title again after checking out the title again.
+					You may be able to place a new hold on the title a few days before the title expires to help ensure continuous reading/listening.
 				</p>
 
 				<div class="btn-group">

@@ -124,7 +124,7 @@ class Solr implements IndexEngine {
 	 */
 	private $scopingDisabled = false;
 
-	/** @var LibrarySearchSource|LocationSearchSource  */
+	/** @var string  */
 	private $searchSource = null;
 
 	/**
@@ -162,6 +162,7 @@ class Solr implements IndexEngine {
 			// Return the file path (note that all ini files are in the conf/ directory)
 			$this->searchSpecsFile = ROOT_DIR . "/../../sites/default/conf/searchspecs.yaml";
 		}
+		$timer->logTime("Load search specs");
 
 		$this->host = $host . '/' . $index;
 
@@ -728,9 +729,8 @@ class Solr implements IndexEngine {
 	 */
 	private function _applySearchSpecs($structure, $values, $joiner = "OR")
 	{
-		global $configArray;
+		global $solrScope;
 		$clauses = array();
-		$searchLibrary = Library::getSearchLibrary($this->searchSource);
 		foreach ($structure as $field => $clauseArray) {
 			if (is_numeric($field)) {
 				// shift off the join string and weight
@@ -746,9 +746,9 @@ class Solr implements IndexEngine {
 				// push it onto the stack of clauses
 				$clauses[] = $searchString;
 			} else {
-				if ($searchLibrary && $configArray['Index']{'enableLocalCallNumberSearch'}){
+				if ($solrScope){
 					if ($field == 'local_callnumber' || $field == 'local_callnumber_left' || $field == 'local_callnumber_exact'){
-						$field .= '_' . $searchLibrary->subdomain;
+						$field .= '_' . $solrScope;
 					}
 				}
 				// Otherwise, we've got a (list of) [munge, weight] pairs to deal with
@@ -852,7 +852,7 @@ class Solr implements IndexEngine {
 			$values['and'] = $andQuery;
 			$values['or'] = $orQuery;
 			$singleWordRemoval = "";
-			if (count($tokenized) < 3){
+			if (count($tokenized) <= 4){
 				$singleWordRemoval = '"' . str_replace('"', '', implode(' ', $tokenized)) . '"';
 			}else{
 				for ($i = 0; $i < count($tokenized); $i++){
@@ -1370,7 +1370,34 @@ class Solr implements IndexEngine {
 			if (!is_array($filter)){
 				$filter = array($filter);
 			}
-			$filters = array_merge($filter, $scopingFilters);
+			//Check the filters to make sure they are for the correct scope
+			$validFields = $this->_loadValidFields();
+			$dynamicFields = $this->_loadDynamicFields();
+			global $solrScope;
+			$validFilters = array();
+			foreach ($filter as $id => $filterTerm){
+				list($fieldName, $term) = explode(":", $filterTerm, 2);
+				if (!in_array($fieldName, $validFields)){
+					//Special handling for availability_by_format
+					if (preg_match("/^availability_by_format_([^_]+)_[\\w_]+$/", $fieldName)){
+						//This is a valid field
+						$validFilters[$id] = $filterTerm;
+					}else{
+						//Field doesn't exist, check to see if it is a dynamic field
+						//Where we can replace the scope with the current scope
+						foreach ($dynamicFields as $dynamicField){
+							if (preg_match("/^{$dynamicField}[^_]+$/", $fieldName)){
+								//This is a dynamic field with the wrong scope
+								$validFilters[$id] = $dynamicField . $solrScope . ":" . $term;
+								break;
+							}
+						}
+					}
+				}else{
+					$validFilters[$id] = $filterTerm;
+				}
+			}
+			$filters = array_merge($validFilters, $scopingFilters);
 		}else if ($filter == null){
 			$filters = $scopingFilters;
 		}else{
@@ -1402,7 +1429,7 @@ class Solr implements IndexEngine {
 				$options['facet.field'] = $facet['field'];
 				if ($options['facet.field'] && is_array($options['facet.field'])){
 					foreach($options['facet.field'] as $key => $facetName){
-						if (strpos($facetName, 'availability_toggle') === 0){
+						if (strpos($facetName, 'availability_toggle') === 0 || strpos($facetName, 'availability_by_format') === 0){
 							$options['facet.field'][$key] = '{!ex=avail}' . $facetName;
 							$options["f.{$facetName}.facet.missing"] = 'true';
 						}
@@ -1435,7 +1462,7 @@ class Solr implements IndexEngine {
 		//Check to see if there are filters we want to show all values for
 		if (isset($filters) && is_array($filters)){
 			foreach ($filters as $key => $value){
-				if (strpos($value, 'availability_toggle') === 0){
+				if (strpos($value, 'availability_toggle') === 0 || strpos($value, 'availability_by_format') === 0){
 					$filters[$key] = '{!tag=avail}' . $value;
 				}
 			}
@@ -1457,8 +1484,14 @@ class Solr implements IndexEngine {
 
 		// Enable highlighting
 		if ($this->_highlight) {
+			global $solrScope;
+			$highlightFields = $fields;
+			$highlightFields = str_replace(",related_record_ids_$solrScope", '', $highlightFields);
+			$highlightFields = str_replace(",related_items_$solrScope", '', $highlightFields);
+			$highlightFields = str_replace(",format_$solrScope", '', $highlightFields);
+			$highlightFields = str_replace(",format_category_$solrScope", '', $highlightFields);
 			$options['hl'] = 'true';
-			$options['hl.fl'] = '*';
+			$options['hl.fl'] = $highlightFields;
 			$options['hl.simple.pre'] = '{{{{START_HILITE}}}}';
 			$options['hl.simple.post'] = '{{{{END_HILITE}}}}';
 		}
@@ -1504,13 +1537,17 @@ class Solr implements IndexEngine {
 	public function getScopingFilters($searchLibrary, $searchLocation){
 		global $user;
 		global $configArray;
+		global $solrScope;
 
 		$filter = array();
+
+		//Simplify detecting which works are relevant to our scope
+		$filter[] = "scope_has_related_records:$solrScope";
 
 		//*************************
 		//Marmot overrides for filtering based on library system and location
 		//Only include titles that the user has access to based on pType
-		$pType = 0;
+		/*$pType = 0;
 		$owningSystem = '';
 		$owningLibrary = '';
 		$canUseDefaultPType = !$this->scopingDisabled;
@@ -1545,11 +1582,11 @@ class Solr implements IndexEngine {
 			}
 		}
 		$buildingFacetName = 'owning_location';
-		$institutionFacetName = 'owning_library';
+		$institutionFacetName = 'owning_library';*/
 
 		//This block makes sure that titles are usable by the current user.  It is always run if we have a reasonable idea
 		//who is using the catalog. This enables "super scope" even if the user is doing a repeat search.
-		if ($pType > 0 && $configArray['Index']['enableUsableByFilter'] == true){
+		/*if ($pType > 0 && $configArray['Index']['enableUsableByFilter'] == true){
 			//First check usability.
 			//It is usable if the title is usable by the ptypes in question OR it is owned by the current branch/ system
 			$usableFilter = 'usable_by:('.$pType . ' OR all)';
@@ -1595,11 +1632,11 @@ class Solr implements IndexEngine {
 				$fullFilter .= " OR $onOrderFilter";
 			}
 			$filter[] = $fullFilter;
-		}
+		}*/
 
 		//This block checks whether or not the title is owned by
 		if ($this->scopingDisabled == false){
-			if (isset($searchLibrary)){
+			/*if (isset($searchLibrary)){
 				if ($searchLibrary->restrictSearchByLibrary && $searchLibrary->enableOverdriveCollection){
 					$filter[] = "($institutionFacetName:\"{$owningSystem}\"
 							OR $institutionFacetName:\"Shared Digital Collection\"
@@ -1629,15 +1666,10 @@ class Solr implements IndexEngine {
 					//This doesn't work because it effectively removes anything with both OverDrive and Print titles
 					//$filter[] = "!($buildingFacetName:\"Shared Digital Collection\" OR $buildingFacetName:\"Digital Collection\" OR $buildingFacetName:\"{$searchLibrary->facetLabel} Online\")";
 				}
-			}
-
-			global $defaultCollection;
-			if (isset($defaultCollection) && strlen($defaultCollection) > 0){
-				$filter[] = 'collection_group:"' . $defaultCollection . '"';
-			}
+			}*/
 		}
 
-		if ($this->searchSource == 'econtent'){
+		/*if ($this->searchSource == 'econtent'){
 			$onlineFilter = "$buildingFacetName:\"Shared Digital Collection\"";
 			if (isset($searchLibrary)){
 				$onlineFilter .= " OR $institutionFacetName:\"{$searchLibrary->facetLabel} Online\"";
@@ -1646,7 +1678,7 @@ class Solr implements IndexEngine {
 				$onlineFilter .= " OR $institutionFacetName:\"{$searchLocation->facetLabel} Online\"";
 			}
 			$filter[] = $onlineFilter;
-		}
+		}*/
 
 		$blacklistRecords = null;
 		if (isset($searchLocation) && strlen($searchLocation->recordsToBlackList) > 0){
@@ -2251,6 +2283,13 @@ class Solr implements IndexEngine {
 			$input = str_replace(array('(', ')'), '', $input);
 		}
 
+		// Check to make sure we have an even number of quotes
+		$numQuotes = preg_match_all('/"/', $input, $tmp);
+		if ($numQuotes % 2 != 0){
+			//We have an uneven number of quotes, delete the last one
+			$input = substr_replace($input, '', strrpos($input, '"'), 1);
+		}
+
 		// Ensure ^ is used properly
 		$cnt = preg_match_all('/\^/', $input, $tmp);
 		$matches = preg_match_all('/.+\^[0-9]/', $input, $tmp);
@@ -2287,8 +2326,14 @@ class Solr implements IndexEngine {
 		//Remove any exclamation marks that Solr will handle incorrectly.
 		$input = str_replace('!', ' ', $input);
 
+		//Remove any semi-colons that Solr will handle incorrectly.
+		$input = str_replace(';', ' ', $input);
+
 		//Remove any slashes that Solr will handle incorrectly.
 		$input = str_replace('\\', ' ', $input);
+
+		//Look for any colons that are not identifying fields
+		
 
 		return $input;
 	}
@@ -2478,6 +2523,24 @@ class Solr implements IndexEngine {
 		$this->searchSource = $searchSource;
 	}
 
+	private function _loadDynamicFields(){
+		/** @var Memcache $memCache */
+		global $memCache;
+		global $solrScope;
+		$fields = $memCache->get("schema_dynamic_fields_$solrScope");
+		if (!$fields || isset($_REQUEST['reload'])){
+			global $configArray;
+			$schemaUrl = $configArray['Index']['url'] . '/grouped/admin/file?file=schema.xml&contentType=text/xml;charset=utf-8';
+			$schema = simplexml_load_file($schemaUrl);
+			$fields = array();
+			/** @var SimpleXMLElement $field */
+			foreach ($schema->fields->dynamicField as $field){
+				$fields[] = substr((string)$field['name'], 0, -1);
+			}
+			$memCache->set("schema_dynamic_fields_$solrScope", $fields, 0, 24 * 60 * 60);
+		}
+		return $fields;
+	}
 	private function _loadValidFields(){
 		/** @var Memcache $memCache */
 		global $memCache;

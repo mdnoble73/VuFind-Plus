@@ -10,49 +10,6 @@ function SendEContentSMS(id, to, provider, strings) {
 	sendAJAXSMS(url, params, strings);
 }
 
-function GetEContentEnrichmentInfo(id, isbn, upc, econtent) {
-	var url = path + "/EcontentRecord/" + encodeURIComponent(id) + "/AJAX";
-	var params = "method=GetEnrichmentInfo&isbn=" + encodeURIComponent(isbn) + "&upc=" + encodeURIComponent(upc);
-	var fullUrl = url + "?" + params;
-	$.ajax( {
-		url : fullUrl,
-		success : function(data) {
-			var seriesData = $(data).find("SeriesInfo").text();
-			if (seriesData && seriesData.length > 0) {
-				
-				seriesScroller = new TitleScroller('titleScrollerSeries', 'Series', 'seriesList');
-
-				seriesData = $.parseJSON(seriesData);
-				if (seriesData.titles.length > 0){
-					$('#list-series-tab').show();
-					$('#relatedTitleInfo').show();
-					seriesScroller.loadTitlesFromJsonData(seriesData);
-				}
-			}
-
-			var similarTitlesData = $(data).find("SimilarTitleInfo").text();
-			if (similarTitlesData && similarTitlesData.length > 0) {
-
-				similarScroller = new TitleScroller('titleScrollerSimilar', 'Similar', 'similarList');
-
-				similarTitlesData = $.parseJSON(similarTitlesData);
-				if (similarTitlesData.titles.length > 0){
-					$('#similarTitleInfo').show();
-					similarScroller.loadTitlesFromJsonData(similarTitlesData);
-				}
-			}
-
-			var showGoDeeperData = $(data).find("ShowGoDeeperData").text();
-			if (showGoDeeperData) {
-				$('#goDeeperLink').show();
-			}
-		},
-		failure : function(jqXHR, textStatus, errorThrown) {
-		  alert('Error: Could Not Load Holdings information.  Please try again in a few minutes');
-	  }
-	});
-}
-
 function GetEContentProspectorInfo(id) {
 	var url = path + "/EcontentRecord/" + encodeURIComponent(id) + "/AJAX";
 	var params = "method=GetProspectorInfo";
@@ -259,8 +216,4 @@ function editItem(id, itemId){
 	var params = "method=EditItem&itemId=" + encodeURIComponent(itemId);
 	VuFind.Account.ajaxLightbox(url+ "?" + params, true);
 	return false;
-}
-function showEcontentPurchaseOptions(id){
-	var url = path + "/EcontentRecord/" + id + "/AJAX?method=getPurchaseOptions";
-	VuFind.Account.ajaxLightbox(url, false)
 }

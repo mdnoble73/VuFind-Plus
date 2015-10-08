@@ -62,5 +62,3 @@ class Help_Home extends Action
 		$interface->display('Help/help.tpl');
 	}
 }
-
-?>

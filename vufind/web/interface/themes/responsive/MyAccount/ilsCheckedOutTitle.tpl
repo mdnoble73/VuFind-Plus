@@ -4,13 +4,13 @@
 			<div class="row">
 				<div class="selectTitle col-xs-2">
 					{if !isset($record.renewable) || $record.renewable == true}
-					<input type="checkbox" name="selected[{$record.renewIndicator}]" class="titleSelect" id="selected{$record.itemid}"/>
+					<input type="checkbox" name="selected[{$record.userId}|{$record.recordId}|{$record.renewIndicator}]" class="titleSelect" id="selected{$record.itemid}"/>
 					{/if}
 				</div>
 				<div class="col-xs-10 text-center coverColumn">
 					{if $user->disableCoverArt != 1}
 						{if $record.id && $record.coverUrl}
-							<a href="{$path}/Record/{$record.id|escape:"url"}">
+							<a href="{$record.link}">
 								<img src="{$record.coverUrl}" class="listResultImage img-thumbnail img-responsive" alt="{translate text='Cover Image'}"/>
 							</a>
 						{/if}
@@ -23,7 +23,7 @@
 				<div class="col-xs-12">
 					<span class="result-index">{$resultIndex})</span>&nbsp;
 					{if $record.id}
-						<a href="{$path}/Record/{$record.id|escape:"url"}" class="result-title notranslate">
+						<a href="{$record.link}" class="result-title notranslate">
 					{/if}
 					{if !$record.title|removeTrailingPunctuation}{translate text='Title not available'}{else}{$record.title|removeTrailingPunctuation|truncate:180:"..."|highlight:$lookfor}{/if}
 					{if $record.id}
@@ -72,10 +72,26 @@
 						<div class="col-md-9 result-value">{$record.format}</div>
 					</div>
 
+					{if $showRatings && $record.groupedWorkId && $record.ratingData}
+							<div class="row">
+								<div class="result-label col-md-3">Rating&nbsp;</div>
+								<div class="col-md-9 result-value">
+									{include file="GroupedWork/title-rating.tpl" ratingClass="" id=$record.groupedWorkId ratingData=$record.ratingData showNotInterested=false}
+								</div>
+							</div>
+					{/if}
+
+					<div class="row">
+						<div class="result-label col-md-3">{translate text='Checked Out To'}</div>
+						<div class="col-md-9 result-value">
+							{$record.user}
+						</div>
+					</div>
+
 					<div class="row">
 						<div class="result-label col-md-3">{translate text='Due'}</div>
 						<div class="col-md-9 result-value">
-							{$record.duedate|date_format}
+							{$record.dueDate|date_format}
 							{if $record.overdue}
 								<span class='overdueLabel'> OVERDUE</span>
 							{elseif $record.daysUntilDue == 0}
@@ -120,14 +136,11 @@
 					<div class="btn-group btn-group-vertical btn-block">
 						{if !isset($record.renewable) || $record.renewable == true}
 							{*<a href="#" onclick="$('#selected{$record.itemid}').attr('checked', 'checked');return VuFind.Account.renewSelectedTitles();" class="btn btn-sm btn-primary">Renew</a>*}
-							<a href="#" onclick="return VuFind.Account.renewTitle('{$record.renewIndicator}');" class="btn btn-sm btn-primary">{translate text='Renew'}</a>
+							<a href="#" onclick="return VuFind.Account.renewTitle('{$record.userId}', '{$record.recordId}', '{$record.renewIndicator}');" class="btn btn-sm btn-primary">{translate text='Renew'}</a>
 						{else}
 							Sorry, this title cannot be renewed
 						{/if}
 					</div>
-
-					{* Include standard tools *}
-					{* include file='Record/result-tools.tpl' id=$record.id shortId=$record.shortId ratingData=$record.ratingData *}
 				</div>
 			</div>
 		</div>

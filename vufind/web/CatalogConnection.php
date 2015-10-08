@@ -54,11 +54,13 @@ class CatalogConnection
 	 */
 	public $status = false;
 
+	public $accountProfile;
+
 	/**
 	 * The object of the appropriate driver.
 	 *
 	 * @access private
-	 * @var    MillenniumDriver|DriverInterface
+	 * @var    Millennium|DriverInterface
 	 */
 	public $driver;
 
@@ -67,23 +69,25 @@ class CatalogConnection
 	 *
 	 * This is responsible for instantiating the driver that has been specified.
 	 *
-	 * @param string $driver The name of the driver to load.
+	 * @param string         $driver         The name of the driver to load.
+	 * @param AccountProfile $accountProfile
 	 * @throws PDOException error if we cannot connect to the driver.
 	 *
 	 * @access public
 	 */
-	public function __construct($driver)
+	public function __construct($driver, $accountProfile)
 	{
 		$path = ROOT_DIR . "/Drivers/{$driver}.php";
 		if (is_readable($path)) {
 			require_once $path;
 
 			try {
-				$this->driver = new $driver;
+				$this->driver = new $driver($accountProfile);
 			} catch (PDOException $e) {
 				throw $e;
 			}
 
+			$this->accountProfile = $accountProfile;
 			$this->status = true;
 		}
 	}
@@ -133,7 +137,13 @@ class CatalogConnection
 	{
 		/** @var Memcache $memCache */
 		global $memCache;
-		$key = 'record_status_' . $recordId . '_' . $forSearch;
+
+		//Cache status by search library and location in addition to id since we do scoping
+		global $library;
+		$searchLocation = Location::getSearchLocation();
+
+		$locationKey = $library->subdomain . '_' . ($searchLocation == null ? '' : $searchLocation->code);
+		$key = 'record_status_' . $recordId . '_' . $forSearch . '_' . $locationKey;
 		$cachedValue = $memCache->get($key);
 		if ($cachedValue == false || isset($_REQUEST['reload'])){
 			global $configArray;
@@ -174,7 +184,12 @@ class CatalogConnection
 	 */
 	public function getStatusSummary($id, $forSearch = false){
 		global $memCache;
-		$key = 'status_summary_' . $id . '_' . $forSearch;
+		//Cache status summary by search library and location in addition to id since we do scoping
+		global $library;
+		$searchLocation = Location::getSearchLocation();
+
+		$locationKey = $library->subdomain . '_' . ($searchLocation == null ? '' : $searchLocation->code);
+		$key = 'status_summary_' . $id . '_' . $forSearch . '_' . $locationKey;
 		$cachedValue = $memCache->get($key);
 		if ($cachedValue == false || isset($_REQUEST['reload'])){
 			global $configArray;
@@ -208,7 +223,7 @@ class CatalogConnection
 	 * place a hold or recall on an item
 	 *
 	 * @return mixed     On success, an associative array with the following keys:
-	 * id, availability (boolean), status, location, reserve, callnumber, duedate,
+	 * id, availability (boolean), status, location, reserve, callnumber, dueDate,
 	 * number, barcode; on failure, a PEAR_Error.
 	 * @access public
 	 */
@@ -226,37 +241,146 @@ class CatalogConnection
 	}
 
 	/**
-	 * Get Purchase History
-	 *
-	 * This is responsible for retrieving the acquisitions history data for the
-	 * specific record (usually recently received issues of a serial).
-	 *
-	 * @param string $recordId The record id to retrieve the info for
-	 *
-	 * @return mixed           An array with the acquisitions data on success,
-	 * PEAR_Error on failure
-	 * @access public
-	 */
-	public function getPurchaseHistory($recordId)
-	{
-		return $this->driver->getPurchaseHistory($recordId);
-	}
-
-	/**
 	 * Patron Login
 	 *
 	 * This is responsible for authenticating a patron against the catalog.
 	 *
-	 * @param string $username The patron username
-	 * @param string $password The patron password
+	 * @param string $username        The patron username
+	 * @param string $password        The patron password
+	 * @param User   $parentAccount   A parent account that we are linking from if any
 	 *
-	 * @return mixed           Associative array of patron info on successful
-	 * login, null on unsuccessful login, PEAR_Error on error.
+	 * @return User|null     User object or null if the user cannot be logged in
 	 * @access public
 	 */
-	public function patronLogin($username, $password)
-	{
-		return $this->driver->patronLogin($username, $password);
+	public function patronLogin($username, $password, $parentAccount = null) {
+		global $timer;
+		global $configArray;
+
+		//Get the barcode property
+		if ($this->accountProfile->loginConfiguration == 'barcode_pin'){
+			$barcode = $username;
+		}else{
+			$barcode = $password;
+		}
+
+		//Strip any non digit characters from the password
+		//Can't do this any longer since some libraries do have characters in their barcode:
+		//$password = preg_replace('/[a-or-zA-OR-Z\W]/', '', $password);
+		//Remove any spaces from the barcode
+		$barcode = preg_replace('/[^a-zA-Z\d\s]/', '', trim($barcode));
+		if ($configArray['Catalog']['offline'] == true){
+			//The catalog is offline, check the database to see if the user is valid
+			$user = new User();
+			if ($this->driver->accountProfile->loginConfiguration == 'barcode_pin') {
+				$user->cat_username = $barcode;
+			}else{
+				$user->cat_password = $barcode;
+			}
+			if ($user->find(true)){
+				if ($this->driver->accountProfile->loginConfiguration = 'barcode_pin') {
+					//We load the account based on the barcode make sure the pin matches
+					$userValid = $user->cat_password == $password;
+				}else{
+					//We still load based on barcode, make sure the username is similar
+					$userValid = $this->areNamesSimilar($username, $user->cat_username);
+				}
+				if ($userValid){
+					//We have a good user account for additional processing
+				} else {
+					$timer->logTime("offline patron login failed due to invalid name");
+					return null;
+				}
+			} else {
+				$timer->logTime("offline patron login failed because we haven't seen this user before");
+				return null;
+			}
+		}else {
+			$user = $this->driver->patronLogin($username, $password);
+		}
+
+		if ($user){
+			if ($parentAccount) $user->setParentUser($parentAccount); // only set when the parent account is passed.
+			$this->updateUserWithAdditionalRuntimeInformation($user);
+		}
+
+		return $user;
+	}
+
+	/**
+	 * @param User $user
+	 */
+	public function updateUserWithAdditionalRuntimeInformation($user){
+		//If we have loaded information from the ILS, get additional information that is not ILS specific
+		require_once(ROOT_DIR . '/Drivers/EContentDriver.php');
+		$eContentDriver = new EContentDriver(null);
+		$eContentDriver->loadAccountSummary($user);
+
+		//TODO: Optimize by checking if the patron home library has OverDrive active.
+		require_once(ROOT_DIR . '/Drivers/OverDriveDriverFactory.php');
+		$overDriveDriver = OverDriveDriverFactory::getDriver();
+		if ($user->isValidForOverDrive() && $overDriveDriver->isUserValidForOverDrive($user)){
+			$overDriveSummary = $overDriveDriver->getOverDriveSummary($user);
+			$user->numCheckedOutOverDrive = $overDriveSummary['numCheckedOut'];
+			$user->numHoldsAvailableOverDrive = $overDriveSummary['numAvailableHolds'];
+			$user->numHoldsRequestedOverDrive = $overDriveSummary['numUnavailableHolds'];
+			$user->numHoldsOverDrive = $overDriveSummary['numAvailableHolds'] + $overDriveSummary['numUnavailableHolds'];
+			$user->canUseOverDrive = true;
+		}else{
+			$user->numCheckedOutOverDrive = 0;
+			$user->numHoldsAvailableOverDrive = 0;
+			$user->numHoldsRequestedOverDrive = 0;
+			$user->canUseOverDrive = false;
+		}
+
+		$materialsRequest = new MaterialsRequest();
+		$materialsRequest->createdBy = $user->id;
+		$homeLibrary = Library::getLibraryForLocation($user->homeLocationId);
+		if ($homeLibrary){
+			$statusQuery = new MaterialsRequestStatus();
+			$statusQuery->isOpen = 1;
+			$statusQuery->libraryId = $homeLibrary->libraryId;
+			$materialsRequest->joinAdd($statusQuery);
+			$materialsRequest->find();
+			$user->numMaterialsRequests = $materialsRequest->N;
+		}else{
+			$user->numMaterialsRequests = 0;
+		}
+
+
+		$user->readingHistorySize = '';
+		if ($user->trackReadingHistory && $user->initialReadingHistoryLoaded){
+			require_once ROOT_DIR . '/sys/ReadingHistoryEntry.php';
+			$readingHistoryDB = new ReadingHistoryEntry();
+			$readingHistoryDB->userId = $user->id;
+			$readingHistoryDB->deleted = 0;
+			$user->readingHistorySize = $readingHistoryDB->count();
+		}
+	}
+
+	/**
+	 * @param $nameFromUser  string
+	 * @param $nameFromIls   string
+	 * @return boolean
+	 */
+	private function areNamesSimilar($nameFromUser, $nameFromIls) {
+		$fullName = str_replace(",", " ", $nameFromIls);
+		$fullName = str_replace(";", " ", $fullName);
+		$fullName = str_replace(";", "'", $fullName);
+		$fullName = preg_replace("/\\s{2,}/", " ", $fullName);
+		$allNameComponents = preg_split('^[\s-]^', strtolower($fullName));
+
+		//Get the first name that the user supplies.
+		//This expects the user to enter one or two names and only
+		//Validates the first name that was entered.
+		$enteredNames = preg_split('^[\s-]^', strtolower($nameFromUser));
+		$userValid = false;
+		foreach ($enteredNames as $name) {
+			if (in_array($name, $allNameComponents, false)) {
+				$userValid = true;
+				break;
+			}
+		}
+		return $userValid;
 	}
 
 	/**
@@ -265,17 +389,30 @@ class CatalogConnection
 	 * This is responsible for retrieving all transactions (i.e. checked out items)
 	 * by a specific patron.
 	 *
-	 * @param integer $page current     page to retrieve data for
-	 * @param integer $recordsPerPage   current page to retrieve data for
-	 * @param string  $sortOption       how the dates should sort.
+	 * @param User $user    The user to load transactions for
 	 *
 	 * @return mixed        Array of the patron's transactions on success,
 	 * PEAR_Error otherwise.
 	 * @access public
 	 */
-	public function getMyTransactions($page = 1, $recordsPerPage = -1, $sortOption = 'dueDate')
+	public function getMyCheckouts($user)
 	{
-		return $this->driver->getMyTransactions($page, $recordsPerPage, $sortOption);
+		$transactions = $this->driver->getMyCheckouts($user);
+		foreach ($transactions as $key => $curTitle){
+			$curTitle['user'] = $user->getNameAndLibraryLabel();
+			$curTitle['userId'] = $user->id;
+			$curTitle['fullId'] = $this->accountProfile->recordSource . ':' . $curTitle['id'];
+
+			if ($curTitle['dueDate']){
+				$daysUntilDue = ceil(($curTitle['dueDate'] - time()) / (24 * 60 * 60));
+				$overdue = $daysUntilDue < 0;
+				$curTitle['overdue'] = $overdue;
+				$curTitle['daysUntilDue'] = $daysUntilDue;
+			}
+			//Determine if the record
+			$transactions[$key] = $curTitle;
+		}
+		return $transactions;
 	}
 
 	/**
@@ -299,7 +436,7 @@ class CatalogConnection
 	 *
 	 * This is responsible for retrieving a history of checked out items for the patron.
 	 *
-	 * @param   array   $patron     The patron array
+	 * @param   User   $patron     The patron array
 	 * @param   int     $page
 	 * @param   int     $recordsPerPage
 	 * @param   string  $sortOption
@@ -310,25 +447,23 @@ class CatalogConnection
 	 */
 	function getReadingHistory($patron, $page = 1, $recordsPerPage = -1, $sortOption = "checkedOut"){
 		//Get reading history from the database unless we specifically want to load from the driver.
-		global $user;
-		if (($user->trackReadingHistory && $user->initialReadingHistoryLoaded) || !$this->driver->hasNativeReadingHistory()){
-			if ($user->trackReadingHistory){
+		if (($patron->trackReadingHistory && $patron->initialReadingHistoryLoaded) || !$this->driver->hasNativeReadingHistory()){
+			if ($patron->trackReadingHistory){
 				//Make sure initial reading history loaded is set to true if we are here since
 				//The only way it wouldn't be here is if the user has elected to start tracking reading history
 				//And they don't have reading history currently specified.  We get what is checked out below though
 				//So that takes care of the initial load
-				if (!$user->initialReadingHistoryLoaded){
+				if (!$patron->initialReadingHistoryLoaded){
 					//Load the initial reading history
-					$user->initialReadingHistoryLoaded = 1;
-					$user->update();
-					$_SESSION['userinfo'] = serialize($user);
+					$patron->initialReadingHistoryLoaded = 1;
+					$patron->update();
 				}
 
-				$this->updateReadingHistoryBasedOnCurrentCheckouts();
+				$this->updateReadingHistoryBasedOnCurrentCheckouts($patron);
 
 				require_once ROOT_DIR . '/sys/ReadingHistoryEntry.php';
 				$readingHistoryDB = new ReadingHistoryEntry();
-				$readingHistoryDB->userId = $user->id;
+				$readingHistoryDB->userId = $patron->id;
 				$readingHistoryDB->deleted = 0; //Only show titles that have not been deleted
 				if ($sortOption == "checkedOut"){
 					$readingHistoryDB->orderBy('checkOutDate DESC, title ASC');
@@ -354,19 +489,57 @@ class CatalogConnection
 				}
 
 				$readingHistoryDB = new ReadingHistoryEntry();
-				$readingHistoryDB->userId = $user->id;
+				$readingHistoryDB->userId = $patron->id;
 				$readingHistoryDB->deleted = 0;
 				$numTitles = $readingHistoryDB->count();
 
-				return array('historyActive'=>$user->trackReadingHistory, 'titles'=>$readingHistoryTitles, 'numTitles'=> $numTitles);
+				return array('historyActive'=>$patron->trackReadingHistory, 'titles'=>$readingHistoryTitles, 'numTitles'=> $numTitles);
 			}else{
 				//Reading history disabled
-				return array('historyActive'=>$user->trackReadingHistory, 'titles'=>array(), 'numTitles'=> 0);
+				return array('historyActive'=>$patron->trackReadingHistory, 'titles'=>array(), 'numTitles'=> 0);
 			}
 
 		}else{
 			//Don't know enough to load internally, check the ILS.
-			return $this->driver->getReadingHistory($patron, $page, $recordsPerPage, $sortOption);
+			$result = $this->driver->getReadingHistory($patron, $page, $recordsPerPage, $sortOption);
+
+			//Do not try to mark that the initial load has been done since we only load a subset of the reading history above.
+
+			//Sort the records
+			$count = 0;
+			foreach ($result['titles'] as $key => $historyEntry){
+				$count++;
+				if (!isset($historyEntry['title_sort'])){
+					$historyEntry['title_sort'] = preg_replace('/[^a-z\s]/', '', strtolower($historyEntry['title']));
+				}
+				if ($sortOption == "title"){
+					$titleKey = $historyEntry['title_sort'];
+				}elseif ($sortOption == "author"){
+					$titleKey = $historyEntry['author'] . "_" . $historyEntry['title_sort'];
+				}elseif ($sortOption == "checkedOut" || $sortOption == "returned"){
+					$checkoutTime = DateTime::createFromFormat('m-d-Y', $historyEntry['checkout']) ;
+					if ($checkoutTime){
+						$titleKey = $checkoutTime->getTimestamp() . "_" . $historyEntry['title_sort'];
+					}else{
+						//print_r($historyEntry);
+						$titleKey = $historyEntry['title_sort'];
+					}
+				}elseif ($sortOption == "format"){
+					$titleKey = $historyEntry['format'] . "_" . $historyEntry['title_sort'];
+				}else{
+					$titleKey = $historyEntry['title_sort'];
+				}
+				$titleKey .= '_' . ($count);
+				$result['titles'][$titleKey] = $historyEntry;
+				unset($result['titles'][$key]);
+			}
+			if ($sortOption == "checkedOut" || $sortOption == "returned"){
+				krsort($result['titles']);
+			}else{
+				ksort($result['titles']);
+			}
+
+			return $result;
 		}
 	}
 
@@ -377,18 +550,18 @@ class CatalogConnection
 	 * exportList
 	 * optOut
 	 *
+	 * @param   User    $patron         The user to do the reading history action on
 	 * @param   string  $action         The action to perform
 	 * @param   array   $selectedTitles The titles to do the action on if applicable
 	 */
-	function doReadingHistoryAction($action, $selectedTitles){
-		global $user;
-		if (($user->trackReadingHistory && $user->initialReadingHistoryLoaded) || ! $this->driver->hasNativeReadingHistory()){
+	function doReadingHistoryAction($patron, $action, $selectedTitles){
+		if (($patron->trackReadingHistory && $patron->initialReadingHistoryLoaded) || ! $this->driver->hasNativeReadingHistory()){
 			if ($action == 'deleteMarked'){
 				//Remove titles from database (do not remove from ILS)
 				foreach ($selectedTitles as $titleId){
 					list($source, $sourceId) = explode('_', $titleId);
 					$readingHistoryDB = new ReadingHistoryEntry();
-					$readingHistoryDB->userId = $user->id;
+					$readingHistoryDB->userId = $patron->id;
 					$readingHistoryDB->id = str_replace('rsh', '', $titleId);
 					if ($readingHistoryDB->find(true)){
 						$readingHistoryDB->deleted = 1;
@@ -398,7 +571,7 @@ class CatalogConnection
 			}elseif ($action == 'deleteAll'){
 				//Remove all titles from database (do not remove from ILS)
 				$readingHistoryDB = new ReadingHistoryEntry();
-				$readingHistoryDB->userId = $user->id;
+				$readingHistoryDB->userId = $patron->id;
 				$readingHistoryDB->find();
 				while ($readingHistoryDB->fetch()){
 					$readingHistoryDB->deleted = 1;
@@ -410,36 +583,34 @@ class CatalogConnection
 				$driverHasReadingHistory = $this->driver->hasNativeReadingHistory();
 
 				//Opt out within the ILS if possible
-				if ($driverHasReadingHistory){
+				if ($driverHasReadingHistory && $this->checkFunction('doReadingHistoryAction')){
 					//First run delete all
-					$result = $this->driver->doReadingHistoryAction('deleteAll', $selectedTitles);
-
-					$result = $this->driver->doReadingHistoryAction($action, $selectedTitles);
+					$result = $this->driver->doReadingHistoryAction($patron, 'deleteAll', $selectedTitles);
+					
+					$result = $this->driver->doReadingHistoryAction($patron, $action, $selectedTitles);
 				}
 
 				//Delete the reading history (permanently this time sine we are opting out)
 				$readingHistoryDB = new ReadingHistoryEntry();
-				$readingHistoryDB->userId = $user->id;
+				$readingHistoryDB->userId = $patron->id;
 				$readingHistoryDB->delete();
 
 				//Opt out within Pika since the ILS does not seem to implement this functionality
-				$user->trackReadingHistory = false;
-				$user->update();
-				$_SESSION['userinfo'] = serialize($user);
+				$patron->trackReadingHistory = false;
+				$patron->update();
 			}elseif ($action == 'optIn'){
 				$driverHasReadingHistory = $this->driver->hasNativeReadingHistory();
 				//Opt in within the ILS if possible
 				if ($driverHasReadingHistory){
-					$result = $this->driver->doReadingHistoryAction($action, $selectedTitles);
+					$result = $this->driver->doReadingHistoryAction($patron, $action, $selectedTitles);
 				}
 
 				//Opt in within Pika since the ILS does not seem to implement this functionality
-				$user->trackReadingHistory = true;
-				$user->update();
-				$_SESSION['userinfo'] = serialize($user);
+				$patron->trackReadingHistory = true;
+				$patron->update();
 			}
 		}else{
-			return $this->driver->doReadingHistoryAction($action, $selectedTitles);
+			return $this->driver->doReadingHistoryAction($patron, $action, $selectedTitles);
 		}
 	}
 
@@ -447,76 +618,24 @@ class CatalogConnection
 	/**
 	 * Get Patron Holds
 	 *
-	 * This is responsible for retrieving all holds by a specific patron.
+	 * This is responsible for retrieving all holds for a specific patron.
 	 *
-	 * @param array|User $patron      The patron array from patronLogin
-	 * @param integer $page           The current page of holds
-	 * @param integer $recordsPerPage The number of records to show per page
-	 * @param string $sortOption      How the records should be sorted
+	 * @param User $user    The user to load transactions for
 	 *
-	 * @return mixed        Array of the patron's holds on success, PEAR_Error
-	 * otherwise.
+	 * @return array        Array of the patron's holds
 	 * @access public
 	 */
-	public function getMyHolds($patron, $page = 1, $recordsPerPage = -1, $sortOption = 'title')
-	{
-		return $this->driver->getMyHolds($patron, $page, $recordsPerPage, $sortOption);
-	}
-
-	/**
-	 * Get Patron Profile
-	 *
-	 * This is responsible for retrieving the profile for a specific patron.
-	 *
-	 * @param array|User $patron The patron array
-	 *
-	 * @return mixed        Array of the patron's profile data on success,
-	 * PEAR_Error otherwise.
-	 * @access public
-	 */
-	public function getMyProfile($patron)
-	{
-		/** @var Memcache $memCache */
-		global $memCache;
-		global $serverName;
-		$memCacheProfileKey = "patronProfile_{$serverName}_";
-		if (is_object($patron)){
-			$memCacheProfileKey .= $patron->username;
-
-		}else{
-			$memCacheProfileKey .= $patron['username'];
-		}
-
-		$forceReload = isset($_REQUEST['reload']);
-		if (!$forceReload && $memCacheProfileKey) {
-			$cachedValue = $memCache->get($memCacheProfileKey);
-			if (!$cachedValue) $forceReload = true;
-			// when not found in memcache turn on reload to short-circuit redundant memcache checks in each of the ILS drivers for getMyProfile()
-		}
-		if ($forceReload){
-			$profile = $this->driver->getMyProfile($patron, $forceReload);
-			if (PEAR_Singleton::isError($profile)){
-//				echo("Error loading profile " . print_r($profile, true));
-				return $profile;
+	public function getMyHolds($user) {
+		$holds = $this->driver->getMyHolds($user);
+		foreach ($holds as $section => $holdsForSection){
+			foreach ($holdsForSection as $key => $curTitle){
+				$curTitle['user'] = $user->getNameAndLibraryLabel();
+				$curTitle['userId'] = $user->id;
+				$holds[$section][$key] = $curTitle;
 			}
-
-			$profile['readingHistorySize'] = '';
-			global $user;
-			if ($user && $user->trackReadingHistory && $user->initialReadingHistoryLoaded){
-				require_once ROOT_DIR . '/sys/ReadingHistoryEntry.php';
-				$readingHistoryDB = new ReadingHistoryEntry();
-				$readingHistoryDB->userId = $user->id;
-				$readingHistoryDB->deleted = 0;
-				$profile['readingHistorySize'] = $readingHistoryDB->count();
-			}
-			$cachedValue = $profile;
-
-			global $configArray;
-			$memCacheResult = $memCache->replace($memCacheProfileKey, $cachedValue, 0, $configArray['Caching']['patron_profile']);
-			// Update the existing key
 		}
 
-		return $cachedValue;
+		return $holds;
 	}
 
 	/**
@@ -524,36 +643,33 @@ class CatalogConnection
 	 *
 	 * This is responsible for both placing holds as well as placing recalls.
 	 *
-	 * @param   string  $recordId   The id of the bib record
-	 * @param   string  $patronId   The id of the patron
-	 * @param   string  $comment    Any comment regarding the hold or recall
-	 * @param   string  $type       Whether to place a hold or recall
-	 * @return  mixed               True if successful, false if unsuccessful
-	 *                              If an error occurs, return a PEAR_Error
+	 * @param   User    $patron       The User to place a hold for
+	 * @param   string  $recordId     The id of the bib record
+	 * @param   string  $pickupBranch The branch where the user wants to pickup the item when available
+	 * @return  mixed                 True if successful, false if unsuccessful
+	 *                                If an error occurs, return a PEAR_Error
 	 * @access  public
 	 */
-	function placeHold($recordId, $patronId, $comment, $type)
-	{
-		return $this->driver->placeHold($recordId, $patronId, $comment, $type);
+	function placeHold($patron, $recordId, $pickupBranch) {
+		$result =  $this->driver->placeHold($patron, $recordId, $pickupBranch);
+		return $result;
 	}
 
 	/**
-	 * Place Item Hold
-	 *
-	 * This is responsible for both placing item level holds.
-	 *
-	 * @param   string  $recordId   The id of the bib record
-	 * @param   string  $itemId     The id of the item to hold
-	 * @param   string  $patronId   The id of the patron
-	 * @param   string  $comment    Any comment regarding the hold or recall
-	 * @param   string  $type       Whether to place a hold or recall
-	 * @return  mixed               True if successful, false if unsuccessful
-	 *                              If an error occures, return a PEAR_Error
-	 * @access  public
-	 */
-	function placeItemHold($recordId, $itemId, $patronId, $comment, $type)
-	{
-		return $this->driver->placeItemHold($recordId, $itemId, $patronId, $comment, $type);
+	* Place Item Hold
+	*
+	* This is responsible for placing item level holds.
+	*
+	* @param   User    $patron     The User to place a hold for
+	* @param   string  $recordId   The id of the bib record
+	* @param   string  $itemId     The id of the item to hold
+	* @param   string  $pickupBranch The branch where the user wants to pickup the item when available
+	* @return  mixed               True if successful, false if unsuccessful
+	*                              If an error occurs, return a PEAR_Error
+	* @access  public
+	*/
+	function placeItemHold($patron, $recordId, $itemId, $pickupBranch) {
+		return $this->driver->placeItemHold($patron, $recordId, $itemId, $pickupBranch);
 	}
 
 	/**
@@ -572,9 +688,36 @@ class CatalogConnection
 		return $this->driver->getHoldLink($recordId);
 	}
 
-	function updatePatronInfo($canUpdateContactInfo)
+	function updatePatronInfo($user, $canUpdateContactInfo)
 	{
-		return $errors = $this->driver->updatePatronInfo($canUpdateContactInfo);
+		return $errors = $this->driver->updatePatronInfo($user, $canUpdateContactInfo);
+	}
+
+	// TODO Millennium only at this time, set other drivers to return false.
+	function bookMaterial($patron, $recordId, $startDate, $startTime = null, $endDate = null, $endTime = null){
+		return $this->driver->bookMaterial($patron, $recordId, $startDate, $startTime, $endDate, $endTime);
+	}
+
+	// TODO Millennium only at this time, set other drivers to return false.
+	function cancelBookedMaterial($patron, $cancelIds){
+		return $this->driver->cancelBookedMaterial($patron, $cancelIds);
+	}
+
+	// TODO Millennium only at this time, set other drivers to return false.
+	function cancelAllBookedMaterial($patron){
+		return $this->driver->cancelAllBookedMaterial($patron);
+	}
+
+	/**
+	 * @param User $patron
+	 */
+	function getMyBookings($patron){
+		$bookings = $this->driver->getMyBookings($patron);
+		foreach ($bookings as &$booking) {
+			$booking['user'] = $patron->getNameAndLibraryLabel();
+			$booking['userId'] = $patron->id;
+		}
+		return $bookings;
 	}
 
 	function selfRegister(){
@@ -781,13 +924,14 @@ class CatalogConnection
 		return $historyEntry;
 	}
 
-	private function updateReadingHistoryBasedOnCurrentCheckouts() {
-		global $user;
-
+	/**
+	 * @param User $patron
+	 */
+	private function updateReadingHistoryBasedOnCurrentCheckouts($patron) {
 		require_once ROOT_DIR . '/sys/ReadingHistoryEntry.php';
 		//Note, include deleted titles here so they are not added multiple times.
 		$readingHistoryDB = new ReadingHistoryEntry();
-		$readingHistoryDB->userId = $user->id;
+		$readingHistoryDB->userId = $patron->id;
 		$readingHistoryDB->whereAdd('checkInDate IS NULL');
 		$readingHistoryDB->find();
 
@@ -800,16 +944,14 @@ class CatalogConnection
 		}
 
 		//Update reading history based on current checkouts.  That way it never looks out of date
-		require_once ROOT_DIR . '/services/API/UserAPI.php';
-		$userAPI = new UserAPI();
-		$checkouts = $userAPI->getPatronCheckedOutItems();
-		foreach ($checkouts['checkedOutItems'] as $checkout){
+		$checkouts = $patron->getMyCheckouts(false);
+		foreach ($checkouts as $checkout){
 			$sourceId = '?';
 			$source = $checkout['checkoutSource'];
 			if ($source == 'OverDrive'){
 				$sourceId = $checkout['overDriveId'];
 			}elseif ($source == 'ILS'){
-				$sourceId = $checkout['id'];
+				$sourceId = $checkout['fullId'];
 			}elseif ($source == 'eContent'){
 				$source = $checkout['recordType'];
 				$sourceId = $checkout['id'];
@@ -819,7 +961,7 @@ class CatalogConnection
 				unset($activeHistoryTitles[$key]);
 			}else{
 				$historyEntryDB = new ReadingHistoryEntry();
-				$historyEntryDB->userId = $user->id;
+				$historyEntryDB->userId = $patron->id;
 				if (isset($checkout['groupedWorkId'])){
 					$historyEntryDB->groupedWorkPermanentId = $checkout['groupedWorkId'] == null ? '' : $checkout['groupedWorkId'];
 				}else{
@@ -890,7 +1032,8 @@ class CatalogConnection
 	public function getItemsFast($id, $scopingEnabled, $marcRecord = null){
 		/** @var Memcache $memCache */
 		global $memCache;
-		$key = 'items_fast_' . $id . '_' . $scopingEnabled;
+		global $solrScope;
+		$key = 'items_fast_' . $solrScope . '_' . $id . '_' . $scopingEnabled;
 		$cachedValue = $memCache->get($key);
 		if ($cachedValue == false || isset($_REQUEST['reload'])){
 			global $configArray;
@@ -899,5 +1042,66 @@ class CatalogConnection
 		}
 
 		return $cachedValue;
+	}
+
+	function cancelHold($patron, $recordId, $cancelId) {
+		return $this->driver->cancelHold($patron, $recordId, $cancelId);
+	}
+
+	function freezeHold($patron, $recordId, $itemToFreezeId, $dateToReactivate) {
+		return $this->driver->freezeHold($patron, $recordId, $itemToFreezeId, $dateToReactivate);
+	}
+
+	function thawHold($patron, $recordId, $itemToThawId) {
+		return $this->driver->thawHold($patron, $recordId, $itemToThawId);
+	}
+
+	function changeHoldPickupLocation($patron, $recordId, $itemToUpdateId, $newPickupLocation) {
+		return $this->driver->changeHoldPickupLocation($patron, $recordId, $itemToUpdateId, $newPickupLocation);
+	}
+
+	public function getBookingCalendar($recordId) {
+		// Graceful degradation -- return null if method not supported by driver.
+		return method_exists($this->driver, 'getBookingCalendar') ?
+			$this->driver->getBookingCalendar($recordId) : null;
+	}
+
+	public function renewItem($patron, $recordId, $itemId, $itemIndex){
+		return $this->driver->renewItem($patron, $recordId, $itemId, $itemIndex);
+	}
+
+	public function renewAll($patron){
+		if ($this->driver->hasFastRenewAll()){
+			return $this->driver->renewAll($patron);
+		}else{
+			//Get all list of all transactions
+			$currentTransactions = $this->driver->getMyCheckouts($patron);
+			$renewResult = array(
+				'success' => true,
+				'message' => array(),
+				'Renewed' => 0,
+				'Unrenewed' => 0
+			);
+			$renewResult['Total'] = count($currentTransactions);
+			$numRenewals = 0;
+			$failure_messages = array();
+			foreach ($currentTransactions as $transaction){
+				$curResult = $this->renewItem($patron, $transaction['recordId'], $transaction['renewIndicator'], null);
+				if ($curResult['success']){
+					$numRenewals++;
+				} else {
+					$failure_messages[] = $curResult['message'];
+				}
+			}
+			$renewResult['Renewed'] += $numRenewals;
+			$renewResult['Unrenewed'] = $renewResult['Total'] - $renewResult['Renewed'];
+			if ($renewResult['Unrenewed'] > 0) {
+				$renewResult['success'] = false;
+				$renewResult['message'] = $failure_messages;
+			}else{
+				$renewResult['message'][] = "All items were renewed successfully.";
+			}
+			return $renewResult;
+		}
 	}
 }

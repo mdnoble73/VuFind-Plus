@@ -19,6 +19,9 @@ class SpellingWord extends DB_DataObject
 	}
 
 	function getSpellingSuggestions($word){
+		if (empty($word)){
+			return array();
+		}
 		//global $logger;
 		//$logger->log("Loading spelling suggestions", PEAR_LOG_DEBUG);
 		//Get suggestions, giving a little boost to words starting with what has been typed so far.

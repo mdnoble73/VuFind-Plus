@@ -7,27 +7,29 @@ import org.marc4j.marc.Record;
 import org.marc4j.marc.Subfield;
 
 import java.sql.Connection;
+import java.sql.ResultSet;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 /**
  * ILS Indexing with customizations specific to Flatirons Library Consortium
  *
- * VuFind-Plus
+ * Pika
  * User: Mark Noble
  * Date: 12/29/2014
  * Time: 10:25 AM
  */
-public class FlatironsRecordProcessor extends IlsRecordProcessor{
-	public FlatironsRecordProcessor(GroupedWorkIndexer indexer, Connection vufindConn, Ini configIni, Logger logger) {
-		super(indexer, vufindConn, configIni, logger);
+public class FlatironsRecordProcessor extends IIIRecordProcessor{
+	public FlatironsRecordProcessor(GroupedWorkIndexer indexer, Connection vufindConn, Ini configIni, ResultSet indexingProfileRS, Logger logger, boolean fullReindex) {
+		super(indexer, vufindConn, configIni, indexingProfileRS, logger, fullReindex);
 	}
 
 	@Override
-	protected boolean isItemAvailable(PrintIlsItem ilsRecord) {
+	protected boolean isItemAvailable(ItemInfo itemInfo) {
 		boolean available = false;
-		String status = ilsRecord.getStatus();
-		String dueDate = ilsRecord.getDateDue() == null ? "" : ilsRecord.getDateDue();
+		String status = itemInfo.getStatusCode();
+		String dueDate = itemInfo.getDueDate() == null ? "" : itemInfo.getDueDate();
 		String availableStatus = "-oyj";
 		if (status.length() > 0 && availableStatus.indexOf(status.charAt(0)) >= 0) {
 			if (dueDate.length() == 0) {
@@ -37,87 +39,83 @@ public class FlatironsRecordProcessor extends IlsRecordProcessor{
 		return available;
 	}
 
-	protected List<PrintIlsItem> getUnsuppressedPrintItems(String identifier, Record record){
-		String bibFormat = getFirstFieldVal(record, "998e");
-		boolean isEContentBibFormat = bibFormat.equals("3") || bibFormat.equals("t") || bibFormat.equals("m") || bibFormat.equals("w") || bibFormat.equals("u");
-		String url = getFirstFieldVal(record, "856u");
-		boolean has856 = url != null;
-
-		List<DataField> itemRecords = getDataFields(record, itemTag);
-		List<PrintIlsItem> unsuppressedItemRecords = new ArrayList<PrintIlsItem>();
-		if (!(isEContentBibFormat && has856)) {
+	@Override
+	protected void loadUnsuppressedPrintItems(GroupedWorkSolr groupedWork, RecordInfo recordInfo, String identifier, Record record){
+		IsRecordEContent isRecordEContent = new IsRecordEContent(record).invoke();
+		boolean isEContent = isRecordEContent.isEContent();
+		List<DataField> itemRecords = isRecordEContent.getItemRecords();
+		if (!isEContent){
 			//The record is print
 			for (DataField itemField : itemRecords){
 				if (!isItemSuppressed(itemField)){
-					PrintIlsItem printIlsRecord = getPrintIlsItem(record, itemField);
-					if (printIlsRecord != null) {
-						unsuppressedItemRecords.add(printIlsRecord);
-					}
+					getPrintIlsItem(groupedWork, recordInfo, record, itemField);
 				}
 			}
 		}
-		return unsuppressedItemRecords;
 	}
 
-	protected List<EContentIlsItem> getUnsuppressedEContentItems(String identifier, Record record){
-		String bibFormat = getFirstFieldVal(record, "998e").trim();
-		boolean isEContentBibFormat = bibFormat.equals("3") || bibFormat.equals("t") || bibFormat.equals("m") || bibFormat.equals("w") || bibFormat.equals("u");
-		String url = getFirstFieldVal(record, "856u");
-		boolean has856 = url != null;
-
-		List<DataField> itemRecords = getDataFields(record, itemTag);
-		List<EContentIlsItem> unsuppressedEcontentRecords = new ArrayList<EContentIlsItem>();
-		if (isEContentBibFormat && has856) {
+	@Override
+	protected List<RecordInfo> loadUnsuppressedEContentItems(GroupedWorkSolr groupedWork, String identifier, Record record){
+		IsRecordEContent isRecordEContent = new IsRecordEContent(record).invoke();
+		boolean isEContent = isRecordEContent.isEContent();
+		List<DataField> itemRecords = isRecordEContent.getItemRecords();
+		List<RecordInfo> unsuppressedEcontentRecords = isRecordEContent.getUnsuppressedEcontentRecords();
+		String url = isRecordEContent.getUrl();
+		if (isEContent){
 			for (DataField itemField : itemRecords) {
 				if (!isItemSuppressed(itemField)) {
 					//Check to see if the item has an eContent indicator
-					unsuppressedEcontentRecords.add(getEContentIlsRecord(record, identifier, itemField));
+					unsuppressedEcontentRecords.add(getEContentIlsRecord(groupedWork, record, identifier, itemField));
 				}
 			}
 			if (itemRecords.size() == 0){
 				//Much of the econtent for flatirons has no items.  Need to determine the location based on the 907b field
 				String eContentLocation = getFirstFieldVal(record, "907b");
 				if (eContentLocation != null) {
-					EContentIlsItem ilsEContentItem = new EContentIlsItem();
-					ilsEContentItem.setLocationCode(eContentLocation);
-					ilsEContentItem.setSource("External eContent");
-					ilsEContentItem.setProtectionType("external");
-					ilsEContentItem.setSharing("library");
+					ItemInfo itemInfo = new ItemInfo();
+					itemInfo.setIsEContent(true);
+					itemInfo.setLocationCode(eContentLocation);
+					itemInfo.seteContentSource("External eContent");
+					itemInfo.seteContentProtectionType("external");
+					itemInfo.seteContentSharing("library");
 					if (url.contains("ebrary.com")) {
-						ilsEContentItem.setSource("ebrary");
+						itemInfo.seteContentSource("ebrary");
 					}else{
-						ilsEContentItem.setSource("Unknown");
+						itemInfo.seteContentSource("Unknown");
 					}
-					ilsEContentItem.setRecordIdentifier("external_econtent:" + identifier);
+					itemInfo.setCallNumber("Online");
+					itemInfo.setShelfLocation(itemInfo.geteContentSource());
+					RecordInfo relatedRecord = groupedWork.addRelatedRecord("external_econtent", identifier);
+					relatedRecord.setSubSource(profileType);
+					relatedRecord.addItem(itemInfo);
 					//Check the 856 tag to see if there is a link there
-					List<DataField> urlFields = getDataFields(record, "856");
-					for (DataField urlField : urlFields){
-						//load url into the item
-						if (urlField.getSubfield('u') != null){
-							//Try to determine if this is a resource or not.
-							if (urlField.getIndicator1() == '4' || urlField.getIndicator1() == ' ' || urlField.getIndicator1() == '0'){
-								if (urlField.getIndicator2() == ' ' || urlField.getIndicator2() == '0' || urlField.getIndicator2() == '1' || urlField.getIndicator2() == '4') {
-									ilsEContentItem.setUrl(urlField.getSubfield('u').getData().trim());
-									break;
-								}
-							}
-
-						}
+					loadEContentUrl(record, itemInfo);
+					if (itemInfo.geteContentUrl() == null){
+						itemInfo.seteContentUrl(url);
 					}
-					ilsEContentItem.setAvailable(true);
+
+					loadEContentFormatInformation(record, relatedRecord, itemInfo);
+
+					itemInfo.setDetailedStatus("Available Online");
 
 					//Determine which scopes this title belongs to
 					for (Scope curScope : indexer.getScopes()){
-						boolean includedDirectly = curScope.isEContentDirectlyOwned(ilsEContentItem);
-						if (curScope.isEContentLocationPartOfScope(ilsEContentItem)){
-							ilsEContentItem.addRelatedScope(curScope);
-							if (includedDirectly){
-								ilsEContentItem.addScopeThisItemIsDirectlyIncludedIn(curScope.getScopeName());
+						if (curScope.isItemPartOfScope(profileType, eContentLocation, "", false, false, true)){
+							ScopingInfo scopingInfo = itemInfo.addScope(curScope);
+							scopingInfo.setAvailable(true);
+							scopingInfo.setStatus("Available Online");
+							scopingInfo.setGroupedStatus("Available Online");
+							scopingInfo.setHoldable(false);
+							if (curScope.isLocationScope()) {
+								scopingInfo.setLocallyOwned(curScope.isItemOwnedByScope(profileType, eContentLocation, ""));
+							}
+							if (curScope.isLibraryScope()) {
+								scopingInfo.setLibraryOwned(curScope.isItemOwnedByScope(profileType, eContentLocation, ""));
 							}
 						}
 					}
 
-					unsuppressedEcontentRecords.add(ilsEContentItem);
+					unsuppressedEcontentRecords.add(relatedRecord);
 				}
 			}
 		}
@@ -170,18 +168,154 @@ public class FlatironsRecordProcessor extends IlsRecordProcessor{
 				return true;
 			}
 		}
+		return super.isItemSuppressed(curItem);
+	}
+
+	protected void loadEContentFormatInformation(Record record, RecordInfo econtentRecord, ItemInfo econtentItem) {
+		//Load the eContent Format from the mat type
+		String bibFormat = getFirstFieldVal(record, "998e").trim();
+		String format;
+		switch (bibFormat){
+			case "3":
+				format = "eBook";
+				break;
+			case "v":
+				format = "eVideo";
+				break;
+			case "u":
+				format = "eAudioBook";
+				break;
+			case "y":
+				format = "eMusic";
+				break;
+			case "t":
+				//Check to see if this is a serial resource
+				String leader = record.getLeader().toString();
+				boolean isSerial = false;
+				if (leader.length() >= 7) {
+					// check the Leader at position 7
+					char leaderBit = leader.charAt(7);
+					if (leaderBit == 's' || leaderBit == 'S') {
+						isSerial = true;
+					}
+				}
+				if (isSerial){
+					format = "eJournal";
+				}else {
+					format = "online_resource";
+				}
+				break;
+			default:
+				//Check based off of other information
+				if (econtentItem.getCallNumber().contains("PHOTO")){
+					format = "Photo";
+				}else if (econtentItem.getCallNumber().contains("OH")){
+					format = "Oral History";
+				}else{
+					format = "Unknown";
+				}
+		}
+
+		String translatedFormat = translateValue("format", format, econtentRecord.getRecordIdentifier());
+		String translatedFormatCategory = translateValue("format_category", format, econtentRecord.getRecordIdentifier());
+		String translatedFormatBoost = translateValue("format_boost", format, econtentRecord.getRecordIdentifier());
+		econtentItem.setFormat(translatedFormat);
+		econtentItem.setFormatCategory(translatedFormatCategory);
+		try {
+			econtentRecord.setFormatBoost(Long.parseLong(translatedFormatBoost));
+		}catch (NumberFormatException e){
+			logger.warn("Could not get format boost for format " + format);
+			econtentRecord.setFormatBoost(1);
+		}
+	}
+
+	protected String getEContentSharing(ItemInfo ilsEContentItem, DataField itemField) {
+		return "library";
+	}
+
+	protected boolean loanRulesAreBasedOnCheckoutLocation(){
 		return false;
 	}
 
-	protected void loadEContentFormatInformation(IlsRecord econtentRecord, EContentIlsItem econtentItem) {
-		String collection = "online_resource";
-		String translatedFormat = indexer.translateValue("format", collection);
-		String translatedFormatCategory = indexer.translateValue("format_category", collection);
-		String translatedFormatBoost = indexer.translateValue("format_boost", collection);
-		econtentRecord.setFormatInformation(translatedFormat, translatedFormatCategory, translatedFormatBoost);
+	protected void loadTargetAudiences(GroupedWorkSolr groupedWork, Record record, HashSet<ItemInfo> printItems, String identifier) {
+		//For Flatirons, load audiences based on the final character of the location codes
+		HashSet<String> targetAudiences = new HashSet<>();
+		for (ItemInfo printItem : printItems){
+			String locationCode = printItem.getLocationCode();
+			String lastCharacter = locationCode.substring(locationCode.length() -1);
+			targetAudiences.add(lastCharacter);
+		}
+
+		groupedWork.addTargetAudiences(translateCollection("target_audience", targetAudiences, identifier));
+		groupedWork.addTargetAudiencesFull(translateCollection("target_audience", targetAudiences, identifier));
 	}
 
-	protected String getEContentSharing(EContentIlsItem ilsEContentItem, DataField itemField) {
-		return "library";
+	private class IsRecordEContent {
+		private Record record;
+		private String url;
+		private List<DataField> itemRecords;
+		private List<RecordInfo> unsuppressedEcontentRecords;
+		private boolean isEContent;
+
+		public IsRecordEContent(Record record) {
+			this.record = record;
+		}
+
+		public String getUrl() {
+			return url;
+		}
+
+		public List<DataField> getItemRecords() {
+			return itemRecords;
+		}
+
+		public List<RecordInfo> getUnsuppressedEcontentRecords() {
+			return unsuppressedEcontentRecords;
+		}
+
+		public boolean isEContent() {
+			return isEContent;
+		}
+
+		public IsRecordEContent invoke() {
+			String bibFormat = getFirstFieldVal(record, "998e").trim();
+			boolean isEContentBibFormat = bibFormat.equals("3") || bibFormat.equals("t") || bibFormat.equals("m") || bibFormat.equals("w") || bibFormat.equals("u");
+			url = getFirstFieldVal(record, "856u");
+			boolean has856 = url != null;
+
+			itemRecords = getDataFields(record, itemTag);
+			unsuppressedEcontentRecords = new ArrayList<>();
+
+			isEContent = false;
+
+			if (isEContentBibFormat && has856) {
+				isEContent = true;
+			}else{
+				//Check to see if this is Carnegie eContent
+				for (DataField itemField : itemRecords) {
+					if (itemField.getSubfield(locationSubfieldIndicator) != null && itemField.getSubfield(locationSubfieldIndicator).getData().startsWith("bc")){
+						//Check to see if we have related links
+						if (has856){
+							isEContent = true;
+							break;
+						}else{
+							//Check the 962
+							List<DataField> additionalLinks = getDataFields(record, "962");
+							for (DataField additionalLink : additionalLinks){
+								if (additionalLink.getSubfield('u') != null){
+									url = additionalLink.getSubfield('u').getData();
+									isEContent = true;
+									break;
+								}
+							}
+							if (isEContent){
+								break;
+							}
+						}
+					}
+				}
+			}
+			return this;
+		}
 	}
 }

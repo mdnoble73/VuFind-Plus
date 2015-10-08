@@ -112,14 +112,6 @@ class Record_Holdings extends Record_Record
 				$holdingData->holdings = array();
 			}
 
-			// Get Acquisitions Data
-			$result = $catalog->getPurchaseHistory($id);
-			if (PEAR_Singleton::isError($result)) {
-				PEAR_Singleton::raiseError($result);
-			}
-			$interface->assign('history', $result);
-			$holdingData->history = $result;
-
 			//Holdings summary
 			$result = $catalog->getStatusSummary($id, false);
 			if (PEAR_Singleton::isError($result)) {

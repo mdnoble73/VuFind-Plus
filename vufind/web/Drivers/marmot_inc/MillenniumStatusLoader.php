@@ -5,7 +5,7 @@
  * Processes status information from Millennium to load holdings.
  */
 class MillenniumStatusLoader{
-	/** @var  MillenniumDriver $driver */
+	/** @var  Millennium $driver */
 	private $driver;
 
 	public function __construct($driver){
@@ -29,10 +29,11 @@ class MillenniumStatusLoader{
 	 *  statusfull
 	 *  availability
 	 *  holdable
+	 *  bookable
 	 *  nonHoldableReason
 	 *  reserve
 	 *  holdQueueLength
-	 *  duedate
+	 *  dueDate
 	 *  location
 	 *  libraryDisplayName
 	 *  locationLink
@@ -48,17 +49,20 @@ class MillenniumStatusLoader{
 	 * @return array A list of holdings for the record
 	 */
 	public function getStatus($id){
-		if (array_key_exists($id, MillenniumStatusLoader::$loadedStatus)){
-			return MillenniumStatusLoader::$loadedStatus[$id];
-		}
+
 		global $library;
 		global $user;
 		global $timer;
 		global $logger;
 		global $configArray;
 
-		$pType = $this->driver->getPType();
+		$pType = $this->driver->getPTypes();
 		$scope = $this->driver->getMillenniumScope();
+
+		$cachingKey = $id . '-' . implode(",", $pType) . '-' . $scope;
+		if (array_key_exists($cachingKey, MillenniumStatusLoader::$loadedStatus)){
+			return MillenniumStatusLoader::$loadedStatus[$cachingKey];
+		}
 
 		if (!$configArray['Catalog']['offline']){
 			//Get information about holdings, order information, and issue information
@@ -91,9 +95,6 @@ class MillenniumStatusLoader{
 			$marcItemField = isset($configArray['Reindex']['itemTag']) ? $configArray['Reindex']['itemTag'] : '989';
 			$itemFields = $marcRecord->getFields($marcItemField);
 			$marcItemData = array();
-
-			//TODO: Don't hardcode item subfields
-
 
 			$statusSubfield = $configArray['Reindex']['statusSubfield'];
 			$dueDateSubfield = $configArray['Reindex']['dueDateSubfield'];
@@ -142,26 +143,31 @@ class MillenniumStatusLoader{
 			//Process each row in the callnumber table.
 			$ret = $this->parseHoldingRows($id, $rows);
 
-			if (count($ret) == 0){
-				//Also check the frameset for links
-				if (preg_match('/<div class="bibDisplayUrls">.*?<table.*?>(.*?)<\/table>.*?<\/div>/si', $millenniumInfo->framesetInfo, $displayUrlInfo)){
+			if (count($ret) == 0 || $this->driver->showLinksForRecordsWithItems()){
+				//Also check the frameset for links, but only if we don't have items.
+				if (preg_match('/<div class="bibDisplayUrls">(.*?)<\/div>/si', $millenniumInfo->framesetInfo, $displayUrlInfo)){
 					$linksTable = $displayUrlInfo[1];
-					preg_match_all('/<td.*?>.*?<a href="(.*?)".*?>(.*?)<\/a>.*?<\/td>/si', $linksTable, $linkData, PREG_SET_ORDER);
-					for ($i = 0; $i < count($linkData); $i++) {
-						$linkText = $linkData[$i][2];
-						if ($linkText != 'Latest Received'){
-							$newHolding = array(
+
+					//Get the table from the portion we extracted
+					if (preg_match('/.*?<table.*?>(.*?)<\/table>.*?/si', $linksTable, $displayUrlInfo)){
+						$linksTable = $displayUrlInfo[1];
+						preg_match_all('/<td.*?>.*?<a href="(.*?)".*?>(.*?)<\/a>.*?<\/td>/si', $linksTable, $linkData, PREG_SET_ORDER);
+						for ($i = 0; $i < count($linkData); $i++) {
+							$linkText = $linkData[$i][2];
+							if ($linkText != 'Latest Received'){
+								$newHolding = array(
 									'type' => 'holding',
 									'link' => array(),
 									'status' => 'Online',
 									'location' => 'Online'
-							);
-							$newHolding['link'][] = array(
+								);
+								$newHolding['link'][] = array(
 									'link' => $linkData[$i][1],
 									'linkText' => $linkText,
 									'isDownload' => true
-							);
-							$ret[] = $newHolding;
+								);
+								$ret[] = $newHolding;
+							}
 						}
 					}
 				}
@@ -279,12 +285,12 @@ class MillenniumStatusLoader{
 
 				//Determine if the holding is available or not.
 				//First check the status
-				if (preg_match('/^(' . $this->driver->availableStatiRegex . ')$/', $holding['status'])){
+				if (preg_match('/^(' . $this->driver->availableStatiRegex . ')$/i', $holding['status'])){
 					$holding['availability'] = 1;
 				}else{
 					$holding['availability'] = 0;
 				}
-				if (preg_match('/^(' . $this->driver->holdableStatiRegex . ')$/', $holding['status'])){
+				if (preg_match('/^(' . $this->driver->holdableStatiRegex . ')$/i', $holding['status'])){
 					$holding['holdable'] = 1;
 				}else{
 					$holding['holdable'] = 0;
@@ -345,7 +351,7 @@ class MillenniumStatusLoader{
 					//we know what pType is in use and we are showing all items.
 					if ($scope == $this->driver->getDefaultScope() && $pType >= 0){
 						//Never remove the title if it is owned by the current library (could be in library use only)
-						if (isset($library) && strlen($library->ilsCode) > 0 && strpos($holding['locationCode'], $library->ilsCode) === 0){
+						if (isset($library) && strlen($library->ilsCode) > 0 && preg_match("/{$library->ilsCode}/i", $holding['locationCode'])){
 							//$logger->log("Cannot remove holding because it belongs to the active library", PEAR_LOG_DEBUG);
 						}else{
 							if (!$this->driver->isItemHoldableToPatron($holding['locationCode'], $holding['iType'], $pType)){
@@ -359,6 +365,14 @@ class MillenniumStatusLoader{
 						//We won't want to remove titles based on holdability, but we do want to check if it is holdable
 						if (!$this->driver->isItemHoldableToPatron($holding['locationCode'], $holding['iType'], $pType)){
 							$holding['holdable'] = 0;
+						}
+					}
+
+					if ($library->enableMaterialsBooking){
+						if ($this->driver->isItemBookableToPatron($holding['locationCode'], $holding['iType'], $pType)){
+							$holding['bookable'] = 1;
+						}else{
+							$holding['bookable'] = 0;
 						}
 					}
 				}
@@ -438,7 +452,7 @@ class MillenniumStatusLoader{
 				//we know what pType is in use and we are showing all items.
 				if ($scope == $this->driver->getDefaultScope() && $pType > 0){
 					//Never remove the title if it is owned by the current library (could be in library use only)
-					if (isset($library) && strlen($library->ilsCode) > 0 && strpos($holding['locationCode'], $library->ilsCode) === 0){
+					if (isset($library) && strlen($library->ilsCode) > 0 && preg_match("/^{$library->ilsCode}/i", $holding['locationCode'])){
 						//$logger->log("Cannot remove holding because it belongs to the active library", PEAR_LOG_DEBUG);
 					}else{
 						if (!$this->driver->isItemHoldableToPatron($holding['locationCode'], $holding['iType'], $pType)){
@@ -490,10 +504,23 @@ class MillenniumStatusLoader{
 		foreach ($sorted_array as $key => $holding){
 			//Do not override holdability based on status
 			if (isset($holding['holdable']) && $holding['holdable'] == 1){
-				$holding['holdable'] = $holdable ? 1 : 0;
+				if (!$holdable){
+					$holding['holdable'] = 0;
+				}
 				$sorted_array[$key] = $holding;
 			}
 		}
+
+		//TODO: Implement Bookable from Marc
+//		//Check to see if the title is bookable
+//		$bookable = $this->driver->isRecordBookable($marcRecord);
+//		foreach ($sorted_array as $key => $holding){
+//			//Do not override holdability based on status
+//			if (isset($holding['bookable']) && $holding['bookable'] == 1){
+//				$holding['bookable'] = $bookable ? 1 : 0;
+//				$sorted_array[$key] = $holding;
+//			}
+//		}
 
 		if (!$configArray['Catalog']['offline']){
 			//Load order records, these only show in the full page view, not the item display
@@ -580,7 +607,7 @@ class MillenniumStatusLoader{
 		}else{
 			$status = $sorted_array;
 		}
-		MillenniumStatusLoader::$loadedStatus[$id] = $status;
+		MillenniumStatusLoader::$loadedStatus[$cachingKey] = $status;
 		return $status;
 	}
 
@@ -729,7 +756,7 @@ class MillenniumStatusLoader{
 							if (stripos($cellValue,$stat_due) > -1) {
 								$p = substr($cellValue,stripos($cellValue,$stat_due));
 								$s = trim($p, $stat_due);
-								$curHolding['duedate'] = $s;
+								$curHolding['dueDate'] = $s;
 							}
 
 							$statfull = strip_tags($cellValue);
@@ -770,15 +797,19 @@ class MillenniumStatusLoader{
 	public function getStatusSummary($id, $forSearch = false){
 		global $configArray;
 		$holdings = MillenniumStatusLoader::getStatus($id);
+
+		if (strpos($id, ':') !== false) list(,$recordId) = explode(':', $id, 2); // remove any prefix from the recordId
+
 		$summaryInformation = array();
-		$summaryInformation['recordId'] = $id;
-		$summaryInformation['shortId'] = substr($id, 1);
+		$summaryInformation['recordId'] = $recordId;
+		$summaryInformation['shortId'] = substr($recordId, 1);
 		$summaryInformation['isDownloadable'] = false; //Default value, reset later if needed.
 
 		if ($configArray['Catalog']['offline']){
 			$summaryInformation['offline'] = true;
 			$summaryInformation['status'] = 'The circulation system is offline, status not available.';
 			$summaryInformation['holdable'] = true;
+			$summaryInformation['showBookMaterial'] = false;
 			$summaryInformation['class'] = "unavailable";
 			$summaryInformation['showPlaceHold'] = true;
 			return $summaryInformation;
@@ -857,6 +888,7 @@ class MillenniumStatusLoader{
 		//  - there is at least one download link for the record.
 		$numAvailableCopies = 0;
 		$numHoldableCopies = 0;
+		$numBookableCopies = 0;
 		$numCopies = 0;
 		$numCopiesOnOrder = 0;
 		$availableLocations = array();
@@ -912,6 +944,9 @@ class MillenniumStatusLoader{
 
 			if (isset($holding['holdable']) && $holding['holdable'] == 1){
 				$numHoldableCopies++;
+			}
+			if (isset($holding['bookable']) && $holding['bookable'] == 1){
+				$numBookableCopies++;
 			}
 			$numCopies++;
 
@@ -991,6 +1026,11 @@ class MillenniumStatusLoader{
 		if ($numHoldableCopies == 0){
 			$summaryInformation['showPlaceHold'] = false;
 		}
+
+//		$summaryInformation['bookableCopies'] = $numHoldableCopies; // may be wanted in the future
+		$summaryInformation['showBookMaterial'] = $numBookableCopies > 0;
+		// if there are any bookable copies turn on the ShowBookMaterial switch,
+		// this determines whether or not the Book Material Button will be display to the user
 
 		$summaryInformation['numCopiesOnOrder'] = $numCopiesOnOrder;
 		//Do some basic sanity checking to make sure that we show the total copies

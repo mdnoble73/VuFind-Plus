@@ -42,6 +42,7 @@ class MergedGroupedWork extends DB_DataObject {
 				'maxLength' => 36,
 				'label' => 'Destination Grouped Work Id',
 				'description' => 'The id of the grouped work to merge the work into.',
+				'serverValidation' => 'validateDestination',
 				'storeDb' => true,
 				'required' => true,
 			),
@@ -56,12 +57,23 @@ class MergedGroupedWork extends DB_DataObject {
 				'required' => true,
 			),
 		);
-		foreach ($structure as $fieldName => $field){
-			if (isset($field['property'])){
-				$field['propertyOld'] = $field['property'] . 'Old';
-				$structure[$fieldName] = $field;
-			}
-		}
 		return $structure;
+	}
+
+	function validateDestination(){
+		//Setup validation return array
+		$validationResults = array(
+			'validatedOk' => true,
+			'errors' => array(),
+		);
+
+		if ($this->destinationGroupedWorkId == $this->sourceGroupedWorkId){
+			$validationResults = array(
+				'validatedOk' => false,
+				'errors' => array('The source work id cannot match the destination work id'),
+			);
+		}
+
+		return $validationResults;
 	}
 } 

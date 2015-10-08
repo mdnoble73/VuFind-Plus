@@ -35,10 +35,6 @@ class LoanRuleDeterminer extends DB_DataObject
 			'loanRuleId' => array('property'=>'loanRuleId', 'type'=>'integer', 'label'=>'Loan Rule Id', 'description'=>'The loan rule that this determiner row triggers'),
 			'active' => array('property'=>'active', 'type'=>'checkbox', 'label'=>'Active?', 'description'=>'Whether or not the determiner row is active.'),
 		);
-		foreach ($structure as $fieldName => $field){
-			$field['propertyOld'] = $field['property'] . 'Old';
-			$structure[$fieldName] = $field;
-		}
 		return $structure;
 	}
 
@@ -74,7 +70,7 @@ class LoanRuleDeterminer extends DB_DataObject
 	private $pTypeArray = null;
 	function pTypeArray(){
 		if ($this->pTypeArray == null){
-			$this->pTypeArray = split(',', $this->patronType);
+			$this->pTypeArray = explode(',', rtrim($this->patronType, ','));// trailing comas in $this->patronType will create empty element when split
 			foreach($this->pTypeArray as $key => $pType){
 				if (!is_numeric($pType)){
 					$pTypeRange = explode("-", $pType);

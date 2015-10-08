@@ -64,13 +64,15 @@ class PersonRecord extends IndexRecord
 		if (isset($this->fields['middleName'])){
 			$name .= ' ' . $this->fields['middleName'];
 		}
-		if (isset($person->nickName) && strlen($person->nickName) > 0){
-			$name .= ' "' . $person->nickName . '"';
+		if (isset($this->fields['nickName']) && strlen($this->fields['nickName']) > 0){
+			$name .= ' "' . $this->fields['nickName'] . '"';
 		}
-		if (isset($person->maidenName) && strlen($person->maidenName) > 0){
-			$name .= ' (' . $person->maidenName . ')';
+		if (isset($this->fields['maidenName']) && strlen($this->fields['maidenName']) > 0){
+			$name .= ' (' . $this->fields['maidenName'] . ')';
 		}
-		$name .= ' ' . $this->fields['lastName'];
+		if (isset($this->fields['lastName']) && strlen($this->fields['lastName']) > 0) {
+			$name .= ' ' . $this->fields['lastName'];
+		}
 		return $name;
 	}
 }

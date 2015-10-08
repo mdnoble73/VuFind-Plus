@@ -14,14 +14,18 @@ abstract class BaseEContentDriver  extends MarcRecord {
 	abstract function getModuleName();
 	abstract function getValidProtectionTypes();
 
-	protected $itemsFromIndex;
-	public function setItemsFromIndex($itemsFromIndex, $realTimeStatusNeeded){
-		$this->itemsFromIndex = $itemsFromIndex;
-	}
-
-	protected $detailedRecordInfoFromIndex;
-	public function setDetailedRecordInfoFromIndex($detailedRecordInfoFromIndex, $realTimeStatusNeeded){
-		$this->detailedRecordInfoFromIndex = $detailedRecordInfoFromIndex;
+	/**
+	 * Constructor.  We build the object using all the data retrieved
+	 * from the (Solr) index.  Since we have to
+	 * make a search call to find out which record driver to construct,
+	 * we will already have this data available, so we might as well
+	 * just pass it into the constructor.
+	 *
+	 * @param   array|File_MARC_Record||string   $recordData     Data to construct the driver from
+	 * @access  public
+	 */
+	public function __construct($recordData){
+		parent::__construct($recordData);
 	}
 
 	public function getItems(){
@@ -76,8 +80,8 @@ abstract class BaseEContentDriver  extends MarcRecord {
 						if (count($itemData) > 6){
 							$fileOrUrl = $itemData[6];
 						}
-						$isLocalItem = isset($libraryLocationCode) && strlen($libraryLocationCode) > 0 && strpos($locationCode, $libraryLocationCode) === 0;
-						$isLibraryItem = isset($homeLocationCode) && strlen($homeLocationCode) > 0 && strpos($locationCode, $homeLocationCode) === 0;
+						$isLocalItem = isset($libraryLocationCode) && strlen($libraryLocationCode) > 0 && preg_match("/^{$libraryLocationCode}/i", $locationCode);
+						$isLibraryItem = isset($homeLocationCode) && strlen($homeLocationCode) > 0 && preg_match("/^$homeLocationCode/i", $locationCode);
 					}
 
 					$actions = $this->getActionsForItem($itemId, $fileOrUrl, null);
@@ -274,7 +278,7 @@ abstract class BaseEContentDriver  extends MarcRecord {
 		//Add a record per source
 		foreach ($sources as $source){
 			foreach ($parentRecords as $relatedRecord){
-				$relatedRecord['source'] = $source;
+				$relatedRecord['eContentSource'] = $source;
 				if ($relatedRecord['available']){
 					$relatedRecord['availableOnline'] = true;
 				}

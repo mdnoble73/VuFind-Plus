@@ -31,28 +31,56 @@ class MarcRecord extends IndexRecord
 {
 	/** @var File_MARC_Record $marcRecord */
 	protected $marcRecord = null;
+
+	protected $profileType;
 	protected $id;
-	protected $valid = true;
+	/** @var  IndexingProfile $indexingProfile */
+	protected $indexingProfile;
+	protected $valid = null;
 
 	/**
-	 * @param array|File_MARC_Record|string $record
+	 * Constructor.  We build the object using all the data retrieved
+	 * from the (Solr) index.  Since we have to
+	 * make a search call to find out which record driver to construct,
+	 * we will already have this data available, so we might as well
+	 * just pass it into the constructor.
+	 *
+	 * @param   array|File_MARC_Record||string   $recordData     Data to construct the driver from
+	 * @access  public
 	 */
-	public function __construct($record)
-	{
-		if ($record instanceof File_MARC_Record){
-			$this->marcRecord = $record;
-		}elseif (is_string($record)){
+	public function __construct($recordData){
+		if ($recordData instanceof File_MARC_Record){
+			$this->marcRecord = $recordData;
+		}elseif (is_string($recordData)){
 			require_once ROOT_DIR . '/sys/MarcLoader.php';
-			$this->id = $record;
+			if (strpos($recordData, ':') !== false){
+				$recordInfo = explode(':', $recordData);
+				$this->profileType = $recordInfo[0];
+				$this->id = $recordInfo[1];
+			}else{
+				$this->profileType = 'ils';
+				$this->id = $recordData;
+			}
 
-			$this->valid = MarcLoader::marcExistsForILSId($record);
+			global $indexingProfiles;
+			if (array_key_exists($this->profileType, $indexingProfiles)){
+				$this->indexingProfile = $indexingProfiles[$this->profileType];
+			}else{
+				//Try to infer the indexing profile from the module
+				global $activeRecordProfile;
+				if ($activeRecordProfile){
+					$this->indexingProfile = $activeRecordProfile;
+				}else{
+					$this->indexingProfile = $indexingProfiles['ils'];
+				}
+			}
 		}else{
 			// Call the parent's constructor...
-			parent::__construct($record);
+			parent::__construct($recordData);
 
 			// Also process the MARC record:
 			require_once ROOT_DIR . '/sys/MarcLoader.php';
-			$this->marcRecord = MarcLoader::loadMarcRecordFromRecord($record);
+			$this->marcRecord = MarcLoader::loadMarcRecordFromRecord($recordData);
 			if (!$this->marcRecord) {
 				$this->valid = false;
 			}
@@ -65,13 +93,19 @@ class MarcRecord extends IndexRecord
 				$this->id = $idField->getSubfield('a')->getData();
 			}
 		}
+		global $timer;
+		$timer->logTime("Base initialization of MarcRecord Driver");
 		parent::loadGroupedWork();
+	}
+
+	public function getModule(){
+		return isset($this->indexingProfile) ? $this->indexingProfile->recordUrlComponent : 'Record';
 	}
 
 	protected $itemsFromIndex;
 	public function setItemsFromIndex($itemsFromIndex, $realTimeStatusNeeded){
 		global $configArray;
-		if ($configArray['Catalog']['supportsRealtimeIndexing'] || !$realTimeStatusNeeded){
+		if ($configArray['Catalog']['supportsRealtimeIndexing'] || !$realTimeStatusNeeded || $configArray['Catalog']['offline']){
 			$this->itemsFromIndex = $itemsFromIndex;
 		}
 	}
@@ -79,12 +113,15 @@ class MarcRecord extends IndexRecord
 	protected $detailedRecordInfoFromIndex;
 	public function setDetailedRecordInfoFromIndex($detailedRecordInfoFromIndex, $realTimeStatusNeeded){
 		global $configArray;
-		if ($configArray['Catalog']['supportsRealtimeIndexing'] || !$realTimeStatusNeeded){
+		if ($configArray['Catalog']['supportsRealtimeIndexing'] || !$realTimeStatusNeeded || $configArray['Catalog']['offline']){
 			$this->detailedRecordInfoFromIndex = $detailedRecordInfoFromIndex;
 		}
 	}
 
 	public function isValid(){
+		if ($this->valid == null){
+			$this->valid = MarcLoader::marcExistsForILSId($this->getIdWithSource());
+		}
 		return $this->valid;
 	}
 
@@ -103,6 +140,27 @@ class MarcRecord extends IndexRecord
 		}else{
 			return $this->fields['id'];
 		}
+	}
+
+	/**
+	 * Return the unique identifier of this record within the Solr index;
+	 * useful for retrieving additional information (like tags and user
+	 * comments) from the external MySQL database.
+	 *
+	 * @access  public
+	 * @return  string              Unique identifier.
+	 */
+	public function getId()
+	{
+		if (isset($this->id)){
+			return $this->id;
+		}else{
+			return $this->fields['id'];
+		}
+	}
+
+	public function getIdWithSource(){
+		return $this->profileType . ':' . $this->id;
 	}
 
 	/**
@@ -223,7 +281,6 @@ class MarcRecord extends IndexRecord
 
 		// Load Stylesheet
 		$style = new DOMDocument;
-		//$style->load('services/Record/xsl/MARC21slim2RDFDC.xsl');
 		$style->load('services/Record/xsl/record-rdf-mods.xsl');
 
 		// Setup XSLT
@@ -274,22 +331,6 @@ class MarcRecord extends IndexRecord
 	public function getStaffView()
 	{
 		global $interface;
-
-		// Get Record as MARCXML
-		/*$xml = trim($this->getMarcRecord()->toXML());
-
-		// Transform MARCXML
-		$style = new DOMDocument;
-		$style->load('services/Record/xsl/record-marc.xsl');
-		$xsl = new XSLTProcessor();
-		$xsl->importStyleSheet($style);
-		$doc = new DOMDocument;
-		if ($doc->loadXML($xml)) {
-			$html = $xsl->transformToXML($doc);
-			$interface->assign('details', $html);
-		}else{
-			$interface->assign('details', 'MARC record could not be read.');
-		}*/
 
 		$interface->assign('marcRecord', $this->getMarcRecord());
 
@@ -835,7 +876,7 @@ class MarcRecord extends IndexRecord
 	 * @access  protected
 	 * @return  string
 	 */
-	protected function getTitleSection()
+	public function getTitleSection()
 	{
 		return $this->getFirstFieldValue('245', array('n', 'p'));
 	}
@@ -963,6 +1004,7 @@ class MarcRecord extends IndexRecord
 
 		// Get Holdings
 		try {
+			/** @var CatalogConnection $catalog */
 			$catalog = CatalogFactory::getCatalogConnectionInstance();;
 		} catch (PDOException $e) {
 			return new PEAR_Error('Cannot connect to ILS');
@@ -1158,475 +1200,46 @@ class MarcRecord extends IndexRecord
 		return $this->getFormat();
 	}
 
-	function getFormat(){
-		$result = array();
-
-		$leader = $this->getMarcRecord()->getLeader();
-		/** @var File_MARC_Control_Field $fixedField */
-		$fixedField = $this->getMarcRecord()->getField("008");
-
-		// check for music recordings quickly so we can figure out if it is music
-		// for category (need to do here since checking what is on the Compact
-		// Disc/Phonograph, etc is difficult).
-		if (strlen($leader) >= 6) {
-			$leaderBit = strtoupper($leader[6]);
-			switch ($leaderBit) {
-				case 'J':
-					$result[] = "Music Recording";
-					break;
-			}
-		}
-
-		// check for playaway in 260|b
-		/** @var File_MARC_Data_Field $sysDetailsNote */
-		$sysDetailsNote = $this->getMarcRecord()->getField("260");
-		if ($sysDetailsNote != null) {
-			if ($sysDetailsNote->getSubfield('b') != null) {
-				$sysDetailsValue = strtolower($sysDetailsNote->getSubfield('b')->getData());
-				if (strpos($sysDetailsValue, "playaway") !== FALSE) {
-					$result[] = "Playaway";
-				}
-			}
-		}
-
-		// Check for formats in the 538 field
-		$sysDetailsValue = strtolower($this->getFirstFieldValue("538"));
-		if ($sysDetailsValue != null) {
-			if (strpos($sysDetailsValue, "playaway") !== FALSE) {
-				$result[] =  "Playaway";
-			} else if (strpos($sysDetailsValue, "xbox one") !== FALSE) {
-				$result[] =  "Xbox One";
-			} else if (strpos($sysDetailsValue, "kinect sensor") !== FALSE) {
-				$result[] =  "Xbox 360 Kinect";
-			} else if (strpos($sysDetailsValue, "xbox") !== FALSE) {
-				$result[] =  "Xbox 360";
-			} else if (strpos($sysDetailsValue, "playstation 4") !== FALSE) {
-				$result[] =  "PlayStation 3";
-			} else if (strpos($sysDetailsValue, "playstation 3") !== FALSE) {
-				$result[] =  "PlayStation 3";
-			} else if (strpos($sysDetailsValue, "playstation") !== FALSE) {
-				$result[] =  "PlayStation";
-			} else if (strpos($sysDetailsValue, "wii u") !== FALSE) {
-				$result[] =  "Nintendo Wii U";
-			} else if (strpos($sysDetailsValue, "nintendo 3ds") !== FALSE) {
-				$result[] =  "Nintendo 3DS";
-			} else if (strpos($sysDetailsValue, "nintendo wii") !== FALSE) {
-				$result[] =  "Nintendo Wii";
-			} else if (strpos($sysDetailsValue, "directx") !== FALSE) {
-				$result[] =  "Windows Game";
-			} else if (strpos($sysDetailsValue, "bluray") !== FALSE
-					|| strpos($sysDetailsValue, "blu-ray") !== FALSE) {
-				$result[] =  "Blu-ray";
-			} else if (strpos($sysDetailsValue, "dvd") !== FALSE) {
-				$result[] =  "DVD";
-			} else if (strpos($sysDetailsValue, "vertical file") !== FALSE) {
-				$result[] =  "Vertical File";
-			}
-		}
-
-		// Check for formats in the 500 tag
-		/** @var File_MARC_Data_Field $sysDetailsNote2 */
-		$noteValue = strtolower($this->getFirstFieldValue("500"));
-		if ($noteValue) {
-			if (strpos($noteValue, "vertical file") != FALSE) {
-				$result[] =  "Vertical File";
-			}
-		}
-
-		// Check for large print book (large format in 650, 300, or 250 fields)
-		// Check for blu-ray in 300 fields
-		$edition = strtolower($this->getFirstFieldValue("250"));
-		if ($edition != null) {
-			if (strpos($edition, "large type") !== FALSE || strpos($edition, "large print") !== FALSE) {
-				$result[] =  "Large Print";
-			}
-		}
-
-		$physicalDescriptions = $this->getFieldArray("300", array('a', 'b', 'c'));
-		foreach($physicalDescriptions as $physicalDescription){
-			$physicalDescription = strtolower($physicalDescription);
-			if (strpos($physicalDescription, "large type") !== FALSE) {
-				$result[] =  "Large Print";
-			} else if (strpos($physicalDescription, "bluray") !== FALSE
-					|| strpos($physicalDescription, "blu-ray") !== FALSE) {
-				$result[] =  "Blu-ray";
-			} else if (strpos($physicalDescription, "computer optical disc") !== FALSE) {
-				$result[] =  "Computer Software";
-			} else if (strpos($physicalDescription, "sound cassettes") !== FALSE) {
-				$result[] =  "Audio Cassette";
-			} else if (strpos($physicalDescription, "sound discs") !== FALSE) {
-				$result[] =  "Audio CD";
-			}
-		}
-
-		$topicalTerms = $this->getFieldArray("650");
-		foreach ($topicalTerms as $topicalTerm){
-			$topicalTerm = strtolower($topicalTerm);
-			if (strpos($topicalTerm, "large type") !== FALSE){
-				$result[] =  "Large Print";
-			}elseif (strpos($topicalTerm, "playaway") !== FALSE){
-				$result[] =  "Playaway";
-			}elseif (strpos($topicalTerm, "graphic novel") !== FALSE){
-				$result[] =  "Graphic Novel";
-			}
-		}
-
-		$genreFormTerms = $this->getFieldArray("655");
-		foreach ($genreFormTerms as $term){
-			$term = strtolower($term);
-			if (strpos($term, "large type") !== FALSE){
-				$result[] =  "Large Print";
-			}elseif (strpos($term, "playaway") !== FALSE){
-				$result[] =  "Playaway";
-			}elseif (strpos($term, "graphic novel") !== FALSE){
-				$result[] =  "Graphic Novel";
-			}
-		}
-
-		$localTopicalTerms = $this->getFieldArray("690");
-		foreach ($localTopicalTerms as $topicalTerm){
-			$topicalTerm = strtolower($topicalTerm);
-			if (strpos($topicalTerm, "seed library") !== FALSE){
-				$result[] =  "Seed Packet";
-			}
-		}
-
-		$addedAuthors = $this->getFieldArray("710");
-		foreach ($addedAuthors as $addedAuthor){
-			$addedAuthor = strtolower($addedAuthor);
-			if (strpos($addedAuthor, "playaway digital audio") !== FALSE || strpos($addedAuthor, "findaway world") !== FALSE){
-				$result[] =  "Playaway";
-			}
-		}
-
-		$title = strtolower($this->getTitle());
-		if (strpos($title, 'book club kit') !== false){
-			$result[] = "Book Club Kit";
-		}
-
-		// check the 007 - this is a repeating field
-		$fields = $this->getMarcRecord()->getFields("007");
-		if ($fields != null) {
-			/** @var File_MARC_Control_Field $formatField */
-			foreach ($fields as $formatField) {
-				if ($formatField->getData() == null || strlen($formatField->getData()) < 2) {
-					continue;
-				}
-				// Check for blu-ray (s in position 4)
-				// This logic does not appear correct.
-				/*
-				 * if (formatField.getData() != null && formatField.getData().length()
-				 * >= 4){ if (formatField.getData().toUpperCase().charAt(4) == 'S'){
-				 * $result[] =  "Blu-ray"; break; } }
-				 */
-				$formatCode = strtoupper($formatField->getData());
-				$firstCharacter = substr($formatCode, 0, 1);
-				$secondCharacter = substr($formatCode, 1, 1);
-				switch ($firstCharacter) {
-					case 'A':
-						switch ($secondCharacter) {
-							case 'D':
-								$result[] =  "Atlas";
-								break;
-							default:
-								$result[] =  "Map";
-								break;
-						}
-						break;
-					case 'C':
-						switch ($secondCharacter) {
-							case 'A':
-								$result[] =  "Software";
-								break;
-							case 'B':
-								$result[] =  "Software";
-								break;
-							case 'C':
-								$result[] =  "Software";
-								break;
-							case 'F':
-								$result[] =  "Tape Cassette";
-								break;
-							case 'H':
-								$result[] =  "Tape Reel";
-								break;
-							case 'J':
-								$result[] =  "Floppy Disk";
-								break;
-							case 'M':
-							case 'O':
-								$result[] =  "CD-ROM";
-								break;
-							case 'R':
-								// Do not return - this will cause anything with an
-								// 856 field to be labeled as "Electronic"
-								break;
-							default:
-								$result[] =  "Software";
-								break;
-						}
-						break;
-					case 'D':
-						$result[] =  "Globe";
-						break;
-					case 'F':
-						$result[] =  "Braille";
-						break;
-					case 'G':
-						switch ($secondCharacter) {
-							case 'C':
-							case 'D':
-								$result[] =  "Filmstrip";
-								break;
-							case 'T':
-								$result[] =  "Transparency";
-								break;
-							default:
-								$result[] =  "Slide";
-								break;
-						}
-						break;
-					case 'H':
-						$result[] =  "Microfilm";
-						break;
-					case 'K':
-						switch ($secondCharacter) {
-							case 'C':
-								$result[] =  "Collage";
-								break;
-							case 'D':
-								$result[] =  "Drawing";
-								break;
-							case 'E':
-								$result[] =  "Painting";
-								break;
-							case 'F':
-								$result[] =  "Print";
-								break;
-							case 'G':
-								$result[] =  "Photo";
-								break;
-							case 'J':
-								$result[] =  "Print";
-								break;
-							case 'L':
-								$result[] =  "Drawing";
-								break;
-							case 'O':
-								$result[] =  "Flash Card";
-								break;
-							case 'N':
-								$result[] =  "Chart";
-								break;
-							default:
-								$result[] =  "Photo";
-								break;
-						}
-						break;
-					case 'M':
-						switch ($secondCharacter) {
-							case 'F':
-								$result[] =  "VHS";
-								break;
-							case 'R':
-								$result[] =  "Video";
-								break;
-							default:
-								$result[] =  "Video";
-								break;
-						}
-						break;
-					case 'O':
-						$result[] =  "Kit";
-						break;
-					case 'Q':
-						$result[] =  "Musical Score";
-						break;
-					case 'R':
-						$result[] =  "Sensor Image";
-						break;
-					case 'S':
-						switch ($secondCharacter) {
-							case 'D':
-								if (strlen($formatCode) >= 4) {
-									$speed = substr($formatCode, 3, 1);
-									if ($speed >= 'A' && $speed <= 'E') {
-										$result[] =  "Phonograph";
-									} else if ($speed == 'F') {
-										$result[] =  "Audio CD";
-									} else if ($speed >= 'K' && $speed <= 'R') {
-										$result[] =  "Tape Recording";
-									} else {
-										$result[] =  "CD";
-									}
-								} else {
-									$result[] =  "CD";
-								}
-								break;
-							case 'S':
-								$result[] =  "Audio Cassette";
-								break;
-							default:
-								$result[] =  "Audio";
-								break;
-						}
-						break;
-					case 'T':
-						switch ($secondCharacter) {
-							case 'A':
-								$result[] =  "Book";
-								break;
-							case 'B':
-								$result[] =  "Large Print";
-								break;
-						}
-						break;
-					case 'V':
-						switch ($secondCharacter) {
-							case 'C':
-								$result[] =  "Video";
-								break;
-							case 'D':
-								$result[] =  "DVD";
-								break;
-							case 'F':
-								$result[] =  "VHS";
-								break;
-							case 'R':
-								$result[] =  "Video";
-								break;
-							default:
-								$result[] =  "Video";
-								break;
-						}
-						break;
-				}
-			}
-		}
-
-		// check the Leader at position 6
-		if (strlen($leader) >= 6) {
-			$leaderBit = strtoupper(substr($leader, 6, 1));
-			switch ($leaderBit) {
-				case 'C':
-				case 'D':
-					$result[] =  "Musical Score";
-					break;
-				case 'E':
-				case 'F':
-					$result[] =  "Map";
-					break;
-				case 'G':
-					// We appear to have a number of items without 007 tags marked as G's.
-					// These seem to be Videos rather than Slides.
-					// $result[] =  "Slide";
-					$result[] =  "Video";
-					break;
-				case 'I':
-					$result[] =  "Sound Recording";
-					break;
-				case 'J':
-					$result[] =  "Music Recording";
-					break;
-				case 'K':
-					$result[] =  "Photo";
-					break;
-				case 'M':
-					$result[] =  "Electronic";
-					break;
-				case 'O':
-				case 'P':
-					$result[] =  "Kit";
-					break;
-				case 'R':
-					$result[] =  "Physical Object";
-					break;
-				case 'T':
-					$result[] =  "Manuscript";
-					break;
-			}
-		}
-
-		if (strlen($leader) >= 7) {
-			// check the Leader at position 7
-			$leaderBit = strtoupper(substr($leader, 7, 1));
-			switch ($leaderBit) {
-				// Monograph
-				case 'M':
-					if (count($result) == 0) {
-						$result[] =  "Book";
-					}
-					break;
-				// Serial
-				case 'S':
-					// Look in 008 to determine what type of Continuing Resource
-					if ($fixedField != null){
-						$formatCode = substr(strtoupper($fixedField->getData()), 21, 1);
-						switch ($formatCode) {
-							case 'N':
-								$result[] =  "Newspaper";
-								break;
-							case 'P':
-								$result[] =  "Journal";
-								break;
-							default:
-								$result[] =  "Serial";
-								break;
-						}
-					}
-			}
-		}
-
-		// Nothing worked!
-		if (count($result) == 0) {
-			$result[] =  "Unknown";
-		}else{
-			$result = array_unique($result);
-		}
-
-		return $this->filterFormats($result);
-	}
-
 	/**
-	 * Remove formats that are less specific
-	 *
-	 * @param string[] $allFormats
+	 * Load the format for the record based off of information stored within the grouped work.
+	 * Which was calculated at index time.
 	 *
 	 * @return string[]
 	 */
-	function filterFormats($allFormats){
-		if (in_array('Video', $allFormats) && in_array('DVD', $allFormats)){
-			$allFormats = array_remove_by_value($allFormats, 'Video');
-		}elseif (in_array('Musical Score', $allFormats) && in_array('Book', $allFormats)){
-			$allFormats = array_remove_by_value($allFormats, 'Book');
-		}elseif (in_array('Audio CD', $allFormats) && in_array('Sound Recording', $allFormats)){
-			$allFormats = array_remove_by_value($allFormats, 'Sound Recording');
-		}elseif (in_array('Book Club Kit', $allFormats) && in_array('Book', $allFormats)){
-			$allFormats = array_remove_by_value($allFormats, 'Book');
-		}elseif (in_array('Book', $allFormats) && in_array('Manuscript', $allFormats)){
-			$allFormats = array_remove_by_value($allFormats, 'Manuscript');
+	function getFormat(){
+		//Rather than loading formats here, let's leverage the work we did at index time
+		$recordDetails = $this->getGroupedWorkDriver()->getSolrField('record_details');
+		if ($recordDetails){
+			if (!is_array($recordDetails)){ $recordDetails = array($recordDetails); }
+			foreach ($recordDetails as $recordDetailRaw){
+				$recordDetail = explode('|', $recordDetailRaw);
+				if ($recordDetail[0] == $this->getIdWithSource()){
+					return array($recordDetail[1]);
+				}
+			}
+			//We did not find a record for this in the index.  It's probably been deleted.
+			return array('Unknown');
+		}else{
+			return array('Unknown');
 		}
-		return $allFormats;
 	}
 
 	function getRecordUrl(){
 		global $configArray;
 		$recordId = $this->getUniqueID();
 
-		return $configArray['Site']['path'] . '/Record/' . $recordId;
+		return $configArray['Site']['path'] . "/{$this->indexingProfile->recordUrlComponent}/$recordId";
 	}
 
 	private $relatedRecords = null;
 	function getRelatedRecords($realTimeStatusNeeded = true){
 		if ($this->relatedRecords == null || isset($_REQUEST['reload'])){
-			global $configArray;
 			global $timer;
 			global $interface;
 			$this->relatedRecords = array();
 			$recordId = $this->getUniqueID();
 
 			$url = $this->getRecordUrl();
-			$holdUrl = $configArray['Site']['path'] . '/Record/' . $recordId . '/Hold';
 
 			if ($this->detailedRecordInfoFromIndex){
 				$format = $this->detailedRecordInfoFromIndex[1];
@@ -1660,7 +1273,6 @@ class MarcRecord extends IndexRecord
 			$hasLocalItem = false;
 			$groupedStatus = "Currently Unavailable";
 			foreach ($items as $item){
-				$totalCopies++;
 				if ($item['availability'] == true){
 					$availableCopies++;
 				}
@@ -1676,14 +1288,17 @@ class MarcRecord extends IndexRecord
 						$branchAvailableCopies++;
 					}
 				}
-				if (isset($item['onOrderCopies'])){
+				if (isset($item['onOrderCopies']) && $item['onOrderCopies'] > 0){
 					$onOrderCopies += $item['onOrderCopies'];
+					$totalCopies += $item['onOrderCopies'];
+				}else{
+					$totalCopies++;
 				}
 				//Check to see if we got a better grouped status
 				if (isset($item['groupedStatus'])){
 					$statusRankings = array(
-						'On Order' => 1,
-						'Currently Unavailable' => 2,
+						'Currently Unavailable' => 1,
+						'On Order' => 2,
 						'Coming Soon' => 3,
 						'Checked Out' => 4,
 						'Library Use Only' => 5,
@@ -1705,7 +1320,6 @@ class MarcRecord extends IndexRecord
 			$relatedRecord = array(
 					'id' => $recordId,
 					'url' => $url,
-					'holdUrl' => $holdUrl,
 					'format' => $format,
 					'formatCategory' => $formatCategory,
 					'edition' => $edition,
@@ -1743,7 +1357,7 @@ class MarcRecord extends IndexRecord
 				$relatedRecord['actions'][] = array(
 						'title' => 'Place Hold',
 						'url' => '',
-						'onclick' => "return VuFind.Record.showPlaceHold('{$recordId}');",
+						'onclick' => "return VuFind.Record.showPlaceHold('{$this->getModule()}', '{$this->getIdWithSource()}');",
 						'requireLogin' => false,
 				);
 			}
@@ -1751,6 +1365,43 @@ class MarcRecord extends IndexRecord
 			$this->relatedRecords[] = $relatedRecord;
 		}
 		return $this->relatedRecords;
+	}
+
+	public function getRecordActions($isAvailable, $isHoldable, $isBookable, $relatedUrls = null){
+		$actions = array();
+		global $interface;
+		global $library;
+		if (isset($interface)){
+			if ($interface->getVariable('displayingSearchResults')){
+				$showHoldButton =  $interface->getVariable('showHoldButtonInSearchResults');
+			}else{
+				$showHoldButton = $interface->getVariable('showHoldButton');
+			}
+		}else{
+			$showHoldButton = false;
+		}
+		if ($showHoldButton && $isAvailable){
+			$showHoldButton = !$interface->getVariable('showHoldButtonForUnavailableOnly');
+		}
+
+		if ($isHoldable && $showHoldButton){
+			$actions[] = array(
+				'title' => 'Place Hold',
+				'url' => '',
+				'onclick' => "return VuFind.Record.showPlaceHold('{$this->getModule()}', '{$this->getIdWithSource()}');",
+				'requireLogin' => false,
+			);
+		}
+		if ($isBookable && $library->enableMaterialsBooking){
+			$actions[] = array(
+				'title' => 'Schedule Item',
+				'url' => '',
+				'onclick' => "return VuFind.Record.showBookMaterial('{$this->getModule()}', '{$this->getId()}');",
+				'requireLogin' => false,
+			);
+		}
+
+		return $actions;
 	}
 
 	protected function isHoldable(){
@@ -1935,122 +1586,38 @@ class MarcRecord extends IndexRecord
 	public function getItemsFast(){
 		global $timer;
 		if ($this->fastItems == null || isset($_REQUEST['reload'])){
-			$searchLibrary = Library::getSearchLibrary();
-			$extraLocations = '';
-			if ($searchLibrary){
-				$libraryLocationCode = $searchLibrary->ilsCode;
-			}
-			$searchLocation = Location::getSearchLocation();
-			if ($searchLocation){
-				$homeLocationCode = $searchLocation->code;
-				$extraLocations = $searchLocation->extraLocationCodesToInclude;
-			}
 			if ($this->itemsFromIndex){
 				$this->fastItems = array();
 				foreach ($this->itemsFromIndex as $itemData){
-					$isOrderItem = false;
+					$isOrderItem = $itemData[7] == "true";
 					$onOrderCopies = 0;
-					$status = null;
-					$groupedStatus = null;
-					$inLibraryUseOnly = false;
-					$isHoldable = true;
-					$isLocalItem = false;
-					$isLibraryItem = false;
-
-					if (array_key_exists('item', $itemData)){
-						//New style with item, record, and scope information separated
-						$shelfLocation = $itemData['item'][7];
-						$locationCode = $itemData['item'][1];
-						$callNumber = $itemData['item'][2];
-						if (substr($itemData['item'][0], 0, 2) == '.o'){
-							$isOrderItem = true;
-							$onOrderCopies = $itemData['item'][7];
-							$available = false;
-							$shelfLocation = mapValue('shelf_location',$itemData['item'][1]);
-
-						}else{
-							$status = mapValue('item_status', $itemData['item'][6]);
-							$groupedStatus = mapValue('item_grouped_status', $itemData['item'][6]);
-							$available = $itemData['item'][3] == 'true';
-							$inLibraryUseOnly = $itemData['item'][4] == 'true';
-						}
-						//Don't use scoping section yet because it isn't ready for prime time.
-						/*if (array_key_exists('scope', $itemData) && count($itemData['scope']) > 0){
-							$isHoldable = $itemData['scope'][0] == 'true';
-							$isLocalItem = $itemData['scope'][1] == 'true';
-							$isLibraryItem = $itemData['scope'][2] == 'true';
-						}*/
-						if (!isset($libraryLocationCode) || $libraryLocationCode == ''){
-							$isLibraryItem = true;
-						}else{
-							$isLibraryItem = strpos($locationCode, $libraryLocationCode) === 0;
-						}
-						$isLocalItem = (isset($homeLocationCode) && strlen($homeLocationCode) > 0 && strpos($locationCode, $homeLocationCode) === 0) || ($extraLocations != '' && preg_match("/^{$extraLocations}$/i", $locationCode));
-					}else{
-						//Old style where record and item information are combined
-						$shelfLocation = $itemData[2];
-						$locationCode = $itemData[2];
-						if (strpos($shelfLocation, ':') === false){
-							$shelfLocation = mapValue('shelf_location', $itemData[2]);
-						}else{
-							$shelfLocationParts = explode(":", $shelfLocation);
-							$locationCode = $shelfLocationParts[0];
-							$branch = mapValue('shelf_location', $locationCode);
-							$shelfLocationTmp = mapValue('collection', $shelfLocationParts[1]);
-							$shelfLocation = $branch . ' ' . $shelfLocationTmp;
-						}
-						$callNumber = $itemData[3];
-						if (substr($itemData[1], 0, 2) == '.o'){
-							$isOrderItem = true;
-							$onOrderCopies = $itemData[8];
-							$available = false;
-						}else{
-							$status = mapValue('item_status', $itemData[7]);
-							$groupedStatus = mapValue('item_grouped_status', $itemData[7]);
-							$available = $itemData[4] == 'true';
-							$inLibraryUseOnly = $itemData[5] == 'true';
-						}
-						if (!isset($libraryLocationCode) || $libraryLocationCode == ''){
-							$isLibraryItem = true;
-						}else{
-							$isLibraryItem = strpos($locationCode, $libraryLocationCode) === 0;
-						}
-						$isLocalItem = (isset($homeLocationCode) && strlen($homeLocationCode) > 0 && strpos($locationCode, $homeLocationCode) === 0) || ($extraLocations != '' && preg_match("/^{$extraLocations}$/i", $locationCode));
+					if ($isOrderItem){
+						$onOrderCopies = $itemData[6];
 					}
+
+					$groupedStatus = $itemData[13];
+					$status = $itemData[14];
+					$isHoldable = $itemData[17] == "true";
+//					$isBookable = $itemData[17] == "true"; // TODO set to real value
+					$inLibraryUseOnly = $itemData[19] == "true";
+
+					//Old style where record and item information are combined
+					$shelfLocation = $itemData[2];
+					$callNumber = $itemData[3];
+
+					$isLibraryItem = $itemData[20] == "true";
+					$isLocalItem = $itemData[15] == "true";
 
 					//Try to trim the courier code if any
 					if (preg_match('/(.*?)\\sC\\d{3}\\w{0,2}$/', $shelfLocation, $locationParts)){
 						$shelfLocation = $locationParts[1];
 					}
 
-					//Determine the structure of the item data based on if it's an order record or not.
-					//TODO: This needs a better way of handling things because .o will only work for Sierra/Millennium systems
-					if ($isOrderItem){
-						$groupedStatus = "On Order";
-						$callNumber = "ON ORDER";
-						$status = "On Order";
-					}else{
-						//This is a regular (physical) item
-						if ($status != null){
-							if (($status == 'On Shelf') && $available != true){
-								$status = 'Checked Out';
-								$groupedStatus = "Checked Out";
-							}
-						}else if ($available){
-							$status = "On Shelf";
-							$groupedStatus = "On Shelf";
-						}else{
-							$status = "Checked Out";
-							$groupedStatus = "Checked Out";
-						}
-					}
-
-
 					$this->fastItems[] = array(
-						'location' => $locationCode,
 						'callnumber' => $callNumber,
-						'availability' => $available,
+						'availability' => $itemData[16] == "true",
 						'holdable' => $isHoldable,
+//						'bookable' => $isBookable,
 						'inLibraryUseOnly' => $inLibraryUseOnly,
 						'isLibraryItem' => $isLibraryItem,
 						'isLocalItem' => $isLocalItem,
@@ -2083,7 +1650,7 @@ class MarcRecord extends IndexRecord
 	static $catalogDriver = null;
 
 	/**
-	 * @return MillenniumDriver|Sierra|Marmot|DriverInterface|HorizonAPI
+	 * @return Millennium|Sierra|Marmot|DriverInterface|HorizonAPI
 	 */
 	protected static function getCatalogDriver(){
 		if (MarcRecord::$catalogDriver == null){
@@ -2293,6 +1860,7 @@ class MarcRecord extends IndexRecord
 			$standardSubjects = array();
 			$bisacSubjects = array();
 			$oclcFastSubjects = array();
+			$localSubjects = array();
 			foreach ($subjectFields as $subjectField){
 				/** @var File_MARC_Data_Field[] $marcFields */
 				$marcFields = $marcRecord->getFields($subjectField);
@@ -2309,6 +1877,9 @@ class MarcRecord extends IndexRecord
 							}elseif (preg_match('/fast/i', $subjectSource->getData())){
 								$type = 'fast';
 							}
+						}
+						if ($marcField->getTag() == '690'){
+							$type = 'local';
 						}
 
 						foreach ($marcField->getSubFields() as $subField){
@@ -2331,6 +1902,10 @@ class MarcRecord extends IndexRecord
 						}elseif ($type == 'fast'){
 							//Suppress fast subjects by default
 							$oclcFastSubjects[] = $subject;
+						}elseif ($type == 'local'){
+							//Suppress fast subjects by default
+							$localSubjects[] = $subject;
+							$subjects[] = $subject;
 						}else{
 							$subjects[] = $subject;
 							$standardSubjects[] = $subject;
@@ -2343,11 +1918,16 @@ class MarcRecord extends IndexRecord
 			$interface->assign('standardSubjects', $standardSubjects);
 			$interface->assign('bisacSubjects', $bisacSubjects);
 			$interface->assign('oclcFastSubjects', $oclcFastSubjects);
+			$interface->assign('localSubjects', $localSubjects);
 		}
 	}
 
 	protected function getRecordType(){
-		return 'ils';
+		if ($this->profileType){
+			return $this->profileType;
+		}else{
+			return 'ils';
+		}
 	}
 
 	/**
@@ -2355,7 +1935,7 @@ class MarcRecord extends IndexRecord
 	 */
 	public function getMarcRecord(){
 		if ($this->marcRecord == null){
-			$this->marcRecord = MarcLoader::loadMarcRecordByILSId($this->id);
+			$this->marcRecord = MarcLoader::loadMarcRecordByILSId("{$this->profileType}:{$this->id}");
 			global $timer;
 			$timer->logTime("Finished loading marc record for {$this->id}");
 		}

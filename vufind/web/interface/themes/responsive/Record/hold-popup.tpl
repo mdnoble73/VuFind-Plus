@@ -1,9 +1,12 @@
+{strip}
 <div id="page-content" class="content">
-	<form name='placeHoldForm' id='placeHoldForm' action="{$path}/Record/{$id|escape:"url"}/Hold" method="post" class="form">
-		<input type="hidden" name="id" id="id" value="{$id}"/>
+	<form name='placeHoldForm' id='placeHoldForm' action="{$path}/{$activeRecordProfileModule}/{$id|escape:"url"}/Hold" method="post" class="form">
+		<input type="hidden" name="id" id="id" value="{$id}">
+		<input type="hidden" name="recordSource" id="recordSource" value="{$recordSource}">
+		<input type="hidden" name="module" id="module" value="{$activeRecordProfileModule}">
 		<fieldset>
 			<div class="holdsSummary">
-				<input type="hidden" name="holdCount" id="holdCount" value="1"/>
+				<input type="hidden" name="holdCount" id="holdCount" value="1">
 				<div class="alert alert-warning" id="overHoldCountWarning" {if !$showOverHoldLimit}style="display:none"{/if}>Warning: You have reached the maximum of <span class='maxHolds'>{$maxHolds}</span> holds for your account.  You must cancel a hold before you can place a hold on this title.</div>
 				<div id='holdError' class="pageWarning" style='display: none'></div>
 			</div>
@@ -12,14 +15,15 @@
 			{/if}
 
 			<p class="alert alert-info">
+				{/strip}
 				Holds allow you to request that a title be delivered to your home library.
 				{if $showDetailedHoldNoticeInformation}
 					Once the title arrives at your library you will
-					{if $profile.noticePreferenceLabel eq 'Mail' && !$treatPrintNoticesAsPhoneNotices}
+					{if $profile->noticePreferenceLabel eq 'Mail' && !$treatPrintNoticesAsPhoneNotices}
 						be mailed a notification
-					{elseif $profile.noticePreferenceLabel eq 'Telephone' || ($profile.noticePreferenceLabel eq 'Mail' && $treatPrintNoticesAsPhoneNotices)}
+					{elseif $profile->noticePreferenceLabel eq 'Telephone' || ($profile->noticePreferenceLabel eq 'Mail' && $treatPrintNoticesAsPhoneNotices)}
 						receive a phone call
-					{elseif $profile.noticePreferenceLabel eq 'E-mail'}
+					{elseif $profile->noticePreferenceLabel eq 'E-mail'}
 						be emailed a notification
 					{else}
 						receive a notification
@@ -29,6 +33,7 @@
 					Once the title arrives at your library you will receive a notification informing you that the title is ready for you.
 				{/if}
 				You will then have {translate text='Hold Pickup Period'} to pick up the title from your home library.
+				{strip}
 			</p>
 
 			{* Responsive theme enforces that the user is always logged in before getting here*}
@@ -57,29 +62,19 @@
 							<input type="text" name="canceldate" id="canceldate" size="10" {*if $defaultNotNeededAfterDays}value="{$defaultNotNeededAfterDays}"{/if*}>
 							<span class="add-on"><i class="icon-calendar"></i></span> {* TODO: also not showing *}
 						</div>
-						<div class='loginFormRow'>
+						<div class="loginFormRow">
 							<i>If this date is reached, the hold will automatically be cancelled for you.	This is a great way to handle time sensitive materials for term papers, etc. If not set, the cancel date will automatically be set 6 months from today.</i>
 						</div>
 					</div>
 				{/if}
-				<br />
+				<br>
 				<div class="form-group">
-					<label for="autologout" class="checkbox"><input type="checkbox" name="autologout" id="autologout" {if $inLibrary == true}checked="checked"{/if}/> Log me out after requesting the item.</label>
-					<input type="hidden" name="holdType" value="hold" />
+					<label for="autologout" class="checkbox"><input type="checkbox" name="autologout" id="autologout" {if $inLibrary == true}checked="checked"{/if}> Log me out after requesting the item.</label>
+					<input type="hidden" name="holdType" value="hold">
 
 				</div>
 			</div>
 		</fieldset>
 	</form>
 </div>
-{* data-provide attribute loads the datepicker *}
-{*{if $showHoldCancelDate == 1}*}
-{*<script	type="text/javascript">*}
-	{*{literal}*}
-	{*$(function() {*}
-		{*$( "#cancelDatePicker" ).datepicker();*}
-	{*});*}
-	{*{/literal}*}
-{*</script>*}
-{*{/if}*}
-
+{/strip}
