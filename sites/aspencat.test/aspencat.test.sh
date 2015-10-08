@@ -21,7 +21,7 @@ done
 ##################################################
 export VUFIND_HOME=/usr/local/vufind-plus/sites/aspencat.test
 export JETTY_HOME=/usr/local/vufind-plus/sites/default/solr/jetty
-export SOLR_HOME=/data/vufind-plus/aspencat.test/solr     
+export SOLR_HOME=/data/vufind-plus/aspencat.test/solr
 export JETTY_PORT=8081
 JETTY_RUN=`findDirectory -w /var/run /usr/var/run /tmp`
 export JETTY_RUN
