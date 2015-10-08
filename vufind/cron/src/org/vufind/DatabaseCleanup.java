@@ -120,54 +120,8 @@ public class DatabaseCleanup implements IProcessHandler {
 			logger.error("Error deleting long searches", e);
 			processLog.saveToDatabase(vufindConn, logger);
 		}
-		
-		//Remove reading history entries that are duplicate based on being renewed
-		//Get a list of duplicate titles
-		try {
-			PreparedStatement duplicateRecordsToPreserveStmt = vufindConn.prepareStatement("SELECT COUNT(id) as numRecords, userId, groupedWorkPermanentId, source, sourceId, checkOutDate, MAX(checkInDate) as lastCheckIn FROM user_reading_history_work where deleted = 0 GROUP BY userId, source, sourceId, checkOutDate having numRecords > 1", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
-			PreparedStatement deleteDuplicateRecordStmt = vufindConn.prepareStatement("UPDATE user_reading_history_work SET deleted = 1 WHERE userId = ? AND groupedWorkPermanentId = ? AND source = ? and sourceId = ? and checkOutDate = ? AND checkInDate != ?");
-			ResultSet duplicateRecordsRS = duplicateRecordsToPreserveStmt.executeQuery();
-			while (duplicateRecordsRS.next()){
-				deleteDuplicateRecordStmt.setLong(1, duplicateRecordsRS.getLong("userId"));
-				deleteDuplicateRecordStmt.setString(2, duplicateRecordsRS.getString("groupedWorkPermanentId"));
-				deleteDuplicateRecordStmt.setString(3, duplicateRecordsRS.getString("source"));
-				deleteDuplicateRecordStmt.setString(4, duplicateRecordsRS.getString("sourceId"));
-				deleteDuplicateRecordStmt.setLong(5, duplicateRecordsRS.getLong("checkoutDate"));
-				deleteDuplicateRecordStmt.setLong(6, duplicateRecordsRS.getLong("lastCheckIn"));
-				deleteDuplicateRecordStmt.executeUpdate();
 
-				//int numDeletions = deleteDuplicateRecordStmt.executeUpdate();
-				/*if (numDeletions == 0){
-					//This happens if the items have already been marked as deleted
-					logger.debug("Warning did not delete any records for user " + duplicateRecordsRS.getLong("userId"));
-				}*/
-			}
-
-			//Now look for additional duplicates where the check in date is the same
-			duplicateRecordsToPreserveStmt = vufindConn.prepareStatement("SELECT COUNT(id) as numRecords, userId, groupedWorkPermanentId, source, sourceId, checkOutDate, MIN(id) as idToPreserve FROM user_reading_history_work where deleted = 0 GROUP BY userId, source, sourceId, checkOutDate having numRecords > 1", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
-			deleteDuplicateRecordStmt = vufindConn.prepareStatement("UPDATE user_reading_history_work SET deleted = 1 WHERE userId = ? AND groupedWorkPermanentId = ? AND source = ? and sourceId = ? and checkOutDate = ? AND id != ?");
-			duplicateRecordsRS = duplicateRecordsToPreserveStmt.executeQuery();
-			while (duplicateRecordsRS.next()){
-				deleteDuplicateRecordStmt.setLong(1, duplicateRecordsRS.getLong("userId"));
-				deleteDuplicateRecordStmt.setString(2, duplicateRecordsRS.getString("groupedWorkPermanentId"));
-				deleteDuplicateRecordStmt.setString(3, duplicateRecordsRS.getString("source"));
-				deleteDuplicateRecordStmt.setString(4, duplicateRecordsRS.getString("sourceId"));
-				deleteDuplicateRecordStmt.setLong(5, duplicateRecordsRS.getLong("checkoutDate"));
-				deleteDuplicateRecordStmt.setLong(6, duplicateRecordsRS.getLong("idToPreserve"));
-				deleteDuplicateRecordStmt.executeUpdate();
-
-				//int numDeletions = deleteDuplicateRecordStmt.executeUpdate();
-				/*if (numDeletions == 0){
-					//This happens if the items have already been marked as deleted
-					logger.debug("Warning did not delete any records for user " + duplicateRecordsRS.getLong("userId"));
-				}*/
-			}
-		} catch (SQLException e) {
-			processLog.incErrors();
-			processLog.addNote("Unable to delete duplicate reading history entries. " + e.toString());
-			logger.error("Error deleting duplicate reading history entries", e);
-			processLog.saveToDatabase(vufindConn, logger);
-		}
+		cleanupReadingHistory(vufindConn, logger, processLog);
 
 		//Remove indexing reports
 		try{
@@ -219,6 +173,56 @@ public class DatabaseCleanup implements IProcessHandler {
 			processLog.saveToDatabase(vufindConn, logger);
 		}
 
+		processLog.setFinished();
+		processLog.saveToDatabase(vufindConn, logger);
+	}
+
+	protected void cleanupReadingHistory(Connection vufindConn, Logger logger, CronProcessLogEntry processLog) {
+		//Remove reading history entries that are duplicate based on being renewed
+		//Get a list of duplicate titles
+		try {
+			//Add a filter so that we are looking at 1 week resolution rather than exact.
+			PreparedStatement duplicateRecordsToPreserveStmt = vufindConn.prepareStatement("SELECT COUNT(id) as numRecords, userId, groupedWorkPermanentId, source, sourceId, FLOOR(checkOutDate/604800) as checkoutWeek , MIN(id) as idToPreserve FROM user_reading_history_work where deleted = 0 GROUP BY userId, groupedWorkPermanentId, FLOOR(checkOutDate/604800) having numRecords > 1", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+			PreparedStatement deleteDuplicateRecordStmt = vufindConn.prepareStatement("UPDATE user_reading_history_work SET deleted = 1 WHERE userId = ? AND groupedWorkPermanentId = ? AND FLOOR(checkOutDate/604800) = ? AND id != ?");
+			ResultSet duplicateRecordsRS = duplicateRecordsToPreserveStmt.executeQuery();
+			while (duplicateRecordsRS.next()){
+				deleteDuplicateRecordStmt.setLong(1, duplicateRecordsRS.getLong("userId"));
+				deleteDuplicateRecordStmt.setString(2, duplicateRecordsRS.getString("groupedWorkPermanentId"));
+				deleteDuplicateRecordStmt.setLong(3, duplicateRecordsRS.getLong("checkoutWeek"));
+				deleteDuplicateRecordStmt.setLong(4, duplicateRecordsRS.getLong("idToPreserve"));
+				deleteDuplicateRecordStmt.executeUpdate();
+
+				//int numDeletions = deleteDuplicateRecordStmt.executeUpdate();
+				/*if (numDeletions == 0){
+					//This happens if the items have already been marked as deleted
+					logger.debug("Warning did not delete any records for user " + duplicateRecordsRS.getLong("userId"));
+				}*/
+			}
+
+			//Now look for additional duplicates where the check in date is within a week
+			duplicateRecordsToPreserveStmt = vufindConn.prepareStatement("SELECT COUNT(id) as numRecords, userId, groupedWorkPermanentId, source, sourceId, FLOOR(checkInDate/604800) checkInWeek, MIN(id) as idToPreserve FROM user_reading_history_work where deleted = 0 GROUP BY userId, groupedWorkPermanentId, FLOOR(checkInDate/604800) having numRecords > 1", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+			deleteDuplicateRecordStmt = vufindConn.prepareStatement("UPDATE user_reading_history_work SET deleted = 1 WHERE userId = ? AND groupedWorkPermanentId = ? AND FLOOR(checkInDate/604800) = ? AND id != ?");
+			duplicateRecordsRS = duplicateRecordsToPreserveStmt.executeQuery();
+			while (duplicateRecordsRS.next()){
+				deleteDuplicateRecordStmt.setLong(1, duplicateRecordsRS.getLong("userId"));
+				deleteDuplicateRecordStmt.setString(2, duplicateRecordsRS.getString("groupedWorkPermanentId"));
+				deleteDuplicateRecordStmt.setLong(3, duplicateRecordsRS.getLong("checkInWeek"));
+				deleteDuplicateRecordStmt.setLong(4, duplicateRecordsRS.getLong("idToPreserve"));
+				deleteDuplicateRecordStmt.executeUpdate();
+
+				//int numDeletions = deleteDuplicateRecordStmt.executeUpdate();
+				/*if (numDeletions == 0){
+					//This happens if the items have already been marked as deleted
+					logger.debug("Warning did not delete any records for user " + duplicateRecordsRS.getLong("userId"));
+				}*/
+			}
+		} catch (SQLException e) {
+			processLog.incErrors();
+			processLog.addNote("Unable to delete duplicate reading history entries. " + e.toString());
+			logger.error("Error deleting duplicate reading history entries", e);
+			processLog.saveToDatabase(vufindConn, logger);
+		}
+
 		//Remove invalid reading history entries
 		try{
 			PreparedStatement removeInvalidReadingHistoryEntriesStmt = vufindConn.prepareStatement("DELETE FROM user_reading_history_work WHERE groupedWorkPermanentId = 'L'");
@@ -232,9 +236,6 @@ public class DatabaseCleanup implements IProcessHandler {
 			logger.error("Error removing invalid reading history entriee", e);
 			processLog.saveToDatabase(vufindConn, logger);
 		}
-
-		processLog.setFinished();
-		processLog.saveToDatabase(vufindConn, logger);
 	}
 
 }
