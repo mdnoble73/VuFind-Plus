@@ -707,6 +707,7 @@ abstract class HorizonAPI extends Horizon{
 					}else{
 						$curTitle['coverUrl'] = "";
 					}
+					$curTitle['link'] = $recordDriver->getLinkUrl();
 				}
 				$sortTitle = isset($curTitle['title_sort']) ? $curTitle['title_sort'] : $curTitle['title'];
 				$sortKey = $sortTitle;
