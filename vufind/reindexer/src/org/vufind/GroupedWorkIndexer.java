@@ -464,6 +464,16 @@ public class GroupedWorkIndexer {
 		}
 	}
 
+	public void deleteRecord(String id) {
+		logger.info("Clearing existing work from index");
+		try {
+			updateServer.deleteByQuery("id:" + id, 10);
+			updateServer.commit(true, true, false);
+		} catch (Exception e) {
+			logger.error("Error deleting work from index", e);
+		}
+	}
+
 	public void finishIndexing(){
 		GroupedReindexMain.addNoteToReindexLog("Finishing indexing");
 		logger.info("Finishing indexing");

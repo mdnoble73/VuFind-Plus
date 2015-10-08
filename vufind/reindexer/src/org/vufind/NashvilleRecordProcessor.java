@@ -8,7 +8,9 @@ import org.marc4j.marc.Subfield;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -74,6 +76,59 @@ public class NashvilleRecordProcessor extends IIIRecordProcessor {
 		}else{
 			return super.isItemSuppressed(curItem);
 		}
+	}
+
+	protected List<RecordInfo> loadUnsuppressedEContentItems(GroupedWorkSolr groupedWork, String identifier, Record record){
+		List<RecordInfo> unsuppressedEcontentRecords = new ArrayList<>();
+
+		//Check to see if we should add a supplemental record:
+		String url = getFirstFieldVal(record, "856u");
+		if (url.contains("digital.library.nashville.org")){
+			//Much of the econtent for flatirons has no items.  Need to determine the location based on the 907b field
+			String eContentLocation = getFirstFieldVal(record, "945l");
+			if (eContentLocation != null) {
+				ItemInfo itemInfo = new ItemInfo();
+				itemInfo.setIsEContent(true);
+				itemInfo.setLocationCode(eContentLocation);
+				itemInfo.seteContentSource("Nashville Archives");
+				itemInfo.seteContentProtectionType("external");
+				itemInfo.seteContentSharing("library");
+				itemInfo.setCallNumber("Online");
+				itemInfo.setShelfLocation(itemInfo.geteContentSource());
+				RecordInfo relatedRecord = groupedWork.addRelatedRecord("external_econtent", identifier);
+				relatedRecord.setSubSource(profileType);
+				relatedRecord.addItem(itemInfo);
+				itemInfo.seteContentUrl(url);
+
+				loadEContentFormatInformation(record, relatedRecord, itemInfo);
+				itemInfo.setFormat("Digitized Content");
+				itemInfo.setFormatCategory("Other");
+				relatedRecord.setFormatBoost(1);
+
+				itemInfo.setDetailedStatus("Available Online");
+
+				//Determine which scopes this title belongs to
+				for (Scope curScope : indexer.getScopes()){
+					if (curScope.isItemPartOfScope(profileType, eContentLocation, "", false, false, true)){
+						ScopingInfo scopingInfo = itemInfo.addScope(curScope);
+						scopingInfo.setAvailable(true);
+						scopingInfo.setStatus("Available Online");
+						scopingInfo.setGroupedStatus("Available Online");
+						scopingInfo.setHoldable(false);
+						if (curScope.isLocationScope()) {
+							scopingInfo.setLocallyOwned(curScope.isItemOwnedByScope(profileType, eContentLocation, ""));
+						}
+						if (curScope.isLibraryScope()) {
+							scopingInfo.setLibraryOwned(curScope.isItemOwnedByScope(profileType, eContentLocation, ""));
+						}
+					}
+				}
+
+				unsuppressedEcontentRecords.add(relatedRecord);
+			}
+		}
+
+		return unsuppressedEcontentRecords;
 	}
 
 	@Override
