@@ -19,7 +19,7 @@
  */
 require_once ROOT_DIR . '/Drivers/Millennium.php';
 /**
- * VuFind Connector for Flatirons Library Consortium's Innovative catalog (Millennium)
+ * Pika Connector for Flatirons Library Consortium's Innovative catalog (Millennium)
  *
  * This class uses screen scraping techniques to gather record holdings written
  * by Adam Bryn of the Tri-College consortium.

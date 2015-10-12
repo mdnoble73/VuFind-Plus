@@ -20,7 +20,7 @@
 require_once ROOT_DIR . '/Drivers/Sierra.php';
 
 /**
- * Pika Connector for Marmot's Innovative catalog (Sierra)
+ * Pika Connector for Arlington's Innovative catalog (Sierra)
  *
  * This class uses screen scraping techniques to gather record holdings written
  * by Adam Bryn of the Tri-College consortium.
@@ -33,6 +33,6 @@ require_once ROOT_DIR . '/Drivers/Sierra.php';
  * @author Mark Noble <mnoble@turningleaftech.com>
  * @author CJ O'Hara <cj@marmot.org>
  */
-class Marmot extends Sierra{
+class Arlington extends Sierra{
 
 }
