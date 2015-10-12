@@ -403,6 +403,20 @@ public class GroupedReindexMain {
 		}
 
 	}
+
+	private static PreparedStatement updateNumWorksStatement;
+	public static void updateNumWorksProcessed(long numWorksProcessed){
+		try {
+			if (updateNumWorksStatement == null){
+				updateNumWorksStatement = vufindConn.prepareStatement("UPDATE reindex_log SET numWorksProcessed = ? WHERE id = ?");
+			}
+			updateNumWorksStatement.setLong(1, numWorksProcessed);
+			updateNumWorksStatement.setLong(2, reindexLogId);
+			updateNumWorksStatement.executeUpdate();
+		} catch (SQLException e) {
+			logger.error("Unable to update reindex log with number of works processed.", e);
+		}
+	}
 	
 	private static Ini loadConfigFile(){
 		//First load the default config file 
