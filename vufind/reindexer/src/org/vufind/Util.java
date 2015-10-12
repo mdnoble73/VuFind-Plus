@@ -298,10 +298,16 @@ public class Util {
 		if (stringToTest.length() == 0){
 			return false;
 		}
+		int numDecimals = 0;
 		for (char curChar : stringToTest.toCharArray()){
 			if (!Character.isDigit(curChar) && curChar != '.'){
 				return false;
+			}if (curChar == '.'){
+				numDecimals++;
 			}
+		}
+		if (numDecimals > 1){
+			return false;
 		}
 		return true;
 	}
