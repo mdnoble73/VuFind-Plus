@@ -52,12 +52,6 @@
 ################
 # Pika Cleanup #
 ################
-# Solr Restart
-#14 1 * * * cd /usr/local/vufind-plus/sites/marmot.training; ./marmot.training.sh restart
-35 1 * * * cd /usr/local/vufind-plus/sites/flatirons.test; ./flatirons.test.sh restart
-# Additional Restarts added 12-9-2014 plb
-# flatirons added 1-2-2015
-
 # Temp Files
 26 * * * * cd /tmp; /bin/rm -rf CURLCOOKIE*
 27 */2 * * * cd /tmp; /bin/rm -rf epb*
@@ -69,12 +63,6 @@
 */10 * * * * /root/cron/copyCovers.sh
 1-51/10 * * * * /root/cron/copyCovers-AspencatTest.sh
 
-# Sierra-Training Record Export
-#01 6 * * Thu /root/cron/copySierraTrainingExport.sh
-# On Thursdays at 6:01am
-# ( 1 min after the hour to avoid conflict with nfs mount point)
-# new script made, cron set 1-2-2015 plb
-
 ###############################
 # Data Extract TO ftp server  #
 ###############################
@@ -82,33 +70,12 @@
 # added 01 Dec 14 - sml
 01 3 * * 5 /root/cron/copySD51Export
 
-########################
-# Update Grouped Works #
-########################
-# Marmot-Training - Full Record Grouping -  Thursdays, 8:33am
-#33 6 * * Thu cd /usr/local/vufind-plus/vufind/record_grouping; java -server -Xmx6G -XX:+UseParallelGC -XX:ParallelGCThreads=2 -jar record_grouping.jar marmot.training fullRegroupingNoClear
-
-# Flatirons - Full Record Grouping
-#50 5 * * * cd /usr/local/vufind-plus/vufind/record_grouping; java -server -Xmx6G -XX:+UseParallelGC -XX:ParallelGCThreads=2 -jar record_grouping.jar flatirons.test fullRegroupingNoClear
-#5:50am everyday
-
 ###############################################
 # OverDrive Extract                           #
 # - For systems not doing continuous indexing #
 # - every 3 hours                             #
 ###############################################
 11 */3 * * * cd /usr/local/vufind-plus/vufind/overdrive_api_extract; java -server -jar overdrive_extract.jar flatirons.test
-
-###########
-# Reindex #
-###########
-# Marmot-Training - Full Reindex
-#33 10 * * Thu cd /usr/local/vufind-plus/vufind/reindexer; nice -n -3 java -jar reindexer.jar marmot.training fullReindex
-# Thursdays 10:33am  4hrs after full recocord grouping.  set by plb 1-2-2015
-
-# Flatirons
-#50 6 * * * cd /usr/local/vufind-plus/vufind/reindexer; nice -n -3 java -jar reindexer.jar flatirons.test fullReindex
-#6:50am everyday, after full record grouping
 
 ##########
 # Cron   #
