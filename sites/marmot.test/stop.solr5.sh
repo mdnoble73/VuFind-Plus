@@ -1,2 +1,2 @@
-rem Start Solr
+#!/bin/sh
 ../default/solr5/bin/solr stop -p 8080
