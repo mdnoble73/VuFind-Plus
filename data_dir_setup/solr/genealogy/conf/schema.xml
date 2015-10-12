@@ -2,9 +2,9 @@
 <schema name="VuFind Genealogy Index" version="1.2">
 	<types>
 		<fieldType name="string" class="solr.StrField" sortMissingLast="true" omitNorms="true"/>
-		<fieldType name="integer" class="solr.IntField" omitNorms="true"/>
+		<fieldType name="integer" class="solr.TrieIntField" omitNorms="true"/>
 		<fieldType name="long" class="solr.TrieLongField" precisionStep="0" positionIncrementGap="0"/>
-		<fieldType name="date" class="solr.DateField"/>
+		<fieldType name="date" class="solr.TrieDateField"/>
 		<fieldType name="textFacet" class="solr.TextField" sortMissingLast="true" omitNorms="true">
 			<analyzer>
 				<tokenizer class="solr.KeywordTokenizerFactory"/>

@@ -424,7 +424,7 @@
 									<p>Log into this account to add other accounts to it.</p>
 								{/if}
 								<div class="lead">Other accounts that can view this account</div>
-								<p>The following accounts can view checkout and hold information from this account.  If someone is viewing your account that you do not want to not have access, please contact library staff.</p>
+								<p>The following accounts can view checkout and hold information from this account.  If someone is viewing your account that you do not want to have access, please contact library staff.</p>
 								<ul>
 								{foreach from=$profile->getViewers() item=tmpUser}
 									<li>{$tmpUser->getNameAndLibraryLabel()}</li>

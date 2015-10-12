@@ -457,8 +457,10 @@ public class GroupedWorkIndexer {
 		//Check to see if we should clear the existing index
 		logger.info("Clearing existing marc records from index");
 		try {
-			updateServer.deleteByQuery("recordtype:grouped_work", 10);
-			updateServer.commit(true, true, false);
+			updateServer.deleteByQuery("recordtype:grouped_work");
+			//With this commit, we get errors in the log "Previous SolrRequestInfo was not closed!"
+			//Allow auto commit functionality to handle this
+			//updateServer.commit(true, false, false);
 		} catch (Exception e) {
 			logger.error("Error deleting from index", e);
 		}
@@ -467,8 +469,10 @@ public class GroupedWorkIndexer {
 	public void deleteRecord(String id) {
 		logger.info("Clearing existing work from index");
 		try {
-			updateServer.deleteByQuery("id:" + id, 10);
-			updateServer.commit(true, true, false);
+			updateServer.deleteById(id);
+			//With this commit, we get errors in the log "Previous SolrRequestInfo was not closed!"
+			//Allow auto commit functionality to handle this
+			//updateServer.commit(true, false, false);
 		} catch (Exception e) {
 			logger.error("Error deleting work from index", e);
 		}
@@ -477,46 +481,35 @@ public class GroupedWorkIndexer {
 	public void finishIndexing(){
 		GroupedReindexMain.addNoteToReindexLog("Finishing indexing");
 		logger.info("Finishing indexing");
-		try {
-			if (fullReindex) {
+		if (fullReindex) {
+			try {
 				GroupedReindexMain.addNoteToReindexLog("Calling final commit");
 				logger.info("Calling commit");
 				updateServer.commit(true, true, false);
+			} catch (Exception e) {
+				logger.error("Error calling final commit", e);
 			}
-		} catch (Exception e) {
-			logger.error("Error calling final commit", e);
-		}
-		//Solr now optimizes itself.  No need to force an optimization.
-		try {
-			//Optimize to trigger improved performance.  If we're doing a full reindex, need to wait for the searcher since
-			// we are going to swap in a minute.
-			if (fullReindex) {
-				GroupedReindexMain.addNoteToReindexLog("Optimizing index");
-				logger.info("Optimizing index");
-				updateServer.optimize(true, true);
-				logger.info("Finished Optimizing index");
+			//Swap the indexes
+			if (fullReindex)  {
+				GroupedReindexMain.addNoteToReindexLog("Swapping indexes");
+				try {
+					Util.getURL("http://localhost:" + solrPort + "/solr/admin/cores?action=SWAP&core=grouped2&other=grouped", logger);
+				} catch (Exception e) {
+					logger.error("Error shutting down update server", e);
+				}
 			}
-		} catch (Exception e) {
-			logger.error("Error optimizing index", e);
-		}
-		try {
-			GroupedReindexMain.addNoteToReindexLog("Doing a soft commit to make sure changes are saved");
-			updateServer.commit(false, false, true);
-			GroupedReindexMain.addNoteToReindexLog("Shutting down the update server");
-			updateServer.blockUntilFinished();
-			updateServer.shutdown();
-		} catch (Exception e) {
-			logger.error("Error shutting down update server", e);
-		}
-		//Swap the indexes
-		if (fullReindex)  {
-			GroupedReindexMain.addNoteToReindexLog("Swapping indexes");
+		}else {
 			try {
-				Util.getURL("http://localhost:" + solrPort + "/solr/admin/cores?action=SWAP&core=grouped2&other=grouped", logger);
+				GroupedReindexMain.addNoteToReindexLog("Doing a soft commit to make sure changes are saved");
+				updateServer.commit(false, false, true);
+				GroupedReindexMain.addNoteToReindexLog("Shutting down the update server");
+				updateServer.blockUntilFinished();
+				updateServer.shutdown();
 			} catch (Exception e) {
 				logger.error("Error shutting down update server", e);
 			}
 		}
+
 		writeWorksWithInvalidLiteraryForms();
 		updateLastReindexTime();
 
@@ -727,15 +720,16 @@ public class GroupedWorkIndexer {
 				processGroupedWork(id, permanentId, grouping_category);
 
 				numWorksProcessed++;
-				if (fullReindex && numWorksProcessed % 5000 == 0){
+				if (fullReindex && (numWorksProcessed % 5000 == 0)){
 					//Testing shows that regular commits do seem to improve performance.
-					//However, we can't do it too often or we get errors with too many searchers warming. n
-					//Leave in for now.
-					try {
+					//However, we can't do it too often or we get errors with too many searchers warming.
+					//This is happening now with the auto commit settings in solrconfig.xml
+					/*try {
+						logger.info("Doing a regular commit during full indexing");
 						updateServer.commit(false, false, true);
 					}catch (Exception e){
 						logger.warn("Error committing changes", e);
-					}
+					}*/
 					logger.info("Processed " + numWorksProcessed + " grouped works processed.");
 				}
 				if (maxWorksToProcess != -1 && numWorksProcessed >= maxWorksToProcess){
