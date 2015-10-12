@@ -204,8 +204,12 @@ public class GroupedWorkSolr {
 		}
 		doc.addField("lexile_code", lexileCode);
 		doc.addField("accelerated_reader_interest_level", acceleratedReaderInterestLevel);
-		doc.addField("accelerated_reader_reading_level", acceleratedReaderReadingLevel);
-		doc.addField("accelerated_reader_point_value", acceleratedReaderPointValue);
+		if (Util.isNumeric(acceleratedReaderReadingLevel)) {
+			doc.addField("accelerated_reader_reading_level", acceleratedReaderReadingLevel);
+		}
+		if (Util.isNumeric(acceleratedReaderPointValue)) {
+			doc.addField("accelerated_reader_point_value", acceleratedReaderPointValue);
+		}
 		//EContent fields
 		doc.addField("econtent_device", econtentDevices);
 
