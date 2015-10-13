@@ -408,10 +408,11 @@ public class GroupedReindexMain {
 	public static void updateNumWorksProcessed(long numWorksProcessed){
 		try {
 			if (updateNumWorksStatement == null){
-				updateNumWorksStatement = vufindConn.prepareStatement("UPDATE reindex_log SET numWorksProcessed = ? WHERE id = ?");
+				updateNumWorksStatement = vufindConn.prepareStatement("UPDATE reindex_log SET lastUpdate = ?, numWorksProcessed = ? WHERE id = ?");
 			}
-			updateNumWorksStatement.setLong(1, numWorksProcessed);
-			updateNumWorksStatement.setLong(2, reindexLogId);
+			updateNumWorksStatement.setLong(1, new Date().getTime() / 1000);
+			updateNumWorksStatement.setLong(2, numWorksProcessed);
+			updateNumWorksStatement.setLong(3, reindexLogId);
 			updateNumWorksStatement.executeUpdate();
 		} catch (SQLException e) {
 			logger.error("Unable to update reindex log with number of works processed.", e);
