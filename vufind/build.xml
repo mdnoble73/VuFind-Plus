@@ -45,12 +45,16 @@
 	<!--
     <exec command="phpcs --standard=PEAR --ignore=*/mobileesp/*,*/iWebKit/*,${srcdir}/web/Crypt/*,${srcdir}/web/Horde/*,${srcdir}/web/sys/SIP2.php,*/rc4.js,${srcdir}/web/js/phpserializer.js,*/jquery*.js,*/jquery*.css,*/css/blueprint/*,${srcdir}/web/interface/compile/* --report=checkstyle ${srcdir} > ${builddir}/reports/checkstyle.xml" escape="false" />
 	-->
-
-	<!-- Setup Pika for testing --> 
-		<!-- Database -->
+	
+	<!-- Teardown previous automated test instance -->
+	
+	<!-- Create automated test instance of Pika -->
+		<!-- Setup Apache -->
+		<!-- Install Database -->
 		<!-- Group Sample Records -->
 		<!-- Index Sample Records -->
-	
+
+	<!-- Run a bunch of tests -->
     <!-- PHPUnit -->
 	<!--
     <exec command="phpunit --log-junit ${builddir}/reports/phpunit.xml --coverage-clover ${builddir}/reports/coverage/clover.xml --coverage-html ${builddir}/reports/coverage/ ${srcdir}/tests/AllTests.php"/>
