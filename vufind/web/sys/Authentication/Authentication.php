@@ -8,4 +8,6 @@ interface Authentication {
 	 * @return mixed
 	 */
 	public function authenticate();
+
+	public function validateAccount($username, $password, $parentAccount);
 }

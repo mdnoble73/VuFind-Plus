@@ -9,6 +9,14 @@ class DatabaseAuthentication implements Authentication {
 	public function authenticate() {
 		$username = $_POST['username'];
 		$password = $_POST['password'];
+		return $this->login($username, $password);
+	}
+
+	public function validateAccount($username, $password, $parentAccount = null) {
+		return $this->login($username, $password);
+	}
+
+	private function login($username, $password){
 		if (($username == '') || ($password == '')) {
 			$user = new PEAR_Error('authentication_error_blank');
 		} else {
