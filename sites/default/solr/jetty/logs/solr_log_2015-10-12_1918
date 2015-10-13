@@ -1,0 +1,290 @@
+INFO  - 2015-10-12 23:51:29.854; org.eclipse.jetty.server.Server; jetty-8.1.10.v20130312
+INFO  - 2015-10-12 23:51:29.873; org.eclipse.jetty.deploy.providers.ScanningAppProvider; Deployment monitor C:\web\VuFind-Plus\sites\default\solr\jetty\contexts at interval 0
+INFO  - 2015-10-12 23:51:29.880; org.eclipse.jetty.deploy.DeploymentManager; Deployable added: C:\web\VuFind-Plus\sites\default\solr\jetty\contexts\solr-jetty-context.xml
+INFO  - 2015-10-12 23:51:29.926; org.eclipse.jetty.webapp.WebInfConfiguration; Extract jar:file:/C:/web/VuFind-Plus/sites/default/solr/jetty/webapps/solr.war!/ to C:\web\VuFind-Plus\sites\default\solr\jetty\solr-webapp\webapp
+INFO  - 2015-10-12 23:51:31.960; org.eclipse.jetty.webapp.StandardDescriptorProcessor; NO JSP Support for /solr, did not find org.apache.jasper.servlet.JspServlet
+INFO  - 2015-10-12 23:51:32.009; org.apache.solr.servlet.SolrDispatchFilter; SolrDispatchFilter.init()
+INFO  - 2015-10-12 23:51:32.029; org.apache.solr.core.SolrResourceLoader; JNDI not configured for solr (NoInitialContextEx)
+INFO  - 2015-10-12 23:51:32.030; org.apache.solr.core.SolrResourceLoader; using system property solr.solr.home: c:\data\vufind-plus\marmot.localhost\solr
+INFO  - 2015-10-12 23:51:32.031; org.apache.solr.core.SolrResourceLoader; new SolrResourceLoader for directory: 'c:\data\vufind-plus\marmot.localhost\solr\'
+INFO  - 2015-10-12 23:51:32.151; org.apache.solr.core.ConfigSolr; Loading container configuration from c:\data\vufind-plus\marmot.localhost\solr\solr.xml
+INFO  - 2015-10-12 23:51:32.296; org.apache.solr.core.CorePropertiesLocator; Config-defined core root directory: c:\data\vufind-plus\marmot.localhost\solr
+INFO  - 2015-10-12 23:51:32.309; org.apache.solr.core.CoreContainer; New CoreContainer 1325144078
+INFO  - 2015-10-12 23:51:32.309; org.apache.solr.core.CoreContainer; Loading cores into CoreContainer [instanceDir=c:\data\vufind-plus\marmot.localhost\solr\]
+INFO  - 2015-10-12 23:51:32.322; org.apache.solr.handler.component.HttpShardHandlerFactory; Setting socketTimeout to: 0
+INFO  - 2015-10-12 23:51:32.323; org.apache.solr.handler.component.HttpShardHandlerFactory; Setting urlScheme to: null
+INFO  - 2015-10-12 23:51:32.326; org.apache.solr.handler.component.HttpShardHandlerFactory; Setting connTimeout to: 0
+INFO  - 2015-10-12 23:51:32.328; org.apache.solr.handler.component.HttpShardHandlerFactory; Setting maxConnectionsPerHost to: 20
+INFO  - 2015-10-12 23:51:32.328; org.apache.solr.handler.component.HttpShardHandlerFactory; Setting corePoolSize to: 0
+INFO  - 2015-10-12 23:51:32.329; org.apache.solr.handler.component.HttpShardHandlerFactory; Setting maximumPoolSize to: 2147483647
+INFO  - 2015-10-12 23:51:32.329; org.apache.solr.handler.component.HttpShardHandlerFactory; Setting maxThreadIdleTime to: 5
+INFO  - 2015-10-12 23:51:32.330; org.apache.solr.handler.component.HttpShardHandlerFactory; Setting sizeOfQueue to: -1
+INFO  - 2015-10-12 23:51:32.330; org.apache.solr.handler.component.HttpShardHandlerFactory; Setting fairnessPolicy to: false
+INFO  - 2015-10-12 23:51:32.331; org.apache.solr.handler.component.HttpShardHandlerFactory; Setting useRetries to: false
+INFO  - 2015-10-12 23:51:33.748; org.apache.solr.update.UpdateShardHandler; Creating UpdateShardHandler HTTP client with params: socketTimeout=0&connTimeout=0&retry=true
+INFO  - 2015-10-12 23:51:33.750; org.apache.solr.logging.LogWatcher; SLF4J impl is org.slf4j.impl.Log4jLoggerFactory
+INFO  - 2015-10-12 23:51:33.751; org.apache.solr.logging.LogWatcher; Registering Log Listener [Log4j (org.slf4j.impl.Log4jLoggerFactory)]
+INFO  - 2015-10-12 23:51:33.752; org.apache.solr.core.CoreContainer; Host Name: 
+INFO  - 2015-10-12 23:51:38.332; org.apache.solr.core.CorePropertiesLocator; Looking for core definitions underneath c:\data\vufind-plus\marmot.localhost\solr
+INFO  - 2015-10-12 23:51:38.341; org.apache.solr.core.CorePropertiesLocator; Found core genealogy in c:\data\vufind-plus\marmot.localhost\solr\genealogy\
+INFO  - 2015-10-12 23:51:38.343; org.apache.solr.core.CorePropertiesLocator; Found core grouped2 in c:\data\vufind-plus\marmot.localhost\solr\grouped\
+INFO  - 2015-10-12 23:51:38.345; org.apache.solr.core.CorePropertiesLocator; Found core grouped in c:\data\vufind-plus\marmot.localhost\solr\grouped2\
+INFO  - 2015-10-12 23:51:38.346; org.apache.solr.core.CorePropertiesLocator; Found 3 core definitions
+INFO  - 2015-10-12 23:51:38.348; org.apache.solr.core.SolrResourceLoader; new SolrResourceLoader for directory: 'c:\data\vufind-plus\marmot.localhost\solr\grouped\'
+INFO  - 2015-10-12 23:51:38.348; org.apache.solr.core.SolrResourceLoader; new SolrResourceLoader for directory: 'c:\data\vufind-plus\marmot.localhost\solr\grouped2\'
+INFO  - 2015-10-12 23:51:38.348; org.apache.solr.core.SolrResourceLoader; new SolrResourceLoader for directory: 'c:\data\vufind-plus\marmot.localhost\solr\genealogy\'
+INFO  - 2015-10-12 23:51:38.391; org.apache.solr.core.SolrConfig; Adding specified lib dirs to ClassLoader
+INFO  - 2015-10-12 23:51:38.395; org.apache.solr.core.SolrResourceLoader; Adding 'file:/C:/web/VuFind-Plus/sites/default/solr/contrib/extraction/lib/apache-mime4j-core-0.7.2.jar' to classloader
+INFO  - 2015-10-12 23:51:38.397; org.apache.solr.core.SolrResourceLoader; Adding 'file:/C:/web/VuFind-Plus/sites/default/solr/contrib/extraction/lib/apache-mime4j-dom-0.7.2.jar' to classloader
+INFO  - 2015-10-12 23:51:38.398; org.apache.solr.core.SolrResourceLoader; Adding 'file:/C:/web/VuFind-Plus/sites/default/solr/contrib/extraction/lib/aspectjrt-1.6.11.jar' to classloader
+INFO  - 2015-10-12 23:51:38.399; org.apache.solr.core.SolrResourceLoader; Adding 'file:/C:/web/VuFind-Plus/sites/default/solr/contrib/extraction/lib/bcmail-jdk15-1.45.jar' to classloader
+INFO  - 2015-10-12 23:51:38.400; org.apache.solr.core.SolrResourceLoader; Adding 'file:/C:/web/VuFind-Plus/sites/default/solr/contrib/extraction/lib/bcprov-jdk15-1.45.jar' to classloader
+INFO  - 2015-10-12 23:51:38.401; org.apache.solr.core.SolrResourceLoader; Adding 'file:/C:/web/VuFind-Plus/sites/default/solr/contrib/extraction/lib/boilerpipe-1.1.0.jar' to classloader
+INFO  - 2015-10-12 23:51:38.402; org.apache.solr.core.SolrResourceLoader; Adding 'file:/C:/web/VuFind-Plus/sites/default/solr/contrib/extraction/lib/commons-compress-1.7.jar' to classloader
+INFO  - 2015-10-12 23:51:38.403; org.apache.solr.core.SolrResourceLoader; Adding 'file:/C:/web/VuFind-Plus/sites/default/solr/contrib/extraction/lib/dom4j-1.6.1.jar' to classloader
+INFO  - 2015-10-12 23:51:38.404; org.apache.solr.core.SolrResourceLoader; Adding 'file:/C:/web/VuFind-Plus/sites/default/solr/contrib/extraction/lib/fontbox-1.8.4.jar' to classloader
+INFO  - 2015-10-12 23:51:38.405; org.apache.solr.core.SolrResourceLoader; Adding 'file:/C:/web/VuFind-Plus/sites/default/solr/contrib/extraction/lib/icu4j-53.1.jar' to classloader
+INFO  - 2015-10-12 23:51:38.406; org.apache.solr.core.SolrResourceLoader; Adding 'file:/C:/web/VuFind-Plus/sites/default/solr/contrib/extraction/lib/isoparser-1.0-RC-1.jar' to classloader
+INFO  - 2015-10-12 23:51:38.406; org.apache.solr.core.SolrResourceLoader; Adding 'file:/C:/web/VuFind-Plus/sites/default/solr/contrib/extraction/lib/jdom-1.0.jar' to classloader
+INFO  - 2015-10-12 23:51:38.408; org.apache.solr.core.SolrResourceLoader; Adding 'file:/C:/web/VuFind-Plus/sites/default/solr/contrib/extraction/lib/jempbox-1.8.4.jar' to classloader
+INFO  - 2015-10-12 23:51:38.409; org.apache.solr.core.SolrResourceLoader; Adding 'file:/C:/web/VuFind-Plus/sites/default/solr/contrib/extraction/lib/jhighlight-1.0.jar' to classloader
+INFO  - 2015-10-12 23:51:38.410; org.apache.solr.core.SolrResourceLoader; Adding 'file:/C:/web/VuFind-Plus/sites/default/solr/contrib/extraction/lib/juniversalchardet-1.0.3.jar' to classloader
+INFO  - 2015-10-12 23:51:38.427; org.apache.solr.core.SolrResourceLoader; Adding 'file:/C:/web/VuFind-Plus/sites/default/solr/contrib/extraction/lib/metadata-extractor-2.6.2.jar' to classloader
+INFO  - 2015-10-12 23:51:38.428; org.apache.solr.core.SolrResourceLoader; Adding 'file:/C:/web/VuFind-Plus/sites/default/solr/contrib/extraction/lib/pdfbox-1.8.4.jar' to classloader
+INFO  - 2015-10-12 23:51:38.429; org.apache.solr.core.SolrResourceLoader; Adding 'file:/C:/web/VuFind-Plus/sites/default/solr/contrib/extraction/lib/poi-3.10.1.jar' to classloader
+INFO  - 2015-10-12 23:51:38.432; org.apache.solr.core.SolrResourceLoader; Adding 'file:/C:/web/VuFind-Plus/sites/default/solr/contrib/extraction/lib/poi-ooxml-3.10.1.jar' to classloader
+INFO  - 2015-10-12 23:51:38.434; org.apache.solr.core.SolrResourceLoader; Adding 'file:/C:/web/VuFind-Plus/sites/default/solr/contrib/extraction/lib/poi-ooxml-schemas-3.10.1.jar' to classloader
+INFO  - 2015-10-12 23:51:38.436; org.apache.solr.core.SolrResourceLoader; Adding 'file:/C:/web/VuFind-Plus/sites/default/solr/contrib/extraction/lib/poi-scratchpad-3.10.1.jar' to classloader
+INFO  - 2015-10-12 23:51:38.437; org.apache.solr.core.SolrResourceLoader; Adding 'file:/C:/web/VuFind-Plus/sites/default/solr/contrib/extraction/lib/rome-0.9.jar' to classloader
+INFO  - 2015-10-12 23:51:38.438; org.apache.solr.core.SolrResourceLoader; Adding 'file:/C:/web/VuFind-Plus/sites/default/solr/contrib/extraction/lib/tagsoup-1.2.1.jar' to classloader
+INFO  - 2015-10-12 23:51:38.439; org.apache.solr.core.SolrResourceLoader; Adding 'file:/C:/web/VuFind-Plus/sites/default/solr/contrib/extraction/lib/tika-core-1.5.jar' to classloader
+INFO  - 2015-10-12 23:51:38.440; org.apache.solr.core.SolrResourceLoader; Adding 'file:/C:/web/VuFind-Plus/sites/default/solr/contrib/extraction/lib/tika-parsers-1.5.jar' to classloader
+INFO  - 2015-10-12 23:51:38.442; org.apache.solr.core.SolrResourceLoader; Adding 'file:/C:/web/VuFind-Plus/sites/default/solr/contrib/extraction/lib/tika-xmp-1.5.jar' to classloader
+INFO  - 2015-10-12 23:51:38.442; org.apache.solr.update.SolrIndexConfig; IndexWriter infoStream solr logging is enabled
+INFO  - 2015-10-12 23:51:38.443; org.apache.solr.update.SolrIndexConfig; IndexWriter infoStream solr logging is enabled
+INFO  - 2015-10-12 23:51:38.443; org.apache.solr.core.SolrResourceLoader; Adding 'file:/C:/web/VuFind-Plus/sites/default/solr/contrib/extraction/lib/vorbis-java-core-0.1.jar' to classloader
+INFO  - 2015-10-12 23:51:38.445; org.apache.solr.core.SolrResourceLoader; Adding 'file:/C:/web/VuFind-Plus/sites/default/solr/contrib/extraction/lib/vorbis-java-tika-0.1.jar' to classloader
+INFO  - 2015-10-12 23:51:38.445; org.apache.solr.core.SolrResourceLoader; Adding 'file:/C:/web/VuFind-Plus/sites/default/solr/contrib/extraction/lib/xercesImpl-2.9.1.jar' to classloader
+INFO  - 2015-10-12 23:51:38.446; org.apache.solr.core.SolrResourceLoader; Adding 'file:/C:/web/VuFind-Plus/sites/default/solr/contrib/extraction/lib/xmlbeans-2.6.0.jar' to classloader
+INFO  - 2015-10-12 23:51:38.447; org.apache.solr.core.SolrResourceLoader; Adding 'file:/C:/web/VuFind-Plus/sites/default/solr/contrib/extraction/lib/xmpcore-5.1.2.jar' to classloader
+INFO  - 2015-10-12 23:51:38.448; org.apache.solr.core.SolrConfig; Using Lucene MatchVersion: 4.7.0
+INFO  - 2015-10-12 23:51:38.448; org.apache.solr.core.SolrConfig; Using Lucene MatchVersion: 4.7.0
+INFO  - 2015-10-12 23:51:38.448; org.apache.solr.core.SolrResourceLoader; Adding 'file:/C:/web/VuFind-Plus/sites/default/solr/contrib/extraction/lib/xz-1.4.jar' to classloader
+INFO  - 2015-10-12 23:51:38.452; org.apache.solr.core.SolrResourceLoader; Adding 'file:/C:/web/VuFind-Plus/sites/default/solr/dist/solr-cell-4.10.4.jar' to classloader
+INFO  - 2015-10-12 23:51:38.454; org.apache.solr.core.SolrResourceLoader; Adding 'file:/C:/web/VuFind-Plus/sites/default/solr/contrib/clustering/lib/attributes-binder-1.2.1.jar' to classloader
+INFO  - 2015-10-12 23:51:38.455; org.apache.solr.core.SolrResourceLoader; Adding 'file:/C:/web/VuFind-Plus/sites/default/solr/contrib/clustering/lib/carrot2-mini-3.9.0.jar' to classloader
+INFO  - 2015-10-12 23:51:38.456; org.apache.solr.core.SolrResourceLoader; Adding 'file:/C:/web/VuFind-Plus/sites/default/solr/contrib/clustering/lib/hppc-0.5.2.jar' to classloader
+INFO  - 2015-10-12 23:51:38.457; org.apache.solr.core.SolrResourceLoader; Adding 'file:/C:/web/VuFind-Plus/sites/default/solr/contrib/clustering/lib/jackson-core-asl-1.9.13.jar' to classloader
+INFO  - 2015-10-12 23:51:38.457; org.apache.solr.core.SolrResourceLoader; Adding 'file:/C:/web/VuFind-Plus/sites/default/solr/contrib/clustering/lib/jackson-mapper-asl-1.9.13.jar' to classloader
+INFO  - 2015-10-12 23:51:38.459; org.apache.solr.core.SolrResourceLoader; Adding 'file:/C:/web/VuFind-Plus/sites/default/solr/contrib/clustering/lib/mahout-collections-1.0.jar' to classloader
+INFO  - 2015-10-12 23:51:38.460; org.apache.solr.core.SolrResourceLoader; Adding 'file:/C:/web/VuFind-Plus/sites/default/solr/contrib/clustering/lib/mahout-math-0.6.jar' to classloader
+INFO  - 2015-10-12 23:51:38.460; org.apache.solr.core.SolrResourceLoader; Adding 'file:/C:/web/VuFind-Plus/sites/default/solr/contrib/clustering/lib/simple-xml-2.7.jar' to classloader
+INFO  - 2015-10-12 23:51:38.462; org.apache.solr.core.SolrResourceLoader; Adding 'file:/C:/web/VuFind-Plus/sites/default/solr/dist/solr-clustering-4.10.4.jar' to classloader
+INFO  - 2015-10-12 23:51:38.464; org.apache.solr.core.SolrResourceLoader; Adding 'file:/C:/web/VuFind-Plus/sites/default/solr/contrib/langid/lib/jsonic-1.2.7.jar' to classloader
+INFO  - 2015-10-12 23:51:38.465; org.apache.solr.core.SolrResourceLoader; Adding 'file:/C:/web/VuFind-Plus/sites/default/solr/contrib/langid/lib/langdetect-1.1-20120112.jar' to classloader
+INFO  - 2015-10-12 23:51:38.466; org.apache.solr.core.SolrResourceLoader; Adding 'file:/C:/web/VuFind-Plus/sites/default/solr/dist/solr-langid-4.10.4.jar' to classloader
+INFO  - 2015-10-12 23:51:38.469; org.apache.solr.core.SolrResourceLoader; Adding 'file:/C:/web/VuFind-Plus/sites/default/solr/contrib/velocity/lib/commons-beanutils-1.8.3.jar' to classloader
+INFO  - 2015-10-12 23:51:38.470; org.apache.solr.core.SolrResourceLoader; Adding 'file:/C:/web/VuFind-Plus/sites/default/solr/contrib/velocity/lib/commons-collections-3.2.1.jar' to classloader
+INFO  - 2015-10-12 23:51:38.471; org.apache.solr.core.SolrResourceLoader; Adding 'file:/C:/web/VuFind-Plus/sites/default/solr/contrib/velocity/lib/velocity-1.7.jar' to classloader
+INFO  - 2015-10-12 23:51:38.472; org.apache.solr.core.SolrResourceLoader; Adding 'file:/C:/web/VuFind-Plus/sites/default/solr/contrib/velocity/lib/velocity-tools-2.0.jar' to classloader
+WARN  - 2015-10-12 23:51:38.474; org.apache.solr.core.SolrResourceLoader; Can't find (or read) directory to add to classloader: C:\web\VuFind-Plus\sites\default\solr\example\files (resolved as: C:\web\VuFind-Plus\sites\default\solr\example\files).
+INFO  - 2015-10-12 23:51:38.476; org.apache.solr.core.SolrResourceLoader; Adding 'file:/C:/web/VuFind-Plus/sites/default/solr/dist/solr-velocity-4.10.4.jar' to classloader
+INFO  - 2015-10-12 23:51:38.478; org.apache.solr.core.SolrResourceLoader; Adding 'file:/C:/web/VuFind-Plus/sites/default/solr/contrib/analysis-extras/lucene-libs/lucene-analyzers-icu-4.10.4.jar' to classloader
+INFO  - 2015-10-12 23:51:38.480; org.apache.solr.core.SolrResourceLoader; Adding 'file:/C:/web/VuFind-Plus/sites/default/solr/contrib/analysis-extras/lib/icu4j-53.1.jar' to classloader
+INFO  - 2015-10-12 23:51:38.481; org.apache.solr.core.SolrResourceLoader; Adding 'file:/C:/web/VuFind-Plus/sites/default/solr/dist/solr-analysis-extras-4.10.4.jar' to classloader
+INFO  - 2015-10-12 23:51:38.556; org.apache.solr.core.SolrConfig; Loaded SolrConfig: solrconfig.xml
+INFO  - 2015-10-12 23:51:38.556; org.apache.solr.core.SolrConfig; Loaded SolrConfig: solrconfig.xml
+INFO  - 2015-10-12 23:51:38.562; org.apache.solr.schema.IndexSchema; Reading Solr Schema from c:\data\vufind-plus\marmot.localhost\solr\genealogy\conf\schema.xml
+INFO  - 2015-10-12 23:51:38.562; org.apache.solr.schema.IndexSchema; Reading Solr Schema from c:\data\vufind-plus\marmot.localhost\solr\grouped2\conf\schema.xml
+INFO  - 2015-10-12 23:51:38.585; org.apache.solr.schema.IndexSchema; [genealogy] Schema name=VuFind Genealogy Index
+INFO  - 2015-10-12 23:51:38.596; org.apache.solr.schema.IndexSchema; [grouped] Schema name=VuFind Grouped Record Index
+ERROR - 2015-10-12 23:51:38.642; org.apache.solr.core.CoreContainer; Error creating core [grouped]: Could not load conf for core grouped: Plugin init failure for [schema.xml] fieldType "text": Plugin init failure for [schema.xml] analyzer/tokenizer: Error loading class 'solr.ICUTokenizerFactory'. Schema file is c:\data\vufind-plus\marmot.localhost\solr\grouped2\conf\schema.xml
+org.apache.solr.common.SolrException: Could not load conf for core grouped: Plugin init failure for [schema.xml] fieldType "text": Plugin init failure for [schema.xml] analyzer/tokenizer: Error loading class 'solr.ICUTokenizerFactory'. Schema file is c:\data\vufind-plus\marmot.localhost\solr\grouped2\conf\schema.xml
+	at org.apache.solr.core.ConfigSetService.getConfig(ConfigSetService.java:66)
+	at org.apache.solr.core.CoreContainer.create(CoreContainer.java:489)
+	at org.apache.solr.core.CoreContainer$1.call(CoreContainer.java:255)
+	at org.apache.solr.core.CoreContainer$1.call(CoreContainer.java:249)
+	at java.util.concurrent.FutureTask.run(Unknown Source)
+	at java.util.concurrent.ThreadPoolExecutor.runWorker(Unknown Source)
+	at java.util.concurrent.ThreadPoolExecutor$Worker.run(Unknown Source)
+	at java.lang.Thread.run(Unknown Source)
+Caused by: org.apache.solr.common.SolrException: Plugin init failure for [schema.xml] fieldType "text": Plugin init failure for [schema.xml] analyzer/tokenizer: Error loading class 'solr.ICUTokenizerFactory'. Schema file is c:\data\vufind-plus\marmot.localhost\solr\grouped2\conf\schema.xml
+	at org.apache.solr.schema.IndexSchema.readSchema(IndexSchema.java:595)
+	at org.apache.solr.schema.IndexSchema.<init>(IndexSchema.java:166)
+	at org.apache.solr.schema.IndexSchemaFactory.create(IndexSchemaFactory.java:55)
+	at org.apache.solr.schema.IndexSchemaFactory.buildIndexSchema(IndexSchemaFactory.java:69)
+	at org.apache.solr.core.ConfigSetService.createIndexSchema(ConfigSetService.java:90)
+	at org.apache.solr.core.ConfigSetService.getConfig(ConfigSetService.java:62)
+	... 7 more
+Caused by: org.apache.solr.common.SolrException: Plugin init failure for [schema.xml] fieldType "text": Plugin init failure for [schema.xml] analyzer/tokenizer: Error loading class 'solr.ICUTokenizerFactory'
+	at org.apache.solr.util.plugin.AbstractPluginLoader.load(AbstractPluginLoader.java:177)
+	at org.apache.solr.schema.IndexSchema.readSchema(IndexSchema.java:486)
+	... 12 more
+Caused by: org.apache.solr.common.SolrException: Plugin init failure for [schema.xml] analyzer/tokenizer: Error loading class 'solr.ICUTokenizerFactory'
+	at org.apache.solr.util.plugin.AbstractPluginLoader.load(AbstractPluginLoader.java:177)
+	at org.apache.solr.schema.FieldTypePluginLoader.readAnalyzer(FieldTypePluginLoader.java:362)
+	at org.apache.solr.schema.FieldTypePluginLoader.create(FieldTypePluginLoader.java:86)
+	at org.apache.solr.schema.FieldTypePluginLoader.create(FieldTypePluginLoader.java:43)
+	at org.apache.solr.util.plugin.AbstractPluginLoader.load(AbstractPluginLoader.java:151)
+	... 13 more
+Caused by: org.apache.solr.common.SolrException: Error loading class 'solr.ICUTokenizerFactory'
+	at org.apache.solr.core.SolrResourceLoader.findClass(SolrResourceLoader.java:490)
+	at org.apache.solr.core.SolrResourceLoader.newInstance(SolrResourceLoader.java:593)
+	at org.apache.solr.schema.FieldTypePluginLoader$2.create(FieldTypePluginLoader.java:342)
+	at org.apache.solr.schema.FieldTypePluginLoader$2.create(FieldTypePluginLoader.java:335)
+	at org.apache.solr.util.plugin.AbstractPluginLoader.load(AbstractPluginLoader.java:151)
+	... 17 more
+Caused by: java.lang.ClassNotFoundException: solr.ICUTokenizerFactory
+	at java.net.URLClassLoader.findClass(Unknown Source)
+	at java.lang.ClassLoader.loadClass(Unknown Source)
+	at java.net.FactoryURLClassLoader.loadClass(Unknown Source)
+	at java.lang.ClassLoader.loadClass(Unknown Source)
+	at java.lang.Class.forName0(Native Method)
+	at java.lang.Class.forName(Unknown Source)
+	at org.apache.solr.core.SolrResourceLoader.findClass(SolrResourceLoader.java:474)
+	... 21 more
+ERROR - 2015-10-12 23:51:38.647; org.apache.solr.core.CoreContainer; Error creating core [genealogy]: Could not load conf for core genealogy: Plugin init failure for [schema.xml] fieldType "text": Plugin init failure for [schema.xml] analyzer/filter: Error loading class 'solr.ICUFoldingFilterFactory'. Schema file is c:\data\vufind-plus\marmot.localhost\solr\genealogy\conf\schema.xml
+org.apache.solr.common.SolrException: Could not load conf for core genealogy: Plugin init failure for [schema.xml] fieldType "text": Plugin init failure for [schema.xml] analyzer/filter: Error loading class 'solr.ICUFoldingFilterFactory'. Schema file is c:\data\vufind-plus\marmot.localhost\solr\genealogy\conf\schema.xml
+	at org.apache.solr.core.ConfigSetService.getConfig(ConfigSetService.java:66)
+	at org.apache.solr.core.CoreContainer.create(CoreContainer.java:489)
+	at org.apache.solr.core.CoreContainer$1.call(CoreContainer.java:255)
+	at org.apache.solr.core.CoreContainer$1.call(CoreContainer.java:249)
+	at java.util.concurrent.FutureTask.run(Unknown Source)
+	at java.util.concurrent.ThreadPoolExecutor.runWorker(Unknown Source)
+	at java.util.concurrent.ThreadPoolExecutor$Worker.run(Unknown Source)
+	at java.lang.Thread.run(Unknown Source)
+Caused by: org.apache.solr.common.SolrException: Plugin init failure for [schema.xml] fieldType "text": Plugin init failure for [schema.xml] analyzer/filter: Error loading class 'solr.ICUFoldingFilterFactory'. Schema file is c:\data\vufind-plus\marmot.localhost\solr\genealogy\conf\schema.xml
+	at org.apache.solr.schema.IndexSchema.readSchema(IndexSchema.java:595)
+	at org.apache.solr.schema.IndexSchema.<init>(IndexSchema.java:166)
+	at org.apache.solr.schema.IndexSchemaFactory.create(IndexSchemaFactory.java:55)
+	at org.apache.solr.schema.IndexSchemaFactory.buildIndexSchema(IndexSchemaFactory.java:69)
+	at org.apache.solr.core.ConfigSetService.createIndexSchema(ConfigSetService.java:90)
+	at org.apache.solr.core.ConfigSetService.getConfig(ConfigSetService.java:62)
+	... 7 more
+Caused by: org.apache.solr.common.SolrException: Plugin init failure for [schema.xml] fieldType "text": Plugin init failure for [schema.xml] analyzer/filter: Error loading class 'solr.ICUFoldingFilterFactory'
+	at org.apache.solr.util.plugin.AbstractPluginLoader.load(AbstractPluginLoader.java:177)
+	at org.apache.solr.schema.IndexSchema.readSchema(IndexSchema.java:486)
+	... 12 more
+Caused by: org.apache.solr.common.SolrException: Plugin init failure for [schema.xml] analyzer/filter: Error loading class 'solr.ICUFoldingFilterFactory'
+	at org.apache.solr.util.plugin.AbstractPluginLoader.load(AbstractPluginLoader.java:177)
+	at org.apache.solr.schema.FieldTypePluginLoader.readAnalyzer(FieldTypePluginLoader.java:400)
+	at org.apache.solr.schema.FieldTypePluginLoader.create(FieldTypePluginLoader.java:86)
+	at org.apache.solr.schema.FieldTypePluginLoader.create(FieldTypePluginLoader.java:43)
+	at org.apache.solr.util.plugin.AbstractPluginLoader.load(AbstractPluginLoader.java:151)
+	... 13 more
+Caused by: org.apache.solr.common.SolrException: Error loading class 'solr.ICUFoldingFilterFactory'
+	at org.apache.solr.core.SolrResourceLoader.findClass(SolrResourceLoader.java:490)
+	at org.apache.solr.core.SolrResourceLoader.newInstance(SolrResourceLoader.java:593)
+	at org.apache.solr.schema.FieldTypePluginLoader$3.create(FieldTypePluginLoader.java:382)
+	at org.apache.solr.schema.FieldTypePluginLoader$3.create(FieldTypePluginLoader.java:376)
+	at org.apache.solr.util.plugin.AbstractPluginLoader.load(AbstractPluginLoader.java:151)
+	... 17 more
+Caused by: java.lang.ClassNotFoundException: solr.ICUFoldingFilterFactory
+	at java.net.URLClassLoader.findClass(Unknown Source)
+	at java.lang.ClassLoader.loadClass(Unknown Source)
+	at java.net.FactoryURLClassLoader.loadClass(Unknown Source)
+	at java.lang.ClassLoader.loadClass(Unknown Source)
+	at java.lang.Class.forName0(Native Method)
+	at java.lang.Class.forName(Unknown Source)
+	at org.apache.solr.core.SolrResourceLoader.findClass(SolrResourceLoader.java:474)
+	... 21 more
+INFO  - 2015-10-12 23:51:38.750; org.apache.solr.core.SolrConfig; Using Lucene MatchVersion: 5.0.0
+INFO  - 2015-10-12 23:51:38.773; org.apache.solr.core.SolrConfig; Loaded SolrConfig: solrconfig.xml
+INFO  - 2015-10-12 23:51:38.775; org.apache.solr.schema.IndexSchema; Reading Solr Schema from c:\data\vufind-plus\marmot.localhost\solr\grouped\conf\schema.xml
+INFO  - 2015-10-12 23:51:38.795; org.apache.solr.schema.IndexSchema; [grouped2] Schema name=VuFind Grouped Record Index
+INFO  - 2015-10-12 23:51:38.852; org.apache.solr.schema.IndexSchema; default search field in schema is keywords
+INFO  - 2015-10-12 23:51:38.854; org.apache.solr.schema.IndexSchema; query parser default operator is AND
+INFO  - 2015-10-12 23:51:38.855; org.apache.solr.schema.IndexSchema; unique key field: id
+INFO  - 2015-10-12 23:51:39.054; org.apache.solr.core.CoreContainer; Creating SolrCore 'grouped2' using configuration from instancedir c:\data\vufind-plus\marmot.localhost\solr\grouped\
+INFO  - 2015-10-12 23:51:39.072; org.apache.solr.core.SolrCore; solr.NRTCachingDirectoryFactory
+INFO  - 2015-10-12 23:51:39.077; org.apache.solr.core.SolrCore; [grouped2] Opening new SolrCore at c:\data\vufind-plus\marmot.localhost\solr\grouped\, dataDir=c:\data\vufind-plus\marmot.localhost\solr/grouped\
+INFO  - 2015-10-12 23:51:39.080; org.apache.solr.core.JmxMonitoredMap; No JMX servers found, not exposing Solr information with JMX.
+INFO  - 2015-10-12 23:51:39.084; org.apache.solr.core.SolrCore; [grouped2] Added SolrEventListener for newSearcher: org.apache.solr.core.QuerySenderListener{queries=[{q=}, {q=Fiction}, {q=dvd}, {q=movies}, {q=good and evil}, {q=Harry Potter}, {q=audio books}, {q=star wars}, {q=murder victims fiction}, {q=james patterson}, {q=divergent}, {q=gone girl}, {q=game of thrones}, {q=documentary videos}, {q=all the light we cannot see}, {q=dogs}, {q=cats}, {q=hunger games}]}
+INFO  - 2015-10-12 23:51:39.085; org.apache.solr.core.SolrCore; [grouped2] Added SolrEventListener for firstSearcher: org.apache.solr.core.QuerySenderListener{queries=[]}
+INFO  - 2015-10-12 23:51:39.097; org.apache.solr.core.CachingDirectoryFactory; return new directory for C:\data\vufind-plus\marmot.localhost\solr\grouped
+INFO  - 2015-10-12 23:51:39.104; org.apache.solr.core.SolrCore; New index directory detected: old=null new=c:\data\vufind-plus\marmot.localhost\solr/grouped\index/
+INFO  - 2015-10-12 23:51:39.111; org.apache.solr.core.CachingDirectoryFactory; return new directory for C:\data\vufind-plus\marmot.localhost\solr\grouped\index
+INFO  - 2015-10-12 23:51:39.213; org.apache.solr.core.SolrCore; no updateRequestProcessorChain defined as default, creating implicit default
+INFO  - 2015-10-12 23:51:39.219; org.apache.solr.core.RequestHandlers; created /update: org.apache.solr.handler.UpdateRequestHandler
+INFO  - 2015-10-12 23:51:39.219; org.apache.solr.core.RequestHandlers; created /update/json: org.apache.solr.handler.UpdateRequestHandler
+INFO  - 2015-10-12 23:51:39.220; org.apache.solr.core.RequestHandlers; created /update/csv: org.apache.solr.handler.UpdateRequestHandler
+INFO  - 2015-10-12 23:51:39.220; org.apache.solr.core.RequestHandlers; created /update/json/docs: org.apache.solr.handler.UpdateRequestHandler
+INFO  - 2015-10-12 23:51:39.222; org.apache.solr.core.RequestHandlers; created standard: solr.StandardRequestHandler
+INFO  - 2015-10-12 23:51:39.225; org.apache.solr.core.RequestHandlers; created dismax: solr.SearchHandler
+INFO  - 2015-10-12 23:51:39.227; org.apache.solr.core.RequestHandlers; created morelikethis: solr.MoreLikeThisHandler
+INFO  - 2015-10-12 23:51:39.227; org.apache.solr.core.RequestHandlers; created morelikethis2: solr.MoreLikeThisHandler
+INFO  - 2015-10-12 23:51:39.227; org.apache.solr.core.RequestHandlers; created morelikethese: solr.MoreLikeThisHandler
+INFO  - 2015-10-12 23:51:39.228; org.apache.solr.core.RequestHandlers; created /search: org.apache.solr.handler.component.SearchHandler
+INFO  - 2015-10-12 23:51:39.228; org.apache.solr.core.RequestHandlers; created /term: org.apache.solr.handler.component.SearchHandler
+INFO  - 2015-10-12 23:51:39.228; org.apache.solr.core.RequestHandlers; adding lazy requestHandler: org.apache.solr.handler.component.SearchHandler
+INFO  - 2015-10-12 23:51:39.229; org.apache.solr.core.RequestHandlers; created /elevate: org.apache.solr.handler.component.SearchHandler
+WARN  - 2015-10-12 23:51:39.230; org.apache.solr.core.RequestHandlers; Multiple requestHandler registered to the same name: /update ignoring: org.apache.solr.handler.UpdateRequestHandler
+INFO  - 2015-10-12 23:51:39.231; org.apache.solr.core.RequestHandlers; created /update: solr.UpdateRequestHandler
+INFO  - 2015-10-12 23:51:39.231; org.apache.solr.core.RequestHandlers; adding lazy requestHandler: solr.FieldAnalysisRequestHandler
+INFO  - 2015-10-12 23:51:39.232; org.apache.solr.core.RequestHandlers; created /analysis/field: solr.FieldAnalysisRequestHandler
+INFO  - 2015-10-12 23:51:39.232; org.apache.solr.core.RequestHandlers; adding lazy requestHandler: solr.DocumentAnalysisRequestHandler
+INFO  - 2015-10-12 23:51:39.232; org.apache.solr.core.RequestHandlers; created /analysis/document: solr.DocumentAnalysisRequestHandler
+INFO  - 2015-10-12 23:51:39.233; org.apache.solr.core.RequestHandlers; adding lazy requestHandler: solr.CSVRequestHandler
+WARN  - 2015-10-12 23:51:39.233; org.apache.solr.core.RequestHandlers; Multiple requestHandler registered to the same name: /update/csv ignoring: org.apache.solr.handler.UpdateRequestHandler
+INFO  - 2015-10-12 23:51:39.234; org.apache.solr.core.RequestHandlers; created /update/csv: solr.CSVRequestHandler
+INFO  - 2015-10-12 23:51:39.236; org.apache.solr.core.RequestHandlers; created /admin/ping: PingRequestHandler
+INFO  - 2015-10-12 23:51:39.238; org.apache.solr.core.RequestHandlers; created /debug/dump: solr.DumpRequestHandler
+INFO  - 2015-10-12 23:51:39.252; org.apache.solr.handler.loader.XMLLoader; xsltCacheLifetimeSeconds=60
+INFO  - 2015-10-12 23:51:39.254; org.apache.solr.handler.loader.XMLLoader; xsltCacheLifetimeSeconds=60
+INFO  - 2015-10-12 23:51:39.255; org.apache.solr.handler.loader.XMLLoader; xsltCacheLifetimeSeconds=60
+INFO  - 2015-10-12 23:51:39.255; org.apache.solr.handler.loader.XMLLoader; xsltCacheLifetimeSeconds=60
+INFO  - 2015-10-12 23:51:39.256; org.apache.solr.handler.loader.XMLLoader; xsltCacheLifetimeSeconds=60
+INFO  - 2015-10-12 23:51:39.327; org.apache.solr.update.CommitTracker; Hard AutoCommit: if uncommited for 600000ms; if 10000 uncommited docs 
+INFO  - 2015-10-12 23:51:39.327; org.apache.solr.update.CommitTracker; Soft AutoCommit: if uncommited for 1000ms; 
+INFO  - 2015-10-12 23:51:39.368; org.apache.solr.core.CachingDirectoryFactory; looking to close C:\data\vufind-plus\marmot.localhost\solr\grouped\index [CachedDir<<refCount=0;path=C:\data\vufind-plus\marmot.localhost\solr\grouped\index;done=true>>]
+INFO  - 2015-10-12 23:51:39.369; org.apache.solr.core.CachingDirectoryFactory; Closing directory: C:\data\vufind-plus\marmot.localhost\solr\grouped\index
+INFO  - 2015-10-12 23:51:39.370; org.apache.solr.core.SolrCore; [grouped2]  CLOSING SolrCore org.apache.solr.core.SolrCore@37aff9cc
+INFO  - 2015-10-12 23:51:39.370; org.apache.solr.update.DirectUpdateHandler2; closing DirectUpdateHandler2{commits=0,autocommit maxDocs=10000,autocommit maxTime=600000ms,autocommits=0,soft autocommit maxTime=1000ms,soft autocommits=0,optimizes=0,rollbacks=0,expungeDeletes=0,docsPending=0,adds=0,deletesById=0,deletesByQuery=0,errors=0,cumulative_adds=0,cumulative_deletesById=0,cumulative_deletesByQuery=0,cumulative_errors=0,transaction_logs_total_size=94238392,transaction_logs_total_number=1}
+INFO  - 2015-10-12 23:51:39.371; org.apache.solr.update.SolrCoreState; Closing SolrCoreState
+INFO  - 2015-10-12 23:51:39.372; org.apache.solr.update.DefaultSolrCoreState; SolrCoreState ref count has reached 0 - closing IndexWriter
+INFO  - 2015-10-12 23:51:39.372; org.apache.solr.update.DefaultSolrCoreState; closing IndexWriter with IndexWriterCloser
+INFO  - 2015-10-12 23:51:39.374; org.apache.solr.core.SolrCore; [grouped2] Closing main searcher on request.
+INFO  - 2015-10-12 23:51:39.375; org.apache.solr.core.CachingDirectoryFactory; Closing NRTCachingDirectoryFactory - 1 directories currently being tracked
+INFO  - 2015-10-12 23:51:39.377; org.apache.solr.core.CachingDirectoryFactory; looking to close C:\data\vufind-plus\marmot.localhost\solr\grouped [CachedDir<<refCount=0;path=C:\data\vufind-plus\marmot.localhost\solr\grouped;done=false>>]
+INFO  - 2015-10-12 23:51:39.377; org.apache.solr.core.CachingDirectoryFactory; Closing directory: C:\data\vufind-plus\marmot.localhost\solr\grouped
+ERROR - 2015-10-12 23:51:39.378; org.apache.solr.core.CoreContainer; Error creating core [grouped2]: Error opening new searcher
+org.apache.solr.common.SolrException: Error opening new searcher
+	at org.apache.solr.core.SolrCore.<init>(SolrCore.java:881)
+	at org.apache.solr.core.SolrCore.<init>(SolrCore.java:654)
+	at org.apache.solr.core.CoreContainer.create(CoreContainer.java:491)
+	at org.apache.solr.core.CoreContainer$1.call(CoreContainer.java:255)
+	at org.apache.solr.core.CoreContainer$1.call(CoreContainer.java:249)
+	at java.util.concurrent.FutureTask.run(Unknown Source)
+	at java.util.concurrent.ThreadPoolExecutor.runWorker(Unknown Source)
+	at java.util.concurrent.ThreadPoolExecutor$Worker.run(Unknown Source)
+	at java.lang.Thread.run(Unknown Source)
+Caused by: org.apache.solr.common.SolrException: Error opening new searcher
+	at org.apache.solr.core.SolrCore.openNewSearcher(SolrCore.java:1574)
+	at org.apache.solr.core.SolrCore.getSearcher(SolrCore.java:1686)
+	at org.apache.solr.core.SolrCore.<init>(SolrCore.java:853)
+	... 8 more
+Caused by: org.apache.lucene.index.IndexFormatTooNewException: Format version is not supported (resource: BufferedChecksumIndexInput(MMapIndexInput(path="C:\data\vufind-plus\marmot.localhost\solr\grouped\index\segments_f9"))): 6 (needs to be between 0 and 3)
+	at org.apache.lucene.codecs.CodecUtil.checkHeaderNoMagic(CodecUtil.java:156)
+	at org.apache.lucene.index.SegmentInfos.read(SegmentInfos.java:348)
+	at org.apache.lucene.index.SegmentInfos$1.doBody(SegmentInfos.java:462)
+	at org.apache.lucene.index.SegmentInfos$FindSegmentsFile.run(SegmentInfos.java:923)
+	at org.apache.lucene.index.SegmentInfos$FindSegmentsFile.run(SegmentInfos.java:769)
+	at org.apache.lucene.index.SegmentInfos.read(SegmentInfos.java:458)
+	at org.apache.lucene.index.IndexWriter.<init>(IndexWriter.java:794)
+	at org.apache.solr.update.SolrIndexWriter.<init>(SolrIndexWriter.java:77)
+	at org.apache.solr.update.SolrIndexWriter.create(SolrIndexWriter.java:64)
+	at org.apache.solr.update.DefaultSolrCoreState.createMainIndexWriter(DefaultSolrCoreState.java:284)
+	at org.apache.solr.update.DefaultSolrCoreState.getIndexWriter(DefaultSolrCoreState.java:116)
+	at org.apache.solr.core.SolrCore.openNewSearcher(SolrCore.java:1537)
+	... 10 more
+INFO  - 2015-10-12 23:51:39.383; org.apache.solr.servlet.SolrDispatchFilter; user.dir=c:\web\VuFind-Plus\sites\default\solr\jetty
+INFO  - 2015-10-12 23:51:39.384; org.apache.solr.servlet.SolrDispatchFilter; SolrDispatchFilter.init() done
+INFO  - 2015-10-12 23:51:39.410; org.eclipse.jetty.server.AbstractConnector; Started SocketConnector@0.0.0.0:8080
+INFO  - 2015-10-12 23:51:50.964; org.apache.solr.servlet.SolrDispatchFilter; [admin] webapp=null path=/admin/cores params={indexInfo=false&wt=json&_=1444693910931} status=0 QTime=6 
+INFO  - 2015-10-12 23:51:51.137; org.apache.solr.servlet.SolrDispatchFilter; [admin] webapp=null path=/admin/info/system params={wt=json&_=1444693911087} status=0 QTime=14 
+INFO  - 2015-10-13 00:49:39.847; org.apache.solr.servlet.SolrDispatchFilter; [admin] webapp=null path=/admin/cores params={indexInfo=false&wt=json&_=1444697379808} status=0 QTime=1 
+INFO  - 2015-10-13 00:49:39.992; org.apache.solr.servlet.SolrDispatchFilter; [admin] webapp=null path=/admin/info/system params={wt=json&_=1444697379966} status=0 QTime=0 
+INFO  - 2015-10-13 01:15:47.427; org.eclipse.jetty.server.Server; Graceful shutdown SocketConnector@0.0.0.0:8080
+INFO  - 2015-10-13 01:15:47.428; org.eclipse.jetty.server.Server; Graceful shutdown o.e.j.w.WebAppContext{/solr,file:/C:/web/VuFind-Plus/sites/default/solr/jetty/solr-webapp/webapp/},C:\web\VuFind-Plus\sites\default\solr\jetty/webapps/solr.war
+INFO  - 2015-10-13 01:15:48.429; org.apache.solr.core.CoreContainer; Shutting down CoreContainer instance=1325144078
+INFO  - 2015-10-13 01:15:48.436; org.eclipse.jetty.server.handler.ContextHandler; stopped o.e.j.w.WebAppContext{/solr,file:/C:/web/VuFind-Plus/sites/default/solr/jetty/solr-webapp/webapp/},C:\web\VuFind-Plus\sites\default\solr\jetty/webapps/solr.war

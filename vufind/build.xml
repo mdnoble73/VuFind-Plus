@@ -1,12 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project name="vufind" basedir="." default="main">
   <property name="tmp" value="/tmp" />
-  <property name="package"  value="${phing.project.name}" override="true" />
-  <property name="builddir" value="${tmp}/build/${phing.project.name}" override="true" />
   <property name="srcdir"   value="${project.basedir}" override="true" />
   <property name="apacheconfdir" value="/etc/apache2/conf.d" />
   <property name="apachectl" value="/etc/init.d/apache2" />
-  <property name="vufindurl" value="http://localhost/vufind" />
+  <property name="vufindurl" value="http://venus.marmot.org" />
   <property name="vufinddb" value="vufind_test" />
   <property name="vufinddbuser" value="vufindtest" />
   <property name="vufinddbpass" value="vufindtestpass" />
@@ -24,28 +22,47 @@
     <mkdir dir="${builddir}/reports/coverage"/>
 
     <!-- PHP API Documentation -->
+	<!--
     <phpdoc title="API Documentation"
       destdir="${builddir}/apidocs"
       sourcecode="yes"
       defaultpackagename="VuFind"
       output="HTML:Smarty:PHP">
       <fileset dir=".">
-        <include name="harvest/**/*.php" />
-        <include name="import/**/*.php" />
-        <include name="util/**/*.php" />
         <include name="web/**/*.php" />
         <exclude name="web/Crypt/**/*.php" />
-        <exclude name="web/Horde/**/*.php" />
+        <exclude name="web/Minify/**/*.php" />
+        <exclude name="web/PHPExcel/**/*.php" />
+        <exclude name="web/recaptcha/**/*.php" />
         <exclude name="web/interface/compile/**/*.php" />
         <exclude name="web/sys/mobileesp/**/*.php" />
+		<exclude name="web/sys/tuque/**/*.php" />
       </fileset>
     </phpdoc>
+	-->
 
     <!-- PHP CodeSniffer -->
+	<!--
     <exec command="phpcs --standard=PEAR --ignore=*/mobileesp/*,*/iWebKit/*,${srcdir}/web/Crypt/*,${srcdir}/web/Horde/*,${srcdir}/web/sys/SIP2.php,*/rc4.js,${srcdir}/web/js/phpserializer.js,*/jquery*.js,*/jquery*.css,*/css/blueprint/*,${srcdir}/web/interface/compile/* --report=checkstyle ${srcdir} > ${builddir}/reports/checkstyle.xml" escape="false" />
+	-->
+	
+	<!-- Teardown previous automated test instance -->
+	
+	<!-- Create automated test instance of Pika -->
+		<!-- Setup Apache -->
+		<!-- Install Database -->
+		<!-- Group Sample Records -->
+		<!-- Index Sample Records -->
 
+	<!-- Run a bunch of tests -->
     <!-- PHPUnit -->
+	<!--
     <exec command="phpunit --log-junit ${builddir}/reports/phpunit.xml --coverage-clover ${builddir}/reports/coverage/clover.xml --coverage-html ${builddir}/reports/coverage/ ${srcdir}/tests/AllTests.php"/>
+	-->
+	
+	<!-- Selenium Tests -->
+	
+	<!-- JMeter Tests -->
 
   </target>
 
@@ -118,57 +135,4 @@
     <echo message="${LASTOUTPUT}" />
 
   </target>
-
-  <!-- Prepare VuFind for distribution -->
-  <target name="package" description="build VuFind packages for distribution">
-    <!-- make sure the work area is empty, then rebuild it -->
-    <delete dir="${builddir}/packages" includeemptydirs="true" failonerror="true" />
-    <mkdir dir="${builddir}/packages" />
-    <delete dir="${builddir}/export" includeemptydirs="true" failonerror="true" />
-    <mkdir dir="${builddir}/export" />
-
-    <!-- export the source into the temporary directory -->
-    <exec command="svn export ${srcdir} ${builddir}/export/vufind-${version}" />
-
-    <!-- build the standard tar.gz archive -->
-    <exec command="tar -C${builddir}/export -c vufind-${version} &gt; ${builddir}/packages/vufind-${version}.tar" />
-    <exec command="gzip ${builddir}/packages/vufind-${version}.tar" />
-
-    <!-- build the DEB package -->
-    <mkdir dir="${builddir}/export/vufind/usr/local" />
-    <copy todir="${builddir}/export/vufind/usr/local/vufind">
-      <fileset dir="${builddir}/export/vufind-${version}">
-        <include name="**" />
-      </fileset>
-    </copy>
-    <move file="${builddir}/export/vufind/usr/local/vufind/packages/DEBIAN" todir="${builddir}/export/vufind" includeemptydirs="true"/>
-    <exec command="chmod 0775 ${builddir}/export/vufind/DEBIAN/postinst" />
-    <exec command="dpkg-deb -b ${builddir}/export/vufind ${builddir}/packages/vufind_${version}.deb" />
-
-    <!-- clean up -->
-    <delete dir="${builddir}/export" includeemptydirs="true" failonerror="true" />
-
-    <!-- report success -->
-    <echo message="Packages successfully generated in ${builddir}/packages" />
-  </target>
-
-  <target name="importrec" description="import each of the bug marc test record">
-    <if>
-    <istrue value="${filename}"/>       <!-- To ignore the last token, as find command output list has ',' after last filename -->
-      <then>
-        <exec command="VUFIND_HOME=${srcdir} ${srcdir}/import-marc.sh ${filename}" outputProperty="LASTOUTPUT" />
-        <echo message="${LASTOUTPUT}" />
-      </then>
-    </if>
-  </target>
-
-  <target name="deleterec" description="import each of the bug marc test record">
-    <if>
-    <istrue value="${filename}"/>
-      <then>
-        <exec command="php ${srcdir}/util/deletes.php ${filename}" />
-      </then>
-    </if>
-  </target>
-
 </project>

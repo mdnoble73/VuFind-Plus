@@ -202,8 +202,8 @@ public class GroupedWorkSolr {
 		}else{
 			doc.addField("lexile_score", lexileScore);
 		}
-		doc.addField("lexile_code", lexileCode);
-		doc.addField("accelerated_reader_interest_level", acceleratedReaderInterestLevel);
+		doc.addField("lexile_code", Util.trimTrailingPunctuation(lexileCode));
+		doc.addField("accelerated_reader_interest_level", Util.trimTrailingPunctuation(acceleratedReaderInterestLevel));
 		if (Util.isNumeric(acceleratedReaderReadingLevel)) {
 			doc.addField("accelerated_reader_reading_level", acceleratedReaderReadingLevel);
 		}
@@ -428,9 +428,9 @@ public class GroupedWorkSolr {
 						}
 					}
 
-					addUniqueFieldValue(doc, "itype_" + curScopeName, curItem.getIType());
+					addUniqueFieldValue(doc, "itype_" + curScopeName, Util.trimTrailingPunctuation(curItem.getIType()));
 					if (curItem.isEContent()) {
-						addUniqueFieldValue(doc, "econtent_source_" + curScopeName, curItem.geteContentSource());
+						addUniqueFieldValue(doc, "econtent_source_" + curScopeName, Util.trimTrailingPunctuation(curItem.geteContentSource()));
 						addUniqueFieldValue(doc, "econtent_protection_type_" + curScopeName, curItem.geteContentProtectionType());
 					}
 					if (curScope.isLocallyOwned() || curScope.isLibraryOwned() || !curScope.getScope().isRestrictOwningLibraryAndLocationFacets()) {
@@ -858,7 +858,7 @@ public class GroupedWorkSolr {
 	}
 
 	public void addEra(Set<String> fieldList) {
-		this.eras.addAll(fieldList);
+		this.eras.addAll(Util.trimTrailingPunctuation(fieldList));
 	}
 
 	public void setLanguageBoost(Long languageBoost) {
@@ -1015,7 +1015,7 @@ public class GroupedWorkSolr {
 	}
 
 	public void addAwards(Set<String> awards) {
-		this.awards.addAll(awards);
+		this.awards.addAll(Util.trimTrailingPunctuation(awards));
 	}
 
 	public void setAcceleratedReaderInterestLevel(String acceleratedReaderInterestLevel) {
@@ -1057,7 +1057,7 @@ public class GroupedWorkSolr {
 	}
 
 	public void addEContentDevices(HashSet<String> devices){
-		this.econtentDevices.addAll(devices);
+		this.econtentDevices.addAll(Util.trimTrailingPunctuation(devices));
 	}
 
 	public void addKeywords(String keywords){
@@ -1100,11 +1100,11 @@ public class GroupedWorkSolr {
 	}
 
 	public void addLCSubjects(Set<String> lcSubjects) {
-		this.lcSubjects.addAll(lcSubjects);
+		this.lcSubjects.addAll(Util.trimTrailingPunctuation(lcSubjects));
 	}
 
 	public void addBisacSubjects(Set<String> bisacSubjects) {
-		this.bisacSubjects.addAll(bisacSubjects);
+		this.bisacSubjects.addAll(Util.trimTrailingPunctuation(bisacSubjects));
 	}
 
 	public void addSystemLists(Set<String> systemLists) {
