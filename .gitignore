@@ -33,6 +33,9 @@ author_authorities.properties.temp
 author_authorities.v1.properties
 hcl_solr_bib_export.properties
 horizon_export.properties
+*.port
+sites/default/solr/jetty/logs/*
+
 
 # Compiled source #                                                                                   
 ###################
@@ -390,4 +393,3 @@ sites/790t.library.nashville.org
 sites/805.library.nashville.org
 sites/805t.library.nashville.org
 
-*.port
