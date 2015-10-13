@@ -92,6 +92,8 @@ Icon?
 Thumbs.db
 ~$*.docx
 ~$*.doc
+documentation/~*.tmp
+# Word Tempory File
 
 # Dreamweaver Files #
 #####################
