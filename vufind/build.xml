@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project name="vufind" basedir="." default="main">
   <property name="tmp" value="/tmp" />
-  <property name="srcdir"   value="${project.basedir}" override="true" />
+  <property name="srcdir"   value="${project.basedir}"/>
   <property name="apacheconfdir" value="/etc/apache2/conf.d" />
   <property name="apachectl" value="/etc/init.d/apache2" />
   <property name="vufindurl" value="http://venus.marmot.org" />
@@ -124,10 +124,6 @@
 
     <!-- stop Solr -->
     <exec command="VUFIND_HOME=${srcdir} JETTY_PID=${tmp}/vufindtest.pid ${srcdir}/vufind.sh stop" outputProperty="LASTOUTPUT" />
-    <echo message="${LASTOUTPUT}" />
-
-    <!-- restore original files -->
-    <exec command="svn revert -R *" outputProperty="LASTOUTPUT" />
     <echo message="${LASTOUTPUT}" />
 
     <!-- stop the X frame buffer and selenium RC server -->
