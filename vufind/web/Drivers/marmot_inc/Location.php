@@ -133,7 +133,7 @@ class Location extends DB_DataObject
 		unset($locationRecordToIncludeStructure['weight']);
 
 		$structure = array(
-			array('property'=>'code', 'type'=>'text', 'label'=>'Code', 'description'=>'The code for use when communicating with Millennium'),
+			array('property'=>'code', 'type'=>'text', 'label'=>'Code', 'description'=>'The code for use when communicating with the ILS', 'required'=>true),
 			array('property'=>'subLocation', 'type'=>'text', 'label'=>'Sub Location Code', 'description'=>'The sub location or collection used to identify this '),
 			array('property'=>'displayName', 'type'=>'text', 'label'=>'Display Name', 'description'=>'The full name of the location for display to the user', 'size'=>'40'),
 			array('property'=>'showDisplayNameInHeader', 'type'=>'checkbox', 'label'=>'Show Display Name in Header', 'description'=>'Whether or not the display name should be shown in the header next to the logo', 'hideInLists' => true, 'default'=>false),
