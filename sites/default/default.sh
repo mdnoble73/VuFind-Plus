@@ -5,7 +5,7 @@ SERVERNAME={servername}
 #Replace {servername} with your server name and save in sites/{servername} as {servername}.sh
 
 # needed for cases where multiple solr engines are running at the same time
-# (eg. for several vufind instances)
+# (eg. for several Pika instances)
 ##################################################
 # Find directory function
 ##################################################
