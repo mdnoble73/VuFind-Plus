@@ -26,7 +26,7 @@ done
 export VUFIND_HOME=/usr/local/vufind-plus/sites/$SERVERNAME
 export JETTY_HOME=/usr/local/vufind-plus/sites/default/solr/jetty
 export SOLR_HOME=/data/vufind-plus/sites/$SERVERNAME/solr
-export JETTY_PORT=8084
+export JETTY_PORT=8086
 
 # check the right instances
 JETTY_RUN=`findDirectory -w /var/run /usr/var/run /tmp`
