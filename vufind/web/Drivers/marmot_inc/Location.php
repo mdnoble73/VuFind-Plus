@@ -158,7 +158,7 @@ class Location extends DB_DataObject
 				array('property'=>'scope', 'type'=>'text', 'label'=>'Scope', 'description'=>'The scope for the system in Millennium to refine holdings to the branch.  If there is no scope defined for the branch, this can be set to 0.'),
 				array('property'=>'useScope', 'type'=>'checkbox', 'label'=>'Use Scope?', 'description'=>'Whether or not the scope should be used when displaying holdings.', 'hideInLists' => true),
 				array('property'=>'defaultPType', 'type'=>'text', 'label'=>'Default P-Type', 'description'=>'The P-Type to use when accessing a subdomain if the patron is not logged in.  Use -1 to use the library default PType.', 'default'=>-1),
-				array('property'=>'validHoldPickupBranch', 'type'=>'checkbox', 'label'=>'Valid Hold Pickup Branch?', 'description'=>'Determines if the location can be used as a pickup location if it is not the patrons home location or the location they are in.', 'hideInLists' => true, 'default'=>true),
+				array('property'=>'validHoldPickupBranch', 'type'=>'enum', 'values' => array('1' => 'Valid For all patrons', '0' => 'Valid for patrons of this branch only', '2' => 'Not Valid' ), 'label'=>'Valid Hold Pickup Branch?', 'description'=>'Determines if the location can be used as a pickup location if it is not the patrons home location or the location they are in.', 'hideInLists' => true, 'default'=>true),
 				array('property'=>'showHoldButton', 'type'=>'checkbox', 'label'=>'Show Hold Button', 'description'=>'Whether or not the hold button is displayed so patrons can place holds on items', 'hideInLists' => true, 'default'=>true),
 				array('property'=>'ptypesToAllowRenewals', 'type'=>'text', 'label'=>'PTypes that can renew', 'description'=>'A list of P-Types that can renew items or * to allow all P-Types to renew items.', 'hideInLists' => true),
 				array('property'=>'suppressHoldings','type'=>'checkbox', 'label'=>'Suppress Holdings', 'description'=>'Whether or not all items for the title should be suppressed', 'hideInLists' => true, 'default'=>false),
@@ -329,7 +329,9 @@ class Location extends DB_DataObject
 		}
 
 		if (isset($homeLibrary) && $homeLibrary->inSystemPickupsOnly == 1){
+			/** The user can only pickup within their home system */
 			if (strlen($homeLibrary->validPickupSystems) > 0){
+				/** The system has additional related systems that you can pickup within */
 				$pickupIds = array();
 				$pickupIds[] = $homeLibrary->libraryId;
 				$validPickupSystems = explode('|', $homeLibrary->validPickupSystems);
@@ -346,6 +348,7 @@ class Location extends DB_DataObject
 				//Deal with Steamboat Springs Juvenile which is a special case.
 				$this->whereAdd("code <> 'ssjuv'", 'AND');
 			}else{
+				/** Only this system is valid */
 				$this->whereAdd("libraryId = {$homeLibrary->libraryId}", 'AND');
 				$this->whereAdd("validHoldPickupBranch = 1", 'AND');
 				//$this->whereAdd("locationId = {$patronProfile['homeLocationId']}", 'OR');
@@ -392,10 +395,12 @@ class Location extends DB_DataObject
 		ksort($locationList);
 
 		//MDN 8/14/2015 always add the home location #PK-81
+		// unless the option to pickup at the home location is specifically disabled #PK-1250
 		//if (count($locationList) == 0 && (isset($homeLibrary) && $homeLibrary->inSystemPickupsOnly == 1)){
 		if (!empty($patronProfile) && $patronProfile->homeLocationId != 0){
+			/** @var Location $homeLocation */
 			$homeLocation = Location::staticGet($patronProfile->homeLocationId);
-			//if ($homeLocation->showHoldButton == 1){
+			if ($homeLocation->validHoldPickupBranch != 2){
 				//We didn't find any locations.  This for schools where we want holds available, but don't want the branch to be a
 				//pickup location anywhere else.
 				if (!$isLinkedUser) {
@@ -404,7 +409,7 @@ class Location extends DB_DataObject
 				}else{
 					$locationList['22' . $homeLocation->displayName] = clone $homeLocation;
 				}
-			//}
+			}
 		}
 
 		return $locationList;
