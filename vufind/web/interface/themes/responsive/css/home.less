@@ -266,25 +266,24 @@
 
 // Styles Header Login Links as buttons
 .header-login-button-mixin(@background-color: rgba(51,51,51,0.6)) {
-//TODO: nest these
   .header-button{
     border-radius:  0.5em;
     background-color: @background-color;
     margin-top: 20px;
     height: 60px !important;
     border: 0;
-  }
-  .header-button > a{
-    color: #fff !important;
-    line-height: 60px !important;
-    text-shadow: none;
-  }
-  .header-button > a:visited{
-    color: #fff !important;
-  }
-  .header-button:hover {
-    border-bottom: 0;
-    box-shadow: 2px 2px 5px #fff;
+    > a{
+      color: #fff !important;
+      line-height: 60px !important;
+      text-shadow: none;
+      &:visited{
+        color: #fff !important;
+      }
+    }
+    &:hover {
+      border-bottom: 0;
+      box-shadow: 2px 2px 5px #fff;
+    }
   }
 }
 

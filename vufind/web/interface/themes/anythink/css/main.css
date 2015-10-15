@@ -7922,6 +7922,7 @@ hr.menu {
   padding-bottom: 15px;
 }
 #home-page-browse-content {
+  padding: 15px;
   background-color: #ffffff;
 }
 #browse-label {
@@ -7977,7 +7978,7 @@ hr.menu {
   background-color: #5fb7db;
   height: 100px;
   margin-left: 4px;
-  marging-right: 4px;
+  margin-right: 4px;
 }
 .browse-category:hover {
   background-color: lightskyblue;
@@ -8033,10 +8034,6 @@ hr.menu {
 .browse-category.category8 {
   background-color: #ffffff;
   background: linear-gradient(to bottom, #ffffff, #ffffff 82%, #ffffff 83%, #ffffff 84%, #ffffff 88%, #ffffff 89%, #ffffff 90%, #ffffff);
-}
-#home-page-browse-content {
-  padding: 15px;
-  background-color: #fff;
 }
 #selected-browse-label {
   background-color: #fff;

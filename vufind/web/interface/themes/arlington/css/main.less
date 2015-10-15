@@ -7,4 +7,33 @@
 // Always include the base .less file
 @import "../../responsive/css/responsive_base.less";
 
-.header-login-button-mixin;
+.header-login-button-mixin(@arlington-blue);
+
+#header-container {
+  background: #FFFFFF;
+}
+
+#header-logo {
+  padding-top: 0;
+  // used with the smaller logo
+  //@media (min-width: @screen-md-min) {
+  //  height: 83px; //TODO resave logo at this size.
+  //}
+}
+
+// Left/Right Arrows on browse category carousel
+#browse-category-picker {
+  .jcarousel-control-prev, .jcarousel-control-next {
+    .box-shadow(none);
+  }
+  // indicator dots at bottom of browse category carousel
+  .jcarousel-pagination a {
+    &.active {
+      background: @arlington-blue;
+    }
+  }
+}
+
+#more-browse-results {
+  color: @arlington-blue;
+}

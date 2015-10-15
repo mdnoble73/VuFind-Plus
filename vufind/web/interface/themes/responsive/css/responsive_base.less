@@ -31,10 +31,11 @@ a.btn-primary, a.btn-warning, a.btn-info{
 body {
   font-family: @font-family-sans-serif-resp;
   background-color: @body-bg-resp;
+  > .container{
+    background-color: @content-bg;
+  }
 }
-body > .container{
-  background-color: @content-bg;
-}
+
 .noBreak{
   white-space: nowrap;
 }
@@ -49,11 +50,9 @@ body > .container{
   border-left: 0;
   border-right: 0;
   border-bottom: 0;
-}
-
-.fieldset-collapsed div,
-.fieldset-collapsed fieldset {
-  display: none;
+  div, fieldset {
+    display: none;
+  }
 }
 
 .fieldset-collapsible-label {
@@ -72,16 +71,18 @@ body > .container{
 }
 
 
-.accordion .panel-title.collapsed:before {
-  content: "► ";
-  @media print{
-    content: "";
+.accordion {
+  .panel-title.collapsed:before {
+    content: "► ";
+    @media print {
+      content: "";
+    }
   }
-}
-.accordion .panel-title.expanded:before {
-  content: "▼ ";
-  @media print{
-    content: "";
+  .panel-title.expanded:before {
+    content: "▼ ";
+    @media print{
+      content: "";
+    }
   }
 }
 
