@@ -10,6 +10,6 @@
  */
 class InitialTest extends PHPUnit_Framework_TestCase{
 	public function testPass(){
-		$this->assertFalse("Just testing a failure");
+		$this->assertTrue("This should pass now");
 	}
 }
