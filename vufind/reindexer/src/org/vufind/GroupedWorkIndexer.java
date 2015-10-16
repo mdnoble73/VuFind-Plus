@@ -205,6 +205,9 @@ public class GroupedWorkIndexer {
 						case "Hoopla":
 							ilsRecordProcessors.put(curIdentifier, new HooplaProcessor(this, configIni, logger));
 							break;
+						case "Arlington":
+							ilsRecordProcessors.put(curIdentifier, new ArlingtonRecordProcessor(this, vufindConn, configIni, indexingProfileRS, logger, fullReindex));
+						break;
 						default:
 							logger.error("Unknown indexing class " + ilsIndexingClassString);
 							okToIndex = false;
@@ -902,10 +905,12 @@ public class GroupedWorkIndexer {
 			mapName = mapName.replace("_map", "");
 			translationMaps.put(mapName, loadSystemTranslationMap(curFile));
 		}
-		for (File curFile : serverTranslationMapFiles){
-			String mapName = curFile.getName().replace(".properties", "");
-			mapName = mapName.replace("_map", "");
-			translationMaps.put(mapName, loadSystemTranslationMap(curFile));
+		if (serverTranslationMapFiles != null) {
+			for (File curFile : serverTranslationMapFiles) {
+				String mapName = curFile.getName().replace(".properties", "");
+				mapName = mapName.replace("_map", "");
+				translationMaps.put(mapName, loadSystemTranslationMap(curFile));
+			}
 		}
 	}
 

@@ -1158,10 +1158,12 @@ public class RecordGroupingProcessor {
 			mapName = mapName.replace("_map", "");
 			translationMaps.put(mapName, loadTranslationMap(curFile));
 		}
-		for (File curFile : serverTranslationMapFiles){
-			String mapName = curFile.getName().replace(".properties", "");
-			mapName = mapName.replace("_map", "");
-			translationMaps.put(mapName, loadTranslationMap(curFile));
+		if (serverTranslationMapFiles != null) {
+			for (File curFile : serverTranslationMapFiles) {
+				String mapName = curFile.getName().replace(".properties", "");
+				mapName = mapName.replace("_map", "");
+				translationMaps.put(mapName, loadTranslationMap(curFile));
+			}
 		}
 	}
 
