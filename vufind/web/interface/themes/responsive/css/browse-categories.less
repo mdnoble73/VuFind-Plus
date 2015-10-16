@@ -8,8 +8,9 @@
   background-color: @browse-header-background-color;
   padding-bottom: 15px;
 }
-#home-page-browse-content{
-  background-color: @browse-header-background-color;
+#home-page-browse-content{ // renamed from home-page-results, this is a larger container div
+  padding: 15px;
+  background-color: #ffffff;
 }
 #browse-label{
   height: 5px;
@@ -74,7 +75,7 @@
   background-color: #5fb7db;
   height: 100px;
   margin-left: 4px;
-  marging-right: 4px;
+  margin-right: 4px;
 
   &:hover{
     background-color: lightskyblue;
@@ -142,11 +143,6 @@
     background-color: @category9MainColor;
     background: linear-gradient(to bottom, @category9MainColor, @category9MainColor 82%, @categoryLineShadow 83%, @categoryLineColor 84%, @categoryLineColor 88%, @categoryLineShadow 89%, @category9MainColor 90%, @category9MainColor);
   }
-}
-
-#home-page-browse-content{ // renamed from home-page-results, this is a larger container div
-  padding: 15px;
-  background-color: #fff;
 }
 
 .selected-browse-label-mixin(@side: right){
