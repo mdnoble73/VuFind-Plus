@@ -1,33 +1,16 @@
 #!/bin/sh
-# set local configuration for starting Solr and then start solr
-#Replace {servername} with your server name and save in sites/{servername} as {servername.sh} 
 
-##################################################
-# Find directory function
-##################################################
-findDirectory()
-{
-OP=$1
-shift
-for L in $* ; do
-[ $OP $L ] || continue
-echo $L
-break
-done
-}
+if [ -z "$1" ]
+  then
+    echo "To use, run with start, stop or restart for the first parameter."
+fi
 
-##################################################
-# Setup the call to start solr
-##################################################
-export VUFIND_HOME=/usr/local/vufind-plus/sites/aspencat.test
-export JETTY_HOME=/usr/local/vufind-plus/sites/default/solr/jetty
-export SOLR_HOME=/data/vufind-plus/aspencat.test/solr
-export JETTY_PORT=8081
-JETTY_RUN=`findDirectory -w /var/run /usr/var/run /tmp`
-export JETTY_RUN
-export JETTY_PID=$JETTY_RUN/aspencat.pid
-#Max memory should be at least the size of all solr indexes combined. 
-export JAVA_OPTIONS="-server -Xms1024m -Xmx6g -XX:+UseG1GC"
-export JETTY_LOG=/var/log/vufind-plus/aspencat.test/jetty
+if [ "$1" eq "stop" or "$1" eq "restart" ]
+	then
+		../default/solr/bin/solr stop -p 8081 -d "/usr/local/vufind-plus/sites/default/solr/jetty"
+fi
 
-exec /usr/local/vufind-plus/sites/default/vufind.sh $1 $2
+if [ "$1" eq "start" or "$1" eq "restart" ]
+	then
+		../default/solr/bin/solr start -m 4g -p 8081 -s "/data/vufind-plus/aspencat.test/solr" -d "/usr/local/vufind-plus/sites/default/solr/jetty"
+fi

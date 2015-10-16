@@ -1,12 +1,16 @@
 #!/bin/sh
-# set local configuration for starting Solr and then start solr
-# Replace {servername} with your server name and save in sites/{servername} as {servername.sh} 
-export VUFIND_HOME=/usr/local/VuFind-Plus/sites/catalog.library.nashville.org
-export JETTY_HOME=/usr/local/VuFind-Plus/sites/default/solr/jetty
-export SOLR_HOME=/data/vufind-plus/catalog.library.nashville.org/solr     
-export JETTY_PORT=8080
-# Max memory should be at least he size of all solr indexes combined. 
-export JAVA_OPTIONS="-server -Xms2g -Xmx24g -XX:+UseG1GC"
-export JETTY_LOG=/var/log/vufind-plus/catalog.library.nashville.org/jetty
 
-exec /usr/local/VuFind-Plus/sites/default/vufind.sh $1 $2
+if [ -z "$1" ]
+  then
+    echo "To use, run with start, stop or restart for the first parameter."
+fi
+
+if [ "$1" eq "stop" or "$1" eq "restart" ]
+	then
+		../default/solr/bin/solr stop -p 8080 -d "/usr/local/vufind-plus/sites/default/solr/jetty"
+fi
+
+if [ "$1" eq "start" or "$1" eq "restart" ]
+	then
+		../default/solr/bin/solr start -m 24g -p 8080 -s "/data/vufind-plus/catalog.library.nashville.org/solr" -d "/usr/local/vufind-plus/sites/default/solr/jetty"
+fi

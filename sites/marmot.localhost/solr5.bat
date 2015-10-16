@@ -6,12 +6,12 @@ goto usage
 
 :start
 rem Start Solr
-call ..\default\solr\bin\solr.cmd start -p 8085 -m 2g -s "c:\data\vufind-plus\flatirons.localhost\solr" -d "c:\web\VuFind-Plus\sites\default\solr\jetty"
+call ..\default\solr5\bin\solr.cmd start -p 8080 -m 2g -s "c:\data\vufind-plus\marmot.localhost\solr" -d "c:\web\VuFind-Plus\sites\default\solr5\server"
 goto done
 
 :stop
 rem Stop Solr
-call ..\default\solr5\bin\solr.cmd stop -p 8085 -d "c:\web\VuFind-Plus\sites\default\solr\jetty"
+call ..\default\solr5\bin\solr.cmd stop -p 8080
 if "%1"=="restart" goto start
 goto done
 

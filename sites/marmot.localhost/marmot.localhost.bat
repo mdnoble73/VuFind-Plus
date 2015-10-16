@@ -1,6 +1,21 @@
-@set VUFIND_HOME=c:\web\VuFind-Plus\sites\marmot.localhost
-@set JETTY_HOME=c:\web\VuFind-Plus\sites\default\solr\jetty
-@set SOLR_HOME=c:\data\vufind-plus\marmot.localhost\solr
-@set JETTY_PORT=8080
-@set JETTY_LOG=C:\var\log\vufind-plus\marmot.localhost\jetty
-@call ..\default\run_vufind.bat start %1 %2 %3 %4 %5 %6 %7 %8 %9
+@echo off
+if "%1"=="start" goto start
+if "%1"=="stop" goto stop
+if "%1"=="restart" goto stop
+goto usage
+
+:start
+rem Start Solr
+call ..\default\solr\bin\solr.cmd start -p 8080 -m 2g -s "c:\data\vufind-plus\flatirons.localhost\solr" -d "c:\web\VuFind-Plus\sites\default\solr\jetty"
+goto done
+
+:stop
+rem Stop Solr
+call ..\default\solr5\bin\solr.cmd stop -p 8080 -d "c:\web\VuFind-Plus\sites\default\solr\jetty"
+if "%1"=="restart" goto start
+goto done
+
+:usage
+echo Please provide a parameter start or stop to start/stop solr or restart to stop solr and then start it again
+
+:done
