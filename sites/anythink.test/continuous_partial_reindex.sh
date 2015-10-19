@@ -70,7 +70,7 @@ do
 	#####
 
 	# Make sure we are not running a Full Record Group/Reindex process
-	hasConflicts=$(checkConflictingProcesses "full_update.sh")
+	hasConflicts=$(checkConflictingProcesses "full_update_anythink_test.sh")
 	#If we did get a conflict, restart the loop to make sure that all tests run
 	if (($? != 0)); then
 		continue

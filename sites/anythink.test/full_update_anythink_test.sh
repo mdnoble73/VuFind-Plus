@@ -10,7 +10,7 @@
 
 # this version emails script output as a round finishes
 EMAIL=mark@marmot.org,pascal@marmot.org
-PIKASERVER=anythink.production
+PIKASERVER=anythink.test
 OUTPUT_FILE="/var/log/vufind-plus/${PIKASERVER}/full_update_output.log"
 
 # Check for conflicting processes currently running
@@ -70,9 +70,9 @@ function checkProhibitedTimes() {
 
 #Check for any conflicting processes that we shouldn't do a full index during.
 #Since we aren't running in a loop, check in the order they run.
-checkConflictingProcesses "overdrive_extract.jar"
-checkConflictingProcesses "horizon_export.jar"
-checkConflictingProcesses "reindexer.jar"
+checkConflictingProcesses "horizon_export.jar ${PIKASERVER}"
+checkConflictingProcesses "reindexer.jar ${PIKASERVER}"
+checkConflictingProcesses "overdrive_extract.jar ${PIKASERVER}"
 
 #truncate the output file so you don't spend a week debugging an error from a week ago!
 : > $OUTPUT_FILE;
