@@ -12,5 +12,5 @@ fi
 
 if [[ ( "$1" == "start" ) || ( "$1" == "restart") ]]
 	then
-		../default/solr/bin/solr start -m 6g -p 8080 -s "/data/vufind-plus/anythink.test/solr" -d "/usr/local/vufind-plus/sites/default/solr/jetty"
+		../default/solr/bin/solr start -m 2g -p 8082 -s "/data/vufind-plus/anythink.test/solr" -d "/usr/local/vufind-plus/sites/default/solr/jetty"
 fi
