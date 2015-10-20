@@ -9,7 +9,7 @@
         <collectionProp name="Arguments.arguments">
           <elementProp name="loopcount" elementType="Argument">
             <stringProp name="Argument.name">loopcount</stringProp>
-            <stringProp name="Argument.value">100</stringProp>
+            <stringProp name="Argument.value">500</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
           <elementProp name="numUsers" elementType="Argument">
@@ -310,7 +310,7 @@
           </elementProp>
           <elementProp name="SolrQueriesFileName" elementType="Argument">
             <stringProp name="Argument.name">SolrQueriesFileName</stringProp>
-            <stringProp name="Argument.value">solrQueriesUsingNashvilleSearchTerms.csv</stringProp>
+            <stringProp name="Argument.value">500solrQueries.csv</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
             <stringProp name="Argument.desc">this file uses mesa for scoping</stringProp>
           </elementProp>
@@ -930,7 +930,7 @@
             <boolProp name="quotedData">true</boolProp>
             <boolProp name="recycle">true</boolProp>
             <boolProp name="stopThread">false</boolProp>
-            <stringProp name="shareMode">shareMode.group</stringProp>
+            <stringProp name="shareMode">shareMode.all</stringProp>
           </CSVDataSet>
           <hashTree/>
           <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Solr Query" enabled="true">
@@ -1023,12 +1023,12 @@
               <dataType>true</dataType>
               <encoding>false</encoding>
               <assertions>true</assertions>
-              <subresults>true</subresults>
-              <responseData>false</responseData>
+              <subresults>false</subresults>
+              <responseData>true</responseData>
               <samplerData>false</samplerData>
               <xml>false</xml>
-              <fieldNames>false</fieldNames>
-              <responseHeaders>false</responseHeaders>
+              <fieldNames>true</fieldNames>
+              <responseHeaders>true</responseHeaders>
               <requestHeaders>false</requestHeaders>
               <responseDataOnError>false</responseDataOnError>
               <saveAssertionResultsFailureMessage>false</saveAssertionResultsFailureMessage>
@@ -1036,6 +1036,8 @@
               <bytes>true</bytes>
               <url>true</url>
               <threadCounts>true</threadCounts>
+              <idleTime>true</idleTime>
+              <connectTime>true</connectTime>
             </value>
           </objProp>
           <objProp>
@@ -1128,7 +1130,7 @@
             </value>
           </objProp>
           <stringProp name="filename"></stringProp>
-          <stringProp name="RespTimeGraph.interval">100</stringProp>
+          <stringProp name="RespTimeGraph.interval">250</stringProp>
         </ResultCollector>
         <hashTree/>
         <kg.apc.jmeter.vizualizers.CorrectedResultCollector guiclass="kg.apc.jmeter.vizualizers.ResponseTimesOverTimeGui" testclass="kg.apc.jmeter.vizualizers.CorrectedResultCollector" testname="jp@gc - Response Times Over Time" enabled="true">
