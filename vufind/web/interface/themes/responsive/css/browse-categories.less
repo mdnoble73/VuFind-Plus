@@ -9,7 +9,8 @@
   padding-bottom: 15px;
 }
 #home-page-browse-content{
-  background-color: @browse-header-background-color;
+  padding: 15px;
+  background-color: @home-page-browse-content-background-color;
 }
 #browse-label{
   height: 5px;
@@ -29,20 +30,10 @@
   padding: 0 8px;
   z-index: 2;
 }
-// doesn't look to be in use anylonger. plb 4-28-2015
-//.browse-arrow{
-//  background-color: #9ea0a4;
-//  color: #d4d4d4;
-//  height: 100px;
-//  font-weight: bold;
-//  vertical-align: central;
-//  line-height: 90px;
-//  font-size: 22px;
-//}
 #browse-category-picker {
   .jcarousel-control-prev, .jcarousel-control-next {
-    background-color: #9e9fa3;
-    color: #d4d4d4;
+    background-color: @browseCarouselControlBackgroundColor;
+    color: @browseCarouselControlColor;
     font-size: 50px;
     &:focus {
       text-decoration: none;
@@ -74,22 +65,13 @@
   background-color: #5fb7db;
   height: 100px;
   margin-left: 4px;
-  marging-right: 4px;
+  margin-right: 4px;
 
   &:hover{
     background-color: lightskyblue;
     color: darkblue;
   }
-  // a links removed, using the divs below now.
-  //a{
-  //  color: #fff;
-  //  &:focus {
-  //    outline: none; // hide outlining of clicked category
-  //  }
-  //}
-  //.browse-category a div{
-  //  height:80px;
-  //}
+
   div {
     color: #fff;
     cursor: pointer;
@@ -144,10 +126,6 @@
   }
 }
 
-#home-page-browse-content{ // renamed from home-page-results, this is a larger container div
-  padding: 15px;
-  background-color: #fff;
-}
 
 .selected-browse-label-mixin(@side: right){
   margin-@{side}: 20px;
