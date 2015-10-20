@@ -11,7 +11,7 @@ goto done
 
 :stop
 rem Stop Solr
-call ..\default\solr5\bin\solr.cmd stop -p 8080 -d "c:\web\VuFind-Plus\sites\default\solr\jetty"
+call ..\default\solr\bin\solr.cmd stop -p 8080 -d "c:\web\VuFind-Plus\sites\default\solr\jetty"
 if "%1"=="restart" goto start
 goto done
 
