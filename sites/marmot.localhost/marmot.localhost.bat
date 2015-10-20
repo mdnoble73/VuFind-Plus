@@ -6,7 +6,7 @@ goto usage
 
 :start
 rem Start Solr
-call ..\default\solr\bin\solr.cmd start -p 8080 -m 2g -s "c:\data\vufind-plus\flatirons.localhost\solr" -d "c:\web\VuFind-Plus\sites\default\solr\jetty"
+call ..\default\solr\bin\solr.cmd start -p 8080 -m 2g -s "c:\data\vufind-plus\marmot.localhost\solr" -d "c:\web\VuFind-Plus\sites\default\solr\jetty"
 goto done
 
 :stop
