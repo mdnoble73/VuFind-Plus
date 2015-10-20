@@ -2177,6 +2177,14 @@ class DBMaintenance extends Admin_Admin {
 					)
 				),
 
+				'indexing_profile_marc_encoding' => array(
+					'title' => 'Indexing Profiles - marc encoding',
+					'description' => 'Correct UTF8 setting for marc encoding',
+					'sql' => array(
+						"ALTER TABLE indexing_profiles CHANGE marcEncoding `marcEncoding` enum('MARC8','UTF8','UNIMARC','ISO8859_1','BESTGUESS') NOT NULL DEFAULT 'MARC8'"
+					)
+				),
+
 				'translation_map_regex' => array(
 					'title' => 'Translation Maps Regex',
 					'description' => 'Setup Translation Maps to use regular expressions',
