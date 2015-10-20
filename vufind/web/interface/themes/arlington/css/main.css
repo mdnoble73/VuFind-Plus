@@ -7935,8 +7935,8 @@ hr.menu {
 }
 #browse-category-picker .jcarousel-control-prev,
 #browse-category-picker .jcarousel-control-next {
-  background-color: #ffffff;
-  color: #ef6722;
+  background-color: #9e9fa3;
+  color: #d4d4d4;
   font-size: 50px;
 }
 #browse-category-picker .jcarousel-control-prev:focus,

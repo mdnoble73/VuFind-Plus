@@ -67,7 +67,6 @@ cd /usr/local/vufind-plus/vufind/reindexer; nice -n -3 java -jar reindexer.jar $
 
 #Restart Solr
 cd /usr/local/vufind-plus/sites/${PIKASERVER}; ./${PIKASERVER}.sh restart
-
 #Email results
 FILESIZE=$(stat -c%s ${OUTPUT_FILE})
 if [[ ${FILESIZE} > 0 ]]

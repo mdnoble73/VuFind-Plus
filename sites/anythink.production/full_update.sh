@@ -71,6 +71,7 @@ function checkProhibitedTimes() {
 #Check for any conflicting processes that we shouldn't do a full index during.
 #Since we aren't running in a loop, check in the order they run.
 checkConflictingProcesses "overdrive_extract.jar"
+checkConflictingProcesses "horizon_export.jar"
 checkConflictingProcesses "reindexer.jar"
 
 #truncate the output file so you don't spend a week debugging an error from a week ago!

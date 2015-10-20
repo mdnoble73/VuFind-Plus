@@ -195,7 +195,7 @@ class UserAccount {
 		global $configArray;
 		$accountProfiles = $memCache->get('account_profiles_' . $serverName);
 
-		if ($accountProfiles == false){
+		if ($accountProfiles == false || isset($_REQUEST['reload'])){
 			$accountProfiles = array();
 
 			//Load a list of authentication methods to test and see which (if any) result in a valid login.
