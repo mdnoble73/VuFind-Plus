@@ -63,6 +63,9 @@
 */10 * * * * /root/cron/copyCovers.sh
 1-51/10 * * * * /root/cron/copyCovers-AspencatTest.sh
 
+#Accelerated Reader data
+45 22 * * * expect /root/cron/copyAcceleratedReaderData.exp
+
 ###############################
 # Data Extract TO ftp server  #
 ###############################
