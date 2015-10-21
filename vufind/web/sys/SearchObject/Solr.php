@@ -365,7 +365,7 @@ class SearchObject_Solr extends SearchObject_Base
 
 		$searchLocation = $locationSingleton->getActiveLocation();
 		/** @var Location $userLocation */
-		$userLocation = Location::getUserHomeLocation();
+//		$userLocation = Location::getUserHomeLocation();
 		$hasSearchLibraryFacets = ($searchLibrary != null && (count($searchLibrary->facets) > 0));
 		$hasSearchLocationFacets = ($searchLocation != null && (count($searchLocation->facets) > 0));
 		if ($hasSearchLocationFacets){
@@ -377,33 +377,53 @@ class SearchObject_Solr extends SearchObject_Base
 		}
 
 		$this->facetConfig = array();
+		global $solrScope;
 		foreach ($facets as $facet){
 			$facetName = $facet->facetName;
 			//Adjust facet name for local scoping
+			if ($solrScope){
+				if ($facet->facetName == 'availability_toggle'){
+					$facetName = 'availability_toggle_' . $solrScope;
+				}elseif ($facet->facetName == 'format'){
+					$facetName = 'format_' . $solrScope;
+				}elseif ($facet->facetName == 'format_category'){
+					$facetName = 'format_category_' . $solrScope;
+				}elseif ($facet->facetName == 'econtent_source'){
+					$facetName = 'econtent_source_' . $solrScope;
+				}elseif ($facet->facetName == 'econtent_protection_type'){
+					$facetName = 'econtent_protection_type_' . $solrScope;
+				}elseif ($facet->facetName == 'detailed_location'){
+					$facetName = 'detailed_location_' . $solrScope;
+				}elseif ($facet->facetName == 'owning_location'){
+					$facetName = 'owning_location_' . $solrScope;
+				}elseif ($facet->facetName == 'owning_library'){
+					$facetName = 'owning_library_' . $solrScope;
+				}elseif ($facet->facetName == 'available_at'){
+					$facetName = 'available_at_' . $solrScope;
+				}elseif ($facet->facetName == 'collection' || $facet->facetName == 'collection_group'){
+					$facetName = 'collection_' . $solrScope;
+				}
+			}
 			if (isset($searchLibrary)){
 				if ($facet->facetName == 'time_since_added'){
 					$facetName = 'local_time_since_added_' . $searchLibrary->subdomain;
 				}elseif ($facet->facetName == 'itype'){
 					$facetName = 'itype_' . $searchLibrary->subdomain;
-				}elseif ($facet->facetName == 'detailed_location'){
-					$facetName = 'detailed_location_' . $searchLibrary->subdomain;
-				}elseif ($facet->facetName == 'availability_toggle'){
-					$facetName = 'availability_toggle_' . $searchLibrary->subdomain;
 				}
 			}
-			if (isset($userLocation)){
-				if ($facet->facetName == 'availability_toggle'){
-					$facetName = 'availability_toggle_' . $userLocation->code;
-				}
-			}
-			if (isset($searchLocation)){
-				if ($facet->facetName == 'time_since_added' && $searchLocation->restrictSearchByLocation){
+			//TODO: check if needed anymore
+//			if (isset($userLocation)){
+//				if ($facet->facetName == 'availability_toggle'){
+//					$facetName = 'availability_toggle_' . $userLocation->code;
+//				}
+//			}
+			if (isset($searchLocation)) {
+				if ($facet->facetName == 'time_since_added' && $searchLocation->restrictSearchByLocation) {
 					$facetName = 'local_time_since_added_' . $searchLocation->code;
-				}elseif ($facet->facetName == 'availability_toggle'){
-					$facetName = 'availability_toggle_' . $searchLocation->code;
 				}
 			}
-			if ($facet->showInAdvancedSearch){
+
+				if ($facet->showInAdvancedSearch){
 				$this->facetConfig[$facetName] = $facet->displayName;
 			}
 		}

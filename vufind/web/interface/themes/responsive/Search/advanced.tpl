@@ -1,6 +1,6 @@
 {strip}{literal}
 	<style>
-		/* New advanced search screen stuff */
+		/* Advanced search screen stuff */
 		.advSearchContent {
 			/* Needed for IE7 compatibility: */
 			width: 99%;
@@ -28,12 +28,17 @@
 			padding-right: 5px;
 			float: left;
 		}
-		.groupSearchHolder .label, .groupSearchHolder .join {
-			width: 75px;
+		/*.groupSearchHolder .searchLabel, .groupSearchHolder .join {*/
+			/*width: 75px;*/
+			/*text-align: right;*/
+		/*}*/
+		.searchLabel {
+			width: 90px;
+			font-weight: bold;
 			text-align: right;
 		}
 		.addSearch {
-			padding: 0px 0px 4px 90px;
+			padding: 0 0 4px 102px;
 		}
 		.groupSearchHolder .terms {
 			width: 220px;
@@ -48,21 +53,21 @@
 			text-align: right;
 			padding: 3px 5px;
 		}
-		.group0 .groupSearchDetails {
-			border: 1px solid #D8D7D8;
-			border-top: 0px;
-		}
-		.group1 .groupSearchDetails {
-			border: 1px solid #94C632;
-			border-top: 0px;
-		}
+		/*.group0 .groupSearchDetails {*/
+			/*border: 1px solid #D8D7D8;*/
+			/*border-top: 0px;*/
+		/*}*/
+		/*.group1 .groupSearchDetails {*/
+			/*border: 1px solid #94C632;*/
+			/*border-top: 0px;*/
+		/*}*/
 		#searchHolder .group0 {
-			border-top : 1px solid #D8D7D8;
-			background:url(/images/gradient_grey.gif) repeat-y;
+			/*border-top : 1px solid #D8D7D8;*/
+			/*background:url(/images/gradient_grey.gif) repeat-y;*/
 		}
 		#searchHolder .group1 {
-			border-top: 1px solid #94C632;
-			background:url(/images/gradient_green.gif) repeat-y;
+			/*border-top: 1px solid #94C632;*/
+			/*background:url(/images/gradient_green.gif) repeat-y;*/
 		}
 		#searchHolder .group {
 			margin-bottom: 10px;
@@ -91,6 +96,11 @@
 		.keepFilters input {
 			vertical-align: middle;
 		}
+		#facetTable {
+			width: auto;
+			margin-left: auto;
+			margin-right: auto;
+		}
 		.facetsTop td, .facetsTop th {
 			padding-right: 15px;
 		}
@@ -103,7 +113,7 @@
 	</style>{/literal}
 <div id="page-content" class="content">
 	<div id="sidebar">
-		{*TODO Verify this works *}
+		{*TODO Works, Verify this is wanted. *}
 		{if $searchFilters}
 			<div class="sidegroup" id="exploreMore">
 				<h4>{translate text="adv_search_filters"}<span>({translate text="adv_search_select_all"} <input type="checkbox" checked="checked" onclick="filterAll(this);">)</span></h4>
@@ -140,7 +150,7 @@
 					<div class="resulthead"><h3>{translate text='Advanced Search'}</h3></div>
 					{if $editErr}
 						{assign var=error value="advSearchError_$editErr"}
-						<div class="error">{translate text=$error}</div>
+						<div class="alert alert-warning">{translate text=$error}</div>
 					{/if}
 
 					<div id="groupJoin" class="searchGroups">
@@ -157,11 +167,11 @@
 					{* An empty div. This is the target for the javascript that builds this screen *}
 					<div id="searchHolder"></div>
 
-					<a href="#" onclick="addGroup(); return false;"><span class="silk add">&nbsp;</span>{translate text="add_search_group"}</a>
-					<br /><br />
-					<input type="submit" name="submit" value="{translate text="Find"}" /><br /><br />
+					<a href="#" class="btn btn-default" onclick="addGroup(); return false;"><span class="glyphicon glyphicon-plus"></span>&nbsp;{translate text="add_search_group"}</a>
+					<br><br>
+					<input type="submit" name="submit" value="{translate text="Find"}" class="btn btn-primary pull-right"><br><br>
 					{if $facetList || $illustratedLimit || $showPublicationDate}
-						<h3>{translate text='Limit To'}</h3><br />
+						<h3>{translate text='Limit To'} : </h3><br>
 						{if $formatCategoryLimit}
 							<div class="advancedSearchFacetDetails">
 								<div class="advancedSearchFacetHeader">{translate text=$formatCategoryLimit.label}</div>
@@ -169,14 +179,14 @@
 									{foreach from=$formatCategoryLimit item="value" key="display"}
 										{if $value.filter != ""}
 											<div class="advancedSearchFacetFormatCategory">
-												<div><input id="categoryValue_{$display|lower|replace:' ':''}" type="radio" name="filter[]" value="{$value.filter|escape}"{if $value.selected} checked="checked"{/if} /> <label for="categoryValue_{$display|lower|replace:' ':''}"><span class="categoryValue categoryValue_{$display|lower|replace:' ':''}">{translate text=$display}</span></label></div>
+												<div><input id="categoryValue_{$display|lower|replace:' ':''}" type="radio" name="filter[]" value="{$value.filter|escape}"{if $value.selected} checked="checked"{/if}> <label for="categoryValue_{$display|lower|replace:' ':''}"><span class="categoryValue categoryValue_{$display|lower|replace:' ':''}">{translate text=$display}</span></label></div>
 											</div>
 										{/if}
 									{/foreach}
 								</div>
 							</div>
 						{/if}
-						<table class="citation" width="100%" summary="{translate text='Limit To'}">
+						<table id="facetTable" class="table table-bordered" summary="{translate text='Limit To'}">
 							{if $facetList}
 								{foreach from=$facetList item="facetInfo" key="label"}
 									<tr>
@@ -184,21 +194,21 @@
 										<td>
 											{if $facetInfo.facetName == "publishDate"}
 												<label for="yearfrom" class='yearboxlabel'>From:</label>
-												<input type="text" size="4" maxlength="4" class="yearbox" name="yearfrom" id="yearfrom" value="" />
+												<input type="text" size="4" maxlength="4" class="yearbox" name="yearfrom" id="yearfrom" value="">
 												<label for="yearto" class='yearboxlabel'>To:</label>
-												<input type="text" size="4" maxlength="4" class="yearbox" name="yearto" id="yearto" value="" />
+												<input type="text" size="4" maxlength="4" class="yearbox" name="yearto" id="yearto" value="">
 
 												<div id='yearDefaultLinks'>
-													<a onclick="$('#yearfrom').val('2005');$('#yearto').val('');" href='javascript:void(0);'>since&nbsp;2005</a>
-													&bull;<a onclick="$('#yearfrom').val('2000');$('#yearto').val('');" href='javascript:void(0);'>since&nbsp;2000</a>
-													&bull;<a onclick="$('#yearfrom').val('1995');$('#yearto').val('');" href='javascript:void(0);'>since&nbsp;1995</a>
+													<a onclick="$('#yearfrom').val('2015');$('#yearto').val('');" href='javascript:void(0);'>since&nbsp;2015</a>
+													&bull;<a onclick="$('#yearfrom').val('2010');$('#yearto').val('');" href='javascript:void(0);'>since&nbsp;2010</a>
+													&bull;<a onclick="$('#yearfrom').val('2005');$('#yearto').val('');" href='javascript:void(0);'>since&nbsp;2005</a>
 												</div>
 											{elseif $facetInfo.facetName == "lexile_score"}
 												<div id="lexile-range"></div>
 												<label for="lexile_scorefrom" class='yearboxlabel'>From:</label>
-												<input type="text" size="4" maxlength="4" class="yearbox" name="lexile_scorefrom" id="lexile_scorefrom" value="" />
+												<input type="text" size="4" maxlength="4" class="yearbox" name="lexile_scorefrom" id="lexile_scorefrom" value="">
 												<label for="lexile_scoreto" class='yearboxlabel'>To:</label>
-												<input type="text" size="4" maxlength="4" class="yearbox" name="lexile_scoreto" id="lexile_scoreto" value="" />
+												<input type="text" size="4" maxlength="4" class="yearbox" name="lexile_scoreto" id="lexile_scoreto" value="">
 												<script type="text/javascript">{literal}
 													$(function() {
 														$( "#lexile-range" ).slider({
@@ -238,15 +248,15 @@
 									<th align="right">{translate text="Illustrated"}: </th>
 									<td>
 										{foreach from=$illustratedLimit item="current"}
-											<input type="radio" name="illustration" value="{$current.value|escape}"{if $current.selected} checked="checked"{/if}> {translate text=$current.text}<br />
+											<input type="radio" name="illustration" value="{$current.value|escape}"{if $current.selected} checked="checked"{/if}> {translate text=$current.text}<br>
 										{/foreach}
 									</td>
 								</tr>
 							{/if}
 
 						</table>
+						<input type="submit" name="submit" value="{translate text="Find"}" class="btn btn-primary pull-right"><br>
 					{/if}
-					<input type="submit" name="submit" value="{translate text="Find"}" /><br />
 				</div>
 			</div>
 		</form>
@@ -272,7 +282,7 @@
 	var searchFormId    = 'advSearchForm';
 </script>
 {* Step 2: Call the javascript to make use of the above *}
-<script	type="text/javascript" src="{$path}/services/Search/advanced.js"></script>
+<script	type="text/javascript" src="{$path}/services/Search/advanced.min.js"></script>
 {* Step 3: Build the page *}
 <script	type="text/javascript">
 	{if $searchDetails}

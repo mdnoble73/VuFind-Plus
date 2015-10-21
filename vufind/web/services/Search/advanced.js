@@ -14,9 +14,9 @@ function addSearch(group, term, field)
 	newSearch += "<div class='advRow'>";
 	// Label
 	if (groupSearches[group] == 0) {
-			newSearch += "<div class='label'>" + searchLabel + " :</div>";
+			newSearch += "<div class='searchLabel'>" + searchLabel + " :</div>";
 	} else {
-			newSearch += "<div class='label'>&nbsp;</div>";
+			newSearch += "<div class='searchLabel'>&nbsp;</div>";
 	}
 	// Terms
 	newSearch += "<div class='terms'><input type='text' name='lookfor" + group + "[]' size='50' value='" + jsEntityEncode(term) + "'></div>";
@@ -56,7 +56,7 @@ function addGroup(firstTerm, firstField, join)
 	//protectForm();
 
 	var newGroup = "";
-	newGroup += "<div id='group" + nextGroupNumber + "' class='group group" + (nextGroupNumber % 2) + "'>";
+	newGroup += "<div id='group" + nextGroupNumber + "' class='group group" + (nextGroupNumber % 2) + " well well-sm'>";
 
 	newGroup += "<div class='groupSearchDetails'>";
 	// Boolean operator drop-down
@@ -72,13 +72,13 @@ function addGroup(firstTerm, firstField, join)
 	newGroup += "</select>";
 	newGroup += "</div>";
 	// Delete link
-	newGroup += "<a href='javascript:void(0);' class='delete' id='delete_link_" + nextGroupNumber + "' onclick='deleteGroupJS(this);'>" + deleteSearchGroupString + "</a>";
+	newGroup += "<a href='javascript:void(0);' class='delete btn btn-sm btn-warning' id='delete_link_" + nextGroupNumber + "' onclick='deleteGroupJS(this);'>" + deleteSearchGroupString + "</a>";
 	newGroup += "</div>";
 
 	// Holder for all the search fields
 	newGroup += "<div id='group" + nextGroupNumber + "SearchHolder' class='groupSearchHolder'></div>";
 	// Add search term link
-	newGroup += "<div class='addSearch'><a href='javascript:void(0);' class='add' id='add_search_link_" + nextGroupNumber + "' onclick='addSearchJS(this); return false;'>" + addSearchString + "</a></div>";
+	newGroup += "<div class='addSearch'><a href='javascript:void(0);' class='add btn btn-sm btn-default' id='add_search_link_" + nextGroupNumber + "' onclick='addSearchJS(this);'>" + addSearchString + "</a></div>";
 
 	newGroup += "</div>";
 
@@ -210,17 +210,10 @@ function protectForm()
 }
 
 // Match all checkbox filters to the 'all' box
-function filterAll(element)
-{
-	// Go through all elements
-	var e = $('#advSearchForm').elements;
-	var len = e.length;
-	for (var i = 0; i < len; i++) {
-			// Look for filters (specifically checkbox filters)
-			if (e[i].name == 'filter[]' && e[i].checked != undefined) {
-					e[i].checked = element.checked;
-			}
-	}
+function filterAll(element) {
+	//$('[name="filter[]"]', '#advSearchForm').prop('checked', $(element).is(':checked'));
+		// not in advSearchForm, could be an issue.
+	$('[name="filter[]"]').prop('checked', $(element).is(':checked'));
 }
 
 function jsEntityEncode(str)
