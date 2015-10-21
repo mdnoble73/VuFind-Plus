@@ -101,13 +101,13 @@ class GoDeeperData{
 			$timer->logTime("Finished processing syndetics");
 
 			//Check To see if a Google Preview is available
-			if (isset($isbn) && strlen($isbn) > 0){
+			/*if (isset($isbn) && strlen($isbn) > 0){
 				$id = self::getGoogleBookId($isbn);
 				if ($id){
 					$validEnrichmentTypes['googlePreview'] = 'Google Preview';
 				}
 			}
-			$timer->logTime("Got google book id");
+			$timer->logTime("Got google book id");*/
 
 			$goDeeperOptions = array('options' => $validEnrichmentTypes);
 			if (count($validEnrichmentTypes) > 0){
