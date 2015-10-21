@@ -5,7 +5,27 @@ if "%1"=="restart" goto stop
 goto usage
 
 :start
-rem Start Solr
+REM Setup solr configuration
+set GC_LOG_OPTS=-verbose:gc -XX:+PrintHeapAtGC -XX:+PrintGCDetails -XX:+PrintGCDateStamps -XX:+PrintGCTimeStamps -XX:+PrintTenuringDistribution -XX:+PrintGCApplicationStoppedTime
+
+set GC_TUNE=-XX:NewRatio=3 ^
+ -XX:SurvivorRatio=4 ^
+ -XX:TargetSurvivorRatio=90 ^
+ -XX:MaxTenuringThreshold=8 ^
+ -XX:+UseConcMarkSweepGC ^
+ -XX:+UseParNewGC ^
+ -XX:ConcGCThreads=4 -XX:ParallelGCThreads=4 ^
+ -XX:+CMSScavengeBeforeRemark ^
+ -XX:PretenureSizeThreshold=64m ^
+ -XX:+UseCMSInitiatingOccupancyOnly ^
+ -XX:CMSInitiatingOccupancyFraction=50 ^
+ -XX:CMSMaxAbortablePrecleanTime=6000 ^
+ -XX:+CMSParallelRemarkEnabled ^
+ -XX:+ParallelRefProcEnabled
+
+ set ENABLE_REMOTE_JMX_OPTS=false
+
+REM Start Solr
 call ..\default\solr\bin\solr.cmd start -p 8082 -m 2g -s "c:\data\vufind-plus\anythink.localhost\solr" -d "c:\web\VuFind-Plus\sites\default\solr\jetty"
 goto done
 
