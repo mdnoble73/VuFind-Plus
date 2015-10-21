@@ -251,61 +251,32 @@ function loadSearchInformation(){
 		}
 	}
 
+	/** @var Library $searchLibrary */
 	$searchLibrary = Library::getSearchLibrary($searchSource);
 	$searchLocation = Location::getSearchLocation($searchSource);
+
+	if ($searchSource == 'marmot' || $searchSource == 'global'){
+		$searchSource = $searchLibrary->subdomain;
+	}
 
 	//Based on the search source, determine the search scope and set a global variable
 	global $solrScope;
 	global $scopeType;
 	$solrScope = false;
 	$scopeType = '';
-	if ($searchSource == 'local' || $searchSource == 'econtent'){
-		/*$locationIsScoped = $searchLocation != null &&
-			($searchLocation->restrictSearchByLocation ||
-				$searchLocation->econtentLocationsToInclude != 'all' ||
-				$searchLocation->useScope ||
-				!$searchLocation->enableOverdriveCollection ||
-				strlen($searchLocation->extraLocationCodesToInclude) > 0);
 
-		$libraryIsScoped = $searchLibrary != null &&
-			($searchLibrary->restrictSearchByLibrary ||
-				$searchLibrary->econtentLocationsToInclude != 'all' ||
-				(strlen($searchLibrary->pTypes) > 0 && $searchLibrary->pTypes != -1) ||
-				$searchLibrary->useScope ||
-				!$searchLibrary->enableOverdriveCollection);
-
-		if ($locationIsScoped &&
-			(
-				(
-					$searchLocation->econtentLocationsToInclude != $searchLibrary->econtentLocationsToInclude
-					&& strlen($searchLocation->econtentLocationsToInclude) > 0
-					&& $searchLocation->econtentLocationsToInclude != 'all'
-				) || (
-					$searchLocation->useScope && $searchLibrary->scope != $searchLocation->scope
-				)
-			)){
-			$solrScope = $searchLocation->code;
-			$scopeType = 'Location';
-		}else{
-			$solrScope = $searchLibrary->subdomain;
-			$scopeType = 'Library';
-		}*/
-		if ($searchLibrary){
-			$solrScope = $searchLibrary->subdomain;
-			$scopeType = 'Library';
-		}
-		if ($searchLocation){
-			$solrScope = $searchLocation->code;
-			if (!empty($searchLocation->subLocation)){
-				$solrScope = $searchLocation->subLocation;
-			}
-			$scopeType = 'Location';
-		}
-	}elseif($searchSource != 'marmot' && $searchSource != 'global'){
-		//Get the default library
-		$solrScope = $searchSource;
-		$scopeType = 'Search Source';
+	if ($searchLibrary){
+		$solrScope = $searchLibrary->subdomain;
+		$scopeType = 'Library';
 	}
+	if ($searchLocation){
+		$solrScope = $searchLocation->code;
+		if (!empty($searchLocation->subLocation)){
+			$solrScope = $searchLocation->subLocation;
+		}
+		$scopeType = 'Location';
+	}
+
 	$solrScope = trim($solrScope);
 	if (strlen($solrScope) == 0){
 		$solrScope = false;
