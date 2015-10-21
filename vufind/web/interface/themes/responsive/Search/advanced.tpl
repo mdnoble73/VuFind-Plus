@@ -167,11 +167,15 @@
 					{* An empty div. This is the target for the javascript that builds this screen *}
 					<div id="searchHolder"></div>
 
-					<a href="#" class="btn btn-default" onclick="addGroup(); return false;"><span class="glyphicon glyphicon-plus"></span>&nbsp;{translate text="add_search_group"}</a>
+					<button class="btn btn-default" onclick="addGroup();return false;"><span class="glyphicon glyphicon-plus"></span>&nbsp;{translate text="add_search_group"}</button>
+					{* addGroup() returns nextGroupNumber so the return false is necessary *}
+					<input type="submit" name="submit" value="{translate text="Find"}" class="btn btn-primary pull-right">
 					<br><br>
-					<input type="submit" name="submit" value="{translate text="Find"}" class="btn btn-primary pull-right"><br><br>
 					{if $facetList || $illustratedLimit || $showPublicationDate}
-						<h3>{translate text='Limit To'} : </h3><br>
+						<h3>{translate text='Limit To'}</h3>
+						<div class="alert alert-info">
+							The filters below are optional. Only set the filters needed to narrow your search.
+						</div>
 						{if $formatCategoryLimit}
 							<div class="advancedSearchFacetDetails">
 								<div class="advancedSearchFacetHeader">{translate text=$formatCategoryLimit.label}</div>

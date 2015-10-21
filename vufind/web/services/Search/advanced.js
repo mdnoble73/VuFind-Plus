@@ -157,10 +157,8 @@ function reNumGroup(oldGroup, newNum)
 	// Make sure the function was called correctly
 	if (oldNum != newNum) {
 		// Set the new details
-		$(oldGroup).attr({
-			id:"group" + newNum,
-			class:"group group" + newNum % 2
-		});
+		$(oldGroup).attr('id', "group" + newNum)
+				.removeClass('group0 group1').addClass('group'+ newNum % 2);
 
 		// Update the delete link with the new ID
 		$('.delete', oldGroup).attr('id', "delete_link_" + newNum);
