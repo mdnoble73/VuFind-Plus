@@ -629,11 +629,11 @@ abstract class SearchObject_Base
 			while (isset($_REQUEST['lookfor'.$groupCount])) {
 				$group = array();
 				// Loop through each term inside the group
-				for ($i = 0; $i < count($_REQUEST['lookfor'.$groupCount]); $i++) {
+				for ($i = 0, $l = count($_REQUEST['lookfor'.$groupCount]); $i < $l; $i++) {
 					// Ignore advanced search fields with no lookup
 					if ($_REQUEST['lookfor'.$groupCount][$i] != '') {
 						// Use default fields if not set
-						if (isset($_REQUEST['type'.$groupCount][$i]) && $_REQUEST['type'.$groupCount][$i] != '') {
+						if (!empty($_REQUEST['type'.$groupCount][$i])) {
 							$type = strip_tags($_REQUEST['type'.$groupCount][$i]);
 						} else {
 							$type = $this->defaultIndex;
@@ -642,7 +642,7 @@ abstract class SearchObject_Base
 						//Marmot - search both ISBN-10 and ISBN-13
 						//Check to see if the search term looks like an ISBN10 or ISBN13
 						$lookfor = strip_tags($_REQUEST['lookfor'.$groupCount][$i]);
-						if (($type == 'ISN' || $type == 'Keyword' || $type == 'AllFields') &&
+						if (($type == 'Keyword' || $type == 'ISN' || $type == 'AllFields') &&
 								(preg_match('/^\\d-?\\d{3}-?\\d{5}-?\\d$/',$lookfor) ||
 								preg_match('/^\\d{3}-?\\d-?\\d{3}-?\\d{5}-?\\d$/', $lookfor))) {
 							require_once(ROOT_DIR . '/sys/ISBN.php');

@@ -14,9 +14,11 @@
 						<input type="hidden" name="genealogyType" id="genealogyType" value="">
 					{/if}
 					<input type="hidden" name="view" id="view" value="{$displayMode}">
+{*
 					{if $displayMode}
 					<input type="hidden" name="view" id="view" value="{$displayMode}">
 					{/if}
+*}
 					<fieldset>
 						<div class="input-group input-group-sm">
 							<div class="input-group-sm">
@@ -59,15 +61,16 @@
 									{/if}
 
 									<li class="catalogType">
-										<a id="advancedSearch" title="{translate text='Advanced Search'}" onclick="VuFind.Account.ajaxLightbox('{$path}/Search/AdvancedPopup', false)">
-											<i class="icon-plus-sign"></i> {translate text="Advanced"}
+										{*<a id="advancedSearch" title="{translate text='Advanced Search'}" onclick="VuFind.Account.ajaxLightbox('{$path}/Search/AdvancedPopup', false)">*}
+										<a id="advancedSearch" title="{translate text='Advanced Search'}" href="{$path}/Search/Advanced">
+											{*<i class="icon-plus-sign"></i>*} {translate text="Advanced"}
 										</a>
 									</li>
 
 									{* Link to Search Tips Help *}
 									<li>
 										<a href="{$path}/Help/Home?topic=search" title="{translate text='Search Tips'}" id="searchTips" class="modalDialogTrigger">
-											<i class="icon-question-sign"></i> {translate text='Search Tips'}
+											{*<i class="icon-question-sign"></i>*} {translate text='Search Tips'}
 										</a>
 									</li>
 								</ul>
@@ -113,16 +116,23 @@
 			</div>
 			<div class="row text-center">
 				{if $filterList}
-					<label for="keepFiltersSwitch" id="keepFiltersSwitchLabel"><input id="keepFiltersSwitch" type="checkbox" onclick="VuFind.Searches.filterAll(this);" /> Keep Applied Filters</label>
+					<label for="keepFiltersSwitch" id="keepFiltersSwitchLabel"><input id="keepFiltersSwitch" type="checkbox" onclick="VuFind.Searches.filterAll(this);"> Keep Applied Filters</label>
 				{/if}
 			</div>
+
+			{* Return to Advanced Search Link *}
+			{if $searchType == 'advanced'}
+				<div class="row text-center">
+					<a href="{$path}/Search/Advanced">Edit This Advanced Search</a>
+				</div>
+			{/if}
 
 			{if $filterList || $hasCheckboxFilters}
 				{* Data for searching within existing results *}
 				<div id="keepFilters" style="display:none;">
 					{foreach from=$filterList item=data key=field}
 						{foreach from=$data item=value}
-							<input class="existingFilter" type="checkbox" name="filter[]" value='{$value.field}:"{$value.value|escape}"' />
+							<input class="existingFilter" type="checkbox" name="filter[]" value='{$value.field}:"{$value.value|escape}"'>
 						{/foreach}
 					{/foreach}
 				</div>

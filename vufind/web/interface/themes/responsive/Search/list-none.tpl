@@ -6,11 +6,11 @@
 	{/foreach}
 {/if}
 {*{if $numUnscopedResults && $numUnscopedResults != $recordCount}*}
-	{if 0}
+{*	{if 0}
 	<h2>No Results for </h2>
-{else}
+{else}*}
 	<h2>{translate text='nohit_heading'}</h2>
-{/if}
+{*{/if}*}
 
 <p class="error">{translate text='nohit_prefix'} - <b>{if $lookfor}{$lookfor|escape:"html"}{else}&lt;empty&gt;{/if}</b> - {translate text='nohit_suffix'}</p>
 
@@ -76,10 +76,10 @@
 		{$unscopedResults}
 	{/if}
 
-	{if $showProspectorLink > 0}
-		<script type="text/javascript">VuFind.Prospector.getProspectorResults(5, {$prospectorSavedSearchId});</script>
+	{if $showProspectorLink}
 		{* Prospector Results *}
 		<div id='prospectorSearchResultsPlaceholder'></div>
+		{* javascript call for content at bottom of page*}
 	{/if}
 
 	{* Display Repeat this search links *}
@@ -127,8 +127,12 @@
 </div>
 
 <script type="text/javascript">
-	$(document).ready(function() {literal} { {/literal}
-	//	doGetStatusSummaries();
-		{literal} }); {/literal}
+	$(function(){ldelim}
+		{if $showProspectorLink}
+		VuFind.Prospector.getProspectorResults(5, {$prospectorSavedSearchId});
+		{/if}
+
+	/*	doGetStatusSummaries(); */
+		{rdelim});
 </script>
 {/strip}

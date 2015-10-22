@@ -11,7 +11,7 @@ function addSearch(group, term, field)
 
 	var newSearch = "";
 
-	newSearch += "<div class='advRow'>";
+	newSearch += "<div class='advRow clearfix'>";
 	// Label
 	if (groupSearches[group] == 0) {
 			newSearch += "<div class='searchLabel'>" + searchLabel + " :</div>";
@@ -34,8 +34,6 @@ function addSearch(group, term, field)
 	newSearch += "</select>";
 	newSearch += "</div>";
 
-	// Handle floating nonsense
-	newSearch += "<span class='clearer'></span>";
 	newSearch += "</div>";
 
 	// Done
@@ -58,21 +56,23 @@ function addGroup(firstTerm, firstField, join)
 	var newGroup = "";
 	newGroup += "<div id='group" + nextGroupNumber + "' class='group group" + (nextGroupNumber % 2) + " well well-sm'>";
 
-	newGroup += "<div class='groupSearchDetails'>";
+	newGroup += "<div class='groupSearchDetails clearfix'>";
+	// Delete link
+	newGroup += "<a href='javascript:void(0);' class='delete btn btn-sm btn-warning' id='delete_link_" + nextGroupNumber + "' onclick='deleteGroupJS(this);'>" + deleteSearchGroupString + "</a>";
+
 	// Boolean operator drop-down
 	newGroup += "<div class='join'>" + searchMatch + " : ";
 	newGroup += "<select name='bool" + nextGroupNumber + "[]'>";
 	for (key in searchJoins) {
-			newGroup += "<option value='" + key + "'";
-			if (key == join) {
-					newGroup += " selected='selected'";
-			}
-			newGroup += ">" + searchJoins[key] + "</option>";
+		newGroup += "<option value='" + key + "'";
+		if (key == join) {
+			newGroup += " selected='selected'";
+		}
+		newGroup += ">" + searchJoins[key] + "</option>";
 	}
 	newGroup += "</select>";
 	newGroup += "</div>";
-	// Delete link
-	newGroup += "<a href='javascript:void(0);' class='delete btn btn-sm btn-warning' id='delete_link_" + nextGroupNumber + "' onclick='deleteGroupJS(this);'>" + deleteSearchGroupString + "</a>";
+
 	newGroup += "</div>";
 
 	// Holder for all the search fields
@@ -87,8 +87,9 @@ function addGroup(firstTerm, firstField, join)
 	groupSearches[nextGroupNumber] = 0;
 
 	// Add the new group into the page
-	var search = $('#searchHolder');
-	search.append(newGroup);
+	$('#searchHolder').append($(newGroup).hide());
+
+	$('#group'+nextGroupNumber).fadeIn();
 
 	// Add the first search field
 	addSearch(nextGroupNumber, firstTerm, firstField);
@@ -103,8 +104,10 @@ function addGroup(firstTerm, firstField, join)
 // Fired by onclick event
 function deleteGroupJS(elem)
 {
-	$(elem).parents('.group').remove();
-	reSortGroups();
+	$(elem).parents('.group').fadeOut(function(){
+		$(this).remove();
+		reSortGroups();
+	});
 	return false;
 }
 
@@ -130,11 +133,11 @@ function reSortGroups()
 	});
 	nextGroupNumber = groups;
 
-	// Hide some group-related controls if there is only one group:
-	if (nextGroupNumber == 1){
-		$('#groupJoin').show();
+	// Hide Group-related controls if there is only one group:
+	if (nextGroupNumber > 1){
+		$('#groupJoin').fadeIn();
 	}else{
-		$('#groupJoin').hide();
+		$('#groupJoin').fadeOut();
 	}
 
 	// Hide Delete when only one search group is present
@@ -175,14 +178,12 @@ function reNumGroup(oldGroup, newNum)
 		// Update all lookfor[] and type[] parameters
 		$('.terms', sHolder).attr('name', 'lookfor' + newNum + '[]');
 		$('.field', sHolder).attr('name', 'type' + newNum + '[]');
-
-
 	}
 }
 
 
 
-// Only IE will keep the form values in tact
+/*// Only IE will keep the form values in tact
 // after modifying innerHTML unless you run this
 function protectForm()
 {
@@ -205,7 +206,7 @@ function protectForm()
 					}
 			}
 	}
-}
+}*/
 
 // Match all checkbox filters to the 'all' box
 function filterAll(element) {

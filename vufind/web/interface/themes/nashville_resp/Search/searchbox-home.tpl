@@ -8,15 +8,17 @@
 		</div> 
 		<form method="get" action="{$path}/Union/Search" id="searchForm" class="form-inline" onsubmit="VuFind.Searches.processSearchForm();">
 			<div class="row">
-				<!--<div class="col-sm-10 col-md-10 col-sm-push-1 col-md-push-1">-->
+				{*<!--<div class="col-sm-10 col-md-10 col-sm-push-1 col-md-push-1">-->*}
 					{if $searchIndex == 'Keyword' || $searchIndex == '' || $searchIndex == 'GenealogyKeyword'}
 						<input type="hidden" name="basicType" id="basicType" value="">
 						<input type="hidden" name="genealogyType" id="genealogyType" value="">
 					{/if}
 					<input type="hidden" name="view" id="view" value="{$displayMode}">
+{*
 					{if $displayMode}
 					<input type="hidden" name="view" id="view" value="{$displayMode}">
 					{/if}
+*}
 					<fieldset>
 						<div class="input-group input-group-sm">
 							<div class="input-group-sm">
@@ -59,15 +61,16 @@
 									{/if}
 
 									<li class="catalogType">
-										<a id="advancedSearch" title="{translate text='Advanced Search'}" onclick="VuFind.Account.ajaxLightbox('{$path}/Search/AdvancedPopup', false)">
-											<i class="icon-plus-sign"></i> {translate text="Advanced"}
+										{*<a id="advancedSearch" title="{translate text='Advanced Search'}" onclick="VuFind.Account.ajaxLightbox('{$path}/Search/AdvancedPopup', false)">*}
+										<a id="advancedSearch" title="{translate text='Advanced Search'}" href="{$path}/Search/Advanced">
+											{*<i class="icon-plus-sign"></i>*} {translate text="Advanced"}
 										</a>
 									</li>
 
 									{* Link to Search Tips Help *}
 									<li>
 										<a href="{$path}/Help/Home?topic=search" title="{translate text='Search Tips'}" id="searchTips" class="modalDialogTrigger">
-											<i class="icon-question-sign"></i> {translate text='Search Tips'}
+											{*<i class="icon-question-sign"></i> //Doesn't display *} {translate text='Search Tips'}
 										</a>
 									</li>
 								</ul>
@@ -75,11 +78,11 @@
 						</div>
 
 					</fieldset>
-				<!--</div>-->
+				{*<!--</div>-->*}
 			</div>
 			{if $searchIndex != 'Keyword' && $searchIndex != '' && $searchIndex != 'GenealogyKeyword'}
 				<div class="row text-center">
-					<!--<div class="col-sm-10 col-md-10 col-sm-push-1 col-md-push-1">-->
+					{*<!--<div class="col-sm-10 col-md-10 col-sm-push-1 col-md-push-1">-->*}
 						<select name="basicType" class="searchTypeHome form-control catalogType" id="basicSearchTypes" title="Search by Keyword to find subjects, titles, authors, etc. Search by Title or Author for more precise results." {if $searchSource == 'genealogy'}style='display:none'{/if}>
 							{foreach from=$basicSearchTypes item=searchDesc key=searchVal}
 								<option value="{$searchVal}"{if $basicSearchIndex == $searchVal || $searchIndex == $searchVal} selected="selected"{/if}>{translate text=$searchDesc}</option>
@@ -90,7 +93,7 @@
 								<option value="{$searchVal}"{if $genealogySearchIndex == $searchVal} selected="selected"{/if}>{translate text=$searchDesc}</option>
 							{/foreach}
 						</select>
-					<!--</div>-->
+					{*<!--</div>-->*}
 				</div>
 			{/if}
 			<div class="row text-center">
@@ -113,16 +116,23 @@
 			</div>
 			<div class="row text-center">
 				{if $filterList}
-					<label for="keepFiltersSwitch" id="keepFiltersSwitchLabel"><input id="keepFiltersSwitch" type="checkbox" onclick="VuFind.Searches.filterAll(this);" /> Keep Applied Filters</label>
+					<label for="keepFiltersSwitch" id="keepFiltersSwitchLabel"><input id="keepFiltersSwitch" type="checkbox" onclick="VuFind.Searches.filterAll(this);"> Keep Applied Filters</label>
 				{/if}
 			</div>
+
+			{* Return to Advanced Search Link *}
+			{if $searchType == 'advanced'}
+				<div class="row text-center">
+					<a href="{$path}/Search/Advanced">Edit This Advanced Search</a>
+				</div>
+			{/if}
 
 			{if $filterList || $hasCheckboxFilters}
 				{* Data for searching within existing results *}
 				<div id="keepFilters" style="display:none;">
 					{foreach from=$filterList item=data key=field}
 						{foreach from=$data item=value}
-							<input class="existingFilter" type="checkbox" name="filter[]" value='{$value.field}:"{$value.value|escape}"' />
+							<input class="existingFilter" type="checkbox" name="filter[]" value='{$value.field}:"{$value.value|escape}"'>
 						{/foreach}
 					{/foreach}
 				</div>
