@@ -64,9 +64,14 @@
 	#searchHolder .group {
 		margin-bottom: 10px;
 	}
-	.searchGroups {
+	#groupJoin {
 		margin-bottom: 10px;
 		padding: 2px 5px;
+	}
+	#groupJoin .searchGroupDetails {
+		float: right;
+	}
+	#groupJoin strong {
 		font-size: 125%;
 	}
 	.keepFilters input {
@@ -126,11 +131,11 @@
 						<div class="accordion">
 							<div {*id="facet-accordion"*} class="panel panel-default">
 									<div class="panel-heading">
-										<h3 class="panel-title {if 1}collapsed{else}expanded{/if}">
+										<div class="panel-title {if 1}collapsed{else}expanded{/if}">
 											<a href="#facetPanel" data-toggle="collapse" role="button">
 											{translate text='Optional Filters'}
 											</a>
-										</h3>
+										</div>
 									</div>
 								<div id="facetPanel" class="panel-collapse collapse">
 									<div class="panel-body">
@@ -190,28 +195,6 @@
 																<label for="lexile_scoreto" class='yearboxlabel'>To:</label>
 																<input type="text" size="4" maxlength="4" class="yearbox" name="lexile_scoreto"
 																       id="lexile_scoreto" value="">
-																<script type="text/javascript">{literal}
-																	$(function(){
-																		$("#lexile-range").slider({
-																			range: true,
-																			min: 0,
-																			max: 2500,
-																			step: 10,
-																			values: [0, 2500],
-																			slide: function(event, ui){
-																				$("#lexile_scorefrom").val(ui.values[0]);
-																				$("#lexile_scoreto").val(ui.values[1]);
-																			}
-																		});
-																		$("#lexile_scorefrom").change(function(){
-																			$("#lexile-range").slider("values", 0, $("#lexile_scorefrom").val());
-																		});
-																		$("#lexile_scoreto").change(function(){
-																			$("#lexile-range").slider("values", 1, $("#lexile_scoreto").val());
-																		});
-																	});
-																	{/literal}
-																</script>
 															{else}
 																<select name="filter[]">
 																	{foreach from=$facetInfo.values item="value" key="display"}

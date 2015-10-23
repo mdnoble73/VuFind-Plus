@@ -472,26 +472,30 @@ abstract class SearchObject_Base
 		switch ($this->searchType) {
 			// Advanced search
 			case $this->advancedSearchType:
-				if (true){
+				if (false){
+					// Advanced Search Pop-up (probably)
+					// structure lookfor[]
 					$paramIndex = 0;
 					for ($i = 0; $i < count($this->searchTerms); $i++) {
 						for ($j = 0; $j < count($this->searchTerms[$i]['group']); $j++) {
 							$paramIndex++;
-							$params[] = "lookfor[$paramIndex]=" . urlencode($this->searchTerms[$i]['group'][$j]['lookfor']);
-							$params[] = "searchType[$paramIndex]="    . urlencode($this->searchTerms[$i]['group'][$j]['field']);
-							$params[] = "join[$paramIndex]=" . urlencode($this->searchTerms[$i]['group'][$j]['bool']);
+							$params[] = "lookfor[$paramIndex]="    . urlencode($this->searchTerms[$i]['group'][$j]['lookfor']);
+							$params[] = "searchType[$paramIndex]=" . urlencode($this->searchTerms[$i]['group'][$j]['field']);
+							$params[] = "join[$paramIndex]="       . urlencode($this->searchTerms[$i]['group'][$j]['bool']);
 						}
 						if ($i > 0){
 							$params[] = "groupEnd[$paramIndex]=1";
 						}
 					}
 				}else{
+					// Advanced Search Page
+					//structure lookfor0[], lookfor1[],
 					$params[] = "join=" . urlencode($this->searchTerms[0]['join']);
 					for ($i = 0; $i < count($this->searchTerms); $i++) {
-						$params[] = "bool".$i."[]=" . urlencode($this->searchTerms[$i]['group'][0]['bool']);
+						$params[]   = "bool".$i."[]=" . urlencode($this->searchTerms[$i]['group'][0]['bool']);
 						for ($j = 0; $j < count($this->searchTerms[$i]['group']); $j++) {
 							$params[] = "lookfor".$i."[]=" . urlencode($this->searchTerms[$i]['group'][$j]['lookfor']);
-							$params[] = "type".$i."[]="    . urlencode($this->searchTerms[$i]['group'][$j]['field']);
+							$params[] = "type"   .$i."[]=" . urlencode($this->searchTerms[$i]['group'][$j]['field']);
 						}
 					}
 				}
@@ -505,7 +509,7 @@ abstract class SearchObject_Base
 					if ($this->searchType == 'basic'){
 						$params[] = "basicType="    . urlencode($this->searchTerms[0]['index']);
 					}else{
-						$params[] = "type="    . urlencode($this->searchTerms[0]['index']);
+						$params[] = "type="         . urlencode($this->searchTerms[0]['index']);
 					}
 
 				}
@@ -596,9 +600,8 @@ abstract class SearchObject_Base
 						'bool'    => $_REQUEST['join'][$index]
 					);
 
-//var_dump($_REQUEST);
 					if (isset($_REQUEST['groupEnd'])){
-						if ($_REQUEST['groupEnd'][$index] == 1){
+						if (isset($_REQUEST['groupEnd'][$index]) && $_REQUEST['groupEnd'][$index] == 1){
 							// Add the completed group to the list
 							$this->searchTerms[] = array(
 								'group' => $group,
@@ -615,8 +618,6 @@ abstract class SearchObject_Base
 						'join'  => $_REQUEST['join'][$index]
 					);
 				}
-			}else{
-
 			}
 		}else{
 			//********************

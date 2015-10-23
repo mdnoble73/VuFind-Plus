@@ -5,14 +5,17 @@
 		{include file=$recommendations}
 	{/foreach}
 {/if}
-{*{if $numUnscopedResults && $numUnscopedResults != $recordCount}*}
-{*	{if 0}
-	<h2>No Results for </h2>
-{else}*}
-	<h2>{translate text='nohit_heading'}</h2>
-{*{/if}*}
 
-<p class="error">{translate text='nohit_prefix'} - <b>{if $lookfor}{$lookfor|escape:"html"}{else}&lt;empty&gt;{/if}</b> - {translate text='nohit_suffix'}</p>
+	<h2>{translate text='nohit_heading'}</h2>
+
+<p class="alert alert-info">{translate text='nohit_prefix'} - <b>{if $lookfor}{$lookfor|escape:"html"}{else}&lt;empty&gt;{/if}</b> - {translate text='nohit_suffix'}</p>
+
+{* Return to Advanced Search Link *}
+{if $searchType == 'advanced'}
+	<h5>
+		<a href="{$path}/Search/Advanced">Edit This Advanced Search</a>
+	</h5>
+{/if}
 
 {if $solrSearchDebug}
 	<div id="solrSearchOptionsToggle" onclick="$('#solrSearchOptions').toggle()">Show Search Options</div>

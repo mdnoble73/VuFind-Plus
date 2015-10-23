@@ -208,13 +208,6 @@ function protectForm()
 	}
 }*/
 
-// Match all checkbox filters to the 'all' box
-function filterAll(element) {
-	//$('[name="filter[]"]', '#advSearchForm').prop('checked', $(element).is(':checked'));
-		// not in advSearchForm, could be an issue.
-	$('[name="filter[]"]').prop('checked', $(element).is(':checked'));
-}
-
 function jsEntityEncode(str)
 {
 	var new_str = str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');

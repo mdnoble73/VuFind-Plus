@@ -1065,6 +1065,7 @@ class SearchObject_Solr extends SearchObject_Base
 		return parent::getBaseUrl();
 	}
 
+	protected $params;
 	/**
 	 * Get an array of strings to attach to a base URL in order to reproduce the
 	 * current search.
@@ -1074,52 +1075,54 @@ class SearchObject_Solr extends SearchObject_Base
 	 */
 	protected function getSearchParams()
 	{
-		$params = array();
-		switch ($this->searchType) {
-			// Author Home screen
-			case "author":
-				if ($this->searchSubType == 'home')   $params[] = "author="  . urlencode($this->searchTerms[0]['lookfor']);
-				if ($this->searchSubType == 'search') $params[] = "lookfor=" . urlencode($this->searchTerms[0]['lookfor']);
-				$params[] = "basicSearchType=Author";
-				break;
+		if (is_null($this->params)) {
+			$params = array();
+			switch ($this->searchType) {
+				// Author Home screen
+				case "author":
+					if ($this->searchSubType == 'home') $params[] = "author=" . urlencode($this->searchTerms[0]['lookfor']);
+					if ($this->searchSubType == 'search') $params[] = "lookfor=" . urlencode($this->searchTerms[0]['lookfor']);
+					$params[] = "basicSearchType=Author";
+					break;
 				// New Items or Reserves modules may have a few extra parameters to preserve:
-			case "newitem":
-			case "reserves":
-			case "favorites":
-			case "list":
-				$preserveParams = array(
-				// for newitem:
-				  'range', 'department',
-				// for reserves:
-				  'course', 'inst', 'dept',
-				// for favorites/list:
-				  'tag'
-				  );
-				  foreach($preserveParams as $current) {
-				  	if (isset($_GET[$current])) {
-				  		if (is_array($_GET[$current])) {
-				  			foreach($_GET[$current] as $value) {
-				  				$params[] = $current . '[]=' . urlencode($value);
-				  			}
-				  		} else {
-				  			$params[] = $current . '=' . urlencode($_GET[$current]);
-				  		}
-				  	}
-				  }
-				  break;
-				  // Basic search -- use default from parent class.
-			default:
-				$params = parent::getSearchParams();
-				break;
-		}
+				case "newitem":
+				case "reserves":
+				case "favorites":
+				case "list":
+					$preserveParams = array(
+						// for newitem:
+						'range', 'department',
+						// for reserves:
+						'course', 'inst', 'dept',
+						// for favorites/list:
+						'tag'
+					);
+					foreach ($preserveParams as $current) {
+						if (isset($_GET[$current])) {
+							if (is_array($_GET[$current])) {
+								foreach ($_GET[$current] as $value) {
+									$params[] = $current . '[]=' . urlencode($value);
+								}
+							} else {
+								$params[] = $current . '=' . urlencode($_GET[$current]);
+							}
+						}
+					}
+					break;
+				// Basic search -- use default from parent class.
+				default:
+					$params = parent::getSearchParams();
+					break;
+			}
 
-		if (isset($_REQUEST['basicType'])){
-			$params[] = 'basicType=' .  $_REQUEST['basicType'];
-		}else if (isset($_REQUEST['type'])) {
-			$params[] = 'type=' . $_REQUEST['type'];
+			if (isset($_REQUEST['basicType'])) {
+				$params[] = 'basicType=' . $_REQUEST['basicType'];
+			} else if (isset($_REQUEST['type'])) {
+				$params[] = 'type=' . $_REQUEST['type'];
+			}
+			$this->params = $params;
 		}
-
-		return $params;
+		return $this->params;
 	}
 
 	/**
