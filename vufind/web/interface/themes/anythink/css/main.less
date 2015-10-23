@@ -169,19 +169,19 @@ div.bottom-border-line {
 // old method
 #lookfor {
   // Overwrite default styling for the searchbox placeholder text to implement displaying it
-  ::placeholder {.placeholder-mixin;}
-  ::-moz-placeholder{.placeholder-mixin;}
-  :-moz-placeholder{.placeholder-mixin;}
-  ::-webkit-input-placeholder{.placeholder-mixin;}
   :-ms-input-placeholder{.placeholder-mixin;}
+  ::-webkit-input-placeholder{.placeholder-mixin;}
+  :-moz-placeholder{.placeholder-mixin;}
+  ::-moz-placeholder{.placeholder-mixin;}
+  ::placeholder {.placeholder-mixin;}
 
   // hide placeholder text on focus
   &:focus{
-    &::placeholder {.placeholder-focus-mixin;}
-    &::-moz-placeholder{.placeholder-focus-mixin;}
     &:-moz-placeholder{.placeholder-focus-mixin;}
+    &::-moz-placeholder{.placeholder-focus-mixin;}
     &::-webkit-input-placeholder{.placeholder-focus-mixin;}
     &:-ms-input-placeholder{.placeholder-focus-mixin;}
+    &::placeholder {.placeholder-focus-mixin;}
   }
 }
 

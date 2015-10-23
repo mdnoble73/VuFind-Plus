@@ -102,11 +102,11 @@ var VuFind = (function(){
 		initializeModalDialogs: function() {
 			$(".modalDialogTrigger").each(function(){
 				$(this).click(function(){
-					var trigger = $(this);
-					var dialogTitle = trigger.attr("title") ? trigger.attr("title") : trigger.data("title");
-					var dialogDestination = trigger.attr("href");
+					var trigger = $(this),
+							dialogTitle = trigger.attr("title") ? trigger.attr("title") : trigger.data("title"),
+							dialogDestination = trigger.attr("href");
 					$("#myModalLabel").text(dialogTitle);
-					$(".modal-body").load(dialogDestination);
+					$(".modal-body").html('Loading.').load(dialogDestination);
 					$(".extraModalButton").hide();
 					$("#modalDialog").modal("show");
 					return false;

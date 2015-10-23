@@ -25,8 +25,13 @@ class Search_Advanced extends Search_AdvancedBase {
 	{
 		global $interface;
 
-		// Create our search object
-		$searchObject = SearchObjectFactory::initSearchObject();
+
+		global $searchObject;
+
+		// Create our search object if the one initialized in index.php is not available
+		if (!$searchObject) {
+			$searchObject = SearchObjectFactory::initSearchObject();
+		}
 		$searchObject->initAdvancedFacets();
 		// We don't want this search in the search history
 		$searchObject->disableLogging();
@@ -54,9 +59,9 @@ class Search_Advanced extends Search_AdvancedBase {
 		}
 		$interface->assign('facetList', $facets);
 
-		// Integer for % width of each column (be careful to avoid divide by zero!)
-		$columnWidth = (count($facets) > 1) ? round(100 / count($facets), 0) : 0;
-		$interface->assign('columnWidth', $columnWidth);
+//		// Integer for % width of each column (be careful to avoid divide by zero!)
+//		$columnWidth = (count($facets) > 1) ? round(100 / count($facets), 0) : 0;
+//		$interface->assign('columnWidth', $columnWidth);
 
 		// Process settings to control special-purpose facets not supported by the
 		//     more generic configuration options.

@@ -93,13 +93,9 @@
 	{/if}
 
 	{if $showProspectorLink}
-		<script type="text/javascript">
-			$(function(){ldelim}
-				VuFind.Prospector.getProspectorResults(5, {$prospectorSavedSearchId})
-			{rdelim})
-		</script>
 		{* Prospector Results *}
 		<div id='prospectorSearchResultsPlaceholder'></div>
+		{* javascript call for content at bottom of page*}
 	{/if}
 
 	{if $showDplaLink}

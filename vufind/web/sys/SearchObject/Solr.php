@@ -263,7 +263,7 @@ class SearchObject_Solr extends SearchObject_Base
 		// Basic Search logic
 		if ($this->initBasicSearch($searchTerm)) {
 			// If we found a basic search, we don't need to do anything further.
-		} else if (isset($_REQUEST['tag']) && $module != 'MyAccount') {
+		} elseif (isset($_REQUEST['tag']) && $module != 'MyAccount') {
 			// Tags, just treat them as normal searches for now.
 			// The search processer knows what to do with them.
 			if ($_REQUEST['tag'] != '') {
@@ -365,7 +365,7 @@ class SearchObject_Solr extends SearchObject_Base
 
 		$searchLocation = $locationSingleton->getActiveLocation();
 		/** @var Location $userLocation */
-		$userLocation = Location::getUserHomeLocation();
+//		$userLocation = Location::getUserHomeLocation();
 		$hasSearchLibraryFacets = ($searchLibrary != null && (count($searchLibrary->facets) > 0));
 		$hasSearchLocationFacets = ($searchLocation != null && (count($searchLocation->facets) > 0));
 		if ($hasSearchLocationFacets){
@@ -377,33 +377,53 @@ class SearchObject_Solr extends SearchObject_Base
 		}
 
 		$this->facetConfig = array();
+		global $solrScope;
 		foreach ($facets as $facet){
 			$facetName = $facet->facetName;
 			//Adjust facet name for local scoping
+			if ($solrScope){
+				if ($facet->facetName == 'availability_toggle'){
+					$facetName = 'availability_toggle_' . $solrScope;
+				}elseif ($facet->facetName == 'format'){
+					$facetName = 'format_' . $solrScope;
+				}elseif ($facet->facetName == 'format_category'){
+					$facetName = 'format_category_' . $solrScope;
+				}elseif ($facet->facetName == 'econtent_source'){
+					$facetName = 'econtent_source_' . $solrScope;
+				}elseif ($facet->facetName == 'econtent_protection_type'){
+					$facetName = 'econtent_protection_type_' . $solrScope;
+				}elseif ($facet->facetName == 'detailed_location'){
+					$facetName = 'detailed_location_' . $solrScope;
+				}elseif ($facet->facetName == 'owning_location'){
+					$facetName = 'owning_location_' . $solrScope;
+				}elseif ($facet->facetName == 'owning_library'){
+					$facetName = 'owning_library_' . $solrScope;
+				}elseif ($facet->facetName == 'available_at'){
+					$facetName = 'available_at_' . $solrScope;
+				}elseif ($facet->facetName == 'collection' || $facet->facetName == 'collection_group'){
+					$facetName = 'collection_' . $solrScope;
+				}
+			}
 			if (isset($searchLibrary)){
 				if ($facet->facetName == 'time_since_added'){
 					$facetName = 'local_time_since_added_' . $searchLibrary->subdomain;
 				}elseif ($facet->facetName == 'itype'){
 					$facetName = 'itype_' . $searchLibrary->subdomain;
-				}elseif ($facet->facetName == 'detailed_location'){
-					$facetName = 'detailed_location_' . $searchLibrary->subdomain;
-				}elseif ($facet->facetName == 'availability_toggle'){
-					$facetName = 'availability_toggle_' . $searchLibrary->subdomain;
 				}
 			}
-			if (isset($userLocation)){
-				if ($facet->facetName == 'availability_toggle'){
-					$facetName = 'availability_toggle_' . $userLocation->code;
-				}
-			}
-			if (isset($searchLocation)){
-				if ($facet->facetName == 'time_since_added' && $searchLocation->restrictSearchByLocation){
+			//TODO: check if needed anymore
+//			if (isset($userLocation)){
+//				if ($facet->facetName == 'availability_toggle'){
+//					$facetName = 'availability_toggle_' . $userLocation->code;
+//				}
+//			}
+			if (isset($searchLocation)) {
+				if ($facet->facetName == 'time_since_added' && $searchLocation->restrictSearchByLocation) {
 					$facetName = 'local_time_since_added_' . $searchLocation->code;
-				}elseif ($facet->facetName == 'availability_toggle'){
-					$facetName = 'availability_toggle_' . $searchLocation->code;
 				}
 			}
-			if ($facet->showInAdvancedSearch){
+
+				if ($facet->showInAdvancedSearch){
 				$this->facetConfig[$facetName] = $facet->displayName;
 			}
 		}
@@ -1045,6 +1065,7 @@ class SearchObject_Solr extends SearchObject_Base
 		return parent::getBaseUrl();
 	}
 
+	protected $params;
 	/**
 	 * Get an array of strings to attach to a base URL in order to reproduce the
 	 * current search.
@@ -1054,52 +1075,54 @@ class SearchObject_Solr extends SearchObject_Base
 	 */
 	protected function getSearchParams()
 	{
-		$params = array();
-		switch ($this->searchType) {
-			// Author Home screen
-			case "author":
-				if ($this->searchSubType == 'home')   $params[] = "author="  . urlencode($this->searchTerms[0]['lookfor']);
-				if ($this->searchSubType == 'search') $params[] = "lookfor=" . urlencode($this->searchTerms[0]['lookfor']);
-				$params[] = "basicSearchType=Author";
-				break;
+		if (is_null($this->params)) {
+			$params = array();
+			switch ($this->searchType) {
+				// Author Home screen
+				case "author":
+					if ($this->searchSubType == 'home') $params[] = "author=" . urlencode($this->searchTerms[0]['lookfor']);
+					if ($this->searchSubType == 'search') $params[] = "lookfor=" . urlencode($this->searchTerms[0]['lookfor']);
+					$params[] = "basicSearchType=Author";
+					break;
 				// New Items or Reserves modules may have a few extra parameters to preserve:
-			case "newitem":
-			case "reserves":
-			case "favorites":
-			case "list":
-				$preserveParams = array(
-				// for newitem:
-				  'range', 'department',
-				// for reserves:
-				  'course', 'inst', 'dept',
-				// for favorites/list:
-				  'tag'
-				  );
-				  foreach($preserveParams as $current) {
-				  	if (isset($_GET[$current])) {
-				  		if (is_array($_GET[$current])) {
-				  			foreach($_GET[$current] as $value) {
-				  				$params[] = $current . '[]=' . urlencode($value);
-				  			}
-				  		} else {
-				  			$params[] = $current . '=' . urlencode($_GET[$current]);
-				  		}
-				  	}
-				  }
-				  break;
-				  // Basic search -- use default from parent class.
-			default:
-				$params = parent::getSearchParams();
-				break;
-		}
+				case "newitem":
+				case "reserves":
+				case "favorites":
+				case "list":
+					$preserveParams = array(
+						// for newitem:
+						'range', 'department',
+						// for reserves:
+						'course', 'inst', 'dept',
+						// for favorites/list:
+						'tag'
+					);
+					foreach ($preserveParams as $current) {
+						if (isset($_GET[$current])) {
+							if (is_array($_GET[$current])) {
+								foreach ($_GET[$current] as $value) {
+									$params[] = $current . '[]=' . urlencode($value);
+								}
+							} else {
+								$params[] = $current . '=' . urlencode($_GET[$current]);
+							}
+						}
+					}
+					break;
+				// Basic search -- use default from parent class.
+				default:
+					$params = parent::getSearchParams();
+					break;
+			}
 
-		if (isset($_REQUEST['basicType'])){
-			$params[] = 'basicType=' .  $_REQUEST['basicType'];
-		}else if (isset($_REQUEST['type'])) {
-			$params[] = 'type=' . $_REQUEST['type'];
+			if (isset($_REQUEST['basicType'])) {
+				$params[] = 'basicType=' . $_REQUEST['basicType'];
+			} else if (isset($_REQUEST['type'])) {
+				$params[] = 'type=' . $_REQUEST['type'];
+			}
+			$this->params = $params;
 		}
-
-		return $params;
+		return $this->params;
 	}
 
 	/**

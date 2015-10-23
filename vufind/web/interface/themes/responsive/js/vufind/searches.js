@@ -61,9 +61,7 @@ VuFind.Searches = (function(){
 					if (data.lastPage) $('#more-browse-results').hide(); // hide the load more results
 					else VuFind.Searches.curPage++;
 				}
-			}).fail(function(){
-				VuFind.showMessage('Request Failed', 'There was an error with this AJAX Request.');
-			});
+			}).fail(VuFind.ajaxFail);
 			return false;
 		},
 
@@ -94,6 +92,7 @@ VuFind.Searches = (function(){
 			}
 		},
 
+		/* Advanced Popup has been turned off. plb 10-22-2015
 		addAdvancedGroup: function(button){
 			var currentRow;
 			if (button == undefined){
@@ -119,7 +118,7 @@ VuFind.Searches = (function(){
 			VuFind.Searches.resetAdvancedRowIds();
 			return false;
 		},
-
+*/
 		sendEmail: function(){
 			if (Globals.loggedIn){
 				var from = $('#from').val();
@@ -195,6 +194,7 @@ VuFind.Searches = (function(){
 			);
 		},
 
+		/* Advanced Popup has been turned off. plb 10-22-2015
 		loadSearchGroups: function(){
 			var searchGroups = VuFind.Searches.searchGroups;
 			for (var i = 0; i < searchGroups.length; i++){
@@ -220,7 +220,7 @@ VuFind.Searches = (function(){
 				VuFind.Searches.resetAdvancedRowIds();
 			}
 		},
-
+*/
 
 		processSearchForm: function(){
 		// Check for Set Display Mode
@@ -235,6 +235,7 @@ VuFind.Searches = (function(){
 			}
 		},
 
+		/* Advanced Popup has been turned off. plb 10-22-2015
 		resetAdvancedRowIds: function(){
 			var searchRows = $(".advancedRow");
 			searchRows.each(function(index, element){
@@ -279,7 +280,7 @@ VuFind.Searches = (function(){
 			joinOptions.show();
 			joinOptions.last().hide();
 		},
-
+*/
 		resetSearchType: function(){
 			if ($("#lookfor").val() == ""){
 				$("#searchSource").val($("#default_search_type").val());
@@ -304,9 +305,11 @@ VuFind.Searches = (function(){
 			$(".existingFilter").prop('checked', true);
 		},
 
+/* Advanced Popup has been turned off. plb 10-22-2015
 		submitAdvancedSearch: function(){
 			$('#advancedPopup').submit();
 			return false;
 		}
+*/
 	}
 }(VuFind.Searches || {}));
