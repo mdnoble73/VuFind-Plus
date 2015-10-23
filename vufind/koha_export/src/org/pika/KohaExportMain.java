@@ -193,7 +193,7 @@ public class KohaExportMain {
 			//Only mark records as changed
 			boolean errorUpdatingDatabase = false;
 
-			PreparedStatement getChangedItemsFromKohaStmt = kohaConn.prepareStatement("select itemnumber, biblionumber, holdingbranch, barcode, damaged, itemlost, wthdrawn, suppress, restricted, onloan from items where timestamp >= ? LIMIT 0, ?");
+			PreparedStatement getChangedItemsFromKohaStmt = kohaConn.prepareStatement("select itemnumber, biblionumber, barcode, damaged, itemlost, wthdrawn, suppress, restricted, onloan from items where timestamp >= ? LIMIT 0, ?");
 			getChangedItemsFromKohaStmt.setTimestamp(1, new Timestamp(lastKohaExtractTime * 1000));
 			getChangedItemsFromKohaStmt.setLong(2, maxRecordsToUpdateDuringExtract);
 
@@ -202,7 +202,6 @@ public class KohaExportMain {
 			while (itemChangeRS.next()){
 				String bibNumber = itemChangeRS.getString("biblionumber");
 				String itemNumber = itemChangeRS.getString("itemnumber");
-				String location = itemChangeRS.getString("holdingbranch");
 				int damaged = itemChangeRS.getInt("damaged");
 				String itemlost = itemChangeRS.getString("itemlost");
 				int wthdrawn = itemChangeRS.getInt("wthdrawn");
@@ -217,7 +216,6 @@ public class KohaExportMain {
 
 				ItemChangeInfo changeInfo = new ItemChangeInfo();
 				changeInfo.setItemId(itemNumber);
-				changeInfo.setLocation(location);
 				changeInfo.setDamaged(damaged);
 				changeInfo.setItemLost(itemlost);
 				changeInfo.setWithdrawn(wthdrawn);
@@ -307,7 +305,8 @@ public class KohaExportMain {
 							for (ItemChangeInfo curItem : itemChangeInfo) {
 								//Find the correct item
 								if (itemRecordNumber.equals(curItem.getItemId())) {
-									itemField.getSubfield(locationSubfield).setData(curItem.getLocation());
+									//Do not update location since we get the permanent location which shouldn't change
+									//itemField.getSubfield(locationSubfield).setData(curItem.getLocation());
 									setBooleanSubfield(itemField, curItem.getWithdrawn(), '0');
 									setSubfieldValue(itemField, '1', curItem.getItemLost());
 									setBooleanSubfield(itemField, curItem.getDamaged(), '4');

@@ -759,7 +759,7 @@ public abstract class MarcRecordProcessor {
 							if (RegexMatcher.find()) {
 								result = RegexMatcher.group(1);
 								// System.out.println("AR Point Level " + result);
-								return result;
+								return Util.trimTrailingPunctuation(result);
 							}
 						} catch (PatternSyntaxException ex) {
 							// Syntax error in the regular expression

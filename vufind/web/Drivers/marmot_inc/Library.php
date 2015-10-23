@@ -577,7 +577,16 @@ class Library extends DB_DataObject
 			} else if ($scopingSetting == 'local' || $scopingSetting == 'econtent' || $scopingSetting == 'library' || $scopingSetting == 'location'){
 				Library::$searchLibrary[$searchSource] = Library::getActiveLibrary();
 			}else if ($scopingSetting == 'marmot' || $scopingSetting == 'unscoped'){
-				Library::$searchLibrary[$searchSource] = null;
+				//Get the default library
+				$library = new Library();
+				$library->isDefault = true;
+				$library->find();
+				if ($library->N > 0){
+					$library->fetch();
+					Library::$searchLibrary[$searchSource] = clone($library);
+				}else{
+					Library::$searchLibrary[$searchSource] = null;
+				}
 			}else{
 				$location = Location::getSearchLocation();
 				if (is_null($location)){
@@ -587,9 +596,11 @@ class Library extends DB_DataObject
 					$library->find();
 					if ($library->N > 0){
 						$library->fetch();
+						Library::$searchLibrary[$searchSource] = clone($library);
 						return clone($library);
+					}else{
+						Library::$searchLibrary[$searchSource] = null;
 					}
-					Library::$searchLibrary[$searchSource] = null;
 				}else{
 					Library::$searchLibrary[$searchSource] = self::getLibraryForLocation($location->locationId);
 				}

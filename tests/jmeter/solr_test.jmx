@@ -14,7 +14,7 @@
           </elementProp>
           <elementProp name="numUsers" elementType="Argument">
             <stringProp name="Argument.name">numUsers</stringProp>
-            <stringProp name="Argument.value">5</stringProp>
+            <stringProp name="Argument.value">1</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
           <elementProp name="duration" elementType="Argument">
@@ -247,7 +247,7 @@
         <stringProp name="TestPlan.comments"> This contains the information needed to test a specific site. Toggle on the *one* site you wish to test against.</stringProp>
       </Arguments>
       <hashTree/>
-      <Arguments guiclass="ArgumentsPanel" testclass="Arguments" testname="Marmot Local Site Configuration" enabled="true">
+      <Arguments guiclass="ArgumentsPanel" testclass="Arguments" testname="Marmot Local Site Configuration" enabled="false">
         <collectionProp name="Arguments.arguments">
           <elementProp name="url" elementType="Argument">
             <stringProp name="Argument.name">url</stringProp>
@@ -323,11 +323,11 @@
         <stringProp name="TestPlan.comments"> This contains the information needed to test a specific site. Toggle on the *one* site you wish to test against.</stringProp>
       </Arguments>
       <hashTree/>
-      <Arguments guiclass="ArgumentsPanel" testclass="Arguments" testname="Marmot Test Site Configuration" enabled="false">
+      <Arguments guiclass="ArgumentsPanel" testclass="Arguments" testname="Marmot Test Site Configuration" enabled="true">
         <collectionProp name="Arguments.arguments">
           <elementProp name="url" elementType="Argument">
             <stringProp name="Argument.name">url</stringProp>
-            <stringProp name="Argument.value">mesa2.marmot.org</stringProp>
+            <stringProp name="Argument.value">venus.marmot.org</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
             <stringProp name="Argument.desc">URL HTTP Requests will start with.</stringProp>
           </elementProp>
@@ -386,7 +386,7 @@
           </elementProp>
           <elementProp name="SolrQueriesFileName" elementType="Argument">
             <stringProp name="Argument.name">SolrQueriesFileName</stringProp>
-            <stringProp name="Argument.value">solrQueriesUsingNashvilleSearchTerms.csv</stringProp>
+            <stringProp name="Argument.value">500solrQueries.csv</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
             <stringProp name="Argument.desc">this file uses mesa for scoping</stringProp>
           </elementProp>
@@ -940,8 +940,8 @@
             <stringProp name="HTTPSampler.domain">${SolrServer}</stringProp>
             <stringProp name="HTTPSampler.port">${SolrPort}</stringProp>
             <stringProp name="HTTPSampler.connect_timeout"></stringProp>
-            <stringProp name="HTTPSampler.response_timeout"></stringProp>
-            <stringProp name="HTTPSampler.protocol"></stringProp>
+            <stringProp name="HTTPSampler.response_timeout">5000</stringProp>
+            <stringProp name="HTTPSampler.protocol">http</stringProp>
             <stringProp name="HTTPSampler.contentEncoding"></stringProp>
             <stringProp name="HTTPSampler.path">${fullSolrURL}</stringProp>
             <stringProp name="HTTPSampler.method">GET</stringProp>
@@ -1026,7 +1026,7 @@
               <subresults>false</subresults>
               <responseData>true</responseData>
               <samplerData>false</samplerData>
-              <xml>false</xml>
+              <xml>true</xml>
               <fieldNames>true</fieldNames>
               <responseHeaders>true</responseHeaders>
               <requestHeaders>false</requestHeaders>

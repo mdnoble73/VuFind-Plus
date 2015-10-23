@@ -66,6 +66,10 @@ class Fines extends MyAccount
 //					if ($totalOutstanding > $minimumFineAmount) $canShowPayFineButton = true;
 					$outstandingTotal[$userId] = $this->currency_symbol . number_format($totalOutstanding, 2);
 				}
+
+				$showFinePayments = $configArray['Catalog']['showFinePayments'];
+				$interface->assign('showFinePayments', $showFinePayments);
+
 			}
 
 //			$interface->assign('canShowPayFineButton', $canShowPayFineButton);
