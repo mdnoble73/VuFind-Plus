@@ -123,7 +123,7 @@
 			{* Return to Advanced Search Link *}
 			{if $searchType == 'advanced'}
 				<div class="row text-center">
-					<a href="{$path}/Search/Advanced">Edit This Advanced Search</a>
+					<a id="advancedSearchLink" href="{$path}/Search/Advanced">Edit This Advanced Search</a>
 				</div>
 			{/if}
 

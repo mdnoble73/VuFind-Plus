@@ -7659,19 +7659,7 @@ hr.menu {
 #home-page-advanced-search-link {
   color: #fff;
 }
-#lookfor::placeholder {
-  font-size: 0;
-  color: transparent;
-  text-shadow: none;
-  border: 0;
-}
-#lookfor::-moz-placeholder {
-  font-size: 0;
-  color: transparent;
-  text-shadow: none;
-  border: 0;
-}
-#lookfor:-moz-placeholder {
+#lookfor:-ms-input-placeholder {
   font-size: 0;
   color: transparent;
   text-shadow: none;
@@ -7683,7 +7671,19 @@ hr.menu {
   text-shadow: none;
   border: 0;
 }
-#lookfor:-ms-input-placeholder {
+#lookfor:-moz-placeholder {
+  font-size: 0;
+  color: transparent;
+  text-shadow: none;
+  border: 0;
+}
+#lookfor::-moz-placeholder {
+  font-size: 0;
+  color: transparent;
+  text-shadow: none;
+  border: 0;
+}
+#lookfor::placeholder {
   font-size: 0;
   color: transparent;
   text-shadow: none;
@@ -7703,7 +7703,8 @@ hr.menu {
   border: none;
   width: 90%;
 }
-#keepFiltersSwitchLabel {
+#keepFiltersSwitchLabel,
+#advancedSearchLink {
   color: #fff;
   font-weight: normal;
 }

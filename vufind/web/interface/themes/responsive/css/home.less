@@ -28,11 +28,13 @@
   border: 0;
 }
 
-#lookfor::placeholder {.placeholder-mixin;}
-#lookfor::-moz-placeholder{.placeholder-mixin;}
-#lookfor:-moz-placeholder{.placeholder-mixin;}
-#lookfor::-webkit-input-placeholder{.placeholder-mixin;}
+// Must keep selectors separate because if the browser does not
+// recognize one of the selectors, it will dispose of the ruleset.
 #lookfor:-ms-input-placeholder{.placeholder-mixin;}
+#lookfor::-webkit-input-placeholder{.placeholder-mixin;}
+#lookfor:-moz-placeholder{.placeholder-mixin;}
+#lookfor::-moz-placeholder{.placeholder-mixin;}
+#lookfor::placeholder {.placeholder-mixin;}
 
 .searchTypeHome{
   margin: 5px 0 0;
@@ -48,7 +50,7 @@
   border: none;
   width: 90%;
 }
-#keepFiltersSwitchLabel{
+#keepFiltersSwitchLabel, #advancedSearchLink{
   color: #fff;
   font-weight: normal;
 }
@@ -125,42 +127,41 @@
 }
 
 // Library Link Formatting
-.sidebar-links .panel-group .panel + .panel{
-  margin-top: 0;
-}
-.sidebar-links .panel-heading{
-  padding: 5px 15px;
-  background-color: #e7e7e7;
-  background: linear-gradient(to bottom, #e7e7e7, #d7d7d7);
-  border-bottom: 1px solid #a1a1a1;
-}
-.sidebar-links .active .panel-heading{
-  background-color: @accordion-active-header-color;
-  background: linear-gradient(to bottom, @accordion-active-header-color, darken(@accordion-active-header-color, 10%));
-}
-.sidebar-links .panel-title{
-  font-size: @sidebar-font-size;
-  color: @gray-dark;
-  text-shadow: 1px 1px #fff;
-}
-.sidebar-links .active .panel-title{
-  color: #fff;
-  text-shadow: 1px 1px @gray;
-}
-.sidebar-links .panel-body{
-  font-size:13px;
-  color: @gray-dark;
-  background-color: #eeeeee;
-}
+.sidebar-links {
+  .panel-group .panel + .panel {
+    margin-top: 0;
+  }
+  .panel-heading {
+    padding: 5px 15px;
+    background-color: #e7e7e7;
+    background: linear-gradient(to bottom, #e7e7e7, #d7d7d7);
+    border-bottom: 1px solid #a1a1a1;
+  }
+  .active .panel-heading {
+    background-color: @accordion-active-header-color;
+    background: linear-gradient(to bottom, @accordion-active-header-color, darken(@accordion-active-header-color, 10%));
+  }
+  .panel-title {
+    font-size: @sidebar-font-size;
+    color: @gray-dark;
+    text-shadow: 1px 1px #fff;
+  }
+  .active .panel-title {
+    color: #fff;
+    text-shadow: 1px 1px @gray;
+  }
+  .panel-body {
+    font-size: 13px;
+    color: @gray-dark;
+    background-color: #eeeeee;
+  }
 
-.sidebar-links .panel-body a, .sidebar-links .panel-body a:visited, .sidebar-links .panel-body a:hover{
-  color: @sidebar-link-color;
+  .panel-body a{
+    &, &:visited, &:hover {
+      color: @sidebar-link-color;
+    }
+  }
 }
-
-
-//#Search-Home #main-content-with-sidebar{
-//  //background-color: #d7dce3;
-//}
 
 // Theming for auto-complete widget //
 .ui-helper-hidden {

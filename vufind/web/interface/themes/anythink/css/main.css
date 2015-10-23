@@ -7659,23 +7659,7 @@ hr.menu {
 #home-page-advanced-search-link {
   color: #fff;
 }
-#lookfor::placeholder {
-  font-size: 0;
-  color: transparent;
-  text-shadow: none;
-  border: 0;
-  color: #998e85;
-  font-size: initial;
-}
-#lookfor::-moz-placeholder {
-  font-size: 0;
-  color: transparent;
-  text-shadow: none;
-  border: 0;
-  color: #998e85;
-  font-size: initial;
-}
-#lookfor:-moz-placeholder {
+#lookfor:-ms-input-placeholder {
   font-size: 0;
   color: transparent;
   text-shadow: none;
@@ -7691,7 +7675,23 @@ hr.menu {
   color: #998e85;
   font-size: initial;
 }
-#lookfor:-ms-input-placeholder {
+#lookfor:-moz-placeholder {
+  font-size: 0;
+  color: transparent;
+  text-shadow: none;
+  border: 0;
+  color: #998e85;
+  font-size: initial;
+}
+#lookfor::-moz-placeholder {
+  font-size: 0;
+  color: transparent;
+  text-shadow: none;
+  border: 0;
+  color: #998e85;
+  font-size: initial;
+}
+#lookfor::placeholder {
   font-size: 0;
   color: transparent;
   text-shadow: none;
@@ -7713,7 +7713,8 @@ hr.menu {
   border: none;
   width: 90%;
 }
-#keepFiltersSwitchLabel {
+#keepFiltersSwitchLabel,
+#advancedSearchLink {
   color: #fff;
   font-weight: normal;
 }
@@ -9212,23 +9213,7 @@ div.bottom-border-line {
 #home-page-search-label {
   display: none;
 }
-#lookfor ::placeholder {
-  font-size: 0;
-  color: transparent;
-  text-shadow: none;
-  border: 0;
-  color: #998e85;
-  font-size: initial;
-}
-#lookfor ::-moz-placeholder {
-  font-size: 0;
-  color: transparent;
-  text-shadow: none;
-  border: 0;
-  color: #998e85;
-  font-size: initial;
-}
-#lookfor :-moz-placeholder {
+#lookfor :-ms-input-placeholder {
   font-size: 0;
   color: transparent;
   text-shadow: none;
@@ -9244,7 +9229,7 @@ div.bottom-border-line {
   color: #998e85;
   font-size: initial;
 }
-#lookfor :-ms-input-placeholder {
+#lookfor :-moz-placeholder {
   font-size: 0;
   color: transparent;
   text-shadow: none;
@@ -9252,19 +9237,35 @@ div.bottom-border-line {
   color: #998e85;
   font-size: initial;
 }
-#lookfor:focus::placeholder {
+#lookfor ::-moz-placeholder {
+  font-size: 0;
+  color: transparent;
+  text-shadow: none;
+  border: 0;
+  color: #998e85;
+  font-size: initial;
+}
+#lookfor ::placeholder {
+  font-size: 0;
+  color: transparent;
+  text-shadow: none;
+  border: 0;
+  color: #998e85;
+  font-size: initial;
+}
+#lookfor:focus:-moz-placeholder {
   color: transparent;
 }
 #lookfor:focus::-moz-placeholder {
-  color: transparent;
-}
-#lookfor:focus:-moz-placeholder {
   color: transparent;
 }
 #lookfor:focus::-webkit-input-placeholder {
   color: transparent;
 }
 #lookfor:focus:-ms-input-placeholder {
+  color: transparent;
+}
+#lookfor:focus::placeholder {
   color: transparent;
 }
 #home-page-search {
