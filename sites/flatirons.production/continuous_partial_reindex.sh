@@ -94,17 +94,17 @@ do
 	#process the export from Millennium to give Pika what it needs
 	#echo "Starting Millennium Export - `date`" >> ${OUTPUT_FILE}
 	cd /usr/local/vufind-plus/vufind/millennium_export/
-	java -jar millennium_export.jar ${PIKASERVER} >> ${OUTPUT_FILE}
+	java -server -XX:+UseG1GC -jar millennium_export.jar ${PIKASERVER} >> ${OUTPUT_FILE}
 
 	#export from overdrive
 	#echo "Starting OverDrive Extract - `date`" >> ${OUTPUT_FILE}
 	cd /usr/local/vufind-plus/vufind/overdrive_api_extract/
-	java -jar overdrive_extract.jar ${PIKASERVER} >> ${OUTPUT_FILE}
+	java -server -XX:+UseG1GC -jar overdrive_extract.jar ${PIKASERVER} >> ${OUTPUT_FILE}
 
 	#run reindex
 	#echo "Starting Reindexing - `date`" >> ${OUTPUT_FILE}
 	cd /usr/local/vufind-plus/vufind/reindexer
-	java -jar reindexer.jar ${PIKASERVER} >> ${OUTPUT_FILE}
+	java -server -XX:+UseG1GC -jar reindexer.jar ${PIKASERVER} >> ${OUTPUT_FILE}
 
 	# add any logic wanted for when to send the emails here. (eg errors only)
 	FILESIZE=$(stat -c%s ${OUTPUT_FILE})

@@ -1,5 +1,6 @@
 package org.vufind;
 
+import au.com.bytecode.opencsv.CSVReader;
 import au.com.bytecode.opencsv.CSVWriter;
 import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.impl.BinaryRequestWriter;
@@ -37,6 +38,7 @@ public class GroupedWorkIndexer {
 	private EVokeProcessor evokeProcessor;
 	private HashMap<String, HashMap<String, String>> translationMaps = new HashMap<>();
 	private HashMap<String, LexileTitle> lexileInformation = new HashMap<>();
+	private HashMap<String, ARTitle> arInformation = new HashMap<>();
 	private Long maxWorksToProcess = -1L;
 
 	private PreparedStatement getRatingStmt;
@@ -69,6 +71,7 @@ public class GroupedWorkIndexer {
 		this.vufindConn = vufindConn;
 		this.fullReindex = fullReindex;
 		this.configIni = configIni;
+
 		solrPort = configIni.get("Reindex", "solrPort");
 
 		availableAtLocationBoostValue = Integer.parseInt(configIni.get("Reindex", "availableAtLocationBoostValue"));
@@ -129,9 +132,18 @@ public class GroupedWorkIndexer {
 		//Initialize the updateServer and solr server
 		GroupedReindexMain.addNoteToReindexLog("Setting up update server and solr server");
 		if (fullReindex){
-			updateServer = new ConcurrentUpdateSolrServer("http://localhost:" + solrPort + "/solr/grouped2", 500, 8);
+			//MDN 10-21-2015 - use the grouped core since we are using replication.
+			updateServer = new ConcurrentUpdateSolrServer("http://localhost:" + solrPort + "/solr/grouped", 500, 8);
 			updateServer.setRequestWriter(new BinaryRequestWriter());
-			solrServer = new HttpSolrServer("http://localhost:" + solrPort + "/solr/grouped2");
+			solrServer = new HttpSolrServer("http://localhost:" + solrPort + "/solr/grouped");
+
+			//Stop replication from the master
+			String url = "http://localhost:" + solrPort + "/solr/grouped/replication?command=disablereplication";
+			URLPostResponse stopReplicationResponse = Util.getURL(url, logger);
+			if (!stopReplicationResponse.isSuccess()){
+				logger.error("Error restarting replication " + stopReplicationResponse.getMessage());
+			}
+
 			updateFullReindexRunning(true);
 		}else{
 			//Check to make sure that at least a couple of minutes have elapsed since the last index
@@ -237,6 +249,9 @@ public class GroupedWorkIndexer {
 
 		String lexileExportPath = configIni.get("Reindex", "lexileExportPath");
 		loadLexileData(lexileExportPath);
+
+		String arExportPath = configIni.get("Reindex", "arExportPath");
+		loadAcceleratedReaderData(arExportPath);
 
 		if (fullReindex){
 			clearIndex();
@@ -427,6 +442,68 @@ public class GroupedWorkIndexer {
 		}
 	}
 
+	private void loadAcceleratedReaderData(String acceleratedReaderPath){
+		try{
+			File arFile = new File(acceleratedReaderPath);
+			BufferedReader arDataReader = new BufferedReader(new FileReader(arFile));
+			//Skip over the header
+			arDataReader.readLine();
+			String arDataLine = arDataReader.readLine();
+			int numLines = 0;
+			while (arDataLine != null){
+				ARTitle titleInfo = new ARTitle();
+				String[] arFields = arDataLine.split("\\t");
+				if (arFields.length >= 29){
+					titleInfo.setTitle(arFields[2]);
+					titleInfo.setAuthor(arFields[6]);
+					titleInfo.setBookLevel(arFields[7]);
+					titleInfo.setArPoints(arFields[8]);
+					titleInfo.setInterestLevel(arFields[10]);
+					String isbn1 = arFields[11];
+					if (isbn1.length() > 0) {
+						isbn1 = isbn1.replaceAll("[^\\dX]", "");
+						arInformation.put(isbn1, titleInfo);
+					}
+					String isbn2 = arFields[14];
+					if (isbn2.length() > 0) {
+						isbn2 = isbn2.replaceAll("[^\\dX]", "");
+						arInformation.put(isbn2, titleInfo);
+					}
+					String isbn3 = arFields[17];
+					if (isbn3.length() > 0) {
+						isbn3 = isbn3.replaceAll("[^\\dX]", "");
+						arInformation.put(isbn3, titleInfo);
+					}
+					String isbn4 = arFields[20];
+					if (isbn4.length() > 0) {
+						isbn4 = isbn4.replaceAll("[^\\dX]", "");
+						arInformation.put(isbn4, titleInfo);
+					}
+					String isbn5 = arFields[23];
+					if (isbn5.length() > 0) {
+						isbn5 = isbn5.replaceAll("[^\\dX]", "");
+						arInformation.put(isbn5, titleInfo);
+					}
+					String isbn6 = arFields[26];
+					if (isbn6.length() > 0) {
+						isbn6 = isbn6.replaceAll("[^\\dX]", "");
+						arInformation.put(isbn6, titleInfo);
+					}
+					String isbn7 = arFields[29];
+					if (isbn7.length() > 0) {
+						isbn7 = isbn7.replaceAll("[^\\dX]", "");
+						arInformation.put(isbn7, titleInfo);
+					}
+					numLines++;
+				}
+				arDataLine = arDataReader.readLine();
+			}
+			logger.info("Read " + numLines + " lines of accelerated reader data");
+		}catch (Exception e){
+			logger.error("Error loading accelerated reader data", e);
+		}
+	}
+
 	private void loadLexileData(String lexileExportPath) {
 		try{
 			File lexileData = new File(lexileExportPath);
@@ -494,12 +571,20 @@ public class GroupedWorkIndexer {
 			}
 			//Swap the indexes
 			if (fullReindex)  {
-				GroupedReindexMain.addNoteToReindexLog("Swapping indexes");
+				//Restart replication from the master
+				String url = "http://localhost:" + solrPort + "/solr/grouped/replication?command=enablereplication";
+				URLPostResponse startReplicationResponse = Util.getURL(url, logger);
+				if (!startReplicationResponse.isSuccess()){
+					logger.error("Error restarting replication " + startReplicationResponse.getMessage());
+				}
+
+				//MDN 10-21-2015 do not swap indexes when using replication
+				/*GroupedReindexMain.addNoteToReindexLog("Swapping indexes");
 				try {
 					Util.getURL("http://localhost:" + solrPort + "/solr/admin/cores?action=SWAP&core=grouped2&other=grouped", logger);
 				} catch (Exception e) {
 					logger.error("Error shutting down update server", e);
-				}
+				}*/
 			}
 		}else {
 			try {
@@ -790,6 +875,8 @@ public class GroupedWorkIndexer {
 			loadLocalEnrichment(groupedWork);
 			//Load lexile data for the work
 			loadLexileDataForWork(groupedWork);
+			//Load accelerated reader data for the work
+			loadAcceleratedDataForWork(groupedWork);
 
 			//Write the record to Solr.
 			try {
@@ -818,6 +905,21 @@ public class GroupedWorkIndexer {
 				if (lexileTitle.getSeries().length() > 0){
 					groupedWork.addSeries(lexileTitle.getSeries());
 				}
+				break;
+			}
+		}
+	}
+
+	private void loadAcceleratedDataForWork(GroupedWorkSolr groupedWork){
+		for(String isbn : groupedWork.getIsbns()){
+			if (arInformation.containsKey(isbn)){
+				ARTitle arTitle = arInformation.get(isbn);
+				String bookLevel = arTitle.getBookLevel();
+				if (bookLevel.length() > 0){
+					groupedWork.setAcceleratedReaderReadingLevel(bookLevel);
+				}
+				groupedWork.setAcceleratedReaderPointValue(arTitle.getArPoints());
+				groupedWork.setAcceleratedReaderInterestLevel(arTitle.getInterestLevel());
 				break;
 			}
 		}

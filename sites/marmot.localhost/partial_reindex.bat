@@ -1,16 +1,14 @@
 @echo off
-#export from sierra (items, holds, and orders)
+REM export from sierra (items, holds, and orders)
 cd c:/web/vufind-plus/vufind/sierra_export/
-java -server -jar sierra_export.jar marmot.localhost
+java -server -XX:+UseG1GC -jar sierra_export.jar marmot.localhost
 
-#export from overdrive
-#echo "Starting OverDrive Extract - `date`"
+REM export from overdrive
 cd c:/web/vufind-plus/vufind/overdrive_api_extract/
-java -server -jar overdrive_extract.jar marmot.localhost
+java -server -XX:+UseG1GC -jar overdrive_extract.jar marmot.localhost
 
-#run reindex
-#echo "Starting Reindexing - `date`"
+REM run reindex
 cd c:/web/vufind-plus/vufind/reindexer
-java -server -jar reindexer.jar marmot.localhost
+java -server -XX:+UseG1GC -jar reindexer.jar marmot.localhost
 
 cd c:/web/vufind-plus/sites/marmot.localhost

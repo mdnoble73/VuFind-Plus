@@ -7,10 +7,12 @@ fi
 
 if [[ ( "$1" == "stop" ) || ( "$1" == "restart") ]]
 	then
+		../default/solr/bin/solr stop -p 8180 -d "/usr/local/vufind-plus/sites/default/solr/jetty"
 		../default/solr/bin/solr stop -p 8080 -d "/usr/local/vufind-plus/sites/default/solr/jetty"
 fi
 
 if [[ ( "$1" == "start" ) || ( "$1" == "restart") ]]
 	then
-		../default/solr/bin/solr start -m 8g -p 8080 -s "/data/vufind-plus/testvufind.co.wake.nc.us/solr" -d "/usr/local/vufind-plus/sites/default/solr/jetty"
+		../default/solr/bin/solr start -m 4g -p 8180 -s "/data/vufind-plus/testvufind.co.wake.nc.us/solr_master" -d "/usr/local/vufind-plus/sites/default/solr/jetty"
+		../default/solr/bin/solr start -m 4g -p 8080 -a "-Dsolr.masterport=8180" -s "/data/vufind-plus/testvufind.co.wake.nc.us/solr_searcher" -d "/usr/local/vufind-plus/sites/default/solr/jetty"
 fi
