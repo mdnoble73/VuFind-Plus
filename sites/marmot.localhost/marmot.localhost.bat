@@ -35,9 +35,9 @@ goto done
 :stop
 rem Stop Solr
   REM Stop Master
-  call ..\default\solr\bin\solr.cmd stop -p 8180 -d "c:\web\VuFind-Plus\sites\default\solr\jetty"
+  call ..\default\solr\bin\solr.cmd stop -p 8180 -s "c:\data\vufind-plus\marmot.localhost\solr_master" -d "c:\web\VuFind-Plus\sites\default\solr\jetty"
   REM Stop Slave
-  call ..\default\solr\bin\solr.cmd stop -p 8080 -d "c:\web\VuFind-Plus\sites\default\solr\jetty"
+  call ..\default\solr\bin\solr.cmd stop -p 8080 -s "c:\data\vufind-plus\marmot.localhost\solr_searcher" -d "c:\web\VuFind-Plus\sites\default\solr\jetty"
 if "%1"=="restart" goto start
 goto done
 
