@@ -3,7 +3,7 @@ package org.vufind;
 import java.util.HashSet;
 
 /**
- * Description goes here
+ * Contains information about the lexile information related to a title.
  * Pika
  * User: Mark Noble
  * Date: 3/6/14

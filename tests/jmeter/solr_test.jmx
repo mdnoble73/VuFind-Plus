@@ -14,12 +14,12 @@
           </elementProp>
           <elementProp name="numUsers" elementType="Argument">
             <stringProp name="Argument.name">numUsers</stringProp>
-            <stringProp name="Argument.value">1</stringProp>
+            <stringProp name="Argument.value">5</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
           <elementProp name="duration" elementType="Argument">
             <stringProp name="Argument.name">duration</stringProp>
-            <stringProp name="Argument.value">300</stringProp>
+            <stringProp name="Argument.value">900</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
           <elementProp name="solrPort" elementType="Argument">
@@ -128,41 +128,6 @@
             <stringProp name="Argument.metadata">=</stringProp>
             <stringProp name="Argument.desc">Directory ID files are stored in</stringProp>
           </elementProp>
-          <elementProp name="searchTermFileName" elementType="Argument">
-            <stringProp name="Argument.name">searchTermFileName</stringProp>
-            <stringProp name="Argument.value">2000randomSearchTermsFromVenus10-30-2014.csv</stringProp>
-            <stringProp name="Argument.metadata">=</stringProp>
-          </elementProp>
-          <elementProp name="ILSRecordIDFileName" elementType="Argument">
-            <stringProp name="Argument.name">ILSRecordIDFileName</stringProp>
-            <stringProp name="Argument.value">4000recordIDsFromAspencatPika5-7-2015.csv</stringProp>
-            <stringProp name="Argument.metadata">=</stringProp>
-          </elementProp>
-          <elementProp name="GroupedWorkIDFileName" elementType="Argument">
-            <stringProp name="Argument.name">GroupedWorkIDFileName</stringProp>
-            <stringProp name="Argument.value">4000groupedworkIDsFromAspencatPika5-7-2015.csv</stringProp>
-            <stringProp name="Argument.metadata">=</stringProp>
-          </elementProp>
-          <elementProp name="OverdriveIDFileName" elementType="Argument">
-            <stringProp name="Argument.name">OverdriveIDFileName</stringProp>
-            <stringProp name="Argument.value">4000overdriveIDsFromAspencatPika8-26-2015.csv</stringProp>
-            <stringProp name="Argument.metadata">=</stringProp>
-          </elementProp>
-          <elementProp name="HooplaIDFileName" elementType="Argument">
-            <stringProp name="Argument.name">HooplaIDFileName</stringProp>
-            <stringProp name="Argument.value"></stringProp>
-            <stringProp name="Argument.metadata">=</stringProp>
-          </elementProp>
-          <elementProp name="LSSIDsFileName" elementType="Argument">
-            <stringProp name="Argument.name">LSSIDsFileName</stringProp>
-            <stringProp name="Argument.value"></stringProp>
-            <stringProp name="Argument.metadata">=</stringProp>
-          </elementProp>
-          <elementProp name="ILSLoginsFileName" elementType="Argument">
-            <stringProp name="Argument.name">ILSLoginsFileName</stringProp>
-            <stringProp name="Argument.value">1893AspencatLoginsFromMercury8-26-2015.csv</stringProp>
-            <stringProp name="Argument.metadata">=</stringProp>
-          </elementProp>
           <elementProp name="SolrQueriesFileName" elementType="Argument">
             <stringProp name="Argument.name">SolrQueriesFileName</stringProp>
             <stringProp name="Argument.value">solrQueriesUsingNashvilleSearchTermsWithAspencatQueryFields.csv</stringProp>
@@ -203,41 +168,6 @@
             <stringProp name="Argument.metadata">=</stringProp>
             <stringProp name="Argument.desc">Directory ID files are stored in</stringProp>
           </elementProp>
-          <elementProp name="searchTermFileName" elementType="Argument">
-            <stringProp name="Argument.name">searchTermFileName</stringProp>
-            <stringProp name="Argument.value">2000randomSearchTermsFromVenus10-30-2014.csv</stringProp>
-            <stringProp name="Argument.metadata">=</stringProp>
-          </elementProp>
-          <elementProp name="ILSRecordIDFileName" elementType="Argument">
-            <stringProp name="Argument.name">ILSRecordIDFileName</stringProp>
-            <stringProp name="Argument.value">4000recordIDsFromAspencatPika5-7-2015.csv</stringProp>
-            <stringProp name="Argument.metadata">=</stringProp>
-          </elementProp>
-          <elementProp name="GroupedWorkIDFileName" elementType="Argument">
-            <stringProp name="Argument.name">GroupedWorkIDFileName</stringProp>
-            <stringProp name="Argument.value">4000groupedworkIDsFromAspencatPika5-7-2015.csv</stringProp>
-            <stringProp name="Argument.metadata">=</stringProp>
-          </elementProp>
-          <elementProp name="OverdriveIDFileName" elementType="Argument">
-            <stringProp name="Argument.name">OverdriveIDFileName</stringProp>
-            <stringProp name="Argument.value">4000overdriveIDsFromAspencatPika8-26-2015.csv</stringProp>
-            <stringProp name="Argument.metadata">=</stringProp>
-          </elementProp>
-          <elementProp name="HooplaIDFileName" elementType="Argument">
-            <stringProp name="Argument.name">HooplaIDFileName</stringProp>
-            <stringProp name="Argument.value"></stringProp>
-            <stringProp name="Argument.metadata">=</stringProp>
-          </elementProp>
-          <elementProp name="LSSIDsFileName" elementType="Argument">
-            <stringProp name="Argument.name">LSSIDsFileName</stringProp>
-            <stringProp name="Argument.value"></stringProp>
-            <stringProp name="Argument.metadata">=</stringProp>
-          </elementProp>
-          <elementProp name="ILSLoginsFileName" elementType="Argument">
-            <stringProp name="Argument.name">ILSLoginsFileName</stringProp>
-            <stringProp name="Argument.value">1893AspencatLoginsFromMercury8-26-2015.csv</stringProp>
-            <stringProp name="Argument.metadata">=</stringProp>
-          </elementProp>
           <elementProp name="SolrQueriesFileName" elementType="Argument">
             <stringProp name="Argument.name">SolrQueriesFileName</stringProp>
             <stringProp name="Argument.value">solrQueriesUsingNashvilleSearchTermsWithAspencatQueryFields.csv</stringProp>
@@ -247,7 +177,7 @@
         <stringProp name="TestPlan.comments"> This contains the information needed to test a specific site. Toggle on the *one* site you wish to test against.</stringProp>
       </Arguments>
       <hashTree/>
-      <Arguments guiclass="ArgumentsPanel" testclass="Arguments" testname="Marmot Local Site Configuration" enabled="false">
+      <Arguments guiclass="ArgumentsPanel" testclass="Arguments" testname="Marmot Local Site Configuration" enabled="true">
         <collectionProp name="Arguments.arguments">
           <elementProp name="url" elementType="Argument">
             <stringProp name="Argument.name">url</stringProp>
@@ -273,41 +203,6 @@
             <stringProp name="Argument.metadata">=</stringProp>
             <stringProp name="Argument.desc">Directory ID files are stored in</stringProp>
           </elementProp>
-          <elementProp name="searchTermFileName" elementType="Argument">
-            <stringProp name="Argument.name">searchTermFileName</stringProp>
-            <stringProp name="Argument.value">2000randomSearchTermsFromVenus10-30-2014.csv</stringProp>
-            <stringProp name="Argument.metadata">=</stringProp>
-          </elementProp>
-          <elementProp name="ILSRecordIDFileName" elementType="Argument">
-            <stringProp name="Argument.name">ILSRecordIDFileName</stringProp>
-            <stringProp name="Argument.value">2000recordIDsfromVenus.csv</stringProp>
-            <stringProp name="Argument.metadata">=</stringProp>
-          </elementProp>
-          <elementProp name="GroupedWorkIDFileName" elementType="Argument">
-            <stringProp name="Argument.name">GroupedWorkIDFileName</stringProp>
-            <stringProp name="Argument.value">4000groupedWorkIDsFromVenus.csv</stringProp>
-            <stringProp name="Argument.metadata">=</stringProp>
-          </elementProp>
-          <elementProp name="OverdriveIDFileName" elementType="Argument">
-            <stringProp name="Argument.name">OverdriveIDFileName</stringProp>
-            <stringProp name="Argument.value">2000overDriveIDsFromVenus.csv</stringProp>
-            <stringProp name="Argument.metadata">=</stringProp>
-          </elementProp>
-          <elementProp name="HooplaIDFileName" elementType="Argument">
-            <stringProp name="Argument.name">HooplaIDFileName</stringProp>
-            <stringProp name="Argument.value">4000HooplaIDsFromVenus8-26-2015.csv</stringProp>
-            <stringProp name="Argument.metadata">=</stringProp>
-          </elementProp>
-          <elementProp name="LSSIDsFileName" elementType="Argument">
-            <stringProp name="Argument.name">LSSIDsFileName</stringProp>
-            <stringProp name="Argument.value"></stringProp>
-            <stringProp name="Argument.metadata">=</stringProp>
-          </elementProp>
-          <elementProp name="ILSLoginsFileName" elementType="Argument">
-            <stringProp name="Argument.name">ILSLoginsFileName</stringProp>
-            <stringProp name="Argument.value">4000LoginsFromVenus8-18-2015.csv</stringProp>
-            <stringProp name="Argument.metadata">=</stringProp>
-          </elementProp>
           <elementProp name="SolrQueriesFileName" elementType="Argument">
             <stringProp name="Argument.name">SolrQueriesFileName</stringProp>
             <stringProp name="Argument.value">500solrQueries.csv</stringProp>
@@ -323,7 +218,7 @@
         <stringProp name="TestPlan.comments"> This contains the information needed to test a specific site. Toggle on the *one* site you wish to test against.</stringProp>
       </Arguments>
       <hashTree/>
-      <Arguments guiclass="ArgumentsPanel" testclass="Arguments" testname="Marmot Test Site Configuration" enabled="true">
+      <Arguments guiclass="ArgumentsPanel" testclass="Arguments" testname="Marmot Test Site Configuration" enabled="false">
         <collectionProp name="Arguments.arguments">
           <elementProp name="url" elementType="Argument">
             <stringProp name="Argument.name">url</stringProp>
@@ -348,41 +243,6 @@
             <stringProp name="Argument.value">C:\web\VuFind-Plus\tests\jmeter\conf\marmot</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
             <stringProp name="Argument.desc">Directory ID files are stored in</stringProp>
-          </elementProp>
-          <elementProp name="searchTermFileName" elementType="Argument">
-            <stringProp name="Argument.name">searchTermFileName</stringProp>
-            <stringProp name="Argument.value">2000randomSearchTermsFromVenus10-30-2014.csv</stringProp>
-            <stringProp name="Argument.metadata">=</stringProp>
-          </elementProp>
-          <elementProp name="ILSRecordIDFileName" elementType="Argument">
-            <stringProp name="Argument.name">ILSRecordIDFileName</stringProp>
-            <stringProp name="Argument.value">2000recordIDsfromVenus.csv</stringProp>
-            <stringProp name="Argument.metadata">=</stringProp>
-          </elementProp>
-          <elementProp name="GroupedWorkIDFileName" elementType="Argument">
-            <stringProp name="Argument.name">GroupedWorkIDFileName</stringProp>
-            <stringProp name="Argument.value">4000groupedWorkIDsFromVenus.csv</stringProp>
-            <stringProp name="Argument.metadata">=</stringProp>
-          </elementProp>
-          <elementProp name="OverdriveIDFileName" elementType="Argument">
-            <stringProp name="Argument.name">OverdriveIDFileName</stringProp>
-            <stringProp name="Argument.value">2000overDriveIDsFromVenus.csv</stringProp>
-            <stringProp name="Argument.metadata">=</stringProp>
-          </elementProp>
-          <elementProp name="HooplaIDFileName" elementType="Argument">
-            <stringProp name="Argument.name">HooplaIDFileName</stringProp>
-            <stringProp name="Argument.value">4000HooplaIDsFromVenus8-26-2015.csv</stringProp>
-            <stringProp name="Argument.metadata">=</stringProp>
-          </elementProp>
-          <elementProp name="LSSIDsFileName" elementType="Argument">
-            <stringProp name="Argument.name">LSSIDsFileName</stringProp>
-            <stringProp name="Argument.value"></stringProp>
-            <stringProp name="Argument.metadata">=</stringProp>
-          </elementProp>
-          <elementProp name="ILSLoginsFileName" elementType="Argument">
-            <stringProp name="Argument.name">ILSLoginsFileName</stringProp>
-            <stringProp name="Argument.value">4000LoginsFromVenus8-18-2015.csv</stringProp>
-            <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
           <elementProp name="SolrQueriesFileName" elementType="Argument">
             <stringProp name="Argument.name">SolrQueriesFileName</stringProp>
@@ -425,41 +285,6 @@
             <stringProp name="Argument.metadata">=</stringProp>
             <stringProp name="Argument.desc">Directory ID files are stored in</stringProp>
           </elementProp>
-          <elementProp name="searchTermFileName" elementType="Argument">
-            <stringProp name="Argument.name">searchTermFileName</stringProp>
-            <stringProp name="Argument.value">20150820_searchTermsFromNashville.csv</stringProp>
-            <stringProp name="Argument.metadata">=</stringProp>
-          </elementProp>
-          <elementProp name="ILSRecordIDFileName" elementType="Argument">
-            <stringProp name="Argument.name">ILSRecordIDFileName</stringProp>
-            <stringProp name="Argument.value">2000recordIDsfromVenus.csv</stringProp>
-            <stringProp name="Argument.metadata">=</stringProp>
-          </elementProp>
-          <elementProp name="GroupedWorkIDFileName" elementType="Argument">
-            <stringProp name="Argument.name">GroupedWorkIDFileName</stringProp>
-            <stringProp name="Argument.value">4000groupedWorkIDsFromVenus.csv</stringProp>
-            <stringProp name="Argument.metadata">=</stringProp>
-          </elementProp>
-          <elementProp name="OverdriveIDFileName" elementType="Argument">
-            <stringProp name="Argument.name">OverdriveIDFileName</stringProp>
-            <stringProp name="Argument.value">2000overDriveIDsFromVenus.csv</stringProp>
-            <stringProp name="Argument.metadata">=</stringProp>
-          </elementProp>
-          <elementProp name="HooplaIDFileName" elementType="Argument">
-            <stringProp name="Argument.name">HooplaIDFileName</stringProp>
-            <stringProp name="Argument.value">4000HooplaIDsFromVenus8-26-2015.csv</stringProp>
-            <stringProp name="Argument.metadata">=</stringProp>
-          </elementProp>
-          <elementProp name="LSSIDsFileName" elementType="Argument">
-            <stringProp name="Argument.name">LSSIDsFileName</stringProp>
-            <stringProp name="Argument.value"></stringProp>
-            <stringProp name="Argument.metadata">=</stringProp>
-          </elementProp>
-          <elementProp name="ILSLoginsFileName" elementType="Argument">
-            <stringProp name="Argument.name">ILSLoginsFileName</stringProp>
-            <stringProp name="Argument.value">4000LoginsFromVenus8-18-2015.csv</stringProp>
-            <stringProp name="Argument.metadata">=</stringProp>
-          </elementProp>
           <elementProp name="SolrQueriesFileName" elementType="Argument">
             <stringProp name="Argument.name">SolrQueriesFileName</stringProp>
             <stringProp name="Argument.value">solrQueriesUsingNashvilleSearchTerms.csv</stringProp>
@@ -496,41 +321,6 @@
             <stringProp name="Argument.metadata">=</stringProp>
             <stringProp name="Argument.desc">Directory ID files are stored in</stringProp>
           </elementProp>
-          <elementProp name="searchTermFileName" elementType="Argument">
-            <stringProp name="Argument.name">searchTermFileName</stringProp>
-            <stringProp name="Argument.value">4000searchtermsfromVenus_cleanedup.csv</stringProp>
-            <stringProp name="Argument.metadata">=</stringProp>
-          </elementProp>
-          <elementProp name="ILSRecordIDFileName" elementType="Argument">
-            <stringProp name="Argument.name">ILSRecordIDFileName</stringProp>
-            <stringProp name="Argument.value">4000recordIDsFromAnythinkOnVenus.csv</stringProp>
-            <stringProp name="Argument.metadata">=</stringProp>
-          </elementProp>
-          <elementProp name="GroupedWorkIDFileName" elementType="Argument">
-            <stringProp name="Argument.name">GroupedWorkIDFileName</stringProp>
-            <stringProp name="Argument.value">4000groupedWorkIDsFromAnythinkProduction_8-28-2015.csv</stringProp>
-            <stringProp name="Argument.metadata">=</stringProp>
-          </elementProp>
-          <elementProp name="OverdriveIDFileName" elementType="Argument">
-            <stringProp name="Argument.name">OverdriveIDFileName</stringProp>
-            <stringProp name="Argument.value">4000overdriveIDsFromAnythinkProduction.csv</stringProp>
-            <stringProp name="Argument.metadata">=</stringProp>
-          </elementProp>
-          <elementProp name="HooplaIDFileName" elementType="Argument">
-            <stringProp name="Argument.name">HooplaIDFileName</stringProp>
-            <stringProp name="Argument.value">4000HooplaIDsFromAnythinkTestServer_8-28-2015.csv</stringProp>
-            <stringProp name="Argument.metadata">=</stringProp>
-          </elementProp>
-          <elementProp name="LSSIDsFileName" elementType="Argument">
-            <stringProp name="Argument.name">LSSIDsFileName</stringProp>
-            <stringProp name="Argument.value"></stringProp>
-            <stringProp name="Argument.metadata">=</stringProp>
-          </elementProp>
-          <elementProp name="ILSLoginsFileName" elementType="Argument">
-            <stringProp name="Argument.name">ILSLoginsFileName</stringProp>
-            <stringProp name="Argument.value">4000randomloginIDsformAnythink.csv</stringProp>
-            <stringProp name="Argument.metadata">=</stringProp>
-          </elementProp>
         </collectionProp>
         <stringProp name="TestPlan.comments"> This contains the information needed to test a specific site. Toggle on the *one* site you wish to test against.</stringProp>
       </Arguments>
@@ -560,41 +350,6 @@
             <stringProp name="Argument.value">C:\web\VuFind-Plus\tests\jmeter\results\nashville_production</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
             <stringProp name="Argument.desc">Directory ID files are stored in</stringProp>
-          </elementProp>
-          <elementProp name="searchTermFileName" elementType="Argument">
-            <stringProp name="Argument.name">searchTermFileName</stringProp>
-            <stringProp name="Argument.value">20150820_searchTerms.csv</stringProp>
-            <stringProp name="Argument.metadata">=</stringProp>
-          </elementProp>
-          <elementProp name="ILSRecordIDFileName" elementType="Argument">
-            <stringProp name="Argument.name">ILSRecordIDFileName</stringProp>
-            <stringProp name="Argument.value">20150820_ilsIdsMillennium.csv</stringProp>
-            <stringProp name="Argument.metadata">=</stringProp>
-          </elementProp>
-          <elementProp name="GroupedWorkIDFileName" elementType="Argument">
-            <stringProp name="Argument.name">GroupedWorkIDFileName</stringProp>
-            <stringProp name="Argument.value">20150820_groupedWorkIds.csv</stringProp>
-            <stringProp name="Argument.metadata">=</stringProp>
-          </elementProp>
-          <elementProp name="OverdriveIDFileName" elementType="Argument">
-            <stringProp name="Argument.name">OverdriveIDFileName</stringProp>
-            <stringProp name="Argument.value">20150821_overDriveIds.csv</stringProp>
-            <stringProp name="Argument.metadata">=</stringProp>
-          </elementProp>
-          <elementProp name="HooplaIDFileName" elementType="Argument">
-            <stringProp name="Argument.name">HooplaIDFileName</stringProp>
-            <stringProp name="Argument.value">20150820_ilsIdsHoopla.csv</stringProp>
-            <stringProp name="Argument.metadata">=</stringProp>
-          </elementProp>
-          <elementProp name="LSSIDsFileName" elementType="Argument">
-            <stringProp name="Argument.name">LSSIDsFileName</stringProp>
-            <stringProp name="Argument.value">20150820_ilsIdsLSS.csv</stringProp>
-            <stringProp name="Argument.metadata">=</stringProp>
-          </elementProp>
-          <elementProp name="ILSLoginsFileName" elementType="Argument">
-            <stringProp name="Argument.name">ILSLoginsFileName</stringProp>
-            <stringProp name="Argument.value">20150820_patrons.csv</stringProp>
-            <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
         </collectionProp>
         <stringProp name="TestPlan.comments"> This contains the information needed to test a specific site. Toggle on the *one* site you wish to test against.</stringProp>
@@ -626,41 +381,6 @@
             <stringProp name="Argument.metadata">=</stringProp>
             <stringProp name="Argument.desc">Directory ID files are stored in</stringProp>
           </elementProp>
-          <elementProp name="searchTermFileName" elementType="Argument">
-            <stringProp name="Argument.name">searchTermFileName</stringProp>
-            <stringProp name="Argument.value">20150820_searchTerms.csv</stringProp>
-            <stringProp name="Argument.metadata">=</stringProp>
-          </elementProp>
-          <elementProp name="ILSRecordIDFileName" elementType="Argument">
-            <stringProp name="Argument.name">ILSRecordIDFileName</stringProp>
-            <stringProp name="Argument.value">20150820_ilsIdsMillennium.csv</stringProp>
-            <stringProp name="Argument.metadata">=</stringProp>
-          </elementProp>
-          <elementProp name="GroupedWorkIDFileName" elementType="Argument">
-            <stringProp name="Argument.name">GroupedWorkIDFileName</stringProp>
-            <stringProp name="Argument.value">20150820_groupedWorkIds.csv</stringProp>
-            <stringProp name="Argument.metadata">=</stringProp>
-          </elementProp>
-          <elementProp name="OverdriveIDFileName" elementType="Argument">
-            <stringProp name="Argument.name">OverdriveIDFileName</stringProp>
-            <stringProp name="Argument.value">20150821_overDriveIds.csv</stringProp>
-            <stringProp name="Argument.metadata">=</stringProp>
-          </elementProp>
-          <elementProp name="HooplaIDFileName" elementType="Argument">
-            <stringProp name="Argument.name">HooplaIDFileName</stringProp>
-            <stringProp name="Argument.value">20150820_ilsIdsHoopla.csv</stringProp>
-            <stringProp name="Argument.metadata">=</stringProp>
-          </elementProp>
-          <elementProp name="LSSIDsFileName" elementType="Argument">
-            <stringProp name="Argument.name">LSSIDsFileName</stringProp>
-            <stringProp name="Argument.value">20150820_ilsIdsLSS.csv</stringProp>
-            <stringProp name="Argument.metadata">=</stringProp>
-          </elementProp>
-          <elementProp name="ILSLoginsFileName" elementType="Argument">
-            <stringProp name="Argument.name">ILSLoginsFileName</stringProp>
-            <stringProp name="Argument.value">20150820_patrons.csv</stringProp>
-            <stringProp name="Argument.metadata">=</stringProp>
-          </elementProp>
         </collectionProp>
         <stringProp name="TestPlan.comments"> This contains the information needed to test a specific site. Toggle on the *one* site you wish to test against.</stringProp>
       </Arguments>
@@ -690,41 +410,6 @@
             <stringProp name="Argument.value">C:\web\VuFind-Plus\tests\jmeter\results\flatirons_production</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
             <stringProp name="Argument.desc">Directory ID files are stored in</stringProp>
-          </elementProp>
-          <elementProp name="searchTermFileName" elementType="Argument">
-            <stringProp name="Argument.name">searchTermFileName</stringProp>
-            <stringProp name="Argument.value">4000randomSearchPhrasesFromFlatIronsProduction.csv</stringProp>
-            <stringProp name="Argument.metadata">=</stringProp>
-          </elementProp>
-          <elementProp name="ILSRecordIDFileName" elementType="Argument">
-            <stringProp name="Argument.name">ILSRecordIDFileName</stringProp>
-            <stringProp name="Argument.value">4000randomRecordIdsFromFlatIronsProduction.8-27-2015.csv</stringProp>
-            <stringProp name="Argument.metadata">=</stringProp>
-          </elementProp>
-          <elementProp name="GroupedWorkIDFileName" elementType="Argument">
-            <stringProp name="Argument.name">GroupedWorkIDFileName</stringProp>
-            <stringProp name="Argument.value">4000randomGroupedWorkIdsFromFlatIronsProduction.8-27-2015.csv</stringProp>
-            <stringProp name="Argument.metadata">=</stringProp>
-          </elementProp>
-          <elementProp name="OverdriveIDFileName" elementType="Argument">
-            <stringProp name="Argument.name">OverdriveIDFileName</stringProp>
-            <stringProp name="Argument.value">4000randomOverdriveIdsFromFlatIronsProduction.8-27-2015.csv</stringProp>
-            <stringProp name="Argument.metadata">=</stringProp>
-          </elementProp>
-          <elementProp name="HooplaIDFileName" elementType="Argument">
-            <stringProp name="Argument.name">HooplaIDFileName</stringProp>
-            <stringProp name="Argument.value">4000randomHooplaIdsFromFlatIronsProduction.8-27-2015.csv</stringProp>
-            <stringProp name="Argument.metadata">=</stringProp>
-          </elementProp>
-          <elementProp name="LSSIDsFileName" elementType="Argument">
-            <stringProp name="Argument.name">LSSIDsFileName</stringProp>
-            <stringProp name="Argument.value"></stringProp>
-            <stringProp name="Argument.metadata">=</stringProp>
-          </elementProp>
-          <elementProp name="ILSLoginsFileName" elementType="Argument">
-            <stringProp name="Argument.name">ILSLoginsFileName</stringProp>
-            <stringProp name="Argument.value">4000randomLoginsFromFlatIronsProduction.8-27-2015.csv</stringProp>
-            <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
         </collectionProp>
         <stringProp name="TestPlan.comments"> This contains the information needed to test a specific site. Toggle on the *one* site you wish to test against.</stringProp>
@@ -756,41 +441,6 @@
             <stringProp name="Argument.metadata">=</stringProp>
             <stringProp name="Argument.desc">Directory ID files are stored in</stringProp>
           </elementProp>
-          <elementProp name="searchTermFileName" elementType="Argument">
-            <stringProp name="Argument.name">searchTermFileName</stringProp>
-            <stringProp name="Argument.value">4000searchtermsfromVenus_cleanedup.csv</stringProp>
-            <stringProp name="Argument.metadata">=</stringProp>
-          </elementProp>
-          <elementProp name="ILSRecordIDFileName" elementType="Argument">
-            <stringProp name="Argument.name">ILSRecordIDFileName</stringProp>
-            <stringProp name="Argument.value">4000recordIDsFromWakeCountyPikaMySQLserver.csv</stringProp>
-            <stringProp name="Argument.metadata">=</stringProp>
-          </elementProp>
-          <elementProp name="GroupedWorkIDFileName" elementType="Argument">
-            <stringProp name="Argument.name">GroupedWorkIDFileName</stringProp>
-            <stringProp name="Argument.value">4000groupedworkIDsFromWakeCountyPikaMySQLserver.csv</stringProp>
-            <stringProp name="Argument.metadata">=</stringProp>
-          </elementProp>
-          <elementProp name="OverdriveIDFileName" elementType="Argument">
-            <stringProp name="Argument.name">OverdriveIDFileName</stringProp>
-            <stringProp name="Argument.value">4000overdriveIDsFromWakeCountyPikaMySQLserver.csv</stringProp>
-            <stringProp name="Argument.metadata">=</stringProp>
-          </elementProp>
-          <elementProp name="HooplaIDFileName" elementType="Argument">
-            <stringProp name="Argument.name">HooplaIDFileName</stringProp>
-            <stringProp name="Argument.value"></stringProp>
-            <stringProp name="Argument.metadata">=</stringProp>
-          </elementProp>
-          <elementProp name="LSSIDsFileName" elementType="Argument">
-            <stringProp name="Argument.name">LSSIDsFileName</stringProp>
-            <stringProp name="Argument.value"></stringProp>
-            <stringProp name="Argument.metadata">=</stringProp>
-          </elementProp>
-          <elementProp name="ILSLoginsFileName" elementType="Argument">
-            <stringProp name="Argument.name">ILSLoginsFileName</stringProp>
-            <stringProp name="Argument.value">4000loginsFromWakeCountyPikaMySQLserver.csv</stringProp>
-            <stringProp name="Argument.metadata">=</stringProp>
-          </elementProp>
         </collectionProp>
         <stringProp name="TestPlan.comments"> This contains the information needed to test a specific site. Toggle on the *one* site you wish to test against.</stringProp>
       </Arguments>
@@ -820,41 +470,6 @@
             <stringProp name="Argument.value">C:\web\VuFind-Plus\tests\jmeter\results\wake_county_production</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
             <stringProp name="Argument.desc">Directory ID files are stored in</stringProp>
-          </elementProp>
-          <elementProp name="searchTermFileName" elementType="Argument">
-            <stringProp name="Argument.name">searchTermFileName</stringProp>
-            <stringProp name="Argument.value">4000searchtermsfromVenus_cleanedup.csv</stringProp>
-            <stringProp name="Argument.metadata">=</stringProp>
-          </elementProp>
-          <elementProp name="ILSRecordIDFileName" elementType="Argument">
-            <stringProp name="Argument.name">ILSRecordIDFileName</stringProp>
-            <stringProp name="Argument.value">4000recordIDsFromWakeCountyPikaMySQLserver.csv</stringProp>
-            <stringProp name="Argument.metadata">=</stringProp>
-          </elementProp>
-          <elementProp name="GroupedWorkIDFileName" elementType="Argument">
-            <stringProp name="Argument.name">GroupedWorkIDFileName</stringProp>
-            <stringProp name="Argument.value">4000groupedworkIDsFromWakeCountyPikaMySQLserver.csv</stringProp>
-            <stringProp name="Argument.metadata">=</stringProp>
-          </elementProp>
-          <elementProp name="OverdriveIDFileName" elementType="Argument">
-            <stringProp name="Argument.name">OverdriveIDFileName</stringProp>
-            <stringProp name="Argument.value">4000overdriveIDsFromWakeCountyPikaMySQLserver.csv</stringProp>
-            <stringProp name="Argument.metadata">=</stringProp>
-          </elementProp>
-          <elementProp name="HooplaIDFileName" elementType="Argument">
-            <stringProp name="Argument.name">HooplaIDFileName</stringProp>
-            <stringProp name="Argument.value"></stringProp>
-            <stringProp name="Argument.metadata">=</stringProp>
-          </elementProp>
-          <elementProp name="LSSIDsFileName" elementType="Argument">
-            <stringProp name="Argument.name">LSSIDsFileName</stringProp>
-            <stringProp name="Argument.value"></stringProp>
-            <stringProp name="Argument.metadata">=</stringProp>
-          </elementProp>
-          <elementProp name="ILSLoginsFileName" elementType="Argument">
-            <stringProp name="Argument.name">ILSLoginsFileName</stringProp>
-            <stringProp name="Argument.value">4000loginsFromWakeCountyPikaMySQLserver.csv</stringProp>
-            <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
         </collectionProp>
         <stringProp name="TestPlan.comments"> This contains the information needed to test a specific site. Toggle on the *one* site you wish to test against.</stringProp>

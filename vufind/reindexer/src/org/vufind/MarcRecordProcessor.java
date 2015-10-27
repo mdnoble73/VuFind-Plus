@@ -62,9 +62,10 @@ public abstract class MarcRecordProcessor {
 		loadLiteraryForms(groupedWork, record, identifier);
 		loadTargetAudiences(groupedWork, record, printItems, identifier);
 		groupedWork.addMpaaRating(getMpaaRating(record));
-		groupedWork.setAcceleratedReaderInterestLevel(getAcceleratedReaderInterestLevel(record));
+		//Do not load ar data from MARC since we now get it directly from Renaissance Learning
+		/*groupedWork.setAcceleratedReaderInterestLevel(getAcceleratedReaderInterestLevel(record));
 		groupedWork.setAcceleratedReaderReadingLevel(getAcceleratedReaderReadingLevel(record));
-		groupedWork.setAcceleratedReaderPointValue(getAcceleratedReaderPointLevel(record));
+		groupedWork.setAcceleratedReaderPointValue(getAcceleratedReaderPointLevel(record));*/
 		groupedWork.addAllFields(getAllFields(record));
 		groupedWork.addKeywords(getAllSearchableFields(record, 100, 900));
 	}
@@ -627,7 +628,7 @@ public abstract class MarcRecordProcessor {
 		return variableFieldReturn;
 	}
 
-	private static Pattern arNumberPattern = Pattern.compile("([\\d.]+)", Pattern.CANON_EQ | Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE);
+	/*private static Pattern arNumberPattern = Pattern.compile("([\\d.]+)", Pattern.CANON_EQ | Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE);
 	public String getAcceleratedReaderReadingLevel(Record marcRecord) {
 		String result;
 		// Get a list of all tags that may contain the lexile score.
@@ -660,7 +661,7 @@ public abstract class MarcRecordProcessor {
 		}
 
 		return null;
-	}
+	}*/
 
 	public String getAllFields(Record marcRecord) {
 		StringBuilder allFieldData = new StringBuilder();
@@ -738,7 +739,7 @@ public abstract class MarcRecordProcessor {
 		return (value);
 	}
 
-	public String getAcceleratedReaderPointLevel(Record marcRecord) {
+	/*public String getAcceleratedReaderPointLevel(Record marcRecord) {
 		try {
 			String result;
 			// Get a list of all tags that may contain the lexile score.
@@ -773,9 +774,9 @@ public abstract class MarcRecordProcessor {
 			logger.error("Error mapping AR points");
 			return null;
 		}
-	}
+	}*/
 
-	public String getAcceleratedReaderInterestLevel(Record marcRecord) {
+	/*public String getAcceleratedReaderInterestLevel(Record marcRecord) {
 		try {
 			// Get a list of all tags that may contain the lexile score.
 			@SuppressWarnings("unchecked")
@@ -799,7 +800,7 @@ public abstract class MarcRecordProcessor {
 			logger.error("Error mapping AR interest level", e);
 			return null;
 		}
-	}
+	}*/
 
 	/**
 	 * Get Set of Strings as indicated by tagStr. For each field spec in the

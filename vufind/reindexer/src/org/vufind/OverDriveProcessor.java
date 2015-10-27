@@ -382,7 +382,8 @@ public class OverDriveProcessor {
 			groupedWork.addPopularity(metadataRS.getFloat("popularity") / 500f);
 
 			//Decode JSON data to get a little more information
-			try {
+			//Do not worry about accelerated reader data since we get info direct from Renaissance Learning
+			/*try {
 				String rawMetadata = metadataRS.getString("rawData");
 				if (rawMetadata != null) {
 					JSONObject jsonData = new JSONObject(rawMetadata);
@@ -394,7 +395,7 @@ public class OverDriveProcessor {
 				}
 			} catch (JSONException e) {
 				logger.error("Error loading raw data for OverDrive MetaData");
-			}
+			}*/
 		}
 		metadataRS.close();
 		return returnMetadata;

@@ -140,7 +140,7 @@ public class GroupedReindexMain {
 	}
 
 	private static void reloadDefaultSchemas() {
-		logger.info("Reloading schemas from default");
+		/*logger.info("Reloading schemas from default");
 		try {
 			//Copy schema to grouped2
 
@@ -156,14 +156,16 @@ public class GroupedReindexMain {
 				addNoteToReindexLog("Unable to copy default synonyms.txt to grouped2 in data_dir_setup");
 			}
 		} catch (IOException e) {
-			logger.error("error reloading copying default scehmas", e);
-			addNoteToReindexLog("error reloading copying default scehmas " + e.toString());
-		}
-		//grouped
+			logger.error("error reloading copying default schemas", e);
+			addNoteToReindexLog("error reloading copying default schemas " + e.toString());
+		}*/
+
+		//MDN 10-21-2015 temporarily do not reload schemas as we test replication
+		/*//grouped
 		reloadSchema("grouped");
 		reloadSchema("grouped2");
 		//genealogy
-		reloadSchema("genealogy");
+		reloadSchema("genealogy");*/
 	}
 
 	private static void reloadSchema(String schemaName) {
