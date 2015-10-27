@@ -48,166 +48,180 @@ public class MergeMarcUpdatesAndDeletes implements IProcessHandler{
 		int numDeletions = 0;
 		int numAdditions = 0;
 
-		File[] filesInExport = new File(exportPath).listFiles();
-		if (filesInExport != null) {
-			for (File exportFile : filesInExport) {
-				if (exportFile.getName().matches(".*updated.*")) {
-					updatesFile = exportFile;
-				}else if (exportFile.getName().matches(".*deleted.*")) {
-					deletesFile = exportFile;
-				}else if (exportFile.getName().endsWith("mrc") || exportFile.getName().endsWith("marc")) {
-					mainFile = exportFile;
-				}
-			}
-
-			if (mainFile == null){
-				logger.error("Did not find file to merge into");
-				processLog.addNote("Did not find file to merge into");
-				processLog.saveToDatabase(vufindConn, logger);
-			}else {
-				boolean errorOccurred = false;
-				HashMap<String, Record> recordsToUpdate = new HashMap<>();
-				if (updatesFile != null) {
-					try {
-						FileInputStream marcFileStream = new FileInputStream(updatesFile);
-						MarcReader updatesReader = new MarcPermissiveStreamReader(marcFileStream, true, true, marcEncoding);
-
-						//Read a list of records in the updates file
-						while (updatesReader.hasNext()) {
-							Record curBib = updatesReader.next();
-							String recordId = getRecordIdFromMarcRecord(curBib);
-							recordsToUpdate.put(recordId, curBib);
-						}
-						marcFileStream.close();
-					} catch (IOException e) {
-						processLog.addNote("Error processing updates file. " + e.toString());
-						logger.error("Error loading records from updates fail", e);
-						processLog.saveToDatabase(vufindConn, logger);
-						errorOccurred = true;
+		try{
+			File[] filesInExport = new File(exportPath).listFiles();
+			if (filesInExport != null) {
+				for (File exportFile : filesInExport) {
+					if (exportFile.getName().matches(".*updated.*")) {
+						updatesFile = exportFile;
+					}else if (exportFile.getName().matches(".*deleted.*")) {
+						deletesFile = exportFile;
+					}else if (exportFile.getName().endsWith("mrc") || exportFile.getName().endsWith("marc")) {
+						mainFile = exportFile;
 					}
 				}
 
-				HashSet<String> recordsToDelete = new HashSet<>();
-				if (deletesFile != null) {
-					try {
-						FileInputStream marcFileStream = new FileInputStream(deletesFile);
-						MarcReader deletesReader = new MarcPermissiveStreamReader(marcFileStream, true, true, marcEncoding);
-
-						while (deletesReader.hasNext()) {
-							Record curBib = deletesReader.next();
-							String recordId = getRecordIdFromMarcRecord(curBib);
-							recordsToDelete.add(recordId);
-						}
-
-						marcFileStream.close();
-					} catch (IOException e) {
-						processLog.incErrors();
-						processLog.addNote("Error processing deletes file. " + e.toString());
-						logger.error("Error processing deletes file", e);
-						errorOccurred = true;
-						processLog.saveToDatabase(vufindConn, logger);
-					}
-				}
-
-				String today = new SimpleDateFormat("yyyyMMdd").format(new Date());
-				File mergedFile = new File(mainFile.getPath() + "." + today + ".merged");
-				try {
-					FileInputStream marcFileStream = new FileInputStream(mainFile);
-					MarcReader mainReader = new MarcPermissiveStreamReader(marcFileStream, true, true, marcEncoding);
-
-					FileOutputStream marcOutputStream = new FileOutputStream(mergedFile);
-					MarcStreamWriter mainWriter = new MarcStreamWriter(marcOutputStream);
-					while (mainReader.hasNext()) {
-						Record curBib = mainReader.next();
-						String recordId = getRecordIdFromMarcRecord(curBib);
-
-						if (recordsToUpdate.containsKey(recordId)) {
-							//Write the updated record
-							mainWriter.write(recordsToUpdate.get(recordId));
-							recordsToUpdate.remove(recordId);
-							numUpdates++;
-						} else if (!recordsToDelete.contains(recordId)) {
-							//Unless the record is marked for deletion, write it
-							mainWriter.write(curBib);
-							numDeletions++;
-						}
-					}
-
-					//Anything left in the updates file is new and should be added
-					for (Record newMarc : recordsToUpdate.values()){
-						mainWriter.write(newMarc);
-						numAdditions++;
-					}
-					mainWriter.close();
-					marcFileStream.close();
-				} catch (IOException e) {
-					processLog.incErrors();
-					processLog.addNote("Error processing main file. " + e.toString());
-					logger.error("Error processing main file", e);
-					errorOccurred = true;
+				if (mainFile == null){
+					logger.error("Did not find file to merge into");
+					processLog.addNote("Did not find file to merge into");
 					processLog.saveToDatabase(vufindConn, logger);
-				}
+				}else {
+					boolean errorOccurred = false;
+					HashMap<String, Record> recordsToUpdate = new HashMap<>();
+					if (updatesFile != null) {
+						try {
+							FileInputStream marcFileStream = new FileInputStream(updatesFile);
+							MarcReader updatesReader = new MarcPermissiveStreamReader(marcFileStream, true, true, marcEncoding);
 
-				if (!new File(backupPath).exists()){
-					if (!new File(backupPath).mkdirs()){
-						processLog.incErrors();
-						processLog.addNote("Could not create backup path");
-						logger.error("Could not create backup path");
-						errorOccurred = true;
-						processLog.saveToDatabase(vufindConn, logger);
-					}
-				}
-				if (updatesFile != null && !errorOccurred) {
-					//Move to the backup directory
-					if (!updatesFile.renameTo(new File(backupPath + "/" + updatesFile.getName()))) {
-						processLog.incErrors();
-						processLog.addNote("Unable to move updates file to backup directory.");
-						logger.error("Unable to move updates file " + updatesFile.getAbsolutePath() + " to backup directory " + backupPath + "/" + updatesFile.getName());
-						processLog.saveToDatabase(vufindConn, logger);
-						errorOccurred = true;
-					}
-				}
-
-				if (deletesFile != null && !errorOccurred) {
-					//Move to the backup directory
-					if (!deletesFile.renameTo(new File(backupPath + "/" + deletesFile.getName()))) {
-						processLog.incErrors();
-						processLog.addNote("Unable to move deletion file to backup directory.");
-						logger.error("Unable to move deletion file to backup directory");
-						processLog.saveToDatabase(vufindConn, logger);
-						errorOccurred = true;
-					}
-				}
-
-				if (!errorOccurred) {
-					String mainFilePath = mainFile.getPath();
-					if (!mainFile.renameTo(new File(backupPath + "/" + mainFile.getName()))) {
-						processLog.incErrors();
-						processLog.addNote("Unable to move main file " + mainFile.getAbsolutePath() + " to backup directory " + backupPath + "/" + mainFile.getName());
-						logger.error("Unable to move main file " + mainFile.getAbsolutePath() + " to backup directory " + backupPath + "/" + mainFile.getName());
-						processLog.saveToDatabase(vufindConn, logger);
-					} else {
-						//Move the merged file to the main file
-						if (!mergedFile.renameTo(new File(mainFilePath))){
-							processLog.incErrors();
-							processLog.addNote("Unable to move merged file to main file.");
-							logger.error("Unable to move merged file to main file");
+							//Read a list of records in the updates file
+							while (updatesReader.hasNext()) {
+								Record curBib = updatesReader.next();
+								String recordId = getRecordIdFromMarcRecord(curBib);
+								recordsToUpdate.put(recordId, curBib);
+							}
+							marcFileStream.close();
+						} catch (Exception e) {
+							processLog.addNote("Error processing updates file. " + e.toString());
+							logger.error("Error loading records from updates fail", e);
 							processLog.saveToDatabase(vufindConn, logger);
-						}else {
-							logger.debug("Added " + numAdditions);
-							logger.debug("Updated " + numUpdates);
-							logger.debug("Deleted " + numDeletions);
+							errorOccurred = true;
+						}
+					}
 
-							processLog.addNote("Added " + numAdditions);
-							processLog.addNote("Updated " + numUpdates);
-							processLog.addNote("Deleted " + numDeletions);
+					HashSet<String> recordsToDelete = new HashSet<>();
+					if (deletesFile != null) {
+						try {
+							FileInputStream marcFileStream = new FileInputStream(deletesFile);
+							MarcReader deletesReader = new MarcPermissiveStreamReader(marcFileStream, true, true, marcEncoding);
+
+							while (deletesReader.hasNext()) {
+								Record curBib = deletesReader.next();
+								String recordId = getRecordIdFromMarcRecord(curBib);
+								recordsToDelete.add(recordId);
+							}
+
+							marcFileStream.close();
+						} catch (Exception e) {
+							processLog.incErrors();
+							processLog.addNote("Error processing deletes file. " + e.toString());
+							logger.error("Error processing deletes file", e);
+							errorOccurred = true;
 							processLog.saveToDatabase(vufindConn, logger);
 						}
 					}
+
+					String today = new SimpleDateFormat("yyyyMMdd").format(new Date());
+					File mergedFile = new File(mainFile.getPath() + "." + today + ".merged");
+					int numRecordsRead = 0;
+					String lastRecordId = "";
+					Record curBib;
+					try {
+						FileInputStream marcFileStream = new FileInputStream(mainFile);
+						MarcReader mainReader = new MarcPermissiveStreamReader(marcFileStream, true, true, marcEncoding);
+
+						FileOutputStream marcOutputStream = new FileOutputStream(mergedFile);
+						MarcStreamWriter mainWriter = new MarcStreamWriter(marcOutputStream);
+						while (mainReader.hasNext()) {
+							curBib = mainReader.next();
+							String recordId = getRecordIdFromMarcRecord(curBib);
+							numRecordsRead++;
+
+							if (recordsToUpdate.containsKey(recordId)) {
+								//Write the updated record
+								mainWriter.write(recordsToUpdate.get(recordId));
+								recordsToUpdate.remove(recordId);
+								numUpdates++;
+							} else if (!recordsToDelete.contains(recordId)) {
+								//Unless the record is marked for deletion, write it
+								mainWriter.write(curBib);
+								numDeletions++;
+							}
+
+							lastRecordId = recordId;
+						}
+
+						//Anything left in the updates file is new and should be added
+						for (Record newMarc : recordsToUpdate.values()){
+							mainWriter.write(newMarc);
+							numAdditions++;
+						}
+						mainWriter.close();
+						marcFileStream.close();
+					} catch (Exception e) {
+						processLog.incErrors();
+						processLog.addNote("Error processing main file. " + e.toString());
+						processLog.addNote("Read " + numRecordsRead + " last record read was " + lastRecordId + e.toString());
+						logger.error("Error processing main file", e);
+						errorOccurred = true;
+						processLog.saveToDatabase(vufindConn, logger);
+					}
+
+					if (!new File(backupPath).exists()){
+						if (!new File(backupPath).mkdirs()){
+							processLog.incErrors();
+							processLog.addNote("Could not create backup path");
+							logger.error("Could not create backup path");
+							errorOccurred = true;
+							processLog.saveToDatabase(vufindConn, logger);
+						}
+					}
+					if (updatesFile != null && !errorOccurred) {
+						//Move to the backup directory
+						if (!updatesFile.renameTo(new File(backupPath + "/" + updatesFile.getName()))) {
+							processLog.incErrors();
+							processLog.addNote("Unable to move updates file to backup directory.");
+							logger.error("Unable to move updates file " + updatesFile.getAbsolutePath() + " to backup directory " + backupPath + "/" + updatesFile.getName());
+							processLog.saveToDatabase(vufindConn, logger);
+							errorOccurred = true;
+						}
+					}
+
+					if (deletesFile != null && !errorOccurred) {
+						//Move to the backup directory
+						if (!deletesFile.renameTo(new File(backupPath + "/" + deletesFile.getName()))) {
+							processLog.incErrors();
+							processLog.addNote("Unable to move deletion file to backup directory.");
+							logger.error("Unable to move deletion file to backup directory");
+							processLog.saveToDatabase(vufindConn, logger);
+							errorOccurred = true;
+						}
+					}
+
+					if (!errorOccurred) {
+						String mainFilePath = mainFile.getPath();
+						if (!mainFile.renameTo(new File(backupPath + "/" + mainFile.getName()))) {
+							processLog.incErrors();
+							processLog.addNote("Unable to move main file " + mainFile.getAbsolutePath() + " to backup directory " + backupPath + "/" + mainFile.getName());
+							logger.error("Unable to move main file " + mainFile.getAbsolutePath() + " to backup directory " + backupPath + "/" + mainFile.getName());
+							processLog.saveToDatabase(vufindConn, logger);
+						} else {
+							//Move the merged file to the main file
+							if (!mergedFile.renameTo(new File(mainFilePath))){
+								processLog.incErrors();
+								processLog.addNote("Unable to move merged file to main file.");
+								logger.error("Unable to move merged file to main file");
+								processLog.saveToDatabase(vufindConn, logger);
+							}else {
+								logger.debug("Added " + numAdditions);
+								logger.debug("Updated " + numUpdates);
+								logger.debug("Deleted " + numDeletions);
+
+								processLog.addNote("Added " + numAdditions);
+								processLog.addNote("Updated " + numUpdates);
+								processLog.addNote("Deleted " + numDeletions);
+								processLog.saveToDatabase(vufindConn, logger);
+							}
+						}
+					}
 				}
+			} else {
+				logger.error("No files were found in " + exportPath);
 			}
-		} else {
-			logger.error("No files were found in " + exportPath);
+		} catch (Exception e) {
+			processLog.incErrors();
+			processLog.addNote("Unknown error merging records. " + e.toString());
+			logger.error("Unknown error merging records", e);
+			processLog.saveToDatabase(vufindConn, logger);
 		}
 		processLog.setFinished();
 		processLog.saveToDatabase(vufindConn, logger);
