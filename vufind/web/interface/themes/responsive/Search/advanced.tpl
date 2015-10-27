@@ -273,5 +273,15 @@
 		addSearch(new_group);
 		addSearch(new_group);
 	{/if}
+		{* Highlight Selected Facet Filters *}
+		{literal}
+		$('#facetTable select').each(function(){
+			if ($(this).val() != '') {
+				$(this).parents('tr').css('background-color', '#EFEFEF')
+			}
+		}).change(function(){
+			$(this).parents('tr').css('background-color', ($(this).val() == '') ? '#FFF' : '#EFEFEF')
+		});
+		{/literal}
 	{rdelim});
 </script>
