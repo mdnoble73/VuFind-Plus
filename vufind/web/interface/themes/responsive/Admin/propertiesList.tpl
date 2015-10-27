@@ -5,6 +5,11 @@
 		{$lastError}
 	</div>
 {/if}
+{if $instructions}
+	<div class="alert alert-info">
+		{$instructions}
+	</div>
+{/if}
 <div class='adminTableRegion'>
 	<table class="adminTable table table-striped table-condensed smallText" id="adminTable">
 		<thead>

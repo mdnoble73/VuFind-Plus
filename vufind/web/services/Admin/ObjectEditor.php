@@ -46,8 +46,8 @@ abstract class ObjectEditor extends Admin_Admin
 		$objectAction = isset($_REQUEST['objectAction']) ? $_REQUEST['objectAction'] : null;
 		$customListActions = $this->customListActions();
 		$interface->assign('customListActions', $customListActions);
-		$interface->assign('instructions', $this->getInstructions());
 		if (is_null($objectAction) || $objectAction == 'list'){
+			$interface->assign('instructions', $this->getListInstructions());
 			$this->viewExistingObjects();
 		}elseif (($objectAction == 'save' || $objectAction == 'delete') && isset($_REQUEST['id'])){
 			$this->editObject($objectAction, $structure);
@@ -56,6 +56,7 @@ abstract class ObjectEditor extends Admin_Admin
 			if (method_exists($this, $objectAction)){
 				$this->$objectAction();
 			}else{
+				$interface->assign('instructions', $this->getInstructions());
 				$this->viewIndividualObject($structure);
 			}
 		}
@@ -320,6 +321,9 @@ abstract class ObjectEditor extends Admin_Admin
 	}
 
 	function getInstructions(){
+		return '';
+	}
+	function getListInstructions(){
 		return '';
 	}
 }
