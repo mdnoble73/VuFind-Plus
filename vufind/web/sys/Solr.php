@@ -1410,7 +1410,20 @@ class Solr implements IndexEngine {
 		if ($facet && !empty($facet['field'])) {
 			$options['facet'] = 'true';
 			$options['facet.mincount'] = 1;
+			$options['facet.method'] = 'fcs';
+			$options['facet.threads'] = 25;
 			$options['facet.limit'] = (isset($facet['limit'])) ? $facet['limit'] : null;
+
+			//Determine which fields should be treated as enums
+			$options["f.target_audience_full.facet.method"] = 'enum';
+			$options["f.target_audience.facet.method"] = 'enum';
+			$options["f.literary_form_full.facet.method"] = 'enum';
+			$options["f.literary_form.facet.method"] = 'enum';
+			$options["f.literary_form.econtent_device"] = 'enum';
+			$options["f.literary_form.lexile_code"] = 'enum';
+			$options["f.literary_form.mpaa_rating"] = 'enum';
+			$options["f.literary_form.rating_facet"] = 'enum';
+
 			unset($facet['limit']);
 			if (isset($facet['field']) && is_array($facet['field']) && in_array('date_added', $facet['field'])){
 				$options['facet.date'] = 'date_added';
