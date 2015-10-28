@@ -150,9 +150,9 @@
 		<field name="title_old" type="text" indexed="true" stored="true" multiValued="true"/>
 		<field name="title_new" type="text" indexed="true" stored="true" multiValued="true"/>
 		<!-- Author variations -->
-		<field name="author" type="text" indexed="true" stored="true" termVectors="true"/>
-		<field name="author_exact" type="text-exact" indexed="true" stored="true" termVectors="true"/>
-		<field name="author_left" type="text-left" indexed="true" stored="true" termVectors="true"/>
+		<field name="author" type="text" indexed="true" stored="true" />
+		<field name="author_exact" type="text-exact" indexed="true" stored="true" />
+		<field name="author_left" type="text-left" indexed="true" stored="true" />
 		<field name="author_display" type="string" indexed="true" stored="true" multiValued="false"/> <!-- The title to display to the user -->
 		<field name="author-letter" type="string" indexed="true" stored="true"/>
 		<field name="authorStr" type="string" indexed="true" stored="true" docValues="true"/>
@@ -190,16 +190,16 @@
 		<field name="series_proper" type="textProper" indexed="true" stored="false" multiValued="true"/>
 		<field name="topic" type="text" indexed="true" stored="true" multiValued="true"/>
 		<field name="topic_proper" type="textProper" indexed="true" stored="false" multiValued="true"/>
-		<field name="topic_facet" type="string" indexed="true" stored="true" multiValued="true" termVectors="true" docValues="true"/>
+		<field name="topic_facet" type="string" indexed="true" stored="true" multiValued="true" docValues="true"/>
 		<field name="lc_subject" type="string" indexed="true" stored="true" multiValued="true" docValues="true"/>
 		<field name="bisac_subject" type="string" indexed="true" stored="true" multiValued="true" docValues="true"/>
 		<field name="genre" type="text" indexed="true" stored="true" multiValued="true"/>
 		<field name="genre_proper" type="textProper" indexed="true" stored="false" multiValued="true"/>
-		<field name="genre_facet" type="string" indexed="true" stored="true" multiValued="true" termVectors="true" docValues="true"/>
+		<field name="genre_facet" type="string" indexed="true" stored="true" multiValued="true" docValues="true"/>
 		<field name="geographic" type="text" indexed="true" stored="true" multiValued="true"/>
 		<field name="geographic_proper" type="textProper" indexed="true" stored="false" multiValued="true"/>
-		<field name="geographic_facet" type="string" indexed="true" stored="true" multiValued="true" termVectors="true" docValues="true"/>
-		<field name="era" type="string" indexed="true" stored="true" multiValued="true" termVectors="true" docValues="true"/>
+		<field name="geographic_facet" type="string" indexed="true" stored="true" multiValued="true" docValues="true"/>
+		<field name="era" type="string" indexed="true" stored="true" multiValued="true" docValues="true"/>
 		<field name="era_proper" type="textProper" indexed="true" stored="false" multiValued="true"/>
 		<field name="literary_form_full" type="string" indexed="true" stored="true" multiValued="true" docValues="true"/>
 		<field name="literary_form" type="string" indexed="true" stored="true" multiValued="true" docValues="true"/>
@@ -214,7 +214,7 @@
 		<field name="barcode" type="string" indexed="true" stored="false" multiValued="true"/>
 		<!-- awards and ratings -->
 		<field name="mpaa_rating" type="string" indexed="true" stored="true" multiValued="true" docValues="true"/>
-		<field name="awards_facet" type="string" indexed="true" stored="true" multiValued="true" termVectors="true" docValues="true"/>
+		<field name="awards_facet" type="string" indexed="true" stored="true" multiValued="true" docValues="true"/>
 		<field name="lexile_score" type="integer" indexed="true" stored="true" multiValued="false" default="-1" docValues="true"/>
 		<field name="lexile_code" type="string" indexed="true" stored="true" multiValued="false" docValues="true"/>
 		<field name="accelerated_reader_interest_level" type="string" indexed="true" stored="true" multiValued="false" docValues="true"/>

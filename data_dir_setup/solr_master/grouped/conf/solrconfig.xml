@@ -475,9 +475,9 @@
 			 -->
 		<filterCache
 				class="solr.FastLRUCache"
-				size="1000"
-				initialSize="500"
-				autowarmCount="100"/>
+				size="0"
+				initialSize="0"
+				autowarmCount="0"/>
 
 		<!-- Query Result Cache
 
@@ -489,9 +489,9 @@
 			-->
 		<queryResultCache
 				class="solr.LRUCache"
-				size="1000"
-				initialSize="500"
-				autowarmCount="100"/>
+				size="0"
+				initialSize="0"
+				autowarmCount="0"/>
 
 		<!-- Document Cache
 
@@ -501,8 +501,8 @@
 				-->
 		<documentCache
 				class="solr.LRUCache"
-				size="1000"
-				initialSize="500"/>
+				size="0"
+				initialSize="0"/>
 
 		<!-- Field Value Cache
 
@@ -578,7 +578,7 @@
 		<!-- Maximum number of documents to cache for any entry in the
 				queryResultCache.
 		 -->
-		<queryResultMaxDocsCached>200</queryResultMaxDocsCached>
+		<queryResultMaxDocsCached>0</queryResultMaxDocsCached>
 
 		<!-- Query Related Event Listeners
 
@@ -601,24 +601,7 @@
 		-->
 		<listener event="newSearcher" class="solr.QuerySenderListener">
 			<arr name="queries">
-				<lst><str name="q"></str></lst>
-				<lst><str name="q">Fiction</str></lst>
-				<lst><str name="q">dvd</str></lst>
-				<lst><str name="q">movies</str></lst>
-				<lst><str name="q">good and evil</str></lst>
-				<lst><str name="q">Harry Potter</str></lst>
-				<lst><str name="q">audio books</str></lst>
-				<lst><str name="q">star wars</str></lst>
-				<lst><str name="q">murder victims fiction</str></lst>
-				<lst><str name="q">james patterson</str></lst>
-				<lst><str name="q">divergent</str></lst>
-				<lst><str name="q">gone girl</str></lst>
-				<lst><str name="q">game of thrones</str></lst>
-				<lst><str name="q">documentary videos</str></lst>
-				<lst><str name="q">all the light we cannot see</str></lst>
-				<lst><str name="q">dogs</str></lst>
-				<lst><str name="q">cats</str></lst>
-				<lst><str name="q">hunger games</str></lst>
+
 			</arr>
 		</listener>
 		<listener event="firstSearcher" class="solr.QuerySenderListener">
