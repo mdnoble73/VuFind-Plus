@@ -14,5 +14,5 @@ fi
 if [[ ( "$1" == "start" ) || ( "$1" == "restart") ]]
 	then
 		../default/solr/bin/solr start -m 4g -p 8180 -s "/data/vufind-plus/marmot.test/solr_master" -d "/usr/local/vufind-plus/sites/default/solr/jetty"
-		../default/solr/bin/solr start -m 15g -p 8080 -a "-Dsolr.masterport=8180" -s "/data/vufind-plus/marmot.test/solr_searcher" -d "/usr/local/vufind-plus/sites/default/solr/jetty"
+		../default/solr/bin/solr start -m 8g -p 8080 -a "-Dsolr.masterport=8180" -s "/data/vufind-plus/marmot.test/solr_searcher" -d "/usr/local/vufind-plus/sites/default/solr/jetty"
 fi

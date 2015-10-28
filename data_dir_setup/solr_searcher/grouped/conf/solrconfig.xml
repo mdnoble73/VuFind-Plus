@@ -477,7 +477,7 @@
 				class="solr.FastLRUCache"
 				size="16384"
 				initialSize="4096"
-				autowarmCount="4096"/>
+				autowarmCount="256"/>
 
 		<!-- Query Result Cache
 
