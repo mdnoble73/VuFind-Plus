@@ -311,6 +311,9 @@ class Location extends DB_DataObject
 		return $structure;
 	}
 
+	public $pickupUsers;
+	// Used to track multiple linked users having the same pick-up locations
+
 	/**
 	 * @param User $patronProfile
 	 * @param int $selectedBranchId
@@ -361,6 +364,10 @@ class Location extends DB_DataObject
 
 		$this->find();
 
+
+		// Add the user id to each pickup location to track multiple linked accounts having the same pick-up location.
+		$this->pickupUsers[] = $patronProfile->id;
+
 		//Load the locations and sort them based on the user profile information as well as their physical location.
 		$physicalLocation = $this->getPhysicalLocation();
 		$locationList = array();
@@ -403,11 +410,23 @@ class Location extends DB_DataObject
 			if ($homeLocation->validHoldPickupBranch != 2){
 				//We didn't find any locations.  This for schools where we want holds available, but don't want the branch to be a
 				//pickup location anywhere else.
-				if (!$isLinkedUser) {
-					$homeLocation->selected = true;
-					$locationList['1' . $homeLocation->displayName] = clone $homeLocation;
-				}else{
-					$locationList['22' . $homeLocation->displayName] = clone $homeLocation;
+				$homeLocation->pickupUsers[] = $patronProfile->id; // Add the user id to each pickup location to track multiple linked accounts having the same pick-up location.
+				$existingLocation = false;
+				foreach ($locationList as $location) {
+					if ($location->libraryId == $homeLocation->libraryId && $location->locationId == $homeLocation->locationId) {
+						$existingLocation = true;
+						if (!$isLinkedUser) {$location->selected = true;}
+						//TODO: update sorting key as well?
+						break;
+					}
+				}
+				if (!$existingLocation) {
+					if (!$isLinkedUser) {
+						$homeLocation->selected                         = true;
+						$locationList['1' . $homeLocation->displayName] = clone $homeLocation;
+					} else {
+						$locationList['22' . $homeLocation->displayName] = clone $homeLocation;
+					}
 				}
 			}
 		}

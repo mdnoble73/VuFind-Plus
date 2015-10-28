@@ -1,6 +1,6 @@
 {strip}
 <div id="page-content" class="content">
-	<form name='placeHoldForm' id='placeHoldForm' action="{$path}/{$activeRecordProfileModule}/{$id|escape:"url"}/Hold" method="post" class="form">
+	<form name="placeHoldForm" id="placeHoldForm" action="{$path}/{$activeRecordProfileModule}/{$id|escape:"url"}/Hold" method="post" class="form">
 		<input type="hidden" name="id" id="id" value="{$id}">
 		<input type="hidden" name="recordSource" id="recordSource" value="{$recordSource}">
 		<input type="hidden" name="module" id="module" value="{$activeRecordProfileModule}">
@@ -37,14 +37,15 @@
 			</p>
 
 			{* Responsive theme enforces that the user is always logged in before getting here*}
-			<div id='holdOptions'>
-				<div id='pickupLocationOptions' class="form-group">
-					<label class='control-label' for="campus">{translate text="I want to pick this up at"}: </label>
-					<div class='controls'>
+			<div id="holdOptions">
+				<div id="pickupLocationOptions" class="form-group">
+					<label class="control-label" for="campus">{translate text="I want to pick this up at"}: </label>
+					<div class="controls">
 						<select name="campus" id="campus" class="form-control">
 							{if count($pickupLocations) > 0}
 								{foreach from=$pickupLocations item=location}
-									<option value="{$location->code}" {if $location->selected == "selected"}selected="selected"{/if}>{$location->displayName}</option>
+									<option value="{$location->code}"{if $location->selected == "selected"} selected="selected"{/if}
+													 data-users="[{$location->pickupUsers|@implode:','}]">{$location->displayName}</option>
 								{/foreach}
 							{else} 
 								<option>placeholder</option>
@@ -52,15 +53,55 @@
 						</select>
 					</div>
 				</div>
+					<div id="userOption" class="form-group"{if count($pickupLocations[0]->pickupUsers) < 2} style="display: none"{/if}>{* display if the first location will need a user selected*}
+						<label for="user" class="control-label">{translate text="Place hold using account"}: </label>
+						<div class="controls">
+							<select name="user" id="user" class="form-control">
+								{* Built by jQuery below *}
+							</select>
+						</div>
+					</div>
+					<script type="text/javascript">
+						{literal}
+						$(function(){
+							var userNames = {
+							{/literal}
+							{$user->id}: "{$user->displayName}",
+							{assign var="linkedUsers" value=$user->getLinkedUsers()}
+							{foreach from="$linkedUsers" item="tron"}
+								{$tron->id}: "{$tron->displayName}",
+							{/foreach}
+							{literal}
+								};
+							$('#campus').change(function(){
+								var users = $('option:selected', this).data('users'),
+										options = '';
+								if (Array.isArray(users) && users.length > 1) {
+									users.forEach(function(userId){
+										options += '<option value="'+userId+'">'+userNames[userId]+'</option>'
+									});
+									$('#userOption select').html(options);
+									$('#userOption').fadeIn();
+								} else {
+									/* Should be only one user in users; Hide and set to the appropriate user */
+									$('#userOption').fadeOut(function(){
+										$('#userOption select').html('<option selected value="'+users[0] +'" />');
+									})
+								}
+							}).change(); /* trigger on initial load */
+						})
+						{/literal}
+					</script>
 				{if $showHoldCancelDate == 1}
 					<div id='cancelHoldDate' class='form-group'>
 						<label class='control-label' for="canceldate">{translate text="Automatically cancel this hold if not filled by"}:</label>
-						<div class="input-append date controls" id="cancelDatePicker" data-provide="datepicker" data-date-format="mm/dd/yyyy" data-date-start-date="0d"{*if $defaultNotNeededAfterDays} data-date="+{$defaultNotNeededAfterDays}d"{/if*}>
-							{* data-provide attribute loads the datepicker through bootstrap data api *}
+						<div class="input-group input-append date controls" id="cancelDatePicker">
 							{* TODO: defaultNotNeeded not implemented yet. plb 4-1-2015 *}
+							{* data-provide attribute loads the datepicker through bootstrap data api *}
 							{* start date sets minimum. date sets initial value: days from today, eg +8d is 8 days from now. *}
-							<input type="text" name="canceldate" id="canceldate" size="10" {*if $defaultNotNeededAfterDays}value="{$defaultNotNeededAfterDays}"{/if*}>
-							<span class="add-on"><i class="icon-calendar"></i></span> {* TODO: also not showing *}
+							<input type="text" name="canceldate" id="canceldate" placeholder="mm/dd/yyyy" class="form-control" size="10" {*if $defaultNotNeededAfterDays}value="{$defaultNotNeededAfterDays}"{/if*}
+							       data-provide="datepicker" data-date-format="mm/dd/yyyy" data-date-start-date="0d"{*if $defaultNotNeededAfterDays} data-date="+{$defaultNotNeededAfterDays}d"{/if*}>
+							<span class="input-group-addon"><span class="glyphicon glyphicon-calendar" onclick="$('#canceldate').focus().datepicker('show')" aria-hidden="true"></span></span>
 						</div>
 						<div class="loginFormRow">
 							<i>If this date is reached, the hold will automatically be cancelled for you.	This is a great way to handle time sensitive materials for term papers, etc. If not set, the cancel date will automatically be set 6 months from today.</i>
@@ -71,7 +112,6 @@
 				<div class="form-group">
 					<label for="autologout" class="checkbox"><input type="checkbox" name="autologout" id="autologout" {if $inLibrary == true}checked="checked"{/if}> Log me out after requesting the item.</label>
 					<input type="hidden" name="holdType" value="hold">
-
 				</div>
 			</div>
 		</fieldset>

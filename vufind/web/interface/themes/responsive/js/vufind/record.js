@@ -145,9 +145,7 @@ VuFind.Record = (function(){
 				//VuFind.showMessage('Loading...', 'Loading, please wait.');
 				$.getJSON(url, function(data){
 					VuFind.showMessageWithButtons(data.title, data.modalBody, data.modalButtons);
-				}).fail(function(){
-					VuFind.showMessage('Request Failed', 'There was an error with this AJAX Request.');
-				});
+				}).fail(VuFind.ajaxFail);
 			}else{
 				VuFind.Account.ajaxLogin(null, function(){
 					VuFind.Record.showPlaceHold(module, id);
@@ -198,6 +196,7 @@ VuFind.Record = (function(){
 					,params = {
 						'method': 'placeHold'
 						,campus: $('#campus').val()
+						,selectedUser: $('#user').val()
 						,cancelHoldDate: $('#canceldate').text()
 						,recordSource: $('#recordSource').val()
 						,account: $('#account').val()
