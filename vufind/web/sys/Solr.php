@@ -594,7 +594,10 @@ class Solr implements IndexEngine {
 			$options['fq'][] = $filter;
 		}
 		$boostFactors = $this->getBoostFactors($searchLibrary, $searchLocation);
-		$options['bf'] = $boostFactors;
+		if (!isset($_REQUEST['disableBoosting'])){
+			$options['bf'] = $boostFactors;
+		}
+
 		if (!empty($this->_solrShards) && is_array($this->_solrShards)) {
 			$options['shards'] = implode(',',$this->_solrShards);
 		}
@@ -639,7 +642,9 @@ class Solr implements IndexEngine {
 			$options['fq'][] = $filter;
 		}
 		$boostFactors = $this->getBoostFactors($searchLibrary, $searchLocation);
-		$options['bf'] = $boostFactors;
+		if (!isset($_REQUEST['disableBoosting'])){
+			$options['bf'] = $boostFactors;
+		}
 		if (!empty($this->_solrShards) && is_array($this->_solrShards)) {
 			$options['shards'] = implode(',',$this->_solrShards);
 		}
@@ -751,10 +756,38 @@ class Solr implements IndexEngine {
 						$field .= '_' . $solrScope;
 					}
 				}
+
 				// Otherwise, we've got a (list of) [munge, weight] pairs to deal with
 				foreach ($clauseArray as $spec) {
+					$fieldValue = $values[$spec[0]];
+					//Check fields that we expect to match certain patterns to see if we should skip this term.
+					if ($field == 'isbn'){
+						if (!preg_match('/^"?\d{10,13}X?"?$/', $fieldValue)){
+							continue;
+						}
+					}elseif($field == 'id'){
+						if (!preg_match('/^"?(\d+|.b\d+|[A-F0-9]{8}-[A-F0-9]{4}-[A-F0-9]{4}-[A-F0-9]{4}-[A-F0-9]{12})"?$/i', $fieldValue)){
+							continue;
+						}
+					}elseif($field == 'alternate_ids'){
+						if (!preg_match('/^"?(\d+|.b\d+|[A-F0-9]{8}-[A-F0-9]{4}-[A-F0-9]{4}-[A-F0-9]{4}-[A-F0-9]{12}|MWT\d+)"?$/i', $fieldValue)){
+							continue;
+						}
+					}elseif($field == 'upc' || $field == 'issn'){
+						if (!preg_match('/^"?\d+"?$/', $fieldValue)){
+							continue;
+						}
+					}
+
 					// build a string like title:("one two")
-					$searchString = $field . ':(' . $values[$spec[0]] . ')';
+					$searchString = $field . ':(' . $fieldValue . ')';
+					//Check to make sure we don't already have this clause.  We will get the same clause if we have a single word and are doing different munges
+					foreach ($clauses as $clause){
+						if (strpos($clause, $searchString) === 0){
+							continue;
+						}
+					}
+
 					// Add the weight it we have one. Yes, I know, it's redundant code.
 					$weight = $spec[1];
 					if(!is_null($weight) && $weight && $weight > 0) {
@@ -1341,7 +1374,7 @@ class Solr implements IndexEngine {
 
 			if (isset($options['qt']) && $options['qt'] == 'dismax'){
 				//Boost by number of holdings
-				if (count($boostFactors) > 0){
+				if (count($boostFactors) > 0 && !isset($_REQUEST['disableBoosting'])){
 					$options['bf'] = "sum(" . implode(',', $boostFactors) . ")";
 				}
 				//print ($options['bq']);
@@ -1353,7 +1386,11 @@ class Solr implements IndexEngine {
 				}else{
 					$boost = '';
 				}
-				$options['q'] = "{!boost b=$boost} $baseQuery";
+				if (empty($boost) || isset($_REQUEST['disableBoosting'])){
+					$options['q'] = $baseQuery;
+				}else{
+					$options['q'] = "{!boost b=$boost} $baseQuery";
+				}
 				//echo ("Advanced Query " . $options['q']);
 			}
 
@@ -1407,7 +1444,7 @@ class Solr implements IndexEngine {
 
 
 		// Build Facet Options
-		if ($facet && !empty($facet['field'])) {
+		if ($facet && !empty($facet['field']) && !isset($_REQUEST['disableFaceting'])) {
 			$options['facet'] = 'true';
 			$options['facet.mincount'] = 1;
 			$options['facet.method'] = 'fcs';
@@ -1548,8 +1585,6 @@ class Solr implements IndexEngine {
 	 * @return array
 	 */
 	public function getScopingFilters($searchLibrary, $searchLocation){
-		global $user;
-		global $configArray;
 		global $solrScope;
 
 		$filter = array();
