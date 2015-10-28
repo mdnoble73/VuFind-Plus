@@ -132,6 +132,8 @@ class Location extends DB_DataObject
 		unset($locationRecordToIncludeStructure['locationId']);
 		unset($locationRecordToIncludeStructure['weight']);
 
+		$browseCategoryInstructions = 'For more information on how to setup browse categories, see the <a href="https://docs.google.com/document/d/11biGMw6UDKx9UBiDCCj_GBmatx93UlJBLMESNf_RtDU">online documentation</a>.';
+
 		$structure = array(
 			array('property'=>'code', 'type'=>'text', 'label'=>'Code', 'description'=>'The code for use when communicating with the ILS', 'required'=>true),
 			array('property'=>'subLocation', 'type'=>'text', 'label'=>'Sub Location Code', 'description'=>'The sub location or collection used to identify this '),
@@ -215,7 +217,7 @@ class Location extends DB_DataObject
 			)),
 
 			// Browse Category Section //
-			array('property' => 'browseCategorySection', 'type' => 'section', 'label' => 'Browse Categories', 'hideInLists' => true,
+			array('property' => 'browseCategorySection', 'type' => 'section', 'label' => 'Browse Categories', 'hideInLists' => true, 'instructions' => $browseCategoryInstructions,
 			      'properties' => array(
 				      'defaultBrowseMode' => array('property' => 'defaultBrowseMode', 'type' => 'enum', 'label'=>'Default Viewing Mode for Browse Categories', 'description' => 'Sets how browse categories will be displayed when users haven\'t chosen themselves.', 'hideInLists' => true,
 				                                   'values'=> array('' => null, // empty value option is needed so that if no option is specifically chosen for location, the library setting will be used instead.

@@ -25,6 +25,11 @@
 
 					<div id="accordion_body_{$property.label|escapeCSS}" class="panel-collapse collapse">
 						<div class="panel-body">
+							{if $property.instructions}
+								<div class="alert alert-info">
+									{$property.instructions}
+								</div>
+							{/if}
 							{foreach from=$property.properties item=property}
 								{include file="DataObjectUtil/property.tpl"}
 							{/foreach}

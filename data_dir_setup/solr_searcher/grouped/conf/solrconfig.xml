@@ -475,9 +475,10 @@
 			 -->
 		<filterCache
 				class="solr.FastLRUCache"
-				size="1000"
-				initialSize="500"
-				autowarmCount="100"/>
+				size="16384"
+				initialSize="4096"
+				autowarmCount="256"
+				cleanupThread="true"/>
 
 		<!-- Query Result Cache
 
@@ -489,9 +490,9 @@
 			-->
 		<queryResultCache
 				class="solr.LRUCache"
-				size="1000"
-				initialSize="500"
-				autowarmCount="100"/>
+				size="1024"
+				initialSize="128"
+				autowarmCount="0"/>
 
 		<!-- Document Cache
 
@@ -501,8 +502,9 @@
 				-->
 		<documentCache
 				class="solr.LRUCache"
-				size="1000"
-				initialSize="500"/>
+				size="16384"
+				initialSize="4096"
+				cleanupThread="true"/>
 
 		<!-- Field Value Cache
 
@@ -510,12 +512,10 @@
 			 by document id.  The fieldValueCache is created by default
 			 even if not configured here.
 		-->
-		<!--
 		 <fieldValueCache class="solr.FastLRUCache"
-											size="512"
+											size="20000"
 											autowarmCount="128"
-											showItems="32" />
-		-->
+											cleanupThread="true" />
 
 		<!-- Custom Cache
 
@@ -601,24 +601,61 @@
 		-->
 		<listener event="newSearcher" class="solr.QuerySenderListener">
 			<arr name="queries">
-				<lst><str name="q"></str></lst>
-				<lst><str name="q">Fiction</str></lst>
-				<lst><str name="q">dvd</str></lst>
-				<lst><str name="q">movies</str></lst>
-				<lst><str name="q">good and evil</str></lst>
-				<lst><str name="q">Harry Potter</str></lst>
-				<lst><str name="q">audio books</str></lst>
-				<lst><str name="q">star wars</str></lst>
-				<lst><str name="q">murder victims fiction</str></lst>
-				<lst><str name="q">james patterson</str></lst>
-				<lst><str name="q">divergent</str></lst>
-				<lst><str name="q">gone girl</str></lst>
-				<lst><str name="q">game of thrones</str></lst>
-				<lst><str name="q">documentary videos</str></lst>
-				<lst><str name="q">all the light we cannot see</str></lst>
-				<lst><str name="q">dogs</str></lst>
-				<lst><str name="q">cats</str></lst>
-				<lst><str name="q">hunger games</str></lst>
+				<lst>
+					<str name="q">*:*</str>
+					<str name="facet">true</str>
+					<str name="facet.field">literary_form_full,target_audience_full,literary_form,target_audience,topic_facet,authorStr,awards_facet,econtent_device,era,genre_facet,language,lexile_code,lexile_score,mpaa_rating,publishDate,geographic_facet,rating_facet,accelerated_reader_point_value,accelerated_reader_interest_lleve,accelerated_reader_reading_level</str>
+					<str name="facet.limit">100</str>
+					<str name="facet.mincount">1</str>
+				</lst>
+				<lst>
+					<str name="q">Harry Potter</str>
+					<str name="facet">true</str>
+					<str name="facet.field">literary_form_full,target_audience_full,literary_form,target_audience,topic_facet,authorStr,awards_facet,econtent_device,era,genre_facet,language,lexile_code,lexile_score,mpaa_rating,publishDate,geographic_facet,rating_facet,accelerated_reader_point_value,accelerated_reader_interest_lleve,accelerated_reader_reading_level</str>
+					<str name="facet.limit">100</str>
+					<str name="facet.mincount">1</str>
+					<str name="facet.threads">25</str>
+				</lst>
+				<lst>
+					<str name="q">Divergent</str>
+					<str name="facet">true</str>
+					<str name="facet.field">literary_form_full,target_audience_full,literary_form,target_audience,topic_facet,authorStr,awards_facet,econtent_device,era,genre_facet,language,lexile_code,lexile_score,mpaa_rating,publishDate,geographic_facet,rating_facet,accelerated_reader_point_value,accelerated_reader_interest_lleve,accelerated_reader_reading_level</str>
+					<str name="facet.limit">100</str>
+					<str name="facet.mincount">1</str>
+					<str name="facet.threads">25</str>
+				</lst>
+				<lst>
+					<str name="q">Romance</str>
+					<str name="facet">true</str>
+					<str name="facet.field">literary_form_full,target_audience_full,literary_form,target_audience,topic_facet,authorStr,awards_facet,econtent_device,era,genre_facet,language,lexile_code,lexile_score,mpaa_rating,publishDate,geographic_facet,rating_facet,accelerated_reader_point_value,accelerated_reader_interest_lleve,accelerated_reader_reading_level</str>
+					<str name="facet.limit">100</str>
+					<str name="facet.mincount">1</str>
+					<str name="facet.threads">25</str>
+				</lst>
+				<lst>
+					<str name="q">Fiction</str>
+				</lst>
+				<lst>
+					<str name="q">dvd</str>
+				</lst>
+				<lst>
+					<str name="Frogs">dvd</str>
+				</lst>
+				<lst>
+					<str name="q">Cats</str>
+				</lst>
+				<lst>
+					<str name="q">dogs</str>
+				</lst>
+				<lst>
+					<str name="q">Good and evil</str>
+				</lst>
+				<lst>
+					<str name="q">movies</str>
+				</lst>
+				<lst>
+					<str name="q">audio books</str>
+				</lst>
 			</arr>
 		</listener>
 		<listener event="firstSearcher" class="solr.QuerySenderListener">
@@ -759,26 +796,6 @@
 		<arr name="last-components">
 			<str>spellcheck</str>
 		</arr>
-	</requestHandler>
-
-	<requestHandler name="morelikethis" class="solr.MoreLikeThisHandler">
-		<lst name="defaults">
-			<str name="mlt.fl">title,title_short,callnumber-label,topic,language,author,publishDate</str>
-			<str name="mlt.qf">
-				title^75
-				title_short^100
-				callnumber-label^400
-				topic^300
-				language^30
-				author^75
-				publishDate
-			</str>
-			<int name="mlt.mintf">1</int>
-			<int name="mlt.mindf">1</int>
-			<str name="mlt.boost">true</str>
-			<int name="mlt.count">5</int>
-			<int name="rows">5</int>
-		</lst>
 	</requestHandler>
 
 	<requestHandler name="morelikethis2" class="solr.MoreLikeThisHandler">
