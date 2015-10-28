@@ -4,32 +4,36 @@
 	.advSearchContent h3 {
 		margin-bottom: 20px;
 	}
-	.groupSearchHolder {
-		padding: 10px 0 5px;
-	}
-	.groupSearchHolder .advRow {
+	/*.groupSearchHolder {*/
+		/*padding: 10px 0 5px;*/
+	/*}*/
+	.groupSearchHolder .row {
 		padding: 2px 0;
 	}
-	.groupSearchHolder .advRow div {
-		float: left;
-		padding: 0 2px;
-	}
+	/*.groupSearchHolder .advRow div {*/
+		/*float: left;*/
+		/*padding: 0 2px;*/
+	/*}*/
 	.searchLabel {
-		width: 90px;
+		/*width: 90px;*/
 		font-weight: bold;
 		text-align: right;
 	}
 	.addSearch {
-		padding: 0 0 4px 102px;
+		/*padding: 0 0 4px 102px;*/
+		padding-bottom: 4px;
 	}
-	.groupSearchHolder .terms {
-		width: 220px;
+	.addSearch div {
+		padding-left: 0;
 	}
-	.groupSearchHolder .terms input {
-		width: 100%;
-	}
-	.groupSearchHolder .field {
-	}
+	/*.groupSearchHolder .terms {*/
+		/*width: 220px;*/
+	/*}*/
+	/*.groupSearchHolder .terms input {*/
+		/*width: 100%;*/
+	/*}*/
+	/*.groupSearchHolder .field {*/
+	/*}*/
 	.group .groupSearchDetails {
 		width: 100%
 		/*text-align: right;*/
@@ -112,7 +116,7 @@
 					<div id="groupJoin" class="searchGroups">
 						<div class="searchGroupDetails">
 							{translate text="search_match"} :
-							<select name="join">
+							<select name="join"{* class="form-control"*}>
 								<option value="AND">{translate text="group_AND"}</option>
 								<option value="OR"{if $searchDetails}{if $searchDetails.0.join == 'OR'} selected="selected"{/if}{/if}>{translate text="group_OR"}</option>
 							</select>
