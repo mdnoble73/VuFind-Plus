@@ -97,13 +97,9 @@ class IndexRecord extends RecordInterface
 
 		// Load highlighting/snippet preferences:
 		$searchSettings = getExtraConfigArray('searches');
-		$this->highlight = !isset($searchSettings['General']['highlighting'])
-		? false : $searchSettings['General']['highlighting'];
-		$this->snippet = !isset($searchSettings['General']['snippets'])
-		? false : $searchSettings['General']['snippets'];
-		$this->snippetCaptions = isset($searchSettings['Snippet_Captions'])
-		&& is_array($searchSettings['Snippet_Captions']) ?
-		$searchSettings['Snippet_Captions'] : array();
+		$this->highlight = $configArray['Index']['enableHighlighting'];
+		$this->snippet = $configArray['Index']['enableSnippets'];
+		$this->snippetCaptions = isset($searchSettings['Snippet_Captions']) && is_array($searchSettings['Snippet_Captions']) ? $searchSettings['Snippet_Captions'] : array();
 	}
 
 	/**

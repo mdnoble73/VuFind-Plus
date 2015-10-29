@@ -77,9 +77,10 @@ class GroupedWorkDriver extends RecordInterface{
 		}else{
 			$this->fields = $indexFields;
 			// Load highlighting/snippet preferences:
+			global $configArray;
 			$searchSettings = getExtraConfigArray('searches');
-			$this->highlight = !isset($searchSettings['General']['highlighting']) ? false : $searchSettings['General']['highlighting'];
-			$this->snippet = !isset($searchSettings['General']['snippets']) ? false : $searchSettings['General']['snippets'];
+			$this->highlight = $configArray['Index']['enableHighlighting'];
+			$this->snippet = $configArray['Index']['enableSnippets'];
 			$this->snippetCaptions = isset($searchSettings['Snippet_Captions']) && is_array($searchSettings['Snippet_Captions']) ? $searchSettings['Snippet_Captions'] : array();
 		}
 	}

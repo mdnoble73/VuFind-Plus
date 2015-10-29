@@ -208,8 +208,8 @@ class Solr implements IndexEngine {
 
 		// Turn on highlighting if the user has requested highlighting or snippet
 		// functionality:
-		$highlight = !isset($searchSettings['General']['highlighting']) ? false : $searchSettings['General']['highlighting'];
-		$snippet = !isset($searchSettings['General']['snippets']) ? false : $searchSettings['General']['snippets'];
+		$highlight = $configArray['Index']['enableHighlighting'];
+		$snippet = $configArray['Index']['enableSnippets'];
 		if ($highlight || $snippet) {
 			$this->_highlight = true;
 		}
@@ -1272,6 +1272,7 @@ class Solr implements IndexEngine {
 	$method = HTTP_REQUEST_METHOD_POST, $returnSolrError = false)
 	{
 		global $timer;
+		global $configArray;
 		// Query String Parameters
 		$options = array('q' => $query, 'rows' => $limit, 'start' => $start, 'indent' => 'yes');
 
@@ -1384,7 +1385,7 @@ class Solr implements IndexEngine {
 
 			if (isset($options['qt']) && $options['qt'] == 'dismax'){
 				//Boost by number of holdings
-				if (count($boostFactors) > 0 && !isset($_REQUEST['disableBoosting'])){
+				if (count($boostFactors) > 0 && $configArray['Index']['enableBoosting']){
 					$options['bf'] = "sum(" . implode(',', $boostFactors) . ")";
 				}
 				//print ($options['bq']);
@@ -1396,7 +1397,7 @@ class Solr implements IndexEngine {
 				}else{
 					$boost = '';
 				}
-				if (empty($boost) || isset($_REQUEST['disableBoosting'])){
+				if (empty($boost) || $configArray['Index']['enableBoosting']){
 					$options['q'] = $baseQuery;
 				}else{
 					$options['q'] = "{!boost b=$boost} $baseQuery";
@@ -1454,7 +1455,7 @@ class Solr implements IndexEngine {
 
 
 		// Build Facet Options
-		if ($facet && !empty($facet['field']) && !isset($_REQUEST['disableFaceting'])) {
+		if ($facet && !empty($facet['field']) && $configArray['Index']['enableFacets']) {
 			$options['facet'] = 'true';
 			$options['facet.mincount'] = 1;
 			$options['facet.method'] = 'fcs';
