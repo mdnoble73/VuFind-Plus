@@ -1538,7 +1538,7 @@ class Solr implements IndexEngine {
 		// Enable highlighting
 		if ($this->_highlight) {
 			global $solrScope;
-			$highlightFields = $fields;
+			$highlightFields = $fields . ",keywords";
 			$highlightFields = str_replace(",related_record_ids_$solrScope", '', $highlightFields);
 			$highlightFields = str_replace(",related_items_$solrScope", '', $highlightFields);
 			$highlightFields = str_replace(",format_$solrScope", '', $highlightFields);

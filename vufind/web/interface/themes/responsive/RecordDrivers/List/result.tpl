@@ -12,10 +12,10 @@
 		<div class="row">
 			<div class="col-xs-12">
 				<span class="result-index">{$resultIndex})</span>&nbsp;
-				<a href="{$path}/MyAccount/MyList/{$summShortId}" class="result-title notranslate">{if !$summTitle}{translate text='Title not available'}{else}{$summTitle|removeTrailingPunctuation|truncate:180:"..."|highlight:$lookfor}{/if}</a>
+				<a href="{$path}/MyAccount/MyList/{$summShortId}" class="result-title notranslate">{if !$summTitle}{translate text='Title not available'}{else}{$summTitle|removeTrailingPunctuation|truncate:180:"..."|highlight}{/if}</a>
 				{if $summTitleStatement}
 					<div class="searchResultSectionInfo">
-						&nbsp;-&nbsp;{$summTitleStatement|removeTrailingPunctuation|truncate:180:"..."|highlight:$lookfor}
+						&nbsp;-&nbsp;{$summTitleStatement|removeTrailingPunctuation|truncate:180:"..."|highlight}
 					</div>
 				{/if}
 				{if isset($summScore)}
@@ -30,10 +30,10 @@
 				<div class="col-md-9 result-value  notranslate">
 					{if is_array($summAuthor)}
 						{foreach from=$summAuthor item=author}
-							{$author|highlight:$lookfor}
+							{$author|highlight}
 						{/foreach}
 					{else}
-						{$summAuthor|highlight:$lookfor}
+						{$summAuthor|highlight}
 					{/if}
 				</div>
 			</div>

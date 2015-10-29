@@ -6,7 +6,7 @@
 			<div class="result-label col-xs-4">Uniform Title: </div>
 			<div class="col-xs-8 result-value">
 				{foreach from=$recordDriver->getUniformTitle() item=uniformTitle}
-					<a href="{$path}/Search/Results?lookfor={$uniformTitle|escape:"url"}">{$uniformTitle|highlight:$lookfor}</a><br/>
+					<a href="{$path}/Search/Results?lookfor={$uniformTitle|escape:"url"}">{$uniformTitle|highlight}</a><br/>
 				{/foreach}
 			</div>
 		</div>
@@ -16,7 +16,7 @@
 		<div class="row">
 			<div class="result-label col-xs-4">Author: </div>
 			<div class="col-xs-8 result-value">
-				<a href="{$path}/Author/Home?author={$recordDriver->getAuthor()|escape:"url"}">{$recordDriver->getAuthor()|highlight:$lookfor}</a><br/>
+				<a href="{$path}/Author/Home?author={$recordDriver->getAuthor()|escape:"url"}">{$recordDriver->getAuthor()|highlight}</a><br/>
 			</div>
 		</div>
 	{/if}

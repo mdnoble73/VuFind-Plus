@@ -10,7 +10,7 @@
       {if $record.Author}
         <br />{translate text='by'}
         {foreach from=$record.Author item=author name="loop"}
-          <a href="{$path}/Summon/Search?type=Author&amp;lookfor={$author|escape:"url"}">{$author|highlight:$lookfor}</a>{if !$smarty.foreach.loop.last},{/if} 
+          <a href="{$path}/Summon/Search?type=Author&amp;lookfor={$author|escape:"url"}">{$author|highlight}</a>{if !$smarty.foreach.loop.last},{/if}
         {/foreach}
       {/if}
       </span>

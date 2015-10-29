@@ -68,7 +68,7 @@ function smarty_modifier_highlight($haystack, $needle = null) {
 	$haystack = str_replace(
 		array('{{{{START_HILITE}}}}', '{{{{END_HILITE}}}}'),
 		array('<span class="highlight">', '</span>'),
-		htmlspecialchars($haystack)
+		$haystack
 	);
 
 	return $haystack;

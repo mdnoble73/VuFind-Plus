@@ -8927,6 +8927,10 @@ a.browse-thumbnail.active {
     column-count: 3;
   }
 }
+.highlight {
+  font-weight: bolder;
+  background-color: lemonchiffon;
+}
 .graph-bar {
   background-color: #088ec6;
 }

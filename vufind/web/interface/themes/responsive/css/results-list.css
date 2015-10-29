@@ -254,3 +254,7 @@
     column-count: 3;
   }
 }
+.highlight {
+  font-weight: bolder;
+  background-color: lemonchiffon;
+}

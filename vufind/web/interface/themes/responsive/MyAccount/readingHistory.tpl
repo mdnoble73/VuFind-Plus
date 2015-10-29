@@ -112,7 +112,7 @@
 											{/if}
 											{if $record.title2}
 												<div class="searchResultSectionInfo">
-													{$record.title2|removeTrailingPunctuation|truncate:180:"..."|highlight:$lookfor}
+													{$record.title2|removeTrailingPunctuation|truncate:180:"..."|highlight}
 												</div>
 											{/if}
 										</strong>
@@ -125,10 +125,10 @@
 										<div class="col-md-9 result-value">
 											{if is_array($record.author)}
 												{foreach from=$summAuthor item=author}
-													<a href="{$path}/Author/Home?author={$author|escape:"url"}">{$author|highlight:$lookfor}</a>
+													<a href="{$path}/Author/Home?author={$author|escape:"url"}">{$author|highlight}</a>
 												{/foreach}
 											{else}
-												<a href="{$path}/Author/Home?author={$record.author|escape:"url"}">{$record.author|highlight:$lookfor}</a>
+												<a href="{$path}/Author/Home?author={$record.author|escape:"url"}">{$record.author|highlight}</a>
 											{/if}
 										</div>
 									</div>
