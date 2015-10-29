@@ -885,7 +885,12 @@ class Solr implements IndexEngine {
 			// Build possible inputs for searching:
 			$values = array();
 			$values['onephrase'] = '"' . str_replace('"', '', implode(' ', $tokenized)) . '"';
-			$values['proximal'] = '"' . str_replace('"', '', implode(' ', $tokenized)) . '"~25';
+			if (count($tokenized) > 1){
+				$values['proximal'] = '"' . str_replace('"(', '', implode(') (', $tokenized)) . ')"~25';
+			}else{
+				$values['proximal'] = $tokenized[0];
+			}
+
 			$values['exact'] = str_replace(':', '\\:', $lookfor);
 			$values['and'] = $andQuery;
 			$values['or'] = $orQuery;
