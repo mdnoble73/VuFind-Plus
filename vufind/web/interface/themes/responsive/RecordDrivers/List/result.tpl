@@ -12,10 +12,10 @@
 		<div class="row">
 			<div class="col-xs-12">
 				<span class="result-index">{$resultIndex})</span>&nbsp;
-				<a href="{$path}/MyAccount/MyList/{$summShortId}" class="result-title notranslate">{if !$summTitle}{translate text='Title not available'}{else}{$summTitle|removeTrailingPunctuation|truncate:180:"..."|highlight}{/if}</a>
+				<a href="{$path}/MyAccount/MyList/{$summShortId}" class="result-title notranslate">{if !$summTitle}{translate text='Title not available'}{else}{$summTitle|removeTrailingPunctuation|highlight|truncate:180:"..."}{/if}</a>
 				{if $summTitleStatement}
 					<div class="searchResultSectionInfo">
-						&nbsp;-&nbsp;{$summTitleStatement|removeTrailingPunctuation|truncate:180:"..."|highlight}
+						&nbsp;-&nbsp;{$summTitleStatement|removeTrailingPunctuation|highlight|truncate:180:"..."}
 					</div>
 				{/if}
 				{if isset($summScore)}
