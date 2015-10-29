@@ -796,6 +796,7 @@ class Solr implements IndexEngine {
 					if(!is_null($weight) && $weight && $weight > 0) {
 						$searchString .= '^' . $weight;
 					}
+
 					// ..and push it on the stack of clauses
 					$clauses[] = $searchString;
 				}
@@ -884,6 +885,7 @@ class Solr implements IndexEngine {
 			// Build possible inputs for searching:
 			$values = array();
 			$values['onephrase'] = '"' . str_replace('"', '', implode(' ', $tokenized)) . '"';
+			$values['proximal'] = '"' . str_replace('"', '', implode(' ', $tokenized)) . '"~25';
 			$values['exact'] = str_replace(':', '\\:', $lookfor);
 			$values['and'] = $andQuery;
 			$values['or'] = $orQuery;
@@ -1538,7 +1540,7 @@ class Solr implements IndexEngine {
 		// Enable highlighting
 		if ($this->_highlight) {
 			global $solrScope;
-			$highlightFields = $fields . ",keywords";
+			$highlightFields = $fields . ",table_of_contents";
 			$highlightFields = str_replace(",related_record_ids_$solrScope", '', $highlightFields);
 			$highlightFields = str_replace(",related_items_$solrScope", '', $highlightFields);
 			$highlightFields = str_replace(",format_$solrScope", '', $highlightFields);

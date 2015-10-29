@@ -350,14 +350,9 @@ Keyword:
         - [localized_callnumber, 7000]
       - title_left:
         - [localized_callnumber, 3000]
-#      - title_full:
-#        - [exact, 800]
-#        - [onephrase, 500]
-#        - [single_word_removal, 50]
       - title_proper:
         - [exact, 800]
         - [onephrase, 500]
-        - [and, 200]
         - [single_word_removal, 50]
       - title:
         - [and, 125]
@@ -417,28 +412,22 @@ Keyword:
       - series2:
         - [and, 30]
 # Check everything else
-    -
-      - [OR, ~]
-      - table_of_contents:
-        - [onephrase, 50]
-      - table_of_contents:
-        - [and, 10]
-      - topic:
-        - [onephrase, 125]
-      - geographic:
-        - [onephrase, 75]
-      - genre:
-        - [onephrase, 75]
-      - keywords:
-        - [onephrase, 50]
-        - [and, 10]
-      - description:
-        - [onephrase, 60]
-        - [and, 10]
-      - target_audience:
-        - [onephrase, 75]
-      - literary_form_full:
-        - [onephrase, 75]
+    - table_of_contents:
+      - [proximal, 50]
+    - topic:
+      - [onephrase, 125]
+    - geographic:
+      - [onephrase, 75]
+    - genre:
+      - [onephrase, 75]
+    - keywords:
+      - [proximal, 10]
+    - description:
+      - [proximal, 60]
+    - target_audience:
+      - [onephrase, 75]
+    - literary_form_full:
+      - [onephrase, 75]
 
 KeywordProper:
   DismaxFields:
