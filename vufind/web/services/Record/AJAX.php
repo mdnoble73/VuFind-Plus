@@ -259,6 +259,21 @@ class Record_AJAX extends Action {
 			$interface->assign('showDetailedHoldNoticeInformation', $library->showDetailedHoldNoticeInformation);
 			$interface->assign('treatPrintNoticesAsPhoneNotices', $library->treatPrintNoticesAsPhoneNotices);
 
+			$holdDisclaimers = array();
+			$patronLibrary = $user->getHomeLibrary();
+			if (strlen($patronLibrary->holdDisclaimer) > 0){
+				$holdDisclaimers[$patronLibrary->displayName] = $patronLibrary->holdDisclaimer;
+			}
+			$linkedUsers = $user->getLinkedUsers();
+			foreach ($linkedUsers as $linkedUser){
+				$linkedLibrary = $linkedUser->getHomeLibrary();
+				if (strlen($linkedLibrary->holdDisclaimer) > 0){
+					$holdDisclaimers[$linkedLibrary->displayName] = $linkedLibrary->holdDisclaimer;
+				}
+			}
+
+			$interface->assign('holdDisclaimers', $holdDisclaimers);
+
 			require_once ROOT_DIR . '/RecordDrivers/MarcRecord.php';
 			$marcRecord = new MarcRecord($id);
 			$title = rtrim($marcRecord->getTitle(), ' /');
