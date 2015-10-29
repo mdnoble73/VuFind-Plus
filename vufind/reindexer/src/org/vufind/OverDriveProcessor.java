@@ -123,7 +123,7 @@ public class OverDriveProcessor {
 
 					productRS.close();
 
-					HashMap<String, String> metadata = loadOverDriveMetadata(groupedWork, productId);
+					HashMap<String, String> metadata = loadOverDriveMetadata(groupedWork, productId, primaryFormat);
 					String primaryLanguage = loadOverDriveLanguages(groupedWork, productId, identifier);
 					loadOverDriveSubjects(groupedWork, productId);
 
@@ -364,7 +364,7 @@ public class OverDriveProcessor {
 		return formats;
 	}
 
-	private HashMap<String, String> loadOverDriveMetadata(GroupedWorkSolr groupedWork, Long productId) throws SQLException {
+	private HashMap<String, String> loadOverDriveMetadata(GroupedWorkSolr groupedWork, Long productId, String format) throws SQLException {
 		HashMap<String, String> returnMetadata = new HashMap<>();
 		//Load metadata
 		getProductMetadataStmt.setLong(1, productId);
@@ -380,9 +380,12 @@ public class OverDriveProcessor {
 			//Need to divide this because it seems to be all time checkouts for all libraries, not just our libraries
 			//Hopefully OverDrive will give us better stats in the near future that we can use.
 			groupedWork.addPopularity(metadataRS.getFloat("popularity") / 500f);
+			String shortDescription = metadataRS.getString("shortDescription");
+			groupedWork.addDescription(shortDescription, format);
+			String fullDescription = metadataRS.getString("fullDescription");
+			groupedWork.addDescription(shortDescription, format);
 
 			//Decode JSON data to get a little more information
-			//Do not worry about accelerated reader data since we get info direct from Renaissance Learning
 			/*try {
 				String rawMetadata = metadataRS.getString("rawData");
 				if (rawMetadata != null) {

@@ -79,6 +79,9 @@ public class HooplaProcessor extends MarcRecordProcessor {
 		String formatBoostStr = indexer.translateSystemValue("format_boost_hoopla", format, identifier);
 		Long formatBoost = Long.parseLong(formatBoostStr);
 
+		String fullDescription = Util.getCRSeparatedString(getFieldList(record, "520a"));
+		groupedWork.addDescription(fullDescription, format);
+
 		//Load editions
 		Set<String> editions = getFieldList(record, "250a");
 		String primaryEdition = null;
