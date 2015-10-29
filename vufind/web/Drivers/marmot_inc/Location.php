@@ -466,7 +466,7 @@ class Location extends DB_DataObject
 			//Check to see if a branch location has been specified.
 			$locationCode = $this->getBranchLocationCode();
 
-			if ($locationCode != null && $locationCode != '' && $locationCode != 'all'){
+			if (!empty($locationCode) && $locationCode != 'all'){
 				$activeLocation = new Location();
 				$activeLocation->code = $locationCode;
 				if ($activeLocation->find(true)){
@@ -474,7 +474,8 @@ class Location extends DB_DataObject
 					if ($library->libraryId == $activeLocation->libraryId){
 						Location::$activeLocation = clone $activeLocation;
 					}else {
-						$mismatch = true; // TODO check this situation
+						// if the active location doesn't belong to the library we are browsing at, turn off the active location
+						Location::$activeLocation = null;
 					}
 				}
 			}else{

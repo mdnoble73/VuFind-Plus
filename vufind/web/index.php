@@ -154,10 +154,11 @@ if ($mode['online'] === false) {
 $timer->logTime('Checked availability mode');
 
 //Check to see if we have a collection applied.
+// TODO: collection url parameter doesn't look to be used for anything
 global $defaultCollection;
 if (isset($_GET['collection'])){
 	$defaultCollection = $_GET['collection'];
-	//Set a coookie so we don't have to transfer the ip from page to page.
+	//Set a cookie so we don't have to transfer the ip from page to page.
 	if ($defaultCollection == '' || $defaultCollection == 'all'){
 		setcookie('collection', '', 0, '/');
 		$defaultCollection = null;
@@ -482,15 +483,20 @@ if ($action == "AJAX" || $action == "JSON"){
 
 //Determine if we should include autoLogout Code
 $ipLocation = $locationSingleton->getPhysicalLocation();
-$ipId = $locationSingleton->getIPid();
+if (!empty($ipLocation) && !empty($library) && $ipLocation->libraryId != $library->libraryId){
+	// This is to cover the case of being within one library but the user is browsing another library catalog
+	// This will turn off the auto-log out and Internal IP functionality
+	// (unless the user includes the opac parameter)
+	$ipLocation = null;
+}
 $isOpac = $locationSingleton->getOpacStatus();
 
 $onInternalIP = false;
 $includeAutoLogoutCode = false;
 $automaticTimeoutLength = 0;
 $automaticTimeoutLengthLoggedOut = 0;
-if (($isOpac || !empty($ipLocation)) && !$configArray['Catalog']['offline']){ //TODO swap order
-	//Make sure we don't have timeouts if we are offline (because it's super annoying when doing offline checkouts and holds)
+if (($isOpac || !empty($ipLocation)) && !$configArray['Catalog']['offline']){
+	// Make sure we don't have timeouts if we are offline (because it's super annoying when doing offline checkouts and holds)
 
 	// Turn on the auto log out
 	$onInternalIP = true;
