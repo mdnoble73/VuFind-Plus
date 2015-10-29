@@ -95,6 +95,7 @@ class IndexRecord extends RecordInterface
 	public function __construct($recordData){
 		$this->fields = $recordData;
 
+		global $configArray;
 		// Load highlighting/snippet preferences:
 		$searchSettings = getExtraConfigArray('searches');
 		$this->highlight = $configArray['Index']['enableHighlighting'];
