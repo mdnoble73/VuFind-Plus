@@ -351,8 +351,8 @@ Keyword:
       - title_left:
         - [localized_callnumber, 3000]
       - title_proper:
-        - [exact, 800]
-        - [onephrase, 500]
+        - [onephrase, 800]
+        - [and, 500]
         - [single_word_removal, 50]
       - title:
         - [and, 125]
@@ -368,8 +368,7 @@ Keyword:
       - author_left:
         - [localized_callnumber, 1000]
       - author:
-        - [exact, 800]
-        - [onephrase, 250]
+        - [onephrase, 800]
         - [and, 200]
       - author2:
         - [and, 50]
@@ -381,9 +380,9 @@ Keyword:
       - id:
         - [onephrase, ~]
       - alternate_ids:
-        - [exact, ~]
+        - [onephrase, ~]
       - barcode:
-        - [exact, ~]
+        - [onephrase, ~]
       - issn:
         - [and, 100]
         - [or, ~]
@@ -401,13 +400,12 @@ Keyword:
       - local_callnumber_left:
         - [localized_callnumber, 300]
       - local_callnumber:
-        - [exact, ~]
+        - [onephrase, ~]
 # Series
     -
       - [OR, ~]
       - series:
         - [onephrase, 600]
-        - [exact, 100]
         - [and, 50]
       - series2:
         - [and, 30]
