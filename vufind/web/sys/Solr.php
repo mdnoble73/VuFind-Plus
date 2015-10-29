@@ -1548,6 +1548,8 @@ class Solr implements IndexEngine {
 			$options['hl.simple.pre'] = '{{{{START_HILITE}}}}';
 			$options['hl.simple.post'] = '{{{{END_HILITE}}}}';
 			$options['f.display_description.hl.fragsize'] = 50000;
+			$options['f.title_display.hl.fragsize'] = 1000;
+			$options['f.title_full.hl.fragsize'] = 1000;
 		}
 
 		if ($this->debugSolrQuery) {
