@@ -19,18 +19,24 @@
 			<div class="row">
 				<div class="col-xs-12 col-sm-3">
 					<dl>
+						{if $curLocation.address}
 						<dt>Address</dt>
 						<dd>
-							{$curLocation.address}
+							<address>{$curLocation.address}</address>
 						</dd>
+						{/if}
+						{if $curLocation.phone}
 						<dt>Phone</dt>
 						<dd><a href="tel:{$curLocation.phone}">{$curLocation.phone}</a></dd>
+						{/if}
 					</dl>
 				</div>
+				{if $curLocation.address}
 				<div class="col-xs-12 col-sm-9">
 					<a href="{$curLocation.map_link}"><img src="{$curLocation.map_image}" alt="Map"></a>
-					<br/><a href="{$curLocation.map_link}">Directions</a>
+					<br><a href="{$curLocation.map_link}">Directions</a>
 				</div>
+				{/if}
 			</div>
 			{if $curLocation.hours}
 				<h4>Hours</h4>
