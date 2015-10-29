@@ -208,8 +208,8 @@ class Solr implements IndexEngine {
 
 		// Turn on highlighting if the user has requested highlighting or snippet
 		// functionality:
-		$highlight = !isset($searchSettings['General']['highlighting']) ? false : $searchSettings['General']['highlighting'];
-		$snippet = !isset($searchSettings['General']['snippets']) ? false : $searchSettings['General']['snippets'];
+		$highlight = $configArray['Index']['enableHighlighting'];
+		$snippet = $configArray['Index']['enableSnippets'];
 		if ($highlight || $snippet) {
 			$this->_highlight = true;
 		}
@@ -594,7 +594,10 @@ class Solr implements IndexEngine {
 			$options['fq'][] = $filter;
 		}
 		$boostFactors = $this->getBoostFactors($searchLibrary, $searchLocation);
-		$options['bf'] = $boostFactors;
+		if (!isset($_REQUEST['disableBoosting'])){
+			$options['bf'] = $boostFactors;
+		}
+
 		if (!empty($this->_solrShards) && is_array($this->_solrShards)) {
 			$options['shards'] = implode(',',$this->_solrShards);
 		}
@@ -639,7 +642,9 @@ class Solr implements IndexEngine {
 			$options['fq'][] = $filter;
 		}
 		$boostFactors = $this->getBoostFactors($searchLibrary, $searchLocation);
-		$options['bf'] = $boostFactors;
+		if (!isset($_REQUEST['disableBoosting'])){
+			$options['bf'] = $boostFactors;
+		}
 		if (!empty($this->_solrShards) && is_array($this->_solrShards)) {
 			$options['shards'] = implode(',',$this->_solrShards);
 		}
@@ -751,15 +756,47 @@ class Solr implements IndexEngine {
 						$field .= '_' . $solrScope;
 					}
 				}
+
 				// Otherwise, we've got a (list of) [munge, weight] pairs to deal with
 				foreach ($clauseArray as $spec) {
+					$fieldValue = $values[$spec[0]];
+					//Check fields that we expect to match certain patterns to see if we should skip this term.
+					if ($field == 'isbn'){
+						if (!preg_match('/^"?\d{10,13}X?"?$/', $fieldValue)){
+							continue;
+						}
+					}elseif($field == 'id'){
+						if (!preg_match('/^"?(\d+|.b\d+|[A-F0-9]{8}-[A-F0-9]{4}-[A-F0-9]{4}-[A-F0-9]{4}-[A-F0-9]{12})"?$/i', $fieldValue)){
+							continue;
+						}
+					}elseif($field == 'alternate_ids'){
+						if (!preg_match('/^"?(\d+|.b\d+|[A-F0-9]{8}-[A-F0-9]{4}-[A-F0-9]{4}-[A-F0-9]{4}-[A-F0-9]{12}|MWT\d+)"?$/i', $fieldValue)){
+							continue;
+						}
+					}elseif($field == 'upc' || $field == 'issn'){
+						if (!preg_match('/^"?\d+"?$/', $fieldValue)){
+							continue;
+						}
+					}
+
 					// build a string like title:("one two")
-					$searchString = $field . ':(' . $values[$spec[0]] . ')';
+					$searchString = $field . ':(' . $fieldValue . ')';
+					//Check to make sure we don't already have this clause.  We will get the same clause if we have a single word and are doing different munges
+					$okToAdd = true;
+					foreach ($clauses as $clause){
+						if (strpos($clause, $searchString) === 0){
+							$okToAdd = false;
+							break;
+						}
+					}
+					if (!$okToAdd) continue;
+
 					// Add the weight it we have one. Yes, I know, it's redundant code.
 					$weight = $spec[1];
 					if(!is_null($weight) && $weight && $weight > 0) {
 						$searchString .= '^' . $weight;
 					}
+
 					// ..and push it on the stack of clauses
 					$clauses[] = $searchString;
 				}
@@ -848,6 +885,12 @@ class Solr implements IndexEngine {
 			// Build possible inputs for searching:
 			$values = array();
 			$values['onephrase'] = '"' . str_replace('"', '', implode(' ', $tokenized)) . '"';
+			if (count($tokenized) > 1){
+				$values['proximal'] = '"' . str_replace('"(', '', implode(') (', $tokenized)) . ')"~10';
+			}else{
+				$values['proximal'] = $tokenized[0];
+			}
+
 			$values['exact'] = str_replace(':', '\\:', $lookfor);
 			$values['and'] = $andQuery;
 			$values['or'] = $orQuery;
@@ -1229,6 +1272,7 @@ class Solr implements IndexEngine {
 	$method = HTTP_REQUEST_METHOD_POST, $returnSolrError = false)
 	{
 		global $timer;
+		global $configArray;
 		// Query String Parameters
 		$options = array('q' => $query, 'rows' => $limit, 'start' => $start, 'indent' => 'yes');
 
@@ -1341,7 +1385,7 @@ class Solr implements IndexEngine {
 
 			if (isset($options['qt']) && $options['qt'] == 'dismax'){
 				//Boost by number of holdings
-				if (count($boostFactors) > 0){
+				if (count($boostFactors) > 0 && $configArray['Index']['enableBoosting']){
 					$options['bf'] = "sum(" . implode(',', $boostFactors) . ")";
 				}
 				//print ($options['bq']);
@@ -1353,7 +1397,11 @@ class Solr implements IndexEngine {
 				}else{
 					$boost = '';
 				}
-				$options['q'] = "{!boost b=$boost} $baseQuery";
+				if (empty($boost) || $configArray['Index']['enableBoosting']){
+					$options['q'] = $baseQuery;
+				}else{
+					$options['q'] = "{!boost b=$boost} $baseQuery";
+				}
 				//echo ("Advanced Query " . $options['q']);
 			}
 
@@ -1407,7 +1455,7 @@ class Solr implements IndexEngine {
 
 
 		// Build Facet Options
-		if ($facet && !empty($facet['field'])) {
+		if ($facet && !empty($facet['field']) && $configArray['Index']['enableFacets']) {
 			$options['facet'] = 'true';
 			$options['facet.mincount'] = 1;
 			$options['facet.method'] = 'fcs';
@@ -1498,7 +1546,7 @@ class Solr implements IndexEngine {
 		// Enable highlighting
 		if ($this->_highlight) {
 			global $solrScope;
-			$highlightFields = $fields;
+			$highlightFields = $fields . ",table_of_contents";
 			$highlightFields = str_replace(",related_record_ids_$solrScope", '', $highlightFields);
 			$highlightFields = str_replace(",related_items_$solrScope", '', $highlightFields);
 			$highlightFields = str_replace(",format_$solrScope", '', $highlightFields);
@@ -1507,6 +1555,9 @@ class Solr implements IndexEngine {
 			$options['hl.fl'] = $highlightFields;
 			$options['hl.simple.pre'] = '{{{{START_HILITE}}}}';
 			$options['hl.simple.post'] = '{{{{END_HILITE}}}}';
+			$options['f.display_description.hl.fragsize'] = 50000;
+			$options['f.title_display.hl.fragsize'] = 1000;
+			$options['f.title_full.hl.fragsize'] = 1000;
 		}
 
 		if ($this->debugSolrQuery) {
@@ -1548,8 +1599,6 @@ class Solr implements IndexEngine {
 	 * @return array
 	 */
 	public function getScopingFilters($searchLibrary, $searchLocation){
-		global $user;
-		global $configArray;
 		global $solrScope;
 
 		$filter = array();

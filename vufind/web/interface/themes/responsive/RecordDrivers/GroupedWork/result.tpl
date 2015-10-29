@@ -21,9 +21,9 @@
 		<div class="row">
 			<div class="col-xs-12">
 				<span class="result-index">{$resultIndex})</span>&nbsp;
-				<a href="{$summUrl}" class="result-title notranslate">{if !$summTitle|removeTrailingPunctuation}{translate text='Title not available'}{else}{$summTitle|removeTrailingPunctuation|truncate:180:"..."|highlight:$lookfor}{/if}</a>
+				<a href="{$summUrl}" class="result-title notranslate">{if !$summTitle|removeTrailingPunctuation}{translate text='Title not available'}{else}{$summTitle|removeTrailingPunctuation|highlight|truncate:180:"..."}{/if}</a>
 				{if $summTitleStatement}
-					&nbsp;-&nbsp;{$summTitleStatement|removeTrailingPunctuation|truncate:180:"..."|highlight:$lookfor}
+					&nbsp;-&nbsp;{$summTitleStatement|removeTrailingPunctuation|highlight|truncate:180:"..."}
 				{/if}
 				{if isset($summScore)}
 					&nbsp;(<a href="#" onclick="return VuFind.showElementInPopup('Score Explanation', '#scoreExplanationValue{$summId|escape}');">{$summScore}</a>)
@@ -37,10 +37,10 @@
 				<div class="col-xs-9 result-value  notranslate">
 					{if is_array($summAuthor)}
 						{foreach from=$summAuthor item=author}
-							<a href="{$path}/Author/Home?author={$author|escape:"url"}">{$author|highlight:$lookfor}</a>
+							<a href="{$path}/Author/Home?author={$author|escape:"url"}">{$author|highlight}</a>
 						{/foreach}
 					{else}
-						<a href="{$path}/Author/Home?author={$summAuthor|escape:"url"}">{$summAuthor|highlight:$lookfor}</a>
+						<a href="{$path}/Author/Home?author={$summAuthor|escape:"url"}">{$summAuthor|highlight}</a>
 					{/if}
 				</div>
 			</div>
@@ -95,6 +95,17 @@
 			</div>
 		{/if}
 
+		{if $summSnippets}
+			{foreach from=$summSnippets item=snippet}
+				<div class="row">
+					<div class="result-label col-xs-3">{translate text=$snippet.caption}: </div>
+					<div class="col-xs-9 result-value">
+						{if !empty($snippet.snippet)}<span class="quotestart">&#8220;</span>...{$snippet.snippet|highlight}...<span class="quoteend">&#8221;</span><br />{/if}
+					</div>
+				</div>
+			{/foreach}
+		{/if}
+
 		<div class="row well-small">
 			<div class="col-xs-12">
 				{include file="GroupedWork/relatedManifestations.tpl" id=$summId}
@@ -102,7 +113,7 @@
 		</div>
 
 		<div class="row well-small">
-			<div class="col-xs-12 result-value" id="descriptionValue{$summId|escape}">{$summDescription|truncate_html:450}</div>
+			<div class="col-xs-12 result-value" id="descriptionValue{$summId|escape}">{$summDescription|highlight|truncate_html:450:"..."}</div>
 		</div>
 
 		<div class="resultActions row">

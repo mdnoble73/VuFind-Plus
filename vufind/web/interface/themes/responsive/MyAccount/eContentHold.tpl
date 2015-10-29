@@ -25,7 +25,7 @@
 				{if $record.recordId}
 				<a href="{$record.recordUrl}" class="result-title notranslate">
 					{/if}
-					{if !$record.title|removeTrailingPunctuation}{translate text='Title not available'}{else}{$record.title|removeTrailingPunctuation|truncate:180:"..."|highlight:$lookfor}{/if}
+					{if !$record.title|removeTrailingPunctuation}{translate text='Title not available'}{else}{$record.title|removeTrailingPunctuation|truncate:180:"..."|highlight}{/if}
 					{if $record.recordId}
 				</a>
 				{/if}
@@ -37,7 +37,7 @@
 						<div class="row">
 							<div class="result-label col-md-3">{translate text='Author'}</div>
 							<div class="col-md-9 result-value">
-								<a href="{$path}/Author/Home?author={$record.author|escape:"url"}">{$record.author|highlight:$lookfor}</a>
+								<a href="{$path}/Author/Home?author={$record.author|escape:"url"}">{$record.author|highlight}</a>
 							</div>
 						</div>
 					{/if}

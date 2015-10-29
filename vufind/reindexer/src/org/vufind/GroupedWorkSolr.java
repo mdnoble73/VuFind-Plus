@@ -1074,7 +1074,7 @@ public class GroupedWorkSolr {
 			this.displayDescriptionFormat = recordFormat;
 		}else{
 			//Only overwrite if we get a better format
-			if (recordFormat.equals("Book") || recordFormat.equals("eBook") ){
+			if (recordFormat.equals("Book") || recordFormat.equals("eBook") || recordFormat.equals(displayDescriptionFormat) ){
 				if (description.length() > this.displayDescription.length()){
 					this.displayDescription = description;
 					this.displayDescriptionFormat = recordFormat;

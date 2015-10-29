@@ -7,7 +7,7 @@
 		<div class="row">
 			<div class="col-xs-12">
 				<span class="result-title notranslate">
-				{if !$record.title|removeTrailingPunctuation}{translate text='Title not available'}{else}{$record.title|removeTrailingPunctuation|truncate:180:"..."|highlight:$lookfor}{/if}
+				{if !$record.title|removeTrailingPunctuation}{translate text='Title not available'}{else}{$record.title|removeTrailingPunctuation|truncate:180:"..."|highlight}{/if}
 				{if $record.volume}
 					, {$record.series} {$record.volume}&nbsp;
 				{/if}
@@ -21,10 +21,10 @@
 				<div class="col-md-9 result-value  notranslate">
 					{if is_array($record.author)}
 						{foreach from=$summAuthor item=author}
-							<a href="{$path}/Author/Home?author={$author|escape:"url"}">{$author|highlight:$lookfor}</a>
+							<a href="{$path}/Author/Home?author={$author|escape:"url"}">{$author|highlight}</a>
 						{/foreach}
 					{else}
-						<a href="{$path}/Author/Home?author={$record.author|escape:"url"}">{$record.author|highlight:$lookfor}</a>
+						<a href="{$path}/Author/Home?author={$record.author|escape:"url"}">{$record.author|highlight}</a>
 					{/if}
 				</div>
 			{/if}

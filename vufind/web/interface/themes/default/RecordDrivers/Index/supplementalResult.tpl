@@ -10,10 +10,10 @@
 	<div class="resultDetails">
 		<div class="resultItemLine1">
 		{if $summScore}({$summScore}) {/if}
-		<a href="{$summUrl}" class="title">{if !$summTitle|removeTrailingPunctuation}{translate text='Title not available'}{else}{$summTitle|removeTrailingPunctuation|truncate:180:"..."|highlight:$lookfor}{/if}</a>
+		<a href="{$summUrl}" class="title">{if !$summTitle|removeTrailingPunctuation}{translate text='Title not available'}{else}{$summTitle|removeTrailingPunctuation|truncate:180:"..."|highlight}{/if}</a>
 		{if $summTitleStatement}
 			<div class="searchResultSectionInfo">
-				{$summTitleStatement|removeTrailingPunctuation|truncate:180:"..."|highlight:$lookfor}
+				{$summTitleStatement|removeTrailingPunctuation|truncate:180:"..."|highlight}
 			</div>
 			{/if}
 		</div>
@@ -23,10 +23,10 @@
 				{translate text='by'}
 				{if is_array($summAuthor)}
 					{foreach from=$summAuthor item=author}
-						<a href="{$path}/Author/Home?author={$author|escape:"url"}&amp;searchSource=marmot">{$author|highlight:$lookfor}</a>
+						<a href="{$path}/Author/Home?author={$author|escape:"url"}&amp;searchSource=marmot">{$author|highlight}</a>
 					{/foreach}
 				{else}
-					<a href="{$path}/Author/Home?author={$summAuthor|escape:"url"}&amp;searchSource=marmot">{$summAuthor|highlight:$lookfor}</a>
+					<a href="{$path}/Author/Home?author={$summAuthor|escape:"url"}&amp;searchSource=marmot">{$summAuthor|highlight}</a>
 				{/if}
 			{/if}
 

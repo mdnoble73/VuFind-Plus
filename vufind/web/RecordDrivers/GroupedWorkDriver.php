@@ -16,6 +16,41 @@ class GroupedWorkDriver extends RecordInterface{
 	protected $fields;
 	protected $scopingEnabled = true;
 	public $isValid = true;
+	/**
+	 * These are captions corresponding with Solr fields for use when displaying
+	 * snippets.
+	 *
+	 * @var    array
+	 * @access protected
+	 */
+	protected $snippetCaptions = array(
+		'display_description' => 'Description'
+	);
+
+	/**
+	 * Should we include snippets in search results?
+	 *
+	 * @var    bool
+	 * @access protected
+	 */
+	protected $snippet = false;
+	protected $highlight = false;
+	/**
+	 * These Solr fields should NEVER be used for snippets.  (We exclude author
+	 * and title because they are already covered by displayed fields; we exclude
+	 * spelling because it contains lots of fields jammed together and may cause
+	 * glitchy output; we exclude ID because random numbers are not helpful).
+	 *
+	 * @var    array
+	 * @access protected
+	 */
+	protected $forbiddenSnippetFields = array(
+		'author', 'author-letter', 'auth_author2', 'title', 'title_short', 'title_full',
+		'title_auth', 'title_sub', 'title_display', 'spelling', 'id',
+		'allfields', 'allfields_proper', 'fulltext_unstemmed', 'econtentText_unstemmed',
+		'spellingShingle', 'collection', 'title_proper',
+		'display_description'
+	);
 	public function __construct($indexFields)
 	{
 		if (is_string($indexFields)){
@@ -38,8 +73,15 @@ class GroupedWorkDriver extends RecordInterface{
 			if (function_exists('enableErrorHandler')){
 				enableErrorHandler();
 			}
+
 		}else{
 			$this->fields = $indexFields;
+			// Load highlighting/snippet preferences:
+			global $configArray;
+			$searchSettings = getExtraConfigArray('searches');
+			$this->highlight = $configArray['Index']['enableHighlighting'];
+			$this->snippet = $configArray['Index']['enableSnippets'];
+			$this->snippetCaptions = isset($searchSettings['Snippet_Captions']) && is_array($searchSettings['Snippet_Captions']) ? $searchSettings['Snippet_Captions'] : array();
 		}
 	}
 
@@ -486,14 +528,18 @@ class GroupedWorkDriver extends RecordInterface{
 		}
 
 		$interface->assign('summUrl', $linkUrl);
-		$interface->assign('summTitle', $this->getTitle());
-		$interface->assign('summSubTitle', $this->getSubtitle());
-		$interface->assign('summAuthor', $this->getPrimaryAuthor());
+		$interface->assign('summTitle', $this->getTitle(true));
+		$interface->assign('summSubTitle', $this->getSubtitle(true));
+		$interface->assign('summAuthor', $this->getPrimaryAuthor(true));
 		$isbn = $this->getCleanISBN();
 		$interface->assign('summISBN', $isbn);
 		$interface->assign('summFormats', $this->getFormats());
 		$interface->assign('numRelatedRecords', count($relatedRecords));
 		$timer->logTime("Finished assignment of main data");
+
+		// Obtain and assign snippet (highlighting) information:
+		$snippets = $this->getHighlightedSnippets();
+		$interface->assign('summSnippets', $snippets);
 
 		//Generate COinS URL for Zotero support
 		$interface->assign('summCOinS', $this->getOpenURL());
@@ -548,7 +594,7 @@ class GroupedWorkDriver extends RecordInterface{
 		$timer->logTime("Finished loading rating data");
 
 		//Description
-		$interface->assign('summDescription', $this->getDescriptionFast());
+		$interface->assign('summDescription', $this->getDescriptionFast(true));
 		$timer->logTime('Finished Loading Description');
 		if ($this->hasCachedSeries()){
 			$interface->assign('ajaxSeries', false);
@@ -785,8 +831,16 @@ class GroupedWorkDriver extends RecordInterface{
 	 *
 	 * @return  string
 	 */
-	public function getTitle()
-	{
+	public function getTitle($useHighlighting = false) {
+		// Don't check for highlighted values if highlighting is disabled:
+		if ($this->highlight && $useHighlighting) {
+			if (isset($this->fields['_highlighting']['title_display'][0])){
+				return $this->fields['_highlighting']['title_display'][0];
+			}else if (isset($this->fields['_highlighting']['title_full'][0])){
+				return $this->fields['_highlighting']['title_full'][0];
+			}
+		}
+
 		if (isset($this->fields['title_display'])){
 			return $this->fields['title_display'];
 		}else{
@@ -808,8 +862,14 @@ class GroupedWorkDriver extends RecordInterface{
 	 * @access  protected
 	 * @return  string
 	 */
-	protected function getSubtitle()
+	protected function getSubtitle($useHighlighting = false)
 	{
+		// Don't check for highlighted values if highlighting is disabled:
+		if ($useHighlighting) {
+			if (isset($this->fields['_highlighting']['title_sub'][0])){
+				return $this->fields['_highlighting']['title_sub'][0];
+			}
+		}
 		return isset($this->fields['title_sub']) ?
 				$this->fields['title_sub'] : '';
 	}
@@ -830,10 +890,19 @@ class GroupedWorkDriver extends RecordInterface{
 	 * Get the main author of the record.
 	 *
 	 * @access  protected
+	 *
 	 * @return  string
 	 */
-	public function getPrimaryAuthor()
+	public function getPrimaryAuthor($useHighlighting = false)
 	{
+		// Don't check for highlighted values if highlighting is disabled:
+		if ($this->highlight && $useHighlighting) {
+			if (isset($this->fields['_highlighting']['author_display'][0])){
+				return $this->fields['_highlighting']['author_display'][0];
+			}else if (isset($this->fields['_highlighting']['author'][0])){
+				return $this->fields['_highlighting']['author'][0];
+			}
+		}
 		if (isset($this->fields['author_display'])){
 			return $this->fields['author_display'];
 		}else{
@@ -856,7 +925,14 @@ class GroupedWorkDriver extends RecordInterface{
 	}
 
 	private $fastDescription = null;
-	function getDescriptionFast(){
+	function getDescriptionFast($useHighlighting = false){
+
+		// Don't check for highlighted values if highlighting is disabled:
+		if ($this->highlight && $useHighlighting) {
+			if (isset($this->fields['_highlighting']['display_description'][0])){
+				return $this->fields['_highlighting']['display_description'][0];
+			}
+		}
 		if ($this->fastDescription != null){
 			return $this->fastDescription;
 		}
@@ -2144,5 +2220,56 @@ class GroupedWorkDriver extends RecordInterface{
 
 	public function getRecordActions($isAvailable, $isHoldable, $isBookable, $relatedUrls = null){
 		return array();
+	}
+
+	/**
+	 * Pick one line from the highlighted text (if any) to use as a snippet.
+	 *
+	 * @return mixed False if no snippet found, otherwise associative array
+	 * with 'snippet' and 'caption' keys.
+	 * @access protected
+	 */
+	protected function getHighlightedSnippets()
+	{
+		$snippets = array();
+		// Only process snippets if the setting is enabled:
+		if ($this->snippet && isset($this->fields['_highlighting'])) {
+			if (is_array($this->fields['_highlighting'])) {
+				foreach ($this->fields['_highlighting'] as $key => $value) {
+					if (!in_array($key, $this->forbiddenSnippetFields)) {
+						$snippets[] = array(
+							'snippet' => $value[0],
+							'caption' => $this->getSnippetCaption($key)
+						);
+					}
+				}
+			}
+			return $snippets;
+		}
+
+		// If we got this far, no snippet was found:
+		return false;
+	}
+
+	/**
+	 * Given a Solr field name, return an appropriate caption.
+	 *
+	 * @param string $field Solr field name
+	 *
+	 * @return mixed        Caption if found, false if none available.
+	 * @access protected
+	 */
+	protected function getSnippetCaption($field)
+	{
+		if (isset($this->snippetCaptions[$field])){
+			return $this->snippetCaptions[$field];
+		}else{
+			if (preg_match('/callnumber/', $field)){
+				return 'Call Number';
+			}else{
+				return ucwords(str_replace('_', ' ', $field));
+			}
+
+		}
 	}
 }

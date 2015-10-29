@@ -22,10 +22,10 @@
 		<div class="row">
 			{if $summScore}({$summScore}) {/if}
 			<strong>
-				<a href="{$path}/Person/{$summShortId}" class="title">{if !$summTitle}{translate text='Title not available'}{else}{$summTitle|removeTrailingPunctuation|truncate:180:"..."|highlight:$lookfor}{/if}</a>
+				<a href="{$path}/Person/{$summShortId}" class="title">{if !$summTitle}{translate text='Title not available'}{else}{$summTitle|removeTrailingPunctuation|truncate:180:"..."|highlight}{/if}</a>
 				{if $summTitleStatement}
 					<div class="searchResultSectionInfo">
-					{$summTitleStatement|removeTrailingPunctuation|truncate:180:"..."|highlight:$lookfor}
+					{$summTitleStatement|removeTrailingPunctuation|truncate:180:"..."|highlight}
 					</div>
 				{/if}
 			</strong>

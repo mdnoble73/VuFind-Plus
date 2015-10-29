@@ -33,10 +33,10 @@ class ListRecord extends IndexRecord
 		$id = $this->getUniqueID();
 		$interface->assign('summId', $id);
 		$interface->assign('summShortId', substr($id, 4)); //Trim the list prefix for the short id
-		$interface->assign('summTitle', $this->getTitle());
-		$interface->assign('summAuthor', $this->getPrimaryAuthor());
+		$interface->assign('summTitle', $this->getTitle(true));
+		$interface->assign('summAuthor', $this->getPrimaryAuthor(true));
 		if (isset($this->fields['description'])){
-			$interface->assign('summDescription', $this->fields['description']);
+			$interface->assign('summDescription', $this->getDescription(true));
 		}else{
 			$interface->assign('summDescription', '');
 		}
@@ -45,6 +45,10 @@ class ListRecord extends IndexRecord
 		}else{
 			$interface->assign('summNumTitles', 0);
 		}
+
+		// Obtain and assign snippet (highlighting) information:
+		$snippets = $this->getHighlightedSnippets();
+		$interface->assign('summSnippets', $snippets);
 
 		return 'RecordDrivers/List/result.tpl';
 	}
@@ -82,6 +86,48 @@ class ListRecord extends IndexRecord
 
 	function getFormat() {
 		// overwrites class IndexRecord getFormat() so that getBookCoverURL() call will work without warning notices
-		return array('list');
+		return array('List');
+	}
+
+	/**
+	 * Get the full title of the record.
+	 *
+	 * @return  string
+	 */
+	public function getTitle($useHighlighting = false) {
+		// Don't check for highlighted values if highlighting is disabled:
+		if ($this->highlight && $useHighlighting) {
+			if (isset($this->fields['_highlighting']['title_display'][0])){
+				return $this->fields['_highlighting']['title_display'][0];
+			}else if (isset($this->fields['_highlighting']['title_full'][0])){
+				return $this->fields['_highlighting']['title_full'][0];
+			}
+		}
+
+		if (isset($this->fields['title_display'])){
+			return $this->fields['title_display'];
+		}else{
+			if (isset($this->fields['title_full'])){
+				if (is_array($this->fields['title_full'])){
+					return reset($this->fields['title_full']);
+				}else{
+					return $this->fields['title_full'];
+				}
+			}else{
+				return '';
+			}
+		}
+	}
+
+	function getDescriptionFast($useHighlighting = false) {
+
+		// Don't check for highlighted values if highlighting is disabled:
+		if ($this->highlight && $useHighlighting) {
+			if (isset($this->fields['_highlighting']['display_description'][0])) {
+				return $this->fields['_highlighting']['display_description'][0];
+			}
+		}else{
+			return $this->fields['display_description'];
+		}
 	}
 }

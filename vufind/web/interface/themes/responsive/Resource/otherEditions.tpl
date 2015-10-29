@@ -12,7 +12,7 @@
 				<td>
 					<a href="{$path}/{if strtoupper($resource->source) == 'VUFIND'}Record{else}EcontentRecord{/if}/{$resource->record_id|escape:"url"}" class="title">
 						{*
-						{if !$resource->title}{translate text='Title not available'}{else}{$resource->title|removeTrailingPunctuation|truncate:180:"..."|highlight:$lookfor}{/if}
+						{if !$resource->title}{translate text='Title not available'}{else}{$resource->title|removeTrailingPunctuation|truncate:180:"..."|highlight}{/if}
 						*}
 						{if is_array($resource->format)}
 							{foreach from=$resource->format item=format}
