@@ -12,6 +12,9 @@ require_once ROOT_DIR . '/sys/Indexing/LocationRecordToInclude.php';
 
 class Location extends DB_DataObject
 {
+	const DEFAULT_AUTOLOGOUT_TIME = 90;
+	const DEFAULT_AUTOLOGOUT_TIME_LOGGED_OUT = 450;
+
 	public $__table = 'location';   // table name
 	public $locationId;				//int(11)
 	public $code;					//varchar(5)
@@ -148,8 +151,8 @@ class Location extends DB_DataObject
 			array('property'=>'extraLocationCodesToInclude', 'type'=>'text', 'label'=> 'Extra Locations To Include', 'description'=>'A list of other location codes to include in this location for indexing special collections, juvenile collections, etc.', 'size' => '40', 'hideInLists' => true),
 			array('property'=>'nearbyLocation1', 'type'=>'enum', 'values'=>$locationLookupList, 'label'=>'Nearby Location 1', 'description'=>'A secondary location which is nearby and could be used for pickup of materials.', 'hideInLists' => true),
 			array('property'=>'nearbyLocation2', 'type'=>'enum', 'values'=>$locationLookupList, 'label'=>'Nearby Location 2', 'description'=>'A tertiary location which is nearby and could be used for pickup of materials.', 'hideInLists' => true),
-			array('property'=>'automaticTimeoutLength', 'type'=>'integer', 'label'=>'Automatic Timeout Length (logged in)', 'description'=>'The length of time before the user is automatically logged out in seconds.', 'size'=>'8', 'hideInLists' => true, 'default'=>90),
-			array('property'=>'automaticTimeoutLengthLoggedOut', 'type'=>'integer', 'label'=>'Automatic Timeout Length (logged out)', 'description'=>'The length of time before the catalog resets to the home page set to 0 to disable.', 'size'=>'8', 'hideInLists' => true,'default'=>450),
+			array('property'=>'automaticTimeoutLength', 'type'=>'integer', 'label'=>'Automatic Timeout Length (logged in)', 'description'=>'The length of time before the user is automatically logged out in seconds.', 'size'=>'8', 'hideInLists' => true, 'default'=>self::DEFAULT_AUTOLOGOUT_TIME),
+			array('property'=>'automaticTimeoutLengthLoggedOut', 'type'=>'integer', 'label'=>'Automatic Timeout Length (logged out)', 'description'=>'The length of time before the catalog resets to the home page set to 0 to disable.', 'size'=>'8', 'hideInLists' => true,'default'=>self::DEFAULT_AUTOLOGOUT_TIME_LOGGED_OUT),
 
 			array('property'=>'displaySection', 'type' => 'section', 'label' =>'Basic Display', 'hideInLists' => true, 'properties' => array(
 				array('property'=>'homeLink', 'type'=>'text', 'label'=>'Home Link', 'description'=>'The location to send the user when they click on the home button or logo.  Use default or blank to go back to the vufind home location.', 'hideInLists' => true, 'size'=>'40'),
@@ -469,7 +472,9 @@ class Location extends DB_DataObject
 				if ($activeLocation->find(true)){
 					//Only use the location if we are in the subdomain for the parent library
 					if ($library->libraryId == $activeLocation->libraryId){
-						Location::$activeLocation = clone($activeLocation);
+						Location::$activeLocation = clone $activeLocation;
+					}else {
+						$mismatch = true; // TODO check this situation
 					}
 				}
 			}else{
@@ -696,6 +701,24 @@ class Location extends DB_DataObject
 		$timer->logTime("getActiveIp");
 		return Location::$activeIp;
 	}
+
+/* Add on if the Main Branch gets used more frequently
+	private static $mainBranchLocation = 'unset';
+	function getMainBranchLocation() {
+		if (Location::$mainBranchLocation != 'unset') return Location::$mainBranchLocation;
+		Location::$mainBranchLocation = null; // set default value
+		global $library;
+		if (!empty($library->libraryId)) {
+			$mainBranch = new Location();
+			$mainBranch->libraryId = $library->libraryId;
+			$mainBranch->isMainBranch = true;
+			if ($mainBranch->find(true)) {
+				Location::$mainBranchLocation =  clone $mainBranch;
+			}
+		}
+		return Location::$mainBranchLocation;
+	}
+*/
 
 	function getLocationsFacetsForLibrary($libraryId){
 		$location = new Location();
@@ -1288,20 +1311,4 @@ class Location extends DB_DataObject
 		return $this->opacStatus;
 	}
 
-	//TODO: remove below
-//	private $branchLocationCode = 'unset';
-//	function getBranchLocationCode(){
-//		if (isset($this->branchLocationCode) && $this->branchLocationCode != 'unset') return $this->branchLocationCode;
-//		if (isset($_GET['branch'])){
-//			$this->branchLocationCode = $_GET['branch'];
-//		}elseif (isset($_COOKIE['branch'])){
-//			$this->branchLocationCode = $_COOKIE['branch'];
-//		}else{
-//			$this->branchLocationCode = '';
-//		}
-//		if ($this->branchLocationCode == 'all'){
-//			$this->branchLocationCode = '';
-//		}
-//		return $this->branchLocationCode;
-//	}
 }

@@ -489,14 +489,16 @@ $onInternalIP = false;
 $includeAutoLogoutCode = false;
 $automaticTimeoutLength = 0;
 $automaticTimeoutLengthLoggedOut = 0;
-if ((!empty($ipLocation) || $isOpac) && !$configArray['Catalog']['offline']){
+if (($isOpac || !empty($ipLocation)) && !$configArray['Catalog']['offline']){ //TODO swap order
 	//Make sure we don't have timeouts if we are offline (because it's super annoying when doing offline checkouts and holds)
 
-	// Turn on internal ip status & turn on switch to include the auto log out code
+	// Turn on the auto log out
 	$onInternalIP = true;
 	$includeAutoLogoutCode = true;
+	$automaticTimeoutLength          = $locationSingleton::DEFAULT_AUTOLOGOUT_TIME;
+	$automaticTimeoutLengthLoggedOut = $locationSingleton::DEFAULT_AUTOLOGOUT_TIME_LOGGED_OUT;
 
-	//Only include auto logout code if we are not on the home page
+	// Only include auto logout code if we are not on the home page
 	if ($module == 'Search' && $action == 'Home'){
 		$includeAutoLogoutCode = false;
 	}
@@ -504,30 +506,35 @@ if ((!empty($ipLocation) || $isOpac) && !$configArray['Catalog']['offline']){
 	if ($user){
 		// User has bypass AutoLog out setting turned on
 		if ($user->bypassAutoLogout == 1){
-		// the account setting profile template only presents this option to users that are staff
+		// The account setting profile template only presents this option to users that are staff
 			$includeAutoLogoutCode = false;
 		}
 	}
-	if ($isOpac && $location) {
-			// If we know the branch, use the timeout settings from that branch
-			//TODO: check that this works with branch parameter set
-			$automaticTimeoutLength          = $location->automaticTimeoutLength;
-			$automaticTimeoutLengthLoggedOut = $location->automaticTimeoutLengthLoggedOut;
 
+	// Determine Time Out Lengths
+	// If we know the branch, use the timeout settings from that branch
+	if ($isOpac && $location) {
+		$automaticTimeoutLength          = $location->automaticTimeoutLength;
+		$automaticTimeoutLengthLoggedOut = $location->automaticTimeoutLengthLoggedOut;
 	}
-	// if we know the branch by iplocation, use those settings
-	//TODO: ensure we are checking that URL is consistent with location, if not turn off
-	// eg: browsing at fort lewis library from garfield county library
+	// If we know the branch by iplocation, use the settings based on that location
 	elseif ($ipLocation) {
+		//TODO: ensure we are checking that URL is consistent with location, if not turn off
+		// eg: browsing at fort lewis library from garfield county library
 		$automaticTimeoutLength          = $ipLocation->automaticTimeoutLength;
 		$automaticTimeoutLengthLoggedOut = $ipLocation->automaticTimeoutLengthLoggedOut;
-	}else {
-		//defaults
-		// Find main branch
-		// Else find first branch in database-table
-		// else use defaults set in Location class
 	}
-	//TODO: need to get these values when using the opac parameter
+	// Otherwise, use the main branch's settings or the first location's settings
+	elseif ($library) {
+		$firstLocation = new Location();
+		$firstLocation->libraryId = $library->libraryId;
+		$firstLocation->orderBy('isMainBranch DESC');
+		if ($firstLocation->find(true)) {
+			// This finds either the main branch, or if there isn't one a location
+			$automaticTimeoutLength          = $firstLocation->automaticTimeoutLength;
+			$automaticTimeoutLengthLoggedOut = $firstLocation->automaticTimeoutLengthLoggedOut;
+		}
+	}
 }
 $interface->assign('automaticTimeoutLength', $automaticTimeoutLength);
 $interface->assign('automaticTimeoutLengthLoggedOut', $automaticTimeoutLengthLoggedOut);
