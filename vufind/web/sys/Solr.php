@@ -782,11 +782,14 @@ class Solr implements IndexEngine {
 					// build a string like title:("one two")
 					$searchString = $field . ':(' . $fieldValue . ')';
 					//Check to make sure we don't already have this clause.  We will get the same clause if we have a single word and are doing different munges
+					$okToAdd = true;
 					foreach ($clauses as $clause){
 						if (strpos($clause, $searchString) === 0){
-							continue;
+							$okToAdd = false;
+							break;
 						}
 					}
+					if (!$okToAdd) continue;
 
 					// Add the weight it we have one. Yes, I know, it's redundant code.
 					$weight = $spec[1];
