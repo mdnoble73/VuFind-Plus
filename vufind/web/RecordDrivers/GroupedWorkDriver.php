@@ -24,7 +24,7 @@ class GroupedWorkDriver extends RecordInterface{
 	 * @access protected
 	 */
 	protected $snippetCaptions = array(
-
+		'display_description' => 'Description'
 	);
 
 	/**
@@ -55,7 +55,7 @@ class GroupedWorkDriver extends RecordInterface{
 	protected $forbiddenSnippetFields = array(
 		'author', 'author-letter', 'auth_author2', 'title', 'title_short', 'title_full',
 		'title_auth', 'title_sub', 'title_display', 'spelling', 'id',
-		'allfields', 'allfields_proper', 'fulltext_unstemmed', 'econtentText_unstemmed', 'keywords_proper',
+		'allfields', 'allfields_proper', 'fulltext_unstemmed', 'econtentText_unstemmed',
 		'spellingShingle', 'collection', 'title_proper',
 		'contents_proper', 'genre_proper', 'geographic_proper', 'display_description'
 	);
@@ -934,14 +934,15 @@ class GroupedWorkDriver extends RecordInterface{
 
 	private $fastDescription = null;
 	function getDescriptionFast($useHighlighting = false){
-		if ($this->fastDescription != null){
-			return $this->fastDescription;
-		}
+
 		// Don't check for highlighted values if highlighting is disabled:
 		if ($this->highlight && $useHighlighting) {
 			if (isset($this->fields['_highlighting']['display_description'][0])){
 				return $this->fields['_highlighting']['display_description'][0];
 			}
+		}
+		if ($this->fastDescription != null){
+			return $this->fastDescription;
 		}
 		if (isset($this->fields['display_description']) && strlen($this->fields['display_description']) > 0){
 			$this->fastDescription = $this->fields['display_description'];
@@ -2280,7 +2281,12 @@ class GroupedWorkDriver extends RecordInterface{
 		if (isset($this->snippetCaptions[$field])){
 			return $this->snippetCaptions[$field];
 		}else{
-			return ucwords(str_replace('_', ' ', $field));
+			if (preg_match('/callnumber/', $field)){
+				return 'Call Number';
+			}else{
+				return ucwords(str_replace('_', ' ', $field));
+			}
+
 		}
 	}
 }

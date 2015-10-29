@@ -41,7 +41,7 @@
 			{/if}
 
 			<div class="row well-small">
-				<div class="col-md-12 result-value" id="descriptionValue{$summId|escape}">{$summDescription|truncate_html:450}</div>
+				<div class="col-md-12 result-value" id="descriptionValue{$summId|escape}">{$summDescription|truncate_html:450:"..."}</div>
 			</div>
 
 			<div class="resultActions row">

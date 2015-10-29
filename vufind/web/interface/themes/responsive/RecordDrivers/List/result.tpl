@@ -50,7 +50,7 @@
 
 		{if $summDescription}
 			<div class="row well-small">
-				<div class="col-md-12 result-value">{$summDescription|truncate_html:450}</div>
+				<div class="col-md-12 result-value">{$summDescription|truncate_html:450:"..."}</div>
 			</div>
 		{/if}
 

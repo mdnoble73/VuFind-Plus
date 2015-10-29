@@ -111,7 +111,7 @@
 		</div>
 
 		<div class="row well-small">
-			<div class="col-xs-12 result-value" id="descriptionValue{$summId|escape}">{$summDescription|highlight|truncate_html:450}</div>
+			<div class="col-xs-12 result-value" id="descriptionValue{$summId|escape}">{$summDescription|highlight|truncate_html:450:"..."}</div>
 		</div>
 
 		<div class="resultActions row">
