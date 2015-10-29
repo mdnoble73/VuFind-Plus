@@ -140,7 +140,7 @@ class AJAX_JSON extends Action {
 		$tmpLocation = new Location();
 		$tmpLocation->libraryId = $library->libraryId;
 		$tmpLocation->showInLocationsAndHoursList = 1;
-		$tmpLocation->orderBy('displayName');
+		$tmpLocation->orderBy('isMainBranch DESC, displayName'); // List Main Branches first, then sort by name
 		$libraryLocations = array();
 		$tmpLocation->find();
 		if ($tmpLocation->N == 0){
@@ -186,7 +186,7 @@ class AJAX_JSON extends Action {
 			$libraryLocations[] = array(
 				'id' => $tmpLocation->locationId,
 				'name' => $tmpLocation->displayName,
-				'address' => preg_replace('/\r\n|\r|\n/', '<br/>', $tmpLocation->address),
+				'address' => preg_replace('/\r\n|\r|\n/', '<br>', $tmpLocation->address),
 				'phone' => $tmpLocation->phone,
 				'map_image' => "http://maps.googleapis.com/maps/api/staticmap?center=$mapAddress&zoom=15&size=200x200&sensor=false&markers=color:red%7C$mapAddress",
 				'map_link' => "http://maps.google.com/maps?f=q&hl=en&geocode=&q=$mapAddress&ie=UTF8&z=15&iwloc=addr&om=1&t=m",

@@ -22,6 +22,7 @@ class Location extends DB_DataObject
 	public $libraryId;				//int(11)
 	public $address;
 	public $phone;
+	public $isMainBranch; // tinyint(1)
 	public $showInLocationsAndHoursList;
 	public $extraLocationCodesToInclude;
 	public $validHoldPickupBranch;	//tinyint(4)
@@ -140,6 +141,7 @@ class Location extends DB_DataObject
 			array('property'=>'displayName', 'type'=>'text', 'label'=>'Display Name', 'description'=>'The full name of the location for display to the user', 'size'=>'40'),
 			array('property'=>'showDisplayNameInHeader', 'type'=>'checkbox', 'label'=>'Show Display Name in Header', 'description'=>'Whether or not the display name should be shown in the header next to the logo', 'hideInLists' => true, 'default'=>false),
 			array('property'=>'libraryId', 'type'=>'enum', 'values'=>$libraryList, 'label'=>'Library', 'description'=>'A link to the library which the location belongs to'),
+			array('property'=>'isMainBranch', 'type'=>'checkbox', 'label'=>'Is Main Branch', 'description'=>'Is this location the main branch for it\'s library', /*'hideInLists' => false,*/ 'default'=>false),
 			array('property'=>'showInLocationsAndHoursList', 'type'=>'checkbox', 'label'=>'Show In Locations And Hours List', 'description'=>'Whether or not this location should be shown in the list of library hours and locations', 'hideInLists' => true, 'default'=>true),
 			array('property'=>'address', 'type'=>'textarea', 'label'=>'Address', 'description'=>'The address of the branch.', 'hideInLists' => true),
 			array('property'=>'phone', 'type'=>'text', 'label'=> 'Phone Number', 'description'=>'The main phone number for the site .', 'size' => '40', 'hideInLists' => true),
@@ -666,9 +668,10 @@ class Location extends DB_DataObject
 		//Make sure gets and cookies are processed in the correct order.
 		if (isset($_GET['test_ip'])){
 			$ip = $_GET['test_ip'];
-			//Set a coookie so we don't have to transfer the ip from page to page.
+			//Set a cookie so we don't have to transfer the ip from page to page.
 			setcookie('test_ip', $ip, 0, '/');
-		}elseif (isset($_COOKIE['test_ip']) && $_COOKIE['test_ip'] != '127.0.0.1' && strlen($_COOKIE['test_ip']) > 0){
+//		}elseif (isset($_COOKIE['test_ip']) && $_COOKIE['test_ip'] != '127.0.0.1' && strlen($_COOKIE['test_ip']) > 0){
+		}elseif (!empty($_COOKIE['test_ip']) && $_COOKIE['test_ip'] != '127.0.0.1'){
 			$ip = $_COOKIE['test_ip'];
 		}else{
 			if (isset($_SERVER["HTTP_CLIENT_IP"])){
@@ -1270,4 +1273,35 @@ class Location extends DB_DataObject
 		$hours->locationId = $this->locationId;
 		return $hours->count();
 	}
+
+	private $opacStatus = null;
+	public function getOpacStatus(){
+		if (is_null($this->opacStatus)) {
+			if (isset($_GET['opac'])) {
+				$this->opacStatus = $_GET['opac'] == 1 || strtolower($_GET['opac']) == 'true' || strtolower($_GET['opac']) == 'on';
+			} elseif (isset($_COOKIE['opac'])) {
+				$this->opacStatus = (boolean) $_COOKIE['opac'];
+			} else {
+				$this->opacStatus = false;
+			}
+		}
+		return $this->opacStatus;
+	}
+
+	//TODO: remove below
+//	private $branchLocationCode = 'unset';
+//	function getBranchLocationCode(){
+//		if (isset($this->branchLocationCode) && $this->branchLocationCode != 'unset') return $this->branchLocationCode;
+//		if (isset($_GET['branch'])){
+//			$this->branchLocationCode = $_GET['branch'];
+//		}elseif (isset($_COOKIE['branch'])){
+//			$this->branchLocationCode = $_COOKIE['branch'];
+//		}else{
+//			$this->branchLocationCode = '';
+//		}
+//		if ($this->branchLocationCode == 'all'){
+//			$this->branchLocationCode = '';
+//		}
+//		return $this->branchLocationCode;
+//	}
 }

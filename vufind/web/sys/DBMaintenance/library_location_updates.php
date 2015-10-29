@@ -1099,5 +1099,13 @@ function getLibraryLocationUpdates(){
 			),
 		),
 
+		'main_location_switch' => array(
+			'title' => 'Location Main Branch Setting',
+			'description' => 'Switch that is turned on for a library\'s main branch location.',
+			'sql' => array(
+				"ALTER TABLE `location` ADD COLUMN `isMainBranch` TINYINT(1) DEFAULT 0 AFTER `showHoldButton`",
+			),
+		),
+
 	);
 }
