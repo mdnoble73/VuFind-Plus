@@ -228,26 +228,13 @@ var VuFind = (function(){
 					location.reload(true)
 				})
 			}
-			//
-			//if (autoClose && refreshAfterClose){
-			//	setTimeout(function(){
-			//		location.reload(true);
-			//	}
-			//	, autoClose > 1 ? autoClose : 3000);
-			//}else if (autoClose) {
-			//	setTimeout(function(){
-			//		VuFind.closeLightbox();
-			//	}
-			//	, autoClose > 1 ? autoClose : 3000);
-			//}
 		},
 
 		showMessageWithButtons: function(title, body, buttons){
 			$("#myModalLabel").html(title);
 			$(".modal-body").html(body);
 			$('.modal-buttons').html(buttons);
-			var modalDialog = $("#modalDialog");
-			modalDialog.modal('show');
+			$("#modalDialog").modal('show');
 		},
 
 		// common loading message for lightbox while waiting for AJAX processes to complete.
