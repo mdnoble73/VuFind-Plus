@@ -95,13 +95,15 @@
 			</div>
 		{/if}
 
-		{if $summSnippet}
-			<div class="row">
-				<div class="result-label col-xs-3">{translate text=$summSnippetCaption}: </div>
-				<div class="col-xs-9 result-value">
-					{if !empty($summSnippet)}<span class="quotestart">&#8220;</span>...{$summSnippet|highlight}...<span class="quoteend">&#8221;</span><br />{/if}
+		{if $summSnippets}
+			{foreach from=$summSnippets item=snippet}
+				<div class="row">
+					<div class="result-label col-xs-3">{translate text=$snippet.caption}: </div>
+					<div class="col-xs-9 result-value">
+						{if !empty($snippet.snippet)}<span class="quotestart">&#8220;</span>...{$snippet.snippet|highlight}...<span class="quoteend">&#8221;</span><br />{/if}
+					</div>
 				</div>
-			</div>
+			{/foreach}
 		{/if}
 
 		<div class="row well-small">

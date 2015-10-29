@@ -36,14 +36,6 @@ class GroupedWorkDriver extends RecordInterface{
 	protected $snippet = false;
 	protected $highlight = false;
 	/**
-	 * These Solr fields should be used for snippets if available (listed in order
-	 * of preference).
-	 *
-	 * @var    array
-	 * @access protected
-	 */
-	protected $preferredSnippetFields = array('contents', 'topic');
-	/**
 	 * These Solr fields should NEVER be used for snippets.  (We exclude author
 	 * and title because they are already covered by displayed fields; we exclude
 	 * spelling because it contains lots of fields jammed together and may cause
@@ -57,7 +49,7 @@ class GroupedWorkDriver extends RecordInterface{
 		'title_auth', 'title_sub', 'title_display', 'spelling', 'id',
 		'allfields', 'allfields_proper', 'fulltext_unstemmed', 'econtentText_unstemmed',
 		'spellingShingle', 'collection', 'title_proper',
-		'contents_proper', 'genre_proper', 'geographic_proper', 'display_description'
+		'display_description'
 	);
 	public function __construct($indexFields)
 	{
@@ -545,9 +537,8 @@ class GroupedWorkDriver extends RecordInterface{
 		$timer->logTime("Finished assignment of main data");
 
 		// Obtain and assign snippet (highlighting) information:
-		$snippet = $this->getHighlightedSnippet();
-		$interface->assign('summSnippetCaption', $snippet ? $snippet['caption'] : false);
-		$interface->assign('summSnippet', $snippet ? $snippet['snippet'] : false);
+		$snippets = $this->getHighlightedSnippets();
+		$interface->assign('summSnippets', $snippets);
 
 		//Generate COinS URL for Zotero support
 		$interface->assign('summCOinS', $this->getOpenURL());
@@ -2237,31 +2228,22 @@ class GroupedWorkDriver extends RecordInterface{
 	 * with 'snippet' and 'caption' keys.
 	 * @access protected
 	 */
-	protected function getHighlightedSnippet()
+	protected function getHighlightedSnippets()
 	{
+		$snippets = array();
 		// Only process snippets if the setting is enabled:
-		if ($this->snippet) {
-			// First check for preferred fields:
-			foreach ($this->preferredSnippetFields as $current) {
-				if (isset($this->fields['_highlighting'][$current][0])) {
-					return array(
-						'snippet' => $this->fields['_highlighting'][$current][0],
-						'caption' => $this->getSnippetCaption($current)
-					);
-				}
-			}
-
-			// No preferred field found, so try for a non-forbidden field:
+		if ($this->snippet && isset($this->fields['_highlighting'])) {
 			if (is_array($this->fields['_highlighting'])) {
 				foreach ($this->fields['_highlighting'] as $key => $value) {
 					if (!in_array($key, $this->forbiddenSnippetFields)) {
-						return array(
+						$snippets[] = array(
 							'snippet' => $value[0],
 							'caption' => $this->getSnippetCaption($key)
 						);
 					}
 				}
 			}
+			return $snippets;
 		}
 
 		// If we got this far, no snippet was found:

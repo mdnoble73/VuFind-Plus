@@ -48,9 +48,20 @@
 			</div>
 		{/if}
 
+		{if $summSnippets}
+			{foreach from=$summSnippets item=snippet}
+				<div class="row">
+					<div class="result-label col-xs-3">{translate text=$snippet.caption}: </div>
+					<div class="col-xs-9 result-value">
+						{if !empty($snippet.snippet)}<span class="quotestart">&#8220;</span>...{$snippet.snippet|highlight}...<span class="quoteend">&#8221;</span><br />{/if}
+					</div>
+				</div>
+			{/foreach}
+		{/if}
+
 		{if $summDescription}
 			<div class="row well-small">
-				<div class="col-md-12 result-value">{$summDescription|truncate_html:450:"..."}</div>
+				<div class="col-md-12 result-value">{$summDescription|highlight|truncate_html:450:"..."}</div>
 			</div>
 		{/if}
 

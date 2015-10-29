@@ -31,14 +31,6 @@ class IndexRecord extends RecordInterface
 	protected $fields;
 	protected $index = false;
 	protected $scopingEnabled = false;
-	/**
-	 * These Solr fields should be used for snippets if available (listed in order
-	 * of preference).
-	 *
-	 * @var    array
-	 * @access protected
-	 */
-	protected $preferredSnippetFields = array('econtentText', 'contents', 'topic');
 
 	/**
 	 * These Solr fields should NEVER be used for snippets.  (We exclude author
@@ -50,11 +42,11 @@ class IndexRecord extends RecordInterface
 	 * @access protected
 	 */
 	protected $forbiddenSnippetFields = array(
-	'author', 'author-letter', 'title', 'title_short', 'title_full',
-	'title_full_unstemmed', 'title_auth', 'title_sub', 'spelling', 'id',
-	'allfields', 'allfields_proper', 'fulltext_unstemmed', 'econtentText_unstemmed', 'keywords_proper',
-	'spellingShingle', 'collection', 'title_proper',
-	'contents_proper', 'genre_proper', 'geographic_proper'
+		'author', 'author-letter', 'auth_author2', 'title', 'title_short', 'title_full',
+		'title_auth', 'title_sub', 'title_display', 'spelling', 'id',
+		'allfields', 'allfields_proper', 'fulltext_unstemmed', 'econtentText_unstemmed',
+		'spellingShingle', 'collection', 'title_proper',
+		'display_description'
 	);
 
 	/**
@@ -64,7 +56,9 @@ class IndexRecord extends RecordInterface
 	 * @var    array
 	 * @access protected
 	 */
-	protected $snippetCaptions = array();
+	protected $snippetCaptions = array(
+		'display_description' => 'Description'
+	);
 
 	/**
 	 * Should we highlight fields in search results?
@@ -1093,8 +1087,16 @@ class IndexRecord extends RecordInterface
 	 */
 	protected function getSnippetCaption($field)
 	{
-		return isset($this->snippetCaptions[$field])
-		? $this->snippetCaptions[$field] : false;
+		if (isset($this->snippetCaptions[$field])){
+			return $this->snippetCaptions[$field];
+		}else{
+			if (preg_match('/callnumber/', $field)){
+				return 'Call Number';
+			}else{
+				return ucwords(str_replace('_', ' ', $field));
+			}
+
+		}
 	}
 
 	/**
@@ -1104,31 +1106,22 @@ class IndexRecord extends RecordInterface
 	 * with 'snippet' and 'caption' keys.
 	 * @access protected
 	 */
-	protected function getHighlightedSnippet()
+	protected function getHighlightedSnippets()
 	{
+		$snippets = array();
 		// Only process snippets if the setting is enabled:
-		if ($this->snippet) {
-			// First check for preferred fields:
-			foreach ($this->preferredSnippetFields as $current) {
-				if (isset($this->fields['_highlighting'][$current][0])) {
-					return array(
-                        'snippet' => $this->fields['_highlighting'][$current][0],
-                        'caption' => $this->getSnippetCaption($current)
-					);
-				}
-			}
-
-			// No preferred field found, so try for a non-forbidden field:
+		if ($this->snippet && isset($this->fields['_highlighting'])) {
 			if (is_array($this->fields['_highlighting'])) {
 				foreach ($this->fields['_highlighting'] as $key => $value) {
 					if (!in_array($key, $this->forbiddenSnippetFields)) {
-						return array(
-                            'snippet' => $value[0],
-                            'caption' => $this->getSnippetCaption($key)
+						$snippets[] = array(
+							'snippet' => $value[0],
+							'caption' => $this->getSnippetCaption($key)
 						);
 					}
 				}
 			}
+			return $snippets;
 		}
 
 		// If we got this far, no snippet was found:
