@@ -16,6 +16,7 @@ class MyAccount_Holds extends MyAccount{
 		global $interface;
 		global $user;
 
+		//Check to see if any user accounts are allowed to freeze holds
 		$interface->assign('allowFreezeHolds', true);
 
 		$ils = $configArray['Catalog']['ils'];

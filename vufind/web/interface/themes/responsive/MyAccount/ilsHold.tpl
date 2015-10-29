@@ -163,10 +163,12 @@
 								{*<button onclick="return VuFind.Account.cancelPendingHold('{$record.cancelId}', '{$record.shortId}');" class="btn btn-sm btn-warning">Cancel Hold</button>*}
 								<button onclick="return VuFind.Account.cancelHold('{$record.userId}', '{$record.id}', '{$record.cancelId}');" class="btn btn-sm btn-warning">Cancel Hold</button>
 							{/if}
-							{if $record.frozen}
-								<button onclick="return VuFind.Account.thawHold('{$record.userId}', '{$record.id}', '{$record.cancelId}', this);" class="btn btn-sm btn-default">{translate text="Thaw Hold"}</button>
-							{elseif $record.freezeable}
-								<button onclick="return VuFind.Account.freezeHold('{$record.userId}', '{$record.id}', '{$record.cancelId}', {if $suspendRequiresReactivationDate}true{else}false{/if}, this);" class="btn btn-sm btn-default">{translate text="Freeze Hold"}</button>
+							{if $record.allowFreezeHolds}
+								{if $record.frozen}
+									<button onclick="return VuFind.Account.thawHold('{$record.userId}', '{$record.id}', '{$record.cancelId}', this);" class="btn btn-sm btn-default">{translate text="Thaw Hold"}</button>
+								{elseif $record.freezeable}
+									<button onclick="return VuFind.Account.freezeHold('{$record.userId}', '{$record.id}', '{$record.cancelId}', {if $suspendRequiresReactivationDate}true{else}false{/if}, this);" class="btn btn-sm btn-default">{translate text="Freeze Hold"}</button>
+								{/if}
 							{/if}
 							{if $record.locationUpdateable}
 								<button onclick="return VuFind.Account.changeHoldPickupLocation('{$record.userId}', '{$record.id}', '{$record.cancelId}');" class="btn btn-sm btn-default">Change Pickup Loc.</button>

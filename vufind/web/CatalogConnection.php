@@ -631,6 +631,7 @@ class CatalogConnection
 			foreach ($holdsForSection as $key => $curTitle){
 				$curTitle['user'] = $user->getNameAndLibraryLabel();
 				$curTitle['userId'] = $user->id;
+				$curTitle['allowFreezeHolds'] = $user->getHomeLibrary()->allowFreezeHolds;
 				$holds[$section][$key] = $curTitle;
 			}
 		}
