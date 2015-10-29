@@ -374,6 +374,10 @@ Keyword:
         - [and, 50]
       - author_additional:
         - [and, 50]
+#Combination of title and author
+    - title_full:
+      - [and, 200]
+      - [single_word_removal, 50]
 #IDs within the records
     -
       - [OR, 300]

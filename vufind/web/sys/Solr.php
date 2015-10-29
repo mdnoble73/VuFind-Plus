@@ -886,7 +886,7 @@ class Solr implements IndexEngine {
 			$values = array();
 			$values['onephrase'] = '"' . str_replace('"', '', implode(' ', $tokenized)) . '"';
 			if (count($tokenized) > 1){
-				$values['proximal'] = '"' . str_replace('"(', '', implode(') (', $tokenized)) . ')"~25';
+				$values['proximal'] = '"' . str_replace('"(', '', implode(') (', $tokenized)) . ')"~10';
 			}else{
 				$values['proximal'] = $tokenized[0];
 			}
