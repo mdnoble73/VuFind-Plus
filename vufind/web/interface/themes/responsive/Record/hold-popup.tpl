@@ -8,7 +8,7 @@
 			<div class="holdsSummary">
 				<input type="hidden" name="holdCount" id="holdCount" value="1">
 				<div class="alert alert-warning" id="overHoldCountWarning" {if !$showOverHoldLimit}style="display:none"{/if}>Warning: You have reached the maximum of <span class='maxHolds'>{$maxHolds}</span> holds for your account.  You must cancel a hold before you can place a hold on this title.</div>
-				<div id='holdError' class="pageWarning" style='display: none'></div>
+				<div id="holdError" class="pageWarning" style="display: none"></div>
 			</div>
 
 			<p class="alert alert-info">
@@ -51,7 +51,7 @@
 					</div>
 				</div>
 					<div id="userOption" class="form-group"{if count($pickupLocations[0]->pickupUsers) < 2} style="display: none"{/if}>{* display if the first location will need a user selected*}
-						<label for="user" class="control-label">{translate text="Place hold using account"}: </label>
+						<label for="user" class="control-label">{translate text="Place hold for the choosen location using account"}: </label>
 						<div class="controls">
 							<select name="user" id="user" class="form-control">
 								{* Built by jQuery below *}
