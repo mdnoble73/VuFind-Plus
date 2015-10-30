@@ -89,6 +89,7 @@ if ($configArray['System']['systemMessage']){
 }
 
 //Get the name of the active instance
+//TODO: $inLibrary, is this part of the ip set-up?
 if ($locationSingleton->getIPLocation() != null){
 	$interface->assign('inLibrary', true);
 	$physicalLocation = $locationSingleton->getIPLocation()->displayName;
@@ -153,10 +154,11 @@ if ($mode['online'] === false) {
 $timer->logTime('Checked availability mode');
 
 //Check to see if we have a collection applied.
+// TODO: collection url parameter doesn't look to be used for anything
 global $defaultCollection;
 if (isset($_GET['collection'])){
 	$defaultCollection = $_GET['collection'];
-	//Set a coookie so we don't have to transfer the ip from page to page.
+	//Set a cookie so we don't have to transfer the ip from page to page.
 	if ($defaultCollection == '' || $defaultCollection == 'all'){
 		setcookie('collection', '', 0, '/');
 		$defaultCollection = null;
@@ -209,17 +211,37 @@ $deviceName = get_device_name();
 $interface->assign('deviceName', $deviceName);
 
 //Look for spammy searches and kill them
-if (isset($_REQUEST['lookfor'])){
-	$searchTerm = $_REQUEST['lookfor'];
-	if (preg_match('/http:|mailto:|https:/i', $searchTerm)){
-		PEAR_Singleton::raiseError("Sorry it looks like you are searching for a website, please rephrase your query.");
-		$_REQUEST['lookfor'] = '';
-		$_GET['lookfor'] = '';
+if (isset($_REQUEST['lookfor'])) {
+	// Advanced Search with only the default search group (multiple search groups are named lookfor0, lookfor1, ... )
+	// TODO: Actually the lookfor is inconsistent; reloading from results in an array : lookfor[]
+	if (is_array($_REQUEST['lookfor'])) {
+		foreach ($_REQUEST['lookfor'] as $i => $searchTerm) {
+			if (preg_match('/http:|mailto:|https:/i', $searchTerm)) {
+				PEAR_Singleton::raiseError("Sorry it looks like you are searching for a website, please rephrase your query.");
+				$_REQUEST['lookfor'][$i] = '';
+				$_GET['lookfor'][$i]     = '';
+			}
+			if (strlen($searchTerm) >= 256) {
+				PEAR_Singleton::raiseError("Sorry your query is too long, please rephrase your query.");
+				$_REQUEST['lookfor'][$i] = '';
+				$_GET['lookfor'][$i]     = '';
+			}
+		}
+
 	}
-	if (strlen($searchTerm) >= 256){
-		PEAR_Singleton::raiseError("Sorry your query is too long, please rephrase your query.");
-		$_REQUEST['lookfor'] = '';
-		$_GET['lookfor'] = '';
+	// Basic Search
+	else {
+		$searchTerm = $_REQUEST['lookfor'];
+		if (preg_match('/http:|mailto:|https:/i', $searchTerm)) {
+			PEAR_Singleton::raiseError("Sorry it looks like you are searching for a website, please rephrase your query.");
+			$_REQUEST['lookfor'] = '';
+			$_GET['lookfor']     = '';
+		}
+		if (strlen($searchTerm) >= 256) {
+			PEAR_Singleton::raiseError("Sorry your query is too long, please rephrase your query.");
+			$_REQUEST['lookfor'] = '';
+			$_GET['lookfor']     = '';
+		}
 	}
 }
 
@@ -461,41 +483,70 @@ if ($action == "AJAX" || $action == "JSON"){
 
 //Determine if we should include autoLogout Code
 $ipLocation = $locationSingleton->getPhysicalLocation();
-$ipId = $locationSingleton->getIPid();
+if (!empty($ipLocation) && !empty($library) && $ipLocation->libraryId != $library->libraryId){
+	// This is to cover the case of being within one library but the user is browsing another library catalog
+	// This will turn off the auto-log out and Internal IP functionality
+	// (unless the user includes the opac parameter)
+	$ipLocation = null;
+}
+$isOpac = $locationSingleton->getOpacStatus();
 
-$interface->assign('automaticTimeoutLength', 0);
-$interface->assign('automaticTimeoutLengthLoggedOut', 0);
-//Make sure we don't have timeouts if we are offline (because it's super annoying when doing offline checkouts and holds)
-if (!is_null($ipLocation) && $ipLocation != false && !$configArray['Catalog']['offline']){
-	$interface->assign('onInternalIP', true);
-	if ((isset($user->bypassAutoLogout) && $user->bypassAutoLogout == 1)){
-		$interface->assign('includeAutoLogoutCode', false);
-	}else{
-		$includeAutoLogoutCode = true;
-		if ($user){
-			$userIsStaff = $user->isStaff();
-			$interface->assign('userIsStaff', $userIsStaff);
-			if ($userIsStaff){
-				//Check to see if the user has overridden the auto logout code.
-				if ($user->bypassAutoLogout != 0){
-					$includeAutoLogoutCode = false;
-				}
-			}
-		}
-		//Only include auto logout code if we are not on the home page
-		if ($module == 'Search' && $action == 'Home'){
+$onInternalIP = false;
+$includeAutoLogoutCode = false;
+$automaticTimeoutLength = 0;
+$automaticTimeoutLengthLoggedOut = 0;
+if (($isOpac || !empty($ipLocation)) && !$configArray['Catalog']['offline']){
+	// Make sure we don't have timeouts if we are offline (because it's super annoying when doing offline checkouts and holds)
+
+	// Turn on the auto log out
+	$onInternalIP = true;
+	$includeAutoLogoutCode = true;
+	$automaticTimeoutLength          = $locationSingleton::DEFAULT_AUTOLOGOUT_TIME;
+	$automaticTimeoutLengthLoggedOut = $locationSingleton::DEFAULT_AUTOLOGOUT_TIME_LOGGED_OUT;
+
+	// Only include auto logout code if we are not on the home page
+	if ($module == 'Search' && $action == 'Home'){
+		$includeAutoLogoutCode = false;
+	}
+
+	if ($user){
+		// User has bypass AutoLog out setting turned on
+		if ($user->bypassAutoLogout == 1){
+		// The account setting profile template only presents this option to users that are staff
 			$includeAutoLogoutCode = false;
 		}
-		$interface->assign('includeAutoLogoutCode', $includeAutoLogoutCode);
 	}
-	$automaticTimeoutLength = $ipLocation->automaticTimeoutLength;
-	$interface->assign('automaticTimeoutLength', $automaticTimeoutLength);
-	$automaticTimeoutLengthLoggedOut = $ipLocation->automaticTimeoutLengthLoggedOut;
-	$interface->assign('automaticTimeoutLengthLoggedOut', $automaticTimeoutLengthLoggedOut);
-}else{
-	$interface->assign('onInternalIP', false);
-	$interface->assign('includeAutoLogoutCode', false);
+
+	// Determine Time Out Lengths
+	// If we know the branch, use the timeout settings from that branch
+	if ($isOpac && $location) {
+		$automaticTimeoutLength          = $location->automaticTimeoutLength;
+		$automaticTimeoutLengthLoggedOut = $location->automaticTimeoutLengthLoggedOut;
+	}
+	// If we know the branch by iplocation, use the settings based on that location
+	elseif ($ipLocation) {
+		//TODO: ensure we are checking that URL is consistent with location, if not turn off
+		// eg: browsing at fort lewis library from garfield county library
+		$automaticTimeoutLength          = $ipLocation->automaticTimeoutLength;
+		$automaticTimeoutLengthLoggedOut = $ipLocation->automaticTimeoutLengthLoggedOut;
+	}
+	// Otherwise, use the main branch's settings or the first location's settings
+	elseif ($library) {
+		$firstLocation = new Location();
+		$firstLocation->libraryId = $library->libraryId;
+		$firstLocation->orderBy('isMainBranch DESC');
+		if ($firstLocation->find(true)) {
+			// This finds either the main branch, or if there isn't one a location
+			$automaticTimeoutLength          = $firstLocation->automaticTimeoutLength;
+			$automaticTimeoutLengthLoggedOut = $firstLocation->automaticTimeoutLengthLoggedOut;
+		}
+	}
 }
+$interface->assign('automaticTimeoutLength', $automaticTimeoutLength);
+$interface->assign('automaticTimeoutLengthLoggedOut', $automaticTimeoutLengthLoggedOut);
+$interface->assign('onInternalIP', $onInternalIP);
+$interface->assign('includeAutoLogoutCode', $includeAutoLogoutCode);
+
 $timer->logTime('Check whether or not to include auto logout code');
 
 // Process Login Followup
@@ -505,6 +556,7 @@ if (isset($_REQUEST['followup'])) {
 }
 
 //If there is a hold_message, make sure it gets displayed.
+/* //TODO deprecated, but there are still references in scripts that likely need removed
 if (isset($_SESSION['hold_message'])) {
 	$interface->assign('hold_message', formatHoldMessage($_SESSION['hold_message']));
 	unset($_SESSION['hold_message']);
@@ -516,7 +568,7 @@ if (isset($_SESSION['hold_message'])) {
 	$checkoutMessage = $_SESSION['checkout_message'];
 	unset($_SESSION['checkout_message']);
 	$interface->assign('checkout_message', formatCheckoutMessage($checkoutMessage));
-}
+}*/
 
 // Process Solr shard settings
 processShards();
@@ -662,29 +714,6 @@ function checkAvailabilityMode() {
 	return $mode;
 }
 
-function formatHoldMessage($hold_message_data){
-	global $interface;
-	$interface->assign('hold_message_data', $hold_message_data);
-	$hold_message = $interface->fetch('Record/hold-results.tpl');
-	return $hold_message;
-}
-
-// this function should be deprecated now. plb 2-2-2015
-function formatRenewMessage($renew_message_data){
-	global $interface;
-	$interface->assign('renew_message_data', $renew_message_data);
-	$renew_message = $interface->fetch('Record/renew-results.tpl');
-	global $logger;
-	$logger->log("Call to deprecated function in index.php. Renew Message $renew_message", PEAR_LOG_INFO);
-
-	return $renew_message;
-}
-function formatCheckoutMessage($checkout_message_data){
-	global $interface;
-	$interface->assign('checkout_message_data', $checkout_message_data);
-	$checkout_message = $interface->fetch('EcontentRecord/checkout-message.tpl');
-	return $checkout_message;
-}
 function getGitBranch(){
 	global $interface;
 	global $configArray;
@@ -831,7 +860,8 @@ function loadUserData(){
 
 	//Assign User information to the interface
 	if (!PEAR_Singleton::isError($user)) {
-		$interface->assign('profile', $user);
+		$interface->assign('profile', $user); // TODO Phase out in favor of $user below; $profile should be for Account Pages for specified linked Accounts
+		$interface->assign('user', $user); //TODO $user is also assigned to User on line 237
 	}
 
 	//Load a list of lists

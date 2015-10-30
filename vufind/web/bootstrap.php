@@ -204,6 +204,7 @@ function loadLibraryAndLocation(){
 		}
 	}
 	$timer->logTime('Got active ip address');
+
 	$branch = $locationSingleton->getBranchLocationCode();
 	if (!isset($_COOKIE['branch']) || $branch != $_COOKIE['branch']){
 		if ($branch == ''){
@@ -213,6 +214,13 @@ function loadLibraryAndLocation(){
 		}
 	}
 	$timer->logTime('Got branch');
+
+	// Determine if this is an OPAC machine
+	$isOpac = $locationSingleton->getOpacStatus();
+	if (!isset($_COOKIE['opac']) || $isOpac != $_COOKIE['opac']){
+		setcookie('opac', $isOpac ? '1' : '0', 0, '/');
+	}
+	$timer->logTime('Got OPAC status');
 
 	//Update configuration information for scoping now that the database is setup.
 	$configArray = updateConfigForScoping($configArray);

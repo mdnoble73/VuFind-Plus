@@ -1,29 +1,65 @@
 var nextGroupNumber = 0;
 var groupSearches = new Array();
 
+//function addSearch(group, term, field)
+//{
+//	if (term  == undefined) {term  = '';}
+//	if (field == undefined) {field = '';}
+//
+//	var newSearch = "";
+//
+//	newSearch += "<div class='advRow clearfix'>";
+//	// Label
+//	if (groupSearches[group] == 0) {
+//			newSearch += "<div class='searchLabel'>" + searchLabel + " :</div>";
+//	} else {
+//			newSearch += "<div class='searchLabel'>&nbsp;</div>";
+//	}
+//	// Terms
+//	newSearch += "<div class='terms'><input type='text' name='lookfor" + group + "[]' size='50' value='" + jsEntityEncode(term) + "'></div>";
+//
+//	// Field
+//	newSearch += "<div class='field'>" + searchFieldLabel + " ";
+//	newSearch += "<select name='type" + group + "[]'>";
+//	for (key in searchFields) {
+//			newSearch += "<option value='" + key + "'";
+//			if (key == field) {
+//					newSearch += " selected='selected'";
+//			}
+//			newSearch += ">" + searchFields[key] + "</option>";
+//	}
+//	newSearch += "</select>";
+//	newSearch += "</div>";
+//
+//	newSearch += "</div>";
+//
+//	// Done
+//	var searchHolder = $('#group' + group + 'SearchHolder');
+//	searchHolder.append(newSearch);
+//
+//	// Actual value doesn't matter once it's not zero.
+//	groupSearches[group]++;
+//}
+
 function addSearch(group, term, field)
 {
 	if (term  == undefined) {term  = '';}
 	if (field == undefined) {field = '';}
 
-	// Keep form content
-	//protectForm();
-
 	var newSearch = "";
 
-	newSearch += "<div class='advRow clearfix'>";
+	newSearch += "<div class='row form-inline'>";
 	// Label
-	if (groupSearches[group] == 0) {
-			newSearch += "<div class='searchLabel'>" + searchLabel + " :</div>";
-	} else {
-			newSearch += "<div class='searchLabel'>&nbsp;</div>";
-	}
+	newSearch += "<div class='searchLabel col-sm-2'>"
+			+ ((groupSearches[group] == 0) ? searchLabel+' :' : '&nbsp;')
+			+ '</div>';
+
 	// Terms
-	newSearch += "<div class='terms'><input type='text' name='lookfor" + group + "[]' size='50' value='" + jsEntityEncode(term) + "'></div>";
+	newSearch += "<div class='input-group col-sm-10'><input type='text' class='form-control' name='lookfor" + group + "[]'  value='" + jsEntityEncode(term) + "'>";
 
 	// Field
-	newSearch += "<div class='field'>" + searchFieldLabel + " ";
-	newSearch += "<select name='type" + group + "[]'>";
+	newSearch += "<span class='input-group-addon'>" + searchFieldLabel + " </span>";
+	newSearch += "<select class='form-control' name='type" + group + "[]'>";
 	for (key in searchFields) {
 			newSearch += "<option value='" + key + "'";
 			if (key == field) {
@@ -32,7 +68,6 @@ function addSearch(group, term, field)
 			newSearch += ">" + searchFields[key] + "</option>";
 	}
 	newSearch += "</select>";
-	newSearch += "</div>";
 
 	newSearch += "</div>";
 
@@ -78,7 +113,7 @@ function addGroup(firstTerm, firstField, join)
 	// Holder for all the search fields
 	newGroup += "<div id='group" + nextGroupNumber + "SearchHolder' class='groupSearchHolder'></div>";
 	// Add search term link
-	newGroup += "<div class='addSearch'><a href='javascript:void(0);' class='add btn btn-sm btn-default' id='add_search_link_" + nextGroupNumber + "' onclick='addSearchJS(this);'>" + addSearchString + "</a></div>";
+	newGroup += "<div class='addSearch row'><div class='col-sm-4 col-sm-offset-2'><a href='javascript:void(0);' class='add btn btn-sm btn-default' id='add_search_link_" + nextGroupNumber + "' onclick='addSearchJS(this);'>" + addSearchString + "</a></div></div>";
 
 	newGroup += "</div>";
 

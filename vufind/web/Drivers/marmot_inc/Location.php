@@ -12,6 +12,9 @@ require_once ROOT_DIR . '/sys/Indexing/LocationRecordToInclude.php';
 
 class Location extends DB_DataObject
 {
+	const DEFAULT_AUTOLOGOUT_TIME = 90;
+	const DEFAULT_AUTOLOGOUT_TIME_LOGGED_OUT = 450;
+
 	public $__table = 'location';   // table name
 	public $locationId;				//int(11)
 	public $code;					//varchar(5)
@@ -22,6 +25,7 @@ class Location extends DB_DataObject
 	public $libraryId;				//int(11)
 	public $address;
 	public $phone;
+	public $isMainBranch; // tinyint(1)
 	public $showInLocationsAndHoursList;
 	public $extraLocationCodesToInclude;
 	public $validHoldPickupBranch;	//tinyint(4)
@@ -140,14 +144,15 @@ class Location extends DB_DataObject
 			array('property'=>'displayName', 'type'=>'text', 'label'=>'Display Name', 'description'=>'The full name of the location for display to the user', 'size'=>'40'),
 			array('property'=>'showDisplayNameInHeader', 'type'=>'checkbox', 'label'=>'Show Display Name in Header', 'description'=>'Whether or not the display name should be shown in the header next to the logo', 'hideInLists' => true, 'default'=>false),
 			array('property'=>'libraryId', 'type'=>'enum', 'values'=>$libraryList, 'label'=>'Library', 'description'=>'A link to the library which the location belongs to'),
+			array('property'=>'isMainBranch', 'type'=>'checkbox', 'label'=>'Is Main Branch', 'description'=>'Is this location the main branch for it\'s library', /*'hideInLists' => false,*/ 'default'=>false),
 			array('property'=>'showInLocationsAndHoursList', 'type'=>'checkbox', 'label'=>'Show In Locations And Hours List', 'description'=>'Whether or not this location should be shown in the list of library hours and locations', 'hideInLists' => true, 'default'=>true),
 			array('property'=>'address', 'type'=>'textarea', 'label'=>'Address', 'description'=>'The address of the branch.', 'hideInLists' => true),
 			array('property'=>'phone', 'type'=>'text', 'label'=> 'Phone Number', 'description'=>'The main phone number for the site .', 'size' => '40', 'hideInLists' => true),
 			array('property'=>'extraLocationCodesToInclude', 'type'=>'text', 'label'=> 'Extra Locations To Include', 'description'=>'A list of other location codes to include in this location for indexing special collections, juvenile collections, etc.', 'size' => '40', 'hideInLists' => true),
 			array('property'=>'nearbyLocation1', 'type'=>'enum', 'values'=>$locationLookupList, 'label'=>'Nearby Location 1', 'description'=>'A secondary location which is nearby and could be used for pickup of materials.', 'hideInLists' => true),
 			array('property'=>'nearbyLocation2', 'type'=>'enum', 'values'=>$locationLookupList, 'label'=>'Nearby Location 2', 'description'=>'A tertiary location which is nearby and could be used for pickup of materials.', 'hideInLists' => true),
-			array('property'=>'automaticTimeoutLength', 'type'=>'integer', 'label'=>'Automatic Timeout Length (logged in)', 'description'=>'The length of time before the user is automatically logged out in seconds.', 'size'=>'8', 'hideInLists' => true, 'default'=>90),
-			array('property'=>'automaticTimeoutLengthLoggedOut', 'type'=>'integer', 'label'=>'Automatic Timeout Length (logged out)', 'description'=>'The length of time before the catalog resets to the home page set to 0 to disable.', 'size'=>'8', 'hideInLists' => true,'default'=>450),
+			array('property'=>'automaticTimeoutLength', 'type'=>'integer', 'label'=>'Automatic Timeout Length (logged in)', 'description'=>'The length of time before the user is automatically logged out in seconds.', 'size'=>'8', 'hideInLists' => true, 'default'=>self::DEFAULT_AUTOLOGOUT_TIME),
+			array('property'=>'automaticTimeoutLengthLoggedOut', 'type'=>'integer', 'label'=>'Automatic Timeout Length (logged out)', 'description'=>'The length of time before the catalog resets to the home page set to 0 to disable.', 'size'=>'8', 'hideInLists' => true,'default'=>self::DEFAULT_AUTOLOGOUT_TIME_LOGGED_OUT),
 
 			array('property'=>'displaySection', 'type' => 'section', 'label' =>'Basic Display', 'hideInLists' => true, 'properties' => array(
 				array('property'=>'homeLink', 'type'=>'text', 'label'=>'Home Link', 'description'=>'The location to send the user when they click on the home button or logo.  Use default or blank to go back to the vufind home location.', 'hideInLists' => true, 'size'=>'40'),
@@ -461,13 +466,16 @@ class Location extends DB_DataObject
 			//Check to see if a branch location has been specified.
 			$locationCode = $this->getBranchLocationCode();
 
-			if ($locationCode != null && $locationCode != '' && $locationCode != 'all'){
+			if (!empty($locationCode) && $locationCode != 'all'){
 				$activeLocation = new Location();
 				$activeLocation->code = $locationCode;
 				if ($activeLocation->find(true)){
 					//Only use the location if we are in the subdomain for the parent library
 					if ($library->libraryId == $activeLocation->libraryId){
-						Location::$activeLocation = clone($activeLocation);
+						Location::$activeLocation = clone $activeLocation;
+					}else {
+						// if the active location doesn't belong to the library we are browsing at, turn off the active location
+						Location::$activeLocation = null;
 					}
 				}
 			}else{
@@ -666,9 +674,10 @@ class Location extends DB_DataObject
 		//Make sure gets and cookies are processed in the correct order.
 		if (isset($_GET['test_ip'])){
 			$ip = $_GET['test_ip'];
-			//Set a coookie so we don't have to transfer the ip from page to page.
+			//Set a cookie so we don't have to transfer the ip from page to page.
 			setcookie('test_ip', $ip, 0, '/');
-		}elseif (isset($_COOKIE['test_ip']) && $_COOKIE['test_ip'] != '127.0.0.1' && strlen($_COOKIE['test_ip']) > 0){
+//		}elseif (isset($_COOKIE['test_ip']) && $_COOKIE['test_ip'] != '127.0.0.1' && strlen($_COOKIE['test_ip']) > 0){
+		}elseif (!empty($_COOKIE['test_ip']) && $_COOKIE['test_ip'] != '127.0.0.1'){
 			$ip = $_COOKIE['test_ip'];
 		}else{
 			if (isset($_SERVER["HTTP_CLIENT_IP"])){
@@ -693,6 +702,24 @@ class Location extends DB_DataObject
 		$timer->logTime("getActiveIp");
 		return Location::$activeIp;
 	}
+
+/* Add on if the Main Branch gets used more frequently
+	private static $mainBranchLocation = 'unset';
+	function getMainBranchLocation() {
+		if (Location::$mainBranchLocation != 'unset') return Location::$mainBranchLocation;
+		Location::$mainBranchLocation = null; // set default value
+		global $library;
+		if (!empty($library->libraryId)) {
+			$mainBranch = new Location();
+			$mainBranch->libraryId = $library->libraryId;
+			$mainBranch->isMainBranch = true;
+			if ($mainBranch->find(true)) {
+				Location::$mainBranchLocation =  clone $mainBranch;
+			}
+		}
+		return Location::$mainBranchLocation;
+	}
+*/
 
 	function getLocationsFacetsForLibrary($libraryId){
 		$location = new Location();
@@ -1270,4 +1297,19 @@ class Location extends DB_DataObject
 		$hours->locationId = $this->locationId;
 		return $hours->count();
 	}
+
+	private $opacStatus = null;
+	public function getOpacStatus(){
+		if (is_null($this->opacStatus)) {
+			if (isset($_GET['opac'])) {
+				$this->opacStatus = $_GET['opac'] == 1 || strtolower($_GET['opac']) == 'true' || strtolower($_GET['opac']) == 'on';
+			} elseif (isset($_COOKIE['opac'])) {
+				$this->opacStatus = (boolean) $_COOKIE['opac'];
+			} else {
+				$this->opacStatus = false;
+			}
+		}
+		return $this->opacStatus;
+	}
+
 }

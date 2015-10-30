@@ -329,19 +329,13 @@ VuFind.Account = (function(){
 					VuFind.Account.ajaxLightbox(urlToDisplay, requireLogin);
 				}, false);
 			} else {
-				var modalDialog = $("#modalDialog");
-				$('#myModalLabel').html("Loading, please wait");
-				$('.modal-body').html("...");
+				VuFind.loadingMessage();
 				$.getJSON(urlToDisplay, function(data){
 					if (data.success){
 						data = data.result;
 					}
-					$('#myModalLabel').html(data.title);
-					$('.modal-body').html(data.modalBody);
-					$('.modal-buttons').html(data.modalButtons);
+					VuFind.showMessageWithButtons(data.title, data.modalBody, data.modalButtons);
 				});
-				//modalDialog.load( );
-				modalDialog.modal('show');
 			}
 			return false;
 		},
