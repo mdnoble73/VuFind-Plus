@@ -89,7 +89,9 @@ if ($configArray['System']['systemMessage']){
 }
 
 //Get the name of the active instance
-//TODO: $inLibrary, is this part of the ip set-up?
+//$inLibrary, is used to pre-select autologoout on place hold forms;
+// to hide the remember me option on login pages;
+// and to show the Location in the page footer
 if ($locationSingleton->getIPLocation() != null){
 	$interface->assign('inLibrary', true);
 	$physicalLocation = $locationSingleton->getIPLocation()->displayName;
