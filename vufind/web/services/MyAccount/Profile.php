@@ -28,8 +28,6 @@ class MyAccount_Profile extends MyAccount
 		global $interface;
 		global $user;
 
-		global $memCache; //TODO temporary can remove.
-
 		$ils = $configArray['Catalog']['ils'];
 		$interface->assign('showSMSNoticesInProfile', $ils == 'Sierra');
 		if ($configArray['Catalog']['offline']){

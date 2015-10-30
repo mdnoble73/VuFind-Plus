@@ -66,10 +66,10 @@
 						$(function(){
 							var userNames = {
 							{/literal}
-							{$user->id}: "{$user->displayName}",
+							{$user->id}: "{$user->displayName} - {$user->getHomeLibrarySystemName()}",
 							{assign var="linkedUsers" value=$user->getLinkedUsers()}
 							{foreach from="$linkedUsers" item="tron"}
-								{$tron->id}: "{$tron->displayName}",
+								{$tron->id}: "{$tron->displayName} - {$tron->getHomeLibrarySystemName()}",
 							{/foreach}
 							{literal}
 								};
