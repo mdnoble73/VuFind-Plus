@@ -146,6 +146,7 @@ class Record_Hold extends Action {
 					$interface->assign('defaultNotNeededAfterDays', '');
 				}
 				$interface->assign('showHoldCancelDate', $patronHomeBranch->showHoldCancelDate);
+				$interface->assign('holdDisclaimer', $patronHomeBranch->holdDisclaimer);
 			}else{
 				if ($library){
 					//Show the hold cancellation date for now.  It may be hidden later when the user logs in.
@@ -155,6 +156,7 @@ class Record_Hold extends Action {
 						$interface->assign('defaultNotNeededAfterDays', '');
 					}
 					$interface->assign('showHoldCancelDate', $library->showHoldCancelDate);
+					$interface->assign('holdDisclaimer', $library->holdDisclaimer);
 				}else{
 					//Show the hold cancellation date for now.  It may be hidden later when the user logs in.
 					$interface->assign('showHoldCancelDate', 1);

@@ -10,9 +10,6 @@
 				<div class="alert alert-warning" id="overHoldCountWarning" {if !$showOverHoldLimit}style="display:none"{/if}>Warning: You have reached the maximum of <span class='maxHolds'>{$maxHolds}</span> holds for your account.  You must cancel a hold before you can place a hold on this title.</div>
 				<div id='holdError' class="pageWarning" style='display: none'></div>
 			</div>
-			{if $holdDisclaimer}
-				<div id="holdDisclaimer">{$holdDisclaimer}</div>
-			{/if}
 
 			<p class="alert alert-info">
 				{/strip}
@@ -107,6 +104,14 @@
 							<i>If this date is reached, the hold will automatically be cancelled for you.	This is a great way to handle time sensitive materials for term papers, etc. If not set, the cancel date will automatically be set 6 months from today.</i>
 						</div>
 					</div>
+				{/if}
+				{if count($holdDisclaimers) > 0}
+					{foreach from=$holdDisclaimers item=holdDisclaimer key=library}
+						<div class="holdDisclaimer alert alert-warning">
+							{if count($holdDisclaimers) > 1}<div class="holdDisclaimerLibrary">{$library}</div>{/if}
+							{$holdDisclaimer}
+						</div>
+					{/foreach}
 				{/if}
 				<br>
 				<div class="form-group">

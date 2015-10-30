@@ -19,7 +19,7 @@
           </elementProp>
           <elementProp name="duration" elementType="Argument">
             <stringProp name="Argument.name">duration</stringProp>
-            <stringProp name="Argument.value">900</stringProp>
+            <stringProp name="Argument.value">300</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
           <elementProp name="solrPort" elementType="Argument">
@@ -177,7 +177,7 @@
         <stringProp name="TestPlan.comments"> This contains the information needed to test a specific site. Toggle on the *one* site you wish to test against.</stringProp>
       </Arguments>
       <hashTree/>
-      <Arguments guiclass="ArgumentsPanel" testclass="Arguments" testname="Marmot Local Site Configuration" enabled="true">
+      <Arguments guiclass="ArgumentsPanel" testclass="Arguments" testname="Marmot Local Site Configuration" enabled="false">
         <collectionProp name="Arguments.arguments">
           <elementProp name="url" elementType="Argument">
             <stringProp name="Argument.name">url</stringProp>
@@ -205,7 +205,7 @@
           </elementProp>
           <elementProp name="SolrQueriesFileName" elementType="Argument">
             <stringProp name="Argument.name">SolrQueriesFileName</stringProp>
-            <stringProp name="Argument.value">500solrQueries.csv</stringProp>
+            <stringProp name="Argument.value">3000solrQueries.csv</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
             <stringProp name="Argument.desc">this file uses mesa for scoping</stringProp>
           </elementProp>
@@ -218,7 +218,7 @@
         <stringProp name="TestPlan.comments"> This contains the information needed to test a specific site. Toggle on the *one* site you wish to test against.</stringProp>
       </Arguments>
       <hashTree/>
-      <Arguments guiclass="ArgumentsPanel" testclass="Arguments" testname="Marmot Test Site Configuration" enabled="false">
+      <Arguments guiclass="ArgumentsPanel" testclass="Arguments" testname="Marmot Test Site Configuration" enabled="true">
         <collectionProp name="Arguments.arguments">
           <elementProp name="url" elementType="Argument">
             <stringProp name="Argument.name">url</stringProp>
@@ -246,7 +246,7 @@
           </elementProp>
           <elementProp name="SolrQueriesFileName" elementType="Argument">
             <stringProp name="Argument.name">SolrQueriesFileName</stringProp>
-            <stringProp name="Argument.value">500solrQueries.csv</stringProp>
+            <stringProp name="Argument.value">3000solrQueries_NoFacets.csv</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
             <stringProp name="Argument.desc">this file uses mesa for scoping</stringProp>
           </elementProp>
@@ -509,17 +509,6 @@
           <boolProp name="CookieManager.clearEachIteration">true</boolProp>
         </CookieManager>
         <hashTree/>
-        <CSVDataSet guiclass="TestBeanGUI" testclass="CSVDataSet" testname="Record IDs to cycle through" enabled="true">
-          <stringProp name="filename">${testIDsdir}\\${ILSRecordIDFileName}</stringProp>
-          <stringProp name="fileEncoding"></stringProp>
-          <stringProp name="variableNames">recordID</stringProp>
-          <stringProp name="delimiter">,</stringProp>
-          <boolProp name="quotedData">false</boolProp>
-          <boolProp name="recycle">true</boolProp>
-          <boolProp name="stopThread">false</boolProp>
-          <stringProp name="shareMode">shareMode.all</stringProp>
-        </CSVDataSet>
-        <hashTree/>
         <GenericController guiclass="LogicControllerGui" testclass="GenericController" testname="Solr Engine" enabled="true"/>
         <hashTree>
           <Arguments guiclass="ArgumentsPanel" testclass="Arguments" testname="User Defined Variables" enabled="true">
@@ -618,7 +607,7 @@
           </BSFAssertion>
           <hashTree/>
           <ConstantTimer guiclass="ConstantTimerGui" testclass="ConstantTimer" testname="Constant Timer" enabled="true">
-            <stringProp name="ConstantTimer.delay">500</stringProp>
+            <stringProp name="ConstantTimer.delay">250</stringProp>
           </ConstantTimer>
           <hashTree/>
         </hashTree>

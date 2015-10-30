@@ -208,7 +208,6 @@ public class RecordGrouperMain {
 		generateAuthorAuthoritiesForHooplaRecords(configIni, currentAuthorities, manualAuthorities, authoritiesWriter, recordGroupingProcessor);
 		generateAuthorAuthoritiesForIlsRecords(configIni, currentAuthorities, manualAuthorities, authoritiesWriter, recordGroupingProcessor);
 		generateAuthorAuthoritiesForOverDriveRecords(econtentConnection, currentAuthorities, manualAuthorities, authoritiesWriter);
-		generateAuthorAuthoritiesForEVokeRecords(configIni, currentAuthorities, manualAuthorities, authoritiesWriter, recordGroupingProcessor);
 
 		try {
 			authoritiesWriter.flush();
@@ -253,46 +252,6 @@ public class RecordGrouperMain {
 		}
 		return manualAuthorAuthorities;
 
-	}
-
-	private static void generateAuthorAuthoritiesForEVokeRecords(Ini configIni, HashMap<String, String> currentAuthorities, HashMap<String, String> manualAuthorities, CSVWriter authoritiesWriter, RecordGroupingProcessor recordGroupingProcessor) {
-		if (configIni.containsKey("eVoke")){
-			int numRecordsRead = 0;
-			String marcPath = configIni.get("eVoke", "evokePath");
-			if(marcPath == null){
-				return;
-			}
-
-			logger.debug("Creating authorities for eVoke records");
-			//Loop through each of the files tha have been exported
-			File[] recordPrefixPaths = new File(marcPath).listFiles();
-			if (recordPrefixPaths != null){
-				for (File curPrefixPath : recordPrefixPaths){
-					if (curPrefixPath.isDirectory()) {
-						File[] catalogBibFiles = curPrefixPath.listFiles();
-						if (catalogBibFiles != null) {
-							for (File curBibFile : catalogBibFiles) {
-								if (curBibFile.getName().toLowerCase().endsWith(".mrc")) {
-									try {
-										Record marcRecord = EVokeMarcReader.readMarc(curBibFile);
-										//Record number is based on the filename. It isn't actually in the MARC record at all.
-										GroupedWorkBase work = recordGroupingProcessor.setupBasicWorkForEVokeRecord(marcRecord);
-										addAlternateAuthoritiesForWorkToAuthoritiesFile(currentAuthorities, manualAuthorities, authoritiesWriter, work);
-										numRecordsRead++;
-									} catch (Exception e) {
-										logger.error("Error loading eVoke records " + numRecordsRead, e);
-									}
-								}
-								logger.info("Finished loading authorities for eVoke records, read " + numRecordsRead + " from the eVoke file " + curBibFile.getName());
-							}
-						}
-					}
-				}
-				//TODO: Delete records that no longer exist
-			}
-		} else{
-			logger.debug("eVoke is not configured, not processing records.");
-		}
 	}
 
 	private static void generateAuthorAuthoritiesForOverDriveRecords(Connection econtentConnection, HashMap<String, String> currentAuthorities, HashMap<String, String> manualAuthorities, CSVWriter authoritiesWriter) {
@@ -725,7 +684,6 @@ public class RecordGrouperMain {
 
 
 			groupHooplaRecords(configIni, recordGroupingProcessor);
-			groupEVokeRecords(configIni, recordGroupingProcessor);
 			groupOverDriveRecords(configIni, econtentConnection, recordGroupingProcessor);
 			groupIlsRecords(configIni, vufindConn, indexingProfiles);
 
@@ -996,61 +954,6 @@ public class RecordGrouperMain {
 			}
 		}
 		return marcRecordFilesToProcess;
-	}
-
-	private static void groupEVokeRecords(Ini configIni, RecordGroupingProcessor recordGroupingProcessor) {
-		if (configIni.containsKey("eVoke")){
-			int numRecordsProcessed = 0;
-			int numRecordsRead = 0;
-			String marcPath = configIni.get("eVoke", "evokePath");
-			if(marcPath == null){
-				return;
-			}
-
-			logger.debug("Grouping eVoke records");
-			//Loop through each of the files tha have been exported
-			File[] recordPrefixPaths = new File(marcPath).listFiles();
-			if (recordPrefixPaths != null){
-				String lastRecordProcessed = "";
-				for (File curPrefixPath : recordPrefixPaths){
-					if (curPrefixPath.isDirectory()) {
-						File[] catalogBibFiles = curPrefixPath.listFiles();
-						if (catalogBibFiles != null) {
-							for (File curBibFile : catalogBibFiles) {
-								if (curBibFile.getName().toLowerCase().endsWith(".mrc")) {
-									try {
-										Record marcRecord = EVokeMarcReader.readMarc(curBibFile);
-										//Record number is based on the filename. It isn't actually in the MARC record at all.
-										String recordNumber = curBibFile.getName();
-										recordNumber = recordNumber.substring(0, recordNumber.lastIndexOf('.'));
-										RecordIdentifier primaryIdentifier = new RecordIdentifier();
-										primaryIdentifier.setValue("evoke", recordNumber);
-										try {
-											//TODO: Determine if the record has changed since we last indexed (if doing a partial update).
-											recordGroupingProcessor.processEVokeRecord(marcRecord, primaryIdentifier, true);
-											numRecordsProcessed++;
-											lastRecordProcessed = recordNumber;
-											numRecordsRead++;
-											if (numRecordsRead % 100000 == 0) {
-												recordGroupingProcessor.dumpStats();
-											}
-										} catch (Exception e) {
-											logger.error("Unable to process record " + recordNumber, e);
-										}
-									} catch (Exception e) {
-										logger.error("Error loading eVoke records " + numRecordsRead + " the last record processed was " + lastRecordProcessed, e);
-									}
-								}
-								logger.info("Finished grouping " + numRecordsRead + " records with " + numRecordsProcessed + " actual changes from the eVoke file " + curBibFile.getName());
-							}
-						}
-					}
-				}
-				//TODO: Delete records that no longer exist
-			}
-		} else{
-			logger.debug("eVoke is not configured, not processing records.");
-		}
 	}
 
 	private static void updateLastGroupingTime(Connection vufindConn) {

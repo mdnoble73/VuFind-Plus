@@ -538,6 +538,8 @@ class MillenniumHolds{
 
 							}elseif (preg_match('/READY\sFOR\sPICKUP/i', $status, $matches)){
 								$curHold['status'] = 'Ready';
+							}elseif (preg_match('/in\stransit/i', $status, $matches)){
+								$curHold['status'] = 'In Transit';
 							}elseif (preg_match('/\d+\sof\s\d+\sholds/i', $status, $matches)){
 								$curHold['status'] = $status;
 							}else{

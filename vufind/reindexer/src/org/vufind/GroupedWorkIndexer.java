@@ -35,7 +35,6 @@ public class GroupedWorkIndexer {
 	private ConcurrentUpdateSolrServer updateServer;
 	private HashMap<String, MarcRecordProcessor> ilsRecordProcessors = new HashMap<>();
 	private OverDriveProcessor overDriveProcessor;
-	private EVokeProcessor evokeProcessor;
 	private HashMap<String, HashMap<String, String>> translationMaps = new HashMap<>();
 	private HashMap<String, LexileTitle> lexileInformation = new HashMap<>();
 	private HashMap<String, ARTitle> arInformation = new HashMap<>();
@@ -236,7 +235,6 @@ public class GroupedWorkIndexer {
 			logger.error("Error loading record processors for ILS records", e);
 		}
 		overDriveProcessor = new OverDriveProcessor(this, econtentConn, logger);
-		evokeProcessor = new EVokeProcessor(this, configIni, logger);
 		//Load translation maps
 		loadSystemTranslationMaps();
 
@@ -948,9 +946,6 @@ public class GroupedWorkIndexer {
 		switch (type) {
 			case "overdrive":
 				overDriveProcessor.processRecord(groupedWork, identifier);
-				break;
-			case "evoke":
-				evokeProcessor.processRecord(groupedWork, identifier);
 				break;
 			default:
 				if (ilsRecordProcessors.containsKey(type)) {

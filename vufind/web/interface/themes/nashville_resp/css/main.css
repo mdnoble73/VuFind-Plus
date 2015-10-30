@@ -8305,6 +8305,9 @@ a.browse-thumbnail.active {
   color: #e58e29;
   font-weight: bold;
 }
+.holdDisclaimerLibrary {
+  font-weight: bold;
+}
 /**
  * Additional Styling related to the help system
  */
