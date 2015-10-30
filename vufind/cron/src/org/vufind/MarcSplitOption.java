@@ -80,7 +80,7 @@ public class MarcSplitOption {
 		for (DataField curItem : itemFields){
 			Subfield locationSubfieldInst = curItem.getSubfield(locationSubfield);
 			if (locationSubfieldInst != null){
-				String locationCode = locationSubfieldInst.getData();
+				String locationCode = locationSubfieldInst.getData().trim();
 				if (locationsToIncludePattern.matcher(locationCode).matches()){
 					validBib = true;
 					break;
