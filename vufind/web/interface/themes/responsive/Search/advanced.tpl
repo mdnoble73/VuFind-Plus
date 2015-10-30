@@ -4,18 +4,10 @@
 	.advSearchContent h3 {
 		margin-bottom: 20px;
 	}
-	/*.groupSearchHolder {*/
-		/*padding: 10px 0 5px;*/
-	/*}*/
 	.groupSearchHolder .row {
 		padding: 2px 0;
 	}
-	/*.groupSearchHolder .advRow div {*/
-		/*float: left;*/
-		/*padding: 0 2px;*/
-	/*}*/
 	.searchLabel {
-		/*width: 90px;*/
 		font-weight: bold;
 		text-align: right;
 	}
@@ -26,14 +18,6 @@
 	.addSearch div {
 		padding-left: 0;
 	}
-	/*.groupSearchHolder .terms {*/
-		/*width: 220px;*/
-	/*}*/
-	/*.groupSearchHolder .terms input {*/
-		/*width: 100%;*/
-	/*}*/
-	/*.groupSearchHolder .field {*/
-	/*}*/
 	.group .groupSearchDetails {
 		width: 100%
 		/*text-align: right;*/
@@ -249,8 +233,11 @@
 	</div>
 </div>
 {/strip}
-
+{if $debugJs}
+<script type="text/javascript" src="{$path}/services/Search/advanced.js"></script>
+{else}
 <script type="text/javascript" src="{$path}/services/Search/advanced.min.js"></script>
+{/if}
 <script type="text/javascript">
 	{* Define our search arrays so they are usuable in the javascript *}
 	var searchFields = new Array();
