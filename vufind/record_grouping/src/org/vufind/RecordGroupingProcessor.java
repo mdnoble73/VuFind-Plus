@@ -290,37 +290,6 @@ public class RecordGroupingProcessor {
 		return workForTitle;
 	}
 
-	public void processEVokeRecord(Record marcRecord, RecordIdentifier primaryIdentifier, boolean primaryDataChanged){
-		if (primaryIdentifier != null){
-			GroupedWorkBase workForTitle = setupBasicWorkForEVokeRecord(marcRecord);
-
-			//Identifiers
-			HashSet<RecordIdentifier> identifiers = getIdentifiersFromMarcRecord(marcRecord);
-
-			workForTitle.setIdentifiers(identifiers);
-
-			addGroupedWorkToDatabase(primaryIdentifier, workForTitle, primaryDataChanged);
-		}
-	}
-
-	public GroupedWorkBase setupBasicWorkForEVokeRecord(Record marcRecord) {
-		//Get data for the grouped record
-		GroupedWorkBase workForTitle = GroupedWorkFactory.getInstance(-1);
-
-		//Title
-		DataField field245 = setWorkTitleBasedOnMarcRecord(marcRecord, workForTitle);
-
-		//Format - right now
-		String format = "eBook";
-		String groupingFormat = categoryMap.get(formatsToGroupingCategory.get(format));
-
-		//Author
-		setWorkAuthorBasedOnMarcRecord(marcRecord, workForTitle, field245, groupingFormat);
-
-		workForTitle.setGroupingCategory(groupingFormat);
-		return workForTitle;
-	}
-
 	public void setWorkAuthorBasedOnMarcRecord(Record marcRecord, GroupedWorkBase workForTitle, DataField field245, String groupingFormat) {
 		String author = null;
 		DataField field100 = (DataField)marcRecord.getVariableField("100");
