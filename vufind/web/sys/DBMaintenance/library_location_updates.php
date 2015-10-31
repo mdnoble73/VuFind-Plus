@@ -1107,5 +1107,13 @@ function getLibraryLocationUpdates(){
 			),
 		),
 
+		'disable_auto_correction_of_searches' => array(
+			'title' => 'Disable Automatic Search Corrections',
+			'description' => 'Whether or not Pika will try to automatically replace search terms (similar to Google) .',
+			'sql' => array(
+				"ALTER TABLE `library` ADD COLUMN `allowAutomaticSearchReplacements` TINYINT(1) DEFAULT 1",
+			),
+		),
+
 	);
 }

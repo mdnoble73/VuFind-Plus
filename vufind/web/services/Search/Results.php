@@ -205,7 +205,6 @@ class Search_Results extends Action {
 		//   Those we can construct AFTER the search is executed, but we need
 		//   no matter whether there were any results
 		$interface->assign('qtime',               round($searchObject->getQuerySpeed(), 2));
-		$interface->assign('spellingSuggestions', $searchObject->getSpellingSuggestions());
 		$interface->assign('lookfor',             $displayQuery);
 		$interface->assign('searchType',          $searchObject->getSearchType());
 		// Will assign null for an advanced search
@@ -285,6 +284,16 @@ class Search_Results extends Action {
 
 		// No Results Actions //
 		if ($searchObject->getResultTotal() < 1) {
+			require_once ROOT_DIR . '/services/Search/lib/SearchSuggestions.php';
+			$searchSuggestions = new SearchSuggestions();
+
+			$commonSearches = $searchSuggestions->getSpellingSearches($searchObject->displayQuery(), $searchObject->getSearchIndex());
+			$suggestions = array();
+			foreach ($commonSearches as $commonSearch){
+				$suggestions[$commonSearch['phrase']] = '/Search/Results?lookfor=' . urlencode($commonSearch['phrase']);
+			}
+			$interface->assign('spellingSuggestions', $suggestions);
+
 			//We didn't find anything.  Look for search Suggestions
 			//Don't try to find suggestions if facets were applied
 			$autoSwitchSearch = false;
@@ -294,19 +303,20 @@ class Search_Results extends Action {
 				if (strpos($searchObject->displayQuery(), '"') === false){
 					require_once ROOT_DIR . '/services/Search/lib/SearchSuggestions.php';
 					$searchSuggestions = new SearchSuggestions();
-					$commonSearches = $searchSuggestions->getAllSuggestions($searchObject->displayQuery(), $searchObject->getSearchIndex());
+					$commonSearches = $searchSuggestions->getCommonSearchesMySql($searchObject->displayQuery(), $searchObject->getSearchIndex());
 
 					//assign here before we start popping stuff off
 					$interface->assign('searchSuggestions', $commonSearches);
 
 					//If the first search in the list is used 10 times more than the next, just show results for that
-					$numSuggestions = count($commonSearches);
+					$allSuggestions = $searchSuggestions->getAllSuggestions($searchObject->displayQuery(), $searchObject->getSearchIndex());
+					$numSuggestions = count($allSuggestions);
 					if ($numSuggestions == 1){
-						$firstSearch = array_pop($commonSearches);
+						$firstSearch = array_pop($allSuggestions);
 						$autoSwitchSearch = true;
 					}elseif ($numSuggestions >= 2){
-						$firstSearch = array_shift($commonSearches);
-						$secondSearch = array_shift($commonSearches);
+						$firstSearch = array_shift($allSuggestions);
+						$secondSearch = array_shift($allSuggestions);
 						$firstTimesSearched = $firstSearch['numSearches'];
 						$secondTimesSearched = $secondSearch['numSearches'];
 						if ($secondTimesSearched > 0 && $firstTimesSearched / $secondTimesSearched > 10){ // avoids division by zero
@@ -314,12 +324,14 @@ class Search_Results extends Action {
 						}
 					}
 
+					//Check to see if the library does not want automatic search replacements
+					if (!$library->allowAutomaticSearchReplacements){
+						$autoSwitchSearch = false;
+					}
+
 					// Switch to search with a better search term //
-//				$interface->assign('autoSwitchSearch', $autoSwitchSearch);
 					if ($autoSwitchSearch){
 						//Get search results for the new search
-//					$interface->assign('oldTerm', $searchObject->displayQuery());
-//					$interface->assign('newTerm', $commonSearches[0]['phrase']);
 						// The above assignments probably do nothing when there is a redirect below
 						$thisUrl = $_SERVER['REQUEST_URI'] . "&replacementTerm=" . urlencode($firstSearch['phrase']);
 						header("Location: " . $thisUrl);
