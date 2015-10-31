@@ -4,18 +4,10 @@
 	.advSearchContent h3 {
 		margin-bottom: 20px;
 	}
-	/*.groupSearchHolder {*/
-		/*padding: 10px 0 5px;*/
-	/*}*/
 	.groupSearchHolder .row {
 		padding: 2px 0;
 	}
-	/*.groupSearchHolder .advRow div {*/
-		/*float: left;*/
-		/*padding: 0 2px;*/
-	/*}*/
 	.searchLabel {
-		/*width: 90px;*/
 		font-weight: bold;
 		text-align: right;
 	}
@@ -26,14 +18,6 @@
 	.addSearch div {
 		padding-left: 0;
 	}
-	/*.groupSearchHolder .terms {*/
-		/*width: 220px;*/
-	/*}*/
-	/*.groupSearchHolder .terms input {*/
-		/*width: 100%;*/
-	/*}*/
-	/*.groupSearchHolder .field {*/
-	/*}*/
 	.group .groupSearchDetails {
 		width: 100%
 		/*text-align: right;*/
@@ -118,7 +102,7 @@
 							{translate text="search_match"} :
 							<select name="join"{* class="form-control"*}>
 								<option value="AND">{translate text="group_AND"}</option>
-								<option value="OR"{if $searchDetails}{if $searchDetails.0.join == 'OR'} selected="selected"{/if}{/if}>{translate text="group_OR"}</option>
+								<option value="OR"{if $searchDetails && $searchDetails.0.join == 'OR'} selected="selected"{/if}>{translate text="group_OR"}</option>
 							</select>
 						</div>
 						<strong>{translate text="search_groups"}</strong>:
@@ -177,10 +161,10 @@
 														<th align="right">{translate text=$label}:</th>
 														<td>
 															{if $facetInfo.facetName == "publishDate"}
-																<label for="yearfrom" class='yearboxlabel'>From:</label>
+																<label for="yearfrom" class="yearboxlabel">From: </label>
 																<input type="text" size="4" maxlength="4" class="yearbox" name="yearfrom" id="yearfrom"
 																       value="">
-																<label for="yearto" class='yearboxlabel'>To:</label>
+																<label for="yearto" class="yearboxlabel">To: </label>
 																<input type="text" size="4" maxlength="4" class="yearbox" name="yearto" id="yearto"
 																       value="">
 																<div id='yearDefaultLinks'>
@@ -193,12 +177,17 @@
 																</div>
 															{elseif $facetInfo.facetName == "lexile_score"}
 																<div id="lexile-range"></div>
-																<label for="lexile_scorefrom" class='yearboxlabel'>From:</label>
+																<label for="lexile_scorefrom" class="yearboxlabel">From: </label>
 																<input type="text" size="4" maxlength="4" class="yearbox" name="lexile_scorefrom"
 																       id="lexile_scorefrom" value="">
-																<label for="lexile_scoreto" class='yearboxlabel'>To:</label>
+																<label for="lexile_scoreto" class="yearboxlabel">To: </label>
 																<input type="text" size="4" maxlength="4" class="yearbox" name="lexile_scoreto"
 																       id="lexile_scoreto" value="">
+															{elseif $facetInfo.facetName == "accelerated_reader_reading_level"}
+																	<label for="accelerated_reader_reading_levelfrom" class="yearboxlabel">From: </label>
+																	<input type="text" size="4" maxlength="4" class="yearbox" name="accelerated_reader_reading_levelfrom" id="accelerated_reader_reading_levelfrom" value="">
+																	<label for="accelerated_reader_reading_levelto" class="yearboxlabel">To: </label>
+																	<input type="text" size="4" maxlength="4" class="yearbox" name="accelerated_reader_reading_levelto" id="accelerated_reader_reading_levelto" value="">
 															{else}
 																<select name="filter[]">
 																	{foreach from=$facetInfo.values item="value" key="display"}
@@ -216,12 +205,16 @@
 												<tr>
 													<th align="right">{translate text="Illustrated"}:</th>
 													<td>
+														<div class="radio">
 														{foreach from=$illustratedLimit item="current"}
+															<label>
 															<input type="radio" name="illustration"
 															       value="{$current.value|escape}"{if $current.selected} checked="checked"{/if}>
 															{translate text=$current.text}
+															</label>
 															<br>
 														{/foreach}
+														</div>
 													</td>
 												</tr>
 											{/if}
@@ -240,8 +233,11 @@
 	</div>
 </div>
 {/strip}
-
+{if $debugJs}
+<script type="text/javascript" src="{$path}/services/Search/advanced.js"></script>
+{else}
 <script type="text/javascript" src="{$path}/services/Search/advanced.min.js"></script>
+{/if}
 <script type="text/javascript">
 	{* Define our search arrays so they are usuable in the javascript *}
 	var searchFields = new Array();
