@@ -186,7 +186,8 @@ public class RecordGroupingProcessor {
 			}
 			if (allItemsSuppressed){
 				//Don't return a primary identifier for this record (we will suppress the bib and just use OverDrive APIs)
-				return null;
+				identifier.setSuppressed(true);
+				identifier.setSuppressionReason("All Items suppressed");
 			}
 		}else{
 			//Check the 856 for an overdrive url
@@ -196,9 +197,10 @@ public class RecordGroupingProcessor {
 					//Check the url to see if it is from OverDrive or Hoopla
 					String linkData = linkField.getSubfield('u').getData().trim();
 					if (linkData.matches("(?i)^http://.*?lib\\.overdrive\\.com/ContentDetails\\.htm\\?id=[\\da-f]{8}-[\\da-f]{4}-[\\da-f]{4}-[\\da-f]{4}-[\\da-f]{12}$")){
-						return null;
+						identifier.setSuppressed(true);
+						identifier.setSuppressionReason("OverDrive Title");
 					}else if (linkData.matches("(?i)^https://www\\.hoopladigital\\.com/title/\\d+$")){
-						return null;
+						identifier.setSuppressionReason("Hoopla Title");
 					}
 				}
 			}

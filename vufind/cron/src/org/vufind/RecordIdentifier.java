@@ -12,8 +12,6 @@ import java.util.HashSet;
 public class RecordIdentifier {
 	private String type;
 	private String identifier;
-	private long identifierId;
-	private HashSet<Long> relatedWorkIds = new HashSet<Long>();
 	private boolean suppressed;
 	private String suppressionReason;
 
@@ -99,26 +97,6 @@ public class RecordIdentifier {
 			checksumDigit = 10 - modValue;
 		}
 		return  isbn + Integer.toString(checksumDigit);
-	}
-
-	public long getIdentifierId() {
-		return identifierId;
-	}
-
-	public void setIdentifierId(long identifierId) {
-		this.identifierId = identifierId;
-	}
-
-	public boolean isLinkedToGroupedWork(Long groupedWorkId){
-		return relatedWorkIds.contains(groupedWorkId);
-	}
-
-	public void addRelatedGroupedWork(Long groupedWorkId){
-		relatedWorkIds.add(groupedWorkId);
-	}
-
-	public boolean isSharedIdentifier() {
-		return type.equals("isbn") || type.equals("issn") || type.equals("upc") || type.equals("asin") || type.equals("oclc");
 	}
 
 	public boolean isSuppressed() {

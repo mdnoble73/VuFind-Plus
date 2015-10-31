@@ -59,6 +59,18 @@ class SearchAPI extends Action {
 
 		$currentTime = time();
 
+		// Last Export Valid //
+		$lastExportValidVariable = new Variable();
+		$lastExportValidVariable->name= 'last_export_valid';
+		if ($lastExportValidVariable->find(true)){
+			//Check to see if the last export was valid
+			if ($lastExportValidVariable->value == false){
+				$notes[] = 'The Last Export was not valid';
+			}
+		}else{
+			$notes[] = 'Have not checked the export yet to see if it is valid.';
+		}
+
 		// Full Index //
 		$lastFullIndexVariable = new Variable();
 		$lastFullIndexVariable->name= 'lastFullReindexFinish';

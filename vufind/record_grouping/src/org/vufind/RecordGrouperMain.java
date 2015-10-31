@@ -616,6 +616,26 @@ public class RecordGrouperMain {
 			System.exit(1);
 		}
 
+		//Make sure that our export is valid
+		try{
+			PreparedStatement loadExportValid = vufindConn.prepareStatement("SELECT * from variables WHERE name = 'last_export_valid'");
+			ResultSet lastExportValidRS = loadExportValid.executeQuery();
+			boolean lastExportValid = false;
+			if (lastExportValidRS.next()){
+				lastExportValid = lastExportValidRS.getBoolean("value");
+			}
+			lastExportValidRS.close();
+			loadExportValid.close();
+
+			if (!lastExportValid){
+				logger.error("The last export was not valid.  Not regrouping to avoid loading incorrect records.");
+				System.exit(1);
+			}
+		} catch (Exception e){
+			logger.error("Error loading whether or not the last export was valid", e);
+			System.exit(1);
+		}
+
 		//Get the last grouping time
 		try{
 			PreparedStatement loadLastGroupingTime = vufindConn.prepareStatement("SELECT * from variables WHERE name = 'last_grouping_time'");
@@ -909,7 +929,7 @@ public class RecordGrouperMain {
 				}
 			}
 			if (includePAMusic && !forAuthorities) {
-				File marcFile = new File(marcPath + "/USA_Only_PA_Music_.mrc");
+				File marcFile = new File(marcPath + "/USA_Only_PA_Music.mrc");
 				if (marcFile.exists()) {
 					marcRecordFilesToProcess.add(marcFile);
 				} else {
@@ -1227,6 +1247,7 @@ public class RecordGrouperMain {
 
 			TreeSet<String> recordNumbersInExport = new TreeSet<>();
 			TreeSet<String> suppressedRecordNumbersInExport = new TreeSet<>();
+			TreeSet<String> suppressedControlNumbersInExport = new TreeSet<>();
 			TreeSet<String> recordNumbersToIndex = new TreeSet<>();
 
 			File[] catalogBibFiles = new File(marcPath).listFiles();
@@ -1241,7 +1262,11 @@ public class RecordGrouperMain {
 								Record curBib = catalogReader.next();
 								RecordIdentifier recordIdentifier = recordGroupingProcessor.getPrimaryIdentifierFromMarcRecord(curBib, curProfile.name);
 								if (recordIdentifier == null) {
-									logger.info("Record with control number " + curBib.getControlNumber() + " was suppressed or is eContent");
+									//logger.debug("Record with control number " + curBib.getControlNumber() + " was suppressed or is eContent");
+									suppressedControlNumbersInExport.add(curBib.getControlNumber());
+								}else if (recordIdentifier.isSuppressed()) {
+									//logger.debug("Record with control number " + curBib.getControlNumber() + " was suppressed or is eContent");
+									suppressedControlNumbersInExport.add(recordIdentifier.getIdentifier());
 								}else{
 									String recordNumber = recordIdentifier.getIdentifier();
 									boolean marcUpToDate = writeIndividualMarc(existingMarcFiles, individualMarcPath, curBib, recordNumber, curProfile.name, 4);
@@ -1277,6 +1302,7 @@ public class RecordGrouperMain {
 
 			writeExistingRecordsFile(configIni, recordNumbersInExport, "record_grouping_ils_bibs_in_export");
 			writeExistingRecordsFile(configIni, suppressedRecordNumbersInExport, "record_grouping_ils_bibs_to_ignore");
+			writeExistingRecordsFile(configIni, suppressedRecordNumbersInExport, "record_grouping_ils_ccontrol_numbers_to_ignore");
 			writeExistingRecordsFile(configIni, recordNumbersToIndex, "record_grouping_ils_bibs_to_index");
 		}
 	}
