@@ -160,19 +160,13 @@ class SearchAPI extends Action {
 				$unxml->unserialize($xml);
 				$data = $unxml->getUnserializedData();
 				$uptime = $data['status']['grouped']['uptime']['_content']/1000;  // Grouped Index, puts uptime into seconds.
-				$uptime2 = $data['status']['grouped2']['uptime']['_content']/1000;  // Grouped 2 Index, puts uptime into seconds.
 				$solrStartTime = strtotime($data['status']['grouped']['startTime']['_content']);
-				$solrStartTime2 = strtotime($data['status']['grouped2']['startTime']['_content']);
 
 
 				if ($uptime < self::SOLR_RESTART_INTERVAL){ // Grouped Index
-					if ($uptime2 < self::SOLR_RESTART_INTERVAL){ // Grouped 2 Index
-						$solrRestartUpToDate = true;
-					} else {
-						$notes[] = 'Solr Index (Grouped2) last restarted ' . date('m-d-Y H:i:s', $solrStartTime) . ' - '. round($uptime / 3600, 2) . ' hours ago';
-					}
+					$solrRestartUpToDate = true;
 				} else {
-					$notes[] = 'Solr Index (Grouped) last restarted ' . date('m-d-Y H:i:s', $solrStartTime2) . ' - '. round($uptime / 3600, 2) . ' hours ago';
+					$notes[] = 'Solr Index (Grouped) last restarted ' . date('m-d-Y H:i:s', $solrStartTime) . ' - '. round($uptime / 3600, 2) . ' hours ago';
 				}
 
 			}
