@@ -6,7 +6,6 @@
 	<li>{translate text=$subTemplate|replace:'.tpl':''|capitalize|translate} <span class="divider">&raquo;</span></li>
 {elseif $pageTemplate!=""}
 	<li>{translate text=$pageTemplate|replace:'.tpl':''|capitalize|translate} <span class="divider">&raquo;</span></li>
-
 {/if}
 
 {* Moved result-head info here from list.tpl - JE 6/18/15 *}
@@ -22,3 +21,9 @@
 		{*<span class="hidden-phone">
 			 {translate text='query time'}: {$qtime}s
 		</span>*}
+
+{if !$productionServer}
+<div class="hidden-phone">
+	 {translate text='query time'}: {$qtime}s
+</div>
+{/if}
