@@ -286,20 +286,33 @@ class Millennium extends ScreenScrapingDriver
 		Millennium::loadLibraryLocationInformation();
 
 		//Get the items Fields from the record
-		/** @var File_MARC_Data_Field[] $itemFields */
-		$itemFields = $marcRecord->getFields('989');
 		global $timer;
-		$timer->logTime("Finished loading item fields for $id, found " . count($itemFields));
 		$items = array();
 		$pTypes = $this->getPTypes();
 		//$timer->logTime("Finished loading pType");
 
 		global $configArray;
-		$statusSubfield = $configArray['Reindex']['statusSubfield'];
-		$iTypeSubfield = $configArray['Reindex']['iTypeSubfield'];
-		$dueDateSubfield = $configArray['Reindex']['dueDateSubfield'];
-		$lastCheckinDateSubfield = $configArray['Reindex']['lastCheckinDateSubfield'];
-		$locationSubfield = $configArray['Reindex']['locationSubfield'];
+		global $indexingProfiles;
+		if (array_key_exists($this->accountProfile->recordSource, $indexingProfiles)) {
+			/** @var IndexingProfile $indexingProfile */
+			$indexingProfile = $indexingProfiles[$this->accountProfile->recordSource];
+			$itemTag = $indexingProfile->itemTag;
+			$statusSubfield = $indexingProfile->status;
+			$iTypeSubfield = $indexingProfile->iType;
+			$dueDateSubfield = $indexingProfile->dueDate;
+			$lastCheckinDateSubfield = null;
+			$locationSubfield = $indexingProfile->location;
+		}else{
+			$itemTag = $configArray['Reindex']['itemTag'];
+			$statusSubfield = $configArray['Reindex']['statusSubfield'];
+			$iTypeSubfield = $configArray['Reindex']['iTypeSubfield'];
+			$dueDateSubfield = $configArray['Reindex']['dueDateSubfield'];
+			$lastCheckinDateSubfield = $configArray['Reindex']['lastCheckinDateSubfield'];
+			$locationSubfield = $configArray['Reindex']['locationSubfield'];
+		}
+		/** @var File_MARC_Data_Field[] $itemFields */
+		$itemFields = $marcRecord->getFields($itemTag);
+		$timer->logTime("Finished loading item fields for $id, found " . count($itemFields));
 
 		foreach ($itemFields as $itemField){
 			//Ignore eContent items
@@ -351,12 +364,42 @@ class Millennium extends ScreenScrapingDriver
 
 				$available = (in_array($status, array('-', 'o', 'd', 'w', ')', 'u')) && ($dueDate == null || strlen($dueDate) == 0));
 				$inLibraryUseOnly = $status == 'o';
-				$fullCallNumber = $itemField->getSubfield('s') != null ? ($itemField->getSubfield('s')->getData() . ' '): '';
-				$fullCallNumber .= $itemField->getSubfield('a') != null ? $itemField->getSubfield('a')->getData() : '';
-				$fullCallNumber .= $itemField->getSubfield('r') != null ? (' ' . $itemField->getSubfield('r')->getData()) : '';
-				$fullCallNumber .= $itemField->getSubfield('v') != null ? (' ' . $itemField->getSubfield('v')->getData()) : '';
 
-				$shelfLocation = mapValue('shelf_location', $locationCode);
+				if ($indexingProfile){
+					$useItemBasedCallNumbers = $indexingProfile->useItemBasedCallNumbers;
+				}else{
+					$useItemBasedCallNumbers = $configArray['Reindex']['useItemBasedCallNumbers'];
+				}
+				if ($useItemBasedCallNumbers){
+					if ($indexingProfile){
+						$prestamp = $indexingProfile->callNumberPrestamp;
+						$callNumber = $indexingProfile->callNumber;
+						$cutter = $indexingProfile->callNumberCutter;
+						$postStamp = $indexingProfile->callNumberPoststamp;
+					}else{
+						$prestamp = $configArray['Reindex']['callNumberPrestampSubfield'];
+						$callNumber = $configArray['Reindex']['callNumberPrestampSubfield'];
+						$cutter = $configArray['Reindex']['callNumberPrestampSubfield'];
+						$postStamp = $configArray['Reindex']['callNumberPrestampSubfield'];
+					}
+					$fullCallNumber = $itemField->getSubfield($prestamp) != null ? ($itemField->getSubfield($prestamp)->getData() . ' '): '';
+					$fullCallNumber .= $itemField->getSubfield($callNumber) != null ? $itemField->getSubfield($callNumber)->getData() : '';
+					$fullCallNumber .= $itemField->getSubfield($cutter) != null ? (' ' . $itemField->getSubfield($cutter)->getData()) : '';
+					$fullCallNumber .= $itemField->getSubfield($postStamp) != null ? (' ' . $itemField->getSubfield($postStamp)->getData()) : '';
+				}else{
+					/** @var File_MARC_Data_Field $callNumber */
+					$callNumber = $marcRecord->getField('092');
+					if ($callNumber){
+						$fullCallNumber = $callNumber->getSubfield('a')->getData();
+					}
+				}
+
+				if ($indexingProfile){
+					$shelfLocation = $indexingProfile->translate('shelf_location', $locationCode);
+				}else{
+					$shelfLocation = mapValue('shelf_location', $locationCode);
+				}
+
 				if (preg_match('/(.*?)\\sC\\d{3}\\w{0,2}$/', $shelfLocation, $locationParts)){
 					$shelfLocation = $locationParts[1];
 				}
@@ -1259,12 +1302,22 @@ class Millennium extends ScreenScrapingDriver
 	 * @return bool
 	 */
 	function isRecordHoldable($marcRecord){
-		global $configArray;
 		$pTypes = $this->getPTypes();
+		global $configArray;
+		global $indexingProfiles;
+		if (array_key_exists($this->accountProfile->recordSource, $indexingProfiles)) {
+			/** @var IndexingProfile $indexingProfile */
+			$indexingProfile = $indexingProfiles[$this->accountProfile->recordSource];
+			$marcItemField = $indexingProfile->itemTag;
+			$iTypeSubfield = $indexingProfile->iType;
+			$locationSubfield = $indexingProfile->location;
+		}else{
+			$marcItemField = isset($configArray['Reindex']['itemTag']) ? $configArray['Reindex']['itemTag'] : '989';
+			$iTypeSubfield = isset($configArray['Reindex']['iTypeSubfield']) ? $configArray['Reindex']['iTypeSubfield'] : 'j';
+			$locationSubfield = isset($configArray['Reindex']['locationSubfield']) ? $configArray['Reindex']['locationSubfield'] : 'j';
+		}
+
 		/** @var File_MARC_Data_Field[] $items */
-		$marcItemField = isset($configArray['Reindex']['itemTag']) ? $configArray['Reindex']['itemTag'] : '989';
-		$iTypeSubfield = isset($configArray['Reindex']['iTypeSubfield']) ? $configArray['Reindex']['iTypeSubfield'] : 'j';
-		$locationSubfield = isset($configArray['Reindex']['locationSubfield']) ? $configArray['Reindex']['locationSubfield'] : 'j';
 		$items = $marcRecord->getFields($marcItemField);
 		$holdable = false;
 		$itemNumber = 0;
@@ -1352,14 +1405,29 @@ class Millennium extends ScreenScrapingDriver
 		return $holdable;
 	}
 
+	/**
+	 * @param File_MARC_Record $marcRecord
+	 * @return bool
+	 */
 	function isRecordBookable($marcRecord){
 		//TODO: finish this, template from Holds
 		global $configArray;
 		$pTypes = $this->getPTypes();
+
+		global $indexingProfiles;
+		if (array_key_exists($this->accountProfile->recordSource, $indexingProfiles)) {
+			/** @var IndexingProfile $indexingProfile */
+			$indexingProfile = $indexingProfiles[$this->accountProfile->recordSource];
+			$marcItemField = $indexingProfile->itemTag;
+			$iTypeSubfield = $indexingProfile->iType;
+			$locationSubfield = $indexingProfile->location;
+		}else{
+			$marcItemField = isset($configArray['Reindex']['itemTag']) ? $configArray['Reindex']['itemTag'] : '989';
+			$iTypeSubfield = isset($configArray['Reindex']['iTypeSubfield']) ? $configArray['Reindex']['iTypeSubfield'] : 'j';
+			$locationSubfield = isset($configArray['Reindex']['locationSubfield']) ? $configArray['Reindex']['locationSubfield'] : 'j';
+		}
+
 		/** @var File_MARC_Data_Field[] $items */
-		$marcItemField = isset($configArray['Reindex']['itemTag']) ? $configArray['Reindex']['itemTag'] : '989';
-		$iTypeSubfield = isset($configArray['Reindex']['iTypeSubfield']) ? $configArray['Reindex']['iTypeSubfield'] : 'j';
-		$locationSubfield = isset($configArray['Reindex']['locationSubfield']) ? $configArray['Reindex']['locationSubfield'] : 'j';
 		$items = $marcRecord->getFields($marcItemField);
 		$bookable = false;
 		$itemNumber = 0;
