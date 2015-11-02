@@ -18,14 +18,14 @@
  *
  */
 require_once ROOT_DIR . '/Drivers/marmot_inc/SpellingWord.php';
+require_once(ROOT_DIR . '/Drivers/marmot_inc/SearchStatNew.php');
 
 class SearchSuggestions{
 	function getCommonSearchesMySql($searchTerm, $searchType){
-		require_once(ROOT_DIR . '/Drivers/marmot_inc/SearchStatNew.php');
 		$searchStat = new SearchStatNew();
 		$suggestions = $searchStat->getSearchSuggestions( $searchTerm, $searchType);
-		if (count ($suggestions) > 10){
-			$suggestions = array_slice($suggestions, 0, 10);
+		if (count ($suggestions) > 12){
+			$suggestions = array_slice($suggestions, 0, 12);
 		}
 		return $suggestions;
 	}
@@ -85,8 +85,8 @@ class SearchSuggestions{
 		krsort($suggestions);
 
 		//Return up to 10 results max
-		if (count ($suggestions) > 10){
-			$suggestions = array_slice($suggestions, 0, 10);
+		if (count ($suggestions) > 12){
+			$suggestions = array_slice($suggestions, 0, 12);
 		}
 		return $suggestions;
 	}

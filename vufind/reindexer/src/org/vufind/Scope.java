@@ -34,6 +34,9 @@ public class Scope implements Comparable<Scope>{
 	//Inclusion rules indicate records owned by someone else that should be shown within the scope
 	private HashSet<InclusionRule> inclusionRules = new HashSet<>();
 	private String ilsCode;
+	private boolean includeOverDriveAdultCollection;
+	private boolean includeOverDriveTeenCollection;
+	private boolean includeOverDriveKidsCollection;
 
 	public String getScopeName() {
 		return scopeName;
@@ -203,5 +206,29 @@ public class Scope implements Comparable<Scope>{
 
 	public void setIlsCode(String ilsCode) {
 		this.ilsCode = ilsCode;
+	}
+
+	public void setIncludeOverDriveAdultCollection(boolean includeOverDriveAdultCollection) {
+		this.includeOverDriveAdultCollection = includeOverDriveAdultCollection;
+	}
+
+	public boolean isIncludeOverDriveAdultCollection() {
+		return includeOverDriveAdultCollection;
+	}
+
+	public void setIncludeOverDriveTeenCollection(boolean includeOverDriveTeenCollection) {
+		this.includeOverDriveTeenCollection = includeOverDriveTeenCollection;
+	}
+
+	public boolean isIncludeOverDriveTeenCollection() {
+		return includeOverDriveTeenCollection;
+	}
+
+	public void setIncludeOverDriveKidsCollection(boolean includeOverDriveKidsCollection) {
+		this.includeOverDriveKidsCollection = includeOverDriveKidsCollection;
+	}
+
+	public boolean isIncludeOverDriveKidsCollection() {
+		return includeOverDriveKidsCollection;
 	}
 }

@@ -52,14 +52,6 @@
 			</div>
 		{/if}
 
-		{if $spellingSuggestions}
-			<br><br><div class="correction"><strong>{if $recordCount != 0}{translate text='spell_suggest'}{else}{translate text='nohit_spelling'}{/if}</strong>:<br>
-			{foreach from=$spellingSuggestions item=details key=term name=termLoop}
-				{$term|escape} &raquo; {foreach from=$details.suggestions item=data key=word name=suggestLoop}<a href="{$data.replace_url|escape}">{$word|escape}</a>{if $data.expand_url} <a href="{$data.expand_url|escape}"><img src="{$path}/images/silk/expand.png" alt="{translate text='spell_expand_alt'}"/></a> {/if}{if !$smarty.foreach.suggestLoop.last}, {/if}{/foreach}{if !$smarty.foreach.termLoop.last}<br>{/if}
-			{/foreach}
-			</div>
-		{/if}
-
 		{* User's viewing mode toggle switch *}
 		{include file="Search/results-displayMode-toggle.tpl"}
 

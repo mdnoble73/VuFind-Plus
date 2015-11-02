@@ -1107,5 +1107,25 @@ function getLibraryLocationUpdates(){
 			),
 		),
 
+		'disable_auto_correction_of_searches' => array(
+			'title' => 'Disable Automatic Search Corrections',
+			'description' => 'Whether or not Pika will try to automatically replace search terms (similar to Google) .',
+			'sql' => array(
+				"ALTER TABLE `library` ADD COLUMN `allowAutomaticSearchReplacements` TINYINT(1) DEFAULT 1",
+			),
+		),
+
+		'index_subsets_of_overdrive' => array(
+			'title' => 'Index Subsets of OverDrive',
+			'description' => 'Allow libraries and locations to select subsets of overdrive to index .',
+			'sql' => array(
+				"ALTER TABLE `library` ADD COLUMN `includeOverDriveAdult` TINYINT(1) DEFAULT 1",
+				"ALTER TABLE `library` ADD COLUMN `includeOverDriveTeen` TINYINT(1) DEFAULT 1",
+				"ALTER TABLE `library` ADD COLUMN `includeOverDriveKids` TINYINT(1) DEFAULT 1",
+				"ALTER TABLE `location` ADD COLUMN `includeOverDriveAdult` TINYINT(1) DEFAULT 1",
+				"ALTER TABLE `location` ADD COLUMN `includeOverDriveTeen` TINYINT(1) DEFAULT 1",
+				"ALTER TABLE `location` ADD COLUMN `includeOverDriveKids` TINYINT(1) DEFAULT 1",
+			),
+		),
 	);
 }

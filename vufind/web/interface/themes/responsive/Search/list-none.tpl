@@ -48,10 +48,16 @@
 	{/if}
 
 	{if $spellingSuggestions}
-		<div class="correction">{translate text='nohit_spelling'}:<br/>
-		{foreach from=$spellingSuggestions item=details key=term name=termLoop}
-			{$term|escape} &raquo; {foreach from=$details.suggestions item=data key=word name=suggestLoop}<a href="{$data.replace_url|escape}">{$word|escape}</a>{if $data.expand_url} <a href="{$data.expand_url|escape}"><img src="/images/silk/expand.png" alt="{translate text='spell_expand_alt'}"/></a> {/if}{if !$smarty.foreach.suggestLoop.last}, {/if}{/foreach}{if !$smarty.foreach.termLoop.last}<br/>{/if}
-		{/foreach}
+		<div class="correction">
+			<h2>Spelling Suggestions</h2>
+			<p>Here are some alternative spellings that you can try instead.</p>
+			<div class="row">
+				{foreach from=$spellingSuggestions item=url key=term name=termLoop}
+					<div class="col-xs-6 col-sm-4 col-md-3 text-left">
+						<a class='btn btn-xs btn-default btn-block' href="{$url|escape}">{$term|escape}</a>
+					</div>
+				{/foreach}
+			</div>
 		</div>
 		<br>
 	{/if}
@@ -60,11 +66,13 @@
 		<div id="searchSuggestions">
 			<h2>Similar Searches</h2>
 			<p>These searches are similar to the search you tried. Would you like to try one of these instead?</p>
-			<ul>
-			{foreach from=$searchSuggestions item=suggestion}
-				<li class="searchSuggestion"><a href="/Search/Results?lookfor={$suggestion.phrase|escape:url}&basicType={$searchIndex|escape:url}">{$suggestion.phrase}</a></li>
-			{/foreach}
-			</ul>
+			<div class="row">
+				{foreach from=$searchSuggestions item=suggestion}
+					<div class="col-xs-6 col-sm-4 col-md-3 text-left">
+						<a class='btn btn-xs btn-default btn-block' href="/Search/Results?lookfor={$suggestion.phrase|escape:url}&basicType={$searchIndex|escape:url}" title="{$suggestion.phrase}">{$suggestion.phrase|truncate:25:'...'}</a>
+					</div>
+				{/foreach}
+			</div>
 		</div>
 	{/if}
 

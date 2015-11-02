@@ -299,7 +299,10 @@ public class GroupedWorkIndexer {
 		PreparedStatement locationInformationStmt = vufindConn.prepareStatement("SELECT library.libraryId, locationId, code, subLocation, ilsCode, " +
 				"library.subdomain, location.facetLabel, location.displayName, library.pTypes, library.restrictOwningBranchesAndSystems, " +
 				"library.enableOverdriveCollection as enableOverdriveCollectionLibrary, " +
-				"location.enableOverdriveCollection as enableOverdriveCollectionLocation " +
+				"location.enableOverdriveCollection as enableOverdriveCollectionLocation, " +
+				"library.includeOverdriveAdult as includeOverdriveAdultLibrary, location.includeOverdriveAdult as includeOverdriveAdultLocation, " +
+				"library.includeOverdriveTeen as includeOverdriveTeenLibrary, location.includeOverdriveTeen as includeOverdriveTeenLocation, " +
+				"library.includeOverdriveKids as includeOverdriveKidsLibrary, location.includeOverdriveKids as includeOverdriveKidsLocation " +
 				"FROM location INNER JOIN library on library.libraryId = location.libraryId ORDER BY code ASC",
 				ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_READ_ONLY);
 		PreparedStatement locationOwnedRecordRulesStmt = vufindConn.prepareStatement("SELECT location_records_owned.*, indexing_profiles.name FROM location_records_owned INNER JOIN indexing_profiles ON indexingProfileId = indexing_profiles.id WHERE locationId = ?",
@@ -337,6 +340,12 @@ public class GroupedWorkIndexer {
 			locationScopeInfo.setRelatedPTypes(pTypes.split(","));
 			locationScopeInfo.setFacetLabel(facetLabel);
 			locationScopeInfo.setIncludeOverDriveCollection(includeOverDriveCollectionLibrary && includeOverDriveCollectionLocation);
+			boolean includeOverdriveAdult = locationInformationRS.getBoolean("includeOverdriveAdultLibrary") && locationInformationRS.getBoolean("includeOverdriveAdultLocation");
+			boolean includeOverdriveTeen = locationInformationRS.getBoolean("includeOverdriveTeenLibrary") && locationInformationRS.getBoolean("includeOverdriveTeenLocation");
+			boolean includeOverdriveKids = locationInformationRS.getBoolean("includeOverdriveKidsLibrary") && locationInformationRS.getBoolean("includeOverdriveKidsLocation");
+			locationScopeInfo.setIncludeOverDriveAdultCollection(includeOverdriveAdult);
+			locationScopeInfo.setIncludeOverDriveTeenCollection(includeOverdriveTeen);
+			locationScopeInfo.setIncludeOverDriveKidsCollection(includeOverdriveKids);
 			locationScopeInfo.setRestrictOwningLibraryAndLocationFacets(locationInformationRS.getBoolean("restrictOwningBranchesAndSystems"));
 			locationScopeInfo.setIlsCode(code);
 
@@ -383,7 +392,8 @@ public class GroupedWorkIndexer {
 
 	private void loadLibraryScopes() throws SQLException {
 		PreparedStatement libraryInformationStmt = vufindConn.prepareStatement("SELECT libraryId, ilsCode, subdomain, " +
-				"displayName, facetLabel, pTypes, enableOverdriveCollection, restrictOwningBranchesAndSystems " +
+				"displayName, facetLabel, pTypes, enableOverdriveCollection, restrictOwningBranchesAndSystems, " +
+				"includeOverdriveAdult, includeOverdriveTeen, includeOverdriveKids " +
 				"FROM library ORDER BY ilsCode ASC",
 				ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_READ_ONLY);
 		PreparedStatement libraryOwnedRecordRulesStmt = vufindConn.prepareStatement("SELECT library_records_owned.*, indexing_profiles.name from library_records_owned INNER JOIN indexing_profiles ON indexingProfileId = indexing_profiles.id WHERE libraryId = ?", ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_READ_ONLY);
@@ -401,6 +411,9 @@ public class GroupedWorkIndexer {
 			String pTypes = libraryInformationRS.getString("pTypes");
 			if (pTypes == null) {pTypes = "";}
 			boolean includeOverdrive = libraryInformationRS.getBoolean("enableOverdriveCollection");
+			boolean includeOverdriveAdult = libraryInformationRS.getBoolean("includeOverdriveAdult");
+			boolean includeOverdriveTeen = libraryInformationRS.getBoolean("includeOverdriveTeen");
+			boolean includeOverdriveKids = libraryInformationRS.getBoolean("includeOverdriveKids");
 
 			//Determine if we need to build a scope for this library
 			//MDN 10/1/2014 always build scopes because it makes coding more consistent elsewhere.
@@ -413,6 +426,11 @@ public class GroupedWorkIndexer {
 			newScope.setFacetLabel(facetLabel);
 			newScope.setRelatedPTypes(pTypes.split(","));
 			newScope.setIncludeOverDriveCollection(includeOverdrive);
+
+			newScope.setIncludeOverDriveAdultCollection(includeOverdriveAdult);
+			newScope.setIncludeOverDriveTeenCollection(includeOverdriveTeen);
+			newScope.setIncludeOverDriveKidsCollection(includeOverdriveKids);
+
 			newScope.setRestrictOwningLibraryAndLocationFacets(libraryInformationRS.getBoolean("restrictOwningBranchesAndSystems"));
 			newScope.setIlsCode(libraryInformationRS.getString("ilsCode"));
 

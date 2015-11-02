@@ -51,22 +51,28 @@ class SearchAPI extends Action {
 
 
 	function getIndexStatus(){
-		$partialIndexUpToDate = false;
-		$fullIndexUpToDate = false;
-		$overDriveExtractUpToDate = false;
-		$solrRestartUpToDate = false;
 		$notes = array();
 
 		$currentTime = time();
+
+		// Last Export Valid //
+		$lastExportValidVariable = new Variable();
+		$lastExportValidVariable->name= 'last_export_valid';
+		if ($lastExportValidVariable->find(true)){
+			//Check to see if the last export was valid
+			if ($lastExportValidVariable->value == false){
+				$notes[] = 'The Last Export was not valid';
+			}
+		}else{
+			$notes[] = 'Have not checked the export yet to see if it is valid.';
+		}
 
 		// Full Index //
 		$lastFullIndexVariable = new Variable();
 		$lastFullIndexVariable->name= 'lastFullReindexFinish';
 		if ($lastFullIndexVariable->find(true)){
 			//Check to see if the last full index finished more than FULL_INDEX_INTERVAL seconds ago
-			if ($lastFullIndexVariable->value >= ($currentTime - self::FULL_INDEX_INTERVAL)){
-				$fullIndexUpToDate = true;
-			}else{
+			if ($lastFullIndexVariable->value < ($currentTime - self::FULL_INDEX_INTERVAL)){
 				$notes[] = 'Full Index last finished ' . date('m-d-Y H:i:s', $lastFullIndexVariable->value) . ' - ' . round(($currentTime - $lastFullIndexVariable->value) / 3600, 2) . ' hours ago';
 			}
 		}else{
@@ -104,9 +110,7 @@ class SearchAPI extends Action {
 				}
 
 				//Check to see if the last partial index finished more than PARTIAL_INDEX_INTERVAL seconds ago
-				if ($lastIndexTime >= ($currentTime - self::PARTIAL_INDEX_INTERVAL)) {
-					$partialIndexUpToDate = true;
-				} else {
+				if ($lastIndexTime < ($currentTime - self::PARTIAL_INDEX_INTERVAL)) {
 					if ($lastIndexFinishedWasFull ){
 						$notes[] = 'Full Index last finished ' . date('m-d-Y H:i:s', $lastPartialIndexVariable->value) . ' - ' . round(($currentTime - $lastPartialIndexVariable->value) / 60, 2) . ' minutes ago, and a new partial index hasn\'t completed since.';
 					}else{
@@ -124,17 +128,12 @@ class SearchAPI extends Action {
 			if ($lastOverDriveExtractVariable->find(true)) {
 				//Check to see if the last partial index finished more than OVERDRIVE_EXTRACT_INTERVAL seconds ago
 				$lastOverDriveExtractTime = $lastOverDriveExtractVariable->value / 1000;
-				if ($lastOverDriveExtractTime >= ($currentTime - self::OVERDRIVE_EXTRACT_INTERVAL)) {
-					$overDriveExtractUpToDate = true;
-				} else {
+				if ($lastOverDriveExtractTime < ($currentTime - self::OVERDRIVE_EXTRACT_INTERVAL)) {
 					$notes[] = 'OverDrive Extract last finished ' . date('m-d-Y H:i:s', $lastOverDriveExtractTime) . ' - ' . round(($currentTime - ($lastOverDriveExtractTime)) / 3600, 2) . ' hours ago';
 				}
 			} else {
 				$notes[] = 'OverDrive Extract has never been run';
 			}
-		}else{
-			$partialIndexUpToDate = true;
-			$overDriveExtractUpToDate = true;
 		}
 
 		// Solr Restart //
@@ -148,28 +147,19 @@ class SearchAPI extends Action {
 				$unxml->unserialize($xml);
 				$data = $unxml->getUnserializedData();
 				$uptime = $data['status']['grouped']['uptime']['_content']/1000;  // Grouped Index, puts uptime into seconds.
-				$uptime2 = $data['status']['grouped2']['uptime']['_content']/1000;  // Grouped 2 Index, puts uptime into seconds.
 				$solrStartTime = strtotime($data['status']['grouped']['startTime']['_content']);
-				$solrStartTime2 = strtotime($data['status']['grouped2']['startTime']['_content']);
 
 
-				if ($uptime < self::SOLR_RESTART_INTERVAL){ // Grouped Index
-					if ($uptime2 < self::SOLR_RESTART_INTERVAL){ // Grouped 2 Index
-						$solrRestartUpToDate = true;
-					} else {
-						$notes[] = 'Solr Index (Grouped2) last restarted ' . date('m-d-Y H:i:s', $solrStartTime) . ' - '. round($uptime / 3600, 2) . ' hours ago';
-					}
-				} else {
-					$notes[] = 'Solr Index (Grouped) last restarted ' . date('m-d-Y H:i:s', $solrStartTime2) . ' - '. round($uptime / 3600, 2) . ' hours ago';
+				if ($uptime >= self::SOLR_RESTART_INTERVAL){ // Grouped Index
+					$notes[] = 'Solr Index (Grouped) last restarted ' . date('m-d-Y H:i:s', $solrStartTime) . ' - '. round($uptime / 3600, 2) . ' hours ago';
 				}
 
+			} else {
+				$notes[] = 'Could not get status from Solr';
 			}
-//			else {
-				// Notice if XML wasn't readable? eg Solr not responding
-//			}
 		}
 
-		if (!$fullIndexUpToDate || !$partialIndexUpToDate || !$overDriveExtractUpToDate || !$solrRestartUpToDate){
+		if (count($notes) > 0){
 			$result = array(
 				'result' => false,
 				'message' => implode('; ',$notes)

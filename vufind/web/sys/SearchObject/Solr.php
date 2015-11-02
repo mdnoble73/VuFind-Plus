@@ -836,8 +836,6 @@ class SearchObject_Solr extends SearchObject_Base
 	 */
 	public function getSpellingSuggestions()
 	{
-		global $configArray;
-
 		$returnArray = array();
 		if (count($this->suggestions) == 0) return $returnArray;
 		$tokens = $this->spellingTokens($this->buildSpellingQuery());

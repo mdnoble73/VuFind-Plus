@@ -512,6 +512,7 @@ class Solr implements IndexEngine {
 	 */
 	function getMoreLikeThis2($id, $originalResult = null)
 	{
+		global $configArray;
 		if ($originalResult == null){
 			$originalResult = $this->getRecord($id);
 		}
@@ -594,7 +595,7 @@ class Solr implements IndexEngine {
 			$options['fq'][] = $filter;
 		}
 		$boostFactors = $this->getBoostFactors($searchLibrary, $searchLocation);
-		if (!isset($_REQUEST['disableBoosting'])){
+		if ($configArray['Index']['enableBoosting']){
 			$options['bf'] = $boostFactors;
 		}
 
@@ -625,6 +626,7 @@ class Solr implements IndexEngine {
 	 */
 	function getMoreLikeThese($ids, $notInterestedIds)
 	{
+		global $configArray;
 		// Query String Parameters
 		$idString = implode(' OR ', $ids);
 		$options = array('q' => "id:($idString)", 'qt' => 'morelikethese', 'mlt.interestingTerms' => 'details', 'rows' => 25);
@@ -642,7 +644,7 @@ class Solr implements IndexEngine {
 			$options['fq'][] = $filter;
 		}
 		$boostFactors = $this->getBoostFactors($searchLibrary, $searchLocation);
-		if (!isset($_REQUEST['disableBoosting'])){
+		if ($configArray['Index']['enableBoosting']){
 			$options['bf'] = $boostFactors;
 		}
 		if (!empty($this->_solrShards) && is_array($this->_solrShards)) {
@@ -1375,7 +1377,7 @@ class Solr implements IndexEngine {
 		}
 
 		//Apply automatic boosting (only to biblio and econtent queries)
-		if (preg_match('/.*(biblio|econtent|grouped).*/i', $this->host)){
+		if (preg_match('/.*(grouped).*/i', $this->host)){
 			//unset($options['qt']); //Force the query to never use dismax handling
 			$searchLibrary = Library::getSearchLibrary($this->searchSource);
 			//Boost items owned at our location
@@ -1397,7 +1399,7 @@ class Solr implements IndexEngine {
 				}else{
 					$boost = '';
 				}
-				if (empty($boost) || $configArray['Index']['enableBoosting']){
+				if (empty($boost) || !$configArray['Index']['enableBoosting']){
 					$options['q'] = $baseQuery;
 				}else{
 					$options['q'] = "{!boost b=$boost} $baseQuery";

@@ -125,7 +125,7 @@ public class OverDriveProcessor {
 
 					HashMap<String, String> metadata = loadOverDriveMetadata(groupedWork, productId, primaryFormat);
 					String primaryLanguage = loadOverDriveLanguages(groupedWork, productId, identifier);
-					loadOverDriveSubjects(groupedWork, productId);
+					String targetAudience = loadOverDriveSubjects(groupedWork, productId);
 
 					//Load the formats for the record.  For OverDrive, we will create a separate item for each format.
 					HashSet<String> validFormats = loadOverDriveFormats(groupedWork, productId, identifier);
@@ -185,33 +185,62 @@ public class OverDriveProcessor {
 						}else{
 							itemInfo.setDetailedStatus("Checked Out");
 						}
+
+						boolean isAdult = targetAudience.equals("Adult");
+						boolean isTeen = targetAudience.equals("Young Adult");
+						boolean isKids = targetAudience.equals("Juvenile");
 						if (libraryId == -1) {
 							for (Scope scope : indexer.getScopes()) {
 								if (scope.isIncludeOverDriveCollection()) {
-									ScopingInfo scopingInfo = itemInfo.addScope(scope);
-									scopingInfo.setAvailable(available);
-									scopingInfo.setHoldable(true);
+									//Check based on the audience as well
+									boolean okToInclude = false;
+									if (isAdult && scope.isIncludeOverDriveAdultCollection()){
+										okToInclude = true;
+									}
+									if (isTeen && scope.isIncludeOverDriveTeenCollection()){
+										okToInclude = true;
+									}
+									if (isKids && scope.isIncludeOverDriveKidsCollection()){
+										okToInclude = true;
+									}
+									if (okToInclude) {
+										ScopingInfo scopingInfo = itemInfo.addScope(scope);
+										scopingInfo.setAvailable(available);
+										scopingInfo.setHoldable(true);
 
-									if (available){
-										scopingInfo.setStatus("Available Online");
-										scopingInfo.setGroupedStatus("Available Online");
-									} else {
-										scopingInfo.setStatus("Checked Out");
-										scopingInfo.setGroupedStatus("Checked Out");
+										if (available) {
+											scopingInfo.setStatus("Available Online");
+											scopingInfo.setGroupedStatus("Available Online");
+										} else {
+											scopingInfo.setStatus("Checked Out");
+											scopingInfo.setGroupedStatus("Checked Out");
+										}
 									}
 								}
 							}
 						} else {
 							for (Scope curScope : indexer.getScopes()) {
 								if (curScope.isIncludeOverDriveCollection() && curScope.getLibraryId().equals(libraryId)) {
-									ScopingInfo scopingInfo = itemInfo.addScope(curScope);
-									scopingInfo.setAvailable(available);
-									scopingInfo.setHoldable(true);
-									if (curScope.isLocationScope()) {
-										scopingInfo.setLocallyOwned(true);
+									boolean okToInclude = false;
+									if (isAdult && curScope.isIncludeOverDriveAdultCollection()){
+										okToInclude = true;
 									}
-									if (curScope.isLibraryScope()) {
-										scopingInfo.setLibraryOwned(true);
+									if (isTeen && curScope.isIncludeOverDriveTeenCollection()){
+										okToInclude = true;
+									}
+									if (isKids && curScope.isIncludeOverDriveKidsCollection()){
+										okToInclude = true;
+									}
+									if (okToInclude) {
+										ScopingInfo scopingInfo = itemInfo.addScope(curScope);
+										scopingInfo.setAvailable(available);
+										scopingInfo.setHoldable(true);
+										if (curScope.isLocationScope()) {
+											scopingInfo.setLocallyOwned(true);
+										}
+										if (curScope.isLibraryScope()) {
+											scopingInfo.setLibraryOwned(true);
+										}
 									}
 								}
 							}
@@ -227,7 +256,15 @@ public class OverDriveProcessor {
 
 	}
 
-	private void loadOverDriveSubjects(GroupedWorkSolr groupedWork, Long productId) throws SQLException {
+	/**
+	 * Load information based on subjects for the record
+	 *
+	 * @param groupedWork
+	 * @param productId
+	 * @return The target audience for use later in scoping
+	 * @throws SQLException
+	 */
+	private String loadOverDriveSubjects(GroupedWorkSolr groupedWork, Long productId) throws SQLException {
 		//Load subject data
 		getProductSubjectsStmt.setLong(1, productId);
 		ResultSet subjectsRS = getProductSubjectsStmt.executeQuery();
@@ -289,6 +326,8 @@ public class OverDriveProcessor {
 		groupedWork.addTargetAudience(targetAudience);
 		groupedWork.addTargetAudienceFull(targetAudienceFull);
 		subjectsRS.close();
+
+		return targetAudience;
 	}
 
 	private void addToMapWithCount(HashMap<String, Integer> map, String elementToAdd){
@@ -383,7 +422,7 @@ public class OverDriveProcessor {
 			String shortDescription = metadataRS.getString("shortDescription");
 			groupedWork.addDescription(shortDescription, format);
 			String fullDescription = metadataRS.getString("fullDescription");
-			groupedWork.addDescription(shortDescription, format);
+			groupedWork.addDescription(fullDescription, format);
 
 			//Decode JSON data to get a little more information
 			/*try {
