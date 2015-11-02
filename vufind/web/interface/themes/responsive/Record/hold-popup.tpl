@@ -50,7 +50,8 @@
 						</select>
 					</div>
 				</div>
-					<div id="userOption" class="form-group"{if count($pickupLocations[0]->pickupUsers) < 2} style="display: none"{/if}>{* display if the first location will need a user selected*}
+					{*<div id="userOption" class="form-group"{*if count($pickupLocations[0]->pickupUsers) < 2} style="display: none"{/if* }>{* display if the first location will need a user selected*}
+					<div id="userOption" class="form-group"{if !$multipleUsers} style="display: none"{/if}>{* display if there are multiple accounts *}
 						<label for="user" class="control-label">{translate text="Place hold for the choosen location using account"}: </label>
 						<div class="controls">
 							<select name="user" id="user" class="form-control">
@@ -73,7 +74,15 @@
 							$('#campus').change(function(){
 								var users = $('option:selected', this).data('users'),
 										options = '';
-								if (Array.isArray(users) && users.length > 1) {
+									users.forEach(function(userId){
+										options += '<option value="'+userId+'">'+userNames[userId]+'</option>'
+									});
+									$('#userOption select').html(options);
+							}).change(); /* trigger on initial load */
+						})
+						{/literal}
+						{* /* when hiding single account pick-up locations */
+						if (Array.isArray(users) && users.length > 1) {
 									users.forEach(function(userId){
 										options += '<option value="'+userId+'">'+userNames[userId]+'</option>'
 									});
@@ -85,9 +94,8 @@
 										$('#userOption select').html('<option selected value="'+users[0] +'" />');
 									})
 								}
-							}).change(); /* trigger on initial load */
-						})
-						{/literal}
+
+						 *}
 					</script>
 				{if $showHoldCancelDate == 1}
 					<div id='cancelHoldDate' class='form-group'>
