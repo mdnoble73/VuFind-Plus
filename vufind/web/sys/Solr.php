@@ -842,23 +842,40 @@ class Solr implements IndexEngine {
 
 		global $solrScope;
 		if (isset($searchLibrary) && !is_null($searchLibrary) && $searchLibrary->boostByLibrary == 1) {
-			$boostFactors[] = "sum(product(lib_boost_{$solrScope},{$searchLibrary->additionalLocalBoostFactor}),1)";
+			if ($searchLibrary->additionalLocalBoostFactor > 1){
+				$boostFactors[] = "sum(product(lib_boost_{$solrScope},{$searchLibrary->additionalLocalBoostFactor}),1)";
+			}else{
+				$boostFactors[] = "sum(lib_boost_{$solrScope},1)";
+			}
 		}else{
 			//Handle boosting even if we are in a global scope
 			global $library;
 			if ($library && $library->boostByLibrary == 1){
-				$boostFactors[] = "sum(product(lib_boost_{$solrScope},{$library->additionalLocalBoostFactor}),1)";
+				if ($library->additionalLocalBoostFactor > 1) {
+					$boostFactors[] = "sum(product(lib_boost_{$solrScope},{$library->additionalLocalBoostFactor}),1)";
+				}else{
+					$boostFactors[] = "sum(lib_boost_{$solrScope},1)";
+				}
 			}
 		}
 
 		if (isset($searchLocation) && !is_null($searchLocation) && $searchLocation->boostByLocation == 1) {
-			$boostFactors[] = "sum(product(lib_boost_{$solrScope},{$searchLocation->additionalLocalBoostFactor}),1)";
+			if ($searchLocation->boostByLocation > 1){
+				$boostFactors[] = "sum(product(lib_boost_{$solrScope},{$searchLocation->additionalLocalBoostFactor}),1)";
+			}else{
+				$boostFactors[] = "sum(lib_boost_{$solrScope},1)";
+			}
+
 		}else{
 			//Handle boosting even if we are in a global scope
 			global $locationSingleton;
 			$physicalLocation = $locationSingleton->getActiveLocation();
 			if ($physicalLocation != null && $physicalLocation->boostByLocation ==1){
-				$boostFactors[] = "sum(product(lib_boost_{$solrScope},{$physicalLocation->additionalLocalBoostFactor}),1)";
+				if ($physicalLocation->additionalLocalBoostFactor > 1){
+					$boostFactors[] = "sum(product(lib_boost_{$solrScope},{$physicalLocation->additionalLocalBoostFactor}),1)";
+				}else{
+					$boostFactors[] = "sum(lib_boost_{$solrScope},1)";
+				}
 			}
 		}
 		return $boostFactors;
