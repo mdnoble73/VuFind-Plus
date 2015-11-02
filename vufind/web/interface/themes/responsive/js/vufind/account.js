@@ -173,6 +173,7 @@ VuFind.Account = (function(){
 						loginErrorElem = $('#loginError'),
 						url = Globals.path + "/AJAX/JSON?method=loginUser";
 				loginErrorElem.hide();
+				VuFind.loadingMessage();
 				$.ajax({
 					url: url,
 					data: {username: username, password: password, rememberMe: rememberMe},
