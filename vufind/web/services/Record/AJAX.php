@@ -241,6 +241,7 @@ class Record_AJAX extends Action {
 				$maxHolds = $ptype->maxHolds;
 			}
 			$currentHolds = $user->numHoldsIls;
+			//TODO: this check will need to account for linked accounts now
 			if ($maxHolds != -1 && ($currentHolds + 1 > $maxHolds)){
 				$interface->assign('showOverHoldLimit', true);
 				$interface->assign('maxHolds', $maxHolds);
@@ -250,29 +251,24 @@ class Record_AJAX extends Action {
 			//Check to see if the user has linked users that we can place holds for as well
 			//If there are linked users, we will add pickup locations for them as well
 			$locations = $user->getValidPickupBranches($recordSource);
+			$multipleAccountPickupLocations = false;
+			if (count($user->getLinkedUsers())) {
+				foreach ($locations as $location) {
+					if (count($location->pickupUsers) > 1) {
+						$multipleAccountPickupLocations = true;
+						break;
+					}
+				}
+			}
 
 			$interface->assign('pickupLocations', $locations);
+			$interface->assign('multipleUsers', $multipleAccountPickupLocations); // switch for displaying the account drop-down (used for linked accounts)
 
 			global $library;
 			$interface->assign('showHoldCancelDate', $library->showHoldCancelDate);
 			$interface->assign('defaultNotNeededAfterDays', $library->defaultNotNeededAfterDays);
 			$interface->assign('showDetailedHoldNoticeInformation', $library->showDetailedHoldNoticeInformation);
 			$interface->assign('treatPrintNoticesAsPhoneNotices', $library->treatPrintNoticesAsPhoneNotices);
-
-			$holdDisclaimers = array();
-			$patronLibrary = $user->getHomeLibrary();
-			if (strlen($patronLibrary->holdDisclaimer) > 0){
-				$holdDisclaimers[$patronLibrary->displayName] = $patronLibrary->holdDisclaimer;
-			}
-			$linkedUsers = $user->getLinkedUsers();
-			foreach ($linkedUsers as $linkedUser){
-				$linkedLibrary = $linkedUser->getHomeLibrary();
-				if (strlen($linkedLibrary->holdDisclaimer) > 0){
-					$holdDisclaimers[$linkedLibrary->displayName] = $linkedLibrary->holdDisclaimer;
-				}
-			}
-
-			$interface->assign('holdDisclaimers', $holdDisclaimers);
 
 			require_once ROOT_DIR . '/RecordDrivers/MarcRecord.php';
 			$marcRecord = new MarcRecord($id);
