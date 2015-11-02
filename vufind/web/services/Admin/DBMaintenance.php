@@ -89,15 +89,12 @@ class DBMaintenance extends Admin_Admin {
 		$user_updates = getUserUpdates();
 		require_once ROOT_DIR . '/sys/DBMaintenance/list_widget_updates.php';
 		$list_widget_updates = getListWidgetUpdates();
-		require_once ROOT_DIR . '/sys/DBMaintenance/evoke_updates.php';
-		$evoke_updates = getEVokeUpdates();
 
 		return array_merge(
 			$library_location_updates,
 			$user_updates,
 			$grouped_work_updates,
 			$list_widget_updates,
-			$evoke_updates,
 			array(
 				'index_search_stats' => array(
 					'title' => 'Index search stats table',
