@@ -350,10 +350,10 @@ Keyword:
         - [localized_callnumber, 7000]
       - title_left:
         - [localized_callnumber, 3000]
-      - title_proper:
-        - [onephrase, 800]
-        - [and, 500]
-        - [single_word_removal, 50]
+#      - title_proper:
+#        - [onephrase, 800]
+#        - [and, 500]
+#        - [single_word_removal, 50]
       - title:
         - [and, 125]
       - title_alt:
