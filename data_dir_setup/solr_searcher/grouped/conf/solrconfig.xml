@@ -600,6 +600,7 @@
 			 local query request for each NamedList in sequence.
 		-->
 		<listener event="newSearcher" class="solr.QuerySenderListener">
+			<!--
 			<arr name="queries">
 				<lst>
 					<str name="q">*:*</str>
@@ -657,6 +658,7 @@
 					<str name="q">audio books</str>
 				</lst>
 			</arr>
+			-->
 		</listener>
 		<listener event="firstSearcher" class="solr.QuerySenderListener">
 			<arr name="queries">
