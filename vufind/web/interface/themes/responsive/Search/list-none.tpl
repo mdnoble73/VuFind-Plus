@@ -17,13 +17,6 @@
 	</h5>
 {/if}
 
-{if $replacementTerm}
-	<div id="replacement-search-info-block">
-		<div id="replacement-search-info"><span class="replacement-search-info-text">Showing Results for</span> {$replacementTerm}</div>
-		<div id="original-search-info"><span class="replacement-search-info-text">Search instead for </span><a href="{$oldSearchUrl}">{$oldTerm}</a></div>
-	</div>
-{/if}
-
 {if $solrSearchDebug}
 	<div id="solrSearchOptionsToggle" onclick="$('#solrSearchOptions').toggle()">Show Search Options</div>
 	<div id="solrSearchOptions" style="display:none">
