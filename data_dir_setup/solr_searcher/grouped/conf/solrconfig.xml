@@ -656,6 +656,9 @@
 				<lst>
 					<str name="q">audio books</str>
 				</lst>
+				<lst>
+					<str name="q">scope_has_related_records:*</str>
+				</lst>
 			</arr>
 		</listener>
 		<listener event="firstSearcher" class="solr.QuerySenderListener">
@@ -768,13 +771,7 @@
 			 <str name="fl">*</str>
 			 <str name="version">2.1</str>
 				-->
-			<str name="spellcheck.extendedResults">true</str>
-			<str name="spellcheck.onlyMorePopular">true</str>
-			<str name="spellcheck.count">20</str>
 		</lst>
-		<arr name="last-components">
-			<str>spellcheck</str>
-		</arr>
 	</requestHandler>
 
 	<!-- the following handler will be used for eligible dismax searches defined
@@ -789,13 +786,7 @@
 		<lst name="defaults">
 			<str name="defType">dismax</str>
 			<str name="echoParams">explicit</str>
-			<str name="spellcheck.extendedResults">true</str>
-			<str name="spellcheck.onlyMorePopular">true</str>
-			<str name="spellcheck.count">20</str>
 		</lst>
-		<arr name="last-components">
-			<str>spellcheck</str>
-		</arr>
 	</requestHandler>
 
 	<requestHandler name="morelikethis2" class="solr.MoreLikeThisHandler">
@@ -839,29 +830,17 @@
 	<requestHandler name="/replication" class="solr.ReplicationHandler" >
 	  <lst name="slave">
 			<str name="masterUrl">http://localhost:${solr.masterport}/solr/grouped</str>
-			<str name="pollInterval">00:03:00</str>
+		  <str name="pollInterval">00:03:00</str>
 	  </lst>
 	</requestHandler>
 
-	<searchComponent name="spellcheck" class="org.apache.solr.handler.component.SpellCheckComponent">
-		<lst name="spellchecker">
-			<str name="name">default</str>
-			<str name="field">spellingShingle</str>
-			<str name="accuracy">0.75</str>
-			<str name="spellcheckIndexDir">./spellShingle</str>
-			<str name="queryAnalyzerFieldType">textSpellShingle</str>
-			<str name="buildOnOptimize">true</str>
+	<requestHandler name="/get" class="solr.RealTimeGetHandler">
+		<lst name="defaults">
+			<str name="omitHeader">true</str>
+			<str name="wt">json</str>
+			<str name="indent">true</str>
 		</lst>
-		<lst name="spellchecker">
-			<str name="name">basicSpell</str>
-			<str name="field">spelling</str>
-			<str name="accuracy">0.75</str>
-			<str name="spellcheckIndexDir">./spellchecker</str>
-			<str name="queryAnalyzerFieldType">textSpell</str>
-			<str name="buildOnOptimize">true</str>
-		</lst>
-	</searchComponent>
-	<queryConverter name="queryConverter" class="org.apache.solr.spelling.SpellingQueryConverter"/>
+	</requestHandler>
 
 	<!-- Search component for extracting terms (useful for sitemap generation) -->
 	<searchComponent name="term" class="org.apache.solr.handler.component.TermsComponent">
@@ -911,7 +890,6 @@
 
 		-->
 		<arr name="last-components">
-			<str>spellcheck</str>
 			<str>elevator</str>
 		</arr>
 	</requestHandler>

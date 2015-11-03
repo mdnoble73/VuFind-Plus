@@ -353,16 +353,27 @@ class Solr implements IndexEngine {
 		if ($record == false || isset($_REQUEST['reload'])){
 
 			// Query String Parameters
-			$options = array('q' => "id:\"$id\"");
+			$options = array('ids' => "$id");
 			if ($fieldsToReturn){
 				$options['fl'] = $fieldsToReturn;
 			}else{
 				$validFields = $this->_loadValidFields();
 				$options['fl'] = implode(',', $validFields);
 			}
-			$result = $this->_select('GET', $options);
+			$this->client->setMethod('GET');
+			$this->client->setURL($this->host . "/get");
+			$this->client->addRawQueryString(http_build_query($options));
+
+			global $timer;
+			$timer->logTime("Prepare to send get (ids)  request to solr");
+			$result = $this->client->sendRequest();
+			//$this->client->clearPostData();
+			$timer->logTime("Send data to solr");
+
 			if (PEAR_Singleton::isError($result)) {
 				PEAR_Singleton::raiseError($result);
+			}else{
+				$result = $this->_process($this->client->getResponseBody());
 			}
 
 			if (isset($result['response']['docs'][0])){
@@ -415,7 +426,7 @@ class Solr implements IndexEngine {
 		//concatenate the results.
 		$records = array();
 		$startIndex = 0;
-		$batchSize = 30;
+		$batchSize = 40;
 
 		$lastBatch = false;
 		while (true){
@@ -428,17 +439,29 @@ class Solr implements IndexEngine {
 			$tmpIds = array_slice($ids, $startIndex, $batchSize);
 
 			// Query String Parameters
-			$idString = '';
+			$idString = 'ids=';
 			foreach ($tmpIds as $id){
-				if (strlen($idString) > 0){
-					$idString .= ' OR ';
+				if (strlen($idString) > 4){
+					$idString .= '&';
 				}
-				$idString .= "id:\"$id\"";
+				$idString .= $id;
 			}
-			$options = array('q' => $idString, 'rows' => $batchSize);
-			$result = $this->_select('GET', $options);
+
+			$this->client->setMethod('GET');
+			$this->client->setURL($this->host . "/get");
+			$this->client->addRawQueryString($idString);
+
+			// Send Request
+			global $timer;
+			$timer->logTime("Prepare to send get (ids)  request to solr");
+			$result = $this->client->sendRequest();
+			//$this->client->clearPostData();
+			$timer->logTime("Send data to solr");
+
 			if (PEAR_Singleton::isError($result)) {
 				PEAR_Singleton::raiseError($result);
+			}else{
+				$this->_process($this->client->getResponseBody());
 			}
 			foreach ($result['response']['docs'] as $record){
 				$records[$record['id']] = $record;
@@ -842,23 +865,40 @@ class Solr implements IndexEngine {
 
 		global $solrScope;
 		if (isset($searchLibrary) && !is_null($searchLibrary) && $searchLibrary->boostByLibrary == 1) {
-			$boostFactors[] = "sum(product(lib_boost_{$solrScope},{$searchLibrary->additionalLocalBoostFactor}),1)";
+			if ($searchLibrary->additionalLocalBoostFactor > 1){
+				$boostFactors[] = "sum(product(lib_boost_{$solrScope},{$searchLibrary->additionalLocalBoostFactor}),1)";
+			}else{
+				$boostFactors[] = "sum(lib_boost_{$solrScope},1)";
+			}
 		}else{
 			//Handle boosting even if we are in a global scope
 			global $library;
 			if ($library && $library->boostByLibrary == 1){
-				$boostFactors[] = "sum(product(lib_boost_{$solrScope},{$library->additionalLocalBoostFactor}),1)";
+				if ($library->additionalLocalBoostFactor > 1) {
+					$boostFactors[] = "sum(product(lib_boost_{$solrScope},{$library->additionalLocalBoostFactor}),1)";
+				}else{
+					$boostFactors[] = "sum(lib_boost_{$solrScope},1)";
+				}
 			}
 		}
 
 		if (isset($searchLocation) && !is_null($searchLocation) && $searchLocation->boostByLocation == 1) {
-			$boostFactors[] = "sum(product(lib_boost_{$solrScope},{$searchLocation->additionalLocalBoostFactor}),1)";
+			if ($searchLocation->boostByLocation > 1){
+				$boostFactors[] = "sum(product(lib_boost_{$solrScope},{$searchLocation->additionalLocalBoostFactor}),1)";
+			}else{
+				$boostFactors[] = "sum(lib_boost_{$solrScope},1)";
+			}
+
 		}else{
 			//Handle boosting even if we are in a global scope
 			global $locationSingleton;
 			$physicalLocation = $locationSingleton->getActiveLocation();
 			if ($physicalLocation != null && $physicalLocation->boostByLocation ==1){
-				$boostFactors[] = "sum(product(lib_boost_{$solrScope},{$physicalLocation->additionalLocalBoostFactor}),1)";
+				if ($physicalLocation->additionalLocalBoostFactor > 1){
+					$boostFactors[] = "sum(product(lib_boost_{$solrScope},{$physicalLocation->additionalLocalBoostFactor}),1)";
+				}else{
+					$boostFactors[] = "sum(lib_boost_{$solrScope},1)";
+				}
 			}
 		}
 		return $boostFactors;
@@ -1465,6 +1505,7 @@ class Solr implements IndexEngine {
 			$options['facet.limit'] = (isset($facet['limit'])) ? $facet['limit'] : null;
 
 			//Determine which fields should be treated as enums
+			global $solrScope;
 			$options["f.target_audience_full.facet.method"] = 'enum';
 			$options["f.target_audience.facet.method"] = 'enum';
 			$options["f.literary_form_full.facet.method"] = 'enum';
@@ -1473,6 +1514,12 @@ class Solr implements IndexEngine {
 			$options["f.literary_form.lexile_code"] = 'enum';
 			$options["f.literary_form.mpaa_rating"] = 'enum';
 			$options["f.literary_form.rating_facet"] = 'enum';
+			$options["f.format_category_{$solrScope}.rating_facet"] = 'enum';
+			$options["f.format_{$solrScope}.rating_facet"] = 'enum';
+			$options["f.availability_toggle_{$solrScope}.rating_facet"] = 'enum';
+			$options["f.local_time_since_added_{$solrScope}.rating_facet"] = 'enum';
+			$options["f.owning_library_{$solrScope}.rating_facet"] = 'enum';
+			$options["f.owning_location_{$solrScope}.rating_facet"] = 'enum';
 
 			unset($facet['limit']);
 			if (isset($facet['field']) && is_array($facet['field']) && in_array('date_added', $facet['field'])){

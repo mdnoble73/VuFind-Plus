@@ -15,9 +15,10 @@ class HooplaRecordDriver extends MarcRecord {
 	 * Will be similar to a MarcRecord with slightly different functionality
 	 *
 	 * @param array|File_MARC_Record|string $record
+	 * @param  GroupedWork $groupedWork;
 	 * @access  public
 	 */
-	public function __construct($record) {
+	public function __construct($record, $groupedWork = null) {
 		if ($record instanceof File_MARC_Record){
 			$this->marcRecord = $record;
 		}elseif (is_string($record)){
@@ -28,7 +29,7 @@ class HooplaRecordDriver extends MarcRecord {
 			$this->valid = MarcLoader::marcExistsForHooplaId($record);
 		}else{
 			// Call the parent's constructor...
-			parent::__construct($record);
+			parent::__construct($record, $groupedWork);
 
 			// Also process the MARC record:
 			require_once ROOT_DIR . '/sys/MarcLoader.php';
@@ -37,7 +38,11 @@ class HooplaRecordDriver extends MarcRecord {
 				$this->valid = false;
 			}
 		}
-		parent::loadGroupedWork();
+		if ($groupedWork == null){
+			parent::loadGroupedWork();
+		}else{
+			$this->groupedWork = $groupedWork;
+		}
 	}
 
 	/**

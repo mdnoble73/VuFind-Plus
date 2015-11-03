@@ -12,10 +12,11 @@ require_once ROOT_DIR . '/sys/eContent/EContentRecord.php';
 class PublicEContentDriver extends BaseEContentDriver{
 	/**
 	 * @param array|File_MARC_Record|string $record
+	 * @param  GroupedWork $groupedWork;
 	 */
-	public function __construct($record){
+	public function __construct($record, $groupedWork = null){
 		//Do default constructor
-		parent::__construct($record);
+		parent::__construct($record, $groupedWork);
 		$this->loadGroupedWork();
 	}
 

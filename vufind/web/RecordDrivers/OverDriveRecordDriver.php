@@ -37,9 +37,10 @@ class OverDriveRecordDriver extends RecordInterface {
 	 * just pass it into the constructor.
 	 *
 	 * @param   string $recordId The id of the record within OverDrive.
+	 * @param  GroupedWork $groupedWork;
 	 * @access  public
 	 */
-	public function __construct($recordId) {
+	public function __construct($recordId, $groupedWork = null) {
 		if (is_string($recordId)){
 			//The record is the identifier for the overdrive title
 			$this->id = $recordId;
@@ -51,7 +52,11 @@ class OverDriveRecordDriver extends RecordInterface {
 			}else{
 				$this->valid = false;
 			}
-			$this->loadGroupedWork();
+			if ($groupedWork == null){
+				$this->loadGroupedWork();
+			}else{
+				$this->groupedWork = $groupedWork;
+			}
 		}
 	}
 

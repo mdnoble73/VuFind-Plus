@@ -84,9 +84,10 @@ class RecordDriverFactory {
 	static $recordDrivers = array();
 	/**
 	 * @param $id
+	 * @param  GroupedWork $groupedWork;
 	 * @return ExternalEContentDriver|MarcRecord|null|OverDriveRecordDriver|PublicEContentDriver|RestrictedEContentDriver
 	 */
-	static function initRecordDriverById($id){
+	static function initRecordDriverById($id, $groupedWork = null){
 		if (isset(RecordDriverFactory::$recordDrivers[$id])){
 			return RecordDriverFactory::$recordDrivers[$id];
 		}
@@ -104,19 +105,19 @@ class RecordDriverFactory {
 		disableErrorHandler();
 		if ($recordType == 'overdrive'){
 			require_once ROOT_DIR . '/RecordDrivers/OverDriveRecordDriver.php';
-			$recordDriver = new OverDriveRecordDriver($recordId);
+			$recordDriver = new OverDriveRecordDriver($recordId, $groupedWork);
 		}elseif ($recordType == 'public_domain_econtent'){
 			require_once ROOT_DIR . '/RecordDrivers/PublicEContentDriver.php';
-			$recordDriver = new PublicEContentDriver($recordId);
+			$recordDriver = new PublicEContentDriver($recordId, $groupedWork);
 		}elseif ($recordType == 'external_econtent'){
 			require_once ROOT_DIR . '/RecordDrivers/ExternalEContentDriver.php';
-			$recordDriver = new ExternalEContentDriver($recordId);
+			$recordDriver = new ExternalEContentDriver($recordId, $groupedWork);
 		}elseif ($recordType == 'restricted_econtent'){
 			require_once ROOT_DIR . '/RecordDrivers/RestrictedEContentDriver.php';
-			$recordDriver = new RestrictedEContentDriver($recordId);
+			$recordDriver = new RestrictedEContentDriver($recordId, $groupedWork);
 		}elseif ($recordType == 'hoopla'){
 			require_once ROOT_DIR . '/RecordDrivers/HooplaDriver.php';
-			$recordDriver = new HooplaRecordDriver($recordId);
+			$recordDriver = new HooplaRecordDriver($recordId, $groupedWork);
 			if (!$recordDriver->isValid()){
 				global $logger;
 				$logger->log("Unable to load record driver for hoopla record $recordId", PEAR_LOG_WARNING);
@@ -130,7 +131,7 @@ class RecordDriverFactory {
 				$indexingProfile = $indexingProfiles[$recordType];
 				$driverName = $indexingProfile->recordDriver;
 				require_once ROOT_DIR . "/RecordDrivers/{$driverName}.php";
-				$recordDriver = new $driverName($id);
+				$recordDriver = new $driverName($id, $groupedWork);
 				//Do not automatically validate record drivers for performance
 				/*if (!$recordDriver->isValid()){
 					global $logger;

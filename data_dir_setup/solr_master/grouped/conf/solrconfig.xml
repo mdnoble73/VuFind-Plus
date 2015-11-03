@@ -714,12 +714,8 @@
 			 <str name="fl">*</str>
 			 <str name="version">2.1</str>
 				-->
-			<str name="spellcheck.extendedResults">true</str>
-			<str name="spellcheck.onlyMorePopular">true</str>
-			<str name="spellcheck.count">20</str>
 		</lst>
 		<arr name="last-components">
-			<str>spellcheck</str>
 		</arr>
 	</requestHandler>
 
@@ -735,13 +731,7 @@
 		<lst name="defaults">
 			<str name="defType">dismax</str>
 			<str name="echoParams">explicit</str>
-			<str name="spellcheck.extendedResults">true</str>
-			<str name="spellcheck.onlyMorePopular">true</str>
-			<str name="spellcheck.count">20</str>
 		</lst>
-		<arr name="last-components">
-			<str>spellcheck</str>
-		</arr>
 	</requestHandler>
 
 	<requestHandler name="morelikethis" class="solr.MoreLikeThisHandler">
@@ -807,28 +797,9 @@
 			<!--Replicate on 'startup' and 'commit'. 'optimize' is also a valid value for replicateAfter. -->
 			<str name="replicateAfter">startup</str>
 			<str name="replicateAfter">commit</str>
+			<str name="confFiles">schema.xml,mapping-ISOLatin1Accent.txt,protwords.txt,stopwords.txt,synonyms.txt,elevate.xml</str>
 		</lst>
 	</requestHandler>
-
-	<searchComponent name="spellcheck" class="org.apache.solr.handler.component.SpellCheckComponent">
-		<lst name="spellchecker">
-			<str name="name">default</str>
-			<str name="field">spellingShingle</str>
-			<str name="accuracy">0.75</str>
-			<str name="spellcheckIndexDir">./spellShingle</str>
-			<str name="queryAnalyzerFieldType">textSpellShingle</str>
-			<str name="buildOnOptimize">true</str>
-		</lst>
-		<lst name="spellchecker">
-			<str name="name">basicSpell</str>
-			<str name="field">spelling</str>
-			<str name="accuracy">0.75</str>
-			<str name="spellcheckIndexDir">./spellchecker</str>
-			<str name="queryAnalyzerFieldType">textSpell</str>
-			<str name="buildOnOptimize">true</str>
-		</lst>
-	</searchComponent>
-	<queryConverter name="queryConverter" class="org.apache.solr.spelling.SpellingQueryConverter"/>
 
 	<!-- Search component for extracting terms (useful for sitemap generation) -->
 	<searchComponent name="term" class="org.apache.solr.handler.component.TermsComponent">
@@ -878,7 +849,6 @@
 
 		-->
 		<arr name="last-components">
-			<str>spellcheck</str>
 			<str>elevator</str>
 		</arr>
 	</requestHandler>

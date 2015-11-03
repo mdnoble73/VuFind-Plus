@@ -90,9 +90,10 @@ class IndexRecord extends RecordInterface
 	 * just pass it into the constructor.
 	 *
 	 * @param   array|File_MARC_Record||string   $recordData     Data to construct the driver from
+	 * @param  GroupedWork $groupedWork;
 	 * @access  public
 	 */
-	public function __construct($recordData){
+	public function __construct($recordData, $groupedWork = null){
 		$this->fields = $recordData;
 
 		global $configArray;
@@ -101,6 +102,12 @@ class IndexRecord extends RecordInterface
 		$this->highlight = $configArray['Index']['enableHighlighting'];
 		$this->snippet = $configArray['Index']['enableSnippets'];
 		$this->snippetCaptions = isset($searchSettings['Snippet_Captions']) && is_array($searchSettings['Snippet_Captions']) ? $searchSettings['Snippet_Captions'] : array();
+
+		if ($groupedWork == null){
+			$this->loadGroupedWork();
+		}else{
+			$this->groupedWork = $groupedWork;
+		}
 	}
 
 	/**
@@ -1018,6 +1025,7 @@ class IndexRecord extends RecordInterface
 		return array();
 	}
 
+	static $groupedWorks = array();
 	/**
 	 * Load the grouped work that this record is connected to.
 	 */

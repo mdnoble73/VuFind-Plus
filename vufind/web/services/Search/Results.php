@@ -154,14 +154,11 @@ class Search_Results extends Action {
 			}
 		}
 
-		// Initialise from the current search globals
+		// Cannot use the current search globals since we may change the search term above
 		/** @var SearchObject_Solr $searchObject */
-		global $searchObject;
-		if (!$searchObject) {
-			$searchObject = SearchObjectFactory::initSearchObject();
-			$searchObject->init($searchSource);
-			$timer->logTime("Init Search Object");
-		}
+		$searchObject = SearchObjectFactory::initSearchObject();
+		$searchObject->init($searchSource);
+		$timer->logTime("Init Search Object");
 //		$searchObject->viewOptions = $this->viewOptions; // set valid view options for the search object
 
 		// Build RSS Feed for Results (if requested)

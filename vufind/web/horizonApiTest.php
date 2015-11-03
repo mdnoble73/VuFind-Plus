@@ -1,6 +1,6 @@
 <?php
 /**
- * Testing for eVoke integration
+ * Testing for horizon api integration
  *
  * @category VuFind-Plus-2014
  * @author Mark Noble <mark@marmot.org>

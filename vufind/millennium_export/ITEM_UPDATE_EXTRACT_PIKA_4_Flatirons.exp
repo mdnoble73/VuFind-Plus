@@ -174,7 +174,7 @@ send "?" ; # OTHER TYPES
 expect "I > ITEM"
 send "I"
 expect "32 RECORD #"
-send "32" ; # ITEM RECORD NUMBER
+send "33" ; # ITEM RECORD NUMBER
 expect "Output Item #2 >"
 send "24" ; # ITEM STATUS
 expect "Output Item #3 >"

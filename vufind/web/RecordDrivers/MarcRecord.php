@@ -46,9 +46,10 @@ class MarcRecord extends IndexRecord
 	 * just pass it into the constructor.
 	 *
 	 * @param   array|File_MARC_Record||string   $recordData     Data to construct the driver from
+	 * @param  GroupedWork $groupedWork;
 	 * @access  public
 	 */
-	public function __construct($recordData){
+	public function __construct($recordData, $groupedWork = null){
 		if ($recordData instanceof File_MARC_Record){
 			$this->marcRecord = $recordData;
 		}elseif (is_string($recordData)){
@@ -76,7 +77,7 @@ class MarcRecord extends IndexRecord
 			}
 		}else{
 			// Call the parent's constructor...
-			parent::__construct($recordData);
+			parent::__construct($recordData, $groupedWork);
 
 			// Also process the MARC record:
 			require_once ROOT_DIR . '/sys/MarcLoader.php';
@@ -95,7 +96,12 @@ class MarcRecord extends IndexRecord
 		}
 		global $timer;
 		$timer->logTime("Base initialization of MarcRecord Driver");
-		parent::loadGroupedWork();
+		if ($groupedWork == null){
+			parent::loadGroupedWork();
+		}else{
+			$this->groupedWork = $groupedWork;
+		}
+
 	}
 
 	public function getModule(){
