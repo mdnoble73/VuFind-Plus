@@ -1505,6 +1505,7 @@ class Solr implements IndexEngine {
 			$options['facet.limit'] = (isset($facet['limit'])) ? $facet['limit'] : null;
 
 			//Determine which fields should be treated as enums
+			global $solrScope;
 			$options["f.target_audience_full.facet.method"] = 'enum';
 			$options["f.target_audience.facet.method"] = 'enum';
 			$options["f.literary_form_full.facet.method"] = 'enum';
@@ -1513,6 +1514,12 @@ class Solr implements IndexEngine {
 			$options["f.literary_form.lexile_code"] = 'enum';
 			$options["f.literary_form.mpaa_rating"] = 'enum';
 			$options["f.literary_form.rating_facet"] = 'enum';
+			$options["f.format_category_{$solrScope}.rating_facet"] = 'enum';
+			$options["f.format_{$solrScope}.rating_facet"] = 'enum';
+			$options["f.availability_toggle_{$solrScope}.rating_facet"] = 'enum';
+			$options["f.local_time_since_added_{$solrScope}.rating_facet"] = 'enum';
+			$options["f.owning_library_{$solrScope}.rating_facet"] = 'enum';
+			$options["f.owning_location_{$solrScope}.rating_facet"] = 'enum';
 
 			unset($facet['limit']);
 			if (isset($facet['field']) && is_array($facet['field']) && in_array('date_added', $facet['field'])){
