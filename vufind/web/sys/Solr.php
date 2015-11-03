@@ -353,16 +353,27 @@ class Solr implements IndexEngine {
 		if ($record == false || isset($_REQUEST['reload'])){
 
 			// Query String Parameters
-			$options = array('q' => "id:\"$id\"");
+			$options = array('ids' => "$id");
 			if ($fieldsToReturn){
 				$options['fl'] = $fieldsToReturn;
 			}else{
 				$validFields = $this->_loadValidFields();
 				$options['fl'] = implode(',', $validFields);
 			}
-			$result = $this->_select('GET', $options);
+			$this->client->setMethod('GET');
+			$this->client->setURL($this->host . "/get");
+			$this->client->addRawQueryString(http_build_query($options));
+
+			global $timer;
+			$timer->logTime("Prepare to send get (ids)  request to solr");
+			$result = $this->client->sendRequest();
+			//$this->client->clearPostData();
+			$timer->logTime("Send data to solr");
+
 			if (PEAR_Singleton::isError($result)) {
 				PEAR_Singleton::raiseError($result);
+			}else{
+				$result = $this->_process($this->client->getResponseBody());
 			}
 
 			if (isset($result['response']['docs'][0])){
@@ -415,7 +426,7 @@ class Solr implements IndexEngine {
 		//concatenate the results.
 		$records = array();
 		$startIndex = 0;
-		$batchSize = 30;
+		$batchSize = 40;
 
 		$lastBatch = false;
 		while (true){
@@ -428,17 +439,29 @@ class Solr implements IndexEngine {
 			$tmpIds = array_slice($ids, $startIndex, $batchSize);
 
 			// Query String Parameters
-			$idString = '';
+			$idString = 'ids=';
 			foreach ($tmpIds as $id){
-				if (strlen($idString) > 0){
-					$idString .= ' OR ';
+				if (strlen($idString) > 4){
+					$idString .= '&';
 				}
-				$idString .= "id:\"$id\"";
+				$idString .= $id;
 			}
-			$options = array('q' => $idString, 'rows' => $batchSize);
-			$result = $this->_select('GET', $options);
+
+			$this->client->setMethod('GET');
+			$this->client->setURL($this->host . "/get");
+			$this->client->addRawQueryString($idString);
+
+			// Send Request
+			global $timer;
+			$timer->logTime("Prepare to send get (ids)  request to solr");
+			$result = $this->client->sendRequest();
+			//$this->client->clearPostData();
+			$timer->logTime("Send data to solr");
+
 			if (PEAR_Singleton::isError($result)) {
 				PEAR_Singleton::raiseError($result);
+			}else{
+				$this->_process($this->client->getResponseBody());
 			}
 			foreach ($result['response']['docs'] as $record){
 				$records[$record['id']] = $record;

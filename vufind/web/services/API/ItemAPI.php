@@ -289,94 +289,49 @@ class ItemAPI extends Action {
 			$this->recordDriver = RecordDriverFactory::initRecordDriver($record);
 			$timer->logTime('Initialized the Record Driver');
 
-			// Process MARC Data
-			require_once ROOT_DIR . '/sys/MarcLoader.php';
-			$marcRecord = MarcLoader::loadMarcRecordFromRecord($record);
-			if ($marcRecord) {
-				$this->marcRecord = $marcRecord;
-			} else {
-				$itemData['error'] = 'Cannot Process MARC Record';
-			}
-			$timer->logTime('Processed the marc record');
-
-			// Get ISBN for cover and review use
-			if ($isbnFields = $this->marcRecord->getFields('020')) {
-				//Use the first good ISBN we find.
-				/** @var File_MARC_Data_Field[] $isbnFields */
-				foreach ($isbnFields as $isbnField){
-					if ($isbnField = $isbnField->getSubfield('a')) {
-						$this->isbn = trim($isbnField->getData());
-						if ($pos = strpos($this->isbn, ' ')) {
-							$this->isbn = substr($this->isbn, 0, $pos);
-						}
-						if (strlen($this->isbn) < 10){
-							$this->isbn = str_pad($this->isbn, 10, "0", STR_PAD_LEFT);
-						}
-						$itemData['isbn'] = $this->isbn;
-						break;
-					}
-				}
-			}
-			/** @var File_MARC_Data_Field $upcField */
-			if ($upcField = $this->marcRecord->getField('024')) {
-				if ($upcSubfield = $upcField->getSubfield('a')) {
-					$this->upc = trim($upcSubfield->getData());
-					$itemData['upc'] = $this->upc;
-				}
-			}
-			/** @var File_MARC_Data_Field $issnField */
-			if ($issnField = $this->marcRecord->getField('022')) {
-				if ($issnSubfield = $issnField->getSubfield('a')) {
-					$this->issn = trim($issnSubfield->getData());
-					if ($pos = strpos($this->issn, ' ')) {
-						$this->issn = substr($this->issn, 0, $pos);
-					}
-					$itemData['issn'] = $this->issn;
-				}
-			}
-			$timer->logTime('Got UPC, ISBN, and ISSN');
-
 			//Generate basic information from the marc file to make display easier.
+			if (isset($record['isbn'])){
+				$itemData['isbn'] = $record['isbn'][0];
+			}
+			if (isset($record['upc'])){
+				$itemData['upc'] = $record['upc'][0];
+			}
+			if (isset($record['issn'])){
+				$itemData['issn'] = $record['issn'][0];
+			}
 			$itemData['title'] = $record['title'];
 			$itemData['author'] = $record['author'];
 			$itemData['publisher'] = $record['publisher'];
 			$itemData['allIsbn'] = $record['isbn'];
-			$itemData['allUpc'] = $record['upc'];
-			$itemData['allIssn'] = $record['issn'];
-			$itemData['edition'] = $record['edition'];
-			$itemData['callnumber'] = $record['callnumber'];
-			$itemData['genre'] = $record['genre'];
-			$itemData['series'] = $record['series'];
+			$itemData['allUpc'] = isset($record['upc']) ? $record['upc'] : null;
+			$itemData['allIssn'] = isset($record['issn']) ? $record['issn'] : null;
+			$itemData['edition'] = isset($record['edition']) ? $record['edition'] : null;
+			$itemData['callnumber'] = isset($record['callnumber']) ? $record['callnumber'] : null;
+			$itemData['genre'] = isset($record['genre']) ? $record['genre'] : null;
+			$itemData['series'] = isset($record['series']) ? $record['series'] : null;
 			$itemData['physical'] = $record['physical'];
-			$itemData['lccn'] = $record['lccn'];
-			$itemData['contents'] = $record['contents'];
+			$itemData['lccn'] = isset($record['lccn']) ? $record['lccn'] : null;
+			$itemData['contents'] = isset($record['contents']) ? $record['contents'] : null;
 
-			$itemData['format'] = $record['format'];
-			$itemData['formatCategory'] = $record['format_category'][0];
+			$itemData['format'] = isset($record['format']) ? $record['format'] : null;
+			$itemData['formatCategory'] = isset($record['format_category']) ? $record['format_category'][0] : null;
 			$itemData['language'] = $record['language'];
 
 			//Retrieve description from MARC file
-			$description = '';
-			/** @var File_MARC_Data_Field $descriptionField */
-			if ($descriptionField = $this->marcRecord->getField('520')) {
-				if ($descriptionSubfield = $descriptionField->getSubfield('a')) {
-					$description = trim($descriptionSubfield->getData());
-				}
-			}
-			$itemData['description'] = $description;
+			$itemData['description'] = $this->recordDriver->getDescriptionFast();
 
 			//setup 5 star ratings
 			$ratingData = $this->recordDriver->getRatingData();
 			$itemData['ratingData'] = $ratingData;
 
 			//Load Holdings
-			$itemData['holdings'] = Record_Holdings::loadHoldings($this->id);
-			$timer->logTime('Loaded Holdings');
+			//$itemData['holdings'] = Record_Holdings::loadHoldings($this->id);
+			//$timer->logTime('Loaded Holdings');
 
 			// Add Marc Record to the output
-			if ($this->marcRecord){
+			/*if ($this->marcRecord){
 				$itemData['marc'] = $this->marcRecord->toJSON();
-			}
+			}*/
 		//}
 
 		return $itemData;
