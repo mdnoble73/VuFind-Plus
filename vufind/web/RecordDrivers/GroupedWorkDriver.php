@@ -1230,13 +1230,18 @@ class GroupedWorkDriver extends RecordInterface{
 			}
 			$timer->logTime("Loaded Item Details from the index");
 
+			//Load the work from the database so we can use it in each record diver
+			require_once ROOT_DIR . '/sys/Grouping/GroupedWork.php';
+			$groupedWork = new GroupedWork();
+			$groupedWork->permanent_id = $this->getUniqueID();
+			$groupedWork->find(true);
 
 			//Generate record information based on the information we have in the index
 			$relatedRecords = array();
 			foreach ($recordsFromIndex as $recordDetails){
 				list($source, $id) = explode(':', $recordDetails[0], 2);
 				require_once ROOT_DIR . '/RecordDrivers/Factory.php';
-				$recordDriver = RecordDriverFactory::initRecordDriverById($recordDetails[0]);
+				$recordDriver = RecordDriverFactory::initRecordDriverById($recordDetails[0], $groupedWork);
 				$timer->logTime("Loaded Record Driver for  $recordDetails[0]");
 
 				//Setup the base record
