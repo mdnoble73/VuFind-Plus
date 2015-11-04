@@ -70,6 +70,10 @@
 		margin-left: auto;
 		margin-right: auto;
 	}
+	#facetTable .form-inline .form-control {
+		width: auto;
+		margin: auto 4px;
+	}
 {/literal}
 </style>
 <div id="page-content" class="content">
@@ -161,35 +165,53 @@
 														<th align="right">{translate text=$label}:</th>
 														<td>
 															{if $facetInfo.facetName == "publishDate"}
+															<div class="form-inline">
+																<div class="form-group">
 																<label for="yearfrom" class="yearboxlabel">From: </label>
-																<input type="text" size="4" maxlength="4" class="yearbox" name="yearfrom" id="yearfrom"
+																<input type="text" size="4" maxlength="4" class="yearbox form-control" name="yearfrom" id="yearfrom"
 																       value="">
+																</div>
+																<div class="form-group">
 																<label for="yearto" class="yearboxlabel">To: </label>
-																<input type="text" size="4" maxlength="4" class="yearbox" name="yearto" id="yearto"
+																<input type="text" size="4" maxlength="4" class="yearbox form-control" name="yearto" id="yearto"
 																       value="">
-																<div id='yearDefaultLinks'>
+																</div>
+															</div>
+																<div id="yearDefaultLinks">
 																	<a onclick="$('#yearfrom').val('2015');$('#yearto').val('');"
-																	   href='javascript:void(0);'>since&nbsp;2015</a>
-																	&bull;<a onclick="$('#yearfrom').val('2010');$('#yearto').val('');"
-																	         href='javascript:void(0);'>since&nbsp;2010</a>
-																	&bull;<a onclick="$('#yearfrom').val('2005');$('#yearto').val('');"
-																	         href='javascript:void(0);'>since&nbsp;2005</a>
+																	   href='javascript:void(0);'>since&nbsp;2015 </a>
+																	&bull; <a onclick="$('#yearfrom').val('2010');$('#yearto').val('');"
+																	         href='javascript:void(0);'>since&nbsp;2010 </a>
+																	&bull; <a onclick="$('#yearfrom').val('2005');$('#yearto').val('');"
+																	         href='javascript:void(0);'>since&nbsp;2005 </a>
 																</div>
 															{elseif $facetInfo.facetName == "lexile_score"}
 																<div id="lexile-range"></div>
-																<label for="lexile_scorefrom" class="yearboxlabel">From: </label>
-																<input type="text" size="4" maxlength="4" class="yearbox" name="lexile_scorefrom"
-																       id="lexile_scorefrom" value="">
-																<label for="lexile_scoreto" class="yearboxlabel">To: </label>
-																<input type="text" size="4" maxlength="4" class="yearbox" name="lexile_scoreto"
-																       id="lexile_scoreto" value="">
+																<div class="form-inline">
+																	<div class="form-group">
+																		<label for="lexile_scorefrom" class="yearboxlabel">From: </label>
+																		<input type="text" size="4" maxlength="4" class="yearbox form-control" name="lexile_scorefrom"
+																		       id="lexile_scorefrom" value="">
+																	</div>
+																	<div class="form-group">
+																		<label for="lexile_scoreto" class="yearboxlabel">To: </label>
+																		<input type="text" size="4" maxlength="4" class="yearbox form-control" name="lexile_scoreto"
+																		       id="lexile_scoreto" value="">
+																	</div>
+																</div>
 															{elseif $facetInfo.facetName == "accelerated_reader_reading_level"}
+																<div class="form-inline">
+																	<div class="form-group">
 																	<label for="accelerated_reader_reading_levelfrom" class="yearboxlabel">From: </label>
-																	<input type="text" size="4" maxlength="4" class="yearbox" name="accelerated_reader_reading_levelfrom" id="accelerated_reader_reading_levelfrom" value="">
+																	<input type="text" size="4" maxlength="4" class="yearbox form-control" name="accelerated_reader_reading_levelfrom" id="accelerated_reader_reading_levelfrom" value="">
+																	</div>
+																	<div class="form-group">
 																	<label for="accelerated_reader_reading_levelto" class="yearboxlabel">To: </label>
-																	<input type="text" size="4" maxlength="4" class="yearbox" name="accelerated_reader_reading_levelto" id="accelerated_reader_reading_levelto" value="">
+																	<input type="text" size="4" maxlength="4" class="yearbox form-control" name="accelerated_reader_reading_levelto" id="accelerated_reader_reading_levelto" value="">
+																	</div>
+																</div>
 															{else}
-																<select name="filter[]">
+																<select name="filter[]" class="form-control">
 																	{foreach from=$facetInfo.values item="value" key="display"}
 																		{if strlen($display) > 0}
 																			<option value="{$value.filter|escape}"{if $value.selected} selected="selected"{/if}>{$display|escape|truncate:80}</option>
@@ -205,16 +227,15 @@
 												<tr>
 													<th align="right">{translate text="Illustrated"}:</th>
 													<td>
-														<div class="radio">
 														{foreach from=$illustratedLimit item="current"}
-															<label>
+														<div class="radio">
+														<label>
 															<input type="radio" name="illustration"
 															       value="{$current.value|escape}"{if $current.selected} checked="checked"{/if}>
 															{translate text=$current.text}
 															</label>
-															<br>
-														{/foreach}
 														</div>
+														{/foreach}
 													</td>
 												</tr>
 											{/if}
@@ -240,22 +261,22 @@
 {/if}
 <script type="text/javascript">
 	{* Define our search arrays so they are usuable in the javascript *}
-	var searchFields = new Array();
+	var searchFields = {ldelim}
 	{foreach from=$advSearchTypes item=searchDesc key=searchVal}
-	searchFields["{$searchVal}"] = "{translate text=$searchDesc}";
+	"{$searchVal}" : "{translate text=$searchDesc}",
 	{/foreach}
-	var searchJoins = new Array();
-	searchJoins["AND"]  = "{translate text="search_AND"}";
-	searchJoins["OR"]   = "{translate text="search_OR"}";
-	searchJoins["NOT"]  = "{translate text="search_NOT"}";
+	{rdelim};
+	var searchJoins = {ldelim}
+		AND: '{translate text="search_AND"}'
+		,OR: '{translate text="search_OR"}'
+		,NOT:'{translate text="search_NOT"}'
+		{rdelim};
 	var addSearchString = "{translate text="add_search"}";
 	var searchLabel     = "{translate text="adv_search_label"}";
 	var searchFieldLabel = "{translate text="in"}";
 	var deleteSearchGroupString = "{translate text="del_search"}";
 	var searchMatch     = "{translate text="search_match"}";
 	var searchFormId    = 'advSearchForm';
-</script>
-<script type="text/javascript">
 	{*  Build the form *}
 	$(function(){ldelim}
 		{if $searchDetails}
@@ -275,13 +296,9 @@
 	{/if}
 		{* Highlight Selected Facet Filters *}
 		{literal}
-		$('#facetTable select').each(function(){
-			if ($(this).val() != '') {
-				$(this).parents('tr').css('background-color', '#EFEFEF')
-			}
-		}).change(function(){
+		$('#facetTable select').change(function(){
 			$(this).parents('tr').css('background-color', ($(this).val() == '') ? '#FFF' : '#EFEFEF')
-		});
+		}).change();
 		{/literal}
 	{rdelim});
 </script>
