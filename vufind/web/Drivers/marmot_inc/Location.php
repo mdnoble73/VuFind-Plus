@@ -473,7 +473,6 @@ class Location extends DB_DataObject
 
 			//Check to see if a branch location has been specified.
 			$locationCode = $this->getBranchLocationCode();
-
 			if (!empty($locationCode) && $locationCode != 'all'){
 				$activeLocation = new Location();
 				$activeLocation->code = $locationCode;
@@ -481,15 +480,21 @@ class Location extends DB_DataObject
 					//Only use the location if we are in the subdomain for the parent library
 					if ($library->libraryId == $activeLocation->libraryId){
 						Location::$activeLocation = clone $activeLocation;
-					}else {
-						// if the active location doesn't belong to the library we are browsing at, turn off the active location
+					}else{
+						// If the active location doesn't belong to the library we are browsing at, turn off the active location
 						Location::$activeLocation = null;
 					}
 				}
 			}else{
+				// Check if we know physical location by the ip table
 				$physicalLocation = $this->getPhysicalLocation();
 				if ($physicalLocation != null){
-					Location::$activeLocation = $physicalLocation;
+					if ($library->libraryId == $physicalLocation->libraryId){
+						Location::$activeLocation = $physicalLocation;
+					}else{
+						// If the physical location doesn't belong to the library we are browsing at, turn off the active location
+						Location::$activeLocation = null;
+					}
 				}
 			}
 			global $timer;
@@ -512,7 +517,7 @@ class Location extends DB_DataObject
 	static function getUserHomeLocation($userToLoad = null){
 		if (isset(Location::$userHomeLocation) && Location::$userHomeLocation != 'unset') return Location::$userHomeLocation;
 
-		//default value
+		// default value
 		Location::$userHomeLocation = null;
 
 		if ($userToLoad == null){
@@ -563,6 +568,7 @@ class Location extends DB_DataObject
 			}
 		}
 		$this->physicalLocation = 'null';
+		// QUESTION: why is default set to string 'null' instead of null value?
 		//The branch parameter trumps IP Address if set.
 		if ($this->getBranchLocationCode() != ''){
 			$this->physicalLocation = $this->getActiveLocation();
