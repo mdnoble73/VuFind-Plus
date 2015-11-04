@@ -171,13 +171,16 @@ VuFind.Account = (function(){
 						password = $("#password").val(),
 						rememberMe = $("#rememberMe").prop('checked'),
 						loginErrorElem = $('#loginError'),
+						loadingElem =$('#loading'),
 						url = Globals.path + "/AJAX/JSON?method=loginUser";
 				loginErrorElem.hide();
-				VuFind.loadingMessage();
+				loadingElem.show();
+				//VuFind.loadingMessage();
 				$.ajax({
 					url: url,
 					data: {username: username, password: password, rememberMe: rememberMe},
 					success: function (response) {
+						loadingElem.hide();
 						if (response.result.success == true) {
 							// Hide "log in" options and show "log out" options:
 							$('.loginOptions, #loginOptions').hide();
@@ -185,7 +188,7 @@ VuFind.Account = (function(){
 
 							// Show user name on page in case page doesn't reload
 							var name = response.result.name.trim();
-							$('#header-container #myAccountNameLink').html(name);
+							//$('#header-container #myAccountNameLink').html(name);
 							name = 'Logged In As ' + name.slice(0, name.lastIndexOf(' ') + 2) + '.';
 							$('#side-bar #myAccountNameLink').html(name);
 
