@@ -37,6 +37,7 @@ public class Scope implements Comparable<Scope>{
 	private boolean includeOverDriveAdultCollection;
 	private boolean includeOverDriveTeenCollection;
 	private boolean includeOverDriveKidsCollection;
+	private int publicListsToInclude;
 
 	public String getScopeName() {
 		return scopeName;
@@ -230,5 +231,13 @@ public class Scope implements Comparable<Scope>{
 
 	public boolean isIncludeOverDriveKidsCollection() {
 		return includeOverDriveKidsCollection;
+	}
+
+	public void setPublicListsToInclude(int publicListsToInclude) {
+		this.publicListsToInclude = publicListsToInclude;
+	}
+
+	public int getPublicListsToInclude() {
+		return publicListsToInclude;
 	}
 }

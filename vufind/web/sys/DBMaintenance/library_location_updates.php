@@ -1127,5 +1127,18 @@ function getLibraryLocationUpdates(){
 				"ALTER TABLE `location` ADD COLUMN `includeOverDriveKids` TINYINT(1) DEFAULT 1",
 			),
 		),
+
+		'public_lists_to_include'  => array(
+			'title' => 'Public Lists to Include',
+			'description' => 'Allow administrators to control what public lists are included within the scope',
+			'sql' => array(
+				"ALTER TABLE `library` ADD COLUMN publicListsToInclude TINYINT(1)",
+				"ALTER TABLE `location` ADD COLUMN publicListsToInclude TINYINT(1)",
+				"UPDATE library set publicListsToInclude = 0 where showFavorites = 0",
+				"UPDATE library set publicListsToInclude = 1 where showFavorites = 1",
+				"UPDATE location set publicListsToInclude = 0 where showFavorites = 0",
+				"UPDATE location set publicListsToInclude = 1 where showFavorites = 1",
+			),
+		),
 	);
 }

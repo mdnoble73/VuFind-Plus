@@ -22,6 +22,8 @@ public class UserListSolr {
 	private String description;
 	private long numTitles = 0;
 	private long created;
+	private long owningLibrary;
+	private String owningLocation;
 
 	public UserListSolr(GroupedWorkIndexer groupedWorkIndexer) {
 		this.groupedWorkIndexer = groupedWorkIndexer;
@@ -55,11 +57,19 @@ public class UserListSolr {
 
 		//Do things based on scoping
 		for (Scope scope: groupedWorkIndexer.getScopes()) {
-			doc.addField("local_time_since_added_" + scope.getScopeName(), Util.getTimeSinceAddedForDate(dateAdded));
-			doc.addField("local_days_since_added_" + scope.getScopeName(), Util.getDaysSinceAddedForDate(dateAdded));
-			doc.addField("format_" + scope.getScopeName(), "list");
-			doc.addField("format_category_" + scope.getScopeName(), "list");
-			doc.addField("scope_has_related_records", scope.getScopeName());
+			boolean okToInclude = false;
+			if (scope.isLibraryScope()) {
+				okToInclude = scope.getPublicListsToInclude() == 2 || (scope.getPublicListsToInclude() == 1 && scope.getLibraryId() == owningLibrary);
+			} else {
+				okToInclude = scope.getPublicListsToInclude() == 3 || (scope.getPublicListsToInclude() == 1 && scope.getLibraryId() == owningLibrary)  || (scope.getPublicListsToInclude() == 2 && scope.getScopeName().equals(owningLocation));
+			}
+			if (okToInclude) {
+				doc.addField("local_time_since_added_" + scope.getScopeName(), Util.getTimeSinceAddedForDate(dateAdded));
+				doc.addField("local_days_since_added_" + scope.getScopeName(), Util.getDaysSinceAddedForDate(dateAdded));
+				doc.addField("format_" + scope.getScopeName(), "list");
+				doc.addField("format_category_" + scope.getScopeName(), "list");
+				doc.addField("scope_has_related_records", scope.getScopeName());
+			}
 		}
 
 		return doc;
@@ -92,5 +102,13 @@ public class UserListSolr {
 
 	public void setId(long id) {
 		this.id = id;
+	}
+
+	public void setOwningLocation(String owningLocation) {
+		this.owningLocation = owningLocation;
+	}
+
+	public void setOwningLibrary(long owningLibrary) {
+		this.owningLibrary = owningLibrary;
 	}
 }

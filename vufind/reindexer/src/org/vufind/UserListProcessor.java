@@ -14,6 +14,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.HashMap;
 
 /**
  * Handles setting up solr documents for User Lists
@@ -30,6 +31,8 @@ public class UserListProcessor {
 	private boolean fullReindex;
 	private int availableAtLocationBoostValue;
 	private int ownedByLocationBoostValue;
+	private HashMap<Long, Long> librariesByHomeLocation = new HashMap<>();
+	private HashMap<Long, String> locationCodesByHomeLocation = new HashMap<>();
 
 	public UserListProcessor(GroupedWorkIndexer indexer, Connection vufindConn, Logger logger, boolean fullReindex, int availableAtLocationBoostValue, int ownedByLocationBoostValue){
 		this.indexer = indexer;
@@ -58,6 +61,21 @@ public class UserListProcessor {
 			}
 
 			PreparedStatement getTitlesForListStmt = vufindConn.prepareStatement("SELECT groupedWorkPermanentId, notes from user_list_entry WHERE listId = ?");
+			PreparedStatement getLibraryForHomeLocation = vufindConn.prepareStatement("SELECT libraryId, locationId from location");
+			PreparedStatement getCodeForHomeLocation = vufindConn.prepareStatement("SELECT code, locationId from location");
+
+			ResultSet librariesByHomeLocationRS = getLibraryForHomeLocation.executeQuery();
+			while (librariesByHomeLocationRS.next()){
+				librariesByHomeLocation.put(librariesByHomeLocationRS.getLong("locationId"), librariesByHomeLocationRS.getLong("libraryId"));
+			}
+			librariesByHomeLocationRS.close();
+
+			ResultSet codesByHomeLocationRS = getCodeForHomeLocation.executeQuery();
+			while (codesByHomeLocationRS.next()){
+				locationCodesByHomeLocation.put(codesByHomeLocationRS.getLong("locationId"), codesByHomeLocationRS.getString("code"));
+			}
+			codesByHomeLocationRS.close();
+
 			ResultSet allPublicListsRS = listsStmt.executeQuery();
 			while (allPublicListsRS.next()){
 				updateSolrForList(updateServer, solrServer, getTitlesForListStmt, allPublicListsRS);
@@ -102,6 +120,20 @@ public class UserListProcessor {
 					firstNameFirstChar = firstName.charAt(0) + ". ";
 				}
 				userListSolr.setAuthor(firstNameFirstChar + lastName);
+			}
+
+			long patronHomeLibrary = allPublicListsRS.getLong("homeLocationId");
+			if (librariesByHomeLocation.containsKey(patronHomeLibrary)){
+				userListSolr.setOwningLibrary(librariesByHomeLocation.get(patronHomeLibrary));
+			} else {
+				//Don't know the owning library for some reason
+				userListSolr.setOwningLibrary(-1);
+			}
+			if (locationCodesByHomeLocation.containsKey(patronHomeLibrary)){
+				userListSolr.setOwningLocation(locationCodesByHomeLocation.get(patronHomeLibrary));
+			} else {
+				//Don't know the owning location
+				userListSolr.setOwningLocation("");
 			}
 
 			//Get information about all of the list titles.
