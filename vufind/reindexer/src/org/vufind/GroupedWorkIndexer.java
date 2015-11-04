@@ -297,7 +297,7 @@ public class GroupedWorkIndexer {
 
 	private void loadLocationScopes() throws SQLException {
 		PreparedStatement locationInformationStmt = vufindConn.prepareStatement("SELECT library.libraryId, locationId, code, subLocation, ilsCode, " +
-				"library.subdomain, location.facetLabel, location.displayName, library.pTypes, library.restrictOwningBranchesAndSystems, " +
+				"library.subdomain, location.facetLabel, location.displayName, library.pTypes, library.restrictOwningBranchesAndSystems, location.publicListsToInclude, " +
 				"library.enableOverdriveCollection as enableOverdriveCollectionLibrary, " +
 				"location.enableOverdriveCollection as enableOverdriveCollectionLocation, " +
 				"library.includeOverdriveAdult as includeOverdriveAdultLibrary, location.includeOverdriveAdult as includeOverdriveAdultLocation, " +
@@ -348,6 +348,7 @@ public class GroupedWorkIndexer {
 			locationScopeInfo.setIncludeOverDriveKidsCollection(includeOverdriveKids);
 			locationScopeInfo.setRestrictOwningLibraryAndLocationFacets(locationInformationRS.getBoolean("restrictOwningBranchesAndSystems"));
 			locationScopeInfo.setIlsCode(code);
+			locationScopeInfo.setPublicListsToInclude(locationInformationRS.getInt("publicListsToInclude"));
 
 			//Load information about what should be included in the scope
 			locationOwnedRecordRulesStmt.setLong(1, locationId);
@@ -392,7 +393,7 @@ public class GroupedWorkIndexer {
 
 	private void loadLibraryScopes() throws SQLException {
 		PreparedStatement libraryInformationStmt = vufindConn.prepareStatement("SELECT libraryId, ilsCode, subdomain, " +
-				"displayName, facetLabel, pTypes, enableOverdriveCollection, restrictOwningBranchesAndSystems, " +
+				"displayName, facetLabel, pTypes, enableOverdriveCollection, restrictOwningBranchesAndSystems, publicListsToInclude, " +
 				"includeOverdriveAdult, includeOverdriveTeen, includeOverdriveKids " +
 				"FROM library ORDER BY ilsCode ASC",
 				ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_READ_ONLY);
@@ -426,6 +427,7 @@ public class GroupedWorkIndexer {
 			newScope.setFacetLabel(facetLabel);
 			newScope.setRelatedPTypes(pTypes.split(","));
 			newScope.setIncludeOverDriveCollection(includeOverdrive);
+			newScope.setPublicListsToInclude(libraryInformationRS.getInt("publicListsToInclude"));
 
 			newScope.setIncludeOverDriveAdultCollection(includeOverdriveAdult);
 			newScope.setIncludeOverDriveTeenCollection(includeOverdriveTeen);
