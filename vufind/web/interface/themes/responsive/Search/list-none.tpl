@@ -54,7 +54,7 @@
 			<div class="row">
 				{foreach from=$spellingSuggestions item=url key=term name=termLoop}
 					<div class="col-xs-6 col-sm-4 col-md-3 text-left">
-						<a class='btn btn-xs btn-default btn-block' href="{$url|escape}">{$term|escape}</a>
+						<a class='btn btn-xs btn-default btn-block' href="{$url|escape}">{$term|escape|truncate:25:'...'}</a>
 					</div>
 				{/foreach}
 			</div>
