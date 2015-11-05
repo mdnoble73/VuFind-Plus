@@ -588,7 +588,7 @@ VuFind.Account = (function(){
 				params['method'] = 'freezeHold'; //set method for this ajax call
 				$.getJSON(url, params, function(data){
 					if (data.success) {
-						VuFind.showMessage("Success", data.message, true, true);
+						VuFind.showMessage("Success", data.message);
 					} else {
 						VuFind.showMessage("Error", data.message);
 					}
