@@ -1129,6 +1129,9 @@ class Solr implements IndexEngine {
 						// Process each search group
 						foreach ($params['group'] as $group) {
 							// Build this group individually as a basic search
+							if (strpos($group['lookfor'], ' ') > 0){
+								$group['lookfor'] = '(' . $group['lookfor'] . ')';
+							}
 							$thisGroup[] = $this->buildQuery(array($group));
 						}
 						// Is this an exclusion (NOT) group or a normal group?
