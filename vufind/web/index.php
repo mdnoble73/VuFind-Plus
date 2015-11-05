@@ -497,8 +497,10 @@ $onInternalIP = false;
 $includeAutoLogoutCode = false;
 $automaticTimeoutLength = 0;
 $automaticTimeoutLengthLoggedOut = 0;
-if (($isOpac || !empty($ipLocation->isOpac)) && !$configArray['Catalog']['offline']){
+if (($isOpac || (!empty($ipLocation) && $ipLocation->getOpacStatus()) ) && !$configArray['Catalog']['offline']){
 	// Make sure we don't have timeouts if we are offline (because it's super annoying when doing offline checkouts and holds)
+
+	//$isOpac is set by URL parameter or cookie; pLocation->getOpacStatus() returns $opacStatus private variable which comes from the ip tables
 
 	// Turn on the auto log out
 	$onInternalIP = true;

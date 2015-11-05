@@ -642,6 +642,7 @@ class Location extends DB_DataObject
 			require_once ROOT_DIR . '/Drivers/marmot_inc/subnet.php';
 			$subnet = new subnet();
 			$ipVal = ip2long($activeIp);
+			//TODO: set opac status
 
 			$this->ipLocation = null;
 			$this->ipId = -1;
@@ -658,6 +659,8 @@ class Location extends DB_DataObject
 						//Only use the physical location regardless of where we are
 						//$logger->log("Active location is {$matchedLocation->displayName}", PEAR_LOG_DEBUG);
 						$this->ipLocation = clone($matchedLocation);
+						$this->ipLocation->setOpacStatus( (boolean) $subnet->isOpac);
+
 						$this->ipId = $subnet->id;
 					}else{
 						$logger->log("Did not find location for ip location id {$subnet->locationid}", PEAR_LOG_WARNING);
@@ -1325,6 +1328,16 @@ class Location extends DB_DataObject
 			}
 		}
 		return $this->opacStatus;
+	}
+
+	/**
+	 * Primarily Intended to set the opac status for the ipLocation object
+	 * when the iptable indicates that the ip is to be treated as a public opac
+	 * @param null $opacStatus
+	 */
+	public function setOpacStatus($opacStatus = null)
+	{
+		$this->opacStatus = $opacStatus;
 	}
 
 }
