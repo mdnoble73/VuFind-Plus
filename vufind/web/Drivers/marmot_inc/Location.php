@@ -649,6 +649,7 @@ class Location extends DB_DataObject
 				disableErrorHandler();
 				$subnet->whereAdd('startIpVal <= ' . $ipVal);
 				$subnet->whereAdd('endIpVal >= ' . $ipVal);
+				$subnet->orderBy('(endIpVal - startIpVal)');
 				if ($subnet->find(true)){
 					//$logger->log("Found {$subnet->N} matching IP addresses {$subnet->location}", PEAR_LOG_DEBUG);
 					$matchedLocation = new Location();
