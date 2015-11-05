@@ -44,6 +44,9 @@ cd /usr/local/vufind-plus/vufind/cron;./HOOPLA.sh ${PIKASERVER} >> ${OUTPUT_FILE
 #Extract Lexile Data
 cd /data/vufind-plus/; rm lexileTitles.txt*; wget http://venus.marmot.org/lexileTitles.txt
 
+#Extract AR Data
+cd /data/vufind-plus/accelerated_reader; rm RLI-ARDataTAB.txt*; wget http://venus.marmot.org/RLI-ARDataTAB.txt
+
 #Do a full extract from OverDrive just once a week to catch anything that doesn't
 #get caught in the regular extract
 DAYOFWEEK=$(date +"%u")
