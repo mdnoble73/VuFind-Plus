@@ -5,13 +5,13 @@ if [ -z "$1" ]
     echo "To use, run with start, stop or restart for the first parameter."
 fi
 
-if [[ ( "$1" == "stop" ) || ( "$1" == "restart") ]]
+if [[ ( "$1" eq "stop" ) || ( "$1" eq "restart") ]]
 	then
 		../default/solr/bin/solr stop -p 8180 -d "/usr/local/vufind-plus/sites/default/solr/jetty"
 		../default/solr/bin/solr stop -p 8080 -d "/usr/local/vufind-plus/sites/default/solr/jetty"
 fi
 
-if [[ ( "$1" == "start" ) || ( "$1" == "restart") ]]
+if [[ ( "$1" eq "start" ) || ( "$1" eq "restart") ]]
 	then
 		../default/solr/bin/solr start -m 4g -p 8180 -s "/data/vufind-plus/testvufind.co.wake.nc.us/solr_master" -d "/usr/local/vufind-plus/sites/default/solr/jetty"
 		../default/solr/bin/solr start -m 4g -p 8080 -a "-Dsolr.masterport=8180" -s "/data/vufind-plus/testvufind.co.wake.nc.us/solr_searcher" -d "/usr/local/vufind-plus/sites/default/solr/jetty"
