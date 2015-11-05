@@ -318,4 +318,9 @@ public class FlatironsRecordProcessor extends IIIRecordProcessor{
 			return this;
 		}
 	}
+
+	@Override
+	protected boolean determineLibraryUseOnly(ItemInfo itemInfo, Scope curScope) {
+		return itemInfo.getStatusCode().equals("o");
+	}
 }
