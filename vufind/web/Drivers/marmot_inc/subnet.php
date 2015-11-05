@@ -12,6 +12,7 @@ class subnet extends DB_DataObject
 	public $locationid;              //int(5)
 	public $location;                //varchar(255)
 	public $ip;                      //varchar(255)
+	public $isOpac;                   //tinyint(1)
 	public $startIpVal;
 	public $endIpVal;
 	/* Static get */

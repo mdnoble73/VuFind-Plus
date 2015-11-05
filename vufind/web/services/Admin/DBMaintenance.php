@@ -719,6 +719,16 @@ class DBMaintenance extends Admin_Admin {
 					),
 				),
 
+				'ip_lookup_3' => array(
+					'title' => 'IP Lookup isOpac switch',
+					'description' => 'Add an IsOpac switch to each ip address entry',
+					'continueOnError' => true,
+					'sql' => array(
+						"ALTER TABLE `ip_lookup` ADD COLUMN `isOpac` TINYINT UNSIGNED NOT NULL DEFAULT 1",
+
+					),
+				),
+
 				'merged_records' => array(
 					'title' => 'Merged Records Table',
 					'description' => 'Create Merged Records table to store ',
