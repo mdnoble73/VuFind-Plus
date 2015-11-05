@@ -42,6 +42,13 @@
 			</div>
 		{/if}
 
+		{if $debugTiming}
+			<div id='solrTimingToggle' onclick='$("#solrTiming").toggle()'>Show Solr Timing</div>
+			<div id='solrTiming' style='display:none'>
+				<pre>{$debugTiming}</pre>
+			</div>
+		{/if}
+
 		{if $numUnscopedResults && $numUnscopedResults != $recordCount}
 		{* avoids when both searches are unscoped *}
 			<div class="unscopedResultCount">

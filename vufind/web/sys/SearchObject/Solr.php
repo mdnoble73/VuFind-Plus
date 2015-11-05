@@ -499,6 +499,14 @@ class SearchObject_Solr extends SearchObject_Base
 		$this->allFacetSettings[$section][$setting] : '';
 	}
 
+	public function getDebugTiming() {
+		if (!$this->debug){
+			return null;
+		}else{
+			return json_encode($this->indexResult['debug']['timing']);
+		}
+	}
+
 	/**
 	 * Used during repeated deminification (such as search history).
 	 *   To scrub fields populated above.
