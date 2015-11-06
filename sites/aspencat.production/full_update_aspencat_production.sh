@@ -57,6 +57,8 @@ fi
 
 #Note, no need to extract from Lexile for this server since it is done by Marmot production extract
 
+#Note, no need to extract from Accelerated Reader for this server since it is done by Marmot production extract
+
 #Validate the export
 cd /usr/local/vufind-plus/vufind/cron; java -server -XX:+UseG1GC -jar cron.jar ${PIKASERVER} ValidateMarcExport >> ${OUTPUT_FILE}
 

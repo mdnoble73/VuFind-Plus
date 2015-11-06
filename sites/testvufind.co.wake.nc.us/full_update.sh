@@ -42,7 +42,10 @@ cd /usr/local/vufind-plus/sites/${PIKASERVER}; ./${PIKASERVER}.sh restart
 cd /usr/local/vufind-plus/vufind/cron;./HOOPLA.sh ${PIKASERVER} >> ${OUTPUT_FILE}
 
 #Extract Lexile Data
-cd /data/vufind-plus/; rm lexileTitles.txt*; wget http://venus.marmot.org/lexileTitles.txt
+cd /data/vufind-plus/; rm lexileTitles.txt*; wget -N -q http://venus.marmot.org/lexileTitles.txt
+
+#Extract AR Data
+cd /data/vufind-plus/accelerated_reader; rm RLI-ARDataTAB.txt*; wget -N -q http://venus.marmot.org/RLI-ARDataTAB.txt
 
 #Extract AR Data
 cd /data/vufind-plus/accelerated_reader; rm RLI-ARDataTAB.txt*; wget http://venus.marmot.org/RLI-ARDataTAB.txt
