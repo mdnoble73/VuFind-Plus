@@ -307,8 +307,7 @@
 }
 
 // Mixin that hides the Jcarousel controls and shows all the categories as a grid
-.noCarouselBrowseCategoriesMixin(@titlesPerRow: 4)
-{
+.noCarouselBrowseCategoriesMixin(@titlesPerRow: 4){
   #browse-category-carousel {
     overflow: visible; // allow all list items to be seen
     left: 0;
@@ -344,4 +343,13 @@
     }
   }
 
+}
+
+// Gives Selected Category a highlighted appearance
+.noCarouselSelectedCategoryMixin(@selectedCategoryColor: @category6MainColor) {
+  .browse-category.selected {
+    background-color: @selectedCategoryColor;
+    background: linear-gradient(to bottom, @selectedCategoryColor, @selectedCategoryColor 82%, @categoryLineShadow 83%, @categoryLineColor 84%, @categoryLineColor 88%, @categoryLineShadow 89%, @selectedCategoryColor 90%, @selectedCategoryColor);
+    font-size: @browse-category-font-size + 2;
+  }
 }
