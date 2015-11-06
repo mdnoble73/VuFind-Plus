@@ -38,8 +38,8 @@
 #####################
 # Daily full update #
 #####################
-# Set the start for 11:55
-55 23 * * * cd /usr/local/vufind-plus/sites/flatirons.production; ./full_update.sh
+# Set the start for 1 am
+00 1 * * * cd /usr/local/vufind-plus/sites/flatirons.production; ./full_update.sh
 
 ###################
 # Pika Cron Jobs  #

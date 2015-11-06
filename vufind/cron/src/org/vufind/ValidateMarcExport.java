@@ -35,14 +35,14 @@ public class ValidateMarcExport implements IProcessHandler{
 		ArrayList<IndexingProfile> indexingProfiles = loadIndexingProfiles(vufindConn);
 		for (IndexingProfile curProfile : indexingProfiles){
 			processLog.addNote("Processing profile " + curProfile);
-			try{
-				String marcPath = curProfile.marcPath;
+			String marcPath = curProfile.marcPath;
 
-				String marcEncoding = curProfile.marcEncoding;
+			String marcEncoding = curProfile.marcEncoding;
 
-				File[] catalogBibFiles = new File(marcPath).listFiles();
-				if (catalogBibFiles != null) {
-					for (File curBibFile : catalogBibFiles) {
+			File[] catalogBibFiles = new File(marcPath).listFiles();
+			if (catalogBibFiles != null) {
+				for (File curBibFile : catalogBibFiles) {
+					try{
 						int numRecordsRead = 0;
 						int numSuppressedRecords = 0;
 						int numRecordsToIndex = 0;
@@ -68,16 +68,16 @@ public class ValidateMarcExport implements IProcessHandler{
 								marcFileStream.close();
 								processLog.addNote("&nbsp;&nbsp;&nbsp;&nbsp;File is valid.  Found " + numRecordsToIndex + " records that will be indexed and " + numSuppressedRecords + " records that will be suppressed.");
 							} catch (Exception e) {
-								logger.error("&nbsp;&nbsp;&nbsp;&nbsp;Error loading catalog bibs on record " + numRecordsRead + " the last record processed was " + lastRecordProcessed, e);
+								logger.error("&nbsp;&nbsp;&nbsp;&nbsp;Error loading catalog bibs on record " + numRecordsRead + " of " + curBibFile.getAbsolutePath() + " the last record processed was " + lastRecordProcessed, e);
 								allExportsValid = false;
 							}
 						}
+					} catch (Exception e) {
+						logger.error("Error validating marc records in file " + curBibFile.getAbsolutePath(), e);
+						processLog.addNote("Error validating marc records " + curBibFile.getAbsolutePath() + "  " + e.toString());
+						allExportsValid = false;
 					}
 				}
-			} catch (Exception e) {
-				logger.error("Error validating marc records", e);
-				processLog.addNote("Error validating marc records " + e.toString());
-				allExportsValid = false;
 			}
 		}
 

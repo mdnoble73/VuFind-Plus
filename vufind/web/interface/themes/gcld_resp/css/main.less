@@ -1,3 +1,5 @@
+// Main Styling Sheet for Grand County Library District
+
 // Core variables and mixins
 @import (reference) "../../responsive/css/variables.less";
 @import (reference) "variables.less";
@@ -5,7 +7,6 @@
 // Always include the base .less file
 @import "../../responsive/css/responsive_base.less";
 
-#header-logo{
-  max-width: 100%;
-}
-
+// custom styling of main browse category carousel
+.noCarouselBrowseCategoriesMixin();
+.noCarouselSelectedCategoryMixin(@selectedCategoryColor);

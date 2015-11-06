@@ -24,38 +24,8 @@
 }
 
 // custom styling of main browse category carousel
+.noCarouselBrowseCategoriesMixin();
 
-#browse-category-carousel {
-  overflow: visible; // allow all list items to be seen
-  left: 0;
-  width: 95%;
-  margin-left: 5%;
-
-  ul {
-    position: static; // restore positioning behavior
-    width: 100%;
-  }
-
-  li {
-    // set number items to display in a row based on screen size
-    // default 4 per row, smallest 2 per row, small 3 per row
-    width: 23% !important;
-    @media (max-width: @screen-sm-max) {
-      width: 31% !important;
-    }
-    @media (max-width: @screen-xs-max) {
-      width: 48% !important;
-    }
-    float: left; // retains float left; ul positional is more critical. plb 9-16-2014
-  }
-}
-
-// hide scrolling controls
-#browse-category-picker {
-  .jcarousel-control-prev, .jcarousel-control-next, .jcarousel-pagination {
-    display: none;
-  }
-}
 // Selected Category needs to give a highlighted appearance
 .browse-category.selected {
   background-color: @selectedCategoryColor;
