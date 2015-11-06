@@ -1937,15 +1937,16 @@ class SearchObject_Solr extends SearchObject_Base
 				$id = str_replace('econtentRecord', '', $result['response']['docs'][$i]['id']);
 				$result['response']['docs'][$i]['recordUrl'] = $baseUrl . '/EcontentRecord/' . $id;
 			}else	if (strcasecmp($result['response']['docs'][$i]['recordtype'], 'grouped_work') == 0){
-				$id = str_replace('econtentRecord', '', $result['response']['docs'][$i]['id']);
+				$id = $result['response']['docs'][$i]['id'];
 				$result['response']['docs'][$i]['recordUrl'] = $baseUrl . '/GroupedWork/' . $id;
-				require_once ROOT_DIR . '/RecordDrivers/GroupedWorkDriver.php';
-				$groupedWorkDriver = new GroupedWorkDriver($id);
-				$image = $groupedWorkDriver->getBookcoverUrl('medium');
-				$description = "<img src='$image'/> " . $groupedWorkDriver->getDescriptionFast();
-				$result['response']['docs'][$i]['description'] = $description;
 				$result['response']['docs'][$i]['title'] = $result['response']['docs'][$i]['title_full'];
-
+				require_once ROOT_DIR . '/RecordDrivers/GroupedWorkDriver.php';
+				$groupedWorkDriver = new GroupedWorkDriver($result['response']['docs'][$i]);
+				if ($groupedWorkDriver->isValid){
+					$image = $groupedWorkDriver->getBookcoverUrl('medium');
+					$description = "<img src='$image'/> " . $groupedWorkDriver->getDescriptionFast();
+					$result['response']['docs'][$i]['description'] = $description;
+				}
 			}else{
 				$id = $result['response']['docs'][$i]['id'];
 				$result['response']['docs'][$i]['recordUrl'] = $baseUrl . '/Record/' . $id;
