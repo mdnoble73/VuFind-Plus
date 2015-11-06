@@ -260,14 +260,14 @@ public abstract class IIIRecordProcessor extends IlsRecordProcessor{
 
 	protected void setDetailedStatus(ItemInfo itemInfo, DataField itemField, String itemStatus, String identifier) {
 		if (itemStatus.equals("-") && !(itemInfo.getDueDate().length() == 0 || itemInfo.getDueDate().trim().equals("-  -"))){
-			itemInfo.setDetailedStatus("Due " + getDisplayDueDate(itemInfo.getDueDate()));
+			itemInfo.setDetailedStatus("Due " + getDisplayDueDate(itemInfo.getDueDate(), identifier));
 		}else {
 			itemInfo.setDetailedStatus(translateValue("item_status", itemStatus, identifier));
 		}
 	}
 
 	SimpleDateFormat displayDateFormatter = new SimpleDateFormat("MMM d, yyyy");
-	protected String getDisplayDueDate(String dueDate){
+	protected String getDisplayDueDate(String dueDate, String identifier){
 		try {
 			if (dateAddedFormatter == null) {
 				dateAddedFormatter = new SimpleDateFormat(dateAddedFormat);
@@ -275,7 +275,7 @@ public abstract class IIIRecordProcessor extends IlsRecordProcessor{
 			Date dateAdded = dateAddedFormatter.parse(dueDate);
 			return displayDateFormatter.format(dateAdded);
 		}catch (Exception e){
-			logger.warn("Could not load display due date", e);
+			logger.warn("Could not load display due date for dueDate " + dueDate + " for identifier " + identifier, e);
 		}
 		return "Unknown";
 	}
