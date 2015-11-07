@@ -52,7 +52,7 @@
 				</div>
 					{*<div id="userOption" class="form-group"{*if count($pickupLocations[0]->pickupUsers) < 2} style="display: none"{/if* }>{* display if the first location will need a user selected*}
 					<div id="userOption" class="form-group"{if !$multipleUsers} style="display: none"{/if}>{* display if there are multiple accounts *}
-						<label for="user" class="control-label">{translate text="Place hold for the choosen location using account"}: </label>
+						<label for="user" class="control-label">{translate text="Place hold for the chosen location using account"}: </label>
 						<div class="controls">
 							<select name="user" id="user" class="form-control">
 								{* Built by jQuery below *}
