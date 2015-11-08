@@ -681,7 +681,7 @@ public class GroupedWorkIndexer {
 		writeExistingRecordsFile(overDriveRecordsSkipped, "reindexer_overdrive_records_skipped");
 	}
 
-	private static SimpleDateFormat dayFormatter = new SimpleDateFormat("yyyy-MM-dd");
+	private SimpleDateFormat dayFormatter = new SimpleDateFormat("yyyy-MM-dd");
 	private void writeExistingRecordsFile(TreeSet<String> recordNumbersInExport, String filePrefix) {
 		try {
 			File dataDir = new File(configIni.get("Reindex", "marcPath"));
