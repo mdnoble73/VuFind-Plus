@@ -19,6 +19,7 @@ class MyRatings extends MyAccount{
 		require_once ROOT_DIR . '/RecordDrivers/GroupedWorkDriver.php';
 		$rating = new UserWorkReview();
 		$rating->userId = $user->id;
+		$rating->orderBy('dateRated DESC');
 		$rating->find();
 		$ratings = array();
 		while($rating->fetch()){
@@ -38,14 +39,13 @@ class MyRatings extends MyAccount{
 			}
 		}
 
-		asort($ratings);
-
 		//Load titles the user is not interested in
 		$notInterested = array();
 
 		require_once ROOT_DIR . '/sys/LocalEnrichment/NotInterested.php';
 		$notInterestedObj = new NotInterested();
 		$notInterestedObj->userId = $user->id;
+		$notInterestedObj->orderBy('dateMarked DESC');
 		$notInterestedObj->find();
 		while ($notInterestedObj->fetch()){
 			$groupedWorkId = $notInterestedObj->groupedRecordPermanentId;
