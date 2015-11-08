@@ -48,7 +48,7 @@ public class OverDriveProcessor {
 		}
 	}
 
-	private static SimpleDateFormat dateAddedParser = new SimpleDateFormat("yyyy-MM-dd");
+	private SimpleDateFormat dateAddedParser = new SimpleDateFormat("yyyy-MM-dd");
 	public void processRecord(GroupedWorkSolr groupedWork, String identifier) {
 		try {
 			indexer.overDriveRecordsIndexed.add(identifier);

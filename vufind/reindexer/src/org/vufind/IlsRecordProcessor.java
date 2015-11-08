@@ -72,7 +72,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 	protected char orderStatusSubfield;
 	protected char orderCode3Subfield;
 
-	private static HashMap<String, Integer> numberOfHoldsByIdentifier = new HashMap<>();
+	private HashMap<String, Integer> numberOfHoldsByIdentifier = new HashMap<>();
 
 	private HashMap<String, TranslationMap> translationMaps = new HashMap<>();
 
@@ -633,7 +633,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		return "Unknown Source";
 	}
 
-	protected static SimpleDateFormat dateAddedFormatter = null;
+	protected SimpleDateFormat dateAddedFormatter = null;
 	protected ItemInfo getPrintIlsItem(GroupedWorkSolr groupedWork, RecordInfo recordInfo, Record record, DataField itemField) {
 		if (dateAddedFormatter == null){
 			dateAddedFormatter = new SimpleDateFormat(dateAddedFormat);
