@@ -700,7 +700,7 @@ class DBMaintenanceEContent extends Admin_Admin {
 				'title' => 'OverDrive API Data',
 				'description' => 'Build tables to store data loaded fromthe OverDrive API so the reindex process can use cached data and so we can add additional logic for lastupdate time, etc.',
 				'sql' => array(
-					"CREATE TABLE overdrive_api_products (
+					"CREATE TABLE IF NOT EXISTS overdrive_api_products (
 						`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
 						overdriveId VARCHAR(36) NOT NULL,
 						mediaType  VARCHAR(50) NOT NULL,
@@ -723,7 +723,7 @@ class DBMaintenanceEContent extends Admin_Admin {
 						INDEX(lastAvailabilityCheck),
 	                    INDEX(deleted)
 					)" ,
-					"CREATE TABLE overdrive_api_product_formats (
+					"CREATE TABLE IF NOT EXISTS overdrive_api_product_formats (
 						`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
 						productId INT,
 						textId VARCHAR(25),
@@ -740,7 +740,7 @@ class DBMaintenanceEContent extends Admin_Admin {
 						INDEX(numericId),
 						UNIQUE(productId, textId)
 					)",
-					"CREATE TABLE overdrive_api_product_metadata (
+					"CREATE TABLE IF NOT EXISTS overdrive_api_product_metadata (
 						`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
 						productId INT,
 						checksum BIGINT,
@@ -755,7 +755,7 @@ class DBMaintenanceEContent extends Admin_Admin {
 						popularity INT,
 						UNIQUE(productId)
 					)",
-					"CREATE TABLE overdrive_api_product_creators (
+					"CREATE TABLE IF NOT EXISTS overdrive_api_product_creators (
 						`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
 						productId INT,
 						role VARCHAR(50),
@@ -763,7 +763,7 @@ class DBMaintenanceEContent extends Admin_Admin {
 						fileAs VARCHAR(215),
 						INDEX (productId)
 					)",
-					"CREATE TABLE overdrive_api_product_identifiers (
+					"CREATE TABLE IF NOT EXISTS overdrive_api_product_identifiers (
 						`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
 						productId INT,
 						type VARCHAR(50),
@@ -771,29 +771,29 @@ class DBMaintenanceEContent extends Admin_Admin {
 						INDEX (productId),
 	                    INDEX (type)
 					)",
-					"CREATE TABLE overdrive_api_product_languages (
+					"CREATE TABLE IF NOT EXISTS overdrive_api_product_languages (
 						`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
 						code VARCHAR(10),
 						name VARCHAR(50),
 						INDEX (code)
 					)",
-					"CREATE TABLE overdrive_api_product_languages_ref (
+					"CREATE TABLE IF NOT EXISTS overdrive_api_product_languages_ref (
 						`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
 						productId INT,
 						languageId INT,
 						UNIQUE (productId, languageId)
 					)",
-					"CREATE TABLE overdrive_api_product_subjects (
+					"CREATE TABLE IF NOT EXISTS overdrive_api_product_subjects (
 						`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
 						name VARCHAR(512),
 						index(name)
 					)",
-					"CREATE TABLE overdrive_api_product_subjects_ref (
+					"CREATE TABLE IF NOT EXISTS overdrive_api_product_subjects_ref (
 						productId INT,
 						subjectId INT,
 						UNIQUE (productId, subjectId)
 					)",
-					"CREATE TABLE overdrive_api_product_availability (
+					"CREATE TABLE IF NOT EXISTS overdrive_api_product_availability (
 						`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
 						productId INT,
 						libraryId INT,
@@ -805,7 +805,7 @@ class DBMaintenanceEContent extends Admin_Admin {
 						INDEX (libraryId),
 						UNIQUE(productId, libraryId)
 					)",
-					"CREATE TABLE overdrive_extract_log(
+					"CREATE TABLE IF NOT EXISTS overdrive_extract_log(
 						`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
 						`startTime` INT(11),
 						`endTime` INT(11),
