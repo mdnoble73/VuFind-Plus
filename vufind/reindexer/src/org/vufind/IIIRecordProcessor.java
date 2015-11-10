@@ -19,20 +19,20 @@ import java.util.*;
  * Time: 11:39 PM
  */
 public abstract class IIIRecordProcessor extends IlsRecordProcessor{
-	private static boolean loanRuleDataLoaded = false;
-	protected static ArrayList<Long> pTypes = new ArrayList<>();
-	protected static HashMap<String, HashSet<String>> pTypesByLibrary = new HashMap<>();
-	protected static HashMap<String, HashSet<String>> pTypesForSpecialLocationCodes = new HashMap<>();
-	protected static HashSet<String> allPTypes = new HashSet<>();
-	private static HashMap<Long, LoanRule> loanRules = new HashMap<>();
-	private static ArrayList<LoanRuleDeterminer> loanRuleDeterminers = new ArrayList<>();
+	private boolean loanRuleDataLoaded = false;
+	protected ArrayList<Long> pTypes = new ArrayList<>();
+	protected HashMap<String, HashSet<String>> pTypesByLibrary = new HashMap<>();
+	protected HashMap<String, HashSet<String>> pTypesForSpecialLocationCodes = new HashMap<>();
+	protected HashSet<String> allPTypes = new HashSet<>();
+	private HashMap<Long, LoanRule> loanRules = new HashMap<>();
+	private ArrayList<LoanRuleDeterminer> loanRuleDeterminers = new ArrayList<>();
 
 	public IIIRecordProcessor(GroupedWorkIndexer indexer, Connection vufindConn, Ini configIni, ResultSet indexingProfileRS, Logger logger, boolean fullReindex) {
 		super(indexer, vufindConn, configIni, indexingProfileRS, logger, fullReindex);
 		loadLoanRuleInformation(vufindConn, logger);
 	}
 
-	private static void loadLoanRuleInformation(Connection vufindConn, Logger logger) {
+	private void loadLoanRuleInformation(Connection vufindConn, Logger logger) {
 		if (!loanRuleDataLoaded){
 			//Load loan rules
 			try {
