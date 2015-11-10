@@ -7700,7 +7700,7 @@ hr.menu {
   border: 0;
 }
 .searchTypeHome,
-#searchSource {
+.searchSource {
   margin: 5px 0 0;
   color: #fff;
   background-color: #004684;

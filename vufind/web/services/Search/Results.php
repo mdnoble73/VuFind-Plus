@@ -155,6 +155,7 @@ class Search_Results extends Action {
 		}
 
 		// Cannot use the current search globals since we may change the search term above
+		// Display of query is not right when reusing the global search object
 		/** @var SearchObject_Solr $searchObject */
 		$searchObject = SearchObjectFactory::initSearchObject();
 		$searchObject->init($searchSource);

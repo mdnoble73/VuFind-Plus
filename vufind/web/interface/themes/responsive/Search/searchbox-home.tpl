@@ -83,12 +83,12 @@
 			{if $searchIndex != 'Keyword' && $searchIndex != '' && $searchIndex != 'GenealogyKeyword'}
 				<div class="row text-center">
 					<div class="col-sm-10 col-md-10 col-sm-push-1 col-md-push-1">
-						<select name="basicType" class="searchTypeHome form-control catalogType" id="basicSearchTypes" title="Search by Keyword to find subjects, titles, authors, etc. Search by Title or Author for more precise results." {if $searchSource == 'genealogy'}style='display:none'{/if}>
+						<select name="basicType" class="searchTypeHome form-control catalogType" id="basicSearchTypes" title="Search by Keyword to find subjects, titles, authors, etc. Search by Title or Author for more precise results." {if $searchSource == 'genealogy'}style="display:none"{/if}>
 							{foreach from=$basicSearchTypes item=searchDesc key=searchVal}
 								<option value="{$searchVal}"{if $basicSearchIndex == $searchVal || $searchIndex == $searchVal} selected="selected"{/if}>{translate text=$searchDesc}</option>
 							{/foreach}
 						</select>
-						<select name="genealogyType" class="searchTypeHome form-control genealogyType" id="genealogySearchTypes" {if $searchSource != 'genealogy'}style='display:none'{/if}>
+						<select name="genealogyType" class="searchTypeHome form-control genealogyType" id="genealogySearchTypes" {if $searchSource != 'genealogy'}style="display:none"{/if}>
 							{foreach from=$genealogySearchTypes item=searchDesc key=searchVal}
 								<option value="{$searchVal}"{if $genealogySearchIndex == $searchVal} selected="selected"{/if}>{translate text=$searchDesc}</option>
 							{/foreach}
@@ -101,7 +101,7 @@
 					{if $searchSources|@count == 1}
 						<input type="hidden" name="searchSource" value="{$searchSource}">
 					{else}
-					<select name="searchSource" id="searchSource" title="Select what to search.	Items marked with a * will redirect you to one of our partner sites." onchange='VuFind.Searches.enableSearchTypes();' class="form-control">
+					<select name="searchSource" id="searchSource" title="Select what to search.	Items marked with a * will redirect you to one of our partner sites." onchange="VuFind.Searches.enableSearchTypes();" class="searchSource form-control">
 						{foreach from=$searchSources item=searchOption key=searchKey}
 							<option data-catalog_type="{$searchOption.catalogType}" value="{$searchKey}"
 								{if $searchKey == $searchSource && !$filterList} selected="selected"{/if}

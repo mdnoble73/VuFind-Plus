@@ -636,7 +636,6 @@ class Location extends DB_DataObject
 			require_once ROOT_DIR . '/Drivers/marmot_inc/subnet.php';
 			$subnet = new subnet();
 			$ipVal = ip2long($activeIp);
-			//TODO: set opac status
 
 			$this->ipLocation = null;
 			$this->ipId = -1;

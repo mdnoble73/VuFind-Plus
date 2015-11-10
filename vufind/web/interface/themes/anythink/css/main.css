@@ -7710,7 +7710,7 @@ hr.menu {
   font-size: initial;
 }
 .searchTypeHome,
-#searchSource {
+.searchSource {
   margin: 5px 0 0;
   color: #fff;
   background-color: #e1dedb;
