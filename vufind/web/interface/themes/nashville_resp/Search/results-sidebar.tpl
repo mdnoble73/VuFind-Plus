@@ -1,6 +1,8 @@
 {strip}
 	{* New Search Box *}
-	{include file="Search/searchbox-home.tpl"}
+	{if !$horizontalSearchBar}
+		{include file="Search/searchbox-home.tpl"}
+	{/if}
 
 	{include file="login-sidebar.tpl"}
 

@@ -561,15 +561,9 @@ class Location extends DB_DataObject
 	private $physicalLocation = 'unset';
 	function getPhysicalLocation(){
 		if ($this->physicalLocation != 'unset'){
-			if ($this->physicalLocation == 'null'){
-				return null;
-			}else{
 				return $this->physicalLocation;
-			}
 		}
-		$this->physicalLocation = 'null';
-		// QUESTION: why is default set to string 'null' instead of null value?
-		//The branch parameter trumps IP Address if set.
+
 		if ($this->getBranchLocationCode() != ''){
 			$this->physicalLocation = $this->getActiveLocation();
 		}else{

@@ -159,12 +159,14 @@ div.bottom-border-line {
 //}
 //
 //.placeholderselectors(@ruleset) {
-//  &::placeholder {@ruleset();}
-//  &::-moz-placeholder{@ruleset();}
+//  // &:-ms-input-placeholder{@ruleset()}
+//  // &::-webkit-input-placeholder{@ruleset()}
 //  &:-moz-placeholder{@ruleset();}
-//  &::-webkit-input-placeholder{@ruleset()}
-//  &:-ms-input-placeholder{@ruleset()}
+//  &::-moz-placeholder{@ruleset();}
+//  &::placeholder {@ruleset();}
 //}
+
+
 
 // old method
 #lookfor {
@@ -209,36 +211,32 @@ div.bottom-border-line {
 }
 
 // the category text
-//.browse-category a, // TODO with a tags removed , delete this line
-.browse-category div{
-  color: @browse-label-text-color;
-  text-shadow: none;
-  text-transform: uppercase;
-  font-size: large;
-  font-weight: 500;
-  &:focus {
-    outline: none; // hide outlining of clicked category
-  }
-}
-
 .browse-category {
   padding-top: 20px; // extra padding on top to center text
   height: 120px;
-}
 
-//@selectedShadowColor: #DBD4CB;
-
-// Selected Category needs to give a highlighted appearance
-.browse-category.selected {
-  border: none;
-  background-color: @selectedCategoryColor;
-  background: @selectedCategoryColor;
-  background: linear-gradient(to bottom, @selectedCategoryColor 0%,@selectedCategoryColor 75%, #fff 75%, #fff 80%, lighten(@selectedCategoryColor, 30%) 80%, #fff 100%);
-//  a,  // TODO with a tags removed , delete this line
   div {
-    color: #fff;
+    color: @browse-label-text-color;
+    text-shadow: none;
+    text-transform: uppercase;
+    font-size: large;
+    font-weight: 500;
+    &:focus {
+      outline: none; // hide outlining of clicked category
+    }
+  }
+  &.selected {
+    border: none;
+    background-color: @selectedCategoryColor;
+    background: @selectedCategoryColor;
+    background: linear-gradient(to bottom, @selectedCategoryColor 0%,@selectedCategoryColor 75%, #fff 75%, #fff 80%, lighten(@selectedCategoryColor, 30%) 80%, #fff 100%);
+    //  a,  // TODO with a tags removed , delete this line
+    div {
+      color: #fff;
+    }
   }
 }
+
 
 // Left/Right Arrows on browse category carousel
 #browse-category-picker {
@@ -397,3 +395,4 @@ div.bottom-border-line {
     }
   }
 } // end of #home-library-links
+

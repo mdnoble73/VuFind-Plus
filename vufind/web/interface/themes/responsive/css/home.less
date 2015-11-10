@@ -6,6 +6,7 @@
 // Styling for home page elements
 //
 
+// Side-bar Search Box
 #home-page-search{
   background-color: @home-search-top-color;
   background: linear-gradient(to bottom, @home-search-top-color, @home-search-bottom-color);
@@ -36,36 +37,83 @@
 #lookfor::-moz-placeholder{.placeholder-mixin;}
 #lookfor::placeholder {.placeholder-mixin;}
 
-.searchTypeHome{
+.searchTypeHome,#searchSource{
   margin: 5px 0 0;
   color: #fff;
   background-color: @home-search-bottom-color;
   border: none;
   width: 90% !important;
 }
-#searchSource{
-  margin: 5px 0 0;
-  color: #fff;
-  background-color: @home-search-bottom-color;
-  border: none;
-  width: 90%;
-}
+
 #keepFiltersSwitchLabel, #advancedSearchLink{
   color: #fff;
   font-weight: normal;
   font-size: 85%;
 }
-.sidebar-bold-button{
-  text-align: center;
-  background-color: #7c7c7d;
-  background: linear-gradient(to bottom, #7c7c7d, #3d4244);
-  color: #fff;
-  padding: 3px 0;
-  margin-bottom: 15px;
-  a {
-    color:#fff;
+
+
+// Horizontal Search Box Styling
+#horizontal-search-box {
+  background-color: @home-search-top-color;
+  background: linear-gradient(to bottom, @home-search-top-color, @home-search-bottom-color);
+  padding: 30px 0;
+  #searchForm {
+    .row {
+      // undo margin-adjusting for this row.
+      margin-left: 0;
+      margin-right: 0;
+      &>div {
+        margin-top: 4px; // provides vertical spacing between inputs for smaller screen widths.
+        //padding-left: 4px;
+        //padding-right: 0;
+      }
+    }
+    #horizontal-search-button-container {
+      margin-top: 4px; // provides vertical spacing between inputs for smaller screen widths.
+      @media (max-width: @screen-sm-min) {
+        padding-left: 4px;
+      }
+    }
   }
+
+  div {
+    padding-left: 4px;
+    padding-right: 0;
+    @media (max-width: @screen-sm-min) {
+      padding-left: 1px;
+      padding-right: 1px;
+    }
+  }
+
+  #horizontal-search-label {
+    color: #fff;
+  }
+
+  #lookfor {
+    height: 34px;
+  }
+  .searchSourceHorizontal,
+  .searchTypeHorizontal {
+    width: 100%;
+    margin: 0 0;
+    border: none;
+    border-radius: 0;
+  }
+
 }
+
+// This appears to not be in use any longer. plb 11-9-2015
+//.sidebar-bold-button{
+//  text-align: center;
+//  background-color: #7c7c7d;
+//  background: linear-gradient(to bottom, #7c7c7d, #3d4244);
+//  color: #fff;
+//  padding: 3px 0;
+//  margin-bottom: 15px;
+//  a {
+//    color:#fff;
+//  }
+//}
 
 #home-page-login{
   background-color: #AFAFAF;
@@ -76,6 +124,9 @@
   margin-bottom: 5px;
   a {
     color:#fff;
+  }
+  #horizontal-search-wrapper + #content-container & {
+    margin-top:5px; // Add some space between horizontal spacing
   }
 }
 
@@ -155,11 +206,10 @@
     font-size: 13px;
     color: @gray-dark;
     background-color: #eeeeee;
-  }
-
-  .panel-body a{
-    &, &:visited, &:hover {
-      color: @sidebar-link-color;
+    a {
+      &, &:visited, &:hover {
+        color: @sidebar-link-color;
+      }
     }
   }
 }
@@ -258,7 +308,7 @@
   border-radius: @border-radius-small 0 0 @border-radius-small;
   overflow-y: hidden;
   padding-top: 0.4em;
-  height: 18px;
+  height: 18px; //TODO set to 34px to match .formcontrol
   line-height: 20px;
   min-height: 18px;
 }

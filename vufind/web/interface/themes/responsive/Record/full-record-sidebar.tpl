@@ -1,6 +1,9 @@
 {strip}
 	{* New Search Box *}
-	{include file="Search/searchbox-home.tpl"}
+	{if !$horizontalSearchBar}
+		{include file="Search/searchbox-home.tpl"}
+	{/if}
+
 
 	{* Navigate within the results *}
 	<div class="search-results-navigation text-center">

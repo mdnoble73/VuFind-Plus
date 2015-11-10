@@ -94,13 +94,13 @@ hr.menu {
 #header-links {
   text-align: center;
 }
+#header-links .header-link-wrapper:last-of-type {
+  border-right: 0 solid black;
+}
 .header-link-wrapper {
   display: inline-block;
   padding: 2px 15px;
   border-right: 1px solid #0078ae;
-}
-#header-links .header-link-wrapper:last-of-type {
-  border-right: 0 solid black;
 }
 .header-link-wrapper a {
   font-size: 16px;
@@ -108,6 +108,12 @@ hr.menu {
 #footer-container {
   border-top: 8px solid #088ec6;
   padding-top: 3px;
+}
+@media screen and (max-width: 767px) {
+  #footer-container {
+    margin-left: 0;
+    margin-right: 0;
+  }
 }
 #install-info {
   padding-left: 20px;
@@ -147,6 +153,10 @@ hr.menu {
 }
 #main-content-with-sidebar > .row {
   margin-right: -30px;
+}
+#xs-main-content-insertion-point {
+  margin-left: 0;
+  margin-right: 0;
 }
 .modal {
   overflow-y: auto;

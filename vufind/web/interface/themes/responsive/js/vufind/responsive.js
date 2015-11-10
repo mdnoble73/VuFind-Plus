@@ -6,14 +6,17 @@ VuFind.Responsive = (function(){
 		}).trigger('resize');
 
 		// auto adjust the height of the search box
-		$('#lookfor').on( 'keyup', function (event ){
+		// (Only side bar search box for now)
+		$('#lookfor', '#home-page-search').on( 'keyup', function (event ){
 			$(this).height( 0 );
 			if (this.scrollHeight < 32){
 				$(this).height( 18 );
 			}else{
 				$(this).height( this.scrollHeight );
 			}
-		}).on( 'keydown', function (event ){
+		}).keyup(); //This keyup triggers the resize
+
+		$('#lookfor').on( 'keydown', function (event ){
 			if (event.which == 13 || event.which == 10){
 				event.preventDefault();
 				event.stopPropagation();
@@ -26,7 +29,7 @@ VuFind.Responsive = (function(){
 				event.stopPropagation();
 				return false;
 			}
-		}).keyup(); //This keyup triggers the resize
+		})
 	});
 
 	try{

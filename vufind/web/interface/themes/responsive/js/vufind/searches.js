@@ -152,7 +152,7 @@ VuFind.Searches = (function(){
 		},
 
 		enableSearchTypes: function(){
-			var searchTypeElement = $("#searchSource");
+			var searchTypeElement = $("#searchSource"); //Not The horizontal search source. TODO need to?
 			var catalogType = "catalog";
 			if (searchTypeElement){
 				var selectedSearchType = $(searchTypeElement.find(":selected"));

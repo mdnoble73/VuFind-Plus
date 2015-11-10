@@ -1,6 +1,9 @@
 {strip}
 	{* New Search Box *}
-	{include file="Search/searchbox-home.tpl"}
+	{if !$horizontalSearchBar}
+		{include file="Search/searchbox-home.tpl"}
+	{/if}
+
 	{include file="login-sidebar.tpl"}
 	{* Sort the results - moved to results-displayMode-toggle.tpl for Nashville - 2015 07 07 by Jenny *}
 
