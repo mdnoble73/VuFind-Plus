@@ -1,4 +1,4 @@
-# Specific locations within VuFind to exclude from git #
+# Specific locations within Pika to exclude from git   #
 # Files are excluded either because                    #
 #  - they contain sensitive data (i.e. passwords)      #
 #  - they can change at runtime                        #
@@ -107,6 +107,10 @@ documentation/~*.tmp
 # File-watcher mishaps #
 ########################
 *.min.min.js
+
+# Marmot Symbolic Links #
+#########################
+sites/*.marmot.org
 
 # Nashville Symbolic Links #
 ############################
