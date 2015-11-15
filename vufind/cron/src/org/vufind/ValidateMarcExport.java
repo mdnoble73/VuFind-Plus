@@ -47,6 +47,7 @@ public class ValidateMarcExport implements IProcessHandler{
 						int numSuppressedRecords = 0;
 						int numRecordsToIndex = 0;
 						String lastRecordProcessed = "";
+						String lastProcessedRecordLogged = "";
 						if (curBibFile.getName().toLowerCase().endsWith(".mrc") || curBibFile.getName().toLowerCase().endsWith(".marc")) {
 							processLog.addNote("&nbsp;&nbsp;Processing file " + curBibFile.getName());
 							try {
@@ -71,14 +72,22 @@ public class ValidateMarcExport implements IProcessHandler{
 											lastRecordProcessed = recordIdentifier.getIdentifier();
 										}
 									}catch (MarcException me){
-										logger.warn("Error processing individual record  on record " + numRecordsRead + " of " + curBibFile.getAbsolutePath() + " the last record processed was " + lastRecordProcessed + " trying to continue", me);
+										if (!lastProcessedRecordLogged.equals(lastRecordProcessed)) {
+											logger.warn("Error processing individual record  on record " + numRecordsRead + " of " + curBibFile.getAbsolutePath() + " the last record processed was " + lastRecordProcessed + " trying to continue", me);
+											processLog.addNote("Error processing individual record  on record " + numRecordsRead + " of " + curBibFile.getAbsolutePath() + " the last record processed was " + lastRecordProcessed + " trying to continue.  " + me.toString());
+											processLog.incErrors();
+											processLog.saveToDatabase(vufindConn, logger);
+											lastProcessedRecordLogged = lastRecordProcessed;
+										}
 									}
 								}
 								marcFileStream.close();
 								processLog.addNote("&nbsp;&nbsp;&nbsp;&nbsp;File is valid.  Found " + numRecordsToIndex + " records that will be indexed and " + numSuppressedRecords + " records that will be suppressed.");
 							} catch (Exception e) {
 								logger.error("&nbsp;&nbsp;&nbsp;&nbsp;Error loading catalog bibs on record " + numRecordsRead + " of " + curBibFile.getAbsolutePath() + " the last record processed was " + lastRecordProcessed, e);
+								processLog.addNote("Error loading catalog bibs on record " + numRecordsRead + " of " + curBibFile.getAbsolutePath() + " the last record processed was " + lastRecordProcessed + ". " + e.toString());
 								allExportsValid = false;
+								processLog.saveToDatabase(vufindConn, logger);
 							}
 						}
 					} catch (Exception e) {
