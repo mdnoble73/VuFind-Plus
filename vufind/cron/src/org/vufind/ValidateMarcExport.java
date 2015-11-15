@@ -53,15 +53,19 @@ public class ValidateMarcExport implements IProcessHandler{
 								MarcReader catalogReader = new MarcPermissiveStreamReader(marcFileStream, true, true, marcEncoding);
 								while (catalogReader.hasNext()) {
 									Record curBib = catalogReader.next();
+									numRecordsRead++;
 									RecordIdentifier recordIdentifier = getPrimaryIdentifierFromMarcRecord(curBib, curProfile);
 									if (recordIdentifier == null) {
 										//logger.debug("Record with control number " + curBib.getControlNumber() + " was suppressed or is eContent");
+										lastRecordProcessed = curBib.getControlNumber();
 										numSuppressedRecords++;
 									}else if (recordIdentifier.isSuppressed()) {
 										//logger.debug("Record with control number " + curBib.getControlNumber() + " was suppressed or is eContent");
 										numSuppressedRecords++;
+										lastRecordProcessed = recordIdentifier.getIdentifier();
 									}else{
 										numRecordsToIndex++;
+										lastRecordProcessed = recordIdentifier.getIdentifier();
 									}
 								}
 								marcFileStream.close();
