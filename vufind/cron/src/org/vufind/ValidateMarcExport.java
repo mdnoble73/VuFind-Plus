@@ -37,7 +37,7 @@ public class ValidateMarcExport implements IProcessHandler{
 		for (IndexingProfile curProfile : indexingProfiles){
 			String marcPath = curProfile.marcPath;
 			String marcEncoding = curProfile.marcEncoding;
-			processLog.addNote("Processing profile " + curProfile + " using marc encoding " + marcEncoding);
+			processLog.addNote("Processing profile " + curProfile.name + " using marc encoding " + marcEncoding);
 
 			File[] catalogBibFiles = new File(marcPath).listFiles();
 			if (catalogBibFiles != null) {
