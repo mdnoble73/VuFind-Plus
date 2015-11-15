@@ -3,6 +3,7 @@ package org.vufind;
 import org.apache.log4j.Logger;
 import org.ini4j.Ini;
 import org.ini4j.Profile;
+import org.marc4j.MarcException;
 import org.marc4j.MarcPermissiveStreamReader;
 import org.marc4j.MarcReader;
 import org.marc4j.marc.*;
@@ -52,20 +53,25 @@ public class ValidateMarcExport implements IProcessHandler{
 								FileInputStream marcFileStream = new FileInputStream(curBibFile);
 								MarcReader catalogReader = new MarcPermissiveStreamReader(marcFileStream, true, true, marcEncoding);
 								while (catalogReader.hasNext()) {
-									Record curBib = catalogReader.next();
-									numRecordsRead++;
-									RecordIdentifier recordIdentifier = getPrimaryIdentifierFromMarcRecord(curBib, curProfile);
-									if (recordIdentifier == null) {
-										//logger.debug("Record with control number " + curBib.getControlNumber() + " was suppressed or is eContent");
-										lastRecordProcessed = curBib.getControlNumber();
-										numSuppressedRecords++;
-									}else if (recordIdentifier.isSuppressed()) {
-										//logger.debug("Record with control number " + curBib.getControlNumber() + " was suppressed or is eContent");
-										numSuppressedRecords++;
-										lastRecordProcessed = recordIdentifier.getIdentifier();
-									}else{
-										numRecordsToIndex++;
-										lastRecordProcessed = recordIdentifier.getIdentifier();
+									Record curBib;
+									try {
+										curBib = catalogReader.next();
+										numRecordsRead++;
+										RecordIdentifier recordIdentifier = getPrimaryIdentifierFromMarcRecord(curBib, curProfile);
+										if (recordIdentifier == null) {
+											//logger.debug("Record with control number " + curBib.getControlNumber() + " was suppressed or is eContent");
+											lastRecordProcessed = curBib.getControlNumber();
+											numSuppressedRecords++;
+										} else if (recordIdentifier.isSuppressed()) {
+											//logger.debug("Record with control number " + curBib.getControlNumber() + " was suppressed or is eContent");
+											numSuppressedRecords++;
+											lastRecordProcessed = recordIdentifier.getIdentifier();
+										} else {
+											numRecordsToIndex++;
+											lastRecordProcessed = recordIdentifier.getIdentifier();
+										}
+									}catch (MarcException me){
+										logger.warn("Error processing individual record  on record " + numRecordsRead + " of " + curBibFile.getAbsolutePath() + " the last record processed was " + lastRecordProcessed + " trying to continue", me);
 									}
 								}
 								marcFileStream.close();
