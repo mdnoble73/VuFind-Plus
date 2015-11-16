@@ -7700,7 +7700,7 @@ hr.menu {
   border: 0;
 }
 .searchTypeHome,
-#searchSource {
+.searchSource {
   margin: 5px 0 0;
   color: #fff;
   background-color: #000066;
@@ -7728,6 +7728,7 @@ hr.menu {
 #horizontal-search-box #searchForm #horizontal-search-button-container {
   margin-top: 4px;
 }
+@media (max-width: 768px) {
   #horizontal-search-box #searchForm #horizontal-search-button-container {
     padding-left: 4px;
   }
@@ -7736,6 +7737,7 @@ hr.menu {
   padding-left: 4px;
   padding-right: 0;
 }
+@media (max-width: 768px) {
   #horizontal-search-box div {
     padding-left: 1px;
     padding-right: 1px;

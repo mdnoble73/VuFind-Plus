@@ -3,6 +3,7 @@ package org.vufind;
 import org.apache.log4j.Logger;
 import org.ini4j.Ini;
 import org.ini4j.Profile;
+import org.marc4j.MarcException;
 import org.marc4j.MarcPermissiveStreamReader;
 import org.marc4j.MarcReader;
 import org.marc4j.marc.*;
@@ -36,7 +37,7 @@ public class ValidateMarcExport implements IProcessHandler{
 		for (IndexingProfile curProfile : indexingProfiles){
 			String marcPath = curProfile.marcPath;
 			String marcEncoding = curProfile.marcEncoding;
-			processLog.addNote("Processing profile " + curProfile + " using marc encoding " + marcEncoding);
+			processLog.addNote("Processing profile " + curProfile.name + " using marc encoding " + marcEncoding);
 
 			File[] catalogBibFiles = new File(marcPath).listFiles();
 			if (catalogBibFiles != null) {
@@ -46,29 +47,47 @@ public class ValidateMarcExport implements IProcessHandler{
 						int numSuppressedRecords = 0;
 						int numRecordsToIndex = 0;
 						String lastRecordProcessed = "";
+						String lastProcessedRecordLogged = "";
 						if (curBibFile.getName().toLowerCase().endsWith(".mrc") || curBibFile.getName().toLowerCase().endsWith(".marc")) {
 							processLog.addNote("&nbsp;&nbsp;Processing file " + curBibFile.getName());
 							try {
 								FileInputStream marcFileStream = new FileInputStream(curBibFile);
 								MarcReader catalogReader = new MarcPermissiveStreamReader(marcFileStream, true, true, marcEncoding);
 								while (catalogReader.hasNext()) {
-									Record curBib = catalogReader.next();
-									RecordIdentifier recordIdentifier = getPrimaryIdentifierFromMarcRecord(curBib, curProfile);
-									if (recordIdentifier == null) {
-										//logger.debug("Record with control number " + curBib.getControlNumber() + " was suppressed or is eContent");
-										numSuppressedRecords++;
-									}else if (recordIdentifier.isSuppressed()) {
-										//logger.debug("Record with control number " + curBib.getControlNumber() + " was suppressed or is eContent");
-										numSuppressedRecords++;
-									}else{
-										numRecordsToIndex++;
+									Record curBib;
+									try {
+										curBib = catalogReader.next();
+										numRecordsRead++;
+										RecordIdentifier recordIdentifier = getPrimaryIdentifierFromMarcRecord(curBib, curProfile);
+										if (recordIdentifier == null) {
+											//logger.debug("Record with control number " + curBib.getControlNumber() + " was suppressed or is eContent");
+											lastRecordProcessed = curBib.getControlNumber();
+											numSuppressedRecords++;
+										} else if (recordIdentifier.isSuppressed()) {
+											//logger.debug("Record with control number " + curBib.getControlNumber() + " was suppressed or is eContent");
+											numSuppressedRecords++;
+											lastRecordProcessed = recordIdentifier.getIdentifier();
+										} else {
+											numRecordsToIndex++;
+											lastRecordProcessed = recordIdentifier.getIdentifier();
+										}
+									}catch (MarcException me){
+										if (!lastProcessedRecordLogged.equals(lastRecordProcessed)) {
+											logger.warn("Error processing individual record  on record " + numRecordsRead + " of " + curBibFile.getAbsolutePath() + " the last record processed was " + lastRecordProcessed + " trying to continue", me);
+											processLog.addNote("Error processing individual record  on record " + numRecordsRead + " of " + curBibFile.getAbsolutePath() + " the last record processed was " + lastRecordProcessed + " trying to continue.  " + me.toString());
+											processLog.incErrors();
+											processLog.saveToDatabase(vufindConn, logger);
+											lastProcessedRecordLogged = lastRecordProcessed;
+										}
 									}
 								}
 								marcFileStream.close();
 								processLog.addNote("&nbsp;&nbsp;&nbsp;&nbsp;File is valid.  Found " + numRecordsToIndex + " records that will be indexed and " + numSuppressedRecords + " records that will be suppressed.");
 							} catch (Exception e) {
 								logger.error("&nbsp;&nbsp;&nbsp;&nbsp;Error loading catalog bibs on record " + numRecordsRead + " of " + curBibFile.getAbsolutePath() + " the last record processed was " + lastRecordProcessed, e);
+								processLog.addNote("Error loading catalog bibs on record " + numRecordsRead + " of " + curBibFile.getAbsolutePath() + " the last record processed was " + lastRecordProcessed + ". " + e.toString());
 								allExportsValid = false;
+								processLog.saveToDatabase(vufindConn, logger);
 							}
 						}
 					} catch (Exception e) {

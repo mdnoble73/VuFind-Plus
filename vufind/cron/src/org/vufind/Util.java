@@ -404,4 +404,8 @@ public class Util {
 		}
 		return stringToTrim.trim();
 	}
+
+	public static boolean compareStrings(String curLine1, String curLine2) {
+		return curLine1 == null && curLine2 == null || !(curLine1 == null || curLine2 == null) && curLine1.equals(curLine2);
+	}
 }

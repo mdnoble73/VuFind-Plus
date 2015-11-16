@@ -8,6 +8,7 @@ import org.ini4j.Ini;
 import org.ini4j.InvalidFileFormatException;
 import org.ini4j.Profile;
 import org.json.JSONObject;
+import org.marc4j.MarcException;
 import org.marc4j.MarcPermissiveStreamReader;
 import org.marc4j.MarcReader;
 import org.marc4j.MarcStreamWriter;
@@ -618,6 +619,18 @@ public class RecordGrouperMain {
 
 		//Make sure that our export is valid
 		try{
+			PreparedStatement bypassValidationStmt = vufindConn.prepareStatement("SELECT * from variables WHERE name = 'bypass_export_validation'");
+			ResultSet bypassValidationRS = bypassValidationStmt.executeQuery();
+			boolean bypassValidation = false;
+			if (bypassValidationRS.next()){
+				bypassValidation = bypassValidationRS.getBoolean("value");
+			}else{
+				//This variable hasn't been created yet
+				vufindConn.prepareStatement("INSERT INTO variables (name, value) VALUES ('bypass_export_validation', 0)").executeUpdate();
+			}
+			bypassValidationRS.close();
+			bypassValidationStmt.close();
+
 			PreparedStatement loadExportValid = vufindConn.prepareStatement("SELECT * from variables WHERE name = 'last_export_valid'");
 			ResultSet lastExportValidRS = loadExportValid.executeQuery();
 			boolean lastExportValid = false;
@@ -628,8 +641,12 @@ public class RecordGrouperMain {
 			loadExportValid.close();
 
 			if (!lastExportValid){
-				logger.error("The last export was not valid.  Not regrouping to avoid loading incorrect records.");
-				System.exit(1);
+				if (bypassValidation){
+					logger.warn("The last export was not valid.  Still regrouping because bypass validation is on.");
+				} else{
+					logger.error("The last export was not valid.  Not regrouping to avoid loading incorrect records.");
+					System.exit(1);
+				}
 			}
 		} catch (Exception e){
 			logger.error("Error loading whether or not the last export was valid", e);
@@ -1259,32 +1276,36 @@ public class RecordGrouperMain {
 							FileInputStream marcFileStream = new FileInputStream(curBibFile);
 							MarcReader catalogReader = new MarcPermissiveStreamReader(marcFileStream, true, true, marcEncoding);
 							while (catalogReader.hasNext()) {
-								Record curBib = catalogReader.next();
-								RecordIdentifier recordIdentifier = recordGroupingProcessor.getPrimaryIdentifierFromMarcRecord(curBib, curProfile.name);
-								if (recordIdentifier == null) {
-									//logger.debug("Record with control number " + curBib.getControlNumber() + " was suppressed or is eContent");
-									suppressedControlNumbersInExport.add(curBib.getControlNumber());
-								}else if (recordIdentifier.isSuppressed()) {
-									//logger.debug("Record with control number " + curBib.getControlNumber() + " was suppressed or is eContent");
-									suppressedControlNumbersInExport.add(recordIdentifier.getIdentifier());
-								}else{
-									String recordNumber = recordIdentifier.getIdentifier();
-									boolean marcUpToDate = writeIndividualMarc(existingMarcFiles, individualMarcPath, curBib, recordNumber, curProfile.name, 4);
-									recordNumbersInExport.add(recordIdentifier.toString());
-									if (!marcUpToDate || fullRegroupingNoClear) {
-										if (recordGroupingProcessor.processMarcRecord(curBib, !marcUpToDate)) {
-											recordNumbersToIndex.add(recordIdentifier.toString());
-										} else {
-											suppressedRecordNumbersInExport.add(recordIdentifier.toString());
+								try{
+									Record curBib = catalogReader.next();
+									RecordIdentifier recordIdentifier = recordGroupingProcessor.getPrimaryIdentifierFromMarcRecord(curBib, curProfile.name);
+									if (recordIdentifier == null) {
+										//logger.debug("Record with control number " + curBib.getControlNumber() + " was suppressed or is eContent");
+										suppressedControlNumbersInExport.add(curBib.getControlNumber());
+									}else if (recordIdentifier.isSuppressed()) {
+										//logger.debug("Record with control number " + curBib.getControlNumber() + " was suppressed or is eContent");
+										suppressedControlNumbersInExport.add(recordIdentifier.getIdentifier());
+									}else{
+										String recordNumber = recordIdentifier.getIdentifier();
+										boolean marcUpToDate = writeIndividualMarc(existingMarcFiles, individualMarcPath, curBib, recordNumber, curProfile.name, 4);
+										recordNumbersInExport.add(recordIdentifier.toString());
+										if (!marcUpToDate || fullRegroupingNoClear) {
+											if (recordGroupingProcessor.processMarcRecord(curBib, !marcUpToDate)) {
+												recordNumbersToIndex.add(recordIdentifier.toString());
+											} else {
+												suppressedRecordNumbersInExport.add(recordIdentifier.toString());
+											}
+											numRecordsProcessed++;
 										}
-										numRecordsProcessed++;
+										//Mark that the record was processed
+										if (!marcRecordIdsInDatabase.remove(curProfile.name + ":" + recordNumber)){
+											//This happens for newly added records
+											//logger.warn("Did not find " + curProfile.name + ":" + recordNumber + " in marcRecordIdsInDatabase");
+										}
+										lastRecordProcessed = recordNumber;
 									}
-									//Mark that the record was processed
-									if (!marcRecordIdsInDatabase.remove(curProfile.name + ":" + recordNumber)){
-										//This happens for newly added records
-										//logger.warn("Did not find " + curProfile.name + ":" + recordNumber + " in marcRecordIdsInDatabase");
-									}
-									lastRecordProcessed = recordNumber;
+								}catch (MarcException me){
+									logger.warn("Error processing individual record  on record " + numRecordsRead + " of " + curBibFile.getAbsolutePath() + " the last record processed was " + lastRecordProcessed + " trying to continue", me);
 								}
 								numRecordsRead++;
 								if (numRecordsRead % 100000 == 0) {
