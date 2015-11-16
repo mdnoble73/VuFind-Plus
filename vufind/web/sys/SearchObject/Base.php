@@ -643,13 +643,13 @@ abstract class SearchObject_Base
 						//Marmot - search both ISBN-10 and ISBN-13
 						//Check to see if the search term looks like an ISBN10 or ISBN13
 						$lookfor = strip_tags($_REQUEST['lookfor'.$groupCount][$i]);
-						if (($type == 'Keyword' || $type == 'ISN' || $type == 'AllFields') &&
+						/*if (($type == 'Keyword' || $type == 'ISN' || $type == 'AllFields') &&
 								(preg_match('/^\\d-?\\d{3}-?\\d{5}-?\\d$/',$lookfor) ||
 								preg_match('/^\\d{3}-?\\d-?\\d{3}-?\\d{5}-?\\d$/', $lookfor))) {
 							require_once(ROOT_DIR . '/sys/ISBN.php');
 							$isbn = new ISBN($lookfor);
 							$lookfor = $isbn->get10() . ' OR ' . $isbn->get13();
-						}
+						}*/
 
 						// Add term to this group
 						$group[] = array(
@@ -2007,7 +2007,7 @@ abstract class SearchObject_Base
 			// Process each search group
 			foreach ($search['group'] as $group) {
 				// Build this group individually as a basic search
-				$thisGroup[] = $this->getHumanReadableFieldName($group['field']) .
+				$thisGroup[] = $group['field'] .
                     ":{$group['lookfor']}";
 			}
 			// Is this an exclusion (NOT) group or a normal group?

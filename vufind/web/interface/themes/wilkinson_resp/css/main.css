@@ -7851,7 +7851,7 @@ hr.menu {
 .sidebar-links .panel-body a,
 .sidebar-links .panel-body a:visited,
 .sidebar-links .panel-body a:hover {
-  color: black;
+  color: #000000;
 }
 .ui-helper-hidden {
   display: none;
