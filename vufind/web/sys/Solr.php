@@ -787,8 +787,18 @@ class Solr implements IndexEngine {
 					$fieldValue = $values[$spec[0]];
 					//Check fields that we expect to match certain patterns to see if we should skip this term.
 					if ($field == 'isbn'){
-						if (!preg_match('/^"?\d{10,13}X?"?$/', $fieldValue)){
+						if (!preg_match('/^((?:\sOR\s)?["(]?\d{10,13}X?[\s")]*)+$/', $fieldValue)){
 							continue;
+						}else{
+							require_once(ROOT_DIR . '/sys/ISBN.php');
+							$isbn = new ISBN($fieldValue);
+							if ($isbn->isValid()){
+								$isbn10 = $isbn->get10();
+								$isbn13 = $isbn->get13();
+								if ($isbn10 && $isbn13){
+									$fieldValue = '(' . $isbn->get10() . ' OR ' . $isbn->get13() . ')';
+								}
+							}
 						}
 					}elseif($field == 'id'){
 						if (!preg_match('/^"?(\d+|.b\d+|[A-F0-9]{8}-[A-F0-9]{4}-[A-F0-9]{4}-[A-F0-9]{4}-[A-F0-9]{12})"?$/i', $fieldValue)){
@@ -961,7 +971,14 @@ class Solr implements IndexEngine {
 			// tokenization).	We'll just set all possible values to the same thing,
 			// except that we'll try to do the "one phrase" in quotes if possible.
 			$onephrase = strstr($lookfor, '"') ? $lookfor : '"' . $lookfor . '"';
-			$values = array('exact' => $onephrase, 'onephrase' => $onephrase, 'and' => $lookfor, 'or' => $lookfor, 'single_word_removal' => $onephrase);
+			$values = array(
+					'exact' => $onephrase,
+					'onephrase' => $onephrase,
+					'and' => $lookfor,
+					'or' => $lookfor,
+					'proximal' => $lookfor,
+					'single_word_removal' => $onephrase
+			);
 		}
 
 		//Create localized call number
@@ -2315,14 +2332,14 @@ class Solr implements IndexEngine {
 		for ($i=0; $i<count($words); $i++) {
 			if (($words[$i] == 'OR') || ($words[$i] == 'AND') || ($words[$i] == 'NOT')) {
 				if (count($newWords)) {
-					$newWords[count($newWords)-1] .= ' ' . $words[$i] . ' ' . $words[$i+1];
+					$newWords[count($newWords)-1] .= ' ' . trim($words[$i]) . ' ' . trim($words[$i+1]);
 					$i = $i+1;
 				}
 			} else {
 				//If we are tokenizing, remove any punctuation
 				$tmpWord = preg_replace('/[^\s\-\w.\'aàáâãåäæeèéêëiìíîïoòóôõöøuùúûü]/', '', $words[$i]);
 				if (strlen($tmpWord) > 0){
-					$newWords[] = $tmpWord;
+					$newWords[] = trim($tmpWord);
 				}
 			}
 		}
