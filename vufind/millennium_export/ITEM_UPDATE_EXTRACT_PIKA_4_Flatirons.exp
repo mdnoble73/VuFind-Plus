@@ -136,15 +136,13 @@ expect "011 >"
 send "011"
 
 # We get different information if there is a new file
-expect {
-	"2 > Create a new file" {
-		send "N"
-	}
-	"N > NEW BOOLEAN search, delete the review file" {
-		send "N"
-		expect "Are you sure you want to delete the current review file?"
-		send "Y"
-	}
+expect "2 > Create a new file" {
+  send "2"
+}
+expect "N > NEW BOOLEAN search, delete the review file" {
+  send "N"
+  expect "Are you sure you want to delete the current review file?"
+  send "Y"
 }
 expect "I > ITEM list"
 send "I"
