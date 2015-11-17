@@ -155,6 +155,10 @@
 		{/if}
 *}
 		{include file="tracking.tpl"}
+
+			{if $semanticData}
+				{include file="jsonld.tpl"}
+			{/if}
 		{/strip}
 	</body>
 </html>
