@@ -13,7 +13,7 @@ VuFind.Record = (function(){
 				url : fullUrl,
 				success : function(data) {
 					if (source == 'VuFind'){
-						var holdingsData = $(data).find("Holdings").text();
+						/*var holdingsData = $(data).find("Holdings").text();
 						if (holdingsData) {
 							if (holdingsData.length > 0) {
 								if (holdingsData.match(/No Copies Found/i)){
@@ -31,7 +31,7 @@ VuFind.Record = (function(){
 									$("#holdingsPlaceholder").html(holdingsData);
 								}
 							}
-						}
+						}*/
 						var summaryDetails = $(data).find("SummaryDetails");
 						var callNumber = summaryDetails.find("callnumber").text();
 						if (callNumber.length > 0){

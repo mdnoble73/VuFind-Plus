@@ -1816,9 +1816,12 @@ class MarcRecord extends IndexRecord
 
 		//Load more details options
 		$moreDetailsOptions = $this->getBaseMoreDetailsOptions($isbn);
+
+		//Get copies for the record
+		$this->loadCopies();
 		$moreDetailsOptions['copies'] = array(
 			'label' => 'Copies',
-			'body' => '<div id="holdingsPlaceholder"></div>',
+			'body' => $interface->fetch('Record/view-holdings.tpl'),
 			'openByDefault' => true
 		);
 		//Other editions if applicable (only if we aren't the only record!)
@@ -2069,5 +2072,71 @@ class MarcRecord extends IndexRecord
 			}
 		}
 		return $notes;
+	}
+
+	private function loadCopies() {
+		global $timer;
+		global $interface;
+		require_once ROOT_DIR . '/CatalogFactory.php';
+		$catalog = CatalogFactory::getCatalogConnectionInstance();;
+
+		if ($catalog->status) {
+			$result = $catalog->getHolding($this->getId());
+			$timer->logTime("Loaded Holding Data from catalog");
+			if (PEAR_Singleton::isError($result)) {
+				PEAR_Singleton::raiseError($result);
+			}
+			if (count($result)) {
+				$holdings = array();
+				$issueSummaries = array();
+				$hasLastCheckinData = false;
+				foreach ($result as $copy) {
+					if (isset($copy['type']) && $copy['type'] == 'issueSummary'){
+						$issueSummaries = $result;
+						break;
+					}else{
+						$hasLastCheckinData = (isset($copy['lastCheckinDate']) && $copy['lastCheckinDate'] != null) || $hasLastCheckinData; // if $hasLastCheckinData was true keep that value even when first check is false.
+						// flag for at least 1 lastCheckinDate
+
+						$key = $copy['location'];
+						$key = preg_replace('~\W~', '_', $key);
+						$holdings[$key][] = $copy;
+					}
+				}
+				if (isset($issueSummaries) && count($issueSummaries) > 0){
+					$interface->assign('issueSummaries', $issueSummaries);
+				}else{
+					$interface->assign('hasLastCheckinData', $hasLastCheckinData);
+					//Reformat the holdings into sections so the template is easier to read
+					$sections = array();
+					foreach ($holdings as $location) {
+						foreach ($location as $copyInfo) {
+							$sectionName = $copyInfo['sectionId'];
+							if (!array_key_exists($sectionName, $sections)) {
+								$sections[$sectionName] = array(
+										'name' => $copyInfo['section'],
+										'sectionId' => $copyInfo['sectionId'],
+										'holdings' => array(),
+								);
+							}
+							$sections[$sectionName]['holdings'][] = $copyInfo;
+						}
+					}
+					$interface->assign('holdings', $holdings);
+					$interface->assign('sections', $sections);
+				}
+			}else{
+				$interface->assign('holdings', array());
+			}
+
+			//Holdings summary
+			$result = $catalog->getStatusSummary($this->getId(), false);
+			if (PEAR_Singleton::isError($result)) {
+				PEAR_Singleton::raiseError($result);
+			}
+			$interface->assign('holdingsSummary', $result);
+			$timer->logTime("Loaded holdings summary");
+			$interface->assign('formattedHoldingsSummary', $interface->fetch('Record/holdingsSummary.tpl'));
+		}
 	}
 }
