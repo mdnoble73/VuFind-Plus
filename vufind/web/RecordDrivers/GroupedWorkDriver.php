@@ -2287,12 +2287,12 @@ class GroupedWorkDriver extends RecordInterface{
 				'author' => $this->getPrimaryAuthor(),
 		);
 		//BibFrame
-		/*$semanticData[] = array(
-				'@context' => 'http://bibfra.me/view/lite/',
-				'@type' => 'Work', /* TODO: This should change to a more specific type Book/Movie as applicable */
-				'title' => $this->getTitle(),
-				'author' => $this->getPrimaryAuthor(),
-		);*/
+		//$semanticData[] = array(
+		//		'@context' => 'http://bibfra.me/view/lite/',
+		//		'@type' => 'Work', /* TODO: This should change to a more specific type Book/Movie as applicable */
+		//		'title' => $this->getTitle(),
+		//		'author' => $this->getPrimaryAuthor(),
+		//);
 		//TODO: add audience, award, content
 		return $semanticData;
 	}
