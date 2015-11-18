@@ -106,15 +106,9 @@ class RecordDriverFactory {
 		if ($recordType == 'overdrive'){
 			require_once ROOT_DIR . '/RecordDrivers/OverDriveRecordDriver.php';
 			$recordDriver = new OverDriveRecordDriver($recordId, $groupedWork);
-		}elseif ($recordType == 'public_domain_econtent'){
-			require_once ROOT_DIR . '/RecordDrivers/PublicEContentDriver.php';
-			$recordDriver = new PublicEContentDriver($recordId, $groupedWork);
 		}elseif ($recordType == 'external_econtent'){
 			require_once ROOT_DIR . '/RecordDrivers/ExternalEContentDriver.php';
 			$recordDriver = new ExternalEContentDriver($recordId, $groupedWork);
-		}elseif ($recordType == 'restricted_econtent'){
-			require_once ROOT_DIR . '/RecordDrivers/RestrictedEContentDriver.php';
-			$recordDriver = new RestrictedEContentDriver($recordId, $groupedWork);
 		}elseif ($recordType == 'hoopla'){
 			require_once ROOT_DIR . '/RecordDrivers/HooplaDriver.php';
 			$recordDriver = new HooplaRecordDriver($recordId, $groupedWork);
