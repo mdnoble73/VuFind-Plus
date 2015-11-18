@@ -514,25 +514,21 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		//Set record type
 		String protectionType = itemInfo.geteContentProtectionType();
 		switch (protectionType) {
-			case "acs":
-			case "drm":
-				//Remove restricted (ACS) eContent from Pika #PK-1199
-				//relatedRecord = groupedWork.addRelatedRecord("restricted_econtent", identifier);
-				//relatedRecord.setSubSource(profileType);
-				//relatedRecord.addItem(itemInfo);
-				break;
-			case "public domain":
-			case "free":
-				//Remove free public domain, but stored locally eContent from Pika #PK-1199
-				//relatedRecord = groupedWork.addRelatedRecord("public_domain_econtent", identifier);
-				//relatedRecord.setSubSource(profileType);
-				//relatedRecord.addItem(itemInfo);
-				break;
 			case "external":
 				relatedRecord = groupedWork.addRelatedRecord("external_econtent", identifier);
 				relatedRecord.setSubSource(profileType);
 				relatedRecord.addItem(itemInfo);
-				break;
+				return null;
+			case "acs":
+			case "drm":
+			case "public domain":
+			case "free":
+				//Remove restricted (ACS) eContent from Pika #PK-1199
+				//Remove free public domain, but stored locally eContent from Pika #PK-1199
+				//relatedRecord = groupedWork.addRelatedRecord("public_domain_econtent", identifier);
+				//relatedRecord.setSubSource(profileType);
+				//relatedRecord.addItem(itemInfo);
+				return null;
 			default:
 				logger.warn("Unknown protection type " + protectionType + " found in record " + identifier);
 				break;
@@ -569,16 +565,6 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		switch (protectionType) {
 			case "external":
 				available = true;
-				break;
-			case "public domain":
-			case "free":
-				available = true;
-				break;
-			case "acs":
-			case "drm":
-				//TODO: Determine availability based on if it is checked out in the database
-				available = true;
-				holdable = true;
 				break;
 		}
 

@@ -224,7 +224,10 @@ public class AspencatRecordProcessor extends IlsRecordProcessor {
 					}
 				}
 				if (!isOverDrive && !isHoopla && isEContent){
-					unsuppressedEcontentRecords.add(getEContentIlsRecord(groupedWork, record, identifier, itemField));
+					RecordInfo eContentRecord = getEContentIlsRecord(groupedWork, record, identifier, itemField);
+					if (eContentRecord != null) {
+						unsuppressedEcontentRecords.add(eContentRecord);
+					}
 				}
 			}
 		}

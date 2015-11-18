@@ -65,7 +65,10 @@ public class FlatironsRecordProcessor extends IIIRecordProcessor{
 			for (DataField itemField : itemRecords) {
 				if (!isItemSuppressed(itemField)) {
 					//Check to see if the item has an eContent indicator
-					unsuppressedEcontentRecords.add(getEContentIlsRecord(groupedWork, record, identifier, itemField));
+					RecordInfo eContentRecord = getEContentIlsRecord(groupedWork, record, identifier, itemField);
+					if (eContentRecord != null) {
+						unsuppressedEcontentRecords.add(eContentRecord);
+					}
 				}
 			}
 			if (itemRecords.size() == 0){
