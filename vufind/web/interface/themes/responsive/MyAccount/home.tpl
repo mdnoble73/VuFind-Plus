@@ -39,8 +39,3 @@
 		{/if}
 	</div>
 {/strip}
-<script type="text/javascript">
-	$(document).ready(function() {literal} { {/literal}
-		VuFind.ResultsList.loadStatusSummaries();
-	{literal} }); {/literal}
-</script>

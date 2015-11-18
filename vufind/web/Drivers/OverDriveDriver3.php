@@ -1,7 +1,5 @@
 <?php
 
-require_once ROOT_DIR . '/sys/eContent/EContentRecord.php';
-
 /**
  * Complete integration via APIs including availability and account informatino.
  *
@@ -50,23 +48,6 @@ class OverDriveDriver3 {
 		'audiobook-overdrive' => 'OverDrive Listen',
 		'video-streaming' => 'OverDrive Video',
 	);
-
-	/**
-	 * Retrieves the URL for the cover of the record by screen scraping OverDrive.
-	 * ..
-	 * @param EContentRecord $record
-	 * @return string
-	 */
-	public function getCoverUrl($record){
-		$overDriveId = $record->getOverDriveId();
-		//Get metadata for the record
-		$metadata = $this->getProductMetadata($overDriveId);
-		if (isset($metadata->images) && isset($metadata->images->cover)){
-			return $metadata->images->cover->href;
-		}else{
-			return "";
-		}
-	}
 
 	private function _connectToAPI($forceNewConnection = false){
 		/** @var Memcache $memCache */

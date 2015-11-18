@@ -390,10 +390,6 @@ class Search_Results extends Action {
 				$listId = substr($record['id'], 4);
 				header("Location: " . $configArray['Site']['path'] . "/MyResearch/MyList/{$listId}");
 				exit();
-			}elseif ($record['recordtype'] == 'econtentRecord'){
-				$shortId = str_replace('econtentRecord', '', $record['id']);
-				header("Location: " . $configArray['Site']['path'] . "/EcontentRecord/$shortId/Home");
-				exit();
 			}else{
 				header("Location: " . $configArray['Site']['path'] . "/Record/{$record['id']}/Home");
 				exit();

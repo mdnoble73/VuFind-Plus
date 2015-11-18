@@ -310,11 +310,6 @@ class CatalogConnection
 	 * @param User $user
 	 */
 	public function updateUserWithAdditionalRuntimeInformation($user){
-		//If we have loaded information from the ILS, get additional information that is not ILS specific
-		require_once(ROOT_DIR . '/Drivers/EContentDriver.php');
-		$eContentDriver = new EContentDriver(null);
-		$eContentDriver->loadAccountSummary($user);
-
 		//TODO: Optimize by checking if the patron home library has OverDrive active.
 		require_once(ROOT_DIR . '/Drivers/OverDriveDriverFactory.php');
 		$overDriveDriver = OverDriveDriverFactory::getDriver();
@@ -907,12 +902,6 @@ class CatalogConnection
 		} elseif ($readingHistoryDB->source == 'OverDrive') {
 			require_once ROOT_DIR . '/RecordDrivers/OverDriveRecordDriver.php';
 			$recordDriver = new OverDriveRecordDriver($historyEntry['id']);
-		} elseif ($readingHistoryDB->source == 'PublicEContent') {
-			require_once ROOT_DIR . '/RecordDrivers/PublicEContentDriver.php';
-			$recordDriver = new PublicEContentDriver($historyEntry['id']);
-		} elseif ($readingHistoryDB->source == 'RestrictedEContent') {
-			require_once ROOT_DIR . '/RecordDrivers/RestrictedEContentDriver.php';
-			$recordDriver = new RestrictedEContentDriver($historyEntry['id']);
 		}
 		if ($recordDriver != null && $recordDriver->isValid()) {
 			$historyEntry['ratingData'] = $recordDriver->getRatingData();

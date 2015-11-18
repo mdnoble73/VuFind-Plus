@@ -52,18 +52,6 @@ function doGetStatusSummaries()
 	var now = new Date();
 	var ts = Date.UTC(now.getFullYear(),now.getMonth(),now.getDay(),now.getHours(),now.getMinutes(),now.getSeconds(),now.getMilliseconds());
 
-	var callGetEContentStatusSummaries = false;
-	var eContentUrl = path + "/Search/AJAX?method=GetEContentStatusSummaries";
-	for (var j=0; j<GetEContentStatusList.length; j++) {
-		eContentUrl += "&id[]=" + encodeURIComponent(GetEContentStatusList[j]['id']);
-		if (GetEContentStatusList[j]['useUnscopedHoldingsSummary']){
-			eContentUrl += "&useUnscopedHoldingsSummary=true";
-		}
-		callGetEContentStatusSummaries = true;
-	}
-
-	eContentUrl += "&time=" +ts;
-
 	//Since the ILS can be slow, make individual calls to print titles
 	// Modify this to return status summaries one at a time to improve
 	// the perceived performance
@@ -207,45 +195,6 @@ function doGetStatusSummaries()
 		});
 	}
 		
-	if (callGetEContentStatusSummaries)
-	{
-		$.ajax({
-			url: eContentUrl, 
-			success: function(data){
-				var items = $(data).find('item');
-				$(items).each(function(index, item){
-					var elemId = $(item).attr("id") ;
-					$('#holdingsEContentSummary' + elemId).replaceWith($(item).find('formattedHoldingsSummary').text());
-					if ($(item).find('showplacehold').text() == 1){
-						$("#placeEcontentHold" + elemId).show();
-					}else if ($(item).find('showcheckout').text() == 1){
-						$("#checkout" + elemId).show();
-					}else if ($(item).find('showaccessonline').text() == 1){
-						if ($(item).find('accessonlineurl').length > 0){
-							var url = $(item).find('accessonlineurl').text();
-							var text = $(item).find('accessonlinetext').text();
-							$("#accessOnline" + elemId + " a").attr("href", url).text($("<div/>").html(text).text());
-						}
-						$("#accessOnline" + elemId).show();
-						
-					}else if ($(item).find('showaddtowishlist').text() == 1){
-						$("#addToWishList" + elemId).show();
-					}
-					
-					if ($("#statusValue" + elemId).length > 0){
-						var status = $(item).find('status').text();
-						$("#statusValue" + elemId).text(status);
-						var statusClass = $(item).find('class').text();
-						if (statusClass){
-							$("#statusValue" + elemId).addClass(statusClass);
-						}
-					}
-					$('#holdingsEContentSummary' + elemId).addClass('loaded');
-				});
-			}
-		});
-	}
-	
 	// Get OverDrive status summaries one at a time since they take several
 	// seconds to load
 	for (var j=0; j<GetOverDriveStatusList.length; j++) {

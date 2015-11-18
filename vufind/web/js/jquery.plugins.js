@@ -1038,12 +1038,7 @@ function doRatingReview(rating, module, id){
 	}
 	if (confirm(msg)){
 		var reviewForm;
-		if (module == 'EcontentRecord'){
-			reviewForm = $("#userecontentreview" + id);
-
-		}else{
-			reviewForm = $("#userreview" + id);
-		}
+		reviewForm = $("#userreview" + id);
 		reviewForm.find(".rateTitle").hide();
 		reviewForm.show();
 	}

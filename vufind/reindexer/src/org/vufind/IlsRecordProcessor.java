@@ -516,15 +516,17 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		switch (protectionType) {
 			case "acs":
 			case "drm":
-				relatedRecord = groupedWork.addRelatedRecord("restricted_econtent", identifier);
-				relatedRecord.setSubSource(profileType);
-				relatedRecord.addItem(itemInfo);
+				//Remove restricted (ACS) eContent from Pika #PK-1199
+				//relatedRecord = groupedWork.addRelatedRecord("restricted_econtent", identifier);
+				//relatedRecord.setSubSource(profileType);
+				//relatedRecord.addItem(itemInfo);
 				break;
 			case "public domain":
 			case "free":
-				relatedRecord = groupedWork.addRelatedRecord("public_domain_econtent", identifier);
-				relatedRecord.setSubSource(profileType);
-				relatedRecord.addItem(itemInfo);
+				//Remove free public domain, but stored locally eContent from Pika #PK-1199
+				//relatedRecord = groupedWork.addRelatedRecord("public_domain_econtent", identifier);
+				//relatedRecord.setSubSource(profileType);
+				//relatedRecord.addItem(itemInfo);
 				break;
 			case "external":
 				relatedRecord = groupedWork.addRelatedRecord("external_econtent", identifier);

@@ -245,60 +245,6 @@ class AJAX extends Action {
 		$timer->logTime("Formatted results");
 	}
 
-	/**
-	 * Get Item Statuses
-	 *
-	 * This is responsible for getting holding summary information for a list of
-	 * records from the database.
-	 *
-	 * @access	public
-	 * @author	Mark Noble <mnoble@turningleaftech.com>
-	 */
-	function GetEContentStatusSummaries()
-	{
-		global $interface;
-		global $timer;
-
-		require_once (ROOT_DIR . '/Drivers/EContentDriver.php');
-		$driver = new EContentDriver();
-		//Load status summaries
-		$result = $driver->getStatusSummaries($_GET['id']);
-		$timer->logTime("Retrieved status summaries");
-
-		// Loop through all the status information that came back
-		foreach ($result as $id => $record) {
-			// If we encountered errors, skip those problem records.
-			if (PEAR_Singleton::isError($record)) {
-				continue;
-			}
-
-			$interface->assign('id', $id);
-			$interface->assign('holdingsSummary', $record);
-
-			$formattedHoldingsSummary = $interface->fetch('EcontentRecord/holdingsSummary.tpl');
-
-			echo ' <item id="' . htmlspecialchars($record['recordId']) . '">';
-			echo '	<status>' . htmlspecialchars($record['status']) . '</status>';
-			echo '	<class>' . htmlspecialchars($record['class']) . '</class>';
-			echo '	<showplacehold>' . ($record['showPlaceHold'] ? '1' : '0') . '</showplacehold>';
-			echo '	<showcheckout>' . ($record['showCheckout'] ? '1' : '0') . '</showcheckout>';
-			echo '	<showaccessonline>' . ($record['showAccessOnline'] ? '1' : '0') . '</showaccessonline>';
-			if (isset($record['accessOnlineUrl'])){
-				echo '	<accessonlineurl>' . htmlspecialchars($record['accessOnlineUrl']) . '</accessonlineurl>';
-				echo '	<accessonlinetext>' . htmlspecialchars($record['accessOnlineText']) . '</accessonlinetext>';
-			}
-			echo '	<showaddtowishlist>' . ($record['showAddToWishlist'] ? '1' : '0') . '</showaddtowishlist>';
-			echo '	<availablecopies>' . htmlspecialchars($record['showAccessOnline']) . '</availablecopies>';
-			echo '	<numcopies>' . htmlspecialchars($record['totalCopies']) . '</numcopies>';
-			echo '	<holdQueueLength>' . (isset($record['holdQueueLength']) ? htmlspecialchars($record['holdQueueLength']) : '') . '</holdQueueLength>';
-			echo '	<isDownloadable>1</isDownloadable>';
-			echo '	<formattedHoldingsSummary>' . htmlspecialchars($formattedHoldingsSummary) . '</formattedHoldingsSummary>';
-			echo ' </item>';
-
-		}
-		$timer->logTime("Formatted results");
-	}
-
 	// Email Search Results
 	function sendEmail()
 	{
