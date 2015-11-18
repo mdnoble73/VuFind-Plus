@@ -2074,7 +2074,12 @@ class MarcRecord extends IndexRecord
 		return $notes;
 	}
 
+	private $copiesLoaded = false;
 	private function loadCopies() {
+		if ($this->copiesLoaded){
+			return;
+		}
+		$this->copiesLoaded = true;
 		global $timer;
 		global $interface;
 		require_once ROOT_DIR . '/CatalogFactory.php';
@@ -2130,7 +2135,7 @@ class MarcRecord extends IndexRecord
 			}
 
 			//Holdings summary
-			$result = $catalog->getStatusSummary($this->getId(), false);
+			$this->statusSummary = $catalog->getStatusSummary($this->getId(), false);
 			if (PEAR_Singleton::isError($result)) {
 				PEAR_Singleton::raiseError($result);
 			}
@@ -2138,5 +2143,11 @@ class MarcRecord extends IndexRecord
 			$timer->logTime("Loaded holdings summary");
 			$interface->assign('formattedHoldingsSummary', $interface->fetch('Record/holdingsSummary.tpl'));
 		}
+	}
+
+	private $statusSummary = null;
+	public function getStatusSummary(){
+		$this->loadCopies();
+		return $this->statusSummary;
 	}
 }

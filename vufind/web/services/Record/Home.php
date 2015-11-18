@@ -42,9 +42,13 @@ class Record_Home extends Record_Record{
 		// Set Show in Main Details Section options for templates
 		// (needs to be set before moreDetailsOptions)
 		global $library;
-		foreach ($library->showInMainDetails as $detailoption) {
-			$interface->assign($detailoption, true);
+		foreach ($library->showInMainDetails as $detailOption) {
+			$interface->assign($detailOption, true);
 		}
+
+		//Get the location, call number, and status
+		$statusSummary = $this->recordDriver->getStatusSummary();
+		$interface->assign('statusSummary', $statusSummary);
 
 		//Get the actions for the record
 		$actions = $this->recordDriver->getRecordActionsFromIndex();
