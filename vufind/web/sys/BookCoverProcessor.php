@@ -171,7 +171,6 @@ class BookCoverProcessor{
 			$this->issn = null;
 		}
 		$this->id = isset($_GET['id']) ? $_GET['id'] : null;
-		$this->isEContent = isset($_GET['econtent']);
 		if (isset($_GET['type'])){
 			$this->type =  $_GET['type'];
 		}else{

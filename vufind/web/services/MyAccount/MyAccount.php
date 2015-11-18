@@ -52,14 +52,6 @@ abstract class MyAccount extends Action
 		// Connect to Database
 		$this->catalog = CatalogFactory::getCatalogConnectionInstance($user->source);
 
-		//Check to see if we have any acs or single use eContent in the catalog
-		//to enable the holds and wishlist appropriately
-		if (isset($configArray['EContent']['hasProtectedEContent'])){
-			$interface->assign('hasProtectedEContent', $configArray['EContent']['hasProtectedEContent']);
-		}else{
-			$interface->assign('hasProtectedEContent', false);
-		}
-
 		//This code is also in Search/History since that page displays in the My Account menu as well.
 		//It is also in MyList.php and Admin.php
 		if ($user !== false){

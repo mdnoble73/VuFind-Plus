@@ -130,7 +130,6 @@ $interface->assign('solrScope', "$solrScope - $scopeType");
 //Set that the interface is a single column by default
 $interface->assign('page_body_style', 'one_column');
 
-$interface->assign('showPackagingDetailsReport', isset($configArray['EContent']['showPackagingDetailsReport']) && $configArray['EContent']['showPackagingDetailsReport']);
 $interface->assign('showFines', $configArray['Catalog']['showFines']);
 
 $interface->assign('activeIp', Location::getActiveIp());
