@@ -146,7 +146,9 @@ class OverDriveDriver3 {
 							// patrons with too high a fine amount will get this result.
 							return false;
 						}else{
-							echo("Error connecting to overdrive apis ". $patronTokenData->error);
+							if ($configArray['System']['debug']){
+								echo("Error connecting to overdrive apis ". $patronTokenData->error);
+							}
 						}
 					}else{
 						$memCache->set('overdrive_patron_token_' . $patronBarcode, $patronTokenData, 0, $patronTokenData->expires_in - 10);
