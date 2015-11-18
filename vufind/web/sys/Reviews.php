@@ -256,6 +256,91 @@ class ExternalReviews
 		return $review;
 	}
 
+	/**
+	 * Load review information from Content Cafe based on the ISBN
+	 *
+	 * @param $key     Content Cafe Key
+	 * @return array
+	 */
+	private function contentCafe($key){
+		global $library;
+		global $locationSingleton;
+		global $configArray;
+
+		$location = $locationSingleton->getActiveLocation();
+		if (isset($library) && $location != null){
+			if ($library->showStandardReviews == 0 || $location->showStandardReviews == 0){
+				return null;
+			}
+		}elseif ($location != null && ($location->showStandardReviews == 0)){
+			return null;
+		}elseif (isset($library) && ($library->showStandardReviews == 0)){
+			return null;
+		}
+
+		$pw = $configArray['Contentcafe']['pw'];
+		if (!$key) {
+			$key = $configArray['Contentcafe']['id'];
+		}
+
+		$url = isset($configArray['Contentcafe']['url']) ? $configArray['Contentcafe']['url'] : 'http://contentcafe2.btol.com';
+		$url .= '/ContentCafe/ContentCafe.asmx?WSDL';
+
+		$SOAP_options = array(
+//				'trace' => 1, // turns on debugging features
+				'features' => SOAP_SINGLE_ELEMENT_ARRAYS, // sets how the soap responses will be handled
+				'soap_version' => SOAP_1_2
+		);
+		$soapClient   = new SoapClient($url, $SOAP_options);
+
+		$params = array(
+				'userID'   => $key,
+				'password' => $pw,
+				'key'      => $this->isbn,
+				'content'  => 'ReviewDetail',
+		);
+
+		try{
+			$response = $soapClient->Single($params);
+//			$request = $soapClient->__getLastRequest(); // for debugging
+
+			$review = array();
+			if ($response) {
+				if (!$response->ContentCafe->Error) {
+					$i = 0;
+//				$requestItems = $response->ContentCafe->RequestItems->RequestItem;
+//				foreach ($requestItems as $requestItem) {
+					foreach ($response->ContentCafe->RequestItems->RequestItem as $requestItem) {
+						//					$reviewItems = $requestItem->ReviewItems->ReviewItem;
+						//					foreach ($reviewItems as $reviewItem) {
+						foreach ($requestItem->ReviewItems->ReviewItem as $reviewItem) {
+							$review[$i]['Content'] = $reviewItem->Review;
+							$review[$i]['Source']  = $reviewItem->Publication->_;
+
+							$copyright               = stristr($reviewItem->Review, 'copyright');
+							$review[$i]['Copyright'] = $copyright ? strip_tags($copyright) : '';
+
+							$review[$i]['ISBN'] = $this->isbn; // show more link
+							//						$review[$i]['username']  = isset($configArray['BookReviews']) ? $configArray['BookReviews']['id'] : '';
+							// this data doesn't look to be used in published reviews
+							$i++;
+						}
+
+					}
+				} else {
+					global $logger;
+					$logger->log('Content Cafe Error Response'. $response->ContentCafe->Error, PEAR_LOG_ERR);
+				}
+			}
+
+		} catch (Exception $e) {
+			global $logger;
+			$logger->log('Failed ContentCafe SOAP Request', PEAR_LOG_ERR);
+			return new PEAR_Error('Failed ContentCafe SOAP Request');
+		}
+		return $review;
+	}
+
 	function cleanupReview($reviewData){
 		//Cleanup the review data
 		$fullReview = strip_tags($reviewData['Content'], '<p><a><b><em><ul><ol><em><li><strong><i><br><iframe><div>');
