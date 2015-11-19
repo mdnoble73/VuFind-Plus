@@ -8,12 +8,12 @@
 	<div class="row">
 		<div class="col-xs-{if $showLastCheckIn}4{else}5{/if}">
 			<strong>
-				{$holding.location|escape}
+				{$holding.shelfLocation|escape}
 				{if $holding.locationLink} (<a href='{$holding.locationLink}' target='_blank'>Map</a>){/if}
 			</strong>
 		</div>
 		<div class="holdingsCallNumber col-xs-{if $showLastCheckIn}3{else}4{/if}">
-			{$holding.callnumber|escape}
+			{$holding.callNumber|escape}
 			{if $holding.link}
 				{foreach from=$holding.link item=link}
 					<a href='{$link.link}' target='_blank'>{$link.linkText}</a><br />
@@ -25,9 +25,9 @@
 				{translate text="On Reserve - Ask at Circulation Desk"}
 			{else}
 				{if $holding.availability}
-					<span class="available">{$holding.statusfull}{if $holding.holdable == 0 && $showHoldButton} <label class='notHoldable' title='{$holding.nonHoldableReason}'>(Not Holdable)</label>{/if}</span>
+					<span class="available">{$holding.statusFull}{if $holding.holdable == 0 && $showHoldButton} <label class='notHoldable' title='{$holding.nonHoldableReason}'>(Not Holdable)</label>{/if}</span>
 				{else}
-					<span class="checkedout">{$holding.statusfull}{if $holding.holdable == 0 && $showHoldButton} <label class='notHoldable' title='{$holding.nonHoldableReason}'>(Not Holdable)</label>{/if}</span>
+					<span class="checkedout">{$holding.statusFull}{if $holding.holdable == 0 && $showHoldButton} <label class='notHoldable' title='{$holding.nonHoldableReason}'>(Not Holdable)</label>{/if}</span>
 				{/if}
 			{/if}
 		</div>

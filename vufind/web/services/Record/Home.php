@@ -46,10 +46,6 @@ class Record_Home extends Record_Record{
 			$interface->assign($detailOption, true);
 		}
 
-		//Get the location, call number, and status
-		$statusSummary = $this->recordDriver->getStatusSummary();
-		$interface->assign('statusSummary', $statusSummary);
-
 		//Get the actions for the record
 		$actions = $this->recordDriver->getRecordActionsFromIndex();
 		$interface->assign('actions', $actions);

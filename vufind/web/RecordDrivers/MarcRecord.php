@@ -1818,7 +1818,7 @@ class MarcRecord extends IndexRecord
 		$moreDetailsOptions = $this->getBaseMoreDetailsOptions($isbn);
 
 		//Get copies for the record
-		$this->loadCopies();
+		$this->assignCopiesInformation();
 		$moreDetailsOptions['copies'] = array(
 			'label' => 'Copies',
 			'body' => $interface->fetch('Record/view-holdings.tpl'),
@@ -2074,8 +2074,51 @@ class MarcRecord extends IndexRecord
 		return $notes;
 	}
 
+	private $holdings;
+	private $copiesInfoLoaded = false;
+	private $holdingSections;
+	private $statusSummary;
+	private function loadCopies(){
+		if (!$this->copiesInfoLoaded){
+			$this->copiesInfoLoaded = true;
+			//Load copy information from the grouped work rather than from the driver.
+			//Since everyone is using real-time indexing now, the delays are acceptable,
+			// but include when the last index was completed for reference
+			$groupedWorkDriver = $this->getGroupedWorkDriver();
+			$this->recordFromIndex = $groupedWorkDriver->getRelatedRecord($this->getIdWithSource());
+
+			//Divide the items into sections and create the status summary
+			$this->holdings = $this->recordFromIndex['itemSummary'];
+			$this->holdingSections = array();
+			foreach ($this->holdings as $copyInfo) {
+				$sectionName = $copyInfo['sectionId'];
+				if (!array_key_exists($sectionName, $this->holdingSections)) {
+					$this->holdingSections[$sectionName] = array(
+							'name' => $copyInfo['section'],
+							'sectionId' => $copyInfo['sectionId'],
+							'holdings' => array(),
+					);
+				}
+				$this->holdingSections[$sectionName]['holdings'][] = $copyInfo;
+			}
+
+			$this->statusSummary = $this->recordFromIndex;
+			unset($this->statusSummary['driver']);
+			unset($this->statusSummary['itemSummary']);
+		}
+
+	}
+
+	public function assignCopiesInformation(){
+		$this->loadCopies();
+		global $interface;
+		$interface->assign('holdings', $this->holdings);
+		$interface->assign('sections', $this->holdingSections);
+
+		$interface->assign('statusSummary', $this->statusSummary);
+	}
 	private $copiesLoaded = false;
-	private function loadCopies() {
+	private function loadCopiesOld() {
 		if ($this->copiesLoaded){
 			return;
 		}
@@ -2145,9 +2188,4 @@ class MarcRecord extends IndexRecord
 		}
 	}
 
-	private $statusSummary = null;
-	public function getStatusSummary(){
-		$this->loadCopies();
-		return $this->statusSummary;
-	}
 }

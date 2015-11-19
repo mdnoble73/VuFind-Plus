@@ -1145,14 +1145,17 @@ class GroupedWorkDriver extends RecordInterface{
 	private $relatedRecords = null;
 	private $relatedItemsByRecordId = null;
 
-	/**
-	 * The vast majority of record information is stored within the index.
-	 * This routine parses the information from the index and restructures it for use within the user interface.
-	 *
-	 * @param bool $realTimeStatusNeeded
-	 * @return array|null
-	 */
-	public function getRelatedRecords($realTimeStatusNeeded = true) {
+	public function getRelatedRecords() {
+		$this->loadRelatedRecords();
+		return $this->relatedRecords;
+	}
+
+	public function getRelatedRecord($recordIdentifier){
+		$this->loadRelatedRecords();
+		return $this->relatedRecords[$recordIdentifier];
+	}
+
+	private function loadRelatedRecords(){
 		global $timer;
 		if ($this->relatedRecords == null || isset($_REQUEST['reload'])){
 			$timer->logTime("Starting to load related records for {$this->getUniqueID()}");
@@ -1197,18 +1200,23 @@ class GroupedWorkDriver extends RecordInterface{
 			$relatedRecords = array();
 			foreach ($recordsFromIndex as $recordDetails){
 				$relatedRecord = $this->setupRelatedRecordDetails($recordDetails, $groupedWork, $timer, $scopingInfo, $activePTypes, $searchLocation, $library);
-				$relatedRecords[] = $relatedRecord;
+				$relatedRecords[$relatedRecord['id']] = $relatedRecord;
 			}
 
 			//Sort the records based on format and then edition
-			usort($relatedRecords, array($this, "compareRelatedRecords"));
+			uasort($relatedRecords, array($this, "compareRelatedRecords"));
 
 			$this->relatedRecords = $relatedRecords;
+			$timer->logTime("Finished loading related records {$this->getUniqueID()}");
 		}
-		$timer->logTime("Finished loading related records {$this->getUniqueID()}");
-		return $this->relatedRecords;
 	}
 
+		/**
+		 * The vast majority of record information is stored within the index.
+		 * This routine parses the information from the index and restructures it for use within the user interface.
+		 *
+		 * @return array|null
+		 */
 	public function getRelatedManifestations() {
 		global $timer;
 		$timer->logTime("Starting to load related records in getRelatedManifestations");
@@ -2140,8 +2148,8 @@ class GroupedWorkDriver extends RecordInterface{
 	 * @param Timer $timer
 	 * @param $scopingInfo
 	 * @param $activePTypes
-	 * @param $searchLocation
-	 * @param $library
+	 * @param Location $searchLocation
+	 * @param Library $library
 	 * @return array
 	 */
 	protected function setupRelatedRecordDetails($recordDetails, $groupedWork, $timer, $scopingInfo, $activePTypes, $searchLocation, $library) {
@@ -2283,6 +2291,8 @@ class GroupedWorkDriver extends RecordInterface{
 			}
 			$relatedRecord['groupedStatus'] = GroupedWorkDriver::keepBestGroupedStatus($relatedRecord['groupedStatus'], $groupedStatus);
 			$description = $shelfLocation . ':' . $callNumber;
+
+			$section = 'Other Locations';
 			if ($locallyOwned) {
 				if ($localShelfLocation == null) {
 					$localShelfLocation = $shelfLocation;
@@ -2293,10 +2303,13 @@ class GroupedWorkDriver extends RecordInterface{
 				if ($available && !$isEcontent) {
 					$relatedRecord['availableHere'] = true;
 					$relatedRecord['availableLocally'] = true;
+					$relatedRecord['class'] = 'here';
 				}
 				$relatedRecord['localCopies'] += $numCopies;
 				$relatedRecord['hasLocalItem'] = true;
 				$key = '1 ' . $description;
+				$sectionId = 1;
+				$section = 'In this library';
 			} elseif ($libraryOwned) {
 				if ($libraryShelfLocation == null) {
 					$libraryShelfLocation = $shelfLocation;
@@ -2311,9 +2324,16 @@ class GroupedWorkDriver extends RecordInterface{
 				if ($searchLocation == null || $isEcontent) {
 					$relatedRecord['hasLocalItem'] = true;
 				}
-				$key = '2 ' . $description;
+				$key = '5 ' . $description;
+				$sectionId = 5;
+				$section = $library->displayName;
+			} elseif ($isOrderItem) {
+				$key = '7 ' . $description;
+				$sectionId = 7;
+				$section = 'On Order';
 			} else {
-				$key = '3 ' . $description;
+				$key = '6 ' . $description;
+				$sectionId = 6;
 			}
 
 			//Add the item to the item summary
@@ -2332,6 +2352,8 @@ class GroupedWorkDriver extends RecordInterface{
 					'statusFull' => $status,
 					'available' => $available,
 					'holdable' => $holdable,
+					'sectionId' => $sectionId,
+					'section' => $section
 			);
 			if (isset($relatedRecord['itemSummary'][$key])) {
 				$relatedRecord['itemSummary'][$key]['totalCopies']++;
