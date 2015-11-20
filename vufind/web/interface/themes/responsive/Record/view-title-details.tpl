@@ -115,25 +115,14 @@
 		</div>
 	{/if}
 
-	{if $statusSummary.shelfLocation}
-		<div class="row" id="locationRow">
-			<div class="result-label col-xs-4">{translate text='Location'}:</div>
-			<div class="col-xs-8 result-value result-value-bold" id="locationValue">{$statusSummary.shelfLocation}</div>
-		</div>
-	{/if}
-
-	{if $statusSummary.callNumber}
-		<div class="row" id="callNumberRow">
-			<div class="result-label col-xs-4">{translate text='Call Number'}:</div>
-			<div class="col-xs-8 result-value result-value-bold" id="callNumberValue">{$statusSummary.callNumber}</div>
-		</div>
-	{/if}
-
 	<div class="row">
 		<div class="result-label col-xs-4">{translate text='Status'}:</div>
-		<div class="col-xs-8 result-value result-value-bold">
-		{include file='GroupedWork/statusIndicator.tpl' statusInformation=$statusSummary}
+		<div class="col-xs-8 result-value">
+			{include file='GroupedWork/statusIndicator.tpl' statusInformation=$statusSummary}
+
+			{include file='GroupedWork/copySummary.tpl' summary=$statusSummary.itemSummary totalCopies=$statusSummary.copies itemSummaryId=$statusSummary.id}
 		</div>
 		{* <div class="col-xs-8 result-value result-value-bold statusValue {$statusSummary.class}" id="statusValue">{$statusSummary.groupedStatus|escape}{if $statusSummary.numHolds > 0} ({$statusSummary.numHolds} people are on the wait list){/if}</div> *}
 	</div>
+
 {/strip}

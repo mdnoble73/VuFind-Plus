@@ -2103,8 +2103,9 @@ class MarcRecord extends IndexRecord
 			}
 
 			$this->statusSummary = $this->recordFromIndex;
+
 			unset($this->statusSummary['driver']);
-			unset($this->statusSummary['itemSummary']);
+			//unset($this->statusSummary['itemSummary']);
 		}
 
 	}

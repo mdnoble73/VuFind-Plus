@@ -265,7 +265,6 @@ class GroupedWork_AJAX {
 					."<a href='$url'><button class='modal-buttons btn btn-primary'>More Info</button></a>"
 		);
 		return json_encode($results);
-
 	}
 
 
