@@ -123,15 +123,6 @@ class GoDeeperData{
 				$timer->logTime("Finished processing Content Cafe options");
 			}
 
-			//Check To see if a Google Preview is available
-			if (!empty($isbn)){
-				$id = self::getGoogleBookId($isbn);
-				if ($id){
-					$validEnrichmentTypes['googlePreview'] = 'Google Preview';
-				}
-				$timer->logTime("Got google book id");
-			}
-
 			$goDeeperOptions = array('options' => $validEnrichmentTypes);
 			if (count($validEnrichmentTypes) > 0){
 				$goDeeperOptions['defaultOption'] = $defaultOption;
@@ -694,48 +685,6 @@ class GoDeeperData{
 		return $avSummaryData;
 	}
 
-	function getGoogleBookId($isbn)
-	{
-		global $configArray;
-		/** @var Memcache $memCache */
-		global $memCache;
-		$googleBookId = $memCache->get("google_book_id_{$isbn}");
-		if (!$googleBookId) {
-			$requestUrl = "http://www.google.com/search?q=isbn:$isbn&btnG=Search+Books";
-
-			try {
-				//Get the XML from the service
-				$ctx      = stream_context_create(array(
-						'http' => array(
-								'timeout' => 2
-						)
-				));
-				$response = file_get_contents($requestUrl, 0, $ctx);
-				$matches  = array();
-				if (preg_match('/<a href=["\']http:\/\/books\\.google\\.com\/books\\?id=(.*?)&.*?["\']>/', $response, $matches)) {
-					$googleBookId = $matches[1];
-				} else {
-					//This book does not have a preview
-					$googleBookId = false;
-				}
-			} catch (Exception $e) {
-				global $logger;
-				$logger->log("Error checking if Google Preview is available $e", PEAR_LOG_ERR);
-				$googleBookId = false;
-			}
-			global $timer;
-			$timer->logTime("Loaded Google Book Id");
-			$memCache->set("google_book_id_{$isbn}", $googleBookId, 0, $configArray['Caching']['google_book_id']);
-		}
-		return $googleBookId;
-	}
-
-	function getGooglePreview($isbn){
-		$googleBookId = self::getGoogleBookId($isbn);
-		//Just return a URL to the preview which we will throw into an iFrame
-		return array('link' => "http://books.google.com/books?id=$googleBookId&printsec=frontcover");
-	}
-
 	static function getHtmlData($dataType, $recordType, $isbn, $upc, $id = null){
 		global $interface;
 		global $configArray;
@@ -777,10 +726,6 @@ class GoDeeperData{
 					$data = GoDeeperData::getVideoClip($isbn, $upc);
 					$interface->assign('videoClipData', $data);
 					return $interface->fetch('Record/view-syndetics-video-clip.tpl');
-				case 'googlePreview' :
-					$data = GoDeeperData::getGooglePreview($isbn);
-					$interface->assign('googlePreviewData', $data);
-					return $interface->fetch('Record/view-google-preview.tpl');
 				default :
 					return "Loading data for Syndetics $dataType still needs to be handled.";
 			}
