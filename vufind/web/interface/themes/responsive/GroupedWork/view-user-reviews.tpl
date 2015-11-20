@@ -1,3 +1,4 @@
+{strip}
 <div class="userReviewList" id="userReviewList">
 	{* Pull in comments from a separate file -- this separation allows the same template
 		 to be used for refreshing this list via AJAX. *}
@@ -13,3 +14,4 @@
 		<p>No borrower reviews currently exist.</p>
 	{/if}
 </div>
+{/strip}

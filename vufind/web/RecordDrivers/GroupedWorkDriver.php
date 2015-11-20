@@ -1639,7 +1639,7 @@ class GroupedWorkDriver extends RecordInterface{
 		if ($isbn == null || strlen($isbn) == 0){
 			return $enrichment;
 		}
-		$novelist = NovelistFactory::getNovelist();;
+		$novelist = NovelistFactory::getNovelist();
 		$enrichment['novelist'] = $novelist->loadEnrichment($this->getPermanentId(), $this->getISBNs());
 		return $enrichment;
 	}

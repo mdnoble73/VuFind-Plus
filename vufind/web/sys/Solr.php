@@ -2161,6 +2161,11 @@ class Solr implements IndexEngine {
 		}
 		$queryString = implode('&', $query);
 
+		$fullSearchUrl = print_r($this->host . "/select/?" . $queryString, true);
+
+		// Save to file for Jmeter
+		//$write_result = file_put_contents(ROOT_DIR . '\solrQueries.csv', $fullSearchUrl."\n", FILE_APPEND);
+
 		if ($this->debug || $this->debugSolrQuery) {
 			$solrQueryDebug = "";
 			if ($this->debugSolrQuery) {

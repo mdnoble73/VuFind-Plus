@@ -277,8 +277,8 @@ class BookCoverProcessor{
 			if (isset($this->configArray['Content']['coverimages'])) {
 				$providers = explode(',', $this->configArray['Content']['coverimages']);
 				foreach ($providers as $provider) {
-					$this->log("Checking provider $provider", PEAR_LOG_INFO);
 					$provider = explode(':', $provider);
+					$this->log("Checking provider ".$provider[0], PEAR_LOG_INFO);
 					$func = $provider[0];
 					$key = isset($provider[1]) ? $provider[1] : '';
 					if ($this->$func($key)) {
@@ -577,7 +577,7 @@ class BookCoverProcessor{
 				$maxDimension = 400;
 			}
 
-			//Check to see if the image neds to be resized
+			//Check to see if the image needs to be resized
 			if ($width > $maxDimension || $height > $maxDimension){
 				// We no longer need the temp file:
 				@unlink($tempFile);
@@ -727,6 +727,48 @@ class BookCoverProcessor{
 		$url = "http://covers.openlibrary.org/b/isbn/{$this->isn}-{$size}.jpg?default=false";
 		return $this->processImageURL($url);
 	}
+
+	/**
+	 * Retrieve a Content Cafe cover.
+	 *
+	 * @param string $id Content Cafe client ID.
+	 *
+	 * @return bool      True if image displayed, false otherwise.
+	 */
+	function contentCafe($id = null) {
+		global $configArray;
+
+		switch ($this->size) {
+			case 'medium':
+				$size = 'M';
+				break;
+			case 'large':
+				$size = 'L';
+				break;
+			case 'small':
+			default:
+				$size = 'S';
+				break;
+		}
+		if (!$id) {
+			$id = $configArray['Contentcafe']['id']; // alternate way to pass the content cafe id to this method.
+		}
+		$pw = $configArray['Contentcafe']['pw'];
+		$url = isset($configArray['Contentcafe']['url']) ?
+							$configArray['Contentcafe']['url'] : 'http://contentcafe2.btol.com';
+
+	$lookupCode = $this->isn;
+	if (!$lookupCode) {
+		$lookupCode = $this->issn;
+		if (!$lookupCode & $this->upc) {
+			$lookupCode = $this->upc;
+		}
+	}
+
+		$url .= "/ContentCafe/Jacket.aspx?UserID={$id}&Password={$pw}&Return=1&Type={$size}&Value={$lookupCode}&erroroverride=1";
+
+	return $this->processImageURL($url);
+}
 
 	function google($id = null)
 	{
