@@ -17,6 +17,8 @@ import java.sql.ResultSet;
 public class ArlingtonRecordProcessor extends IIIRecordProcessor {
 	public ArlingtonRecordProcessor(GroupedWorkIndexer indexer, Connection vufindConn, Ini configIni, ResultSet indexingProfileRS, Logger logger, boolean fullReindex) {
 		super(indexer, vufindConn, configIni, indexingProfileRS, logger, fullReindex);
+
+		languageFields = "008[35-37]:041b";
 	}
 
 	@Override
@@ -37,4 +39,6 @@ public class ArlingtonRecordProcessor extends IIIRecordProcessor {
 		}
 		return available;
 	}
+
+
 }

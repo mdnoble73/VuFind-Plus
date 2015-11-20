@@ -374,6 +374,8 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		//Shelf Location also include the name of the ordering branch if possible
 		boolean hasLocationBasedShelfLocation = false;
 		boolean hasSystemBasedShelfLocation = false;
+
+		//Add the library this is on order for
 		itemInfo.setShelfLocation("On Order");
 
 		String status = "";
@@ -394,7 +396,11 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 						scopingInfo.setLocallyOwned(scope.isItemOwnedByScope(profileType, location, ""));
 					}
 					if (scope.isLibraryScope()) {
-						 scopingInfo.setLibraryOwned(scope.isItemOwnedByScope(profileType, location, ""));
+						boolean libraryOwned = scope.isItemOwnedByScope(profileType, location, "");
+						scopingInfo.setLibraryOwned(libraryOwned);
+						if (itemInfo.getShelfLocation().equals("On Order")){
+							itemInfo.setShelfLocation(scopingInfo.getScope().getFacetLabel() + " On Order");
+						}
 					}
 					if (scopingInfo.isLocallyOwned()){
 						if (scope.isLibraryScope() && !hasLocationBasedShelfLocation && !hasSystemBasedShelfLocation){
@@ -402,7 +408,9 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 						}
 						if (scope.isLocationScope() && !hasLocationBasedShelfLocation){
 							hasLocationBasedShelfLocation = true;
-							itemInfo.setShelfLocation("On Order");
+							if (itemInfo.getShelfLocation().equals("On Order")) {
+								itemInfo.setShelfLocation(scopingInfo.getScope().getFacetLabel() + "On Order");
+							}
 						}
 					}
 					scopingInfo.setAvailable(false);
@@ -902,8 +910,6 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 	protected List<RecordInfo> loadUnsuppressedEContentItems(GroupedWorkSolr groupedWork, String identifier, Record record){
 		return new ArrayList<>();
 	}
-
-
 
 	protected void loadPopularity(GroupedWorkSolr groupedWork, String recordIdentifier) {
 		//Add popularity based on the number of holds (we have already done popularity for prior checkouts)

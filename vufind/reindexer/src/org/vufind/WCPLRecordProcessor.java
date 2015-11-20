@@ -10,6 +10,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.*;
+import java.util.regex.Pattern;
 
 /**
  * Description goes here
@@ -30,12 +31,12 @@ public class WCPLRecordProcessor extends IlsRecordProcessor {
 		}
 	}
 
+	Pattern availableStati = Pattern.compile("^(csa|dc|fd|i|int|os|s|ref|rs|rw|st)$");
 	@Override
 	protected boolean isItemAvailable(ItemInfo itemInfo) {
 		boolean available = false;
 		String status = itemInfo.getStatusCode();
-		String availableStatus = "is";
-		if (availableStatus.indexOf(status.charAt(0)) >= 0) {
+		if (availableStati.matcher(status).matches()) {
 			available = true;
 		}
 		return available;
