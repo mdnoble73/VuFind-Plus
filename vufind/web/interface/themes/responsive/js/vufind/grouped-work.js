@@ -59,21 +59,21 @@ VuFind.GroupedWork = (function(){
 
 		getGoDeeperData: function (id, dataType){
 			var placeholder;
-			if (dataType == 'excerpt'){
+			if (dataType == 'excerpt') {
 				placeholder = $("#excerptPlaceholder");
-			}else if (dataType == 'avSummary'){
+			} else if (dataType == 'avSummary') {
 				placeholder = $("#avSummaryPlaceholder");
-			}else if (dataType == 'tableOfContents'){
+			} else if (dataType == 'tableOfContents') {
 				placeholder = $("#tableOfContentsPlaceholder");
+			} else if (dataType == 'authornotes') {
+				placeholder = $("#authornotesPlaceholder");
 			}
 			if (placeholder.hasClass("loaded")) return;
 			placeholder.show();
-			var url = Globals.path + "/GroupedWork/" + encodeURIComponent(id) + "/AJAX";
-			var params = "method=GetGoDeeperData&dataType=" + encodeURIComponent(dataType);
-			var fullUrl = url + "?" + params;
-			$.getJSON( fullUrl,function(data) {
-				placeholder.html(data.formattedData);
-				placeholder.addClass('loaded');
+			var url = Globals.path + "/GroupedWork/" + encodeURIComponent(id) + "/AJAX",
+					params = {'method': 'GetGoDeeperData', dataType:dataType};
+			$.getJSON(url, params, function(data) {
+				placeholder.html(data.formattedData).addClass('loaded');
 			});
 		},
 
@@ -87,7 +87,7 @@ VuFind.GroupedWork = (function(){
 			var url = Globals.path + "/GroupedWork/" + encodeURIComponent(id) + "/AJAX";
 			var params = "method=getEnrichmentInfo";
 			if (forceReload != undefined){
-				params = params + "&reload=true";
+				params += "&reload=true";
 			}
 			var fullUrl = url + "?" + params;
 			$.getJSON( fullUrl, function(data) {
@@ -113,24 +113,19 @@ VuFind.GroupedWork = (function(){
 							var goDeeperOptions = data.goDeeperOptions;
 							//add a tab before citation for each item
 							for (var option in goDeeperOptions){
-								if (option == 'excerpt'){
-									$("#excerpttab_label").show();
+								if (option == 'excerpt') {
 									$("#excerptPanel").show();
-								}else if (option == 'avSummary'){
-									$("#tableofcontentstab_label").show();
-									$("#avSummaryPlaceholder").show();
-									$("#tableOfContentsPanel").show();
-								}else if (option == 'avSummary' || option == 'tableOfContents'){
-									$("#tableofcontentstab_label").show();
-									$("#tableOfContentsPlaceholder").show();
-									$("#tableOfContentsPanel").show();
+								} else if (option == 'avSummary') {
+									$("#avSummaryPlaceholder,#tableOfContentsPlaceholder,#tableOfContentsPanel").show();
+								} else if (option == 'tableOfContents') {
+									$("#tableOfContentsPlaceholder,#tableOfContentsPanel").show();
+								} else if (option == 'authorNotes') {
+									$('#authornotesPlaceholder,#authornotesPanel').show();
 								}
 							}
 						}
 						if (VuFind.GroupedWork.hasTableOfContentsInRecord){
-							$("#tableofcontentstab_label").show();
-							$("#tableOfContentsPlaceholder").show();
-							$("#tableOfContentsPanel").show();
+							$("#tableofcontentstab_label,#tableOfContentsPlaceholder,#tableOfContentsPanel").show();
 						}
 						var relatedContentData = data.relatedContent;
 						if (relatedContentData && relatedContentData.length > 0) {
@@ -139,22 +134,19 @@ VuFind.GroupedWork = (function(){
 						var similarTitlesNovelist = data.similarTitlesNovelist;
 						if (similarTitlesNovelist && similarTitlesNovelist.length > 0){
 							$("#novelisttitlesPlaceholder").html(similarTitlesNovelist);
-							$("#novelisttab_label").show();
-							$("#similarTitlesPanel").show();
+							$("#novelisttab_label,#similarTitlesPanel").show();
 						}
 
 						var similarAuthorsNovelist = data.similarAuthorsNovelist;
 						if (similarAuthorsNovelist && similarAuthorsNovelist.length > 0){
 							$("#novelistauthorsPlaceholder").html(similarAuthorsNovelist);
-							$("#novelisttab_label").show();
-							$("#similarAuthorsPanel").show();
+							$("#novelisttab_label,#similarAuthorsPanel").show();
 						}
 
 						var similarSeriesNovelist = data.similarSeriesNovelist;
 						if (similarSeriesNovelist && similarSeriesNovelist.length > 0){
 							$("#novelistseriesPlaceholder").html(similarSeriesNovelist);
-							$("#novelisttab_label").show();
-							$("#similarSeriesPanel").show();
+							$("#novelisttab_label,#similarSeriesPanel").show();
 						}
 					} catch (e) {
 						alert("error loading enrichment: " + e);

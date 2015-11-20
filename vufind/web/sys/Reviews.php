@@ -306,25 +306,28 @@ class ExternalReviews
 
 			$review = array();
 			if ($response) {
-				if (!$response->ContentCafe->Error) {
+				if (!isset($response->ContentCafe->Error)) {
 					$i = 0;
-//				$requestItems = $response->ContentCafe->RequestItems->RequestItem;
-//				foreach ($requestItems as $requestItem) {
-					foreach ($response->ContentCafe->RequestItems->RequestItem as $requestItem) {
-						//					$reviewItems = $requestItem->ReviewItems->ReviewItem;
-						//					foreach ($reviewItems as $reviewItem) {
-						foreach ($requestItem->ReviewItems->ReviewItem as $reviewItem) {
-							$review[$i]['Content'] = $reviewItem->Review;
-							$review[$i]['Source']  = $reviewItem->Publication->_;
+					if (isset($response->ContentCafe->RequestItems->RequestItem)) {
+						foreach ($response->ContentCafe->RequestItems->RequestItem as $requestItem) {
+							if (isset($requestItem->ReviewItems->ReviewItem)) { // if there are reviews available.
+								foreach ($requestItem->ReviewItems->ReviewItem as $reviewItem) {
+									$review[$i]['Content'] = $reviewItem->Review;
+									$review[$i]['Source']  = $reviewItem->Publication->_;
 
-							$copyright               = stristr($reviewItem->Review, 'copyright');
-							$review[$i]['Copyright'] = $copyright ? strip_tags($copyright) : '';
+									$copyright               = stristr($reviewItem->Review, 'copyright');
+									$review[$i]['Copyright'] = $copyright ? strip_tags($copyright) : '';
 
-							$review[$i]['ISBN'] = $this->isbn; // show more link
-							//						$review[$i]['username']  = isset($configArray['BookReviews']) ? $configArray['BookReviews']['id'] : '';
-							// this data doesn't look to be used in published reviews
-							$i++;
+									$review[$i]['ISBN'] = $this->isbn; // show more link
+									//						$review[$i]['username']  = isset($configArray['BookReviews']) ? $configArray['BookReviews']['id'] : '';
+									// this data doesn't look to be used in published reviews
+									$i++;
+								}
+							}
 						}
+					} else {
+						global $logger;
+						$logger->log('Unexpected Content Cafe Response retrieving Reviews', PEAR_LOG_ERR);
 
 					}
 				} else {

@@ -1,3 +1,4 @@
+{* Likely No longer in Use. plb 11-19-15  *}
 {strip}
 	<div id="moredetails-tabs" class="tabbable">
 		{* Define tabs for the display *}
@@ -8,6 +9,7 @@
 			{/if}
 			<li id="tableofcontentstab_label" {if !$tableOfContents}style="display:none"{/if}><a href="#tableofcontentstab" data-toggle="tab">{translate text="Contents"}</a></li>
 			<li id="excerpttab_label" style="display:none"><a href="#excerpttab" data-toggle="tab">{translate text="Excerpt"}</a></li>
+			<li id="authornotestab_label" style="display:none"><a href="#authornotestab" data-toggle="tab">{translate text="Author Notes"}</a></li>
 			<li id="novelisttab_label" style="display:none"><a href="#novelisttab" data-toggle="tab">{translate text="Novelist"}</a></li>
 			<li id="detailstab_label"><a href="#detailstab" data-toggle="tab">{translate text="Details"}</a></li>
 
@@ -16,11 +18,11 @@
 
 		<div class="tab-content">
 			<div id="reviewtab" class="tab-pane active">
-				<div id='editorialReviewPlaceholder'></div>
+				<div id="editorialReviewPlaceholder"></div>
 
-				<div id='syndicatedReviewPlaceholder'></div>
+				<div id="syndicatedReviewPlaceholder"></div>
 
-				<div id='customerReviewPlaceholder'></div>
+				<div id="customerReviewPlaceholder"></div>
 
 				{* Good Reads *}
 				{if $recordDriver->getCleanISBN()}
@@ -31,19 +33,19 @@
 				{/if}
 			</div>
 
-			<div id = "detailstab" class="tab-pane">
+			<div id="detailstab" class="tab-pane">
 				{include file="GroupedWork/view-title-details.tpl"}
 			</div>
 
-			<div id = "excerpttab" class="tab-pane">
+			<div id="excerpttab" class="tab-pane">
 				<div id="excerptPlaceholder">Loading Excerpt...</div>
 			</div>
 
-			<div id ="tableofcontentstab" class="tab-pane">
-				<div id="tableOfContentsPlaceholder" style="display:none"></div>
+			<div id="tableofcontentstab" class="tab-pane">
+				<div id="tableOfContentsPlaceholder" style="display:none"{if $tableOfContents} class="loaded"{/if}></div>
 
 				{if $tableOfContents}
-					<ul class='notesList'>
+					<ul class="notesList">
 						{foreach from=$tableOfContents item=note}
 							<li>{$note}</li>
 						{/foreach}
@@ -51,13 +53,17 @@
 				{/if}
 			</div>
 
-			<div id = "novelisttab" class="tab-pane">
+			<div id="authornotestab" class="tab-pane">
+				<div id="authornotesPlaceholder">Loading Author Notes...</div>
+			</div>
+
+			<div id="novelisttab" class="tab-pane">
 				<div id="novelisttitlesPlaceholder"></div>
 				<div id="novelistauthorsPlaceholder"></div>
 				<div id="novelistseriesPlaceholder"></div>
 			</div>
 
-			<div id = "stafftab" class="tab-pane">
+			<div id="stafftab" class="tab-pane">
 				{include file=$recordDriver->getStaffView()}
 			</div>
 		</div>
@@ -65,11 +71,16 @@
 {/strip}
 {literal}
 <script type="text/javascript">
-	$('#excerpttab_label a').on('click', function (e) {
-		VuFind.GroupedWork.getGoDeeperData({/literal}'{$recordDriver->getPermanentId()}'{literal}, 'excerpt');
-	});
-	$('#tableofcontentstab_label a').on('click', function (e) {
-		VuFind.GroupedWork.getGoDeeperData({/literal}'{$recordDriver->getPermanentId()}'{literal}, 'tableOfContents');
+	$(function(){
+		$('#excerpttab_label a').on('click', function (e) {
+			VuFind.GroupedWork.getGoDeeperData({/literal}'{$recordDriver->getPermanentId()}'{literal}, 'excerpt');
+		});
+		$('#tableofcontentstab_label a').on('click', function (e) {
+			VuFind.GroupedWork.getGoDeeperData({/literal}'{$recordDriver->getPermanentId()}'{literal}, 'tableOfContents');
+		});
+		$('#authornotestab_label a').on('click', function (e) {
+			VuFind.GroupedWork.getGoDeeperData({/literal}'{$recordDriver->getPermanentId()}'{literal}, 'authornotes');
+		});
 	});
 </script>
 {/literal}
