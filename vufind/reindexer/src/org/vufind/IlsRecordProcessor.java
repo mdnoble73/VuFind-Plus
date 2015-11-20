@@ -526,7 +526,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 				relatedRecord = groupedWork.addRelatedRecord("external_econtent", identifier);
 				relatedRecord.setSubSource(profileType);
 				relatedRecord.addItem(itemInfo);
-				return null;
+				break;
 			case "acs":
 			case "drm":
 			case "public domain":
