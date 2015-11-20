@@ -207,15 +207,12 @@ class GoDeeperData{
 				$temp = array();
 				foreach ($response[0]->AnnotationItems->AnnotationItem as $summary) {
 					$temp[strlen($summary->Annotation)] = $summary->Annotation;
-
 				}
-//				ksort($temp);
 				$summaryData['summary'] = end($temp); // Grab the Longest Summary
 				if (!empty($summaryData['summary'])) {
-					$memCache->set($memCacheKey, $summaryData, 0, $configArray['Caching']['contentcafe_toc']);
+					$memCache->set($memCacheKey, $summaryData, 0, $configArray['Caching']['contentcafe_sumary']);
 				}
 			}
-
 		}
 		return $summaryData;
 	}
