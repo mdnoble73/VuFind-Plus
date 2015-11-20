@@ -182,6 +182,10 @@ class HooplaRecordDriver extends MarcRecord {
 		return $actions;
 	}
 
+	public function getItemActions($itemInfo){
+		return array();
+	}
+
 	function getRecordActions($recordAvailable, $recordHoldable, $recordBookable, $relatedUrls = null){
 		$actions = array();
 		$title = translate('hoopla_checkout_action');

@@ -1133,6 +1133,10 @@ class OverDriveRecordDriver extends RecordInterface {
 		return implode('&', $parts);
 	}
 
+	public function getItemActions($itemInfo){
+		return array();
+	}
+
 	public function getRecordActions($isAvailable, $isHoldable, $isBookable, $relatedUrls = null) {
 		$actions = array();
 		if ($isAvailable){

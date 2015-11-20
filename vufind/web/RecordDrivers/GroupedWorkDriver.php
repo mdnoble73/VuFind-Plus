@@ -1987,6 +1987,10 @@ class GroupedWorkDriver extends RecordInterface{
 		}
 	}
 
+	public function getItemActions($itemInfo) {
+		return array();
+	}
+
 	public function getRecordActions($isAvailable, $isHoldable, $isBookable, $relatedUrls = null){
 		return array();
 	}
@@ -2353,8 +2357,10 @@ class GroupedWorkDriver extends RecordInterface{
 					'available' => $available,
 					'holdable' => $holdable,
 					'sectionId' => $sectionId,
-					'section' => $section
+					'section' => $section,
+					'relatedUrls' => $relatedUrls
 			);
+			$itemSummaryInfo['actions'] = $recordDriver->getItemActions($itemSummaryInfo);
 			if (isset($relatedRecord['itemSummary'][$key])) {
 				$relatedRecord['itemSummary'][$key]['totalCopies']++;
 				$relatedRecord['itemSummary'][$key]['availableCopies'] += $itemSummaryInfo['availableCopies'];
@@ -2383,4 +2389,5 @@ class GroupedWorkDriver extends RecordInterface{
 		$timer->logTime("Loaded actions");
 		return $relatedRecord;
 	}
+
 }

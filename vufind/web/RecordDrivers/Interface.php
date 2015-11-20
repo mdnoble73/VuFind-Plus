@@ -457,5 +457,7 @@ abstract class RecordInterface {
 		);
 	}
 
+	public abstract function getItemActions($itemInfo);
+
 	public abstract function getRecordActions($isAvailable, $isHoldable, $isBookable, $relatedUrls = null);
 }

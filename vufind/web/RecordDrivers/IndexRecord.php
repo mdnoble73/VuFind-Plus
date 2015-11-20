@@ -1775,6 +1775,10 @@ class IndexRecord extends RecordInterface
 		return array();
 	}
 
+	public function getItemActions($itemInfo){
+		return array();
+	}
+
 	public function getRecordActions($isAvailable, $isHoldable, $isBookable, $relatedUrls = null){
 		return array();
 	}
