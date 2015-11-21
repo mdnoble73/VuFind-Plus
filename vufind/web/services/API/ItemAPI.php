@@ -21,7 +21,6 @@
 require_once ROOT_DIR . '/Action.php';
 require_once ROOT_DIR . '/sys/Pager.php';
 require_once ROOT_DIR . '/sys/ISBN.php';
-require_once ROOT_DIR . '/services/Record/Holdings.php';
 require_once ROOT_DIR . '/CatalogConnection.php';
 
 /**
@@ -374,8 +373,6 @@ class ItemAPI extends Action {
 	}
 
 	function getItemAvailability(){
-		global $timer;
-		global $configArray;
 		$itemData = array();
 
 		//Load basic information
@@ -384,8 +381,38 @@ class ItemAPI extends Action {
 
 		$fullId = 'ils:' . $this->id;
 
+		//Rather than calling the catalog, update to load information from the index
+		//Need to match historical data so we don't break EBSCO
+		$recordDriver = RecordDriverFactory::initRecordDriverById($fullId);
+		if ($recordDriver->isValid()){
+			$copies = $recordDriver->getCopies();
+			$holdings = array();
+			$i = 0;
+			foreach ($copies as $copy) {
+				$key = $copy['shelfLocation'];
+				$key = preg_replace('~\W~', '_', $key);
+				$holdings[$key][] = array(
+						'location' => $copy['shelfLocation'],
+						'callnumber' => $copy['callNumber'],
+						'status' => $copy['status'],
+						'dueDate' => '',
+						'statusFull' => $copy['status'],
+						'id' => $fullId,
+						'number' =>  $i++,
+						'type' => 'holding',
+						'availability' => $copy['available'],
+						'holdable' => $copy['holdable'] ? 1 : 0,
+						'bookable' => $copy['bookable'] ? 1 : 0,
+						'libraryDisplayName' => $copy['shelfLocation'],
+						'section' => $copy['section'],
+						'sectionId' => $copy['sectionId']
+				);
+			}
+			$itemData['holdings'] = $holdings;
+		}
+
 		//Update to use same method of loading that we do within AJAX
-		try {
+		/*try {
 			$catalog = CatalogFactory::getCatalogConnectionInstance();;
 			$timer->logTime("Connected to catalog");
 		} catch (PDOException $e) {
@@ -428,7 +455,7 @@ class ItemAPI extends Action {
 			} else {
 				$itemData['holdings'] = array();
 			}
-		}
+		}*/
 
 		return $itemData;
 	}
@@ -494,35 +521,6 @@ class ItemAPI extends Action {
 		}
 
 		return array('deletedFiles' => $deletedFiles);
-	}
-
-	function getEnrichmentData(){
-		require_once ROOT_DIR . '/services/Record/Enrichment.php';
-		$record = $this->loadSolrRecord($_GET['id']);
-		$isbn = isset($record['isbn']) ? ISBN::normalizeISBN($record['isbn'][0]) : null;
-		//Need to trim the isbn to make sure there isn't descriptive text.
-		$upc = isset($record['upc']) ? $record['upc'][0] : null;
-		$enrichmentData = Record_Enrichment::loadEnrichment($isbn);
-
-		//Load go deeper options
-		require_once(ROOT_DIR . '/Drivers/marmot_inc/GoDeeperData.php');
-		$goDeeperOptions = GoDeeperData::getGoDeeperOptions($isbn, $upc, false);
-
-		return array('enrichment' => $enrichmentData, 'goDeeper' => $goDeeperOptions);
-	}
-
-	function getGoDeeperData(){
-		require_once ROOT_DIR . '/services/Record/Enrichment.php';
-		$record = $this->loadSolrRecord($_GET['id']);
-		$type = $_GET['type'];
-		$isbn = isset($record['isbn']) ? ISBN::normalizeISBN($record['isbn'][0]) : null;
-		$upc = isset($record['upc']) ? $record['upc'][0] : null;
-
-		//Load go deeper data
-		require_once(ROOT_DIR . '/Drivers/marmot_inc/GoDeeperData.php');
-		$goDeeperOptions = GoDeeperData::getHtmlData($type, 'vufind', $isbn, $upc);
-
-		return $goDeeperOptions;
 	}
 
 	private function loadSolrRecord($id){

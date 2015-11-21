@@ -8613,10 +8613,6 @@ a.browse-thumbnail.active {
  *
  * If a style is used both within the results list and within a record it should
  */
-.holdingsSummary {
-  margin-left: 5px;
-  padding: 7px;
-}
 .statVal {
   padding: 6px 0px 2px;
 }
@@ -8637,8 +8633,7 @@ a.browse-thumbnail.active {
   color: #009900;
   font-weight: bold;
 }
-.statusValue.nearby,
-.holdingsSummaryStatusLine.availableOther {
+.statusValue.nearby {
   color: #BB0099;
   font-weight: bold;
 }

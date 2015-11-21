@@ -956,9 +956,6 @@ class OverDriveDriver3 {
 	 * @access  public
 	 */
 	public function getHoldings($overDriveRecordDriver){
-		global $user;
-		global $configArray;
-
 		/** @var OverDriveAPIProductFormats[] $items */
 		$items = $overDriveRecordDriver->getItems();
 		//Add links as needed
@@ -1046,8 +1043,6 @@ class OverDriveDriver3 {
 	}
 
 	public function getStatusSummary($id, $scopedAvailability, $holdings){
-		global $user;
-		$addedToWishList = false;
 		$holdPosition = 0;
 
 		$availableCopies = 0;
