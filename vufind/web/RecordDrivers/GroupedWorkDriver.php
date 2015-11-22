@@ -2171,7 +2171,7 @@ class GroupedWorkDriver extends RecordInterface{
 				'onOrderCopies' => 0,
 				'localAvailableCopies' => 0,
 				'localCopies' => 0,
-				'numHolds' => 0,
+				'numHolds' => $recordDriver->getNumHolds(),
 				'hasLocalItem' => false,
 				'holdRatio' => 0,
 				'locationLabel' => '',

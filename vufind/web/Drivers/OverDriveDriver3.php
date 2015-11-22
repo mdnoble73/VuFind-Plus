@@ -1106,5 +1106,4 @@ class OverDriveDriver3 {
 
 		return $statusSummary;
 	}
-
 }

@@ -1074,4 +1074,8 @@ class OverDriveRecordDriver extends RecordInterface {
 		}
 		return $actions;
 	}
+
+	function getNumHolds(){
+		return 0;
+	}
 }
