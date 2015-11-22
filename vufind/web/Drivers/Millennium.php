@@ -47,60 +47,6 @@ class Millennium extends ScreenScrapingDriver
 	/** @var  Solr */
 	public $db;
 
-	private static function loadLibraryLocationInformation() {
-		if (Millennium::$libraryLocationInformationLoaded == false){
-			//Get a list of all locations for the active library
-			global $library;
-			global $timer;
-			$userLibrary = Library::getPatronHomeLibrary();
-			Millennium::$libraryLocations = array();
-			Millennium::$libraryLocationLabels = array();
-			$libraryLocation = new Location();
-			if ($userLibrary){
-				$libraryLocation->libraryId = $userLibrary->libraryId;
-				$libraryLocation->find();
-				while ($libraryLocation->fetch()){
-					Millennium::$libraryLocations[] = $libraryLocation->code;
-					Millennium::$libraryLocationLabels[$libraryLocation->code] = $libraryLocation->facetLabel;
-				}
-			}else{
-				$libraryLocation->libraryId = $library->libraryId;
-				$libraryLocation->find();
-				while ($libraryLocation->fetch()){
-					Millennium::$libraryLocations[] = $libraryLocation->code;
-					Millennium::$libraryLocationLabels[$libraryLocation->code] = $libraryLocation->facetLabel;
-				}
-			}
-			Millennium::$homeLocationCode = null;
-			Millennium::$homeLocationLabel = null;
-			$searchLocation = Location::getSearchLocation();
-			if ($searchLocation){
-				Millennium::$homeLocationCode = $searchLocation->code;
-				Millennium::$homeLocationLabel = $searchLocation->facetLabel;
-			}else{
-				$homeLocation = Location::getUserHomeLocation();
-				if ($homeLocation){
-					Millennium::$homeLocationCode = $homeLocation->code;
-					Millennium::$homeLocationLabel = $homeLocation->facetLabel;
-				}
-			}
-
-			$timer->logTime("Finished loading location data");
-
-			Millennium::$scopingLocationCode = '';
-
-			$searchLibrary = Library::getSearchLibrary();
-			$searchLocation = Location::getSearchLocation();
-			if (isset($searchLibrary)){
-				Millennium::$scopingLocationCode = $searchLibrary->ilsCode;
-			}
-			if (isset($searchLocation)){
-				Millennium::$scopingLocationCode = $searchLocation->code;
-			}
-			Millennium::$libraryLocationInformationLoaded = true;
-		}
-	}
-
 	/**
 	 * Load information about circulation statuses from the database
 	 * so we can perform translations easily and so we can determine
@@ -816,6 +762,7 @@ class Millennium extends ScreenScrapingDriver
 	}
 
 	/**
+	 * @param  User $patron
 	 * @return array      data for client-side AJAX responses
 	 */
 	public function cancelAllBookedMaterial($patron) {
@@ -993,11 +940,11 @@ class Millennium extends ScreenScrapingDriver
 	 *
 	 * If there are no issue summaries, null will be returned from the summary.
 	 *
-	 * @param MillenniumCache $millenniumInfo - Information from Millennium to load issue information from.
-	 *
+	 * @param string $id
 	 * @return mixed - array or null
 	 */
-	public function getIssueSummaries($millenniumInfo){
+	public function getIssueSummaries($id){
+		$millenniumInfo = $this->getMillenniumRecordInfo($id);
 		//Issue summaries are loaded from the main record page.
 
 		if (preg_match('/class\\s*=\\s*\\"bibHoldings\\"/s', $millenniumInfo->framesetInfo)){
@@ -1051,6 +998,7 @@ class Millennium extends ScreenScrapingDriver
 					}
 				}
 			}
+
 			return $issueSummaries;
 		}else{
 			return null;
@@ -1225,6 +1173,7 @@ class Millennium extends ScreenScrapingDriver
 		$pTypeString = implode(',', $pTypes);
 		$memcacheKey = "loan_rule_material_booking_result_{$locationCode}_{$iType}_{$pTypeString}";
 		$cachedValue = $memCache->get($memcacheKey);
+		$pType = '';
 		if ($cachedValue !== false && !isset($_REQUEST['reload'])){
 			return $cachedValue == 'true';
 		}else {
@@ -1585,16 +1534,11 @@ class Millennium extends ScreenScrapingDriver
 		curl_setopt($curl_connection, CURLOPT_HTTPGET, true);
 
 		curl_setopt($curl_connection, CURLOPT_URL, $pinResetUrl);
-		$pinResetPageHtml = curl_exec($curl_connection);
+		/*$pinResetPageHtml = */curl_exec($curl_connection);
 
 		//Now submit the request
 		$post_data['code'] = $barcode;
 		$post_data['pat_submit'] = 'xxx';
-//		$post_items = array();
-//		foreach ($post_data as $key => $value) {
-//			$post_items[] = $key . '=' . $value;
-//		}
-//		$post_string = implode ('&', $post_items);
 		$post_string = http_build_query($post_data);
 		curl_setopt($curl_connection, CURLOPT_POST, true);
 		curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
@@ -1621,6 +1565,7 @@ class Millennium extends ScreenScrapingDriver
 	/**
 	 * Import Lists from the ILS
 	 *
+	 * @param  User $patron
 	 * @return array - an array of results including the names of the lists that were imported as well as number of titles.
 	 */
 	function importListsFromIls($patron){

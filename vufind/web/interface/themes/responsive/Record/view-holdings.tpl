@@ -9,7 +9,9 @@
 	{assign var=showLastCheckIn value=false}
 {/if}
 {assign var=lastSection value=''}
-{if isset($sections) && count($sections) > 0}
+{if $periodicalIssues}
+	{include file='Record/issueSummaries.tpl' issueSummaries=$periodicalIssues}
+{elseif isset($sections) && count($sections) > 0}
 	{foreach from=$sections item=section}
 		{if strlen($section.name) > 0 && count($sections) > 1}
 			<div class="accordion-group">
@@ -34,9 +36,8 @@
 			</div>
 		{/if}
 	{/foreach}
-{elseif isset($issueSummaries) && count($issueSummaries) > 0}
-	{include file="Record/issueSummaries.tpl"}
 {else}
 	No Copies Found
 {/if}
+
 {/strip}

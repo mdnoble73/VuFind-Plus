@@ -8715,6 +8715,11 @@ a.browse-thumbnail.active {
   border-bottom: 1px solid;
   padding-bottom: 5px;
   padding-top: 5px;
+  margin-bottom: 10px;
+}
+.issue-summary-location {
+  font-size: 13px;
+  font-weight: bold;
 }
 /**
  * Additional styling specific to the results list.

@@ -1408,6 +1408,21 @@ class MarcRecord extends IndexRecord
 
 		//Get copies for the record
 		$this->assignCopiesInformation();
+
+		//If this is a periodical we may have additional information
+		$isPeriodical = false;
+		foreach ($this->getFormats() as $format){
+			if ($format == 'Journal' || $format == 'Newspaper'){
+				$isPeriodical = true;
+				break;
+			}
+		}
+		if ($isPeriodical){
+			global $library;
+			$interface->assign('showCheckInGrid', $library->showCheckInGrid);
+			$issues = $this->loadPeriodicalInformation();
+			$interface->assign('periodicalIssues', $issues);
+		}
 		$moreDetailsOptions['copies'] = array(
 			'label' => 'Copies',
 			'body' => $interface->fetch('Record/view-holdings.tpl'),
@@ -1716,6 +1731,51 @@ class MarcRecord extends IndexRecord
 	public function getCopies(){
 		$this->loadCopies();
 		return $this->holdings;
+	}
+
+	public function loadPeriodicalInformation(){
+		$catalogDriver = $this->getCatalogDriver();
+		if ($catalogDriver->checkFunction('getIssueSummaries')){
+			$issueSummaries = $catalogDriver->getIssueSummaries($this->id);
+			if (count($issueSummaries)){
+				//Insert copies into the information about the periodicals
+				$copies = $this->getCopies();
+				krsort($copies);
+				//Group holdings under the issue issue summary that is related.
+				foreach ($copies as $key => $holding){
+					//Have issue summary = false
+					$haveIssueSummary = false;
+					$issueSummaryKey = null;
+					foreach ($issueSummaries as $issueKey => $issueSummary){
+						if ($issueSummary['location'] == $holding['shelfLocation']){
+							$haveIssueSummary = true;
+							$issueSummaryKey = $issueKey;
+							break;
+						}
+					}
+					if ($haveIssueSummary){
+						$issueSummaries[$issueSummaryKey]['holdings'][strtolower($key)] = $holding;
+					}else{
+						//Need to automatically add a summary so we don't lose data
+						$issueSummaries[$holding['location']] = array(
+								'location' => $holding['location'],
+								'type' => 'issue',
+								'holdings' => array(strtolower($key) => $holding),
+						);
+					}
+				}
+				foreach ($issueSummaries as $key => $issueSummary){
+					if (isset($issueSummary['holdings']) && is_array($issueSummary['holdings'])){
+						krsort($issueSummary['holdings']);
+						$issueSummaries[$key] = $issueSummary;
+					}
+				}
+				ksort($issueSummaries);
+			}
+		}else{
+			$issueSummaries = null;
+		}
+		return $issueSummaries;
 	}
 
 }

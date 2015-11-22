@@ -2215,7 +2215,7 @@ class GroupedWorkDriver extends RecordInterface{
 			$scopeKey = $curItem[0] . ':' . ($curItem[1] == 'null' ? '' : $curItem[1]);
 			$scopingDetails = $scopingInfo[$scopeKey];
 			$groupedStatus = $scopingDetails[2];
-			$status = $scopingDetails[3];
+			$status = $curItem[13];
 			$locallyOwned = $scopingDetails[4] == 'true';
 			$available = $scopingDetails[5] == 'true';
 			if ($available) {
