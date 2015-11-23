@@ -7716,7 +7716,7 @@ hr.menu {
 #horizontal-search-box {
   background-color: #df3737;
   background: linear-gradient(to bottom, #df3737, #c41f1f);
-  padding: 30px 0;
+  padding: 15px 0;
 }
 #horizontal-search-box #searchForm .row {
   margin-left: 0;
