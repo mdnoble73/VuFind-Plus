@@ -200,23 +200,14 @@ class ListAPI extends Action {
 					$rssFeed .= '<image>' . htmlspecialchars($image) . '</image>';
 					$rssFeed .= '<title>' . htmlspecialchars($bookTitle) . '</title>';
 					$rssFeed .= '<author>' . htmlspecialchars($author) . '</author>';
-					if ($title['recordtype'] == 'econtentRecord'){
-						$titleIdShort = preg_replace('/econtentRecord/', '', $titleId);
-						$itemLink = htmlspecialchars($configArray['Site']['url'] . '/EcontentRecord/' . $titleIdShort);
-					}else{
-						$itemLink = htmlspecialchars($configArray['Site']['url'] . '/Record/' . $titleId);
-					}
+					$itemLink = htmlspecialchars($configArray['Site']['url'] . '/Record/' . $titleId);
 
 					$fullDescription = "<a href='{$itemLink}'><img src='{$image}' alt='cover'/></a>$description";
 					$rssFeed .= '<description>' . htmlspecialchars($fullDescription) . '</description>';
 					$rssFeed .= '<length>' . $length . '</length>';
 					$rssFeed .= '<publisher>' . htmlspecialchars($publisher) . '</publisher>';
 					$rssFeed .= '<pubDate>' . $pubDate . '</pubDate>';
-					if ($title['recordtype'] == 'econtentRecord'){
-						$rssFeed .= '<link>' . $itemLink . '</link>';
-					}else{
-						$rssFeed .= '<link>' . $itemLink . '</link>';
-					}
+					$rssFeed .= '<link>' . $itemLink . '</link>';
 
 					$rssFeed .= '</item>';
 
@@ -467,33 +458,7 @@ class ListAPI extends Action {
 				}
 			}
 			//The list is a system generated list
-			if ($listId == 'newEpub' || $listId == 'newebooks'){
-				require_once (ROOT_DIR . 'sys/eContent/EContentRecord.php');
-				$eContentRecord = new EContentRecord;
-				$eContentRecord->orderBy('date_added DESC');
-				$eContentRecord->limit(0, 30);
-				$eContentRecord->find();
-				$titles = array();
-				while($eContentRecord->fetch()){
-					$titles[] = $this->setEcontentRecordInfoForList($eContentRecord);
-				}
-				return array('success'=>true, 'listTitle' => $systemList['title'], 'listDescription' => $systemList['description'], 'titles'=>$titles, 'cacheLength'=>1);
-			}elseif ($listId == 'freeEbooks'){
-
-				if(!$pagination) $pagination = new Pagination();
-
-				require_once (ROOT_DIR . 'sys/eContent/EContentRecord.php');
-				$eContentRecord = new EContentRecord;
-				$eContentRecord->orderBy('date_added DESC');
-				$eContentRecord->whereAdd('accessType = \'free\'');
-				$eContentRecord->limit($pagination->getOffset(), $pagination->getNumItemsPerPage());
-				$eContentRecord->find();
-				$titles = array();
-				while($eContentRecord->fetch()){
-					$titles[] = $this->setEcontentRecordInfoForList($eContentRecord);
-				}
-				return array('success'=>true, 'listTitle' => $systemList['title'], 'listDescription' => $systemList['description'], 'titles'=>$titles, 'cacheLength'=>1);
-			} elseif ($listId == 'highestRated'){
+			if ($listId == 'highestRated'){
 				$query = "SELECT record_id, AVG(rating) FROM `user_rating` inner join resource on resourceid = resource.id GROUP BY resourceId order by AVG(rating) DESC LIMIT 30";
 				$result = mysql_query($query);
 				$ids = array();
@@ -501,18 +466,6 @@ class ListAPI extends Action {
 					$ids[] = $epubInfo['record_id'];
 				}
 				$titles = $this->loadTitleInformationForIds($ids);
-				return array('success'=>true, 'listTitle' => $systemList['title'], 'listDescription' => $systemList['description'], 'titles'=>$titles, 'cacheLength'=>1);
-			} elseif ($listId == 'highestRatedEContent') {
-				require_once ROOT_DIR . '/sys/eContent/EContentRating.php';
-				$econtentRating = new EContentRating();
-				$records=$econtentRating->getRecordsListAvgRating("DESC",30);
-				$titles = array();
-				if(!empty($records)){
-					foreach ($records as $eContentRecord)
-					{
-						$titles[] = $this->setEcontentRecordInfoForList($eContentRecord);
-					}
-				}
 				return array('success'=>true, 'listTitle' => $systemList['title'], 'listDescription' => $systemList['description'], 'titles'=>$titles, 'cacheLength'=>1);
 			} elseif ($listId == 'recentlyReviewed'){
 				$query = "SELECT record_id, MAX(created) FROM `comments` inner join resource on resource_id = resource.id group by resource_id order by max(created) DESC LIMIT 30";
@@ -571,30 +524,6 @@ class ListAPI extends Action {
 			}
 		}
 	}
-
-	/**
-	 * Get econtent information for a title.
-	 *
-	 * @param EContentRecord $eContentRecord
-	 * @return array
-	 */
-	private function setEcontentRecordInfoForList($eContentRecord)
-	{
-		global $configArray;
-		return array(
-				'id' => 'econtentRecord' . $eContentRecord->id,
-				'image' => $configArray['Site']['coverUrl'] . "/bookcover.php?id=" . $eContentRecord->id . "&issn=" . $eContentRecord->getissn() . "&isn=" . $eContentRecord->getIsbn() . "&size=medium&upc=" . $eContentRecord->getUpc() . "&category=EMedia&econtent=true",
-				'large_image' => $configArray['Site']['coverUrl'] . "/bookcover.php?id=" . $eContentRecord->id . "&issn=" . $eContentRecord->getissn() . "&isn=" . $eContentRecord->getIsbn() . "&size=large&upc=" . $eContentRecord->getUpc() . "&category=EMedia&econtent=true",
-				'small_image' => $configArray['Site']['coverUrl'] . "/bookcover.php?id=" . $eContentRecord->id . "&issn=" . $eContentRecord->getissn() . "&isn=" . $eContentRecord->getIsbn() . "&size=small&upc=" . $eContentRecord->getUpc() . "&category=EMedia&econtent=true",
-				'title' => $eContentRecord->title,
-				'author' => $eContentRecord->author,
-				'description' => $eContentRecord->description,
-				'length' => '',
-				'publisher' => $eContentRecord->publisher,
-				'dateSaved' => $eContentRecord->date_added
-		);
-	}
-
 
 	/**
 	 * Loads caching information to determine what the list should be cached as

@@ -127,21 +127,6 @@
 				<div class="row">
 					<div class="col-md-12 result-value" id="descriptionValue{$summShortId|escape}">{$summDescription}</div>
 				</div>
-
-				{*
-				<div class="row">
-					<div class="result-label col-md-3">{translate text='Copies'}:</div>
-					<div class="col-md-9 result-value" id="copiesValue{$summShortId|escape}">Loading...</div>
-				</div>
-				*}
-
-				{*
-				<div id = "holdingsSummary{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}" class="holdingsSummary well well-small">
-					<div class="statusSummary" id="statusSummary{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}">
-						<span class="unknown" style="font-size: 8pt;">{translate text='Loading'}...</span>
-					</div>
-				</div>
-				*}
 			</div>
 
 			<div class="resultActions col-md-3">

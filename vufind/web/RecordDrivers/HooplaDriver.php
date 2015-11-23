@@ -74,80 +74,6 @@ class HooplaRecordDriver extends MarcRecord {
 		return 'hoopla';
 	}
 
-	private $relatedRecords = null;
-	function getRelatedRecords(){
-		if ($this->relatedRecords == null){
-			global $timer;
-			$recordId = $this->getUniqueID();
-
-			$url = $this->getRecordUrl();
-
-			//Load data needed for the related record
-			if ($this->detailedRecordInfoFromIndex){
-				//This is fast because it is already loaded within the index
-				$format = $this->detailedRecordInfoFromIndex[1];
-				$edition = $this->detailedRecordInfoFromIndex[2];
-				$language = $this->detailedRecordInfoFromIndex[3];
-				$publisher = $this->detailedRecordInfoFromIndex[4];
-				$publicationDate = $this->detailedRecordInfoFromIndex[5];
-				$physicalDescription = $this->detailedRecordInfoFromIndex[6];
-				$timer->logTime("Finished loading information from indexed info for $recordId");
-			}else{
-				//This is slow because we need to load from marc record
-				$publishers = $this->getPublishers();
-				$publisher = count($publishers) >= 1 ? $publishers[0] : '';
-				$publicationDates = $this->getPublicationDates();
-				$publicationDate = count($publicationDates) >= 1 ? $publicationDates[0] : '';
-				$physicalDescriptions = $this->getPhysicalDescriptions();
-				$physicalDescription = count($physicalDescriptions) >= 1 ? $physicalDescriptions[0] : '';
-				$format = reset($this->getFormat());
-				$edition = $this->getEdition(true);
-				$language = $this->getLanguage();
-				$timer->logTime("Finished loading MARC information in getRelatedRecords $recordId");
-			}
-
-			$formatCategory = mapValue('format_category_by_format', $format);
-
-			//TODO: Load items?
-
-			//Setup our record
-			$relatedRecord = array(
-				'id' => $recordId,
-				'url' => $url,
-				'format' => $format,
-				'formatCategory' => $formatCategory,
-				'edition' => $edition,
-				'language' => $language,
-				'publisher' => $publisher,
-				'publicationDate' => $publicationDate,
-				'physical' => $physicalDescription,
-				'callNumber' => '',
-				'available' => true,
-				'availableOnline' => true,
-				'availableLocally' => false,
-				'availableHere' => false,
-				'inLibraryUseOnly' => false,
-				'availableCopies' => 'Unlimited',
-				'copies' => 'Unlimited',
-				'onOrderCopies' => 0,
-				'localAvailableCopies' => 'Unlimited',
-				'localCopies' => 'Unlimited',
-				'numHolds' => 0,
-				'hasLocalItem' => true,
-				'holdRatio' => 999999,
-				'locationLabel' => 'Hoopla Digital',
-				'shelfLocation' => 'Hoopla Digital',
-				//'itemSummary' => $this->getItemSummary(),
-				'groupedStatus' => 'Available Online',
-				'source' => 'Hoopla',
-				'actions' => $this->getActions()
-			);
-
-			$this->relatedRecords[] = $relatedRecord;
-		}
-		return $this->relatedRecords;
-	}
-
 	function getRecordUrl(){
 		global $configArray;
 		$recordId = $this->getUniqueID();
@@ -180,6 +106,10 @@ class HooplaRecordDriver extends MarcRecord {
 		}
 
 		return $actions;
+	}
+
+	public function getItemActions($itemInfo){
+		return array();
 	}
 
 	function getRecordActions($recordAvailable, $recordHoldable, $recordBookable, $relatedUrls = null){

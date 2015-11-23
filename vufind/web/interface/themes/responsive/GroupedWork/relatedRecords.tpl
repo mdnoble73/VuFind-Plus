@@ -48,51 +48,8 @@
 					<td><a href="{$relatedRecord.url}">{implode subject=$relatedRecord.language glue=","}</a></td>
 				{/display_if_inconsistent}
 				<td>
-					{if $relatedRecord.availableHere}
-						{if $relatedRecord.availableOnline}
-							<div class="related-manifestation-shelf-status available">Available Online</div>
-						{elseif $relatedRecord.allLibraryUseOnly}
-							<div class="related-manifestation-shelf-status available">It's Here (library use only)</div>
-						{else}
-							{if $showItsHere}
-								<div class="related-manifestation-shelf-status available">It's Here</div>
-							{else}
-								<div class="related-manifestation-shelf-status available">On Shelf</div>
-							{/if}
-						{/if}
-					{elseif $relatedRecord.availableLocally}
-						{if $relatedRecord.availableOnline}
-							<div class="related-manifestation-shelf-status available">Available Online</div>
-						{elseif $relatedRecord.allLibraryUseOnly}
-							<div class="related-manifestation-shelf-status available">On Shelf (library use only)</div>
-						{elseif $onInternalIP}
-							<div class="related-manifestation-shelf-status availableOther">Available at another branch</div>
-						{else}
-							<div class="related-manifestation-shelf-status available">On Shelf</div>
-						{/if}
-					{elseif $relatedRecord.availableOnline}
-						<div class="related-manifestation-shelf-status available">Available Online</div>
-					{elseif $relatedRecord.inLibraryUseOnly}
-						<div class="related-manifestation-shelf-status available">In Library Use Only</div>
-					{elseif $relatedRecord.available && $relatedRecord.hasLocalItem}
-						<div class="related-manifestation-shelf-status availableOther">Checked Out/Available Elsewhere</div>
-					{elseif $relatedRecord.available}
-						<div class="related-manifestation-shelf-status availableOther">{translate text='Available from another library'}</div>
-					{else}
-						<div class="related-manifestation-shelf-status checked_out">{$relatedRecord.groupedStatus}</div>
-					{/if}
+					{include file='GroupedWork/statusIndicator.tpl' statusInformation=$relatedRecord}
 
-					{if $relatedRecord.numHolds > 0 || $relatedRecord.onOrderCopies > 0}
-						<div class="smallText">
-							{if $relatedRecord.numHolds > 0}
-								{$relatedRecord.numHolds} {if $relatedRecord.numHolds == 1}person is{else}people are{/if} on the wait list
-								{if $relatedRecord.onOrderCopies > 0}, {else}.{/if}
-							{/if}
-							{if $relatedRecord.onOrderCopies > 0}
-								{$relatedRecord.onOrderCopies} {if $relatedRecord.onOrderCopies == 1}copy{else}copies{/if} on order.
-							{/if}
-						</div>
-					{/if}
 					{include file='GroupedWork/copySummary.tpl' summary=$relatedRecord.itemSummary totalCopies=$relatedRecord.copies itemSummaryId=$relatedRecord.id}
 
 					{if $relatedRecord.usageRestrictions}

@@ -374,6 +374,8 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		//Shelf Location also include the name of the ordering branch if possible
 		boolean hasLocationBasedShelfLocation = false;
 		boolean hasSystemBasedShelfLocation = false;
+
+		//Add the library this is on order for
 		itemInfo.setShelfLocation("On Order");
 
 		String status = "";
@@ -394,7 +396,11 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 						scopingInfo.setLocallyOwned(scope.isItemOwnedByScope(profileType, location, ""));
 					}
 					if (scope.isLibraryScope()) {
-						 scopingInfo.setLibraryOwned(scope.isItemOwnedByScope(profileType, location, ""));
+						boolean libraryOwned = scope.isItemOwnedByScope(profileType, location, "");
+						scopingInfo.setLibraryOwned(libraryOwned);
+						if (itemInfo.getShelfLocation().equals("On Order")){
+							itemInfo.setShelfLocation(scopingInfo.getScope().getFacetLabel() + " On Order");
+						}
 					}
 					if (scopingInfo.isLocallyOwned()){
 						if (scope.isLibraryScope() && !hasLocationBasedShelfLocation && !hasSystemBasedShelfLocation){
@@ -402,7 +408,9 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 						}
 						if (scope.isLocationScope() && !hasLocationBasedShelfLocation){
 							hasLocationBasedShelfLocation = true;
-							itemInfo.setShelfLocation("On Order");
+							if (itemInfo.getShelfLocation().equals("On Order")) {
+								itemInfo.setShelfLocation(scopingInfo.getScope().getFacetLabel() + "On Order");
+							}
 						}
 					}
 					scopingInfo.setAvailable(false);
@@ -514,23 +522,21 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		//Set record type
 		String protectionType = itemInfo.geteContentProtectionType();
 		switch (protectionType) {
-			case "acs":
-			case "drm":
-				relatedRecord = groupedWork.addRelatedRecord("restricted_econtent", identifier);
-				relatedRecord.setSubSource(profileType);
-				relatedRecord.addItem(itemInfo);
-				break;
-			case "public domain":
-			case "free":
-				relatedRecord = groupedWork.addRelatedRecord("public_domain_econtent", identifier);
-				relatedRecord.setSubSource(profileType);
-				relatedRecord.addItem(itemInfo);
-				break;
 			case "external":
 				relatedRecord = groupedWork.addRelatedRecord("external_econtent", identifier);
 				relatedRecord.setSubSource(profileType);
 				relatedRecord.addItem(itemInfo);
 				break;
+			case "acs":
+			case "drm":
+			case "public domain":
+			case "free":
+				//Remove restricted (ACS) eContent from Pika #PK-1199
+				//Remove free public domain, but stored locally eContent from Pika #PK-1199
+				//relatedRecord = groupedWork.addRelatedRecord("public_domain_econtent", identifier);
+				//relatedRecord.setSubSource(profileType);
+				//relatedRecord.addItem(itemInfo);
+				return null;
 			default:
 				logger.warn("Unknown protection type " + protectionType + " found in record " + identifier);
 				break;
@@ -567,16 +573,6 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		switch (protectionType) {
 			case "external":
 				available = true;
-				break;
-			case "public domain":
-			case "free":
-				available = true;
-				break;
-			case "acs":
-			case "drm":
-				//TODO: Determine availability based on if it is checked out in the database
-				available = true;
-				holdable = true;
 				break;
 		}
 
@@ -914,8 +910,6 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 	protected List<RecordInfo> loadUnsuppressedEContentItems(GroupedWorkSolr groupedWork, String identifier, Record record){
 		return new ArrayList<>();
 	}
-
-
 
 	protected void loadPopularity(GroupedWorkSolr groupedWork, String recordIdentifier) {
 		//Add popularity based on the number of holds (we have already done popularity for prior checkouts)

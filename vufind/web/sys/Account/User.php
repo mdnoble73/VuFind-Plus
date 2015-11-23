@@ -709,17 +709,7 @@ class User extends DB_DataObject
 			$overDriveCheckedOutItems = array();
 		}
 
-		if ($configArray['EContent']['hasProtectedEContent']){
-			//Get a list of eContent that has been checked out
-			require_once ROOT_DIR . '/Drivers/EContentDriver.php';
-			$driver = new EContentDriver(null);
-			$eContentCheckedOut = $driver->getMyCheckouts($this);
-		}else{
-			$eContentCheckedOut = array();
-		}
-
-
-		$allCheckedOut = array_merge($ilsCheckouts, $overDriveCheckedOutItems, $eContentCheckedOut);
+		$allCheckedOut = array_merge($ilsCheckouts, $overDriveCheckedOutItems);
 
 		if ($includeLinkedUsers) {
 			if ($this->getLinkedUsers() != null) {
@@ -747,17 +737,7 @@ class User extends DB_DataObject
 			$overDriveHolds = array();
 		}
 
-		global $configArray;
-		if ($configArray['EContent']['hasProtectedEContent']) {
-			//Get a list of eContent that has been checked out
-			require_once ROOT_DIR . '/Drivers/EContentDriver.php';
-			$driver = new EContentDriver(null);
-			$eContentHolds = $driver->getMyHolds($this);
-		}else{
-			$eContentHolds = array();
-		}
-
-		$allHolds = array_merge_recursive($ilsHolds, $overDriveHolds, $eContentHolds);
+		$allHolds = array_merge_recursive($ilsHolds, $overDriveHolds);
 
 		if ($includeLinkedUsers) {
 			if ($this->getLinkedUsers() != null) {

@@ -13,31 +13,10 @@ class MarcLoader{
 	public static function loadMarcRecordFromRecord($record){
 		if ($record['recordtype'] == 'marc'){
 			return MarcLoader::loadMarcRecordByILSId($record['id'], $record['recordtype']);
-		}elseif ($record['recordtype'] == 'econtentRecord'){
-			require_once ROOT_DIR . '/sys/eContent/EContentRecord.php';
-			$econtentRecord = new EContentRecord();
-			$econtentRecord->id = $record['id'];
-			if ($econtentRecord->find(true)){
-				return MarcLoader::loadMarcRecordByILSId($econtentRecord->ilsId, $record['recordtype']);
-			}else{
-				return null;
-			}
 		}else{
 			return null;
 		}
 
-	}
-
-	/**
-	 * @param EContentRecord $econtentRecord An eContent Record to load the Marc Record for
-	 * @return File_MARC_Record
-	 */
-	public static function loadEContentMarcRecord($econtentRecord){
-		if ($econtentRecord->ilsId != false){
-			return MarcLoader::loadMarcRecordByILSId($econtentRecord->ilsId, 'econtentRecord');
-		}else{
-			return null;
-		}
 	}
 
 	/**

@@ -119,7 +119,10 @@ public class MarmotRecordProcessor extends IIIRecordProcessor {
 					}
 				}
 				if (!isOverDrive && !isHoopla && isEContent){
-					unsuppressedEcontentRecords.add(getEContentIlsRecord(groupedWork, record, identifier, itemField));
+					RecordInfo eContentRecord = getEContentIlsRecord(groupedWork, record, identifier, itemField);
+					if (eContentRecord != null) {
+						unsuppressedEcontentRecords.add(eContentRecord);
+					}
 				}
 			}
 		}
@@ -130,48 +133,6 @@ public class MarmotRecordProcessor extends IIIRecordProcessor {
 	protected void loadEContentFormatInformation(Record record, RecordInfo econtentRecord, ItemInfo econtentItem) {
 		String protectionType = econtentItem.geteContentProtectionType();
 		switch (protectionType) {
-			case "acs":
-			case "drm":
-			case "public domain":
-			case "free":
-				String filename = econtentItem.geteContentFilename();
-				if (filename == null) {
-					//Did not get a filename, use the iType as a placeholder
-					String iType = econtentItem.getITypeCode();
-					if (iType != null) {
-						String translatedFormat = translateValue("econtent_itype_format", iType, econtentRecord.getRecordIdentifier());
-						String translatedFormatCategory = translateValue("econtent_itype_format_category", iType, econtentRecord.getRecordIdentifier());
-						String translatedFormatBoost = translateValue("econtent_itype_format_boost", iType, econtentRecord.getRecordIdentifier());
-						econtentItem.setFormat(translatedFormat);
-						econtentItem.setFormatCategory(translatedFormatCategory);
-						econtentRecord.setFormatBoost(Long.parseLong(translatedFormatBoost));
-					} else {
-						logger.warn("Did not get a filename or itype for " + econtentRecord.getFullIdentifier());
-					}
-				} else if (filename.indexOf('.') > 0) {
-					String fileExtension = filename.substring(filename.lastIndexOf('.') + 1);
-					if (fileExtension.equalsIgnoreCase("noimages")) {
-						//Try again, this wasn't the true extension
-						String tmpFilename = filename.replace(".noimages", "");
-						fileExtension = tmpFilename.substring(tmpFilename.lastIndexOf('.') + 1);
-					}
-					String translatedFormat = translateValue("format", fileExtension, econtentRecord.getRecordIdentifier());
-					String translatedFormatCategory = translateValue("format_category", fileExtension, econtentRecord.getRecordIdentifier());
-					String translatedFormatBoost = translateValue("format_boost", fileExtension, econtentRecord.getRecordIdentifier());
-					econtentItem.setFormat(translatedFormat);
-					econtentItem.setFormatCategory(translatedFormatCategory);
-					econtentRecord.setFormatBoost(Long.parseLong(translatedFormatBoost));
-				} else {
-					//For now we know these are folders of MP3 files
-					//TODO: Probably should actually open the folder to make sure that it contains MP3 files
-					String translatedFormat = translateValue("format", "mp3", econtentRecord.getRecordIdentifier());
-					String translatedFormatCategory = translateValue("format_category", "mp3", econtentRecord.getRecordIdentifier());
-					String translatedFormatBoost = translateValue("format_boost", "mp3", econtentRecord.getRecordIdentifier());
-					econtentItem.setFormat(translatedFormat);
-					econtentItem.setFormatCategory(translatedFormatCategory);
-					econtentRecord.setFormatBoost(Long.parseLong(translatedFormatBoost));
-				}
-				break;
 			case "external":
 				String iType = econtentItem.getITypeCode();
 				if (iType != null) {

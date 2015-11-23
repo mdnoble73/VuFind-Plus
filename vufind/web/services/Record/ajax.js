@@ -144,11 +144,7 @@ function GetPreferredBranches() {
 }
 
 function getGoDeeperData(dataType, recordType, id, isbn, upc) {
-	if (recordType == 'eContentRecord'){
-		var url = path + "/EContentRecord/" + encodeURIComponent(id) + "/AJAX";
-	}else{
-		var url = path + "/Record/" + encodeURIComponent(id) + "/AJAX";
-	}
+	var url = path + "/Record/" + encodeURIComponent(id) + "/AJAX";
 
 	var params = "method=GetGoDeeperData&dataType=" + encodeURIComponent(dataType) + "&isbn=" + encodeURIComponent(isbn) + "&upc=" + encodeURIComponent(upc);
 	var fullUrl = url + "?" + params;
@@ -186,101 +182,6 @@ function GetProspectorInfo(id) {
 						$("#moredetails-tabs").tabs("option", "active", 2);
 					}
 				}
-			}
-		}
-	});
-}
-
-function GetHoldingsInfo(id) {
-	var url = path + "/Record/" + encodeURIComponent(id) + "/AJAX";
-	var params = "method=GetHoldingsInfo";
-	var fullUrl = url + "?" + params;
-	$.ajax( {
-		url : fullUrl,
-		success : function(data) {
-			var holdingsData = $(data).find("Holdings").text();
-			if (holdingsData) {
-				if (holdingsData.length > 0) {
-					if (holdingsData.match(/No Copies Found/i)){
-						try{
-							if ($("#prospectortab_label").is(":visible")){
-								$("#moredetails-tabs").tabs("option", "active", 1);
-							}else{
-								$("#moredetails-tabs").tabs("option", "active", 2);
-							}
-							$("#holdingstab_label").hide();
-						}catch(e){
-
-						}
-					}else{
-						$("#holdingsPlaceholder").html(holdingsData);
-					}
-				}
-			}
-			var holdingsSummary = $(data).find("HoldingsSummary").text();
-			if (holdingsSummary) {
-				if (holdingsSummary.length > 0) {
-					$("#holdingsSummaryPlaceholder").html(holdingsSummary);
-				}
-			}
-			var showPlaceHold = $(data).find("ShowPlaceHold").text();
-			if (showPlaceHold) {
-				if (showPlaceHold.length > 0 && showPlaceHold == 1) {
-					$(".requestThisLink").show();
-				}
-			}
-			var eAudioLink = $(data).find("EAudioLink").text();
-			if (eAudioLink) {
-				if (eAudioLink.length > 0) {
-					$("#eAudioLink" + id).html("<a href='" + eAudioLink + "'><img src='" + path + "/interface/themes/wcpl/images/access_eaudio.png' alt='Access eAudio'/></a>").show();
-				}
-			}
-			var eBookLink = $(data).find("EBookLink").text();
-			if (eBookLink) {
-				if (eBookLink.length > 0) {
-					$("#eBookLink" + id).html("<a href='" + eBookLink + "'><img src='" + path + "/interface/themes/wcpl/images/access_ebook.png' alt='Access eBook'/></a>").show();
-				}
-			}
-		}
-	});
-}
-
-function GetHoldingsInfoMSC(id) {
-	var url = path + "/Record/" + encodeURIComponent(id) + "/AJAX";
-	var params = "method=GetHoldingsInfo";
-	var fullUrl = url + "?" + params;
-	$.ajax( {
-		url : fullUrl,
-		success : function(data) {
-			var holdingsData = $(data).find("Holdings").text();
-			if (holdingsData) {
-				if (holdingsData.length > 0) {
-					$("#holdingsPlaceholder").html(holdingsData);
-				}
-			}
-			var summaryDetails = $(data).find("SummaryDetails");
-			var showPlaceHold = summaryDetails.find("showplacehold").text();
-			if (showPlaceHold == 1) {
-				$(".requestThisLink").show();
-			}
-			var callNumber = summaryDetails.find("callnumber").text();
-			$("#callNumberValue").html(callNumber);
-			var location = summaryDetails.find("availableAt").text();
-			if (location.length > 0){
-				$("#locationValue").html(location);
-			}else{
-				location = summaryDetails.find("location").text();
-				$("#locationValue").html(location);
-			}
-			var status = summaryDetails.find("status").text();
-			if (status == "Available At"){
-				status = "Available";
-			}
-			$("#statusValue").html(status)
-					.addClass(summaryDetails.find("class").text());
-			if (summaryDetails.find("isDownloadable").text() == "1"){
-				$("#downloadLinkValue").html("<a href='" + decodeURIComponent(summaryDetails.find("downloadLink").text()) + "'>" + summaryDetails.find("downloadText").text() + "</a>");
-				$("#downloadLink").show();
 			}
 		}
 	});

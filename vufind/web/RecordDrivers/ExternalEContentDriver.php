@@ -97,10 +97,9 @@ class ExternalEContentDriver extends BaseEContentDriver{
 		$isbn = $this->getCleanISBN();
 
 		//Get Related Records to make sure we initialize items
-		$relatedRecords = $this->getGroupedWorkDriver()->getRelatedRecords(false);
+		$recordInfo = $this->getGroupedWorkDriver()->getRelatedRecord('external_econtent:' . $this->getIdWithSource());
 
-		$items = $this->getItemsFast();
-		$interface->assign('items', $items);
+		$interface->assign('items', $recordInfo['itemSummary']);
 
 		//Load more details options
 		$moreDetailsOptions = $this->getBaseMoreDetailsOptions($isbn);
@@ -113,7 +112,6 @@ class ExternalEContentDriver extends BaseEContentDriver{
 
 		$moreDetailsOptions['moreDetails'] = array(
 			'label' => 'More Details',
-//			'body' => $interface->fetch('EcontentRecord/view-title-details.tpl'),
 			'body' => $interface->fetch('ExternalEContent/view-more-details.tpl'),
 		);
 
@@ -198,7 +196,15 @@ class ExternalEContentDriver extends BaseEContentDriver{
 		return $actions;
 	}
 
+	public function getItemActions($itemInfo){
+		return $this->createActionsFromUrls($itemInfo['relatedUrls']);
+	}
+
 	public function getRecordActions($isAvailable, $isHoldable, $isBookable, $relatedUrls = null){
+		return $this->createActionsFromUrls($relatedUrls);
+	}
+
+	function createActionsFromUrls($relatedUrls){
 		$actions = array();
 		foreach ($relatedUrls as $urlInfo){
 			//Revert to access online per Karen at CCU.  If people want to switch it back, we can add a per library switch
@@ -214,10 +220,10 @@ class ExternalEContentDriver extends BaseEContentDriver{
 					}
 				}
 				$actions[] = array(
-					'url' => $fileOrUrl,
-					'title' => $title,
-					'requireLogin' => false,
-					'alt' => $alt,
+						'url' => $fileOrUrl,
+						'title' => $title,
+						'requireLogin' => false,
+						'alt' => $alt,
 				);
 			}
 		}

@@ -1,7 +1,5 @@
 <?php
 
-require_once ROOT_DIR . '/sys/eContent/EContentRecord.php';
-
 /**
  * Complete integration via APIs including availability and account informatino.
  *
@@ -50,23 +48,6 @@ class OverDriveDriver3 {
 		'audiobook-overdrive' => 'OverDrive Listen',
 		'video-streaming' => 'OverDrive Video',
 	);
-
-	/**
-	 * Retrieves the URL for the cover of the record by screen scraping OverDrive.
-	 * ..
-	 * @param EContentRecord $record
-	 * @return string
-	 */
-	public function getCoverUrl($record){
-		$overDriveId = $record->getOverDriveId();
-		//Get metadata for the record
-		$metadata = $this->getProductMetadata($overDriveId);
-		if (isset($metadata->images) && isset($metadata->images->cover)){
-			return $metadata->images->cover->href;
-		}else{
-			return "";
-		}
-	}
 
 	private function _connectToAPI($forceNewConnection = false){
 		/** @var Memcache $memCache */
@@ -165,7 +146,9 @@ class OverDriveDriver3 {
 							// patrons with too high a fine amount will get this result.
 							return false;
 						}else{
-							echo("Error connecting to overdrive apis ". $patronTokenData->error);
+							if ($configArray['System']['debug']){
+								echo("Error connecting to overdrive apis ". $patronTokenData->error);
+							}
 						}
 					}else{
 						$memCache->set('overdrive_patron_token_' . $patronBarcode, $patronTokenData, 0, $patronTokenData->expires_in - 10);
@@ -973,9 +956,6 @@ class OverDriveDriver3 {
 	 * @access  public
 	 */
 	public function getHoldings($overDriveRecordDriver){
-		global $user;
-		global $configArray;
-
 		/** @var OverDriveAPIProductFormats[] $items */
 		$items = $overDriveRecordDriver->getItems();
 		//Add links as needed
@@ -1063,8 +1043,6 @@ class OverDriveDriver3 {
 	}
 
 	public function getStatusSummary($id, $scopedAvailability, $holdings){
-		global $user;
-		$addedToWishList = false;
 		$holdPosition = 0;
 
 		$availableCopies = 0;
@@ -1128,5 +1106,4 @@ class OverDriveDriver3 {
 
 		return $statusSummary;
 	}
-
 }

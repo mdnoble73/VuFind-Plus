@@ -591,59 +591,6 @@ try{
 	alert("error during autocomplete setup" + e);
 }
 
-/**
- * Attaches a description popup to an element and handles the ajax call to fetch the description 
- * @param shortid
- * @param id
- * @param type
- */
-function resultDescription(shortid, id, type){
-  //Attach the tooltip function to the HTML element with the id pretty + short record id
-  //this will show the description when the user hovers over the element.
-if (shortid.length == 0){
-	return;
-}
-if (type == undefined){
-	if (id.indexOf("econtentRecord") == 0){
-		type = 'eContent';
-		id = id.substring(14);
-	}else{
-		type = 'VuFind';
-		if (id.substring(0, 1) != "."){
-			id = "." + id;
-		}
-		if (shortid.substring(0,1) == "."){
-			shortid = shortid.substring(1);
-		}
-	}
-}
-var divId = "#descriptionTrigger" + shortid;
-if (type == 'VuFind'){
-	var loadDescription = path + "/Record/" + id + "/AJAX/?method=getDescription";
-}else{
-	var loadDescription = path + "/EcontentRecord/" + id + "/AJAX/?method=getDescription";
-}
-$(divId).tooltip({
-	  track: false,
-	  delay: 250,
-	  showURL: false,
-	  extraClass: "descriptionTooltip",
-	  top:0,
-	  bodyHandler: function() {
-		if ($("#descriptionPlaceholder" + shortid).hasClass('loaded')){
-			return $("#descriptionPlaceholder" + shortid).html();
-		}else{
-		  $("#descriptionPlaceholder" + shortid).addClass('loaded');
-		  var rawData = $.ajax(loadDescription,{
-			  async: false
-		  }).responseText;
-		  $("#descriptionPlaceholder" + shortid).html(rawData);
-		  return rawData;
-		}
-	  }
-});
-};
-
 /* This file contains AJAX routines that are shared by multiple VuFind modules.
  */
 

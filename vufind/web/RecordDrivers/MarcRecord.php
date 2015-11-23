@@ -998,42 +998,6 @@ class MarcRecord extends IndexRecord
 		return $contributors;
 	}
 
-	/**
-	 * Get the text to represent this record in the body of an email.
-	 *
-	 * @access  public
-	 * @return  string              Text for inclusion in email.
-	 */
-	public function getEmail()
-	{
-		global $configArray;
-
-		// Get Holdings
-		try {
-			/** @var CatalogConnection $catalog */
-			$catalog = CatalogFactory::getCatalogConnectionInstance();;
-		} catch (PDOException $e) {
-			return new PEAR_Error('Cannot connect to ILS');
-		}
-		$holdingsSummary = $catalog->getStatusSummary($_GET['id']);
-		if (PEAR_Singleton::isError($holdingsSummary)) {
-			return $holdingsSummary;
-		}
-
-		$email = "  " . $this->getTitle() . "\n";
-		if (isset($holdingsSummary['callnumber'])){
-			$email .= "  Call Number: " . $holdingsSummary['callnumber'] . "\n";
-		}
-		if (isset($holdingsSummary['availableAt'])){
-			$email .= "  Available At: " . $holdingsSummary['availableAt'] . "\n";
-		}
-		if (isset($holdingsSummary['downloadLink'])){
-			$email .= "  Download from: " . $holdingsSummary['downloadLink'] . "\n";
-		}
-
-
-		return $email;
-	}
 
 	function getDescriptionFast(){
 		/** @var File_MARC_Data_Field $descriptionField */
@@ -1237,140 +1201,8 @@ class MarcRecord extends IndexRecord
 		return $configArray['Site']['path'] . "/{$this->indexingProfile->recordUrlComponent}/$recordId";
 	}
 
-	private $relatedRecords = null;
-	function getRelatedRecords($realTimeStatusNeeded = true){
-		if ($this->relatedRecords == null || isset($_REQUEST['reload'])){
-			global $timer;
-			global $interface;
-			$this->relatedRecords = array();
-			$recordId = $this->getUniqueID();
-
-			$url = $this->getRecordUrl();
-
-			if ($this->detailedRecordInfoFromIndex){
-				$format = $this->detailedRecordInfoFromIndex[1];
-				$edition = $this->detailedRecordInfoFromIndex[2];
-				$language = $this->detailedRecordInfoFromIndex[3];
-				$publisher = $this->detailedRecordInfoFromIndex[4];
-				$publicationDate = $this->detailedRecordInfoFromIndex[5];
-				$physicalDescription = $this->detailedRecordInfoFromIndex[6];
-				$timer->logTime("Finished loading information from indexed info for $recordId");
-			}else{
-				$publishers = $this->getPublishers();
-				$publisher = count($publishers) >= 1 ? $publishers[0] : '';
-				$publicationDates = $this->getPublicationDates();
-				$publicationDate = count($publicationDates) >= 1 ? $publicationDates[0] : '';
-				$physicalDescriptions = $this->getPhysicalDescriptions();
-				$physicalDescription = count($physicalDescriptions) >= 1 ? $physicalDescriptions[0] : '';
-				$format = reset($this->getFormat());
-				$edition = $this->getEdition(true);
-				$language = $this->getLanguage();
-				$timer->logTime("Finished loading MARC information in getRelatedRecords $recordId");
-			}
-
-			$formatCategory = mapValue('format_category_by_format', $format);
-			$items = $this->getItemsFast();
-			$onOrderCopies = 0;
-			$availableCopies = 0;
-			$localAvailableCopies = 0;
-			$branchAvailableCopies = 0;
-			$localCopies = 0;
-			$totalCopies = 0;
-			$hasLocalItem = false;
-			$groupedStatus = "Currently Unavailable";
-			foreach ($items as $item){
-				if ($item['availability'] == true){
-					$availableCopies++;
-				}
-				if ($item['isLocalItem'] || $item['isLibraryItem']){
-					$hasLocalItem = true;
-					$localCopies++;
-					if ($item['availability'] == true){
-						$localAvailableCopies++;
-					}
-				}
-				if ($item['isLocalItem'] ){
-					if ($item['availability'] == true){
-						$branchAvailableCopies++;
-					}
-				}
-				if (isset($item['onOrderCopies']) && $item['onOrderCopies'] > 0){
-					$onOrderCopies += $item['onOrderCopies'];
-					$totalCopies += $item['onOrderCopies'];
-				}else{
-					$totalCopies++;
-				}
-				//Check to see if we got a better grouped status
-				if (isset($item['groupedStatus'])){
-					$statusRankings = array(
-						'Currently Unavailable' => 1,
-						'On Order' => 2,
-						'Coming Soon' => 3,
-						'Checked Out' => 4,
-						'Library Use Only' => 5,
-						'Available Online' => 6,
-						'On Shelf' => 7
-					);
-					if ($item['groupedStatus'] != '' && array_key_exists($item['groupedStatus'], $statusRankings) && $statusRankings[$item['groupedStatus']] > $statusRankings[$groupedStatus]){
-						$groupedStatus = $item['groupedStatus'];
-					}
-				}
-			}
-			if ($totalCopies == 0){
-				return $this->relatedRecords;
-			}
-			$numHolds = 0;
-			if ($realTimeStatusNeeded){
-				$numHolds = $this->getNumHolds();
-			}
-			$relatedRecord = array(
-					'id' => $recordId,
-					'url' => $url,
-					'format' => $format,
-					'formatCategory' => $formatCategory,
-					'edition' => $edition,
-					'language' => $language,
-					'publisher' => $publisher,
-					'publicationDate' => $publicationDate,
-					'physical' => $physicalDescription,
-					'callNumber' => $this->getCallNumber(),
-					'available' => $availableCopies > 0,
-					'availableLocally' => $localAvailableCopies > 0,
-					'availableHere' => $branchAvailableCopies > 0,
-					'inLibraryUseOnly' => $this->isLibraryUseOnly(false),
-					'availableCopies' => $availableCopies,
-					'copies' => $totalCopies,
-					'onOrderCopies' => $onOrderCopies,
-					'localAvailableCopies' => $localAvailableCopies,
-					'localCopies' => $localCopies,
-					'numHolds' => $numHolds,
-					'hasLocalItem' => $hasLocalItem,
-					'holdRatio' => $totalCopies > 0 ? ($availableCopies + ($totalCopies - $numHolds) / $totalCopies) : 0,
-					'locationLabel' => $this->getLocationLabel(),
-					'shelfLocation' => $this->getShelfLocation(),
-					'itemSummary' => $this->getItemSummary(),
-					'groupedStatus' => $groupedStatus,
-					'source' => 'ils',
-					'actions' => $this->getAllActions()
-			);
-			if (isset($interface)){
-				$showHoldButton = $interface->getVariable('displayingSearchResults') ? $interface->getVariable('showHoldButtonInSearchResults'): $interface->getVariable('showHoldButton');
-			}else{
-				$showHoldButton = false;
-			}
-
-			if ($this->isHoldable() && isset($interface) && $showHoldButton){
-				$relatedRecord['actions'][] = array(
-						'title' => 'Place Hold',
-						'url' => '',
-						'onclick' => "return VuFind.Record.showPlaceHold('{$this->getModule()}', '{$this->getIdWithSource()}');",
-						'requireLogin' => false,
-				);
-			}
-			$timer->logTime("Finished getRelatedRecords $recordId");
-			$this->relatedRecords[] = $relatedRecord;
-		}
-		return $this->relatedRecords;
+	public function getItemActions($itemInfo){
+		return array();
 	}
 
 	public function getRecordActions($isAvailable, $isHoldable, $isBookable, $relatedUrls = null){
@@ -1408,249 +1240,6 @@ class MarcRecord extends IndexRecord
 		}
 
 		return $actions;
-	}
-
-	protected function isHoldable(){
-		$items = $this->getItemsFast();
-		foreach ($items as $item){
-			//Try to get an available non reserve call number
-			if ($item['holdable'] == 1){
-				return true;
-			}
-		}
-		return false;
-	}
-
-	private function getLocationLabel(){
-		$items = $this->getItemsFast();
-		$locationLabel = null;
-		foreach ($items as $item){
-			//Try to get an available non reserve call number
-			if ($item['isLocalItem']){
-				return $item['locationLabel'];
-			}else if ($item['isLibraryItem']){
-				if ($locationLabel == null){
-					$locationLabel = $item['locationLabel'];
-				}
-			}
-		}
-		return $locationLabel;
-	}
-
-	private function getShelfLocation(){
-		$items = $this->getItemsFast();
-		$locationLabel = null;
-		foreach ($items as $item){
-			//Try to get an available non reserve call number
-			if ($item['isLocalItem']){
-				return $item['shelfLocation'];
-			}else if ($item['isLibraryItem']){
-				if ($locationLabel == null){
-					$locationLabel = $item['shelfLocation'];
-				}
-			}
-		}
-		return $locationLabel;
-	}
-
-	private function getItemSummary(){
-		global $library;
-		$searchLocation = Location::getSearchLocation();
-		$itemSummary = array();
-		$items = $this->getItemsFast();
-		foreach ($items as $item){
-			$description = $item['shelfLocation'] . ': ' . $item['callnumber'];
-			if ($item['isLocalItem']){
-				$key = '1 ' . $description;
-			}elseif ($item['isLibraryItem']){
-				$key = '2 ' . $description;
-			}else{
-				$key = '3 ' . $description;
-			}
-
-			$displayByDefault = false;
-			if ($item['availability']){
-				if ($searchLocation){
-					$displayByDefault = $item['isLocalItem'];
-				}elseif ($library){
-					$displayByDefault = $item['isLibraryItem'];
-				}
-			}
-			$itemInfo = array(
-				'description' => $description,
-				'shelfLocation' => $item['shelfLocation'],
-				'callNumber' => $item['callnumber'],
-				'totalCopies' => 1,
-				'availableCopies' => $item['availability'] ? 1 : 0,
-				'isLocalItem' => $item['isLocalItem'],
-				'isLibraryItem' => $item['isLibraryItem'],
-				'displayByDefault' => $displayByDefault,
-				'onOrderCopies' => isset($item['onOrderCopies']) ? $item['onOrderCopies'] : 0,
-			);
-			if (isset($itemSummary[$key])){
-				$itemSummary[$key]['totalCopies']++;
-				$itemSummary[$key]['availableCopies']+=$itemInfo['availableCopies'];
-				if ($itemInfo['displayByDefault']){
-					$itemSummary[$key]['displayByDefault'] = true;
-				}
-				$itemSummary[$key]['onOrderCopies']+=$itemInfo['onOrderCopies'];
-			}else{
-				$itemSummary[$key] = $itemInfo;
-			}
-		}
-		ksort($itemSummary);
-		return $itemSummary;
-	}
-
-	public function isAvailable($realTime){
-		if ($realTime){
-			$items = $this->getItems();
-		}else{
-			$items = $this->getItemsFast();
-		}
-		foreach ($items as $item){
-			//Try to get an available non reserve call number
-			if ($item['availability'] === true){
-				return true;
-			}
-		}
-		return false;
-	}
-
-	public function isAvailableLocally($realTime){
-		if ($realTime){
-			$items = $this->getItems();
-		}else{
-			$items = $this->getItemsFast();
-		}
-		foreach ($items as $item){
-			//Try to get an available non reserve call number
-			if ($item['availability'] === true && ($item['isLocalItem'] || $item['isLibraryItem'])){
-				return true;
-			}
-		}
-		return false;
-	}
-
-	public function isLibraryUseOnly($realTime){
-		if ($realTime){
-			$items = $this->getItems();
-		}else{
-			$items = $this->getItemsFast();
-		}
-		$allLibraryUseOnly = true;
-		foreach ($items as $item){
-			//Try to get an available non reserve call number
-			if (!isset($item['inLibraryUseOnly']) || !$item['inLibraryUseOnly']){
-				$allLibraryUseOnly = false;
-			}
-		}
-		return $allLibraryUseOnly;
-	}
-
-	protected function getAllActions() {
-		$items = $this->getItemsFast();
-		$allActions = array();
-		foreach ($items as $item){
-			if (isset($item['actions']) && count($item['actions'] > 0)){
-				$allActions = array_merge($allActions, $item['actions']);
-			}
-		}
-		return $allActions;
-	}
-
-	private function getCallNumber(){
-		$items = $this->getItemsFast();
-		$firstCallNumber = null;
-		$nonLibraryCallNumber = null;
-		foreach ($items as $item){
-			if ($item['isLocalItem'] == true){
-				return $item['callnumber'];
-			}else if ($item['isLibraryItem'] == true){
-				//Try to get an available non reserve call number
-				if ($item['availability'] && $item['holdable']){
-					return $item['callnumber'];
-				}else if (is_null($firstCallNumber)){
-					$firstCallNumber = $item['callnumber'];
-				}
-			}elseif ($item['holdable'] == true && is_null($nonLibraryCallNumber)){
-				//Not at this library (system)
-				//$nonLibraryCallNumber = $item['callnumber'] . '(' . $item['location'] . ')';
-			}
-		}
-		if ($firstCallNumber != null){
-			return $firstCallNumber;
-		}elseif ($nonLibraryCallNumber != null){
-			return $nonLibraryCallNumber;
-		}else{
-			return '';
-		}
-
-	}
-
-	private $fastItems = null;
-	public function getItemsFast(){
-		global $timer;
-		if ($this->fastItems == null || isset($_REQUEST['reload'])){
-			if ($this->itemsFromIndex){
-				$this->fastItems = array();
-				foreach ($this->itemsFromIndex as $itemData){
-					$isOrderItem = $itemData[7] == "true";
-					$onOrderCopies = 0;
-					if ($isOrderItem){
-						$onOrderCopies = $itemData[6];
-					}
-
-					$groupedStatus = $itemData[13];
-					$status = $itemData[14];
-					$isHoldable = $itemData[17] == "true";
-//					$isBookable = $itemData[17] == "true"; // TODO set to real value
-					$inLibraryUseOnly = $itemData[19] == "true";
-
-					//Old style where record and item information are combined
-					$shelfLocation = $itemData[2];
-					$callNumber = $itemData[3];
-
-					$isLibraryItem = $itemData[20] == "true";
-					$isLocalItem = $itemData[15] == "true";
-
-					//Try to trim the courier code if any
-					if (preg_match('/(.*?)\\sC\\d{3}\\w{0,2}$/', $shelfLocation, $locationParts)){
-						$shelfLocation = $locationParts[1];
-					}
-
-					$this->fastItems[] = array(
-						'callnumber' => $callNumber,
-						'availability' => $itemData[16] == "true",
-						'holdable' => $isHoldable,
-//						'bookable' => $isBookable,
-						'inLibraryUseOnly' => $inLibraryUseOnly,
-						'isLibraryItem' => $isLibraryItem,
-						'isLocalItem' => $isLocalItem,
-						'locationLabel' => true,
-						'shelfLocation' => $shelfLocation,
-						'onOrderCopies' => $onOrderCopies,
-						'status' => $status,
-						'groupedStatus' => $groupedStatus,
-					);
-				}
-				$timer->logTime("Finished getItemsFast for marc record based on data in index");
-			}else{
-				$driver = MarcRecord::getCatalogDriver();
-				$this->fastItems = $driver->getItemsFast($this->getUniqueID(), $this->scopingEnabled, $this->getMarcRecord());
-				$timer->logTime("Finished getItemsFast for marc record based on data in driver");
-			}
-		}
-		return $this->fastItems;
-	}
-
-	private $items = null;
-	public function getItems(){
-		if ($this->items == null){
-			$driver = MarcRecord::getCatalogDriver();
-			$this->items = $driver->getStatus($this->getUniqueID(), true);
-		}
-		return $this->items;
 	}
 
 	static $catalogDriver = null;
@@ -1816,9 +1405,27 @@ class MarcRecord extends IndexRecord
 
 		//Load more details options
 		$moreDetailsOptions = $this->getBaseMoreDetailsOptions($isbn);
+
+		//Get copies for the record
+		$this->assignCopiesInformation();
+
+		//If this is a periodical we may have additional information
+		$isPeriodical = false;
+		foreach ($this->getFormats() as $format){
+			if ($format == 'Journal' || $format == 'Newspaper'){
+				$isPeriodical = true;
+				break;
+			}
+		}
+		if ($isPeriodical){
+			global $library;
+			$interface->assign('showCheckInGrid', $library->showCheckInGrid);
+			$issues = $this->loadPeriodicalInformation();
+			$interface->assign('periodicalIssues', $issues);
+		}
 		$moreDetailsOptions['copies'] = array(
 			'label' => 'Copies',
-			'body' => '<div id="holdingsPlaceholder"></div>',
+			'body' => $interface->fetch('Record/view-holdings.tpl'),
 			'openByDefault' => true
 		);
 		//Other editions if applicable (only if we aren't the only record!)
@@ -2070,4 +1677,105 @@ class MarcRecord extends IndexRecord
 		}
 		return $notes;
 	}
+
+	private $holdings;
+	private $copiesInfoLoaded = false;
+	private $holdingSections;
+	private $statusSummary;
+	private function loadCopies(){
+		if (!$this->copiesInfoLoaded){
+			$this->copiesInfoLoaded = true;
+			//Load copy information from the grouped work rather than from the driver.
+			//Since everyone is using real-time indexing now, the delays are acceptable,
+			// but include when the last index was completed for reference
+			$groupedWorkDriver = $this->getGroupedWorkDriver();
+			if ($groupedWorkDriver->isValid){
+				$this->recordFromIndex = $groupedWorkDriver->getRelatedRecord($this->getIdWithSource());
+
+				//Divide the items into sections and create the status summary
+				$this->holdings = $this->recordFromIndex['itemSummary'];
+				$this->holdingSections = array();
+				foreach ($this->holdings as $copyInfo) {
+					$sectionName = $copyInfo['sectionId'];
+					if (!array_key_exists($sectionName, $this->holdingSections)) {
+						$this->holdingSections[$sectionName] = array(
+								'name' => $copyInfo['section'],
+								'sectionId' => $copyInfo['sectionId'],
+								'holdings' => array(),
+						);
+					}
+					$this->holdingSections[$sectionName]['holdings'][] = $copyInfo;
+				}
+
+				$this->statusSummary = $this->recordFromIndex;
+
+				unset($this->statusSummary['driver']);
+			}else{
+				$this->holdings = array();
+				$this->holdingSections = array();
+				$this->statusSummary = array();
+			}
+		}
+
+	}
+
+	public function assignCopiesInformation(){
+		$this->loadCopies();
+		global $interface;
+		$interface->assign('holdings', $this->holdings);
+		$interface->assign('sections', $this->holdingSections);
+
+		$interface->assign('statusSummary', $this->statusSummary);
+	}
+
+	public function getCopies(){
+		$this->loadCopies();
+		return $this->holdings;
+	}
+
+	public function loadPeriodicalInformation(){
+		$catalogDriver = $this->getCatalogDriver();
+		if ($catalogDriver->checkFunction('getIssueSummaries')){
+			$issueSummaries = $catalogDriver->getIssueSummaries($this->id);
+			if (count($issueSummaries)){
+				//Insert copies into the information about the periodicals
+				$copies = $this->getCopies();
+				krsort($copies);
+				//Group holdings under the issue issue summary that is related.
+				foreach ($copies as $key => $holding){
+					//Have issue summary = false
+					$haveIssueSummary = false;
+					$issueSummaryKey = null;
+					foreach ($issueSummaries as $issueKey => $issueSummary){
+						if ($issueSummary['location'] == $holding['shelfLocation']){
+							$haveIssueSummary = true;
+							$issueSummaryKey = $issueKey;
+							break;
+						}
+					}
+					if ($haveIssueSummary){
+						$issueSummaries[$issueSummaryKey]['holdings'][strtolower($key)] = $holding;
+					}else{
+						//Need to automatically add a summary so we don't lose data
+						$issueSummaries[$holding['location']] = array(
+								'location' => $holding['location'],
+								'type' => 'issue',
+								'holdings' => array(strtolower($key) => $holding),
+						);
+					}
+				}
+				foreach ($issueSummaries as $key => $issueSummary){
+					if (isset($issueSummary['holdings']) && is_array($issueSummary['holdings'])){
+						krsort($issueSummary['holdings']);
+						$issueSummaries[$key] = $issueSummary;
+					}
+				}
+				ksort($issueSummaries);
+			}
+		}else{
+			$issueSummaries = null;
+		}
+		return $issueSummaries;
+	}
+
 }

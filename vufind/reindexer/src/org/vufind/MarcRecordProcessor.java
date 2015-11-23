@@ -514,16 +514,17 @@ public abstract class MarcRecordProcessor {
 		return publisher;
 	}
 
+	protected String languageFields = "008[35-37]:041a:041d:041j";
 	protected void loadLanguageDetails(GroupedWorkSolr groupedWork, Record record, HashSet<RecordInfo> ilsRecords, String identifier) {
-		Set <String> languages = getFieldList(record, "008[35-37]:041a:041d:041j");
+		Set <String> languages = getFieldList(record, languageFields);
 		HashSet<String> translatedLanguages = new HashSet<>();
 		boolean isFirstLanguage = true;
 		for (String language : languages){
-			String tranlatedLanguage = indexer.translateSystemValue("language", language, identifier);
-			translatedLanguages.add(tranlatedLanguage);
+			String translatedLanguage = indexer.translateSystemValue("language", language, identifier);
+			translatedLanguages.add(translatedLanguage);
 			if (isFirstLanguage){
 				for (RecordInfo ilsRecord : ilsRecords){
-					ilsRecord.setPrimaryLanguage(tranlatedLanguage);
+					ilsRecord.setPrimaryLanguage(translatedLanguage);
 				}
 			}
 			isFirstLanguage = false;

@@ -143,7 +143,6 @@
 		VuFind.Prospector.getProspectorResults(5, {$prospectorSavedSearchId});
 		{/if}
 
-	/*	doGetStatusSummaries(); */
 		{rdelim});
 </script>
 {/strip}

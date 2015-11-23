@@ -521,86 +521,6 @@ class OverDriveRecordDriver extends RecordInterface {
 		return $this->availability;
 	}
 
-	function getRelatedRecords($realTimeStatusNeeded){
-		global $configArray;
-		global $timer;
-		$recordId = $this->getUniqueID();
-		$timer->logTime("Starting getRelatedRecords for OverDrive record $recordId");
-
-		$availability = $this->getAvailability();
-		$timer->logTime("Finished loading availability");
-		$available = false;
-		$availableCopies = 0;
-		$totalCopies = 0;
-		$numHolds = 0;
-		$hasLocalItem = true;
-		foreach ($availability as $curAvailability){
-			if ($curAvailability->available){
-				$available = true;
-				$availableCopies += $curAvailability->copiesAvailable;
-			}
-			$totalCopies += $curAvailability->copiesOwned;
-		}
-
-		//If there are no copies, this isn't valid
-		if ($totalCopies == 0 && $availableCopies == 0){
-			return array();
-		}
-
-		$url = $configArray['Site']['path'] . '/OverDrive/' . $recordId;
-		$this->getOverDriveMetaData();
-		$timer->logTime("Finished loading metadata");
-		$format = $this->overDriveProduct->mediaType;
-		if ($format == 'Audiobook'){
-			$format = 'eAudiobook';
-		}elseif ($format == 'Music'){
-			$format = 'eMusic';
-		}
-		$relatedRecord = array(
-			'id' => $recordId,
-			'url' => $url,
-			'format' => $format,
-			'edition' => '',
-			'language' => $this->getLanguage(),
-			'title' => $this->overDriveProduct->title,
-			'subtitle' => $this->overDriveProduct->subtitle,
-			'publisher' => $this->overDriveMetaData->publisher,
-			'publicationDate' => $this->overDriveMetaData->publishDate,
-			'section' => '',
-			'physical' => '',
-			'callNumber' => '',
-			'shelfLocation' => '',
-			'availableOnline' => $available,
-			'available' => $available,
-			'hasLocalItem' => $hasLocalItem,
-			'copies' => $totalCopies,
-			'numHolds' => $numHolds,
-			'availableCopies' => $availableCopies,
-			'holdRatio' => $totalCopies > 0 ? ($availableCopies + ($totalCopies - $numHolds) / $totalCopies) : 0,
-			'locationLabel' => 'Online',
-			'source' => 'OverDrive',
-			'actions' => array()
-		);
-		$formatCategory = mapValue('format_category_by_format', $relatedRecord['format']);
-		$relatedRecord['formatCategory'] = $formatCategory;
-		if ($available){
-			$relatedRecord['actions'][] = array(
-				'title' => 'Check Out OverDrive',
-				'onclick' => "return VuFind.OverDrive.checkOutOverDriveTitle('{$recordId}');",
-				'requireLogin' => false,
-			);
-		}else{
-			$relatedRecord['actions'][] = array(
-				'title' => 'Place Hold OverDrive',
-				'onclick' => "return VuFind.OverDrive.placeOverDriveHold('{$recordId}');",
-				'requireLogin' => false,
-			);
-		}
-
-		$timer->logTime("Finished getRelatedRecords for OverDrive record $recordId");
-		return array($relatedRecord);
-	}
-
 	public function getLibraryScopingId(){
 		//For econtent, we need to be more specific when restricting copies
 		//since patrons can't use copies that are only available to other libraries.
@@ -1133,6 +1053,10 @@ class OverDriveRecordDriver extends RecordInterface {
 		return implode('&', $parts);
 	}
 
+	public function getItemActions($itemInfo){
+		return array();
+	}
+
 	public function getRecordActions($isAvailable, $isHoldable, $isBookable, $relatedUrls = null) {
 		$actions = array();
 		if ($isAvailable){
@@ -1149,5 +1073,9 @@ class OverDriveRecordDriver extends RecordInterface {
 			);
 		}
 		return $actions;
+	}
+
+	function getNumHolds(){
+		return 0;
 	}
 }

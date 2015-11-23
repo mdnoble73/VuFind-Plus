@@ -5,7 +5,7 @@
 		<div class="eContentHoldingHeader">
 			<div class="row">
 				<div class="col-md-9">
-					<strong>{$item.locationLabel}</strong>
+					<strong>{$item.shelfLocation}</strong>
 				</div>
 			</div>
 		</div>

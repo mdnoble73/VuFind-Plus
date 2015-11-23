@@ -747,7 +747,7 @@ class SearchObject_Solr extends SearchObject_Base
 			if ($supplementalInMainResults){ // if record in the original search result, don't add to these results
 				continue;
 			}
-			/** @var IndexRecord|MarcRecord|EcontentRecordDriver|GroupedWorkDriver $record */
+			/** @var IndexRecord|MarcRecord|GroupedWorkDriver $record */
 			$record = RecordDriverFactory::initRecordDriver($current);
 			$numResultsShown++;
 			$interface->assign('recordIndex', $numResultsShown);
@@ -1909,10 +1909,7 @@ class SearchObject_Solr extends SearchObject_Base
 		for ($i = 0; $i < count($result['response']['docs']); $i++) {
 
 			//Since the base URL can be different depending on the record type, add the url to the response
-			if (strcasecmp($result['response']['docs'][$i]['recordtype'], 'econtentRecord') == 0){
-				$id = str_replace('econtentRecord', '', $result['response']['docs'][$i]['id']);
-				$result['response']['docs'][$i]['recordUrl'] = $baseUrl . '/EcontentRecord/' . $id;
-			}else	if (strcasecmp($result['response']['docs'][$i]['recordtype'], 'grouped_work') == 0){
+			if (strcasecmp($result['response']['docs'][$i]['recordtype'], 'grouped_work') == 0){
 				$id = $result['response']['docs'][$i]['id'];
 				$result['response']['docs'][$i]['recordUrl'] = $baseUrl . '/GroupedWork/' . $id;
 				$result['response']['docs'][$i]['title'] = $result['response']['docs'][$i]['title_full'];

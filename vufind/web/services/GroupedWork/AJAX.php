@@ -243,13 +243,6 @@ class GroupedWork_AJAX {
 //		// if the grouped work consists of only 1 related item, return the record url, otherwise return the grouped-work url
 		$relatedRecords = $recordDriver->getRelatedRecords();
 
-//		// long version, for unlikely case that $relatedRecords[0] won't work
-//		if (count($relatedRecords) == 1) {
-//			$onlyRecord = reset($relatedRecords);
-//			$url = $onlyRecord['url'];
-//		} else {
-//			$url = $recordDriver->getLinkUrl();
-//		}
 		// short version
 		$url = (count($relatedRecords) == 1) ? $relatedRecords[0]['url'] : $recordDriver->getLinkUrl();
 		$escapedId = htmlentities($recordDriver->getPermanentId()); // escape for html
@@ -268,7 +261,6 @@ class GroupedWork_AJAX {
 					."<a href='$url'><button class='modal-buttons btn btn-primary'>More Info</button></a>"
 		);
 		return json_encode($results);
-
 	}
 
 

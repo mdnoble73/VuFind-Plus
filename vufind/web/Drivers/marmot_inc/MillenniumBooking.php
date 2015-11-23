@@ -52,13 +52,8 @@ class MillenniumBooking {
 
 		$driver = &$this->driver;
 
-//		$marc = $driver->getItemsFast($recordId, true); // first step to get item location code
-
 		// Login to Millennium webPac
 		$driver->_curl_login($user);
-
-//		$scope = $this->driver->getLibraryScope();
-//		$bookingUrl = $configArray['Catalog']['url'] ."/webbook~S$scope?/$bib=&back=";
 
 		$bookingUrl = $driver->getVendorOpacUrl() ."/webbook?/$bib=&back=";
 		// the strange get url parameters ?/$bib&back= is needed to avoid a response from the server claiming a 502 proxy error

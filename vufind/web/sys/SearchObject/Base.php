@@ -2144,10 +2144,7 @@ public function getNextPrevLinks(){
 							if (isset($previousRecord)){
 								$interface->assign('previousIndex', $currentResultIndex - 1 + 1);
 								$interface->assign('previousTitle', $previousRecord['title_display']);
-								if (strpos($previousRecord['id'], 'econtentRecord') === 0){
-									$interface->assign('previousType', 'EcontentRecord');
-									$interface->assign('previousId', str_replace('econtentRecord', '', $previousRecord['id']));
-								}elseif (strpos($previousRecord['id'], 'list') === 0){
+								if (strpos($previousRecord['id'], 'list') === 0){
 									$interface->assign('previousType', 'MyAccount/MyList');
 									$interface->assign('previousId', str_replace('list', '', $previousRecord['id']));
 								}else if ($previousRecord['recordtype'] == 'grouped_work'){
@@ -2173,10 +2170,7 @@ public function getNextPrevLinks(){
 							$interface->assign('nextIndex', $currentResultIndex + 1 + 1);
 							if (isset($nextRecord)){
 								$interface->assign('nextTitle', $nextRecord['title_display']);
-								if (strpos($nextRecord['id'], 'econtentRecord') === 0){
-									$interface->assign('nextType', 'EcontentRecord');
-									$interface->assign('nextId', str_replace('econtentRecord', '', $nextRecord['id']));
-								}elseif (strpos($nextRecord['id'], 'list') === 0){
+								if (strpos($nextRecord['id'], 'list') === 0){
 									$interface->assign('nextType', 'MyAccount/MyList');
 									$interface->assign('nextId', str_replace('list', '', $nextRecord['id']));
 								}else if ($nextRecord['recordtype'] == 'grouped_work'){

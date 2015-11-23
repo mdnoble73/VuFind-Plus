@@ -130,7 +130,6 @@ $interface->assign('solrScope', "$solrScope - $scopeType");
 //Set that the interface is a single column by default
 $interface->assign('page_body_style', 'one_column');
 
-$interface->assign('showPackagingDetailsReport', isset($configArray['EContent']['showPackagingDetailsReport']) && $configArray['EContent']['showPackagingDetailsReport']);
 $interface->assign('showFines', $configArray['Catalog']['showFines']);
 
 $interface->assign('activeIp', Location::getActiveIp());
@@ -765,7 +764,7 @@ function vufind_autoloader($class) {
 function loadModuleActionId(){
 	//Cleanup method information so module, action, and id are set properly.
 	//This ensures that we don't have to change the http-vufind.conf file when new types are added.
-	//$dataObjects = array('Record', 'EcontentRecord', 'EContent', 'EditorialReview', 'Person');
+	//$dataObjects = array('Record', 'EContent', 'EditorialReview', 'Person');
 	//$dataObjectsStr = implode('|', $dataObjects);
 	//Deal with old path based urls by removing the leading path.
 	$requestURI = $_SERVER['REQUEST_URI'];

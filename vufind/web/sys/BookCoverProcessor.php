@@ -57,12 +57,6 @@ class BookCoverProcessor{
 				return;
 			}
 		}
-		if ($this->isEContent){
-			$this->initDatabaseConnection();
-			//Will exit if we find a cover
-			$this->getCoverFromEContent();
-		}
-
 		$this->log("Looking for cover from providers", PEAR_LOG_INFO);
 		if ($this->getCoverFromProvider()){
 			return;
@@ -118,70 +112,6 @@ class BookCoverProcessor{
 		}else{
 			return false;
 		}
-	}
-
-	private function getCoverFromEContent(){
-		if ($this->configArray['EContent']['library'] && isset($this->id) && is_numeric($this->id)){
-			$this->log("Looking for eContent Cover", PEAR_LOG_INFO);
-			$this->initMemcache();
-
-			$this->log("Checking eContent database to see if there is a record for $this->id", PEAR_LOG_INFO);
-			//Check the database to see if there is an existing title
-			require_once(ROOT_DIR . '/sys/eContent/EContentRecord.php');
-			$epubFile = new EContentRecord();
-			$epubFile->id = $this->id;
-			if ($epubFile->find(true)){
-				$this->log("Found an eContent record for $this->id, source is {$epubFile->source}", PEAR_LOG_INFO);
-				//Get the cover for the epub if one exists.
-				if ((strcasecmp($epubFile->source, 'OverDrive') == 0) && ($epubFile->cover == null || strlen($epubFile->cover) == 0)){
-					$this->log("Record is an OverDrive record that needs cover information fetched.", PEAR_LOG_INFO);
-					//Get the image from OverDrive
-					require_once ROOT_DIR . '/Drivers/OverDriveDriverFactory.php';
-					$overDriveDriver = OverDriveDriverFactory::getDriver();
-					$filename = $overDriveDriver->getCoverUrl($epubFile);
-					$this->log("Got OverDrive cover information for $epubFile->id $epubFile->sourceUrl", PEAR_LOG_INFO);
-					$this->log("Received filename $filename", PEAR_LOG_INFO);
-					if ($filename != null){
-						$epubFile->cover = $filename;
-						$ret = $epubFile->update(); //Don't update solr for performance reasons
-						$this->log("Result of saving cover url is $ret", PEAR_LOG_INFO);
-					}
-				}elseif (preg_match('/Colorado State Gov\\. Docs/si', $epubFile->source) == 1 || $epubFile->source == 'CO State Gov Docs' ){
-					//Cover is colorado state flag
-					$this->log("Record is a gov docs file.", PEAR_LOG_INFO);
-					$themeName = $this->configArray['Site']['theme'];
-					$filename = "interface/themes/{$themeName}/images/state_flag_of_colorado.png";
-					if ($this->processImageURL($filename, true)){
-						return;
-					}
-				}
-				if ($epubFile->cover && strlen($epubFile->cover) > 0){
-					$this->log("Cover for the file is specified as {$epubFile->cover}.", PEAR_LOG_INFO);
-					if (strpos($epubFile->cover, 'http://') === 0){
-						$filename = $epubFile->cover;
-
-
-						if ($this->processImageURL($filename, true)){
-							$this->timer->writeTimings();
-							exit();
-						}
-					}else{
-						$filename = $this->bookCoverPath . '/original/' . $epubFile->cover;
-						$this->localFile = $this->bookCoverPath . '/' . $this->size . '/' . $this->cacheName . '.png';
-						if (file_exists($filename)){
-
-							if ($this->processImageURL($filename, true)){
-								$this->timer->writeTimings();
-								exit();
-							}
-						}else{
-							$this->log("Did not find econtent cover file $filename", PEAR_LOG_ERR);
-						}
-					}
-				}
-			}
-		}
-		$this->log("Did not find a cover based on eContent information.", PEAR_LOG_INFO);
 	}
 
 	private function initDatabaseConnection(){
@@ -241,7 +171,6 @@ class BookCoverProcessor{
 			$this->issn = null;
 		}
 		$this->id = isset($_GET['id']) ? $_GET['id'] : null;
-		$this->isEContent = isset($_GET['econtent']);
 		if (isset($_GET['type'])){
 			$this->type =  $_GET['type'];
 		}else{
@@ -259,11 +188,6 @@ class BookCoverProcessor{
 		$this->category = isset($_GET['category']) ? strtolower($_GET['category']) : null;
 		$this->format = isset($_GET['format']) ? strtolower($_GET['format']) : null;
 		//First check to see if this has a custom cover due to being an e-book
-		if (preg_match('/econtentRecord\d+/', $this->id)){
-			$this->isEContent = true;
-			$this->id = substr($this->id, strlen('econtentRecord'));
-			$this->log("Record is eContent short id is $this->id", PEAR_LOG_INFO);
-		}
 		if (!is_null($this->id)){
 			if ($this->isEContent){
 				$this->cacheName = 'econtent' . $this->id;
@@ -404,15 +328,7 @@ class BookCoverProcessor{
 			$this->initDatabaseConnection();
 			//Process the marc record
 			require_once ROOT_DIR . '/sys/MarcLoader.php';
-			if ($this->isEContent){
-				$epubFile = new EContentRecord();
-				$epubFile->id = $this->id;
-				if ($epubFile->find(true)){
-					$marcRecord = MarcLoader::loadEContentMarcRecord($epubFile);
-				}else{
-					$marcRecord = false;
-				}
-			}elseif ($this->type != 'overdrive' && $this->type != 'hoopla'){
+			if ($this->type != 'overdrive' && $this->type != 'hoopla'){
 				$marcRecord = MarcLoader::loadMarcRecordByILSId($this->type . ':' . $this->id);
 			}
 		}
@@ -550,14 +466,6 @@ class BookCoverProcessor{
 				$title = ucwords($this->groupedWork->getTitle());
 				$author = ucwords($this->groupedWork->getPrimaryAuthor());
 				$this->category = 'blank';
-			}
-		}elseif ($this->isEContent){
-			require_once ROOT_DIR . '/sys/eContent/EContentRecord.php';
-			$econtentRecord = new EContentRecord();
-			$econtentRecord->id = $this->id;
-			if ($econtentRecord->find(true)){
-				$title = $econtentRecord->title;
-				$author = $econtentRecord->author;
 			}
 		}else{
 			require_once ROOT_DIR . '/RecordDrivers/MarcRecord.php';

@@ -2712,19 +2712,6 @@ class DBMaintenance extends Admin_Admin {
 		if ($resource->source == 'VuFind') {
 			$primaryIdentifier = $resource->record_id;
 			return $primaryIdentifier;
-		} else {
-			$eContentRecord = new EContentRecord();
-			$eContentRecord->id = $resource->record_id;
-			if ($eContentRecord->find(true)) {
-				if (!empty($eContentRecord->externalId)) {
-					$primaryIdentifier = $eContentRecord->externalId;
-					return $primaryIdentifier;
-				} else {
-					$primaryIdentifier = $eContentRecord->ilsId;
-					return $primaryIdentifier;
-				}
-			}
-			return null;
 		}
 	}
 }

@@ -21,7 +21,6 @@
 require_once ROOT_DIR . '/Action.php';
 require_once ROOT_DIR . '/sys/Pager.php';
 require_once ROOT_DIR . '/sys/ISBN.php';
-require_once ROOT_DIR . '/services/Record/Holdings.php';
 require_once ROOT_DIR . '/CatalogConnection.php';
 
 /**
@@ -95,26 +94,6 @@ class ItemAPI extends Action {
 		}
 
 		echo $output;
-	}
-
-	function addFileToAcsServer(){
-		global $configArray;
-		require_once(ROOT_DIR . '/sys/AdobeContentServer.php');
-		if (!isset($_REQUEST['filename'])){
-			return array('error' => 'Filename parameter was not provided.  Please provide the filename in the library to add to the ACS server.');
-		}
-		if (!isset($_REQUEST['availableCopies'])){
-			return array('error' => 'availableCopies parameter was not provided.  Please provide the availableCopies in the library to add to the ACS server.');
-		}
-
-		$filename = $_REQUEST['filename'];
-		$availableCopies = $_REQUEST['availableCopies'];
-		$fullFilename = $configArray['EContent']['library'] . '/' . $filename;
-		if (!file_exists($fullFilename)){
-			return array('error' => 'Filename does not exist in the library.  Unable to add to the ACS server.');
-		}
-		$ret = AdobeContentServer::packageFile($fullFilename, '', 1,'',$availableCopies);
-		return $ret;
 	}
 
 	function getDescriptionByTitleAndAuthor(){
@@ -252,87 +231,44 @@ class ItemAPI extends Action {
 			return array('error', 'Record does not exist');
 		}
 		$this->record = $record;
-		/*if ($record['recordtype'] == 'econtentRecord'){
-			require_once(ROOT_DIR . '/sys/eContent/EContentRecord.php');
-			$eContentRecord = new EContentRecord();
-			$eContentRecord->id = substr($record['id'], strlen('econtentRecord'));
-			if (!$eContentRecord->find(true)){
-				$itemData['error'] = 'Cannot load eContent Record for id ' . $record['id'];
-			}else{
-				$itemData['isbn'] = $eContentRecord->getIsbn();
-				$itemData['issn'] = $eContentRecord->getissn();
-				$itemData['upc'] = $eContentRecord->getUpc();
-				$itemData['issn'] = '';
-				$itemData['title'] = $record['title'];
-				$itemData['author'] = $eContentRecord->author;
-				$itemData['publisher'] = $eContentRecord->publisher;
-				$itemData['allIsbn'] = $eContentRecord->getPropertyArray('isbn');
-				$itemData['allUpc'] = $eContentRecord->getPropertyArray('upc');
-				$itemData['allIssn'] = $eContentRecord->getPropertyArray('issn');
-				$itemData['format'] = $eContentRecord->format();
-				$itemData['formatCategory'] = $eContentRecord->format_category();
-				$itemData['language'] = $eContentRecord->language;
-				$itemData['cover'] = $configArray['Site']['coverUrl'] . "/bookcover.php?id={$itemData['id']}&isbn={$itemData['isbn']}&issn={$itemData['issn']}&upc={$itemData['upc']}&category={$itemData['formatCategory']}&format={$itemData['format'][0]}&size=medium";
-				$itemData['description'] = $eContentRecord->description;
 
-				require_once(ROOT_DIR . '/sys/eContent/EContentRating.php');
-				$eContentRating = new EContentRating();
-				$eContentRating->recordId = $eContentRecord->id;
-				$itemData['ratingData'] = $eContentRating->getRatingData(false, false);
+		$this->recordDriver = RecordDriverFactory::initRecordDriver($record);
+		$timer->logTime('Initialized the Record Driver');
 
-				require_once ROOT_DIR . '/Drivers/EContentDriver.php';
-				$driver = new EContentDriver();
-				$itemData['holdings'] = $driver->getHolding($eContentRecord->id);
-			}
-		}else{*/
+		//Generate basic information from the marc file to make display easier.
+		if (isset($record['isbn'])){
+			$itemData['isbn'] = $record['isbn'][0];
+		}
+		if (isset($record['upc'])){
+			$itemData['upc'] = $record['upc'][0];
+		}
+		if (isset($record['issn'])){
+			$itemData['issn'] = $record['issn'][0];
+		}
+		$itemData['title'] = $record['title'];
+		$itemData['author'] = $record['author'];
+		$itemData['publisher'] = $record['publisher'];
+		$itemData['allIsbn'] = $record['isbn'];
+		$itemData['allUpc'] = isset($record['upc']) ? $record['upc'] : null;
+		$itemData['allIssn'] = isset($record['issn']) ? $record['issn'] : null;
+		$itemData['edition'] = isset($record['edition']) ? $record['edition'] : null;
+		$itemData['callnumber'] = isset($record['callnumber']) ? $record['callnumber'] : null;
+		$itemData['genre'] = isset($record['genre']) ? $record['genre'] : null;
+		$itemData['series'] = isset($record['series']) ? $record['series'] : null;
+		$itemData['physical'] = $record['physical'];
+		$itemData['lccn'] = isset($record['lccn']) ? $record['lccn'] : null;
+		$itemData['contents'] = isset($record['contents']) ? $record['contents'] : null;
 
-			$this->recordDriver = RecordDriverFactory::initRecordDriver($record);
-			$timer->logTime('Initialized the Record Driver');
+		$itemData['format'] = isset($record['format']) ? $record['format'] : null;
+		$itemData['formatCategory'] = isset($record['format_category']) ? $record['format_category'][0] : null;
+		$itemData['language'] = $record['language'];
 
-			//Generate basic information from the marc file to make display easier.
-			if (isset($record['isbn'])){
-				$itemData['isbn'] = $record['isbn'][0];
-			}
-			if (isset($record['upc'])){
-				$itemData['upc'] = $record['upc'][0];
-			}
-			if (isset($record['issn'])){
-				$itemData['issn'] = $record['issn'][0];
-			}
-			$itemData['title'] = $record['title'];
-			$itemData['author'] = $record['author'];
-			$itemData['publisher'] = $record['publisher'];
-			$itemData['allIsbn'] = $record['isbn'];
-			$itemData['allUpc'] = isset($record['upc']) ? $record['upc'] : null;
-			$itemData['allIssn'] = isset($record['issn']) ? $record['issn'] : null;
-			$itemData['edition'] = isset($record['edition']) ? $record['edition'] : null;
-			$itemData['callnumber'] = isset($record['callnumber']) ? $record['callnumber'] : null;
-			$itemData['genre'] = isset($record['genre']) ? $record['genre'] : null;
-			$itemData['series'] = isset($record['series']) ? $record['series'] : null;
-			$itemData['physical'] = $record['physical'];
-			$itemData['lccn'] = isset($record['lccn']) ? $record['lccn'] : null;
-			$itemData['contents'] = isset($record['contents']) ? $record['contents'] : null;
+		//Retrieve description from MARC file
+		$itemData['description'] = $this->recordDriver->getDescriptionFast();
 
-			$itemData['format'] = isset($record['format']) ? $record['format'] : null;
-			$itemData['formatCategory'] = isset($record['format_category']) ? $record['format_category'][0] : null;
-			$itemData['language'] = $record['language'];
-
-			//Retrieve description from MARC file
-			$itemData['description'] = $this->recordDriver->getDescriptionFast();
-
-			//setup 5 star ratings
-			$ratingData = $this->recordDriver->getRatingData();
-			$itemData['ratingData'] = $ratingData;
-
-			//Load Holdings
-			//$itemData['holdings'] = Record_Holdings::loadHoldings($this->id);
-			//$timer->logTime('Loaded Holdings');
-
-			// Add Marc Record to the output
-			/*if ($this->marcRecord){
-				$itemData['marc'] = $this->marcRecord->toJSON();
-			}*/
-		//}
+		//setup 5 star ratings
+		$ratingData = $this->recordDriver->getRatingData();
+		$itemData['ratingData'] = $ratingData;
 
 		return $itemData;
 	}
@@ -360,117 +296,83 @@ class ItemAPI extends Action {
 		$timer->logTime('Initialized the Record Driver');
 
 		// Process MARC Data
-		if ($record['recordtype'] == 'econtentRecord'){
-			require_once(ROOT_DIR . '/sys/eContent/EContentRecord.php');
-			$eContentRecord = new EContentRecord();
-			$eContentRecord->id = substr($record['id'], strlen('econtentRecord'));
-			if (!$eContentRecord->find(true)){
-				$itemData['error'] = 'Cannot load eContent Record for id ' . $record['id'];
-			}else{
-				$itemData['isbn'] = $eContentRecord->getIsbn();
-				$itemData['issn'] = $eContentRecord->getissn();
-				$itemData['upc'] = $eContentRecord->getUpc();
-				$itemData['issn'] = '';
-				$itemData['title'] = $record['title'];
-				$itemData['author'] = $eContentRecord->author;
-				$itemData['publisher'] = $eContentRecord->publisher;
-				$itemData['allIsbn'] = $eContentRecord->getPropertyArray('isbn');
-				$itemData['allUpc'] = $eContentRecord->getPropertyArray('upc');
-				$itemData['allIssn'] = $eContentRecord->getPropertyArray('issn');
-				$itemData['format'] = $eContentRecord->format();
-				$itemData['formatCategory'] = $eContentRecord->format_category();
-				$itemData['language'] = $eContentRecord->language;
-				$itemData['cover'] = $configArray['Site']['coverUrl'] . "/bookcover.php?id={$itemData['id']}&isbn={$itemData['isbn']}&issn={$itemData['issn']}&upc={$itemData['upc']}&category={$itemData['formatCategory']}&format={$itemData['format'][0]}&size=medium";
-				$itemData['description'] = $eContentRecord->description;
-
-				require_once(ROOT_DIR . '/sys/eContent/EContentRating.php');
-				$eContentRating = new EContentRating();
-				$eContentRating->recordId = $eContentRecord->id;
-				global $user;
-				$itemData['ratingData'] = $eContentRating->getRatingData($user, false);
-			}
-
-		}else{
-			require_once ROOT_DIR . '/sys/MarcLoader.php';
-			$marcRecord = MarcLoader::loadMarcRecordFromRecord($record);
-			if ($marcRecord) {
-				$this->marcRecord = $marcRecord;
-			} else {
-				$itemData['error'] = 'Cannot Process MARC Record';
-			}
-			$timer->logTime('Processed the marc record');
-
-			// Get ISBN for cover and review use
-			if ($isbnFields = $this->marcRecord->getFields('020')) {
-				//Use the first good ISBN we find.
-				/** @var File_MARC_Data_Field $isbnField */
-				foreach ($isbnFields as $isbnField){
-					if ($isbnSubfield = $isbnField->getSubfield('a')) {
-						$this->isbn = trim($isbnSubfield->getData());
-						if ($pos = strpos($this->isbn, ' ')) {
-							$this->isbn = substr($this->isbn, 0, $pos);
-						}
-						if (strlen($this->isbn) < 10){
-							$this->isbn = str_pad($this->isbn, 10, "0", STR_PAD_LEFT);
-						}
-						$itemData['isbn'] = $this->isbn;
-						break;
-					}
-				}
-			}
-			/** @var File_MARC_Data_Field $upcField */
-			if ($upcField = $this->marcRecord->getField('024')) {
-				if ($upcSubField = $upcField->getSubfield('a')) {
-					$this->upc = trim($upcSubField->getData());
-					$itemData['upc'] = $this->upc;
-				}
-			}
-			/** @var File_MARC_Data_Field $issnField */
-			if ($issnField = $this->marcRecord->getField('022')) {
-				if ($issnSubfield = $issnField->getSubfield('a')) {
-					$this->issn = trim($issnSubfield->getData());
-					if ($pos = strpos($this->issn, ' ')) {
-						$this->issn = substr($this->issn, 0, $pos);
-					}
-					$itemData['issn'] = $this->issn;
-				}
-			}
-			$timer->logTime('Got UPC, ISBN, and ISSN');
-
-			//Generate basic information from the marc file to make display easier.
-			$itemData['title'] = $record['title'];
-			$itemData['author'] = isset($record['author']) ? $record['author'] : (isset($record['author2']) ? $record['author2'][0] : '');
-			$itemData['publisher'] = $record['publisher'];
-			$itemData['allIsbn'] = $record['isbn'];
-			$itemData['allUpc'] = $record['upc'];
-			$itemData['allIssn'] = $record['issn'];
-			$itemData['issn'] = $record['issn'];
-			$itemData['format'] = isset($record['format']) ? $record['format'][0] : '';
-			$itemData['formatCategory'] = $record['format_category'][0];
-			$itemData['language'] = $record['language'];
-			$itemData['cover'] = $configArray['Site']['path'] . "/bookcover.php?id={$itemData['id']}&issn={$itemData['issn']}&isbn={$itemData['isbn']}&upc={$itemData['upc']}&category={$itemData['formatCategory']}&format={$itemData['format'][0]}";
-
-			//Retrieve description from MARC file
-			$description = '';
-			/** @var File_MARC_Data_Field $descriptionField */
-			if ($descriptionField = $this->marcRecord->getField('520')) {
-				if ($descriptionSubfield = $descriptionField->getSubfield('a')) {
-					$description = trim($descriptionSubfield->getData());
-				}
-			}
-			$itemData['description'] = $description;
-
-			//setup 5 star ratings
-			$itemData['ratingData'] = $this->recordDriver->getRatingData();
-			$timer->logTime('Got 5 star data');
+		require_once ROOT_DIR . '/sys/MarcLoader.php';
+		$marcRecord = MarcLoader::loadMarcRecordFromRecord($record);
+		if ($marcRecord) {
+			$this->marcRecord = $marcRecord;
+		} else {
+			$itemData['error'] = 'Cannot Process MARC Record';
 		}
+		$timer->logTime('Processed the marc record');
+
+		// Get ISBN for cover and review use
+		if ($isbnFields = $this->marcRecord->getFields('020')) {
+			//Use the first good ISBN we find.
+			/** @var File_MARC_Data_Field $isbnField */
+			foreach ($isbnFields as $isbnField){
+				if ($isbnSubfield = $isbnField->getSubfield('a')) {
+					$this->isbn = trim($isbnSubfield->getData());
+					if ($pos = strpos($this->isbn, ' ')) {
+						$this->isbn = substr($this->isbn, 0, $pos);
+					}
+					if (strlen($this->isbn) < 10){
+						$this->isbn = str_pad($this->isbn, 10, "0", STR_PAD_LEFT);
+					}
+					$itemData['isbn'] = $this->isbn;
+					break;
+				}
+			}
+		}
+		/** @var File_MARC_Data_Field $upcField */
+		if ($upcField = $this->marcRecord->getField('024')) {
+			if ($upcSubField = $upcField->getSubfield('a')) {
+				$this->upc = trim($upcSubField->getData());
+				$itemData['upc'] = $this->upc;
+			}
+		}
+		/** @var File_MARC_Data_Field $issnField */
+		if ($issnField = $this->marcRecord->getField('022')) {
+			if ($issnSubfield = $issnField->getSubfield('a')) {
+				$this->issn = trim($issnSubfield->getData());
+				if ($pos = strpos($this->issn, ' ')) {
+					$this->issn = substr($this->issn, 0, $pos);
+				}
+				$itemData['issn'] = $this->issn;
+			}
+		}
+		$timer->logTime('Got UPC, ISBN, and ISSN');
+
+		//Generate basic information from the marc file to make display easier.
+		$itemData['title'] = $record['title'];
+		$itemData['author'] = isset($record['author']) ? $record['author'] : (isset($record['author2']) ? $record['author2'][0] : '');
+		$itemData['publisher'] = $record['publisher'];
+		$itemData['allIsbn'] = $record['isbn'];
+		$itemData['allUpc'] = $record['upc'];
+		$itemData['allIssn'] = $record['issn'];
+		$itemData['issn'] = $record['issn'];
+		$itemData['format'] = isset($record['format']) ? $record['format'][0] : '';
+		$itemData['formatCategory'] = $record['format_category'][0];
+		$itemData['language'] = $record['language'];
+		$itemData['cover'] = $configArray['Site']['path'] . "/bookcover.php?id={$itemData['id']}&issn={$itemData['issn']}&isbn={$itemData['isbn']}&upc={$itemData['upc']}&category={$itemData['formatCategory']}&format={$itemData['format'][0]}";
+
+		//Retrieve description from MARC file
+		$description = '';
+		/** @var File_MARC_Data_Field $descriptionField */
+		if ($descriptionField = $this->marcRecord->getField('520')) {
+			if ($descriptionSubfield = $descriptionField->getSubfield('a')) {
+				$description = trim($descriptionSubfield->getData());
+			}
+		}
+		$itemData['description'] = $description;
+
+		//setup 5 star ratings
+		$itemData['ratingData'] = $this->recordDriver->getRatingData();
+		$timer->logTime('Got 5 star data');
 
 		return $itemData;
 	}
 
 	function getItemAvailability(){
-		global $timer;
-		global $configArray;
 		$itemData = array();
 
 		//Load basic information
@@ -479,8 +381,38 @@ class ItemAPI extends Action {
 
 		$fullId = 'ils:' . $this->id;
 
+		//Rather than calling the catalog, update to load information from the index
+		//Need to match historical data so we don't break EBSCO
+		$recordDriver = RecordDriverFactory::initRecordDriverById($fullId);
+		if ($recordDriver->isValid()){
+			$copies = $recordDriver->getCopies();
+			$holdings = array();
+			$i = 0;
+			foreach ($copies as $copy) {
+				$key = $copy['shelfLocation'];
+				$key = preg_replace('~\W~', '_', $key);
+				$holdings[$key][] = array(
+						'location' => $copy['shelfLocation'],
+						'callnumber' => $copy['callNumber'],
+						'status' => $copy['status'],
+						'dueDate' => '',
+						'statusFull' => $copy['status'],
+						'id' => $fullId,
+						'number' =>  $i++,
+						'type' => 'holding',
+						'availability' => $copy['available'],
+						'holdable' => $copy['holdable'] ? 1 : 0,
+						'bookable' => $copy['bookable'] ? 1 : 0,
+						'libraryDisplayName' => $copy['shelfLocation'],
+						'section' => $copy['section'],
+						'sectionId' => $copy['sectionId']
+				);
+			}
+			$itemData['holdings'] = $holdings;
+		}
+
 		//Update to use same method of loading that we do within AJAX
-		try {
+		/*try {
 			$catalog = CatalogFactory::getCatalogConnectionInstance();;
 			$timer->logTime("Connected to catalog");
 		} catch (PDOException $e) {
@@ -523,45 +455,6 @@ class ItemAPI extends Action {
 			} else {
 				$itemData['holdings'] = array();
 			}
-		}
-		/*// Setup Search Engine Connection
-		$class = $configArray['Index']['engine'];
-		$url = $configArray['Index']['url'];
-		$this->db = new $class($url);
-
-		// Retrieve Full Marc Record
-		disableErrorHandler();
-		$record = $this->db->getRecord($this->id);
-		enableErrorHandler();
-		if ($record == false) {
-			$marcRecord = new MarcRecord($this->id);
-			if ($marcRecord->isValid()){
-				$itemData['holdings'] = Record_Holdings::loadHoldings($this->id);
-				$timer->logTime('Loaded Holdings');
-			}else{
-				$itemData['error'] = 'Cannot load Record for id ' . $record['id'];
-			}
-		}else{
-			$this->record = $record;
-			if ($record['recordtype'] == 'econtentRecord'){
-				require_once(ROOT_DIR . '/sys/eContent/EContentRecord.php');
-				$eContentRecord = new EContentRecord();
-				$eContentRecord->id = substr($record['id'], strlen('econtentRecord'));
-				if (!$eContentRecord->find(true)){
-					$itemData['error'] = 'Cannot load eContent Record for id ' . $record['id'];
-				}else{
-					require_once ROOT_DIR . '/Drivers/EContentDriver.php';
-					$driver = new EContentDriver();
-					$itemData['holdings'] = $driver->getHolding($eContentRecord->id);
-				}
-			}else{
-				$this->recordDriver = RecordDriverFactory::initRecordDriver($record);
-				$timer->logTime('Initialized the Record Driver');
-
-				//Load Holdings
-				$itemData['holdings'] = Record_Holdings::loadHoldings($this->id);
-				$timer->logTime('Loaded Holdings');
-			}
 		}*/
 
 		return $itemData;
@@ -599,10 +492,6 @@ class ItemAPI extends Action {
 		$extensions = array('jpg', 'gif', 'png');
 		$record = $this->loadSolrRecord($id);
 		$filenamesToCheck = array();
-		if (preg_match('/econtentrecord/i', $id)){
-			$shortId = substr($id, 14);
-			$filenamesToCheck[] = 'econtent' . $shortId;
-		}
 		$filenamesToCheck[] = $id;
 		if (isset($record['isbn'])){
 			$isbns = $record['isbn'];
@@ -632,35 +521,6 @@ class ItemAPI extends Action {
 		}
 
 		return array('deletedFiles' => $deletedFiles);
-	}
-
-	function getEnrichmentData(){
-		require_once ROOT_DIR . '/services/Record/Enrichment.php';
-		$record = $this->loadSolrRecord($_GET['id']);
-		$isbn = isset($record['isbn']) ? ISBN::normalizeISBN($record['isbn'][0]) : null;
-		//Need to trim the isbn to make sure there isn't descriptive text.
-		$upc = isset($record['upc']) ? $record['upc'][0] : null;
-		$enrichmentData = Record_Enrichment::loadEnrichment($isbn);
-
-		//Load go deeper options
-		require_once(ROOT_DIR . '/Drivers/marmot_inc/GoDeeperData.php');
-		$goDeeperOptions = GoDeeperData::getGoDeeperOptions($isbn, $upc, false);
-
-		return array('enrichment' => $enrichmentData, 'goDeeper' => $goDeeperOptions);
-	}
-
-	function getGoDeeperData(){
-		require_once ROOT_DIR . '/services/Record/Enrichment.php';
-		$record = $this->loadSolrRecord($_GET['id']);
-		$type = $_GET['type'];
-		$isbn = isset($record['isbn']) ? ISBN::normalizeISBN($record['isbn'][0]) : null;
-		$upc = isset($record['upc']) ? $record['upc'][0] : null;
-
-		//Load go deeper data
-		require_once(ROOT_DIR . '/Drivers/marmot_inc/GoDeeperData.php');
-		$goDeeperOptions = GoDeeperData::getHtmlData($type, 'vufind', $isbn, $upc);
-
-		return $goDeeperOptions;
 	}
 
 	private function loadSolrRecord($id){

@@ -46,6 +46,8 @@ class GroupedWork_Home extends Action{
 
 		$interface->assign('metadataTemplate', 'GroupedWork/metadata.tpl');
 
+		$interface->assign('semanticData', json_encode($recordDriver->getSemanticData()));
+
 		// Display Page
 		$interface->display('layout.tpl');
 	}

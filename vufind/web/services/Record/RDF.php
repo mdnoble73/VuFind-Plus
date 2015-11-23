@@ -24,8 +24,6 @@ class Record_RDF extends Record_Record
 {
     function launch()
     {
-        global $interface;
-
         $rdf = $this->recordDriver->getRDFXML();
         if ($rdf) {
             header("Content-type: application/rdf+xml");
@@ -36,5 +34,3 @@ class Record_RDF extends Record_Record
         }
     }
 }
-
-?>

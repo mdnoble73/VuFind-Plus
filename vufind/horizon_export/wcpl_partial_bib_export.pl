@@ -107,7 +107,7 @@ MAINLOOP: while (1 == 1) {
       eval {
         $sth_delete = $dbh->prepare("
           delete wcpl_solr_pending
-          where SerialNum = ?
+          where SerialNum = CAST(? AS NUMERIC(18,0)))
         ");
       };
       if ($@) {
@@ -184,7 +184,7 @@ MAINLOOP: while (1 == 1) {
           $sth_insert->execute($bid);
           # delete all the entries from solr_pending
           foreach my $sn (@{$new_and_updates{$bid}}) {
-            $sth_delete->execute($sn);
+            $sth_delete->execute($sn+0);
           }
         }
         
@@ -202,10 +202,10 @@ MAINLOOP: while (1 == 1) {
 		  
 		  # SCP the files to the correct location
 		  
-		  my $copy_to_production_command_line = "winscp.com /command \"option batch abort\" \"option confirm off\" \"open sftp://$production_ftp_user:$production_ftp_password\@$production_ftp_server/\" \"put $export_file $production_ftp_path\" \"exit\"";
+		  my $copy_to_production_command_line = "sftpc $production_ftp_user\@$production_ftp_server -pw=$production_ftp_password -cmd=\"cd $export_file $production_ftp_path;put $export_file\"";
 		  system("$copy_to_production_command_line");
 
-		  my $copy_to_dev_command_line = "winscp.com /command \"option batch abort\" \"option confirm off\" \"open sftp://$dev_ftp_user:$dev_ftp_password\@$dev_ftp_server/\" \"put $export_file $dev_ftp_path\" \"exit\"";
+		  my $copy_to_dev_command_line = "sftpc $dev_ftp_user\@$dev_ftp_server -pw=$dev_ftp_password -cmd=\"cd $export_file $dev_ftp_path;put $export_file\"";
 		  system("$copy_to_dev_command_line");
 		  
         } else {

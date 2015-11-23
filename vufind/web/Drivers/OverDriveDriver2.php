@@ -1,7 +1,5 @@
 <?php
 
-require_once ROOT_DIR . '/sys/eContent/EContentRecord.php';
-
 /**
  * Loads information from OverDrive Next Gen interface (version 2) and provides updates to OverDrive by screen scraping
  * Will be updated to use APIs when APIs become available.
