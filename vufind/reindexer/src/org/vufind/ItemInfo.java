@@ -1,8 +1,8 @@
 package org.vufind;
 
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 
 /**
  * Information about an Item that is being inserted into the index
@@ -14,7 +14,6 @@ import java.util.HashSet;
 public class ItemInfo {
 	private String itemIdentifier;
 	private String locationCode;
-	private String subLocationCode;
 	private String subLocation;
 	private String format;
 	private String subFormat;
@@ -32,11 +31,11 @@ public class ItemInfo {
 	private String eContentProtectionType;
 	private String eContentFilename;
 	private String eContentUrl;
-	private String eContentSharing;
 	private String statusCode;
 	private String detailedStatus;
 	private String dueDate;
 	private String collection;
+	private Date lastCheckinDate;
 	private RecordInfo recordInfo;
 
 	private HashMap<String, ScopingInfo> scopingInfo = new HashMap<>();
@@ -74,32 +73,12 @@ public class ItemInfo {
 		this.locationCode = locationCode;
 	}
 
-	public String getSubLocationCode() {
-		return subLocationCode;
-	}
-
-	public void setSubLocationCode(String subLocationCode) {
-		this.subLocationCode = subLocationCode;
-	}
-
 	public String geteContentUrl() {
 		return eContentUrl;
 	}
 
 	public void seteContentUrl(String eContentUrl) {
 		this.eContentUrl = eContentUrl;
-	}
-
-	public String geteContentSharing() {
-		return eContentSharing;
-	}
-
-	public void seteContentSharing(String eContentSharing) {
-		this.eContentSharing = eContentSharing;
-	}
-
-	public String geteContentFilename() {
-		return eContentFilename;
 	}
 
 	public void seteContentFilename(String eContentFilename) {
@@ -175,10 +154,14 @@ public class ItemInfo {
 		this.isEContent = isEContent;
 	}
 
-
+	SimpleDateFormat lastCheckinDateFormatter = new SimpleDateFormat("MMM dd, yyyy");
 	private String baseDetails = null;
 	public String getDetails(){
 		if (baseDetails == null){
+			String formattedLastCheckinDate = "";
+			if (lastCheckinDate != null){
+				formattedLastCheckinDate = lastCheckinDateFormatter.format(lastCheckinDate);
+			}
 			//Cache the part that doesn't change depending on the scope
 			baseDetails = new StringBuilder().append(recordInfo.getFullIdentifier()).append("|")
 					.append(Util.getCleanDetailValue(itemIdentifier)).append("|")
@@ -194,6 +177,7 @@ public class ItemInfo {
 					.append(Util.getCleanDetailValue(eContentUrl)).append("|")
 					.append(Util.getCleanDetailValue(subFormat)).append("|")
 					.append(Util.getCleanDetailValue(detailedStatus)).append("|")
+					.append(Util.getCleanDetailValue(formattedLastCheckinDate)).append("|")
 					.toString();
 		}
 		return baseDetails;
@@ -275,64 +259,12 @@ public class ItemInfo {
 		return scopingInfo;
 	}
 
-	public HashSet<String> getAllOwningLibraries() {
-		HashSet<String> owningLibraryValues = new HashSet<>();
-		for (ScopingInfo curScope : scopingInfo.values()){
-			if (curScope.isLibraryOwned() && curScope.getScope().isLibraryScope()) {
-				if (isEContent) {
-					owningLibraryValues.add(curScope.getScope().getFacetLabel() + " Online");
-				}else{
-					owningLibraryValues.add(curScope.getScope().getFacetLabel());
-				}
-			}else if (isEContent){
-				//Show that the collection that this is part of
-				owningLibraryValues.add(shelfLocation);
-			}
-		}
-		return owningLibraryValues;
-	}
-
-	public HashSet<String> getAllOwningLocations() {
-		HashSet<String> owningLibraryValues = new HashSet<>();
-		for (ScopingInfo curScope : scopingInfo.values()){
-			if (curScope.isLibraryOwned() && isEContent() && curScope.getScope().isLibraryScope()){
-				owningLibraryValues.add(curScope.getScope().getFacetLabel() + " Online");
-			}else if (curScope.isLocallyOwned() && curScope.getScope().isLocationScope()){
-				owningLibraryValues.add(curScope.getScope().getFacetLabel());
-			}else if (isEContent){
-				//Show that the collection that this is part of
-				owningLibraryValues.add(shelfLocation);
-			}
-		}
-		return owningLibraryValues;
-	}
-
 	public boolean isValidForScope(Scope scope){
 		return scopingInfo.containsKey(scope.getScopeName());
 	}
 
 	public boolean isValidForScope(String scopeName){
 		return scopingInfo.containsKey(scopeName);
-	}
-
-	public boolean isAvailableInScope(Scope scope) {
-		ScopingInfo scopeData = scopingInfo.get(scope.getScopeName());
-		if (scopeData != null){
-			if (scopeData.isAvailable()){
-				return true;
-			}
-		}
-		return false;
-	}
-
-	public boolean isLocallyAvailableInScope(Scope scope) {
-		ScopingInfo scopeData = scopingInfo.get(scope.getScopeName());
-		if (scopeData != null){
-			if (scopeData.isLocallyOwned() && scopeData.isAvailable()){
-				return true;
-			}
-		}
-		return false;
 	}
 
 	public boolean isLocallyOwned(Scope scope) {
@@ -393,5 +325,13 @@ public class ItemInfo {
 
 	public void setSubLocation(String subLocation) {
 		this.subLocation = subLocation;
+	}
+
+	public Date getLastCheckinDate() {
+		return lastCheckinDate;
+	}
+
+	public void setLastCheckinDate(Date lastCheckinDate) {
+		this.lastCheckinDate = lastCheckinDate;
 	}
 }

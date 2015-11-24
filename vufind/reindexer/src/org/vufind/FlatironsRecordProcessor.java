@@ -80,7 +80,6 @@ public class FlatironsRecordProcessor extends IIIRecordProcessor{
 					itemInfo.setLocationCode(eContentLocation);
 					itemInfo.seteContentSource("External eContent");
 					itemInfo.seteContentProtectionType("external");
-					itemInfo.seteContentSharing("library");
 					if (url.contains("ebrary.com")) {
 						itemInfo.seteContentSource("ebrary");
 					}else{
@@ -230,10 +229,6 @@ public class FlatironsRecordProcessor extends IIIRecordProcessor{
 			logger.warn("Could not get format boost for format " + format);
 			econtentRecord.setFormatBoost(1);
 		}
-	}
-
-	protected String getEContentSharing(ItemInfo ilsEContentItem, DataField itemField) {
-		return "library";
 	}
 
 	protected boolean loanRulesAreBasedOnCheckoutLocation(){
