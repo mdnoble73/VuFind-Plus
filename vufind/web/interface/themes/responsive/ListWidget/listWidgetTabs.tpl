@@ -14,7 +14,7 @@
 				{/foreach}
 			</ul>
 		{else}
-			<div class='listWidgetSelector'>
+			<div class="listWidgetSelector">
 				<select class="availableLists" id="availableLists{$widget->id}" onchange="changeSelectedList();return false;">
 					{foreach from=$widget->lists item=list}
 					{if $list->displayFor == 'all' || ($list->displayFor == 'loggedIn' && $user) || ($list->displayFor == 'notLoggedIn' && !$user)}
@@ -122,7 +122,8 @@
 			var selectedOption = availableLists.options[availableLists.selectedIndex];
 
 			var selectedList = selectedOption.value;
-			$("#listWidget{$widget->id} > .titleScroller").hide();
+			{*-$("#listWidget{$widget->id} > .titleScroller").hide();*}
+			$("#listWidget{$widget->id} .titleScroller.active").hide();
 			$("#" + selectedList).show();
 			showList(availableLists.selectedIndex);
 		{rdelim}
