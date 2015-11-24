@@ -24,7 +24,7 @@ class MyAccount_AJAX
 			'getEmailMyListForm', 'sendMyListEmail', 'setListEntryPositions',
 			'removeTag',
 			'saveSearch', 'deleteSavedSearch', // deleteSavedSearch not checked
-			'cancelHold', 'cancelHolds', 'freezeHold', 'thawHold', 'getChangeHoldLocationForm', 'changeHoldLocation',
+			'confirmCancelHold', 'cancelHold', 'cancelHolds', 'freezeHold', 'thawHold', 'getChangeHoldLocationForm', 'changeHoldLocation',
 			'getReactivationDateForm', //not checked
 			'renewItem', 'renewAll', 'renewSelectedItems', 'getPinResetForm',
 			'getAddAccountLinkForm', 'addAccountLink', 'removeAccountLink',
@@ -275,6 +275,18 @@ class MyAccount_AJAX
 		return $result;
 	}
 
+	function confirmCancelHold(){
+		$patronId = $_REQUEST['patronId'];
+		$recordId = $_REQUEST['recordId'];
+		$cancelId = $_REQUEST['cancelId'];
+		$cancelButtonLabel = translate('Confirm Cancel Hold');
+		return array(
+				'title' => translate('Cancel Hold'),
+				'body' => translate("Are you sure you want to cancel this hold?"),
+				'buttons' => "<span class='tool btn btn-primary' onclick='VuFind.Account.cancelHold(\"$patronId\", \"$recordId\", \"$cancelId\")'>$cancelButtonLabel</span>",
+		);
+	}
+
 	function cancelHold() {
 		global $user;
 		$result = array(
@@ -313,7 +325,7 @@ class MyAccount_AJAX
 
 		$cancelResult = array(
 			'title' => 'Cancel Hold',
-			'modalBody' => $interface->fetch('MyAccount/cancelhold.tpl'),
+			'body' => $interface->fetch('MyAccount/cancelhold.tpl'),
 			'success' => $result['success']
 		);
 		return $cancelResult;
@@ -594,7 +606,7 @@ class MyAccount_AJAX
 		global $configArray;
 
 		try {
-			$catalog = CatalogFactory::getCatalogConnectionInstance();;
+			$catalog = CatalogFactory::getCatalogConnectionInstance();
 		} catch (PDOException $e) {
 			// What should we do with this error?
 			if ($configArray['System']['debug']) {
