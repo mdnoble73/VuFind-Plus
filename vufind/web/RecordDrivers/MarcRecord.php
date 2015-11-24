@@ -1412,7 +1412,7 @@ class MarcRecord extends IndexRecord
 		//If this is a periodical we may have additional information
 		$isPeriodical = false;
 		foreach ($this->getFormats() as $format){
-			if ($format == 'Journal' || $format == 'Newspaper'){
+			if ($format == 'Journal' || $format == 'Newspaper' || $format == 'Print Periodical'){
 				$isPeriodical = true;
 				break;
 			}
