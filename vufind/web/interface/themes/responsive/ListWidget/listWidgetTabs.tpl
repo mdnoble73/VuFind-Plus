@@ -123,8 +123,8 @@
 
 			var selectedList = selectedOption.value;
 			{*-$("#listWidget{$widget->id} > .titleScroller").hide();*}
-			$("#listWidget{$widget->id} .titleScroller.active").hide();
-			$("#" + selectedList).show();
+			$("#listWidget{$widget->id} .titleScroller.active").removeClass('active').hide();
+			$("#" + selectedList).addClass('active').show();
 			showList(availableLists.selectedIndex);
 		{rdelim}
 
