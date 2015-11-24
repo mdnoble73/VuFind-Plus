@@ -12,10 +12,10 @@
 				{assign var=totalCancelled value=$cancelResults.titles|@count}
 				<div class="alert alert-warning"><strong>{$cancelResults.numCancelled} of {$totalCancelled}</strong> holds were cancelled successfully.</div>
 				{foreach from=$cancelResults.message item=message}
-					<div class='alert alert-danger'>{$message}</div>
+					<div class="alert alert-danger">{$message}</div>
 				{/foreach}
 			{else}
-				<div class='alert alert-danger'>{$cancelResults.message}</div>
+				<div class="alert alert-danger">{$cancelResults.message}</div>
 			{/if}
 		{/if}
 	</div>

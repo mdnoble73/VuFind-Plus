@@ -344,22 +344,33 @@ VuFind.Account = (function(){
 			return false;
 		},
 
+		confirmCancelHold: function(patronId, recordId, holdIdToCancel) {
+			VuFind.loadingMessage();
+			$.getJSON(Globals.path + "/MyAccount/AJAX?method=confirmCancelHold&patronId=" + patronId + "&recordId=" + recordId + "&cancelId="+holdIdToCancel, function(data){
+				VuFind.showMessageWithButtons(data.title, data.body, data.buttons); // autoclose when successful
+			}).fail(VuFind.ajaxFail);
+
+			return false
+		},
+
 		cancelHold: function(patronId, recordId, holdIdToCancel){
-			if (confirm("Are you sure you want to cancel this hold?")){
-				if (Globals.loggedIn) {
-					VuFind.loadingMessage();
-					$.getJSON(Globals.path + "/MyAccount/AJAX?method=cancelHold&patronId=" + patronId + "&recordId=" + recordId + "&cancelId="+holdIdToCancel, function(data){
-						VuFind.showMessage(data.title, data.modalBody, data.success, data.success); // autoclose when successful
-					}).fail(VuFind.ajaxFail)
-				} else {
-					this.ajaxLogin(null, function () {
-						VuFind.Account.cancelHold(userId, holdIdToCancel)
-					}, false);
-				}
+			if (Globals.loggedIn) {
+				VuFind.loadingMessage();
+				$.getJSON(Globals.path + "/MyAccount/AJAX?method=cancelHold&patronId=" + patronId + "&recordId=" + recordId + "&cancelId="+holdIdToCancel, function(data){
+					VuFind.showMessage(data.title, data.body, data.success, data.success); // autoclose when successful
+				}).fail(VuFind.ajaxFail)
+			} else {
+				this.ajaxLogin(null, function () {
+					VuFind.Account.cancelHold(patronId, recordId, holdIdToCancel)
+				}, false);
 			}
 
 			return false
 		},
+
+/* TODO This functionality is currently not employed, but it could be restored now. plb 11-23-15
+        If that happens, implement the confirmation process for single cancels above to give the user clear
+         choices when asked to confirm.
 
 		cancelSelectedHolds: function() {
 			if (Globals.loggedIn) {
@@ -395,6 +406,7 @@ VuFind.Account = (function(){
 		}
 		return false;
 	},
+*/
 
 		cancelBooking: function(patronId, cancelId){
 			if (confirm("Are you sure you want to cancel this scheduled item?")){
@@ -402,7 +414,7 @@ VuFind.Account = (function(){
 					VuFind.loadingMessage();
 					var c = {};
 					c[patronId] = cancelId;
-					console.log(c);
+					//console.log(c);
 					//$.getJSON(Globals.path + "/MyAccount/AJAX", {method:"cancelBooking", patronId:patronId, cancelId:cancelId}, function(data){
 					$.getJSON(Globals.path + "/MyAccount/AJAX", {method:"cancelBooking", cancelId:c}, function(data){
 						VuFind.showMessage(data.title, data.modalBody, data.success); // autoclose when successful
