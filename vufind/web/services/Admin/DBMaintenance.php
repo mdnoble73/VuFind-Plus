@@ -2192,6 +2192,15 @@ class DBMaintenance extends Admin_Admin {
 					)
 				),
 
+				'indexing_profile_last_checkin_date' => array(
+					'title' => 'Indexing Profiles - last checkin date',
+					'description' => 'add field for last check in date',
+					'sql' => array(
+						"ALTER TABLE indexing_profiles ADD COLUMN `lastCheckinFormat` varchar(20) DEFAULT NULL",
+						"ALTER TABLE indexing_profiles ADD COLUMN `lastCheckinDate` char(1) DEFAULT NULL",
+					)
+				),
+
 				'translation_map_regex' => array(
 					'title' => 'Translation Maps Regex',
 					'description' => 'Setup Translation Maps to use regular expressions',

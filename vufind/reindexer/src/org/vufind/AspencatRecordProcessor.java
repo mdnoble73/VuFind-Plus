@@ -235,15 +235,6 @@ public class AspencatRecordProcessor extends IlsRecordProcessor {
 	}
 
 	@Override
-	protected String getEContentSharing(ItemInfo ilsEContentItem, DataField itemField) {
-		if (ilsEContentItem.getLocationCode().equals("ONLINE")) {
-			return "shared";
-		}else{
-			return "library";
-		}
-	}
-
-	@Override
 	protected void loadEContentFormatInformation(Record record, RecordInfo econtentRecord, ItemInfo econtentItem) {
 		if (econtentItem.getITypeCode() != null) {
 			String iType = econtentItem.getITypeCode().toLowerCase();

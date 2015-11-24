@@ -200,33 +200,6 @@ public class RecordInfo {
 		return formatCategories;
 	}
 
-	public HashSet<String> getAllOwningLocations() {
-		HashSet<String> owningLibraryValues = new HashSet<>();
-		for (ItemInfo curItem : relatedItems){
-			owningLibraryValues.addAll(curItem.getAllOwningLocations());
-		}
-		return owningLibraryValues;
-	}
-
-	public boolean isValidForScope(Scope scope) {
-		for (ItemInfo curItem : relatedItems){
-			if (curItem.isValidForScope(scope)){
-				return true;
-			}
-		}
-		return false;
-	}
-
-	public HashSet<ItemInfo> getRelatedItemsForScope(Scope scope) {
-		HashSet<ItemInfo> values = new HashSet<>();
-		for (ItemInfo curItem : relatedItems){
-			if (curItem.isValidForScope(scope)){
-				values.add(curItem);
-			}
-		}
-		return values;
-	}
-
 	public HashSet<ItemInfo> getRelatedItemsForScope(String scopeName) {
 		HashSet<ItemInfo> values = new HashSet<>();
 		for (ItemInfo curItem : relatedItems){

@@ -39,6 +39,8 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 	protected char shelvingLocationSubfield;
 	protected char collectionSubfield;
 	protected char dueDateSubfield;
+	protected char lastCheckInSubfield;
+	protected String lastCheckInFormat;
 	protected char dateCreatedSubfield;
 	protected String dateAddedFormat;
 	protected char locationSubfieldIndicator;
@@ -143,6 +145,9 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 
 			dateCreatedSubfield = getSubfieldIndicatorFromConfig(indexingProfileRS, "dateCreated");
 			dateAddedFormat = indexingProfileRS.getString("dateCreatedFormat");
+
+			lastCheckInSubfield = getSubfieldIndicatorFromConfig(indexingProfileRS, "lastCheckinDate");
+			lastCheckInFormat = indexingProfileRS.getString("lastCheckinFormat");
 
 			iCode2Subfield = getSubfieldIndicatorFromConfig(indexingProfileRS, "iCode2");
 			useICode2Suppression = indexingProfileRS.getBoolean("useICode2Suppression");
@@ -360,7 +365,6 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		}
 		String orderNumber = curOrderField.getSubfield('a').getData();
 		itemInfo.setLocationCode(location);
-		itemInfo.setSubLocationCode("");
 		itemInfo.setItemIdentifier(orderNumber);
 		itemInfo.setNumCopies(copies);
 		itemInfo.setIsEContent(false);
@@ -426,10 +430,6 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		return status.equals("o") || status.equals("1");
 	}
 
-	protected void loadEContentSourcesAndProtectionTypes(ItemInfo itemRecord) {
-		//By default, do nothing
-	}
-
 	private void loadOrderIds(GroupedWorkSolr groupedWork, Record record) {
 		//Load order ids from recordNumberTag
 		Set<String> recordIds = getFieldList(record, recordNumberTag + "a");
@@ -463,7 +463,6 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		if (itemSublocation == null){
 			itemSublocation = "";
 		}
-		itemInfo.setSubLocationCode(itemSublocation);
 		if (itemSublocation.length() > 0){
 			itemInfo.setSubLocation(translateValue("sub_location", itemSublocation, identifier));
 		}
@@ -475,8 +474,6 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 
 		itemInfo.setCollection(translateValue("collection", getItemSubfieldData(collectionSubfield, itemField), identifier));
 
-		loadEContentSourcesAndProtectionTypes(itemInfo);
-
 		Subfield eContentSubfield = itemField.getSubfield(eContentSubfieldIndicator);
 		if (eContentSubfield != null){
 			String eContentData = eContentSubfield.getData().trim();
@@ -485,16 +482,6 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 				//First element is the source, and we will always have at least the source and protection type
 				itemInfo.seteContentSource(eContentFields[0].trim());
 				itemInfo.seteContentProtectionType(eContentFields[1].trim().toLowerCase());
-				if (eContentFields.length >= 3){
-					itemInfo.seteContentSharing(eContentFields[2].trim().toLowerCase());
-				}else{
-					//Sharing depends on the location code
-					if (itemLocation.startsWith("mdl")){
-						itemInfo.seteContentSharing("shared");
-					}else{
-						itemInfo.seteContentSharing("library");
-					}
-				}
 
 				//Remaining fields have variable definitions based on content that has been loaded over the past year or so
 				if (eContentFields.length >= 4){
@@ -515,7 +502,6 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		}else{
 			//This is for a "less advanced" catalog, set some basic info
 			itemInfo.seteContentProtectionType("external");
-			itemInfo.seteContentSharing(getEContentSharing(itemInfo, itemField));
 			itemInfo.seteContentSource(getSourceType(record, itemField));
 		}
 
@@ -567,33 +553,15 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 
 		}
 
-		//Determine availability
-		boolean available = false;
-		boolean holdable = false;
-		switch (protectionType) {
-			case "external":
-				available = true;
-				break;
-		}
-
-		if (available){
-			itemInfo.setDetailedStatus("Available Online");
-		}else{
-			itemInfo.setDetailedStatus("Checked Out");
-		}
+		itemInfo.setDetailedStatus("Available Online");
 		//Determine which scopes this title belongs to
 		for (Scope curScope : indexer.getScopes()){
-			if (curScope.isItemPartOfScope(profileType, itemLocation, itemSublocation, holdable, false, true)){
+			if (curScope.isItemPartOfScope(profileType, itemLocation, itemSublocation, false, false, true)){
 				ScopingInfo scopingInfo = itemInfo.addScope(curScope);
-				scopingInfo.setAvailable(available);
-				if (available) {
-					scopingInfo.setStatus("Available Online");
-					scopingInfo.setGroupedStatus("Available Online");
-				}else{
-					scopingInfo.setStatus("Checked Out");
-					scopingInfo.setGroupedStatus("Checked Out");
-				}
-				scopingInfo.setHoldable(holdable);
+				scopingInfo.setAvailable(true);
+				scopingInfo.setStatus("Available Online");
+				scopingInfo.setGroupedStatus("Available Online");
+				scopingInfo.setHoldable(false);
 				if (curScope.isLocationScope()) {
 					scopingInfo.setLocallyOwned(curScope.isItemOwnedByScope(profileType, itemLocation, itemSublocation));
 				}
@@ -621,18 +589,18 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		}
 	}
 
-	protected String getEContentSharing(ItemInfo ilsEContentItem, DataField itemField) {
-		return "shared";
-	}
-
 	protected String getSourceType(Record record, DataField itemField) {
 		return "Unknown Source";
 	}
 
 	protected SimpleDateFormat dateAddedFormatter = null;
+	protected SimpleDateFormat lastCheckInFormatter = null;
 	protected ItemInfo getPrintIlsItem(GroupedWorkSolr groupedWork, RecordInfo recordInfo, Record record, DataField itemField) {
 		if (dateAddedFormatter == null){
 			dateAddedFormatter = new SimpleDateFormat(dateAddedFormat);
+		}
+		if (lastCheckInFormatter == null && lastCheckInFormat != null && lastCheckInFormat.length() > 0){
+			lastCheckInFormatter = new SimpleDateFormat(lastCheckInFormat);
 		}
 		ItemInfo itemInfo = new ItemInfo();
 		//Load base information from the Marc Record
@@ -645,7 +613,6 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		if (itemSublocation == null){
 			itemSublocation = "";
 		}
-		itemInfo.setSubLocationCode(itemSublocation);
 		if (itemSublocation.length() > 0){
 			itemInfo.setSubLocation(translateValue("sub_location", itemSublocation, recordInfo.getRecordIdentifier()));
 		}
@@ -679,6 +646,18 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		itemInfo.setStatusCode(itemStatus);
 		if (itemStatus != null) {
 			setDetailedStatus(itemInfo, itemField, itemStatus, recordInfo.getRecordIdentifier());
+		}
+
+		if (lastCheckInFormatter != null) {
+			String lastCheckInDate = getItemSubfieldData(lastCheckInSubfield, itemField);
+			Date lastCheckIn = null;
+			if (lastCheckInDate != null && lastCheckInDate.length() > 0)
+				try {
+					lastCheckIn = lastCheckInFormatter.parse(lastCheckInDate);
+				} catch (ParseException e) {
+					logger.debug("Could not parse check in date " + lastCheckInDate, e);
+				}
+			itemInfo.setLastCheckinDate(lastCheckIn);
 		}
 
 		if (loadFormatFromItems && formatSubfield != ' '){
@@ -1586,7 +1565,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 	/**
 	 * Load information about eContent formats.
 	 *
-	 * @param record
+	 * @param record         The MARC record information
 	 * @param econtentRecord The record to load format information for
 	 * @param econtentItem   The item to load format information for
 	 */

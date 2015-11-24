@@ -2344,7 +2344,8 @@ class GroupedWorkDriver extends RecordInterface{
 					'bookable' => $bookable,
 					'sectionId' => $sectionId,
 					'section' => $section,
-					'relatedUrls' => $relatedUrls
+					'relatedUrls' => $relatedUrls,
+					'lastCheckinDate' => isset($curItem[14]) ? $curItem[14] : '',
 			);
 			$itemSummaryInfo['actions'] = $recordDriver->getItemActions($itemSummaryInfo);
 			if (isset($relatedRecord['itemSummary'][$key])) {
