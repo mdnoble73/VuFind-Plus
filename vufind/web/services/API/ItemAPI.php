@@ -405,7 +405,8 @@ class ItemAPI extends Action {
 						'bookable' => $copy['bookable'] ? 1 : 0,
 						'libraryDisplayName' => $copy['shelfLocation'],
 						'section' => $copy['section'],
-						'sectionId' => $copy['sectionId']
+						'sectionId' => $copy['sectionId'],
+						'lastCheckinDate' => $copy['lastCheckinDate'],
 				);
 			}
 			$itemData['holdings'] = $holdings;

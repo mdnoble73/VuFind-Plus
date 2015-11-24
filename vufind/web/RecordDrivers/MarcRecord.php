@@ -1722,6 +1722,14 @@ class MarcRecord extends IndexRecord
 	public function assignCopiesInformation(){
 		$this->loadCopies();
 		global $interface;
+		$hasLastCheckinData = false;
+		foreach ($this->holdings as $holding){
+			if ($holding['lastCheckinDate']){
+				$hasLastCheckinData = true;
+				break;
+			}
+		}
+		$interface->assign('hasLastCheckinData', $hasLastCheckinData);
 		$interface->assign('holdings', $this->holdings);
 		$interface->assign('sections', $this->holdingSections);
 

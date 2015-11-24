@@ -654,7 +654,6 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 			if (lastCheckInDate != null && lastCheckInDate.length() > 0)
 				try {
 					lastCheckIn = lastCheckInFormatter.parse(lastCheckInDate);
-					itemInfo.setLastCheckinDate(lastCheckIn);
 				} catch (ParseException e) {
 					logger.debug("Could not parse check in date " + lastCheckInDate, e);
 				}
