@@ -1674,6 +1674,17 @@ class DBMaintenance extends Admin_Admin {
 					),
 				),
 
+				'clear_analytics' => array(
+						'title' => 'Clear Analytics',
+						'description' => "Clear analytics data since it has grown out of control.",
+						'sql' => array(
+								'TRUNCATE TABLE analytics_page_view',
+								'TRUNCATE TABLE analytics_event',
+								'TRUNCATE TABLE analytics_search',
+								'TRUNCATE TABLE analytics_session',
+						),
+				),
+
 				'session_update_1' => array(
 					'title' => 'Session Update 1',
 					'description' => 'Add a field for whether or not the session was started with remember me on.',

@@ -136,8 +136,17 @@ class GoDeeperData{
 	private function getContentCafeData($isbn, $upc, $field = 'AvailableContent') {
 		global $configArray;
 
-		$pw = $configArray['Contentcafe']['pw'];
-		$key = $configArray['Contentcafe']['id'];
+		if (isset($configArray['Contentcafe']['pw']) && strlen($configArray['Contentcafe']['pw']) > 0) {
+			$pw = $configArray['Contentcafe']['pw'];
+		}else{
+			return false;
+		}
+		if (isset($configArray['Contentcafe']['id']) && strlen($configArray['Contentcafe']['id']) > 0){
+			$key = $configArray['Contentcafe']['id'];
+		}else{
+			return false;
+		}
+
 
 		$url = isset($configArray['Contentcafe']['url']) ? $configArray['Contentcafe']['url'] : 'http://contentcafe2.btol.com';
 		$url .= '/ContentCafe/ContentCafe.asmx?WSDL';

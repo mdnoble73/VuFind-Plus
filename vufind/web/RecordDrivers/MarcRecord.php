@@ -1765,8 +1765,8 @@ class MarcRecord extends IndexRecord
 						$issueSummaries[$issueSummaryKey]['holdings'][strtolower($key)] = $holding;
 					}else{
 						//Need to automatically add a summary so we don't lose data
-						$issueSummaries[$holding['location']] = array(
-								'location' => $holding['location'],
+						$issueSummaries[$holding['shelfLocation']] = array(
+								'location' => $holding['shelfLocation'],
 								'type' => 'issue',
 								'holdings' => array(strtolower($key) => $holding),
 						);
