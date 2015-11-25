@@ -70,6 +70,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 	//Fields for loading order information
 	protected String orderTag;
 	protected char orderLocationSubfield;
+	protected char singleOrderLocationSubfield;
 	protected char orderCopiesSubfield;
 	protected char orderStatusSubfield;
 	protected char orderCode3Subfield;
@@ -161,6 +162,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 
 			orderTag = indexingProfileRS.getString("orderTag");
 			orderLocationSubfield = getSubfieldIndicatorFromConfig(indexingProfileRS, "orderLocation");
+			singleOrderLocationSubfield = getSubfieldIndicatorFromConfig(indexingProfileRS, "orderLocationSingle");
 			orderCopiesSubfield = getSubfieldIndicatorFromConfig(indexingProfileRS, "orderCopies");
 			orderStatusSubfield = getSubfieldIndicatorFromConfig(indexingProfileRS, "orderStatus");
 			orderCode3Subfield = getSubfieldIndicatorFromConfig(indexingProfileRS, "orderCode3");
@@ -321,28 +323,50 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 	protected void loadOnOrderItems(GroupedWorkSolr groupedWork, RecordInfo recordInfo, Record record, boolean hasTangibleItems){
 		List<DataField> orderFields = getDataFields(record, orderTag);
 		for (DataField curOrderField : orderFields){
-			int copies = 0;
-			//If the location is multi, we actually have several records that should be processed separately
-			List<Subfield> detailedLocationSubfield = curOrderField.getSubfields(orderLocationSubfield);
-			if (detailedLocationSubfield.size() == 0){
-				//Didn't get detailed locations
-				if (curOrderField.getSubfield(orderCopiesSubfield) != null){
-					copies = Integer.parseInt(curOrderField.getSubfield(orderCopiesSubfield).getData());
-				}
-				createAndAddOrderItem(recordInfo, curOrderField, "multi", copies);
-			} else{
-				for (Subfield curLocationSubfield : detailedLocationSubfield){
-					String curLocation = curLocationSubfield.getData();
-					if (curLocation.startsWith("(")){
-						//There are multiple copies for this location
-						copies = Integer.parseInt(curLocation.substring(1, curLocation.indexOf(")")));
-						curLocation = curLocation.substring(curLocation.indexOf(")") + 1);
-					}else{
-						copies = 1;
+			//Check here to make sure the order item is valid before doing further processing.
+			String status = "";
+			if (curOrderField.getSubfield(orderStatusSubfield) != null) {
+				status = curOrderField.getSubfield(orderStatusSubfield).getData();
+			}
+			String code3 = null;
+			if (orderCode3Subfield != ' ' && curOrderField.getSubfield(orderCode3Subfield) != null){
+				code3 = curOrderField.getSubfield(orderCode3Subfield).getData();
+			}
+
+			if (isOrderItemValid(status, code3)){
+				int copies = 0;
+				//If the location is multi, we actually have several records that should be processed separately
+				List<Subfield> detailedLocationSubfield = curOrderField.getSubfields(orderLocationSubfield);
+				if (detailedLocationSubfield.size() == 0){
+					//Didn't get detailed locations
+					if (curOrderField.getSubfield(orderCopiesSubfield) != null){
+						copies = Integer.parseInt(curOrderField.getSubfield(orderCopiesSubfield).getData());
 					}
-					createAndAddOrderItem(recordInfo, curOrderField, curLocation, copies);
-					//For On Order Items, increment popularity based on number of copies that are being purchased.
-					groupedWork.addPopularity(copies);
+					String locationCode = "multi";
+					if (curOrderField.getSubfield(singleOrderLocationSubfield) != null){
+						locationCode = curOrderField.getSubfield(singleOrderLocationSubfield).getData().trim();
+					}
+					createAndAddOrderItem(recordInfo, curOrderField, locationCode, copies);
+				} else {
+					for (Subfield curLocationSubfield : detailedLocationSubfield) {
+						String curLocation = curLocationSubfield.getData();
+						if (curLocation.startsWith("(")) {
+							//There are multiple copies for this location
+							String tmpLocation = curLocation;
+							try {
+								copies = Integer.parseInt(tmpLocation.substring(1, tmpLocation.indexOf(")")));
+								curLocation = tmpLocation.substring(tmpLocation.indexOf(")") + 1).trim();
+							} catch (StringIndexOutOfBoundsException e) {
+								logger.error("Error parsing copies and location for order item " + tmpLocation);
+							}
+						} else {
+							copies = 1;
+						}
+						if (createAndAddOrderItem(recordInfo, curOrderField, curLocation, copies)) {
+							//For On Order Items, increment popularity based on number of copies that are being purchased.
+							groupedWork.addPopularity(copies);
+						}
+					}
 				}
 			}
 		}
@@ -357,11 +381,11 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		}
 	}
 
-	private void createAndAddOrderItem(RecordInfo recordInfo, DataField curOrderField, String location, int copies) {
+	private boolean createAndAddOrderItem(RecordInfo recordInfo, DataField curOrderField, String location, int copies) {
 		ItemInfo itemInfo = new ItemInfo();
 		if (curOrderField.getSubfield('a') == null){
 			//Skip if we have no identifier
-			return;
+			return false;
 		}
 		String orderNumber = curOrderField.getSubfield('a').getData();
 		itemInfo.setLocationCode(location);
@@ -382,48 +406,38 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		//Add the library this is on order for
 		itemInfo.setShelfLocation("On Order");
 
-		String status = "";
-		if (curOrderField.getSubfield(orderStatusSubfield) != null) {
-			status = curOrderField.getSubfield(orderStatusSubfield).getData();
-		}
-		String code3 = null;
-		if (orderCode3Subfield != ' ' && curOrderField.getSubfield(orderCode3Subfield) != null){
-			code3 = curOrderField.getSubfield(orderCode3Subfield).getData();
-		}
-
-		if (isOrderItemValid(status, code3)){
-			recordInfo.addItem(itemInfo);
-			for (Scope scope: indexer.getScopes()){
-				if (scope.isItemPartOfScope(profileType, location, "", true, true, false)){
-					ScopingInfo scopingInfo = itemInfo.addScope(scope);
-					if (scope.isLocationScope()) {
-						scopingInfo.setLocallyOwned(scope.isItemOwnedByScope(profileType, location, ""));
-					}
-					if (scope.isLibraryScope()) {
-						boolean libraryOwned = scope.isItemOwnedByScope(profileType, location, "");
-						scopingInfo.setLibraryOwned(libraryOwned);
-						if (itemInfo.getShelfLocation().equals("On Order")){
-							itemInfo.setShelfLocation(scopingInfo.getScope().getFacetLabel() + " On Order");
-						}
-					}
-					if (scopingInfo.isLocallyOwned()){
-						if (scope.isLibraryScope() && !hasLocationBasedShelfLocation && !hasSystemBasedShelfLocation){
-							hasSystemBasedShelfLocation = true;
-						}
-						if (scope.isLocationScope() && !hasLocationBasedShelfLocation){
-							hasLocationBasedShelfLocation = true;
-							if (itemInfo.getShelfLocation().equals("On Order")) {
-								itemInfo.setShelfLocation(scopingInfo.getScope().getFacetLabel() + "On Order");
-							}
-						}
-					}
-					scopingInfo.setAvailable(false);
-					scopingInfo.setHoldable(true);
-					scopingInfo.setStatus("On Order");
-					scopingInfo.setGroupedStatus("On Order");
+		recordInfo.addItem(itemInfo);
+		for (Scope scope: indexer.getScopes()){
+			if (scope.isItemPartOfScope(profileType, location, "", true, true, false)){
+				ScopingInfo scopingInfo = itemInfo.addScope(scope);
+				if (scope.isLocationScope()) {
+					scopingInfo.setLocallyOwned(scope.isItemOwnedByScope(profileType, location, ""));
 				}
+				if (scope.isLibraryScope()) {
+					boolean libraryOwned = scope.isItemOwnedByScope(profileType, location, "");
+					scopingInfo.setLibraryOwned(libraryOwned);
+					if (itemInfo.getShelfLocation().equals("On Order")){
+						itemInfo.setShelfLocation(scopingInfo.getScope().getFacetLabel() + " On Order");
+					}
+				}
+				if (scopingInfo.isLocallyOwned()){
+					if (scope.isLibraryScope() && !hasLocationBasedShelfLocation && !hasSystemBasedShelfLocation){
+						hasSystemBasedShelfLocation = true;
+					}
+					if (scope.isLocationScope() && !hasLocationBasedShelfLocation){
+						hasLocationBasedShelfLocation = true;
+						if (itemInfo.getShelfLocation().equals("On Order")) {
+							itemInfo.setShelfLocation(scopingInfo.getScope().getFacetLabel() + "On Order");
+						}
+					}
+				}
+				scopingInfo.setAvailable(false);
+				scopingInfo.setHoldable(true);
+				scopingInfo.setStatus("On Order");
+				scopingInfo.setGroupedStatus("On Order");
 			}
 		}
+		return true;
 	}
 
 	protected boolean isOrderItemValid(String status, String code3) {
