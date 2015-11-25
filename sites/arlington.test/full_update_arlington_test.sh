@@ -85,6 +85,10 @@ cd /usr/local/vufind-plus/sites/${PIKASERVER}; ./${PIKASERVER}.sh restart
 #Extract from ILS
 /root/cron/copyArlingtonExport.sh >> ${OUTPUT_FILE}
 
+#Get the updated volume information
+cd /usr/local/vufind-plus/vufind/cron;
+nice -n -10 java -jar cron.jar ${PIKASERVER} ExportSierraData >> ${OUTPUT_FILE}
+
 #Extract from Hoopla
 #No need to copy on marmot test server
 #cd /usr/local/vufind-plus/vufind/cron;./HOOPLA.sh ${PIKASERVER} >> ${OUTPUT_FILE}
