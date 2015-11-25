@@ -542,7 +542,7 @@ class BookCoverProcessor{
 		}
 	}
 
-	function processImageURL($url, $cache = true) {
+	function processImageURL($url, $cache = true, $attemptRefetch = true) {
 		$this->log("Processing $url", PEAR_LOG_INFO);
 
 		if ($image = @file_get_contents($url)) {
@@ -567,6 +567,33 @@ class BookCoverProcessor{
 			if ($width < 2 && $height < 2) {
 				@unlink($tempFile);
 				return false;
+			}
+
+			// Test Image for for partial load
+			if(!$imageResource = @imagecreatefromstring($image)){
+				$this->log("Could not create image from string $url", PEAR_LOG_ERR);
+				@unlink($tempFile);
+				return false;
+			}
+
+			// Check the color of the bottom left corner
+			$rgb = imagecolorat($imageResource, 0, $height-1);
+			if ($rgb == 8421504) {
+				// Confirm by checking the color of the bottom right corner
+				$rgb = imagecolorat($imageResource, $width-1, $height-1);
+				if ($rgb == 8421504) {
+					// This is an image with partial gray at the bottom
+					// (r:128,g:128,b:128)
+//				$r = ($rgb >> 16) & 0xFF;
+//				$g = ($rgb >> 8) & 0xFF;
+//				$b = $rgb & 0xFF;
+
+					$this->log('Partial Gray image loaded.', PEAR_LOG_ERR);
+					if ($attemptRefetch) {
+						$this->log('Partial Gray image, attempting refetch.', PEAR_LOG_INFO);
+						return $this->processImageURL($url, $cache, false); // Refetch once.
+					}
+				}
 			}
 
 			if ($this->size == 'small'){
@@ -595,7 +622,6 @@ class BookCoverProcessor{
 				// create a new temporary image
 				$tmp_img = imagecreatetruecolor( $new_width, $new_height );
 
-				$imageResource = imagecreatefromstring($image);
 				// copy and resize old image into new image
 				if (!imagecopyresampled( $tmp_img, $imageResource, 0, 0, 0, 0, $new_width, $new_height, $width, $height )){
 					$this->log("Could not resize image $url to $this->localFile", PEAR_LOG_ERR);
@@ -613,7 +639,6 @@ class BookCoverProcessor{
 					return false;
 				}
 
-
 			}else{
 				$this->log("Image is the correct size, not resizing.", PEAR_LOG_INFO);
 
@@ -623,17 +648,18 @@ class BookCoverProcessor{
 
 					$conversionOk = true;
 					// Try to create a GD image and rewrite as PNG, fail if we can't:
-					if (!($imageGD = @imagecreatefromstring($image))) {
+					if (!($imageResource = @imagecreatefromstring($image))) {
 						$this->log("Could not create image from string $url", PEAR_LOG_ERR);
 						$conversionOk = false;
 					}
-					if (!@imagepng($imageGD, $finalFile, 9)) {
+
+					if (!@imagepng($imageResource, $finalFile, 9)) {
 						$this->log("Could not save image to file $url $this->localFile", PEAR_LOG_ERR);
 						$conversionOk = false;
 					}
 					// We no longer need the temp file:
 					@unlink($tempFile);
-					imagedestroy($imageGD);
+					imagedestroy($imageResource);
 					if (!$conversionOk){
 						return false;
 					}
@@ -645,7 +671,7 @@ class BookCoverProcessor{
 			}
 
 			// Display the image:
-			$this->returnImage($finalFile, 'png');
+			$this->returnImage($finalFile);
 
 			// If we don't want to cache the image, delete it now that we're done.
 			if (!$cache) {
