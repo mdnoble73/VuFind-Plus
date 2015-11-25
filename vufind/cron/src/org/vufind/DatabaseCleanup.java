@@ -238,12 +238,4 @@ public class DatabaseCleanup implements IProcessHandler {
 		}
 	}
 
-	protected void cleanupAnalytics(Connection vufindConn, Logger logger, CronProcessLogEntry processLogEntry){
-		//Delete any analytics older than a year
-		delete from analytics_event where eventTime < 1420095600
-		delete from analytics_page_view where pageStartTime < 1420095600
-		DELETE FROM `analytics_search` where sessionId IN (select id from analytics_session where lastRequestTime < 1420095600)
-		DELETE from analytics_session where lastRequestTime < 1420095600
-	}
-
 }
