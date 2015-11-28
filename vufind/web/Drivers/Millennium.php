@@ -1680,7 +1680,7 @@ class Millennium extends ScreenScrapingDriver
 	 * @return String the check digit
 	 */
 	function getCheckDigit($baseId){
-		$baseId = str_replace('b', '', $baseId);
+		$baseId = preg_replace('/\.?[bij]/', '', $baseId);
 		if (strlen($baseId) != 7){
 			return "a";
 		}else{

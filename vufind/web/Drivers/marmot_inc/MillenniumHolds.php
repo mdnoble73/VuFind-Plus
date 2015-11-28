@@ -589,13 +589,25 @@ class MillenniumHolds{
 				//}
 			} //End of columns
 
-			//if ($sCount > 1) {
-				if (!isset($curHold['status']) || strcasecmp($curHold['status'], "ready") != 0){
-					$holds['unavailable'][$curHold['holdSource'] . $curHold['itemId'] . $curHold['cancelId'] . $userLabel] = $curHold;
-				}else{
-					$holds['available'][$curHold['holdSource'] . $curHold['itemId'] . $curHold['cancelId']. $userLabel] = $curHold;
+			//Check to see if this is a volume level hold
+			if (substr($curHold['cancelId'], 0, 1) == 'j'){
+				//This is a volume level hold
+				$volumeId = '.' . substr($curHold['cancelId'], 0, strpos($curHold['cancelId'], '~'));
+				$volumeId .= $this->driver->getCheckDigit($volumeId);
+				require_once ROOT_DIR . '/Drivers/marmot_inc/IlsVolumeInfo.php';
+				$volumeInfo = new IlsVolumeInfo();
+				$volumeInfo->volumeId = $volumeId;
+				if ($volumeInfo->find(true)){
+					$curHold['volume'] = $volumeInfo->displayLabel;
 				}
-			//}
+			}
+
+			//add to the appropriate array
+			if (!isset($curHold['status']) || strcasecmp($curHold['status'], "ready") != 0){
+				$holds['unavailable'][$curHold['holdSource'] . $curHold['itemId'] . $curHold['cancelId'] . $userLabel] = $curHold;
+			}else{
+				$holds['available'][$curHold['holdSource'] . $curHold['itemId'] . $curHold['cancelId']. $userLabel] = $curHold;
+			}
 
 			$sCount++;
 
