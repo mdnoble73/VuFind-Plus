@@ -2123,7 +2123,7 @@ class GroupedWorkDriver extends RecordInterface{
 					if (!array_key_exists($itemDetails[0], $this->relatedItemsByRecordId)) {
 						$this->relatedItemsByRecordId[$itemDetails[0]] = array();
 					}
-					$this->relatedItemsByRecordId[$itemDetails[0]][$itemDetails[1]] = $itemDetails;
+					$this->relatedItemsByRecordId[$itemDetails[0]][] = $itemDetails;
 				}
 			}
 			return $itemsFromIndex;
