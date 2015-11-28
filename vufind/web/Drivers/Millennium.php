@@ -680,6 +680,25 @@ class Millennium extends ScreenScrapingDriver
 		return $millenniumHolds->placeItemHold($patron, $recordId, $itemId, $pickupBranch);
 	}
 
+	/**
+	 * Place Volume Hold
+	 *
+	 * This is responsible for both placing volume level holds.
+	 *
+	 * @param   User    $patron         The User to place a hold for
+	 * @param   string  $recordId       The id of the bib record
+	 * @param   string  $volumeId       The id of the volume to hold
+	 * @param   string  $pickupBranch   The branch where the user wants to pickup the item when available
+	 * @return  mixed                   True if successful, false if unsuccessful
+	 *                                  If an error occurs, return a PEAR_Error
+	 * @access  public
+	 */
+	function placeVolumeHold($patron, $recordId, $volumeId, $pickupBranch) {
+		require_once ROOT_DIR . '/Drivers/marmot_inc/MillenniumHolds.php';
+		$millenniumHolds = new MillenniumHolds($this);
+		return $millenniumHolds->placeVolumeHold($patron, $recordId, $volumeId, $pickupBranch);
+	}
+
 	public function updateHold($patron, $requestId, $type, $title){
 		require_once ROOT_DIR . '/Drivers/marmot_inc/MillenniumHolds.php';
 		$millenniumHolds = new MillenniumHolds($this);

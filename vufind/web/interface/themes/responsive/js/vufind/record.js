@@ -3,14 +3,21 @@ VuFind.Record = (function(){
 		showPlaceHold: function(module, id){
 			if (Globals.loggedIn){
 				var source;
+				var volume = null;
 				if (id.indexOf(":") > 0){
-					var idParts = id.split(":", 2);
+					var idParts = id.split(":");
 					source = idParts[0];
 					id = idParts[1];
+					if (idParts.length > 2){
+						volume = idParts[2];
+					}
 				}else{
 					source = 'ils';
 				}
 				var url = Globals.path + "/" + module + "/" + id + "/AJAX?method=getPlaceHoldForm&recordSource=" + source;
+				if (volume != null){
+					url += "&volume=" + volume;
+				}
 				//VuFind.showMessage('Loading...', 'Loading, please wait.');
 				$.getJSON(url, function(data){
 					VuFind.showMessageWithButtons(data.title, data.modalBody, data.modalButtons);
@@ -62,6 +69,7 @@ VuFind.Record = (function(){
 					,autoLogOut = $('#autologout').prop('checked')
 					,selectedItem = $('#selectedItem')
 					,module = $('#module').val()
+					,volume = $('#volume')
 					,params = {
 						'method': 'placeHold'
 						,campus: $('#campus').val()
@@ -75,6 +83,9 @@ VuFind.Record = (function(){
 			}
 			if (selectedItem.length > 0){
 				params['selectedItem'] = selectedItem.val();
+			}
+			if (volume.length > 0){
+				params['volume'] = volume.val();
 			}
 			$.getJSON(Globals.path + "/" + module +  "/" + id + "/AJAX", params, function(data){
 				if (data.success){

@@ -859,6 +859,14 @@ class User extends DB_DataObject
 		return $result;
 	}
 
+	function placeVolumeHold($recordId, $volumeId, $pickupBranch){
+		$result = $this->getCatalogDriver()->placeVolumeHold($this, $recordId, $volumeId, $pickupBranch);
+		if ($result['success']){
+			$this->clearCache();
+		}
+		return $result;
+	}
+
 	function bookMaterial($recordId, $startDate, $startTime, $endDate, $endTime){
 		$result = $this->getCatalogDriver()->bookMaterial($this, $recordId, $startDate, $startTime, $endDate, $endTime);
 		if ($result['success']){

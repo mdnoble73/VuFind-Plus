@@ -2142,6 +2142,17 @@ class GroupedWorkDriver extends RecordInterface{
 	 * @return array
 	 */
 	protected function setupRelatedRecordDetails($recordDetails, $groupedWork, $timer, $scopingInfo, $activePTypes, $searchLocation, $library) {
+		//Check to see if we have any volume data for the record
+		require_once ROOT_DIR . '/Drivers/marmot_inc/IlsVolumeInfo.php';
+		$volumeData = array();
+		$volumeDataDB = new IlsVolumeInfo();
+		$volumeDataDB->recordId = $recordDetails[0];
+		if ($volumeDataDB->find()){
+			while ($volumeDataDB->fetch()){
+				$volumeData[] = clone($volumeDataDB);
+			}
+		}
+
 		list($source) = explode(':', $recordDetails[0], 1);
 		require_once ROOT_DIR . '/RecordDrivers/Factory.php';
 		$recordDriver = RecordDriverFactory::initRecordDriverById($recordDetails[0], $groupedWork);
@@ -2196,6 +2207,7 @@ class GroupedWorkDriver extends RecordInterface{
 		$recordHoldable = false;
 		$recordBookable = false;
 
+		$i = 0;
 		foreach ($this->relatedItemsByRecordId[$recordDetails[0]] as $curItem) {
 			$shelfLocation = $curItem[2];
 			$callNumber = $curItem[3];
@@ -2281,6 +2293,22 @@ class GroupedWorkDriver extends RecordInterface{
 			$relatedRecord['groupedStatus'] = GroupedWorkDriver::keepBestGroupedStatus($relatedRecord['groupedStatus'], $groupedStatus);
 			$description = $shelfLocation . ':' . $callNumber;
 
+			$volume = null;
+			$volumeId = null;
+			if (count($volumeData)){
+				/** @var IlsVolumeInfo $volumeDataPoint */
+				foreach ($volumeData as $volumeDataPoint){
+					if (strpos($volumeDataPoint->relatedItems, $curItem[1]) !== false){
+						$volume = $volumeDataPoint->displayLabel;
+						$volumeId = $volumeDataPoint->volumeId;
+						break;
+					}
+				}
+			}
+			if ($volume){
+				$description = $volume . $description;
+			}
+
 			$section = 'Other Locations';
 			if ($locallyOwned) {
 				if ($localShelfLocation == null) {
@@ -2324,12 +2352,13 @@ class GroupedWorkDriver extends RecordInterface{
 				$key = '6 ' . $description;
 				$sectionId = 6;
 			}
+			$key .= $i++;
 
 			//Add the item to the item summary
 			$itemSummaryInfo = array(
 					'description' => $description,
 					'shelfLocation' => $shelfLocation,
-					'callNumber' => $callNumber,
+					'callNumber' => trim($callNumber . ' ' . $volume),
 					'totalCopies' => 1,
 					'availableCopies' => ($available && !$isOrderItem) ? $numCopies : 0,
 					'isLocalItem' => $locallyOwned,
@@ -2346,6 +2375,8 @@ class GroupedWorkDriver extends RecordInterface{
 					'section' => $section,
 					'relatedUrls' => $relatedUrls,
 					'lastCheckinDate' => isset($curItem[14]) ? $curItem[14] : '',
+					'volume' => $volume,
+					'volumeId' => $volumeId,
 			);
 			$itemSummaryInfo['actions'] = $recordDriver->getItemActions($itemSummaryInfo);
 			if (isset($relatedRecord['itemSummary'][$key])) {
@@ -2372,7 +2403,7 @@ class GroupedWorkDriver extends RecordInterface{
 		ksort($relatedRecord['itemSummary']);
 		$timer->logTime("Setup record items");
 
-		$relatedRecord['actions'] = $recordDriver->getRecordActions($recordAvailable, $recordHoldable, $recordBookable, $relatedUrls);
+		$relatedRecord['actions'] = $recordDriver->getRecordActions($recordAvailable, $recordHoldable, $recordBookable, $relatedUrls, $volumeData);
 		$timer->logTime("Loaded actions");
 		return $relatedRecord;
 	}

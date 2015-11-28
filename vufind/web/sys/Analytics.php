@@ -83,7 +83,11 @@ class Analytics
 	}
 
 	function enableTracking(){
-		$this->trackingDisabled = false;
+		global $configArray;
+		//Before enabling analytics, make sure that we can use it.
+		if (isset($configArray['System']['enableAnalytics']) && $configArray['System']['enableAnalytics'] == true) {
+			$this->trackingDisabled = false;
+		}
 	}
 
 	function isTrackingDisabled(){

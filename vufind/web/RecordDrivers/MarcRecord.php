@@ -1205,7 +1205,7 @@ class MarcRecord extends IndexRecord
 		return array();
 	}
 
-	public function getRecordActions($isAvailable, $isHoldable, $isBookable, $relatedUrls = null){
+	public function getRecordActions($isAvailable, $isHoldable, $isBookable, $relatedUrls = null, $volumeData = null){
 		$actions = array();
 		global $interface;
 		global $library;
@@ -1223,12 +1223,25 @@ class MarcRecord extends IndexRecord
 		}
 
 		if ($isHoldable && $showHoldButton){
-			$actions[] = array(
-				'title' => 'Place Hold',
-				'url' => '',
-				'onclick' => "return VuFind.Record.showPlaceHold('{$this->getModule()}', '{$this->getIdWithSource()}');",
-				'requireLogin' => false,
-			);
+			if (!is_null($volumeData) && count($volumeData) > 0){
+				foreach ($volumeData as $volumeInfo){
+					$id = $this->getIdWithSource();
+					$id .= ':' . $volumeInfo->volumeId;
+					$actions[] = array(
+							'title' => 'Hold ' . $volumeInfo->displayLabel,
+							'url' => '',
+							'onclick' => "return VuFind.Record.showPlaceHold('{$this->getModule()}', '$id');",
+							'requireLogin' => false,
+					);
+				}
+			}else{
+				$actions[] = array(
+						'title' => 'Place Hold',
+						'url' => '',
+						'onclick' => "return VuFind.Record.showPlaceHold('{$this->getModule()}', '{$this->getIdWithSource()}');",
+						'requireLogin' => false,
+				);
+			}
 		}
 		if ($isBookable && $library->enableMaterialsBooking){
 			$actions[] = array(
@@ -1723,13 +1736,17 @@ class MarcRecord extends IndexRecord
 		$this->loadCopies();
 		global $interface;
 		$hasLastCheckinData = false;
+		$hasVolume = false;
 		foreach ($this->holdings as $holding){
 			if ($holding['lastCheckinDate']){
 				$hasLastCheckinData = true;
-				break;
+			}
+			if ($holding['volume']){
+				$hasVolume = true;
 			}
 		}
 		$interface->assign('hasLastCheckinData', $hasLastCheckinData);
+		$interface->assign('hasVolume', $hasVolume);
 		$interface->assign('holdings', $this->holdings);
 		$interface->assign('sections', $this->holdingSections);
 

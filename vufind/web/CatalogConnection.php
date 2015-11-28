@@ -972,4 +972,14 @@ class CatalogConnection
 			return $renewResult;
 		}
 	}
+
+	public function placeVolumeHold($patron, $recordId, $volumeId, $pickupBranch) {
+		if ($this->checkFunction('placeVolumeHold')){
+			return $this->driver->placeVolumeHold($patron, $recordId, $volumeId, $pickupBranch);
+		}else{
+			return array(
+					'success' => false,
+					'message' => 'Volume level holds have not been implemented for this ILS.');
+		}
+	}
 }
