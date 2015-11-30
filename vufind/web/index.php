@@ -816,6 +816,15 @@ function loadModuleActionId(){
 		$_REQUEST['action'] = $matches[2];
 	}
 
+	//Correct some old actions
+	if ($_GET['action'] == 'OverdriveHolds'){
+		$_GET['action'] = 'Holds';
+		$_REQUEST['action'] = 'Holds';
+	}else if ($_GET['action'] == 'OverdriveCheckedOut'){
+		$_GET['action'] = 'CheckedOut';
+		$_REQUEST['action'] = 'CheckedOut';
+	}
+
 	global $activeRecordProfile;
 	//Check to see if the module is a profile
 	if (isset($_REQUEST['module'])){
