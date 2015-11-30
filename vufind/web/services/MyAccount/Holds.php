@@ -118,8 +118,6 @@ class MyAccount_Holds extends MyAccount{
 			$interface->assign('offlineHolds', $offlineHolds);
 		}
 
-		$interface->setPageTitle('My Holds');
-		$interface->assign('sidebar', 'MyAccount/account-sidebar.tpl');
 		global $library;
 		if (!$library->showDetailedHoldNoticeInformation){
 			$notification_method = '';
@@ -130,10 +128,11 @@ class MyAccount_Holds extends MyAccount{
 			}
 		}
 		$interface->assign('notification_method', strtolower($notification_method));
-		$interface->setTemplate('holds.tpl');
 
 		//print_r($patron);
-		$interface->display('layout.tpl');
+
+		// Present to the user
+		$this->display('holds.tpl', 'My Holds');
 	}
 
 	public function exportToExcel($result, $exportType, $showDateWhenSuspending, $showPosition, $showExpireTime) {

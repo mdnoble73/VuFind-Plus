@@ -747,6 +747,13 @@ class User extends DB_DataObject
 				}
 			}
 		}
+
+		// Sort Pending Holds by Title
+		$holdSort = function ($a, $b, $indexToSortBy = 'title') {
+			return strcasecmp($a[$indexToSortBy], $b[$indexToSortBy]);
+		};
+
+		usort($allHolds['available'], $holdSort);
 		return $allHolds;
 	}
 
