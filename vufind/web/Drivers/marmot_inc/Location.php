@@ -732,6 +732,20 @@ class Location extends DB_DataObject
 	}
 */
 
+	private $sublocationCode = 'unset';
+	function getSublocationCode(){
+		if ($this->sublocationCode == 'unset') {
+			if (isset($_GET['sublocation'])) {
+				$this->sublocationCode = $_GET['sublocation'];
+			} elseif (isset($_COOKIE['sublocation'])) {
+				$this->sublocationCode = $_COOKIE['sublocation'];
+			} else {
+				$this->sublocationCode = '';
+			}
+		}
+		return $this->sublocationCode;
+	}
+
 	function getLocationsFacetsForLibrary($libraryId){
 		$location = new Location();
 		$location->libraryId = $libraryId;
