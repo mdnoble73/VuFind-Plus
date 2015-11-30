@@ -2153,7 +2153,9 @@ class GroupedWorkDriver extends RecordInterface{
 			}
 		}
 
-		list($source) = explode(':', $recordDetails[0], 1);
+		//		list($source) = explode(':', $recordDetails[0], 1); // this does not work for 'overdrive:27770ba9-9e68-410c-902b-de2de8e2b7fe', returns 'overdrive:27770ba9-9e68-410c-902b-de2de8e2b7fe'
+		// when loading book covers.
+		list($source) = explode(':', $recordDetails[0], 2);
 		require_once ROOT_DIR . '/RecordDrivers/Factory.php';
 		$recordDriver = RecordDriverFactory::initRecordDriverById($recordDetails[0], $groupedWork);
 		$timer->logTime("Loaded Record Driver for  $recordDetails[0]");
