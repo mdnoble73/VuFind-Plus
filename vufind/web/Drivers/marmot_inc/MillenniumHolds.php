@@ -589,13 +589,25 @@ class MillenniumHolds{
 				//}
 			} //End of columns
 
-			//if ($sCount > 1) {
-				if (!isset($curHold['status']) || strcasecmp($curHold['status'], "ready") != 0){
-					$holds['unavailable'][$curHold['holdSource'] . $curHold['itemId'] . $curHold['cancelId'] . $userLabel] = $curHold;
-				}else{
-					$holds['available'][$curHold['holdSource'] . $curHold['itemId'] . $curHold['cancelId']. $userLabel] = $curHold;
+			//Check to see if this is a volume level hold
+			if (substr($curHold['cancelId'], 0, 1) == 'j'){
+				//This is a volume level hold
+				$volumeId = '.' . substr($curHold['cancelId'], 0, strpos($curHold['cancelId'], '~'));
+				$volumeId .= $this->driver->getCheckDigit($volumeId);
+				require_once ROOT_DIR . '/Drivers/marmot_inc/IlsVolumeInfo.php';
+				$volumeInfo = new IlsVolumeInfo();
+				$volumeInfo->volumeId = $volumeId;
+				if ($volumeInfo->find(true)){
+					$curHold['volume'] = $volumeInfo->displayLabel;
 				}
-			//}
+			}
+
+			//add to the appropriate array
+			if (!isset($curHold['status']) || strcasecmp($curHold['status'], "ready") != 0){
+				$holds['unavailable'][$curHold['holdSource'] . $curHold['itemId'] . $curHold['cancelId'] . $userLabel] = $curHold;
+			}else{
+				$holds['available'][$curHold['holdSource'] . $curHold['itemId'] . $curHold['cancelId']. $userLabel] = $curHold;
+			}
 
 			$sCount++;
 
@@ -695,11 +707,6 @@ class MillenniumHolds{
 		}
 
 		//Get the title of the book.
-		// TODO Is this block needed?
-		$class = $configArray['Index']['engine'];
-		$url = $configArray['Index']['url'];
-		$this->driver->db = new $class($url);
-
 		// Retrieve Full Marc Record
 		require_once ROOT_DIR . '/RecordDrivers/Factory.php';
 		$record = RecordDriverFactory::initRecordDriverById($this->driver->accountProfile->recordSource . ':' . $bib1);
@@ -753,6 +760,137 @@ class MillenniumHolds{
 			$loginResult = $this->driver->_curl_login($patron);
 
 			$curl_url = $this->driver->getVendorOpacUrl() . "/search/.$bib/.$bib/1,1,1,B/request~$bib";
+
+			/** @var Library $librarySingleton */
+			global $librarySingleton;
+			$patronHomeBranch = $librarySingleton->getPatronHomeLibrary($patron);
+			if ($patronHomeBranch->defaultNotNeededAfterDays != -1){
+				$post_data['needby_Month']= $Month;
+				$post_data['needby_Day']= $Day;
+				$post_data['needby_Year']=$Year;
+			}
+
+			$post_data['submit.x']="35";
+			$post_data['submit.y']="21";
+			$post_data['submit']="submit";
+			$post_data['locx00']= str_pad($pickupBranch, 5); // padded with spaces, which will get url-encoded into plus signs by httpd_build_query() in the _curlPostPage() method.
+			if (!empty($itemId) && $itemId != -1){
+				$post_data['radio']=$itemId;
+			}
+			$post_data['x']="48";
+			$post_data['y']="15";
+			//MDN 8/14 lt is apparently not required for placing a hold although it is required for login.
+			/*if ($lt != null){
+				$post_data['lt'] = $lt;
+				$post_data['_eventId'] = 'submit';
+			}*/
+
+			$sResult = $this->driver->_curlPostPage($curl_url, $post_data);
+
+			$logger->log("Placing hold $recordId : $title", PEAR_LOG_INFO);
+
+			$sResult = preg_replace("/<!--([^(-->)]*)-->/","",$sResult);
+
+			//Parse the response to get the status message
+			$hold_result = $this->_getHoldResult($sResult);
+			$hold_result['title']  = $title;
+			$hold_result['bid'] = $bib1;
+			global $analytics;
+			if ($analytics){
+				if ($hold_result['success'] == true){
+					$analytics->addEvent('ILS Integration', 'Successful Hold', $title);
+				}else{
+					$analytics->addEvent('ILS Integration', 'Failed Hold', $hold_result['message'] . ' - ' . $title);
+				}
+			}
+			return $hold_result;
+		}
+	}
+
+	/**
+	 * Place Volume Hold
+	 *
+	 * This is responsible for both placing volume level holds.
+	 *
+	 * @param   User    $patron       The User to place a hold for
+	 * @param   string  $recordId     The id of the bib record
+	 * @param   string  $volumeId     The id of the volume to hold
+	 * @param   string  $pickupBranch The branch where the user wants to pickup the item when available
+	 * @return  mixed                 True if successful, false if unsuccessful
+	 *                                If an error occurs, return a PEAR_Error
+	 * @access  public
+	 */
+	function placeVolumeHold($patron, $recordId, $volumeId, $pickupBranch) {
+		global $logger;
+		global $configArray;
+
+		$bib1= $recordId;
+		if (substr($bib1, 0, 1) != '.'){
+			$bib1 = '.' . $bib1;
+		}
+
+		$bib = substr(str_replace('.b', 'b', $bib1), 0, -1);
+		if (strlen($bib) == 0){
+			return array(
+					'success' => false,
+					'message' => 'A valid record id was not provided. Please try again.');
+		}
+
+		//Get the title of the book.
+		// Retrieve Full Marc Record
+		require_once ROOT_DIR . '/RecordDrivers/Factory.php';
+		$record = RecordDriverFactory::initRecordDriverById($this->driver->accountProfile->recordSource . ':' . $bib1);
+		if (!$record) {
+			$logger->log('Place Hold: Failed to get Marc Record', PEAR_LOG_INFO);
+			$title = null;
+		}else{
+			$title = $record->getTitle();
+		}
+
+		// Offline Holds
+		if ($configArray['Catalog']['offline']){
+			require_once ROOT_DIR . '/sys/OfflineHold.php';
+			$offlineHold = new OfflineHold();
+			$offlineHold->bibId = $bib1;
+			$offlineHold->patronBarcode = $patron->getBarcode();
+			$offlineHold->patronId = $patron->id;
+			$offlineHold->timeEntered = time();
+			$offlineHold->status = 'Not Processed';
+			if ($offlineHold->insert()){
+				return array(
+						'title' => $title,
+						'bib' => $bib1,
+						'success' => true,
+						'message' => 'The circulation system is currently offline.  This hold will be entered for you automatically when the circulation system is online.');
+			}else{
+				return array(
+						'title' => $title,
+						'bib' => $bib1,
+						'success' => false,
+						'message' => 'The circulation system is currently offline and we could not place this hold.  Please try again later.');
+			}
+
+
+		}else{
+			if (!empty($_REQUEST['canceldate'])){
+				$date = $_REQUEST['canceldate'];
+			}else{
+				//Default to a date 6 months (half a year) in the future.
+				$sixMonthsFromNow = time() + 182.5 * 24 * 60 * 60;
+				$date = date('m/d/Y', $sixMonthsFromNow);
+			}
+
+			list($Month, $Day, $Year)=explode("/", $date);
+
+			//Make sure to connect via the driver so cookies will be correct
+			$this->driver->_curl_connect();
+
+//			curl_setopt($curl_connection, CURLOPT_POST, true);
+
+			$loginResult = $this->driver->_curl_login($patron);
+
+			$volumeId = substr(str_replace('.j', 'j', $volumeId), 0, -1);
+			$curl_url = $this->driver->getVendorOpacUrl() . "/search/.$bib/.$bib/1,1,1,B/request~$bib&jrecnum=$volumeId";
 
 			/** @var Library $librarySingleton */
 			global $librarySingleton;

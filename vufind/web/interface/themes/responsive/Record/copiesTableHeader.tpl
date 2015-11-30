@@ -6,13 +6,18 @@
  xs-2 : 16.6667% (1/6)
  *}
 	<div class="row">
-		<div class="col-xs-{if $showLastCheckIn}4{else}5{/if} ">
+		{if $showVolume}
+			<div class="col-xs-2">
+				<strong><u>Volume</u></strong>
+			</div>
+		{/if}
+		<div class="col-xs-{if $showLastCheckIn && showVolume}3{elseif $showLastCheckIn || $showVolume}4{else}5{/if} ">
 			<strong><u>Location</u></strong>
 		</div>
-		<div class="holdingsCallNumber col-xs-{if $showLastCheckIn}3{else}4{/if}">
+		<div class="holdingsCallNumber col-xs-{if $showLastCheckIn || $showVolume}3{else}4{/if}">
 			<strong><u>Call Number</u></strong>
 		</div>
-		<div class="col-xs-{if $showLastCheckIn}3{else}3{/if}">
+		<div class="col-xs-{if $showLastCheckIn && showVolume}2{elseif $showLastCheckIn || $showVolume}3{else}3{/if}">
 			<strong><u>Status</u></strong>
 		</div>
 		{if $showLastCheckIn}

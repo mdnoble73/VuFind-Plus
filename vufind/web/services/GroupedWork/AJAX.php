@@ -244,12 +244,12 @@ class GroupedWork_AJAX {
 		$relatedRecords = $recordDriver->getRelatedRecords();
 
 		// short version
-//		$url = (count($relatedRecords) == 1) ? $relatedRecords[0]['url'] : $recordDriver->getLinkUrl();
-		if (count($relatedRecords) == 1) {
-			$tmp = current($relatedRecords); // because $relateRecords index is not always numerical
-			$url = $tmp['url'];
-		} else {
-			$url = $recordDriver->getLinkUrl();
+
+		if (count($relatedRecords) == 1){
+			$firstRecord = reset($relatedRecords);
+			$url = $firstRecord['url'];
+		}else{
+			$url =  $recordDriver->getLinkUrl();
 		}
 
 		$escapedId = htmlentities($recordDriver->getPermanentId()); // escape for html

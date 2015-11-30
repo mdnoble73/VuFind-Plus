@@ -6,13 +6,20 @@
  xs-2 : 16.6667% (1/6)
  *}
 	<div class="row">
-		<div class="col-xs-{if $showLastCheckIn}4{else}5{/if}">
+		{if $showVolume}
+			<div class="col-xs-2">
+				{if $holding.volume}
+					<span title="Volume">{$holding.volume}</span>
+				{/if}
+			</div>
+		{/if}
+		<div class="col-xs-{if $showLastCheckIn && showVolume}3{elseif $showLastCheckIn || $showVolume}4{else}5{/if}">
 			<strong>
 				{$holding.shelfLocation|escape}
 				{if $holding.locationLink} (<a href='{$holding.locationLink}' target='_blank'>Map</a>){/if}
 			</strong>
 		</div>
-		<div class="holdingsCallNumber col-xs-{if $showLastCheckIn}3{else}4{/if}">
+		<div class="holdingsCallNumber col-xs-{if $showLastCheckIn || $showVolume}3{else}4{/if}">
 			{$holding.callNumber|escape}
 			{if $holding.link}
 				{foreach from=$holding.link item=link}
@@ -20,7 +27,7 @@
 				{/foreach}
 			{/if}
 		</div>
-		<div class="col-xs-{if $showLastCheckIn}3{else}3{/if}">
+		<div class="col-xs-{if $showLastCheckIn && showVolume}2{elseif $showLastCheckIn || $showVolume}3{else}3{/if}">
 			{if $holding.reserve == "Y"}
 				{translate text="On Reserve - Ask at Circulation Desk"}
 			{else}

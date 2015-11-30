@@ -1057,7 +1057,7 @@ class OverDriveRecordDriver extends RecordInterface {
 		return array();
 	}
 
-	public function getRecordActions($isAvailable, $isHoldable, $isBookable, $relatedUrls = null) {
+	public function getRecordActions($isAvailable, $isHoldable, $isBookable, $relatedUrls = null, $volumeData = null) {
 		$actions = array();
 		if ($isAvailable){
 			$actions[] = array(

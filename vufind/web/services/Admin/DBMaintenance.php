@@ -2212,6 +2212,14 @@ class DBMaintenance extends Admin_Admin {
 					)
 				),
 
+				'indexing_profile_specific_order_location' => array(
+						'title' => 'Indexing Profiles - specific order location',
+						'description' => 'add field for the specific location code since Millennium/Sierra do not always export the detailed',
+						'sql' => array(
+								"ALTER TABLE indexing_profiles ADD COLUMN `orderLocationSingle` char(1) DEFAULT NULL",
+						)
+				),
+
 				'translation_map_regex' => array(
 					'title' => 'Translation Maps Regex',
 					'description' => 'Setup Translation Maps to use regular expressions',
@@ -2257,6 +2265,24 @@ class DBMaintenance extends Admin_Admin {
 						"ALTER TABLE `account_profiles` ADD `recordSource` varchar(50) NOT NULL",
 						"ALTER TABLE `account_profiles` ADD `weight` int(11) NOT NULL",
 					)
+				),
+
+
+				'volume_information' => array(
+					'title' => 'Volume Information',
+						'description' => 'Store information about volumes for use within display.  These do not need to be indexed independently.',
+						'sql' => array(
+							"CREATE TABLE IF NOT EXISTS `ils_volume_info` (
+							  `id` int(11) NOT NULL AUTO_INCREMENT,
+							  `recordId` varchar(50) NOT NULL COMMENT 'Full Record ID including the source',
+							  `displayLabel` varchar(255) NOT NULL,
+							  `relatedItems` varchar(512) NOT NULL,
+							  `volumeId` VARCHAR( 30 ) NOT NULL ,
+							  PRIMARY KEY (`id`),
+							  KEY `recordId` (`recordId`),
+							  UNIQUE `volumeId` (`volumeId`)
+							) ENGINE=InnoDB DEFAULT CHARSET=utf8",
+						)
 				),
 			)
 		);

@@ -55,6 +55,15 @@
 			<div class="row">
 				{* Information column author, format, etc *}
 				<div class="resultDetails col-xs-12 col-md-9">
+					{if $record.volume}
+						<div class="row">
+							<div class="result-label col-xs-3">{translate text='Volume'}</div>
+							<div class="col-xs-9 result-value">
+								{$record.volume}
+							</div>
+						</div>
+					{/if}
+
 					{if $record.author}
 						<div class="row">
 							<div class="result-label col-xs-3">{translate text='Author'}</div>
