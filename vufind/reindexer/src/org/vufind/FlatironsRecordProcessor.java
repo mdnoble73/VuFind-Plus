@@ -32,7 +32,7 @@ public class FlatironsRecordProcessor extends IIIRecordProcessor{
 		String dueDate = itemInfo.getDueDate() == null ? "" : itemInfo.getDueDate();
 		String availableStatus = "-oyj";
 		if (status.length() > 0 && availableStatus.indexOf(status.charAt(0)) >= 0) {
-			if (dueDate.length() == 0) {
+			if (dueDate.length() == 0 || dueDate.equals("-  -")) {
 				available = true;
 			}
 		}
