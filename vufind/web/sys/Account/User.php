@@ -748,12 +748,13 @@ class User extends DB_DataObject
 			}
 		}
 
-		// Sort Pending Holds by Title
-		$holdSort = function ($a, $b, $indexToSortBy = 'title') {
-			return strcasecmp($a[$indexToSortBy], $b[$indexToSortBy]);
+		// Sort Pending Holds by Sort Title ( uses title if the sort title is not present )
+		$holdSort = function ($a, $b, $indexToSortBy='sortTitle') {
+			return strcasecmp(isset($a[$indexToSortBy]) ? $a[$indexToSortBy] : $a['title'], isset($b[$indexToSortBy]) ? $b[$indexToSortBy] : $b['title']);
 		};
 
-		usort($allHolds['available'], $holdSort);
+		uasort($allHolds['available'], $holdSort);
+		uasort($allHolds['unavailable'], $holdSort);
 		return $allHolds;
 	}
 
