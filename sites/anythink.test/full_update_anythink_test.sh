@@ -101,6 +101,8 @@ then
 	nice -n -10 java -jar overdrive_extract.jar ${PIKASERVER} fullReload >> ${OUTPUT_FILE}
 fi
 
+/root/cron/copyAnythinkExport >> ${OUTPUT_FILE}
+
 # should test for new bib extract file
 # should copy old bib extract file
 #Validate the export
