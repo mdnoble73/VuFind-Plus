@@ -817,12 +817,16 @@ function loadModuleActionId(){
 	}
 
 	//Correct some old actions
-	if ($_GET['action'] == 'OverdriveHolds'){
-		$_GET['action'] = 'Holds';
-		$_REQUEST['action'] = 'Holds';
-	}else if ($_GET['action'] == 'OverdriveCheckedOut'){
-		$_GET['action'] = 'CheckedOut';
-		$_REQUEST['action'] = 'CheckedOut';
+	if (isset($_GET['action'])) {
+		if ($_GET['action'] == 'OverdriveHolds') {
+			$_GET['action'] = 'Holds';
+			$_REQUEST['action'] = 'Holds';
+		} else {
+			if ($_GET['action'] == 'OverdriveCheckedOut') {
+				$_GET['action'] = 'CheckedOut';
+				$_REQUEST['action'] = 'CheckedOut';
+			}
+		}
 	}
 
 	global $activeRecordProfile;
