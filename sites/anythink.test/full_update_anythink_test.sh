@@ -82,15 +82,15 @@ cd /usr/local/vufind-plus/sites/${PIKASERVER}; ./${PIKASERVER}.sh restart
 
 #Extract from ILS is done automatically
 
-#Extract from Hoopla
-cd /usr/local/vufind-plus/vufind/cron;./HOOPLA.sh ${PIKASERVER} >> ${OUTPUT_FILE}
+#Extract from Hoopla not needed on anythink test server
+#cd /usr/local/vufind-plus/vufind/cron;./HOOPLA.sh ${PIKASERVER} >> ${OUTPUT_FILE}
 
-#Extract Lexile Data
-cd /data/vufind-plus/; rm lexileTitles.txt*; wget -N --no-verbose http://venus.marmot.org/lexileTitles.txt
+#Extract Lexile Data not needed on anythink test server
+#cd /data/vufind-plus/; rm lexileTitles.txt*; wget -N --no-verbose http://venus.marmot.org/lexileTitles.txt
 # hoping --no-verbose will remove download status indicator text from logs but keep errors
 
-#Extract AR Data
-cd /data/vufind-plus/accelerated_reader; rm RLI-ARDataTAB.txt*; wget -N --no-verbose http://venus.marmot.org/RLI-ARDataTAB.txt
+#Extract AR Data not needed on anythink test server
+#cd /data/vufind-plus/accelerated_reader; rm RLI-ARDataTAB.txt*; wget -N --no-verbose http://venus.marmot.org/RLI-ARDataTAB.txt
 
 #Do a full extract from OverDrive just once a week to catch anything that doesn't
 #get caught in the regular extract
