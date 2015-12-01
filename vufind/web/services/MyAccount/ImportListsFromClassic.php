@@ -23,9 +23,7 @@ class ImportListsFromClassic extends MyAccount{
 		global $user;
 
 		//Import Lists from the ILS
-		/** @var Millennium $catalog */
-		$catalog = $this->catalog;
-		$results = $catalog->importListsFromIls();
+		$results = $user->importListsFromIls();
 		$interface->assign('importResults', $results);
 
 		//Reload all lists for the user

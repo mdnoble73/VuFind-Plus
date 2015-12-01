@@ -982,4 +982,14 @@ class CatalogConnection
 					'message' => 'Volume level holds have not been implemented for this ILS.');
 		}
 	}
+
+	public function importListsFromIls($patron){
+		if ($this->checkFunction('importListsFromIls')){
+			return $this->driver->importListsFromIls($patron);
+		}else{
+			return array(
+					'success' => false,
+					'errors' => array('Importing Lists has not been implemented for this ILS.'));
+		}
+	}
 }
