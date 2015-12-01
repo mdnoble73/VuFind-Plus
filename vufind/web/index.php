@@ -51,7 +51,7 @@ if (isset($configArray['Site']['largeLogo'])){
 	$interface->assign('largeLogo', $configArray['Site']['largeLogo']);
 }
 //Set focus to the search box by default.
-$interface->assign('focusElementId', 'lookfor');
+//$interface->assign('focusElementId', 'lookfor'); // No references in templates. TODO delete
 
 //Set footer information
 /** @var Location $locationSingleton */
