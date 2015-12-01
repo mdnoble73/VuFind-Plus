@@ -9,12 +9,11 @@
 		{/if}
 		<input type="hidden" name="view" id="view" value="{$displayMode}">
 
+		{assign var="hiddenSearchSource" value=false}
 		{* Switch sizing when no search source is to be displayed *}
-		{if $searchSources|@count == 1}
-			{assign var="hiddenSearchSource" value="true"}
+		{if $searchSources|@count <= 1}
+			{assign var="hiddenSearchSource" value=true}
 			<input type="hidden" name="searchSource" value="{$searchSource}">
-		{else}
-			{assign var="hiddenSearchSource" value="false"}
 		{/if}
 
 		<div class="col-sm-10 col-xs-12">
