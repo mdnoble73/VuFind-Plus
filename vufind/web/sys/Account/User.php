@@ -1088,4 +1088,9 @@ class User extends DB_DataObject
 		}
 		return $relatedPTypes;
 	}
+
+	function importListsFromIls(){
+		$result = $this->getCatalogDriver()->importListsFromIls($this);
+		return $result;
+	}
 }

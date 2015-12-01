@@ -1404,7 +1404,7 @@ class Millennium extends ScreenScrapingDriver
 		$post_data['nlast'] = $lastName;
 		$post_data['stre_aaddress'] = $address;
 		if ($this->combineCityStateZipInSelfRegistration()){
-			$post_data['city_aaddress'] = "$city $state, $zip";
+			$post_data['city_aaddress'] = "$city, $state $zip";
 		}else{
 			$post_data['city_aaddress'] = "$city";
 			$post_data['stat_aaddress'] = "$state";

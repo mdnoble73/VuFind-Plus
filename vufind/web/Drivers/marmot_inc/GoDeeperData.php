@@ -205,10 +205,12 @@ class GoDeeperData{
 			$response = self::getContentCafeData($isbn, $upc, 'AnnotationDetail');
 			if ($response) {
 				$temp = array();
-				foreach ($response[0]->AnnotationItems->AnnotationItem as $summary) {
-					$temp[strlen($summary->Annotation)] = $summary->Annotation;
+				if (isset($response[0]->AnnotationItems->AnnotationItem)){
+					foreach ($response[0]->AnnotationItems->AnnotationItem as $summary) {
+						$temp[strlen($summary->Annotation)] = $summary->Annotation;
+					}
+					$summaryData['summary'] = end($temp); // Grab the Longest Summary
 				}
-				$summaryData['summary'] = end($temp); // Grab the Longest Summary
 				if (!empty($summaryData['summary'])) {
 					$memCache->set($memCacheKey, $summaryData, 0, $configArray['Caching']['contentcafe_sumary']);
 				}
