@@ -442,9 +442,6 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 					}
 					if (scope.isLocationScope() && !hasLocationBasedShelfLocation){
 						hasLocationBasedShelfLocation = true;
-						if (itemInfo.getShelfLocation().equals("On Order")) {
-							itemInfo.setShelfLocation(scopingInfo.getScope().getFacetLabel() + "On Order");
-						}
 					}
 				}
 				scopingInfo.setAvailable(false);
