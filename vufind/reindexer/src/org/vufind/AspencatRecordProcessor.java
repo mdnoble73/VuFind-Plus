@@ -298,6 +298,17 @@ public class AspencatRecordProcessor extends IlsRecordProcessor {
 		if (!suppressed && curItem.getSubfield(iTypeSubfield) != null){
 			suppressed = curItem.getSubfield(iTypeSubfield).getData().equalsIgnoreCase("ill");
 		}
+		if (curItem.getSubfield('0') != null){
+			if (curItem.getSubfield('0').getData().equals("1")){
+				suppressed = true;
+			}
+		}
+		if (curItem.getSubfield('1') != null){
+			String fieldData = curItem.getSubfield('1').getData().toLowerCase();
+			if (fieldData.equals("lost") || fieldData.equals("missing") || fieldData.equals("longoverdue") || fieldData.equals("trace")){
+				suppressed = true;
+			}
+		}
 		if (suppressed){
 			return true;
 		} else {
