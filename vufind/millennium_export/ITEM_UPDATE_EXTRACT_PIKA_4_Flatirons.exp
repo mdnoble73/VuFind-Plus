@@ -132,13 +132,6 @@ send "$INNOPACinitials\r"
 expect "Please key your password :"
 send "$INNOPACinitialsPassword\r"
 
-# USE REVIEW FILE 10 which is a bit smaller since we don't need as much for real time indexing
-expect "009 >"
-send "009"
-expect "N > NEW BOOLEAN search, delete the review file"
-send "N"
-expect "Are you sure you want to delete the current review file?"
-send "Y"
 # USE REVIEW FILE 11
 expect "011 >"
 send "011"
@@ -152,6 +145,7 @@ expect "N > NEW BOOLEAN search, delete the review file" {
   expect "Are you sure you want to delete the current review file?"
   send "Y"
 }
+
 expect "I > ITEM list"
 send "I"
 expect "35 UPDATED"
@@ -187,7 +181,8 @@ expect "Output Item #2 >"
 send "?" ; # OTHER TYPES
 expect "I > ITEM"
 send "I"
-expect "32 RECORD #"
+expect "33 RECORD #"
+# option was 32 in above expect line, shows as 33 now plb 12-2-2015
 send "33" ; # ITEM RECORD NUMBER
 expect "Output Item #2 >"
 send "24" ; # ITEM STATUS
@@ -245,6 +240,7 @@ send "Q"
 expect "Q > QUIT"
 send "Q"
 
+# Below is not presented
 expect "X > DISCONNECT"
 send "X"
 
