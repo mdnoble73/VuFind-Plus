@@ -787,7 +787,7 @@ class Solr implements IndexEngine {
 					$fieldValue = $values[$spec[0]];
 					//Check fields that we expect to match certain patterns to see if we should skip this term.
 					if ($field == 'isbn'){
-						if (!preg_match('/^((?:\sOR\s)?["(]?\d{10,13}X?[\s")]*)+$/', $fieldValue)){
+						if (!preg_match('/^((?:\sOR\s)?["(]?\d{9,13}X?[\s")]*)+$/', $fieldValue)){
 							continue;
 						}else{
 							require_once(ROOT_DIR . '/sys/ISBN.php');
@@ -808,7 +808,11 @@ class Solr implements IndexEngine {
 						if (!preg_match('/^"?(\d+|.b\d+|[A-F0-9]{8}-[A-F0-9]{4}-[A-F0-9]{4}-[A-F0-9]{4}-[A-F0-9]{12}|MWT\d+)"?$/i', $fieldValue)){
 							continue;
 						}
-					}elseif($field == 'upc' || $field == 'issn'){
+					}elseif($field == 'issn'){
+						if (!preg_match('/^"?[\dXx-]+"?$/', $fieldValue)){
+							continue;
+						}
+					}elseif($field == 'upc'){
 						if (!preg_match('/^"?\d+"?$/', $fieldValue)){
 							continue;
 						}
@@ -938,7 +942,7 @@ class Solr implements IndexEngine {
 			$values = array();
 			$values['onephrase'] = '"' . str_replace('"', '', implode(' ', $tokenized)) . '"';
 			if (count($tokenized) > 1){
-				$values['proximal'] = '"' . str_replace('"(', '', implode(') (', $tokenized)) . ')"~10';
+				$values['proximal'] = $values['onephrase'] . '~10';
 			}else{
 				$values['proximal'] = $tokenized[0];
 			}
@@ -1125,7 +1129,7 @@ class Solr implements IndexEngine {
 				$that = $this;
 				if (isset($params['lookfor']) && !$forDisplay){
 					$lookfor = preg_replace_callback(
-						'/(\\w+):([\\w\\d\\s"]+?)\\s?(AND|OR|AND NOT|OR NOT|\\)|$)/',
+						'/(\\w+):([\\w\\d\\s"]+?)\\s?(?<=\b)(AND|OR|AND NOT|OR NOT|\\)|$)(?=\b)/',
 						function ($matches) use($that){
 							$field = $matches[1];
 							$lookfor = $matches[2];

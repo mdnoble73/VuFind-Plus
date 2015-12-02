@@ -1314,9 +1314,9 @@ public class RecordGrouperMain {
 							}
 							marcFileStream.close();
 						} catch (Exception e) {
-							logger.error("Error loading catalog bibs on record " + numRecordsRead + " the last record processed was " + lastRecordProcessed, e);
+							logger.error("Error loading catalog bibs on record " + numRecordsRead + " in profile " +  curProfile.name + " the last record processed was " + lastRecordProcessed, e);
 						}
-						logger.info("Finished grouping " + numRecordsRead + " records with " + numRecordsProcessed + " actual changes from the ils file " + curBibFile.getName());
+						logger.info("Finished grouping " + numRecordsRead + " records with " + numRecordsProcessed + " actual changes from the ils file " + curBibFile.getName() + " in profile " + curProfile.name);
 					}
 				}
 			}

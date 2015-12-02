@@ -1706,7 +1706,7 @@ class MarcRecord extends IndexRecord
 				$this->recordFromIndex = $groupedWorkDriver->getRelatedRecord($this->getIdWithSource());
 
 				//Divide the items into sections and create the status summary
-				$this->holdings = $this->recordFromIndex['itemSummary'];
+				$this->holdings = $this->recordFromIndex['itemDetails'];
 				$this->holdingSections = array();
 				foreach ($this->holdings as $copyInfo) {
 					$sectionName = $copyInfo['sectionId'];

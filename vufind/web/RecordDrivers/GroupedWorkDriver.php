@@ -2040,12 +2040,24 @@ class GroupedWorkDriver extends RecordInterface{
 				'author' => $this->getPrimaryAuthor(),
 		);
 		//BibFrame
-		//$semanticData[] = array(
-		//		'@context' => 'http://bibfra.me/view/lite/',
-		//		'@type' => 'Work', /* TODO: This should change to a more specific type Book/Movie as applicable */
-		//		'title' => $this->getTitle(),
-		//		'author' => $this->getPrimaryAuthor(),
-		//);
+		$semanticData[] = array(
+				'@context' => array(
+						"bf" => 'http://bibframe.org/vocab/',
+						"bf2" => 'http://bibframe.org/vocab2/',
+						"madsrdf" => 'http://www.loc.gov/mads/rdf/v1#',
+						"rdf" => 'http://www.w3.org/1999/02/22-rdf-syntax-ns#',
+						"rdfs" => 'http://www.w3.org/2000/01/rdf-schema',
+						"relators" => "http://id.loc.gov/vocabulary/relators/",
+						"xsd" => "http://www.w3.org/2001/XMLSchema#"
+				),
+				'@graph' => array(
+					array(
+							'@type' => 'bf:Work', /* TODO: This should change to a more specific type Book/Movie as applicable */
+							'bf:title' => $this->getTitle(),
+							'bf:creator' => $this->getPrimaryAuthor(),
+					),
+				)
+		);
 		//TODO: add audience, award, content
 		return $semanticData;
 	}
@@ -2354,7 +2366,6 @@ class GroupedWorkDriver extends RecordInterface{
 				$key = '6 ' . $description;
 				$sectionId = 6;
 			}
-			$key .= $i++;
 
 			//Add the item to the item summary
 			$itemSummaryInfo = array(
@@ -2381,6 +2392,7 @@ class GroupedWorkDriver extends RecordInterface{
 					'volumeId' => $volumeId,
 			);
 			$itemSummaryInfo['actions'] = $recordDriver->getItemActions($itemSummaryInfo);
+			//Group the item based on location and call number for display in the summary
 			if (isset($relatedRecord['itemSummary'][$key])) {
 				$relatedRecord['itemSummary'][$key]['totalCopies']++;
 				$relatedRecord['itemSummary'][$key]['availableCopies'] += $itemSummaryInfo['availableCopies'];
@@ -2391,6 +2403,8 @@ class GroupedWorkDriver extends RecordInterface{
 			} else {
 				$relatedRecord['itemSummary'][$key] = $itemSummaryInfo;
 			}
+			//Also add to the details for display in the full list
+			$relatedRecord['itemDetails'][$key . $i++] = $itemSummaryInfo;
 		}
 		if ($localShelfLocation != null) {
 			$relatedRecord['shelfLocation'] = $localShelfLocation;
@@ -2403,6 +2417,7 @@ class GroupedWorkDriver extends RecordInterface{
 			$relatedRecord['callNumber'] = $libraryCallNumber;
 		}
 		ksort($relatedRecord['itemSummary']);
+		ksort($relatedRecord['itemDetails']);
 		$timer->logTime("Setup record items");
 
 		$relatedRecord['actions'] = $recordDriver->getRecordActions($recordAvailable, $recordHoldable, $recordBookable, $relatedUrls, $volumeData);
