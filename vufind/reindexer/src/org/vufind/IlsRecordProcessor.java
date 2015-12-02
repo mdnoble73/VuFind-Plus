@@ -360,7 +360,23 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 								logger.error("Error parsing copies and location for order item " + tmpLocation);
 							}
 						} else {
+							//If we only get one location in the detailed copies, we need to read the copies subfield rather than
+							//hard coding to 1
 							copies = 1;
+							if (orderCopiesSubfield != ' ') {
+								if (detailedLocationSubfield.size() == 1 && curOrderField.getSubfield(orderCopiesSubfield) != null) {
+									String copiesData = curOrderField.getSubfield(orderCopiesSubfield).getData().trim();
+									try {
+										copies = Integer.parseInt(copiesData);
+									} catch (StringIndexOutOfBoundsException e) {
+										logger.error("StringIndexOutOfBoundsException loading number of copies " + copiesData, e);
+									} catch (Exception e) {
+										logger.error("Exception loading number of copies " + copiesData, e);
+									} catch (Error e) {
+										logger.error("Error loading number of copies " + copiesData, e);
+									}
+								}
+							}
 						}
 						if (createAndAddOrderItem(recordInfo, curOrderField, curLocation, copies)) {
 							//For On Order Items, increment popularity based on number of copies that are being purchased.
@@ -426,9 +442,6 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 					}
 					if (scope.isLocationScope() && !hasLocationBasedShelfLocation){
 						hasLocationBasedShelfLocation = true;
-						if (itemInfo.getShelfLocation().equals("On Order")) {
-							itemInfo.setShelfLocation(scopingInfo.getScope().getFacetLabel() + "On Order");
-						}
 					}
 				}
 				scopingInfo.setAvailable(false);

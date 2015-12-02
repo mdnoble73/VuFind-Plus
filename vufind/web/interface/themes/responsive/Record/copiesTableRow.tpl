@@ -31,11 +31,10 @@
 			{if $holding.reserve == "Y"}
 				{translate text="On Reserve - Ask at Circulation Desk"}
 			{else}
-				{if $holding.availability}
-					<span class="available">{$holding.statusFull}{if $holding.holdable == 0 && $showHoldButton} <label class='notHoldable' title='{$holding.nonHoldableReason}'>(Not Holdable)</label>{/if}</span>
-				{else}
-					<span class="checkedout">{$holding.statusFull}{if $holding.holdable == 0 && $showHoldButton} <label class='notHoldable' title='{$holding.nonHoldableReason}'>(Not Holdable)</label>{/if}</span>
-				{/if}
+				<span class="{if $holding.availability}available{else}checkedout{/if}">
+					{if $holding.onOrderCopies > 1}{$holding.onOrderCopies}&nbsp;{/if}
+					{$holding.statusFull}{if $holding.holdable == 0 && $showHoldButton} <label class='notHoldable' title='{$holding.nonHoldableReason}'>(Not Holdable)</label>{/if}
+				</span>
 			{/if}
 		</div>
 		{if $showLastCheckIn}
