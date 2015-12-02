@@ -101,7 +101,15 @@ public class HorizonExportMain {
 	 */
 	private static void processChangesFromHorizon(Ini ini) {
 		String exportPath = ini.get("Reindex", "marcChangesPath");
-		File[] files = new File(exportPath).listFiles(new FilenameFilter() {
+		File exportFile = new File(exportPath);
+		if (exportFile == null){
+			logger.error("Export path " + exportPath + " could not be initialized");
+			return;
+		}else if(!exportFile.exists()){
+			logger.error("Export path " + exportPath + " does not exist");
+			return;
+		}
+		File[] files = exportFile.listFiles(new FilenameFilter() {
 			@Override
 			public boolean accept(File dir, String name) {
 				return name.matches(".*\\.mrc");
