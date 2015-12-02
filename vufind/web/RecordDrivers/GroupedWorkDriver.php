@@ -2366,7 +2366,6 @@ class GroupedWorkDriver extends RecordInterface{
 				$key = '6 ' . $description;
 				$sectionId = 6;
 			}
-			$key .= $i++;
 
 			//Add the item to the item summary
 			$itemSummaryInfo = array(
@@ -2393,6 +2392,7 @@ class GroupedWorkDriver extends RecordInterface{
 					'volumeId' => $volumeId,
 			);
 			$itemSummaryInfo['actions'] = $recordDriver->getItemActions($itemSummaryInfo);
+			//Group the item based on location and call number for display in the summary
 			if (isset($relatedRecord['itemSummary'][$key])) {
 				$relatedRecord['itemSummary'][$key]['totalCopies']++;
 				$relatedRecord['itemSummary'][$key]['availableCopies'] += $itemSummaryInfo['availableCopies'];
@@ -2403,6 +2403,8 @@ class GroupedWorkDriver extends RecordInterface{
 			} else {
 				$relatedRecord['itemSummary'][$key] = $itemSummaryInfo;
 			}
+			//Also add to the details for display in the full list
+			$relatedRecord['itemDetails'][$key . $i++] = $itemSummaryInfo;
 		}
 		if ($localShelfLocation != null) {
 			$relatedRecord['shelfLocation'] = $localShelfLocation;
@@ -2415,6 +2417,7 @@ class GroupedWorkDriver extends RecordInterface{
 			$relatedRecord['callNumber'] = $libraryCallNumber;
 		}
 		ksort($relatedRecord['itemSummary']);
+		ksort($relatedRecord['itemDetails']);
 		$timer->logTime("Setup record items");
 
 		$relatedRecord['actions'] = $recordDriver->getRecordActions($recordAvailable, $recordHoldable, $recordBookable, $relatedUrls, $volumeData);
