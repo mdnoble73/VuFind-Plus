@@ -2040,12 +2040,24 @@ class GroupedWorkDriver extends RecordInterface{
 				'author' => $this->getPrimaryAuthor(),
 		);
 		//BibFrame
-		//$semanticData[] = array(
-		//		'@context' => 'http://bibfra.me/view/lite/',
-		//		'@type' => 'Work', /* TODO: This should change to a more specific type Book/Movie as applicable */
-		//		'title' => $this->getTitle(),
-		//		'author' => $this->getPrimaryAuthor(),
-		//);
+		$semanticData[] = array(
+				'@context' => array(
+						"bf" => 'http://bibframe.org/vocab/',
+						"bf2" => 'http://bibframe.org/vocab2/',
+						"madsrdf" => 'http://www.loc.gov/mads/rdf/v1#',
+						"rdf" => 'http://www.w3.org/1999/02/22-rdf-syntax-ns#',
+						"rdfs" => 'http://www.w3.org/2000/01/rdf-schema',
+						"relators" => "http://id.loc.gov/vocabulary/relators/",
+						"xsd" => "http://www.w3.org/2001/XMLSchema#"
+				),
+				'@graph' => array(
+					array(
+							'@type' => 'bf:Work', /* TODO: This should change to a more specific type Book/Movie as applicable */
+							'bf:title' => $this->getTitle(),
+							'bf:creator' => $this->getPrimaryAuthor(),
+					),
+				)
+		);
 		//TODO: add audience, award, content
 		return $semanticData;
 	}
