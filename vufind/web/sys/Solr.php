@@ -787,7 +787,7 @@ class Solr implements IndexEngine {
 					$fieldValue = $values[$spec[0]];
 					//Check fields that we expect to match certain patterns to see if we should skip this term.
 					if ($field == 'isbn'){
-						if (!preg_match('/^((?:\sOR\s)?["(]?\d{10,13}X?[\s")]*)+$/', $fieldValue)){
+						if (!preg_match('/^((?:\sOR\s)?["(]?\d{9,13}X?[\s")]*)+$/', $fieldValue)){
 							continue;
 						}else{
 							require_once(ROOT_DIR . '/sys/ISBN.php');
@@ -808,7 +808,11 @@ class Solr implements IndexEngine {
 						if (!preg_match('/^"?(\d+|.b\d+|[A-F0-9]{8}-[A-F0-9]{4}-[A-F0-9]{4}-[A-F0-9]{4}-[A-F0-9]{12}|MWT\d+)"?$/i', $fieldValue)){
 							continue;
 						}
-					}elseif($field == 'upc' || $field == 'issn'){
+					}elseif($field == 'issn'){
+						if (!preg_match('/^"?[\dXx-]+"?$/', $fieldValue)){
+							continue;
+						}
+					}elseif($field == 'upc'){
 						if (!preg_match('/^"?\d+"?$/', $fieldValue)){
 							continue;
 						}
