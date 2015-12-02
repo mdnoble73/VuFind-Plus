@@ -602,6 +602,18 @@ class MillenniumHolds{
 				}
 			}
 
+			//Check to see if the patron is the only one in the hold queue
+			//if so they cannot freeze the hold
+			if (isset($curHold['status'])){
+				if ($curHold['status'] == 'Pending'){
+					$curHold['freezeable'] = false;
+				}else if (preg_match('/\d+ Of (\d+) Holds?/i', $curHold['status'], $matches)){
+					if ($matches[1] == 1){
+						$curHold['freezeable'] = false;
+					}
+				}
+			}
+
 			//add to the appropriate array
 			if (!isset($curHold['status']) || strcasecmp($curHold['status'], "ready") != 0){
 				$holds['unavailable'][$curHold['holdSource'] . $curHold['itemId'] . $curHold['cancelId'] . $userLabel] = $curHold;
