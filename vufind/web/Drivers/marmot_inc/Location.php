@@ -484,6 +484,8 @@ class Location extends DB_DataObject
 						// If the active location doesn't belong to the library we are browsing at, turn off the active location
 						Location::$activeLocation = null;
 					}
+				}else{
+					//Check to see if we can get the active location based off the sublocation
 				}
 			}else{
 				// Check if we know physical location by the ip table

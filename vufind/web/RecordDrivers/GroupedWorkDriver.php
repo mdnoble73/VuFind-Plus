@@ -1256,8 +1256,8 @@ class GroupedWorkDriver extends RecordInterface{
 			if (!$relatedManifestations[$curRecord['format']]['available'] && $curRecord['available']){
 				$relatedManifestations[$curRecord['format']]['available'] = $curRecord['available'];
 			}
-			if (isset($curRecord['inLibraryUseOnly']) && $curRecord['inLibraryUseOnly']){
-				$relatedManifestations[$curRecord['format']]['inLibraryUseOnly'] = $curRecord['inLibraryUseOnly'];
+			if ($curRecord['inLibraryUseOnly']){
+				$relatedManifestations[$curRecord['format']]['inLibraryUseOnly'] = true;
 			}else{
 				$relatedManifestations[$curRecord['format']]['allLibraryUseOnly'] = false;
 			}
@@ -2189,7 +2189,7 @@ class GroupedWorkDriver extends RecordInterface{
 				'availableOnline' => false,
 				'availableLocally' => false,
 				'availableHere' => false,
-				'inLibraryUseOnly' => false,
+				'inLibraryUseOnly' => true,
 				'allLibraryUseOnly' => true,
 				'isEContent' => false,
 				'availableCopies' => 0,
@@ -2383,7 +2383,7 @@ class GroupedWorkDriver extends RecordInterface{
 					'isLocalItem' => $locallyOwned,
 					'isLibraryItem' => $libraryOwned,
 					'inLibraryUseOnly' => $inLibraryUseOnly,
-					'allInLibraryUseOnly' => $inLibraryUseOnly,
+					'allLibraryUseOnly' => $inLibraryUseOnly,
 					'displayByDefault' => $displayByDefault,
 					'onOrderCopies' => $isOrderItem ? $numCopies : 0,
 					'status' => $groupedStatus,
