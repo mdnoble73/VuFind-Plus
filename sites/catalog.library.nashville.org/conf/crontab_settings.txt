@@ -76,7 +76,7 @@
 0 13 * * * cd /usr/local/VuFind-Plus/vufind/cron; ./HOOPLA.sh catalog.library.nashville.org  
 
 # LEXILE : download file from Marmot
-00 4 1 * * cd /data/vufind-plus/; rm lexileTitles.txt*; wget http://venus.marmot.org/lexileTitles.txt  
+00 4 1 * * cd /data/vufind-plus/; wget -N --no-verbose http://venus.marmot.org/lexileTitles.txt
 
 #################################
 # hacks to keep things afloat until Sparky increases RAM

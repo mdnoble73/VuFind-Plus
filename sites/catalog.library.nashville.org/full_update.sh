@@ -127,7 +127,6 @@ cd /usr/local/vufind-plus/vufind/cron;./HOOPLA.sh ${PIKASERVER} >> ${OUTPUT_FILE
 
 #Extract Lexile Data
 cd /data/vufind-plus/; 
-#rm lexileTitles.txt*; 
 wget -N --no-verbose http://venus.marmot.org/lexileTitles.txt
 
 #Extract AR Data

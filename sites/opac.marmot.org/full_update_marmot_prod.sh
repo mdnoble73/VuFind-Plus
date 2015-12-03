@@ -47,7 +47,7 @@ cd /data/vufind-plus/; rm lexileTitles.txt*; wget -N --no-verbose http://venus.m
 # hoping --no-verbose will remove download status indicator text from logs but keep errors
 
 #Extract AR Data
-cd /data/vufind-plus/accelerated_reader; rm RLI-ARDataTAB.txt*; wget -N --no-verbose http://venus.marmot.org/RLI-ARDataTAB.txt
+cd /data/vufind-plus/accelerated_reader; wget -N --no-verbose http://venus.marmot.org/RLI-ARDataTAB.txt
 
 #Do a full extract from OverDrive just once a week to catch anything that doesn't
 #get caught in the regular extract
