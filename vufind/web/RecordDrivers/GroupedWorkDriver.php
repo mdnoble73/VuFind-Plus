@@ -2383,7 +2383,7 @@ class GroupedWorkDriver extends RecordInterface{
 					'isLocalItem' => $locallyOwned,
 					'isLibraryItem' => $libraryOwned,
 					'inLibraryUseOnly' => $inLibraryUseOnly,
-					'allInLibraryUseOnly' => $allInLibraryUseOnly,
+					'allInLibraryUseOnly' => $inLibraryUseOnly,
 					'displayByDefault' => $displayByDefault,
 					'onOrderCopies' => $isOrderItem ? $numCopies : 0,
 					'status' => $groupedStatus,
