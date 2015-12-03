@@ -86,14 +86,22 @@ public class NashvilleRecordProcessor extends IIIRecordProcessor {
 		if (url == null){
 			return  unsuppressedEcontentRecords;
 		}
-		if (url.contains("digital.library.nashville.org") || url.contains("www.library.nashville.org/localhistory/findingaids") || url.contains("nashville.contentdm.oclc.org")){
+		if (url.contains("digital.library.nashville.org") ||
+				url.contains("www.library.nashville.org/localhistory/findingaids") ||
+				url.contains("nashville.contentdm.oclc.org") ||
+				url.contains("purl.fdlp.gov")
+				){
 			//Much of the econtent for flatirons has no items.  Need to determine the location based on the 907b field
 			String eContentLocation = getFirstFieldVal(record, "945l");
 			if (eContentLocation != null) {
 				ItemInfo itemInfo = new ItemInfo();
 				itemInfo.setIsEContent(true);
 				itemInfo.setLocationCode(eContentLocation);
-				itemInfo.seteContentSource("Nashville Archives");
+				if (url.contains("purl.fdlp.gov")){
+					itemInfo.seteContentSource("Government Documents");
+				} else {
+					itemInfo.seteContentSource("Nashville Archives");
+				}
 				itemInfo.seteContentProtectionType("external");
 				itemInfo.setCallNumber("Online");
 				itemInfo.setShelfLocation(itemInfo.geteContentSource());
@@ -103,7 +111,11 @@ public class NashvilleRecordProcessor extends IIIRecordProcessor {
 				itemInfo.seteContentUrl(url);
 
 				loadEContentFormatInformation(record, relatedRecord, itemInfo);
-				itemInfo.setFormat("Digitized Content");
+				if (url.contains("purl.fdlp.gov")){
+					itemInfo.setFormat("Online Version");
+				} else {
+					itemInfo.setFormat("Digitized Content");
+				}
 				itemInfo.setFormatCategory("Other");
 				relatedRecord.setFormatBoost(1);
 
