@@ -486,6 +486,17 @@ class Location extends DB_DataObject
 					}
 				}else{
 					//Check to see if we can get the active location based off the sublocation
+					$activeLocation = new Location();
+					$activeLocation->subLocation = $locationCode;
+					if ($activeLocation->find(true)){
+						//Only use the location if we are in the subdomain for the parent library
+						if ($library->libraryId == $activeLocation->libraryId){
+							Location::$activeLocation = clone $activeLocation;
+						}else{
+							// If the active location doesn't belong to the library we are browsing at, turn off the active location
+							Location::$activeLocation = null;
+						}
+					}
 				}
 			}else{
 				// Check if we know physical location by the ip table
