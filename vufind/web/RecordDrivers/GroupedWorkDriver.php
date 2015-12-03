@@ -2189,7 +2189,8 @@ class GroupedWorkDriver extends RecordInterface{
 				'availableOnline' => false,
 				'availableLocally' => false,
 				'availableHere' => false,
-				'inLibraryUseOnly' => true,
+				'inLibraryUseOnly' => false,
+				'allLibraryUseOnly' => true,
 				'isEContent' => false,
 				'availableCopies' => 0,
 				'copies' => 0,
@@ -2222,6 +2223,7 @@ class GroupedWorkDriver extends RecordInterface{
 		$recordBookable = false;
 
 		$i = 0;
+		$allLibraryUseOnly = true;
 		foreach ($this->relatedItemsByRecordId[$recordDetails[0]] as $curItem) {
 			$shelfLocation = $curItem[2];
 			$callNumber = $curItem[3];
@@ -2250,6 +2252,9 @@ class GroupedWorkDriver extends RecordInterface{
 			$holdable = $scopingDetails[6] == 'true';
 			$bookable = $scopingDetails[7] == 'true';
 			$inLibraryUseOnly = $scopingDetails[8] == 'true';
+			if (!$inLibraryUseOnly){
+				$allLibraryUseOnly = false;
+			}
 			$libraryOwned = $scopingDetails[9] == 'true';
 			$holdablePTypes = isset($scopingDetails[10]) ? $scopingDetails[10] : '';
 			$bookablePTypes = isset($scopingDetails[11]) ? $scopingDetails[11] : '';
@@ -2298,6 +2303,7 @@ class GroupedWorkDriver extends RecordInterface{
 			if (!$inLibraryUseOnly) {
 				$relatedRecord['inLibraryUseOnly'] = false;
 			}
+			$relatedRecord['allLibraryUseOnly'] = $allLibraryUseOnly;
 			if ($holdable) {
 				$relatedRecord['holdable'] = true;
 			}
@@ -2377,6 +2383,7 @@ class GroupedWorkDriver extends RecordInterface{
 					'isLocalItem' => $locallyOwned,
 					'isLibraryItem' => $libraryOwned,
 					'inLibraryUseOnly' => $inLibraryUseOnly,
+					'allInLibraryUseOnly' => $allInLibraryUseOnly,
 					'displayByDefault' => $displayByDefault,
 					'onOrderCopies' => $isOrderItem ? $numCopies : 0,
 					'status' => $groupedStatus,
