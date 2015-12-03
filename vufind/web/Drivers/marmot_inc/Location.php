@@ -484,6 +484,19 @@ class Location extends DB_DataObject
 						// If the active location doesn't belong to the library we are browsing at, turn off the active location
 						Location::$activeLocation = null;
 					}
+				}else{
+					//Check to see if we can get the active location based off the sublocation
+					$activeLocation = new Location();
+					$activeLocation->subLocation = $locationCode;
+					if ($activeLocation->find(true)){
+						//Only use the location if we are in the subdomain for the parent library
+						if ($library->libraryId == $activeLocation->libraryId){
+							Location::$activeLocation = clone $activeLocation;
+						}else{
+							// If the active location doesn't belong to the library we are browsing at, turn off the active location
+							Location::$activeLocation = null;
+						}
+					}
 				}
 			}else{
 				// Check if we know physical location by the ip table
@@ -561,15 +574,9 @@ class Location extends DB_DataObject
 	private $physicalLocation = 'unset';
 	function getPhysicalLocation(){
 		if ($this->physicalLocation != 'unset'){
-			if ($this->physicalLocation == 'null'){
-				return null;
-			}else{
 				return $this->physicalLocation;
-			}
 		}
-		$this->physicalLocation = 'null';
-		// QUESTION: why is default set to string 'null' instead of null value?
-		//The branch parameter trumps IP Address if set.
+
 		if ($this->getBranchLocationCode() != ''){
 			$this->physicalLocation = $this->getActiveLocation();
 		}else{
@@ -642,7 +649,6 @@ class Location extends DB_DataObject
 			require_once ROOT_DIR . '/Drivers/marmot_inc/subnet.php';
 			$subnet = new subnet();
 			$ipVal = ip2long($activeIp);
-			//TODO: set opac status
 
 			$this->ipLocation = null;
 			$this->ipId = -1;
@@ -738,6 +744,20 @@ class Location extends DB_DataObject
 		return Location::$mainBranchLocation;
 	}
 */
+
+	private $sublocationCode = 'unset';
+	function getSublocationCode(){
+		if ($this->sublocationCode == 'unset') {
+			if (isset($_GET['sublocation'])) {
+				$this->sublocationCode = $_GET['sublocation'];
+			} elseif (isset($_COOKIE['sublocation'])) {
+				$this->sublocationCode = $_COOKIE['sublocation'];
+			} else {
+				$this->sublocationCode = '';
+			}
+		}
+		return $this->sublocationCode;
+	}
 
 	function getLocationsFacetsForLibrary($libraryId){
 		$location = new Location();

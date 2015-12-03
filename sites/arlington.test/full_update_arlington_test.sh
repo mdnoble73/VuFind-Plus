@@ -81,7 +81,13 @@ checkConflictingProcesses "reindexer.jar arlington.test"
 cd /usr/local/vufind-plus/sites/${PIKASERVER}; ./${PIKASERVER}.sh restart
 
 #Extract from ILS
-#TBD copy extracts from FTP Server
+#Copy extracts from FTP Server
+#Extract from ILS
+/root/cron/copyArlingtonExport.sh >> ${OUTPUT_FILE}
+
+#Get the updated volume information
+cd /usr/local/vufind-plus/vufind/cron;
+nice -n -10 java -jar cron.jar ${PIKASERVER} ExportSierraData >> ${OUTPUT_FILE}
 
 #Extract from Hoopla
 #No need to copy on marmot test server

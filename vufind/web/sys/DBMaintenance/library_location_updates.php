@@ -1071,6 +1071,15 @@ function getLibraryLocationUpdates(){
 			),
 		),
 
+		'horizontal_search_bar' => array(
+			'title' => 'Enable Horizontal Search Bar',
+			'description' => 'Library configuration switch to display a horizontal search bar instead of the default sidebar search box.',
+			'continueOnError' => true,
+			'sql' => array(
+				"ALTER TABLE `library` ADD COLUMN `horizontalSearchBar` TINYINT(1) DEFAULT 0;",
+			),
+		),
+
 		'theme_name_length' => array(
 			'title' => 'Increase length of theme name',
 			'description' => 'Increase the length of theme name to allow for more nesting of themes.',

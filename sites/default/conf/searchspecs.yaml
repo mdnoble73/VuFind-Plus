@@ -323,7 +323,7 @@ AllFields:
       - [and, ~]
     id:
       - [onephrase, ~]
-    id_alt:
+    alternate_ids:
       - [onephrase, ~]
 
 AllFieldsProper:

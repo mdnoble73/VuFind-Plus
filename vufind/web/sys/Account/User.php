@@ -709,17 +709,7 @@ class User extends DB_DataObject
 			$overDriveCheckedOutItems = array();
 		}
 
-		if ($configArray['EContent']['hasProtectedEContent']){
-			//Get a list of eContent that has been checked out
-			require_once ROOT_DIR . '/Drivers/EContentDriver.php';
-			$driver = new EContentDriver(null);
-			$eContentCheckedOut = $driver->getMyCheckouts($this);
-		}else{
-			$eContentCheckedOut = array();
-		}
-
-
-		$allCheckedOut = array_merge($ilsCheckouts, $overDriveCheckedOutItems, $eContentCheckedOut);
+		$allCheckedOut = array_merge($ilsCheckouts, $overDriveCheckedOutItems);
 
 		if ($includeLinkedUsers) {
 			if ($this->getLinkedUsers() != null) {
@@ -747,17 +737,7 @@ class User extends DB_DataObject
 			$overDriveHolds = array();
 		}
 
-		global $configArray;
-		if ($configArray['EContent']['hasProtectedEContent']) {
-			//Get a list of eContent that has been checked out
-			require_once ROOT_DIR . '/Drivers/EContentDriver.php';
-			$driver = new EContentDriver(null);
-			$eContentHolds = $driver->getMyHolds($this);
-		}else{
-			$eContentHolds = array();
-		}
-
-		$allHolds = array_merge_recursive($ilsHolds, $overDriveHolds, $eContentHolds);
+		$allHolds = array_merge_recursive($ilsHolds, $overDriveHolds);
 
 		if ($includeLinkedUsers) {
 			if ($this->getLinkedUsers() != null) {
@@ -767,6 +747,14 @@ class User extends DB_DataObject
 				}
 			}
 		}
+
+		// Sort Pending Holds by Sort Title ( uses title if the sort title is not present )
+		$holdSort = function ($a, $b, $indexToSortBy='sortTitle') {
+			return strcasecmp(isset($a[$indexToSortBy]) ? $a[$indexToSortBy] : $a['title'], isset($b[$indexToSortBy]) ? $b[$indexToSortBy] : $b['title']);
+		};
+
+		uasort($allHolds['available'], $holdSort);
+		uasort($allHolds['unavailable'], $holdSort);
 		return $allHolds;
 	}
 
@@ -873,6 +861,14 @@ class User extends DB_DataObject
 	 */
 	function placeHold($recordId, $pickupBranch) {
 		$result = $this->getCatalogDriver()->placeHold($this, $recordId, $pickupBranch);
+		if ($result['success']){
+			$this->clearCache();
+		}
+		return $result;
+	}
+
+	function placeVolumeHold($recordId, $volumeId, $pickupBranch){
+		$result = $this->getCatalogDriver()->placeVolumeHold($this, $recordId, $volumeId, $pickupBranch);
 		if ($result['success']){
 			$this->clearCache();
 		}
@@ -1092,5 +1088,10 @@ class User extends DB_DataObject
 			}
 		}
 		return $relatedPTypes;
+	}
+
+	function importListsFromIls(){
+		$result = $this->getCatalogDriver()->importListsFromIls($this);
+		return $result;
 	}
 }

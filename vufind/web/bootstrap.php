@@ -215,6 +215,15 @@ function loadLibraryAndLocation(){
 	}
 	$timer->logTime('Got branch');
 
+	$sublocation = $locationSingleton->getSublocationCode();
+	if (!isset($_COOKIE['sublocation']) || $sublocation != $_COOKIE['sublocation']) {
+		if (empty($sublocation)) {
+			setcookie('sublocation', $sublocation, time() - 1000, '/');
+		} else {
+			setcookie('sublocation', $sublocation, 0, '/');
+		}
+	}
+
 	// Determine if this is an OPAC machine
 	$isOpac = $locationSingleton->getOpacStatus();
 	if (!isset($_COOKIE['opac']) || $isOpac != $_COOKIE['opac']){

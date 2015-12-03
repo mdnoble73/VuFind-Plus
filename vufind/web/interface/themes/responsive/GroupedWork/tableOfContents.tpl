@@ -1,5 +1,6 @@
 {strip}
-	<div id="tableOfContentsPlaceholder" style="display:none"></div>
+	{* This Template is the default template used by Interface.php *}
+	<div id="tableOfContentsPlaceholder" style="display:none"{if $tableOfContents} class="loaded"{/if}>
 
 	{if $tableOfContents}
 		{foreach from=$tableOfContents item=note}
@@ -10,5 +11,10 @@
 		<script type="text/javascript">
 			VuFind.GroupedWork.hasTableOfContentsInRecord = true;
 		</script>
+	{else}
+		Loading Table Of Contents...
 	{/if}
+
+	</div>
+	<div id="avSummaryPlaceholder"></div>
 {/strip}

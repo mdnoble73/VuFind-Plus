@@ -325,12 +325,15 @@ public class UpdateReadingHistory implements IProcessHandler {
 				sourceId = checkedOutItem.getString("id");
 			}
 
-			//Check to see if this is an existing checkout.  If it is, skipp inserting
+			//Check to see if this is an existing checkout.  If it is, skip inserting
 			if (checkedOutTitles != null) {
 				for (CheckedOutTitle curTitle : checkedOutTitles) {
+					boolean sourceMatches = Util.compareStrings(curTitle.getSource(), source);
+					boolean sourceIdMatches = Util.compareStrings(curTitle.getSourceId(), sourceId);
+					boolean titleMatches = Util.compareStrings(curTitle.getTitle(), checkedOutItem.getString("title"));
 					if (
-							(curTitle.getSource().equals(source) && curTitle.getSourceId().equals(sourceId)) ||
-							curTitle.getTitle().equals(checkedOutItem.getString("title"))
+							(sourceMatches && sourceIdMatches) ||
+							titleMatches
 						 ) {
 						checkedOutTitles.remove(curTitle);
 						return true;

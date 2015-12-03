@@ -32,7 +32,7 @@ public class FlatironsRecordProcessor extends IIIRecordProcessor{
 		String dueDate = itemInfo.getDueDate() == null ? "" : itemInfo.getDueDate();
 		String availableStatus = "-oyj";
 		if (status.length() > 0 && availableStatus.indexOf(status.charAt(0)) >= 0) {
-			if (dueDate.length() == 0) {
+			if (dueDate.length() == 0 || dueDate.equals("-  -")) {
 				available = true;
 			}
 		}
@@ -65,7 +65,10 @@ public class FlatironsRecordProcessor extends IIIRecordProcessor{
 			for (DataField itemField : itemRecords) {
 				if (!isItemSuppressed(itemField)) {
 					//Check to see if the item has an eContent indicator
-					unsuppressedEcontentRecords.add(getEContentIlsRecord(groupedWork, record, identifier, itemField));
+					RecordInfo eContentRecord = getEContentIlsRecord(groupedWork, record, identifier, itemField);
+					if (eContentRecord != null) {
+						unsuppressedEcontentRecords.add(eContentRecord);
+					}
 				}
 			}
 			if (itemRecords.size() == 0){
@@ -77,7 +80,6 @@ public class FlatironsRecordProcessor extends IIIRecordProcessor{
 					itemInfo.setLocationCode(eContentLocation);
 					itemInfo.seteContentSource("External eContent");
 					itemInfo.seteContentProtectionType("external");
-					itemInfo.seteContentSharing("library");
 					if (url.contains("ebrary.com")) {
 						itemInfo.seteContentSource("ebrary");
 					}else{
@@ -227,10 +229,6 @@ public class FlatironsRecordProcessor extends IIIRecordProcessor{
 			logger.warn("Could not get format boost for format " + format);
 			econtentRecord.setFormatBoost(1);
 		}
-	}
-
-	protected String getEContentSharing(ItemInfo ilsEContentItem, DataField itemField) {
-		return "library";
 	}
 
 	protected boolean loanRulesAreBasedOnCheckoutLocation(){

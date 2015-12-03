@@ -500,84 +500,6 @@ class UserAPI extends Action {
 	}
 
 	/**
-	 * Get eContent holds for a user based on username and password.
-	 *
-	 * Parameters:
-	 * <ul>
-	 * <li>username - The barcode of the user.  Can be truncated to the last 7 or 9 digits.</li>
-	 * <li>password - The pin number for the user. </li>
-	 * </ul>
-	 *
-	 * Sample Call:
-	 * <code>
-	 * http://catalog.douglascountylibraries.org/API/UserAPI?method=getPatronHoldsEContent&username=23025003575917&password=7604
-	 * </code>
-	 *
-	 * Sample Response:
-	 * <code>
-	 * {"result":{
-	 *   "success":true,
-	 *   "holds":{
-	 *     "available":[
-	 *       {"id":"522",
-	 *        "source":"CIPA",
-	 *        "title":"Into the path of gods",
-	 *        "author":"Guler, Kathleen Cunningham.",
-	 *        "available":true,
-	 *        "create":"1325962832",
-	 *        "expire":1326394839,
-	 *        "status":"available",
-	 *        "links":[
-	 *          {"text":
-	 *           "Cancel Hold",
-	 *           "onclick":"if (confirm('Are you sure you want to cancel this title?')){cancelEContentHold('\/EContentRecord\/522\/CancelHold')};return false;"
-	 *          },
-	 *          {"text":"Checkout",
-	 *           "url":"\/EContentRecord\/522\/Checkout"
-	 *          }
-	 *        ]
-	 *       }
-	 *     ],
-	 *     "unavailable":[
-	 *       {"id":"521",
-	 *        "source":"CIPA",
-	 *        "title":"Turn eye appeal into buy appeal how to easily transform your marketing pieces into dazzling, persuasive sales tools! \/",
-	 *        "author":"Saunders, Karen.",
-	 *        "available":true,
-	 *        "createTime":"1325962794",
-	 *        "status":"active",
-	 *        "position":1,
-	 *        "links":[
-	 *          {"text":"Cancel Hold",
-	 *           "onclick":"if (confirm('Are you sure you want to cancel this title?')){cancelEContentHold('\/EContentRecord\/521\/CancelHold')};return false;"
-	 *          }
-	 *        ],
-	 *        "frozen":false,
-	 *        "reactivateDate":null
-	 *       }
-	 *     ]
-	 *   }
-	 * }}
-	 * </code>
-	 *
-	 * @author Mark Noble <mnoble@turningleaftech.com>
-	 */
-	function getPatronHoldsEContent(){
-		$username = $_REQUEST['username'];
-		$password = $_REQUEST['password'];
-		global $user;
-		$user = UserAccount::validateAccount($username, $password);
-		if ($user && !PEAR_Singleton::isError($user)){
-			require_once(ROOT_DIR . '/Drivers/EContentDriver.php');
-			$eContentDriver = new EContentDriver();
-			$eContentHolds = $eContentDriver->getMyHolds($user);
-			return array('success'=>true, 'holds'=>$eContentHolds);
-		}else{
-			return array('success'=>false, 'message'=>'Login unsuccessful');
-		}
-	}
-
-	/**
 	 * Get a list of holds with details from OverDrive.
 	 * Note: OverDrive can be very slow at times.  Proper precautions should be taken to ensure the calling application
 	 * remains responsive.  VuFind does handle caching of OverDrive details so additional caching should not be needed.
@@ -885,27 +807,6 @@ class UserAPI extends Action {
 	 * {"result":{
 	 *   "success":true,
 	 *   "checkedOutItems":{
-	 *     "0":{
-	 *       "id":"534",
-	 *       "source":"CIPA",
-	 *       "title":"Unsinkable the Molly Brown story \/",
-	 *       "author":"Lohse, Joyce B.",
-	 *       "dueDate":"1326135657",
-	 *       "checkoutdate":"1325962857",
-	 *       "daysUntilDue":2,
-	 *       "holdQueueLength":0,
-	 *       "links":[
-	 *         {"url":"\/EContent\/534\/Viewer?item=130",
-	 *          "text":"Read Online"
-	 *         },
-	 *         {"url":"http:\/\/fulfillment.douglascountylibraries.org\/fulfillment\/URLLink.acsm?action=enterloan&ordersource=DCL+Test&orderid=ACS4-1206216092244346610125819&resid=urn%3Auuid%3A130b9d63-5e4f-430c-aa16-8fb33822aba8&gbauthdate=Sat%2C+07+Jan+2012+19%3A00%3A58+%2B0000&dateval=1325962858&gblver=4&auth=8c6e70a135a7418c441a9b2b32b9ff6cb413e4cf",
-	 *          "text":"Download"
-	 *         },
-	 *         {"text":"Return Now",
-	 *          "onclick":"if (confirm('Are you sure you want to return this title?')){returnEpub('\/EContentRecord\/534\/ReturnTitle')};return false;"
-	 *         }
-	 *       ]
-	 *     },
 	 *     "33025021368319":{
 	 *       "id":"966379",
 	 *       "itemid":"33025021368319",
@@ -947,67 +848,6 @@ class UserAPI extends Action {
 			$allCheckedOut = $user->getMyCheckouts(false);
 
 			return array('success'=>true, 'checkedOutItems'=>$allCheckedOut);
-		}else{
-			return array('success'=>false, 'message'=>'Login unsuccessful');
-		}
-	}
-
-	/**
-	 * Get eContent records that are checked out to a user based on username and password.
-	 *
-	 * Parameters:
-	 * <ul>
-	 * <li>username - The barcode of the user.  Can be truncated to the last 7 or 9 digits.</li>
-	 * <li>password - The pin number for the user. </li>
-	 * </ul>
-	 *
-	 * Sample Call:
-	 * <code>
-	 * http://catalog.douglascountylibraries.org/API/UserAPI?method=getPatronCheckedOutItems&username=23025003575917&password=7604
-	 * </code>
-	 *
-	 * Sample Response:
-	 * <code>
-	 * {"result":{
-	 *   "success":true,
-	 *   "checkedOutItems":[{
-	 *     {"id":"534",
-	 *      "source":"CIPA",
-	 *      "title":"Unsinkable the Molly Brown story \/",
-	 *      "author":"Lohse, Joyce B.",
-	 *      "dueDate":"1326135657",
-	 *      "checkoutdate":"1325962857",
-	 *      "daysUntilDue":2,
-	 *      "holdQueueLength":0,
-	 *      "links":[
-	 *        {"url":"\/EContent\/534\/Viewer?item=130",
-	 *         "text":"Read Online"
-	 *        },
-	 *        {"url":"http:\/\/fulfillment.douglascountylibraries.org\/fulfillment\/URLLink.acsm?action=enterloan&ordersource=DCL+Test&orderid=ACS4-1206216092244346610125819&resid=urn%3Auuid%3A130b9d63-5e4f-430c-aa16-8fb33822aba8&gbauthdate=Sat%2C+07+Jan+2012+19%3A00%3A58+%2B0000&dateval=1325962858&gblver=4&auth=8c6e70a135a7418c441a9b2b32b9ff6cb413e4cf",
-	 *         "text":"Download"
-	 *        },
-	 *        {"text":"Return Now",
-	 *         "onclick":"if (confirm('Are you sure you want to return this title?')){returnEpub('\/EContentRecord\/534\/ReturnTitle')};return false;"
-	 *        }
-	 *      ]
-	 *     }
-	 *   }]
-	 * }}
-	 * </code>
-	 *
-	 * @author Mark Noble <mnoble@turningleaftech.com>
-	 */
-	function getPatronCheckedOutEContent(){
-		$username = $_REQUEST['username'];
-		$password = $_REQUEST['password'];
-		global $user;
-		$user = UserAccount::validateAccount($username, $password);
-		if ($user && !PEAR_Singleton::isError($user)){
-			require_once(ROOT_DIR . '/Drivers/EContentDriver.php');
-			$eContentDriver = new EContentDriver();
-			$eContentTransactions = $eContentDriver->getMyCheckouts($user);
-			$allTransactions = $eContentTransactions['transactions'];
-			return array('success'=>true, 'checkedOutItems'=>$allTransactions);
 		}else{
 			return array('success'=>false, 'message'=>'Login unsuccessful');
 		}
@@ -1169,213 +1009,6 @@ class UserAPI extends Action {
 	}
 
 	/**
-	 * Places a hold on an eContent Record.  If the record is available for immediate usage, it will be checked out to the user.
-	 *
-	 * Parameters:
-	 * <ul>
-	 * <li>username - The barcode of the user.  Can be truncated to the last 7 or 9 digits.</li>
-	 * <li>password - The pin number for the user. </li>
-	 * <li>recordId - The id of the record within the eContent database.</li>
-	 * </ul>
-	 *
-	 * Returns JSON encoded data as follows:
-	 * <ul>
-	 * <li>success � true if the account is valid and the hold could be placed, false if the username or password were incorrect or the hold could not be placed.</li>
-	 * <li>holdMessage � a reason why the method failed if success is false, or information about hold queue position if successful.</li>
-	 * </ul>
-	 *
-	 * Sample Call:
-	 * <code>
-	 * http://catalog.douglascountylibraries.org/API/UserAPI?method=placeEContentHold&username=23025003575917&password=1234&recordId=530
-	 * </code>
-	 *
-	 * Sample Response (checkout):
-	 * <code>
-	 * {"result":{
-	 *   "success":true,
-	 *   "holdMessage":"The title was checked out to you successfully. You may read it from the My eContent page within your account."
-	 * }}
-	 * </code>
-	 *
-	 * Sample Response (checkout):
-	 * <code>
-	 * {"result":{
-	 *   "success":true,
-	 *   "holdMessage":"Your hold was successfully placed, you are number 1 in the queue."
-	 * }}
-	 * </code>
-	 *
-	 * @author Mark Noble <mnoble@turningleaftech.com>
-	 */
-	function placeEContentHold(){
-		$username = $_REQUEST['username'];
-		$password = $_REQUEST['password'];
-		$recordId = $_REQUEST['recordId'];
-		if (isset($_REQUEST['campus'])){
-			$pickupBranch=trim($_REQUEST['campus']);
-		}else{
-			global $user;
-			$pickupBranch = $user->homeLocationId;
-		}
-		//Trim off econtentRecord from the front of the id if provided
-		if (preg_match('/econtentRecord\d+/i', $recordId)){
-			$recordId = substr($recordId, 14);
-		}
-		$patron = UserAccount::validateAccount($username, $password);
-		if ($patron && !PEAR_Singleton::isError($patron)){
-			require_once(ROOT_DIR . '/Drivers/EContentDriver.php');
-			$driver = new EContentDriver(null);
-			$holdMessage = $driver->placeHold($patron, $recordId, $pickupBranch);
-			return array('success'=> $holdMessage['success'], 'holdMessage'=>$holdMessage['message']);
-		}else{
-			return array('success'=>false, 'message'=>'Login unsuccessful');
-		}
-	}
-
-	/**
-	 * Checks out an eContent Record to a user.  The record must be available to the user for the checkout to succeed.
-	 *
-	 * Parameters:
-	 * <ul>
-	 * <li>username - The barcode of the user.  Can be truncated to the last 7 or 9 digits.</li>
-	 * <li>password - The pin number for the user. </li>
-	 * <li>recordId - The id of the record within the eContent database.</li>
-	 * </ul>
-	 *
-	 * Returns JSON encoded data as follows:
-	 * <ul>
-	 * <li>success � true if the account is valid and the item could be checked out, false if the username or password were incorrect or the record could not be checked out.</li>
-	 * <li>message � a reason why the method failed if success is false, or information indicating success.</li>
-	 * </ul>
-	 *
-	 * Sample Call:
-	 * <code>
-	 * http://catalog.douglascountylibraries.org/API/UserAPI?method=checkoutEContentItem&username=23025003575917&password=1234&recordId=530
-	 * </code>
-	 *
-	 * Sample Response (checkout):
-	 * <code>
-	 * {"result":{
-	 *   "success":true,
-	 *   "message":"The title was checked out to you successfully.  You may read it from the My eContent page within your account."
-	 * }}
-	 * </code>
-	 *
-	 * Sample Response (failed):
-	 * <code>
-	 * {"result":{
-	 *   "success":false,
-	 *   "holdMessage":"There are no available copies of this title, please place a hold instead."
-	 * }}
-	 * </code>
-	 *
-	 * @author Mark Noble <mnoble@turningleaftech.com>
-	 */
-	function checkoutEContentItem(){
-		$username = $_REQUEST['username'];
-		$password = $_REQUEST['password'];
-		$recordId = $_REQUEST['recordId'];
-		global $user;
-		$user = UserAccount::validateAccount($username, $password);
-		if ($user && !PEAR_Singleton::isError($user)){
-			require_once(ROOT_DIR . '/Drivers/EContentDriver.php');
-			$driver = new EContentDriver();
-			$response = $driver->checkoutRecord($recordId, $user);
-			return array('success'=> $response['success'], 'message'=>$response['message']);
-		}else{
-			return array('success'=>false, 'message'=>'Login unsuccessful');
-		}
-	}
-
-	/**
-	 * Downloads an eContent file to the user's hard drive for offline usage.
-	 *
-	 * Parameters:
-	 * <ul>
-	 * <li>username - The barcode of the user.  Can be truncated to the last 7 or 9 digits.</li>
-	 * <li>password - The pin number for the user. </li>
-	 * <li>recordId - The id of the record within the eContent database.</li>
-	 * <li>itemId   - The id of the item attached to the record that should be downloaded.</li>
-	 * </ul>
-	 *
-	 * Returns:
-	 * false if the username or password were incorrect or the item cannot be downloaded
-	 * or the contents of the file that can be streamed directly to the client.
-	 *
-	 * @author Mark Noble <mnoble@turningleaftech.com>
-	 */
-	function downloadEContentFile(){
-		global $configArray;
-		$username = $_REQUEST['username'];
-		$password = $_REQUEST['password'];
-		$recordId = $_REQUEST['recordId'];
-		//Trim off econtentRecord from the front of the id if provided
-		if (preg_match('/econtentRecord\d+/i', $recordId)){
-			$recordId = substr($recordId, 14);
-		}
-		$itemId = $_REQUEST['itemId'];
-		global $user;
-		$user = UserAccount::validateAccount($username, $password);
-		if ($user && !PEAR_Singleton::isError($user)){
-			require_once(ROOT_DIR . '/Drivers/EContentDriver.php');
-			$driver = new EContentDriver();
-			$eContentRecord = new EContentRecord();
-			$eContentRecord->id = $recordId;
-			if (!$eContentRecord->find(true)){
-				return array('success'=>false, 'message'=>'Could not find the record in the database.');
-			}
-			//Check to see if the user has access to the title.
-			if (!$driver->isRecordCheckedOutToUser($recordId)){
-				return array('success'=>false, 'message'=>'The record is not checked out to you.');
-			}
-
-			$eContentItem = new EContentItem();
-			$eContentItem->recordId = $recordId;
-			$eContentItem->id = $itemId;
-			if (!$eContentItem->find(true)){
-				return array('success'=>false, 'message'=>'Could not find the item in the database.');
-			}
-			$driver->recordEContentAction($recordId, 'Download', $eContentRecord->accessType);
-			$libraryPath = $configArray['EContent']['library'];
-			if (isset($eContentItem->filename) && strlen($eContentItem->filename) > 0){
-				$bookFile = "{$libraryPath}/{$eContentItem->filename}";
-			}else{
-				$bookFile = "{$libraryPath}/{$eContentItem->folder}";
-			}
-			if (strcasecmp($eContentItem->item_type, 'epub') == 0){
-				require_once(ROOT_DIR . '/sys/eReader/ebook.php');
-				$ebook = new ebook($bookFile);
-
-				//Return the contents of the epub file
-				header("Content-Type: application/epub+zip;\n");
-				header('Content-Length: ' . filesize($bookFile));
-				header('Content-Description: ' . $ebook->getTitle());
-				header('Content-Disposition: attachment; filename="' . basename($bookFile) . '"');
-				echo readfile($bookFile);
-				exit();
-			}else if (strcasecmp($eContentItem->item_type, 'pdf') == 0){
-				header("Content-Type: application/pdf;\n");
-				header('Content-Length: ' . filesize($bookFile));
-				header('Content-Disposition: attachment; filename="' . basename($bookFile) . '"');
-				echo readfile($bookFile);
-				exit();
-			}else if (strcasecmp($eContentItem->item_type, 'kindle') == 0){
-				header('Content-Length: ' . filesize($bookFile));
-				header('Content-Disposition: attachment; filename="' . basename($bookFile) . '"');
-				echo readfile($bookFile);
-				exit();
-			}else if (strcasecmp($eContentItem->item_type, 'plucker') == 0){
-				header('Content-Length: ' . filesize($bookFile));
-				header('Content-Disposition: attachment; filename="' . basename($bookFile) . '"');
-				echo readfile($bookFile);
-				exit();
-			}
-		}else{
-			return array('success'=>false, 'message'=>'Login unsuccessful');
-		}
-	}
-
-	/**
 	 * Place a hold within OverDrive.
 	 * You should specify either the recordId of the title within VuFind or the overdrive id.
 	 * The format is also required however when the user checks out the title they can override the format to checkout the version they want.
@@ -1413,17 +1046,7 @@ class UserAPI extends Action {
 	function placeOverDriveHold(){
 		$username = $_REQUEST['username'];
 		$password = $_REQUEST['password'];
-		if (isset($_REQUEST['recordId'])){
-			require_once(ROOT_DIR . '/sys/eContent/EContentRecord.php');
-			$eContentRecord = new EContentRecord();
-			$eContentRecord->id = $_REQUEST['recordId'];
-			if ($eContentRecord->find(true)){
-				$sourceUrl = $eContentRecord->sourceUrl;
-				$overDriveId = substr($sourceUrl, -36);
-			}
-		}else{
-			$overDriveId = $_REQUEST['overDriveId'];
-		}
+		$overDriveId = $_REQUEST['overDriveId'];
 		$format = $_REQUEST['format'];
 
 		global $user;
@@ -1474,17 +1097,7 @@ class UserAPI extends Action {
 	function cancelOverDriveHold(){
 		$username = $_REQUEST['username'];
 		$password = $_REQUEST['password'];
-		if (isset($_REQUEST['recordId'])){
-			require_once(ROOT_DIR . '/sys/eContent/EContentRecord.php');
-			$eContentRecord = new EContentRecord();
-			$eContentRecord->id = $_REQUEST['recordId'];
-			if ($eContentRecord->find(true)){
-				$sourceUrl = $eContentRecord->sourceUrl;
-				$overDriveId = substr($sourceUrl, -36);
-			}
-		}else{
-			$overDriveId = $_REQUEST['overDriveId'];
-		}
+		$overDriveId = $_REQUEST['overDriveId'];
 		$format = $_REQUEST['format'];
 
 		global $user;
@@ -1545,17 +1158,7 @@ class UserAPI extends Action {
 	function addItemToOverDriveCart(){
 		$username = $_REQUEST['username'];
 		$password = $_REQUEST['password'];
-		if (isset($_REQUEST['recordId'])){
-			require_once(ROOT_DIR . '/sys/eContent/EContentRecord.php');
-			$eContentRecord = new EContentRecord();
-			$eContentRecord->id = $_REQUEST['recordId'];
-			if ($eContentRecord->find(true)){
-				$sourceUrl = $eContentRecord->sourceUrl;
-				$overDriveId = substr($sourceUrl, -36);
-			}
-		}else{
-			$overDriveId = $_REQUEST['overDriveId'];
-		}
+		$overDriveId = $_REQUEST['overDriveId'];
 		$format = $_REQUEST['format'];
 
 		global $user;
@@ -1607,16 +1210,7 @@ class UserAPI extends Action {
 	function checkoutOverDriveItem(){
 		$username = $_REQUEST['username'];
 		$password = $_REQUEST['password'];
-		if (isset($_REQUEST['recordId'])){
-			require_once(ROOT_DIR . '/sys/eContent/EContentRecord.php');
-			$eContentRecord = new EContentRecord();
-			$eContentRecord->id = $_REQUEST['recordId'];
-			if ($eContentRecord->find(true)){
-				$overDriveId = $eContentRecord->getOverDriveId();
-			}
-		}else{
-			$overDriveId = $_REQUEST['overDriveId'];
-		}
+		$overDriveId = $_REQUEST['overDriveId'];
 		$format = $_REQUEST['format'];
 
 		global $user;
@@ -1738,53 +1332,6 @@ class UserAPI extends Action {
 	}
 
 	/**
-	 * Cancel a hold on an eContent record.
-	 *
-	 * Parameters:
-	 * <ul>
-	 * <li>username - The barcode of the user.  Can be truncated to the last 7 or 9 digits.</li>
-	 * <li>password - The pin number for the user. </li>
-	 * <li>recordId � The id of the record that should have it's hold cancelled.</li>
-	 * </ul>
-	 *
-	 * Returns:
-	 * <ul>
-	 * <li>success � true if the account is valid and the hold could be canceled, false if the username or password were incorrect or the hold could not be canceled.</li>
-	 * <li>holdMessage � a reason why the method failed if success is false</li>
-	 * </ul>
-	 *
-	 * Sample Call:
-	 * <code>
-	 * http://catalog.douglascountylibraries.org/API/UserAPI?method=cancelEContentHold&username=23025003575917&password=1234&recordId=521
-	 * </code>
-	 *
-	 * Sample Response:
-	 * <code>
-	 * {"result":{
-	 *   "success":true,
-	 *   "holdMessage":"Your hold was cancelled successfully."
-	 * }}
-	 * </code>
-	 *
-	 * @author Mark Noble <mnoble@turningleaftech.com>
-	 */
-	function cancelEContentHold(){
-		$username = $_REQUEST['username'];
-		$password = $_REQUEST['password'];
-		$recordId = $_REQUEST['recordId'];
-		global $user;
-		$user = UserAccount::validateAccount($username, $password);
-		if ($user && !PEAR_Singleton::isError($user)){
-			require_once(ROOT_DIR . '/Drivers/EContentDriver.php');
-			$driver = new EContentDriver(null);
-			$holdMessage = $driver->cancelHold($user, $recordId, '');
-			return array('success'=> $holdMessage['success'], 'holdMessage'=>$holdMessage['message']);
-		}else{
-			return array('success'=>false, 'message'=>'Login unsuccessful');
-		}
-	}
-
-	/**
 	 * Freezes a hold that has been placed on a title within the ILS.  Only unavailable holds can be frozen.
 	 * Note:  Horizon implements suspending and activating holds as a toggle.  If a hold is suspended, it will be activated
 	 * and if a hold is active it will be suspended.  Care should be taken when calling the method with holds that are in the wrong state.
@@ -1832,72 +1379,6 @@ class UserAPI extends Action {
 	}
 
 	/**
-	 * Freezes an eContent hold.
-	 *
-	 * Parameters:
-	 * <ul>
-	 * <li>username - The barcode of the user.  Can be truncated to the last 7 or 9 digits.</li>
-	 * <li>password - The pin number for the user. </li>
-	 * <li>ids[] - an array of ids that should be frozen.</li>
-	 * <li>suspendDate - The date that the hold should be automatically reactivated.</li>
-	 * </ul>
-	 *
-	 * Returns:
-	 * <ul>
-	 * <li>success � true if the account is valid and the hold could be frozen, false if the username or password were incorrect or the hold could not be frozen.</li>
-	 * <li>freezeResults � a list of results for each id that was frozen.</li>
-	 * </ul>
-	 *
-	 * Sample Call:
-	 * <code>
-	 * http://catalog.douglascountylibraries.org/API/UserAPI?method=freezeEContentHold&username=23025003575917&password=1234&ids[]=532&suspendDate=1/25/2012
-	 * </code>
-	 *
-	 * Sample Response:
-	 * <code>
-	 * {"result":{
-	 *   "success":false,
-	 *   "freezeResults":{
-	 *     "531":{
-	 *       "success":false,
-	 *       "title":"Toothful tales how we survived the sweet attack \/",
-	 *       "error":"Could not find an active hold to suspend."
-	 *     },
-	 *     "521":{
-	 *       "success":true,
-	 *       "title":"Turn eye appeal into buy appeal how to easily transform your marketing pieces into dazzling, persuasive sales tools! \/",
-	 *       "error":"The hold was suspended."
-	 *     }
-	 *   }
-	 * }}
-	 * </code>
-	 *
-	 * @author Mark Noble <mnoble@turningleaftech.com>
-	 */
-	function freezeEContentHold(){
-		$username = $_REQUEST['username'];
-		$password = $_REQUEST['password'];
-		global $user;
-		$user = UserAccount::validateAccount($username, $password);
-		if ($user && !PEAR_Singleton::isError($user)){
-			require_once(ROOT_DIR . '/Drivers/EContentDriver.php');
-			$eContentDriver = new EContentDriver();
-			$ids = $_REQUEST['ids'];
-			$suspendDate = strtotime($_REQUEST['suspendDate']);
-			$suspendResults = $eContentDriver->suspendHolds($ids, $suspendDate);
-			$success = true;
-			foreach ($suspendResults as $suspendResult){
-				if ($suspendResult['success'] == false){
-					$success = false;
-				}
-			}
-			return array('success'=> $success, 'freezeResults'=>$suspendResults);
-		}else{
-			return array('success'=>false, 'message'=>'Login unsuccessful');
-		}
-	}
-
-	/**
 	 * Activates a hold that was previously suspended within the ILS.  Only unavailable holds can be activated.
 	 * Note:  Horizon implements suspending and activating holds as a toggle.  If a hold is suspended, it will be activated
 	 * and if a hold is active it will be suspended.  Care should be taken when calling the method with holds that are in the wrong state.
@@ -1938,102 +1419,6 @@ class UserAPI extends Action {
 		if ($user && !PEAR_Singleton::isError($user)){
 			$holdMessage = $this->getCatalogConnection()->updateHoldDetailed('', $user->cat_username, 'update', '', null, null, 'off');
 			return array('success'=> $holdMessage['success'], 'holdMessage'=>$holdMessage['message']);
-		}else{
-			return array('success'=>false, 'message'=>'Login unsuccessful');
-		}
-	}
-
-	/**
-	 * Activates a frozen eContent hold.
-	 *
-	 * Parameters:
-	 * <ul>
-	 * <li>username - The barcode of the user.  Can be truncated to the last 7 or 9 digits.</li>
-	 * <li>password - The pin number for the user. </li>
-	 * <li>id - Theid of the eContent record to activate the hold for.</li>
-	 * </ul>
-	 *
-	 * Returns:
-	 * <ul>
-	 * <li>success � true if the account is valid and the hold could be frozen, false if the username or password were incorrect or the hold could not be frozen.</li>
-	 * <li>title � The title of the record.</li>
-	 * <li>message � More information about the reactivation process.</li>
-	 * </ul>
-	 *
-	 * Sample Call:
-	 * <code>
-	 * http://catalog.douglascountylibraries.org/API/UserAPI?method=activateEContentHold&username=23025003575917&password=1234&ids=532
-	 * </code>
-	 *
-	 * Sample Response:
-	 * <code>
-	 * {"result":{
-	 *   "title":"Toothful tales how we survived the sweet attack \/",
-	 *   "result":true,
-	 *   "message":"Your hold was activated successfully."
-	 * }}
-	 * </code>
-	 *
-	 * @author Mark Noble <mnoble@turningleaftech.com>
-	 */
-	function activateEContentHold(){
-		$username = $_REQUEST['username'];
-		$password = $_REQUEST['password'];
-		global $user;
-		$user = UserAccount::validateAccount($username, $password);
-		if ($user && !PEAR_Singleton::isError($user)){
-			require_once(ROOT_DIR . '/Drivers/EContentDriver.php');
-			$eContentDriver = new EContentDriver();
-			$id = $_REQUEST['id'];
-			$reactivateResult = $eContentDriver->reactivateHold($id);
-			return $reactivateResult;
-		}else{
-			return array('success'=>false, 'message'=>'Login unsuccessful');
-		}
-	}
-
-	/**
-	 * Returns an eContent record
-	 *
-	 * Parameters:
-	 * <ul>
-	 * <li>username - The barcode of the user.  Can be truncated to the last 7 or 9 digits.</li>
-	 * <li>password - The pin number for the user. </li>
-	 * <li>id - The id of the record to return.</li>
-	 * </ul>
-	 *
-	 * Returns:
-	 * <ul>
-	 * <li>success � true if the account is valid and the hold could be frozen, false if the username or password were incorrect or the hold could not be frozen.</li>
-	 * <li>freezeResults � a list of results for each id that was frozen.</li>
-	 * </ul>
-	 *
-	 * Sample Call:
-	 * <code>
-	 * http://catalog.douglascountylibraries.org/API/UserAPI?method=returnEContentRecord&username=23025003575917&password=1234&id=531
-	 * </code>
-	 *
-	 * Sample Response:
-	 * <code>
-	 * {"result":{
-	 *   "success":true,
-	 *   "message":"The title was returned successfully."
-	 * }}
-	 * </code>
-	 *
-	 * @author Mark Noble <mnoble@turningleaftech.com>
-	 */
-	function returnEContentRecord(){
-		$username = $_REQUEST['username'];
-		$password = $_REQUEST['password'];
-		global $user;
-		$user = UserAccount::validateAccount($username, $password);
-		if ($user && !PEAR_Singleton::isError($user)){
-			require_once(ROOT_DIR . '/Drivers/EContentDriver.php');
-			$eContentDriver = new EContentDriver();
-			$id = $_REQUEST['id'];
-			$returnResults = $eContentDriver->returnRecord($id);
-			return $returnResults;
 		}else{
 			return array('success'=>false, 'message'=>'Login unsuccessful');
 		}

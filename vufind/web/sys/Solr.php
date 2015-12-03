@@ -787,8 +787,18 @@ class Solr implements IndexEngine {
 					$fieldValue = $values[$spec[0]];
 					//Check fields that we expect to match certain patterns to see if we should skip this term.
 					if ($field == 'isbn'){
-						if (!preg_match('/^"?\d{10,13}X?"?$/', $fieldValue)){
+						if (!preg_match('/^((?:\sOR\s)?["(]?\d{9,13}X?[\s")]*)+$/', $fieldValue)){
 							continue;
+						}else{
+							require_once(ROOT_DIR . '/sys/ISBN.php');
+							$isbn = new ISBN($fieldValue);
+							if ($isbn->isValid()){
+								$isbn10 = $isbn->get10();
+								$isbn13 = $isbn->get13();
+								if ($isbn10 && $isbn13){
+									$fieldValue = '(' . $isbn->get10() . ' OR ' . $isbn->get13() . ')';
+								}
+							}
 						}
 					}elseif($field == 'id'){
 						if (!preg_match('/^"?(\d+|.b\d+|[A-F0-9]{8}-[A-F0-9]{4}-[A-F0-9]{4}-[A-F0-9]{4}-[A-F0-9]{12})"?$/i', $fieldValue)){
@@ -798,7 +808,11 @@ class Solr implements IndexEngine {
 						if (!preg_match('/^"?(\d+|.b\d+|[A-F0-9]{8}-[A-F0-9]{4}-[A-F0-9]{4}-[A-F0-9]{4}-[A-F0-9]{12}|MWT\d+)"?$/i', $fieldValue)){
 							continue;
 						}
-					}elseif($field == 'upc' || $field == 'issn'){
+					}elseif($field == 'issn'){
+						if (!preg_match('/^"?[\dXx-]+"?$/', $fieldValue)){
+							continue;
+						}
+					}elseif($field == 'upc'){
 						if (!preg_match('/^"?\d+"?$/', $fieldValue)){
 							continue;
 						}
@@ -928,7 +942,7 @@ class Solr implements IndexEngine {
 			$values = array();
 			$values['onephrase'] = '"' . str_replace('"', '', implode(' ', $tokenized)) . '"';
 			if (count($tokenized) > 1){
-				$values['proximal'] = '"' . str_replace('"(', '', implode(') (', $tokenized)) . ')"~10';
+				$values['proximal'] = $values['onephrase'] . '~10';
 			}else{
 				$values['proximal'] = $tokenized[0];
 			}
@@ -961,7 +975,14 @@ class Solr implements IndexEngine {
 			// tokenization).	We'll just set all possible values to the same thing,
 			// except that we'll try to do the "one phrase" in quotes if possible.
 			$onephrase = strstr($lookfor, '"') ? $lookfor : '"' . $lookfor . '"';
-			$values = array('exact' => $onephrase, 'onephrase' => $onephrase, 'and' => $lookfor, 'or' => $lookfor, 'single_word_removal' => $onephrase);
+			$values = array(
+					'exact' => $onephrase,
+					'onephrase' => $onephrase,
+					'and' => $lookfor,
+					'or' => $lookfor,
+					'proximal' => $lookfor,
+					'single_word_removal' => $onephrase
+			);
 		}
 
 		//Create localized call number
@@ -1108,7 +1129,7 @@ class Solr implements IndexEngine {
 				$that = $this;
 				if (isset($params['lookfor']) && !$forDisplay){
 					$lookfor = preg_replace_callback(
-						'/(\\w+):([\\w\\d\\s"]+?)\\s?(AND|OR|AND NOT|OR NOT|\\)|$)/',
+						'/(\\w+):([\\w\\d\\s"]+?)\\s?(?<=\b)(AND|OR|AND NOT|OR NOT|\\)|$)(?=\b)/',
 						function ($matches) use($that){
 							$field = $matches[1];
 							$lookfor = $matches[2];
@@ -2144,6 +2165,11 @@ class Solr implements IndexEngine {
 		}
 		$queryString = implode('&', $query);
 
+		$fullSearchUrl = print_r($this->host . "/select/?" . $queryString, true);
+
+		// Save to file for Jmeter
+		//$write_result = file_put_contents(ROOT_DIR . '\solrQueries.csv', $fullSearchUrl."\n", FILE_APPEND);
+
 		if ($this->debug || $this->debugSolrQuery) {
 			$solrQueryDebug = "";
 			if ($this->debugSolrQuery) {
@@ -2315,14 +2341,14 @@ class Solr implements IndexEngine {
 		for ($i=0; $i<count($words); $i++) {
 			if (($words[$i] == 'OR') || ($words[$i] == 'AND') || ($words[$i] == 'NOT')) {
 				if (count($newWords)) {
-					$newWords[count($newWords)-1] .= ' ' . $words[$i] . ' ' . $words[$i+1];
+					$newWords[count($newWords)-1] .= ' ' . trim($words[$i]) . ' ' . trim($words[$i+1]);
 					$i = $i+1;
 				}
 			} else {
 				//If we are tokenizing, remove any punctuation
 				$tmpWord = preg_replace('/[^\s\-\w.\'aàáâãåäæeèéêëiìíîïoòóôõöøuùúûü]/', '', $words[$i]);
 				if (strlen($tmpWord) > 0){
-					$newWords[] = $tmpWord;
+					$newWords[] = trim($tmpWord);
 				}
 			}
 		}

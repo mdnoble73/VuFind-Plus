@@ -121,98 +121,6 @@ class CatalogConnection
 	}
 
 	/**
-	 * Get Status
-	 *
-	 * This is responsible for retrieving the status information of a certain
-	 * record.
-	 *
-	 * @param string $recordId The record id to retrieve the holdings for
-	 *
-	 * @return mixed     On success, an associative array with the following keys:
-	 * id, availability (boolean), status, location, reserve, callnumber; on
-	 * failure, a PEAR_Error.
-	 * @access public
-	 */
-	public function getStatus($recordId, $forSearch = false)
-	{
-		/** @var Memcache $memCache */
-		global $memCache;
-
-		//Cache status by search library and location in addition to id since we do scoping
-		global $library;
-		$searchLocation = Location::getSearchLocation();
-
-		$locationKey = $library->subdomain . '_' . ($searchLocation == null ? '' : $searchLocation->code);
-		$key = 'record_status_' . $recordId . '_' . $forSearch . '_' . $locationKey;
-		$cachedValue = $memCache->get($key);
-		if ($cachedValue == false || isset($_REQUEST['reload'])){
-			global $configArray;
-			$cachedValue = $this->driver->getStatus($recordId, $forSearch);
-			$memCache->add($key, $cachedValue, 0, $configArray['Caching']['item_data']);
-		}
-
-		return $cachedValue;
-	}
-
-	/**
-	 * Get Statuses
-	 *
-	 * This is responsible for retrieving the status information for a
-	 * collection of records.
-	 *
-	 * @param array $recordIds The array of record ids to retrieve the status for
-	 * @param boolean $forSearch whether or not the summary will be shown in search results
-	 *
-	 * @return mixed           An array of getStatus() return values on success,
-	 * a PEAR_Error object otherwise.
-	 * @access public
-	 * @author Chris Delis <cedelis@uillinois.edu>
-	 */
-	public function getStatuses($recordIds, $forSearch = false)
-	{
-		return $this->driver->getStatuses($recordIds, $forSearch);
-	}
-
-	/**
-	 * Returns a summary of the holdings information for a single id. Used to display
-	 * within the search results and at the top of a full record display to ensure
-	 * the holding information makes sense to all users.
-	 *
-	 * @param string $id the id of the bid to load holdings for
-	 * @param boolean $forSearch whether or not the summary will be shown in search results
-	 * @return array an associative array with a summary of the holdings.
-	 */
-	public function getStatusSummary($id, $forSearch = false){
-		global $memCache;
-		//Cache status summary by search library and location in addition to id since we do scoping
-		global $library;
-		$searchLocation = Location::getSearchLocation();
-
-		$locationKey = $library->subdomain . '_' . ($searchLocation == null ? '' : $searchLocation->code);
-		$key = 'status_summary_' . $id . '_' . $forSearch . '_' . $locationKey;
-		$cachedValue = $memCache->get($key);
-		if ($cachedValue == false || isset($_REQUEST['reload'])){
-			global $configArray;
-			$cachedValue = $this->driver->getStatusSummary($id, $forSearch);
-			$memCache->add($key, $cachedValue, 0, $configArray['Caching']['item_data']);
-		}
-
-		return $cachedValue;
-	}
-
-	/**
-	 * Returns summary information for an array of ids.  This allows the search results
-	 * to query all holdings at one time.
-	 *
-	 * @param array $ids an array ids to load summary information for.
-	 * @param boolean $forSearch whether or not the summary will be shown in search results
-	 * @return array an associative array containing a second array with summary information.
-	 */
-	public function getStatusSummaries($ids, $forSearch = false){
-		return $this->driver->getStatusSummaries($ids, $forSearch);
-	}
-
-	/**
 	 * Get Holding
 	 *
 	 * This is responsible for retrieving the holding information of a certain
@@ -310,11 +218,6 @@ class CatalogConnection
 	 * @param User $user
 	 */
 	public function updateUserWithAdditionalRuntimeInformation($user){
-		//If we have loaded information from the ILS, get additional information that is not ILS specific
-		require_once(ROOT_DIR . '/Drivers/EContentDriver.php');
-		$eContentDriver = new EContentDriver(null);
-		$eContentDriver->loadAccountSummary($user);
-
 		//TODO: Optimize by checking if the patron home library has OverDrive active.
 		require_once(ROOT_DIR . '/Drivers/OverDriveDriverFactory.php');
 		$overDriveDriver = OverDriveDriverFactory::getDriver();
@@ -907,12 +810,6 @@ class CatalogConnection
 		} elseif ($readingHistoryDB->source == 'OverDrive') {
 			require_once ROOT_DIR . '/RecordDrivers/OverDriveRecordDriver.php';
 			$recordDriver = new OverDriveRecordDriver($historyEntry['id']);
-		} elseif ($readingHistoryDB->source == 'PublicEContent') {
-			require_once ROOT_DIR . '/RecordDrivers/PublicEContentDriver.php';
-			$recordDriver = new PublicEContentDriver($historyEntry['id']);
-		} elseif ($readingHistoryDB->source == 'RestrictedEContent') {
-			require_once ROOT_DIR . '/RecordDrivers/RestrictedEContentDriver.php';
-			$recordDriver = new RestrictedEContentDriver($historyEntry['id']);
 		}
 		if ($recordDriver != null && $recordDriver->isValid()) {
 			$historyEntry['ratingData'] = $recordDriver->getRatingData();
@@ -1015,36 +912,6 @@ class CatalogConnection
 		return $cachedValue;
 	}
 
-	/**
-	 * Loads items information as quickly as possible (no direct calls to the ILS).  Does do filtering by loan rules
-	 *
-	 * return is an array of items with the following information:
-	 *  location
-	 *  callnumber
-	 *  available
-	 *  holdable
-	 *  lastStatusCheck (time)
-	 *
-	 * @param $id
-	 * @param $scopingEnabled
-	 * @param $marcRecord
-	 * @return mixed
-	 */
-	public function getItemsFast($id, $scopingEnabled, $marcRecord = null){
-		/** @var Memcache $memCache */
-		global $memCache;
-		global $solrScope;
-		$key = 'items_fast_' . $solrScope . '_' . $id . '_' . $scopingEnabled;
-		$cachedValue = $memCache->get($key);
-		if ($cachedValue == false || isset($_REQUEST['reload'])){
-			global $configArray;
-			$cachedValue = $this->driver->getItemsFast($id, $scopingEnabled, $marcRecord);
-			$memCache->add($key, $cachedValue, 0, $configArray['Caching']['item_data']);
-		}
-
-		return $cachedValue;
-	}
-
 	function cancelHold($patron, $recordId, $cancelId) {
 		return $this->driver->cancelHold($patron, $recordId, $cancelId);
 	}
@@ -1103,6 +970,26 @@ class CatalogConnection
 				$renewResult['message'][] = "All items were renewed successfully.";
 			}
 			return $renewResult;
+		}
+	}
+
+	public function placeVolumeHold($patron, $recordId, $volumeId, $pickupBranch) {
+		if ($this->checkFunction('placeVolumeHold')){
+			return $this->driver->placeVolumeHold($patron, $recordId, $volumeId, $pickupBranch);
+		}else{
+			return array(
+					'success' => false,
+					'message' => 'Volume level holds have not been implemented for this ILS.');
+		}
+	}
+
+	public function importListsFromIls($patron){
+		if ($this->checkFunction('importListsFromIls')){
+			return $this->driver->importListsFromIls($patron);
+		}else{
+			return array(
+					'success' => false,
+					'errors' => array('Importing Lists has not been implemented for this ILS.'));
 		}
 	}
 }

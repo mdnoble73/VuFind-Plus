@@ -34,5 +34,11 @@ require_once ROOT_DIR . '/Drivers/Sierra.php';
  * @author CJ O'Hara <cj@marmot.org>
  */
 class Arlington extends Sierra{
-
+	public function _getLoginFormValues($patron){
+		$loginData = array();
+		$loginData['pin'] = $patron->cat_password;
+		$loginData['code'] = $patron->cat_username;
+		$loginData['submit'] = 'submit';
+		return $loginData;
+	}
 }

@@ -41,8 +41,6 @@
 							{include file="MyAccount/ilsCheckedOutTitle.tpl" record=$checkedOutTitle resultIndex=$smarty.foreach.checkedOutTitleLoop.iteration}
 						{elseif $checkedOutTitle.checkoutSource == 'OverDrive'}
 							{include file="MyAccount/overdriveCheckedOutTitle.tpl" record=$checkedOutTitle resultIndex=$smarty.foreach.checkedOutTitleLoop.iteration}
-						{elseif $checkedOutTitle.checkoutSource == 'eContent'}
-							{include file="MyAccount/eContentCheckedOutTitle.tpl" record=$checkedOutTitle resultIndex=$smarty.foreach.checkedOutTitleLoop.iteration}
 						{else}
 							<div class="row">
 								Unknown record source {$checkedOutTitle.checkoutSource}
@@ -52,8 +50,10 @@
 				</div>
 
 				<p class="alert alert-info">
-					eBooks and eAudiobooks cannot be renewed before they expire.
-					If you want to renew, please wait for the title to expire and then check it out again.  You will need to download the title again after checking out the title again.
+					Most eBooks and eAudiobooks cannot be renewed before they expire.  <br/>
+					However, eContent from OverDrive can be renewed within the OverDrive app starting 3 days before the due date if the title is not on hold by other patrons.
+					You may need to download the title again after renewal.<br/>
+					For other content, if you want to renew, please wait for the title to expire and then check it out again.  You may need to download the title again after you check it out.
 					You may be able to place a new hold on the title a few days before the title expires to help ensure continuous reading/listening.
 				</p>
 

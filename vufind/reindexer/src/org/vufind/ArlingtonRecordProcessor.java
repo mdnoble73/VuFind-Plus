@@ -1,10 +1,20 @@
 package org.vufind;
 
+import au.com.bytecode.opencsv.CSVReader;
 import org.apache.log4j.Logger;
 import org.ini4j.Ini;
+import org.marc4j.marc.DataField;
+import org.marc4j.marc.Record;
+import org.marc4j.marc.Subfield;
 
+import java.io.File;
+import java.io.FileReader;
 import java.sql.Connection;
 import java.sql.ResultSet;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 
 /**
  * Custom Record Processing for Arlington
@@ -15,8 +25,50 @@ import java.sql.ResultSet;
  * Time: 9:48 PM
  */
 public class ArlingtonRecordProcessor extends IIIRecordProcessor {
+	private HashMap <String, ArrayList<OrderInfo>> orderInfoFromExport = new HashMap();
+	private String exportPath;
 	public ArlingtonRecordProcessor(GroupedWorkIndexer indexer, Connection vufindConn, Ini configIni, ResultSet indexingProfileRS, Logger logger, boolean fullReindex) {
 		super(indexer, vufindConn, configIni, indexingProfileRS, logger, fullReindex);
+
+		languageFields = "008[35-37]:041b";
+		try {
+			exportPath = indexingProfileRS.getString("marcPath");
+		}catch (Exception e){
+			logger.error("Unable to load marc path from indexing profile");
+		}
+		loadOrderInformation();
+	}
+
+	private void loadOrderInformation() {
+		File activeOrders = new File(this.exportPath + "/active_orders.csv");
+		if (activeOrders.exists()){
+			try{
+				CSVReader reader = new CSVReader(new FileReader(activeOrders));
+				//First line is headers
+				reader.readNext();
+				String[] orderData;
+				while ((orderData = reader.readNext()) != null){
+					OrderInfo orderRecord = new OrderInfo();
+					String recordId = ".b" + orderData[0] + getCheckDigit(orderData[0]);
+					orderRecord.setRecordId(recordId);
+					String orderRecordId = ".o" + orderData[1] + getCheckDigit(orderData[1]);
+					orderRecord.setOrderRecordId(orderRecordId);
+					orderRecord.setStatus(orderData[3]);
+					orderRecord.setNumCopies(Integer.parseInt(orderData[4]));
+					//Get the order record based on the accounting unit
+					orderRecord.setLocationCode(orderData[5]);
+					if (orderInfoFromExport.containsKey(recordId)){
+						orderInfoFromExport.get(recordId).add(orderRecord);
+					}else{
+						ArrayList<OrderInfo> orderRecordColl = new ArrayList<OrderInfo>();
+						orderRecordColl.add(orderRecord);
+						orderInfoFromExport.put(recordId, orderRecordColl);
+					}
+				}
+			}catch(Exception e){
+				logger.error("Error loading order records from active orders", e);
+			}
+		}
 	}
 
 	@Override
@@ -36,5 +88,83 @@ public class ArlingtonRecordProcessor extends IIIRecordProcessor {
 			}
 		}
 		return available;
+	}
+
+	protected void loadOnOrderItems(GroupedWorkSolr groupedWork, RecordInfo recordInfo, Record record, boolean hasTangibleItems){
+		ArrayList<OrderInfo> orderItems = orderInfoFromExport.get(recordInfo.getRecordIdentifier());
+		if (orderItems != null) {
+			for (OrderInfo orderItem : orderItems) {
+				createAndAddOrderItem(recordInfo, orderItem);
+				//For On Order Items, increment popularity based on number of copies that are being purchased.
+				groupedWork.addPopularity(orderItem.getNumCopies());
+			}
+			if (recordInfo.getNumCopiesOnOrder() > 0 && !hasTangibleItems) {
+				groupedWork.addKeywords("On Order");
+				groupedWork.addKeywords("Coming Soon");
+				HashSet<String> additionalOrderSubjects = new HashSet<>();
+				additionalOrderSubjects.add("On Order");
+				additionalOrderSubjects.add("Coming Soon");
+				groupedWork.addTopic(additionalOrderSubjects);
+				groupedWork.addTopicFacet(additionalOrderSubjects);
+			}
+		}
+	}
+
+	private void createAndAddOrderItem(RecordInfo recordInfo, OrderInfo orderItem) {
+		ItemInfo itemInfo = new ItemInfo();
+		String orderNumber = orderItem.getOrderRecordId();
+		String location = orderItem.getLocationCode();
+		itemInfo.setLocationCode(orderItem.getLocationCode());
+		itemInfo.setItemIdentifier(orderNumber);
+		itemInfo.setNumCopies(orderItem.getNumCopies());
+		itemInfo.setIsEContent(false);
+		itemInfo.setIsOrderItem(true);
+		itemInfo.setCallNumber("ON ORDER");
+		itemInfo.setSortableCallNumber("ON ORDER");
+		itemInfo.setDetailedStatus("On Order");
+		//Format and Format Category should be set at the record level, so we don't need to set them here.
+
+		//Shelf Location also include the name of the ordering branch if possible
+		boolean hasLocationBasedShelfLocation = false;
+		boolean hasSystemBasedShelfLocation = false;
+
+		//Add the library this is on order for
+		itemInfo.setShelfLocation("On Order");
+
+		String status = orderItem.getStatus();
+
+		if (isOrderItemValid(status, null)){
+			recordInfo.addItem(itemInfo);
+			for (Scope scope: indexer.getScopes()){
+				if (scope.isItemPartOfScope(profileType, location, "", true, true, false)){
+					ScopingInfo scopingInfo = itemInfo.addScope(scope);
+					if (scope.isLocationScope()) {
+						scopingInfo.setLocallyOwned(scope.isItemOwnedByScope(profileType, location, ""));
+					}
+					if (scope.isLibraryScope()) {
+						boolean libraryOwned = scope.isItemOwnedByScope(profileType, location, "");
+						scopingInfo.setLibraryOwned(libraryOwned);
+						if (itemInfo.getShelfLocation().equals("On Order")){
+							itemInfo.setShelfLocation(scopingInfo.getScope().getFacetLabel() + " On Order");
+						}
+					}
+					if (scopingInfo.isLocallyOwned()){
+						if (scope.isLibraryScope() && !hasLocationBasedShelfLocation && !hasSystemBasedShelfLocation){
+							hasSystemBasedShelfLocation = true;
+						}
+						if (scope.isLocationScope() && !hasLocationBasedShelfLocation){
+							hasLocationBasedShelfLocation = true;
+							if (itemInfo.getShelfLocation().equals("On Order")) {
+								itemInfo.setShelfLocation(scopingInfo.getScope().getFacetLabel() + "On Order");
+							}
+						}
+					}
+					scopingInfo.setAvailable(false);
+					scopingInfo.setHoldable(true);
+					scopingInfo.setStatus("On Order");
+					scopingInfo.setGroupedStatus("On Order");
+				}
+			}
+		}
 	}
 }

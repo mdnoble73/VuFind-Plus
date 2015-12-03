@@ -63,6 +63,10 @@ class ExternalEContent_Home extends Action{
 			$searchObject->init($searchSource);
 			$searchObject->getNextPrevLinks();
 
+			//Get Related Records to make sure we initialize items
+			$recordInfo = $recordDriver->getGroupedWorkDriver()->getRelatedRecord('external_econtent:' . $recordDriver->getIdWithSource());
+			$interface->assign('actions', $recordInfo['actions']);
+
 			// Set Show in Main Details Section options for templates
 			// (needs to be set before moreDetailsOptions)
 			global $library;

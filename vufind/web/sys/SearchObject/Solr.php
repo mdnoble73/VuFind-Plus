@@ -234,30 +234,6 @@ class SearchObject_Solr extends SearchObject_Base
 		$searchTerm = isset($_REQUEST['lookfor']) ? $_REQUEST['lookfor'] : null;
 		global $module;
 		global $action;
-		if (isset($searchTerm) && !is_array($searchTerm)){
-			//Marmot - search both ISBN-10 and ISBN-13
-			//Check to see if the search term looks like an ISBN10 or ISBN13
-			$searchType = 'Keyword';
-			if (isset($_REQUEST['type'])){
-				$searchType = $_REQUEST['type'];
-			}elseif (isset($_REQUEST['basicType'])){
-				$searchType = $_REQUEST['basicType'];
-			}
-			if (isset($searchTerm) &&
-			($searchType == '' || $searchType == 'ISN' || $searchType == 'Keyword' || $searchType == 'AllFields') &&
-			(preg_match('/^\\d-?\\d{3}-?\\d{5}-?\\d$/', $searchTerm) ||
-			preg_match('/^\\d{3}-?\\d-?\\d{3}-?\\d{5}-?\\d$/', $searchTerm))) {
-				require_once(ROOT_DIR . '/sys/ISBN.php');
-				$isbn = new ISBN($searchTerm);
-				if ($isbn->isValid()){
-					$isbn10 = $isbn->get10();
-					$isbn13 = $isbn->get13();
-					if ($isbn10 && $isbn13){
-						$searchTerm = $isbn->get10() . ' OR ' . $isbn->get13();
-					}
-				}
-			}
-		}
 
 		//********************
 		// Basic Search logic
@@ -265,7 +241,7 @@ class SearchObject_Solr extends SearchObject_Base
 			// If we found a basic search, we don't need to do anything further.
 		} elseif (isset($_REQUEST['tag']) && $module != 'MyAccount') {
 			// Tags, just treat them as normal searches for now.
-			// The search processer knows what to do with them.
+			// The search processor knows what to do with them.
 			if ($_REQUEST['tag'] != '') {
 				$this->searchTerms[] = array(
                     'index'   => 'tag',
@@ -503,7 +479,11 @@ class SearchObject_Solr extends SearchObject_Base
 		if (!$this->debug){
 			return null;
 		}else{
-			return json_encode($this->indexResult['debug']['timing']);
+			if (!isset($this->indexResult['debug'])){
+				return null;
+			}else{
+				return json_encode($this->indexResult['debug']['timing']);
+			}
 		}
 	}
 
@@ -660,18 +640,23 @@ class SearchObject_Solr extends SearchObject_Base
 	public function getResultRecordSet()
 	{
 		//Marmot add shortIds without dot for use in display.
-		$recordSet = $this->indexResult['response']['docs'];
-		if (is_array($recordSet)){
-			foreach ($recordSet as $key => $record){
-				//Trim off the dot from the start
-				$record['shortId'] = substr($record['id'], 1);
-				if (!$this->debug){
-					unset($record['explain']);
-					unset($record['score']);
+		if (isset($this->indexResult['response'])){
+			$recordSet = $this->indexResult['response']['docs'];
+			if (is_array($recordSet)){
+				foreach ($recordSet as $key => $record){
+					//Trim off the dot from the start
+					$record['shortId'] = substr($record['id'], 1);
+					if (!$this->debug){
+						unset($record['explain']);
+						unset($record['score']);
+					}
+					$recordSet[$key] = $record;
 				}
-				$recordSet[$key] = $record;
 			}
+		}else{
+			return array();
 		}
+
 		return $recordSet;
 	}
 
@@ -734,21 +719,23 @@ class SearchObject_Solr extends SearchObject_Base
 	{
 		global $interface;
 		$html = array();
-		for ($x = 0; $x < count($this->indexResult['response']['docs']); $x++) {
-			$current = & $this->indexResult['response']['docs'][$x];
-			if (!$this->debug){
-				unset($current['explain']);
-				unset($current['score']);
-			}
-			$interface->assign('recordIndex', $x + 1);
-			$interface->assign('resultIndex', $x + 1 + (($this->page - 1) * $this->limit));
-			$record = RecordDriverFactory::initRecordDriver($current);
-			$record->setScopingEnabled($this->indexEngine->isScopingEnabled());
-			if (!PEAR_Singleton::isError($record)){
-				$interface->assign('recordDriver', $record);
-				$html[] = $interface->fetch($record->getSearchResult($this->view));
-			}else{
-				$html[] = "Unable to find record";
+		if (isset($this->indexResult['response'])) {
+			for ($x = 0; $x < count($this->indexResult['response']['docs']); $x++) {
+				$current = &$this->indexResult['response']['docs'][$x];
+				if (!$this->debug) {
+					unset($current['explain']);
+					unset($current['score']);
+				}
+				$interface->assign('recordIndex', $x + 1);
+				$interface->assign('resultIndex', $x + 1 + (($this->page - 1) * $this->limit));
+				$record = RecordDriverFactory::initRecordDriver($current);
+				$record->setScopingEnabled($this->indexEngine->isScopingEnabled());
+				if (!PEAR_Singleton::isError($record)) {
+					$interface->assign('recordDriver', $record);
+					$html[] = $interface->fetch($record->getSearchResult($this->view));
+				} else {
+					$html[] = "Unable to find record";
+				}
 			}
 		}
 		return $html;
@@ -758,27 +745,29 @@ class SearchObject_Solr extends SearchObject_Base
 		global $interface;
 		$html = array();
 		$numResultsShown = 0;
-		for ($x = 0; $x < count($this->indexResult['response']['docs']); $x++) {
-			$current = & $this->indexResult['response']['docs'][$x];
-			//Check to make sure this id is not in the main results
-			$supplementalInMainResults = false;
-			foreach ($mainResults as $mainResult){
-				if ($mainResult['id'] == $current['id']){
-					$supplementalInMainResults = true;
+		if (isset($this->indexResult['response'])) {
+			for ($x = 0; $x < count($this->indexResult['response']['docs']); $x++) {
+				$current = &$this->indexResult['response']['docs'][$x];
+				//Check to make sure this id is not in the main results
+				$supplementalInMainResults = false;
+				foreach ($mainResults as $mainResult) {
+					if ($mainResult['id'] == $current['id']) {
+						$supplementalInMainResults = true;
+						break;
+					}
+				}
+				if ($supplementalInMainResults) { // if record in the original search result, don't add to these results
+					continue;
+				}
+				/** @var IndexRecord|MarcRecord|GroupedWorkDriver $record */
+				$record = RecordDriverFactory::initRecordDriver($current);
+				$numResultsShown++;
+				$interface->assign('recordIndex', $numResultsShown);
+				$interface->assign('resultIndex', $numResultsShown + (($this->page - 1) * $this->limit) + $startIndex);
+				$html[] = $interface->fetch($record->getSearchResult($this->view, true));
+				if ($numResultsShown >= $maxResultsToShow) {
 					break;
 				}
-			}
-			if ($supplementalInMainResults){ // if record in the original search result, don't add to these results
-				continue;
-			}
-			/** @var IndexRecord|MarcRecord|EcontentRecordDriver|GroupedWorkDriver $record */
-			$record = RecordDriverFactory::initRecordDriver($current);
-			$numResultsShown++;
-			$interface->assign('recordIndex', $numResultsShown);
-			$interface->assign('resultIndex', $numResultsShown + (($this->page - 1) * $this->limit) + $startIndex);
-			$html[] = $interface->fetch($record->getSearchResult($this->view, true));
-			if ($numResultsShown >= $maxResultsToShow){
-				break;
 			}
 		}
 		return $html;
@@ -1933,10 +1922,7 @@ class SearchObject_Solr extends SearchObject_Base
 		for ($i = 0; $i < count($result['response']['docs']); $i++) {
 
 			//Since the base URL can be different depending on the record type, add the url to the response
-			if (strcasecmp($result['response']['docs'][$i]['recordtype'], 'econtentRecord') == 0){
-				$id = str_replace('econtentRecord', '', $result['response']['docs'][$i]['id']);
-				$result['response']['docs'][$i]['recordUrl'] = $baseUrl . '/EcontentRecord/' . $id;
-			}else	if (strcasecmp($result['response']['docs'][$i]['recordtype'], 'grouped_work') == 0){
+			if (strcasecmp($result['response']['docs'][$i]['recordtype'], 'grouped_work') == 0){
 				$id = $result['response']['docs'][$i]['id'];
 				$result['response']['docs'][$i]['recordUrl'] = $baseUrl . '/GroupedWork/' . $id;
 				$result['response']['docs'][$i]['title'] = $result['response']['docs'][$i]['title_full'];

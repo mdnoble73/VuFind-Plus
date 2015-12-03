@@ -32,7 +32,7 @@
 				<div class="col-xs-12 col-sm-9">
 					{if $showBreadcrumbs}
 					<ul class="breadcrumb">
-						<li><a href="{$homeBreadcrumbLink}" id="home-breadcrumb"><i class="icon-home"></i> {translate text=$homeLinkText}</a> <span class="divider">&raquo;</span></li>
+						<li><a href="{$homeBreadcrumbLink}" id="home-breadcrumb">{*<i class="icon-home"></i>*} {translate text=$homeLinkText}</a> <span class="divider">&raquo;</span></li>
 						{include file="$module/breadcrumbs.tpl"}
 					</ul>
 					{/if}
@@ -70,6 +70,14 @@
 					{include file='header_responsive.tpl'}
 				</div>
 			</div>
+
+				{if $horizontalSearchBar}
+					<div id="horizontal-search-wrapper" class="row">
+						<div id="horizontal-search-container" class="col-xs-12">
+							{include file="Search/horizontal-searchbox.tpl"}
+						</div>
+					</div>
+				{/if}
 
 			<div id="content-container" class="row">
 				{if isset($sidebar) && $showExploreMore}
@@ -127,6 +135,7 @@
 		{include file="modal_dialog.tpl"}
 
 			{* hold messages shouldn't be needed any longer. plb 2-13-2015 *}
+{*
 		{if $hold_message}
 			<script type="text/javascript">
 				VuFind.showMessage('Hold Results', "{$hold_message|escape:'javascript'}");
@@ -144,8 +153,12 @@
 				VuFind.showMessage('Checkout Results', "{$checkout_message|escape:'javascript'}");
 			</script>
 		{/if}
-
+*}
 		{include file="tracking.tpl"}
+
+			{if $semanticData}
+				{include file="jsonld.tpl"}
+			{/if}
 		{/strip}
 	</body>
 </html>

@@ -42,8 +42,8 @@ class Record_Home extends Record_Record{
 		// Set Show in Main Details Section options for templates
 		// (needs to be set before moreDetailsOptions)
 		global $library;
-		foreach ($library->showInMainDetails as $detailoption) {
-			$interface->assign($detailoption, true);
+		foreach ($library->showInMainDetails as $detailOption) {
+			$interface->assign($detailOption, true);
 		}
 
 		//Get the actions for the record

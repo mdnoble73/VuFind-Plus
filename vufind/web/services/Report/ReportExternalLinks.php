@@ -176,18 +176,9 @@ class Report_ReportExternalLinks extends Report_Report{
 				$fullId = $r['recordId'];
 				$title = null;
 
-				if (preg_match('/econtentRecord(\d+)/', $recordId, $matches)){
-					/*require_once ROOT_DIR . '/sys/eContent/EContentRecord.php';
-					$econtentRecord = new EContentRecord();
-					$econtentRecord->id = $matches[1];
-					$econtentRecord->find(true);
-					$recordId = $econtentRecord->ilsId;
-					$title = $econtentRecord->title;*/
-				}else{
-					require_once ROOT_DIR . '/RecordDrivers/MarcRecord.php';
-					$recordDriver = new MarcRecord($recordId);
-					$title = $recordDriver->getTitle();
-				}
+				require_once ROOT_DIR . '/RecordDrivers/MarcRecord.php';
+				$recordDriver = new MarcRecord($recordId);
+				$title = $recordDriver->getTitle();
 
 				if ($title != null){
 					$tmp = array(

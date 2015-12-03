@@ -51,12 +51,6 @@
 		{/foreach}
 	</div>
 
-	<script type="text/javascript">
-	$(document).ready(function() {literal} { {/literal}
-		doGetStatusSummaries();
-	{literal} }); {/literal}
-	</script>
-	
 	{if $pageLinks.all}<div class="pagination">{$pageLinks.all}</div>{/if}
 	</div>
 </div>

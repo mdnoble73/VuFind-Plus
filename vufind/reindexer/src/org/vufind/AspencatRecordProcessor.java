@@ -224,20 +224,14 @@ public class AspencatRecordProcessor extends IlsRecordProcessor {
 					}
 				}
 				if (!isOverDrive && !isHoopla && isEContent){
-					unsuppressedEcontentRecords.add(getEContentIlsRecord(groupedWork, record, identifier, itemField));
+					RecordInfo eContentRecord = getEContentIlsRecord(groupedWork, record, identifier, itemField);
+					if (eContentRecord != null) {
+						unsuppressedEcontentRecords.add(eContentRecord);
+					}
 				}
 			}
 		}
 		return unsuppressedEcontentRecords;
-	}
-
-	@Override
-	protected String getEContentSharing(ItemInfo ilsEContentItem, DataField itemField) {
-		if (ilsEContentItem.getLocationCode().equals("ONLINE")) {
-			return "shared";
-		}else{
-			return "library";
-		}
 	}
 
 	@Override
@@ -303,6 +297,17 @@ public class AspencatRecordProcessor extends IlsRecordProcessor {
 		}
 		if (!suppressed && curItem.getSubfield(iTypeSubfield) != null){
 			suppressed = curItem.getSubfield(iTypeSubfield).getData().equalsIgnoreCase("ill");
+		}
+		if (curItem.getSubfield('0') != null){
+			if (curItem.getSubfield('0').getData().equals("1")){
+				suppressed = true;
+			}
+		}
+		if (curItem.getSubfield('1') != null){
+			String fieldData = curItem.getSubfield('1').getData().toLowerCase();
+			if (fieldData.equals("lost") || fieldData.equals("missing") || fieldData.equals("longoverdue") || fieldData.equals("trace")){
+				suppressed = true;
+			}
 		}
 		if (suppressed){
 			return true;

@@ -295,13 +295,18 @@ abstract class RecordInterface {
 		}
 		$moreDetailsOptions['tableOfContents'] = array(
 				'label' => 'Table of Contents',
-				'body' => $interface->fetch('GroupedWork/tableOfContents.tpl'),
+				'body'  => $interface->fetch('GroupedWork/tableOfContents.tpl'),
 				'hideByDefault' => true
 		);
 		$moreDetailsOptions['excerpt'] = array(
 				'label' => 'Excerpt',
-				'body' => '<div id="excerptPlaceholder">Loading Excerpt...</div>',
+				'body'  => '<div id="excerptPlaceholder">Loading Excerpt...</div>',
 				'hideByDefault' => true
+		);
+		$moreDetailsOptions['authornotes'] = array(
+				'label' => 'Author Notes',
+				'body'  =>  '<div id="authornotesPlaceholder">Loading Author Notes...</div>',
+				'hideByDefault' => true,
 		);
 		if ($interface->getVariable('showComments')){
 			$moreDetailsOptions['borrowerReviews'] = array(
@@ -405,8 +410,9 @@ abstract class RecordInterface {
 				'moreLikeThis' => 'More Like This',
 				'otherEditions' => 'Other Editions',
 				'prospector' => 'Prospector',
-				'tableOfContents' => 'Table of Contents',
-				'excerpt' => 'Excerpt',
+				'tableOfContents' => 'Table of Contents  (MARC/Syndetics/ContentCafe)',
+				'excerpt' => 'Excerpt (Syndetics/ContentCafe)',
+				'authornotes' => 'Author Notes (Syndetics/ContentCafe)',
 				'subjects' => 'Subjects',
 				'moreDetails' => 'More Details',
 				'similarSeries' => 'Similar Series From Novelist',
@@ -414,7 +420,7 @@ abstract class RecordInterface {
 				'similarAuthors' => 'Similar Authors From Novelist',
 				'borrowerReviews' => 'Borrower Reviews',
 				'editorialReviews' => 'Editorial Reviews',
-				'syndicatedReviews' => 'Syndicated Reviews (Syndetics)',
+				'syndicatedReviews' => 'Syndicated Reviews (Syndetics/ContentCafe)',
 				'goodreadsReviews' => 'GoodReads Reviews',
 				'tags' => 'Tags',
 				'citations' => 'Citations',
@@ -434,6 +440,7 @@ abstract class RecordInterface {
 				'prospector' => 'closed',
 				'tableOfContents' => 'closed',
 				'excerpt' => 'closed',
+				'authornotes' => 'closed',
 				'subjects' => 'closed',
 				'moreDetails' => 'closed',
 				'similarSeries' => 'closed',
@@ -449,6 +456,8 @@ abstract class RecordInterface {
 				'staff' => 'closed',
 		);
 	}
+
+	public abstract function getItemActions($itemInfo);
 
 	public abstract function getRecordActions($isAvailable, $isHoldable, $isBookable, $relatedUrls = null);
 }

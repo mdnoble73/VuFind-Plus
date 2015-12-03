@@ -129,7 +129,7 @@ public class SierraExportMain{
 
 			PreparedStatement addIlsHoldSummary = vufindConn.prepareStatement("INSERT INTO ils_hold_summary (ilsId, numHolds) VALUES (?, ?)");
 
-			HashMap<String, Long> numHoldsByBib = new HashMap<String, Long>();
+			HashMap<String, Long> numHoldsByBib = new HashMap<>();
 			//Export bib level holds
 			PreparedStatement bibHoldsStmt = sierraConn.prepareStatement("select count(hold.id) as numHolds, record_type_code, record_num from sierra_view.hold left join sierra_view.record_metadata on hold.record_id = record_metadata.id where record_type_code = 'b' and (status = '0' OR status = 't') GROUP BY record_type_code, record_num", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 			ResultSet bibHoldsRS = bibHoldsStmt.executeQuery();
@@ -242,7 +242,7 @@ public class SierraExportMain{
 				boolean moreToRead = true;
 				PreparedStatement markGroupedWorkForBibAsChangedStmt = vufindConn.prepareStatement("UPDATE grouped_work SET date_updated = ? where id = (SELECT grouped_work_id from grouped_work_primary_identifiers WHERE type = 'ils' and identifier = ?)") ;
 				boolean firstLoad = true;
-				HashMap<String, ArrayList<ItemChangeInfo>> changedBibs = new HashMap<String, ArrayList<ItemChangeInfo>>();
+				HashMap<String, ArrayList<ItemChangeInfo>> changedBibs = new HashMap<>();
 				while (moreToRead){
 					JSONObject changedRecords = callSierraApiURL(ini, apiBaseUrl, apiBaseUrl + "/items/?updatedDate=[" + dateUpdated + ",]&limit=2000&fields=id,bibIds,location,status,fixedFields&deleted=false&suppressed=false&offset=" + offset, false);
 					int numChangedIds = 0;
@@ -297,7 +297,7 @@ public class SierraExportMain{
 								if (changedBibs.containsKey(fullId)) {
 									itemChanges = changedBibs.get(fullId);
 								}else{
-									itemChanges = new ArrayList<ItemChangeInfo>();
+									itemChanges = new ArrayList<>();
 									changedBibs.put(fullId, itemChanges);
 								}
 								itemChanges.add(changeInfo);
@@ -435,74 +435,6 @@ public class SierraExportMain{
 		return shortId;
 	}
 
-	/*private static void exportAvailability(String exportPath, Connection conn) throws SQLException, IOException {
-		logger.info("Starting export of available items");
-		char[] availableStatuses = new char[]{'-', 'o', 'd', 'w', 'j', 'u'};
-		File availableItemsFile = new File(exportPath + "/available_items_temp.csv");
-		CSVWriter availableItemWriter = new CSVWriter(new FileWriter(availableItemsFile));
-		boolean loadError = false;
-		for(char curStatus : availableStatuses){
-			PreparedStatement getAvailableItemsStmt = conn.prepareStatement("SELECT barcode " +
-							"from sierra_view.item_view " +
-							"WHERE " +
-							"item_status_code = '" + curStatus + "'" +
-							"AND icode2 != 'n' AND icode2 != 'x' " +
-							"AND is_suppressed = 'f' " +
-							"AND BARCODE != ''"
-			);
-			ResultSet activeOrdersRS = null;
-			try{
-				activeOrdersRS = getAvailableItemsStmt.executeQuery();
-			}catch (SQLException e1){
-				logger.error("Error loading available items for status " + curStatus, e1);
-				loadError = true;
-			}
-			if (!loadError){
-				availableItemWriter.writeAll(activeOrdersRS, false);
-				activeOrdersRS.close();
-			}
-		}
-		availableItemWriter.close();
-
-		if (!loadError){
-			//Copy the file
-			File availableItems = new File(exportPath + "/available_items.csv");
-			if (availableItems.exists()) {
-				if (!availableItems.delete()){
-					logger.error("Could not delete available items file");
-					loadError = true;
-				}
-			}
-			if (!loadError){
-				if (!availableItemsFile.renameTo(availableItems)){
-					logger.error("Could not rename available_items_temp.csv to available_items.csv");
-				}
-			}
-		}
-
-		//Also export items with checkouts
-		logger.info("Starting export of checkouts");
-		PreparedStatement allCheckoutsStmt = conn.prepareStatement("SELECT barcode " +
-				"FROM sierra_view.checkout " +
-				"INNER JOIN sierra_view.item_view on item_view.id = checkout.item_record_id"
-		);
-		ResultSet checkoutsRS = null;
-		loadError = false;
-		try{
-			checkoutsRS = allCheckoutsStmt.executeQuery();
-		}catch (SQLException e1){
-			logger.error("Error loading checkouts", e1);
-			loadError = true;
-		}
-		if (!loadError){
-			File checkoutsFile = new File(exportPath + "/checkouts.csv");
-			CSVWriter checkoutsWriter = new CSVWriter(new FileWriter(checkoutsFile));
-			checkoutsWriter.writeAll(checkoutsRS, false);
-			checkoutsWriter.close();
-			checkoutsRS.close();
-		}
-	}*/
-
 	private static void exportActiveOrders(String exportPath, Connection conn) throws SQLException, IOException {
 		logger.info("Starting export of active orders");
 		PreparedStatement getActiveOrdersStmt = conn.prepareStatement("select bib_view.record_num as bib_record_num, order_view.record_num as order_record_num, accounting_unit_code_num, order_status_code, copies, location_code " +
@@ -510,7 +442,7 @@ public class SierraExportMain{
 				"inner join sierra_view.bib_record_order_record_link on bib_record_order_record_link.order_record_id = order_view.record_id " +
 				"inner join sierra_view.bib_view on sierra_view.bib_view.id = bib_record_order_record_link.bib_record_id " +
 				"inner join sierra_view.order_record_cmf on order_record_cmf.order_record_id = order_view.id " +
-				"where (order_status_code = 'o' or order_status_code = '1') and order_view.is_suppressed = 'f'", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+				"where (order_status_code = 'o' or order_status_code = '1') and order_view.is_suppressed = 'f' and location_code != 'multi'", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 		ResultSet activeOrdersRS = null;
 		boolean loadError = false;
 		try{

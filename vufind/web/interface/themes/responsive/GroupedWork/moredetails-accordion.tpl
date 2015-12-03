@@ -34,11 +34,16 @@
 {/strip}
 {literal}
 <script type="text/javascript">
-	$('#excerptPanel').on('show.bs.collapse', function (e) {
-		VuFind.GroupedWork.getGoDeeperData({/literal}'{$recordDriver->getPermanentId()}'{literal}, 'excerpt');
-	});
-	$('#tableOfContentsPanel').on('show.bs.collapse', function (e) {
-		VuFind.GroupedWork.getGoDeeperData({/literal}'{$recordDriver->getPermanentId()}'{literal}, 'tableOfContents');
-	});
+	$(function(){
+		$('#excerptPanel').on('show.bs.collapse', function (e) {
+			VuFind.GroupedWork.getGoDeeperData({/literal}'{$recordDriver->getPermanentId()}'{literal}, 'excerpt');
+		});
+		$('#tableOfContentsPanel').on('show.bs.collapse', function (e) {
+			VuFind.GroupedWork.getGoDeeperData({/literal}'{$recordDriver->getPermanentId()}'{literal}, 'tableOfContents');
+		});
+		$('#authornotesPanel').on('show.bs.collapse', function (e) {
+			VuFind.GroupedWork.getGoDeeperData({/literal}'{$recordDriver->getPermanentId()}'{literal}, 'authornotes');
+		})
+	})
 </script>
 {/literal}

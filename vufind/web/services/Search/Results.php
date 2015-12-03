@@ -155,6 +155,7 @@ class Search_Results extends Action {
 		}
 
 		// Cannot use the current search globals since we may change the search term above
+		// Display of query is not right when reusing the global search object
 		/** @var SearchObject_Solr $searchObject */
 		$searchObject = SearchObjectFactory::initSearchObject();
 		$searchObject->init($searchSource);
@@ -388,10 +389,6 @@ class Search_Results extends Action {
 			if ($record['recordtype'] == 'list'){
 				$listId = substr($record['id'], 4);
 				header("Location: " . $configArray['Site']['path'] . "/MyResearch/MyList/{$listId}");
-				exit();
-			}elseif ($record['recordtype'] == 'econtentRecord'){
-				$shortId = str_replace('econtentRecord', '', $record['id']);
-				header("Location: " . $configArray['Site']['path'] . "/EcontentRecord/$shortId/Home");
 				exit();
 			}else{
 				header("Location: " . $configArray['Site']['path'] . "/Record/{$record['id']}/Home");

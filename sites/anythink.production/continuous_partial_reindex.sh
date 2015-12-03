@@ -86,7 +86,9 @@ do
 	#echo "Starting new extract and index - `date`" > ${OUTPUT_FILE}
 	# reset the output file each round
 
-	#TODO process extract from Horizon
+	#merge the changes with the full extract
+	cd /usr/local/vufind-plus/vufind/horizon_export/
+	java -server -XX:+UseG1GC -jar horizon_export.jar ${PIKASERVER} >> ${OUTPUT_FILE}
 
 	#export from overdrive
 	#echo "Starting OverDrive Extract - `date`" >> ${OUTPUT_FILE}

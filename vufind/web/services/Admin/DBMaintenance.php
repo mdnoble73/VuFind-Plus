@@ -1674,6 +1674,17 @@ class DBMaintenance extends Admin_Admin {
 					),
 				),
 
+				'clear_analytics' => array(
+						'title' => 'Clear Analytics',
+						'description' => "Clear analytics data since it has grown out of control.",
+						'sql' => array(
+								'TRUNCATE TABLE analytics_page_view',
+								'TRUNCATE TABLE analytics_event',
+								'TRUNCATE TABLE analytics_search',
+								'TRUNCATE TABLE analytics_session',
+						),
+				),
+
 				'session_update_1' => array(
 					'title' => 'Session Update 1',
 					'description' => 'Add a field for whether or not the session was started with remember me on.',
@@ -2192,6 +2203,23 @@ class DBMaintenance extends Admin_Admin {
 					)
 				),
 
+				'indexing_profile_last_checkin_date' => array(
+					'title' => 'Indexing Profiles - last checkin date',
+					'description' => 'add field for last check in date',
+					'sql' => array(
+						"ALTER TABLE indexing_profiles ADD COLUMN `lastCheckinFormat` varchar(20) DEFAULT NULL",
+						"ALTER TABLE indexing_profiles ADD COLUMN `lastCheckinDate` char(1) DEFAULT NULL",
+					)
+				),
+
+				'indexing_profile_specific_order_location' => array(
+						'title' => 'Indexing Profiles - specific order location',
+						'description' => 'add field for the specific location code since Millennium/Sierra do not always export the detailed',
+						'sql' => array(
+								"ALTER TABLE indexing_profiles ADD COLUMN `orderLocationSingle` char(1) DEFAULT NULL",
+						)
+				),
+
 				'translation_map_regex' => array(
 					'title' => 'Translation Maps Regex',
 					'description' => 'Setup Translation Maps to use regular expressions',
@@ -2237,6 +2265,24 @@ class DBMaintenance extends Admin_Admin {
 						"ALTER TABLE `account_profiles` ADD `recordSource` varchar(50) NOT NULL",
 						"ALTER TABLE `account_profiles` ADD `weight` int(11) NOT NULL",
 					)
+				),
+
+
+				'volume_information' => array(
+					'title' => 'Volume Information',
+						'description' => 'Store information about volumes for use within display.  These do not need to be indexed independently.',
+						'sql' => array(
+							"CREATE TABLE IF NOT EXISTS `ils_volume_info` (
+							  `id` int(11) NOT NULL AUTO_INCREMENT,
+							  `recordId` varchar(50) NOT NULL COMMENT 'Full Record ID including the source',
+							  `displayLabel` varchar(255) NOT NULL,
+							  `relatedItems` varchar(512) NOT NULL,
+							  `volumeId` VARCHAR( 30 ) NOT NULL ,
+							  PRIMARY KEY (`id`),
+							  KEY `recordId` (`recordId`),
+							  UNIQUE `volumeId` (`volumeId`)
+							) ENGINE=InnoDB DEFAULT CHARSET=utf8",
+						)
 				),
 			)
 		);
@@ -2712,19 +2758,6 @@ class DBMaintenance extends Admin_Admin {
 		if ($resource->source == 'VuFind') {
 			$primaryIdentifier = $resource->record_id;
 			return $primaryIdentifier;
-		} else {
-			$eContentRecord = new EContentRecord();
-			$eContentRecord->id = $resource->record_id;
-			if ($eContentRecord->find(true)) {
-				if (!empty($eContentRecord->externalId)) {
-					$primaryIdentifier = $eContentRecord->externalId;
-					return $primaryIdentifier;
-				} else {
-					$primaryIdentifier = $eContentRecord->ilsId;
-					return $primaryIdentifier;
-				}
-			}
-			return null;
 		}
 	}
 }

@@ -7584,13 +7584,13 @@ hr.menu {
 #header-links {
   text-align: center;
 }
+#header-links .header-link-wrapper:last-of-type {
+  border-right: 0 solid black;
+}
 .header-link-wrapper {
   display: inline-block;
   padding: 2px 15px;
   border-right: 1px solid #0078ae;
-}
-#header-links .header-link-wrapper:last-of-type {
-  border-right: 0 solid black;
 }
 .header-link-wrapper a {
   font-size: 16px;
@@ -7598,6 +7598,12 @@ hr.menu {
 #footer-container {
   border-top: 8px solid #2c3d58;
   padding-top: 3px;
+}
+@media screen and (max-width: 767px) {
+  #footer-container {
+    margin-left: 0;
+    margin-right: 0;
+  }
 }
 #install-info {
   padding-left: 20px;
@@ -7637,6 +7643,10 @@ hr.menu {
 }
 #main-content-with-sidebar > .row {
   margin-right: -30px;
+}
+#xs-main-content-insertion-point {
+  margin-left: 0;
+  margin-right: 0;
 }
 .modal {
   overflow-y: auto;
@@ -7689,19 +7699,13 @@ hr.menu {
   text-shadow: none;
   border: 0;
 }
-.searchTypeHome {
+.searchTypeHome,
+.searchSource {
   margin: 5px 0 0;
   color: #fff;
   background-color: #147ce2;
   border: none;
   width: 90% !important;
-}
-#searchSource {
-  margin: 5px 0 0;
-  color: #fff;
-  background-color: #147ce2;
-  border: none;
-  width: 90%;
 }
 #keepFiltersSwitchLabel,
 #advancedSearchLink {
@@ -7709,16 +7713,48 @@ hr.menu {
   font-weight: normal;
   font-size: 85%;
 }
-.sidebar-bold-button {
-  text-align: center;
-  background-color: #7c7c7d;
-  background: linear-gradient(to bottom, #7c7c7d, #3d4244);
-  color: #fff;
-  padding: 3px 0;
-  margin-bottom: 15px;
+#horizontal-search-box {
+  background-color: #00a4e3;
+  background: linear-gradient(to bottom, #00a4e3, #147ce2);
+  padding: 15px 0;
 }
-.sidebar-bold-button a {
+#horizontal-search-box #searchForm .row {
+  margin-left: 0;
+  margin-right: 0;
+}
+#horizontal-search-box #searchForm .row > div {
+  margin-top: 4px;
+}
+#horizontal-search-box #searchForm #horizontal-search-button-container {
+  margin-top: 4px;
+}
+@media (max-width: 768px) {
+  #horizontal-search-box #searchForm #horizontal-search-button-container {
+    padding-left: 4px;
+  }
+}
+#horizontal-search-box div {
+  padding-left: 4px;
+  padding-right: 0;
+}
+@media (max-width: 768px) {
+  #horizontal-search-box div {
+    padding-left: 1px;
+    padding-right: 1px;
+  }
+}
+#horizontal-search-box #horizontal-search-label {
   color: #fff;
+}
+#horizontal-search-box #lookfor {
+  height: 34px;
+}
+#horizontal-search-box .searchSourceHorizontal,
+#horizontal-search-box .searchTypeHorizontal {
+  width: 100%;
+  margin: 0 0;
+  border: none;
+  border-radius: 0;
 }
 #home-page-login {
   background-color: #AFAFAF;
@@ -7730,6 +7766,9 @@ hr.menu {
 }
 #home-page-login a {
   color: #fff;
+}
+#horizontal-search-wrapper + #content-container #home-page-login {
+  margin-top: 5px;
 }
 #mobile-menu {
   position: absolute;
@@ -8528,7 +8567,7 @@ a.browse-thumbnail.active {
   right: 5px;
 }
 .textListScroller {
-  width: 100%
+  width: 100%;
   height: 100%;
 }
 .textListScroller .scrollerBodyContainer {
@@ -8574,10 +8613,6 @@ a.browse-thumbnail.active {
  *
  * If a style is used both within the results list and within a record it should
  */
-.holdingsSummary {
-  margin-left: 5px;
-  padding: 7px;
-}
 .statVal {
   padding: 6px 0px 2px;
 }
@@ -8598,8 +8633,7 @@ a.browse-thumbnail.active {
   color: #009900;
   font-weight: bold;
 }
-.statusValue.nearby,
-.holdingsSummaryStatusLine.availableOther {
+.statusValue.nearby {
   color: #BB0099;
   font-weight: bold;
 }
@@ -8671,6 +8705,11 @@ a.browse-thumbnail.active {
   border-bottom: 1px solid;
   padding-bottom: 5px;
   padding-top: 5px;
+  margin-bottom: 10px;
+}
+.issue-summary-location {
+  font-size: 13px;
+  font-weight: bold;
 }
 /**
  * Additional styling specific to the results list.

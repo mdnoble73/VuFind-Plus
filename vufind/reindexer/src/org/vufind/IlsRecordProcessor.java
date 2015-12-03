@@ -39,6 +39,8 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 	protected char shelvingLocationSubfield;
 	protected char collectionSubfield;
 	protected char dueDateSubfield;
+	protected char lastCheckInSubfield;
+	protected String lastCheckInFormat;
 	protected char dateCreatedSubfield;
 	protected String dateAddedFormat;
 	protected char locationSubfieldIndicator;
@@ -68,6 +70,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 	//Fields for loading order information
 	protected String orderTag;
 	protected char orderLocationSubfield;
+	protected char singleOrderLocationSubfield;
 	protected char orderCopiesSubfield;
 	protected char orderStatusSubfield;
 	protected char orderCode3Subfield;
@@ -144,6 +147,9 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 			dateCreatedSubfield = getSubfieldIndicatorFromConfig(indexingProfileRS, "dateCreated");
 			dateAddedFormat = indexingProfileRS.getString("dateCreatedFormat");
 
+			lastCheckInSubfield = getSubfieldIndicatorFromConfig(indexingProfileRS, "lastCheckinDate");
+			lastCheckInFormat = indexingProfileRS.getString("lastCheckinFormat");
+
 			iCode2Subfield = getSubfieldIndicatorFromConfig(indexingProfileRS, "iCode2");
 			useICode2Suppression = indexingProfileRS.getBoolean("useICode2Suppression");
 
@@ -156,6 +162,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 
 			orderTag = indexingProfileRS.getString("orderTag");
 			orderLocationSubfield = getSubfieldIndicatorFromConfig(indexingProfileRS, "orderLocation");
+			singleOrderLocationSubfield = getSubfieldIndicatorFromConfig(indexingProfileRS, "orderLocationSingle");
 			orderCopiesSubfield = getSubfieldIndicatorFromConfig(indexingProfileRS, "orderCopies");
 			orderStatusSubfield = getSubfieldIndicatorFromConfig(indexingProfileRS, "orderStatus");
 			orderCode3Subfield = getSubfieldIndicatorFromConfig(indexingProfileRS, "orderCode3");
@@ -316,28 +323,66 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 	protected void loadOnOrderItems(GroupedWorkSolr groupedWork, RecordInfo recordInfo, Record record, boolean hasTangibleItems){
 		List<DataField> orderFields = getDataFields(record, orderTag);
 		for (DataField curOrderField : orderFields){
-			int copies = 0;
-			//If the location is multi, we actually have several records that should be processed separately
-			List<Subfield> detailedLocationSubfield = curOrderField.getSubfields(orderLocationSubfield);
-			if (detailedLocationSubfield.size() == 0){
-				//Didn't get detailed locations
-				if (curOrderField.getSubfield(orderCopiesSubfield) != null){
-					copies = Integer.parseInt(curOrderField.getSubfield(orderCopiesSubfield).getData());
-				}
-				createAndAddOrderItem(recordInfo, curOrderField, "multi", copies);
-			} else{
-				for (Subfield curLocationSubfield : detailedLocationSubfield){
-					String curLocation = curLocationSubfield.getData();
-					if (curLocation.startsWith("(")){
-						//There are multiple copies for this location
-						copies = Integer.parseInt(curLocation.substring(1, curLocation.indexOf(")")));
-						curLocation = curLocation.substring(curLocation.indexOf(")") + 1);
-					}else{
-						copies = 1;
+			//Check here to make sure the order item is valid before doing further processing.
+			String status = "";
+			if (curOrderField.getSubfield(orderStatusSubfield) != null) {
+				status = curOrderField.getSubfield(orderStatusSubfield).getData();
+			}
+			String code3 = null;
+			if (orderCode3Subfield != ' ' && curOrderField.getSubfield(orderCode3Subfield) != null){
+				code3 = curOrderField.getSubfield(orderCode3Subfield).getData();
+			}
+
+			if (isOrderItemValid(status, code3)){
+				int copies = 0;
+				//If the location is multi, we actually have several records that should be processed separately
+				List<Subfield> detailedLocationSubfield = curOrderField.getSubfields(orderLocationSubfield);
+				if (detailedLocationSubfield.size() == 0){
+					//Didn't get detailed locations
+					if (curOrderField.getSubfield(orderCopiesSubfield) != null){
+						copies = Integer.parseInt(curOrderField.getSubfield(orderCopiesSubfield).getData());
 					}
-					createAndAddOrderItem(recordInfo, curOrderField, curLocation, copies);
-					//For On Order Items, increment popularity based on number of copies that are being purchased.
-					groupedWork.addPopularity(copies);
+					String locationCode = "multi";
+					if (curOrderField.getSubfield(singleOrderLocationSubfield) != null){
+						locationCode = curOrderField.getSubfield(singleOrderLocationSubfield).getData().trim();
+					}
+					createAndAddOrderItem(recordInfo, curOrderField, locationCode, copies);
+				} else {
+					for (Subfield curLocationSubfield : detailedLocationSubfield) {
+						String curLocation = curLocationSubfield.getData();
+						if (curLocation.startsWith("(")) {
+							//There are multiple copies for this location
+							String tmpLocation = curLocation;
+							try {
+								copies = Integer.parseInt(tmpLocation.substring(1, tmpLocation.indexOf(")")));
+								curLocation = tmpLocation.substring(tmpLocation.indexOf(")") + 1).trim();
+							} catch (StringIndexOutOfBoundsException e) {
+								logger.error("Error parsing copies and location for order item " + tmpLocation);
+							}
+						} else {
+							//If we only get one location in the detailed copies, we need to read the copies subfield rather than
+							//hard coding to 1
+							copies = 1;
+							if (orderCopiesSubfield != ' ') {
+								if (detailedLocationSubfield.size() == 1 && curOrderField.getSubfield(orderCopiesSubfield) != null) {
+									String copiesData = curOrderField.getSubfield(orderCopiesSubfield).getData().trim();
+									try {
+										copies = Integer.parseInt(copiesData);
+									} catch (StringIndexOutOfBoundsException e) {
+										logger.error("StringIndexOutOfBoundsException loading number of copies " + copiesData, e);
+									} catch (Exception e) {
+										logger.error("Exception loading number of copies " + copiesData, e);
+									} catch (Error e) {
+										logger.error("Error loading number of copies " + copiesData, e);
+									}
+								}
+							}
+						}
+						if (createAndAddOrderItem(recordInfo, curOrderField, curLocation, copies)) {
+							//For On Order Items, increment popularity based on number of copies that are being purchased.
+							groupedWork.addPopularity(copies);
+						}
+					}
 				}
 			}
 		}
@@ -352,15 +397,14 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		}
 	}
 
-	private void createAndAddOrderItem(RecordInfo recordInfo, DataField curOrderField, String location, int copies) {
+	private boolean createAndAddOrderItem(RecordInfo recordInfo, DataField curOrderField, String location, int copies) {
 		ItemInfo itemInfo = new ItemInfo();
 		if (curOrderField.getSubfield('a') == null){
 			//Skip if we have no identifier
-			return;
+			return false;
 		}
 		String orderNumber = curOrderField.getSubfield('a').getData();
 		itemInfo.setLocationCode(location);
-		itemInfo.setSubLocationCode("");
 		itemInfo.setItemIdentifier(orderNumber);
 		itemInfo.setNumCopies(copies);
 		itemInfo.setIsEContent(false);
@@ -374,52 +418,43 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		//Shelf Location also include the name of the ordering branch if possible
 		boolean hasLocationBasedShelfLocation = false;
 		boolean hasSystemBasedShelfLocation = false;
+
+		//Add the library this is on order for
 		itemInfo.setShelfLocation("On Order");
 
-		String status = "";
-		if (curOrderField.getSubfield(orderStatusSubfield) != null) {
-			status = curOrderField.getSubfield(orderStatusSubfield).getData();
-		}
-		String code3 = null;
-		if (orderCode3Subfield != ' ' && curOrderField.getSubfield(orderCode3Subfield) != null){
-			code3 = curOrderField.getSubfield(orderCode3Subfield).getData();
-		}
-
-		if (isOrderItemValid(status, code3)){
-			recordInfo.addItem(itemInfo);
-			for (Scope scope: indexer.getScopes()){
-				if (scope.isItemPartOfScope(profileType, location, "", true, true, false)){
-					ScopingInfo scopingInfo = itemInfo.addScope(scope);
-					if (scope.isLocationScope()) {
-						scopingInfo.setLocallyOwned(scope.isItemOwnedByScope(profileType, location, ""));
-					}
-					if (scope.isLibraryScope()) {
-						 scopingInfo.setLibraryOwned(scope.isItemOwnedByScope(profileType, location, ""));
-					}
-					if (scopingInfo.isLocallyOwned()){
-						if (scope.isLibraryScope() && !hasLocationBasedShelfLocation && !hasSystemBasedShelfLocation){
-							hasSystemBasedShelfLocation = true;
-						}
-						if (scope.isLocationScope() && !hasLocationBasedShelfLocation){
-							hasLocationBasedShelfLocation = true;
-							itemInfo.setShelfLocation("On Order");
-						}
-					}
-					scopingInfo.setAvailable(false);
-					scopingInfo.setHoldable(true);
-					scopingInfo.setStatus("On Order");
-					scopingInfo.setGroupedStatus("On Order");
+		recordInfo.addItem(itemInfo);
+		for (Scope scope: indexer.getScopes()){
+			if (scope.isItemPartOfScope(profileType, location, "", true, true, false)){
+				ScopingInfo scopingInfo = itemInfo.addScope(scope);
+				if (scope.isLocationScope()) {
+					scopingInfo.setLocallyOwned(scope.isItemOwnedByScope(profileType, location, ""));
 				}
+				if (scope.isLibraryScope()) {
+					boolean libraryOwned = scope.isItemOwnedByScope(profileType, location, "");
+					scopingInfo.setLibraryOwned(libraryOwned);
+					if (itemInfo.getShelfLocation().equals("On Order")){
+						itemInfo.setShelfLocation(scopingInfo.getScope().getFacetLabel() + " On Order");
+					}
+				}
+				if (scopingInfo.isLocallyOwned()){
+					if (scope.isLibraryScope() && !hasLocationBasedShelfLocation && !hasSystemBasedShelfLocation){
+						hasSystemBasedShelfLocation = true;
+					}
+					if (scope.isLocationScope() && !hasLocationBasedShelfLocation){
+						hasLocationBasedShelfLocation = true;
+					}
+				}
+				scopingInfo.setAvailable(false);
+				scopingInfo.setHoldable(true);
+				scopingInfo.setStatus("On Order");
+				scopingInfo.setGroupedStatus("On Order");
 			}
 		}
+		return true;
 	}
 
 	protected boolean isOrderItemValid(String status, String code3) {
 		return status.equals("o") || status.equals("1");
-	}
-
-	protected void loadEContentSourcesAndProtectionTypes(ItemInfo itemRecord) {
-		//By default, do nothing
 	}
 
 	private void loadOrderIds(GroupedWorkSolr groupedWork, Record record) {
@@ -455,7 +490,6 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		if (itemSublocation == null){
 			itemSublocation = "";
 		}
-		itemInfo.setSubLocationCode(itemSublocation);
 		if (itemSublocation.length() > 0){
 			itemInfo.setSubLocation(translateValue("sub_location", itemSublocation, identifier));
 		}
@@ -467,8 +501,6 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 
 		itemInfo.setCollection(translateValue("collection", getItemSubfieldData(collectionSubfield, itemField), identifier));
 
-		loadEContentSourcesAndProtectionTypes(itemInfo);
-
 		Subfield eContentSubfield = itemField.getSubfield(eContentSubfieldIndicator);
 		if (eContentSubfield != null){
 			String eContentData = eContentSubfield.getData().trim();
@@ -477,16 +509,6 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 				//First element is the source, and we will always have at least the source and protection type
 				itemInfo.seteContentSource(eContentFields[0].trim());
 				itemInfo.seteContentProtectionType(eContentFields[1].trim().toLowerCase());
-				if (eContentFields.length >= 3){
-					itemInfo.seteContentSharing(eContentFields[2].trim().toLowerCase());
-				}else{
-					//Sharing depends on the location code
-					if (itemLocation.startsWith("mdl")){
-						itemInfo.seteContentSharing("shared");
-					}else{
-						itemInfo.seteContentSharing("library");
-					}
-				}
 
 				//Remaining fields have variable definitions based on content that has been loaded over the past year or so
 				if (eContentFields.length >= 4){
@@ -507,30 +529,27 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		}else{
 			//This is for a "less advanced" catalog, set some basic info
 			itemInfo.seteContentProtectionType("external");
-			itemInfo.seteContentSharing(getEContentSharing(itemInfo, itemField));
 			itemInfo.seteContentSource(getSourceType(record, itemField));
 		}
 
 		//Set record type
 		String protectionType = itemInfo.geteContentProtectionType();
 		switch (protectionType) {
-			case "acs":
-			case "drm":
-				relatedRecord = groupedWork.addRelatedRecord("restricted_econtent", identifier);
-				relatedRecord.setSubSource(profileType);
-				relatedRecord.addItem(itemInfo);
-				break;
-			case "public domain":
-			case "free":
-				relatedRecord = groupedWork.addRelatedRecord("public_domain_econtent", identifier);
-				relatedRecord.setSubSource(profileType);
-				relatedRecord.addItem(itemInfo);
-				break;
 			case "external":
 				relatedRecord = groupedWork.addRelatedRecord("external_econtent", identifier);
 				relatedRecord.setSubSource(profileType);
 				relatedRecord.addItem(itemInfo);
 				break;
+			case "acs":
+			case "drm":
+			case "public domain":
+			case "free":
+				//Remove restricted (ACS) eContent from Pika #PK-1199
+				//Remove free public domain, but stored locally eContent from Pika #PK-1199
+				//relatedRecord = groupedWork.addRelatedRecord("public_domain_econtent", identifier);
+				//relatedRecord.setSubSource(profileType);
+				//relatedRecord.addItem(itemInfo);
+				return null;
 			default:
 				logger.warn("Unknown protection type " + protectionType + " found in record " + identifier);
 				break;
@@ -561,43 +580,15 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 
 		}
 
-		//Determine availability
-		boolean available = false;
-		boolean holdable = false;
-		switch (protectionType) {
-			case "external":
-				available = true;
-				break;
-			case "public domain":
-			case "free":
-				available = true;
-				break;
-			case "acs":
-			case "drm":
-				//TODO: Determine availability based on if it is checked out in the database
-				available = true;
-				holdable = true;
-				break;
-		}
-
-		if (available){
-			itemInfo.setDetailedStatus("Available Online");
-		}else{
-			itemInfo.setDetailedStatus("Checked Out");
-		}
+		itemInfo.setDetailedStatus("Available Online");
 		//Determine which scopes this title belongs to
 		for (Scope curScope : indexer.getScopes()){
-			if (curScope.isItemPartOfScope(profileType, itemLocation, itemSublocation, holdable, false, true)){
+			if (curScope.isItemPartOfScope(profileType, itemLocation, itemSublocation, false, false, true)){
 				ScopingInfo scopingInfo = itemInfo.addScope(curScope);
-				scopingInfo.setAvailable(available);
-				if (available) {
-					scopingInfo.setStatus("Available Online");
-					scopingInfo.setGroupedStatus("Available Online");
-				}else{
-					scopingInfo.setStatus("Checked Out");
-					scopingInfo.setGroupedStatus("Checked Out");
-				}
-				scopingInfo.setHoldable(holdable);
+				scopingInfo.setAvailable(true);
+				scopingInfo.setStatus("Available Online");
+				scopingInfo.setGroupedStatus("Available Online");
+				scopingInfo.setHoldable(false);
 				if (curScope.isLocationScope()) {
 					scopingInfo.setLocallyOwned(curScope.isItemOwnedByScope(profileType, itemLocation, itemSublocation));
 				}
@@ -625,18 +616,18 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		}
 	}
 
-	protected String getEContentSharing(ItemInfo ilsEContentItem, DataField itemField) {
-		return "shared";
-	}
-
 	protected String getSourceType(Record record, DataField itemField) {
 		return "Unknown Source";
 	}
 
 	protected SimpleDateFormat dateAddedFormatter = null;
+	protected SimpleDateFormat lastCheckInFormatter = null;
 	protected ItemInfo getPrintIlsItem(GroupedWorkSolr groupedWork, RecordInfo recordInfo, Record record, DataField itemField) {
 		if (dateAddedFormatter == null){
 			dateAddedFormatter = new SimpleDateFormat(dateAddedFormat);
+		}
+		if (lastCheckInFormatter == null && lastCheckInFormat != null && lastCheckInFormat.length() > 0){
+			lastCheckInFormatter = new SimpleDateFormat(lastCheckInFormat);
 		}
 		ItemInfo itemInfo = new ItemInfo();
 		//Load base information from the Marc Record
@@ -649,7 +640,6 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		if (itemSublocation == null){
 			itemSublocation = "";
 		}
-		itemInfo.setSubLocationCode(itemSublocation);
 		if (itemSublocation.length() > 0){
 			itemInfo.setSubLocation(translateValue("sub_location", itemSublocation, recordInfo.getRecordIdentifier()));
 		}
@@ -683,6 +673,18 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		itemInfo.setStatusCode(itemStatus);
 		if (itemStatus != null) {
 			setDetailedStatus(itemInfo, itemField, itemStatus, recordInfo.getRecordIdentifier());
+		}
+
+		if (lastCheckInFormatter != null) {
+			String lastCheckInDate = getItemSubfieldData(lastCheckInSubfield, itemField);
+			Date lastCheckIn = null;
+			if (lastCheckInDate != null && lastCheckInDate.length() > 0)
+				try {
+					lastCheckIn = lastCheckInFormatter.parse(lastCheckInDate);
+				} catch (ParseException e) {
+					logger.debug("Could not parse check in date " + lastCheckInDate, e);
+				}
+			itemInfo.setLastCheckinDate(lastCheckIn);
 		}
 
 		if (loadFormatFromItems && formatSubfield != ' '){
@@ -914,8 +916,6 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 	protected List<RecordInfo> loadUnsuppressedEContentItems(GroupedWorkSolr groupedWork, String identifier, Record record){
 		return new ArrayList<>();
 	}
-
-
 
 	protected void loadPopularity(GroupedWorkSolr groupedWork, String recordIdentifier) {
 		//Add popularity based on the number of holds (we have already done popularity for prior checkouts)
@@ -1592,7 +1592,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 	/**
 	 * Load information about eContent formats.
 	 *
-	 * @param record
+	 * @param record         The MARC record information
 	 * @param econtentRecord The record to load format information for
 	 * @param econtentItem   The item to load format information for
 	 */

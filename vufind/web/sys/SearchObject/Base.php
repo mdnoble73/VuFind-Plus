@@ -643,13 +643,13 @@ abstract class SearchObject_Base
 						//Marmot - search both ISBN-10 and ISBN-13
 						//Check to see if the search term looks like an ISBN10 or ISBN13
 						$lookfor = strip_tags($_REQUEST['lookfor'.$groupCount][$i]);
-						if (($type == 'Keyword' || $type == 'ISN' || $type == 'AllFields') &&
+						/*if (($type == 'Keyword' || $type == 'ISN' || $type == 'AllFields') &&
 								(preg_match('/^\\d-?\\d{3}-?\\d{5}-?\\d$/',$lookfor) ||
 								preg_match('/^\\d{3}-?\\d-?\\d{3}-?\\d{5}-?\\d$/', $lookfor))) {
 							require_once(ROOT_DIR . '/sys/ISBN.php');
 							$isbn = new ISBN($lookfor);
 							$lookfor = $isbn->get10() . ' OR ' . $isbn->get13();
-						}
+						}*/
 
 						// Add term to this group
 						$group[] = array(
@@ -2007,7 +2007,7 @@ abstract class SearchObject_Base
 			// Process each search group
 			foreach ($search['group'] as $group) {
 				// Build this group individually as a basic search
-				$thisGroup[] = $this->getHumanReadableFieldName($group['field']) .
+				$thisGroup[] = $group['field'] .
                     ":{$group['lookfor']}";
 			}
 			// Is this an exclusion (NOT) group or a normal group?
@@ -2144,10 +2144,7 @@ public function getNextPrevLinks(){
 							if (isset($previousRecord)){
 								$interface->assign('previousIndex', $currentResultIndex - 1 + 1);
 								$interface->assign('previousTitle', $previousRecord['title_display']);
-								if (strpos($previousRecord['id'], 'econtentRecord') === 0){
-									$interface->assign('previousType', 'EcontentRecord');
-									$interface->assign('previousId', str_replace('econtentRecord', '', $previousRecord['id']));
-								}elseif (strpos($previousRecord['id'], 'list') === 0){
+								if (strpos($previousRecord['id'], 'list') === 0){
 									$interface->assign('previousType', 'MyAccount/MyList');
 									$interface->assign('previousId', str_replace('list', '', $previousRecord['id']));
 								}else if ($previousRecord['recordtype'] == 'grouped_work'){
@@ -2173,10 +2170,7 @@ public function getNextPrevLinks(){
 							$interface->assign('nextIndex', $currentResultIndex + 1 + 1);
 							if (isset($nextRecord)){
 								$interface->assign('nextTitle', $nextRecord['title_display']);
-								if (strpos($nextRecord['id'], 'econtentRecord') === 0){
-									$interface->assign('nextType', 'EcontentRecord');
-									$interface->assign('nextId', str_replace('econtentRecord', '', $nextRecord['id']));
-								}elseif (strpos($nextRecord['id'], 'list') === 0){
+								if (strpos($nextRecord['id'], 'list') === 0){
 									$interface->assign('nextType', 'MyAccount/MyList');
 									$interface->assign('nextId', str_replace('list', '', $nextRecord['id']));
 								}else if ($nextRecord['recordtype'] == 'grouped_work'){

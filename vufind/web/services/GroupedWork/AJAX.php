@@ -203,7 +203,8 @@ class GroupedWork_AJAX {
 		$dataType = $_REQUEST['dataType'];
 
 		require_once ROOT_DIR . '/RecordDrivers/GroupedWorkDriver.php';
-		$id = $_REQUEST['id'];
+		$id = !empty($_REQUEST['id']) ? $_REQUEST['id'] : $_GET['id'];
+			// TODO: request id is not always being set by index page.
 		$recordDriver = new GroupedWorkDriver($id);
 		$upc = $recordDriver->getCleanUPC();
 		$isbn = $recordDriver->getCleanISBN();
@@ -226,10 +227,12 @@ class GroupedWork_AJAX {
 		$id = $_REQUEST['id'];
 		$recordDriver = new GroupedWorkDriver($id);
 
-		if (!empty($_REQUEST['browseCategoryId'])){
+		if (!empty($_REQUEST['browseCategory'])){ // TODO need to check for $_REQUEST['subCategory'] ??
+			// Changed from $_REQUEST['browseCategoryId'] to $_REQUEST['browseCategory'] to be consistent with Browse Category code.
+			// TODO Need to see when this comes into action and verify it works as expected. plb 8-19-2015
 			require_once ROOT_DIR . '/sys/Browse/BrowseCategory.php';
 			$browseCategory = new BrowseCategory();
-			$browseCategory->textId = $_REQUEST['browseCategoryId'];
+			$browseCategory->textId = $_REQUEST['browseCategory'];
 			if ($browseCategory->find(true)){
 				$browseCategory->numTitlesClickedOn++;
 				$browseCategory->update_stats_only();
@@ -240,15 +243,15 @@ class GroupedWork_AJAX {
 //		// if the grouped work consists of only 1 related item, return the record url, otherwise return the grouped-work url
 		$relatedRecords = $recordDriver->getRelatedRecords();
 
-//		// long version, for unlikely case that $relatedRecords[0] won't work
-//		if (count($relatedRecords) == 1) {
-//			$onlyRecord = reset($relatedRecords);
-//			$url = $onlyRecord['url'];
-//		} else {
-//			$url = $recordDriver->getLinkUrl();
-//		}
 		// short version
-		$url = (count($relatedRecords) == 1) ? $relatedRecords[0]['url'] : $recordDriver->getLinkUrl();
+
+		if (count($relatedRecords) == 1){
+			$firstRecord = reset($relatedRecords);
+			$url = $firstRecord['url'];
+		}else{
+			$url =  $recordDriver->getLinkUrl();
+		}
+
 		$escapedId = htmlentities($recordDriver->getPermanentId()); // escape for html
 		$buttonLabel = translate('Add to favorites');
 
@@ -265,7 +268,6 @@ class GroupedWork_AJAX {
 					."<a href='$url'><button class='modal-buttons btn btn-primary'>More Info</button></a>"
 		);
 		return json_encode($results);
-
 	}
 
 

@@ -10,22 +10,16 @@
 						<ul>
 							{foreach from=$browseCategories item=browseCategory name="browseCategoryLoop"}
 								<li id="browse-category-{$browseCategory->textId}" class="browse-category category{$smarty.foreach.browseCategoryLoop.index%9}{if (!$selectedBrowseCategory && $smarty.foreach.browseCategoryLoop.index == 0) || $selectedBrowseCategory && $selectedBrowseCategory->textId == $browseCategory->textId} selected{/if}" data-category-id="{$browseCategory->textId}">
-									{*<a*}{* href="#"  causes the page to bounce to the top, and is very jarring. *}{*>*}{* js now implemented through browse.js. These links can be removed once styling referencing it is adjusted. plb 12-22-2014 *}
-									{* links removed 4-23-2015 *}
 										<div >
 											{$browseCategory->label}
 										</div>
-									{*</a>*}
 								</li>
 							{/foreach}
 						</ul>
 					</div>
-{* indicators arrows moved to css:
- #browse-category-picker a.jcarousel-control-next:after and
-  #browse-category-picker a.jcarousel-control-prev:before
-  plb 11-18-2014 *}
-					<a href="#" class="jcarousel-control-prev">{*&lsaquo;*}</a>
-					<a href="#" class="jcarousel-control-next">{*&rsaquo;*}</a>
+
+					<a href="#" class="jcarousel-control-prev"></a>
+					<a href="#" class="jcarousel-control-next"></a>
 
 					<p class="jcarousel-pagination"></p>
 				</div>

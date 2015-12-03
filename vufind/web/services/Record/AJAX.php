@@ -86,101 +86,6 @@ class Record_AJAX extends Action {
 		(UserAccount::isLoggedIn() ? "True" : "False") . "</result>";
 	}
 
-	function GetHoldingsInfo(){
-		require_once 'Holdings.php';
-		global $interface;
-		global $configArray;
-		global $library;
-		global $timer;
-		$timer->logTime("Starting GetHoldingsInfo");
-		if ($configArray['Catalog']['offline']){
-			$interface->assign('offline', true);
-		}else{
-			$interface->assign('offline', false);
-		}
-		$fullId = $_REQUEST['id'];
-		$recordInfo = explode(':', $fullId);
-		$recordType = $recordInfo[0];
-		$ilsId = $recordInfo[1];
-		$interface->assign('id', $ilsId);
-		$interface->assign('recordType', $recordType);
-
-		$showCopiesLineInHoldingsSummary = true;
-		$showCheckInGrid = true;
-		if ($library && $library->showCopiesLineInHoldingsSummary == 0){
-			$showCopiesLineInHoldingsSummary = false;
-		}
-		$interface->assign('showCopiesLineInHoldingsSummary', $showCopiesLineInHoldingsSummary);
-		if ($library && $library->showCheckInGrid == 0){
-			$showCheckInGrid = false;
-		}
-		$interface->assign('showCheckInGrid', $showCheckInGrid);
-
-		try {
-			$catalog = CatalogFactory::getCatalogConnectionInstance();;
-			$timer->logTime("Connected to catalog");
-		} catch (PDOException $e) {
-			// What should we do with this error?
-			if ($configArray['System']['debug']) {
-				echo '<pre>';
-				echo 'DEBUG: ' . $e->getMessage();
-				echo '</pre>';
-			}
-			return null;
-		}
-
-		$hasLastCheckinData = false;
-		$holdingData = new stdClass();
-		// Get Holdings Data
-		if ($catalog->status) {
-			$result = $catalog->getHolding($fullId);
-			$timer->logTime("Loaded Holding Data from catalog");
-			if (PEAR_Singleton::isError($result)) {
-				PEAR_Singleton::raiseError($result);
-			}
-			if (count($result)) {
-				$holdings = array();
-				$issueSummaries = array();
-				foreach ($result as $copy) {
-					if (isset($copy['type']) && $copy['type'] == 'issueSummary'){
-						$issueSummaries = $result;
-						break;
-					}else{
-						$hasLastCheckinData = (isset($copy['lastCheckinDate']) && $copy['lastCheckinDate'] != null) || $hasLastCheckinData; // if $hasLastCheckinData was true keep that value even when first check is false.
-						// flag for at least 1 lastCheckinDate
-
-						$key = $copy['location'];
-						$key = preg_replace('~\W~', '_', $key);
-						$holdings[$key][] = $copy;
-					}
-				}
-				if (isset($issueSummaries) && count($issueSummaries) > 0){
-					$interface->assign('issueSummaries', $issueSummaries);
-					$holdingData->issueSummaries = $issueSummaries;
-				}else{
-					$interface->assign('hasLastCheckinData', $hasLastCheckinData);
-					$interface->assign('holdings', $holdings);
-					$holdingData->holdings = $holdings;
-				}
-			}else{
-				$interface->assign('holdings', array());
-				$holdingData->holdings = array();
-			}
-
-			//Holdings summary
-			$result = $catalog->getStatusSummary($fullId, false);
-			if (PEAR_Singleton::isError($result)) {
-				PEAR_Singleton::raiseError($result);
-			}
-			$holdingData->holdingsSummary = $result;
-			$interface->assign('holdingsSummary', $result);
-			$timer->logTime("Loaded holdings summary");
-			$interface->assign('formattedHoldingsSummary', $interface->fetch('Record/holdingsSummary.tpl'));
-		}
-
-		return $interface->fetch('Record/ajax-holdings.tpl');
-	}
-
 	function GetProspectorInfo(){
 		require_once ROOT_DIR . '/Drivers/marmot_inc/Prospector.php';
 		global $configArray;
@@ -230,6 +135,9 @@ class Record_AJAX extends Action {
 			$id = $_REQUEST['id'];
 			$recordSource = $_REQUEST['recordSource'];
 			$interface->assign('recordSource', $recordSource);
+			if (isset($_REQUEST['volume'])){
+				$interface->assign('volume', $_REQUEST['volume']);
+			}
 
 			//Get information to show a warning if the user does not have sufficient holds
 			require_once ROOT_DIR . '/Drivers/marmot_inc/PType.php';
@@ -420,7 +328,7 @@ class Record_AJAX extends Action {
 		$analytics->enableTracking();
 		$recordId = $_REQUEST['id'];
 		if (strpos($recordId, ':') > 0){
-			list($source, $shortId) = explode(':', $recordId);
+			list($source, $shortId) = explode(':', $recordId, 2);
 		}else{
 			$shortId = $recordId;
 		}
@@ -491,7 +399,11 @@ class Record_AJAX extends Action {
 					if (isset($_REQUEST['selectedItem'])) {
 						$return = $patron->placeItemHold($shortId, $_REQUEST['selectedItem'], $campus);
 					} else {
-						$return = $patron->placeHold($shortId, $campus);
+						if (isset($_REQUEST['volume'])){
+							$return = $patron->placeVolumeHold($shortId, $_REQUEST['volume'], $campus);
+						}else{
+							$return = $patron->placeHold($shortId, $campus);
+						}
 					}
 
 					$homeLibrary = $patron->getHomeLibrary();
@@ -515,7 +427,7 @@ class Record_AJAX extends Action {
 							'success' => true,
 							'needsItemLevelHold' => true,
 							'message' => $interface->fetch('Record/item-hold-popup.tpl'),
-							'title' => $return['title'],
+							'title' => isset($return['title']) ? $return['title'] : '',
 						);
 					} else { // Completed Hold Attempt
 						$interface->assign('message', $return['message']);
@@ -547,7 +459,7 @@ class Record_AJAX extends Action {
 						$results = array(
 							'success' => $return['success'],
 							'message' => $interface->fetch('Record/hold-success-popup.tpl'),
-							'title' => $return['title'],
+							'title' => isset($return['title']) ? $return['title'] : '',
 						);
 						if (isset($_REQUEST['autologout'])) {
 							UserAccount::softLogout();

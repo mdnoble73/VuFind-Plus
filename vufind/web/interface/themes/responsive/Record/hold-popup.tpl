@@ -1,9 +1,12 @@
 {strip}
 <div id="page-content" class="content">
-	<form name="placeHoldForm" id="placeHoldForm" action="{$path}/{$activeRecordProfileModule}/{$id|escape:"url"}/Hold" method="post" class="form">
+	<form name="placeHoldForm" id="placeHoldForm" method="post" class="form">
 		<input type="hidden" name="id" id="id" value="{$id}">
 		<input type="hidden" name="recordSource" id="recordSource" value="{$recordSource}">
 		<input type="hidden" name="module" id="module" value="{$activeRecordProfileModule}">
+		{if $volume}
+			<input type="hidden" name="volume" id="volume" value="{$volume}">
+		{/if}
 		<fieldset>
 			<div class="holdsSummary">
 				<input type="hidden" name="holdCount" id="holdCount" value="1">

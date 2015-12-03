@@ -47,60 +47,6 @@ class Millennium extends ScreenScrapingDriver
 	/** @var  Solr */
 	public $db;
 
-	private static function loadLibraryLocationInformation() {
-		if (Millennium::$libraryLocationInformationLoaded == false){
-			//Get a list of all locations for the active library
-			global $library;
-			global $timer;
-			$userLibrary = Library::getPatronHomeLibrary();
-			Millennium::$libraryLocations = array();
-			Millennium::$libraryLocationLabels = array();
-			$libraryLocation = new Location();
-			if ($userLibrary){
-				$libraryLocation->libraryId = $userLibrary->libraryId;
-				$libraryLocation->find();
-				while ($libraryLocation->fetch()){
-					Millennium::$libraryLocations[] = $libraryLocation->code;
-					Millennium::$libraryLocationLabels[$libraryLocation->code] = $libraryLocation->facetLabel;
-				}
-			}else{
-				$libraryLocation->libraryId = $library->libraryId;
-				$libraryLocation->find();
-				while ($libraryLocation->fetch()){
-					Millennium::$libraryLocations[] = $libraryLocation->code;
-					Millennium::$libraryLocationLabels[$libraryLocation->code] = $libraryLocation->facetLabel;
-				}
-			}
-			Millennium::$homeLocationCode = null;
-			Millennium::$homeLocationLabel = null;
-			$searchLocation = Location::getSearchLocation();
-			if ($searchLocation){
-				Millennium::$homeLocationCode = $searchLocation->code;
-				Millennium::$homeLocationLabel = $searchLocation->facetLabel;
-			}else{
-				$homeLocation = Location::getUserHomeLocation();
-				if ($homeLocation){
-					Millennium::$homeLocationCode = $homeLocation->code;
-					Millennium::$homeLocationLabel = $homeLocation->facetLabel;
-				}
-			}
-
-			$timer->logTime("Finished loading location data");
-
-			Millennium::$scopingLocationCode = '';
-
-			$searchLibrary = Library::getSearchLibrary();
-			$searchLocation = Location::getSearchLocation();
-			if (isset($searchLibrary)){
-				Millennium::$scopingLocationCode = $searchLibrary->ilsCode;
-			}
-			if (isset($searchLocation)){
-				Millennium::$scopingLocationCode = $searchLocation->code;
-			}
-			Millennium::$libraryLocationInformationLoaded = true;
-		}
-	}
-
 	/**
 	 * Load information about circulation statuses from the database
 	 * so we can perform translations easily and so we can determine
@@ -260,246 +206,6 @@ class Millennium extends ScreenScrapingDriver
 	static $homeLocationCode = null;
 	static $homeLocationLabel = null;
 	static $scopingLocationCode = null;
-
-	/**
-	 * Loads items information as quickly as possible (no direct calls to the ILS).  Does do filtering by loan rules
-	 *
-	 * return is an array of items with the following information:
-	 *  location
-	 *  call number
-	 *  available
-	 *  holdable
-	 *  lastStatusCheck (time)
-	 *
-	 * @param $id              string The ID of the Record
-	 * @param $scopingEnabled  boolean Limit Items by scoping
-	 * @param $marcRecord      MarcRecord|null  Pass the MarcRecord Object if it has already been created
-	 * @return mixed           Array of items' information
-	 */
-	public function getItemsFast($id, $scopingEnabled, $marcRecord = null){
-		if ($marcRecord == null){
-			$marcRecord = MarcLoader::loadMarcRecordByILSId($id);
-			global $timer;
-			$timer->logTime("Finished loading MARC Record for getItemsFast");
-		}
-
-		Millennium::loadLibraryLocationInformation();
-
-		//Get the items Fields from the record
-		global $timer;
-		$items = array();
-		$pTypes = $this->getPTypes();
-		//$timer->logTime("Finished loading pType");
-
-		global $configArray;
-		global $indexingProfiles;
-		if (array_key_exists($this->accountProfile->recordSource, $indexingProfiles)) {
-			/** @var IndexingProfile $indexingProfile */
-			$indexingProfile = $indexingProfiles[$this->accountProfile->recordSource];
-			$itemTag = $indexingProfile->itemTag;
-			$statusSubfield = $indexingProfile->status;
-			$iTypeSubfield = $indexingProfile->iType;
-			$dueDateSubfield = $indexingProfile->dueDate;
-			$lastCheckinDateSubfield = null;
-			$locationSubfield = $indexingProfile->location;
-		}else{
-			$itemTag = $configArray['Reindex']['itemTag'];
-			$statusSubfield = $configArray['Reindex']['statusSubfield'];
-			$iTypeSubfield = $configArray['Reindex']['iTypeSubfield'];
-			$dueDateSubfield = $configArray['Reindex']['dueDateSubfield'];
-			$lastCheckinDateSubfield = $configArray['Reindex']['lastCheckinDateSubfield'];
-			$locationSubfield = $configArray['Reindex']['locationSubfield'];
-		}
-		/** @var File_MARC_Data_Field[] $itemFields */
-		$itemFields = $marcRecord->getFields($itemTag);
-		$timer->logTime("Finished loading item fields for $id, found " . count($itemFields));
-
-		foreach ($itemFields as $itemField){
-			//Ignore eContent items
-			$eContentData = trim($itemField->getSubfield('w') != null ? $itemField->getSubfield('w')->getData() : '');
-			if ($eContentData && strpos($eContentData, ':') > 0){
-				continue;
-			}
-
-			$locationCode = $itemField->getSubfield($locationSubfield) != null ? trim($itemField->getSubfield($locationSubfield)->getData()) : '';
-			//Do a quick check of location code so we can remove this quickly when scoping is enabled
-			if ($scopingEnabled && strlen(Millennium::$scopingLocationCode) > 0 && !preg_match('/^' . Millennium::$scopingLocationCode . '.*$/i', $locationCode)){
-				global $logger;
-				$logger->log("Removed item because scoping is enabled and the location code $locationCode did not match " . Millennium::$scopingLocationCode, PEAR_LOG_DEBUG);
-				continue;
-			}
-			$iType = $itemField->getSubfield($iTypeSubfield) != null ? trim($itemField->getSubfield($iTypeSubfield)->getData()) : '';
-			$holdable = $this->isItemHoldableToPatron($locationCode, $iType, $pTypes);
-			$bookable = $this->isItemBookableToPatron($locationCode, $iType, $pTypes);
-
-			$isLibraryItem = false;
-			$locationLabel = '';
-			foreach (Millennium::$libraryLocations as $tmpLocation){
-				if (strpos($locationCode, $tmpLocation) === 0){
-					$isLibraryItem = true;
-					$locationLabel = Millennium::$libraryLocationLabels[$tmpLocation];
-					break;
-				}
-			}
-			$timer->logTime("Finished checking if item is holdable");
-
-			//Check to make sure the user has access to this item
-			if ($holdable || $isLibraryItem){
-				$isLocalItem = false;
-				if (Millennium::$homeLocationCode != null && strpos($locationCode, Millennium::$homeLocationCode) === 0){
-					$isLocalItem = true;
-					$locationLabel = Millennium::$homeLocationLabel;
-				}
-
-				$status = trim($itemField->getSubfield($statusSubfield) != null ? trim($itemField->getSubfield($statusSubfield)->getData()) : '');
-				$dueDate = $itemField->getSubfield($dueDateSubfield) != null ? trim($itemField->getSubfield($dueDateSubfield)->getData()) : null;
-
-				$lastCheckinDate = $itemField->getSubfield($lastCheckinDateSubfield);
-				if ($lastCheckinDate){ // convert to timestamp for ease of display in template
-					$lastCheckinDate = trim($lastCheckinDate->getData());
-					$lastCheckinDate = DateTime::createFromFormat('m-d-Y G:i', $lastCheckinDate);
-					if ($lastCheckinDate) $lastCheckinDate = $lastCheckinDate->getTimestamp();
-				}
-				if (!$lastCheckinDate) $lastCheckinDate = null;
-
-				$available = (in_array($status, array('-', 'o', 'd', 'w', ')', 'u')) && ($dueDate == null || strlen($dueDate) == 0));
-				$inLibraryUseOnly = $status == 'o';
-
-				if ($indexingProfile){
-					$useItemBasedCallNumbers = $indexingProfile->useItemBasedCallNumbers;
-				}else{
-					$useItemBasedCallNumbers = $configArray['Reindex']['useItemBasedCallNumbers'];
-				}
-				if ($useItemBasedCallNumbers){
-					if ($indexingProfile){
-						$prestamp = $indexingProfile->callNumberPrestamp;
-						$callNumber = $indexingProfile->callNumber;
-						$cutter = $indexingProfile->callNumberCutter;
-						$postStamp = $indexingProfile->callNumberPoststamp;
-					}else{
-						$prestamp = $configArray['Reindex']['callNumberPrestampSubfield'];
-						$callNumber = $configArray['Reindex']['callNumberPrestampSubfield'];
-						$cutter = $configArray['Reindex']['callNumberPrestampSubfield'];
-						$postStamp = $configArray['Reindex']['callNumberPrestampSubfield'];
-					}
-					$fullCallNumber = $itemField->getSubfield($prestamp) != null ? ($itemField->getSubfield($prestamp)->getData() . ' '): '';
-					$fullCallNumber .= $itemField->getSubfield($callNumber) != null ? $itemField->getSubfield($callNumber)->getData() : '';
-					$fullCallNumber .= $itemField->getSubfield($cutter) != null ? (' ' . $itemField->getSubfield($cutter)->getData()) : '';
-					$fullCallNumber .= $itemField->getSubfield($postStamp) != null ? (' ' . $itemField->getSubfield($postStamp)->getData()) : '';
-				}else{
-					/** @var File_MARC_Data_Field $callNumber */
-					$callNumber = $marcRecord->getField('092');
-					if ($callNumber){
-						$fullCallNumber = $callNumber->getSubfield('a')->getData();
-					}
-				}
-
-				if ($indexingProfile){
-					$shelfLocation = $indexingProfile->translate('shelf_location', $locationCode);
-				}else{
-					$shelfLocation = mapValue('shelf_location', $locationCode);
-				}
-
-				if (preg_match('/(.*?)\\sC\\d{3}\\w{0,2}$/', $shelfLocation, $locationParts)){
-					$shelfLocation = $locationParts[1];
-				}
-				$item = array(
-					'location' => $locationCode,
-					'callnumber' => $fullCallNumber,
-					'availability' => $available,
-					'holdable' => $holdable,
-					'bookable' => $bookable,
-					'inLibraryUseOnly' => $inLibraryUseOnly,
-					'isLocalItem' => $isLocalItem,
-					'isLibraryItem' => $isLibraryItem,
-					'locationLabel' => $locationLabel,
-					'shelfLocation' => $shelfLocation,
-					'status' => $status,
-					'dueDate' => $dueDate,
-					'iType' => $iType,
-					'lastCheckinDate' => $lastCheckinDate,
-				);
-				$items[] = $item;
-			}
-			//$timer->logTime("Finished processing item");
-		}
-		global $timer;
-		$timer->logTime("Finished load items fast for Millennium record $id there were " . count($itemFields) . " item fields originally, filtered to " . count($items));
-		return $items;
-	}
-
-	var $statuses = array();
-	public function getStatus($id){
-		global $timer;
-
-		if (isset($this->statuses[$id])){
-			return $this->statuses[$id];
-		}
-		require_once ROOT_DIR . '/Drivers/marmot_inc/MillenniumStatusLoader.php';
-		$millenniumStatusLoader = new MillenniumStatusLoader($this);
-		//Load circulation status information so we can use it later on to
-		//determine what is holdable and what is not.
-		self::loadCircStatusInfo();
-		self::loadLoanRules();
-		$timer->logTime('loadCircStatusInfo, loadLoanRules');
-
-		$this->statuses[$id] = $millenniumStatusLoader->getStatus($id);
-
-		return $this->statuses[$id];
-	}
-
-	public function getStatuses($ids) {
-		$items = array();
-		$count = 0;
-		foreach ($ids as $id) {
-			$items[$count] = $this->getStatus($id);
-			$count++;
-		}
-		return $items;
-	}
-
-	/**
-	 * Returns a summary of the holdings information for a single id. Used to display
-	 * within the search results and at the top of a full record display to ensure
-	 * the holding information makes sense to all users.
-	 *
-	 * @param string $id the id of the bid to load holdings for
-	 * @param boolean $forSearch whether or not the summary will be shown in search results
-	 * @return array an associative array with a summary of the holdings.
-	 */
-	public function getStatusSummary($id, $forSearch = false){
-		//Load circulation status information so we can use it later on to
-		//determine what is holdable and what is not.
-		self::loadCircStatusInfo();
-		self::loadLoanRules();
-
-		require_once ROOT_DIR . '/Drivers/marmot_inc/MillenniumStatusLoader.php';
-		$millenniumStatusLoader = new MillenniumStatusLoader($this);
-		return $millenniumStatusLoader->getStatusSummary($id, $forSearch);
-	}
-
-	/**
-	 * Returns summary information for an array of ids.  This allows the search results
-	 * to query all holdings at one time.
-	 *
-	 * @param array $ids an array ids to load summary information for.
-	 * @param boolean $forSearch whether or not the summary will be shown in search results
-	 * @return array an associative array containing a second array with summary information.
-	 */
-	public function getStatusSummaries($ids, $forSearch = false){
-		$items = array();
-		$count = 0;
-		foreach ($ids as $id) {
-			$items[$count] = $this->getStatusSummary($id, $forSearch);
-			$count++;
-		}
-		return $items;
-	}
-
-	public function getHolding($id)
-	{
-		return $this->getStatus($id);
-	}
 
 	/**
 	 * Patron Login
@@ -974,6 +680,25 @@ class Millennium extends ScreenScrapingDriver
 		return $millenniumHolds->placeItemHold($patron, $recordId, $itemId, $pickupBranch);
 	}
 
+	/**
+	 * Place Volume Hold
+	 *
+	 * This is responsible for both placing volume level holds.
+	 *
+	 * @param   User    $patron         The User to place a hold for
+	 * @param   string  $recordId       The id of the bib record
+	 * @param   string  $volumeId       The id of the volume to hold
+	 * @param   string  $pickupBranch   The branch where the user wants to pickup the item when available
+	 * @return  mixed                   True if successful, false if unsuccessful
+	 *                                  If an error occurs, return a PEAR_Error
+	 * @access  public
+	 */
+	function placeVolumeHold($patron, $recordId, $volumeId, $pickupBranch) {
+		require_once ROOT_DIR . '/Drivers/marmot_inc/MillenniumHolds.php';
+		$millenniumHolds = new MillenniumHolds($this);
+		return $millenniumHolds->placeVolumeHold($patron, $recordId, $volumeId, $pickupBranch);
+	}
+
 	public function updateHold($patron, $requestId, $type, $title){
 		require_once ROOT_DIR . '/Drivers/marmot_inc/MillenniumHolds.php';
 		$millenniumHolds = new MillenniumHolds($this);
@@ -1056,6 +781,7 @@ class Millennium extends ScreenScrapingDriver
 	}
 
 	/**
+	 * @param  User $patron
 	 * @return array      data for client-side AJAX responses
 	 */
 	public function cancelAllBookedMaterial($patron) {
@@ -1233,11 +959,11 @@ class Millennium extends ScreenScrapingDriver
 	 *
 	 * If there are no issue summaries, null will be returned from the summary.
 	 *
-	 * @param MillenniumCache $millenniumInfo - Information from Millennium to load issue information from.
-	 *
+	 * @param string $id
 	 * @return mixed - array or null
 	 */
-	public function getIssueSummaries($millenniumInfo){
+	public function getIssueSummaries($id){
+		$millenniumInfo = $this->getMillenniumRecordInfo($id);
 		//Issue summaries are loaded from the main record page.
 
 		if (preg_match('/class\\s*=\\s*\\"bibHoldings\\"/s', $millenniumInfo->framesetInfo)){
@@ -1291,6 +1017,7 @@ class Millennium extends ScreenScrapingDriver
 					}
 				}
 			}
+
 			return $issueSummaries;
 		}else{
 			return null;
@@ -1465,6 +1192,7 @@ class Millennium extends ScreenScrapingDriver
 		$pTypeString = implode(',', $pTypes);
 		$memcacheKey = "loan_rule_material_booking_result_{$locationCode}_{$iType}_{$pTypeString}";
 		$cachedValue = $memCache->get($memcacheKey);
+		$pType = '';
 		if ($cachedValue !== false && !isset($_REQUEST['reload'])){
 			return $cachedValue == 'true';
 		}else {
@@ -1676,7 +1404,7 @@ class Millennium extends ScreenScrapingDriver
 		$post_data['nlast'] = $lastName;
 		$post_data['stre_aaddress'] = $address;
 		if ($this->combineCityStateZipInSelfRegistration()){
-			$post_data['city_aaddress'] = "$city $state, $zip";
+			$post_data['city_aaddress'] = "$city, $state $zip";
 		}else{
 			$post_data['city_aaddress'] = "$city";
 			$post_data['stat_aaddress'] = "$state";
@@ -1825,16 +1553,11 @@ class Millennium extends ScreenScrapingDriver
 		curl_setopt($curl_connection, CURLOPT_HTTPGET, true);
 
 		curl_setopt($curl_connection, CURLOPT_URL, $pinResetUrl);
-		$pinResetPageHtml = curl_exec($curl_connection);
+		/*$pinResetPageHtml = */curl_exec($curl_connection);
 
 		//Now submit the request
 		$post_data['code'] = $barcode;
 		$post_data['pat_submit'] = 'xxx';
-//		$post_items = array();
-//		foreach ($post_data as $key => $value) {
-//			$post_items[] = $key . '=' . $value;
-//		}
-//		$post_string = implode ('&', $post_items);
 		$post_string = http_build_query($post_data);
 		curl_setopt($curl_connection, CURLOPT_POST, true);
 		curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
@@ -1861,6 +1584,7 @@ class Millennium extends ScreenScrapingDriver
 	/**
 	 * Import Lists from the ILS
 	 *
+	 * @param  User $patron
 	 * @return array - an array of results including the names of the lists that were imported as well as number of titles.
 	 */
 	function importListsFromIls($patron){
@@ -1956,7 +1680,7 @@ class Millennium extends ScreenScrapingDriver
 	 * @return String the check digit
 	 */
 	function getCheckDigit($baseId){
-		$baseId = str_replace('b', '', $baseId);
+		$baseId = preg_replace('/\.?[bij]/', '', $baseId);
 		if (strlen($baseId) != 7){
 			return "a";
 		}else{

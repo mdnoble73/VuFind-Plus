@@ -31,6 +31,7 @@ function checkConflictingProcesses() {
 #Check for any conflicting processes that we shouldn't do a full index during.
 checkConflictingProcesses "overdrive_extract.jar ${PIKASERVER}"
 checkConflictingProcesses "reindexer.jar ${PIKASERVER}"
+checkConflictingProcesses "horizon_export.jar ${PIKASERVER}"
 
 #Restart Solr
 cd /usr/local/vufind-plus/sites/${PIKASERVER}; ./${PIKASERVER}.sh restart

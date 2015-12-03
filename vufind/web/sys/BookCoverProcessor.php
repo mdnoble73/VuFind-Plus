@@ -57,12 +57,6 @@ class BookCoverProcessor{
 				return;
 			}
 		}
-		if ($this->isEContent){
-			$this->initDatabaseConnection();
-			//Will exit if we find a cover
-			$this->getCoverFromEContent();
-		}
-
 		$this->log("Looking for cover from providers", PEAR_LOG_INFO);
 		if ($this->getCoverFromProvider()){
 			return;
@@ -118,70 +112,6 @@ class BookCoverProcessor{
 		}else{
 			return false;
 		}
-	}
-
-	private function getCoverFromEContent(){
-		if ($this->configArray['EContent']['library'] && isset($this->id) && is_numeric($this->id)){
-			$this->log("Looking for eContent Cover", PEAR_LOG_INFO);
-			$this->initMemcache();
-
-			$this->log("Checking eContent database to see if there is a record for $this->id", PEAR_LOG_INFO);
-			//Check the database to see if there is an existing title
-			require_once(ROOT_DIR . '/sys/eContent/EContentRecord.php');
-			$epubFile = new EContentRecord();
-			$epubFile->id = $this->id;
-			if ($epubFile->find(true)){
-				$this->log("Found an eContent record for $this->id, source is {$epubFile->source}", PEAR_LOG_INFO);
-				//Get the cover for the epub if one exists.
-				if ((strcasecmp($epubFile->source, 'OverDrive') == 0) && ($epubFile->cover == null || strlen($epubFile->cover) == 0)){
-					$this->log("Record is an OverDrive record that needs cover information fetched.", PEAR_LOG_INFO);
-					//Get the image from OverDrive
-					require_once ROOT_DIR . '/Drivers/OverDriveDriverFactory.php';
-					$overDriveDriver = OverDriveDriverFactory::getDriver();
-					$filename = $overDriveDriver->getCoverUrl($epubFile);
-					$this->log("Got OverDrive cover information for $epubFile->id $epubFile->sourceUrl", PEAR_LOG_INFO);
-					$this->log("Received filename $filename", PEAR_LOG_INFO);
-					if ($filename != null){
-						$epubFile->cover = $filename;
-						$ret = $epubFile->update(); //Don't update solr for performance reasons
-						$this->log("Result of saving cover url is $ret", PEAR_LOG_INFO);
-					}
-				}elseif (preg_match('/Colorado State Gov\\. Docs/si', $epubFile->source) == 1 || $epubFile->source == 'CO State Gov Docs' ){
-					//Cover is colorado state flag
-					$this->log("Record is a gov docs file.", PEAR_LOG_INFO);
-					$themeName = $this->configArray['Site']['theme'];
-					$filename = "interface/themes/{$themeName}/images/state_flag_of_colorado.png";
-					if ($this->processImageURL($filename, true)){
-						return;
-					}
-				}
-				if ($epubFile->cover && strlen($epubFile->cover) > 0){
-					$this->log("Cover for the file is specified as {$epubFile->cover}.", PEAR_LOG_INFO);
-					if (strpos($epubFile->cover, 'http://') === 0){
-						$filename = $epubFile->cover;
-
-
-						if ($this->processImageURL($filename, true)){
-							$this->timer->writeTimings();
-							exit();
-						}
-					}else{
-						$filename = $this->bookCoverPath . '/original/' . $epubFile->cover;
-						$this->localFile = $this->bookCoverPath . '/' . $this->size . '/' . $this->cacheName . '.png';
-						if (file_exists($filename)){
-
-							if ($this->processImageURL($filename, true)){
-								$this->timer->writeTimings();
-								exit();
-							}
-						}else{
-							$this->log("Did not find econtent cover file $filename", PEAR_LOG_ERR);
-						}
-					}
-				}
-			}
-		}
-		$this->log("Did not find a cover based on eContent information.", PEAR_LOG_INFO);
 	}
 
 	private function initDatabaseConnection(){
@@ -241,7 +171,6 @@ class BookCoverProcessor{
 			$this->issn = null;
 		}
 		$this->id = isset($_GET['id']) ? $_GET['id'] : null;
-		$this->isEContent = isset($_GET['econtent']);
 		if (isset($_GET['type'])){
 			$this->type =  $_GET['type'];
 		}else{
@@ -259,11 +188,6 @@ class BookCoverProcessor{
 		$this->category = isset($_GET['category']) ? strtolower($_GET['category']) : null;
 		$this->format = isset($_GET['format']) ? strtolower($_GET['format']) : null;
 		//First check to see if this has a custom cover due to being an e-book
-		if (preg_match('/econtentRecord\d+/', $this->id)){
-			$this->isEContent = true;
-			$this->id = substr($this->id, strlen('econtentRecord'));
-			$this->log("Record is eContent short id is $this->id", PEAR_LOG_INFO);
-		}
 		if (!is_null($this->id)){
 			if ($this->isEContent){
 				$this->cacheName = 'econtent' . $this->id;
@@ -353,8 +277,8 @@ class BookCoverProcessor{
 			if (isset($this->configArray['Content']['coverimages'])) {
 				$providers = explode(',', $this->configArray['Content']['coverimages']);
 				foreach ($providers as $provider) {
-					$this->log("Checking provider $provider", PEAR_LOG_INFO);
 					$provider = explode(':', $provider);
+					$this->log("Checking provider ".$provider[0], PEAR_LOG_INFO);
 					$func = $provider[0];
 					$key = isset($provider[1]) ? $provider[1] : '';
 					if ($this->$func($key)) {
@@ -404,15 +328,7 @@ class BookCoverProcessor{
 			$this->initDatabaseConnection();
 			//Process the marc record
 			require_once ROOT_DIR . '/sys/MarcLoader.php';
-			if ($this->isEContent){
-				$epubFile = new EContentRecord();
-				$epubFile->id = $this->id;
-				if ($epubFile->find(true)){
-					$marcRecord = MarcLoader::loadEContentMarcRecord($epubFile);
-				}else{
-					$marcRecord = false;
-				}
-			}elseif ($this->type != 'overdrive' && $this->type != 'hoopla'){
+			if ($this->type != 'overdrive' && $this->type != 'hoopla'){
 				$marcRecord = MarcLoader::loadMarcRecordByILSId($this->type . ':' . $this->id);
 			}
 		}
@@ -551,14 +467,6 @@ class BookCoverProcessor{
 				$author = ucwords($this->groupedWork->getPrimaryAuthor());
 				$this->category = 'blank';
 			}
-		}elseif ($this->isEContent){
-			require_once ROOT_DIR . '/sys/eContent/EContentRecord.php';
-			$econtentRecord = new EContentRecord();
-			$econtentRecord->id = $this->id;
-			if ($econtentRecord->find(true)){
-				$title = $econtentRecord->title;
-				$author = $econtentRecord->author;
-			}
 		}else{
 			require_once ROOT_DIR . '/RecordDrivers/MarcRecord.php';
 			$recordDriver = new MarcRecord($this->id);
@@ -634,7 +542,7 @@ class BookCoverProcessor{
 		}
 	}
 
-	function processImageURL($url, $cache = true) {
+	function processImageURL($url, $cache = true, $attemptRefetch = true) {
 		$this->log("Processing $url", PEAR_LOG_INFO);
 
 		if ($image = @file_get_contents($url)) {
@@ -661,6 +569,33 @@ class BookCoverProcessor{
 				return false;
 			}
 
+			// Test Image for for partial load
+			if(!$imageResource = @imagecreatefromstring($image)){
+				$this->log("Could not create image from string $url", PEAR_LOG_ERR);
+				@unlink($tempFile);
+				return false;
+			}
+
+			// Check the color of the bottom left corner
+			$rgb = imagecolorat($imageResource, 0, $height-1);
+			if ($rgb == 8421504) {
+				// Confirm by checking the color of the bottom right corner
+				$rgb = imagecolorat($imageResource, $width-1, $height-1);
+				if ($rgb == 8421504) {
+					// This is an image with partial gray at the bottom
+					// (r:128,g:128,b:128)
+//				$r = ($rgb >> 16) & 0xFF;
+//				$g = ($rgb >> 8) & 0xFF;
+//				$b = $rgb & 0xFF;
+
+					$this->log('Partial Gray image loaded.', PEAR_LOG_ERR);
+					if ($attemptRefetch) {
+						$this->log('Partial Gray image, attempting refetch.', PEAR_LOG_INFO);
+						return $this->processImageURL($url, $cache, false); // Refetch once.
+					}
+				}
+			}
+
 			if ($this->size == 'small'){
 				$maxDimension = 100;
 			}elseif ($this->size == 'medium'){
@@ -669,7 +604,7 @@ class BookCoverProcessor{
 				$maxDimension = 400;
 			}
 
-			//Check to see if the image neds to be resized
+			//Check to see if the image needs to be resized
 			if ($width > $maxDimension || $height > $maxDimension){
 				// We no longer need the temp file:
 				@unlink($tempFile);
@@ -687,7 +622,6 @@ class BookCoverProcessor{
 				// create a new temporary image
 				$tmp_img = imagecreatetruecolor( $new_width, $new_height );
 
-				$imageResource = imagecreatefromstring($image);
 				// copy and resize old image into new image
 				if (!imagecopyresampled( $tmp_img, $imageResource, 0, 0, 0, 0, $new_width, $new_height, $width, $height )){
 					$this->log("Could not resize image $url to $this->localFile", PEAR_LOG_ERR);
@@ -705,7 +639,6 @@ class BookCoverProcessor{
 					return false;
 				}
 
-
 			}else{
 				$this->log("Image is the correct size, not resizing.", PEAR_LOG_INFO);
 
@@ -715,17 +648,18 @@ class BookCoverProcessor{
 
 					$conversionOk = true;
 					// Try to create a GD image and rewrite as PNG, fail if we can't:
-					if (!($imageGD = @imagecreatefromstring($image))) {
+					if (!($imageResource = @imagecreatefromstring($image))) {
 						$this->log("Could not create image from string $url", PEAR_LOG_ERR);
 						$conversionOk = false;
 					}
-					if (!@imagepng($imageGD, $finalFile, 9)) {
+
+					if (!@imagepng($imageResource, $finalFile, 9)) {
 						$this->log("Could not save image to file $url $this->localFile", PEAR_LOG_ERR);
 						$conversionOk = false;
 					}
 					// We no longer need the temp file:
 					@unlink($tempFile);
-					imagedestroy($imageGD);
+					imagedestroy($imageResource);
 					if (!$conversionOk){
 						return false;
 					}
@@ -737,7 +671,7 @@ class BookCoverProcessor{
 			}
 
 			// Display the image:
-			$this->returnImage($finalFile, 'png');
+			$this->returnImage($finalFile);
 
 			// If we don't want to cache the image, delete it now that we're done.
 			if (!$cache) {
@@ -819,6 +753,48 @@ class BookCoverProcessor{
 		$url = "http://covers.openlibrary.org/b/isbn/{$this->isn}-{$size}.jpg?default=false";
 		return $this->processImageURL($url);
 	}
+
+	/**
+	 * Retrieve a Content Cafe cover.
+	 *
+	 * @param string $id Content Cafe client ID.
+	 *
+	 * @return bool      True if image displayed, false otherwise.
+	 */
+	function contentCafe($id = null) {
+		global $configArray;
+
+		switch ($this->size) {
+			case 'medium':
+				$size = 'M';
+				break;
+			case 'large':
+				$size = 'L';
+				break;
+			case 'small':
+			default:
+				$size = 'S';
+				break;
+		}
+		if (!$id) {
+			$id = $configArray['Contentcafe']['id']; // alternate way to pass the content cafe id to this method.
+		}
+		$pw = $configArray['Contentcafe']['pw'];
+		$url = isset($configArray['Contentcafe']['url']) ?
+							$configArray['Contentcafe']['url'] : 'http://contentcafe2.btol.com';
+
+	$lookupCode = $this->isn;
+	if (!$lookupCode) {
+		$lookupCode = $this->issn;
+		if (!$lookupCode & $this->upc) {
+			$lookupCode = $this->upc;
+		}
+	}
+
+		$url .= "/ContentCafe/Jacket.aspx?UserID={$id}&Password={$pw}&Return=1&Type={$size}&Value={$lookupCode}&erroroverride=1";
+
+	return $this->processImageURL($url);
+}
 
 	function google($id = null)
 	{

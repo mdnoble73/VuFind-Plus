@@ -37,6 +37,7 @@ class Browse_AJAX extends Action {
 			'getMoreBrowseResults',
 			'getBrowseCategoryInfo',
 			'getBrowseSubCategoryInfo',
+			'getActiveBrowseCategories'
 			);
 		if (in_array($method, $allowed_methods)) {
 			$response = $this->$method();
@@ -465,5 +466,51 @@ class Browse_AJAX extends Action {
 				return $result;
 			}
 		}
+	}
+
+	/**
+	 * Return a list of browse categories that are assigned to the home page for the current library.
+	 *
+	 * TODO: Support loading sub categories.  
+	 */
+	private function getActiveBrowseCategories(){
+		//Figure out which library or location we are looking at
+		global $library;
+		/** @var Location $locationSingleton */
+		global $locationSingleton;
+		global $configArray;
+		//Check to see if we have an active location, will be null if we don't have a specific locatoin
+		//based off of url, branch parameter, or IP address
+		$activeLocation = $locationSingleton->getActiveLocation();
+
+		//Get a list of browse categories for that library / location
+		/** @var LibraryBrowseCategory[]|LocationBrowseCategory[] $browseCategories */
+		if ($activeLocation == null){
+			//We don't have an active location, look at the library
+			$browseCategories = $library->browseCategories;
+		}else{
+			//We have a location get data for that
+			$browseCategories = $activeLocation->browseCategories;
+		}
+
+		require_once ROOT_DIR . '/sys/Browse/BrowseCategory.php';
+		//Format for return to the user, we want to return
+		// - the text id of the category
+		// - the display label
+		// - Clickable link to load the category
+		$formattedCategories = array();
+		foreach ($browseCategories as $curCategory){
+			$categoryInformation = new BrowseCategory();
+			$categoryInformation->textId = $curCategory->browseCategoryTextId;
+
+			if ($categoryInformation->find(true)){
+				$formattedCategories[] = array(
+						'text_id' => $curCategory->browseCategoryTextId,
+						'display_label' => $categoryInformation->label,
+						'link' => $configArray['Site']['url'] . '?browseCategory=' . $curCategory->browseCategoryTextId
+				);
+			}
+		}
+		return $formattedCategories;
 	}
 }

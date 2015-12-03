@@ -55,6 +55,15 @@
 			<div class="row">
 				{* Information column author, format, etc *}
 				<div class="resultDetails col-xs-12 col-md-9">
+					{if $record.volume}
+						<div class="row">
+							<div class="result-label col-xs-3">{translate text='Volume'}</div>
+							<div class="col-xs-9 result-value">
+								{$record.volume}
+							</div>
+						</div>
+					{/if}
+
 					{if $record.author}
 						<div class="row">
 							<div class="result-label col-xs-3">{translate text='Author'}</div>
@@ -155,13 +164,13 @@
 					<div class="btn-group btn-group-vertical btn-block">
 						{if $section == 'available'}
 							{if $record.cancelable}
-								{*<button onclick="return VuFind.Account.cancelAvailableHold('{$record.cancelId}', '{$record.shortId}');" class="btn btn-sm btn-warning">Cancel Hold</button>*}
-								<button onclick="return VuFind.Account.cancelHold('{$record.userId}', '{$record.id}', '{$record.cancelId}');" class="btn btn-sm btn-warning">Cancel Hold</button>
+								{* First step in cancelling a hold is now fetching confirmation message, with better labeled buttons. *}
+								<button onclick="return VuFind.Account.confirmCancelHold('{$record.userId}', '{$record.id}', '{$record.cancelId}');" class="btn btn-sm btn-warning">{translate text="Cancel Hold"}</button>
 							{/if}
 						{else}
 							{if $record.cancelable}
-								{*<button onclick="return VuFind.Account.cancelPendingHold('{$record.cancelId}', '{$record.shortId}');" class="btn btn-sm btn-warning">Cancel Hold</button>*}
-								<button onclick="return VuFind.Account.cancelHold('{$record.userId}', '{$record.id}', '{$record.cancelId}');" class="btn btn-sm btn-warning">Cancel Hold</button>
+								{* First step in cancelling a hold is now fetching confirmation message, with better labeled buttons. *}
+								<button onclick="return VuFind.Account.confirmCancelHold('{$record.userId}', '{$record.id}', '{$record.cancelId}');" class="btn btn-sm btn-warning">{translate text="Cancel Hold"}</button>
 							{/if}
 							{if $record.allowFreezeHolds}
 								{if $record.frozen}

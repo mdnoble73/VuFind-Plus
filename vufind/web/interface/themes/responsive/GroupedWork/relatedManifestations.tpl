@@ -28,52 +28,7 @@
 							{/if}
 						</div>
 						<div class="col-xs-8 col-md-5 col-lg-6">
-							{if $relatedManifestation.availableHere}
-								{if $relatedManifestation.availableOnline}
-									<div class="related-manifestation-shelf-status available">Available Online</div>
-								{elseif $relatedManifestation.allLibraryUseOnly}
-									<div class="related-manifestation-shelf-status available">It's Here (library use only)</div>
-								{else}
-									{if $showItsHere}
-										<div class="related-manifestation-shelf-status available">It's Here</div>
-									{else}
-										<div class="related-manifestation-shelf-status available">On Shelf</div>
-									{/if}
-								{/if}
-							{elseif $relatedManifestation.availableLocally}
-								{if $relatedManifestation.availableOnline}
-									<div class="related-manifestation-shelf-status available">Available Online</div>
-								{elseif $relatedManifestation.allLibraryUseOnly}
-									<div class="related-manifestation-shelf-status available">On Shelf (library use only)</div>
-								{elseif $onInternalIP}
-									<div class="related-manifestation-shelf-status availableOther">Available at another branch</div>
-								{else}
-									<div class="related-manifestation-shelf-status available">On Shelf</div>
-								{/if}
-							{elseif $relatedManifestation.availableOnline}
-								<div class="related-manifestation-shelf-status available">Available Online</div>
-							{elseif $relatedManifestation.inLibraryUseOnly}
-								<div class="related-manifestation-shelf-status available">In Library Use Only</div>
-							{elseif $relatedManifestation.available && $relatedManifestation.hasLocalItem}
-								<div class="related-manifestation-shelf-status availableOther">Checked Out/Available Elsewhere</div>
-							{elseif $relatedManifestation.available}
-								<div class="related-manifestation-shelf-status availableOther">{translate text='Available from another library'}</div>
-							{else}
-								<div class="related-manifestation-shelf-status checked_out">
-									{if $relatedManifestation.groupedStatus}{$relatedManifestation.groupedStatus}{else}Checked Out{/if}
-								</div>
-							{/if}
-							{if $relatedManifestation.numHolds > 0 || $relatedManifestation.onOrderCopies > 0}
-								<div class="smallText">
-									{if $relatedManifestation.numHolds > 0}
-										{$relatedManifestation.numHolds} {if $relatedManifestation.numHolds == 1}person is{else}people are{/if} on the wait list
-										{if $relatedManifestation.onOrderCopies > 0}, {else}.{/if}
-									{/if}
-									{if $relatedManifestation.onOrderCopies > 0}
-										{$relatedManifestation.onOrderCopies} {if $relatedManifestation.onOrderCopies == 1}copy{else}copies{/if} on order.
-									{/if}
-								</div>
-							{/if}
+							{include file='GroupedWork/statusIndicator.tpl' statusInformation=$relatedManifestation}
 
 							{include file='GroupedWork/copySummary.tpl' summary=$relatedManifestation.itemSummary totalCopies=$relatedManifestation.copies itemSummaryId=$id}
 

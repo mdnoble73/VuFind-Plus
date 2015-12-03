@@ -134,6 +134,10 @@ public class GroupedWorkSolr {
 		doc.addField("format_boost", getTotalFormatBoost());
 
 		//language related fields
+		//Check to see if we have Unknown plus a valid value
+		if (languages.size() > 1 && languages.contains("Unknown")){
+			languages.remove("Unknown");
+		}
 		doc.addField("language", languages);
 		doc.addField("language_boost", languageBoost);
 		doc.addField("language_boost_es", languageBoostSpanish);

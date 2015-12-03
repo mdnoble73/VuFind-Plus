@@ -95,7 +95,6 @@ public class NashvilleRecordProcessor extends IIIRecordProcessor {
 				itemInfo.setLocationCode(eContentLocation);
 				itemInfo.seteContentSource("Nashville Archives");
 				itemInfo.seteContentProtectionType("external");
-				itemInfo.seteContentSharing("library");
 				itemInfo.setCallNumber("Online");
 				itemInfo.setShelfLocation(itemInfo.geteContentSource());
 				RecordInfo relatedRecord = groupedWork.addRelatedRecord("external_econtent", identifier);

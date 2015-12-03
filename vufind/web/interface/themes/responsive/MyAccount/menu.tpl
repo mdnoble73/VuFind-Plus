@@ -33,7 +33,7 @@
 										</div>
 										<div class="myAccountLink"><a href="{$ecommerceLink}">{if $payFinesLinkText}{$payFinesLinkText}{else}Pay Fines Online{/if}</a></div>
 									{else}
-										<div class="myAccountLink" title="Please Contact your local library to pay fines or Charges." style="color:red; font-weight:bold;" onclick="alert('Please Contact your local library to pay fines or Charges.')">
+										<div class="myAccountLink" title="Please contact your local library to pay fines or charges." style="color:red; font-weight:bold;" onclick="alert('Please contact your local library to pay fines or charges.')">
 											Your account{if count($user->getLinkedUsers())>0}s have{else} has{/if} ${$totalFines|number_format:2} in fines.
 										</div>
 									{/if}
@@ -215,7 +215,7 @@
 			{/if}
 
 			{if $user && ($user->hasRole('userAdmin') || $user->hasRole('opacAdmin'))}
-				{if in_array($action, array('Administrators', 'TransferAccountInfo', 'DBMaintenance', 'DBMaintenanceEContent', 'PHPInfo', 'OpCacheInfo', 'Variables', 'CronLog'))
+				{if in_array($action, array('Administrators', 'DBMaintenance', 'DBMaintenanceEContent', 'PHPInfo', 'OpCacheInfo', 'Variables', 'CronLog'))
 				|| ($module == 'Admin' && $action == 'Home')}
 					{assign var="curSection" value=true}
 				{else}
@@ -234,9 +234,6 @@
 							{if $user->hasRole('userAdmin')}
 								<div class="adminMenuLink {if $action == "Administrators"}active{/if}"><a href="{$path}/Admin/Administrators">Administrators</a></div>
 							{/if}
-							{*
-							<div class="adminMenuLink {if $action == "TransferAccountInfo"}active{/if}"><a href="{$path}/Admin/TransferAccountInfo">Transfer Account Information</a></div>
-							*}
 							<div class="adminMenuLink{if $action == "DBMaintenance"} active{/if}"><a href="{$path}/Admin/DBMaintenance">DB Maintenance - Pika</a></div>
 							<div class="adminMenuLink{if $action == "DBMaintenanceEContent"} active{/if}"><a href="{$path}/Admin/DBMaintenanceEContent">DB Maintenance - EContent</a></div>
 							<div class="adminMenuLink{if $module == 'Admin' && $action == "Home"} active{/if}"><a href="{$path}/Admin/Home">Solr Information</a></div>
@@ -388,6 +385,7 @@
 					<div id="reportsMenu" class="panel-collapse collapse {if $curSection}in{/if}">
 						<div class="panel-body">
 							{if $user && ($user->hasRole('opacAdmin') || $user->hasRole('libraryAdmin'))}
+								{*
 								<div class="adminMenuLink{if $action == "Dashboard"}active{/if}"><a href="{$path}/Report/Dashboard">Dashboard</a></div>
 								<div class="adminMenuLink{if $action == "Searches"}active{/if}"><a href="{$path}/Report/Searches">Searches</a></div>
 								<div class="adminMenuLink">&nbsp;&nbsp;<a href="{$path}/Report/DetailedReport?source=searchesByScope">Searches by Scope</a></div>
@@ -396,53 +394,13 @@
 								<div class="adminMenuLink{if $action == "ILSIntegration"}active{/if}"><a href="{$path}/Report/ILSIntegration">ILS Integration</a></div>
 								<div class="adminMenuLink">&nbsp;&nbsp;<a href="{$path}/Report/DetailedReport?source=holdsByResult">Holds Placed</a></div>
 								<div class="adminMenuLink">&nbsp;&nbsp;<a href="{$path}/Report/DetailedReport?source=renewalsByResult">Renewals</a></div>
+								*}
 								<div class="adminMenuLink{if $action == "ReportPurchase"}active{/if}"><a href="{$path}/Report/ReportPurchase">Purchase Tracking</a></div>
 								<div class="adminMenuLink{if $action == "ReportExternalLinks"}active{/if}"><a href="{$path}/Report/ReportExternalLinks">External Link Tracking</a></div>
 								<div class="adminMenuLink{if $action == "PatronStatus"}active{/if}"><a href="{$path}/Report/PatronStatus">Patron Status</a></div>
 							{/if}
 							{if $ils == 'Sierra' && $user && ($user->hasRole('opacAdmin') || $user->hasRole('libraryAdmin') || $user->hasRole('locationReports'))}
 								<div class="adminMenuLink{if $action == "StudentReport"}active{/if}"><a href="{$path}/Report/StudentReport">Student Reports</a></div>
-							{/if}
-						</div>
-					</div>
-				</div>
-			{/if}
-
-			{if $user && ($user->hasRole('epubAdmin') || $user->hasRole('cataloging') || $user->hasRole('libraryAdmin'))}
-				{if in_array($action, array('EContentSummary', 'EContentCollection', 'EContentUsage', 'ItemlessEContent', 'EContentPurchaseAlert', 'EContentTrialRecords',
-				'EContentWishListReport', 'ArchivedEContent', 'DeletedEContent', 'EContentImportSummary', 'EContentImportDetails', 'PackagingSummary', 'PackagingDetails'))}
-					{assign var="curSection" value=true}
-				{else}
-					{assign var="curSection" value=false}
-				{/if}
-				<div class="panel">
-					<a href="#econtentReportMenu" data-toggle="collapse" data-parent="#adminMenuAccordion">
-						<div class="panel-heading">
-							<div class="panel-title">
-								eContent Reports
-							</div>
-						</div>
-					</a>
-					<div id="econtentReportMenu" class="panel-collapse collapse {if $curSection}in{/if}">
-						<div class="panel-body">
-							<div class="adminMenuLink{if $action == "EContentSummary"}active{/if}"><a href="{$path}/EContent/EContentSummary">Collection Summary</a></div>
-							<div class="adminMenuLink{if $action == "EContentCollection"}active{/if}"><a href="{$path}/EContent/EContentCollection">Collection Details</a></div>
-							{if $user->hasRole('epubAdmin')}
-								<div class="adminMenuLink{if $action == "EContentUsage"}active{/if}"><a href="{$path}/EContent/EContentUsage">Usage Statistics</a></div>
-							{/if}
-							<div class="adminMenuLink{if $action == "ItemlessEContent"}active{/if}"><a href="{$path}/EContent/ItemlessEContent">Itemless eContent</a></div>
-							<div class="adminMenuLink{if $action == "EContentPurchaseAlert"}active{/if}"><a href="{$path}/EContent/EContentPurchaseAlert">Purchase Alert</a></div>
-							<div class="adminMenuLink{if $action == "EContentTrialRecords"}active{/if}"><a href="{$path}/EContent/EContentTrialRecords">Trial Records</a></div>
-							<div class="adminMenuLink{if $action == "EContentWishListReport"}active{/if}"><a href="{$path}/EContent/EContentWishListReport">Wish List</a></div>
-							{if $user->hasRole('epubAdmin')}
-								<div class="adminMenuLink{if $action == "ArchivedEContent"}active{/if}"><a href="{$path}/EContent/ArchivedEContent">Archived eContent</a></div>
-								<div class="adminMenuLink{if $action == "DeletedEContent"}active{/if}"><a href="{$path}/EContent/DeletedEContent">Deleted eContent</a></div>
-								<div class="adminMenuLink{if $action == "EContentImportSummary"}active{/if}"><a href="{$path}/EContent/EContentImportSummary">eContent Import Summary</a></div>
-								<div class="adminMenuLink{if $action == "EContentImportDetails"}active{/if}"><a href="{$path}/EContent/EContentImportDetails">eContent Import Details</a></div>
-							{/if}
-							{if $showPackagingDetailsReport && $user->hasRole('epubAdmin')}
-								<div class="adminMenuLink{if $action == "PackagingSummary"}active{/if}"><a href="{$path}/EContent/PackagingSummary">ACS Packaging Summary</a></div>
-								<div class="adminMenuLink{if $action == "PackagingDetails"}active{/if}"><a href="{$path}/EContent/PackagingDetails">ACS Packaging Details</a></div>
 							{/if}
 						</div>
 					</div>

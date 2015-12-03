@@ -34,8 +34,6 @@
 								{include file="MyAccount/ilsHold.tpl" record=$record section=$sectionKey resultIndex=$smarty.foreach.recordLoop.iteration}
 							{elseif $record.holdSource == 'OverDrive'}
 								{include file="MyAccount/overdriveHold.tpl" record=$record section=$sectionKey resultIndex=$smarty.foreach.recordLoop.iteration}
-							{elseif $record.holdSource == 'eContent'}
-								{include file="MyAccount/eContentHold.tpl" record=$record section=$sectionKey resultIndex=$smarty.foreach.recordLoop.iteration}
 							{else}
 								<div class="row">
 									Unknown record source {$record.holdSource}
@@ -69,11 +67,12 @@
 				{/if}
 			{/foreach}
 		</div>
+{* Holds not displayed in a html table, so this code does not apply any more.
 		<script type="text/javascript">
-			$(document).ready(function() {literal} { {/literal}
+			$(function() {literal} { {/literal}
 				$("#holdsTableavailable").tablesorter({literal}{cssAsc: 'sortAscHeader', cssDesc: 'sortDescHeader', cssHeader: 'unsortedHeader', headers: { 0: { sorter: false}, 3: {sorter : 'date'}, 4: {sorter : 'date'}, 7: { sorter: false} } }{/literal});
 			{literal} }); {/literal}
-		</script>
+		</script>*}
 	{else} {* Check to see if user is logged in *}
 		You must login to view this information. Click <a href="{$path}/MyAccount/Login">here</a> to login.
 	{/if}

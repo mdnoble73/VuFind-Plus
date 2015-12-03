@@ -19,15 +19,12 @@
  */
 
 require_once ROOT_DIR . '/Action.php';
-require_once ROOT_DIR . '/sys/eContent/EContentRecord.php';
-require_once ROOT_DIR . '/sys/eContent/EContentItem.php';
 
 class Record_Link extends Action {
 
 	function launch() {
 
 		global $configArray;
-		global $interface;
 
 		//Grab the tracking data
 		$recordId = $_REQUEST['id'];
@@ -84,7 +81,6 @@ class Record_Link extends Action {
 		} else {
 			PEAR_Singleton::raiseError(new PEAR_Error("Failed to load link for this record."));
 		}
-			
 	}
 
 }
