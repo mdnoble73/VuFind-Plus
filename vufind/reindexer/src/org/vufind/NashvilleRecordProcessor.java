@@ -93,6 +93,9 @@ public class NashvilleRecordProcessor extends IIIRecordProcessor {
 				){
 			//Much of the econtent for flatirons has no items.  Need to determine the location based on the 907b field
 			String eContentLocation = getFirstFieldVal(record, "945l");
+			if (eContentLocation == null && url.contains("purl.fdlp.gov")){
+				eContentLocation = "mndoc";
+			}
 			if (eContentLocation != null) {
 				ItemInfo itemInfo = new ItemInfo();
 				itemInfo.setIsEContent(true);
