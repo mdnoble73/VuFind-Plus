@@ -42,4 +42,15 @@
 	No Copies Found
 {/if}
 
+{if !$show856LinksAsTab && count($links)}
+	<div id="title_links">
+		<div class="row">
+			<div class="col-xs-12">
+				<strong><u>Volume</u></strong>
+			</div>
+		</div>
+		{include file="Record/view.links.tpl"}
+	</div>
+{/if}
+
 {/strip}
