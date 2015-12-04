@@ -1409,6 +1409,7 @@ class MarcRecord extends IndexRecord
 
 	public function getMoreDetailsOptions(){
 		global $interface;
+		global $library;
 
 		$isbn = $this->getCleanISBN();
 
@@ -1435,6 +1436,16 @@ class MarcRecord extends IndexRecord
 			$interface->assign('showCheckInGrid', $library->showCheckInGrid);
 			$issues = $this->loadPeriodicalInformation();
 			$interface->assign('periodicalIssues', $issues);
+		}
+		$links = $this->getLinks();
+		$interface->assign('links', $links);
+		$interface->assign('show856LinksAsTab', $library->show856LinksAsTab);
+
+		if ($library->show856LinksAsTab && count($links) > 0){
+			$moreDetailsOptions['links'] = array(
+					'label' => 'Links',
+					'body' => $interface->fetch('Record/view-links.tpl'),
+			);
 		}
 		$moreDetailsOptions['copies'] = array(
 			'label' => 'Copies',
@@ -1464,6 +1475,7 @@ class MarcRecord extends IndexRecord
 			'label' => 'Citations',
 			'body' => $interface->fetch('Record/cite.tpl'),
 		);
+
 		if ($interface->getVariable('showStaffView')){
 			$moreDetailsOptions['staff'] = array(
 				'label' => 'Staff View',
@@ -1801,6 +1813,32 @@ class MarcRecord extends IndexRecord
 			$issueSummaries = null;
 		}
 		return $issueSummaries;
+	}
+
+	private function getLinks() {
+		$links = array();
+		$linkFields = $this->getMarcRecord()->getFields('856');
+		/** @var File_MARC_Data_Field $field */
+		foreach ($linkFields as $field){
+			if ($field->getSubfield('u') != null){
+				$url = $field->getSubfield('u')->getData();
+				if ($field->getSubfield('y') != null) {
+					$title = $field->getSubfield('y')->getData();
+				}else if ($field->getSubfield('3') != null){
+					$title = $field->getSubfield('3')->getData();
+				}else if ($field->getSubfield('z') != null){
+					$title = $field->getSubfield('z')->getData();
+				}else{
+					$title = $url;
+				}
+				$links[] = array(
+						'title' => $title,
+						'url' => $url,
+				);
+			}
+		}
+
+		return $links;
 	}
 
 }
