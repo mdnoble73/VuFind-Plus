@@ -44,6 +44,7 @@
 
 #Aspencat
 10 00 * * * cd /usr/local/vufind-plus/sites/aspencat.production; ./full_update_aspencat_production.sh
+# avoid 6pm - 11pm for AspenCat PLB  (PK-288)
 
 ################
 # Pika Cleanup #

@@ -39,7 +39,21 @@ class ExternalEContent_Home extends Action{
 		//$recordDriver = new ExternalEContentDriver($this->id);
 
 		global $activeRecordProfile;
-		$subType = isset($activeRecordProfile) ? $activeRecordProfile : 'ils';
+		if (isset($activeRecordProfile)){
+			$subType = $activeRecordProfile;
+		}else{
+			$indexingProfile = new IndexingProfile();
+			$indexingProfile->name = 'ils';
+			if ($indexingProfile->find(true)){
+				$subType = $indexingProfile->name;
+			}else{
+				$indexingProfile = new IndexingProfile();
+				$indexingProfile->id = 1;
+				if ($indexingProfile->find(true)){
+					$subType = $indexingProfile->name;
+				}
+			}
+		}
 
 		/** @var ExternalEContentDriver $recordDriver */
 		$recordDriver = RecordDriverFactory::initRecordDriverById('external_econtent:' . $subType . ':'. $this->id);
