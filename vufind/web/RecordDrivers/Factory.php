@@ -85,7 +85,7 @@ class RecordDriverFactory {
 	/**
 	 * @param $id
 	 * @param  GroupedWork $groupedWork;
-	 * @return ExternalEContentDriver|MarcRecord|null|OverDriveRecordDriver|PublicEContentDriver|RestrictedEContentDriver
+	 * @return ExternalEContentDriver|MarcRecord|null|OverDriveRecordDriver
 	 */
 	static function initRecordDriverById($id, $groupedWork = null){
 		if (isset(RecordDriverFactory::$recordDrivers[$id])){
