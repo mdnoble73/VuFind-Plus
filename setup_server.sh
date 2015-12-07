@@ -60,6 +60,17 @@ if [ $# = 1 ];then
   chgrp apache error.log messages.log access.log
   chmod g+w error.log messages.log access.log
   #-----------------
+  echo "installing Smarty Template engine in php shared"
+  cp -r $WD/install/Smarty /usr/share/php
+  echo "creating Smarty compile & cache directories"
+  mkdir $WD/vufind/web/interface/compile $WD/vufind/web/interface/cache
+  echo "set ownership & permissions for Smarty compile & cache directories"
+  chgrp apache $WD/vufind/web/interface/compile $WD/vufind/web/interface/cache
+  chmod g+w $WD/vufind/web/interface/compile $WD/vufind/web/interface/cache
+  #-----------------
+  echo "setting up Pika log rotation. Note: Servername must be manually set."
+  cp $WD/install/pika /etc/logrotate.d/
+  #-----------------
   echo ""
   cd $WD
   exit 0
