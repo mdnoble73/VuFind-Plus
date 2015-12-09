@@ -76,7 +76,7 @@
 	</div>
 	{/strip}
 	<script type="text/javascript">
-		{literal}$(document).ready(function(){{/literal}
+		{literal}$(function(){{/literal}
 		{if $property.sortable}
 			{literal}$('#{/literal}{$propName}{literal} tbody').sortable({
 				update: function(event, ui){
@@ -88,17 +88,17 @@
 			});
 			{/literal}
 		{/if}
-		{literal}$('.datepicker').datepicker({dateFormat:"yy-mm-dd"});{/literal}
+		{literal}$('.datepicker').datepicker({format:"yyyy-mm-dd"});{/literal}
 		{literal}});{/literal}
 		var numAdditional{$propName} = 0;
 		function addNew{$propName}{literal}(){
 			numAdditional{/literal}{$propName}{literal} = numAdditional{/literal}{$propName}{literal} -1;
 			var newRow = "<tr>";
 			{/literal}
-			newRow +=	"<input type='hidden' id='{$propName}Id_" + numAdditional{$propName} + "' name='{$propName}Id[" + numAdditional{$propName} + "]' value='" + numAdditional{$propName} + "'/>"
+			newRow += "<input type='hidden' id='{$propName}Id_" + numAdditional{$propName} + "' name='{$propName}Id[" + numAdditional{$propName} + "]' value='" + numAdditional{$propName} + "'>"
 			{if $property.sortable}
 				newRow += "<td><span class='glyphicon glyphicon-resize-vertical'></span>";
-				newRow += "<input type='hidden' id='{$propName}Weight_" + numAdditional{$propName} +"' name='{$propName}Weight[" + numAdditional{$propName} +"]' value='" + (100 - numAdditional{$propName})  +"'/>";
+				newRow += "<input type='hidden' id='{$propName}Weight_" + numAdditional{$propName} +"' name='{$propName}Weight[" + numAdditional{$propName} +"]' value='" + (100 - numAdditional{$propName})  +"'>";
 				newRow += "</td>";
 			{/if}
 			{foreach from=$property.structure item=subProperty}
@@ -107,9 +107,9 @@
 					{assign var=subPropName value=$subProperty.property}
 					{assign var=subPropValue value=$subObject->$subPropName}
 					{if $subProperty.type=='text' || $subProperty.type=='date' || $subProperty.type=='integer' || $subProperty.type=='textarea' || $subProperty.type=='html'}
-						newRow += "<input type='text' name='{$propName}_{$subPropName}[" + numAdditional{$propName} +"]' value='{if $subProperty.default}{$subProperty.default}{/if}' class='{if $subProperty.type=="date"}datepicker{elseif $subProperty.type=="integer"}integer{/if}{if $subProperty.required == true} required{/if}'/>";
+						newRow += "<input type='text' name='{$propName}_{$subPropName}[" + numAdditional{$propName} +"]' value='{if $subProperty.default}{$subProperty.default}{/if}' class='{if $subProperty.type=="date"}datepicker{elseif $subProperty.type=="integer"}integer{/if}{if $subProperty.required == true} required{/if}'>";
 					{elseif $subProperty.type=='checkbox'}
-						newRow += "<input type='checkbox' name='{$propName}_{$subPropName}[" + numAdditional{$propName} +"]' {if $subProperty.default == 1}checked='checked'{/if}/>";
+						newRow += "<input type='checkbox' name='{$propName}_{$subPropName}[" + numAdditional{$propName} +"]' {if $subProperty.default == 1}checked='checked'{/if}>";
 					{else}
 						newRow += "<select name='{$propName}_{$subPropName}[" + numAdditional{$propName} +"]' id='{$propName}{$subPropName}_" + numAdditional{$propName} +"' {if $subProperty.required == true}class='required'{/if}>";
 						{foreach from=$subProperty.values item=propertyName key=propertyValue}
@@ -123,7 +123,7 @@
 			newRow += "</tr>";
 			{literal}
 			$('#{/literal}{$propName}{literal} tr:last').after(newRow);
-			$('.datepicker').datepicker({dateFormat:"yy-mm-dd"});
+			$('.datepicker').datepicker({format:"yyyy-mm-dd"});
 			return false;
 		}
 		{/literal}
