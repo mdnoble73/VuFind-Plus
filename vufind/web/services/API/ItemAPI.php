@@ -397,6 +397,7 @@ class ItemAPI extends Action {
 						'status' => $copy['status'],
 						'dueDate' => '',
 						'statusFull' => $copy['status'],
+						'statusfull' => $copy['status'],
 						'id' => $fullId,
 						'number' =>  $i++,
 						'type' => 'holding',

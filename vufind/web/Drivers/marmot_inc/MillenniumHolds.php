@@ -606,7 +606,11 @@ class MillenniumHolds{
 			//if so they cannot freeze the hold
 			if (isset($curHold['status'])){
 				if ($curHold['status'] == 'Pending'){
-					$curHold['freezeable'] = false;
+					$freezable = true;
+					if (isset($curHold['freezeable'])){
+						$freezable = $curHold['freezeable'];
+					}
+					$curHold['freezeable'] = $freezable && $this->driver->allowFreezingPendingHolds();
 				}else if (preg_match('/\d+ Of (\d+) Holds?/i', $curHold['status'], $matches)){
 					if ($matches[1] == 1){
 						$curHold['freezeable'] = false;

@@ -88,6 +88,7 @@
 		<div id="horizontal-search-button-container" class="col-sm-2 col-xs-12">
 
 			<button class="btn btn-default" type="submit">
+				<span id="horizontal-search-box-submit-text">GO&nbsp;</span>
 				<span class="glyphicon glyphicon-search"></span>
 				{*<span class="visible-xs-inline"> SEARCH</span>  TODO: Will work when upgraded to Bootstrap 3.0*}
 			</button>

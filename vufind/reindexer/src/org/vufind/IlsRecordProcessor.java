@@ -432,7 +432,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 				if (scope.isLibraryScope()) {
 					boolean libraryOwned = scope.isItemOwnedByScope(profileType, location, "");
 					scopingInfo.setLibraryOwned(libraryOwned);
-					if (itemInfo.getShelfLocation().equals("On Order")){
+					if (libraryOwned && itemInfo.getShelfLocation().equals("On Order")){
 						itemInfo.setShelfLocation(scopingInfo.getScope().getFacetLabel() + " On Order");
 					}
 				}

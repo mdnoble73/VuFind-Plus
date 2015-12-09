@@ -717,6 +717,10 @@ class Millennium extends ScreenScrapingDriver
 		return $millenniumHolds->updateHoldDetailed($patron, 'cancel', '', null, $cancelId, '', '');
 	}
 
+	function allowFreezingPendingHolds(){
+		return false;
+	}
+
 	function freezeHold($patron, $recordId, $itemToFreezeId, $dateToReactivate){
 		require_once ROOT_DIR . '/Drivers/marmot_inc/MillenniumHolds.php';
 		$millenniumHolds = new MillenniumHolds($this);
