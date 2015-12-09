@@ -34,5 +34,7 @@ require_once ROOT_DIR . '/Drivers/Sierra.php';
  * @author CJ O'Hara <cj@marmot.org>
  */
 class Marmot extends Sierra{
-
+	function allowFreezingPendingHolds(){
+		return true;
+	}
 }
