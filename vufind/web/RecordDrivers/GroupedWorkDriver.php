@@ -1137,7 +1137,11 @@ class GroupedWorkDriver extends RecordInterface{
 
 	public function getRelatedRecord($recordIdentifier){
 		$this->loadRelatedRecords();
-		return $this->relatedRecords[$recordIdentifier];
+		if (isset($this->relatedRecords[$recordIdentifier])){
+			return $this->relatedRecords[$recordIdentifier];
+		}else{
+			return null;
+		}
 	}
 
 	private function loadRelatedRecords(){

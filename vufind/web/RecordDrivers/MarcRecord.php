@@ -1716,25 +1716,30 @@ class MarcRecord extends IndexRecord
 			$groupedWorkDriver = $this->getGroupedWorkDriver();
 			if ($groupedWorkDriver->isValid){
 				$this->recordFromIndex = $groupedWorkDriver->getRelatedRecord($this->getIdWithSource());
-
-				//Divide the items into sections and create the status summary
-				$this->holdings = $this->recordFromIndex['itemDetails'];
-				$this->holdingSections = array();
-				foreach ($this->holdings as $copyInfo) {
-					$sectionName = $copyInfo['sectionId'];
-					if (!array_key_exists($sectionName, $this->holdingSections)) {
-						$this->holdingSections[$sectionName] = array(
-								'name' => $copyInfo['section'],
-								'sectionId' => $copyInfo['sectionId'],
-								'holdings' => array(),
-						);
+				if ($this->recordFromIndex != null){
+					//Divide the items into sections and create the status summary
+					$this->holdings = $this->recordFromIndex['itemDetails'];
+					$this->holdingSections = array();
+					foreach ($this->holdings as $copyInfo) {
+						$sectionName = $copyInfo['sectionId'];
+						if (!array_key_exists($sectionName, $this->holdingSections)) {
+							$this->holdingSections[$sectionName] = array(
+									'name' => $copyInfo['section'],
+									'sectionId' => $copyInfo['sectionId'],
+									'holdings' => array(),
+							);
+						}
+						$this->holdingSections[$sectionName]['holdings'][] = $copyInfo;
 					}
-					$this->holdingSections[$sectionName]['holdings'][] = $copyInfo;
+
+					$this->statusSummary = $this->recordFromIndex;
+
+					unset($this->statusSummary['driver']);
+				}else{
+					$this->holdings = array();
+					$this->holdingSections = array();
+					$this->statusSummary = array();
 				}
-
-				$this->statusSummary = $this->recordFromIndex;
-
-				unset($this->statusSummary['driver']);
 			}else{
 				$this->holdings = array();
 				$this->holdingSections = array();
