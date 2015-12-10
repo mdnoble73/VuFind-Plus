@@ -4,7 +4,10 @@
 ## Install PEAR Packages
 pear upgrade pear
 pear install --onlyreqdeps DB
-pear install --onlyreqdeps DB_DataObject
+#pear install --onlyreqdeps DB_DataObject
+# DB_DataObject has to be installed manually. version 1.11.3 or less; 1.11.4, 1.11.5, etc have errors and break Pika
+echo "Manually Installing DB_DataObject package version 1.11.3"
+cp -r /usr/local/vufind-plus/install/PEAR/DB/* /usr/share/pear/DB/
 pear install --onlyreqdeps Structures_DataGrid-beta
 pear install --onlyreqdeps Structures_DataGrid_DataSource_DataObject-beta
 pear install --onlyreqdeps Structures_DataGrid_DataSource_Array-beta
