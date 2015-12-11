@@ -887,7 +887,7 @@ class IndexRecord extends RecordInterface
 				}
 			}
 			$isbn13 = $isbnObj->get13();
-			if (!array_key_exists($isbn10, $cleanIsbns)){
+			if (!array_key_exists($isbn13, $cleanIsbns)){
 				$cleanIsbns[$isbn13] = $isbn13;
 			}
 		}
