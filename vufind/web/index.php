@@ -396,8 +396,10 @@ if (isset($_REQUEST['genealogyType'])){
 }else{
 	$interface->assign('genealogySearchIndex', 'GenealogyKeyword');
 }
-if ($searchSource == 'genealogy'){
-	$_REQUEST['type'] = isset($_REQUEST['genealogyType']) ? $_REQUEST['genealogyType']:  'GenealogyKeyword';
+if ($searchSource == 'genealogy') {
+	$_REQUEST['type'] = isset($_REQUEST['genealogyType']) ? $_REQUEST['genealogyType'] : 'GenealogyKeyword';
+}elseif ($searchSource == 'islandora'){
+		$_REQUEST['type'] = isset($_REQUEST['islandoraType']) ? $_REQUEST['islandoraType']:  'IslandoraKeyword';
 }else{
 	$_REQUEST['type'] = isset($_REQUEST['basicType']) ? $_REQUEST['basicType'] : 'Keyword';
 }
@@ -429,11 +431,17 @@ if ($action == "AJAX" || $action == "JSON"){
 	$searchSources = new SearchSources();
 	$interface->assign('searchSources', $searchSources->getSearchSources());
 
-	if (isset($configArray['Genealogy'])){
-		//Do not allow genealogy search in mobile theme
+	if (isset($configArray['Genealogy']) && $library->enableGenealogy){
 		$genealogySearchObject = SearchObjectFactory::initSearchObject('Genealogy');
 		$interface->assign('genealogySearchTypes', is_object($genealogySearchObject) ? $genealogySearchObject->getBasicTypes() : array());
 	}
+
+	if ($library->enableArchive){
+		$islandoraSearchObject = SearchObjectFactory::initSearchObject('Islandora');
+		$interface->assign('islandoraSearchTypes', is_object($islandoraSearchObject) ? $islandoraSearchObject->getBasicTypes() : array());
+	}
+
+
 
 	if (!($module == 'Search' && $action == 'Home')){
 		/** @var SearchObject_Base $savedSearch */
@@ -783,7 +791,7 @@ function loadModuleActionId(){
 		$_REQUEST['module'] = $matches[1];
 		$_REQUEST['action'] = $matches[2];
 		$_REQUEST['id'] = '';
-	}elseif (preg_match('/\/Archive\/([\\w\\d:]+)\/([^\/?]+)/', $requestURI, $matches)){
+	}elseif (preg_match('/\/Archive\/((?:[\\w\\d:]|%3A)+)\/([^\/?]+)/', $requestURI, $matches)){
 		$_GET['module'] = 'Archive';
 		$_GET['id'] = $matches[1];
 		$_GET['action'] = $matches[2];

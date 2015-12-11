@@ -3,12 +3,14 @@
 
 	<div class="row">
 		<div id="explore-more-body" class="col-xs-10 col-xs-offset-1">
+			{if $videoLink}
 			<div class="sectionHeader">Video</div>
 			<div class="section">
 				<video width="100%" controls>
 					<source src="{$videoLink}" type="video/mp4">
 				</video>
 			</div>
+			{/if}
 			<div class="sectionHeader">Related Content</div>
 			<div class="section">
 				{foreach from=$sectionList item=section}

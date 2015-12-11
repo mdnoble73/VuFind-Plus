@@ -9160,6 +9160,19 @@ a.browse-thumbnail.active {
   margin-bottom: 4px;
   font-weight: 100;
 }
+.openseadragon {
+  display: block;
+  width: 100%;
+  height: 500px;
+}
+.openseadragon canvas {
+  background-color: #000 !important;
+  /* should be replaced with OpenSeadragon setting */
+}
+.openseadragon-highlight {
+  background-color: #F00;
+  opacity: 0.5;
+}
 .header-button {
   border-radius: 0.5em;
   background-color: rgba(51, 51, 51, 0.6);

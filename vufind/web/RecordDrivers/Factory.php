@@ -41,26 +41,48 @@ class RecordDriverFactory {
 		global $configArray;
 
 		// Determine driver path based on record type:
-		$driver = ucwords($record['recordtype']) . 'Record';
-		$path = "{$configArray['Site']['local']}/RecordDrivers/{$driver}.php";
-		// If we can't load the driver, fall back to the default, index-based one:
-		if (!is_readable($path)) {
-			//Try without appending Record
-			$recordType = $record['recordtype'];
+		if (!array_key_exists('recordType', $record)){
+			$recordType = $record['RELS_EXT_hasModel_uri_s'];
+			//Get rid of islandora namespace information
+			$recordType = str_replace('info:fedora/islandora:', '', $recordType);
+			$recordType = str_replace('sp_', '', $recordType);
+			$recordType = str_replace('_cmodel', '', $recordType);
+			$recordType = str_replace('CModel', '', $recordType);
 			$driverNameParts = explode('_', $recordType);
-			$recordType = '';
+			$normalizedRecordType = '';
 			foreach ($driverNameParts as $driverPart){
-				$recordType .= (ucfirst($driverPart));
+				$normalizedRecordType .= (ucfirst($driverPart));
 			}
-
-			$driver = $recordType . 'Driver' ;
+			$driver = $normalizedRecordType . 'Driver' ;
 			$path = "{$configArray['Site']['local']}/RecordDrivers/{$driver}.php";
 
 			// If we can't load the driver, fall back to the default, index-based one:
 			if (!is_readable($path)) {
+				//print_r($record);
+				PEAR_Singleton::raiseError('Unable to load Driver for ' . $recordType . " ($normalizedRecordType)");
+			}
+		}else{
+			$driver = ucwords($record['recordtype']) . 'Record';
+			$path = "{$configArray['Site']['local']}/RecordDrivers/{$driver}.php";
+			// If we can't load the driver, fall back to the default, index-based one:
+			if (!is_readable($path)) {
+				//Try without appending Record
+				$recordType = $record['recordtype'];
+				$driverNameParts = explode('_', $recordType);
+				$recordType = '';
+				foreach ($driverNameParts as $driverPart){
+					$recordType .= (ucfirst($driverPart));
+				}
 
-				$driver = 'IndexRecord';
+				$driver = $recordType . 'Driver' ;
 				$path = "{$configArray['Site']['local']}/RecordDrivers/{$driver}.php";
+
+				// If we can't load the driver, fall back to the default, index-based one:
+				if (!is_readable($path)) {
+
+					$driver = 'IndexRecord';
+					$path = "{$configArray['Site']['local']}/RecordDrivers/{$driver}.php";
+				}
 			}
 		}
 
