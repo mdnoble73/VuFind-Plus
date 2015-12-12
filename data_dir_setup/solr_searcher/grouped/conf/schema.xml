@@ -276,6 +276,8 @@
 	<copyField source="isbn" dest="keywords"/>
 	<copyField source="issn" dest="keywords"/>
 	<copyField source="upc" dest="keywords"/>
+	<copyField source="format" dest="keywords"/>
+	<copyField source="format_category" dest="keywords"/>
 	<copyField source="keywords" dest="keywords_proper"/>
 	<copyField source="series" dest="series_proper"/>
 	<copyField source="topic" dest="topic_proper"/>
