@@ -23,7 +23,6 @@ public class GroupedWorkSolr {
 	private String acceleratedReaderInterestLevel;
 	private String acceleratedReaderReadingLevel;
 	private String acceleratedReaderPointValue;
-	private String allFields = "";
 	private HashSet<String> alternateIds = new HashSet<>();
 	private String authAuthor;
 	private String author;
@@ -222,8 +221,6 @@ public class GroupedWorkSolr {
 
 		doc.addField("table_of_contents", contents);
 		//broad search terms
-		// TODO: determine if we still need all fields?
-		doc.addField("all_fields", allFields);
 		//TODO: change keywords to be more like old version?
 		doc.addField("keywords", Util.getCRSeparatedStringFromSet(keywords));
 		//identifiers
@@ -1038,10 +1035,6 @@ public class GroupedWorkSolr {
 		if (acceleratedReaderPointValue != null){
 			this.acceleratedReaderPointValue = acceleratedReaderPointValue;
 		}
-	}
-
-	public void addAllFields(String fields){
-		allFields += " " + fields;
 	}
 
 	public void setCallNumberA(String callNumber) {

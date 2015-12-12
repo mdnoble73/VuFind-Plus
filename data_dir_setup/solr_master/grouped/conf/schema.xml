@@ -269,6 +269,15 @@
 	<copyField source="title" dest="title_proper"/>
 	<copyField source="title" dest="title_exact"/>
 	<copyField source="title" dest="title_left"/>
+	<copyField source="local_callnumber_*" dest="keywords*"/>
+	<copyField source="barcode*" dest="keywords"/>
+	<copyField source="lccn" dest="keywords"/>
+	<copyField source="oclc" dest="keywords"/>
+	<copyField source="isbn" dest="keywords"/>
+	<copyField source="issn" dest="keywords"/>
+	<copyField source="upc" dest="keywords"/>
+	<copyField source="format" dest="keywords*"/>
+	<copyField source="format_category" dest="keywords*"/>
 	<copyField source="keywords" dest="keywords_proper"/>
 	<copyField source="series" dest="series_proper"/>
 	<copyField source="topic" dest="topic_proper"/>

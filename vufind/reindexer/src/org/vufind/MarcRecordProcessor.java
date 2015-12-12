@@ -66,7 +66,6 @@ public abstract class MarcRecordProcessor {
 		/*groupedWork.setAcceleratedReaderInterestLevel(getAcceleratedReaderInterestLevel(record));
 		groupedWork.setAcceleratedReaderReadingLevel(getAcceleratedReaderReadingLevel(record));
 		groupedWork.setAcceleratedReaderPointValue(getAcceleratedReaderPointLevel(record));*/
-		groupedWork.addAllFields(getAllFields(record));
 		groupedWork.addKeywords(getAllSearchableFields(record, 100, 900));
 	}
 
@@ -664,31 +663,8 @@ public abstract class MarcRecordProcessor {
 		return null;
 	}*/
 
-	public String getAllFields(Record marcRecord) {
-		StringBuilder allFieldData = new StringBuilder();
-		List<ControlField> controlFields = marcRecord.getControlFields();
-		for (Object field : controlFields) {
-			ControlField dataField = (ControlField) field;
-			String data = dataField.getData();
-			data = data.replace((char) 31, ' ');
-			allFieldData.append(data).append(" ");
-		}
-
-		List<DataField> fields = marcRecord.getDataFields();
-		for (Object field : fields) {
-			DataField dataField = (DataField) field;
-			List<Subfield> subfields = dataField.getSubfields();
-			for (Object subfieldObj : subfields) {
-				Subfield subfield = (Subfield) subfieldObj;
-				allFieldData.append(subfield.getData()).append(" ");
-			}
-		}
-
-		return allFieldData.toString();
-	}
-
 	/**
-	 * Loops through all datafields and creates a field for "all fields"
+	 * Loops through all datafields and creates a field for "keywords"
 	 * searching. Shameless stolen from Vufind Indexer Custom Code
 	 *
 	 * @param lowerBound
