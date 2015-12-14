@@ -261,6 +261,8 @@ function loadSearchInformation(){
 			//Use a default search source
 			if ($module == 'Person'){
 				$searchSource = 'genealogy';
+			}elseif ($module == 'Exhibit' || $module == 'BasicImage' || $module == 'LargeImage'){
+				$searchSource = 'archive';
 			}else{
 				$searchSource = 'local';
 			}

@@ -971,7 +971,7 @@ class GroupedWorkDriver extends RecordInterface{
 		return $description;
 	}
 
-	function getBookcoverUrl($size){
+	function getBookcoverUrl($size = 'small'){
 		global $configArray;
 		$bookCoverUrl = $configArray['Site']['path'] . "/bookcover.php?id={$this->getUniqueID()}&size={$size}&type=grouped_work";
 
@@ -2436,4 +2436,14 @@ class GroupedWorkDriver extends RecordInterface{
 		return $relatedRecord;
 	}
 
+	public function getRecordUrl() {
+		global $configArray;
+		$recordId = $this->getUniqueID();
+
+		return $configArray['Site']['path'] . '/GroupedWork/' . urlencode($recordId) . '/Home';
+	}
+
+	public function getModule() {
+		return 'GroupedWork';
+	}
 }

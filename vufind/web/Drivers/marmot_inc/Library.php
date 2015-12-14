@@ -162,6 +162,8 @@ class Library extends DB_DataObject
 	public $enableMaterialsBooking;
 	public $allowLinkedAccounts;
 	public $horizontalSearchBar;
+
+	public $enableArchive;
 	
 	// Use this to set which details will be shown in the the Main Details section of the record view.
 	// You should be able to add options here without needing to change the database.
@@ -485,8 +487,13 @@ class Library extends DB_DataObject
 			array('property'=>'hooplaSection', 'type' => 'section', 'label' =>'Hoopla', 'hideInLists' => true, 'properties' => array(
 				'includeHoopla' => array('property'=>'includeHoopla', 'type'=>'checkbox', 'label'=>'Include Hoopla content in search results', 'description'=>'Whether or not Hoopla data should be included for this library.', 'hideInLists' => true, 'default' => 0),
 			)),
+
+			array('property'=>'archiveSection', 'type' => 'section', 'label' =>'Local Content Archive', 'hideInLists' => true, 'properties' => array(
+					'enableArchive' => array('property'=>'enableArchive', 'type'=>'checkbox', 'label'=>'Allow Searching the Archive', 'description'=>'Whether or not information from the archive is shown in Pika.', 'hideInLists' => true, 'default' => 0),
+			)),
+
 			array('property'=>'dplaSection', 'type' => 'section', 'label' =>'DPLA', 'hideInLists' => true, 'properties' => array(
-				'includeDplaResults' => array('property'=>'includeDplaResults', 'type'=>'checkbox', 'label'=>'Include DPLA content in search results', 'description'=>'Whether or not DPLA data should be included for this library.', 'hideInLists' => true, 'default' => 0),
+					'includeDplaResults' => array('property'=>'includeDplaResults', 'type'=>'checkbox', 'label'=>'Include DPLA content in search results', 'description'=>'Whether or not DPLA data should be included for this library.', 'hideInLists' => true, 'default' => 0),
 			)),
 
 			'holidays' => array(

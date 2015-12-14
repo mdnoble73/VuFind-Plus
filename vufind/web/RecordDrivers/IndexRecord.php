@@ -1782,4 +1782,8 @@ class IndexRecord extends RecordInterface
 	public function getRecordActions($isAvailable, $isHoldable, $isBookable, $relatedUrls = null){
 		return array();
 	}
+
+	public function getModule() {
+		return 'Record';
+	}
 }

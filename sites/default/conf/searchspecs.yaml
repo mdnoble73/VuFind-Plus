@@ -613,3 +613,16 @@ GenealogyName:
       - [onephrase, 350]
       - [and, 200]
 
+IslandoraKeyword:
+  QueryFields:
+    - mods_titleInfo_title_t:
+      - [and, 500]
+    - mods_abstract_t:
+      - [and, 200]
+    - PID:
+      - [exact, 1000]
+      - [and, 100]
+
+QueryFields:
+  QueryFields:
+    - mods_titleInfo_title_t

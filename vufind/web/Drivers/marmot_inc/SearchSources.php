@@ -16,6 +16,7 @@ class SearchSources{
 		$systemsToRepeatIn = array();
 		$searchGenealogy = true;
 		$repeatCourseReserves = false;
+		$searchArchive = false;
 
 		/** @var $locationSingleton Location */
 		global $locationSingleton;
@@ -40,6 +41,7 @@ class SearchSources{
 		if (isset($library)){
 			$searchGenealogy = $library->enableGenealogy;
 			$repeatCourseReserves = $library->enableCourseReserves == 1;
+			$searchArchive = $library->enableArchive == 1;
 		}
 
 		$marmotAdded = false;
@@ -139,6 +141,14 @@ class SearchSources{
 				'name' => "$consortiumName Catalog",
         'description' => 'A consortium of libraries who share resources with your library.',
 				'catalogType' => 'catalog'
+			);
+		}
+
+		if ($searchArchive){
+			$searchOptions['islandora'] = array(
+					'name' => 'Local History Archive',
+					'description' => 'Local History Archive in Colorado',
+					'catalogType' => 'islandora'
 			);
 		}
 

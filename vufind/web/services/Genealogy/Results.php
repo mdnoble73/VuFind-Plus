@@ -23,10 +23,7 @@ require_once ROOT_DIR . '/services/MyResearch/lib/Search.php';
 
 require_once ROOT_DIR . '/sys/Pager.php';
 
-class Results extends Action {
-
-	private $solrStats = false;
-	private $query;
+class Genealogy_Results extends Action {
 
 	function launch()
 	{
