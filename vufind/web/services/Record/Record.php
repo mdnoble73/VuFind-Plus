@@ -391,13 +391,13 @@ abstract class Record_Record extends Action
 	}
 
 	/**
-	 * @param File_MARC_Data_Field[] $allFields
+	 * @param File_MARC_Data_Field[] $noteFields
 	 * @return array
 	 */
-	function processNoteFields($allFields){
+	function processNoteFields($noteFields){
 		$notes = array();
 		/** File_MARC_Data_Field $marcField */
-		foreach ($allFields as $marcField){
+		foreach ($noteFields as $marcField){
 			/** @var File_MARC_Subfield $subfield */
 			foreach ($marcField->getSubfields() as $subfield){
 				$note = $subfield->getData();

@@ -239,7 +239,6 @@ class SearchSources{
 			case 'ISN':
 				return 'bn';
 				break;
-			case 'AllFields':
 			case 'Keyword':
 			default:
 				return 'kw';
@@ -259,7 +258,6 @@ class SearchSources{
 				return 'ISSN';
 				break;
 			case 'Author': //Gold Rush does not support author searches directly
-			case 'AllFields':
 			case 'Keyword':
 			default:
 				return 'Keyword';
@@ -324,7 +322,6 @@ class SearchSources{
 			case 'ISN':
 				return 'i';
 				break;
-			case 'AllFields':
 			case 'Keyword':
 				return ' ';
 				break;

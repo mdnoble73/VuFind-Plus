@@ -296,6 +296,10 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 			loadPublicationDetails(groupedWork, record, allRelatedRecords);
 			loadSystemLists(groupedWork, record);
 
+			if (record.getControlNumber() != null){
+				groupedWork.addKeywords(record.getControlNumber());
+			}
+
 			//Do updates based on items
 			loadPopularity(groupedWork, identifier);
 			groupedWork.addBarcodes(getFieldList(record, itemTag + barcodeSubfield));
@@ -733,6 +737,11 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 					scopingInfo.setLibraryOwned(curScope.isItemOwnedByScope(profileType, itemLocation, itemSublocation));
 				}
 			}
+		}
+
+		groupedWork.addKeywords(itemLocation);
+		if (itemSublocation != null){
+			groupedWork.addKeywords(itemSublocation);
 		}
 
 		recordInfo.addItem(itemInfo);

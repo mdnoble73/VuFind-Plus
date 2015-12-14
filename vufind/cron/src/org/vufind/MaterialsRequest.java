@@ -154,7 +154,7 @@ public class MaterialsRequest implements IProcessHandler{
 			}else if (requestUpc != null && requestUpc.length() > 0){
 				searchUrl = new URL(vufindUrl + "/API/SearchAPI?method=search&lookfor=" + URLEncoder.encode(requestUpc, "utf8") + "&type=isn");
 			}else{
-				searchUrl = new URL(vufindUrl + "/API/SearchAPI?method=search&lookfor=oclc" + URLEncoder.encode(requestOclcNumber, "utf8") + "&type=allfields");
+				searchUrl = new URL(vufindUrl + "/API/SearchAPI?method=search&lookfor=oclc" + URLEncoder.encode(requestOclcNumber, "utf8") + "&type=keyword");
 			}
 			Object searchDataRaw = searchUrl.getContent();
 			if (searchDataRaw instanceof InputStream) {

@@ -313,32 +313,6 @@ SeriesProper:
       - [and, 200]
       - [or, 100]
 
-AllFields:
-  DismaxFields:
-    - all_fields
-    - id
-    - alternate_ids
-  QueryFields:
-    all_fields:
-      - [and, ~]
-    id:
-      - [onephrase, ~]
-    alternate_ids:
-      - [onephrase, ~]
-
-AllFieldsProper:
-  DismaxFields:
-    - all_fields_proper
-    - id
-    - alternate_ids
-  QueryFields:
-    all_fields_proper:
-      - [and, ~]
-    id:
-      - [onephrase, ~]
-    alternate_ids:
-      - [onephrase, ~]
-
 # This is proving slow based of the number of things we are searching.
 # Try reorganizing to match things better and ensure that we don't look at similar fields multiple times.
 Keyword:

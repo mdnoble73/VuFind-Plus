@@ -215,7 +215,6 @@
 		<dynamicField name="econtent_source_*" type="string" indexed="true" stored="true" multiValued="true" docValues="true"/>
 		<dynamicField name="econtent_protection_type_*" type="string" indexed="true" stored="true" multiValued="true" docValues="true"/>
 		<!-- Broad Search Terms -->
-		<field name="all_fields" type="text" indexed="true" stored="false"/>
 		<field name="table_of_contents" type="text" indexed="true" stored="true" multiValued="true"/>
 		<field name="keywords" type="text" indexed="true" stored="false"/>
 		<field name="keywords_proper" type="textProper" indexed="true" stored="false"/>
