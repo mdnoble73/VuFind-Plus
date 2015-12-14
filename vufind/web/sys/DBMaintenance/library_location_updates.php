@@ -1080,6 +1080,15 @@ function getLibraryLocationUpdates(){
 			),
 		),
 
+		'right_hand_sidebar' => array(
+			'title' => 'Enable Right Hand Sidebar',
+			'description' => 'Library configuration switch to display sidebars on the right of the page instead of the default left side.',
+			'continueOnError' => true,
+			'sql' => array(
+				"ALTER TABLE `library` ADD COLUMN `sideBarOnRight` TINYINT(1) DEFAULT 0;",
+			),
+		),
+
 		'theme_name_length' => array(
 			'title' => 'Increase length of theme name',
 			'description' => 'Increase the length of theme name to allow for more nesting of themes.',
