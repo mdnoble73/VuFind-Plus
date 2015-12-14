@@ -1038,6 +1038,10 @@ class Solr implements IndexEngine {
 		// Load the YAML search specifications:
 		$ss = $this->_getSearchSpecs($field);
 
+		if ($field == 'AllFields'){
+			$field = 'Keyword';
+		}
+
 		// If we received a field spec that wasn't defined in the YAML file,
 		// let's try simply passing it along to Solr.
 		if ($ss === false) {
@@ -1152,6 +1156,9 @@ class Solr implements IndexEngine {
 							// Build this group individually as a basic search
 							if (strpos($group['lookfor'], ' ') > 0){
 								$group['lookfor'] = '(' . $group['lookfor'] . ')';
+							}
+							if ($group['field'] == 'AllFields'){
+								$group['field'] = 'Keyword';
 							}
 							$thisGroup[] = $this->buildQuery(array($group));
 						}
@@ -1353,6 +1360,11 @@ class Solr implements IndexEngine {
 			$options['sort'] = implode(',', $sortParts);
 		}
 
+		//Convert from old AllFields Search to Keyword search
+		if ($handler == 'AllFields'){
+			$handler = 'Keyword';
+		}
+
 		//Check to see if we need to automatically convert to a proper case only (no stemming search)
 		//We will do this whenever all or part of a string is surrounded by quotes.
 		if (preg_match('/\\".+?\\"/',$query)){
@@ -1361,7 +1373,9 @@ class Solr implements IndexEngine {
 			}else if ($handler == 'Subject'){
 				$handler = 'SubjectProper';
 			}else if ($handler == 'AllFields'){
-				$handler = 'AllFieldsProper';
+				$handler = 'KeywordProper';
+			}else if ($handler == 'Title'){
+				$handler = 'TitleProper';
 			}else if ($handler == 'Title'){
 				$handler = 'TitleProper';
 			}

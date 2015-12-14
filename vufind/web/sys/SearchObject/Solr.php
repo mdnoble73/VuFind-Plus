@@ -1111,8 +1111,14 @@ class SearchObject_Solr extends SearchObject_Base
 			}
 
 			if (isset($_REQUEST['basicType'])) {
+				if ($_REQUEST['basicType'] == 'AllFields'){
+					$_REQUEST['basicType'] = 'Keyword';
+				}
 				$params[] = 'basicType=' . $_REQUEST['basicType'];
 			} else if (isset($_REQUEST['type'])) {
+				if ($_REQUEST['type'] == 'AllFields'){
+					$_REQUEST['type'] = 'Keyword';
+				}
 				$params[] = 'type=' . $_REQUEST['type'];
 			}
 			$this->params = $params;

@@ -23,7 +23,6 @@ public class GroupedWorkSolr {
 	private String acceleratedReaderInterestLevel;
 	private String acceleratedReaderReadingLevel;
 	private String acceleratedReaderPointValue;
-	private String allFields = "";
 	private HashSet<String> alternateIds = new HashSet<>();
 	private String authAuthor;
 	private String author;
@@ -219,13 +218,16 @@ public class GroupedWorkSolr {
 
 		HashSet<String> eContentSources = getAllEContentSources();
 		keywords.addAll(eContentSources);
+		keywords.addAll(isbns);
+		keywords.addAll(oclcs);
+		keywords.addAll(barcodes);
+		keywords.addAll(issns);
+		keywords.addAll(lccns);
+		keywords.addAll(upcs);
+		doc.addField("keywords", Util.getCRSeparatedStringFromSet(keywords));
 
 		doc.addField("table_of_contents", contents);
 		//broad search terms
-		// TODO: determine if we still need all fields?
-		doc.addField("all_fields", allFields);
-		//TODO: change keywords to be more like old version?
-		doc.addField("keywords", Util.getCRSeparatedStringFromSet(keywords));
 		//identifiers
 		doc.addField("lccn", lccns);
 		doc.addField("oclc", oclcs);
@@ -640,7 +642,7 @@ public class GroupedWorkSolr {
 			if (numFormsChecked == 0){
 				firstLiteraryFormIsNonFiction = nonFictionFullLiteraryForms.contains(curLiteraryForm);
 			}else{
-				if (firstLiteraryFormIsNonFiction != nonFictionFullLiteraryForms.contains(curLiteraryForm)){
+				if (firstLiteraryFormIsNonFiction != nonFictionFullLiteraryForms.contains(curLiteraryForm)) {
 					return true;
 				}
 			}
@@ -729,7 +731,7 @@ public class GroupedWorkSolr {
 		this.titleAlt.addAll(altTitles);
 	}
 
-	public void addOldTitles(Set<String> oldTitles){
+	public void addOldTitles(Set<String> oldTitles) {
 		this.titleOld.addAll(oldTitles);
 	}
 
@@ -742,7 +744,7 @@ public class GroupedWorkSolr {
 		keywords.add(author);
 	}
 
-	public void setAuthorDisplay(String newAuthor){
+	public void setAuthorDisplay(String newAuthor) {
 		this.authorDisplay = Util.trimTrailingPunctuation(newAuthor);
 	}
 
@@ -1038,10 +1040,6 @@ public class GroupedWorkSolr {
 		if (acceleratedReaderPointValue != null){
 			this.acceleratedReaderPointValue = acceleratedReaderPointValue;
 		}
-	}
-
-	public void addAllFields(String fields){
-		allFields += " " + fields;
 	}
 
 	public void setCallNumberA(String callNumber) {
