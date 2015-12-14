@@ -41,8 +41,10 @@ class Archive_Results extends Action {
 		$timer->logTime('Include search engine');
 
 		// Initialise from the current search globals
+		/** @var SearchObject_Islandora $searchObject */
 		$searchObject = SearchObjectFactory::initSearchObject('Islandora');
 		$searchObject->init($searchSource);
+		$searchObject->addHiddenFilter('-RELS_EXT_hasModel_uri_s', '*collectionCModel');
 
 		// Build RSS Feed for Results (if requested)
 		if ($searchObject->getView() == 'rss') {
@@ -188,9 +190,9 @@ class Archive_Results extends Action {
 			}
 
 			$timer->logTime('finish hits processing');
+			$interface->assign('subpage', $displayTemplate);
 		}
 
-		$interface->assign('subpage', $displayTemplate);
 		$interface->assign('displayMode', $displayMode); // For user toggle switches
 
 		// Save the ID of this search to the session so we can return to it easily:

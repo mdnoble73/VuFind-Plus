@@ -655,7 +655,7 @@ class SearchObject_Islandora extends SearchObject_Base
 	 */
 	public function addHiddenFilter($field, $value)
 	{
-		$this->hiddenFilters[$field] = $value;
+		$this->hiddenFilters[] = $field . ':' . $value;
 	}
 
 	/**
