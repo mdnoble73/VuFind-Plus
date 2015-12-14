@@ -239,7 +239,11 @@ abstract class IslandoraDriver extends RecordInterface {
 	}
 
 	public function getTitle() {
-		return $this->fields['dc.title'][0];
+		if (isset($this->fields['dc.title'])){
+			return $this->fields['dc.title'][0];
+		}else{
+			return 'Untitled';
+		}
 	}
 
 	/**
