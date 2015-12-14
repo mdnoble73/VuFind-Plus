@@ -41,7 +41,7 @@ class RecordDriverFactory {
 		global $configArray;
 
 		// Determine driver path based on record type:
-		if (!array_key_exists('recordType', $record)){
+		if (!array_key_exists('recordtype', $record)){
 			$recordType = $record['RELS_EXT_hasModel_uri_s'];
 			//Get rid of islandora namespace information
 			$recordType = str_replace('info:fedora/islandora:', '', $recordType);

@@ -1001,8 +1001,6 @@ class SearchObject_Islandora extends SearchObject_Base
 	 */
 	public function getFacetList($filter = null, $expandingLinks = false)
 	{
-		return array();
-
 		// If there is no filter, we'll use all facets as the filter:
 		if (is_null($filter)) {
 			$filter = $this->facetConfig;
