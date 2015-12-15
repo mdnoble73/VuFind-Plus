@@ -10,18 +10,21 @@
 
 require_once ROOT_DIR . '/services/Archive/Object.php';
 class Archive_LargeImage extends Archive_Object{
-	function launch(){
+	function launch() {
 		global $interface;
 		global $configArray;
 		$this->loadArchiveObjectData();
 		$this->loadExploreMoreContent();
 
 		$hasImage = false;
-		if ($this->archiveObject->getDatastream('JP2') != null){
+		if ($this->archiveObject->getDatastream('JP2') != null) {
 			$interface->assign('large_image', $configArray['Islandora']['objectUrl'] . "/{$this->pid}/datastream/JP2/view");
 			$hasImage = true;
 		}
-		if ($this->archiveObject->getDatastream('LC') != null){
+		if ($this->archiveObject->getDatastream('JPG') != null){
+			$interface->assign('image', $configArray['Islandora']['objectUrl'] . "/{$this->pid}/datastream/JPG/view");
+			$hasImage = true;
+		}elseif ($this->archiveObject->getDatastream('LC') != null){
 			$interface->assign('image', $configArray['Islandora']['objectUrl'] . "/{$this->pid}/datastream/LC/view");
 			$hasImage = true;
 		}else if ($this->archiveObject->getDatastream('MC') != null){

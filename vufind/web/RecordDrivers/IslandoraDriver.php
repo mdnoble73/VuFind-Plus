@@ -54,10 +54,10 @@ abstract class IslandoraDriver extends RecordInterface {
 				return $this->getPlaceholderImage();
 			}
 		}if ($size == 'large'){
-			if (array_key_exists('fedora_datastream_info_LC_ID_mt', $this->fields)){
-				return $objectUrl . '/' . $this->getUniqueID() . '/datastream/LC/view';
-			}elseif (array_key_exists('fedora_datastream_info_JPG_ID_mt', $this->fields)){
+			if (array_key_exists('fedora_datastream_info_JPG_ID_mt', $this->fields)) {
 				return $objectUrl . '/' . $this->getUniqueID() . '/datastream/JPG/view';
+			}elseif (array_key_exists('fedora_datastream_info_LC_ID_mt', $this->fields)){
+				return $objectUrl . '/' . $this->getUniqueID() . '/datastream/LC/view';
 			}else{
 				return $this->getPlaceholderImage();
 			}
