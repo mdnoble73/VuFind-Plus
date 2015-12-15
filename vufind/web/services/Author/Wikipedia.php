@@ -30,18 +30,12 @@ class Author_Wikipedia {
 		}
 
 		$url = "http://{$this->lang}.wikipedia.org/w/api.php" .
-				'?action=query&prop=revisions&rvprop=content&format=php' .
-				'&list=allpages&titles=' . urlencode($author);
-		$client = new Proxy_Request();
-		$client->setMethod(HTTP_REQUEST_METHOD_GET);
-		$client->setURL($url);
+				'?action=query&prop=revisions&rvprop=content&format=json' .
+				'&titles=' . urlencode($author);
 
-		$result = $client->sendRequest();
-		if (PEAR_Singleton::isError($result)) {
-			return $result;
-		}
-
-		$info = $this->parseWikipedia(unserialize($client->getResponseBody()));
+		$result = file_get_contents($url);
+		$jsonResult = json_decode($result, true);
+		$info = $this->parseWikipedia($jsonResult);
 		if (!PEAR_Singleton::isError($info)) {
 			return $info;
 		}
@@ -60,19 +54,14 @@ class Author_Wikipedia {
 	private function getWikipediaImageURL($imageName)
 	{
 		$url = "http://{$this->lang}.wikipedia.org/w/api.php" .
-				'?prop=imageinfo&action=query&iiprop=url&iiurlwidth=150&format=php' .
+				'?prop=imageinfo&action=query&iiprop=url&iiurlwidth=150&format=json' .
 				'&titles=Image:' . $imageName;
 
-		$client = new Proxy_Request();
-		$client->setMethod(HTTP_REQUEST_METHOD_GET);
-		$client->setURL($url);
-		$result = $client->sendRequest();
-		if (PEAR_Singleton::isError($result)) {
-			return false;
-		}
+		$response = file_get_contents($url);
 
-		if ($response = $client->getResponseBody()) {
-			if ($imageinfo = unserialize($response)) {
+		if ($response) {
+
+			if ($imageinfo = json_decode($response, true)) {
 				if (isset($imageinfo['query']['pages']['-1']['imageinfo'][0]['url'])) {
 					$imageUrl = $imageinfo['query']['pages']['-1']['imageinfo'][0]['url'];
 				}

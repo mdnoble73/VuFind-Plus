@@ -42,7 +42,6 @@ class SideFacets implements RecommendationInterface
 	 * @param   string  $params         Additional settings from the searches.ini.
 	 */
 	public function __construct($searchObject, $params) {
-		global $configArray;
 		// Save the passed-in SearchObject:
 		$this->searchObject = $searchObject;
 
@@ -52,7 +51,7 @@ class SideFacets implements RecommendationInterface
 		$checkboxSection = isset($params[1]) ? $params[1] : false;
 		$iniName = isset($params[2]) ? $params[2] : 'facets';
 
-		if ($searchObject->getSearchType() == 'genealogy'){
+		if ($searchObject->getSearchType() == 'genealogy' || $searchObject->getSearchType() == 'islandora'){
 			$config = getExtraConfigArray($iniName);
 			$this->mainFacets = isset($config[$mainSection]) ? $config[$mainSection] : array();
 		}else{
@@ -176,7 +175,7 @@ class SideFacets implements RecommendationInterface
 		$searchLibrary = Library::getSearchLibrary();
 
 		//Do additional processing of facets for non-genealogy searches
-		if ($this->searchObject->getSearchType() != 'genealogy'){
+		if ($this->searchObject->getSearchType() != 'genealogy' && $this->searchObject->getSearchType() != 'islandora'){
 			foreach ($sideFacets as $facetKey => $facet){
 
 				$facetSetting = $this->facetSettings[$facetKey];
@@ -262,7 +261,7 @@ class SideFacets implements RecommendationInterface
 				$sideFacets[$facetKey]['collapseByDefault'] = $facetSetting->collapseByDefault;
 			}
 		}else{
-			//Process genealogy to add more facet popup
+			//Process genealogy & islandora to add more facet popup
 			foreach ($sideFacets as $facetKey => $facet){
 				if (count($sideFacets[$facetKey]['list']) > 12){
 					$sideFacets[$facetKey]['showMoreFacetPopup'] = true;

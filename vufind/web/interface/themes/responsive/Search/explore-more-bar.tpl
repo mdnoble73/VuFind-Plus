@@ -1,6 +1,6 @@
 {strip}
 <div class="exploreMoreBar row">
-	{foreach from=$exploreMoreOptions item=exploreMoreCategory key=categoryKey}
+	{foreach from=$exploreMoreOptions item=exploreMoreCategory}
 		<div class="explore-more-option">
 			<figure class="thumbnail">
 				<a href="{$exploreMoreCategory.link}">

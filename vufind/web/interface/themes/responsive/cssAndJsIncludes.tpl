@@ -36,6 +36,7 @@
 		<script src="{$path}/interface/themes/responsive/js/vufind/base.js"></script>
 		<script src="{$path}/interface/themes/responsive/js/vufind/account.js"></script>
 		<script src="{$path}/interface/themes/responsive/js/vufind/admin.js"></script>
+		<script src="{$path}/interface/themes/responsive/js/vufind/archive.js"></script>
 		<script src="{$path}/interface/themes/responsive/js/vufind/analytic-reports.js"></script>
 		<script src="{$path}/interface/themes/responsive/js/vufind/browse.js"></script>
 		<script src="{$path}/interface/themes/responsive/js/vufind/dpla.js"></script>

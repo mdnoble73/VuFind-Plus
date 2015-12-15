@@ -37,6 +37,8 @@ abstract class RecordInterface {
 	 */
 	public abstract function __construct($recordData);
 
+	public abstract function getBookcoverUrl($size = 'small');
+
 	/**
 	 * Get text that can be displayed to represent this record in
 	 * breadcrumbs.
@@ -131,6 +133,11 @@ abstract class RecordInterface {
 	 */
 	public abstract function getListEntry($user, $listId = null, $allowEdit = true);
 
+	public abstract function getLinkUrl($unscoped = false);
+
+	public abstract function getRecordUrl();
+
+	public abstract function getModule();
 	/**
 	 * Get an XML RDF representation of the data in this record.
 	 *
@@ -167,6 +174,13 @@ abstract class RecordInterface {
 	 * @return  string              Name of Smarty template file to display.
 	 */
 	public abstract function getStaffView();
+
+	/**
+	 * Get the full title of the record.
+	 *
+	 * @return  string
+	 */
+	public abstract function getTitle();
 
 	/**
 	 * Assign necessary Smarty variables and return a template name to

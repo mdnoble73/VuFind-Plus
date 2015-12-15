@@ -1158,5 +1158,14 @@ function getLibraryLocationUpdates(){
 				"UPDATE location set publicListsToInclude = 1 where showFavorites = 1",
 			),
 		),
+
+
+		'enable_archive' => array(
+				'title' => 'Enable Archive for libraries',
+				'description' => 'Add option to enable archives for individual libraries',
+				'sql' => array(
+					'ALTER TABLE library ADD COLUMN enableArchive TINYINT(1) DEFAULT 0',
+				),
+		),
 	);
 }

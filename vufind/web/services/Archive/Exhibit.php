@@ -12,9 +12,14 @@ require_once ROOT_DIR . '/services/Archive/Object.php';
 class Archive_Exhibit extends Archive_Object{
 	function launch(){
 		global $interface;
+		global $configArray;
 
 		$this->loadArchiveObjectData();
 		$this->loadExploreMoreContent();
+
+		if ($this->archiveObject->getDatastream('BANNER') != null) {
+			$interface->assign('main_image', $configArray['Islandora']['objectUrl'] . "/{$this->pid}/datastream/BANNER/view");
+		}
 
 		//TODO: This should be the collapsible sidebar
 		//$interface->assign('sidebar', 'Record/full-record-sidebar.tpl');

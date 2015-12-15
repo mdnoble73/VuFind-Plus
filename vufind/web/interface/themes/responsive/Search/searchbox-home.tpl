@@ -58,6 +58,12 @@
 											</li>
 										{/foreach}
 										<li class="divider genealogyType"></li>
+										{foreach from=$islandoraSearchTypes item=searchDesc key=searchVal}
+											<li>
+												<a class="islandoraType" href="#" onclick="return VuFind.Searches.updateSearchTypes('islandora', '{$searchVal}', '#searchForm');">{translate text="by"} {translate text=$searchDesc}</a>
+											</li>
+										{/foreach}
+										<li class="divider islandoraType"></li>
 									{/if}
 
 									<li class="catalogType">
@@ -91,6 +97,11 @@
 						<select name="genealogyType" class="searchTypeHome form-control genealogyType" id="genealogySearchTypes" {if $searchSource != 'genealogy'}style="display:none"{/if}>
 							{foreach from=$genealogySearchTypes item=searchDesc key=searchVal}
 								<option value="{$searchVal}"{if $genealogySearchIndex == $searchVal} selected="selected"{/if}>{translate text=$searchDesc}</option>
+							{/foreach}
+						</select>
+						<select name="islandoraType" class="searchTypeHome form-control genealogyType" id="islandoraSearchTypes" {if $searchSource != 'islandora'}style="display:none"{/if}>
+							{foreach from=$islandoraSearchTypes item=searchDesc key=searchVal}
+								<option value="{$searchVal}"{if $islandoraSearchIndex == $searchVal} selected="selected"{/if}>{translate text=$searchDesc}</option>
 							{/foreach}
 						</select>
 					</div>

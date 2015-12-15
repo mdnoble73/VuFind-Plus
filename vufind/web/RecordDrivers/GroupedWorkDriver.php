@@ -47,7 +47,7 @@ class GroupedWorkDriver extends RecordInterface{
 	protected $forbiddenSnippetFields = array(
 		'author', 'author-letter', 'auth_author2', 'title', 'title_short', 'title_full',
 		'title_auth', 'title_sub', 'title_display', 'spelling', 'id',
-		'allfields', 'allfields_proper', 'fulltext_unstemmed', 'econtentText_unstemmed',
+		'fulltext_unstemmed', 'econtentText_unstemmed',
 		'spellingShingle', 'collection', 'title_proper',
 		'display_description'
 	);
@@ -971,7 +971,7 @@ class GroupedWorkDriver extends RecordInterface{
 		return $description;
 	}
 
-	function getBookcoverUrl($size){
+	function getBookcoverUrl($size = 'small'){
 		global $configArray;
 		$bookCoverUrl = $configArray['Site']['path'] . "/bookcover.php?id={$this->getUniqueID()}&size={$size}&type=grouped_work";
 
@@ -2436,4 +2436,14 @@ class GroupedWorkDriver extends RecordInterface{
 		return $relatedRecord;
 	}
 
+	public function getRecordUrl() {
+		global $configArray;
+		$recordId = $this->getUniqueID();
+
+		return $configArray['Site']['path'] . '/GroupedWork/' . urlencode($recordId) . '/Home';
+	}
+
+	public function getModule() {
+		return 'GroupedWork';
+	}
 }

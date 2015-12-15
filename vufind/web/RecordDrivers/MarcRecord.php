@@ -1581,12 +1581,12 @@ class MarcRecord extends IndexRecord
 	}
 
 	/**
-	 * @param File_MARC_Data_Field[] $allFields
+	 * @param File_MARC_Data_Field[] $tocFields
 	 * @return array
 	 */
-	function processTableOfContentsFields($allFields){
+	function processTableOfContentsFields($tocFields){
 		$notes = array();
-		foreach ($allFields as $marcField){
+		foreach ($tocFields as $marcField){
 			$curNote = '';
 			/** @var File_MARC_Subfield $subfield */
 			foreach ($marcField->getSubfields() as $subfield){
