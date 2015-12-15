@@ -39,7 +39,7 @@ abstract class IslandoraDriver extends RecordInterface {
 			if (array_key_exists('fedora_datastream_info_SC_ID_mt', $this->fields)){
 				return $objectUrl . '/' . $this->getUniqueID() . '/datastream/SC/view';
 			}else if (array_key_exists('fedora_datastream_info_SC_TN_mt', $this->fields)){
-				return $objectUrl . '/' . $this->getUniqueID() . '/datastream/SC/view';
+				return $objectUrl . '/' . $this->getUniqueID() . '/datastream/TN/view';
 			}else{
 				//return a placeholder
 				return $this->getPlaceholderImage();
@@ -49,7 +49,7 @@ abstract class IslandoraDriver extends RecordInterface {
 			if (array_key_exists('fedora_datastream_info_MC_ID_mt', $this->fields)) {
 				return $objectUrl . '/' . $this->getUniqueID() . '/datastream/MC/view';
 			}else if (array_key_exists('fedora_datastream_info_TN_ID_mt', $this->fields)) {
-				return $objectUrl . '/' . $this->getUniqueID() . '/datastream/SC/view';
+				return $objectUrl . '/' . $this->getUniqueID() . '/datastream/TN/view';
 			}else{
 				return $this->getPlaceholderImage();
 			}
