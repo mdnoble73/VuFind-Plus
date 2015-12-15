@@ -38,15 +38,16 @@
 #####################
 # Daily full update #
 #####################
-# Set the start for 1 am
-00 1 * * * cd /usr/local/vufind-plus/sites/arlington.production; ./full_update.sh
+# Set the start for 4:30 am
+# last marc export file transfer is scheduled to start at 4am
+30 4 * * * cd /usr/local/vufind-plus/sites/arlington.production; ./full_update.sh
 
 ###################
 # Pika Cron Jobs  #
 ###################
 7 */3 * * * cd /usr/local/vufind-plus/vufind/cron/; java -jar cron.jar arlington.production
 20 0 * * * cd /usr/local/vufind-plus/vufind/cron/; java -jar cron.jar arlington.production DatabaseCleanup
-# Delete old solr logs.
+# Delete old solr logs, sundays 3:14am.
 14 3 * * 0 find /usr/local/vufind-plus/sites/default/solr/jetty/logs -name "solr_log_*" -mtime +7 -delete
 14 3 * * 0 find /usr/local/vufind-plus/sites/default/solr/jetty/logs -name "solr_gc_log_*" -mtime +7 -delete
 
