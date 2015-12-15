@@ -242,6 +242,10 @@ class SearchObject_Islandora extends SearchObject_Base
 		$this->allFacetSettings[$section][$setting] : '';
 	}
 
+	public function clearHiddenFilters() {
+		$this->hiddenFilters = array();
+	}
+
 	/**
 	 * Used during repeated deminification (such as search history).
 	 *   To scrub fields populated above.

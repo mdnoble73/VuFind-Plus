@@ -522,11 +522,11 @@ abstract class SearchObject_Base
 	 * Initialize the object's search settings for a basic search found in the
 	 * $_REQUEST superglobal.
 	 *
-	 * @access  protected
+	 * @access  public
 	 * @param String|String[] $searchTerm
 	 * @return  boolean  True if search settings were found, false if not.
 	 */
-	protected function initBasicSearch($searchTerm = null)
+	public function initBasicSearch($searchTerm = null)
 	{
 		if ($searchTerm == null){
 			// If no lookfor parameter was found, we have no search terms to
@@ -571,6 +571,11 @@ abstract class SearchObject_Base
             'lookfor' => $searchTerm
 		);
 		return true;
+	}
+
+	public function setSearchTerms($searchTerms){
+		$this->searchTerms = array();
+		$this->searchTerms[] = $searchTerms;
 	}
 
 	public function isAdvanced(){

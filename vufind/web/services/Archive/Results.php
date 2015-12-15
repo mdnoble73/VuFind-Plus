@@ -44,7 +44,7 @@ class Archive_Results extends Action {
 		/** @var SearchObject_Islandora $searchObject */
 		$searchObject = SearchObjectFactory::initSearchObject('Islandora');
 		$searchObject->init($searchSource);
-		$searchObject->addHiddenFilter('-RELS_EXT_hasModel_uri_s', '*collectionCModel');
+		//$searchObject->addHiddenFilter('-RELS_EXT_hasModel_uri_s', '*collectionCModel');
 
 		// Build RSS Feed for Results (if requested)
 		if ($searchObject->getView() == 'rss') {

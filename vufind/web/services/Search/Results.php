@@ -503,95 +503,55 @@ class Search_Results extends Action {
 		//Get data from the repository
 		global $interface;
 		global $configArray;
+
 		if (isset($configArray['Islandora']) && isset($configArray['Islandora']['solrUrl']) && !empty($_GET['lookfor']) && !is_array($_GET['lookfor'])){
-			//!is_array($_GET['lookfor'])  avoid advanced searches for now
-			$islandoraUrl = $configArray['Islandora']['solrUrl'];
-			//TODO: This should be done with a Solr search object and we should setup searchspecs, etc.
-			//Setup a basic query
-			//TODO: Handle Pika Advanced Searches
-			$searchTerm = urlencode($_GET['lookfor']);
-			$username = $configArray['Islandora']['fedoraUsername'];
-			$password = $configArray['Islandora']['fedoraPassword'];
-			$options = array(
-				'http' => array(
-					'header'  => "Authorization: Basic " . base64_encode("$username:$password")
-				)
-			);
-			$context = stream_context_create($options);
-			$query = $islandoraUrl . '/islandora/select?q=dc.title:' . $searchTerm . '+OR+dc.subject:' . $searchTerm . '&wt=json&fl=PID,dc.title,dc.description,dc.type_s,dc.format_s,dsmd_OBJ.Content-Type';
-			$response = json_decode(file_get_contents($query, false, $context));
+			/** @var SearchObject_Islandora $searchObject */
+			$searchObject = SearchObjectFactory::initSearchObject('Islandora');
+			$searchObject->init();
+			$searchObject->setSearchTerms(array(
+					'lookfor' => $_REQUEST['lookfor'],
+					'index' => 'IslandoraKeyword'
+			));
 
-			if ($response) {
-				$exploreMoreOptions = array();
-				foreach ($response->response->docs as $solrDoc) {
-					$title = $solrDoc->{'dc.title'};
-					if (is_array($title)) {
-						$title = reset($title);
-					}
-					if (isset($solrDoc->{'dsmd_OBJ.Content-Type'}) || isset($solrDoc->{'dc.type_s'})) {
-						if (isset($solrDoc->{'dsmd_OBJ.Content-Type'})) {
-							$objectContentType = $solrDoc->{'dsmd_OBJ.Content-Type'};
-						} else {
-							$objectContentType = $solrDoc->{'dc.type_s'};
-						}
+			$exploreMoreOptions = array();
 
-						if (is_array($objectContentType)) {
-							$objectContentType = $objectContentType[0];
-						}
-						if (!isset($exploreMoreOptions[$objectContentType])) {
-							$exploreMoreOptions[$objectContentType] = array();
-						}
-						$exploreMoreOptions[$objectContentType][] = array(
-							'PID' => $solrDoc->PID,
-							'type' => 'archive-' . $objectContentType,
-							'title' => $title,
-							'description' => isset($solrDoc->{'dc.description'}) ? $solrDoc->{'dc.description'} : '',
-							'thumbnail' => $configArray['Islandora']['fedoraUrl'] . '/objects/' . $solrDoc->PID . '/datastreams/TN/content',
-						);
-					} else {
-						//This is an exhibit for display
-						$exploreMoreOptions[] = array(
-							'PID' => $solrDoc->PID,
-							'type' => 'archive-collection',
-							'title' => $title,
-							'description' => isset($solrDoc->{'dc.description'}) ? $solrDoc->{'dc.description'} : '',
-							'link' => $configArray['Site']['path'] . '/Archive/' . $solrDoc->PID . '/Exhibit',
-							'thumbnail' => $configArray['Islandora']['fedoraUrl'] . '/objects/' . $solrDoc->PID . '/datastreams/TN/content',
-						);
-					}
+			//Get a list of projects related to this search term
+			$searchObject->clearHiddenFilters();
+			$searchObject->addHiddenFilter('RELS_EXT_hasModel_uri_s', '*collectionCModel');
+			$response = $searchObject->processSearch(true, false);
+			if ($response && $response['response']['numFound'] > 0) {
+				foreach ($response['response']['docs'] as $solrDoc) {
+					/** @var RecordInterface $object */
+					$object = RecordDriverFactory::initRecordDriver($solrDoc);
+					$exploreMoreOptions[] = array(
+							'title' => $object->getTitle(),
+							'description' => $object->getDescription(),
+							'thumbnail' => $object->getBookcoverUrl('small'),
+							'link' => $object->getLinkUrl(),
+					);
 				}
-
-				$sortedOptions = array();
-				//Add all the collections first
-				foreach ($exploreMoreOptions as $option){
-					if (isset($option['type']) && $option['type'] == 'archive-collection'){
-						$sortedOptions[] = $option;
-					}
-				}
-				foreach ($exploreMoreOptions as $type => $option){
-					if (!isset($option['type']) || $option['type'] != 'archive-collection'){
-						//Create information about how to link based off the collected documents
-						$optionByFormat = reset($option);
-						$add = false;
-						if ($type == 'MovingImage' ){
-							$optionByFormat['title'] = 'Videos';
-						}else if ($type == 'Text' ){
-							$optionByFormat['title'] = 'Articles';
-						}else if ($type == 'image/jpeg' ){
-							$optionByFormat['title'] = 'Images';
-							$add = true;
-						}
-						if ($add){
-							$sortedOptions[] = $optionByFormat;
-						}
-
-					}
-				}
-				$interface->assign('exploreMoreOptions', $sortedOptions);
-			} else {
-				global $logger;
-				$logger->log('Islandora Search Failed.', PEAR_LOG_WARNING);
 			}
+
+			$searchObject->init();
+			$searchObject->clearHiddenFilters();
+			$searchObject->addHiddenFilter('RELS_EXT_hasModel_uri_s', '*large_image_cmodel');
+			$response = $searchObject->processSearch(true, false);
+			if ($response && $response['response']['numFound'] > 0) {
+				$firstObject = reset($response['response']['docs']);
+				$firstObjectDriver = RecordDriverFactory::initRecordDriver($firstObject);
+				$numMatches = $response['response']['numFound'];
+				$exploreMoreOptions[] = array(
+						'title' => "Images ({$numMatches})",
+						'description' => "Images related to {$searchObject->getQuery()}",
+						'thumbnail' => $firstObjectDriver->getBookcoverUrl('medium'),
+						'link' => $searchObject->renderSearchUrl(),
+				);
+			}
+
+			$interface->assign('exploreMoreOptions', $exploreMoreOptions);
+		} else {
+			global $logger;
+			$logger->log('Islandora Search Failed.', PEAR_LOG_WARNING);
 		}
 	}
 }
