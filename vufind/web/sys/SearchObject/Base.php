@@ -194,7 +194,6 @@ abstract class SearchObject_Base
 	 */
 	public function addFilter($newFilter)
 	{
-		global $configArray;
 		// Extract field and value from URL string:
 		list($field, $value) = $this->parseFilter($newFilter);
 
@@ -861,8 +860,8 @@ abstract class SearchObject_Base
 			$params[] = "view=" . urlencode(strip_tags($_REQUEST['view']));
 		}
 
-		if (isset($_REQUEST['searchSource'])){
-			$params[] = "searchSource=" . urlencode(strip_tags($_REQUEST['searchSource']));
+		if ($this->searchSource){
+			$params[] = "searchSource=" . $this->searchSource;
 		}
 
 		// Join all parameters with an escaped ampersand,

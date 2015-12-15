@@ -625,6 +625,8 @@ IslandoraKeyword:
       - [and, 300]
     - mods_subject_topic_mt:
       - [and, 300]
+    - eaccpf_cpfDescription_description_biogHist_p_t:
+      - [and, 100]
     - PID:
       - [exact, 1000]
       - [and, 100]

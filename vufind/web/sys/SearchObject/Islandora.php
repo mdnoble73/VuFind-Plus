@@ -146,6 +146,10 @@ class SearchObject_Islandora extends SearchObject_Base
 		$this->indexEngine->debug = $this->debug;
 		$this->indexEngine->debugSolrQuery = $this->debugSolrQuery;
 
+		$this->resultsModule = 'Archive';
+		$this->resultsAction = 'Results';
+		$this->searchSource = 'islandora';
+
 		$timer->logTime('Setup Solr Search Object');
 	}
 
@@ -159,7 +163,7 @@ class SearchObject_Islandora extends SearchObject_Base
 	public function init()
 	{
 		// Call the standard initialization routine in the parent:
-		parent::init();
+		parent::init('islandora');
 
 		//********************
 		// Check if we have a saved search to restore -- if restored successfully,
