@@ -36,11 +36,32 @@ abstract class IslandoraDriver extends RecordInterface {
 		global $configArray;
 		$objectUrl = $configArray['Islandora']['objectUrl'];
 		if ($size == 'small'){
-			return $objectUrl . '/' . $this->getUniqueID() . '/datastream/SC/view';
+			if (array_key_exists('fedora_datastream_info_SC_ID_mt', $this->fields)){
+				return $objectUrl . '/' . $this->getUniqueID() . '/datastream/SC/view';
+			}else if (array_key_exists('fedora_datastream_info_SC_TN_mt', $this->fields)){
+				return $objectUrl . '/' . $this->getUniqueID() . '/datastream/SC/view';
+			}else{
+				//return a placeholder
+				return $this->getPlaceholderImage();
+			}
+
 		}elseif ($size == 'medium'){
-			return $objectUrl . '/' . $this->getUniqueID() . '/datastream/MC/view';
+			if (array_key_exists('fedora_datastream_info_MC_ID_mt', $this->fields)) {
+				return $objectUrl . '/' . $this->getUniqueID() . '/datastream/MC/view';
+			}else if (array_key_exists('fedora_datastream_info_TN_ID_mt', $this->fields)) {
+				return $objectUrl . '/' . $this->getUniqueID() . '/datastream/SC/view';
+			}else{
+				return $this->getPlaceholderImage();
+			}
 		}if ($size == 'large'){
-			return $objectUrl . '/' . $this->getUniqueID() . '/datastream/LC/view';
+			if (array_key_exists('fedora_datastream_info_LC_ID_mt', $this->fields)){
+				return $objectUrl . '/' . $this->getUniqueID() . '/datastream/LC/view';
+			}elseif (array_key_exists('fedora_datastream_info_JPG_ID_mt', $this->fields)){
+				return $objectUrl . '/' . $this->getUniqueID() . '/datastream/JPG/view';
+			}else{
+				return $this->getPlaceholderImage();
+			}
+
 		}
 	}
 
@@ -394,4 +415,9 @@ abstract class IslandoraDriver extends RecordInterface {
 	}
 
 	public abstract function getViewAction();
+
+	protected function getPlaceholderImage() {
+		global $configArray;
+		return $configArray['Site']['path'] . '/interface/themes/responsive/images/History.png';
+	}
 }

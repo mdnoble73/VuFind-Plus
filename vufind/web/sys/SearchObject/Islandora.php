@@ -57,8 +57,6 @@ class SearchObject_Islandora extends SearchObject_Base
 	private $indexEngine = null;
 	// Facets information
 	private $allFacetSettings = array();    // loaded from facets.ini
-	// Used to pass hidden filter queries to Solr
-	private $hiddenFilters = array();
 
 	// Spelling
 	private $spellingLimit = 3;
@@ -244,10 +242,6 @@ class SearchObject_Islandora extends SearchObject_Base
 	{
 		return isset($this->allFacetSettings[$section][$setting]) ?
 		$this->allFacetSettings[$section][$setting] : '';
-	}
-
-	public function clearHiddenFilters() {
-		$this->hiddenFilters = array();
 	}
 
 	/**
@@ -653,17 +647,6 @@ class SearchObject_Islandora extends SearchObject_Base
 
 		// Use default case from parent class the rest of the time:
 		return parent::getRecommendationSettings();
-	}
-
-	/**
-	 * Add a hidden (i.e. not visible in facet controls) filter query to the object.
-	 *
-	 * @access  public
-	 * @param   string $fq                 Filter query for Solr.
-	 */
-	public function addHiddenFilter($field, $value)
-	{
-		$this->hiddenFilters[] = $field . ':' . $value;
 	}
 
 	/**

@@ -14,4 +14,8 @@ class PersonDriver extends IslandoraDriver {
 	public function getViewAction() {
 		return 'Person';
 	}
-}
+
+	protected function getPlaceholderImage() {
+		global $configArray;
+		return $configArray['Site']['path'] . '/interface/themes/responsive/images/People.png';
+	}}

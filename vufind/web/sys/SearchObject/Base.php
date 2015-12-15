@@ -49,6 +49,9 @@ abstract class SearchObject_Base
 	// Result limit
 	protected $limit = 20;
 
+	// Used to pass hidden filter queries to Solr
+	protected $hiddenFilters = array();
+
 	// STATS
 	protected $resultsTotal = 0;
 
@@ -185,6 +188,11 @@ abstract class SearchObject_Base
 		return false;
 	}
 
+	public function clearFilters(){
+		$this->filterList = array();
+	}
+
+
 	/**
 	 * Take a filter string and add it into the protected
 	 *   array checking for duplicates.
@@ -289,6 +297,21 @@ abstract class SearchObject_Base
 				}
 			}
 		}
+	}
+
+	public function clearHiddenFilters() {
+		$this->hiddenFilters = array();
+	}
+
+	/**
+	 * Add a hidden (i.e. not visible in facet controls) filter query to the object.
+	 *
+	 * @access  public
+	 * @param   string $fq                 Filter query for Solr.
+	 */
+	public function addHiddenFilter($field, $value)
+	{
+		$this->hiddenFilters[] = $field . ':' . $value;
 	}
 
 	/**
