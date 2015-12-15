@@ -81,9 +81,9 @@ checkConflictingProcesses "reindexer.jar arlington.production"
 cd /usr/local/vufind-plus/sites/${PIKASERVER}; ./${PIKASERVER}.sh restart
 
 #Extract from ILS
-#Copy extracts from FTP Server
-#Extract from ILS
-/root/cron/copyArlingtonExport.sh >> ${OUTPUT_FILE}
+# last export file is transferred starting at 4am Eastern. plb 12-15-2015
+/usr/local/vufind-plus/sites/${PIKASERVER}/moveSierraExport.sh >> ${OUTPUT_FILE}
+# (this script also deletes any export older that 7 days from the data directory)
 
 #Get the updated volume information
 cd /usr/local/vufind-plus/vufind/cron;
