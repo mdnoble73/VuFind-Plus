@@ -616,9 +616,15 @@ GenealogyName:
 IslandoraKeyword:
   QueryFields:
     - mods_titleInfo_title_t:
-      - [and, 500]
+      - [and, 700]
+    - fgs_label_t:
+      - [and, 700]
     - mods_abstract_t:
       - [and, 200]
+    - mods_subject_subject_mt:
+      - [and, 300]
+    - mods_subject_topic_mt:
+      - [and, 300]
     - PID:
       - [exact, 1000]
       - [and, 100]
