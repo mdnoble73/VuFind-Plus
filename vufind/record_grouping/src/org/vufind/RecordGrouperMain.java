@@ -671,6 +671,7 @@ public class RecordGrouperMain {
 		//Check to see if we need to clear the database
 		boolean clearDatabasePriorToGrouping = false;
 		boolean onlyDoCleanup = false;
+		String indexingProfileToRun = null;
 		if (args.length >= 2 && args[1].equalsIgnoreCase("fullRegroupingNoClear")) {
 			fullRegroupingNoClear = true;
 		}else if (args.length >= 2 && args[1].equalsIgnoreCase("fullRegrouping")){
@@ -680,6 +681,10 @@ public class RecordGrouperMain {
 			clearDatabasePriorToGrouping = false;
 			fullRegrouping = false;
 			onlyDoCleanup = true;
+		}else if (args.length >= 2){
+			//The last argument is the indexing profile to run
+			indexingProfileToRun = args[1];
+			fullRegrouping = false;
 		}else{
 			fullRegrouping = false;
 		}
@@ -696,6 +701,9 @@ public class RecordGrouperMain {
 			ArrayList<IndexingProfile> indexingProfiles = new ArrayList<>();
 			try{
 				PreparedStatement getIndexingProfilesStmt = vufindConn.prepareStatement("SELECT * FROM indexing_profiles");
+				if (indexingProfileToRun != null){
+					getIndexingProfilesStmt = vufindConn.prepareStatement("SELECT * FROM indexing_profiles where name like '" + indexingProfileToRun + "'");
+				}
 				ResultSet indexingProfilesRS = getIndexingProfilesStmt.executeQuery();
 				while (indexingProfilesRS.next()){
 					IndexingProfile profile = new IndexingProfile();
@@ -719,13 +727,20 @@ public class RecordGrouperMain {
 				System.exit(1);
 			}
 
-
-			groupHooplaRecords(configIni, recordGroupingProcessor);
-			groupOverDriveRecords(configIni, econtentConnection, recordGroupingProcessor);
-			groupIlsRecords(configIni, vufindConn, indexingProfiles);
+			if (indexingProfileToRun == null || indexingProfileToRun.equalsIgnoreCase("hoopla")) {
+				groupHooplaRecords(configIni, recordGroupingProcessor);
+			}
+			if (indexingProfileToRun == null || indexingProfileToRun.equalsIgnoreCase("overdrive")) {
+				groupOverDriveRecords(configIni, econtentConnection, recordGroupingProcessor);
+			}
+			if (indexingProfiles.size() > 0) {
+				groupIlsRecords(configIni, vufindConn, indexingProfiles);
+			}
 
 			//Remove deleted records
-			removeDeletedRecords(recordGroupingProcessor);
+			if (indexingProfileToRun == null) {
+				removeDeletedRecords(recordGroupingProcessor);
+			}
 		}
 
 		try{
@@ -1237,6 +1252,8 @@ public class RecordGrouperMain {
 			MarcRecordGrouper recordGroupingProcessor;
 			if (curProfile.groupingClass.equals("MarcRecordGrouper")) {
 				recordGroupingProcessor = new MarcRecordGrouper(dbConnection, curProfile, logger, fullRegrouping);
+			}else if (curProfile.groupingClass.equals("SideLoadedRecordGrouper")){
+				recordGroupingProcessor = new SideLoadedRecordGrouper(dbConnection, curProfile, logger, fullRegrouping);
 			}else if (curProfile.groupingClass.equals("HooplaRecordGrouper")){
 				//Ignore hoopla records since those group separately
 				continue;

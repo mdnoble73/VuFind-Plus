@@ -970,13 +970,34 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 	 * Determine Record Format(s)
 	 */
 	public void loadPrintFormatInformation(RecordInfo recordInfo, Record record){
-		LinkedHashSet<String> printFormats = new LinkedHashSet<>();
-
 		//We should already have formats based on the items
 		if (loadFormatFromItems && formatSubfield != ' ' && recordInfo.hasItemFormats()){
 			return;
 		}
 
+		LinkedHashSet<String> printFormats = getFormatsFromBib(record, recordInfo);
+
+		HashSet<String> translatedFormats = translateCollection("format", printFormats, recordInfo.getRecordIdentifier());
+		HashSet<String> translatedFormatCategories = translateCollection("format_category", printFormats, recordInfo.getRecordIdentifier());
+		recordInfo.addFormats(translatedFormats);
+		recordInfo.addFormatCategories(translatedFormatCategories);
+		Long formatBoost = 0L;
+		HashSet<String> formatBoosts = translateCollection("format_boost", printFormats, recordInfo.getRecordIdentifier());
+		for (String tmpFormatBoost : formatBoosts){
+			try {
+				Long tmpFormatBoostLong = Long.parseLong(tmpFormatBoost);
+				if (tmpFormatBoostLong > formatBoost) {
+					formatBoost = tmpFormatBoostLong;
+				}
+			}catch (NumberFormatException e){
+				logger.warn("Could not load format boost for format " + tmpFormatBoost + " profile " + profileType);
+			}
+		}
+		recordInfo.setFormatBoost(formatBoost);
+	}
+
+	protected LinkedHashSet<String> getFormatsFromBib(Record record, RecordInfo recordInfo){
+		LinkedHashSet<String> printFormats = new LinkedHashSet<>();
 		String leader = record.getLeader().toString();
 		char leaderBit;
 		ControlField fixedField = (ControlField) record.getVariableField("008");
@@ -1009,23 +1030,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 
 		filterPrintFormats(printFormats);
 
-		HashSet<String> translatedFormats = translateCollection("format", printFormats, recordInfo.getRecordIdentifier());
-		HashSet<String> translatedFormatCategories = translateCollection("format_category", printFormats, recordInfo.getRecordIdentifier());
-		recordInfo.addFormats(translatedFormats);
-		recordInfo.addFormatCategories(translatedFormatCategories);
-		Long formatBoost = 0L;
-		HashSet<String> formatBoosts = translateCollection("format_boost", printFormats, recordInfo.getRecordIdentifier());
-		for (String tmpFormatBoost : formatBoosts){
-			try {
-				Long tmpFormatBoostLong = Long.parseLong(tmpFormatBoost);
-				if (tmpFormatBoostLong > formatBoost) {
-					formatBoost = tmpFormatBoostLong;
-				}
-			}catch (NumberFormatException e){
-				logger.warn("Could not load format boost for format " + tmpFormatBoost + " profile " + profileType);
-			}
-		}
-		recordInfo.setFormatBoost(formatBoost);
+		return printFormats;
 	}
 
 	private void getFormatFromDigitalFileCharacteristics(Record record, LinkedHashSet<String> printFormats) {
