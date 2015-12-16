@@ -162,9 +162,9 @@ class Library extends DB_DataObject
 	public $enableMaterialsBooking;
 	public $allowLinkedAccounts;
 	public $horizontalSearchBar;
-
+	public $sideBarOnRight;
 	public $enableArchive;
-	
+
 	// Use this to set which details will be shown in the the Main Details section of the record view.
 	// You should be able to add options here without needing to change the database.
 	// set the key to the desired SMARTY template variable name, set the value to the label to show in the library configuration page
@@ -178,7 +178,7 @@ class Library extends DB_DataObject
 	);
 
 	/* Static get */
-	function staticGet($k,$v=NULL) { return DB_DataObject::staticGet('Library',$k,$v); }
+//	function staticGet($k,$v=NULL) { return DB_DataObject::staticGet('Library',$k,$v); }
 
 	function keys() {
 		return array('libraryId', 'subdomain');
@@ -256,6 +256,7 @@ class Library extends DB_DataObject
 				'homeLink' => array('property'=>'homeLink', 'type'=>'text', 'label'=>'Home Link', 'description'=>'The location to send the user when they click on the home button or logo.  Use default or blank to go back to the Pika home location.', 'size'=>'40', 'hideInLists' => true,),
 				'additionalCss' => array('property'=>'additionalCss', 'type'=>'textarea', 'label'=>'Additional CSS', 'description'=>'Extra CSS to apply to the site.  Will apply to all pages.', 'hideInLists' => true),
 				'headerText' => array('property'=>'headerText', 'type'=>'html', 'label'=>'Header Text', 'description'=>'Optional Text to display in the header, between the logo and the log in/out buttons.  Will apply to all pages.', 'allowableTags' => '<a><b><em><div><span><p><strong><sub><sup><h1><h2><h3><h4><h5><h6><img>', 'hideInLists' => true),
+				'sideBarOnRight' => array('property'=>'sideBarOnRight', 'type'=>'checkbox', 'label'=>'Display Sidebar on the Right Side', 'description'=>'Sidebars will be displayed on the right side of the page rather than the default left side.', 'hideInLists' => true,),
 				'useHomeLinkInBreadcrumbs' => array('property'=>'useHomeLinkInBreadcrumbs', 'type'=>'checkbox', 'label'=>'Use Home Link in Breadcrumbs', 'description'=>'Whether or not the home link should be used in the breadcumbs.', 'hideInLists' => true,),
 				'useHomeLinkForLogo' => array('property'=>'useHomeLinkForLogo', 'type'=>'checkbox', 'label'=>'Use Home Link for Logo', 'description'=>'Whether or not the home link should be used as the link for the main logo.', 'hideInLists' => true,),
 				'homeLinkText' => array('property'=>'homeLinkText', 'type'=>'text', 'label'=>'Home Link Text', 'description'=>'The text to show for the Home breadcrumb link', 'size'=>'40', 'hideInLists' => true, 'default' => 'Home'),
@@ -489,11 +490,11 @@ class Library extends DB_DataObject
 			)),
 
 			array('property'=>'archiveSection', 'type' => 'section', 'label' =>'Local Content Archive', 'hideInLists' => true, 'properties' => array(
-					'enableArchive' => array('property'=>'enableArchive', 'type'=>'checkbox', 'label'=>'Allow Searching the Archive', 'description'=>'Whether or not information from the archive is shown in Pika.', 'hideInLists' => true, 'default' => 0),
+				'enableArchive' => array('property'=>'enableArchive', 'type'=>'checkbox', 'label'=>'Allow Searching the Archive', 'description'=>'Whether or not information from the archive is shown in Pika.', 'hideInLists' => true, 'default' => 0),
 			)),
 
 			array('property'=>'dplaSection', 'type' => 'section', 'label' =>'DPLA', 'hideInLists' => true, 'properties' => array(
-					'includeDplaResults' => array('property'=>'includeDplaResults', 'type'=>'checkbox', 'label'=>'Include DPLA content in search results', 'description'=>'Whether or not DPLA data should be included for this library.', 'hideInLists' => true, 'default' => 0),
+				'includeDplaResults' => array('property'=>'includeDplaResults', 'type'=>'checkbox', 'label'=>'Include DPLA content in search results', 'description'=>'Whether or not DPLA data should be included for this library.', 'hideInLists' => true, 'default' => 0),
 			)),
 
 			'holidays' => array(
