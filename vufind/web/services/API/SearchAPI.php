@@ -30,7 +30,7 @@ class SearchAPI extends Action {
 		header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
 		header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
 
-		if (is_callable(array($this, $_GET['method']))) {
+		if (!empty($_GET['method']) && is_callable(array($this, $_GET['method']))) {
 			if (in_array($_GET['method'] , array('getSearchBar', 'getListWidget'))){
 				$output = $this->$_GET['method']();
 			}else{
