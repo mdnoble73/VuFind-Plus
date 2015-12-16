@@ -79,16 +79,57 @@
 					</div>
 				{/if}
 
+			<div id="content-container">
+				<div class="row">
+
+					{* $showExploreMore switch being ignored for now. TODO Remember to delete if not re-used. *}
+
+					{if isset($sidebar)} {* Main Content & Sidebars *}
+
+						{if $sideBarOnRight} {* Sidebar on the right *}
+							<div class="hidden-xs visible-sm col-xs-12 col-sm-8 col-md-9 col-lg-9" id="main-content-with-sidebar">
+								{include file="$module/$pageTemplate"}
+							</div>
+							<div class="col-xs-12 col-sm-4 col-md-3 col-lg-3" id="side-bar">
+								{include file="$sidebar"}
+							</div>
+
+						{else} {* Sidebar on the left *}
+							<div class="col-xs-12 col-sm-4 col-md-3 col-lg-3" id="side-bar">
+								{include file="$sidebar"}
+							</div>
+							<div class="hidden-xs visible-sm col-xs-12 col-sm-8 col-md-9 col-lg-9" id="main-content-with-sidebar">
+								{include file="$module/$pageTemplate"}
+							</div>
+						{/if}
+
+					{else} {* Main Content Only, no sidebar *}
+						{include file="$module/$pageTemplate"}
+					{/if}
+				</div>
+			</div>
+
+{* Previous Template
+
 			<div id="content-container" class="row">
 				{if isset($sidebar) && $showExploreMore}
-					{* Setup the left bar *}
-					<div class="col-xs-12 col-sm-4 col-md-2 col-lg-2" id="side-bar">
-						{include file="$sidebar"}
-					</div>
+					*}
+{* Setup the left bar *}{*
+
+						<div class="col-xs-12 col-sm-4 col-md-2 col-lg-2" id="side-bar">
+							{include file="$sidebar"}
+						</div>
+
+					*}
+{* Main Content *}{*
+
 					<div class="hidden-xs visible-sm col-xs-12 col-sm-8 col-md-8 col-lg-8" id="main-content-with-sidebar">
 						{include file="$module/$pageTemplate"}
 					</div>
-					{* TODO: Fix other sizes*}
+
+					*}
+{* TODO: Fix other sizes*}{*
+
 					<div class="hidden-xs visible-sm col-xs-12 col-sm-8 col-md-2 col-lg-2" id="explore-more-sidebar">
 						{include file="explore-more-sidebar.tpl"}
 					</div>
@@ -96,12 +137,16 @@
 					<div class="hidden-xs visible-sm col-xs-12 col-sm-8 col-md-9 col-lg-8" id="main-content-with-sidebar">
 						{include file="$module/$pageTemplate"}
 					</div>
-					{* Setup the explore more side bar *}
+					*}
+{* Setup the explore more side bar *}{*
+
 					<div class="col-xs-12 col-sm-4 col-md-3 col-lg-4" id="explore-more-sidebar">
 						{include file="explore-more-sidebar.tpl"}
 					</div>
 				{elseif isset($sidebar)}
-					{* Setup the left bar *}
+					*}
+{* Setup the left bar *}{*
+
 					<div class="col-xs-12 col-sm-4 col-md-3 col-lg-3" id="side-bar">
 						{include file="$sidebar"}
 					</div>
@@ -113,47 +158,17 @@
 					{include file="$module/$pageTemplate"}
 				{/if}
 			</div>
+*}
 
 			<div id="footer-container" class="row">
 				{include file="footer_responsive.tpl"}
 			</div>
 
-{*			<div id="navigation-controls" class="navbar navbar-fixed-bottom row visible-xs hidden-sm hidden-md hidden-lg">
-				<a href="#top"><div class="col-xs-6 text-center">Back To Top</div></a>
-				{if $showLoginButton == 1}
-					{if $user}
-						<a href="#account-menu"><div class="col-xs-6 text-center">Account Menu</div></a>
-					{else}
-						<a href="{$path}/MyAccount/Home" title='Login' onclick="return VuFind.Account.followLinkIfLoggedIn(this);" data-login="true">
-							<div class="col-xs-6 text-center">{translate text="Login"}</div>
-						</a>
-					{/if}
-				{/if}
-			</div>*}
 		</div>
 
 		{include file="modal_dialog.tpl"}
 
-			{* hold messages shouldn't be needed any longer. plb 2-13-2015 *}
-{*
-		{if $hold_message}
-			<script type="text/javascript">
-				VuFind.showMessage('Hold Results', "{$hold_message|escape:'javascript'}");
-			</script>
-		{/if}
 
-		{if $renew_message}
-			<script type="text/javascript">
-				VuFind.showMessage('Renewal Results', "{$renew_message|escape:'javascript'}");
-			</script>
-		{/if}
-
-		{if $checkout_message}
-			<script type="text/javascript">
-				VuFind.showMessage('Checkout Results', "{$checkout_message|escape:'javascript'}");
-			</script>
-		{/if}
-*}
 		{include file="tracking.tpl"}
 
 			{if $semanticData}

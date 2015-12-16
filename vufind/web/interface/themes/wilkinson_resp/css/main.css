@@ -7642,7 +7642,7 @@ hr.menu {
   }
 }
 #main-content-with-sidebar > .row {
-  margin-right: -30px;
+  margin-right: 15px;
 }
 #xs-main-content-insertion-point {
   margin-left: 0;
@@ -7851,7 +7851,7 @@ hr.menu {
 .sidebar-links .panel-body a,
 .sidebar-links .panel-body a:visited,
 .sidebar-links .panel-body a:hover {
-  color: #000000;
+  color: black;
 }
 .ui-helper-hidden {
   display: none;

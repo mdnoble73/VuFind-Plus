@@ -7642,7 +7642,7 @@ hr.menu {
   }
 }
 #main-content-with-sidebar > .row {
-  margin-right: -30px;
+  margin-right: 15px;
 }
 #xs-main-content-insertion-point {
   margin-left: 0;
@@ -9175,7 +9175,7 @@ a.browse-thumbnail.active {
 }
 #header-container {
   background-image: url('/interface/themes/pitkin_resp/images/header_background.png');
-  height: 150px;
+  height: 140px;
 }
 #header-logo {
   background-color: rgba(51, 51, 51, 0.6);
