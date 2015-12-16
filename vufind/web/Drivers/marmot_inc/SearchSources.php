@@ -47,7 +47,7 @@ class SearchSources{
 		$marmotAdded = false;
 
 		//Local search
-		if (isset($location) && $location != null && $location->useScope && $location->restrictSearchByLocation){
+		if (!empty($location) && $location->useScope && $location->restrictSearchByLocation){
 			$searchOptions['local'] = array(
               'name' => $location->displayName,
               'description' => "The {$location->displayName} catalog.",

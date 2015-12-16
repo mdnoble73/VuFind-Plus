@@ -117,7 +117,7 @@
 							<option data-catalog_type="{$searchOption.catalogType}" value="{$searchKey}"
 								{if $searchKey == $searchSource && !$filterList} selected="selected"{/if}
 								{if $searchKey == $searchSource} id="default_search_type"{/if}
-								title="{$searchOption.description}">
+								{*1space needed for clean markup ->*} title="{$searchOption.description}">
 								{translate text="in"} {$searchOption.name}{if $searchOption.external} *{/if}
 							</option>
 						{/foreach}
@@ -142,7 +142,7 @@
 				</div>
 			{/if}
 
-			{if $filterList || $hasCheckboxFilters}
+			{if $filterList}
 				{* Data for searching within existing results *}
 				<div id="keepFilters" style="display:none;">
 					{foreach from=$filterList item=data key=field}
