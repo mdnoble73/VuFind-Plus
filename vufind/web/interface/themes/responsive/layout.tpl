@@ -82,32 +82,31 @@
 			<div id="content-container">
 				<div class="row">
 
-				{* $showExploreMore switch being ignored for now. TODO Remember to delete if not re-used. *}
+					{* $showExploreMore switch being ignored for now. TODO Remember to delete if not re-used. *}
 
-				{if isset($sidebar)} {* Main Content & Sidebars *}
+					{if isset($sidebar)} {* Main Content & Sidebars *}
 
-					{if $sideBarOnRight} {* Sidebar on the right *}
-						<div class="hidden-xs visible-sm col-xs-12 col-sm-8 col-md-9 col-lg-9" id="main-content-with-sidebar">
-							{include file="$module/$pageTemplate"}
-						</div>
+						{if $sideBarOnRight} {* Sidebar on the right *}
+							<div class="hidden-xs visible-sm col-xs-12 col-sm-8 col-md-9 col-lg-9" id="main-content-with-sidebar">
+								{include file="$module/$pageTemplate"}
+							</div>
+							<div class="col-xs-12 col-sm-4 col-md-3 col-lg-3" id="side-bar">
+								{include file="$sidebar"}
+							</div>
 
-						<div class="col-xs-12 col-sm-4 col-md-3 col-lg-3" id="side-bar">
-							{include file="$sidebar"}
-						</div>
-					{else} {* Sidebar on the left *}
-						<div class="col-xs-12 col-sm-4 col-md-3 col-lg-3" id="side-bar">
-							{include file="$sidebar"}
-						</div>
+						{else} {* Sidebar on the left *}
+							<div class="col-xs-12 col-sm-4 col-md-3 col-lg-3" id="side-bar">
+								{include file="$sidebar"}
+							</div>
+							<div class="hidden-xs visible-sm col-xs-12 col-sm-8 col-md-9 col-lg-9" id="main-content-with-sidebar">
+								{include file="$module/$pageTemplate"}
+							</div>
+						{/if}
 
-						<div class="hidden-xs visible-sm col-xs-12 col-sm-8 col-md-9 col-lg-9" id="main-content-with-sidebar">
-							{include file="$module/$pageTemplate"}
-						</div>
+					{else} {* Main Content Only, no sidebar *}
+						{include file="$module/$pageTemplate"}
 					{/if}
-
-				{else} {* Main Content Only, no sidebar *}
-					{include file="$module/$pageTemplate"}
-				{/if}
-			</div>
+				</div>
 			</div>
 
 {* Previous Template
