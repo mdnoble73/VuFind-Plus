@@ -7632,7 +7632,6 @@ hr.menu {
   }
 }
 #main-content-with-sidebar {
-  padding-right: 0;
   padding-bottom: 15px;
 }
 @media print {
@@ -7640,9 +7639,6 @@ hr.menu {
     width: 100%;
     display: block !important;
   }
-}
-#main-content-with-sidebar > .row {
-  margin-right: 15px;
 }
 #xs-main-content-insertion-point {
   margin-left: 0;
