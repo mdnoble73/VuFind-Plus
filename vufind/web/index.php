@@ -491,6 +491,7 @@ if (!empty($ipLocation) && !empty($library) && $ipLocation->libraryId != $librar
 	$ipLocation = null;
 }
 $isOpac = $locationSingleton->getOpacStatus();
+$interface->assign('isOpac', $isOpac);
 
 $onInternalIP = false;
 $includeAutoLogoutCode = false;
