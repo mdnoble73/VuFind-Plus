@@ -270,7 +270,7 @@ public class RecordGroupingProcessor {
 		return variableFieldsReturn;
 	}
 
-	public GroupedWorkBase setupBasicWorkForIlsRecord(Record marcRecord, String loadFormatFrom, char formatSubfield) {
+	public GroupedWorkBase setupBasicWorkForIlsRecord(Record marcRecord, String loadFormatFrom, char formatSubfield, String specifiedFormatCategory) {
 		GroupedWorkBase workForTitle = GroupedWorkFactory.getInstance(-1);
 
 		//Title
@@ -281,6 +281,9 @@ public class RecordGroupingProcessor {
 		if (loadFormatFrom.equals("bib")){
 			String format = getFormatFromBib(marcRecord);
 			groupingFormat = categoryMap.get(formatsToGroupingCategory.get(format));
+		}else if (loadFormatFrom.equals("specified")){
+			//Use specified format
+			groupingFormat = categoryMap.get(specifiedFormatCategory.toLowerCase());
 		}else {
 			//get format from item
 			groupingFormat = getFormatFromItems(marcRecord, formatSubfield);

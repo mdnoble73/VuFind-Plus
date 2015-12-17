@@ -349,7 +349,7 @@ public class RecordGrouperMain {
 						MarcReader catalogReader = new MarcPermissiveStreamReader(marcFileStream, true, true, marcEncoding);
 						while (catalogReader.hasNext()){
 							Record curBib = catalogReader.next();
-							GroupedWorkBase work = recordGroupingProcessor.setupBasicWorkForIlsRecord(curBib, loadFormatFrom, formatSubfield);
+							GroupedWorkBase work = recordGroupingProcessor.setupBasicWorkForIlsRecord(curBib, loadFormatFrom, formatSubfield, "");
 							addAlternateAuthoritiesForWorkToAuthoritiesFile(currentAuthorities, manualAuthorities, authoritiesWriter, work);
 							numRecordsRead++;
 						}
@@ -716,6 +716,7 @@ public class RecordGrouperMain {
 					profile.recordNumberPrefix = indexingProfilesRS.getString("recordNumberPrefix");
 					profile.marcEncoding = indexingProfilesRS.getString("marcEncoding");
 					profile.formatSource = indexingProfilesRS.getString("formatSource");
+					profile.specifiedFormatCategory = indexingProfilesRS.getString("specifiedFormatCategory");
 					profile.format = getCharFromRecordSet(indexingProfilesRS, "format");
 					profile.itemTag = indexingProfilesRS.getString("itemTag");
 					profile.eContentDescriptor = getCharFromRecordSet(indexingProfilesRS, "eContentDescriptor");
