@@ -10,7 +10,7 @@ cp $FILE /data/vufind-plus/arlington.production/marc/pika1.mrc
 # Move to marc_export to keep as a backup
 mv $FILE /data/vufind-plus/arlington.production/marc_export/pika1.$TODAY.mrc
 
-FILE=$(find /home/sierraftp/ -name FULLEXPORT2*.mrc | sort -n | tail -1)
+FILE=$(find /home/sierraftp/ -name FULLEXPORT2*.MRC | sort -n | tail -1)
 echo "Latest file (2) is " $FILE
 # Copy to data directory to process
 cp $FILE /data/vufind-plus/arlington.production/marc/pika2.mrc
