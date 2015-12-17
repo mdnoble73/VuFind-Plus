@@ -115,6 +115,7 @@
 		</div>
 	{/if}
 
+	{* Detailed status information *}
 	<div class="row">
 		<div class="result-label col-xs-4">{translate text='Status'}:</div>
 		<div class="col-xs-8 result-value">

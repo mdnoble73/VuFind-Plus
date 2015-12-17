@@ -611,7 +611,7 @@ public class RecordGroupingProcessor {
 		format = categoryMap.get(formatsToGroupingCategory.get(format));
 		return format;
 	}
-	private String getFormatFromBib(Record record) {
+	protected String getFormatFromBib(Record record) {
 		//Check to see if the title is eContent based on the 989 field
 		if (useEContentSubfield) {
 			List<DataField> itemFields = getDataFields(record, itemTag);
