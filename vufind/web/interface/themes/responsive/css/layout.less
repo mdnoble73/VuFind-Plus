@@ -112,7 +112,7 @@ hr.menu{
     font-size: 16px;
   }
 }
-//Footer
+// Footer
 #footer-container{
   border-top: 8px solid @footer-top-border-color;
   padding-top: 3px;
@@ -137,7 +137,7 @@ hr.menu{
   padding: 0 3px 0 3px;
 }
 
-//Fixed navigation in footer
+// Fixed navigation in footer
 #navigation-controls{
   border-top: 8px solid @footer-top-border-color;
   background: #fff;
@@ -145,7 +145,53 @@ hr.menu{
     display: none !important;
   }
 }
-//Sidebar & Main content
+// Applies to both horizontal or side menu bar
+.menu-bar {
+  color: @menu-bar-color;
+  background-color: @menu-bar-background-color;
+}
+
+#horizontal-menu-bar-wrapper {
+
+}
+// Horizontal Menu Bar for small devices
+#horizontal-menu-bar-container {
+  .menu-icon {
+    float: right;
+    padding: 5px;
+    margin-left: 5px;
+    margin-right: 5px;
+    height: 40px;
+    &.menu-left {
+      float: left;
+    }
+    &.menu-icon-selected {
+      background-color: tint(@menu-bar-background-color, 50%);
+    }
+  }
+  padding-left: @padding-xs-horizontal;
+  padding-right: @padding-xs-horizontal;
+
+  &.sticky-menu-bar {
+    // sticks to top-right of view port
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: @menu-bar-z-index;
+  }
+
+
+}
+
+// Vertical Menu Bar
+#vertical-menu-bar {
+
+}
+
+
+
+// Sidebar & Main content
 #side-bar{
   // padding-left: 0;
   @media print {

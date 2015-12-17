@@ -1,9 +1,9 @@
 VuFind.Responsive = (function(){
 	$(document).ready(function(){
 		// Attach Responsive Actions to window resizing
-		$(window).resize(function(){
-			VuFind.Responsive.adjustLayout();
-		}).trigger('resize');
+		//$(window).resize(function(){
+		//	VuFind.Responsive.adjustLayout();
+		//}).trigger('resize');
 
 		// auto adjust the height of the search box
 		// (Only side bar search box for now)

@@ -37,7 +37,7 @@
 					</ul>
 					{/if}
 
-					{include file="mobile-header-menu.tpl"}
+					{*{include file="mobile-header-menu.tpl"} TODO: remove *}
 
 				</div>
 				<a id="top"></a>
@@ -71,13 +71,19 @@
 				</div>
 			</div>
 
-				{if $horizontalSearchBar}
-					<div id="horizontal-search-wrapper" class="row">
-						<div id="horizontal-search-container" class="col-xs-12">
-							{include file="Search/horizontal-searchbox.tpl"}
-						</div>
+			<div id="horizontal-menu-bar-wrapper" class="row visible-xs">
+				<div id="horizontal-menu-bar-container" class="col-xs-12 menu-bar">
+					{include file='horizontal-menu-bar.tpl'}
+				</div>
+			</div>
+
+			{if $horizontalSearchBar}
+				<div id="horizontal-search-wrapper" class="row">
+					<div id="horizontal-search-container" class="col-xs-12">
+						{include file="Search/horizontal-searchbox.tpl"}
 					</div>
-				{/if}
+				</div>
+			{/if}
 
 			<div id="content-container">
 				<div class="row">
@@ -87,7 +93,7 @@
 					{if isset($sidebar)} {* Main Content & Sidebars *}
 
 						{if $sideBarOnRight} {* Sidebar on the right *}
-							<div class="hidden-xs visible-sm col-xs-12 col-sm-8 col-md-9 col-lg-9" id="main-content-with-sidebar">
+							<div class="{*hidden-xs visible-sm*} col-xs-12 col-sm-8 col-md-9 col-lg-9" id="main-content-with-sidebar">
 								{include file="$module/$pageTemplate"}
 							</div>
 							<div class="col-xs-12 col-sm-4 col-md-3 col-lg-3" id="side-bar">
@@ -98,7 +104,7 @@
 							<div class="col-xs-12 col-sm-4 col-md-3 col-lg-3" id="side-bar">
 								{include file="$sidebar"}
 							</div>
-							<div class="hidden-xs visible-sm col-xs-12 col-sm-8 col-md-9 col-lg-9" id="main-content-with-sidebar">
+							<div class="{*hidden-xs visible-sm*} col-xs-12 col-sm-8 col-md-9 col-lg-9" id="main-content-with-sidebar">
 								{include file="$module/$pageTemplate"}
 							</div>
 						{/if}

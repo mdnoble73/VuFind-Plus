@@ -136,6 +136,34 @@ hr.menu {
     display: none !important;
   }
 }
+.menu-bar {
+  color: #ffffff;
+  background-color: #00a4e3;
+}
+#horizontal-menu-bar-container {
+  padding-left: 5px;
+  padding-right: 5px;
+}
+#horizontal-menu-bar-container .menu-icon {
+  float: right;
+  padding: 5px;
+  margin-left: 5px;
+  margin-right: 5px;
+  height: 40px;
+}
+#horizontal-menu-bar-container .menu-icon.menu-left {
+  float: left;
+}
+#horizontal-menu-bar-container .menu-icon.menu-icon-selected {
+  background-color: #80d2f1;
+}
+#horizontal-menu-bar-container.sticky-menu-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 101;
+}
 @media print {
   #side-bar {
     display: none;

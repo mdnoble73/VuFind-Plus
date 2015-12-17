@@ -45,6 +45,7 @@
 		<script src="{$path}/interface/themes/responsive/js/vufind/lists.js"></script>
 		<script src="{$path}/interface/themes/responsive/js/vufind/lists-widgets.js"></script>
 		<script src="{$path}/interface/themes/responsive/js/vufind/materials-request.js"></script>
+		<script src="{$path}/interface/themes/responsive/js/vufind/menu.js"></script>
 		<script src="{$path}/interface/themes/responsive/js/vufind/overdrive.js"></script>
 		<script src="{$path}/interface/themes/responsive/js/vufind/prospector.js"></script>
 		<script src="{$path}/interface/themes/responsive/js/vufind/ratings.js"></script>

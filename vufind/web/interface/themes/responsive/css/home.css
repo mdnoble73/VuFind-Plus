@@ -113,41 +113,6 @@
 #horizontal-search-wrapper + #content-container #home-page-login {
   margin-top: 5px;
 }
-#mobile-menu {
-  position: absolute;
-  top: 5px;
-  right: 1px;
-  padding: 0 5px;
-}
-#mobile-menu.sticky-mobile-menu {
-  position: fixed;
-  top: 5px;
-  right: 10px;
-  z-index: 100;
-}
-#mobile-menu .account-icon,
-#mobile-menu .logout-icon {
-  position: relative;
-  top: 1px;
-  display: inline-block;
-  font-family: 'Glyphicons Halflings';
-  font-style: normal;
-  font-weight: normal;
-  line-height: 1;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  color: #333333;
-}
-#mobile-menu .account-icon:empty,
-#mobile-menu .logout-icon:empty {
-  width: 1em;
-}
-#mobile-menu .account-icon:before {
-  content: "\e236";
-}
-#mobile-menu .logout-icon:before {
-  content: "\e163";
-}
 #home-page-library-section {
   background-color: #eeeeee;
   padding: 15px 0;
