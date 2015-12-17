@@ -129,27 +129,37 @@ public class SideLoadedEContentProcessor extends IlsRecordProcessor{
 
 	@Override
 	protected void loadEContentFormatInformation(Record record, RecordInfo econtentRecord, ItemInfo econtentItem) {
-		LinkedHashSet<String> printFormats = getFormatsFromBib(record, econtentRecord);
-		//Convert formats from print to eContent version
-		for (String format : printFormats){
-			if (format.equalsIgnoreCase("Book")){
-				econtentItem.setFormat("eBook");
-				econtentItem.setFormatCategory("Books");
-				econtentRecord.setFormatBoost(10);
-			}else if (format.equalsIgnoreCase("SoundRecording")){
-				econtentItem.setFormat("eAudioBook");
-				econtentItem.setFormatCategory("Audio Books");
-				econtentRecord.setFormatBoost(8);
-			}else if (format.equalsIgnoreCase("MusicRecording")){
-				econtentItem.setFormat("eMusic");
-				econtentItem.setFormatCategory("Music");
-				econtentRecord.setFormatBoost(5);
-			}else if (format.equalsIgnoreCase("Movies")){
-				econtentItem.setFormat("eVideo");
-				econtentItem.setFormatCategory("Movies");
-				econtentRecord.setFormatBoost(10);
-			} else{
-				logger.warn("Could not find appropriate eContent format for " + format);
+		if (formatSource.equals("specified")){
+			HashSet<String> translatedFormats = new HashSet<>();
+			translatedFormats.add(specifiedFormat);
+			HashSet<String> translatedFormatCategories = new HashSet<>();
+			translatedFormatCategories.add(specifiedFormatCategory);
+			econtentRecord.addFormats(translatedFormats);
+			econtentRecord.addFormatCategories(translatedFormatCategories);
+			econtentRecord.setFormatBoost(specifiedFormatBoost);
+		} else {
+			LinkedHashSet<String> printFormats = getFormatsFromBib(record, econtentRecord);
+			//Convert formats from print to eContent version
+			for (String format : printFormats) {
+				if (format.equalsIgnoreCase("Book") || format.equalsIgnoreCase("LargePrint")) {
+					econtentItem.setFormat("eBook");
+					econtentItem.setFormatCategory("Books");
+					econtentRecord.setFormatBoost(10);
+				} else if (format.equalsIgnoreCase("SoundRecording")) {
+					econtentItem.setFormat("eAudioBook");
+					econtentItem.setFormatCategory("Audio Books");
+					econtentRecord.setFormatBoost(8);
+				} else if (format.equalsIgnoreCase("MusicRecording")) {
+					econtentItem.setFormat("eMusic");
+					econtentItem.setFormatCategory("Music");
+					econtentRecord.setFormatBoost(5);
+				} else if (format.equalsIgnoreCase("Movies")) {
+					econtentItem.setFormat("eVideo");
+					econtentItem.setFormatCategory("Movies");
+					econtentRecord.setFormatBoost(10);
+				} else {
+					logger.warn("Could not find appropriate eContent format for " + format);
+				}
 			}
 		}
 	}

@@ -131,11 +131,11 @@ class ExternalEContentDriver extends BaseEContentDriver{
 			);
 		}
 
-		return $moreDetailsOptions;
+		return $this->filterAndSortMoreDetailsOptions($moreDetailsOptions);
 	}
 
 	protected function getRecordType(){
-		return 'ils';
+		return $this->profileType;
 	}
 
 	function getModuleName(){

@@ -2220,6 +2220,17 @@ class DBMaintenance extends Admin_Admin {
 						)
 				),
 
+				'indexing_profile_speicified_formats' => array(
+						'title' => 'Indexing Profiles - specified format',
+						'description' => 'Allow specified formats for use with side loaded eContent',
+						'sql' => array(
+								"ALTER TABLE indexing_profiles CHANGE formatSource `formatSource` enum('bib','item', 'specified') NOT NULL DEFAULT 'bib'",
+								"ALTER TABLE indexing_profiles ADD COLUMN `specifiedFormat` varchar(50) DEFAULT NULL",
+								"ALTER TABLE indexing_profiles ADD COLUMN `specifiedFormatCategory` varchar(50) DEFAULT NULL",
+								"ALTER TABLE indexing_profiles ADD COLUMN `specifiedFormatBoost` int DEFAULT NULL",
+						)
+				),
+
 				'translation_map_regex' => array(
 					'title' => 'Translation Maps Regex',
 					'description' => 'Setup Translation Maps to use regular expressions',

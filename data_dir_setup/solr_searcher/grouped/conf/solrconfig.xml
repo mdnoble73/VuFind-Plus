@@ -830,7 +830,7 @@
 	<requestHandler name="/replication" class="solr.ReplicationHandler" >
 	  <lst name="slave">
 			<str name="masterUrl">http://localhost:${solr.masterport}/solr/grouped</str>
-		  <str name="pollInterval">00:03:00</str>
+		  <str name="pollInterval">00:01:00</str>
 	  </lst>
 	</requestHandler>
 

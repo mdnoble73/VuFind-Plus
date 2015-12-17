@@ -30,7 +30,10 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 
 	protected String recordNumberTag;
 	protected String itemTag;
-	protected boolean loadFormatFromItems;
+	protected String formatSource;
+	protected String specifiedFormat;
+	protected String specifiedFormatCategory;
+	protected int specifiedFormatBoost;
 	protected char formatSubfield;
 	protected char barcodeSubfield;
 	protected char statusSubfieldIndicator;
@@ -114,7 +117,10 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 
 			itemUrlSubfieldIndicator = getSubfieldIndicatorFromConfig(indexingProfileRS, "itemUrl");
 
-			loadFormatFromItems = indexingProfileRS.getString("formatSource").equals("item");
+			formatSource = indexingProfileRS.getString("formatSource");
+			specifiedFormat = indexingProfileRS.getString("specifiedFormat");
+			specifiedFormatCategory = indexingProfileRS.getString("specifiedFormatCategory");
+			specifiedFormatBoost = indexingProfileRS.getInt("specifiedFormatBoost");
 			formatSubfield = getSubfieldIndicatorFromConfig(indexingProfileRS, "format");
 			barcodeSubfield = getSubfieldIndicatorFromConfig(indexingProfileRS, "barcode");
 			statusSubfieldIndicator = getSubfieldIndicatorFromConfig(indexingProfileRS, "status");
@@ -691,7 +697,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 			itemInfo.setLastCheckinDate(lastCheckIn);
 		}
 
-		if (loadFormatFromItems && formatSubfield != ' '){
+		if (formatSource.equals("item") && formatSubfield != ' '){
 			String format = getItemSubfieldData(formatSubfield, itemField);
 			if (format != null) {
 				itemInfo.setFormat(translateValue("format", format, recordInfo.getRecordIdentifier()));
@@ -740,7 +746,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		}
 
 		groupedWork.addKeywords(itemLocation);
-		if (itemSublocation != null){
+		if (itemSublocation.length() > 0){
 			groupedWork.addKeywords(itemSublocation);
 		}
 
@@ -971,29 +977,39 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 	 */
 	public void loadPrintFormatInformation(RecordInfo recordInfo, Record record){
 		//We should already have formats based on the items
-		if (loadFormatFromItems && formatSubfield != ' ' && recordInfo.hasItemFormats()){
+		if (formatSource.equals("item") && formatSubfield != ' ' && recordInfo.hasItemFormats()){
 			return;
 		}
 
-		LinkedHashSet<String> printFormats = getFormatsFromBib(record, recordInfo);
+		if (formatSource.equals("specified")){
+			HashSet<String> translatedFormats = new HashSet<>();
+			translatedFormats.add(specifiedFormat);
+			HashSet<String> translatedFormatCategories = new HashSet<>();
+			translatedFormatCategories.add(specifiedFormatCategory);
+			recordInfo.addFormats(translatedFormats);
+			recordInfo.addFormatCategories(translatedFormatCategories);
+			recordInfo.setFormatBoost(specifiedFormatBoost);
+		} else {
+			LinkedHashSet<String> printFormats = getFormatsFromBib(record, recordInfo);
 
-		HashSet<String> translatedFormats = translateCollection("format", printFormats, recordInfo.getRecordIdentifier());
-		HashSet<String> translatedFormatCategories = translateCollection("format_category", printFormats, recordInfo.getRecordIdentifier());
-		recordInfo.addFormats(translatedFormats);
-		recordInfo.addFormatCategories(translatedFormatCategories);
-		Long formatBoost = 0L;
-		HashSet<String> formatBoosts = translateCollection("format_boost", printFormats, recordInfo.getRecordIdentifier());
-		for (String tmpFormatBoost : formatBoosts){
-			try {
-				Long tmpFormatBoostLong = Long.parseLong(tmpFormatBoost);
-				if (tmpFormatBoostLong > formatBoost) {
-					formatBoost = tmpFormatBoostLong;
+			HashSet<String> translatedFormats = translateCollection("format", printFormats, recordInfo.getRecordIdentifier());
+			HashSet<String> translatedFormatCategories = translateCollection("format_category", printFormats, recordInfo.getRecordIdentifier());
+			recordInfo.addFormats(translatedFormats);
+			recordInfo.addFormatCategories(translatedFormatCategories);
+			Long formatBoost = 0L;
+			HashSet<String> formatBoosts = translateCollection("format_boost", printFormats, recordInfo.getRecordIdentifier());
+			for (String tmpFormatBoost : formatBoosts) {
+				try {
+					Long tmpFormatBoostLong = Long.parseLong(tmpFormatBoost);
+					if (tmpFormatBoostLong > formatBoost) {
+						formatBoost = tmpFormatBoostLong;
+					}
+				} catch (NumberFormatException e) {
+					logger.warn("Could not load format boost for format " + tmpFormatBoost + " profile " + profileType);
 				}
-			}catch (NumberFormatException e){
-				logger.warn("Could not load format boost for format " + tmpFormatBoost + " profile " + profileType);
 			}
+			recordInfo.setFormatBoost(formatBoost);
 		}
-		recordInfo.setFormatBoost(formatBoost);
 	}
 
 	protected LinkedHashSet<String> getFormatsFromBib(Record record, RecordInfo recordInfo){

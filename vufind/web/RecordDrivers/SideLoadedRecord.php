@@ -28,4 +28,54 @@ class SideLoadedRecord extends ExternalEContentDriver {
 
 		return $configArray['Site']['path'] . "/{$this->profileType}/$recordId";
 	}
+
+	public function getMoreDetailsOptions(){
+		global $interface;
+
+		$isbn = $this->getCleanISBN();
+
+		//Get Related Records to make sure we initialize items
+		$recordInfo = $this->getGroupedWorkDriver()->getRelatedRecord($this->getIdWithSource());
+
+		//Get copies for the record
+		$this->assignCopiesInformation();
+
+		$interface->assign('items', $recordInfo['itemSummary']);
+
+		//Load more details options
+		$moreDetailsOptions = $this->getBaseMoreDetailsOptions($isbn);
+
+		$moreDetailsOptions['copies'] = array(
+				'label' => 'Copies',
+				'body' => $interface->fetch('ExternalEContent/view-items.tpl'),
+				'openByDefault' => true
+		);
+
+		$moreDetailsOptions['moreDetails'] = array(
+				'label' => 'More Details',
+				'body' => $interface->fetch('ExternalEContent/view-more-details.tpl'),
+		);
+
+		$this->loadSubjects();
+		$moreDetailsOptions['subjects'] = array(
+				'label' => 'Subjects',
+				'body' => $interface->fetch('Record/view-subjects.tpl'),
+		);
+		$moreDetailsOptions['citations'] = array(
+				'label' => 'Citations',
+				'body' => $interface->fetch('Record/cite.tpl'),
+		);
+		if ($interface->getVariable('showStaffView')){
+			$moreDetailsOptions['staff'] = array(
+					'label' => 'Staff View',
+					'body' => $interface->fetch($this->getStaffView()),
+			);
+		}
+
+		return $this->filterAndSortMoreDetailsOptions($moreDetailsOptions);
+	}
+
+	protected function getRecordType(){
+		return $this->profileType;
+	}
 }
