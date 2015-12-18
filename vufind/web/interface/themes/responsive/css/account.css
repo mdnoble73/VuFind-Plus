@@ -3,10 +3,12 @@
 }
 #account-settings-accordion .panel-heading {
   padding: 5px 15px;
+  background: -webkit-linear-gradient(top, #e7e7e7, #d7d7d7);
   background: linear-gradient(to bottom, #e7e7e7, #d7d7d7);
   border-bottom: 1px solid #a1a1a1;
 }
 #account-settings-accordion .active .panel-heading {
+  background: -webkit-linear-gradient(top, #4dacde, #0f8fd2);
   background: linear-gradient(to bottom, #4dacde, #0f8fd2);
 }
 #account-settings-accordion .panel-title {

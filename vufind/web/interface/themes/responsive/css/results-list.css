@@ -57,6 +57,7 @@
 .sidebar-label {
   text-align: center;
   background-color: #7c7c7d;
+  background: -webkit-linear-gradient(top, #7c7c7d, #3d4244);
   background: linear-gradient(to bottom, #7c7c7d, #3d4244);
   color: #fff;
   padding: 3px 0px;
@@ -65,6 +66,7 @@
 #narrow-search-label {
   text-align: center;
   background-color: #7c7c7d;
+  background: -webkit-linear-gradient(top, #7c7c7d, #3d4244);
   background: linear-gradient(to bottom, #7c7c7d, #3d4244);
   color: #fff;
   padding: 3px 0px;
@@ -72,6 +74,7 @@
 }
 .facetTitle {
   background-color: #e8e8e8;
+  background: -webkit-linear-gradient(top, #e8e8e8, #d7d7d7);
   background: linear-gradient(to bottom, #e8e8e8, #d7d7d7);
   color: #555555;
   text-shadow: 1px 1px #fcfcfc;
@@ -98,6 +101,7 @@
 #results-sort-label {
   text-align: center;
   background-color: #7c7c7d;
+  background: -webkit-linear-gradient(top, #7c7c7d, #3d4244);
   background: linear-gradient(to bottom, #7c7c7d, #3d4244);
   color: #fff;
   padding: 3px 0px;
@@ -113,6 +117,7 @@
   color: #0d8ec6;
 }
 .result-head #selected-browse-label {
+  background: -webkit-linear-gradient(top, #ffffff, #ffffff 44%, #d5d6da 45%, #d5d6da 55%, #ffffff 56%);
   background: linear-gradient(to bottom, #ffffff, #ffffff 44%, #d5d6da 45%, #d5d6da 55%, #ffffff 56%);
 }
 #replacement-search-info {
@@ -139,6 +144,7 @@
 }
 .result-tools-horizontal .btn {
   background-color: #909090;
+  background: -webkit-linear-gradient(top, #909090, #686b6c);
   background: linear-gradient(to bottom, #909090, #686b6c);
   color: #fff;
 }

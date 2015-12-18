@@ -46,6 +46,7 @@ hr.menu {
   padding-top: 0;
   height: 90px;
   background-color: #f2f2f2;
+  background: -webkit-linear-gradient(top, #f2f2f2, #dddddd 85%, #e0e0e0);
   background: linear-gradient(to bottom, #f2f2f2, #dddddd 85%, #e0e0e0);
   border-bottom: 8px solid #b7b7b7;
   margin-bottom: 0;
@@ -151,6 +152,9 @@ hr.menu {
   margin-right: 5px;
   height: 40px;
 }
+#horizontal-menu-bar-container .menu-icon:focus {
+  outline: none;
+}
 #horizontal-menu-bar-container .menu-icon.menu-left {
   float: left;
 }
@@ -163,6 +167,62 @@ hr.menu {
   left: 0;
   right: 0;
   z-index: 101;
+}
+.sticky-sidebar {
+  position: fixed;
+  top: 0;
+  z-index: 101;
+}
+#vertical-menu-bar-wrapper {
+  width: 40px;
+  padding-left: 0;
+  padding-right: 0;
+}
+#vertical-menu-bar {
+  width: 40px;
+  height: 2000px;
+  background-color: #00a4e3;
+  color: #ffffff;
+  padding-left: 0;
+  padding-right: 0;
+}
+#vertical-menu-bar .menu-bar-option {
+  height: 140px;
+  width: 100%;
+  padding-top: 6px;
+  position: relative;
+}
+#vertical-menu-bar .menu-bar-option.menu-icon-selected {
+  background-color: #80d2f1;
+}
+#vertical-menu-bar .menu-icon {
+  padding: 5px;
+}
+#vertical-menu-bar .menu-icon img {
+  width: 30px;
+}
+#vertical-menu-bar .menu-icon:visited {
+  text-decoration: none;
+  color: #ffffff;
+}
+#vertical-menu-bar .menu-icon:hover {
+  text-decoration: none;
+}
+#vertical-menu-bar .menu-icon:focus {
+  outline: none;
+}
+#vertical-menu-bar .menu-icon .menu-bar-label {
+  font-weight: bold;
+  text-transform: uppercase;
+  position: absolute;
+  -webkit-transform: rotate(-90deg) translateX(-100%);
+      -ms-transform: rotate(-90deg) translateX(-100%);
+          transform: rotate(-90deg) translateX(-100%);
+  -webkit-transform-origin: 0 0;
+      -ms-transform-origin: 0 0;
+          transform-origin: 0 0;
+  margin-top: 10px;
+  margin-left: 10px;
 }
 @media print {
   #side-bar {

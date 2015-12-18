@@ -10,33 +10,37 @@ VuFind.Menu = (function(){
 			$('.menu-icon').removeClass('menu-icon-selected');
 			$(this).addClass('menu-icon-selected')
 		});
+		$('.menu-bar-option').click(function(){
+			$('.menu-bar-option').removeClass('menu-icon-selected');
+			$(this).addClass('menu-icon-selected')
+		});
 
-		// Switching Horizontal Menu Between Fixed and in Document
-		var mobileMenu = $('#horizontal-menu-bar-container'),
-				switchPosition = mobileMenu.offset().top;
-		/*Meant to remain constant for the event handler below.*/
-		$(window).scroll(function(){
-			var fixedOffset = mobileMenu.offset().top,
-					notFixedScrolledPosition = $(this).scrollTop();
-			/*Toggle into an embedded mode*/
-			if (mobileMenu.is('.sticky-menu-bar') && fixedOffset <= switchPosition) {
-				mobileMenu.removeClass('sticky-menu-bar')
-			}
-			/*Toggle into a fixed mode*/
-			if (!mobileMenu.is('.sticky-menu-bar') && notFixedScrolledPosition >= switchPosition) {
-				mobileMenu.addClass('sticky-menu-bar')
-			}
-		})
+		VuFind.Menu.stickyMenu('#horizontal-menu-bar-container', 'sticky-menu-bar');
+		//VuFind.Menu.stickyMenu('#sidebar-content', 'sticky-sidebar');
+		VuFind.Menu.stickyMenu('#vertical-menu-bar', 'sticky-sidebar');
 
 	});
 	return {
-		temp: function(){
-			alert('Click');
-			return false;
+		stickyMenu: function(menuContainerSelector, stickyMenuClass){
+			var menu = $(menuContainerSelector),
+					switchPosition = menu.offset().top;
+			/*Meant to remain constant for the event handler below.*/
+			$(window).scroll(function(){
+				var fixedOffset = menu.offset().top,
+						notFixedScrolledPosition = $(this).scrollTop();
+				/*Toggle into an embedded mode*/
+				if (menu.is('.'+stickyMenuClass) && fixedOffset <= switchPosition) {
+					menu.removeClass(stickyMenuClass)
+				}
+				/*Toggle into a fixed mode*/
+				if (!menu.is('.'+stickyMenuClass) && notFixedScrolledPosition >= switchPosition) {
+					menu.addClass(stickyMenuClass)
+				}
+			})
 		},
 
 		hideAll: function(){
-			return $('#home-page-search,#horizontal-search-container,#home-account-links,#home-page-library-section').filter(':visible').slideUp()
+			return $('#home-page-search,#horizontal-search-container,#home-account-links,#home-page-library-section,#narrow-search-label,#facet-accordion').filter(':visible').slideUp()
 		},
 
 		showMenuSection: function(sectionSelector){
@@ -46,7 +50,7 @@ VuFind.Menu = (function(){
 		},
 
 		showSearch: function(){
-			this.showMenuSection('#home-page-search,#horizontal-search-container')
+			this.showMenuSection('#home-page-search,#horizontal-search-container,#narrow-search-label,#facet-accordion')
 		},
 
 		showMenu: function(){

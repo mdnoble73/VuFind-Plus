@@ -20,8 +20,8 @@
 
 		{* Available filters *}
 		{if $sideFacetSet && $recordCount > 0}
-			<div id="narrow-search-label" class="sidebar-label">{translate text='Narrow Search'}</div>
-			<div id="facet-accordion" class="accordion">
+			<div id="narrow-search-label" class="sidebar-label" style="display: none">{translate text='Narrow Search'}</div>
+			<div id="facet-accordion" class="accordion" style="display: none">
 				{foreach from=$sideFacetSet item=cluster key=title name=facetSet}
 					{if count($cluster.list) > 0}
 						<div class="facetList">

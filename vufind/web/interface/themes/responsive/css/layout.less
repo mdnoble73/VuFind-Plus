@@ -162,11 +162,14 @@ hr.menu{
     margin-left: 5px;
     margin-right: 5px;
     height: 40px;
+    &:focus {
+      outline: none;
+    }
     &.menu-left {
       float: left;
     }
     &.menu-icon-selected {
-      background-color: tint(@menu-bar-background-color, 50%);
+      background-color: @menu-bar-selected-background-color;
     }
   }
   padding-left: @padding-xs-horizontal;
@@ -185,11 +188,65 @@ hr.menu{
 }
 
 // Vertical Menu Bar
-#vertical-menu-bar {
 
+.sticky-sidebar {
+  // sticks to top-right of view port
+  position: fixed;
+  top: 0;
+  z-index: @menu-bar-z-index;
 }
 
+#vertical-menu-bar-wrapper {
+  width: @vertical-menu-bar-width;
+  padding-left: 0;
+  padding-right: 0;
+}
 
+#vertical-menu-bar {
+  width: @vertical-menu-bar-width;
+  height: 2000px; // needs to extend out of view
+  background-color: @menu-bar-background-color;
+  color: @menu-bar-color;
+  padding-left: 0;
+  padding-right: 0;
+
+  .menu-bar-option {
+    height: 140px;
+    width: 100%;
+    padding-top: @padding-base-vertical;
+    &.menu-icon-selected {
+      background-color: @menu-bar-selected-background-color;
+    }
+
+    // To Get Labeling to display Nicely
+    position: relative;
+  }
+  .menu-icon {
+    padding: 5px;
+    img {
+      width: 30px;
+    }
+    &:visited {
+      text-decoration: none;
+      color: @menu-bar-color;
+    }
+    &:hover {
+      text-decoration: none;
+    }
+    &:focus {
+      outline: none;
+    }
+    .menu-bar-label {
+      font-weight: bold;
+      text-transform: uppercase;
+      position: absolute;
+      transform: rotate(-90deg) translateX(-100%);
+      transform-origin: 0 0;
+      margin-top: 10px;
+      margin-left: 10px;
+    }
+  }
+}
 
 // Sidebar & Main content
 #side-bar{

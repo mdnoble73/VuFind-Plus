@@ -1,5 +1,6 @@
 #explore-more-sidebar {
   background-color: #00a4e3;
+  background: -webkit-linear-gradient(top, #00a4e3, #147ce2);
   background: linear-gradient(to bottom, #00a4e3, #147ce2);
 }
 #explore-more-header {
