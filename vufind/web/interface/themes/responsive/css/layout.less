@@ -204,7 +204,8 @@ hr.menu{
 
 #vertical-menu-bar {
   width: @vertical-menu-bar-width;
-  height: 2000px; // needs to extend out of view
+  height: 2000px; // needs to extend out of view, fallback option
+  height: 100vh;  // best solution, height of the view port
   background-color: @menu-bar-background-color;
   color: @menu-bar-color;
   padding-left: 0;
@@ -226,17 +227,13 @@ hr.menu{
     img {
       width: 30px;
     }
-    &:visited {
+    &:visited,&:hover,&:focus {
       text-decoration: none;
       color: @menu-bar-color;
-    }
-    &:hover {
-      text-decoration: none;
-    }
-    &:focus {
       outline: none;
     }
     .menu-bar-label {
+      color: @menu-bar-color;
       font-weight: bold;
       text-transform: uppercase;
       position: absolute;

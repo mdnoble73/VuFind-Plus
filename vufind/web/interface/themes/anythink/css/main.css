@@ -7615,6 +7615,7 @@ hr.menu {
 #vertical-menu-bar {
   width: 40px;
   height: 2000px;
+  height: 100vh;
   background-color: #00a4e3;
   color: #ffffff;
   padding-left: 0;
@@ -7635,17 +7636,15 @@ hr.menu {
 #vertical-menu-bar .menu-icon img {
   width: 30px;
 }
-#vertical-menu-bar .menu-icon:visited {
+#vertical-menu-bar .menu-icon:visited,
+#vertical-menu-bar .menu-icon:hover,
+#vertical-menu-bar .menu-icon:focus {
   text-decoration: none;
   color: #ffffff;
-}
-#vertical-menu-bar .menu-icon:hover {
-  text-decoration: none;
-}
-#vertical-menu-bar .menu-icon:focus {
   outline: none;
 }
 #vertical-menu-bar .menu-icon .menu-bar-label {
+  color: #ffffff;
   font-weight: bold;
   text-transform: uppercase;
   position: absolute;

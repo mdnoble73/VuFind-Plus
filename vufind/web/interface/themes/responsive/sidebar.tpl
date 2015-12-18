@@ -2,6 +2,12 @@
 	<div class="row" id="vertical-menu-bar-container">
 		<div class="hidden-xs col-sm-1 col-md-1 col-lg-1" id="vertical-menu-bar-wrapper">
 			<div id="vertical-menu-bar">
+				<div class="menu-bar-option">
+					<a href="#" onclick="VuFind.Menu.showSearch()" class="menu-icon" title="Search">
+						<img src="{img filename='/interface/themes/responsive/images/Search.png'}" alt="Search">
+						<div class="menu-bar-label">Search</div>
+					</a>
+				</div>
 				{if $user}{* Logged In *}
 					{*<a href="{$path}/MyAccount/Logout" id="logoutLink" class="menu-icon" title="{translate text="Log Out"}">
 						<img src="{img filename='/interface/themes/responsive/images/Logout.png'}" alt="{translate text="Log Out"}">
@@ -28,12 +34,6 @@
 					</a>
 				</div>
 
-				<div class="menu-bar-option">
-					<a href="#" onclick="VuFind.Menu.showSearch()" class="menu-icon" title="Search">
-						<img src="{img filename='/interface/themes/responsive/images/Search.png'}" alt="Search">
-						<div class="menu-bar-label">Search</div>
-					</a>
-				</div>
 			</div>
 		</div>
 
