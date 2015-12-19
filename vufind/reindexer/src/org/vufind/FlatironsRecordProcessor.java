@@ -185,7 +185,7 @@ public class FlatironsRecordProcessor extends IIIRecordProcessor{
 				format = "eVideo";
 				break;
 			case "u":
-				format = "eAudioBook";
+				format = "eAudiobook";
 				break;
 			case "y":
 				format = "eMusic";

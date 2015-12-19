@@ -75,6 +75,7 @@ public class HooplaProcessor extends MarcRecordProcessor {
 		//First get format
 		String format = getFirstFieldVal(record, "099a");
 		format = format.replace(" hoopla", "");
+
 		String formatCategory = indexer.translateSystemValue("format_category_hoopla", format, identifier);
 		String formatBoostStr = indexer.translateSystemValue("format_boost_hoopla", format, identifier);
 		Long formatBoost = Long.parseLong(formatBoostStr);
