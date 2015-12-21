@@ -7665,17 +7665,17 @@ hr.menu {
   width: 40px;
 }
 @media (min-width: 768px) {
-  .mainContentWhenSiderbarCollaped {
+  .mainContentWhenSiderbarCollapsed {
     width: 94.44%;
   }
 }
 @media (min-width: 992px) {
-  .mainContentWhenSiderbarCollaped {
+  .mainContentWhenSiderbarCollapsed {
     width: 95.74%;
   }
 }
 @media (min-width: 1200px) {
-  .mainContentWhenSiderbarCollaped {
+  .mainContentWhenSiderbarCollapsed {
     width: 96.49%;
   }
 }

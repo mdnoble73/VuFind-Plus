@@ -5,7 +5,7 @@ VuFind.Menu = (function(){
 	$(function(){
 		// Page Initializations
 		VuFind.Menu.AllSideBarSelectors = VuFind.Menu.SideBarSearchSelectors + ',' + VuFind.Menu.SideBarAccountSelectors + ',' + VuFind.Menu.SideBarMenuSelectors;
-		// TODO: Add ExploreMoreSelectors; + ','
+		// TODO: Add ExploreMoreSelectors; + ',' + VuFind.Menu.ExploreMoreSelectors
 
 		// Highlight Selected Menu Icon
 		$('.menu-icon').click(function(){
@@ -61,12 +61,12 @@ VuFind.Menu = (function(){
 		collapseSideBar: function(){
 			if ($(VuFind.Menu.AllSideBarSelectors).filter(':visible').length == 0) {
 				$('#side-bar,#vertical-menu-bar-container').addClass('collapsedSidebar');
-				$('#main-content-with-sidebar').addClass('mainContentWhenSiderbarCollaped');
+				$('#main-content-with-sidebar').addClass('mainContentWhenSiderbarCollapsed');
 			}
 		},
 
 		openSideBar: function(){
-			$('#main-content-with-sidebar').removeClass('mainContentWhenSiderbarCollaped');
+			$('#main-content-with-sidebar').removeClass('mainContentWhenSiderbarCollapsed');
 			$('#side-bar,#vertical-menu-bar-container').removeClass('collapsedSidebar');
 		},
 
