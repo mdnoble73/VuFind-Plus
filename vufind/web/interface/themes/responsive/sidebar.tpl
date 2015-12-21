@@ -9,10 +9,6 @@
 					</a>
 				</div>
 				{if $user}{* Logged In *}
-					{*<a href="{$path}/MyAccount/Logout" id="logoutLink" class="menu-icon" title="{translate text="Log Out"}">
-						<img src="{img filename='/interface/themes/responsive/images/Logout.png'}" alt="{translate text="Log Out"}">
-						<div class="menu-bar-label">{translate text="Log Out"}</div>
-					</a>*}
 					<div class="menu-bar-option">
 						<a href="#" onclick="VuFind.Menu.showAccount(this)" class="menu-icon" title="Account">
 							<img src="{img filename='/interface/themes/responsive/images/Account.png'}" alt="Account">
@@ -33,13 +29,24 @@
 						<div class="menu-bar-label">Menu</div>
 					</a>
 				</div>
+				{if $showExploreMore}
+					<div class="menu-bar-option">
+						<a href="#" onclick="VuFind.Menu.showExploreMore(this)" class="menu-icon" title="{translate text='Explore More'}">
+							<img src="{img filename='/interface/themes/responsive/images/ExploreMore.png'}" alt="{translate text='Explore More'}">
+							<div class="menu-bar-label">{translate text='Explore More'}</div>
+						</a>
+					</div>
+				{/if}
 
+				{* Open Appropriate Section on Initial Page Load *}
 				<script type="text/javascript">
 					$(function(){ldelim}
 						{if $module == "Search"}
 							$('.menu-bar-option:nth-child(1)>a', '#vertical-menu-bar').filter(':visible').click();
 						{elseif $module == "MyAccount" || $module == "Admin"}
 							$('.menu-bar-option:nth-child(2)>a', '#vertical-menu-bar').filter(':visible').click();
+						{elseif $module == "Archive"}
+							$('.menu-bar-option:nth-child(4)>a', '#vertical-menu-bar').filter(':visible').click();
 						{else}
 							$('.menu-bar-option:nth-child(3)>a', '#vertical-menu-bar').filter(':visible').click();
 						{/if}

@@ -214,6 +214,7 @@ hr.menu {
   color: #ffffff;
   font-weight: bold;
   text-transform: uppercase;
+  white-space: nowrap;
   position: absolute;
   -webkit-transform: rotate(-90deg) translateX(-100%);
       -ms-transform: rotate(-90deg) translateX(-100%);

@@ -238,9 +238,13 @@ hr.menu{
       color: @menu-bar-color;
       font-weight: bold;
       text-transform: uppercase;
+      white-space: nowrap; // multiple word labels need to stay on the same line
+
+      // Make Font Vertical
       position: absolute;
       transform: rotate(-90deg) translateX(-100%);
       transform-origin: 0 0;
+
       margin-top: 10px;
       margin-left: 10px;
     }

@@ -19,4 +19,9 @@
 		<img src="{img filename='/interface/themes/responsive/images/Search.png'}" alt="Search">
 	</a>
 
+	{if $showExploreMore}
+		<a href="#" onclick="VuFind.Menu.showExploreMore()" class="menu-icon menu-left" title="{translate text='Explore More'}">
+			<img src="{img filename='/interface/themes/responsive/images/ExploreMore.png'}" alt="{translate text='Explore More'}">
+		</a>
+	{/if}
 {/strip}

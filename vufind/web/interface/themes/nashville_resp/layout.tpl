@@ -33,9 +33,6 @@
 				<div id="system-message-header" class="row">{$systemMessage}</div>
 			{/if}
 
-			{include file="mobile-header-menu.tpl"}
-			{* May turn out better to move this into the nashville header_responsive template.  plb 9-24-2015 *}
-
 			<div id="header-wrapper" class="row">
 				<div id="header-container">
 					{include file='header_responsive.tpl'}

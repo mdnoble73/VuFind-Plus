@@ -37,8 +37,6 @@
 					</ul>
 					{/if}
 
-					{*{include file="mobile-header-menu.tpl"} TODO: remove *}
-
 				</div>
 				<a id="top"></a>
 				<div class="col-xs-12 col-sm-3 text-right">
@@ -88,7 +86,7 @@
 			<div id="content-container">
 				<div class="row">
 
-					{* $showExploreMore switch being ignored for now. TODO Remember to delete if not re-used. *}
+					{* TODO Explore More Side Bar needs to be implemented *}
 
 					{if isset($sidebar)} {* Main Content & Sidebars *}
 
@@ -114,57 +112,6 @@
 					{/if}
 				</div>
 			</div>
-
-{* Previous Template
-
-			<div id="content-container" class="row">
-				{if isset($sidebar) && $showExploreMore}
-					*}
-{* Setup the left bar *}{*
-
-						<div class="col-xs-12 col-sm-4 col-md-2 col-lg-2" id="side-bar">
-							{include file="$sidebar"}
-						</div>
-
-					*}
-{* Main Content *}{*
-
-					<div class="hidden-xs visible-sm col-xs-12 col-sm-8 col-md-8 col-lg-8" id="main-content-with-sidebar">
-						{include file="$module/$pageTemplate"}
-					</div>
-
-					*}
-{* TODO: Fix other sizes*}{*
-
-					<div class="hidden-xs visible-sm col-xs-12 col-sm-8 col-md-2 col-lg-2" id="explore-more-sidebar">
-						{include file="explore-more-sidebar.tpl"}
-					</div>
-				{elseif $showExploreMore}
-					<div class="hidden-xs visible-sm col-xs-12 col-sm-8 col-md-9 col-lg-8" id="main-content-with-sidebar">
-						{include file="$module/$pageTemplate"}
-					</div>
-					*}
-{* Setup the explore more side bar *}{*
-
-					<div class="col-xs-12 col-sm-4 col-md-3 col-lg-4" id="explore-more-sidebar">
-						{include file="explore-more-sidebar.tpl"}
-					</div>
-				{elseif isset($sidebar)}
-					*}
-{* Setup the left bar *}{*
-
-					<div class="col-xs-12 col-sm-4 col-md-3 col-lg-3" id="side-bar">
-						{include file="$sidebar"}
-					</div>
-					<div class="hidden-xs visible-sm col-xs-12 col-sm-8 col-md-9 col-lg-9" id="main-content-with-sidebar">
-						{include file="$module/$pageTemplate"}
-					</div>
-				{else}
-
-					{include file="$module/$pageTemplate"}
-				{/if}
-			</div>
-*}
 
 			<div id="footer-container" class="row">
 				{include file="footer_responsive.tpl"}

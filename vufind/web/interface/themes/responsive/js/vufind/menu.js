@@ -5,6 +5,7 @@ VuFind.Menu = (function(){
 	$(function(){
 		// Page Initializations
 		VuFind.Menu.AllSideBarSelectors = VuFind.Menu.SideBarSearchSelectors + ',' + VuFind.Menu.SideBarAccountSelectors + ',' + VuFind.Menu.SideBarMenuSelectors;
+		// TODO: Add ExploreMoreSelectors; + ','
 
 		// Highlight Selected Menu Icon
 		$('.menu-icon').click(function(){
@@ -21,6 +22,7 @@ VuFind.Menu = (function(){
 		SideBarSearchSelectors: '#home-page-search,#horizontal-search-container,#narrow-search-label,#facet-accordion,#results-sort-label,#results-sort-label+div.row,#remove-search-label,#remove-search-label+.applied-filters',
 		SideBarAccountSelectors: '#home-page-login,#home-account-links',
 		SideBarMenuSelectors: '#home-page-login,#home-page-library-section',
+		ExploreMoreSelectorys: '',
 		AllSideBarSelectors: '', // Set above
 
 		stickyMenu: function(menuContainerSelector, stickyMenuClass){
@@ -54,6 +56,18 @@ VuFind.Menu = (function(){
 
 		hideAll: function(){
 			return $(VuFind.Menu.AllSideBarSelectors).filter(':visible').slideUp()
+		},
+
+		collapseSideBar: function(){
+			if ($(VuFind.Menu.AllSideBarSelectors).filter(':visible').length == 0) {
+				$('#side-bar,#vertical-menu-bar-container').addClass('collapsedSidebar');
+				$('#main-content-with-sidebar').addClass('mainContentWhenSiderbarCollaped');
+			}
+		},
+
+		openSideBar: function(){
+			$('#main-content-with-sidebar').removeClass('mainContentWhenSiderbarCollaped');
+			$('#side-bar,#vertical-menu-bar-container').removeClass('collapsedSidebar');
 		},
 
 		showMenuSection: function(sectionSelector, clickedElement){
@@ -94,16 +108,8 @@ VuFind.Menu = (function(){
 			this.showMenuSection(this.SideBarAccountSelectors, clickedElement)
 		},
 
-		collapseSideBar: function(){
-			if ($(VuFind.Menu.AllSideBarSelectors).filter(':visible').length == 0) {
-				$('#side-bar,#vertical-menu-bar-container').addClass('collapsedSidebar');
-				$('#main-content-with-sidebar').addClass('mainContentWhenSiderbarCollaped');
-			}
+		showExploreMore: function(clickedElement){
+			this.showMenuSection(this.ExploreMoreSelectors, clickedElement)
 		},
-
-		openSideBar: function(){
-			$('#main-content-with-sidebar').removeClass('mainContentWhenSiderbarCollaped');
-			$('#side-bar,#vertical-menu-bar-container').removeClass('collapsedSidebar');
-		}
 	}
 }(VuFind.Menu || {}));
