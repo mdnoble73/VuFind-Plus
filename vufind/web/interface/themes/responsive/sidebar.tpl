@@ -3,7 +3,7 @@
 		<div class="hidden-xs col-sm-1 col-md-1 col-lg-1" id="vertical-menu-bar-wrapper">
 			<div id="vertical-menu-bar">
 				<div class="menu-bar-option">
-					<a href="#" onclick="VuFind.Menu.showSearch()" class="menu-icon" title="Search">
+					<a href="#" onclick="VuFind.Menu.showSearch(this)" class="menu-icon" title="Search">
 						<img src="{img filename='/interface/themes/responsive/images/Search.png'}" alt="Search">
 						<div class="menu-bar-label">Search</div>
 					</a>
@@ -14,7 +14,7 @@
 						<div class="menu-bar-label">{translate text="Log Out"}</div>
 					</a>*}
 					<div class="menu-bar-option">
-						<a href="#" onclick="VuFind.Menu.showAccount()" class="menu-icon" title="Account">
+						<a href="#" onclick="VuFind.Menu.showAccount(this)" class="menu-icon" title="Account">
 							<img src="{img filename='/interface/themes/responsive/images/Account.png'}" alt="Account">
 							<div class="menu-bar-label">Account</div>
 						</a>
@@ -28,12 +28,23 @@
 					</div>
 				{/if}
 				<div class="menu-bar-option">
-					<a href="#" onclick="VuFind.Menu.showMenu()" class="menu-icon" title="Menu">
+					<a href="#" onclick="VuFind.Menu.showMenu(this)" class="menu-icon" title="Menu">
 						<img src="{img filename='/interface/themes/responsive/images/Menu.png'}" alt="Menu">
 						<div class="menu-bar-label">Menu</div>
 					</a>
 				</div>
 
+				<script type="text/javascript">
+					$(function(){ldelim}
+						{if $module == "Search"}
+							$('.menu-bar-option:nth-child(1)>a', '#vertical-menu-bar').filter(':visible').click();
+						{elseif $module == "MyAccount" || $module == "Admin"}
+							$('.menu-bar-option:nth-child(2)>a', '#vertical-menu-bar').filter(':visible').click();
+						{else}
+							$('.menu-bar-option:nth-child(3)>a', '#vertical-menu-bar').filter(':visible').click();
+						{/if}
+					{rdelim})
+				</script>
 			</div>
 		</div>
 

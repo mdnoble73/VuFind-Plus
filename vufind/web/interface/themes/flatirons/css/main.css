@@ -7629,6 +7629,7 @@ hr.menu {
 }
 #vertical-menu-bar .menu-bar-option.menu-icon-selected {
   background-color: #80d2f1;
+  color: #ffffff;
 }
 #vertical-menu-bar .menu-icon {
   padding: 5px;
@@ -7656,6 +7657,24 @@ hr.menu {
           transform-origin: 0 0;
   margin-top: 10px;
   margin-left: 10px;
+}
+.collapsedSidebar {
+  width: 40px;
+}
+@media (min-width: 768px) {
+  .mainContentWhenSiderbarCollaped {
+    width: 94.44%;
+  }
+}
+@media (min-width: 992px) {
+  .mainContentWhenSiderbarCollaped {
+    width: 95.74%;
+  }
+}
+@media (min-width: 1200px) {
+  .mainContentWhenSiderbarCollaped {
+    width: 96.49%;
+  }
 }
 @media print {
   #side-bar {

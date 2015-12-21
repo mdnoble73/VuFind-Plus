@@ -176,7 +176,7 @@ hr.menu{
   padding-right: @padding-xs-horizontal;
 
   &.sticky-menu-bar {
-    // sticks to top-right of view port
+    // sticks to top of view port
     position: fixed;
     top: 0;
     left: 0;
@@ -217,15 +217,17 @@ hr.menu{
     padding-top: @padding-base-vertical;
     &.menu-icon-selected {
       background-color: @menu-bar-selected-background-color;
+      color: @menu-bar-selected-color;
     }
 
     // To Get Labeling to display Nicely
     position: relative;
   }
   .menu-icon {
-    padding: 5px;
+    @menu-icon-padding: 5px;
+    padding: @menu-icon-padding;
     img {
-      width: 30px;
+      width: @vertical-menu-bar-width - 2*@menu-icon-padding;
     }
     &:visited,&:hover,&:focus {
       text-decoration: none;
@@ -243,6 +245,28 @@ hr.menu{
       margin-left: 10px;
     }
   }
+}
+
+
+// Toggles Collapsed Sidebar
+// Applied to container divs, remove class to restore original width classes
+.collapsedSidebar {
+  width: @vertical-menu-bar-width;
+}
+
+// Toggles Expanding Main Content when Sidebar is collapsed
+.mainContentWhenSiderbarCollaped {
+
+  @media (min-width: @screen-sm) {
+    width: 100% - percentage( round(@vertical-menu-bar-width/(@container-sm - @grid-gutter-width), 4) );
+  }
+  @media (min-width: @screen-md) {
+    width: 100% - percentage( round(@vertical-menu-bar-width/(@container-md - @grid-gutter-width), 4) );
+  }
+  @media (min-width: @screen-lg-min) {
+    width: 100% - percentage( round(@vertical-menu-bar-width/(@container-lg - @grid-gutter-width), 4) );
+  }
+
 }
 
 // Sidebar & Main content

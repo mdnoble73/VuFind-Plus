@@ -4,20 +4,25 @@
 VuFind.Menu = (function(){
 	$(function(){
 		// Page Initializations
+		VuFind.Menu.AllSideBarSelectors = VuFind.Menu.SideBarSearchSelectors + ',' + VuFind.Menu.SideBarAccountSelectors + ',' + VuFind.Menu.SideBarMenuSelectors;
 
 		// Highlight Selected Menu Icon
-		$('.menu-icon,.menu-bar-option').click(function(){
-			$('.menu-icon,.menu-bar-option').removeClass('menu-icon-selected');
+		$('.menu-icon').click(function(){
+			$('.menu-icon').removeClass('menu-icon-selected');
 			$(this).addClass('menu-icon-selected')
 		});
 
 		// Set up Sticky Menus
 		VuFind.Menu.stickyMenu('#horizontal-menu-bar-container', 'sticky-menu-bar');
-		//VuFind.Menu.stickyMenu('#sidebar-content', 'sticky-sidebar');
 		VuFind.Menu.stickyMenu('#vertical-menu-bar', 'sticky-sidebar');
 
 	});
 	return {
+		SideBarSearchSelectors: '#home-page-search,#horizontal-search-container,#narrow-search-label,#facet-accordion,#results-sort-label,#results-sort-label+div.row,#remove-search-label,#remove-search-label+.applied-filters',
+		SideBarAccountSelectors: '#home-page-login,#home-account-links',
+		SideBarMenuSelectors: '#home-page-login,#home-page-library-section',
+		AllSideBarSelectors: '', // Set above
+
 		stickyMenu: function(menuContainerSelector, stickyMenuClass){
 			var menu = $(menuContainerSelector),
 					viewportHeight = $(window).height(),
@@ -48,25 +53,57 @@ VuFind.Menu = (function(){
 		},
 
 		hideAll: function(){
-			return $('#home-page-search,#horizontal-search-container,#home-account-links,#home-page-library-section,#narrow-search-label,#facet-accordion').filter(':visible').slideUp()
+			return $(VuFind.Menu.AllSideBarSelectors).filter(':visible').slideUp()
 		},
 
-		showMenuSection: function(sectionSelector){
+		showMenuSection: function(sectionSelector, clickedElement){
 			$.when( this.hideAll() ).done(function(){
-				$(sectionSelector).slideDown()
+				var parent = $(clickedElement).parent('.menu-bar-option'); // For Vertical Menu Bar only
+				if (parent.is('.menu-icon-selected')){
+						parent.removeClass('menu-icon-selected');
+						VuFind.Menu.collapseSideBar()
+				} else {
+					$('.menu-bar-option').removeClass('menu-icon-selected');
+					parent.addClass('menu-icon-selected');
+					VuFind.Menu.openSideBar();
+					$(sectionSelector).slideDown()
+				}
 			})
 		},
 
-		showSearch: function(){
-			this.showMenuSection('#home-page-search,#horizontal-search-container,#narrow-search-label,#facet-accordion')
+		showSearch: function(clickedElement){
+			var parent = $(clickedElement).parent('.menu-bar-option'); // For Vertical Menu Bar only
+			if (parent && !parent.is('.menu-icon-selected') &&  $('#home-page-search,#narrow-search-label,#facet-accordion,#results-sort-label').length == 0) {
+				// When Sidebar is empty and we are opening the horizontal search bar, don't open the sidebar dib.
+				$.when( this.hideAll() ).done(function(){
+					VuFind.Menu.collapseSideBar();  // close sidebar in case it is open
+					$('.menu-bar-option').removeClass('menu-icon-selected');
+					parent.addClass('menu-icon-selected');
+					$('#horizontal-search-container').slideDown()
+				})
+			} else {
+				this.showMenuSection(this.SideBarSearchSelectors, clickedElement)
+			}
 		},
 
-		showMenu: function(){
-			this.showMenuSection('#home-page-library-section')
+		showMenu: function(clickedElement){
+			this.showMenuSection(this.SideBarMenuSelectors, clickedElement)
 		},
 
-		showAccount: function(){
-			this.showMenuSection('#home-account-links')
+		showAccount: function(clickedElement){
+			this.showMenuSection(this.SideBarAccountSelectors, clickedElement)
+		},
+
+		collapseSideBar: function(){
+			if ($(VuFind.Menu.AllSideBarSelectors).filter(':visible').length == 0) {
+				$('#side-bar,#vertical-menu-bar-container').addClass('collapsedSidebar');
+				$('#main-content-with-sidebar').addClass('mainContentWhenSiderbarCollaped');
+			}
+		},
+
+		openSideBar: function(){
+			$('#main-content-with-sidebar').removeClass('mainContentWhenSiderbarCollaped');
+			$('#side-bar,#vertical-menu-bar-container').removeClass('collapsedSidebar');
 		}
 	}
 }(VuFind.Menu || {}));

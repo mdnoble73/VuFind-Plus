@@ -8,7 +8,7 @@
 		{/if}
 		{* Filters that have been applied *}
 		{if $filterList}
-			<div id="remove-search-label" class="sidebar-label">{translate text='Applied Filters'}</div>
+			<div id="remove-search-label" class="sidebar-label" style="display: none">{translate text='Applied Filters'}</div>
 			<div class="applied-filters">
 			{foreach from=$filterList item=filters key=field }
 				{foreach from=$filters item=filter}
