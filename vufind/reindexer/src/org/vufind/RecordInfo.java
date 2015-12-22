@@ -259,7 +259,7 @@ public class RecordInfo {
 	public void updateIndexingStats(TreeMap<String, ScopedIndexingStats> indexingStats) {
 		for (ScopedIndexingStats scopedStats : indexingStats.values()){
 			String recordProcessor = this.subSource == null ? this.source : this.subSource;
-			RecordProcessorIndexingStats stats = scopedStats.recordProcessorIndexingStats.get(recordProcessor);
+			RecordProcessorIndexingStats stats = scopedStats.recordProcessorIndexingStats.get(recordProcessor.toLowerCase());
 			HashSet<ItemInfo> itemsForScope = getRelatedItemsForScope(scopedStats.getScopeName());
 			if (itemsForScope.size() > 0) {
 				stats.numRecordsTotal++;

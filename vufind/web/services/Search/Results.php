@@ -517,7 +517,7 @@ class Search_Results extends Action {
 
 			//Get a list of projects related to this search term
 			$searchObject->clearHiddenFilters();
-			$searchObject->addHiddenFilter('RELS_EXT_isViewableByUser_literal_ms', "anonymous");
+			$searchObject->addHiddenFilter('!RELS_EXT_isViewableByRole_literal_ms', "admin");
 			$searchObject->addHiddenFilter('RELS_EXT_hasModel_uri_s', '*collectionCModel');
 			$response = $searchObject->processSearch(true, false);
 			if ($response && $response['response']['numFound'] > 0) {
@@ -537,7 +537,7 @@ class Search_Results extends Action {
 			//TODO: Check to see if this can be done with a single query using facets rather than multiple queries
 			$searchObject->init();
 			$searchObject->clearHiddenFilters();
-			$searchObject->addHiddenFilter('RELS_EXT_isViewableByUser_literal_ms', "anonymous");
+			$searchObject->addHiddenFilter('!RELS_EXT_isViewableByRole_literal_ms', "admin");
 			$searchObject->clearFilters();
 			$searchObject->addFilter('RELS_EXT_hasModel_uri_s:info:fedora/islandora:sp_large_image_cmodel');
 			$response = $searchObject->processSearch(true, false);
@@ -555,7 +555,7 @@ class Search_Results extends Action {
 
 			$searchObject->init();
 			$searchObject->clearHiddenFilters();
-			$searchObject->addHiddenFilter('RELS_EXT_isViewableByUser_literal_ms', "anonymous");
+			$searchObject->addHiddenFilter('!RELS_EXT_isViewableByRole_literal_ms', "admin");
 			$searchObject->clearFilters();
 			$searchObject->addFilter('RELS_EXT_hasModel_uri_s:info:fedora/islandora:personCModel');
 			$response = $searchObject->processSearch(true, false);

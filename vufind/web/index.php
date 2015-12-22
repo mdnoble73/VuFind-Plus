@@ -778,6 +778,13 @@ function loadModuleActionId(){
 	//Deal with old path based urls by removing the leading path.
 	$requestURI = $_SERVER['REQUEST_URI'];
 	$requestURI = preg_replace("/^\/?vufind\//", "", $requestURI);
+	/** IndexingProfile[] $indexingProfiles */
+	global $indexingProfiles;
+	$allRecordModules = "OverDrive|GroupedWork|Record|ExternalEContent";
+	foreach ($indexingProfiles as $profile){
+		$allRecordModules .= '|' . $profile->recordUrlComponent;
+	}
+
 	if (preg_match("/(MyAccount)\/([^\/?]+)\/([^\/?]+)(\?.+)?/", $requestURI, $matches)){
 		$_GET['module'] = $matches[1];
 		$_GET['id'] = $matches[3];
@@ -802,7 +809,7 @@ function loadModuleActionId(){
 
 	//Redirect things /Record/.b3246786/Home to the proper action
 	//Also things like /OverDrive/84876507-043b-b3ce-2930-91af93d2a4f0/Home
-	}elseif (preg_match("/([^\/?]+)\/((?:\.b|MWT)?[\da-fA-F-]+x?)\/([^\/?]+)/", $requestURI, $matches)){
+	}elseif (preg_match("/($allRecordModules)\/([^\/?]+?)\/([^\/?]+)/", $requestURI, $matches)){
 		$_GET['module'] = $matches[1];
 		$_GET['id'] = $matches[2];
 		$_GET['action'] = $matches[3];
@@ -811,7 +818,7 @@ function loadModuleActionId(){
 		$_REQUEST['action'] = $matches[3];
 
 	//Redirect things /Record/.b3246786 to the proper action
-	}elseif (preg_match("/([^\/?]+)\/((?:\.b|MWT)?[\da-fA-F-]+x?)(?:\?|\/?$)/", $requestURI, $matches)){
+	}elseif (preg_match("/($allRecordModules)\/([^\/?]+?)(?:\?|\/?$)/", $requestURI, $matches)){
 		$_GET['module'] = $matches[1];
 		$_GET['id'] = $matches[2];
 		$_GET['action'] = 'Home';
