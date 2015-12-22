@@ -7,11 +7,11 @@ VuFind.Menu = (function(){
 		VuFind.Menu.AllSideBarSelectors = VuFind.Menu.SideBarSearchSelectors + ',' + VuFind.Menu.SideBarAccountSelectors + ',' + VuFind.Menu.SideBarMenuSelectors;
 		// TODO: Add ExploreMoreSelectors; + ',' + VuFind.Menu.ExploreMoreSelectors
 
-		// Highlight Selected Menu Icon
-		$('.menu-icon').click(function(){
-			$('.menu-icon').removeClass('menu-icon-selected');
-			$(this).addClass('menu-icon-selected')
-		});
+		//// Highlight Selected Menu Icon
+		//$('.menu-icon').click(function(){
+		//	$('.menu-icon').removeClass('menu-icon-selected');
+		//	$(this).addClass('menu-icon-selected')
+		//});
 
 		// Set up Sticky Menus
 		VuFind.Menu.stickyMenu('#horizontal-menu-bar-container', 'sticky-menu-bar');
@@ -72,15 +72,32 @@ VuFind.Menu = (function(){
 
 		showMenuSection: function(sectionSelector, clickedElement){
 			$.when( this.hideAll() ).done(function(){
-				var parent = $(clickedElement).parent('.menu-bar-option'); // For Vertical Menu Bar only
-				if (parent.is('.menu-icon-selected')){
+				var elem = $(clickedElement);
+				var parent = elem.parent('.menu-bar-option'); // For Vertical Menu Bar only
+				// Vertical Menu Bar
+				if (parent.length > 0) {
+					if (parent.is('.menu-icon-selected')) {
 						parent.removeClass('menu-icon-selected');
 						VuFind.Menu.collapseSideBar()
-				} else {
-					$('.menu-bar-option').removeClass('menu-icon-selected');
-					parent.addClass('menu-icon-selected');
-					VuFind.Menu.openSideBar();
-					$(sectionSelector).slideDown()
+					} else {
+						$('.menu-bar-option').removeClass('menu-icon-selected');
+						parent.addClass('menu-icon-selected');
+						VuFind.Menu.openSideBar();
+						$(sectionSelector).slideDown()
+					}
+				}
+
+				// Horizontal Menu Bar
+				else {
+					console.log(elem);
+					if ( elem.is('.menu-icon-selected')){
+						elem.removeClass('menu-icon-selected');
+						$(sectionSelector).slideUp();
+
+					}else {
+						 elem.addClass('menu-icon-selected');
+						$(sectionSelector).slideDown();
+					}
 				}
 			})
 		},
