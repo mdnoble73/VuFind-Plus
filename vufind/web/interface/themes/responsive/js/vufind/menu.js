@@ -89,7 +89,7 @@ VuFind.Menu = (function(){
 
 				// Horizontal Menu Bar
 				else {
-					console.log(elem);
+					VuFind.Menu.openSideBar();
 					if ( elem.is('.menu-icon-selected')){
 						elem.removeClass('menu-icon-selected');
 						$(sectionSelector).slideUp();
