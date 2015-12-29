@@ -99,16 +99,16 @@ class OverDrive_Home extends Action{
 	 * @param string $pageTitle     What to display is the html title tag
 	 * @param bool|true $sidebar    enables the account sidebar on the page to be displayed
 	 */
-	function display($mainContentTemplate, $pageTitle='OverDrive', $sidebar=true) {
-		global $interface;
-//		if ($sidebar) $interface->assign('sidebar', 'OverDrive/full-record-sidebar.tpl');
-		if ($sidebar) $interface->assign('sidebar', 'Search/home-sidebar.tpl');
-//		TODO: is this the best template to use?
-		$interface->setTemplate($mainContentTemplate);
-		$interface->setPageTitle($pageTitle);
-		$interface->assign('moreDetailsTemplate', 'GroupedWork/moredetails-accordion.tpl');
-		$interface->display('layout.tpl');
-	}
+//	function display($mainContentTemplate, $pageTitle='OverDrive', $sidebar=true) {
+//		global $interface;
+////		if ($sidebar) $interface->assign('sidebar', 'OverDrive/full-record-sidebar.tpl');
+//		if ($sidebar) $interface->assign('sidebar', 'Search/home-sidebar.tpl');
+////		TODO: is this the best template to use?
+//		$interface->setTemplate($mainContentTemplate);
+//		$interface->setPageTitle($pageTitle);
+//		$interface->assign('moreDetailsTemplate', 'GroupedWork/moredetails-accordion.tpl');
+//		$interface->display('layout.tpl');
+//	}
 
 	/**
 	 * @param OverDriveRecordDriver $recordDriver

@@ -13,7 +13,8 @@ VuFind.Ratings = (function(){
 							rating: parseFloat(userRating > 0 ? userRating : ratingElement.data("average_rating")),
 							//url: Globals.path +"AJAX" // only works for grouped works
 							//url: location.protocol+'\\'+location.host+ "/GroupedWork/AJAX" // full path
-							url: Globals.path + "/GroupedWork/AJAX" // full path
+							//url: Globals.path + "/GroupedWork/AJAX" // full path // works on our servers but not locally. plb 12-29-2015
+							url: Globals.path + "/GroupedWork/"+ encodeURIComponent( id ) + "/AJAX" // full path
 						};
 				ratingElement.rater(options);
 			});

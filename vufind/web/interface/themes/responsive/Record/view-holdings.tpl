@@ -46,10 +46,10 @@
 	<div id="title_links">
 		<div class="row">
 			<div class="col-xs-12">
-				<strong><u>Volume</u></strong>
+				<strong style="text-decoration: underline">Volume</strong>
 			</div>
 		</div>
-		{include file="Record/view.links.tpl"}
+		{include file="Record/view-links.tpl"}
 	</div>
 {/if}
 

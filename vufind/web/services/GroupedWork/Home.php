@@ -40,7 +40,6 @@ class GroupedWork_Home extends Action{
 
 		$interface->assign('moreDetailsOptions', $recordDriver->getMoreDetailsOptions());
 
-		$interface->assign('moreDetailsTemplate', 'GroupedWork/moredetails-accordion.tpl');
 
 		$interface->assign('metadataTemplate', 'GroupedWork/metadata.tpl');
 
@@ -50,6 +49,7 @@ class GroupedWork_Home extends Action{
 //		$interface->setPageTitle($recordDriver->getTitle());
 //		$interface->setTemplate('full-record.tpl');
 //		$interface->assign('sidebar', 'GroupedWork/full-record-sidebar.tpl');
+//		$interface->assign('moreDetailsTemplate', 'GroupedWork/moredetails-accordion.tpl');
 //		$interface->display('layout.tpl');
 
 		$this->display('full-record.tpl', $recordDriver->getTitle());
@@ -60,13 +60,13 @@ class GroupedWork_Home extends Action{
 	 * @param string $pageTitle     What to display is the html title tag
 	 * @param bool|true $sidebar    enables the account sidebar on the page to be displayed
 	 */
-	function display($mainContentTemplate, $pageTitle='Grouped Work', $sidebar=true) {
-		global $interface;
-//		if ($sidebar) $interface->assign('sidebar', 'GroupedWork/full-record-sidebar.tpl');
-		if ($sidebar) $interface->assign('sidebar', 'Search/home-sidebar.tpl');
-//		TODO: is this the best template to use?
-		$interface->setTemplate($mainContentTemplate);
-		$interface->setPageTitle($pageTitle);
-		$interface->display('layout.tpl');
-	}
+//	function display($mainContentTemplate, $pageTitle='Grouped Work', $sidebar=true) {
+//		global $interface;
+////		if ($sidebar) $interface->assign('sidebar', 'GroupedWork/full-record-sidebar.tpl');
+//		if ($sidebar) $interface->assign('sidebar', 'Search/home-sidebar.tpl');
+////		TODO: is this the best template to use?
+//		$interface->setTemplate($mainContentTemplate);
+//		$interface->setPageTitle($pageTitle);
+//		$interface->display('layout.tpl');
+//	}
 }

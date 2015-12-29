@@ -1,4 +1,5 @@
 {strip}
+	{* TODO: delete this template *}
 	{* New Search Box *}
 	{if !$horizontalSearchBar}
 		{include file="Search/searchbox-home.tpl"}
