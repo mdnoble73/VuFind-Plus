@@ -71,15 +71,16 @@ class Hoopla_Home extends Action{
 				$interface->assign($detailoption, true);
 			}
 
-			$interface->setPageTitle($recordDriver->getTitle());
 			$interface->assign('moreDetailsOptions', $recordDriver->getMoreDetailsOptions());
 
 			// Display Page
-			$interface->assign('sidebar', 'Hoopla/full-record-sidebar.tpl');
-			$interface->assign('moreDetailsTemplate', 'GroupedWork/moredetails-accordion.tpl');
-			$interface->setTemplate('view.tpl');
+//			$interface->setPageTitle($recordDriver->getTitle());
+//			$interface->assign('sidebar', 'Hoopla/full-record-sidebar.tpl');
+//			$interface->assign('moreDetailsTemplate', 'GroupedWork/moredetails-accordion.tpl');
+//			$interface->setTemplate('view.tpl');
+//			$interface->display('layout.tpl');
 
-			$interface->display('layout.tpl');
+			$this->display('view.tpl', $recordDriver->getTitle());
 		}
 	}
 
