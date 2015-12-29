@@ -1,13 +1,11 @@
-{if !empty($addThis)}
-<script type="text/javascript" src="https://s7.addthis.com/js/250/addthis_widget.js?pub={$addThis|escape:"url"}"></script>
-{/if}
 {include file="GroupedWork/load-full-record-view-enrichment.tpl"}
 
 {strip}
 	<div class="col-xs-12">
 		{* Display Title *}
 		<h2>
-			{$recordDriver->getTitle()|escape}
+			{*{$recordDriver->getTitle()|escape}*}{* // ever a case when the trailing punction is needed? *}
+			{$recordDriver->getTitle()|removeTrailingPunctuation|escape}
 			{if $recordDriver->getTitleSection()} {$recordDriver->getTitleSection()|escape}{/if}
 			{if $recordDriver->getFormats()}
 				<br><small>({implode subject=$recordDriver->getFormats() glue=", "})</small>
