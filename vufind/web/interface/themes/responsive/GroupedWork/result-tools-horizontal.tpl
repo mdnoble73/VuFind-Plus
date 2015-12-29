@@ -4,7 +4,9 @@
 			{* More Info Link, only if we are showing other data *}
 			{if $showMoreInfo !== false}
 				<div class="btn-group btn-group-sm">
-					<a href="{$recordUrl}" class="btn btn-sm ">More Info</a>
+					{*<a href="{$recordUrl}" class="btn btn-sm ">More Info</a>*}
+					{* TODO: below should always work. Replacing the link above *}
+					<a href="{$recordDriver->getLinkUrl()}" class="btn btn-sm ">More Info</a>
 				</div>
 			{/if}
 			{*

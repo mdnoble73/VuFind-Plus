@@ -6,7 +6,7 @@
 
 	{include file="login-sidebar.tpl"}
 
-	<div id="xs-main-content-insertion-point" class="row"></div>
+	{*<div id="xs-main-content-insertion-point" class="row"></div>*}
 
 	{if $user}
 		{* Account Menu *}

@@ -1,6 +1,10 @@
 /**
  * Created by pbrammeier on 12/16/2015.
  */
+
+// Animate Menu Side Bar
+//$("#slide").animate({width:'toggle'},350);
+
 VuFind.Menu = (function(){
 	$(function(){
 		// Page Initializations
@@ -17,12 +21,18 @@ VuFind.Menu = (function(){
 		VuFind.Menu.stickyMenu('#horizontal-menu-bar-container', 'sticky-menu-bar');
 		VuFind.Menu.stickyMenu('#vertical-menu-bar', 'sticky-sidebar');
 
+		// Trigger Sidebar collapse on resize from horizontal menu to vertical menu
+		$(window).resize(function(){
+			console.log($(window).width(), $(this).width());
+
+		});
+
 	});
 	return {
 		SideBarSearchSelectors: '#home-page-search,#horizontal-search-container,#narrow-search-label,#facet-accordion,#results-sort-label,#results-sort-label+div.row,#remove-search-label,#remove-search-label+.applied-filters',
 		SideBarAccountSelectors: '#home-page-login,#home-account-links',
 		SideBarMenuSelectors: '#home-page-login,#home-page-library-section',
-		ExploreMoreSelectorys: '',
+		ExploreMoreSelectors: '',
 		AllSideBarSelectors: '', // Set above
 
 		stickyMenu: function(menuContainerSelector, stickyMenuClass){
@@ -31,7 +41,7 @@ VuFind.Menu = (function(){
 					switchPosition; // Meant to remain constant for the event handler below
 			if (menu.is(':visible')) switchPosition = menu.offset().top;
 			$(window).resize(function(){
-				viewportHeight = $(window).height()
+				viewportHeight = $(this).height()
 			});
 			$(window).scroll(function(){
 				if (menu.is(':visible') && viewportHeight < $('#main-content-with-sidebar').height()) { // only do this if the menu is visible & the page is larger than the viewport
@@ -72,8 +82,8 @@ VuFind.Menu = (function(){
 
 		showMenuSection: function(sectionSelector, clickedElement){
 			$.when( this.hideAll() ).done(function(){
-				var elem = $(clickedElement);
-				var parent = elem.parent('.menu-bar-option'); // For Vertical Menu Bar only
+				var elem = $(clickedElement),
+						parent = elem.parent('.menu-bar-option'); // For Vertical Menu Bar only
 				// Vertical Menu Bar
 				if (parent.length > 0) {
 					if (parent.is('.menu-icon-selected')) {
@@ -88,13 +98,14 @@ VuFind.Menu = (function(){
 				}
 
 				// Horizontal Menu Bar
-				else {
+				else { // un-selecting current option
 					VuFind.Menu.openSideBar();
 					if ( elem.is('.menu-icon-selected')){
 						elem.removeClass('menu-icon-selected');
 						$(sectionSelector).slideUp();
 
-					}else {
+					}else { // selecting an option
+						$('.menu-icon-selected', '#horizontal-menu-bar-container').removeClass('menu-icon-selected');
 						 elem.addClass('menu-icon-selected');
 						$(sectionSelector).slideDown();
 					}

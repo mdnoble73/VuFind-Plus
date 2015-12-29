@@ -61,7 +61,7 @@
 				</div>
 			</div>
 		{/if}
-		{if $showComments}
+		{if $showComments && !$hideReviewButton}{* Add hideReviewButton=true to include tag to disable below *}
 			<div class="row">
 				<div class="col-xs-12 text-center">
 		<span id="userreviewlink{$recordDriver->getPermanentId()}" class="userreviewlink btn btn-sm" title="Add a Review" onclick="return VuFind.GroupedWork.showReviewForm(this, '{$recordDriver->getPermanentId()}')">

@@ -41,6 +41,7 @@
 				{* Open Appropriate Section on Initial Page Load *}
 				<script type="text/javascript">
 					$(function(){ldelim}
+						{* Only trigger event if the side bar is visible *}
 						{if $module == "Search"}
 							$('.menu-bar-option:nth-child(1)>a', '#vertical-menu-bar').filter(':visible').click();
 						{elseif $module == "MyAccount" || $module == "Admin"}

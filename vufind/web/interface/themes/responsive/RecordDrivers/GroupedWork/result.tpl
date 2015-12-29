@@ -4,7 +4,7 @@
 		{if $user->disableCoverArt != 1}
 		{*<div class='descriptionContent{$summShortId|escape}' style='display:none'>{$summDescription}</div>*}
 			<a href="{$summUrl}">
-				<img src="{$bookCoverUrlMedium}" class="listResultImage img-thumbnail img-responsive" alt="{translate text='Cover Image'}" />
+				<img src="{$bookCoverUrlMedium}" class="listResultImage img-thumbnail{* img-responsive // shouldn't be needed *}" alt="{translate text='Cover Image'}">
 			</a>
 		{/if}
 		{if $showRatings}
@@ -117,7 +117,11 @@
 		</div>
 
 		<div class="resultActions row">
-			{include file='GroupedWork/result-tools-horizontal.tpl' id=$summId shortId=$shortId summTitle=$summTitle ratingData=$summRating recordUrl=$summUrl}
+			{*{include file='GroupedWork/result-tools-horizontal.tpl' id=$summId shortId=$shortId summTitle=$summTitle ratingData=$summRating recordUrl=$summUrl}*}
+			{include file='GroupedWork/result-tools-horizontal.tpl' id=$summId shortId=$shortId ratingData=$summRating recordUrl=$summUrl}
+			{* TODO: id & shortId shouldn't be needed to be specified here, otherwise need to note when used.
+			  summTitle only used by cart div, which is disabled as of now. 12-28-2015 plb
+			 *}
 		</div>
 	</div>
 
