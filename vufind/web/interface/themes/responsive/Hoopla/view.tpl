@@ -2,6 +2,9 @@
 
 {strip}
 	<div class="col-xs-12">
+		{* Search Navigation *}
+		{include file="GroupedWork/search-results-navigation.tpl"}
+
 		{* Display Title *}
 		<h2>
 			{$recordDriver->getTitle()|escape}

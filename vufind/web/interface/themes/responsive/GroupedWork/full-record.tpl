@@ -1,6 +1,9 @@
 {include file="GroupedWork/load-full-record-view-enrichment.tpl"}
 {strip}
 	<div class="col-xs-12">
+		{* Search Navigation *}
+		{include file="GroupedWork/search-results-navigation.tpl"}
+
 		{* Display Title *}
 		<h2 class="notranslate">
 			{$recordDriver->getTitle()|removeTrailingPunctuation|escape}
