@@ -252,8 +252,16 @@ public class RecordInfo {
 		this.formats.addAll(translatedFormats);
 	}
 
+	public void addFormat(String translatedFormat){
+		this.formats.add(translatedFormat);
+	}
+
 	public void addFormatCategories(HashSet<String> translatedFormatCategories) {
 		this.formatCategories.addAll(translatedFormatCategories);
+	}
+
+	public void addFormatCategory(String translatedFormatCategory){
+		this.formatCategories.add(translatedFormatCategory);
 	}
 
 	public void updateIndexingStats(TreeMap<String, ScopedIndexingStats> indexingStats) {

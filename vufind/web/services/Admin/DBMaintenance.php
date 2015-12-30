@@ -2425,7 +2425,7 @@ class DBMaintenance extends Admin_Admin {
 			}
 
 			//Hoopla titles
-			if ($allLibraries->includeHoopla){
+			/*if ($allLibraries->includeHoopla){
 				$inclusionRule = new LibraryRecordToInclude();
 				$inclusionRule->indexingProfileId = $hooplaIndexingProfile->id;
 				$inclusionRule->libraryId = $allLibraries->libraryId;
@@ -2436,7 +2436,7 @@ class DBMaintenance extends Admin_Admin {
 				$inclusionRule->includeItemsOnOrder = 0;
 				$inclusionRule->weight = 1;
 				$inclusionRule->insert();
-			}
+			}*/
 		}
 
 		//Setup ownership rules and inclusion rules for locations

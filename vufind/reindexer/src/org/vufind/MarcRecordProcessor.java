@@ -59,7 +59,7 @@ public abstract class MarcRecordProcessor {
 		groupedWork.addOclcNumbers(getFieldList(record, "035a"));
 		loadAwards(groupedWork, record);
 		loadBibCallNumbers(groupedWork, record, identifier);
-		loadLiteraryForms(groupedWork, record, identifier);
+		loadLiteraryForms(groupedWork, record, printItems, identifier);
 		loadTargetAudiences(groupedWork, record, printItems, identifier);
 		groupedWork.addMpaaRating(getMpaaRating(record));
 		//Do not load ar data from MARC since we now get it directly from Renaissance Learning
@@ -126,7 +126,9 @@ public abstract class MarcRecordProcessor {
 		for (DataField field : fields){
 			if (field.getIndicator2() == '0' || field.getIndicator2() == '1'){
 				if (field.getSubfield('2') != null){
-					if (field.getSubfield('2').getData().equals("bisacsh")){
+					if (field.getSubfield('2').getData().equals("bisacsh") ||
+							field.getSubfield('2').getData().equals("bisacmt") ||
+							field.getSubfield('2').getData().equals("bisacrt")){
 						continue;
 					}
 				}
@@ -273,7 +275,7 @@ public abstract class MarcRecordProcessor {
 		groupedWork.addTargetAudiencesFull(indexer.translateSystemCollection("target_audience_full", targetAudiences, identifier));
 	}
 
-	protected void loadLiteraryForms(GroupedWorkSolr groupedWork, Record record, String identifier) {
+	protected void loadLiteraryForms(GroupedWorkSolr groupedWork, Record record, HashSet<ItemInfo> printItems, String identifier) {
 		//First get the literary Forms from the 008.  These need translation
 		LinkedHashSet<String> literaryForms = new LinkedHashSet<>();
 		try {
