@@ -33,7 +33,6 @@
 }
 .share-tools {
   background-color: #e6e6e6;
-  background: -webkit-linear-gradient(top, #e7e7e7, #d7d7d7);
   background: linear-gradient(to bottom, #e7e7e7, #d7d7d7);
   color: #6e6f6f;
   border-bottom: 1px solid #adadad;
@@ -58,7 +57,6 @@
 }
 #more-details-accordion .panel-heading {
   padding: 5px 15px;
-  background: -webkit-linear-gradient(top, #e7e7e7, #d7d7d7);
   background: linear-gradient(to bottom, #e7e7e7, #d7d7d7);
   border-bottom: 1px solid #a1a1a1;
 }
@@ -69,7 +67,6 @@
 }
 #more-details-accordion .active .panel-heading {
   background-color: #4dacde;
-  background: -webkit-linear-gradient(top, #4dacde, #2796d1);
   background: linear-gradient(to bottom, #4dacde, #2796d1);
 }
 #more-details-accordion .active .panel-title {
