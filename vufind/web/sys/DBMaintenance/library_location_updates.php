@@ -902,6 +902,14 @@ function getLibraryLocationUpdates(){
 			),
 		),
 
+		'hoopla_library_options_remove' => array(
+				'title' => 'Remove Hoopla setting since it can be done with inclusion rules now',
+				'description' => 'Remove Hoopla setting since it can be done with inclusion rules now',
+				'sql' => array(
+						"ALTER TABLE `library` DROP COLUMN `includeHoopla`",
+				),
+		),
+
 		'additional_library_contact_links' => array(
 			'title' => 'Additional Library Contact Links',
 			'description' => 'Add additional contact links for Youtube and Instagram to library config.',
