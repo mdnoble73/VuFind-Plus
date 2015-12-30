@@ -9030,6 +9030,10 @@ a.browse-thumbnail.active {
 .title-rating {
   margin-top: 4px;
 }
+#main-content .result-tools-horizontal {
+  margin-top: 10px;
+  margin-bottom: 10px;
+}
 .share-tools {
   background-color: #e6e6e6;
   background: -webkit-linear-gradient(top, #e7e7e7, #d7d7d7);
