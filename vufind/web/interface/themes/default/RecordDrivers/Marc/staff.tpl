@@ -23,6 +23,10 @@
 	</div>
 </div>
 
+	{* QR Code *}
+	{if $showQRCode}
+		<div id="record-qr-code" class="text-center hidden-xs visible-md"><img src="{$recordDriver->getQRCodeUrl()}" alt="QR Code for Record"></div>
+	{/if}
 
 {if $marcRecord}
 	<div id="formattedMarcRecord">
