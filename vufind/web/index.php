@@ -860,7 +860,7 @@ function loadModuleActionId(){
 		global $indexingProfiles;
 		foreach ($indexingProfiles as $profile) {
 			if ($profile->recordUrlComponent == $_REQUEST['module']) {
-				$newId = $profile->name . ':' . $_REQUEST['id'];;
+				$newId = $profile->name . ':' . $_REQUEST['id'];
 				$_GET['id'] = $newId;
 				$_REQUEST['id'] = $newId;
 				if (!file_exists(ROOT_DIR . '/services/' . $_REQUEST['module'])){

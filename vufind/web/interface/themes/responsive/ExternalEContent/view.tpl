@@ -40,7 +40,7 @@
 						{include file="ExternalEContent/view-title-details.tpl"}
 					</div>
 
-					<div id="recordTools" class="col-xs-12 col-sm-6 col-md-3">
+					<div id="recordTools" class="col-xs-4 col-sm-6 col-md-3">
 						<div class="btn-toolbar">
 							<div class="btn-group btn-group-vertical btn-block">
 								{* Options for the user to view online or download *}

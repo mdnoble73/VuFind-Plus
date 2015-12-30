@@ -44,7 +44,7 @@
 					</div>
 
 
-					<div id="recordTools" class="col-xs-12 col-sm-6 col-md-3">
+					<div id="recordTools" class="col-xs-4 col-sm-6 col-md-3">
 						{include file="Record/result-tools.tpl" showMoreInfo=false summShortId=$shortId module=$activeRecordProfileModule summId=$id summTitle=$title recordUrl=$recordUrl}
 					</div>
 				</div>
