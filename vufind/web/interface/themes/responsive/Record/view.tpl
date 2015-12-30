@@ -55,6 +55,10 @@
 			</div>
 		</div>
 
+		<div class="row">
+			{include file=$moreDetailsTemplate}
+		</div>
+
 		<span class="Z3988" title="{$recordDriver->getOpenURL()|escape}" style="display:none">&nbsp;</span>
 	</div>
 {/strip}
