@@ -2,6 +2,9 @@
 
 {strip}
 	<div class="col-xs-12">
+		{* Search Navigation *}
+		{include file="GroupedWork/search-results-navigation.tpl"}
+
 		{* Display Title *}
 		<h2>
 			{$recordDriver->getTitle()|removeTrailingPunctuation|escape}{if $recordDriver->getSubTitle()}: {$recordDriver->getSubTitle()|removeTrailingPunctuation|escape}{/if}
@@ -33,7 +36,6 @@
 				{/if}
 
 				<div class="row">
-
 					<div id="record-details-column" class="col-xs-12 col-sm-9">
 						{include file="OverDrive/view-title-details.tpl"}
 					</div>
@@ -62,9 +64,9 @@
 			</div>
 		</div>
 
-	<div class="row">
-		{include file=$moreDetailsTemplate}
-	</div>
+		<div class="row">
+			{include file=$moreDetailsTemplate}
+		</div>
 
 		<span class="Z3988" title="{$recordDriver->getOpenURL()|escape}" style="display:none">&nbsp;</span>
 	</div>

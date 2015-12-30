@@ -20,9 +20,10 @@
 }
 .full-rating {
   padding: 10px 5px 4px;
+  white-space: nowrap;
+  font-size: 11px;
 }
 .rating-graph {
-  white-space: nowrap;
   margin: 4px 0;
 }
 .rating-graph .row {

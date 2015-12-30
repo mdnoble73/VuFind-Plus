@@ -2,6 +2,9 @@
 
 {strip}
 	<div class="col-xs-12">
+		{* Search Navigation *}
+		{include file="GroupedWork/search-results-navigation.tpl"}
+
 		{* Display Title *}
 		<h2>
 			{*{$recordDriver->getTitle()|escape}*}{* // ever a case when the trailing punction is needed? *}
@@ -53,6 +56,10 @@
 				</div>
 
 			</div>
+		</div>
+
+		<div class="row">
+			{include file=$moreDetailsTemplate}
 		</div>
 
 		<span class="Z3988" title="{$recordDriver->getOpenURL()|escape}" style="display:none">&nbsp;</span>
