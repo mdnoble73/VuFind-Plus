@@ -395,20 +395,19 @@ VuFind.GroupedWork = (function(){
 		},
 
 		showReviewForm: function(trigger, id){
-			var $trigger = $(trigger);
 			if (Globals.loggedIn){
-				$.getJSON(Globals.path + "/GroupedWork/AJAX?method=getReviewForm&id=" + id, function(data){
+				VuFind.loadingMessage();
+				$.getJSON(Globals.path + "/GroupedWork/" + id + "/AJAX?method=getReviewForm", function(data){
 					VuFind.showMessageWithButtons(data.title, data.modalBody, data.modalButtons);
-				}).fail(function(){
-					VuFind.showMessage('Request Failed', 'There was an error with this AJAX Request.');
-				});
+				}).fail(VuFind.ajaxFail);
 			}else{
-				VuFind.Account.ajaxLogin($trigger, function (){
-					return VuFind.GroupedWork.showReviewForm($trigger, id);
+				VuFind.Account.ajaxLogin($(trigger), function (){
+					return VuFind.GroupedWork.showReviewForm(trigger, id);
 				}, false);
 			}
 			return false;
 		},
+
 
 		showSaveToListForm: function (trigger, id){
 			if (Globals.loggedIn){
