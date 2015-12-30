@@ -784,65 +784,58 @@ function loadModuleActionId(){
 	foreach ($indexingProfiles as $profile){
 		$allRecordModules .= '|' . $profile->recordUrlComponent;
 	}
-
-
+	if (preg_match("/(MyAccount)\/([^\/?]+)\/([^\/?]+)(\?.+)?/", $requestURI, $matches)){
+		$_GET['module'] = $matches[1];
+		$_GET['id'] = $matches[3];
+		$_GET['action'] = $matches[2];
+		$_REQUEST['module'] = $matches[1];
+		$_REQUEST['id'] = $matches[3];
+		$_REQUEST['action'] = $matches[2];
+	}elseif (preg_match("/(MyAccount)\/([^\/?]+)(\?.+)?/", $requestURI, $matches)){
+		$_GET['module'] = $matches[1];
+		$_GET['action'] = $matches[2];
+		$_REQUEST['id'] = '';
+		$_REQUEST['module'] = $matches[1];
+		$_REQUEST['action'] = $matches[2];
+		$_REQUEST['id'] = '';
+	}elseif (preg_match('/\/Archive\/((?:[\\w\\d:]|%3A)+)\/([^\/?]+)/', $requestURI, $matches)){
+		$_GET['module'] = 'Archive';
+		$_GET['id'] = $matches[1];
+		$_GET['action'] = $matches[2];
+		$_REQUEST['module'] = 'Archive';
+		$_REQUEST['id'] = $matches[1];
+		$_REQUEST['action'] = $matches[2];
+		//Redirect things /GroupedWork/AJAX to the proper action
+	}elseif (preg_match("/($allRecordModules)\/(\w+)(?:\?|\/?$)/", $requestURI, $matches)){
+		$_GET['module'] = $matches[1];
+		$_GET['action'] = $matches[2];
+		$_REQUEST['module'] = $matches[1];
+		$_REQUEST['action'] = $matches[2];
+		//Redirect things /Record/.b3246786/Home to the proper action
+		//Also things like /OverDrive/84876507-043b-b3ce-2930-91af93d2a4f0/Home
+	}elseif (preg_match("/($allRecordModules)\/([^\/?]+?)\/([^\/?]+)/", $requestURI, $matches)){
+		$_GET['module'] = $matches[1];
+		$_GET['id'] = $matches[2];
+		$_GET['action'] = $matches[3];
+		$_REQUEST['module'] = $matches[1];
+		$_REQUEST['id'] = $matches[2];
+		$_REQUEST['action'] = $matches[3];
+		//Redirect things /Record/.b3246786 to the proper action
+	}elseif (preg_match("/($allRecordModules)\/([^\/?]+?)(?:\?|\/?$)/", $requestURI, $matches)){
+		$_GET['module'] = $matches[1];
+		$_GET['id'] = $matches[2];
+		$_GET['action'] = 'Home';
+		$_REQUEST['module'] = $matches[1];
+		$_REQUEST['id'] = $matches[2];
+		$_REQUEST['action'] = 'Home';
+	}elseif (preg_match("/([^\/?]+)\/([^\/?]+)/", $requestURI, $matches)){
+		$_GET['module'] = $matches[1];
+		$_GET['action'] = $matches[2];
+		$_REQUEST['module'] = $matches[1];
+		$_REQUEST['action'] = $matches[2];
+	}
 	//Correct some old actions
 	if (isset($_GET['action'])) {
-		if (preg_match("/(MyAccount)\/([^\/?]+)\/([^\/?]+)(\?.+)?/", $requestURI, $matches)){
-			$_GET['module'] = $matches[1];
-			$_GET['id'] = $matches[3];
-			$_GET['action'] = $matches[2];
-			$_REQUEST['module'] = $matches[1];
-			$_REQUEST['id'] = $matches[3];
-			$_REQUEST['action'] = $matches[2];
-		}elseif (preg_match("/(MyAccount)\/([^\/?]+)(\?.+)?/", $requestURI, $matches)){
-			$_GET['module'] = $matches[1];
-			$_GET['action'] = $matches[2];
-			$_REQUEST['id'] = '';
-			$_REQUEST['module'] = $matches[1];
-			$_REQUEST['action'] = $matches[2];
-			$_REQUEST['id'] = '';
-		}elseif (preg_match('/\/Archive\/((?:[\\w\\d:]|%3A)+)\/([^\/?]+)/', $requestURI, $matches)){
-			$_GET['module'] = 'Archive';
-			$_GET['id'] = $matches[1];
-			$_GET['action'] = $matches[2];
-			$_REQUEST['module'] = 'Archive';
-			$_REQUEST['id'] = $matches[1];
-			$_REQUEST['action'] = $matches[2];
-
-			//Redirect things /Record/.b3246786/Home to the proper action
-			//Also things like /OverDrive/84876507-043b-b3ce-2930-91af93d2a4f0/Home
-		}elseif (preg_match("/($allRecordModules)\/([^\/?]+?)\/([^\/?]+)/", $requestURI, $matches)){
-			$_GET['module'] = $matches[1];
-			$_GET['id'] = $matches[2];
-			$_GET['action'] = $matches[3];
-			$_REQUEST['module'] = $matches[1];
-			$_REQUEST['id'] = $matches[2];
-			$_REQUEST['action'] = $matches[3];
-
-			//Redirect things /Record/.b3246786 to the proper action
-		}elseif (preg_match("/($allRecordModules)\/([^\/?]+?)(?:\?|\/?$)/", $requestURI, $matches)){
-			$_GET['module'] = $matches[1];
-			$_GET['id'] = $matches[2];
-			$_GET['action'] = 'Home';
-			$_REQUEST['module'] = $matches[1];
-			$_REQUEST['id'] = $matches[2];
-			$_REQUEST['action'] = 'Home';
-
-			//Redirect things /GroupedWork/AJAX to the proper action
-		}elseif (preg_match("/($allRecordModules)\/(\w+)(?:\?|\/?$)/", $requestURI, $matches)){
-			$_GET['module'] = $matches[1];
-			$_GET['action'] = $matches[2];
-			$_REQUEST['module'] = $matches[1];
-			$_REQUEST['action'] = $matches[2];
-
-
-		}elseif (preg_match("/([^\/?]+)\/([^\/?]+)/", $requestURI, $matches)){
-			$_GET['module'] = $matches[1];
-			$_GET['action'] = $matches[2];
-			$_REQUEST['module'] = $matches[1];
-			$_REQUEST['action'] = $matches[2];
-		}
 		if ($_GET['action'] == 'OverdriveHolds') {
 			$_GET['action'] = 'Holds';
 			$_REQUEST['action'] = 'Holds';
@@ -853,7 +846,6 @@ function loadModuleActionId(){
 			}
 		}
 	}
-
 	global $activeRecordProfile;
 	//Check to see if the module is a profile
 	if (isset($_REQUEST['module'])){
