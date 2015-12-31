@@ -33,6 +33,7 @@
 				</div>
 			</div>
 
+			{if $ratingData.average > 0}{* Only show histogram when there is rating data *}
 			<div class="rating-graph">
 				<div class="row">
 					<div class="col-xs-4">5 star</div>
@@ -60,6 +61,8 @@
 					<div class="col-xs-2">({$ratingData.num1star})</div>
 				</div>
 			</div>
+			{/if}
+
 		{/if}
 		{if $showComments && !$hideReviewButton}{* Add hideReviewButton=true to {include} tag to disable below *}
 			<div class="row">
