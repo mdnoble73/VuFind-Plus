@@ -65,7 +65,8 @@ class Home extends Action
 
 		//Load person from the database to get additional information
 		/* @var Person $person */
-		$person = Person::staticGet('personId', $this->id);
+		$person = new Person();
+		$person->get($this->id);
 		$record['picture'] = $person->picture;
 
 		$interface->assign('record', $record);
@@ -195,15 +196,17 @@ class Home extends Action
 		global $timer;
 
 		//Build the actual view
-		$interface->setTemplate('view.tpl');
+//		$interface->setTemplate('view.tpl');
 
 		$titleField = $this->recordDriver->getName(); //$this->record['firstName'] . ' ' . $this->record['lastName'];
-		if ($titleField){
-			$interface->setPageTitle($titleField);
-		}
+//		if ($titleField){
+//			$interface->setPageTitle($titleField);
+//		}
 
+//		$interface->assign('sidebar', 'Person/full-record-sidebar.tpl');
+//		$interface->display('layout.tpl');
+//
 		// Display Page
-		$interface->assign('sidebar', 'Person/full-record-sidebar.tpl');
-		$interface->display('layout.tpl');
+		$this->display('view.tpl', $titleField);
 	}
 }
