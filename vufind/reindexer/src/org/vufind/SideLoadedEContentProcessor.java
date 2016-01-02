@@ -141,11 +141,11 @@ public class SideLoadedEContentProcessor extends IlsRecordProcessor{
 			LinkedHashSet<String> printFormats = getFormatsFromBib(record, econtentRecord);
 			//Convert formats from print to eContent version
 			for (String format : printFormats) {
-				if (format.equalsIgnoreCase("Book") || format.equalsIgnoreCase("LargePrint")) {
+				if (format.equalsIgnoreCase("Book") || format.equalsIgnoreCase("LargePrint") || format.equalsIgnoreCase("GraphicNovel")) {
 					econtentItem.setFormat("eBook");
 					econtentItem.setFormatCategory("Books");
 					econtentRecord.setFormatBoost(10);
-				} else if (format.equalsIgnoreCase("SoundRecording")) {
+				} else if (format.equalsIgnoreCase("SoundRecording") || format.equalsIgnoreCase("SoundDisc")) {
 					econtentItem.setFormat("eAudiobook");
 					econtentItem.setFormatCategory("Audio Books");
 					econtentRecord.setFormatBoost(8);
@@ -158,7 +158,7 @@ public class SideLoadedEContentProcessor extends IlsRecordProcessor{
 					econtentItem.setFormatCategory("Movies");
 					econtentRecord.setFormatBoost(10);
 				} else {
-					logger.warn("Could not find appropriate eContent format for " + format);
+					logger.warn("Could not find appropriate eContent format for " + format + " while side loading eContent " + econtentRecord.getFullIdentifier());
 				}
 			}
 		}
