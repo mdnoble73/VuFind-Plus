@@ -1028,9 +1028,22 @@ class MarcRecord extends IndexRecord
 		}
 		if ($useMarcSummary){
 			if ($summaryFields = $this->marcRecord->getFields('520')) {
+				$summaries = array();
 				$summary = '';
 				foreach($summaryFields as $summaryField){
-					$summary .= '<p>' . $this->getSubfieldData($summaryField, 'a') . '</p>';
+					//Check to make sure we don't have an exact duplicate of this field
+					$curSummary = $this->getSubfieldData($summaryField, 'a');
+					$okToAdd = true;
+					foreach ($summaries as $existingSummary){
+						if ($existingSummary == $curSummary){
+							$okToAdd = false;
+							break;
+						}
+					}
+					if ($okToAdd){
+						$summaries[] = $curSummary;
+						$summary .= '<p>' . $curSummary . '</p>';
+					}
 				}
 				$interface->assign('summary', $summary);
 				$interface->assign('summaryTeaser', strip_tags($summary));
