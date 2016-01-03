@@ -236,22 +236,6 @@ class Search_Results extends Action {
 		$interface->assign('page_body_style', 'sidebar_left');
 		$interface->assign('overDriveVersion', isset($configArray['OverDrive']['interfaceVersion']) ? $configArray['OverDrive']['interfaceVersion'] : 1);
 
-		//Check to see if we should show unscoped results
-		global $solrScope;
-		$enableUnscopedSearch = false; // fallback setting
-		if ($solrScope){
-			$searchLibrary = Library::getSearchLibrary();
-			if ($searchLibrary != null && $searchLibrary->showMarmotResultsAtEndOfSearch){
-				$searchSources = new SearchSources();
-				$searchOptions = $searchSources->getSearchSources();
-				if (isset($searchOptions['marmot'])){
-					//TODO: change name of search option to 'consortium'
-					$unscopedSearch = clone($searchObject);
-					$enableUnscopedSearch = true;
-				}
-			}
-		}
-
 		$showRatings = 1;
 		$enableProspectorIntegration = isset($configArray['Content']['Prospector']) ? $configArray['Content']['Prospector'] : false;
 		if (isset($library)){
@@ -452,33 +436,6 @@ class Search_Results extends Action {
 		$interface->assign('subpage', $displayTemplate);
 		$interface->assign('displayMode', $displayMode); // For user toggle switches
 
-		// Supplementary Unscoped Search //
-		if ($enableUnscopedSearch && isset($unscopedSearch) ){
-			// Total & Link will be shown in result header even if none of these results will be shown on this page
-			$unscopedSearch->setLimit($numUnscopedTitlesToLoad * 4);
-			$unscopedSearch->disableScoping();
-			$unscopedSearch->processSearch(false, false);
-			$numUnscopedResults = $unscopedSearch->getResultTotal();
-			$interface->assign('numUnscopedResults', $numUnscopedResults);
-			$unscopedSearchUrl = $unscopedSearch->renderSearchUrl();
-			if (preg_match('/searchSource=(.*?)(?:&|$)/', $unscopedSearchUrl)){
-				$unscopedSearchUrl = preg_replace('/(.*searchSource=)(.*?)(&|$)(.*)/', '$1marmot$3$4', $unscopedSearchUrl);
-//				$unscopedSearchUrl = preg_replace('/&/', '&amp;', $unscopedSearchUrl);
-				$unscopedSearchUrl = str_replace('&', '&amp;', $unscopedSearchUrl); // faster than preg_replace for simple substitutions
-			}else{
-				$unscopedSearchUrl .= "&amp;searchSource=marmot";
-			}
-			$unscopedSearchUrl .= "&amp;shard=";
-			$interface->assign('unscopedSearchUrl', $unscopedSearchUrl);
-			if ($numUnscopedTitlesToLoad > 0){
-				$unscopedResults = $unscopedSearch->getSupplementalResultRecordHTML($searchObject->getResultRecordSet(), $numUnscopedTitlesToLoad, $searchObject->getResultTotal());
-
-				$interface->assign('recordSet', $unscopedResults);
-				$unscopedResults = $interface->fetch($displayTemplate);
-				$interface->assign('unscopedResults', $unscopedResults);
-			}
-		}
-
 		// Big one - our results //
 		$recordSet = $searchObject->getResultRecordHTML($displayMode);
 		$interface->assign('recordSet', $recordSet);
@@ -500,6 +457,9 @@ class Search_Results extends Action {
 	} // End launch()
 
 	function loadExploreMoreBar(){
+		if (isset($_REQUEST['page']) && $_REQUEST['page'] > 1){
+			return;
+		}
 		//Get data from the repository
 		global $interface;
 		global $configArray;

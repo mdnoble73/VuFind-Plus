@@ -1183,6 +1183,14 @@ function getLibraryLocationUpdates(){
 							'ALTER TABLE library DROP COLUMN orderAccountingUnit',
 							'ALTER TABLE library DROP COLUMN makeOrderRecordsAvailableToOtherLibraries',
 					)
+			),
+
+			'remove_consortial_results_in_search' => array(
+					'title' => 'Remove Consortial Results in Search',
+					'description' => 'Remove Unused Consortial Results in at the end of search results from libraries table',
+					'sql' => array(
+							'ALTER TABLE library DROP COLUMN showMarmotResultsAtEndOfSearch',
+					)
 			)
 	);
 }

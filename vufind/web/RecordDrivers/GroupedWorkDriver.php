@@ -1365,7 +1365,6 @@ class GroupedWorkDriver extends RecordInterface{
 			}
 			global $searchSource;
 			if ($searchSource == 'econtent'){
-				global $searchSource;
 				if (!$manifestation['isEContent']){
 					$manifestation['hideByDefault'] = true;
 				}

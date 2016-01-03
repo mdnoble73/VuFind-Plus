@@ -694,7 +694,7 @@ class SearchObject_Solr extends SearchObject_Base
 	}
 /*
  *  Get the template to use to display the results returned from getRecordHTML()
- *  or getSupplementalResultRecordHTML() based on the view mode
+ *  based on the view mode
  *
  * @return string  Template file name
  */
@@ -733,38 +733,6 @@ class SearchObject_Solr extends SearchObject_Base
 					$html[] = $interface->fetch($record->getSearchResult($this->view));
 				} else {
 					$html[] = "Unable to find record";
-				}
-			}
-		}
-		return $html;
-	}
-
-	public function getSupplementalResultRecordHTML($mainResults, $maxResultsToShow, $startIndex = 0){
-		global $interface;
-		$html = array();
-		$numResultsShown = 0;
-		if (isset($this->indexResult['response'])) {
-			for ($x = 0; $x < count($this->indexResult['response']['docs']); $x++) {
-				$current = &$this->indexResult['response']['docs'][$x];
-				//Check to make sure this id is not in the main results
-				$supplementalInMainResults = false;
-				foreach ($mainResults as $mainResult) {
-					if ($mainResult['id'] == $current['id']) {
-						$supplementalInMainResults = true;
-						break;
-					}
-				}
-				if ($supplementalInMainResults) { // if record in the original search result, don't add to these results
-					continue;
-				}
-				/** @var IndexRecord|MarcRecord|GroupedWorkDriver $record */
-				$record = RecordDriverFactory::initRecordDriver($current);
-				$numResultsShown++;
-				$interface->assign('recordIndex', $numResultsShown);
-				$interface->assign('resultIndex', $numResultsShown + (($this->page - 1) * $this->limit) + $startIndex);
-				$html[] = $interface->fetch($record->getSearchResult($this->view, true));
-				if ($numResultsShown >= $maxResultsToShow) {
-					break;
 				}
 			}
 		}
