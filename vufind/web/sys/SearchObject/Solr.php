@@ -1210,6 +1210,11 @@ class SearchObject_Solr extends SearchObject_Base
 		global $timer;
 		global $analytics;
 
+		if ($this->searchSource == 'econtent'){
+			global $solrScope;
+			$this->addHiddenFilter("econtent_source_{$solrScope}", '*');
+		}
+
 		// Our search has already been processed in init()
 		$search = $this->searchTerms;
 
