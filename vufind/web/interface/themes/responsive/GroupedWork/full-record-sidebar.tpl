@@ -43,7 +43,7 @@
 		</div>
 	{/if}
 
-		{*<div id="xs-main-content-insertion-point" class="row"></div>*}
+		<div id="xs-main-content-insertion-point" class="row"></div>
 
 	{if $recordDriver}
 		{* QR Code *}

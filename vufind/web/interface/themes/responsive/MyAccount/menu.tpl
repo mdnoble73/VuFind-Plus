@@ -2,7 +2,7 @@
 {if $user != false}
 	<br>
 	{* Setup the accoridon *}
-	<div id="home-account-links" class="sidebar-links row" style="display: none">
+	<div id="home-account-links" class="sidebar-links row"{if $displaySidebarMenu} style="display: none"{/if}>
 		<div class="panel-group accordion" id="account-link-accordion">
 			{* My Account *}
 			<a id="account-menu"></a>

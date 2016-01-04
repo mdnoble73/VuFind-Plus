@@ -1,5 +1,5 @@
 {strip}
-<div id="home-page-search" class="row" style="display: none">
+<div id="home-page-search" class="row"{if $displaySidebarMenu} style="display: none"{/if}>
 	<div class="col-xs-12">
 		<div class="row">
 			<div class="col-md-12 text-center" id="home-page-search-label">

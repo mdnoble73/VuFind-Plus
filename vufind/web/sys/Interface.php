@@ -150,6 +150,12 @@ class UInterface extends Smarty
 		$this->assign('device', get_device_name());
 		$timer->logTime('Basic configuration');
 
+		$displaySidebarMenu = false;
+		if (isset($configArray['Site']['sidebarMenu'])) {
+			$displaySidebarMenu = (bool) $configArray['Site']['sidebarMenu'];
+		}
+		$this->assign('displaySidebarMenu', $displaySidebarMenu);
+
 		$this->assign('currentTab', 'Search');
 
 		$this->assign('authMethod', $configArray['Authentication']['method']);
