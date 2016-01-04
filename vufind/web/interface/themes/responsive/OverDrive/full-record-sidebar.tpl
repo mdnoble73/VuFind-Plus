@@ -38,7 +38,7 @@
 		{include file="GroupedWork/result-tools.tpl" showMoreInfo=false summId=$recordDriver->getPermanentId()}
 	</div>
 
-	{*<div id="xs-main-content-insertion-point" class="row"></div>*}
+	<div id="xs-main-content-insertion-point" class="row"></div>
 
 	{* QR Code *}
 	{if $showQRCode}
