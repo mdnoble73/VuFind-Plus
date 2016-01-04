@@ -1168,12 +1168,40 @@ function getLibraryLocationUpdates(){
 		),
 
 
-		'enable_archive' => array(
-				'title' => 'Enable Archive for libraries',
-				'description' => 'Add option to enable archives for individual libraries',
-				'sql' => array(
-					'ALTER TABLE library ADD COLUMN enableArchive TINYINT(1) DEFAULT 0',
-				),
-		),
+			'enable_archive' => array(
+					'title' => 'Enable Archive for libraries',
+					'description' => 'Add option to enable archives for individual libraries',
+					'sql' => array(
+						'ALTER TABLE library ADD COLUMN enableArchive TINYINT(1) DEFAULT 0',
+					),
+			),
+
+			'remove_order_options' => array(
+					'title' => 'Remove Order Options',
+					'description' => 'Remove Unused Order Record Options from libraries table',
+					'sql' => array(
+							'ALTER TABLE library DROP COLUMN orderAccountingUnit',
+							'ALTER TABLE library DROP COLUMN makeOrderRecordsAvailableToOtherLibraries',
+					)
+			),
+
+			'remove_consortial_results_in_search' => array(
+					'title' => 'Remove Consortial Results in Search',
+					'description' => 'Remove Unused Consortial Results in at the end of search results from libraries table',
+					'sql' => array(
+							'ALTER TABLE library DROP COLUMN showMarmotResultsAtEndOfSearch',
+					)
+			),
+
+			'remove_unused_enrichment_and_full_record_options' => array(
+					'title' => 'Remove Unused Options in Enrichment and Full Record sections',
+					'description' => 'Remove Show other editions option libraries table',
+					'sql' => array(
+							'ALTER TABLE library DROP COLUMN showOtherEditionsPopup',
+							'ALTER TABLE library DROP COLUMN showTableOfContentsTab',
+							'ALTER TABLE library DROP COLUMN showProspectorTitlesAsTab',
+							'ALTER TABLE library DROP COLUMN showCopiesLineInHoldingsSummary',
+					)
+			),
 	);
 }

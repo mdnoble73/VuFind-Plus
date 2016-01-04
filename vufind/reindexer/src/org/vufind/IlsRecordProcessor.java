@@ -80,7 +80,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 
 	private HashMap<String, Integer> numberOfHoldsByIdentifier = new HashMap<>();
 
-	private HashMap<String, TranslationMap> translationMaps = new HashMap<>();
+	protected HashMap<String, TranslationMap> translationMaps = new HashMap<>();
 
 	public IlsRecordProcessor(GroupedWorkIndexer indexer, Connection vufindConn, Ini configIni, ResultSet indexingProfileRS, Logger logger, boolean fullReindex) {
 		super(indexer, logger);

@@ -1818,17 +1818,6 @@ class Solr implements IndexEngine {
 			}*/
 		}
 
-		/*if ($this->searchSource == 'econtent'){
-			$onlineFilter = "$buildingFacetName:\"Shared Digital Collection\"";
-			if (isset($searchLibrary)){
-				$onlineFilter .= " OR $institutionFacetName:\"{$searchLibrary->facetLabel} Online\"";
-			}
-			if ($searchLocation != null){
-				$onlineFilter .= " OR $institutionFacetName:\"{$searchLocation->facetLabel} Online\"";
-			}
-			$filter[] = $onlineFilter;
-		}*/
-
 		$blacklistRecords = null;
 		if (isset($searchLocation) && strlen($searchLocation->recordsToBlackList) > 0){
 			$blacklistRecords = $searchLocation->recordsToBlackList;

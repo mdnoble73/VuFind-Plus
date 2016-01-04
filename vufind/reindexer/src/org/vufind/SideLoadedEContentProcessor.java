@@ -1,6 +1,7 @@
 package org.vufind;
 
 import org.apache.log4j.Logger;
+import org.apache.log4j.pattern.IntegerPatternConverter;
 import org.ini4j.Ini;
 import org.marc4j.marc.Record;
 
@@ -139,13 +140,26 @@ public class SideLoadedEContentProcessor extends IlsRecordProcessor{
 			econtentRecord.setFormatBoost(specifiedFormatBoost);
 		} else {
 			LinkedHashSet<String> printFormats = getFormatsFromBib(record, econtentRecord);
+			if (this.translationMaps.size() > 0){
+				String firstFormat = printFormats.iterator().next();
+				econtentItem.setFormat(translateValue("format", firstFormat, econtentRecord.getFullIdentifier()));
+				econtentItem.setFormatCategory(translateValue("format_category", firstFormat, econtentRecord.getFullIdentifier()));
+				String formatBoostStr = translateValue("format_boost", firstFormat, econtentRecord.getFullIdentifier());
+				try {
+					Long formatBoost = Long.parseLong(formatBoostStr);
+					econtentRecord.setFormatBoost(formatBoost);
+				}catch (Exception e){
+					logger.warn("Unable to parse format boost " + formatBoostStr + " for format " + firstFormat + " " + econtentRecord.getFullIdentifier());
+					econtentRecord.setFormatBoost(1);
+				}
+			}
 			//Convert formats from print to eContent version
 			for (String format : printFormats) {
-				if (format.equalsIgnoreCase("Book") || format.equalsIgnoreCase("LargePrint")) {
+				if (format.equalsIgnoreCase("Book") || format.equalsIgnoreCase("LargePrint") || format.equalsIgnoreCase("GraphicNovel")) {
 					econtentItem.setFormat("eBook");
 					econtentItem.setFormatCategory("Books");
 					econtentRecord.setFormatBoost(10);
-				} else if (format.equalsIgnoreCase("SoundRecording")) {
+				} else if (format.equalsIgnoreCase("SoundRecording") || format.equalsIgnoreCase("SoundDisc")) {
 					econtentItem.setFormat("eAudiobook");
 					econtentItem.setFormatCategory("Audio Books");
 					econtentRecord.setFormatBoost(8);
@@ -158,7 +172,7 @@ public class SideLoadedEContentProcessor extends IlsRecordProcessor{
 					econtentItem.setFormatCategory("Movies");
 					econtentRecord.setFormatBoost(10);
 				} else {
-					logger.warn("Could not find appropriate eContent format for " + format);
+					logger.warn("Could not find appropriate eContent format for " + format + " while side loading eContent " + econtentRecord.getFullIdentifier());
 				}
 			}
 		}

@@ -1363,6 +1363,12 @@ class GroupedWorkDriver extends RecordInterface{
 			}elseif($selectedAvailability == 'Entire Collection' && (!($manifestation['hasLocalItem']) && !$manifestation['isEContent'])){
 				$manifestation['hideByDefault'] = true;
 			}
+			global $searchSource;
+			if ($searchSource == 'econtent'){
+				if (!$manifestation['isEContent']){
+					$manifestation['hideByDefault'] = true;
+				}
+			}
 
 			$relatedManifestations[$key] = $manifestation;
 		}
