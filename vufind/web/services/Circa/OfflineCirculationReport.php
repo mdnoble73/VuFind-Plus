@@ -100,6 +100,6 @@ class Circa_OfflineCirculationReport extends Admin_Admin{
 	}
 
 	function getAllowableRoles() {
-		return array('opacAdmin', 'libraryAdmin');
+		return array('opacAdmin', 'libraryAdmin', 'circulationReports');
 	}
 }
