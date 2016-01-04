@@ -52,6 +52,7 @@
 # Temp Files
 26 * * * * cd /tmp; /bin/rm -rf CURLCOOKIE*
 27 */2 * * * cd /tmp; /bin/rm -rf epb*
+# Restart apache
 
 ##########
 # Cron   #
