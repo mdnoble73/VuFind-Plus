@@ -1191,6 +1191,17 @@ function getLibraryLocationUpdates(){
 					'sql' => array(
 							'ALTER TABLE library DROP COLUMN showMarmotResultsAtEndOfSearch',
 					)
-			)
+			),
+
+			'remove_unused_enrichment_and_full_record_options' => array(
+					'title' => 'Remove Unused Options in Enrichment and Full Record sections',
+					'description' => 'Remove Show other editions option libraries table',
+					'sql' => array(
+							'ALTER TABLE library DROP COLUMN showOtherEditionsPopup',
+							'ALTER TABLE library DROP COLUMN showTableOfContentsTab',
+							'ALTER TABLE library DROP COLUMN showProspectorTitlesAsTab',
+							'ALTER TABLE library DROP COLUMN showCopiesLineInHoldingsSummary',
+					)
+			),
 	);
 }

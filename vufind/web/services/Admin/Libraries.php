@@ -184,4 +184,7 @@ class Admin_Libraries extends ObjectEditor
 		header("Location: /Admin/Libraries?objectAction=edit&id=" . $libraryId);
 	}
 
+	function getInstructions(){
+		return 'For more information about Library Setting configuration, see the <a href="https://docs.google.com/a/marmot.org/document/d/1oBMoPCHbhybgtcaCAALSxcZCxWEsT5cSb7mbkio6V_k">online documentation</a>.';
+	}
 }
