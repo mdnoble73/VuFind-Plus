@@ -9,7 +9,7 @@ class LocationFacetSetting extends FacetSetting {
 		global $user;
 		$location = new Location();
 		$location->orderBy('displayName');
-		if ($user->hasRole('libraryAdmin')){
+		if ($user->hasRole('libraryAdmin') || $user->hasRole('libraryManager')){
 			$homeLibrary = Library::getPatronHomeLibrary();
 			$location->libraryId = $homeLibrary->libraryId;
 		}

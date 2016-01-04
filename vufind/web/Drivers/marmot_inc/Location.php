@@ -89,7 +89,7 @@ class Location extends DB_DataObject
 		//Load Libraries for lookup values
 		$library = new Library();
 		$library->orderBy('displayName');
-		if ($user->hasRole('libraryAdmin') && !$user->hasRole('opacAdmin')){
+		if ($user->hasRole('libraryAdmin') && !$user->hasRole('opacAdmin') || $user->hasRole('libraryManager') || $user->hasRole('locationManager')){
 			$homeLibrary = Library::getPatronHomeLibrary();
 			$library->libraryId = $homeLibrary->libraryId;
 		}

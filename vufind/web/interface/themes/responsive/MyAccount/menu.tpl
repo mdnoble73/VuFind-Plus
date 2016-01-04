@@ -163,7 +163,7 @@
 			{/if}
 
 			{* Admin Functionality if Available *}
-			{if $user && ($user->hasRole('opacAdmin') || $user->hasRole('libraryAdmin') || $user->hasRole('contentEditor'))}
+			{if $user && ($user->hasRole('opacAdmin') || $user->hasRole('libraryAdmin') || $user->hasRole('contentEditor') || $user->hasRole('libraryManager') || $user->hasRole('locationManager'))}
 				{if in_array($action, array('Libraries', 'Locations', 'IPAddresses', 'ListWidgets', 'BrowseCategories', 'UserSuggestions', 'PTypes', 'CirculationStatuses', 'LoanRules', 'LoanRuleDeterminers', 'AccountProfiles'))}
 					{assign var="curSection" value=true}
 				{else}
@@ -320,7 +320,7 @@
 				</div>
 			{/if}
 
-			{if $user && ($user->hasRole('opacAdmin') || $user->hasRole('libraryAdmin'))}
+			{if $user && ($user->hasRole('opacAdmin') || $user->hasRole('libraryAdmin') || $user->hasRole('circulationReports'))}
 				{if $module == 'Circa'}
 					{assign var="curSection" value=true}
 				{else}

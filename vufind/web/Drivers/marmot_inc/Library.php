@@ -218,7 +218,7 @@ class Library extends DB_DataObject
 		global $user;
 		require_once ROOT_DIR . '/sys/ListWidget.php';
 		$widget = new ListWidget();
-		if (($user->hasRole('libraryAdmin') || $user->hasRole('contentEditor')) && !$user->hasRole('opacAdmin')){
+		if (($user->hasRole('libraryAdmin') || $user->hasRole('contentEditor')) && !$user->hasRole('opacAdmin') || $user->hasRole('libraryManager') || $user->hasRole('locationManager')){
 			$patronLibrary = Library::getPatronHomeLibrary();
 			if ($patronLibrary){
 				$widget->libraryId = $patronLibrary->libraryId;

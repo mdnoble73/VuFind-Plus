@@ -590,13 +590,20 @@ class User extends DB_DataObject
 			return true;
 		}elseif ($this->hasRole('opacAdmin')){
 			return true;
-		}elseif ($this->hasRole('libraryAdmin') || $this->hasRole('contentEditor')){
+		}elseif ($this->hasRole('libraryAdmin') || $this->hasRole('contentEditor') || $this->hasRole('libraryManager')){
 			$listUser = new User();
 			$listUser->id = $list->user_id;
 			$listUser->find(true);
 			$listLibrary = Library::getLibraryForLocation($listUser->homeLocationId);
 			$userLibrary = Library::getLibraryForLocation($this->homeLocationId);
 			if ($userLibrary->libraryId == $listLibrary->libraryId){
+				return true;
+			}
+		}elseif ($this->hasRole('locationManager')){
+			$listUser = new User();
+			$listUser->id = $list->user_id;
+			$listUser->find(true);
+			if ($this->homeLocationId == $listUser->homeLocationId){
 				return true;
 			}
 		}
