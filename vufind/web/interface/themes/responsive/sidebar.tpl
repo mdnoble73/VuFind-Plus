@@ -1,8 +1,9 @@
 {strip}
 	<div class="row" id="vertical-menu-bar-container">
-		<div class="hidden-xs col-sm-1 col-md-1 col-lg-1" id="vertical-menu-bar-wrapper">
+		{if $displaySidebarMenu}
+			<div class="hidden-xs col-sm-1 col-md-1 col-lg-1" id="vertical-menu-bar-wrapper">
 			<div id="vertical-menu-bar">
-				<div class="menu-bar-option">
+					<div class="menu-bar-option">
 					<a href="#" onclick="VuFind.Menu.showSearch(this)" class="menu-icon" title="Search">
 						<img src="{img filename='/interface/themes/responsive/images/Search.png'}" alt="Search">
 						<div class="menu-bar-label">Search</div>
@@ -39,6 +40,7 @@
 					</div>
 				{/if}
 
+
 				{* Open Appropriate Section on Initial Page Load *}
 				<script type="text/javascript">
 					$(function(){ldelim}
@@ -56,8 +58,10 @@
 				</script>
 			</div>
 		</div>
+		{/if}
 
-		<div class="col-xs-12 col-sm-10 col-md-10 col-lg-10" id="sidebar-content">
+		<div class="col-xs-12{if $displaySidebarMenu} col-sm-10 col-md-10 col-lg-10{/if}" id="sidebar-content">
+			{* Full Column wid *}
 			{include file="$sidebar"}
 		</div>
 	</div>
