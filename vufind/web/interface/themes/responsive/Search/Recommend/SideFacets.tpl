@@ -1,6 +1,6 @@
 {strip}
 {if $recordCount > 0 || $filterList || ($sideFacetSet && $recordCount > 0)}
-	<div>
+	<div id="searchFilterContainer">
 		{if isset($checkboxFilters) && count($checkboxFilters) > 0}
 			<p>
 				{include file='checkboxFilters.tpl'}
@@ -9,7 +9,7 @@
 		{* Filters that have been applied *}
 		{if $filterList}
 			<div id="remove-search-label" class="sidebar-label"{if $displaySidebarMenu} style="display: none"{/if}>{translate text='Applied Filters'}</div>
-			<div class="applied-filters">
+			<div class="applied-filters"{if $displaySidebarMenu} style="display: none"{/if}>
 			{foreach from=$filterList item=filters key=field }
 				{foreach from=$filters item=filter}
 					<div class="facetValue">{translate text=$field}: {$filter.display|translate|escape} <a href="{$filter.removalUrl|escape}" onclick="trackEvent('Remove Facet', '{$field}', '{$filter.display|escape}');"><img src="{$path}/images/silk/delete.png" alt="Delete"/></a></div>

@@ -142,6 +142,15 @@
 				</div>
 			{/if}
 
+			{* Show/Hide Search Facets & Sort Options *}
+			<div class="row text-center visible-xs">
+				{*<a id="refineSearchLink">{translate text="Refine Search"}</a>*}
+				<a class="btn btn-default" id="refineSearchButton" role="button" onclick="VuFind.Menu.showSearchFacets()">{translate text="Refine Search"}</a>
+				
+			</div>
+			
+
+
 			{if $filterList}
 				{* Data for searching within existing results *}
 				<div id="keepFilters" style="display:none;">
