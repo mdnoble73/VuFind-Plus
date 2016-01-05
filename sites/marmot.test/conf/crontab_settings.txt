@@ -57,7 +57,7 @@
 26 * * * * cd /tmp; /bin/rm -rf CURLCOOKIE*
 27 */2 * * * cd /tmp; /bin/rm -rf epb*
 # Cleanup Apache Sessions hourly (to test that it doesn't cause errors)
-0 */1 * * * /usr/sbin/apachectl graceful
+0 */1 * * * /usr/sbin/apachectl graceful > /dev/null 2>&1
 
 ###################################
 # Data Extract from other systems #
