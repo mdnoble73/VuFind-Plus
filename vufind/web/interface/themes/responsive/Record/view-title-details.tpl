@@ -3,8 +3,8 @@
 
 	{if $recordDriver->getUniformTitle()}
 		<div class="row">
-			<div class="result-label col-xs-4">Uniform Title: </div>
-			<div class="col-xs-8 result-value">
+			<div class="result-label col-sm-4">Uniform Title: </div>
+			<div class="col-sm-8 result-value">
 				{foreach from=$recordDriver->getUniformTitle() item=uniformTitle}
 					<a href="{$path}/Search/Results?lookfor={$uniformTitle|escape:"url"}">{$uniformTitle|highlight}</a><br/>
 				{/foreach}
@@ -14,8 +14,8 @@
 
 	{if $recordDriver->getAuthor()}
 		<div class="row">
-			<div class="result-label col-xs-4">Author: </div>
-			<div class="col-xs-8 result-value">
+			<div class="result-label col-sm-4">Author: </div>
+			<div class="col-sm-8 result-value">
 				<a href="{$path}/Author/Home?author={$recordDriver->getAuthor()|escape:"url"}">{$recordDriver->getAuthor()|highlight}</a><br/>
 			</div>
 		</div>
@@ -23,8 +23,8 @@
 
 	{if $recordDriver->getDetailedContributors()}
 		<div class="row">
-			<div class="result-label col-xs-4">{translate text='Contributors'}:</div>
-			<div class="col-xs-8 result-value">
+			<div class="result-label col-sm-4">{translate text='Contributors'}:</div>
+			<div class="col-sm-8 result-value">
 				{foreach from=$recordDriver->getDetailedContributors() item=contributor name=loop}
 					{if $smarty.foreach.loop.index == 5}
 						<div id="showAdditionalContributorsLink">
@@ -54,8 +54,8 @@
 
 	{if $recordDriver->getSeries()}
 		<div class="series row">
-			<div class="result-label col-xs-4">Series: </div>
-			<div class="col-xs-8 result-value">
+			<div class="result-label col-sm-4">Series: </div>
+			<div class="col-sm-8 result-value">
 				{assign var=summSeries value=$recordDriver->getSeries()}
 				<a href="{$path}/GroupedWork/{$recordDriver->getPermanentId()}/Series">{$summSeries.seriesTitle}</a>{if $summSeries.volume} volume {$summSeries.volume}{/if}
 			</div>
@@ -64,8 +64,8 @@
 
 	{if $showPublicationDetails && $recordDriver->getPublicationDetails()}
 		<div class="row">
-			<div class="result-label col-xs-4">{translate text='Published'}:</div>
-			<div class="col-xs-8 result-value">
+			<div class="result-label col-sm-4">{translate text='Published'}:</div>
+			<div class="col-sm-8 result-value">
 				{implode subject=$recordDriver->getPublicationDetails() glue=", "}
 			</div>
 		</div>
@@ -73,8 +73,8 @@
 
 	{if $showFormats}
 	<div class="row">
-		<div class="result-label col-xs-4">{translate text='Format'}:</div>
-		<div class="col-xs-8 result-value">
+		<div class="result-label col-sm-4">{translate text='Format'}:</div>
+		<div class="col-sm-8 result-value">
 			{implode subject=$recordFormat glue=", "}
 		</div>
 	</div>
@@ -82,8 +82,8 @@
 
 	{if $showEditions && $recordDriver->getEdition()}
 		<div class="row">
-			<div class="result-label col-xs-4">{translate text='Edition'}:</div>
-			<div class="col-xs-8 result-value">
+			<div class="result-label col-sm-4">{translate text='Edition'}:</div>
+			<div class="col-sm-8 result-value">
 				{implode subject=$recordDriver->getEdition() glue=", "}
 			</div>
 		</div>
@@ -91,8 +91,8 @@
 
 	{if $showISBNs && count($recordDriver->getISBNs()) > 0}
 		<div class="row">
-			<div class="result-label col-xs-4">{translate text='ISBN'}:</div>
-			<div class="col-xs-8 result-value">
+			<div class="result-label col-sm-4">{translate text='ISBN'}:</div>
+			<div class="col-sm-8 result-value">
 				{implode subject=$recordDriver->getISBNs() glue=", "}
 			</div>
 		</div>
@@ -100,9 +100,9 @@
 
 	{if $showPhysicalDescriptions && $physicalDescriptions}
 		<div class="row">
-			<div class="result-label col-xs-4">{translate text='Physical Desc'}:</div>
-			<div class="col-xs-8 result-value">
-				{implode subject=$physicalDescriptions glue="<br/>"}
+			<div class="result-label col-sm-4">{translate text='Physical Desc'}:</div>
+			<div class="col-sm-8 result-value">
+				{implode subject=$physicalDescriptions glue="<br>"}
 			</div>
 		</div>
 	{/if}
@@ -110,15 +110,15 @@
 
 	{if $mpaaRating}
 		<div class="row">
-			<div class="result-label col-xs-4">{translate text='Rating'}:</div>
-			<div class="col-xs-8 result-value">{$mpaaRating|escape}</div>
+			<div class="result-label col-sm-4">{translate text='Rating'}:</div>
+			<div class="col-sm-8 result-value">{$mpaaRating|escape}</div>
 		</div>
 	{/if}
 
 	{* Detailed status information *}
 	<div class="row">
-		<div class="result-label col-xs-4">{translate text='Status'}:</div>
-		<div class="col-xs-8 result-value">
+		<div class="result-label col-sm-4">{translate text='Status'}:</div>
+		<div class="col-sm-8 result-value">
 			{include file='GroupedWork/statusIndicator.tpl' statusInformation=$statusSummary}
 
 			{include file='GroupedWork/copySummary.tpl' summary=$statusSummary.itemSummary totalCopies=$statusSummary.copies itemSummaryId=$statusSummary.id}

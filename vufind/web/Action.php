@@ -27,11 +27,11 @@ abstract class Action extends PEAR
 	/**
 	 * @param string $mainContentTemplate  Name of the SMARTY template file for the main content of the Full Record View Pages
 	 * @param string $pageTitle            What to display is the html title tag
-	 * @param bool|true $sidebar           Enables the account sidebar on the page to be displayed
+	 * @param bool|string $sidebarTemplate      Sets the sidebar template, set to false or empty string for no sidebar
 	 */
-	function display($mainContentTemplate, $pageTitle, $sidebar=true) {
+	function display($mainContentTemplate, $pageTitle, $sidebarTemplate='Search/home-sidebar.tpl') {
 		global $interface;
-		if ($sidebar) $interface->assign('sidebar', 'Search/home-sidebar.tpl');
+		if (!empty($sidebarTemplate)) $interface->assign('sidebar', $sidebarTemplate);
 		$interface->setTemplate($mainContentTemplate);
 		$interface->setPageTitle($pageTitle);
 		$interface->assign('moreDetailsTemplate', 'GroupedWork/moredetails-accordion.tpl');

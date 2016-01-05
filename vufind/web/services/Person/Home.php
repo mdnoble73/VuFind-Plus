@@ -205,7 +205,7 @@ class Home extends Action
 
 //		$interface->assign('sidebar', 'Person/full-record-sidebar.tpl');
 //		$interface->display('layout.tpl');
-//
+
 		// Display Page
 		$this->display('view.tpl', $titleField);
 	}

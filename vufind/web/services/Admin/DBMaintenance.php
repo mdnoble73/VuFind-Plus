@@ -679,6 +679,16 @@ class DBMaintenance extends Admin_Admin {
 					),
 				),
 
+				'newRolesJan2016' => array(
+						'title' => 'Create new roles',
+						'description' => 'Create library manager, location manager, and circulation reports roles.',
+						'sql' => array(
+								"INSERT INTO `roles` (`name`, `description`) VALUES ('libraryManager', 'Allows user to do basic configuration for their library.')",
+								"INSERT INTO `roles` (`name`, `description`) VALUES ('locationManager', 'Allows user to do basic configuration for their location.')",
+								"INSERT INTO `roles` (`name`, `description`) VALUES ('circulationReports', 'Allows user to view offline circulation reports.')",
+						),
+				),
+
 				'libraryAdmin' => array(
 					'title' => 'Create library admin role',
 					'description' => 'Create library admin to allow .',

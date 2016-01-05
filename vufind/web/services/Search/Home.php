@@ -73,10 +73,12 @@ class Search_Home extends Action {
 		if (!$interface->get_template_vars('browseMode')) {
 			$interface->assign('browseMode', 'covers'); // fail safe: if no browseMode is set at all, go with covers
 		}
-		$interface->setPageTitle('Catalog Home');
-		$interface->assign('sidebar', 'Search/home-sidebar.tpl');
-		$interface->setTemplate('home.tpl');
-		$interface->display('layout.tpl');
+//		$interface->setPageTitle('Catalog Home');
+//		$interface->assign('sidebar', 'Search/home-sidebar.tpl');
+//		$interface->setTemplate('home.tpl');
+//		$interface->display('layout.tpl');
+
+		$this->display('home.tpl', 'Catalog Home', 'Search/home-sidebar.tpl');
 	}
 
 

@@ -1203,5 +1203,13 @@ function getLibraryLocationUpdates(){
 							'ALTER TABLE library DROP COLUMN showCopiesLineInHoldingsSummary',
 					)
 			),
+
+			'remove_unused_location_options_2015_14_0' => array(
+					'title' => 'Remove Unused Location Options',
+					'description' => 'Remove Show other editions option libraries table',
+					'sql' => array(
+							'ALTER TABLE location DROP COLUMN extraLocationCodesToInclude',
+					)
+			),
 	);
 }

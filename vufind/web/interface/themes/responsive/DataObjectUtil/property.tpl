@@ -3,7 +3,7 @@
 {if !isset($propValue) && isset($property.default)}
 	{assign var=propValue value=$property.default}
 {/if}
-{if ((!isset($property.storeDb) || $property.storeDb == true) && !($property.type == 'label' || $property.type == 'oneToManyAssociation' || $property.type == 'hidden' || $property.type == 'method'))}
+{if ((!isset($property.storeDb) || $property.storeDb == true) && !($property.type == 'oneToManyAssociation' || $property.type == 'hidden' || $property.type == 'method'))}
 	<div class='form-group' id="propertyRow{$propName}">
 		{* Output the label *}
 		{if $property.type == 'enum'}

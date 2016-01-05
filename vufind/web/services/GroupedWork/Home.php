@@ -20,8 +20,8 @@ class GroupedWork_Home extends Action{
 		$recordDriver = new GroupedWorkDriver($id);
 		if (!$recordDriver->isValid){
 			$logger->log("Did not find a record for id {$id} in solr." , PEAR_LOG_DEBUG);
-//			$interface->setTemplate('../Record/invalidRecord.tpl');
-//			$interface->display('layout.tpl');
+			$interface->setTemplate('../Record/invalidRecord.tpl');
+			$interface->display('layout.tpl');
 			$this->display('../Record/invalidRecord.tpl', 'Error');
 			die();
 		}
@@ -55,18 +55,5 @@ class GroupedWork_Home extends Action{
 		$this->display('full-record.tpl', $recordDriver->getTitle());
 	}
 
-	/**
-	 * @param string $mainContentTemplate  Name of the SMARTY template file for the main content of the Grouped Work Page
-	 * @param string $pageTitle     What to display is the html title tag
-	 * @param bool|true $sidebar    enables the account sidebar on the page to be displayed
-	 */
-//	function display($mainContentTemplate, $pageTitle='Grouped Work', $sidebar=true) {
-//		global $interface;
-////		if ($sidebar) $interface->assign('sidebar', 'GroupedWork/full-record-sidebar.tpl');
-//		if ($sidebar) $interface->assign('sidebar', 'Search/home-sidebar.tpl');
-////		TODO: is this the best template to use?
-//		$interface->setTemplate($mainContentTemplate);
-//		$interface->setPageTitle($pageTitle);
-//		$interface->display('layout.tpl');
-//	}
+
 }

@@ -45,7 +45,7 @@ class Admin_Libraries extends ObjectEditor
 			while ($library->fetch()){
 				$libraryList[$library->libraryId] = clone $library;
 			}
-		}else if ($user->hasRole('libraryAdmin')){
+		}else if ($user->hasRole('libraryAdmin') || $user->hasRole('libraryManager')){
 			$patronLibrary = Library::getLibraryForLocation($user->homeLocationId);
 			$libraryList[$patronLibrary->libraryId] = clone $patronLibrary;
 		}
@@ -67,7 +67,7 @@ class Admin_Libraries extends ObjectEditor
 		return 'libraryId';
 	}
 	function getAllowableRoles(){
-		return array('opacAdmin', 'libraryAdmin');
+		return array('opacAdmin', 'libraryAdmin', 'libraryManager');
 	}
 	function canAddNew(){
 		global $user;

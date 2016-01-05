@@ -46,7 +46,7 @@ class CreateListWidget extends Action {
 			if ($existingWidget == -1) {
 				$widget       = new ListWidget();
 				$widget->name = $widgetName;
-				if ($user->hasRole('libraryAdmin') || $user->hasRole('contentEditor')) {
+				if ($user->hasRole('libraryAdmin') || $user->hasRole('contentEditor') || $user->hasRole('libraryManager') || $user->hasRole('locationManager')) {
 					//Get all widgets for the library
 					$userLibrary       = Library::getPatronHomeLibrary();
 					$widget->libraryId = $userLibrary->libraryId;

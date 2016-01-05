@@ -1,5 +1,5 @@
 {strip}
-<div id="home-page-search" class="row" style="display: none">
+<div id="home-page-search" class="row"{if $displaySidebarMenu} style="display: none"{/if}>
 	<div class="col-xs-12">
 		<div class="row">
 			<div class="col-md-12 text-center" id="home-page-search-label">
@@ -141,6 +141,15 @@
 					<a id="advancedSearchLink" href="{$path}/Search/Advanced">{translate text='Advanced Search'}</a>
 				</div>
 			{/if}
+
+			{* Show/Hide Search Facets & Sort Options *}
+			{if $recordCount || $sideRecommendations}
+				<div class="row text-center visible-xs">
+					<a class="btn btn-default" id="refineSearchButton" role="button" onclick="VuFind.Menu.showSearchFacets()">{translate text="Refine Search"}</a>
+				</div>
+			{/if}
+			
+
 
 			{if $filterList}
 				{* Data for searching within existing results *}

@@ -22,11 +22,16 @@ VuFind.Menu = (function(){
 		VuFind.Menu.stickyMenu('#vertical-menu-bar', 'sticky-sidebar');
 
 		// Trigger Sidebar collapse on resize from horizontal menu to vertical menu
-		$(window).resize(function(){
-			console.log($(window).width(), $(this).width());
+		//$(window).resize(function(){
+		//	console.log($(window).width(), $(this).width());
+		//
+		//});
 
-		});
+		if ($('#horizontal-menu-bar-container').is(':visible')) {
+			VuFind.Menu.hideAllFast();
+			$('#refineSearch').hide();
 
+		}
 	});
 	return {
 		SideBarSearchSelectors: '#home-page-search,#horizontal-search-container,#narrow-search-label,#facet-accordion,#results-sort-label,#results-sort-label+div.row,#remove-search-label,#remove-search-label+.applied-filters',
@@ -65,7 +70,13 @@ VuFind.Menu = (function(){
 		},
 
 		hideAll: function(){
-			return $(VuFind.Menu.AllSideBarSelectors).filter(':visible').slideUp()
+			return $(VuFind.Menu.AllSideBarSelectors).filter(':visible').slideUp() // return of object is needed for $when(VuFind.Menu.hideAll()).done() calls
+		},
+
+		// This version is for hiding content without using an animation.
+		// This is important for the initial page load, putting content in the necessary state with out be distracting
+		hideAllFast: function(){
+			return $(VuFind.Menu.AllSideBarSelectors).filter(':visible').hide() // return of object is needed for $when(VuFind.Menu.hideAll()).done() calls
 		},
 
 		collapseSideBar: function(){
@@ -139,5 +150,11 @@ VuFind.Menu = (function(){
 		showExploreMore: function(clickedElement){
 			this.showMenuSection(this.ExploreMoreSelectors, clickedElement)
 		},
+
+		showSearchFacets: function(){
+			$('#refineSearch').toggle();
+			var btn = $('#refineSearchButton');
+			btn.text( btn.text() == 'Refine Search' ? 'Hide Refine Search' : 'Refine Search' );
+		}
 	}
 }(VuFind.Menu || {}));

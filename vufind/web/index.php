@@ -923,7 +923,7 @@ function loadUserData(){
 	$interface->assign('tagList', $tagList);
 	$timer->logTime("Load Tags");
 
-	if ($user->hasRole('opacAdmin') || $user->hasRole('libraryAdmin') || $user->hasRole('cataloging')){
+	if ($user->hasRole('opacAdmin') || $user->hasRole('libraryAdmin') || $user->hasRole('cataloging') || $user->hasRole('libraryManager') || $user->hasRole('locationManager')){
 		$variable = new Variable();
 		$variable->name= 'lastFullReindexFinish';
 		if ($variable->find(true)){
