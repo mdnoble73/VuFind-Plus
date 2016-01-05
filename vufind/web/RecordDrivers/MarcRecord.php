@@ -248,6 +248,9 @@ class MarcRecord extends IndexRecord
 	 */
 	public function getExportFormats()
 	{
+		//TODO: fix EndNote and RefWorks integration
+		return array();
+
 		// Get an array of legal export formats (from config array, or use defaults
 		// if nothing in config array).
 		global $configArray;
