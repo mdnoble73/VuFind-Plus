@@ -180,9 +180,13 @@
 					<div id="vufindMenuGroup" class="panel-collapse collapse {if $curSection}in{/if}">
 						<div class="panel-body">
 							{* Library Admin Actions *}
-							{if ($user->hasRole('opacAdmin') || $user->hasRole('libraryAdmin'))}
+							{if ($user->hasRole('opacAdmin') || $user->hasRole('libraryAdmin') || $user->hasRole('libraryManager'))}
 								<div class="adminMenuLink{if $action == "Libraries"} active{/if}"><a href="{$path}/Admin/Libraries">Library Systems</a></div>
+							{/if}
+							{if ($user->hasRole('opacAdmin') || $user->hasRole('libraryAdmin') || $user->hasRole('libraryManager') || $user->hasRole('locationManager'))}
 								<div class="adminMenuLink{if $action == "Locations"} active{/if}"><a href="{$path}/Admin/Locations">Locations</a></div>
+							{/if}
+							{if ($user->hasRole('opacAdmin') || $user->hasRole('libraryAdmin') || $user->hasRole('libraryManager') || $user->hasRole('locationManager'))}
 								<div class="adminMenuLink{if $action == "BlockPatronAccountLinks"} active{/if}"><a href="{$path}/Admin/BlockPatronAccountLinks">Block Patron Account Linking</a></div>
 							{/if}
 
