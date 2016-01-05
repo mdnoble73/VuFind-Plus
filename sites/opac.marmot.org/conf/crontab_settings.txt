@@ -53,6 +53,7 @@
 26 * * * * cd /tmp; /bin/rm -rf CURLCOOKIE*
 27 */2 * * * cd /tmp; /bin/rm -rf epb*
 # Restart apache
+0 0-6 * * * /usr/sbin/apachectl graceful >/dev/null
 
 ##########
 # Cron   #

@@ -80,29 +80,6 @@ class Admin_AJAX extends Action {
 		return json_encode($results);
 	}
 
-	function getReindexProcessNotes(){
-		$id = $_REQUEST['id'];
-		$reindexProcess = new ReindexProcessLogEntry();
-		$reindexProcess->id = $id;
-		$results = array(
-				'title' => '',
-				'modalBody' => '',
-				'modalButtons' => ""
-		);
-		if ($reindexProcess->find(true)){
-			$results['title'] = "{$reindexProcess->processName} Notes";
-			if (strlen(trim($reindexProcess->notes)) == 0){
-				$results['modalBody'] = "No notes have been entered for this process";
-			}else{
-				$results['modalBody'] = "<div class='helpText'>{$reindexProcess->notes}</div>";
-			}
-		}else{
-			$results['title'] = "Error";
-			$results['modalBody'] = "We could not find a process with that id.  No notes available.";
-		}
-		return json_encode($results);
-	}
-
 	function getCronProcessNotes(){
 		$id = $_REQUEST['id'];
 		$cronProcess = new CronProcessLogEntry();
@@ -182,7 +159,7 @@ class Admin_AJAX extends Action {
 		$interface->assign('source', strip_tags($_REQUEST['source']));
 		$existingWidgets = array();
 		$listWidget = new ListWidget();
-		if ($user->hasRole('libraryAdmin') || $user->hasRole('contentEditor')){
+		if ($user->hasRole('libraryAdmin') || $user->hasRole('contentEditor') || $user->hasRole('libraryManager') || $user->hasRole('locationManager')){
 			//Get all widgets for the library
 			$userLibrary = Library::getPatronHomeLibrary();
 			$listWidget->libraryId = $userLibrary->libraryId;
