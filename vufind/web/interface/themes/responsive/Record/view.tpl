@@ -16,7 +16,7 @@
 		</h2>
 
 		<div class="row">
-			<div class="col-xs-12 col-sm-5 col-md-4 col-lg-3 text-center">
+			<div class="col-xs-4 col-sm-5 col-md-4 col-lg-3 text-center">
 				{if $user->disableCoverArt != 1}
 					<div id="recordcover" class="text-center row">
 						<img alt="{translate text='Book Cover'}" class="img-thumbnail" src="{$recordDriver->getBookcoverUrl('medium')}">
@@ -27,7 +27,7 @@
 				{/if}
 			</div>
 
-			<div id="main-content" class="col-xs-12 col-sm-7 col-md-8 col-lg-9">
+			<div id="main-content" class="col-xs-8 col-sm-7 col-md-8 col-lg-9">
 
 				{if $error}{* TODO: Does this get used? *}
 					<div class="row">
@@ -43,8 +43,7 @@
 						{include file="Record/view-title-details.tpl"}
 					</div>
 
-
-					<div id="recordTools" class="col-xs-4 col-sm-6 col-md-3">
+					<div id="recordTools" class="col-xs-12 col-sm-6 col-md-3">
 						{include file="Record/result-tools.tpl" showMoreInfo=false summShortId=$shortId module=$activeRecordProfileModule summId=$id summTitle=$title recordUrl=$recordUrl}
 					</div>
 				</div>
