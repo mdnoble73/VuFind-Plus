@@ -4,7 +4,6 @@
 		{include file="Search/searchbox-home.tpl"}
 	{/if}
 
-
 	{include file="login-sidebar.tpl"}
 
 	{if $recordCount || $sideRecommendations}
