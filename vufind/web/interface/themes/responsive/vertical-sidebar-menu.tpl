@@ -43,9 +43,9 @@
 		<script type="text/javascript">
 			$(function(){ldelim}
 				{* Only trigger event if the side bar is visible *}
-				{if $module == "Search"}
+				{if $module == "Search" || $module == "Series" || $module == "Author"}
 				$('.menu-bar-option:nth-child(1)>a', '#vertical-menu-bar').filter(':visible').click();
-				{elseif $module == "MyAccount" || $module == "Admin"}
+				{elseif $module == "MyAccount" || $module == "Admin" || $module == "Circa" || $module == "EditorialReview" || $module == "Report"}
 				$('.menu-bar-option:nth-child(2)>a', '#vertical-menu-bar').filter(':visible').click();
 				{elseif $module == "Archive"}
 				$('.menu-bar-option:nth-child(4)>a', '#vertical-menu-bar').filter(':visible').click();
