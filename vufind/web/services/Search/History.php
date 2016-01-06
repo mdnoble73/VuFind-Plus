@@ -124,5 +124,3 @@ class History extends Action {
 		$interface->display('layout.tpl');
 	}
 }
-
-?>
