@@ -7575,7 +7575,7 @@ hr.menu {
 }
 .menu-bar {
   color: #FFF;
-  background-color: #00a4e3;
+  background-color: #F16530;
 }
 #horizontal-menu-bar-container {
   padding-left: 5px;
@@ -7595,7 +7595,7 @@ hr.menu {
   float: left;
 }
 #horizontal-menu-bar-container .menu-icon.menu-icon-selected {
-  background-color: #80d2f1;
+  background-color: #f8b298;
 }
 #horizontal-menu-bar-container.sticky-menu-bar {
   position: fixed;
@@ -7618,7 +7618,7 @@ hr.menu {
   width: 40px;
   height: 2000px;
   height: 100vh;
-  background-color: #00a4e3;
+  background-color: #F16530;
   color: #FFF;
   padding-left: 0;
   padding-right: 0;
@@ -7630,7 +7630,7 @@ hr.menu {
   position: relative;
 }
 #vertical-menu-bar .menu-bar-option.menu-icon-selected {
-  background-color: #80d2f1;
+  background-color: #f8b298;
   color: #FFF;
 }
 #vertical-menu-bar .menu-icon {
@@ -9383,7 +9383,6 @@ div#home-page-home-button {
   margin: 5px 0 0;
   color: #292929;
   background-color: #FFFFFF;
-  border: none;
   width: 98%!important;
   border-radius: 0;
   padding: 5px 7px;
