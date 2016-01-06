@@ -66,6 +66,14 @@
 }
 #horizontal-search-box #searchForm #horizontal-search-button-container {
   margin-top: 4px;
+  padding-left: 0;
+}
+#horizontal-search-box #searchForm #horizontal-search-button-container > div.row {
+  padding-left: 0;
+  margin-top: 0;
+}
+#horizontal-search-box #searchForm #horizontal-search-button-container > div.row > div {
+  margin-top: 0;
 }
 @media (max-width: 768px) {
   #horizontal-search-box #searchForm #horizontal-search-button-container {
@@ -94,6 +102,9 @@
   margin: 0 0;
   border: none;
   border-radius: 0;
+}
+#horizontal-search-box #keepFiltersSwitchLabel {
+  margin-bottom: 0;
 }
 #home-page-login {
   background-color: #AFAFAF;
