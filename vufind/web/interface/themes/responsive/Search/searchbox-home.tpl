@@ -148,8 +148,6 @@
 					<a class="btn btn-default" id="refineSearchButton" role="button" onclick="VuFind.Menu.showSearchFacets()">{translate text="Refine Search"}</a>
 				</div>
 			{/if}
-			
-
 
 			{if $filterList}
 				{* Data for searching within existing results *}

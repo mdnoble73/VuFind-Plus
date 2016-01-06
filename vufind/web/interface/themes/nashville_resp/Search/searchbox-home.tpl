@@ -127,7 +127,14 @@
 				</div>
 			{/if}
 
-			{if $filterList || $hasCheckboxFilters}
+			{* Show/Hide Search Facets & Sort Options *}
+			{if $recordCount || $sideRecommendations}
+				<div class="row text-center visible-xs">
+					<a class="btn btn-default" id="refineSearchButton" role="button" onclick="VuFind.Menu.showSearchFacets()">{translate text="Refine Search"}</a>
+				</div>
+			{/if}
+
+			{if $filterList}
 				{* Data for searching within existing results *}
 				<div id="keepFilters" style="display:none;">
 					{foreach from=$filterList item=data key=field}

@@ -93,7 +93,7 @@ class SearchObjectFactory {
 
 		// Populate and return the deminified object:
 		$objectCache[$type]->deminify($minSO);
-		return $objectCache[$type];
+		//MDN 1/5/2015 return a clone of the search object since we may deminify several search objects in a single page load. 
+		return clone $objectCache[$type];
 	}
 }
-?>

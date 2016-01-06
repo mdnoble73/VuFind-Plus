@@ -173,7 +173,7 @@ class MillenniumCheckouts {
 			}
 			if ($sCount > 1){
 				//Get additional information from the MARC Record
-				if ($curTitle['shortId'] && strlen($curTitle['shortId']) > 0){
+				if (isset($curTitle['shortId']) && strlen($curTitle['shortId']) > 0){
 					$checkDigit = $this->driver->getCheckDigit($curTitle['shortId']);
 					$curTitle['recordId'] = '.' . $curTitle['shortId'] . $checkDigit;
 					$curTitle['id'] = '.' . $curTitle['shortId'] . $checkDigit;

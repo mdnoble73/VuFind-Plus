@@ -16,7 +16,7 @@
 			<input type="hidden" name="searchSource" value="{$searchSource}">
 		{/if}
 
-		<div class="col-sm-10 col-xs-12">
+		<div class="col-sm-9 col-xs-12">
 			<div class="row">
 				<div class="col-lg-1 col-md-1 col-sm-2 col-xs-12">
 					<label id="horizontal-search-label" for="lookfor" class="">Search for </label>
@@ -85,31 +85,59 @@
 		</div>
 
 		{* GO Button & Search Links*}
-		<div id="horizontal-search-button-container" class="col-sm-2 col-xs-12">
-
-			<button class="btn btn-default" type="submit">
-				<span id="horizontal-search-box-submit-text">GO&nbsp;</span>
-				<span class="glyphicon glyphicon-search"></span>
-				{*<span class="visible-xs-inline"> SEARCH</span>  TODO: Will work when upgraded to Bootstrap 3.0*}
-			</button>
-
-			{* Return to Advanced Search Link *}
-			{if $searchType == 'advanced'}
-				<div style="display: inline-block">
-					&nbsp;
-					<a id="advancedSearchLink" href="{$path}/Search/Advanced">{translate text='Edit This Advanced Search'}</a>
+		<div id="horizontal-search-button-container" class="col-sm-3 col-xs-12">
+			<div class="row">
+				<div class="col-xs-3 col-sm-4 col-md-4">
+					<button class="btn btn-default" type="submit">
+						<span class="glyphicon glyphicon-search"></span>
+						<span id="horizontal-search-box-submit-text">&nbsp;GO</span>
+						{*<span class="visible-xs-inline"> SEARCH</span>  TODO: Will work when upgraded to Bootstrap 3.0*}
+					</button>
 				</div>
 
-			{* Show Advanced Search Link *}
-			{elseif $showAdvancedSearchbox}
-				<div style="display: inline-block">
-					&nbsp;
-					<a id="advancedSearchLink" href="{$path}/Search/Advanced">{translate text='Advanced Search'}</a>
-				</div>
-			{/if}
+				<div id="horizontal-search-additional" class="col-xs-5 col-sm-12 col-md-8">
+					{* Keep Applied Filters Checkbox *}
+					{if $filterList}
+						<label for="keepFiltersSwitch" id="keepFiltersSwitchLabel">
+							<input id="keepFiltersSwitch" type="checkbox" onclick="VuFind.Searches.filterAll(this);"> Keep Applied Filters</label>
+					{/if}
 
+					{* Return to Advanced Search Link *}
+					{if $searchType == 'advanced'}
+						<div>
+							&nbsp;
+							<a id="advancedSearchLink" href="{$path}/Search/Advanced">{translate text='Edit This Advanced Search'}</a>
+						</div>
+
+						{* Show Advanced Search Link *}
+						{elseif $showAdvancedSearchbox}
+						<div>
+							&nbsp;
+							<a id="advancedSearchLink" href="{$path}/Search/Advanced">{translate text='Advanced Search'}</a>
+						</div>
+					{/if}
+				</div>
+
+				{* Show/Hide Search Facets & Sort Options *}
+				{if $recordCount || $sideRecommendations}
+					<div class="col-xs-3 visible-xs">
+						<a class="btn btn-default" id="refineSearchButton" role="button" onclick="VuFind.Menu.showSearchFacets()">{translate text="Refine Search"}</a>
+					</div>
+				{/if}
+			</div>
 		</div>
 
-		</form>
+		{if $filterList}
+			{* Data for searching within existing results *}
+			<div id="keepFilters" style="display:none;">
+				{foreach from=$filterList item=data key=field}
+					{foreach from=$data item=value}
+						<input class="existingFilter" type="checkbox" name="filter[]" value='{$value.field}:"{$value.value|escape}"'>
+					{/foreach}
+				{/foreach}
+			</div>
+		{/if}
+
+	</form>
 </div>
 {/strip}
