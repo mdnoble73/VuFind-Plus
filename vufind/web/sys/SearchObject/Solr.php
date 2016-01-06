@@ -330,7 +330,6 @@ class SearchObject_Solr extends SearchObject_Base
 	 */
 	public function initAdvancedFacets()
 	{
-		global $configArray;
 		global $locationSingleton;
 		// Call the standard initialization routine in the parent:
 		parent::init();
