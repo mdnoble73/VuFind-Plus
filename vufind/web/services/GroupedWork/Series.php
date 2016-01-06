@@ -29,9 +29,6 @@ class GroupedWork_Series extends Action
 		global $logger;
 		global $user;
 
-		//Build the actual view
-		$interface->setTemplate('view-series.tpl');
-
 		$id = $_REQUEST['id'];
 
 		require_once ROOT_DIR . '/RecordDrivers/GroupedWorkDriver.php';
@@ -85,11 +82,9 @@ class GroupedWork_Series extends Action
 		$interface->assign('recordCount', count($seriesTitles));
 
 		$interface->assign('recordDriver', $recordDriver);
-		$interface->assign('sidebar', 'GroupedWork/full-record-sidebar.tpl');
-		$interface->setPageTitle($seriesTitle);
 
 		// Display Page
-		$interface->display('layout.tpl');
+		$this->display('view-series.tpl', $seriesTitle);
 	}
 
 }
