@@ -188,7 +188,6 @@ class Search_Results extends Action {
 			$pageTitle = substr($pageTitle, 0, 20) . '...';
 		}
 		$pageTitle .= ' | Search Results';
-		$interface->setPageTitle($pageTitle);
 		$interface->assign('sortList',   $searchObject->getSortList());
 		$interface->assign('rssLink',    $searchObject->getRSSUrl());
 		$interface->assign('excelLink',  $searchObject->getExcelUrl());
@@ -451,9 +450,7 @@ class Search_Results extends Action {
 		}
 
 		// Done, display the page
-		$interface->setTemplate($searchObject->getResultTotal() ? 'list.tpl' : 'list-none.tpl'); // main search results content
-		$interface->assign('sidebar', 'Search/results-sidebar.tpl');
-		$interface->display('layout.tpl');
+		$this->display($searchObject->getResultTotal() ? 'list.tpl' : 'list-none.tpl', $pageTitle, 'Search/results-sidebar.tpl');
 	} // End launch()
 
 	function loadExploreMoreBar(){

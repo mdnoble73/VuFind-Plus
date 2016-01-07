@@ -59,7 +59,8 @@
 					{if isset($sidebar)} {* Main Content & Sidebars *}
 
 						{if $sideBarOnRight} {* Sidebar on the right *}
-							<div class="col-xs-12 col-sm-8 col-md-9 col-lg-9" id="main-content-with-sidebar">
+							<div class="col-xs-12 col-sm-8 col-md-9 col-lg-9" id="main-content-with-sidebar" style="overflow-x: scroll;">
+								{* If main content overflows, use a scrollbar *}
 								{include file="breadcrumbs.tpl"}
 								{include file="$module/$pageTemplate"}
 							</div>

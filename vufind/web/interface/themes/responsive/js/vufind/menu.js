@@ -34,7 +34,7 @@ VuFind.Menu = (function(){
 		}
 	});
 	return {
-		SideBarSearchSelectors: '#home-page-search,#horizontal-search-container,#narrow-search-label,#facet-accordion,#results-sort-label,#results-sort-label+div.row,#remove-search-label,#remove-search-label+.applied-filters',
+		SideBarSearchSelectors: '#home-page-search,#horizontal-search-container,#narrow-search-label,#facet-accordion,#results-sort-label,#results-sort-label+div.row,#remove-search-label,#remove-search-label+.applied-filters,#similar-authors',
 		SideBarAccountSelectors: '#home-page-login,#home-account-links',
 		SideBarMenuSelectors: '#home-page-login,#home-page-library-section',
 		ExploreMoreSelectors: '',
