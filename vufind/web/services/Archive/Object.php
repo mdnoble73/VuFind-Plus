@@ -19,6 +19,7 @@ require_once(ROOT_DIR . '/sys/tuque/RepositoryConnection.php');
 
 abstract class Archive_Object extends Action{
 	protected $pid;
+	/** @var  FedoraObject $archiveObject */
 	protected $archiveObject;
 	protected $dcData;
 	protected $modsData;
@@ -26,6 +27,7 @@ abstract class Archive_Object extends Action{
 
 	function loadArchiveObjectData(){
 		global $configArray;
+		global $interface;
 
 		//Connect to Fedora via TUQUE
 		// These components need to be instantiated to load the object.
@@ -36,11 +38,13 @@ abstract class Archive_Object extends Action{
 			$fedoraPassword = $configArray['Islandora']['fedoraPassword'];
 			$fedoraUser = $configArray['Islandora']['fedoraUsername'];
 			$connection = new RepositoryConnection($fedoraUrl, $fedoraUser, $fedoraPassword);
+			$connection->verifyPeer = false;
 			$api = new FedoraApi($connection, $serializer);
 			$repository = new FedoraRepository($api, $cache);
 
 			// Replace 'object:pid' with the PID of the object to be loaded.
-			$this->pid = $_REQUEST['id'];
+			$this->pid = urldecode($_REQUEST['id']);
+			$interface->assign('pid', $this->pid);
 			$this->archiveObject = $repository->getObject($this->pid);
 
 			//Load the dublin core data stream
@@ -73,7 +77,6 @@ abstract class Archive_Object extends Action{
 
 			//TODO: load content from someplace that isn't hardcoded!
 			//$title = $object['objectProfile']['objectLabel'];
-			global $interface;
 			$title = (string)$this->modsData->titleInfo->title;
 			$interface->assign('title', $title);
 			$interface->setPageTitle($title);
@@ -129,8 +132,8 @@ abstract class Archive_Object extends Action{
 		// Additional Demo Variables
 		$videoImage = ''; //TODO set
 		$interface->assign('videoImage', $videoImage);
-		$videoLink = "http://islandora.marmot.org/islandora/object/mandala:2024/datastream/OBJ/view"; //TODO set
-		$interface->assign('videoLink', $videoLink);
+		//$videoLink = "http://islandora.marmot.org/islandora/object/mandala:2024/datastream/OBJ/view"; //TODO set
+		//$interface->assign('videoLink', $videoLink);
 
 		// Define The Section List for the explore more
 		$AdditionalSections[0] = array(

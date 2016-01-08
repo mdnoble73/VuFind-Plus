@@ -28,7 +28,7 @@
 
 # backup important bits at 2:10am daily
 # JAMES should look at marmot backup scripts 20150216
-#10 2 * * * /root/cron/backup 2>&1 >/dev/null
+10 2 * * * /root/cron/backup 2>&1 >/dev/null
 
 #############
 # On Reboot #
@@ -57,7 +57,7 @@
 
 # CRON for VuFind-Plus (book cover cache cleanup etc.)
 00 */3 * * * cd /usr/local/VuFind-Plus/vufind/cron; java -jar cron.jar catalog.library.nashville.org
-01 22 * * * cd /usr/local/VuFind-Plus/vufind/cron; java -jar cron.jar catalog.library.nashville.org DatabaseCleanup
+20 0 * * * cd /usr/local/VuFind-Plus/vufind/cron; java -jar cron.jar catalog.library.nashville.org DatabaseCleanup
 
 ###################################
 # Data Extract from other systems #
@@ -72,8 +72,8 @@
 #*/10 * * * * /root/cron/copyCovers.sh
 # Every 10 minutes. fixed 11-14-2014 plb. (previously every hour 10 past the hour)
 
-# HOOPLA extract : as of 2014 12 19, Hoopla updates MARC files monthly; Nashville checks for new files daily
-0 13 * * * cd /usr/local/VuFind-Plus/vufind/cron; ./HOOPLA.sh catalog.library.nashville.org  
+# SIDELOAD ECONTENT - DOWNLOAD MARC
+0 13 * * * cd /usr/local/VuFind-Plus/vufind/cron; ./sideload.sh catalog.library.nashville.org  
 
 # LEXILE : download file from Marmot
 00 4 1 * * cd /data/vufind-plus/; rm lexileTitles.txt*; wget http://venus.marmot.org/lexileTitles.txt  

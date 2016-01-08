@@ -44,7 +44,7 @@ class IndexRecord extends RecordInterface
 	protected $forbiddenSnippetFields = array(
 		'author', 'author-letter', 'auth_author2', 'title', 'title_short', 'title_full',
 		'title_auth', 'title_sub', 'title_display', 'spelling', 'id',
-		'allfields', 'allfields_proper', 'fulltext_unstemmed', 'econtentText_unstemmed',
+		'fulltext_unstemmed', 'econtentText_unstemmed',
 		'spellingShingle', 'collection', 'title_proper',
 		'display_description'
 	);
@@ -887,7 +887,7 @@ class IndexRecord extends RecordInterface
 				}
 			}
 			$isbn13 = $isbnObj->get13();
-			if (!array_key_exists($isbn10, $cleanIsbns)){
+			if (!array_key_exists($isbn13, $cleanIsbns)){
 				$cleanIsbns[$isbn13] = $isbn13;
 			}
 		}
@@ -1781,5 +1781,9 @@ class IndexRecord extends RecordInterface
 
 	public function getRecordActions($isAvailable, $isHoldable, $isBookable, $relatedUrls = null){
 		return array();
+	}
+
+	public function getModule() {
+		return 'Record';
 	}
 }

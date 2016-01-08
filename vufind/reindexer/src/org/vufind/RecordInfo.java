@@ -252,14 +252,22 @@ public class RecordInfo {
 		this.formats.addAll(translatedFormats);
 	}
 
+	public void addFormat(String translatedFormat){
+		this.formats.add(translatedFormat);
+	}
+
 	public void addFormatCategories(HashSet<String> translatedFormatCategories) {
 		this.formatCategories.addAll(translatedFormatCategories);
+	}
+
+	public void addFormatCategory(String translatedFormatCategory){
+		this.formatCategories.add(translatedFormatCategory);
 	}
 
 	public void updateIndexingStats(TreeMap<String, ScopedIndexingStats> indexingStats) {
 		for (ScopedIndexingStats scopedStats : indexingStats.values()){
 			String recordProcessor = this.subSource == null ? this.source : this.subSource;
-			RecordProcessorIndexingStats stats = scopedStats.recordProcessorIndexingStats.get(recordProcessor);
+			RecordProcessorIndexingStats stats = scopedStats.recordProcessorIndexingStats.get(recordProcessor.toLowerCase());
 			HashSet<ItemInfo> itemsForScope = getRelatedItemsForScope(scopedStats.getScopeName());
 			if (itemsForScope.size() > 0) {
 				stats.numRecordsTotal++;

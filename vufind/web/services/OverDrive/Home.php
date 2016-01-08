@@ -80,18 +80,35 @@ class OverDrive_Home extends Action{
 				$interface->assign($detailoption, true);
 			}
 
-			$interface->setPageTitle($recordDriver->getTitle());
 			$interface->assign('moreDetailsOptions', $recordDriver->getMoreDetailsOptions());
 
 			// Display Page
-			$interface->assign('sidebar', 'OverDrive/full-record-sidebar.tpl');
-			$interface->assign('moreDetailsTemplate', 'GroupedWork/moredetails-accordion.tpl');
-			$interface->setTemplate('view.tpl');
+//			$interface->assign('moreDetailsTemplate', 'GroupedWork/moredetails-accordion.tpl');
+//			$interface->setPageTitle($recordDriver->getTitle());
+//			$interface->assign('sidebar', 'OverDrive/full-record-sidebar.tpl');
+//			$interface->setTemplate('view.tpl');
+//			$interface->display('layout.tpl');
 
-			$interface->display('layout.tpl');
+			$this->display('view.tpl', $recordDriver->getTitle());
 
 		}
 	}
+
+	/**
+	 * @param string $mainContentTemplate  Name of the SMARTY template file for the main content of the OverDrive Page
+	 * @param string $pageTitle     What to display is the html title tag
+	 * @param bool|true $sidebar    enables the account sidebar on the page to be displayed
+	 */
+//	function display($mainContentTemplate, $pageTitle='OverDrive', $sidebar=true) {
+//		global $interface;
+////		if ($sidebar) $interface->assign('sidebar', 'OverDrive/full-record-sidebar.tpl');
+//		if ($sidebar) $interface->assign('sidebar', 'Search/home-sidebar.tpl');
+////		TODO: is this the best template to use?
+//		$interface->setTemplate($mainContentTemplate);
+//		$interface->setPageTitle($pageTitle);
+//		$interface->assign('moreDetailsTemplate', 'GroupedWork/moredetails-accordion.tpl');
+//		$interface->display('layout.tpl');
+//	}
 
 	/**
 	 * @param OverDriveRecordDriver $recordDriver

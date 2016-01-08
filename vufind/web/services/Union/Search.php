@@ -53,11 +53,19 @@ class Union_Search extends Action {
 			die();
 		}else if ($searchSource == 'genealogy'){
 			require_once (ROOT_DIR . '/services/Genealogy/Results.php');
-			$module = 'Search';
+			$module = 'Genealogy';
 			$interface->assign('module', $module);
 			$action = 'Results';
 			$interface->assign('action', $action);
-			$results = new Results();
+			$results = new Genealogy_Results();
+			$results->launch();
+		}else if ($searchSource == 'islandora'){
+			require_once (ROOT_DIR . '/services/Archive/Results.php');
+			$module = 'Archive';
+			$interface->assign('module', $module);
+			$action = 'Results';
+			$interface->assign('action', $action);
+			$results = new Archive_Results();
 			$results->launch();
 		}else{
 			require_once (ROOT_DIR . '/services/Search/Results.php');

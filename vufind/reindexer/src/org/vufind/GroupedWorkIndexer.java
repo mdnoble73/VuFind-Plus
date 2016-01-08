@@ -219,6 +219,9 @@ public class GroupedWorkIndexer {
 						case "Arlington":
 							ilsRecordProcessors.put(curIdentifier, new ArlingtonRecordProcessor(this, vufindConn, configIni, indexingProfileRS, logger, fullReindex));
 						break;
+						case "SideLoadedEContent":
+							ilsRecordProcessors.put(curIdentifier, new SideLoadedEContentProcessor(this, vufindConn, configIni, indexingProfileRS, logger, fullReindex));
+							break;
 						default:
 							logger.error("Unknown indexing class " + ilsIndexingClassString);
 							okToIndex = false;

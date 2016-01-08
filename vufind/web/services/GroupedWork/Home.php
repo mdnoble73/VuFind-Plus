@@ -2,7 +2,7 @@
 /**
  * Description goes here
  *
- * @category VuFind-Plus 
+ * @category Pika
  * @author Mark Noble <mark@marmot.org>
  * Date: 11/27/13
  * Time: 12:14 PM
@@ -13,7 +13,6 @@ class GroupedWork_Home extends Action{
 		global $interface;
 		global $timer;
 		global $logger;
-		$interface->assign('sidebar', 'GroupedWork/full-record-sidebar.tpl');
 
 		$id = $_REQUEST['id'];
 
@@ -23,6 +22,7 @@ class GroupedWork_Home extends Action{
 			$logger->log("Did not find a record for id {$id} in solr." , PEAR_LOG_DEBUG);
 			$interface->setTemplate('../Record/invalidRecord.tpl');
 			$interface->display('layout.tpl');
+			$this->display('../Record/invalidRecord.tpl', 'Error');
 			die();
 		}
 		$interface->assign('recordDriver', $recordDriver);
@@ -38,17 +38,22 @@ class GroupedWork_Home extends Action{
 		$searchObject->init($searchSource);
 		$searchObject->getNextPrevLinks();
 
-		$interface->setPageTitle($recordDriver->getTitle());
 		$interface->assign('moreDetailsOptions', $recordDriver->getMoreDetailsOptions());
 
-		$interface->assign('moreDetailsTemplate', 'GroupedWork/moredetails-accordion.tpl');
-		$interface->setTemplate('full-record.tpl');
 
 		$interface->assign('metadataTemplate', 'GroupedWork/metadata.tpl');
 
 		$interface->assign('semanticData', json_encode($recordDriver->getSemanticData()));
 
 		// Display Page
-		$interface->display('layout.tpl');
+//		$interface->setPageTitle($recordDriver->getTitle());
+//		$interface->setTemplate('full-record.tpl');
+//		$interface->assign('sidebar', 'GroupedWork/full-record-sidebar.tpl');
+//		$interface->assign('moreDetailsTemplate', 'GroupedWork/moredetails-accordion.tpl');
+//		$interface->display('layout.tpl');
+
+		$this->display('full-record.tpl', $recordDriver->getTitle());
 	}
+
+
 }

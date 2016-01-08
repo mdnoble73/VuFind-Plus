@@ -313,32 +313,6 @@ SeriesProper:
       - [and, 200]
       - [or, 100]
 
-AllFields:
-  DismaxFields:
-    - all_fields
-    - id
-    - alternate_ids
-  QueryFields:
-    all_fields:
-      - [and, ~]
-    id:
-      - [onephrase, ~]
-    alternate_ids:
-      - [onephrase, ~]
-
-AllFieldsProper:
-  DismaxFields:
-    - all_fields_proper
-    - id
-    - alternate_ids
-  QueryFields:
-    all_fields_proper:
-      - [and, ~]
-    id:
-      - [onephrase, ~]
-    alternate_ids:
-      - [onephrase, ~]
-
 # This is proving slow based of the number of things we are searching.
 # Try reorganizing to match things better and ensure that we don't look at similar fields multiple times.
 Keyword:
@@ -639,3 +613,24 @@ GenealogyName:
       - [onephrase, 350]
       - [and, 200]
 
+IslandoraKeyword:
+  QueryFields:
+    - mods_titleInfo_title_t:
+      - [and, 700]
+    - fgs_label_t:
+      - [and, 700]
+    - mods_abstract_t:
+      - [and, 200]
+    - mods_subject_subject_mt:
+      - [and, 300]
+    - mods_subject_topic_mt:
+      - [and, 300]
+    - eaccpf_cpfDescription_description_biogHist_p_t:
+      - [and, 100]
+    - PID:
+      - [exact, 1000]
+      - [and, 100]
+
+QueryFields:
+  QueryFields:
+    - mods_titleInfo_title_t

@@ -359,7 +359,11 @@ public class UpdateReadingHistory implements IProcessHandler {
 			processLog.incUpdated();
 			return true;
 		}catch (Exception e){
-			logger.error("Error adding title for user " + userId + " " + checkedOutItem.getString("title"), e);
+			if (checkedOutItem.has("title")) {
+				logger.error("Error adding title for user " + userId + " " + checkedOutItem.getString("title"), e);
+			}else{
+				logger.error("Error adding title for user " + userId + " " + checkedOutItem.toString(), e);
+			}
 			processLog.incErrors();
 			return false;
 		}

@@ -1,5 +1,5 @@
 {strip}
-<div id="home-page-search" class="row">
+<div id="home-page-search" class="row"{if $displaySidebarMenu} style="display: none"{/if}>
 	<div class="col-xs-12">
 		<div class="row">
 			<div class="col-md-12 text-center" id="home-page-search-label">
@@ -58,6 +58,12 @@
 											</li>
 										{/foreach}
 										<li class="divider genealogyType"></li>
+										{foreach from=$islandoraSearchTypes item=searchDesc key=searchVal}
+											<li>
+												<a class="islandoraType" href="#" onclick="return VuFind.Searches.updateSearchTypes('islandora', '{$searchVal}', '#searchForm');">{translate text="by"} {translate text=$searchDesc}</a>
+											</li>
+										{/foreach}
+										<li class="divider islandoraType"></li>
 									{/if}
 
 									<li class="catalogType">
@@ -93,6 +99,11 @@
 								<option value="{$searchVal}"{if $genealogySearchIndex == $searchVal} selected="selected"{/if}>{translate text=$searchDesc}</option>
 							{/foreach}
 						</select>
+						<select name="islandoraType" class="searchTypeHome form-control genealogyType" id="islandoraSearchTypes" {if $searchSource != 'islandora'}style="display:none"{/if}>
+							{foreach from=$islandoraSearchTypes item=searchDesc key=searchVal}
+								<option value="{$searchVal}"{if $islandoraSearchIndex == $searchVal} selected="selected"{/if}>{translate text=$searchDesc}</option>
+							{/foreach}
+						</select>
 					</div>
 				</div>
 			{/if}
@@ -106,7 +117,7 @@
 							<option data-catalog_type="{$searchOption.catalogType}" value="{$searchKey}"
 								{if $searchKey == $searchSource && !$filterList} selected="selected"{/if}
 								{if $searchKey == $searchSource} id="default_search_type"{/if}
-								title="{$searchOption.description}">
+								{*1space needed for clean markup ->*} title="{$searchOption.description}">
 								{translate text="in"} {$searchOption.name}{if $searchOption.external} *{/if}
 							</option>
 						{/foreach}
@@ -131,7 +142,14 @@
 				</div>
 			{/if}
 
-			{if $filterList || $hasCheckboxFilters}
+			{* Show/Hide Search Facets & Sort Options *}
+			{if $recordCount || $sideRecommendations}
+				<div class="row text-center visible-xs">
+					<a class="btn btn-default" id="refineSearchButton" role="button" onclick="VuFind.Menu.showSearchFacets()">{translate text="Refine Search"}</a>
+				</div>
+			{/if}
+
+			{if $filterList}
 				{* Data for searching within existing results *}
 				<div id="keepFilters" style="display:none;">
 					{foreach from=$filterList item=data key=field}

@@ -3,9 +3,7 @@ package org.vufind;
 import au.com.bytecode.opencsv.CSVReader;
 import org.apache.log4j.Logger;
 import org.ini4j.Ini;
-import org.marc4j.marc.DataField;
 import org.marc4j.marc.Record;
-import org.marc4j.marc.Subfield;
 
 import java.io.File;
 import java.io.FileReader;
@@ -14,7 +12,6 @@ import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 
 /**
  * Custom Record Processing for Arlington
@@ -165,6 +162,84 @@ public class ArlingtonRecordProcessor extends IIIRecordProcessor {
 					scopingInfo.setGroupedStatus("On Order");
 				}
 			}
+		}
+	}
+
+	@Override
+	protected void loadLiteraryForms(GroupedWorkSolr groupedWork, Record record, HashSet<ItemInfo> printItems, String identifier) {
+		//For Arlington we can load the literary forms based off of the location code:
+		// ??f?? = Fiction
+		// ??n?? = Non-Fiction
+		// ??x?? = Other
+		String literaryForm = "Other";
+		for (ItemInfo printItem : printItems){
+			String locationCode = printItem.getShelfLocationCode();
+			if (locationCode != null) {
+				if (locationCode.length() >= 3) {
+					if (locationCode.charAt(2) == 'f') {
+						literaryForm = "Fiction";
+						break;
+					} else if (locationCode.charAt(2) == 'n') {
+						literaryForm = "Non Fiction";
+						break;
+					}
+				}
+			}
+		}
+		groupedWork.addLiteraryForm(literaryForm);
+		groupedWork.addLiteraryFormFull(literaryForm);
+	}
+
+	@Override
+	protected void loadTargetAudiences(GroupedWorkSolr groupedWork, Record record, HashSet<ItemInfo> printItems, String identifier) {
+		//For Arlington we can load the target audience based off of the location code:
+		// ?a??? = Adult
+		// ?j??? = Kids
+		// ?y??? = Teen
+		HashSet<String> targetAudiences = new HashSet<>();
+		for (ItemInfo printItem : printItems){
+			String locationCode = printItem.getShelfLocationCode();
+			if (locationCode != null) {
+				if (locationCode.length() >= 2) {
+					if (locationCode.charAt(1) == 'a') {
+						targetAudiences.add("Adult");
+						break;
+					} else if (locationCode.charAt(1) == 'j') {
+						targetAudiences.add("Young Adult");
+						break;
+					} else if (locationCode.charAt(1) == 'y') {
+						targetAudiences.add("Teen");
+						break;
+					}
+				}
+			}
+		}
+		if (targetAudiences.size() == 0){
+			targetAudiences.add("Other");
+		}
+		groupedWork.addTargetAudiences(targetAudiences);
+		groupedWork.addTargetAudiencesFull(targetAudiences);
+	}
+
+	/**
+	 * Load format information for the record.  For arlington, we will load from the material type (998d)
+	 * @param recordInfo
+	 * @param record
+	 */
+	public void loadPrintFormatInformation(RecordInfo recordInfo, Record record){
+		String matType = getFirstFieldVal(record, "998d");
+		String translatedFormat = translateValue("format", matType, recordInfo.getRecordIdentifier());
+		String translatedFormatCategory = translateValue("format_category", matType, recordInfo.getRecordIdentifier());
+		recordInfo.addFormat(translatedFormat);
+		if (translatedFormatCategory != null) {
+			recordInfo.addFormatCategory(translatedFormatCategory);
+		}
+		String formatBoost = translateValue("format_boost", matType, recordInfo.getRecordIdentifier());
+		try {
+			Long tmpFormatBoostLong = Long.parseLong(formatBoost);
+			recordInfo.setFormatBoost(tmpFormatBoostLong);
+		} catch (NumberFormatException e) {
+			logger.warn("Could not load format boost for format " + formatBoost + " profile " + profileType);
 		}
 	}
 }

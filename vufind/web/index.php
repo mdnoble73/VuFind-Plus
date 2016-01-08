@@ -396,8 +396,10 @@ if (isset($_REQUEST['genealogyType'])){
 }else{
 	$interface->assign('genealogySearchIndex', 'GenealogyKeyword');
 }
-if ($searchSource == 'genealogy'){
-	$_REQUEST['type'] = isset($_REQUEST['genealogyType']) ? $_REQUEST['genealogyType']:  'GenealogyKeyword';
+if ($searchSource == 'genealogy') {
+	$_REQUEST['type'] = isset($_REQUEST['genealogyType']) ? $_REQUEST['genealogyType'] : 'GenealogyKeyword';
+}elseif ($searchSource == 'islandora'){
+		$_REQUEST['type'] = isset($_REQUEST['islandoraType']) ? $_REQUEST['islandoraType']:  'IslandoraKeyword';
 }else{
 	$_REQUEST['type'] = isset($_REQUEST['basicType']) ? $_REQUEST['basicType'] : 'Keyword';
 }
@@ -429,11 +431,17 @@ if ($action == "AJAX" || $action == "JSON"){
 	$searchSources = new SearchSources();
 	$interface->assign('searchSources', $searchSources->getSearchSources());
 
-	if (isset($configArray['Genealogy'])){
-		//Do not allow genealogy search in mobile theme
+	if (isset($configArray['Genealogy']) && $library->enableGenealogy){
 		$genealogySearchObject = SearchObjectFactory::initSearchObject('Genealogy');
 		$interface->assign('genealogySearchTypes', is_object($genealogySearchObject) ? $genealogySearchObject->getBasicTypes() : array());
 	}
+
+	if ($library->enableArchive){
+		$islandoraSearchObject = SearchObjectFactory::initSearchObject('Islandora');
+		$interface->assign('islandoraSearchTypes', is_object($islandoraSearchObject) ? $islandoraSearchObject->getBasicTypes() : array());
+	}
+
+
 
 	if (!($module == 'Search' && $action == 'Home')){
 		/** @var SearchObject_Base $savedSearch */
@@ -491,6 +499,7 @@ if (!empty($ipLocation) && !empty($library) && $ipLocation->libraryId != $librar
 	$ipLocation = null;
 }
 $isOpac = $locationSingleton->getOpacStatus();
+$interface->assign('isOpac', $isOpac);
 
 $onInternalIP = false;
 $includeAutoLogoutCode = false;
@@ -769,6 +778,12 @@ function loadModuleActionId(){
 	//Deal with old path based urls by removing the leading path.
 	$requestURI = $_SERVER['REQUEST_URI'];
 	$requestURI = preg_replace("/^\/?vufind\//", "", $requestURI);
+	/** IndexingProfile[] $indexingProfiles */
+	global $indexingProfiles;
+	$allRecordModules = "OverDrive|GroupedWork|Record|ExternalEContent|Person";
+	foreach ($indexingProfiles as $profile){
+		$allRecordModules .= '|' . $profile->recordUrlComponent;
+	}
 	if (preg_match("/(MyAccount)\/([^\/?]+)\/([^\/?]+)(\?.+)?/", $requestURI, $matches)){
 		$_GET['module'] = $matches[1];
 		$_GET['id'] = $matches[3];
@@ -783,26 +798,30 @@ function loadModuleActionId(){
 		$_REQUEST['module'] = $matches[1];
 		$_REQUEST['action'] = $matches[2];
 		$_REQUEST['id'] = '';
-	}elseif (preg_match('/\/Archive\/([\\w\\d:]+)\/([^\/?]+)/', $requestURI, $matches)){
+	}elseif (preg_match('/\/Archive\/((?:[\\w\\d:]|%3A)+)\/([^\/?]+)/', $requestURI, $matches)){
 		$_GET['module'] = 'Archive';
 		$_GET['id'] = $matches[1];
 		$_GET['action'] = $matches[2];
 		$_REQUEST['module'] = 'Archive';
 		$_REQUEST['id'] = $matches[1];
 		$_REQUEST['action'] = $matches[2];
-
-	//Redirect things /Record/.b3246786/Home to the proper action
-	//Also things like /OverDrive/84876507-043b-b3ce-2930-91af93d2a4f0/Home
-	}elseif (preg_match("/([^\/?]+)\/((?:\.b|MWT)?[\da-fA-F-]+x?)\/([^\/?]+)/", $requestURI, $matches)){
+		//Redirect things /GroupedWork/AJAX to the proper action
+	}elseif (preg_match("/($allRecordModules)\/([a-zA-Z]+)(?:\?|\/?$)/", $requestURI, $matches)){
+		$_GET['module'] = $matches[1];
+		$_GET['action'] = $matches[2];
+		$_REQUEST['module'] = $matches[1];
+		$_REQUEST['action'] = $matches[2];
+		//Redirect things /Record/.b3246786/Home to the proper action
+		//Also things like /OverDrive/84876507-043b-b3ce-2930-91af93d2a4f0/Home
+	}elseif (preg_match("/($allRecordModules)\/([^\/?]+?)\/([^\/?]+)/", $requestURI, $matches)){
 		$_GET['module'] = $matches[1];
 		$_GET['id'] = $matches[2];
 		$_GET['action'] = $matches[3];
 		$_REQUEST['module'] = $matches[1];
 		$_REQUEST['id'] = $matches[2];
 		$_REQUEST['action'] = $matches[3];
-
-	//Redirect things /Record/.b3246786 to the proper action
-	}elseif (preg_match("/([^\/?]+)\/((?:\.b|MWT)?[\da-fA-F-]+x?)(?:\?|\/?$)/", $requestURI, $matches)){
+		//Redirect things /Record/.b3246786 to the proper action
+	}elseif (preg_match("/($allRecordModules)\/([^\/?]+?)(?:\?|\/?$)/", $requestURI, $matches)){
 		$_GET['module'] = $matches[1];
 		$_GET['id'] = $matches[2];
 		$_GET['action'] = 'Home';
@@ -815,7 +834,6 @@ function loadModuleActionId(){
 		$_REQUEST['module'] = $matches[1];
 		$_REQUEST['action'] = $matches[2];
 	}
-
 	//Correct some old actions
 	if (isset($_GET['action'])) {
 		if ($_GET['action'] == 'OverdriveHolds') {
@@ -828,7 +846,6 @@ function loadModuleActionId(){
 			}
 		}
 	}
-
 	global $activeRecordProfile;
 	//Check to see if the module is a profile
 	if (isset($_REQUEST['module'])){
@@ -837,7 +854,7 @@ function loadModuleActionId(){
 		global $indexingProfiles;
 		foreach ($indexingProfiles as $profile) {
 			if ($profile->recordUrlComponent == $_REQUEST['module']) {
-				$newId = $profile->name . ':' . $_REQUEST['id'];;
+				$newId = $profile->name . ':' . $_REQUEST['id'];
 				$_GET['id'] = $newId;
 				$_REQUEST['id'] = $newId;
 				if (!file_exists(ROOT_DIR . '/services/' . $_REQUEST['module'])){
@@ -906,7 +923,7 @@ function loadUserData(){
 	$interface->assign('tagList', $tagList);
 	$timer->logTime("Load Tags");
 
-	if ($user->hasRole('opacAdmin') || $user->hasRole('libraryAdmin') || $user->hasRole('cataloging')){
+	if ($user->hasRole('opacAdmin') || $user->hasRole('libraryAdmin') || $user->hasRole('cataloging') || $user->hasRole('libraryManager') || $user->hasRole('locationManager')){
 		$variable = new Variable();
 		$variable->name= 'lastFullReindexFinish';
 		if ($variable->find(true)){

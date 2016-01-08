@@ -248,6 +248,9 @@ class MarcRecord extends IndexRecord
 	 */
 	public function getExportFormats()
 	{
+		//TODO: fix EndNote and RefWorks integration
+		return array();
+
 		// Get an array of legal export formats (from config array, or use defaults
 		// if nothing in config array).
 		global $configArray;
@@ -1028,9 +1031,22 @@ class MarcRecord extends IndexRecord
 		}
 		if ($useMarcSummary){
 			if ($summaryFields = $this->marcRecord->getFields('520')) {
+				$summaries = array();
 				$summary = '';
 				foreach($summaryFields as $summaryField){
-					$summary .= '<p>' . $this->getSubfieldData($summaryField, 'a') . '</p>';
+					//Check to make sure we don't have an exact duplicate of this field
+					$curSummary = $this->getSubfieldData($summaryField, 'a');
+					$okToAdd = true;
+					foreach ($summaries as $existingSummary){
+						if ($existingSummary == $curSummary){
+							$okToAdd = false;
+							break;
+						}
+					}
+					if ($okToAdd){
+						$summaries[] = $curSummary;
+						$summary .= '<p>' . $curSummary . '</p>';
+					}
 				}
 				$interface->assign('summary', $summary);
 				$interface->assign('summaryTeaser', strip_tags($summary));
@@ -1409,6 +1425,7 @@ class MarcRecord extends IndexRecord
 
 	public function getMoreDetailsOptions(){
 		global $interface;
+		global $library;
 
 		$isbn = $this->getCleanISBN();
 
@@ -1435,6 +1452,16 @@ class MarcRecord extends IndexRecord
 			$interface->assign('showCheckInGrid', $library->showCheckInGrid);
 			$issues = $this->loadPeriodicalInformation();
 			$interface->assign('periodicalIssues', $issues);
+		}
+		$links = $this->getLinks();
+		$interface->assign('links', $links);
+		$interface->assign('show856LinksAsTab', $library->show856LinksAsTab);
+
+		if ($library->show856LinksAsTab && count($links) > 0){
+			$moreDetailsOptions['links'] = array(
+					'label' => 'Links',
+					'body' => $interface->fetch('Record/view-links.tpl'),
+			);
 		}
 		$moreDetailsOptions['copies'] = array(
 			'label' => 'Copies',
@@ -1464,6 +1491,7 @@ class MarcRecord extends IndexRecord
 			'label' => 'Citations',
 			'body' => $interface->fetch('Record/cite.tpl'),
 		);
+
 		if ($interface->getVariable('showStaffView')){
 			$moreDetailsOptions['staff'] = array(
 				'label' => 'Staff View',
@@ -1569,12 +1597,12 @@ class MarcRecord extends IndexRecord
 	}
 
 	/**
-	 * @param File_MARC_Data_Field[] $allFields
+	 * @param File_MARC_Data_Field[] $tocFields
 	 * @return array
 	 */
-	function processTableOfContentsFields($allFields){
+	function processTableOfContentsFields($tocFields){
 		$notes = array();
-		foreach ($allFields as $marcField){
+		foreach ($tocFields as $marcField){
 			$curNote = '';
 			/** @var File_MARC_Subfield $subfield */
 			foreach ($marcField->getSubfields() as $subfield){
@@ -1704,25 +1732,30 @@ class MarcRecord extends IndexRecord
 			$groupedWorkDriver = $this->getGroupedWorkDriver();
 			if ($groupedWorkDriver->isValid){
 				$this->recordFromIndex = $groupedWorkDriver->getRelatedRecord($this->getIdWithSource());
-
-				//Divide the items into sections and create the status summary
-				$this->holdings = $this->recordFromIndex['itemDetails'];
-				$this->holdingSections = array();
-				foreach ($this->holdings as $copyInfo) {
-					$sectionName = $copyInfo['sectionId'];
-					if (!array_key_exists($sectionName, $this->holdingSections)) {
-						$this->holdingSections[$sectionName] = array(
-								'name' => $copyInfo['section'],
-								'sectionId' => $copyInfo['sectionId'],
-								'holdings' => array(),
-						);
+				if ($this->recordFromIndex != null){
+					//Divide the items into sections and create the status summary
+					$this->holdings = $this->recordFromIndex['itemDetails'];
+					$this->holdingSections = array();
+					foreach ($this->holdings as $copyInfo) {
+						$sectionName = $copyInfo['sectionId'];
+						if (!array_key_exists($sectionName, $this->holdingSections)) {
+							$this->holdingSections[$sectionName] = array(
+									'name' => $copyInfo['section'],
+									'sectionId' => $copyInfo['sectionId'],
+									'holdings' => array(),
+							);
+						}
+						$this->holdingSections[$sectionName]['holdings'][] = $copyInfo;
 					}
-					$this->holdingSections[$sectionName]['holdings'][] = $copyInfo;
+
+					$this->statusSummary = $this->recordFromIndex;
+
+					unset($this->statusSummary['driver']);
+				}else{
+					$this->holdings = array();
+					$this->holdingSections = array();
+					$this->statusSummary = array();
 				}
-
-				$this->statusSummary = $this->recordFromIndex;
-
-				unset($this->statusSummary['driver']);
 			}else{
 				$this->holdings = array();
 				$this->holdingSections = array();
@@ -1801,6 +1834,32 @@ class MarcRecord extends IndexRecord
 			$issueSummaries = null;
 		}
 		return $issueSummaries;
+	}
+
+	private function getLinks() {
+		$links = array();
+		$linkFields = $this->getMarcRecord()->getFields('856');
+		/** @var File_MARC_Data_Field $field */
+		foreach ($linkFields as $field){
+			if ($field->getSubfield('u') != null){
+				$url = $field->getSubfield('u')->getData();
+				if ($field->getSubfield('y') != null) {
+					$title = $field->getSubfield('y')->getData();
+				}else if ($field->getSubfield('3') != null){
+					$title = $field->getSubfield('3')->getData();
+				}else if ($field->getSubfield('z') != null){
+					$title = $field->getSubfield('z')->getData();
+				}else{
+					$title = $url;
+				}
+				$links[] = array(
+						'title' => $title,
+						'url' => $url,
+				);
+			}
+		}
+
+		return $links;
 	}
 
 }

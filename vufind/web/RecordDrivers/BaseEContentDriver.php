@@ -31,54 +31,6 @@ abstract class BaseEContentDriver  extends MarcRecord {
 	function getHelpText($fileOrUrl){
 		return "";
 	}
-	function getFormat(){
-		$result = array();
-		/** @var File_MARC_Data_Field[] $itemFields */
-		$itemFields = $this->getMarcRecord()->getFields('989');
-		foreach ($itemFields as $item){
-			$subfieldW = $item->getSubfield('w');
-			if ($subfieldW != null){
-				if (strpos($subfieldW->getData(), ':') !== FALSE){
-					$eContentFieldData = explode(':', $subfieldW->getData());
-					$protectionType = trim($eContentFieldData[1]);
-					if ($this->isValidProtectionType($protectionType)){
-						//Format is based off the iType
-						$iTypeField = $item->getSubfield('j');
-						if ($iTypeField != null){
-							$result[] = mapValue('econtent_itype_format', $iTypeField->getData());
-						}else{
-							$result[] = 'eBook';
-						}
-					}
-				}
-			}
-		}
-		return $result;
-	}
-
-	function getFormatCategory(){
-		/** @var File_MARC_Data_Field[] $itemFields */
-		$itemFields = $this->getMarcRecord()->getFields('989');
-		foreach ($itemFields as $item){
-			$subfieldW = $item->getSubfield('w');
-			if ($subfieldW != null){
-				if (strpos($subfieldW->getData(), ':') !== FALSE){
-					$eContentFieldData = explode(':', $subfieldW->getData());
-					$protectionType = trim($eContentFieldData[1]);
-					if ($this->isValidProtectionType($protectionType)){
-						//Format is based off the iType
-						$iTypeField = $item->getSubfield('j');
-						if ($iTypeField != null){
-							return mapValue('econtent_itype_format_category', $iTypeField->getData());
-						}else{
-							return 'eBook';
-						}
-					}
-				}
-			}
-		}
-		return 'eBook';
-	}
 
 	protected function isValidProtectionType($protectionType) {
 		return in_array(strtolower($protectionType), $this->getValidProtectionTypes());

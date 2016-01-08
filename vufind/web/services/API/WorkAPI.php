@@ -114,13 +114,7 @@ class WorkAPI {
 	}
 
 	public function generateWorkId(){
-		//global $user;
 		global $configArray;
-		/*if (!$user){
-			return "Sorry you must be logged in to use this API";
-		}elseif(!($user->hasRole('opacAdmin') || $user->hasRole('libraryAdmin'))){
-			return "Sorry you must be an administrator to use this API";
-		}*/
 		$localPath = $configArray['Site']['local'];
 		$title = escapeshellarg($_REQUEST['title']);
 		$author = escapeshellarg($_REQUEST['author']);

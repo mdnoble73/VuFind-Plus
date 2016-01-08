@@ -6,12 +6,17 @@
 @footer-top-border-color: #333333;
 @header-height: 130px;
 
-@home-search-top-color: #22702A; //Top color for background gradient in header
-@home-search-bottom-color: darken(#22702A, 10%);
+@plateau-darkgreen: #22702A;
+@plateau-lightgreen: #34AF42;
+@home-search-top-color: @plateau-darkgreen; //Top color for background gradient in header
+@home-search-bottom-color: darken(@plateau-darkgreen, 10%);
 
-@category1MainColor: #34AF42;
+@category1MainColor: @plateau-lightgreen;
 @categoryLineColor: #858A91;
-@categoryLineShadow: #22702A;
-@selectedCategoryBorderColor: #22702A;
+@categoryLineShadow: @plateau-darkgreen;
+@selectedCategoryBorderColor: @plateau-darkgreen;
 
-@accordion-active-header-color: #22702A;
+@accordion-active-header-color: @plateau-darkgreen;
+
+@menu-bar-background-color: @plateau-darkgreen;
+@menu-bar-selected-background-color: @plateau-lightgreen;

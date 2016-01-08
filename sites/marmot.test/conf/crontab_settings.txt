@@ -46,6 +46,7 @@
 # Set the start for 10:55
 55 22 * * * cd /usr/local/vufind-plus/sites/marmot.test; ./full_update_marmot_test.sh
 10 01 * * * cd /usr/local/vufind-plus/sites/aspencat.test; ./full_update_aspencat_test.sh
+# avoid 6pm - 11pm for AspenCat PLB  (PK-288)
 00 18 * * * cd /usr/local/vufind-plus/sites/flatirons.test; ./full_update_flatirons_test.sh
 00 04 * * * cd /usr/local/vufind-plus/sites/arlington.test; ./full_update_arlington_test.sh
 
@@ -55,6 +56,8 @@
 # Temp Files
 26 * * * * cd /tmp; /bin/rm -rf CURLCOOKIE*
 27 */2 * * * cd /tmp; /bin/rm -rf epb*
+# Cleanup Apache Sessions hourly (to test that it doesn't cause errors)
+0 */1 * * * /usr/sbin/apachectl graceful > /dev/null 2>&1
 
 ###################################
 # Data Extract from other systems #

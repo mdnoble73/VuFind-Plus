@@ -188,7 +188,6 @@ class Search_Results extends Action {
 			$pageTitle = substr($pageTitle, 0, 20) . '...';
 		}
 		$pageTitle .= ' | Search Results';
-		$interface->setPageTitle($pageTitle);
 		$interface->assign('sortList',   $searchObject->getSortList());
 		$interface->assign('rssLink',    $searchObject->getRSSUrl());
 		$interface->assign('excelLink',  $searchObject->getExcelUrl());
@@ -235,22 +234,6 @@ class Search_Results extends Action {
 		$interface->assign('showNotInterested', false);
 		$interface->assign('page_body_style', 'sidebar_left');
 		$interface->assign('overDriveVersion', isset($configArray['OverDrive']['interfaceVersion']) ? $configArray['OverDrive']['interfaceVersion'] : 1);
-
-		//Check to see if we should show unscoped results
-		global $solrScope;
-		$enableUnscopedSearch = false; // fallback setting
-		if ($solrScope){
-			$searchLibrary = Library::getSearchLibrary();
-			if ($searchLibrary != null && $searchLibrary->showMarmotResultsAtEndOfSearch){
-				$searchSources = new SearchSources();
-				$searchOptions = $searchSources->getSearchSources();
-				if (isset($searchOptions['marmot'])){
-					//TODO: change name of search option to 'consortium'
-					$unscopedSearch = clone($searchObject);
-					$enableUnscopedSearch = true;
-				}
-			}
-		}
 
 		$showRatings = 1;
 		$enableProspectorIntegration = isset($configArray['Content']['Prospector']) ? $configArray['Content']['Prospector'] : false;
@@ -452,33 +435,6 @@ class Search_Results extends Action {
 		$interface->assign('subpage', $displayTemplate);
 		$interface->assign('displayMode', $displayMode); // For user toggle switches
 
-		// Supplementary Unscoped Search //
-		if ($enableUnscopedSearch && isset($unscopedSearch) ){
-			// Total & Link will be shown in result header even if none of these results will be shown on this page
-			$unscopedSearch->setLimit($numUnscopedTitlesToLoad * 4);
-			$unscopedSearch->disableScoping();
-			$unscopedSearch->processSearch(false, false);
-			$numUnscopedResults = $unscopedSearch->getResultTotal();
-			$interface->assign('numUnscopedResults', $numUnscopedResults);
-			$unscopedSearchUrl = $unscopedSearch->renderSearchUrl();
-			if (preg_match('/searchSource=(.*?)(?:&|$)/', $unscopedSearchUrl)){
-				$unscopedSearchUrl = preg_replace('/(.*searchSource=)(.*?)(&|$)(.*)/', '$1marmot$3$4', $unscopedSearchUrl);
-//				$unscopedSearchUrl = preg_replace('/&/', '&amp;', $unscopedSearchUrl);
-				$unscopedSearchUrl = str_replace('&', '&amp;', $unscopedSearchUrl); // faster than preg_replace for simple substitutions
-			}else{
-				$unscopedSearchUrl .= "&amp;searchSource=marmot";
-			}
-			$unscopedSearchUrl .= "&amp;shard=";
-			$interface->assign('unscopedSearchUrl', $unscopedSearchUrl);
-			if ($numUnscopedTitlesToLoad > 0){
-				$unscopedResults = $unscopedSearch->getSupplementalResultRecordHTML($searchObject->getResultRecordSet(), $numUnscopedTitlesToLoad, $searchObject->getResultTotal());
-
-				$interface->assign('recordSet', $unscopedResults);
-				$unscopedResults = $interface->fetch($displayTemplate);
-				$interface->assign('unscopedResults', $unscopedResults);
-			}
-		}
-
 		// Big one - our results //
 		$recordSet = $searchObject->getResultRecordHTML($displayMode);
 		$interface->assign('recordSet', $recordSet);
@@ -494,104 +450,88 @@ class Search_Results extends Action {
 		}
 
 		// Done, display the page
-		$interface->setTemplate($searchObject->getResultTotal() ? 'list.tpl' : 'list-none.tpl'); // main search results content
-		$interface->assign('sidebar', 'Search/results-sidebar.tpl');
-		$interface->display('layout.tpl');
+		$this->display($searchObject->getResultTotal() ? 'list.tpl' : 'list-none.tpl', $pageTitle, 'Search/results-sidebar.tpl');
 	} // End launch()
 
 	function loadExploreMoreBar(){
+		if (isset($_REQUEST['page']) && $_REQUEST['page'] > 1){
+			return;
+		}
 		//Get data from the repository
 		global $interface;
 		global $configArray;
+
 		if (isset($configArray['Islandora']) && isset($configArray['Islandora']['solrUrl']) && !empty($_GET['lookfor']) && !is_array($_GET['lookfor'])){
-			//!is_array($_GET['lookfor'])  avoid advanced searches for now
-			$islandoraUrl = $configArray['Islandora']['solrUrl'];
-			//TODO: This should be done with a Solr search object and we should setup searchspecs, etc.
-			//Setup a basic query
-			//TODO: Handle Pika Advanced Searches
-			$searchTerm = urlencode($_GET['lookfor']);
-			$username = $configArray['Islandora']['fedoraUsername'];
-			$password = $configArray['Islandora']['fedoraPassword'];
-			$options = array(
-				'http' => array(
-					'header'  => "Authorization: Basic " . base64_encode("$username:$password")
-				)
-			);
-			$context = stream_context_create($options);
-			$query = $islandoraUrl . '/islandora/select?q=dc.title:' . $searchTerm . '+OR+dc.subject:' . $searchTerm . '&wt=json&fl=PID,dc.title,dc.description,dc.type_s,dc.format_s,dsmd_OBJ.Content-Type';
-			$response = json_decode(file_get_contents($query, false, $context));
+			/** @var SearchObject_Islandora $searchObject */
+			$searchObject = SearchObjectFactory::initSearchObject('Islandora');
+			$searchObject->init();
+			$searchObject->setSearchTerms(array(
+					'lookfor' => $_REQUEST['lookfor'],
+					'index' => 'IslandoraKeyword'
+			));
 
-			if ($response) {
-				$exploreMoreOptions = array();
-				foreach ($response->response->docs as $solrDoc) {
-					$title = $solrDoc->{'dc.title'};
-					if (is_array($title)) {
-						$title = reset($title);
-					}
-					if (isset($solrDoc->{'dsmd_OBJ.Content-Type'}) || isset($solrDoc->{'dc.type_s'})) {
-						if (isset($solrDoc->{'dsmd_OBJ.Content-Type'})) {
-							$objectContentType = $solrDoc->{'dsmd_OBJ.Content-Type'};
-						} else {
-							$objectContentType = $solrDoc->{'dc.type_s'};
-						}
+			$exploreMoreOptions = array();
 
-						if (is_array($objectContentType)) {
-							$objectContentType = $objectContentType[0];
-						}
-						if (!isset($exploreMoreOptions[$objectContentType])) {
-							$exploreMoreOptions[$objectContentType] = array();
-						}
-						$exploreMoreOptions[$objectContentType][] = array(
-							'PID' => $solrDoc->PID,
-							'type' => 'archive-' . $objectContentType,
-							'title' => $title,
-							'description' => isset($solrDoc->{'dc.description'}) ? $solrDoc->{'dc.description'} : '',
-							'thumbnail' => $configArray['Islandora']['fedoraUrl'] . '/objects/' . $solrDoc->PID . '/datastreams/TN/content',
-						);
-					} else {
-						//This is an exhibit for display
-						$exploreMoreOptions[] = array(
-							'PID' => $solrDoc->PID,
-							'type' => 'archive-collection',
-							'title' => $title,
-							'description' => isset($solrDoc->{'dc.description'}) ? $solrDoc->{'dc.description'} : '',
-							'link' => $configArray['Site']['path'] . '/Archive/' . $solrDoc->PID . '/Exhibit',
-							'thumbnail' => $configArray['Islandora']['fedoraUrl'] . '/objects/' . $solrDoc->PID . '/datastreams/TN/content',
-						);
-					}
+			//Get a list of projects related to this search term
+			$searchObject->clearHiddenFilters();
+			$searchObject->addHiddenFilter('!RELS_EXT_isViewableByRole_literal_ms', "admin");
+			$searchObject->addHiddenFilter('RELS_EXT_hasModel_uri_s', '*collectionCModel');
+			$response = $searchObject->processSearch(true, false);
+			if ($response && $response['response']['numFound'] > 0) {
+				foreach ($response['response']['docs'] as $solrDoc) {
+					/** @var RecordInterface $object */
+					$object = RecordDriverFactory::initRecordDriver($solrDoc);
+					$exploreMoreOptions[] = array(
+							'title' => $object->getTitle(),
+							'description' => $object->getDescription(),
+							'thumbnail' => $object->getBookcoverUrl('small'),
+							'link' => $object->getLinkUrl(),
+					);
 				}
-
-				$sortedOptions = array();
-				//Add all the collections first
-				foreach ($exploreMoreOptions as $option){
-					if (isset($option['type']) && $option['type'] == 'archive-collection'){
-						$sortedOptions[] = $option;
-					}
-				}
-				foreach ($exploreMoreOptions as $type => $option){
-					if (!isset($option['type']) || $option['type'] != 'archive-collection'){
-						//Create information about how to link based off the collected documents
-						$optionByFormat = reset($option);
-						$add = false;
-						if ($type == 'MovingImage' ){
-							$optionByFormat['title'] = 'Videos';
-						}else if ($type == 'Text' ){
-							$optionByFormat['title'] = 'Articles';
-						}else if ($type == 'image/jpeg' ){
-							$optionByFormat['title'] = 'Images';
-							$add = true;
-						}
-						if ($add){
-							$sortedOptions[] = $optionByFormat;
-						}
-
-					}
-				}
-				$interface->assign('exploreMoreOptions', $sortedOptions);
-			} else {
-				global $logger;
-				$logger->log('Islandora Search Failed.', PEAR_LOG_WARNING);
 			}
+
+			//TODO: Add additional content models to this display
+			//TODO: Check to see if this can be done with a single query using facets rather than multiple queries
+			$searchObject->init();
+			$searchObject->clearHiddenFilters();
+			$searchObject->addHiddenFilter('!RELS_EXT_isViewableByRole_literal_ms', "admin");
+			$searchObject->clearFilters();
+			$searchObject->addFilter('RELS_EXT_hasModel_uri_s:info:fedora/islandora:sp_large_image_cmodel');
+			$response = $searchObject->processSearch(true, false);
+			if ($response && $response['response']['numFound'] > 0) {
+				$firstObject = reset($response['response']['docs']);
+				$firstObjectDriver = RecordDriverFactory::initRecordDriver($firstObject);
+				$numMatches = $response['response']['numFound'];
+				$exploreMoreOptions[] = array(
+						'title' => "Images ({$numMatches})",
+						'description' => "Images related to {$searchObject->getQuery()}",
+						'thumbnail' => $firstObjectDriver->getBookcoverUrl('medium'),
+						'link' => $searchObject->renderSearchUrl(),
+				);
+			}
+
+			$searchObject->init();
+			$searchObject->clearHiddenFilters();
+			$searchObject->addHiddenFilter('!RELS_EXT_isViewableByRole_literal_ms', "admin");
+			$searchObject->clearFilters();
+			$searchObject->addFilter('RELS_EXT_hasModel_uri_s:info:fedora/islandora:personCModel');
+			$response = $searchObject->processSearch(true, false);
+			if ($response && $response['response']['numFound'] > 0) {
+				$firstObject = reset($response['response']['docs']);
+				$firstObjectDriver = RecordDriverFactory::initRecordDriver($firstObject);
+				$numMatches = $response['response']['numFound'];
+				$exploreMoreOptions[] = array(
+						'title' => "People ({$numMatches})",
+						'description' => "People related to {$searchObject->getQuery()}",
+						'thumbnail' => $firstObjectDriver->getBookcoverUrl('medium'),
+						'link' => $searchObject->renderSearchUrl(),
+				);
+			}
+
+			$interface->assign('exploreMoreOptions', $exploreMoreOptions);
+		} else {
+			global $logger;
+			$logger->log('Islandora Search Failed.', PEAR_LOG_WARNING);
 		}
 	}
 }

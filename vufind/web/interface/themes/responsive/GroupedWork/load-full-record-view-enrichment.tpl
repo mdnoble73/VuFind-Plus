@@ -1,0 +1,12 @@
+{if !empty($addThis)}
+	<script type="text/javascript" src="https://s7.addthis.com/js/250/addthis_widget.js?pub={$addThis|escape:"url"}"></script>
+{/if}
+<script type="text/javascript">
+	{literal}$(function(){{/literal}
+		VuFind.GroupedWork.loadEnrichmentInfo('{$recordDriver->getPermanentId()|escape:"url"}');
+		VuFind.GroupedWork.loadReviewInfo('{$recordDriver->getPermanentId()|escape:"url"}');
+		{if $enablePospectorIntegration == 1}
+		VuFind.Prospector.loadRelatedProspectorTitles('{$recordDriver->getPermanentId()|escape:"url"}')
+		{/if}
+		{literal}});{/literal}
+</script>

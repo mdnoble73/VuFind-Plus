@@ -95,7 +95,7 @@ nice -n -10 java -jar cron.jar ${PIKASERVER} ExportSierraData >> ${OUTPUT_FILE}
 
 #Extract Lexile Data
 #No need to copy on marmot test server
-#cd /data/vufind-plus/; rm lexileTitles.txt*; wget --no-verbose http://venus.marmot.org/lexileTitles.txt
+#cd /data/vufind-plus/; wget -N --no-verbose http://venus.marmot.org/lexileTitles.txt
 
 #Do a full extract from OverDrive just once a week to catch anything that doesn't
 #get caught in the regular extract

@@ -44,6 +44,7 @@
 
 #Aspencat
 10 00 * * * cd /usr/local/vufind-plus/sites/aspencat.production; ./full_update_aspencat_production.sh
+# avoid 6pm - 11pm for AspenCat PLB  (PK-288)
 
 ################
 # Pika Cleanup #
@@ -51,18 +52,21 @@
 # Temp Files
 26 * * * * cd /tmp; /bin/rm -rf CURLCOOKIE*
 27 */2 * * * cd /tmp; /bin/rm -rf epb*
+# Restart apache
+0 0-6 * * * /usr/sbin/apachectl graceful >/dev/null
 
 ##########
 # Cron   #
 ##########
-#MDN reduce the frequency of cron if this keeps the system alive in the morning.  May just skip the period from midnight to 6 am
-5 */6 * * * cd /usr/local/vufind-plus/vufind/cron/; java -jar cron.jar opac.marmot.org
+# Do cron process which is just Updating Reading History.  Takes about 3.5 hours, start at 7pm
+5 19 * * * cd /usr/local/vufind-plus/vufind/cron/; java -jar cron.jar opac.marmot.org
 20 0 * * * cd /usr/local/vufind-plus/vufind/cron/; java -jar cron.jar opac.marmot.org DatabaseCleanup 
 # Write reports for schools
 00 6,11,13 * * * cd /usr/local/vufind-plus/vufind/cron; java -jar cron.jar opac.marmot.org SierraReports
 
 # AspenCat
-14 */3 * * * cd /usr/local/vufind-plus/vufind/cron/; java -jar cron.jar aspencat.production
+# All the default cron run does is Reading History update, do that once a day early in the morning after the index completes
+14 5 * * * cd /usr/local/vufind-plus/vufind/cron/; java -jar cron.jar aspencat.production
 44 23 * * * cd /usr/local/vufind-plus/vufind/cron/; java -jar cron.jar aspencat.production DatabaseCleanup
 # DB clean-up at end of the day, 11:44pm
 

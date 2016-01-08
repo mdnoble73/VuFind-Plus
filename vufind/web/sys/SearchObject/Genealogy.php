@@ -57,10 +57,6 @@ class SearchObject_Genealogy extends SearchObject_Base
 	private $indexEngine = null;
 	// Facets information
 	private $allFacetSettings = array();    // loaded from facets.ini
-	// Optional, used on author screen for example
-	private $searchSubType  = '';
-	// Used to pass hidden filter queries to Solr
-	private $hiddenFilters = array();
 
 	// Spelling
 	private $spellingLimit = 3;
@@ -639,17 +635,6 @@ class SearchObject_Genealogy extends SearchObject_Base
 
 		// Use default case from parent class the rest of the time:
 		return parent::getRecommendationSettings();
-	}
-
-	/**
-	 * Add a hidden (i.e. not visible in facet controls) filter query to the object.
-	 *
-	 * @access  public
-	 * @param   string $fq                 Filter query for Solr.
-	 */
-	public function addHiddenFilter($fq)
-	{
-		$this->hiddenFilters[] = $fq;
 	}
 
 	/**

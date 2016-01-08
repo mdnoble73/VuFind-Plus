@@ -78,21 +78,6 @@ class MyAccount_MyList extends MyAccount {
 		$userCanEdit = false;
 		if ($user != false){
 			$userCanEdit = $user->canEditList($list);
-
-//			if ($user->id == $list->user_id){
-//				$userCanEdit = true;
-//			}elseif ($user->hasRole('opacAdmin')){
-//				$userCanEdit = true;
-//			}elseif ($user->hasRole('libraryAdmin') || $user->hasRole('contentEditor')){
-//				$listUser = new User();
-//				$listUser->id = $list->user_id;
-//				$listUser->find(true);
-//				$listLibrary = Library::getLibraryForLocation($listUser->homeLocationId);
-//				$userLibrary = Library::getLibraryForLocation($user->homeLocationId);
-//				if ($userLibrary->libraryId == $listLibrary->libraryId){
-//					$userCanEdit = true;
-//				}
-//			}
 		}
 
 		if ($userCanEdit && (isset($_REQUEST['myListActionHead']) || isset($_REQUEST['myListActionItem']) || isset($_GET['delete']))){

@@ -47,7 +47,7 @@ class GroupedWorkDriver extends RecordInterface{
 	protected $forbiddenSnippetFields = array(
 		'author', 'author-letter', 'auth_author2', 'title', 'title_short', 'title_full',
 		'title_auth', 'title_sub', 'title_display', 'spelling', 'id',
-		'allfields', 'allfields_proper', 'fulltext_unstemmed', 'econtentText_unstemmed',
+		'fulltext_unstemmed', 'econtentText_unstemmed',
 		'spellingShingle', 'collection', 'title_proper',
 		'display_description'
 	);
@@ -971,7 +971,7 @@ class GroupedWorkDriver extends RecordInterface{
 		return $description;
 	}
 
-	function getBookcoverUrl($size){
+	function getBookcoverUrl($size = 'small'){
 		global $configArray;
 		$bookCoverUrl = $configArray['Site']['path'] . "/bookcover.php?id={$this->getUniqueID()}&size={$size}&type=grouped_work";
 
@@ -1137,7 +1137,11 @@ class GroupedWorkDriver extends RecordInterface{
 
 	public function getRelatedRecord($recordIdentifier){
 		$this->loadRelatedRecords();
-		return $this->relatedRecords[$recordIdentifier];
+		if (isset($this->relatedRecords[$recordIdentifier])){
+			return $this->relatedRecords[$recordIdentifier];
+		}else{
+			return null;
+		}
 	}
 
 	private function loadRelatedRecords(){
@@ -1358,6 +1362,12 @@ class GroupedWorkDriver extends RecordInterface{
 				$manifestation['hideByDefault'] = true;
 			}elseif($selectedAvailability == 'Entire Collection' && (!($manifestation['hasLocalItem']) && !$manifestation['isEContent'])){
 				$manifestation['hideByDefault'] = true;
+			}
+			global $searchSource;
+			if ($searchSource == 'econtent'){
+				if (!$manifestation['isEContent']){
+					$manifestation['hideByDefault'] = true;
+				}
 			}
 
 			$relatedManifestations[$key] = $manifestation;
@@ -2432,4 +2442,14 @@ class GroupedWorkDriver extends RecordInterface{
 		return $relatedRecord;
 	}
 
+	public function getRecordUrl() {
+		global $configArray;
+		$recordId = $this->getUniqueID();
+
+		return $configArray['Site']['path'] . '/GroupedWork/' . urlencode($recordId) . '/Home';
+	}
+
+	public function getModule() {
+		return 'GroupedWork';
+	}
 }

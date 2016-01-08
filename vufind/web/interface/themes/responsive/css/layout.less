@@ -112,7 +112,7 @@ hr.menu{
     font-size: 16px;
   }
 }
-//Footer
+// Footer
 #footer-container{
   border-top: 8px solid @footer-top-border-color;
   padding-top: 3px;
@@ -137,7 +137,7 @@ hr.menu{
   padding: 0 3px 0 3px;
 }
 
-//Fixed navigation in footer
+// Fixed navigation in footer
 #navigation-controls{
   border-top: 8px solid @footer-top-border-color;
   background: #fff;
@@ -145,7 +145,135 @@ hr.menu{
     display: none !important;
   }
 }
-//Sidebar & Main content
+// Applies to both horizontal or side menu bar
+.menu-bar {
+  color: @menu-bar-color;
+  background-color: @menu-bar-background-color;
+}
+
+#horizontal-menu-bar-wrapper {
+
+}
+// Horizontal Menu Bar for small devices
+#horizontal-menu-bar-container {
+  .menu-icon {
+    float: right;
+    padding: 5px;
+    margin-left: 5px;
+    margin-right: 5px;
+    height: 40px;
+    &:focus {
+      outline: none;
+    }
+    &.menu-left {
+      float: left;
+    }
+    &.menu-icon-selected {
+      background-color: @menu-bar-selected-background-color;
+    }
+  }
+  padding-left: @padding-xs-horizontal;
+  padding-right: @padding-xs-horizontal;
+
+  &.sticky-menu-bar {
+    // sticks to top of view port
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: @menu-bar-z-index;
+  }
+
+
+}
+
+// Vertical Menu Bar
+
+.sticky-sidebar {
+  // sticks to top-right of view port
+  position: fixed;
+  top: 0;
+  z-index: @menu-bar-z-index;
+}
+
+#vertical-menu-bar-wrapper {
+  width: @vertical-menu-bar-width;
+  padding-left: 0;
+  padding-right: 0;
+}
+
+#vertical-menu-bar {
+  width: @vertical-menu-bar-width;
+  height: 2000px; // needs to extend out of view, fallback option
+  height: 100vh;  // best solution, height of the view port
+  background-color: @menu-bar-background-color;
+  color: @menu-bar-color;
+  padding-left: 0;
+  padding-right: 0;
+
+  .menu-bar-option {
+    height: 140px;
+    width: 100%;
+    padding-top: @padding-base-vertical;
+    &.menu-icon-selected {
+      background-color: @menu-bar-selected-background-color;
+      color: @menu-bar-selected-color;
+    }
+
+    // To Get Labeling to display Nicely
+    position: relative;
+  }
+  .menu-icon {
+    @menu-icon-padding: 5px;
+    padding: @menu-icon-padding;
+    img {
+      width: @vertical-menu-bar-width - 2*@menu-icon-padding;
+    }
+    &:visited,&:hover,&:focus {
+      text-decoration: none;
+      color: @menu-bar-color;
+      outline: none;
+    }
+    .menu-bar-label {
+      color: @menu-bar-color;
+      font-weight: bold;
+      text-transform: uppercase;
+      white-space: nowrap; // multiple word labels need to stay on the same line
+
+      // Make Font Vertical
+      position: absolute;
+      transform: rotate(-90deg) translateX(-100%);
+      transform-origin: 0 0;
+
+      margin-top: 10px;
+      margin-left: 10px;
+    }
+  }
+}
+
+
+// Toggles Collapsed Sidebar
+// Applied to container divs, remove class to restore original width classes
+.collapsedSidebar {
+  width: @vertical-menu-bar-width;
+}
+
+// Toggles Expanding Main Content when Sidebar is collapsed
+.mainContentWhenSiderbarCollapsed {
+
+  @media (min-width: @screen-sm) {
+    width: 100% - percentage( round(@vertical-menu-bar-width/(@container-sm - @grid-gutter-width), 4) );
+  }
+  @media (min-width: @screen-md) {
+    width: 100% - percentage( round(@vertical-menu-bar-width/(@container-md - @grid-gutter-width), 4) );
+  }
+  @media (min-width: @screen-lg-min) {
+    width: 100% - percentage( round(@vertical-menu-bar-width/(@container-lg - @grid-gutter-width), 4) );
+  }
+
+}
+
+// Sidebar & Main content
 #side-bar{
   // padding-left: 0;
   @media print {
@@ -153,14 +281,15 @@ hr.menu{
   }
 }
 #main-content-with-sidebar{
-  padding-right: 0;
+  //padding-right: 0; //TODO delete; undone for right side bar
   padding-bottom: 15px;
   @media print{
     width:100%;
     display: block !important;
   }
   & > .row{
-    margin-right: -30px;
+    //margin-right: -30px;// TODO delete; undone for right side bar
+    //margin-right: 15px;
   }
 }
 
@@ -170,6 +299,7 @@ hr.menu{
   margin-left: 0;
   margin-right: 0;
 }
+
 
 //Modal
 .modal{

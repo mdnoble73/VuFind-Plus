@@ -3,7 +3,7 @@
 	<div class="main-project-image">
 		<img src="{$main_image}" class="img-responsive" usemap="#map"/>
 
-		<map name="map">
+{*		<map name="map">
 			<!-- #$-:Image map file created by GIMP Image Map plug-in -->
 			<!-- #$-:GIMP Image Map plug-in by Maurits Rijk -->
 			<!-- #$-:Please do not edit lines starting with "#$" -->
@@ -26,7 +26,7 @@
 			<area shape="poly" coords="553,234,563,326,636,330,627,275,624,233" href="/Archive/ssb:48/Image" />
 			<area shape="poly" coords="630,243,641,317,656,314,676,281,654,247" href="/Archive/ssb:49/Image" />
 			<area shape="poly" coords="546,165,609,164,633,203,612,223,546,227" href="/Archive/ssb:52/Image" />
-		</map>
+		</map> *}
 	</div>
 
 	<h2>

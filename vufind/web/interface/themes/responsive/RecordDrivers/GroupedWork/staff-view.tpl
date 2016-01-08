@@ -4,6 +4,10 @@
 <button onclick="return VuFind.GroupedWork.forceReindex('{$recordDriver->getPermanentId()}')" class="btn btn-sm btn-default">Force Reindex</button>
 {/if}
 
+{* QR Code *}
+{if $showQRCode}
+	<div id="record-qr-code" class="text-center hidden-xs visible-md"><img src="{$recordDriver->getQRCodeUrl()}" alt="QR Code for Record"></div>
+{/if}
 
 <h4>Grouping Information</h4>
 <table class="table-striped table table-condensed notranslate">

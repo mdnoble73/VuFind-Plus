@@ -85,9 +85,7 @@ abstract class Record_Record extends Action
 		//Check to see if the record exists within the resources table
 		$this->recordDriver = RecordDriverFactory::initRecordDriverById($this->source . ':' . $this->id);
 		if (is_null($this->recordDriver) || !$this->recordDriver->isValid()){  // initRecordDriverById itself does a validity check and returns null if not.
-			$interface->assign('sidebar', 'Record/full-record-sidebar.tpl');
-			$interface->setTemplate('invalidRecord.tpl');
-			$interface->display('layout.tpl');
+			$this->display('invalidRecord.tpl', 'Invalid Record');
 			die();
 		}
 
@@ -391,13 +389,13 @@ abstract class Record_Record extends Action
 	}
 
 	/**
-	 * @param File_MARC_Data_Field[] $allFields
+	 * @param File_MARC_Data_Field[] $noteFields
 	 * @return array
 	 */
-	function processNoteFields($allFields){
+	function processNoteFields($noteFields){
 		$notes = array();
 		/** File_MARC_Data_Field $marcField */
-		foreach ($allFields as $marcField){
+		foreach ($noteFields as $marcField){
 			/** @var File_MARC_Subfield $subfield */
 			foreach ($marcField->getSubfields() as $subfield){
 				$note = $subfield->getData();

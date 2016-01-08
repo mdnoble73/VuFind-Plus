@@ -3,7 +3,7 @@
 {if !isset($propValue) && isset($property.default)}
 	{assign var=propValue value=$property.default}
 {/if}
-{if ((!isset($property.storeDb) || $property.storeDb == true) && !($property.type == 'label' || $property.type == 'oneToManyAssociation' || $property.type == 'hidden' || $property.type == 'method'))}
+{if ((!isset($property.storeDb) || $property.storeDb == true) && !($property.type == 'oneToManyAssociation' || $property.type == 'hidden' || $property.type == 'method'))}
 	<div class='form-group' id="propertyRow{$propName}">
 		{* Output the label *}
 		{if $property.type == 'enum'}
@@ -15,12 +15,17 @@
 		{if $property.type == 'section'}
 			<div class='panel-group' id="accordion_{$property.label|escapeCSS}">
 				<div class="panel panel-default">
-					<div class="panel-heading">
-						<h4 class="panel-title">
+					<div class="panel-heading row">
+						<h4 class="panel-title col-xs-11">
 							<a data-toggle="collapse" data-parent="#accordion_{$property.label|escapeCSS}" href="#accordion_body_{$property.label|escapeCSS}">
 								{$property.label}
 							</a>
 						</h4>
+						{if $property.helpLink}
+							<div class="col-xs-1">
+								<a href="{$property.helpLink}" target="_blank"><img src="{$path}/interface/themes/responsive/images/help.png" alt="Help"/> </a>
+							</div>
+						{/if}
 					</div>
 
 					<div id="accordion_body_{$property.label|escapeCSS}" class="panel-collapse collapse">

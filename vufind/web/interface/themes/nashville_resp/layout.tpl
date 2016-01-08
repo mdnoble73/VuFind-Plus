@@ -33,12 +33,15 @@
 				<div id="system-message-header" class="row">{$systemMessage}</div>
 			{/if}
 
-			{include file="mobile-header-menu.tpl"}
-			{* May turn out better to move this into the nashville header_responsive template.  plb 9-24-2015 *}
-
 			<div id="header-wrapper" class="row">
 				<div id="header-container">
 					{include file='header_responsive.tpl'}
+				</div>
+			</div>
+
+			<div id="horizontal-menu-bar-wrapper" class="row visible-xs">
+				<div id="horizontal-menu-bar-container" class="col-xs-12 menu-bar">
+					{include file='horizontal-menu-bar.tpl'}
 				</div>
 			</div>
 
@@ -50,57 +53,36 @@
 				</div>
 			{/if}
 
-			<div id="content-container" class="row">
-				{if isset($sidebar)}
-					{* Setup the left bar *}
-					<div class="col-xs-12 col-sm-4 col-md-3 col-lg-3" id="side-bar">
-						{include file="$sidebar"}
-					</div>
-					<div class="hidden-xs visible-sm col-xs-12 col-sm-8 col-md-9 col-lg-9" id="main-content-with-sidebar">
+			<div id="content-container">
+				<div class="row">
 
-						{* Added Breadcrumbs to appear above the format filter icons - JE 6/26/15 *}
-							<div class="row breadcrumbs">
-									<div class="hidden-xs col-xs-12 col-sm-9">
-											{if $showBreadcrumbs}
-											<ul class="breadcrumb small">
-													<li><a href="{$homeBreadcrumbLink}" id="home-breadcrumb"><i class="icon-home"></i> {translate text=$homeLinkText}</a> <span class="divider">&raquo;</span></li>
-													{include file="$module/breadcrumbs.tpl"}
-											</ul>
-											{/if}
-									</div>
-									<a name="top"></a>
-									<div class="col-xs-12 col-sm-3 text-right">
-											{if $google_translate_key}
-													{literal}
-													<div id="google_translate_element">
-															<script type="text/javascript">
-																	function googleTranslateElementInit() {
-																			new google.translate.TranslateElement({
-																					pageLanguage: 'en',
-																					layout: google.translate.TranslateElement.InlineLayout.SIMPLE
-																					{/literal}
-																					{if $google_included_languages}
-																					, includedLanguages: '{$google_included_languages}'
-																					{/if}
-																					{literal}
-																			}, 'google_translate_element');
-																	}
-															</script>
-															<script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
-													</div>
-													{/literal}
-											{/if}
-									</div>
+					{if isset($sidebar)} {* Main Content & Sidebars *}
+
+						{if $sideBarOnRight} {* Sidebar on the right *}
+							<div class="col-xs-12 col-sm-8 col-md-9 col-lg-9" id="main-content-with-sidebar" style="overflow-x: scroll;">
+								{* If main content overflows, use a scrollbar *}
+								{include file="breadcrumbs.tpl"}
+								{include file="$module/$pageTemplate"}
+							</div>
+							<div class="col-xs-12 col-sm-4 col-md-3 col-lg-3" id="side-bar">
+								{include file="sidebar.tpl"}
 							</div>
 
-                        {include file="$module/$pageTemplate"}
-					</div>
-				{else}
-					{include file="$module/$pageTemplate"}
-				{/if}
+						{else} {* Sidebar on the left *}
+							<div class="col-xs-12 col-sm-4 col-md-3 col-lg-3" id="side-bar">
+								{include file="sidebar.tpl"}
+							</div>
+							<div class="col-xs-12 col-sm-8 col-md-9 col-lg-9" id="main-content-with-sidebar">
+								{include file="breadcrumbs.tpl"}
+								{include file="$module/$pageTemplate"}
+							</div>
+						{/if}
+
+					{else} {* Main Content Only, no sidebar *}
+						{include file="$module/$pageTemplate"}
+					{/if}
+				</div>
 			</div>
-
-
 
 
 		</div>
@@ -123,25 +105,6 @@
 			</div>*}
 
 		{include file="modal_dialog.tpl"}
-
-			{* hold messages shouldn't be needed any longer. plb 2-13-2015 *}
-		{if $hold_message}
-			<script type="text/javascript">
-				VuFind.showMessage('Hold Results', "{$hold_message|escape:'javascript'}");
-			</script>
-		{/if}
-
-		{if $renew_message}
-			<script type="text/javascript">
-				VuFind.showMessage('Renewal Results', "{$renew_message|escape:'javascript'}");
-			</script>
-		{/if}
-
-		{if $checkout_message}
-			<script type="text/javascript">
-				VuFind.showMessage('Checkout Results', "{$checkout_message|escape:'javascript'}");
-			</script>
-		{/if}
 
 		{include file="tracking.tpl"}
 		{/strip}

@@ -16,6 +16,7 @@ class SearchSources{
 		$systemsToRepeatIn = array();
 		$searchGenealogy = true;
 		$repeatCourseReserves = false;
+		$searchArchive = false;
 
 		/** @var $locationSingleton Location */
 		global $locationSingleton;
@@ -40,12 +41,13 @@ class SearchSources{
 		if (isset($library)){
 			$searchGenealogy = $library->enableGenealogy;
 			$repeatCourseReserves = $library->enableCourseReserves == 1;
+			$searchArchive = $library->enableArchive == 1;
 		}
 
 		$marmotAdded = false;
 
 		//Local search
-		if (isset($location) && $location != null && $location->useScope && $location->restrictSearchByLocation){
+		if (!empty($location) && $location->useScope && $location->restrictSearchByLocation){
 			$searchOptions['local'] = array(
               'name' => $location->displayName,
               'description' => "The {$location->displayName} catalog.",
@@ -142,6 +144,14 @@ class SearchSources{
 			);
 		}
 
+		if ($searchArchive){
+			$searchOptions['islandora'] = array(
+					'name' => 'Local History Archive',
+					'description' => 'Local History Archive in Colorado',
+					'catalogType' => 'islandora'
+			);
+		}
+
 		//Genealogy Search
 //		if ($searchGenealogy && !$interface->isMobile()){ //allow in mobile views. plb 11-17-2014
 		if ($searchGenealogy){
@@ -229,7 +239,6 @@ class SearchSources{
 			case 'ISN':
 				return 'bn';
 				break;
-			case 'AllFields':
 			case 'Keyword':
 			default:
 				return 'kw';
@@ -249,7 +258,6 @@ class SearchSources{
 				return 'ISSN';
 				break;
 			case 'Author': //Gold Rush does not support author searches directly
-			case 'AllFields':
 			case 'Keyword':
 			default:
 				return 'Keyword';
@@ -314,7 +322,6 @@ class SearchSources{
 			case 'ISN':
 				return 'i';
 				break;
-			case 'AllFields':
 			case 'Keyword':
 				return ' ';
 				break;

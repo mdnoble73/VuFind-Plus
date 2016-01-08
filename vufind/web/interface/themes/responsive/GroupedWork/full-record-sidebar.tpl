@@ -1,4 +1,6 @@
 {strip}
+	{* TODO: remove references to this template, and use the main sidebar template instead. *}
+
 	{* New Search Box *}
 	{if !$horizontalSearchBar}
 		{include file="Search/searchbox-home.tpl"}
@@ -27,7 +29,7 @@
 		{* Display Book Cover *}
 		{if $user->disableCoverArt != 1}
 			<div id = "recordcover" class="text-center row">
-				<img alt="{translate text='Book Cover'}" class="img-thumbnail" src="{$recordDriver->getBookcoverUrl('large')}" />
+				<img alt="{translate text='Book Cover'}" class="img-thumbnail" src="{$recordDriver->getBookcoverUrl('large')}">
 			</div>
 		{/if}
 
@@ -46,7 +48,7 @@
 	{if $recordDriver}
 		{* QR Code *}
 		{if $showQRCode}
-		<div id="record-qr-code" class="text-center hidden-xs visible-md"><img src="{$recordDriver->getQRCodeUrl()}" alt="QR Code for Record"/></div>
+		<div id="record-qr-code" class="text-center hidden-xs visible-md"><img src="{$recordDriver->getQRCodeUrl()}" alt="QR Code for Record"></div>
 		{/if}
 	{/if}
 

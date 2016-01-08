@@ -86,14 +86,21 @@ public class NashvilleRecordProcessor extends IIIRecordProcessor {
 		if (url == null){
 			return  unsuppressedEcontentRecords;
 		}
-		if (url.contains("digital.library.nashville.org") || url.contains("www.library.nashville.org/localhistory/findingaids") || url.contains("nashville.contentdm.oclc.org")){
+		if (url.contains("digital.library.nashville.org") ||
+				url.contains("www.library.nashville.org/localhistory/findingaids") ||
+				url.contains("nashville.contentdm.oclc.org") ||
+				url.contains("purl.fdlp.gov") ||
+				url.contains("purl.access.gpo.gov")
+				){
 			//Much of the econtent for flatirons has no items.  Need to determine the location based on the 907b field
 			String eContentLocation = getFirstFieldVal(record, "945l");
+			if (eContentLocation == null && (url.contains("purl.fdlp.gov") || url.contains("purl.access.gpo.gov"))){
+				eContentLocation = "mndoc";
+			}
 			if (eContentLocation != null) {
 				ItemInfo itemInfo = new ItemInfo();
 				itemInfo.setIsEContent(true);
 				itemInfo.setLocationCode(eContentLocation);
-				itemInfo.seteContentSource("Nashville Archives");
 				itemInfo.seteContentProtectionType("external");
 				itemInfo.setCallNumber("Online");
 				itemInfo.setShelfLocation(itemInfo.geteContentSource());
@@ -103,7 +110,19 @@ public class NashvilleRecordProcessor extends IIIRecordProcessor {
 				itemInfo.seteContentUrl(url);
 
 				loadEContentFormatInformation(record, relatedRecord, itemInfo);
-				itemInfo.setFormat("Digitized Content");
+				if (url.contains("purl.fdlp.gov") || url.contains("purl.access.gpo.gov")){
+					itemInfo.setFormat("Online Version");
+					itemInfo.seteContentSource("Government Documents");
+				} else {
+					if (url.contains("findingaid")){
+						itemInfo.setFormat("Finding Aid");
+						itemInfo.seteContentSource("Special Collections");
+					}else{
+						itemInfo.setFormat("Digitized Content");
+						itemInfo.seteContentSource("Nashville Archives");
+					}
+
+				}
 				itemInfo.setFormatCategory("Other");
 				relatedRecord.setFormatBoost(1);
 
@@ -127,6 +146,8 @@ public class NashvilleRecordProcessor extends IIIRecordProcessor {
 				}
 
 				unsuppressedEcontentRecords.add(relatedRecord);
+			}else{
+				logger.warn("Record " + identifier + " looks like eContent, but we didn't get a location for it");
 			}
 		}
 

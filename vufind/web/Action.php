@@ -22,9 +22,22 @@ require_once 'PEAR.php';
 // Abstract Base Class for Actions
 abstract class Action extends PEAR
 {
+		abstract function launch();
 
-    abstract function launch();
-        
+	/**
+	 * @param string $mainContentTemplate  Name of the SMARTY template file for the main content of the Full Record View Pages
+	 * @param string $pageTitle            What to display is the html title tag
+	 * @param bool|string $sidebarTemplate      Sets the sidebar template, set to false or empty string for no sidebar
+	 */
+	function display($mainContentTemplate, $pageTitle, $sidebarTemplate='Search/home-sidebar.tpl') {
+		global $interface;
+		if (!empty($sidebarTemplate)) $interface->assign('sidebar', $sidebarTemplate);
+		$interface->setTemplate($mainContentTemplate);
+		$interface->setPageTitle($pageTitle);
+		$interface->assign('moreDetailsTemplate', 'GroupedWork/moredetails-accordion.tpl');
+		$interface->display('layout.tpl');
+	}
+
 }
 
 ?>

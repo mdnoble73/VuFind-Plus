@@ -60,8 +60,6 @@ class SearchObject_Solr extends SearchObject_Base
 	private $allFacetSettings = array();    // loaded from facets.ini
 	// Optional, used on author screen for example
 	private $searchSubType  = '';
-	// Used to pass hidden filter queries to Solr
-	private $hiddenFilters = array();
 
 	// Spelling
 	private $spellingLimit = 3;
@@ -332,7 +330,6 @@ class SearchObject_Solr extends SearchObject_Base
 	 */
 	public function initAdvancedFacets()
 	{
-		global $configArray;
 		global $locationSingleton;
 		// Call the standard initialization routine in the parent:
 		parent::init();
@@ -696,7 +693,7 @@ class SearchObject_Solr extends SearchObject_Base
 	}
 /*
  *  Get the template to use to display the results returned from getRecordHTML()
- *  or getSupplementalResultRecordHTML() based on the view mode
+ *  based on the view mode
  *
  * @return string  Template file name
  */
@@ -735,38 +732,6 @@ class SearchObject_Solr extends SearchObject_Base
 					$html[] = $interface->fetch($record->getSearchResult($this->view));
 				} else {
 					$html[] = "Unable to find record";
-				}
-			}
-		}
-		return $html;
-	}
-
-	public function getSupplementalResultRecordHTML($mainResults, $maxResultsToShow, $startIndex = 0){
-		global $interface;
-		$html = array();
-		$numResultsShown = 0;
-		if (isset($this->indexResult['response'])) {
-			for ($x = 0; $x < count($this->indexResult['response']['docs']); $x++) {
-				$current = &$this->indexResult['response']['docs'][$x];
-				//Check to make sure this id is not in the main results
-				$supplementalInMainResults = false;
-				foreach ($mainResults as $mainResult) {
-					if ($mainResult['id'] == $current['id']) {
-						$supplementalInMainResults = true;
-						break;
-					}
-				}
-				if ($supplementalInMainResults) { // if record in the original search result, don't add to these results
-					continue;
-				}
-				/** @var IndexRecord|MarcRecord|GroupedWorkDriver $record */
-				$record = RecordDriverFactory::initRecordDriver($current);
-				$numResultsShown++;
-				$interface->assign('recordIndex', $numResultsShown);
-				$interface->assign('resultIndex', $numResultsShown + (($this->page - 1) * $this->limit) + $startIndex);
-				$html[] = $interface->fetch($record->getSearchResult($this->view, true));
-				if ($numResultsShown >= $maxResultsToShow) {
-					break;
 				}
 			}
 		}
@@ -1111,8 +1076,14 @@ class SearchObject_Solr extends SearchObject_Base
 			}
 
 			if (isset($_REQUEST['basicType'])) {
+				if ($_REQUEST['basicType'] == 'AllFields'){
+					$_REQUEST['basicType'] = 'Keyword';
+				}
 				$params[] = 'basicType=' . $_REQUEST['basicType'];
 			} else if (isset($_REQUEST['type'])) {
+				if ($_REQUEST['type'] == 'AllFields'){
+					$_REQUEST['type'] = 'Keyword';
+				}
 				$params[] = 'type=' . $_REQUEST['type'];
 			}
 			$this->params = $params;
@@ -1191,17 +1162,6 @@ class SearchObject_Solr extends SearchObject_Base
 	}
 
 	/**
-	 * Add a hidden (i.e. not visible in facet controls) filter query to the object.
-	 *
-	 * @access  public
-	 * @param   string $fq                 Filter query for Solr.
-	 */
-	public function addHiddenFilter($fq)
-	{
-		$this->hiddenFilters[] = $fq;
-	}
-
-	/**
 	 * Actually process and submit the search
 	 *
 	 * @access  public
@@ -1216,6 +1176,11 @@ class SearchObject_Solr extends SearchObject_Base
 	public function processSearch($returnIndexErrors = false, $recommendations = false) {
 		global $timer;
 		global $analytics;
+
+		if ($this->searchSource == 'econtent'){
+			global $solrScope;
+			$this->addHiddenFilter("econtent_source_{$solrScope}", '*');
+		}
 
 		// Our search has already been processed in init()
 		$search = $this->searchTerms;

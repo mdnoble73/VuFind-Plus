@@ -160,12 +160,18 @@ VuFind.Searches = (function(){
 					catalogType = selectedSearchType.data("catalog_type");
 				}
 			}
-			if (catalogType == "catalog" || catalogType == null){
+			if (catalogType == "catalog" || catalogType == null) {
 				$(".catalogType").show();
 				$(".genealogyType").hide();
-			}else{
+				$(".islandoraType").hide();
+			}else if (catalogType == 'genealogy'){
 				$(".catalogType").hide();
 				$(".genealogyType").show();
+				$(".islandoraType").hide();
+			}else{
+				$(".catalogType").hide();
+				$(".genealogyType").hide();
+				$(".islandoraType").show();
 			}
 		},
 

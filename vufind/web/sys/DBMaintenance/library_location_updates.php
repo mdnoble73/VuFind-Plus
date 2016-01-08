@@ -902,6 +902,14 @@ function getLibraryLocationUpdates(){
 			),
 		),
 
+		'hoopla_library_options_remove' => array(
+				'title' => 'Remove Hoopla setting since it can be done with inclusion rules now',
+				'description' => 'Remove Hoopla setting since it can be done with inclusion rules now',
+				'sql' => array(
+						"ALTER TABLE `library` DROP COLUMN `includeHoopla`",
+				),
+		),
+
 		'additional_library_contact_links' => array(
 			'title' => 'Additional Library Contact Links',
 			'description' => 'Add additional contact links for Youtube and Instagram to library config.',
@@ -1080,6 +1088,15 @@ function getLibraryLocationUpdates(){
 			),
 		),
 
+		'right_hand_sidebar' => array(
+			'title' => 'Enable Right Hand Sidebar',
+			'description' => 'Library configuration switch to display sidebars on the right of the page instead of the default left side.',
+			'continueOnError' => true,
+			'sql' => array(
+				"ALTER TABLE `library` ADD COLUMN `sideBarOnRight` TINYINT(1) DEFAULT 0;",
+			),
+		),
+
 		'theme_name_length' => array(
 			'title' => 'Increase length of theme name',
 			'description' => 'Increase the length of theme name to allow for more nesting of themes.',
@@ -1149,5 +1166,50 @@ function getLibraryLocationUpdates(){
 				"UPDATE location set publicListsToInclude = 1 where showFavorites = 1",
 			),
 		),
+
+
+			'enable_archive' => array(
+					'title' => 'Enable Archive for libraries',
+					'description' => 'Add option to enable archives for individual libraries',
+					'sql' => array(
+						'ALTER TABLE library ADD COLUMN enableArchive TINYINT(1) DEFAULT 0',
+					),
+			),
+
+			'remove_order_options' => array(
+					'title' => 'Remove Order Options',
+					'description' => 'Remove Unused Order Record Options from libraries table',
+					'sql' => array(
+							'ALTER TABLE library DROP COLUMN orderAccountingUnit',
+							'ALTER TABLE library DROP COLUMN makeOrderRecordsAvailableToOtherLibraries',
+					)
+			),
+
+			'remove_consortial_results_in_search' => array(
+					'title' => 'Remove Consortial Results in Search',
+					'description' => 'Remove Unused Consortial Results in at the end of search results from libraries table',
+					'sql' => array(
+							'ALTER TABLE library DROP COLUMN showMarmotResultsAtEndOfSearch',
+					)
+			),
+
+			'remove_unused_enrichment_and_full_record_options' => array(
+					'title' => 'Remove Unused Options in Enrichment and Full Record sections',
+					'description' => 'Remove Show other editions option libraries table',
+					'sql' => array(
+							'ALTER TABLE library DROP COLUMN showOtherEditionsPopup',
+							'ALTER TABLE library DROP COLUMN showTableOfContentsTab',
+							'ALTER TABLE library DROP COLUMN showProspectorTitlesAsTab',
+							'ALTER TABLE library DROP COLUMN showCopiesLineInHoldingsSummary',
+					)
+			),
+
+			'remove_unused_location_options_2015_14_0' => array(
+					'title' => 'Remove Unused Location Options',
+					'description' => 'Remove Show other editions option libraries table',
+					'sql' => array(
+							'ALTER TABLE location DROP COLUMN extraLocationCodesToInclude',
+					)
+			),
 	);
 }

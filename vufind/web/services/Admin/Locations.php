@@ -40,7 +40,9 @@ class Locations extends ObjectEditor
 
 		$location = new Location();
 		$location->orderBy('displayName');
-		if (!$user->hasRole('opacAdmin')){
+		if ($user->hasRole('locationManager')){
+			$location->locationId = $user->homeLocationId;
+		} else if (!$user->hasRole('opacAdmin')){
 			//Scope to just locations for the user based on home library
 			$patronLibrary = Library::getLibraryForLocation($user->homeLocationId);
 			$location->libraryId = $patronLibrary->libraryId;
@@ -65,7 +67,7 @@ class Locations extends ObjectEditor
 		return 'locationId';
 	}
 	function getAllowableRoles(){
-		return array('opacAdmin', 'libraryAdmin');
+		return array('opacAdmin', 'libraryAdmin', 'libraryManager', 'locationManager');
 	}
 	function canAddNew(){
 		global $user;
@@ -76,6 +78,7 @@ class Locations extends ObjectEditor
 		return $user->hasRole('opacAdmin');
 	}
 	function getAdditionalObjectActions($existingObject){
+		global $user;
  		$objectActions = array();
 		if ($existingObject != null){
 			$objectActions[] = array(
@@ -86,10 +89,12 @@ class Locations extends ObjectEditor
 				'text' => 'Reset More Details To Default',
 				'url' => '/Admin/Locations?id=' . $existingObject->locationId . '&amp;objectAction=resetMoreDetailsToDefault',
 			);
-			$objectActions[] = array(
-				'text' => 'Copy Location Data',
-				'url' => '/Admin/Locations?id=' . $existingObject->locationId . '&amp;objectAction=copyDataFromLocation',
-			);
+			if (!$user->hasRole('libraryManager') && !$user->hasRole('locationManager')){
+				$objectActions[] = array(
+						'text' => 'Copy Location Data',
+						'url' => '/Admin/Locations?id=' . $existingObject->locationId . '&amp;objectAction=copyDataFromLocation',
+				);
+			}
 		}else{
 			echo("Existing object is null");
 		}

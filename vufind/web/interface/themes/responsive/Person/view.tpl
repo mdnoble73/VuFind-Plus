@@ -1,5 +1,15 @@
 {strip}
-	{if $error}<p class="error">{$error}</p>{/if}
+
+	{* Search Navigation *}
+	{include file="GroupedWork/search-results-navigation.tpl"}
+
+	{if $error}
+		<div class="row">
+			<div class="alert alert-danger">
+				{$error}
+			</div>
+		</div>
+	{/if}
 
 	<h2>
 		{$person->firstName|escape} {$person->middleName|escape}{if $person->nickName} "{$person->nickName|escape}"{/if}{if $person->maidenName} ({$person->maidenName}){/if} {$person->lastName|escape}
@@ -19,6 +29,18 @@
 			</div>
 			<a href='{$path}/Admin/People?objectAction=delete&amp;id={$id}' title='Delete this person' class='btn btn-xs btn-danger' onclick='return confirm("Removing this person will permanently remove them from the system.	Are you sure?")'>
 				Delete
+			</a>
+		</div>
+	{/if}
+	{* Display Book Cover *}
+	{if $user->disableCoverArt != 1}
+		<div id="recordcover" class="text-center">
+			<a href="{$path}/Person/{$id}">
+				{if $person->picture}
+					<a target='_blank' href='{$path}/files/original/{$person->picture|escape}'><img src="{$path}/files/medium/{$person->picture|escape}" class="alignleft listResultImage" alt="{translate text='Picture'}"></a><br>
+				{else}
+					<img src="{$path}/interface/themes/default/images/person.png" class="alignleft listResultImage" alt="{translate text='No Cover Image'}"><br>
+				{/if}
 			</a>
 		</div>
 	{/if}
@@ -114,13 +136,13 @@
 			{/if}
 			</div>
 			{if $obituary.contents && $obituary.picture}
-				<div class="obituaryText">{if $obituary.picture|escape}<a href='{$path}/files/original/{$obituary.picture|escape}'><img class='obitPicture' src='{$path}/files/medium/{$obituary.picture|escape}'/></a>{/if}{$obituary.contents|escape}</div>
+				<div class="obituaryText">{if $obituary.picture|escape}<a href='{$path}/files/original/{$obituary.picture|escape}'><img class='obitPicture' src='{$path}/files/medium/{$obituary.picture|escape}'></a>{/if}{$obituary.contents|escape}</div>
 				<div class="clearer"></div>
 			{elseif $obituary.contents}
-				<div class="obituaryText">{$obituary.contents|escape|replace:"\r":"<br/>"}</div>
+				<div class="obituaryText">{$obituary.contents|escape|replace:"\r":"<br>"}</div>
 				<div class="clearer"></div>
 			{elseif $obituary.picture}
-				<div class="obituaryPicture">{if $obituary.picture|escape}<a href='{$path}/files/original/{$obituary.picture|escape}'><img class='obitPicture' src='{$path}/files/medium/{$obituary.picture|escape}'/></a>{/if}</div>
+				<div class="obituaryPicture">{if $obituary.picture|escape}<a href='{$path}/files/original/{$obituary.picture|escape}'><img class='obitPicture' src='{$path}/files/medium/{$obituary.picture|escape}'></a>{/if}</div>
 				<div class="clearer"></div>
 			{/if}
 

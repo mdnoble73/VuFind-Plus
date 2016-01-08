@@ -18,6 +18,7 @@ vufind/base.min.js
 vufind/account.min.js
 vufind/admin.min.js
 vufind/analytic-reports.min.js
+vufind/archive.min.js
 vufind/browse.min.js
 vufind/dpla.min.js
 vufind/econtent-record.min.js
@@ -25,6 +26,7 @@ vufind/grouped-work.min.js
 vufind/lists.min.js
 vufind/lists-widgets.min.js
 vufind/materials-request.min.js
+vufind/menu.min.js
 vufind/overdrive.min.js
 vufind/prospector.min.js
 vufind/ratings.min.js

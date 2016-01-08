@@ -35,6 +35,10 @@ class Admin_BrowseCategories extends ObjectEditor
 	function getPageTitle(){
 		return 'Browse Categories';
 	}
+	function canDelete(){
+		global $user;
+		return $user->hasRole('opacAdmin');
+	}
 	function getAllObjects(){
 		$browseCategory = new BrowseCategory();
 		$browseCategory->orderBy('label');
@@ -55,7 +59,7 @@ class Admin_BrowseCategories extends ObjectEditor
 		return 'id';
 	}
 	function getAllowableRoles(){
-		return array('opacAdmin', 'libraryAdmin');
+		return array('opacAdmin', 'libraryAdmin', 'libraryManager', 'locationManager');
 	}
 
 	function getInstructions(){

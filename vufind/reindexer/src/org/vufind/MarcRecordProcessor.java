@@ -59,14 +59,13 @@ public abstract class MarcRecordProcessor {
 		groupedWork.addOclcNumbers(getFieldList(record, "035a"));
 		loadAwards(groupedWork, record);
 		loadBibCallNumbers(groupedWork, record, identifier);
-		loadLiteraryForms(groupedWork, record, identifier);
+		loadLiteraryForms(groupedWork, record, printItems, identifier);
 		loadTargetAudiences(groupedWork, record, printItems, identifier);
 		groupedWork.addMpaaRating(getMpaaRating(record));
 		//Do not load ar data from MARC since we now get it directly from Renaissance Learning
 		/*groupedWork.setAcceleratedReaderInterestLevel(getAcceleratedReaderInterestLevel(record));
 		groupedWork.setAcceleratedReaderReadingLevel(getAcceleratedReaderReadingLevel(record));
 		groupedWork.setAcceleratedReaderPointValue(getAcceleratedReaderPointLevel(record));*/
-		groupedWork.addAllFields(getAllFields(record));
 		groupedWork.addKeywords(getAllSearchableFields(record, 100, 900));
 	}
 
@@ -127,7 +126,9 @@ public abstract class MarcRecordProcessor {
 		for (DataField field : fields){
 			if (field.getIndicator2() == '0' || field.getIndicator2() == '1'){
 				if (field.getSubfield('2') != null){
-					if (field.getSubfield('2').getData().equals("bisacsh")){
+					if (field.getSubfield('2').getData().equals("bisacsh") ||
+							field.getSubfield('2').getData().equals("bisacmt") ||
+							field.getSubfield('2').getData().equals("bisacrt")){
 						continue;
 					}
 				}
@@ -274,7 +275,7 @@ public abstract class MarcRecordProcessor {
 		groupedWork.addTargetAudiencesFull(indexer.translateSystemCollection("target_audience_full", targetAudiences, identifier));
 	}
 
-	protected void loadLiteraryForms(GroupedWorkSolr groupedWork, Record record, String identifier) {
+	protected void loadLiteraryForms(GroupedWorkSolr groupedWork, Record record, HashSet<ItemInfo> printItems, String identifier) {
 		//First get the literary Forms from the 008.  These need translation
 		LinkedHashSet<String> literaryForms = new LinkedHashSet<>();
 		try {
@@ -664,31 +665,8 @@ public abstract class MarcRecordProcessor {
 		return null;
 	}*/
 
-	public String getAllFields(Record marcRecord) {
-		StringBuilder allFieldData = new StringBuilder();
-		List<ControlField> controlFields = marcRecord.getControlFields();
-		for (Object field : controlFields) {
-			ControlField dataField = (ControlField) field;
-			String data = dataField.getData();
-			data = data.replace((char) 31, ' ');
-			allFieldData.append(data).append(" ");
-		}
-
-		List<DataField> fields = marcRecord.getDataFields();
-		for (Object field : fields) {
-			DataField dataField = (DataField) field;
-			List<Subfield> subfields = dataField.getSubfields();
-			for (Object subfieldObj : subfields) {
-				Subfield subfield = (Subfield) subfieldObj;
-				allFieldData.append(subfield.getData()).append(" ");
-			}
-		}
-
-		return allFieldData.toString();
-	}
-
 	/**
-	 * Loops through all datafields and creates a field for "all fields"
+	 * Loops through all datafields and creates a field for "keywords"
 	 * searching. Shameless stolen from Vufind Indexer Custom Code
 	 *
 	 * @param lowerBound

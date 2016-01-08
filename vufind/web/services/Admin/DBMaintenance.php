@@ -679,6 +679,16 @@ class DBMaintenance extends Admin_Admin {
 					),
 				),
 
+				'newRolesJan2016' => array(
+						'title' => 'Create new roles',
+						'description' => 'Create library manager, location manager, and circulation reports roles.',
+						'sql' => array(
+								"INSERT INTO `roles` (`name`, `description`) VALUES ('libraryManager', 'Allows user to do basic configuration for their library.')",
+								"INSERT INTO `roles` (`name`, `description`) VALUES ('locationManager', 'Allows user to do basic configuration for their location.')",
+								"INSERT INTO `roles` (`name`, `description`) VALUES ('circulationReports', 'Allows user to view offline circulation reports.')",
+						),
+				),
+
 				'libraryAdmin' => array(
 					'title' => 'Create library admin role',
 					'description' => 'Create library admin to allow .',
@@ -2220,6 +2230,17 @@ class DBMaintenance extends Admin_Admin {
 						)
 				),
 
+				'indexing_profile_speicified_formats' => array(
+						'title' => 'Indexing Profiles - specified format',
+						'description' => 'Allow specified formats for use with side loaded eContent',
+						'sql' => array(
+								"ALTER TABLE indexing_profiles CHANGE formatSource `formatSource` enum('bib','item', 'specified') NOT NULL DEFAULT 'bib'",
+								"ALTER TABLE indexing_profiles ADD COLUMN `specifiedFormat` varchar(50) DEFAULT NULL",
+								"ALTER TABLE indexing_profiles ADD COLUMN `specifiedFormatCategory` varchar(50) DEFAULT NULL",
+								"ALTER TABLE indexing_profiles ADD COLUMN `specifiedFormatBoost` int DEFAULT NULL",
+						)
+				),
+
 				'translation_map_regex' => array(
 					'title' => 'Translation Maps Regex',
 					'description' => 'Setup Translation Maps to use regular expressions',
@@ -2414,7 +2435,7 @@ class DBMaintenance extends Admin_Admin {
 			}
 
 			//Hoopla titles
-			if ($allLibraries->includeHoopla){
+			/*if ($allLibraries->includeHoopla){
 				$inclusionRule = new LibraryRecordToInclude();
 				$inclusionRule->indexingProfileId = $hooplaIndexingProfile->id;
 				$inclusionRule->libraryId = $allLibraries->libraryId;
@@ -2425,7 +2446,7 @@ class DBMaintenance extends Admin_Admin {
 				$inclusionRule->includeItemsOnOrder = 0;
 				$inclusionRule->weight = 1;
 				$inclusionRule->insert();
-			}
+			}*/
 		}
 
 		//Setup ownership rules and inclusion rules for locations

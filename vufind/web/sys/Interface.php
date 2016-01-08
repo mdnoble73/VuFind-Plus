@@ -150,6 +150,12 @@ class UInterface extends Smarty
 		$this->assign('device', get_device_name());
 		$timer->logTime('Basic configuration');
 
+		$displaySidebarMenu = false;
+		if (isset($configArray['Site']['sidebarMenu'])) {
+			$displaySidebarMenu = (bool) $configArray['Site']['sidebarMenu'];
+		}
+		$this->assign('displaySidebarMenu', $displaySidebarMenu);
+
 		$this->assign('currentTab', 'Search');
 
 		$this->assign('authMethod', $configArray['Authentication']['method']);
@@ -314,6 +320,7 @@ class UInterface extends Smarty
 			$this->assign('enableMaterialsBooking', $library->enableMaterialsBooking);
 			$this->assign('showHoldButtonForUnavailableOnly', $library->showHoldButtonForUnavailableOnly);
 			$this->assign('horizontalSearchBar', $library->horizontalSearchBar);
+			$this->assign('sideBarOnRight', $library->sideBarOnRight);
 		}else{
 			$this->assign('showLoginButton', 1);
 			$this->assign('showAdvancedSearchbox', 1);
@@ -329,6 +336,7 @@ class UInterface extends Smarty
 			$this->assign('enableMaterialsBooking', 0);
 			$this->assign('showHoldButtonForUnavailableOnly', 0);
 			$this->assign('horizontalSearchBar', 0);
+			$this->assign('sideBarOnRight', 0);
 		}
 		if (isset($library) && $location != null){ // library and location
 			$this->assign('showFavorites', $location->showFavorites && $library->showFavorites);

@@ -39,7 +39,21 @@ class ExternalEContent_Home extends Action{
 		//$recordDriver = new ExternalEContentDriver($this->id);
 
 		global $activeRecordProfile;
-		$subType = isset($activeRecordProfile) ? $activeRecordProfile : 'ils';
+		if (isset($activeRecordProfile)){
+			$subType = $activeRecordProfile;
+		}else{
+			$indexingProfile = new IndexingProfile();
+			$indexingProfile->name = 'ils';
+			if ($indexingProfile->find(true)){
+				$subType = $indexingProfile->name;
+			}else{
+				$indexingProfile = new IndexingProfile();
+				$indexingProfile->id = 1;
+				if ($indexingProfile->find(true)){
+					$subType = $indexingProfile->name;
+				}
+			}
+		}
 
 		/** @var ExternalEContentDriver $recordDriver */
 		$recordDriver = RecordDriverFactory::initRecordDriverById('external_econtent:' . $subType . ':'. $this->id);
@@ -76,18 +90,19 @@ class ExternalEContent_Home extends Action{
 
 			$interface->assign('moreDetailsOptions', $recordDriver->getMoreDetailsOptions());
 
-			//Build the actual view
-			$interface->assign('sidebar', 'ExternalEContent/full-record-sidebar.tpl');
-			$interface->assign('moreDetailsTemplate', 'GroupedWork/moredetails-accordion.tpl');
-			$interface->setTemplate('view.tpl');
-
-			$interface->setPageTitle($recordDriver->getTitle());
 
 			//Load Staff Details
 			$interface->assign('staffDetails', $recordDriver->getStaffView());
 
-			// Display Page
-			$interface->display('layout.tpl');
+//			//Build the actual view
+//			$interface->assign('sidebar', 'ExternalEContent/full-record-sidebar.tpl');
+//			$interface->assign('moreDetailsTemplate', 'GroupedWork/moredetails-accordion.tpl');
+//			$interface->setTemplate('view.tpl');
+//			$interface->setPageTitle($recordDriver->getTitle());
+//			// Display Page
+//			$interface->display('layout.tpl');
+
+			$this->display('view.tpl', $recordDriver->getTitle());
 
 		}
 	}

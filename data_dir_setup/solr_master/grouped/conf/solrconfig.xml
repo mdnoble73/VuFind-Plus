@@ -358,7 +358,8 @@
 				Do a soft commit every 5 seconds so new values are available for searching
 				 realistically, we should be able to extend this to every 30 seconds or once a minute.
 			-->
-			<maxTime>${solr.autoSoftCommit.maxTime:-1}</maxTime>
+			<maxDocs>${solr.autoSoftCommit.maxDocs:10000}</maxDocs>
+			<maxTime>${solr.autoSoftCommit.maxTime:600000}</maxTime>
 		</autoSoftCommit>
 
 		<!-- Update Related Event Listeners

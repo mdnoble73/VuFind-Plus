@@ -44,7 +44,7 @@
 ###################
 # Pika Cron Jobs  #
 ###################
-4 */3 * * * cd /usr/local/vufind-plus/vufind/cron/; java -jar cron.jar anythink.production
+4 20 * * * cd /usr/local/vufind-plus/vufind/cron/; java -jar cron.jar anythink.production
 20 0 * * * cd /usr/local/vufind-plus/vufind/cron/; java -jar cron.jar anythink.production DatabaseCleanup
 
 ################

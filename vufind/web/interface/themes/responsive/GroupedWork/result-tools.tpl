@@ -9,6 +9,5 @@
 	{/if}
 	<div class="text-center row">
 		{include file="GroupedWork/share-tools.tpl"}
-
 	</div>
 {/strip}

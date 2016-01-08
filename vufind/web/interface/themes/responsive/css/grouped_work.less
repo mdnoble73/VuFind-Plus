@@ -3,43 +3,42 @@
 .graph-bar{
   background-color: #088ec6;
 }
-.userreviewlink{
-  background-color: #088ec6;
-  color: #ffffff;
-}
-#side-bar .userreviewlink{
-  width: 196px;
-}
-.userreviewlink:hover{
-  background-color: #2897c6;
-  color: #ffffff;
-}
+
+// TODO used anymore?
+#side-bar .userreviewlink,
 #side-bar .addtolistlink{
   width: 196px;
 }
-
-.addtolistlink{
+.userreviewlink, .addtolistlink{
   background-color: #088ec6;
   color: #ffffff;
+  &:hover {
+    background-color: #2897c6;
+    color: #ffffff;
+  }
 }
-.addtolistlink:hover{
-  background-color: #2897c6;
-  color: #ffffff;
-}
+
 .full-record-tools{
-  padding: 4px 0px;
+  padding: 4px 0;
 }
 .full-rating{
   padding: 10px 5px 4px;
+  white-space: nowrap;
+  font-size: 11px;
 }
 .rating-graph{
-  margin: 4px 0px;
-}
-.rating-graph .row{
-  margin-top: 2px;
+  margin: 4px 0;
+  .row{
+    margin-top: 2px;
+  }
 }
 .title-rating{
   margin-top: 4px;
+}
+// Modify placement of the tool bar on full record views
+#main-content .result-tools-horizontal {
+  margin-top: 10px;
+  margin-bottom: 10px;
 }
 .share-tools{
   background-color: #e6e6e6;
@@ -49,47 +48,54 @@
   font-weight: bold;
   text-align: left;
   padding: 5px 10px;
- display: inline-block;
+  display: inline-block;
+  img{
+    margin-left: 2px;
+    margin-right: 2px;
+  }
 }
 .share-tools-label{
   padding-right: 10px;
 }
-.share-tools img{
-  margin-left: 2px;
-  margin-right: 2px;
-}
+
+//TODO: used anymore?
 #side-bar .share-tools{
   margin-top: 8px;
   width: 200px;
 }
 
-/** More Like this formatting */
-#more-details-accordion .panel-group .panel + .panel{
-  margin-top: 0px;
+// More Like this formatting //
+#more-details-accordion {
+  .panel-group .panel + .panel{
+    margin-top: 0;
+  }
+  .panel-heading{
+    padding: 5px 15px;
+    background: linear-gradient(to bottom, #e7e7e7, #d7d7d7);
+    border-bottom: 1px solid #a1a1a1;
+  }
+  .panel-title{
+    font-size: 13px;
+    color: @gray-dark;
+    text-shadow: 1px 1px #fff;
+  }
+  .active {
+    .panel-heading {
+      background-color: @accordion-active-header-color;
+      background: linear-gradient(to bottom, @accordion-active-header-color, darken(@accordion-active-header-color, 10%));
+    }
+    .panel-title {
+      color: #fff;
+      text-shadow: 1px 1px @gray;
+    }
+  }
+  .panel-body{
+    font-size:12px;
+    color: @gray-dark;
+    background-color: #eeeeee;
+  }
 }
-#more-details-accordion .panel-heading{
-  padding: 5px 15px;
-  background: linear-gradient(to bottom, #e7e7e7, #d7d7d7);
-  border-bottom: 1px solid #a1a1a1;
-}
-#more-details-accordion .active .panel-heading{
-  background-color: @accordion-active-header-color;
-  background: linear-gradient(to bottom, @accordion-active-header-color, darken(@accordion-active-header-color, 10%));
-}
-#more-details-accordion .panel-title{
-  font-size: 13px;
-  color: @gray-dark;
-  text-shadow: 1px 1px #fff;
-}
-#more-details-accordion .active .panel-title{
-  color: #fff;
-  text-shadow: 1px 1px @gray;
-}
-#more-details-accordion .panel-body{
-  font-size:12px;
-  color: @gray-dark;
-  background-color: #eeeeee;
-}
+
 .novelist-similar-item{
   padding: 6px;
 }

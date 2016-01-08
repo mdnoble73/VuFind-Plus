@@ -47,7 +47,7 @@ class Admin_ListWidgets extends ObjectEditor {
 
 		global $user;
 		$widget = new ListWidget();
-		if ($user->hasRole('libraryAdmin') || $user->hasRole('contentEditor')){
+		if ($user->hasRole('libraryAdmin') || $user->hasRole('contentEditor') || $user->hasRole('libraryManager') || $user->hasRole('locationManager')){
 			$patronLibrary = Library::getPatronHomeLibrary();
 			$widget->libraryId = $patronLibrary->libraryId;
 		}
@@ -63,7 +63,7 @@ class Admin_ListWidgets extends ObjectEditor {
 		return ListWidget::getObjectStructure();
 	}
 	function getAllowableRoles(){
-		return array('opacAdmin', 'libraryAdmin', 'contentEditor');
+		return array('opacAdmin', 'libraryAdmin', 'contentEditor', 'libraryManager', 'locationManager');
 	}
 	function getPrimaryKeyColumn(){
 		return 'id';
@@ -73,7 +73,7 @@ class Admin_ListWidgets extends ObjectEditor {
 	}
 	function canAddNew(){
 		global $user;
-		return $user->hasRole('opacAdmin') || $user->hasRole('libraryAdmin') || $user->hasRole('contentEditor');
+		return $user->hasRole('opacAdmin') || $user->hasRole('libraryAdmin') || $user->hasRole('contentEditor') || $user->hasRole('libraryManager') || $user->hasRole('locationManager');
 	}
 	function canDelete(){
 		global $user;
@@ -102,7 +102,7 @@ class Admin_ListWidgets extends ObjectEditor {
 		//Get all available widgets
 		$availableWidgets = array();
 		$listWidget = new ListWidget();
-		if ($user->hasRole('libraryAdmin') || $user->hasRole('contentEditor')){
+		if ($user->hasRole('libraryAdmin') || $user->hasRole('contentEditor') || $user->hasRole('libraryManager') || $user->hasRole('locationManager')){
 			$homeLibrary = Library::getPatronHomeLibrary();
 			$listWidget->libraryId = $homeLibrary->libraryId;
 		}

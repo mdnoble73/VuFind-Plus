@@ -21,4 +21,5 @@ public class IndexingProfile {
 	public String formatSource;
 	public char format;
 	public char eContentDescriptor;
+	public String specifiedFormatCategory;
 }

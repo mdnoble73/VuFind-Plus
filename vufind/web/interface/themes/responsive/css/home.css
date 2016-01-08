@@ -1,5 +1,6 @@
 #home-page-search {
   background-color: #00a4e3;
+  background: -webkit-linear-gradient(top, #00a4e3, #147ce2);
   background: linear-gradient(to bottom, #00a4e3, #147ce2);
   padding: 20px 0 10px;
   margin-bottom: 5px;
@@ -19,12 +20,6 @@
   border: 0;
 }
 #lookfor::-webkit-input-placeholder {
-  font-size: 0;
-  color: transparent;
-  text-shadow: none;
-  border: 0;
-}
-#lookfor:-moz-placeholder {
   font-size: 0;
   color: transparent;
   text-shadow: none;
@@ -58,6 +53,7 @@
 }
 #horizontal-search-box {
   background-color: #00a4e3;
+  background: -webkit-linear-gradient(top, #00a4e3, #147ce2);
   background: linear-gradient(to bottom, #00a4e3, #147ce2);
   padding: 15px 0;
 }
@@ -70,6 +66,14 @@
 }
 #horizontal-search-box #searchForm #horizontal-search-button-container {
   margin-top: 4px;
+  padding-left: 0;
+}
+#horizontal-search-box #searchForm #horizontal-search-button-container > div.row {
+  padding-left: 0;
+  margin-top: 0;
+}
+#horizontal-search-box #searchForm #horizontal-search-button-container > div.row > div {
+  margin-top: 0;
 }
 @media (max-width: 768px) {
   #horizontal-search-box #searchForm #horizontal-search-button-container {
@@ -99,6 +103,9 @@
   border: none;
   border-radius: 0;
 }
+#horizontal-search-box #keepFiltersSwitchLabel {
+  margin-bottom: 0;
+}
 #home-page-login {
   background-color: #AFAFAF;
   color: #fff;
@@ -113,41 +120,6 @@
 #horizontal-search-wrapper + #content-container #home-page-login {
   margin-top: 5px;
 }
-#mobile-menu {
-  position: absolute;
-  top: 5px;
-  right: 1px;
-  padding: 0 5px;
-}
-#mobile-menu.sticky-mobile-menu {
-  position: fixed;
-  top: 5px;
-  right: 10px;
-  z-index: 100;
-}
-#mobile-menu .account-icon,
-#mobile-menu .logout-icon {
-  position: relative;
-  top: 1px;
-  display: inline-block;
-  font-family: 'Glyphicons Halflings';
-  font-style: normal;
-  font-weight: normal;
-  line-height: 1;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  color: #333333;
-}
-#mobile-menu .account-icon:empty,
-#mobile-menu .logout-icon:empty {
-  width: 1em;
-}
-#mobile-menu .account-icon:before {
-  content: "\e236";
-}
-#mobile-menu .logout-icon:before {
-  content: "\e163";
-}
 #home-page-library-section {
   background-color: #eeeeee;
   padding: 15px 0;
@@ -156,6 +128,7 @@
 .sidebar-button {
   text-align: center;
   background-color: #7c7c7d;
+  background: -webkit-linear-gradient(top, #7c7c7d, #3d4244);
   background: linear-gradient(to bottom, #7c7c7d, #3d4244);
   color: #fff;
   padding: 3px 0;
@@ -170,11 +143,13 @@
 .sidebar-links .panel-heading {
   padding: 5px 15px;
   background-color: #e7e7e7;
+  background: -webkit-linear-gradient(top, #e7e7e7, #d7d7d7);
   background: linear-gradient(to bottom, #e7e7e7, #d7d7d7);
   border-bottom: 1px solid #a1a1a1;
 }
 .sidebar-links .active .panel-heading {
   background-color: #4dacde;
+  background: -webkit-linear-gradient(top, #4dacde, #2796d1);
   background: linear-gradient(to bottom, #4dacde, #2796d1);
 }
 .sidebar-links .panel-title {
@@ -226,14 +201,8 @@
   border-color: rgba(0, 0, 0, 0.2);
   border-style: solid;
   border-width: 1px;
-  -webkit-border-radius: 5px;
-  -moz-border-radius: 5px;
   border-radius: 5px;
-  -webkit-box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
-  -moz-box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
   box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
-  -webkit-background-clip: padding-box;
-  -moz-background-clip: padding;
   background-clip: padding-box;
   *border-right-width: 2px;
   *border-bottom-width: 2px;

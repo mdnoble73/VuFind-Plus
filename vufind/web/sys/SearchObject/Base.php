@@ -49,6 +49,9 @@ abstract class SearchObject_Base
 	// Result limit
 	protected $limit = 20;
 
+	// Used to pass hidden filter queries to Solr
+	protected $hiddenFilters = array();
+
 	// STATS
 	protected $resultsTotal = 0;
 
@@ -185,6 +188,11 @@ abstract class SearchObject_Base
 		return false;
 	}
 
+	public function clearFilters(){
+		$this->filterList = array();
+	}
+
+
 	/**
 	 * Take a filter string and add it into the protected
 	 *   array checking for duplicates.
@@ -194,7 +202,6 @@ abstract class SearchObject_Base
 	 */
 	public function addFilter($newFilter)
 	{
-		global $configArray;
 		// Extract field and value from URL string:
 		list($field, $value) = $this->parseFilter($newFilter);
 
@@ -290,6 +297,21 @@ abstract class SearchObject_Base
 				}
 			}
 		}
+	}
+
+	public function clearHiddenFilters() {
+		$this->hiddenFilters = array();
+	}
+
+	/**
+	 * Add a hidden (i.e. not visible in facet controls) filter query to the object.
+	 *
+	 * @access  public
+	 * @param   string $fq                 Filter query for Solr.
+	 */
+	public function addHiddenFilter($field, $value)
+	{
+		$this->hiddenFilters[] = $field . ':' . $value;
 	}
 
 	/**
@@ -522,11 +544,11 @@ abstract class SearchObject_Base
 	 * Initialize the object's search settings for a basic search found in the
 	 * $_REQUEST superglobal.
 	 *
-	 * @access  protected
+	 * @access  public
 	 * @param String|String[] $searchTerm
 	 * @return  boolean  True if search settings were found, false if not.
 	 */
-	protected function initBasicSearch($searchTerm = null)
+	public function initBasicSearch($searchTerm = null)
 	{
 		if ($searchTerm == null){
 			// If no lookfor parameter was found, we have no search terms to
@@ -571,6 +593,11 @@ abstract class SearchObject_Base
             'lookfor' => $searchTerm
 		);
 		return true;
+	}
+
+	public function setSearchTerms($searchTerms){
+		$this->searchTerms = array();
+		$this->searchTerms[] = $searchTerms;
 	}
 
 	public function isAdvanced(){
@@ -643,13 +670,6 @@ abstract class SearchObject_Base
 						//Marmot - search both ISBN-10 and ISBN-13
 						//Check to see if the search term looks like an ISBN10 or ISBN13
 						$lookfor = strip_tags($_REQUEST['lookfor'.$groupCount][$i]);
-						/*if (($type == 'Keyword' || $type == 'ISN' || $type == 'AllFields') &&
-								(preg_match('/^\\d-?\\d{3}-?\\d{5}-?\\d$/',$lookfor) ||
-								preg_match('/^\\d{3}-?\\d-?\\d{3}-?\\d{5}-?\\d$/', $lookfor))) {
-							require_once(ROOT_DIR . '/sys/ISBN.php');
-							$isbn = new ISBN($lookfor);
-							$lookfor = $isbn->get10() . ' OR ' . $isbn->get13();
-						}*/
 
 						// Add term to this group
 						$group[] = array(
@@ -863,8 +883,8 @@ abstract class SearchObject_Base
 			$params[] = "view=" . urlencode(strip_tags($_REQUEST['view']));
 		}
 
-		if (isset($_REQUEST['searchSource'])){
-			$params[] = "searchSource=" . urlencode(strip_tags($_REQUEST['searchSource']));
+		if ($this->searchSource){
+			$params[] = "searchSource=" . $this->searchSource;
 		}
 
 		// Join all parameters with an escaped ampersand,
@@ -1039,7 +1059,9 @@ abstract class SearchObject_Base
 	public function getBasicTypes() {
 		$searchIndex = $this->getSearchIndex();
 		$basicSearchTypes = $this->basicTypes;
-		if ($this->searchType != 'genealogy' && $_REQUEST['searchSource'] != 'genealogy') {
+		if ($this->searchType != 'genealogy' && $_REQUEST['searchSource'] != 'genealogy' &&
+				$this->searchType != 'islandora' && $_REQUEST['searchSource'] != 'islandora'
+			) {
 			if (!array_key_exists($searchIndex, $basicSearchTypes)) {
 				$basicSearchTypes[$searchIndex] = $searchIndex;
 			}
