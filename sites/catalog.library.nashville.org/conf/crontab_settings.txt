@@ -72,7 +72,7 @@
 #*/10 * * * * /root/cron/copyCovers.sh
 # Every 10 minutes. fixed 11-14-2014 plb. (previously every hour 10 past the hour)
 
-# HOOPLA extract : as of 2014 12 19, Hoopla updates MARC files monthly; Nashville checks for new files daily
+# SIDELOAD ECONTENT - DOWNLOAD MARC
 0 13 * * * cd /usr/local/VuFind-Plus/vufind/cron; ./sideload.sh catalog.library.nashville.org  
 
 # LEXILE : download file from Marmot
