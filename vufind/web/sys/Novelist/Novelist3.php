@@ -695,7 +695,9 @@ class Novelist3{
 		$items = $seriesData->series_titles;
 		foreach ($items as $item){
 			if ($item->primary_isbn == $novelistData->primaryISBN){
-				$novelistData->volume = $item->volume;
+				$volume = $item->volume;
+				$volume = preg_replace('/^0+/', '', $volume);
+				$novelistData->volume = $volume;
 			}
 		}
 		$novelistData->seriesTitle = $seriesName;
