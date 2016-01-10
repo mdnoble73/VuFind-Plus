@@ -531,7 +531,7 @@ class SearchObject_Solr extends SearchObject_Base
 
 	/**
 	 * Use the record driver to build an array of HTML displays from the search
-	 * results suitable for use on a user's "favorites" page.
+	 * results suitable for use while displaying lists
 	 *
 	 * @access  public
 	 * @param   object  $user       User object owning tag/note metadata.
@@ -544,31 +544,50 @@ class SearchObject_Solr extends SearchObject_Base
 	public function getResultListHTML($user, $listId = null, $allowEdit = true, $IDList = null)
 	{
 		global $interface;
-
 		$html = array();
-		for ($x = 0; $x < count($this->indexResult['response']['docs']); $x++) {
-			if ($IDList) {
+		if ($IDList){
+			//Reorder the documents based on the list of id's
+			$x = 0;
+			foreach ($IDList as $currentId){
 				// use $IDList as the order guide for the html
 				$current = null; // empty out in case we don't find the matching record
-				$id = $IDList[$x]; // the ID to look for.
 				foreach ($this->indexResult['response']['docs'] as $index => $doc) {
-					if ($doc['id'] == $id) {
+					if ($doc['id'] == $currentId) {
 						$current = & $this->indexResult['response']['docs'][$index];
 						break;
 					}
 				}
-				if (empty($current)) continue; // In the case the record wasn't found, move on to the next record
-			} else $current = & $this->indexResult['response']['docs'][$x];
-
-			$interface->assign('recordIndex', $x + 1);
-			$interface->assign('resultIndex', $x + 1 + (($this->page - 1) * $this->limit));
-			if (!$this->debug){
-				unset($current['explain']);
-				unset($current['score']);
+				if (empty($current)) {
+					continue; // In the case the record wasn't found, move on to the next record
+				}else {
+					$interface->assign('recordIndex', $x + 1);
+					$interface->assign('resultIndex', $x + 1 + (($this->page - 1) * $this->limit));
+					if (!$this->debug){
+						unset($current['explain']);
+						unset($current['score']);
+					}
+					/** @var GroupedWorkDriver $record */
+					$record = RecordDriverFactory::initRecordDriver($current);
+					$html[] = $interface->fetch($record->getListEntry($user, $listId, $allowEdit));
+					$x++;
+				}
 			}
-			/** @var GroupedWorkDriver $record */
-			$record = RecordDriverFactory::initRecordDriver($current);
-			$html[] = $interface->fetch($record->getListEntry($user, $listId, $allowEdit));
+		}else{
+			//The order we get from solr is just fine
+			for ($x = 0; $x < count($this->indexResult['response']['docs']); $x++) {
+				$current = & $this->indexResult['response']['docs'][$x];
+				$interface->assign('recordIndex', $x + 1);
+				$interface->assign('resultIndex', $x + 1 + (($this->page - 1) * $this->limit));
+				if (!$this->debug){
+					unset($current['explain']);
+					unset($current['score']);
+				}
+				/** @var GroupedWorkDriver $record */
+				$interface->assign('recordIndex', $x + 1);
+				$interface->assign('resultIndex', $x + 1 + (($this->page - 1) * $this->limit));
+				$record = RecordDriverFactory::initRecordDriver($current);
+				$html[] = $interface->fetch($record->getListEntry($user, $listId, $allowEdit));
+			}
 		}
 		return $html;
 	}
