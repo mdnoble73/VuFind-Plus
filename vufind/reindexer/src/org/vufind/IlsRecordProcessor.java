@@ -1194,11 +1194,11 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 						result.add("Software");
 					} else if (physicalDescriptionData.contains("sound cassettes")) {
 						result.add("SoundCassette");
-					} else if (physicalDescriptionData.contains("sound discs")) {
+					} else if (physicalDescriptionData.contains("sound discs") || physicalDescriptionData.contains("audio discs")) {
 						result.add("SoundDisc");
 					}
 					//Since this is fairly generic, only use it if we have no other formats yet
-					if (result.size() == 0 && physicalDescriptionData.matches("^.*?\\d+\\s+(p\\.|pages).*$")) {
+					if (result.size() == 0 && subfield.getCode() == 'f' && physicalDescriptionData.matches("^.*?\\d+\\s+(p\\.|pages).*$")) {
 						result.add("Book");
 					}
 				}
