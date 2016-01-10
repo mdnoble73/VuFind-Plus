@@ -1063,38 +1063,50 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 	private void filterPrintFormats(Set<String> printFormats) {
 		if (printFormats.contains("Video") && printFormats.contains("DVD")){
 			printFormats.remove("Video");
-		}else if (printFormats.contains("SoundDisc") && printFormats.contains("SoundRecording")){
+		}if (printFormats.contains("SoundDisc") && printFormats.contains("SoundRecording")){
 			printFormats.remove("SoundRecording");
-		}else if (printFormats.contains("SoundCassette") && printFormats.contains("SoundRecording")){
+		}
+		if (printFormats.contains("SoundDisc") && printFormats.contains("CDROM")){
+			printFormats.remove("CDROM");
+		}
+		if (printFormats.contains("SoundCassette") && printFormats.contains("SoundRecording")){
 			printFormats.remove("SoundRecording");
-		}else if (printFormats.contains("Playaway") && printFormats.contains("SoundRecording")){
+		}
+		if (printFormats.contains("Playaway") && printFormats.contains("SoundRecording")){
 			printFormats.remove("SoundRecording");
-		}else if (printFormats.contains("Playaway") && printFormats.contains("Video")){
+		}
+		if (printFormats.contains("Playaway") && printFormats.contains("Video")){
 			printFormats.remove("Video");
-		}else if (printFormats.contains("Book") && printFormats.contains("LargePrint")){
+		}
+		if (printFormats.contains("Book") && printFormats.contains("LargePrint")){
 			printFormats.remove("Book");
-		}else if (printFormats.contains("Book") && printFormats.contains("Manuscript")){
+		}
+		if (printFormats.contains("Book") && printFormats.contains("Manuscript")){
 			printFormats.remove("Book");
-		}else if (printFormats.contains("Book") && printFormats.contains("GraphicNovel")){
+		}
+		if (printFormats.contains("Book") && printFormats.contains("GraphicNovel")){
 			printFormats.remove("Book");
-		}else if (printFormats.contains("Book") && printFormats.contains("MusicalScore")){
+		}
+		if (printFormats.contains("Book") && printFormats.contains("MusicalScore")){
 			printFormats.remove("Book");
-		}else if (printFormats.contains("Book") && printFormats.contains("BookClubKit")){
+		}
+		if (printFormats.contains("Book") && printFormats.contains("BookClubKit")){
 			printFormats.remove("Book");
-		}else if (printFormats.contains("Book") && printFormats.contains("Kit")){
+		}
+		if (printFormats.contains("Book") && printFormats.contains("Kit")){
 			printFormats.remove("Book");
-		}else if (printFormats.contains("Book") && printFormats.contains("Manuscript")){
+		}
+		if (printFormats.contains("Book") && printFormats.contains("Manuscript")){
 			printFormats.remove("Manuscript");
-		}else if (printFormats.contains("Kinect") || printFormats.contains("XBox360")
+		}
+		if (printFormats.contains("Kinect") || printFormats.contains("XBox360")
 				|| printFormats.contains("XBoxOne") || printFormats.contains("PlayStation")
 				|| printFormats.contains("PlayStation3") || printFormats.contains("PlayStation4")
 				|| printFormats.contains("Wii") || printFormats.contains("WiiU")
 				|| printFormats.contains("3DS") || printFormats.contains("WindowsGame")){
 			printFormats.remove("Software");
 			printFormats.remove("Electronic");
-		}/*else if (printFormats.size() > 1){
-			return;
-		}*/
+		}
 	}
 
 	private void getFormatFromTitle(Record record, Set<String> printFormats) {
