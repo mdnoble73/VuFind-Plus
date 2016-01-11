@@ -814,9 +814,11 @@ class CatalogConnection
 		if ($recordDriver != null && $recordDriver->isValid()) {
 			$historyEntry['ratingData'] = $recordDriver->getRatingData();
 			$historyEntry['permanentId'] = $recordDriver->getPermanentId();
-			$historyEntry['linkUrl'] = $recordDriver->getLinkUrl();
 			$historyEntry['coverUrl'] = $recordDriver->getBookcoverUrl('medium');
-			$historyEntry['format'] = $recordDriver->getFormats();
+			if ($recordDriver->getGroupedWorkDriver()->isValid){
+				$historyEntry['linkUrl'] = $recordDriver->getLinkUrl();
+				$historyEntry['format'] = $recordDriver->getFormats();
+			}
 			if ($historyEntry['title'] == ''){
 				$historyEntry['title']  = $recordDriver->getTitle();
 			}
