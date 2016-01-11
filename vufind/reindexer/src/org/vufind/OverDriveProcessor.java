@@ -143,7 +143,7 @@ public class OverDriveProcessor {
 						//Load the formats for the record.  For OverDrive, we will create a separate item for each format.
 						HashSet<String> validFormats = loadOverDriveFormats(groupedWork, productId, identifier);
 						String detailedFormats = Util.getCsvSeparatedString(validFormats);
-						overDriveRecord.addFormats(validFormats);
+						//overDriveRecord.addFormats(validFormats);
 
 						long maxFormatBoost = 1;
 						for (String curFormat : validFormats) {
