@@ -1,7 +1,7 @@
 {strip}
 	{if $showTextThis == 1 || $showEmailThis == 1 || $showShareOnExternalSites == 1}
 	<div class="share-tools">
-		<span class="share-tools-label hidden-xs">SHARE</span>
+		<span class="share-tools-label hidden-inline-xs">SHARE</span>
 		{if $showTextThis == 1}
 			<a href="#" title="Text Title" onclick="return VuFind.GroupedWork.showSmsForm(this, '{$recordDriver->getPermanentId()|escape:"url"}')">
 				<img src="{img filename='sms-icon.png'}" alt="Text This">
