@@ -886,7 +886,7 @@ class GroupedWork_AJAX {
 
 		$searchTerms = array(
 				array(
-						'lookfor' => $record['title'],
+						'lookfor' => $record['title_short'],
 						'index' => 'Title'
 				),
 		);

@@ -489,6 +489,7 @@ class Aspencat implements DriverInterface{
 						$homeBranchCode = $userFromDb['branchcode'];
 						$location = new Location();
 						$location->code = $homeBranchCode;
+						$location->orderBy('isMainBranch desc');
 						$location->find(1);
 						if ($location->N == 0){
 							unset($location);

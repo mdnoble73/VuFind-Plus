@@ -34,9 +34,10 @@ class GroupedWork_Series extends Action
 		require_once ROOT_DIR . '/RecordDrivers/GroupedWorkDriver.php';
 		$recordDriver = new GroupedWorkDriver($id);
 		if (!$recordDriver->isValid){
+			$interface->assign('id', $id);
 			$logger->log("Did not find a record for id {$id} in solr." , PEAR_LOG_DEBUG);
-			$interface->setTemplate('invalidRecord.tpl');
-			$interface->display('layout.tpl');
+			$interface->setTemplate('../Record/invalidRecord.tpl');
+			$this->display('../Record/invalidRecord.tpl', 'Error');
 			die();
 		}
 		$timer->logTime('Initialized the Record Driver');

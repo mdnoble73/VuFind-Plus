@@ -47,10 +47,20 @@
 		{/if}
 
 		{if $summSeries}
+		{* if $summSeries || $recordDriver->getIndexedSeries() *}
 			<div class="series{$summISBN} row">
 				<div class="result-label col-xs-3">Series: </div>
 				<div class="col-xs-9 result-value">
-					<a href="{$path}/GroupedWork/{$summId}/Series">{$summSeries.seriesTitle}</a>{if $summSeries.volume} volume {$summSeries.volume}{/if}
+					{if $summSeries}
+					<a href="{$path}/GroupedWork/{$summId}/Series">{$summSeries.seriesTitle}</a>{if $summSeries.volume} volume {$summSeries.volume}{/if}<br/>
+					{/if}
+					{*
+					{if $recordDriver->getIndexedSeries()}
+						{foreach from=$recordDriver->getIndexedSeries() item=seriesItem name=loop}
+							<a href="{$path}/Search/Results?basicType=Series&lookfor=%22{$seriesItem|escape:"url"}%22">{$seriesItem|escape}</a><br/>
+						{/foreach}
+					{/if}
+					*}
 				</div>
 			</div>
 		{/if}

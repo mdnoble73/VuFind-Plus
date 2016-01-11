@@ -500,14 +500,24 @@ class Search_Results extends Action {
 			$response = $searchObject->processSearch(true, false);
 			if ($response && $response['response']['numFound'] > 0) {
 				$firstObject = reset($response['response']['docs']);
+				/** @var IslandoraDriver $firstObjectDriver */
 				$firstObjectDriver = RecordDriverFactory::initRecordDriver($firstObject);
 				$numMatches = $response['response']['numFound'];
-				$exploreMoreOptions[] = array(
-						'title' => "Images ({$numMatches})",
-						'description' => "Images related to {$searchObject->getQuery()}",
-						'thumbnail' => $firstObjectDriver->getBookcoverUrl('medium'),
-						'link' => $searchObject->renderSearchUrl(),
-				);
+				if ($numMatches == 1){
+					$exploreMoreOptions[] = array(
+							'title' => "Images ({$numMatches})",
+							'description' => "Images related to {$searchObject->getQuery()}",
+							'thumbnail' => $firstObjectDriver->getBookcoverUrl('medium'),
+							'link' => $firstObjectDriver->getRecordUrl(),
+					);
+				}else{
+					$exploreMoreOptions[] = array(
+							'title' => "Images ({$numMatches})",
+							'description' => "Images related to {$searchObject->getQuery()}",
+							'thumbnail' => $firstObjectDriver->getBookcoverUrl('medium'),
+							'link' => $searchObject->renderSearchUrl(),
+					);
+				}
 			}
 
 			$searchObject->init();

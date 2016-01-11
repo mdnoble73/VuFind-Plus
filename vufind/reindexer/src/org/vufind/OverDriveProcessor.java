@@ -25,6 +25,7 @@ public class OverDriveProcessor {
 	private GroupedWorkIndexer indexer;
 	private Logger logger;
 	private PreparedStatement getProductInfoStmt;
+	private PreparedStatement getNumCopiesStmt;
 	private PreparedStatement getProductMetadataStmt;
 	private PreparedStatement getProductAvailabilityStmt;
 	private PreparedStatement getProductFormatsStmt;
@@ -36,6 +37,7 @@ public class OverDriveProcessor {
 		this.logger = logger;
 		try {
 			getProductInfoStmt = econtentConn.prepareStatement("SELECT * from overdrive_api_products where overdriveId = ?", ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_READ_ONLY);
+			getNumCopiesStmt = econtentConn.prepareStatement("SELECT sum(copiesOwned) as totalOwned FROM overdrive_api_product_availability WHERE productId = ?", ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_READ_ONLY);
 			getProductMetadataStmt = econtentConn.prepareStatement("SELECT * from overdrive_api_product_metadata where productId = ?", ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_READ_ONLY);
 			getProductAvailabilityStmt = econtentConn.prepareStatement("SELECT * from overdrive_api_product_availability where productId = ?", ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_READ_ONLY);
 			//getProductCreatorsStmt = econtentConn.prepareStatement("SELECT * from overdrive_api_product_creators where productId = ?");
@@ -54,199 +56,215 @@ public class OverDriveProcessor {
 			indexer.overDriveRecordsIndexed.add(identifier);
 			getProductInfoStmt.setString(1, identifier);
 			ResultSet productRS = getProductInfoStmt.executeQuery();
-			if (productRS.next()){
+			if (productRS.next()) {
 				//Make sure the record isn't deleted
 				Long productId = productRS.getLong("id");
 				String title = productRS.getString("title");
-				if (productRS.getInt("deleted") == 1){
+
+				if (productRS.getInt("deleted") == 1) {
 					logger.info("Not processing deleted overdrive product " + title + " - " + identifier);
 					indexer.overDriveRecordsSkipped.add(identifier);
-				}else {
-					RecordInfo overDriveRecord = groupedWork.addRelatedRecord("overdrive", identifier);
-					overDriveRecord.setRecordIdentifier("overdrive", identifier);
 
-					String subtitle = productRS.getString("subtitle");
-					if (subtitle == null) {
-						subtitle = "";
-					}
-					groupedWork.setTitle(title);
-					groupedWork.setDisplayTitle(title);
-					groupedWork.setSubTitle(subtitle);
-					String fullTitle = title + " " + subtitle;
-					fullTitle = fullTitle.trim();
-					groupedWork.addFullTitle(fullTitle);
-					groupedWork.setDisplayTitle(fullTitle);
-					String mediaType = productRS.getString("mediaType");
-					String formatCategory;
-					String primaryFormat;
-					switch (mediaType) {
-						case "Audiobook":
-							formatCategory = "Audio Books";
-							primaryFormat = "eAudiobook";
-							break;
-						case "Video":
-							formatCategory = "Movies";
-							primaryFormat = "eVideo";
-							break;
-						default:
-							formatCategory = mediaType;
-							primaryFormat = mediaType;
-							break;
-					}
+				} else {
+					getNumCopiesStmt.setLong(1, productId);
+					ResultSet numCopiesRS = getNumCopiesStmt.executeQuery();
+					numCopiesRS.next();
+					if (numCopiesRS.getInt("totalOwned") == 0) {
+						logger.info("Not processing overdrive product with no copies owned" + title + " - " + identifier);
+						indexer.overDriveRecordsSkipped.add(identifier);
+						return;
+					} else {
 
-					groupedWork.addSeries(productRS.getString("series"));
-					groupedWork.setAuthor(productRS.getString("primaryCreatorName"));
-					groupedWork.setAuthorDisplay(productRS.getString("primaryCreatorName"));
+						RecordInfo overDriveRecord = groupedWork.addRelatedRecord("overdrive", identifier);
+						overDriveRecord.setRecordIdentifier("overdrive", identifier);
 
-					Date dateAdded = null;
-					try {
-						String productDataRaw = productRS.getString("rawData");
-						if (productDataRaw != null) {
-							JSONObject productDataJSON = new JSONObject(productDataRaw);
-							if (productDataJSON.has("dateAdded")) {
-								String dateAddedString = productDataJSON.getString("dateAdded");
-								if (dateAddedString.length() > 10) {
-									dateAddedString = dateAddedString.substring(0, 10);
+						String subtitle = productRS.getString("subtitle");
+						if (subtitle == null) {
+							subtitle = "";
+						}
+						groupedWork.setTitle(title);
+						groupedWork.setDisplayTitle(title);
+						groupedWork.setSubTitle(subtitle);
+						String fullTitle = title + " " + subtitle;
+						fullTitle = fullTitle.trim();
+						groupedWork.addFullTitle(fullTitle);
+						groupedWork.setDisplayTitle(fullTitle);
+						String mediaType = productRS.getString("mediaType");
+						String formatCategory;
+						String primaryFormat;
+						switch (mediaType) {
+							case "Audiobook":
+								formatCategory = "Audio Books";
+								primaryFormat = "eAudiobook";
+								break;
+							case "Video":
+								formatCategory = "Movies";
+								primaryFormat = "eVideo";
+								break;
+							default:
+								formatCategory = mediaType;
+								primaryFormat = mediaType;
+								break;
+						}
+
+						groupedWork.addSeries(productRS.getString("series"));
+						groupedWork.setAuthor(productRS.getString("primaryCreatorName"));
+						groupedWork.setAuthorDisplay(productRS.getString("primaryCreatorName"));
+
+						Date dateAdded = null;
+						try {
+							String productDataRaw = productRS.getString("rawData");
+							if (productDataRaw != null) {
+								JSONObject productDataJSON = new JSONObject(productDataRaw);
+								if (productDataJSON.has("dateAdded")) {
+									String dateAddedString = productDataJSON.getString("dateAdded");
+									if (dateAddedString.length() > 10) {
+										dateAddedString = dateAddedString.substring(0, 10);
+									}
+
+									dateAdded = dateAddedParser.parse(dateAddedString);
 								}
+							}
+						} catch (ParseException e) {
+							logger.warn("Error parsing date added for Overdrive " + productId, e);
+						} catch (JSONException e) {
+							logger.warn("Error loading date added for Overdrive " + productId, e);
+						}
+						if (dateAdded == null) {
+							dateAdded = new Date(productRS.getLong("dateAdded") * 1000);
+						}
 
-								dateAdded = dateAddedParser.parse(dateAddedString);
+						productRS.close();
+
+						HashMap<String, String> metadata = loadOverDriveMetadata(groupedWork, productId, primaryFormat);
+						String primaryLanguage = loadOverDriveLanguages(groupedWork, productId, identifier);
+						String targetAudience = loadOverDriveSubjects(groupedWork, productId);
+
+						//Load the formats for the record.  For OverDrive, we will create a separate item for each format.
+						HashSet<String> validFormats = loadOverDriveFormats(groupedWork, productId, identifier);
+						String detailedFormats = Util.getCsvSeparatedString(validFormats);
+						//overDriveRecord.addFormats(validFormats);
+
+						long maxFormatBoost = 1;
+						for (String curFormat : validFormats) {
+							long formatBoost = 1;
+							try {
+								formatBoost = Long.parseLong(indexer.translateSystemValue("format_boost_overdrive", curFormat.replace(' ', '_'), identifier));
+							} catch (Exception e) {
+								logger.warn("Could not translate format boost for " + primaryFormat);
+							}
+							if (formatBoost > maxFormatBoost) {
+								maxFormatBoost = formatBoost;
 							}
 						}
-					}catch (ParseException e){
-						logger.warn("Error parsing date added for Overdrive " + productId, e);
-					}catch (JSONException e){
-						logger.warn("Error loading date added for Overdrive " + productId, e);
-					}
-					if (dateAdded == null){
-						dateAdded = new Date(productRS.getLong("dateAdded")* 1000);
-					}
+						overDriveRecord.setFormatBoost(maxFormatBoost);
 
-					productRS.close();
+						//Load availability & determine which scopes are valid for the record
+						getProductAvailabilityStmt.setLong(1, productId);
+						ResultSet availabilityRS = getProductAvailabilityStmt.executeQuery();
 
-					HashMap<String, String> metadata = loadOverDriveMetadata(groupedWork, productId, primaryFormat);
-					String primaryLanguage = loadOverDriveLanguages(groupedWork, productId, identifier);
-					String targetAudience = loadOverDriveSubjects(groupedWork, productId);
+						overDriveRecord.setEdition("");
+						overDriveRecord.setPrimaryLanguage(primaryLanguage);
+						overDriveRecord.setPublisher(metadata.get("publisher"));
+						overDriveRecord.setPublicationDate(metadata.get("publicationDate"));
+						overDriveRecord.setPhysicalDescription("");
 
-					//Load the formats for the record.  For OverDrive, we will create a separate item for each format.
-					HashSet<String> validFormats = loadOverDriveFormats(groupedWork, productId, identifier);
-					String detailedFormats = Util.getCsvSeparatedString(validFormats);
-					overDriveRecord.addFormats(validFormats);
+						int totalCopiesOwned = 0;
+						while (availabilityRS.next()) {
+							//Just create one item for each with a list of sub formats.
+							ItemInfo itemInfo = new ItemInfo();
+							itemInfo.seteContentSource("OverDrive");
+							itemInfo.seteContentProtectionType("Limited Access");
+							itemInfo.setIsEContent(true);
+							itemInfo.setShelfLocation("Online OverDrive Collection");
+							itemInfo.setCallNumber("Online OverDrive");
+							itemInfo.setSortableCallNumber("Online OverDrive");
+							itemInfo.setDateAdded(dateAdded);
 
-					long maxFormatBoost = 1;
-					for (String curFormat : validFormats){
-						long formatBoost = 1;
-						try{
-							formatBoost = Long.parseLong(indexer.translateSystemValue("format_boost_overdrive", curFormat.replace(' ', '_'), identifier));
-						}catch (Exception e){
-							logger.warn("Could not translate format boost for " + primaryFormat);
-						}
-						if (formatBoost > maxFormatBoost){
-							maxFormatBoost = formatBoost;
-						}
-					}
-					overDriveRecord.setFormatBoost(maxFormatBoost);
+							overDriveRecord.addItem(itemInfo);
 
-					//Load availability & determine which scopes are valid for the record
-					getProductAvailabilityStmt.setLong(1, productId);
-					ResultSet availabilityRS = getProductAvailabilityStmt.executeQuery();
+							long libraryId = availabilityRS.getLong("libraryId");
+							boolean available = availabilityRS.getBoolean("available");
 
-					overDriveRecord.setEdition("");
-					overDriveRecord.setPrimaryLanguage(primaryLanguage);
-					overDriveRecord.setPublisher(metadata.get("publisher"));
-					overDriveRecord.setPublicationDate(metadata.get("publicationDate"));
-					overDriveRecord.setPhysicalDescription("");
+							itemInfo.setFormat(primaryFormat);
+							itemInfo.setSubFormats(detailedFormats);
+							itemInfo.setFormatCategory(formatCategory);
 
-					while (availabilityRS.next()) {
-						//Just create one item for each with a list of sub formats.
-						ItemInfo itemInfo = new ItemInfo();
-						itemInfo.seteContentSource("OverDrive");
-						itemInfo.seteContentProtectionType("Limited Access");
-						itemInfo.setIsEContent(true);
-						itemInfo.setShelfLocation("Online OverDrive Collection");
-						itemInfo.setCallNumber("Online OverDrive");
-						itemInfo.setSortableCallNumber("Online OverDrive");
-						itemInfo.setDateAdded(dateAdded);
+							//TODO: Check to see if this is a pre-release title.  If not, suppress if the record has 0 copies owned
+							int copiesOwned = availabilityRS.getInt("copiesOwned");
+							itemInfo.setNumCopies(copiesOwned);
+							totalCopiesOwned += copiesOwned;
 
-						overDriveRecord.addItem(itemInfo);
+							if (available) {
+								itemInfo.setDetailedStatus("Available Online");
+							} else {
+								itemInfo.setDetailedStatus("Checked Out");
+							}
 
-						long libraryId = availabilityRS.getLong("libraryId");
-						boolean available = availabilityRS.getBoolean("available");
+							boolean isAdult = targetAudience.equals("Adult");
+							boolean isTeen = targetAudience.equals("Young Adult");
+							boolean isKids = targetAudience.equals("Juvenile");
+							if (libraryId == -1) {
+								for (Scope scope : indexer.getScopes()) {
+									if (scope.isIncludeOverDriveCollection()) {
+										//Check based on the audience as well
+										boolean okToInclude = false;
+										if (isAdult && scope.isIncludeOverDriveAdultCollection()) {
+											okToInclude = true;
+										}
+										if (isTeen && scope.isIncludeOverDriveTeenCollection()) {
+											okToInclude = true;
+										}
+										if (isKids && scope.isIncludeOverDriveKidsCollection()) {
+											okToInclude = true;
+										}
+										if (okToInclude) {
+											ScopingInfo scopingInfo = itemInfo.addScope(scope);
+											scopingInfo.setAvailable(available);
+											scopingInfo.setHoldable(true);
 
-						itemInfo.setFormat(primaryFormat);
-						itemInfo.setSubFormats(detailedFormats);
-						itemInfo.setFormatCategory(formatCategory);
-
-						//TODO: Check to see if this is a pre-release title.  If not, suppress if the record has 0 copies owned
-						int copiesOwned = availabilityRS.getInt("copiesOwned");
-						itemInfo.setNumCopies(copiesOwned);
-
-						if (available){
-							itemInfo.setDetailedStatus("Available Online");
-						}else{
-							itemInfo.setDetailedStatus("Checked Out");
-						}
-
-						boolean isAdult = targetAudience.equals("Adult");
-						boolean isTeen = targetAudience.equals("Young Adult");
-						boolean isKids = targetAudience.equals("Juvenile");
-						if (libraryId == -1) {
-							for (Scope scope : indexer.getScopes()) {
-								if (scope.isIncludeOverDriveCollection()) {
-									//Check based on the audience as well
-									boolean okToInclude = false;
-									if (isAdult && scope.isIncludeOverDriveAdultCollection()){
-										okToInclude = true;
-									}
-									if (isTeen && scope.isIncludeOverDriveTeenCollection()){
-										okToInclude = true;
-									}
-									if (isKids && scope.isIncludeOverDriveKidsCollection()){
-										okToInclude = true;
-									}
-									if (okToInclude) {
-										ScopingInfo scopingInfo = itemInfo.addScope(scope);
-										scopingInfo.setAvailable(available);
-										scopingInfo.setHoldable(true);
-
-										if (available) {
-											scopingInfo.setStatus("Available Online");
-											scopingInfo.setGroupedStatus("Available Online");
-										} else {
-											scopingInfo.setStatus("Checked Out");
-											scopingInfo.setGroupedStatus("Checked Out");
+											if (available) {
+												scopingInfo.setStatus("Available Online");
+												scopingInfo.setGroupedStatus("Available Online");
+											} else {
+												scopingInfo.setStatus("Checked Out");
+												scopingInfo.setGroupedStatus("Checked Out");
+											}
 										}
 									}
 								}
-							}
-						} else {
-							for (Scope curScope : indexer.getScopes()) {
-								if (curScope.isIncludeOverDriveCollection() && curScope.getLibraryId().equals(libraryId)) {
-									boolean okToInclude = false;
-									if (isAdult && curScope.isIncludeOverDriveAdultCollection()){
-										okToInclude = true;
-									}
-									if (isTeen && curScope.isIncludeOverDriveTeenCollection()){
-										okToInclude = true;
-									}
-									if (isKids && curScope.isIncludeOverDriveKidsCollection()){
-										okToInclude = true;
-									}
-									if (okToInclude) {
-										ScopingInfo scopingInfo = itemInfo.addScope(curScope);
-										scopingInfo.setAvailable(available);
-										scopingInfo.setHoldable(true);
-										if (curScope.isLocationScope()) {
-											scopingInfo.setLocallyOwned(true);
+							} else {
+								for (Scope curScope : indexer.getScopes()) {
+									if (curScope.isIncludeOverDriveCollection() && curScope.getLibraryId().equals(libraryId)) {
+										boolean okToInclude = false;
+										if (isAdult && curScope.isIncludeOverDriveAdultCollection()) {
+											okToInclude = true;
 										}
-										if (curScope.isLibraryScope()) {
-											scopingInfo.setLibraryOwned(true);
+										if (isTeen && curScope.isIncludeOverDriveTeenCollection()) {
+											okToInclude = true;
+										}
+										if (isKids && curScope.isIncludeOverDriveKidsCollection()) {
+											okToInclude = true;
+										}
+										if (okToInclude) {
+											ScopingInfo scopingInfo = itemInfo.addScope(curScope);
+											scopingInfo.setAvailable(available);
+											scopingInfo.setHoldable(true);
+											if (curScope.isLocationScope()) {
+												scopingInfo.setLocallyOwned(true);
+											}
+											if (curScope.isLibraryScope()) {
+												scopingInfo.setLibraryOwned(true);
+											}
 										}
 									}
 								}
-							}
 
-						}//End processing availability
+							}//End processing availability
+						}
+						groupedWork.addHoldings(totalCopiesOwned);
 					}
+					numCopiesRS.close();
 				}
 			}
 			productRS.close();

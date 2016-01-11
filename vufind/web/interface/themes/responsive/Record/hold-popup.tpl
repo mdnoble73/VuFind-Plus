@@ -112,7 +112,7 @@
 							<span class="input-group-addon"><span class="glyphicon glyphicon-calendar" onclick="$('#canceldate').focus().datepicker('show')" aria-hidden="true"></span></span>
 						</div>
 						<div class="loginFormRow">
-							<i>If this date is reached, the hold will automatically be cancelled for you.	This is a great way to handle time sensitive materials for term papers, etc. If not set, the cancel date will automatically be set 6 months from today.</i>
+							<i>{translate text="automatic_cancellation_notice"}</i>
 						</div>
 					</div>
 				{/if}

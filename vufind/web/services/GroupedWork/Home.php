@@ -21,7 +21,6 @@ class GroupedWork_Home extends Action{
 		if (!$recordDriver->isValid){
 			$logger->log("Did not find a record for id {$id} in solr." , PEAR_LOG_DEBUG);
 			$interface->setTemplate('../Record/invalidRecord.tpl');
-			$interface->display('layout.tpl');
 			$this->display('../Record/invalidRecord.tpl', 'Error');
 			die();
 		}

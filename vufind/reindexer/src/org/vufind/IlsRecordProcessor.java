@@ -1063,38 +1063,52 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 	private void filterPrintFormats(Set<String> printFormats) {
 		if (printFormats.contains("Video") && printFormats.contains("DVD")){
 			printFormats.remove("Video");
-		}else if (printFormats.contains("SoundDisc") && printFormats.contains("SoundRecording")){
+		}if (printFormats.contains("SoundDisc") && printFormats.contains("SoundRecording")){
 			printFormats.remove("SoundRecording");
-		}else if (printFormats.contains("SoundCassette") && printFormats.contains("SoundRecording")){
+		}
+		if (printFormats.contains("SoundDisc") && printFormats.contains("CDROM")){
+			printFormats.remove("CDROM");
+		}
+		if (printFormats.contains("SoundCassette") && printFormats.contains("SoundRecording")){
 			printFormats.remove("SoundRecording");
-		}else if (printFormats.contains("Playaway") && printFormats.contains("SoundRecording")){
+		}
+		if (printFormats.contains("Playaway") && printFormats.contains("SoundRecording")){
 			printFormats.remove("SoundRecording");
-		}else if (printFormats.contains("Playaway") && printFormats.contains("Video")){
+		}
+		if (printFormats.contains("Playaway") && printFormats.contains("Video")){
 			printFormats.remove("Video");
-		}else if (printFormats.contains("Book") && printFormats.contains("LargePrint")){
+		}
+		if (printFormats.contains("Book") && printFormats.contains("LargePrint")){
 			printFormats.remove("Book");
-		}else if (printFormats.contains("Book") && printFormats.contains("Manuscript")){
+		}
+		if (printFormats.contains("Book") && printFormats.contains("Manuscript")){
 			printFormats.remove("Book");
-		}else if (printFormats.contains("Book") && printFormats.contains("GraphicNovel")){
+		}
+		if (printFormats.contains("Book") && printFormats.contains("GraphicNovel")){
 			printFormats.remove("Book");
-		}else if (printFormats.contains("Book") && printFormats.contains("MusicalScore")){
+		}
+		if (printFormats.contains("Book") && printFormats.contains("MusicalScore")){
 			printFormats.remove("Book");
-		}else if (printFormats.contains("Book") && printFormats.contains("BookClubKit")){
+		}
+		if (printFormats.contains("Book") && printFormats.contains("BookClubKit")){
 			printFormats.remove("Book");
-		}else if (printFormats.contains("Book") && printFormats.contains("Kit")){
+		}
+		if (printFormats.contains("Book") && printFormats.contains("Kit")){
 			printFormats.remove("Book");
-		}else if (printFormats.contains("Book") && printFormats.contains("Manuscript")){
+		}
+		if (printFormats.contains("Book") && printFormats.contains("Manuscript")){
 			printFormats.remove("Manuscript");
-		}else if (printFormats.contains("Kinect") || printFormats.contains("XBox360")
+		}
+		if (printFormats.contains("Kinect") || printFormats.contains("XBox360")  || printFormats.contains("Xbox360")
 				|| printFormats.contains("XBoxOne") || printFormats.contains("PlayStation")
 				|| printFormats.contains("PlayStation3") || printFormats.contains("PlayStation4")
 				|| printFormats.contains("Wii") || printFormats.contains("WiiU")
 				|| printFormats.contains("3DS") || printFormats.contains("WindowsGame")){
 			printFormats.remove("Software");
 			printFormats.remove("Electronic");
-		}/*else if (printFormats.size() > 1){
-			return;
-		}*/
+			printFormats.remove("CDROM");
+			printFormats.remove("Blu-ray");
+		}
 	}
 
 	private void getFormatFromTitle(Record record, Set<String> printFormats) {
@@ -1150,6 +1164,11 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 				String editionData = edition.getSubfield('a').getData().toLowerCase();
 				if (editionData.contains("large type") || editionData.contains("large print")) {
 					result.add("LargePrint");
+				}else {
+					String gameFormat = getGameFormatFromValue(editionData);
+					if (gameFormat != null) {
+						result.add(gameFormat);
+					}
 				}
 			}
 		}
@@ -1175,11 +1194,11 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 						result.add("Software");
 					} else if (physicalDescriptionData.contains("sound cassettes")) {
 						result.add("SoundCassette");
-					} else if (physicalDescriptionData.contains("sound discs")) {
+					} else if (physicalDescriptionData.contains("sound discs") || physicalDescriptionData.contains("audio discs")) {
 						result.add("SoundDisc");
 					}
 					//Since this is fairly generic, only use it if we have no other formats yet
-					if (result.size() == 0 && physicalDescriptionData.matches("^.*?\\d+\\s+(p\\.|pages).*$")) {
+					if (result.size() == 0 && subfield.getCode() == 'f' && physicalDescriptionData.matches("^.*?\\d+\\s+(p\\.|pages).*$")) {
 						result.add("Book");
 					}
 				}
@@ -1193,34 +1212,19 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		if (sysDetailsNote2 != null) {
 			if (sysDetailsNote2.getSubfield('a') != null) {
 				String sysDetailsValue = sysDetailsNote2.getSubfield('a').getData().toLowerCase();
-				if (sysDetailsValue.contains("playaway")) {
-					result.add("Playaway");
-				} else if (sysDetailsValue.contains("kinect sensor")) {
-					result.add("Kinect");
-				} else if (sysDetailsValue.contains("xbox one") && !sysDetailsValue.contains("compatible")) {
-					result.add("XboxOne");
-				} else if (sysDetailsValue.contains("xbox") && !sysDetailsValue.contains("compatible")) {
-					result.add("Xbox360");
-				} else if (sysDetailsValue.contains("playstation 4") && !sysDetailsValue.contains("compatible")) {
-					result.add("PlayStation4");
-				} else if (sysDetailsValue.contains("playstation 3") && !sysDetailsValue.contains("compatible")) {
-					result.add("PlayStation3");
-				} else if (sysDetailsValue.contains("playstation") && !sysDetailsValue.contains("compatible")) {
-					result.add("PlayStation");
-				} else if (sysDetailsValue.contains("wii u")) {
-					result.add("WiiU");
-				} else if (sysDetailsValue.contains("nintendo wii")) {
-					result.add("Wii");
-				} else if (sysDetailsValue.contains("nintendo 3ds")) {
-					result.add("3DS");
-				} else if (sysDetailsValue.contains("directx")) {
-					result.add("WindowsGame");
-				} else if (sysDetailsValue.contains("bluray") || sysDetailsValue.contains("blu-ray")) {
-					result.add("Blu-ray");
-				} else if (sysDetailsValue.contains("dvd")) {
-					result.add("DVD");
-				} else if (sysDetailsValue.contains("vertical file")) {
-					result.add("VerticalFile");
+				String gameFormat = getGameFormatFromValue(sysDetailsValue);
+				if (gameFormat != null){
+					result.add(gameFormat);
+				}else{
+					if (sysDetailsValue.contains("playaway")) {
+						result.add("Playaway");
+					} else if (sysDetailsValue.contains("bluray") || sysDetailsValue.contains("blu-ray")) {
+						result.add("Blu-ray");
+					} else if (sysDetailsValue.contains("dvd")) {
+						result.add("DVD");
+					} else if (sysDetailsValue.contains("vertical file")) {
+						result.add("VerticalFile");
+					}
 				}
 			}
 		}
@@ -1234,6 +1238,32 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 					result.add("VerticalFile");
 				}
 			}
+		}
+	}
+
+	private String getGameFormatFromValue(String value) {
+		if (value.contains("kinect sensor")) {
+			return "Kinect";
+		} else if (value.contains("xbox one") && !value.contains("compatible")) {
+			return "XboxOne";
+		} else if (value.contains("xbox") && !value.contains("compatible")) {
+			return "Xbox360";
+		} else if (value.contains("playstation 4") && !value.contains("compatible")) {
+			return "PlayStation4";
+		} else if (value.contains("playstation 3") && !value.contains("compatible")) {
+			return "PlayStation3";
+		} else if (value.contains("playstation") && !value.contains("compatible")) {
+			return "PlayStation";
+		} else if (value.contains("wii u")) {
+			return "WiiU";
+		} else if (value.contains("nintendo wii")) {
+			return "Wii";
+		} else if (value.contains("nintendo 3ds")) {
+			return "3DS";
+		} else if (value.contains("directx")) {
+			return "WindowsGame";
+		}else{
+			return null;
 		}
 	}
 
