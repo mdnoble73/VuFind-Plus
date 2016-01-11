@@ -96,9 +96,13 @@
 							</div>
 							<div class="col-sm-2">
 								{if $record.coverUrl}
-									<a href="{$record.linkUrl}" id="descriptionTrigger{$record.recordId|escape:"url"}">
+									{if $record.recordId && $record.linkUrl}
+										<a href="{$record.linkUrl}" id="descriptionTrigger{$record.recordId|escape:"url"}">
+											<img src="{$record.coverUrl}" class="listResultImage img-thumbnail img-responsive" alt="{translate text='Cover Image'}"/>
+										</a>
+									{else}
 										<img src="{$record.coverUrl}" class="listResultImage img-thumbnail img-responsive" alt="{translate text='Cover Image'}"/>
-									</a>
+									{/if}
 								{/if}
 							</div>
 							<div class="col-sm-7">
