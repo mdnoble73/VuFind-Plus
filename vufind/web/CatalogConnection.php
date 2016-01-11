@@ -817,6 +817,9 @@ class CatalogConnection
 			$historyEntry['linkUrl'] = $recordDriver->getLinkUrl();
 			$historyEntry['coverUrl'] = $recordDriver->getBookcoverUrl('medium');
 			$historyEntry['format'] = $recordDriver->getFormats();
+			if ($historyEntry['title'] == ''){
+				$historyEntry['title']  = $recordDriver->getTitle();
+			}
 		}
 		$recordDriver = null;
 		return $historyEntry;
