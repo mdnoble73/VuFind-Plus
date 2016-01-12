@@ -171,15 +171,12 @@ VuFind.Account = (function(){
 						password = $("#password").val(),
 						rememberMe = $("#rememberMe").prop('checked'),
 						loginErrorElem = $('#loginError'),
-						loadingElem =$('#loading'),
+						loadingElem = $('#loading'),
 						url = Globals.path + "/AJAX/JSON?method=loginUser";
 				loginErrorElem.hide();
 				loadingElem.show();
 				//VuFind.loadingMessage();
-				$.ajax({
-					url: url,
-					data: {username: username, password: password, rememberMe: rememberMe},
-					success: function (response) {
+				$.post(url, {username: username, password: password, rememberMe: rememberMe}, function (response) {
 						loadingElem.hide();
 						if (response.result.success == true) {
 							// Hide "log in" options and show "log out" options:
@@ -188,8 +185,8 @@ VuFind.Account = (function(){
 
 							// Show user name on page in case page doesn't reload
 							var name = response.result.name.trim();
-							//$('#header-container #myAccountNameLink').html(name);
-							name = 'Logged In As ' + name.slice(0, name.lastIndexOf(' ') + 2) + '.';
+							//name = 'Logged In As ' + name.slice(0, name.lastIndexOf(' ') + 2) + '.';
+							name = 'Logged In As ' + name.slice(0, 1) + '. ' + name.slice(name.lastIndexOf(' ') + 1, name.length) + '.';
 							$('#side-bar #myAccountNameLink').html(name);
 
 							if (VuFind.Account.closeModalOnAjaxSuccess) {
@@ -204,17 +201,12 @@ VuFind.Account = (function(){
 								VuFind.Account.ajaxCallback = null;
 							}
 						} else {
-							loginErrorElem.text(response.result.message);
-							loginErrorElem.show();
+							loginErrorElem.text(response.result.message).show();
 						}
-					},
-					error: function () {
-						loginErrorElem.text("There was an error processing your login, please try again.")
-								.show();
-					},
-					dataType: 'json',
-					type: 'post'
-				});
+					}, 'json'
+				).fail(function(){
+						loginErrorElem.text("There was an error processing your login, please try again.").show();
+					})
 			}
 			return false;
 		},
