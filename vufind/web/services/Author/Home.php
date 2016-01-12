@@ -139,7 +139,7 @@ class Author_Home extends Action
 
 		// Set Interface Variables
 		//   Those we can construct BEFORE the search is executed
-		$interface->setPageTitle('Author Search Results');
+//		$interface->setPageTitle('Author Search Results');
 		$interface->assign('sortList',   $searchObject->getSortList());
 		$interface->assign('limitList', $searchObject->getLimitList());
 		$interface->assign('viewList',  $searchObject->getViewList());
@@ -236,11 +236,7 @@ class Author_Home extends Action
 		$currentView  = $searchObject->getView();
 		$interface->assign('displayMode', $currentView);
 		$interface->assign('subpage', 'Search/list-' . $currentView .'.tpl');
-		$interface->assign('sidebar', 'Author/sidebar.tpl');
-		$interface->setTemplate('home.tpl');
-		$interface->display('layout.tpl', 'Author' . $_GET['author']);
+
+		$this->display('home.tpl', 'Author ' . $_GET['author'], 'Author/sidebar.tpl');
 	}
-
-
 }
-?>
