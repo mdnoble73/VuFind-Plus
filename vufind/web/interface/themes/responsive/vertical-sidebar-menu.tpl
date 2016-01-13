@@ -17,8 +17,8 @@
 		</div>
 	{else} {* Not Logged In *}
 		<div class="menu-bar-option">
-			{* Come back to current page. TODO: with account menu open *}
-			<a href="{$path}{$fullPath}" id="loginLink" onclick="return VuFind.Account.followLinkIfLoggedIn(this)" data-login="true" class="menu-icon" title="{translate text='Login'}">
+			<a href="{$path}/MyAccount/Home" id="loginLink" onclick="return VuFind.Account.followLinkIfLoggedIn(this)" data-login="true" class="menu-icon" title="{translate text='Login'}">
+			{*<a href="{$path}{$fullPath}" id="loginLink" onclick="return VuFind.Account.followLinkIfLoggedIn(this)" data-login="true" class="menu-icon" title="{translate text='Login'}">*}
 				<img src="{img filename='/interface/themes/responsive/images/Account.png'}" alt="{translate text='Login'}">
 				<div class="menu-bar-label">Account</div>
 			</a>
@@ -43,7 +43,7 @@
 		<script type="text/javascript">
 			$(function(){ldelim}
 				{* Only trigger event if the side bar is visible *}
-				{if $module == "Search" || $module == "Series" || $module == "Author"}
+				{if $module == "Search" || $module == "Series" || $module == "Author" || $module == "Genealogy"}
 				$('.menu-bar-option:nth-child(1)>a', '#vertical-menu-bar').filter(':visible').click();
 				{elseif $module == "MyAccount" || $module == "Admin" || $module == "Circa" || $module == "EditorialReview" || $module == "Report"}
 				$('.menu-bar-option:nth-child(2)>a', '#vertical-menu-bar').filter(':visible').click();
