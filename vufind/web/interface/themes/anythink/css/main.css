@@ -8605,15 +8605,15 @@ hr.menu {
   margin-bottom: 0;
 }
 #home-page-login {
-  background-color: #AFAFAF;
-  color: #fff;
+  background-color: #E1DEDB;
+  color: #9e1b32;
   font-size: 18px;
   text-shadow: 1px 1px #999999;
   padding: 5px;
   margin-bottom: 5px;
 }
 #home-page-login a {
-  color: #fff;
+  color: #9e1b32;
 }
 #horizontal-search-wrapper + #content-container #home-page-login {
   margin-top: 5px;
@@ -10066,7 +10066,6 @@ div.bottom-border-line {
   padding-right: 0;
   padding-top: 0;
   padding-bottom: 0;
-  background-color: #E1DEDB;
   text-align: left;
 }
 #home-page-login a {
@@ -10078,7 +10077,6 @@ div.bottom-border-line {
   text-shadow: none;
   font-size: 14px;
   text-align: left;
-  color: #9e1b32;
 }
 .sidebar-button {
   background: none #E1DEDB;

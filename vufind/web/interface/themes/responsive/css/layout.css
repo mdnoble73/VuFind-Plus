@@ -217,14 +217,31 @@ hr.menu {
   white-space: nowrap;
   position: absolute;
   -webkit-transform: rotate(-90deg) translateX(-100%);
+      -ms-transform: rotate(-90deg) translateX(-100%);
           transform: rotate(-90deg) translateX(-100%);
   -webkit-transform-origin: 0 0;
+      -ms-transform-origin: 0 0;
           transform-origin: 0 0;
   margin-top: 10px;
   margin-left: 10px;
 }
 .collapsedSidebar {
   width: 40px;
+}
+@media (min-width: 768px) {
+  .collapsedSidebar.rightSidebar {
+    left: 94.44%;
+  }
+}
+@media (min-width: 992px) {
+  .collapsedSidebar.rightSidebar {
+    left: 95.74%;
+  }
+}
+@media (min-width: 1200px) {
+  .collapsedSidebar.rightSidebar {
+    left: 96.49%;
+  }
 }
 @media (min-width: 768px) {
   .mainContentWhenSiderbarCollapsed {
@@ -240,6 +257,9 @@ hr.menu {
   .mainContentWhenSiderbarCollapsed {
     width: 96.49%;
   }
+}
+.mainContentWhenSiderbarCollapsed.rightSidebar {
+  right: 40px;
 }
 @media print {
   #side-bar {

@@ -8597,15 +8597,15 @@ hr.menu {
   margin-bottom: 0;
 }
 #home-page-login {
-  background-color: #AFAFAF;
-  color: #fff;
+  background-color: #feae1a;
+  color: #FFF;
   font-size: 18px;
   text-shadow: 1px 1px #999999;
   padding: 5px;
   margin-bottom: 5px;
 }
 #home-page-login a {
-  color: #fff;
+  color: #FFF;
 }
 #horizontal-search-wrapper + #content-container #home-page-login {
   margin-top: 5px;
@@ -10020,9 +10020,6 @@ a.browse-thumbnail.active {
 .header-button:hover {
   border-bottom: 0;
   box-shadow: 2px 2px 5px #fff;
-}
-#home-page-login {
-  background-color: #feae1a;
 }
 #browse-category-carousel {
   overflow: visible;
