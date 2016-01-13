@@ -31,6 +31,7 @@ abstract class FacetSetting extends DB_DataObject {
 			"econtent_device" => "Compatible Device",
 			"econtent_source" => "E-Content Collection",
 			"econtent_protection_type" => "E-Content Protection",
+			"subject_facet" => "Subjects",
 			"topic_facet" => "Topics",
 			"target_audience" => "Audience",
 			"mpaa_rating" => "Movie Rating",

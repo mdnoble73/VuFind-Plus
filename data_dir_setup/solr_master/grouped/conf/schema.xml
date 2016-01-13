@@ -178,6 +178,7 @@
 		<field name="series" type="text" indexed="true" stored="true" multiValued="true"/>
 		<field name="series2" type="text" indexed="true" stored="true" multiValued="true"/>
 		<field name="series_proper" type="textProper" indexed="true" stored="false" multiValued="true"/>
+		<field name="subject_facet" type="string" indexed="true" stored="true" multiValued="true" docValues="true"/>
 		<field name="topic" type="text" indexed="true" stored="true" multiValued="true"/>
 		<field name="topic_proper" type="textProper" indexed="true" stored="false" multiValued="true"/>
 		<field name="topic_facet" type="string" indexed="true" stored="true" multiValued="true" docValues="true"/>
@@ -275,6 +276,10 @@
 	<copyField source="geographic" dest="geographic_proper"/>
 	<copyField source="era" dest="era_proper"/>
 	<copyField source="genre" dest="genre_proper"/>
+	<copyField source="topic" dest="subject_facet"/>
+	<copyField source="geographic" dest="subject_facet"/>
+	<copyField source="era" dest="subject_facet"/>
+	<copyField source="genre" dest="subject_facet"/>
 	<copyField source="local_callnumber_*" dest="local_callnumber_exact_*"/>
 	<copyField source="local_callnumber_*" dest="local_callnumber_left_*"/>
 
