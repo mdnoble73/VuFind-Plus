@@ -1211,5 +1211,13 @@ function getLibraryLocationUpdates(){
 							'ALTER TABLE location DROP COLUMN extraLocationCodesToInclude',
 					)
 			),
+
+		'show_library_hours_notice_on_account_pages' => array(
+			'title' => 'Show Library Hours Notice On Account Pages',
+			'description' => 'Add option to enable showing the library Hours Notice on account pages for individual libraries',
+			'sql' => array(
+				'ALTER TABLE `library` ADD COLUMN `showLibraryHoursNoticeOnAccountPages` TINYINT(1) DEFAULT 1 AFTER `showLibraryHoursAndLocationsLink`',
+			),
+		),
 	);
 }

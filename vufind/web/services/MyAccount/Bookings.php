@@ -11,6 +11,7 @@ class MyAccount_Bookings extends MyAccount {
 
 	function launch() {
 		global $interface,
+		       $library,
 		       $user;
 
 //		// Define sorting options
@@ -28,8 +29,10 @@ class MyAccount_Bookings extends MyAccount {
 		$interface->assign('recordList', $bookings);
 
 		// Additional Template Settings
-		$libraryHoursMessage = Location::getLibraryHoursMessage($user->homeLocationId);
-		$interface->assign('libraryHoursMessage', $libraryHoursMessage);
+		if ($library->showLibraryHoursNoticeOnAccountPages) {
+			$libraryHoursMessage = Location::getLibraryHoursMessage($user->homeLocationId);
+			$interface->assign('libraryHoursMessage', $libraryHoursMessage);
+		}
 
 		// Build Page //
 		$this->display('bookings.tpl', 'My Scheduled Items');
