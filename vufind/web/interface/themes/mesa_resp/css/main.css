@@ -8265,18 +8265,10 @@ hr.menu {
 }
 .header-button {
   text-align: center;
-  height: 82px !important;
-  border-bottom: 4px solid #FFFFFF;
-}
-.header-button > a {
-  line-height: 82px !important;
-  text-align: center;
-  vertical-align: middle;
-  padding: 0;
-  color: #8b8b8b !important;
   text-shadow: 1px 1px #fff;
-}
-.header-button > a:visited {
+  vertical-align: middle;
+  line-height: 82px !important;
+  border-bottom: 4px solid #FFFFFF;
   color: #8b8b8b !important;
 }
 .header-button:hover {
@@ -10002,40 +9994,4 @@ a.browse-thumbnail.active {
 }
 .header-button:hover {
   border-bottom: 0;
-}
-.collapsedSidebar {
-  width: 40px;
-}
-@media (min-width: 768px) {
-  .collapsedSidebar.rightSidebar {
-    left: 94.44%;
-  }
-}
-@media (min-width: 992px) {
-  .collapsedSidebar.rightSidebar {
-    left: 95.74%;
-  }
-}
-@media (min-width: 1200px) {
-  .collapsedSidebar.rightSidebar {
-    left: 96.49%;
-  }
-}
-@media (min-width: 768px) {
-  .mainContentWhenSiderbarCollapsed {
-    width: 94.44%;
-  }
-}
-@media (min-width: 992px) {
-  .mainContentWhenSiderbarCollapsed {
-    width: 95.74%;
-  }
-}
-@media (min-width: 1200px) {
-  .mainContentWhenSiderbarCollapsed {
-    width: 96.49%;
-  }
-}
-.mainContentWhenSiderbarCollapsed.rightSidebar {
-  right: 40px;
 }

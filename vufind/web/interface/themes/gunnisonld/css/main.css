@@ -8265,18 +8265,10 @@ hr.menu {
 }
 .header-button {
   text-align: center;
-  height: 132px !important;
-  border-bottom: 4px solid #fff;
-}
-.header-button > a {
-  line-height: 132px !important;
-  text-align: center;
-  vertical-align: middle;
-  padding: 0;
-  color: #8b8b8b !important;
   text-shadow: 1px 1px #fff;
-}
-.header-button > a:visited {
+  vertical-align: middle;
+  line-height: 132px !important;
+  border-bottom: 4px solid #fff;
   color: #8b8b8b !important;
 }
 .header-button:hover {
@@ -10020,21 +10012,22 @@ a.browse-thumbnail.active {
   }
 }
 .header-button {
+  border: 0;
   border-radius: 0.5em;
+  color: #fff !important;
   background-color: rgba(31, 31, 31, 0.7);
   margin-top: 20px;
-  height: 60px !important;
-  border: 0;
-}
-.header-button > a {
-  color: ghostwhite !important;
   line-height: 60px !important;
   text-shadow: none;
 }
-.header-button > a:visited {
+.header-button:hover {
+  text-decoration: underline;
+  border-bottom: 0;
+  box-shadow: 2px 2px 5px #fff;
+}
+.header-button {
   color: ghostwhite !important;
 }
 .header-button:hover {
-  border-bottom: 0;
   box-shadow: 2px 2px 5px #DCE0D7;
 }

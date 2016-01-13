@@ -66,22 +66,35 @@ hr.menu{
     height:auto;
   }
 }
-
+// OLD Version, when markup was div.header-button > a
+//.header-button{
+//  text-align: center;
+//  height: @header-height - 8px !important;
+//  border-bottom: 4px solid @header-bottom-color;
+//  & > a{
+//    line-height: @header-height - 8px !important;
+//    text-align: center;
+//    vertical-align: middle;
+//    padding: 0;
+//    color: @header-link-color !important;
+//    text-shadow: 1px 1px #fff;
+//    &:visited{
+//      color: @header-link-color !important;
+//    }
+//  }
+//  &:hover{
+//    border-bottom: 4px solid @link-hover-color;
+//  }
+//}
+// New Version, markup is a > div.header-button
 .header-button{
   text-align: center;
-  height: @header-height - 8px !important;
+  text-shadow: 1px 1px #fff;
+  vertical-align: middle;
+  //height: @header-height - 8px !important; // TODO: Needed, line-height should force this to be the same now
+  line-height: @header-height - 8px !important;
   border-bottom: 4px solid @header-bottom-color;
-  & > a{
-    line-height: @header-height - 8px !important;
-    text-align: center;
-    vertical-align: middle;
-    padding: 0;
-    color: @header-link-color !important;
-    text-shadow: 1px 1px #fff;
-    &:visited{
-      color: @header-link-color !important;
-    }
-  }
+  color: @header-link-color !important;
   &:hover{
     border-bottom: 4px solid @link-hover-color;
   }

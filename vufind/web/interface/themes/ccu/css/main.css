@@ -8265,18 +8265,10 @@ hr.menu {
 }
 .header-button {
   text-align: center;
-  height: 97px !important;
-  border-bottom: 4px solid #015294;
-}
-.header-button > a {
-  line-height: 97px !important;
-  text-align: center;
-  vertical-align: middle;
-  padding: 0;
-  color: #8b8b8b !important;
   text-shadow: 1px 1px #fff;
-}
-.header-button > a:visited {
+  vertical-align: middle;
+  line-height: 97px !important;
+  border-bottom: 4px solid #015294;
   color: #8b8b8b !important;
 }
 .header-button:hover {
