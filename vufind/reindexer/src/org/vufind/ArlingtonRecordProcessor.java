@@ -3,6 +3,7 @@ package org.vufind;
 import au.com.bytecode.opencsv.CSVReader;
 import org.apache.log4j.Logger;
 import org.ini4j.Ini;
+import org.marc4j.marc.DataField;
 import org.marc4j.marc.Record;
 
 import java.io.File;
@@ -12,6 +13,7 @@ import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 
 /**
  * Custom Record Processing for Arlington
@@ -171,23 +173,39 @@ public class ArlingtonRecordProcessor extends IIIRecordProcessor {
 		// ??f?? = Fiction
 		// ??n?? = Non-Fiction
 		// ??x?? = Other
-		String literaryForm = "Other";
+		String literaryForm = null;
 		for (ItemInfo printItem : printItems){
 			String locationCode = printItem.getShelfLocationCode();
 			if (locationCode != null) {
-				if (locationCode.length() >= 3) {
-					if (locationCode.charAt(2) == 'f') {
-						literaryForm = "Fiction";
-						break;
-					} else if (locationCode.charAt(2) == 'n') {
-						literaryForm = "Non Fiction";
-						break;
-					}
+				literaryForm = getLiteraryFormForLocation(locationCode);
+				if (literaryForm != null){
+					break;
 				}
 			}
 		}
+		if (printItems.size() == 0){
+			String bibLocation = getFirstFieldVal(record, "998a");
+			if (bibLocation != null) {
+				literaryForm = getLiteraryFormForLocation(bibLocation);
+			}
+		}
+		if (literaryForm == null){
+			literaryForm = "Other";
+		}
 		groupedWork.addLiteraryForm(literaryForm);
 		groupedWork.addLiteraryFormFull(literaryForm);
+	}
+
+	private String getLiteraryFormForLocation(String locationCode) {
+		String literaryForm = null;
+		if (locationCode.length() >= 3) {
+			if (locationCode.charAt(2) == 'f') {
+				literaryForm = "Fiction";
+			} else if (locationCode.charAt(2) == 'n') {
+				literaryForm = "Non Fiction";
+			}
+		}
+		return literaryForm;
 	}
 
 	@Override
@@ -199,19 +217,12 @@ public class ArlingtonRecordProcessor extends IIIRecordProcessor {
 		HashSet<String> targetAudiences = new HashSet<>();
 		for (ItemInfo printItem : printItems){
 			String locationCode = printItem.getShelfLocationCode();
-			if (locationCode != null) {
-				if (locationCode.length() >= 2) {
-					if (locationCode.charAt(1) == 'a') {
-						targetAudiences.add("Adult");
-						break;
-					} else if (locationCode.charAt(1) == 'j') {
-						targetAudiences.add("Young Adult");
-						break;
-					} else if (locationCode.charAt(1) == 'y') {
-						targetAudiences.add("Teen");
-						break;
-					}
-				}
+			if (addTargetAudienceBasedOnLocationCode(targetAudiences, locationCode)) break;
+		}
+		if (printItems.size() == 0){
+			String bibLocation = getFirstFieldVal(record, "998a");
+			if (bibLocation != null) {
+				addTargetAudienceBasedOnLocationCode(targetAudiences, bibLocation);
 			}
 		}
 		if (targetAudiences.size() == 0){
@@ -219,6 +230,24 @@ public class ArlingtonRecordProcessor extends IIIRecordProcessor {
 		}
 		groupedWork.addTargetAudiences(targetAudiences);
 		groupedWork.addTargetAudiencesFull(targetAudiences);
+	}
+
+	private boolean addTargetAudienceBasedOnLocationCode(HashSet<String> targetAudiences, String locationCode) {
+		if (locationCode != null) {
+			if (locationCode.length() >= 2) {
+				if (locationCode.charAt(1) == 'a') {
+					targetAudiences.add("Adult");
+					return true;
+				} else if (locationCode.charAt(1) == 'j') {
+					targetAudiences.add("Juvenile");
+					return true;
+				} else if (locationCode.charAt(1) == 'y') {
+					targetAudiences.add("Young Adult");
+					return true;
+				}
+			}
+		}
+		return false;
 	}
 
 	/**
@@ -241,5 +270,88 @@ public class ArlingtonRecordProcessor extends IIIRecordProcessor {
 		} catch (NumberFormatException e) {
 			logger.warn("Could not load format boost for format " + formatBoost + " profile " + profileType);
 		}
+	}
+
+	@Override
+	protected List<RecordInfo> loadUnsuppressedEContentItems(GroupedWorkSolr groupedWork, String identifier, Record record){
+		List<RecordInfo> unsuppressedEcontentRecords = new ArrayList<>();
+		//For arlington, eContent will always have no items on the bib record.
+		List<DataField> items = getDataFields(record, itemTag);
+		if (items.size() > 0){
+			return unsuppressedEcontentRecords;
+		}else{
+			//No items so we can continue on.
+			//Check the mat type
+			String matType = getFirstFieldVal(record, "998d");
+			//Get the bib location
+			String bibLocation = getFirstFieldVal(record, "998a");
+			//Get the url
+			String url = getFirstFieldVal(record, "856u");
+
+			if (url != null && !url.toLowerCase().contains("lib.overdrive.com")){
+				//Get the econtent source
+				String urlLower = url.toLowerCase();
+				String econtentSource;
+				String urlText = getFirstFieldVal(record, "856z").toLowerCase();
+				if (urlText != null && urlText.contains("gale virtual reference library")){
+					econtentSource = "Gale Virtual Reference Library";
+				}else if (urlText != null && urlText.contains("gale directory library")){
+					econtentSource = "Gale Directory Library" ;
+				}else if (urlText != null && urlText.toLowerCase().contains("hoopla")){
+					econtentSource = "Hoopla";
+				}else if (urlText != null && urlText.toLowerCase().contains("national geographic virtual library")){
+					econtentSource = "National Geographic Virtual Library";
+				}else if (urlText != null && (urlText.toLowerCase().contains("ebscohost") || urlLower.contains("netlibrary"))){
+					econtentSource = "EbscoHost";
+				}else{
+					econtentSource = "Premium Sites";
+				}
+
+				ItemInfo itemInfo = new ItemInfo();
+				itemInfo.setIsEContent(true);
+				itemInfo.setLocationCode(bibLocation);
+				itemInfo.seteContentProtectionType("external");
+				itemInfo.setCallNumber("Online");
+				itemInfo.seteContentSource(econtentSource);
+				itemInfo.setShelfLocation(translateValue("shelf_location", bibLocation, identifier));
+				RecordInfo relatedRecord = groupedWork.addRelatedRecord("external_econtent", identifier);
+				relatedRecord.setSubSource(profileType);
+				relatedRecord.addItem(itemInfo);
+				itemInfo.seteContentUrl(url);
+
+				//Set the format based on the material type
+				itemInfo.setFormat(translateValue("format", matType, identifier));
+				itemInfo.setFormatCategory(translateValue("format_category", matType, identifier));
+				String boostStr = translateValue("format_boost", matType, identifier);
+				try{
+					int boost = Integer.parseInt(boostStr);
+					relatedRecord.setFormatBoost(boost);
+				} catch (Exception e){
+					logger.warn("Unable to load boost for " + identifier + " got boost " + boostStr);
+				}
+
+				itemInfo.setDetailedStatus("Available Online");
+
+				//Determine which scopes this title belongs to
+				for (Scope curScope : indexer.getScopes()){
+					if (curScope.isItemPartOfScope(profileType, bibLocation, "", false, false, true)){
+						ScopingInfo scopingInfo = itemInfo.addScope(curScope);
+						scopingInfo.setAvailable(true);
+						scopingInfo.setStatus("Available Online");
+						scopingInfo.setGroupedStatus("Available Online");
+						scopingInfo.setHoldable(false);
+						if (curScope.isLocationScope()) {
+							scopingInfo.setLocallyOwned(curScope.isItemOwnedByScope(profileType, bibLocation, ""));
+						}
+						if (curScope.isLibraryScope()) {
+							scopingInfo.setLibraryOwned(curScope.isItemOwnedByScope(profileType, bibLocation, ""));
+						}
+					}
+				}
+
+				unsuppressedEcontentRecords.add(relatedRecord);
+			}
+		}
+		return unsuppressedEcontentRecords;
 	}
 }
