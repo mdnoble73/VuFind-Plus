@@ -292,17 +292,22 @@ public class ArlingtonRecordProcessor extends IIIRecordProcessor {
 				//Get the econtent source
 				String urlLower = url.toLowerCase();
 				String econtentSource;
-				String urlText = getFirstFieldVal(record, "856z").toLowerCase();
-				if (urlText != null && urlText.contains("gale virtual reference library")){
-					econtentSource = "Gale Virtual Reference Library";
-				}else if (urlText != null && urlText.contains("gale directory library")){
-					econtentSource = "Gale Directory Library" ;
-				}else if (urlText != null && urlText.toLowerCase().contains("hoopla")){
-					econtentSource = "Hoopla";
-				}else if (urlText != null && urlText.toLowerCase().contains("national geographic virtual library")){
-					econtentSource = "National Geographic Virtual Library";
-				}else if (urlText != null && (urlText.toLowerCase().contains("ebscohost") || urlLower.contains("netlibrary"))){
-					econtentSource = "EbscoHost";
+				String urlText = getFirstFieldVal(record, "856z");
+				if (urlText != null){
+					urlText = urlText.toLowerCase();
+					if (urlText.contains("gale virtual reference library")){
+						econtentSource = "Gale Virtual Reference Library";
+					}else if (urlText.contains("gale directory library")){
+						econtentSource = "Gale Directory Library" ;
+					}else if (urlText.contains("hoopla")){
+						econtentSource = "Hoopla";
+					}else if (urlText.contains("national geographic virtual library")){
+						econtentSource = "National Geographic Virtual Library";
+					}else if ((urlText.contains("ebscohost") || urlLower.contains("netlibrary"))){
+						econtentSource = "EbscoHost";
+					}else{
+						econtentSource = "Premium Sites";
+					}
 				}else{
 					econtentSource = "Premium Sites";
 				}
