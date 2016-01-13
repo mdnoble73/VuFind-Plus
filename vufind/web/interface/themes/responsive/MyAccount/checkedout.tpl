@@ -23,17 +23,17 @@
 						{/foreach}
 					</select>
 
-					<label for="hideCovers" class="control-label checkbox  pull-right"> Hide Covers <input id="hideCovers" type="checkbox" onclick="$('.coverColumn').toggle();"/></label>
+					<label for="hideCovers" class="control-label checkbox  pull-right"> Hide Covers <input id="hideCovers" type="checkbox" onclick="$('.coverColumn').toggle();"></label>
 				</div>
 
 				<div class="btn-group">
 					<a href="#" onclick="return VuFind.Account.renewSelectedTitles();" class="btn btn-sm btn-default">Renew Selected Items</a>
 					{*<a href="{$path}/MyAccount/RenewAll" class="btn btn-sm btn-default">Renew All</a>*}
 					<a href="#" onclick="VuFind.Account.renewAll()" class="btn btn-sm btn-default">Renew All</a>
-					<a href="{$path}/MyAccount/CheckedOut?exportToExcel" class="btn btn-sm btn-default" id="exportToExcelTop" >Export to Excel</a>
+					<a href="{$path}/MyAccount/CheckedOut?exportToExcel" class="btn btn-sm btn-default" id="exportToExcelTop">Export to Excel</a>
 				</div>
 
-				<br/>
+				<br>
 
 				<div class="striped">
 					{foreach from=$transList item=checkedOutTitle name=checkedOutTitleLoop key=checkedOutKey}
@@ -50,9 +50,9 @@
 				</div>
 
 				<p class="alert alert-info">
-					Most eBooks and eAudiobooks cannot be renewed before they expire.  <br/>
+					Most eBooks and eAudiobooks cannot be renewed before they expire.  <br>
 					However, eContent from OverDrive can be renewed within the OverDrive app starting 3 days before the due date if the title is not on hold by other patrons.
-					You may need to download the title again after renewal.<br/>
+					You may need to download the title again after renewal.<br>
 					For other content, if you want to renew, please wait for the title to expire and then check it out again.  You may need to download the title again after you check it out.
 					You may be able to place a new hold on the title a few days before the title expires to help ensure continuous reading/listening.
 				</p>

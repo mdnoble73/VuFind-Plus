@@ -4,14 +4,14 @@
 			<div class="row">
 				<div class="selectTitle col-xs-2">
 					{if !isset($record.renewable) || $record.renewable == true}
-					<input type="checkbox" name="selected[{$record.userId}|{$record.recordId}|{$record.renewIndicator}]" class="titleSelect" id="selected{$record.itemid}"/>
+					<input type="checkbox" name="selected[{$record.userId}|{$record.recordId}|{$record.renewIndicator}]" class="titleSelect" id="selected{$record.itemid}">
 					{/if}
 				</div>
 				<div class="col-xs-10 text-center coverColumn">
 					{if $user->disableCoverArt != 1}
 						{if $record.id && $record.coverUrl}
 							<a href="{$record.link}">
-								<img src="{$record.coverUrl}" class="listResultImage img-thumbnail img-responsive" alt="{translate text='Cover Image'}"/>
+								<img src="{$record.coverUrl}" class="listResultImage img-thumbnail img-responsive" alt="{translate text='Cover Image'}">
 							</a>
 						{/if}
 					{/if}
@@ -74,19 +74,21 @@
 
 					{if $showRatings && $record.groupedWorkId && $record.ratingData}
 							<div class="row">
-								<div class="result-label col-md-3">Rating&nbsp;</div>
+								<div class="result-label col-md-3">{translate text='Rating'}</div>
 								<div class="col-md-9 result-value">
 									{include file="GroupedWork/title-rating.tpl" ratingClass="" id=$record.groupedWorkId ratingData=$record.ratingData showNotInterested=false}
 								</div>
 							</div>
 					{/if}
 
+					{if count($user->getLinkedUsers()) > 0}
 					<div class="row">
 						<div class="result-label col-md-3">{translate text='Checked Out To'}</div>
 						<div class="col-md-9 result-value">
 							{$record.user}
 						</div>
 					</div>
+					{/if}
 
 					<div class="row">
 						<div class="result-label col-md-3">{translate text='Due'}</div>
