@@ -46,7 +46,18 @@ public abstract class MarcRecordProcessor {
 		groupedWork.addLCSubjects(getLCSubjects(record));
 		//Add bisac subjects
 		groupedWork.addBisacSubjects(getBisacSubjects(record));
-		groupedWork.addSeries(getFieldList(record, "440ap:800pqt:830ap"));
+		/*List<DataField> seriesFields = getDataFields(record, "490");
+		HashSet<String> allSeries = new HashSet<>();
+		for (DataField seriesField : seriesFields){
+			if (seriesField.getIndicator1() == '0' || seriesField.getIndicator1() == '1'){
+				if (seriesField.getSubfield('a') != null){
+					allSeries.add()
+				}
+
+			}
+		}*/
+		String seriesVolume = getFirstFieldVal(record, "830v");
+		groupedWork.addSeries(getFieldList(record, "830ap:800pqt:440ap"));
 		groupedWork.addSeries2(getFieldList(record, "490a"));
 		groupedWork.addDateSpan(getFieldList(record, "362a"));
 		groupedWork.addContents(getFieldList(record, "505a:505t"));

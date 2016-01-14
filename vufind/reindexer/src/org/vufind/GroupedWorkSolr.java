@@ -74,7 +74,7 @@ public class GroupedWorkSolr {
 	private HashSet<String> publishers = new HashSet<>();
 	private HashSet<String> publicationDates = new HashSet<>();
 	private float rating = 2.5f;
-	private HashSet<String> series = new HashSet<>();
+	private HashMap<String, Long> series = new HashMap<>();
 	private HashSet<String> series2 = new HashSet<>();
 	private String subTitle;
 	private HashSet<String> targetAudienceFull = new HashSet<>();
@@ -150,7 +150,26 @@ public class GroupedWorkSolr {
 		doc.addField("physical", physicals);
 		doc.addField("edition", editions);
 		doc.addField("dateSpan", dateSpans);
-		doc.addField("series", series);
+		if (series.size() > 1){
+			//We have more than one series, only include the most popular
+			long mostUsedCount = 0;
+			String mostUsedSeries = "";
+			for (String seriesName : this.series.keySet()){
+				long timesUsed = this.series.get(seriesName);
+				if (timesUsed > mostUsedCount){
+					mostUsedSeries = seriesName;
+				}
+			}
+			doc.addField("series", mostUsedSeries);
+			//add anything that isn't the most used to series 2
+			for (String seriesName : this.series.keySet()){
+				if (!seriesName.equals(mostUsedSeries)){
+					series2.add(seriesName);
+				}
+			}
+		} else {
+			doc.addField("series", series.keySet());
+		}
 		doc.addField("series2", series2);
 		doc.addField("topic", topics);
 		doc.addField("topic_facet", topicFacets);
@@ -825,14 +844,19 @@ public class GroupedWorkSolr {
 	public void addSeries(Set<String> fieldList) {
 		for(String curField : fieldList){
 			if (!curField.equalsIgnoreCase("none")){
-				this.series.add(Util.trimTrailingPunctuation(curField));
+				this.addSeries(curField);
 			}
 		}
 	}
 
 	public void addSeries(String series) {
 		if (series != null && !series.equalsIgnoreCase("none")){
-			this.series.add(Util.trimTrailingPunctuation(series));
+			series = Util.trimTrailingPunctuation(series);
+			if (this.series.containsKey(series)){
+				this.series.put(series, this.series.get(series) + 1);
+			}else{
+				this.series.put(series, 1L);
+			}
 		}
 	}
 
