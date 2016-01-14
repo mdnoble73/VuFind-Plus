@@ -5,6 +5,7 @@ import org.apache.log4j.Logger;
 import org.ini4j.Ini;
 import org.marc4j.marc.DataField;
 import org.marc4j.marc.Record;
+import org.marc4j.marc.Subfield;
 
 import java.io.File;
 import java.io.FileReader;
@@ -319,6 +320,7 @@ public class ArlingtonRecordProcessor extends IIIRecordProcessor {
 				itemInfo.setCallNumber("Online");
 				itemInfo.seteContentSource(econtentSource);
 				itemInfo.setShelfLocation(econtentSource);
+				itemInfo.setIType("eCollection");
 				RecordInfo relatedRecord = groupedWork.addRelatedRecord("external_econtent", identifier);
 				relatedRecord.setSubSource(profileType);
 				relatedRecord.addItem(itemInfo);
@@ -358,5 +360,19 @@ public class ArlingtonRecordProcessor extends IIIRecordProcessor {
 			}
 		}
 		return unsuppressedEcontentRecords;
+	}
+
+	protected boolean isBibSuppressed(Record record) {
+		DataField field998 = (DataField)record.getVariableField("998");
+		if (field998 != null){
+			Subfield suppressionSubfield = field998.getSubfield('e');
+			if (suppressionSubfield != null){
+				String bCode3 = suppressionSubfield.getData().toLowerCase().trim();
+				if (bCode3.matches("^[xnopwhd]$")){
+					return true;
+				}
+			}
+		}
+		return false;
 	}
 }
