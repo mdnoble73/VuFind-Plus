@@ -303,7 +303,7 @@ public class ArlingtonRecordProcessor extends IIIRecordProcessor {
 						econtentSource = "Hoopla";
 					}else if (urlText.contains("national geographic virtual library")){
 						econtentSource = "National Geographic Virtual Library";
-					}else if ((urlText.contains("ebscohost") || urlLower.contains("netlibrary"))){
+					}else if ((urlText.contains("ebscohost") || urlLower.contains("netlibrary") || urlLower.contains("ebsco"))){
 						econtentSource = "EbscoHost";
 					}else{
 						econtentSource = "Premium Sites";
@@ -318,7 +318,7 @@ public class ArlingtonRecordProcessor extends IIIRecordProcessor {
 				itemInfo.seteContentProtectionType("external");
 				itemInfo.setCallNumber("Online");
 				itemInfo.seteContentSource(econtentSource);
-				itemInfo.setShelfLocation(translateValue("shelf_location", bibLocation, identifier));
+				itemInfo.setShelfLocation(econtentSource);
 				RecordInfo relatedRecord = groupedWork.addRelatedRecord("external_econtent", identifier);
 				relatedRecord.setSubSource(profileType);
 				relatedRecord.addItem(itemInfo);

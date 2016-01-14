@@ -54,6 +54,22 @@ class GroupedWork_AJAX {
 		return json_encode($result);
 	}
 
+	function forceRegrouping(){
+		require_once ROOT_DIR . '/RecordDrivers/GroupedWorkDriver.php';
+		require_once ROOT_DIR . '/sys/Grouping/GroupedWork.php';
+		$id = $_REQUEST['id'];
+		$groupedWork = new GroupedWork();
+		$groupedWork->permanent_id = $id;
+		if ($groupedWork->find(true)){
+			$groupedWork->date_updated = null;
+			//TODO: Get a list of all primary identifiers and mark the checksum as null.
+			//For OverDrive titles, just need to set dateUpdated to now.
+			return json_encode(array('success' => false, 'message' => 'Unable to mark the title for regrouping. This method isn\'t implemented yet.'));
+		}else{
+			return json_encode(array('success' => false, 'message' => 'Unable to mark the title for regrouping. Could not find the title.'));
+		}
+	}
+
 	function forceReindex(){
 		require_once ROOT_DIR . '/RecordDrivers/GroupedWorkDriver.php';
 		require_once ROOT_DIR . '/sys/Grouping/GroupedWork.php';
@@ -61,6 +77,9 @@ class GroupedWork_AJAX {
 		$groupedWork = new GroupedWork();
 		$groupedWork->permanent_id = $id;
 		if ($groupedWork->find(true)){
+			if ($groupedWork->date_updated == null){
+				return json_encode(array('success' => true, 'message' => 'This title was already marked to be indexed again next time the index is run.'));
+			}
 			$groupedWork->date_updated = null;
 			$numRows = $groupedWork->query("UPDATE grouped_work set date_updated = null where id = " . $groupedWork->id);
 			if ($numRows == 1){
