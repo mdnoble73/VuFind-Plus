@@ -72,11 +72,7 @@
 #*/10 * * * * /root/cron/copyCovers.sh
 # Every 10 minutes. fixed 11-14-2014 plb. (previously every hour 10 past the hour)
 
-# SIDELOAD ECONTENT - DOWNLOAD MARC
-0 13 * * * cd /usr/local/VuFind-Plus/vufind/cron; ./sideload.sh catalog.library.nashville.org  
-
-# LEXILE : download file from Marmot
-00 4 1 * * cd /data/vufind-plus/; rm lexileTitles.txt*; wget http://venus.marmot.org/lexileTitles.txt  
+# SIDELOADED ECONTENT MARC and LEXILE both triggered in full_update.sh
 
 #################################
 # hacks to keep things afloat until Sparky increases RAM
