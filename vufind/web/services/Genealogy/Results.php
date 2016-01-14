@@ -183,8 +183,7 @@ class Genealogy_Results extends Action {
 
 					// Unexpected error -- let's treat this as a fatal condition.
 				} else {
-					PEAR_Singleton::raiseError(new PEAR_Error('Unable to process query<br />' .
-                        'Solr Returned: ' . $error));
+					PEAR_Singleton::raiseError(new PEAR_Error('Unable to process query<br>' . 'Solr Returned: ' . $error));
 				}
 			}
 
@@ -231,8 +230,8 @@ class Genealogy_Results extends Action {
 			// Process Paging
 			$link = $searchObject->renderLinkPageTemplate();
 			$options = array('totalItems' => $summary['resultTotal'],
-                             'fileName'   => $link,
-                             'perPage'    => $summary['perPage']);
+			                 'fileName'   => $link,
+			                 'perPage'    => $summary['perPage']);
 			$pager = new VuFindPager($options);
 			$interface->assign('pageLinks', $pager->getLinks());
 			$timer->logTime('finish hits processing');
