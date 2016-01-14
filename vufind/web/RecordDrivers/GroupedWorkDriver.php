@@ -1356,7 +1356,11 @@ class GroupedWorkDriver extends RecordInterface{
 				}
 			}
 			if ($selectedFormatCategory && $selectedFormatCategory != $manifestation['formatCategory']){
-				$manifestation['hideByDefault'] = true;
+				if (($manifestation['format'] == 'eAudiobook') && $selectedFormatCategory == 'eBook'){
+					//This is a special case where the format is in 2 categories
+				}else{
+					$manifestation['hideByDefault'] = true;
+				}
 			}
 			if ($selectedAvailability == 'Available Now' && !($manifestation['availableLocally'] || $manifestation['availableOnline'])){
 				$manifestation['hideByDefault'] = true;

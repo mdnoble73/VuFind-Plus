@@ -299,16 +299,25 @@ public class GroupedWorkSolr {
 					doc.addField("scoping_details_" + curScopeName, curScope.getScopingDetails());
 					//if we do that, we don't need to filter within PHP
 					addUniqueFieldValue(doc, "scope_has_related_records", curScopeName);
+					HashSet<String> formats = new HashSet<>();
 					if (curItem.getFormat() != null) {
-						addUniqueFieldValue(doc, "format_" + curScopeName, curItem.getFormat());
+						formats.add(curItem.getFormat());
 					}else {
-						addUniqueFieldValues(doc, "format_" + curScopeName, curRecord.getFormats());
+						formats = curRecord.getFormats();
 					}
+					addUniqueFieldValues(doc, "format_" + curScopeName, formats);
+					HashSet<String> formatCategories = new HashSet<>();
 					if (curItem.getFormatCategory() != null) {
-						addUniqueFieldValue(doc, "format_category_" + curScopeName, curItem.getFormatCategory());
+						formatCategories.add(curItem.getFormatCategory());
+
 					}else {
-						addUniqueFieldValues(doc, "format_category_" + curScopeName, curRecord.getFormatCategories());
+						formatCategories = curRecord.getFormatCategories();
 					}
+					//eAudiobooks are considered both Audiobooks and eBooks by some people
+					if (formats.contains("eAudiobook")){
+						formatCategories.add("eBook");
+					}
+					addUniqueFieldValues(doc, "format_category_" + curScopeName, formatCategories);
 
 					//Setup ownership & availability toggle values
 					boolean addLocationOwnership = false;
