@@ -9988,10 +9988,17 @@ a.browse-thumbnail.active {
   background-color: #F00;
   opacity: 0.5;
 }
-.header-button > a,
-.header-button > a:visited {
-  color: #336fa3 !important;
+.header-button {
+  border: 0;
+  border-radius: 0.5em;
+  color: #fff !important;
+  background-color: rgba(51, 51, 51, 0.6);
+  margin-top: 20px;
+  line-height: 60px !important;
+  text-shadow: none;
 }
 .header-button:hover {
+  text-decoration: underline;
   border-bottom: 0;
+  box-shadow: 2px 2px 5px #fff;
 }
