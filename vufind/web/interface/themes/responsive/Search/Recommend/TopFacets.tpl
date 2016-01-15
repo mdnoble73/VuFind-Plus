@@ -1,7 +1,7 @@
 {strip}
 {if $topFacetSet}
 <div class="topFacets">
-	<br/>
+	<br>
 	{foreach from=$topFacetSet item=cluster key=title}
 		{if $cluster.label == 'Category' || $cluster.label == 'Format Category'}
 			{if ($categorySelected == false)}
@@ -17,7 +17,7 @@
 											</div>
 											<div class="col-xs-6 formatCategoryLabel">
 												{$thisFacet.value|escape}
-												<br/>(Remove)
+												<br>(Remove)
 											</div>
 										</div>
 									</a>
@@ -30,7 +30,7 @@
 												<img src="{img filename=$thisFacet.imageName}" alt="{translate text=$thisFacet.value|escape}">
 											</div>
 											<div class="col-xs-6 formatCategoryLabel">
-												{translate text=$thisFacet.value|escape}<br/>({$thisFacet.count|number_format:0:".":","})
+												{translate text=$thisFacet.value|escape}<br>({$thisFacet.count|number_format:0:".":","})
 											</div>
 										</div>
 									</a>
@@ -68,7 +68,7 @@
 							<tr>
 						{/if}
 						{if $thisFacet.isApplied}
-							<td>{$thisFacet.value|escape}</a> <img src="{$path}/images/silk/tick.png" alt="Selected" /> <a href="{$thisFacet.removalUrl|escape}" class="removeFacetLink" onclick="trackEvent('Remove Facet', '{$cluster.label}', '{$thisFacet.value|escape}');">(remove)</a></td>
+							<td>{$thisFacet.value|escape}</a> <img src="{$path}/images/silk/tick.png" alt="Selected" > <a href="{$thisFacet.removalUrl|escape}" class="removeFacetLink" onclick="trackEvent('Remove Facet', '{$cluster.label}', '{$thisFacet.value|escape}');">(remove)</a></td>
 						{else}
 							<td><a href="{$thisFacet.url|escape}" onclick="trackEvent('Apply Facet', '{$cluster.label}', '{$thisFacet.value|escape}');">{$thisFacet.value|escape}</a> ({$thisFacet.count})</td>
 						{/if}
@@ -85,6 +85,6 @@
 	{/foreach}
 	</div>
 {else}
-	<br/>
+	<br>
 {/if}
 {/strip}
