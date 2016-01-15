@@ -209,14 +209,14 @@
   border-color: rgba(0, 0, 0, 0.2);
   border-style: solid;
   border-width: 1px;
-  -webkit-border-radius: 5px;
-  -moz-border-radius: 5px;
+  //-webkit-border-radius: 5px;
+  //-moz-border-radius: 5px;
   border-radius: 5px;
-  -webkit-box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
-  -moz-box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+  //-webkit-box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+  //-moz-box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
   box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
-  -webkit-background-clip: padding-box;
-  -moz-background-clip: padding;
+  //-webkit-background-clip: padding-box;
+  //-moz-background-clip: padding;
   background-clip: padding-box;
   *border-right-width: 2px;
   *border-bottom-width: 2px;
@@ -235,17 +235,23 @@
       text-decoration: none;
       background-color: #0088cc;
       border-radius: 0;
-      -webkit-border-radius: 0;
-      -moz-border-radius: 0;
+      //-webkit-border-radius: 0;
+      //-moz-border-radius: 0;
       background-image: none;
     }
   }
 }
 
 // Keep Format Category images & labels apart from each other
-.categoryValue img {
-  max-width: 50px;
-  height: 50px;
+.categoryValue {
+  font-size: smaller;
+  & img {
+    max-width: 50px;
+    height: 50px;
+  }
+  &:hover img {
+    opacity: 0.7;
+  }
 }
 
 // Put Labels beneath icons on small screens when the sidebar has moved across the top
@@ -258,10 +264,6 @@
 // shrink icons for a range where the labels slightly overlap & the sidebar still acts as a sidebar
 // the upper limit looks to be the width at which the #availabilityControlContainer div wraps
 @media (min-width: @screen-sm-min) and (max-width:999px) {
-//  .categoryValue img {
-//    max-width: 40px;
-//  }
-  // this is probably a better fix for this than shrinking the icons.
   .formatCategoryLabel {
     float: none;
     clear: both;

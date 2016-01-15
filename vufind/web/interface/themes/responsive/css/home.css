@@ -222,13 +222,17 @@
   text-decoration: none;
   background-color: #0088cc;
   border-radius: 0;
-  -webkit-border-radius: 0;
-  -moz-border-radius: 0;
   background-image: none;
+}
+.categoryValue {
+  font-size: smaller;
 }
 .categoryValue img {
   max-width: 50px;
   height: 50px;
+}
+.categoryValue:hover img {
+  opacity: 0.7;
 }
 @media (max-width: 540px) {
   .formatCategoryLabel {

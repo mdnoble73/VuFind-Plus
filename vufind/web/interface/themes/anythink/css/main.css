@@ -8713,13 +8713,17 @@ hr.menu {
   text-decoration: none;
   background-color: #0088cc;
   border-radius: 0;
-  -webkit-border-radius: 0;
-  -moz-border-radius: 0;
   background-image: none;
+}
+.categoryValue {
+  font-size: smaller;
 }
 .categoryValue img {
   max-width: 50px;
   height: 50px;
+}
+.categoryValue:hover img {
+  opacity: 0.7;
 }
 @media (max-width: 540px) {
   .formatCategoryLabel {
@@ -9590,7 +9594,7 @@ a.browse-thumbnail.active {
   background: -webkit-linear-gradient(top, #7c7c7d, #3d4244);
   background: linear-gradient(to bottom, #7c7c7d, #3d4244);
   color: #fff;
-  padding: 3px 0px;
+  padding: 3px 0;
   margin-top: 20px;
 }
 #narrow-search-label {
@@ -9599,7 +9603,7 @@ a.browse-thumbnail.active {
   background: -webkit-linear-gradient(top, #7c7c7d, #3d4244);
   background: linear-gradient(to bottom, #7c7c7d, #3d4244);
   color: #fff;
-  padding: 3px 0px;
+  padding: 3px 0;
   margin-top: 20px;
 }
 .facetTitle {
@@ -9611,9 +9615,6 @@ a.browse-thumbnail.active {
   padding: 8px 30px 6px 15px;
   border-top: 1px solid #f4f4f4;
   border-bottom: 1px solid #adadad;
-}
-.categoryValue {
-  font-size: smaller;
 }
 .formatCategoryLabel {
   vertical-align: central;
@@ -9634,7 +9635,7 @@ a.browse-thumbnail.active {
   background: -webkit-linear-gradient(top, #7c7c7d, #3d4244);
   background: linear-gradient(to bottom, #7c7c7d, #3d4244);
   color: #fff;
-  padding: 3px 0px;
+  padding: 3px 0;
   margin-top: 20px;
   font-size: 14px;
 }
