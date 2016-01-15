@@ -64,9 +64,9 @@
 									<div class="form-group">
 										<div class="col-xs-4"><label for="city">{translate text='City'}:</label></div>
 										<div class="col-xs-8">
-											{if $edit && $canUpdateContactInfo && $canUpdateAddress && $ils != 'Horizon'}<input name='city' id="city" value='{$profile->city|escape}' size='50' maxlength='75' class="form-control required">
+											{if $edit && $canUpdateContactInfo && $canUpdateAddress && $ils != 'Horizon'}<input name="city" id="city" value="{$profile->city|escape}" size="50" maxlength="75" class="form-control required">
 											{elseif $edit && $millenniumNoAddress}
-												<input name='city' id="city" value='{$profile->city|escape}' type="hidden">
+												<input name="city" id="city" value="{$profile->city|escape}" type="hidden">
 												{$profile->city|escape}
 											{else}{$profile->city|escape}{/if}
 										</div>
@@ -74,9 +74,9 @@
 									<div class="form-group">
 										<div class="col-xs-4"><label for="state">{translate text='State'}:</label></div>
 										<div class="col-xs-8">
-											{if $edit && $canUpdateContactInfo && $canUpdateAddress && $ils != 'Horizon'}<input name='state' id="state" value='{$profile->state|escape}' size='50' maxlength='75' class="form-control required">
+											{if $edit && $canUpdateContactInfo && $canUpdateAddress && $ils != 'Horizon'}<input name='state' id="state" value="{$profile->state|escape}" size="50" maxlength="75" class="form-control required">
 											{elseif $edit && $millenniumNoAddress}
-												<input name='state' id="state" value='{$profile->state|escape}' type="hidden">
+												<input name="state" id="state" value="{$profile->state|escape}" type="hidden">
 												{$profile->state|escape}
 											{else}{$profile->state|escape}{/if}
 										</div>
@@ -85,28 +85,35 @@
 										<div class="col-xs-4"><label for="zip">{translate text='Zip'}:</label></div>
 										<div class="col-xs-8">
 											{if $edit && $canUpdateContactInfo && $canUpdateAddress && $ils != 'Horizon'}
-												<input name='zip' id="zip" value='{$profile->zip|escape}' size='50' maxlength='75' class="form-control required">
+												<input name="zip" id="zip" value="{$profile->zip|escape}" size="50" maxlength="75" class="form-control required">
 											{elseif $edit && $millenniumNoAddress}
-												<input name='zip' id="zip" value='{$profile->zip|escape}' type="hidden">
+												<input name="zip" id="zip" value="{$profile->zip|escape}" type="hidden">
 												{$profile->zip|escape}
 											{else}{$profile->zip|escape}{/if}
 										</div>
 									</div>
 									<div class="form-group">
 										<div class="col-xs-4"><label for="phone">{translate text='Primary Phone Number'}:</label></div>
-										<div class="col-xs-8">{if $edit && $canUpdateContactInfo && $ils != 'Horizon'}<input type="tel" name='phone' id="phone" value='{$profile->phone|replace:'TEXT ONLY':''|escape}' size='50' maxlength='75' class="form-control">{else}{$profile->phone|escape}{/if}</div>
+										<div class="col-xs-8">
+											{if $edit && $canUpdateContactInfo && $ils != 'Horizon'}
+												<input type="tel" name="phone" id="phone" value="{$profile->phone|replace:'TEXT ONLY':''|escape}" size="50" maxlength="75" class="form-control{*{if $primaryTheme =='arlington'} //Keep for debugging*}{if $libraryName =='arlington'} digits{/if}">
+											{else}
+												{$profile->phone|escape}
+											{/if}
+										</div>
 									</div>
 									{if $showWorkPhoneInProfile}
 										<div class="form-group">
 											<div class="col-xs-4"><label for="workPhone">{translate text='Work Phone Number'}:</label></div>
-											<div class="col-xs-8">{if $edit && $canUpdateContactInfo && $ils != 'Horizon'}<input name='workPhone' id="workPhone" value='{$profile->workPhone|escape}' size='50' maxlength='75' class="form-control">{else}{$profile->workPhone|escape}{/if}</div>
+											<div class="col-xs-8">{if $edit && $canUpdateContactInfo && $ils != 'Horizon'}<input name="workPhone" id="workPhone" value="{$profile->workPhone|escape}" size="50" maxlength="75" class="form-control">{else}{$profile->workPhone|escape}{/if}</div>
 										</div>
 									{/if}
 								{/if}
 								<div class="form-group">
 									<div class="col-xs-4"><label for="email">{translate text='E-mail'}:</label></div>
 									<div class="col-xs-8">
-										{if $edit == true && $canUpdateContactInfo == true}<input type='email' name='email' id="email" value='{$profile->email|escape}' size='50' maxlength='75' class="form-control">{else}{$profile->email|escape}{/if}
+										{if $edit == true && $canUpdateContactInfo == true}<input type="text" name="email" id="email" value="{$profile->email|escape}" size="50" maxlength="75" class="form-control multiemail">{else}{$profile->email|escape}{/if}
+										{* Multiemail class is for form validation; type has to be text for multiemail validation to work correctly *}
 									</div>
 								</div>
 								{if $showPickupLocationInProfile}
@@ -194,7 +201,24 @@
 									</div>
 								{/if}
 								<script type="text/javascript">
-									$("#contactUpdateForm").validate();
+									$("#contactUpdateForm").validate(
+									{*{if $primaryTheme == 'arlington'}{literal} // Keep & use for debugging*}
+									{if $libraryName == 'arlington'}{literal}
+													{
+														rules: {
+															phone: {
+																minlength: 10
+															}
+														},
+														messages: {
+															phone: {
+																digits: 'Please use numbers only.',
+																minlength: 'Please provide a 10 digit phone number.'
+															}
+														}
+													}
+									{/literal}{/if}
+									)
 								</script>
 							</form>
 						</div>
