@@ -96,7 +96,7 @@
 										<div class="col-xs-4"><label for="phone">{translate text='Primary Phone Number'}:</label></div>
 										<div class="col-xs-8">
 											{if $edit && $canUpdateContactInfo && $ils != 'Horizon'}
-												<input type="tel" name="phone" id="phone" value="{$profile->phone|replace:'TEXT ONLY':''|escape}" size="50" maxlength="75" class="form-control{*{if $primaryTheme =='arlington'} //Keep for debugging*}{if $libraryName =='arlington'} digits{/if}">
+												<input type="tel" name="phone" id="phone" value="{$profile->phone|replace:'TEXT ONLY':''|escape}" size="50" maxlength="75" class="form-control{*{if $primaryTheme =='arlington'} //Keep for debugging*}{if $libraryName =='Arlington Public Library'} digits{/if}">
 											{else}
 												{$profile->phone|escape}
 											{/if}
@@ -124,7 +124,7 @@
 												<select name="pickupLocation" id="pickupLocation" class="form-control">
 													{if count($pickupLocations) > 0}
 														{foreach from=$pickupLocations item=location}
-															<option value="{$location->code}" {if $location->displayName|escape== $profile->homeLocation|escape}selected="selected"{/if}>{$location->displayName}</option>
+															<option value="{$location->code}" {if $location->displayName|escape == $profile->homeLocation|escape}selected="selected"{/if}>{$location->displayName}</option>
 														{/foreach}
 													{else}
 														<option>placeholder</option>
@@ -203,7 +203,7 @@
 								<script type="text/javascript">
 									$("#contactUpdateForm").validate(
 									{*{if $primaryTheme == 'arlington'}{literal} // Keep & use for debugging*}
-									{if $libraryName == 'arlington'}{literal}
+									{if $libraryName == 'Arlington Public Library'}{literal}
 													{
 														rules: {
 															phone: {
