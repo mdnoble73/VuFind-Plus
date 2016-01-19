@@ -114,14 +114,14 @@
 					<a data-toggle="collapse" data-parent="#account-link-accordion" href="#myListsPanel">
 						<div class="panel-heading">
 							<div class="panel-title">
-								MY LISTS
+								My Lists
 							</div>
 						</div>
 					</a>
 					<div id="myListsPanel" class="panel-collapse collapse{if $action == 'MyRatings' || $action == 'Suggested Titles' || $action == 'MyList'} in{/if}">
 						<div class="panel-body">
 							{if $showConvertListsFromClassic}
-								<div class="myAccountLink"><a href="{$path}/MyAccount/ImportListsFromClassic">Import Lists from Classic</a></div>
+								<div class="myAccountLink"><a href="{$path}/MyAccount/ImportListsFromClassic" class="btn btn-sm btn-default">Import Existing Lists</a></div>
 								<br>
 							{/if}
 
@@ -132,7 +132,7 @@
 								{/if}
 							{/foreach}
 						</div>
-					</div>
+					</div
 				</div>
 			{/if}
 
@@ -141,7 +141,7 @@
 					<a data-toggle="collapse" data-parent="#account-link-accordion" href="#myTagsPanel">
 						<div class="panel-heading">
 							<div class="panel-title collapsed">
-								MY TAGS
+								My Tags
 							</div>
 						</div>
 					</a>
