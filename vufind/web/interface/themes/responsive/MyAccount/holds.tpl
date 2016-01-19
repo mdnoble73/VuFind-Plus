@@ -43,12 +43,12 @@
 					</div>
 
 					{* Code to handle updating multiple holds at one time *}
-					<br/>
-					<div class='holdsWithSelected{$sectionKey}'>
-						<form id='withSelectedHoldsFormBottom{$sectionKey}' action='{$fullPath}'>
+					<br>
+					<div class="holdsWithSelected{$sectionKey}">
+						<form id="withSelectedHoldsFormBottom{$sectionKey}" action="{$fullPath}">
 							<div>
-								<input type="hidden" name="withSelectedAction" value="" />
-								<div id='holdsUpdateSelected{$sectionKey}Bottom' class='holdsUpdateSelected{$sectionKey}'>
+								<input type="hidden" name="withSelectedAction" value="">
+								<div id="holdsUpdateSelected{$sectionKey}Bottom" class="holdsUpdateSelected{$sectionKey}">
 									{*
 									<input type="submit" class="btn btn-sm btn-warning" name="cancelSelected" value="Cancel Selected" onclick="return VuFind.Account.cancelSelectedHolds()">
 									*}

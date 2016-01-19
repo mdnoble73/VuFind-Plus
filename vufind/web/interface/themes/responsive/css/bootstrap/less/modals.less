@@ -119,7 +119,11 @@
 @media screen and (min-width: @screen-sm-min) {
 
   .modal-dialog {
-    width: 600px;
+    //width: 600px;
+    // Added by plb. 1-14-2016 ARL-110
+    width: @modal-dialog-width;
+    max-width: @modal-dialog-max-width;
+
     margin: 30px auto;
   }
   .modal-content {
