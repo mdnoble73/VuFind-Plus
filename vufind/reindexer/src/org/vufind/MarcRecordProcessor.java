@@ -37,15 +37,23 @@ public abstract class MarcRecordProcessor {
 	 */
 	public abstract void processRecord(GroupedWorkSolr groupedWork, String identifier);
 
-	protected void updateGroupedWorkSolrDataBasedOnStandardMarcData(GroupedWorkSolr groupedWork, Record record, HashSet<ItemInfo> printItems, String identifier) {
-		loadTitles(groupedWork, record);
-		loadAuthors(groupedWork, record);
+	protected void loadSubjects(GroupedWorkSolr groupedWork, Record record){
 		groupedWork.addTopic(getFieldList(record, "600abcdefghjklmnopqrstuvxyz:610abcdefghjklmnopqrstuvxyz:611acdefghklnpqstuvxyz:630abfghklmnoprstvxyz:650abcdevxyz:651abcdevxyz:690axyz"));
 		groupedWork.addTopicFacet(getFieldList(record, "600a:600x:610x:611x:630a:630x:648x:650a:650x:651x:655x"));
 		//Add lc subjects
 		groupedWork.addLCSubjects(getLCSubjects(record));
 		//Add bisac subjects
 		groupedWork.addBisacSubjects(getBisacSubjects(record));
+		groupedWork.addGenre(getFieldList(record, "655abcvxyz"));
+		groupedWork.addGenreFacet(getFieldList(record, "600v:610v:611v:630v:648v:650v:651v:655a:655v"));
+		groupedWork.addGeographic(getFieldList(record, "651avxyz"));
+		groupedWork.addGeographicFacet(getFieldList(record, "600z:610z:611z:630z:648z:650z:651a:651z:655z"));
+		groupedWork.addEra(getFieldList(record, "600d:610y:611y:630y:648a:648y:650y:651y:655y"));
+	}
+	protected void updateGroupedWorkSolrDataBasedOnStandardMarcData(GroupedWorkSolr groupedWork, Record record, HashSet<ItemInfo> printItems, String identifier) {
+		loadTitles(groupedWork, record);
+		loadAuthors(groupedWork, record);
+		loadSubjects(groupedWork, record);
 		/*List<DataField> seriesFields = getDataFields(record, "490");
 		HashSet<String> allSeries = new HashSet<>();
 		for (DataField seriesField : seriesFields){
@@ -57,15 +65,10 @@ public abstract class MarcRecordProcessor {
 			}
 		}*/
 		String seriesVolume = getFirstFieldVal(record, "830v");
-		groupedWork.addSeries(getFieldList(record, "830ap:800pqt:440ap"));
+		groupedWork.addSeries(getFieldList(record, "830ap:800pqt"));
 		groupedWork.addSeries2(getFieldList(record, "490a"));
 		groupedWork.addDateSpan(getFieldList(record, "362a"));
 		groupedWork.addContents(getFieldList(record, "505a:505t"));
-		groupedWork.addGenre(getFieldList(record, "655abcvxyz"));
-		groupedWork.addGenreFacet(getFieldList(record, "600v:610v:611v:630v:648v:650v:651v:655a:655v"));
-		groupedWork.addGeographic(getFieldList(record, "651avxyz"));
-		groupedWork.addGeographicFacet(getFieldList(record, "600z:610z:611z:630z:648z:650z:651a:651z:655z"));
-		groupedWork.addEra(getFieldList(record, "600d:610y:611y:630y:648a:648y:650y:651y:655y"));
 		groupedWork.addIssns(getFieldList(record, "022a"));
 		groupedWork.addOclcNumbers(getFieldList(record, "035a"));
 		loadAwards(groupedWork, record);

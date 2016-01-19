@@ -11,10 +11,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.sql.Connection;
 import java.sql.ResultSet;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
+import java.util.*;
 
 /**
  * Custom Record Processing for Arlington
@@ -374,5 +371,24 @@ public class ArlingtonRecordProcessor extends IIIRecordProcessor {
 			}
 		}
 		return false;
+	}
+
+	/**
+	 * For Arlington do not load Bisac Subjects and load full stings with subfields for topics
+	 * @param record
+	 * @return
+	 */
+	protected void loadSubjects(GroupedWorkSolr groupedWork, Record record){
+		groupedWork.addTopic(getAllSubfields(record, "600[abcdefghjklmnopqrstuvxyz]:610[abcdefghjklmnopqrstuvxyz]:611[acdefghklnpqstuvxyz]:630[abfghklmnoprstvxyz]:650[abcdevxyz]:651[abcdevxyz]:655[abcvxyz]:690[axyz]", " -- "));
+		groupedWork.addTopicFacet(getAllSubfields(record, "600[abcdefghjklmnopqrstuvxyz]:610[abcdefghjklmnopqrstuvxyz]:611[acdefghklnpqstuvxyz]:630[abfghklmnoprstvxyz]:650[abcdevxyz]:651[abcdevxyz]:655[abcvxyz]:690[axyz]", " -- "));
+		//Add lc subjects
+		//groupedWork.addLCSubjects(getLCSubjects(record));
+		//Add bisac subjects
+		//groupedWork.addBisacSubjects(getBisacSubjects(record));
+		//groupedWork.addGenre(getAllSubfields(record, "655abcvxyz", " -- "));
+		//groupedWork.addGenreFacet(getAllSubfields(record, "600v:610v:611v:630v:648v:650v:651v:655av", " -- "));
+		//groupedWork.addGeographic(getAllSubfields(record, "651avxyz", " -- "));
+		//groupedWork.addGeographicFacet(getAllSubfields(record, "600z:610z:611z:630z:648z:650z:651a:651z:655z", " -- "));
+		//groupedWork.addEra(getAllSubfields(record, "600d:610y:611y:630y:648a:648y:650y:651y:655y", " -- "));
 	}
 }
