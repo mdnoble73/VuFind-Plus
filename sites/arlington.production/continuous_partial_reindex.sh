@@ -78,7 +78,13 @@ do
 
 	# Do not run while the export from Sierra is running to prevent inconsistencies with MARC records
 	# export starts at 10 pm the file is copied to the FTP server at about 11:40
-	hasConflicts=$(checkProhibitedTimes "21:50" "23:40")
+	hasConflicts=$(checkProhibitedTimes "21:30" "23:55")
+	#If we did get a conflict, restart the loop to make sure that all tests run
+	if (($? != 0)); then
+		continue
+	fi
+	# Complete prohibited time is 9:30pm to 0:30am
+	hasConflicts=$(checkProhibitedTimes "00:00" "00:00")
 	#If we did get a conflict, restart the loop to make sure that all tests run
 	if (($? != 0)); then
 		continue
