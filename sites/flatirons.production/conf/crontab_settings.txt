@@ -39,12 +39,12 @@
 # Daily full update #
 #####################
 # Set the start for 1 am
-00 1 * * * cd /usr/local/vufind-plus/sites/flatirons.production; ./full_update.sh
+30 2 * * * cd /usr/local/vufind-plus/sites/flatirons.production; ./full_update.sh
 
 ###################
 # Pika Cron Jobs  #
 ###################
-7 */3 * * * cd /usr/local/vufind-plus/vufind/cron/; java -jar cron.jar flatirons.production
+7 20 * * * cd /usr/local/vufind-plus/vufind/cron/; java -jar cron.jar flatirons.production UpdateReadingHistory
 20 0 * * * cd /usr/local/vufind-plus/vufind/cron/; java -jar cron.jar flatirons.production DatabaseCleanup
 
 ################
