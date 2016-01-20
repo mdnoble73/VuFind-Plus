@@ -209,10 +209,8 @@ hr.menu {
   white-space: nowrap;
   position: absolute;
   -webkit-transform: rotate(-90deg) translateX(-100%);
-      -ms-transform: rotate(-90deg) translateX(-100%);
           transform: rotate(-90deg) translateX(-100%);
   -webkit-transform-origin: 0 0;
-      -ms-transform-origin: 0 0;
           transform-origin: 0 0;
   margin-top: 10px;
   margin-left: 10px;

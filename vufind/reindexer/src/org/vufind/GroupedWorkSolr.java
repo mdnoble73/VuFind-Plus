@@ -58,6 +58,7 @@ public class GroupedWorkSolr {
 	private HashSet<String> issns = new HashSet<>();
 	private HashSet<String> keywords = new HashSet<>();
 	private HashSet<String> languages = new HashSet<>();
+	private HashSet<String> translations = new HashSet<>();
 	private Long languageBoost = 1L;
 	private Long languageBoostSpanish = 1L;
 	private HashSet<String> lccns = new HashSet<>();
@@ -86,6 +87,7 @@ public class GroupedWorkSolr {
 	private String titleSort;
 	private HashSet<String> topics = new HashSet<>();
 	private HashSet<String> topicFacets = new HashSet<>();
+	private HashSet<String> subjects = new HashSet<>();
 	private HashSet<String> upcs = new HashSet<>();
 
 	private Logger logger;
@@ -138,6 +140,7 @@ public class GroupedWorkSolr {
 			languages.remove("Unknown");
 		}
 		doc.addField("language", languages);
+		doc.addField("translation", translations);
 		doc.addField("language_boost", languageBoost);
 		doc.addField("language_boost_es", languageBoostSpanish);
 		//Publication related fields
@@ -154,6 +157,7 @@ public class GroupedWorkSolr {
 		doc.addField("series2", series2);
 		doc.addField("topic", topics);
 		doc.addField("topic_facet", topicFacets);
+		doc.addField("subject_facet", subjects);
 		doc.addField("lc_subject", lcSubjects);
 		doc.addField("bisac_subject", bisacSubjects);
 		doc.addField("genre", genres);
@@ -822,6 +826,10 @@ public class GroupedWorkSolr {
 		this.topicFacets.addAll(Util.trimTrailingPunctuation(fieldList));
 	}
 
+	public void addSubjects(Set<String> fieldList) {
+		this.subjects.addAll(Util.trimTrailingPunctuation(fieldList));
+	}
+
 	public void addSeries(Set<String> fieldList) {
 		for(String curField : fieldList){
 			if (!curField.equalsIgnoreCase("none")){
@@ -895,6 +903,10 @@ public class GroupedWorkSolr {
 
 	public void setLanguages(HashSet<String> languages) {
 		this.languages.addAll(languages);
+	}
+
+	public void setTranslations(HashSet<String> translations){
+		this.translations.addAll(translations);
 	}
 
 	public void addPublishers(Set<String> publishers) {

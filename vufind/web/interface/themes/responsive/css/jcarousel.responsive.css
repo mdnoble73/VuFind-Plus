@@ -20,8 +20,6 @@
   width: 200px;
   float: left;
   border: 1px solid #fff;
-  -moz-box-sizing: border-box;
-  -webkit-box-sizing: border-box;
   box-sizing: border-box;
 }
 .jcarousel img {
@@ -42,8 +40,6 @@
   text-decoration: none;
   text-shadow: 0 0 1px #000;
   font: 24px/100px Arial, sans-serif;
-  -webkit-box-shadow: 0 0 4px #F0EFE7;
-  -moz-box-shadow: 0 0 4px #F0EFE7;
   box-shadow: 0 0 4px #F0EFE7;
 }
 .jcarousel-control-prev {
@@ -58,7 +54,6 @@
   bottom: -25px;
   left: 50%;
   -webkit-transform: translate(-50%, 0);
-  -ms-transform: translate(-50%, 0);
   transform: translate(-50%, 0);
   margin: 0;
 }
@@ -74,15 +69,11 @@
   border-radius: 10px;
   text-indent: -9999px;
   margin-right: 7px;
-  -webkit-box-shadow: 0 0 2px #4E443C;
-  -moz-box-shadow: 0 0 2px #4E443C;
   box-shadow: 0 0 2px #4E443C;
 }
 .jcarousel-pagination a.active {
   background: #4E443C;
   color: #fff;
   opacity: 1;
-  -webkit-box-shadow: 0 0 2px #F0EFE7;
-  -moz-box-shadow: 0 0 2px #F0EFE7;
   box-shadow: 0 0 2px #F0EFE7;
 }

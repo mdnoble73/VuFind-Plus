@@ -38,6 +38,7 @@ public abstract class MarcRecordProcessor {
 	public abstract void processRecord(GroupedWorkSolr groupedWork, String identifier);
 
 	protected void loadSubjects(GroupedWorkSolr groupedWork, Record record){
+		groupedWork.addSubjects(getAllSubfields(record, "600[abcdefghjklmnopqrstuvxyz]:610[abcdefghjklmnopqrstuvxyz]:611[acdefghklnpqstuvxyz]:630[abfghklmnoprstvxyz]:650[abcdevxyz]:651[abcdevxyz]:655[abcvxyz]:690[axyz]", " -- "));
 		groupedWork.addTopic(getFieldList(record, "600abcdefghjklmnopqrstuvxyz:610abcdefghjklmnopqrstuvxyz:611acdefghklnpqstuvxyz:630abfghklmnoprstvxyz:650abcdevxyz:651abcdevxyz:690axyz"));
 		groupedWork.addTopicFacet(getFieldList(record, "600a:600x:610x:611x:630a:630x:648x:650a:650x:651x:655x"));
 		//Add lc subjects
@@ -50,6 +51,7 @@ public abstract class MarcRecordProcessor {
 		groupedWork.addGeographicFacet(getFieldList(record, "600z:610z:611z:630z:648z:650z:651a:651z:655z"));
 		groupedWork.addEra(getFieldList(record, "600d:610y:611y:630y:648a:648y:650y:651y:655y"));
 	}
+
 	protected void updateGroupedWorkSolrDataBasedOnStandardMarcData(GroupedWorkSolr groupedWork, Record record, HashSet<ItemInfo> printItems, String identifier) {
 		loadTitles(groupedWork, record);
 		loadAuthors(groupedWork, record);
@@ -529,7 +531,8 @@ public abstract class MarcRecordProcessor {
 		return publisher;
 	}
 
-	protected String languageFields = "008[35-37]:041a:041d:041j";
+	protected String languageFields = "008[35-37]:041a";
+	protected String translationFields = "041b:041d:041h:041j";
 	protected void loadLanguageDetails(GroupedWorkSolr groupedWork, Record record, HashSet<RecordInfo> ilsRecords, String identifier) {
 		Set <String> languages = getFieldList(record, languageFields);
 		HashSet<String> translatedLanguages = new HashSet<>();
@@ -555,6 +558,16 @@ public abstract class MarcRecordProcessor {
 			}
 		}
 		groupedWork.setLanguages(translatedLanguages);
+
+		Set<String> translations = getFieldList(record, translationFields);
+		translatedLanguages = new HashSet<>();
+		for (String translation : translations) {
+			if (!languages.contains(translation)) {
+				String translatedLanguage = indexer.translateSystemValue("language", translation, identifier);
+				translatedLanguages.add(translatedLanguage);
+			}
+		}
+		groupedWork.setTranslations(translatedLanguages);
 	}
 
 	protected void loadAuthors(GroupedWorkSolr groupedWork, Record record) {

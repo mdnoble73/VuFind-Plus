@@ -164,6 +164,7 @@
 		<dynamicField name="availability_by_format_*" type="string" indexed="true" stored="true" multiValued="true" omitNorms="true"/>
 		<!-- Language Related Fields -->
 		<field name="language" type="string" indexed="true" stored="true" multiValued="true" omitNorms="true" docValues="true"/>
+		<field name="translation" type="string" indexed="true" stored="true" multiValued="true" omitNorms="true" docValues="true"/>
 		<field name="language_boost" type="integer" indexed="true" stored="true" multiValued="false" omitNorms="true" default="1"/>
 		<field name="language_boost_es" type="integer" indexed="true" stored="true" multiValued="false" omitNorms="true" default="1"/>
 		<!-- Publication information -->
@@ -276,10 +277,6 @@
 	<copyField source="geographic" dest="geographic_proper"/>
 	<copyField source="era" dest="era_proper"/>
 	<copyField source="genre" dest="genre_proper"/>
-	<copyField source="topic" dest="subject_facet"/>
-	<copyField source="geographic" dest="subject_facet"/>
-	<copyField source="era" dest="subject_facet"/>
-	<copyField source="genre" dest="subject_facet"/>
 	<copyField source="local_callnumber_*" dest="local_callnumber_exact_*"/>
 	<copyField source="local_callnumber_*" dest="local_callnumber_left_*"/>
 

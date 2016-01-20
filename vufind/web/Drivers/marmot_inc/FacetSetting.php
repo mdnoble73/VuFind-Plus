@@ -38,6 +38,7 @@ abstract class FacetSetting extends DB_DataObject {
 			"literary_form" => "Form",
 			"authorStr" => "Author",
 			"language" => "Language",
+			"translation" => "Translations",
 			"genre_facet" => "Genre",
 			"era" => "Era",
 			"geographic_facet" => "Region",

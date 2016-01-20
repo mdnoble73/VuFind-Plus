@@ -27,7 +27,7 @@ public class ArlingtonRecordProcessor extends IIIRecordProcessor {
 	public ArlingtonRecordProcessor(GroupedWorkIndexer indexer, Connection vufindConn, Ini configIni, ResultSet indexingProfileRS, Logger logger, boolean fullReindex) {
 		super(indexer, vufindConn, configIni, indexingProfileRS, logger, fullReindex);
 
-		languageFields = "008[35-37]:041b";
+		languageFields = "008[35-37]";
 		try {
 			exportPath = indexingProfileRS.getString("marcPath");
 		}catch (Exception e){
@@ -379,8 +379,7 @@ public class ArlingtonRecordProcessor extends IIIRecordProcessor {
 	 * @return
 	 */
 	protected void loadSubjects(GroupedWorkSolr groupedWork, Record record){
-		groupedWork.addTopic(getAllSubfields(record, "600[abcdefghjklmnopqrstuvxyz]:610[abcdefghjklmnopqrstuvxyz]:611[acdefghklnpqstuvxyz]:630[abfghklmnoprstvxyz]:650[abcdevxyz]:651[abcdevxyz]:655[abcvxyz]:690[axyz]", " -- "));
-		groupedWork.addTopicFacet(getAllSubfields(record, "600[abcdefghjklmnopqrstuvxyz]:610[abcdefghjklmnopqrstuvxyz]:611[acdefghklnpqstuvxyz]:630[abfghklmnoprstvxyz]:650[abcdevxyz]:651[abcdevxyz]:655[abcvxyz]:690[axyz]", " -- "));
+		groupedWork.addSubjects(getAllSubfields(record, "600[abcdefghjklmnopqrstuvxyz]:610[abcdefghjklmnopqrstuvxyz]:611[acdefghklnpqstuvxyz]:630[abfghklmnoprstvxyz]:650[abcdevxyz]:651[abcdevxyz]:655[abcvxyz]:690[axyz]", " -- "));
 		//Add lc subjects
 		//groupedWork.addLCSubjects(getLCSubjects(record));
 		//Add bisac subjects
