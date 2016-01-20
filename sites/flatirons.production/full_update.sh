@@ -71,8 +71,7 @@ function checkProhibitedTimes() {
 
 #Check for any conflicting processes that we shouldn't do a full index during.
 #Since we aren't running in a loop, check in the order they run.
-checkConflictingProcesses "ITEM_UPDATE_EXTRACT_PIKA_4_Flatirons.exp"
-checkConflictingProcesses "millennium_export.jar"
+checkConflictingProcesses "sierra_export.jar"
 checkConflictingProcesses "overdrive_extract.jar"
 checkConflictingProcesses "reindexer.jar"
 
@@ -83,14 +82,15 @@ checkConflictingProcesses "reindexer.jar"
 cd /usr/local/vufind-plus/sites/${PIKASERVER}; ./${PIKASERVER}.sh restart
 
 #Extract from ILS
-cd /usr/local/vufind-plus/vufind/millennium_export/; expect BIB_HOLDS_EXTRACT_PIKA_4_Flatirons.exp ${PIKASERVER} ${ILSSERVER} >> ${OUTPUT_FILE}
-cd /usr/local/vufind-plus/vufind/millennium_export/; expect BIB_EXTRACT_PIKA_4_Flatirons.exp ${PIKASERVER} ${ILSSERVER} >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/sites/${PIKASERVER}/moveSierraExport.sh >> ${OUTPUT_FILE}
 
 #Extract from Hoopla
 cd /usr/local/vufind-plus/vufind/cron;./HOOPLA.sh ${PIKASERVER} >> ${OUTPUT_FILE}
 
 #Extract Lexile Data
-cd /data/vufind-plus/; wget -N --no-verbose http://venus.marmot.org/lexileTitles.txt
+#do not pull lexile data for now since it is hanging on the flatirons server
+# plb dec/2015 commented out to prevent getting stuck on this line.
+#cd /data/vufind-plus/; wget -N --no-verbose http://venus.marmot.org/lexileTitles.txt
 
 #Extract AR Data
 cd /data/vufind-plus/accelerated_reader; wget -N --no-verbose http://venus.marmot.org/RLI-ARDataTAB.txt
