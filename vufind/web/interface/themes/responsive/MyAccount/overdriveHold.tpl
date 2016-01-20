@@ -55,7 +55,7 @@
 			</div>
 
 			<div class="row">
-				<div class="resultDetails col-xs-12 col-sm-9">
+				<div class="resultDetails col-xs-12 {*col-sm-9*} col-md-8 col-lg-9">
 					{if $record.author}
 						<div class="row">
 							<div class="result-label col-sm-3">{translate text='Author'}</div>
@@ -74,7 +74,7 @@
 					{if $record.format}
 						<div class="row">
 							<div class="result-label col-sm-3">{translate text='Format'}</div>
-							<div class="col-sm-9 result-value">
+						<div class="col-sm-9 result-value">
 								{implode subject=$record.format glue=", "}
 							</div>
 						</div>
