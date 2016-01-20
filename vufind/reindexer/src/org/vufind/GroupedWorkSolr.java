@@ -74,7 +74,7 @@ public class GroupedWorkSolr {
 	private HashSet<String> publishers = new HashSet<>();
 	private HashSet<String> publicationDates = new HashSet<>();
 	private float rating = 2.5f;
-	private HashMap<String, Long> series = new HashMap<>();
+	private HashMap<String, String> series = new HashMap<>();
 	private HashSet<String> series2 = new HashSet<>();
 	private String subTitle;
 	private HashSet<String> targetAudienceFull = new HashSet<>();
@@ -150,26 +150,7 @@ public class GroupedWorkSolr {
 		doc.addField("physical", physicals);
 		doc.addField("edition", editions);
 		doc.addField("dateSpan", dateSpans);
-		if (series.size() > 1){
-			//We have more than one series, only include the most popular
-			long mostUsedCount = 0;
-			String mostUsedSeries = "";
-			for (String seriesName : this.series.keySet()){
-				long timesUsed = this.series.get(seriesName);
-				if (timesUsed > mostUsedCount){
-					mostUsedSeries = seriesName;
-				}
-			}
-			doc.addField("series", mostUsedSeries);
-			//add anything that isn't the most used to series 2
-			for (String seriesName : this.series.keySet()){
-				if (!seriesName.equals(mostUsedSeries)){
-					series2.add(seriesName);
-				}
-			}
-		} else {
-			doc.addField("series", series.keySet());
-		}
+		doc.addField("series", series.values());
 		doc.addField("series2", series2);
 		doc.addField("topic", topics);
 		doc.addField("topic_facet", topicFacets);
@@ -852,10 +833,10 @@ public class GroupedWorkSolr {
 	public void addSeries(String series) {
 		if (series != null && !series.equalsIgnoreCase("none")){
 			series = Util.trimTrailingPunctuation(series);
-			if (this.series.containsKey(series)){
-				this.series.put(series, this.series.get(series) + 1);
-			}else{
-				this.series.put(series, 1L);
+			series = series.replaceAll("(?i)\\sseries$", "");
+			String normalizedSeries = series.toLowerCase().replaceAll("\\W", "");
+			if (!this.series.containsKey(normalizedSeries)){
+				this.series.put(normalizedSeries, series);
 			}
 		}
 	}
