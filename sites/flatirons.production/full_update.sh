@@ -88,7 +88,9 @@ cd /usr/local/vufind-plus/sites/${PIKASERVER}; ./${PIKASERVER}.sh restart
 cd /usr/local/vufind-plus/vufind/cron;./HOOPLA.sh ${PIKASERVER} >> ${OUTPUT_FILE}
 
 #Extract Lexile Data
-cd /data/vufind-plus/; wget -N --no-verbose http://venus.marmot.org/lexileTitles.txt
+#do not pull lexile data for now since it is hanging on the flatirons server
+# plb dec/2015 commented out to prevent getting stuck on this line.
+#cd /data/vufind-plus/; wget -N --no-verbose http://venus.marmot.org/lexileTitles.txt
 
 #Extract AR Data
 cd /data/vufind-plus/accelerated_reader; wget -N --no-verbose http://venus.marmot.org/RLI-ARDataTAB.txt

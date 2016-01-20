@@ -3,7 +3,7 @@
 # Date For Backup filename
 TODAY=$(date +"%m_%d_%Y")
 
-FILE=$(find /home/sierraftp/ -name FULLEXPORT1*.MRC | sort -n | tail -1)
+FILE=$(find /home/sierraftp/ -name script.MARC.* | sort -n | tail -1)
 echo "Latest export file is " $FILE
 # turn off output. TODO: error check that a good file name was found
 
