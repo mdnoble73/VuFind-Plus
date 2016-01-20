@@ -17,7 +17,7 @@
 			{if $item.displayByDefault && $numRowsShown<3}
 				<div class="itemSummary row">
 					<div class="col-xs-7">
-						<span class="notranslate"><strong>{$item.shelfLocation}</strong></span>
+						<span class="notranslate"><strong>{$item.shelfLocation}</strong> has {$item.availableCopies}</span>
 					</div>
 					<div class="col-xs-4">
 					 <span class="notranslate noBreak"><strong>{$item.callNumber}</strong></span>
