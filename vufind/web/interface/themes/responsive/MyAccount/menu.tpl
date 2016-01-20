@@ -132,7 +132,7 @@
 								{/if}
 							{/foreach}
 						</div>
-					</div
+					</div>
 				</div>
 			{/if}
 
