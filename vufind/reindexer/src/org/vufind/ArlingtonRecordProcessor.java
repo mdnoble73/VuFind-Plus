@@ -119,6 +119,7 @@ public class ArlingtonRecordProcessor extends IIIRecordProcessor {
 		itemInfo.setCallNumber("ON ORDER");
 		itemInfo.setSortableCallNumber("ON ORDER");
 		itemInfo.setDetailedStatus("On Order");
+		itemInfo.setCollection("On Order");
 		//Format and Format Category should be set at the record level, so we don't need to set them here.
 
 		//Shelf Location also include the name of the ordering branch if possible
@@ -160,6 +161,7 @@ public class ArlingtonRecordProcessor extends IIIRecordProcessor {
 					scopingInfo.setHoldable(true);
 					scopingInfo.setStatus("On Order");
 					scopingInfo.setGroupedStatus("On Order");
+
 				}
 			}
 		}
@@ -379,7 +381,16 @@ public class ArlingtonRecordProcessor extends IIIRecordProcessor {
 	 * @return
 	 */
 	protected void loadSubjects(GroupedWorkSolr groupedWork, Record record){
-		groupedWork.addSubjects(getAllSubfields(record, "600[abcdefghjklmnopqrstuvxyz]:610[abcdefghjklmnopqrstuvxyz]:611[acdefghklnpqstuvxyz]:630[abfghklmnoprstvxyz]:650[abcdevxyz]:651[abcdevxyz]:655[abcvxyz]:690[axyz]", " -- "));
+		HashSet<String> validSubjects = new HashSet<>();
+		getSubjectValues(getDataFields(record, "600"), validSubjects);
+		getSubjectValues(getDataFields(record, "610"), validSubjects);
+		getSubjectValues(getDataFields(record, "611"), validSubjects);
+		getSubjectValues(getDataFields(record, "630"), validSubjects);
+		getSubjectValues(getDataFields(record, "650"), validSubjects);
+		getSubjectValues(getDataFields(record, "651"), validSubjects);
+		getSubjectValues(getDataFields(record, "690"), validSubjects);
+
+		groupedWork.addSubjects(validSubjects);
 		//Add lc subjects
 		//groupedWork.addLCSubjects(getLCSubjects(record));
 		//Add bisac subjects
@@ -389,5 +400,29 @@ public class ArlingtonRecordProcessor extends IIIRecordProcessor {
 		//groupedWork.addGeographic(getAllSubfields(record, "651avxyz", " -- "));
 		//groupedWork.addGeographicFacet(getAllSubfields(record, "600z:610z:611z:630z:648z:650z:651a:651z:655z", " -- "));
 		//groupedWork.addEra(getAllSubfields(record, "600d:610y:611y:630y:648a:648y:650y:651y:655y", " -- "));
+	}
+
+	private void getSubjectValues(List<DataField> subjectFields, HashSet<String> validSubjects) {
+		for (DataField curSubject : subjectFields){
+			boolean okToInclude = true;
+			Subfield subfield2 = curSubject.getSubfield('2');
+			if (subfield2 != null){
+				if (subfield2.getData().equalsIgnoreCase("bisac") || subfield2.getData().equalsIgnoreCase("fast")){
+					okToInclude = false;
+				}
+			}
+			if (okToInclude){
+				StringBuffer subjectValue = new StringBuffer();
+				for (Subfield curSubfield : curSubject.getSubfields()){
+					if (curSubfield.getCode() != '2' && curSubfield.getCode() != '0'){
+						if (subjectValue.length() > 0){
+							subjectValue.append(" -- ");
+						}
+						subjectValue.append(curSubfield.getData());
+					}
+				}
+				validSubjects.add(subjectValue.toString());
+			}
+		}
 	}
 }

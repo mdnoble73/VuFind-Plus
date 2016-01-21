@@ -1778,8 +1778,12 @@ class GroupedWorkDriver extends RecordInterface{
 		return null;
 	}
 	public function getSubjects(){
-		if (isset($this->fields['topic_facet'])){
+		if (isset($this->fields['topic_facet'])) {
 			$subjects = $this->fields['topic_facet'];
+			asort($subjects);
+			return $subjects;
+		}elseif (isset($this->fields['subject_facet'])){
+			$subjects = $this->fields['subject_facet'];
 			asort($subjects);
 			return $subjects;
 		}else{

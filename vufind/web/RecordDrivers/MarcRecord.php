@@ -1505,6 +1505,7 @@ class MarcRecord extends IndexRecord
 	public function loadSubjects(){
 		global $interface;
 		global $configArray;
+		global $library;
 		$marcRecord = $this->getMarcRecord();
 		if (isset($configArray['Content']['subjectFieldsToShow'])){
 			$subjectFieldsToShow = $configArray['Content']['subjectFieldsToShow'];
@@ -1536,6 +1537,8 @@ class MarcRecord extends IndexRecord
 							$type = 'local';
 						}
 
+						$search = '';
+						$title = '';
 						foreach ($marcField->getSubFields() as $subField){
 							/** @var File_MARC_Subfield $subField */
 							if ($subField->getCode() != '2' && $subField->getCode() != '0'){
@@ -1543,13 +1546,17 @@ class MarcRecord extends IndexRecord
 								if ($type == 'bisac' && $subField->getCode() == 'a'){
 									$subFieldData = ucwords(strtolower($subFieldData));
 								}
-								$searchSubject .= " " . $subFieldData;
-								$subject[] = array(
-										'search' => trim($searchSubject),
-										'title'  => $subFieldData,
-								);
+								$search .= " " . $subFieldData;
+								if (strlen($title) > 0){
+									$title .= ' -- ';
+								}
+								$title .= $subFieldData;
 							}
 						}
+						$subject[$title] = array(
+								'search' => trim($search),
+								'title'  => $title,
+						);
 						if ($type == 'bisac'){
 							$bisacSubjects[] = $subject;
 							$subjects[] = $subject;
@@ -1569,9 +1576,15 @@ class MarcRecord extends IndexRecord
 				}
 			}
 			$interface->assign('subjects', $subjects);
-			$interface->assign('standardSubjects', $standardSubjects);
-			$interface->assign('bisacSubjects', $bisacSubjects);
-			$interface->assign('oclcFastSubjects', $oclcFastSubjects);
+			if ($library->showStandardSubjects){
+				$interface->assign('standardSubjects', $standardSubjects);
+			}
+			if ($library->showBisacSubjects) {
+				$interface->assign('bisacSubjects', $bisacSubjects);
+			}
+			if ($library->showFastAddSubjects) {
+				$interface->assign('oclcFastSubjects', $oclcFastSubjects);
+			}
 			$interface->assign('localSubjects', $localSubjects);
 		}
 	}

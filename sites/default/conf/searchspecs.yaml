@@ -160,12 +160,17 @@ ISN:
 
 Subject:
   DismaxFields:
+    - subject^100
     - topic^100
     - topic_proper^100
     - geographic^50
     - genre^50
     - era
   QueryFields:
+    - subject:
+      - [onephrase, 300]
+      - [and, 100]
+      - [or, ~]
     - topic:
       - [onephrase, 300]
       - [and, 100]
@@ -188,11 +193,16 @@ Subject:
 
 SubjectProper:
   DismaxFields:
+    - subject_proper^100
     - topic_proper^100
     - geographic_proper^50
     - genre_proper^50
     - era_proper
   QueryFields:
+    - subject_proper:
+      - [onephrase, 300]
+      - [and, 100]
+      - [or, ~]
     - topic_proper:
       - [onephrase, 300]
       - [and, 100]

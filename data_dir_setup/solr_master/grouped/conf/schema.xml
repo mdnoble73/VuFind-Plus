@@ -180,6 +180,8 @@
 		<field name="series2" type="text" indexed="true" stored="true" multiValued="true"/>
 		<field name="series_proper" type="textProper" indexed="true" stored="false" multiValued="true"/>
 		<field name="subject_facet" type="string" indexed="true" stored="true" multiValued="true" docValues="true"/>
+		<field name="subject" type="text" indexed="true" stored="true" multiValued="true"/>
+		<field name="subject_proper" type="textProper" indexed="true" stored="false" multiValued="true"/>
 		<field name="topic" type="text" indexed="true" stored="true" multiValued="true"/>
 		<field name="topic_proper" type="textProper" indexed="true" stored="false" multiValued="true"/>
 		<field name="topic_facet" type="string" indexed="true" stored="true" multiValued="true" docValues="true"/>
@@ -274,6 +276,8 @@
 	<copyField source="keywords" dest="keywords_proper"/>
 	<copyField source="series" dest="series_proper"/>
 	<copyField source="topic" dest="topic_proper"/>
+	<copyField source="subject_facet" dest="subject"/>
+	<copyField source="subject_facet" dest="subject_proper"/>
 	<copyField source="geographic" dest="geographic_proper"/>
 	<copyField source="era" dest="era_proper"/>
 	<copyField source="genre" dest="genre_proper"/>
