@@ -78,7 +78,7 @@ class Search_Home extends Action {
 //		$interface->setTemplate('home.tpl');
 //		$interface->display('layout.tpl');
 
-		$this->display('home.tpl', 'Catalog Home', 'Search/home-sidebar.tpl');
+		$this->display('home.tpl', 'Catalog Home');
 	}
 
 

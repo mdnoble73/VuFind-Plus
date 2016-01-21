@@ -52,6 +52,16 @@ abstract class MyAccount extends Action
 		// Connect to Database
 		$this->catalog = CatalogFactory::getCatalogConnectionInstance($user->source);
 
+		// Hide Covers when the user has set that setting on an Account Page
+		$showCovers = true;
+		if (isset($_REQUEST['showCovers'])) {
+			$showCovers = ($_REQUEST['showCovers'] == 'on' || $_REQUEST['showCovers'] == 'true');
+			$_SESSION['showCovers'] = $showCovers;
+		} elseif (isset($_SESSION['showCovers'])) {
+			$showCovers = $_SESSION['showCovers'];
+		}
+		$interface->assign('showCovers', $showCovers);
+
 		//This code is also in Search/History since that page displays in the My Account menu as well.
 		//It is also in MyList.php and Admin.php
 		if ($user !== false){

@@ -6,6 +6,7 @@ VuFind.Account = (function(){
 	return {
 		ajaxCallback: null,
 		closeModalOnAjaxSuccess: false,
+		showCovers: null,
 
 		addAccountLink: function(){
 			var url = Globals.path + "/MyAccount/AJAX?method=getAddAccountLinkForm";
@@ -84,8 +85,6 @@ VuFind.Account = (function(){
 				}
 				var modalDialog = $("#modalDialog");
 				$('.modal-body').html("Loading...");
-				//var modalBody = $(".modal-content");
-				//modalBody.load(dialogDestination);
 				$(".modal-content").load(dialogDestination);
 				$(".modal-title").text(dialogTitle);
 				modalDialog.modal("show");
@@ -487,38 +486,42 @@ VuFind.Account = (function(){
 
 		/* update the sort parameter and redirect the user back to the same page */
 		changeAccountSort: function (newSort){
-			// Get the current url
-			var currentLocation = window.location.href;
-			// Check to see if we already have a sort parameter.
-			if (currentLocation.match(/(accountSort=[^&]*)/)) {
-				// Replace the existing sort with the new sort parameter
-				currentLocation = currentLocation.replace(/accountSort=[^&]*/, 'accountSort=' + newSort);
-			} else {
-				// Add the new sort parameter
-				if (currentLocation.match(/\?/)) {
-					currentLocation += "&accountSort=" + newSort;
-				}else{
-					currentLocation += "?accountSort=" + newSort;
-				}
-			}
-			// Redirect back to this page.
-			window.location.href = currentLocation;
+			//// Get the current url
+			//var currentLocation = window.location.href;
+			//// Check to see if we already have a sort parameter.
+			//if (currentLocation.match(/(accountSort=[^&]*)/)) {
+			//	// Replace the existing sort with the new sort parameter
+			//	currentLocation = currentLocation.replace(/accountSort=[^&]*/, 'accountSort=' + newSort);
+			//} else {
+			//	// Add the new sort parameter
+			//	if (currentLocation.match(/\?/)) {
+			//		currentLocation += "&accountSort=" + newSort;
+			//	}else{
+			//		currentLocation += "?accountSort=" + newSort;
+			//	}
+			//}
+			//// Redirect back to this page.
+			//window.location.href = currentLocation;
+			var paramString = VuFind.Searches.replaceQueryParam('accountSort', newSort);
+			location.replace(location.pathname + paramString)
 		},
 
 		changeHoldPickupLocation: function (patronId, recordId, holdId){
 			if (Globals.loggedIn){
-				var modalDialog = $("#modalDialog");
-				$('#myModalLabel').html('Loading');
-				$('.modal-body').html('');
+				//var modalDialog = $("#modalDialog");
+				//$('#myModalLabel').html('Loading');
+				//$('.modal-body').html('');
+				VuFind.loadingMessage();
 				$.getJSON(Globals.path + "/MyAccount/AJAX?method=getChangeHoldLocationForm&patronId=" + patronId + "&recordId=" + recordId + "&holdId=" + holdId, function(data){
-					$('#myModalLabel').html(data.title);
-					$('.modal-body').html(data.modalBody);
-					$('.modal-buttons').html(data.modalButtons);
+					VuFind.showMessageWithButtons(data.title, data.modalBody, data.modalButtons)
+					//$('#myModalLabel').html(data.title);
+					//$('.modal-body').html(data.modalBody);
+					//$('.modal-buttons').html(data.modalButtons);
 				});
 				//modalDialog.load( );
-				modalDialog.modal('show');
+				//modalDialog.modal('show');
 			}else{
-				VuFind.Account.ajaxLogin(null, function (){
+				VuFind.Account.ajaxLogin(null, function(){
 					return VuFind.Account.changeHoldPickupLocation(patronId, recordId, holdId);
 				}, false);
 			}
@@ -674,9 +677,8 @@ VuFind.Account = (function(){
 					VuFind.Account.saveSearch(searchId);
 				}, false);
 			}else{
-				var url = Globals.path + "/MyAccount/AJAX";
-				var params = {method :'saveSearch', searchId :searchId};
-				//$.getJSON(url + '?' + params,
+				var url = Globals.path + "/MyAccount/AJAX",
+						params = {method :'saveSearch', searchId :searchId};
 				$.getJSON(url, params,
 						function(data) {
 							if (data.result) {
@@ -725,7 +727,16 @@ VuFind.Account = (function(){
 					VuFind.showMessage("Error", data.message);
 				}
 			}).fail(VuFind.ajaxFail);
-		}
+		},
 
+		toggleShowCovers: function(showCovers){
+			this.showCovers = showCovers;
+			var paramString = VuFind.Searches.replaceQueryParam('showCovers', this.showCovers ? 'on': 'off'); // set variable
+			if (!Globals.opac && VuFind.hasLocalStorage() ) { // store setting in browser if not an opac computer
+				window.localStorage.setItem('showCovers', this.showCovers ? '1' : '0');
+			}
+			location.replace(location.pathname + paramString); // reloads page without adding entry to history
+
+		}
 	};
 }(VuFind.Account || {}));

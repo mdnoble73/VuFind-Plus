@@ -2,8 +2,6 @@
 	{* Overall hold *}
 	<div class="result row">
 		{* Cover column *}
-		{*{assign var="noCovers" value=true}*}
-		{assign var="noCovers" value=false}
 		{if $showCovers}
 		<div class="col-xs-4 col-sm-3">
 			{*<div class="row">*}

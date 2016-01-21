@@ -72,8 +72,7 @@
 							</select>
 						</div>
 						<div class="form-group col-sm-2" id="coverOptions">
-							<label for="hideCovers">Hide Covers <input id="hideCovers" type="checkbox" onclick="$('.listResultImage').toggle();"></label>
-							{*TODO: re-purpose for covers switch *}
+							<label for="hideCovers" class="control-label checkbox pull-right"> Hide Covers <input id="hideCovers" type="checkbox" onclick="VuFind.Account.toggleShowCovers(!$(this).is(':checked'))" {if $showCovers == false}checked="checked"{/if}></label>
 						</div>
 					</div>
 				</div>
@@ -83,8 +82,6 @@
 					<div class="col-sm-1">
 						<input id="selectAll" type="checkbox" onclick="VuFind.toggleCheckboxes('.titleSelect', '#selectAll');" title="Select All/Deselect All">
 					</div>
-					{assign var="showCovers" value=true}
-					{*{assign var="showCovers" value=false}*}
 					{if $showCovers}
 					<div class="col-sm-2">
 						{translate text='Cover'}
@@ -135,7 +132,7 @@
 									<div class="col-xs-12">
 										<strong>
 											{if $record.recordId && $record.linkUrl}
-												<a href="{$record.linkUrl}" class="title">{if !$record.title|removeTrailingPunctuation}{translate text='Title not available'}{else}{$record.title|removeTrailingPunctuation}{/if}</a>
+												<a href="{$record.linkUrl}" class="title">{if !$record.title|removeTrailingPunctuation}{translate text='Title not available'}{else}{$record.title|removeTrailingPunctuation|truncate:180:"..."|highlight}{/if}</a>
 											{else}
 												{if !$record.title|removeTrailingPunctuation}{translate text='Title not available'}{else}{$record.title|removeTrailingPunctuation}{/if}
 											{/if}

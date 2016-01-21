@@ -1,8 +1,6 @@
 {strip}
 	<div class="result row" id="overDriveHold_{$record.overDriveId}">
 		{* Cover column *}
-		{assign var="showCovers" value=true}
-		{*{assign var="showCovers" value=false}*}
 		{if $showCovers}
 		<div class="col-xs-4 col-sm-3">
 			{*<div class="row">*}

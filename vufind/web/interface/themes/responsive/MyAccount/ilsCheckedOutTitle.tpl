@@ -1,9 +1,6 @@
 {strip}
 	<div id="record{$record.source}_{$record.id|escape}" class="result row{if $record.overdue} bg-overdue{/if}">
 
-		{assign var="showCovers" value=true}
-		{*{assign var="showCovers" value=false}*}
-
 		{* Cover Column *}
 		{if $showCovers}
 		{*<div class="col-xs-4">*}
@@ -159,8 +156,8 @@
 				</div>
 
 				{* Actions for Title *}
-				{*<div class="col-xs-12 col-md-3">*}
-				<div class="{if $showCovers}col-xs-9 col-sm-8 col-md-4 col-lg-3{else}col-xs-11{/if}">
+				{*<div class="{if $showCovers}col-xs-9 col-sm-8 col-md-4 col-lg-3{else}col-xs-11{/if}">*}
+				<div class="col-xs-9 col-sm-8 col-md-4 col-lg-3">
 					<div class="btn-group btn-group-vertical btn-block">
 						{if !isset($record.renewable) || $record.renewable == true}
 							{*<a href="#" onclick="$('#selected{$record.itemid}').attr('checked', 'checked');return VuFind.Account.renewSelectedTitles();" class="btn btn-sm btn-primary">Renew</a>*}

@@ -1,9 +1,6 @@
 {strip}
 <div id="overdrive_{$record.recordId|escape}" class="result row">
 
-	{assign var="showCovers" value=true}
-	{*{assign var="showCovers" value=false}*}
-
 	{* Cover Column *}
 	{if $showCovers}
 		{*<div class="col-xs-4">*}
@@ -35,7 +32,6 @@
 
 	{* Title Details Column *}
 	<div class="{if $showCovers}col-xs-9 col-sm-8 col-md-9{else}col-xs-11{/if}">
-	{*<div class="col-xs-12 col-sm-9">*}
 		{* Title *}
 		<div class="row">
 			<div class="col-xs-12">
@@ -109,8 +105,7 @@
 			</div>
 
 			{* Actions for Title *}
-			{*<div class="col-xs-12 col-md-3">*}
-			<div class="{if $showCovers}col-xs-9 col-sm-8 col-md-4 col-lg-3{else}col-xs-11{/if}">
+			<div class="col-xs-9 col-sm-8 col-md-4 col-lg-3">
 				<div class="btn-group btn-group-vertical btn-block">
 					{if $record.overdriveRead}
 						<a href="#" onclick="return VuFind.OverDrive.followOverDriveDownloadLink('{$record.userId}', '{$record.overDriveId}', 'ebook-overdrive')" class="btn btn-sm btn-primary">Read&nbsp;Online</a>
@@ -124,7 +119,6 @@
 					{if $record.formatSelected && !$record.overdriveVideo}
 						<a href="#" onclick="return VuFind.OverDrive.followOverDriveDownloadLink('{$record.userId}', '{$record.overDriveId}', '{$record.selectedFormat.format}')" class="btn btn-sm btn-primary">Download&nbsp;Again</a>
 					{/if}
-
 					{if $record.earlyReturn}
 						<a href="#" onclick="return VuFind.OverDrive.returnOverDriveTitle('{$record.userId}', '{$record.overDriveId}', '{$record.transactionId}');" class="btn btn-sm btn-warning">Return&nbsp;Now</a>
 					{/if}
