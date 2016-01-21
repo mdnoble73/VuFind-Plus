@@ -119,43 +119,10 @@ function animateClouds() {
 	clouds = newClouds
 }
 
-function changeMessage(msg) {
-	var msgEl = document.getElementById('message')
-	msgEl.innerHTML = msg || randomChoice(messages)
-}
-
-function startMessages() {
-	try {
-		if (window.sessionStorage) {
-			var times
-			if (sessionStorage.times) {
-				times = ++sessionStorage.times
-			} else {
-				times = sessionStorage.times = 0
-			}
-			
-			messages.push(msg)
-		}
-	} catch (e) {}
-
-	setInterval(function() { changeMessage() }, 15*1000)
-}
-
-messages = [
-	
-	'Perhaps you could read a book.',
-	'Have you considered starting your novel?',
-	'Librarians have answers to your questions!',
-	'We are working very hard to bring you a better catalog',
-	'Want to search our <a href="http://marmot.lib.overdrive.com">digital collection</a>?',
-	'<a href="http://marmot.lib.overdrive.com">Watch a movie</a>'
-]
-
 function start() {
 	if (arguments.callee.ran) { return; }
 	arguments.callee.ran = true
 
-	startMessages()
 	setInterval(animateClouds, 2*1000)
 
 	for (n=0; n<50; n++) {
@@ -176,9 +143,10 @@ window.onload = start
 			
 			<h1>The {$libraryName} Catalog is Down</h1>
 			<h2>for scheduled maintenance</h2>
+			{if $systemMessage}
+			{if $showLinkToClassicInMaintenanceMode}
 			<h4> Please search our <a href="{$classicCatalogUrl}">Classic Catalog</a></h4>
-			<h3> ___ </h3>
-			<h3 id="message"></h3>
+			{/if}
 		</div>
 		<!-- server ip {$activeIp} -->
 	</div>
