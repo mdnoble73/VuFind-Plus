@@ -158,6 +158,9 @@ class Library extends DB_DataObject
 	public $horizontalSearchBar;
 	public $sideBarOnRight;
 	public $enableArchive;
+	public $showBisacSubjects;
+	public $showStandardSubjects;
+	public $showFastAddSubjects;
 
 	// Use this to set which details will be shown in the the Main Details section of the record view.
 	// You should be able to add options here without needing to change the database.
@@ -401,6 +404,10 @@ class Library extends DB_DataObject
 				'show856LinksAsTab'  => array('property'=>'show856LinksAsTab', 'type'=>'checkbox', 'label'=>'Show 856 Links as Tab', 'description'=>'Whether or not 856 links will be shown in their own tab or on the same tab as holdings.', 'hideInLists' => true, 'default' => 1),
 				'showCheckInGrid' => array('property'=>'showCheckInGrid', 'type'=>'checkbox', 'label'=>'Show Check-in Grid', 'description'=>'Whether or not the check-in grid is shown for periodicals.', 'default' => 1, 'hideInLists' => true,),
 				'showStaffView' => array('property'=>'showStaffView', 'type'=>'checkbox', 'label'=>'Show Staff View', 'description'=>'Whether or not the staff view is displayed in full record view.', 'hideInLists' => true, 'default'=>true),
+				'showStandardSubjects' => array('property'=>'showStandardSubjects', 'type'=>'checkbox', 'label'=>'Show Standard Subjects', 'description'=>'Whether or not standard (LC) subjects are displayed in full record view.', 'hideInLists' => true, 'default'=>true),
+				'showBisacSubjects' => array('property'=>'showBisacSubjects', 'type'=>'checkbox', 'label'=>'Show Bisac Subjects', 'description'=>'Whether or not Bisac subjects are displayed in full record view.', 'hideInLists' => true, 'default'=>true),
+				'showFastAddSubjects' => array('property'=>'showFastAddSubjects', 'type'=>'checkbox', 'label'=>'Show OCLC Fast Subjects', 'description'=>'Whether or not OCLC Fast Add subjects are displayed in full record view.', 'hideInLists' => true, 'default'=>true),
+
 				'showInMainDetails' => array('property' => 'showInMainDetails', 'type' => 'multiSelect', 'label'=>'Which details to show in the main/top details section : ', 'description'=> 'Selected details will be shown in the top/main section of the full record view. Details not selected are moved to the More Details accordion.',
 					'listStyle'=> 'checkboxSimple',
 				  'values' => self::$showInMainDetailsOptions,

@@ -1212,12 +1212,22 @@ function getLibraryLocationUpdates(){
 					)
 			),
 
-		'show_library_hours_notice_on_account_pages' => array(
-			'title' => 'Show Library Hours Notice On Account Pages',
-			'description' => 'Add option to enable showing the library Hours Notice on account pages for individual libraries',
-			'sql' => array(
-				'ALTER TABLE `library` ADD COLUMN `showLibraryHoursNoticeOnAccountPages` TINYINT(1) DEFAULT 1 AFTER `showLibraryHoursAndLocationsLink`',
+			'show_library_hours_notice_on_account_pages' => array(
+				'title' => 'Show Library Hours Notice On Account Pages',
+				'description' => 'Add option to enable showing the library Hours Notice on account pages for individual libraries',
+				'sql' => array(
+					'ALTER TABLE `library` ADD COLUMN `showLibraryHoursNoticeOnAccountPages` TINYINT(1) DEFAULT 1 AFTER `showLibraryHoursAndLocationsLink`',
+				),
 			),
-		),
+
+			'library_subject_display' => array(
+					'title' => 'Library Subject Display Options',
+					'description' => 'Add options to control which subjects are shown in full record view',
+					'sql' => array(
+							'ALTER TABLE `library` ADD COLUMN `showStandardSubjects` TINYINT(1) DEFAULT 1',
+							'ALTER TABLE `library` ADD COLUMN `showBisacSubjects` TINYINT(1) DEFAULT 1',
+							'ALTER TABLE `library` ADD COLUMN `showFastAddSubjects` TINYINT(1) DEFAULT 1',
+					),
+			),
 	);
 }

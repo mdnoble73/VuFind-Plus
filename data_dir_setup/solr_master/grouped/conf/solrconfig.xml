@@ -757,8 +757,9 @@
 
 	<requestHandler name="morelikethis2" class="solr.MoreLikeThisHandler">
 		<lst name="defaults">
-			<str name="mlt.fl">topic_facet,awards_facet,genre_facet,geographic_facet,callnumber-label,era,author</str>
+			<str name="mlt.fl">subject_facet,topic_facet,awards_facet,genre_facet,geographic_facet,callnumber-label,era,author</str>
 			<str name="mlt.qf">
+				subject_facet^800
 				topic_facet^600
 				callnumber-label^200
 				awards_facet^100
@@ -775,8 +776,9 @@
 
 	<requestHandler name="morelikethese" class="solr.MoreLikeThisHandler">
 		<lst name="defaults">
-			<str name="mlt.fl">topic_facet,awards_facet,genre_facet,geographic_facet,callnumber-label,era,author,target_audience_full,literary_form_full</str>
+			<str name="mlt.fl">subject_facet,topic_facet,awards_facet,genre_facet,geographic_facet,callnumber-label,era,author,target_audience_full,literary_form_full</str>
 			<str name="mlt.qf">
+				subject_facet^800
 				topic_facet^600
 				callnumber-label^200
 				awards_facet^100
