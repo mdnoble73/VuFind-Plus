@@ -11,7 +11,7 @@
 		<h2>{translate text='Checked Out Titles'}</h2>
 
 		{if $libraryHoursMessage}
-			<div class='libraryHours alert alert-success'>{$libraryHoursMessage}</div>
+			<div class="libraryHours alert alert-success">{$libraryHoursMessage}</div>
 		{/if}
 		{if $transList}
 			<form id="renewForm" action="{$path}/MyAccount/RenewMultiple">

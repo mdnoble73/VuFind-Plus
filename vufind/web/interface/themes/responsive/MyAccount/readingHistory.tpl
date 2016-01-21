@@ -83,8 +83,8 @@
 					<div class="col-sm-1">
 						<input id="selectAll" type="checkbox" onclick="VuFind.toggleCheckboxes('.titleSelect', '#selectAll');" title="Select All/Deselect All">
 					</div>
-					{*{assign var="showCovers" value=true}*}
-					{assign var="showCovers" value=false}
+					{assign var="showCovers" value=true}
+					{*{assign var="showCovers" value=false}*}
 					{if $showCovers}
 					<div class="col-sm-2">
 						{translate text='Cover'}
@@ -116,7 +116,7 @@
 												<a href="{$record.linkUrl}" id="descriptionTrigger{$record.recordId|escape:"url"}">
 													<img src="{$record.coverUrl}" class="listResultImage img-thumbnail img-responsive" alt="{translate text='Cover Image'}">
 												</a>
-											{else}
+											{else} {* Cover Image but no Record-View link *}
 												<img src="{$record.coverUrl}" class="listResultImage img-thumbnail img-responsive" alt="{translate text='Cover Image'}">
 											{/if}
 										{/if}

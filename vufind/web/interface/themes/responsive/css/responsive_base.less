@@ -196,6 +196,15 @@ div.striped {
   }
 }
 
+// Used on Checked Out Page
+.bg-overdue {
+  background-color: @state-danger-bg !important; // important is needed to override .striped on checked out page
+  a&:hover,
+  a&:focus {
+    background-color: darken(@state-danger-bg, 10%);
+  }
+}
+
 //Table sorters
 .unsortedHeader{
   background-image: url(/images/unsorted_icon.gif);

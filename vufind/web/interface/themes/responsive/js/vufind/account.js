@@ -489,7 +489,7 @@ VuFind.Account = (function(){
 		changeAccountSort: function (newSort){
 			// Get the current url
 			var currentLocation = window.location.href;
-			// Check to see if we already have a sort parameter. .
+			// Check to see if we already have a sort parameter.
 			if (currentLocation.match(/(accountSort=[^&]*)/)) {
 				// Replace the existing sort with the new sort parameter
 				currentLocation = currentLocation.replace(/accountSort=[^&]*/, 'accountSort=' + newSort);

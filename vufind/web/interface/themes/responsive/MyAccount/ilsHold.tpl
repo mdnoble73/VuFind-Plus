@@ -4,7 +4,7 @@
 		{* Cover column *}
 		{*{assign var="noCovers" value=true}*}
 		{assign var="noCovers" value=false}
-		{if !$noCovers}
+		{if $showCovers}
 		<div class="col-xs-4 col-sm-3">
 			{*<div class="row">*}
 				{*
@@ -19,22 +19,23 @@
 				</div>
 				*}
 				<div class="{*col-xs-10 *}text-center">
-					{if $record.link}
-						<a href="{$record.link}">
-					{/if}
 					{if $record.coverUrl}
-						<img src="{$record.coverUrl}" class="listResultImage img-thumbnail img-responsive" alt="{translate text='Cover Image'}">
+						{if $record.recordId && $record.linkUrl}
+							<a href="{$record.linkUrl}" id="descriptionTrigger{$record.recordId|escape:"url"}">
+								<img src="{$record.coverUrl}" class="listResultImage img-thumbnail img-responsive" alt="{translate text='Cover Image'}">
+							</a>
+						{else} {* Cover Image but no Record-View link *}
+							<img src="{$record.coverUrl}" class="listResultImage img-thumbnail img-responsive" alt="{translate text='Cover Image'}">
+						{/if}
 					{/if}
-					{if $record.link}
-						</a>
-					{/if}
+
 				</div>
 			{*</div>*}
 		</div>
 
 		{/if}
 		{* Details Column*}
-		<div class="{if $noCovers}col-xs-12{else}col-xs-8 col-sm-9{/if}">
+			<div class="{if $showCovers}col-xs-8 col-sm-9{else}col-xs-12{/if}">
 			{* Title *}
 			<div class="row">
 				<div class="col-xs-12">
@@ -167,6 +168,7 @@
 					{/if}
 				</div>
 
+				{* Actions for Title *}
 				<div class="col-xs-9 col-sm-8 col-md-4 col-lg-3">
 					<div class="btn-group btn-group-vertical btn-block">
 						{if $section == 'available'}
