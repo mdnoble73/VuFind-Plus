@@ -235,6 +235,8 @@
   -webkit-column-gap: 15px;
   -moz-column-gap: 15px;
   column-gap: 15px;
+  padding-left: 15px;
+  text-indent: -15px;
 }
 @media (min-width: 0) {
   .moreFacetPopup {

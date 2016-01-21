@@ -38,12 +38,30 @@
 					</div>
 				{/if}
 
-				{if $recordDriver->getSeries()}
+				{assign var=indexedSeries value=$recordDriver->getIndexedSeries()}
+				{assign var=series value=$recordDriver->getSeries()}
+				{if $series || $indexedSeries}
 					<div class="series row">
-						<div class="result-label col-md-3">Series: </div>
+						<div class="result-label col-md-3">{translate text='Series'}:</div>
 						<div class="col-md-9 result-value">
-							{assign var=summSeries value=$recordDriver->getSeries()}
-							<a href="{$path}/GroupedWork/{$recordDriver->getPermanentId()}/Series">{$summSeries.seriesTitle}</a>{if $summSeries.volume} volume {$summSeries.volume}{/if}
+							{if $series}
+								<a href="{$path}/GroupedWork/{$summId}/Series">{$series.seriesTitle}</a>{if $series.volume} volume {$series.volume}{/if}<br/>
+							{/if}
+							{if $indexedSeries}
+								{if count($indexedSeries) >= 5}
+									{assign var=showMoreSeries value="true"}
+								{/if}
+								{foreach from=$indexedSeries item=seriesItem name=loop}
+									<a href="{$path}/Search/Results?basicType=Series&lookfor=%22{$seriesItem|escape:"url"}%22">{$seriesItem|escape}</a><br/>
+									{if $showMoreSeries && $smarty.foreach.loop.iteration == 3}
+										<a onclick="$('#moreSeries_{$summId}').show();$('#moreSeriesLink_{$summId}').hide();" id="moreSeriesLink_{$summId}">More Series...</a>
+										<div id="moreSeries_{$summId}" style="display:none">
+									{/if}
+								{/foreach}
+								{if $showMoreSeries}
+									</div>
+								{/if}
+							{/if}
 						</div>
 					</div>
 				{/if}

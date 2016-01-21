@@ -46,17 +46,28 @@
 			</div>
 		{/if}
 
-		{if $summSeries || $recordDriver->getIndexedSeries()}
+		{assign var=indexedSeries value=$recordDriver->getIndexedSeries()}
+		{if $summSeries || $indexedSeries}
 			<div class="series{$summISBN} row">
 				<div class="result-label col-xs-3">Series: </div>
 				<div class="col-xs-9 result-value">
 					{if $summSeries}
 					<a href="{$path}/GroupedWork/{$summId}/Series">{$summSeries.seriesTitle}</a>{if $summSeries.volume} volume {$summSeries.volume}{/if}<br/>
 					{/if}
-					{if $recordDriver->getIndexedSeries()}
-						{foreach from=$recordDriver->getIndexedSeries() item=seriesItem name=loop}
+					{if $indexedSeries}
+						{if count($indexedSeries) >= 5}
+							{assign var=showMoreSeries value="true"}
+						{/if}
+						{foreach from=$indexedSeries item=seriesItem name=loop}
 							<a href="{$path}/Search/Results?basicType=Series&lookfor=%22{$seriesItem|escape:"url"}%22">{$seriesItem|escape}</a><br/>
+							{if $showMoreSeries && $smarty.foreach.loop.iteration == 2}
+								<a onclick="$('#moreSeries_{$summId}').show();$('#moreSeriesLink_{$summId}').hide();" id="moreSeriesLink_{$summId}">More Series...</a>
+								<div id="moreSeries_{$summId}" style="display:none">
+							{/if}
 						{/foreach}
+						{if $showMoreSeries}
+							</div>
+						{/if}
 					{/if}
 				</div>
 			</div>

@@ -46,17 +46,6 @@
 		</div>
 	{/if}
 
-	{if $recordDriver->getIndexedSeries()}
-		<div class="row">
-			<div class="result-label col-md-3">{translate text='Series'}:</div>
-			<div class="col-md-9 result-value">
-				{foreach from=$recordDriver->getIndexedSeries() item=seriesItem name=loop}
-					<a href="{$path}/Search/Results?basicType=Series&lookfor=%22{$seriesItem|escape:"url"}%22">{$seriesItem|escape}</a><br/>
-				{/foreach}
-			</div>
-		</div>
-	{/if}
-
 	{if $recordDriver->getAcceleratedReaderData() != null}
 		{assign var="arData" value=$recordDriver->getAcceleratedReaderData()}
 		<div class="row">
