@@ -74,10 +74,10 @@
 			var haslocalStorage = VuFind.hasLocalStorage() || false;
 			if (haslocalStorage) {
 				var rememberMe = (window.localStorage.getItem('rememberMe') == 'true'), // localStorage saves everything as strings
-						showCovers = window.localStorage.getItem('showCovers');
+						showCovers = window.localStorage.getItem('showCovers') || false;
 				if (rememberMe) {
 					var lastUserName = window.localStorage.getItem('lastUserName'),
-									lastPwd = window.localStorage.getItem('lastPwd');
+							lastPwd = window.localStorage.getItem('lastPwd');
 {/literal}{*// showPwd = (window.localStorage.getItem('showPwd') == 'true'); // localStorage saves everything as strings *}{literal}
 					$("#username").val(lastUserName);
 					$("#password").val(lastPwd);
@@ -90,7 +90,7 @@
 						type: 'hidden',
 						name: 'showCovers',
 						value: showCovers
-					}).appendTo('#loginForm')
+					}).appendTo('#loginForm');
 				}
 			} else {
 {/literal}{* // disable, uncheck & hide RememberMe checkbox if localStorage isn't available.*}{literal}
