@@ -19,7 +19,7 @@ VuFind.Account = (function(){
 		 * Called from list-form.tpl
 		 * @returns {boolean}
 		 */
-		addList: function () {
+		addList: function(){
 			var form = $("#addListForm"),
 					isPublic = form.find("#public").prop("checked"),
 					recordId = form.find("input[name=recordId]").val(),
@@ -171,11 +171,18 @@ VuFind.Account = (function(){
 						rememberMe = $("#rememberMe").prop('checked'),
 						loginErrorElem = $('#loginError'),
 						loadingElem = $('#loading'),
-						url = Globals.path + "/AJAX/JSON?method=loginUser";
+						url = Globals.path + "/AJAX/JSON?method=loginUser",
+						params = {username: username, password: password, rememberMe: rememberMe};
+				if (!Globals.opac && VuFind.hasLocalStorage()){
+					var showCovers = window.localStorage.getItem('showCovers');
+					if (showCovers.length > 0) { // if there is a set value, pass it back with the login info
+						params.showCovers = showCovers
+					}
+				}
 				loginErrorElem.hide();
 				loadingElem.show();
 				//VuFind.loadingMessage();
-				$.post(url, {username: username, password: password, rememberMe: rememberMe}, function (response) {
+				$.post(url, params, function(response){
 						loadingElem.hide();
 						if (response.result.success == true) {
 							// Hide "log in" options and show "log out" options:
@@ -585,7 +592,7 @@ VuFind.Account = (function(){
 			if (promptForReactivationDate){
 				//Prompt the user for the date they want to reactivate the hold
 				params['method'] = 'getReactivationDateForm'; // set method for this form
-				$.getJSON(url, params, function (data) {
+				$.getJSON(url, params, function(data){
 					VuFind.showMessageWithButtons(data.title, data.modalBody, data.modalButtons)
 				}).fail(VuFind.ajaxFail);
 
@@ -673,14 +680,14 @@ VuFind.Account = (function(){
 
 		saveSearch: function(searchId){
 			if (!Globals.loggedIn){
-				VuFind.Account.ajaxLogin(null, function () {
+				VuFind.Account.ajaxLogin(null, function(){
 					VuFind.Account.saveSearch(searchId);
 				}, false);
 			}else{
 				var url = Globals.path + "/MyAccount/AJAX",
 						params = {method :'saveSearch', searchId :searchId};
 				$.getJSON(url, params,
-						function(data) {
+						function(data){
 							if (data.result) {
 								VuFind.showMessage("Success", data.message);
 							} else {
@@ -703,7 +710,7 @@ VuFind.Account = (function(){
 					VuFind.showMessageWithButtons(data.title, data.modalBody, data.modalButtons);
 				}).fail(VuFind.ajaxFail);
 			}else{
-				VuFind.Account.ajaxLogin($trigger, function (){
+				VuFind.Account.ajaxLogin($trigger, function(){
 					return VuFind.GroupedWork.showEmailForm(trigger, id);
 				}, false);
 			}
@@ -732,11 +739,10 @@ VuFind.Account = (function(){
 		toggleShowCovers: function(showCovers){
 			this.showCovers = showCovers;
 			var paramString = VuFind.Searches.replaceQueryParam('showCovers', this.showCovers ? 'on': 'off'); // set variable
-			if (!Globals.opac && VuFind.hasLocalStorage() ) { // store setting in browser if not an opac computer
-				window.localStorage.setItem('showCovers', this.showCovers ? '1' : '0');
+			if (!Globals.opac && VuFind.hasLocalStorage()) { // store setting in browser if not an opac computer
+				window.localStorage.setItem('showCovers', this.showCovers ? 'on' : 'off');
 			}
 			location.replace(location.pathname + paramString); // reloads page without adding entry to history
-
 		}
 	};
 }(VuFind.Account || {}));

@@ -2,7 +2,7 @@
  * Created by pbrammeier on 12/16/2015.
  */
 
-// Animate Menu Side Bar
+// TODO Animate Menu Side Bar
 //$("#slide").animate({width:'toggle'},350);
 
 VuFind.Menu = (function(){
@@ -34,7 +34,7 @@ VuFind.Menu = (function(){
 		}
 	});
 	return {
-		SideBarSearchSelectors: '#home-page-search,#horizontal-search-container,#narrow-search-label,#facet-accordion,#results-sort-label,#results-sort-label+div.row,#remove-search-label,#remove-search-label+.applied-filters,#similar-authors',
+		SideBarSearchSelectors: '#home-page-search,#narrow-search-label,#facet-accordion,#results-sort-label,#results-sort-label+div.row,#remove-search-label,#remove-search-label+.applied-filters,#similar-authors',
 		SideBarAccountSelectors: '#home-page-login,#home-account-links',
 		SideBarMenuSelectors: '#home-page-login,#home-page-library-section',
 		ExploreMoreSelectors: '',
@@ -132,7 +132,7 @@ VuFind.Menu = (function(){
 					VuFind.Menu.collapseSideBar();  // close sidebar in case it is open
 					$('.menu-bar-option').removeClass('menu-icon-selected');
 					parent.addClass('menu-icon-selected');
-					$('#horizontal-search-container').slideDown()
+					//$('#horizontal-search-container').slideDown()
 				})
 			} else {
 				this.showMenuSection(this.SideBarSearchSelectors, clickedElement)
