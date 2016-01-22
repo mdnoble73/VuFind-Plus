@@ -4,16 +4,12 @@
 # James Staub
 # Nashville Public Library
 
+# 20160113: adds logging
 # 20160105: branch off HOOPLA.sh
 #	get wget commands from config.pwd.ini
 # 20151006: Correct for new ALL directory name 'Only libraries loading All'
 # 20150522: Grab USA_ALL_*.marc files for Comic, eBook, and Music
 # 20150130: Grab Hoopla marc records for Pika. Read Hoopla ftp user and password from ... site/[site]/config/config.pwd.ini
-
-# TO DO
-# 1. For efficiency sake, we could read [site]/conf/config.ini [Hoopla]
-#	to determine which files to grab. For now, though, we'll be lazy 
-#	and grab everything
 
 if [[ $# -ne 1 ]]; then
 	echo "Please provide site directory, e.g., ./HOOPLA.sh opac.marmot.org"
@@ -53,18 +49,26 @@ while read line; do
 	if [[ $line =~ ^\[.+?\] && $line != '[Sideload]' ]]; then
 		section=false;
 	fi
-	if [[ $section == true && $line =~ Command ]]; then
+	if [[ $section == true && $line =~ 'Command' ]]; then
 		# key = strip off longest string from end containing Command
                 key=$(trim "${line%%Command*}");
 		# value = strip off shortest string from beginning containing =
                 value=$(trim "${line#*=}");
 		collections+=( [$key]=$value );
 	fi
+	if [[ $section == true && $line =~ 'logFile' ]]; then
+		# value = strip off shortest string from beginning containing =
+                logFile=$(trim "${line#*=}");
+	fi
 done < "$confpwd"
+
+# Truncate logFile
+: > $logFile;
 
 # Execute MARC download commands found in config.pwd.ini
 for key in ${!collections[@]}; do
 	${collections[${key}]}
+#	${collections[${key}]} >> $logFile;
 done
 
 exit 0
