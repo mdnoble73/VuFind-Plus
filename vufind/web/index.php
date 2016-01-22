@@ -590,8 +590,8 @@ $timer->logTime('Process Shards');
 // Note: ObjectEditor classes typically have the class name of DB_Object with an 's' added to the end.
 //       This distinction prevents the DB_Object from being mistakenly called as the Action class.
 if (!is_dir(ROOT_DIR . "/services/$module")){
-	$interface->assign('module','');
-	$interface->assign('action','');
+	$interface->assign('module',null);
+	$interface->assign('action',null);
 	$interface->assign('showBreadcrumbs', false);
 	$interface->assign('sidebar', 'Search/home-sidebar.tpl');
 	$interface->setTemplate('404.tpl');
