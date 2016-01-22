@@ -562,10 +562,8 @@ public abstract class MarcRecordProcessor {
 		Set<String> translations = getFieldList(record, translationFields);
 		translatedLanguages = new HashSet<>();
 		for (String translation : translations) {
-			if (!languages.contains(translation)) {
-				String translatedLanguage = indexer.translateSystemValue("language", translation, identifier);
-				translatedLanguages.add(translatedLanguage);
-			}
+			String translatedLanguage = indexer.translateSystemValue("language", translation, identifier);
+			translatedLanguages.add(translatedLanguage);
 		}
 		groupedWork.setTranslations(translatedLanguages);
 	}
