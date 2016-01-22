@@ -44,14 +44,27 @@
 								<td>{$fine.date}</td>
 							{/if}
 							{if $showReason}
-								<td>{$fine.reason}</td>
+								<td>
+									{$fine.reason}
+								</td>
 							{/if}
-							<td>{$fine.message}</td>
+							<td>
+								{$fine.message}
+								{if $fine.details}
+									{foreach from=$fine.details item=detail}
+										<div class="row">
+											<div class="col-xs-5"><strong>{$detail.label}</strong></div>
+											<div class="col-xs-7">{$detail.value}</div>
+										</div>
+									{/foreach}
+								{/if}
+							</td>
 							<td>{$fine.amount}</td>
 							{if $showOutstanding}
 								<td>{$fine.amountOutstanding}</td>
 							{/if}
 						</tr>
+
 					{/foreach}
 				</tbody>
 				<tfoot>

@@ -96,7 +96,11 @@
 							</div>
 							<div class="rightSidebar col-xs-12 col-sm-8 col-sm-pull-4 col-md-9 col-md-pull-3 col-lg-9 col-lg-pull-3" id="main-content-with-sidebar" style="overflow-x: auto;">
 								{* If main content overflows, use a scrollbar *}
-								{include file="$module/$pageTemplate"}
+								{if $module}
+									{include file="$module/$pageTemplate"}
+								{else}
+									{include file="$pageTemplate"}
+								{/if}
 							</div>
 
 						{else} {* Sidebar on the left *}
@@ -104,12 +108,20 @@
 								{include file="sidebar.tpl"}
 							</div>
 							<div class="col-xs-12 col-sm-8 col-md-9 col-lg-9" id="main-content-with-sidebar">
-								{include file="$module/$pageTemplate"}
+								{if $module}
+									{include file="$module/$pageTemplate"}
+								{else}
+									{include file="$pageTemplate"}
+								{/if}
 							</div>
 						{/if}
 
 					{else} {* Main Content Only, no sidebar *}
-						{include file="$module/$pageTemplate"}
+						{if $module}
+							{include file="$module/$pageTemplate"}
+						{else}
+							{include file="$pageTemplate"}
+						{/if}
 					{/if}
 				</div>
 			</div>

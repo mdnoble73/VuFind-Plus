@@ -821,7 +821,7 @@ class MyAccount_AJAX
 		if (isset($_REQUEST['multistep'])) {
 			$interface->assign('multistep', true);
 		}
-		return $interface->fetch('MyResearch/ajax-login.tpl');
+		return $interface->fetch('MyAccount/ajax-login.tpl');
 	}
 
 	function getPinUpdateForm()
