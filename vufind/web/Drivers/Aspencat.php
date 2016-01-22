@@ -1323,7 +1323,7 @@ class Aspencat implements DriverInterface{
 		return $holds;
 	}
 
-	public function updateHold($requestId, $patronId, $type, $title){
+	public function updateHold($requestId, $patronId, $type){
 		$xnum = "x" . $_REQUEST['x'];
 		//Strip the . off the front of the bib and the last char from the bib
 		if (isset($_REQUEST['cancelId'])){
@@ -1333,14 +1333,14 @@ class Aspencat implements DriverInterface{
 		}
 		$locationId = $_REQUEST['location'];
 		$freezeValue = isset($_REQUEST['freeze']) ? 'on' : 'off';
-		return $this->updateHoldDetailed($patronId, $type, $title, $xnum, $cancelId, $locationId, $freezeValue);
+		return $this->updateHoldDetailed($patronId, $type, $xnum, $cancelId, $locationId, $freezeValue);
 	}
 
 	/**
 	 * Update a hold that was previously placed in the system.
 	 * Can cancel the hold or update pickup locations.
 	 */
-	public function updateHoldDetailed($patron, $type, $title, $xNum, $cancelId, $locationId, $freezeValue='off'){
+	public function updateHoldDetailed($patron, $type, /*$title,*/ $xNum, $cancelId, $locationId, $freezeValue='off'){
 		global $configArray;
 
 		if (!isset($xNum) || empty($xNum)){
@@ -1730,18 +1730,18 @@ class Aspencat implements DriverInterface{
 	}
 
 	function cancelHold($patron, $recordId, $cancelId) {
-		return $this->updateHoldDetailed($patron, 'cancel', '', null, $cancelId, '', '');
+		return $this->updateHoldDetailed($patron, 'cancel', null, $cancelId, '', '');
 	}
 
 	function freezeHold($patron, $recordId, $itemToFreezeId, $dateToReactivate) {
-		return $this->updateHoldDetailed($patron, 'update', '', null, $itemToFreezeId, '', 'on');
+		return $this->updateHoldDetailed($patron, 'update', null, $itemToFreezeId, '', 'on');
 	}
 
 	function thawHold($patron, $recordId, $itemToThawId) {
-		return $this->updateHoldDetailed($patron, 'update', '', null, $itemToThawId, '', 'off');
+		return $this->updateHoldDetailed($patron, 'update', null, $itemToThawId, '', 'off');
 	}
 
 	function changeHoldPickupLocation($patron, $recordId, $itemToUpdateId, $newPickupLocation) {
-		return $this->updateHoldDetailed($patron, 'update', '', null, $itemToUpdateId, $newPickupLocation, 'off');
+		return $this->updateHoldDetailed($patron, 'update', null, $itemToUpdateId, $newPickupLocation, 'off');
 	}
 }

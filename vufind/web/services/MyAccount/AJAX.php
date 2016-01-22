@@ -402,7 +402,7 @@ class MyAccount_AJAX
 				$cancelId = $_REQUEST['holdselected'];
 			}
 //			$locationId = isset($_REQUEST['location']) ? $_REQUEST['location'] : null; //not passed via ajax. don't think it's needed
-			$result = $catalog->driver->updateHoldDetailed($user->password, 'cancel', '', null, $cancelId, null/*, ''//shouldn't be needed*/);
+			$result = $catalog->driver->updateHoldDetailed($user->password, 'cancel', $cancelId, null);
 
 		} catch (PDOException $e) {
 			// What should we do with this error?
@@ -896,7 +896,7 @@ class MyAccount_AJAX
 			$patronOwningHold = $user->getUserReferredTo($patronId);
 
 
-			$result = $catalog->driver->updateHoldDetailed($patronOwningHold, 'update', '', null, $holdId, $newPickupLocation, null);
+			$result = $catalog->driver->updateHoldDetailed($patronOwningHold, 'update', '', $holdId, $newPickupLocation, null);
 			return $result;
 		} catch (PDOException $e) {
 			// What should we do with this error?
@@ -997,7 +997,6 @@ class MyAccount_AJAX
 							$result = array(
 								'result' => false,
 								'message' => "Your e-mail message could not be sent: {$emailResult->message}."
-								//QUESTION should error messages be passed back to user? plb 10-15-2014  DEBUG_REMOVE
 							);
 						} else {
 							$result = array(

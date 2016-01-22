@@ -699,22 +699,22 @@ class Millennium extends ScreenScrapingDriver
 		return $millenniumHolds->placeVolumeHold($patron, $recordId, $volumeId, $pickupBranch);
 	}
 
-	public function updateHold($patron, $requestId, $type, $title){
+	public function updateHold($patron, $requestId, $type){
 		require_once ROOT_DIR . '/Drivers/marmot_inc/MillenniumHolds.php';
 		$millenniumHolds = new MillenniumHolds($this);
-		return $millenniumHolds->updateHold($patron, $requestId, $type, $title);
+		return $millenniumHolds->updateHold($patron, $requestId, $type);
 	}
 
-	public function updateHoldDetailed($patron, $type, $title, $xNum, $cancelId, $locationId, $freezeValue='off'){
+	public function updateHoldDetailed($patron, $type, $xNum, $cancelId, $locationId, $freezeValue='off'){
 		require_once ROOT_DIR . '/Drivers/marmot_inc/MillenniumHolds.php';
 		$millenniumHolds = new MillenniumHolds($this);
-		return $millenniumHolds->updateHoldDetailed($patron, $type, $title, $xNum, $cancelId, $locationId, $freezeValue);
+		return $millenniumHolds->updateHoldDetailed($patron, $type, $xNum, $cancelId, $locationId, $freezeValue);
 	}
 
 	public function cancelHold($patron, $recordId, $cancelId){
 		require_once ROOT_DIR . '/Drivers/marmot_inc/MillenniumHolds.php';
 		$millenniumHolds = new MillenniumHolds($this);
-		return $millenniumHolds->updateHoldDetailed($patron, 'cancel', '', null, $cancelId, '', '');
+		return $millenniumHolds->updateHoldDetailed($patron, 'cancel', null, $cancelId, '', '');
 	}
 
 	function allowFreezingPendingHolds(){
@@ -724,19 +724,19 @@ class Millennium extends ScreenScrapingDriver
 	function freezeHold($patron, $recordId, $itemToFreezeId, $dateToReactivate){
 		require_once ROOT_DIR . '/Drivers/marmot_inc/MillenniumHolds.php';
 		$millenniumHolds = new MillenniumHolds($this);
-		return $millenniumHolds->updateHoldDetailed($patron, 'update', '', null, $itemToFreezeId, '', 'on');
+		return $millenniumHolds->updateHoldDetailed($patron, 'update', null, $itemToFreezeId, '', 'on');
 	}
 
 	function thawHold($patron, $recordId, $itemToThawId){
 		require_once ROOT_DIR . '/Drivers/marmot_inc/MillenniumHolds.php';
 		$millenniumHolds = new MillenniumHolds($this);
-		return $millenniumHolds->updateHoldDetailed($patron, 'update', '', null, $itemToThawId, '', 'off');
+		return $millenniumHolds->updateHoldDetailed($patron, 'update', null, $itemToThawId, '', 'off');
 	}
 
 	function changeHoldPickupLocation($patron, $recordId, $itemToUpdateId, $newPickupLocation){
 		require_once ROOT_DIR . '/Drivers/marmot_inc/MillenniumHolds.php';
 		$millenniumHolds = new MillenniumHolds($this);
-		return $millenniumHolds->updateHoldDetailed($patron, 'update', '', null, $itemToUpdateId, $newPickupLocation, 'off');
+		return $millenniumHolds->updateHoldDetailed($patron, 'update', null, $itemToUpdateId, $newPickupLocation, 'off');
 	}
 
 	public function hasFastRenewAll(){
