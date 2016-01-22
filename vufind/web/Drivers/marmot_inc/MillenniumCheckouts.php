@@ -119,7 +119,7 @@ class MillenniumCheckouts {
 						// $sret[$scount-2]['dueDate'] = strip_tags($scols[$i]);
 						$due = trim(str_replace("DUE", "", strip_tags($scols[$i])));
 						$renewCount = 0;
-						if (preg_match('/FINE\(up to now\) (\$\d+\.\d+)/i', $due, $matches)){
+						if (preg_match('/FINE\(\s*up to now\) (\$\d+\.\d+)/i', $due, $matches)){
 							$curTitle['fine'] = trim($matches[1]);
 						}
 						if (preg_match('/(.*)Renewed (\d+) time(?:s)?/i', $due, $matches)){
