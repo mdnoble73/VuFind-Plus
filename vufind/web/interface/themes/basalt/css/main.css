@@ -4911,6 +4911,7 @@ button.close {
 }
 .modal.fade .modal-dialog {
   -webkit-transform: translate(0, -25%);
+  -ms-transform: translate(0, -25%);
   transform: translate(0, -25%);
   -webkit-transition: -webkit-transform 0.3s ease-out;
   transition: -webkit-transform 0.3s ease-out;
@@ -4919,6 +4920,7 @@ button.close {
 }
 .modal.in .modal-dialog {
   -webkit-transform: translate(0, 0);
+  -ms-transform: translate(0, 0);
   transform: translate(0, 0);
 }
 .modal-dialog {
@@ -5004,7 +5006,8 @@ button.close {
 }
 @media screen and (min-width: 768px) {
   .modal-dialog {
-    width: 600px;
+    width: 733px;
+    max-width: 750px;
     margin: 30px auto;
   }
   .modal-content {
@@ -6859,6 +6862,13 @@ div.striped > div:nth-child(odd),
 div.striped > div:nth-child(odd) {
   background-color: #f9f9f9;
 }
+.bg-overdue {
+  background-color: #f2dede !important;
+}
+a.bg-overdue:hover,
+a.bg-overdue:focus {
+  background-color: #e4b9b9;
+}
 .unsortedHeader {
   background-image: url(/images/unsorted_icon.gif);
   cursor: pointer;
@@ -7773,6 +7783,7 @@ fieldset[disabled] .datepicker table tr td span.active.disabled:hover.active {
   bottom: -25px;
   left: 50%;
   -webkit-transform: translate(-50%, 0);
+  -ms-transform: translate(-50%, 0);
   transform: translate(-50%, 0);
   margin: 0;
 }
@@ -7851,6 +7862,7 @@ fieldset[disabled] .datepicker table tr td span.active.disabled:hover.active {
   vertical-align: text-top;
   text-align: center;
   -webkit-transform: scale(0.6);
+      -ms-transform: scale(0.6);
           transform: scale(0.6);
   margin-top: -1px;
   margin-bottom: -1px;
@@ -8261,18 +8273,10 @@ hr.menu {
 }
 .header-button {
   text-align: center;
-  height: 126px !important;
-  border-bottom: 4px solid #EFEFEF;
-}
-.header-button > a {
-  line-height: 126px !important;
-  text-align: center;
-  vertical-align: middle;
-  padding: 0;
-  color: #8b8b8b !important;
   text-shadow: 1px 1px #fff;
-}
-.header-button > a:visited {
+  vertical-align: middle;
+  line-height: 126px !important;
+  border-bottom: 4px solid #EFEFEF;
   color: #8b8b8b !important;
 }
 .header-button:hover {
@@ -8415,14 +8419,31 @@ hr.menu {
   white-space: nowrap;
   position: absolute;
   -webkit-transform: rotate(-90deg) translateX(-100%);
+      -ms-transform: rotate(-90deg) translateX(-100%);
           transform: rotate(-90deg) translateX(-100%);
   -webkit-transform-origin: 0 0;
+      -ms-transform-origin: 0 0;
           transform-origin: 0 0;
   margin-top: 10px;
   margin-left: 10px;
 }
 .collapsedSidebar {
   width: 40px;
+}
+@media (min-width: 768px) {
+  .collapsedSidebar.rightSidebar {
+    left: 94.44%;
+  }
+}
+@media (min-width: 992px) {
+  .collapsedSidebar.rightSidebar {
+    left: 95.74%;
+  }
+}
+@media (min-width: 1200px) {
+  .collapsedSidebar.rightSidebar {
+    left: 96.49%;
+  }
 }
 @media (min-width: 768px) {
   .mainContentWhenSiderbarCollapsed {
@@ -8438,6 +8459,9 @@ hr.menu {
   .mainContentWhenSiderbarCollapsed {
     width: 96.49%;
   }
+}
+.mainContentWhenSiderbarCollapsed.rightSidebar {
+  right: 40px;
 }
 @media print {
   #side-bar {
@@ -8573,15 +8597,15 @@ hr.menu {
   margin-bottom: 0;
 }
 #home-page-login {
-  background-color: #AFAFAF;
-  color: #fff;
+  background-color: #feae1a;
+  color: #FFF;
   font-size: 18px;
   text-shadow: 1px 1px #999999;
   padding: 5px;
   margin-bottom: 5px;
 }
 #home-page-login a {
-  color: #fff;
+  color: #FFF;
 }
 #horizontal-search-wrapper + #content-container #home-page-login {
   margin-top: 5px;
@@ -8688,13 +8712,17 @@ hr.menu {
   text-decoration: none;
   background-color: #0088cc;
   border-radius: 0;
-  -webkit-border-radius: 0;
-  -moz-border-radius: 0;
   background-image: none;
+}
+.categoryValue {
+  font-size: smaller;
 }
 .categoryValue img {
   max-width: 50px;
   height: 50px;
+}
+.categoryValue:hover img {
+  opacity: 0.7;
 }
 @media (max-width: 540px) {
   .formatCategoryLabel {
@@ -9565,7 +9593,7 @@ a.browse-thumbnail.active {
   background: -webkit-linear-gradient(top, #7c7c7d, #3d4244);
   background: linear-gradient(to bottom, #7c7c7d, #3d4244);
   color: #fff;
-  padding: 3px 0px;
+  padding: 3px 0;
   margin-top: 20px;
 }
 #narrow-search-label {
@@ -9574,7 +9602,7 @@ a.browse-thumbnail.active {
   background: -webkit-linear-gradient(top, #7c7c7d, #3d4244);
   background: linear-gradient(to bottom, #7c7c7d, #3d4244);
   color: #fff;
-  padding: 3px 0px;
+  padding: 3px 0;
   margin-top: 20px;
 }
 .facetTitle {
@@ -9586,9 +9614,6 @@ a.browse-thumbnail.active {
   padding: 8px 30px 6px 15px;
   border-top: 1px solid #f4f4f4;
   border-bottom: 1px solid #adadad;
-}
-.categoryValue {
-  font-size: smaller;
 }
 .formatCategoryLabel {
   vertical-align: central;
@@ -9609,7 +9634,7 @@ a.browse-thumbnail.active {
   background: -webkit-linear-gradient(top, #7c7c7d, #3d4244);
   background: linear-gradient(to bottom, #7c7c7d, #3d4244);
   color: #fff;
-  padding: 3px 0px;
+  padding: 3px 0;
   margin-top: 20px;
   font-size: 14px;
 }
@@ -9743,6 +9768,8 @@ a.browse-thumbnail.active {
   -webkit-column-gap: 15px;
   -moz-column-gap: 15px;
   column-gap: 15px;
+  padding-left: 15px;
+  text-indent: -15px;
 }
 @media (min-width: 0) {
   .moreFacetPopup {
@@ -9753,16 +9780,16 @@ a.browse-thumbnail.active {
 }
 @media (min-width: 768px) {
   .moreFacetPopup {
-    -webkit-column-count: 2;
-    -moz-column-count: 2;
-    column-count: 2;
+    -webkit-column-count: 1;
+    -moz-column-count: 1;
+    column-count: 1;
   }
 }
 @media (min-width: 992px) {
   .moreFacetPopup {
-    -webkit-column-count: 3;
-    -moz-column-count: 3;
-    column-count: 3;
+    -webkit-column-count: 2;
+    -moz-column-count: 2;
+    column-count: 2;
   }
 }
 .highlight {
@@ -9979,26 +10006,18 @@ a.browse-thumbnail.active {
   margin-top: 20px;
 }
 .header-button {
+  border: 0;
   border-radius: 0.5em;
+  color: #fff !important;
   background-color: rgba(250, 148, 1, 0.5);
   margin-top: 20px;
-  height: 60px !important;
-  border: 0;
-}
-.header-button > a {
-  color: #fff !important;
   line-height: 60px !important;
   text-shadow: none;
 }
-.header-button > a:visited {
-  color: #fff !important;
-}
 .header-button:hover {
+  text-decoration: underline;
   border-bottom: 0;
   box-shadow: 2px 2px 5px #fff;
-}
-#home-page-login {
-  background-color: #feae1a;
 }
 #browse-category-carousel {
   overflow: visible;

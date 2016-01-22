@@ -29,7 +29,8 @@
 		<div class="hidden-xs col-sm-2 col-sm-offset-5 col-md-2 col-md-offset-0 col-lg-2 col-lg-offset-0">
 			<div class="header-button header-primary">
 				<a id="myAccountNameLink" href="{$path}/MyAccount/Home">
-					{$user->firstname|capitalize} {$user->lastname|capitalize|substr:0:1}'s Account
+					{*{$user->firstname|capitalize} {$user->lastname|capitalize|substr:0:1}'s Account*}{*TODO: remove once Nashville approves change. plb 1-12-2016*}
+					{$user->displayName|capitalize}'s Account
 				</a>
 			</div>
 		</div>
@@ -37,7 +38,7 @@
 		{*<div class="hidden-xs col-xs-3 col-sm-2 col-md-2 col-lg-2">*}
 		<div class="hidden-xs col-sm-2 col-md-2 col-lg-2">
 			<div class="header-button header-logout">
-				<a href="{$path}/MyAccount/Logout" id="logoutLink" >{translate text="Log Out"}</a>
+				<a href="{$path}/MyAccount/Logout" id="logoutLink">{translate text="Log Out"}</a>
 			</div>
 		</div>
 	</div>

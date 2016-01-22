@@ -423,7 +423,7 @@ abstract class RecordInterface {
 				'copies' => 'Copies',
 				'links' => 'Links',
 				'moreLikeThis' => 'More Like This',
-				'otherEditions' => 'Other Editions',
+				'otherEditions' => 'Other Editions and Formats',
 				'prospector' => 'Prospector',
 				'tableOfContents' => 'Table of Contents  (MARC/Syndetics/ContentCafe)',
 				'excerpt' => 'Excerpt (Syndetics/ContentCafe)',

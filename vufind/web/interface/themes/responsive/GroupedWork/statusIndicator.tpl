@@ -8,18 +8,18 @@
 		{if $showItsHere}
 			<div class="related-manifestation-shelf-status available">It's Here</div>
 		{else}
-			<div class="related-manifestation-shelf-status available">On Shelf</div>
+			<div class="related-manifestation-shelf-status available">{translate text='On Shelf'}</div>
 		{/if}
 	{/if}
 {elseif $statusInformation.availableLocally}
 	{if $statusInformation.availableOnline}
 		<div class="related-manifestation-shelf-status available">Available Online</div>
 	{elseif $statusInformation.allLibraryUseOnly}
-		<div class="related-manifestation-shelf-status available">On Shelf (library use only)</div>
+		<div class="related-manifestation-shelf-status available">{translate text='On Shelf (library use only)'}</div>
 	{elseif $onInternalIP}
 		<div class="related-manifestation-shelf-status availableOther">Available at another branch</div>
 	{else}
-		<div class="related-manifestation-shelf-status available">On Shelf</div>
+		<div class="related-manifestation-shelf-status available">{translate text='On Shelf'}</div>
 	{/if}
 {elseif $statusInformation.availableOnline}
 	<div class="related-manifestation-shelf-status available">Available Online</div>

@@ -1524,18 +1524,33 @@ class Millennium extends ScreenScrapingDriver
 		if (preg_match('/<table border="0" class="patFunc">(.*?)<\/table>/si', $pageContents, $regs)) {
 			$finesTable = $regs[1];
 			//Get the title and, type, and fine detail from the page
-			preg_match_all('/<tr class="patFuncFinesEntryTitle">(.*?)<\/tr>.*?<tr class="patFuncFinesEntryDetail">.*?<td class="patFuncFinesDetailType">(.*?)<\/td>.*?<td align="right" class="patFuncFinesDetailAmt">(.*?)<\/td>.*?<\/tr>/si', $finesTable, $fineDetails, PREG_SET_ORDER);
-			for ($matchi = 0; $matchi < count($fineDetails); $matchi++) {
-				$reason = ucfirst(strtolower(trim($fineDetails[$matchi][2])));
-				if ($reason == '&nbsp' || $reason == '&nbsp;'){
-					$reason = 'Fee';
+			preg_match_all('/<tr class="(patFuncFinesEntryTitle|patFuncFinesEntryDetail|patFuncFinesDetailDate)">(.*?)<\/tr>/si', $finesTable, $rowDetails, PREG_SET_ORDER);
+			$curFine = array();
+			for ($match1 = 0; $match1 < count($rowDetails); $match1++) {
+				$rowType = $rowDetails[$match1][1];
+				$rowContents = $rowDetails[$match1][2];
+				if ($rowType == 'patFuncFinesEntryTitle'){
+					if ($curFine != null) $messages[] = $curFine;
+					$curFine = array();
+					if (preg_match('/<td.*?>(.*?)<\/td>/si', $rowContents, $colDetails)){
+						$curFine['message'] = trim(strip_tags($colDetails[1]));
+					}
+				}else if ($rowType == 'patFuncFinesEntryDetail'){
+					if (preg_match_all('/<td.*?>(.*?)<\/td>/si', $rowContents, $colDetails, PREG_SET_ORDER) > 0){
+						$curFine['reason'] = trim(strip_tags($colDetails[1][1]));
+						$curFine['amount'] = trim($colDetails[2][1]);
+					}
+				}else if ($rowType == 'patFuncFinesDetailDate'){
+					if (preg_match_all('/<td.*?>(.*?)<\/td>/si', $rowContents, $colDetails, PREG_SET_ORDER) > 0){
+						if (!array_key_exists('details', $curFine)) $curFine['details'] = array();
+						$curFine['details'][] = array(
+							'label' => trim(strip_tags($colDetails[1][1])),
+							'value' => trim(strip_tags($colDetails[2][1])),
+						);
+					}
 				}
-				$messages[] = array(
-					'reason' => $reason,
-					'message' => trim(strip_tags($fineDetails[$matchi][1])),
-					'amount' => trim($fineDetails[$matchi][3]),
-				);
 			}
+			if ($curFine != null) $messages[] = $curFine;
 		}
 
 		return $messages;

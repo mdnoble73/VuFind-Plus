@@ -52,7 +52,8 @@
   line-height: 9px;
   vertical-align: text-top;
   text-align: center;
-  transform: scale(0.6);
+  -webkit-transform: scale(0.6);
+          transform: scale(0.6);
   margin-top: -1px;
   margin-bottom: -1px;
 }
@@ -109,7 +110,6 @@
 .bootstrap-switch.bootstrap-switch-focused {
   border-color: #66afe9;
   outline: 0;
-  -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px rgba(102, 175, 233, 0.6);
   box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px rgba(102, 175, 233, 0.6);
 }
 .bootstrap-switch > div {
@@ -122,8 +122,6 @@
 }
 .bootstrap-switch > div > span,
 .bootstrap-switch > div > label {
-  -webkit-box-sizing: border-box;
-  -moz-box-sizing: border-box;
   box-sizing: border-box;
   cursor: pointer;
   display: inline-block !important;
@@ -163,7 +161,7 @@
 }
 .bootstrap-switch > div > span.bootstrap-switch-warning {
   background: #f0ad4e;
-  color: #ffffff;
+  color: #fff;
 }
 .bootstrap-switch > div > span.bootstrap-switch-danger {
   color: #fff;
@@ -171,7 +169,7 @@
 }
 .bootstrap-switch > div > span.bootstrap-switch-default {
   color: #000;
-  background: #eeeeee;
+  background: #eee;
 }
 .bootstrap-switch > div > label {
   text-align: center;
@@ -180,7 +178,7 @@
   z-index: 100;
   width: 33.33333333%;
   color: #333;
-  background: #ffffff;
+  background: #fff;
 }
 .bootstrap-switch input[type=radio],
 .bootstrap-switch input[type=checkbox] {

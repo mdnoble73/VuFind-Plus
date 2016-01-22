@@ -31,7 +31,7 @@
 										<div class="myAccountLink" style="color:red; font-weight:bold;">
 											Your account{if count($user->getLinkedUsers())>0}s have{else} has{/if} ${$totalFines|number_format:2} in fines.
 										</div>
-										<div class="myAccountLink"><a href="{$ecommerceLink}">{if $payFinesLinkText}{$payFinesLinkText}{else}Pay Fines Online{/if}</a></div>
+										<div class="myAccountLink"><a href="{$ecommerceLink}" target="_blank">{if $payFinesLinkText}{$payFinesLinkText}{else}Pay Fines Online{/if}</a></div>
 									{else}
 										<div class="myAccountLink" title="Please contact your local library to pay fines or charges." style="color:red; font-weight:bold;" onclick="alert('Please contact your local library to pay fines or charges.')">
 											Your account{if count($user->getLinkedUsers())>0}s have{else} has{/if} ${$totalFines|number_format:2} in fines.
@@ -114,14 +114,14 @@
 					<a data-toggle="collapse" data-parent="#account-link-accordion" href="#myListsPanel">
 						<div class="panel-heading">
 							<div class="panel-title">
-								MY LISTS
+								My Lists
 							</div>
 						</div>
 					</a>
 					<div id="myListsPanel" class="panel-collapse collapse{if $action == 'MyRatings' || $action == 'Suggested Titles' || $action == 'MyList'} in{/if}">
 						<div class="panel-body">
 							{if $showConvertListsFromClassic}
-								<div class="myAccountLink"><a href="{$path}/MyAccount/ImportListsFromClassic">Import Lists from Classic</a></div>
+								<div class="myAccountLink"><a href="{$path}/MyAccount/ImportListsFromClassic" class="btn btn-sm btn-default">Import Existing Lists</a></div>
 								<br>
 							{/if}
 
@@ -141,7 +141,7 @@
 					<a data-toggle="collapse" data-parent="#account-link-accordion" href="#myTagsPanel">
 						<div class="panel-heading">
 							<div class="panel-title collapsed">
-								MY TAGS
+								My Tags
 							</div>
 						</div>
 					</a>

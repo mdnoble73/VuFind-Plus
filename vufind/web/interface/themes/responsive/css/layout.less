@@ -66,22 +66,35 @@ hr.menu{
     height:auto;
   }
 }
-
+// OLD Version, when markup was div.header-button > a
+//.header-button{
+//  text-align: center;
+//  height: @header-height - 8px !important;
+//  border-bottom: 4px solid @header-bottom-color;
+//  & > a{
+//    line-height: @header-height - 8px !important;
+//    text-align: center;
+//    vertical-align: middle;
+//    padding: 0;
+//    color: @header-link-color !important;
+//    text-shadow: 1px 1px #fff;
+//    &:visited{
+//      color: @header-link-color !important;
+//    }
+//  }
+//  &:hover{
+//    border-bottom: 4px solid @link-hover-color;
+//  }
+//}
+// New Version, markup is a > div.header-button
 .header-button{
   text-align: center;
-  height: @header-height - 8px !important;
+  text-shadow: 1px 1px #fff;
+  vertical-align: middle;
+  //height: @header-height - 8px !important; // TODO: Needed, line-height should force this to be the same now
+  line-height: @header-height - 8px !important;
   border-bottom: 4px solid @header-bottom-color;
-  & > a{
-    line-height: @header-height - 8px !important;
-    text-align: center;
-    vertical-align: middle;
-    padding: 0;
-    color: @header-link-color !important;
-    text-shadow: 1px 1px #fff;
-    &:visited{
-      color: @header-link-color !important;
-    }
-  }
+  color: @header-link-color !important;
   &:hover{
     border-bottom: 4px solid @link-hover-color;
   }
@@ -256,6 +269,17 @@ hr.menu{
 // Applied to container divs, remove class to restore original width classes
 .collapsedSidebar {
   width: @vertical-menu-bar-width;
+  &.rightSidebar {
+    @media (min-width: @screen-sm) {
+      left: 100% - percentage( round(@vertical-menu-bar-width/(@container-sm - @grid-gutter-width), 4) );
+    }
+    @media (min-width: @screen-md) {
+      left:  100% - percentage( round(@vertical-menu-bar-width/(@container-md - @grid-gutter-width), 4) );
+    }
+    @media (min-width: @screen-lg-min) {
+      left: 100% - percentage( round(@vertical-menu-bar-width/(@container-lg - @grid-gutter-width), 4) );
+    }
+  }
 }
 
 // Toggles Expanding Main Content when Sidebar is collapsed
@@ -270,7 +294,10 @@ hr.menu{
   @media (min-width: @screen-lg-min) {
     width: 100% - percentage( round(@vertical-menu-bar-width/(@container-lg - @grid-gutter-width), 4) );
   }
-
+  &.rightSidebar {
+    // Adjustments to display when the sidebar is on the right hand side.
+    right: @vertical-menu-bar-width;
+  }
 }
 
 // Sidebar & Main content

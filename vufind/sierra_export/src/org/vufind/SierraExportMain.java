@@ -42,6 +42,7 @@ public class SierraExportMain{
 	private static char locationSubfield;
 	private static char statusSubfield;
 	private static char dueDateSubfield;
+	private static String dueDateFormat;
 
 	public static void main(String[] args){
 		serverName = args[0];
@@ -201,6 +202,11 @@ public class SierraExportMain{
 			locationSubfield = getSubfieldIndicatorFromConfig(ini, "locationSubfield");
 			statusSubfield = getSubfieldIndicatorFromConfig(ini, "statusSubfield");
 			dueDateSubfield = getSubfieldIndicatorFromConfig(ini, "dueDateSubfield");
+			if (ini.get("Reindex").containsKey("dueDateFormat")){
+				dueDateFormat = ini.get("Reindex", "dueDateFormat");
+			}else{
+				dueDateFormat = "yyMMdd";
+			}
 
 			PreparedStatement loadLastSierraExtractTimeStmt = vufindConn.prepareStatement("SELECT * from variables WHERE name = 'last_sierra_extract_time'", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 			ResultSet lastSierraExtractTimeRS = loadLastSierraExtractTimeStmt.executeQuery();
@@ -232,7 +238,8 @@ public class SierraExportMain{
 				String dateUpdated = dateFormatter.format(lastExtractDate);
 				long updateTime = new Date().getTime() / 1000;
 
-				SimpleDateFormat marcDateFormat = new SimpleDateFormat("yyMMdd");
+
+				SimpleDateFormat marcDateFormat = new SimpleDateFormat(dueDateFormat);
 
 				//Extract the ids of all records that have changed.  That will allow us to mark
 				//That the grouped record has changed which will force the work to be indexed
@@ -390,7 +397,11 @@ public class SierraExportMain{
 									itemField.getSubfield(statusSubfield).setData(curItem.getStatus());
 									if (curItem.getDueDate() == null) {
 										if (itemField.getSubfield(dueDateSubfield) != null) {
-											itemField.getSubfield(dueDateSubfield).setData("      ");
+											if (dueDateFormat.contains("-")){
+												itemField.getSubfield(dueDateSubfield).setData("  -  -  ");
+											} else {
+												itemField.getSubfield(dueDateSubfield).setData("      ");
+											}
 										}
 									} else {
 										if (itemField.getSubfield(dueDateSubfield) == null) {

@@ -798,6 +798,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 	}
 
 	private void loadItemCallNumber(Record record, DataField itemField, ItemInfo itemInfo) {
+		boolean hasCallNumber = false;
 		if (useItemBasedCallNumbers) {
 			String callNumberPreStamp = getItemSubfieldDataWithoutTrimming(callNumberPrestampSubfield, itemField);
 			String callNumber = getItemSubfieldDataWithoutTrimming(callNumberSubfield, itemField);
@@ -847,9 +848,13 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 				}
 				sortableCallNumber.append(volume);
 			}
-			itemInfo.setCallNumber(fullCallNumber.toString());
-			itemInfo.setSortableCallNumber(sortableCallNumber.toString());
-		}else{
+			if (fullCallNumber.length() > 0){
+				hasCallNumber = true;
+				itemInfo.setCallNumber(fullCallNumber.toString().trim());
+				itemInfo.setSortableCallNumber(sortableCallNumber.toString().trim());
+			}
+		}
+		if (!hasCallNumber){
 			String callNumber = null;
 			DataField localCallNumberField = (DataField)record.getVariableField("099");
 			if (localCallNumberField != null){

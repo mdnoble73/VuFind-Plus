@@ -135,7 +135,9 @@ VuFind.OverDrive = (function(){
 				success: function(data){
 					if (data.success){
 						//Reload the page
-						window.location.href = data.downloadUrl ;
+						var win = window.open(data.downloadUrl, '_blank');
+						win.focus();
+						//window.location.href = data.downloadUrl ;
 					}else{
 						alert(data.message);
 					}

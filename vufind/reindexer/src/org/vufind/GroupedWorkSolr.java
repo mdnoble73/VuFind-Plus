@@ -58,6 +58,7 @@ public class GroupedWorkSolr {
 	private HashSet<String> issns = new HashSet<>();
 	private HashSet<String> keywords = new HashSet<>();
 	private HashSet<String> languages = new HashSet<>();
+	private HashSet<String> translations = new HashSet<>();
 	private Long languageBoost = 1L;
 	private Long languageBoostSpanish = 1L;
 	private HashSet<String> lccns = new HashSet<>();
@@ -74,7 +75,7 @@ public class GroupedWorkSolr {
 	private HashSet<String> publishers = new HashSet<>();
 	private HashSet<String> publicationDates = new HashSet<>();
 	private float rating = 2.5f;
-	private HashSet<String> series = new HashSet<>();
+	private HashMap<String, String> series = new HashMap<>();
 	private HashSet<String> series2 = new HashSet<>();
 	private String subTitle;
 	private HashSet<String> targetAudienceFull = new HashSet<>();
@@ -86,6 +87,7 @@ public class GroupedWorkSolr {
 	private String titleSort;
 	private HashSet<String> topics = new HashSet<>();
 	private HashSet<String> topicFacets = new HashSet<>();
+	private HashSet<String> subjects = new HashSet<>();
 	private HashSet<String> upcs = new HashSet<>();
 
 	private Logger logger;
@@ -138,6 +140,7 @@ public class GroupedWorkSolr {
 			languages.remove("Unknown");
 		}
 		doc.addField("language", languages);
+		doc.addField("translation", translations);
 		doc.addField("language_boost", languageBoost);
 		doc.addField("language_boost_es", languageBoostSpanish);
 		//Publication related fields
@@ -150,10 +153,11 @@ public class GroupedWorkSolr {
 		doc.addField("physical", physicals);
 		doc.addField("edition", editions);
 		doc.addField("dateSpan", dateSpans);
-		doc.addField("series", series);
+		doc.addField("series", series.values());
 		doc.addField("series2", series2);
 		doc.addField("topic", topics);
 		doc.addField("topic_facet", topicFacets);
+		doc.addField("subject_facet", subjects);
 		doc.addField("lc_subject", lcSubjects);
 		doc.addField("bisac_subject", bisacSubjects);
 		doc.addField("genre", genres);
@@ -299,16 +303,25 @@ public class GroupedWorkSolr {
 					doc.addField("scoping_details_" + curScopeName, curScope.getScopingDetails());
 					//if we do that, we don't need to filter within PHP
 					addUniqueFieldValue(doc, "scope_has_related_records", curScopeName);
+					HashSet<String> formats = new HashSet<>();
 					if (curItem.getFormat() != null) {
-						addUniqueFieldValue(doc, "format_" + curScopeName, curItem.getFormat());
+						formats.add(curItem.getFormat());
 					}else {
-						addUniqueFieldValues(doc, "format_" + curScopeName, curRecord.getFormats());
+						formats = curRecord.getFormats();
 					}
+					addUniqueFieldValues(doc, "format_" + curScopeName, formats);
+					HashSet<String> formatCategories = new HashSet<>();
 					if (curItem.getFormatCategory() != null) {
-						addUniqueFieldValue(doc, "format_category_" + curScopeName, curItem.getFormatCategory());
+						formatCategories.add(curItem.getFormatCategory());
+
 					}else {
-						addUniqueFieldValues(doc, "format_category_" + curScopeName, curRecord.getFormatCategories());
+						formatCategories = curRecord.getFormatCategories();
 					}
+					//eAudiobooks are considered both Audiobooks and eBooks by some people
+					if (formats.contains("eAudiobook")){
+						formatCategories.add("eBook");
+					}
+					addUniqueFieldValues(doc, "format_category_" + curScopeName, formatCategories);
 
 					//Setup ownership & availability toggle values
 					boolean addLocationOwnership = false;
@@ -813,17 +826,26 @@ public class GroupedWorkSolr {
 		this.topicFacets.addAll(Util.trimTrailingPunctuation(fieldList));
 	}
 
+	public void addSubjects(Set<String> fieldList) {
+		this.subjects.addAll(Util.trimTrailingPunctuation(fieldList));
+	}
+
 	public void addSeries(Set<String> fieldList) {
 		for(String curField : fieldList){
 			if (!curField.equalsIgnoreCase("none")){
-				this.series.add(Util.trimTrailingPunctuation(curField));
+				this.addSeries(curField);
 			}
 		}
 	}
 
 	public void addSeries(String series) {
 		if (series != null && !series.equalsIgnoreCase("none")){
-			this.series.add(Util.trimTrailingPunctuation(series));
+			series = Util.trimTrailingPunctuation(series);
+			series = series.replaceAll("(?i)\\sseries$", "");
+			String normalizedSeries = series.toLowerCase().replaceAll("\\W", "");
+			if (!this.series.containsKey(normalizedSeries)){
+				this.series.put(normalizedSeries, series);
+			}
 		}
 	}
 
@@ -881,6 +903,10 @@ public class GroupedWorkSolr {
 
 	public void setLanguages(HashSet<String> languages) {
 		this.languages.addAll(languages);
+	}
+
+	public void setTranslations(HashSet<String> translations){
+		this.translations.addAll(translations);
 	}
 
 	public void addPublishers(Set<String> publishers) {

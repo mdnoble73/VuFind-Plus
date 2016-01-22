@@ -1356,7 +1356,11 @@ class GroupedWorkDriver extends RecordInterface{
 				}
 			}
 			if ($selectedFormatCategory && $selectedFormatCategory != $manifestation['formatCategory']){
-				$manifestation['hideByDefault'] = true;
+				if (($manifestation['format'] == 'eAudiobook') && $selectedFormatCategory == 'eBook'){
+					//This is a special case where the format is in 2 categories
+				}else{
+					$manifestation['hideByDefault'] = true;
+				}
 			}
 			if ($selectedAvailability == 'Available Now' && !($manifestation['availableLocally'] || $manifestation['availableOnline'])){
 				$manifestation['hideByDefault'] = true;
@@ -1696,8 +1700,8 @@ class GroupedWorkDriver extends RecordInterface{
 
 		//Load more details options
 		$moreDetailsOptions = $this->getBaseMoreDetailsOptions($isbn);
-		$moreDetailsOptions['details'] = array(
-			'label' => 'Details',
+		$moreDetailsOptions['moreDetails'] = array(
+			'label' => 'More Details',
 			'body' => $interface->fetch('GroupedWork/view-title-details.tpl'),
 		);
 		$moreDetailsOptions['subjects'] = array(
@@ -1774,8 +1778,12 @@ class GroupedWorkDriver extends RecordInterface{
 		return null;
 	}
 	public function getSubjects(){
-		if (isset($this->fields['topic_facet'])){
+		if (isset($this->fields['topic_facet'])) {
 			$subjects = $this->fields['topic_facet'];
+			asort($subjects);
+			return $subjects;
+		}elseif (isset($this->fields['subject_facet'])){
+			$subjects = $this->fields['subject_facet'];
 			asort($subjects);
 			return $subjects;
 		}else{

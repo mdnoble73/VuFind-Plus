@@ -12,9 +12,10 @@ require_once ROOT_DIR . '/services/MyAccount/MyAccount.php';
 class MyAccount_Holds extends MyAccount{
 	function launch()
 	{
-		global $configArray;
-		global $interface;
-		global $user;
+		global $configArray,
+		       $interface,
+		       $library,
+		       $user;
 
 		//Check to see if any user accounts are allowed to freeze holds
 		$interface->assign('allowFreezeHolds', true);
@@ -43,8 +44,10 @@ class MyAccount_Holds extends MyAccount{
 		$selectedSortOption = isset($_REQUEST['accountSort']) ? $_REQUEST['accountSort'] : 'title';
 		$interface->assign('defaultSortOption', $selectedSortOption);
 
-		$libraryHoursMessage = Location::getLibraryHoursMessage($user->homeLocationId);
-		$interface->assign('libraryHoursMessage', $libraryHoursMessage);
+		if ($library->showLibraryHoursNoticeOnAccountPages) {
+			$libraryHoursMessage = Location::getLibraryHoursMessage($user->homeLocationId);
+			$interface->assign('libraryHoursMessage', $libraryHoursMessage);
+		}
 
 		$allowChangeLocation = ($ils == 'Millennium' || $ils == 'Sierra');
 		$interface->assign('allowChangeLocation', $allowChangeLocation);

@@ -69,6 +69,11 @@ do
 	#####
 	# Check to make sure this is a good time to run.
 	#####
+	hasConflicts=$(checkProhibitedTimes "01:00" "02:45")
+	#If we did get a conflict, restart the loop to make sure that all tests run
+	if (($? != 0)); then
+		continue
+	fi
 
 	# Make sure we are not running a Full Record Group/Reindex process
 	hasConflicts=$(checkConflictingProcesses "full_update.sh")
@@ -84,17 +89,9 @@ do
 	#truncate the file
 	: > $OUTPUT_FILE;
 
-	#echo "Starting new extract and index - `date`" > ${OUTPUT_FILE}
-	# reset the output file each round
-
-	#run expect script to extract from Millennium
-	cd /usr/local/vufind-plus/vufind/millennium_export/
-	./ITEM_UPDATE_EXTRACT_PIKA_4_Flatirons.exp ${PIKASERVER} ${ILSSERVER}
-
-	#process the export from Millennium to give Pika what it needs
-	#echo "Starting Millennium Export - `date`" >> ${OUTPUT_FILE}
-	cd /usr/local/vufind-plus/vufind/millennium_export/
-	java -server -XX:+UseG1GC -jar millennium_export.jar ${PIKASERVER} >> ${OUTPUT_FILE}
+	#export from sierra
+	cd /usr/local/vufind-plus/vufind/sierra_export/;
+	java -server -XX:+UseG1GC -jar sierra_export.jar ${PIKASERVER} >> ${OUTPUT_FILE}
 
 	#export from overdrive
 	#echo "Starting OverDrive Extract - `date`" >> ${OUTPUT_FILE}

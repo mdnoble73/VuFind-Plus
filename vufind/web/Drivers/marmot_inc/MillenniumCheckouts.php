@@ -119,7 +119,7 @@ class MillenniumCheckouts {
 						// $sret[$scount-2]['dueDate'] = strip_tags($scols[$i]);
 						$due = trim(str_replace("DUE", "", strip_tags($scols[$i])));
 						$renewCount = 0;
-						if (preg_match('/FINE\(up to now\) (\$\d+\.\d+)/i', $due, $matches)){
+						if (preg_match('/FINE\(\s*up to now\) (\$\d+\.\d+)/i', $due, $matches)){
 							$curTitle['fine'] = trim($matches[1]);
 						}
 						if (preg_match('/(.*)Renewed (\d+) time(?:s)?/i', $due, $matches)){
@@ -186,9 +186,8 @@ class MillenniumCheckouts {
 						$formats = $recordDriver->getFormats();
 						$curTitle['format'] = reset($formats);
 						$curTitle['author'] = $recordDriver->getPrimaryAuthor();
-						if (!isset($curTitle['title']) || empty($curTitle['title'])){
-							$curTitle['title'] = $recordDriver->getTitle();
-						}
+						//Always use title from the index since classic will show 240 rather than 245
+						$curTitle['title'] = $recordDriver->getTitle();
 					}else{
 						$curTitle['coverUrl'] = "";
 						$curTitle['groupedWorkId'] = "";

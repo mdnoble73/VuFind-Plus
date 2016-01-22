@@ -1,33 +1,56 @@
 {strip}
-	<div id="record{$record.source}_{$record.id|escape}" class="result row">
-		<div class="col-xs-12 col-sm-3">
+	<div id="record{$record.source}_{$record.id|escape}" class="result row{if $record.overdue} bg-overdue{/if}">
+
+		{assign var="showCovers" value=true}
+		{*{assign var="showCovers" value=false}*}
+
+		{* Cover Column *}
+		{if $showCovers}
+		{*<div class="col-xs-4">*}
+		<div class="col-xs-3 col-sm-4 col-md-3">
 			<div class="row">
-				<div class="selectTitle col-xs-2">
+				<div class="selectTitle col-xs-12 col-sm-1">
 					{if !isset($record.renewable) || $record.renewable == true}
-					<input type="checkbox" name="selected[{$record.userId}|{$record.recordId}|{$record.renewIndicator}]" class="titleSelect" id="selected{$record.itemid}"/>
+					<input type="checkbox" name="selected[{$record.userId}|{$record.recordId}|{$record.renewIndicator}]" class="titleSelect" id="selected{$record.itemid}">
 					{/if}
 				</div>
-				<div class="col-xs-10 text-center coverColumn">
-					{if $user->disableCoverArt != 1}
-						{if $record.id && $record.coverUrl}
-							<a href="{$record.link}">
-								<img src="{$record.coverUrl}" class="listResultImage img-thumbnail img-responsive" alt="{translate text='Cover Image'}"/>
-							</a>
+				<div class="{*coverColumn *}text-center col-xs-12 col-sm-10">
+					{if $user->disableCoverArt != 1}{*TODO: should become part of $showCovers *}
+						{if $record.coverUrl}
+							{if $record.recordId && $record.linkUrl}
+								<a href="{$record.linkUrl}" id="descriptionTrigger{$record.recordId|escape:"url"}">
+									<img src="{$record.coverUrl}" class="listResultImage img-thumbnail img-responsive" alt="{translate text='Cover Image'}">
+								</a>
+							{else} {* Cover Image but no Record-View link *}
+								<img src="{$record.coverUrl}" class="listResultImage img-thumbnail img-responsive" alt="{translate text='Cover Image'}">
+							{/if}
 						{/if}
 					{/if}
 				</div>
 			</div>
 		</div>
-		<div class="col-xs-12 col-sm-9">
+		{else}
+			<div class="col-xs-1">
+				{if !isset($record.renewable) || $record.renewable == true}
+					<input type="checkbox" name="selected[{$record.userId}|{$record.recordId}|{$record.renewIndicator}]" class="titleSelect" id="selected{$record.itemid}">
+				{/if}
+			</div>
+		{/if}
+
+		{* Title Details Column *}
+		<div class="{if $showCovers}col-xs-9 col-sm-8 col-md-9{else}col-xs-11{/if}">
+			{* Title *}
 			<div class="row">
 				<div class="col-xs-12">
 					<span class="result-index">{$resultIndex})</span>&nbsp;
-					{if $record.id}
+					{if $record.link}
 						<a href="{$record.link}" class="result-title notranslate">
-					{/if}
-					{if !$record.title|removeTrailingPunctuation}{translate text='Title not available'}{else}{$record.title|removeTrailingPunctuation|truncate:180:"..."|highlight}{/if}
-					{if $record.id}
+							{if !$record.title|removeTrailingPunctuation}{translate text='Title not available'}{else}{$record.title|removeTrailingPunctuation|truncate:180:"..."|highlight}{/if}
 						</a>
+					{else}
+						<span class="result-title notranslate">
+							{if !$record.title|removeTrailingPunctuation}{translate text='Title not available'}{else}{$record.title|removeTrailingPunctuation|truncate:180:"..."|highlight}{/if}
+						</span>
 					{/if}
 					{if $record.title2}
 						<div class="searchResultSectionInfo">
@@ -36,12 +59,13 @@
 					{/if}
 				</div>
 			</div>
+
 			<div class="row">
 				<div class="resultDetails col-xs-12 col-md-9">
 					{if $record.author}
 						<div class="row">
-							<div class="result-label col-md-3">{translate text='Author'}</div>
-							<div class="col-md-9 result-value">
+							<div class="result-label col-md-4 col-lg-3">{translate text='Author'}</div>
+							<div class="result-value col-md-8 col-lg-9">
 								{if is_array($record.author)}
 									{foreach from=$record.author item=author}
 										<a href="{$path}/Author/Home?author={$author|escape:"url"}">{$author|highlight}</a>
@@ -55,65 +79,75 @@
 
 					{if $record.publicationDate}
 						<div class="row">
-							<div class="result-label col-md-3">{translate text='Published'}</div>
-							<div class="col-md-9 result-value">{$record.publicationDate|escape}</div>
+							<div class="result-label col-md-4 col-lg-3">{translate text='Published'}</div>
+							<div class="result-value col-md-8 col-lg-9">{$record.publicationDate|escape}</div>
 						</div>
 					{/if}
 
 					{if $showOut}
 						<div class="row">
-							<div class="result-label col-md-3">{translate text='Checked Out'}</div>
-							<div class="col-md-9 result-value">{$record.checkoutdate|date_format}</div>
+							<div class="result-label col-md-4 col-lg-3">{translate text='Checked Out'}</div>
+							<div class="result-value col-md-8 col-lg-9">{$record.checkoutdate|date_format}</div>
 						</div>
 					{/if}
 
 					<div class="row">
-						<div class="result-label col-md-3">{translate text='Format'}</div>
-						<div class="col-md-9 result-value">{$record.format}</div>
+						<div class="result-label col-md-4 col-lg-3">{translate text='Format'}</div>
+						<div class="result-value col-md-8 col-lg-9">{$record.format}</div>
 					</div>
 
 					{if $showRatings && $record.groupedWorkId && $record.ratingData}
 							<div class="row">
-								<div class="result-label col-md-3">Rating&nbsp;</div>
-								<div class="col-md-9 result-value">
+								<div class="result-label col-md-4 col-lg-3">{translate text='Rating'}</div>
+								<div class="result-value col-md-8 col-lg-9">
 									{include file="GroupedWork/title-rating.tpl" ratingClass="" id=$record.groupedWorkId ratingData=$record.ratingData showNotInterested=false}
 								</div>
 							</div>
 					{/if}
 
+					{if count($user->getLinkedUsers()) > 0}
 					<div class="row">
-						<div class="result-label col-md-3">{translate text='Checked Out To'}</div>
-						<div class="col-md-9 result-value">
+						<div class="result-label col-md-4 col-lg-3">{translate text='Checked Out To'}</div>
+						<div class="result-value col-md-8 col-lg-9">
 							{$record.user}
 						</div>
 					</div>
+					{/if}
 
 					<div class="row">
-						<div class="result-label col-md-3">{translate text='Due'}</div>
-						<div class="col-md-9 result-value">
+						<div class="result-label col-md-4 col-lg-3">{translate text='Due'}</div>
+						<div class="result-value col-md-8 col-lg-9">
 							{$record.dueDate|date_format}
 							{if $record.overdue}
-								<span class='overdueLabel'> OVERDUE</span>
+								<span class="overdueLabel"> OVERDUE</span>
 							{elseif $record.daysUntilDue == 0}
-								<span class='dueSoonLabel'> (Due today)</span>
+								<span class="dueSoonLabel"> (Due today)</span>
 							{elseif $record.daysUntilDue == 1}
-								<span class='dueSoonLabel'> (Due tomorrow)</span>
+								<span class="dueSoonLabel"> (Due tomorrow)</span>
 							{elseif $record.daysUntilDue <= 7}
-								<span class='dueSoonLabel'> (Due in {$record.daysUntilDue} days)</span>
-							{/if}
-							{if $record.fine}
-								<span class='overdueLabel'> FINE {$record.fine}</span>
+								<span class="dueSoonLabel"> (Due in {$record.daysUntilDue} days)</span>
 							{/if}
 						</div>
 					</div>
 
+					{if $record.fine}
+						<div class="row">
+							<div class="result-label col-md-4 col-lg-3">{translate text='Fine'}</div>
+							<div class="result-value col-md-8 col-lg-9">
+								{if $record.fine}
+									<span class="overdueLabel"> {$record.fine} (up to now) </span>
+								{/if}
+							</div>
+						</div>
+					{/if}
+
 					{if $showRenewed && $record.renewCount}
 						<div class="row">
-							<div class="result-label col-md-3">{translate text='Renewed'}</div>
-							<div class="col-md-9 result-value">
+							<div class="result-label col-md-4 col-lg-3">{translate text='Renewed'}</div>
+							<div class="result-value col-md-8 col-lg-9">
 								{$record.renewCount} times
-								{if $record.renewMessage}
-									<div class='alert {if $record.renewResult == true}alert-success{else}alert-error{/if}'>
+								{if $record.renewMessage}{* TODO: used anymore? *}
+									<div class="alert {if $record.renewResult == true}alert-success{else}alert-error{/if}">
 										{$record.renewMessage|escape}
 									</div>
 								{/if}
@@ -123,8 +157,8 @@
 
 					{if $showWaitList}
 						<div class="row">
-							<div class="result-label col-md-3">{translate text='Wait List'}</div>
-							<div class="col-md-9 result-value">
+							<div class="result-label col-md-4 col-lg-3">{translate text='Wait List'}</div>
+							<div class="result-value col-md-8 col-lg-9">
 								{* Wait List goes here *}
 								{$record.holdQueueLength}
 							</div>
@@ -132,7 +166,9 @@
 					{/if}
 				</div>
 
-				<div class="col-xs-12 col-md-3">
+				{* Actions for Title *}
+				{*<div class="col-xs-12 col-md-3">*}
+				<div class="{if $showCovers}col-xs-9 col-sm-8 col-md-4 col-lg-3{else}col-xs-11{/if}">
 					<div class="btn-group btn-group-vertical btn-block">
 						{if !isset($record.renewable) || $record.renewable == true}
 							{*<a href="#" onclick="$('#selected{$record.itemid}').attr('checked', 'checked');return VuFind.Account.renewSelectedTitles();" class="btn btn-sm btn-primary">Renew</a>*}

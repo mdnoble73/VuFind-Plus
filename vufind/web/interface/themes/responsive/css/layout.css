@@ -63,18 +63,10 @@ hr.menu {
 }
 .header-button {
   text-align: center;
-  height: 82px !important;
-  border-bottom: 4px solid #e0e0e0;
-}
-.header-button > a {
-  line-height: 82px !important;
-  text-align: center;
-  vertical-align: middle;
-  padding: 0;
-  color: #8b8b8b !important;
   text-shadow: 1px 1px #fff;
-}
-.header-button > a:visited {
+  vertical-align: middle;
+  line-height: 82px !important;
+  border-bottom: 4px solid #e0e0e0;
   color: #8b8b8b !important;
 }
 .header-button:hover {
@@ -227,6 +219,21 @@ hr.menu {
   width: 40px;
 }
 @media (min-width: 768px) {
+  .collapsedSidebar.rightSidebar {
+    left: 94.44%;
+  }
+}
+@media (min-width: 992px) {
+  .collapsedSidebar.rightSidebar {
+    left: 95.74%;
+  }
+}
+@media (min-width: 1200px) {
+  .collapsedSidebar.rightSidebar {
+    left: 96.49%;
+  }
+}
+@media (min-width: 768px) {
   .mainContentWhenSiderbarCollapsed {
     width: 94.44%;
   }
@@ -240,6 +247,9 @@ hr.menu {
   .mainContentWhenSiderbarCollapsed {
     width: 96.49%;
   }
+}
+.mainContentWhenSiderbarCollapsed.rightSidebar {
+  right: 40px;
 }
 @media print {
   #side-bar {

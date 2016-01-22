@@ -817,7 +817,7 @@ class OverDriveRecordDriver extends RecordInterface {
 		if (count($relatedRecords) > 1){
 			$interface->assign('relatedManifestations', $this->getGroupedWorkDriver()->getRelatedManifestations());
 			$moreDetailsOptions['otherEditions'] = array(
-					'label' => 'Other Editions',
+					'label' => 'Other Editions and Formats',
 					'body' => $interface->fetch('GroupedWork/relatedManifestations.tpl'),
 					'hideByDefault' => false
 			);
@@ -930,7 +930,7 @@ class OverDriveRecordDriver extends RecordInterface {
 		return isset($this->overDriveMetaData->getDecodedRawData()->publishDateText) ? $this->overDriveMetaData->getDecodedRawData()->publishDateText : null;
 	}
 
-	private function getGroupedWorkDriver() {
+	public function getGroupedWorkDriver() {
 		require_once ROOT_DIR . '/RecordDrivers/GroupedWorkDriver.php';
 		if ($this->groupedWorkDriver == null){
 			$this->groupedWorkDriver = new GroupedWorkDriver($this->getPermanentId());

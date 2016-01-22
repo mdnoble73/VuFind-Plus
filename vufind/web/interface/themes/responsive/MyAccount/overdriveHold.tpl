@@ -1,7 +1,11 @@
 {strip}
 	<div class="result row" id="overDriveHold_{$record.overDriveId}">
-		<div class="col-xs-12 col-sm-3">
-			<div class="row">
+		{* Cover column *}
+		{assign var="showCovers" value=true}
+		{*{assign var="showCovers" value=false}*}
+		{if $showCovers}
+		<div class="col-xs-4 col-sm-3">
+			{*<div class="row">*}
 				{*
 				<div class="selectTitle col-xs-2">
 					{if $section == 'available'}
@@ -11,28 +15,36 @@
 					{/if}
 				</div>
 				*}
-				<div class="col-xs-12 text-center">
-					{if $record.recordId}
-					<a href="{$record.linkUrl}">
+				<div class="{*col-xs-10 *}text-center">
+					{if $record.coverUrl}
+						{if $record.recordId && $record.linkUrl}
+							<a href="{$record.linkUrl}" id="descriptionTrigger{$record.recordId|escape:"url"}">
+								<img src="{$record.coverUrl}" class="listResultImage img-thumbnail img-responsive" alt="{translate text='Cover Image'}">
+							</a>
+						{else} {* Cover Image but no Record-View link *}
+							<img src="{$record.coverUrl}" class="listResultImage img-thumbnail img-responsive" alt="{translate text='Cover Image'}">
 						{/if}
-						<img src="{$record.coverUrl}" class="listResultImage img-thumbnail img-responsive" alt="{translate text='Cover Image'}"/>
-						{if $record.recordId}
-					</a>
 					{/if}
 				</div>
-			</div>
+			{*</div>*}
 		</div>
 
-		<div class="col-xs-12 col-sm-9">
+		{/if}
+		{* Details Column*}
+		<div class="{if $showCovers}col-xs-8 col-sm-9{else}col-xs-12{/if}">
+			{* Title *}
 			<div class="row">
 				<div class="col-xs-12">
 					<span class="result-index">{$resultIndex})</span>&nbsp;
-					{if $record.recordId != -1}
+					{if $record.linkUrl}
 					<a href="{$record.linkUrl}" class="result-title notranslate">
-						{/if}
-						{if !$record.title}{translate text='Title not available'}{else}{$record.title|removeTrailingPunctuation}{/if}
-						{if $record.recordId != -1}
+						{*{if !$record.title}{translate text='Title not available'}{else}{$record.title|removeTrailingPunctuation}{/if}*}
+						{if !$record.title|removeTrailingPunctuation}{translate text='Title not available'}{else}{$record.title|removeTrailingPunctuation|truncate:180:"..."|highlight}{/if}
 					</a>
+					{else}
+						<span class="result-title notranslate">
+							{if !$record.title|removeTrailingPunctuation}{translate text='Title not available'}{else}{$record.title|removeTrailingPunctuation|truncate:180:"..."|highlight}{/if}
+						</span>
 					{/if}
 					{if $record.subTitle}
 						<div class="searchResultSectionInfo">
@@ -43,11 +55,11 @@
 			</div>
 
 			<div class="row">
-				<div class="resultDetails col-xs-12 col-sm-9">
+				<div class="resultDetails col-xs-12 {*col-sm-9*} col-md-8 col-lg-9">
 					{if $record.author}
 						<div class="row">
-							<div class="result-label col-xs-3">{translate text='Author'}</div>
-							<div class="col-xs-9 result-value">
+							<div class="result-label col-sm-3">{translate text='Author'}</div>
+							<div class="col-sm-9 result-value">
 								{if is_array($record.author)}
 									{foreach from=$record.author item=author}
 										<a href="{$path}/Author/Home?author={$author|escape:"url"}">{$author|highlight}</a>
@@ -61,26 +73,27 @@
 
 					{if $record.format}
 						<div class="row">
-							<div class="result-label col-xs-3">{translate text='Format'}</div>
-							<div class="col-xs-9 result-value">
+							<div class="result-label col-sm-3">{translate text='Format'}</div>
+						<div class="col-sm-9 result-value">
 								{implode subject=$record.format glue=", "}
 							</div>
 						</div>
 					{/if}
 
+					{if count($user->getLinkedUsers()) > 0}
 					<div class="row">
-						<div class="result-label col-xs-3">{translate text='On Hold For'}</div>
-						<div class="col-xs-9 result-value">
+						<div class="result-label col-sm-3">{translate text='On Hold For'}</div>
+						<div class="col-sm-9 result-value">
 							{$record.user}
 						</div>
 					</div>
+					{/if}
 
 					{if $section == 'available'}
 					{* Available Hold *}
-
 						<div class="row">
-							<div class="result-label col-xs-3">{translate text='Expires'}</div>
-							<div class="col-xs-9 result-value">
+							<div class="result-label col-sm-3">{translate text='Expires'}</div>
+							<div class="col-sm-9 result-value">
 								{$record.expirationDate|date_format:"%b %d, %Y at %l:%M %p"}
 							</div>
 						</div>
@@ -88,19 +101,21 @@
 					{else}
 						{* Unavailable hold *}
 						<div class="row">
-							<div class="result-label col-xs-3">{translate text='Position'}</div>
-							<div class="col-xs-9 result-value">
+							<div class="result-label col-sm-3">{translate text='Position'}</div>
+							<div class="col-sm-9 result-value">
 								{$record.holdQueuePosition} out of {$record.holdQueueLength}
 							</div>
 						</div>
 					{/if}
 				</div>
-				<div class="col-xs-12 col-md-3">
+
+				{* Actions for Title *}
+				<div class="col-xs-9 col-sm-8 col-md-4 col-lg-3">
 					<div class="btn-group btn-group-vertical btn-block">
 						{if $section == 'available'}
-							<a href="#" onclick="return VuFind.OverDrive.doOverDriveCheckout('{$record.userId}', '{$record.overDriveId}');" class="btn btn-sm btn-primary">Checkout</a>
+							<button onclick="return VuFind.OverDrive.doOverDriveCheckout('{$record.userId}', '{$record.overDriveId}');" class="btn btn-sm btn-primary">Checkout</button>
 						{/if}
-						<a href="#" onclick="return VuFind.OverDrive.cancelOverDriveHold('{$record.userId}', '{$record.overDriveId}');" class="btn btn-sm btn-warning">Cancel Hold</a>
+						<button onclick="return VuFind.OverDrive.cancelOverDriveHold('{$record.userId}', '{$record.overDriveId}');" class="btn btn-sm btn-warning">Cancel Hold</button>
 					</div>
 
 				</div>
