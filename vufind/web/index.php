@@ -594,7 +594,7 @@ if (!is_dir(ROOT_DIR . "/services/$module")){
 	$interface->assign('action',null);
 	$interface->assign('showBreadcrumbs', false);
 	$interface->assign('sidebar', 'Search/home-sidebar.tpl');
-	$interface->setTemplate('404.tpl');
+	$interface->setTemplate('Error/404.tpl');
 	$interface->setPageTitle('Page Not Found');
 	$interface->display('layout.tpl');
 }else if (is_readable("services/$module/$action.php")) {
@@ -617,6 +617,8 @@ if (!is_dir(ROOT_DIR . "/services/$module")){
 		PEAR_Singleton::raiseError(new PEAR_Error('Unknown Action'));
 	}
 } else {
+	$interface->assign('showBreadcrumbs', false);
+	$interface->assign('sidebar', 'Search/home-sidebar.tpl');
 	$requestURI = $_SERVER['REQUEST_URI'];
 	PEAR_Singleton::RaiseError(new PEAR_Error("Cannot Load Action '$action' for Module '$module' request '$requestURI'"));
 }
