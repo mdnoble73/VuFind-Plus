@@ -186,9 +186,8 @@ class MillenniumCheckouts {
 						$formats = $recordDriver->getFormats();
 						$curTitle['format'] = reset($formats);
 						$curTitle['author'] = $recordDriver->getPrimaryAuthor();
-						if (!isset($curTitle['title']) || empty($curTitle['title'])){
-							$curTitle['title'] = $recordDriver->getTitle();
-						}
+						//Always use title from the index since classic will show 240 rather than 245
+						$curTitle['title'] = $recordDriver->getTitle();
 					}else{
 						$curTitle['coverUrl'] = "";
 						$curTitle['groupedWorkId'] = "";
