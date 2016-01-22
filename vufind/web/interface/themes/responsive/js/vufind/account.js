@@ -144,8 +144,8 @@ VuFind.Account = (function(){
 						url = Globals.path + "/AJAX/JSON?method=loginUser",
 						params = {username: username, password: password, rememberMe: rememberMe};
 				if (!Globals.opac && VuFind.hasLocalStorage()){
-					var showCovers = window.localStorage.getItem('showCovers');
-					if (showCovers.length > 0) { // if there is a set value, pass it back with the login info
+					var showCovers = window.localStorage.getItem('showCovers') || false;
+					if (showCovers && showCovers.length > 0) { // if there is a set value, pass it back with the login info
 						params.showCovers = showCovers
 					}
 				}
