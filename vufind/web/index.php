@@ -589,7 +589,15 @@ $timer->logTime('Process Shards');
 // Call Action
 // Note: ObjectEditor classes typically have the class name of DB_Object with an 's' added to the end.
 //       This distinction prevents the DB_Object from being mistakenly called as the Action class.
-if (is_readable("services/$module/$action.php")) {
+if (!is_dir(ROOT_DIR . "/services/$module")){
+	$interface->assign('module','');
+	$interface->assign('action','');
+	$interface->assign('showBreadcrumbs', false);
+	$interface->assign('sidebar', 'Search/home-sidebar.tpl');
+	$interface->setTemplate('404.tpl');
+	$interface->setPageTitle('Page Not Found');
+	$interface->display('layout.tpl');
+}else if (is_readable("services/$module/$action.php")) {
 	$actionFile = ROOT_DIR . "/services/$module/$action.php";
 	require_once $actionFile;
 	$moduleActionClass = "{$module}_{$action}";
