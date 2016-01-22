@@ -1,3 +1,4 @@
+{strip}
 <div class="modal-header">
 	<button type="button" class="close" data-dismiss="modal">×</button>
 	<h4 class="modal-title" id="myModalLabel">Login</h4>
@@ -54,21 +55,12 @@
 		<input type="submit" name="submit" value="{if $multistep}Continue{else}Login{/if}" id="loginFormSubmit" class="btn btn-primary extraModalButton" onclick="return VuFind.Account.processAjaxLogin()">
 	</span>
 </div>
+{/strip}
 {literal}
 <script type="text/javascript">
 	$('#username').focus().select();
-	$(document).ready(
-		function (){
-			var haslocalStorage = false;
-			if ("localStorage" in window) {
-				try {
-					window.localStorage.setItem('_tmptest', 'temp');
-					haslocalStorage = (window.localStorage.getItem('_tmptest') == 'temp');
-{/literal}{* // if we get the same info back, we are good. Otherwise, we don't have localStorage.*}{literal}
-					window.localStorage.removeItem('_tmptest');
-				} catch(error) {} // something failed, so we don't have localStorage available.
-			}
-
+	$(function(){
+		var haslocalStorage = VuFind.hasLocalStorage() || false;
 			if (haslocalStorage) {
 				var rememberMe = (window.localStorage.getItem('rememberMe') == 'true'); // localStorage saves everything as strings
 				if (rememberMe) {
@@ -89,7 +81,6 @@
 			$("#modalDialog").on('shown.bs.modal', function(){
 				$('#username').focus().select();
 			})
-		}
-	);
+		});
 </script>
 {/literal}

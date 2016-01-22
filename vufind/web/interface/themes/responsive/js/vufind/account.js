@@ -117,7 +117,6 @@ VuFind.Account = (function(){
 				return false;
 			}
 			if (VuFind.hasLocalStorage()){
-				//var rememberMeCtl = $("#rememberMe");
 				var rememberMe = $("#rememberMe").prop('checked'),
 						showPwd = $('#showPwd').prop('checked');
 				if (rememberMe){
@@ -133,6 +132,59 @@ VuFind.Account = (function(){
 				}
 			}
 			return true;
+		},
+
+		processAjaxLogin: function (ajaxCallback) {
+			if(this.preProcessLogin()) {
+				var username = $("#username").val(),
+						password = $("#password").val(),
+						rememberMe = $("#rememberMe").prop('checked'),
+						loginErrorElem = $('#loginError'),
+						loadingElem = $('#loading'),
+						url = Globals.path + "/AJAX/JSON?method=loginUser",
+						params = {username: username, password: password, rememberMe: rememberMe};
+				if (!Globals.opac && VuFind.hasLocalStorage()){
+					var showCovers = window.localStorage.getItem('showCovers');
+					if (showCovers.length > 0) { // if there is a set value, pass it back with the login info
+						params.showCovers = showCovers
+					}
+				}
+				loginErrorElem.hide();
+				loadingElem.show();
+				//VuFind.loadingMessage();
+				$.post(url, params, function(response){
+							loadingElem.hide();
+							if (response.result.success == true) {
+								// Hide "log in" options and show "log out" options:
+								$('.loginOptions, #loginOptions').hide();
+								$('.logoutOptions, #logoutOptions').show();
+
+								// Show user name on page in case page doesn't reload
+								var name = response.result.name.trim();
+								//name = 'Logged In As ' + name.slice(0, name.lastIndexOf(' ') + 2) + '.';
+								name = 'Logged In As ' + name.slice(0, 1) + '. ' + name.slice(name.lastIndexOf(' ') + 1, name.length) + '.';
+								$('#side-bar #myAccountNameLink').html(name);
+
+								if (VuFind.Account.closeModalOnAjaxSuccess) {
+									VuFind.closeLightbox();
+								}
+
+								Globals.loggedIn = true;
+								if (ajaxCallback != undefined && typeof(ajaxCallback) === "function") {
+									ajaxCallback();
+								} else if (VuFind.Account.ajaxCallback != undefined && typeof(VuFind.Account.ajaxCallback) === "function") {
+									VuFind.Account.ajaxCallback();
+									VuFind.Account.ajaxCallback = null;
+								}
+							} else {
+								loginErrorElem.text(response.result.message).show();
+							}
+						}, 'json'
+				).fail(function(){
+					loginErrorElem.text("There was an error processing your login, please try again.").show();
+				})
+			}
+			return false;
 		},
 
 		processAddLinkedUser: function (){
@@ -164,58 +216,6 @@ VuFind.Account = (function(){
 			return false;
 		},
 
-		processAjaxLogin: function (ajaxCallback) {
-			if(this.preProcessLogin()) {
-				var username = $("#username").val(),
-						password = $("#password").val(),
-						rememberMe = $("#rememberMe").prop('checked'),
-						loginErrorElem = $('#loginError'),
-						loadingElem = $('#loading'),
-						url = Globals.path + "/AJAX/JSON?method=loginUser",
-						params = {username: username, password: password, rememberMe: rememberMe};
-				if (!Globals.opac && VuFind.hasLocalStorage()){
-					var showCovers = window.localStorage.getItem('showCovers');
-					if (showCovers.length > 0) { // if there is a set value, pass it back with the login info
-						params.showCovers = showCovers
-					}
-				}
-				loginErrorElem.hide();
-				loadingElem.show();
-				//VuFind.loadingMessage();
-				$.post(url, params, function(response){
-						loadingElem.hide();
-						if (response.result.success == true) {
-							// Hide "log in" options and show "log out" options:
-							$('.loginOptions, #loginOptions').hide();
-							$('.logoutOptions, #logoutOptions').show();
-
-							// Show user name on page in case page doesn't reload
-							var name = response.result.name.trim();
-							//name = 'Logged In As ' + name.slice(0, name.lastIndexOf(' ') + 2) + '.';
-							name = 'Logged In As ' + name.slice(0, 1) + '. ' + name.slice(name.lastIndexOf(' ') + 1, name.length) + '.';
-							$('#side-bar #myAccountNameLink').html(name);
-
-							if (VuFind.Account.closeModalOnAjaxSuccess) {
-								VuFind.closeLightbox();
-							}
-
-							Globals.loggedIn = true;
-							if (ajaxCallback != undefined && typeof(ajaxCallback) === "function") {
-								ajaxCallback();
-							} else if (VuFind.Account.ajaxCallback != undefined && typeof(VuFind.Account.ajaxCallback) === "function") {
-								VuFind.Account.ajaxCallback();
-								VuFind.Account.ajaxCallback = null;
-							}
-						} else {
-							loginErrorElem.text(response.result.message).show();
-						}
-					}, 'json'
-				).fail(function(){
-						loginErrorElem.text("There was an error processing your login, please try again.").show();
-					})
-			}
-			return false;
-		},
 
 		removeLinkedUser: function(idToRemove){
 			if (confirm("Are you sure you want to stop managing this account?")){

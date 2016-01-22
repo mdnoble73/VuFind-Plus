@@ -7,7 +7,7 @@
 			<img src="{img filename='/interface/themes/responsive/images/Account.png'}" alt="Account">
 		</a>
 	{else} {* Not Logged In *}
-		<a href="{$path}/MyAccount/Home" id="loginLink" onclick="return VuFind.Account.followLinkIfLoggedIn(this)" data-login="true" class="menu-icon" title="{translate text='Login'}">
+		<a href="{$path}/MyAccount/Home" id="loginLink" onclick="{if $isLoginPage}$('#username').focus();return false{else}return VuFind.Account.followLinkIfLoggedIn(this){/if}" data-login="true" class="menu-icon" title="{translate text='Login'}">
 			<img src="{img filename='/interface/themes/responsive/images/Account.png'}" alt="{translate text='Login'}">
 		</a>
 	{/if}

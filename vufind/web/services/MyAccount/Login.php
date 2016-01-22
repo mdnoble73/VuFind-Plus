@@ -109,12 +109,9 @@ class MyAccount_Login extends Action
 			$interface->assign('showForgotPinLink', true);
 		}
 
-		//set focus to the username field by default.
-		$interface->assign('focusElementId', 'username');
-		$interface->assign('sidebar', 'MyAccount/account-sidebar.tpl');
-		$interface->setTemplate('../MyAccount/login.tpl');
-		$interface->setPageTitle('Login');
-		$interface->display('layout.tpl');
+		$interface->assign('isLoginPage', true);
+
+		$this->display('../MyAccount/login.tpl', 'Login');
 	}
 }
 

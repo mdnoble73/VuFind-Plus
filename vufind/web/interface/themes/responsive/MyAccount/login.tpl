@@ -69,37 +69,37 @@
 {/strip}
 {literal}
 	<script type="text/javascript">
-		$(document).ready(function (){
-			var haslocalStorage = false;
-			if ("localStorage" in window) {
-				try {
-					window.localStorage.setItem('_tmptest', 'temp');
-					haslocalStorage = (window.localStorage.getItem('_tmptest') == 'temp');
-					// if we get the same info back, we are good. Otherwise, we don't have localStorage.
-					window.localStorage.removeItem('_tmptest');
-				} catch(error) {} // something failed, so we don't have localStorage available.
-			}
-
+		$('#username').focus().select();
+		$(function(){
+			var haslocalStorage = VuFind.hasLocalStorage() || false;
 			if (haslocalStorage) {
-				var rememberMe = (window.localStorage.getItem('rememberMe') == 'true'); // localStorage saves everything as strings
+				var rememberMe = (window.localStorage.getItem('rememberMe') == 'true'), // localStorage saves everything as strings
+						showCovers = window.localStorage.getItem('showCovers');
 				if (rememberMe) {
 					var lastUserName = window.localStorage.getItem('lastUserName'),
 									lastPwd = window.localStorage.getItem('lastPwd');
-//							showPwd = (window.localStorage.getItem('showPwd') == 'true'); // localStorage saves everything as strings
+{/literal}{*// showPwd = (window.localStorage.getItem('showPwd') == 'true'); // localStorage saves everything as strings *}{literal}
 					$("#username").val(lastUserName);
 					$("#password").val(lastPwd);
-//					$("#showPwd").prop("checked", showPwd  ? "checked" : '');
-//					if (showPwd) VuFind.pwdToText('password');
+{/literal}{*// $("#showPwd").prop("checked", showPwd  ? "checked" : '');
+//					if (showPwd) VuFind.pwdToText('password');*}{literal}
 				}
 				$("#rememberMe").prop("checked", rememberMe ? "checked" : '');
+				if (showCovers.length > 0) {
+					$("<input>").attr({
+						type: 'hidden',
+						name: 'showCovers',
+						value: showCovers
+					}).appendTo('#loginForm')
+				}
 			} else {
-				// disable, uncheck & hide RememberMe checkbox if localStorage isn't available.
+{/literal}{* // disable, uncheck & hide RememberMe checkbox if localStorage isn't available.*}{literal}
 				$("#rememberMe").prop({checked : '', disabled: true}).parent().hide();
 			}
-			// Once Box is shown, focus on username input and Select the text;
+{/literal}{* // Once Box is shown, focus on username input and Select the text;
 			$("#modalDialog").on('shown.bs.modal', function(){
 				$('#username').focus().select();
-			})
+			})*}{literal}
 		});
 	</script>
 {/literal}
