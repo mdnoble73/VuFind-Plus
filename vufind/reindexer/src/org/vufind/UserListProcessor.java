@@ -15,6 +15,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashMap;
+import java.util.HashSet;
 
 /**
  * Handles setting up solr documents for User Lists
@@ -33,6 +34,7 @@ public class UserListProcessor {
 	private int ownedByLocationBoostValue;
 	private HashMap<Long, Long> librariesByHomeLocation = new HashMap<>();
 	private HashMap<Long, String> locationCodesByHomeLocation = new HashMap<>();
+	private HashSet<Long> listPublisherUsers = new HashSet<>();
 
 	public UserListProcessor(GroupedWorkIndexer indexer, Connection vufindConn, Logger logger, boolean fullReindex, int availableAtLocationBoostValue, int ownedByLocationBoostValue){
 		this.indexer = indexer;
@@ -41,7 +43,16 @@ public class UserListProcessor {
 		this.fullReindex = fullReindex;
 		this.availableAtLocationBoostValue = availableAtLocationBoostValue;
 		this.ownedByLocationBoostValue = ownedByLocationBoostValue;
-
+		//Load a list of all list publishers
+		try {
+			PreparedStatement listPublishersStmt = vufindConn.prepareStatement("SELECT userId FROM `user_roles` INNER JOIN roles on user_roles.roleId = roles.roleId where name = 'listPublisher'");
+			ResultSet listPublishersRS = listPublishersStmt.executeQuery();
+			while (listPublishersRS.next()){
+				listPublisherUsers.add(listPublishersRS.getLong(1));
+			}
+		}catch (Exception e){
+			logger.error("Error loading a list of users with the listPublisher role");
+		}
 	}
 
 	public Long processPublicUserLists(long lastReindexTime, ConcurrentUpdateSolrServer updateServer, SolrServer solrServer) {
@@ -53,10 +64,10 @@ public class UserListProcessor {
 				//Delete all lists from the index
 				updateServer.deleteByQuery("recordtype:list");
 				//Get a list of all public lists
-				listsStmt = vufindConn.prepareStatement("SELECT user_list.id as id, deleted, public, title, description, user_list.created, dateUpdated, firstname, lastname, displayName, homeLocationId from user_list INNER JOIN user on user_id = user.id WHERE public = 1 AND deleted = 0");
+				listsStmt = vufindConn.prepareStatement("SELECT user_list.id as id, deleted, public, title, description, user_list.created, dateUpdated, firstname, lastname, displayName, homeLocationId, user_id from user_list INNER JOIN user on user_id = user.id WHERE public = 1 AND deleted = 0");
 			}else{
 				//Get a list of all lists that are were changed since the last update
-				listsStmt = vufindConn.prepareStatement("SELECT user_list.id as id, deleted, public, title, description, user_list.created, dateUpdated, firstname, lastname, displayName, homeLocationId from user_list INNER JOIN user on user_id = user.id WHERE dateUpdated > ?");
+				listsStmt = vufindConn.prepareStatement("SELECT user_list.id as id, deleted, public, title, description, user_list.created, dateUpdated, firstname, lastname, displayName, homeLocationId, user_id from user_list INNER JOIN user on user_id = user.id WHERE dateUpdated > ?");
 				listsStmt.setLong(1, lastReindexTime);
 			}
 
@@ -99,6 +110,7 @@ public class UserListProcessor {
 
 		int deleted = allPublicListsRS.getInt("deleted");
 		int isPublic = allPublicListsRS.getInt("public");
+		long userId = allPublicListsRS.getLong("user_id");
 		if (deleted == 1 || isPublic == 0){
 			updateServer.deleteByQuery("id:list");
 		}else{
@@ -106,6 +118,7 @@ public class UserListProcessor {
 			userListSolr.setTitle(allPublicListsRS.getString("title"));
 			userListSolr.setDescription(allPublicListsRS.getString("description"));
 			userListSolr.setCreated(allPublicListsRS.getLong("created"));
+			userListSolr.setOwnerHasListPublisherRole(listPublisherUsers.contains(userId));
 
 			String displayName = allPublicListsRS.getString("displayName");
 			String firstName = allPublicListsRS.getString("firstname");

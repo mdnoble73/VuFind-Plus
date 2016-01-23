@@ -24,6 +24,7 @@ public class UserListSolr {
 	private long created;
 	private long owningLibrary;
 	private String owningLocation;
+	private boolean ownerHasListPublisherRole = false;
 
 	public UserListSolr(GroupedWorkIndexer groupedWorkIndexer) {
 		this.groupedWorkIndexer = groupedWorkIndexer;
@@ -57,11 +58,21 @@ public class UserListSolr {
 
 		//Do things based on scoping
 		for (Scope scope: groupedWorkIndexer.getScopes()) {
-			boolean okToInclude = false;
+			boolean okToInclude;
 			if (scope.isLibraryScope()) {
-				okToInclude = scope.getPublicListsToInclude() == 2 || (scope.getPublicListsToInclude() == 1 && scope.getLibraryId() == owningLibrary);
+				okToInclude = (scope.getPublicListsToInclude() == 2) || //All public lists
+						((scope.getPublicListsToInclude() == 1) && (scope.getLibraryId() == owningLibrary)) || //All lists for the current library
+						((scope.getPublicListsToInclude() == 3) && ownerHasListPublisherRole && (scope.getLibraryId() == owningLibrary)) || //All lists for list publishers at the current library
+						((scope.getPublicListsToInclude() == 4) && ownerHasListPublisherRole) //All lists for list publishers
+						;
 			} else {
-				okToInclude = scope.getPublicListsToInclude() == 3 || (scope.getPublicListsToInclude() == 1 && scope.getLibraryId() == owningLibrary)  || (scope.getPublicListsToInclude() == 2 && scope.getScopeName().equals(owningLocation));
+				okToInclude = (scope.getPublicListsToInclude() == 3) || //All public lists
+						((scope.getPublicListsToInclude() == 1) && (scope.getLibraryId() == owningLibrary)) || //All lists for the current library
+						((scope.getPublicListsToInclude() == 2) && scope.getScopeName().equals(owningLocation)) || //All lists for the current location
+						((scope.getPublicListsToInclude() == 4) && ownerHasListPublisherRole && (scope.getLibraryId() == owningLibrary)) || //All lists for list publishers at the current library
+						((scope.getPublicListsToInclude() == 5) && ownerHasListPublisherRole && scope.getScopeName().equals(owningLocation)) || //All lists for list publishers the current location
+						((scope.getPublicListsToInclude() == 6) && ownerHasListPublisherRole) //All lists for list publishers
+						;
 			}
 			if (okToInclude) {
 				doc.addField("local_time_since_added_" + scope.getScopeName(), Util.getTimeSinceAddedForDate(dateAdded));
@@ -110,5 +121,9 @@ public class UserListSolr {
 
 	public void setOwningLibrary(long owningLibrary) {
 		this.owningLibrary = owningLibrary;
+	}
+
+	public void setOwnerHasListPublisherRole(boolean ownerHasListPublisherRole){
+		this.ownerHasListPublisherRole = ownerHasListPublisherRole;
 	}
 }
