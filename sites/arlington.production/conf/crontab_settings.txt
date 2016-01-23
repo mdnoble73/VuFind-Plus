@@ -47,6 +47,7 @@
 ###################
 7 */3 * * * cd /usr/local/vufind-plus/vufind/cron/; java -jar cron.jar arlington.production
 20 0 * * * cd /usr/local/vufind-plus/vufind/cron/; java -jar cron.jar arlington.production DatabaseCleanup
+0 20 * * * cd /usr/local/vufind-plus/vufind/cron/; java -jar cron.jar arlington.production UpdateReadingHistory
 
 ################
 # Pika Cleanup #
