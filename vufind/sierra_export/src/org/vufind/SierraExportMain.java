@@ -43,6 +43,7 @@ public class SierraExportMain{
 	private static char statusSubfield;
 	private static char dueDateSubfield;
 	private static String dueDateFormat;
+	private static boolean exportItemHolds = true;
 
 	public static void main(String[] args){
 		serverName = args[0];
@@ -61,6 +62,10 @@ public class SierraExportMain{
 		String exportPath = ini.get("Reindex", "marcPath");
 		if (exportPath.startsWith("\"")){
 			exportPath = exportPath.substring(1, exportPath.length() - 1);
+		}
+		String exportItemHoldsStr = ini.get("Catalog", "exportItemHolds");
+		if (exportItemHoldsStr != null){
+			exportItemHolds = exportItemHoldsStr.equalsIgnoreCase("true");
 		}
 
 		//Connect to the vufind database
@@ -131,6 +136,7 @@ public class SierraExportMain{
 			PreparedStatement addIlsHoldSummary = vufindConn.prepareStatement("INSERT INTO ils_hold_summary (ilsId, numHolds) VALUES (?, ?)");
 
 			HashMap<String, Long> numHoldsByBib = new HashMap<>();
+			HashMap<String, Long> numHoldsByVolume = new HashMap<>();
 			//Export bib level holds
 			PreparedStatement bibHoldsStmt = sierraConn.prepareStatement("select count(hold.id) as numHolds, record_type_code, record_num from sierra_view.hold left join sierra_view.record_metadata on hold.record_id = record_metadata.id where record_type_code = 'b' and (status = '0' OR status = 't') GROUP BY record_type_code, record_num", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 			ResultSet bibHoldsRS = bibHoldsStmt.executeQuery();
@@ -142,29 +148,71 @@ public class SierraExportMain{
 			}
 			bibHoldsRS.close();
 
-			//Export item level holds
-			PreparedStatement itemHoldsStmt = sierraConn.prepareStatement("select count(hold.id) as numHolds, record_num\n" +
+			if (exportItemHolds) {
+				//Export item level holds
+				PreparedStatement itemHoldsStmt = sierraConn.prepareStatement("select count(hold.id) as numHolds, record_num\n" +
+						"from sierra_view.hold \n" +
+						"inner join sierra_view.bib_record_item_record_link ON hold.record_id = item_record_id \n" +
+						"inner join sierra_view.record_metadata on bib_record_item_record_link.bib_record_id = record_metadata.id \n" +
+						"WHERE status = '0' OR status = 't' " +
+						"group by record_num", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+				ResultSet itemHoldsRS = itemHoldsStmt.executeQuery();
+				while (itemHoldsRS.next()) {
+					String bibId = itemHoldsRS.getString("record_num");
+					bibId = ".b" + bibId + getCheckDigit(bibId);
+					Long numHolds = itemHoldsRS.getLong("numHolds");
+					if (numHoldsByBib.containsKey(bibId)) {
+						numHoldsByBib.put(bibId, numHolds + numHoldsByBib.get(bibId));
+					} else {
+						numHoldsByBib.put(bibId, numHolds);
+					}
+					if (numHoldsByVolume.containsKey(bibId)) {
+						numHoldsByVolume.put(bibId, numHolds + numHoldsByVolume.get(bibId));
+					} else {
+						numHoldsByVolume.put(bibId, numHolds);
+					}
+				}
+				itemHoldsRS.close();
+			}
+
+			//Export volume level holds
+			PreparedStatement volumeHoldsStmt = sierraConn.prepareStatement("select count(hold.id) as numHolds, bib_metadata.record_num as bib_num, volume_metadata.record_num as volume_num\n" +
 					"from sierra_view.hold \n" +
-					"inner join sierra_view.bib_record_item_record_link ON hold.record_id = item_record_id \n" +
-					"inner join sierra_view.record_metadata on bib_record_item_record_link.bib_record_id = record_metadata.id \n" +
-					"WHERE status = '0' OR status = 't' " +
-					"group by record_num", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
-			ResultSet itemHoldsRS = itemHoldsStmt.executeQuery();
-			while (itemHoldsRS.next()){
-				String bibId = itemHoldsRS.getString("record_num");
+					"inner join sierra_view.bib_record_volume_record_link ON hold.record_id = volume_record_id \n" +
+					"inner join sierra_view.record_metadata as volume_metadata on bib_record_volume_record_link.volume_record_id = volume_metadata.id \n" +
+					"inner join sierra_view.record_metadata as bib_metadata on bib_record_volume_record_link.bib_record_id = bib_metadata.id \n" +
+					"WHERE status = '0' OR status = 't'\n" +
+					"GROUP BY bib_metadata.record_num, volume_metadata.record_num", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+			ResultSet volumeHoldsRS = volumeHoldsStmt.executeQuery();
+			while (volumeHoldsRS.next()) {
+				String bibId = volumeHoldsRS.getString("bib_num");
 				bibId = ".b" + bibId + getCheckDigit(bibId);
-				Long numHolds = itemHoldsRS.getLong("numHolds");
-				if (numHoldsByBib.containsKey(bibId)){
+				String volumeId = volumeHoldsRS.getString("volume_num");
+				volumeId = ".j" + volumeId + getCheckDigit(volumeId);
+				Long numHolds = volumeHoldsRS.getLong("numHolds");
+				if (numHoldsByBib.containsKey(bibId)) {
 					numHoldsByBib.put(bibId, numHolds + numHoldsByBib.get(bibId));
-				}else{
+				} else {
 					numHoldsByBib.put(bibId, numHolds);
 				}
+				if (numHoldsByVolume.containsKey(volumeId)) {
+					numHoldsByBib.put(volumeId, numHolds + numHoldsByBib.get(bibId));
+				} else {
+					numHoldsByBib.put(volumeId, numHolds);
+				}
 			}
-			itemHoldsRS.close();
+			volumeHoldsRS.close();
+
 
 			for (String bibId : numHoldsByBib.keySet()){
 				addIlsHoldSummary.setString(1, bibId);
 				addIlsHoldSummary.setLong(2, numHoldsByBib.get(bibId));
+				addIlsHoldSummary.executeUpdate();
+			}
+
+			for (String volumeId : numHoldsByVolume.keySet()){
+				addIlsHoldSummary.setString(1, volumeId);
+				addIlsHoldSummary.setLong(2, numHoldsByVolume.get(volumeId));
 				addIlsHoldSummary.executeUpdate();
 			}
 

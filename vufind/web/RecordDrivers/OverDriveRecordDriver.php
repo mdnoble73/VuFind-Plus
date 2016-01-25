@@ -1078,4 +1078,8 @@ class OverDriveRecordDriver extends RecordInterface {
 	function getNumHolds(){
 		return 0;
 	}
+
+	function getVolumeHolds($volumeData){
+		return null;
+	}
 }

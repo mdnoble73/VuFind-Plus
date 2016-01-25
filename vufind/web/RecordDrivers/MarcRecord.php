@@ -1670,6 +1670,28 @@ class MarcRecord extends IndexRecord
 		return $this->numHolds;
 	}
 
+	/**
+	 * @param IlsVolumeInfo[] $volumeData
+	 * @return array
+	 */
+	function getVolumeHolds($volumeData){
+		$holdInfo = null;
+		if (count($volumeData) > 0){
+			$holdInfo = array();
+			foreach ($volumeData as $volumeInfo){
+				$ilsHoldInfo = new IlsHoldSummary();
+				$ilsHoldInfo->ilsId = $volumeInfo->volumeId;
+				if ($ilsHoldInfo->find(true)){
+					$holdInfo[] = array(
+							'label' => $volumeInfo->displayLabel,
+							'numHolds' => $ilsHoldInfo->numHolds
+					);
+				}
+			}
+		}
+		return $holdInfo;
+	}
+
 	function getNotes(){
 		$additionalNotesFields = array(
 			'520' => 'Description',
