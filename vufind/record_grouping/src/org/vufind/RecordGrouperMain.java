@@ -843,6 +843,9 @@ public class RecordGrouperMain {
 
 			//Figure out what we need to process
 			ArrayList<File> marcRecordFilesToProcess = loadHooplaFilesToProcess(hooplaSection, marcPath, false);
+			if (marcRecordFilesToProcess.size() == 0){
+				return;
+			}
 
 			//Load all files in the individual marc path.  This allows us to list directories rather than doing millions of
 			//individual look ups

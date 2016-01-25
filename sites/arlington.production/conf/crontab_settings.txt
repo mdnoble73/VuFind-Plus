@@ -11,7 +11,7 @@
 #
 # ie :
 # git pull origin {current branch}
-# sudo crontab -u vufind /usr/local/vufind-plus/sites/arlington.production/conf/crontab_settings.txt
+# crontab < vufind /usr/local/vufind-plus/sites/arlington.production/conf/crontab_settings.txt
 
 ###################
 # * * * * *  command to execute
@@ -47,6 +47,7 @@
 ###################
 7 */3 * * * cd /usr/local/vufind-plus/vufind/cron/; java -jar cron.jar arlington.production
 20 0 * * * cd /usr/local/vufind-plus/vufind/cron/; java -jar cron.jar arlington.production DatabaseCleanup
+0 20 * * * cd /usr/local/vufind-plus/vufind/cron/; java -jar cron.jar arlington.production UpdateReadingHistory
 
 ################
 # Pika Cleanup #

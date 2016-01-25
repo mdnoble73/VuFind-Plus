@@ -705,7 +705,15 @@ class DBMaintenance extends Admin_Admin {
 					),
 				),
 
-				'ip_lookup_1' => array(
+					'listPublisherRole' => array(
+							'title' => 'Create library publisher role',
+							'description' => 'Create library publisher role to include lists from specific users within search results.',
+							'sql' => array(
+									"INSERT INTO `roles` (`name`, `description`) VALUES ('listPublisher', 'Optionally only include lists from people with this role in search results.')",
+							),
+					),
+
+					'ip_lookup_1' => array(
 					'title' => 'IP Lookup Update 1',
 					'description' => 'Add start and end ranges for IP Lookup table to improve performance.',
 					'continueOnError' => true,

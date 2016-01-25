@@ -544,7 +544,7 @@ class MyAccount_AJAX
 					$existingList = true;
 				}
 				$list->description = urldecode($_REQUEST['desc']);
-				$list->public = $_REQUEST['public'];
+				$list->public = isset($_REQUEST['public']) && $_REQUEST['public'] == 'true';
 				if ($existingList) {
 					$list->update();
 				} else {

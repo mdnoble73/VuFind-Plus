@@ -368,7 +368,7 @@ public class GroupedWorkSolr {
 						addUniqueFieldValue(doc, "owning_location_" + curScopeName, owningLocationValue);
 
 						if (curScope.isAvailable()) {
-							addUniqueFieldValue(doc, "available_at_" + curScopeName, owningLocationValue);
+							addAvailableAtValues(doc, curRecord, curScopeName, owningLocationValue);
 						}
 
 						if (curScope.getScope().isLocationScope()) {
@@ -376,7 +376,9 @@ public class GroupedWorkSolr {
 							if (curScope.getScope().getLibraryScope() != null && !curScope.getScope().getLibraryScope().getScopeName().equals(curScopeName)) {
 								addUniqueFieldValue(doc, "owning_location_" + curScope.getScope().getLibraryScope().getScopeName(), owningLocationValue);
 								addAvailabilityToggleValues(doc, curRecord, curScope.getScope().getLibraryScope().getScopeName(), availabilityToggleValues);
-								if (curScope.isAvailable()) {addUniqueFieldValue(doc, "available_at_" + curScope.getScope().getLibraryScope().getScopeName(), owningLocationValue);}
+								if (curScope.isAvailable()) {
+									addAvailableAtValues(doc, curRecord, curScope.getScope().getLibraryScope().getScopeName(), owningLocationValue);
+								}
 							}
 						}
 						//finally add to any scopes where we show all owning locations
@@ -385,7 +387,9 @@ public class GroupedWorkSolr {
 							if (!scopeToShowAll.getScope().isRestrictOwningLibraryAndLocationFacets()){
 								addAvailabilityToggleValues(doc, curRecord, scopeToShowAll.getScope().getScopeName(), availabilityToggleValues);
 								addUniqueFieldValue(doc, "owning_location_" + scopeToShowAll.getScope().getScopeName(), owningLocationValue);
-								if (curScope.isAvailable()) {addUniqueFieldValue(doc, "available_at_" + scopeToShowAll.getScope().getScopeName(), owningLocationValue);}
+								if (curScope.isAvailable()) {
+									addAvailableAtValues(doc, curRecord, scopeToShowAll.getScope().getScopeName(), owningLocationValue);
+								}
 							}
 						}
 					}
@@ -470,13 +474,23 @@ public class GroupedWorkSolr {
 		}
 	}
 
+	private void addAvailableAtValues(SolrInputDocument doc, RecordInfo curRecord, String curScopeName, String owningLocationValue){
+		addUniqueFieldValue(doc, "available_at_" + curScopeName, owningLocationValue);
+		for (String format : curRecord.getAllSolrFieldEscapedFormats()) {
+			addUniqueFieldValue(doc, "available_at_by_format_" + curScopeName + "_" + format, owningLocationValue);
+		}
+		for (String formatCategory : curRecord.getAllSolrFieldEscapedFormatCategories()) {
+			addUniqueFieldValue(doc, "available_at_by_format_" + curScopeName + "_" + formatCategory, owningLocationValue);
+		}
+	}
+
 	private void addAvailabilityToggleValues(SolrInputDocument doc, RecordInfo curRecord, String curScopeName, HashSet<String> availabilityToggleValues) {
 		addUniqueFieldValues(doc, "availability_toggle_" + curScopeName, availabilityToggleValues);
 		for (String format : curRecord.getAllSolrFieldEscapedFormats()) {
 			addUniqueFieldValues(doc, "availability_by_format_" + curScopeName + "_" + format, availabilityToggleValues);
 		}
 		for (String formatCategory : curRecord.getAllSolrFieldEscapedFormatCategories()) {
-			addUniqueFieldValues(doc, "availability_by_format_" + curScopeName + "_" + formatCategory.replaceAll("\\W", "_").toLowerCase(), availabilityToggleValues);
+			addUniqueFieldValues(doc, "availability_by_format_" + curScopeName + "_" + formatCategory, availabilityToggleValues);
 		}
 	}
 
@@ -692,8 +706,15 @@ public class GroupedWorkSolr {
 
 	public void setTitle(String title) {
 		if (title != null){
+			title = Util.trimTrailingPunctuation(title);
 			//TODO: determine if the title should be changed or always use the first one?
-			this.title = title.replace("&", "and");
+			if (this.title == null){
+				this.title = title;
+			}
+			String tmpTitle = title.replace("&", " and ").replace("  ", " ");
+			if (!tmpTitle.equals(title)){
+				this.titleAlt.add(tmpTitle);
+			}
 			keywords.add(title);
 		}
 	}
@@ -702,7 +723,10 @@ public class GroupedWorkSolr {
 		if (newTitle == null){
 			return;
 		}
-		newTitle = Util.trimTrailingPunctuation(newTitle.replace("&", "and"));
+		//MDN 1/24/16 - not sure why this was replacing ampersands, but that functionality breaks other things.
+		//Especially S&P perhaps we could replace " & " with " and "?
+		//newTitle = Util.trimTrailingPunctuation(newTitle.replace("&", "and"));
+		newTitle = Util.trimTrailingPunctuation(newTitle);
 		//Strip out anything in brackets unless that would cause us to show nothing
 		String tmpTitle = newTitle.replaceAll("\\[.*?\\]", "").trim();
 		if (tmpTitle.length() > 0){

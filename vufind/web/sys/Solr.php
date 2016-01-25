@@ -785,7 +785,7 @@ class Solr implements IndexEngine {
 				// Otherwise, we've got a (list of) [munge, weight] pairs to deal with
 				foreach ($clauseArray as $spec) {
 					$fieldValue = $values[$spec[0]];
-					//Check fields that we expect to match certain patterns to see if we should skip this term.
+
 					if ($field == 'isbn'){
 						if (!preg_match('/^((?:\sOR\s)?["(]?\d{9,13}X?[\s")]*)+$/', $fieldValue)){
 							continue;
@@ -992,7 +992,7 @@ class Solr implements IndexEngine {
 		}
 		$values['localized_callnumber'] = '"' . str_replace(array('"', ':', '/'), ' ', $noWildCardLookFor) . '"';
 
-		// Apply custom munge operations if necessary:
+		// Apply custom munge operations if necessary
 		if (is_array($custom) && $basic) {
 			foreach($custom as $mungeName => $mungeOps) {
 				$values[$mungeName] =  $lookfor;
@@ -2349,7 +2349,7 @@ class Solr implements IndexEngine {
 				}
 			} else {
 				//If we are tokenizing, remove any punctuation
-				$tmpWord = preg_replace('/[^\s\-\w.\'aàáâãåäæeèéêëiìíîïoòóôõöøuùúûü]/', '', $words[$i]);
+				$tmpWord = preg_replace('/[^\s\-\w.\'aàáâãåäæeèéêëiìíîïoòóôõöøuùúûü&]/', '', $words[$i]);
 				if (strlen($tmpWord) > 0){
 					$newWords[] = trim($tmpWord);
 				}
@@ -2474,6 +2474,7 @@ class Solr implements IndexEngine {
 
 		//Remove any slashes that Solr will handle incorrectly.
 		$input = str_replace('\\', ' ', $input);
+		//$input = preg_replace('/\\\\(?![&:])/', ' ', $input);
 
 		//Look for any colons that are not identifying fields
 		
