@@ -378,7 +378,6 @@ public class GroupedWorkSolr {
 								addAvailabilityToggleValues(doc, curRecord, curScope.getScope().getLibraryScope().getScopeName(), availabilityToggleValues);
 								if (curScope.isAvailable()) {
 									addAvailableAtValues(doc, curRecord, curScope.getScope().getLibraryScope().getScopeName(), owningLocationValue);
-									addUniqueFieldValue(doc, "available_at_" + curScope.getScope().getLibraryScope().getScopeName(), owningLocationValue);
 								}
 							}
 						}
@@ -389,8 +388,7 @@ public class GroupedWorkSolr {
 								addAvailabilityToggleValues(doc, curRecord, scopeToShowAll.getScope().getScopeName(), availabilityToggleValues);
 								addUniqueFieldValue(doc, "owning_location_" + scopeToShowAll.getScope().getScopeName(), owningLocationValue);
 								if (curScope.isAvailable()) {
-									addAvailableAtValues(doc, curRecord, scopeToShowAll.getScope().getLibraryScope().getScopeName(), owningLocationValue);
-									addUniqueFieldValue(doc, "available_at_" + scopeToShowAll.getScope().getScopeName(), owningLocationValue);
+									addAvailableAtValues(doc, curRecord, scopeToShowAll.getScope().getScopeName(), owningLocationValue);
 								}
 							}
 						}
@@ -708,6 +706,7 @@ public class GroupedWorkSolr {
 
 	public void setTitle(String title) {
 		if (title != null){
+			title = Util.trimTrailingPunctuation(title);
 			//TODO: determine if the title should be changed or always use the first one?
 			if (this.title == null){
 				this.title = title;
