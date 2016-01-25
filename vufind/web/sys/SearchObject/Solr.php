@@ -1250,15 +1250,20 @@ class SearchObject_Solr extends SearchObject_Base
 		}
 
 		$availabilityToggleValue = null;
+		$availabilityAtValue = null;
 		$formatValue = null;
 		$formatCategoryValue = null;
 		foreach ($this->filterList as $field => $filter) {
 			foreach ($filter as $value) {
 				$analytics->addEvent('Apply Facet', $field, $value);
 				$isAvailabilityToggle = false;
-				if (substr($field, 0, strlen('availability_toggle')) == 'availability_toggle'){
+				$isAvailableAt = false;
+				if (substr($field, 0, strlen('availability_toggle')) == 'availability_toggle') {
 					$availabilityToggleValue = $value;
 					$isAvailabilityToggle = true;
+				}elseif (substr($field, 0, strlen('available_at')) == 'available_at'){
+					$availabilityAtValue = $value;
+					$isAvailableAt = true;
 				}elseif (substr($field, 0, strlen('format_category')) == 'format_category'){
 					$formatCategoryValue = $value;
 				}elseif (substr($field, 0, strlen('format')) == 'format'){
@@ -1271,8 +1276,10 @@ class SearchObject_Solr extends SearchObject_Base
 					$filterQuery[] = "$field:$value";
 				} else {
 					if (!empty($value)){
-						if ($isAvailabilityToggle){
+						if ($isAvailabilityToggle) {
 							$filterQuery['availability_toggle'] = "$field:\"$value\"";
+						}elseif ($isAvailableAt){
+							$filterQuery['available_at'] = "$field:\"$value\"";
 						}else{
 							$filterQuery[] = "$field:\"$value\"";
 						}
@@ -1292,7 +1299,19 @@ class SearchObject_Solr extends SearchObject_Base
 				$availabilityByFormatFieldName = 'availability_by_format_' . $solrScope . '_' . strtolower(preg_replace('/\W/', '_', $formatCategoryValue));
 			}
 			$filterQuery['availability_toggle'] = $availabilityByFormatFieldName . ':"' . $availabilityToggleValue . '"';
+		}
 
+		//Check to see if we have both a format and available at facet applied
+		$availableAtByFormatFieldName = null;
+		if ($availabilityAtValue != null && ($formatCategoryValue != null || $formatValue != null)){
+			global $solrScope;
+			//Make sure to process the more specific format first
+			if ($formatValue != null){
+				$availableAtByFormatFieldName = 'available_at_by_format_' . $solrScope . '_' . strtolower(preg_replace('/\W/', '_', $formatValue));
+			}else{
+				$availableAtByFormatFieldName = 'available_at_by_format_' . $solrScope . '_' . strtolower(preg_replace('/\W/', '_', $formatCategoryValue));
+			}
+			$filterQuery['available_at'] = $availableAtByFormatFieldName . ':"' . $availabilityAtValue . '"';
 		}
 
 

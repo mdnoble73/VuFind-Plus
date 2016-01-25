@@ -1507,7 +1507,10 @@ class Solr implements IndexEngine {
 				list($fieldName, $term) = explode(":", $filterTerm, 2);
 				if (!in_array($fieldName, $validFields)){
 					//Special handling for availability_by_format
-					if (preg_match("/^availability_by_format_([^_]+)_[\\w_]+$/", $fieldName)){
+					if (preg_match("/^availability_by_format_([^_]+)_[\\w_]+$/", $fieldName)) {
+						//This is a valid field
+						$validFilters[$id] = $filterTerm;
+					}elseif (preg_match("/^available_at_by_format_([^_]+)_[\\w_]+$/", $fieldName)){
 						//This is a valid field
 						$validFilters[$id] = $filterTerm;
 					}else{
@@ -2474,6 +2477,7 @@ class Solr implements IndexEngine {
 
 		//Remove any slashes that Solr will handle incorrectly.
 		$input = str_replace('\\', ' ', $input);
+		$input = str_replace('/', ' ', $input);
 		//$input = preg_replace('/\\\\(?![&:])/', ' ', $input);
 
 		//Look for any colons that are not identifying fields

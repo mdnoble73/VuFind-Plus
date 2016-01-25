@@ -387,7 +387,7 @@ class Millennium extends ScreenScrapingDriver
 
 			$numHoldsAvailable = 0;
 			$numHoldsRequested = 0;
-			$availableStatusRegex = isset($configArray['Catalog']['patronApiAvailableHoldsRegex']) ? $configArray['Catalog']['patronApiAvailableHoldsRegex'] : "/ST=(105|98),/";
+			$availableStatusRegex = isset($configArray['Catalog']['patronApiAvailableHoldsRegex']) ? $configArray['Catalog']['patronApiAvailableHoldsRegex'] : "/ST=(105|98|106),/";
 			if (isset($patronDump) && isset($patronDump['HOLD']) && count($patronDump['HOLD']) > 0){
 				foreach ($patronDump['HOLD'] as $hold){
 					if (preg_match("$availableStatusRegex", $hold)){

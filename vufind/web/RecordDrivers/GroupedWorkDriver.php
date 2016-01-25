@@ -2216,6 +2216,7 @@ class GroupedWorkDriver extends RecordInterface{
 				'localAvailableCopies' => 0,
 				'localCopies' => 0,
 				'numHolds' => $recordDriver->getNumHolds(),
+				'volumeHolds' => $recordDriver->getVolumeHolds($volumeData),
 				'hasLocalItem' => false,
 				'holdRatio' => 0,
 				'locationLabel' => '',
