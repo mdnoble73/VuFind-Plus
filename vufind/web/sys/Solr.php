@@ -2477,6 +2477,7 @@ class Solr implements IndexEngine {
 
 		//Remove any slashes that Solr will handle incorrectly.
 		$input = str_replace('\\', ' ', $input);
+		$input = str_replace('/', ' ', $input);
 		//$input = preg_replace('/\\\\(?![&:])/', ' ', $input);
 
 		//Look for any colons that are not identifying fields
