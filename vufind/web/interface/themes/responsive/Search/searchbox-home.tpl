@@ -14,11 +14,11 @@
 						<input type="hidden" name="genealogyType" id="genealogyType" value="">
 					{/if}
 					<input type="hidden" name="view" id="view" value="{$displayMode}">
-{*
-					{if $displayMode}
-					<input type="hidden" name="view" id="view" value="{$displayMode}">
+
+					{if isset($showCovers)}
+					<input type="hidden" name="showCovers"{* id="showCovers"*} value="{if $showCovers}on{else}off{/if}">
 					{/if}
-*}
+
 					<fieldset>
 						<div class="input-group input-group-sm">
 							<div class="input-group-sm">

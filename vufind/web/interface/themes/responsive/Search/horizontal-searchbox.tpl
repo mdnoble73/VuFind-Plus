@@ -9,6 +9,10 @@
 		{/if}
 		<input type="hidden" name="view" id="view" value="{$displayMode}">
 
+		{if isset($showCovers)}
+			<input type="hidden" name="showCovers"{* id="showCovers"*} value="{if $showCovers}on{else}off{/if}">
+		{/if}
+
 		{assign var="hiddenSearchSource" value=false}
 		{* Switch sizing when no search source is to be displayed *}
 		{if $searchSources|@count <= 1}
