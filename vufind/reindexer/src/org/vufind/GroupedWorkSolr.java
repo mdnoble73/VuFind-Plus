@@ -708,7 +708,10 @@ public class GroupedWorkSolr {
 
 	public void setTitle(String title) {
 		if (title != null){
-			//TODO: determine if the title should be changed or always use thenG first one?
+			//TODO: determine if the title should be changed or always use the first one?
+			if (this.title == null){
+				this.title = title;
+			}
 			String tmpTitle = title.replace("&", " and ").replace("  ", " ");
 			if (!tmpTitle.equals(title)){
 				this.titleAlt.add(tmpTitle);
