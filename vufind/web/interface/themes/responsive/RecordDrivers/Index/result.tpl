@@ -1,4 +1,5 @@
 {strip}
+{* //QUESTION: is this Depricated *}
 <div id="record{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}" class="resultsList row">
 	<div class="imageColumn col-md-3">
 		<div class="row">
@@ -17,7 +18,7 @@
 						     alt="{translate text='Cover Image'}"
 						     {*data-record_id="{$summId}"
 						     data-source="VuFind"
-						     data-content_class=".descriptionContent{$summShortId|escape}"*}/>
+						     data-content_class=".descriptionContent{$summShortId|escape}"*}>
 					</a>
 				{/if}
 				{strip}
