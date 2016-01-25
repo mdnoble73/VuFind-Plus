@@ -43,7 +43,8 @@
 		<script type="text/javascript">
 			$(function(){ldelim}
 				{* Only trigger event if the side bar is visible *}
-				{if $module == "Search" || $module == "Series" || $module == "Author" || $module == "Genealogy"}
+				{if $module == "Search" || $module == "Series" || $module == "Author" || $module == "Genealogy" || ($module == 'MyAccount' && $action == 'MyList' && !$listEditAllowed)}
+					{* Treat Public Lists not owned by user as a Search Page rather than an MyAccount Page *}
 				$('.menu-bar-option:nth-child(1)>a', '#vertical-menu-bar').filter(':visible').click();
 				{elseif $module == "MyAccount" || $module == "Admin" || $module == "Circa" || $module == "EditorialReview" || $module == "Report"}
 				$('.menu-bar-option:nth-child(2)>a', '#vertical-menu-bar').filter(':visible').click();

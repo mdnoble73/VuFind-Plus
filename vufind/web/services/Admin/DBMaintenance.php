@@ -71,10 +71,7 @@ class DBMaintenance extends Admin_Admin {
 
 		$interface->assign('sqlUpdates', $availableUpdates);
 
-		$interface->assign('sidebar', 'MyAccount/account-sidebar.tpl');
-		$interface->setTemplate('dbMaintenance.tpl');
-		$interface->setPageTitle('Database Maintenance');
-		$interface->display('layout.tpl');
+		$this->display('dbMaintenance.tpl', 'Database Maintenance');
 
 	}
 

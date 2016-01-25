@@ -1,7 +1,32 @@
 VuFind.Searches = (function(){
-	$(document).ready(function(){
+	$(function(){
 		VuFind.Searches.enableSearchTypes();
 		VuFind.Searches.initAutoComplete();
+
+		//console.log(
+		//		'Not opac', !Globals.opac,
+		//		'Not Logged In', !Globals.loggedIn,
+		//		'Local Storage', VuFind.hasLocalStorage(),
+		//		'No showCovers Hidden Input', ($('input[name="showCovers"]').length == 0)
+		//);
+
+		// Add Browser-stored showCovers setting to the search form if there is a stored value set, and
+		// this is not a OPAC Machine, and the user is not logged in, and there is not a hidden value
+		// already set in the search form.
+		// This allows a preset showCovers setting to be sent back with the first search without requiring login or
+		// a page reload on the search results page.
+		if (!Globals.opac && !Globals.loggedIn && VuFind.hasLocalStorage() && $('input[name="showCovers"]').length == 0){
+			var showCovers = window.localStorage.getItem('showCovers') || false;
+			//console.log('Show Covers Value : ', showCovers);
+			if (showCovers.length > 0) {
+				//console.log('Add showCovers value', showCovers);
+				$("<input>").attr({
+					type: 'hidden',
+					name: 'showCovers',
+					value: showCovers
+				}).appendTo('#searchForm');
+			}
+		}
 	});
 	return{
 		searchGroups: [],
@@ -32,6 +57,7 @@ VuFind.Searches = (function(){
 			if (!Globals.opac && VuFind.hasLocalStorage() ) { // store setting in browser if not an opac computer
 				window.localStorage.setItem('searchResultsDisplayMode', this.displayMode);
 			}
+			if (mode == 'list') $('#hideSearchCoversSwitch').show(); else $('#hideSearchCoversSwitch').hide();
 			location.replace(location.pathname + paramString); // reloads page without adding entry to history
 		},
 
@@ -160,18 +186,15 @@ VuFind.Searches = (function(){
 					catalogType = selectedSearchType.data("catalog_type");
 				}
 			}
-			if (catalogType == "catalog" || catalogType == null) {
-				$(".catalogType").show();
-				$(".genealogyType").hide();
-				$(".islandoraType").hide();
-			}else if (catalogType == 'genealogy'){
-				$(".catalogType").hide();
-				$(".genealogyType").show();
-				$(".islandoraType").hide();
-			}else{
-				$(".catalogType").hide();
-				$(".genealogyType").hide();
+			if (catalogType == 'islandora'){
 				$(".islandoraType").show();
+				$(".catalogType,.genealogyType").hide();
+			}else if (catalogType == 'genealogy'){
+				$(".genealogyType").show();
+				$(".catalogType,.islandoraType").hide();
+			}else { // default catalog
+				$(".catalogType").show();
+				$(".genealogyType,.islandoraType").hide();
 			}
 		},
 

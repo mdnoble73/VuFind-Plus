@@ -14,14 +14,12 @@ class MyAccount_Home  extends MyAccount{
 		global $interface;
 		global $user;
 
+		// The script should only execute when a user is logged in, otherwise it calls Login.php
 		if ($user){
-			$interface->setTemplate('home.tpl');
-
-			//Check to see if the user has rated any titles
+			// Check to see if the user has rated any titles
 			$interface->assign('hasRatings', $user->hasRatings());
+
+			$this->display('home.tpl');
 		}
-		$interface->setPageTitle('My Account');
-		$interface->assign('sidebar', 'MyAccount/account-sidebar.tpl');
-		$interface->display('layout.tpl');
 	}
 }
