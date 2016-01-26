@@ -997,4 +997,12 @@ class CatalogConnection
 					'errors' => array('Importing Lists has not been implemented for this ILS.'));
 		}
 	}
+
+	public function getShowUsernameField() {
+		if ($this->checkFunction('hasUsernameField')) {
+			return $this->driver->hasUsernameField();
+		}else{
+			return false;
+		}
+	}
 }

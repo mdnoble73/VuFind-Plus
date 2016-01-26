@@ -39,11 +39,24 @@
 								<div class="form-group">
 									<div class="col-xs-4"><strong>{translate text='Full Name'}:</strong></div><div class="col-xs-8">{$profile->fullname|escape}</div>
 								</div>
-									{if !$offline}
-										<div class="form-group"><div class="col-xs-4"><strong>{translate text='Fines'}:</strong></div><div class="col-xs-8">{$profile->fines|escape}</div></div>
-										<div class="form-group"><div class="col-xs-4"><strong>{translate text='Expiration Date'}:</strong></div><div class="col-xs-8">{$profile->expires|escape}</div></div>
-									{/if}
-								<div class="form-group"><div class="col-xs-4"><strong>{translate text='Home Library'}:</strong></div><div class="col-xs-8">{$profile->homeLocation|escape}</div></div>
+								{if $showUsernameField}
+									<div class="form-group">
+										<div class="col-xs-4"><strong>Username:</strong></div>
+										<div class="col-xs-8"><input type="text" name="username" is="username" value="{if !is_numeric(trim($profile->alt_username))}{$profile->alt_username|escape}{/if}" size='25' maxlength='25' class="form-control"/>
+											<a href="#" onclick="$('#usernameHelp').toggle()">What is this?</a>
+											<div id="usernameHelp" style="display:none">
+												A username is an optional feature. If you set one, your username will be your alias on hold slips and can also be used to log into your account in place of your card number.  A username can be set, reset or removed from the “Account Settings” section of your online account. Usernames must be between 6 and 25 characters (letters and number only, no special characters).
+											</div>
+										</div>
+									</div>
+								{/if}
+								{if !$offline}
+									<div class="form-group"><div class="col-xs-4"><strong>{translate text='Fines'}:</strong></div><div class="col-xs-8">{$profile->fines|escape}</div></div>
+									<div class="form-group"><div class="col-xs-4"><strong>{translate text='Expiration Date'}:</strong></div><div class="col-xs-8">{$profile->expires|escape}</div></div>
+								{/if}
+								<div class="form-group">
+									<div class="col-xs-4"><strong>{translate text='Home Library'}:</strong></div><div class="col-xs-8">{$profile->homeLocation|escape}</div>
+								</div>
 								{if !$offline}
 									{* Don't show inputs for the Horizon ILS as updating those account settings has not been implemented in the Horizon Driver. *}
 									<div class="form-group">
