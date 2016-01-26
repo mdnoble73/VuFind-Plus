@@ -325,8 +325,8 @@ class MillenniumCheckouts {
 		//Go to the items page
 		$scope = $driver->getDefaultScope();
 		$curl_url = $driver->getVendorOpacUrl() . "/patroninfo~S{$scope}/" . $patron->username ."/items";
-//		$driver->_curlGetPage($curl_url);
-		// Doesn't look like this curl call will be necessary to complete renewals
+		// Loading this page is not necessary in most cases, but if the patron has a Staff ptype we go into staff mode which makes this page load necessary.
+		$driver->_curlGetPage($curl_url);
 
 		$renewPostVariables = array(
 			'currentsortorder' => 'current_checkout',
@@ -367,13 +367,19 @@ class MillenniumCheckouts {
 					if (preg_match("/{$itemId}/", $rowData)){
 						//$logger->log("Found the row for this item", PEAR_LOG_DEBUG);
 						//Extract the renewal message
-						if (preg_match('/<td align="left" class="patFuncStatus">.*?<em><font color="red">(.*?)<\/font><\/em>.*?<\/td>/s', $rowData, $statusMatches)){
+						if (preg_match('/<td align="left" class="patFuncStatus">.*?<em><font color="red">(.*?)<\/font><\/em>.*?<\/td>/s', $rowData, $statusMatches)) {
+							$success = false;
+							$msg = ucfirst(strtolower(trim($statusMatches[1])));
+							$title = $this->extract_title_from_row($rowData);
+							$message = "Unable to renew $title: $msg.";
+							// title needed for in renewSelectedItems to distinguish which item failed.
+						}elseif (preg_match('/<td.*?class="patFuncStatus".*?>.*?<em><div style="color:red">(.*?)<\/div><\/em>.*?<\/td>/s', $rowData, $statusMatches)){
 							$success = false;
 							$msg = ucfirst(strtolower(trim( $statusMatches[1])));
 							$title = $this->extract_title_from_row($rowData);
 							$message = "Unable to renew $title: $msg.";
-								// title needed for in renewSelectedItems to distinguish which item failed.
-						} elseif (preg_match('/<td align="left" class="patFuncStatus">.*?<em>(.*?)<\/em>.*?<\/td>/s', $rowData, $statusMatches)){
+							// title needed for in renewSelectedItems to distinguish which item failed.
+						} elseif (preg_match('/<td.*?class="patFuncStatus".*?>.*?<em>(.*?)<\/em>.*?<\/td>/s', $rowData, $statusMatches)){
 							$success = true;
 							$message = 'Your item was successfully renewed';
 						}

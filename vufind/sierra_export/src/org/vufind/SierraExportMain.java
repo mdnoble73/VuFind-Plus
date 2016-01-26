@@ -171,11 +171,6 @@ public class SierraExportMain{
 					} else {
 						numHoldsByBib.put(bibId, numHolds);
 					}
-					if (numHoldsByVolume.containsKey(bibId)) {
-						numHoldsByVolume.put(bibId, numHolds + numHoldsByVolume.get(bibId));
-					} else {
-						numHoldsByVolume.put(bibId, numHolds);
-					}
 				}
 				itemHoldsRS.close();
 			}
@@ -195,15 +190,16 @@ public class SierraExportMain{
 				String volumeId = volumeHoldsRS.getString("volume_num");
 				volumeId = ".j" + volumeId + getCheckDigit(volumeId);
 				Long numHolds = volumeHoldsRS.getLong("numHolds");
+				//Do not count these in
 				if (numHoldsByBib.containsKey(bibId)) {
 					numHoldsByBib.put(bibId, numHolds + numHoldsByBib.get(bibId));
 				} else {
 					numHoldsByBib.put(bibId, numHolds);
 				}
 				if (numHoldsByVolume.containsKey(volumeId)) {
-					numHoldsByBib.put(volumeId, numHolds + numHoldsByBib.get(bibId));
+					numHoldsByVolume.put(volumeId, numHolds + numHoldsByVolume.get(bibId));
 				} else {
-					numHoldsByBib.put(volumeId, numHolds);
+					numHoldsByVolume.put(volumeId, numHolds);
 				}
 			}
 			volumeHoldsRS.close();
