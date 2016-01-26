@@ -74,6 +74,10 @@ class MyAccount_Profile extends MyAccount
 				$allowPinReset = ($patronHomeLibrary->allowPinReset == 1);
 				$showAlternateLibraryOptionsInProfile = ($patronHomeLibrary->showAlternateLibraryOptionsInProfile == 1);
 				$allowAccountLinking = ($patronHomeLibrary->allowLinkedAccounts == 1);
+				if ($user->finesVal > $patronHomeLibrary->maxFinesToAllowAccountUpdates){
+					$canUpdateContactInfo = false;
+					$canUpdateAddress = false;
+				}
 			}
 
 			$interface->assign('canUpdateContactInfo', $canUpdateContactInfo);

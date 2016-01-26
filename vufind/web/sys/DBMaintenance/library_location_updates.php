@@ -1229,5 +1229,13 @@ function getLibraryLocationUpdates(){
 							'ALTER TABLE `library` ADD COLUMN `showFastAddSubjects` TINYINT(1) DEFAULT 1',
 					),
 			),
+
+			'library_max_fines_for_account_update' => array(
+					'title' => 'Library Maximum fines to allow account updates',
+					'description' => 'Add option to prevent patrons with high fines from updating their account',
+					'sql' => array(
+							'ALTER TABLE `library` ADD COLUMN `maxFinesToAllowAccountUpdates` FLOAT DEFAULT 10',
+					),
+			),
 	);
 }
