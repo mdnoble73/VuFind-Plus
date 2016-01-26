@@ -20,6 +20,7 @@ class User extends DB_DataObject
 	public $lastname;                        // string(50)  not_null
 	public $email;                           // string(250)  not_null
 	public $phone;                           // string(30)
+	public $alt_username;                    // An alternate username used by patrons to login.
 	public $cat_username;                    // string(50)
 	public $cat_password;                    // string(50)
 	public $patronType;
@@ -241,9 +242,9 @@ class User extends DB_DataObject
 		global $configArray;
 		//TODO: Check the login configuration for the driver
 		if ($configArray['Catalog']['barcodeProperty'] == 'cat_username'){
-			return $this->cat_username;
+			return trim($this->cat_username);
 		}else{
-			return $this->cat_password;
+			return trim($this->cat_password);
 		}
 	}
 
@@ -1100,5 +1101,9 @@ class User extends DB_DataObject
 	function importListsFromIls(){
 		$result = $this->getCatalogDriver()->importListsFromIls($this);
 		return $result;
+	}
+
+	public function getShowUsernameField() {
+		return $this->getCatalogDriver()->getShowUsernameField();
 	}
 }

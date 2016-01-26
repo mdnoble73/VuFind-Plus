@@ -271,7 +271,7 @@ class Millennium extends ScreenScrapingDriver
 			$user->fullname = isset($fullName) ? $fullName : '';
 
 			if ($this->accountProfile->loginConfiguration == 'barcode_pin'){
-				$user->cat_username = $username;
+				$user->cat_username = $patronDump['P_BARCODE']; //Make sure to get the barcode so if we are using usernames we can still get the barcode for use with overdrive, etc.
 				$user->cat_password = $password;
 			}else{
 				$user->cat_username = $patronDump['PATRN_NAME'];
@@ -380,10 +380,22 @@ class Millennium extends ScreenScrapingDriver
 			$user->address2 = $user->city . ', ' . $user->state;
 
 			$user->workPhone = (isset($patronDump) && isset($patronDump['G/WK_PHONE'])) ? $patronDump['G/WK_PHONE'] : '';
-			$user->mobileNumber = (isset($patronDump) && isset($patronDump['MOBILE_NO'])) ? $patronDump['MOBILE_NO'] : '';
+			if (isset($patronDump) && isset($patronDump['MOBILE_NO'])){
+				$user->mobileNumber = $patronDump['MOBILE_NO'];
+			}else{
+				if (isset($patronDump) && isset($patronDump['MOBILE_PH'])){
+					$user->mobileNumber = $patronDump['MOBILE_PH'];
+				}else{
+					$user->mobileNumber = '';
+				}
+			}
 
 			$user->finesVal = floatval(preg_replace('/[^\\d.]/', '', $patronDump['MONEY_OWED']));
 			$user->fines = $patronDump['MONEY_OWED'];
+
+			if (isset($patronDump['USERNAME'])){
+				$user->alt_username = $patronDump['USERNAME'];
+			}
 
 			$numHoldsAvailable = 0;
 			$numHoldsRequested = 0;
@@ -839,6 +851,10 @@ class Millennium extends ScreenScrapingDriver
 				$extraPostInfo['notices'] = $_REQUEST['notices'];
 			}
 
+			if (isset($_REQUEST['username'])){
+				$extraPostInfo['user_name'] = $_REQUEST['username'];
+			}
+
 			if (isset($_REQUEST['mobileNumber'])){
 				$extraPostInfo['mobile'] = preg_replace('/\D/', '', $_REQUEST['mobileNumber']);
 				if (strlen($_REQUEST['mobileNumber']) > 0 && $_REQUEST['smsNotices'] == 'on'){
@@ -875,6 +891,7 @@ class Millennium extends ScreenScrapingDriver
 			if (isset($sresult) && strpos($sresult, 'Patron information updated') !== false){
 				$user->phone = $_REQUEST['phone'];
 				$user->email = $_REQUEST['email'];
+				$user->alt_username = $_REQUEST['username'];
 				$user->update();
 				/* @var Memcache $memCache */
 				global $memCache;
@@ -885,7 +902,12 @@ class Millennium extends ScreenScrapingDriver
 				}
 			}else{
 				// Doesn't look like the millennium (actually sierra) server ever provides error messages. plb 4-29-2015
-				$errorMsg = 'There were errors updating your information.'; // generic error message
+				if (preg_match('/<h2 class="errormessage">(.*?)<\/h2>/i', $sresult, $errorMatches)){
+					$errorMsg = $errorMatches[1]; // generic error message
+				}else{
+					$errorMsg = 'There were errors updating your information.'; // generic error message
+				}
+
 				$updateErrors[] = $errorMsg;
 				if ($analytics){
 					$analytics->addEvent('ILS Integration', 'Profile update failed');

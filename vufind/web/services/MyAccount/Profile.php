@@ -41,6 +41,7 @@ class MyAccount_Profile extends MyAccount
 			// Determine which user we are showing/updating settings for
 			$linkedUsers = $user->getLinkedUsers();
 			$patronId    = isset($_REQUEST['patronId']) ? $_REQUEST['patronId'] : $user->id;
+			/** @var User $patron */
 			$patron      = $user->getUserReferredTo($patronId);
 
 			// Linked Accounts Selection Form set-up
@@ -74,8 +75,14 @@ class MyAccount_Profile extends MyAccount
 				$allowPinReset = ($patronHomeLibrary->allowPinReset == 1);
 				$showAlternateLibraryOptionsInProfile = ($patronHomeLibrary->showAlternateLibraryOptionsInProfile == 1);
 				$allowAccountLinking = ($patronHomeLibrary->allowLinkedAccounts == 1);
+				if ($user->finesVal > $patronHomeLibrary->maxFinesToAllowAccountUpdates){
+					$canUpdateContactInfo = false;
+					$canUpdateAddress = false;
+				}
 			}
 
+			$interface->assign('showUsernameField', $patron->getShowUsernameField());
+			$interface->assign('canUpdateContactInfo', $canUpdateContactInfo);
 			$interface->assign('canUpdateContactInfo', $canUpdateContactInfo);
 			$interface->assign('canUpdateAddress', $canUpdateAddress);
 			$interface->assign('showWorkPhoneInProfile', $showWorkPhoneInProfile);
