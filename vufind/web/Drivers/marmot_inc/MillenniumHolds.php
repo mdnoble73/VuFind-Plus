@@ -560,7 +560,11 @@ class MillenniumHolds{
 							$curHold['freezeable'] = true;
 							if (strlen($matches[2]) > 0){
 								$curHold['frozen'] = true;
-								$curHold['status'] = 'Frozen';
+								if ($curHold['status'] == 'Pending'){
+									$curHold['status'] = 'Frozen';
+								}else{
+									$curHold['status'] = 'Frozen (' . $curHold['status'] . ')';
+								}
 							}
 						} elseif (preg_match('/This hold can\s?not be frozen/i', $sCols[$i], $matches)){
 							//If we detect an error Freezing the hold, save it so we can report the error to the user later.
