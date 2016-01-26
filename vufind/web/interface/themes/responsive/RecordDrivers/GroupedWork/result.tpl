@@ -1,6 +1,10 @@
 {strip}
 <div id="groupedRecord{$summId|escape}" class="resultsList row">
-	<div class="col-xs-12 col-sm-3 col-md-3 col-lg-2 text-center">
+	{*{assign var="displayCovers" value=false}*}
+	{*{if $action != 'SuggestedTitles' || ($showCovers && $action == 'SuggestedTitles')}*}
+	{if $showCovers}
+		{*{assign var="displayCovers" value=true}*}
+	<div class="col-xs-3 col-sm-3 col-md-3 col-lg-2 text-center">
 		{if $user->disableCoverArt != 1}
 		{*<div class='descriptionContent{$summShortId|escape}' style='display:none'>{$summDescription}</div>*}
 			<a href="{$summUrl}">
@@ -8,16 +12,16 @@
 			</a>
 		{/if}
 		{if $showRatings}
-		{*{include file="GroupedWork/title-rating.tpl" ratingClass="" recordId=$summId shortId=$summShortId ratingData=$summRating}*}
 		{include file="GroupedWork/title-rating.tpl" ratingClass="" id=$summId ratingData=$summRating}
 		{/if}
 	</div>
+	{/if}
 
 	{if isset($summExplain)}
 		<div class="hidden" id="scoreExplanationValue{$summId|escape}">{$summExplain}</div>
 	{/if}
 
-	<div class="col-xs-12 col-sm-9 col-md-9 col-lg-10">
+	<div class="{if !$showCovers}col-xs-12{else}col-xs-9 col-sm-9 col-md-9 col-lg-10{/if}">{* May turn out to be more than one situation to consider here *}
 		<div class="row">
 			<div class="col-xs-12">
 				<span class="result-index">{$resultIndex})</span>&nbsp;
@@ -34,7 +38,7 @@
 		{if $summAuthor}
 			<div class="row">
 				<div class="result-label col-xs-3">Author: </div>
-				<div class="col-xs-9 result-value  notranslate">
+				<div class="result-value col-xs-9 notranslate">
 					{if is_array($summAuthor)}
 						{foreach from=$summAuthor item=author}
 							<a href="{$path}/Author/Home?author={$author|escape:"url"}">{$author|highlight}</a>
@@ -50,9 +54,9 @@
 		{if $summSeries || $indexedSeries}
 			<div class="series{$summISBN} row">
 				<div class="result-label col-xs-3">Series: </div>
-				<div class="col-xs-9 result-value">
+				<div class="result-value col-xs-9">
 					{if $summSeries}
-					<a href="{$path}/GroupedWork/{$summId}/Series">{$summSeries.seriesTitle}</a>{if $summSeries.volume} volume {$summSeries.volume}{/if}<br/>
+					<a href="{$path}/GroupedWork/{$summId}/Series">{$summSeries.seriesTitle}</a>{if $summSeries.volume} volume {$summSeries.volume}{/if}<br>
 					{/if}
 					{if $indexedSeries}
 						{if count($indexedSeries) >= 5}
@@ -76,7 +80,7 @@
 		{if $summEdition}
 			<div class="row">
 				<div class="result-label col-xs-3">Edition: </div>
-				<div class="col-xs-9 result-value">
+				<div class="result-value col-xs-9">
 					{$summEdition}
 				</div>
 			</div>
@@ -85,7 +89,7 @@
 		{if $summPublisher}
 			<div class="row">
 				<div class="result-label col-xs-3">Publisher: </div>
-				<div class="col-xs-9 result-value">
+				<div class="result-value col-xs-9">
 					{$summPublisher}
 				</div>
 			</div>
@@ -94,7 +98,7 @@
 		{if $summPubDate}
 			<div class="row">
 				<div class="result-label col-xs-3">Pub. Date: </div>
-				<div class="col-xs-9 result-value">
+				<div class="result-value col-xs-9">
 					{$summPubDate|escape}
 				</div>
 			</div>
@@ -103,7 +107,7 @@
 		{if $summLanguage}
 			<div class="row">
 				<div class="result-label col-xs-3">Language: </div>
-				<div class="col-xs-9 result-value">
+				<div class="result-value col-xs-9">
 					{if is_array($summLanguage)}
 						{', '|implode:$summLanguage}
 					{else}
@@ -117,20 +121,22 @@
 			{foreach from=$summSnippets item=snippet}
 				<div class="row">
 					<div class="result-label col-xs-3">{translate text=$snippet.caption}: </div>
-					<div class="col-xs-9 result-value">
+					<div class="result-value col-xs-9">
 						{if !empty($snippet.snippet)}<span class="quotestart">&#8220;</span>...{$snippet.snippet|highlight}...<span class="quoteend">&#8221;</span><br />{/if}
 					</div>
 				</div>
 			{/foreach}
 		{/if}
+	</div>
 
-		<div class="row well-small">
+
+		<div class="row">
 			<div class="col-xs-12">
 				{include file="GroupedWork/relatedManifestations.tpl" id=$summId}
 			</div>
 		</div>
 
-		<div class="row well-small">
+		<div class="row">
 			<div class="col-xs-12 result-value" id="descriptionValue{$summId|escape}">{$summDescription|highlight|truncate_html:450:"..."}</div>
 		</div>
 
@@ -141,7 +147,7 @@
 			  summTitle only used by cart div, which is disabled as of now. 12-28-2015 plb
 			 *}
 		</div>
-	</div>
+	{*</div>*}
 
 	{if $summCOinS}<span class="Z3988" title="{$summCOinS|escape}" style="display:none">&nbsp;</span>{/if}
 </div>
