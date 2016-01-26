@@ -44,6 +44,7 @@ public class SierraExportMain{
 	private static char dueDateSubfield;
 	private static String dueDateFormat;
 	private static boolean exportItemHolds = true;
+	private static boolean suppressOrderRecordsThatAreReceivedAndCatalogged = false;
 
 	public static void main(String[] args){
 		serverName = args[0];
@@ -66,6 +67,10 @@ public class SierraExportMain{
 		String exportItemHoldsStr = ini.get("Catalog", "exportItemHolds");
 		if (exportItemHoldsStr != null){
 			exportItemHolds = exportItemHoldsStr.equalsIgnoreCase("true");
+		}
+		String suppressOrderRecordsThatAreReceivedAndCataloggedStr = ini.get("Catalog", "suppressOrderRecordsThatAreReceivedAndCatalogged");
+		if (suppressOrderRecordsThatAreReceivedAndCataloggedStr != null){
+			suppressOrderRecordsThatAreReceivedAndCatalogged = suppressOrderRecordsThatAreReceivedAndCataloggedStr.equalsIgnoreCase("true");
 		}
 
 		//Connect to the vufind database
@@ -496,12 +501,16 @@ public class SierraExportMain{
 
 	private static void exportActiveOrders(String exportPath, Connection conn) throws SQLException, IOException {
 		logger.info("Starting export of active orders");
-		PreparedStatement getActiveOrdersStmt = conn.prepareStatement("select bib_view.record_num as bib_record_num, order_view.record_num as order_record_num, accounting_unit_code_num, order_status_code, copies, location_code " +
+		String activeOrderSQL = "select bib_view.record_num as bib_record_num, order_view.record_num as order_record_num, accounting_unit_code_num, order_status_code, copies, location_code " +
 				"from sierra_view.order_view " +
 				"inner join sierra_view.bib_record_order_record_link on bib_record_order_record_link.order_record_id = order_view.record_id " +
 				"inner join sierra_view.bib_view on sierra_view.bib_view.id = bib_record_order_record_link.bib_record_id " +
 				"inner join sierra_view.order_record_cmf on order_record_cmf.order_record_id = order_view.id " +
-				"where (order_status_code = 'o' or order_status_code = '1') and order_view.is_suppressed = 'f' and location_code != 'multi'", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+				"where (order_status_code = 'o' or order_status_code = '1') and order_view.is_suppressed = 'f' and location_code != 'multi'";
+		if (suppressOrderRecordsThatAreReceivedAndCatalogged){
+			activeOrderSQL += " and (catalog_date_gmt IS NULL or received_date_gmt IS NULL) ";
+		}
+		PreparedStatement getActiveOrdersStmt = conn.prepareStatement(activeOrderSQL, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 		ResultSet activeOrdersRS = null;
 		boolean loadError = false;
 		try{
