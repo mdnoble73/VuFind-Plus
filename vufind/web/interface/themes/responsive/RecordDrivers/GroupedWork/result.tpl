@@ -1,5 +1,6 @@
 {strip}
-<div id="groupedRecord{$summId|escape}" class="resultsList row">
+<div id="groupedRecord{$summId|escape}" class="resultsList">
+	<div class="row">
 	{*{assign var="displayCovers" value=false}*}
 	{*{if $action != 'SuggestedTitles' || ($showCovers && $action == 'SuggestedTitles')}*}
 	{if $showCovers}
@@ -127,8 +128,6 @@
 				</div>
 			{/foreach}
 		{/if}
-	</div>
-
 
 		<div class="row">
 			<div class="col-xs-12">
@@ -139,6 +138,11 @@
 		<div class="row">
 			<div class="col-xs-12 result-value" id="descriptionValue{$summId|escape}">{$summDescription|highlight|truncate_html:450:"..."}</div>
 		</div>
+
+
+	</div>
+
+	</div>
 
 		<div class="resultActions row">
 			{*{include file='GroupedWork/result-tools-horizontal.tpl' id=$summId shortId=$shortId summTitle=$summTitle ratingData=$summRating recordUrl=$summUrl}*}

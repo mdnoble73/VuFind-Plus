@@ -1,8 +1,7 @@
 {strip}
-	<div id="groupedRecord{$summId|escape}" class="resultsList row" data-order="{$resultIndex}">
-		<div class="col-xs-12">
-			<div class="row">
+	<div id="groupedRecord{$summId|escape}" class="resultsList" data-order="{$resultIndex}">
 		<a name="record{$summId|escape:"url"}"></a>
+		<div class="row">
 		{if $showCovers}
 		<div class="col-xs-3 col-sm-3 col-md-3 col-lg-2 text-center">
 			<img src="{$bookCoverUrlMedium}" class="listResultImage img-thumbnail{* img-responsive*}" alt="{translate text='Cover Image'}">
@@ -53,6 +52,16 @@
 				</div>
 			{/if}
 
+			<div class="row">
+				<div class="result-label col-xs-12 hidden-md hidden-lg">Description: </div>
+				<div class="result-value col-xs-12" id="descriptionValue{$summId|escape}">{$summDescription|truncate_html:450:"..."}</div>
+			</div>
+
+			<div class="row">
+				<div class="col-md-12">
+					{include file="GroupedWork/relatedManifestations.tpl" id=$summId}
+				</div>
+			</div>
 		</div>
 
 		<div class="col-sm-2 col-md-2 col-lg-1">
@@ -83,21 +92,12 @@
 
 			{/if}
 		</div>
-			</div>
 
-		<div class="row">
-			<div class="result-value col-md-12" id="descriptionValue{$summId|escape}">{$summDescription|truncate_html:450:"..."}</div>
-		</div>
-
-		<div class="row">
-			<div class="col-md-12">
-				{include file="GroupedWork/relatedManifestations.tpl" id=$summId}
-			</div>
 		</div>
 
 		<div class="resultActions row">
 			{include file='GroupedWork/result-tools-horizontal.tpl' id=$summId shortId=$shortId summTitle=$summTitle ratingData=$summRating recordUrl=$summUrl}
 		</div>
-		</div>
+
 	</div>
 {/strip}
