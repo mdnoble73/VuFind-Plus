@@ -393,7 +393,7 @@ class Millennium extends ScreenScrapingDriver
 			$user->finesVal = floatval(preg_replace('/[^\\d.]/', '', $patronDump['MONEY_OWED']));
 			$user->fines = $patronDump['MONEY_OWED'];
 
-			if ($patronDump['USERNAME']){
+			if (isset($patronDump['USERNAME'])){
 				$user->alt_username = $patronDump['USERNAME'];
 			}
 
