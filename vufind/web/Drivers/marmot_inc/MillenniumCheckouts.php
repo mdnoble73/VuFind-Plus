@@ -326,8 +326,8 @@ class MillenniumCheckouts {
 		//Go to the items page
 		$scope = $driver->getDefaultScope();
 		$curl_url = $driver->getVendorOpacUrl() . "/patroninfo~S{$scope}/" . $patron->username ."/items";
-//		$driver->_curlGetPage($curl_url);
-		// Doesn't look like this curl call will be necessary to complete renewals
+		// Loading this page is not necessary in most cases, but if the patron has a Staff ptype we go into staff mode which makes this page load necessary.
+		$driver->_curlGetPage($curl_url);
 
 		$renewPostVariables = array(
 			'currentsortorder' => 'current_checkout',
