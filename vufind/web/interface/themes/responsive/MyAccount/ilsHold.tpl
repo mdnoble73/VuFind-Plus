@@ -144,9 +144,10 @@
 							<div class="result-label col-sm-3">{translate text='Status'}</div>
 							<div class="col-sm-9 result-value">
 								{if $record.frozen}
-								<span class='frozenHold'>
-									{/if}{$record.status}
-									{if $record.frozen && $showDateWhenSuspending} until {$record.reactivate}</span>{/if}
+									<span class='frozenHold'>
+								{/if}
+								{$record.status}
+								{if $record.frozen && $showDateWhenSuspending} until {$record.reactivate}</span>{/if}
 								{if strlen($record.freezeMessage) > 0}
 									<div class='{if $record.freezeResult == true}freezePassed{else}freezeFailed{/if}'>
 										{$record.freezeMessage|escape}
