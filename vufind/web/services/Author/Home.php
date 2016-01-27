@@ -146,6 +146,8 @@ class Author_Home extends Action
 		$interface->assign('rssLink',    $searchObject->getRSSUrl());
 		$interface->assign('filterList', $searchObject->getFilterList());
 
+		$this->setShowCovers();
+
 		// Process Search
 		/** @var PEAR_Error|null $result */
 		$result = $searchObject->processSearch(false, true);
