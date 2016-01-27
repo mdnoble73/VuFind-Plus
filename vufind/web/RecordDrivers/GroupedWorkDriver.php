@@ -104,7 +104,7 @@ class GroupedWorkDriver extends RecordInterface{
 	}
 
 	public function getContributors(){
-		return $this->fields['auth_author2'];
+		return $this->fields['author2-role']; //Include the role when displaying contributor
 	}
 
 	public function getPermanentId(){
@@ -881,17 +881,19 @@ class GroupedWorkDriver extends RecordInterface{
 	public function getPrimaryAuthor($useHighlighting = false)
 	{
 		// Don't check for highlighted values if highlighting is disabled:
+		// MDN: 1/26 - author actually contains more information than author display.
+		//  It also includes dates lived so we will use that instead if possible
 		if ($this->highlight && $useHighlighting) {
-			if (isset($this->fields['_highlighting']['author_display'][0])){
-				return $this->fields['_highlighting']['author_display'][0];
-			}else if (isset($this->fields['_highlighting']['author'][0])){
+			if (isset($this->fields['_highlighting']['author'][0])){
 				return $this->fields['_highlighting']['author'][0];
+			}else if (isset($this->fields['_highlighting']['author_display'][0])){
+				return $this->fields['_highlighting']['author_display'][0];
 			}
 		}
-		if (isset($this->fields['author_display'])){
-			return $this->fields['author_display'];
+		if (isset($this->fields['author'])){
+			return $this->fields['author'];
 		}else{
-			return isset($this->fields['author']) ? $this->fields['author'] : '';
+			return isset($this->fields['author_display']) ? $this->fields['author_display'] : '';
 		}
 	}
 

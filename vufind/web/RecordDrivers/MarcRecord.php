@@ -969,7 +969,7 @@ class MarcRecord extends IndexRecord
 		if (isset($this->fields['auth_author'])){
 			return $this->fields['auth_author'];
 		}else{
-			$author = $this->getFirstFieldValue('100', array('a'));
+			$author = $this->getFirstFieldValue('100', array('a', 'd'));
 			if (empty($author )){
 				$author = $this->getFirstFieldValue('110', array('a', 'b'));
 			}
@@ -986,19 +986,26 @@ class MarcRecord extends IndexRecord
 		return $this->getFieldArray(700, array('a', 'b', 'c', 'd'));
 	}
 
+	private $detailedContributors = null;
 	public function getDetailedContributors(){
-		$contributors = array();
-		/** @var File_MARC_Data_Field[] $sevenHundredFields */
-		$sevenHundredFields = $this->getMarcRecord()->getFields('700|710', true);
-		foreach($sevenHundredFields as $field){
-			$contributors[] = array(
-				'name' => reset($this->getSubfieldArray($field, array('a', 'b', 'c', 'd'), true)),
-				'role' => $field->getSubfield('4') != null ? mapValue('contributor_role', $field->getSubfield('4')->getData()) : '',
-				'title' => reset($this->getSubfieldArray($field, array('t', 'm', 'n', 'r'), true)),
-			);
+		if ($this->detailedContributors == null){
+			$this->detailedContributors = array();
+			/** @var File_MARC_Data_Field[] $sevenHundredFields */
+			$sevenHundredFields = $this->getMarcRecord()->getFields('700|710', true);
+			foreach($sevenHundredFields as $field){
+				$curContributor = array(
+						'name' => reset($this->getSubfieldArray($field, array('a', 'b', 'c', 'd'), true)),
+						'title' => reset($this->getSubfieldArray($field, array('t', 'm', 'n', 'r'), true)),
+				);
+				if ($field->getSubfield('4') != null) {
+					$curContributor['role'] = mapValue('contributor_role', $field->getSubfield('4')->getData());
+				}elseif ($field->getSubfield('e') != null){
+					$curContributor['role'] = $field->getSubfield('e')->getData();
+				}
+				$this->detailedContributors[] = $curContributor;
+			}
 		}
-		$this->getFieldArray(700, array('a', 'b', 'c', 'd'));
-		return $contributors;
+		return $this->detailedContributors;
 	}
 
 
