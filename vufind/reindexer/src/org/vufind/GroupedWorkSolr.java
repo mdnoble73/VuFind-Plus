@@ -166,14 +166,18 @@ public class GroupedWorkSolr {
 		doc.addField("geographic_facet", geographicFacets);
 		doc.addField("era", eras);
 		checkDefaultValue(literaryFormFull, "Not Coded");
+		checkDefaultValue(literaryFormFull, "Other");
 		checkInconsistentLiteraryFormsFull();
 		doc.addField("literary_form_full", literaryFormFull.keySet());
 		checkDefaultValue(literaryForm, "Not Coded");
+		checkDefaultValue(literaryForm, "Other");
 		checkInconsistentLiteraryForms();
 		doc.addField("literary_form", literaryForm.keySet());
 		checkDefaultValue(targetAudienceFull, "Unknown");
+		checkDefaultValue(targetAudienceFull, "Other");
 		doc.addField("target_audience_full", targetAudienceFull);
 		checkDefaultValue(targetAudience, "Unknown");
+		checkDefaultValue(targetAudience, "Other");
 		doc.addField("target_audience", targetAudience);
 		doc.addField("system_list", systemLists);
 		//Date added to catalog

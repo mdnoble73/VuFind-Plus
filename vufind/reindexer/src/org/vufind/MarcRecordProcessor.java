@@ -579,10 +579,11 @@ public abstract class MarcRecordProcessor {
 		groupedWork.addAuthAuthor2(this.getFieldList(record, "700abcd"));
 		//author2 = 110ab:111ab:700abcd:710ab:711ab:800a
 		groupedWork.addAuthor2(this.getFieldList(record, "110ab:111ab:700abcd:710ab:711ab:800a"));
-		//author2-role = 700e:710e
-		groupedWork.addAuthor2Role(this.getFieldList(record, "700e:710e"));
 		//author_additional = 505r:245c
 		groupedWork.addAuthorAdditional(this.getFieldList(record, "505r:245c"));
+		//Load contributors with role
+		groupedWork.addAuthor2Role(this.getFieldList(record, "700abcdetmnr:710abcdetmnr"));
+
 		//author_display = 100a:110a:260b:710a:245c, first
 		String displayAuthor = this.getFirstFieldVal(record, "100a:110ab:260b:710a:245c");
 		if (displayAuthor != null && displayAuthor.indexOf(';') > 0){

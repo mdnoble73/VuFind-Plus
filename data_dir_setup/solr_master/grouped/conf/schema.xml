@@ -150,7 +150,7 @@
 		<field name="auth_authorStr" type="string" indexed="true" stored="false"/>
 		<field name="author2" type="text" indexed="true" stored="true" multiValued="true"/>
 		<field name="author2Str" type="string" indexed="true" stored="true" multiValued="true"/>
-		<field name="author2-role" type="string" indexed="true" stored="true" multiValued="true"/>
+		<field name="author2-role" type="string" indexed="true" stored="true" multiValued="true"/> <!-- The contributor with role and title appended -->
 		<field name="auth_author2" type="textProper" indexed="true" stored="true" multiValued="true"/>
 		<field name="auth_author2Str" type="string" indexed="true" stored="false" multiValued="true"/>
 		<field name="author_additional" type="text" indexed="true" stored="true" multiValued="true"/>

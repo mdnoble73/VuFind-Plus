@@ -183,10 +183,15 @@ public class ArlingtonRecordProcessor extends IIIRecordProcessor {
 				}
 			}
 		}
-		if (printItems.size() == 0){
-			String bibLocation = getFirstFieldVal(record, "998a");
-			if (bibLocation != null) {
-				literaryForm = getLiteraryFormForLocation(bibLocation);
+		if (literaryForm == null){
+			Set<String> bibLocations = getFieldList(record, "998a");
+			for (String bibLocation : bibLocations){
+			  if (bibLocation.length() <= 5) {
+				  literaryForm = getLiteraryFormForLocation(bibLocation);
+				  if (literaryForm != null){
+					  break;
+				  }
+			  }
 			}
 		}
 		if (literaryForm == null){
@@ -219,10 +224,12 @@ public class ArlingtonRecordProcessor extends IIIRecordProcessor {
 			String locationCode = printItem.getShelfLocationCode();
 			if (addTargetAudienceBasedOnLocationCode(targetAudiences, locationCode)) break;
 		}
-		if (printItems.size() == 0){
-			String bibLocation = getFirstFieldVal(record, "998a");
-			if (bibLocation != null) {
-				addTargetAudienceBasedOnLocationCode(targetAudiences, bibLocation);
+		if (targetAudiences.size() == 0){
+			Set<String> bibLocations = getFieldList(record, "998a");
+			for (String bibLocation : bibLocations){
+				if (bibLocation.length() <= 5) {
+					if (addTargetAudienceBasedOnLocationCode(targetAudiences, bibLocation)) break;
+				}
 			}
 		}
 		if (targetAudiences.size() == 0){
