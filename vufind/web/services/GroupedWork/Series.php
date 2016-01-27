@@ -84,6 +84,8 @@ class GroupedWork_Series extends Action
 
 		$interface->assign('recordDriver', $recordDriver);
 
+		$this->setShowCovers();
+
 		// Display Page
 		$this->display('view-series.tpl', $seriesTitle);
 	}

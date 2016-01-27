@@ -262,7 +262,6 @@ var VuFind = (function(){
 				$(".modal-title").html(title);
 				var elementText = $(elementId).html();
 				$(".modal-body").html(elementText);
-				//var modalDialog = $("#modalDialog");
 				modalDialog.modal('show');
 				return false;
 			}

@@ -11,7 +11,7 @@
 #
 # ie :
 # git pull origin {current branch}
-# crontab < vufind /usr/local/vufind-plus/sites/arlington.production/conf/crontab_settings.txt
+# crontab < /usr/local/vufind-plus/sites/arlington.production/conf/crontab_settings.txt
 
 ###################
 # * * * * *  command to execute
@@ -55,3 +55,17 @@
 # Clean Up Temporary Files
 26 * * * * cd /tmp; /bin/rm -rf CURLCOOKIE*
 27 */2 * * * cd /tmp; /bin/rm -rf epb*
+
+################
+# mySQL Backup #
+################
+# Backup all mySQL databases to /home/mysql.dump
+05 0 * * * cd /root/cron/; ./mySQLBackup
+
+############
+# Logwatch #
+############
+# email the daily log report
+* 4 * * * cd /usr; logwatch --mailto root@marmot.org
+
+

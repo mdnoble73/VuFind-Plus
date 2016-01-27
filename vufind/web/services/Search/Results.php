@@ -184,16 +184,7 @@ class Search_Results extends Action {
 		//   Those we can construct BEFORE the search is executed
 
 		// Hide Covers when the user has set that setting on the Search Results Page
-		// this is the same setting as used by the MyAccount Pages for now.
-		$showCovers = true;
-		if (isset($_REQUEST['showCovers'])) {
-			$showCovers = ($_REQUEST['showCovers'] == 'on' || $_REQUEST['showCovers'] == 'true');
-			if (isset($_SESSION)) $_SESSION['showCovers'] = $showCovers;
-		} elseif (isset($_SESSION['showCovers'])) {
-			$showCovers = $_SESSION['showCovers'];
-		}
-		$interface->assign('showCovers', $showCovers);
-
+		$this->setShowCovers();
 
 		$displayQuery = $searchObject->displayQuery();
 		$pageTitle = $displayQuery;
