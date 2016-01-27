@@ -60,8 +60,9 @@
 					<a href="{$path}/GroupedWork/{$summId}/Series">{$summSeries.seriesTitle}</a>{if $summSeries.volume} volume {$summSeries.volume}{/if}<br>
 					{/if}
 					{if $indexedSeries}
+						{assign var=showMoreSeries value=false}
 						{if count($indexedSeries) >= 5}
-							{assign var=showMoreSeries value="true"}
+							{assign var=showMoreSeries value=true}
 						{/if}
 						{foreach from=$indexedSeries item=seriesItem name=loop}
 							<a href="{$path}/Search/Results?basicType=Series&lookfor=%22{$seriesItem|escape:"url"}%22">{$seriesItem|escape}</a><br/>
