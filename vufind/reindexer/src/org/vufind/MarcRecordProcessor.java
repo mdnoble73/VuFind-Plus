@@ -618,7 +618,7 @@ public abstract class MarcRecordProcessor {
 		for (DataField contributorField : contributorFields){
 			StringBuilder contributor = getSpecifiedSubfieldsAsString(contributorField, contributorSubfieldPattern, "");
 			if (contributorField.getTag().equals("700") && contributorField.getSubfield('4') != null){
-				String role = indexer.translateSystemValue("contributor_role", contributorField.getSubfield('4').getData(), identifier);
+				String role = indexer.translateSystemValue("contributor_role", Util.trimTrailingPunctuation(contributorField.getSubfield('4').getData()), identifier);
 				contributor.append("|" + role);
 			}
 			contributors.add(contributor.toString());

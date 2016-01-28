@@ -998,7 +998,9 @@ class MarcRecord extends IndexRecord
 						'title' => reset($this->getSubfieldArray($field, array('t', 'm', 'n', 'r'), true)),
 				);
 				if ($field->getSubfield('4') != null) {
-					$curContributor['role'] = mapValue('contributor_role', $field->getSubfield('4')->getData());
+					$contributorRole = $field->getSubfield('4')->getData();
+					$contributorRole = preg_replace('/[\s,\.;]+$/', '', $contributorRole);
+					$curContributor['role'] = mapValue('contributor_role', $contributorRole);
 				}elseif ($field->getSubfield('e') != null){
 					$curContributor['role'] = $field->getSubfield('e')->getData();
 				}
