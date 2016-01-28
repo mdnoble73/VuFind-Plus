@@ -11,7 +11,11 @@
 		</div>
 		<div class="loginOptions" {if $user} style="display: none;"{/if}>
 			{if $showLoginButton == 1}
-				<a href="{$path}/MyAccount/Home" class="loginLink" title="Login To My Account" onclick="return VuFind.Account.followLinkIfLoggedIn(this);" data-login="true">{translate text="LOGIN TO MY ACCOUNT"}</a>
+				{if $isLoginPage}
+					<a class="loginLink" href="#" title="Login To My Account" onclick="$('#username').focus(); return false">{translate text="LOGIN TO MY ACCOUNT"}</a>
+				{else}
+					<a href="{$path}/MyAccount/Home" class="loginLink" title="Login To My Account" onclick="return VuFind.Account.followLinkIfLoggedIn(this);" data-login="true">{translate text="LOGIN TO MY ACCOUNT"}</a>
+				{/if}
 				<div class="bottom-border-line"></div>
 			{/if}
 		</div>
