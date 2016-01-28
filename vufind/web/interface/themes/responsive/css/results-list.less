@@ -271,3 +271,23 @@
   }
   margin-bottom: @padding-small-vertical;
 }
+
+// Special Rules for very narrow views
+@media (max-width: 400px) {
+  .coversColumn {
+    // make cover fit below in column
+    padding-left: 0;
+    padding-right: 0;
+  }
+  #availabilityControl button {
+    .btn-sm();
+  }
+  .title-rating {
+    display: none;
+  }
+}
+
+// Hide Formats label when shown in modal pop-up
+.modal .related-manifestations-header {
+  display: none;
+}

@@ -6,7 +6,7 @@
 		{if $cluster.label == 'Category' || $cluster.label == 'Format Category'}
 			{if ($categorySelected == false)}
 				<div class="formatCategories top-facet" id="formatCategories">
-					<div id='categoryValues' class="row">
+					<div id="categoryValues" class="row">
 						{foreach from=$cluster.list item=thisFacet name="narrowLoop"}
 							{if $thisFacet.isApplied}
 								<div class='categoryValue categoryValue_{translate text=$thisFacet.value|lower|replace:' ':''} col-xs-2'>
@@ -43,7 +43,7 @@
 			{/if}
 		{elseif preg_match('/available/i', $cluster.label)}
 			<div id="availabilityControlContainer" class="row text-center top-facet">
-				<div id="availabilityControl" class='btn-group' data-toggle="buttons-radio">
+				<div id="availabilityControl" class="btn-group" data-toggle="buttons-radio">
 					{foreach from=$cluster.list item=thisFacet name="narrowLoop"}
 						{if $thisFacet.isApplied}
 							<button type="button" id="{$thisFacet.value|escape|regex_replace:'/[()\s]/':''}" class="btn btn-primary" name="availabilityControls">{$thisFacet.value|escape}{if $thisFacet.count > 0} ({$thisFacet.count|number_format:0:".":","}){/if}</button>

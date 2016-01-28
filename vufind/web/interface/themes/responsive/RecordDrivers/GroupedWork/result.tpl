@@ -181,7 +181,7 @@
 						{if !$hasHiddenFormats && count($relatedManifestations) != 1}
 							<div class="row">
 								<div class="center-block" style="width: 120px;">
-									<button class="hidethisdiv{$summId|escape} view-xs-button btn btn-info btn-sm btn-block" onclick="VuFind.showElementInPopup('Formats', '#relatedManifestationsValue{$summId|escape}')">View All Formats</button>
+									<button class="hidethisdiv{$summId|escape} view-xs-button btn btn-info btn-sm btn-block" onclick="VuFind.showElementInPopup('Choose Format', '#relatedManifestationsValue{$summId|escape}')">View All Formats</button>
 								</div>
 							</div>
 						{/if}
@@ -202,7 +202,6 @@
 					<div class="row">
 						{* Hide in mobile view *}
 						<div class="result-value hidden-xs col-sm-12" id="descriptionValue{$summId|escape}">
-							<br>
 							{$summDescription|highlight|truncate_html:450:"..."}
 						</div>
 					</div>

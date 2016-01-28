@@ -9796,6 +9796,24 @@ a.browse-thumbnail.active {
 .coversColumn .view-xs-button {
   margin-top: 5px;
 }
+@media (max-width: 400px) {
+  .coversColumn {
+    padding-left: 0;
+    padding-right: 0;
+  }
+  #availabilityControl button {
+    padding: 5px 10px;
+    font-size: 12px;
+    line-height: 1.5;
+    border-radius: 3px;
+  }
+  .title-rating {
+    display: none;
+  }
+}
+.modal .related-manifestations-header {
+  display: none;
+}
 .graph-bar {
   background-color: #088ec6;
 }
