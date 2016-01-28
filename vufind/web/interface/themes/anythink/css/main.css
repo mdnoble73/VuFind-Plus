@@ -9539,11 +9539,6 @@ a.browse-thumbnail.active {
   font-size: 13px;
   font-weight: bold;
 }
-/**
- * Additional styling specific to the results list.
- *
- * If a rule is used as part of both a record and the results list it should be defined in record.less
- */
 .result {
   border-bottom: 2px solid #d5d6da;
   padding: 10px 5px 15px;
@@ -9678,7 +9673,6 @@ a.browse-thumbnail.active {
 }
 .result-tools-horizontal {
   margin-top: 6px;
-  margin-left: 30px;
 }
 .result-tools-horizontal .btn {
   background-color: #909090;
@@ -9803,6 +9797,9 @@ a.browse-thumbnail.active {
 .highlight {
   font-weight: bolder;
   background-color: lemonchiffon;
+}
+.view-xs-button {
+  margin-bottom: 5px;
 }
 .graph-bar {
   background-color: #088ec6;
