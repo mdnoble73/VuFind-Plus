@@ -405,7 +405,21 @@ class Solr implements IndexEngine {
 		}else{
 			return null;
 		}
+	}
 
+	function getRecordByIsbn($isbns){
+		// Query String Parameters
+		$options = array('q' => 'isbn:' . implode(' OR ', $isbns));
+		$result = $this->_select('GET', $options);
+		if (PEAR_Singleton::isError($result)) {
+			PEAR_Singleton::raiseError($result);
+		}
+
+		if (isset($result['response']['docs'][0])){
+			return $result['response']['docs'][0];
+		}else{
+			return null;
+		}
 	}
 
 	/**

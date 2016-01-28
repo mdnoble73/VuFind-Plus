@@ -26,7 +26,10 @@
 		<div class="row">
 			<div class="col-xs-12">
 				<span class="result-index">{$resultIndex})</span>&nbsp;
-				<a href="{$summUrl}" class="result-title notranslate">{if !$summTitle|removeTrailingPunctuation}{translate text='Title not available'}{else}{$summTitle|removeTrailingPunctuation|highlight|truncate:180:"..."}{/if}</a>
+				<a href="{$summUrl}" class="result-title notranslate">
+					{if !$summTitle|removeTrailingPunctuation}{translate text='Title not available'}{else}{$summTitle|removeTrailingPunctuation|highlight|truncate:180:"..."}{/if}
+					{if $summSubTitle|removeTrailingPunctuation}: {$summSubTitle|removeTrailingPunctuation|highlight|truncate:180:"..."}{/if}
+				</a>
 				{if $summTitleStatement}
 					&nbsp;-&nbsp;{$summTitleStatement|removeTrailingPunctuation|highlight|truncate:180:"..."}
 				{/if}
@@ -65,7 +68,7 @@
 							{assign var=showMoreSeries value=true}
 						{/if}
 						{foreach from=$indexedSeries item=seriesItem name=loop}
-							<a href="{$path}/Search/Results?basicType=Series&lookfor=%22{$seriesItem|escape:"url"}%22">{$seriesItem|escape}</a><br/>
+							<a href="{$path}/Search/Results?basicType=Series&lookfor=%22{$seriesItem.seriesTitle|removeTrailingPunctuation|escape:"url"}%22">{$seriesItem.seriesTitle|removeTrailingPunctuation|escape}</a>{if $seriesItem.volume} volume {$seriesItem.volume}{/if}<br/>
 							{if $showMoreSeries && $smarty.foreach.loop.iteration == 2}
 								<a onclick="$('#moreSeries_{$summId}').show();$('#moreSeriesLink_{$summId}').hide();" id="moreSeriesLink_{$summId}">More Series...</a>
 								<div id="moreSeries_{$summId}" style="display:none">

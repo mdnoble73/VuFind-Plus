@@ -107,6 +107,34 @@ class GroupedWorkDriver extends RecordInterface{
 		return $this->fields['author2-role']; //Include the role when displaying contributor
 	}
 
+	private $detailedContributors = null;
+	public function getDetailedContributors(){
+		if ($this->detailedContributors == null){
+			$this->detailedContributors = array();
+			if (isset($this->fields['author2-role'])){
+				$contributorsInIndex = $this->fields['author2-role'];
+				if (is_string($contributorsInIndex)){
+					$contributorsInIndex[] = $contributorsInIndex;
+				}
+				foreach($contributorsInIndex as $contributor){
+					if (strpos($contributor, '|')){
+						$contributorInfo = explode('|', $contributor);
+						$curContributor = array(
+								'name' => $contributorInfo[0],
+								'role' => $contributorInfo[1],
+						);
+					}else{
+						$curContributor = array(
+								'name' => $contributor,
+						);
+					}
+					$this->detailedContributors[] = $curContributor;
+				}
+			}
+		}
+		return $this->detailedContributors;
+	}
+
 	public function getPermanentId(){
 		return $this->fields['id'];
 	}
@@ -266,7 +294,7 @@ class GroupedWorkDriver extends RecordInterface{
 		}
 
 		$interface->assign('summUrl', $linkUrl);
-		$interface->assign('summTitle', $this->getTitle());
+		$interface->assign('summTitle', $this->getTitleShort());
 		$interface->assign('summSubTitle', $this->getSubtitle());
 		$interface->assign('summAuthor', $this->getPrimaryAuthor());
 		$isbn = $this->getCleanISBN();
@@ -371,7 +399,7 @@ class GroupedWorkDriver extends RecordInterface{
 		}
 
 		$interface->assign('summUrl', $this->getLinkUrl());
-		$interface->assign('summTitle', $this->getTitle());
+		$interface->assign('summTitle', $this->getTitleShort());
 		$interface->assign('summSubTitle', $this->getSubtitle());
 		$interface->assign('summAuthor', $this->getPrimaryAuthor());
 		$isbn = $this->getCleanISBN();
@@ -513,7 +541,7 @@ class GroupedWorkDriver extends RecordInterface{
 		}
 
 		$interface->assign('summUrl', $linkUrl);
-		$interface->assign('summTitle', $this->getTitle(true));
+		$interface->assign('summTitle', $this->getTitleShort(true));
 		$interface->assign('summSubTitle', $this->getSubtitle(true));
 		$interface->assign('summAuthor', $this->getPrimaryAuthor(true));
 		$isbn = $this->getCleanISBN();
@@ -622,7 +650,7 @@ class GroupedWorkDriver extends RecordInterface{
 		}
 
 		$interface->assign('summUrl', $url);
-		$interface->assign('summTitle', $this->getTitle());
+		$interface->assign('summTitle', $this->getTitleShort());
 		$interface->assign('summSubTitle', $this->getSubtitle());
 		$interface->assign('summAuthor', $this->getPrimaryAuthor());
 
@@ -841,13 +869,42 @@ class GroupedWorkDriver extends RecordInterface{
 		}
 	}
 
+	public function getTitleShort($useHighlighting = false) {
+		// Don't check for highlighted values if highlighting is disabled:
+		if ($this->highlight && $useHighlighting) {
+			if (isset($this->fields['_highlighting']['title_short'][0])){
+				return $this->fields['_highlighting']['title_short'][0];
+			}else if (isset($this->fields['_highlighting']['title'][0])){
+				return $this->fields['_highlighting']['title'][0];
+			}
+		}
+
+		if (isset($this->fields['title_short'])){
+			if (is_array($this->fields['title_short'])){
+				return reset($this->fields['title_short']);
+			}else{
+				return $this->fields['title_short'];
+			}
+		}else{
+			if (isset($this->fields['title'])){
+				if (is_array($this->fields['title'])){
+					return reset($this->fields['title']);
+				}else{
+					return $this->fields['title'];
+				}
+			}else{
+				return '';
+			}
+		}
+	}
+
 	/**
 	 * Get the subtitle of the record.
 	 *
 	 * @access  protected
 	 * @return  string
 	 */
-	protected function getSubtitle($useHighlighting = false)
+	public function getSubtitle($useHighlighting = false)
 	{
 		// Don't check for highlighted values if highlighting is disabled:
 		if ($useHighlighting) {
@@ -995,6 +1052,7 @@ class GroupedWorkDriver extends RecordInterface{
 
 	/**
 	 * Get an array of all ISBNs associated with the record (may be empty).
+	 * The primary ISBN is the first entry
 	 *
 	 * @access  protected
 	 * @return  array
@@ -1003,22 +1061,31 @@ class GroupedWorkDriver extends RecordInterface{
 	{
 		// If ISBN is in the index, it should automatically be an array... but if
 		// it's not set at all, we should normalize the value to an empty array.
+		$isbns = array();
+		$primaryIsbn = $this->getPrimaryIsbn();
+		if ($primaryIsbn != null){
+			$isbns[] = $primaryIsbn;
+		}
 		if (isset($this->fields['isbn'])){
 			if (is_array($this->fields['isbn'])){
-				return $this->fields['isbn'];
+				$additionalIsbns = $this->fields['isbn'];
 			}else{
-				return array($this->fields['isbn']);
+				$additionalIsbns =  array($this->fields['isbn']);
 			}
 		}else{
-			return array();
+			$additionalIsbns =  array();
 		}
+		$additionalIsbns = array_remove_by_value($additionalIsbns, $primaryIsbn);
+		$isbns = array_merge($isbns, $additionalIsbns);
+		return $isbns;
 	}
 
-	/** Get all ISBNs that are unique to this work */
-	public function getUniqueISBNs(){
-		require_once ROOT_DIR . '/sys/Grouping/GroupedWorkIdentifier.php';
-		require_once ROOT_DIR . '/sys/Grouping/GroupedWorkIdentifierRef.php';
-
+	public function getPrimaryIsbn(){
+		if (isset($this->fields['primary_isbn'])){
+			return $this->fields['primary_isbn'];
+		}else{
+			return null;
+		}
 	}
 
 	/**
@@ -1572,7 +1639,27 @@ class GroupedWorkDriver extends RecordInterface{
 	}
 
 	public function getIndexedSeries(){
-		return $this->fields['series'];
+		$seriesWithVolume = null;
+		if (isset($this->fields['series_with_volume'])){
+			$rawSeries = $this->fields['series_with_volume'];
+			if (is_string($rawSeries)){
+				$rawSeries[] = $rawSeries;
+			}
+			foreach ($rawSeries as $seriesInfo){
+				if (strpos($seriesInfo, '|') > 0){
+					$seriesInfoSplit = explode('|',$seriesInfo);
+					$seriesWithVolume[] = array(
+						'seriesTitle' => $seriesInfoSplit[0],
+						'volume' => $seriesInfoSplit[1]
+					);
+				}else{
+					$seriesWithVolume[] = array(
+						'seriesTitle' => $seriesInfo
+					);
+				}
+			}
+		}
+		return $seriesWithVolume;
 	}
 
 	public function hasCachedSeries(){

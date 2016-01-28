@@ -59,7 +59,7 @@ public class GroupedWorkIndexer {
 	private TreeSet<Scope> scopes = new TreeSet<>();
 
 	private PreparedStatement getGroupedWorkPrimaryIdentifiers;
-	private PreparedStatement getGroupedWorkIdentifiers;
+	//private PreparedStatement getGroupedWorkIdentifiers;
 	private PreparedStatement getDateFirstDetectedStmt;
 
 
@@ -119,7 +119,7 @@ public class GroupedWorkIndexer {
 			getGroupedWorkPrimaryIdentifiers = vufindConn.prepareStatement("SELECT * FROM grouped_work_primary_identifiers where grouped_work_id = ?", ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_READ_ONLY);
 			//MDN 4/14 - Do not restrict by valid for enrichment since many popular titles
 			//Wind up with different work id's due to differences in cataloging.
-			getGroupedWorkIdentifiers = vufindConn.prepareStatement("SELECT * FROM grouped_work_identifiers inner join grouped_work_identifiers_ref on identifier_id = grouped_work_identifiers.id where grouped_work_id = ?", ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_READ_ONLY);
+			//getGroupedWorkIdentifiers = vufindConn.prepareStatement("SELECT * FROM grouped_work_identifiers inner join grouped_work_identifiers_ref on identifier_id = grouped_work_identifiers.id where grouped_work_id = ?", ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_READ_ONLY);
 			//TODO: Restore functionality to not include any identifiers that aren't tagged as valid for enrichment
 			//getGroupedWorkIdentifiers = vufindConn.prepareStatement("SELECT * FROM grouped_work_identifiers inner join grouped_work_identifiers_ref on identifier_id = grouped_work_identifiers.id where grouped_work_id = ? and valid_for_enrichment = 1", ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_READ_ONLY);
 
@@ -882,15 +882,15 @@ public class GroupedWorkIndexer {
 			groupedWork.updateIndexingStats(indexingStats);
 
 			//Update the grouped record based on data for each work
-			getGroupedWorkIdentifiers.setLong(1, id);
-			ResultSet groupedWorkIdentifiers = getGroupedWorkIdentifiers.executeQuery();
+			//getGroupedWorkIdentifiers.setLong(1, id);
+			/*ResultSet groupedWorkIdentifiers = getGroupedWorkIdentifiers.executeQuery();
 			//This just adds isbns, issns, upcs, and oclc numbers to the index
 			while (groupedWorkIdentifiers.next()) {
 				String type = groupedWorkIdentifiers.getString("type");
 				String identifier = groupedWorkIdentifiers.getString("identifier");
 				updateGroupedWorkForSecondaryIdentifier(groupedWork, type, identifier);
 			}
-			groupedWorkIdentifiers.close();
+			groupedWorkIdentifiers.close();*/
 
 			//Load local (VuFind) enrichment for the work
 			loadLocalEnrichment(groupedWork);
@@ -981,7 +981,7 @@ public class GroupedWorkIndexer {
 		}
 	}
 
-	private void updateGroupedWorkForSecondaryIdentifier(GroupedWorkSolr groupedWork, String type, String identifier) {
+	/*private void updateGroupedWorkForSecondaryIdentifier(GroupedWorkSolr groupedWork, String type, String identifier) {
 		type = type.toLowerCase();
 		if (type.equals("isbn")){
 			groupedWork.addIsbn(identifier);
@@ -993,7 +993,7 @@ public class GroupedWorkIndexer {
 		}else if (!type.equals("issn") && !type.equals("oclc")){
 			logger.warn("Unknown identifier type " + type);
 		}
-	}
+	}*/
 
 	/**
 	 * System translation maps are used for things that are not customizable (or that shouldn't be customized)

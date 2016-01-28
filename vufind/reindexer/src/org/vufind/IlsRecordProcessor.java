@@ -285,16 +285,24 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 			allRelatedRecords.addAll(econtentRecords);
 
 			//Do updates based on the overall bib (shared regardless of scoping)
-			updateGroupedWorkSolrDataBasedOnStandardMarcData(groupedWork, record, recordInfo.getRelatedItems(), identifier);
+			String primaryFormat = null;
+			for (RecordInfo ilsRecord : allRelatedRecords) {
+				primaryFormat = ilsRecord.getPrimaryFormat();
+				if (primaryFormat != null){
+					break;
+				}
+			}
+			if (primaryFormat == null) primaryFormat = "Unknown";
+			updateGroupedWorkSolrDataBasedOnStandardMarcData(groupedWork, record, recordInfo.getRelatedItems(), identifier, primaryFormat);
 
 			//Special processing for ILS Records
 			String fullDescription = Util.getCRSeparatedString(getFieldList(record, "520a"));
 			for (RecordInfo ilsRecord : allRelatedRecords) {
-				String primaryFormat = ilsRecord.getPrimaryFormat();
-				if (primaryFormat == null){
-					primaryFormat = "Unknown";
+				String primaryFormatForRecord = ilsRecord.getPrimaryFormat();
+				if (primaryFormatForRecord == null){
+					primaryFormatForRecord = "Unknown";
 				}
-				groupedWork.addDescription(fullDescription, primaryFormat);
+				groupedWork.addDescription(fullDescription, primaryFormatForRecord);
 			}
 			loadEditions(groupedWork, record, allRelatedRecords);
 			loadPhysicalDescription(groupedWork, record, allRelatedRecords);
