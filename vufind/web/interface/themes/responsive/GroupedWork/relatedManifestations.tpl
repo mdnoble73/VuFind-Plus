@@ -19,9 +19,9 @@
 								<a href="{$relatedManifestation.url}">{$relatedManifestation.format}</a>
 							{else}
 								<a href="#" onclick="return VuFind.ResultsList.toggleRelatedManifestations('{$id|escapeCSS}_{$relatedManifestation.format|escapeCSS}');">
-									<span class='manifestation-toggle collapsed' id='manifestation-toggle-{$id|escapeCSS}_{$relatedManifestation.format|escapeCSS}'>+</span> {$relatedManifestation.format}
+									<span class="manifestation-toggle collapsed" id='manifestation-toggle-{$id|escapeCSS}_{$relatedManifestation.format|escapeCSS}'>+</span> {$relatedManifestation.format}
 								</a>
-								<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+								<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 								<a href="#" onclick="return VuFind.ResultsList.toggleRelatedManifestations('{$id|escapeCSS}_{$relatedManifestation.format|escapeCSS}');">
 									<span class='manifestation-toggle-text label label-info' id='manifestation-toggle-text-{$id|escapeCSS}_{$relatedManifestation.format|escapeCSS}'>Show&nbsp;Editions</span>
 								</a>
