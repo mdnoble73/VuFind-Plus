@@ -7,7 +7,7 @@
 
 		<div class="row">
 			{if $showCovers}
-				<div class="col-xs-3 col-sm-3 col-md-3 col-lg-2 text-center">
+				<div class="coversColumn col-xs-3 col-sm-3 col-md-3 col-lg-2 text-center">
 					{if $user->disableCoverArt != 1}
 						<a href="{$summUrl}">
 							<img src="{$bookCoverUrlMedium}" class="listResultImage img-thumbnail{* img-responsive // shouldn't be needed *}" alt="{translate text='Cover Image'}">

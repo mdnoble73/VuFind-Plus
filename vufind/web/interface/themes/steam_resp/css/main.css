@@ -9793,7 +9793,7 @@ a.browse-thumbnail.active {
 .view-xs-button {
   margin-bottom: 5px;
 }
-.view-xs-button :first-child {
+.coversColumn .view-xs-button {
   margin-top: 5px;
 }
 .graph-bar {
