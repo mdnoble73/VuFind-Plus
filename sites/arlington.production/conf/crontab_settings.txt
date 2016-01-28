@@ -66,6 +66,6 @@
 # Logwatch #
 ############
 # email the daily log report
-* 4 * * * cd /usr; logwatch --mailto root@marmot.org
+* 4 * * * cd /usr/sbin; ./logwatch --mailto root@marmot.org
 
 
