@@ -260,3 +260,6 @@
 .view-xs-button {
   margin-bottom: 5px;
 }
+.view-xs-button :first-child {
+  margin-top: 5px;
+}

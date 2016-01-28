@@ -9801,6 +9801,9 @@ a.browse-thumbnail.active {
 .view-xs-button {
   margin-bottom: 5px;
 }
+.view-xs-button :first-child {
+  margin-top: 5px;
+}
 .graph-bar {
   background-color: #088ec6;
 }

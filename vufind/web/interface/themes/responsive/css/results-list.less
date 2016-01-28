@@ -265,5 +265,8 @@
 }
 
 .view-xs-button {
+  :first-child {
+    margin-top: @padding-small-vertical; // add top margin only on the first so that we can stack these buttons evenly spaced with only bottom margin
+  }
   margin-bottom: @padding-small-vertical;
 }

@@ -13,34 +13,16 @@
 							<img src="{$bookCoverUrlMedium}" class="listResultImage img-thumbnail{* img-responsive // shouldn't be needed *}" alt="{translate text='Cover Image'}">
 						</a>
 					{/if}
+
+					{if $summDescription}
+					<div class="visible-xs">
+						<button class="view-xs-button btn btn-info btn-sm btn-block" onclick="VuFind.showElementInPopup('Description', '#descriptionValue{$summId|escape}')">Description</button>
+					</div>
+					{/if}
+
 					{if $showRatings}
 						{include file="GroupedWork/title-rating.tpl" ratingClass="" id=$summId ratingData=$summRating}
 					{/if}
-
-						<div class="visible-xs center-block">
-{*
-							{if !$hasHiddenFormats && count($relatedManifestations) != 1}
-								*}
-{*<div class="row">*}{*
-
-								<div *}
-{*class="col-xs-6"*}{*
- class="center-block" style="width: 120px;">
-									<button class="hidethisdiv{$summId|escape} view-xs-button btn btn-info btn-sm btn-block" onclick="VuFind.showElementInPopup('Formats', '#relatedManifestationsValue{$summId|escape}')">View All Formats</button>
-								</div>
-								*}
-{*</div>*}{*
-
-							{/if}
-*}
-
-							{*<div class="row">*}
-							<div {*class="col-xs-6"*} {*class="center-block" style="width: 120px;"*}>
-								<button class="view-xs-button btn btn-info btn-sm btn-block" onclick="VuFind.showElementInPopup('Description', '#descriptionValue{$summId|escape}')">Description</button>
-							</div>
-							{*</div>*}
-						</div>
-
 				</div>
 			{/if}
 
@@ -61,25 +43,6 @@
 						{/if}
 					</div>
 				</div>
-
-				{* Mobile buttons *}
-
-				{*<div class="col-xs-3 col-xs-offset-9">*}
-					{*<div class="visible-xs">*}
-						{*{if !$hasHiddenFormats && count($relatedManifestations) != 1}*}
-							{*<div>*}
-								{*<button class="view-xs-button btn btn-info btn-xs" onclick="VuFind.showElementInPopup('Formats', '#relatedManifestationsValue{$summId|escape}')">Formats</button>*}
-							{*</div>*}
-						{*{/if}*}
-
-						{*<div>*}
-							{*<button class="view-xs-button btn btn-info btn-xs" onclick="VuFind.showElementInPopup('Description', '#descriptionValue{$summId|escape}')">Description</button>*}
-						{*</div>*}
-					{*</div>*}
-				{*</div>*}
-
-
-
 
 				{if $summAuthor}
 					<div class="row">
@@ -216,29 +179,34 @@
 				<div class="col-xs-12">
 					<div class="visible-xs center-block">
 						{if !$hasHiddenFormats && count($relatedManifestations) != 1}
-							{*<div class="row">*}
-								<div {*class="col-xs-6"*} class="center-block" style="width: 120px;">
+							<div class="row">
+								<div class="center-block" style="width: 120px;">
 									<button class="hidethisdiv{$summId|escape} view-xs-button btn btn-info btn-sm btn-block" onclick="VuFind.showElementInPopup('Formats', '#relatedManifestationsValue{$summId|escape}')">View All Formats</button>
 								</div>
-							{*</div>*}
+							</div>
 						{/if}
 
-						{*<div class="row">*}
-{*							<div *}{*class="col-xs-6"*}{* class="center-block" style="width: 120px;">
+						{if $summDescription && !$showCovers}
+						<div class="row">
+							<div class="center-block" style="width: 120px;">
 								<button class="view-xs-button btn btn-info btn-sm btn-block" onclick="VuFind.showElementInPopup('Description', '#descriptionValue{$summId|escape}')">Description</button>
-							</div>*}
-						{*</div>*}
+							</div>
+						</div>
+						{/if}
+
 					</div>
 				</div>
 
 				{* Description Section *}
-				<div class="row">
-					{* Hide in mobile view *}
-					<div class="result-value hidden-xs col-sm-12" id="descriptionValue{$summId|escape}">
-						<br>
-						{$summDescription|highlight|truncate_html:450:"..."}
+				{if $summDescription}
+					<div class="row">
+						{* Hide in mobile view *}
+						<div class="result-value hidden-xs col-sm-12" id="descriptionValue{$summId|escape}">
+							<br>
+							{$summDescription|highlight|truncate_html:450:"..."}
+						</div>
 					</div>
-				</div>
+				{/if}
 
 				<div class="row">
 					<div class="col-xs-12">
