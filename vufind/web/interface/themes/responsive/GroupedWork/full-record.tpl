@@ -6,8 +6,11 @@
 
 		{* Display Title *}
 		<h2 class="notranslate">
-			{$recordDriver->getTitle()|removeTrailingPunctuation|escape}
+			{$recordDriver->getTitleShort()|removeTrailingPunctuation|escape}{if $recordDriver->getSubtitle()}
+				: {$recordDriver->getSubtitle()|removeTrailingPunctuation|escape}
+			{/if}
 		</h2>
+
 		<div class="row">
 			<div class="col-xs-4 col-sm-5 col-md-4 col-lg-3 text-center">
 				{if $user->disableCoverArt != 1}
@@ -45,17 +48,17 @@
 						<div class="result-label col-md-3">{translate text='Series'}:</div>
 						<div class="col-md-9 result-value">
 							{if $series}
-								<a href="{$path}/GroupedWork/{$summId}/Series">{$series.seriesTitle}</a>{if $series.volume} volume {$series.volume}{/if}<br/>
+								<a href="{$path}/GroupedWork/{$recordDriver->getPermanentId()}/Series">{$series.seriesTitle}</a>{if $series.volume} volume {$series.volume}{/if}<br/>
 							{/if}
 							{if $indexedSeries}
 								{if count($indexedSeries) >= 5}
 									{assign var=showMoreSeries value="true"}
 								{/if}
 								{foreach from=$indexedSeries item=seriesItem name=loop}
-									<a href="{$path}/Search/Results?basicType=Series&lookfor=%22{$seriesItem|escape:"url"}%22">{$seriesItem|escape}</a><br/>
+									<a href="{$path}/Search/Results?basicType=Series&lookfor=%22{$seriesItem.seriesTitle|removeTrailingPunctuation|escape:"url"}%22">{$seriesItem.seriesTitle|removeTrailingPunctuation|escape}</a>{if $seriesItem.volume} volume {$seriesItem.volume}{/if}<br/>
 									{if $showMoreSeries && $smarty.foreach.loop.iteration == 3}
-										<a onclick="$('#moreSeries_{$summId}').show();$('#moreSeriesLink_{$summId}').hide();" id="moreSeriesLink_{$summId}">More Series...</a>
-										<div id="moreSeries_{$summId}" style="display:none">
+										<a onclick="$('#moreSeries_{$recordDriver->getPermanentId()}').show();$('#moreSeriesLink_{$recordDriver->getPermanentId()}').hide();" id="moreSeriesLink_{$summId}">More Series...</a>
+										<div id="moreSeries_{$recordDriver->getPermanentId()}" style="display:none">
 									{/if}
 								{/foreach}
 								{if $showMoreSeries}

@@ -54,7 +54,10 @@ public class GroupedWorkSolr {
 	private HashSet<String> geographic = new HashSet<>();
 	private HashSet<String> geographicFacets = new HashSet<>();
 	private String groupingCategory;
-	private HashSet<String> isbns = new HashSet<>();
+	private String primaryIsbn;
+	private boolean primaryIsbnIsBook;
+	private Long primaryIsbnUsageCount;
+	private HashMap<String, Long> isbns = new HashMap<>();
 	private HashSet<String> issns = new HashSet<>();
 	private HashSet<String> keywords = new HashSet<>();
 	private HashSet<String> languages = new HashSet<>();
@@ -77,6 +80,7 @@ public class GroupedWorkSolr {
 	private float rating = 2.5f;
 	private HashMap<String, String> series = new HashMap<>();
 	private HashSet<String> series2 = new HashSet<>();
+	private HashSet<String> seriesWithVolume = new HashSet<>();
 	private String subTitle;
 	private HashSet<String> targetAudienceFull = new HashSet<>();
 	private HashSet<String> targetAudience = new HashSet<>();
@@ -88,7 +92,7 @@ public class GroupedWorkSolr {
 	private HashSet<String> topics = new HashSet<>();
 	private HashSet<String> topicFacets = new HashSet<>();
 	private HashSet<String> subjects = new HashSet<>();
-	private HashSet<String> upcs = new HashSet<>();
+	private HashMap<String, Long> upcs = new HashMap<>();
 
 	private Logger logger;
 	private GroupedWorkIndexer groupedWorkIndexer;
@@ -155,6 +159,7 @@ public class GroupedWorkSolr {
 		doc.addField("dateSpan", dateSpans);
 		doc.addField("series", series.values());
 		doc.addField("series2", series2);
+		doc.addField("series_with_volume", seriesWithVolume);
 		doc.addField("topic", topics);
 		doc.addField("topic_facet", topicFacets);
 		doc.addField("subject_facet", subjects);
@@ -166,14 +171,18 @@ public class GroupedWorkSolr {
 		doc.addField("geographic_facet", geographicFacets);
 		doc.addField("era", eras);
 		checkDefaultValue(literaryFormFull, "Not Coded");
+		checkDefaultValue(literaryFormFull, "Other");
 		checkInconsistentLiteraryFormsFull();
 		doc.addField("literary_form_full", literaryFormFull.keySet());
 		checkDefaultValue(literaryForm, "Not Coded");
+		checkDefaultValue(literaryForm, "Other");
 		checkInconsistentLiteraryForms();
 		doc.addField("literary_form", literaryForm.keySet());
 		checkDefaultValue(targetAudienceFull, "Unknown");
+		checkDefaultValue(targetAudienceFull, "Other");
 		doc.addField("target_audience_full", targetAudienceFull);
 		checkDefaultValue(targetAudience, "Unknown");
+		checkDefaultValue(targetAudience, "Other");
 		doc.addField("target_audience", targetAudience);
 		doc.addField("system_list", systemLists);
 		//Date added to catalog
@@ -222,12 +231,12 @@ public class GroupedWorkSolr {
 
 		HashSet<String> eContentSources = getAllEContentSources();
 		keywords.addAll(eContentSources);
-		keywords.addAll(isbns);
+		keywords.addAll(isbns.keySet());
 		keywords.addAll(oclcs);
 		keywords.addAll(barcodes);
 		keywords.addAll(issns);
 		keywords.addAll(lccns);
-		keywords.addAll(upcs);
+		keywords.addAll(upcs.keySet());
 		doc.addField("keywords", Util.getCRSeparatedStringFromSet(keywords));
 
 		doc.addField("table_of_contents", contents);
@@ -235,9 +244,13 @@ public class GroupedWorkSolr {
 		//identifiers
 		doc.addField("lccn", lccns);
 		doc.addField("oclc", oclcs);
-		doc.addField("isbn", isbns);
+		//Get the primary isbn
+		doc.addField("primary_isbn", primaryIsbn);
+		doc.addField("isbn", isbns.keySet());
 		doc.addField("issn", issns);
-		doc.addField("upc", upcs);
+		doc.addField("primary_upc", getPrimaryUpc());
+		doc.addField("upc", upcs.keySet());
+		
 		//call numbers
 		doc.addField("callnumber-a", callNumberA);
 		doc.addField("callnumber-first", callNumberFirst);
@@ -255,6 +268,19 @@ public class GroupedWorkSolr {
 		addScopedFieldsToDocument(availableAtBoostValue, ownedByBoostValue, doc);
 
 		return doc;
+	}
+
+	private String getPrimaryUpc() {
+		String primaryUpc = null;
+		long maxUsage = 0;
+		for (String upc : upcs.keySet()){
+			long usage = upcs.get(upc);
+			if (primaryUpc == null || usage > maxUsage){
+				primaryUpc = upc;
+				maxUsage = usage;
+			}
+		}
+		return primaryUpc;
 	}
 
 	private Long getTotalFormatBoost() {
@@ -793,17 +819,56 @@ public class GroupedWorkSolr {
 	public void addOclcNumbers(Set<String> oclcs) {
 		this.oclcs.addAll(oclcs);
 	}
-	public void addIsbn(String isbn) {
-		isbns.add(isbn);
+
+	public void addIsbns(Set<String>isbns, String format){
+		for (String isbn:isbns){
+			addIsbn(isbn, format);
+		}
 	}
-	public HashSet<String> getIsbns() {
-		return isbns;
+	public void addIsbn(String isbn, String format) {
+		isbn = isbn.replaceAll("\\D", "");
+		if (isbn.length() == 10){
+			isbn = Util.convertISBN10to13(isbn);
+		}
+		if (isbns.containsKey(isbn)){
+			isbns.put(isbn, isbns.get(isbn) + 1);
+		}else{
+			isbns.put(isbn, 1L);
+		}
+		//Determine if we should set the primary isbn
+		boolean updatePrimaryIsbn = false;
+		boolean newIsbnIsBook = format.equalsIgnoreCase("book");
+		if (primaryIsbn == null) {
+			updatePrimaryIsbn = true;
+		} else if (!primaryIsbn.equals(isbn)){
+			if (!primaryIsbnIsBook && newIsbnIsBook){
+				updatePrimaryIsbn = true;
+			} else if (primaryIsbnIsBook == newIsbnIsBook){
+				//Both are books or both are not books
+				if (isbns.get(isbn) > primaryIsbnUsageCount){
+					updatePrimaryIsbn = true;
+				}
+			}
+		}
+
+		if (updatePrimaryIsbn){
+			primaryIsbn = isbn;
+			primaryIsbnIsBook = format.equalsIgnoreCase("book");
+			primaryIsbnUsageCount = isbns.get(isbn);
+		}
+	}
+	public Set<String> getIsbns(){
+		return isbns.keySet();
 	}
 	public void addIssns(Set<String> issns) {
 		this.issns.addAll(issns);
 	}
 	public void addUpc(String upc) {
-		upcs.add(upc);
+		if (upcs.containsKey(upc)){
+			upcs.put(upc, upcs.get(upc) + 1);
+		}else{
+			upcs.put(upc, 1L);
+		}
 	}
 
 	public void addAlternateId(String alternateId) {
@@ -871,6 +936,13 @@ public class GroupedWorkSolr {
 				this.series.put(normalizedSeries, series);
 			}
 		}
+	}
+	public void addSeriesWithVolume(Set<String> fieldList){
+		seriesWithVolume.addAll(fieldList);
+	}
+
+	public void addSeriesWithVolume(String series){
+		seriesWithVolume.add(series);
 	}
 
 	public void addSeries2(Set<String> fieldList) {

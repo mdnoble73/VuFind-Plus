@@ -52,9 +52,9 @@ public abstract class MarcRecordProcessor {
 		groupedWork.addEra(getFieldList(record, "600d:610y:611y:630y:648a:648y:650y:651y:655y"));
 	}
 
-	protected void updateGroupedWorkSolrDataBasedOnStandardMarcData(GroupedWorkSolr groupedWork, Record record, HashSet<ItemInfo> printItems, String identifier) {
+	protected void updateGroupedWorkSolrDataBasedOnStandardMarcData(GroupedWorkSolr groupedWork, Record record, HashSet<ItemInfo> printItems, String identifier, String format) {
 		loadTitles(groupedWork, record);
-		loadAuthors(groupedWork, record);
+		loadAuthors(groupedWork, record, identifier);
 		loadSubjects(groupedWork, record);
 		/*List<DataField> seriesFields = getDataFields(record, "490");
 		HashSet<String> allSeries = new HashSet<>();
@@ -66,13 +66,43 @@ public abstract class MarcRecordProcessor {
 
 			}
 		}*/
-		String seriesVolume = getFirstFieldVal(record, "830v");
+		List<DataField> seriesFields = getDataFields(record, "830");
+		HashSet<String> seriesWithVolumes = new HashSet<>();
+		Pattern subfields830Pattern = Pattern.compile("[ap]");
+		for (DataField seriesField : seriesFields){
+			StringBuilder series = getSpecifiedSubfieldsAsString(seriesField, subfields830Pattern,"");
+			if (seriesField.getSubfield('v') != null){
+				//Separate out the volume so we can link specially
+				series .append("|" + seriesField.getSubfield('v').getData());
+			}
+			seriesWithVolumes.add(series.toString());
+		}
+		seriesFields = getDataFields(record, "800");
+		Pattern subfields800Pattern = Pattern.compile("[pqt]");
+		for (DataField seriesField : seriesFields){
+			StringBuilder series = getSpecifiedSubfieldsAsString(seriesField, subfields800Pattern,"");
+			if (seriesField.getSubfield('v') != null){
+				//Separate out the volume so we can link specially
+				series .append("|" + seriesField.getSubfield('v').getData());
+			}
+			seriesWithVolumes.add(series.toString());
+		}
+		groupedWork.addSeriesWithVolume(seriesWithVolumes);
+
 		groupedWork.addSeries(getFieldList(record, "830ap:800pqt"));
 		groupedWork.addSeries2(getFieldList(record, "490a"));
 		groupedWork.addDateSpan(getFieldList(record, "362a"));
 		groupedWork.addContents(getFieldList(record, "505a:505t"));
 		groupedWork.addIssns(getFieldList(record, "022a"));
 		groupedWork.addOclcNumbers(getFieldList(record, "035a"));
+		groupedWork.addIsbns(getFieldList(record, "020a"), format);
+		List<DataField> upcFields = getDataFields(record, "024");
+		for (DataField upcField : upcFields){
+			if (upcField.getIndicator1() == '1' && upcField.getSubfield('a') != null){
+				groupedWork.addUpc(upcField.getSubfield('a').getData());
+			}
+		}
+
 		loadAwards(groupedWork, record);
 		loadBibCallNumbers(groupedWork, record, identifier);
 		loadLiteraryForms(groupedWork, record, printItems, identifier);
@@ -568,7 +598,7 @@ public abstract class MarcRecordProcessor {
 		groupedWork.setTranslations(translatedLanguages);
 	}
 
-	protected void loadAuthors(GroupedWorkSolr groupedWork, Record record) {
+	protected void loadAuthors(GroupedWorkSolr groupedWork, Record record, String identifier) {
 		//auth_author = 100abcd, first
 		groupedWork.setAuthAuthor(this.getFirstFieldVal(record, "100abcd"));
 		//author = a, first
@@ -579,10 +609,22 @@ public abstract class MarcRecordProcessor {
 		groupedWork.addAuthAuthor2(this.getFieldList(record, "700abcd"));
 		//author2 = 110ab:111ab:700abcd:710ab:711ab:800a
 		groupedWork.addAuthor2(this.getFieldList(record, "110ab:111ab:700abcd:710ab:711ab:800a"));
-		//author2-role = 700e:710e
-		groupedWork.addAuthor2Role(this.getFieldList(record, "700e:710e"));
 		//author_additional = 505r:245c
 		groupedWork.addAuthorAdditional(this.getFieldList(record, "505r:245c"));
+		//Load contributors with role
+		List<DataField> contributorFields = this.getDataFields(record, new String[]{"700","710"});
+		HashSet<String> contributors = new HashSet<>();
+		Pattern contributorSubfieldPattern = Pattern.compile("[abcdetmnr]");
+		for (DataField contributorField : contributorFields){
+			StringBuilder contributor = getSpecifiedSubfieldsAsString(contributorField, contributorSubfieldPattern, "");
+			if (contributorField.getTag().equals("700") && contributorField.getSubfield('4') != null){
+				String role = indexer.translateSystemValue("contributor_role", Util.trimTrailingPunctuation(contributorField.getSubfield('4').getData()), identifier);
+				contributor.append("|" + role);
+			}
+			contributors.add(contributor.toString());
+		}
+		groupedWork.addAuthor2Role(contributors);
+
 		//author_display = 100a:110a:260b:710a:245c, first
 		String displayAuthor = this.getFirstFieldVal(record, "100a:110ab:260b:710a:245c");
 		if (displayAuthor != null && displayAuthor.indexOf(';') > 0){
@@ -644,6 +686,17 @@ public abstract class MarcRecordProcessor {
 		return variableFieldsReturn;
 	}
 
+	protected List<DataField> getDataFields(Record marcRecord, String[] tags) {
+		List variableFields = marcRecord.getVariableFields(tags);
+		List<DataField> variableFieldsReturn = new ArrayList<>();
+		for (Object variableField : variableFields){
+			if (variableField instanceof DataField){
+				variableFieldsReturn.add((DataField)variableField);
+			}
+		}
+		return variableFieldsReturn;
+	}
+
 	protected ControlField getControlField(Record marcRecord, String tag){
 		List variableFields = marcRecord.getVariableFields(tag);
 		ControlField variableFieldReturn = null;
@@ -654,41 +707,6 @@ public abstract class MarcRecordProcessor {
 		}
 		return variableFieldReturn;
 	}
-
-	/*private static Pattern arNumberPattern = Pattern.compile("([\\d.]+)", Pattern.CANON_EQ | Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE);
-	public String getAcceleratedReaderReadingLevel(Record marcRecord) {
-		String result;
-		// Get a list of all tags that may contain the lexile score.
-		@SuppressWarnings("unchecked")
-		List<VariableField> input = marcRecord.getVariableFields("526");
-		Iterator<VariableField> iter = input.iterator();
-
-		DataField field;
-		while (iter.hasNext()) {
-			field = (DataField) iter.next();
-
-			if (field.getSubfield('a') != null) {
-				String type = field.getSubfield('a').getData();
-				if (type.matches("(?i)accelerated reader")) {
-					if (field.getSubfield('c') != null){
-						String rawData = field.getSubfield('c').getData();
-						try {
-							Matcher RegexMatcher = arNumberPattern.matcher(rawData);
-							if (RegexMatcher.find()) {
-								result = RegexMatcher.group(1);
-								// System.out.println("AR Reading Level " + result);
-								return result;
-							}
-						} catch (PatternSyntaxException ex) {
-							// Syntax error in the regular expression
-						}
-					}
-				}
-			}
-		}
-
-		return null;
-	}*/
 
 	/**
 	 * Loops through all datafields and creates a field for "keywords"
@@ -742,69 +760,6 @@ public abstract class MarcRecordProcessor {
 		}
 		return (value);
 	}
-
-	/*public String getAcceleratedReaderPointLevel(Record marcRecord) {
-		try {
-			String result;
-			// Get a list of all tags that may contain the lexile score.
-			@SuppressWarnings("unchecked")
-			List<VariableField> input = marcRecord.getVariableFields("526");
-			Iterator<VariableField> iter = input.iterator();
-
-			DataField field;
-			while (iter.hasNext()) {
-				field = (DataField) iter.next();
-
-				if (field.getSubfield('a') != null) {
-					String type = field.getSubfield('a').getData();
-					if (type.matches("(?i)accelerated reader") && field.getSubfield('d') != null) {
-						String rawData = field.getSubfield('d').getData();
-						try {
-							Matcher RegexMatcher = arNumberPattern.matcher(rawData);
-							if (RegexMatcher.find()) {
-								result = RegexMatcher.group(1);
-								// System.out.println("AR Point Level " + result);
-								return Util.trimTrailingPunctuation(result);
-							}
-						} catch (PatternSyntaxException ex) {
-							// Syntax error in the regular expression
-						}
-					}
-				}
-			}
-
-			return null;
-		} catch (Exception e) {
-			logger.error("Error mapping AR points");
-			return null;
-		}
-	}*/
-
-	/*public String getAcceleratedReaderInterestLevel(Record marcRecord) {
-		try {
-			// Get a list of all tags that may contain the lexile score.
-			@SuppressWarnings("unchecked")
-			List<VariableField> input = marcRecord.getVariableFields("526");
-			Iterator<VariableField> iter = input.iterator();
-
-			DataField field;
-			while (iter.hasNext()) {
-				field = (DataField) iter.next();
-
-				if (field.getSubfield('a') != null &&  field.getSubfield('b') != null) {
-					String type = field.getSubfield('a').getData();
-					if (type.matches("(?i)accelerated reader")) {
-						return field.getSubfield('b').getData();
-					}
-				}
-			}
-
-			return null;
-		} catch (Exception e) {
-			logger.error("Error mapping AR interest level", e);
-			return null;
-		}
-	}*/
 
 	/**
 	 * Get Set of Strings as indicated by tagStr. For each field spec in the
@@ -1123,16 +1078,8 @@ public abstract class MarcRecordProcessor {
 						.compile(subfldTags.length() == 0 ? "." : subfldTags);
 				for (VariableField vf : marcFieldList) {
 					DataField marcField = (DataField) vf;
-					StringBuilder buffer = new StringBuilder("");
-					List<Subfield> subFields = marcField.getSubfields();
-					for (Subfield subfield : subFields) {
-						Matcher matcher = subfieldPattern.matcher("" + subfield.getCode());
-						if (matcher.matches()) {
-							if (buffer.length() > 0)
-								buffer.append(separator != null ? separator : " ");
-							buffer.append(subfield.getData().trim());
-						}
-					}
+
+					StringBuilder buffer = getSpecifiedSubfieldsAsString(marcField, subfieldPattern, separator);
 					if (buffer.length() > 0)
 						result.add(Utils.cleanData(buffer.toString()));
 				}
@@ -1140,6 +1087,20 @@ public abstract class MarcRecordProcessor {
 		}
 
 		return result;
+	}
+
+	protected StringBuilder getSpecifiedSubfieldsAsString(DataField marcField, Pattern subfieldPattern, String separator) {
+		StringBuilder buffer = new StringBuilder("");
+		List<Subfield> subFields = marcField.getSubfields();
+		for (Subfield subfield : subFields) {
+			Matcher matcher = subfieldPattern.matcher("" + subfield.getCode());
+			if (matcher.matches()) {
+				if (buffer.length() > 0)
+					buffer.append(separator != null ? separator : " ");
+				buffer.append(subfield.getData().trim());
+			}
+		}
+		return buffer;
 	}
 
 	protected void loadEContentUrl(Record record, ItemInfo itemInfo) {

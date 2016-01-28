@@ -31,6 +31,7 @@ public class OverDriveProcessor {
 	private PreparedStatement getProductFormatsStmt;
 	private PreparedStatement getProductLanguagesStmt;
 	private PreparedStatement getProductSubjectsStmt;
+	private PreparedStatement getProductIdentifiersStmt;
 
 	public OverDriveProcessor(GroupedWorkIndexer groupedWorkIndexer, Connection econtentConn, Logger logger) {
 		this.indexer = groupedWorkIndexer;
@@ -44,7 +45,7 @@ public class OverDriveProcessor {
 			getProductFormatsStmt = econtentConn.prepareStatement("SELECT * from overdrive_api_product_formats where productId = ?", ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_READ_ONLY);
 			getProductLanguagesStmt = econtentConn.prepareStatement("SELECT * from overdrive_api_product_languages inner join overdrive_api_product_languages_ref on overdrive_api_product_languages.id = languageId where productId = ?", ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_READ_ONLY);
 			getProductSubjectsStmt = econtentConn.prepareStatement("SELECT * from overdrive_api_product_subjects inner join overdrive_api_product_subjects_ref on overdrive_api_product_subjects.id = subjectId where productId = ?", ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_READ_ONLY);
-
+			getProductIdentifiersStmt = econtentConn.prepareStatement("SELECT * from overdrive_api_product_identifiers where productId = ?", ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_READ_ONLY);
 		} catch (SQLException e) {
 			logger.error("Error setting up overdrive processor", e);
 		}
@@ -79,6 +80,7 @@ public class OverDriveProcessor {
 						overDriveRecord.setRecordIdentifier("overdrive", identifier);
 
 						String subtitle = productRS.getString("subtitle");
+						String series = productRS.getString("series");
 						if (subtitle == null) {
 							subtitle = "";
 						}
@@ -108,6 +110,7 @@ public class OverDriveProcessor {
 						}
 
 						groupedWork.addSeries(productRS.getString("series"));
+						groupedWork.addSeriesWithVolume(productRS.getString("series"));
 						groupedWork.setAuthor(productRS.getString("primaryCreatorName"));
 						groupedWork.setAuthorDisplay(productRS.getString("primaryCreatorName"));
 
@@ -144,6 +147,8 @@ public class OverDriveProcessor {
 						HashSet<String> validFormats = loadOverDriveFormats(groupedWork, productId, identifier);
 						String detailedFormats = Util.getCsvSeparatedString(validFormats);
 						//overDriveRecord.addFormats(validFormats);
+
+						loadOverDriveIdentifiers(groupedWork, productId, primaryFormat);
 
 						long maxFormatBoost = 1;
 						for (String curFormat : validFormats) {
@@ -272,6 +277,19 @@ public class OverDriveProcessor {
 			logger.error("Error loading information from Database for overdrive title", e);
 		}
 
+	}
+
+	private void loadOverDriveIdentifiers(GroupedWorkSolr groupedWork, Long productId, String primaryFormat) throws SQLException {
+		getProductIdentifiersStmt.setLong(1, productId);
+		ResultSet identifiersRS = getProductIdentifiersStmt.executeQuery();
+		while (identifiersRS.next()){
+			String type = identifiersRS.getString("type");
+			String value = identifiersRS.getString("value");
+			//For now, ignore anything that isn't an ISBN
+			if (type.equals("ISBN")){
+				groupedWork.addIsbn(value, primaryFormat);
+			}
+		}
 	}
 
 	/**

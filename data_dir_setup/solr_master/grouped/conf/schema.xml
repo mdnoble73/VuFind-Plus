@@ -150,7 +150,7 @@
 		<field name="auth_authorStr" type="string" indexed="true" stored="false"/>
 		<field name="author2" type="text" indexed="true" stored="true" multiValued="true"/>
 		<field name="author2Str" type="string" indexed="true" stored="true" multiValued="true"/>
-		<field name="author2-role" type="string" indexed="true" stored="true" multiValued="true"/>
+		<field name="author2-role" type="string" indexed="true" stored="true" multiValued="true"/> <!-- The contributor with role and title appended -->
 		<field name="auth_author2" type="textProper" indexed="true" stored="true" multiValued="true"/>
 		<field name="auth_author2Str" type="string" indexed="true" stored="false" multiValued="true"/>
 		<field name="author_additional" type="text" indexed="true" stored="true" multiValued="true"/>
@@ -179,6 +179,7 @@
 		<field name="series" type="text" indexed="true" stored="true" multiValued="true"/>
 		<field name="series2" type="text" indexed="true" stored="true" multiValued="true"/>
 		<field name="series_proper" type="textProper" indexed="true" stored="false" multiValued="true"/>
+		<field name="series_with_volume" type="textProper" indexed="false" stored="true" multiValued="true"/>
 		<field name="subject_facet" type="string" indexed="true" stored="true" multiValued="true" docValues="true"/>
 		<field name="subject" type="text" indexed="true" stored="true" multiValued="true"/>
 		<field name="subject_proper" type="textProper" indexed="true" stored="false" multiValued="true"/>
@@ -227,8 +228,10 @@
 		<!-- Identifiers -->
 		<field name="lccn" type="string" indexed="true" stored="true" multiValued="true"/>
 		<field name="oclc" type="string" indexed="true" stored="true" multiValued="true"/>
+		<field name="primary_isbn" type="textProper" indexed="false" stored="true" multiValued="false"/>
 		<field name="isbn" type="textProper" indexed="true" stored="true" multiValued="true"/>
 		<field name="issn" type="textProper" indexed="true" stored="true" multiValued="true"/>
+		<field name="primary_upc" type="textProper" indexed="false" stored="true" multiValued="false"/>
 		<field name="upc" type="textProper" indexed="true" stored="true" multiValued="true"/>
 		<!-- Call Numbers -->
 		<field name="callnumber-a" type="string" indexed="true" stored="true"/>
