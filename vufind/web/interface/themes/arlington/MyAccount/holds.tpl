@@ -74,7 +74,7 @@
 					</div>
 				{else} {* Check to see if records are available *}
 					{if $sectionKey == 'available'}
-						{translate text='You do not have any holds that are ready to be picked up.'}
+						{translate text='no_holds_ready_pickup'}
 					{else}
 						{translate text='You do not have any pending holds.'}
 					{/if}
