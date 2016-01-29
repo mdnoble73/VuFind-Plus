@@ -9,7 +9,7 @@
 					<div id="categoryValues" class="row">
 						{foreach from=$cluster.list item=thisFacet name="narrowLoop"}
 							{if $thisFacet.isApplied}
-								<div class='categoryValue categoryValue_{translate text=$thisFacet.value|lower|replace:' ':''} col-xs-2'>
+								<div class="categoryValue categoryValue_{translate text=$thisFacet.value|lower|replace:' ':''} col-tn-2">
 									<a href="{$thisFacet.removalUrl|escape}" class="removeFacetLink" onclick="trackEvent('Remove Facet', 'formatCategory', '{$thisFacet.value|escape}');" title="Remove Filter">
 										<div class="row">
 											<div class="col-xs-6">
@@ -23,7 +23,7 @@
 									</a>
 								</div>
 							{else}
-								<div class='categoryValue categoryValue_{translate text=$thisFacet.value|lower|replace:' ':''} col-xs-2' >
+								<div class="categoryValue categoryValue_{translate text=$thisFacet.value|lower|replace:' ':''} col-tn-2">
 									<a href="{$thisFacet.url|escape}" onclick="trackEvent('Apply Facet', 'formatCategory', '{$thisFacet.value|escape}');">
 										<div class="row">
 											<div class="col-xs-6">

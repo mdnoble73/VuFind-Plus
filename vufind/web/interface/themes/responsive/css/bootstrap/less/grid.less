@@ -25,18 +25,27 @@
 // Common styles for small and large grid columns
 .make-grid-columns();
 
+// Tiny Grid
+//
+// for very narrow devices
+.make-grid-columns-float(tn);
+.make-grid(@grid-columns, tn, width);
+.make-grid(@grid-columns, tn, pull);
+.make-grid(@grid-columns, tn, push);
+.make-grid(@grid-columns, tn, offset);
 
 // Extra small grid
 //
 // Columns, offsets, pushes, and pulls for extra small devices like
 // smartphones.
 
-.make-grid-columns-float(xs);
-.make-grid(@grid-columns, xs, width);
-.make-grid(@grid-columns, xs, pull);
-.make-grid(@grid-columns, xs, push);
-.make-grid(@grid-columns, xs, offset);
-
+@media (min-width: @screen-xs-min) {
+  .make-grid-columns-float(xs);
+  .make-grid(@grid-columns, xs, width);
+  .make-grid(@grid-columns, xs, pull);
+  .make-grid(@grid-columns, xs, push);
+  .make-grid(@grid-columns, xs, offset);
+}
 
 // Small grid
 //
