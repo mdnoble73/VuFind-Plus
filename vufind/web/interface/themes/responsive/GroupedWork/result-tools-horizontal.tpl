@@ -4,8 +4,7 @@
 			{* More Info Link, only if we are showing other data *}
 			{if $showMoreInfo || $showComments || $showFavorites}
 			{if $showMoreInfo !== false}
-				<div class="hidden-xs btn-group btn-group-sm">
-					{* TODO: below should always work. Replacing the link above *}
+				<div class="btn-group btn-group-sm">
 					<a href="{$recordDriver->getLinkUrl()}" class="btn btn-sm ">More Info</a>
 				</div>
 			{/if}
@@ -13,7 +12,7 @@
 			<div class="resultAction"><a href="#" class="cart" onclick="return addToBag('{$summId|escape}', '{$summTitle|replace:'"':''|escape:'javascript'}', '{$summShortId}');"><span class="silk cart">&nbsp;</span>{translate text="Add to cart"}</a></div>
 			*}
 			{if $showComments == 1}
-				<div class="btn-group btn-group-sm{if $module == 'Search'} hidden-xs{/if}"> {*TODO: A Check to not hide this in full record view.*}
+				<div class="btn-group btn-group-sm{if $module == 'Search'} hidden-xs{/if}">
 					<button id="userreviewlink{$summShortId}" class="resultAction btn btn-sm" title="Add a Review" onclick="return VuFind.GroupedWork.showReviewForm(this, '{$summId}')">
 						Add a Review
 					</button>

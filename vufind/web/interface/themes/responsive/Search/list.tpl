@@ -136,6 +136,10 @@
 {* Embedded Javascript For this Page *}
 <script type="text/javascript">
 	$(function(){ldelim}
+		if ($('#horizontal-menu-bar-container').is(':visible')) {ldelim}
+			$('#home-page-search').show();  {*// Always show the searchbox for search results in mobile views.*}
+		{rdelim}
+
 		{if $showProspectorLink}
 		VuFind.Prospector.getProspectorResults(5, {$prospectorSavedSearchId});
 		{/if}

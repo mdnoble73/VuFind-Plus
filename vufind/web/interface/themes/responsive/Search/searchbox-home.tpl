@@ -2,13 +2,13 @@
 <div id="home-page-search" class="row"{if $displaySidebarMenu} style="display: none"{/if}>
 	<div class="col-xs-12">
 		<div class="row">
-			<div class="col-md-12 text-center" id="home-page-search-label">
+			<div class="hidden-xs col-md-12 text-center" id="home-page-search-label">
 				SEARCH <span class="glyphicon glyphicon-search"></span>
 			</div>
 		</div>
 		<form method="get" action="{$path}/Union/Search" id="searchForm" class="form-inline" onsubmit="VuFind.Searches.processSearchForm();">
 			<div class="row">
-				<div class="col-sm-10 col-md-10 col-sm-push-1 col-md-push-1">
+				<div class="{if $displaySidebarMenu}col-sm-12{else}col-sm-10 col-md-10 col-sm-push-1 col-md-push-1{/if}">
 					{if $searchIndex == 'Keyword' || $searchIndex == '' || $searchIndex == 'GenealogyKeyword'}
 						<input type="hidden" name="basicType" id="basicType" value="">
 						<input type="hidden" name="genealogyType" id="genealogyType" value="">

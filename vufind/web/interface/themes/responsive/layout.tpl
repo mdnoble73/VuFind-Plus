@@ -70,7 +70,7 @@
 			</div>
 
 			<div id="horizontal-menu-bar-wrapper" class="row visible-xs">
-				<div id="horizontal-menu-bar-container" class="col-xs-tn menu-bar">
+				<div id="horizontal-menu-bar-container" class="col-tn-12 col-xs-12 menu-bar">
 					{include file='horizontal-menu-bar.tpl'}
 				</div>
 			</div>
@@ -88,7 +88,7 @@
 
 					{* TODO Explore More Side Bar needs to be implemented *}
 
-					{if isset($sidebar)} {* Main Content & Sidebars *}
+					{if !empty($sidebar)} {* Main Content & Sidebars *}
 
 						{if $sideBarOnRight}  {*Sidebar on the right *}
 							<div class="rightSidebar col-xs-12 col-sm-4 col-sm-push-8 col-md-3 col-md-push-9 col-lg-3 col-lg-push-9" id="side-bar">
