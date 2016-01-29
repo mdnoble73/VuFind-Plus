@@ -227,42 +227,58 @@ public abstract class IIIRecordProcessor extends IlsRecordProcessor{
 	}
 
 	protected String getDisplayGroupedStatus(ItemInfo itemInfo, String identifier) {
-		String statusCode = itemInfo.getStatusCode();
-		if (statusCode.equals("-")){
-			//We need to override based on due date
-			String dueDate = itemInfo.getDueDate() == null ? "" : itemInfo.getDueDate();
-			if (dueDate.length() == 0 || dueDate.trim().equals("-  -")){
-				return "On Shelf";
-			}else{
-				return "Checked Out";
-			}
+		String overriddenStatus = getOverriddenStatus(itemInfo, true);
+		if (overriddenStatus != null) {
+			return overriddenStatus;
 		}else {
-			return translateValue("item_grouped_status", statusCode, identifier);
+			String statusCode = itemInfo.getStatusCode();
+			if (statusCode.equals("-")) {
+				//We need to override based on due date
+				String dueDate = itemInfo.getDueDate() == null ? "" : itemInfo.getDueDate();
+				if (dueDate.length() == 0 || dueDate.trim().equals("-  -")) {
+					return "On Shelf";
+				} else {
+					return "Checked Out";
+				}
+			} else {
+				return translateValue("item_grouped_status", statusCode, identifier);
+			}
 		}
 	}
 
 	protected String getDisplayStatus(ItemInfo itemInfo, String identifier) {
-		String statusCode = itemInfo.getStatusCode();
-		if (statusCode.equals("-")){
-			//We need to override based on due date
-			String dueDate = itemInfo.getDueDate() == null ? "" : itemInfo.getDueDate();
-			if (dueDate.length() == 0 || dueDate.trim().equals("-  -")){
-				return "On Shelf";
-			}else{
-				return "Checked Out";
-			}
+		String overriddenStatus = getOverriddenStatus(itemInfo, false);
+		if (overriddenStatus != null) {
+			return overriddenStatus;
 		}else {
-			return translateValue("item_status", statusCode, identifier);
+			String statusCode = itemInfo.getStatusCode();
+			if (statusCode.equals("-")) {
+				//We need to override based on due date
+				String dueDate = itemInfo.getDueDate() == null ? "" : itemInfo.getDueDate();
+				if (dueDate.length() == 0 || dueDate.trim().equals("-  -")) {
+					return "On Shelf";
+				} else {
+					return "Checked Out";
+				}
+			} else {
+				return translateValue("item_status", statusCode, identifier);
+			}
 		}
 	}
 
 	protected abstract boolean loanRulesAreBasedOnCheckoutLocation();
 
 	protected void setDetailedStatus(ItemInfo itemInfo, DataField itemField, String itemStatus, String identifier) {
-		if (itemStatus.equals("-") && !(itemInfo.getDueDate().length() == 0 || itemInfo.getDueDate().trim().equals("-  -"))){
-			itemInfo.setDetailedStatus("Due " + getDisplayDueDate(itemInfo.getDueDate(), identifier));
+		//See if we need to override based on the last check in date
+		String overriddenStatus = getOverriddenStatus(itemInfo, false);
+		if (overriddenStatus != null) {
+			itemInfo.setDetailedStatus(overriddenStatus);
 		}else {
-			itemInfo.setDetailedStatus(translateValue("item_status", itemStatus, identifier));
+			if (itemStatus.equals("-") && !(itemInfo.getDueDate().length() == 0 || itemInfo.getDueDate().trim().equals("-  -"))) {
+				itemInfo.setDetailedStatus("Due " + getDisplayDueDate(itemInfo.getDueDate(), identifier));
+			} else {
+				itemInfo.setDetailedStatus(translateValue("item_status", itemStatus, identifier));
+			}
 		}
 	}
 

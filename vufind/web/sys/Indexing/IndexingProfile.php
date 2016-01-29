@@ -9,6 +9,7 @@
  */
 
 require_once ROOT_DIR . '/sys/Indexing/TranslationMap.php';
+require_once ROOT_DIR . '/sys/Indexing/TimeToReshelve.php';
 class IndexingProfile extends DB_DataObject{
 	public $__table = 'indexing_profiles';    // table name
 
@@ -152,6 +153,20 @@ class IndexingProfile extends DB_DataObject{
 				'canEdit' => true,
 			),
 
+				'timeToReshelve' => array(
+						'property' => 'timeToReshelve',
+						'type'=> 'oneToMany',
+						'label' => 'Time to Reshelve',
+						'description' => 'Overrides for time to reshelve.',
+						'keyThis' => 'id',
+						'keyOther' => 'indexingProfileId',
+						'subObjectType' => 'TimeToReshelve',
+						'structure' => TimeToReshelve::getObjectStructure(),
+						'sortable' => true,
+						'storeDb' => true,
+						'allowEdit' => true,
+						'canEdit' => false,
+				),
 		);
 		return $structure;
 	}
@@ -170,6 +185,19 @@ class IndexingProfile extends DB_DataObject{
 				}
 			}
 			return $this->translationMaps;
+		}else if ($name == "timeToReshelve") {
+			if (!isset($this->timeToReshelve)){
+				//Get the list of translation maps
+				$this->timeToReshelve = array();
+				$timeToReshelve = new TimeToReshelve();
+				$timeToReshelve->indexingProfileId = $this->id;
+				$timeToReshelve->orderBy('weight ASC');
+				$timeToReshelve->find();
+				while($timeToReshelve->fetch()){
+					$this->timeToReshelve[$timeToReshelve->id] = clone($timeToReshelve);
+				}
+			}
+			return $this->timeToReshelve;
 		}
 		return null;
 	}
@@ -177,6 +205,8 @@ class IndexingProfile extends DB_DataObject{
 	public function __set($name, $value){
 		if ($name == "translationMaps") {
 			$this->translationMaps = $value;
+		}else if ($name == "timeToReshelve") {
+			$this->timeToReshelve = $value;
 		}
 	}
 
@@ -191,6 +221,7 @@ class IndexingProfile extends DB_DataObject{
 			return $ret;
 		}else{
 			$this->saveTranslationMaps();
+			$this->saveTimeToReshelve();
 		}
 		/** @var Memcache $memCache */
 		global $memCache;
@@ -210,6 +241,7 @@ class IndexingProfile extends DB_DataObject{
 			return $ret;
 		}else{
 			$this->saveTranslationMaps();
+			$this->saveTimeToReshelve();
 		}
 		/** @var Memcache $memCache */
 		global $memCache;
@@ -234,6 +266,25 @@ class IndexingProfile extends DB_DataObject{
 			}
 			//Clear the translation maps so they are reloaded the next time
 			unset($this->translationMaps);
+		}
+	}
+
+	public function saveTimeToReshelve(){
+		if (isset ($this->timeToReshelve)){
+			foreach ($this->timeToReshelve as $timeToReshelve){
+				if (isset($timeToReshelve->deleteOnSave) && $timeToReshelve->deleteOnSave == true){
+					$timeToReshelve->delete();
+				}else{
+					if (isset($timeToReshelve->id) && is_numeric($timeToReshelve->id)){
+						$timeToReshelve->update();
+					}else{
+						$timeToReshelve->indexingProfileId = $this->id;
+						$timeToReshelve->insert();
+					}
+				}
+			}
+			//Clear the translation maps so they are reloaded the next time
+			unset($this->timeToReshelve);
 		}
 	}
 
