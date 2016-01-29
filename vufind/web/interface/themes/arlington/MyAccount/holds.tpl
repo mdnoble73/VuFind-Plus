@@ -9,14 +9,14 @@
 		{include file="MyAccount/availableHoldsNotice.tpl" noLink=1}
 
 		{* Check to see if there is data for the section *}
-		<div class="holdSectionBody">
+		<p class="holdSectionBody">
 			{if $libraryHoursMessage}
 				<div class="libraryHours alert alert-success">{$libraryHoursMessage}</div>
 			{/if}
 
-			<div class="alert alert-info">
+			<p>
 				{translate text="Items on hold includes titles in Overdrive."}
-			</div>
+			</p>
 
 			{foreach from=$recordList item=sectionData key=sectionKey}
 				<h3>{if $sectionKey == 'available'}Holds Ready For Pickup{else}Pending Holds{/if}</h3>

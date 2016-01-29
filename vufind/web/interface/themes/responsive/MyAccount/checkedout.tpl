@@ -10,9 +10,9 @@
 
 		<h2>{translate text='Checked Out Titles'}</h2>
 
-		<div class="alert alert-info">
+		<p>
 			{translate text="Checked out items includes titles in Overdrive."}
-		</div>
+		</p>
 
 		{if $libraryHoursMessage}
 			<div class="libraryHours alert alert-success">{$libraryHoursMessage}</div>
