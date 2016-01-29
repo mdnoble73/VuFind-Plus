@@ -81,6 +81,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 	private HashMap<String, Integer> numberOfHoldsByIdentifier = new HashMap<>();
 
 	protected HashMap<String, TranslationMap> translationMaps = new HashMap<>();
+	protected ArrayList<TimeToReshelve> timesToReshelve = new ArrayList<>();
 
 	public IlsRecordProcessor(GroupedWorkIndexer indexer, Connection vufindConn, Ini configIni, ResultSet indexingProfileRS, Logger logger, boolean fullReindex) {
 		super(indexer, logger);
@@ -182,11 +183,26 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 			loadHoldsByIdentifier(vufindConn, logger);
 
 			loadTranslationMapsForProfile(vufindConn, indexingProfileRS.getLong("id"));
+
+			loadTimeToReshelve(vufindConn, indexingProfileRS.getLong("id"));
 		}catch (Exception e){
 			logger.error("Error loading indexing profile information from database", e);
 		}
 	}
 
+	private void loadTimeToReshelve(Connection vufindConn, long id) throws SQLException{
+		PreparedStatement getTimesToReshelveStmt = vufindConn.prepareStatement("SELECT * from time_to_reshelve WHERE indexingProfileId = ? ORDER by weight");
+		getTimesToReshelveStmt.setLong(1, id);
+		ResultSet timesToReshelveRS = getTimesToReshelveStmt.executeQuery();
+		while (timesToReshelveRS.next()){
+			TimeToReshelve timeToReshelve = new TimeToReshelve();
+			timeToReshelve.setLocations(timesToReshelveRS.getString("locations"));
+			timeToReshelve.setNumHoursToOverride(timesToReshelveRS.getLong("numHoursToOverride"));
+			timeToReshelve.setStatus(timesToReshelveRS.getString("status"));
+			timeToReshelve.setGroupedStatus(timesToReshelveRS.getString("groupedStatus"));
+			timesToReshelve.add(timeToReshelve);
+		}
+	}
 	private void loadTranslationMapsForProfile(Connection vufindConn, long id) throws SQLException{
 		PreparedStatement getTranslationMapsStmt = vufindConn.prepareStatement("SELECT * from translation_maps WHERE indexingProfileId = ?");
 		PreparedStatement getTranslationMapValuesStmt = vufindConn.prepareStatement("SELECT * from translation_map_values WHERE translationMapId = ?");
@@ -687,12 +703,6 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 
 		itemInfo.setCollection(translateValue("collection", getItemSubfieldData(collectionSubfield, itemField), recordInfo.getRecordIdentifier()));
 
-		//set status towards the end so we can access date added and other things that may need to
-		itemInfo.setStatusCode(itemStatus);
-		if (itemStatus != null) {
-			setDetailedStatus(itemInfo, itemField, itemStatus, recordInfo.getRecordIdentifier());
-		}
-
 		if (lastCheckInFormatter != null) {
 			String lastCheckInDate = getItemSubfieldData(lastCheckInSubfield, itemField);
 			Date lastCheckIn = null;
@@ -703,6 +713,12 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 					logger.debug("Could not parse check in date " + lastCheckInDate, e);
 				}
 			itemInfo.setLastCheckinDate(lastCheckIn);
+		}
+
+		//set status towards the end so we can access date added and other things that may need to
+		itemInfo.setStatusCode(itemStatus);
+		if (itemStatus != null) {
+			setDetailedStatus(itemInfo, itemField, itemStatus, recordInfo.getRecordIdentifier());
 		}
 
 		if (formatSource.equals("item") && formatSubfield != ' '){
@@ -767,15 +783,51 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 	}
 
 	protected void setDetailedStatus(ItemInfo itemInfo, DataField itemField, String itemStatus, String identifier) {
-		itemInfo.setDetailedStatus(translateValue("item_status", itemStatus, identifier));
+		//See if we need to override based on the last check in date
+		String overriddenStatus = getOverriddenStatus(itemInfo, false);
+		if (overriddenStatus != null) {
+			itemInfo.setDetailedStatus(overriddenStatus);
+		}else {
+			itemInfo.setDetailedStatus(translateValue("item_status", itemStatus, identifier));
+		}
+	}
+
+	protected String getOverriddenStatus(ItemInfo itemInfo, boolean groupedStatus) {
+		String overriddenStatus = null;
+		if (itemInfo.getLastCheckinDate() != null) {
+			for (TimeToReshelve timeToReshelve : timesToReshelve) {
+				if (timeToReshelve.getLocationsPattern().matcher(itemInfo.getLocationCode()).matches()) {
+					long now = new Date().getTime();
+					if (now - itemInfo.getLastCheckinDate().getTime() <= timeToReshelve.getNumHoursToOverride() * 60 * 60 * 1000) {
+						if (groupedStatus){
+							overriddenStatus = timeToReshelve.getGroupedStatus();
+						} else{
+							overriddenStatus = timeToReshelve.getStatus();
+						}
+						break;
+					}
+				}
+			}
+		}
+		return overriddenStatus;
 	}
 
 	protected String getDisplayGroupedStatus(ItemInfo itemInfo, String identifier) {
-		return translateValue("item_grouped_status", itemInfo.getStatusCode(), identifier);
+		String overriddenStatus = getOverriddenStatus(itemInfo, true);
+		if (overriddenStatus != null) {
+			return overriddenStatus;
+		}else {
+			return translateValue("item_grouped_status", itemInfo.getStatusCode(), identifier);
+		}
 	}
 
 	protected String getDisplayStatus(ItemInfo itemInfo, String identifier) {
-		return translateValue("item_status", itemInfo.getStatusCode(), identifier);
+		String overriddenStatus = getOverriddenStatus(itemInfo, false);
+		if (overriddenStatus != null) {
+			return overriddenStatus;
+		}else {
+			return translateValue("item_status", itemInfo.getStatusCode(), identifier);
+		}
 	}
 
 	protected double getItemPopularity(DataField itemField) {
