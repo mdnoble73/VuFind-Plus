@@ -66,6 +66,5 @@
 # Logwatch #
 ############
 # email the daily log report
-* 4 * * * cd /usr/sbin; ./logwatch --mailto root@marmot.org
-
-
+# logwatch runs on it's own schedule so an explicit call to logwatch in cron is not needed.
+#00 4 * * * cd /usr/sbin; ./logwatch --mailto root@marmot.org
