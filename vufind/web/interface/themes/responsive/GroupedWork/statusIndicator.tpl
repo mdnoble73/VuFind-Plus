@@ -26,7 +26,7 @@
 {elseif $statusInformation.inLibraryUseOnly}
 	<div class="related-manifestation-shelf-status available">In Library Use Only</div>
 {elseif $statusInformation.available && $statusInformation.hasLocalItem}
-	<div class="related-manifestation-shelf-status availableOther">Checked Out/Available Elsewhere</div>
+	<div class="related-manifestation-shelf-status availableOther">{translate text='Checked Out/Available Elsewhere'}</div>
 {elseif $statusInformation.available}
 	<div class="related-manifestation-shelf-status availableOther">{translate text='Available from another library'}</div>
 {else}
@@ -42,7 +42,7 @@
 		{if $statusInformation.volumeHolds}
 			<br/>
 			{foreach from=$statusInformation.volumeHolds item=volumeHoldInfo}
-				&nbsp;&nbsp;{$volumeHoldInfo.numHolds} waiting for {$volumeHoldInfo.label}<br/>
+				&nbsp;&nbsp;{$volumeHoldInfo.numHolds} waiting for {$volumeHoldInfo.label}<br>
 			{/foreach}
 		{/if}
 		{if $statusInformation.onOrderCopies > 0}

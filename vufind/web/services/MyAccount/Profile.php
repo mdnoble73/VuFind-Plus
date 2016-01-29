@@ -142,7 +142,13 @@ class MyAccount_Profile extends MyAccount
 				$lendingPeriods = $overDriveDriver->getLendingPeriods($user);
 				$interface->assign('overDriveLendingOptions', $lendingPeriods);
 			}*/
-			$interface->assign('overDriveUrl', $configArray['OverDrive']['url']);
+
+//			$interface->assign('overDriveUrl', $configArray['OverDrive']['url']);
+			global $translator;
+			$notice = $translator->translate('overdrive_account_preferences_notice');
+			$notice = str_replace('{OVERDRIVEURL}', $configArray['OverDrive']['url'], $notice); // Insert the Overdrive URL into the notice
+			$interface->assign('overdrivePreferencesNotice', $notice);
+
 
 			if (!empty($_SESSION['profileUpdateErrors'])) {
 				$interface->assign('profileUpdateErrors', $_SESSION['profileUpdateErrors']);

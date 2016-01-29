@@ -25,8 +25,11 @@
 						{translate text="available hold summary"}
 						{*These titles have arrived at the library or are available online for you to use.*}
 					{else}
-						{translate text="These titles are currently checked out to other patrons."}  We will notify you{if not $notification_method or $notification_method eq 'Unknown'}{else} via {$notification_method}{/if} when a title is available.
+						{*{translate text="These titles are currently checked out to other patrons."}  We will notify you{if not $notification_method or $notification_method eq 'Unknown'}{else} via {$notification_method}{/if} when a title is available.*}
 						{* Only show the notification method when it is known and set *}
+
+						{* Arlington Custom Text *}
+						These holds are not ready, and we will send notification once they become available. <a href="http://library.arlingtonva.us/services/accounts-and-borrowing/holds">Learn about freezing holds.</a>  
 					{/if}
 				</p>
 				{if is_array($recordList.$sectionKey) && count($recordList.$sectionKey) > 0}
