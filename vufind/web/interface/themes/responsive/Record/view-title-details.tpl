@@ -16,7 +16,7 @@
 		<div class="row">
 			<div class="result-label col-sm-4">Author: </div>
 			<div class="col-sm-8 result-value">
-				<a href="{$path}/Author/Home?author={$recordDriver->getAuthor()|escape:"url"}">{$recordDriver->getAuthor()|highlight}</a><br/>
+				<a href='{$path}/Author/Home?author="{$recordDriver->getAuthor()|escape:"url"}"'>{$recordDriver->getAuthor()|highlight}</a><br/>
 			</div>
 		</div>
 	{/if}
@@ -33,7 +33,7 @@
 						{*create hidden div*}
 						<div id="additionalContributors" style="display:none">
 					{/if}
-					<a href="{$path}/Author/Home?author={$contributor.name|trim|escape:"url"}">{$contributor.name|escape}</a>
+					<a href='{$path}/Author/Home?author="{$contributor.name|trim|escape:"url"}"'>{$contributor.name|escape}</a>
 					{if $contributor.role}
 						&nbsp;{$contributor.role}
 					{/if}

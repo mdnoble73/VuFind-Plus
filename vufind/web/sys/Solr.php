@@ -1384,6 +1384,8 @@ class Solr implements IndexEngine {
 		if (preg_match('/\\".+?\\"/',$query)){
 			if ($handler == 'Keyword'){
 				$handler = 'KeywordProper';
+			}else if ($handler == 'Author'){
+				$handler = 'AuthorProper';
 			}else if ($handler == 'Subject'){
 				$handler = 'SubjectProper';
 			}else if ($handler == 'AllFields'){

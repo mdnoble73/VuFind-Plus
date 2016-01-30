@@ -571,7 +571,7 @@ class Novelist3{
 			$authors[] = array(
 				'name' => $item->full_name,
 				'reason' => $item->reason,
-				'link' => '/Author/Home/?author='. urlencode($item->full_name),
+				'link' => '/Author/Home/?author="'. urlencode($item->full_name) . '"',
 			);
 		}
 		$enrichment->authors = $authors;

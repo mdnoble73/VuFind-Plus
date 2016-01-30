@@ -142,6 +142,17 @@ Author:
       - [onephrase, 100]
       - [and, 50]
 
+AuthorProper:
+  QueryFields:
+    - author_exact:
+      - [exact, 2200]
+    - author_left:
+      - [exact, 1400]
+    - auth_author:
+      - [onephrase, 350]
+    - auth_author2:
+      - [onephrase, 100]
+
 ISN:
   DismaxFields:
     - isbn
@@ -418,7 +429,7 @@ KeywordProper:
   DismaxFields:
     - title_proper^850
     - series_proper^100
-    - author^300
+    - auth_author^300
     - table_of_contents^10
     - topic_proper^500
     - geographic_proper^300
@@ -441,14 +452,15 @@ KeywordProper:
     - author_exact:
       - [localized_callnumber, 2200]
     - author_left:
-      - [localized_callnumber, 1400]
+      - [localized_callnumber, 1000]
     title_proper:
       - [onephrase, 850]
     series_proper:
       - [and, 50]
-    author:
+    auth_author:
       - [onephrase, 300]
-      - [and, 250]
+    auth_author2:
+      - [onephrase, 300]
     table_of_contents:
       - [and, 10]
     topic_proper:

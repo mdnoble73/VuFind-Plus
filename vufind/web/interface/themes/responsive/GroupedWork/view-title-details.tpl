@@ -11,7 +11,7 @@
 				{*create hidden div*}
 				<div id="additionalContributors" style="display:none">
 					{/if}
-					<a href="{$path}/Author/Home?author={$contributor.name|trim|escape:"url"}">{$contributor.name|escape}</a>
+					<a href='{$path}/Author/Home?author="{$contributor.name|trim|escape:"url"}"'>{$contributor.name|escape}</a>
 					{if $contributor.role}
 						&nbsp;{$contributor.role}
 					{/if}

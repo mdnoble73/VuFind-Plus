@@ -79,6 +79,7 @@ class Author_Home extends Action
 		if (!$interface->is_cached('layout.tpl|Author' . $_GET['author'])) {
 			// Clean up author string
 			$author = $_GET['author'];
+			$author = trim(str_replace('"', '', $author));
 			if (substr($author, strlen($author) - 1, 1) == ",") {
 				$author = substr($author, 0, strlen($author) - 1);
 			}

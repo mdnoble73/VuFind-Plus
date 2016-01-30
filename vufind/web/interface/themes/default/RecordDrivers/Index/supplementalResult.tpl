@@ -23,10 +23,10 @@
 				{translate text='by'}
 				{if is_array($summAuthor)}
 					{foreach from=$summAuthor item=author}
-						<a href="{$path}/Author/Home?author={$author|escape:"url"}&amp;searchSource=marmot">{$author|highlight}</a>
+						<a href='{$path}/Author/Home?author="{$author|escape:"url"}&amp;searchSource=marmot"'>{$author|highlight}</a>
 					{/foreach}
 				{else}
-					<a href="{$path}/Author/Home?author={$summAuthor|escape:"url"}&amp;searchSource=marmot">{$summAuthor|highlight}</a>
+					<a href='{$path}/Author/Home?author="{$summAuthor|escape:"url"}&amp;searchSource=marmot"'>{$summAuthor|highlight}</a>
 				{/if}
 			{/if}
 
