@@ -1363,9 +1363,11 @@ class GroupedWorkDriver extends RecordInterface{
 				'currently unavailable' => 1,
 				'on order' => 2,
 				'coming soon' => 3,
+				'in processing' => 3.5,
 				'checked out' => 4,
 				'library use only' => 5,
 				'available online' => 6,
+				'in transit' => 6.5,
 				'on shelf' => 7
 			);
 			if (isset($curRecord['groupedStatus']) && $curRecord['groupedStatus'] != ''){
@@ -2058,19 +2060,23 @@ class GroupedWorkDriver extends RecordInterface{
 		'Currently Unavailable' => 1,
 		'On Order' => 2,
 		'Coming Soon' => 3,
+		'In Processing' => 3.5,
 		'Checked Out' => 4,
 		'Library Use Only' => 5,
 		'Available Online' => 6,
+		'In Transit' => 6.5,
 		'On Shelf' => 7
 	);
 	public static function keepBestGroupedStatus($groupedStatus, $groupedStatus1) {
-		$ranking1 = 1;
 		if (isset(GroupedWorkDriver::$statusRankings[$groupedStatus])){
 			$ranking1 = GroupedWorkDriver::$statusRankings[$groupedStatus];
+		}else{
+			$ranking1 = 1.5;
 		}
-		$ranking2 = 1;
 		if (isset(GroupedWorkDriver::$statusRankings[$groupedStatus1])){
 			$ranking2 = GroupedWorkDriver::$statusRankings[$groupedStatus1];
+		}else{
+			$ranking2 = 1.5;
 		}
 		if ($ranking1 > $ranking2){
 			return $groupedStatus;
