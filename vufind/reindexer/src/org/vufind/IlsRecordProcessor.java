@@ -446,6 +446,9 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		itemInfo.setCallNumber("ON ORDER");
 		itemInfo.setSortableCallNumber("ON ORDER");
 		itemInfo.setDetailedStatus("On Order");
+		Date tomorrow = new Date();
+		tomorrow.setTime(tomorrow.getTime() + 1000 * 60 * 60 * 24);
+		itemInfo.setDateAdded(tomorrow);
 		//Format and Format Category should be set at the record level, so we don't need to set them here.
 
 
