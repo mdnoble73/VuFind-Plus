@@ -82,7 +82,7 @@
 			return false;
 		}
 	</script>
-{/literal*
+{/literal}
 
 {literal}
 <script type="text/javascript">
