@@ -14,12 +14,6 @@
 						</a>
 					{/if}
 
-					{if $summDescription}
-					<div class="visible-xs">
-						<button class="view-xs-button btn btn-info btn-sm btn-block" onclick="VuFind.showElementInPopup('Description', '#descriptionValue{$summId|escape}')">Description</button>
-					</div>
-					{/if}
-
 					{if $showRatings}
 						{include file="GroupedWork/title-rating.tpl" ratingClass="" id=$summId ratingData=$summRating}
 					{/if}
@@ -46,8 +40,8 @@
 
 				{if $summAuthor}
 					<div class="row">
-						<div class="result-label col-xs-3">Author: </div>
-						<div class="result-value col-xs-9 notranslate">
+						<div class="result-label col-tn-3 col-xs-3">Author: </div>
+						<div class="result-value col-tn-9 col-xs-9 notranslate">
 							{if is_array($summAuthor)}
 								{foreach from=$summAuthor item=author}
 									<a href='{$path}/Author/Home?author="{$author|escape:"url"}"'>{$author|highlight}</a>
@@ -62,8 +56,8 @@
 				{assign var=indexedSeries value=$recordDriver->getIndexedSeries()}
 				{if $summSeries || $indexedSeries}
 					<div class="series{$summISBN} row">
-						<div class="result-label col-xs-3">Series: </div>
-						<div class="result-value col-xs-9">
+						<div class="result-label col-tn-3 col-xs-3">Series: </div>
+						<div class="result-value col-tn-9 col-xs-9">
 							{if $summSeries}
 								<a href="{$path}/GroupedWork/{$summId}/Series">{$summSeries.seriesTitle}</a>{if $summSeries.volume} volume {$summSeries.volume}{/if}<br>
 							{/if}
@@ -88,8 +82,8 @@
 
 				{if $summEdition}
 					<div class="row">
-						<div class="result-label col-xs-3">Edition: </div>
-						<div class="result-value col-xs-9">
+						<div class="result-label col-tn-3 col-xs-3">Edition: </div>
+						<div class="result-value col-tn-9 col-xs-9">
 							{$summEdition}
 						</div>
 					</div>
@@ -97,8 +91,8 @@
 
 				{if $summPublisher}
 					<div class="row">
-						<div class="result-label col-xs-3">Publisher: </div>
-						<div class="result-value col-xs-9">
+						<div class="result-label col-tn-3 col-xs-3">Publisher: </div>
+						<div class="result-value col-tn-9 col-xs-9">
 							{$summPublisher}
 						</div>
 					</div>
@@ -106,8 +100,8 @@
 
 				{if $summPubDate}
 					<div class="row">
-						<div class="result-label col-xs-3">Pub. Date: </div>
-						<div class="result-value col-xs-9">
+						<div class="result-label col-tn-3 col-xs-3">Pub. Date: </div>
+						<div class="result-value col-tn-9 col-xs-9">
 							{$summPubDate|escape}
 						</div>
 					</div>
@@ -115,8 +109,8 @@
 
 				{if $summLanguage}
 					<div class="row">
-						<div class="result-label col-xs-3">Language: </div>
-						<div class="result-value col-xs-9">
+						<div class="result-label col-tn-3 col-xs-3">Language: </div>
+						<div class="result-value col-tn-9 col-xs-9">
 							{if is_array($summLanguage)}
 								{', '|implode:$summLanguage}
 							{else}
@@ -129,8 +123,8 @@
 				{if $summSnippets}
 					{foreach from=$summSnippets item=snippet}
 						<div class="row">
-							<div class="result-label col-xs-3">{translate text=$snippet.caption}: </div>
-							<div class="result-value col-xs-9">
+							<div class="result-label col-tn-3 col-xs-3">{translate text=$snippet.caption}: </div>
+							<div class="result-value col-tn-9 col-xs-9">
 								{if !empty($snippet.snippet)}<span class="quotestart">&#8220;</span>...{$snippet.snippet|highlight}...<span class="quoteend">&#8221;</span><br>{/if}
 							</div>
 						</div>
@@ -152,10 +146,10 @@
 					{* If there weren't hidden formats, show this short Entry (mobile view only). The exception is single format manifestations, they
 					   won't have any hidden formats and will be displayed *}
 					{if !$hasHiddenFormats && count($relatedManifestations) != 1}
-						<div class="hidethisdiv{$summId|escape} result-label col-xs-3">
-							Formats
+						<div class="hidethisdiv{$summId|escape} result-label col-tn-3 col-xs-3">
+							Formats:
 						</div>
-						<div class="hidethisdiv{$summId|escape} result-value col-xs-9">
+						<div class="hidethisdiv{$summId|escape} result-value col-tn-9 col-xs-9">
 							<a href="#" onclick="$('#relatedManifestationsValue{$summId|escape},.hidethisdiv{$summId|escape}').toggleClass('hidden-xs');return false;">
 								{implode subject=$relatedManifestations|@array_keys glue=", "}
 							</a>
@@ -175,27 +169,13 @@
 					</div>
 				</div>
 
-				{*<div class="col-xs-9 col-xs-offset-3">*}
-				<div class="col-xs-12">
-					<div class="visible-xs center-block">
-						{if !$hasHiddenFormats && count($relatedManifestations) != 1}
-							<div class="row">
-								<div class="center-block" style="width: 120px;">
-									<button class="hidethisdiv{$summId|escape} view-xs-button btn btn-info btn-sm btn-block" onclick="VuFind.showElementInPopup('Choose Format', '#relatedManifestationsValue{$summId|escape}')">View All Formats</button>
-								</div>
-							</div>
-						{/if}
-
-						{if $summDescription && !$showCovers}
-						<div class="row">
-							<div class="center-block" style="width: 120px;">
-								<button class="view-xs-button btn btn-info btn-sm btn-block" onclick="VuFind.showElementInPopup('Description', '#descriptionValue{$summId|escape}')">Description</button>
-							</div>
-						</div>
-						{/if}
-
+				{* Description Section *}
+				{if $summDescription}
+					<div class="row visible-xs">
+						<div class="result-label col-tn-3 col-xs-3">Description:</div>
+						<div class="result-value col-tn-9 col-xs-9"><a id="descriptionLink{$summId|escape}" href="#" onclick="$('#descriptionValue{$summId|escape},#descriptionLink{$summId|escape}').toggleClass('hidden-xs');return false;">Click to view</a></div>
 					</div>
-				</div>
+				{/if}
 
 				{* Description Section *}
 				{if $summDescription}
@@ -219,29 +199,6 @@
 
 		</div>
 
-{*
-		<div class="resultActions row">
-			<div class="col-xs-12 col-md-9 col-md-offset-3 col-lg-10 col-lg-offset-2">
-
-				*}
-{* Mobile buttons *}{*
-
-				<div class="visible-xs">
-					{if !$hasHiddenFormats && count($relatedManifestations) != 1}
-						<button class="view-xs-button btn btn-info btn-xs" onclick="VuFind.showElementInPopup('Formats', '#relatedManifestationsValue{$summId|escape}')">Formats</button>
-					{/if}
-
-						<button class="view-xs-button btn btn-info btn-xs" onclick="VuFind.showElementInPopup('Description', '#descriptionValue{$summId|escape}')">Description</button>
-				</div>
-
-			{include file='GroupedWork/result-tools-horizontal.tpl' id=$summId shortId=$shortId ratingData=$summRating recordUrl=$summUrl}
-			*}
-{* TODO: id & shortId shouldn't be needed to be specified here, otherwise need to note when used.
-			  summTitle only used by cart div, which is disabled as of now. 12-28-2015 plb *}{*
-
-			</div>
-		</div>
-*}
 
 		{if $summCOinS}<span class="Z3988" title="{$summCOinS|escape}" style="display:none">&nbsp;</span>{/if}
 	</div>
