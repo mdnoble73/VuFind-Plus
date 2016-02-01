@@ -464,11 +464,19 @@ class Search_Results extends Action {
 		//Get data from the repository
 		global $interface;
 		global $configArray;
+		global $library;
+		if (!$library->enableArchive){
+			return;
+		}
 
 		if (isset($configArray['Islandora']) && isset($configArray['Islandora']['solrUrl']) && !empty($_GET['lookfor']) && !is_array($_GET['lookfor'])){
+			require_once ROOT_DIR . '/sys/Utils/FedoraUtils.php';
+			$fedoraUtils = FedoraUtils::getInstance();
+
 			/** @var SearchObject_Islandora $searchObject */
 			$searchObject = SearchObjectFactory::initSearchObject('Islandora');
 			$searchObject->init();
+			$searchObject->setDebugging(false, false);
 			$searchObject->setSearchTerms(array(
 					'lookfor' => $_REQUEST['lookfor'],
 					'index' => 'IslandoraKeyword'
@@ -476,76 +484,141 @@ class Search_Results extends Action {
 
 			$exploreMoreOptions = array();
 
-			//Get a list of projects related to this search term
-			$searchObject->clearHiddenFilters();
-			$searchObject->addHiddenFilter('!RELS_EXT_isViewableByRole_literal_ms', "admin");
-			$searchObject->addHiddenFilter('RELS_EXT_hasModel_uri_s', '*collectionCModel');
-			$response = $searchObject->processSearch(true, false);
-			if ($response && $response['response']['numFound'] > 0) {
-				foreach ($response['response']['docs'] as $solrDoc) {
-					/** @var RecordInterface $object */
-					$object = RecordDriverFactory::initRecordDriver($solrDoc);
-					$exploreMoreOptions[] = array(
-							'title' => $object->getTitle(),
-							'description' => $object->getDescription(),
-							'thumbnail' => $object->getBookcoverUrl('small'),
-							'link' => $object->getLinkUrl(),
-					);
-				}
-			}
-
-			//TODO: Add additional content models to this display
-			//TODO: Check to see if this can be done with a single query using facets rather than multiple queries
-			$searchObject->init();
+			//Get a list of objects in the archive related to this search
 			$searchObject->clearHiddenFilters();
 			$searchObject->addHiddenFilter('!RELS_EXT_isViewableByRole_literal_ms', "admin");
 			$searchObject->clearFilters();
-			$searchObject->addFilter('RELS_EXT_hasModel_uri_s:info:fedora/islandora:sp_large_image_cmodel');
+			$searchObject->addFacet('RELS_EXT_hasModel_uri_s', 'Format');
+			$searchObject->addFacet('RELS_EXT_isMemberOfCollection_uri_ms', 'Collection');
+			$searchObject->addFacet('mods_extension_marmotLocal_relatedEntity_person_entityPid_ms', 'People');
+			$searchObject->addFacet('mods_extension_marmotLocal_relatedEntity_place_entityPid_ms', 'Places');
+			$searchObject->addFacet('mods_extension_marmotLocal_relatedEntity_event_entityPid_ms', 'Events');
+
 			$response = $searchObject->processSearch(true, false);
 			if ($response && $response['response']['numFound'] > 0) {
-				$firstObject = reset($response['response']['docs']);
-				/** @var IslandoraDriver $firstObjectDriver */
-				$firstObjectDriver = RecordDriverFactory::initRecordDriver($firstObject);
-				$numMatches = $response['response']['numFound'];
-				if ($numMatches == 1){
-					$exploreMoreOptions[] = array(
-							'title' => "Images ({$numMatches})",
-							'description' => "Images related to {$searchObject->getQuery()}",
-							'thumbnail' => $firstObjectDriver->getBookcoverUrl('medium'),
-							'link' => $firstObjectDriver->getRecordUrl(),
-					);
-				}else{
-					$exploreMoreOptions[] = array(
-							'title' => "Images ({$numMatches})",
-							'description' => "Images related to {$searchObject->getQuery()}",
-							'thumbnail' => $firstObjectDriver->getBookcoverUrl('medium'),
-							'link' => $searchObject->renderSearchUrl(),
-					);
+				//Using the facets, look for related entities
+				foreach ($response['facet_counts']['facet_fields']['RELS_EXT_isMemberOfCollection_uri_ms'] as $collectionInfo){
+					//TODO: skip collections we don't care about
+					$archiveObject = $fedoraUtils->getObject($collectionInfo[0]);
+					if ($archiveObject != null){
+						$exploreMoreOptions[] = array(
+								'title' => $archiveObject->label,
+								'description' => $archiveObject->label,
+								'thumbnail' => $fedoraUtils->getObjectImageUrl($archiveObject, 'small'),
+								'link' => $configArray['Site']['path'] . "/Archive/{$archiveObject->id}/Exhibit",
+								'usageCount' => $collectionInfo[1]
+						);
+					}
+				}
+
+				foreach ($response['facet_counts']['facet_fields']['RELS_EXT_hasModel_uri_s'] as $relatedContentType){
+					if ($relatedContentType[0] != 'info:fedora/islandora:collectionCModel' &&
+							$relatedContentType[0] != 'info:fedora/islandora:personCModel' &&
+							$relatedContentType[0] != 'info:fedora/islandora:placeCModel' &&
+							$relatedContentType[0] != 'info:fedora/islandora:eventCModel'){
+
+						/** @var SearchObject_Islandora $searchObject2 */
+						$searchObject2 = SearchObjectFactory::initSearchObject('Islandora');
+						$searchObject2->init();
+						$searchObject2->setDebugging(false, false);
+						$searchObject2->setSearchTerms(array(
+								'lookfor' => $_REQUEST['lookfor'],
+								'index' => 'IslandoraKeyword'
+						));
+						$searchObject2->clearHiddenFilters();
+						$searchObject2->addHiddenFilter('!RELS_EXT_isViewableByRole_literal_ms', "admin");
+						$searchObject2->clearFilters();
+						$searchObject2->addFilter("RELS_EXT_hasModel_uri_s:{$relatedContentType[0]}");
+						$response2 = $searchObject2->processSearch(true, false);
+						if ($response2 && $response2['response']['numFound'] > 0) {
+							$firstObject = reset($response2['response']['docs']);
+							/** @var IslandoraDriver $firstObjectDriver */
+							$firstObjectDriver = RecordDriverFactory::initRecordDriver($firstObject);
+							$numMatches = $response2['response']['numFound'];
+							$contentType = translate($relatedContentType[0]);
+							if ($numMatches == 1) {
+								$exploreMoreOptions[] = array(
+										'title' => "{$contentType}s ({$numMatches})",
+										'description' => "{$contentType}s related to {$searchObject2->getQuery()}",
+										'thumbnail' => $firstObjectDriver->getBookcoverUrl('medium'),
+										'link' => $firstObjectDriver->getRecordUrl(),
+								);
+							} else {
+								$exploreMoreOptions[] = array(
+										'title' => "{$contentType}s ({$numMatches})",
+										'description' => "{$contentType}s related to {$searchObject2->getQuery()}",
+										'thumbnail' => $firstObjectDriver->getBookcoverUrl('medium'),
+										'link' => $searchObject2->renderSearchUrl(),
+								);
+							}
+						}
+					}
+				}
+
+				if (isset($response['facet_counts']['facet_fields']['mods_extension_marmotLocal_relatedEntity_person_entityPid_ms'])){
+					$personInfo = reset($response['facet_counts']['facet_fields']['mods_extension_marmotLocal_relatedEntity_person_entityPid_ms']);
+					$numPeople = count($response['facet_counts']['facet_fields']['mods_extension_marmotLocal_relatedEntity_person_entityPid_ms']);
+					if ($numPeople == 100){
+						$numPeople = '100+';
+					}
+					$archiveObject = $fedoraUtils->getObject($personInfo[0]);
+					$searchObject->clearFilters();
+					$searchObject->addFilter('RELS_EXT_hasModel_uri_s:info:fedora/islandora:personCModel');
+					if ($archiveObject != null){
+						$exploreMoreOptions[] = array(
+								'title' => "People (" . $numPeople . ")",
+								'description' => "People related to {$searchObject->getQuery()}",
+								'thumbnail' => $fedoraUtils->getObjectImageUrl($archiveObject, 'small', 'personCModel'),
+								'link' => $searchObject->renderSearchUrl(),
+								'usageCount' => $numPeople
+						);
+					}
+				}
+				if (isset($response['facet_counts']['facet_fields']['mods_extension_marmotLocal_relatedEntity_place_entityPid_ms'])){
+					$placeInfo = reset($response['facet_counts']['facet_fields']['mods_extension_marmotLocal_relatedEntity_place_entityPid_ms']);
+					$numPlaces = count($response['facet_counts']['facet_fields']['mods_extension_marmotLocal_relatedEntity_place_entityPid_ms']);
+					if ($numPlaces == 100){
+						$numPlaces = '100+';
+					}
+					$archiveObject = $fedoraUtils->getObject($placeInfo[0]);
+					$searchObject->clearFilters();
+					$searchObject->addFilter('RELS_EXT_hasModel_uri_s:info:fedora/islandora:placeCModel');
+					if ($archiveObject != null){
+						$exploreMoreOptions[] = array(
+								'title' => "Places (" . $numPeople . ")",
+								'description' => "Places related to {$searchObject->getQuery()}",
+								'thumbnail' => $fedoraUtils->getObjectImageUrl($archiveObject, 'small', 'placeCModel'),
+								'link' => $searchObject->renderSearchUrl(),
+								'usageCount' => $numPeople
+						);
+					}
+				}
+				if (isset($response['facet_counts']['facet_fields']['mods_extension_marmotLocal_relatedEntity_event_entityPid_ms'])){
+					$eventInfo = reset($response['facet_counts']['facet_fields']['mods_extension_marmotLocal_relatedEntity_event_entityPid_ms']);
+					$numEvents = count($response['facet_counts']['facet_fields']['mods_extension_marmotLocal_relatedEntity_event_entityPid_ms']);
+					if ($numEvents == 100){
+						$numEvents = '100+';
+					}
+					$archiveObject = $fedoraUtils->getObject($eventInfo[0]);
+					$searchObject->clearFilters();
+					$searchObject->addFilter('RELS_EXT_hasModel_uri_s:info:fedora/islandora:eventCModel');
+					if ($archiveObject != null){
+						$exploreMoreOptions[] = array(
+								'title' => "Events (" . $numEvents . ")",
+								'description' => "Places related to {$searchObject->getQuery()}",
+								'thumbnail' => $fedoraUtils->getObjectImageUrl($archiveObject, 'small', 'eventCModel'),
+								'link' => $searchObject->renderSearchUrl(),
+								'usageCount' => $numPeople
+						);
+					}
 				}
 			}
-
-			$searchObject->init();
-			$searchObject->clearHiddenFilters();
-			$searchObject->addHiddenFilter('!RELS_EXT_isViewableByRole_literal_ms', "admin");
-			$searchObject->clearFilters();
-			$searchObject->addFilter('RELS_EXT_hasModel_uri_s:info:fedora/islandora:personCModel');
-			$response = $searchObject->processSearch(true, false);
-			if ($response && $response['response']['numFound'] > 0) {
-				$firstObject = reset($response['response']['docs']);
-				$firstObjectDriver = RecordDriverFactory::initRecordDriver($firstObject);
-				$numMatches = $response['response']['numFound'];
-				$exploreMoreOptions[] = array(
-						'title' => "People ({$numMatches})",
-						'description' => "People related to {$searchObject->getQuery()}",
-						'thumbnail' => $firstObjectDriver->getBookcoverUrl('medium'),
-						'link' => $searchObject->renderSearchUrl(),
-				);
-			}
-
 			$interface->assign('exploreMoreOptions', $exploreMoreOptions);
 		} else {
 			global $logger;
 			$logger->log('Islandora Search Failed.', PEAR_LOG_WARNING);
 		}
 	}
+
+
 }
