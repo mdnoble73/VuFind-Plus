@@ -74,6 +74,7 @@
 	</div>
 </div>
 {/strip}
+{* TODO: // QUESTION : This doesn't look to be used at all *}
 {literal}
 	<script>
 		function resetPinReset(){

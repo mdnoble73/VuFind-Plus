@@ -177,6 +177,7 @@ class MyAccount_AJAX
 		return $formDefinition;
 	}
 
+	// TODO: Clean-up: No Calls to this method were found. plb 2-1-2016
 	function getPinResetForm(){
 		global $interface;
 		$interface->assign('popupTitle', 'Reset PIN Request');

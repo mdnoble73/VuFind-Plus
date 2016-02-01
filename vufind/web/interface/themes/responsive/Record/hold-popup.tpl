@@ -101,8 +101,8 @@
 						 *}
 					</script>
 				{if $showHoldCancelDate == 1}
-					<div id='cancelHoldDate' class='form-group'>
-						<label class='control-label' for="canceldate">{translate text="Automatically cancel this hold if not filled by"}:</label>
+					<div id="cancelHoldDate" class="form-group">
+						<label class="control-label" for="canceldate">{translate text="Automatically cancel this hold if not filled by"}:</label>
 						<div class="input-group input-append date controls" id="cancelDatePicker">
 							{* TODO: defaultNotNeeded not implemented yet. plb 4-1-2015 *}
 							{* data-provide attribute loads the datepicker through bootstrap data api *}

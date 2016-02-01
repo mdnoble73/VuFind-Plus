@@ -33,7 +33,7 @@ class RequestPinReset extends Action{
 		global $interface;
 
 		if (isset($_REQUEST['submit'])){
-			$this->catalog = CatalogFactory::getCatalogConnectionInstance();;
+			$this->catalog = CatalogFactory::getCatalogConnectionInstance();
 			$driver = $this->catalog->driver;
 			if ($this->catalog->checkFunction('requestPinReset')){
 				$barcode = strip_tags($_REQUEST['barcode']);

@@ -47,12 +47,17 @@
 					|| ($module == 'MyAccount' && $action == 'MyList' && !$listEditAllowed)
 					|| ($module == 'Archive' && $action == 'Results')}
 					{* Treat Public Lists not owned by user as a Search Page rather than an MyAccount Page *}
+				{* Click Search Menu Bar Button *}
 				$('.menu-bar-option:nth-child(1)>a', '#vertical-menu-bar').filter(':visible').click();
-				{elseif $module == "MyAccount" || $module == "Admin" || $module == "Circa" || $module == "EditorialReview" || $module == "Report"}
+				{elseif ($action != 'RequestPinReset' && !$isLoginPage) && ($module == "MyAccount" || $module == "Admin" || $module == "Circa" || $module == "EditorialReview" || $module == "Report")}
+				{* Prevent this action on the Pin Reset Page && Login Page *}
+				{* Click Account Menu Bar Button *}
 				$('.menu-bar-option:nth-child(2)>a', '#vertical-menu-bar').filter(':visible').click();
 				{elseif $module == "Archive"}
+				{* Click Explore More Menu Bar Button *}
 				$('.menu-bar-option:nth-child(4)>a', '#vertical-menu-bar').filter(':visible').click();
 				{else}
+				{* Click Menu - Sidebar Menu Bar Button *}
 				$('.menu-bar-option:nth-child(3)>a', '#vertical-menu-bar').filter(':visible').click();
 				{/if}
 				{rdelim})
