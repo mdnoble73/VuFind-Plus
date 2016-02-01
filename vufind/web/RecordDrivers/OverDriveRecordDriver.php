@@ -1076,10 +1076,15 @@ class OverDriveRecordDriver extends RecordInterface {
 	}
 
 	function getNumHolds(){
-		return 0;
+		$totalHolds = 0;
+		/** @var OverDriveAPIProductAvailability $availabilityInfo */
+		foreach ($this->getAvailability() as $availabilityInfo){
+			$totalHolds += $availabilityInfo->numberOfHolds;
+		}
+		return $totalHolds;
 	}
 
 	function getVolumeHolds($volumeData){
-		return null;
+		return 0;
 	}
 }
