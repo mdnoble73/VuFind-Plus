@@ -2,9 +2,6 @@
  * Created by pbrammeier on 12/16/2015.
  */
 
-// TODO Animate Menu Side Bar
-//$("#slide").animate({width:'toggle'},350);
-
 VuFind.Menu = (function(){
 	$(function(){
 		// Page Initializations
@@ -70,7 +67,11 @@ VuFind.Menu = (function(){
 		},
 
 		hideAll: function(){
-			return $(VuFind.Menu.AllSideBarSelectors).filter(':visible').slideUp() // return of object is needed for $when(VuFind.Menu.hideAll()).done() calls
+			if ($('#horizontal-menu-bar-container').is(':visible')) {
+				return $(VuFind.Menu.AllSideBarSelectors).filter(':visible').slideUp() // return of object is needed for $when(VuFind.Menu.hideAll()).done() calls
+			}else{
+				return $(VuFind.Menu.AllSideBarSelectors).filter(':visible').animate({width:'toggle'},350); // slide left to right
+			}
 		},
 
 		// This version is for hiding content without using an animation.
@@ -104,7 +105,7 @@ VuFind.Menu = (function(){
 						$('.menu-bar-option').removeClass('menu-icon-selected');
 						parent.addClass('menu-icon-selected');
 						VuFind.Menu.openSideBar();
-						$(sectionSelector).slideDown()
+						return $(sectionSelector).animate({width:'toggle'},350); // slide left to right
 					}
 				}
 
@@ -114,11 +115,12 @@ VuFind.Menu = (function(){
 					if ( elem.is('.menu-icon-selected')){
 						elem.removeClass('menu-icon-selected');
 						$(sectionSelector).slideUp();
+						return $(sectionSelector).slideUp() // return of object is needed for $when(VuFind.Menu.hideAll()).done() calls
 
 					}else { // selecting an option
 						$('.menu-icon-selected', '#horizontal-menu-bar-container').removeClass('menu-icon-selected');
 						 elem.addClass('menu-icon-selected');
-						$(sectionSelector).slideDown();
+						$(sectionSelector).slideDown()
 					}
 				}
 			})

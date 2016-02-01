@@ -3,7 +3,7 @@
 	<div class="hidden-xs col-sm-1 col-md-1 col-lg-1" id="vertical-menu-bar-wrapper">
 	<div id="vertical-menu-bar">
 	<div class="menu-bar-option">
-		<a href="#" onclick="VuFind.Menu.showSearch(this)" class="menu-icon" title="Search">
+		<a href="#" onclick="VuFind.Menu.showSearch(this)" class="menu-icon" title="Search" id="vertical-menu-search-button">
 			<img src="{img filename='/interface/themes/responsive/images/Search.png'}" alt="Search">
 			<div class="menu-bar-label">Search</div>
 		</a>
@@ -43,7 +43,9 @@
 		<script type="text/javascript">
 			$(function(){ldelim}
 				{* Only trigger event if the side bar is visible *}
-				{if $module == "Search" || $module == "Series" || $module == "Author" || $module == "Genealogy" || ($module == 'MyAccount' && $action == 'MyList' && !$listEditAllowed)}
+				{if $module == "Search" || $module == "Series" || $module == "Author" || $module == "Genealogy"
+					|| ($module == 'MyAccount' && $action == 'MyList' && !$listEditAllowed)
+					|| ($module == 'Archive' && $action == 'Results')}
 					{* Treat Public Lists not owned by user as a Search Page rather than an MyAccount Page *}
 				$('.menu-bar-option:nth-child(1)>a', '#vertical-menu-bar').filter(':visible').click();
 				{elseif $module == "MyAccount" || $module == "Admin" || $module == "Circa" || $module == "EditorialReview" || $module == "Report"}

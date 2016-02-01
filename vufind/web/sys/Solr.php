@@ -231,6 +231,11 @@ class Solr implements IndexEngine {
 		$timer->logTime('Finish Solr Initialization');
 	}
 
+	public function setDebugging($enableDebug, $enableSolrQueryDebugging) {
+		$this->debug = $enableDebug;
+		$this->debugSolrQuery = $enableDebug && $enableSolrQueryDebugging;
+	}
+
 	private function _loadShards($newShards){
 		// Deal with session-based shard settings:
 		$shards = array();

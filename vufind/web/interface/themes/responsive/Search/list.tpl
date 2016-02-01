@@ -156,11 +156,11 @@
 			{*else VuFind.Searches.displayMode = '{$displayMode}';*}
 			{*{rdelim}*}
 		{*else*}
-		{* Because content is served on the page, have to set the mode that was used, even if the user didn't chose the mode. *}
+		{* Because content is served on the page, have to set the mode that was used, even if the user didn't choose the mode. *}
 			VuFind.Searches.displayMode = '{$displayMode}';
 		{else}
-		VuFind.Searches.displayMode = '{$displayMode}';
-		Globals.opac = 1; {* set to true to keep opac browsers from storing browse mode *}
+			VuFind.Searches.displayMode = '{$displayMode}';
+			Globals.opac = 1; {* set to true to keep opac browsers from storing browse mode *}
 		{/if}
 		$('#'+VuFind.Searches.displayMode).parent('label').addClass('active'); {* show user which one is selected *}
 
