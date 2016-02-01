@@ -24,8 +24,8 @@
 
 			{if $summAuthor}
 				<div class="row">
-					<div class="result-label col-md-3">Author: </div>
-					<div class="result-value col-md-9 notranslate">
+					<div class="result-label col-tn-3 col-xs-3">Author: </div>
+					<div class="result-value col-tn-9 col-xs-9 notranslate">
 						{if is_array($summAuthor)}
 							{foreach from=$summAuthor item=author}
 								<a href='{$path}/Author/Home?author="{$author|escape:"url"}"'>{$author|highlight}</a>
@@ -39,8 +39,8 @@
 
 			{if $summSeries}
 				<div class="series{$summISBN} row">
-					<div class="result-label col-md-3">Series: </div>
-					<div class="result-value col-md-9">
+					<div class="result-label col-xs-3">Series: </div>
+					<div class="result-value col-xs-9">
 						<a href="{$path}/GroupedWork/{$summId}/Series">{$summSeries.seriesTitle}</a>{if $summSeries.volume} volume {$summSeries.volume}{/if}
 					</div>
 				</div>
@@ -55,19 +55,69 @@
 				</div>
 			{/if}
 
-			<div class="row">
-				<div class="result-label col-xs-12 hidden-md hidden-lg">Description: </div>
-				<div class="result-value col-xs-12" id="descriptionValue{$summId|escape}">{$summDescription|truncate_html:450:"..."}</div>
+			{* Short Mobile Entry for Formats when there aren't hidden formats *}
+			<div class="row visible-xs">
+
+				{* TODO: Is this every needed on lists. Don't think formats get hidden *}
+				{* Determine if there were hidden Formats for this entry *}
+				{assign var=hasHiddenFormats value=false}
+				{foreach from=$relatedManifestations item=relatedManifestation}
+					{if $relatedManifestation.hideByDefault}
+						{assign var=hasHiddenFormats value=true}
+					{/if}
+				{/foreach}
+
+				{* If there weren't hidden formats, show this short Entry (mobile view only). The exception is single format manifestations, they
+					 won't have any hidden formats and will be displayed *}
+				{if !$hasHiddenFormats && count($relatedManifestations) != 1}
+					<div class="hidethisdiv{$summId|escape} result-label col-tn-3 col-xs-3">
+						Formats:
+					</div>
+					<div class="hidethisdiv{$summId|escape} result-value col-tn-9 col-xs-9">
+						<a href="#" onclick="$('#relatedManifestationsValue{$summId|escape},.hidethisdiv{$summId|escape}').toggleClass('hidden-xs');return false;">
+							{implode subject=$relatedManifestations|@array_keys glue=", "}
+						</a>
+					</div>
+				{/if}
+
 			</div>
 
+			{* Formats Section *}
 			<div class="row">
-				<div class="col-md-12">
+				<div class="{if !$hasHiddenFormats && count($relatedManifestations) != 1}hidden-xs {/if}col-sm-12" id="relatedManifestationsValue{$summId|escape}">
+					{* Hide Formats section on mobile view, unless there is a single format or a format has been selected by the user *}
+					{* relatedManifestationsValue ID is used by the Formats button *}
+
 					{include file="GroupedWork/relatedManifestations.tpl" id=$summId}
+
 				</div>
+			</div>
+
+			{* Description Section *}
+			{if $summDescription}
+				<div class="row visible-xs">
+					<div class="result-label col-tn-3 col-xs-3">Description:</div>
+					<div class="result-value col-tn-9 col-xs-9"><a id="descriptionLink{$summId|escape}" href="#" onclick="$('#descriptionValue{$summId|escape},#descriptionLink{$summId|escape}').toggleClass('hidden-xs');return false;">Click to view</a></div>
+				</div>
+			{/if}
+
+			{* Description Section *}
+			{if $summDescription}
+				<div class="row">
+					{* Hide in mobile view *}
+					<div class="result-value hidden-xs col-sm-12" id="descriptionValue{$summId|escape}">
+						{$summDescription|highlight|truncate_html:450:"..."}
+					</div>
+				</div>
+			{/if}
+
+
+			<div class="resultActions row">
+				{include file='GroupedWork/result-tools-horizontal.tpl' id=$summId shortId=$shortId summTitle=$summTitle ratingData=$summRating recordUrl=$summUrl}
 			</div>
 		</div>
 
-		<div class="col-sm-2 col-md-2 col-lg-1">
+		<div class="col-xs-2 col-sm-2 col-md-2 col-lg-1">
 			{if $listEditAllowed}
 			<div class="btn-group-vertical" role="group">
 					<a href="{$path}/MyAccount/Edit?id={$summId|escape:"url"}{if !is_null($listSelected)}&amp;list_id={$listSelected|escape:"url"}{/if}" class="btn btn-default">{translate text='Edit'}</a>
@@ -98,9 +148,7 @@
 
 		</div>
 
-		<div class="resultActions row">
-			{include file='GroupedWork/result-tools-horizontal.tpl' id=$summId shortId=$shortId summTitle=$summTitle ratingData=$summRating recordUrl=$summUrl}
-		</div>
+
 
 	</div>
 {/strip}

@@ -12,7 +12,8 @@
 			<div class="resultAction"><a href="#" class="cart" onclick="return addToBag('{$summId|escape}', '{$summTitle|replace:'"':''|escape:'javascript'}', '{$summShortId}');"><span class="silk cart">&nbsp;</span>{translate text="Add to cart"}</a></div>
 			*}
 			{if $showComments == 1}
-				<div class="btn-group btn-group-sm{if $module == 'Search'} hidden-xs{/if}">
+				<div class="btn-group btn-group-sm{if $module == 'Search' || ($action == 'MyList' && $module == 'MyAccount')} hidden-xs{/if}">
+					{* Hide Review Button for xs views in Search Results & User Lists *}
 					<button id="userreviewlink{$summShortId}" class="resultAction btn btn-sm" title="Add a Review" onclick="return VuFind.GroupedWork.showReviewForm(this, '{$summId}')">
 						Add a Review
 					</button>
