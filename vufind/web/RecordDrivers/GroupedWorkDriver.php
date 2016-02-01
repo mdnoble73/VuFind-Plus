@@ -1391,6 +1391,7 @@ class GroupedWorkDriver extends RecordInterface{
 		$selectedFormat = null;
 		$selectedFormatCategory = null;
 		$selectedAvailability = null;
+		$selectedDetailedAvailability = null;
 		if (isset($_REQUEST['filter'])){
 			foreach ($_REQUEST['filter'] as $filter){
 				if (preg_match('/^format_category(?:\w*):"?(.+?)"?$/', $filter, $matches)){
@@ -1401,6 +1402,8 @@ class GroupedWorkDriver extends RecordInterface{
 					$selectedAvailability = urldecode($matches[1]);
 				}elseif (preg_match('/^availability_by_format(?:[\w_]*):"?(.+?)"?$/', $filter, $matches)){
 					$selectedAvailability = urldecode($matches[1]);
+				}elseif (preg_match('/^available_at(?:[\w_]*):"?(.+?)"?$/', $filter, $matches)) {
+					$selectedDetailedAvailability = urldecode($matches[1]);
 				}
 			}
 		}
@@ -1437,6 +1440,24 @@ class GroupedWorkDriver extends RecordInterface{
 				$manifestation['hideByDefault'] = true;
 			}elseif($selectedAvailability == 'Entire Collection' && (!($manifestation['hasLocalItem']) && !$manifestation['isEContent'])){
 				$manifestation['hideByDefault'] = true;
+			}
+			if ($selectedDetailedAvailability){
+				$manifestationIsAvailable = false;
+				if ($manifestation['availableOnline']){
+					$manifestationIsAvailable = true;
+				}else if ($manifestation['available']){
+					foreach ($manifestation['itemSummary'] as $itemSummary) {
+						if (strlen($itemSummary['shelfLocation']) && substr_compare($itemSummary['shelfLocation'], $selectedDetailedAvailability, 0)) {
+							if ($itemSummary['available']) {
+								$manifestationIsAvailable = true;
+								break;
+							}
+						}
+					}
+				}
+				if (!$manifestationIsAvailable){
+					$manifestation['hideByDefault'] = true;
+				}
 			}
 			global $searchSource;
 			if ($searchSource == 'econtent'){

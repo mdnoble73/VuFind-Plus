@@ -896,7 +896,7 @@ class MarcRecord extends IndexRecord
 	 * @access  protected
 	 * @return  string
 	 */
-	protected function getTitleStatement()
+	public function getTitleStatement()
 	{
 		return $this->getFirstFieldValue('245', array('c'));
 	}

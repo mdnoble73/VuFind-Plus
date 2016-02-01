@@ -266,6 +266,9 @@ public class Util {
 	public static LinkedHashSet<String> getTimeSinceAdded(long timeDifferenceDays){
 		// System.out.println("Time Difference Days: " + timeDifferenceDays);
 		LinkedHashSet<String> result = new LinkedHashSet<>();
+		if (timeDifferenceDays < 0) {
+			result.add("On Order");
+		}
 		if (timeDifferenceDays <= 1) {
 			result.add("Day");
 		}

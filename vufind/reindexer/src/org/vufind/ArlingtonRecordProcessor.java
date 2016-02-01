@@ -120,6 +120,11 @@ public class ArlingtonRecordProcessor extends IIIRecordProcessor {
 		itemInfo.setSortableCallNumber("ON ORDER");
 		itemInfo.setDetailedStatus("On Order");
 		itemInfo.setCollection("On Order");
+		//Since we don't know when the item will arrive, assume it will come tomorrow.
+		Date tomorrow = new Date();
+		tomorrow.setTime(tomorrow.getTime() + 1000 * 60 * 60 * 24);
+		itemInfo.setDateAdded(tomorrow);
+
 		//Format and Format Category should be set at the record level, so we don't need to set them here.
 
 		//Shelf Location also include the name of the ordering branch if possible

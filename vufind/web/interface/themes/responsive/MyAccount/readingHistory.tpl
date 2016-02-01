@@ -151,10 +151,10 @@
 										<div class="result-value col-md-9">
 											{if is_array($record.author)}
 												{foreach from=$summAuthor item=author}
-													<a href="{$path}/Author/Home?author={$author|escape:"url"}">{$author|highlight}</a>
+													<a href='{$path}/Author/Home?author="{$author|escape:"url"}"'>{$author|highlight}</a>
 												{/foreach}
 											{else}
-												<a href="{$path}/Author/Home?author={$record.author|escape:"url"}">{$record.author|highlight}</a>
+												<a href='{$path}/Author/Home?author="{$record.author|escape:"url"}"'>{$record.author|highlight}</a>
 											{/if}
 										</div>
 									</div>
