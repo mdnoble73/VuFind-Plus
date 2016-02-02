@@ -117,5 +117,6 @@
 			$("#modalDialog").on('shown.bs.modal', function(){
 				$('#username').focus().select();
 			})*}{literal}
+	});
 	</script>
 {/literal}
