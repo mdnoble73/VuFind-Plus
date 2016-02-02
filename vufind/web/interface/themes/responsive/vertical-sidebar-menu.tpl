@@ -25,9 +25,9 @@
 		</div>
 	{/if}
 	<div class="menu-bar-option">
-		<a href="#" onclick="VuFind.Menu.showMenu(this)" class="menu-icon" title="Menu">
-			<img src="{img filename='/interface/themes/responsive/images/Menu.png'}" alt="Menu">
-			<div class="menu-bar-label">Menu</div>
+		<a href="#" onclick="VuFind.Menu.showMenu(this)" class="menu-icon" title="Help">
+			<img src="{img filename='/interface/themes/responsive/images/Menu.png'}" alt="Help">
+			<div class="menu-bar-label">Help</div>
 		</a>
 	</div>
 	{if $showExploreMore}
