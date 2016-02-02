@@ -61,8 +61,8 @@
 				<div class="resultDetails col-xs-12 col-md-9">
 					{if $record.author}
 						<div class="row">
-							<div class="result-label col-md-4 col-lg-3">{translate text='Author'}</div>
-							<div class="result-value col-md-8 col-lg-9">
+							<div class="result-label col-tn-4 col-lg-3">{translate text='Author'}</div>
+							<div class="result-value col-tn-8 col-lg-9">
 								{if is_array($record.author)}
 									{foreach from=$record.author item=author}
 										<a href='{$path}/Author/Home?author="{$author|escape:"url"}"'>{$author|highlight}</a>
@@ -76,27 +76,27 @@
 
 					{if $record.publicationDate}
 						<div class="row">
-							<div class="result-label col-md-4 col-lg-3">{translate text='Published'}</div>
-							<div class="result-value col-md-8 col-lg-9">{$record.publicationDate|escape}</div>
+							<div class="result-label col-tn-4 col-lg-3">{translate text='Published'}</div>
+							<div class="result-value col-tn-8 col-lg-9">{$record.publicationDate|escape}</div>
 						</div>
 					{/if}
 
 					{if $showOut}
 						<div class="row">
-							<div class="result-label col-md-4 col-lg-3">{translate text='Checked Out'}</div>
-							<div class="result-value col-md-8 col-lg-9">{$record.checkoutdate|date_format}</div>
+							<div class="result-label col-tn-4 col-lg-3">{translate text='Checked Out'}</div>
+							<div class="result-value col-tn-8 col-lg-9">{$record.checkoutdate|date_format}</div>
 						</div>
 					{/if}
 
 					<div class="row">
-						<div class="result-label col-md-4 col-lg-3">{translate text='Format'}</div>
-						<div class="result-value col-md-8 col-lg-9">{$record.format}</div>
+						<div class="result-label col-tn-4 col-lg-3">{translate text='Format'}</div>
+						<div class="result-value col-tn-8 col-lg-9">{$record.format}</div>
 					</div>
 
 					{if $showRatings && $record.groupedWorkId && $record.ratingData}
 							<div class="row">
-								<div class="result-label col-md-4 col-lg-3">{translate text='Rating'}</div>
-								<div class="result-value col-md-8 col-lg-9">
+								<div class="result-label col-tn-4 col-lg-3">{translate text='Rating'}</div>
+								<div class="result-value col-tn-8 col-lg-9">
 									{include file="GroupedWork/title-rating.tpl" ratingClass="" id=$record.groupedWorkId ratingData=$record.ratingData showNotInterested=false}
 								</div>
 							</div>
@@ -104,16 +104,16 @@
 
 					{if count($user->getLinkedUsers()) > 0}
 					<div class="row">
-						<div class="result-label col-md-4 col-lg-3">{translate text='Checked Out To'}</div>
-						<div class="result-value col-md-8 col-lg-9">
+						<div class="result-label col-tn-4 col-lg-3">{translate text='Checked Out To'}</div>
+						<div class="result-value col-tn-8 col-lg-9">
 							{$record.user}
 						</div>
 					</div>
 					{/if}
 
 					<div class="row">
-						<div class="result-label col-md-4 col-lg-3">{translate text='Due'}</div>
-						<div class="result-value col-md-8 col-lg-9">
+						<div class="result-label col-tn-4 col-lg-3">{translate text='Due'}</div>
+						<div class="result-value col-tn-8 col-lg-9">
 							{$record.dueDate|date_format}
 							{if $record.overdue}
 								<span class="overdueLabel"> OVERDUE</span>
@@ -129,8 +129,8 @@
 
 					{if $record.fine}
 						<div class="row">
-							<div class="result-label col-md-4 col-lg-3">{translate text='Fine'}</div>
-							<div class="result-value col-md-8 col-lg-9">
+							<div class="result-label col-tn-4 col-lg-3">{translate text='Fine'}</div>
+							<div class="result-value col-tn-8 col-lg-9">
 								{if $record.fine}
 									<span class="overdueLabel"> {$record.fine} (up to now) </span>
 								{/if}
@@ -140,8 +140,8 @@
 
 					{if $showRenewed && $record.renewCount}
 						<div class="row">
-							<div class="result-label col-md-4 col-lg-3">{translate text='Renewed'}</div>
-							<div class="result-value col-md-8 col-lg-9">
+							<div class="result-label col-tn-4 col-lg-3">{translate text='Renewed'}</div>
+							<div class="result-value col-tn-8 col-lg-9">
 								{$record.renewCount} times
 								{if $record.renewMessage}{* TODO: used anymore? *}
 									<div class="alert {if $record.renewResult == true}alert-success{else}alert-error{/if}">
@@ -154,8 +154,8 @@
 
 					{if $showWaitList}
 						<div class="row">
-							<div class="result-label col-md-4 col-lg-3">{translate text='Wait List'}</div>
-							<div class="result-value col-md-8 col-lg-9">
+							<div class="result-label col-tn-4 col-lg-3">{translate text='Wait List'}</div>
+							<div class="result-value col-tn-8 col-lg-9">
 								{* Wait List goes here *}
 								{$record.holdQueueLength}
 							</div>

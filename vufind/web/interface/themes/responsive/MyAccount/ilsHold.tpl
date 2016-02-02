@@ -61,8 +61,8 @@
 				<div class="resultDetails col-xs-12 col-md-8 col-lg-9">
 					{if $record.volume}
 						<div class="row">
-							<div class="result-label col-sm-3">{translate text='Volume'}</div>
-							<div class="col-sm-9 result-value">
+							<div class="result-label col-tn-3">{translate text='Volume'}</div>
+							<div class="col-tn-9 result-value">
 								{$record.volume}
 							</div>
 						</div>
@@ -70,8 +70,8 @@
 
 					{if $record.author}
 						<div class="row">
-							<div class="result-label col-sm-3">{translate text='Author'}</div>
-							<div class="col-sm-9 result-value">
+							<div class="result-label col-tn-3">{translate text='Author'}</div>
+							<div class="col-tn-9 result-value">
 								{if is_array($record.author)}
 									{foreach from=$record.author item=author}
 										<a href='{$path}/Author/Home?"author={$author|escape:"url"}"'>{$author|highlight}</a>
@@ -85,8 +85,8 @@
 
 					{if $record.format}
 						<div class="row">
-							<div class="result-label col-sm-3">{translate text='Format'}</div>
-							<div class="col-sm-9 result-value">
+							<div class="result-label col-tn-3">{translate text='Format'}</div>
+							<div class="col-tn-9 result-value">
 								{implode subject=$record.format glue=", "}
 							</div>
 						</div>
@@ -94,16 +94,16 @@
 
 					{if count($user->getLinkedUsers()) > 0}
 					<div class="row">
-						<div class="result-label col-sm-3">{translate text='On Hold For'}</div>
-						<div class="col-sm-9 result-value">
+						<div class="result-label col-tn-3">{translate text='On Hold For'}</div>
+						<div class="col-tn-9 result-value">
 							{$record.user}
 						</div>
 					</div>
 					{/if}
 
 					<div class="row">
-						<div class="result-label col-sm-3">{translate text='Pickup'}</div>
-						<div class="col-sm-9 result-value">
+						<div class="result-label col-tn-3">{translate text='Pickup'}</div>
+						<div class="col-tn-9 result-value">
 							{$record.location}
 						</div>
 					</div>
@@ -120,8 +120,8 @@
 					{if $section == 'available'}
 						{* Available Hold *}
 						<div class="row">
-							<div class="result-label col-sm-3">{translate text='Available'}</div>
-							<div class="col-sm-9 result-value">
+							<div class="result-label col-tn-3">{translate text='Available'}</div>
+							<div class="col-tn-9 result-value">
 								{if $record.availableTime}
 									{$record.availableTime|date_format:"%b %d, %Y at %l:%M %p"}
 								{else}
@@ -132,8 +132,8 @@
 
 						{if $record.expire}
 							<div class="row">
-								<div class="result-label col-sm-3">{translate text='Expires'}</div>
-								<div class="col-sm-9 result-value">
+								<div class="result-label col-tn-3">{translate text='Expires'}</div>
+								<div class="col-tn-9 result-value">
 									{$record.expire|date_format:"%b %d, %Y"}
 								</div>
 							</div>
@@ -141,8 +141,8 @@
 					{else}
 						{* Unavailable hold *}
 						<div class="row">
-							<div class="result-label col-sm-3">{translate text='Status'}</div>
-							<div class="col-sm-9 result-value">
+							<div class="result-label col-tn-3">{translate text='Status'}</div>
+							<div class="col-tn-9 result-value">
 								{if $record.frozen}
 									<span class='frozenHold'>
 								{/if}
@@ -158,8 +158,8 @@
 
 						{if $showPosition && $record.position}
 							<div class="row">
-								<div class="result-label col-sm-3">{translate text='Position'}</div>
-								<div class="col-sm-9 result-value">
+								<div class="result-label col-tn-3">{translate text='Position'}</div>
+								<div class="col-tn-9 result-value">
 									{$record.position}
 								</div>
 							</div>

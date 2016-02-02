@@ -56,30 +56,32 @@
 			<div class="resultDetails col-xs-12 col-md-9">
 				{if strlen($record.author) > 0}
 					<div class="row">
-						<div class="result-label col-md-4 col-lg-3">{translate text='Author'}</div>
-						<div class="result-value col-md-8 col-lg-9">{$record.author}</div>
+						<div class="result-label col-tn-4 col-lg-3">{translate text='Author'}</div>
+						<div class="result-value col-tn-8 col-lg-9">{$record.author}</div>
 					</div>
 				{/if}
 
 				{if $showRatings && $record.groupedWorkId && $record.ratingData}
 					<div class="row">
-						<div class="result-label col-md-4 col-lg-3">Rating&nbsp;</div>
-						<div class="result-value col-md-8 col-lg-9">
+						<div class="result-label col-tn-4 col-lg-3">Rating&nbsp;</div>
+						<div class="result-value col-tn-8 col-lg-9">
 							{include file="GroupedWork/title-rating.tpl" ratingClass="" id=$record.groupedWorkId ratingData=$record.ratingData showNotInterested=false}
 						</div>
 					</div>
 				{/if}
 
-				<div class="row">
-					<div class="result-label col-md-4 col-lg-3">{translate text='Checked Out To'}</div>
-					<div class="result-value col-md-8 col-lg-9">
-						{$record.user}
+				{if count($user->getLinkedUsers()) > 0}
+					<div class="row">
+						<div class="result-label col-tn-4 col-lg-3">{translate text='Checked Out To'}</div>
+						<div class="result-value col-tn-8 col-lg-9">
+							{$record.user}
+						</div>
 					</div>
-				</div>
+				{/if}
 
 				<div class="row">
-					<div class="result-label col-md-4 col-lg-3">{translate text='Expires'}</div>
-					<div class="result-value col-md-8 col-lg-9">{$record.dueDate|date_format}</div>
+					<div class="result-label col-tn-4 col-lg-3">{translate text='Expires'}</div>
+					<div class="result-value col-tn-8 col-lg-9">{$record.dueDate|date_format}</div>
 				</div>
 
 				<div class="row">
