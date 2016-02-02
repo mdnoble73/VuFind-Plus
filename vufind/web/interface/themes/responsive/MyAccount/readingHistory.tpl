@@ -102,7 +102,7 @@
 
 							{* Cover Column *}
 							{if $showCovers}
-							<div class="col-xs-3">
+							<div class="col-tn-3">
 								<div class="row">
 									<div class="col-xs-12 col-sm-1">
 										<input type="checkbox" name="selected[{$record.recordId|escape:"url"}]" class="titleSelect" value="rsh{$record.itemindex}" id="rsh{$record.itemindex}">
@@ -121,13 +121,13 @@
 								</div>
 							</div>
 							{else}
-								<div class="col-xs-1">
+								<div class="col-tn-1">
 									<input type="checkbox" name="selected[{$record.recordId|escape:"url"}]" class="titleSelect" value="rsh{$record.itemindex}" id="rsh{$record.itemindex}">
 								</div>
 							{/if}
 
 							{* Title Details Column *}
-							<div class="{if $showCovers}col-xs-7 col-sm-7{else}col-xs-9 col-sm-9{/if}">
+							<div class="{if $showCovers}col-tn-7 col-sm-7{else}col-tn-9 col-sm-9{/if}">
 								<div class="row">
 									<div class="col-xs-12">
 										<strong>
@@ -147,8 +147,8 @@
 
 								{if $record.author}
 									<div class="row">
-										<div class="result-label col-md-3">{translate text='Author'}</div>
-										<div class="result-value col-md-9">
+										<div class="result-label col-tn-3">{translate text='Author'}</div>
+										<div class="result-value col-tn-9">
 											{if is_array($record.author)}
 												{foreach from=$summAuthor item=author}
 													<a href='{$path}/Author/Home?author="{$author|escape:"url"}"'>{$author|highlight}</a>
@@ -162,16 +162,16 @@
 
 								{if $record.publicationDate}
 									<div class="row">
-										<div class="result-label col-md-3">{translate text='Published'}</div>
-										<div class="result-value col-md-9">
+										<div class="result-label col-tn-3">{translate text='Published'}</div>
+										<div class="result-value col-tn-9">
 											{$record.publicationDate|escape}
 										</div>
 									</div>
 								{/if}
 
 								<div class="row">
-									<div class="result-label col-md-3">{translate text='Format'}</div>
-									<div class="result-value col-md-9">
+									<div class="result-label col-tn-3">{translate text='Format'}</div>
+									<div class="result-value col-tn-9">
 										{implode subject=$record.format glue=", "}
 									</div>
 								</div>
@@ -179,8 +179,8 @@
 								{if $showRatings == 1}
 									{if $record.recordId != -1 && $record.ratingData}
 										<div class="row">
-											<div class="result-label col-md-3">Rating&nbsp;</div>
-											<div class="result-value col-md-9">
+											<div class="result-label col-tn-3">Rating&nbsp;</div>
+											<div class="result-value col-tn-9">
 												{include file="GroupedWork/title-rating.tpl" ratingClass="" id=$record.permanentId ratingData=$record.ratingData showNotInterested=false}
 											</div>
 										</div>
@@ -189,7 +189,7 @@
 							</div>
 
 							{* Checkout Date Column *}
-							<div class="col-xs-12 {if $showCovers}col-xs-offset-3{else}col-xs-offset-1{/if} col-sm-2 col-sm-offset-0">
+							<div class="col-tn-12 {if $showCovers}col-tn-offset-3{else}col-tn-offset-1{/if} col-sm-2 col-sm-offset-0">
 								{* on xs viewports, the offset lines up the date with the title details *}
 								{if is_numeric($record.checkout)}
 									{$record.checkout|date_format}
