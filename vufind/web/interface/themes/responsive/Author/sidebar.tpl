@@ -36,7 +36,7 @@
 						<div class="similar-authors panel-body">
 							{foreach from=$enrichment.novelist->authors item=similar}
 								<div class="facetValue">
-									<a href="{$similar.link}">{$similar.name}</a>
+									<a href='{$similar.link}'>{$similar.name}</a>
 								</div>
 							{/foreach}
 						</div>

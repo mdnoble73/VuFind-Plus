@@ -157,5 +157,3 @@ class AuthorFacets implements RecommendationInterface
         return 'Search/Recommend/AuthorFacets.tpl';
     }
 }
-
-?>
