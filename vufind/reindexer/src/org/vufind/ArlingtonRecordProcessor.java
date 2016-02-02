@@ -11,6 +11,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.sql.Connection;
 import java.sql.ResultSet;
+import java.text.ParseException;
 import java.util.*;
 
 /**
@@ -284,6 +285,70 @@ public class ArlingtonRecordProcessor extends IIIRecordProcessor {
 		}
 	}
 
+	protected void loadUnsuppressedPrintItems(GroupedWorkSolr groupedWork, RecordInfo recordInfo, String identifier, Record record){
+		super.loadUnsuppressedPrintItems(groupedWork, recordInfo, identifier, record);
+		if (recordInfo.getNumPrintCopies() == 0){
+			String matType = getFirstFieldVal(record, "998d");
+			if (matType.equals("w") || matType.equals("b")){
+				ItemInfo itemInfo = new ItemInfo();
+				//Load base information from the Marc Record
+				String locationCode = getFirstFieldVal(record, "998a");
+
+				String itemStatus = "Library Use Only";
+
+				itemInfo.setLocationCode(locationCode);
+
+				//if the status and location are null, we can assume this is not a valid item
+				if (!isItemValid(itemStatus, locationCode)) return;
+
+				itemInfo.setShelfLocationCode(locationCode);
+				itemInfo.setShelfLocation(getShelfLocationForItem(itemInfo, null, recordInfo.getRecordIdentifier()));
+
+				loadItemCallNumber(record, null, itemInfo);
+
+				itemInfo.setCollection(translateValue("collection", locationCode, recordInfo.getRecordIdentifier()));
+
+				//set status towards the end so we can access date added and other things that may need to
+				itemInfo.setStatusCode(itemStatus);
+				itemInfo.setDetailedStatus(itemStatus);
+
+				//Determine Availability
+				boolean available = isItemAvailable(itemInfo);
+
+				//Determine which scopes have access to this record
+				String displayStatus = getDisplayStatus(itemInfo, recordInfo.getRecordIdentifier());
+				String groupedDisplayStatus = getDisplayGroupedStatus(itemInfo, recordInfo.getRecordIdentifier());
+
+				for (Scope curScope : indexer.getScopes()) {
+					//Check to see if the record is holdable for this scope
+					if (curScope.isItemPartOfScope(profileType, locationCode, "", false, false, false)){
+						ScopingInfo scopingInfo = itemInfo.addScope(curScope);
+						scopingInfo.setAvailable(available);
+						scopingInfo.setHoldable(false);
+						scopingInfo.setHoldablePTypes("");
+						scopingInfo.setBookable(false);
+						scopingInfo.setBookablePTypes("");
+
+						scopingInfo.setInLibraryUseOnly(determineLibraryUseOnly(itemInfo, curScope));
+
+						scopingInfo.setStatus(displayStatus);
+						scopingInfo.setGroupedStatus(groupedDisplayStatus);
+						if (curScope.isLocationScope()) {
+							scopingInfo.setLocallyOwned(curScope.isItemOwnedByScope(profileType, locationCode, ""));
+						}
+						if (curScope.isLibraryScope()) {
+							scopingInfo.setLibraryOwned(curScope.isItemOwnedByScope(profileType, locationCode, ""));
+						}
+					}
+				}
+
+				groupedWork.addKeywords(locationCode);
+
+				recordInfo.addItem(itemInfo);
+			}
+		}
+	}
+
 	@Override
 	protected List<RecordInfo> loadUnsuppressedEContentItems(GroupedWorkSolr groupedWork, String identifier, Record record){
 		List<RecordInfo> unsuppressedEcontentRecords = new ArrayList<>();
@@ -304,24 +369,29 @@ public class ArlingtonRecordProcessor extends IIIRecordProcessor {
 				//Get the econtent source
 				String urlLower = url.toLowerCase();
 				String econtentSource;
-				String urlText = getFirstFieldVal(record, "856z");
-				if (urlText != null){
-					urlText = urlText.toLowerCase();
-					if (urlText.contains("gale virtual reference library")){
-						econtentSource = "Gale Virtual Reference Library";
-					}else if (urlText.contains("gale directory library")){
-						econtentSource = "Gale Directory Library" ;
-					}else if (urlText.contains("hoopla")){
-						econtentSource = "Hoopla";
-					}else if (urlText.contains("national geographic virtual library")){
-						econtentSource = "National Geographic Virtual Library";
-					}else if ((urlText.contains("ebscohost") || urlLower.contains("netlibrary") || urlLower.contains("ebsco"))){
-						econtentSource = "EbscoHost";
-					}else{
+				String specifiedSource = getFirstFieldVal(record, "856x");
+				if (specifiedSource != null){
+					econtentSource = specifiedSource;
+				}else {
+					String urlText = getFirstFieldVal(record, "856z");
+					if (urlText != null) {
+						urlText = urlText.toLowerCase();
+						if (urlText.contains("gale virtual reference library")) {
+							econtentSource = "Gale Virtual Reference Library";
+						} else if (urlText.contains("gale directory library")) {
+							econtentSource = "Gale Directory Library";
+						} else if (urlText.contains("hoopla")) {
+							econtentSource = "Hoopla";
+						} else if (urlText.contains("national geographic virtual library")) {
+							econtentSource = "National Geographic Virtual Library";
+						} else if ((urlText.contains("ebscohost") || urlLower.contains("netlibrary") || urlLower.contains("ebsco"))) {
+							econtentSource = "EbscoHost";
+						} else {
+							econtentSource = "Premium Sites";
+						}
+					} else {
 						econtentSource = "Premium Sites";
 					}
-				}else{
-					econtentSource = "Premium Sites";
 				}
 
 				ItemInfo itemInfo = new ItemInfo();

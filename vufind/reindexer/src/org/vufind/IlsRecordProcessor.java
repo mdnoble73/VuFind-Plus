@@ -337,13 +337,26 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 			loadOrderIds(groupedWork, record);
 
 			int numPrintItems = recordInfo.getNumPrintCopies();
-			if (!suppressItemlessBibs && numPrintItems == 0){
-				numPrintItems = 1;
-			}
+
+			numPrintItems = checkForNonSuppressedItemlessBib(record, numPrintItems);
 			groupedWork.addHoldings(numPrintItems + recordInfo.getNumCopiesOnOrder());
 		}catch (Exception e){
 			logger.error("Error updating grouped work for MARC record with identifier " + identifier, e);
 		}
+	}
+
+	/**
+	 * Check to see if we should increment the number of print items by one.   For bibs without items that should not be
+	 * suppressed.
+	 *
+	 * @param numPrintItems
+	 * @return
+	 */
+	protected int checkForNonSuppressedItemlessBib(Record recor, int numPrintItems) {
+		if (!suppressItemlessBibs && numPrintItems == 0){
+			numPrintItems = 1;
+		}
+		return numPrintItems;
 	}
 
 	protected boolean isBibSuppressed(Record record) {
@@ -860,9 +873,9 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		return !(itemStatus == null && itemLocation == null);
 	}
 
-	private void loadItemCallNumber(Record record, DataField itemField, ItemInfo itemInfo) {
+	protected void loadItemCallNumber(Record record, DataField itemField, ItemInfo itemInfo) {
 		boolean hasCallNumber = false;
-		if (useItemBasedCallNumbers) {
+		if (useItemBasedCallNumbers && itemField != null) {
 			String callNumberPreStamp = getItemSubfieldDataWithoutTrimming(callNumberPrestampSubfield, itemField);
 			String callNumber = getItemSubfieldDataWithoutTrimming(callNumberSubfield, itemField);
 			String callNumberCutter = getItemSubfieldDataWithoutTrimming(callNumberCutterSubfield, itemField);
@@ -966,7 +979,10 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 	}
 
 	protected String getShelfLocationForItem(ItemInfo itemInfo, DataField itemField, String identifier) {
-		String shelfLocation = getItemSubfieldData(locationSubfieldIndicator, itemField);
+		String shelfLocation = null;
+		if (itemField != null) {
+			getItemSubfieldData(locationSubfieldIndicator, itemField);
+		}
 		if (shelfLocation == null || shelfLocation.length() == 0 || shelfLocation.equals("none")){
 			return "";
 		}else {

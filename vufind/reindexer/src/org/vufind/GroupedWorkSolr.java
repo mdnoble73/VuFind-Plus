@@ -25,7 +25,7 @@ public class GroupedWorkSolr {
 	private String acceleratedReaderPointValue;
 	private HashSet<String> alternateIds = new HashSet<>();
 	private String authAuthor;
-	private String author;
+	private HashMap<String,Long> primaryAuthors = new HashMap<>();
 	private String authorLetter;
 	private HashSet<String> authorAdditional = new HashSet<>();
 	private String authorDisplay;
@@ -127,7 +127,7 @@ public class GroupedWorkSolr {
 
 		//author and variations
 		doc.addField("auth_author", authAuthor);
-		doc.addField("author", author);
+		doc.addField("author", getPrimaryAuthor());
 		doc.addField("author-letter", authorLetter);
 		doc.addField("auth_author2", authAuthor2);
 		doc.addField("author2", author2);
@@ -803,8 +803,22 @@ public class GroupedWorkSolr {
 	}
 
 	public void setAuthor(String author) {
-		this.author = author;
-		keywords.add(author);
+		if (primaryAuthors.containsKey(author)){
+			primaryAuthors.put(author, primaryAuthors.get(author) + 1);
+		}else{
+			primaryAuthors.put(author, 1L);
+		}
+	}
+
+	public String getPrimaryAuthor(){
+		String mostUsedAuthor = null;
+		long numUses = -1;
+		for (String curAuthor : primaryAuthors.keySet()){
+			if (primaryAuthors.get(curAuthor) > numUses){
+				mostUsedAuthor = curAuthor;
+			}
+		}
+		return mostUsedAuthor;
 	}
 
 	public void setAuthorDisplay(String newAuthor) {
