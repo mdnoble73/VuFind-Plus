@@ -138,8 +138,17 @@ VuFind.Menu = (function(){
 					//$('#horizontal-search-container').slideDown()
 				})
 			} else {
-				// Mobile Horizontal Menu
-				this.showMenuSection('#home-page-search', clickedElement)
+				if ($('#vertical-menu-bar').is(':visible')) {
+					console.log('vertical');
+					this.showMenuSection('#home-page-search,'+this.SideBarSearchSelectors, clickedElement);
+					//this.showSearchFacets();
+					//$(this.SideBarSearchSelectors).show();
+				} else {
+					console.log('horizontal');
+					this.showMenuSection('#home-page-search', clickedElement);
+
+				}
+				//this.showMenuSection('#home-page-search', clickedElement)
 			}
 		},
 
