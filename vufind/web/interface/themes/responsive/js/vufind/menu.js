@@ -31,7 +31,8 @@ VuFind.Menu = (function(){
 		}
 	});
 	return {
-		SideBarSearchSelectors: '#home-page-search,#narrow-search-label,#facet-accordion,#results-sort-label,#results-sort-label+div.row,#remove-search-label,#remove-search-label+.applied-filters,#similar-authors',
+		//SearchBoxSelectors:'#home-page-search', // TODO: really needed?
+		SideBarSearchSelectors: '#narrow-search-label,#facet-accordion,#results-sort-label,#results-sort-label+div.row,#remove-search-label,#remove-search-label+.applied-filters,#similar-authors',
 		SideBarAccountSelectors: '#home-page-login,#home-account-links',
 		SideBarMenuSelectors: '#home-page-login,#home-page-library-section',
 		ExploreMoreSelectors: '',
@@ -137,7 +138,8 @@ VuFind.Menu = (function(){
 					//$('#horizontal-search-container').slideDown()
 				})
 			} else {
-				this.showMenuSection(this.SideBarSearchSelectors, clickedElement)
+				// Mobile Horizontal Menu
+				this.showMenuSection('#home-page-search', clickedElement)
 			}
 		},
 
@@ -154,7 +156,7 @@ VuFind.Menu = (function(){
 		},
 
 		showSearchFacets: function(){
-			$('#refineSearch').toggle();
+			$('#refineSearch,'+this.SideBarSearchSelectors).toggle();
 			var btn = $('#refineSearchButton');
 			btn.text( btn.text() == 'Refine Search' ? 'Hide Refine Search' : 'Refine Search' );
 		}
