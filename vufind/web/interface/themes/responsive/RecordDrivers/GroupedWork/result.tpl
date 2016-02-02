@@ -62,12 +62,13 @@
 								<a href="{$path}/GroupedWork/{$summId}/Series">{$summSeries.seriesTitle}</a>{if $summSeries.volume} volume {$summSeries.volume}{/if}<br>
 							{/if}
 							{if $indexedSeries}
-								{if count($indexedSeries) >= 5}
-									{assign var=showMoreSeries value="true"}
+								{assign var=showMoreSeries value=false}
+								{if count($indexedSeries) > 4}
+									{assign var=showMoreSeries value=true}
 								{/if}
 								{foreach from=$indexedSeries item=seriesItem name=loop}
 									<a href="{$path}/Search/Results?basicType=Series&lookfor=%22{$seriesItem.seriesTitle|removeTrailingPunctuation|escape:"url"}%22">{$seriesItem.seriesTitle|removeTrailingPunctuation|escape}</a>{if $seriesItem.volume} volume {$seriesItem.volume}{/if}<br>
-									{if $showMoreSeries && $smarty.foreach.loop.iteration == 2}
+									{if $showMoreSeries && $smarty.foreach.loop.iteration == 3}
 										<a onclick="$('#moreSeries_{$summId}').show();$('#moreSeriesLink_{$summId}').hide();" id="moreSeriesLink_{$summId}">More Series...</a>
 										<div id="moreSeries_{$summId}" style="display:none">
 									{/if}
