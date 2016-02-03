@@ -3,14 +3,14 @@
 	<div class="hidden-xs col-sm-1 col-md-1 col-lg-1" id="vertical-menu-bar-wrapper">
 	<div id="vertical-menu-bar">
 	<div class="menu-bar-option">
-		<a href="#" onclick="VuFind.Menu.showSearch(this)" class="menu-icon" title="Search" id="vertical-menu-search-button">
+		<a href="#" onclick="VuFind.Menu.SideBar.showSearch(this)" class="menu-icon" title="Search" id="vertical-menu-search-button">
 			<img src="{img filename='/interface/themes/responsive/images/Search.png'}" alt="Search">
 			<div class="menu-bar-label">Search</div>
 		</a>
 	</div>
 	{if $user}{* Logged In *}
 		<div class="menu-bar-option">
-			<a href="#" onclick="VuFind.Menu.showAccount(this)" class="menu-icon" title="Account">
+			<a href="#" onclick="VuFind.Menu.SideBar.showAccount(this)" class="menu-icon" title="Account">
 				<img src="{img filename='/interface/themes/responsive/images/Account.png'}" alt="Account">
 				<div class="menu-bar-label">Account</div>
 			</a>
@@ -25,14 +25,14 @@
 		</div>
 	{/if}
 	<div class="menu-bar-option">
-		<a href="#" onclick="VuFind.Menu.showMenu(this)" class="menu-icon" title="Help">
+		<a href="#" onclick="VuFind.Menu.SideBar.showMenu(this)" class="menu-icon" title="Help">
 			<img src="{img filename='/interface/themes/responsive/images/Menu.png'}" alt="Help">
 			<div class="menu-bar-label">Help</div>
 		</a>
 	</div>
 	{if $showExploreMore}
 		<div class="menu-bar-option">
-			<a href="#" onclick="VuFind.Menu.showExploreMore(this)" class="menu-icon" title="{translate text='Explore More'}">
+			<a href="#" onclick="VuFind.Menu.SideBar.showExploreMore(this)" class="menu-icon" title="{translate text='Explore More'}">
 				<img src="{img filename='/interface/themes/responsive/images/ExploreMore.png'}" alt="{translate text='Explore More'}">
 				<div class="menu-bar-label">{translate text='Explore More'}</div>
 			</a>

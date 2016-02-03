@@ -125,12 +125,47 @@
 					{/if}
 				</div>
 			</div>
+
+			<div class="row">
+
+				{if $showAdvancedSearchbox || $searchType == 'advanced' || $filterList}
+					<div class="{if $recordCount || $sideRecommendations}col-tn-6 {/if}col-sm-12 text-center">
+						{* In Col-sm and above, display each of these as it's own row; In col-xs & below display all items within a single row *}
+
+						{* Keep Filters Switch *}
+						{if $filterList}
+							<div class="row">
+								<label for="keepFiltersSwitch" id="keepFiltersSwitchLabel"><input id="keepFiltersSwitch" type="checkbox" onclick="VuFind.Searches.filterAll(this);"> Keep Applied Filters</label>
+							</div>
+						{/if}
+
+						{* Advanced Search Links *}
+						{if $searchType == 'advanced'}
+							<a id="advancedSearchLink" href="{$path}/Search/Advanced">
+								{translate text='Edit This Advanced Search'}
+							</a>
+						{elseif $showAdvancedSearchbox}
+							<a id="advancedSearchLink" href="{$path}/Search/Advanced">{translate text='Advanced Search'}</a>
+						{/if}
+
+					</div>
+				{/if}
+
+				{* Show/Hide Search Facets & Sort Options *}
+				{if $recordCount || $sideRecommendations}
+					<div class="{if $showAdvancedSearchbox || $searchType == 'advanced'}col-tn-6{else}col-tn-12{/if} text-center visible-xs">
+						<a class="btn btn-default" id="refineSearchButton" role="button" onclick="VuFind.Menu.Mobile.showSearchFacets()">{translate text="Refine Search"}</a>
+					</div>
+				{/if}
+
+			</div>
+
+{* Original *}<!--
 			<div class="row text-center">
 				{if $filterList}
 					<label for="keepFiltersSwitch" id="keepFiltersSwitchLabel"><input id="keepFiltersSwitch" type="checkbox" onclick="VuFind.Searches.filterAll(this);"> Keep Applied Filters</label>
 				{/if}
 			</div>
-
 			{* Return to Advanced Search Link *}
 			{if $searchType == 'advanced'}
 				<div class="row text-center">
@@ -145,9 +180,9 @@
 			{* Show/Hide Search Facets & Sort Options *}
 			{if $recordCount || $sideRecommendations}
 				<div class="row text-center visible-xs">
-					<a class="btn btn-default" id="refineSearchButton" role="button" onclick="VuFind.Menu.showSearchFacets()">{translate text="Refine Search"}</a>
+					<a class="btn btn-default" id="refineSearchButton" role="button" onclick="VuFind.Menu.Mobile.showSearchFacets()">{translate text="Refine Search"}</a>
 				</div>
-			{/if}
+			{/if}-->
 
 			{if $filterList}
 				{* Data for searching within existing results *}

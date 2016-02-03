@@ -91,7 +91,7 @@
 		{* GO Button & Search Links*}
 		<div id="horizontal-search-button-container" class="col-sm-3 col-xs-12">
 			<div class="row">
-				<div class="col-xs-3 col-sm-4 col-md-4">
+				<div class="col-tn-3 col-xs-3 col-sm-4 col-md-4">
 					<button class="btn btn-default" type="submit">
 						<span class="glyphicon glyphicon-search"></span>
 						<span id="horizontal-search-box-submit-text">&nbsp;GO</span>
@@ -99,7 +99,7 @@
 					</button>
 				</div>
 
-				<div id="horizontal-search-additional" class="col-xs-5 col-sm-12 col-md-8">
+				<div id="horizontal-search-additional" class="col-tn-5 col-xs-5 col-sm-12 col-md-8">
 					{* Keep Applied Filters Checkbox *}
 					{if $filterList}
 						<label for="keepFiltersSwitch" id="keepFiltersSwitchLabel">
@@ -124,8 +124,8 @@
 
 				{* Show/Hide Search Facets & Sort Options *}
 				{if $recordCount || $sideRecommendations}
-					<div class="col-xs-3 visible-xs">
-						<a class="btn btn-default" id="refineSearchButton" role="button" onclick="VuFind.Menu.showSearchFacets()">{translate text="Refine Search"}</a>
+					<div class="col-tn-5 col-xs-3 visible-xs">
+						<a class="btn btn-default" id="refineSearchButton" role="button" onclick="VuFind.Menu.Mobile.showSearchFacets()">{translate text="Refine Search"}</a>
 					</div>
 				{/if}
 			</div>
