@@ -1353,14 +1353,32 @@ class Location extends DB_DataObject
 	}
 
 	private $opacStatus = null;
+
+	/**
+	 * Check whether or not the system is an opac station.
+	 * - First check to see if an opac paramter has been passed.  If so, use that information and set a cookie for future pages.
+	 * - Next check the cookie to see if we have overridden the value
+	 * - Finally check to see if we have an active location based on the IP address.  If we do, use that to determine if this is an opac station
+	 * @return bool
+	 */
 	public function getOpacStatus(){
 		if (is_null($this->opacStatus)) {
 			if (isset($_GET['opac'])) {
 				$this->opacStatus = $_GET['opac'] == 1 || strtolower($_GET['opac']) == 'true' || strtolower($_GET['opac']) == 'on';
+				if ($_GET['opac'] == '') {
+					//Clear any existing cookie
+					setcookie('opac', $this->opacStatus, time() - 1000, '/');
+				}elseif (!isset($_COOKIE['opac']) || $this->opacStatus != $_COOKIE['opac']){
+					setcookie('opac', $this->opacStatus ? '1' : '0', 0, '/');
+				}
 			} elseif (isset($_COOKIE['opac'])) {
 				$this->opacStatus = (boolean) $_COOKIE['opac'];
 			} else {
-				$this->opacStatus = false;
+				if ($this->getIPLocation()){
+					$this->opacStatus = $this->getIPLocation()->opacStatus;
+				}else{
+					$this->opacStatus = false;
+				}
 			}
 		}
 		return $this->opacStatus;

@@ -126,7 +126,7 @@
 				{/if}
 				<br>
 				<div class="form-group">
-					<label for="autologout" class="checkbox"><input type="checkbox" name="autologout" id="autologout" {if $inLibrary == true}checked="checked"{/if}> Log me out after requesting the item.</label>
+					<label for="autologout" class="checkbox"><input type="checkbox" name="autologout" id="autologout" {if $isOpac == true}checked="checked"{/if}> Log me out after requesting the item.</label>
 					<input type="hidden" name="holdType" value="hold">
 				</div>
 			</div>
