@@ -96,7 +96,9 @@ class SearchAPI extends Action {
 		}
 
 		//Do not check partial index or overdrive extract if there is a full index running since they pause during that period
-		if (!$fullIndexRunning && !$recordGroupingRunning) {
+		//Also do not check these from 9pm to 7am since between these hours, we're running full indexing and these issues wind up being ok.
+		$curHour = date('H');
+		if (!$fullIndexRunning && !$recordGroupingRunning && ($curHour >= 7 && $curHour <= 21)) {
 			// Partial Index //
 			$lastPartialIndexVariable = new Variable();
 			$lastPartialIndexVariable->name = 'lastPartialReindexFinish';
