@@ -12,12 +12,6 @@ VuFind.Menu = (function(){
 				VuFind.Menu.SideBarMenuSelectors;
 		// TODO: Add ExploreMoreSelectors; + ',' + VuFind.Menu.ExploreMoreSelectors
 
-		//// Highlight Selected Menu Icon
-		//$('.menu-icon').click(function(){
-		//	$('.menu-icon').removeClass('menu-icon-selected');
-		//	$(this).addClass('menu-icon-selected')
-		//});
-
 		// Set up Sticky Menus
 		VuFind.Menu.stickyMenu('#horizontal-menu-bar-container', 'sticky-menu-bar');
 		VuFind.Menu.stickyMenu('#vertical-menu-bar', 'sticky-sidebar');
@@ -32,40 +26,50 @@ VuFind.Menu = (function(){
 		// Trigger mode on resize between horizontal menu & vertical menu
 		$(window).resize(function(){
 			if (mobileMode) {
-				if ($('#vertical-menu-bar-wrapper').is(':visible')) {
-					//console.log('Entered SideBar Mode');
+				// Entered Sidebar Mode
+				if (!$('#horizontal-menu-bar-container').is(':visible')) { // this depends on horizontal menu always being present
+				//	console.log('Entered SideBar Mode');
 					mobileMode = false;
 
-					// Un-select any sidebar option previously selected
-					$('.menu-bar-option').removeClass('menu-icon-selected'); // Remove from any selected
+					if ($('#vertical-menu-bar').length) { // Sidebar Menu is in use
+						//console.log('SideBar Menu is on');
 
-					// Hide SideBar Content
-					VuFind.Menu.hideAllFast();
+						// Un-select any sidebar option previously selected
+						$('.menu-bar-option').removeClass('menu-icon-selected'); // Remove from any selected
 
-					// Select the sidebar menu that was selected in the mobile menu, if any
-					if ($('#mobile-menu-search-icon', '#horizontal-menu-bar-container').is('.menu-icon-selected')){
+						// Hide SideBar Content
+						VuFind.Menu.hideAllFast();
 
-						// Reset Refine Search Button
-						VuFind.Menu.Mobile.resetRefineSearch();
+						// Select the sidebar menu that was selected in the mobile menu, if any
+						if ($('#mobile-menu-search-icon', '#horizontal-menu-bar-container').is('.menu-icon-selected')) {
 
-						VuFind.Menu.SideBar.showSearch('.menu-bar-option:nth-child(1)>a')
-					}
-					else if ($('#mobile-menu-account-icon', '#horizontal-menu-bar-container').is('.menu-icon-selected')){
-						VuFind.Menu.SideBar.showAccount('.menu-bar-option:nth-child(2)>a')
-					}
-					else if ($('#mobile-menu-menu-icon', '#horizontal-menu-bar-container').is('.menu-icon-selected')){
-						VuFind.Menu.SideBar.showMenu('.menu-bar-option:nth-child(3)>a')
-					}
-					else if ($('#mobile-menu-explore-more-icon', '#horizontal-menu-bar-container').is('.menu-icon-selected')){
-						VuFind.Menu.SideBar.showExploreMore('.menu-bar-option:nth-child(4)>a')
-					} else {
-						// if nothing selected, Collapse sidebar
-						if ($(VuFind.Menu.AllSideBarSelectors).filter(':visible').length == 0) {
-							VuFind.Menu.collapseSideBar();
+							// Reset Refine Search Button
+							VuFind.Menu.Mobile.resetRefineSearch();
+
+							VuFind.Menu.SideBar.showSearch('.menu-bar-option:nth-child(1)>a')
 						}
+						else if ($('#mobile-menu-account-icon', '#horizontal-menu-bar-container').is('.menu-icon-selected')) {
+							VuFind.Menu.SideBar.showAccount('.menu-bar-option:nth-child(2)>a')
+						}
+						else if ($('#mobile-menu-menu-icon', '#horizontal-menu-bar-container').is('.menu-icon-selected')) {
+							VuFind.Menu.SideBar.showMenu('.menu-bar-option:nth-child(3)>a')
+						}
+						else if ($('#mobile-menu-explore-more-icon', '#horizontal-menu-bar-container').is('.menu-icon-selected')) {
+							VuFind.Menu.SideBar.showExploreMore('.menu-bar-option:nth-child(4)>a')
+						} else {
+							// if nothing selected, Collapse sidebar
+							if ($(VuFind.Menu.AllSideBarSelectors).filter(':visible').length == 0) {
+								VuFind.Menu.collapseSideBar();
+							}
+						}
+					} else {
+						//console.log('No Sidebar Menu. Side bar content being displayed');
+						// Show All Sidebar Stuff when Sidebar menu is not in use.
+						$(VuFind.Menu.AllSideBarSelectors).show();
 					}
 				}
 			} else {
+				// Entered Mobile Mode
 				if ($('#horizontal-menu-bar-container').is(':visible')) {
 					//console.log('Entered Mobile Mode');
 					mobileMode = true;
