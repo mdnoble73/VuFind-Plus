@@ -11,8 +11,11 @@
 }
 
 #header-logo {
-  margin-top: 7px;
-  // half the header height minus half the image height
+  max-width: 290px;   // constrain logo to containing box so that Logo isn't under display name
+  @media (min-width: 992px) and (max-width: 1199px) {
+    max-width: 240px;   // constrain logo to containing box so that Logo isn't under display name
+  }
+  margin-top: 10px;
 }
 
 #library-name-header{
