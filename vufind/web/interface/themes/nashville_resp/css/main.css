@@ -10234,7 +10234,6 @@ h6,
   }
 }
 .header-button {
-  text-align: center;
   white-space: nowrap;
   overflow-x: hidden;
   line-height: 45px!important;
@@ -10242,6 +10241,7 @@ h6,
   margin-top: 5px;
   vertical-align: middle;
   padding: 0;
+  text-align: center;
   text-shadow: none;
   text-decoration: none;
   font-weight: 600;
