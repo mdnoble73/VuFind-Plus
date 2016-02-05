@@ -32,10 +32,6 @@ class BrowseCategory extends DB_DataObject{
 	public $numTimesShown;
 	public $numTitlesClickedOn;
 
-	/* Static get */
-	function staticGet($k,$v=NULL) { return DB_DataObject::staticGet('BrowseCategory',$k,$v); }
-// required component for all classes that extend DB_DataObject
-
 	public function getSubCategories(){
 		if (!isset($this->subBrowseCategories) && $this->id) {
 			$this->subBrowseCategories     = array();

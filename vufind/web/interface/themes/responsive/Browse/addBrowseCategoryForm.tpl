@@ -1,3 +1,4 @@
+{strip}
 <div>
 	<div id="createBrowseCategoryComments">
 		<p class="alert alert-info">
@@ -21,7 +22,7 @@
 		</div>
 	</form>
 </div>
-
+{/strip}
 <script type="text/javascript">
 	{literal}
 	$("#createBrowseCategory").validate({
