@@ -1,4 +1,10 @@
 var VuFind = (function(){
+
+	// This provides a check to interrupt AjaxFail Calls on page redirects;
+	 window.onbeforeunload = function(){
+		Globals.LeavingPage = true
+	};
+
 	$(document).ready(function(){
 		VuFind.initializeModalDialogs();
 		VuFind.setupFieldSetToggles();
@@ -244,7 +250,7 @@ var VuFind = (function(){
 
 		// common message for when an AJAX call has failed.
 		ajaxFail: function() {
-			VuFind.showMessage('Request Failed', 'There was an error with this AJAX Request.');
+			if (!Globals.LeavingPage) VuFind.showMessage('Request Failed', 'There was an error with this AJAX Request.');
 		},
 
 		toggleHiddenElementWithButton: function(button){
