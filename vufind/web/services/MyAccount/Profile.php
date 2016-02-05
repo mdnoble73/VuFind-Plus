@@ -30,11 +30,6 @@ class MyAccount_Profile extends MyAccount
 
 		$ils = $configArray['Catalog']['ils'];
 		$interface->assign('showSMSNoticesInProfile', $ils == 'Sierra');
-		if ($configArray['Catalog']['offline']){
-			$interface->assign('offline', true);
-		}else{
-			$interface->assign('offline', false);
-		}
 
 		if ($user) {
 

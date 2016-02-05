@@ -149,6 +149,18 @@ class UInterface extends Smarty
 		$this->assign('theme', $this->vufindTheme);
 		$this->assign('primaryTheme', reset($themeArray));
 		$this->assign('device', get_device_name());
+
+		if ($configArray['Catalog']['offline']){
+			$this->assign('offline', true);
+			if (isset($configArray['Catalog']['enableLoginWhileOffline'])){
+				$this->assign('enableLoginWhileOffline', $configArray['Catalog']['enableLoginWhileOffline']);
+			}else{
+				$this->assign('enableLoginWhileOffline', false);
+			}
+		}else{
+			$this->assign('offline', false);
+		}
+
 		$timer->logTime('Basic configuration');
 
 		$displaySidebarMenu = false;

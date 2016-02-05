@@ -39,7 +39,7 @@
 					{translate text="Reveal Password"}
 				</label>
 
-				{if !$inLibrary && !$isOpac}
+				{if !$isOpac}
 					<label for="rememberMe" class="checkbox">
 						<input type="checkbox" id="rememberMe" name="rememberMe">
 						{translate text="Remember Me"}
