@@ -10227,11 +10227,6 @@ h6,
   margin-bottom: 0;
   min-height: 110px;
 }
-#header-logo {
-  margin: 10px 10px 0 0;
-  position: absolute;
-  top: -10px;
-}
 @media (max-width: 767px) {
   #header-logo {
     max-width: 100%;
@@ -10240,6 +10235,8 @@ h6,
 }
 .header-button {
   text-align: center;
+  white-space: nowrap;
+  overflow-x: hidden;
   line-height: 45px!important;
   border-bottom: 0 solid #e0e0e0;
   margin-top: 5px;
