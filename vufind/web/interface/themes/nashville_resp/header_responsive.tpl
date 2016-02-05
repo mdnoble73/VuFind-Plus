@@ -27,28 +27,32 @@
 	<div class="logoutOptions"{if !$user} style="display: none;"{/if}>
 		{*<div class="hidden-xs col-sm-2 col-sm-offset-2 col-md-2 col-md-offset-3 col-lg-2 col-lg-offset-4">*}
 		<div class="hidden-xs col-sm-2 col-sm-offset-5 col-md-2 col-md-offset-0 col-lg-2 col-lg-offset-0">
-			<div class="header-button header-primary">
-				<a id="myAccountNameLink" href="{$path}/MyAccount/Home">
-					{*{$user->firstname|capitalize} {$user->lastname|capitalize|substr:0:1}'s Account*}{*TODO: remove once Nashville approves change. plb 1-12-2016*}
+			{*{$user->firstname|capitalize} {$user->lastname|capitalize|substr:0:1}'s Account*}{*TODO: remove once Nashville approves change. plb 1-12-2016*}
+			<a id="myAccountNameLink" href="{$path}/MyAccount/Home">
+				<div class="header-button header-primary">
 					{$user->displayName|capitalize}'s Account
-				</a>
-			</div>
+				</div>
+			</a>
 		</div>
 
 		{*<div class="hidden-xs col-xs-3 col-sm-2 col-md-2 col-lg-2">*}
 		<div class="hidden-xs col-sm-2 col-md-2 col-lg-2">
-			<div class="header-button header-logout">
-				<a href="{$path}/MyAccount/Logout" id="logoutLink">{translate text="Log Out"}</a>
-			</div>
+			<a href="{$path}/MyAccount/Logout" id="logoutLink">
+				<div class="header-button header-logout">
+					{translate text="Log Out"}
+				</div>
+			</a>
 		</div>
 	</div>
 
 	{*<div class="loginOptions col-xs-3 col-xs-offset-4 col-sm-2 col-sm-offset-4 col-md-2 col-md-offset-5 col-lg-2 col-lg-offset-6"{if $user} style="display: none;"{/if}>*}
 	<div class="loginOptions col-sm-2 col-sm-offset-7 col-md-2 col-md-offset-2 col-lg-offset-2 col-lg-2"{if $user} style="display: none;"{/if}>
 		{if $showLoginButton == 1}
-			<div class="hidden-xs header-button header-primary">
-				<a id="headerLoginLink" href="{$path}/MyAccount/Home" class="loginLink" data-login="true" title="Login">{translate text="LOGIN"}</a>
-			</div>
+			<a id="headerLoginLink" href="{$path}/MyAccount/Home" class="loginLink" data-login="true" title="Login">
+				<div class="hidden-xs header-button header-primary">
+					{translate text="LOGIN"}
+				</div>
+			</a>
 		{/if}
 	</div>
 

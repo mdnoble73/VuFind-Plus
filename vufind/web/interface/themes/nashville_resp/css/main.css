@@ -5071,6 +5071,7 @@ button.close {
 }
 .modal.fade .modal-dialog {
   -webkit-transform: translate(0, -25%);
+  -ms-transform: translate(0, -25%);
   transform: translate(0, -25%);
   -webkit-transition: -webkit-transform 0.3s ease-out;
   transition: -webkit-transform 0.3s ease-out;
@@ -5079,6 +5080,7 @@ button.close {
 }
 .modal.in .modal-dialog {
   -webkit-transform: translate(0, 0);
+  -ms-transform: translate(0, 0);
   transform: translate(0, 0);
 }
 .modal-dialog {
@@ -7941,6 +7943,7 @@ fieldset[disabled] .datepicker table tr td span.active.disabled:hover.active {
   bottom: -25px;
   left: 50%;
   -webkit-transform: translate(-50%, 0);
+  -ms-transform: translate(-50%, 0);
   transform: translate(-50%, 0);
   margin: 0;
 }
@@ -8019,6 +8022,7 @@ fieldset[disabled] .datepicker table tr td span.active.disabled:hover.active {
   vertical-align: text-top;
   text-align: center;
   -webkit-transform: scale(0.6);
+      -ms-transform: scale(0.6);
           transform: scale(0.6);
   margin-top: -1px;
   margin-bottom: -1px;
@@ -8575,8 +8579,10 @@ hr.menu {
   white-space: nowrap;
   position: absolute;
   -webkit-transform: rotate(-90deg) translateX(-100%);
+      -ms-transform: rotate(-90deg) translateX(-100%);
           transform: rotate(-90deg) translateX(-100%);
   -webkit-transform-origin: 0 0;
+      -ms-transform-origin: 0 0;
           transform-origin: 0 0;
   margin-top: 10px;
   margin-left: 10px;
@@ -10234,9 +10240,21 @@ h6,
 }
 .header-button {
   text-align: center;
-  height: 45px!important;
+  line-height: 45px!important;
   border-bottom: 0 solid #e0e0e0;
   margin-top: 5px;
+  vertical-align: middle;
+  padding: 0;
+  text-shadow: none;
+  text-decoration: none;
+  font-weight: 600;
+  color: inherit;
+}
+.header-button:hover {
+  color: #292929;
+}
+.header-button:visited {
+  color: #444444;
 }
 .header-primary {
   border-left: 0 solid #d9d8d8;
@@ -10252,47 +10270,27 @@ h6,
   -webkit-transition: all 0.3s ease-in-out;
   transition: all 0.3s ease-in-out;
 }
-.header-button > a {
-  line-height: 45px!important;
-  text-align: center;
-  vertical-align: middle;
-  padding: 0;
-  text-shadow: none;
-  text-decoration: none;
-  font-weight: 600;
-  color: inherit;
-}
-.header-button > a:hover {
-  color: #292929;
-}
-.header-button > a:visited {
-  color: #444444;
-}
-.header-primary > a {
+.header-primary {
   color: #FFFFFF!important;
 }
 .header-primary:hover {
-  border-bottom: 0px solid #2a6496;
+  border-bottom: 0 solid #2a6496;
   background-color: #e84b10;
-}
-.header-primary > a:hover {
+  text-decoration: none;
   color: #fff;
 }
-.header-primary > a:visited {
+.header-primary:visited {
   color: #FFFFFF!important;
 }
-.header-logout > a {
-  color: #444;
+#headerLoginLink:hover,
+#header-container #myAccountNameLink:hover,
+#logoutLink:hover {
+  text-decoration: none;
 }
 .header-logout:hover {
   background-color: #d7d7d7;
-  border-bottom: 0px;
-}
-.header-logout > a:hover {
+  border-bottom: 0;
   color: #292929;
-}
-.header-logout > a:visited {
-  color: #444;
 }
 /* ---------------------- breadcrumbs row ---------------------- */
 .breadcrumbs {
