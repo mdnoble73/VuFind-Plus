@@ -6952,6 +6952,12 @@ body > .container {
   margin-left: -40%;
   overflow-y: auto;
 }
+@media (max-width: 767px) {
+  .modal {
+    width: 98%;
+    margin-left: -50%;
+  }
+}
 .modal-dialog {
   max-width: 100%;
 }
