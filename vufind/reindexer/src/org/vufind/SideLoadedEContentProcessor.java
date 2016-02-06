@@ -166,7 +166,7 @@ public class SideLoadedEContentProcessor extends IlsRecordProcessor{
 					econtentItem.setFormat("eBook");
 					econtentItem.setFormatCategory("Books");
 					econtentRecord.setFormatBoost(10);
-				} else if (format.equalsIgnoreCase("SoundRecording") || format.equalsIgnoreCase("SoundDisc")) {
+				} else if (format.equalsIgnoreCase("SoundRecording") || format.equalsIgnoreCase("SoundDisc") || format.equalsIgnoreCase("Playaway")) {
 					econtentItem.setFormat("eAudiobook");
 					econtentItem.setFormatCategory("Audio Books");
 					econtentRecord.setFormatBoost(8);

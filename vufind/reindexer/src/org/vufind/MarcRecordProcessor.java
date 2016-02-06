@@ -602,7 +602,11 @@ public abstract class MarcRecordProcessor {
 		//auth_author = 100abcd, first
 		groupedWork.setAuthAuthor(this.getFirstFieldVal(record, "100abcd"));
 		//author = a, first
-		groupedWork.setAuthor(this.getFirstFieldVal(record, "100abcdq:110ab:710a"));
+		//MDN 2/6/2016 - Do not use 710 because it is not truly the author.  This has the potential
+		//of showing some disconnects with how records are grouped, but improves the display of the author
+		//710 is still indexed as part of author 2 #ARL-146
+		//groupedWork.setAuthor(this.getFirstFieldVal(record, "100abcdq:110ab:710a"));
+		groupedWork.setAuthor(this.getFirstFieldVal(record, "100abcdq:110ab"));
 		//author-letter = 100a, first
 		groupedWork.setAuthorLetter(this.getFirstFieldVal(record, "100a"));
 		//auth_author2 = 700abcd
