@@ -6967,6 +6967,11 @@ body > .container {
   margin-left: 3px;
   margin-right: 3px;
 }
+.modal-header .close {
+  margin-top: -10px;
+  font-size: 40px;
+  opacity: .4;
+}
 .btn:active,
 .btn.active {
   font-weight: bold;
