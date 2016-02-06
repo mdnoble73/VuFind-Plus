@@ -19,8 +19,10 @@
 		<div class="menu-bar-option">
 			<a href="{$path}/MyAccount/Home" id="loginLink" onclick="{if $isLoginPage}$('#username').focus();return false{else}return VuFind.Account.followLinkIfLoggedIn(this){/if}" data-login="true" class="menu-icon" title="{translate text='Login'}">
 			{*<a href="{$path}{$fullPath}" id="loginLink" onclick="{if $isLoginPage}$('#username').focus();return false{else}return VuFind.Account.followLinkIfLoggedIn(this){/if}" data-login="true" class="menu-icon" title="{translate text='Login'}">*}
-				<img src="{img filename='/interface/themes/responsive/images/Account.png'}" alt="{translate text='Login'}">
-				<div class="menu-bar-label">Account</div>
+				{*<img src="{img filename='/interface/themes/responsive/images/Account.png'}" alt="{translate text='Login'}">*}
+				<img src="{img filename='/interface/themes/responsive/images/Login.png'}" alt="{translate text='Login'}">
+				{*<div class="menu-bar-label">Account</div>*}
+				<div class="menu-bar-label">Login</div>
 			</a>
 		</div>
 	{/if}

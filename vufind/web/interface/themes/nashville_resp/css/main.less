@@ -41,14 +41,14 @@ h1, h2, h3, h4, h5, h6, .h1, .h2, .h3,.h4, .h5, .h6 {
   margin-bottom: 0;
   min-height: 110px;
 }
-
-#header-logo {
-  margin: 10px 10px 0 0;
-  position: absolute;
-  top: -10px;
-  //width: 90px;
-  //height: 75px;
-}
+//  These rules prevent the logo from showing in xs & tn views
+//#header-logo {
+//  margin: 10px 10px 0 0;
+//  position: absolute;
+//  top: -10px;
+//  //width: 90px;
+//  //height: 75px;
+//}
 
 @media (max-width: 767px){
   #header-logo {
@@ -58,7 +58,10 @@ h1, h2, h3, h4, h5, h6, .h1, .h2, .h3,.h4, .h5, .h6 {
 }
 
 .header-button {
-  text-align: center;
+  // Prevent Button Text from overflowing or creating new lines
+  white-space: nowrap;
+  overflow-x: hidden;
+
   //height: 45px!important;
   line-height: 45px!important;
   border-bottom: 0 solid #e0e0e0;
@@ -66,6 +69,7 @@ h1, h2, h3, h4, h5, h6, .h1, .h2, .h3,.h4, .h5, .h6 {
 
   vertical-align: middle;
   padding: 0;
+  text-align: center;
   text-shadow: none;
   text-decoration: none;
   font-weight:600;

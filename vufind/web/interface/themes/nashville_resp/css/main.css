@@ -6947,10 +6947,17 @@ body > .container {
   font-size: 14px;
 }
 .modal {
-  position: fixed;
   left: 50%;
   width: 80%;
   margin-left: -40%;
+  overflow-y: auto;
+}
+.modal-dialog {
+  max-width: 100%;
+}
+.modal-buttons {
+  margin-left: 3px;
+  margin-right: 3px;
 }
 .btn:active,
 .btn.active {
@@ -8631,17 +8638,6 @@ hr.menu {
     display: block !important;
   }
 }
-#xs-main-content-insertion-point {
-  margin-left: 0;
-  margin-right: 0;
-}
-.modal {
-  overflow-y: auto;
-}
-.modal-buttons {
-  margin-left: 3px;
-  margin-right: 3px;
-}
 #home-page-search {
   background-color: #00a4e3;
   background: -webkit-linear-gradient(top, #00a4e3, #147ce2);
@@ -10221,11 +10217,6 @@ h6,
   margin-bottom: 0;
   min-height: 110px;
 }
-#header-logo {
-  margin: 10px 10px 0 0;
-  position: absolute;
-  top: -10px;
-}
 @media (max-width: 767px) {
   #header-logo {
     max-width: 100%;
@@ -10233,12 +10224,14 @@ h6,
   }
 }
 .header-button {
-  text-align: center;
+  white-space: nowrap;
+  overflow-x: hidden;
   line-height: 45px!important;
   border-bottom: 0 solid #e0e0e0;
   margin-top: 5px;
   vertical-align: middle;
   padding: 0;
+  text-align: center;
   text-shadow: none;
   text-decoration: none;
   font-weight: 600;

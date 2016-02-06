@@ -6945,10 +6945,17 @@ body > .container {
   font-size: 14px;
 }
 .modal {
-  position: fixed;
   left: 50%;
   width: 80%;
   margin-left: -40%;
+  overflow-y: auto;
+}
+.modal-dialog {
+  max-width: 100%;
+}
+.modal-buttons {
+  margin-left: 3px;
+  margin-right: 3px;
 }
 .btn:active,
 .btn.active {
@@ -8628,17 +8635,6 @@ hr.menu {
     width: 100%;
     display: block !important;
   }
-}
-#xs-main-content-insertion-point {
-  margin-left: 0;
-  margin-right: 0;
-}
-.modal {
-  overflow-y: auto;
-}
-.modal-buttons {
-  margin-left: 3px;
-  margin-right: 3px;
 }
 #home-page-search {
   background-color: #007CC3;

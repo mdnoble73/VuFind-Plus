@@ -8,7 +8,8 @@
 		</a>
 	{else} {* Not Logged In *}
 		<a href="{$path}/MyAccount/Home" id="loginLink" onclick="{if $isLoginPage}$('#username').focus();return false{else}return VuFind.Account.followLinkIfLoggedIn(this){/if}" data-login="true" class="menu-icon" title="{translate text='Login'}">
-			<img src="{img filename='/interface/themes/responsive/images/Account.png'}" alt="{translate text='Login'}">
+			{*<img src="{img filename='/interface/themes/responsive/images/Account.png'}" alt="{translate text='Login'}">*}
+			<img src="{img filename='/interface/themes/responsive/images/Login.png'}" alt="{translate text='Login'}">
 		</a>
 	{/if}
 	<a href="#" id="mobile-menu-menu-icon" onclick="VuFind.Menu.Mobile.showMenu(this)" class="menu-icon" title="Menu">
