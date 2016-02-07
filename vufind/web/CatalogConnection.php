@@ -397,6 +397,7 @@ class CatalogConnection
 				$readingHistoryDB = new ReadingHistoryEntry();
 				$readingHistoryDB->userId = $patron->id;
 				$readingHistoryDB->deleted = 0;
+				$readingHistoryDB->groupBy('groupedWorkPermanentId');
 				$numTitles = $readingHistoryDB->count();
 
 				return array('historyActive'=>$patron->trackReadingHistory, 'titles'=>$readingHistoryTitles, 'numTitles'=> $numTitles);
