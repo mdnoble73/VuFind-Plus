@@ -468,14 +468,25 @@ class CatalogConnection
 		if (($patron->trackReadingHistory && $patron->initialReadingHistoryLoaded) || ! $this->driver->hasNativeReadingHistory()){
 			if ($action == 'deleteMarked'){
 				//Remove titles from database (do not remove from ILS)
-				foreach ($selectedTitles as $titleId){
+				foreach ($selectedTitles as $id => $titleId){
 					list($source, $sourceId) = explode('_', $titleId);
 					$readingHistoryDB = new ReadingHistoryEntry();
 					$readingHistoryDB->userId = $patron->id;
-					$readingHistoryDB->id = str_replace('rsh', '', $titleId);
-					if ($readingHistoryDB->find(true)){
-						$readingHistoryDB->deleted = 1;
-						$readingHistoryDB->update();
+					$readingHistoryDB->groupedWorkPermanentId = strtolower($id);
+					$readingHistoryDB->find();
+					if ($id && $readingHistoryDB->N > 0){
+						while ($readingHistoryDB->fetch()){
+							$readingHistoryDB->deleted = 1;
+							$readingHistoryDB->update();
+						}
+					}else{
+						$readingHistoryDB = new ReadingHistoryEntry();
+						$readingHistoryDB->userId = $patron->id;
+						$readingHistoryDB->id = str_replace('rsh', '', $titleId);
+						if ($readingHistoryDB->find(true)){
+							$readingHistoryDB->deleted = 1;
+							$readingHistoryDB->update();
+						}
 					}
 				}
 			}elseif ($action == 'deleteAll'){

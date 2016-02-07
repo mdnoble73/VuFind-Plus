@@ -105,7 +105,7 @@
 							<div class="col-tn-3">
 								<div class="row">
 									<div class="col-xs-12 col-sm-1">
-										<input type="checkbox" name="selected[{$record.recordId|escape:"url"}]" class="titleSelect" value="rsh{$record.itemindex}" id="rsh{$record.itemindex}">
+										<input type="checkbox" name="selected[{$record.permanentId|escape:"url"}]" class="titleSelect" value="rsh{$record.itemindex}" id="rsh{$record.itemindex}">
 									</div>
 									<div class="col-xs-12 col-sm-10">
 										{if $record.coverUrl}
@@ -122,7 +122,7 @@
 							</div>
 							{else}
 								<div class="col-tn-1">
-									<input type="checkbox" name="selected[{$record.recordId|escape:"url"}]" class="titleSelect" value="rsh{$record.itemindex}" id="rsh{$record.itemindex}">
+									<input type="checkbox" name="selected[{$record.permanentId|escape:"url"}]" class="titleSelect" value="rsh{$record.itemindex}" id="rsh{$record.itemindex}">
 								</div>
 							{/if}
 
