@@ -26,7 +26,11 @@ class SideLoadedRecord extends ExternalEContentDriver {
 		global $configArray;
 		$recordId = $this->getUniqueID();
 
-		return $configArray['Site']['path'] . "/{$this->profileType}/$recordId";
+		/** @var IndexingProfile[] $indexingProfiles */
+		global $indexingProfiles;
+		$indexingProfile = $indexingProfiles[$this->profileType];
+
+		return $configArray['Site']['path'] . "/{$indexingProfile->recordUrlComponent}/$recordId";
 	}
 
 	public function getMoreDetailsOptions(){
