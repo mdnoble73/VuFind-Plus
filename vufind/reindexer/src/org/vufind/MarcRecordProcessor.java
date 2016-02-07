@@ -70,20 +70,29 @@ public abstract class MarcRecordProcessor {
 		HashSet<String> seriesWithVolumes = new HashSet<>();
 		Pattern subfields830Pattern = Pattern.compile("[ap]");
 		for (DataField seriesField : seriesFields){
-			StringBuilder series = getSpecifiedSubfieldsAsString(seriesField, subfields830Pattern,"");
+			String series = Util.trimTrailingPunctuation(getSpecifiedSubfieldsAsString(seriesField, subfields830Pattern,"")).toString();
+			//Remove anything in parens since it's normally just the format
+			series = series.replaceAll("\\s+\\(.*?\\)", "");
+			//Remove the word series at the end since this gets cataloged inconsistently
+			series = series.replaceAll("(?i)\\s+series$", "");
 			if (seriesField.getSubfield('v') != null){
 				//Separate out the volume so we can link specially
-				series .append("|" + seriesField.getSubfield('v').getData());
+				series += "|" + seriesField.getSubfield('v').getData();
 			}
 			seriesWithVolumes.add(series.toString());
 		}
 		seriesFields = getDataFields(record, "800");
 		Pattern subfields800Pattern = Pattern.compile("[pqt]");
 		for (DataField seriesField : seriesFields){
-			StringBuilder series = getSpecifiedSubfieldsAsString(seriesField, subfields800Pattern,"");
+			String series = Util.trimTrailingPunctuation(getSpecifiedSubfieldsAsString(seriesField, subfields800Pattern,"")).toString();
+			//Remove anything in parens since it's normally just the format
+			series = series.replaceAll("\\s+\\(.*?\\)", "");
+			//Remove the word series at the end since this gets cataloged inconsistently
+			series = series.replaceAll("(?i)\\s+series$", "");
+
 			if (seriesField.getSubfield('v') != null){
 				//Separate out the volume so we can link specially
-				series .append("|" + seriesField.getSubfield('v').getData());
+				series += "|" + seriesField.getSubfield('v').getData();
 			}
 			seriesWithVolumes.add(series.toString());
 		}
@@ -643,7 +652,8 @@ public abstract class MarcRecordProcessor {
 		//title short
 		groupedWork.setTitle(this.getFirstFieldVal(record, "245a"));
 		//title sub
-		groupedWork.setSubTitle(this.getFirstFieldVal(record, "245b"));
+		//MDN 2/6/2016 add np to subtitle #ARL-163
+		groupedWork.setSubTitle(this.getFirstFieldVal(record, "245bnp"));
 		//display title
 		groupedWork.setDisplayTitle(this.getFirstFieldVal(record, "245abnp"));
 		//title full

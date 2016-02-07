@@ -10,7 +10,7 @@
 			{*{$recordDriver->getTitle()|escape}*}{* // ever a case when the trailing punction is needed? *}
 			{$recordDriver->getTitle()|removeTrailingPunctuation|escape}
 			{if $recordDriver->getTitleSection()}
-				{$recordDriver->getTitleSection()|escape}
+				:&nbsp;{$recordDriver->getTitleSection()|removeTrailingPunctuation|escape}
 			{/if}
 			{* if $recordDriver->getTitleStatement()}
 				<br><small>{$recordDriver->getTitleStatement()}</small>
