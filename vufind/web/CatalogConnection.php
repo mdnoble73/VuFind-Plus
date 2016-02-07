@@ -256,7 +256,9 @@ class CatalogConnection
 			$readingHistoryDB = new ReadingHistoryEntry();
 			$readingHistoryDB->userId = $user->id;
 			$readingHistoryDB->deleted = 0;
-			$user->readingHistorySize = $readingHistoryDB->count();
+			$readingHistoryDB->groupBy('groupedWorkPermanentId');
+			$readingHistoryDB->find();
+			$user->readingHistorySize = $readingHistoryDB->N;
 		}
 	}
 
@@ -398,7 +400,8 @@ class CatalogConnection
 				$readingHistoryDB->userId = $patron->id;
 				$readingHistoryDB->deleted = 0;
 				$readingHistoryDB->groupBy('groupedWorkPermanentId');
-				$numTitles = $readingHistoryDB->count();
+				$readingHistoryDB->find();
+				$numTitles = $readingHistoryDB->N;
 
 				return array('historyActive'=>$patron->trackReadingHistory, 'titles'=>$readingHistoryTitles, 'numTitles'=> $numTitles);
 			}else{
