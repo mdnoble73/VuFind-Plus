@@ -104,12 +104,5 @@
 # Split Marc Records for export to other systems
 00 1 * * * cd /usr/local/vufind-plus/vufind/cron; java -jar cron.jar marmot.test SplitMarcExport
 
-# Check Apache Solr process and website that it has not stalled. http://venus.marmot.org:8080/solr/grouped/admin/ping
-*/2 * * * * cd /usr/local/vufind-plus/vufind/cron/; ./solrTest.sh
-
-#Delete these lines soon
-#*/2 * * * * if [[ -z "$(pgrep -F /usr/local/vufind-plus/sites/default/solr/bin/solr-8080.pid)" || -z "$(pgrep -F /usr/local/vufind-plus/sites/default/solr/bin/solr-8180.pid)" ]] ; then cd /usr/local/vufind-plus/sites/marmot.test ; ./marmot.test.sh restart ; fi
-#*/2 * * * * if [[ -z "$(pgrep -F /usr/local/vufind-plus/sites/default/solr/bin/solr-8081.pid)" || -z "$(pgrep -F /usr/local/vufind-plus/sites/default/solr/bin/solr-8181.pid)" ]] ; then cd /usr/local/vufind-plus/sites/aspencat.test ; ./aspencat.test.sh restart ; fi
-#*/2 * * * * if [[ -z "$(pgrep -F /usr/local/vufind-plus/sites/default/solr/bin/solr-8082.pid)" || -z "$(pgrep -F /usr/local/vufind-plus/sites/default/solr/bin/solr-8182.pid)" ]] ; then cd /usr/local/vufind-plus/sites/anythink.test ; ./anythink.test.sh restart ; fi
-#*/2 * * * * if [[ -z "$(pgrep -F /usr/local/vufind-plus/sites/default/solr/bin/solr-8085.pid)" || -z "$(pgrep -F /usr/local/vufind-plus/sites/default/solr/bin/solr-8185.pid)" ]] ; then cd /usr/local/vufind-plus/sites/flatirons.test ; ./flatirons.test.sh restart ; fi
-#*/2 * * * * if [[ -z "$(pgrep -F /usr/local/vufind-plus/sites/default/solr/bin/solr-8086.pid)" || -z "$(pgrep -F /usr/local/vufind-plus/sites/default/solr/bin/solr-8186.pid)" ]] ; then cd /usr/local/vufind-plus/sites/arlington.test ; ./arlington.test.sh restart ; fi
+# Check Apache Solr process and website that it has not stalled.
+*/3 * * * * cd /usr/local/vufind-plus/vufind/cron/; ./solrTest.sh

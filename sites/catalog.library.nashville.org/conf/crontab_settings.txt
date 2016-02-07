@@ -81,5 +81,8 @@
 # RAM was increased to 32G 2015 09 11; JAMES is keeping these lines commented out here for emergencies
 #################################
 #25 23 * * * rm -rf /data/vufind-plus/catalog.library.nashville.org/covers/small; rm -rf /data/vufind-plus/catalog.library.nashville.org/covers/medium; rm -rf /data/vufind-plus/catalog.library.nashville.org/covers/large; mkdir -m 775 /data/vufind-plus/catalog.library.nashville.org/covers/small; mkdir -m 775 /data/vufind-plus/catalog.library.nashville.org/covers/medium; mkdir -m 775 /data/vufind-plus/catalog.library.nashville.org/covers/large; chown root:apache /data/vufind-plus/catalog.library.nashville.org/covers/small; chown root:apache /data/vufind-plus/catalog.library.nashville.org/covers/medium; chown root:apache /data/vufind-plus/catalog.library.nashville.org/covers/large'
-#10 * * * * cd /usr/local/vufind-plus/sites/catalog.library.nashville.org; ./pika_restart.sh 
+#10 * * * * cd /usr/local/vufind-plus/sites/catalog.library.nashville.org; ./pika_restart.sh
+
+# Check Apache Solr process and website that it has not stalled.
+*/3 * * * * cd /usr/local/vufind-plus/vufind/cron/; ./solrTest.sh
 

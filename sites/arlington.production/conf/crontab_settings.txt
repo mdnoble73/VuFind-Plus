@@ -62,9 +62,5 @@
 # Backup all mySQL databases to /home/mysql.dump
 05 0 * * * cd /root/cron/; ./mySQLBackup
 
-############
-# Logwatch #
-############
-# email the daily log report
-# logwatch runs on it's own schedule so an explicit call to logwatch in cron is not needed.
-#00 4 * * * cd /usr/sbin; ./logwatch --mailto root@marmot.org
+# Check Apache Solr process and website that it has not stalled.
+*/3 * * * * cd /usr/local/vufind-plus/vufind/cron/; ./solrTest.sh
