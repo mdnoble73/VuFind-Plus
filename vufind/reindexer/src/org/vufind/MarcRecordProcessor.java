@@ -639,7 +639,8 @@ public abstract class MarcRecordProcessor {
 		groupedWork.addAuthor2Role(contributors);
 
 		//author_display = 100a:110a:260b:710a:245c, first
-		String displayAuthor = this.getFirstFieldVal(record, "100a:110ab:260b:710a:245c");
+		//#ARL-95 Do not show display author from the 710 or from the 245c since neither are truly authors
+		String displayAuthor = this.getFirstFieldVal(record, "100a:110ab:260b");
 		if (displayAuthor != null && displayAuthor.indexOf(';') > 0){
 			displayAuthor = displayAuthor.substring(0, displayAuthor.indexOf(';') -1);
 		}
