@@ -369,6 +369,7 @@ class CatalogConnection
 				$readingHistoryDB->userId = $patron->id;
 				$readingHistoryDB->deleted = 0; //Only show titles that have not been deleted
 				$readingHistoryDB->selectAdd('MAX(checkOutDate) as checkOutDate');
+				$readingHistoryDB->selectAdd('GROUP_CONCAT(DISTINCT(format)) as format');
 				if ($sortOption == "checkedOut"){
 					$readingHistoryDB->orderBy('checkOutDate DESC, title ASC');
 				}else if ($sortOption == "returned"){
@@ -798,7 +799,7 @@ class CatalogConnection
 		$historyEntry['shortId'] = $readingHistoryDB->sourceId;
 		$historyEntry['title'] = $readingHistoryDB->title;
 		$historyEntry['author'] = $readingHistoryDB->author;
-		$historyEntry['format'] = array($readingHistoryDB->format);
+		$historyEntry['format'] = $readingHistoryDB->format;
 		$historyEntry['checkout'] = $readingHistoryDB->checkOutDate;
 		$historyEntry['checkin'] = $readingHistoryDB->checkInDate;
 		$historyEntry['ratingData'] = null;
@@ -806,20 +807,21 @@ class CatalogConnection
 		$historyEntry['linkUrl'] = null;
 		$historyEntry['coverUrl'] = null;
 		$recordDriver = null;
-		if ($readingHistoryDB->source == 'ILS') {
+		/*if ($readingHistoryDB->source == 'ILS') {
 			require_once ROOT_DIR . '/RecordDrivers/MarcRecord.php';
 			$recordDriver = new MarcRecord($historyEntry['id']);
 		} elseif ($readingHistoryDB->source == 'OverDrive') {
 			require_once ROOT_DIR . '/RecordDrivers/OverDriveRecordDriver.php';
 			$recordDriver = new OverDriveRecordDriver($historyEntry['id']);
-		}
-		if ($recordDriver != null && $recordDriver->isValid()) {
+		}*/
+		require_once ROOT_DIR . '/RecordDrivers/GroupedWorkDriver.php';
+		$recordDriver = new GroupedWorkDriver($readingHistoryDB->groupedWorkPermanentId);
+		if ($recordDriver != null && $recordDriver->isValid) {
 			$historyEntry['ratingData'] = $recordDriver->getRatingData();
 			$historyEntry['permanentId'] = $recordDriver->getPermanentId();
 			$historyEntry['coverUrl'] = $recordDriver->getBookcoverUrl('medium');
-			if ($recordDriver->getGroupedWorkDriver()->isValid){
+			if ($recordDriver->isValid){
 				$historyEntry['linkUrl'] = $recordDriver->getLinkUrl();
-				$historyEntry['format'] = $recordDriver->getFormats();
 			}
 			if ($historyEntry['title'] == ''){
 				$historyEntry['title']  = $recordDriver->getTitle();

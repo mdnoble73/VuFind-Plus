@@ -172,7 +172,11 @@
 								<div class="row">
 									<div class="result-label col-tn-3">{translate text='Format'}</div>
 									<div class="result-value col-tn-9">
-										{implode subject=$record.format glue=", "}
+										{if is_array($record.format)}
+											{implode subject=$record.format glue=", "}
+										{else}
+											{$record.format}
+										{/if}
 									</div>
 								</div>
 
