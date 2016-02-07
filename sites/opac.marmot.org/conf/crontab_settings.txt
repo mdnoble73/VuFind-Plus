@@ -67,7 +67,7 @@
 # AspenCat
 # All the default cron run does is Reading History update, do that once a day early in the morning after the index completes
 14 5 * * * cd /usr/local/vufind-plus/vufind/cron/; java -jar cron.jar aspencat.production
-44 23 * * * cd /usr/local/vufind-plus/vufind/cron/; java -jar cron.jar aspencat.production DatabaseCleanup
+15 6 * * * cd /usr/local/vufind-plus/vufind/cron/; java -jar cron.jar aspencat.production DatabaseCleanup
 # DB clean-up at end of the day, 11:44pm
 
 ###################################

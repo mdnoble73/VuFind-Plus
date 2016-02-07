@@ -368,6 +368,7 @@ class CatalogConnection
 				$readingHistoryDB = new ReadingHistoryEntry();
 				$readingHistoryDB->userId = $patron->id;
 				$readingHistoryDB->deleted = 0; //Only show titles that have not been deleted
+				$readingHistoryDB->selectAdd('MAX(checkOutDate) as checkOutDate');
 				if ($sortOption == "checkedOut"){
 					$readingHistoryDB->orderBy('checkOutDate DESC, title ASC');
 				}else if ($sortOption == "returned"){
@@ -379,6 +380,7 @@ class CatalogConnection
 				}else if ($sortOption == "format"){
 					$readingHistoryDB->orderBy('format ASC, title ASC, checkOutDate DESC');
 				}
+				$readingHistoryDB->groupBy('groupedWorkPermanentId');
 				if ($recordsPerPage != -1){
 					$readingHistoryDB->limit(($page - 1) * $recordsPerPage, $recordsPerPage);
 				}
