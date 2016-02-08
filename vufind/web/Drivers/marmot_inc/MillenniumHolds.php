@@ -551,7 +551,7 @@ class MillenniumHolds{
 						//$logger->log('Status for item ' . $curHold['id'] . '=' . $sCols[$i], PEAR_LOG_INFO);
 					}
 					elseif (stripos($sKeys[$i],"CANCEL IF NOT FILLED BY") > -1) {
-						//$curHold['expire'] = strip_tags($scols[$i]);
+						$curHold['automaticCancellation'] = strip_tags($sCols[$i]);
 					}
 					elseif (stripos($sKeys[$i],"FREEZE") > -1) {
 						$matches = array();

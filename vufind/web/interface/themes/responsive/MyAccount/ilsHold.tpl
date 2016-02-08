@@ -164,6 +164,15 @@
 								</div>
 							</div>
 						{/if}
+
+						{if $record.automaticCancellation && $showHoldCancelDate}
+							<div class="row">
+								<div class="result-label col-tn-3">{translate text='Cancels if not filled by'}</div>
+								<div class="col-tn-9 result-value">
+									{$record.automaticCancellation}
+								</div>
+							</div>
+						{/if}
 					{/if}
 				</div>
 
