@@ -185,6 +185,7 @@ public class DatabaseCleanup implements IProcessHandler {
 			PreparedStatement duplicateRecordsToPreserveStmt = vufindConn.prepareStatement("SELECT COUNT(id) as numRecords, userId, groupedWorkPermanentId, source, sourceId, FLOOR(checkOutDate/604800) as checkoutWeek , MIN(id) as idToPreserve FROM user_reading_history_work where deleted = 0 GROUP BY userId, groupedWorkPermanentId, FLOOR(checkOutDate/604800) having numRecords > 1", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 			PreparedStatement deleteDuplicateRecordStmt = vufindConn.prepareStatement("UPDATE user_reading_history_work SET deleted = 1 WHERE userId = ? AND groupedWorkPermanentId = ? AND FLOOR(checkOutDate/604800) = ? AND id != ?");
 			ResultSet duplicateRecordsRS = duplicateRecordsToPreserveStmt.executeQuery();
+			int numDuplicateRecords = 0;
 			while (duplicateRecordsRS.next()){
 				deleteDuplicateRecordStmt.setLong(1, duplicateRecordsRS.getLong("userId"));
 				deleteDuplicateRecordStmt.setString(2, duplicateRecordsRS.getString("groupedWorkPermanentId"));
@@ -197,12 +198,15 @@ public class DatabaseCleanup implements IProcessHandler {
 					//This happens if the items have already been marked as deleted
 					logger.debug("Warning did not delete any records for user " + duplicateRecordsRS.getLong("userId"));
 				}*/
+				numDuplicateRecords++;
 			}
+			processLog.addNote("Removed " + numDuplicateRecords + " records that were duplicates (check 1)");
 
 			//Now look for additional duplicates where the check in date is within a week
 			duplicateRecordsToPreserveStmt = vufindConn.prepareStatement("SELECT COUNT(id) as numRecords, userId, groupedWorkPermanentId, source, sourceId, FLOOR(checkInDate/604800) checkInWeek, MIN(id) as idToPreserve FROM user_reading_history_work where deleted = 0 GROUP BY userId, groupedWorkPermanentId, FLOOR(checkInDate/604800) having numRecords > 1", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 			deleteDuplicateRecordStmt = vufindConn.prepareStatement("UPDATE user_reading_history_work SET deleted = 1 WHERE userId = ? AND groupedWorkPermanentId = ? AND FLOOR(checkInDate/604800) = ? AND id != ?");
 			duplicateRecordsRS = duplicateRecordsToPreserveStmt.executeQuery();
+			numDuplicateRecords = 0;
 			while (duplicateRecordsRS.next()){
 				deleteDuplicateRecordStmt.setLong(1, duplicateRecordsRS.getLong("userId"));
 				deleteDuplicateRecordStmt.setString(2, duplicateRecordsRS.getString("groupedWorkPermanentId"));
@@ -215,7 +219,9 @@ public class DatabaseCleanup implements IProcessHandler {
 					//This happens if the items have already been marked as deleted
 					logger.debug("Warning did not delete any records for user " + duplicateRecordsRS.getLong("userId"));
 				}*/
+				numDuplicateRecords++;
 			}
+			processLog.addNote("Removed " + numDuplicateRecords + " records that were duplicates (check 2)");
 		} catch (SQLException e) {
 			processLog.incErrors();
 			processLog.addNote("Unable to delete duplicate reading history entries. " + e.toString());

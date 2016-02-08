@@ -693,7 +693,7 @@ class Aspencat implements DriverInterface{
 					if ($recordDriver->isValid()){
 						$historyEntry['ratingData'] = $recordDriver->getRatingData();
 						$historyEntry['permanentId'] = $recordDriver->getPermanentId();
-						$historyEntry['linkUrl'] = $recordDriver->getLinkUrl();
+						$historyEntry['linkUrl'] = $recordDriver->getGroupedWorkDriver()->getLinkUrl();
 						$historyEntry['coverUrl'] = $recordDriver->getBookcoverUrl('medium');
 						$historyEntry['format'] = $recordDriver->getFormats();
 						$historyEntry['author'] = $recordDriver->getPrimaryAuthor();

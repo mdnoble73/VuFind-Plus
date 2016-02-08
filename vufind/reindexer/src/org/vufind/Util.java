@@ -216,11 +216,18 @@ public class Util {
 		}else{
 			return format;
 		}
+	}
 
-		/*while (format.endsWith("/") || format.endsWith(",") || format.endsWith(".") || format.endsWith(";")) {
-			format = format.substring(0, format.length() - 1).trim();
+	public static StringBuilder trimTrailingPunctuation(StringBuilder format) {
+		if (format == null){
+			return new StringBuilder();
 		}
-		return format;*/
+		Matcher trimPunctuationMatcher = trimPunctuationPattern.matcher(format);
+		if (trimPunctuationMatcher.matches()){
+			return new StringBuilder(trimPunctuationMatcher.group(1));
+		}else{
+			return format;
+		}
 	}
 
 	public static Collection<String> trimTrailingPunctuation(Set<String> fieldList) {

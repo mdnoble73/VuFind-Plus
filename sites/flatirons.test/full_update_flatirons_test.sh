@@ -84,9 +84,10 @@ cd /usr/local/vufind-plus/sites/${PIKASERVER}; ./${PIKASERVER}.sh restart
 
 #Extract from ILS
 #copy extracts from production servers
-cd /data/vufind-plus/flatirons.test/marc
-wget -N --no-verbose http://flc.flatironslibrary.org/BIB_EXTRACT_PIKA.MRC
-wget -N --no-verbose http://flc.flatironslibrary.org/BIB_HOLDS_EXTRACT_PIKA.TXT
+#TODO use scp to copy records from flatirons production server or have them pushed to the test server
+#cd /data/vufind-plus/flatirons.test/marc
+#wget -N --no-verbose http://flc.flatironslibrary.org/BIB_EXTRACT_PIKA.MRC
+#wget -N --no-verbose http://flc.flatironslibrary.org/BIB_HOLDS_EXTRACT_PIKA.TXT
 # --no-verbose Turn off verbose without being completely quiet (use -q for that), which means that error messages and basic information still get printed.
 
 #Extract from Hoopla

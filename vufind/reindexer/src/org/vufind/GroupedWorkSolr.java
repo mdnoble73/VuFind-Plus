@@ -237,6 +237,8 @@ public class GroupedWorkSolr {
 		keywords.addAll(issns);
 		keywords.addAll(lccns);
 		keywords.addAll(upcs.keySet());
+		HashSet<String> callNumbers = getAllCallNumbers();
+		keywords.addAll(callNumbers);
 		doc.addField("keywords", Util.getCRSeparatedStringFromSet(keywords));
 
 		doc.addField("table_of_contents", contents);
@@ -298,6 +300,14 @@ public class GroupedWorkSolr {
 		HashSet<String> values = new HashSet<>();
 		for (RecordInfo curRecord : relatedRecords.values()){
 			values.addAll(curRecord.getAllEContentSources());
+		}
+		return values;
+	}
+
+	private HashSet<String> getAllCallNumbers(){
+		HashSet<String> values = new HashSet<>();
+		for (RecordInfo curRecord : relatedRecords.values()){
+			values.addAll(curRecord.getAllCallNumbers());
 		}
 		return values;
 	}
@@ -944,7 +954,10 @@ public class GroupedWorkSolr {
 	public void addSeries(String series) {
 		if (series != null && !series.equalsIgnoreCase("none")){
 			series = Util.trimTrailingPunctuation(series);
-			series = series.replaceAll("(?i)\\sseries$", "");
+			//Remove anything in parens since it's normally just the format
+			series = series.replaceAll("\\s+\\(.*?\\)", "");
+			//Remove the word series at the end since this gets cataloged inconsistently
+			series = series.replaceAll("(?i)\\s+series$", "");
 			String normalizedSeries = series.toLowerCase().replaceAll("\\W", "");
 			if (!this.series.containsKey(normalizedSeries)){
 				this.series.put(normalizedSeries, series);
@@ -956,7 +969,9 @@ public class GroupedWorkSolr {
 	}
 
 	public void addSeriesWithVolume(String series){
-		seriesWithVolume.add(series);
+		if (series != null) {
+			seriesWithVolume.add(series);
+		}
 	}
 
 	public void addSeries2(Set<String> fieldList) {

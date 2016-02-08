@@ -70,20 +70,29 @@ public abstract class MarcRecordProcessor {
 		HashSet<String> seriesWithVolumes = new HashSet<>();
 		Pattern subfields830Pattern = Pattern.compile("[ap]");
 		for (DataField seriesField : seriesFields){
-			StringBuilder series = getSpecifiedSubfieldsAsString(seriesField, subfields830Pattern,"");
+			String series = Util.trimTrailingPunctuation(getSpecifiedSubfieldsAsString(seriesField, subfields830Pattern,"")).toString();
+			//Remove anything in parens since it's normally just the format
+			series = series.replaceAll("\\s+\\(.*?\\)", "");
+			//Remove the word series at the end since this gets cataloged inconsistently
+			series = series.replaceAll("(?i)\\s+series$", "");
 			if (seriesField.getSubfield('v') != null){
 				//Separate out the volume so we can link specially
-				series .append("|" + seriesField.getSubfield('v').getData());
+				series += "|" + seriesField.getSubfield('v').getData();
 			}
 			seriesWithVolumes.add(series.toString());
 		}
 		seriesFields = getDataFields(record, "800");
 		Pattern subfields800Pattern = Pattern.compile("[pqt]");
 		for (DataField seriesField : seriesFields){
-			StringBuilder series = getSpecifiedSubfieldsAsString(seriesField, subfields800Pattern,"");
+			String series = Util.trimTrailingPunctuation(getSpecifiedSubfieldsAsString(seriesField, subfields800Pattern,"")).toString();
+			//Remove anything in parens since it's normally just the format
+			series = series.replaceAll("\\s+\\(.*?\\)", "");
+			//Remove the word series at the end since this gets cataloged inconsistently
+			series = series.replaceAll("(?i)\\s+series$", "");
+
 			if (seriesField.getSubfield('v') != null){
 				//Separate out the volume so we can link specially
-				series .append("|" + seriesField.getSubfield('v').getData());
+				series += "|" + seriesField.getSubfield('v').getData();
 			}
 			seriesWithVolumes.add(series.toString());
 		}
@@ -602,7 +611,11 @@ public abstract class MarcRecordProcessor {
 		//auth_author = 100abcd, first
 		groupedWork.setAuthAuthor(this.getFirstFieldVal(record, "100abcd"));
 		//author = a, first
-		groupedWork.setAuthor(this.getFirstFieldVal(record, "100abcdq:110ab:710a"));
+		//MDN 2/6/2016 - Do not use 710 because it is not truly the author.  This has the potential
+		//of showing some disconnects with how records are grouped, but improves the display of the author
+		//710 is still indexed as part of author 2 #ARL-146
+		//groupedWork.setAuthor(this.getFirstFieldVal(record, "100abcdq:110ab:710a"));
+		groupedWork.setAuthor(this.getFirstFieldVal(record, "100abcdq:110ab"));
 		//author-letter = 100a, first
 		groupedWork.setAuthorLetter(this.getFirstFieldVal(record, "100a"));
 		//auth_author2 = 700abcd
@@ -626,7 +639,8 @@ public abstract class MarcRecordProcessor {
 		groupedWork.addAuthor2Role(contributors);
 
 		//author_display = 100a:110a:260b:710a:245c, first
-		String displayAuthor = this.getFirstFieldVal(record, "100a:110ab:260b:710a:245c");
+		//#ARL-95 Do not show display author from the 710 or from the 245c since neither are truly authors
+		String displayAuthor = this.getFirstFieldVal(record, "100a:110ab:260b");
 		if (displayAuthor != null && displayAuthor.indexOf(';') > 0){
 			displayAuthor = displayAuthor.substring(0, displayAuthor.indexOf(';') -1);
 		}
@@ -639,7 +653,8 @@ public abstract class MarcRecordProcessor {
 		//title short
 		groupedWork.setTitle(this.getFirstFieldVal(record, "245a"));
 		//title sub
-		groupedWork.setSubTitle(this.getFirstFieldVal(record, "245b"));
+		//MDN 2/6/2016 add np to subtitle #ARL-163
+		groupedWork.setSubTitle(this.getFirstFieldVal(record, "245bnp"));
 		//display title
 		groupedWork.setDisplayTitle(this.getFirstFieldVal(record, "245abnp"));
 		//title full
