@@ -836,7 +836,6 @@ class MyAccount_AJAX
 
 	function getChangeHoldLocationForm()
 	{
-		// TODO must handle linked accounts
 		global $interface;
 		/** @var $interface UInterface
 		 * @var $user User */
@@ -859,7 +858,7 @@ class MyAccount_AJAX
 		$results = array(
 			'title' => 'Change Hold Location',
 			'modalBody' => $interface->fetch("MyAccount/changeHoldLocation.tpl"),
-			'modalButtons' => "<span class='tool btn btn-primary' onclick='VuFind.Account.doChangeHoldLocation(); return false;'>Change Location</span>"
+			'modalButtons' => '<span class="tool btn btn-primary" onclick="VuFind.Account.doChangeHoldLocation(); return false;">Change Location</span>'
 		);
 		return $results;
 	}
@@ -888,7 +887,6 @@ class MyAccount_AJAX
 		global $configArray;
 
 		try {
-			$catalog = CatalogFactory::getCatalogConnectionInstance();;
 			$holdId = $_REQUEST['holdId'];
 			$newPickupLocation = $_REQUEST['newLocation'];
 			global $user;
@@ -896,8 +894,7 @@ class MyAccount_AJAX
 			$patronId = $_REQUEST['patronId'];
 			$patronOwningHold = $user->getUserReferredTo($patronId);
 
-
-			$result = $catalog->driver->updateHoldDetailed($patronOwningHold, 'update', '', $holdId, $newPickupLocation, null);
+			$result = $patronOwningHold->changeHoldPickUpLocation($holdId, $newPickupLocation);
 			return $result;
 		} catch (PDOException $e) {
 			// What should we do with this error?

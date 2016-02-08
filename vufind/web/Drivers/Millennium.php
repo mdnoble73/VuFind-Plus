@@ -752,7 +752,7 @@ class Millennium extends ScreenScrapingDriver
 	function changeHoldPickupLocation($patron, $recordId, $itemToUpdateId, $newPickupLocation){
 		require_once ROOT_DIR . '/Drivers/marmot_inc/MillenniumHolds.php';
 		$millenniumHolds = new MillenniumHolds($this);
-		return $millenniumHolds->updateHoldDetailed($patron, 'update', null, $itemToUpdateId, $newPickupLocation, 'off');
+		return $millenniumHolds->updateHoldDetailed($patron, 'update', null, $itemToUpdateId, $newPickupLocation, null); // freeze value of null gets us to change  pickup location
 	}
 
 	public function hasFastRenewAll(){
