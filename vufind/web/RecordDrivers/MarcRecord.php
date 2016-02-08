@@ -1789,7 +1789,9 @@ class MarcRecord extends IndexRecord
 									'holdings' => array(),
 							);
 						}
-						$this->holdingSections[$sectionName]['holdings'][] = $copyInfo;
+						if ($copyInfo['shelfLocation'] != ''){
+							$this->holdingSections[$sectionName]['holdings'][] = $copyInfo;
+						}
 					}
 
 					$this->statusSummary = $this->recordFromIndex;
@@ -1842,6 +1844,18 @@ class MarcRecord extends IndexRecord
 			if (count($issueSummaries)){
 				//Insert copies into the information about the periodicals
 				$copies = $this->getCopies();
+				//Remove any copies with no location to get rid of temporary items added only for scoping
+				$changeMade = true;
+				while ($changeMade){
+					$changeMade = false;
+					foreach ($copies as $i => $copy){
+						if ($copy['shelfLocation'] == ''){
+							unset($copies[$i]);
+							$changeMade = true;
+							break;
+						}
+					}
+				}
 				krsort($copies);
 				//Group holdings under the issue issue summary that is related.
 				foreach ($copies as $key => $holding){

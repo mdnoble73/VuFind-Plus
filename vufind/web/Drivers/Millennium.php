@@ -1038,6 +1038,9 @@ class Millennium extends ScreenScrapingDriver
 										if (preg_match('/(.*?)\\sC\\d{3}\\w{0,2}$/', $value, $locationParts)){
 											$value = $locationParts[1];
 										}
+									}elseif ($label == 'holdings'){
+										//Change the lable to avoid conflicts with actual holdings
+										$label = 'holdingStatement';
 									}
 									$issueSummary[$label] = $value;
 								}
