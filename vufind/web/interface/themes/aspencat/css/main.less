@@ -27,3 +27,31 @@
 }
 
 .header-login-button-mixin(@header-buttons-background-color); // to match logo. plb 3-31-2015
+
+// mixin to select all the typical states of <a> like tags
+.allLinkStates(@rules) {
+  &, &:hover, &:active, &:visited {
+    @rules();
+  }
+}
+
+#browse-category-picker {
+  .jcarousel-control-prev, .jcarousel-control-next {
+    //background-color: #fff;
+    //color: @selectedCategoryColor;
+    &:active, &:hover {
+      //color: @font-red;
+      text-decoration: none;
+    }
+    .box-shadow(none);
+  }
+  .jcarousel-pagination a {
+    &.active {
+      background: @browseCarouselControlColor;
+      // keep shadowing in place on active item
+      .box-shadow(0 0 2px #4E443C);
+    }
+    @detached-outline-ruleset: {outline: none};
+    .allLinkStates(@detached-outline-ruleset)
+  }
+}
