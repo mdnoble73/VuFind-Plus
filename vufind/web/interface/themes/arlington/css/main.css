@@ -10241,8 +10241,7 @@ a.browse-thumbnail.active {
   #lookfor:focus::placeholder {
     color: transparent;
   }
-  #horizontal-search-label,
-  #basicSearchTypes {
+  #horizontal-search-label {
     display: none;
   }
   #header-logo {
