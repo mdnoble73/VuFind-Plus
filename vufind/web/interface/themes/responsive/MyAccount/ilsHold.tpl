@@ -134,7 +134,7 @@
 							<div class="row">
 								<div class="result-label col-tn-3">{translate text='Expires'}</div>
 								<div class="col-tn-9 result-value">
-									{$record.expire|date_format:"%b %d, %Y"}
+									<strong>{$record.expire|date_format:"%b %d, %Y"}</strong>
 								</div>
 							</div>
 						{/if}
