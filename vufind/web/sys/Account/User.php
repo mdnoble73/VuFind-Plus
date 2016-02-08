@@ -756,12 +756,22 @@ class User extends DB_DataObject
 			}
 		}
 
+		//Sort Available Holds by Expiration Date (then title/sort title)
+		$holdSort = function ($a, $b, $indexToSortBy='sortTitle') {
+			if ($a['expire'] > $b['expire']){
+				return 1;
+			}elseif ($a['expire'] < $b['expire']){
+				return -1;
+			}else if ($a['expire'] == $b['expire']){
+				return strcasecmp(isset($a[$indexToSortBy]) ? $a[$indexToSortBy] : $a['title'], isset($b[$indexToSortBy]) ? $b[$indexToSortBy] : $b['title']);
+			}
+		};
+		uasort($allHolds['available'], $holdSort);
+
 		// Sort Pending Holds by Sort Title ( uses title if the sort title is not present )
 		$holdSort = function ($a, $b, $indexToSortBy='sortTitle') {
 			return strcasecmp(isset($a[$indexToSortBy]) ? $a[$indexToSortBy] : $a['title'], isset($b[$indexToSortBy]) ? $b[$indexToSortBy] : $b['title']);
 		};
-
-		uasort($allHolds['available'], $holdSort);
 		uasort($allHolds['unavailable'], $holdSort);
 		return $allHolds;
 	}

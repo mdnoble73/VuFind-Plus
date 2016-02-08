@@ -864,7 +864,11 @@ class MarcRecord extends IndexRecord
 		if ($titleField != null && $titleField->getSubfield('a') != null){
 			$untrimmedTitle = $titleField->getSubfield('a')->getData();
 			$charsToTrim = $titleField->getIndicator(2);
-			return substr($untrimmedTitle, $charsToTrim);
+			if (is_numeric($charsToTrim)){
+				return substr($untrimmedTitle, $charsToTrim);
+			}else{
+				return $untrimmedTitle;
+			}
 		}
 		return 'Unknown';
 	}
