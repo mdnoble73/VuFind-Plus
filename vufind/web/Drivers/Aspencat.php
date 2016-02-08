@@ -1343,6 +1343,9 @@ class Aspencat implements DriverInterface{
 	public function updateHoldDetailed($patron, $type, /*$title,*/ $xNum, $cancelId, $locationId, $freezeValue='off'){
 		global $configArray;
 
+		// TODO: get actual titles for hold items
+		$titles = array();
+
 		if (!isset($xNum) || empty($xNum)){
 			if (isset($_REQUEST['waitingholdselected']) || isset($_REQUEST['availableholdselected'])){
 				$waitingHolds = isset($_REQUEST['waitingholdselected']) ? $_REQUEST['waitingholdselected'] : array();
@@ -1393,19 +1396,19 @@ class Aspencat implements DriverInterface{
 			}
 			if ($allCancelsSucceed){
 				return array(
-					'title' => $title,
+					'title' => $titles,
 					'success' => true,
 					'message' => count($holdKeys) == 1 ? 'Cancelled 1 hold successfully.' : 'Cancelled ' . count($holdKeys) . ' hold(s) successfully.');
 			}else{
 				return array(
-					'title' => $title,
+					'title' => $titles,
 					'success' => false,
 					'message' => 'Some holds could not be cancelled.  Please try again later or see your librarian.');
 			}
 		}else{
 			if ($locationId){
 				return array(
-					'title' => $title,
+					'title' => $titles,
 					'success' => false,
 					'message' => 'Changing location for a hold is not supported.');
 			}else{
@@ -1436,12 +1439,12 @@ class Aspencat implements DriverInterface{
 					}
 					if ($allLocationChangesSucceed){
 						return array(
-							'title' => $title,
+							'title' => $titles,
 							'success' => true,
 							'message' => 'Your hold(s) were frozen successfully.');
 					}else{
 						return array(
-							'title' => $title,
+							'title' => $titles,
 							'success' => false,
 							'message' => 'Some holds could not be frozen.  Please try again later or see your librarian.');
 					}
@@ -1461,12 +1464,12 @@ class Aspencat implements DriverInterface{
 					}
 					if ($allUnsuspendsSucceed){
 						return array(
-							'title' => $title,
+							'title' => $titles,
 							'success' => true,
 							'message' => 'Your hold(s) were thawed successfully.');
 					}else{
 						return array(
-							'title' => $title,
+							'title' => $titles,
 							'success' => false,
 							'message' => 'Some holds could not be thawed.  Please try again later or see your librarian.');
 					}
