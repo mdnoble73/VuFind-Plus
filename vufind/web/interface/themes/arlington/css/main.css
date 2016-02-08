@@ -10212,3 +10212,44 @@ a.browse-thumbnail.active {
 #more-browse-results {
   color: #015cb9;
 }
+@media (max-width: 767px) {
+  #lookfor:-ms-input-placeholder {
+    color: #999999;
+    font-size: initial;
+  }
+  #lookfor::-webkit-input-placeholder {
+    color: #999999;
+    font-size: initial;
+  }
+  #lookfor::-moz-placeholder {
+    color: #999999;
+    font-size: initial;
+  }
+  #lookfor::placeholder {
+    color: #999999;
+    font-size: initial;
+  }
+  #lookfor:focus::-moz-placeholder {
+    color: transparent;
+  }
+  #lookfor:focus::-webkit-input-placeholder {
+    color: transparent;
+  }
+  #lookfor:focus:-ms-input-placeholder {
+    color: transparent;
+  }
+  #lookfor:focus::placeholder {
+    color: transparent;
+  }
+  #horizontal-search-label,
+  #basicSearchTypes {
+    display: none;
+  }
+  #header-logo {
+    max-height: 60px;
+  }
+  #header-container {
+    min-height: 0;
+    height: auto;
+  }
+}
