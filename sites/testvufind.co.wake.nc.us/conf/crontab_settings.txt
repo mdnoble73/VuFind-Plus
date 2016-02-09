@@ -50,13 +50,6 @@
 27 0 * * * cd /tmp; rm -rf CURLCOOKIE*
 28 0 * * * cd /tmp; rm -rf epb*
 
-###################################
-# Data Extract from other systems #
-###################################
-#  - Takes just a few minutes since we only pull changes
-*/5 * * * * cd /usr/local/vufind-plus/vufind/overdrive_api_extract/; java -jar overdrive_extract.jar testvufind.co.wake.nc.us
-# extract every five minutes
-
 ########################
 # Full Update #
 ########################
