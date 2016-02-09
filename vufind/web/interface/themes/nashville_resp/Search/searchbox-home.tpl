@@ -131,7 +131,7 @@
 			{* Show/Hide Search Facets & Sort Options *}
 			{if $recordCount || $sideRecommendations}
 				<div class="row text-center visible-xs">
-					<a class="btn btn-default" id="refineSearchButton" role="button" onclick="VuFind.Menu.showSearchFacets()">{translate text="Refine Search"}</a>
+					<a class="btn btn-default" id="refineSearchButton" role="button" onclick="VuFind.Menu.Mobile.showSearchFacets()">{translate text="Refine Search"}</a>
 				</div>
 			{/if}
 
