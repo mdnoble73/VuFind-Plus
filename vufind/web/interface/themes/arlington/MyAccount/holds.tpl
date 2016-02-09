@@ -19,7 +19,8 @@
 			</p>
 
 			{foreach from=$recordList item=sectionData key=sectionKey}
-				<h3>{if $sectionKey == 'available'}Holds Ready For Pickup{else}Pending Holds{/if}</h3>
+				<h3>{if $sectionKey == 'available'}Holds - Ready{else}Holds - Not Ready{/if}</h3>
+				{* Note: These Titles are custom for Arlington *}
 				<p class="alert alert-info">
 					{if $sectionKey == 'available'}
 						{translate text="available hold summary"}
