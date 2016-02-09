@@ -184,23 +184,25 @@ public class RecordGroupingProcessor {
 			if (numItems == 0){
 				allItemsSuppressed = false;
 			}
-			if (allItemsSuppressed){
+			if (allItemsSuppressed && identifier != null){
 				//Don't return a primary identifier for this record (we will suppress the bib and just use OverDrive APIs)
 				identifier.setSuppressed(true);
 				identifier.setSuppressionReason("All Items suppressed");
 			}
 		}else{
 			//Check the 856 for an overdrive url
-			List<DataField> linkFields = getDataFields(marcRecord, "856");
-			for (DataField linkField : linkFields){
-				if (linkField.getSubfield('u') != null){
-					//Check the url to see if it is from OverDrive or Hoopla
-					String linkData = linkField.getSubfield('u').getData().trim();
-					if (linkData.matches("(?i)^http://.*?lib\\.overdrive\\.com/ContentDetails\\.htm\\?id=[\\da-f]{8}-[\\da-f]{4}-[\\da-f]{4}-[\\da-f]{4}-[\\da-f]{12}$")){
-						identifier.setSuppressed(true);
-						identifier.setSuppressionReason("OverDrive Title");
-					}else if (linkData.matches("(?i)^https://www\\.hoopladigital\\.com/title/\\d+$")){
-						identifier.setSuppressionReason("Hoopla Title");
+			if (identifier != null) {
+				List<DataField> linkFields = getDataFields(marcRecord, "856");
+				for (DataField linkField : linkFields) {
+					if (linkField.getSubfield('u') != null) {
+						//Check the url to see if it is from OverDrive or Hoopla
+						String linkData = linkField.getSubfield('u').getData().trim();
+						if (linkData.matches("(?i)^http://.*?lib\\.overdrive\\.com/ContentDetails\\.htm\\?id=[\\da-f]{8}-[\\da-f]{4}-[\\da-f]{4}-[\\da-f]{4}-[\\da-f]{12}$")) {
+							identifier.setSuppressed(true);
+							identifier.setSuppressionReason("OverDrive Title");
+						} else if (linkData.matches("(?i)^https://www\\.hoopladigital\\.com/title/\\d+$")) {
+							identifier.setSuppressionReason("Hoopla Title");
+						}
 					}
 				}
 			}
@@ -278,15 +280,19 @@ public class RecordGroupingProcessor {
 
 		//Format
 		String groupingFormat;
-		if (loadFormatFrom.equals("bib")){
-			String format = getFormatFromBib(marcRecord);
-			groupingFormat = categoryMap.get(formatsToGroupingCategory.get(format));
-		}else if (loadFormatFrom.equals("specified")){
-			//Use specified format
-			groupingFormat = categoryMap.get(specifiedFormatCategory.toLowerCase());
-		}else {
-			//get format from item
-			groupingFormat = getFormatFromItems(marcRecord, formatSubfield);
+		switch (loadFormatFrom) {
+			case "bib":
+				String format = getFormatFromBib(marcRecord);
+				groupingFormat = categoryMap.get(formatsToGroupingCategory.get(format));
+				break;
+			case "specified":
+				//Use specified format
+				groupingFormat = categoryMap.get(specifiedFormatCategory.toLowerCase());
+				break;
+			default:
+				//get format from item
+				groupingFormat = getFormatFromItems(marcRecord, formatSubfield);
+				break;
 		}
 		workForTitle.setGroupingCategory(groupingFormat);
 
@@ -415,7 +421,8 @@ public class RecordGroupingProcessor {
 			//Update identifiers
 			if (fullRegrouping || primaryDataChanged) {
 				addPrimaryIdentifierForWorkToDB(groupedWorkId, primaryIdentifier);
-				addIdentifiersForRecordToDB(groupedWorkId, groupedWork.getIdentifiers(), primaryIdentifier);
+				//We no longer utilize secondary identifiers for works. We can skip calling this now
+				//addIdentifiersForRecordToDB(groupedWorkId, groupedWork.getIdentifiers(), primaryIdentifier);
 			}
 		}catch (Exception e){
 			logger.error("Error adding grouped record to grouped work ", e);
@@ -453,7 +460,7 @@ public class RecordGroupingProcessor {
 		return groupedWorkPermanentId;
 	}
 
-	private HashSet<Long> updatedAndInsertedWorksThisRun = new HashSet<Long>();
+	private HashSet<Long> updatedAndInsertedWorksThisRun = new HashSet<>();
 	private void markWorkUpdated(long groupedWorkId) {
 		//Optimize to not continually mark the same works as updateed
 		if (!updatedAndInsertedWorksThisRun.contains(groupedWorkId)) {
@@ -485,7 +492,7 @@ public class RecordGroupingProcessor {
 		}
 	}
 
-	private void addIdentifiersForRecordToDB(long groupedWorkId, HashSet<RecordIdentifier> identifiers, RecordIdentifier primaryIdentifier) throws SQLException {
+	/*private void addIdentifiersForRecordToDB(long groupedWorkId, HashSet<RecordIdentifier> identifiers, RecordIdentifier primaryIdentifier) throws SQLException {
 		//Get a list of all secondary identifiers for the primary identifier
 		getSecondaryIdentifiersForPrimaryIdentifier.setLong(1, primaryIdentifier.getIdentifierId());
 		ResultSet secondaryIdentifiersForPrimaryIdentifier = getSecondaryIdentifiersForPrimaryIdentifier.executeQuery();
@@ -526,16 +533,16 @@ public class RecordGroupingProcessor {
 			removeSecondaryIdentifierFromPrimaryIdentifier.setLong(2, primaryIdentifier.getIdentifierId());
 			removeSecondaryIdentifierFromPrimaryIdentifier.executeUpdate();
 		}
-	}
+	}*/
 
-	private void addPrimaryToSecondaryReferences(RecordIdentifier primaryIdentifier, RecordIdentifier curIdentifier) throws SQLException {
+	/*private void addPrimaryToSecondaryReferences(RecordIdentifier primaryIdentifier, RecordIdentifier curIdentifier) throws SQLException {
 		//add a reference between the primary identifier and secondary identifiers.
 		addPrimaryIdentifierToSecondaryIdentifierRefStmt.setLong(1, primaryIdentifier.getIdentifierId());
 		addPrimaryIdentifierToSecondaryIdentifierRefStmt.setLong(2, curIdentifier.getIdentifierId());
 		addPrimaryIdentifierToSecondaryIdentifierRefStmt.executeUpdate();
-	}
+	}*/
 
-	private void addSecondaryIdentifierToGroupedWork(long groupedWorkId, RecordIdentifier curIdentifier) {
+	/*private void addSecondaryIdentifierToGroupedWork(long groupedWorkId, RecordIdentifier curIdentifier) {
 		//Add the identifier reference
 		try{
 			addIdentifierToGroupedWorkStmt.setLong(1, groupedWorkId);
@@ -545,9 +552,9 @@ public class RecordGroupingProcessor {
 		}catch (SQLException e){
 			logger.error("Error adding identifier " + curIdentifier.getType() + " - " + curIdentifier.getIdentifier() + " identifierId " + curIdentifier.getIdentifierId() + " to grouped work " + groupedWorkId, e);
 		}
-	}
+	}*/
 
-	private void insertNewSecondaryIdentifier(RecordIdentifier curIdentifier) throws SQLException {
+	/*private void insertNewSecondaryIdentifier(RecordIdentifier curIdentifier) throws SQLException {
 		//This is a brand new identifier
 		insertIdentifierStmt.setString(1, curIdentifier.getType());
 		insertIdentifierStmt.setString(2, curIdentifier.getIdentifier());
@@ -571,7 +578,7 @@ public class RecordGroupingProcessor {
 			}
 			identifierIdRs.close();
 		}
-	}
+	}*/
 
 	public void processRecord(RecordIdentifier primaryIdentifier, String title, String subtitle, String author, String format, HashSet<RecordIdentifier>identifiers, boolean primaryDataChanged){
 		GroupedWorkBase groupedWork = GroupedWorkFactory.getInstance(-1);
@@ -978,7 +985,7 @@ public class RecordGroupingProcessor {
 		return  isbn + Integer.toString(checksumDigit);
 	}
 
-	private static HashMap<String, String> formatsToGroupingCategory = new HashMap<String, String>();
+	private static HashMap<String, String> formatsToGroupingCategory = new HashMap<>();
 	static {
 		formatsToGroupingCategory.put("Atlas", "other");
 		formatsToGroupingCategory.put("Map", "other");
@@ -1074,7 +1081,7 @@ public class RecordGroupingProcessor {
 		formatsToGroupingCategory.put("SeedPacket", "other");
 	}
 
-	private static HashMap<String, String> categoryMap = new HashMap<String, String>();
+	private static HashMap<String, String> categoryMap = new HashMap<>();
 	static {
 		categoryMap.put("other", "book");
 		categoryMap.put("book", "book");
@@ -1148,7 +1155,7 @@ public class RecordGroupingProcessor {
 		} catch (IOException e) {
 			logger.error("Could not read translation map, " + translationMapFile.getAbsolutePath(), e);
 		}
-		HashMap<String, String> translationMap = new HashMap<String, String>();
+		HashMap<String, String> translationMap = new HashMap<>();
 		for (Object keyObj : props.keySet()){
 			String key = (String)keyObj;
 			translationMap.put(key.toLowerCase(), props.getProperty(key));

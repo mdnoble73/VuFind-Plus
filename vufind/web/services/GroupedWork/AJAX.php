@@ -57,14 +57,39 @@ class GroupedWork_AJAX {
 	function forceRegrouping(){
 		require_once ROOT_DIR . '/RecordDrivers/GroupedWorkDriver.php';
 		require_once ROOT_DIR . '/sys/Grouping/GroupedWork.php';
+		require_once ROOT_DIR . '/sys/Grouping/GroupedWorkPrimaryIdentifier.php';
+		require_once ROOT_DIR . '/sys/Indexing/IlsMarcChecksum.php';
+		require_once ROOT_DIR . '/sys/OverDrive/OverDriveAPIProduct.php';
 		$id = $_REQUEST['id'];
 		$groupedWork = new GroupedWork();
 		$groupedWork->permanent_id = $id;
 		if ($groupedWork->find(true)){
 			$groupedWork->date_updated = null;
-			//TODO: Get a list of all primary identifiers and mark the checksum as null.
-			//For OverDrive titles, just need to set dateUpdated to now.
-			return json_encode(array('success' => false, 'message' => 'Unable to mark the title for regrouping. This method isn\'t implemented yet.'));
+			$groupedWorkPrimaryIdentifier = new GroupedWorkPrimaryIdentifier();
+			$groupedWorkPrimaryIdentifier->grouped_work_id = $groupedWork->id;
+			$groupedWorkPrimaryIdentifier->find();
+			//Get a list of all primary identifiers and mark the checksum as null.
+			while ($groupedWorkPrimaryIdentifier->fetch()){
+				if ($groupedWorkPrimaryIdentifier->type == 'overdrive'){
+					//For OverDrive titles, just need to set dateUpdated to now.
+					$overDriveProduct = new OverDriveAPIProduct();
+					$overDriveProduct->overdriveId = $groupedWorkPrimaryIdentifier->identifier;
+					if ($overDriveProduct->find(true)){
+						$overDriveProduct->dateUpdated = time();
+						$overDriveProduct->update();
+					}
+				}else{
+					//Mark the checksum as null.
+					$ilsMarcChecksum = new IlsMarcChecksum();
+					$ilsMarcChecksum->ilsId = $groupedWorkPrimaryIdentifier->identifier;
+					$ilsMarcChecksum->source = $groupedWorkPrimaryIdentifier->type;
+					if ($ilsMarcChecksum->find(true)){
+						$ilsMarcChecksum->checksum = 0;
+						$ilsMarcChecksum->update();
+					}
+				}
+			}
+			return json_encode(array('success' => true, 'message' => 'Marked ' . $groupedWorkPrimaryIdentifier->N . ' titles  for regrouping.'));
 		}else{
 			return json_encode(array('success' => false, 'message' => 'Unable to mark the title for regrouping. Could not find the title.'));
 		}
@@ -955,4 +980,4 @@ class GroupedWork_AJAX {
 
 		return json_encode(array('success' => true, 'message' => 'Covers have been reloaded.  You may need to refresh the page to clear your local cache.'));
 	}
-} 
+}
