@@ -1,9 +1,13 @@
 package org.vufind;
 
+import au.com.bytecode.opencsv.CSVReader;
 import org.apache.log4j.Logger;
 import org.ini4j.Ini;
 import org.marc4j.marc.DataField;
+import org.marc4j.marc.Record;
 
+import java.io.File;
+import java.io.FileReader;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -19,6 +23,7 @@ import java.util.*;
  * Time: 11:39 PM
  */
 public abstract class IIIRecordProcessor extends IlsRecordProcessor{
+	protected HashMap<String, ArrayList<OrderInfo>> orderInfoFromExport = new HashMap();
 	private boolean loanRuleDataLoaded = false;
 	protected ArrayList<Long> pTypes = new ArrayList<>();
 	protected HashMap<String, HashSet<String>> pTypesByLibrary = new HashMap<>();
@@ -26,9 +31,15 @@ public abstract class IIIRecordProcessor extends IlsRecordProcessor{
 	protected HashSet<String> allPTypes = new HashSet<>();
 	private HashMap<Long, LoanRule> loanRules = new HashMap<>();
 	private ArrayList<LoanRuleDeterminer> loanRuleDeterminers = new ArrayList<>();
+	protected String exportPath;
 
 	public IIIRecordProcessor(GroupedWorkIndexer indexer, Connection vufindConn, Ini configIni, ResultSet indexingProfileRS, Logger logger, boolean fullReindex) {
 		super(indexer, vufindConn, configIni, indexingProfileRS, logger, fullReindex);
+		try {
+			exportPath = indexingProfileRS.getString("marcPath");
+		}catch (Exception e){
+			logger.error("Unable to load marc path from indexing profile");
+		}
 		loadLoanRuleInformation(vufindConn, logger);
 	}
 
@@ -227,42 +238,58 @@ public abstract class IIIRecordProcessor extends IlsRecordProcessor{
 	}
 
 	protected String getDisplayGroupedStatus(ItemInfo itemInfo, String identifier) {
-		String statusCode = itemInfo.getStatusCode();
-		if (statusCode.equals("-")){
-			//We need to override based on due date
-			String dueDate = itemInfo.getDueDate() == null ? "" : itemInfo.getDueDate();
-			if (dueDate.length() == 0 || dueDate.trim().equals("-  -")){
-				return "On Shelf";
-			}else{
-				return "Checked Out";
-			}
+		String overriddenStatus = getOverriddenStatus(itemInfo, true);
+		if (overriddenStatus != null) {
+			return overriddenStatus;
 		}else {
-			return translateValue("item_grouped_status", statusCode, identifier);
+			String statusCode = itemInfo.getStatusCode();
+			if (statusCode.equals("-")) {
+				//We need to override based on due date
+				String dueDate = itemInfo.getDueDate() == null ? "" : itemInfo.getDueDate();
+				if (dueDate.length() == 0 || dueDate.trim().equals("-  -")) {
+					return "On Shelf";
+				} else {
+					return "Checked Out";
+				}
+			} else {
+				return translateValue("item_grouped_status", statusCode, identifier);
+			}
 		}
 	}
 
 	protected String getDisplayStatus(ItemInfo itemInfo, String identifier) {
-		String statusCode = itemInfo.getStatusCode();
-		if (statusCode.equals("-")){
-			//We need to override based on due date
-			String dueDate = itemInfo.getDueDate() == null ? "" : itemInfo.getDueDate();
-			if (dueDate.length() == 0 || dueDate.trim().equals("-  -")){
-				return "On Shelf";
-			}else{
-				return "Checked Out";
-			}
+		String overriddenStatus = getOverriddenStatus(itemInfo, false);
+		if (overriddenStatus != null) {
+			return overriddenStatus;
 		}else {
-			return translateValue("item_status", statusCode, identifier);
+			String statusCode = itemInfo.getStatusCode();
+			if (statusCode.equals("-")) {
+				//We need to override based on due date
+				String dueDate = itemInfo.getDueDate() == null ? "" : itemInfo.getDueDate();
+				if (dueDate.length() == 0 || dueDate.trim().equals("-  -")) {
+					return "On Shelf";
+				} else {
+					return "Checked Out";
+				}
+			} else {
+				return translateValue("item_status", statusCode, identifier);
+			}
 		}
 	}
 
 	protected abstract boolean loanRulesAreBasedOnCheckoutLocation();
 
 	protected void setDetailedStatus(ItemInfo itemInfo, DataField itemField, String itemStatus, String identifier) {
-		if (itemStatus.equals("-") && !(itemInfo.getDueDate().length() == 0 || itemInfo.getDueDate().trim().equals("-  -"))){
-			itemInfo.setDetailedStatus("Due " + getDisplayDueDate(itemInfo.getDueDate(), identifier));
+		//See if we need to override based on the last check in date
+		String overriddenStatus = getOverriddenStatus(itemInfo, false);
+		if (overriddenStatus != null) {
+			itemInfo.setDetailedStatus(overriddenStatus);
 		}else {
-			itemInfo.setDetailedStatus(translateValue("item_status", itemStatus, identifier));
+			if (itemStatus.equals("-") && !(itemInfo.getDueDate().length() == 0 || itemInfo.getDueDate().trim().equals("-  -"))) {
+				itemInfo.setDetailedStatus("Due " + getDisplayDueDate(itemInfo.getDueDate(), identifier));
+			} else {
+				itemInfo.setDetailedStatus(translateValue("item_status", itemStatus, identifier));
+			}
 		}
 	}
 
@@ -298,6 +325,127 @@ public abstract class IIIRecordProcessor extends IlsRecordProcessor{
 				return "x";
 			}else{
 				return Integer.toString(modValue);
+			}
+		}
+	}
+
+	protected void loadOrderInformationFromExport() {
+		File activeOrders = new File(this.exportPath + "/active_orders.csv");
+		if (activeOrders.exists()){
+			try{
+				CSVReader reader = new CSVReader(new FileReader(activeOrders));
+				//First line is headers
+				reader.readNext();
+				String[] orderData;
+				while ((orderData = reader.readNext()) != null){
+					OrderInfo orderRecord = new OrderInfo();
+					String recordId = ".b" + orderData[0] + getCheckDigit(orderData[0]);
+					orderRecord.setRecordId(recordId);
+					String orderRecordId = ".o" + orderData[1] + getCheckDigit(orderData[1]);
+					orderRecord.setOrderRecordId(orderRecordId);
+					orderRecord.setStatus(orderData[3]);
+					orderRecord.setNumCopies(Integer.parseInt(orderData[4]));
+					//Get the order record based on the accounting unit
+					orderRecord.setLocationCode(orderData[5]);
+					if (orderInfoFromExport.containsKey(recordId)){
+						orderInfoFromExport.get(recordId).add(orderRecord);
+					}else{
+						ArrayList<OrderInfo> orderRecordColl = new ArrayList<OrderInfo>();
+						orderRecordColl.add(orderRecord);
+						orderInfoFromExport.put(recordId, orderRecordColl);
+					}
+				}
+			}catch(Exception e){
+				logger.error("Error loading order records from active orders", e);
+			}
+		}
+	}
+
+	protected void loadOnOrderItems(GroupedWorkSolr groupedWork, RecordInfo recordInfo, Record record, boolean hasTangibleItems){
+		if (orderInfoFromExport.size() > 0){
+			ArrayList<OrderInfo> orderItems = orderInfoFromExport.get(recordInfo.getRecordIdentifier());
+			if (orderItems != null) {
+				for (OrderInfo orderItem : orderItems) {
+					createAndAddOrderItem(recordInfo, orderItem);
+					//For On Order Items, increment popularity based on number of copies that are being purchased.
+					groupedWork.addPopularity(orderItem.getNumCopies());
+				}
+				if (recordInfo.getNumCopiesOnOrder() > 0 && !hasTangibleItems) {
+					groupedWork.addKeywords("On Order");
+					groupedWork.addKeywords("Coming Soon");
+					HashSet<String> additionalOrderSubjects = new HashSet<>();
+					additionalOrderSubjects.add("On Order");
+					additionalOrderSubjects.add("Coming Soon");
+					groupedWork.addTopic(additionalOrderSubjects);
+					groupedWork.addTopicFacet(additionalOrderSubjects);
+				}
+			}
+		}else{
+			super.loadOnOrderItems(groupedWork, recordInfo, record, hasTangibleItems);
+		}
+	}
+
+	protected void createAndAddOrderItem(RecordInfo recordInfo, OrderInfo orderItem) {
+		ItemInfo itemInfo = new ItemInfo();
+		String orderNumber = orderItem.getOrderRecordId();
+		String location = orderItem.getLocationCode();
+		itemInfo.setLocationCode(orderItem.getLocationCode());
+		itemInfo.setItemIdentifier(orderNumber);
+		itemInfo.setNumCopies(orderItem.getNumCopies());
+		itemInfo.setIsEContent(false);
+		itemInfo.setIsOrderItem(true);
+		itemInfo.setCallNumber("ON ORDER");
+		itemInfo.setSortableCallNumber("ON ORDER");
+		itemInfo.setDetailedStatus("On Order");
+		itemInfo.setCollection("On Order");
+		//Since we don't know when the item will arrive, assume it will come tomorrow.
+		Date tomorrow = new Date();
+		tomorrow.setTime(tomorrow.getTime() + 1000 * 60 * 60 * 24);
+		itemInfo.setDateAdded(tomorrow);
+
+		//Format and Format Category should be set at the record level, so we don't need to set them here.
+
+		//Shelf Location also include the name of the ordering branch if possible
+		boolean hasLocationBasedShelfLocation = false;
+		boolean hasSystemBasedShelfLocation = false;
+
+		//Add the library this is on order for
+		itemInfo.setShelfLocation("On Order");
+
+		String status = orderItem.getStatus();
+
+		if (isOrderItemValid(status, null)){
+			recordInfo.addItem(itemInfo);
+			for (Scope scope: indexer.getScopes()){
+				if (scope.isItemPartOfScope(profileType, location, "", true, true, false)){
+					ScopingInfo scopingInfo = itemInfo.addScope(scope);
+					if (scope.isLocationScope()) {
+						scopingInfo.setLocallyOwned(scope.isItemOwnedByScope(profileType, location, ""));
+					}
+					if (scope.isLibraryScope()) {
+						boolean libraryOwned = scope.isItemOwnedByScope(profileType, location, "");
+						scopingInfo.setLibraryOwned(libraryOwned);
+						if (itemInfo.getShelfLocation().equals("On Order")){
+							itemInfo.setShelfLocation(scopingInfo.getScope().getFacetLabel() + " On Order");
+						}
+					}
+					if (scopingInfo.isLocallyOwned()){
+						if (scope.isLibraryScope() && !hasLocationBasedShelfLocation && !hasSystemBasedShelfLocation){
+							hasSystemBasedShelfLocation = true;
+						}
+						if (scope.isLocationScope() && !hasLocationBasedShelfLocation){
+							hasLocationBasedShelfLocation = true;
+							if (itemInfo.getShelfLocation().equals("On Order")) {
+								itemInfo.setShelfLocation(scopingInfo.getScope().getFacetLabel() + "On Order");
+							}
+						}
+					}
+					scopingInfo.setAvailable(false);
+					scopingInfo.setHoldable(true);
+					scopingInfo.setStatus("On Order");
+					scopingInfo.setGroupedStatus("On Order");
+
+				}
 			}
 		}
 	}

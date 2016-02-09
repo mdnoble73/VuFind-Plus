@@ -81,6 +81,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 	private HashMap<String, Integer> numberOfHoldsByIdentifier = new HashMap<>();
 
 	protected HashMap<String, TranslationMap> translationMaps = new HashMap<>();
+	protected ArrayList<TimeToReshelve> timesToReshelve = new ArrayList<>();
 
 	public IlsRecordProcessor(GroupedWorkIndexer indexer, Connection vufindConn, Ini configIni, ResultSet indexingProfileRS, Logger logger, boolean fullReindex) {
 		super(indexer, logger);
@@ -182,11 +183,26 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 			loadHoldsByIdentifier(vufindConn, logger);
 
 			loadTranslationMapsForProfile(vufindConn, indexingProfileRS.getLong("id"));
+
+			loadTimeToReshelve(vufindConn, indexingProfileRS.getLong("id"));
 		}catch (Exception e){
 			logger.error("Error loading indexing profile information from database", e);
 		}
 	}
 
+	private void loadTimeToReshelve(Connection vufindConn, long id) throws SQLException{
+		PreparedStatement getTimesToReshelveStmt = vufindConn.prepareStatement("SELECT * from time_to_reshelve WHERE indexingProfileId = ? ORDER by weight");
+		getTimesToReshelveStmt.setLong(1, id);
+		ResultSet timesToReshelveRS = getTimesToReshelveStmt.executeQuery();
+		while (timesToReshelveRS.next()){
+			TimeToReshelve timeToReshelve = new TimeToReshelve();
+			timeToReshelve.setLocations(timesToReshelveRS.getString("locations"));
+			timeToReshelve.setNumHoursToOverride(timesToReshelveRS.getLong("numHoursToOverride"));
+			timeToReshelve.setStatus(timesToReshelveRS.getString("status"));
+			timeToReshelve.setGroupedStatus(timesToReshelveRS.getString("groupedStatus"));
+			timesToReshelve.add(timeToReshelve);
+		}
+	}
 	private void loadTranslationMapsForProfile(Connection vufindConn, long id) throws SQLException{
 		PreparedStatement getTranslationMapsStmt = vufindConn.prepareStatement("SELECT * from translation_maps WHERE indexingProfileId = ?");
 		PreparedStatement getTranslationMapValuesStmt = vufindConn.prepareStatement("SELECT * from translation_map_values WHERE translationMapId = ?");
@@ -285,16 +301,24 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 			allRelatedRecords.addAll(econtentRecords);
 
 			//Do updates based on the overall bib (shared regardless of scoping)
-			updateGroupedWorkSolrDataBasedOnStandardMarcData(groupedWork, record, recordInfo.getRelatedItems(), identifier);
+			String primaryFormat = null;
+			for (RecordInfo ilsRecord : allRelatedRecords) {
+				primaryFormat = ilsRecord.getPrimaryFormat();
+				if (primaryFormat != null){
+					break;
+				}
+			}
+			if (primaryFormat == null) primaryFormat = "Unknown";
+			updateGroupedWorkSolrDataBasedOnStandardMarcData(groupedWork, record, recordInfo.getRelatedItems(), identifier, primaryFormat);
 
 			//Special processing for ILS Records
 			String fullDescription = Util.getCRSeparatedString(getFieldList(record, "520a"));
 			for (RecordInfo ilsRecord : allRelatedRecords) {
-				String primaryFormat = ilsRecord.getPrimaryFormat();
-				if (primaryFormat == null){
-					primaryFormat = "Unknown";
+				String primaryFormatForRecord = ilsRecord.getPrimaryFormat();
+				if (primaryFormatForRecord == null){
+					primaryFormatForRecord = "Unknown";
 				}
-				groupedWork.addDescription(fullDescription, primaryFormat);
+				groupedWork.addDescription(fullDescription, primaryFormatForRecord);
 			}
 			loadEditions(groupedWork, record, allRelatedRecords);
 			loadPhysicalDescription(groupedWork, record, allRelatedRecords);
@@ -313,13 +337,26 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 			loadOrderIds(groupedWork, record);
 
 			int numPrintItems = recordInfo.getNumPrintCopies();
-			if (!suppressItemlessBibs && numPrintItems == 0){
-				numPrintItems = 1;
-			}
+
+			numPrintItems = checkForNonSuppressedItemlessBib(record, numPrintItems);
 			groupedWork.addHoldings(numPrintItems + recordInfo.getNumCopiesOnOrder());
 		}catch (Exception e){
 			logger.error("Error updating grouped work for MARC record with identifier " + identifier, e);
 		}
+	}
+
+	/**
+	 * Check to see if we should increment the number of print items by one.   For bibs without items that should not be
+	 * suppressed.
+	 *
+	 * @param numPrintItems
+	 * @return
+	 */
+	protected int checkForNonSuppressedItemlessBib(Record recor, int numPrintItems) {
+		if (!suppressItemlessBibs && numPrintItems == 0){
+			numPrintItems = 1;
+		}
+		return numPrintItems;
 	}
 
 	protected boolean isBibSuppressed(Record record) {
@@ -422,6 +459,9 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		itemInfo.setCallNumber("ON ORDER");
 		itemInfo.setSortableCallNumber("ON ORDER");
 		itemInfo.setDetailedStatus("On Order");
+		Date tomorrow = new Date();
+		tomorrow.setTime(tomorrow.getTime() + 1000 * 60 * 60 * 24);
+		itemInfo.setDateAdded(tomorrow);
 		//Format and Format Category should be set at the record level, so we don't need to set them here.
 
 
@@ -679,12 +719,6 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 
 		itemInfo.setCollection(translateValue("collection", getItemSubfieldData(collectionSubfield, itemField), recordInfo.getRecordIdentifier()));
 
-		//set status towards the end so we can access date added and other things that may need to
-		itemInfo.setStatusCode(itemStatus);
-		if (itemStatus != null) {
-			setDetailedStatus(itemInfo, itemField, itemStatus, recordInfo.getRecordIdentifier());
-		}
-
 		if (lastCheckInFormatter != null) {
 			String lastCheckInDate = getItemSubfieldData(lastCheckInSubfield, itemField);
 			Date lastCheckIn = null;
@@ -695,6 +729,12 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 					logger.debug("Could not parse check in date " + lastCheckInDate, e);
 				}
 			itemInfo.setLastCheckinDate(lastCheckIn);
+		}
+
+		//set status towards the end so we can access date added and other things that may need to
+		itemInfo.setStatusCode(itemStatus);
+		if (itemStatus != null) {
+			setDetailedStatus(itemInfo, itemField, itemStatus, recordInfo.getRecordIdentifier());
 		}
 
 		if (formatSource.equals("item") && formatSubfield != ' '){
@@ -759,15 +799,51 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 	}
 
 	protected void setDetailedStatus(ItemInfo itemInfo, DataField itemField, String itemStatus, String identifier) {
-		itemInfo.setDetailedStatus(translateValue("item_status", itemStatus, identifier));
+		//See if we need to override based on the last check in date
+		String overriddenStatus = getOverriddenStatus(itemInfo, false);
+		if (overriddenStatus != null) {
+			itemInfo.setDetailedStatus(overriddenStatus);
+		}else {
+			itemInfo.setDetailedStatus(translateValue("item_status", itemStatus, identifier));
+		}
+	}
+
+	protected String getOverriddenStatus(ItemInfo itemInfo, boolean groupedStatus) {
+		String overriddenStatus = null;
+		if (itemInfo.getLastCheckinDate() != null) {
+			for (TimeToReshelve timeToReshelve : timesToReshelve) {
+				if (timeToReshelve.getLocationsPattern().matcher(itemInfo.getLocationCode()).matches()) {
+					long now = new Date().getTime();
+					if (now - itemInfo.getLastCheckinDate().getTime() <= timeToReshelve.getNumHoursToOverride() * 60 * 60 * 1000) {
+						if (groupedStatus){
+							overriddenStatus = timeToReshelve.getGroupedStatus();
+						} else{
+							overriddenStatus = timeToReshelve.getStatus();
+						}
+						break;
+					}
+				}
+			}
+		}
+		return overriddenStatus;
 	}
 
 	protected String getDisplayGroupedStatus(ItemInfo itemInfo, String identifier) {
-		return translateValue("item_grouped_status", itemInfo.getStatusCode(), identifier);
+		String overriddenStatus = getOverriddenStatus(itemInfo, true);
+		if (overriddenStatus != null) {
+			return overriddenStatus;
+		}else {
+			return translateValue("item_grouped_status", itemInfo.getStatusCode(), identifier);
+		}
 	}
 
 	protected String getDisplayStatus(ItemInfo itemInfo, String identifier) {
-		return translateValue("item_status", itemInfo.getStatusCode(), identifier);
+		String overriddenStatus = getOverriddenStatus(itemInfo, false);
+		if (overriddenStatus != null) {
+			return overriddenStatus;
+		}else {
+			return translateValue("item_status", itemInfo.getStatusCode(), identifier);
+		}
 	}
 
 	protected double getItemPopularity(DataField itemField) {
@@ -797,8 +873,9 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		return !(itemStatus == null && itemLocation == null);
 	}
 
-	private void loadItemCallNumber(Record record, DataField itemField, ItemInfo itemInfo) {
-		if (useItemBasedCallNumbers) {
+	protected void loadItemCallNumber(Record record, DataField itemField, ItemInfo itemInfo) {
+		boolean hasCallNumber = false;
+		if (useItemBasedCallNumbers && itemField != null) {
 			String callNumberPreStamp = getItemSubfieldDataWithoutTrimming(callNumberPrestampSubfield, itemField);
 			String callNumber = getItemSubfieldDataWithoutTrimming(callNumberSubfield, itemField);
 			String callNumberCutter = getItemSubfieldDataWithoutTrimming(callNumberCutterSubfield, itemField);
@@ -847,9 +924,13 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 				}
 				sortableCallNumber.append(volume);
 			}
-			itemInfo.setCallNumber(fullCallNumber.toString());
-			itemInfo.setSortableCallNumber(sortableCallNumber.toString());
-		}else{
+			if (fullCallNumber.length() > 0){
+				hasCallNumber = true;
+				itemInfo.setCallNumber(fullCallNumber.toString().trim());
+				itemInfo.setSortableCallNumber(sortableCallNumber.toString().trim());
+			}
+		}
+		if (!hasCallNumber){
 			String callNumber = null;
 			DataField localCallNumberField = (DataField)record.getVariableField("099");
 			if (localCallNumberField != null){
@@ -898,7 +979,10 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 	}
 
 	protected String getShelfLocationForItem(ItemInfo itemInfo, DataField itemField, String identifier) {
-		String shelfLocation = getItemSubfieldData(locationSubfieldIndicator, itemField);
+		String shelfLocation = null;
+		if (itemField != null) {
+			shelfLocation = getItemSubfieldData(locationSubfieldIndicator, itemField);
+		}
 		if (shelfLocation == null || shelfLocation.length() == 0 || shelfLocation.equals("none")){
 			return "";
 		}else {
@@ -1063,38 +1147,52 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 	private void filterPrintFormats(Set<String> printFormats) {
 		if (printFormats.contains("Video") && printFormats.contains("DVD")){
 			printFormats.remove("Video");
-		}else if (printFormats.contains("SoundDisc") && printFormats.contains("SoundRecording")){
+		}if (printFormats.contains("SoundDisc") && printFormats.contains("SoundRecording")){
 			printFormats.remove("SoundRecording");
-		}else if (printFormats.contains("SoundCassette") && printFormats.contains("SoundRecording")){
+		}
+		if (printFormats.contains("SoundDisc") && printFormats.contains("CDROM")){
+			printFormats.remove("CDROM");
+		}
+		if (printFormats.contains("SoundCassette") && printFormats.contains("SoundRecording")){
 			printFormats.remove("SoundRecording");
-		}else if (printFormats.contains("Playaway") && printFormats.contains("SoundRecording")){
+		}
+		if (printFormats.contains("Playaway") && printFormats.contains("SoundRecording")){
 			printFormats.remove("SoundRecording");
-		}else if (printFormats.contains("Playaway") && printFormats.contains("Video")){
+		}
+		if (printFormats.contains("Playaway") && printFormats.contains("Video")){
 			printFormats.remove("Video");
-		}else if (printFormats.contains("Book") && printFormats.contains("LargePrint")){
+		}
+		if (printFormats.contains("Book") && printFormats.contains("LargePrint")){
 			printFormats.remove("Book");
-		}else if (printFormats.contains("Book") && printFormats.contains("Manuscript")){
+		}
+		if (printFormats.contains("Book") && printFormats.contains("Manuscript")){
 			printFormats.remove("Book");
-		}else if (printFormats.contains("Book") && printFormats.contains("GraphicNovel")){
+		}
+		if (printFormats.contains("Book") && printFormats.contains("GraphicNovel")){
 			printFormats.remove("Book");
-		}else if (printFormats.contains("Book") && printFormats.contains("MusicalScore")){
+		}
+		if (printFormats.contains("Book") && printFormats.contains("MusicalScore")){
 			printFormats.remove("Book");
-		}else if (printFormats.contains("Book") && printFormats.contains("BookClubKit")){
+		}
+		if (printFormats.contains("Book") && printFormats.contains("BookClubKit")){
 			printFormats.remove("Book");
-		}else if (printFormats.contains("Book") && printFormats.contains("Kit")){
+		}
+		if (printFormats.contains("Book") && printFormats.contains("Kit")){
 			printFormats.remove("Book");
-		}else if (printFormats.contains("Book") && printFormats.contains("Manuscript")){
+		}
+		if (printFormats.contains("Book") && printFormats.contains("Manuscript")){
 			printFormats.remove("Manuscript");
-		}else if (printFormats.contains("Kinect") || printFormats.contains("XBox360")
+		}
+		if (printFormats.contains("Kinect") || printFormats.contains("XBox360")  || printFormats.contains("Xbox360")
 				|| printFormats.contains("XBoxOne") || printFormats.contains("PlayStation")
 				|| printFormats.contains("PlayStation3") || printFormats.contains("PlayStation4")
 				|| printFormats.contains("Wii") || printFormats.contains("WiiU")
 				|| printFormats.contains("3DS") || printFormats.contains("WindowsGame")){
 			printFormats.remove("Software");
 			printFormats.remove("Electronic");
-		}/*else if (printFormats.size() > 1){
-			return;
-		}*/
+			printFormats.remove("CDROM");
+			printFormats.remove("Blu-ray");
+		}
 	}
 
 	private void getFormatFromTitle(Record record, Set<String> printFormats) {
@@ -1150,6 +1248,11 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 				String editionData = edition.getSubfield('a').getData().toLowerCase();
 				if (editionData.contains("large type") || editionData.contains("large print")) {
 					result.add("LargePrint");
+				}else {
+					String gameFormat = getGameFormatFromValue(editionData);
+					if (gameFormat != null) {
+						result.add(gameFormat);
+					}
 				}
 			}
 		}
@@ -1175,11 +1278,11 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 						result.add("Software");
 					} else if (physicalDescriptionData.contains("sound cassettes")) {
 						result.add("SoundCassette");
-					} else if (physicalDescriptionData.contains("sound discs")) {
+					} else if (physicalDescriptionData.contains("sound discs") || physicalDescriptionData.contains("audio discs")) {
 						result.add("SoundDisc");
 					}
 					//Since this is fairly generic, only use it if we have no other formats yet
-					if (result.size() == 0 && physicalDescriptionData.matches("^.*?\\d+\\s+(p\\.|pages).*$")) {
+					if (result.size() == 0 && subfield.getCode() == 'f' && physicalDescriptionData.matches("^.*?\\d+\\s+(p\\.|pages).*$")) {
 						result.add("Book");
 					}
 				}
@@ -1193,34 +1296,19 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		if (sysDetailsNote2 != null) {
 			if (sysDetailsNote2.getSubfield('a') != null) {
 				String sysDetailsValue = sysDetailsNote2.getSubfield('a').getData().toLowerCase();
-				if (sysDetailsValue.contains("playaway")) {
-					result.add("Playaway");
-				} else if (sysDetailsValue.contains("kinect sensor")) {
-					result.add("Kinect");
-				} else if (sysDetailsValue.contains("xbox one") && !sysDetailsValue.contains("compatible")) {
-					result.add("XboxOne");
-				} else if (sysDetailsValue.contains("xbox") && !sysDetailsValue.contains("compatible")) {
-					result.add("Xbox360");
-				} else if (sysDetailsValue.contains("playstation 4") && !sysDetailsValue.contains("compatible")) {
-					result.add("PlayStation4");
-				} else if (sysDetailsValue.contains("playstation 3") && !sysDetailsValue.contains("compatible")) {
-					result.add("PlayStation3");
-				} else if (sysDetailsValue.contains("playstation") && !sysDetailsValue.contains("compatible")) {
-					result.add("PlayStation");
-				} else if (sysDetailsValue.contains("wii u")) {
-					result.add("WiiU");
-				} else if (sysDetailsValue.contains("nintendo wii")) {
-					result.add("Wii");
-				} else if (sysDetailsValue.contains("nintendo 3ds")) {
-					result.add("3DS");
-				} else if (sysDetailsValue.contains("directx")) {
-					result.add("WindowsGame");
-				} else if (sysDetailsValue.contains("bluray") || sysDetailsValue.contains("blu-ray")) {
-					result.add("Blu-ray");
-				} else if (sysDetailsValue.contains("dvd")) {
-					result.add("DVD");
-				} else if (sysDetailsValue.contains("vertical file")) {
-					result.add("VerticalFile");
+				String gameFormat = getGameFormatFromValue(sysDetailsValue);
+				if (gameFormat != null){
+					result.add(gameFormat);
+				}else{
+					if (sysDetailsValue.contains("playaway")) {
+						result.add("Playaway");
+					} else if (sysDetailsValue.contains("bluray") || sysDetailsValue.contains("blu-ray")) {
+						result.add("Blu-ray");
+					} else if (sysDetailsValue.contains("dvd")) {
+						result.add("DVD");
+					} else if (sysDetailsValue.contains("vertical file")) {
+						result.add("VerticalFile");
+					}
 				}
 			}
 		}
@@ -1234,6 +1322,32 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 					result.add("VerticalFile");
 				}
 			}
+		}
+	}
+
+	private String getGameFormatFromValue(String value) {
+		if (value.contains("kinect sensor")) {
+			return "Kinect";
+		} else if (value.contains("xbox one") && !value.contains("compatible")) {
+			return "XboxOne";
+		} else if (value.contains("xbox") && !value.contains("compatible")) {
+			return "Xbox360";
+		} else if (value.contains("playstation 4") && !value.contains("compatible")) {
+			return "PlayStation4";
+		} else if (value.contains("playstation 3") && !value.contains("compatible")) {
+			return "PlayStation3";
+		} else if (value.contains("playstation") && !value.contains("compatible")) {
+			return "PlayStation";
+		} else if (value.contains("wii u")) {
+			return "WiiU";
+		} else if (value.contains("nintendo wii")) {
+			return "Wii";
+		} else if (value.contains("nintendo 3ds")) {
+			return "3DS";
+		} else if (value.contains("directx")) {
+			return "WindowsGame";
+		}else{
+			return null;
 		}
 	}
 

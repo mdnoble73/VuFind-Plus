@@ -35,12 +35,9 @@ class Archive_LargeImage extends Archive_Object{
 			$interface->assign('noImage', true);
 		}
 
-		//TODO: This should be the collapsible sidebar
-		//$interface->assign('sidebar', 'Record/full-record-sidebar.tpl');
 		$interface->assign('showExploreMore', true);
-		$interface->setTemplate('largeImage.tpl');
 
 		// Display Page
-		$interface->display('layout.tpl');
+		$this->display('largeImage.tpl');
 	}
 }

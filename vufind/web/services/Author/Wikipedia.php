@@ -29,6 +29,7 @@ class Author_Wikipedia {
 			$this->lang = $lang;
 		}
 
+		$author = trim(str_replace('"','',$author));
 		$url = "http://{$this->lang}.wikipedia.org/w/api.php" .
 				'?action=query&prop=revisions&rvprop=content&format=json' .
 				'&titles=' . urlencode($author);

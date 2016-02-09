@@ -1,15 +1,15 @@
 {strip}
 {if $topFacetSet}
 <div class="topFacets">
-	<br/>
+	<br>
 	{foreach from=$topFacetSet item=cluster key=title}
 		{if $cluster.label == 'Category' || $cluster.label == 'Format Category'}
 			{if ($categorySelected == false)}
 				<div class="formatCategories top-facet" id="formatCategories">
-					<div id='categoryValues' class="row">
+					<div id="categoryValues" class="row">
 						{foreach from=$cluster.list item=thisFacet name="narrowLoop"}
 							{if $thisFacet.isApplied}
-								<div class='categoryValue categoryValue_{translate text=$thisFacet.value|lower|replace:' ':''} col-xs-2'>
+								<div class="categoryValue categoryValue_{translate text=$thisFacet.value|lower|replace:' ':''} col-tn-2">
 									<a href="{$thisFacet.removalUrl|escape}" class="removeFacetLink" onclick="trackEvent('Remove Facet', 'formatCategory', '{$thisFacet.value|escape}');" title="Remove Filter">
 										<div class="row">
 											<div class="col-xs-6">
@@ -17,20 +17,20 @@
 											</div>
 											<div class="col-xs-6 formatCategoryLabel">
 												{$thisFacet.value|escape}
-												<br/>(Remove)
+												<br>(Remove)
 											</div>
 										</div>
 									</a>
 								</div>
 							{else}
-								<div class='categoryValue categoryValue_{translate text=$thisFacet.value|lower|replace:' ':''} col-xs-2' >
+								<div class="categoryValue categoryValue_{translate text=$thisFacet.value|lower|replace:' ':''} col-tn-2">
 									<a href="{$thisFacet.url|escape}" onclick="trackEvent('Apply Facet', 'formatCategory', '{$thisFacet.value|escape}');">
 										<div class="row">
 											<div class="col-xs-6">
 												<img src="{img filename=$thisFacet.imageName}" alt="{translate text=$thisFacet.value|escape}">
 											</div>
 											<div class="col-xs-6 formatCategoryLabel">
-												{translate text=$thisFacet.value|escape}<br/>({$thisFacet.count|number_format:0:".":","})
+												{translate text=$thisFacet.value|escape}<br>({$thisFacet.count|number_format:0:".":","})
 											</div>
 										</div>
 									</a>
@@ -43,7 +43,7 @@
 			{/if}
 		{elseif preg_match('/available/i', $cluster.label)}
 			<div id="availabilityControlContainer" class="row text-center top-facet">
-				<div id="availabilityControl" class='btn-group' data-toggle="buttons-radio">
+				<div id="availabilityControl" class="btn-group" data-toggle="buttons-radio">
 					{foreach from=$cluster.list item=thisFacet name="narrowLoop"}
 						{if $thisFacet.isApplied}
 							<button type="button" id="{$thisFacet.value|escape|regex_replace:'/[()\s]/':''}" class="btn btn-primary" name="availabilityControls">{$thisFacet.value|escape}{if $thisFacet.count > 0} ({$thisFacet.count|number_format:0:".":","}){/if}</button>
@@ -68,7 +68,7 @@
 							<tr>
 						{/if}
 						{if $thisFacet.isApplied}
-							<td>{$thisFacet.value|escape}</a> <img src="{$path}/images/silk/tick.png" alt="Selected" /> <a href="{$thisFacet.removalUrl|escape}" class="removeFacetLink" onclick="trackEvent('Remove Facet', '{$cluster.label}', '{$thisFacet.value|escape}');">(remove)</a></td>
+							<td>{$thisFacet.value|escape}</a> <img src="{$path}/images/silk/tick.png" alt="Selected" > <a href="{$thisFacet.removalUrl|escape}" class="removeFacetLink" onclick="trackEvent('Remove Facet', '{$cluster.label}', '{$thisFacet.value|escape}');">(remove)</a></td>
 						{else}
 							<td><a href="{$thisFacet.url|escape}" onclick="trackEvent('Apply Facet', '{$cluster.label}', '{$thisFacet.value|escape}');">{$thisFacet.value|escape}</a> ({$thisFacet.count})</td>
 						{/if}
@@ -85,6 +85,6 @@
 	{/foreach}
 	</div>
 {else}
-	<br/>
+	<br>
 {/if}
 {/strip}

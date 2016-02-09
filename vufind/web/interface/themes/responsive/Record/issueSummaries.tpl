@@ -24,6 +24,12 @@
 						<div class="col-xs-8">{$issueSummary.latestReceived}</div>
 					</div>
 				{/if}
+				{if isset($issueSummary.holdingStatement) }
+					<div class="row">
+						<div class="col-xs-4">Holdings</div>
+						<div class="col-xs-8">{$issueSummary.holdingStatement}</div>
+					</div>
+				{/if}
 				{if $issueSummary.libHas}
 						<div class="row">
 							<div class="col-xs-4">Library Has</div>

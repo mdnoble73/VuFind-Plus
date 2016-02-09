@@ -44,7 +44,7 @@ class SearchObject_Solr extends SearchObject_Base
 	// Index
 	private $index = null;
 	// Field List
-	private $fields = 'auth_author2,id,mpaaRating,title_display,title_full,title_sub,author,author_display,isbn,upc,issn,series,recordtype,display_description,literary_form,literary_form_full,num_titles,record_details,item_details,publisherStr,publishDate';
+	private $fields = 'auth_author2,author2-role,id,mpaaRating,title_display,title_full,title_short,title_sub,author,author_display,isbn,upc,issn,series,series_with_volume,recordtype,display_description,literary_form,literary_form_full,num_titles,record_details,item_details,publisherStr,publishDate,subject_facet,topic_facet,primary_isbn,primary_upc';
 	private $fieldsFull = '*,score';
 	// HTTP Method
 	//    private $method = HTTP_REQUEST_METHOD_GET;
@@ -531,7 +531,7 @@ class SearchObject_Solr extends SearchObject_Base
 
 	/**
 	 * Use the record driver to build an array of HTML displays from the search
-	 * results suitable for use on a user's "favorites" page.
+	 * results suitable for use while displaying lists
 	 *
 	 * @access  public
 	 * @param   object  $user       User object owning tag/note metadata.
@@ -544,31 +544,50 @@ class SearchObject_Solr extends SearchObject_Base
 	public function getResultListHTML($user, $listId = null, $allowEdit = true, $IDList = null)
 	{
 		global $interface;
-
 		$html = array();
-		for ($x = 0; $x < count($this->indexResult['response']['docs']); $x++) {
-			if ($IDList) {
+		if ($IDList){
+			//Reorder the documents based on the list of id's
+			$x = 0;
+			foreach ($IDList as $currentId){
 				// use $IDList as the order guide for the html
 				$current = null; // empty out in case we don't find the matching record
-				$id = $IDList[$x]; // the ID to look for.
 				foreach ($this->indexResult['response']['docs'] as $index => $doc) {
-					if ($doc['id'] == $id) {
+					if ($doc['id'] == $currentId) {
 						$current = & $this->indexResult['response']['docs'][$index];
 						break;
 					}
 				}
-				if (empty($current)) continue; // In the case the record wasn't found, move on to the next record
-			} else $current = & $this->indexResult['response']['docs'][$x];
-
-			$interface->assign('recordIndex', $x + 1);
-			$interface->assign('resultIndex', $x + 1 + (($this->page - 1) * $this->limit));
-			if (!$this->debug){
-				unset($current['explain']);
-				unset($current['score']);
+				if (empty($current)) {
+					continue; // In the case the record wasn't found, move on to the next record
+				}else {
+					$interface->assign('recordIndex', $x + 1);
+					$interface->assign('resultIndex', $x + 1 + (($this->page - 1) * $this->limit));
+					if (!$this->debug){
+						unset($current['explain']);
+						unset($current['score']);
+					}
+					/** @var GroupedWorkDriver $record */
+					$record = RecordDriverFactory::initRecordDriver($current);
+					$html[] = $interface->fetch($record->getListEntry($user, $listId, $allowEdit));
+					$x++;
+				}
 			}
-			/** @var GroupedWorkDriver $record */
-			$record = RecordDriverFactory::initRecordDriver($current);
-			$html[] = $interface->fetch($record->getListEntry($user, $listId, $allowEdit));
+		}else{
+			//The order we get from solr is just fine
+			for ($x = 0; $x < count($this->indexResult['response']['docs']); $x++) {
+				$current = & $this->indexResult['response']['docs'][$x];
+				$interface->assign('recordIndex', $x + 1);
+				$interface->assign('resultIndex', $x + 1 + (($this->page - 1) * $this->limit));
+				if (!$this->debug){
+					unset($current['explain']);
+					unset($current['score']);
+				}
+				/** @var GroupedWorkDriver $record */
+				$interface->assign('recordIndex', $x + 1);
+				$interface->assign('resultIndex', $x + 1 + (($this->page - 1) * $this->limit));
+				$record = RecordDriverFactory::initRecordDriver($current);
+				$html[] = $interface->fetch($record->getListEntry($user, $listId, $allowEdit));
+			}
 		}
 		return $html;
 	}
@@ -1231,15 +1250,20 @@ class SearchObject_Solr extends SearchObject_Base
 		}
 
 		$availabilityToggleValue = null;
+		$availabilityAtValue = null;
 		$formatValue = null;
 		$formatCategoryValue = null;
 		foreach ($this->filterList as $field => $filter) {
 			foreach ($filter as $value) {
 				$analytics->addEvent('Apply Facet', $field, $value);
 				$isAvailabilityToggle = false;
-				if (substr($field, 0, strlen('availability_toggle')) == 'availability_toggle'){
+				$isAvailableAt = false;
+				if (substr($field, 0, strlen('availability_toggle')) == 'availability_toggle') {
 					$availabilityToggleValue = $value;
 					$isAvailabilityToggle = true;
+				}elseif (substr($field, 0, strlen('available_at')) == 'available_at'){
+					$availabilityAtValue = $value;
+					$isAvailableAt = true;
 				}elseif (substr($field, 0, strlen('format_category')) == 'format_category'){
 					$formatCategoryValue = $value;
 				}elseif (substr($field, 0, strlen('format')) == 'format'){
@@ -1252,8 +1276,10 @@ class SearchObject_Solr extends SearchObject_Base
 					$filterQuery[] = "$field:$value";
 				} else {
 					if (!empty($value)){
-						if ($isAvailabilityToggle){
+						if ($isAvailabilityToggle) {
 							$filterQuery['availability_toggle'] = "$field:\"$value\"";
+						}elseif ($isAvailableAt){
+							$filterQuery['available_at'] = "$field:\"$value\"";
 						}else{
 							$filterQuery[] = "$field:\"$value\"";
 						}
@@ -1273,7 +1299,19 @@ class SearchObject_Solr extends SearchObject_Base
 				$availabilityByFormatFieldName = 'availability_by_format_' . $solrScope . '_' . strtolower(preg_replace('/\W/', '_', $formatCategoryValue));
 			}
 			$filterQuery['availability_toggle'] = $availabilityByFormatFieldName . ':"' . $availabilityToggleValue . '"';
+		}
 
+		//Check to see if we have both a format and available at facet applied
+		$availableAtByFormatFieldName = null;
+		if ($availabilityAtValue != null && ($formatCategoryValue != null || $formatValue != null)){
+			global $solrScope;
+			//Make sure to process the more specific format first
+			if ($formatValue != null){
+				$availableAtByFormatFieldName = 'available_at_by_format_' . $solrScope . '_' . strtolower(preg_replace('/\W/', '_', $formatValue));
+			}else{
+				$availableAtByFormatFieldName = 'available_at_by_format_' . $solrScope . '_' . strtolower(preg_replace('/\W/', '_', $formatCategoryValue));
+			}
+			$filterQuery['available_at'] = $availableAtByFormatFieldName . ':"' . $availabilityAtValue . '"';
 		}
 
 
@@ -2092,6 +2130,18 @@ class SearchObject_Solr extends SearchObject_Base
 	 */
 	function getRecordByBarcode($barcode){
 		return $this->indexEngine->getRecordByBarcode($barcode);
+	}
+
+	/**
+	 * Retrieves a document specified by an isbn.
+	 *
+	 * @param   string[]  $isbn     An array of isbns to check
+	 * @access  public
+	 * @throws  object              PEAR Error
+	 * @return  string              The requested resource
+	 */
+	function getRecordByIsbn($isbn){
+		return $this->indexEngine->getRecordByIsbn($isbn);
 	}
 
 	private function getFieldsToReturn() {

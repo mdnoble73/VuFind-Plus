@@ -751,10 +751,10 @@ public class RecordGrouperMain {
 			//Cleanup the data
 			removeGroupedWorksWithoutPrimaryIdentifiers(vufindConn);
 			vufindConn.commit();
-			removeUnlinkedIdentifiers(vufindConn);
-			vufindConn.commit();
-			makeIdentifiersLinkingToMultipleWorksInvalidForEnrichment(vufindConn);
-			vufindConn.commit();
+			//removeUnlinkedIdentifiers(vufindConn);
+			//vufindConn.commit();
+			//makeIdentifiersLinkingToMultipleWorksInvalidForEnrichment(vufindConn);
+			//vufindConn.commit();
 			updateLastGroupingTime(vufindConn);
 			vufindConn.commit();
 
@@ -843,6 +843,9 @@ public class RecordGrouperMain {
 
 			//Figure out what we need to process
 			ArrayList<File> marcRecordFilesToProcess = loadHooplaFilesToProcess(hooplaSection, marcPath, false);
+			if (marcRecordFilesToProcess.size() == 0){
+				return;
+			}
 
 			//Load all files in the individual marc path.  This allows us to list directories rather than doing millions of
 			//individual look ups
@@ -1030,7 +1033,7 @@ public class RecordGrouperMain {
 		}
 	}
 
-	private static void makeIdentifiersLinkingToMultipleWorksInvalidForEnrichment(Connection vufindConn) {
+	/*private static void makeIdentifiersLinkingToMultipleWorksInvalidForEnrichment(Connection vufindConn) {
 		//Mark any secondaryIdentifiers that link to more than one grouped record and therefore should not be used for enrichment
 		try{
 			boolean autoCommit = vufindConn.getAutoCommit();
@@ -1147,9 +1150,9 @@ public class RecordGrouperMain {
 		}catch (Exception e){
 			logger.error("Unable to mark secondary identifiers as invalid for enrichment", e);
 		}
-	}
+	}*/
 
-	private static void removeUnlinkedIdentifiers(Connection vufindConn) {
+	/*private static void removeUnlinkedIdentifiers(Connection vufindConn) {
 		//Remove any secondary identifiers that are no longer linked to a primary identifier
 		try{
 			boolean autoCommit = vufindConn.getAutoCommit();
@@ -1175,7 +1178,7 @@ public class RecordGrouperMain {
 		}catch(Exception e){
 			logger.error("Error removing identifiers that are no longer linked to a primary identifier", e);
 		}
-	}
+	}*/
 
 	private static void removeGroupedWorksWithoutPrimaryIdentifiers(Connection vufindConn) {
 		//Remove any grouped works that no longer link to a primary identifier
@@ -1217,7 +1220,11 @@ public class RecordGrouperMain {
 			PreparedStatement loadIlsMarcChecksums = vufindConn.prepareStatement("SELECT * from ils_marc_checksums",  ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 			ResultSet ilsMarcChecksumRS = loadIlsMarcChecksums.executeQuery();
 			while (ilsMarcChecksumRS.next()){
-				marcRecordChecksums.put(ilsMarcChecksumRS.getString("source") + ":" + ilsMarcChecksumRS.getString("ilsId"), ilsMarcChecksumRS.getLong("checksum"));
+				Long checksum = ilsMarcChecksumRS.getLong("checksum");
+				if (checksum == 0){
+					checksum = null;
+				}
+				marcRecordChecksums.put(ilsMarcChecksumRS.getString("source") + ":" + ilsMarcChecksumRS.getString("ilsId"), checksum);
 				marcRecordFirstDetectionDates.put(ilsMarcChecksumRS.getString("source") + ":" + ilsMarcChecksumRS.getString("ilsId"), ilsMarcChecksumRS.getLong("dateFirstDetected"));
 				if (ilsMarcChecksumRS.wasNull()){
 					marcRecordFirstDetectionDates.put(ilsMarcChecksumRS.getString("source") + ":" + ilsMarcChecksumRS.getString("ilsId"), null);

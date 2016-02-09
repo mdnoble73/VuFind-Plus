@@ -54,9 +54,11 @@
 # Temp files
 26 0 * * * cd /tmp; rm -rf CURLCOOKIE*
 27 0 * * * cd /tmp; rm -rf epb*
+# Restart apache
+0 0-6 * * * /usr/sbin/apachectl graceful > /dev/null 2>&1
 
 # CRON for VuFind-Plus (book cover cache cleanup etc.)
-00 */3 * * * cd /usr/local/VuFind-Plus/vufind/cron; java -jar cron.jar catalog.library.nashville.org
+00 20 * * * cd /usr/local/VuFind-Plus/vufind/cron; java -jar cron.jar catalog.library.nashville.org
 20 0 * * * cd /usr/local/VuFind-Plus/vufind/cron; java -jar cron.jar catalog.library.nashville.org DatabaseCleanup
 
 ###################################
@@ -72,16 +74,15 @@
 #*/10 * * * * /root/cron/copyCovers.sh
 # Every 10 minutes. fixed 11-14-2014 plb. (previously every hour 10 past the hour)
 
-# SIDELOAD ECONTENT - DOWNLOAD MARC
-0 13 * * * cd /usr/local/VuFind-Plus/vufind/cron; ./sideload.sh catalog.library.nashville.org  
-
-# LEXILE : download file from Marmot
-00 4 1 * * cd /data/vufind-plus/; rm lexileTitles.txt*; wget http://venus.marmot.org/lexileTitles.txt  
+# SIDELOADED ECONTENT MARC and LEXILE both triggered in full_update.sh
 
 #################################
 # hacks to keep things afloat until Sparky increases RAM
 # RAM was increased to 32G 2015 09 11; JAMES is keeping these lines commented out here for emergencies
 #################################
 #25 23 * * * rm -rf /data/vufind-plus/catalog.library.nashville.org/covers/small; rm -rf /data/vufind-plus/catalog.library.nashville.org/covers/medium; rm -rf /data/vufind-plus/catalog.library.nashville.org/covers/large; mkdir -m 775 /data/vufind-plus/catalog.library.nashville.org/covers/small; mkdir -m 775 /data/vufind-plus/catalog.library.nashville.org/covers/medium; mkdir -m 775 /data/vufind-plus/catalog.library.nashville.org/covers/large; chown root:apache /data/vufind-plus/catalog.library.nashville.org/covers/small; chown root:apache /data/vufind-plus/catalog.library.nashville.org/covers/medium; chown root:apache /data/vufind-plus/catalog.library.nashville.org/covers/large'
-#10 * * * * cd /usr/local/vufind-plus/sites/catalog.library.nashville.org; ./pika_restart.sh 
+#10 * * * * cd /usr/local/vufind-plus/sites/catalog.library.nashville.org; ./pika_restart.sh
+
+# Check Apache Solr process and website that it has not stalled.
+*/3 * * * * cd /usr/local/vufind-plus/vufind/cron/; ./solrTest.sh
 

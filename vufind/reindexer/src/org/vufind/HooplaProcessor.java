@@ -65,16 +65,16 @@ public class HooplaProcessor extends MarcRecordProcessor {
 
 	@Override
 	protected void updateGroupedWorkSolrDataBasedOnMarc(GroupedWorkSolr groupedWork, Record record, String identifier) {
+		//First get format
+		String format = getFirstFieldVal(record, "099a");
+		format = format.replace(" hoopla", "");
+
 		//Do updates based on the overall bib (shared regardless of scoping)
-		updateGroupedWorkSolrDataBasedOnStandardMarcData(groupedWork, record, null, identifier);
+		updateGroupedWorkSolrDataBasedOnStandardMarcData(groupedWork, record, null, identifier, format);
 
 		//Do special processing for Hoopla which does not have individual items within the record
 		//Instead, each record has essentially unlimited items that can be used at one time.
 		//There are also not multiple formats within a record that we would need to split out.
-
-		//First get format
-		String format = getFirstFieldVal(record, "099a");
-		format = format.replace(" hoopla", "");
 
 		String formatCategory = indexer.translateSystemValue("format_category_hoopla", format, identifier);
 		String formatBoostStr = indexer.translateSystemValue("format_boost_hoopla", format, identifier);

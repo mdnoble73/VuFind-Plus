@@ -78,9 +78,7 @@ $.fn.rater.rate = function($this, opts, rating) {
 							}
 					});
 				}
-					}).fail(function(){
-				VuFind.showMessage('Request Failed', 'There was an error with this AJAX Request.');
-			});
+					}).fail(VuFind.ajaxFail);
 
 		});
 	}else{

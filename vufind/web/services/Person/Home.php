@@ -192,19 +192,11 @@ class Home extends Action
 
 	function launch()
 	{
-		global $interface;
-		global $timer;
-
-		//Build the actual view
-//		$interface->setTemplate('view.tpl');
 
 		$titleField = $this->recordDriver->getName(); //$this->record['firstName'] . ' ' . $this->record['lastName'];
 //		if ($titleField){
 //			$interface->setPageTitle($titleField);
 //		}
-
-//		$interface->assign('sidebar', 'Person/full-record-sidebar.tpl');
-//		$interface->display('layout.tpl');
 
 		// Display Page
 		$this->display('view.tpl', $titleField);

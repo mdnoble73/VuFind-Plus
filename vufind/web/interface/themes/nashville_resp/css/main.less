@@ -41,14 +41,14 @@ h1, h2, h3, h4, h5, h6, .h1, .h2, .h3,.h4, .h5, .h6 {
   margin-bottom: 0;
   min-height: 110px;
 }
-
-#header-logo {
-  margin: 10px 10px 0 0;
-  position: absolute;
-  top: -10px;
-  //width: 90px;
-  //height: 75px;
-}
+//  These rules prevent the logo from showing in xs & tn views
+//#header-logo {
+//  margin: 10px 10px 0 0;
+//  position: absolute;
+//  top: -10px;
+//  //width: 90px;
+//  //height: 75px;
+//}
 
 @media (max-width: 767px){
   #header-logo {
@@ -58,11 +58,31 @@ h1, h2, h3, h4, h5, h6, .h1, .h2, .h3,.h4, .h5, .h6 {
 }
 
 .header-button {
-  text-align: center;
-  height: 45px!important;
+  // Prevent Button Text from overflowing or creating new lines
+  white-space: nowrap;
+  overflow-x: hidden;
+
+  //height: 45px!important;
+  line-height: 45px!important;
   border-bottom: 0 solid #e0e0e0;
   margin-top: 5px;
+
+  vertical-align: middle;
+  padding: 0;
+  text-align: center;
+  text-shadow: none;
+  text-decoration: none;
+  font-weight:600;
+  color: inherit;
+  //color: @header-link-color;
+  &:hover {
+    color:#292929;
+  }
+  &:visited {
+    color: #444444;
+  }
 }
+
 
 .header-primary {
   border-left: 0 solid #d9d8d8;
@@ -78,50 +98,50 @@ h1, h2, h3, h4, h5, h6, .h1, .h2, .h3,.h4, .h5, .h6 {
   transition: all .3s ease-in-out;
 }
 
-.header-button>a {
-  line-height: 45px!important;
-  text-align: center;
-  vertical-align: middle;
-  padding: 0;
-  text-shadow: none;
-  text-decoration: none;
-  font-weight:600;
-  color: inherit;
-}
-.header-button>a:hover {
-  color:#292929;
-}
-.header-button>a:visited {
-  color: #444444;
-}
 
-.header-primary>a {
+.header-primary {
   color: #FFFFFF!important;
+  &:hover {
+    border-bottom: 0 solid #2a6496;
+    background-color: #e84b10;
+    text-decoration: none;
+    color:#fff;
+  }
+  &:visited {
+    color: #FFFFFF!important;
+  }
 }
-.header-primary:hover {
-  border-bottom: 0px solid #2a6496;
-  background-color: #e84b10;
+#headerLoginLink, #header-container #myAccountNameLink, #logoutLink {
+  &:hover {
+    text-decoration: none;
+  }
 }
-.header-primary>a:hover {
-  color:#fff;
-}
-.header-primary>a:visited {
-  color: #FFFFFF!important;
-}
+// Old
+//.header-primary>a {
+//  color: #FFFFFF!important;
+//}
+//.header-primary:hover {
+//  border-bottom: 0px solid #2a6496;
+//  background-color: #e84b10;
+//}
+//.header-primary>a:hover {
+//  color:#fff;
+//}
+//.header-primary>a:visited {
+//  color: #FFFFFF!important;
+//}
 
-.header-logout>a {
-  color:#444;
-}
+//.header-logout>a {
+//  color:#444;
+//}
 .header-logout:hover {
   background-color: #d7d7d7;
-  border-bottom: 0px;
-}
-.header-logout>a:hover {
+  border-bottom: 0;
   color:#292929;
 }
-.header-logout>a:visited {
-  color: #444;
-}
+//.header-logout:visited {
+//  color: #444;
+//}
 
 
 
@@ -932,16 +952,13 @@ p.alert.alert-success {
   width: 100%;
 }
 
-@media screen and (min-width: 768px) {
-  .modal-dialog {
-    width: 733px;
-  }
-}
-@media screen and (min-width: 768px) {
-  .modal-dialog {
-    max-width: 750px;
-  }
-}
+// Below is now the default CSS ruleset
+//@media screen and (min-width: 768px) {
+//  .modal-dialog {
+//    width: 733px;
+//    max-width: 750px;
+//  }
+//}
 
 .modal-content {
   border-radius: 0;

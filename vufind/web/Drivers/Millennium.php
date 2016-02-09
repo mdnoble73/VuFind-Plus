@@ -271,7 +271,11 @@ class Millennium extends ScreenScrapingDriver
 			$user->fullname = isset($fullName) ? $fullName : '';
 
 			if ($this->accountProfile->loginConfiguration == 'barcode_pin'){
-				$user->cat_username = $username;
+				if (isset($patronDump['P_BARCODE'])){
+					$user->cat_username = $patronDump['P_BARCODE']; //Make sure to get the barcode so if we are using usernames we can still get the barcode for use with overdrive, etc.
+				}else{
+					$user->cat_username = $patronDump['CARD_#']; //Make sure to get the barcode so if we are using usernames we can still get the barcode for use with overdrive, etc.
+				}
 				$user->cat_password = $password;
 			}else{
 				$user->cat_username = $patronDump['PATRN_NAME'];
@@ -380,14 +384,26 @@ class Millennium extends ScreenScrapingDriver
 			$user->address2 = $user->city . ', ' . $user->state;
 
 			$user->workPhone = (isset($patronDump) && isset($patronDump['G/WK_PHONE'])) ? $patronDump['G/WK_PHONE'] : '';
-			$user->mobileNumber = (isset($patronDump) && isset($patronDump['MOBILE_NO'])) ? $patronDump['MOBILE_NO'] : '';
+			if (isset($patronDump) && isset($patronDump['MOBILE_NO'])){
+				$user->mobileNumber = $patronDump['MOBILE_NO'];
+			}else{
+				if (isset($patronDump) && isset($patronDump['MOBILE_PH'])){
+					$user->mobileNumber = $patronDump['MOBILE_PH'];
+				}else{
+					$user->mobileNumber = '';
+				}
+			}
 
 			$user->finesVal = floatval(preg_replace('/[^\\d.]/', '', $patronDump['MONEY_OWED']));
 			$user->fines = $patronDump['MONEY_OWED'];
 
+			if (isset($patronDump['USERNAME'])){
+				$user->alt_username = $patronDump['USERNAME'];
+			}
+
 			$numHoldsAvailable = 0;
 			$numHoldsRequested = 0;
-			$availableStatusRegex = isset($configArray['Catalog']['patronApiAvailableHoldsRegex']) ? $configArray['Catalog']['patronApiAvailableHoldsRegex'] : "/ST=(105|98),/";
+			$availableStatusRegex = isset($configArray['Catalog']['patronApiAvailableHoldsRegex']) ? $configArray['Catalog']['patronApiAvailableHoldsRegex'] : "/ST=(105|98|106),/";
 			if (isset($patronDump) && isset($patronDump['HOLD']) && count($patronDump['HOLD']) > 0){
 				foreach ($patronDump['HOLD'] as $hold){
 					if (preg_match("$availableStatusRegex", $hold)){
@@ -699,22 +715,22 @@ class Millennium extends ScreenScrapingDriver
 		return $millenniumHolds->placeVolumeHold($patron, $recordId, $volumeId, $pickupBranch);
 	}
 
-	public function updateHold($patron, $requestId, $type, $title){
+	public function updateHold($patron, $requestId, $type){
 		require_once ROOT_DIR . '/Drivers/marmot_inc/MillenniumHolds.php';
 		$millenniumHolds = new MillenniumHolds($this);
-		return $millenniumHolds->updateHold($patron, $requestId, $type, $title);
+		return $millenniumHolds->updateHold($patron, $requestId, $type);
 	}
 
-	public function updateHoldDetailed($patron, $type, $title, $xNum, $cancelId, $locationId, $freezeValue='off'){
+	public function updateHoldDetailed($patron, $type, $xNum, $cancelId, $locationId, $freezeValue='off'){
 		require_once ROOT_DIR . '/Drivers/marmot_inc/MillenniumHolds.php';
 		$millenniumHolds = new MillenniumHolds($this);
-		return $millenniumHolds->updateHoldDetailed($patron, $type, $title, $xNum, $cancelId, $locationId, $freezeValue);
+		return $millenniumHolds->updateHoldDetailed($patron, $type, $xNum, $cancelId, $locationId, $freezeValue);
 	}
 
 	public function cancelHold($patron, $recordId, $cancelId){
 		require_once ROOT_DIR . '/Drivers/marmot_inc/MillenniumHolds.php';
 		$millenniumHolds = new MillenniumHolds($this);
-		return $millenniumHolds->updateHoldDetailed($patron, 'cancel', '', null, $cancelId, '', '');
+		return $millenniumHolds->updateHoldDetailed($patron, 'cancel', null, $cancelId, '', '');
 	}
 
 	function allowFreezingPendingHolds(){
@@ -724,19 +740,19 @@ class Millennium extends ScreenScrapingDriver
 	function freezeHold($patron, $recordId, $itemToFreezeId, $dateToReactivate){
 		require_once ROOT_DIR . '/Drivers/marmot_inc/MillenniumHolds.php';
 		$millenniumHolds = new MillenniumHolds($this);
-		return $millenniumHolds->updateHoldDetailed($patron, 'update', '', null, $itemToFreezeId, '', 'on');
+		return $millenniumHolds->updateHoldDetailed($patron, 'update', null, $itemToFreezeId, '', 'on');
 	}
 
 	function thawHold($patron, $recordId, $itemToThawId){
 		require_once ROOT_DIR . '/Drivers/marmot_inc/MillenniumHolds.php';
 		$millenniumHolds = new MillenniumHolds($this);
-		return $millenniumHolds->updateHoldDetailed($patron, 'update', '', null, $itemToThawId, '', 'off');
+		return $millenniumHolds->updateHoldDetailed($patron, 'update', null, $itemToThawId, '', 'off');
 	}
 
 	function changeHoldPickupLocation($patron, $recordId, $itemToUpdateId, $newPickupLocation){
 		require_once ROOT_DIR . '/Drivers/marmot_inc/MillenniumHolds.php';
 		$millenniumHolds = new MillenniumHolds($this);
-		return $millenniumHolds->updateHoldDetailed($patron, 'update', '', null, $itemToUpdateId, $newPickupLocation, 'off');
+		return $millenniumHolds->updateHoldDetailed($patron, 'update', null, $itemToUpdateId, $newPickupLocation, null); // freeze value of null gets us to change  pickup location
 	}
 
 	public function hasFastRenewAll(){
@@ -839,6 +855,10 @@ class Millennium extends ScreenScrapingDriver
 				$extraPostInfo['notices'] = $_REQUEST['notices'];
 			}
 
+			if (isset($_REQUEST['username'])){
+				$extraPostInfo['user_name'] = $_REQUEST['username'];
+			}
+
 			if (isset($_REQUEST['mobileNumber'])){
 				$extraPostInfo['mobile'] = preg_replace('/\D/', '', $_REQUEST['mobileNumber']);
 				if (strlen($_REQUEST['mobileNumber']) > 0 && $_REQUEST['smsNotices'] == 'on'){
@@ -875,6 +895,7 @@ class Millennium extends ScreenScrapingDriver
 			if (isset($sresult) && strpos($sresult, 'Patron information updated') !== false){
 				$user->phone = $_REQUEST['phone'];
 				$user->email = $_REQUEST['email'];
+				$user->alt_username = $_REQUEST['username'];
 				$user->update();
 				/* @var Memcache $memCache */
 				global $memCache;
@@ -885,7 +906,12 @@ class Millennium extends ScreenScrapingDriver
 				}
 			}else{
 				// Doesn't look like the millennium (actually sierra) server ever provides error messages. plb 4-29-2015
-				$errorMsg = 'There were errors updating your information.'; // generic error message
+				if (preg_match('/<h2 class="errormessage">(.*?)<\/h2>/i', $sresult, $errorMatches)){
+					$errorMsg = $errorMatches[1]; // generic error message
+				}else{
+					$errorMsg = 'There were errors updating your information.'; // generic error message
+				}
+
 				$updateErrors[] = $errorMsg;
 				if ($analytics){
 					$analytics->addEvent('ILS Integration', 'Profile update failed');
@@ -1012,6 +1038,9 @@ class Millennium extends ScreenScrapingDriver
 										if (preg_match('/(.*?)\\sC\\d{3}\\w{0,2}$/', $value, $locationParts)){
 											$value = $locationParts[1];
 										}
+									}elseif ($label == 'holdings'){
+										//Change the lable to avoid conflicts with actual holdings
+										$label = 'holdingStatement';
 									}
 									$issueSummary[$label] = $value;
 								}
@@ -1524,18 +1553,33 @@ class Millennium extends ScreenScrapingDriver
 		if (preg_match('/<table border="0" class="patFunc">(.*?)<\/table>/si', $pageContents, $regs)) {
 			$finesTable = $regs[1];
 			//Get the title and, type, and fine detail from the page
-			preg_match_all('/<tr class="patFuncFinesEntryTitle">(.*?)<\/tr>.*?<tr class="patFuncFinesEntryDetail">.*?<td class="patFuncFinesDetailType">(.*?)<\/td>.*?<td align="right" class="patFuncFinesDetailAmt">(.*?)<\/td>.*?<\/tr>/si', $finesTable, $fineDetails, PREG_SET_ORDER);
-			for ($matchi = 0; $matchi < count($fineDetails); $matchi++) {
-				$reason = ucfirst(strtolower(trim($fineDetails[$matchi][2])));
-				if ($reason == '&nbsp' || $reason == '&nbsp;'){
-					$reason = 'Fee';
+			preg_match_all('/<tr class="(patFuncFinesEntryTitle|patFuncFinesEntryDetail|patFuncFinesDetailDate)">(.*?)<\/tr>/si', $finesTable, $rowDetails, PREG_SET_ORDER);
+			$curFine = array();
+			for ($match1 = 0; $match1 < count($rowDetails); $match1++) {
+				$rowType = $rowDetails[$match1][1];
+				$rowContents = $rowDetails[$match1][2];
+				if ($rowType == 'patFuncFinesEntryTitle'){
+					if ($curFine != null) $messages[] = $curFine;
+					$curFine = array();
+					if (preg_match('/<td.*?>(.*?)<\/td>/si', $rowContents, $colDetails)){
+						$curFine['message'] = trim(strip_tags($colDetails[1]));
+					}
+				}else if ($rowType == 'patFuncFinesEntryDetail'){
+					if (preg_match_all('/<td.*?>(.*?)<\/td>/si', $rowContents, $colDetails, PREG_SET_ORDER) > 0){
+						$curFine['reason'] = trim(strip_tags($colDetails[1][1]));
+						$curFine['amount'] = trim($colDetails[2][1]);
+					}
+				}else if ($rowType == 'patFuncFinesDetailDate'){
+					if (preg_match_all('/<td.*?>(.*?)<\/td>/si', $rowContents, $colDetails, PREG_SET_ORDER) > 0){
+						if (!array_key_exists('details', $curFine)) $curFine['details'] = array();
+						$curFine['details'][] = array(
+							'label' => trim(strip_tags($colDetails[1][1])),
+							'value' => trim(strip_tags($colDetails[2][1])),
+						);
+					}
 				}
-				$messages[] = array(
-					'reason' => $reason,
-					'message' => trim(strip_tags($fineDetails[$matchi][1])),
-					'amount' => trim($fineDetails[$matchi][3]),
-				);
 			}
+			if ($curFine != null) $messages[] = $curFine;
 		}
 
 		return $messages;

@@ -61,12 +61,20 @@
   padding-bottom: 10px;
 
   .explore-more-option {
-    float: left; // stack in a single row
+    display: inline-block;
     padding-left: 10px;
     padding-right: 10px;
 
     .thumbnail {
       margin-bottom: 0px;
+      img {
+        max-height:92px;
+      }
+      a {
+        img{
+          max-height:92px;
+        }
+      }
     }
     figcaption {
       margin-top: 4px;

@@ -42,6 +42,9 @@ public class SierraExportMain{
 	private static char locationSubfield;
 	private static char statusSubfield;
 	private static char dueDateSubfield;
+	private static String dueDateFormat;
+	private static boolean exportItemHolds = true;
+	private static boolean suppressOrderRecordsThatAreReceivedAndCatalogged = false;
 
 	public static void main(String[] args){
 		serverName = args[0];
@@ -60,6 +63,14 @@ public class SierraExportMain{
 		String exportPath = ini.get("Reindex", "marcPath");
 		if (exportPath.startsWith("\"")){
 			exportPath = exportPath.substring(1, exportPath.length() - 1);
+		}
+		String exportItemHoldsStr = ini.get("Catalog", "exportItemHolds");
+		if (exportItemHoldsStr != null){
+			exportItemHolds = exportItemHoldsStr.equalsIgnoreCase("true");
+		}
+		String suppressOrderRecordsThatAreReceivedAndCataloggedStr = ini.get("Catalog", "suppressOrderRecordsThatAreReceivedAndCatalogged");
+		if (suppressOrderRecordsThatAreReceivedAndCataloggedStr != null){
+			suppressOrderRecordsThatAreReceivedAndCatalogged = suppressOrderRecordsThatAreReceivedAndCataloggedStr.equalsIgnoreCase("true");
 		}
 
 		//Connect to the vufind database
@@ -130,6 +141,7 @@ public class SierraExportMain{
 			PreparedStatement addIlsHoldSummary = vufindConn.prepareStatement("INSERT INTO ils_hold_summary (ilsId, numHolds) VALUES (?, ?)");
 
 			HashMap<String, Long> numHoldsByBib = new HashMap<>();
+			HashMap<String, Long> numHoldsByVolume = new HashMap<>();
 			//Export bib level holds
 			PreparedStatement bibHoldsStmt = sierraConn.prepareStatement("select count(hold.id) as numHolds, record_type_code, record_num from sierra_view.hold left join sierra_view.record_metadata on hold.record_id = record_metadata.id where record_type_code = 'b' and (status = '0' OR status = 't') GROUP BY record_type_code, record_num", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 			ResultSet bibHoldsRS = bibHoldsStmt.executeQuery();
@@ -141,29 +153,67 @@ public class SierraExportMain{
 			}
 			bibHoldsRS.close();
 
-			//Export item level holds
-			PreparedStatement itemHoldsStmt = sierraConn.prepareStatement("select count(hold.id) as numHolds, record_num\n" +
+			if (exportItemHolds) {
+				//Export item level holds
+				PreparedStatement itemHoldsStmt = sierraConn.prepareStatement("select count(hold.id) as numHolds, record_num\n" +
+						"from sierra_view.hold \n" +
+						"inner join sierra_view.bib_record_item_record_link ON hold.record_id = item_record_id \n" +
+						"inner join sierra_view.record_metadata on bib_record_item_record_link.bib_record_id = record_metadata.id \n" +
+						"WHERE status = '0' OR status = 't' " +
+						"group by record_num", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+				ResultSet itemHoldsRS = itemHoldsStmt.executeQuery();
+				while (itemHoldsRS.next()) {
+					String bibId = itemHoldsRS.getString("record_num");
+					bibId = ".b" + bibId + getCheckDigit(bibId);
+					Long numHolds = itemHoldsRS.getLong("numHolds");
+					if (numHoldsByBib.containsKey(bibId)) {
+						numHoldsByBib.put(bibId, numHolds + numHoldsByBib.get(bibId));
+					} else {
+						numHoldsByBib.put(bibId, numHolds);
+					}
+				}
+				itemHoldsRS.close();
+			}
+
+			//Export volume level holds
+			PreparedStatement volumeHoldsStmt = sierraConn.prepareStatement("select count(hold.id) as numHolds, bib_metadata.record_num as bib_num, volume_metadata.record_num as volume_num\n" +
 					"from sierra_view.hold \n" +
-					"inner join sierra_view.bib_record_item_record_link ON hold.record_id = item_record_id \n" +
-					"inner join sierra_view.record_metadata on bib_record_item_record_link.bib_record_id = record_metadata.id \n" +
-					"WHERE status = '0' OR status = 't' " +
-					"group by record_num", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
-			ResultSet itemHoldsRS = itemHoldsStmt.executeQuery();
-			while (itemHoldsRS.next()){
-				String bibId = itemHoldsRS.getString("record_num");
+					"inner join sierra_view.bib_record_volume_record_link ON hold.record_id = volume_record_id \n" +
+					"inner join sierra_view.record_metadata as volume_metadata on bib_record_volume_record_link.volume_record_id = volume_metadata.id \n" +
+					"inner join sierra_view.record_metadata as bib_metadata on bib_record_volume_record_link.bib_record_id = bib_metadata.id \n" +
+					"WHERE status = '0' OR status = 't'\n" +
+					"GROUP BY bib_metadata.record_num, volume_metadata.record_num", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+			ResultSet volumeHoldsRS = volumeHoldsStmt.executeQuery();
+			while (volumeHoldsRS.next()) {
+				String bibId = volumeHoldsRS.getString("bib_num");
 				bibId = ".b" + bibId + getCheckDigit(bibId);
-				Long numHolds = itemHoldsRS.getLong("numHolds");
-				if (numHoldsByBib.containsKey(bibId)){
+				String volumeId = volumeHoldsRS.getString("volume_num");
+				volumeId = ".j" + volumeId + getCheckDigit(volumeId);
+				Long numHolds = volumeHoldsRS.getLong("numHolds");
+				//Do not count these in
+				if (numHoldsByBib.containsKey(bibId)) {
 					numHoldsByBib.put(bibId, numHolds + numHoldsByBib.get(bibId));
-				}else{
+				} else {
 					numHoldsByBib.put(bibId, numHolds);
 				}
+				if (numHoldsByVolume.containsKey(volumeId)) {
+					numHoldsByVolume.put(volumeId, numHolds + numHoldsByVolume.get(bibId));
+				} else {
+					numHoldsByVolume.put(volumeId, numHolds);
+				}
 			}
-			itemHoldsRS.close();
+			volumeHoldsRS.close();
+
 
 			for (String bibId : numHoldsByBib.keySet()){
 				addIlsHoldSummary.setString(1, bibId);
 				addIlsHoldSummary.setLong(2, numHoldsByBib.get(bibId));
+				addIlsHoldSummary.executeUpdate();
+			}
+
+			for (String volumeId : numHoldsByVolume.keySet()){
+				addIlsHoldSummary.setString(1, volumeId);
+				addIlsHoldSummary.setLong(2, numHoldsByVolume.get(volumeId));
 				addIlsHoldSummary.executeUpdate();
 			}
 
@@ -201,6 +251,11 @@ public class SierraExportMain{
 			locationSubfield = getSubfieldIndicatorFromConfig(ini, "locationSubfield");
 			statusSubfield = getSubfieldIndicatorFromConfig(ini, "statusSubfield");
 			dueDateSubfield = getSubfieldIndicatorFromConfig(ini, "dueDateSubfield");
+			if (ini.get("Reindex").containsKey("dueDateFormat")){
+				dueDateFormat = ini.get("Reindex", "dueDateFormat");
+			}else{
+				dueDateFormat = "yyMMdd";
+			}
 
 			PreparedStatement loadLastSierraExtractTimeStmt = vufindConn.prepareStatement("SELECT * from variables WHERE name = 'last_sierra_extract_time'", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 			ResultSet lastSierraExtractTimeRS = loadLastSierraExtractTimeStmt.executeQuery();
@@ -232,7 +287,8 @@ public class SierraExportMain{
 				String dateUpdated = dateFormatter.format(lastExtractDate);
 				long updateTime = new Date().getTime() / 1000;
 
-				SimpleDateFormat marcDateFormat = new SimpleDateFormat("yyMMdd");
+
+				SimpleDateFormat marcDateFormat = new SimpleDateFormat(dueDateFormat);
 
 				//Extract the ids of all records that have changed.  That will allow us to mark
 				//That the grouped record has changed which will force the work to be indexed
@@ -390,7 +446,11 @@ public class SierraExportMain{
 									itemField.getSubfield(statusSubfield).setData(curItem.getStatus());
 									if (curItem.getDueDate() == null) {
 										if (itemField.getSubfield(dueDateSubfield) != null) {
-											itemField.getSubfield(dueDateSubfield).setData("      ");
+											if (dueDateFormat.contains("-")){
+												itemField.getSubfield(dueDateSubfield).setData("  -  -  ");
+											} else {
+												itemField.getSubfield(dueDateSubfield).setData("      ");
+											}
 										}
 									} else {
 										if (itemField.getSubfield(dueDateSubfield) == null) {
@@ -437,12 +497,16 @@ public class SierraExportMain{
 
 	private static void exportActiveOrders(String exportPath, Connection conn) throws SQLException, IOException {
 		logger.info("Starting export of active orders");
-		PreparedStatement getActiveOrdersStmt = conn.prepareStatement("select bib_view.record_num as bib_record_num, order_view.record_num as order_record_num, accounting_unit_code_num, order_status_code, copies, location_code " +
+		String activeOrderSQL = "select bib_view.record_num as bib_record_num, order_view.record_num as order_record_num, accounting_unit_code_num, order_status_code, copies, location_code " +
 				"from sierra_view.order_view " +
 				"inner join sierra_view.bib_record_order_record_link on bib_record_order_record_link.order_record_id = order_view.record_id " +
 				"inner join sierra_view.bib_view on sierra_view.bib_view.id = bib_record_order_record_link.bib_record_id " +
 				"inner join sierra_view.order_record_cmf on order_record_cmf.order_record_id = order_view.id " +
-				"where (order_status_code = 'o' or order_status_code = '1') and order_view.is_suppressed = 'f' and location_code != 'multi'", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+				"where (order_status_code = 'o' or order_status_code = '1') and order_view.is_suppressed = 'f' and location_code != 'multi'";
+		if (suppressOrderRecordsThatAreReceivedAndCatalogged){
+			activeOrderSQL += " and (catalog_date_gmt IS NULL or received_date_gmt IS NULL) ";
+		}
+		PreparedStatement getActiveOrdersStmt = conn.prepareStatement(activeOrderSQL, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 		ResultSet activeOrdersRS = null;
 		boolean loadError = false;
 		try{

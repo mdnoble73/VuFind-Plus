@@ -864,7 +864,11 @@ class MarcRecord extends IndexRecord
 		if ($titleField != null && $titleField->getSubfield('a') != null){
 			$untrimmedTitle = $titleField->getSubfield('a')->getData();
 			$charsToTrim = $titleField->getIndicator(2);
-			return substr($untrimmedTitle, $charsToTrim);
+			if (is_numeric($charsToTrim)){
+				return substr($untrimmedTitle, $charsToTrim);
+			}else{
+				return $untrimmedTitle;
+			}
 		}
 		return 'Unknown';
 	}
@@ -896,7 +900,7 @@ class MarcRecord extends IndexRecord
 	 * @access  protected
 	 * @return  string
 	 */
-	protected function getTitleStatement()
+	public function getTitleStatement()
 	{
 		return $this->getFirstFieldValue('245', array('c'));
 	}
@@ -969,7 +973,7 @@ class MarcRecord extends IndexRecord
 		if (isset($this->fields['auth_author'])){
 			return $this->fields['auth_author'];
 		}else{
-			$author = $this->getFirstFieldValue('100', array('a'));
+			$author = $this->getFirstFieldValue('100', array('a', 'd'));
 			if (empty($author )){
 				$author = $this->getFirstFieldValue('110', array('a', 'b'));
 			}
@@ -986,19 +990,28 @@ class MarcRecord extends IndexRecord
 		return $this->getFieldArray(700, array('a', 'b', 'c', 'd'));
 	}
 
+	private $detailedContributors = null;
 	public function getDetailedContributors(){
-		$contributors = array();
-		/** @var File_MARC_Data_Field[] $sevenHundredFields */
-		$sevenHundredFields = $this->getMarcRecord()->getFields('700|710', true);
-		foreach($sevenHundredFields as $field){
-			$contributors[] = array(
-				'name' => reset($this->getSubfieldArray($field, array('a', 'b', 'c', 'd'), true)),
-				'role' => $field->getSubfield('4') != null ? mapValue('contributor_role', $field->getSubfield('4')->getData()) : '',
-				'title' => reset($this->getSubfieldArray($field, array('t', 'm', 'n', 'r'), true)),
-			);
+		if ($this->detailedContributors == null){
+			$this->detailedContributors = array();
+			/** @var File_MARC_Data_Field[] $sevenHundredFields */
+			$sevenHundredFields = $this->getMarcRecord()->getFields('700|710', true);
+			foreach($sevenHundredFields as $field){
+				$curContributor = array(
+						'name' => reset($this->getSubfieldArray($field, array('a', 'b', 'c', 'd'), true)),
+						'title' => reset($this->getSubfieldArray($field, array('t', 'm', 'n', 'r'), true)),
+				);
+				if ($field->getSubfield('4') != null) {
+					$contributorRole = $field->getSubfield('4')->getData();
+					$contributorRole = preg_replace('/[\s,\.;]+$/', '', $contributorRole);
+					$curContributor['role'] = mapValue('contributor_role', $contributorRole);
+				}elseif ($field->getSubfield('e') != null){
+					$curContributor['role'] = $field->getSubfield('e')->getData();
+				}
+				$this->detailedContributors[] = $curContributor;
+			}
 		}
-		$this->getFieldArray(700, array('a', 'b', 'c', 'd'));
-		return $contributors;
+		return $this->detailedContributors;
 	}
 
 
@@ -1473,7 +1486,7 @@ class MarcRecord extends IndexRecord
 		if (count($relatedRecords) > 1){
 			$interface->assign('relatedManifestations', $this->getGroupedWorkDriver()->getRelatedManifestations());
 			$moreDetailsOptions['otherEditions'] = array(
-					'label' => 'Other Editions',
+					'label' => 'Other Editions and Formats',
 					'body' => $interface->fetch('GroupedWork/relatedManifestations.tpl'),
 					'hideByDefault' => false
 			);
@@ -1505,6 +1518,7 @@ class MarcRecord extends IndexRecord
 	public function loadSubjects(){
 		global $interface;
 		global $configArray;
+		global $library;
 		$marcRecord = $this->getMarcRecord();
 		if (isset($configArray['Content']['subjectFieldsToShow'])){
 			$subjectFieldsToShow = $configArray['Content']['subjectFieldsToShow'];
@@ -1536,6 +1550,8 @@ class MarcRecord extends IndexRecord
 							$type = 'local';
 						}
 
+						$search = '';
+						$title = '';
 						foreach ($marcField->getSubFields() as $subField){
 							/** @var File_MARC_Subfield $subField */
 							if ($subField->getCode() != '2' && $subField->getCode() != '0'){
@@ -1543,13 +1559,17 @@ class MarcRecord extends IndexRecord
 								if ($type == 'bisac' && $subField->getCode() == 'a'){
 									$subFieldData = ucwords(strtolower($subFieldData));
 								}
-								$searchSubject .= " " . $subFieldData;
-								$subject[] = array(
-										'search' => trim($searchSubject),
-										'title'  => $subFieldData,
-								);
+								$search .= " " . $subFieldData;
+								if (strlen($title) > 0){
+									$title .= ' -- ';
+								}
+								$title .= $subFieldData;
 							}
 						}
+						$subject[$title] = array(
+								'search' => trim($search),
+								'title'  => $title,
+						);
 						if ($type == 'bisac'){
 							$bisacSubjects[] = $subject;
 							$subjects[] = $subject;
@@ -1569,9 +1589,15 @@ class MarcRecord extends IndexRecord
 				}
 			}
 			$interface->assign('subjects', $subjects);
-			$interface->assign('standardSubjects', $standardSubjects);
-			$interface->assign('bisacSubjects', $bisacSubjects);
-			$interface->assign('oclcFastSubjects', $oclcFastSubjects);
+			if ($library->showStandardSubjects){
+				$interface->assign('standardSubjects', $standardSubjects);
+			}
+			if ($library->showBisacSubjects) {
+				$interface->assign('bisacSubjects', $bisacSubjects);
+			}
+			if ($library->showFastAddSubjects) {
+				$interface->assign('oclcFastSubjects', $oclcFastSubjects);
+			}
 			$interface->assign('localSubjects', $localSubjects);
 		}
 	}
@@ -1655,6 +1681,28 @@ class MarcRecord extends IndexRecord
 
 		$timer->logTime("Loaded number of holds");
 		return $this->numHolds;
+	}
+
+	/**
+	 * @param IlsVolumeInfo[] $volumeData
+	 * @return array
+	 */
+	function getVolumeHolds($volumeData){
+		$holdInfo = null;
+		if (count($volumeData) > 0){
+			$holdInfo = array();
+			foreach ($volumeData as $volumeInfo){
+				$ilsHoldInfo = new IlsHoldSummary();
+				$ilsHoldInfo->ilsId = $volumeInfo->volumeId;
+				if ($ilsHoldInfo->find(true)){
+					$holdInfo[] = array(
+							'label' => $volumeInfo->displayLabel,
+							'numHolds' => $ilsHoldInfo->numHolds
+					);
+				}
+			}
+		}
+		return $holdInfo;
 	}
 
 	function getNotes(){
@@ -1745,7 +1793,9 @@ class MarcRecord extends IndexRecord
 									'holdings' => array(),
 							);
 						}
-						$this->holdingSections[$sectionName]['holdings'][] = $copyInfo;
+						if ($copyInfo['shelfLocation'] != ''){
+							$this->holdingSections[$sectionName]['holdings'][] = $copyInfo;
+						}
 					}
 
 					$this->statusSummary = $this->recordFromIndex;
@@ -1798,6 +1848,18 @@ class MarcRecord extends IndexRecord
 			if (count($issueSummaries)){
 				//Insert copies into the information about the periodicals
 				$copies = $this->getCopies();
+				//Remove any copies with no location to get rid of temporary items added only for scoping
+				$changeMade = true;
+				while ($changeMade){
+					$changeMade = false;
+					foreach ($copies as $i => $copy){
+						if ($copy['shelfLocation'] == ''){
+							unset($copies[$i]);
+							$changeMade = true;
+							break;
+						}
+					}
+				}
 				krsort($copies);
 				//Group holdings under the issue issue summary that is related.
 				foreach ($copies as $key => $holding){

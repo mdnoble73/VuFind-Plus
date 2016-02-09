@@ -121,7 +121,7 @@ class AuthorFacets implements RecommendationInterface
                     $list['list'][] = array(
                         'value' => $facet[0],
                         'count' => $facet[1],
-                        'url'   => $serverUrl."/Author/Home?author=".urlencode($facet[0])
+                        'url'   => $serverUrl.'/Author/Home?author="'.urlencode($facet[0]) . '"'
                     );
                 }
             }
@@ -157,5 +157,3 @@ class AuthorFacets implements RecommendationInterface
         return 'Search/Recommend/AuthorFacets.tpl';
     }
 }
-
-?>

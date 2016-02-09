@@ -44,12 +44,18 @@
   padding-bottom: 10px;
 }
 .exploreMoreBar .explore-more-option {
-  float: left;
+  display: inline-block;
   padding-left: 10px;
   padding-right: 10px;
 }
 .exploreMoreBar .explore-more-option .thumbnail {
   margin-bottom: 0px;
+}
+.exploreMoreBar .explore-more-option .thumbnail img {
+  max-height: 92px;
+}
+.exploreMoreBar .explore-more-option .thumbnail a img {
+  max-height: 92px;
 }
 .exploreMoreBar .explore-more-option figcaption {
   margin-top: 4px;

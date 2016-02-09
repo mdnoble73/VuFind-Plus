@@ -33,7 +33,7 @@ class RequestPinReset extends Action{
 		global $interface;
 
 		if (isset($_REQUEST['submit'])){
-			$this->catalog = CatalogFactory::getCatalogConnectionInstance();;
+			$this->catalog = CatalogFactory::getCatalogConnectionInstance();
 			$driver = $this->catalog->driver;
 			if ($this->catalog->checkFunction('requestPinReset')){
 				$barcode = strip_tags($_REQUEST['barcode']);
@@ -44,12 +44,11 @@ class RequestPinReset extends Action{
 				);
 			}
 			$interface->assign('requestPinResetResult', $requestPinResetResult);
-			$interface->setTemplate('requestPinResetResults.tpl');
+			$template = 'requestPinResetResults.tpl';
 		}else{
-			$interface->setTemplate('requestPinReset.tpl');
+			$template = ('requestPinReset.tpl');
 		}
-		$interface->assign('sidebar', 'MyAccount/account-sidebar.tpl');
 
-		$interface->display('layout.tpl');
+		$this->display($template, 'Pin Reset');
 	}
 }

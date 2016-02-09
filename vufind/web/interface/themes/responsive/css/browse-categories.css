@@ -4,7 +4,7 @@
 }
 #home-page-browse-content {
   padding: 15px;
-  background-color: #ffffff;
+  background-color: #fff;
 }
 #browse-label {
   height: 5px;
@@ -127,14 +127,14 @@
 }
 #selected-browse-label {
   background-color: #fff;
-  background: -webkit-linear-gradient(top, #ffffff, #ffffff 44%, #bbd4e3 45%, #bbd4e3 55%, #ffffff 56%);
-  background: linear-gradient(to bottom, #ffffff, #ffffff 44%, #bbd4e3 45%, #bbd4e3 55%, #ffffff 56%);
+  background: -webkit-linear-gradient(top, #fff, #fff 44%, #bbd4e3 45%, #bbd4e3 55%, #fff 56%);
+  background: linear-gradient(to bottom, #fff, #fff 44%, #bbd4e3 45%, #bbd4e3 55%, #fff 56%);
   margin-bottom: 5px;
 }
 #selected-browse-label > div.btn-group {
   margin-right: 20px;
   float: right;
-  background-color: #ffffff;
+  background-color: #fff;
   padding: 0 8px;
 }
 #selected-browse-label > div.btn-group span.thumbnail-icon {
@@ -199,7 +199,7 @@
   vertical-align: top;
   margin-left: 20px;
   float: left;
-  background-color: #ffffff;
+  background-color: #fff;
   padding: 0 8px;
 }
 .selected-browse-label-search a {
@@ -292,8 +292,8 @@
   padding: 4px;
   margin-bottom: 20px;
   line-height: 1.42857143;
-  background-color: #ffffff;
-  border: 1px solid #dddddd;
+  background-color: #fff;
+  border: 1px solid #ddd;
   border-radius: 4px;
   -webkit-transition: all 0.2s ease-in-out;
   transition: all 0.2s ease-in-out;
@@ -334,8 +334,8 @@ a.browse-thumbnail.active {
 .browse-list img {
   padding: 4px;
   line-height: 1.42857143;
-  background-color: #ffffff;
-  border: 1px solid #dddddd;
+  background-color: #fff;
+  border: 1px solid #ddd;
   border-radius: 4px;
   -webkit-transition: all 0.2s ease-in-out;
   transition: all 0.2s ease-in-out;
@@ -363,7 +363,7 @@ a.browse-thumbnail.active {
   margin-right: 5px;
 }
 #browse-sub-category-menu button.selected {
-  color: #ffffff;
+  color: #fff;
   background-color: #0d8ec7;
 }
 #browse-sub-category-menu button:focus {

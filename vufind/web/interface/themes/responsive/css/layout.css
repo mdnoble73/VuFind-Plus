@@ -1,5 +1,5 @@
 body {
-  color: #6b6b6b;
+  color: #6B6B6B;
 }
 #content-container {
   padding: 0;
@@ -34,7 +34,7 @@ hr.menu {
 .breadcrumb > li + li:before {
   content: "";
   padding: 0 5px;
-  color: #cccccc;
+  color: #ccc;
 }
 #system-message-header {
   background-color: #f2f2f2;
@@ -63,18 +63,10 @@ hr.menu {
 }
 .header-button {
   text-align: center;
-  height: 82px !important;
-  border-bottom: 4px solid #e0e0e0;
-}
-.header-button > a {
-  line-height: 82px !important;
-  text-align: center;
-  vertical-align: middle;
-  padding: 0;
-  color: #8b8b8b !important;
   text-shadow: 1px 1px #fff;
-}
-.header-button > a:visited {
+  vertical-align: middle;
+  line-height: 82px !important;
+  border-bottom: 4px solid #e0e0e0;
   color: #8b8b8b !important;
 }
 .header-button:hover {
@@ -138,7 +130,7 @@ hr.menu {
   }
 }
 .menu-bar {
-  color: #ffffff;
+  color: #FFF;
   background-color: #00a4e3;
 }
 #horizontal-menu-bar-container {
@@ -183,7 +175,7 @@ hr.menu {
   height: 2000px;
   height: 100vh;
   background-color: #00a4e3;
-  color: #ffffff;
+  color: #FFF;
   padding-left: 0;
   padding-right: 0;
 }
@@ -195,7 +187,7 @@ hr.menu {
 }
 #vertical-menu-bar .menu-bar-option.menu-icon-selected {
   background-color: #80d2f1;
-  color: #ffffff;
+  color: #FFF;
 }
 #vertical-menu-bar .menu-icon {
   padding: 5px;
@@ -207,11 +199,11 @@ hr.menu {
 #vertical-menu-bar .menu-icon:hover,
 #vertical-menu-bar .menu-icon:focus {
   text-decoration: none;
-  color: #ffffff;
+  color: #FFF;
   outline: none;
 }
 #vertical-menu-bar .menu-icon .menu-bar-label {
-  color: #ffffff;
+  color: #FFF;
   font-weight: bold;
   text-transform: uppercase;
   white-space: nowrap;
@@ -229,6 +221,21 @@ hr.menu {
   width: 40px;
 }
 @media (min-width: 768px) {
+  .collapsedSidebar.rightSidebar {
+    left: 94.44%;
+  }
+}
+@media (min-width: 992px) {
+  .collapsedSidebar.rightSidebar {
+    left: 95.74%;
+  }
+}
+@media (min-width: 1200px) {
+  .collapsedSidebar.rightSidebar {
+    left: 96.49%;
+  }
+}
+@media (min-width: 768px) {
   .mainContentWhenSiderbarCollapsed {
     width: 94.44%;
   }
@@ -243,6 +250,9 @@ hr.menu {
     width: 96.49%;
   }
 }
+.mainContentWhenSiderbarCollapsed.rightSidebar {
+  right: 40px;
+}
 @media print {
   #side-bar {
     display: none;
@@ -256,15 +266,4 @@ hr.menu {
     width: 100%;
     display: block !important;
   }
-}
-#xs-main-content-insertion-point {
-  margin-left: 0;
-  margin-right: 0;
-}
-.modal {
-  overflow-y: auto;
-}
-.modal-buttons {
-  margin-left: 3px;
-  margin-right: 3px;
 }

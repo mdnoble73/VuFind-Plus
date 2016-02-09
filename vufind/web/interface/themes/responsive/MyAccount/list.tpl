@@ -1,8 +1,8 @@
 {strip}
 	<form action="{$path}/MyAccount/MyList/{$favList->id}" id="myListFormHead">
 		<div>
-			<input type="hidden" name="myListActionHead" id="myListActionHead" class="form"/>
-			<h3 id='listTitle'><span class="silk list">&nbsp;</span>{$favList->title|escape:"html"}</h3>
+			<input type="hidden" name="myListActionHead" id="myListActionHead" class="form">
+			<h3 id="listTitle">{*<span class="silk list">&nbsp;</span>*}{$favList->title|escape:"html"}</h3>
 			{if $notes}
 				<div id="listNotes">
 				{foreach from=$notes item="note"}
@@ -16,14 +16,14 @@
 			{else}
 				{if $favList->description}<div class="listDescription alignleft" id="listDescription">{$favList->description|escape}</div>{/if}
 				{if $allowEdit}
-					<div id='listEditControls' style="display:none" class="collapse">
+					<div id="listEditControls" style="display:none" class="collapse">
 						<div class="form-group">
-							<label for='listTitleEdit' class="control-label">Title: </label>
-							<input type='text' id='listTitleEdit' name='newTitle' value="{$favList->title|escape:"html"}" maxlength="255" size="80" class="form-control"/>
+							<label for="listTitleEdit" class="control-label">Title: </label>
+							<input type="text" id="listTitleEdit" name="newTitle" value="{$favList->title|escape:"html"}" maxlength="255" size="80" class="form-control">
 						</div>
 						<div class="form-group">
-							<label for='listDescriptionEdit' class="control-label">Description: </label>&nbsp;
-							<textarea name='newDescription' id='listDescriptionEdit' rows="3" cols="80" class="form-control">{$favList->description|escape:"html"}</textarea>
+							<label for="listDescriptionEdit" class="control-label">Description: </label>&nbsp;
+							<textarea name="newDescription" id="listDescriptionEdit" rows="3" cols="80" class="form-control">{$favList->description|escape:"html"}</textarea>
 						</div>
 						<div class="form-group">
 
@@ -43,7 +43,7 @@
 				<div id="listTopButtons" class="btn-toolbar">
 					{if $allowEdit}
 						<div class="btn-group">
-							<button value="editList" id="FavEdit" class="btn btn-sm btn-info" onclick='return VuFind.Lists.editListAction()'>Edit List</button>
+							<button value="editList" id="FavEdit" class="btn btn-sm btn-info" onclick="return VuFind.Lists.editListAction()">Edit List</button>
 						</div>
 						<div class="btn-group">
 							<button value="saveList" id="FavSave" class="btn btn-sm btn-primary" style="display:none" onclick='return VuFind.Lists.updateListAction()'>Save Changes</button>
@@ -62,8 +62,8 @@
 					{/if}
 					<div class="btn-group">
 						<button value="emailList" id="FavEmail" class="btn btn-sm btn-default" onclick='return VuFind.Lists.emailListAction("{$favList->id}")'>Email List</button>
-						<button value="printList" id="FavPrint" class="btn btn-sm btn-default" onclick='return VuFind.Lists.printListAction();'>Print List</button>
-						<button value="citeList" id="FavCite" class="btn btn-sm btn-default" onclick='return VuFind.Lists.citeListAction("{$favList->id}");'>Generate Citations</button>
+						<button value="printList" id="FavPrint" class="btn btn-sm btn-default" onclick='return VuFind.Lists.printListAction()'>Print List</button>
+						<button value="citeList" id="FavCite" class="btn btn-sm btn-default" onclick='return VuFind.Lists.citeListAction("{$favList->id}")'>Generate Citations</button>
 
 						<div class="btn-group" role="group">
 							<button type="button" class="btn btn-sm btn-default btn-info dropdown-toggle" data-toggle="dropdown" aria-expanded="false">Sort &nbsp;<span class="caret"></span></button>
@@ -92,32 +92,28 @@
 
 	{if $favList->deleted == 0}
 		{if $resourceList}
-			<div class="row">
-
-				<form class="form-inline col-xs-6 col-sm-4">
-				<div class="form-group" id="recordsPerPage">
-					<label for="pagesize" class="control-label">Records Per Page</label>&nbsp;
-					<select id="pagesize" class="pagesize form-control input-sm" onchange="VuFind.changePageSize()">
-						<option value="20"{if $recordsPerPage == 20} selected="selected"{/if}>20</option>
-						<option value="40"{if $recordsPerPage == 40} selected="selected"{/if}>40</option>
-						<option value="60"{if $recordsPerPage == 60} selected="selected"{/if}>60</option>
-						<option value="80"{if $recordsPerPage == 80} selected="selected"{/if}>80</option>
-						<option value="100"{if $recordsPerPage == 100} selected="selected"{/if}>100</option>
-					</select>
-				</div>
-			</div>
+			<form class="navbar form-inline">
+				<label for="pagesize" class="control-label">Records Per Page</label>&nbsp;
+				<select id="pagesize" class="pagesize form-control{* input-sm*}" onchange="VuFind.changePageSize()">
+					<option value="20"{if $recordsPerPage == 20} selected="selected"{/if}>20</option>
+					<option value="40"{if $recordsPerPage == 40} selected="selected"{/if}>40</option>
+					<option value="60"{if $recordsPerPage == 60} selected="selected"{/if}>60</option>
+					<option value="80"{if $recordsPerPage == 80} selected="selected"{/if}>80</option>
+					<option value="100"{if $recordsPerPage == 100} selected="selected"{/if}>100</option>
+				</select>
+				<label for="hideCovers" class="control-label checkbox pull-right"> Hide Covers <input id="hideCovers" type="checkbox" onclick="VuFind.Account.toggleShowCovers(!$(this).is(':checked'))" {if $showCovers == false}checked="checked"{/if}></label>
 			</form>
 
+		{if $recordCount}
 			<div class="resulthead row">
-				<div class="col-sm-12">
-				{if $recordCount}
-					{translate text="Showing"} <b>{$recordStart}</b> - <b>{$recordEnd}</b> {translate text='of'} <b>{$recordCount}</b>
-					{if $debug}
-						&nbsp;There are {$favList->num_titles()} titles that are valid.
-					{/if}
-				{/if}
+				<div class="col-xs-12">
+						{translate text="Showing"} <b>{$recordStart}</b> - <b>{$recordEnd}</b> {translate text='of'} <b>{$recordCount}</b>
+						{if $debug}
+							&nbsp;There are {$favList->num_titles()} titles that are valid.
+						{/if}
+				</div>
 			</div>
-			</div>
+		{/if}
 
 			{if $allowEdit && $userSort}
 				<div class="alert alert-info alert-dismissible" role="alert">

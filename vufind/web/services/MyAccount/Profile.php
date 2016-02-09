@@ -30,17 +30,13 @@ class MyAccount_Profile extends MyAccount
 
 		$ils = $configArray['Catalog']['ils'];
 		$interface->assign('showSMSNoticesInProfile', $ils == 'Sierra');
-		if ($configArray['Catalog']['offline']){
-			$interface->assign('offline', true);
-		}else{
-			$interface->assign('offline', false);
-		}
 
 		if ($user) {
 
 			// Determine which user we are showing/updating settings for
 			$linkedUsers = $user->getLinkedUsers();
 			$patronId    = isset($_REQUEST['patronId']) ? $_REQUEST['patronId'] : $user->id;
+			/** @var User $patron */
 			$patron      = $user->getUserReferredTo($patronId);
 
 			// Linked Accounts Selection Form set-up
@@ -74,8 +70,14 @@ class MyAccount_Profile extends MyAccount
 				$allowPinReset = ($patronHomeLibrary->allowPinReset == 1);
 				$showAlternateLibraryOptionsInProfile = ($patronHomeLibrary->showAlternateLibraryOptionsInProfile == 1);
 				$allowAccountLinking = ($patronHomeLibrary->allowLinkedAccounts == 1);
+				if ($user->finesVal > $patronHomeLibrary->maxFinesToAllowAccountUpdates){
+					$canUpdateContactInfo = false;
+					$canUpdateAddress = false;
+				}
 			}
 
+			$interface->assign('showUsernameField', $patron->getShowUsernameField());
+			$interface->assign('canUpdateContactInfo', $canUpdateContactInfo);
 			$interface->assign('canUpdateContactInfo', $canUpdateContactInfo);
 			$interface->assign('canUpdateAddress', $canUpdateAddress);
 			$interface->assign('showWorkPhoneInProfile', $showWorkPhoneInProfile);
@@ -135,7 +137,13 @@ class MyAccount_Profile extends MyAccount
 				$lendingPeriods = $overDriveDriver->getLendingPeriods($user);
 				$interface->assign('overDriveLendingOptions', $lendingPeriods);
 			}*/
-			$interface->assign('overDriveUrl', $configArray['OverDrive']['url']);
+
+//			$interface->assign('overDriveUrl', $configArray['OverDrive']['url']);
+			global $translator;
+			$notice = $translator->translate('overdrive_account_preferences_notice');
+			$notice = str_replace('{OVERDRIVEURL}', $configArray['OverDrive']['url'], $notice); // Insert the Overdrive URL into the notice
+			$interface->assign('overdrivePreferencesNotice', $notice);
+
 
 			if (!empty($_SESSION['profileUpdateErrors'])) {
 				$interface->assign('profileUpdateErrors', $_SESSION['profileUpdateErrors']);

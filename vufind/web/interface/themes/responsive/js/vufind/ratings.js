@@ -42,9 +42,7 @@ VuFind.Ratings = (function(){
 			$.getJSON(Globals.path + "/GroupedWork/AJAX?method=setNoMoreReviews", function(data){
 				if (data.success) VuFind.showMessage('Success', 'You will no longer be asked to give a review.', true)
 				else VuFind.showMessage('Error', 'Failed to save your setting.')
-			}).fail(function(){
-				VuFind.showMessage('Request Failed', 'There was an error with this AJAX Request.')
-			});
+			}).fail(VuFind.ajaxFail);
 		}
 	};
 }(VuFind.Ratings));

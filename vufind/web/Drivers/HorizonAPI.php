@@ -382,7 +382,7 @@ abstract class HorizonAPI extends Horizon{
 
 		}else{
 			if ($type == 'cancel' || $type == 'recall' || $type == 'update') {
-				$result = $this->updateHold($patron, $recordId, $type, $title);
+				$result = $this->updateHold($patron, $recordId, $type/*, $title*/);
 				$result['title'] = $title;
 				$result['bid'] = $recordId;
 				return $result;
@@ -434,22 +434,22 @@ abstract class HorizonAPI extends Horizon{
 	}
 
 	function cancelHold($patron, $recordId, $cancelId) {
-		return $this->updateHoldDetailed($patron, 'cancel', '', null, $cancelId, '', '');
+		return $this->updateHoldDetailed($patron, 'cancel', null, $cancelId, '', '');
 	}
 
 	function freezeHold($patron, $recordId, $itemToFreezeId, $dateToReactivate) {
-		return $this->updateHoldDetailed($patron, 'update', '', null, $itemToFreezeId, '', 'on');
+		return $this->updateHoldDetailed($patron, 'update', null, $itemToFreezeId, '', 'on');
 	}
 
 	function thawHold($patron, $recordId, $itemToThawId) {
-		return $this->updateHoldDetailed($patron, 'update', '', null, $itemToThawId, '', 'off');
+		return $this->updateHoldDetailed($patron, 'update', null, $itemToThawId, '', 'off');
 	}
 
 	function changeHoldPickupLocation($patron, $recordId, $itemToUpdateId, $newPickupLocation) {
-		return $this->updateHoldDetailed($patron, 'update', '', null, $itemToUpdateId, $newPickupLocation, 'off');
+		return $this->updateHoldDetailed($patron, 'update', null, $itemToUpdateId, $newPickupLocation, 'off');
 	}
 
-	public function updateHold($requestId, $patronId, $type, $title){
+	public function updateHold($requestId, $patronId, $type){
 		$xnum = "x" . $_REQUEST['x'];
 		//Strip the . off the front of the bib and the last char from the bib
 		if (isset($_REQUEST['cancelId'])){
@@ -459,14 +459,14 @@ abstract class HorizonAPI extends Horizon{
 		}
 		$locationId = $_REQUEST['location'];
 		$freezeValue = isset($_REQUEST['freeze']) ? 'on' : 'off';
-		return $this->updateHoldDetailed($patronId, $type, $title, $xnum, $cancelId, $locationId, $freezeValue);
+		return $this->updateHoldDetailed($patronId, $type, /*$title,*/ $xnum, $cancelId, $locationId, $freezeValue);
 	}
 
 	/**
 	 * Update a hold that was previously placed in the system.
 	 * Can cancel the hold or update pickup locations.
 	 */
-	public function updateHoldDetailed($patron, $type, $titles, $xNum, $cancelId, $locationId, $freezeValue='off'){
+	public function updateHoldDetailed($patron, $type, /*$titles,*/ $xNum, $cancelId, $locationId, $freezeValue='off'){
 		global $configArray;
 
 		$patronId = $patron->id;
@@ -494,15 +494,15 @@ abstract class HorizonAPI extends Horizon{
 			}
 		}
 
-		$loadTitles = empty($titles);
-		if ($loadTitles) {
+//		$loadTitles = empty($titles);
+//		if ($loadTitles) {
 			$holds = $this->getMyHolds($patron);
 			$combined_holds = array_merge($holds['unavailable'], $holds['available']);
-		}
+//		}
 //		$logger->log("Load titles = $loadTitles", PEAR_LOG_DEBUG); // move out of foreach loop
 
 
-
+		$titles = array();
 		if ($type == 'cancel'){
 			$allCancelsSucceed = true;
 			$failure_messages = array();
@@ -510,14 +510,12 @@ abstract class HorizonAPI extends Horizon{
 			foreach ($holdKeys as $holdKey){
 				$title = 'an item';  // default in case title name isn't found.
 
-				if ($loadTitles) { // get title for this hold
-					foreach ($combined_holds as $hold){
-						if ($hold['cancelId'] == $holdKey) {
-							$title = $hold['title'];
-							break;
-						}
+				foreach ($combined_holds as $hold){
+					if ($hold['cancelId'] == $holdKey) {
+						$title = $hold['title'];
+						break;
 					}
-				} // else {} // Get from parameter $titles
+				}
 				$titles[] = $title; // build array of all titles
 
 
@@ -556,6 +554,15 @@ abstract class HorizonAPI extends Horizon{
 				$allLocationChangesSucceed = true;
 
 				foreach ($holdKeys as $holdKey){
+
+					foreach ($combined_holds as $hold){
+						if ($hold['cancelId'] == $holdKey) {
+							$title = $hold['title'];
+							break;
+						}
+					}
+					$titles[] = $title; // build array of all titles
+
 					//create the hold using the web service
 					$changePickupLocationUrl = $configArray['Catalog']['webServiceUrl'] . '/standard/changePickupLocation?clientID=' . $configArray['Catalog']['clientId'] . '&sessionToken=' . $sessionToken . '&holdKey=' . $holdKey . '&newLocation=' . $locationId;
 

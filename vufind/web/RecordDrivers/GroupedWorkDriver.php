@@ -104,7 +104,35 @@ class GroupedWorkDriver extends RecordInterface{
 	}
 
 	public function getContributors(){
-		return $this->fields['auth_author2'];
+		return $this->fields['author2-role']; //Include the role when displaying contributor
+	}
+
+	private $detailedContributors = null;
+	public function getDetailedContributors(){
+		if ($this->detailedContributors == null){
+			$this->detailedContributors = array();
+			if (isset($this->fields['author2-role'])){
+				$contributorsInIndex = $this->fields['author2-role'];
+				if (is_string($contributorsInIndex)){
+					$contributorsInIndex[] = $contributorsInIndex;
+				}
+				foreach($contributorsInIndex as $contributor){
+					if (strpos($contributor, '|')){
+						$contributorInfo = explode('|', $contributor);
+						$curContributor = array(
+								'name' => $contributorInfo[0],
+								'role' => $contributorInfo[1],
+						);
+					}else{
+						$curContributor = array(
+								'name' => $contributor,
+						);
+					}
+					$this->detailedContributors[] = $curContributor;
+				}
+			}
+		}
+		return $this->detailedContributors;
 	}
 
 	public function getPermanentId(){
@@ -266,7 +294,7 @@ class GroupedWorkDriver extends RecordInterface{
 		}
 
 		$interface->assign('summUrl', $linkUrl);
-		$interface->assign('summTitle', $this->getTitle());
+		$interface->assign('summTitle', $this->getTitleShort());
 		$interface->assign('summSubTitle', $this->getSubtitle());
 		$interface->assign('summAuthor', $this->getPrimaryAuthor());
 		$isbn = $this->getCleanISBN();
@@ -371,7 +399,7 @@ class GroupedWorkDriver extends RecordInterface{
 		}
 
 		$interface->assign('summUrl', $this->getLinkUrl());
-		$interface->assign('summTitle', $this->getTitle());
+		$interface->assign('summTitle', $this->getTitleShort());
 		$interface->assign('summSubTitle', $this->getSubtitle());
 		$interface->assign('summAuthor', $this->getPrimaryAuthor());
 		$isbn = $this->getCleanISBN();
@@ -513,7 +541,7 @@ class GroupedWorkDriver extends RecordInterface{
 		}
 
 		$interface->assign('summUrl', $linkUrl);
-		$interface->assign('summTitle', $this->getTitle(true));
+		$interface->assign('summTitle', $this->getTitleShort(true));
 		$interface->assign('summSubTitle', $this->getSubtitle(true));
 		$interface->assign('summAuthor', $this->getPrimaryAuthor(true));
 		$isbn = $this->getCleanISBN();
@@ -622,7 +650,7 @@ class GroupedWorkDriver extends RecordInterface{
 		}
 
 		$interface->assign('summUrl', $url);
-		$interface->assign('summTitle', $this->getTitle());
+		$interface->assign('summTitle', $this->getTitleShort());
 		$interface->assign('summSubTitle', $this->getSubtitle());
 		$interface->assign('summAuthor', $this->getPrimaryAuthor());
 
@@ -841,13 +869,42 @@ class GroupedWorkDriver extends RecordInterface{
 		}
 	}
 
+	public function getTitleShort($useHighlighting = false) {
+		// Don't check for highlighted values if highlighting is disabled:
+		if ($this->highlight && $useHighlighting) {
+			if (isset($this->fields['_highlighting']['title_short'][0])){
+				return $this->fields['_highlighting']['title_short'][0];
+			}else if (isset($this->fields['_highlighting']['title'][0])){
+				return $this->fields['_highlighting']['title'][0];
+			}
+		}
+
+		if (isset($this->fields['title_short'])){
+			if (is_array($this->fields['title_short'])){
+				return reset($this->fields['title_short']);
+			}else{
+				return $this->fields['title_short'];
+			}
+		}else{
+			if (isset($this->fields['title'])){
+				if (is_array($this->fields['title'])){
+					return reset($this->fields['title']);
+				}else{
+					return $this->fields['title'];
+				}
+			}else{
+				return '';
+			}
+		}
+	}
+
 	/**
 	 * Get the subtitle of the record.
 	 *
 	 * @access  protected
 	 * @return  string
 	 */
-	protected function getSubtitle($useHighlighting = false)
+	public function getSubtitle($useHighlighting = false)
 	{
 		// Don't check for highlighted values if highlighting is disabled:
 		if ($useHighlighting) {
@@ -881,17 +938,19 @@ class GroupedWorkDriver extends RecordInterface{
 	public function getPrimaryAuthor($useHighlighting = false)
 	{
 		// Don't check for highlighted values if highlighting is disabled:
+		// MDN: 1/26 - author actually contains more information than author display.
+		//  It also includes dates lived so we will use that instead if possible
 		if ($this->highlight && $useHighlighting) {
-			if (isset($this->fields['_highlighting']['author_display'][0])){
-				return $this->fields['_highlighting']['author_display'][0];
-			}else if (isset($this->fields['_highlighting']['author'][0])){
+			if (isset($this->fields['_highlighting']['author'][0])){
 				return $this->fields['_highlighting']['author'][0];
+			}else if (isset($this->fields['_highlighting']['author_display'][0])){
+				return $this->fields['_highlighting']['author_display'][0];
 			}
 		}
-		if (isset($this->fields['author_display'])){
-			return $this->fields['author_display'];
+		if (isset($this->fields['author'])){
+			return $this->fields['author'];
 		}else{
-			return isset($this->fields['author']) ? $this->fields['author'] : '';
+			return isset($this->fields['author_display']) ? $this->fields['author_display'] : '';
 		}
 	}
 
@@ -993,6 +1052,7 @@ class GroupedWorkDriver extends RecordInterface{
 
 	/**
 	 * Get an array of all ISBNs associated with the record (may be empty).
+	 * The primary ISBN is the first entry
 	 *
 	 * @access  protected
 	 * @return  array
@@ -1001,22 +1061,31 @@ class GroupedWorkDriver extends RecordInterface{
 	{
 		// If ISBN is in the index, it should automatically be an array... but if
 		// it's not set at all, we should normalize the value to an empty array.
+		$isbns = array();
+		$primaryIsbn = $this->getPrimaryIsbn();
+		if ($primaryIsbn != null){
+			$isbns[] = $primaryIsbn;
+		}
 		if (isset($this->fields['isbn'])){
 			if (is_array($this->fields['isbn'])){
-				return $this->fields['isbn'];
+				$additionalIsbns = $this->fields['isbn'];
 			}else{
-				return array($this->fields['isbn']);
+				$additionalIsbns =  array($this->fields['isbn']);
 			}
 		}else{
-			return array();
+			$additionalIsbns =  array();
 		}
+		$additionalIsbns = array_remove_by_value($additionalIsbns, $primaryIsbn);
+		$isbns = array_merge($isbns, $additionalIsbns);
+		return $isbns;
 	}
 
-	/** Get all ISBNs that are unique to this work */
-	public function getUniqueISBNs(){
-		require_once ROOT_DIR . '/sys/Grouping/GroupedWorkIdentifier.php';
-		require_once ROOT_DIR . '/sys/Grouping/GroupedWorkIdentifierRef.php';
-
+	public function getPrimaryIsbn(){
+		if (isset($this->fields['primary_isbn'])){
+			return $this->fields['primary_isbn'];
+		}else{
+			return null;
+		}
 	}
 
 	/**
@@ -1294,9 +1363,11 @@ class GroupedWorkDriver extends RecordInterface{
 				'currently unavailable' => 1,
 				'on order' => 2,
 				'coming soon' => 3,
+				'in processing' => 3.5,
 				'checked out' => 4,
 				'library use only' => 5,
 				'available online' => 6,
+				'in transit' => 6.5,
 				'on shelf' => 7
 			);
 			if (isset($curRecord['groupedStatus']) && $curRecord['groupedStatus'] != ''){
@@ -1320,6 +1391,7 @@ class GroupedWorkDriver extends RecordInterface{
 		$selectedFormat = null;
 		$selectedFormatCategory = null;
 		$selectedAvailability = null;
+		$selectedDetailedAvailability = null;
 		if (isset($_REQUEST['filter'])){
 			foreach ($_REQUEST['filter'] as $filter){
 				if (preg_match('/^format_category(?:\w*):"?(.+?)"?$/', $filter, $matches)){
@@ -1330,6 +1402,8 @@ class GroupedWorkDriver extends RecordInterface{
 					$selectedAvailability = urldecode($matches[1]);
 				}elseif (preg_match('/^availability_by_format(?:[\w_]*):"?(.+?)"?$/', $filter, $matches)){
 					$selectedAvailability = urldecode($matches[1]);
+				}elseif (preg_match('/^available_at(?:[\w_]*):"?(.+?)"?$/', $filter, $matches)) {
+					$selectedDetailedAvailability = urldecode($matches[1]);
 				}
 			}
 		}
@@ -1356,12 +1430,34 @@ class GroupedWorkDriver extends RecordInterface{
 				}
 			}
 			if ($selectedFormatCategory && $selectedFormatCategory != $manifestation['formatCategory']){
-				$manifestation['hideByDefault'] = true;
+				if (($manifestation['format'] == 'eAudiobook') && $selectedFormatCategory == 'eBook'){
+					//This is a special case where the format is in 2 categories
+				}else{
+					$manifestation['hideByDefault'] = true;
+				}
 			}
 			if ($selectedAvailability == 'Available Now' && !($manifestation['availableLocally'] || $manifestation['availableOnline'])){
 				$manifestation['hideByDefault'] = true;
 			}elseif($selectedAvailability == 'Entire Collection' && (!($manifestation['hasLocalItem']) && !$manifestation['isEContent'])){
 				$manifestation['hideByDefault'] = true;
+			}
+			if ($selectedDetailedAvailability){
+				$manifestationIsAvailable = false;
+				if ($manifestation['availableOnline']){
+					$manifestationIsAvailable = true;
+				}else if ($manifestation['available']){
+					foreach ($manifestation['itemSummary'] as $itemSummary) {
+						if (strlen($itemSummary['shelfLocation']) && substr_compare($itemSummary['shelfLocation'], $selectedDetailedAvailability, 0)) {
+							if ($itemSummary['available']) {
+								$manifestationIsAvailable = true;
+								break;
+							}
+						}
+					}
+				}
+				if (!$manifestationIsAvailable){
+					$manifestation['hideByDefault'] = true;
+				}
 			}
 			global $searchSource;
 			if ($searchSource == 'econtent'){
@@ -1566,7 +1662,27 @@ class GroupedWorkDriver extends RecordInterface{
 	}
 
 	public function getIndexedSeries(){
-		return $this->fields['series'];
+		$seriesWithVolume = null;
+		if (isset($this->fields['series_with_volume'])){
+			$rawSeries = $this->fields['series_with_volume'];
+			if (is_string($rawSeries)){
+				$rawSeries[] = $rawSeries;
+			}
+			foreach ($rawSeries as $seriesInfo){
+				if (strpos($seriesInfo, '|') > 0){
+					$seriesInfoSplit = explode('|',$seriesInfo);
+					$seriesWithVolume[] = array(
+						'seriesTitle' => $seriesInfoSplit[0],
+						'volume' => $seriesInfoSplit[1]
+					);
+				}else{
+					$seriesWithVolume[] = array(
+						'seriesTitle' => $seriesInfo
+					);
+				}
+			}
+		}
+		return $seriesWithVolume;
 	}
 
 	public function hasCachedSeries(){
@@ -1696,8 +1812,8 @@ class GroupedWorkDriver extends RecordInterface{
 
 		//Load more details options
 		$moreDetailsOptions = $this->getBaseMoreDetailsOptions($isbn);
-		$moreDetailsOptions['details'] = array(
-			'label' => 'Details',
+		$moreDetailsOptions['moreDetails'] = array(
+			'label' => 'More Details',
 			'body' => $interface->fetch('GroupedWork/view-title-details.tpl'),
 		);
 		$moreDetailsOptions['subjects'] = array(
@@ -1774,8 +1890,12 @@ class GroupedWorkDriver extends RecordInterface{
 		return null;
 	}
 	public function getSubjects(){
-		if (isset($this->fields['topic_facet'])){
+		if (isset($this->fields['topic_facet'])) {
 			$subjects = $this->fields['topic_facet'];
+			asort($subjects);
+			return $subjects;
+		}elseif (isset($this->fields['subject_facet'])){
+			$subjects = $this->fields['subject_facet'];
 			asort($subjects);
 			return $subjects;
 		}else{
@@ -1961,19 +2081,23 @@ class GroupedWorkDriver extends RecordInterface{
 		'Currently Unavailable' => 1,
 		'On Order' => 2,
 		'Coming Soon' => 3,
+		'In Processing' => 3.5,
 		'Checked Out' => 4,
 		'Library Use Only' => 5,
 		'Available Online' => 6,
+		'In Transit' => 6.5,
 		'On Shelf' => 7
 	);
 	public static function keepBestGroupedStatus($groupedStatus, $groupedStatus1) {
-		$ranking1 = 1;
 		if (isset(GroupedWorkDriver::$statusRankings[$groupedStatus])){
 			$ranking1 = GroupedWorkDriver::$statusRankings[$groupedStatus];
+		}else{
+			$ranking1 = 1.5;
 		}
-		$ranking2 = 1;
 		if (isset(GroupedWorkDriver::$statusRankings[$groupedStatus1])){
 			$ranking2 = GroupedWorkDriver::$statusRankings[$groupedStatus1];
+		}else{
+			$ranking2 = 1.5;
 		}
 		if ($ranking1 > $ranking2){
 			return $groupedStatus;
@@ -2208,6 +2332,7 @@ class GroupedWorkDriver extends RecordInterface{
 				'localAvailableCopies' => 0,
 				'localCopies' => 0,
 				'numHolds' => $recordDriver->getNumHolds(),
+				'volumeHolds' => $recordDriver->getVolumeHolds($volumeData),
 				'hasLocalItem' => false,
 				'holdRatio' => 0,
 				'locationLabel' => '',

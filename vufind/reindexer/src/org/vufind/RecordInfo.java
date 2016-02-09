@@ -1,5 +1,7 @@
 package org.vufind;
 
+import org.apache.solr.common.util.Hash;
+
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.TreeMap;
@@ -244,6 +246,14 @@ public class RecordInfo {
 		HashSet<String> values = new HashSet<>();
 		for (ItemInfo curItem : relatedItems){
 			values.add(curItem.geteContentSource());
+		}
+		return values;
+	}
+
+	public HashSet<String> getAllCallNumbers(){
+		HashSet<String> values = new HashSet<>();
+		for (ItemInfo curItem : relatedItems){
+			values.add(curItem.getCallNumber());
 		}
 		return values;
 	}

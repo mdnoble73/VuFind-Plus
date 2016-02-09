@@ -12,14 +12,11 @@
 
 .header-login-button-mixin(rgba(255,255,255,0.75));
 
-.header-button > a{
+.header-button {
   color: black !important;
   font-weight: bolder;
   font-size: 15px;
-}
-.header-button > a:visited{
-  color: black !important;
-}
-.header-button:hover{
-  box-shadow: 2px 2px 5px darkgrey;
+  &:hover {
+    box-shadow: 2px 2px 5px darkgrey;
+  }
 }

@@ -167,7 +167,7 @@ class FavoriteHandler
 					$endRecord             = $pageInfo['resultTotal'];
 					$pageInfo['endRecord'] = $endRecord;
 				}
-			$resourceList = $searchObject->getResultListHTML($this->user, $this->listId, $this->allowEdit);
+				$resourceList = $searchObject->getResultListHTML($this->user, $this->listId, $this->allowEdit);
 			} else {
 				$searchObject->setPage($page); // restore the actual sort page
 				$resourceList = $searchObject->getResultListHTML($this->user, $this->listId, $this->allowEdit, $this->favorites);

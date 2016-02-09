@@ -63,10 +63,7 @@ class SuggestedTitles extends MyAccount
 		//Check to see if the user has rated any titles
 		$interface->assign('hasRatings', $user->hasRatings());
 
-		$interface->setPageTitle('Recommended for you');
-		$interface->assign('sidebar', 'MyAccount/account-sidebar.tpl');
-		$interface->setTemplate('suggestedTitles.tpl');
-		$interface->display('layout.tpl');
+		$this->display('suggestedTitles.tpl', 'Recommended for You');
 	}
 
 }

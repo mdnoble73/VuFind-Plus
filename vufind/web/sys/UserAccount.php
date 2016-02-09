@@ -72,6 +72,14 @@ class UserAccount {
 		}else{
 			$_SESSION['rememberMe'] = false;
 		}
+
+		// If the user browser has the showCovers settings stored, set the Session variable
+		// Used for showing or hiding covers on MyAccount Pages
+		if (isset($_REQUEST['showCovers'])) {
+			$showCovers = ($_REQUEST['showCovers'] == 'on' || $_REQUEST['showCovers'] == 'true');
+			$_SESSION['showCovers'] = $showCovers;
+		}
+
 		session_commit();
 	}
 

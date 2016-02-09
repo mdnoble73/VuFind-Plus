@@ -47,6 +47,16 @@ VuFind.GroupedWork = (function(){
 			return false;
 		},
 
+		forceRegrouping: function (id){
+			var url = Globals.path + '/GroupedWork/' + id + '/AJAX?method=forceRegrouping';
+			$.getJSON(url, function (data){
+						VuFind.showMessage("Success", data.message, true, true);
+						setTimeout("VuFind.closeLightbox();", 3000);
+					}
+			);
+			return false;
+		},
+
 		forceReindex: function (id){
 			var url = Globals.path + '/GroupedWork/' + id + '/AJAX?method=forceReindex';
 			$.getJSON(url, function (data){

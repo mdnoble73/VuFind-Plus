@@ -127,6 +127,7 @@ class Library extends DB_DataObject
 
 	public $allowPinReset;
 	public $showLibraryHoursAndLocationsLink;
+	public $showLibraryHoursNoticeOnAccountPages;
 	public $showSearchTools;
 	public $showShareOnExternalSites;
 	public $showQRCode;
@@ -157,6 +158,10 @@ class Library extends DB_DataObject
 	public $horizontalSearchBar;
 	public $sideBarOnRight;
 	public $enableArchive;
+	public $showBisacSubjects;
+	public $showStandardSubjects;
+	public $showFastAddSubjects;
+	public $maxFinesToAllowAccountUpdates;
 
 	// Use this to set which details will be shown in the the Main Details section of the record view.
 	// You should be able to add options here without needing to change the database.
@@ -282,6 +287,7 @@ class Library extends DB_DataObject
 				'showExpirationWarnings' => array('property'=>'showExpirationWarnings', 'type'=>'checkbox', 'label'=>'Show Expiration Warnings', 'description'=>'Whether or not the user should be shown expiration warnings if their card is nearly expired.', 'hideInLists' => true, 'default' => 1),
 				'enableMaterialsBooking' => array('property'=>'enableMaterialsBooking', 'type'=>'checkbox', 'label'=>'Enable Materials Booking', 'description'=>'Check to enable integration of Sierra\'s Materials Booking module.', 'hideInLists' => true, 'default' => 0),
 				'allowLinkedAccounts' => array('property'=>'allowLinkedAccounts', 'type'=>'checkbox', 'label'=>'Allow Linked Accounts', 'description' => 'Whether or not users can link multiple library cards under a single Pika account.', 'hideInLists' => true, 'default' => 1),
+				'showLibraryHoursNoticeOnAccountPages' => array('property'=>'showLibraryHoursNoticeOnAccountPages', 'type'=>'checkbox', 'label'=>'Show Library Hours Notice on Account Pages', 'description'=>'Whether or not the Library Hours notice should be shown at the top of My Account\'s Checked Out, Holds and Bookings pages.', 'hideInLists' => true, 'default'=>true),
 				'pTypesSection' => array('property' => 'pTypesSectionSection', 'type' => 'section', 'label' => 'P-Types', 'hideInLists' => true,
 						'helpLink'=>'https://docs.google.com/document/d/1SmCcWYIV8bnUEaGu4HYvyiF8iqOKt06ooBbJukkJdO8','properties' => array(
 					'pTypes'  => array('property'=>'pTypes', 'type'=>'text', 'label'=>'P-Types', 'description'=>'A list of pTypes that are valid for the library.  Separate multiple pTypes with commas.'),
@@ -302,10 +308,11 @@ class Library extends DB_DataObject
 					'treatPrintNoticesAsPhoneNotices' => array('property' => 'treatPrintNoticesAsPhoneNotices', 'type' => 'checkbox', 'label' => 'Treat Print Notices As Phone Notices', 'description' => 'When showing detailed information about hold notices, treat print notices as if they are phone calls', 'hideInLists' => true, 'default' => 0),
 					'showNoticeTypeInProfile' => array('property' => 'showNoticeTypeInProfile', 'type'=>'checkbox', 'label'=>'Show Notice Type in Profile', 'description'=>'Whether or not patrons should be able to change how they receive notices in their profile.', 'hideInLists' => true, 'default' => 0),
 					'showPickupLocationInProfile' => array('property' => 'showPickupLocationInProfile', 'type'=>'checkbox', 'label'=>'Allow Patrons to Update Their Pickup Location', 'description'=>'Whether or not patrons should be able to update their preferred pickup location in their profile.', 'hideInLists' => true, 'default' => 0),
-					'addSMSIndicatorToPhone' => array('property' => 'addSMSIndicatorToPhone', 'type'=>'checkbox', 'label'=>'Add SMS Indicator to Primary Phone', 'description'=>'Whether or not add TEXT ONLY to the user\'s primary phone number when they opt in to SMS notices.', 'hideInLists' => true, 'default' => 0)
+					'addSMSIndicatorToPhone' => array('property' => 'addSMSIndicatorToPhone', 'type'=>'checkbox', 'label'=>'Add SMS Indicator to Primary Phone', 'description'=>'Whether or not add TEXT ONLY to the user\'s primary phone number when they opt in to SMS notices.', 'hideInLists' => true, 'default' => 0),
+					'maxFinesToAllowAccountUpdates' => array('property' => 'maxFinesToAllowAccountUpdates', 'type'=>'currency', 'displayFormat'=>'%0.2f', 'label'=>'Maximum Fine Amount to Allow Account Updates', 'description'=>'The maximum amount that a patron can owe and still update their account.', 'hideInLists' => true, 'default' => 10)
 				)),
 				'holdsSection' => array('property' => 'holdsSection', 'type' => 'section', 'label' => 'Holds', 'hideInLists' => true,
-						'helpLink'=>'https://docs.google.com/document/d/1tFkmGhqBrTdluS2tOzQ_xtzl3HxfjGhmFgk4r3BTVY8', 'properties' => array(
+					'helpLink'=>'https://docs.google.com/document/d/1tFkmGhqBrTdluS2tOzQ_xtzl3HxfjGhmFgk4r3BTVY8', 'properties' => array(
 					'showHoldButton'  => array('property'=>'showHoldButton', 'type'=>'checkbox', 'label'=>'Show Hold Button', 'description'=>'Whether or not the hold button is displayed so patrons can place holds on items', 'hideInLists' => true, 'default' => 1),
 					'showHoldButtonInSearchResults'  => array('property'=>'showHoldButtonInSearchResults', 'type'=>'checkbox', 'label'=>'Show Hold Button within the search results', 'description'=>'Whether or not the hold button is displayed within the search results so patrons can place holds on items', 'hideInLists' => true, 'default' => 1),
 					'showHoldButtonForUnavailableOnly'  => array('property'=>'showHoldButtonForUnavailableOnly', 'type'=>'checkbox', 'label'=>'Show Hold Button for items that are checked out only', 'description'=>'Whether or not the hold button is displayed within the search results so patrons can place holds on items', 'hideInLists' => true, 'default' => 1),
@@ -350,7 +357,7 @@ class Library extends DB_DataObject
 				'restrictSearchByLibrary' => array('property'=>'restrictSearchByLibrary', 'type'=>'checkbox', 'label'=>'Restrict Search By Library', 'description'=>'Whether or not search results should only include titles from this library', 'hideInLists' => true),
 				'econtentLocationsToInclude' => array('property'=>'econtentLocationsToInclude', 'type'=>'text', 'label'=>'eContent Locations To Include', 'description'=>'A list of eContent Locations to include within the scope.', 'size'=>'40', 'hideInLists' => true,),
 				'includeOutOfSystemExternalLinks' => array('property' => 'includeOutOfSystemExternalLinks', 'type'=>'checkbox', 'label'=>'Include Out Of System External Links', 'description'=>'Whether or not to include external links from other library systems.  Should only be enabled for global scope.', 'hideInLists' => true, 'default'=>0),
-				'publicListsToInclude' => array('property' => 'publicListsToInclude', 'type'=>'enum', 'values' => array(0 => 'No Lists', '1' => 'Lists from this library', '2' => 'All Lists'), 'label'=>'Public Lists To Include', 'description'=>'Which lists should be included in this scope'),
+				'publicListsToInclude' => array('property' => 'publicListsToInclude', 'type'=>'enum', 'values' => array(0 => 'No Lists', '1' => 'Lists from this library', '3'=>'Lists from library list publishers Only', '4'=>'Lists from all list publishers', '2' => 'All Lists'), 'label'=>'Public Lists To Include', 'description'=>'Which lists should be included in this scope'),
 				'boostByLibrary' => array('property'=>'boostByLibrary', 'type'=>'checkbox', 'label'=>'Boost By Library', 'description'=>'Whether or not boosting of titles owned by this library should be applied', 'hideInLists' => true),
 				'additionalLocalBoostFactor' => array('property'=>'additionalLocalBoostFactor', 'type'=>'integer', 'label'=>'Additional Local Boost Factor', 'description'=>'An additional numeric boost to apply to any locally owned and locally available titles', 'hideInLists' => true),
 				'restrictOwningBranchesAndSystems' => array('property'=>'restrictOwningBranchesAndSystems', 'type'=>'checkbox', 'label'=>'Restrict Owning Branch and System Facets to this library', 'description'=>'Whether or not the Owning Branch and Owning System Facets will only display values relevant to this library.', 'hideInLists' => true),
@@ -399,6 +406,10 @@ class Library extends DB_DataObject
 				'show856LinksAsTab'  => array('property'=>'show856LinksAsTab', 'type'=>'checkbox', 'label'=>'Show 856 Links as Tab', 'description'=>'Whether or not 856 links will be shown in their own tab or on the same tab as holdings.', 'hideInLists' => true, 'default' => 1),
 				'showCheckInGrid' => array('property'=>'showCheckInGrid', 'type'=>'checkbox', 'label'=>'Show Check-in Grid', 'description'=>'Whether or not the check-in grid is shown for periodicals.', 'default' => 1, 'hideInLists' => true,),
 				'showStaffView' => array('property'=>'showStaffView', 'type'=>'checkbox', 'label'=>'Show Staff View', 'description'=>'Whether or not the staff view is displayed in full record view.', 'hideInLists' => true, 'default'=>true),
+				'showStandardSubjects' => array('property'=>'showStandardSubjects', 'type'=>'checkbox', 'label'=>'Show Standard Subjects', 'description'=>'Whether or not standard (LC) subjects are displayed in full record view.', 'hideInLists' => true, 'default'=>true),
+				'showBisacSubjects' => array('property'=>'showBisacSubjects', 'type'=>'checkbox', 'label'=>'Show Bisac Subjects', 'description'=>'Whether or not Bisac subjects are displayed in full record view.', 'hideInLists' => true, 'default'=>true),
+				'showFastAddSubjects' => array('property'=>'showFastAddSubjects', 'type'=>'checkbox', 'label'=>'Show OCLC Fast Subjects', 'description'=>'Whether or not OCLC Fast Add subjects are displayed in full record view.', 'hideInLists' => true, 'default'=>true),
+
 				'showInMainDetails' => array('property' => 'showInMainDetails', 'type' => 'multiSelect', 'label'=>'Which details to show in the main/top details section : ', 'description'=> 'Selected details will be shown in the top/main section of the full record view. Details not selected are moved to the More Details accordion.',
 					'listStyle'=> 'checkboxSimple',
 				  'values' => self::$showInMainDetailsOptions,

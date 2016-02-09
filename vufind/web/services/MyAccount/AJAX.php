@@ -177,6 +177,7 @@ class MyAccount_AJAX
 		return $formDefinition;
 	}
 
+	// TODO: Clean-up: No Calls to this method were found. plb 2-1-2016
 	function getPinResetForm(){
 		global $interface;
 		$interface->assign('popupTitle', 'Reset PIN Request');
@@ -402,7 +403,7 @@ class MyAccount_AJAX
 				$cancelId = $_REQUEST['holdselected'];
 			}
 //			$locationId = isset($_REQUEST['location']) ? $_REQUEST['location'] : null; //not passed via ajax. don't think it's needed
-			$result = $catalog->driver->updateHoldDetailed($user->password, 'cancel', '', null, $cancelId, null/*, ''//shouldn't be needed*/);
+			$result = $catalog->driver->updateHoldDetailed($user->password, 'cancel', $cancelId, null);
 
 		} catch (PDOException $e) {
 			// What should we do with this error?
@@ -544,7 +545,7 @@ class MyAccount_AJAX
 					$existingList = true;
 				}
 				$list->description = urldecode($_REQUEST['desc']);
-				$list->public = $_REQUEST['public'];
+				$list->public = isset($_REQUEST['public']) && $_REQUEST['public'] == 'true';
 				if ($existingList) {
 					$list->update();
 				} else {
@@ -821,7 +822,7 @@ class MyAccount_AJAX
 		if (isset($_REQUEST['multistep'])) {
 			$interface->assign('multistep', true);
 		}
-		return $interface->fetch('MyResearch/ajax-login.tpl');
+		return $interface->fetch('MyAccount/ajax-login.tpl');
 	}
 
 	function getPinUpdateForm()
@@ -835,7 +836,6 @@ class MyAccount_AJAX
 
 	function getChangeHoldLocationForm()
 	{
-		// TODO must handle linked accounts
 		global $interface;
 		/** @var $interface UInterface
 		 * @var $user User */
@@ -858,7 +858,7 @@ class MyAccount_AJAX
 		$results = array(
 			'title' => 'Change Hold Location',
 			'modalBody' => $interface->fetch("MyAccount/changeHoldLocation.tpl"),
-			'modalButtons' => "<span class='tool btn btn-primary' onclick='VuFind.Account.doChangeHoldLocation(); return false;'>Change Location</span>"
+			'modalButtons' => '<span class="tool btn btn-primary" onclick="VuFind.Account.doChangeHoldLocation(); return false;">Change Location</span>'
 		);
 		return $results;
 	}
@@ -887,7 +887,6 @@ class MyAccount_AJAX
 		global $configArray;
 
 		try {
-			$catalog = CatalogFactory::getCatalogConnectionInstance();;
 			$holdId = $_REQUEST['holdId'];
 			$newPickupLocation = $_REQUEST['newLocation'];
 			global $user;
@@ -895,8 +894,7 @@ class MyAccount_AJAX
 			$patronId = $_REQUEST['patronId'];
 			$patronOwningHold = $user->getUserReferredTo($patronId);
 
-
-			$result = $catalog->driver->updateHoldDetailed($patronOwningHold, 'update', '', null, $holdId, $newPickupLocation, null);
+			$result = $patronOwningHold->changeHoldPickUpLocation($holdId, $newPickupLocation);
 			return $result;
 		} catch (PDOException $e) {
 			// What should we do with this error?
@@ -997,7 +995,6 @@ class MyAccount_AJAX
 							$result = array(
 								'result' => false,
 								'message' => "Your e-mail message could not be sent: {$emailResult->message}."
-								//QUESTION should error messages be passed back to user? plb 10-15-2014  DEBUG_REMOVE
 							);
 						} else {
 							$result = array(

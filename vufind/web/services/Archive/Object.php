@@ -8,15 +8,7 @@
  * Time: 4:13 PM
  */
 
-//Include code we need to use Tuque without Drupal
-require_once(ROOT_DIR . '/sys/tuque/Cache.php');
-require_once(ROOT_DIR . '/sys/tuque/FedoraApi.php');
-require_once(ROOT_DIR . '/sys/tuque/FedoraApiSerializer.php');
-require_once(ROOT_DIR . '/sys/tuque/Object.php');
-require_once(ROOT_DIR . '/sys/tuque/HttpConnection.php');
-require_once(ROOT_DIR . '/sys/tuque/Repository.php');
-require_once(ROOT_DIR . '/sys/tuque/RepositoryConnection.php');
-
+require_once ROOT_DIR . '/sys/Utils/FedoraUtils.php';
 abstract class Archive_Object extends Action{
 	protected $pid;
 	/** @var  FedoraObject $archiveObject */
@@ -25,109 +17,71 @@ abstract class Archive_Object extends Action{
 	protected $modsData;
 	protected $relsExtData;
 
-	function loadArchiveObjectData(){
-		global $configArray;
+	/**
+	 * @param string $mainContentTemplate  Name of the SMARTY template file for the main content of the Full Record View Pages
+	 * @param string $pageTitle            What to display is the html title tag
+	 * @param bool|string $sidebarTemplate      Sets the sidebar template, set to false or empty string for no sidebar
+	 */
+	function display($mainContentTemplate, $pageTitle=null, $sidebarTemplate='Search/home-sidebar.tpl') {
 		global $interface;
+		if (!empty($sidebarTemplate)) $interface->assign('sidebar', $sidebarTemplate);
+		$interface->setTemplate($mainContentTemplate);
+		$interface->setPageTitle($pageTitle == null ? $this->archiveObject->label : $pageTitle);
+		$interface->assign('moreDetailsTemplate', 'GroupedWork/moredetails-accordion.tpl');
+		$interface->display('layout.tpl');
+	}
 
-		//Connect to Fedora via TUQUE
-		// These components need to be instantiated to load the object.
-		try{
-			$serializer = new FedoraApiSerializer();
-			$cache = new SimpleCache();
-			$fedoraUrl = $configArray['Islandora']['fedoraUrl'];
-			$fedoraPassword = $configArray['Islandora']['fedoraPassword'];
-			$fedoraUser = $configArray['Islandora']['fedoraUsername'];
-			$connection = new RepositoryConnection($fedoraUrl, $fedoraUser, $fedoraPassword);
-			$connection->verifyPeer = false;
-			$api = new FedoraApi($connection, $serializer);
-			$repository = new FedoraRepository($api, $cache);
+	//TODO: This should eventually move onto a Record Driver
+	function loadArchiveObjectData(){
 
-			// Replace 'object:pid' with the PID of the object to be loaded.
-			$this->pid = urldecode($_REQUEST['id']);
-			$interface->assign('pid', $this->pid);
-			$this->archiveObject = $repository->getObject($this->pid);
+		global $interface;
+		$fedoraUtils = FedoraUtils::getInstance();
 
-			//Load the dublin core data stream
-			$dublinCoreStream = $this->archiveObject->getDatastream('DC');
-			$temp = tempnam('/tmp', 'dc');
-			$result = $dublinCoreStream->getContent($temp);
-			$this->dcData = trim(file_get_contents($temp));
-			/* $dublinCoreXML = simplexml_load_string('<?xml version="1.0"?>' . $dublinCoreContent); */
-			unlink($temp);
+		// Replace 'object:pid' with the PID of the object to be loaded.
+		$this->pid = urldecode($_REQUEST['id']);
+		$interface->assign('pid', $this->pid);
+		$this->archiveObject = $fedoraUtils->getObject($this->pid);
 
-			//Load the MODS data stream
-			$modsStream = $this->archiveObject->getDatastream('MODS');
-			$temp = tempnam('/tmp', 'mods');
-			$result = $modsStream->getContent($temp);
-			$modsStreamContent = trim(file_get_contents($temp));
-			if (strlen($modsStreamContent) > 0){
-				$this->modsData = simplexml_load_string($modsStreamContent);
-			}
-			unlink($temp);
+		//Load the dublin core data stream
+		$dublinCoreStream = $this->archiveObject->getDatastream('DC');
+		$temp = tempnam('/tmp', 'dc');
+		$result = $dublinCoreStream->getContent($temp);
+		$this->dcData = trim(file_get_contents($temp));
+		/* $dublinCoreXML = simplexml_load_string('<?xml version="1.0"?>' . $dublinCoreContent); */
+		unlink($temp);
 
-			//Load the RELS-EXT data stream
-			$relsExtStream = $this->archiveObject->getDatastream('RELS-EXT');
-			$temp = tempnam('/tmp', 'relext');
-			$result = $relsExtStream->getContent($temp);
-			$this->relsExtData = trim(file_get_contents($temp));
-			/*if (strlen($relsExtContent) > 0){
-				$relsExtXML = simplexml_load_string('<?xml version="1.0"?>' . $relsExtContent);
-			}*/
-			unlink($temp);
-
-			//TODO: load content from someplace that isn't hardcoded!
-			//$title = $object['objectProfile']['objectLabel'];
-			$title = (string)$this->modsData->titleInfo->title;
-			$interface->assign('title', $title);
-			$interface->setPageTitle($title);
-			$description = (string)$this->modsData->abstract;
-			$interface->assign('description', $description);
-
-
-			if ($this->pid == 'mandala:2015'){
-				//TODO: This will really be read from Islandora & should be sized appropriately
-				$interface->assign('main_image', 'http://islandora.marmot.org/islandora/object/ssb:57/datastream/OBJ/view');
-			}else{
-				$interface->assign('main_image', "http://islandora.marmot.org/islandora/object/{$this->pid}/datastream/OBJ/view");
-			}
-
-
-			//print_r($object);
-		}catch (Exception $e){
-			global $logger;
-			$logger->log("Error connecting to repository $e", PEAR_LOG_ERR);
+		//Load the MODS data stream
+		$modsStream = $this->archiveObject->getDatastream('MODS');
+		$temp = tempnam('/tmp', 'mods');
+		$result = $modsStream->getContent($temp);
+		$modsStreamContent = trim(file_get_contents($temp));
+		if (strlen($modsStreamContent) > 0){
+			$this->modsData = simplexml_load_string($modsStreamContent);
 		}
+		unlink($temp);
+
+		//Load the RELS-EXT data stream
+		$relsExtStream = $this->archiveObject->getDatastream('RELS-EXT');
+		$temp = tempnam('/tmp', 'relext');
+		$result = $relsExtStream->getContent($temp);
+		$this->relsExtData = trim(file_get_contents($temp));
+		/*if (strlen($relsExtContent) > 0){
+			$relsExtXML = simplexml_load_string('<?xml version="1.0"?>' . $relsExtContent);
+		}*/
+		unlink($temp);
+
+		$title = $this->archiveObject->label;
+		$interface->assign('title', $title);
+		$interface->setPageTitle($title);
+		$description = (string)$this->modsData->abstract;
+		$interface->assign('description', $description);
+
+		$interface->assign('medium_image', $fedoraUtils->getObjectImageUrl($this->archiveObject, 'medium'));
 	}
 
 	function loadExploreMoreContent(){
 		global $interface;
 		global $configArray;
-		$relatedImages = array();
-		$relatedImages[] = array(
-			'thumbnail' => 'mandalaoc2_thumb.JPG',
-			'image' => 'mandalaoc2.JPG',
-			'title' => '',
-			'shortTitle' => '',
-		);
-		$relatedImages[] = array(
-			'thumbnail' => 'mandalaoc3_thumb.JPG',
-			'image' => 'mandalaoc3.JPG',
-			'title' => '',
-			'shortTitle' => '',
-		);
-		$relatedImages[] = array(
-			'thumbnail' => 'mandalaoc4_thumb.JPG',
-			'image' => 'mandalaoc4.JPG',
-			'title' => '',
-			'shortTitle' => '',
-		);
-		$relatedImages[] = array(
-			'thumbnail' => 'mandalaoc5_thumb.JPG',
-			'image' => 'mandalaoc5.JPG',
-			'title' => '',
-			'shortTitle' => '',
-		);
-		$interface->assign('relatedImages', $relatedImages);
 
 		// Additional Demo Variables
 		$videoImage = ''; //TODO set

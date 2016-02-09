@@ -2,10 +2,9 @@
 	{if $showComments || $showFavorites || $showTextThis || $showEmailThis || $showShareOnExternalSites}
 		<div class="result-tools-horizontal btn-toolbar" role="toolbar">
 			{* More Info Link, only if we are showing other data *}
+			{if $showMoreInfo || $showComments || $showFavorites}
 			{if $showMoreInfo !== false}
 				<div class="btn-group btn-group-sm">
-					{*<a href="{$recordUrl}" class="btn btn-sm ">More Info</a>*}
-					{* TODO: below should always work. Replacing the link above *}
 					<a href="{$recordDriver->getLinkUrl()}" class="btn btn-sm ">More Info</a>
 				</div>
 			{/if}
@@ -13,7 +12,8 @@
 			<div class="resultAction"><a href="#" class="cart" onclick="return addToBag('{$summId|escape}', '{$summTitle|replace:'"':''|escape:'javascript'}', '{$summShortId}');"><span class="silk cart">&nbsp;</span>{translate text="Add to cart"}</a></div>
 			*}
 			{if $showComments == 1}
-				<div class="btn-group btn-group-sm">
+				<div class="btn-group btn-group-sm{if $module == 'Search' || ($action == 'MyList' && $module == 'MyAccount')} hidden-xs{/if}">
+					{* Hide Review Button for xs views in Search Results & User Lists *}
 					<button id="userreviewlink{$summShortId}" class="resultAction btn btn-sm" title="Add a Review" onclick="return VuFind.GroupedWork.showReviewForm(this, '{$summId}')">
 						Add a Review
 					</button>
@@ -23,6 +23,7 @@
 				<div class="btn-group btn-group-sm">
 					<button onclick="return VuFind.GroupedWork.showSaveToListForm(this, '{$summId|escape}');" class="btn btn-sm ">{translate text='Add to favorites'}</button>
 				</div>
+			{/if}
 			{/if}
 			{*  TODO: Restore export format functionality.  PK-395.  Looks like RefWorks may still work, but EndNote does not.
 					May need to do some work to have export work properly with Works. *}
