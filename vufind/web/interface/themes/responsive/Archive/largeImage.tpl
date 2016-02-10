@@ -18,7 +18,14 @@
 		{/if}
 
 
-		{$description}
+		<div class="row">
+			<div class="result-label col-sm-4">Description: </div>
+			<div class="col-sm-8 result-value">
+				{$description}
+			</div>
+		</div>
+
+		{include file="Archive/metadata.tpl"}
 	</div>
 	<script src="{$path}/js/openseadragon/openseadragon.js" ></script>
 	<script src="{$path}/js/openseadragon/djtilesource.js" ></script>

@@ -13,16 +13,16 @@ abstract class Archive_Object extends Action{
 	protected $pid;
 	/** @var  FedoraObject $archiveObject */
 	protected $archiveObject;
-	protected $dcData;
+	//protected $dcData;
 	protected $modsData;
-	protected $relsExtData;
+	//protected $relsExtData;
 
 	/**
 	 * @param string $mainContentTemplate  Name of the SMARTY template file for the main content of the Full Record View Pages
 	 * @param string $pageTitle            What to display is the html title tag
 	 * @param bool|string $sidebarTemplate      Sets the sidebar template, set to false or empty string for no sidebar
 	 */
-	function display($mainContentTemplate, $pageTitle=null, $sidebarTemplate='Search/home-sidebar.tpl') {
+	function display($mainContentTemplate, $pageTitle=null, $sidebarTemplate='explore-more-sidebar.tpl') {
 		global $interface;
 		if (!empty($sidebarTemplate)) $interface->assign('sidebar', $sidebarTemplate);
 		$interface->setTemplate($mainContentTemplate);
@@ -35,6 +35,7 @@ abstract class Archive_Object extends Action{
 	function loadArchiveObjectData(){
 
 		global $interface;
+		global $configArray;
 		$fedoraUtils = FedoraUtils::getInstance();
 
 		// Replace 'object:pid' with the PID of the object to be loaded.
@@ -43,32 +44,89 @@ abstract class Archive_Object extends Action{
 		$this->archiveObject = $fedoraUtils->getObject($this->pid);
 
 		//Load the dublin core data stream
-		$dublinCoreStream = $this->archiveObject->getDatastream('DC');
+		/*$dublinCoreStream = $this->archiveObject->getDatastream('DC');
 		$temp = tempnam('/tmp', 'dc');
 		$result = $dublinCoreStream->getContent($temp);
 		$this->dcData = trim(file_get_contents($temp));
-		/* $dublinCoreXML = simplexml_load_string('<?xml version="1.0"?>' . $dublinCoreContent); */
-		unlink($temp);
+		unlink($temp);*/
 
 		//Load the MODS data stream
 		$modsStream = $this->archiveObject->getDatastream('MODS');
 		$temp = tempnam('/tmp', 'mods');
-		$result = $modsStream->getContent($temp);
+		$modsStream->getContent($temp);
 		$modsStreamContent = trim(file_get_contents($temp));
 		if (strlen($modsStreamContent) > 0){
 			$this->modsData = simplexml_load_string($modsStreamContent);
 		}
 		unlink($temp);
+		$interface->assign('mods', $this->modsData);
+
+		//Extract Subjects
+		$formattedSubjects = array();
+		foreach ($this->modsData->subject as $subjects){
+			$subject = '';
+			$subjectLink = $configArray['Site']['path'] . '/Archive/Results?lookfor=';
+			foreach ($subjects->topic as $subjectPart){
+				if (strlen($subject) > 0){
+					$subject .= ' -- ';
+				}
+				$subject .= $subjectPart;
+				$subjectLink .= '&filter[]=mods_subject_topic_ms:"' . $subjectPart . '"';
+			}
+
+			$formattedSubjects[] = array(
+					'link' => $subjectLink,
+					'label' => $subject
+			);
+		}
+		$interface->assign('subjects', $formattedSubjects);
+
+		$rightsStatements = array();
+		foreach ($this->modsData->accessCondition as $condition){
+			$marmotData = $condition->children('http://marmot.org/local_mods_extension');
+			if (strlen($marmotData->rightsStatement)){
+				$rightsStatements[] = (string)$marmotData->rightsStatement;
+			}
+		}
+		$interface->assign('rightsStatements', $rightsStatements);
+
+		$marmotExtension = $this->modsData->extension->children('http://marmot.org/local_mods_extension');
+		$interface->assign('marmotExtension', $marmotExtension);
+
+		$relatedPeople = array();
+		$relatedPlaces = array();
+		$relatedEvents = array();
+		/** @var SimpleXMLElement $entity */
+		foreach ($marmotExtension->relatedEntity as $entity){
+			$entityType = '';
+			foreach ($entity->attributes() as $name => $value){
+				if ($name == 'type'){
+					$entityType = $value;
+					break;
+				}
+			}
+			$entityInfo = array(
+				'pid' => $entity->entityPid,
+				'label' => $entity->entityTitle
+			);
+			if ($entityType == 'person'){
+				$relatedPeople[] = $entityInfo;
+			}elseif ($entityType == 'place'){
+				$relatedPlaces[] = $entityInfo;
+			}elseif ($entityType == 'event'){
+				$relatedEvents[] = $entityInfo;
+			}
+		}
+		$interface->assign('relatedPeople', $relatedPeople);
+		$interface->assign('relatedPlaces', $relatedPlaces);
+		$interface->assign('relatedEvents', $relatedEvents);
 
 		//Load the RELS-EXT data stream
-		$relsExtStream = $this->archiveObject->getDatastream('RELS-EXT');
+		/*$relsExtStream = $this->archiveObject->getDatastream('RELS-EXT');
 		$temp = tempnam('/tmp', 'relext');
 		$result = $relsExtStream->getContent($temp);
 		$this->relsExtData = trim(file_get_contents($temp));
-		/*if (strlen($relsExtContent) > 0){
-			$relsExtXML = simplexml_load_string('<?xml version="1.0"?>' . $relsExtContent);
-		}*/
-		unlink($temp);
+		unlink($temp);*/
 
 		$title = $this->archiveObject->label;
 		$interface->assign('title', $title);
@@ -77,6 +135,9 @@ abstract class Archive_Object extends Action{
 		$interface->assign('description', $description);
 
 		$interface->assign('medium_image', $fedoraUtils->getObjectImageUrl($this->archiveObject, 'medium'));
+
+		$repositoryLink = $configArray['Islandora']['repositoryUrl'] . '/islandora/object/' . $this->pid;
+		$interface->assign('repositoryLink', $repositoryLink);
 	}
 
 	function loadExploreMoreContent(){
