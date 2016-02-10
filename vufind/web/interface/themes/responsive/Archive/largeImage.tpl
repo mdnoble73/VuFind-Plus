@@ -18,12 +18,14 @@
 		{/if}
 
 
-		<div class="row">
-			<div class="result-label col-sm-4">Description: </div>
-			<div class="col-sm-8 result-value">
-				{$description}
+		{if $description}
+			<div class="row">
+				<div class="result-label col-sm-4">Description: </div>
+				<div class="col-sm-8 result-value">
+					{$description}
+				</div>
 			</div>
-		</div>
+		{/if}
 
 		{include file="Archive/metadata.tpl"}
 	</div>

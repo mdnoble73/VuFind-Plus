@@ -21,6 +21,42 @@
 			</div>
 		</div>
 	{/if}
+	{if $relatedPeople}
+		<div class="row">
+			<div class="result-label col-sm-4">Related People: </div>
+			<div class="col-sm-8 result-value">
+				{foreach from=$relatedPeople item=entity}
+					<a href='{$entity.link}'>
+						{$entity.label}
+					</a><br/>
+				{/foreach}
+			</div>
+		</div>
+	{/if}
+	{if $relatedPlaces}
+		<div class="row">
+			<div class="result-label col-sm-4">Related Places: </div>
+			<div class="col-sm-8 result-value">
+				{foreach from=$relatedPlaces item=entity}
+					<a href='{$entity.link}'>
+						{$entity.label}
+					</a><br/>
+				{/foreach}
+			</div>
+		</div>
+	{/if}
+	{if $relatedEvents}
+		<div class="row">
+			<div class="result-label col-sm-4">Related Events: </div>
+			<div class="col-sm-8 result-value">
+				{foreach from=$relatedEvents item=entity}
+					<a href='{$entity.link}'>
+						{$entity.label}
+					</a><br/>
+				{/foreach}
+			</div>
+		</div>
+	{/if}
 	{if $mods->originInfo && strlen($mods->originInfo->dateCreated)}
 		<div class="row">
 			<div class="result-label col-sm-4">Created: </div>

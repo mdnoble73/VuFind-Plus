@@ -56,10 +56,14 @@ abstract class Archive_Object extends Action{
 		$modsStream->getContent($temp);
 		$modsStreamContent = trim(file_get_contents($temp));
 		if (strlen($modsStreamContent) > 0){
-			$this->modsData = simplexml_load_string($modsStreamContent);
+			$modsData = simplexml_load_string($modsStreamContent);
+			if (sizeof($modsData) == 0){
+				$modsData = $modsData->children('mods');
+			}
+			$this->modsData = $modsData;
 		}
-		unlink($temp);
 		$interface->assign('mods', $this->modsData);
+		unlink($temp);
 
 		//Extract Subjects
 		$formattedSubjects = array();
@@ -90,14 +94,17 @@ abstract class Archive_Object extends Action{
 		}
 		$interface->assign('rightsStatements', $rightsStatements);
 
+		/** @var SimpleXMLElement $marmotExtension */
 		$marmotExtension = $this->modsData->extension->children('http://marmot.org/local_mods_extension');
 		$interface->assign('marmotExtension', $marmotExtension);
 
 		$relatedPeople = array();
 		$relatedPlaces = array();
 		$relatedEvents = array();
+
+		$entities = $marmotExtension->xpath('/marmotLocal/relatedEntity');
 		/** @var SimpleXMLElement $entity */
-		foreach ($marmotExtension->relatedEntity as $entity){
+		foreach ($marmotExtension->marmotLocal->relatedEntity as $entity){
 			$entityType = '';
 			foreach ($entity->attributes() as $name => $value){
 				if ($name == 'type'){
@@ -106,14 +113,17 @@ abstract class Archive_Object extends Action{
 				}
 			}
 			$entityInfo = array(
-				'pid' => $entity->entityPid,
-				'label' => $entity->entityTitle
+					'pid' => $entity->entityPid,
+					'label' => $entity->entityTitle
 			);
 			if ($entityType == 'person'){
+				$entityInfo['link']= '/Archive/' . $entity->entityPid . '/Person';
 				$relatedPeople[] = $entityInfo;
 			}elseif ($entityType == 'place'){
+				$entityInfo['link']= '/Archive/' . $entity->entityPid . '/Place';
 				$relatedPlaces[] = $entityInfo;
 			}elseif ($entityType == 'event'){
+				$entityInfo['link']= '/Archive/' . $entity->entityPid . '/Event';
 				$relatedEvents[] = $entityInfo;
 			}
 		}
