@@ -15,7 +15,7 @@ abstract class Archive_Object extends Action{
 	protected $archiveObject;
 	//protected $dcData;
 	protected $modsData;
-	//protected $relsExtData;
+	protected $relsExtData;
 
 	/**
 	 * @param string $mainContentTemplate  Name of the SMARTY template file for the main content of the Full Record View Pages
@@ -58,7 +58,7 @@ abstract class Archive_Object extends Action{
 		if (strlen($modsStreamContent) > 0){
 			$modsData = simplexml_load_string($modsStreamContent);
 			if (sizeof($modsData) == 0){
-				$modsData = $modsData->children('mods');
+				$modsData = $modsData->children('http://www.loc.gov/mods/v3');
 			}
 			$this->modsData = $modsData;
 		}
@@ -135,8 +135,15 @@ abstract class Archive_Object extends Action{
 		/*$relsExtStream = $this->archiveObject->getDatastream('RELS-EXT');
 		$temp = tempnam('/tmp', 'relext');
 		$result = $relsExtStream->getContent($temp);
-		$this->relsExtData = trim(file_get_contents($temp));
+		$relsExtData = simplexml_load_string(file_get_contents($temp));
+		if (count($relsExtData) == 0){
+			$relsExtData = $relsExtData->children('http://www.w3.org/1999/02/22-rdf-syntax-ns#');
+		}
+		$this->relsExtData = $relsExtData;
 		unlink($temp);*/
+
+		$model = $this->archiveObject->models[0];
+		$model = str_replace('islandora:', '', $model);
 
 		$title = $this->archiveObject->label;
 		$interface->assign('title', $title);
@@ -144,7 +151,7 @@ abstract class Archive_Object extends Action{
 		$description = (string)$this->modsData->abstract;
 		$interface->assign('description', $description);
 
-		$interface->assign('medium_image', $fedoraUtils->getObjectImageUrl($this->archiveObject, 'medium'));
+		$interface->assign('medium_image', $fedoraUtils->getObjectImageUrl($this->archiveObject, 'medium', $model));
 
 		$repositoryLink = $configArray['Islandora']['repositoryUrl'] . '/islandora/object/' . $this->pid;
 		$interface->assign('repositoryLink', $repositoryLink);
