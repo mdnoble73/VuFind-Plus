@@ -77,7 +77,7 @@ class Admin_ListWidgets extends ObjectEditor {
 	}
 	function canDelete(){
 		global $user;
-		return $user->hasRole('opacAdmin');
+		return $user->hasRole('opacAdmin') || $user->hasRole('libraryAdmin');
 	}
 	function launch() {
 		global $interface;

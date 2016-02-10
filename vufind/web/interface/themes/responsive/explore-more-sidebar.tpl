@@ -1,8 +1,8 @@
 {strip}
 	<div id="explore-more-header" class="row">Explore More</div>
 
-	<div class="row">
-		<div id="explore-more-body" class="col-xs-10 col-xs-offset-1">
+	<div class="row" id="explore-more-body">
+		<div class="col-xs-10 col-xs-offset-1">
 			{if $videoLink}
 			<div class="sectionHeader">Video</div>
 			<div class="section">

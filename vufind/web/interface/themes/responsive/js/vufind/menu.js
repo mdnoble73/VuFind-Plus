@@ -9,8 +9,8 @@ VuFind.Menu = (function(){
 				VuFind.Menu.SearchBoxSelectors + ',' +
 				VuFind.Menu.SideBarSearchSelectors + ',' +
 				VuFind.Menu.SideBarAccountSelectors + ',' +
-				VuFind.Menu.SideBarMenuSelectors;
-		// TODO: Add ExploreMoreSelectors; + ',' + VuFind.Menu.ExploreMoreSelectors
+				VuFind.Menu.SideBarMenuSelectors + ',' +
+				VuFind.Menu.ExploreMoreSelectors;
 
 		// Set up Sticky Menus
 		VuFind.Menu.stickyMenu('#horizontal-menu-bar-container', 'sticky-menu-bar');
@@ -104,7 +104,7 @@ VuFind.Menu = (function(){
 		SideBarSearchSelectors: '#narrow-search-label,#facet-accordion,#results-sort-label,#results-sort-label+div.row,#remove-search-label,#remove-search-label+.applied-filters,#similar-authors',
 		SideBarAccountSelectors: '#home-page-login,#home-account-links',
 		SideBarMenuSelectors: '#home-page-login,#home-page-library-section',
-		ExploreMoreSelectors: '',
+		ExploreMoreSelectors: '#explore-more-header',
 		AllSideBarSelectors: '', // Set above
 
 		stickyMenu: function(menuContainerSelector, stickyMenuClass){
