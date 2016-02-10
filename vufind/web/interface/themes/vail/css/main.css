@@ -5069,6 +5069,7 @@ button.close {
 }
 .modal.fade .modal-dialog {
   -webkit-transform: translate(0, -25%);
+  -ms-transform: translate(0, -25%);
   transform: translate(0, -25%);
   -webkit-transition: -webkit-transform 0.3s ease-out;
   transition: -webkit-transform 0.3s ease-out;
@@ -5077,6 +5078,7 @@ button.close {
 }
 .modal.in .modal-dialog {
   -webkit-transform: translate(0, 0);
+  -ms-transform: translate(0, 0);
   transform: translate(0, 0);
 }
 .modal-dialog {
@@ -7957,6 +7959,7 @@ fieldset[disabled] .datepicker table tr td span.active.disabled:hover.active {
   bottom: -25px;
   left: 50%;
   -webkit-transform: translate(-50%, 0);
+  -ms-transform: translate(-50%, 0);
   transform: translate(-50%, 0);
   margin: 0;
 }
@@ -8035,6 +8038,7 @@ fieldset[disabled] .datepicker table tr td span.active.disabled:hover.active {
   vertical-align: text-top;
   text-align: center;
   -webkit-transform: scale(0.6);
+      -ms-transform: scale(0.6);
           transform: scale(0.6);
   margin-top: -1px;
   margin-bottom: -1px;
@@ -8591,8 +8595,10 @@ hr.menu {
   white-space: nowrap;
   position: absolute;
   -webkit-transform: rotate(-90deg) translateX(-100%);
+      -ms-transform: rotate(-90deg) translateX(-100%);
           transform: rotate(-90deg) translateX(-100%);
   -webkit-transform-origin: 0 0;
+      -ms-transform-origin: 0 0;
           transform-origin: 0 0;
   margin-top: 10px;
   margin-left: 10px;
@@ -10120,7 +10126,7 @@ a.browse-thumbnail.active {
   text-transform: uppercase;
   font-weight: bold;
   color: #000075;
-  border-bottom: 2px solid #00b3ee;
+  border-bottom: 2px solid #336699;
   margin-bottom: 10px;
 }
 #explore-more-body .section {
@@ -10137,12 +10143,58 @@ a.browse-thumbnail.active {
   padding-right: 10px;
 }
 .exploreMoreBar {
-  border-top: solid 3px #00b3ee;
-  border-bottom: solid 3px #00b3ee;
+  border: solid 3px #336699;
   margin-bottom: 20px;
   margin-top: 20px;
+  padding-top: 0;
+  padding-bottom: 0;
+}
+.exploreMoreBar .exploreMoreBarLabel {
+  color: #FFF;
+  background-color: #336699;
+  font-weight: bold;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.exploreMoreBar .label-left {
+  float: left;
+  width: 40px;
+  color: #FFF;
+}
+.exploreMoreBar .label-left,
+.exploreMoreBar .label-left img {
+  background-color: #336699;
+}
+.exploreMoreBar .label-left .exploreMoreBarLabel {
+  position: absolute;
+  -webkit-transform: rotate(-90deg) translateX(-100%);
+      -ms-transform: rotate(-90deg) translateX(-100%);
+          transform: rotate(-90deg) translateX(-100%);
+  -webkit-transform-origin: 0 0;
+      -ms-transform-origin: 0 0;
+          transform-origin: 0 0;
+  padding-right: 10px;
+  padding-left: 5px;
+  line-height: 40px;
+}
+.exploreMoreBar .label-top {
+  color: #FFF;
+  width: 100%;
+}
+.exploreMoreBar .label-top,
+.exploreMoreBar .label-top img {
+  background-color: #336699;
+  display: inline-block;
+}
+.exploreMoreBar .label-top .exploreMoreBarLabel {
+  padding-left: 10px;
+  display: inline-block;
+}
+.exploreMoreBar .exploreMoreItemsContainer {
   padding-top: 10px;
   padding-bottom: 10px;
+  overflow-y: auto;
+  white-space: nowrap;
 }
 .exploreMoreBar .explore-more-option {
   display: inline-block;
@@ -10150,7 +10202,7 @@ a.browse-thumbnail.active {
   padding-right: 10px;
 }
 .exploreMoreBar .explore-more-option .thumbnail {
-  margin-bottom: 0px;
+  margin-bottom: 0;
 }
 .exploreMoreBar .explore-more-option .thumbnail img {
   max-height: 92px;

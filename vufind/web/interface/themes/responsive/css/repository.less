@@ -1,12 +1,7 @@
 @import (reference) "bootstrap/less/variables.less";
 @import (reference) "variables.less";
 
-// Color Variables
-// TODO need to move so that location rules can overwrite
-
-@bottom-line-color: #00b3ee;
-@title-color: #000075;
-
+// Explore More SideBar
 #explore-more-sidebar{
   background-color: @home-search-top-color;
   background: linear-gradient(to bottom, @home-search-top-color, @home-search-bottom-color);
@@ -51,14 +46,72 @@
   padding-right: 10px;
 }
 
-// Styling for Explore More Bar in Search Results
 .exploreMoreBar {
-  border-top: solid 3px @bottom-line-color;
-  border-bottom: solid 3px @bottom-line-color;
+  border: solid @explore-more-bar-border-width @bottom-line-color;
+  //border-top: solid @explore-more-bar-border-width @bottom-line-color;
+  //border-bottom: solid @explore-more-bar-border-width @bottom-line-color;
   margin-bottom: 20px;
   margin-top: 20px;
-  padding-top: 10px;
-  padding-bottom: 10px;
+  //height: @explore-more-bar-height;
+
+  // TODO: these can be deleted when put in main styling
+  padding-top: 0;
+  padding-bottom: 0;
+
+  .exploreMoreBarLabel {
+    color: @menu-bar-color;
+    background-color: @menu-bar-background-color;
+    font-weight: bold;
+    text-transform: uppercase;
+    white-space: nowrap; // multiple word labels need to stay on the same line
+
+  }
+
+  // Explore More Bar Label on the Left Hand Side
+  .label-left {
+    float: left;
+    //height: @explore-more-bar-height - 2 * @explore-more-bar-border-width;
+    //height: 100%;
+    // Mimic Sidebar Behaviour
+    width: @vertical-menu-bar-width;
+    color: @menu-bar-color;
+    &, & img {
+      background-color: @menu-bar-background-color;
+    }
+    .exploreMoreBarLabel {
+      // Make Font Vertical
+      position: absolute;
+      transform: rotate(-90deg) translateX(-100%);
+      transform-origin: 0 0;
+      padding-right: 10px; // padding between icon and text (after transform)
+      padding-left: 5px; // padding at bottom of text, after transform //TODO this may not be needed in the end
+      line-height: @vertical-menu-bar-width; // matches width, after transform
+    }
+  }
+
+  // Explore More Bar Label on the Top
+  .label-top {
+    color: @menu-bar-color;
+    width: 100%;
+    &, & img {
+      background-color: @menu-bar-background-color;
+      display: inline-block;
+    }
+    .exploreMoreBarLabel {
+      padding-left: 10px;
+      display: inline-block;
+    }
+  }
+
+  // Items Container
+  .exploreMoreItemsContainer {
+    //max-height: @explore-more-bar-height - 20px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    // keep all items in a single row
+    overflow-y: auto;  // scroll bar setting
+    white-space: nowrap;
+  }
 
   .explore-more-option {
     display: inline-block;
@@ -66,23 +119,23 @@
     padding-right: 10px;
 
     .thumbnail {
-      margin-bottom: 0px;
-      img {
-        max-height:92px;
+      margin-bottom: 0;
+      img { //TODO needed anymore?
+        max-height:@explore-more-bar-image-height;
       }
       a {
         img{
-          max-height:92px;
+          max-height:@explore-more-bar-image-height;
         }
       }
     }
     figcaption {
       margin-top: 4px;
       margin-bottom: 4px;
-      font-weight: +100;
+      font-weight: 100;
+      //TODO: label should not go beyond the width of the icon; or a consistent width
     }
   }
-  //clear:both; //
 }
 
 .openseadragon
