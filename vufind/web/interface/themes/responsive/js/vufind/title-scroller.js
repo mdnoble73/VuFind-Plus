@@ -5,7 +5,7 @@
  * @param scrollerShortName
  * @param container - a container to display if any titles are found
  * @param autoScroll - whether or not the selected title should change automatically
- * @param style - The style of the scroller vertical, horizontal, single or text-list
+ * @param style - The style of the scroller:  vertical, horizontal, single or text-list
  * @return
  */
 function TitleScroller(scrollerId, scrollerShortName, container,
@@ -28,8 +28,6 @@ TitleScroller.prototype.loadTitlesFrom = function(jsonUrl) {
 			scrollerBody = $('#' + this.scrollerId + " .scrollerBodyContainer .scrollerBody");
 	scrollerBody.hide();
 	$("#titleScrollerSelectedTitle" + this.scrollerShortName+",#titleScrollerSelectedAuthor" + this.scrollerShortName).html("");
-	//$("#titleScrollerSelectedTitle" + this.scrollerShortName).html("");
-	//$("#titleScrollerSelectedAuthor" + this.scrollerShortName).html("");
 	$(".scrollerLoadingContainer").show();
 	$.getJSON(jsonUrl, function(data) {
 		scroller.loadTitlesFromJsonData(data);
