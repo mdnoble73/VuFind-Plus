@@ -122,8 +122,8 @@ elif [ ${PRODUCTION} == "true" ]; then
 	cd /usr/local/VuFind-Plus/vufind/millennium_export/; expect -f BIB_EXTRACT_PIKA.exp ${PIKASERVER} ${ILSSERVER} >> ${OUTPUT_FILE}
 fi
 
-#Extract from Hoopla
-cd /usr/local/vufind-plus/vufind/cron;./HOOPLA.sh ${PIKASERVER} >> ${OUTPUT_FILE}
+#Extracts from sideloaded eContent; log defined in config.pwd.ini [Sideload]
+cd /usr/local/vufind-plus/vufind/cron;./sideload.sh ${PIKASERVER}
 
 #Extract Lexile Data
 cd /data/vufind-plus/; 

@@ -27,25 +27,29 @@
 
 	<div class="logoutOptions"{if !$user} style="display: none;"{/if}>
 		<div class="hidden-xs col-sm-2 col-sm-offset-5 col-md-2 col-md-offset-0 col-lg-2 col-lg-offset-0">
-			<div class="header-button header-primary">
-				<a id="myAccountNameLink" href="{$path}/MyAccount/Home">
+			<a id="myAccountNameLink" href="{$path}/MyAccount/Home">
+				<div class="header-button header-primary">
 					{translate text="Your Account"}
-				</a>
 			</div>
+			</a>
 		</div>
 
 		<div class="hidden-xs col-sm-2 col-md-2 col-lg-2">
-			<div class="header-button header-primary" >
-				<a href="{$path}/MyAccount/Logout" id="logoutLink">{translate text="Log Out"}</a>
-			</div>
+			<a href="{$path}/MyAccount/Logout" id="logoutLink">
+				<div class="header-button header-primary">
+					{translate text="Log Out"}
+				</div>
+			</a>
 		</div>
 	</div>
 
 	<div class="loginOptions col-sm-2 col-sm-offset-7 col-md-2 col-md-offset-2 col-lg-offset-2 col-lg-2"{if $user} style="display: none;"{/if}>
 		{if $showLoginButton == 1}
-			<div class="hidden-xs header-button header-primary">
-				<a id="headerLoginLink" href="{$path}/MyAccount/Home" class='loginLink' data-login="true" title='Login' onclick="return VuFind.Account.followLinkIfLoggedIn(this);">{translate text="LOGIN"}</a>
-			</div>
+			<a id="headerLoginLink" href="{$path}/MyAccount/Home" class="loginLink" data-login="true" title="Login" onclick="{if $isLoginPage}$('#username').focus();return false{else}return VuFind.Account.followLinkIfLoggedIn(this);{/if}">
+				<div class="hidden-xs header-button header-primary">
+					{translate text="LOGIN"}
+				</div>
+			</a>
 		{/if}
 	</div>
 

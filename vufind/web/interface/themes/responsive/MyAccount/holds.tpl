@@ -9,10 +9,14 @@
 		{include file="MyAccount/availableHoldsNotice.tpl" noLink=1}
 
 		{* Check to see if there is data for the section *}
-		<div class="holdSectionBody">
+		<p class="holdSectionBody">
 			{if $libraryHoursMessage}
 				<div class="libraryHours alert alert-success">{$libraryHoursMessage}</div>
 			{/if}
+
+			<p>
+				{translate text="Items on hold includes titles in Overdrive."}
+			</p>
 
 			{foreach from=$recordList item=sectionData key=sectionKey}
 				<h3>{if $sectionKey == 'available'}Holds Ready For Pickup{else}Pending Holds{/if}</h3>
@@ -27,7 +31,15 @@
 				</p>
 				{if is_array($recordList.$sectionKey) && count($recordList.$sectionKey) > 0}
 					{* Make sure there is a break between the form and the table *}
-					<br>
+					{if !$hideCoversFormDisplayed}
+						{* Display the Hide Covers switch above the first section that has holds; and only display it once *}
+						<div id="pager" class="navbar form-inline">
+							<label for="hideCovers" class="control-label checkbox pull-right"> Hide Covers <input id="hideCovers" type="checkbox" onclick="VuFind.Account.toggleShowCovers(!$(this).is(':checked'))" {if $showCovers == false}checked="checked"{/if}></label>
+						</div>
+						{assign var="hideCoversFormDisplayed" value=true}
+						{else}
+						<br>
+					{/if}
 					<div class="striped">
 						{foreach from=$recordList.$sectionKey item=record name="recordLoop"}
 							{if $record.holdSource == 'ILS'}
@@ -43,12 +55,12 @@
 					</div>
 
 					{* Code to handle updating multiple holds at one time *}
-					<br/>
-					<div class='holdsWithSelected{$sectionKey}'>
-						<form id='withSelectedHoldsFormBottom{$sectionKey}' action='{$fullPath}'>
+					<br>
+					<div class="holdsWithSelected{$sectionKey}">
+						<form id="withSelectedHoldsFormBottom{$sectionKey}" action="{$fullPath}">
 							<div>
-								<input type="hidden" name="withSelectedAction" value="" />
-								<div id='holdsUpdateSelected{$sectionKey}Bottom' class='holdsUpdateSelected{$sectionKey}'>
+								<input type="hidden" name="withSelectedAction" value="">
+								<div id="holdsUpdateSelected{$sectionKey}Bottom" class="holdsUpdateSelected{$sectionKey}">
 									{*
 									<input type="submit" class="btn btn-sm btn-warning" name="cancelSelected" value="Cancel Selected" onclick="return VuFind.Account.cancelSelectedHolds()">
 									*}

@@ -1521,7 +1521,7 @@ class IndexRecord extends RecordInterface
 	 * @access  protected
 	 * @return  string
 	 */
-	protected function getTitleStatement()
+	public function getTitleStatement()
 	{
 		// Not currently stored in the Solr index
 		return null;

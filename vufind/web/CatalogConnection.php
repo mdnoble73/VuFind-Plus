@@ -256,7 +256,9 @@ class CatalogConnection
 			$readingHistoryDB = new ReadingHistoryEntry();
 			$readingHistoryDB->userId = $user->id;
 			$readingHistoryDB->deleted = 0;
-			$user->readingHistorySize = $readingHistoryDB->count();
+			$readingHistoryDB->groupBy('groupedWorkPermanentId');
+			$readingHistoryDB->find();
+			$user->readingHistorySize = $readingHistoryDB->N;
 		}
 	}
 
@@ -368,6 +370,8 @@ class CatalogConnection
 				$readingHistoryDB = new ReadingHistoryEntry();
 				$readingHistoryDB->userId = $patron->id;
 				$readingHistoryDB->deleted = 0; //Only show titles that have not been deleted
+				$readingHistoryDB->selectAdd('MAX(checkOutDate) as checkOutDate');
+				$readingHistoryDB->selectAdd('GROUP_CONCAT(DISTINCT(format)) as format');
 				if ($sortOption == "checkedOut"){
 					$readingHistoryDB->orderBy('checkOutDate DESC, title ASC');
 				}else if ($sortOption == "returned"){
@@ -379,6 +383,7 @@ class CatalogConnection
 				}else if ($sortOption == "format"){
 					$readingHistoryDB->orderBy('format ASC, title ASC, checkOutDate DESC');
 				}
+				$readingHistoryDB->groupBy('groupedWorkPermanentId');
 				if ($recordsPerPage != -1){
 					$readingHistoryDB->limit(($page - 1) * $recordsPerPage, $recordsPerPage);
 				}
@@ -394,7 +399,9 @@ class CatalogConnection
 				$readingHistoryDB = new ReadingHistoryEntry();
 				$readingHistoryDB->userId = $patron->id;
 				$readingHistoryDB->deleted = 0;
-				$numTitles = $readingHistoryDB->count();
+				$readingHistoryDB->groupBy('groupedWorkPermanentId');
+				$readingHistoryDB->find();
+				$numTitles = $readingHistoryDB->N;
 
 				return array('historyActive'=>$patron->trackReadingHistory, 'titles'=>$readingHistoryTitles, 'numTitles'=> $numTitles);
 			}else{
@@ -461,14 +468,25 @@ class CatalogConnection
 		if (($patron->trackReadingHistory && $patron->initialReadingHistoryLoaded) || ! $this->driver->hasNativeReadingHistory()){
 			if ($action == 'deleteMarked'){
 				//Remove titles from database (do not remove from ILS)
-				foreach ($selectedTitles as $titleId){
+				foreach ($selectedTitles as $id => $titleId){
 					list($source, $sourceId) = explode('_', $titleId);
 					$readingHistoryDB = new ReadingHistoryEntry();
 					$readingHistoryDB->userId = $patron->id;
-					$readingHistoryDB->id = str_replace('rsh', '', $titleId);
-					if ($readingHistoryDB->find(true)){
-						$readingHistoryDB->deleted = 1;
-						$readingHistoryDB->update();
+					$readingHistoryDB->groupedWorkPermanentId = strtolower($id);
+					$readingHistoryDB->find();
+					if ($id && $readingHistoryDB->N > 0){
+						while ($readingHistoryDB->fetch()){
+							$readingHistoryDB->deleted = 1;
+							$readingHistoryDB->update();
+						}
+					}else{
+						$readingHistoryDB = new ReadingHistoryEntry();
+						$readingHistoryDB->userId = $patron->id;
+						$readingHistoryDB->id = str_replace('rsh', '', $titleId);
+						if ($readingHistoryDB->find(true)){
+							$readingHistoryDB->deleted = 1;
+							$readingHistoryDB->update();
+						}
 					}
 				}
 			}elseif ($action == 'deleteAll'){
@@ -796,7 +814,7 @@ class CatalogConnection
 		$historyEntry['shortId'] = $readingHistoryDB->sourceId;
 		$historyEntry['title'] = $readingHistoryDB->title;
 		$historyEntry['author'] = $readingHistoryDB->author;
-		$historyEntry['format'] = array($readingHistoryDB->format);
+		$historyEntry['format'] = $readingHistoryDB->format;
 		$historyEntry['checkout'] = $readingHistoryDB->checkOutDate;
 		$historyEntry['checkin'] = $readingHistoryDB->checkInDate;
 		$historyEntry['ratingData'] = null;
@@ -804,19 +822,25 @@ class CatalogConnection
 		$historyEntry['linkUrl'] = null;
 		$historyEntry['coverUrl'] = null;
 		$recordDriver = null;
-		if ($readingHistoryDB->source == 'ILS') {
+		/*if ($readingHistoryDB->source == 'ILS') {
 			require_once ROOT_DIR . '/RecordDrivers/MarcRecord.php';
 			$recordDriver = new MarcRecord($historyEntry['id']);
 		} elseif ($readingHistoryDB->source == 'OverDrive') {
 			require_once ROOT_DIR . '/RecordDrivers/OverDriveRecordDriver.php';
 			$recordDriver = new OverDriveRecordDriver($historyEntry['id']);
-		}
-		if ($recordDriver != null && $recordDriver->isValid()) {
+		}*/
+		require_once ROOT_DIR . '/RecordDrivers/GroupedWorkDriver.php';
+		$recordDriver = new GroupedWorkDriver($readingHistoryDB->groupedWorkPermanentId);
+		if ($recordDriver != null && $recordDriver->isValid) {
 			$historyEntry['ratingData'] = $recordDriver->getRatingData();
 			$historyEntry['permanentId'] = $recordDriver->getPermanentId();
-			$historyEntry['linkUrl'] = $recordDriver->getLinkUrl();
 			$historyEntry['coverUrl'] = $recordDriver->getBookcoverUrl('medium');
-			$historyEntry['format'] = $recordDriver->getFormats();
+			if ($recordDriver->isValid){
+				$historyEntry['linkUrl'] = $recordDriver->getLinkUrl();
+			}
+			if ($historyEntry['title'] == ''){
+				$historyEntry['title']  = $recordDriver->getTitle();
+			}
 		}
 		$recordDriver = null;
 		return $historyEntry;
@@ -990,6 +1014,14 @@ class CatalogConnection
 			return array(
 					'success' => false,
 					'errors' => array('Importing Lists has not been implemented for this ILS.'));
+		}
+	}
+
+	public function getShowUsernameField() {
+		if ($this->checkFunction('hasUsernameField')) {
+			return $this->driver->hasUsernameField();
+		}else{
+			return false;
 		}
 	}
 }

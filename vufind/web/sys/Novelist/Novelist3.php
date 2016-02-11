@@ -571,7 +571,7 @@ class Novelist3{
 			$authors[] = array(
 				'name' => $item->full_name,
 				'reason' => $item->reason,
-				'link' => '/Author/Home/?author='. urlencode($item->full_name),
+				'link' => '/Author/Home/?author="'. urlencode($item->full_name) . '"',
 			);
 		}
 		$enrichment->authors = $authors;
@@ -695,7 +695,9 @@ class Novelist3{
 		$items = $seriesData->series_titles;
 		foreach ($items as $item){
 			if ($item->primary_isbn == $novelistData->primaryISBN){
-				$novelistData->volume = $item->volume;
+				$volume = $item->volume;
+				$volume = preg_replace('/^0+/', '', $volume);
+				$novelistData->volume = $volume;
 			}
 		}
 		$novelistData->seriesTitle = $seriesName;
@@ -761,34 +763,21 @@ class Novelist3{
 		global $user;
 		global $timer;
 		global $configArray;
-
-		//Find the correct grouped work based on the isbns;
-		require_once ROOT_DIR . '/sys/Grouping/GroupedWork.php';
-		require_once ROOT_DIR . '/sys/Grouping/GroupedWorkIdentifier.php';
-		require_once ROOT_DIR . '/sys/Grouping/GroupedWorkIdentifierRef.php';
-
 		$timer->logTime("Start loadNoveListTitle");
+
+		/** @var SearchObject_Solr $searchObject */
+		$searchObject = SearchObjectFactory::initSearchObject();
+		$searchObject->disableScoping();
+		if (function_exists('disableErrorHandler')){
+			disableErrorHandler();
+		}
+		$fields = $searchObject->getRecordByIsbn($item->isbns);
+
 		/** @var SimpleXMLElement $titleItem */
+
 		$permanentId = null;
-		$concatenatedIsbns = "'" . implode("','",$item->isbns) . "'";
-		$groupedWorkIdentifier = new GroupedWorkIdentifier();
-		$groupedWorkIdentifier->type = "isbn";
-		$groupedWorkIdentifier->whereAdd("identifier in ($concatenatedIsbns)");
-		if ($groupedWorkIdentifier->find()){
-			while ($groupedWorkIdentifier->fetch()){
-				$groupedWorkIdentifierRef = new GroupedWorkIdentifierRef();
-				$groupedWorkIdentifierRef->identifier_id = $groupedWorkIdentifier->id;
-				$groupedWorkIdentifierRef->find();
-				if ($groupedWorkIdentifierRef->N == 1){
-					$groupedWorkIdentifierRef->fetch();
-					$groupedWork = new GroupedWork();
-					$groupedWork->id = $groupedWorkIdentifierRef->grouped_work_id;
-					if ($groupedWork->find(true)){
-						$permanentId = $groupedWork->permanent_id;
-						break;
-					}
-				}
-			}
+		if ($fields != null){
+			$permanentId = $fields['id'];
 		}
 		$timer->logTime("Load Novelist Title - Find Grouped Work based on identifier $permanentId");
 		$isCurrent = $currentId == $permanentId;
@@ -825,8 +814,8 @@ class Novelist3{
 		}else{
 			//Get more information from Solr
 			/** @var GroupedWorkDriver $recordDriver */
-			$recordDriver = new GroupedWorkDriver($permanentId);
-			$timer->logTime("Find grouped work in solr");
+			$recordDriver = new GroupedWorkDriver($fields);
+			$timer->logTime("Create driver");
 
 			if ($recordDriver->isValid){
 				if (!isset($series)){

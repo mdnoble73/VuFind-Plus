@@ -143,11 +143,24 @@ class UInterface extends Smarty
 		}else if (isset($configArray['Catalog']['hipUrl'])){
 			$this->assign('classicCatalogUrl', $configArray['Catalog']['hipUrl']);
 		}
+		$this->assign('showLinkToClassicInMaintenanceMode', $configArray['Catalog']['showLinkToClassicInMaintenanceMode']);
 		$this->assign('showConvertListsFromClassic', $configArray['Catalog']['showConvertListsFromClassic']);
 
 		$this->assign('theme', $this->vufindTheme);
 		$this->assign('primaryTheme', reset($themeArray));
 		$this->assign('device', get_device_name());
+
+		if ($configArray['Catalog']['offline']){
+			$this->assign('offline', true);
+			if (isset($configArray['Catalog']['enableLoginWhileOffline'])){
+				$this->assign('enableLoginWhileOffline', $configArray['Catalog']['enableLoginWhileOffline']);
+			}else{
+				$this->assign('enableLoginWhileOffline', false);
+			}
+		}else{
+			$this->assign('offline', false);
+		}
+
 		$timer->logTime('Basic configuration');
 
 		$displaySidebarMenu = false;
@@ -284,7 +297,6 @@ class UInterface extends Smarty
 		$location = $locationSingleton->getActiveLocation();
 		$showHoldButton = 1;
 		$showHoldButtonInSearchResults = 1;
-		$showHoldButtonForUnavailableOnly = 0;
 		$this->assign('logoLink', $configArray['Site']['path']);
 		if (isset($library) && $library->useHomeLinkForLogo){
 			if (isset($location) && strlen($location->homeLink) > 0 && $location->homeLink != 'default'){
@@ -321,6 +333,7 @@ class UInterface extends Smarty
 			$this->assign('showHoldButtonForUnavailableOnly', $library->showHoldButtonForUnavailableOnly);
 			$this->assign('horizontalSearchBar', $library->horizontalSearchBar);
 			$this->assign('sideBarOnRight', $library->sideBarOnRight);
+			$this->assign('showHoldCancelDate', $library->showHoldCancelDate);
 		}else{
 			$this->assign('showLoginButton', 1);
 			$this->assign('showAdvancedSearchbox', 1);
@@ -337,6 +350,7 @@ class UInterface extends Smarty
 			$this->assign('showHoldButtonForUnavailableOnly', 0);
 			$this->assign('horizontalSearchBar', 0);
 			$this->assign('sideBarOnRight', 0);
+			$this->assign('showHoldCancelDate', 0);
 		}
 		if (isset($library) && $location != null){ // library and location
 			$this->assign('showFavorites', $location->showFavorites && $library->showFavorites);

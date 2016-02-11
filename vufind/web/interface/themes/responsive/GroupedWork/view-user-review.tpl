@@ -1,9 +1,9 @@
 {strip}
-<div class='review' id="review_{$review->id}">
+<div class="review" id="review_{$review->id}">
 	<div class="reviewHeader">
 			<h5>{translate text='By'} <cite>{if strlen($review->displayName) > 0}{$review->displayName} {else}{$review->fullname} {/if}</cite>
 			{if $review->dateRated != null && $review->dateRated > 0}
-				on <span class='reviewDate'>{$review->dateRated|date_format}</span>
+				on <span class="reviewDate">{$review->dateRated|date_format}</span>
 			{/if}
 			{if $showRatings && $review->rating > 0}
 				{* Display the rating the user gave it. *}

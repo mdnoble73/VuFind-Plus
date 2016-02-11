@@ -212,9 +212,8 @@ class LibrarySolution extends ScreenScrapingDriver {
 						$curTitle['coverUrl'] = "";
 						$curTitle['groupedWorkId'] = "";
 						$curTitle['format'] = "Unknown";
-						$curTitle['author'] = ""; //TODO Why does author get nulled out.  (Library Solutions does give an author)
 					}
-					$curTitle['linkUrl'] = $recordDriver->getLinkUrl();
+					$curTitle['linkUrl'] = $recordDriver->getGroupedWorkDriver()->getLinkUrl();
 				}
 
 				$readingHistory[] = $curTitle;

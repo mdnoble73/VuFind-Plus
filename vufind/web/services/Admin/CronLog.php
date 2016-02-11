@@ -29,8 +29,6 @@ class CronLog extends Admin_Admin
 	{
 		global $interface;
 
-		$interface->setPageTitle('Cron Log');
-		
 		$logEntries = array();
 		$cronLogEntry = new CronLogEntry();
 		$cronLogEntry->orderBy('startTime DESC');
@@ -43,9 +41,7 @@ class CronLog extends Admin_Admin
 		}
 		$interface->assign('logEntries', $logEntries);
 
-		$interface->assign('sidebar', 'MyAccount/account-sidebar.tpl');
-		$interface->setTemplate('cronLog.tpl');
-		$interface->display('layout.tpl');
+		$this->display('cronLog.tpl', 'Cron Log');
 	}
 
 	function getAllowableRoles(){

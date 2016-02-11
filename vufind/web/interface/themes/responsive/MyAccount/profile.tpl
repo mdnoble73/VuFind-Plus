@@ -35,15 +35,28 @@
 						<div class="panel-body">
 							{* Empty action attribute uses the page loaded. this keeps the selected user patronId in the parameters passed back to server *}
 							<form action="" method="post" class="form-horizontal" id="contactUpdateForm">
-								<input type="hidden" name="updateScope" value="contact"/>
+								<input type="hidden" name="updateScope" value="contact">
 								<div class="form-group">
 									<div class="col-xs-4"><strong>{translate text='Full Name'}:</strong></div><div class="col-xs-8">{$profile->fullname|escape}</div>
 								</div>
-									{if !$offline}
-										<div class="form-group"><div class="col-xs-4"><strong>{translate text='Fines'}:</strong></div><div class="col-xs-8">{$profile->fines|escape}</div></div>
-										<div class="form-group"><div class="col-xs-4"><strong>{translate text='Expiration Date'}:</strong></div><div class="col-xs-8">{$profile->expires|escape}</div></div>
-									{/if}
-								<div class="form-group"><div class="col-xs-4"><strong>{translate text='Home Library'}:</strong></div><div class="col-xs-8">{$profile->homeLocation|escape}</div></div>
+								{if $showUsernameField}
+									<div class="form-group">
+										<div class="col-xs-4"><strong>Username:</strong></div>
+										<div class="col-xs-8"><input type="text" name="username" is="username" value="{if !is_numeric(trim($profile->alt_username))}{$profile->alt_username|escape}{/if}" size='25' maxlength='25' class="form-control">
+											<a href="#" onclick="$('#usernameHelp').toggle()">What is this?</a>
+											<div id="usernameHelp" style="display:none">
+												A username is an optional feature. If you set one, your username will be your alias on hold slips and can also be used to log into your account in place of your card number.  A username can be set, reset or removed from the “Account Settings” section of your online account. Usernames must be between 6 and 25 characters (letters and number only, no special characters).
+											</div>
+										</div>
+									</div>
+								{/if}
+								{if !$offline}
+									<div class="form-group"><div class="col-xs-4"><strong>{translate text='Fines'}:</strong></div><div class="col-xs-8">{$profile->fines|escape}</div></div>
+									<div class="form-group"><div class="col-xs-4"><strong>{translate text='Expiration Date'}:</strong></div><div class="col-xs-8">{$profile->expires|escape}</div></div>
+								{/if}
+								<div class="form-group">
+									<div class="col-xs-4"><strong>{translate text='Home Library'}:</strong></div><div class="col-xs-8">{$profile->homeLocation|escape}</div>
+								</div>
 								{if !$offline}
 									{* Don't show inputs for the Horizon ILS as updating those account settings has not been implemented in the Horizon Driver. *}
 									<div class="form-group">
@@ -64,9 +77,9 @@
 									<div class="form-group">
 										<div class="col-xs-4"><label for="city">{translate text='City'}:</label></div>
 										<div class="col-xs-8">
-											{if $edit && $canUpdateContactInfo && $canUpdateAddress && $ils != 'Horizon'}<input name='city' id="city" value='{$profile->city|escape}' size='50' maxlength='75' class="form-control required">
+											{if $edit && $canUpdateContactInfo && $canUpdateAddress && $ils != 'Horizon'}<input name="city" id="city" value="{$profile->city|escape}" size="50" maxlength="75" class="form-control required">
 											{elseif $edit && $millenniumNoAddress}
-												<input name='city' id="city" value='{$profile->city|escape}' type="hidden">
+												<input name="city" id="city" value="{$profile->city|escape}" type="hidden">
 												{$profile->city|escape}
 											{else}{$profile->city|escape}{/if}
 										</div>
@@ -74,9 +87,9 @@
 									<div class="form-group">
 										<div class="col-xs-4"><label for="state">{translate text='State'}:</label></div>
 										<div class="col-xs-8">
-											{if $edit && $canUpdateContactInfo && $canUpdateAddress && $ils != 'Horizon'}<input name='state' id="state" value='{$profile->state|escape}' size='50' maxlength='75' class="form-control required">
+											{if $edit && $canUpdateContactInfo && $canUpdateAddress && $ils != 'Horizon'}<input name='state' id="state" value="{$profile->state|escape}" size="50" maxlength="75" class="form-control required">
 											{elseif $edit && $millenniumNoAddress}
-												<input name='state' id="state" value='{$profile->state|escape}' type="hidden">
+												<input name="state" id="state" value="{$profile->state|escape}" type="hidden">
 												{$profile->state|escape}
 											{else}{$profile->state|escape}{/if}
 										</div>
@@ -85,28 +98,35 @@
 										<div class="col-xs-4"><label for="zip">{translate text='Zip'}:</label></div>
 										<div class="col-xs-8">
 											{if $edit && $canUpdateContactInfo && $canUpdateAddress && $ils != 'Horizon'}
-												<input name='zip' id="zip" value='{$profile->zip|escape}' size='50' maxlength='75' class="form-control required">
+												<input name="zip" id="zip" value="{$profile->zip|escape}" size="50" maxlength="75" class="form-control required">
 											{elseif $edit && $millenniumNoAddress}
-												<input name='zip' id="zip" value='{$profile->zip|escape}' type="hidden">
+												<input name="zip" id="zip" value="{$profile->zip|escape}" type="hidden">
 												{$profile->zip|escape}
 											{else}{$profile->zip|escape}{/if}
 										</div>
 									</div>
 									<div class="form-group">
 										<div class="col-xs-4"><label for="phone">{translate text='Primary Phone Number'}:</label></div>
-										<div class="col-xs-8">{if $edit && $canUpdateContactInfo && $ils != 'Horizon'}<input type="tel" name='phone' id="phone" value='{$profile->phone|replace:'TEXT ONLY':''|escape}' size='50' maxlength='75' class="form-control">{else}{$profile->phone|escape}{/if}</div>
+										<div class="col-xs-8">
+											{if $edit && $canUpdateContactInfo && ($ils != 'Horizon')}
+												<input type="tel" name="phone" id="phone" value="{$profile->phone|replace:'TEXT ONLY':''|escape}" size="50" maxlength="75" class="form-control{*{if $primaryTheme =='arlington'} //Keep for debugging*}{if $libraryName =='Arlington Public Library'} digits{/if}">
+											{else}
+												{$profile->phone|escape}
+											{/if}
+										</div>
 									</div>
 									{if $showWorkPhoneInProfile}
 										<div class="form-group">
 											<div class="col-xs-4"><label for="workPhone">{translate text='Work Phone Number'}:</label></div>
-											<div class="col-xs-8">{if $edit && $canUpdateContactInfo && $ils != 'Horizon'}<input name='workPhone' id="workPhone" value='{$profile->workPhone|escape}' size='50' maxlength='75' class="form-control">{else}{$profile->workPhone|escape}{/if}</div>
+											<div class="col-xs-8">{if $edit && $canUpdateContactInfo && $ils != 'Horizon'}<input name="workPhone" id="workPhone" value="{$profile->workPhone|escape}" size="50" maxlength="75" class="form-control">{else}{$profile->workPhone|escape}{/if}</div>
 										</div>
 									{/if}
 								{/if}
 								<div class="form-group">
 									<div class="col-xs-4"><label for="email">{translate text='E-mail'}:</label></div>
 									<div class="col-xs-8">
-										{if $edit == true && $canUpdateContactInfo == true}<input type='email' name='email' id="email" value='{$profile->email|escape}' size='50' maxlength='75' class="form-control">{else}{$profile->email|escape}{/if}
+										{if $edit == true && $canUpdateContactInfo == true}<input type="text" name="email" id="email" value="{$profile->email|escape}" size="50" maxlength="75" class="form-control multiemail">{else}{$profile->email|escape}{/if}
+										{* Multiemail class is for form validation; type has to be text for multiemail validation to work correctly *}
 									</div>
 								</div>
 								{if $showPickupLocationInProfile}
@@ -117,7 +137,7 @@
 												<select name="pickupLocation" id="pickupLocation" class="form-control">
 													{if count($pickupLocations) > 0}
 														{foreach from=$pickupLocations item=location}
-															<option value="{$location->code}" {if $location->displayName|escape== $profile->homeLocation|escape}selected="selected"{/if}>{$location->displayName}</option>
+															<option value="{$location->code}" {if $location->displayName|escape == $profile->homeLocation|escape}selected="selected"{/if}>{$location->displayName}</option>
 														{/foreach}
 													{else}
 														<option>placeholder</option>
@@ -132,7 +152,7 @@
 
 								{if $showNoticeTypeInProfile}
 									<p class="alert alert-info">
-										The following settings determine how you would like to receive notifications when physical materials are ready for pickup at your library.  Notifications for online content are always delivered via e-mail.
+										{translate text='account_profile_notification_notice'}
 									</p>
 
 									<div class="form-group">
@@ -194,7 +214,24 @@
 									</div>
 								{/if}
 								<script type="text/javascript">
-									$("#contactUpdateForm").validate();
+									$("#contactUpdateForm").validate(
+									{*{if $primaryTheme == 'arlington'}{literal} // Keep & use for debugging*}
+									{if $libraryName == 'Arlington Public Library'}{literal}
+													{
+														rules: {
+															phone: {
+																minlength: 10
+															}
+														},
+														messages: {
+															phone: {
+																digits: 'Please use numbers only.',
+																minlength: 'Please provide a 10 digit phone number.'
+															}
+														}
+													}
+									{/literal}{/if}
+									)
 								</script>
 							</form>
 						</div>
@@ -270,11 +307,11 @@
 						<div class="panel-body">
 							{* Empty action attribute uses the page loaded. this keeps the selected user patronId in the parameters passed back to server *}
 							<form action="" method="post" class="form-horizontal">
-								<input type="hidden" name="updateScope" value="overdrive"/>
+								<input type="hidden" name="updateScope" value="overdrive">
 								<div class="form-group">
 									<div class="col-xs-4"><label for="overdriveEmail" class="control-label">{translate text='OverDrive Hold e-mail'}:</label></div>
 									<div class="col-xs-8">
-										{if $edit == true}<input name='overdriveEmail' id="overdriveEmail" class="form-control" value='{$profile->overdriveEmail|escape}' size='50' maxlength='75' />{else}{$profile->overdriveEmail|escape}{/if}
+										{if $edit == true}<input name="overdriveEmail" id="overdriveEmail" class="form-control" value='{$profile->overdriveEmail|escape}' size='50' maxlength='75'>{else}{$profile->overdriveEmail|escape}{/if}
 									</div>
 								</div>
 								<div class="form-group">
@@ -308,12 +345,14 @@
 										</div>
 									{/foreach}
 								{else}
-									<p class="help-block alert alert-warning">You can update your OverDrive preferences including checkout periods, maturity levels, and display of mature adult covers by editing your account settings on the <a href="{$overDriveUrl}">OverDrive website</a>.</p>
+									<p class="help-block alert alert-warning">
+										{$overdrivePreferencesNotice}
+									</p>
 								{/if}
 								{if !$offline && $edit == true}
 									<div class="form-group">
 										<div class="col-xs-8 col-xs-offset-4">
-											<input type='submit' value='Update OverDrive Options' name='updateOverDrive' class="btn btn-sm btn-primary"/>
+											<input type="submit" value="Update OverDrive Options" name="updateOverDrive" class="btn btn-sm btn-primary">
 										</div>
 									</div>
 								{/if}

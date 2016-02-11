@@ -21,6 +21,7 @@
 require_once ROOT_DIR . '/Action.php';
 
 require_once ROOT_DIR . '/CatalogConnection.php';
+require_once ROOT_DIR . '/CatalogFactory.php';
 
 abstract class MyAccount extends Action
 {
@@ -50,12 +51,23 @@ abstract class MyAccount extends Action
 		$this->db = new $class($configArray['Index']['url']);
 
 		// Connect to Database
-		$this->catalog = CatalogFactory::getCatalogConnectionInstance($user->source);
+		$this->catalog = CatalogFactory::getCatalogConnectionInstance($user ? $user->source : null);
+			// When loading MyList.php and the list is public, user does not need to be logged in to see list
+
+		// Hide Covers when the user has set that setting on an Account Page
+		$showCovers = true;
+		if (isset($_REQUEST['showCovers'])) {
+			$showCovers = ($_REQUEST['showCovers'] == 'on' || $_REQUEST['showCovers'] == 'true');
+			$_SESSION['showCovers'] = $showCovers;
+		} elseif (isset($_SESSION['showCovers'])) {
+			$showCovers = $_SESSION['showCovers'];
+		}
+		$interface->assign('showCovers', $showCovers);
 
 		//This code is also in Search/History since that page displays in the My Account menu as well.
 		//It is also in MyList.php and Admin.php
 		if ($user !== false){
-			$interface->assign('user', $user); // TODO already assigned in index.php. Needed?
+//			$interface->assign('user', $user); // TODO already assigned in index.php. Needed?
 
 			//Figure out if we should show a link to classic opac to pay holds.
 			$ecommerceLink = $configArray['Site']['ecommerceLink'];

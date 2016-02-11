@@ -107,8 +107,9 @@ VuFind.Browse = (function(){
 						,textId : categoryTextId || VuFind.Browse.curCategory
 						,browseMode : this.browseMode
 					},
-					newLabel = $('#browse-category-'+categoryTextId+' div').first().text(); // get label from corresponding li div
+					newLabel = $('#browse-category-'+categoryTextId+' div').first().text(), // get label from corresponding li div
 			// the carousel clones these divs sometimes, so grab only the text from the first one.
+					loadingID = categoryTextId || initial;
 
 			// Set selected Carousel
 			$('.browse-category').removeClass('selected');
@@ -129,35 +130,42 @@ VuFind.Browse = (function(){
 			// Hide current results while fetching new results
 			this.resetBrowseResults();
 
+			// Set a flag for the results we are currently loading
+			//   so that if the user moves onto another category before we get results, we won't do anything
+			this.loadingCategory = loadingID;
 			$.getJSON(url, params, function(data){
-				if (data.success == false){
-					VuFind.showMessage("Error loading browse information", "Sorry, we were not able to find titles for that category");
-				}else{
+				if (VuFind.Browse.loadingCategory == loadingID) {
+					if (data.success == false) {
+						VuFind.showMessage("Error loading browse information", "Sorry, we were not able to find titles for that category");
+					} else {
 						$('.selected-browse-label-search-text').html(data.label); // update label
 
-					VuFind.Browse.curPage = 1;
-					VuFind.Browse.curCategory = data.textId;
-					VuFind.Browse.curSubCategory = data.subCategoryTextId || '';
-					$('#home-page-browse-results div.row') // should be the first div only
-							.html(data.records).fadeIn('slow');
+						VuFind.Browse.curPage = 1;
+						VuFind.Browse.curCategory = data.textId;
+						VuFind.Browse.curSubCategory = data.subCategoryTextId || '';
+						$('#home-page-browse-results div.row') // should be the first div only
+								.html(data.records).fadeIn('slow');
 
-					$('#selected-browse-search-link').attr('href', data.searchUrl); // set the Label's link
+						$('#selected-browse-search-link').attr('href', data.searchUrl); // set the Label's link
 
-					// Display Sub-Categories
-					if (data.subcategories) {
-						$('#browse-sub-category-menu').html(data.subcategories).fadeIn();
-						if (data.subCategoryTextId) { // selected sub category
+						// Display Sub-Categories
+						if (data.subcategories) {
+							$('#browse-sub-category-menu').html(data.subcategories).fadeIn();
+							if (data.subCategoryTextId) { // selected sub category
 								// Set and Show sub-category label
-							$('.selected-browse-sub-category-label-search-text')
-									.html($('#browse-sub-category-'+data.subCategoryTextId).addClass('selected').text())
-									.fadeIn()
+								$('.selected-browse-sub-category-label-search-text')
+										.html($('#browse-sub-category-' + data.subCategoryTextId).addClass('selected').text())
+										.fadeIn()
+							}
 						}
 					}
 				}
 			}).fail(function(){
-				VuFind.showMessage('Request Failed', 'There was an error with this AJAX Request.');
+				VuFind.ajaxFail();
 				$('#home-page-browse-results div').html('').show(); // should be first div
 				//$('.home-page-browse-thumbnails').html('').show();
+			}).done(function() {
+				VuFind.Browse.loadingCategory = null;  // done loading category, empty flag
 			});
 			return false;
 		},
@@ -202,7 +210,7 @@ VuFind.Browse = (function(){
 					$('#selected-browse-search-link').attr('href', data.searchUrl); // update the search link
 				}
 			}).fail(function(){
-				VuFind.showMessage('Request Failed', 'There was an error with this AJAX Request.');
+				VuFind.ajaxFail();
 				$('#home-page-browse-results div.row').html('').show(); // should be first div
 				$('.selected-browse-sub-category-label-search-text').fadeOut(); // hide sub-category Label
 			});
@@ -223,9 +231,7 @@ VuFind.Browse = (function(){
 					} else {
 						VuFind.showMessage("Successfully added", "This search was added to the homepage successfully.", true);
 					}
-				}).fail(function () {
-					VuFind.showMessage('Request Failed', 'There was an error with this AJAX Request.');
-				});
+				}).fail(VuFind.ajaxFail);
 			return false;
 		},
 
@@ -252,9 +258,7 @@ VuFind.Browse = (function(){
 						$('#more-browse-results').hide(); // hide the load more results TODO: implement server side
 					}
 				}
-			}).fail(function(){
-				VuFind.showMessage('Request Failed', 'There was an error with this AJAX Request.');
-			});
+			}).fail(VuFind.ajaxFail);
 			return false;
 		}
 

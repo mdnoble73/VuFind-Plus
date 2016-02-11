@@ -142,7 +142,7 @@ class HooplaRecordDriver extends MarcRecord {
 		if (count($relatedRecords) > 1){
 			$interface->assign('relatedManifestations', $this->getGroupedWorkDriver()->getRelatedManifestations());
 			$moreDetailsOptions['otherEditions'] = array(
-				'label' => 'Other Editions',
+				'label' => 'Other Editions and Formats',
 				'body' => $interface->fetch('GroupedWork/relatedManifestations.tpl'),
 				'hideByDefault' => false
 			);

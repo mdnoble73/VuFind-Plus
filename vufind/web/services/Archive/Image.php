@@ -21,6 +21,6 @@ class Archive_Image extends Archive_Object{
 		$interface->setTemplate('image.tpl');
 
 		// Display Page
-		$interface->display('layout.tpl');
+		$this->display('image.tpl');
 	}
 }

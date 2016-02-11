@@ -231,6 +231,11 @@ class Solr implements IndexEngine {
 		$timer->logTime('Finish Solr Initialization');
 	}
 
+	public function setDebugging($enableDebug, $enableSolrQueryDebugging) {
+		$this->debug = $enableDebug;
+		$this->debugSolrQuery = $enableDebug && $enableSolrQueryDebugging;
+	}
+
 	private function _loadShards($newShards){
 		// Deal with session-based shard settings:
 		$shards = array();
@@ -405,7 +410,21 @@ class Solr implements IndexEngine {
 		}else{
 			return null;
 		}
+	}
 
+	function getRecordByIsbn($isbns){
+		// Query String Parameters
+		$options = array('q' => 'isbn:' . implode(' OR ', $isbns));
+		$result = $this->_select('GET', $options);
+		if (PEAR_Singleton::isError($result)) {
+			PEAR_Singleton::raiseError($result);
+		}
+
+		if (isset($result['response']['docs'][0])){
+			return $result['response']['docs'][0];
+		}else{
+			return null;
+		}
 	}
 
 	/**
@@ -785,7 +804,7 @@ class Solr implements IndexEngine {
 				// Otherwise, we've got a (list of) [munge, weight] pairs to deal with
 				foreach ($clauseArray as $spec) {
 					$fieldValue = $values[$spec[0]];
-					//Check fields that we expect to match certain patterns to see if we should skip this term.
+
 					if ($field == 'isbn'){
 						if (!preg_match('/^((?:\sOR\s)?["(]?\d{9,13}X?[\s")]*)+$/', $fieldValue)){
 							continue;
@@ -992,7 +1011,7 @@ class Solr implements IndexEngine {
 		}
 		$values['localized_callnumber'] = '"' . str_replace(array('"', ':', '/'), ' ', $noWildCardLookFor) . '"';
 
-		// Apply custom munge operations if necessary:
+		// Apply custom munge operations if necessary
 		if (is_array($custom) && $basic) {
 			foreach($custom as $mungeName => $mungeOps) {
 				$values[$mungeName] =  $lookfor;
@@ -1370,6 +1389,8 @@ class Solr implements IndexEngine {
 		if (preg_match('/\\".+?\\"/',$query)){
 			if ($handler == 'Keyword'){
 				$handler = 'KeywordProper';
+			}else if ($handler == 'Author'){
+				$handler = 'AuthorProper';
 			}else if ($handler == 'Subject'){
 				$handler = 'SubjectProper';
 			}else if ($handler == 'AllFields'){
@@ -1507,7 +1528,10 @@ class Solr implements IndexEngine {
 				list($fieldName, $term) = explode(":", $filterTerm, 2);
 				if (!in_array($fieldName, $validFields)){
 					//Special handling for availability_by_format
-					if (preg_match("/^availability_by_format_([^_]+)_[\\w_]+$/", $fieldName)){
+					if (preg_match("/^availability_by_format_([^_]+)_[\\w_]+$/", $fieldName)) {
+						//This is a valid field
+						$validFilters[$id] = $filterTerm;
+					}elseif (preg_match("/^available_at_by_format_([^_]+)_[\\w_]+$/", $fieldName)){
 						//This is a valid field
 						$validFilters[$id] = $filterTerm;
 					}else{
@@ -2349,7 +2373,7 @@ class Solr implements IndexEngine {
 				}
 			} else {
 				//If we are tokenizing, remove any punctuation
-				$tmpWord = preg_replace('/[^\s\-\w.\'aàáâãåäæeèéêëiìíîïoòóôõöøuùúûü]/', '', $words[$i]);
+				$tmpWord = preg_replace('/[^\s\-\w.\'aàáâãåäæeèéêëiìíîïoòóôõöøuùúûü&]/', '', $words[$i]);
 				if (strlen($tmpWord) > 0){
 					$newWords[] = trim($tmpWord);
 				}
@@ -2474,6 +2498,8 @@ class Solr implements IndexEngine {
 
 		//Remove any slashes that Solr will handle incorrectly.
 		$input = str_replace('\\', ' ', $input);
+		$input = str_replace('/', ' ', $input);
+		//$input = preg_replace('/\\\\(?![&:])/', ' ', $input);
 
 		//Look for any colons that are not identifying fields
 		

@@ -216,11 +216,18 @@ public class Util {
 		}else{
 			return format;
 		}
+	}
 
-		/*while (format.endsWith("/") || format.endsWith(",") || format.endsWith(".") || format.endsWith(";")) {
-			format = format.substring(0, format.length() - 1).trim();
+	public static StringBuilder trimTrailingPunctuation(StringBuilder format) {
+		if (format == null){
+			return new StringBuilder();
 		}
-		return format;*/
+		Matcher trimPunctuationMatcher = trimPunctuationPattern.matcher(format);
+		if (trimPunctuationMatcher.matches()){
+			return new StringBuilder(trimPunctuationMatcher.group(1));
+		}else{
+			return format;
+		}
 	}
 
 	public static Collection<String> trimTrailingPunctuation(Set<String> fieldList) {
@@ -266,6 +273,9 @@ public class Util {
 	public static LinkedHashSet<String> getTimeSinceAdded(long timeDifferenceDays){
 		// System.out.println("Time Difference Days: " + timeDifferenceDays);
 		LinkedHashSet<String> result = new LinkedHashSet<>();
+		if (timeDifferenceDays < 0) {
+			result.add("On Order");
+		}
 		if (timeDifferenceDays <= 1) {
 			result.add("Day");
 		}
@@ -443,4 +453,28 @@ public class Util {
 		return value == null ? "" : value;
 	}
 
+	public static String convertISBN10to13(String isbn10) {
+		if (isbn10.length() != 10){
+			return null;
+		}
+		String isbn = "978" + isbn10.substring(0, 9);
+		//Calculate the 13 digit checksum
+		int sumOfDigits = 0;
+		for (int i = 0; i < 12; i++){
+			int multiplier = 1;
+			if (i % 2 == 1){
+				multiplier = 3;
+			}
+			int curDigit = Integer.parseInt(Character.toString(isbn.charAt(i)));
+			sumOfDigits += multiplier * curDigit;
+		}
+		int modValue = sumOfDigits % 10;
+		int checksumDigit;
+		if (modValue == 0){
+			checksumDigit = 0;
+		}else{
+			checksumDigit = 10 - modValue;
+		}
+		return  isbn + Integer.toString(checksumDigit);
+	}
 }

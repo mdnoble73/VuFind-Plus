@@ -1,4 +1,5 @@
 {strip}
+{* //QUESTION: is this Depricated *}
 <div id="record{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}" class="resultsList row">
 	<div class="imageColumn col-md-3">
 		<div class="row">
@@ -17,7 +18,7 @@
 						     alt="{translate text='Cover Image'}"
 						     {*data-record_id="{$summId}"
 						     data-source="VuFind"
-						     data-content_class=".descriptionContent{$summShortId|escape}"*}/>
+						     data-content_class=".descriptionContent{$summShortId|escape}"*}>
 					</a>
 				{/if}
 				{strip}
@@ -46,10 +47,10 @@
 						<div class="col-md-9 result-value">
 							{if is_array($summAuthor)}
 								{foreach from=$summAuthor item=author}
-									<a href="{$path}/Author/Home?author={$author|escape:"url"}">{$author|highlight}</a>
+									<a href='{$path}/Author/Home?author="{$author|escape:"url"}"'>{$author|highlight}</a>
 								{/foreach}
 							{else}
-								<a href="{$path}/Author/Home?author={$summAuthor|escape:"url"}">{$summAuthor|highlight}</a>
+								<a href='{$path}/Author/Home?author="{$summAuthor|escape:"url"}"'>{$summAuthor|highlight}</a>
 							{/if}
 						</div>
 					</div>

@@ -13,27 +13,27 @@
 			<div class="row related-manifestation {if $relatedManifestation.hideByDefault}hiddenManifestation_{$summId}{/if}" {if $relatedManifestation.hideByDefault}style="display: none"{/if}>
 				<div class="col-sm-12">
 				  <div class="row">
-						<div class="col-xs-4 col-md-3 manifestation-format">
+						<div class="col-tn-3 col-xs-4 col-md-3 manifestation-format">
 							{if $relatedManifestation.numRelatedRecords == 1}
 								<span class='manifestation-toggle-placeholder'>&nbsp;</span>
 								<a href="{$relatedManifestation.url}">{$relatedManifestation.format}</a>
 							{else}
 								<a href="#" onclick="return VuFind.ResultsList.toggleRelatedManifestations('{$id|escapeCSS}_{$relatedManifestation.format|escapeCSS}');">
-									<span class='manifestation-toggle collapsed' id='manifestation-toggle-{$id|escapeCSS}_{$relatedManifestation.format|escapeCSS}'>+</span> {$relatedManifestation.format}
+									<span class="manifestation-toggle collapsed" id='manifestation-toggle-{$id|escapeCSS}_{$relatedManifestation.format|escapeCSS}'>+</span> {$relatedManifestation.format}
 								</a>
-								<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+								<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 								<a href="#" onclick="return VuFind.ResultsList.toggleRelatedManifestations('{$id|escapeCSS}_{$relatedManifestation.format|escapeCSS}');">
 									<span class='manifestation-toggle-text label label-info' id='manifestation-toggle-text-{$id|escapeCSS}_{$relatedManifestation.format|escapeCSS}'>Show&nbsp;Editions</span>
 								</a>
 							{/if}
 						</div>
-						<div class="col-xs-8 col-md-5 col-lg-6">
+						<div class="col-tn-9 col-xs-8 col-md-5 col-lg-6">
 							{include file='GroupedWork/statusIndicator.tpl' statusInformation=$relatedManifestation}
 
 							{include file='GroupedWork/copySummary.tpl' summary=$relatedManifestation.itemSummary totalCopies=$relatedManifestation.copies itemSummaryId=$id}
 
 						</div>
-						<div class="col-xs-8 col-xs-offset-4 col-md-4 col-md-offset-0 col-lg-3 manifestation-actions">
+						<div class="col-tn-9 col-tn-offset-3 col-xs-8 col-xs-offset-4 col-md-4 col-md-offset-0 col-lg-3 manifestation-actions">
 							<div class="btn-toolbar">
 								<div class="btn-group btn-group-vertical btn-block">
 									{foreach from=$relatedManifestation.actions item=curAction}

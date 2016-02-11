@@ -1,68 +1,98 @@
 {strip}
 <div id="overdrive_{$record.recordId|escape}" class="result row">
-	<div class="col-xs-12 col-sm-3 col-md-3">
-		<div class="row">
-			<div class="selectTitle col-xs-2">
-				&nbsp;{* Can't renew overdrive titles*}
-			</div>
-			<div class="col-xs-10 text-center coverColumn">
-				{if $user->disableCoverArt != 1}
-					{if $record.recordId}
-						<a href="{$record.recordUrl|escape:"url"}">
-							<img src="{$record.coverUrl}" class="listResultImage img-thumbnail img-responsive" alt="{translate text='Cover Image'}"/>
-						</a>
+
+	{* Cover Column *}
+	{if $showCovers}
+		{*<div class="col-xs-4">*}
+		<div class="col-xs-3 col-sm-4 col-md-3">
+			<div class="row">
+				<div class="selectTitle hidden-xs col-sm-1">
+					&nbsp;{* Can't renew overdrive titles*}
+				</div>
+				<div class="{*coverColumn *}text-center col-xs-12 col-sm-10">
+					{if $user->disableCoverArt != 1}{*TODO: should become part of $showCovers *}
+						{if $record.coverUrl}
+							{if $record.recordId && $record.linkUrl}
+								<a href="{$record.linkUrl}" id="descriptionTrigger{$record.recordId|escape:"url"}">
+									<img src="{$record.coverUrl}" class="listResultImage img-thumbnail img-responsive" alt="{translate text='Cover Image'}">
+								</a>
+							{else} {* Cover Image but no Record-View link *}
+								<img src="{$record.coverUrl}" class="listResultImage img-thumbnail img-responsive" alt="{translate text='Cover Image'}">
+							{/if}
+						{/if}
 					{/if}
-				{/if}
+				</div>
 			</div>
 		</div>
-	</div>
-	<div class="col-xs-12 col-sm-9">
+	{else}
+		<div class="col-xs-1">
+			&nbsp;{* Can't renew overdrive titles*}
+		</div>
+	{/if}
+
+	{* Title Details Column *}
+	<div class="{if $showCovers}col-xs-9 col-sm-8 col-md-9{else}col-xs-11{/if}">
+		{* Title *}
 		<div class="row">
 			<div class="col-xs-12">
 				<span class="result-index">{$resultIndex})</span>&nbsp;
-				{if $record.recordId != -1}<a href="{$record.recordUrl}" class="result-title notranslate">{/if}{$record.title}{if $record.recordId == -1}OverDrive Record {$record.overDriveId}{/if}{if $record.recordId != -1}</a>{/if}
+				{if $record.linkUrl}
+					<a href="{$record.linkUrl}" class="result-title notranslate">
+						{if !$record.title|removeTrailingPunctuation}{translate text='Title not available'}{else}{$record.title|removeTrailingPunctuation|truncate:180:"..."|highlight}{/if}
+					</a>
+				{else}
+					<span class="result-title notranslate">
+							{if !$record.title|removeTrailingPunctuation}{translate text='Title not available'}{else}{$record.title|removeTrailingPunctuation|truncate:180:"..."|highlight}{/if}
+						</span>
+				{/if}
+{*				{if $record.recordId != -1}
+				<a href="{$record.recordUrl}" class="result-title notranslate">{/if}
+					{$record.title}{if $record.recordId == -1}OverDrive Record {$record.overDriveId}{/if}{if $record.recordId != -1}
+				</a>
+				{/if}*}
 			</div>
 		</div>
 		<div class="row">
 			<div class="resultDetails col-xs-12 col-md-9">
 				{if strlen($record.author) > 0}
 					<div class="row">
-						<div class="result-label col-md-3">{translate text='Author'}</div>
-						<div class="col-md-9 result-value">{$record.author}</div>
+						<div class="result-label col-tn-4 col-lg-3">{translate text='Author'}</div>
+						<div class="result-value col-tn-8 col-lg-9">{$record.author}</div>
 					</div>
 				{/if}
 
 				{if $showRatings && $record.groupedWorkId && $record.ratingData}
 					<div class="row">
-						<div class="result-label col-md-3">Rating&nbsp;</div>
-						<div class="col-md-9 result-value">
+						<div class="result-label col-tn-4 col-lg-3">Rating&nbsp;</div>
+						<div class="result-value col-tn-8 col-lg-9">
 							{include file="GroupedWork/title-rating.tpl" ratingClass="" id=$record.groupedWorkId ratingData=$record.ratingData showNotInterested=false}
 						</div>
 					</div>
 				{/if}
 
-				<div class="row">
-					<div class="result-label col-md-3">{translate text='Checked Out To'}</div>
-					<div class="col-md-9 result-value">
-						{$record.user}
+				{if count($user->getLinkedUsers()) > 0}
+					<div class="row">
+						<div class="result-label col-tn-4 col-lg-3">{translate text='Checked Out To'}</div>
+						<div class="result-value col-tn-8 col-lg-9">
+							{$record.user}
+						</div>
 					</div>
+				{/if}
+
+				<div class="row">
+					<div class="result-label col-tn-4 col-lg-3">{translate text='Expires'}</div>
+					<div class="result-value col-tn-8 col-lg-9">{$record.dueDate|date_format}</div>
 				</div>
 
 				<div class="row">
-					<div class="result-label col-md-3">{translate text='Expires'}</div>
-					<div class="col-md-9 result-value">{$record.dueDate|date_format}}</div>
-				</div>
-
-				<div class="row">
-					<div class="result-label col-md-3">{translate text='Download'}</div>
-
-					<div class="col-md-9 result-value">
+					<div class="result-label col-md-4 col-lg-3">{translate text='Download'}</div>
+					<div class="result-value col-md-8 col-lg-9">
 						{if $record.formatSelected}
 							You downloaded the <strong>{$record.selectedFormat.name}</strong> format of this title.
 						{else}
 							<div class="form-inline">
 								<label for="downloadFormat_{$record.overDriveId}">Select one format to download.</label>
-								<br/>
+								<br>
 								<select name="downloadFormat_{$record.overDriveId}" id="downloadFormat_{$record.overDriveId}" class="input-sm form-control">
 									<option value="-1">Select a Format</option>
 									{foreach from=$record.formats item=format}
@@ -76,7 +106,8 @@
 				</div>
 			</div>
 
-			<div class="col-xs-12 col-md-3">
+			{* Actions for Title *}
+			<div class="col-xs-9 col-sm-8 col-md-4 col-lg-3">
 				<div class="btn-group btn-group-vertical btn-block">
 					{if $record.overdriveRead}
 						<a href="#" onclick="return VuFind.OverDrive.followOverDriveDownloadLink('{$record.userId}', '{$record.overDriveId}', 'ebook-overdrive')" class="btn btn-sm btn-primary">Read&nbsp;Online</a>
@@ -90,7 +121,6 @@
 					{if $record.formatSelected && !$record.overdriveVideo}
 						<a href="#" onclick="return VuFind.OverDrive.followOverDriveDownloadLink('{$record.userId}', '{$record.overDriveId}', '{$record.selectedFormat.format}')" class="btn btn-sm btn-primary">Download&nbsp;Again</a>
 					{/if}
-
 					{if $record.earlyReturn}
 						<a href="#" onclick="return VuFind.OverDrive.returnOverDriveTitle('{$record.userId}', '{$record.overDriveId}', '{$record.transactionId}');" class="btn btn-sm btn-warning">Return&nbsp;Now</a>
 					{/if}

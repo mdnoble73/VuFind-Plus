@@ -9,7 +9,12 @@
 		<h2>
 			{*{$recordDriver->getTitle()|escape}*}{* // ever a case when the trailing punction is needed? *}
 			{$recordDriver->getTitle()|removeTrailingPunctuation|escape}
-			{if $recordDriver->getTitleSection()} {$recordDriver->getTitleSection()|escape}{/if}
+			{if $recordDriver->getTitleSection()}
+				:&nbsp;{$recordDriver->getTitleSection()|removeTrailingPunctuation|escape}
+			{/if}
+			{* if $recordDriver->getTitleStatement()}
+				<br><small>{$recordDriver->getTitleStatement()}</small>
+			{/if *}
 			{if $recordDriver->getFormats()}
 				<br><small>({implode subject=$recordDriver->getFormats() glue=", "})</small>
 			{/if}

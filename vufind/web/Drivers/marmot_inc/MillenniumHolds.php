@@ -93,7 +93,7 @@ class MillenniumHolds{
 		return $hold_result;
 	}
 
-	public function updateHold($requestId, $patronId, $type, $title){
+	public function updateHold($requestId, $patronId, $type){
 		$xnum = "x" . $_REQUEST['x'];
 		//Strip the . off the front of the bib and the last char from the bib
 		if (isset($_REQUEST['cancelId'])){
@@ -103,14 +103,14 @@ class MillenniumHolds{
 		}
 		$locationId = $_REQUEST['location'];
 		$freezeValue = isset($_REQUEST['freeze']) ? 'on' : 'off';
-		return $this->updateHoldDetailed($patronId, $type, $title, $xnum, $cancelId, $locationId, $freezeValue);
+		return $this->updateHoldDetailed($patronId, $type, $xnum, $cancelId, $locationId, $freezeValue);
 	}
 
 	/**
 	 * Update a hold that was previously placed in the system.
 	 * Can cancel the hold or update pickup locations.
 	 */
-	public function updateHoldDetailed($patron, $type, $titles, $xNum, $cancelId, $locationId='', $freezeValue='off')
+	public function updateHoldDetailed($patron, $type, $xNum, $cancelId, $locationId='', $freezeValue='off')
 	{
 		global $logger;
 
@@ -147,13 +147,8 @@ class MillenniumHolds{
 
 		$cancelValue = ($type == 'cancel' || $type == 'recall') ? 'on' : 'off';
 
-		$loadTitles = empty($titles);
-		if ($loadTitles) {
 			$holds = $this->getMyHolds($patron);
 			$combined_holds = array_merge($holds['unavailable'], $holds['available']);
-		}
-//		$logger->log("Load titles = $loadTitles", PEAR_LOG_DEBUG); // move out of foreach loop
-
 
 		$POSTVariables = array(
 			'updateholdssome' => 'YES',
@@ -166,8 +161,7 @@ class MillenniumHolds{
 				$POSTVariables['cancel' . $tmpBib . 'x' . $tmpXnum] = $cancelValue;
 			}
 			elseif ($type == 'update') {
-//				$holdForXNum = $this->getHoldByXNum($holds, $tmpXnum); //$holds isn't actually used by the function
-				$holdForXNum = $this->getHoldByXNum('', $tmpXnum); //$holds isn't actually used by the function
+				$holdForXNum = $this->getHoldByXNum($holds, $tmpXnum);
 				$canUpdate   = false;
 				if ($holdForXNum != null) {
 					if ($freezeValue == 'off') {
@@ -196,7 +190,6 @@ class MillenniumHolds{
 				}
 			}
 
-			if ($loadTitles) { // Get Title for Each Item
 				$tmp_title = '';
 				foreach ($combined_holds as $hold) {
 					if ($hold['shortId'] == $tmpBib) {
@@ -205,7 +198,6 @@ class MillenniumHolds{
 					}
 				}
 				$titles[$tmpBib] = $tmp_title;
-			}
 		} // End of foreach loop
 
 		$success = false;
@@ -309,11 +301,6 @@ class MillenniumHolds{
 		global $memCache;
 		$memCache->delete("patron_dump_{$this->driver->_getBarcode()}");
 		usleep(250); // Pause for Hold Cancels, so that sierra will have updated the canceled hold.
-
-
-		//Clear holds for the patron
-		unset($this->holds[$patron->username]); //QUESTION: keep? move to user object at least
-
 
 		// Return Results
 		$isPlural = count($xNum) > 1;
@@ -564,7 +551,7 @@ class MillenniumHolds{
 						//$logger->log('Status for item ' . $curHold['id'] . '=' . $sCols[$i], PEAR_LOG_INFO);
 					}
 					elseif (stripos($sKeys[$i],"CANCEL IF NOT FILLED BY") > -1) {
-						//$curHold['expire'] = strip_tags($scols[$i]);
+						$curHold['automaticCancellation'] = strip_tags($sCols[$i]);
 					}
 					elseif (stripos($sKeys[$i],"FREEZE") > -1) {
 						$matches = array();
@@ -573,7 +560,11 @@ class MillenniumHolds{
 							$curHold['freezeable'] = true;
 							if (strlen($matches[2]) > 0){
 								$curHold['frozen'] = true;
-								$curHold['status'] = 'Frozen';
+								if ($curHold['status'] == 'Pending'){
+									$curHold['status'] = 'Frozen';
+								}else{
+									$curHold['status'] = 'Frozen (' . $curHold['status'] . ')';
+								}
 							}
 						} elseif (preg_match('/This hold can\s?not be frozen/i', $sCols[$i], $matches)){
 							//If we detect an error Freezing the hold, save it so we can report the error to the user later.
@@ -688,7 +679,6 @@ class MillenniumHolds{
 			$holds['unavailable'] = array();
 		}
 
-		$this->holds[$patron->getBarcode()] = $holds;
 		$timer->logTime("Processed hold pagination and sorting");
 		return $holds;
 	}
@@ -955,8 +945,7 @@ class MillenniumHolds{
 	}
 
 	private function getHoldByXNum($holds, $tmpXnum) {
-		$patronHolds = reset($this->holds);
-		$unavailableHolds = $patronHolds['unavailable'];
+		$unavailableHolds = $holds['unavailable'];
 		foreach ($unavailableHolds as $hold){
 			if ($hold['xnum'] == $tmpXnum){
 				return $hold;

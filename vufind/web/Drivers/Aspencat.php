@@ -489,6 +489,7 @@ class Aspencat implements DriverInterface{
 						$homeBranchCode = $userFromDb['branchcode'];
 						$location = new Location();
 						$location->code = $homeBranchCode;
+						$location->orderBy('isMainBranch desc');
 						$location->find(1);
 						if ($location->N == 0){
 							unset($location);
@@ -692,7 +693,7 @@ class Aspencat implements DriverInterface{
 					if ($recordDriver->isValid()){
 						$historyEntry['ratingData'] = $recordDriver->getRatingData();
 						$historyEntry['permanentId'] = $recordDriver->getPermanentId();
-						$historyEntry['linkUrl'] = $recordDriver->getLinkUrl();
+						$historyEntry['linkUrl'] = $recordDriver->getGroupedWorkDriver()->getLinkUrl();
 						$historyEntry['coverUrl'] = $recordDriver->getBookcoverUrl('medium');
 						$historyEntry['format'] = $recordDriver->getFormats();
 						$historyEntry['author'] = $recordDriver->getPrimaryAuthor();
@@ -1322,7 +1323,7 @@ class Aspencat implements DriverInterface{
 		return $holds;
 	}
 
-	public function updateHold($requestId, $patronId, $type, $title){
+	public function updateHold($requestId, $patronId, $type){
 		$xnum = "x" . $_REQUEST['x'];
 		//Strip the . off the front of the bib and the last char from the bib
 		if (isset($_REQUEST['cancelId'])){
@@ -1332,15 +1333,18 @@ class Aspencat implements DriverInterface{
 		}
 		$locationId = $_REQUEST['location'];
 		$freezeValue = isset($_REQUEST['freeze']) ? 'on' : 'off';
-		return $this->updateHoldDetailed($patronId, $type, $title, $xnum, $cancelId, $locationId, $freezeValue);
+		return $this->updateHoldDetailed($patronId, $type, $xnum, $cancelId, $locationId, $freezeValue);
 	}
 
 	/**
 	 * Update a hold that was previously placed in the system.
 	 * Can cancel the hold or update pickup locations.
 	 */
-	public function updateHoldDetailed($patron, $type, $title, $xNum, $cancelId, $locationId, $freezeValue='off'){
+	public function updateHoldDetailed($patron, $type, /*$title,*/ $xNum, $cancelId, $locationId, $freezeValue='off'){
 		global $configArray;
+
+		// TODO: get actual titles for hold items
+		$titles = array();
 
 		if (!isset($xNum) || empty($xNum)){
 			if (isset($_REQUEST['waitingholdselected']) || isset($_REQUEST['availableholdselected'])){
@@ -1392,19 +1396,19 @@ class Aspencat implements DriverInterface{
 			}
 			if ($allCancelsSucceed){
 				return array(
-					'title' => $title,
+					'title' => $titles,
 					'success' => true,
 					'message' => count($holdKeys) == 1 ? 'Cancelled 1 hold successfully.' : 'Cancelled ' . count($holdKeys) . ' hold(s) successfully.');
 			}else{
 				return array(
-					'title' => $title,
+					'title' => $titles,
 					'success' => false,
 					'message' => 'Some holds could not be cancelled.  Please try again later or see your librarian.');
 			}
 		}else{
 			if ($locationId){
 				return array(
-					'title' => $title,
+					'title' => $titles,
 					'success' => false,
 					'message' => 'Changing location for a hold is not supported.');
 			}else{
@@ -1435,12 +1439,12 @@ class Aspencat implements DriverInterface{
 					}
 					if ($allLocationChangesSucceed){
 						return array(
-							'title' => $title,
+							'title' => $titles,
 							'success' => true,
 							'message' => 'Your hold(s) were frozen successfully.');
 					}else{
 						return array(
-							'title' => $title,
+							'title' => $titles,
 							'success' => false,
 							'message' => 'Some holds could not be frozen.  Please try again later or see your librarian.');
 					}
@@ -1460,12 +1464,12 @@ class Aspencat implements DriverInterface{
 					}
 					if ($allUnsuspendsSucceed){
 						return array(
-							'title' => $title,
+							'title' => $titles,
 							'success' => true,
 							'message' => 'Your hold(s) were thawed successfully.');
 					}else{
 						return array(
-							'title' => $title,
+							'title' => $titles,
 							'success' => false,
 							'message' => 'Some holds could not be thawed.  Please try again later or see your librarian.');
 					}
@@ -1729,18 +1733,18 @@ class Aspencat implements DriverInterface{
 	}
 
 	function cancelHold($patron, $recordId, $cancelId) {
-		return $this->updateHoldDetailed($patron, 'cancel', '', null, $cancelId, '', '');
+		return $this->updateHoldDetailed($patron, 'cancel', null, $cancelId, '', '');
 	}
 
 	function freezeHold($patron, $recordId, $itemToFreezeId, $dateToReactivate) {
-		return $this->updateHoldDetailed($patron, 'update', '', null, $itemToFreezeId, '', 'on');
+		return $this->updateHoldDetailed($patron, 'update', null, $itemToFreezeId, '', 'on');
 	}
 
 	function thawHold($patron, $recordId, $itemToThawId) {
-		return $this->updateHoldDetailed($patron, 'update', '', null, $itemToThawId, '', 'off');
+		return $this->updateHoldDetailed($patron, 'update', null, $itemToThawId, '', 'off');
 	}
 
 	function changeHoldPickupLocation($patron, $recordId, $itemToUpdateId, $newPickupLocation) {
-		return $this->updateHoldDetailed($patron, 'update', '', null, $itemToUpdateId, $newPickupLocation, 'off');
+		return $this->updateHoldDetailed($patron, 'update', null, $itemToUpdateId, $newPickupLocation, 'off');
 	}
 }

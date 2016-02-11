@@ -70,7 +70,7 @@
 			</div>
 
 			<div id="horizontal-menu-bar-wrapper" class="row visible-xs">
-				<div id="horizontal-menu-bar-container" class="col-xs-12 menu-bar">
+				<div id="horizontal-menu-bar-container" class="col-tn-12 col-xs-12 menu-bar">
 					{include file='horizontal-menu-bar.tpl'}
 				</div>
 			</div>
@@ -88,15 +88,19 @@
 
 					{* TODO Explore More Side Bar needs to be implemented *}
 
-					{if isset($sidebar)} {* Main Content & Sidebars *}
+					{if !empty($sidebar)} {* Main Content & Sidebars *}
 
-						{if $sideBarOnRight} {* Sidebar on the right *}
-							<div class="col-xs-12 col-sm-8 col-md-9 col-lg-9" id="main-content-with-sidebar" style="overflow-x: auto;">
-								{* If main content overflows, use a scrollbar *}
-								{include file="$module/$pageTemplate"}
-							</div>
-							<div class="col-xs-12 col-sm-4 col-md-3 col-lg-3" id="side-bar">
+						{if $sideBarOnRight}  {*Sidebar on the right *}
+							<div class="rightSidebar col-xs-12 col-sm-4 col-sm-push-8 col-md-3 col-md-push-9 col-lg-3 col-lg-push-9" id="side-bar">
 								{include file="sidebar.tpl"}
+							</div>
+							<div class="rightSidebar col-xs-12 col-sm-8 col-sm-pull-4 col-md-9 col-md-pull-3 col-lg-9 col-lg-pull-3" id="main-content-with-sidebar" style="overflow-x: auto;">
+								{* If main content overflows, use a scrollbar *}
+								{if $module}
+									{include file="$module/$pageTemplate"}
+								{else}
+									{include file="$pageTemplate"}
+								{/if}
 							</div>
 
 						{else} {* Sidebar on the left *}
@@ -104,12 +108,20 @@
 								{include file="sidebar.tpl"}
 							</div>
 							<div class="col-xs-12 col-sm-8 col-md-9 col-lg-9" id="main-content-with-sidebar">
-								{include file="$module/$pageTemplate"}
+								{if $module}
+									{include file="$module/$pageTemplate"}
+								{else}
+									{include file="$pageTemplate"}
+								{/if}
 							</div>
 						{/if}
 
 					{else} {* Main Content Only, no sidebar *}
-						{include file="$module/$pageTemplate"}
+						{if $module}
+							{include file="$module/$pageTemplate"}
+						{else}
+							{include file="$pageTemplate"}
+						{/if}
 					{/if}
 				</div>
 			</div>

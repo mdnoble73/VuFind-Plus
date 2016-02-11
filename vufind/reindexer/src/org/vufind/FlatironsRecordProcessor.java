@@ -8,9 +8,7 @@ import org.marc4j.marc.Subfield;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
+import java.util.*;
 
 /**
  * ILS Indexing with customizations specific to Flatirons Library Consortium
@@ -23,6 +21,7 @@ import java.util.List;
 public class FlatironsRecordProcessor extends IIIRecordProcessor{
 	public FlatironsRecordProcessor(GroupedWorkIndexer indexer, Connection vufindConn, Ini configIni, ResultSet indexingProfileRS, Logger logger, boolean fullReindex) {
 		super(indexer, vufindConn, configIni, indexingProfileRS, logger, fullReindex);
+		loadOrderInformationFromExport();
 	}
 
 	@Override

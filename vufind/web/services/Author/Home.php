@@ -79,6 +79,7 @@ class Author_Home extends Action
 		if (!$interface->is_cached('layout.tpl|Author' . $_GET['author'])) {
 			// Clean up author string
 			$author = $_GET['author'];
+			$author = trim(str_replace('"', '', $author));
 			if (substr($author, strlen($author) - 1, 1) == ",") {
 				$author = substr($author, 0, strlen($author) - 1);
 			}
@@ -139,12 +140,14 @@ class Author_Home extends Action
 
 		// Set Interface Variables
 		//   Those we can construct BEFORE the search is executed
-		$interface->setPageTitle('Author Search Results');
+//		$interface->setPageTitle('Author Search Results');
 		$interface->assign('sortList',   $searchObject->getSortList());
 		$interface->assign('limitList', $searchObject->getLimitList());
 		$interface->assign('viewList',  $searchObject->getViewList());
 		$interface->assign('rssLink',    $searchObject->getRSSUrl());
 		$interface->assign('filterList', $searchObject->getFilterList());
+
+		$this->setShowCovers();
 
 		// Process Search
 		/** @var PEAR_Error|null $result */
@@ -236,11 +239,7 @@ class Author_Home extends Action
 		$currentView  = $searchObject->getView();
 		$interface->assign('displayMode', $currentView);
 		$interface->assign('subpage', 'Search/list-' . $currentView .'.tpl');
-		$interface->assign('sidebar', 'Author/sidebar.tpl');
-		$interface->setTemplate('home.tpl');
-		$interface->display('layout.tpl', 'Author' . $_GET['author']);
+
+		$this->display('home.tpl', 'Author ' . $_GET['author'], 'Author/sidebar.tpl');
 	}
-
-
 }
-?>

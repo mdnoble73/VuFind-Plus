@@ -41,4 +41,13 @@ class Arlington extends Sierra{
 		$loginData['submit'] = 'submit';
 		return $loginData;
 	}
+
+	public function getSelfRegistrationFields() {
+		header('Location: http://library.arlingtonva.us/services/accounts-and-borrowing/get-a-free-library-card/');
+		die;
+	}
+
+	public function hasUsernameField(){
+		return true;
+	}
 }

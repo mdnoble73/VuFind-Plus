@@ -2,13 +2,14 @@
 <div id="home-page-search" class="row">
 	<div class="col-xs-12">
 		<div class="row">
-			<div id="home-page-search-label"> <!-- used to have class="col-md-12 text-center" -->
+			<div class="hidden-xs" id="home-page-search-label"> {*<!-- used to have class="col-md-12 text-center" -->*}
+				{* Hide Label on views <768px wide *}
 				SEARCH
 			</div>
 		</div> 
 		<form method="get" action="{$path}/Union/Search" id="searchForm" class="form-inline" onsubmit="VuFind.Searches.processSearchForm();">
 			<div class="row">
-				{*<!--<div class="col-sm-10 col-md-10 col-sm-push-1 col-md-push-1">-->*}
+				{*<!--<div class="{if $displaySidebarMenu}col-sm-12{else}col-sm-10 col-md-10 col-sm-push-1 col-md-push-1{/if}">-->*}
 					{if $searchIndex == 'Keyword' || $searchIndex == '' || $searchIndex == 'GenealogyKeyword'}
 						<input type="hidden" name="basicType" id="basicType" value="">
 						<input type="hidden" name="genealogyType" id="genealogyType" value="">
@@ -130,7 +131,7 @@
 			{* Show/Hide Search Facets & Sort Options *}
 			{if $recordCount || $sideRecommendations}
 				<div class="row text-center visible-xs">
-					<a class="btn btn-default" id="refineSearchButton" role="button" onclick="VuFind.Menu.showSearchFacets()">{translate text="Refine Search"}</a>
+					<a class="btn btn-default" id="refineSearchButton" role="button" onclick="VuFind.Menu.Mobile.showSearchFacets()">{translate text="Refine Search"}</a>
 				</div>
 			{/if}
 

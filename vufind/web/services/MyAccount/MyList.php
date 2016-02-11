@@ -43,6 +43,9 @@ class MyAccount_MyList extends MyAccount {
 		require_once ROOT_DIR . '/sys/LocalEnrichment/UserList.php';
 		$list = new UserList();
 		$list->id = $listId;
+
+		//QUESTION : When does this intentionally come into play?
+		// It looks to be a way for users to create a list with the number of their own choosing. plb 1-25-2016
 		if (!$list->find(true)){
 			//TODO: Use the first list?
 			$list = new UserList();
@@ -62,9 +65,7 @@ class MyAccount_MyList extends MyAccount {
 			if ($user && $user->hasRole('opacAdmin')){
 				//Allow the user to view
 			}else{
-				$interface->assign('sidebar', 'MyAccount/account-sidebar.tpl');
-				$interface->setTemplate('invalidList.tpl');
-				$interface->display('layout.tpl');
+				$this->display('invalidList.tpl', 'Invalid List');
 				return;
 			}
 		}
@@ -152,10 +153,7 @@ class MyAccount_MyList extends MyAccount {
 		$favList = new FavoriteHandler($list, $listUser, $userCanEdit);
 		$favList->assign();
 
-
-		$interface->assign('sidebar', 'MyAccount/account-sidebar.tpl');
-		$interface->setTemplate('list.tpl');
-		$interface->display('layout.tpl');
+		$this->display('list.tpl', isset($list->title) ? $list->title : 'My List');
 	}
 
 	function bulkAddTitles($list){

@@ -11,7 +11,7 @@
 #
 # ie :
 # git pull origin {current branch}
-# sudo crontab -u vufind /usr/local/vufind-plus/sites/arlington.production/conf/crontab_settings.txt
+# crontab < /usr/local/vufind-plus/sites/arlington.production/conf/crontab_settings.txt
 
 ###################
 # * * * * *  command to execute
@@ -47,9 +47,7 @@
 ###################
 7 */3 * * * cd /usr/local/vufind-plus/vufind/cron/; java -jar cron.jar arlington.production
 20 0 * * * cd /usr/local/vufind-plus/vufind/cron/; java -jar cron.jar arlington.production DatabaseCleanup
-# Delete old solr logs, sundays 3:14am.
-14 3 * * 0 find /usr/local/vufind-plus/sites/default/solr/jetty/logs -name "solr_log_*" -mtime +7 -delete
-14 3 * * 0 find /usr/local/vufind-plus/sites/default/solr/jetty/logs -name "solr_gc_log_*" -mtime +7 -delete
+0 20 * * * cd /usr/local/vufind-plus/vufind/cron/; java -jar cron.jar arlington.production UpdateReadingHistory
 
 ################
 # Pika Cleanup #
@@ -57,3 +55,12 @@
 # Clean Up Temporary Files
 26 * * * * cd /tmp; /bin/rm -rf CURLCOOKIE*
 27 */2 * * * cd /tmp; /bin/rm -rf epb*
+
+################
+# mySQL Backup #
+################
+# Backup all mySQL databases to /home/mysql.dump
+05 0 * * * cd /root/cron/; ./mySQLBackup
+
+# Check Apache Solr process and website that it has not stalled.
+*/3 * * * * cd /usr/local/vufind-plus/vufind/cron/; ./solrTest.sh

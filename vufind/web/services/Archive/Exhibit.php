@@ -21,12 +21,39 @@ class Archive_Exhibit extends Archive_Object{
 			$interface->assign('main_image', $configArray['Islandora']['objectUrl'] . "/{$this->pid}/datastream/BANNER/view");
 		}
 
-		//TODO: This should be the collapsible sidebar
-		//$interface->assign('sidebar', 'Record/full-record-sidebar.tpl');
 		$interface->assign('showExploreMore', true);
-		$interface->setTemplate('exhibit.tpl');
 
 		// Display Page
-		$interface->display('layout.tpl');
+		$this->display('exhibit.tpl');
+	}
+
+	function loadExploreMoreContent(){
+		global $interface;
+		/** @var SearchObject_Islandora $searchObject */
+		$searchObject = SearchObjectFactory::initSearchObject('Islandora');
+		$searchObject->init();
+		$searchObject->setDebugging(false, false);
+		$searchObject->clearHiddenFilters();
+		$searchObject->addHiddenFilter('!RELS_EXT_isViewableByRole_literal_ms', "admin");
+		$searchObject->clearFilters();
+		$searchObject->addFilter("RELS_EXT_isMemberOfCollection_uri_ms:\"info:fedora/{$this->pid}\"");
+
+		$relatedImages = array();
+		$response = $searchObject->processSearch(true, false);
+		if ($response && $response['response']['numFound'] > 0) {
+			foreach ($response['response']['docs'] as $objectInCollection){
+				/** @var IslandoraDriver $firstObjectDriver */
+				$firstObjectDriver = RecordDriverFactory::initRecordDriver($objectInCollection);
+				$relatedImages[] = array(
+						'title' => $firstObjectDriver->getTitle(),
+						'description' => "Update me",
+						'thumbnail' => $firstObjectDriver->getBookcoverUrl('medium'),
+						'link' => $firstObjectDriver->getRecordUrl(),
+				);
+			}
+
+		}
+
+		$interface->assign('relatedImages', $relatedImages);
 	}
 }

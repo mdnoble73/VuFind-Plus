@@ -9,14 +9,14 @@
 	{/if}
 	{include file="MyAccount/availableHoldsNotice.tpl"}
 
-	<h2>{translate text='My Reading History'} {if $historyActive == true}<small><a id='readingListWhatsThis' href="#" onclick="$('#readingListDisclaimer').toggle();return false;">(What's This?)</a></small>{/if}</h2>
+	<h2>{translate text='My Reading History'} {if $historyActive == true}<small><a id="readingListWhatsThis" href="#" onclick="$('#readingListDisclaimer').toggle();return false;">(What's This?)</a></small>{/if}</h2>
 
 		{include file="MyAccount/switch-linked-user-form.tpl" label="View Reading History for" actionPath="/MyAccount/ReadingHistory"}
 
 	<br>
 
 	<div class="row">
-		<div id='readingListDisclaimer' {if $historyActive == true}style='display: none'{/if} class="alert alert-info">
+		<div id="readingListDisclaimer" {if $historyActive == true}style="display: none"{/if} class="alert alert-info">
 			{* some necessary white space in notice was previously stripped out when needed. *}
 		{/strip}
 			{translate text="ReadingHistoryNotice"}
@@ -25,31 +25,35 @@
 	</div>
 
 	<form id="readingListForm" action="{$fullPath}" class="form-inline">
+
+		{* Reading History Actions *}
 		<div class="row">
 			<input type="hidden" name="page" value="{$page}">
 			<input type="hidden" name="patronId" value="{$selectedUser}">
-			<input name="readingHistoryAction" id="readingHistoryAction" value="" type="hidden">
+			<input type="hidden" name="readingHistoryAction" id="readingHistoryAction" value="">
 			<div id="readingListActionsTop" class="col-xs-12">
 				<div class="btn-group btn-group-sm">
 					{if $historyActive == true}
 						{if $transList}
-							<a class="btn btn-sm btn-warning" onclick='return VuFind.Account.ReadingHistory.deletedMarkedAction()' href="#">Delete Marked</a>
-							<a class="btn btn-sm btn-danger" onclick='return VuFind.Account.ReadingHistory.deleteAllAction()' href="#">Delete All</a>
+							<button class="btn btn-sm btn-warning" onclick="return VuFind.Account.ReadingHistory.deletedMarkedAction()">Delete Marked</button>
+							<button class="btn btn-sm btn-danger" onclick="return VuFind.Account.ReadingHistory.deleteAllAction()">Delete All</button>
 						{/if}
-						<a class="btn btn-sm btn-info" onclick="return VuFind.Account.ReadingHistory.exportListAction();">Export To Excel</a>
-						<a class="btn btn-sm btn-danger" onclick="return VuFind.Account.ReadingHistory.optOutAction()" href="#">Stop Recording My Reading History</a>
+						<button class="btn btn-sm btn-info" onclick="return VuFind.Account.ReadingHistory.exportListAction()">Export To Excel</button>
+						<button class="btn btn-sm btn-danger" onclick="return VuFind.Account.ReadingHistory.optOutAction()">Stop Recording My Reading History</button>
 					{else}
-						<a class="btn btn-sm btn-primary" onclick='return VuFind.Account.ReadingHistory.optInAction()' href="#">Start Recording My Reading History</a>
+						<button class="btn btn-sm btn-primary" onclick="return VuFind.Account.ReadingHistory.optInAction()">Start Recording My Reading History</button>
 					{/if}
 				</div>
 			</div>
 
-			<hr/>
+			<hr>
 
 			{if $transList}
+
+				{* Results Page Options *}
 				<div id="pager" class="col-xs-12">
 					<div class="row">
-						<div class="col-sm-6 form-group" id="recordsPerPage">
+						<div class="form-group col-sm-5" id="recordsPerPage">
 							<label for="pagesize" class="control-label">Records Per Page&nbsp;</label>
 							<select id="pagesize" class="pagesize form-control input-sm" onchange="VuFind.changePageSize()">
 								<option value="10"{if $recordsPerPage == 10} selected="selected"{/if}>10</option>
@@ -59,7 +63,7 @@
 								<option value="100"{if $recordsPerPage == 100} selected="selected"{/if}>100</option>
 							</select>
 						</div>
-						<div class="col-sm-6 col-lg-5 form-group" id="sortOptions">
+						<div class="form-group col-sm-5" id="sortOptions">
 							<label for="sortMethod" class="control-label">Sort By&nbsp;</label>
 							<select class="sortMethod form-control" id="sortMethod" name="accountSort" onchange="VuFind.Account.changeAccountSort($(this).val())">
 								{foreach from=$sortOptions item=sortOptionLabel key=sortOption}
@@ -67,20 +71,23 @@
 								{/foreach}
 							</select>
 						</div>
-						<div class="col-sm-12 col-lg-2 form-group" id="coverOptions">
-							<label for="hideCovers">Hide Covers <input id="hideCovers" type="checkbox" onclick="$('.listResultImage').toggle();" /></label>
+						<div class="form-group col-sm-2" id="coverOptions">
+							<label for="hideCovers" class="control-label checkbox pull-right"> Hide Covers <input id="hideCovers" type="checkbox" onclick="VuFind.Account.toggleShowCovers(!$(this).is(':checked'))" {if $showCovers == false}checked="checked"{/if}></label>
 						</div>
 					</div>
 				</div>
 
+				{* Header Row with Column Labels *}
 				<div class="row hidden-xs">
 					<div class="col-sm-1">
-						<input id='selectAll' type='checkbox' onclick="VuFind.toggleCheckboxes('.titleSelect', '#selectAll');" title="Select All/Deselect All"/>
+						<input id="selectAll" type="checkbox" onclick="VuFind.toggleCheckboxes('.titleSelect', '#selectAll');" title="Select All/Deselect All">
 					</div>
+					{if $showCovers}
 					<div class="col-sm-2">
 						{translate text='Cover'}
 					</div>
-					<div class="col-sm-7">
+					{/if}
+					<div class="{if $showCovers}col-sm-7{else}col-sm-9{/if}">
 						{translate text='Title'}
 					</div>
 					<div class="col-sm-2">
@@ -88,25 +95,44 @@
 					</div>
 				</div>
 
+				{* Reading History Entries *}
 				<div class="striped">
 					{foreach from=$transList item=record name="recordLoop" key=recordKey}
 						<div class="row">
-							<div class="col-sm-1">
-								<input type="checkbox" name="selected[{$record.recordId|escape:"url"}]" class="titleSelect" value="rsh{$record.itemindex}" id="rsh{$record.itemindex}" />
+
+							{* Cover Column *}
+							{if $showCovers}
+							<div class="col-tn-3">
+								<div class="row">
+									<div class="col-xs-12 col-sm-1">
+										<input type="checkbox" name="selected[{$record.permanentId|escape:"url"}]" class="titleSelect" value="rsh{$record.itemindex}" id="rsh{$record.itemindex}">
+									</div>
+									<div class="col-xs-12 col-sm-10">
+										{if $record.coverUrl}
+											{if $record.recordId && $record.linkUrl}
+												<a href="{$record.linkUrl}" id="descriptionTrigger{$record.recordId|escape:"url"}">
+													<img src="{$record.coverUrl}" class="listResultImage img-thumbnail img-responsive" alt="{translate text='Cover Image'}">
+												</a>
+											{else} {* Cover Image but no Record-View link *}
+												<img src="{$record.coverUrl}" class="listResultImage img-thumbnail img-responsive" alt="{translate text='Cover Image'}">
+											{/if}
+										{/if}
+									</div>
+								</div>
 							</div>
-							<div class="col-sm-2">
-								{if $record.coverUrl}
-									<a href="{$record.linkUrl}" id="descriptionTrigger{$record.recordId|escape:"url"}">
-										<img src="{$record.coverUrl}" class="listResultImage img-thumbnail img-responsive" alt="{translate text='Cover Image'}"/>
-									</a>
-								{/if}
-							</div>
-							<div class="col-sm-7">
+							{else}
+								<div class="col-tn-1">
+									<input type="checkbox" name="selected[{$record.permanentId|escape:"url"}]" class="titleSelect" value="rsh{$record.itemindex}" id="rsh{$record.itemindex}">
+								</div>
+							{/if}
+
+							{* Title Details Column *}
+							<div class="{if $showCovers}col-tn-7 col-sm-7{else}col-tn-9 col-sm-9{/if}">
 								<div class="row">
 									<div class="col-xs-12">
 										<strong>
 											{if $record.recordId && $record.linkUrl}
-												<a href="{$record.linkUrl}" class="title">{if !$record.title|removeTrailingPunctuation}{translate text='Title not available'}{else}{$record.title|removeTrailingPunctuation}{/if}</a>
+												<a href="{$record.linkUrl}" class="title">{if !$record.title|removeTrailingPunctuation}{translate text='Title not available'}{else}{$record.title|removeTrailingPunctuation|truncate:180:"..."|highlight}{/if}</a>
 											{else}
 												{if !$record.title|removeTrailingPunctuation}{translate text='Title not available'}{else}{$record.title|removeTrailingPunctuation}{/if}
 											{/if}
@@ -121,14 +147,14 @@
 
 								{if $record.author}
 									<div class="row">
-										<div class="result-label col-md-3">{translate text='Author'}</div>
-										<div class="col-md-9 result-value">
+										<div class="result-label col-tn-3">{translate text='Author'}</div>
+										<div class="result-value col-tn-9">
 											{if is_array($record.author)}
 												{foreach from=$summAuthor item=author}
-													<a href="{$path}/Author/Home?author={$author|escape:"url"}">{$author|highlight}</a>
+													<a href='{$path}/Author/Home?author="{$author|escape:"url"}"'>{$author|highlight}</a>
 												{/foreach}
 											{else}
-												<a href="{$path}/Author/Home?author={$record.author|escape:"url"}">{$record.author|highlight}</a>
+												<a href='{$path}/Author/Home?author="{$record.author|escape:"url"}"'>{$record.author|highlight}</a>
 											{/if}
 										</div>
 									</div>
@@ -136,25 +162,29 @@
 
 								{if $record.publicationDate}
 									<div class="row">
-										<div class="result-label col-md-3">{translate text='Published'}</div>
-										<div class="col-md-9 result-value">
+										<div class="result-label col-tn-3">{translate text='Published'}</div>
+										<div class="result-value col-tn-9">
 											{$record.publicationDate|escape}
 										</div>
 									</div>
 								{/if}
 
 								<div class="row">
-									<div class="result-label col-md-3">{translate text='Format'}</div>
-									<div class="col-md-9 result-value">
-										{implode subject=$record.format glue=", "}
+									<div class="result-label col-tn-3">{translate text='Format'}</div>
+									<div class="result-value col-tn-9">
+										{if is_array($record.format)}
+											{implode subject=$record.format glue=", "}
+										{else}
+											{$record.format}
+										{/if}
 									</div>
 								</div>
 
 								{if $showRatings == 1}
 									{if $record.recordId != -1 && $record.ratingData}
 										<div class="row">
-											<div class="result-label col-md-3">Rating&nbsp;</div>
-											<div class="col-md-9 result-value">
+											<div class="result-label col-tn-3">Rating&nbsp;</div>
+											<div class="result-value col-tn-9">
 												{include file="GroupedWork/title-rating.tpl" ratingClass="" id=$record.permanentId ratingData=$record.ratingData showNotInterested=false}
 											</div>
 										</div>
@@ -162,7 +192,9 @@
 								{/if}
 							</div>
 
-							<div class="col-sm-2">
+							{* Checkout Date Column *}
+							<div class="col-tn-12 {if $showCovers}col-tn-offset-3{else}col-tn-offset-1{/if} col-sm-2 col-sm-offset-0">
+								{* on xs viewports, the offset lines up the date with the title details *}
 								{if is_numeric($record.checkout)}
 									{$record.checkout|date_format}
 								{else}
@@ -177,19 +209,19 @@
 					{/foreach}
 				</div>
 
-				<hr/>
+				<hr>
 
 				<div class="row">
 					<div id="readingListActionsBottom" class="btn-group btn-group-sm">
 						{if $historyActive == true}
 							{if $transList}
-								<a class="btn btn-sm btn-warning" onclick='return VuFind.Account.ReadingHistory.deletedMarkedAction()' href="#">Delete Marked</a>
-								<a class="btn btn-sm btn-danger" onclick='return VuFind.Account.ReadingHistory.deleteAllAction()' href="#">Delete All</a>
+								<button class="btn btn-sm btn-warning" onclick="return VuFind.Account.ReadingHistory.deletedMarkedAction()">Delete Marked</button>
+								<button class="btn btn-sm btn-danger" onclick="return VuFind.Account.ReadingHistory.deleteAllAction()">Delete All</button>
 							{/if}
-							<a class="btn btn-sm btn-info" onclick="return VuFind.Account.ReadingHistory.exportListAction();">Export To Excel</a>
-							<a class="btn btn-sm btn-danger" onclick="return VuFind.Account.ReadingHistory.optOutAction()" href="#">Stop Recording My Reading History</a>
+							<button class="btn btn-sm btn-info" onclick="return VuFind.Account.ReadingHistory.exportListAction()">Export To Excel</button>
+							<button class="btn btn-sm btn-danger" onclick="return VuFind.Account.ReadingHistory.optOutAction()">Stop Recording My Reading History</button>
 						{else}
-							<a class="btn btn-sm btn-primary" onclick='return VuFind.Account.ReadingHistory.optInAction()' href="#">Start Recording My Reading History</a>
+							<button class="btn btn-sm btn-primary" onclick="return VuFind.Account.ReadingHistory.optInAction()">Start Recording My Reading History</button>
 						{/if}
 					</div>
 				</div>

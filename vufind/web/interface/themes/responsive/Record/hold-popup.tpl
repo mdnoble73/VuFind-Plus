@@ -101,8 +101,8 @@
 						 *}
 					</script>
 				{if $showHoldCancelDate == 1}
-					<div id='cancelHoldDate' class='form-group'>
-						<label class='control-label' for="canceldate">{translate text="Automatically cancel this hold if not filled by"}:</label>
+					<div id="cancelHoldDate" class="form-group">
+						<label class="control-label" for="canceldate">{translate text="Automatically cancel this hold if not filled by"}:</label>
 						<div class="input-group input-append date controls" id="cancelDatePicker">
 							{* TODO: defaultNotNeeded not implemented yet. plb 4-1-2015 *}
 							{* data-provide attribute loads the datepicker through bootstrap data api *}
@@ -112,7 +112,7 @@
 							<span class="input-group-addon"><span class="glyphicon glyphicon-calendar" onclick="$('#canceldate').focus().datepicker('show')" aria-hidden="true"></span></span>
 						</div>
 						<div class="loginFormRow">
-							<i>If this date is reached, the hold will automatically be cancelled for you.	This is a great way to handle time sensitive materials for term papers, etc. If not set, the cancel date will automatically be set 6 months from today.</i>
+							<i>{translate text="automatic_cancellation_notice"}</i>
 						</div>
 					</div>
 				{/if}
@@ -126,7 +126,7 @@
 				{/if}
 				<br>
 				<div class="form-group">
-					<label for="autologout" class="checkbox"><input type="checkbox" name="autologout" id="autologout" {if $inLibrary == true}checked="checked"{/if}> Log me out after requesting the item.</label>
+					<label for="autologout" class="checkbox"><input type="checkbox" name="autologout" id="autologout" {if $isOpac == true}checked="checked"{/if}> Log me out after requesting the item.</label>
 					<input type="hidden" name="holdType" value="hold">
 				</div>
 			</div>

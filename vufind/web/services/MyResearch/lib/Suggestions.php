@@ -105,16 +105,23 @@ class Suggestions{
 			$db = new $class($url);
 			//$db->debug = true;
 			$moreLikeTheseSuggestions = $db->getMoreLikeThese($allLikedRatedTitles, $notInterestedTitles);
-			foreach ($moreLikeTheseSuggestions['response']['docs'] as $suggestion){
-				if (!array_key_exists($suggestion['id'], $allRatedTitles) && !array_key_exists($suggestion['id'], $notInterestedTitles)){
-					$suggestions[$suggestion['id']] = array(
+			if (isset($moreLikeTheseSuggestions['response']['docs'])) {
+				foreach ($moreLikeTheseSuggestions['response']['docs'] as $suggestion) {
+					if (!array_key_exists($suggestion['id'], $allRatedTitles) && !array_key_exists($suggestion['id'], $notInterestedTitles)) {
+						$suggestions[$suggestion['id']] = array(
 							'rating' => $suggestion['rating'] - 2.5,
 							'titleInfo' => $suggestion,
 							'basedOn' => 'MetaData for all titles rated',
-					);
+						);
+					}
+					if (count($suggestions) == $maxRecommendations) {
+						break;
+					}
 				}
-				if (count($suggestions) == $maxRecommendations){
-					break;
+			} else {
+				if (isset($moreLikeTheseSuggestions['error'])) {
+					global $logger;
+					$logger->log('Error looking for Suggested Titles : '.$moreLikeTheseSuggestions['error']['msg'], PEAR_LOG_ERR);
 				}
 			}
 		}

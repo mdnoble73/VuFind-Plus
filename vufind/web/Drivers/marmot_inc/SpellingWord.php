@@ -25,7 +25,8 @@ class SpellingWord extends DB_DataObject
 		//global $logger;
 		//$logger->log("Loading spelling suggestions", PEAR_LOG_DEBUG);
 		//Get suggestions, giving a little boost to words starting with what has been typed so far.
-		$query = "SELECT word, commonality FROM spelling_words WHERE soundex = SOUNDEX('" . mysql_escape_string($word) . "') OR word like '" . mysql_escape_string($word) . "%' ORDER BY commonality, word LIMIT 10";
+		$soundex = soundex($word);
+		$query = "SELECT word, commonality FROM spelling_words WHERE soundex LIKE '{$soundex}%' OR word like '" . $this->escape($word, true) . "%' ORDER BY commonality, word LIMIT 10";
 		$this->query($query);
 		$suggestions = array();
 		while ($this->fetch()){

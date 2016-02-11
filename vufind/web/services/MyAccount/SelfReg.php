@@ -38,6 +38,7 @@ class SelfReg extends Action {
 		/** @var  CatalogConnection $catalog */
 		$catalog = CatalogFactory::getCatalogConnectionInstance();
 		$selfRegFields = $catalog->getSelfRegistrationFields();
+		// For Arlington, this function call causes a page redirect to an external web page. plb 1-15-2016
 
 		if (isset($_REQUEST['submit'])) {
 
@@ -81,7 +82,7 @@ class SelfReg extends Action {
 		if (isset($configArray['ReCaptcha']['publicKey'])) {
 //			TODO: and not inside library
 			$recaptchaPublicKey = $configArray['ReCaptcha']['publicKey'];
-			$secureConnection = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == "on"); // check that this request is using https
+			$secureConnection   = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == "on"); // check that this request is using https
 			$captchaCode        = recaptcha_get_html($recaptchaPublicKey, null, $secureConnection);
 			$interface->assign('captcha', $captchaCode);
 		}
@@ -93,9 +94,11 @@ class SelfReg extends Action {
 		$interface->assign('selfRegistrationSuccessMessage', $library->selfRegistrationSuccessMessage);
 		$interface->assign('promptForBirthDateInSelfReg', $library->promptForBirthDateInSelfReg);
 
-		$interface->setTemplate('selfReg.tpl');
-		$interface->assign('sidebar', 'MyAccount/account-sidebar.tpl');
-		$interface->display('layout.tpl');
+//		$interface->setTemplate('selfReg.tpl');
+//		$interface->assign('sidebar', 'MyAccount/account-sidebar.tpl');
+//		$interface->display('layout.tpl');
+
+		$this->display('selfReg.tpl', 'Self Registration');
 
 	}
 }

@@ -179,7 +179,7 @@ class Location extends DB_DataObject
 				array('property'=>'econtentLocationsToInclude', 'type'=>'text', 'label'=>'eContent Locations To Include', 'description'=>'A list of eContent Locations to include within the scope.', 'size'=>'40', 'hideInLists' => true,),
 				array('property'=>'boostByLocation', 'type'=>'checkbox', 'label'=>'Boost By Location', 'description'=>'Whether or not boosting of titles owned by this location should be applied', 'hideInLists' => true, 'default'=>true),
 				array('property'=>'additionalLocalBoostFactor', 'type'=>'integer', 'label'=>'Additional Local Boost Factor', 'description'=>'An additional numeric boost to apply to any locally owned and locally available titles', 'hideInLists' => true, 'default'=>1),
-				array('property' => 'publicListsToInclude', 'type'=>'enum', 'values' => array(0 => 'No Lists', '1' => 'Lists from this library', '2'=>'Lists from this location', '3' => 'All Lists'), 'label'=>'Public Lists To Include', 'description'=>'Which lists should be included in this scope'),
+				array('property' => 'publicListsToInclude', 'type'=>'enum', 'values' => array(0 => 'No Lists', '1' => 'Lists from this library', '4'=>'Lists from library list publishers Only', '2'=>'Lists from this location', '5'=>'Lists from list publishers at this location Only', '6'=>'Lists from all list publishers', '3' => 'All Lists'), 'label'=>'Public Lists To Include', 'description'=>'Which lists should be included in this scope'),
 				//array('property'=>'recordsToBlackList', 'type'=>'textarea', 'label'=>'Records to deaccession', 'description'=>'A list of records to deaccession (hide) in search results.  Enter one record per line.', 'hideInLists' => true,),
 				array('property'=>'availabilityToggleLabelSuperScope', 'type' => 'text', 'label' => 'SuperScope Toggle Label', 'description' => 'The label to show when viewing super scope i.e. Consortium Name / Entire Collection / Everything.  Does not show if superscope is not enabled.', 'default' => 'Entire Collection'),
 				array('property'=>'availabilityToggleLabelLocal', 'type' => 'text', 'label' => 'Local Collection Toggle Label', 'description' => 'The label to show when viewing the local collection i.e. Library Name / Local Collection.  Leave blank to hide the button.', 'default' => '{display name}'),
@@ -1353,14 +1353,32 @@ class Location extends DB_DataObject
 	}
 
 	private $opacStatus = null;
+
+	/**
+	 * Check whether or not the system is an opac station.
+	 * - First check to see if an opac paramter has been passed.  If so, use that information and set a cookie for future pages.
+	 * - Next check the cookie to see if we have overridden the value
+	 * - Finally check to see if we have an active location based on the IP address.  If we do, use that to determine if this is an opac station
+	 * @return bool
+	 */
 	public function getOpacStatus(){
 		if (is_null($this->opacStatus)) {
 			if (isset($_GET['opac'])) {
 				$this->opacStatus = $_GET['opac'] == 1 || strtolower($_GET['opac']) == 'true' || strtolower($_GET['opac']) == 'on';
+				if ($_GET['opac'] == '') {
+					//Clear any existing cookie
+					setcookie('opac', $this->opacStatus, time() - 1000, '/');
+				}elseif (!isset($_COOKIE['opac']) || $this->opacStatus != $_COOKIE['opac']){
+					setcookie('opac', $this->opacStatus ? '1' : '0', 0, '/');
+				}
 			} elseif (isset($_COOKIE['opac'])) {
 				$this->opacStatus = (boolean) $_COOKIE['opac'];
 			} else {
-				$this->opacStatus = false;
+				if ($this->getIPLocation()){
+					$this->opacStatus = $this->getIPLocation()->opacStatus;
+				}else{
+					$this->opacStatus = false;
+				}
 			}
 		}
 		return $this->opacStatus;

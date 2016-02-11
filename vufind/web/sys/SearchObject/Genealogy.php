@@ -599,7 +599,8 @@ class SearchObject_Genealogy extends SearchObject_Base
 	protected function getBaseUrl()
 	{
 		// Base URL is different for author searches:
-		return $this->serverUrl . '/Genealogy/Results?';
+//		return $this->serverUrl . '/Genealogy/Results?';
+		return $this->serverUrl . '/Union/Search?';
 	}
 
 	/**
@@ -1292,6 +1293,7 @@ class SearchObject_Genealogy extends SearchObject_Base
 		$params = parent::getSearchParams();
 
 		$params[] = 'genealogyType=' . $_REQUEST['genealogyType'];
+		$params[] = 'searchSource='  . $_REQUEST['searchSource'];
 
 		return $params;
 	}

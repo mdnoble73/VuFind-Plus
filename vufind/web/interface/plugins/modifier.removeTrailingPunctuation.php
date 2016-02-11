@@ -15,4 +15,3 @@ function smarty_modifier_removeTrailingPunctuation($str) {
 	$str = trim($str);
 	return $str;
 }
-?>

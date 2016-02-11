@@ -53,7 +53,7 @@
 26 * * * * cd /tmp; /bin/rm -rf CURLCOOKIE*
 27 */2 * * * cd /tmp; /bin/rm -rf epb*
 # Restart apache
-0 0-6 * * * /usr/sbin/apachectl graceful >/dev/null
+0 0-6 * * * /usr/sbin/apachectl graceful > /dev/null 2>&1
 
 ##########
 # Cron   #
@@ -67,7 +67,7 @@
 # AspenCat
 # All the default cron run does is Reading History update, do that once a day early in the morning after the index completes
 14 5 * * * cd /usr/local/vufind-plus/vufind/cron/; java -jar cron.jar aspencat.production
-44 23 * * * cd /usr/local/vufind-plus/vufind/cron/; java -jar cron.jar aspencat.production DatabaseCleanup
+15 6 * * * cd /usr/local/vufind-plus/vufind/cron/; java -jar cron.jar aspencat.production DatabaseCleanup
 # DB clean-up at end of the day, 11:44pm
 
 ###################################
@@ -77,5 +77,8 @@
 */10 * * * * /root/cron/copyCovers.sh
 1-51/10 * * * * /root/cron/copyAspencatCovers.sh
 # 10 minute gap was missed for 51-01. plb 6-9-2015
+
+# Check Apache Solr process and website that it has not stalled.
+*/3 * * * * cd /usr/local/vufind-plus/vufind/cron/; ./solrTest.sh
 
 #final end of line character needed for crontab to be read

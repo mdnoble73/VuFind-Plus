@@ -5,7 +5,7 @@
 			<p class="alert alert-success">{$message}</p>
 			{if $showDetailedHoldNoticeInformation}
 				<div class="alert alert-info">
-					Once the title arrives at your library you will
+					{translate text='Once the title arrives at your library'} you will
 					{if $profile->noticePreferenceLabel eq 'Mail' && !$treatPrintNoticesAsPhoneNotices} be mailed a notification to :
 						<blockquote class="alert-warning">
 							{if $canUpdate}<a href="/MyAccount/Profile?patronId={$profile->id}"><span class="glyphicon glyphicon-pencil"></span> {/if}

@@ -2,39 +2,106 @@
  * Created by pbrammeier on 12/16/2015.
  */
 
-// Animate Menu Side Bar
-//$("#slide").animate({width:'toggle'},350);
-
 VuFind.Menu = (function(){
 	$(function(){
 		// Page Initializations
-		VuFind.Menu.AllSideBarSelectors = VuFind.Menu.SideBarSearchSelectors + ',' + VuFind.Menu.SideBarAccountSelectors + ',' + VuFind.Menu.SideBarMenuSelectors;
+		VuFind.Menu.AllSideBarSelectors =
+				VuFind.Menu.SearchBoxSelectors + ',' +
+				VuFind.Menu.SideBarSearchSelectors + ',' +
+				VuFind.Menu.SideBarAccountSelectors + ',' +
+				VuFind.Menu.SideBarMenuSelectors;
 		// TODO: Add ExploreMoreSelectors; + ',' + VuFind.Menu.ExploreMoreSelectors
-
-		//// Highlight Selected Menu Icon
-		//$('.menu-icon').click(function(){
-		//	$('.menu-icon').removeClass('menu-icon-selected');
-		//	$(this).addClass('menu-icon-selected')
-		//});
 
 		// Set up Sticky Menus
 		VuFind.Menu.stickyMenu('#horizontal-menu-bar-container', 'sticky-menu-bar');
 		VuFind.Menu.stickyMenu('#vertical-menu-bar', 'sticky-sidebar');
 
-		// Trigger Sidebar collapse on resize from horizontal menu to vertical menu
-		//$(window).resize(function(){
-		//	console.log($(window).width(), $(this).width());
-		//
-		//});
+		var mobileMode = false;
 
 		if ($('#horizontal-menu-bar-container').is(':visible')) {
 			VuFind.Menu.hideAllFast();
-			$('#refineSearch').hide();
-
+			mobileMode = true;
 		}
+
+		// Trigger mode on resize between horizontal menu & vertical menu
+		$(window).resize(function(){
+			if (mobileMode) {
+				// Entered Sidebar Mode
+				if (!$('#horizontal-menu-bar-container').is(':visible')) { // this depends on horizontal menu always being present
+				//	console.log('Entered SideBar Mode');
+					mobileMode = false;
+
+					if ($('#vertical-menu-bar').length) { // Sidebar Menu is in use
+						//console.log('SideBar Menu is on');
+
+						// Un-select any sidebar option previously selected
+						$('.menu-bar-option').removeClass('menu-icon-selected'); // Remove from any selected
+
+						// Hide SideBar Content
+						VuFind.Menu.hideAllFast();
+
+						// Select the sidebar menu that was selected in the mobile menu, if any
+						if ($('#mobile-menu-search-icon', '#horizontal-menu-bar-container').is('.menu-icon-selected')) {
+
+							// Reset Refine Search Button
+							VuFind.Menu.Mobile.resetRefineSearch();
+
+							VuFind.Menu.SideBar.showSearch('.menu-bar-option:nth-child(1)>a')
+						}
+						else if ($('#mobile-menu-account-icon', '#horizontal-menu-bar-container').is('.menu-icon-selected')) {
+							VuFind.Menu.SideBar.showAccount('.menu-bar-option:nth-child(2)>a')
+						}
+						else if ($('#mobile-menu-menu-icon', '#horizontal-menu-bar-container').is('.menu-icon-selected')) {
+							VuFind.Menu.SideBar.showMenu('.menu-bar-option:nth-child(3)>a')
+						}
+						else if ($('#mobile-menu-explore-more-icon', '#horizontal-menu-bar-container').is('.menu-icon-selected')) {
+							VuFind.Menu.SideBar.showExploreMore('.menu-bar-option:nth-child(4)>a')
+						} else {
+							// if nothing selected, Collapse sidebar
+							if ($(VuFind.Menu.AllSideBarSelectors).filter(':visible').length == 0) {
+								VuFind.Menu.collapseSideBar();
+							}
+						}
+					} else {
+						//console.log('No Sidebar Menu. Side bar content being displayed');
+						// Show All Sidebar Stuff when Sidebar menu is not in use.
+						$(VuFind.Menu.AllSideBarSelectors).show();
+					}
+				}
+			} else {
+				// Entered Mobile Mode
+				if ($('#horizontal-menu-bar-container').is(':visible')) {
+					//console.log('Entered Mobile Mode');
+					mobileMode = true;
+
+					// Un-select any horizontal option that might have been selected previously
+					$('.menu-icon-selected', '#horizontal-menu-bar-container').removeClass('menu-icon-selected');
+
+					// Hide SideBar Content
+					VuFind.Menu.hideAllFast();
+
+					// Select the corresponding menu option if one was selected in the sidebar menu
+					if ($('.menu-bar-option:nth-child(1)', '#vertical-menu-bar').is('.menu-icon-selected')) {
+						VuFind.Menu.Mobile.showSearch('#mobile-menu-search-icon')
+					}
+					else if ($('.menu-bar-option:nth-child(2)', '#vertical-menu-bar').is('.menu-icon-selected')) {
+						VuFind.Menu.Mobile.showAccount('#mobile-menu-account-icon')
+					}
+					else if ($('.menu-bar-option:nth-child(3)', '#vertical-menu-bar').is('.menu-icon-selected')) {
+						VuFind.Menu.Mobile.showMenu('#mobile-menu-menu-icon')
+					}
+					else if ($('.menu-bar-option:nth-child(4)', '#vertical-menu-bar').is('.menu-icon-selected')) {
+						VuFind.Menu.Mobile.showExploreMore('#mobile-menu-explore-more-icon')
+					}
+				}
+			}
+		});
+
+
 	});
 	return {
-		SideBarSearchSelectors: '#home-page-search,#horizontal-search-container,#narrow-search-label,#facet-accordion,#results-sort-label,#results-sort-label+div.row,#remove-search-label,#remove-search-label+.applied-filters,#similar-authors',
+		SearchBoxSelectors:'#home-page-search',
+		SideBarSearchSelectors: '#narrow-search-label,#facet-accordion,#results-sort-label,#results-sort-label+div.row,#remove-search-label,#remove-search-label+.applied-filters,#similar-authors',
 		SideBarAccountSelectors: '#home-page-login,#home-account-links',
 		SideBarMenuSelectors: '#home-page-login,#home-page-library-section',
 		ExploreMoreSelectors: '',
@@ -69,21 +136,15 @@ VuFind.Menu = (function(){
 			})
 		},
 
-		hideAll: function(){
-			return $(VuFind.Menu.AllSideBarSelectors).filter(':visible').slideUp() // return of object is needed for $when(VuFind.Menu.hideAll()).done() calls
-		},
-
 		// This version is for hiding content without using an animation.
-		// This is important for the initial page load, putting content in the necessary state with out be distracting
+		// This is important for the initial page load, putting content in the necessary state with out being distracting
 		hideAllFast: function(){
 			return $(VuFind.Menu.AllSideBarSelectors).filter(':visible').hide() // return of object is needed for $when(VuFind.Menu.hideAll()).done() calls
 		},
 
 		collapseSideBar: function(){
-			if ($(VuFind.Menu.AllSideBarSelectors).filter(':visible').length == 0) {
-				$('#side-bar,#vertical-menu-bar-container').addClass('collapsedSidebar');
-				$('#main-content-with-sidebar').addClass('mainContentWhenSiderbarCollapsed');
-			}
+			$('#side-bar,#vertical-menu-bar-container').addClass('collapsedSidebar');
+			$('#main-content-with-sidebar').addClass('mainContentWhenSiderbarCollapsed');
 		},
 
 		openSideBar: function(){
@@ -91,70 +152,138 @@ VuFind.Menu = (function(){
 			$('#side-bar,#vertical-menu-bar-container').removeClass('collapsedSidebar');
 		},
 
-		showMenuSection: function(sectionSelector, clickedElement){
-			$.when( this.hideAll() ).done(function(){
-				var elem = $(clickedElement),
-						parent = elem.parent('.menu-bar-option'); // For Vertical Menu Bar only
-				// Vertical Menu Bar
-				if (parent.length > 0) {
-					if (parent.is('.menu-icon-selected')) {
-						parent.removeClass('menu-icon-selected');
-						VuFind.Menu.collapseSideBar()
-					} else {
-						$('.menu-bar-option').removeClass('menu-icon-selected');
-						parent.addClass('menu-icon-selected');
-						VuFind.Menu.openSideBar();
-						$(sectionSelector).slideDown()
-					}
-				}
 
-				// Horizontal Menu Bar
-				else { // un-selecting current option
-					VuFind.Menu.openSideBar();
-					if ( elem.is('.menu-icon-selected')){
-						elem.removeClass('menu-icon-selected');
-						$(sectionSelector).slideUp();
+		// Functions for the Vertical Sidebar Menu
+		SideBar: {
+			hideAll: function(){
+				return $(VuFind.Menu.AllSideBarSelectors).filter(':visible').animate({width:'toggle'},350); // slide left to right
+			},
 
-					}else { // selecting an option
-						$('.menu-icon-selected', '#horizontal-menu-bar-container').removeClass('menu-icon-selected');
-						 elem.addClass('menu-icon-selected');
-						$(sectionSelector).slideDown();
-					}
-				}
-			})
-		},
-
-		showSearch: function(clickedElement){
-			var parent = $(clickedElement).parent('.menu-bar-option'); // For Vertical Menu Bar only
-			if (parent && !parent.is('.menu-icon-selected') &&  $('#home-page-search,#narrow-search-label,#facet-accordion,#results-sort-label').length == 0) {
-				// When Sidebar is empty and we are opening the horizontal search bar, don't open the sidebar dib.
+			showMenuSection: function(sectionSelector, clickedElement){
 				$.when( this.hideAll() ).done(function(){
-					VuFind.Menu.collapseSideBar();  // close sidebar in case it is open
-					$('.menu-bar-option').removeClass('menu-icon-selected');
-					parent.addClass('menu-icon-selected');
-					$('#horizontal-search-container').slideDown()
+					var elem = $(clickedElement),
+							parent = elem.parent('.menu-bar-option'); // For Vertical Menu Bar only
+					if (parent.length > 0) {
+
+						// Un-select Menu option
+						if (parent.is('.menu-icon-selected')) {
+							parent.removeClass('menu-icon-selected');
+						}
+
+						// Select a Menu Option
+						else {
+							$('.menu-bar-option').removeClass('menu-icon-selected'); // Remove from any selected
+							parent.addClass('menu-icon-selected');
+							VuFind.Menu.openSideBar();
+							$(sectionSelector).animate({width:'toggle'},350); // slide left to right
+						}
+					}
 				})
-			} else {
-				this.showMenuSection(this.SideBarSearchSelectors, clickedElement)
+
+				// Collapse side bar when no content is visible in it
+				//   Sometimes a Selected Menu option may be empty any way (ie search menu w/ horizontal search box on home page)
+				.done(function(){
+					if ($(VuFind.Menu.AllSideBarSelectors).filter(':visible').length == 0) {
+						VuFind.Menu.collapseSideBar();
+					}
+				})
+			},
+
+			showSearch: function(clickedElement){
+				if ($('#horizontal-search-box').is(':visible')) { // horizontal search box is being used
+					this.showMenuSection(VuFind.Menu.SideBarSearchSelectors, clickedElement);
+				} else { // sidebar search box is being used
+					this.showMenuSection('#home-page-search,' + VuFind.Menu.SideBarSearchSelectors, clickedElement);
+				}
+			},
+
+			showMenu: function(clickedElement){
+				this.showMenuSection(VuFind.Menu.SideBarMenuSelectors, clickedElement)
+			},
+
+			showAccount: function(clickedElement){
+				this.showMenuSection(VuFind.Menu.SideBarAccountSelectors, clickedElement)
+			},
+
+			showExploreMore: function(clickedElement){
+				this.showMenuSection(VuFind.Menu.ExploreMoreSelectors, clickedElement)
+			},
+
+		},
+
+		// Functions for the Mobile/Horizontal Menu
+		Mobile: {
+			hideAll: function(){
+				return $(VuFind.Menu.AllSideBarSelectors).filter(':visible').slideUp() // return of object is needed for $.when(VuFind.Menu.hideAll()).done() calls
+			},
+
+			showMenuSection: function(sectionSelector, clickedElement){
+				$.when(this.hideAll() ).done(function(){
+					var elem = $(clickedElement);
+						VuFind.Menu.openSideBar();  // covers the case when view has switched from sidebar mode to mobile mode
+						if ( elem.is('.menu-icon-selected')){
+							elem.removeClass('menu-icon-selected');
+							return $(sectionSelector).slideUp() // return of object is needed for $when(VuFind.Menu.hideAll()).done() calls
+
+						}else { // selecting an option
+							$('.menu-icon-selected', '#horizontal-menu-bar-container').removeClass('menu-icon-selected');
+							elem.addClass('menu-icon-selected');
+							$(sectionSelector).slideDown()
+						}
+
+				})
+			},
+
+			showSearch: function(clickedElement){
+				this.showMenuSection('#home-page-search', clickedElement);
+				this.resetRefineSearch();
+			},
+
+			showMenu: function(clickedElement){
+				this.showMenuSection(VuFind.Menu.SideBarMenuSelectors, clickedElement)
+			},
+
+			showAccount: function(clickedElement){
+				this.showMenuSection(VuFind.Menu.SideBarAccountSelectors, clickedElement)
+			},
+
+			showExploreMore: function(clickedElement){
+				this.showMenuSection(VuFind.Menu.ExploreMoreSelectors, clickedElement)
+			},
+
+			showSearchFacets: function(){
+				//// If using the horizontal SearchBox, ensure Search menu is selected
+				//if ($('#horizontal-search-box').is(':visible') && !$('#mobile-menu-search-icon').is('.menu-icon-selected')) {
+				if (!$('#mobile-menu-search-icon').is('.menu-icon-selected')) {
+					if ($('#horizontal-search-box').is(':visible')) {
+						// always shows, so refine button can be clicked while other menus are open
+						this.showSearch('#mobile-menu-search-icon');
+					}
+					else {
+						// make selected so that sidebar mode will open correctly on resize
+						$('#mobile-menu-search-icon').addClass('menu-icon-selected')
+					}
+				}
+				var btn = $('#refineSearchButton'),
+						text = btn.text();
+				if (text == 'Refine Search') {
+					$(VuFind.Menu.SideBarSearchSelectors).slideDown();
+					btn.text('Hide Refine Search');
+				}
+				if (text == 'Hide Refine Search') {
+					$(VuFind.Menu.SideBarSearchSelectors).slideUp();
+					btn.text('Refine Search');
+				}
+
+				//btn.text( text == 'Refine Search' ? 'Hide Refine Search' : 'Refine Search' );
+				//$('#refineSearch,'+VuFind.Menu.SideBarSearchSelectors).toggle();
+			},
+
+			resetRefineSearch: function(){
+				$(VuFind.Menu.SideBarSearchSelectors).hide();
+				$('#refineSearchButton').text('Refine Search');
 			}
-		},
 
-		showMenu: function(clickedElement){
-			this.showMenuSection(this.SideBarMenuSelectors, clickedElement)
-		},
-
-		showAccount: function(clickedElement){
-			this.showMenuSection(this.SideBarAccountSelectors, clickedElement)
-		},
-
-		showExploreMore: function(clickedElement){
-			this.showMenuSection(this.ExploreMoreSelectors, clickedElement)
-		},
-
-		showSearchFacets: function(){
-			$('#refineSearch').toggle();
-			var btn = $('#refineSearchButton');
-			btn.text( btn.text() == 'Refine Search' ? 'Hide Refine Search' : 'Refine Search' );
 		}
 	}
 }(VuFind.Menu || {}));

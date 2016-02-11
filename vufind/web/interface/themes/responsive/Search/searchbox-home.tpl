@@ -2,23 +2,23 @@
 <div id="home-page-search" class="row"{if $displaySidebarMenu} style="display: none"{/if}>
 	<div class="col-xs-12">
 		<div class="row">
-			<div class="col-md-12 text-center" id="home-page-search-label">
+			<div class="hidden-xs col-md-12 text-center" id="home-page-search-label">
 				SEARCH <span class="glyphicon glyphicon-search"></span>
 			</div>
 		</div>
 		<form method="get" action="{$path}/Union/Search" id="searchForm" class="form-inline" onsubmit="VuFind.Searches.processSearchForm();">
 			<div class="row">
-				<div class="col-sm-10 col-md-10 col-sm-push-1 col-md-push-1">
+				<div class="{if $displaySidebarMenu}col-sm-12{else}col-sm-10 col-md-10 col-sm-push-1 col-md-push-1{/if}">
 					{if $searchIndex == 'Keyword' || $searchIndex == '' || $searchIndex == 'GenealogyKeyword'}
 						<input type="hidden" name="basicType" id="basicType" value="">
 						<input type="hidden" name="genealogyType" id="genealogyType" value="">
 					{/if}
 					<input type="hidden" name="view" id="view" value="{$displayMode}">
-{*
-					{if $displayMode}
-					<input type="hidden" name="view" id="view" value="{$displayMode}">
+
+					{if isset($showCovers)}
+					<input type="hidden" name="showCovers"{* id="showCovers"*} value="{if $showCovers}on{else}off{/if}">
 					{/if}
-*}
+
 					<fieldset>
 						<div class="input-group input-group-sm">
 							<div class="input-group-sm">
@@ -125,12 +125,47 @@
 					{/if}
 				</div>
 			</div>
+
+			<div class="row">
+
+				{if $showAdvancedSearchbox || $searchType == 'advanced' || $filterList}
+					<div class="{if $recordCount || $sideRecommendations}col-tn-6 {/if}col-sm-12 text-center">
+						{* In Col-sm and above, display each of these as it's own row; In col-xs & below display all items within a single row *}
+
+						{* Keep Filters Switch *}
+						{if $filterList}
+							<div class="row">
+								<label for="keepFiltersSwitch" id="keepFiltersSwitchLabel"><input id="keepFiltersSwitch" type="checkbox" onclick="VuFind.Searches.filterAll(this);"> Keep Applied Filters</label>
+							</div>
+						{/if}
+
+						{* Advanced Search Links *}
+						{if $searchType == 'advanced'}
+							<a id="advancedSearchLink" href="{$path}/Search/Advanced">
+								{translate text='Edit This Advanced Search'}
+							</a>
+						{elseif $showAdvancedSearchbox}
+							<a id="advancedSearchLink" href="{$path}/Search/Advanced">{translate text='Advanced Search'}</a>
+						{/if}
+
+					</div>
+				{/if}
+
+				{* Show/Hide Search Facets & Sort Options *}
+				{if $recordCount || $sideRecommendations}
+					<div class="{if $showAdvancedSearchbox || $searchType == 'advanced'}col-tn-6{else}col-tn-12{/if} text-center visible-xs">
+						<a class="btn btn-default" id="refineSearchButton" role="button" onclick="VuFind.Menu.Mobile.showSearchFacets()">{translate text="Refine Search"}</a>
+					</div>
+				{/if}
+
+			</div>
+
+{* Original *}<!--
 			<div class="row text-center">
 				{if $filterList}
 					<label for="keepFiltersSwitch" id="keepFiltersSwitchLabel"><input id="keepFiltersSwitch" type="checkbox" onclick="VuFind.Searches.filterAll(this);"> Keep Applied Filters</label>
 				{/if}
 			</div>
-
 			{* Return to Advanced Search Link *}
 			{if $searchType == 'advanced'}
 				<div class="row text-center">
@@ -145,9 +180,9 @@
 			{* Show/Hide Search Facets & Sort Options *}
 			{if $recordCount || $sideRecommendations}
 				<div class="row text-center visible-xs">
-					<a class="btn btn-default" id="refineSearchButton" role="button" onclick="VuFind.Menu.showSearchFacets()">{translate text="Refine Search"}</a>
+					<a class="btn btn-default" id="refineSearchButton" role="button" onclick="VuFind.Menu.Mobile.showSearchFacets()">{translate text="Refine Search"}</a>
 				</div>
-			{/if}
+			{/if}-->
 
 			{if $filterList}
 				{* Data for searching within existing results *}

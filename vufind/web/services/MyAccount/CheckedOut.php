@@ -11,9 +11,10 @@
 require_once ROOT_DIR . '/services/MyAccount/MyAccount.php';
 class MyAccount_CheckedOut extends MyAccount{
 	function launch(){
-		global $configArray;
-		global $interface;
-		global $user;
+		global $configArray,
+		       $interface,
+		       $library,
+		       $user;
 
 		$allCheckedOut = array();
 		if ($configArray['Catalog']['offline']){
@@ -23,7 +24,7 @@ class MyAccount_CheckedOut extends MyAccount{
 
 			//Determine which columns to show
 			$ils = $configArray['Catalog']['ils'];
-			$showOut = ($ils == 'Horizon' );
+			$showOut = ($ils == 'Horizon');
 			$showRenewed = ($ils == 'Horizon' || $ils == 'Millennium'  || $ils == 'Sierra' || $ils == 'Koha');
 			$showWaitList = $ils == 'Horizon';
 
@@ -49,8 +50,10 @@ class MyAccount_CheckedOut extends MyAccount{
 			$selectedSortOption = isset($_REQUEST['accountSort']) ? $_REQUEST['accountSort'] : 'dueDate';
 			$interface->assign('defaultSortOption', $selectedSortOption);
 
-			$libraryHoursMessage = Location::getLibraryHoursMessage($user->homeLocationId);
-			$interface->assign('libraryHoursMessage', $libraryHoursMessage);
+			if ($library->showLibraryHoursNoticeOnAccountPages) {
+				$libraryHoursMessage = Location::getLibraryHoursMessage($user->homeLocationId);
+				$interface->assign('libraryHoursMessage', $libraryHoursMessage);
+			}
 
 			if ($user){
 				// Get My Transactions

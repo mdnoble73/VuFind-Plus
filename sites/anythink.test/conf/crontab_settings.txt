@@ -38,3 +38,5 @@
 # Skip doing updates from 1-3 though since we are doing a full reindex
 7-59/15 0,3-23 * * * cd /usr/local/vufind-plus/vufind/reindexer; nice -n -5 java -jar reindexer.jar anythink.test
 
+# Check Apache Solr process and website that it has not stalled.
+*/3 * * * * cd /usr/local/vufind-plus/vufind/cron/; ./solrTest.sh

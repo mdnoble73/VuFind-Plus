@@ -20,6 +20,7 @@ class User extends DB_DataObject
 	public $lastname;                        // string(50)  not_null
 	public $email;                           // string(250)  not_null
 	public $phone;                           // string(30)
+	public $alt_username;                    // An alternate username used by patrons to login.
 	public $cat_username;                    // string(50)
 	public $cat_password;                    // string(50)
 	public $patronType;
@@ -241,9 +242,9 @@ class User extends DB_DataObject
 		global $configArray;
 		//TODO: Check the login configuration for the driver
 		if ($configArray['Catalog']['barcodeProperty'] == 'cat_username'){
-			return $this->cat_username;
+			return trim($this->cat_username);
 		}else{
-			return $this->cat_password;
+			return trim($this->cat_password);
 		}
 	}
 
@@ -755,12 +756,22 @@ class User extends DB_DataObject
 			}
 		}
 
+		//Sort Available Holds by Expiration Date (then title/sort title)
+		$holdSort = function ($a, $b, $indexToSortBy='sortTitle') {
+			if ($a['expire'] > $b['expire']){
+				return 1;
+			}elseif ($a['expire'] < $b['expire']){
+				return -1;
+			}else if ($a['expire'] == $b['expire']){
+				return strcasecmp(isset($a[$indexToSortBy]) ? $a[$indexToSortBy] : $a['title'], isset($b[$indexToSortBy]) ? $b[$indexToSortBy] : $b['title']);
+			}
+		};
+		uasort($allHolds['available'], $holdSort);
+
 		// Sort Pending Holds by Sort Title ( uses title if the sort title is not present )
 		$holdSort = function ($a, $b, $indexToSortBy='sortTitle') {
 			return strcasecmp(isset($a[$indexToSortBy]) ? $a[$indexToSortBy] : $a['title'], isset($b[$indexToSortBy]) ? $b[$indexToSortBy] : $b['title']);
 		};
-
-		uasort($allHolds['available'], $holdSort);
 		uasort($allHolds['unavailable'], $holdSort);
 		return $allHolds;
 	}
@@ -977,6 +988,14 @@ class User extends DB_DataObject
 		return $result;
 	}
 
+//		function changeHoldPickUpLocation($recordId, $itemToUpdateId, $newPickupLocation){
+			//$recordId is not used to update change hold pick up location in driver
+		function changeHoldPickUpLocation($itemToUpdateId, $newPickupLocation){
+		$result = $this->getCatalogDriver()->changeHoldPickupLocation($this, null, $itemToUpdateId, $newPickupLocation);
+		$this->clearCache();
+		return $result;
+	}
+
 	function freezeHold($recordId, $holdId, $reactivationDate){
 		$result = $this->getCatalogDriver()->freezeHold($this, $recordId, $holdId, $reactivationDate);
 		$this->clearCache();
@@ -1100,5 +1119,9 @@ class User extends DB_DataObject
 	function importListsFromIls(){
 		$result = $this->getCatalogDriver()->importListsFromIls($this);
 		return $result;
+	}
+
+	public function getShowUsernameField() {
+		return $this->getCatalogDriver()->getShowUsernameField();
 	}
 }

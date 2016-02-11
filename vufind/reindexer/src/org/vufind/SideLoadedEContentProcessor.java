@@ -1,7 +1,6 @@
 package org.vufind;
 
 import org.apache.log4j.Logger;
-import org.apache.log4j.pattern.IntegerPatternConverter;
 import org.ini4j.Ini;
 import org.marc4j.marc.Record;
 
@@ -46,16 +45,24 @@ public class SideLoadedEContentProcessor extends IlsRecordProcessor{
 			allRelatedRecords.add(recordInfo);
 
 			//Do updates based on the overall bib (shared regardless of scoping)
-			updateGroupedWorkSolrDataBasedOnStandardMarcData(groupedWork, record, recordInfo.getRelatedItems(), identifier);
+			String primaryFormat = null;
+			for (RecordInfo ilsRecord : allRelatedRecords) {
+				primaryFormat = ilsRecord.getPrimaryFormat();
+				if (primaryFormat != null){
+					break;
+				}
+			}
+			if (primaryFormat == null) primaryFormat = "Unknown";
+			updateGroupedWorkSolrDataBasedOnStandardMarcData(groupedWork, record, recordInfo.getRelatedItems(), identifier, primaryFormat);
 
 			//Special processing for ILS Records
 			String fullDescription = Util.getCRSeparatedString(getFieldList(record, "520a"));
 			for (RecordInfo ilsRecord : allRelatedRecords) {
-				String primaryFormat = ilsRecord.getPrimaryFormat();
-				if (primaryFormat == null){
-					primaryFormat = "Unknown";
+				String primaryFormatForRecord = ilsRecord.getPrimaryFormat();
+				if (primaryFormatForRecord == null){
+					primaryFormatForRecord = "Unknown";
 				}
-				groupedWork.addDescription(fullDescription, primaryFormat);
+				groupedWork.addDescription(fullDescription, primaryFormatForRecord);
 			}
 			loadEditions(groupedWork, record, allRelatedRecords);
 			loadPhysicalDescription(groupedWork, record, allRelatedRecords);
@@ -159,7 +166,7 @@ public class SideLoadedEContentProcessor extends IlsRecordProcessor{
 					econtentItem.setFormat("eBook");
 					econtentItem.setFormatCategory("Books");
 					econtentRecord.setFormatBoost(10);
-				} else if (format.equalsIgnoreCase("SoundRecording") || format.equalsIgnoreCase("SoundDisc")) {
+				} else if (format.equalsIgnoreCase("SoundRecording") || format.equalsIgnoreCase("SoundDisc") || format.equalsIgnoreCase("Playaway")) {
 					econtentItem.setFormat("eAudiobook");
 					econtentItem.setFormatCategory("Audio Books");
 					econtentRecord.setFormatBoost(8);

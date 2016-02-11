@@ -8,6 +8,7 @@
 @icon-font-path: '/fonts/';
 
 @import "bootstrap/less/bootstrap.less";
+@import "bootstrap.inline-responsive.less";
 
 //
 //  Basic Style overrides
@@ -102,14 +103,33 @@ body {
 .panel-title{
   font-size: 14px;
 }
-
+// Modals
 .modal {
-  position: fixed;
+  //position: fixed; // In modals.less
   left: 50%;
   width: 80%;
   margin-left: -40%;
+  overflow-y: auto;
+
+  @media(max-width: @screen-xs-max) {
+    width: 98%;
+    margin-left: -50%;
+  }
 }
 
+.modal-dialog {
+  max-width: 100%; // constrain content to the modal box
+}
+.modal-buttons{
+  margin-left: 3px;
+  margin-right: 3px;
+}
+ // top-right close button
+.modal-header .close {
+  margin-top: -10px;
+  font-size: 40px;
+  opacity: .4;
+}
 .btn:active, .btn.active{
   font-weight: bold;
 }
@@ -192,6 +212,15 @@ div.striped {
   > div:nth-child(odd),
   > div:nth-child(odd) {
     background-color: @table-bg-accent;
+  }
+}
+
+// Used on Checked Out Page
+.bg-overdue {
+  background-color: @state-danger-bg !important; // important is needed to override .striped on checked out page
+  a&:hover,
+  a&:focus {
+    background-color: darken(@state-danger-bg, 10%);
   }
 }
 

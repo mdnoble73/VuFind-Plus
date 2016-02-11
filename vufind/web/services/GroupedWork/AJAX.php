@@ -54,6 +54,47 @@ class GroupedWork_AJAX {
 		return json_encode($result);
 	}
 
+	function forceRegrouping(){
+		require_once ROOT_DIR . '/RecordDrivers/GroupedWorkDriver.php';
+		require_once ROOT_DIR . '/sys/Grouping/GroupedWork.php';
+		require_once ROOT_DIR . '/sys/Grouping/GroupedWorkPrimaryIdentifier.php';
+		require_once ROOT_DIR . '/sys/Indexing/IlsMarcChecksum.php';
+		require_once ROOT_DIR . '/sys/OverDrive/OverDriveAPIProduct.php';
+		$id = $_REQUEST['id'];
+		$groupedWork = new GroupedWork();
+		$groupedWork->permanent_id = $id;
+		if ($groupedWork->find(true)){
+			$groupedWork->date_updated = null;
+			$groupedWorkPrimaryIdentifier = new GroupedWorkPrimaryIdentifier();
+			$groupedWorkPrimaryIdentifier->grouped_work_id = $groupedWork->id;
+			$groupedWorkPrimaryIdentifier->find();
+			//Get a list of all primary identifiers and mark the checksum as null.
+			while ($groupedWorkPrimaryIdentifier->fetch()){
+				if ($groupedWorkPrimaryIdentifier->type == 'overdrive'){
+					//For OverDrive titles, just need to set dateUpdated to now.
+					$overDriveProduct = new OverDriveAPIProduct();
+					$overDriveProduct->overdriveId = $groupedWorkPrimaryIdentifier->identifier;
+					if ($overDriveProduct->find(true)){
+						$overDriveProduct->dateUpdated = time();
+						$overDriveProduct->update();
+					}
+				}else{
+					//Mark the checksum as null.
+					$ilsMarcChecksum = new IlsMarcChecksum();
+					$ilsMarcChecksum->ilsId = $groupedWorkPrimaryIdentifier->identifier;
+					$ilsMarcChecksum->source = $groupedWorkPrimaryIdentifier->type;
+					if ($ilsMarcChecksum->find(true)){
+						$ilsMarcChecksum->checksum = 0;
+						$ilsMarcChecksum->update();
+					}
+				}
+			}
+			return json_encode(array('success' => true, 'message' => 'Marked ' . $groupedWorkPrimaryIdentifier->N . ' titles  for regrouping.'));
+		}else{
+			return json_encode(array('success' => false, 'message' => 'Unable to mark the title for regrouping. Could not find the title.'));
+		}
+	}
+
 	function forceReindex(){
 		require_once ROOT_DIR . '/RecordDrivers/GroupedWorkDriver.php';
 		require_once ROOT_DIR . '/sys/Grouping/GroupedWork.php';
@@ -61,6 +102,9 @@ class GroupedWork_AJAX {
 		$groupedWork = new GroupedWork();
 		$groupedWork->permanent_id = $id;
 		if ($groupedWork->find(true)){
+			if ($groupedWork->date_updated == null){
+				return json_encode(array('success' => true, 'message' => 'This title was already marked to be indexed again next time the index is run.'));
+			}
 			$groupedWork->date_updated = null;
 			$numRows = $groupedWork->query("UPDATE grouped_work set date_updated = null where id = " . $groupedWork->id);
 			if ($numRows == 1){
@@ -886,7 +930,7 @@ class GroupedWork_AJAX {
 
 		$searchTerms = array(
 				array(
-						'lookfor' => $record['title'],
+						'lookfor' => $record['title_short'],
 						'index' => 'Title'
 				),
 		);
@@ -936,4 +980,4 @@ class GroupedWork_AJAX {
 
 		return json_encode(array('success' => true, 'message' => 'Covers have been reloaded.  You may need to refresh the page to clear your local cache.'));
 	}
-} 
+}
