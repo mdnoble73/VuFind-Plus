@@ -223,7 +223,7 @@ TitleScroller.prototype.activateCurrentTitle = function() {
 			scrollerBody = $('#' + this.scrollerId + " .scrollerBodyContainer .scrollerBody"),
 			scrollerTitleId = "#scrollerTitle" + this.scrollerShortName + currentScrollerIndex;
 
-	$("#tooltip").hide(); 	//Make sure to clear the current tooltip if any
+	$("#tooltip").hide();  //Make sure to clear the current tooltip if any
 
 	// Update the actual display
 	if (this.style == 'horizontal'){
@@ -236,7 +236,7 @@ TitleScroller.prototype.activateCurrentTitle = function() {
 						containerWidth = $('#' + this.scrollerId + " .scrollerBodyContainer").width(),
 						// center the book in the container
 						leftPosition = -((widthItemsLeft + widthCurrent / 2) - (containerWidth / 2));
-				scrollerBody.animate( {
+				scrollerBody.animate({
 					left : leftPosition + "px"
 				}, 400, function() {
 					for ( var i in scrollerTitles) {
