@@ -1,5 +1,5 @@
 body {
-  color: #6b6b6b;
+  color: #6B6B6B;
 }
 #content-container {
   padding: 0;
@@ -34,7 +34,7 @@ hr.menu {
 .breadcrumb > li + li:before {
   content: "";
   padding: 0 5px;
-  color: #cccccc;
+  color: #ccc;
 }
 #system-message-header {
   background-color: #f2f2f2;
@@ -138,7 +138,7 @@ hr.menu {
   }
 }
 .menu-bar {
-  color: #ffffff;
+  color: #FFF;
   background-color: #00a4e3;
 }
 #horizontal-menu-bar-container {
@@ -183,7 +183,7 @@ hr.menu {
   height: 2000px;
   height: 100vh;
   background-color: #00a4e3;
-  color: #ffffff;
+  color: #FFF;
   padding-left: 0;
   padding-right: 0;
 }
@@ -195,7 +195,7 @@ hr.menu {
 }
 #vertical-menu-bar .menu-bar-option.menu-icon-selected {
   background-color: #80d2f1;
-  color: #ffffff;
+  color: #FFF;
 }
 #vertical-menu-bar .menu-icon {
   padding: 5px;
@@ -207,20 +207,18 @@ hr.menu {
 #vertical-menu-bar .menu-icon:hover,
 #vertical-menu-bar .menu-icon:focus {
   text-decoration: none;
-  color: #ffffff;
+  color: #FFF;
   outline: none;
 }
 #vertical-menu-bar .menu-icon .menu-bar-label {
-  color: #ffffff;
+  color: #FFF;
   font-weight: bold;
   text-transform: uppercase;
   white-space: nowrap;
   position: absolute;
   -webkit-transform: rotate(-90deg) translateX(-100%);
-      -ms-transform: rotate(-90deg) translateX(-100%);
           transform: rotate(-90deg) translateX(-100%);
   -webkit-transform-origin: 0 0;
-      -ms-transform-origin: 0 0;
           transform-origin: 0 0;
   margin-top: 10px;
   margin-left: 10px;
