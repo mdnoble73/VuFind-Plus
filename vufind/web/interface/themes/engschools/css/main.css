@@ -10144,10 +10144,7 @@ a.browse-thumbnail.active {
 }
 .exploreMoreBar {
   border: solid 3px #00a4e3;
-  margin-bottom: 20px;
-  margin-top: 20px;
-  padding-top: 0;
-  padding-bottom: 0;
+  margin: 10px 5px 15px;
 }
 .exploreMoreBar .exploreMoreBarLabel {
   color: #FFF;
@@ -10159,6 +10156,7 @@ a.browse-thumbnail.active {
 .exploreMoreBar .label-left {
   float: left;
   width: 40px;
+  min-height: 167px;
   color: #FFF;
 }
 .exploreMoreBar .label-left,
@@ -10177,6 +10175,10 @@ a.browse-thumbnail.active {
   padding-left: 5px;
   line-height: 40px;
 }
+.exploreMoreBar .label-left + .exploreMoreContainer {
+  padding-left: 40px;
+  margin: 16px auto;
+}
 .exploreMoreBar .label-top {
   color: #FFF;
   width: 100%;
@@ -10191,21 +10193,40 @@ a.browse-thumbnail.active {
   display: inline-block;
 }
 .exploreMoreBar .exploreMoreItemsContainer {
-  padding-top: 10px;
-  padding-bottom: 10px;
-  overflow-y: auto;
   white-space: nowrap;
 }
+.exploreMoreBar .jcarousel-wrapper {
+  margin: 5px auto;
+}
+.exploreMoreBar .jcarousel-control-prev,
+.exploreMoreBar .jcarousel-control-next {
+  height: 100%;
+  background: #fff;
+  color: #00a4e3;
+  z-index: 2;
+}
+.exploreMoreBar .jcarousel-control-prev:focus,
+.exploreMoreBar .jcarousel-control-next:focus {
+  outline: none;
+}
+.exploreMoreBar .jcarousel-control-prev .glyphicon,
+.exploreMoreBar .jcarousel-control-next .glyphicon {
+  top: 20px;
+}
+.exploreMoreBar .jcarousel-control-prev {
+  left: 2px;
+}
+.exploreMoreBar .jcarousel-control-next {
+  right: 2px;
+}
 .exploreMoreBar .explore-more-option {
-  display: inline-block;
+  display: initial;
   padding-left: 10px;
   padding-right: 10px;
+  height: 100%;
 }
 .exploreMoreBar .explore-more-option .thumbnail {
   margin-bottom: 0;
-}
-.exploreMoreBar .explore-more-option .thumbnail img {
-  max-height: 92px;
 }
 .exploreMoreBar .explore-more-option .thumbnail a img {
   max-height: 92px;
@@ -10214,6 +10235,7 @@ a.browse-thumbnail.active {
   margin-top: 4px;
   margin-bottom: 4px;
   font-weight: 100;
+  overflow-x: hidden;
 }
 .openseadragon {
   display: block;
