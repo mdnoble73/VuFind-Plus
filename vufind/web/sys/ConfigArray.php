@@ -242,7 +242,13 @@ function readConfig()
 	//Don't try to preserve SSL since the combination of proxy and SSL does not work nicely.
 	//i.e. https://mesa.marmot.org is proxied to https://mesa.opac.marmot.org which does not have
 	//a valid SSL cert
-	$mainArray['Site']['url'] = "http://" . $serverUrl;
+
+	//We no longer are doing proxies as described above so we can preserve SSL now.
+	if (isset($_SERVER['HTTPS'])){
+		$mainArray['Site']['url'] = "https://" . $serverUrl;
+	}else{
+		$mainArray['Site']['url'] = "http://" . $serverUrl;
+	}
 
 	return $mainArray;
 }
