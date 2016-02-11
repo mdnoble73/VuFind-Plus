@@ -46,6 +46,7 @@ class RecordDriverFactory {
 			//Get rid of islandora namespace information
 			$recordType = str_replace('info:fedora/islandora:', '', $recordType);
 			$recordType = str_replace('sp_', '', $recordType);
+			$recordType = str_replace('sp-', '', $recordType);
 			$recordType = str_replace('_cmodel', '', $recordType);
 			$recordType = str_replace('CModel', '', $recordType);
 			$driverNameParts = explode('_', $recordType);

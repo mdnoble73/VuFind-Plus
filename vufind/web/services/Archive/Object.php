@@ -16,6 +16,10 @@ abstract class Archive_Object extends Action{
 	//protected $dcData;
 	protected $modsData;
 	protected $relsExtData;
+	protected $relatedPeople;
+	protected $relatedPlaces;
+	protected $relatedEvents;
+	protected $formattedSubjects;
 
 	/**
 	 * @param string $mainContentTemplate  Name of the SMARTY template file for the main content of the Full Record View Pages
@@ -68,21 +72,17 @@ abstract class Archive_Object extends Action{
 		//Extract Subjects
 		$formattedSubjects = array();
 		foreach ($this->modsData->subject as $subjects){
-			$subject = '';
-			$subjectLink = $configArray['Site']['path'] . '/Archive/Results?lookfor=';
-			foreach ($subjects->topic as $subjectPart){
-				if (strlen($subject) > 0){
-					$subject .= ' -- ';
-				}
-				$subject .= $subjectPart;
-				$subjectLink .= '&filter[]=mods_subject_topic_ms:"' . $subjectPart . '"';
-			}
 
-			$formattedSubjects[] = array(
-					'link' => $subjectLink,
-					'label' => $subject
-			);
+			foreach ($subjects->topic as $subjectPart){
+				$subjectLink = $configArray['Site']['path'] . '/Archive/Results?lookfor=';
+				$subjectLink .= '&filter[]=mods_subject_topic_ms:"' . $subjectPart . '"';
+				$formattedSubjects[] = array(
+						'link' => $subjectLink,
+						'label' => $subjectPart
+				);
+			}
 		}
+		$this->formattedSubjects = $formattedSubjects;
 		$interface->assign('subjects', $formattedSubjects);
 
 		$rightsStatements = array();
@@ -98,38 +98,40 @@ abstract class Archive_Object extends Action{
 		$marmotExtension = $this->modsData->extension->children('http://marmot.org/local_mods_extension');
 		$interface->assign('marmotExtension', $marmotExtension);
 
-		$relatedPeople = array();
-		$relatedPlaces = array();
-		$relatedEvents = array();
+		$this->relatedPeople = array();
+		$this->relatedPlaces = array();
+		$this->relatedEvents = array();
 
 		$entities = $marmotExtension->xpath('/marmotLocal/relatedEntity');
 		/** @var SimpleXMLElement $entity */
-		foreach ($marmotExtension->marmotLocal->relatedEntity as $entity){
-			$entityType = '';
-			foreach ($entity->attributes() as $name => $value){
-				if ($name == 'type'){
-					$entityType = $value;
-					break;
+		if (count($marmotExtension) > 0 && count($marmotExtension->marmotLocal) > 0){
+			foreach ($marmotExtension->marmotLocal->relatedEntity as $entity){
+				$entityType = '';
+				foreach ($entity->attributes() as $name => $value){
+					if ($name == 'type'){
+						$entityType = $value;
+						break;
+					}
+				}
+				$entityInfo = array(
+						'pid' => $entity->entityPid,
+						'label' => $entity->entityTitle
+				);
+				if ($entityType == 'person'){
+					$entityInfo['link']= '/Archive/' . $entity->entityPid . '/Person';
+					$this->relatedPeople[] = $entityInfo;
+				}elseif ($entityType == 'place'){
+					$entityInfo['link']= '/Archive/' . $entity->entityPid . '/Place';
+					$this->relatedPlaces[] = $entityInfo;
+				}elseif ($entityType == 'event'){
+					$entityInfo['link']= '/Archive/' . $entity->entityPid . '/Event';
+					$this->relatedEvents[] = $entityInfo;
 				}
 			}
-			$entityInfo = array(
-					'pid' => $entity->entityPid,
-					'label' => $entity->entityTitle
-			);
-			if ($entityType == 'person'){
-				$entityInfo['link']= '/Archive/' . $entity->entityPid . '/Person';
-				$relatedPeople[] = $entityInfo;
-			}elseif ($entityType == 'place'){
-				$entityInfo['link']= '/Archive/' . $entity->entityPid . '/Place';
-				$relatedPlaces[] = $entityInfo;
-			}elseif ($entityType == 'event'){
-				$entityInfo['link']= '/Archive/' . $entity->entityPid . '/Event';
-				$relatedEvents[] = $entityInfo;
-			}
+			$interface->assign('relatedPeople', $this->relatedPeople);
+			$interface->assign('relatedPlaces', $this->relatedPlaces);
+			$interface->assign('relatedEvents', $this->relatedEvents);
 		}
-		$interface->assign('relatedPeople', $relatedPeople);
-		$interface->assign('relatedPlaces', $relatedPlaces);
-		$interface->assign('relatedEvents', $relatedEvents);
 
 		//Load the RELS-EXT data stream
 		/*$relsExtStream = $this->archiveObject->getDatastream('RELS-EXT');
@@ -160,6 +162,22 @@ abstract class Archive_Object extends Action{
 	function loadExploreMoreContent(){
 		global $interface;
 		global $configArray;
+
+		//Get parent collection(s) for the entity.
+		$collectionsRaw = $this->archiveObject->relationships->get(FEDORA_RELS_EXT_URI, 'isMemberOfCollection');
+		$collections = array();
+		foreach ($collectionsRaw as $collectionInfo){
+			$collectionObject = FedoraUtils::getInstance()->getObject($collectionInfo['object']['value']);
+			if ($collectionObject != null){
+				$collections[] = array(
+						'pid' => $collectionInfo['object']['value'],
+						'label' => $collectionObject->label,
+						'link' => '/Archive/' . $collectionInfo['object']['value'] . '/Exhibit',
+						'image' => FedoraUtils::getInstance()->getObjectImageUrl($collectionObject, 'small'),
+				);
+			}
+		}
+		$interface->assign('collections', $collections);
 
 		// Additional Demo Variables
 		$videoImage = ''; //TODO set
@@ -210,7 +228,50 @@ abstract class Archive_Object extends Action{
 		$interface->assign('exploreMoreMainLinks', $exploreMoreMainLinks);
 
 		//Load related catalog content
+		//Create a search object to get related content
 		$exploreMoreCatalogUrl = $configArray['Site']['path'] . '/Search/AJAX?method=GetListTitles&id=search:22622';
 		$interface->assign('exploreMoreCatalogUrl', $exploreMoreCatalogUrl);
+
+		/** @var SearchObject_Solr $searchObject */
+		$searchObject = SearchObjectFactory::initSearchObject();
+		$searchTerm = "(";
+		foreach ($this->relatedPeople as $person){
+			$searchTerm .= '"' . $person['label'] . '" OR ';
+		}
+		foreach ($this->formattedSubjects as $subject){
+			$searchTerm .= '"' . $subject['label'] . '" OR ';
+		}
+		$searchTerm = substr($searchTerm, 0, -4);
+		$searchTerm .= ")";
+		$searchObject->init('local', $searchTerm);
+		//$searchObject->setSearchType('Subject');
+		$searchObject->addFilter('literary_form_full:Non Fiction');
+		$searchObject->setLimit(5);
+		$results = $searchObject->processSearch(true, false);
+
+		if ($results && $results['response']){
+			$similarTitles = array(
+					'numFound' => $results['response']['numFound'],
+					'allResultsLink' => $searchObject->renderSearchUrl(),
+					'topHits' => array()
+			);
+			foreach ($results['response']['docs'] as $doc){
+				/** @var GroupedWorkDriver $driver */
+				$driver = RecordDriverFactory::initRecordDriver($doc);
+				$similarTitle = array(
+						'title' => $driver->getTitle(),
+						'link' => $driver->getLinkUrl(),
+						'cover' => $driver->getBookcoverUrl('small')
+				);
+				$similarTitles['topHits'][] = $similarTitle;
+			}
+		}else{
+			$similarTitles = array(
+					'numFound' => 0,
+					'topHits' => array()
+			);
+		}
+		$interface->assign('related_titles', $similarTitles);
+
 	}
 }

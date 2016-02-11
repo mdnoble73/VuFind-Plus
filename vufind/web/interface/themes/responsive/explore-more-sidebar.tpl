@@ -3,6 +3,13 @@
 
 	<div class="row" id="explore-more-body">
 		<div class="col-xs-10 col-xs-offset-1">
+			{foreach from=$collections item=collection}
+				<strong>{$collection.label}</strong>
+				<div class="section">
+					<a href="{$collection.link}"><img src="{$collection.image}" alt="{$collection.label}"></a>
+				</div>
+			{/foreach}
+
 			{if $videoLink}
 			<div class="sectionHeader">Video</div>
 			<div class="section">
@@ -25,24 +32,18 @@
 			</div>
 
 			{* Related Titles Widget *}
-			<div class="sectionHeader">Related Titles</div>
-			<div id="explore-more-catalog" class="row">
-				<div class="col-sm-12">
-					{assign var="scrollerName" value="RelatedContent"}
-					{assign var="scrollerTitle" value="Related Content"}
-					{assign var="wrapperId" value="related-catalog-content"}
-					{assign var="scrollerVariable" value="related-catalog-content"}
-					{include file='ListWidget/titleScroller.tpl'}
-				</div>
-			</div>
+			{if $related_titles.numFound > 0}
+				<div class="sectionHeader">Related Titles</div>
+				{* JCarousel with related titles *}
+				{foreach from=$related_titles.topHits item=title}
+					<div class="thumbnail">
+						<a href="{$title.link}"><img class="img-responsive" src="{$title.cover}"/>{$title.title}</a>
+					</div>
+				{/foreach}
+				<a href="{$related_titles.allResultsLink}">All Results ({$related_titles.numFound})</a>
+			{/if}
 		</div>
 	</div>
 	<br>
 	<br>
 {/strip}
-<script type="text/javascript">
-	$(document).ready(function(){ldelim}
-		var relatedCatalogContentScroller = new TitleScroller('titleScrollerRelatedContent', 'RelatedContent', 'explore-more-catalog');
-		relatedCatalogContentScroller.loadTitlesFrom('{$exploreMoreCatalogUrl}');
-	{rdelim});
-</script>

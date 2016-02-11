@@ -204,7 +204,7 @@ class SearchObject_Solr extends SearchObject_Base
 	 * @var string $searchSource
 	 * @return  boolean
 	 */
-	public function init($searchSource = null)
+	public function init($searchSource = null, $searchTerm = null)
 	{
 		// Call the standard initialization routine in the parent:
 		parent::init($searchSource);
@@ -229,7 +229,10 @@ class SearchObject_Solr extends SearchObject_Base
 		$this->initSort();
 		$this->initFilters();
 
-		$searchTerm = isset($_REQUEST['lookfor']) ? $_REQUEST['lookfor'] : null;
+		if ($searchTerm == null){
+			$searchTerm = isset($_REQUEST['lookfor']) ? $_REQUEST['lookfor'] : null;
+		}
+
 		global $module;
 		global $action;
 
