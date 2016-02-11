@@ -249,7 +249,7 @@ abstract class Archive_Object extends Action{
 		$searchObject->setLimit(5);
 		$results = $searchObject->processSearch(true, false);
 
-		if ($results && $results['response']){
+		if ($results && isset($results['response'])){
 			$similarTitles = array(
 					'numFound' => $results['response']['numFound'],
 					'allResultsLink' => $searchObject->renderSearchUrl(),
