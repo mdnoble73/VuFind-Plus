@@ -23,7 +23,9 @@ VuFind.Browse = (function(){
 			browseCategoryCarousel.on('jcarousel:create jcarousel:reload', function () {
 				var Carousel = $(this), width = Carousel.innerWidth();
 
-				if (width > 700) {
+				if (width > 1000) {
+					width /= 5;
+				} else if (width > 700) {
 					width /= 4;
 				} else if (width > 500) {
 					width /= 3;

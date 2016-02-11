@@ -9,13 +9,13 @@
 
 				{if $Links}
 					{foreach from=$Links item=link}
-						<div class='linkTab'>
-							<a href='{$link->link}'><span class='seriesLink'>{$link->name}</span></a>
+						<div class="linkTab">
+							<a href='{$link->link}'><span class="seriesLink">{$link->name}</span></a>
 						</div>
 					{/foreach}
 				{elseif $showViewMoreLink && strlen($fullListLink) > 0}
-					<div class='linkTab' style="float:right">
-						<a href='{$fullListLink}'><span class='seriesLink'>View More</span></a>
+					<div class="linkTab" style="float:right">
+						<a href='{$fullListLink}'><span class="seriesLink">View More</span></a>
 					</div>
 				{/if}
 

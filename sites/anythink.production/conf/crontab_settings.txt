@@ -56,3 +56,6 @@
 
 # Check Apache Solr process and website that it has not stalled.
 */3 * * * * cd /usr/local/vufind-plus/vufind/cron/; ./solrTest.sh
+
+# Restart apache
+0 0-7 * * * /usr/sbin/apachectl graceful > /dev/null 2>&1

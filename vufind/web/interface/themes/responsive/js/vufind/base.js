@@ -56,14 +56,17 @@ var VuFind = (function(){
 			var jcarousel = $('.jcarousel');
 
 			jcarousel.on('jcarousel:reload jcarousel:create', function () {
-				var element = $(this);
-				var width = element.innerWidth();
-				var itemWidth = width;
-				if (width >= 600) {
+				var element = $(this),
+						width = element.innerWidth(),
+						itemWidth = width; // default of 1 item only
+
+				if (width >= 800) {
+					itemWidth = width / 5;
+				} else if (width >= 600) {
 					itemWidth = width / 4;
-				}else if (width >= 400) {
+				} else if (width >= 400) {
 					itemWidth = width / 3;
-				}else if (width >= 300) {
+				} else if (width >= 300) {
 					itemWidth = width / 2;
 				}
 
@@ -73,6 +76,7 @@ var VuFind = (function(){
 				wrap: 'circular'
 			});
 
+			// These Controls could possibly be replaced with data-api attributes
 			$('.jcarousel-control-prev')
 					.jcarouselControl({
 						target: '-=1'

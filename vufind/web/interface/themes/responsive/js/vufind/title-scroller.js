@@ -5,7 +5,7 @@
  * @param scrollerShortName
  * @param container - a container to display if any titles are found
  * @param autoScroll - whether or not the selected title should change automatically
- * @param style - The style of the scroller vertical, horizontal, single or text-list
+ * @param style - The style of the scroller:  vertical, horizontal, single or text-list
  * @return
  */
 function TitleScroller(scrollerId, scrollerShortName, container,
@@ -28,8 +28,6 @@ TitleScroller.prototype.loadTitlesFrom = function(jsonUrl) {
 			scrollerBody = $('#' + this.scrollerId + " .scrollerBodyContainer .scrollerBody");
 	scrollerBody.hide();
 	$("#titleScrollerSelectedTitle" + this.scrollerShortName+",#titleScrollerSelectedAuthor" + this.scrollerShortName).html("");
-	//$("#titleScrollerSelectedTitle" + this.scrollerShortName).html("");
-	//$("#titleScrollerSelectedAuthor" + this.scrollerShortName).html("");
 	$(".scrollerLoadingContainer").show();
 	$.getJSON(jsonUrl, function(data) {
 		scroller.loadTitlesFromJsonData(data);
@@ -225,7 +223,7 @@ TitleScroller.prototype.activateCurrentTitle = function() {
 			scrollerBody = $('#' + this.scrollerId + " .scrollerBodyContainer .scrollerBody"),
 			scrollerTitleId = "#scrollerTitle" + this.scrollerShortName + currentScrollerIndex;
 
-	$("#tooltip").hide(); 	//Make sure to clear the current tooltip if any
+	$("#tooltip").hide();  //Make sure to clear the current tooltip if any
 
 	// Update the actual display
 	if (this.style == 'horizontal'){
@@ -238,7 +236,7 @@ TitleScroller.prototype.activateCurrentTitle = function() {
 						containerWidth = $('#' + this.scrollerId + " .scrollerBodyContainer").width(),
 						// center the book in the container
 						leftPosition = -((widthItemsLeft + widthCurrent / 2) - (containerWidth / 2));
-				scrollerBody.animate( {
+				scrollerBody.animate({
 					left : leftPosition + "px"
 				}, 400, function() {
 					for ( var i in scrollerTitles) {
