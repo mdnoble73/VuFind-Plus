@@ -6,6 +6,9 @@
 			</div>
 		{/if}
 
+		{* Alternate Mobile MyAccount Menu *}
+		{include file="MyAccount/mobilePageHeader.tpl"}
+
 		{include file="MyAccount/availableHoldsNotice.tpl"}
 
 		<h2>{translate text='Checked Out Titles'}</h2>

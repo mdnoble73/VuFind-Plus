@@ -1,4 +1,7 @@
 {strip}
+{* Navigation Anchor for Searchbox *}
+	<a id="searchbox"></a>
+
 <div id="home-page-search" class="row">
 	<div class="col-xs-12">
 		<div class="row">

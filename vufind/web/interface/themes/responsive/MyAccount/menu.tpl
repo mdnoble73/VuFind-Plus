@@ -8,7 +8,6 @@
 			<a id="account-menu"></a>
 			{if $module == 'MyAccount' || $module == 'MyResearch' || ($module == 'Search' && $action == 'Home') || ($module == 'MaterialsRequest' && $action == 'MyRequests')}
 				{assign var="curSection" value=true}
-				<!-- Current Section -->
 			{else}
 				{assign var="curSection" value=false}
 			{/if}
@@ -25,6 +24,7 @@
 						</div>
 					</div>
 				</a>
+				{*  This content is duplicated in MyAccount/mobilePageHeader.tpl; Update any changes there as well *}
 				<div id="myAccountPanel" class="panel-collapse collapse{if  $displaySidebarMenu || $curSection} in{/if}">
 					<div class="panel-body">
 						{assign var="totalFines" value=$user->getTotalFines()}
@@ -79,7 +79,8 @@
 							</a>
 						</div>
 						{/if}
-						<div class="myAccountLink{if $action=="ReadingHistory"} active{/if}"><a href="{$path}/MyAccount/ReadingHistory">
+						<div class="myAccountLink{if $action=="ReadingHistory"} active{/if}">
+							<a href="{$path}/MyAccount/ReadingHistory">
 								Reading History {if $user->readingHistorySize}<span class="badge">{$user->readingHistorySize}</span>{/if}
 							</a>
 						</div>
