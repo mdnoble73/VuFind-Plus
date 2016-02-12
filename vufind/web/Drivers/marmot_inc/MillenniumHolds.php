@@ -699,6 +699,7 @@ class MillenniumHolds{
 	function placeItemHold($patron, $recordId, $itemId, $pickupBranch) {
 		global $logger;
 		global $configArray;
+		global $library;
 
 		$bib1= $recordId;
 		if (substr($bib1, 0, 1) != '.'){
@@ -751,9 +752,16 @@ class MillenniumHolds{
 			if (!empty($_REQUEST['canceldate'])){
 				$date = $_REQUEST['canceldate'];
 			}else{
-				//Default to a date 6 months (half a year) in the future.
-				$sixMonthsFromNow = time() + 182.5 * 24 * 60 * 60;
-				$date = date('m/d/Y', $sixMonthsFromNow);
+				if ($library->defaultNotNeededAfterDays == 0){
+					//Default to a date 6 months (half a year) in the future.
+					$sixMonthsFromNow = time() + 182.5 * 24 * 60 * 60;
+					$date = date('m/d/Y', $sixMonthsFromNow);
+				}else{
+					//Default to a date 6 months (half a year) in the future.
+					$nnaDate = time() + $library->defaultNotNeededAfterDays * 24 * 60 * 60;
+					$date = date('m/d/Y', $nnaDate);
+				}
+
 			}
 
 			list($Month, $Day, $Year)=explode("/", $date);

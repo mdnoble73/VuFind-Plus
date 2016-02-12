@@ -485,8 +485,6 @@ KeywordProper:
       - [or, ~]
     callnumber-subject:
       - [onephrase, ~]
-    callnumber_browse:
-      - [exact, ~]
     id:
       - [onephrase, ~]
     alternate_ids:
