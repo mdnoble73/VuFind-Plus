@@ -298,10 +298,13 @@ class UInterface extends Smarty
 		$showHoldButton = 1;
 		$showHoldButtonInSearchResults = 1;
 		$this->assign('logoLink', $configArray['Site']['path']);
+		$this->assign('logoAlt', 'Return to Catalog Home');
 		if (isset($library) && $library->useHomeLinkForLogo){
 			if (isset($location) && strlen($location->homeLink) > 0 && $location->homeLink != 'default'){
+				$this->assign('logoAlt', 'Library Home Page');
 				$this->assign('logoLink', $location->homeLink);
 			}elseif (isset($library) && strlen($library->homeLink) > 0 && $library->homeLink != 'default'){
+				$this->assign('logoAlt', 'Library Home Page');
 				$this->assign('logoLink', $library->homeLink);
 			}
 		}
