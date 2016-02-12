@@ -123,7 +123,7 @@ elif [ ${PRODUCTION} == "true" ]; then
 fi
 
 #Extracts from sideloaded eContent; log defined in config.pwd.ini [Sideload]
-cd /usr/local/vufind-plus/vufind/cron;./sideload.sh ${PIKASERVER}
+cd /usr/local/vufind-plus/vufind/cron; ./sideload.sh ${PIKASERVER}
 
 #Extract Lexile Data
 cd /data/vufind-plus/; 
