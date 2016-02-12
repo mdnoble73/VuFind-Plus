@@ -125,7 +125,11 @@
 								{if $record.availableTime}
 									{$record.availableTime|date_format:"%b %d, %Y at %l:%M %p"}
 								{else}
-									Now
+									{if strcasecmp($record.status, 'Hold Being Shelved') === 0}
+										<strong>{$record.status}</strong>
+									{else}
+										Now
+									{/if}
 								{/if}
 							</div>
 						</div>
@@ -167,7 +171,7 @@
 
 						{if $record.automaticCancellation && $showHoldCancelDate}
 							<div class="row">
-								<div class="result-label col-tn-3">{translate text='Cancels if not filled by'}</div>
+								<div class="result-label col-tn-3">{translate text='Cancels on'}</div>
 								<div class="col-tn-9 result-value">
 									{$record.automaticCancellation}
 								</div>

@@ -462,6 +462,9 @@ class MillenniumHolds{
 								echo("Unexpected format in title column.  Got " . htmlentities($sCols[$i]) . "<br/>");
 							}*/
 						}
+						if (preg_match('/.*<span class="patFuncVol">(.*?)<\/span>.*/si', $sCols[$i], $matches)){
+							$curHold['volume'] = $matches[1];
+						}
 
 						$curHold['id'] = $bibid;
 						$curHold['recordId'] = $bibid;
@@ -528,6 +531,8 @@ class MillenniumHolds{
 							}elseif (preg_match('/in\stransit/i', $status, $matches)){
 								$curHold['status'] = 'In Transit';
 							}elseif (preg_match('/\d+\sof\s\d+\sholds/i', $status, $matches)){
+								$curHold['status'] = $status;
+							}elseif (preg_match('/Hold Being Shelved/i', $status, $matches)){
 								$curHold['status'] = $status;
 							}else{
 								#PK-778 - Don't attempt to show status for anything other than ready for pickup since Millennium/Sierra statuses are confusing
@@ -610,7 +615,7 @@ class MillenniumHolds{
 			}
 
 			//add to the appropriate array
-			if (!isset($curHold['status']) || strcasecmp($curHold['status'], "ready") != 0){
+			if (!isset($curHold['status']) || (strcasecmp($curHold['status'], "ready") != 0 && strcasecmp($curHold['status'], "hold being shelved") != 0)){
 				$holds['unavailable'][$curHold['holdSource'] . $curHold['itemId'] . $curHold['cancelId'] . $userLabel] = $curHold;
 			}else{
 				$holds['available'][$curHold['holdSource'] . $curHold['itemId'] . $curHold['cancelId']. $userLabel] = $curHold;
