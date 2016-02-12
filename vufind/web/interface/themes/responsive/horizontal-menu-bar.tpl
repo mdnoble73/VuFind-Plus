@@ -3,7 +3,7 @@
 		<a href="{$path}/MyAccount/Logout" id="logoutLink" class="menu-icon" title="{translate text="Log Out"}">
 			<img src="{img filename='/interface/themes/responsive/images/Logout.png'}" alt="{translate text="Log Out"}">
 		</a>
-		<a href="#account-menu" id="mobile-menu-account-icon" onclick="VuFind.Menu.Mobile.showAccount(this)" class="menu-icon" title="Account">
+		<a href="#{*home-page-login*}" id="mobile-menu-account-icon" onclick="VuFind.Menu.Mobile.showAccount(this)" class="menu-icon" title="Account">
 			<img src="{img filename='/interface/themes/responsive/images/Account.png'}" alt="Account">
 		</a>
 	{else} {* Not Logged In *}
@@ -12,11 +12,11 @@
 			<img src="{img filename='/interface/themes/responsive/images/Login.png'}" alt="{translate text='Login'}">
 		</a>
 	{/if}
-	<a href="#home-page-library-section" id="mobile-menu-menu-icon" onclick="VuFind.Menu.Mobile.showMenu(this)" class="menu-icon" title="Menu">
+	<a href="#{*home-page-login*}" id="mobile-menu-menu-icon" onclick="VuFind.Menu.Mobile.showMenu(this)" class="menu-icon" title="Menu">
 		<img src="{img filename='/interface/themes/responsive/images/Menu.png'}" alt="Menu">
 	</a>
 
-	<a href="#searchbox" id="mobile-menu-search-icon" onclick="VuFind.Menu.Mobile.showSearch(this)" class="menu-icon menu-left" title="Search">
+	<a href="#{*horizontal-menu-bar-wrapper*}" id="mobile-menu-search-icon" onclick="VuFind.Menu.Mobile.showSearch(this)" class="menu-icon menu-left" title="Search">
 		{* mobile-menu-search-icon id used by Refine Search button to set the menu to search (in case another menu option has been selected) *}
 		<img src="{img filename='/interface/themes/responsive/images/Search.png'}" alt="Search">
 	</a>

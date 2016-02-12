@@ -1,7 +1,4 @@
 {strip}
-{* Navigation Anchor for Searchbox *}
-<a id="searchbox"></a>
-
 <div id="horizontal-search-box" class="row">
 	<form method="get" action="{$path}/Union/Search" id="searchForm" class="form-inline" onsubmit="VuFind.Searches.processSearchForm();">
 
