@@ -17,10 +17,16 @@
 			{if $item.displayByDefault && $numRowsShown<3}
 				<div class="itemSummary row">
 					<div class="col-xs-7">
-						<span class="notranslate"><strong>{$item.shelfLocation}</strong> has&nbsp;{$item.availableCopies}</span>
+						<span class="notranslate"><strong>{$item.shelfLocation}</strong>
+							{if $item.availableCopies > 1}
+							&nbsp;has&nbsp;{$item.availableCopies}
+							{/if}
+						</span>
 					</div>
 					<div class="col-xs-4">
-					 <span class="notranslate noBreak"><strong>{$item.callNumber}</strong></span>
+						{if $item.isEContent == false}
+							<span class="notranslate"><strong>{$item.callNumber}</strong></span>
+						{/if}
 					</div>
 				</div>
 				{assign var=numDefaultItems value=$numDefaultItems+$item.totalCopies}
@@ -53,7 +59,11 @@
 								<td>{$item.availableCopies} of {$item.totalCopies}</td>
 							{/if}
 							<td class="notranslate">{$item.shelfLocation}</td>
-							<td class="notranslate">{$item.callNumber}</td>
+							<td class="notranslate">
+								{if !$item.isEContent}
+									{$item.callNumber}
+								{/if}
+							</td>
 						</tr>
 					{/foreach}
 					</tbody>
