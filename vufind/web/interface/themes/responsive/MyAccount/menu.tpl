@@ -8,10 +8,14 @@
 			<a id="account-menu"></a>
 			{if $module == 'MyAccount' || $module == 'MyResearch' || ($module == 'Search' && $action == 'Home') || ($module == 'MaterialsRequest' && $action == 'MyRequests')}
 				{assign var="curSection" value=true}
+				<!-- Current Section -->
 			{else}
 				{assign var="curSection" value=false}
 			{/if}
-			<div class="panel {if $module == 'MyAccount' || $module == 'MyResearch' || ($module == 'Search' && $action == 'Home') || ($module == 'MaterialsRequest' && $action == 'MyRequests')}active{/if}">
+
+		<div class="panel{if $displaySidebarMenu || $curSection} active{/if}">
+				{* With SidebarMenu on, we should always keep the MyAccount Panel open. *}
+
 				{* Clickable header for my account section *}
 				<a data-toggle="collapse" data-parent="#account-link-accordion" href="#myAccountPanel">
 					<div class="panel-heading">
@@ -21,7 +25,7 @@
 						</div>
 					</div>
 				</a>
-				<div id="myAccountPanel" class="panel-collapse collapse {if $curSection}in{/if}">
+				<div id="myAccountPanel" class="panel-collapse collapse{if  $displaySidebarMenu || $curSection} in{/if}">
 					<div class="panel-body">
 						{assign var="totalFines" value=$user->getTotalFines()}
 						{if $totalFines > 0 || ($showExpirationWarnings && $user->expireClose)}
@@ -169,7 +173,7 @@
 				{else}
 					{assign var="curSection" value=false}
 				{/if}
-				<div class="panel">
+				<div class="panel{if $curSection} active{/if}">
 					<a href="#vufindMenuGroup" data-toggle="collapse" data-parent="#adminMenuAccordion">
 						<div class="panel-heading">
 							<div class="panel-title">
@@ -225,7 +229,7 @@
 				{else}
 					{assign var="curSection" value=false}
 				{/if}
-				<div class="panel">
+				<div class="panel{if $curSection} active{/if}">
 					<a href="#adminMenuGroup" data-toggle="collapse" data-parent="#adminMenuAccordion">
 						<div class="panel-heading">
 							<div class="panel-title">
@@ -257,7 +261,7 @@
 				{else}
 					{assign var="curSection" value=false}
 				{/if}
-				<div class="panel">
+				<div class="panel{if $curSection} active{/if}">
 					<a href="#indexingMenuGroup" data-toggle="collapse" data-parent="#adminMenuAccordion">
 						<div class="panel-heading">
 							<div class="panel-title">
@@ -283,7 +287,7 @@
 				{else}
 					{assign var="curSection" value=false}
 				{/if}
-				<div class="panel">
+				<div class="panel{if $curSection} active{/if}">
 					<a href="#materialsRequestMenu" data-toggle="collapse" data-parent="#adminMenuAccordion">
 						<div class="panel-heading">
 							<div class="panel-title">
@@ -308,7 +312,7 @@
 				{else}
 					{assign var="curSection" value=false}
 				{/if}
-				<div class="panel">
+				<div class="panel{if $curSection} active{/if}">
 					<a href="#catalogingRequestMenu" data-toggle="collapse" data-parent="#adminMenuAccordion">
 						<div class="panel-heading">
 							<div class="panel-title">
@@ -330,7 +334,7 @@
 				{else}
 					{assign var="curSection" value=false}
 				{/if}
-				<div class="panel">
+				<div class="panel{if $curSection} active{/if}">
 					<a href="#circulationMenu" data-toggle="collapse" data-parent="#adminMenuAccordion">
 						<div class="panel-heading">
 							<div class="panel-title">
@@ -355,7 +359,7 @@
 				{else}
 					{assign var="curSection" value=false}
 				{/if}
-				<div class="panel">
+				<div class="panel{if $curSection} active{/if}">
 					<a href="#editorialReviewMenu" data-toggle="collapse" data-parent="#adminMenuAccordion">
 						<div class="panel-heading">
 							<div class="panel-title">
@@ -378,7 +382,7 @@
 				{else}
 					{assign var="curSection" value=false}
 				{/if}
-				<div class="panel">
+				<div class="panel{if $curSection} active{/if}">
 					<a href="#reportsMenu" data-toggle="collapse" data-parent="#adminMenuAccordion">
 						<div class="panel-heading">
 							<div class="panel-title">

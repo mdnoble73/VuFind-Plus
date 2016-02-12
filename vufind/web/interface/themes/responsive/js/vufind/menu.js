@@ -244,7 +244,8 @@ VuFind.Menu = (function(){
 			},
 
 			showAccount: function(clickedElement){
-				this.showMenuSection(VuFind.Menu.SideBarAccountSelectors, clickedElement)
+				this.showMenuSection(VuFind.Menu.SideBarAccountSelectors, clickedElement);
+				$('#myAccountPanel').filter(':not(.in)').collapse('show');  // Open up the MyAccount Section, if it is not open. (.collapse('show') acts like a toggle instead of always showing. plb 2-12-2016)
 			},
 
 			showExploreMore: function(clickedElement){
