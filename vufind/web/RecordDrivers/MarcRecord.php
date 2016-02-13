@@ -829,7 +829,7 @@ class MarcRecord extends IndexRecord
 	 */
 	public function getTitle()
 	{
-		return $this->getFirstFieldValue('245', array('a', 'b'));
+		return $this->getFirstFieldValue('245', array('a', 'b', 'n', 'p'));
 	}
 
 	/**
