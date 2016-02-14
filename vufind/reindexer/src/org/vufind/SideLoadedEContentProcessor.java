@@ -162,11 +162,15 @@ public class SideLoadedEContentProcessor extends IlsRecordProcessor{
 			}
 			//Convert formats from print to eContent version
 			for (String format : printFormats) {
-				if (format.equalsIgnoreCase("Book") || format.equalsIgnoreCase("LargePrint") || format.equalsIgnoreCase("GraphicNovel")) {
+				if (format.equalsIgnoreCase("Book") || format.equalsIgnoreCase("LargePrint") || format.equalsIgnoreCase("GraphicNovel") || format.equalsIgnoreCase("Manuscript")) {
 					econtentItem.setFormat("eBook");
-					econtentItem.setFormatCategory("Books");
+					econtentItem.setFormatCategory("eBook");
 					econtentRecord.setFormatBoost(10);
-				} else if (format.equalsIgnoreCase("SoundRecording") || format.equalsIgnoreCase("SoundDisc") || format.equalsIgnoreCase("Playaway")) {
+				}else if (format.equalsIgnoreCase("Journal") || format.equalsIgnoreCase("Serial")) {
+					econtentItem.setFormat("eMagazine");
+					econtentItem.setFormatCategory("eBook");
+					econtentRecord.setFormatBoost(3);
+				} else if (format.equalsIgnoreCase("SoundRecording") || format.equalsIgnoreCase("SoundDisc") || format.equalsIgnoreCase("Playaway") || format.equalsIgnoreCase("CDROM")) {
 					econtentItem.setFormat("eAudiobook");
 					econtentItem.setFormatCategory("Audio Books");
 					econtentRecord.setFormatBoost(8);
@@ -178,6 +182,18 @@ public class SideLoadedEContentProcessor extends IlsRecordProcessor{
 					econtentItem.setFormat("eVideo");
 					econtentItem.setFormatCategory("Movies");
 					econtentRecord.setFormatBoost(10);
+				} else if (format.equalsIgnoreCase("Electronic") || format.equalsIgnoreCase("Software")) {
+					econtentItem.setFormat("Online Materials");
+					econtentItem.setFormatCategory("Other");
+					econtentRecord.setFormatBoost(2);
+				} else if (format.equalsIgnoreCase("Photo")) {
+					econtentItem.setFormat("Photo");
+					econtentItem.setFormatCategory("Other");
+					econtentRecord.setFormatBoost(2);
+				} else if (format.equalsIgnoreCase("Map")) {
+					econtentItem.setFormat("Map");
+					econtentItem.setFormatCategory("Other");
+					econtentRecord.setFormatBoost(2);
 				} else {
 					logger.warn("Could not find appropriate eContent format for " + format + " while side loading eContent " + econtentRecord.getFullIdentifier());
 				}
