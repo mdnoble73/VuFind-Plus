@@ -572,12 +572,14 @@ public class ExtractOverDriveInfo {
 						for (int j = 0; j < products.length(); j++) {
 							JSONObject curProduct = products.getJSONObject(j);
 							OverDriveRecordInfo curRecord = loadOverDriveRecordFromJSON(libraryName, curProduct);
-							if (overDriveTitles.containsKey(curRecord.getId().toLowerCase())) {
-								OverDriveRecordInfo oldRecord = overDriveTitles.get(curRecord.getId().toLowerCase());
-								oldRecord.getCollections().add(libraryId);
-							} else {
-								//logger.debug("Loading record " + curRecord.getId());
-								overDriveTitles.put(curRecord.getId().toLowerCase(), curRecord);
+							if (curRecord != null) {
+								if (overDriveTitles.containsKey(curRecord.getId().toLowerCase())) {
+									OverDriveRecordInfo oldRecord = overDriveTitles.get(curRecord.getId().toLowerCase());
+									oldRecord.getCollections().add(libraryId);
+								} else {
+									//logger.debug("Loading record " + curRecord.getId());
+									overDriveTitles.put(curRecord.getId().toLowerCase(), curRecord);
+								}
 							}
 						}
 					}
@@ -596,6 +598,10 @@ public class ExtractOverDriveInfo {
 		OverDriveRecordInfo curRecord = new OverDriveRecordInfo();
 		curRecord.setId(curProduct.getString("id"));
 		//logger.debug("Processing overdrive title " + curRecord.getId());
+		if (!curProduct.has("title")){
+			logger.warn("Product " + curProduct.getString("id") + " did not have a title, skipping");
+			return null;
+		}
 		curRecord.setTitle(curProduct.getString("title"));
 		if (curProduct.has("subtitle")){
 			curRecord.setSubtitle(curProduct.getString("subtitle"));
