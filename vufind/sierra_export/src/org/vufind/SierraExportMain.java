@@ -43,6 +43,8 @@ public class SierraExportMain{
 	private static char statusSubfield;
 	private static char dueDateSubfield;
 	private static String dueDateFormat;
+	private static char lastCheckInSubfield;
+	private static String lastCheckInFormat;
 	private static boolean exportItemHolds = true;
 	private static boolean suppressOrderRecordsThatAreReceivedAndCatalogged = false;
 
@@ -256,6 +258,12 @@ public class SierraExportMain{
 			}else{
 				dueDateFormat = "yyMMdd";
 			}
+			lastCheckInSubfield = getSubfieldIndicatorFromConfig(ini, "lastCheckinDateSubfield");
+			if (ini.get("Reindex").containsKey("lastCheckInFormat")){
+				lastCheckInFormat = ini.get("Reindex", "lastCheckInFormat");
+			}else{
+				lastCheckInFormat = "MM-dd-yyyy HH:mm";
+			}
 
 			PreparedStatement loadLastSierraExtractTimeStmt = vufindConn.prepareStatement("SELECT * from variables WHERE name = 'last_sierra_extract_time'", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 			ResultSet lastSierraExtractTimeRS = loadLastSierraExtractTimeStmt.executeQuery();
@@ -289,6 +297,7 @@ public class SierraExportMain{
 
 
 				SimpleDateFormat marcDateFormat = new SimpleDateFormat(dueDateFormat);
+				SimpleDateFormat marcCheckInFormat = new SimpleDateFormat(lastCheckInFormat);
 
 				//Extract the ids of all records that have changed.  That will allow us to mark
 				//That the grouped record has changed which will force the work to be indexed
@@ -337,6 +346,13 @@ public class SierraExportMain{
 								Date dueDate = dateFormatter.parse(dueDateStr);
 								dueDateMarc = marcDateFormat.format(dueDate);
 							}
+							String lastCheckInDateMarc = null;
+							if (curItem.getJSONObject("fixedFields").has("68")){
+								String lastCheckInDateStr = curItem.getJSONObject("fixedFields").getJSONObject("68").getString("value");
+								//The due date is in the format 2014-10-16T10:00:00Z, convert to what the marc record shows which is just yymmdd
+								Date lastCheckInDate = dateFormatter.parse(lastCheckInDateStr);
+								lastCheckInDateMarc = marcCheckInFormat.format(lastCheckInDate);
+							}
 
 							ItemChangeInfo changeInfo = new ItemChangeInfo();
 							changeInfo.setItemId(".i" + itemId + getCheckDigit(itemId));
@@ -344,6 +360,7 @@ public class SierraExportMain{
 							changeInfo.setStatus(status);
 
 							changeInfo.setDueDate(dueDateMarc);
+							changeInfo.setLastCheckinDate(lastCheckInDateMarc);
 
 							JSONArray bibIds = curItem.getJSONArray("bibIds");
 							for (int j = 0; j < bibIds.length(); j++){
@@ -457,6 +474,23 @@ public class SierraExportMain{
 											itemField.addSubfield(new SubfieldImpl(dueDateSubfield, curItem.getDueDate()));
 										} else {
 											itemField.getSubfield(dueDateSubfield).setData(curItem.getDueDate());
+										}
+									}
+									if (lastCheckInSubfield != ' ') {
+										if (curItem.getLastCheckinDate() == null) {
+											if (itemField.getSubfield(lastCheckInSubfield) != null) {
+												if (lastCheckInFormat.contains("-")) {
+													itemField.getSubfield(lastCheckInSubfield).setData("  -  -  ");
+												} else {
+													itemField.getSubfield(lastCheckInSubfield).setData("      ");
+												}
+											}
+										} else {
+											if (itemField.getSubfield(lastCheckInSubfield) == null) {
+												itemField.addSubfield(new SubfieldImpl(lastCheckInSubfield, curItem.getLastCheckinDate()));
+											} else {
+												itemField.getSubfield(lastCheckInSubfield).setData(curItem.getLastCheckinDate());
+											}
 										}
 									}
 								}
