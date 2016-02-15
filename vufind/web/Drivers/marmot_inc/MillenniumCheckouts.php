@@ -113,6 +113,9 @@ class MillenniumCheckouts {
 						$curTitle['shortId'] = $shortId;
 						$curTitle['id'] = $bibid;
 						$curTitle['title'] = utf8_encode($title);
+						if (preg_match('/.*<span class="patFuncVol">(.*?)<\/span>.*/si', $scols[$i], $matches)){
+							$curTitle['volume'] = $matches[1];
+						}
 					}
 
 					if (stripos($sKeys[$i],"STATUS") > -1) {

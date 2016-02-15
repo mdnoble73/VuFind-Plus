@@ -67,8 +67,8 @@ done < "$confpwd"
 
 # Execute MARC download commands found in config.pwd.ini
 for key in ${!collections[@]}; do
-	${collections[${key}]}
-#	${collections[${key}]} >> $logFile;
+#	${collections[${key}]}
+	${collections[${key}]} >> $logFile;
 done
 
 exit 0

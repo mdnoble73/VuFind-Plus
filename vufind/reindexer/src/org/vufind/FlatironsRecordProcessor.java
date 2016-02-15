@@ -239,8 +239,10 @@ public class FlatironsRecordProcessor extends IIIRecordProcessor{
 		HashSet<String> targetAudiences = new HashSet<>();
 		for (ItemInfo printItem : printItems){
 			String locationCode = printItem.getLocationCode();
-			String lastCharacter = locationCode.substring(locationCode.length() -1);
-			targetAudiences.add(lastCharacter);
+			if (locationCode.length() > 0) {
+				String lastCharacter = locationCode.substring(locationCode.length() - 1);
+				targetAudiences.add(lastCharacter);
+			}
 		}
 
 		groupedWork.addTargetAudiences(translateCollection("target_audience", targetAudiences, identifier));

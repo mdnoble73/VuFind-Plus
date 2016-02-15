@@ -5,6 +5,9 @@
 				<div id="web_note" class="text-info text-center alert alert-warning"><strong>{$profile->web_note}</strong></div>
 			{/if}
 
+			{* Alternate Mobile MyAccount Menu *}
+			{include file="MyAccount/mobilePageHeader.tpl"}
+
 			<h3>{translate text='Account Summary'}</h3>
 			<div>
 				You currently have:

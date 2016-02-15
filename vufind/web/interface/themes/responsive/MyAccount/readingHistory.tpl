@@ -7,7 +7,11 @@
 			<div id="web_note" class="alert alert-info text-center col-xs-12">{$profile->web_note}</div>
 		</div>
 	{/if}
-	{include file="MyAccount/availableHoldsNotice.tpl"}
+
+		{* Alternate Mobile MyAccount Menu *}
+		{include file="MyAccount/mobilePageHeader.tpl"}
+
+		{include file="MyAccount/availableHoldsNotice.tpl"}
 
 	<h2>{translate text='My Reading History'} {if $historyActive == true}<small><a id="readingListWhatsThis" href="#" onclick="$('#readingListDisclaimer').toggle();return false;">(What's This?)</a></small>{/if}</h2>
 

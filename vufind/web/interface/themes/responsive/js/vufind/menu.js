@@ -223,11 +223,21 @@ VuFind.Menu = (function(){
 						VuFind.Menu.openSideBar();  // covers the case when view has switched from sidebar mode to mobile mode
 						if ( elem.is('.menu-icon-selected')){
 							elem.removeClass('menu-icon-selected');
+
+							// Show MyAccount Mini Menu
+
+							$('#mobileHeader').show();  // If the mobileHeader is present, show when no menu option is selected.
 							return $(sectionSelector).slideUp() // return of object is needed for $when(VuFind.Menu.hideAll()).done() calls
+								// Not sure this return is needed or even effective. plb 2-12-2016
 
 						}else { // selecting an option
 							$('.menu-icon-selected', '#horizontal-menu-bar-container').removeClass('menu-icon-selected');
 							elem.addClass('menu-icon-selected');
+
+							// Hide MyAccount Mini Menu
+							$('#mobileHeader').hide();  // If the mobileHeader section is present, hide when a menu option is selected
+									// May need an exception for selecting search icon, when horizontal search is used. plb 2-12-2016  (Maybe even sidebar search box)
+
 							$(sectionSelector).slideDown()
 						}
 
@@ -244,7 +254,13 @@ VuFind.Menu = (function(){
 			},
 
 			showAccount: function(clickedElement){
-				this.showMenuSection(VuFind.Menu.SideBarAccountSelectors, clickedElement)
+				this.showMenuSection(VuFind.Menu.SideBarAccountSelectors, clickedElement);
+				$('#myAccountPanel').filter(':not(.in)').collapse('show');  // Open up the MyAccount Section, if it is not open. (.collapse('show') acts like a toggle instead of always showing. plb 2-12-2016)
+				//if ($('#mobile-menu-account-icon').is('.menu-icon-selected')) {
+				//	$('#mobileHeader').hide()
+				//} else {
+				//	$('#mobileHeader').show()
+				//}
 			},
 
 			showExploreMore: function(clickedElement){

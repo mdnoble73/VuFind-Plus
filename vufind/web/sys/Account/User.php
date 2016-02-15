@@ -758,7 +758,13 @@ class User extends DB_DataObject
 
 		//Sort Available Holds by Expiration Date (then title/sort title)
 		$holdSort = function ($a, $b, $indexToSortBy='sortTitle') {
-			if ($a['expire'] > $b['expire']){
+			if (isset($a['expire']) && !isset($b['expire'])) {
+				return -1;
+			}elseif (!isset($a['expire']) && isset($b['expire'])) {
+				return 1;
+			}elseif (!isset($a['expire']) && !isset($b['expire'])) {
+				return strcasecmp(isset($a[$indexToSortBy]) ? $a[$indexToSortBy] : $a['title'], isset($b[$indexToSortBy]) ? $b[$indexToSortBy] : $b['title']);
+			}elseif ($a['expire'] > $b['expire']){
 				return 1;
 			}elseif ($a['expire'] < $b['expire']){
 				return -1;

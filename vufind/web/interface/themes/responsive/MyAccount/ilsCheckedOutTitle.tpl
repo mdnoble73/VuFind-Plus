@@ -59,6 +59,13 @@
 
 			<div class="row">
 				<div class="resultDetails col-xs-12 col-md-9">
+					{if $record.volume}
+						<div class="row">
+							<div class="result-label col-tn-4 col-lg-3">{translate text='Volume'}</div>
+							<div class="result-value col-tn-8 col-lg-9">{$record.volume|escape}</div>
+						</div>
+					{/if}
+
 					{if $record.author}
 						<div class="row">
 							<div class="result-label col-tn-4 col-lg-3">{translate text='Author'}</div>

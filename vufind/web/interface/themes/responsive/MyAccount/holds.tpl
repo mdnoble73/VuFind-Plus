@@ -6,6 +6,9 @@
 			</div>
 		{/if}
 
+		{* Alternate Mobile MyAccount Menu *}
+		{include file="MyAccount/mobilePageHeader.tpl"}
+
 		{include file="MyAccount/availableHoldsNotice.tpl" noLink=1}
 
 		{* Check to see if there is data for the section *}

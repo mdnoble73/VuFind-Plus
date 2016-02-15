@@ -9296,7 +9296,7 @@ a.browse-thumbnail.active {
   content: ' \00bb \00a0';
 }
 #account-settings-accordion .panel-group .panel + .panel {
-  margin-top: 0px;
+  margin-top: 0;
 }
 #account-settings-accordion .panel-heading {
   padding: 5px 15px;
@@ -9332,6 +9332,10 @@ a.browse-thumbnail.active {
 }
 .holdDisclaimerLibrary {
   font-weight: bold;
+}
+#mobileHeader .myAccountLink {
+  font-weight: bold;
+  font-size: 18px;
 }
 /**
  * Additional Styling related to the help system

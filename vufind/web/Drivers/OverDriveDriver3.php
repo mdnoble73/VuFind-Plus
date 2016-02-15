@@ -47,6 +47,7 @@ class OverDriveDriver3 {
 		'periodicals-nook' => 'NOOK Periodicals',
 		'audiobook-overdrive' => 'OverDrive Listen',
 		'video-streaming' => 'OverDrive Video',
+		'ebook-mediado' => 'MediaDo Reader',
 	);
 
 	private function _connectToAPI($forceNewConnection = false){
@@ -457,7 +458,7 @@ class OverDriveDriver3 {
 				if (!$forSummary){
 					if (isset($curTitle->formats)){
 						foreach ($curTitle->formats as $id => $format){
-							if ($format->formatType == 'ebook-overdrive') {
+							if ($format->formatType == 'ebook-overdrive' || $format->formatType == 'ebook-mediado') {
 								$bookshelfItem['overdriveRead'] = true;
 							}else if ($format->formatType == 'audiobook-overdrive'){
 									$bookshelfItem['overdriveListen'] = true;
@@ -476,13 +477,13 @@ class OverDriveDriver3 {
 							if (isset($format->links->self)){
 								$curFormat['downloadUrl'] = $format->links->self->href . '/downloadlink';
 							}
-							if ($format->formatType != 'ebook-overdrive' && $format->formatType != 'audiobook-overdrive' && $format->formatType != 'video-streaming'){
+							if ($format->formatType != 'ebook-overdrive' && $format->formatType != 'ebook-mediado' && $format->formatType != 'audiobook-overdrive' && $format->formatType != 'video-streaming'){
 								$bookshelfItem['formats'][] = $curFormat;
 							}else{
 								if (isset($curFormat['downloadUrl'])){
-									if ($format->formatType = 'ebook-overdrive') {
+									if ($format->formatType = 'ebook-overdrive' || $format->formatType == 'ebook-mediado') {
 										$bookshelfItem['overdriveReadUrl'] = $curFormat['downloadUrl'];
-									}else if ($format->formatType == 'video-streaming'){
+									}else if ($format->formatType == 'video-streaming') {
 										$bookshelfItem['overdriveVideoUrl'] = $curFormat['downloadUrl'];
 									}else{
 										$bookshelfItem['overdriveListenUrl'] = $curFormat['downloadUrl'];
@@ -912,7 +913,7 @@ class OverDriveDriver3 {
 
 		$url = $configArray['OverDrive']['patronApiUrl'] . "/v1/patrons/me/checkouts/{$overDriveId}/formats/{$format}/downloadlink";
 		$url .= '?errorpageurl=' . urlencode($configArray['Site']['url'] . '/Help/OverDriveError');
-		if ($format == 'ebook-overdrive'){
+		if ($format == 'ebook-overdrive' || format == 'ebook-mediado'){
 			$url .= '&odreadauthurl=' . urlencode($configArray['Site']['url'] . '/Help/OverDriveError');
 		}elseif ($format == 'audiobook-overdrive'){
 			$url .= '&odreadauthurl=' . urlencode($configArray['Site']['url'] . '/Help/OverDriveError');

@@ -2532,6 +2532,7 @@ class GroupedWorkDriver extends RecordInterface{
 					'lastCheckinDate' => isset($curItem[14]) ? $curItem[14] : '',
 					'volume' => $volume,
 					'volumeId' => $volumeId,
+					'isEContent' => $isEcontent
 			);
 			$itemSummaryInfo['actions'] = $recordDriver->getItemActions($itemSummaryInfo);
 			//Group the item based on location and call number for display in the summary
