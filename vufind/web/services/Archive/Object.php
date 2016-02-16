@@ -55,19 +55,8 @@ abstract class Archive_Object extends Action{
 		unlink($temp);*/
 
 		//Load the MODS data stream
-		$modsStream = $this->archiveObject->getDatastream('MODS');
-		$temp = tempnam('/tmp', 'mods');
-		$modsStream->getContent($temp);
-		$modsStreamContent = trim(file_get_contents($temp));
-		if (strlen($modsStreamContent) > 0){
-			$modsData = simplexml_load_string($modsStreamContent);
-			if (sizeof($modsData) == 0){
-				$modsData = $modsData->children('http://www.loc.gov/mods/v3');
-			}
-			$this->modsData = $modsData;
-		}
+		$this->modsData = $fedoraUtils->getModsData($this->archiveObject);
 		$interface->assign('mods', $this->modsData);
-		unlink($temp);
 
 		//Extract Subjects
 		$formattedSubjects = array();
@@ -102,10 +91,24 @@ abstract class Archive_Object extends Action{
 		$this->relatedPlaces = array();
 		$this->relatedEvents = array();
 
-		$entities = $marmotExtension->xpath('/marmotLocal/relatedEntity');
-		/** @var SimpleXMLElement $entity */
-		if (count($marmotExtension) > 0 && count($marmotExtension->marmotLocal) > 0){
-			foreach ($marmotExtension->marmotLocal->relatedEntity as $entity){
+		if (count($marmotExtension) > 0){
+			$marmotLocal = $marmotExtension->marmotLocal;
+			if (count($marmotLocal) > 0){
+				if ($marmotLocal->hasTranscription){
+					$transcriptionText = (string)$marmotExtension->marmotLocal->hasTranscription->transcriptionText;
+					$transcriptionText = str_replace("\r\n\r\n", '<br/>', $transcriptionText);
+					$interface->assign('transcription',
+							array(
+									'language' => (string)$marmotExtension->marmotLocal->hasTranscription->transcriptionLanguage,
+									'text' => $transcriptionText
+							)
+					);
+				}
+			}
+
+			$entities = $marmotExtension->xpath('/marmotLocal/relatedEntity');
+			/** @var SimpleXMLElement $entity */
+			foreach ($entities as $entity){
 				$entityType = '';
 				foreach ($entity->attributes() as $name => $value){
 					if ($name == 'type'){
@@ -128,9 +131,42 @@ abstract class Archive_Object extends Action{
 					$this->relatedEvents[] = $entityInfo;
 				}
 			}
+			if ($marmotExtension->marmotLocal->hasInterviewee){
+				$interviewee = $marmotExtension->marmotLocal->hasInterviewee;
+				$this->relatedPeople[] = array(
+						'pid' => $interviewee->entityPid,
+						'label' => $interviewee->entityTitle,
+						'link' =>  '/Archive/' . $interviewee->entityPid . '/Person',
+						'role' => 'Interviewee'
+				);
+			}
 			$interface->assign('relatedPeople', $this->relatedPeople);
 			$interface->assign('relatedPlaces', $this->relatedPlaces);
 			$interface->assign('relatedEvents', $this->relatedEvents);
+
+			if (count($marmotExtension->marmotLocal->militaryService) > 0){
+				$interface->assign('hasMilitaryService', true);
+				/** @var SimpleXMLElement $record */
+				$record = $marmotExtension->marmotLocal->militaryService->militaryRecord;
+				$militaryRecord = array(
+						'branch' => $fedoraUtils->getObjectLabel((string)$record->militaryBranch),
+						'conflict' => $fedoraUtils->getObjectLabel((string)$record->militaryConflict),
+				);
+				$interface->assign('militaryRecord', $militaryRecord);
+			}
+
+			if (count($marmotExtension->marmotLocal->externalLink) > 0){
+				$links = array();
+				/** @var SimpleXMLElement $linkInfo */
+				foreach ($marmotExtension->marmotLocal->externalLink as $linkInfo){
+					$linkAttributes = $linkInfo->attributes();
+					$links[] = array(
+							'type' => (string)$linkAttributes['type'],
+							'link' => (string)$linkInfo
+					);
+				}
+				$interface->assign('externalLinks', $links);
+			}
 		}
 
 		//Load the RELS-EXT data stream
@@ -166,14 +202,15 @@ abstract class Archive_Object extends Action{
 		//Get parent collection(s) for the entity.
 		$collectionsRaw = $this->archiveObject->relationships->get(FEDORA_RELS_EXT_URI, 'isMemberOfCollection');
 		$collections = array();
+		$fedoraUtils = FedoraUtils::getInstance();
 		foreach ($collectionsRaw as $collectionInfo){
-			$collectionObject = FedoraUtils::getInstance()->getObject($collectionInfo['object']['value']);
+			$collectionObject = $fedoraUtils->getObject($collectionInfo['object']['value']);
 			if ($collectionObject != null){
 				$collections[] = array(
 						'pid' => $collectionInfo['object']['value'],
 						'label' => $collectionObject->label,
 						'link' => '/Archive/' . $collectionInfo['object']['value'] . '/Exhibit',
-						'image' => FedoraUtils::getInstance()->getObjectImageUrl($collectionObject, 'small'),
+						'image' => $fedoraUtils->getObjectImageUrl($collectionObject, 'small'),
 				);
 			}
 		}

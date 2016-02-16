@@ -123,4 +123,38 @@ class FedoraUtils {
 			return $configArray['Site']['path'] . '/interface/themes/responsive/images/History.png';
 		}
 	}
+
+	/**
+	 * Retrieves MODS data for the specified object
+	 *
+	 * @param FedoraObject $archiveObject
+	 *
+	 * @return SimpleXMLElement
+	 */
+	public function getModsData($archiveObject){
+		if (array_key_exists($archiveObject->id, $this->modsCache)) {
+			$modsData = $this->modsCache[$archiveObject->id];
+		}else{
+			$modsStream = $archiveObject->getDatastream('MODS');
+			if ($modsStream){
+				$temp = tempnam('/tmp', 'mods');
+				$modsStream->getContent($temp);
+				$modsStreamContent = trim(file_get_contents($temp));
+				if (strlen($modsStreamContent) > 0){
+					$modsData = simplexml_load_string($modsStreamContent);
+					if (sizeof($modsData) == 0){
+						$modsData = $modsData->children('http://www.loc.gov/mods/v3');
+					}
+				}
+				unlink($temp);
+				$this->modsCache[$archiveObject->id] = $modsData;
+			}else{
+				return null;
+			}
+		}
+		return $modsData;
+	}
+
+	private $modsCache = array();
+
 }

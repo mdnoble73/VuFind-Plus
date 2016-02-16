@@ -1237,5 +1237,15 @@ function getLibraryLocationUpdates(){
 							'ALTER TABLE `library` ADD COLUMN `maxFinesToAllowAccountUpdates` FLOAT DEFAULT 10',
 					),
 			),
+
+			'library_eds_integration' => array(
+					'title' => 'Library EDS Integration',
+					'description' => 'Setup information for connection to EDS APIs',
+					'sql' => array(
+							'ALTER TABLE `library` ADD COLUMN `edsApiProfile` VARCHAR(50)',
+							'ALTER TABLE `library` ADD COLUMN `edsApiUsername` VARCHAR(50)',
+							'ALTER TABLE `library` ADD COLUMN `edsApiPassword` VARCHAR(50)',
+					),
+			),
 	);
 }

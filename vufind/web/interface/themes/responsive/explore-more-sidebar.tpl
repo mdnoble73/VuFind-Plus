@@ -6,7 +6,7 @@
 			{foreach from=$collections item=collection}
 				<strong>{$collection.label}</strong>
 				<div class="section">
-					<a href="{$collection.link}"><img src="{$collection.image}" alt="{$collection.label}"></a>
+					<a href="{$collection.link}"><img src="{$collection.image}" alt="{$collection.label}" class="img-responsive"></a>
 				</div>
 			{/foreach}
 
