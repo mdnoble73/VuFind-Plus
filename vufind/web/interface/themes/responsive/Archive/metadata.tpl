@@ -28,7 +28,11 @@
 				{foreach from=$relatedPeople item=entity}
 					<a href='{$entity.link}'>
 						{$entity.label}
-					</a><br/>
+					</a>
+					{if $entity.role}
+						&nbsp;({$entity.role})
+					{/if}
+					<br/>
 				{/foreach}
 			</div>
 		</div>
@@ -106,9 +110,25 @@
 		{/if}
 	{/if}
 
-	<hr/>
+	{if $hasMilitaryService}
+		<hr/>
+		<h3>Military Service</h3>
+		<div class="row">
+			<div class="result-label col-sm-4">Military Branch: </div>
+			<div class="col-sm-8 result-value">
+				{$militaryRecord.branch}
+			</div>
+		</div>
+		<div class="row">
+			<div class="result-label col-sm-4">Conflict: </div>
+			<div class="col-sm-8 result-value">
+				{$militaryRecord.conflict}
+			</div>
+		</div>
+	{/if}
 
 	{if $mods->identifier}
+		<hr/>
 		<div class="row">
 			<div class="result-label col-sm-4">Local Identifier: </div>
 			<div class="col-sm-8 result-value">
@@ -117,6 +137,7 @@
 		</div>
 	{/if}
 	{if $mods->recordInfo}
+		<hr/>
 		{if $mods->recordInfo->recordOrigin}
 			<div class="row">
 				<div class="result-label col-sm-4">Entered By: </div>
