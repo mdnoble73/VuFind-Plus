@@ -1,8 +1,8 @@
 {strip}
 	<div id="explore-more-header" class="row">Explore More</div>
 
-	<div class="row" id="explore-more-body">
-		<div class="col-xs-10 col-xs-offset-1">
+	<div class="row" {* To Get use of the full width there is*} id="explore-more-body">
+		{*<div class="col-xs-10*}{* col-xs-offset-1*}{*">*}
 			{foreach from=$collections item=collection}
 				<strong>{$collection.label}</strong>
 				<div class="section">
@@ -35,15 +35,29 @@
 			{if $related_titles.numFound > 0}
 				<div class="sectionHeader">Related Titles</div>
 				{* JCarousel with related titles *}
-				{foreach from=$related_titles.topHits item=title}
-					<div class="thumbnail">
-						<a href="{$title.link}"><img class="img-responsive" src="{$title.cover}"/>{$title.title}</a>
-					</div>
-				{/foreach}
-				<a href="{$related_titles.allResultsLink}">All Results ({$related_titles.numFound})</a>
+			<div class="jcarousel-wrapper">
+				{*<a href="#" class="jcarousel-control-prev"*}{* data-target="-=1"*}{*><i class="glyphicon glyphicon-chevron-left"></i></a>*}
+				<a href="#" class="jcarousel-control-next"{* data-target="+=1"*}><i class="glyphicon glyphicon-chevron-right"></i></a>
+
+				<div class="relatedTitlesContainer jcarousel">
+					<ul>
+						{foreach from=$related_titles.topHits item=title}
+							<li class="relatedTitle">
+								<a href="{$title.link}">
+									<figure class="thumbnail">
+										<img src="{$title.cover}" alt="{$title.title|removeTrailingPunctuation|truncate:80:"..."}">
+										<figcaption>{$title.title|removeTrailingPunctuation|truncate:80:"..."}</figcaption>
+									</figure>
+								</a>
+							</li>
+						{/foreach}
+					</ul>
+				</div>
+			</div>
+
+			<a href="{$related_titles.allResultsLink}">All Results ({$related_titles.numFound})</a>
+
 			{/if}
-		</div>
+		{*</div>*}
 	</div>
-	<br>
-	<br>
 {/strip}

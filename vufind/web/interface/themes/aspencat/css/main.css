@@ -5069,6 +5069,7 @@ button.close {
 }
 .modal.fade .modal-dialog {
   -webkit-transform: translate(0, -25%);
+  -ms-transform: translate(0, -25%);
   transform: translate(0, -25%);
   -webkit-transition: -webkit-transform 0.3s ease-out;
   transition: -webkit-transform 0.3s ease-out;
@@ -5077,6 +5078,7 @@ button.close {
 }
 .modal.in .modal-dialog {
   -webkit-transform: translate(0, 0);
+  -ms-transform: translate(0, 0);
   transform: translate(0, 0);
 }
 .modal-dialog {
@@ -7957,6 +7959,7 @@ fieldset[disabled] .datepicker table tr td span.active.disabled:hover.active {
   bottom: -25px;
   left: 50%;
   -webkit-transform: translate(-50%, 0);
+  -ms-transform: translate(-50%, 0);
   transform: translate(-50%, 0);
   margin: 0;
 }
@@ -8035,6 +8038,7 @@ fieldset[disabled] .datepicker table tr td span.active.disabled:hover.active {
   vertical-align: text-top;
   text-align: center;
   -webkit-transform: scale(0.6);
+      -ms-transform: scale(0.6);
           transform: scale(0.6);
   margin-top: -1px;
   margin-bottom: -1px;
@@ -8591,8 +8595,10 @@ hr.menu {
   white-space: nowrap;
   position: absolute;
   -webkit-transform: rotate(-90deg) translateX(-100%);
+      -ms-transform: rotate(-90deg) translateX(-100%);
           transform: rotate(-90deg) translateX(-100%);
   -webkit-transform-origin: 0 0;
+      -ms-transform-origin: 0 0;
           transform-origin: 0 0;
   margin-top: 10px;
   margin-left: 10px;
@@ -10110,15 +10116,17 @@ a.browse-thumbnail.active {
 }
 #explore-more-header {
   padding: 10px 25px 5px 0;
-  margin-bottom: 5px;
   text-align: right;
-  color: white;
+  color: #FFF;
+  background-color: #8FB4E8;
   font-variant: small-caps;
   font-weight: bold;
   font-size: 16px;
 }
 #explore-more-body {
-  background-color: white;
+  border: solid 3px #8FB4E8;
+  margin-left: -15px;
+  padding-left: 10px;
 }
 #explore-more-body .sectionHeader {
   text-transform: uppercase;
@@ -10135,6 +10143,18 @@ a.browse-thumbnail.active {
 }
 #explore-more-body .subsectionTitle {
   color: #000075;
+}
+#explore-more-body .jcarousel-wrapper {
+  margin-left: -10px;
+}
+#explore-more-body .jcarousel {
+  width: calc(70%);
+}
+#explore-more-body .relatedTitlesContainer {
+  height: 100%;
+}
+#explore-more-body .relatedTitlesContainer .thumbnail {
+  margin-bottom: 0;
 }
 .related-exhibit-images img {
   padding-left: 10px;
@@ -10164,8 +10184,10 @@ a.browse-thumbnail.active {
 .exploreMoreBar .label-left .exploreMoreBarLabel {
   position: absolute;
   -webkit-transform: rotate(-90deg) translateX(-100%);
+      -ms-transform: rotate(-90deg) translateX(-100%);
           transform: rotate(-90deg) translateX(-100%);
   -webkit-transform-origin: 0 0;
+      -ms-transform-origin: 0 0;
           transform-origin: 0 0;
   padding-right: 10px;
   padding-left: 5px;
@@ -10194,29 +10216,7 @@ a.browse-thumbnail.active {
 .exploreMoreBar .jcarousel-wrapper {
   margin: 5px auto;
 }
-.exploreMoreBar .jcarousel-control-prev,
-.exploreMoreBar .jcarousel-control-next {
-  height: 100%;
-  background: #fff;
-  color: #8FB4E8;
-  z-index: 2;
-}
-.exploreMoreBar .jcarousel-control-prev:focus,
-.exploreMoreBar .jcarousel-control-next:focus {
-  outline: none;
-}
-.exploreMoreBar .jcarousel-control-prev .glyphicon,
-.exploreMoreBar .jcarousel-control-next .glyphicon {
-  top: 20px;
-}
-.exploreMoreBar .jcarousel-control-prev {
-  left: 2px;
-}
-.exploreMoreBar .jcarousel-control-next {
-  right: 2px;
-}
 .exploreMoreBar .explore-more-option {
-  display: initial;
   padding-left: 10px;
   padding-right: 10px;
   height: 100%;
@@ -10232,6 +10232,35 @@ a.browse-thumbnail.active {
   margin-bottom: 4px;
   font-weight: 100;
   overflow-x: hidden;
+}
+#explore-more-body .jcarousel-control-prev,
+.exploreMoreBar .jcarousel-control-prev,
+#explore-more-body .jcarousel-control-next,
+.exploreMoreBar .jcarousel-control-next {
+  height: 100%;
+  background: #fff;
+  color: #8FB4E8;
+  z-index: 2;
+}
+#explore-more-body .jcarousel-control-prev:focus,
+.exploreMoreBar .jcarousel-control-prev:focus,
+#explore-more-body .jcarousel-control-next:focus,
+.exploreMoreBar .jcarousel-control-next:focus {
+  outline: none;
+}
+#explore-more-body .jcarousel-control-prev .glyphicon,
+.exploreMoreBar .jcarousel-control-prev .glyphicon,
+#explore-more-body .jcarousel-control-next .glyphicon,
+.exploreMoreBar .jcarousel-control-next .glyphicon {
+  top: 20px;
+}
+#explore-more-body .jcarousel-control-prev,
+.exploreMoreBar .jcarousel-control-prev {
+  left: 2px;
+}
+#explore-more-body .jcarousel-control-next,
+.exploreMoreBar .jcarousel-control-next {
+  right: 2px;
 }
 .openseadragon {
   display: block;
