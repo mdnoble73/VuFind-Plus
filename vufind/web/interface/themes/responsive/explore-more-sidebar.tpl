@@ -39,7 +39,7 @@
 				{*<a href="#" class="jcarousel-control-prev"*}{* data-target="-=1"*}{*><i class="glyphicon glyphicon-chevron-left"></i></a>*}
 				<a href="#" class="jcarousel-control-next"{* data-target="+=1"*}><i class="glyphicon glyphicon-chevron-right"></i></a>
 
-				<div class="relatedTitlesContainer jcarousel">
+				<div class="relatedTitlesContainer jcarousel"> {* relatedTitlesContainer used in initCarousels *}
 					<ul>
 						{foreach from=$related_titles.topHits item=title}
 							<li class="relatedTitle">
