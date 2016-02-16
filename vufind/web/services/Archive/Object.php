@@ -106,9 +106,6 @@ abstract class Archive_Object extends Action{
 				}
 			}
 
-			$this->archiveObject->getDatastream('mods')->
-
-
 			$entities = $marmotExtension->xpath('/marmotLocal/relatedEntity');
 			/** @var SimpleXMLElement $entity */
 			foreach ($entities as $entity){
