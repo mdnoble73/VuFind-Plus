@@ -162,6 +162,9 @@ class Library extends DB_DataObject
 	public $showStandardSubjects;
 	public $showFastAddSubjects;
 	public $maxFinesToAllowAccountUpdates;
+	public $edsApiProfile;
+	public $edsApiUsername;
+	public $edsApiPassword;
 
 	// Use this to set which details will be shown in the the Main Details section of the record view.
 	// You should be able to add options here without needing to change the database.
@@ -506,6 +509,12 @@ class Library extends DB_DataObject
 				'enableArchive' => array('property'=>'enableArchive', 'type'=>'checkbox', 'label'=>'Allow Searching the Archive', 'description'=>'Whether or not information from the archive is shown in Pika.', 'hideInLists' => true, 'default' => 0),
 			)),
 
+			'edsSection'=>array('property'=>'edsSection', 'type' => 'section', 'label' =>'EBSCO EDS', 'hideInLists' => true, 'properties' => array(
+					'edsApiProfile' => array('property'=>'edsApiProfile', 'type'=>'text', 'label'=>'EDS API Profile', 'description'=>'The profile to use when connecting to the EBSCO API', 'hideInLists' => true),
+					'edsApiUsername' => array('property'=>'edsApiUsername', 'type'=>'text', 'label'=>'EDS API Username', 'description'=>'The username to use when connecting to the EBSCO API', 'hideInLists' => true),
+					'edsApiPassword' => array('property'=>'edsApiPassword', 'type'=>'text', 'label'=>'EDS API Password', 'description'=>'The password to use when connecting to the EBSCO API', 'hideInLists' => true),
+			)),
+
 			array('property'=>'dplaSection', 'type' => 'section', 'label' =>'DPLA', 'hideInLists' => true, 'helpLink'=> 'https://docs.google.com/document/d/1I6RuNhKNwDJOMpM63a4V5Lm0URgWp23465HegEIkP_w', 'properties' => array(
 				'includeDplaResults' => array('property'=>'includeDplaResults', 'type'=>'checkbox', 'label'=>'Include DPLA content in search results', 'description'=>'Whether or not DPLA data should be included for this library.', 'hideInLists' => true, 'default' => 0),
 			)),
@@ -615,6 +624,7 @@ class Library extends DB_DataObject
 			unset($structure['worldCatSection']);
 			unset($structure['overdriveSection']);
 			unset($structure['archiveSection']);
+			unset($structure['edsSection']);
 			unset($structure['recordsOwned']);
 			unset($structure['recordsToInclude']);
 		}
