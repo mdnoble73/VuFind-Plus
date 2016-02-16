@@ -19,22 +19,6 @@ VuFind.Browse = (function(){
 
 			var browseCategoryCarousel = $("#browse-category-carousel");
 
-			// resize the browse category carousel for different screen sizes
-			browseCategoryCarousel.on('jcarousel:create jcarousel:reload', function () {
-				var Carousel = $(this), width = Carousel.innerWidth();
-
-				if (width > 1000) {
-					width /= 5;
-				} else if (width > 700) {
-					width /= 4;
-				} else if (width > 500) {
-					width /= 3;
-				} else if (width > 400) {
-					width /= 2;
-				}
-				Carousel.jcarousel('items').css('width', Math.floor(width) + 'px');// Set Width
-			});
-
 			// connect the browse catalog functions to the jcarousel controls
 			browseCategoryCarousel.on('jcarousel:targetin', 'li', function(){
 				var categoryId = $(this).data('category-id');

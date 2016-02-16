@@ -55,23 +55,57 @@ var VuFind = (function(){
 		initCarousels:function(){
 			var jcarousel = $('.jcarousel');
 
-			jcarousel.on('jcarousel:reload jcarousel:create', function () {
-				var element = $(this),
-						width = element.innerWidth(),
-						itemWidth = width; // default of 1 item only
+			jcarousel.on('jcarousel:reload jcarousel:create', function() {
 
-				if (width >= 800) {
-					itemWidth = width / 5;
-				} else if (width >= 600) {
-					itemWidth = width / 4;
-				} else if (width >= 400) {
-					itemWidth = width / 3;
-				} else if (width >= 300) {
-					itemWidth = width / 2;
+				var Carousel = $(this),
+						width = Carousel.innerWidth(),
+						numCategories = Carousel.jcarousel('items').length,
+						numItemsToShow = 1;
+
+				// Adjust Browse Category Carousels
+				if (jcarousel.is('#browse-category-carousel')){
+					
+					// set the number of categories to show; if there aren't enough categories, show all the categories instead
+					if (width > 1000) {
+						numItemsToShow = Math.min(5, numCategories);
+					} else if (width > 700) {
+						numItemsToShow = Math.min(4, numCategories);
+					} else if (width > 500) {
+						numItemsToShow = Math.min(3, numCategories);
+					} else if (width > 400) {
+						numItemsToShow = Math.min(2, numCategories);
+					}
+
 				}
 
-				element.jcarousel('items').css('width', Math.floor(itemWidth) + 'px');
-			})
+				//// Explore More Related Titles Carousel
+				//else if (jcarousel.is('.relatedTitlesContainer')) {
+				//}
+
+				//// Explore More Bar Carousel
+				//else if (jcarousel.is('.exploreMoreItemsContainer')) {
+				//}
+
+				// Default Generic Carousel;
+				else {
+					if (width >= 800) {
+						numItemsToShow = Math.min(5, numCategories);
+					} else if (width >= 600) {
+						numItemsToShow = Math.min(4, numCategories);
+					} else if (width >= 400) {
+						numItemsToShow = Math.min(3, numCategories);
+					} else if (width >= 300) {
+						numItemsToShow = Math.min(2, numCategories);
+					}
+				}
+
+				// Set the width of each item in the carousel
+				width /= numItemsToShow;
+				Carousel.jcarousel('items').css('width', Math.floor(width) + 'px');// Set Width
+
+				//console.log(Carousel, 'num to show', numItemsToShow, 'width', width);
+
+					})
 			.jcarousel({
 				wrap: 'circular'
 			});
@@ -106,7 +140,8 @@ var VuFind = (function(){
 
 			// If Browse Category js is set, initialize those functions
 			if (typeof VuFind.Browse.initializeBrowseCategory == 'function') {
-				VuFind.Browse.initializeBrowseCategory(); }
+				VuFind.Browse.initializeBrowseCategory();
+			}
 		},
 
 		initializeModalDialogs: function() {

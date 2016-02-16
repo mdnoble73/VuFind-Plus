@@ -8,15 +8,20 @@
 }
 #explore-more-header{
   padding: 10px 25px 5px 0;
-  margin-bottom:5px;
+  //margin-bottom:5px;
   text-align: right;
-  color: white;
+  color: @explore-more-sidebar-color;
+  background-color: @explore-more-sidebar-bg-color;
   font-variant: small-caps;
   font-weight: bold;
   font-size: 16px;
 }
 #explore-more-body{
-  background-color: white;
+  border: solid @explore-more-bar-border-width @explore-more-bar-label-bg-color;
+
+  //margin-left: -(floor(@grid-gutter-width / 2)); // undo padding of parent #sidebar-content
+  margin-left: floor(-@grid-gutter-width / 2); // undo padding of parent #sidebar-content with negative margin
+  padding-left: @padding-small-horizontal; // add smaller padding
 
   .sectionHeader {
     text-transform: uppercase;
@@ -39,11 +44,29 @@
   .subsection {
 
   }
+  .jcarousel-wrapper {
+    margin-left: -@padding-small-horizontal; // remove padding from #explore-more-body, so that full space is available to the carousel
+  }
+  .jcarousel {
+    width: calc(100% - 30px); //
+  }
+
+  //TODO add to jwrapper class instead, and combine?
+  .relatedTitlesContainer {
+    //white-space: nowrap;
+    height: 100%;
+
+    .thumbnail {
+      margin-bottom: 0;
+    }
+  }
 }
 
-.related-exhibit-images img {
-  padding-left: 10px;
-  padding-right: 10px;
+.related-exhibit-images {
+  img {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
 }
 
 // Styling for Explore More Bar in Search Results
@@ -101,52 +124,44 @@
     }
   }
 
-  .exploreMoreItemsContainer {
-    //padding-top: 0px; //TODO delete
-    //padding-bottom: 0px; // TODO delete
-    //overflow-y: hidden; //TODO delete, when replacing main styling, w jcarousel
+  .exploreMoreItemsContainer {  //TODO add to jwrapper class instead, and combine?
     white-space: nowrap;
   }
 
   .jcarousel-wrapper {
-    // top label
     margin: 5px auto;
   }
 
-  .jcarousel-control-prev, .jcarousel-control-next {
-    height: 100%;
-    background: @content-bg;
-    color: @explore-more-bar-label-bg-color;
-    z-index: 2; // keep above carousel content
-    &:focus {
-      outline: none;
-    }
-    .glyphicon {
-      top: 20px; // center the button a bit better. I haven't find a good way to make it center with out a specific value yet
-    }
-  }
+  //.jcarousel-control-prev, .jcarousel-control-next {
+  //  height: 100%;
+  //  background: @content-bg;
+  //  color: @explore-more-bar-label-bg-color;
+  //  z-index: 2; // keep above carousel content
+  //  &:focus {
+  //    outline: none;
+  //  }
+  //  .glyphicon {
+  //    top: 20px; // center the button a bit better. I haven't find a good way to make it center with out a specific value yet
+  //  }
+  //}
 
-  // Horizontal Placement of Previous Next Buttons
-  .jcarousel-control-prev {
-    left: 2px;
-  }
-  .jcarousel-control-next {
-    right: 2px;
-  }
+  //// Horizontal Placement of Previous Next Buttons
+  //.jcarousel-control-prev {
+  //  left: 2px;
+  //}
+  //.jcarousel-control-next {
+  //  right: 2px;
+  //}
 
 
   .explore-more-option {
-    //display: inline-block;
-    display: initial;
+    //display: initial;
     padding-left: 10px;
     padding-right: 10px;
     height: 100%;
 
     .thumbnail {
       margin-bottom: 0;
-      //img { //TODO needed anymore?
-      //  max-height:@explore-more-bar-image-height;
-      //}
       a {
         img{
           max-height:@explore-more-bar-image-height;
@@ -164,16 +179,39 @@
   }
 }
 
-.openseadragon
-{
+// Common Rules between Explore More Bar & Explore More Sidebar
+#explore-more-body,.exploreMoreBar {
+
+  .jcarousel-control-prev, .jcarousel-control-next {
+    height: 100%;
+    background: @content-bg;
+    color: @explore-more-bar-label-bg-color;
+    z-index: 2; // keep above carousel content
+    &:focus {
+      outline: none;
+    }
+    .glyphicon {
+      top: 20px; // center the button a bit better. I haven't find a good way to make it center with out a specific value yet
+    }
+  }
+  // Horizontal Placement of Previous Next Buttons
+  .jcarousel-control-prev {
+    left: 2px;
+  }
+  .jcarousel-control-next {
+    right: 2px;
+  }
+
+}
+
+.openseadragon {
   display: block;
   width: 100%;
   height: 500px;
-}
 
-.openseadragon canvas
-{
-  background-color: #000 !important; /* should be replaced with OpenSeadragon setting */
+  canvas {
+    background-color: #000 !important; /* should be replaced with OpenSeadragon setting */
+  }
 }
 
 .openseadragon-highlight
