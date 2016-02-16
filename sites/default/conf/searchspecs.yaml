@@ -647,6 +647,8 @@ IslandoraKeyword:
       - [and, 300]
     - eaccpf_cpfDescription_description_biogHist_p_t:
       - [and, 100]
+    - mods_extension_marmotLocal_hasTranscription_transcriptionText_mt:
+      - [and, 25]
     - PID:
       - [exact, 1000]
       - [and, 100]
