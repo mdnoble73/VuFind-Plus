@@ -26,13 +26,9 @@ abstract class Archive_Object extends Action{
 	 * @param string $pageTitle            What to display is the html title tag
 	 * @param bool|string $sidebarTemplate      Sets the sidebar template, set to false or empty string for no sidebar
 	 */
-	function display($mainContentTemplate, $pageTitle=null, $sidebarTemplate='explore-more-sidebar.tpl') {
-		global $interface;
-		if (!empty($sidebarTemplate)) $interface->assign('sidebar', $sidebarTemplate);
-		$interface->setTemplate($mainContentTemplate);
-		$interface->setPageTitle($pageTitle == null ? $this->archiveObject->label : $pageTitle);
-		$interface->assign('moreDetailsTemplate', 'GroupedWork/moredetails-accordion.tpl');
-		$interface->display('layout.tpl');
+	function display($mainContentTemplate, $pageTitle=null/*, $sidebarTemplate='explore-more-sidebar.tpl'*/) {
+		$pageTitle == null ? $this->archiveObject->label : $pageTitle;
+		parent::display($mainContentTemplate, $pageTitle);
 	}
 
 	//TODO: This should eventually move onto a Record Driver

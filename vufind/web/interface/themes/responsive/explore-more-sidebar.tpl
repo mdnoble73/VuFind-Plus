@@ -1,7 +1,7 @@
 {strip}
 	<div id="explore-more-header" class="row">Explore More</div>
 
-	<div class="row" {* To Get use of the full width there is*} id="explore-more-body">
+	<div id="explore-more-body" class="row"> {* To Get use of the full width there is*}
 		{*<div class="col-xs-10*}{* col-xs-offset-1*}{*">*}
 			{foreach from=$collections item=collection}
 				<strong>{$collection.label}</strong>
