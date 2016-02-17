@@ -10136,8 +10136,14 @@ a.browse-thumbnail.active {
 }
 #explore-more-body {
   border: solid 3px #004684;
+  border-width: 0 3px 3px 0;
   margin-left: -15px;
   padding-left: 10px;
+}
+@media (max-width: 767px) {
+  #explore-more-body {
+    border: none;
+  }
 }
 #explore-more-body .sectionHeader {
   text-transform: uppercase;
@@ -10147,10 +10153,8 @@ a.browse-thumbnail.active {
   margin-bottom: 10px;
 }
 #explore-more-body .section {
+  padding-right: 5px;
   margin-bottom: 20px;
-}
-#explore-more-body .section .row {
-  margin-bottom: 10px;
 }
 #explore-more-body .subsectionTitle {
   color: #000075;
@@ -10164,13 +10168,6 @@ a.browse-thumbnail.active {
 }
 #explore-more-body .relatedTitlesContainer {
   height: 100%;
-}
-#explore-more-body .relatedTitlesContainer .thumbnail {
-  margin-bottom: 0;
-}
-.related-exhibit-images img {
-  padding-left: 10px;
-  padding-right: 10px;
 }
 .exploreMoreBar {
   border: solid 3px #004684;
@@ -10233,9 +10230,6 @@ a.browse-thumbnail.active {
   padding-right: 10px;
   height: 100%;
 }
-.exploreMoreBar .explore-more-option .thumbnail {
-  margin-bottom: 0;
-}
 .exploreMoreBar .explore-more-option .thumbnail a img {
   max-height: 92px;
 }
@@ -10244,6 +10238,10 @@ a.browse-thumbnail.active {
   margin-bottom: 4px;
   font-weight: 100;
   overflow-x: hidden;
+}
+#explore-more-body .jcarousel .thumbnail,
+.exploreMoreBar .jcarousel .thumbnail {
+  margin-bottom: 0;
 }
 #explore-more-body .jcarousel-control-prev,
 .exploreMoreBar .jcarousel-control-prev,

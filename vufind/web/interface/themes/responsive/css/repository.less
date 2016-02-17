@@ -18,8 +18,12 @@
 }
 #explore-more-body{
   border: solid @explore-more-bar-border-width @explore-more-bar-label-bg-color;
+  border-width: 0 @explore-more-bar-border-width @explore-more-bar-border-width 0;
 
-  //margin-left: -(floor(@grid-gutter-width / 2)); // undo padding of parent #sidebar-content
+  @media (max-width: @screen-xs-max) {
+    border: none;
+  }
+
   margin-left: floor(-@grid-gutter-width / 2); // undo padding of parent #sidebar-content with negative margin
   padding-left: @padding-small-horizontal; // add smaller padding
 
@@ -31,15 +35,11 @@
     margin-bottom: 10px;
   }
   .section {
-    .row {
-      margin-bottom: 10px;
-    }
+    padding-right: @padding-xs-horizontal;
     margin-bottom: 20px;
-
   }
   .subsectionTitle {
     color: @title-color;
-
   }
   .subsection {
 
@@ -52,29 +52,17 @@
     width: calc(100% ~"-" 30px); // Escaping so that LESS doesn't compile the calc rule;
   }
 
-  //TODO add to jwrapper class instead, and combine?
   .relatedTitlesContainer {
     //white-space: nowrap;
-    height: 100%;
+    height: 100%; // doesn't seem have an effect
 
-    .thumbnail {
-      margin-bottom: 0;
-    }
   }
 }
 
-.related-exhibit-images {
-  img {
-    padding-left: 10px;
-    padding-right: 10px;
-  }
-}
 
 // Styling for Explore More Bar in Search Results
 .exploreMoreBar {
   border: solid @explore-more-bar-border-width @explore-more-bar-label-bg-color;
-  //border-top: solid @explore-more-bar-border-width @explore-more-bar-label-bg-color;
-  //border-bottom: solid @explore-more-bar-border-width @explore-more-bar-label-bg-color;
   margin: 10px 5px 15px; // matches padding of a .result div
 
   .exploreMoreBarLabel {
@@ -125,7 +113,7 @@
     }
   }
 
-  .exploreMoreItemsContainer {  //TODO add to jwrapper class instead, and combine?
+  .exploreMoreItemsContainer {
     white-space: nowrap;
   }
 
@@ -133,15 +121,12 @@
     margin: 5px auto;
   }
 
-
   .explore-more-option {
-    //display: initial;
     padding-left: 10px;
     padding-right: 10px;
     height: 100%;
 
     .thumbnail {
-      margin-bottom: 0;
       a {
         img{
           max-height:@explore-more-bar-image-height;
@@ -161,6 +146,11 @@
 
 // Common Rules between Explore More Bar & Explore More Sidebar
 #explore-more-body,.exploreMoreBar {
+  .jcarousel {
+    .thumbnail {
+      margin-bottom: 0;
+    }
+  }
 
   .jcarousel-control-prev, .jcarousel-control-next {
     height: 100%;
