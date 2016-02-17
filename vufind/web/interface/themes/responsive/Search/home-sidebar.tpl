@@ -6,11 +6,13 @@
 
 	{include file="login-sidebar.tpl"}
 
-	<div id="xs-main-content-insertion-point" class="row"></div>
-
 	{if $user}
 		{* Account Menu *}
 		{include file="MyAccount/menu.tpl"}
+	{/if}
+
+	{if $showExploreMore}
+		{include file="explore-more-sidebar.tpl"}
 	{/if}
 
 	{include file="library-sidebar.tpl"}
