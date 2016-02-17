@@ -10156,7 +10156,8 @@ a.browse-thumbnail.active {
   margin-left: -10px;
 }
 #explore-more-body .jcarousel {
-  width: calc(70%);
+  left: 0;
+  width: calc(100% - 30px);
 }
 #explore-more-body .relatedTitlesContainer {
   height: 100%;
