@@ -8566,7 +8566,6 @@ hr.menu {
   padding-right: 0;
 }
 #vertical-menu-bar .menu-bar-option {
-  height: 140px;
   width: 100%;
   padding-top: 6px;
   position: relative;
@@ -8592,16 +8591,28 @@ hr.menu {
   color: #FFF;
   font-weight: bold;
   text-transform: uppercase;
+  margin-top: 10px;
+}
+.rotated-text {
+  display: inline-block;
+  overflow: hidden;
+  width: 40px;
+  line-height: 40px;
+}
+.rotated-text-inner {
+  display: inline-block;
   white-space: nowrap;
-  position: absolute;
   -webkit-transform: rotate(-90deg) translateX(-100%);
       -ms-transform: rotate(-90deg) translateX(-100%);
           transform: rotate(-90deg) translateX(-100%);
   -webkit-transform-origin: 0 0;
       -ms-transform-origin: 0 0;
           transform-origin: 0 0;
-  margin-top: 10px;
-  margin-left: 10px;
+}
+.rotated-text-inner:after {
+  content: "";
+  float: left;
+  margin-top: 100%;
 }
 .collapsedSidebar {
   width: 40px;
@@ -10148,7 +10159,8 @@ a.browse-thumbnail.active {
   margin-left: -10px;
 }
 #explore-more-body .jcarousel {
-  width: calc(70%);
+  left: 0;
+  width: calc(100% - 30px);
 }
 #explore-more-body .relatedTitlesContainer {
   height: 100%;

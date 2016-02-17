@@ -229,7 +229,6 @@ hr.menu{
   padding-right: 0;
 
   .menu-bar-option {
-    height: 140px;
     width: 100%;
     padding-top: @padding-base-vertical;
     &.menu-icon-selected {
@@ -255,19 +254,36 @@ hr.menu{
       color: @menu-bar-color;
       font-weight: bold;
       text-transform: uppercase;
-      white-space: nowrap; // multiple word labels need to stay on the same line
-
-      // Make Font Vertical
-      position: absolute;
-      transform: rotate(-90deg) translateX(-100%);
-      transform-origin: 0 0;
 
       margin-top: 10px;
-      margin-left: 10px;
     }
   }
 }
 
+// Gives Vertical Rotated Text space that tracks with the document flow
+// requires two nested tags: <span class="rotated-text"><span class="rotated-text-inner">{text}</span></span>
+.rotated-text {
+  display: inline-block;
+  overflow: hidden;
+
+  width: @vertical-menu-bar-width;
+  line-height: @vertical-menu-bar-width; // need a set height for the rotated space to flow properly
+}
+.rotated-text-inner {
+  display: inline-block;
+  white-space: nowrap;  // multiple word labels need to stay on the same line
+
+  // Rotate Text Vertically
+  transform: rotate(-90deg) translateX(-100%);
+  transform-origin: 0 0;
+
+  // puts the rotated text into the document flow like we want
+  &:after {
+    content: "";
+    float: left;
+    margin-top: 100%;
+  }
+}
 
 // Toggles Collapsed Sidebar
 // Applied to container divs, remove class to restore original width classes

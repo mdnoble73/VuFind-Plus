@@ -48,7 +48,8 @@
     margin-left: -@padding-small-horizontal; // remove padding from #explore-more-body, so that full space is available to the carousel
   }
   .jcarousel {
-    width: calc(100% - 30px); //
+    left: 0;  // position carousel first item
+    width: calc(100% ~"-" 30px); // Escaping so that LESS doesn't compile the calc rule;
   }
 
   //TODO add to jwrapper class instead, and combine?
@@ -131,27 +132,6 @@
   .jcarousel-wrapper {
     margin: 5px auto;
   }
-
-  //.jcarousel-control-prev, .jcarousel-control-next {
-  //  height: 100%;
-  //  background: @content-bg;
-  //  color: @explore-more-bar-label-bg-color;
-  //  z-index: 2; // keep above carousel content
-  //  &:focus {
-  //    outline: none;
-  //  }
-  //  .glyphicon {
-  //    top: 20px; // center the button a bit better. I haven't find a good way to make it center with out a specific value yet
-  //  }
-  //}
-
-  //// Horizontal Placement of Previous Next Buttons
-  //.jcarousel-control-prev {
-  //  left: 2px;
-  //}
-  //.jcarousel-control-next {
-  //  right: 2px;
-  //}
 
 
   .explore-more-option {
