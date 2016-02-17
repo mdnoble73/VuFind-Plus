@@ -727,6 +727,7 @@ class SearchObject_Solr extends SearchObject_Base
 		}
 		return $displayTemplate;
 	}
+
 	/**
 	 * Use the record driver to build an array of HTML displays from the search
 	 * results.
