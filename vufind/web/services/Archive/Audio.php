@@ -1,28 +1,29 @@
 <?php
+
 /**
- * Allows display of a Video from Islandora
+ * Allows display of Audio files
  *
  * @category Pika
  * @author Mark Noble <mark@marmot.org>
- * Date: 9/8/2015
- * Time: 8:44 PM
+ * Date: 2/17/2016
+ * Time: 9:52 AM
  */
 
 require_once ROOT_DIR . '/services/Archive/Object.php';
-class Archive_Video  extends Archive_Object{
+class Archive_Audio  extends Archive_Object{
 	function launch() {
 		global $interface;
 		global $configArray;
 		$this->loadArchiveObjectData();
 		$this->loadExploreMoreContent();
 
-		if ($this->archiveObject->getDatastream('MP4') != null) {
-			$interface->assign('videoLink', $configArray['Islandora']['objectUrl'] . "/{$this->pid}/datastream/MP4/view");
+		if ($this->archiveObject->getDatastream('PROXY_MP3') != null) {
+			$interface->assign('audioLink', $configArray['Islandora']['objectUrl'] . "/{$this->pid}/datastream/PROXY_MP3/view");
 		}
 
 		$interface->assign('showExploreMore', true);
 
 		// Display Page
-		$this->display('video.tpl');
+		$this->display('audio.tpl');
 	}
 }
