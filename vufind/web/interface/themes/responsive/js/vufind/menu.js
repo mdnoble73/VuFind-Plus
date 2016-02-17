@@ -99,13 +99,21 @@ VuFind.Menu = (function(){
 
 
 	});
+
+	// Private Function for Menu.js functions only
+	var reloadRelatedTitles = function() {
+		if ($(VuFind.Menu.ExploreMoreSelectors).is(':visible')) {
+			$('.jcarousel').jcarousel('reload')
+		}
+	};
+
 	return {
-		SearchBoxSelectors:'#home-page-search',
-		SideBarSearchSelectors: '#narrow-search-label,#facet-accordion,#results-sort-label,#results-sort-label+div.row,#remove-search-label,#remove-search-label+.applied-filters,#similar-authors',
+		SearchBoxSelectors:      '#home-page-search',
+		SideBarSearchSelectors:  '#narrow-search-label,#facet-accordion,#results-sort-label,#results-sort-label+div.row,#remove-search-label,#remove-search-label+.applied-filters,#similar-authors',
 		SideBarAccountSelectors: '#home-page-login,#home-account-links',
-		SideBarMenuSelectors: '#home-page-login,#home-page-library-section',
-		ExploreMoreSelectors: '#explore-more-header,#explore-more-body',
-		AllSideBarSelectors: '', // Set above
+		SideBarMenuSelectors:    '#home-page-login,#home-page-library-section',
+		ExploreMoreSelectors:    '#explore-more-header,#explore-more-body',
+		AllSideBarSelectors:     '', // Set above
 
 		stickyMenu: function(menuContainerSelector, stickyMenuClass){
 			var menu = $(menuContainerSelector),
@@ -114,8 +122,8 @@ VuFind.Menu = (function(){
 			if (menu.is(':visible')) switchPosition = menu.offset().top;
 			$(window).resize(function(){
 				viewportHeight = $(this).height()
-			});
-			$(window).scroll(function(){
+			})
+			.scroll(function(){
 				if (menu.is(':visible') && viewportHeight < $('#main-content-with-sidebar').height()) { // only do this if the menu is visible & the page is larger than the viewport
 					if (typeof switchPosition == 'undefined') {
 						switchPosition = menu.offset().top
@@ -124,11 +132,11 @@ VuFind.Menu = (function(){
 							notFixedScrolledPosition = $(this).scrollTop();
 					//console.log('Selector :', menuContainerSelector, 'fixedOffset : ', fixedOffset, ' notFixedScrolledPosition : ', notFixedScrolledPosition, 'switch position : ', switchPosition);
 
-					/*Toggle into an embedded mode*/
+					// Toggle into an embedded mode
 					if (menu.is('.' + stickyMenuClass) && fixedOffset <= switchPosition) {
 						menu.removeClass(stickyMenuClass)
 					}
-					/*Toggle into a fixed mode*/
+					// Toggle into a fixed mode
 					if (!menu.is('.' + stickyMenuClass) && notFixedScrolledPosition >= switchPosition) {
 						menu.addClass(stickyMenuClass)
 					}
@@ -152,6 +160,11 @@ VuFind.Menu = (function(){
 			$('#side-bar,#vertical-menu-bar-container').removeClass('collapsedSidebar');
 		},
 
+		reloadRelatedTitles: function() {
+			if ($(VuFind.Menu.ExploreMoreSelectors).is(':visible')) {
+				$('.jcarousel').jcarousel('reload')
+			}
+		},
 
 		// Functions for the Vertical Sidebar Menu
 		SideBar: {
@@ -159,7 +172,7 @@ VuFind.Menu = (function(){
 				return $(VuFind.Menu.AllSideBarSelectors).filter(':visible').animate({width:'toggle'},350); // slide left to right
 			},
 
-			showMenuSection: function(sectionSelector, clickedElement){
+			showMenuSection: function(sectionSelector, clickedElement, afterAnimationAction){
 				$.when( this.hideAll() ).done(function(){
 					var elem = $(clickedElement),
 							parent = elem.parent('.menu-bar-option'); // For Vertical Menu Bar only
@@ -175,7 +188,7 @@ VuFind.Menu = (function(){
 							$('.menu-bar-option').removeClass('menu-icon-selected'); // Remove from any selected
 							parent.addClass('menu-icon-selected');
 							VuFind.Menu.openSideBar();
-							$(sectionSelector).animate({width:'toggle'},350); // slide left to right
+							$.when( $(sectionSelector).animate({width:'toggle'},350) ).done(afterAnimationAction); // slide left to right
 						}
 					}
 				})
@@ -206,7 +219,7 @@ VuFind.Menu = (function(){
 			},
 
 			showExploreMore: function(clickedElement){
-				this.showMenuSection(VuFind.Menu.ExploreMoreSelectors, clickedElement)
+				this.showMenuSection(VuFind.Menu.ExploreMoreSelectors, clickedElement, reloadRelatedTitles)
 			},
 
 		},
@@ -218,17 +231,15 @@ VuFind.Menu = (function(){
 			},
 
 			showMenuSection: function(sectionSelector, clickedElement){
-				$.when(this.hideAll() ).done(function(){
+				return $.when(this.hideAll() ).done(function(){
 					var elem = $(clickedElement);
 						VuFind.Menu.openSideBar();  // covers the case when view has switched from sidebar mode to mobile mode
 						if ( elem.is('.menu-icon-selected')){
 							elem.removeClass('menu-icon-selected');
 
 							// Show MyAccount Mini Menu
-
 							$('#mobileHeader').show();  // If the mobileHeader is present, show when no menu option is selected.
-							return $(sectionSelector).slideUp() // return of object is needed for $when(VuFind.Menu.hideAll()).done() calls
-								// Not sure this return is needed or even effective. plb 2-12-2016
+							$(sectionSelector).slideUp()
 
 						}else { // selecting an option
 							$('.menu-icon-selected', '#horizontal-menu-bar-container').removeClass('menu-icon-selected');
@@ -256,15 +267,11 @@ VuFind.Menu = (function(){
 			showAccount: function(clickedElement){
 				this.showMenuSection(VuFind.Menu.SideBarAccountSelectors, clickedElement);
 				$('#myAccountPanel').filter(':not(.in)').collapse('show');  // Open up the MyAccount Section, if it is not open. (.collapse('show') acts like a toggle instead of always showing. plb 2-12-2016)
-				//if ($('#mobile-menu-account-icon').is('.menu-icon-selected')) {
-				//	$('#mobileHeader').hide()
-				//} else {
-				//	$('#mobileHeader').show()
-				//}
 			},
 
 			showExploreMore: function(clickedElement){
 				this.showMenuSection(VuFind.Menu.ExploreMoreSelectors, clickedElement)
+						.done(reloadRelatedTitles)
 			},
 
 			showSearchFacets: function(){
