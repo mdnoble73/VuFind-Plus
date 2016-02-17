@@ -487,6 +487,7 @@ class Search_Results extends Action {
 				$response = $searchObject->processSearch(true, false);
 				if ($response && $response['response']['numFound'] > 0) {
 					//Check the docs to see if we have a match for a person, place, or event
+					$numProcessed = 0;
 					foreach ($response['response']['docs'] as $doc){
 						$entityDriver = RecordDriverFactory::initRecordDriver($doc);
 						$exploreMoreOptions[] = array(
@@ -495,6 +496,10 @@ class Search_Results extends Action {
 								'thumbnail' => $entityDriver->getBookcoverUrl('medium'),
 								'link' => $entityDriver->getRecordUrl(),
 						);
+						$numProcessed++;
+						if ($numProcessed >= 3){
+							break;
+						}
 					}
 				}
 			}
