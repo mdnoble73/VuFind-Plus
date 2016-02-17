@@ -95,10 +95,12 @@ class FedoraUtils {
 		}elseif ($size == 'medium'){
 			if ($archiveObject->getDatastream('MC') != null) {
 				return $objectUrl . '/' . $archiveObject->id . '/datastream/MC/view';
+			}else if ($archiveObject->getDatastream('MEDIUM_SIZE') != null) {
+				return $objectUrl . '/' . $archiveObject->id . '/datastream/MEDIUM_SIZE/view';
 			}else if ($archiveObject->getDatastream('TN') != null) {
 				return $objectUrl . '/' . $archiveObject->id . '/datastream/TN/view';
 			}else{
-				return $this->getPlaceholderImage($defaultType);
+				return $this->getObjectImageUrl($archiveObject, 'small', $defaultType);
 			}
 		}if ($size == 'large'){
 			if ($archiveObject->getDatastream('JPG') != null) {
@@ -106,7 +108,7 @@ class FedoraUtils {
 			}elseif ($archiveObject->getDatastream('LC') != null){
 				return $objectUrl . '/' . $archiveObject->id . '/datastream/LC/view';
 			}else{
-				return $this->getPlaceholderImage($defaultType);
+				return $this->getObjectImageUrl($archiveObject, 'medium', $defaultType);
 			}
 		}
 	}

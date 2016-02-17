@@ -189,6 +189,7 @@ abstract class Archive_Object extends Action{
 		$description = (string)$this->modsData->abstract;
 		$interface->assign('description', $description);
 
+		$interface->assign('large_image', $fedoraUtils->getObjectImageUrl($this->archiveObject, 'large', $model));
 		$interface->assign('medium_image', $fedoraUtils->getObjectImageUrl($this->archiveObject, 'medium', $model));
 
 		$repositoryLink = $configArray['Islandora']['repositoryUrl'] . '/islandora/object/' . $this->pid;
