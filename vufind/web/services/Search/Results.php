@@ -475,15 +475,18 @@ class Search_Results extends Action {
 				//Find related titles
 				$query = $_REQUEST['lookfor'];
 				$edsResults = $edsApi->getSearchResults($_REQUEST['lookfor']);
-				$numMatches = $edsResults->Statistics->TotalHits;
-				if ($numMatches > 0){
-					$exploreMoreOptions[] = array(
-							'title' => "Articles ({$numMatches})",
-							'description' => "Articles related to {$query}",
-							'thumbnail' => $configArray['Site']['path'] . '/interface/themes/responsive/images/ebsco_eds.png',
-							'link' => '/EBSCO/Results?lookfor=' . urlencode($query)
-					);
+				if ($edsResults){
+					$numMatches = $edsResults->Statistics->TotalHits;
+					if ($numMatches > 0){
+						$exploreMoreOptions[] = array(
+								'title' => "Articles ({$numMatches})",
+								'description' => "Articles related to {$query}",
+								'thumbnail' => $configArray['Site']['path'] . '/interface/themes/responsive/images/ebsco_eds.png',
+								'link' => '/EBSCO/Results?lookfor=' . urlencode($query)
+						);
+					}
 				}
+
 			}
 		}
 
