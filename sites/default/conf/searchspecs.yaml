@@ -633,11 +633,20 @@ GenealogyName:
       - [onephrase, 350]
       - [and, 200]
 
+IslandoraTitle:
+  QueryFields:
+    - mods_titleInfo_title_t:
+      - [onephrase, 1200]
+    - fgs_label_t:
+      - [onephrase, 1200]
+
 IslandoraKeyword:
   QueryFields:
     - mods_titleInfo_title_t:
+      - [onephrase, 1200]
       - [and, 700]
     - fgs_label_t:
+      - [onephrase, 1200]
       - [and, 700]
     - mods_abstract_t:
       - [and, 200]

@@ -1,6 +1,6 @@
 <?php
 /**
- * Displays Information about Events stored in the Digital Repository
+ * Displays Information about Places stored in the Digital Repository
  *
  * @category Pika
  * @author Mark Noble <mark@marmot.org>
@@ -9,7 +9,7 @@
  */
 
 require_once ROOT_DIR . '/services/Archive/Object.php';
-class Archive_Event extends Archive_Object{
+class Archive_Place extends Archive_Object{
 	function launch(){
 		global $interface;
 
@@ -22,6 +22,6 @@ class Archive_Event extends Archive_Object{
 
 
 		// Display Page
-		$this->display('baseArchiveObject.tpl');
+		$this->display('place.tpl');
 	}
 }

@@ -467,6 +467,39 @@ class Search_Results extends Action {
 		global $library;
 		$exploreMoreOptions = array();
 
+		//Check the archive to see if we match an entity
+		if ($library->enableArchive) {
+			if (isset($configArray['Islandora']) && isset($configArray['Islandora']['solrUrl']) && !empty($_GET['lookfor']) && !is_array($_GET['lookfor'])) {
+				/** @var SearchObject_Islandora $searchObject */
+				$searchObject = SearchObjectFactory::initSearchObject('Islandora');
+				$searchObject->init();
+				$searchObject->setDebugging(false, false);
+
+				//First look specifically for (We cou
+				$searchObject->setSearchTerms(array(
+						'lookfor' => $_REQUEST['lookfor'],
+						'index' => 'IslandoraTitle'
+				));
+				$searchObject->clearHiddenFilters();
+				$searchObject->addHiddenFilter('!RELS_EXT_isViewableByRole_literal_ms', "administrator");
+				//First search for people, places, and things
+				$searchObject->addHiddenFilter('RELS_EXT_hasModel_uri_s', "(*placeCModel OR *personCModel OR *eventCModel)");
+				$response = $searchObject->processSearch(true, false);
+				if ($response && $response['response']['numFound'] > 0) {
+					//Check the docs to see if we have a match for a person, place, or event
+					foreach ($response['response']['docs'] as $doc){
+						$entityDriver = RecordDriverFactory::initRecordDriver($doc);
+						$exploreMoreOptions[] = array(
+								'title' => $entityDriver->getTitle(),
+								'description' => $entityDriver->getTitle(),
+								'thumbnail' => $entityDriver->getBookcoverUrl('medium'),
+								'link' => $entityDriver->getRecordUrl(),
+						);
+					}
+				}
+			}
+		}
+
 		if ($library->edsApiProfile){
 			//Load EDS options
 			require_once ROOT_DIR . '/sys/Ebsco/EDS_API.php';
@@ -499,12 +532,12 @@ class Search_Results extends Action {
 				$searchObject = SearchObjectFactory::initSearchObject('Islandora');
 				$searchObject->init();
 				$searchObject->setDebugging(false, false);
+
+				//Get a list of objects in the archive related to this search
 				$searchObject->setSearchTerms(array(
 						'lookfor' => $_REQUEST['lookfor'],
 						'index' => 'IslandoraKeyword'
 				));
-
-				//Get a list of objects in the archive related to this search
 				$searchObject->clearHiddenFilters();
 				$searchObject->addHiddenFilter('!RELS_EXT_isViewableByRole_literal_ms', "administrator");
 				$searchObject->clearFilters();
@@ -518,7 +551,6 @@ class Search_Results extends Action {
 				if ($response && $response['response']['numFound'] > 0) {
 					//Using the facets, look for related entities
 					foreach ($response['facet_counts']['facet_fields']['RELS_EXT_isMemberOfCollection_uri_ms'] as $collectionInfo) {
-						//TODO: skip collections we don't care about
 						$archiveObject = $fedoraUtils->getObject($collectionInfo[0]);
 						if ($archiveObject != null) {
 							//Check the mods data to see if it should be suppressed in Pika

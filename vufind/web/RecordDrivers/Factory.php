@@ -34,7 +34,7 @@ class RecordDriverFactory {
 	 *
 	 * @access  public
 	 * @param   array   $record     The fields retrieved from the Solr index.
-	 * @return  object              The record driver for handling the record.
+	 * @return  RecordInterface     The record driver for handling the record.
 	 */
 	static function initRecordDriver($record)
 	{
