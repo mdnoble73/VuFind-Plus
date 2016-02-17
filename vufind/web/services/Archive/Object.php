@@ -92,7 +92,7 @@ abstract class Archive_Object extends Action{
 			if (count($marmotLocal) > 0){
 				if ($marmotLocal->hasTranscription){
 					$transcriptionText = (string)$marmotExtension->marmotLocal->hasTranscription->transcriptionText;
-					$transcriptionText = str_replace("\r\n\r\n", '<br/>', $transcriptionText);
+					$transcriptionText = str_replace("\r\n", '<br/>', $transcriptionText);
 					$interface->assign('transcription',
 							array(
 									'language' => (string)$marmotExtension->marmotLocal->hasTranscription->transcriptionLanguage,

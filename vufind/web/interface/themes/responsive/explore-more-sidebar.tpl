@@ -10,14 +10,6 @@
 				</div>
 			{/foreach}
 
-			{if $videoLink}
-			<div class="sectionHeader">Video</div>
-			<div class="section">
-				<video width="100%" controls>
-					<source src="{$videoLink}" type="video/mp4">
-				</video>
-			</div>
-			{/if}
 			<div class="sectionHeader">Related Content</div>
 			<div class="section">
 				{foreach from=$sectionList item=section}
