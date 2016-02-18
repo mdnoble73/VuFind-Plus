@@ -1,8 +1,6 @@
 {strip}
 <div id="archive-metadata">
 
-	{*{include file="Archive/moredetails-accordion.tpl"}*}
-
 	{if strlen($marmotExtension->contextNotes) > 0}
 		<div class="row">
 			<div class="result-label col-sm-4">Context Notes: </div>
@@ -105,7 +103,7 @@
 				</div>
 			</div>
 		{/if}
-		{if $mods->shelfLocator}
+		{if !empty($mods->shelfLocator)}
 			<div class="row">
 				<div class="result-label col-sm-4">Shelf Locator: </div>
 				<div class="result-value col-sm-8">
@@ -136,6 +134,7 @@
 		</div>
 	{/if}
 
+{* //Moved to accordion
 	{if $mods->identifier}
 		<hr>
 		<div class="row">
@@ -172,8 +171,9 @@
 			</div>
 		{/if}
 	{/if}
+*}
 
-{*
+{*//Moved to accordion
 	{if $rightsStatements}
 		<div class="row">
 			<div class="result-label col-sm-4">Rights Statements: </div>
@@ -190,6 +190,7 @@
 
 </div>
 
+{*//Moved to accordion
 <div>
 	{if $repositoryLink}
 		<hr>
@@ -201,4 +202,5 @@
 		</a>
 	{/if}
 </div>
+*}
 {/strip}
