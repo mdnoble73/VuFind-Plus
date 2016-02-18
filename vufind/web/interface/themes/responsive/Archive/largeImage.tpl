@@ -17,6 +17,7 @@
 			</div>
 		{/if}
 
+{*//Moved to accordion
 
 		{if $description}
 			<div class="row">
@@ -26,6 +27,7 @@
 				</div>
 			</div>
 		{/if}
+*}
 
 		{include file="Archive/metadata.tpl"}
 	</div>
