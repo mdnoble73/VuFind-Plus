@@ -203,12 +203,35 @@ abstract class Archive_Object extends Action{
 		foreach ($collectionsRaw as $collectionInfo){
 			$collectionObject = $fedoraUtils->getObject($collectionInfo['object']['value']);
 			if ($collectionObject != null){
-				$collections[] = array(
-						'pid' => $collectionInfo['object']['value'],
-						'label' => $collectionObject->label,
-						'link' => '/Archive/' . $collectionInfo['object']['value'] . '/Exhibit',
-						'image' => $fedoraUtils->getObjectImageUrl($collectionObject, 'small'),
-				);
+				$okToAdd = true;
+				$mods = FedoraUtils::getInstance()->getModsData($collectionObject);
+				if ($mods != null){
+					if (count($mods->extension) > 0){
+						/** @var SimpleXMLElement $marmotExtension */
+						$marmotExtension = $mods->extension->children('http://marmot.org/local_mods_extension');
+						if (count($marmotExtension) > 0) {
+							$marmotLocal = $marmotExtension->marmotLocal;
+							if ($marmotLocal->count() > 0) {
+								$pikaOptions = $marmotLocal->pikaOptions;
+								if ($pikaOptions->count() > 0) {
+									$okToAdd = $pikaOptions->includeInPika != 'no';
+								}
+							}
+						}
+					}
+				}else{
+					//If we don't get mods, exclude from the display
+					$okToAdd = false;
+				}
+
+				if ($okToAdd) {
+					$collections[] = array(
+							'pid' => $collectionInfo['object']['value'],
+							'label' => $collectionObject->label,
+							'link' => '/Archive/' . $collectionInfo['object']['value'] . '/Exhibit',
+							'image' => $fedoraUtils->getObjectImageUrl($collectionObject, 'small'),
+					);
+				}
 			}
 		}
 		$interface->assign('collections', $collections);
