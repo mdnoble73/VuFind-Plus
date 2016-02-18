@@ -4,7 +4,7 @@
 			{$title|escape}
 		</h2>
 		{if $noImage}
-			<div class="alert alert-warn">
+			<div class="alert alert-warning">
 				Sorry we could not find an image for this object.
 			</div>
 		{elseif $large_image}
@@ -12,7 +12,7 @@
 		{else}
 			<div class="main-project-image">
 				<a href="{$image}">
-					<img src="{$image}" class="img-responsive"/>
+					<img src="{$image}" class="img-responsive">
 				</a>
 			</div>
 		{/if}
