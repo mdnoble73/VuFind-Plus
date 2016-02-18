@@ -94,14 +94,7 @@ class ExternalEContent_Home extends Action{
 			//Load Staff Details
 			$interface->assign('staffDetails', $recordDriver->getStaffView());
 
-//			//Build the actual view
-//			$interface->assign('sidebar', 'ExternalEContent/full-record-sidebar.tpl');
-//			$interface->assign('moreDetailsTemplate', 'GroupedWork/moredetails-accordion.tpl');
-//			$interface->setTemplate('view.tpl');
-//			$interface->setPageTitle($recordDriver->getTitle());
-//			// Display Page
-//			$interface->display('layout.tpl');
-
+			// Display Page
 			$this->display('view.tpl', $recordDriver->getTitle());
 
 		}

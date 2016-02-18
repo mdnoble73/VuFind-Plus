@@ -52,16 +52,7 @@ class Record_Home extends Record_Record{
 
 		$interface->assign('moreDetailsOptions', $this->recordDriver->getMoreDetailsOptions());
 
-		//Build the actual view
-
-
 		// Display Page
-//		$interface->assign('sidebar', 'Record/full-record-sidebar.tpl');
-//		$interface->assign('moreDetailsTemplate', 'GroupedWork/moredetails-accordion.tpl');
-//		$interface->setTemplate('view.tpl');
-//		$interface->setPageTitle($this->recordDriver->getTitle());
-//		$interface->display('layout.tpl');
-
 		$this->display('view.tpl', $this->recordDriver->getTitle());
 
 	}

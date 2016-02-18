@@ -45,12 +45,6 @@ class GroupedWork_Home extends Action{
 		$interface->assign('semanticData', json_encode($recordDriver->getSemanticData()));
 
 		// Display Page
-//		$interface->setPageTitle($recordDriver->getTitle());
-//		$interface->setTemplate('full-record.tpl');
-//		$interface->assign('sidebar', 'GroupedWork/full-record-sidebar.tpl');
-//		$interface->assign('moreDetailsTemplate', 'GroupedWork/moredetails-accordion.tpl');
-//		$interface->display('layout.tpl');
-
 		$this->display('full-record.tpl', $recordDriver->getTitle());
 	}
 
