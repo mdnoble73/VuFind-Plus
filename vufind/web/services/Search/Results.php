@@ -651,7 +651,7 @@ class Search_Results extends Action {
 									'title' => "People (" . $numPeople . ")",
 									'description' => "People related to {$searchObject->getQuery()}",
 									'thumbnail' => $fedoraUtils->getObjectImageUrl($archiveObject, 'small', 'personCModel'),
-									'link' => $searchObject->renderSearchUrl(),
+									'link' => '/Archive/RelatedEntities?lookfor=' . $_REQUEST['lookfor'] . '&entityType=person',
 									'usageCount' => $numPeople
 							);
 						}
@@ -667,11 +667,11 @@ class Search_Results extends Action {
 						$searchObject->addFilter('RELS_EXT_hasModel_uri_s:info:fedora/islandora:placeCModel');
 						if ($archiveObject != null) {
 							$exploreMoreOptions[] = array(
-									'title' => "Places (" . $numPeople . ")",
+									'title' => "Places (" . $numPlaces . ")",
 									'description' => "Places related to {$searchObject->getQuery()}",
 									'thumbnail' => $fedoraUtils->getObjectImageUrl($archiveObject, 'small', 'placeCModel'),
-									'link' => $searchObject->renderSearchUrl(),
-									'usageCount' => $numPeople
+									'link' => '/Archive/RelatedEntities?lookfor=' . $_REQUEST['lookfor'] . '&entityType=place',
+									'usageCount' => $numPlaces
 							);
 						}
 					}
@@ -689,8 +689,8 @@ class Search_Results extends Action {
 									'title' => "Events (" . $numEvents . ")",
 									'description' => "Places related to {$searchObject->getQuery()}",
 									'thumbnail' => $fedoraUtils->getObjectImageUrl($archiveObject, 'small', 'eventCModel'),
-									'link' => $searchObject->renderSearchUrl(),
-									'usageCount' => $numPeople
+									'link' => '/Archive/RelatedEntities?lookfor=' . $_REQUEST['lookfor'] . '&entityType=event',
+									'usageCount' => $numEvents
 							);
 						}
 					}

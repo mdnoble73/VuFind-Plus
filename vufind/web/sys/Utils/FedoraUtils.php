@@ -115,11 +115,11 @@ class FedoraUtils {
 
 	public function getPlaceholderImage($defaultType) {
 		global $configArray;
-		if ($defaultType == 'personCModel') {
+		if ($defaultType == 'personCModel' || $defaultType == 'person') {
 			return $configArray['Site']['path'] . '/interface/themes/responsive/images/people.png';
-		}elseif ($defaultType == 'placeCModel'){
+		}elseif ($defaultType == 'placeCModel' || $defaultType == 'place'){
 			return $configArray['Site']['path'] . '/interface/themes/responsive/images/places.png';
-		}elseif ($defaultType == 'eventCModel'){
+		}elseif ($defaultType == 'eventCModel' || $defaultType == 'event'){
 			return $configArray['Site']['path'] . '/interface/themes/responsive/images/events.png';
 		}else{
 			return $configArray['Site']['path'] . '/interface/themes/responsive/images/History.png';
