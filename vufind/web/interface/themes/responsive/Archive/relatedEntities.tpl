@@ -1,4 +1,12 @@
 {strip}
+	<div class="resulthead">
+		<h2>
+			{$shortPageTitle}
+		</h2>
+
+		<div class="clearer"></div>
+	</div>
+
 	<div class="related-exhibit-images results-covers home-page-browse-thumbnails">
 		{foreach from=$relatedEntities item=image}
 			<figure class="thumbnail">

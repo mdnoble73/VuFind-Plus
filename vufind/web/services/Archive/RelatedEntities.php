@@ -55,8 +55,19 @@ class Archive_RelatedEntities extends Action {
 			$searchObject->addFacet($facetField, 'Events');
 			$urlAction = 'Event';
 		}
+		$interface->assign('shortPageTitle', $pageTitle);
 
-		//TODO: Pagination of facet values
+		//TODO: Sort and paginate facet values.
+		//  The problem with doing it now is that we are faceting based on pid which can't
+		//  be sorted on properly. We will need a field combining PID and label
+		/*$searchObject->setFacetSortOrder('index');
+		$pageSize = 24;
+		$searchObject->setFacetLimit($pageSize);
+		if (isset($_REQUEST['page'])){
+			$page = $_REQUEST['page'];
+			$searchObject->setFacetOffset($page - 1 * $pageSize);
+		}*/
+
 		$response = $searchObject->processSearch(true, false);
 		$relatedEntities = array();
 		require_once ROOT_DIR . '/sys/Utils/FedoraUtils.php';
@@ -77,6 +88,6 @@ class Archive_RelatedEntities extends Action {
 		}
 		$interface->assign('relatedEntities', $relatedEntities);
 
-		$this->display('relatedEntities.tpl', $pageTitle);
+		$this->display('relatedEntities.tpl', $pageTitle, 'Search/results-sidebar.tpl');
 	}
 }

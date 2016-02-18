@@ -1343,6 +1343,9 @@ class SearchObject_Solr extends SearchObject_Base
 			if ($this->facetOffset != null) {
 				$facetSet['offset'] = $this->facetOffset;
 			}
+			if ($this->facetLimit != null) {
+				$facetSet['limit'] = $this->facetLimit;
+			}
 			if ($this->facetPrefix != null) {
 				$facetSet['prefix'] = $this->facetPrefix;
 			}
@@ -1392,7 +1395,7 @@ class SearchObject_Solr extends SearchObject_Base
 			$spellcheck,       // Spellcheck query
 			$this->dictionary, // Spellcheck dictionary
 			$finalSort,        // Field to sort on
-			$fieldsToReturn,     // Fields to return
+			$fieldsToReturn,   // Fields to return
 			$this->method,     // HTTP Request method
 			$returnIndexErrors // Include errors in response?
 		);

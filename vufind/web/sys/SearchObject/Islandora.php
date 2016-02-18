@@ -394,6 +394,28 @@ class SearchObject_Islandora extends SearchObject_Base
 	}
 
 	/**
+	 * Set an overriding number of facet values to return
+	 *
+	 * @access  public
+	 * @param   int $newLimit   Number of facet values to return
+	 */
+	public function setFacetLimit($newLimit)
+	{
+		$this->facetLimit = $newLimit;
+	}
+
+	/**
+	 * Set an overriding number of facet values to return
+	 *
+	 * @access  public
+	 * @param   int $newOffset  Offset to return
+	 */
+	public function setFacetOffset($newOffset)
+	{
+		$this->facetLimit = $newOffset;
+	}
+
+	/**
 	 * Add a prefix to facet requirements. Serves to
 	 *    limits facet sets to smaller subsets.
 	 *

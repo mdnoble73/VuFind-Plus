@@ -1621,6 +1621,10 @@ class Solr implements IndexEngine {
 				$options['facet.offset'] = $facet['offset'];
 				unset($facet['offset']);
 			}
+			if (isset($facet['limit'])) {
+				$options['facet.limit'] = $facet['limit'];
+				unset($facet['limit']);
+			}
 			if (isset($searchLibrary) && $searchLibrary->showAvailableAtAnyLocation){
 				$options['f.available_at.facet.missing'] = 'true';
 			}
