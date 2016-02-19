@@ -3,25 +3,27 @@
 
 	<div id="explore-more-body" class="row"> {* To Get use of the full width there is*}
 		{*<div class="col-xs-10*}{* col-xs-offset-1*}{*">*}
-			{foreach from=$collections item=collection}
-				<strong>{$collection.label}</strong>
-				<div class="section">
-					<a href="{$collection.link}"><img src="{$collection.image}" alt="{$collection.label}" class="img-responsive"></a>
-				</div>
-			{/foreach}
-
-			<div class="sectionHeader">Related Content</div>
+		{foreach from=$collections item=collection}
+			<strong>{$collection.label}</strong>
 			<div class="section">
-				{foreach from=$sectionList item=section}
+				<a href="{$collection.link}"><img src="{$collection.image}" alt="{$collection.label}" class="img-responsive"></a>
+			</div>
+		{/foreach}
+
+		{if count($relatedArchiveData) > 0}
+			<div class="sectionHeader">Related Content</div>
+			{foreach from=$relatedArchiveData item=section}
+				<div class="section">
+
 					<div class="row">
 						<div class="subsectionTitle col-xs-5">{$section.title}</div>
 						<div class="subsection col-xs-5">
-							<a href="{$section.link}"><img src="{$repositoryUrl}/{$section.image}" alt=""></a>
+							<a href="{$section.link}"><img src="{$section.thumbnail}" alt="{$section.description}" class="img-responsive"></a>
 						</div>
 					</div>
-
-				{/foreach}
-			</div>
+				</div>
+			{/foreach}
+		{/if}
 
 			{* Related Titles Widget *}
 			{if $related_titles.numFound > 0}

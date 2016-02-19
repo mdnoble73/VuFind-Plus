@@ -24,10 +24,9 @@ abstract class Archive_Object extends Action{
 	/**
 	 * @param string $mainContentTemplate  Name of the SMARTY template file for the main content of the Full Record View Pages
 	 * @param string $pageTitle            What to display is the html title tag
-	 * @param bool|string $sidebarTemplate      Sets the sidebar template, set to false or empty string for no sidebar
 	 */
-	function display($mainContentTemplate, $pageTitle=null/*, $sidebarTemplate='explore-more-sidebar.tpl'*/) {
-		$pageTitle == null ? $this->archiveObject->label : $pageTitle;
+	function display($mainContentTemplate, $pageTitle=null) {
+		$pageTitle = $pageTitle == null ? $this->archiveObject->label : $pageTitle;
 		parent::display($mainContentTemplate, $pageTitle);
 	}
 
@@ -193,20 +192,40 @@ abstract class Archive_Object extends Action{
 	}
 
 	function loadExploreMoreContent(){
+		$this->getRelatedCollections();
+		$relatedSubjects = array();
+		$numSubjectsAdded = 0;
+		if (strlen($this->archiveObject->label) > 0) {
+			$relatedSubjects[] = '"' . $this->archiveObject->label . '"';
+		}
+		foreach ($this->relatedPeople as $person) {
+			if (count($relatedSubjects) > 4) break;
+			$relatedSubjects[] = '"' . $person['label'] . '"';
+			$numSubjectsAdded++;
+		}
+		foreach ($this->formattedSubjects as $subject) {
+			if (count($relatedSubjects) > 4) break;
+			$relatedSubjects[] = '"' . $subject['label'] . '"';
+		}
+
+		$this->getRelatedWorks($relatedSubjects);
+		$this->getRelatedArchiveContent($relatedSubjects);
+	}
+
+	protected function getRelatedCollections() {
 		global $interface;
-		global $configArray;
 
 		//Get parent collection(s) for the entity.
 		$collectionsRaw = $this->archiveObject->relationships->get(FEDORA_RELS_EXT_URI, 'isMemberOfCollection');
 		$collections = array();
 		$fedoraUtils = FedoraUtils::getInstance();
-		foreach ($collectionsRaw as $collectionInfo){
+		foreach ($collectionsRaw as $collectionInfo) {
 			$collectionObject = $fedoraUtils->getObject($collectionInfo['object']['value']);
-			if ($collectionObject != null){
+			if ($collectionObject != null) {
 				$okToAdd = true;
 				$mods = FedoraUtils::getInstance()->getModsData($collectionObject);
-				if ($mods != null){
-					if (count($mods->extension) > 0){
+				if ($mods != null) {
+					if (count($mods->extension) > 0) {
 						/** @var SimpleXMLElement $marmotExtension */
 						$marmotExtension = $mods->extension->children('http://marmot.org/local_mods_extension');
 						if (count($marmotExtension) > 0) {
@@ -219,7 +238,7 @@ abstract class Archive_Object extends Action{
 							}
 						}
 					}
-				}else{
+				} else {
 					//If we don't get mods, exclude from the display
 					$okToAdd = false;
 				}
@@ -235,100 +254,121 @@ abstract class Archive_Object extends Action{
 			}
 		}
 		$interface->assign('collections', $collections);
-
-		// Additional Demo Variables
-		$videoImage = ''; //TODO set
-		$interface->assign('videoImage', $videoImage);
-		//$videoLink = "http://islandora.marmot.org/islandora/object/mandala:2024/datastream/OBJ/view"; //TODO set
-		//$interface->assign('videoLink', $videoLink);
-
-		// Define The Section List for the explore more
-		$AdditionalSections[0] = array(
-			'title' => 'Images',
-			'image' => 'mandalaoc2_thumb.JPG',
-			'link' => '',
-		);
-
-		$AdditionalSections[1] = array(
-			'title' => 'Videos',
-			'image' => 'mandalaoc3_thumb.JPG',
-			'link' => '',
-		);
-
-		$AdditionalSections[2] = array(
-			'title' => 'Articles',
-			'image' => 'mandalaoc4_thumb.JPG',
-			'link' => '',
-		);
-
-		$interface->assign('sectionList', $AdditionalSections);
-
-		//Load related content
-		//TODO: load this from someplace real (like Islandora)
-		$exploreMoreMainLinks = array();
-		$exploreMoreMainLinks[] = array(
-			'title' => 'Day by Day',
-			'url' => $configArray['Site']['path'] . '/Archive/Exhibit'
-		);
-		$exploreMoreMainLinks[] = array(
-			'title' => 'Community Mandala',
-			'url' => $configArray['Site']['path'] . '/Archive/3/Exhibit'
-		);
-		$exploreMoreMainLinks[] = array(
-			'title' => 'In the News',
-			'url' => $configArray['Site']['path'] . '/Archive/4/Exhibit'
-		);
-		$exploreMoreMainLinks[] = array(
-			'title' => '2010 Mandala',
-			'url' => $configArray['Site']['path'] . '/Archive/5/Exhibit'
-		);
-		$interface->assign('exploreMoreMainLinks', $exploreMoreMainLinks);
-
-		//Load related catalog content
-		//Create a search object to get related content
-		$exploreMoreCatalogUrl = $configArray['Site']['path'] . '/Search/AJAX?method=GetListTitles&id=search:22622';
-		$interface->assign('exploreMoreCatalogUrl', $exploreMoreCatalogUrl);
-
-		/** @var SearchObject_Solr $searchObject */
-		$searchObject = SearchObjectFactory::initSearchObject();
-		$searchTerm = "(";
-		foreach ($this->relatedPeople as $person){
-			$searchTerm .= '"' . $person['label'] . '" OR ';
-		}
-		foreach ($this->formattedSubjects as $subject){
-			$searchTerm .= '"' . $subject['label'] . '" OR ';
-		}
-		$searchTerm = substr($searchTerm, 0, -4);
-		$searchTerm .= ")";
-		$searchObject->init('local', $searchTerm);
-		//$searchObject->setSearchType('Subject');
-		$searchObject->addFilter('literary_form_full:Non Fiction');
-		$searchObject->setLimit(5);
-		$results = $searchObject->processSearch(true, false);
-
-		if ($results && isset($results['response'])){
-			$similarTitles = array(
-					'numFound' => $results['response']['numFound'],
-					'allResultsLink' => $searchObject->renderSearchUrl(),
-					'topHits' => array()
-			);
-			foreach ($results['response']['docs'] as $doc){
-				/** @var GroupedWorkDriver $driver */
-				$driver = RecordDriverFactory::initRecordDriver($doc);
-				$similarTitle = array(
-						'title' => $driver->getTitle(),
-						'link' => $driver->getLinkUrl(),
-						'cover' => $driver->getBookcoverUrl('small')
-				);
-				$similarTitles['topHits'][] = $similarTitle;
-			}
-		}else{
-			$similarTitles = array(
-					'numFound' => 0,
-					'topHits' => array()
-			);
-		}
-		$interface->assign('related_titles', $similarTitles);
-
 	}
+
+	/**
+	 * @param string[] $relatedSubjects
+	 */
+	protected function getRelatedWorks($relatedSubjects) {
+		global $interface;
+		//Load related catalog content
+		$searchTerm = implode(" OR ", $relatedSubjects);
+
+		if (strlen($searchTerm) > 2) {
+			/** @var SearchObject_Solr $searchObject */
+			$searchObject = SearchObjectFactory::initSearchObject();
+			$searchObject->init('local', $searchTerm);
+			//$searchObject->setSearchType('Subject');
+			$searchObject->addFilter('literary_form_full:Non Fiction');
+			$searchObject->setPage(1);
+			$searchObject->setLimit(5);
+			$results = $searchObject->processSearch(true, false);
+
+			if ($results && isset($results['response'])) {
+				$similarTitles = array(
+						'numFound' => $results['response']['numFound'],
+						'allResultsLink' => $searchObject->renderSearchUrl(),
+						'topHits' => array()
+				);
+				foreach ($results['response']['docs'] as $doc) {
+					/** @var GroupedWorkDriver $driver */
+					$driver = RecordDriverFactory::initRecordDriver($doc);
+					$similarTitle = array(
+							'title' => $driver->getTitle(),
+							'link' => $driver->getLinkUrl(),
+							'cover' => $driver->getBookcoverUrl('small')
+					);
+					$similarTitles['topHits'][] = $similarTitle;
+				}
+			} else {
+				$similarTitles = array(
+						'numFound' => 0,
+						'topHits' => array()
+				);
+			}
+			$interface->assign('related_titles', $similarTitles);
+		}
+	}
+
+	private function getRelatedArchiveContent($relatedSubjects) {
+		global $interface;
+		require_once ROOT_DIR . '/sys/Utils/FedoraUtils.php';
+
+		/** @var SearchObject_Islandora $searchObject */
+		$searchObject = SearchObjectFactory::initSearchObject('Islandora');
+		$searchObject->init();
+		$searchObject->setDebugging(false, false);
+
+		//Get a list of objects in the archive related to this search
+		$searchTerm = implode(" OR ", $relatedSubjects);
+		$searchObject->setSearchTerms(array(
+				'lookfor' => $searchTerm,
+				'index' => 'IslandoraKeyword'
+		));
+		$searchObject->clearHiddenFilters();
+		$searchObject->addHiddenFilter('!RELS_EXT_isViewableByRole_literal_ms', "administrator");
+		$searchObject->clearFilters();
+		$searchObject->addFacet('RELS_EXT_hasModel_uri_s', 'Format');
+
+		$response = $searchObject->processSearch(true, false);
+		if ($response && $response['response']['numFound'] > 0) {
+			//Using the facets, look for related entities
+			foreach ($response['facet_counts']['facet_fields']['RELS_EXT_hasModel_uri_s'] as $relatedContentType) {
+				if ($relatedContentType[0] != 'info:fedora/islandora:collectionCModel' &&
+						$relatedContentType[0] != 'info:fedora/islandora:personCModel' &&
+						$relatedContentType[0] != 'info:fedora/islandora:placeCModel' &&
+						$relatedContentType[0] != 'info:fedora/islandora:eventCModel'
+				) {
+
+					/** @var SearchObject_Islandora $searchObject2 */
+					$searchObject2 = SearchObjectFactory::initSearchObject('Islandora');
+					$searchObject2->init();
+					$searchObject2->setDebugging(false, false);
+					$searchObject2->setSearchTerms(array(
+							'lookfor' => $searchTerm,
+							'index' => 'IslandoraKeyword'
+					));
+					$searchObject2->clearHiddenFilters();
+					$searchObject2->addHiddenFilter('!RELS_EXT_isViewableByRole_literal_ms', "administrator");
+					$searchObject2->clearFilters();
+					$searchObject2->addFilter("RELS_EXT_hasModel_uri_s:{$relatedContentType[0]}");
+					$response2 = $searchObject2->processSearch(true, false);
+					if ($response2 && $response2['response']['numFound'] > 0) {
+						$firstObject = reset($response2['response']['docs']);
+						/** @var IslandoraDriver $firstObjectDriver */
+						$firstObjectDriver = RecordDriverFactory::initRecordDriver($firstObject);
+						$numMatches = $response2['response']['numFound'];
+						$contentType = translate($relatedContentType[0]);
+						if ($numMatches == 1) {
+							$exploreMoreOptions[] = array(
+									'title' => $firstObjectDriver->getTitle(),
+									'description' => "$firstObjectDriver->getTitle()",
+									'thumbnail' => $firstObjectDriver->getBookcoverUrl('medium'),
+									'link' => $firstObjectDriver->getRecordUrl(),
+							);
+						} else {
+							$exploreMoreOptions[] = array(
+									'title' => "{$contentType}s ({$numMatches})",
+									'description' => "{$contentType}s related to this",
+									'thumbnail' => $firstObjectDriver->getBookcoverUrl('medium'),
+									'link' => $searchObject2->renderSearchUrl(),
+							);
+						}
+					}
+				}
+			}
+			$interface->assign('relatedArchiveData', $exploreMoreOptions);
+		}
+	}
+
 }
