@@ -201,12 +201,12 @@ class SearchAPI extends Action {
 
 		if (count($notes) > 0){
 			$result = array(
-				'result' => in_array(self::STATUS_CRITICAL, $status) ? self::STATUS_CRITICAL : self::STATUS_WARN, // Criticals trump Warnings;
+				'status'  => in_array(self::STATUS_CRITICAL, $status) ? self::STATUS_CRITICAL : self::STATUS_WARN, // Criticals trump Warnings;
 				'message' => implode('; ',$notes)
 			);
 		}else{
 			$result = array(
-				'result' => self::STATUS_OK,
+				'status'  => self::STATUS_OK,
 				'message' => "Everything is current"
 			);
 		}
