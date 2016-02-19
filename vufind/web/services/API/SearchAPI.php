@@ -44,14 +44,24 @@ class SearchAPI extends Action {
 	}
 
 	// The time intervals in seconds beyond which we consider the status as not current
-	const FULL_INDEX_INTERVAL    = 129600, // 36 Hours (in seconds)
-		PARTIAL_INDEX_INTERVAL     = 1500,   // 25 Minutes (in seconds)
-		OVERDRIVE_EXTRACT_INTERVAL = 14400,  // 4 Hours (in seconds)
-		SOLR_RESTART_INTERVAL      = 86400;  // 24 Hours (in seconds)
+	const
+		FULL_INDEX_INTERVAL_WARN            = 86400,  // 24 Hours (in seconds)
+		FULL_INDEX_INTERVAL_CRITICAL        = 129600, // 36 Hours (in seconds)
+		PARTIAL_INDEX_INTERVAL_WARN         = 1500,   // 25 Minutes (in seconds)
+		PARTIAL_INDEX_INTERVAL_CRITICAL     = 3600,   // 1 Hour (in seconds)
+		OVERDRIVE_EXTRACT_INTERVAL_WARN     = 14400,  // 4 Hours (in seconds)
+		OVERDRIVE_EXTRACT_INTERVAL_CRITICAL = 18000,  // 5 Hours (in seconds)
+		SOLR_RESTART_INTERVAL_WARN          = 86400,  // 24 Hours (in seconds)
+		SOLR_RESTART_INTERVAL_CRITICAL      = 129600, // 36 Hours (in seconds)
+
+		STATUS_OK       = 'okay',
+		STATUS_WARN     = 'warning',
+		STATUS_CRITICAL = 'critical';
 
 
 	function getIndexStatus(){
 		$notes = array();
+		$status = array();
 
 		$currentTime = time();
 
@@ -61,10 +71,12 @@ class SearchAPI extends Action {
 		if ($lastExportValidVariable->find(true)){
 			//Check to see if the last export was valid
 			if ($lastExportValidVariable->value == false){
-				$notes[] = 'The Last Export was not valid';
+				$status[] = self::STATUS_CRITICAL;
+				$notes[]  = 'The Last Export was not valid';
 			}
 		}else{
-			$notes[] = 'Have not checked the export yet to see if it is valid.';
+			$status[] = self::STATUS_WARN;
+			$notes[]  = 'Have not checked the export yet to see if it is valid.';
 		}
 
 		// Full Index //
@@ -72,11 +84,13 @@ class SearchAPI extends Action {
 		$lastFullIndexVariable->name= 'lastFullReindexFinish';
 		if ($lastFullIndexVariable->find(true)){
 			//Check to see if the last full index finished more than FULL_INDEX_INTERVAL seconds ago
-			if ($lastFullIndexVariable->value < ($currentTime - self::FULL_INDEX_INTERVAL)){
-				$notes[] = 'Full Index last finished ' . date('m-d-Y H:i:s', $lastFullIndexVariable->value) . ' - ' . round(($currentTime - $lastFullIndexVariable->value) / 3600, 2) . ' hours ago';
+			if ($lastFullIndexVariable->value < ($currentTime - self::FULL_INDEX_INTERVAL_WARN)){
+				$status[] = ($lastFullIndexVariable->value < ($currentTime - self::FULL_INDEX_INTERVAL_CRITICAL)) ? self::STATUS_CRITICAL : self::STATUS_WARN;
+				$notes[]  = 'Full Index last finished ' . date('m-d-Y H:i:s', $lastFullIndexVariable->value) . ' - ' . round(($currentTime - $lastFullIndexVariable->value) / 3600, 2) . ' hours ago';
 			}
 		}else{
-			$notes[] = 'Full index has never been run';
+			$status[] = self::STATUS_WARN;
+			$notes[]  = 'Full index has never been run';
 			$lastFullIndexVariable = null;
 		}
 
@@ -111,30 +125,34 @@ class SearchAPI extends Action {
 					$lastIndexFinishedWasFull = true;
 				}
 
-				//Check to see if the last partial index finished more than PARTIAL_INDEX_INTERVAL seconds ago
-				if ($lastIndexTime < ($currentTime - self::PARTIAL_INDEX_INTERVAL)) {
+				//Check to see if the last partial index finished more than PARTIAL_INDEX_INTERVAL_WARN seconds ago
+				if ($lastIndexTime < ($currentTime - self::PARTIAL_INDEX_INTERVAL_WARN)) {
+					$status[] = ($lastIndexTime < ($currentTime - self::PARTIAL_INDEX_INTERVAL_CRITICAL)) ? self::STATUS_CRITICAL : self::STATUS_WARN;
+
 					if ($lastIndexFinishedWasFull ){
 						$notes[] = 'Full Index last finished ' . date('m-d-Y H:i:s', $lastPartialIndexVariable->value) . ' - ' . round(($currentTime - $lastPartialIndexVariable->value) / 60, 2) . ' minutes ago, and a new partial index hasn\'t completed since.';
 					}else{
 						$notes[] = 'Partial Index last finished ' . date('m-d-Y H:i:s', $lastPartialIndexVariable->value) . ' - ' . round(($currentTime - $lastPartialIndexVariable->value) / 60, 2) . ' minutes ago';
 					}
-
 				}
 			} else {
-				$notes[] = 'Partial index has never been run';
+				$status[] = self::STATUS_WARN;
+				$notes[]  = 'Partial index has never been run';
 			}
 
 			// OverDrive Extract //
 			$lastOverDriveExtractVariable = new Variable();
 			$lastOverDriveExtractVariable->name = 'last_overdrive_extract_time';
 			if ($lastOverDriveExtractVariable->find(true)) {
-				//Check to see if the last partial index finished more than OVERDRIVE_EXTRACT_INTERVAL seconds ago
+				//Check to see if the last partial index finished more than OVERDRIVE_EXTRACT_INTERVAL_WARN seconds ago
 				$lastOverDriveExtractTime = $lastOverDriveExtractVariable->value / 1000;
-				if ($lastOverDriveExtractTime < ($currentTime - self::OVERDRIVE_EXTRACT_INTERVAL)) {
-					$notes[] = 'OverDrive Extract last finished ' . date('m-d-Y H:i:s', $lastOverDriveExtractTime) . ' - ' . round(($currentTime - ($lastOverDriveExtractTime)) / 3600, 2) . ' hours ago';
+				if ($lastOverDriveExtractTime < ($currentTime - self::OVERDRIVE_EXTRACT_INTERVAL_WARN)) {
+					$status[] = ($lastOverDriveExtractTime < ($currentTime - self::OVERDRIVE_EXTRACT_INTERVAL_CRITICAL)) ? self::STATUS_CRITICAL : self::STATUS_WARN;
+					$notes[]  = 'OverDrive Extract last finished ' . date('m-d-Y H:i:s', $lastOverDriveExtractTime) . ' - ' . round(($currentTime - ($lastOverDriveExtractTime)) / 3600, 2) . ' hours ago';
 				}
 			} else {
-				$notes[] = 'OverDrive Extract has never been run';
+				$status[] = self::STATUS_WARN;
+				$notes[]  = 'OverDrive Extract has never been run';
 			}
 		}
 
@@ -152,23 +170,43 @@ class SearchAPI extends Action {
 				$solrStartTime = strtotime($data['status']['grouped']['startTime']['_content']);
 
 
-				if ($uptime >= self::SOLR_RESTART_INTERVAL){ // Grouped Index
-					$notes[] = 'Solr Index (Grouped) last restarted ' . date('m-d-Y H:i:s', $solrStartTime) . ' - '. round($uptime / 3600, 2) . ' hours ago';
+				if ($uptime >= self::SOLR_RESTART_INTERVAL_WARN){ // Grouped Index
+					$status[] = ($uptime >= self::SOLR_RESTART_INTERVAL_CRITICAL) ? self::STATUS_CRITICAL : self::STATUS_WARN;
+					$notes[]  = 'Solr Index (Grouped) last restarted ' . date('m-d-Y H:i:s', $solrStartTime) . ' - '. round($uptime / 3600, 2) . ' hours ago';
 				}
 
 			} else {
-				$notes[] = 'Could not get status from Solr';
+				$status[] = self::STATUS_CRITICAL;
+				$notes[]  = 'Could not get status from Solr';
 			}
+		}
+
+		// Unprocessed Offline Circs //
+		$offlineCirculationEntry = new OfflineCirculationEntry();
+		$offlineCirculationEntry->status = 'Not Processed';
+		$offlineCircs = $offlineCirculationEntry->count('id');
+		if (!empty($offlineCircs)) {
+			$status[] = self::STATUS_CRITICAL;
+			$notes[]  = "There are $offlineCircs un-processed offline circulation transactions";
+		}
+
+		// Unprocessed Offline Holds //
+		$offlineHoldEntry = new OfflineHold();
+		$offlineHoldEntry->status = 'Not Processed';
+		$offlineHolds = $offlineHoldEntry->count('id');
+		if (!empty($offlineHolds)) {
+			$status[] = self::STATUS_CRITICAL;
+			$notes[]  = "There are $offlineHolds un-processed offline holds";
 		}
 
 		if (count($notes) > 0){
 			$result = array(
-				'result' => false,
+				'result' => in_array(self::STATUS_CRITICAL, $status) ? self::STATUS_CRITICAL : self::STATUS_WARN, // Criticals trump Warnings;
 				'message' => implode('; ',$notes)
 			);
 		}else{
 			$result = array(
-				'result' => true,
+				'result' => self::STATUS_OK,
 				'message' => "Everything is current"
 			);
 		}
