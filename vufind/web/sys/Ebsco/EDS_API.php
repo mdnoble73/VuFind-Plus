@@ -87,14 +87,27 @@ BODY;
 		}
 	}
 
-	public function getSearchResults($searchTerm){
+	public function getSearchResults($searchTerms){
 		if (!$this->authenticate()){
 			return;
 		}
 
 		$this->startQueryTimer();
-		$this->searchTerm = $searchTerm;
-		$searchUrl = $this->edsBaseApi . '/search?query-1=AND,' . urlencode($searchTerm);
+		$this->searchTerm = $searchTerms;
+		if (is_array($searchTerms)){
+			$searchUrl = $this->edsBaseApi . '/search?';
+			$termIndex = 1;
+			foreach ($searchTerms as $term){
+				if ($termIndex > 1) $searchUrl .= '&';
+				$term = str_replace(',', '', $term);
+				$searchUrl .= "query-{$termIndex}=OR," . urlencode($term);
+				$termIndex++;
+			}
+		}else{
+			$searchTerms = str_replace(',', '', $searchTerms);
+			$searchUrl = $this->edsBaseApi . '/search?query-1=AND,' . urlencode($searchTerms);
+		}
+
 		curl_setopt($this->curl_connection, CURLOPT_HTTPGET, true);
 		curl_setopt($this->curl_connection, CURLOPT_HTTPHEADER, array(
 			'x-authenticationToken: ' . $this->authenticationToken,

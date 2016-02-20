@@ -209,6 +209,7 @@ abstract class Archive_Object extends Action{
 		}
 
 		$this->getRelatedWorks($relatedSubjects);
+		$this->getRelatedArticles($relatedSubjects);
 		$this->getRelatedArchiveContent($relatedSubjects);
 	}
 
@@ -368,6 +369,35 @@ abstract class Archive_Object extends Action{
 				}
 			}
 			$interface->assign('relatedArchiveData', $exploreMoreOptions);
+		}
+	}
+
+	private function getRelatedArticles($relatedSubjects) {
+		global $library;
+		global $configArray;
+		global $interface;
+		if ($library->edsApiProfile){
+			//Load EDS options
+			require_once ROOT_DIR . '/sys/Ebsco/EDS_API.php';
+			$edsApi = EDS_API::getInstance();
+			if ($edsApi->authenticate()){
+				//Find related titles
+				$searchTerm = implode(' OR ', $relatedSubjects);
+				$edsResults = $edsApi->getSearchResults($relatedSubjects);
+				if ($edsResults){
+					$numMatches = $edsResults->Statistics->TotalHits;
+					if ($numMatches > 0){
+						$relatedArticles = array(
+								'title' => "Articles ({$numMatches})",
+								'description' => "Articles related to {$searchTerm}",
+								'thumbnail' => $configArray['Site']['path'] . '/interface/themes/responsive/images/ebsco_eds.png',
+								'link' => '/EBSCO/Results?lookfor=' . urlencode($searchTerm)
+						);
+						$interface->assign('relatedArticles', $relatedArticles);
+					}
+				}
+
+			}
 		}
 	}
 

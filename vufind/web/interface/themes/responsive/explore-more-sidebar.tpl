@@ -6,7 +6,7 @@
 		{foreach from=$collections item=collection}
 			<strong>{$collection.label}</strong>
 			<div class="section">
-				<a href="{$collection.link}"><img src="{$collection.image}" alt="{$collection.label}" class="img-responsive"></a>
+				<a href="{$collection.link}"><img src="{$collection.image}" alt="{$collection.label}" class="img-responsive img-thumbnail"></a>
 			</div>
 		{/foreach}
 
@@ -18,17 +18,17 @@
 					<div class="row">
 						<div class="subsectionTitle col-xs-5">{$section.title}</div>
 						<div class="subsection col-xs-5">
-							<a href="{$section.link}"><img src="{$section.thumbnail}" alt="{$section.description}" class="img-responsive"></a>
+							<a href="{$section.link}"><img src="{$section.thumbnail}" alt="{$section.description}" class="img-responsive img-thumbnail"></a>
 						</div>
 					</div>
 				</div>
 			{/foreach}
 		{/if}
 
-			{* Related Titles Widget *}
-			{if $related_titles.numFound > 0}
-				<div class="sectionHeader">Related Titles</div>
-				{* JCarousel with related titles *}
+		{* Related Titles Widget *}
+		{if $related_titles.numFound > 0}
+			<div class="sectionHeader">Related Titles</div>
+			{* JCarousel with related titles *}
 			<div class="jcarousel-wrapper">
 				{*<a href="#" class="jcarousel-control-prev"*}{* data-target="-=1"*}{*><i class="glyphicon glyphicon-chevron-left"></i></a>*}
 				<a href="#" class="jcarousel-control-next"{* data-target="+=1"*}><i class="glyphicon glyphicon-chevron-right"></i></a>
@@ -50,8 +50,18 @@
 			</div>
 
 			<a href="{$related_titles.allResultsLink}">All Results ({$related_titles.numFound})</a>
+		{/if}
 
-			{/if}
-		{*</div>*}
+		{* Related Articles Widget *}
+		{if $relatedArticles}
+			<div class="sectionHeader">Related Articles</div>
+			<div class="center-block">
+				<a href="{$relatedArticles.link}">
+					<img src="{$relatedArticles.thumbnail}" alt="{$relatedArticles.description|escape}" class="img-responsive center-block">
+					{$relatedArticles.title}
+				</a>
+			</div>
+
+		{/if}
 	</div>
 {/strip}
