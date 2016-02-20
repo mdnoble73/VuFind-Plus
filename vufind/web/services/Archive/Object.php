@@ -80,13 +80,14 @@ abstract class Archive_Object extends Action{
 
 		/** @var SimpleXMLElement $marmotExtension */
 		$marmotExtension = $this->modsData->extension->children('http://marmot.org/local_mods_extension');
-		$interface->assign('marmotExtension', $marmotExtension);
 
 		$this->relatedPeople = array();
 		$this->relatedPlaces = array();
 		$this->relatedEvents = array();
 
-		if (count($marmotExtension) > 0){
+		if (!empty($marmotExtension)){
+			$interface->assign('marmotExtension', $marmotExtension);
+
 			$marmotLocal = $marmotExtension->marmotLocal;
 			if (count($marmotLocal) > 0){
 				if ($marmotLocal->hasTranscription){
@@ -353,7 +354,7 @@ abstract class Archive_Object extends Action{
 						if ($numMatches == 1) {
 							$exploreMoreOptions[] = array(
 									'title' => $firstObjectDriver->getTitle(),
-									'description' => "$firstObjectDriver->getTitle()",
+									'description' => $firstObjectDriver->getTitle(),
 									'thumbnail' => $firstObjectDriver->getBookcoverUrl('medium'),
 									'link' => $firstObjectDriver->getRecordUrl(),
 							);

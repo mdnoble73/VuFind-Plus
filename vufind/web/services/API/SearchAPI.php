@@ -166,13 +166,28 @@ class SearchAPI extends Action {
 				$unxml = new XML_Unserializer($options);
 				$unxml->unserialize($xml);
 				$data = $unxml->getUnserializedData();
+
 				$uptime = $data['status']['grouped']['uptime']['_content']/1000;  // Grouped Index, puts uptime into seconds.
 				$solrStartTime = strtotime($data['status']['grouped']['startTime']['_content']);
-
-
 				if ($uptime >= self::SOLR_RESTART_INTERVAL_WARN){ // Grouped Index
 					$status[] = ($uptime >= self::SOLR_RESTART_INTERVAL_CRITICAL) ? self::STATUS_CRITICAL : self::STATUS_WARN;
 					$notes[]  = 'Solr Index (Grouped) last restarted ' . date('m-d-Y H:i:s', $solrStartTime) . ' - '. round($uptime / 3600, 2) . ' hours ago';
+				}
+
+				$numRecords = $data['status']['grouped']['index']['numDocs']['_content'];
+
+				$minNumRecordVariable = new Variable();
+				$minNumRecordVariable->name = 'solr_grouped_minimum_number_records';
+				if ($minNumRecordVariable->find(true)) {
+					$minNumRecords = $minNumRecordVariable->value;
+					if (!empty($minNumRecords) && $numRecords < $minNumRecords) {
+						$status[] = self::STATUS_CRITICAL;
+						$notes[]  = "Solr Index (Grouped) Record Count ($numRecords) in below the minimum ($minNumRecords)";
+					}
+
+				} else {
+					$status[] = self::STATUS_WARN;
+					$notes[]  = 'The minimum number of records for Solr Index (Grouped) has not been set.';
 				}
 
 			} else {
