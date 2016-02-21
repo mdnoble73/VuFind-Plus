@@ -197,6 +197,11 @@ class Archive_Results extends Action {
 		// Save the URL of this search to the session so we can return to it easily:
 		$_SESSION['lastSearchURL'] = $searchObject->renderSearchUrl();
 
+		//Load explore more data
+		require_once ROOT_DIR . '/sys/ExploreMore.php';
+		$exploreMore = new ExploreMore();
+		$exploreMore->loadExploreMoreBar('archive');
+
 		// Done, display the page
 		$interface->setTemplate($searchObject->getResultTotal() ? 'list.tpl' : 'list-none.tpl'); // main search results content
 		$interface->assign('sidebar', 'Search/results-sidebar.tpl');

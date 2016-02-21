@@ -1719,7 +1719,15 @@ class Solr implements IndexEngine {
 		$filter = array();
 
 		//Simplify detecting which works are relevant to our scope
-		$filter[] = "scope_has_related_records:$solrScope";
+		if (!$solrScope){
+			if (isset($searchLocation)){
+				$filter[] = "scope_has_related_records:{$searchLocation->code}";
+			}elseif(isset($searchLibrary)){
+				$filter[] = "scope_has_related_records:{$searchLibrary->subdomain}";
+			}
+		}else{
+			$filter[] = "scope_has_related_records:$solrScope";
+		}
 
 		//*************************
 		//Marmot overrides for filtering based on library system and location

@@ -49,10 +49,12 @@ class EBSCO_Results extends Action{
 					'perPage' => $summary['perPage']);
 			$pager   = new VuFindPager($options);
 			$interface->assign('pageLinks', $pager->getLinks());
-			if ($pager->isLastPage()) {
-				$numUnscopedTitlesToLoad = 5;
-			}
 		}
+
+		//Load explore more data
+		require_once ROOT_DIR . '/sys/ExploreMore.php';
+		$exploreMore = new ExploreMore();
+		$exploreMore->loadExploreMoreBar('ebsco');
 
 		$displayTemplate = 'EBSCO/list-list.tpl'; // structure for regular results
 		$interface->assign('subpage', $displayTemplate);

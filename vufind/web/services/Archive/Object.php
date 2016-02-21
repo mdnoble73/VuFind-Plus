@@ -266,7 +266,7 @@ abstract class Archive_Object extends Action{
 		//Load related catalog content
 		$searchTerm = implode(" OR ", $relatedSubjects);
 
-		if (strlen($searchTerm) > 2) {
+		if (strlen($searchTerm) > 0) {
 			/** @var SearchObject_Solr $searchObject */
 			$searchObject = SearchObjectFactory::initSearchObject();
 			$searchObject->init('local', $searchTerm);
