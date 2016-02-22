@@ -51,6 +51,7 @@
 						{* Only trigger event if the side bar is visible *}
 						{if $module == "Search" || $module == "Series" || $module == "Author" || $module == "Genealogy"
 					|| ($module == 'MyAccount' && $action == 'MyList' && !$listEditAllowed)
+					|| ($module == 'EBSCO' && $action == 'Results')
 					|| ($module == 'Archive' && $action == 'Results')|| ($module == 'Archive' && $action == 'RelatedEntities')}
 						{* Treat Public Lists not owned by user as a Search Page rather than an MyAccount Page *}
 						{* Click Search Menu Bar Button *}

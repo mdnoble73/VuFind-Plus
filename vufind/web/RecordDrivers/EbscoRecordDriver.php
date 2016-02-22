@@ -230,7 +230,11 @@ class EbscoRecordDriver extends RecordInterface {
 	 * @return  string
 	 */
 	public function getTitle() {
-		return $this->recordData->RecordInfo->BibRecord->BibEntity->Titles->Title->TitleFull;
+		if (isset($this->recordData->RecordInfo->BibRecord->BibEntity)){
+			return $this->recordData->RecordInfo->BibRecord->BibEntity->Titles->Title->TitleFull;
+		}else{
+			return 'Unknown';
+		}
 	}
 
 	/**
@@ -373,9 +377,11 @@ class EbscoRecordDriver extends RecordInterface {
 	}
 
 	private function getAuthor() {
-		foreach ($this->recordData->Items->Item as $item){
-			if ($item->Name == 'Author'){
-				return strip_tags($item->Data);
+		if (count($this->recordData->Items)){
+			foreach ($this->recordData->Items->Item as $item){
+				if ($item->Name == 'Author'){
+					return strip_tags($item->Data);
+				}
 			}
 		}
 	}

@@ -255,8 +255,10 @@ function loadSearchInformation(){
 			//Use a default search source
 			if ($module == 'Person'){
 				$searchSource = 'genealogy';
-			}elseif ($module == 'Exhibit' || $module == 'BasicImage' || $module == 'LargeImage'){
-				$searchSource = 'archive';
+			}elseif ($module == 'Archive'){
+				$searchSource = 'islandora';
+			}elseif ($module == 'EBSCO'){
+				$searchSource = 'ebsco';
 			}else{
 				$searchSource = 'local';
 			}

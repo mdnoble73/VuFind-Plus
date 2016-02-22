@@ -400,6 +400,8 @@ if ($searchSource == 'genealogy') {
 	$_REQUEST['type'] = isset($_REQUEST['genealogyType']) ? $_REQUEST['genealogyType'] : 'GenealogyKeyword';
 }elseif ($searchSource == 'islandora'){
 		$_REQUEST['type'] = isset($_REQUEST['islandoraType']) ? $_REQUEST['islandoraType']:  'IslandoraKeyword';
+}elseif ($searchSource == 'ebsco'){
+	$_REQUEST['type'] = isset($_REQUEST['ebscoType']) ? $_REQUEST['ebscoType']:  'TX';
 }else{
 	$_REQUEST['type'] = isset($_REQUEST['basicType']) ? $_REQUEST['basicType'] : 'Keyword';
 }
@@ -439,6 +441,12 @@ if ($action == "AJAX" || $action == "JSON"){
 	if ($library->enableArchive){
 		$islandoraSearchObject = SearchObjectFactory::initSearchObject('Islandora');
 		$interface->assign('islandoraSearchTypes', is_object($islandoraSearchObject) ? $islandoraSearchObject->getBasicTypes() : array());
+	}
+
+	if ($library->edsApiProfile){
+		require_once ROOT_DIR . '/sys/Ebsco/EDS_API.php';
+		$ebscoSearchObject = new EDS_API();
+		$interface->assign('ebscoSearchTypes', $ebscoSearchObject->getSearchTypes());
 	}
 
 

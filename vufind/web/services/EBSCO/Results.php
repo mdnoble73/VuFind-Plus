@@ -21,7 +21,10 @@ class EBSCO_Results extends Action{
 
 		$interface->setPageTitle('EBSCO Search Results');
 
-		$edsResults = $searchObject->getSearchResults($_REQUEST['lookfor']);
+		$edsOptions = $searchObject->getSearchOptions();
+
+		$sort = isset($_REQUEST['sort']) ? $_REQUEST['sort'] : null;
+		$edsResults = $searchObject->getSearchResults($_REQUEST['lookfor'], $sort);
 
 		$displayQuery = $_REQUEST['lookfor'];
 		$pageTitle = $displayQuery;
@@ -37,10 +40,17 @@ class EBSCO_Results extends Action{
 		$interface->assign('recordSet', $recordSet);
 		$timer->logTime('load result records');
 
+		$interface->assign('sortList',   $searchObject->getSortList());
+
 		$summary = $searchObject->getResultSummary();
 		$interface->assign('recordCount', $summary['resultTotal']);
 		$interface->assign('recordStart', $summary['startRecord']);
 		$interface->assign('recordEnd',   $summary['endRecord']);
+
+		$appliedFacets = $searchObject->getAppliedFilters();
+		$interface->assign('filterList', $appliedFacets);
+		$facetSet = $searchObject->getFacetSet();
+		$interface->assign('sideFacetSet', $facetSet);
 
 		if ($summary['resultTotal'] > 0){
 			$link    = $searchObject->renderLinkPageTemplate();
@@ -58,6 +68,6 @@ class EBSCO_Results extends Action{
 
 		$displayTemplate = 'EBSCO/list-list.tpl'; // structure for regular results
 		$interface->assign('subpage', $displayTemplate);
-		$this->display($summary['resultTotal'] > 0 ? 'list.tpl' : 'list-none.tpl', $pageTitle, 'Search/results-sidebar.tpl');
+		$this->display($summary['resultTotal'] > 0 ? 'list.tpl' : 'list-none.tpl', $pageTitle, 'EBSCO/results-sidebar.tpl');
 	}
 }

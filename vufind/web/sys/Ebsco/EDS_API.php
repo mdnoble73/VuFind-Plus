@@ -27,6 +27,10 @@ class EDS_API {
 	// Result limit
 	protected $limit = 20;
 
+	// Sorting
+	protected $sort = null;
+	protected $defaultSort = 'relevance';
+
 	// STATS
 	protected $resultsTotal = 0;
 
@@ -87,9 +91,9 @@ BODY;
 		}
 	}
 
-	public function getSearchResults($searchTerms){
+	public function getSearchResults($searchTerms, $sort = null){
 		if (!$this->authenticate()){
-			return;
+			return null;
 		}
 
 		$this->startQueryTimer();
@@ -107,6 +111,13 @@ BODY;
 			$searchTerms = str_replace(',', '', $searchTerms);
 			$searchUrl = $this->edsBaseApi . '/search?query-1=AND,' . urlencode($searchTerms);
 		}
+
+		if (isset($sort)) {
+			$this->sort = $sort;
+		}else {
+			$this->sort = $this->defaultSort;
+		}
+		$searchUrl .= '&sort=' . $this->sort;
 
 		curl_setopt($this->curl_connection, CURLOPT_HTTPGET, true);
 		curl_setopt($this->curl_connection, CURLOPT_HTTPHEADER, array(
@@ -245,6 +256,9 @@ BODY;
 		if ($this->page != 1){
 			$searchUrl .= '&page=' . $this->page;
 		}
+		if ($this->sort){
+			$searchUrl .= '&sort=' . $this->sort;
+		}
 		return $searchUrl;
 	}
 
@@ -276,5 +290,110 @@ BODY;
 			}
 		}
 		return $html;
+	}
+
+	public function getSearchOptions() {
+		if (!$this->authenticate()){
+			return null;
+		}
+		/** @var Memcache $memCache */
+		global $memCache;
+		global $library;
+		global $configArray;
+		$searchOptionsStr = $memCache->get('ebsco_search_options_' . $library->subdomain);
+		if ($searchOptionsStr == false){
+			curl_setopt($this->curl_connection, CURLOPT_HTTPGET, true);
+			curl_setopt($this->curl_connection, CURLOPT_HTTPHEADER, array(
+					'x-authenticationToken: ' . $this->authenticationToken,
+					'x-sessionToken: ' . $this->getSessionToken(),
+			));
+			$infoUrl = $this->edsBaseApi . '/info';
+			curl_setopt($this->curl_connection, CURLOPT_URL, $infoUrl);
+			$searchOptionsStr = curl_exec($this->curl_connection);
+			$memCache->set('ebsco_search_options_' . $library->subdomain, $searchOptionsStr, 0, $configArray['Caching']['ebsco_options']);
+		}
+
+		$infoData = new SimpleXMLElement($searchOptionsStr);
+		if ($infoData){
+			return $infoData;
+		}else{
+			return null;
+		}
+
+	}
+
+	public function getSearchTypes(){
+		$searchOptions = $this->getSearchOptions();
+		$searchTypes = array();
+		foreach ($searchOptions->AvailableSearchCriteria->AvailableSearchFields->AvailableSearchField as $searchField){
+			$searchTypes[(string)$searchField->FieldCode] = (string)$searchField->Label;
+		}
+		return $searchTypes;
+	}
+
+	public function getSortList() {
+		$searchOptions = $this->getSearchOptions();
+		$list = array();
+		foreach ($searchOptions->AvailableSearchCriteria->AvailableSorts->AvailableSort as $sortOption){
+			$sort = (string)$sortOption->Id;
+			$desc = (string)$sortOption->Label;
+			$list[$sort] = array(
+					'sortUrl' => $this->renderLinkWithSort($sort),
+					'desc' => $desc,
+					'selected' => ($sort == $this->sort)
+			);
+
+		}
+		return $list;
+	}
+
+	/**
+	 * Return a url for the current search with a new sort
+	 *
+	 * @access  public
+	 * @param   string   $newSort   A field to sort by
+	 * @return  string   URL of a new search
+	 */
+	public function renderLinkWithSort($newSort)
+	{
+		// Stash our old data for a minute
+		$oldSort = $this->sort;
+		// Add the new sort
+		$this->sort = $newSort;
+		// Get the new url
+		$url = $this->renderSearchUrl();
+		// Restore the old data
+		$this->sort = $oldSort;
+		// Return the URL
+		return $url;
+	}
+
+	public function getAppliedFilters() {
+		$appliedFilters = array();
+		return $appliedFilters;
+	}
+
+	public function getFacetSet() {
+		$availableFacets = array();
+		foreach ($this->lastSearchResults->AvailableFacets->AvailableFacet as $facet){
+			$facetId = (string)$facet->Id;
+			$availableFacets[$facetId] = array(
+					'collapseByDefault' => true,
+					'label' => (string)$facet->Label,
+					'valuesToShow' => 5,
+			);
+			$list = array();
+			foreach ($facet->AvailableFacetValues->AvailableFacetValue as $value){
+				$facetValue = (string)$value->Value;
+				$urlWithFacet = $this->renderSearchUrl() . '&filter=' . $facetId . ':' . $facetValue;
+				$list[] = array(
+						'display' => $facetValue,
+						'count' => (string)$value->Count,
+						'url' => $urlWithFacet
+				);
+			}
+			$availableFacets[$facetId]['list'] = $list;
+		}
+		return $availableFacets;
 	}
 }
