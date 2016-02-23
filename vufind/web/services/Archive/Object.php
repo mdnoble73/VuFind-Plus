@@ -293,7 +293,10 @@ abstract class Archive_Object extends Action{
 			/** @var SearchObject_Solr $searchObject */
 			$searchObject = SearchObjectFactory::initSearchObject();
 			$searchObject->init('local', $searchTerm);
-			//$searchObject->setSearchType('Subject');
+			$searchObject->setSearchTerms(array(
+					'lookfor' => $searchTerm,
+					'index' => 'Subject'
+			));
 			$searchObject->addFilter('literary_form_full:Non Fiction');
 			$searchObject->setPage(1);
 			$searchObject->setLimit(5);
