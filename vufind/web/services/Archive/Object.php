@@ -295,7 +295,7 @@ abstract class Archive_Object extends Action{
 			$searchObject->init('local', $searchTerm);
 			$searchObject->setSearchTerms(array(
 					'lookfor' => $searchTerm,
-					'index' => 'Subject'
+					'index' => 'Keyword'
 			));
 			$searchObject->addFilter('literary_form_full:Non Fiction');
 			$searchObject->setPage(1);
