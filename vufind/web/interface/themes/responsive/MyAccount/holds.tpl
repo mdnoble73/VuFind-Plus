@@ -81,7 +81,6 @@
 
 				{/if}
 			{/foreach}
-		</div>
 {* Holds not displayed in a html table, so this code does not apply any more.
 		<script type="text/javascript">
 			$(function() {literal} { {/literal}
