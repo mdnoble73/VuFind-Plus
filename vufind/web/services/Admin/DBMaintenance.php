@@ -713,6 +713,14 @@ class DBMaintenance extends Admin_Admin {
 							),
 					),
 
+					'archivesRole' => array(
+							'title' => 'Create archives role',
+							'description' => 'Create archives role to allow control over archives integration.',
+							'sql' => array(
+									"INSERT INTO `roles` (`name`, `description`) VALUES ('archives', 'Control overall archives integration.')",
+							),
+					),
+
 					'ip_lookup_1' => array(
 					'title' => 'IP Lookup Update 1',
 					'description' => 'Add start and end ranges for IP Lookup table to improve performance.',
@@ -2091,6 +2099,19 @@ class DBMaintenance extends Admin_Admin {
 					)
 				),
 
+					'archive_subjects' => array(
+							'title' => 'Archive Subjects',
+							'description' => 'Create a table to store information about what subjects should be ignored and restricted',
+							'continueOnError' => true,
+							'sql' => array(
+									"CREATE TABLE IF NOT EXISTS archive_subjects (
+									  `id` int(11) NOT NULL AUTO_INCREMENT,
+									  subjectsToIgnore MEDIUMTEXT,
+									  subjectsToRestrict MEDIUMTEXT,
+									  PRIMARY KEY (`id`)
+									) ENGINE=InnoDB  DEFAULT CHARSET=utf8",
+							)
+					),
 			)
 		);
 	}

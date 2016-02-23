@@ -11,7 +11,7 @@
 				{assign var="curSection" value=false}
 			{/if}
 
-		<div class="panel{if $displaySidebarMenu || $curSection} active{/if}">
+			<div class="panel{if $displaySidebarMenu || $curSection} active{/if}">
 				{* With SidebarMenu on, we should always keep the MyAccount Panel open. *}
 
 				{* Clickable header for my account section *}
@@ -323,6 +323,28 @@
 					<div id="catalogingRequestMenu" class="panel-collapse collapse {if $curSection}in{/if}">
 						<div class="panel-body">
 							<div class="adminMenuLink{if $action == "MergedGroupedWorks"}active{/if}"><a href="{$path}/Admin/MergedGroupedWorks">Grouped Work Merging</a></div>
+						</div>
+					</div>
+				</div>
+			{/if}
+
+			{if $user && ($user->hasRole('archives') || $user->hasRole('opacAdmin'))}
+				{if in_array($action, array('ArchiveSubjects'))}
+					{assign var="curSection" value=true}
+				{else}
+					{assign var="curSection" value=false}
+				{/if}
+				<div class="panel{if $curSection} active{/if}">
+					<a href="#archivesMenu" data-toggle="collapse" data-parent="#adminMenuAccordion">
+						<div class="panel-heading">
+							<div class="panel-title">
+								Archives
+							</div>
+						</div>
+					</a>
+					<div id="archivesMenu" class="panel-collapse collapse {if $curSection}in{/if}">
+						<div class="panel-body">
+							<div class="adminMenuLink{if $action == "ArchiveSubjects"}active{/if}"><a href="{$path}/Admin/ArchiveSubjects">Archive Subject Control</a></div>
 						</div>
 					</div>
 				</div>

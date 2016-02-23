@@ -57,6 +57,56 @@ class ExploreMore {
 			}
 		}
 
+		if ($activeSection != 'catalog'){
+			$searchTerm = $_REQUEST['lookfor'];
+
+			if (strlen($searchTerm) > 0) {
+				/** @var SearchObject_Solr $searchObject */
+				$searchObjectSolr = SearchObjectFactory::initSearchObject();
+				$searchObjectSolr->init('local');
+				$searchObjectSolr->setSearchTerms(array(
+						'lookfor' => $searchTerm,
+						'index' => 'Keyword'
+				));
+				$searchObjectSolr->clearHiddenFilters();
+				$searchObjectSolr->clearFilters();
+				$searchObjectSolr->addFilter('literary_form_full:Non Fiction');
+				$searchObjectSolr->setPage(1);
+				$searchObjectSolr->setLimit(5);
+				$results = $searchObjectSolr->processSearch(true, false);
+
+				if ($results && isset($results['response'])) {
+					$numCatalogResultsAdded = 0;
+					foreach ($results['response']['docs'] as $doc) {
+						/** @var GroupedWorkDriver $driver */
+						$driver = RecordDriverFactory::initRecordDriver($doc);
+						$numCatalogResults = $results['response']['numFound'];
+						if ($numCatalogResultsAdded == 4 && $numCatalogResults > 5){
+							//Add a link to remaining catalog results
+							$exploreMoreOptions[] = array(
+									'title' => "Catalog Results ($numCatalogResults)",
+									'description' => "Catalog Results ($numCatalogResults)",
+									'thumbnail' => $driver->getBookcoverUrl('small'),
+									'link' => $searchObjectSolr->renderSearchUrl(),
+									'usageCount' => 1
+							);
+						}else{
+							//Add a link to the actual title
+							$exploreMoreOptions[] = array(
+									'title' => $driver->getTitle(),
+									'description' => $driver->getTitle(),
+									'thumbnail' => $driver->getBookcoverUrl('small'),
+									'link' => $driver->getLinkUrl(),
+									'usageCount' => 1
+							);
+						}
+
+						$numCatalogResultsAdded++;
+					}
+				}
+			}
+		}
+
 		if ($library->edsApiProfile && $activeSection != 'ebsco'){
 			//Load EDS options
 			require_once ROOT_DIR . '/sys/Ebsco/EDS_API.php';
@@ -64,7 +114,10 @@ class ExploreMore {
 			if ($edsApi->authenticate()){
 				//Find related titles
 				$query = $_REQUEST['lookfor'];
-				$edsResults = $edsApi->getSearchResults($_REQUEST['lookfor']);
+				if (strpos($query, '"') === false){
+					$query = '"' . $query . '"';
+				}
+				$edsResults = $edsApi->getSearchResults($query);
 				if ($edsResults){
 					$numMatches = $edsResults->Statistics->TotalHits;
 					if ($numMatches > 0){
@@ -251,56 +304,6 @@ class ExploreMore {
 		} else {
 			global $logger;
 			$logger->log('Islandora Search Failed.', PEAR_LOG_WARNING);
-		}
-
-		if ($activeSection != 'catalog'){
-			$searchTerm = $_REQUEST['lookfor'];
-
-			if (strlen($searchTerm) > 0) {
-				/** @var SearchObject_Solr $searchObject */
-				$searchObjectSolr = SearchObjectFactory::initSearchObject();
-				$searchObjectSolr->init('local');
-				$searchObjectSolr->setSearchTerms(array(
-						'lookfor' => $searchTerm,
-						'index' => 'Keyword'
-				));
-				$searchObjectSolr->clearHiddenFilters();
-				$searchObjectSolr->clearFilters();
-				$searchObjectSolr->addFilter('literary_form_full:Non Fiction');
-				$searchObjectSolr->setPage(1);
-				$searchObjectSolr->setLimit(5);
-				$results = $searchObjectSolr->processSearch(true, false);
-
-				if ($results && isset($results['response'])) {
-					$numCatalogResultsAdded = 0;
-					foreach ($results['response']['docs'] as $doc) {
-						/** @var GroupedWorkDriver $driver */
-						$driver = RecordDriverFactory::initRecordDriver($doc);
-						$numCatalogResults = $results['response']['numFound'];
-						if ($numCatalogResultsAdded == 4 && $numCatalogResults > 5){
-							//Add a link to remaining catalog results
-							$exploreMoreOptions[] = array(
-									'title' => "Catalog Results ($numCatalogResults)",
-									'description' => "Catalog Results ($numCatalogResults)",
-									'thumbnail' => $driver->getBookcoverUrl('small'),
-									'link' => $searchObjectSolr->renderSearchUrl(),
-									'usageCount' => 1
-							);
-						}else{
-							//Add a link to the actual title
-							$exploreMoreOptions[] = array(
-									'title' => $driver->getTitle(),
-									'description' => $driver->getTitle(),
-									'thumbnail' => $driver->getBookcoverUrl('small'),
-									'link' => $driver->getLinkUrl(),
-									'usageCount' => 1
-							);
-						}
-
-						$numCatalogResultsAdded++;
-					}
-				}
-			}
 		}
 
 		$interface->assign('exploreMoreOptions', $exploreMoreOptions);

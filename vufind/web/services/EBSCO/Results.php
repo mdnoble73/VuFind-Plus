@@ -24,7 +24,8 @@ class EBSCO_Results extends Action{
 		$edsOptions = $searchObject->getSearchOptions();
 
 		$sort = isset($_REQUEST['sort']) ? $_REQUEST['sort'] : null;
-		$edsResults = $searchObject->getSearchResults($_REQUEST['lookfor'], $sort);
+		$filters = isset($_REQUEST['filter']) ? $_REQUEST['filter'] : array();
+		$searchObject->getSearchResults($_REQUEST['lookfor'], $sort, $filters);
 
 		$displayQuery = $_REQUEST['lookfor'];
 		$pageTitle = $displayQuery;

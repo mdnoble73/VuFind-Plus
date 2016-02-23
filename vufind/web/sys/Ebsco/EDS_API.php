@@ -91,7 +91,7 @@ BODY;
 		}
 	}
 
-	public function getSearchResults($searchTerms, $sort = null){
+	public function getSearchResults($searchTerms, $sort = null, $filters = array()){
 		if (!$this->authenticate()){
 			return null;
 		}
@@ -118,6 +118,12 @@ BODY;
 			$this->sort = $this->defaultSort;
 		}
 		$searchUrl .= '&sort=' . $this->sort;
+
+		$facetIndex = 1;
+		foreach ($filters as $filter) {
+			$searchUrl .= "&facetfilter=$facetIndex," . urlencode($filter);
+			$facetIndex++;
+		}
 
 		curl_setopt($this->curl_connection, CURLOPT_HTTPGET, true);
 		curl_setopt($this->curl_connection, CURLOPT_HTTPHEADER, array(
@@ -385,7 +391,7 @@ BODY;
 			$list = array();
 			foreach ($facet->AvailableFacetValues->AvailableFacetValue as $value){
 				$facetValue = (string)$value->Value;
-				$urlWithFacet = $this->renderSearchUrl() . '&filter=' . $facetId . ':' . $facetValue;
+				$urlWithFacet = $this->renderSearchUrl() . '&filter[]=' . $facetId . ':' . urlencode($facetValue);
 				$list[] = array(
 						'display' => $facetValue,
 						'count' => (string)$value->Count,

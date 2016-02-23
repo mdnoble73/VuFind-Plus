@@ -148,8 +148,8 @@ class SearchSources{
 
 		if ($searchEbsco){
 			$searchOptions['ebsco'] = array(
-					'name' => 'EBSCO Articles',
-					'description' => 'EBSCO Articles',
+					'name' => 'EBSCO',
+					'description' => 'EBSCO',
 					'catalogType' => 'ebsco'
 			);
 		}
