@@ -20,6 +20,7 @@ abstract class Archive_Object extends Action{
 	protected $relatedPlaces;
 	protected $relatedEvents;
 	protected $formattedSubjects;
+	protected $links;
 
 	/**
 	 * @param string $mainContentTemplate  Name of the SMARTY template file for the main content of the Full Record View Pages
@@ -85,7 +86,7 @@ abstract class Archive_Object extends Action{
 		$this->relatedPlaces = array();
 		$this->relatedEvents = array();
 
-		if (!empty($marmotExtension)){
+		if (@count($marmotExtension) > 0){
 			$interface->assign('marmotExtension', $marmotExtension);
 
 			$marmotLocal = $marmotExtension->marmotLocal;
@@ -152,17 +153,26 @@ abstract class Archive_Object extends Action{
 			}
 
 			if (count($marmotExtension->marmotLocal->externalLink) > 0){
-				$links = array();
+				$this->links = array();
 				/** @var SimpleXMLElement $linkInfo */
 				foreach ($marmotExtension->marmotLocal->externalLink as $linkInfo){
 					$linkAttributes = $linkInfo->attributes();
-					$links[] = array(
+					$this->links[] = array(
 							'type' => (string)$linkAttributes['type'],
-							'link' => (string)$linkInfo
+							'link' => (string)$linkInfo->link
 					);
 				}
-				$interface->assign('externalLinks', $links);
+				$interface->assign('externalLinks', $this->links);
 			}
+
+			$addressInfo = array();
+			if (count($marmotExtension->marmotLocal->latitude) > 0){
+				$addressInfo['latitude'] = (string)$marmotExtension->marmotLocal->latitude;
+			}
+			if (count($marmotExtension->marmotLocal->longitude) > 0){
+				$addressInfo['longitude'] = (string)$marmotExtension->marmotLocal->longitude;
+			}
+			$interface->assign('addressInfo', $addressInfo);
 		}
 
 		//Load the RELS-EXT data stream
@@ -428,4 +438,21 @@ abstract class Archive_Object extends Action{
 		}
 	}
 
+	protected function loadLinkedData(){
+		global $interface;
+		foreach ($this->links as $link){
+			if ($link['type'] == 'wikipedia'){
+				require_once ROOT_DIR . '/sys/WikipediaParser.php';
+				$wikipediaParser = new WikipediaParser('en');
+
+				//Transform from a regular wikipedia link to an api link
+				$searchTerm = str_replace('https://en.wikipedia.org/wiki/', '', $link['link']);
+				$url = "http://en.wikipedia.org/w/api.php" .
+						'?action=query&prop=revisions&rvprop=content&format=json' .
+						'&titles=' . urlencode($searchTerm);
+				$wikipediaData = $wikipediaParser->getWikipediaPage($url);
+				$interface->assign('wikipediaData', $wikipediaData);
+			}
+		}
+	}
 }

@@ -12,6 +12,7 @@ require_once ROOT_DIR . '/services/Archive/Object.php';
 class Archive_Place extends Archive_Object{
 	function launch(){
 		global $interface;
+		global $configArray;
 
 		$this->loadArchiveObjectData();
 		$this->loadExploreMoreContent();
@@ -20,6 +21,10 @@ class Archive_Place extends Archive_Object{
 		$interface->assign('showExploreMore', true);
 
 		//Get all images related to the event
+		if (isset($configArray['Maps']) && isset($configArray['Maps']['apiKey'])){
+			$mapsKey = $configArray['Maps']['apiKey'];
+			$interface->assign('mapsKey', $mapsKey);
+		}
 
 
 		// Display Page
