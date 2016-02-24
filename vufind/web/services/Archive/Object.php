@@ -237,7 +237,8 @@ abstract class Archive_Object extends Action{
 		}
 		$relatedSubjects = array_slice($relatedSubjects, 0, 5);
 		foreach ($this->relatedPeople as $person) {
-			$relatedSubjects[$person['label']] = '"' . $person['label'] . '"';
+			$label = (string)$person['label'];
+			$relatedSubjects[$label] = '"' . $label . '"';
 			$numSubjectsAdded++;
 		}
 		$relatedSubjects = array_slice($relatedSubjects, 0, 8);
