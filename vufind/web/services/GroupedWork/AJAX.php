@@ -144,7 +144,11 @@ class GroupedWork_AJAX {
 		//Process other data from novelist
 		if (isset($enrichmentData['novelist']) && isset($enrichmentData['novelist']->similarTitles)){
 			$interface->assign('similarTitles', $enrichmentData['novelist']->similarTitles);
-			$enrichmentResult['similarTitlesNovelist'] = $interface->fetch('GroupedWork/similarTitlesNovelist.tpl');
+			if ($configArray['Catalog']['showExploreMoreForFullRecords']) {
+				$enrichmentResult['similarTitlesNovelist'] = $interface->fetch('GroupedWork/similarTitlesNovelistSidebar.tpl');
+			}else{
+				$enrichmentResult['similarTitlesNovelist'] = $interface->fetch('GroupedWork/similarTitlesNovelist.tpl');
+			}
 		}
 
 		if (isset($enrichmentData['novelist']) && isset($enrichmentData['novelist']->authors)){
