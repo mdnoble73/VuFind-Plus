@@ -55,49 +55,18 @@ abstract class MyAccount extends Action
 			// When loading MyList.php and the list is public, user does not need to be logged in to see list
 
 		// Hide Covers when the user has set that setting on an Account Page
-		$showCovers = true;
-		if (isset($_REQUEST['showCovers'])) {
-			$showCovers = ($_REQUEST['showCovers'] == 'on' || $_REQUEST['showCovers'] == 'true');
-			$_SESSION['showCovers'] = $showCovers;
-		} elseif (isset($_SESSION['showCovers'])) {
-			$showCovers = $_SESSION['showCovers'];
-		}
-		$interface->assign('showCovers', $showCovers);
+		$this->setShowCovers();
 
-		//This code is also in Search/History since that page displays in the My Account menu as well.
-		//It is also in MyList.php and Admin.php
-		if ($user !== false){
-//			$interface->assign('user', $user); // TODO already assigned in index.php. Needed?
-
-			//Figure out if we should show a link to classic opac to pay holds.
-			$ecommerceLink = $configArray['Site']['ecommerceLink'];
-			$homeLibrary = Library::getLibraryForLocation($user->homeLocationId);
-			if (strlen($ecommerceLink) > 0 && isset($homeLibrary) && $homeLibrary->showEcommerceLink == 1){
-				$interface->assign('showEcommerceLink', true);
-				$interface->assign('minimumFineAmount', $homeLibrary->minimumFineAmount);
-				if ($homeLibrary->payFinesLink == 'default'){
-					$interface->assign('ecommerceLink', $ecommerceLink);
-				}else{
-					$interface->assign('ecommerceLink', $homeLibrary->payFinesLink);
-				}
-				$interface->assign('payFinesLinkText', $homeLibrary->payFinesLinkText);
-			}else{
-				$interface->assign('showEcommerceLink', false);
-				$interface->assign('minimumFineAmount', 0);
-			}
-		}
+		// Set Fines Template Variables for Sidebar
+		$this->setFinesRelatedTemplateVariables();
 	}
 
 	/**
 	 * @param string $mainContentTemplate  Name of the SMARTY template file for the main content of the Account Page
-	 * @param string $pageTitle     What to display is the html title tag
-	 * @param bool|true $sidebar    enables the account sidebar on the page to be displayed
+	 * @param string $pageTitle            What to display is the html title tag, gets ran through the translator
+	 * @param string|null $sidebar         Sets the sidebar on the page to be displayed
 	 */
-	function display($mainContentTemplate, $pageTitle= 'My Account', $sidebar=true) {
-		global $interface;
-		if ($sidebar) $interface->assign('sidebar', 'MyAccount/account-sidebar.tpl');
-		$interface->setTemplate($mainContentTemplate);
-		$interface->setPageTitle(translate($pageTitle));
-		$interface->display('layout.tpl');
+	function display($mainContentTemplate, $pageTitle='My Account', $sidebar='Search/home-sidebar.tpl') {
+		parent::display($mainContentTemplate, translate($pageTitle), $sidebar);
 	}
 }

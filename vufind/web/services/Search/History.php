@@ -36,8 +36,6 @@ class History extends Action {
 			exit();
 		}
 
-		$interface->setPageTitle('Search History');
-
 		// Retrieve search history
 		$s = new SearchEntry();
 		$searchHistory = $s->getSearches(session_id(), is_object($user) ? $user->id : null);
@@ -104,23 +102,9 @@ class History extends Action {
 			$interface->assign('noHistory', true);
 		}
 
-		//Load profile information for display in My Account menu
-		//This code is also in MyResearch.php
-		if ($user !== false){
-			//Figure out if we should show a link to classic opac to pay holds.
-			global $library;
-			$homeLibrary = $library->getLibraryForLocation($user->homeLocationId);
-			if ($homeLibrary->showEcommerceLink == 1){
-				$interface->assign('showEcommerceLink', true);
-				$interface->assign('minimumFineAmount', $homeLibrary->minimumFineAmount);
-			}else{
-				$interface->assign('showEcommerceLink', false);
-				$interface->assign('minimumFineAmount', 0);
-			}
-		}
+		// Set Fines Template Variables for Sidebar
+		$this->setFinesRelatedTemplateVariables();
 
-		$interface->assign('sidebar', 'MyAccount/account-sidebar.tpl');
-		$interface->setTemplate('history.tpl');
-		$interface->display('layout.tpl');
+		$this->display('history.tpl', 'Search History');
 	}
 }
