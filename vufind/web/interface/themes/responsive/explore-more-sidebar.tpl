@@ -52,6 +52,18 @@
 			<a href="{$related_titles.allResultsLink}">All Results ({$related_titles.numFound})</a>
 		{/if}
 
+		{* More Like This *}
+		{if $showMoreLikeThisInExplore}
+			{include file="GroupedWork/exploreMoreLikeThis.tpl"}
+		{/if}
+
+		{foreach from=$exploreMoreInfo item=exploreMoreOption}
+			<div class="sectionHeader">{$exploreMoreOption.label}</div>
+			<div class="col-sm-12">
+				{$exploreMoreOption.body}
+			</div>
+		{/foreach}
+
 		{* Related Articles Widget *}
 		{if $relatedArticles}
 			<div class="sectionHeader">Related Articles</div>

@@ -60,7 +60,7 @@
 						{* Prevent this action on the Pin Reset Page && Login Page *}
 						{* Click Account Menu Bar Button *}
 						$('.menu-bar-option:nth-child(2)>a', '#vertical-menu-bar').filter(':visible').click();
-						{elseif $module == "Archive"}
+						{elseif $module == "Archive" || $module == 'GroupedWork' || $module == 'Record'}
 						{* Click Explore More Menu Bar Button *}
 						$('.menu-bar-option:nth-child(4)>a', '#vertical-menu-bar').filter(':visible').click();
 						{else}

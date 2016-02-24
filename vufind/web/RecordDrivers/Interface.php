@@ -275,6 +275,7 @@ abstract class RecordInterface {
 
 	public function getBaseMoreDetailsOptions($isbn){
 		global $interface;
+		global $configArray;
 		$moreDetailsOptions = array();
 		$description = $this->getDescription();
 		if (strlen($description) == 0){
@@ -294,12 +295,14 @@ abstract class RecordInterface {
 				'hideByDefault' => false,
 				'openByDefault' => true
 		);
-		$moreDetailsOptions['moreLikeThis'] = array(
-				'label' => 'More Like This',
-				'body' => $interface->fetch('GroupedWork/moreLikeThis.tpl'),
-				'hideByDefault' => false,
-				'openByDefault' => true
-		);
+		if (!$configArray['Catalog']['showExploreMoreForFullRecords']) {
+			$moreDetailsOptions['moreLikeThis'] = array(
+					'label' => 'More Like This',
+					'body' => $interface->fetch('GroupedWork/moreLikeThis.tpl'),
+					'hideByDefault' => false,
+					'openByDefault' => true
+			);
+		}
 		if ($interface->getVariable('enablePospectorIntegration')){
 			$moreDetailsOptions['prospector'] = array(
 					'label' => 'More Copies In Prospector',
@@ -350,26 +353,28 @@ abstract class RecordInterface {
 						'body' => '<div id="goodReadsPlaceHolder">Loading GoodReads Reviews.</div>'
 				);
 			}
-			if ($interface->getVariable('showSimilarTitles')){
-				$moreDetailsOptions['similarTitles'] = array(
-						'label' => 'Similar Titles From Novelist',
-						'body' => '<div id="novelisttitlesPlaceholder"></div>',
-						'hideByDefault' => true
-				);
-			}
-			if ($interface->getVariable('showSimilarAuthors')){
-				$moreDetailsOptions['similarAuthors'] = array(
-						'label' => 'Similar Authors From Novelist',
-						'body' => '<div id="novelistauthorsPlaceholder"></div>',
-						'hideByDefault' => true
-				);
-			}
-			if ($interface->getVariable('showSimilarTitles')){
-				$moreDetailsOptions['similarSeries'] = array(
-						'label' => 'Similar Series From Novelist',
-						'body' => '<div id="novelistseriesPlaceholder"></div>',
-						'hideByDefault' => true
-				);
+			if (!$configArray['Catalog']['showExploreMoreForFullRecords']) {
+				if ($interface->getVariable('showSimilarTitles')) {
+					$moreDetailsOptions['similarTitles'] = array(
+							'label' => 'Similar Titles From Novelist',
+							'body' => '<div id="novelisttitlesPlaceholder"></div>',
+							'hideByDefault' => true
+					);
+				}
+				if ($interface->getVariable('showSimilarAuthors')) {
+					$moreDetailsOptions['similarAuthors'] = array(
+							'label' => 'Similar Authors From Novelist',
+							'body' => '<div id="novelistauthorsPlaceholder"></div>',
+							'hideByDefault' => true
+					);
+				}
+				if ($interface->getVariable('showSimilarTitles')) {
+					$moreDetailsOptions['similarSeries'] = array(
+							'label' => 'Similar Series From Novelist',
+							'body' => '<div id="novelistseriesPlaceholder"></div>',
+							'hideByDefault' => true
+					);
+				}
 			}
 		}
 		//Do the filtering and sorting here so subclasses can use this directly

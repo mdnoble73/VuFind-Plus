@@ -1644,6 +1644,40 @@ class IndexRecord extends RecordInterface
 		return $this->getGroupedWorkDriver()->getTags();
 	}
 
+	public function getExploreMoreInfo(){
+		global $interface;
+		global $configArray;
+		$exploreMoreOptions = array();
+		if ($configArray['Catalog']['showExploreMoreForFullRecords']) {
+			$interface->assign('showMoreLikeThisInExplore', true);
+
+			if ($this->getCleanISBN()){
+				if ($interface->getVariable('showSimilarTitles')) {
+					$exploreMoreOptions['similarTitles'] = array(
+							'label' => 'Similar Titles From Novelist',
+							'body' => '<div id="novelisttitlesPlaceholder"></div>',
+							'hideByDefault' => true
+					);
+				}
+				if ($interface->getVariable('showSimilarAuthors')) {
+					$exploreMoreOptions['similarAuthors'] = array(
+							'label' => 'Similar Authors From Novelist',
+							'body' => '<div id="novelistauthorsPlaceholder"></div>',
+							'hideByDefault' => true
+					);
+				}
+				if ($interface->getVariable('showSimilarTitles')) {
+					$exploreMoreOptions['similarSeries'] = array(
+							'label' => 'Similar Series From Novelist',
+							'body' => '<div id="novelistseriesPlaceholder"></div>',
+							'hideByDefault' => true
+					);
+				}
+			}
+		}
+		return $exploreMoreOptions;
+	}
+
 	public function getMoreDetailsOptions(){
 		return $this->getBaseMoreDetailsOptions(false);
 	}

@@ -51,8 +51,15 @@ class Record_Home extends Record_Record{
 		$interface->assign('actions', $actions);
 
 		$interface->assign('moreDetailsOptions', $this->recordDriver->getMoreDetailsOptions());
+		$exploreMoreInfo = $this->recordDriver->getExploreMoreInfo();
+		$interface->assign('exploreMoreInfo', $exploreMoreInfo);
 
 		// Display Page
+		global $configArray;
+		if ($configArray['Catalog']['showExploreMoreForFullRecords']) {
+			$interface->assign('showExploreMore', true);
+		}
+
 		$this->display('view.tpl', $this->recordDriver->getTitle());
 
 	}

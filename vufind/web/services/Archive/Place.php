@@ -15,6 +15,7 @@ class Archive_Place extends Archive_Object{
 
 		$this->loadArchiveObjectData();
 		$this->loadExploreMoreContent();
+		$this->loadLinkedData();
 
 		$interface->assign('showExploreMore', true);
 

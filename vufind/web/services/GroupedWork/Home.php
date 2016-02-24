@@ -38,13 +38,19 @@ class GroupedWork_Home extends Action{
 		$searchObject->getNextPrevLinks();
 
 		$interface->assign('moreDetailsOptions', $recordDriver->getMoreDetailsOptions());
-
+		$exploreMoreInfo = $recordDriver->getExploreMoreInfo();
+		$interface->assign('exploreMoreInfo', $exploreMoreInfo);
 
 		$interface->assign('metadataTemplate', 'GroupedWork/metadata.tpl');
 
 		$interface->assign('semanticData', json_encode($recordDriver->getSemanticData()));
 
 		// Display Page
+		global $configArray;
+		if ($configArray['Catalog']['showExploreMoreForFullRecords']) {
+			$interface->assign('showExploreMore', true);
+		}
+
 		$this->display('full-record.tpl', $recordDriver->getTitle());
 	}
 

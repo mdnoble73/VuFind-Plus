@@ -19,8 +19,8 @@ class ExploreMore {
 		global $library;
 		$exploreMoreOptions = array();
 
-		//Check the archive to see if we match an entity
-		if ($library->enableArchive && $activeSection != 'archive') {
+		//Check the archive to see if we match an entity.  Always do this since we may not get the record high in the search results.
+		if ($library->enableArchive) {
 			if (isset($configArray['Islandora']) && isset($configArray['Islandora']['solrUrl']) && !empty($_GET['lookfor']) && !is_array($_GET['lookfor'])) {
 				/** @var SearchObject_Islandora $searchObject */
 				$searchObject = SearchObjectFactory::initSearchObject('Islandora');
