@@ -5,13 +5,14 @@
 		<div id="mobileHeader" class="col-tn-12 col-xs-12">
 
 			<div id="mobileHeader-myAccountFines">
-				{if $totalFines > 0}
+				{if $totalFines > 0 || ($showExpirationWarnings && $user->expireClose)}
+					{* $totalFines is calculated in menu.tpl *}
 					{if $showEcommerceLink && $totalFines > $minimumFineAmount}
 						<div class="myAccountLink" style="color:red; font-weight:bold;">
 							Your account{if count($user->getLinkedUsers())>0}s have{else} has{/if} ${$totalFines|number_format:2} in fines.
 						</div>
 						<div class="myAccountLink">
-							<a href="{$ecommerceLink}" target="_blank">
+							<a href="{$ecommerceLink}" target="_blank"{if $showRefreshAccountButton} onclick="VuFind.Account.ajaxLightbox('{$path}/AJAX/JSON?method=getPayFinesAfterAction')"{/if}>
 								{if $payFinesLinkText}{$payFinesLinkText}{else}Pay Fines Online{/if}
 							</a>
 						</div>
