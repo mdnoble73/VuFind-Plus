@@ -57,9 +57,11 @@
 			{include file="GroupedWork/exploreMoreLikeThis.tpl"}
 		{/if}
 
+		{* Sections for Related Info in Full Record Views  *}
 		{foreach from=$exploreMoreInfo item=exploreMoreOption}
-			<div class="sectionHeader">{$exploreMoreOption.label}</div>
-			<div class="col-sm-12">
+			<div class="sectionHeader"{if $exploreMoreOption.hideByDefault} style="display: none;"{/if}>{$exploreMoreOption.label}</div>
+			<div class="{*col-sm-12 *}jcarousel-wrapper"{if $exploreMoreOption.hideByDefault} style="display: none;"{/if}>
+				<a href="#" class="jcarousel-control-next"{* data-target="+=1"*}><i class="glyphicon glyphicon-chevron-right"></i></a>
 				{$exploreMoreOption.body}
 			</div>
 		{/foreach}

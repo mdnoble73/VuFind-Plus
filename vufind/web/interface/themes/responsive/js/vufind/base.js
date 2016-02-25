@@ -12,14 +12,23 @@ var VuFind = (function(){
 
 		$("#modalDialog").modal({show:false});
 
-		var panels = $('.panel');
-		panels.on('show.bs.collapse', function () {
-			$(this).addClass('active');
-		});
+		//var panels = $('.panel');
+		//panels.on('show.bs.collapse', function () {
+		//	$(this).addClass('active');
+		//});
+		//
+		//panels.on('hide.bs.collapse', function () {
+		//	$(this).removeClass('active');
+		//});
 
-		panels.on('hide.bs.collapse', function () {
-			$(this).removeClass('active');
-		});
+		$('.panel')
+				.on('show.bs.collapse', function () {
+					$(this).addClass('active');
+				})
+				.on('hide.bs.collapse', function () {
+					$(this).removeClass('active');
+				});
+
 	});
 	/**
 	 * Created by mark on 1/14/14.
@@ -52,14 +61,16 @@ var VuFind = (function(){
 			}
 		},
 
-		initCarousels:function(){
-			var jcarousel = $('.jcarousel');
+		initCarousels: function(carouselClass){
+			carouselClass = carouselClass || '.jcarousel';
+			var jcarousel = $(carouselClass),
+					wrapper   = jcarousel.parents('.jcarousel-wrapper');
 
 			jcarousel.on('jcarousel:reload jcarousel:create', function() {
 
-				var Carousel = $(this),
-						width = Carousel.innerWidth(),
-						numCategories = Carousel.jcarousel('items').length,
+				var Carousel       = $(this),
+						width          = Carousel.innerWidth(),
+						numCategories  = Carousel.jcarousel('items').length || 1,
 						numItemsToShow = 1;
 
 				// Adjust Browse Category Carousels
@@ -111,17 +122,20 @@ var VuFind = (function(){
 			});
 
 			// These Controls could possibly be replaced with data-api attributes
-			$('.jcarousel-control-prev')
+			$('.jcarousel-control-prev', wrapper)
+					//.not('.ajax-carousel-control') // ajax carousels get initiated when content is loaded
 					.jcarouselControl({
 						target: '-=1'
 					});
 
-			$('.jcarousel-control-next')
+			$('.jcarousel-control-next', wrapper)
+					//.not('.ajax-carousel-control') // ajax carousels get initiated when content is loaded
 					.jcarouselControl({
 						target: '+=1'
 					});
 
-			$('.jcarousel-pagination')
+			$('.jcarousel-pagination', wrapper)
+					//.not('.ajax-carousel-control') // ajax carousels get initiated when content is loaded
 					.on('jcarouselpagination:active', 'a', function() {
 						$(this).addClass('active');
 					})

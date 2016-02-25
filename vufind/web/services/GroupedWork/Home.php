@@ -46,10 +46,12 @@ class GroupedWork_Home extends Action{
 		$interface->assign('semanticData', json_encode($recordDriver->getSemanticData()));
 
 		// Display Page
-		global $configArray;
-		if ($configArray['Catalog']['showExploreMoreForFullRecords']) {
-			$interface->assign('showExploreMore', true);
-		}
+
+//		global $configArray;
+//		if ($configArray['Catalog']['showExploreMoreForFullRecords']) {
+//			$interface->assign('showExploreMore', true);
+//		}
+		// above is done in $recordDriver->getExploreMoreInfo() plb 2-25-2016
 
 		$this->display('full-record.tpl', $recordDriver->getTitle());
 	}

@@ -1808,7 +1808,7 @@ class GroupedWorkDriver extends RecordInterface{
 		$exploreMoreOptions = array();
 		if ($configArray['Catalog']['showExploreMoreForFullRecords']) {
 			$interface->assign('showMoreLikeThisInExplore', true);
-
+			$interface->assign('showExploreMore', true);
 			if ($this->getCleanISBN()){
 				if ($interface->getVariable('showSimilarTitles')) {
 					$exploreMoreOptions['similarTitles'] = array(
