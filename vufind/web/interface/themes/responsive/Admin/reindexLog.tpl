@@ -23,11 +23,6 @@
 				</tbody>
 			</table>
 		</div>
-		<div>
-			{if $page >= 1}
-				<a href="{$path}/Admin/ReindexLog?page={$page-1}" class="btn btn-default">Previous Page</a>
-			{/if}
-			<a href="{$path}/Admin/ReindexLog?page={$page+1}" class="btn btn-default">Next Page</a>
-		</div>
-	</div>
+
+		{if $pageLinks.all}<div class="text-center">{$pageLinks.all}</div>{/if}	</div>
 {/strip}

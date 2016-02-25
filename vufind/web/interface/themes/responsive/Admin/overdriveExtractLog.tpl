@@ -15,25 +15,21 @@
 							<td>{$logEntry->lastUpdate|date_format:"%D %T"}</td>
 							<td>{$logEntry->endTime|date_format:"%D %T"}</td>
 							<td>{$logEntry->getElapsedTime()}</td>
-                            <td>{$logEntry->numProducts}</td>
-                            <td>{$logEntry->numErrors}</td>
-                            <td>{$logEntry->numAdded}</td>
-                            <td>{$logEntry->numDeleted}</td>
-                            <td>{$logEntry->numUpdated}</td>
-                            <td>{$logEntry->numSkipped}</td>
-                            <td>{$logEntry->numAvailabilityChanges}</td>
-                            <td>{$logEntry->numMetadataChanges}</td>
+							<td>{$logEntry->numProducts}</td>
+							<td>{$logEntry->numErrors}</td>
+							<td>{$logEntry->numAdded}</td>
+							<td>{$logEntry->numDeleted}</td>
+							<td>{$logEntry->numUpdated}</td>
+							<td>{$logEntry->numSkipped}</td>
+							<td>{$logEntry->numAvailabilityChanges}</td>
+							<td>{$logEntry->numMetadataChanges}</td>
 							<td><a href="#" onclick="return VuFind.Admin.showOverDriveExtractNotes('{$logEntry->id}');">Show Notes</a></td>
 						</tr>
 					{/foreach}
 				</tbody>
 			</table>
 		</div>
-		<div>
-			{if $page >= 1}
-				<a href="{$path}/Admin/OverDriveExtractLog?page={$page-1}" class="btn btn-default">Previous Page</a>
-			{/if}
-			<a href="{$path}/Admin/OverDriveExtractLog?page={$page+1}" class="btn btn-default">Next Page</a>
-		</div>
+
+		{if $pageLinks.all}<div class="text-center">{$pageLinks.all}</div>{/if}
 	</div>
 {/strip}

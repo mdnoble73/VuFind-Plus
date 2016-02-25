@@ -9,7 +9,7 @@
 				</thead>
 				<tbody>
 					{foreach from=$logEntries item=logEntry}
-						<tr>
+						<tr{if $logEntry->getHadErrors()} class="danger"{/if}>
 							<td><a href="#" class="accordion-toggle collapsed" id="cronEntry{$logEntry->id}" onclick="VuFind.Admin.toggleCronProcessInfo('{$logEntry->id}');return false;">{$logEntry->id}</a></td>
 							<td>{$logEntry->startTime|date_format:"%D %T"}</td>
 							<td>{$logEntry->endTime|date_format:"%D %T"}</td>
@@ -44,11 +44,7 @@
 				</tbody>
 			</table>
 		</div>
-		<div>
-			{if $page >= 1}
-				<a href="{$path}/Admin/CronLog?page={$page-1}" class="btn btn-default">Previous Page</a>
-			{/if}
-			<a href="{$path}/Admin/CronLog?page={$page+1}" class="btn btn-default">Next Page</a>
-		</div>
+
+		{if $pageLinks.all}<div class="text-center">{$pageLinks.all}</div>{/if}
 	</div>
 {/strip}

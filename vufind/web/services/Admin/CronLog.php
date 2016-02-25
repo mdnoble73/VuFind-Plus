@@ -27,9 +27,12 @@ class CronLog extends Admin_Admin
 {
 	function launch()
 	{
-		global $interface;
+		global $interface,
+		       $configArray;
 
 		$logEntries = array();
+		$cronLogEntry = new CronLogEntry();
+		$total = $cronLogEntry->count();
 		$cronLogEntry = new CronLogEntry();
 		$cronLogEntry->orderBy('startTime DESC');
 		$page = isset($_REQUEST['page']) ? $_REQUEST['page'] : 1;
@@ -40,6 +43,13 @@ class CronLog extends Admin_Admin
 			$logEntries[] = clone($cronLogEntry);
 		}
 		$interface->assign('logEntries', $logEntries);
+
+		$options = array('totalItems' => $total,
+		                 'fileName'   => $configArray['Site']['path'].'/Admin/CronLog?page=%d',
+		                 'perPage'    => 30,
+		);
+		$pager = new VuFindPager($options);
+		$interface->assign('pageLinks', $pager->getLinks());
 
 		$this->display('cronLog.tpl', 'Cron Log');
 	}
