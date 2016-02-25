@@ -1238,6 +1238,14 @@ function getLibraryLocationUpdates(){
 					),
 			),
 
+			'show_Refresh_Account_Button' => array(
+					'title' => 'Show Refresh Account Button Setting',
+					'description' => 'Add library admin option to show Refresh Account button when the Pay Fines Online link is clicked.',
+					'sql' => array(
+							'ALTER TABLE `library` ADD `showRefreshAccountButton` TINYINT NOT NULL DEFAULT 1;',
+					),
+			),
+
 			'library_eds_integration' => array(
 					'title' => 'Library EDS Integration',
 					'description' => 'Setup information for connection to EDS APIs',

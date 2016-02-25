@@ -22,7 +22,7 @@
 		{/if}
 
 		{if $showFinePayments}
-			{* We are doing an acutal payment of fines online *}
+			{* We are doing an actual payment of fines online *}
 			{include file="MyAccount/finePayments.tpl"}
 		{else}
 			{* Pay Fines Button *}
@@ -102,7 +102,7 @@
 		{/foreach}
 
 		{if $showFinePayments}
-			{* We are doing an acutal payment of fines online *}
+			{* We are doing an actual payment of fines online *}
 			{include file="MyAccount/finePayments.tpl"}
 		{else}
 			{* Pay Fines Button *}

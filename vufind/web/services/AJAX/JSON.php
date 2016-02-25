@@ -42,9 +42,9 @@ class AJAX_JSON extends Action {
 		if (is_callable(array($this, $method))) {
 			if ($method == 'getHoursAndLocations'){
 				$output = $this->$method();
-			}elseif (in_array($method, array('getAutoLogoutPrompt', 'getReturnToHomePrompt'))) {
+			}elseif (in_array($method, array('getAutoLogoutPrompt', 'getReturnToHomePrompt', 'getPayFinesAfterAction'))) {
 				$output = json_encode($this->$method());
-				// Browser-side handler ajaxLightbox() doesn't use the input format in else block bellow
+				// Browser-side handler ajaxLightbox() doesn't use the input format in else block below
 			}else{
 				$output = json_encode(array('result'=>$this->$method()));
 			}
@@ -206,8 +206,8 @@ class AJAX_JSON extends Action {
 	function getAutoLogoutPrompt(){
 		global $interface;
 		$result = array(
-			'title' => 'Still There?',
-			'modalBody' => $interface->fetch('AJAX/autoLogoutPrompt.tpl'),
+			'title'        => 'Still There?',
+			'modalBody'    => $interface->fetch('AJAX/autoLogoutPrompt.tpl'),
 			'modalButtons' => "<div id='continueSession' class='btn btn-primary' onclick='continueSession();'>Continue</div>" .
 												"<div id='endSession' class='btn btn-warning' onclick='endSession();'>Logout</div>"
 		);
@@ -217,9 +217,20 @@ class AJAX_JSON extends Action {
 	function getReturnToHomePrompt(){
 		global $interface;
 		$result = array(
-				'title' => 'Still There?',
-				'modalBody' => $interface->fetch('AJAX/autoReturnToHomePrompt.tpl'),
+				'title'        => 'Still There?',
+				'modalBody'    => $interface->fetch('AJAX/autoReturnToHomePrompt.tpl'),
 				'modalButtons' => "<a id='continueSession' class='btn btn-primary' onclick='continueSession();'>Continue</a>"
+		);
+		return $result;
+	}
+
+	function getPayFinesAfterAction(){
+		global $interface,
+		       $configArray;
+		$result = array(
+				'title'        => 'Pay Fines',
+				'modalBody'    => $interface->fetch('AJAX/refreshFinesAccountInfo.tpl'),
+				'modalButtons' => '<a class="btn btn-primary" href="' .$configArray['Site']['path']. '/MyAccount/Fines?reload">Refresh My Fines Information</a>'
 		);
 		return $result;
 	}
