@@ -82,7 +82,16 @@ class FedoraUtils {
 	function getObjectImageUrl($archiveObject, $size = 'small', $defaultType = null){
 		global $configArray;
 		$objectUrl = $configArray['Islandora']['objectUrl'];
-		if ($size == 'small'){
+		if ($size == 'thumbnail'){
+			if ($archiveObject->getDatastream('TN') != null){
+				return $objectUrl . '/' . $archiveObject->id . '/datastream/TN/view';
+			}else if ($archiveObject->getDatastream('SC') != null){
+				return $objectUrl . '/' . $archiveObject->id . '/datastream/SC/view';
+			}else {
+				//return a placeholder
+				return $this->getPlaceholderImage($defaultType);
+			}
+		}elseif ($size == 'small'){
 			if ($archiveObject->getDatastream('SC') != null){
 				return $objectUrl . '/' . $archiveObject->id . '/datastream/SC/view';
 			}else if ($archiveObject->getDatastream('TN') != null){
@@ -91,7 +100,6 @@ class FedoraUtils {
 				//return a placeholder
 				return $this->getPlaceholderImage($defaultType);
 			}
-
 		}elseif ($size == 'medium'){
 			if ($archiveObject->getDatastream('MC') != null) {
 				return $objectUrl . '/' . $archiveObject->id . '/datastream/MC/view';
@@ -158,5 +166,10 @@ class FedoraUtils {
 	}
 
 	private $modsCache = array();
+
+	public function doSparqlQuery($query){
+		$results = $this->repository->ri->sparqlQuery($query);
+		return $results;
+	}
 
 }
