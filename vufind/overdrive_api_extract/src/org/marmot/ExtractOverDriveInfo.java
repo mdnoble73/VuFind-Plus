@@ -166,6 +166,7 @@ public class ExtractOverDriveInfo {
 			overDriveFormatMap.put("Microsoft eBook", 1L);
 			overDriveFormatMap.put("audiobook-wma", 25L);
 			overDriveFormatMap.put("audiobook-mp3", 425L);
+			overDriveFormatMap.put("audiobook-overdrive", 625L);
 			overDriveFormatMap.put("music-wma", 30L);
 			overDriveFormatMap.put("video-wmv", 35L);
 			overDriveFormatMap.put("ebook-pdf-adobe", 50L);
@@ -175,6 +176,9 @@ public class ExtractOverDriveInfo {
 			overDriveFormatMap.put("ebook-pdf-open", 450L);
 			overDriveFormatMap.put("ebook-epub-open", 810L);
 			overDriveFormatMap.put("ebook-overdrive", 610L);
+			overDriveFormatMap.put("video-streaming", 635L);
+			overDriveFormatMap.put("periodicals-nook", 304L);
+			overDriveFormatMap.put("ebook-mediado", 303L);
 			
 			if (clientSecret == null || clientKey == null || accountId == null || clientSecret.length() == 0 || clientKey.length() == 0 || accountId.length() == 0){
 				logEntry.addNote("Did not find correct configuration in config.ini, not loading overdrive titles");
