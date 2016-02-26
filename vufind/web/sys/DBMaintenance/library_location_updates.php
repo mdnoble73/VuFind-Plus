@@ -1255,5 +1255,13 @@ function getLibraryLocationUpdates(){
 							'ALTER TABLE `library` ADD COLUMN `edsApiPassword` VARCHAR(50)',
 					),
 			),
+
+			'library_patronNameDisplayStyle' => array(
+					'title' => 'Library Patron Display Name Style',
+					'description' => 'Setup the style for how the display name for patrons is generated',
+					'sql' => array(
+							"ALTER TABLE `library` ADD COLUMN `patronNameDisplayStyle` ENUM('firstinitial_lastname', 'lastinitial_firstname') DEFAULT 'firstinitial_lastname';",
+					),
+			),
 	);
 }
