@@ -536,7 +536,7 @@ class Millennium extends ScreenScrapingDriver
 		// <html>
 		// <body>
 		// <br>
-		$cleanPatronData = preg_replace('/<\/?(html|body|br)>/i', '', $result);
+		$cleanPatronData = preg_replace('/<(html|body|br)\s*\/?>/i', '', $result);
 		//$cleanPatronData = strip_tags($result);
 
 		//Add the key and value from each row into an associative array.
