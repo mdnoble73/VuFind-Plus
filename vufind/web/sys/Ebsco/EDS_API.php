@@ -107,7 +107,7 @@ BODY;
 					$createSessionResponse = new SimpleXMLElement($result);
 					if ($createSessionResponse->SessionToken) {
 						$this->sessionId = (string)$createSessionResponse->SessionToken;
-						echo("Authenticated in EDS!");
+						//echo("Authenticated in EDS!");
 						return true;
 					} elseif ($createSessionResponse->ErrorDescription) {
 						echo("create session failed, " . print_r($createSessionResponse));
