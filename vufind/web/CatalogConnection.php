@@ -214,7 +214,7 @@ class CatalogConnection
 					$user->displayName = $user->lastname;
 				}else{
 					// #PK-979 Make display name configurable firstname, last initial, vs first initial last name
-					if ($homeLibrary->patronDisplayStyle = 'firstinitial_lastname'){
+					if ($homeLibrary == null || $homeLibrary->patronDisplayStyle = 'firstinitial_lastname'){
 						// #PK-979 Make display name configurable firstname, last initial, vs first initial last name
 						$user->displayName = substr($user->firstname, 0, 1) . '. ' . $user->lastname;
 					}elseif ($homeLibrary->patronDisplayStyle = 'lastinitial_firstname'){
