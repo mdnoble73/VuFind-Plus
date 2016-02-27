@@ -368,7 +368,7 @@ public class GroupedWorkSolr {
 						addLibraryOwnership = true;
 						availabilityToggleValues.add("Entire Collection");
 					}
-					if (curScope.isLibraryOwned() && curScope.getScope().isLibraryScope()){
+					if (curScope.isLibraryOwned()){
 						addLibraryOwnership = true;
 						availabilityToggleValues.add("Entire Collection");
 					}

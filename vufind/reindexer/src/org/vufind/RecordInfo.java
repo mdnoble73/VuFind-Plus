@@ -1,7 +1,5 @@
 package org.vufind;
 
-import org.apache.solr.common.util.Hash;
-
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.TreeMap;

@@ -49,7 +49,7 @@
 				<script type="text/javascript">
 					$(function(){ldelim}
 						{* Only trigger event if the side bar is visible *}
-						{if $module == "Search" || $module == "Series" || $module == "Author" || $module == "Genealogy"
+						{if $module == "Search" || $module == "Series" || $module == "Author" || $module == "Genealogy" || $module == "Library"
 					|| ($module == 'MyAccount' && $action == 'MyList' && !$listEditAllowed)
 					|| ($module == 'EBSCO' && $action == 'Results')
 					|| ($module == 'Archive' && $action == 'Results')|| ($module == 'Archive' && $action == 'RelatedEntities')}

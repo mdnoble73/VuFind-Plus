@@ -16,7 +16,7 @@
 		<div class="related-manifestation-shelf-status available">Available Online</div>
 	{elseif $statusInformation.allLibraryUseOnly}
 		<div class="related-manifestation-shelf-status available">{translate text='On Shelf (library use only)'}</div>
-	{elseif $onInternalIP}
+	{elseif $scopeType == 'Location'}
 		<div class="related-manifestation-shelf-status availableOther">Available at another branch</div>
 	{else}
 		<div class="related-manifestation-shelf-status available">{translate text='On Shelf'}</div>
@@ -28,7 +28,11 @@
 {elseif $statusInformation.available && $statusInformation.hasLocalItem}
 	<div class="related-manifestation-shelf-status availableOther">{translate text='Checked Out/Available Elsewhere'}</div>
 {elseif $statusInformation.available}
-	<div class="related-manifestation-shelf-status availableOther">{translate text='Available from another library'}</div>
+	{if $isGlobalScope}
+		<div class="related-manifestation-shelf-status available">{translate text='On Shelf'}</div>
+	{else}
+		<div class="related-manifestation-shelf-status availableOther">{translate text='Available from another library'}</div>
+	{/if}
 {else}
 	<div class="related-manifestation-shelf-status checked_out">
 		{if $statusInformation.groupedStatus}{$statusInformation.groupedStatus}{else}Withdrawn/Unavailable{/if}
