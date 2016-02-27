@@ -11,7 +11,7 @@
 	{translate text="Call Number"}: {$callnumber}
 {/if}
 {if $shelfLocation}
-	{translate text="Shelf Location"}: {$availableAt}
+	{translate text="Shelf Location"}: {$shelfLocation}
 {/if}
 
 {translate text="email_link"}: {$recordDriver->getLinkUrl(true)}
