@@ -207,20 +207,20 @@ class CatalogConnection
 		}
 
 		if ($user){
-			if (empty($user->displayName)) {
-				$homeLibrary = $user->getHomeLibrary();
-
+			if ($user->displayName == '') {
 				if ($user->firstname == ''){
 					$user->displayName = $user->lastname;
 				}else{
 					// #PK-979 Make display name configurable firstname, last initial, vs first initial last name
-					if ($homeLibrary == null || $homeLibrary->patronDisplayStyle = 'firstinitial_lastname'){
+					$homeLibrary = $user->getHomeLibrary();
+					if ($homeLibrary == null || ($homeLibrary->patronNameDisplayStyle == 'firstinitial_lastname')){
 						// #PK-979 Make display name configurable firstname, last initial, vs first initial last name
 						$user->displayName = substr($user->firstname, 0, 1) . '. ' . $user->lastname;
-					}elseif ($homeLibrary->patronDisplayStyle = 'lastinitial_firstname'){
+					}elseif ($homeLibrary->patronNameDisplayStyle == 'lastinitial_firstname'){
 						$user->displayName = substr($user->lastname, 0, 1) . '. ' . $user->firstname;
 					}
 				}
+				$user->update();
 			}
 			if ($parentAccount) $user->setParentUser($parentAccount); // only set when the parent account is passed.
 			$this->updateUserWithAdditionalRuntimeInformation($user);

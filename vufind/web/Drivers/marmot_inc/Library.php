@@ -915,7 +915,8 @@ class Library extends DB_DataObject
 			$libraryLocations->find();
 			while ($libraryLocations->fetch()){
 				$user = new User();
-				$user->query('update user set displayName = null where homeLocationId = ' . $user->homeLocationId);
+				$numChanges = $user->query("update user set displayName = '' where homeLocationId = {$libraryLocations->locationId}");
+
 			}
 		}
 		return $ret;

@@ -61,14 +61,6 @@ class LibrarySolution extends ScreenScrapingDriver {
 			$user->phone = $accountSummary->patron->phone;
 			$user->email = $accountSummary->patron->email;
 
-			if (empty($user->displayName)) {
-				if (strlen($user->firstname) >= 1) {
-					$user->displayName = substr($user->firstname, 0, 1) . '. ' . $user->lastname;
-				} else {
-					$user->displayName = $user->lastname;
-				}
-			}
-
 			//Setup home location
 			$location = null;
 			if (isset($accountSummary->patron->issuingBranchId) || isset($accountSummary->patron->defaultRequestPickupBranch)){

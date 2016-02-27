@@ -552,7 +552,9 @@ class Millennium extends ScreenScrapingDriver
 					break;
 				// single entries
 				default :
-					$patronDump[$patronDumpKey] = isset($patronData[$curRow][2]) ? $patronData[$curRow][2] : '';
+					if (!array_key_exists($patronDumpKey, $patronDump)) {
+						$patronDump[$patronDumpKey] = isset($patronData[$curRow][2]) ? $patronData[$curRow][2] : '';
+					}
 			}
 		}
 
