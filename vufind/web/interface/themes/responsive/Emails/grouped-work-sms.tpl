@@ -4,7 +4,7 @@
 	By {$author|truncate:30:'...'}
 {/if}
 {if $shelfLocation}
-	{translate text="Shelf Location"}: {$shelfLocation}
+{translate text="Shelf Location"}: {$shelfLocation}
 {/if}
 {if $callnumber}
 {translate text="Call Number"}: {$callnumber}

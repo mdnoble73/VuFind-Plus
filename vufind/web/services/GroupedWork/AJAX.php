@@ -781,6 +781,7 @@ class GroupedWork_AJAX {
 		}
 
 		$interface->assign('title', $recordDriver->getTitle());
+		$interface->assign('author', $recordDriver->getPrimaryAuthor());
 		$message = $interface->fetch('Emails/grouped-work-sms.tpl');
 
 		$smsResult = $sms->text($_REQUEST['provider'], $_REQUEST['sms_phone_number'], $configArray['Site']['email'], $message);
