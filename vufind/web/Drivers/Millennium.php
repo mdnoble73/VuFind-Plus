@@ -270,6 +270,7 @@ class Millennium extends ScreenScrapingDriver
 			$firstName = isset($firstName) ? $firstName : '';
 			if ($user->firstname != $firstName) {
 				$user->firstname = $firstName;
+				$forceDisplayNameUpdate = true;
 			}
 			$lastName = isset($lastName) ? $lastName : '';
 			if ($user->lastname != $lastName){
@@ -278,7 +279,7 @@ class Millennium extends ScreenScrapingDriver
 			}
 			$user->fullname = isset($fullName) ? $fullName : '';
 			if ($forceDisplayNameUpdate){
-				$user->displayName = null;
+				$user->displayName = '';
 			}
 
 			if ($this->accountProfile->loginConfiguration == 'barcode_pin'){
