@@ -127,6 +127,11 @@ public class UpdateReadingHistory implements IProcessHandler {
 
 				processLog.incUpdated();
 				processLog.saveToDatabase(vufindConn, logger);
+				try {
+					Thread.sleep(1000);
+				}catch (Exception e){
+					logger.warn("Sleep was interrupted while processing reading history for user.");
+				}
 			}
 			userResults.close();
 		} catch (SQLException e) {
