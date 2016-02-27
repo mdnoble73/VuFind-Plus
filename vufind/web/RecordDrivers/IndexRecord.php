@@ -1610,7 +1610,14 @@ class IndexRecord extends RecordInterface
 		$recordId = $this->getUniqueID();
 
 		//TODO: This should have the correct module set
-		return $configArray['Site']['path'] . '/Record/' . $recordId;
+		return $configArray['Site']['path'] . '/' . $this->getModule() . '/' . $recordId;
+	}
+
+	function getAbsoluteUrl(){
+		global $configArray;
+		$recordId = $this->getUniqueID();
+
+		return $configArray['Site']['url'] . '/' . $this->getModule() . '/' . $recordId;
 	}
 
 	public function getLinkUrl($useUnscopedHoldingsSummary = false) {

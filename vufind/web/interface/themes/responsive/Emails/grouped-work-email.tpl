@@ -14,7 +14,7 @@
 	{translate text="Shelf Location"}: {$shelfLocation}
 {/if}
 
-{translate text="email_link"}: {$recordDriver->getLinkUrl(true)}
+{translate text="email_link"}: {$url}
 ------------------------------------------------------------
 
 {if !empty($message)}

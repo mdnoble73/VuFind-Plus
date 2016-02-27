@@ -600,7 +600,7 @@ class GroupedWork_AJAX {
 					if (isset($curRecord['shelfLocation'])){
 						$interface->assign('shelfLocation', strip_tags($curRecord['shelfLocation']));
 					}
-					$interface->assign('url', $curRecord['driver']->getLinkUrl(true));
+					$interface->assign('url', $curRecord['driver']->getAbsoluteUrl());
 					break;
 				}
 			}
@@ -774,7 +774,7 @@ class GroupedWork_AJAX {
 					if (isset($curRecord['shelfLocation'])){
 						$interface->assign('shelfLocation', strip_tags($curRecord['shelfLocation']));
 					}
-					$interface->assign('url', $curRecord['driver']->getLinkUrl(true));
+					$interface->assign('url', $curRecord['driver']->getAbsoluteUrl());
 					break;
 				}
 			}
