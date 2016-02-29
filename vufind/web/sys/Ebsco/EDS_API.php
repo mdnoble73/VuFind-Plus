@@ -49,9 +49,9 @@ class EDS_API {
 	}
 
 	public function authenticate(){
-		if (isset($this->sessionId)){
+		/*if (isset($this->sessionId)){
 			return true;
-		}
+		}*/
 		global $library;
 		if ($library->edsApiProfile){
 			$this->curl_connection = curl_init("https://eds-api.ebscohost.com/authservice/rest/uidauth");
@@ -167,16 +167,21 @@ BODY;
 		));
 		curl_setopt($this->curl_connection, CURLOPT_URL, $searchUrl);
 		$result = curl_exec($this->curl_connection);
-		$searchData = new SimpleXMLElement($result);
-		$this->stopQueryTimer();
-		if ($searchData && !$searchData->ErrorNumber){
-			$this->resultsTotal = $searchData->SearchResult->Statistics->TotalHits;
-			$this->lastSearchResults = $searchData->SearchResult;
-			return $searchData->SearchResult;
-		}else{
-			$curlInfo = curl_getinfo($this->curl_connection);
-			$this->lastSearchResults = null;
-			return null;
+		try {
+			$searchData = new SimpleXMLElement($result);
+			$this->stopQueryTimer();
+			if ($searchData && !$searchData->ErrorNumber){
+				$this->resultsTotal = $searchData->SearchResult->Statistics->TotalHits;
+				$this->lastSearchResults = $searchData->SearchResult;
+				return $searchData->SearchResult;
+			}else{
+				$curlInfo = curl_getinfo($this->curl_connection);
+				$this->lastSearchResults = null;
+				return null;
+			}
+		}catch (Exception $e){
+			global $logger;
+			$logger->log("Error loading data from EBSCO $e", PEAR_LOG_ERR);
 		}
 	}
 
