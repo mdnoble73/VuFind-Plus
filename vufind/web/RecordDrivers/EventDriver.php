@@ -15,4 +15,9 @@ class EventDriver extends IslandoraDriver {
 	public function getViewAction() {
 		return 'Event';
 	}
+
+	protected function getPlaceholderImage() {
+		global $configArray;
+		return $configArray['Site']['path'] . '/interface/themes/responsive/images/events.png';
+	}
 }
