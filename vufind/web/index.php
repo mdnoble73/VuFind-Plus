@@ -961,4 +961,6 @@ function loadUserData(){
 		}
 		$timer->logTime("Load Information about Index status");
 	}
+
+	$interface->setFinesRelatedTemplateVariables();
 }

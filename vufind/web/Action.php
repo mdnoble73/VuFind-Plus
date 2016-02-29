@@ -51,36 +51,4 @@ abstract class Action extends PEAR
 		}
 		$interface->assign('showCovers', $showCovers);
 	}
-
-	/**
-	 *  Set template variables used in the My Account sidebar section dealing with fines.
-	 */
-	function setFinesRelatedTemplateVariables() {
-		global $user,
-			     $configArray,
-			     $interface;
-
-		if ($user !== false){
-
-			//Figure out if we should show a link to pay fines.
-			$ecommerceLink = $configArray['Site']['ecommerceLink'];
-			$homeLibrary = Library::getLibraryForLocation($user->homeLocationId);
-			if (strlen($ecommerceLink) > 0 && isset($homeLibrary) && $homeLibrary->showEcommerceLink == 1){
-				$interface->assign('showEcommerceLink', true);
-				$interface->assign('minimumFineAmount', $homeLibrary->minimumFineAmount);
-				if ($homeLibrary->payFinesLink == 'default'){
-					$interface->assign('ecommerceLink', $ecommerceLink);
-				}else{
-					$interface->assign('ecommerceLink', $homeLibrary->payFinesLink);
-				}
-				$interface->assign('payFinesLinkText', $homeLibrary->payFinesLinkText);
-				$interface->assign('showRefreshAccountButton', $homeLibrary->showRefreshAccountButton);
-			}else{
-				$interface->assign('showEcommerceLink', false);
-				$interface->assign('minimumFineAmount', 0);
-			}
-		}
-	}
-
-
 }

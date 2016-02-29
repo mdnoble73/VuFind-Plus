@@ -96,8 +96,10 @@
 			{include file="MyAccount/finePayments.tpl"}
 		{else}
 			{* Pay Fines Button *}
-			{if $showEcommerceLink && $profile->finesval > $minimumFineAmount}
-				<a href='{$ecommerceLink}'><div class="btn btn-sm btn-primary">{if $payFinesLinkText}{$payFinesLinkText}{else}Click to Pay Fines Online{/if}</div></a>
+			{if $showEcommerceLink && $profile->finesVal > $minimumFineAmount}
+				<a href="{$ecommerceLink}" target="_blank"{if $showRefreshAccountButton} onclick="VuFind.Account.ajaxLightbox('{$path}/AJAX/JSON?method=getPayFinesAfterAction')"{/if}>
+					<div class="btn btn-sm btn-primary">{if $payFinesLinkText}{$payFinesLinkText}{else}Click to Pay Fines Online{/if}</div>
+				</a>
 			{/if}
 		{/if}
 

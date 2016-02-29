@@ -102,9 +102,6 @@ class History extends Action {
 			$interface->assign('noHistory', true);
 		}
 
-		// Set Fines Template Variables for Sidebar
-		$this->setFinesRelatedTemplateVariables();
-
 		$this->display('history.tpl', 'Search History');
 	}
 }

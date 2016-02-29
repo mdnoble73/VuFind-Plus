@@ -56,9 +56,6 @@ abstract class MyAccount extends Action
 
 		// Hide Covers when the user has set that setting on an Account Page
 		$this->setShowCovers();
-
-		// Set Fines Template Variables for Sidebar
-		$this->setFinesRelatedTemplateVariables();
 	}
 
 	/**

@@ -46,9 +46,6 @@ abstract class Admin_Admin extends Action
 			}
 		}
 
-		// Set Fines Template Variables for Sidebar
-		$this->setFinesRelatedTemplateVariables();
-
 		if (!$userCanAccess){
 			$interface->setTemplate('../Admin/noPermission.tpl');
 			$interface->display('layout.tpl');

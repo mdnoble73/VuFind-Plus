@@ -204,6 +204,35 @@ class UInterface extends Smarty
 		}
 	}
 
+	/**
+	 *  Set template variables used in the My Account sidebar section dealing with fines.
+	 */
+	function setFinesRelatedTemplateVariables() {
+		global $user,
+		       $configArray;
+
+		if ($user !== false){
+
+			//Figure out if we should show a link to pay fines.
+			$ecommerceLink = $configArray['Site']['ecommerceLink'];
+			$homeLibrary = Library::getLibraryForLocation($user->homeLocationId);
+			if (strlen($ecommerceLink) > 0 && isset($homeLibrary) && $homeLibrary->showEcommerceLink == 1){
+				$this->assign('showEcommerceLink', true);
+				$this->assign('minimumFineAmount', $homeLibrary->minimumFineAmount);
+				if ($homeLibrary->payFinesLink == 'default'){
+					$this->assign('ecommerceLink', $ecommerceLink);
+				}else{
+					$this->assign('ecommerceLink', $homeLibrary->payFinesLink);
+				}
+				$this->assign('payFinesLinkText', $homeLibrary->payFinesLinkText);
+				$this->assign('showRefreshAccountButton', $homeLibrary->showRefreshAccountButton);
+			}else{
+				$this->assign('showEcommerceLink', false);
+				$this->assign('minimumFineAmount', 0);
+			}
+		}
+	}
+
 	public function getUrl(){
 		return $this->url;
 	}
