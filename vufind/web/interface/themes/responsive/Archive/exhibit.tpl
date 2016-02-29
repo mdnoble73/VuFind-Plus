@@ -13,7 +13,7 @@
 
 	<div class="related-exhibit-images results-covers home-page-browse-thumbnails">
 		{foreach from=$relatedImages item=image}
-			<figure class="thumbnail">
+			<figure class="browse-thumbnail">
 				<a href="{$image.link}" {if $image.title}data-title="{$image.title}"{/if}>
 					<img src="{$image.thumbnail}" {if $image.title}alt="{$image.title}"{/if}>
 				</a>
