@@ -153,12 +153,20 @@ class GroupedWork_AJAX {
 
 		if (isset($enrichmentData['novelist']) && isset($enrichmentData['novelist']->authors)){
 			$interface->assign('similarAuthors', $enrichmentData['novelist']->authors);
-			$enrichmentResult['similarAuthorsNovelist'] = $interface->fetch('GroupedWork/similarAuthorsNovelist.tpl');
+			if ($configArray['Catalog']['showExploreMoreForFullRecords']) {
+				$enrichmentResult['similarAuthorsNovelist'] = $interface->fetch('GroupedWork/similarAuthorsNovelistSidebar.tpl');
+			}else {
+				$enrichmentResult['similarAuthorsNovelist'] = $interface->fetch('GroupedWork/similarAuthorsNovelist.tpl');
+			}
 		}
 
 		if (isset($enrichmentData['novelist']) && isset($enrichmentData['novelist']->similarSeries)){
 			$interface->assign('similarSeries', $enrichmentData['novelist']->similarSeries);
-			$enrichmentResult['similarSeriesNovelist'] = $interface->fetch('GroupedWork/similarSeriesNovelist.tpl');
+			if ($configArray['Catalog']['showExploreMoreForFullRecords']) {
+				$enrichmentResult['similarSeriesNovelist'] = $interface->fetch('GroupedWork/similarSeriesNovelistSidebar.tpl');
+			}else{
+				$enrichmentResult['similarSeriesNovelist'] = $interface->fetch('GroupedWork/similarSeriesNovelist.tpl');
+			}
 		}
 
 		//Load Similar titles (from Solr)

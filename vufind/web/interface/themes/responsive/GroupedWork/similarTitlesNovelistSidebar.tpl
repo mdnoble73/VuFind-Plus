@@ -3,7 +3,7 @@
 	{* TODO: put this in a help pop-up
 	<div class="alert alert-info">Novelist provides detailed suggestions for titles you might like if you enjoyed this book.  Suggestions are based on recommendations from librarians and other contributors.</div>
 	*}
-	<div id="similarTitlesNovelist" class="jcarousel ajax-carousel">
+	<div id="similarTitlesNovelist" class="jcarousel ajax-carousel col-tn-12">
 		<ul>
 			{foreach from=$similarTitles item=similarTitle name="recordLoop"}
 				<li{* class="novelist-similar-item"*}>
