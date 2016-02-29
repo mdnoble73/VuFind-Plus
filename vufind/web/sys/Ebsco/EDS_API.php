@@ -49,6 +49,9 @@ class EDS_API {
 	}
 
 	public function authenticate(){
+		if (isset($this->sessionId)){
+			return true;
+		}
 		global $library;
 		if ($library->edsApiProfile){
 			$this->curl_connection = curl_init("https://eds-api.ebscohost.com/authservice/rest/uidauth");
