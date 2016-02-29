@@ -1271,6 +1271,17 @@ function getLibraryLocationUpdates(){
 							'ALTER TABLE location ADD COLUMN includeAllLibraryBranchesInFacets TINYINT DEFAULT 1',
 							"ALTER TABLE location ADD COLUMN additionalLocationsToShowAvailabilityFor VARCHAR(100) NOT NULL DEFAULT ''",
 					),
-			)
+			),
+
+			'location_library_control_shelf_location_and_date_added_facets' => array(
+					'title' => 'Additional control over shelf location and date added facets',
+					'description' => 'Additional control over shelf location and date added facets - allow inclusion of all locations',
+					'sql' => array(
+							'ALTER TABLE library ADD COLUMN includeAllRecordsInShelvingFacets TINYINT DEFAULT 0',
+							'ALTER TABLE location ADD COLUMN includeAllRecordsInShelvingFacets TINYINT DEFAULT 0',
+							'ALTER TABLE library ADD COLUMN includeAllRecordsInDateAddedFacets TINYINT DEFAULT 0',
+							'ALTER TABLE location ADD COLUMN includeAllRecordsInDateAddedFacets TINYINT DEFAULT 0',
+					),
+			),
 	);
 }

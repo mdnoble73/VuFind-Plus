@@ -42,6 +42,8 @@ public class Scope implements Comparable<Scope>{
 	private String additionalLocationsToShowAvailabilityFor;
 	private Pattern additionalLocationsToShowAvailabilityForPattern;
 	private boolean includeAllLibraryBranchesInFacets; //Only applies to location scopes
+	private boolean includeAllRecordsInShelvingFacets;
+	private boolean includeAllRecordsInDateAddedFacets;
 
 	public String getScopeName() {
 		return scopeName;
@@ -266,5 +268,21 @@ public class Scope implements Comparable<Scope>{
 
 	public Pattern getAdditionalLocationsToShowAvailabilityForPattern() {
 		return additionalLocationsToShowAvailabilityForPattern;
+	}
+
+	public boolean isIncludeAllRecordsInShelvingFacets() {
+		return includeAllRecordsInShelvingFacets;
+	}
+
+	public void setIncludeAllRecordsInShelvingFacets(boolean includeAllRecordsInShelvingFacets) {
+		this.includeAllRecordsInShelvingFacets = includeAllRecordsInShelvingFacets;
+	}
+
+	public boolean isIncludeAllRecordsInDateAddedFacets() {
+		return includeAllRecordsInDateAddedFacets;
+	}
+
+	public void setIncludeAllRecordsInDateAddedFacets(boolean includeAllRecordsInDateAddedFacets) {
+		this.includeAllRecordsInDateAddedFacets = includeAllRecordsInDateAddedFacets;
 	}
 }

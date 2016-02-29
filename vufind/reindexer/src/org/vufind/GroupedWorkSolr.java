@@ -489,9 +489,11 @@ public class GroupedWorkSolr {
 					//Make sure we always add availability toggles to this scope even if they are blank
 					addAvailabilityToggleValues(doc, curRecord, curScopeName, availabilityToggleValues);
 
-					if (curScope.isLocallyOwned() || curScope.isLibraryOwned()) {
+					if (curScope.isLocallyOwned() || curScope.isLibraryOwned() || curScope.getScope().isIncludeAllRecordsInShelvingFacets()) {
 						addUniqueFieldValue(doc, "collection_" + curScopeName, curItem.getCollection());
 						addUniqueFieldValue(doc, "detailed_location_" + curScopeName, curItem.getShelfLocation());
+					}
+					if (curScope.isLocallyOwned() || curScope.isLibraryOwned() || curScope.getScope().isIncludeAllRecordsInDateAddedFacets()) {
 						//Date Added To Catalog needs to be the earliest date added for the catalog.
 						Date dateAdded = curItem.getDateAdded();
 						long daysSinceAdded;

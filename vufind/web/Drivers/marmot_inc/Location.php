@@ -74,6 +74,8 @@ class Location extends DB_DataObject
 	public $browseCategoryRatingsMode;
 	public $includeAllLibraryBranchesInFacets;
 	public $additionalLocationsToShowAvailabilityFor;
+	public $includeAllRecordsInShelvingFacets;
+	public $includeAllRecordsInDateAddedFacets;
 
 	/** @var  array $data */
 	protected $data;
@@ -194,7 +196,8 @@ class Location extends DB_DataObject
 				array('property'=>'systemsToRepeatIn', 'type'=>'text', 'label'=>'Systems To Repeat In', 'description'=>'A list of library codes that you would like to repeat search in separated by pipes |.', 'hideInLists' => true),
 				array('property'=>'includeAllLibraryBranchesInFacets', 'type'=>'checkbox', 'label'=>'Include All Library Branches In Facets', 'description'=>'Turn on to include all branches of the library within facets (ownership and availability).', 'hideInLists' => true, 'default'=>true),
 				array('property'=>'additionalLocationsToShowAvailabilityFor', 'type'=>'text', 'label'=>'Additional Locations to Include in Available At Facet', 'description'=>'A list of library codes that you would like included in the available at facet separated by pipes |.', 'size'=>'20', 'hideInLists' => true,),
-
+				array('property'=>'includeAllRecordsInShelvingFacets', 'type'=>'checkbox', 'label'=>'Include All Records In Shelving Facets', 'description'=>'Turn on to include all records (owned and included) in shelving related facets (detailed location, collection).', 'hideInLists' => true, 'default'=>false),
+				array('property'=>'includeAllRecordsInDateAddedFacets', 'type'=>'checkbox', 'label'=>'Include All Records In Date Added Facets', 'description'=>'Turn on to include all records (owned and included) in date added facets.', 'hideInLists' => true, 'default'=>false),
 			)),
 
 			// Catalog Enrichment //
