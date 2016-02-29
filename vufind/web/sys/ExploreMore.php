@@ -87,7 +87,7 @@ class ExploreMore {
 							$exploreMoreOptions[] = array(
 									'title' => "Catalog Results ($numCatalogResults)",
 									'description' => "Catalog Results ($numCatalogResults)",
-									'thumbnail' => $driver->getBookcoverUrl('small'),
+									'thumbnail' => $configArray['Site']['path'] . '/interface/themes/responsive/images/library_symbol.png',
 									'link' => $searchObjectSolr->renderSearchUrl(),
 									'usageCount' => 1
 							);
