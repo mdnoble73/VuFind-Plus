@@ -583,6 +583,7 @@ class GroupedWork_AJAX {
 		require_once ROOT_DIR . '/RecordDrivers/GroupedWorkDriver.php';
 		$recordDriver = new GroupedWorkDriver($id);
 		$interface->assign('recordDriver', $recordDriver);
+		$interface->assign('url', $recordDriver->getLinkUrl(true));
 
 		if (isset($_REQUEST['related_record'])){
 			$relatedRecord = $_REQUEST['related_record'];
@@ -592,13 +593,15 @@ class GroupedWork_AJAX {
 			$relatedRecords = $recordDriver->getRelatedRecords();
 
 			foreach ($relatedRecords as $curRecord){
-				if ($curRecord['id'] = $relatedRecord){
+				if ($curRecord['id'] == $relatedRecord){
 					if (isset($curRecord['callNumber'])){
 						$interface->assign('callnumber', $curRecord['callNumber']);
 					}
 					if (isset($curRecord['shelfLocation'])){
 						$interface->assign('shelfLocation', strip_tags($curRecord['shelfLocation']));
 					}
+					$interface->assign('url', $curRecord['driver']->getAbsoluteUrl());
+					break;
 				}
 			}
 		}
@@ -754,6 +757,7 @@ class GroupedWork_AJAX {
 		$id = $_REQUEST['id'];
 		require_once ROOT_DIR . '/RecordDrivers/GroupedWorkDriver.php';
 		$recordDriver = new GroupedWorkDriver($id);
+		$interface->assign('url', $recordDriver->getLinkUrl(true));
 
 		if (isset($_REQUEST['related_record'])){
 			$relatedRecord = $_REQUEST['related_record'];
@@ -763,19 +767,21 @@ class GroupedWork_AJAX {
 			$relatedRecords = $recordDriver->getRelatedRecords();
 
 			foreach ($relatedRecords as $curRecord){
-				if ($curRecord['id'] = $relatedRecord){
+				if ($curRecord['id'] == $relatedRecord){
 					if (isset($curRecord['callNumber'])){
 						$interface->assign('callnumber', $curRecord['callNumber']);
 					}
 					if (isset($curRecord['shelfLocation'])){
 						$interface->assign('shelfLocation', strip_tags($curRecord['shelfLocation']));
 					}
+					$interface->assign('url', $curRecord['driver']->getAbsoluteUrl());
+					break;
 				}
 			}
 		}
 
 		$interface->assign('title', $recordDriver->getTitle());
-		$interface->assign('recordId', $_GET['id']);
+		$interface->assign('author', $recordDriver->getPrimaryAuthor());
 		$message = $interface->fetch('Emails/grouped-work-sms.tpl');
 
 		$smsResult = $sms->text($_REQUEST['provider'], $_REQUEST['sms_phone_number'], $configArray['Site']['email'], $message);

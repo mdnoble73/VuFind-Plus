@@ -209,6 +209,9 @@ public class ArlingtonRecordProcessor extends IIIRecordProcessor {
 						scopingInfo.setGroupedStatus(groupedDisplayStatus);
 						if (curScope.isLocationScope()) {
 							scopingInfo.setLocallyOwned(curScope.isItemOwnedByScope(profileType, locationCode, ""));
+							if (curScope.getLibraryScope() != null) {
+								scopingInfo.setLibraryOwned(curScope.getLibraryScope().isItemOwnedByScope(profileType, locationCode, ""));
+							}
 						}
 						if (curScope.isLibraryScope()) {
 							scopingInfo.setLibraryOwned(curScope.isItemOwnedByScope(profileType, locationCode, ""));
@@ -304,6 +307,9 @@ public class ArlingtonRecordProcessor extends IIIRecordProcessor {
 						scopingInfo.setHoldable(false);
 						if (curScope.isLocationScope()) {
 							scopingInfo.setLocallyOwned(curScope.isItemOwnedByScope(profileType, bibLocation, ""));
+							if (curScope.getLibraryScope() != null) {
+								scopingInfo.setLibraryOwned(curScope.getLibraryScope().isItemOwnedByScope(profileType, bibLocation, ""));
+							}
 						}
 						if (curScope.isLibraryScope()) {
 							scopingInfo.setLibraryOwned(curScope.isItemOwnedByScope(profileType, bibLocation, ""));

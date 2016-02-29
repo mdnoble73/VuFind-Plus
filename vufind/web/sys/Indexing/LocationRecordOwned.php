@@ -21,6 +21,7 @@ class LocationRecordOwned extends RecordOwned{
 			$location->libraryId = $homeLibrary->libraryId;
 		}
 		$location->find();
+		$locationList = array();
 		while ($location->fetch()){
 			$locationList[$location->locationId] = $location->displayName;
 		}

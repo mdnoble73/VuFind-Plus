@@ -125,7 +125,10 @@ $interface->assign('action', $action);
 
 global $solrScope;
 global $scopeType;
+global $isGlobalScope;
+$interface->assign('scopeType', $scopeType);
 $interface->assign('solrScope', "$solrScope - $scopeType");
+$interface->assign('isGlobalScope', $isGlobalScope);
 
 //Set that the interface is a single column by default
 $interface->assign('page_body_style', 'one_column');
@@ -798,7 +801,7 @@ function loadModuleActionId(){
 	$requestURI = preg_replace("/^\/?vufind\//", "", $requestURI);
 	/** IndexingProfile[] $indexingProfiles */
 	global $indexingProfiles;
-	$allRecordModules = "OverDrive|GroupedWork|Record|ExternalEContent|Person|EditorialReview";
+	$allRecordModules = "OverDrive|GroupedWork|Record|ExternalEContent|Person|EditorialReview|Library";
 	foreach ($indexingProfiles as $profile){
 		$allRecordModules .= '|' . $profile->recordUrlComponent;
 	}

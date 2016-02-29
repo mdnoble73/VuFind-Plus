@@ -207,6 +207,21 @@ class CatalogConnection
 		}
 
 		if ($user){
+			if ($user->displayName == '') {
+				if ($user->firstname == ''){
+					$user->displayName = $user->lastname;
+				}else{
+					// #PK-979 Make display name configurable firstname, last initial, vs first initial last name
+					$homeLibrary = $user->getHomeLibrary();
+					if ($homeLibrary == null || ($homeLibrary->patronNameDisplayStyle == 'firstinitial_lastname')){
+						// #PK-979 Make display name configurable firstname, last initial, vs first initial last name
+						$user->displayName = substr($user->firstname, 0, 1) . '. ' . $user->lastname;
+					}elseif ($homeLibrary->patronNameDisplayStyle == 'lastinitial_firstname'){
+						$user->displayName = substr($user->lastname, 0, 1) . '. ' . $user->firstname;
+					}
+				}
+				$user->update();
+			}
 			if ($parentAccount) $user->setParentUser($parentAccount); // only set when the parent account is passed.
 			$this->updateUserWithAdditionalRuntimeInformation($user);
 		}

@@ -125,6 +125,9 @@ public class SideLoadedEContentProcessor extends IlsRecordProcessor{
 				scopingInfo.setHoldable(false);
 				if (curScope.isLocationScope()) {
 					scopingInfo.setLocallyOwned(curScope.isItemOwnedByScope(profileType, itemLocation, ""));
+					if (curScope.getLibraryScope() != null) {
+						scopingInfo.setLibraryOwned(curScope.getLibraryScope().isItemOwnedByScope(profileType, itemLocation, ""));
+					}
 				}
 				if (curScope.isLibraryScope()) {
 					scopingInfo.setLibraryOwned(curScope.isItemOwnedByScope(profileType, itemLocation, ""));

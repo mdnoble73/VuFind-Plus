@@ -1255,5 +1255,33 @@ function getLibraryLocationUpdates(){
 							'ALTER TABLE `library` ADD COLUMN `edsApiPassword` VARCHAR(50)',
 					),
 			),
+
+			'library_patronNameDisplayStyle' => array(
+					'title' => 'Library Patron Display Name Style',
+					'description' => 'Setup the style for how the display name for patrons is generated',
+					'sql' => array(
+							"ALTER TABLE `library` ADD COLUMN `patronNameDisplayStyle` ENUM('firstinitial_lastname', 'lastinitial_firstname') DEFAULT 'firstinitial_lastname';",
+					),
+			),
+
+			'location_additional_branches_to_show_in_facets' => array(
+					'title' => 'Location Additional Branches to show in facets',
+					'description' => 'Setup additional information for what is displayed in facets related to a location',
+					'sql' => array(
+							'ALTER TABLE location ADD COLUMN includeAllLibraryBranchesInFacets TINYINT DEFAULT 1',
+							"ALTER TABLE location ADD COLUMN additionalLocationsToShowAvailabilityFor VARCHAR(100) NOT NULL DEFAULT ''",
+					),
+			),
+
+			'location_library_control_shelf_location_and_date_added_facets' => array(
+					'title' => 'Additional control over shelf location and date added facets',
+					'description' => 'Additional control over shelf location and date added facets - allow inclusion of all locations',
+					'sql' => array(
+							'ALTER TABLE library ADD COLUMN includeAllRecordsInShelvingFacets TINYINT DEFAULT 0',
+							'ALTER TABLE location ADD COLUMN includeAllRecordsInShelvingFacets TINYINT DEFAULT 0',
+							'ALTER TABLE library ADD COLUMN includeAllRecordsInDateAddedFacets TINYINT DEFAULT 0',
+							'ALTER TABLE location ADD COLUMN includeAllRecordsInDateAddedFacets TINYINT DEFAULT 0',
+					),
+			),
 	);
 }

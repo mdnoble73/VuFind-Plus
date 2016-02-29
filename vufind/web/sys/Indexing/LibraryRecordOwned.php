@@ -22,6 +22,7 @@ class LibraryRecordOwned extends RecordOwned{
 			$library->libraryId = $homeLibrary->libraryId;
 		}
 		$library->find();
+		$libraryList = array();
 		while ($library->fetch()){
 			$libraryList[$library->libraryId] = $library->displayName;
 		}

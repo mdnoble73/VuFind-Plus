@@ -251,9 +251,9 @@ class Millennium extends ScreenScrapingDriver
 			}
 		}
 
-		if ($userValid){
-			if (!isset($patronName) || $patronName == null){
-				if (isset($patronDump['PATRN_NAME'])){
+		if ($userValid) {
+			if (!isset($patronName) || $patronName == null) {
+				if (isset($patronDump['PATRN_NAME'])) {
 					$patronName = $patronDump['PATRN_NAME'];
 					list($fullName, $lastName, $firstName) = $this->validatePatronName($username, $patronName);
 				}
@@ -263,12 +263,24 @@ class Millennium extends ScreenScrapingDriver
 			//Get the unique user id from Millennium
 			$user->source = $this->accountProfile->name;
 			$user->username = $patronDump['RECORD_#'];
-			if ($user->find(true)){
+			if ($user->find(true)) {
 				$userExistsInDB = true;
 			}
-			$user->firstname = isset($firstName) ? $firstName : '';
-			$user->lastname = isset($lastName) ? $lastName : '';
+			$forceDisplayNameUpdate = false;
+			$firstName = isset($firstName) ? $firstName : '';
+			if ($user->firstname != $firstName) {
+				$user->firstname = $firstName;
+				$forceDisplayNameUpdate = true;
+			}
+			$lastName = isset($lastName) ? $lastName : '';
+			if ($user->lastname != $lastName){
+				$user->lastname = isset($lastName) ? $lastName : '';
+				$forceDisplayNameUpdate = true;
+			}
 			$user->fullname = isset($fullName) ? $fullName : '';
+			if ($forceDisplayNameUpdate){
+				$user->displayName = '';
+			}
 
 			if ($this->accountProfile->loginConfiguration == 'barcode_pin'){
 				if (isset($patronDump['P_BARCODE'])){
@@ -287,13 +299,6 @@ class Millennium extends ScreenScrapingDriver
 			$user->email = isset($patronDump['EMAIL_ADDR']) ? $patronDump['EMAIL_ADDR'] : '';
 			$user->patronType = $patronDump['P_TYPE'];
 			$user->web_note = isset($patronDump['WEB_NOTE']) ? $patronDump['WEB_NOTE'] : '';
-			if (empty($user->displayName)) {
-				if (strlen($user->firstname) >= 1) {
-					$user->displayName = substr($user->firstname, 0, 1) . '. ' . $user->lastname;
-				} else {
-					$user->displayName = $user->lastname;
-				}
-			}
 
 			//Setup home location
 			$location = null;
@@ -527,7 +532,13 @@ class Millennium extends ScreenScrapingDriver
 		$result = $this->_curlGetPage($patronApiUrl);
 
 		//Strip the actual contents out of the body of the page.
-		$cleanPatronData = strip_tags($result);
+		//Periodically we get HTML like characters within the notes so strip tags breaks the page.
+		//We really just need to remove the following tags:
+		// <html>
+		// <body>
+		// <br>
+		$cleanPatronData = preg_replace('/<(html|body|br)\s*\/?>/i', '', $result);
+		//$cleanPatronData = strip_tags($result);
 
 		//Add the key and value from each row into an associative array.
 		$patronDump = array();
@@ -542,7 +553,9 @@ class Millennium extends ScreenScrapingDriver
 					break;
 				// single entries
 				default :
-					$patronDump[$patronDumpKey] = isset($patronData[$curRow][2]) ? $patronData[$curRow][2] : '';
+					if (!array_key_exists($patronDumpKey, $patronDump)) {
+						$patronDump[$patronDumpKey] = isset($patronData[$curRow][2]) ? $patronData[$curRow][2] : '';
+					}
 			}
 		}
 
@@ -1515,20 +1528,38 @@ class Millennium extends ScreenScrapingDriver
 	 * @return array
 	 */
 	public function validatePatronName($username, $patronName) {
+		$nameParts = explode(',', $patronName);
+		$lastName = ucwords(strtolower(trim($nameParts[0])));
+
+		if (isset($nameParts[1])){
+			$firstName = ucwords(strtolower(trim($nameParts[1])));
+		}else{
+			$firstName = null;
+		}
+
 		$fullName = str_replace(",", " ", $patronName);
 		$fullName = str_replace(";", " ", $fullName);
-		$fullName = str_replace(";", "'", $fullName);
 		$fullName = preg_replace("/\\s{2,}/", " ", $fullName);
-		$allNameComponents = preg_split('^[\s-]^', strtolower($fullName));
-		$nameParts = explode(' ', $fullName);
-		$lastName = strtolower($nameParts[0]);
-		$middleName = isset($nameParts[2]) ? strtolower($nameParts[2]) : '';
-		$firstName = isset($nameParts[1]) ? strtolower($nameParts[1]) : $middleName;
+		$allNameComponents = preg_split('/[\s-]/', strtolower($fullName));
+		foreach ($allNameComponents as $name){
+			$newName = str_replace('-', '', $name);
+			if ($newName != $name){
+				$allNameComponents[] = $newName;
+			}
+			$newName = str_replace("'", '', $name);
+			if ($newName != $name){
+				$allNameComponents[] = $newName;
+			}
+		}
+		$fullName = ucwords(strtolower($patronName));
 
 		//Get the first name that the user supplies.
 		//This expects the user to enter one or two names and only
 		//Validates the first name that was entered.
-		$enteredNames = preg_split('^[\s-]^', strtolower($username));
+		$username = str_replace(",", " ", $username);
+		$username = str_replace(";", " ", $username);
+		$username = preg_replace("/\\s{2,}/", " ", $username);
+		$enteredNames = preg_split('/[\s-]/', strtolower($username));
 		$userValid = false;
 		foreach ($enteredNames as $name) {
 			if (in_array($name, $allNameComponents, false)) {

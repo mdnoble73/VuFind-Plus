@@ -53,7 +53,7 @@ class EDS_API {
 		if ($library->edsApiProfile){
 			$this->curl_connection = curl_init("https://eds-api.ebscohost.com/authservice/rest/uidauth");
 			$params =<<<BODY
-<UIDAuthRequestMessage xmlns="http://www.ebscohost.com/services/public/AuthService/Response/2012/06/01">
+<UIDAuthRequestMessage xmlns="http://www.ebscohost.com/services/public/AuthService/Response/2012/06/01" xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
     <UserId>{$library->edsApiUsername}</UserId>
     <Password>{$library->edsApiPassword}</Password>
     <InterfaceId>{$library->edsApiProfile}</InterfaceId>
@@ -79,11 +79,43 @@ BODY;
 			$authenticationResponse = new SimpleXMLElement($return);
 			if ($authenticationResponse && isset($authenticationResponse->AuthToken)){
 				$this->authenticationToken = (string)$authenticationResponse->AuthToken;
-				curl_setopt($this->curl_connection, CURLOPT_HTTPHEADER, array(
-					'x-authenticationToken' => $this->authenticationToken,
-				));
-				return true;
+
+				curl_setopt($this->curl_connection, CURLOPT_HTTPHEADER, $headers);
+
+				$params =<<<BODY
+<CreateSessionRequestMessage xmlns="http://epnet.com/webservices/EbscoApi/Contracts" xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+  <Profile>{$library->edsApiProfile}</Profile>
+  <Guest>n</Guest>
+  <Org>{$library->displayName}</Org>
+</CreateSessionRequestMessage>
+BODY;
+;
+				$headers = array(
+						'Content-Type: application/xml',
+						'Content-Length: ' . strlen($params),
+						'x-authenticationToken: ' . $this->authenticationToken
+				);
+				curl_setopt($this->curl_connection, CURLOPT_POST, true);
+				curl_setopt($this->curl_connection, CURLOPT_HTTPHEADER, $headers);
+				curl_setopt($this->curl_connection, CURLOPT_URL, $this->edsBaseApi . '/createsession');
+				curl_setopt($this->curl_connection, CURLOPT_POSTFIELDS, $params);
+				$result = curl_exec($this->curl_connection);
+				if ($result == false){
+					echo("Error getting session token");
+					echo(curl_error($this->curl_connection));
+				}else {
+					$createSessionResponse = new SimpleXMLElement($result);
+					if ($createSessionResponse->SessionToken) {
+						$this->sessionId = (string)$createSessionResponse->SessionToken;
+						//echo("Authenticated in EDS!");
+						return true;
+					} elseif ($createSessionResponse->ErrorDescription) {
+						echo("create session failed, " . print_r($createSessionResponse));
+						return false;
+					}
+				}
 			}else{
+				echo("Authentication failed!, $return");
 				return false;
 			}
 		}else{
@@ -128,7 +160,7 @@ BODY;
 		curl_setopt($this->curl_connection, CURLOPT_HTTPGET, true);
 		curl_setopt($this->curl_connection, CURLOPT_HTTPHEADER, array(
 			'x-authenticationToken: ' . $this->authenticationToken,
-			'x-sessionToken: ' . $this->getSessionToken(),
+			'x-sessionToken: ' . $this->sessionId,
 		));
 		curl_setopt($this->curl_connection, CURLOPT_URL, $searchUrl);
 		$result = curl_exec($this->curl_connection);
@@ -143,24 +175,6 @@ BODY;
 			$this->lastSearchResults = null;
 			return null;
 		}
-	}
-
-	public function getSessionToken(){
-		global $library;
-		$params = array(
-			'profile' => $library->edsApiProfile,
-			'guest' => 'y',
-			'org' => $library->displayName
-		);
-		curl_setopt($this->curl_connection, CURLOPT_HTTPGET, true);
-		curl_setopt($this->curl_connection, CURLOPT_URL, $this->edsBaseApi . '/createsession?' . http_build_query($params));
-		$result = curl_exec($this->curl_connection);
-		$createSessionResponse = new SimpleXMLElement($result);
-		if ($createSessionResponse->SessionToken){
-			$this->sessionId = (string)$createSessionResponse->SessionToken;
-			return $this->sessionId;
-		}
-		return false;
 	}
 
 	public function endSession(){
@@ -307,11 +321,11 @@ BODY;
 		global $library;
 		global $configArray;
 		$searchOptionsStr = $memCache->get('ebsco_search_options_' . $library->subdomain);
-		if ($searchOptionsStr == false){
+		if ($searchOptionsStr == false || isset ($_REQUEST['reload'])){
 			curl_setopt($this->curl_connection, CURLOPT_HTTPGET, true);
 			curl_setopt($this->curl_connection, CURLOPT_HTTPHEADER, array(
 					'x-authenticationToken: ' . $this->authenticationToken,
-					'x-sessionToken: ' . $this->getSessionToken(),
+					'x-sessionToken: ' . $this->sessionId,
 			));
 			$infoUrl = $this->edsBaseApi . '/info';
 			curl_setopt($this->curl_connection, CURLOPT_URL, $infoUrl);
@@ -331,8 +345,10 @@ BODY;
 	public function getSearchTypes(){
 		$searchOptions = $this->getSearchOptions();
 		$searchTypes = array();
-		foreach ($searchOptions->AvailableSearchCriteria->AvailableSearchFields->AvailableSearchField as $searchField){
-			$searchTypes[(string)$searchField->FieldCode] = (string)$searchField->Label;
+		if ($searchOptions != null){
+			foreach ($searchOptions->AvailableSearchCriteria->AvailableSearchFields->AvailableSearchField as $searchField){
+				$searchTypes[(string)$searchField->FieldCode] = (string)$searchField->Label;
+			}
 		}
 		return $searchTypes;
 	}
@@ -340,16 +356,19 @@ BODY;
 	public function getSortList() {
 		$searchOptions = $this->getSearchOptions();
 		$list = array();
-		foreach ($searchOptions->AvailableSearchCriteria->AvailableSorts->AvailableSort as $sortOption){
-			$sort = (string)$sortOption->Id;
-			$desc = (string)$sortOption->Label;
-			$list[$sort] = array(
-					'sortUrl' => $this->renderLinkWithSort($sort),
-					'desc' => $desc,
-					'selected' => ($sort == $this->sort)
-			);
+		if ($searchOptions != null){
+			foreach ($searchOptions->AvailableSearchCriteria->AvailableSorts->AvailableSort as $sortOption){
+				$sort = (string)$sortOption->Id;
+				$desc = (string)$sortOption->Label;
+				$list[$sort] = array(
+						'sortUrl' => $this->renderLinkWithSort($sort),
+						'desc' => $desc,
+						'selected' => ($sort == $this->sort)
+				);
 
+			}
 		}
+
 		return $list;
 	}
 

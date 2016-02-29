@@ -368,7 +368,7 @@ public class GroupedWorkSolr {
 						addLibraryOwnership = true;
 						availabilityToggleValues.add("Entire Collection");
 					}
-					if (curScope.isLibraryOwned() && curScope.getScope().isLibraryScope()){
+					if (curScope.isLibraryOwned()){
 						addLibraryOwnership = true;
 						availabilityToggleValues.add("Entire Collection");
 					}
@@ -416,7 +416,44 @@ public class GroupedWorkSolr {
 									addAvailableAtValues(doc, curRecord, curScope.getScope().getLibraryScope().getScopeName(), owningLocationValue);
 								}
 							}
+
+							//Add to other locations within the library if desired
+							if (curScope.getScope().isIncludeAllLibraryBranchesInFacets()) {
+								//Add to other locations in this library
+								if (curScope.getScope().getLibraryScope() != null){
+									for (String otherScopeName : curItem.getScopingInfo().keySet()){
+										ScopingInfo otherScope = curItem.getScopingInfo().get(otherScopeName);
+										if (!otherScope.equals(curScope)) {
+											if (otherScope.getScope().isLocationScope() && otherScope.getScope().getLibraryScope() != null && curScope.getScope().getLibraryScope().equals(otherScope.getScope().getLibraryScope())) {
+												addAvailabilityToggleValues(doc, curRecord, otherScopeName, availabilityToggleValues);
+												addUniqueFieldValue(doc, "owning_location_" + otherScopeName, owningLocationValue);
+												if (curScope.isAvailable()) {
+													addAvailableAtValues(doc, curRecord, otherScopeName, owningLocationValue);
+												}
+											}
+										}
+									}
+								}
+							}
+
+							//Add to other locations as desired
+							for (String otherScopeName : curItem.getScopingInfo().keySet()){
+								ScopingInfo otherScope = curItem.getScopingInfo().get(otherScopeName);
+								if (!otherScope.equals(curScope)) {
+									if (otherScope.getScope().getAdditionalLocationsToShowAvailabilityFor().length() > 0){
+										if (otherScope.getScope().getAdditionalLocationsToShowAvailabilityForPattern().matcher(curScopeName).matches()){
+											addAvailabilityToggleValues(doc, curRecord, otherScopeName, availabilityToggleValues);
+											addUniqueFieldValue(doc, "owning_location_" + otherScopeName, owningLocationValue);
+											if (curScope.isAvailable()) {
+												addAvailableAtValues(doc, curRecord, otherScopeName, owningLocationValue);
+											}
+										}
+									}
+								}
+							}
+
 						}
+
 						//finally add to any scopes where we show all owning locations
 						for (String scopeToShowAllName : curItem.getScopingInfo().keySet()){
 							ScopingInfo scopeToShowAll = curItem.getScopingInfo().get(scopeToShowAllName);
@@ -452,9 +489,11 @@ public class GroupedWorkSolr {
 					//Make sure we always add availability toggles to this scope even if they are blank
 					addAvailabilityToggleValues(doc, curRecord, curScopeName, availabilityToggleValues);
 
-					if (curScope.isLocallyOwned() || curScope.isLibraryOwned()) {
+					if (curScope.isLocallyOwned() || curScope.isLibraryOwned() || curScope.getScope().isIncludeAllRecordsInShelvingFacets()) {
 						addUniqueFieldValue(doc, "collection_" + curScopeName, curItem.getCollection());
 						addUniqueFieldValue(doc, "detailed_location_" + curScopeName, curItem.getShelfLocation());
+					}
+					if (curScope.isLocallyOwned() || curScope.isLibraryOwned() || curScope.getScope().isIncludeAllRecordsInDateAddedFacets()) {
 						//Date Added To Catalog needs to be the earliest date added for the catalog.
 						Date dateAdded = curItem.getDateAdded();
 						long daysSinceAdded;

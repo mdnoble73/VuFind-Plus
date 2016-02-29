@@ -3,6 +3,7 @@ package org.vufind;
 import com.sun.istack.internal.NotNull;
 
 import java.util.HashSet;
+import java.util.regex.Pattern;
 
 /**
  * Description goes here
@@ -38,6 +39,11 @@ public class Scope implements Comparable<Scope>{
 	private boolean includeOverDriveTeenCollection;
 	private boolean includeOverDriveKidsCollection;
 	private int publicListsToInclude;
+	private String additionalLocationsToShowAvailabilityFor;
+	private Pattern additionalLocationsToShowAvailabilityForPattern;
+	private boolean includeAllLibraryBranchesInFacets; //Only applies to location scopes
+	private boolean includeAllRecordsInShelvingFacets;
+	private boolean includeAllRecordsInDateAddedFacets;
 
 	public String getScopeName() {
 		return scopeName;
@@ -239,5 +245,44 @@ public class Scope implements Comparable<Scope>{
 
 	public int getPublicListsToInclude() {
 		return publicListsToInclude;
+	}
+
+	public void setAdditionalLocationsToShowAvailabilityFor(String additionalLocationsToShowAvailabilityFor) {
+		this.additionalLocationsToShowAvailabilityFor = additionalLocationsToShowAvailabilityFor;
+		if (additionalLocationsToShowAvailabilityFor.length() > 0){
+			additionalLocationsToShowAvailabilityForPattern = Pattern.compile(additionalLocationsToShowAvailabilityFor);
+		}
+	}
+
+	public String getAdditionalLocationsToShowAvailabilityFor() {
+		return additionalLocationsToShowAvailabilityFor;
+	}
+
+	public boolean isIncludeAllLibraryBranchesInFacets() {
+		return includeAllLibraryBranchesInFacets;
+	}
+
+	public void setIncludeAllLibraryBranchesInFacets(boolean includeAllLibraryBranchesInFacets) {
+		this.includeAllLibraryBranchesInFacets = includeAllLibraryBranchesInFacets;
+	}
+
+	public Pattern getAdditionalLocationsToShowAvailabilityForPattern() {
+		return additionalLocationsToShowAvailabilityForPattern;
+	}
+
+	public boolean isIncludeAllRecordsInShelvingFacets() {
+		return includeAllRecordsInShelvingFacets;
+	}
+
+	public void setIncludeAllRecordsInShelvingFacets(boolean includeAllRecordsInShelvingFacets) {
+		this.includeAllRecordsInShelvingFacets = includeAllRecordsInShelvingFacets;
+	}
+
+	public boolean isIncludeAllRecordsInDateAddedFacets() {
+		return includeAllRecordsInDateAddedFacets;
+	}
+
+	public void setIncludeAllRecordsInDateAddedFacets(boolean includeAllRecordsInDateAddedFacets) {
+		this.includeAllRecordsInDateAddedFacets = includeAllRecordsInDateAddedFacets;
 	}
 }
