@@ -1642,10 +1642,20 @@ class GroupedWorkDriver extends RecordInterface{
 	}
 
 	static function compareLocalAvailableItemsForRecords($a, $b){
-		if (($a['availableLocally'] || $a['availableOnline']) && ($b['availableLocally'] || $b['availableOnline'])){
-			return 0;
-		}elseif ($a['availableLocally'] || $a['availableOnline']){
+		if (($a['availableHere'] || $a['availableOnline']) && ($b['availableHere'] || $b['availableOnline'])){
+			if (($a['availableLocally'] || $a['availableOnline']) && ($b['availableLocally'] || $b['availableOnline'])){
+				return 0;
+			}elseif ($a['availableLocally'] || $a['availableOnline']){
+				return -1;
+			}elseif ($b['availableLocally'] || $b['availableOnline']){
+				return 1;
+			}else{
+				return 0;
+			}
+		}elseif ($a['availableHere'] || $a['availableOnline']){
 			return -1;
+		}elseif ($b['availableHere'] || $b['availableOnline']){
+			return 1;
 		}else{
 			return 0;
 		}
@@ -1656,6 +1666,8 @@ class GroupedWorkDriver extends RecordInterface{
 			return 0;
 		}elseif ($a['hasLocalItem']){
 			return -1;
+		}elseif ($b['hasLocalItem']){
+			return 1;
 		}else{
 			return 0;
 		}
