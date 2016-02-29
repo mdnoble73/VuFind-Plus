@@ -1263,5 +1263,14 @@ function getLibraryLocationUpdates(){
 							"ALTER TABLE `library` ADD COLUMN `patronNameDisplayStyle` ENUM('firstinitial_lastname', 'lastinitial_firstname') DEFAULT 'firstinitial_lastname';",
 					),
 			),
+
+			'location_additional_branches_to_show_in_facets' => array(
+					'title' => 'Location Additional Branches to show in facets',
+					'description' => 'Setup additional information for what is displayed in facets related to a location',
+					'sql' => array(
+							'ALTER TABLE location ADD COLUMN includeAllLibraryBranchesInFacets TINYINT DEFAULT 1',
+							"ALTER TABLE location ADD COLUMN additionalLocationsToShowAvailabilityFor VARCHAR(100) NOT NULL DEFAULT ''",
+					),
+			)
 	);
 }

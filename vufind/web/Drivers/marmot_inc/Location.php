@@ -72,6 +72,8 @@ class Location extends DB_DataObject
 	public $availabilityToggleLabelAvailable;
 	public $defaultBrowseMode;
 	public $browseCategoryRatingsMode;
+	public $includeAllLibraryBranchesInFacets;
+	public $additionalLocationsToShowAvailabilityFor;
 
 	/** @var  array $data */
 	protected $data;
@@ -190,6 +192,9 @@ class Location extends DB_DataObject
 				array('property'=>'repeatInWorldCat', 'type'=>'checkbox', 'label'=>'Repeat In WorldCat', 'description'=>'Turn on to allow repeat search in WorldCat functionality.', 'hideInLists' => true, 'default'=>false),
 				array('property'=>'repeatInOverdrive', 'type'=>'checkbox', 'label'=>'Repeat In Overdrive', 'description'=>'Turn on to allow repeat search in Overdrive functionality.', 'hideInLists' => true, 'default'=>false),
 				array('property'=>'systemsToRepeatIn', 'type'=>'text', 'label'=>'Systems To Repeat In', 'description'=>'A list of library codes that you would like to repeat search in separated by pipes |.', 'hideInLists' => true),
+				array('property'=>'includeAllLibraryBranchesInFacets', 'type'=>'checkbox', 'label'=>'Include All Library Branches In Facets', 'description'=>'Turn on to include all branches of the library within facets (ownership and availability).', 'hideInLists' => true, 'default'=>true),
+				array('property'=>'additionalLocationsToShowAvailabilityFor', 'type'=>'text', 'label'=>'Additional Locations to Include in Available At Facet', 'description'=>'A list of library codes that you would like included in the available at facet separated by pipes |.', 'size'=>'20', 'hideInLists' => true,),
+
 			)),
 
 			// Catalog Enrichment //
