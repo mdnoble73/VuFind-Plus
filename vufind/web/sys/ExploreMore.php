@@ -71,6 +71,7 @@ class ExploreMore {
 				$searchObjectSolr->clearHiddenFilters();
 				$searchObjectSolr->clearFilters();
 				$searchObjectSolr->addFilter('literary_form_full:Non Fiction');
+				$searchObjectSolr->addFilter('target_audience:Adult');
 				$searchObjectSolr->setPage(1);
 				$searchObjectSolr->setLimit(5);
 				$results = $searchObjectSolr->processSearch(true, false);
@@ -121,9 +122,28 @@ class ExploreMore {
 				if ($edsResults){
 					$numMatches = $edsResults->Statistics->TotalHits;
 					if ($numMatches > 0){
+						//Check results based on common facets
+						foreach ($edsResults->AvailableFacets->AvailableFacet as $facetInfo){
+							if ($facetInfo->Id == 'SourceType'){
+								foreach ($facetInfo->AvailableFacetValues->AvailableFacetValue as $facetValue){
+									$facetValueStr = (string)$facetValue->Value;
+									if (in_array($facetValueStr, array('Magazines', 'News', 'Academic Journals', 'Primary Source Documents'))){
+										$numFacetMatches = (int)$facetValue->Count;
+										$exploreMoreOptions[] = array(
+												'title' => "$facetValueStr ({$numFacetMatches})",
+												'description' => "{$facetValueStr} in EBSCO related to {$query}",
+												'thumbnail' => $configArray['Site']['path'] . '/interface/themes/responsive/images/ebsco_eds.png',
+												'link' => '/EBSCO/Results?lookfor=' . urlencode($query) . '&filter[]=' . $facetInfo->Id . ':' . $facetValueStr,
+										);
+									}
+
+								}
+							}
+						}
+
 						$exploreMoreOptions[] = array(
-							'title' => "Articles ({$numMatches})",
-							'description' => "Articles related to {$query}",
+							'title' => "All EBSCO Results ({$numMatches})",
+							'description' => "All Results in EBSCO related to {$query}",
 							'thumbnail' => $configArray['Site']['path'] . '/interface/themes/responsive/images/ebsco_eds.png',
 							'link' => '/EBSCO/Results?lookfor=' . urlencode($query)
 						);

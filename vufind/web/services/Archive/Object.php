@@ -309,6 +309,7 @@ abstract class Archive_Object extends Action{
 					'index' => 'Keyword'
 			));
 			$searchObject->addFilter('literary_form_full:Non Fiction');
+			$searchObject->addFilter('target_audience:Adult');
 			$searchObject->setPage(1);
 			$searchObject->setLimit(5);
 			$results = $searchObject->processSearch(true, false);
@@ -342,6 +343,7 @@ abstract class Archive_Object extends Action{
 	private function getRelatedArchiveContent($relatedSubjects) {
 		global $interface;
 		require_once ROOT_DIR . '/sys/Utils/FedoraUtils.php';
+		$exploreMoreOptions = array();
 
 		/** @var SearchObject_Islandora $searchObject */
 		$searchObject = SearchObjectFactory::initSearchObject('Islandora');
