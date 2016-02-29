@@ -21,16 +21,6 @@
 			</div>
 		{/if}
 
-		{if $showFinePayments}
-			{* We are doing an actual payment of fines online *}
-			{include file="MyAccount/finePayments.tpl"}
-		{else}
-			{* Pay Fines Button *}
-			{if $showEcommerceLink && $profile->finesval > $minimumFineAmount}
-				<a href='{$ecommerceLink}'><div class="btn btn-sm btn-primary">{if $payFinesLinkText}{$payFinesLinkText}{else}Click to Pay Fines Online{/if}</div></a>
-			{/if}
-		{/if}
-
 		{foreach from=$userFines item=fines key=userId name=fineTable}
 			{if count($userFines) > 1}<h3>{$userAccountLabel.$userId}</h3>{/if}{* Only show account name if there is more than one account. *}
 			{if $fines}
