@@ -74,7 +74,7 @@ VuFind.Record = (function(){
 						'method': 'placeHold'
 						,campus: $('#campus').val()
 						,selectedUser: $('#user').val()
-						,cancelHoldDate: $('#canceldate').text()
+						,canceldate: $('#canceldate').val()
 						,recordSource: $('#recordSource').val()
 						,account: $('#account').val()
 					};
