@@ -942,20 +942,12 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		}
 		if (!hasCallNumber){
 			String callNumber = null;
-			DataField localCallNumberField = (DataField)record.getVariableField("099");
-			if (localCallNumberField != null){
+			//MDN #ARL-217 do not use 099 as a call number
+			DataField deweyCallNumberField = (DataField)record.getVariableField("092");
+			if (deweyCallNumberField != null){
 				callNumber = "";
-				for (Subfield curSubfield : localCallNumberField.getSubfields()){
+				for (Subfield curSubfield : deweyCallNumberField.getSubfields()){
 					callNumber += " " + curSubfield.getData().trim();
-				}
-			}
-			if (callNumber == null){
-				DataField deweyCallNumberField = (DataField)record.getVariableField("092");
-				if (deweyCallNumberField != null){
-					callNumber = "";
-					for (Subfield curSubfield : deweyCallNumberField.getSubfields()){
-						callNumber += " " + curSubfield.getData().trim();
-					}
 				}
 			}
 			if (callNumber != null) {
