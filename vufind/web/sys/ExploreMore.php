@@ -19,94 +19,21 @@ class ExploreMore {
 		global $library;
 		$exploreMoreOptions = array();
 
+		$searchTerm = $_REQUEST['lookfor'];
+		if (!$searchTerm){
+			if (isset($_REQUEST['filter'])){
+				foreach ($_REQUEST['filter'] as $filter){
+					$filterVals = explode(':', $filter);
+					$searchTerm = str_replace('"', '', $filterVals[1]);
+					break;
+				}
+			}
+		}
+
 		//Check the archive to see if we match an entity.  Always do this since we may not get the record high in the search results.
-		if ($library->enableArchive) {
-			if (isset($configArray['Islandora']) && isset($configArray['Islandora']['solrUrl']) && !empty($_GET['lookfor']) && !is_array($_GET['lookfor'])) {
-				/** @var SearchObject_Islandora $searchObject */
-				$searchObject = SearchObjectFactory::initSearchObject('Islandora');
-				$searchObject->init();
-				$searchObject->setDebugging(false, false);
+		$exploreMoreOptions = $this->loadExactEntityMatches($exploreMoreOptions, $searchTerm);
 
-				//First look specifically for (We cou
-				$searchObject->setSearchTerms(array(
-					'lookfor' => $_REQUEST['lookfor'],
-					'index' => 'IslandoraTitle'
-				));
-				$searchObject->clearHiddenFilters();
-				$searchObject->addHiddenFilter('!RELS_EXT_isViewableByRole_literal_ms', "administrator");
-				//First search for people, places, and things
-				$searchObject->addHiddenFilter('RELS_EXT_hasModel_uri_s', "(*placeCModel OR *personCModel OR *eventCModel)");
-				$response = $searchObject->processSearch(true, false);
-				if ($response && $response['response']['numFound'] > 0) {
-					//Check the docs to see if we have a match for a person, place, or event
-					$numProcessed = 0;
-					foreach ($response['response']['docs'] as $doc){
-						$entityDriver = RecordDriverFactory::initRecordDriver($doc);
-						$exploreMoreOptions[] = array(
-							'title' => $entityDriver->getTitle(),
-							'description' => $entityDriver->getTitle(),
-							'thumbnail' => $entityDriver->getBookcoverUrl('medium'),
-							'link' => $entityDriver->getRecordUrl(),
-						);
-						$numProcessed++;
-						if ($numProcessed >= 3){
-							break;
-						}
-					}
-				}
-			}
-		}
-
-		if ($activeSection != 'catalog'){
-			$searchTerm = $_REQUEST['lookfor'];
-
-			if (strlen($searchTerm) > 0) {
-				/** @var SearchObject_Solr $searchObject */
-				$searchObjectSolr = SearchObjectFactory::initSearchObject();
-				$searchObjectSolr->init('local');
-				$searchObjectSolr->setSearchTerms(array(
-						'lookfor' => $searchTerm,
-						'index' => 'Keyword'
-				));
-				$searchObjectSolr->clearHiddenFilters();
-				$searchObjectSolr->clearFilters();
-				$searchObjectSolr->addFilter('literary_form_full:Non Fiction');
-				$searchObjectSolr->addFilter('target_audience:Adult');
-				$searchObjectSolr->setPage(1);
-				$searchObjectSolr->setLimit(5);
-				$results = $searchObjectSolr->processSearch(true, false);
-
-				if ($results && isset($results['response'])) {
-					$numCatalogResultsAdded = 0;
-					foreach ($results['response']['docs'] as $doc) {
-						/** @var GroupedWorkDriver $driver */
-						$driver = RecordDriverFactory::initRecordDriver($doc);
-						$numCatalogResults = $results['response']['numFound'];
-						if ($numCatalogResultsAdded == 4 && $numCatalogResults > 5){
-							//Add a link to remaining catalog results
-							$exploreMoreOptions[] = array(
-									'title' => "Catalog Results ($numCatalogResults)",
-									'description' => "Catalog Results ($numCatalogResults)",
-									'thumbnail' => $configArray['Site']['path'] . '/interface/themes/responsive/images/library_symbol.png',
-									'link' => $searchObjectSolr->renderSearchUrl(),
-									'usageCount' => 1
-							);
-						}else{
-							//Add a link to the actual title
-							$exploreMoreOptions[] = array(
-									'title' => $driver->getTitle(),
-									'description' => $driver->getTitle(),
-									'thumbnail' => $driver->getBookcoverUrl('small'),
-									'link' => $driver->getLinkUrl(),
-									'usageCount' => 1
-							);
-						}
-
-						$numCatalogResultsAdded++;
-					}
-				}
-			}
-		}
+		$exploreMoreOptions = $this->loadCatalogOptions($activeSection, $exploreMoreOptions, $searchTerm);
 
 		if ($library->edsApiProfile && $activeSection != 'ebsco'){
 			//Load EDS options
@@ -328,5 +255,110 @@ class ExploreMore {
 		}
 
 		$interface->assign('exploreMoreOptions', $exploreMoreOptions);
+	}
+
+	/**
+	 * @param $exploreMoreOptions
+	 * @return array
+	 */
+	protected function loadExactEntityMatches($exploreMoreOptions, $searchTerm) {
+		global $library;
+		global $configArray;
+		if ($library->enableArchive) {
+			if (isset($configArray['Islandora']) && isset($configArray['Islandora']['solrUrl']) && !empty($_GET['lookfor']) && !is_array($_GET['lookfor'])) {
+				/** @var SearchObject_Islandora $searchObject */
+				$searchObject = SearchObjectFactory::initSearchObject('Islandora');
+				$searchObject->init();
+				$searchObject->setDebugging(false, false);
+
+				//First look specifically for (We cou
+				$searchObject->setSearchTerms(array(
+						'lookfor' => $searchTerm,
+						'index' => 'IslandoraTitle'
+				));
+				$searchObject->clearHiddenFilters();
+				$searchObject->addHiddenFilter('!RELS_EXT_isViewableByRole_literal_ms', "administrator");
+				//First search for people, places, and things
+				$searchObject->addHiddenFilter('RELS_EXT_hasModel_uri_s', "(*placeCModel OR *personCModel OR *eventCModel)");
+				$response = $searchObject->processSearch(true, false);
+				if ($response && $response['response']['numFound'] > 0) {
+					//Check the docs to see if we have a match for a person, place, or event
+					$numProcessed = 0;
+					foreach ($response['response']['docs'] as $doc) {
+						$entityDriver = RecordDriverFactory::initRecordDriver($doc);
+						$exploreMoreOptions[] = array(
+								'title' => $entityDriver->getTitle(),
+								'description' => $entityDriver->getTitle(),
+								'thumbnail' => $entityDriver->getBookcoverUrl('medium'),
+								'link' => $entityDriver->getRecordUrl(),
+						);
+						$numProcessed++;
+						if ($numProcessed >= 3) {
+							break;
+						}
+					}
+				}
+			}
+		}
+		return $exploreMoreOptions;
+	}
+
+	/**
+	 * @param $activeSection
+	 * @param $exploreMoreOptions
+	 * @param $searchTerm
+	 * @return array
+	 */
+	protected function loadCatalogOptions($activeSection, $exploreMoreOptions, $searchTerm) {
+		global $configArray;
+		if ($activeSection != 'catalog') {
+			if (strlen($searchTerm) > 0) {
+				/** @var SearchObject_Solr $searchObject */
+				$searchObjectSolr = SearchObjectFactory::initSearchObject();
+				$searchObjectSolr->init('local');
+				$searchObjectSolr->setSearchTerms(array(
+						'lookfor' => $searchTerm,
+						'index' => 'Keyword'
+				));
+				$searchObjectSolr->clearHiddenFilters();
+				$searchObjectSolr->clearFilters();
+				$searchObjectSolr->addFilter('literary_form_full:Non Fiction');
+				$searchObjectSolr->addFilter('target_audience:Adult');
+				$searchObjectSolr->setPage(1);
+				$searchObjectSolr->setLimit(5);
+				$results = $searchObjectSolr->processSearch(true, false);
+
+				if ($results && isset($results['response'])) {
+					$numCatalogResultsAdded = 0;
+					foreach ($results['response']['docs'] as $doc) {
+						/** @var GroupedWorkDriver $driver */
+						$driver = RecordDriverFactory::initRecordDriver($doc);
+						$numCatalogResults = $results['response']['numFound'];
+						if ($numCatalogResultsAdded == 4 && $numCatalogResults > 5) {
+							//Add a link to remaining catalog results
+							$exploreMoreOptions[] = array(
+									'title' => "Catalog Results ($numCatalogResults)",
+									'description' => "Catalog Results ($numCatalogResults)",
+									'thumbnail' => $configArray['Site']['path'] . '/interface/themes/responsive/images/library_symbol.png',
+									'link' => $searchObjectSolr->renderSearchUrl(),
+									'usageCount' => 1
+							);
+						} else {
+							//Add a link to the actual title
+							$exploreMoreOptions[] = array(
+									'title' => $driver->getTitle(),
+									'description' => $driver->getTitle(),
+									'thumbnail' => $driver->getBookcoverUrl('small'),
+									'link' => $driver->getLinkUrl(),
+									'usageCount' => 1
+							);
+						}
+
+						$numCatalogResultsAdded++;
+					}
+				}
+			}
+		}
+		return $exploreMoreOptions;
 	}
 }
