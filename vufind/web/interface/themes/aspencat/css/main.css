@@ -10147,7 +10147,7 @@ a.browse-thumbnail.active {
   font-weight: bold;
   color: #000075;
   border-bottom: 2px solid #8FB4E8;
-  margin-bottom: 10px;
+  margin-top: 15px;
 }
 #explore-more-body .section {
   padding-right: 5px;
@@ -10158,6 +10158,7 @@ a.browse-thumbnail.active {
 }
 #explore-more-body .jcarousel-wrapper {
   margin-left: -10px;
+  margin-top: 5px;
 }
 #explore-more-body .jcarousel {
   left: 0;
