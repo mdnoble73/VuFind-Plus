@@ -166,7 +166,7 @@
 													{if $treatPrintNoticesAsPhoneNotices}
 														{* Tell the User the notice is Phone even though in the ILS it will be print *}
 														{* MDN 2/24/2016 - If the user changes their notice preference, make it phone to be more accurate, but show as selected if either print or mail is shown *}
-														<label for="noticesMail" class="btn btn-sm btn-default {if $profile->notices == 'a'}active{/if}"><input type="radio" value="p" id="noticesMail" name="notices" {if $profile->notices == 'a' || $profile->notices == 'p'}checked="checked"{/if}> Telephone</label>
+														<label for="noticesMail" class="btn btn-sm btn-default {if $profile->notices == 'a' || $profile->notices == 'p'}active{/if}"><input type="radio" value="p" id="noticesMail" name="notices" {if $profile->notices == 'a' || $profile->notices == 'p'}checked="checked"{/if}> Telephone</label>
 													{else}
 														<label for="noticesMail" class="btn btn-sm btn-default {if $profile->notices == 'a'}active{/if}"><input type="radio" value="a" id="noticesMail" name="notices" {if $profile->notices == 'a'}checked="checked"{/if}> Postal Mail</label>
 														<label for="noticesTel" class="btn btn-sm btn-default {if $profile->notices == 'p'}active{/if}"><input type="radio" value="p" id="noticesTel" name="notices" {if $profile->notices == 'p'}checked="checked"{/if}> Telephone</label>
