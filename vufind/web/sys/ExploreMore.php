@@ -276,7 +276,7 @@ class ExploreMore {
 								'title' => "People (" . $numPeople . ")",
 								'description' => "People related to {$searchObject->getQuery()}",
 								'thumbnail' => $fedoraUtils->getObjectImageUrl($archiveObject, 'small', 'personCModel'),
-								'link' => '/Archive/RelatedEntities?lookfor=' . $_REQUEST['lookfor'] . '&entityType=person',
+								'link' => '/Archive/RelatedEntities?lookfor=' . urlencode($_REQUEST['lookfor']) . '&entityType=person',
 								'usageCount' => $numPeople
 							);
 						}
@@ -295,7 +295,7 @@ class ExploreMore {
 								'title' => "Places (" . $numPlaces . ")",
 								'description' => "Places related to {$searchObject->getQuery()}",
 								'thumbnail' => $fedoraUtils->getObjectImageUrl($archiveObject, 'small', 'placeCModel'),
-								'link' => '/Archive/RelatedEntities?lookfor=' . $_REQUEST['lookfor'] . '&entityType=place',
+								'link' => '/Archive/RelatedEntities?lookfor=' . urlencode($_REQUEST['lookfor']) . '&entityType=place',
 								'usageCount' => $numPlaces
 							);
 						}
@@ -314,7 +314,7 @@ class ExploreMore {
 								'title' => "Events (" . $numEvents . ")",
 								'description' => "Places related to {$searchObject->getQuery()}",
 								'thumbnail' => $fedoraUtils->getObjectImageUrl($archiveObject, 'small', 'eventCModel'),
-								'link' => '/Archive/RelatedEntities?lookfor=' . $_REQUEST['lookfor'] . '&entityType=event',
+								'link' => '/Archive/RelatedEntities?lookfor=' . urlencode($_REQUEST['lookfor']) . '&entityType=event',
 								'usageCount' => $numEvents
 							);
 						}

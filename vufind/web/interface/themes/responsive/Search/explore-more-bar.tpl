@@ -18,7 +18,7 @@
 					{foreach from=$exploreMoreOptions item=exploreMoreCategory}
 						<li class="explore-more-option">
 							<figure class="thumbnail">
-								<a href="{$exploreMoreCategory.link}">
+								<a href='{$exploreMoreCategory.link}'>
 									<img src="{$exploreMoreCategory.thumbnail}" alt="{$exploreMoreCategory.title}">
 								</a>
 								<figcaption class="explore-more-category-title">
