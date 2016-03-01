@@ -429,8 +429,21 @@ class Aspencat implements DriverInterface{
 						if ($user->find(true)){
 							$userExistsInDB = true;
 						}
-						$user->firstname = $userFromDb['firstname'];
-						$user->lastname = $userFromDb['surname'];
+
+						$forceDisplayNameUpdate = false;
+						$firstName = $userFromDb['firstname'];
+						if ($user->firstname != $firstName) {
+							$user->firstname = $firstName;
+							$forceDisplayNameUpdate = true;
+						}
+						$lastName = $userFromDb['surname'];
+						if ($user->lastname != $lastName){
+							$user->lastname = isset($lastName) ? $lastName : '';
+							$forceDisplayNameUpdate = true;
+						}
+						if ($forceDisplayNameUpdate){
+							$user->displayName = '';
+						}
 						$user->fullname = $userFromDb['firstname'] . ' ' . $userFromDb['surname'];
 						$user->cat_username = $barcode;
 						$user->cat_password =  $password;
