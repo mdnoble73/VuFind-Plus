@@ -48,7 +48,8 @@
 				{* Open Appropriate Section on Initial Page Load *}
 				<script type="text/javascript">
 					$(function(){ldelim}
-						{* Only trigger event if the side bar is visible *}
+						{* .filter(':visible') clauses below ensures that a menu option is triggered if the side bar option is visible is visible :  *}
+
 						{if $module == "Search" || $module == "Series" || $module == "Author" || $module == "Genealogy" || $module == "Library"
 					|| ($module == 'MyAccount' && $action == 'MyList' && !$listEditAllowed)
 					|| ($module == 'EBSCO' && $action == 'Results')
@@ -60,7 +61,7 @@
 						{* Prevent this action on the Pin Reset Page && Login Page *}
 						{* Click Account Menu Bar Button *}
 						$('.menu-bar-option:nth-child(2)>a', '#vertical-menu-bar').filter(':visible').click();
-						{elseif $module == "Archive" || $module == 'GroupedWork' || $module == 'Record'}
+						{elseif $showExploreMore && ($module == "Archive" || $module == 'GroupedWork' || $module == 'Record')}
 						{* Click Explore More Menu Bar Button *}
 						$('.menu-bar-option:nth-child(4)>a', '#vertical-menu-bar').filter(':visible').click();
 						{else}
