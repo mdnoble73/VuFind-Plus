@@ -16,7 +16,7 @@ class Branch extends Action{
 		global $configArray;
 
 		$location = new Location();
-		$location->libraryId = $_REQUEST['id'];
+		$location->locationId = $_REQUEST['id'];
 		if ($location->find(true)){
 			$interface->assign('location', $location);
 
