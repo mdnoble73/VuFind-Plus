@@ -337,6 +337,19 @@ public class ArlingtonRecordProcessor extends IIIRecordProcessor {
 		return false;
 	}
 
+	protected boolean isItemSuppressed(DataField curItem) {
+		Subfield icode2Subfield = curItem.getSubfield(iCode2Subfield);
+		if (icode2Subfield != null && useICode2Suppression) {
+			String icode2 = icode2Subfield.getData().toLowerCase().trim();
+
+			//Suppress icode2 codes
+			if (icode2.matches("^(d|e|h|n|p|y|4|5|6)$")) {
+				return true;
+			}
+		}
+		return super.isItemSuppressed(curItem);
+	}
+
 	/**
 	 * For Arlington do not load Bisac Subjects and load full stings with subfields for topics
 	 * @param record
