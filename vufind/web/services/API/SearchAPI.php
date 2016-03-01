@@ -180,9 +180,15 @@ class SearchAPI extends Action {
 				$minNumRecordVariable->name = 'solr_grouped_minimum_number_records';
 				if ($minNumRecordVariable->find(true)) {
 					$minNumRecords = $minNumRecordVariable->value;
-					if (!empty($minNumRecords) && $numRecords < $minNumRecords) {
+					if (!empty($minNumRecords)) {
+						if ($numRecords < $minNumRecords) {
 						$status[] = self::STATUS_CRITICAL;
 						$notes[]  = "Solr Index (Grouped) Record Count ($numRecords) in below the minimum ($minNumRecords)";
+					} elseif ($numRecords > $minNumRecords + 10000) {
+							$status[] = self::STATUS_WARN;
+							$notes[]  = "Solr Index (Grouped) Record Count ($numRecords) is more than 10,000 above the minimum ($minNumRecords)";
+
+						}
 					}
 
 				} else {
