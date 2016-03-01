@@ -8562,7 +8562,6 @@ hr.menu {
   padding-right: 0;
 }
 #vertical-menu-bar .menu-bar-option {
-  height: 140px;
   width: 100%;
   padding-top: 6px;
   position: relative;
@@ -8588,14 +8587,26 @@ hr.menu {
   color: #FFF;
   font-weight: bold;
   text-transform: uppercase;
+  margin-top: 10px;
+}
+.rotated-text {
+  display: inline-block;
+  overflow: hidden;
+  width: 40px;
+  line-height: 40px;
+}
+.rotated-text-inner {
+  display: inline-block;
   white-space: nowrap;
-  position: absolute;
   -webkit-transform: rotate(-90deg) translateX(-100%);
           transform: rotate(-90deg) translateX(-100%);
   -webkit-transform-origin: 0 0;
           transform-origin: 0 0;
-  margin-top: 10px;
-  margin-left: 10px;
+}
+.rotated-text-inner:after {
+  content: "";
+  float: left;
+  margin-top: 100%;
 }
 .collapsedSidebar {
   width: 40px;
@@ -9611,6 +9622,9 @@ a.browse-thumbnail.active {
 #list-morelikethis {
   margin: 8px 0px;
 }
+#explore-more-body #list-morelikethis {
+  border: none;
+}
 .statusValue.available,
 .statusValue.here {
   color: #009900;
@@ -10110,15 +10124,23 @@ a.browse-thumbnail.active {
 }
 #explore-more-header {
   padding: 10px 25px 5px 0;
-  margin-bottom: 5px;
   text-align: right;
-  color: white;
+  color: #FFF;
+  background-color: #00a4e3;
   font-variant: small-caps;
   font-weight: bold;
   font-size: 16px;
 }
 #explore-more-body {
-  background-color: white;
+  border: solid 3px #00a4e3;
+  border-width: 0 3px 3px 0;
+  margin-left: -15px;
+  padding-left: 10px;
+}
+@media (max-width: 767px) {
+  #explore-more-body {
+    border: none;
+  }
 }
 #explore-more-body .sectionHeader {
   text-transform: uppercase;
@@ -10128,17 +10150,21 @@ a.browse-thumbnail.active {
   margin-bottom: 10px;
 }
 #explore-more-body .section {
+  padding-right: 5px;
   margin-bottom: 20px;
-}
-#explore-more-body .section .row {
-  margin-bottom: 10px;
 }
 #explore-more-body .subsectionTitle {
   color: #000075;
 }
-.related-exhibit-images img {
-  padding-left: 10px;
-  padding-right: 10px;
+#explore-more-body .jcarousel-wrapper {
+  margin-left: -10px;
+}
+#explore-more-body .jcarousel {
+  left: 0;
+  width: calc(100% - 30px);
+}
+#explore-more-body .relatedTitlesContainer {
+  height: 100%;
 }
 .exploreMoreBar {
   border: solid 3px #00a4e3;
@@ -10194,35 +10220,10 @@ a.browse-thumbnail.active {
 .exploreMoreBar .jcarousel-wrapper {
   margin: 5px auto;
 }
-.exploreMoreBar .jcarousel-control-prev,
-.exploreMoreBar .jcarousel-control-next {
-  height: 100%;
-  background: #fff;
-  color: #00a4e3;
-  z-index: 2;
-}
-.exploreMoreBar .jcarousel-control-prev:focus,
-.exploreMoreBar .jcarousel-control-next:focus {
-  outline: none;
-}
-.exploreMoreBar .jcarousel-control-prev .glyphicon,
-.exploreMoreBar .jcarousel-control-next .glyphicon {
-  top: 20px;
-}
-.exploreMoreBar .jcarousel-control-prev {
-  left: 2px;
-}
-.exploreMoreBar .jcarousel-control-next {
-  right: 2px;
-}
 .exploreMoreBar .explore-more-option {
-  display: initial;
   padding-left: 10px;
   padding-right: 10px;
   height: 100%;
-}
-.exploreMoreBar .explore-more-option .thumbnail {
-  margin-bottom: 0;
 }
 .exploreMoreBar .explore-more-option .thumbnail a img {
   max-height: 92px;
@@ -10232,6 +10233,39 @@ a.browse-thumbnail.active {
   margin-bottom: 4px;
   font-weight: 100;
   overflow-x: hidden;
+}
+#explore-more-body .jcarousel .thumbnail,
+.exploreMoreBar .jcarousel .thumbnail {
+  margin-bottom: 0;
+}
+#explore-more-body .jcarousel-control-prev,
+.exploreMoreBar .jcarousel-control-prev,
+#explore-more-body .jcarousel-control-next,
+.exploreMoreBar .jcarousel-control-next {
+  height: 100%;
+  background: #fff;
+  color: #00a4e3;
+  z-index: 2;
+}
+#explore-more-body .jcarousel-control-prev:focus,
+.exploreMoreBar .jcarousel-control-prev:focus,
+#explore-more-body .jcarousel-control-next:focus,
+.exploreMoreBar .jcarousel-control-next:focus {
+  outline: none;
+}
+#explore-more-body .jcarousel-control-prev .glyphicon,
+.exploreMoreBar .jcarousel-control-prev .glyphicon,
+#explore-more-body .jcarousel-control-next .glyphicon,
+.exploreMoreBar .jcarousel-control-next .glyphicon {
+  top: 20px;
+}
+#explore-more-body .jcarousel-control-prev,
+.exploreMoreBar .jcarousel-control-prev {
+  left: 2px;
+}
+#explore-more-body .jcarousel-control-next,
+.exploreMoreBar .jcarousel-control-next {
+  right: 2px;
 }
 .openseadragon {
   display: block;
