@@ -129,10 +129,11 @@ class ExploreMore {
 									$facetValueStr = (string)$facetValue->Value;
 									if (in_array($facetValueStr, array('Magazines', 'News', 'Academic Journals', 'Primary Source Documents'))){
 										$numFacetMatches = (int)$facetValue->Count;
+										$iconName = 'ebsco_' .  str_replace(' ', '_', strtolower($facetValueStr));
 										$exploreMoreOptions[] = array(
 												'title' => "$facetValueStr ({$numFacetMatches})",
 												'description' => "{$facetValueStr} in EBSCO related to {$query}",
-												'thumbnail' => $configArray['Site']['path'] . '/interface/themes/responsive/images/ebsco_eds.png',
+												'thumbnail' => $configArray['Site']['path'] . "/interface/themes/responsive/images/{$iconName}.png",
 												'link' => '/EBSCO/Results?lookfor=' . urlencode($query) . '&filter[]=' . $facetInfo->Id . ':' . $facetValueStr,
 										);
 									}
