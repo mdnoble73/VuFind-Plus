@@ -39,7 +39,7 @@
 		</div>
 		{if $showLastCheckIn}
 			<div class="col-xs-2">
-				{if $holding.lastCheckinDate}
+				{if $holding.lastCheckinDate && $holding.available}
 					{* for debugging: *}
 					{*{$holding.lastCheckinDate}<br>*}
 					{*{$holding.lastCheckinDate|date_format}<br>*}
