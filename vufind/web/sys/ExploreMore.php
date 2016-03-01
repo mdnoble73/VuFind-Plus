@@ -41,11 +41,7 @@ class ExploreMore {
 			$edsApi = EDS_API::getInstance();
 			if ($edsApi->authenticate()){
 				//Find related titles
-				$query = $_REQUEST['lookfor'];
-				if (strpos($query, '"') === false){
-					$query = '"' . $query . '"';
-				}
-				$edsResults = $edsApi->getSearchResults($query);
+				$edsResults = $edsApi->getSearchResults($searchTerm);
 				if ($edsResults){
 					$numMatches = $edsResults->Statistics->TotalHits;
 					if ($numMatches > 0){
@@ -59,9 +55,9 @@ class ExploreMore {
 										$iconName = 'ebsco_' .  str_replace(' ', '_', strtolower($facetValueStr));
 										$exploreMoreOptions[] = array(
 												'title' => "$facetValueStr ({$numFacetMatches})",
-												'description' => "{$facetValueStr} in EBSCO related to {$query}",
+												'description' => "{$facetValueStr} in EBSCO related to {$searchTerm}",
 												'thumbnail' => $configArray['Site']['path'] . "/interface/themes/responsive/images/{$iconName}.png",
-												'link' => '/EBSCO/Results?lookfor=' . urlencode($query) . '&filter[]=' . $facetInfo->Id . ':' . $facetValueStr,
+												'link' => '/EBSCO/Results?lookfor=' . urlencode($searchTerm) . '&filter[]=' . $facetInfo->Id . ':' . $facetValueStr,
 										);
 									}
 
@@ -71,9 +67,9 @@ class ExploreMore {
 
 						$exploreMoreOptions[] = array(
 							'title' => "All EBSCO Results ({$numMatches})",
-							'description' => "All Results in EBSCO related to {$query}",
+							'description' => "All Results in EBSCO related to {$searchTerm}",
 							'thumbnail' => $configArray['Site']['path'] . '/interface/themes/responsive/images/ebsco_eds.png',
-							'link' => '/EBSCO/Results?lookfor=' . urlencode($query)
+							'link' => '/EBSCO/Results?lookfor=' . urlencode($searchTerm)
 						);
 					}
 				}
