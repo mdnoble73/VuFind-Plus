@@ -50,7 +50,6 @@ public class GroupedWork4 extends GroupedWorkBase implements Cloneable {
 		groupingTitle = removeBracketedPartOfTitle(groupingTitle);
 
 		//Remove any bracketed parts of the title
-		groupingTitle = bracketedCharacterStrip.matcher(groupingTitle).replaceAll("");
 		groupingTitle = cleanTitleCharacters(groupingTitle);
 
 		//Remove some common subtitles that are meaningless (do again here in case they were part of the title).
@@ -136,6 +135,9 @@ public class GroupedWork4 extends GroupedWorkBase implements Cloneable {
 			//}else{
 			//	logger.warn("Just saved us from trimming " + groupingTitle + " to nothing");
 			}
+		}else{
+			//The entire title is in brackets, just remove the brackets
+			groupingTitle = groupingTitle.replace("[", "").replace("]","");
 		}
 		return groupingTitle;
 	}
