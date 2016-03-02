@@ -65,11 +65,22 @@ class FedoraUtils {
 
 	/** AbstractObject */
 	public function getObjectLabel($pid) {
-		$object = $this->repository->getObject($pid);
+		try{
+			$object = $this->repository->getObject($pid);
+		}catch (Exception $e){
+			//global $logger;
+			//$logger->log("Could not find object $pid due to exception $e", PEAR_LOG_WARNING);
+			$object = null;
+		}
+
 		if ($object == null){
 			return 'Invalid Object';
 		}else{
-			return $object->label;
+			if (empty($object->label)){
+				return $pid;
+			}else{
+				return $object->label;
+			}
 		}
 	}
 

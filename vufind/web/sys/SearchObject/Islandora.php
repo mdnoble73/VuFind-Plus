@@ -102,6 +102,10 @@ class SearchObject_Islandora extends SearchObject_Base
 		if (is_array($translatedFacets)) {
 			$this->translatedFacets = $translatedFacets;
 		}
+		$pidFacets = $this->getFacetSetting('Advanced_Settings', 'pid_facets');
+		if (is_array($pidFacets)) {
+			$this->pidFacets = $pidFacets;
+		}
 
 		// Load search preferences:
 		$searchSettings = getExtraConfigArray('islandoraSearches');
@@ -1014,6 +1018,8 @@ class SearchObject_Islandora extends SearchObject_Base
 	 */
 	public function getFacetList($filter = null, $expandingLinks = false)
 	{
+		require_once ROOT_DIR . '/sys/Utils/FedoraUtils.php';
+		$fedoraUtils = FedoraUtils::getInstance();
 		// If there is no filter, we'll use all facets as the filter:
 		if (is_null($filter)) {
 			$filter = $this->facetConfig;
@@ -1046,13 +1052,25 @@ class SearchObject_Islandora extends SearchObject_Base
 
 			// Should we translate values for the current facet?
 			$translate = in_array($field, $this->translatedFacets);
+			$lookupPid = in_array($field, $this->pidFacets);
 
 			// Loop through values:
 			foreach ($data as $facet) {
 				// Initialize the array of data about the current facet:
 				$currentSettings = array();
 				$currentSettings['value'] = $facet[0];
-				$currentSettings['display'] = $translate ? translate($facet[0]) : $facet[0];
+				if ($lookupPid) {
+					$pid = str_replace('info:fedora/', '', $facet[0]);
+					$currentSettings['display'] = $fedoraUtils->getObjectLabel($pid);
+					if ($currentSettings['display'] == 'Invalid Object'){
+						continue;
+					}
+
+				}elseif ($translate){
+					$currentSettings['display'] = translate($facet[0]);
+				}else{
+					$currentSettings['display'] = $facet[0];
+				}
 				$currentSettings['count'] = $facet[1];
 				$currentSettings['isApplied'] = false;
 				$currentSettings['url'] = $this->renderLinkWithFilter("$field:".$facet[0]);
