@@ -530,7 +530,7 @@ class GroupedWorkDriver extends RecordInterface{
 			$firstRecord = reset($relatedRecords);
 			/** @var IndexRecord|OverDriveRecordDriver|BaseEContentDriver $driver */
 			$driver = $firstRecord['driver'];
-			$linkUrl = $driver->getLinkUrl();
+			$linkUrl = $driver != null ? $driver->getLinkUrl() : '';
 		}else{
 			$linkUrl = '/GroupedWork/' . $id . '/Home?searchId=' . $interface->get_template_vars('searchId') . '&amp;recordIndex=' . $interface->get_template_vars('recordIndex') . '&amp;page='  . $interface->get_template_vars('page');
 			if ($useUnscopedHoldingsSummary){
@@ -2357,7 +2357,7 @@ class GroupedWorkDriver extends RecordInterface{
 		$relatedRecord = array(
 				'id' => $recordDetails[0],
 				'driver' => $recordDriver,
-				'url' => $recordDriver->getRecordUrl(),
+				'url' => $recordDriver != null ? $recordDriver->getRecordUrl() : '',
 				'format' => $recordDetails[1],
 				'formatCategory' => $recordDetails[2],
 				'edition' => $recordDetails[3],
@@ -2378,8 +2378,8 @@ class GroupedWorkDriver extends RecordInterface{
 				'onOrderCopies' => 0,
 				'localAvailableCopies' => 0,
 				'localCopies' => 0,
-				'numHolds' => $recordDriver->getNumHolds(),
-				'volumeHolds' => $recordDriver->getVolumeHolds($volumeData),
+				'numHolds' => $recordDriver != null ? $recordDriver->getNumHolds() : 0,
+				'volumeHolds' => $recordDriver != null ? $recordDriver->getVolumeHolds($volumeData) : null,
 				'hasLocalItem' => false,
 				'holdRatio' => 0,
 				'locationLabel' => '',
@@ -2581,7 +2581,7 @@ class GroupedWorkDriver extends RecordInterface{
 					'volumeId' => $volumeId,
 					'isEContent' => $isEcontent
 			);
-			$itemSummaryInfo['actions'] = $recordDriver->getItemActions($itemSummaryInfo);
+			$itemSummaryInfo['actions'] = $recordDriver != null ? $recordDriver->getItemActions($itemSummaryInfo) : array();
 			//Group the item based on location and call number for display in the summary
 			if (isset($relatedRecord['itemSummary'][$key])) {
 				$relatedRecord['itemSummary'][$key]['totalCopies']++;
@@ -2610,7 +2610,7 @@ class GroupedWorkDriver extends RecordInterface{
 		ksort($relatedRecord['itemDetails']);
 		$timer->logTime("Setup record items");
 
-		$relatedRecord['actions'] = $recordDriver->getRecordActions($recordAvailable, $recordHoldable, $recordBookable, $relatedUrls, $volumeData);
+		$relatedRecord['actions'] = $recordDriver != null ? $recordDriver->getRecordActions($recordAvailable, $recordHoldable, $recordBookable, $relatedUrls, $volumeData) : array();
 		$timer->logTime("Loaded actions");
 		return $relatedRecord;
 	}
