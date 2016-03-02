@@ -429,4 +429,25 @@ BODY;
 		}
 		return $availableFacets;
 	}
+
+	public function retrieveRecord($dbId, $an) {
+		if (!$this->authenticate()){
+			return null;
+		}else{
+			curl_setopt($this->curl_connection, CURLOPT_HTTPGET, true);
+			curl_setopt($this->curl_connection, CURLOPT_HTTPHEADER, array(
+					'x-authenticationToken: ' . $this->authenticationToken,
+					'x-sessionToken: ' . $this->sessionId,
+			));
+			$infoUrl = $this->edsBaseApi . "/Retrieve?an=$an&dbid=$dbId";
+			curl_setopt($this->curl_connection, CURLOPT_URL, $infoUrl);
+			$recordInfoStr = curl_exec($this->curl_connection);
+			if ($recordInfoStr == false){
+				return null;
+			}else{
+				$recordData = new SimpleXMLElement($recordInfoStr);
+				return $recordData->Record;
+			}
+		}
+	}
 }

@@ -61,7 +61,7 @@
 						{* Prevent this action on the Pin Reset Page && Login Page *}
 						{* Click Account Menu Bar Button *}
 						$('.menu-bar-option:nth-child(2)>a', '#vertical-menu-bar').filter(':visible').click();
-						{elseif $showExploreMore && ($module == "Archive" || $module == 'GroupedWork' || $module == 'Record')}
+						{elseif $showExploreMore}
 						{* Click Explore More Menu Bar Button *}
 						$('.menu-bar-option:nth-child(4)>a', '#vertical-menu-bar').filter(':visible').click();
 						{else}

@@ -24,8 +24,6 @@ class Hoopla_Home extends Action{
 	/** @var  SearchObject_Solr $db */
 	protected $db;
 	private $id;
-	/** @var HooplaRecordDriver */
-	private $recordDriver;
 
 	function launch(){
 		global $interface;
@@ -79,7 +77,7 @@ class Hoopla_Home extends Action{
 	}
 
 	/**
-	 * @param RestrictedEContentDriver $recordDriver
+	 * @param HooplaRecordDriver $recordDriver
 	 */
 	function loadCitations($recordDriver)
 	{

@@ -3,7 +3,7 @@
 /**
  * Record Driver for EBSCO titles
  *
- * @category VuFind-Plus-2014
+ * @category Pika
  * @author Mark Noble <mark@marmot.org>
  * Date: 2/16/2016
  * Time: 8:31 PM
@@ -24,7 +24,14 @@ class EbscoRecordDriver extends RecordInterface {
 	 * @access  public
 	 */
 	public function __construct($recordData) {
-		$this->recordData = $recordData;
+		if (is_string($recordData)){
+			require_once ROOT_DIR . '/sys/Ebsco/EDS_API.php';
+			$edsApi = EDS_API::getInstance();
+			list($dbId, $an) = explode(':', $recordData);
+			$this->recordData = $edsApi->retrieveRecord($dbId, $an);
+		}else{
+			$this->recordData = $recordData;
+		}
 	}
 
 	public function isValid(){
@@ -152,9 +159,9 @@ class EbscoRecordDriver extends RecordInterface {
 	}
 
 	public function getRecordUrl() {
-		/*global $configArray;
-		return $configArray['Site']['path'] . '/EBSCO/' . $this->getUniqueID() . '/Home';*/
-		return $this->recordData->PLink;
+		global $configArray;
+		return $configArray['Site']['path'] . '/EBSCO/Home?id=' . urlencode($this->getUniqueID());
+		//return $this->recordData->PLink;
 	}
 
 	public function getModule() {
@@ -231,7 +238,7 @@ class EbscoRecordDriver extends RecordInterface {
 	 */
 	public function getTitle() {
 		if (isset($this->recordData->RecordInfo->BibRecord->BibEntity)){
-			return $this->recordData->RecordInfo->BibRecord->BibEntity->Titles->Title->TitleFull;
+			return (string)$this->recordData->RecordInfo->BibRecord->BibEntity->Titles->Title->TitleFull;
 		}else{
 			return 'Unknown';
 		}
@@ -258,7 +265,7 @@ class EbscoRecordDriver extends RecordInterface {
 	 * @return  string              Unique identifier.
 	 */
 	public function getUniqueID() {
-		return $this->recordData->Header->An;
+		return  (string)$this->recordData->Header->DbId . ':'. (string)$this->recordData->Header->An;
 	}
 
 	/**
@@ -292,6 +299,13 @@ class EbscoRecordDriver extends RecordInterface {
 	 */
 	public function hasFullText() {
 		return $this->recordData->FullText->Text->Availability == 1;
+	}
+
+	public function getFullText() {
+		$fullText = (string)$this->recordData->FullText->Text->Value;
+		$fullText = html_entity_decode($fullText);
+		$fullText = preg_replace('/<anid>.*?<\/anid>/', '', $fullText);
+		return $fullText;
 	}
 
 	/**
@@ -360,27 +374,27 @@ class EbscoRecordDriver extends RecordInterface {
 		// TODO: Implement getRecordActions() method.
 	}
 
-	private function getFormats() {
+	public function getFormats() {
 		return (string)$this->recordData->Header->PubType;
 	}
 
-	private function getCleanISSN() {
+	public function getCleanISSN() {
 		return '';
 	}
 
-	private function getURLs() {
+	public function getURLs() {
 		return array();
 	}
 
-	private function getSourceDatabase() {
+	public function getSourceDatabase() {
 		return $this->recordData->Header->DbLabel;
 	}
 
-	private function getAuthor() {
+	public function getAuthor() {
 		if (count($this->recordData->Items)){
 			foreach ($this->recordData->Items->Item as $item){
 				if ($item->Name == 'Author'){
-					return strip_tags($item->Data);
+					return strip_tags((string)$item->Data);
 				}
 			}
 		}

@@ -11,7 +11,6 @@
 class EBSCO_Results extends Action{
 	function launch() {
 		global $interface;
-		global $configArray;
 		global $timer;
 
 		//Include Search Engine
@@ -20,8 +19,6 @@ class EBSCO_Results extends Action{
 		$timer->logTime('Include search engine');
 
 		$interface->setPageTitle('EBSCO Search Results');
-
-		$edsOptions = $searchObject->getSearchOptions();
 
 		$sort = isset($_REQUEST['sort']) ? $_REQUEST['sort'] : null;
 		$filters = isset($_REQUEST['filter']) ? $_REQUEST['filter'] : array();
