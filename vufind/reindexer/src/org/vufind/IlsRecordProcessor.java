@@ -924,7 +924,8 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 				}
 				sortableCallNumber.append(callNumberPostStamp);
 			}
-			if (volume != null){
+			//ARL-203 do not create an item level call number that is just a volume
+			if (volume != null && fullCallNumber.length() > 0){
 				if (fullCallNumber.length() > 0 && fullCallNumber.charAt(fullCallNumber.length() - 1) != ' '){
 					fullCallNumber.append(' ');
 				}
