@@ -211,12 +211,16 @@ public class FlatironsRecordProcessor extends IIIRecordProcessor{
 				break;
 			default:
 				//Check based off of other information
-				if (econtentItem.getCallNumber().contains("PHOTO")){
-					format = "Photo";
-				}else if (econtentItem.getCallNumber().contains("OH")){
-					format = "Oral History";
-				}else{
+				if (econtentItem == null || econtentItem.getCallNumber() == null){
 					format = "Unknown";
+				}else {
+					if (econtentItem.getCallNumber().contains("PHOTO")) {
+						format = "Photo";
+					} else if (econtentItem.getCallNumber().contains("OH")) {
+						format = "Oral History";
+					} else {
+						format = "Unknown";
+					}
 				}
 		}
 
