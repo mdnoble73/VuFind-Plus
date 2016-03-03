@@ -149,7 +149,7 @@ public class GroupedWorkIndexer {
 			//Periodically in the middle of the night we get indexes every minute or multiple times a minute
 			//which is annoying especially since it generally means nothing is changing.
 			long elapsedTime = indexStartTime - lastReindexTime;
-			long minIndexingInterval = 5 * 60;
+			long minIndexingInterval = 2 * 60;
 			if (elapsedTime < minIndexingInterval && !singleWorkIndex) {
 				try {
 					logger.debug("Pausing between indexes, last index ran " + Math.ceil(elapsedTime / 60) + " minutes ago");
