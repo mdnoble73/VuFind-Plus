@@ -47,6 +47,7 @@ public class SierraExportMain{
 	private static String lastCheckInFormat;
 	private static boolean exportItemHolds = true;
 	private static boolean suppressOrderRecordsThatAreReceivedAndCatalogged = false;
+	private static String orderStatusesToExport;
 
 	public static void main(String[] args){
 		serverName = args[0];
@@ -97,7 +98,10 @@ public class SierraExportMain{
 		try{
 			//Open the connection to the database
 			conn = DriverManager.getConnection(url);
-
+			orderStatusesToExport = ini.get("Reindex", "orderStatusesToExport");
+			if (orderStatusesToExport == null){
+				orderStatusesToExport = "0|1";
+			}
 			exportActiveOrders(exportPath, conn);
 
 			exportHolds(conn, vufindConn);
@@ -355,7 +359,8 @@ public class SierraExportMain{
 							}
 
 							ItemChangeInfo changeInfo = new ItemChangeInfo();
-							changeInfo.setItemId(".i" + itemId + getCheckDigit(itemId));
+							String itemIdFull = ".i" + itemId + getCheckDigit(itemId);
+							changeInfo.setItemId(itemIdFull);
 							changeInfo.setLocation(location);
 							changeInfo.setStatus(status);
 
@@ -531,12 +536,20 @@ public class SierraExportMain{
 
 	private static void exportActiveOrders(String exportPath, Connection conn) throws SQLException, IOException {
 		logger.info("Starting export of active orders");
+		String[] orderStatusesToExportVals = orderStatusesToExport.split("|");
+		String orderStatusCodesSQL = new String();
+		for (String orderStatusesToExportVal : orderStatusesToExportVals){
+			if (orderStatusCodesSQL.length() > 0){
+				orderStatusCodesSQL += " or ";
+			}
+			orderStatusCodesSQL += " order_status_code = '" + orderStatusesToExportVal + "'";
+		}
 		String activeOrderSQL = "select bib_view.record_num as bib_record_num, order_view.record_num as order_record_num, accounting_unit_code_num, order_status_code, copies, location_code " +
 				"from sierra_view.order_view " +
 				"inner join sierra_view.bib_record_order_record_link on bib_record_order_record_link.order_record_id = order_view.record_id " +
 				"inner join sierra_view.bib_view on sierra_view.bib_view.id = bib_record_order_record_link.bib_record_id " +
 				"inner join sierra_view.order_record_cmf on order_record_cmf.order_record_id = order_view.id " +
-				"where (order_status_code = 'o' or order_status_code = '1') and order_view.is_suppressed = 'f' and location_code != 'multi'";
+				"where (" + orderStatusCodesSQL + ") and order_view.is_suppressed = 'f' and location_code != 'multi'";
 		if (suppressOrderRecordsThatAreReceivedAndCatalogged){
 			activeOrderSQL += " and (catalog_date_gmt IS NULL or received_date_gmt IS NULL) ";
 		}
