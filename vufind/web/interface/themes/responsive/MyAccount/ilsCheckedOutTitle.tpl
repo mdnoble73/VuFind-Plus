@@ -100,6 +100,13 @@
 						<div class="result-value col-tn-8 col-lg-9">{$record.format}</div>
 					</div>
 
+					{if $record.barcode}
+						<div class="row">
+							<div class="result-label col-tn-4 col-lg-3">{translate text='Barcode'}</div>
+							<div class="result-value col-tn-8 col-lg-9">{$record.barcode}</div>
+						</div>
+					{/if}
+
 					{if $showRatings && $record.groupedWorkId && $record.ratingData}
 							<div class="row">
 								<div class="result-label col-tn-4 col-lg-3">{translate text='Rating'}</div>
