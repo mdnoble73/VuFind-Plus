@@ -100,7 +100,7 @@ public class SierraExportMain{
 			conn = DriverManager.getConnection(url);
 			orderStatusesToExport = ini.get("Reindex", "orderStatusesToExport");
 			if (orderStatusesToExport == null){
-				orderStatusesToExport = "0|1";
+				orderStatusesToExport = "o|1";
 			}
 			exportActiveOrders(exportPath, conn);
 
