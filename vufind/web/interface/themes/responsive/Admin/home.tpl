@@ -19,6 +19,12 @@
       <th>Uptime: </th>
       <td>{$data.grouped.uptime._content|printms}</td>
     </tr>
+	  <tr>
+		  <th>Full Status: </th>
+		  <td><a onclick="$('#searcherStatus').show();">Show full status</a>
+			  <div id="searcherStatus" style="display:none"><pre>{$data|print_r}</pre></div>
+		  </td>
+	  </tr>
   </table>
 	<h2>Grouped Index (Master)</h2>
 	<table class="citation">
@@ -37,6 +43,12 @@
 		<tr>
 			<th>Uptime: </th>
 			<td>{$master_data.grouped.uptime._content|printms}</td>
+		</tr>
+		<tr>
+			<th>Full Status: </th>
+			<td><a onclick="$('#masterStatus').show();">Show full status</a>
+				<div id="masterStatus" style="display:none"><pre>{$master_data|print_r}</pre></div>
+			</td>
 		</tr>
 	</table>
 	<h2>Genealogy Index</h2>
