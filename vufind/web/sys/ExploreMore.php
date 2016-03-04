@@ -543,7 +543,7 @@ class ExploreMore {
 	/**
 	 * @param string[] $relatedSubjects
 	 */
-	protected function getRelatedWorks($relatedSubjects) {
+	public function getRelatedWorks($relatedSubjects) {
 		global $interface;
 		//Load related catalog content
 		$searchTerm = implode(" OR ", $relatedSubjects);

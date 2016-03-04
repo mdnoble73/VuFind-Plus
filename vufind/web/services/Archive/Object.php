@@ -245,7 +245,7 @@ abstract class Archive_Object extends Action{
 		$relatedSubjects = array_slice($relatedSubjects, 0, 8);
 
 		$exploreMore = new ExploreMore();
-		$this->getRelatedWorks($relatedSubjects);
+		$exploreMore->getRelatedWorks($relatedSubjects);
 		$ebscoMatches = $exploreMore->loadEbscoOptions('archive', array(), implode($relatedSubjects, " or "));
 		if (count($ebscoMatches) > 0){
 			$interface->assign('relatedArticles', $ebscoMatches);
