@@ -113,6 +113,10 @@ documentation/~*.tmp
 #########################
 sites/*.marmot.org
 
+# Aspencat Symbolic Links #
+###########################
+sites/*catalog.aspencat.info
+
 # Nashville Symbolic Links #
 ############################
 sites/galacto.library.nashville.org
