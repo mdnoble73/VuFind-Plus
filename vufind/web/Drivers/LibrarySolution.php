@@ -53,21 +53,25 @@ class LibrarySolution extends ScreenScrapingDriver {
 
 			$user->password = $accountSummary->patron->pin;
 
-			$user->firstname = $accountSummary->patron->firstName;
-			$user->lastname = $accountSummary->patron->lastName;
+			$forceDisplayNameUpdate = false;
+			$firstName = $accountSummary->patron->firstName;
+			if ($user->firstname != $firstName) {
+				$user->firstname = $firstName;
+				$forceDisplayNameUpdate = true;
+			}
+			$lastName = $accountSummary->patron->lastName;
+			if ($user->lastname != $lastName){
+				$user->lastname = isset($lastName) ? $lastName : '';
+				$forceDisplayNameUpdate = true;
+			}
+			if ($forceDisplayNameUpdate){
+				$user->displayName = '';
+			}
 			$user->fullname = $accountSummary->patron->fullName;
 			$user->cat_username = $accountSummary->patron->patronId;
 			$user->cat_password = $accountSummary->patron->pin;
 			$user->phone = $accountSummary->patron->phone;
 			$user->email = $accountSummary->patron->email;
-
-			if (empty($user->displayName)) {
-				if (strlen($user->firstname) >= 1) {
-					$user->displayName = substr($user->firstname, 0, 1) . '. ' . $user->lastname;
-				} else {
-					$user->displayName = $user->lastname;
-				}
-			}
 
 			//Setup home location
 			$location = null;

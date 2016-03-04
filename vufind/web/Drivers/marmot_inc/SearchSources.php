@@ -17,6 +17,7 @@ class SearchSources{
 		$searchGenealogy = true;
 		$repeatCourseReserves = false;
 		$searchArchive = false;
+		$searchEbsco = false;
 
 		/** @var $locationSingleton Location */
 		global $locationSingleton;
@@ -42,6 +43,7 @@ class SearchSources{
 			$searchGenealogy = $library->enableGenealogy;
 			$repeatCourseReserves = $library->enableCourseReserves == 1;
 			$searchArchive = $library->enableArchive == 1;
+			$searchEbsco = $library->edsApiProfile != '';
 		}
 
 		$marmotAdded = false;
@@ -141,6 +143,14 @@ class SearchSources{
 				'name' => "$consortiumName Catalog",
         'description' => 'A consortium of libraries who share resources with your library.',
 				'catalogType' => 'catalog'
+			);
+		}
+
+		if ($searchEbsco){
+			$searchOptions['ebsco'] = array(
+					'name' => 'EBSCO',
+					'description' => 'EBSCO',
+					'catalogType' => 'ebsco'
 			);
 		}
 

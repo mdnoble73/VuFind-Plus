@@ -1,48 +1,81 @@
 {strip}
 	<div id="explore-more-header" class="row">Explore More</div>
 
-	<div class="row">
-		<div id="explore-more-body" class="col-xs-10 col-xs-offset-1">
-			{if $videoLink}
-			<div class="sectionHeader">Video</div>
+	<div id="explore-more-body" class="row"> {* To Get use of the full width there is*}
+		{*<div class="col-xs-10*}{* col-xs-offset-1*}{*">*}
+		{foreach from=$collections item=collection}
+			<strong>{$collection.label}</strong>
 			<div class="section">
-				<video width="100%" controls>
-					<source src="{$videoLink}" type="video/mp4">
-				</video>
+				<a href="{$collection.link}"><img src="{$collection.image}" alt="{$collection.label}" class="img-responsive img-thumbnail"></a>
 			</div>
-			{/if}
+		{/foreach}
+
+		{if count($relatedArchiveData) > 0}
 			<div class="sectionHeader">Related Content</div>
-			<div class="section">
-				{foreach from=$sectionList item=section}
+			{foreach from=$relatedArchiveData item=section}
+				<div class="section">
+
 					<div class="row">
 						<div class="subsectionTitle col-xs-5">{$section.title}</div>
 						<div class="subsection col-xs-5">
-							<a href="{$section.link}"><img src="{$repositoryUrl}/{$section.image}" alt=""></a>
+							<a href="{$section.link}"><img src="{$section.thumbnail}" alt="{$section.description}" class="img-responsive img-thumbnail"></a>
 						</div>
 					</div>
+				</div>
+			{/foreach}
+		{/if}
 
-				{/foreach}
-			</div>
-
-			{* Related Titles Widget *}
+		{* Related Titles Widget *}
+		{if $related_titles.numFound > 0}
 			<div class="sectionHeader">Related Titles</div>
-			<div id="explore-more-catalog" class="row">
-				<div class="col-sm-12">
-					{assign var="scrollerName" value="RelatedContent"}
-					{assign var="scrollerTitle" value="Related Content"}
-					{assign var="wrapperId" value="related-catalog-content"}
-					{assign var="scrollerVariable" value="related-catalog-content"}
-					{include file='ListWidget/titleScroller.tpl'}
+			{* JCarousel with related titles *}
+			<div class="jcarousel-wrapper">
+				{*<a href="#" class="jcarousel-control-prev"*}{* data-target="-=1"*}{*><i class="glyphicon glyphicon-chevron-left"></i></a>*}
+				<a href="#" class="jcarousel-control-next"{* data-target="+=1"*}><i class="glyphicon glyphicon-chevron-right"></i></a>
+
+				<div class="relatedTitlesContainer jcarousel"> {* relatedTitlesContainer used in initCarousels *}
+					<ul>
+						{foreach from=$related_titles.topHits item=title}
+							<li class="relatedTitle">
+								<a href="{$title.link}">
+									<figure class="thumbnail">
+										<img src="{$title.cover}" alt="{$title.title|removeTrailingPunctuation|truncate:80:"..."}">
+										<figcaption>{$title.title|removeTrailingPunctuation|truncate:80:"..."}</figcaption>
+									</figure>
+								</a>
+							</li>
+						{/foreach}
+					</ul>
 				</div>
 			</div>
-		</div>
+
+			<a href="{$related_titles.allResultsLink}">All Results ({$related_titles.numFound})</a>
+		{/if}
+
+		{* More Like This *}
+		{if $showMoreLikeThisInExplore}
+			{include file="GroupedWork/exploreMoreLikeThis.tpl"}
+		{/if}
+
+		{* Sections for Related Info in Full Record Views  *}
+		{foreach from=$exploreMoreInfo item=exploreMoreOption}
+			<div class="sectionHeader"{if $exploreMoreOption.hideByDefault} style="display: none;"{/if}>{$exploreMoreOption.label}</div>
+			<div class="{*col-sm-12 *}jcarousel-wrapper"{if $exploreMoreOption.hideByDefault} style="display: none;"{/if}>
+				<a href="#" class="jcarousel-control-next"{* data-target="+=1"*}><i class="glyphicon glyphicon-chevron-right"></i></a>
+				{$exploreMoreOption.body}
+			</div>
+		{/foreach}
+
+		{* Related Articles Widget *}
+		{if $relatedArticles}
+			<div class="sectionHeader">Related Articles</div>
+			<div class="center-block">
+				<a href="{$relatedArticles.link}">
+					<img src="{$relatedArticles.thumbnail}" alt="{$relatedArticles.description|escape}" class="img-responsive center-block">
+					{$relatedArticles.title}
+				</a>
+			</div>
+
+		{/if}
 	</div>
-	<br>
-	<br>
 {/strip}
-<script type="text/javascript">
-	$(document).ready(function(){ldelim}
-		var relatedCatalogContentScroller = new TitleScroller('titleScrollerRelatedContent', 'RelatedContent', 'explore-more-catalog');
-		relatedCatalogContentScroller.loadTitlesFrom('{$exploreMoreCatalogUrl}');
-	{rdelim});
-</script>

@@ -6,6 +6,9 @@
 			</div>
 		{/if}
 
+		{* Alternate Mobile MyAccount Menu *}
+		{include file="MyAccount/mobilePageHeader.tpl"}
+
 		{include file="MyAccount/availableHoldsNotice.tpl" noLink=1}
 
 		{* Check to see if there is data for the section *}
@@ -78,7 +81,6 @@
 
 				{/if}
 			{/foreach}
-		</div>
 {* Holds not displayed in a html table, so this code does not apply any more.
 		<script type="text/javascript">
 			$(function() {literal} { {/literal}

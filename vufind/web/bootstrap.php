@@ -255,8 +255,10 @@ function loadSearchInformation(){
 			//Use a default search source
 			if ($module == 'Person'){
 				$searchSource = 'genealogy';
-			}elseif ($module == 'Exhibit' || $module == 'BasicImage' || $module == 'LargeImage'){
-				$searchSource = 'archive';
+			}elseif ($module == 'Archive'){
+				$searchSource = 'islandora';
+			}elseif ($module == 'EBSCO'){
+				$searchSource = 'ebsco';
 			}else{
 				$searchSource = 'local';
 			}
@@ -275,12 +277,17 @@ function loadSearchInformation(){
 	//Based on the search source, determine the search scope and set a global variable
 	global $solrScope;
 	global $scopeType;
+	global $isGlobalScope;
 	$solrScope = false;
 	$scopeType = '';
+	$isGlobalScope = false;
 
 	if ($searchLibrary){
 		$solrScope = $searchLibrary->subdomain;
 		$scopeType = 'Library';
+		if (!$searchLibrary->restrictOwningBranchesAndSystems){
+			$isGlobalScope = true;
+		}
 	}
 	if ($searchLocation){
 		$solrScope = $searchLocation->code;

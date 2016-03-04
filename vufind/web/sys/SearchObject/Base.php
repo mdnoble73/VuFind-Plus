@@ -65,6 +65,7 @@ abstract class SearchObject_Base
 	protected $facetConfig = array();    // Array of valid facet fields=>labels
 	protected $checkboxFacets = array(); // Boolean facets represented as checkboxes
 	protected $translatedFacets = array();  // Facets that need to be translated
+	protected $pidFacets = array();
 	// Default Search Handler
 	protected $defaultIndex = null;
 	// Available sort options

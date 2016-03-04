@@ -2,7 +2,7 @@
 <div id="home-page-search" class="row"{if $displaySidebarMenu} style="display: none"{/if}>
 	<div class="col-xs-12">
 		<div class="row">
-			<div class="hidden-xs col-md-12 text-center" id="home-page-search-label">
+			<div class="hidden-xs-inline col-md-12 text-center" id="home-page-search-label">
 				SEARCH <span class="glyphicon glyphicon-search"></span>
 			</div>
 		</div>
@@ -64,6 +64,12 @@
 											</li>
 										{/foreach}
 										<li class="divider islandoraType"></li>
+										{foreach from=$ebscoSearchTypes item=searchDesc key=searchVal}
+											<li>
+												<a class="ebscoType" href="#" onclick="return VuFind.Searches.updateSearchTypes('ebsco', '{$searchVal}', '#searchForm');">{translate text="by"} {translate text=$searchDesc}</a>
+											</li>
+										{/foreach}
+										<li class="divider ebscoType"></li>
 									{/if}
 
 									<li class="catalogType">
@@ -86,10 +92,11 @@
 					</fieldset>
 				</div>
 			</div>
+
 			{if $searchIndex != 'Keyword' && $searchIndex != '' && $searchIndex != 'GenealogyKeyword'}
 				<div class="row text-center">
 					<div class="col-sm-10 col-md-10 col-sm-push-1 col-md-push-1">
-						<select name="basicType" class="searchTypeHome form-control catalogType" id="basicSearchTypes" title="Search by Keyword to find subjects, titles, authors, etc. Search by Title or Author for more precise results." {if $searchSource == 'genealogy'}style="display:none"{/if}>
+						<select name="basicType" class="searchTypeHome form-control catalogType" id="basicSearchTypes" title="Search by Keyword to find subjects, titles, authors, etc. Search by Title or Author for more precise results." {if $searchSource == 'genealogy' || $searchSource == 'islandora' || $searchSource == 'ebsco'}style="display:none"{/if}>
 							{foreach from=$basicSearchTypes item=searchDesc key=searchVal}
 								<option value="{$searchVal}"{if $basicSearchIndex == $searchVal || $searchIndex == $searchVal} selected="selected"{/if}>{translate text=$searchDesc}</option>
 							{/foreach}
@@ -99,9 +106,14 @@
 								<option value="{$searchVal}"{if $genealogySearchIndex == $searchVal} selected="selected"{/if}>{translate text=$searchDesc}</option>
 							{/foreach}
 						</select>
-						<select name="islandoraType" class="searchTypeHome form-control genealogyType" id="islandoraSearchTypes" {if $searchSource != 'islandora'}style="display:none"{/if}>
+						<select name="islandoraType" class="searchTypeHome form-control islandoraType" id="islandoraSearchTypes" {if $searchSource != 'islandora'}style="display:none"{/if}>
 							{foreach from=$islandoraSearchTypes item=searchDesc key=searchVal}
 								<option value="{$searchVal}"{if $islandoraSearchIndex == $searchVal} selected="selected"{/if}>{translate text=$searchDesc}</option>
+							{/foreach}
+						</select>
+						<select name="ebscoType" class="searchTypeHome form-control ebscoType" id="ebscoSearchTypes" {if $searchSource != 'ebsco'}style="display:none"{/if}>
+							{foreach from=$ebscoSearchTypes item=searchDesc key=searchVal}
+								<option value="{$searchVal}"{if $ebscoSearchIndex == $searchVal} selected="selected"{/if}>{translate text=$searchDesc}</option>
 							{/foreach}
 						</select>
 					</div>

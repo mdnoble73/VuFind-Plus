@@ -34,8 +34,6 @@ class Archive_Results extends Action {
 		global $timer;
 		global $analytics;
 
-		$searchSource = isset($_REQUEST['searchSource']) ? $_REQUEST['searchSource'] : 'islandora';
-
 		// Include Search Engine Class
 		require_once ROOT_DIR . '/sys/Solr.php';
 		$timer->logTime('Include search engine');
@@ -43,9 +41,9 @@ class Archive_Results extends Action {
 		// Initialise from the current search globals
 		/** @var SearchObject_Islandora $searchObject */
 		$searchObject = SearchObjectFactory::initSearchObject('Islandora');
-		$searchObject->init($searchSource);
+		$searchObject->init();
 		//$searchObject->addHiddenFilter('-RELS_EXT_hasModel_uri_s', '*collectionCModel');
-		$searchObject->addHiddenFilter('!RELS_EXT_isViewableByRole_literal_ms', "admin");
+		$searchObject->addHiddenFilter('!RELS_EXT_isViewableByRole_literal_ms', "administrator");
 
 		// Build RSS Feed for Results (if requested)
 		if ($searchObject->getView() == 'rss') {
@@ -66,7 +64,7 @@ class Archive_Results extends Action {
 
 		// Set Interface Variables
 		//   Those we can construct BEFORE the search is executed
-		$interface->setPageTitle('Search Results');
+		$interface->setPageTitle('Archive Search Results');
 		$interface->assign('sortList',   $searchObject->getSortList());
 		$interface->assign('rssLink',    $searchObject->getRSSUrl());
 		$interface->assign('excelLink',  $searchObject->getExcelUrl());
@@ -108,9 +106,6 @@ class Archive_Results extends Action {
 		$currentPage = isset($_REQUEST['page']) ? $_REQUEST['page'] : 1;
 		$interface->assign('page', $currentPage);
 
-		$allSearchSources = SearchSources::getSearchSources();
-		$translatedScope = $allSearchSources[$searchSource]['name'];
-		$analytics->addSearch($translatedScope, $searchObject->displayQuery(), $searchObject->isAdvanced(), $searchObject->getFullSearchType(), $searchObject->hasAppliedFacets(), $searchObject->getResultTotal());
 		if ($searchObject->getResultTotal() < 1) {
 			// No record found
 			$interface->assign('sitepath', $configArray['Site']['path']);
@@ -201,6 +196,11 @@ class Archive_Results extends Action {
 
 		// Save the URL of this search to the session so we can return to it easily:
 		$_SESSION['lastSearchURL'] = $searchObject->renderSearchUrl();
+
+		//Load explore more data
+		require_once ROOT_DIR . '/sys/ExploreMore.php';
+		$exploreMore = new ExploreMore();
+		$exploreMore->loadExploreMoreBar('archive');
 
 		// Done, display the page
 		$interface->setTemplate($searchObject->getResultTotal() ? 'list.tpl' : 'list-none.tpl'); // main search results content

@@ -1,6 +1,6 @@
 <?php
 /**
- * Displays Information about Digital Repository (Islandora) Exhibit
+ * Displays Information about Events stored in the Digital Repository
  *
  * @category Pika
  * @author Mark Noble <mark@marmot.org>

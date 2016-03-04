@@ -14,4 +14,9 @@ class PlaceDriver extends IslandoraDriver {
 	public function getViewAction() {
 		return 'Place';
 	}
+
+	protected function getPlaceholderImage() {
+		global $configArray;
+		return $configArray['Site']['path'] . '/interface/themes/responsive/images/places.png';
+	}
 }

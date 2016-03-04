@@ -1,12 +1,12 @@
 {if $cluster.showMoreFacetPopup}
 	{foreach from=$cluster.list item=thisFacet name="narrowLoop"}
 		{if $thisFacet.isApplied}
-			<img src="{$path}/images/silk/tick.png" alt="Selected" /> <div class="facetValue">{$thisFacet.display|escape} <a href="{$thisFacet.removalUrl|escape}" class="removeFacetLink" onclick="trackEvent('Remove Facet', '{$cluster.label}', '{$thisFacet.display|escape}');">(remove)</a></div>
+			<div class="facetValue"><img src="{$path}/images/silk/tick.png" alt="Selected" /> {$thisFacet.display|escape} <a href="{$thisFacet.removalUrl|escape}" class="removeFacetLink" onclick="trackEvent('Remove Facet', '{$cluster.label}', '{$thisFacet.display|escape}');">(remove)</a></div>
 		{else}
 			<div class="facetValue">{if $thisFacet.url !=null}<a href="{$thisFacet.url|escape}">{/if}{$thisFacet.display|escape}{if $thisFacet.url !=null}</a>{/if}{if $thisFacet.count != ''}&nbsp;({$thisFacet.count|number_format}){/if}</div>
 		{/if}
 	{/foreach}
-{* Show more list *}
+	{* Show more list *}
 	<div class="facetValue" id="more{$title}"><a href="#" onclick="VuFind.ResultsList.moreFacetPopup('More {$cluster.label}s', '{$title}'); return false;">{translate text='more'} ...</a></div>
 	<div id="moreFacetPopup_{$title}" style="display:none">
 		<p>Please select one of the items below to narrow your search by {$cluster.label}.</p>

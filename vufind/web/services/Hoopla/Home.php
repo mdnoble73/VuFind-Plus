@@ -24,8 +24,6 @@ class Hoopla_Home extends Action{
 	/** @var  SearchObject_Solr $db */
 	protected $db;
 	private $id;
-	/** @var HooplaRecordDriver */
-	private $recordDriver;
 
 	function launch(){
 		global $interface;
@@ -74,18 +72,12 @@ class Hoopla_Home extends Action{
 			$interface->assign('moreDetailsOptions', $recordDriver->getMoreDetailsOptions());
 
 			// Display Page
-//			$interface->setPageTitle($recordDriver->getTitle());
-//			$interface->assign('sidebar', 'Hoopla/full-record-sidebar.tpl');
-//			$interface->assign('moreDetailsTemplate', 'GroupedWork/moredetails-accordion.tpl');
-//			$interface->setTemplate('view.tpl');
-//			$interface->display('layout.tpl');
-
 			$this->display('view.tpl', $recordDriver->getTitle());
 		}
 	}
 
 	/**
-	 * @param RestrictedEContentDriver $recordDriver
+	 * @param HooplaRecordDriver $recordDriver
 	 */
 	function loadCitations($recordDriver)
 	{

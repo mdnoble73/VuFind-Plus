@@ -344,7 +344,7 @@
 		<autoCommit>
 			<maxDocs>${solr.autoCommit.maxDocs:10000}</maxDocs>
 			<!-- Do a full commit once per minute this could be extended to several minutes or we could just use max docs -->
-			<maxTime>${solr.autoCommit.maxTime:600000}</maxTime>
+			<maxTime>${solr.autoCommit.maxTime:30000}</maxTime>
 			<openSearcher>false</openSearcher>
 		</autoCommit>
 

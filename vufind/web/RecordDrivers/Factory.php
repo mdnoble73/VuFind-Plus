@@ -34,7 +34,7 @@ class RecordDriverFactory {
 	 *
 	 * @access  public
 	 * @param   array   $record     The fields retrieved from the Solr index.
-	 * @return  object              The record driver for handling the record.
+	 * @return  RecordInterface     The record driver for handling the record.
 	 */
 	static function initRecordDriver($record)
 	{
@@ -44,10 +44,9 @@ class RecordDriverFactory {
 		if (is_array($record) && !array_key_exists('recordtype', $record)){
 			$recordType = $record['RELS_EXT_hasModel_uri_s'];
 			//Get rid of islandora namespace information
-			$recordType = str_replace('info:fedora/islandora:', '', $recordType);
-			$recordType = str_replace('sp_', '', $recordType);
-			$recordType = str_replace('_cmodel', '', $recordType);
-			$recordType = str_replace('CModel', '', $recordType);
+			$recordType = str_replace(array(
+					'info:fedora/islandora:', 'sp_', 'sp-', '_cmodel', 'CModel',
+				), '', $recordType);
 			$driverNameParts = explode('_', $recordType);
 			$normalizedRecordType = '';
 			foreach ($driverNameParts as $driverPart){

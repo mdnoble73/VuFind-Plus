@@ -5,6 +5,9 @@
 		</div>
 	{/if}
 
+	{* Alternate Mobile MyAccount Menu *}
+	{include file="MyAccount/mobilePageHeader.tpl"}
+
 	{include file="MyAccount/availableHoldsNotice.tpl"}
 
 	<h2>{translate text='Fines'}</h2>
@@ -87,13 +90,16 @@
 				<p class="alert alert-success">This account does not have any fines within the system.</p>
 			{/if}
 		{/foreach}
+
 		{if $showFinePayments}
-			{* We are doing an acutal payment of fines online *}
+			{* We are doing an actual payment of fines online *}
 			{include file="MyAccount/finePayments.tpl"}
 		{else}
 			{* Pay Fines Button *}
-			{if $showEcommerceLink && $profile->finesval > $minimumFineAmount}
-				<a href='{$ecommerceLink}' ><div class="btn btn-sm btn-primary">{if $payFinesLinkText}{$payFinesLinkText}{else}Click to Pay Fines Online{/if}</div></a>
+			{if $showEcommerceLink && $profile->finesVal > $minimumFineAmount}
+				<a href="{$ecommerceLink}" target="_blank"{if $showRefreshAccountButton} onclick="VuFind.Account.ajaxLightbox('{$path}/AJAX/JSON?method=getPayFinesAfterAction')"{/if}>
+					<div class="btn btn-sm btn-primary">{if $payFinesLinkText}{$payFinesLinkText}{else}Click to Pay Fines Online{/if}</div>
+				</a>
 			{/if}
 		{/if}
 

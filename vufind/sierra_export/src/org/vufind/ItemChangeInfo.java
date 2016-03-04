@@ -12,6 +12,7 @@ public class ItemChangeInfo {
 	private String location;
 	private String status;
 	private String dueDate;
+	private String lastCheckinDate;
 
 	public String getItemId() {
 		return itemId;
@@ -43,5 +44,13 @@ public class ItemChangeInfo {
 
 	public void setDueDate(String dueDate) {
 		this.dueDate = dueDate;
+	}
+
+	public String getLastCheckinDate() {
+		return lastCheckinDate;
+	}
+
+	public void setLastCheckinDate(String lastCheckinDate) {
+		this.lastCheckinDate = lastCheckinDate;
 	}
 }

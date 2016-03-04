@@ -1621,6 +1621,10 @@ class Solr implements IndexEngine {
 				$options['facet.offset'] = $facet['offset'];
 				unset($facet['offset']);
 			}
+			if (isset($facet['limit'])) {
+				$options['facet.limit'] = $facet['limit'];
+				unset($facet['limit']);
+			}
 			if (isset($searchLibrary) && $searchLibrary->showAvailableAtAnyLocation){
 				$options['f.available_at.facet.missing'] = 'true';
 			}
@@ -1715,7 +1719,15 @@ class Solr implements IndexEngine {
 		$filter = array();
 
 		//Simplify detecting which works are relevant to our scope
-		$filter[] = "scope_has_related_records:$solrScope";
+		if (!$solrScope){
+			if (isset($searchLocation)){
+				$filter[] = "scope_has_related_records:{$searchLocation->code}";
+			}elseif(isset($searchLibrary)){
+				$filter[] = "scope_has_related_records:{$searchLibrary->subdomain}";
+			}
+		}else{
+			$filter[] = "scope_has_related_records:$solrScope";
+		}
 
 		//*************************
 		//Marmot overrides for filtering based on library system and location

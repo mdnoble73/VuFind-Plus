@@ -1,3 +1,4 @@
+{*TODO: delete in favor of one sidebar home-sidebar.tpl *}
 {strip}
 	{* Search box *}
 	{if !$horizontalSearchBar}
@@ -5,9 +6,6 @@
 	{/if}
 
 	{include file="login-sidebar.tpl"}
-
-	{* TODO: remove, probably won't be used anymore with the vertical menubar *}
-	<div id="xs-main-content-insertion-point" class="row"></div>
 
 	{if $user}
 		{* Account Menu *}

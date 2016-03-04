@@ -109,6 +109,9 @@ public class FlatironsRecordProcessor extends IIIRecordProcessor{
 							scopingInfo.setHoldable(false);
 							if (curScope.isLocationScope()) {
 								scopingInfo.setLocallyOwned(curScope.isItemOwnedByScope(profileType, eContentLocation, ""));
+								if (curScope.getLibraryScope() != null) {
+									scopingInfo.setLibraryOwned(curScope.getLibraryScope().isItemOwnedByScope(profileType, eContentLocation, ""));
+								}
 							}
 							if (curScope.isLibraryScope()) {
 								scopingInfo.setLibraryOwned(curScope.isItemOwnedByScope(profileType, eContentLocation, ""));
@@ -208,12 +211,16 @@ public class FlatironsRecordProcessor extends IIIRecordProcessor{
 				break;
 			default:
 				//Check based off of other information
-				if (econtentItem.getCallNumber().contains("PHOTO")){
-					format = "Photo";
-				}else if (econtentItem.getCallNumber().contains("OH")){
-					format = "Oral History";
-				}else{
+				if (econtentItem == null || econtentItem.getCallNumber() == null){
 					format = "Unknown";
+				}else {
+					if (econtentItem.getCallNumber().contains("PHOTO")) {
+						format = "Photo";
+					} else if (econtentItem.getCallNumber().contains("OH")) {
+						format = "Oral History";
+					} else {
+						format = "Unknown";
+					}
 				}
 		}
 
@@ -239,8 +246,10 @@ public class FlatironsRecordProcessor extends IIIRecordProcessor{
 		HashSet<String> targetAudiences = new HashSet<>();
 		for (ItemInfo printItem : printItems){
 			String locationCode = printItem.getLocationCode();
-			String lastCharacter = locationCode.substring(locationCode.length() -1);
-			targetAudiences.add(lastCharacter);
+			if (locationCode.length() > 0) {
+				String lastCharacter = locationCode.substring(locationCode.length() - 1);
+				targetAudiences.add(lastCharacter);
+			}
 		}
 
 		groupedWork.addTargetAudiences(translateCollection("target_audience", targetAudiences, identifier));

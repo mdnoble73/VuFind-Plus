@@ -1610,7 +1610,14 @@ class IndexRecord extends RecordInterface
 		$recordId = $this->getUniqueID();
 
 		//TODO: This should have the correct module set
-		return $configArray['Site']['path'] . '/Record/' . $recordId;
+		return $configArray['Site']['path'] . '/' . $this->getModule() . '/' . $recordId;
+	}
+
+	function getAbsoluteUrl(){
+		global $configArray;
+		$recordId = $this->getUniqueID();
+
+		return $configArray['Site']['url'] . '/' . $this->getModule() . '/' . $recordId;
 	}
 
 	public function getLinkUrl($useUnscopedHoldingsSummary = false) {
@@ -1642,6 +1649,40 @@ class IndexRecord extends RecordInterface
 
 	public function getTags(){
 		return $this->getGroupedWorkDriver()->getTags();
+	}
+
+	public function getExploreMoreInfo(){
+		global $interface;
+		global $configArray;
+		$exploreMoreOptions = array();
+		if ($configArray['Catalog']['showExploreMoreForFullRecords']) {
+			$interface->assign('showMoreLikeThisInExplore', true);
+
+			if ($this->getCleanISBN()){
+				if ($interface->getVariable('showSimilarTitles')) {
+					$exploreMoreOptions['similarTitles'] = array(
+							'label' => 'Similar Titles From Novelist',
+							'body' => '<div id="novelisttitlesPlaceholder"></div>',
+							'hideByDefault' => true
+					);
+				}
+				if ($interface->getVariable('showSimilarAuthors')) {
+					$exploreMoreOptions['similarAuthors'] = array(
+							'label' => 'Similar Authors From Novelist',
+							'body' => '<div id="novelistauthorsPlaceholder"></div>',
+							'hideByDefault' => true
+					);
+				}
+				if ($interface->getVariable('showSimilarTitles')) {
+					$exploreMoreOptions['similarSeries'] = array(
+							'label' => 'Similar Series From Novelist',
+							'body' => '<div id="novelistseriesPlaceholder"></div>',
+							'hideByDefault' => true
+					);
+				}
+			}
+		}
+		return $exploreMoreOptions;
 	}
 
 	public function getMoreDetailsOptions(){

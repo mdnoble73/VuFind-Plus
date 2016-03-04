@@ -38,6 +38,7 @@ class Author_AJAX {
 			// variations like pt-br or en-gb.
 			$authorName = $_REQUEST['articleName'];
 			$wiki_lang = substr($configArray['Site']['language'], 0, 2);
+			$interface->assign('wiki_lang', $wiki_lang);
 			$authorInfo  = $memCache->get("wikipedia_article_{$authorName}_{$wiki_lang}" );
 			if ($authorInfo == false){
 				require_once ROOT_DIR . '/services/Author/Wikipedia.php';

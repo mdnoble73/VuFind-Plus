@@ -1,100 +1,188 @@
 @import (reference) "bootstrap/less/variables.less";
 @import (reference) "variables.less";
 
-// Color Variables
-// TODO need to move so that location rules can overwrite
-
-@bottom-line-color: #00b3ee;
-@title-color: #000075;
-
+// Explore More SideBar
 #explore-more-sidebar{
   background-color: @home-search-top-color;
   background: linear-gradient(to bottom, @home-search-top-color, @home-search-bottom-color);
 }
 #explore-more-header{
   padding: 10px 25px 5px 0;
-  margin-bottom:5px;
+  //margin-bottom:5px;
   text-align: right;
-  color: white;
+  color: @explore-more-sidebar-color;
+  background-color: @explore-more-sidebar-bg-color;
   font-variant: small-caps;
   font-weight: bold;
   font-size: 16px;
 }
 #explore-more-body{
-  background-color: white;
+  border: solid @explore-more-bar-border-width @explore-more-bar-label-bg-color;
+  border-width: 0 @explore-more-bar-border-width @explore-more-bar-border-width 0;
+
+  @media (max-width: @screen-xs-max) {
+    border: none;
+  }
+
+  margin-left: floor(-@grid-gutter-width / 2); // undo padding of parent #sidebar-content with negative margin
+  padding-left: @padding-small-horizontal; // add smaller padding
 
   .sectionHeader {
     text-transform: uppercase;
     font-weight: bold;
     color: @title-color;
-    border-bottom: 2px solid @bottom-line-color;
-    margin-bottom: 10px;
+    border-bottom: 2px solid @explore-more-bar-label-bg-color;
+    margin-top: 15px;
   }
   .section {
-    .row {
-      margin-bottom: 10px;
-    }
+    padding-right: @padding-xs-horizontal;
     margin-bottom: 20px;
-
   }
   .subsectionTitle {
     color: @title-color;
-
   }
   .subsection {
 
   }
+  .jcarousel-wrapper {
+    margin-left: -@padding-small-horizontal; // remove padding from #explore-more-body, so that full space is available to the carousel
+    margin-top: 5px;
+  }
+  .jcarousel {
+    left: 0;  // position carousel first item
+    width: calc(100% ~"-" 30px); // Escaping so that LESS doesn't compile the calc rule;
+  }
+
+  .relatedTitlesContainer {
+    //white-space: nowrap;
+    height: 100%; // doesn't seem have an effect
+
+  }
 }
 
-.related-exhibit-images img {
-  padding-left: 10px;
-  padding-right: 10px;
-}
 
 // Styling for Explore More Bar in Search Results
 .exploreMoreBar {
-  border-top: solid 3px @bottom-line-color;
-  border-bottom: solid 3px @bottom-line-color;
-  margin-bottom: 20px;
-  margin-top: 20px;
-  padding-top: 10px;
-  padding-bottom: 10px;
+  border: solid @explore-more-bar-border-width @explore-more-bar-label-bg-color;
+  margin: 10px 5px 15px; // matches padding of a .result div
+
+  .exploreMoreBarLabel {
+    color: @menu-bar-color;
+    background-color: @explore-more-bar-label-bg-color;
+    font-weight: bold;
+    text-transform: uppercase;
+    white-space: nowrap; // multiple word labels need to stay on the same line
+  }
+
+  // Explore More Bar Label on the Left Hand Side
+  .label-left {
+    float: left;
+    // Mimic Sidebar Behaviour
+    width: @explore-more-bar-label-width;
+    min-height: 167px; // makes explore more bar contain the left label
+    color: @menu-bar-color;
+    &, & img {
+      background-color: @explore-more-bar-label-bg-color;
+    }
+    .exploreMoreBarLabel {
+      // Make Font Vertical
+      position: absolute;
+      transform: rotate(-90deg) translateX(-100%);
+      transform-origin: 0 0;
+      padding-right: 10px; // padding between icon and text (after transform)
+      padding-left: 5px; // padding at bottom of text, after transform //TODO this may not be needed in the end
+      line-height: @explore-more-bar-label-width; // matches width, after transform
+    }
+    &+.exploreMoreContainer{
+      padding-left: @explore-more-bar-label-width; // move carousel container to left of the label
+      margin: 16px auto; // center the carousel.
+
+    }
+  }
+
+  // Explore More Bar Label on the Top
+  .label-top {
+    color: @menu-bar-color;
+    width: 100%;
+    &, & img {
+      background-color: @explore-more-bar-label-bg-color;
+      display: inline-block;
+    }
+    .exploreMoreBarLabel {
+      padding-left: 10px;
+      display: inline-block;
+    }
+  }
+
+  .exploreMoreItemsContainer {
+    white-space: nowrap;
+  }
+
+  .jcarousel-wrapper {
+    margin: 5px auto;
+  }
 
   .explore-more-option {
-    display: inline-block;
     padding-left: 10px;
     padding-right: 10px;
+    height: 100%;
 
     .thumbnail {
-      margin-bottom: 0px;
-      img {
-        max-height:92px;
-      }
       a {
         img{
-          max-height:92px;
+          max-height:@explore-more-bar-image-height;
         }
       }
     }
     figcaption {
       margin-top: 4px;
       margin-bottom: 4px;
-      font-weight: +100;
+      font-weight: 100;
+      overflow-x: hidden;
+
+      //TODO: label should not go beyond the width of the icon; or a consistent width
     }
   }
-  //clear:both; //
 }
 
-.openseadragon
-{
+// Common Rules between Explore More Bar & Explore More Sidebar
+#explore-more-body,.exploreMoreBar {
+  .jcarousel {
+    .thumbnail {
+      margin-bottom: 0;
+    }
+  }
+
+  .jcarousel-control-prev, .jcarousel-control-next {
+    height: 100%;
+    background: @content-bg;
+    color: @explore-more-bar-label-bg-color;
+    z-index: 2; // keep above carousel content
+    &:focus {
+      outline: none;
+    }
+    .glyphicon {
+      top: 20px; // center the button a bit better. I haven't find a good way to make it center with out a specific value yet
+    }
+  }
+  // Horizontal Placement of Previous Next Buttons
+  .jcarousel-control-prev {
+    left: 2px;
+  }
+  .jcarousel-control-next {
+    right: 2px;
+  }
+
+}
+
+.openseadragon {
   display: block;
   width: 100%;
   height: 500px;
-}
 
-.openseadragon canvas
-{
-  background-color: #000 !important; /* should be replaced with OpenSeadragon setting */
+  canvas {
+    background-color: #000 !important; /* should be replaced with OpenSeadragon setting */
+  }
 }
 
 .openseadragon-highlight

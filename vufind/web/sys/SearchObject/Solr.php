@@ -204,7 +204,7 @@ class SearchObject_Solr extends SearchObject_Base
 	 * @var string $searchSource
 	 * @return  boolean
 	 */
-	public function init($searchSource = null)
+	public function init($searchSource = null, $searchTerm = null)
 	{
 		// Call the standard initialization routine in the parent:
 		parent::init($searchSource);
@@ -229,7 +229,10 @@ class SearchObject_Solr extends SearchObject_Base
 		$this->initSort();
 		$this->initFilters();
 
-		$searchTerm = isset($_REQUEST['lookfor']) ? $_REQUEST['lookfor'] : null;
+		if ($searchTerm == null){
+			$searchTerm = isset($_REQUEST['lookfor']) ? $_REQUEST['lookfor'] : null;
+		}
+
 		global $module;
 		global $action;
 
@@ -724,6 +727,7 @@ class SearchObject_Solr extends SearchObject_Base
 		}
 		return $displayTemplate;
 	}
+
 	/**
 	 * Use the record driver to build an array of HTML displays from the search
 	 * results.
@@ -1339,6 +1343,9 @@ class SearchObject_Solr extends SearchObject_Base
 			if ($this->facetOffset != null) {
 				$facetSet['offset'] = $this->facetOffset;
 			}
+			if ($this->facetLimit != null) {
+				$facetSet['limit'] = $this->facetLimit;
+			}
 			if ($this->facetPrefix != null) {
 				$facetSet['prefix'] = $this->facetPrefix;
 			}
@@ -1388,7 +1395,7 @@ class SearchObject_Solr extends SearchObject_Base
 			$spellcheck,       // Spellcheck query
 			$this->dictionary, // Spellcheck dictionary
 			$finalSort,        // Field to sort on
-			$fieldsToReturn,     // Fields to return
+			$fieldsToReturn,   // Fields to return
 			$this->method,     // HTTP Request method
 			$returnIndexErrors // Include errors in response?
 		);

@@ -258,9 +258,17 @@ public class OverDriveProcessor {
 											scopingInfo.setHoldable(true);
 											if (curScope.isLocationScope()) {
 												scopingInfo.setLocallyOwned(true);
+												scopingInfo.setLibraryOwned(true);
 											}
 											if (curScope.isLibraryScope()) {
 												scopingInfo.setLibraryOwned(true);
+											}
+											if (available) {
+												scopingInfo.setStatus("Available Online");
+												scopingInfo.setGroupedStatus("Available Online");
+											} else {
+												scopingInfo.setStatus("Checked Out");
+												scopingInfo.setGroupedStatus("Checked Out");
 											}
 										}
 									}

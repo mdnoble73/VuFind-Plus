@@ -1,6 +1,5 @@
 {strip}
 {if $user != false}
-	<br>
 	{* Setup the accoridon *}
 	<div id="home-account-links" class="sidebar-links row"{if $displaySidebarMenu} style="display: none"{/if}>
 		<div class="panel-group accordion" id="account-link-accordion">
@@ -11,7 +10,10 @@
 			{else}
 				{assign var="curSection" value=false}
 			{/if}
-			<div class="panel {if $module == 'MyAccount' || $module == 'MyResearch' || ($module == 'Search' && $action == 'Home') || ($module == 'MaterialsRequest' && $action == 'MyRequests')}active{/if}">
+
+		<div class="panel{if $displaySidebarMenu || $curSection} active{/if}">
+				{* With SidebarMenu on, we should always keep the MyAccount Panel open. *}
+
 				{* Clickable header for my account section *}
 				<a data-toggle="collapse" data-parent="#account-link-accordion" href="#myAccountPanel">
 					<div class="panel-heading">
@@ -21,7 +23,8 @@
 						</div>
 					</div>
 				</a>
-				<div id="myAccountPanel" class="panel-collapse collapse {if $curSection}in{/if}">
+				{*  This content is duplicated in MyAccount/mobilePageHeader.tpl; Update any changes there as well *}
+				<div id="myAccountPanel" class="panel-collapse collapse{if  $displaySidebarMenu || $curSection} in{/if}">
 					<div class="panel-body">
 						{assign var="totalFines" value=$user->getTotalFines()}
 						{if $totalFines > 0 || ($showExpirationWarnings && $user->expireClose)}
@@ -31,7 +34,11 @@
 										<div class="myAccountLink" style="color:red; font-weight:bold;">
 											Your account{if count($user->getLinkedUsers())>0}s have{else} has{/if} ${$totalFines|number_format:2} in fines.
 										</div>
-										<div class="myAccountLink"><a href="{$ecommerceLink}" target="_blank">{if $payFinesLinkText}{$payFinesLinkText}{else}Pay Fines Online{/if}</a></div>
+										<div class="myAccountLink">
+											<a href="{$ecommerceLink}" target="_blank"{if $showRefreshAccountButton} onclick="VuFind.Account.ajaxLightbox('{$path}/AJAX/JSON?method=getPayFinesAfterAction')"{/if}>
+												{if $payFinesLinkText}{$payFinesLinkText}{else}Pay Fines Online{/if}
+											</a>
+										</div>
 									{else}
 										<div class="myAccountLink" title="Please contact your local library to pay fines or charges." style="color:red; font-weight:bold;" onclick="alert('Please contact your local library to pay fines or charges.')">
 											Your account{if count($user->getLinkedUsers())>0}s have{else} has{/if} ${$totalFines|number_format:2} in fines.
@@ -75,7 +82,8 @@
 							</a>
 						</div>
 						{/if}
-						<div class="myAccountLink{if $action=="ReadingHistory"} active{/if}"><a href="{$path}/MyAccount/ReadingHistory">
+						<div class="myAccountLink{if $action=="ReadingHistory"} active{/if}">
+							<a href="{$path}/MyAccount/ReadingHistory">
 								Reading History {if $user->readingHistorySize}<span class="badge">{$user->readingHistorySize}</span>{/if}
 							</a>
 						</div>
@@ -169,7 +177,7 @@
 				{else}
 					{assign var="curSection" value=false}
 				{/if}
-				<div class="panel">
+				<div class="panel{if $curSection} active{/if}">
 					<a href="#vufindMenuGroup" data-toggle="collapse" data-parent="#adminMenuAccordion">
 						<div class="panel-heading">
 							<div class="panel-title">
@@ -225,7 +233,7 @@
 				{else}
 					{assign var="curSection" value=false}
 				{/if}
-				<div class="panel">
+				<div class="panel{if $curSection} active{/if}">
 					<a href="#adminMenuGroup" data-toggle="collapse" data-parent="#adminMenuAccordion">
 						<div class="panel-heading">
 							<div class="panel-title">
@@ -257,7 +265,7 @@
 				{else}
 					{assign var="curSection" value=false}
 				{/if}
-				<div class="panel">
+				<div class="panel{if $curSection} active{/if}">
 					<a href="#indexingMenuGroup" data-toggle="collapse" data-parent="#adminMenuAccordion">
 						<div class="panel-heading">
 							<div class="panel-title">
@@ -283,7 +291,7 @@
 				{else}
 					{assign var="curSection" value=false}
 				{/if}
-				<div class="panel">
+				<div class="panel{if $curSection} active{/if}">
 					<a href="#materialsRequestMenu" data-toggle="collapse" data-parent="#adminMenuAccordion">
 						<div class="panel-heading">
 							<div class="panel-title">
@@ -308,7 +316,7 @@
 				{else}
 					{assign var="curSection" value=false}
 				{/if}
-				<div class="panel">
+				<div class="panel{if $curSection} active{/if}">
 					<a href="#catalogingRequestMenu" data-toggle="collapse" data-parent="#adminMenuAccordion">
 						<div class="panel-heading">
 							<div class="panel-title">
@@ -324,13 +332,35 @@
 				</div>
 			{/if}
 
+			{if $user && ($user->hasRole('archives') || $user->hasRole('opacAdmin'))}
+				{if in_array($action, array('ArchiveSubjects'))}
+					{assign var="curSection" value=true}
+				{else}
+					{assign var="curSection" value=false}
+				{/if}
+				<div class="panel{if $curSection} active{/if}">
+					<a href="#archivesMenu" data-toggle="collapse" data-parent="#adminMenuAccordion">
+						<div class="panel-heading">
+							<div class="panel-title">
+								Archives
+							</div>
+						</div>
+					</a>
+					<div id="archivesMenu" class="panel-collapse collapse {if $curSection}in{/if}">
+						<div class="panel-body">
+							<div class="adminMenuLink{if $action == "ArchiveSubjects"}active{/if}"><a href="{$path}/Admin/ArchiveSubjects">Archive Subject Control</a></div>
+						</div>
+					</div>
+				</div>
+			{/if}
+
 			{if $user && ($user->hasRole('opacAdmin') || $user->hasRole('libraryAdmin') || $user->hasRole('circulationReports'))}
 				{if $module == 'Circa'}
 					{assign var="curSection" value=true}
 				{else}
 					{assign var="curSection" value=false}
 				{/if}
-				<div class="panel">
+				<div class="panel{if $curSection} active{/if}">
 					<a href="#circulationMenu" data-toggle="collapse" data-parent="#adminMenuAccordion">
 						<div class="panel-heading">
 							<div class="panel-title">
@@ -355,7 +385,7 @@
 				{else}
 					{assign var="curSection" value=false}
 				{/if}
-				<div class="panel">
+				<div class="panel{if $curSection} active{/if}">
 					<a href="#editorialReviewMenu" data-toggle="collapse" data-parent="#adminMenuAccordion">
 						<div class="panel-heading">
 							<div class="panel-title">
@@ -378,7 +408,7 @@
 				{else}
 					{assign var="curSection" value=false}
 				{/if}
-				<div class="panel">
+				<div class="panel{if $curSection} active{/if}">
 					<a href="#reportsMenu" data-toggle="collapse" data-parent="#adminMenuAccordion">
 						<div class="panel-heading">
 							<div class="panel-title">

@@ -1,7 +1,7 @@
 {strip}
 <div id="main-content" class="col-xs-12">
   <h1>Pika Administration</h1>
-  <h2>Grouped Index</h2>
+  <h2>Grouped Index (Searcher)</h2>
   <table class="citation">
     <tr>
       <th>Record Count: </th>
@@ -19,24 +19,36 @@
       <th>Uptime: </th>
       <td>{$data.grouped.uptime._content|printms}</td>
     </tr>
+	  <tr>
+		  <th>Full Status: </th>
+		  <td><a onclick="$('#searcherStatus').show();">Show full status</a>
+			  <div id="searcherStatus" style="display:none"><pre>{$data|print_r}</pre></div>
+		  </td>
+	  </tr>
   </table>
-	<h2>Grouped 2 Index</h2>
+	<h2>Grouped Index (Master)</h2>
 	<table class="citation">
 		<tr>
 			<th>Record Count: </th>
-			<td>{$data.grouped2.index.numDocs._content}</td>
+			<td>{$master_data.grouped.index.numDocs._content}</td>
 		</tr>
 		<tr>
 			<th>Start Time: </th>
-			<td>{$data.grouped2.startTime._content|date_format:"%b %d, %Y %l:%M:%S%p"}</td>
+			<td>{$master_data.grouped.startTime._content|date_format:"%b %d, %Y %l:%M:%S%p"}</td>
 		</tr>
 		<tr>
 			<th>Last Modified: </th>
-			<td>{$data.grouped2.index.lastModified._content|date_format:"%b %d, %Y %l:%M:%S%p"}</td>
+			<td>{$master_data.grouped.index.lastModified._content|date_format:"%b %d, %Y %l:%M:%S%p"}</td>
 		</tr>
 		<tr>
 			<th>Uptime: </th>
-			<td>{$data.grouped2.uptime._content|printms}</td>
+			<td>{$master_data.grouped.uptime._content|printms}</td>
+		</tr>
+		<tr>
+			<th>Full Status: </th>
+			<td><a onclick="$('#masterStatus').show();">Show full status</a>
+				<div id="masterStatus" style="display:none"><pre>{$master_data|print_r}</pre></div>
+			</td>
 		</tr>
 	</table>
 	<h2>Genealogy Index</h2>

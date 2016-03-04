@@ -530,7 +530,7 @@ class GroupedWorkDriver extends RecordInterface{
 			$firstRecord = reset($relatedRecords);
 			/** @var IndexRecord|OverDriveRecordDriver|BaseEContentDriver $driver */
 			$driver = $firstRecord['driver'];
-			$linkUrl = $driver->getLinkUrl();
+			$linkUrl = $driver != null ? $driver->getLinkUrl() : '';
 		}else{
 			$linkUrl = '/GroupedWork/' . $id . '/Home?searchId=' . $interface->get_template_vars('searchId') . '&amp;recordIndex=' . $interface->get_template_vars('recordIndex') . '&amp;page='  . $interface->get_template_vars('page');
 			if ($useUnscopedHoldingsSummary){
@@ -1642,10 +1642,20 @@ class GroupedWorkDriver extends RecordInterface{
 	}
 
 	static function compareLocalAvailableItemsForRecords($a, $b){
-		if (($a['availableLocally'] || $a['availableOnline']) && ($b['availableLocally'] || $b['availableOnline'])){
-			return 0;
-		}elseif ($a['availableLocally'] || $a['availableOnline']){
+		if (($a['availableHere'] || $a['availableOnline']) && ($b['availableHere'] || $b['availableOnline'])){
+			if (($a['availableLocally'] || $a['availableOnline']) && ($b['availableLocally'] || $b['availableOnline'])){
+				return 0;
+			}elseif ($a['availableLocally'] || $a['availableOnline']){
+				return -1;
+			}elseif ($b['availableLocally'] || $b['availableOnline']){
+				return 1;
+			}else{
+				return 0;
+			}
+		}elseif ($a['availableHere'] || $a['availableOnline']){
 			return -1;
+		}elseif ($b['availableHere'] || $b['availableOnline']){
+			return 1;
 		}else{
 			return 0;
 		}
@@ -1656,6 +1666,8 @@ class GroupedWorkDriver extends RecordInterface{
 			return 0;
 		}elseif ($a['hasLocalItem']){
 			return -1;
+		}elseif ($b['hasLocalItem']){
+			return 1;
 		}else{
 			return 0;
 		}
@@ -1801,6 +1813,41 @@ class GroupedWorkDriver extends RecordInterface{
 		$workAPI = new WorkAPI();
 		return $workAPI->getRatingData($this->getPermanentId());
 	}
+
+	public function getExploreMoreInfo(){
+		global $interface;
+		global $configArray;
+		$exploreMoreOptions = array();
+		if ($configArray['Catalog']['showExploreMoreForFullRecords']) {
+			$interface->assign('showMoreLikeThisInExplore', true);
+			$interface->assign('showExploreMore', true);
+			if ($this->getCleanISBN()){
+				if ($interface->getVariable('showSimilarTitles')) {
+					$exploreMoreOptions['similarTitles'] = array(
+							'label' => 'Similar Titles From Novelist',
+							'body' => '<div id="novelisttitlesPlaceholder"></div>',
+							'hideByDefault' => true
+					);
+				}
+				if ($interface->getVariable('showSimilarAuthors')) {
+					$exploreMoreOptions['similarAuthors'] = array(
+							'label' => 'Similar Authors From Novelist',
+							'body' => '<div id="novelistauthorsPlaceholder"></div>',
+							'hideByDefault' => true
+					);
+				}
+				if ($interface->getVariable('showSimilarTitles')) {
+					$exploreMoreOptions['similarSeries'] = array(
+							'label' => 'Similar Series From Novelist',
+							'body' => '<div id="novelistseriesPlaceholder"></div>',
+							'hideByDefault' => true
+					);
+				}
+			}
+		}
+		return $exploreMoreOptions;
+	}
+
 
 	public function getMoreDetailsOptions(){
 		global $interface;
@@ -2310,7 +2357,7 @@ class GroupedWorkDriver extends RecordInterface{
 		$relatedRecord = array(
 				'id' => $recordDetails[0],
 				'driver' => $recordDriver,
-				'url' => $recordDriver->getRecordUrl(),
+				'url' => $recordDriver != null ? $recordDriver->getRecordUrl() : '',
 				'format' => $recordDetails[1],
 				'formatCategory' => $recordDetails[2],
 				'edition' => $recordDetails[3],
@@ -2331,8 +2378,8 @@ class GroupedWorkDriver extends RecordInterface{
 				'onOrderCopies' => 0,
 				'localAvailableCopies' => 0,
 				'localCopies' => 0,
-				'numHolds' => $recordDriver->getNumHolds(),
-				'volumeHolds' => $recordDriver->getVolumeHolds($volumeData),
+				'numHolds' => $recordDriver != null ? $recordDriver->getNumHolds() : 0,
+				'volumeHolds' => $recordDriver != null ? $recordDriver->getVolumeHolds($volumeData) : null,
 				'hasLocalItem' => false,
 				'holdRatio' => 0,
 				'locationLabel' => '',
@@ -2532,8 +2579,9 @@ class GroupedWorkDriver extends RecordInterface{
 					'lastCheckinDate' => isset($curItem[14]) ? $curItem[14] : '',
 					'volume' => $volume,
 					'volumeId' => $volumeId,
+					'isEContent' => $isEcontent
 			);
-			$itemSummaryInfo['actions'] = $recordDriver->getItemActions($itemSummaryInfo);
+			$itemSummaryInfo['actions'] = $recordDriver != null ? $recordDriver->getItemActions($itemSummaryInfo) : array();
 			//Group the item based on location and call number for display in the summary
 			if (isset($relatedRecord['itemSummary'][$key])) {
 				$relatedRecord['itemSummary'][$key]['totalCopies']++;
@@ -2562,7 +2610,7 @@ class GroupedWorkDriver extends RecordInterface{
 		ksort($relatedRecord['itemDetails']);
 		$timer->logTime("Setup record items");
 
-		$relatedRecord['actions'] = $recordDriver->getRecordActions($recordAvailable, $recordHoldable, $recordBookable, $relatedUrls, $volumeData);
+		$relatedRecord['actions'] = $recordDriver != null ? $recordDriver->getRecordActions($recordAvailable, $recordHoldable, $recordBookable, $relatedUrls, $volumeData) : array();
 		$timer->logTime("Loaded actions");
 		return $relatedRecord;
 	}

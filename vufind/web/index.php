@@ -125,7 +125,10 @@ $interface->assign('action', $action);
 
 global $solrScope;
 global $scopeType;
+global $isGlobalScope;
+$interface->assign('scopeType', $scopeType);
 $interface->assign('solrScope', "$solrScope - $scopeType");
+$interface->assign('isGlobalScope', $isGlobalScope);
 
 //Set that the interface is a single column by default
 $interface->assign('page_body_style', 'one_column');
@@ -400,6 +403,8 @@ if ($searchSource == 'genealogy') {
 	$_REQUEST['type'] = isset($_REQUEST['genealogyType']) ? $_REQUEST['genealogyType'] : 'GenealogyKeyword';
 }elseif ($searchSource == 'islandora'){
 		$_REQUEST['type'] = isset($_REQUEST['islandoraType']) ? $_REQUEST['islandoraType']:  'IslandoraKeyword';
+}elseif ($searchSource == 'ebsco'){
+	$_REQUEST['type'] = isset($_REQUEST['ebscoType']) ? $_REQUEST['ebscoType']:  'TX';
 }else{
 	$_REQUEST['type'] = isset($_REQUEST['basicType']) ? $_REQUEST['basicType'] : 'Keyword';
 }
@@ -439,6 +444,12 @@ if ($action == "AJAX" || $action == "JSON"){
 	if ($library->enableArchive){
 		$islandoraSearchObject = SearchObjectFactory::initSearchObject('Islandora');
 		$interface->assign('islandoraSearchTypes', is_object($islandoraSearchObject) ? $islandoraSearchObject->getBasicTypes() : array());
+	}
+
+	if ($library->edsApiProfile){
+		require_once ROOT_DIR . '/sys/Ebsco/EDS_API.php';
+		$ebscoSearchObject = new EDS_API();
+		$interface->assign('ebscoSearchTypes', $ebscoSearchObject->getSearchTypes());
 	}
 
 
@@ -790,7 +801,7 @@ function loadModuleActionId(){
 	$requestURI = preg_replace("/^\/?vufind\//", "", $requestURI);
 	/** IndexingProfile[] $indexingProfiles */
 	global $indexingProfiles;
-	$allRecordModules = "OverDrive|GroupedWork|Record|ExternalEContent|Person|EditorialReview";
+	$allRecordModules = "OverDrive|GroupedWork|Record|ExternalEContent|Person|EditorialReview|Library";
 	foreach ($indexingProfiles as $profile){
 		$allRecordModules .= '|' . $profile->recordUrlComponent;
 	}
@@ -808,13 +819,13 @@ function loadModuleActionId(){
 		$_REQUEST['module'] = $matches[1];
 		$_REQUEST['action'] = $matches[2];
 		$_REQUEST['id'] = '';
-	}elseif (preg_match('/\/Archive\/((?:[\\w\\d:]|%3A)+)\/([^\/?]+)/', $requestURI, $matches)){
-		$_GET['module'] = 'Archive';
-		$_GET['id'] = $matches[1];
-		$_GET['action'] = $matches[2];
-		$_REQUEST['module'] = 'Archive';
-		$_REQUEST['id'] = $matches[1];
-		$_REQUEST['action'] = $matches[2];
+	}elseif (preg_match('/\/(Archive)\/((?:[\\w\\d:]|%3A)+)\/([^\/?]+)/', $requestURI, $matches)){
+		$_GET['module'] = $matches[1];
+		$_GET['id'] = $matches[2];
+		$_GET['action'] = $matches[3];
+		$_REQUEST['module'] = $matches[1];
+		$_REQUEST['id'] = $matches[2];
+		$_REQUEST['action'] = $matches[3];
 		//Redirect things /GroupedWork/AJAX to the proper action
 	}elseif (preg_match("/($allRecordModules)\/([a-zA-Z]+)(?:\?|\/?$)/", $requestURI, $matches)){
 		$_GET['module'] = $matches[1];
@@ -950,4 +961,6 @@ function loadUserData(){
 		}
 		$timer->logTime("Load Information about Index status");
 	}
+
+	$interface->setFinesRelatedTemplateVariables();
 }

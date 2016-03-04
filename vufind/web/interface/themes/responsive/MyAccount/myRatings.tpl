@@ -11,6 +11,9 @@
 		</div>
 	{/if}
 
+	{* Alternate Mobile MyAccount Menu *}
+	{include file="MyAccount/mobilePageHeader.tpl"}
+
 	{include file="MyAccount/availableHoldsNotice.tpl"}
 
 	<div class="resulthead">

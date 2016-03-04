@@ -395,16 +395,7 @@ abstract class IslandoraDriver extends RecordInterface {
 	}
 
 	public function getLinkUrl($unscoped = false) {
-		global $interface;
 		$linkUrl = $this->getRecordUrl();
-		if ($interface != null && strlen($interface->get_template_vars('searchId')) > 0){
-			$extraParams[] = 'searchId=' . $interface->get_template_vars('searchId');
-			$extraParams[] = 'recordIndex=' . $interface->get_template_vars('recordIndex');
-			$extraParams[] = 'page='  . $interface->get_template_vars('page');
-		}
-		if (count($extraParams) > 0){
-			$linkUrl .= '?' . implode('&', $extraParams);
-		}
 		return $linkUrl;
 	}
 	function getRecordUrl(){

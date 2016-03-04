@@ -319,7 +319,8 @@ class Novelist3{
 			$ret = $novelistData->insert();
 		}
 
-		$memCache->set("novelist_enrichment_$groupedRecordId", $novelistData, 0, $configArray['Caching']['novelist_enrichment']);
+		//Ignore warnings if the object is too large for the cache
+		@$memCache->set("novelist_enrichment_$groupedRecordId", $novelistData, 0, $configArray['Caching']['novelist_enrichment']);
 		return $novelistData;
 	}
 

@@ -478,6 +478,10 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 				ScopingInfo scopingInfo = itemInfo.addScope(scope);
 				if (scope.isLocationScope()) {
 					scopingInfo.setLocallyOwned(scope.isItemOwnedByScope(profileType, location, ""));
+					if (scope.getLibraryScope() != null) {
+						boolean libraryOwned = scope.getLibraryScope().isItemOwnedByScope(profileType, location, "");
+						scopingInfo.setLibraryOwned(libraryOwned);
+					}
 				}
 				if (scope.isLibraryScope()) {
 					boolean libraryOwned = scope.isItemOwnedByScope(profileType, location, "");
@@ -641,6 +645,9 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 				scopingInfo.setHoldable(false);
 				if (curScope.isLocationScope()) {
 					scopingInfo.setLocallyOwned(curScope.isItemOwnedByScope(profileType, itemLocation, itemSublocation));
+					if (curScope.getLibraryScope() != null) {
+						scopingInfo.setLibraryOwned(curScope.getLibraryScope().isItemOwnedByScope(profileType, itemLocation, itemSublocation));
+					}
 				}
 				if (curScope.isLibraryScope()) {
 					scopingInfo.setLibraryOwned(curScope.isItemOwnedByScope(profileType, itemLocation, itemSublocation));
@@ -778,6 +785,9 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 				scopingInfo.setGroupedStatus(groupedDisplayStatus);
 				if (curScope.isLocationScope()) {
 					scopingInfo.setLocallyOwned(curScope.isItemOwnedByScope(profileType, itemLocation, itemSublocation));
+					if (curScope.getLibraryScope() != null) {
+						scopingInfo.setLibraryOwned(curScope.getLibraryScope().isItemOwnedByScope(profileType, itemLocation, itemSublocation));
+					}
 				}
 				if (curScope.isLibraryScope()) {
 					scopingInfo.setLibraryOwned(curScope.isItemOwnedByScope(profileType, itemLocation, itemSublocation));
@@ -914,7 +924,8 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 				}
 				sortableCallNumber.append(callNumberPostStamp);
 			}
-			if (volume != null){
+			//ARL-203 do not create an item level call number that is just a volume
+			if (volume != null && fullCallNumber.length() > 0){
 				if (fullCallNumber.length() > 0 && fullCallNumber.charAt(fullCallNumber.length() - 1) != ' '){
 					fullCallNumber.append(' ');
 				}
@@ -932,20 +943,12 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		}
 		if (!hasCallNumber){
 			String callNumber = null;
-			DataField localCallNumberField = (DataField)record.getVariableField("099");
-			if (localCallNumberField != null){
+			//MDN #ARL-217 do not use 099 as a call number
+			DataField deweyCallNumberField = (DataField)record.getVariableField("092");
+			if (deweyCallNumberField != null){
 				callNumber = "";
-				for (Subfield curSubfield : localCallNumberField.getSubfields()){
+				for (Subfield curSubfield : deweyCallNumberField.getSubfields()){
 					callNumber += " " + curSubfield.getData().trim();
-				}
-			}
-			if (callNumber == null){
-				DataField deweyCallNumberField = (DataField)record.getVariableField("092");
-				if (deweyCallNumberField != null){
-					callNumber = "";
-					for (Subfield curSubfield : deweyCallNumberField.getSubfields()){
-						callNumber += " " + curSubfield.getData().trim();
-					}
 				}
 			}
 			if (callNumber != null) {

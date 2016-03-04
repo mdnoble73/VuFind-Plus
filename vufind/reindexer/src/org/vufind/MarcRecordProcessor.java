@@ -543,9 +543,13 @@ public abstract class MarcRecordProcessor {
 			}
 		}
 		//Try to get from 260
-		publicationDates.addAll(getFieldList(record, "260c"));
-		//Try to get from 008
-		publicationDates.add(getFirstFieldVal(record, "008[7-10]"));
+		if (publicationDates.size() ==0) {
+			publicationDates.addAll(getFieldList(record, "260c"));
+		}
+		//Try to get from 008, but only need to do if we don't have anything else
+		if (publicationDates.size() == 0) {
+			publicationDates.add(getFirstFieldVal(record, "008[7-10]"));
+		}
 
 		return publicationDates;
 	}

@@ -12,14 +12,23 @@ var VuFind = (function(){
 
 		$("#modalDialog").modal({show:false});
 
-		var panels = $('.panel');
-		panels.on('show.bs.collapse', function () {
-			$(this).addClass('active');
-		});
+		//var panels = $('.panel');
+		//panels.on('show.bs.collapse', function () {
+		//	$(this).addClass('active');
+		//});
+		//
+		//panels.on('hide.bs.collapse', function () {
+		//	$(this).removeClass('active');
+		//});
 
-		panels.on('hide.bs.collapse', function () {
-			$(this).removeClass('active');
-		});
+		$('.panel')
+				.on('show.bs.collapse', function () {
+					$(this).addClass('active');
+				})
+				.on('hide.bs.collapse', function () {
+					$(this).removeClass('active');
+				});
+
 	});
 	/**
 	 * Created by mark on 1/14/14.
@@ -52,38 +61,81 @@ var VuFind = (function(){
 			}
 		},
 
-		initCarousels:function(){
-			var jcarousel = $('.jcarousel');
+		initCarousels: function(carouselClass){
+			carouselClass = carouselClass || '.jcarousel';
+			var jcarousel = $(carouselClass),
+					wrapper   = jcarousel.parents('.jcarousel-wrapper');
 
-			jcarousel.on('jcarousel:reload jcarousel:create', function () {
-				var element = $(this);
-				var width = element.innerWidth();
-				var itemWidth = width;
-				if (width >= 600) {
-					itemWidth = width / 4;
-				}else if (width >= 400) {
-					itemWidth = width / 3;
-				}else if (width >= 300) {
-					itemWidth = width / 2;
+			jcarousel.on('jcarousel:reload jcarousel:create', function() {
+
+				var Carousel       = $(this),
+						width          = Carousel.innerWidth(),
+						numCategories  = Carousel.jcarousel('items').length || 1,
+						numItemsToShow = 1;
+
+				// Adjust Browse Category Carousels
+				if (jcarousel.is('#browse-category-carousel')){
+					
+					// set the number of categories to show; if there aren't enough categories, show all the categories instead
+					if (width > 1000) {
+						numItemsToShow = Math.min(5, numCategories);
+					} else if (width > 700) {
+						numItemsToShow = Math.min(4, numCategories);
+					} else if (width > 500) {
+						numItemsToShow = Math.min(3, numCategories);
+					} else if (width > 400) {
+						numItemsToShow = Math.min(2, numCategories);
+					}
+
 				}
 
-				element.jcarousel('items').css('width', Math.floor(itemWidth) + 'px');
-			})
+				//// Explore More Related Titles Carousel
+				//else if (jcarousel.is('.relatedTitlesContainer')) {
+				//}
+
+				//// Explore More Bar Carousel
+				//else if (jcarousel.is('.exploreMoreItemsContainer')) {
+				//}
+
+				// Default Generic Carousel;
+				else {
+					if (width >= 800) {
+						numItemsToShow = Math.min(5, numCategories);
+					} else if (width >= 600) {
+						numItemsToShow = Math.min(4, numCategories);
+					} else if (width >= 400) {
+						numItemsToShow = Math.min(3, numCategories);
+					} else if (width >= 300) {
+						numItemsToShow = Math.min(2, numCategories);
+					}
+				}
+
+				// Set the width of each item in the carousel
+				width /= numItemsToShow;
+				Carousel.jcarousel('items').css('width', Math.floor(width) + 'px');// Set Width
+
+				//console.log(Carousel, 'num to show', numItemsToShow, 'width', width);
+
+					})
 			.jcarousel({
 				wrap: 'circular'
 			});
 
-			$('.jcarousel-control-prev')
+			// These Controls could possibly be replaced with data-api attributes
+			$('.jcarousel-control-prev', wrapper)
+					//.not('.ajax-carousel-control') // ajax carousels get initiated when content is loaded
 					.jcarouselControl({
 						target: '-=1'
 					});
 
-			$('.jcarousel-control-next')
+			$('.jcarousel-control-next', wrapper)
+					//.not('.ajax-carousel-control') // ajax carousels get initiated when content is loaded
 					.jcarouselControl({
 						target: '+=1'
 					});
 
-			$('.jcarousel-pagination')
+			$('.jcarousel-pagination', wrapper)
+					//.not('.ajax-carousel-control') // ajax carousels get initiated when content is loaded
 					.on('jcarouselpagination:active', 'a', function() {
 						$(this).addClass('active');
 					})
@@ -102,7 +154,8 @@ var VuFind = (function(){
 
 			// If Browse Category js is set, initialize those functions
 			if (typeof VuFind.Browse.initializeBrowseCategory == 'function') {
-				VuFind.Browse.initializeBrowseCategory(); }
+				VuFind.Browse.initializeBrowseCategory();
+			}
 		},
 
 		initializeModalDialogs: function() {

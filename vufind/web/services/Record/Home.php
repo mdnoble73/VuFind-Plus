@@ -51,16 +51,14 @@ class Record_Home extends Record_Record{
 		$interface->assign('actions', $actions);
 
 		$interface->assign('moreDetailsOptions', $this->recordDriver->getMoreDetailsOptions());
-
-		//Build the actual view
-
+		$exploreMoreInfo = $this->recordDriver->getExploreMoreInfo();
+		$interface->assign('exploreMoreInfo', $exploreMoreInfo);
 
 		// Display Page
-//		$interface->assign('sidebar', 'Record/full-record-sidebar.tpl');
-//		$interface->assign('moreDetailsTemplate', 'GroupedWork/moredetails-accordion.tpl');
-//		$interface->setTemplate('view.tpl');
-//		$interface->setPageTitle($this->recordDriver->getTitle());
-//		$interface->display('layout.tpl');
+		global $configArray;
+		if ($configArray['Catalog']['showExploreMoreForFullRecords']) {
+			$interface->assign('showExploreMore', true);
+		}
 
 		$this->display('view.tpl', $this->recordDriver->getTitle());
 

@@ -48,14 +48,14 @@ public class ExtractOverDriveInfo {
 	private long overDriveAPIExpiration;
 	private String overDriveProductsKey;
 	private boolean forceMetaDataUpdate;
-	private HashMap<Long, String> libToOverDriveAPIKeyMap = new HashMap<Long, String>();
-	private HashMap<String, Long> overDriveFormatMap = new HashMap<String, Long>();
+	private HashMap<Long, String> libToOverDriveAPIKeyMap = new HashMap<>();
+	private HashMap<String, Long> overDriveFormatMap = new HashMap<>();
 	
-	private HashMap<String, OverDriveRecordInfo> overDriveTitles = new HashMap<String, OverDriveRecordInfo>();
-	private HashMap<String, Long> advantageCollectionToLibMap = new HashMap<String, Long>();
-	private HashMap<String, OverDriveDBInfo> databaseProducts = new HashMap<String, OverDriveDBInfo>();
-	private HashMap<String, Long> existingLanguageIds = new HashMap<String, Long>();
-	private HashMap<String, Long> existingSubjectIds = new HashMap<String, Long>();
+	private HashMap<String, OverDriveRecordInfo> overDriveTitles = new HashMap<>();
+	private HashMap<String, Long> advantageCollectionToLibMap = new HashMap<>();
+	private HashMap<String, OverDriveDBInfo> databaseProducts = new HashMap<>();
+	private HashMap<String, Long> existingLanguageIds = new HashMap<>();
+	private HashMap<String, Long> existingSubjectIds = new HashMap<>();
 	
 	private PreparedStatement addProductStmt;
 	private PreparedStatement updateProductStmt;
@@ -217,6 +217,7 @@ public class ExtractOverDriveInfo {
 			overDriveFormatMap.put("ebook-overdrive", 610L);
 			overDriveFormatMap.put("video-streaming", 635L);
 			overDriveFormatMap.put("periodicals-nook", 304L);
+			overDriveFormatMap.put("ebook-mediado", 303L);
 
 			try {
 				if (clientSecret == null || clientKey == null || accountId == null || clientSecret.length() == 0 || clientKey.length() == 0 || accountId.length() == 0) {
@@ -571,12 +572,14 @@ public class ExtractOverDriveInfo {
 						for (int j = 0; j < products.length(); j++) {
 							JSONObject curProduct = products.getJSONObject(j);
 							OverDriveRecordInfo curRecord = loadOverDriveRecordFromJSON(libraryName, curProduct);
-							if (overDriveTitles.containsKey(curRecord.getId().toLowerCase())) {
-								OverDriveRecordInfo oldRecord = overDriveTitles.get(curRecord.getId().toLowerCase());
-								oldRecord.getCollections().add(libraryId);
-							} else {
-								//logger.debug("Loading record " + curRecord.getId());
-								overDriveTitles.put(curRecord.getId().toLowerCase(), curRecord);
+							if (curRecord != null) {
+								if (overDriveTitles.containsKey(curRecord.getId().toLowerCase())) {
+									OverDriveRecordInfo oldRecord = overDriveTitles.get(curRecord.getId().toLowerCase());
+									oldRecord.getCollections().add(libraryId);
+								} else {
+									//logger.debug("Loading record " + curRecord.getId());
+									overDriveTitles.put(curRecord.getId().toLowerCase(), curRecord);
+								}
 							}
 						}
 					}
@@ -595,6 +598,10 @@ public class ExtractOverDriveInfo {
 		OverDriveRecordInfo curRecord = new OverDriveRecordInfo();
 		curRecord.setId(curProduct.getString("id"));
 		//logger.debug("Processing overdrive title " + curRecord.getId());
+		if (!curProduct.has("title")){
+			logger.warn("Product " + curProduct.getString("id") + " did not have a title, skipping");
+			return null;
+		}
 		curRecord.setTitle(curProduct.getString("title"));
 		if (curProduct.has("subtitle")){
 			curRecord.setSubtitle(curProduct.getString("subtitle"));
@@ -771,7 +778,7 @@ public class ExtractOverDriveInfo {
 					clearSubjectRefStmt.setLong(1, databaseId);
 					clearSubjectRefStmt.executeUpdate();
 					if (metaData.has("subjects")){
-						HashSet<String> subjectsProcessed = new HashSet<String>();
+						HashSet<String> subjectsProcessed = new HashSet<>();
 						JSONArray subjects = metaData.getJSONArray("subjects");
 						for (int i = 0; i < subjects.length(); i++){
 							JSONObject subject = subjects.getJSONObject(i);
@@ -805,7 +812,7 @@ public class ExtractOverDriveInfo {
 					clearIdentifiersStmt.executeUpdate();
 					if (metaData.has("formats")){
 						JSONArray formats = metaData.getJSONArray("formats");
-						HashSet<String> uniqueIdentifiers = new HashSet<String>();
+						HashSet<String> uniqueIdentifiers = new HashSet<>();
 						for (int i = 0; i < formats.length(); i++){
 							JSONObject format = formats.getJSONObject(i);
 							addFormatStmt.setLong(1, databaseId);
@@ -877,13 +884,7 @@ public class ExtractOverDriveInfo {
 				if (updateMetaData){
 					updateProductMetadataStmt.setLong(2, curTime);
 				}else{
-					Long lastMetaDataChange = null;
-					if (dbInfo != null) {
-						lastMetaDataChange = dbInfo.getLastMetadataChange();
-					}
-					if (lastMetaDataChange == null){
-						lastMetaDataChange = curTime;
-					}
+					Long lastMetaDataChange = dbInfo.getLastMetadataChange();
 					updateProductMetadataStmt.setLong(2, lastMetaDataChange);
 				}
 				updateProductMetadataStmt.setLong(3, databaseId);
@@ -919,7 +920,7 @@ public class ExtractOverDriveInfo {
 	private boolean updateOverDriveAvailability(OverDriveRecordInfo overDriveInfo, long databaseId, OverDriveDBInfo dbInfo) throws SocketTimeoutException {
 		//Don't need to load availability if we already have availability and the availability was checked within the last hour
 		long curTime = new Date().getTime() / 1000;
-		if (dbInfo != null && dbInfo.getLastAvailabilityCheck() >= curTime - 1 * 60 * 60){
+		if (dbInfo != null && dbInfo.getLastAvailabilityCheck() >= curTime - 60 * 60){
 			return false;
 		}
 
@@ -1031,8 +1032,6 @@ public class ExtractOverDriveInfo {
 	
 	private WebServiceResponse callOverDriveURL(String overdriveUrl) throws SocketTimeoutException {
 		WebServiceResponse webServiceResponse = new WebServiceResponse();
-		boolean errorOnLastOverDriveCall = false;
-
 		if (connectToOverDriveAPI(false)) {
 			//Connect to the API to get our token
 			HttpURLConnection conn;

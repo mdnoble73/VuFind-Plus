@@ -51,7 +51,4 @@ abstract class Action extends PEAR
 		}
 		$interface->assign('showCovers', $showCovers);
 	}
-
 }
-
-?>

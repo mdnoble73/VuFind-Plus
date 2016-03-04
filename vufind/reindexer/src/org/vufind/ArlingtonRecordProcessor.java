@@ -209,6 +209,9 @@ public class ArlingtonRecordProcessor extends IIIRecordProcessor {
 						scopingInfo.setGroupedStatus(groupedDisplayStatus);
 						if (curScope.isLocationScope()) {
 							scopingInfo.setLocallyOwned(curScope.isItemOwnedByScope(profileType, locationCode, ""));
+							if (curScope.getLibraryScope() != null) {
+								scopingInfo.setLibraryOwned(curScope.getLibraryScope().isItemOwnedByScope(profileType, locationCode, ""));
+							}
 						}
 						if (curScope.isLibraryScope()) {
 							scopingInfo.setLibraryOwned(curScope.isItemOwnedByScope(profileType, locationCode, ""));
@@ -304,6 +307,9 @@ public class ArlingtonRecordProcessor extends IIIRecordProcessor {
 						scopingInfo.setHoldable(false);
 						if (curScope.isLocationScope()) {
 							scopingInfo.setLocallyOwned(curScope.isItemOwnedByScope(profileType, bibLocation, ""));
+							if (curScope.getLibraryScope() != null) {
+								scopingInfo.setLibraryOwned(curScope.getLibraryScope().isItemOwnedByScope(profileType, bibLocation, ""));
+							}
 						}
 						if (curScope.isLibraryScope()) {
 							scopingInfo.setLibraryOwned(curScope.isItemOwnedByScope(profileType, bibLocation, ""));
@@ -329,6 +335,19 @@ public class ArlingtonRecordProcessor extends IIIRecordProcessor {
 			}
 		}
 		return false;
+	}
+
+	protected boolean isItemSuppressed(DataField curItem) {
+		Subfield icode2Subfield = curItem.getSubfield(iCode2Subfield);
+		if (icode2Subfield != null && useICode2Suppression) {
+			String icode2 = icode2Subfield.getData().toLowerCase().trim();
+
+			//Suppress icode2 codes
+			if (icode2.matches("^(d|e|h|n|p|y|4|5|6)$")) {
+				return true;
+			}
+		}
+		return super.isItemSuppressed(curItem);
 	}
 
 	/**

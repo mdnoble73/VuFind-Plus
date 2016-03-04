@@ -26,11 +26,12 @@ class ReindexLog extends Admin_Admin
 {
 	function launch()
 	{
-		global $interface;
+		global $interface,
+		       $configArray;
 
-		$interface->setPageTitle('Reindex Log');
-		
 		$logEntries = array();
+		$logEntry = new ReindexLogEntry();
+		$total = $logEntry->count();
 		$logEntry = new ReindexLogEntry();
 		$logEntry->orderBy('startTime DESC');
 		$page = isset($_REQUEST['page']) ? $_REQUEST['page'] : 1;
@@ -42,9 +43,14 @@ class ReindexLog extends Admin_Admin
 		}
 		$interface->assign('logEntries', $logEntries);
 
-		$interface->assign('sidebar', 'MyAccount/account-sidebar.tpl');
-		$interface->setTemplate('reindexLog.tpl');
-		$interface->display('layout.tpl');
+		$options = array('totalItems' => $total,
+		                 'fileName'   => $configArray['Site']['path'].'/Admin/ReindexLog?page=%d',
+		                 'perPage'    => 30,
+		);
+		$pager = new VuFindPager($options);
+		$interface->assign('pageLinks', $pager->getLinks());
+
+		$this->display('reindexLog.tpl', 'Reindex Log');
 	}
 
 	function getAllowableRoles(){

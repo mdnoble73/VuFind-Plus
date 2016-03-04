@@ -485,8 +485,6 @@ KeywordProper:
       - [or, ~]
     callnumber-subject:
       - [onephrase, ~]
-    callnumber_browse:
-      - [exact, ~]
     id:
       - [onephrase, ~]
     alternate_ids:
@@ -635,11 +633,20 @@ GenealogyName:
       - [onephrase, 350]
       - [and, 200]
 
+IslandoraTitle:
+  QueryFields:
+    - mods_titleInfo_title_t:
+      - [onephrase, 1200]
+    - fgs_label_t:
+      - [onephrase, 1200]
+
 IslandoraKeyword:
   QueryFields:
     - mods_titleInfo_title_t:
+      - [onephrase, 1200]
       - [and, 700]
     - fgs_label_t:
+      - [onephrase, 1200]
       - [and, 700]
     - mods_abstract_t:
       - [and, 200]
@@ -649,6 +656,8 @@ IslandoraKeyword:
       - [and, 300]
     - eaccpf_cpfDescription_description_biogHist_p_t:
       - [and, 100]
+    - mods_extension_marmotLocal_hasTranscription_transcriptionText_mt:
+      - [and, 25]
     - PID:
       - [exact, 1000]
       - [and, 100]

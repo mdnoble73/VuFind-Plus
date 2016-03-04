@@ -65,11 +65,22 @@ class FedoraUtils {
 
 	/** AbstractObject */
 	public function getObjectLabel($pid) {
-		$object = $this->repository->getObject($pid);
+		try{
+			$object = $this->repository->getObject($pid);
+		}catch (Exception $e){
+			//global $logger;
+			//$logger->log("Could not find object $pid due to exception $e", PEAR_LOG_WARNING);
+			$object = null;
+		}
+
 		if ($object == null){
 			return 'Invalid Object';
 		}else{
-			return $object->label;
+			if (empty($object->label)){
+				return $pid;
+			}else{
+				return $object->label;
+			}
 		}
 	}
 
@@ -82,7 +93,16 @@ class FedoraUtils {
 	function getObjectImageUrl($archiveObject, $size = 'small', $defaultType = null){
 		global $configArray;
 		$objectUrl = $configArray['Islandora']['objectUrl'];
-		if ($size == 'small'){
+		if ($size == 'thumbnail'){
+			if ($archiveObject->getDatastream('TN') != null){
+				return $objectUrl . '/' . $archiveObject->id . '/datastream/TN/view';
+			}else if ($archiveObject->getDatastream('SC') != null){
+				return $objectUrl . '/' . $archiveObject->id . '/datastream/SC/view';
+			}else {
+				//return a placeholder
+				return $this->getPlaceholderImage($defaultType);
+			}
+		}elseif ($size == 'small'){
 			if ($archiveObject->getDatastream('SC') != null){
 				return $objectUrl . '/' . $archiveObject->id . '/datastream/SC/view';
 			}else if ($archiveObject->getDatastream('TN') != null){
@@ -91,14 +111,15 @@ class FedoraUtils {
 				//return a placeholder
 				return $this->getPlaceholderImage($defaultType);
 			}
-
 		}elseif ($size == 'medium'){
 			if ($archiveObject->getDatastream('MC') != null) {
 				return $objectUrl . '/' . $archiveObject->id . '/datastream/MC/view';
+			}else if ($archiveObject->getDatastream('MEDIUM_SIZE') != null) {
+				return $objectUrl . '/' . $archiveObject->id . '/datastream/MEDIUM_SIZE/view';
 			}else if ($archiveObject->getDatastream('TN') != null) {
 				return $objectUrl . '/' . $archiveObject->id . '/datastream/TN/view';
 			}else{
-				return $this->getPlaceholderImage($defaultType);
+				return $this->getObjectImageUrl($archiveObject, 'small', $defaultType);
 			}
 		}if ($size == 'large'){
 			if ($archiveObject->getDatastream('JPG') != null) {
@@ -106,21 +127,60 @@ class FedoraUtils {
 			}elseif ($archiveObject->getDatastream('LC') != null){
 				return $objectUrl . '/' . $archiveObject->id . '/datastream/LC/view';
 			}else{
-				return $this->getPlaceholderImage($defaultType);
+				return $this->getObjectImageUrl($archiveObject, 'medium', $defaultType);
 			}
 		}
 	}
 
 	public function getPlaceholderImage($defaultType) {
 		global $configArray;
-		if ($defaultType == 'personCModel') {
+		if ($defaultType == 'personCModel' || $defaultType == 'person') {
 			return $configArray['Site']['path'] . '/interface/themes/responsive/images/people.png';
-		}elseif ($defaultType == 'placeCModel'){
+		}elseif ($defaultType == 'placeCModel' || $defaultType == 'place'){
 			return $configArray['Site']['path'] . '/interface/themes/responsive/images/places.png';
-		}elseif ($defaultType == 'eventCModel'){
+		}elseif ($defaultType == 'eventCModel' || $defaultType == 'event'){
 			return $configArray['Site']['path'] . '/interface/themes/responsive/images/events.png';
 		}else{
 			return $configArray['Site']['path'] . '/interface/themes/responsive/images/History.png';
 		}
 	}
+
+	/**
+	 * Retrieves MODS data for the specified object
+	 *
+	 * @param FedoraObject $archiveObject
+	 *
+	 * @return SimpleXMLElement
+	 */
+	public function getModsData($archiveObject){
+		if (array_key_exists($archiveObject->id, $this->modsCache)) {
+			$modsData = $this->modsCache[$archiveObject->id];
+		}else{
+			$modsStream = $archiveObject->getDatastream('MODS');
+			if ($modsStream){
+				$temp = tempnam('/tmp', 'mods');
+				$modsStream->getContent($temp);
+				$modsStreamContent = trim(file_get_contents($temp));
+				if (strlen($modsStreamContent) > 0){
+					$modsData = simplexml_load_string($modsStreamContent);
+					if (sizeof($modsData) == 0){
+						$modsData = $modsData->children('http://www.loc.gov/mods/v3');
+					}
+				}
+				unlink($temp);
+				$this->modsCache[$archiveObject->id] = $modsData;
+			}else{
+				return null;
+			}
+		}
+		return $modsData;
+	}
+
+	private $modsCache = array();
+
+	public function doSparqlQuery($query){
+		$results = $this->repository->ri->sparqlQuery($query);
+		return $results;
+	}
+
 }

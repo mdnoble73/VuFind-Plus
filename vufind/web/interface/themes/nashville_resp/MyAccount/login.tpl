@@ -32,7 +32,7 @@
 					<div class="col-xs-12 col-sm-offset-4 col-sm-8">
 						<p class="help-block"><a href="{$path}/MyAccount/RequestPinReset">Forgot your PIN?</a></p>
 						{*<p class="help-block"><a href="#" onclick="document.getElementById('loginPasswordConfirmRow').style.display='block';">Create new PIN</p>*}
-						<p class="help-block"><a href="#" onclick="$('#loginPasswordConfirmRow').display();">Create new PIN</p>
+						<p class="help-block"><a href="#" onclick="$('#loginPasswordConfirmRow').show();">Create new PIN</p>
 						{if $enableSelfRegistration == 1}
 							<p class="help-block">
 								<a href="{$path}/MyAccount/SelfReg">Get a Card [PIKA SELFREG]</a>

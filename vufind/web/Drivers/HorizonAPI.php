@@ -58,8 +58,20 @@ abstract class HorizonAPI extends Horizon{
 					$userExistsInDB = true;
 				}
 
-				$user->firstname = isset($firstName) ? $firstName : '';
-				$user->lastname = isset($lastName) ? $lastName : '';
+				$forceDisplayNameUpdate = false;
+				$firstName = isset($firstName) ? $firstName : '';
+				if ($user->firstname != $firstName) {
+					$user->firstname = $firstName;
+					$forceDisplayNameUpdate = true;
+				}
+				$lastName = isset($lastName) ? $lastName : '';
+				if ($user->lastname != $lastName){
+					$user->lastname = isset($lastName) ? $lastName : '';
+					$forceDisplayNameUpdate = true;
+				}
+				if ($forceDisplayNameUpdate){
+					$user->displayName = '';
+				}
 				$user->fullname = isset($fullName) ? $fullName : '';
 				$user->cat_username = $username;
 				$user->cat_password = $password;

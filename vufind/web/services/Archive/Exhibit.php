@@ -34,7 +34,7 @@ class Archive_Exhibit extends Archive_Object{
 		$searchObject->init();
 		$searchObject->setDebugging(false, false);
 		$searchObject->clearHiddenFilters();
-		$searchObject->addHiddenFilter('!RELS_EXT_isViewableByRole_literal_ms', "admin");
+		$searchObject->addHiddenFilter('!RELS_EXT_isViewableByRole_literal_ms', "administrator");
 		$searchObject->clearFilters();
 		$searchObject->addFilter("RELS_EXT_isMemberOfCollection_uri_ms:\"info:fedora/{$this->pid}\"");
 

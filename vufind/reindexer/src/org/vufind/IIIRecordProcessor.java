@@ -420,11 +420,11 @@ public abstract class IIIRecordProcessor extends IlsRecordProcessor{
 				if (scope.isItemPartOfScope(profileType, location, "", true, true, false)){
 					ScopingInfo scopingInfo = itemInfo.addScope(scope);
 					if (scope.isLocationScope()) {
+						scopingInfo.setLibraryOwned(scope.getLibraryScope().isItemOwnedByScope(profileType, location, ""));
 						scopingInfo.setLocallyOwned(scope.isItemOwnedByScope(profileType, location, ""));
 					}
 					if (scope.isLibraryScope()) {
-						boolean libraryOwned = scope.isItemOwnedByScope(profileType, location, "");
-						scopingInfo.setLibraryOwned(libraryOwned);
+						scopingInfo.setLibraryOwned(scope.isItemOwnedByScope(profileType, location, ""));
 						if (itemInfo.getShelfLocation().equals("On Order")){
 							itemInfo.setShelfLocation(scopingInfo.getScope().getFacetLabel() + " On Order");
 						}

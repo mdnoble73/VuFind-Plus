@@ -6,9 +6,10 @@
 			</div>
 		{/if}
 
-		{if $profile->getNumHoldsAvailableTotal() && $profile->getNumHoldsAvailableTotal() > 0}
-			<div class="text-info text-center alert alert-info"><a href="/MyAccount/Holds" class="alert-link">You have {$profile->getNumHoldsAvailableTotal()} holds ready for pick up.</a></div>
-		{/if}
+		{* Alternate Mobile MyAccount Menu *}
+		{include file="MyAccount/mobilePageHeader.tpl"}
+
+		{include file="MyAccount/availableHoldsNotice.tpl"}
 
 		{* Internal Grid *}
 		<h2 class="myAccountTitle">{translate text='Recommended for you'}</h2>

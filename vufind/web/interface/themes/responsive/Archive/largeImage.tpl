@@ -4,7 +4,7 @@
 			{$title|escape}
 		</h2>
 		{if $noImage}
-			<div class="alert alert-warn">
+			<div class="alert alert-warning">
 				Sorry we could not find an image for this object.
 			</div>
 		{elseif $large_image}
@@ -12,13 +12,24 @@
 		{else}
 			<div class="main-project-image">
 				<a href="{$image}">
-					<img src="{$image}" class="img-responsive"/>
+					<img src="{$image}" class="img-responsive">
 				</a>
 			</div>
 		{/if}
 
+{*//Moved to accordion
 
-		{$description}
+		{if $description}
+			<div class="row">
+				<div class="result-label col-sm-4">Description: </div>
+				<div class="col-sm-8 result-value">
+					{$description}
+				</div>
+			</div>
+		{/if}
+*}
+
+		{include file="Archive/metadata.tpl"}
 	</div>
 	<script src="{$path}/js/openseadragon/openseadragon.js" ></script>
 	<script src="{$path}/js/openseadragon/djtilesource.js" ></script>
