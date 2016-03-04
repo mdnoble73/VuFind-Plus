@@ -419,6 +419,10 @@ class SearchAPI extends Action {
 		$widget->id = $id;
 		if ($widget->find(true)){
 			$interface->assign('widget', $widget);
+
+			if (!empty($_REQUEST['resizeIframe']) || !empty($_REQUEST['resizeiframe'])) {
+				$interface->assign('resizeIframe', true);
+			}
 			//return the widget
 			return $interface->fetch('ListWidget/listWidget.tpl');
 		}
