@@ -11,7 +11,7 @@
 		{/foreach}
 
 		{if count($exactEntityMatches) > 0}
-			<div class="sectionHeader">Related Entities</div>
+			<div class="sectionHeader">People, Places &amp; Events</div>
 			<div class="section">
 				{foreach from=$exactEntityMatches item=entity}
 					<strong>{$entity.title}</strong>
@@ -28,7 +28,7 @@
 		{/if}
 
 		{if count($relatedArchiveData) > 0}
-			<div class="sectionHeader">Related Content</div>
+			<div class="sectionHeader">From the Archive</div>
 			{foreach from=$relatedArchiveData item=section}
 				<div class="section">
 
@@ -44,7 +44,7 @@
 
 		{* Related Titles Widget *}
 		{if $related_titles.numFound > 0}
-			<div class="sectionHeader">Related Titles</div>
+			<div class="sectionHeader">Books and More</div>
 			{* JCarousel with related titles *}
 			<div class="jcarousel-wrapper">
 				{*<a href="#" class="jcarousel-control-prev"*}{* data-target="-=1"*}{*><i class="glyphicon glyphicon-chevron-left"></i></a>*}
@@ -71,7 +71,7 @@
 
 		{* Related Articles Widget *}
 		{if $relatedArticles}
-			<div class="sectionHeader">Related Academic Resources</div>
+			<div class="sectionHeader">Articles and More</div>
 			<div class="section">
 				{foreach from=$relatedArticles item=section}
 				<div class="row">

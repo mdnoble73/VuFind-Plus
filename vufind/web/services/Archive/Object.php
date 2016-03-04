@@ -298,56 +298,6 @@ abstract class Archive_Object extends Action{
 		$interface->assign('collections', $collections);
 	}
 
-	/**
-	 * @param string[] $relatedSubjects
-	 */
-	protected function getRelatedWorks($relatedSubjects) {
-		global $interface;
-		//Load related catalog content
-		$searchTerm = implode(" OR ", $relatedSubjects);
-
-		if (strlen($searchTerm) > 0) {
-			/** @var SearchObject_Solr $searchObject */
-			$searchObject = SearchObjectFactory::initSearchObject();
-			$searchObject->init('local', $searchTerm);
-			$searchObject->setSearchTerms(array(
-					'lookfor' => $searchTerm,
-					'index' => 'Keyword'
-			));
-			$searchObject->addFilter('literary_form_full:Non Fiction');
-			$searchObject->addFilter('target_audience:Adult');
-			$searchObject->setPage(1);
-			$searchObject->setLimit(5);
-			$results = $searchObject->processSearch(true, false);
-
-			if ($results && isset($results['response'])) {
-				$similarTitles = array(
-						'numFound' => $results['response']['numFound'],
-						'allResultsLink' => $searchObject->renderSearchUrl(),
-						'topHits' => array()
-				);
-				foreach ($results['response']['docs'] as $doc) {
-					/** @var GroupedWorkDriver $driver */
-					$driver = RecordDriverFactory::initRecordDriver($doc);
-					$similarTitle = array(
-							'title' => $driver->getTitle(),
-							'link' => $driver->getLinkUrl(),
-							'cover' => $driver->getBookcoverUrl('small')
-					);
-					$similarTitles['topHits'][] = $similarTitle;
-				}
-			} else {
-				$similarTitles = array(
-						'numFound' => 0,
-						'topHits' => array()
-				);
-			}
-			$interface->assign('related_titles', $similarTitles);
-		}
-	}
-
-
-
 	protected function loadLinkedData(){
 		global $interface;
 		foreach ($this->links as $link){
