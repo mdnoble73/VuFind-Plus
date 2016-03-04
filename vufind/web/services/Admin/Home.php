@@ -39,6 +39,18 @@ class Home extends Admin_Admin {
 				$data = $unxml->getUnserializedData();
 				$interface->assign('data', $data['status']);
 			}
+
+			$masterIndexUrl = str_replace(':80', ':81', $configArray['Index']['url']) . '/admin/cores';
+			$masterXml = @file_get_contents($masterIndexUrl);
+
+			if ($masterXml) {
+				$options = array('parseAttributes' => 'true',
+						'keyAttribute' => 'name');
+				$unxml = new XML_Unserializer($options);
+				$unxml->unserialize($masterXml);
+				$masterData = $unxml->getUnserializedData();
+				$interface->assign('master_data', $masterData['status']);
+			}
 		}
 
 		$interface->assign('sidebar', 'MyAccount/account-sidebar.tpl');
