@@ -943,12 +943,23 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		}
 		if (!hasCallNumber){
 			String callNumber = null;
+			if (use099forBibLevelCallNumbers()) {
+				DataField localCallNumberField = (DataField) record.getVariableField("099");
+				if (localCallNumberField != null) {
+					callNumber = "";
+					for (Subfield curSubfield : localCallNumberField.getSubfields()) {
+						callNumber += " " + curSubfield.getData().trim();
+					}
+				}
+			}
 			//MDN #ARL-217 do not use 099 as a call number
-			DataField deweyCallNumberField = (DataField)record.getVariableField("092");
-			if (deweyCallNumberField != null){
-				callNumber = "";
-				for (Subfield curSubfield : deweyCallNumberField.getSubfields()){
-					callNumber += " " + curSubfield.getData().trim();
+			if (callNumber == null) {
+				DataField deweyCallNumberField = (DataField) record.getVariableField("092");
+				if (deweyCallNumberField != null) {
+					callNumber = "";
+					for (Subfield curSubfield : deweyCallNumberField.getSubfields()) {
+						callNumber += " " + curSubfield.getData().trim();
+					}
 				}
 			}
 			if (callNumber != null) {
@@ -956,6 +967,10 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 				itemInfo.setSortableCallNumber(callNumber.trim());
 			}
 		}
+	}
+
+	protected boolean use099forBibLevelCallNumbers() {
+		return true;
 	}
 
 	protected HoldabilityInformation isItemHoldable(ItemInfo itemInfo, Scope curScope){
