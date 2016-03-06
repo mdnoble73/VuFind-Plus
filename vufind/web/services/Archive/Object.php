@@ -204,6 +204,7 @@ abstract class Archive_Object extends Action{
 
 	function loadExploreMoreContent(){
 		require_once ROOT_DIR . '/sys/ArchiveSubject.php';
+		global $interface;
 		$archiveSubjects = new ArchiveSubject();
 		$subjectsToIgnore = array();
 		$subjectsToRestrict = array();
@@ -243,9 +244,14 @@ abstract class Archive_Object extends Action{
 		}
 		$relatedSubjects = array_slice($relatedSubjects, 0, 8);
 
-		$this->getRelatedWorks($relatedSubjects);
-		$this->getRelatedArticles($relatedSubjects);
-		$this->getRelatedArchiveContent($relatedSubjects);
+		$exploreMore = new ExploreMore();
+		$exploreMore->getRelatedWorks($relatedSubjects);
+		$ebscoMatches = $exploreMore->loadEbscoOptions('archive', array(), implode($relatedSubjects, " or "));
+		if (count($ebscoMatches) > 0){
+			$interface->assign('relatedArticles', $ebscoMatches);
+		}
+		$searchTerm = implode(" OR ", $relatedSubjects);
+		$exploreMore->getRelatedArchiveContent('archive', array(), $searchTerm);
 	}
 
 	protected function getRelatedCollections() {
@@ -290,155 +296,6 @@ abstract class Archive_Object extends Action{
 			}
 		}
 		$interface->assign('collections', $collections);
-	}
-
-	/**
-	 * @param string[] $relatedSubjects
-	 */
-	protected function getRelatedWorks($relatedSubjects) {
-		global $interface;
-		//Load related catalog content
-		$searchTerm = implode(" OR ", $relatedSubjects);
-
-		if (strlen($searchTerm) > 0) {
-			/** @var SearchObject_Solr $searchObject */
-			$searchObject = SearchObjectFactory::initSearchObject();
-			$searchObject->init('local', $searchTerm);
-			$searchObject->setSearchTerms(array(
-					'lookfor' => $searchTerm,
-					'index' => 'Keyword'
-			));
-			$searchObject->addFilter('literary_form_full:Non Fiction');
-			$searchObject->addFilter('target_audience:Adult');
-			$searchObject->setPage(1);
-			$searchObject->setLimit(5);
-			$results = $searchObject->processSearch(true, false);
-
-			if ($results && isset($results['response'])) {
-				$similarTitles = array(
-						'numFound' => $results['response']['numFound'],
-						'allResultsLink' => $searchObject->renderSearchUrl(),
-						'topHits' => array()
-				);
-				foreach ($results['response']['docs'] as $doc) {
-					/** @var GroupedWorkDriver $driver */
-					$driver = RecordDriverFactory::initRecordDriver($doc);
-					$similarTitle = array(
-							'title' => $driver->getTitle(),
-							'link' => $driver->getLinkUrl(),
-							'cover' => $driver->getBookcoverUrl('small')
-					);
-					$similarTitles['topHits'][] = $similarTitle;
-				}
-			} else {
-				$similarTitles = array(
-						'numFound' => 0,
-						'topHits' => array()
-				);
-			}
-			$interface->assign('related_titles', $similarTitles);
-		}
-	}
-
-	private function getRelatedArchiveContent($relatedSubjects) {
-		global $interface;
-		require_once ROOT_DIR . '/sys/Utils/FedoraUtils.php';
-		$exploreMoreOptions = array();
-
-		/** @var SearchObject_Islandora $searchObject */
-		$searchObject = SearchObjectFactory::initSearchObject('Islandora');
-		$searchObject->init();
-		$searchObject->setDebugging(false, false);
-
-		//Get a list of objects in the archive related to this search
-		$searchTerm = implode(" OR ", $relatedSubjects);
-		$searchObject->setSearchTerms(array(
-				'lookfor' => $searchTerm,
-				'index' => 'IslandoraKeyword'
-		));
-		$searchObject->clearHiddenFilters();
-		$searchObject->addHiddenFilter('!RELS_EXT_isViewableByRole_literal_ms', "administrator");
-		$searchObject->clearFilters();
-		$searchObject->addFacet('RELS_EXT_hasModel_uri_s', 'Format');
-
-		$response = $searchObject->processSearch(true, false);
-		if ($response && $response['response']['numFound'] > 0) {
-			//Using the facets, look for related entities
-			foreach ($response['facet_counts']['facet_fields']['RELS_EXT_hasModel_uri_s'] as $relatedContentType) {
-				if ($relatedContentType[0] != 'info:fedora/islandora:collectionCModel' &&
-						$relatedContentType[0] != 'info:fedora/islandora:personCModel' &&
-						$relatedContentType[0] != 'info:fedora/islandora:placeCModel' &&
-						$relatedContentType[0] != 'info:fedora/islandora:eventCModel'
-				) {
-
-					/** @var SearchObject_Islandora $searchObject2 */
-					$searchObject2 = SearchObjectFactory::initSearchObject('Islandora');
-					$searchObject2->init();
-					$searchObject2->setDebugging(false, false);
-					$searchObject2->setSearchTerms(array(
-							'lookfor' => $searchTerm,
-							'index' => 'IslandoraKeyword'
-					));
-					$searchObject2->clearHiddenFilters();
-					$searchObject2->addHiddenFilter('!RELS_EXT_isViewableByRole_literal_ms', "administrator");
-					$searchObject2->clearFilters();
-					$searchObject2->addFilter("RELS_EXT_hasModel_uri_s:{$relatedContentType[0]}");
-					$response2 = $searchObject2->processSearch(true, false);
-					if ($response2 && $response2['response']['numFound'] > 0) {
-						$firstObject = reset($response2['response']['docs']);
-						/** @var IslandoraDriver $firstObjectDriver */
-						$firstObjectDriver = RecordDriverFactory::initRecordDriver($firstObject);
-						$numMatches = $response2['response']['numFound'];
-						$contentType = translate($relatedContentType[0]);
-						if ($numMatches == 1) {
-							$exploreMoreOptions[] = array(
-									'title' => $firstObjectDriver->getTitle(),
-									'description' => $firstObjectDriver->getTitle(),
-									'thumbnail' => $firstObjectDriver->getBookcoverUrl('medium'),
-									'link' => $firstObjectDriver->getRecordUrl(),
-							);
-						} else {
-							$exploreMoreOptions[] = array(
-									'title' => "{$contentType}s ({$numMatches})",
-									'description' => "{$contentType}s related to this",
-									'thumbnail' => $firstObjectDriver->getBookcoverUrl('medium'),
-									'link' => $searchObject2->renderSearchUrl(),
-							);
-						}
-					}
-				}
-			}
-			$interface->assign('relatedArchiveData', $exploreMoreOptions);
-		}
-	}
-
-	private function getRelatedArticles($relatedSubjects) {
-		global $library;
-		global $configArray;
-		global $interface;
-		if ($library->edsApiProfile){
-			//Load EDS options
-			require_once ROOT_DIR . '/sys/Ebsco/EDS_API.php';
-			$edsApi = EDS_API::getInstance();
-			if ($edsApi->authenticate()){
-				//Find related titles
-				$searchTerm = implode(' OR ', $relatedSubjects);
-				$edsResults = $edsApi->getSearchResults($relatedSubjects);
-				if ($edsResults){
-					$numMatches = $edsResults->Statistics->TotalHits;
-					if ($numMatches > 0){
-						$relatedArticles = array(
-								'title' => "Articles ({$numMatches})",
-								'description' => "Articles related to {$searchTerm}",
-								'thumbnail' => $configArray['Site']['path'] . '/interface/themes/responsive/images/ebsco_eds.png',
-								'link' => '/EBSCO/Results?lookfor=' . urlencode($searchTerm)
-						);
-						$interface->assign('relatedArticles', $relatedArticles);
-					}
-				}
-
-			}
-		}
 	}
 
 	protected function loadLinkedData(){

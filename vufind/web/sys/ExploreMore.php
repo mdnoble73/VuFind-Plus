@@ -1,14 +1,62 @@
 <?php
 
 /**
- * Description goes here
+ * Contains functionality to load content related to a search or to another object
  *
- * @category VuFind-Plus-2014
+ * @category Pika
  * @author Mark Noble <mark@marmot.org>
  * Date: 2/20/2016
  * Time: 8:06 PM
  */
 class ExploreMore {
+
+	function loadExploreMoreSidebar($activeSection, $recordDriver){
+		global $interface;
+		//Get related search terms
+		$subjects = $recordDriver->getAllSubjectHeadings();
+		$subjectsForSearching = array();
+		$quotedSubjectsForSearching = array();
+		foreach ($subjects as $subject){
+			if (is_array($subject)){
+				$searchSubject =  implode(" ", $subject);
+			}else{
+				$searchSubject = $subject;
+			}
+			$searchSubject = preg_replace('/\(.*?\)/',"", $searchSubject);
+			$searchSubject = trim(preg_replace('/[\/|:.,"]/',"", $searchSubject));
+			$subjectsForSearching[] = $searchSubject;
+			$quotedSubjectsForSearching[] = '"' . $searchSubject . '"';
+		}
+
+		$subjectsForSearching = array_slice($subjectsForSearching, 0, 5);
+		$searchTerm = implode(' or ', $subjectsForSearching);
+		$quotedSearchTerm = implode(' OR ', $quotedSubjectsForSearching);
+
+		if ($activeSection != 'archive'){
+			foreach ($subjectsForSearching as $curSubject){
+				$exactEntityMatches = $this->loadExactEntityMatches(array(), $curSubject);
+				if (count($exactEntityMatches) > 0){
+					$interface->assign('exactEntityMatches', $exactEntityMatches);
+				}
+			}
+		}
+
+		//Always load ebsco even if we are already in that section
+		$ebscoMatches = $this->loadEbscoOptions('', array(), $searchTerm);
+		if (count($ebscoMatches) > 0){
+			$interface->assign('relatedArticles', $ebscoMatches);
+		}
+
+		$archiveMatches = $this->getRelatedArchiveContent($activeSection, array(), $quotedSearchTerm);
+		if (count($archiveMatches) > 0){
+			$interface->assign('relatedArchiveData', $archiveMatches);
+		}
+
+		if ($activeSection != 'catalog'){
+			$this->getRelatedWorks($quotedSubjectsForSearching);
+		}
+	}
+
 	function loadExploreMoreBar($activeSection){
 		if (isset($_REQUEST['page']) && $_REQUEST['page'] > 1){
 			return;
@@ -35,46 +83,7 @@ class ExploreMore {
 
 		$exploreMoreOptions = $this->loadCatalogOptions($activeSection, $exploreMoreOptions, $searchTerm);
 
-		if ($library->edsApiProfile && $activeSection != 'ebsco'){
-			//Load EDS options
-			require_once ROOT_DIR . '/sys/Ebsco/EDS_API.php';
-			$edsApi = EDS_API::getInstance();
-			if ($edsApi->authenticate()){
-				//Find related titles
-				$edsResults = $edsApi->getSearchResults($searchTerm);
-				if ($edsResults){
-					$numMatches = $edsResults->Statistics->TotalHits;
-					if ($numMatches > 0){
-						//Check results based on common facets
-						foreach ($edsResults->AvailableFacets->AvailableFacet as $facetInfo){
-							if ($facetInfo->Id == 'SourceType'){
-								foreach ($facetInfo->AvailableFacetValues->AvailableFacetValue as $facetValue){
-									$facetValueStr = (string)$facetValue->Value;
-									if (in_array($facetValueStr, array('Magazines', 'News', 'Academic Journals', 'Primary Source Documents'))){
-										$numFacetMatches = (int)$facetValue->Count;
-										$iconName = 'ebsco_' .  str_replace(' ', '_', strtolower($facetValueStr));
-										$exploreMoreOptions[] = array(
-												'title' => "$facetValueStr ({$numFacetMatches})",
-												'description' => "{$facetValueStr} in EBSCO related to {$searchTerm}",
-												'thumbnail' => $configArray['Site']['path'] . "/interface/themes/responsive/images/{$iconName}.png",
-												'link' => '/EBSCO/Results?lookfor=' . urlencode($searchTerm) . '&filter[]=' . $facetInfo->Id . ':' . $facetValueStr,
-										);
-									}
-
-								}
-							}
-						}
-
-						$exploreMoreOptions[] = array(
-							'title' => "All EBSCO Results ({$numMatches})",
-							'description' => "All Results in EBSCO related to {$searchTerm}",
-							'thumbnail' => $configArray['Site']['path'] . '/interface/themes/responsive/images/ebsco_eds.png',
-							'link' => '/EBSCO/Results?lookfor=' . urlencode($searchTerm)
-						);
-					}
-				}
-			}
-		}
+		$exploreMoreOptions = $this->loadEbscoOptions($activeSection, $exploreMoreOptions, $searchTerm);
 
 		if ($library->enableArchive && $activeSection != 'archive'){
 			if (isset($configArray['Islandora']) && isset($configArray['Islandora']['solrUrl']) && !empty($_GET['lookfor']) && !is_array($_GET['lookfor'])) {
@@ -261,13 +270,13 @@ class ExploreMore {
 		global $library;
 		global $configArray;
 		if ($library->enableArchive) {
-			if (isset($configArray['Islandora']) && isset($configArray['Islandora']['solrUrl']) && !empty($_GET['lookfor']) && !is_array($_GET['lookfor'])) {
+			if (isset($configArray['Islandora']) && isset($configArray['Islandora']['solrUrl']) && $searchTerm) {
 				/** @var SearchObject_Islandora $searchObject */
 				$searchObject = SearchObjectFactory::initSearchObject('Islandora');
 				$searchObject->init();
 				$searchObject->setDebugging(false, false);
 
-				//First look specifically for (We cou
+				//First look specifically for
 				$searchObject->setSearchTerms(array(
 						'lookfor' => $searchTerm,
 						'index' => 'IslandoraTitle'
@@ -356,5 +365,226 @@ class ExploreMore {
 			}
 		}
 		return $exploreMoreOptions;
+	}
+
+	/**
+	 * @param $activeSection
+	 * @param $searchTerm
+	 * @param $exploreMoreOptions
+	 * @return array
+	 */
+	public function loadEbscoOptions($activeSection, $exploreMoreOptions, $searchTerm) {
+		global $library;
+		global $configArray;
+		if ($library->edsApiProfile && $activeSection != 'ebsco') {
+			//Load EDS options
+			require_once ROOT_DIR . '/sys/Ebsco/EDS_API.php';
+			$edsApi = EDS_API::getInstance();
+			if ($edsApi->authenticate()) {
+				//Find related titles
+				$edsResults = $edsApi->getSearchResults($searchTerm);
+				if ($edsResults) {
+					$numMatches = $edsResults->Statistics->TotalHits;
+					if ($numMatches > 0) {
+						//Check results based on common facets
+						foreach ($edsResults->AvailableFacets->AvailableFacet as $facetInfo) {
+							if ($facetInfo->Id == 'SourceType') {
+								foreach ($facetInfo->AvailableFacetValues->AvailableFacetValue as $facetValue) {
+									$facetValueStr = (string)$facetValue->Value;
+									if (in_array($facetValueStr, array('Magazines', 'News', 'Academic Journals', 'Primary Source Documents'))) {
+										$numFacetMatches = (int)$facetValue->Count;
+										$iconName = 'ebsco_' . str_replace(' ', '_', strtolower($facetValueStr));
+										$exploreMoreOptions[] = array(
+												'title' => "$facetValueStr ({$numFacetMatches})",
+												'description' => "{$facetValueStr} in EBSCO related to {$searchTerm}",
+												'thumbnail' => $configArray['Site']['path'] . "/interface/themes/responsive/images/{$iconName}.png",
+												'link' => '/EBSCO/Results?lookfor=' . urlencode($searchTerm) . '&filter[]=' . $facetInfo->Id . ':' . $facetValueStr,
+										);
+									}
+
+								}
+							}
+						}
+
+						$exploreMoreOptions[] = array(
+								'title' => "All EBSCO Results ({$numMatches})",
+								'description' => "All Results in EBSCO related to {$searchTerm}",
+								'thumbnail' => $configArray['Site']['path'] . '/interface/themes/responsive/images/ebsco_eds.png',
+								'link' => '/EBSCO/Results?lookfor=' . urlencode($searchTerm)
+						);
+					}
+				}
+			}
+		}
+		return $exploreMoreOptions;
+	}
+
+	function loadExploreMoreContent(){
+		require_once ROOT_DIR . '/sys/ArchiveSubject.php';
+		$archiveSubjects = new ArchiveSubject();
+		$subjectsToIgnore = array();
+		$subjectsToRestrict = array();
+		if ($archiveSubjects->find(true)){
+			$subjectsToIgnore = array_flip(explode("\r\n", strtolower($archiveSubjects->subjectsToIgnore)));
+			$subjectsToRestrict = array_flip(explode("\r\n", strtolower($archiveSubjects->subjectsToRestrict)));
+		}
+		$this->getRelatedCollections();
+		$relatedSubjects = array();
+		$numSubjectsAdded = 0;
+		if (strlen($this->archiveObject->label) > 0) {
+			$relatedSubjects[$this->archiveObject->label] = '"' . $this->archiveObject->label . '"';
+		}
+		for ($i = 0; $i < 2; $i++){
+			foreach ($this->formattedSubjects as $subject) {
+				$lowerSubject = strtolower($subject['label']);
+				if (!array_key_exists($lowerSubject, $subjectsToIgnore)) {
+					if ($i == 0){
+						//First pass, just add primary subjects
+						if (!array_key_exists($lowerSubject, $subjectsToRestrict)) {
+							$relatedSubjects[$lowerSubject] = '"' . $subject['label'] . '"';
+						}
+					}else{
+						//Second pass, add restricted subjects, but only if we don't have 5 subjects already
+						if (array_key_exists($lowerSubject, $subjectsToRestrict) && count($relatedSubjects) <= 5) {
+							$relatedSubjects[$lowerSubject] = '"' . $subject['label'] . '"';
+						}
+					}
+				}
+			}
+		}
+		$relatedSubjects = array_slice($relatedSubjects, 0, 5);
+		foreach ($this->relatedPeople as $person) {
+			$label = (string)$person['label'];
+			$relatedSubjects[$label] = '"' . $label . '"';
+			$numSubjectsAdded++;
+		}
+		$relatedSubjects = array_slice($relatedSubjects, 0, 8);
+
+		$exploreMore = new ExploreMore();
+		$this->getRelatedWorks($relatedSubjects);
+		$exploreMore->loadEbscoOptions('archive', array(), implode($relatedSubjects, " or "));
+		$searchTerm = implode(" OR ", $relatedSubjects);
+		$exploreMore->getRelatedArchiveContent('archive', array(), $searchTerm);
+	}
+
+	public function getRelatedArchiveContent($activeSection, $exploreMoreOptions, $searchTerm) {
+		global $interface;
+
+		$interface->assign('activeExploreMoreSection', $activeSection);
+		require_once ROOT_DIR . '/sys/Utils/FedoraUtils.php';
+		$exploreMoreOptions = array();
+
+		/** @var SearchObject_Islandora $searchObject */
+		$searchObject = SearchObjectFactory::initSearchObject('Islandora');
+		$searchObject->init();
+		$searchObject->setDebugging(false, false);
+
+		//Get a list of objects in the archive related to this search
+		$searchObject->setSearchTerms(array(
+				'lookfor' => $searchTerm,
+				'index' => 'IslandoraKeyword'
+		));
+		$searchObject->clearHiddenFilters();
+		$searchObject->addHiddenFilter('!RELS_EXT_isViewableByRole_literal_ms', "administrator");
+		$searchObject->clearFilters();
+		$searchObject->addFacet('RELS_EXT_hasModel_uri_s', 'Format');
+
+		$response = $searchObject->processSearch(true, false);
+		if ($response && $response['response']['numFound'] > 0) {
+			//Using the facets, look for related entities
+			foreach ($response['facet_counts']['facet_fields']['RELS_EXT_hasModel_uri_s'] as $relatedContentType) {
+				if ($relatedContentType[0] != 'info:fedora/islandora:collectionCModel' &&
+						$relatedContentType[0] != 'info:fedora/islandora:personCModel' &&
+						$relatedContentType[0] != 'info:fedora/islandora:placeCModel' &&
+						$relatedContentType[0] != 'info:fedora/islandora:eventCModel'
+				) {
+
+					/** @var SearchObject_Islandora $searchObject2 */
+					$searchObject2 = SearchObjectFactory::initSearchObject('Islandora');
+					$searchObject2->init();
+					$searchObject2->setDebugging(false, false);
+					$searchObject2->setSearchTerms(array(
+							'lookfor' => $searchTerm,
+							'index' => 'IslandoraKeyword'
+					));
+					$searchObject2->clearHiddenFilters();
+					$searchObject2->addHiddenFilter('!RELS_EXT_isViewableByRole_literal_ms', "administrator");
+					$searchObject2->clearFilters();
+					$searchObject2->addFilter("RELS_EXT_hasModel_uri_s:{$relatedContentType[0]}");
+					$response2 = $searchObject2->processSearch(true, false);
+					if ($response2 && $response2['response']['numFound'] > 0) {
+						$firstObject = reset($response2['response']['docs']);
+						/** @var IslandoraDriver $firstObjectDriver */
+						$firstObjectDriver = RecordDriverFactory::initRecordDriver($firstObject);
+						$numMatches = $response2['response']['numFound'];
+						$contentType = translate($relatedContentType[0]);
+						if ($numMatches == 1) {
+							$exploreMoreOptions[] = array(
+									'title' => $firstObjectDriver->getTitle(),
+									'description' => $firstObjectDriver->getTitle(),
+									'thumbnail' => $firstObjectDriver->getBookcoverUrl('medium'),
+									'link' => $firstObjectDriver->getRecordUrl(),
+							);
+						} else {
+							$exploreMoreOptions[] = array(
+									'title' => "{$contentType}s ({$numMatches})",
+									'description' => "{$contentType}s related to this",
+									'thumbnail' => $firstObjectDriver->getBookcoverUrl('medium'),
+									'link' => $searchObject2->renderSearchUrl(),
+							);
+						}
+					}
+				}
+			}
+			$interface->assign('relatedArchiveData', $exploreMoreOptions);
+		}
+	}
+
+	/**
+	 * @param string[] $relatedSubjects
+	 */
+	public function getRelatedWorks($relatedSubjects) {
+		global $interface;
+		//Load related catalog content
+		$searchTerm = implode(" OR ", $relatedSubjects);
+
+		if (strlen($searchTerm) > 0) {
+			/** @var SearchObject_Solr $searchObject */
+			$searchObject = SearchObjectFactory::initSearchObject();
+			$searchObject->init('local', $searchTerm);
+			$searchObject->setSearchTerms(array(
+					'lookfor' => $searchTerm,
+					'index' => 'Keyword'
+			));
+			$searchObject->addFilter('literary_form_full:Non Fiction');
+			$searchObject->addFilter('target_audience:Adult');
+			$searchObject->setPage(1);
+			$searchObject->setLimit(5);
+			$results = $searchObject->processSearch(true, false);
+
+			if ($results && isset($results['response'])) {
+				$similarTitles = array(
+						'numFound' => $results['response']['numFound'],
+						'allResultsLink' => $searchObject->renderSearchUrl(),
+						'topHits' => array()
+				);
+				foreach ($results['response']['docs'] as $doc) {
+					/** @var GroupedWorkDriver $driver */
+					$driver = RecordDriverFactory::initRecordDriver($doc);
+					$similarTitle = array(
+							'title' => $driver->getTitle(),
+							'link' => $driver->getLinkUrl(),
+							'cover' => $driver->getBookcoverUrl('small')
+					);
+					$similarTitles['topHits'][] = $similarTitle;
+				}
+			} else {
+				$similarTitles = array(
+						'numFound' => 0,
+						'topHits' => array()
+				);
+			}
+			$interface->assign('related_titles', $similarTitles);
+		}
 	}
 }

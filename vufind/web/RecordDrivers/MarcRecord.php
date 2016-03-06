@@ -414,7 +414,7 @@ class MarcRecord extends IndexRecord
 	 * @access  protected
 	 * @return array
 	 */
-	protected function getAllSubjectHeadings()
+	public function getAllSubjectHeadings()
 	{
 		// These are the fields that may contain subject headings:
 		$fields = array('600', '610', '630', '650', '651', '655');

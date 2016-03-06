@@ -10,8 +10,25 @@
 			</div>
 		{/foreach}
 
+		{if count($exactEntityMatches) > 0}
+			<div class="sectionHeader">People, Places &amp; Events</div>
+			<div class="section">
+				{foreach from=$exactEntityMatches item=entity}
+					<strong>{$entity.title}</strong>
+					<div class="section">
+						<a href="{$entity.link}"><img src="{$entity.thumbnail}" alt="{$entity.description}" class="img-responsive img-thumbnail"></a>
+					</div>
+				{/foreach}
+			</div>
+		{/if}
+
+		{* More Like This *}
+		{if $showMoreLikeThisInExplore}
+			{include file="GroupedWork/exploreMoreLikeThis.tpl"}
+		{/if}
+
 		{if count($relatedArchiveData) > 0}
-			<div class="sectionHeader">Related Content</div>
+			<div class="sectionHeader">From the Archive</div>
 			{foreach from=$relatedArchiveData item=section}
 				<div class="section">
 
@@ -27,7 +44,7 @@
 
 		{* Related Titles Widget *}
 		{if $related_titles.numFound > 0}
-			<div class="sectionHeader">Related Titles</div>
+			<div class="sectionHeader">Books and More</div>
 			{* JCarousel with related titles *}
 			<div class="jcarousel-wrapper">
 				{*<a href="#" class="jcarousel-control-prev"*}{* data-target="-=1"*}{*><i class="glyphicon glyphicon-chevron-left"></i></a>*}
@@ -52,12 +69,24 @@
 			<a href="{$related_titles.allResultsLink}">All Results ({$related_titles.numFound})</a>
 		{/if}
 
-		{* More Like This *}
-		{if $showMoreLikeThisInExplore}
-			{include file="GroupedWork/exploreMoreLikeThis.tpl"}
+		{* Related Articles Widget *}
+		{if $relatedArticles}
+			<div class="sectionHeader">Articles and More</div>
+			<div class="section">
+				{foreach from=$relatedArticles item=section}
+				<div class="row">
+					<a href="{$section.link}">
+						<div class="subsection col-xs-5">
+							<img src="{$section.thumbnail}" alt="{$section.description}" class="img-responsive img-thumbnail">
+						</div>
+						<div class="subsectionTitle col-xs-5">{$section.title}</div>
+					</a>
+				</div>
+				{/foreach}
+			</div>
 		{/if}
 
-		{* Sections for Related Info in Full Record Views  *}
+		{* Sections for Related Content From Novelist  *}
 		{foreach from=$exploreMoreInfo item=exploreMoreOption}
 			<div class="sectionHeader"{if $exploreMoreOption.hideByDefault} style="display: none;"{/if}>{$exploreMoreOption.label}</div>
 			<div class="{*col-sm-12 *}jcarousel-wrapper"{if $exploreMoreOption.hideByDefault} style="display: none;"{/if}>
@@ -65,17 +94,5 @@
 				{$exploreMoreOption.body}
 			</div>
 		{/foreach}
-
-		{* Related Articles Widget *}
-		{if $relatedArticles}
-			<div class="sectionHeader">Related Articles</div>
-			<div class="center-block">
-				<a href="{$relatedArticles.link}">
-					<img src="{$relatedArticles.thumbnail}" alt="{$relatedArticles.description|escape}" class="img-responsive center-block">
-					{$relatedArticles.title}
-				</a>
-			</div>
-
-		{/if}
 	</div>
 {/strip}

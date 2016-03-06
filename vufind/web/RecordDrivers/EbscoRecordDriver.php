@@ -164,6 +164,10 @@ class EbscoRecordDriver extends RecordInterface {
 		//return $this->recordData->PLink;
 	}
 
+	public function getEbscoUrl() {
+		return $this->recordData->PLink;
+	}
+
 	public function getModule() {
 		return 'EBSCO';
 	}
@@ -398,5 +402,28 @@ class EbscoRecordDriver extends RecordInterface {
 				}
 			}
 		}
+	}
+
+	public function getExploreMoreInfo(){
+		global $configArray;
+		$exploreMoreOptions = array();
+		if ($configArray['Catalog']['showExploreMoreForFullRecords']) {
+			require_once ROOT_DIR . '/sys/ExploreMore.php';
+			$exploreMore = new ExploreMore();
+			$exploreMore->loadExploreMoreSidebar('ebsco', $this);
+		}
+		return $exploreMoreOptions;
+	}
+
+	public function getAllSubjectHeadings(){
+		$subjectHeadings = array();
+		foreach ($this->recordData->RecordInfo->BibRecord->BibEntity->Subjects->Subject as $subject){
+			$subjectHeadings[] = (string)$subject->SubjectFull;
+		}
+		return $subjectHeadings;
+	}
+
+	public function getPermanentId(){
+		return $this->getUniqueID();
 	}
 }

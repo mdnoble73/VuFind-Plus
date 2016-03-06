@@ -19,7 +19,14 @@ class EBSCO_Home extends Action{
 		$recordDriver = new EbscoRecordDriver($id);
 		$interface->assign('recordDriver', $recordDriver);
 
-		$interface->assign('showExploreMore', true);
+		$exploreMoreInfo = $recordDriver->getExploreMoreInfo();
+		$interface->assign('exploreMoreInfo', $exploreMoreInfo);
+
+		// Display Page
+		global $configArray;
+		if ($configArray['Catalog']['showExploreMoreForFullRecords']) {
+			$interface->assign('showExploreMore', true);
+		}
 
 		$this->display('view.tpl', $recordDriver->getTitle());
 	}
