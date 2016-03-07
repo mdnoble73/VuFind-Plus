@@ -417,8 +417,10 @@ class EbscoRecordDriver extends RecordInterface {
 
 	public function getAllSubjectHeadings(){
 		$subjectHeadings = array();
-		foreach ($this->recordData->RecordInfo->BibRecord->BibEntity->Subjects->Subject as $subject){
-			$subjectHeadings[] = (string)$subject->SubjectFull;
+		if (count(@$this->recordData->RecordInfo->BibRecord->BibEntity->Subjects) != 0){
+			foreach ($this->recordData->RecordInfo->BibRecord->BibEntity->Subjects->Subject as $subject){
+				$subjectHeadings[] = (string)$subject->SubjectFull;
+			}
 		}
 		return $subjectHeadings;
 	}

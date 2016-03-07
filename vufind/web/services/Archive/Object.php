@@ -212,7 +212,7 @@ abstract class Archive_Object extends Action{
 			$subjectsToIgnore = array_flip(explode("\r\n", strtolower($archiveSubjects->subjectsToIgnore)));
 			$subjectsToRestrict = array_flip(explode("\r\n", strtolower($archiveSubjects->subjectsToRestrict)));
 		}
-		$this->getRelatedCollections();
+		$relatedCollections = $this->getRelatedCollections();
 		$relatedSubjects = array();
 		$numSubjectsAdded = 0;
 		if (strlen($this->archiveObject->label) > 0) {
@@ -220,17 +220,19 @@ abstract class Archive_Object extends Action{
 		}
 		for ($i = 0; $i < 2; $i++){
 			foreach ($this->formattedSubjects as $subject) {
-				$lowerSubject = strtolower($subject['label']);
+				$searchSubject = preg_replace('/\(.*?\)/',"", $subject['label']);
+				$searchSubject = trim(preg_replace('/[\/|:.,"]/',"", $searchSubject));
+				$lowerSubject = strtolower($searchSubject);
 				if (!array_key_exists($lowerSubject, $subjectsToIgnore)) {
 					if ($i == 0){
 						//First pass, just add primary subjects
 						if (!array_key_exists($lowerSubject, $subjectsToRestrict)) {
-							$relatedSubjects[$lowerSubject] = '"' . $subject['label'] . '"';
+							$relatedSubjects[$lowerSubject] = '"' . $searchSubject . '"';
 						}
 					}else{
 						//Second pass, add restricted subjects, but only if we don't have 5 subjects already
 						if (array_key_exists($lowerSubject, $subjectsToRestrict) && count($relatedSubjects) <= 5) {
-							$relatedSubjects[$lowerSubject] = '"' . $subject['label'] . '"';
+							$relatedSubjects[$lowerSubject] = '"' . $searchSubject . '"';
 						}
 					}
 				}
@@ -244,6 +246,9 @@ abstract class Archive_Object extends Action{
 		}
 		$relatedSubjects = array_slice($relatedSubjects, 0, 8);
 
+		//Get works that are directly related to this entity based on linked data
+		$linkedWorks = $this->getLinkedWorks($relatedCollections);
+
 		$exploreMore = new ExploreMore();
 		$exploreMore->getRelatedWorks($relatedSubjects);
 		$ebscoMatches = $exploreMore->loadEbscoOptions('archive', array(), implode($relatedSubjects, " or "));
@@ -252,6 +257,8 @@ abstract class Archive_Object extends Action{
 		}
 		$searchTerm = implode(" OR ", $relatedSubjects);
 		$exploreMore->getRelatedArchiveContent('archive', array(), $searchTerm);
+
+
 	}
 
 	protected function getRelatedCollections() {
@@ -296,6 +303,7 @@ abstract class Archive_Object extends Action{
 			}
 		}
 		$interface->assign('collections', $collections);
+		return $collections;
 	}
 
 	protected function loadLinkedData(){
@@ -312,6 +320,18 @@ abstract class Archive_Object extends Action{
 						'&titles=' . urlencode($searchTerm);
 				$wikipediaData = $wikipediaParser->getWikipediaPage($url);
 				$interface->assign('wikipediaData', $wikipediaData);
+			}
+		}
+	}
+
+	private function getLinkedWorks($relatedCollections) {
+		//Check for works that are directly related to this entity
+		foreach ($this->links as $link){
+			if ($link['type'] == 'relatedPika'){
+				preg_match('/^.*\/GroupedWork\/([a-f0-9-]+)$/', $link['link'], $matches);
+				$workId = $matches[1];
+
+
 			}
 		}
 	}
