@@ -26,6 +26,23 @@ class Archive_Place extends Archive_Object{
 			$interface->assign('mapsKey', $mapsKey);
 		}
 
+		//Look to see if we have a link to who's on first.  If so, show the polygon
+		foreach ($this->links as $link){
+			if ($link['type'] == 'whosOnFirst'){
+				$addressInfo = $interface->getVariable('addressInfo');
+				if ($addressInfo == null || count($addressInfo) == 0){
+					$whosOnFirstDataRaw = file_get_contents($link['link']);
+					$whosOnFirstData = json_decode($whosOnFirstDataRaw, true);
+
+					$addressInfo['latitude'] = $whosOnFirstData['properties']['lbl:latitude'];
+					$addressInfo['longitude'] = $whosOnFirstData['properties']['lbl:longitude'];
+
+					$boundingBox = $whosOnFirstData['bbox'];
+
+					$interface->assign('addressInfo', $addressInfo);
+				}
+			}
+		}
 
 		// Display Page
 		$this->display('place.tpl');

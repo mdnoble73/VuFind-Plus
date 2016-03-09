@@ -167,10 +167,14 @@ abstract class Archive_Object extends Action{
 
 			$addressInfo = array();
 			if (count($marmotExtension->marmotLocal->latitude) > 0){
-				$addressInfo['latitude'] = (string)$marmotExtension->marmotLocal->latitude;
+				if (strlen((string)$marmotExtension->marmotLocal->latitude) > 0){
+					$addressInfo['latitude'] = (string)$marmotExtension->marmotLocal->latitude;
+				}
 			}
 			if (count($marmotExtension->marmotLocal->longitude) > 0){
-				$addressInfo['longitude'] = (string)$marmotExtension->marmotLocal->longitude;
+				if (strlen((string)$marmotExtension->marmotLocal->longitude) > 0) {
+					$addressInfo['longitude'] = (string)$marmotExtension->marmotLocal->longitude;
+				}
 			}
 			$interface->assign('addressInfo', $addressInfo);
 		}
