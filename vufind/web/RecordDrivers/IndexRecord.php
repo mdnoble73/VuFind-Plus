@@ -1004,6 +1004,11 @@ class IndexRecord extends RecordInterface
 		return isset($this->fields['format']) ? $this->fields['format'] : array();
 	}
 
+	public function getPrimaryFormat(){
+		$formats = $this->getFormats();
+		return reset($formats);
+	}
+
 	/**
 	 * Get an array of all the format categories associated with the record.
 	 *
