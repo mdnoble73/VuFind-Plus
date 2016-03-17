@@ -885,12 +885,12 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 
 	protected void loadItemCallNumber(Record record, DataField itemField, ItemInfo itemInfo) {
 		boolean hasCallNumber = false;
+		String volume = getItemSubfieldData(volumeSubfield, itemField);
 		if (useItemBasedCallNumbers && itemField != null) {
 			String callNumberPreStamp = getItemSubfieldDataWithoutTrimming(callNumberPrestampSubfield, itemField);
 			String callNumber = getItemSubfieldDataWithoutTrimming(callNumberSubfield, itemField);
 			String callNumberCutter = getItemSubfieldDataWithoutTrimming(callNumberCutterSubfield, itemField);
 			String callNumberPostStamp = getItemSubfieldData(callNumberPoststampSubfield, itemField);
-			String volume = getItemSubfieldData(volumeSubfield, itemField);
 
 			StringBuilder fullCallNumber = new StringBuilder();
 			StringBuilder sortableCallNumber = new StringBuilder();
@@ -963,6 +963,13 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 				}
 			}
 			if (callNumber != null) {
+
+				if (volume != null && volume.length() > 0){
+					if (callNumber.length() > 0 && callNumber.charAt(callNumber.length() - 1) != ' '){
+						callNumber += " ";
+					}
+					callNumber += volume;
+				}
 				itemInfo.setCallNumber(callNumber.trim());
 				itemInfo.setSortableCallNumber(callNumber.trim());
 			}
