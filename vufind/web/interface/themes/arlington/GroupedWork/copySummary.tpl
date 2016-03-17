@@ -1,5 +1,5 @@
 {strip}
-	{if $format == 'Journal' || $format == 'Newspaper' || $format == 'Print Periodical'}
+	{if $format == 'Journal' || $format == 'Newspaper' || $format == 'Print Periodical' || $format == 'Magazine'}
 		{if $recordUrl}
 			<div class="itemSummary">
 				&nbsp;&nbsp;<a href="{$recordUrl}#copiesPanelBody">
