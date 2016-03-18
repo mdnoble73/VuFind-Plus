@@ -82,15 +82,44 @@
 			<p>
 				{/strip}
 <code style="white-space: normal">
-	&lt;iframe id=&quot;listWidget{$object->id}&quot; src=&quot;{$url}/API/SearchAPI?method=getListWidget&amp;id={$object->id}&amp;resizeIframe=on&quot;
+	&lt;iframe id=&quot;listWidget{$object->id}&quot;  onload=&quot;setWidgetSizing(this, 30)&quot;  src=&quot;{$url}/API/SearchAPI?method=getListWidget&amp;id={$object->id}&amp;resizeIframe=on&quot;
 	width=&quot;{$width}&quot; scrolling=&quot;{if $selectedStyle == "text-list"}yes{else}no{/if}&quot;&gt;&lt;/iframe&gt;
 </code>
+				<br>
 <code style="white-space: normal">
 	&lt;script type=&quot;text/javascript&quot; src=&quot;{$url}/js/iframeResizer/iframeResizer.min.js&quot;&gt;&lt;/script&gt;
 </code>
+{literal}
 <code style="white-space: pre">
+&lt;!-- Horizontal Resizing : Based on Iframe Content --&gt;
 &lt;script type=&quot;text/javascript&quot;&gt;
 	jQuery(&quot;#listWidget{$object->id}&quot;).iFrameResize();
+&lt;/script&gt;
+&lt;!-- Vertical Resizing : When Iframe is larger than viewport width, resize to 100% of browser width - 2 * padding (in px) --&gt;
+&lt;script type=&quot;text/javascript&quot;&gt;
+	setWidgetSizing = function(iframe, OutsidePadding){
+		originalWidth = jQuery(iframe).width();
+		wasResized = false;
+		jQuery(window).resize(function(){
+			resizeWidgetWidth(iframe, OutsidePadding);
+		}).resize();
+	};
+
+	resizeWidgetWidth = function(iframe, padding){
+		if (padding == undefined) padding = 4;
+		var viewPortWidth = jQuery(window).width(),
+			newWidth = viewPortWidth - 2*padding,
+			width = jQuery(iframe).width();
+		if (width > newWidth) {
+			wasResized = true;
+			return jQuery(iframe).width(newWidth);
+		}
+		if (wasResized && originalWidth + 2*padding < viewPortWidth){
+			wasResized = false;
+			return jQuery(iframe).width(originalWidth);
+		}
+	};
+{/literal}
 &lt;/script&gt;
 </code>
 				{strip}
@@ -101,7 +130,7 @@
 
 		</div>
 	<h4>Live Preview</h4>
-	<iframe id="listWidget{$object->id}" src="{$url}/API/SearchAPI?method=getListWidget&id={$object->id}&resizeIframe=on" width="{$width}" {*height="{$height}"*} scrolling="{if $selectedStyle == "text-list"}yes{else}no{/if}">
+	<iframe id="listWidget{$object->id}" onload="setWidgetSizing(this, 30)" src="{$url}/API/SearchAPI?method=getListWidget&id={$object->id}&resizeIframe=on" width="{$width}" {*height="{$height}"*} scrolling="{if $selectedStyle == "text-list"}yes{else}no{/if}">
 		<p>Your browser does not support iframes. :( </p>
 	</iframe>
 
@@ -113,14 +142,22 @@
 <script type="text/javascript">
 	jQuery('#listWidget{$object->id}').iFrameResize();
 </script>
-	{*
+
+{literal}
 	<script type="text/javascript">
+		setWidgetSizing = function(iframe, OutsidePadding){
+			originalWidth = jQuery(iframe).width();
+			wasResized = false;
+			jQuery(window).resize(function(){
+				resizeWidgetWidth(iframe, OutsidePadding);
+			}).resize();
+		};
+
 	resizeWidgetWidth = function(iframe, padding){
 		if (padding == undefined) padding = 4;
 		var viewPortWidth = jQuery(window).width(),
 				newWidth = viewPortWidth - 2*padding,
 				width = jQuery(iframe).width();
-		/*console.log('viewport Width', viewPortWidth, 'new', newWidth, 'current', width );*/
 		if (width > newWidth) {
 			wasResized = true;
 			return jQuery(iframe).width(newWidth);
@@ -130,17 +167,8 @@
 			return jQuery(iframe).width(originalWidth);
 		}
 	};
-
-	setWidgetSizing = function(elem, OutsidePadding){
-		originalWidth = jQuery(elem).width();
-		wasResized = false;
-		/*console.log('Original Width', originalWidth );*/
-		jQuery(window).resize(function(){
-			resizeWidgetWidth(iframe, padding);
-		}).resize();
-	}
 </script>
-{/literal}*}
+{/literal}
 
 	<br>
 		<div class="alert alert-info">
