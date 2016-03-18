@@ -885,7 +885,10 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 
 	protected void loadItemCallNumber(Record record, DataField itemField, ItemInfo itemInfo) {
 		boolean hasCallNumber = false;
-		String volume = getItemSubfieldData(volumeSubfield, itemField);
+		String volume = null;
+		if (itemField != null){
+			volume = getItemSubfieldData(volumeSubfield, itemField);
+		}
 		if (useItemBasedCallNumbers && itemField != null) {
 			String callNumberPreStamp = getItemSubfieldDataWithoutTrimming(callNumberPrestampSubfield, itemField);
 			String callNumber = getItemSubfieldDataWithoutTrimming(callNumberSubfield, itemField);
