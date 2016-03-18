@@ -260,7 +260,7 @@ function startIdleTimer(){
 	}
 	
 	$(document).on("idle.idleTimer", function(){
-		$.idleTimer('destroy') // turn off Timer, so that when it is re-started in will work properly
+		$.idleTimer('destroy'); // turn off Timer, so that when it is re-started in will work properly
 		if (Globals.loggedIn){
 			showLogoutMessage();
 		}else{
