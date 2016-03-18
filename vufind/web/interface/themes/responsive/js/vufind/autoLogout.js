@@ -256,10 +256,11 @@ function startIdleTimer(){
 		timeout = Globals.automaticTimeoutLengthLoggedOut * 1000;
 	}
 	if (timeout > 0){
-		$.idleTimer(timeout);
+		$.idleTimer(timeout); // start the Timer
 	}
 	
 	$(document).on("idle.idleTimer", function(){
+		$.idleTimer('destroy') // turn off Timer, so that when it is re-started in will work properly
 		if (Globals.loggedIn){
 			showLogoutMessage();
 		}else{
