@@ -32,6 +32,7 @@ class MergedGroupedWork extends DB_DataObject {
 				'maxLength' => 36,
 				'label' => 'Source Grouped Work Id',
 				'description' => 'The id of the grouped work to be merged.',
+				'serverValidation' => 'validateSource',
 				'storeDb' => true,
 				'required' => true,
 			),
@@ -60,6 +61,22 @@ class MergedGroupedWork extends DB_DataObject {
 		return $structure;
 	}
 
+	function validateSource(){
+		//Setup validation return array
+		$validationResults = array(
+				'validatedOk' => true,
+				'errors' => array(),
+		);
+
+		if (!preg_match('/[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}/i', $this->sourceGroupedWorkId)){
+			$validationResults = array(
+					'validatedOk' => false,
+					'errors' => array('The format of the source is not a valid work id'),
+			);
+		}
+		return $validationResults;
+	}
+
 	function validateDestination(){
 		//Setup validation return array
 		$validationResults = array(
@@ -72,6 +89,21 @@ class MergedGroupedWork extends DB_DataObject {
 				'validatedOk' => false,
 				'errors' => array('The source work id cannot match the destination work id'),
 			);
+		}elseif (!preg_match('/[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}/i', $this->destinationGroupedWorkId)){
+			$validationResults = array(
+					'validatedOk' => false,
+					'errors' => array('The format of the destination is not a valid work id'),
+			);
+		}else{
+			//Make sure the destination actually exists (not a big deal if the source doesn't since invalid ones will just be skipped)
+			$groupedWork = new GroupedWork();
+			$groupedWork->permanent_id = $this->destinationGroupedWorkId;
+			if (!$groupedWork->find(true)){
+				$validationResults = array(
+						'validatedOk' => false,
+						'errors' => array('The destination work id does not exist'),
+				);
+			}
 		}
 
 		return $validationResults;
