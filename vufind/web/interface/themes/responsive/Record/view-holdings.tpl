@@ -1,6 +1,6 @@
 {strip}
 {if $offline}
-	<div class="warning">The circulation system is currently offline.  Holdings information is based on information from before the system went offline.</div>
+	<div class="alert alert-warning">The circulation system is currently offline.  Holdings information is based on information from before the system went offline.</div>
 {/if}
 {* ils check & last checkin date *}
 {if ($ils == 'Sierra' || $ils == 'Millennium')}

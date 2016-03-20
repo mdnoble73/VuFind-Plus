@@ -24,7 +24,7 @@
 
 ###################
 ## Crontab setting from a 'configuration' file
-## 
+##
 ## to save current crontab to file: crontab -l > crontab_settings.txt
 ##
 ## to set the current crontab from a file : crontab < crontab_settings.txt
@@ -42,24 +42,26 @@
 # On Reboot
 ###############
 @reboot cd /usr/local/vufind-plus/sites/testvufind.co.wake.nc.us; ./testvufind.co.wake.nc.us.sh start
-# restart continuous re-indexing on reboot.
-@reboot cd /usr/local/vufind-plus/sites/testvufind.co.wake.nc.us; ./continuous_partial_reindex.sh
+#@reboot cd /usr/local/vufind-plus/sites/testvufind.co.wake.nc.us; ./extract_and_reindex.sh
+# restart continuous re-indexing on reboot. this hasn't been enabled on this server yet. plb 12-22-2014
+
 #######################
 # VuFind-Plus Cleanup #
 #######################
 27 0 * * * cd /tmp; rm -rf CURLCOOKIE*
 28 0 * * * cd /tmp; rm -rf epb*
 
+###################################
+# Data Extract from other systems #
+###################################
+#  - Takes just a few minutes since we only pull changes
+*/5 * * * * cd /usr/local/vufind-plus/vufind/overdrive_api_extract/; java -jar overdrive_extract.jar testvufind.co.wake.nc.us
+# extract every five minutes
+
 ########################
 # Full Update #
 ########################
 30 4 * * * cd /usr/local/vufind-plus/sites/testvufind.co.wake.nc.us; ./full_update.sh
-
-################
-# mySQL Backup #
-################
-# Backup all mySQL databases to /home/mysql.dump
-05 0 * * * cd /root/cron/; ./mySQLBackup
 
 ##########
 # Cron   #
@@ -68,6 +70,3 @@
 # run pika cron jobs every three hours
 
 20 0 * * * cd /usr/local/vufind-plus/vufind/cron/; java -jar cron.jar testvufind.co.wake.nc.us DatabaseCleanup
-
-# Check Apache Solr process and website that it has not stalled.
-*/3 * * * * cd /usr/local/vufind-plus/vufind/cron/; ./solrTest.sh

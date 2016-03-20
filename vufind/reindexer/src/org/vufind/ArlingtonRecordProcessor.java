@@ -400,4 +400,8 @@ public class ArlingtonRecordProcessor extends IIIRecordProcessor {
 			}
 		}
 	}
+
+	protected boolean use099forBibLevelCallNumbers() {
+		return false;
+	}
 }
