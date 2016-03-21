@@ -234,7 +234,8 @@ class Millennium extends ScreenScrapingDriver
 		//Can't do this any longer since some libraries do have characters in their barcode:
 		//$password = preg_replace('/[a-or-zA-OR-Z\W]/', '', $password);
 		//Remove any spaces from the barcode
-		$barcode = preg_replace('/[^a-zA-Z\d\s]/', '', trim($barcode));
+		//ARL-153 remove spaces from the barcode
+		$barcode = preg_replace('/[^a-zA-Z\d]/', '', trim($barcode));
 
 		//Load the raw information about the patron
 		$patronDump = $this->_getPatronDump($barcode);
@@ -243,7 +244,7 @@ class Millennium extends ScreenScrapingDriver
 		$userValid = false;
 		//Break up the patron name into first name, last name and middle name based on the
 		if ($this->accountProfile->loginConfiguration == 'barcode_pin'){
-			$userValid = $this->_doPinTest($username, $password);
+			$userValid = $this->_doPinTest($barcode, $password);
 		}else{
 			if (isset($patronDump['PATRN_NAME'])){
 				$patronName = $patronDump['PATRN_NAME'];
