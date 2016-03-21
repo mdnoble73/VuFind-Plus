@@ -766,6 +766,10 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		//Determine which scopes have access to this record
 		String displayStatus = getDisplayStatus(itemInfo, recordInfo.getRecordIdentifier());
 		String groupedDisplayStatus = getDisplayGroupedStatus(itemInfo, recordInfo.getRecordIdentifier());
+		String overiddenStatus = getOverriddenStatus(itemInfo, true);
+		if (overiddenStatus != null && !overiddenStatus.equals("On Shelf") && !overiddenStatus.equals("Library Use Only") && !overiddenStatus.equals("Available Online")){
+			available = false;
+		}
 
 		for (Scope curScope : indexer.getScopes()) {
 			//Check to see if the record is holdable for this scope
