@@ -4,6 +4,7 @@
 </div>
 <div class="modal-body">
 	<p class="alert alert-danger" id="loginError" style="display: none"></p>
+	<p class="alert alert-danger" id="cookiesError" style="display: none">It appears that you do not have cookies enabled on this computer.  Cookies are required to access account information.</p>
 	<p class="alert alert-info" id="loading" style="display: none">
 		Logging you in now. Please wait.
 	</p>
@@ -65,6 +66,7 @@
 	$('#username').focus().select();
 	$(document).ready(
 		function (){
+			VuFind.Account.validateCookies();
 			var haslocalStorage = false;
 			if ("localStorage" in window) {
 				try {
