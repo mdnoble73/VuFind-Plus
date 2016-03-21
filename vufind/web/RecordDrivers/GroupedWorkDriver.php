@@ -2305,6 +2305,7 @@ class GroupedWorkDriver extends RecordInterface{
 		$volumeData = array();
 		$volumeDataDB = new IlsVolumeInfo();
 		$volumeDataDB->recordId = $recordDetails[0];
+		$volumeDataDB->whereAdd('length(relatedItems) > 0');
 		if ($volumeDataDB->find()){
 			while ($volumeDataDB->fetch()){
 				$volumeData[] = clone($volumeDataDB);
@@ -2468,6 +2469,9 @@ class GroupedWorkDriver extends RecordInterface{
 					if (strpos($volumeDataPoint->relatedItems, $curItem[1]) !== false){
 						$volume = $volumeDataPoint->displayLabel;
 						$volumeId = $volumeDataPoint->volumeId;
+						if ($holdable){
+							$volumeDataPoint->holdable = true;
+						}
 						break;
 					}
 				}
