@@ -32,7 +32,6 @@ class Archive_Results extends Action {
 		global $interface;
 		global $configArray;
 		global $timer;
-		global $analytics;
 
 		// Include Search Engine Class
 		require_once ROOT_DIR . '/sys/Solr.php';

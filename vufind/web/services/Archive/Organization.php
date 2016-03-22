@@ -1,6 +1,6 @@
 <?php
 /**
- * Displays Information about Digital Repository (Islandora) Person
+ * Displays Information about Digital Repository (Islandora) Exhibit
  *
  * @category Pika
  * @author Mark Noble <mark@marmot.org>
@@ -8,15 +8,13 @@
  * Time: 7:55 AM
  */
 
-require_once ROOT_DIR . '/services/Archive/Entity.php';
-class Archive_Person extends Archive_Entity{
+require_once ROOT_DIR . '/services/Archive/Object.php';
+class Archive_Organization extends Archive_Object{
 	function launch(){
 		global $interface;
 
 		$this->loadArchiveObjectData();
 		$this->loadExploreMoreContent();
-		$this->loadLinkedData();
-		$this->loadRelatedContentForEntity();
 
 		$interface->assign('showExploreMore', true);
 

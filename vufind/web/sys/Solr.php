@@ -950,8 +950,10 @@ class Solr implements IndexEngine {
 	private function _buildMungeValues($lookfor, $custom = null, $basic = true)
 	{
 		if ($basic) {
+			$cleanedQuery = str_replace(':', ' ', $lookfor);
+
 			// Tokenize Input
-			$tokenized = $this->tokenizeInput($lookfor);
+			$tokenized = $this->tokenizeInput($cleanedQuery);
 
 			// Create AND'd and OR'd queries
 			$andQuery = implode(' AND ', $tokenized);
@@ -1405,7 +1407,6 @@ class Solr implements IndexEngine {
 		// Determine which handler to use
 		if (!$this->isAdvanced($query)) {
 			//Remove extraneous colons to make sure that the query isn't treated as a field spec.
-			$query = str_replace(':', ' ', $query);
 			$ss = is_null($handler) ? null : $this->_getSearchSpecs($handler);
 			// Is this a Dismax search?
 			if (isset($ss['DismaxFields'])) {

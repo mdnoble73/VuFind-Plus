@@ -662,6 +662,16 @@ IslandoraKeyword:
       - [exact, 1000]
       - [and, 100]
 
-QueryFields:
+IslandoraPeopleById:
   QueryFields:
-    - mods_titleInfo_title_t
+    - mods_extension_marmotLocal_hasCreator_entityPid_ms:
+      - [exact, ~]
+    - mods_extension_marmotLocal_hasInterviewee_entityPid_ms:
+      - [exact, ~]
+    - mods_extension_marmotLocal_describedEntity_entityPid_ms:
+      - [exact, ~]
+    - mods_extension_marmotLocal_relatedPersonOrg_entityPid_ms:
+      - [exact, ~]
+    - mods_extension_marmotLocal_relatedEntity_person_entityPid_ms:
+      - [exact, ~]
+

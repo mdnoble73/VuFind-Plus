@@ -36,6 +36,33 @@
 			</div>
 		{/if}
 
+		{if $directlyRelatedObjects && $directlyRelatedObjects.numFound > 0}
+			<div class="panel active" id="relatedObjectsPanel">
+				<a href="#relatedObjectsPanelBody" data-toggle="collapse">
+					<div class="panel-heading">
+						<div class="panel-title">
+							Related Objects
+						</div>
+					</div>
+				</a>
+				<div id="transcriptionPanelBody" class="panel-collapse collapse in">
+					<div class="panel-body">
+						<div class="related-objects results-covers home-page-browse-thumbnails">
+							{foreach from=$directlyRelatedObjects.objects item=image}
+								<figure class="browse-thumbnail">
+									<a href="{$image.link}" {if $image.title}data-title="{$image.title}"{/if}>
+										<img src="{$image.thumbnail}" {if $image.title}alt="{$image.title}"{/if}>
+									</a>
+									<figcaption class="explore-more-category-title">
+										<strong>{$image.title}</strong>
+									</figcaption>
+								</figure>
+							{/foreach}
+						</div>
+					</div>
+				</div>
+			</div>
+		{/if}
 
 		{* Context Notes *}
 		{if !empty($marmotExtension->contextNotes)}
@@ -164,13 +191,13 @@
 						<div class="row">
 							<div class="result-label col-sm-4">Military Branch: </div>
 							<div class="result-value col-sm-8">
-								{$militaryRecord.branch}
+								<a href="{$militaryRecord.branchLink}">{$militaryRecord.branch}</a>
 							</div>
 						</div>
 						<div class="row">
 							<div class="result-label col-sm-4">Conflict: </div>
 							<div class="result-value col-sm-8">
-								{$militaryRecord.conflict}
+								<a href="{$militaryRecord.conflictLink}">{$militaryRecord.conflict}</a>
 							</div>
 						</div>
 
@@ -179,8 +206,49 @@
 			</div>
 		{/if}
 
+		{if count($notes) > 0}
+			<div class="panel active" id="notesPanel">
+				<a href="#notesPanelBody" data-toggle="collapse">
+					<div class="panel-heading">
+						<div class="panel-title">
+							Notes
+						</div>
+					</div>
+				</a>
+				<div id="notesPanelBody" class="panel-collapse collapse in">
+					<div class="panel-body">
+						{foreach from=$notes item=note}
+							<div>
+								{$note}
+							</div>
+						{/foreach}
+					</div>
+				</div>
+			</div>
+		{/if}
 
-
+		{if count($externalLinks) > 0}
+			<div class="panel active" id="externalLinksPanel">
+				<a href="#externalLinksPanelBody" data-toggle="collapse">
+					<div class="panel-heading">
+						<div class="panel-title">
+							Links
+						</div>
+					</div>
+				</a>
+				<div id="externalLinksPanelBody" class="panel-collapse collapse in">
+					<div class="panel-body">
+						{foreach from=$externalLinks item=link}
+							<div>
+								<a href="{$link.link}" target="_blank">
+									{$link.text}
+								</a>
+							</div>
+						{/foreach}
+					</div>
+				</div>
+			</div>
+		{/if}
 
 		{if $mods->identifier || $mods->recordInfo}
 			<div class="panel {*active*}{*toggle on for open*}" id="moreDetailsPanel">
@@ -313,27 +381,30 @@
 			</div>
 		{/if}
 
-			{if $repositoryLink}
-				<div class="panel {*active*}{*toggle on for open*}" id="staffViewPanel">
-					<a href="#staffViewPanelBody" data-toggle="collapse">
-						<div class="panel-heading">
-							<div class="panel-title">
-								Staff View
-							</div>
-						</div>
-					</a>
-					<div id="staffViewPanelBody" class="panel-collapse collapse {*in*}{*toggle on for open*}">
-						<div class="panel-body">
-							<a class="btn btn-small btn-default" href="{$repositoryLink}" target="_blank">
-								View in Islandora
-							</a>
-							<a class="btn btn-small btn-default" href="{$repositoryLink}/datastream/MODS/view" target="_blank">
-								View MODS Record
-							</a>
+		{if $repositoryLink}
+			<div class="panel {*active*}{*toggle on for open*}" id="staffViewPanel">
+				<a href="#staffViewPanelBody" data-toggle="collapse">
+					<div class="panel-heading">
+						<div class="panel-title">
+							Staff View
 						</div>
 					</div>
+				</a>
+				<div id="staffViewPanelBody" class="panel-collapse collapse {*in*}{*toggle on for open*}">
+					<div class="panel-body">
+						<a class="btn btn-small btn-default" href="{$repositoryLink}" target="_blank">
+							View in Islandora
+						</a>
+						<a class="btn btn-small btn-default" href="{$repositoryLink}/datastream/MODS/view" target="_blank">
+							View MODS Record
+						</a>
+						<a class="btn btn-small btn-default" href="{$repositoryLink}/datastream/MODS/edit" target="_blank">
+							Edit MODS Record
+						</a>
+					</div>
 				</div>
-			{/if}
+			</div>
+		{/if}
 
 
 	</div>
