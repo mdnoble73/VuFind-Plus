@@ -25,6 +25,7 @@ class GroupedWork_Home extends Action{
 			die();
 		}
 		$interface->assign('recordDriver', $recordDriver);
+		$recordDriver->assignBasicTitleDetails();
 		$timer->logTime('Initialized the Record Driver');
 
 		// Retrieve User Search History

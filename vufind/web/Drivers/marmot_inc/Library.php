@@ -454,26 +454,27 @@ class Library extends DB_DataObject
 				),
 
 				// The specific categories displayed in the carousel
-			'browseCategories' => array(
-			'property'=>'browseCategories',
-			'type'=>'oneToMany',
-			'label'=>'Browse Categories',
-			'description'=>'Browse Categories To Show on the Home Screen',
-			'keyThis' => 'libraryId',
-			'keyOther' => 'libraryId',
-			'subObjectType' => 'LibraryBrowseCategory',
-			'structure' => $libraryBrowseCategoryStructure,
-			'sortable' => true,
-			'storeDb' => true,
-			'allowEdit' => false,
-			'canEdit' => false,
-		),
+				'browseCategories' => array(
+						'property'=>'browseCategories',
+						'type'=>'oneToMany',
+						'label'=>'Browse Categories',
+						'description'=>'Browse Categories To Show on the Home Screen',
+						'keyThis' => 'libraryId',
+						'keyOther' => 'libraryId',
+						'subObjectType' => 'LibraryBrowseCategory',
+						'structure' => $libraryBrowseCategoryStructure,
+						'sortable' => true,
+						'storeDb' => true,
+						'allowEdit' => false,
+						'canEdit' => false,
+				),
 			)),
 
-			array('property'=>'holdingsSummarySection', 'type' => 'section', 'label' =>'Holdings Summary', 'hideInLists' => true,
+			'holdingsSummarySection' => array('property'=>'holdingsSummarySection', 'type' => 'section', 'label' =>'Holdings Summary', 'hideInLists' => true,
 					'helpLink' => 'https://docs.google.com/document/d/1PjlFlhPVNRVcg_uzzHLQLkRicyPEB1KeVNok4Wkye1I', 'properties' => array(
-				'showItsHere' => array('property'=>'showItsHere', 'type'=>'checkbox', 'label'=>'Show It\'s Here', 'description'=>'Whether or not the holdings summray should show It\'s here based on IP and the currently logged in patron\'s location.', 'hideInLists' => true, 'default' => 1),
+					'showItsHere' => array('property'=>'showItsHere', 'type'=>'checkbox', 'label'=>'Show It\'s Here', 'description'=>'Whether or not the holdings summray should show It\'s here based on IP and the currently logged in patron\'s location.', 'hideInLists' => true, 'default' => 1),
 			)),
+
 			'materialsRequestSection'=> array('property'=>'materialsRequestSection', 'type' => 'section', 'label' =>'Materials Request', 'hideInLists' => true,
 					'helpLink'=>'https://docs.google.com/document/d/18Sah0T8sWUextphL5ykg8QEM_YozniSXqOo1nfi6gnc',
 					'properties' => array(
@@ -620,13 +621,14 @@ class Library extends DB_DataObject
 		if ($user->hasRole('libraryManager')){
 			$structure['subdomain']['type'] = 'label';
 			$structure['displayName']['type'] = 'label';
-			unset($structure['displaySection']['properties']['themeName']);
-			unset($structure['displaySection']['properties']['sideBarOnRight']);
-			unset($structure['displaySection']['properties']['enableGenealogy']);
-			unset($structure['displaySection']['properties']['enableCourseReserves']);
+			unset($structure['showDisplayNameInHeader']);
+			unset($structure['displaySection']);
 			unset($structure['ilsSection']);
 			unset($structure['ecommerceSection']);
 			unset($structure['searchingSection']);
+			unset($structure['enrichmentSection']);
+			unset($structure['fullRecordSection']);
+			unset($structure['holdingsSummarySection']);
 			unset($structure['materialsRequestSection']);
 			unset($structure['goldrushSection']);
 			unset($structure['prospectorSection']);
@@ -634,6 +636,8 @@ class Library extends DB_DataObject
 			unset($structure['overdriveSection']);
 			unset($structure['archiveSection']);
 			unset($structure['edsSection']);
+			unset($structure['dplaSection']);
+			unset($structure['facets']);
 			unset($structure['recordsOwned']);
 			unset($structure['recordsToInclude']);
 		}

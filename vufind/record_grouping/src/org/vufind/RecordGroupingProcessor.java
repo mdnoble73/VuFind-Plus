@@ -419,11 +419,9 @@ public class RecordGroupingProcessor {
 			}
 
 			//Update identifiers
-			if (fullRegrouping || primaryDataChanged) {
-				addPrimaryIdentifierForWorkToDB(groupedWorkId, primaryIdentifier);
-				//We no longer utilize secondary identifiers for works. We can skip calling this now
-				//addIdentifiersForRecordToDB(groupedWorkId, groupedWork.getIdentifiers(), primaryIdentifier);
-			}
+			addPrimaryIdentifierForWorkToDB(groupedWorkId, primaryIdentifier);
+			//We no longer utilize secondary identifiers for works. We can skip calling this now
+			//addIdentifiersForRecordToDB(groupedWorkId, groupedWork.getIdentifiers(), primaryIdentifier);
 		}catch (Exception e){
 			logger.error("Error adding grouped record to grouped work ", e);
 		}

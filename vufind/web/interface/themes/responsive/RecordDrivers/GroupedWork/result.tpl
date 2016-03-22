@@ -90,23 +90,29 @@
 					</div>
 				{/if}
 
-				{if $summPublisher}
-					<div class="row">
-						<div class="result-label col-tn-3 col-xs-3">Publisher: </div>
-						<div class="result-value col-tn-9 col-xs-9">
-							{$summPublisher}
-						</div>
-					</div>
-				{/if}
 
-				{if $summPubDate}
-					<div class="row">
-						<div class="result-label col-tn-3 col-xs-3">Pub. Date: </div>
-						<div class="result-value col-tn-9 col-xs-9">
-							{$summPubDate|escape}
-						</div>
+				<div class="row">
+					<div class="result-label col-tn-3 col-xs-3">Publisher: </div>
+					<div class="result-value col-tn-9 col-xs-9">
+						{if $summPublisher}
+							{$summPublisher}
+						{else}
+							Varies, see individual formats and editions
+						{/if}
 					</div>
-				{/if}
+				</div>
+
+
+				<div class="row">
+					<div class="result-label col-tn-3 col-xs-3">Pub. Date: </div>
+					<div class="result-value col-tn-9 col-xs-9">
+						{if $summPubDate}
+							{$summPubDate|escape}
+						{else}
+							Varies, see individual formats and editions
+						{/if}
+					</div>
+				</div>
 
 				{if $summLanguage}
 					<div class="row">

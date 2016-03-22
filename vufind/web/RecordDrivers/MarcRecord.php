@@ -1256,14 +1256,16 @@ class MarcRecord extends IndexRecord
 		if ($isHoldable && $showHoldButton){
 			if (!is_null($volumeData) && count($volumeData) > 0){
 				foreach ($volumeData as $volumeInfo){
-					$id = $this->getIdWithSource();
-					$id .= ':' . $volumeInfo->volumeId;
-					$actions[] = array(
-							'title' => 'Hold ' . $volumeInfo->displayLabel,
-							'url' => '',
-							'onclick' => "return VuFind.Record.showPlaceHold('{$this->getModule()}', '$id');",
-							'requireLogin' => false,
-					);
+					if (isset($volumeInfo->holdable) && $volumeInfo->holdable){
+						$id = $this->getIdWithSource();
+						$id .= ':' . $volumeInfo->volumeId;
+						$actions[] = array(
+								'title' => 'Hold ' . $volumeInfo->displayLabel,
+								'url' => '',
+								'onclick' => "return VuFind.Record.showPlaceHold('{$this->getModule()}', '$id');",
+								'requireLogin' => false,
+						);
+					}
 				}
 			}else{
 				$actions[] = array(

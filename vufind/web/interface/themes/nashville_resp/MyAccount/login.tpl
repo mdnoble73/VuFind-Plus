@@ -4,6 +4,7 @@
 	<h2>{translate text='Login to your account'}</h2>
 	<div id="loginFormWrapper">
 		<p class="alert alert-danger" id="loginError" style="display: none"></p>
+		<p class="alert alert-danger" id="cookiesError" style="display: none">It appears that you do not have cookies enabled on this computer.  Cookies are required to access account information.</p>
 		<p class="alert alert-info" id="loading" style="display: none">
 			Logging you in now. Please wait.
 		</p>
@@ -103,6 +104,7 @@
 <script type="text/javascript">
 	$('#username').focus().select();
 	$(function(){
+		VuFind.Account.validateCookies();
 		var haslocalStorage = VuFind.hasLocalStorage() || false;
 		if (haslocalStorage) {
 			var rememberMe = (window.localStorage.getItem('rememberMe') == 'true'), // localStorage saves everything as strings

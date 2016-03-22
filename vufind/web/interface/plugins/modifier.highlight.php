@@ -41,6 +41,9 @@
  * @return string          Highlighted, HTML encoded string
  */
 function smarty_modifier_highlight($haystack, $needle = null) {
+	if ($needle == null){
+		return $haystack;
+	}
 	// Normalize value to an array so we can loop through it; this saves us from
 	// writing the highlighting code twice, once for arrays, once for non-arrays.
 	// Also make sure our generated array is empty if needle itself is empty --

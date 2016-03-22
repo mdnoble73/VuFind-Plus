@@ -766,6 +766,10 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		//Determine which scopes have access to this record
 		String displayStatus = getDisplayStatus(itemInfo, recordInfo.getRecordIdentifier());
 		String groupedDisplayStatus = getDisplayGroupedStatus(itemInfo, recordInfo.getRecordIdentifier());
+		String overiddenStatus = getOverriddenStatus(itemInfo, true);
+		if (overiddenStatus != null && !overiddenStatus.equals("On Shelf") && !overiddenStatus.equals("Library Use Only") && !overiddenStatus.equals("Available Online")){
+			available = false;
+		}
 
 		for (Scope curScope : indexer.getScopes()) {
 			//Check to see if the record is holdable for this scope
@@ -885,12 +889,15 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 
 	protected void loadItemCallNumber(Record record, DataField itemField, ItemInfo itemInfo) {
 		boolean hasCallNumber = false;
+		String volume = null;
+		if (itemField != null){
+			volume = getItemSubfieldData(volumeSubfield, itemField);
+		}
 		if (useItemBasedCallNumbers && itemField != null) {
 			String callNumberPreStamp = getItemSubfieldDataWithoutTrimming(callNumberPrestampSubfield, itemField);
 			String callNumber = getItemSubfieldDataWithoutTrimming(callNumberSubfield, itemField);
 			String callNumberCutter = getItemSubfieldDataWithoutTrimming(callNumberCutterSubfield, itemField);
 			String callNumberPostStamp = getItemSubfieldData(callNumberPoststampSubfield, itemField);
-			String volume = getItemSubfieldData(volumeSubfield, itemField);
 
 			StringBuilder fullCallNumber = new StringBuilder();
 			StringBuilder sortableCallNumber = new StringBuilder();
@@ -943,19 +950,41 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		}
 		if (!hasCallNumber){
 			String callNumber = null;
+			if (use099forBibLevelCallNumbers()) {
+				DataField localCallNumberField = (DataField) record.getVariableField("099");
+				if (localCallNumberField != null) {
+					callNumber = "";
+					for (Subfield curSubfield : localCallNumberField.getSubfields()) {
+						callNumber += " " + curSubfield.getData().trim();
+					}
+				}
+			}
 			//MDN #ARL-217 do not use 099 as a call number
-			DataField deweyCallNumberField = (DataField)record.getVariableField("092");
-			if (deweyCallNumberField != null){
-				callNumber = "";
-				for (Subfield curSubfield : deweyCallNumberField.getSubfields()){
-					callNumber += " " + curSubfield.getData().trim();
+			if (callNumber == null) {
+				DataField deweyCallNumberField = (DataField) record.getVariableField("092");
+				if (deweyCallNumberField != null) {
+					callNumber = "";
+					for (Subfield curSubfield : deweyCallNumberField.getSubfields()) {
+						callNumber += " " + curSubfield.getData().trim();
+					}
 				}
 			}
 			if (callNumber != null) {
+
+				if (volume != null && volume.length() > 0){
+					if (callNumber.length() > 0 && callNumber.charAt(callNumber.length() - 1) != ' '){
+						callNumber += " ";
+					}
+					callNumber += volume;
+				}
 				itemInfo.setCallNumber(callNumber.trim());
 				itemInfo.setSortableCallNumber(callNumber.trim());
 			}
 		}
+	}
+
+	protected boolean use099forBibLevelCallNumbers() {
+		return true;
 	}
 
 	protected HoldabilityInformation isItemHoldable(ItemInfo itemInfo, Scope curScope){
