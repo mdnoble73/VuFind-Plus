@@ -743,6 +743,12 @@ VuFind.Account = (function(){
 				window.localStorage.setItem('showCovers', this.showCovers ? 'on' : 'off');
 			}
 			location.replace(location.pathname + paramString); // reloads page without adding entry to history
+		},
+
+		validateCookies: function(){
+			if (navigator.cookieEnabled == false){
+				$("#cookiesError").show();
+			}
 		}
 	};
 }(VuFind.Account || {}));

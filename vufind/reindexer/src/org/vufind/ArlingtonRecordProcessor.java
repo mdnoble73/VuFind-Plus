@@ -38,7 +38,7 @@ public class ArlingtonRecordProcessor extends IIIRecordProcessor {
 		boolean available = false;
 		String status = itemInfo.getStatusCode();
 		String dueDate = itemInfo.getDueDate() == null ? "" : itemInfo.getDueDate();
-		String availableStatus = "-";
+		String availableStatus = "-o";
 		if (availableStatus.indexOf(status.charAt(0)) >= 0) {
 			if (dueDate.length() == 0 || dueDate.trim().equals("-  -")) {
 				available = true;
@@ -192,6 +192,10 @@ public class ArlingtonRecordProcessor extends IIIRecordProcessor {
 				//Determine which scopes have access to this record
 				String displayStatus = getDisplayStatus(itemInfo, recordInfo.getRecordIdentifier());
 				String groupedDisplayStatus = getDisplayGroupedStatus(itemInfo, recordInfo.getRecordIdentifier());
+				String overiddenStatus = getOverriddenStatus(itemInfo, true);
+				if (overiddenStatus != null && !overiddenStatus.equals("On Shelf") && !overiddenStatus.equals("Library Use Only") && !overiddenStatus.equals("Available Online")){
+					available = false;
+				}
 
 				for (Scope curScope : indexer.getScopes()) {
 					//Check to see if the record is holdable for this scope
