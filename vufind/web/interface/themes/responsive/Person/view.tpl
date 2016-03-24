@@ -57,7 +57,7 @@
 			{if $deathDate}
 				<div class='personDetail'><span class='result-label'>Death Date: </span><span class='personDetailValue'>{$deathDate}</span></div>
 			{/if}
-			{if $ageAtDeath}
+			{if $person->ageAtDeath}
 				<div class='personDetail'><span class='result-label'>Age at Death: </span><span class='personDetailValue'>{$person->ageAtDeath|escape}</span></div>
 			{/if}
 			{if $person->sex}

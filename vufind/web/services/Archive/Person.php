@@ -21,6 +21,6 @@ class Archive_Person extends Archive_Entity{
 		$interface->assign('showExploreMore', true);
 
 		// Display Page
-		$this->display('baseArchiveObject.tpl');
+		$this->display('person.tpl');
 	}
 }

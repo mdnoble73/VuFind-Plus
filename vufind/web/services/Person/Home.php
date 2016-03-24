@@ -22,13 +22,12 @@ require_once ROOT_DIR . '/Action.php';
 require_once ROOT_DIR . '/RecordDrivers/Factory.php';
 require_once ROOT_DIR . '/sys/Genealogy/Person.php';
 
-class Home extends Action
+class Person_Home extends Action
 {
 	function __construct($subAction = false, $record_id = null)
 	{
 		global $interface;
 		global $configArray;
-		global $library;
 		global $timer;
 		global $user;
 

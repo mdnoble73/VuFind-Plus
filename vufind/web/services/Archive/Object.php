@@ -361,6 +361,9 @@ abstract class Archive_Object extends Action{
 
 	protected function loadLinkedData(){
 		global $interface;
+		if (!isset($this->links)){
+			return;
+		}
 		foreach ($this->links as $link){
 			if ($link['type'] == 'wikipedia'){
 				require_once ROOT_DIR . '/sys/WikipediaParser.php';
@@ -378,10 +381,37 @@ abstract class Archive_Object extends Action{
 				if (preg_match('/.*Person\/(\d+)/', $link['link'], $matches)){
 					$personId = $matches[1];
 					require_once ROOT_DIR . '/sys/Genealogy/Person.php';
-					$genealogyPerson = new Person();
-					$genealogyPerson->personId = $personId;
-					if ($genealogyPerson->find(true)){
-						$interface->assign('genealogy', $genealogyPerson);
+					$person = new Person();
+					$person->personId = $personId;
+					if ($person->find(true)){
+						$interface->assign('genealogyData', $person);
+
+						$formattedBirthdate = $person->formatPartialDate($person->birthDateDay, $person->birthDateMonth, $person->birthDateYear);
+						$interface->assign('birthDate', $formattedBirthdate);
+
+						$formattedDeathdate = $person->formatPartialDate($person->deathDateDay, $person->deathDateMonth, $person->deathDateYear);
+						$interface->assign('deathDate', $formattedDeathdate);
+
+						$marriages = array();
+						$personMarriages = $person->marriages;
+						if (isset($personMarriages)){
+							foreach ($personMarriages as $marriage){
+								$marriageArray = (array)$marriage;
+								$marriageArray['formattedMarriageDate'] = $person->formatPartialDate($marriage->marriageDateDay, $marriage->marriageDateMonth, $marriage->marriageDateYear);
+								$marriages[] = $marriageArray;
+							}
+						}
+						$interface->assign('marriages', $marriages);
+						$obituaries = array();
+						$personObituaries =$person->obituaries;
+						if (isset($personObituaries)){
+							foreach ($personObituaries as $obit){
+								$obitArray = (array)$obit;
+								$obitArray['formattedObitDate'] = $person->formatPartialDate($obit->dateDay, $obit->dateMonth, $obit->dateYear);
+								$obituaries[] = $obitArray;
+							}
+						}
+						$interface->assign('obituaries', $obituaries);
 					}
 				}
 			}
