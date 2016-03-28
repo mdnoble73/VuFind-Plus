@@ -73,11 +73,13 @@ public class RecordGrouperMain {
 					"   record_grouping.jar <pika_site_name>\n" +
 					"   \n" +
 					"3) benchmark the record generation and test the functionality\n" +
-					"   record_grouping.jar benchmark" +
-					"4) Generate author authorities based on data in the exports" +
-					"   record_grouping.jar generateAuthorAuthorities <pika_site_name>" +
-					"5) Only run record grouping cleanup" +
-					"   record_grouping.jar <pika_site_name> runPostGroupingCleanup");
+					"   record_grouping.jar benchmark\n" +
+					"4) Generate author authorities based on data in the exports\n" +
+					"   record_grouping.jar generateAuthorAuthorities <pika_site_name>\n" +
+					"5) Only run record grouping cleanup\n" +
+					"   record_grouping.jar <pika_site_name> runPostGroupingCleanup\n" +
+					"6) Only explode records into individual records (no grouping)\n" +
+					"   record_grouping.jar <pika_site_name> explodeMarcRecords");
 			System.exit(1);
 		}
 
@@ -671,8 +673,12 @@ public class RecordGrouperMain {
 		//Check to see if we need to clear the database
 		boolean clearDatabasePriorToGrouping = false;
 		boolean onlyDoCleanup = false;
+		boolean explodeMarcsOnly = false;
 		String indexingProfileToRun = null;
-		if (args.length >= 2 && args[1].equalsIgnoreCase("fullRegroupingNoClear")) {
+		if (args.length >= 2 && args[1].equalsIgnoreCase("explodeMarcs")) {
+			explodeMarcsOnly = true;
+			clearDatabasePriorToGrouping = false;
+		} else if (args.length >= 2 && args[1].equalsIgnoreCase("fullRegroupingNoClear")) {
 			fullRegroupingNoClear = true;
 		}else if (args.length >= 2 && args[1].equalsIgnoreCase("fullRegrouping")){
 			clearDatabasePriorToGrouping = true;
@@ -692,9 +698,13 @@ public class RecordGrouperMain {
 		RecordGroupingProcessor recordGroupingProcessor = null;
 		if (!onlyDoCleanup) {
 			recordGroupingProcessor = new RecordGroupingProcessor(vufindConn, serverName, configIni, logger, fullRegrouping);
-			markRecordGroupingRunning(vufindConn, true);
 
-			clearDatabase(vufindConn, clearDatabasePriorToGrouping);
+			if (!explodeMarcsOnly) {
+				markRecordGroupingRunning(vufindConn, true);
+
+				clearDatabase(vufindConn, clearDatabasePriorToGrouping);
+			}
+
 			loadIlsChecksums(vufindConn);
 
 
@@ -729,45 +739,48 @@ public class RecordGrouperMain {
 			}
 
 			if (indexingProfileToRun == null || indexingProfileToRun.equalsIgnoreCase("hoopla")) {
-				groupHooplaRecords(configIni, recordGroupingProcessor);
+				groupHooplaRecords(configIni, recordGroupingProcessor, explodeMarcsOnly);
 			}
 			if (indexingProfileToRun == null || indexingProfileToRun.equalsIgnoreCase("overdrive")) {
-				groupOverDriveRecords(configIni, econtentConnection, recordGroupingProcessor);
+				groupOverDriveRecords(configIni, econtentConnection, recordGroupingProcessor, explodeMarcsOnly);
 			}
 			if (indexingProfiles.size() > 0) {
-				groupIlsRecords(configIni, vufindConn, indexingProfiles);
+				groupIlsRecords(configIni, vufindConn, indexingProfiles, explodeMarcsOnly);
 			}
 
-			//Remove deleted records
-			if (indexingProfileToRun == null) {
+			//Remove deleted records now that we have processed all records that currently exist
+			if (indexingProfileToRun == null && !explodeMarcsOnly) {
 				removeDeletedRecords(recordGroupingProcessor);
 			}
 		}
 
-		try{
-			logger.info("Doing post processing of record grouping");
-			vufindConn.setAutoCommit(false);
+		if (!explodeMarcsOnly) {
+			try{
+				logger.info("Doing post processing of record grouping");
+				vufindConn.setAutoCommit(false);
 
-			//Cleanup the data
-			removeGroupedWorksWithoutPrimaryIdentifiers(vufindConn);
-			vufindConn.commit();
-			//removeUnlinkedIdentifiers(vufindConn);
-			//vufindConn.commit();
-			//makeIdentifiersLinkingToMultipleWorksInvalidForEnrichment(vufindConn);
-			//vufindConn.commit();
-			updateLastGroupingTime(vufindConn);
-			vufindConn.commit();
+				//Cleanup the data
+				removeGroupedWorksWithoutPrimaryIdentifiers(vufindConn);
+				vufindConn.commit();
+				//removeUnlinkedIdentifiers(vufindConn);
+				//vufindConn.commit();
+				//makeIdentifiersLinkingToMultipleWorksInvalidForEnrichment(vufindConn);
+				//vufindConn.commit();
+				updateLastGroupingTime(vufindConn);
+				vufindConn.commit();
 
-			vufindConn.setAutoCommit(true);
-			logger.info("Finished doing post processing of record grouping");
-		}catch (SQLException e){
-			logger.error("Error in grouped work post processing", e);
+				vufindConn.setAutoCommit(true);
+				logger.info("Finished doing post processing of record grouping");
+			}catch (SQLException e){
+				logger.error("Error in grouped work post processing", e);
+			}
+
+			markRecordGroupingRunning(vufindConn, false);
 		}
-
-		markRecordGroupingRunning(vufindConn, false);
 
 		try{
 			vufindConn.close();
+			econtentConnection.close();
 		}catch (Exception e){
 			logger.error("Error closing database ", e);
 			System.exit(1);
@@ -823,7 +836,7 @@ public class RecordGrouperMain {
 		return result;
 	}
 
-	private static void groupHooplaRecords(Ini configIni, RecordGroupingProcessor recordGroupingProcessor) {
+	private static void groupHooplaRecords(Ini configIni, RecordGroupingProcessor recordGroupingProcessor, boolean explodeMarcsOnly) {
 		if (configIni.containsKey("Hoopla")){
 			int numRecordsProcessed;
 			int numRecordsRead;
@@ -870,14 +883,16 @@ public class RecordGrouperMain {
 						String recordNumber = curBib.getControlNumber();
 						recordNumbersInExport.add(recordNumber);
 						boolean marcUpToDate = writeIndividualMarc(existingMarcFiles, individualMarcPath, curBib, recordNumber, "hoopla", 7);
-						if (!marcUpToDate || fullRegroupingNoClear){
-							recordGroupingProcessor.processHooplaRecord(curBib, recordNumber, !marcUpToDate);
-							numRecordsProcessed++;
-						}
-						//Mark that the record was processed
-						if (!marcRecordIdsInDatabase.remove("hoopla:" + recordNumber)){
-							//This happens for newly added records
-							//logger.warn("Did not find hoopla:" + recordNumber + " in marcRecordIdsInDatabase");
+						if (!explodeMarcsOnly) {
+							if (!marcUpToDate || fullRegroupingNoClear) {
+								recordGroupingProcessor.processHooplaRecord(curBib, recordNumber, !marcUpToDate);
+								numRecordsProcessed++;
+							}
+							//Mark that the record was processed
+							if (!marcRecordIdsInDatabase.remove("hoopla:" + recordNumber)) {
+								//This happens for newly added records
+								//logger.warn("Did not find hoopla:" + recordNumber + " in marcRecordIdsInDatabase");
+							}
 						}
 						numRecordsRead++;
 						if (numRecordsRead % 100000 == 0){
@@ -1254,7 +1269,7 @@ public class RecordGrouperMain {
 		}
 	}
 
-	private static void groupIlsRecords(Ini configIni, Connection dbConnection, ArrayList<IndexingProfile> indexingProfiles) {
+	private static void groupIlsRecords(Ini configIni, Connection dbConnection, ArrayList<IndexingProfile> indexingProfiles, boolean explodeMarcsOnly) {
 		//Get indexing profiles
 		for (IndexingProfile curProfile : indexingProfiles) {
 			MarcRecordGrouper recordGroupingProcessor;
@@ -1314,18 +1329,20 @@ public class RecordGrouperMain {
 										String recordNumber = recordIdentifier.getIdentifier();
 										boolean marcUpToDate = writeIndividualMarc(existingMarcFiles, individualMarcPath, curBib, recordNumber, curProfile.name, 4);
 										recordNumbersInExport.add(recordIdentifier.toString());
-										if (!marcUpToDate || fullRegroupingNoClear) {
-											if (recordGroupingProcessor.processMarcRecord(curBib, !marcUpToDate)) {
-												recordNumbersToIndex.add(recordIdentifier.toString());
-											} else {
-												suppressedRecordNumbersInExport.add(recordIdentifier.toString());
+										if (!explodeMarcsOnly) {
+											if (!marcUpToDate || fullRegroupingNoClear) {
+												if (recordGroupingProcessor.processMarcRecord(curBib, !marcUpToDate)) {
+													recordNumbersToIndex.add(recordIdentifier.toString());
+												} else {
+													suppressedRecordNumbersInExport.add(recordIdentifier.toString());
+												}
+												numRecordsProcessed++;
 											}
-											numRecordsProcessed++;
-										}
-										//Mark that the record was processed
-										if (!marcRecordIdsInDatabase.remove(curProfile.name + ":" + recordNumber)){
-											//This happens for newly added records
-											//logger.warn("Did not find " + curProfile.name + ":" + recordNumber + " in marcRecordIdsInDatabase");
+											//Mark that the record was processed
+											if (!marcRecordIdsInDatabase.remove(curProfile.name + ":" + recordNumber)) {
+												//This happens for newly added records
+												//logger.warn("Did not find " + curProfile.name + ":" + recordNumber + " in marcRecordIdsInDatabase");
+											}
 										}
 										lastRecordProcessed = recordNumber;
 									}
@@ -1369,7 +1386,11 @@ public class RecordGrouperMain {
 		}
 	}
 
-	private static int groupOverDriveRecords(Ini configIni, Connection econtentConnection, RecordGroupingProcessor recordGroupingProcessor) {
+	private static int groupOverDriveRecords(Ini configIni, Connection econtentConnection, RecordGroupingProcessor recordGroupingProcessor, boolean explodeMarcsOnly) {
+		if (explodeMarcsOnly){
+			//Nothing to do since we don't have marc records to process
+			return 0;
+		}
 		int numRecordsProcessed = 0;
 		try{
 			PreparedStatement overDriveRecordsStmt;

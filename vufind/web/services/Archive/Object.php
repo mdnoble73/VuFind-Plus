@@ -103,7 +103,7 @@ abstract class Archive_Object extends Action{
 				}
 			}
 
-			$entities = $marmotExtension->xpath('/marmotLocal/relatedEntity');
+			$entities = $marmotExtension->marmotLocal->relatedEntity;
 			/** @var SimpleXMLElement $entity */
 			foreach ($entities as $entity){
 				$entityType = '';
@@ -114,18 +114,18 @@ abstract class Archive_Object extends Action{
 					}
 				}
 				$entityInfo = array(
-						'pid' => $entity->entityPid,
-						'label' => $entity->entityTitle
+						'pid' => (string)$entity->entityPid,
+						'label' => (string)$entity->entityTitle
 				);
 				if ($entityType == 'person'){
 					$entityInfo['link']= '/Archive/' . $entity->entityPid . '/Person';
-					$this->relatedPeople[] = $entityInfo;
+					$this->relatedPeople[(string)$entity->entityPid] = $entityInfo;
 				}elseif ($entityType == 'place'){
 					$entityInfo['link']= '/Archive/' . $entity->entityPid . '/Place';
-					$this->relatedPlaces[] = $entityInfo;
+					$this->relatedPlaces[(string)$entity->entityPid] = $entityInfo;
 				}elseif ($entityType == 'event'){
 					$entityInfo['link']= '/Archive/' . $entity->entityPid . '/Event';
-					$this->relatedEvents[] = $entityInfo;
+					$this->relatedEvents[(string)$entity->entityPid] = $entityInfo;
 				}
 			}
 			if ($marmotExtension->marmotLocal->hasInterviewee){
@@ -137,19 +137,52 @@ abstract class Archive_Object extends Action{
 						'role' => 'Interviewee'
 				);
 			}
+
+			foreach ($marmotExtension->marmotLocal->relatedPlace as $entity){
+				if (count($entity->entityPlace) > 0 && strlen($entity->entityPlace->entityPid) > 0){
+					$entityInfo = array(
+							'pid' => (string)$entity->entityPlace->entityPid,
+							'label' => (string)$entity->entityPlace->entityTitle
+
+					);
+					$entityInfo['link']= '/Archive/' . (string)$entity->entityPlace->entityPid . '/Place';
+					$this->relatedPlaces[] = $entityInfo;
+				}else {
+					//Check to see if we have anything for this place
+					if (strlen($entity->generalPlace->latitude) ||
+							strlen($entity->generalPlace->longitude) ||
+							strlen($entity->generalPlace->addressStreetNumber) ||
+							strlen($entity->generalPlace->addressStreet) ||
+							strlen($entity->generalPlace->addressCity) ||
+							strlen($entity->generalPlace->addressCounty) ||
+							strlen($entity->generalPlace->addressState) ||
+							strlen($entity->generalPlace->addressZipCode) ||
+							strlen($entity->generalPlace->addressCountry) ||
+							strlen($entity->generalPlace->addressOtherRegion)){
+					}
+				}
+			}
+
 			$interface->assign('relatedPeople', $this->relatedPeople);
 			$interface->assign('relatedPlaces', $this->relatedPlaces);
 			$interface->assign('relatedEvents', $this->relatedEvents);
 
+
+
+			$interface->assign('hasMilitaryService', false);
 			if (count($marmotExtension->marmotLocal->militaryService) > 0){
-				$interface->assign('hasMilitaryService', true);
 				/** @var SimpleXMLElement $record */
 				$record = $marmotExtension->marmotLocal->militaryService->militaryRecord;
-				$militaryRecord = array(
-						'branch' => $fedoraUtils->getObjectLabel((string)$record->militaryBranch),
-						'conflict' => $fedoraUtils->getObjectLabel((string)$record->militaryConflict),
-				);
-				$interface->assign('militaryRecord', $militaryRecord);
+				if ($record->militaryBranch != 'none' || $record->militaryConflict != 'none'){
+					$militaryRecord = array(
+							'branch' => $fedoraUtils->getObjectLabel((string)$record->militaryBranch),
+							'branchLink' => '/Archive/' . $record->militaryBranch . '/Organization',
+							'conflict' => $fedoraUtils->getObjectLabel((string)$record->militaryConflict),
+							'conflictLink' => '/Archive/' . $record->militaryConflict . '/Event',
+					);
+					$interface->assign('militaryRecord', $militaryRecord);
+					$interface->assign('hasMilitaryService', true);
+				}
 			}
 
 			if (count($marmotExtension->marmotLocal->externalLink) > 0){
@@ -157,9 +190,19 @@ abstract class Archive_Object extends Action{
 				/** @var SimpleXMLElement $linkInfo */
 				foreach ($marmotExtension->marmotLocal->externalLink as $linkInfo){
 					$linkAttributes = $linkInfo->attributes();
+					if (strlen($linkInfo->linkText) == 0) {
+						if (strlen((string)$linkAttributes['type']) == 0) {
+							$linkText = $linkInfo->link;
+						} else {
+							$linkText = $linkAttributes['type'];
+						}
+					}else{
+						$linkText = (string)$linkInfo->linkText;
+					}
 					$this->links[] = array(
 							'type' => (string)$linkAttributes['type'],
-							'link' => (string)$linkInfo->link
+							'link' => (string)$linkInfo->link,
+							'text' => $linkText
 					);
 				}
 				$interface->assign('externalLinks', $this->links);
@@ -167,12 +210,22 @@ abstract class Archive_Object extends Action{
 
 			$addressInfo = array();
 			if (count($marmotExtension->marmotLocal->latitude) > 0){
-				$addressInfo['latitude'] = (string)$marmotExtension->marmotLocal->latitude;
+				if (strlen((string)$marmotExtension->marmotLocal->latitude) > 0){
+					$addressInfo['latitude'] = (string)$marmotExtension->marmotLocal->latitude;
+				}
 			}
 			if (count($marmotExtension->marmotLocal->longitude) > 0){
-				$addressInfo['longitude'] = (string)$marmotExtension->marmotLocal->longitude;
+				if (strlen((string)$marmotExtension->marmotLocal->longitude) > 0) {
+					$addressInfo['longitude'] = (string)$marmotExtension->marmotLocal->longitude;
+				}
 			}
 			$interface->assign('addressInfo', $addressInfo);
+
+			$notes = array();
+			if (strlen($marmotExtension->marmotLocal->personNotes) > 0){
+				$notes[] = (string)$marmotExtension->marmotLocal->personNotes;
+			}
+			$interface->assign('notes', $notes);
 		}
 
 		//Load the RELS-EXT data stream
@@ -212,7 +265,7 @@ abstract class Archive_Object extends Action{
 			$subjectsToIgnore = array_flip(explode("\r\n", strtolower($archiveSubjects->subjectsToIgnore)));
 			$subjectsToRestrict = array_flip(explode("\r\n", strtolower($archiveSubjects->subjectsToRestrict)));
 		}
-		$this->getRelatedCollections();
+		$relatedCollections = $this->getRelatedCollections();
 		$relatedSubjects = array();
 		$numSubjectsAdded = 0;
 		if (strlen($this->archiveObject->label) > 0) {
@@ -220,17 +273,19 @@ abstract class Archive_Object extends Action{
 		}
 		for ($i = 0; $i < 2; $i++){
 			foreach ($this->formattedSubjects as $subject) {
-				$lowerSubject = strtolower($subject['label']);
+				$searchSubject = preg_replace('/\(.*?\)/',"", $subject['label']);
+				$searchSubject = trim(preg_replace('/[\/|:.,"]/',"", $searchSubject));
+				$lowerSubject = strtolower($searchSubject);
 				if (!array_key_exists($lowerSubject, $subjectsToIgnore)) {
 					if ($i == 0){
 						//First pass, just add primary subjects
 						if (!array_key_exists($lowerSubject, $subjectsToRestrict)) {
-							$relatedSubjects[$lowerSubject] = '"' . $subject['label'] . '"';
+							$relatedSubjects[$lowerSubject] = '"' . $searchSubject . '"';
 						}
 					}else{
 						//Second pass, add restricted subjects, but only if we don't have 5 subjects already
 						if (array_key_exists($lowerSubject, $subjectsToRestrict) && count($relatedSubjects) <= 5) {
-							$relatedSubjects[$lowerSubject] = '"' . $subject['label'] . '"';
+							$relatedSubjects[$lowerSubject] = '"' . $searchSubject . '"';
 						}
 					}
 				}
@@ -244,6 +299,9 @@ abstract class Archive_Object extends Action{
 		}
 		$relatedSubjects = array_slice($relatedSubjects, 0, 8);
 
+		//Get works that are directly related to this entity based on linked data
+		$linkedWorks = $this->getLinkedWorks($relatedCollections);
+
 		$exploreMore = new ExploreMore();
 		$exploreMore->getRelatedWorks($relatedSubjects);
 		$ebscoMatches = $exploreMore->loadEbscoOptions('archive', array(), implode($relatedSubjects, " or "));
@@ -252,6 +310,8 @@ abstract class Archive_Object extends Action{
 		}
 		$searchTerm = implode(" OR ", $relatedSubjects);
 		$exploreMore->getRelatedArchiveContent('archive', array(), $searchTerm);
+
+
 	}
 
 	protected function getRelatedCollections() {
@@ -296,10 +356,14 @@ abstract class Archive_Object extends Action{
 			}
 		}
 		$interface->assign('collections', $collections);
+		return $collections;
 	}
 
 	protected function loadLinkedData(){
 		global $interface;
+		if (!isset($this->links)){
+			return;
+		}
 		foreach ($this->links as $link){
 			if ($link['type'] == 'wikipedia'){
 				require_once ROOT_DIR . '/sys/WikipediaParser.php';
@@ -312,6 +376,56 @@ abstract class Archive_Object extends Action{
 						'&titles=' . urlencode($searchTerm);
 				$wikipediaData = $wikipediaParser->getWikipediaPage($url);
 				$interface->assign('wikipediaData', $wikipediaData);
+			}elseif($link['type'] == 'marmotGenealogy'){
+				$matches = array();
+				if (preg_match('/.*Person\/(\d+)/', $link['link'], $matches)){
+					$personId = $matches[1];
+					require_once ROOT_DIR . '/sys/Genealogy/Person.php';
+					$person = new Person();
+					$person->personId = $personId;
+					if ($person->find(true)){
+						$interface->assign('genealogyData', $person);
+
+						$formattedBirthdate = $person->formatPartialDate($person->birthDateDay, $person->birthDateMonth, $person->birthDateYear);
+						$interface->assign('birthDate', $formattedBirthdate);
+
+						$formattedDeathdate = $person->formatPartialDate($person->deathDateDay, $person->deathDateMonth, $person->deathDateYear);
+						$interface->assign('deathDate', $formattedDeathdate);
+
+						$marriages = array();
+						$personMarriages = $person->marriages;
+						if (isset($personMarriages)){
+							foreach ($personMarriages as $marriage){
+								$marriageArray = (array)$marriage;
+								$marriageArray['formattedMarriageDate'] = $person->formatPartialDate($marriage->marriageDateDay, $marriage->marriageDateMonth, $marriage->marriageDateYear);
+								$marriages[] = $marriageArray;
+							}
+						}
+						$interface->assign('marriages', $marriages);
+						$obituaries = array();
+						$personObituaries =$person->obituaries;
+						if (isset($personObituaries)){
+							foreach ($personObituaries as $obit){
+								$obitArray = (array)$obit;
+								$obitArray['formattedObitDate'] = $person->formatPartialDate($obit->dateDay, $obit->dateMonth, $obit->dateYear);
+								$obituaries[] = $obitArray;
+							}
+						}
+						$interface->assign('obituaries', $obituaries);
+					}
+				}
+			}
+		}
+	}
+
+	private function getLinkedWorks($relatedCollections) {
+		//Check for works that are directly related to this entity
+		if (isset($this->links)) {
+			foreach ($this->links as $link) {
+				if ($link['type'] == 'relatedPika') {
+					preg_match('/^.*\/GroupedWork\/([a-f0-9-]+)$/', $link['link'], $matches);
+					$workId = $matches[1];
+				}
 			}
 		}
 	}

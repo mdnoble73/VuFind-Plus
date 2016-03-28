@@ -36,6 +36,116 @@
 			</div>
 		{/if}
 
+		{if $directlyRelatedObjects && $directlyRelatedObjects.numFound > 0}
+			<div class="panel active" id="relatedObjectsPanel">
+				<a href="#relatedObjectsPanelBody" data-toggle="collapse">
+					<div class="panel-heading">
+						<div class="panel-title">
+							Related Objects
+						</div>
+					</div>
+				</a>
+				<div id="transcriptionPanelBody" class="panel-collapse collapse in">
+					<div class="panel-body">
+						<div class="related-objects results-covers home-page-browse-thumbnails">
+							{foreach from=$directlyRelatedObjects.objects item=image}
+								<figure class="browse-thumbnail">
+									<a href="{$image.link}" {if $image.title}data-title="{$image.title}"{/if}>
+										<img src="{$image.thumbnail}" {if $image.title}alt="{$image.title}"{/if}>
+									</a>
+									<figcaption class="explore-more-category-title">
+										<strong>{$image.title}</strong>
+									</figcaption>
+								</figure>
+							{/foreach}
+						</div>
+					</div>
+				</div>
+			</div>
+		{/if}
+
+		{if count($obituaries) > 0}
+			<div class="panel active{*toggle on for open*}" id="obituariesPanel">
+				<a href="#obituariesPanelBody" data-toggle="collapse">
+					<div class="panel-heading">
+						<div class="panel-title">
+							Obituaries
+						</div>
+					</div>
+				</a>
+				<div id="obituariesPanelBody" class="panel-collapse collapse in{*toggle on for open*}">
+					<div class="panel-body">
+						{foreach from=$obituaries item=obituary}
+							<div class="obituaryTitle">
+								{$obituary.source}{if $obituary.sourcePage} page {$obituary.sourcePage}{/if}{if $obituary.formattedObitDate} - {$obituary.formattedObitDate}{/if}
+								{if $userIsAdmin}
+									<div class="btn-toolbar">
+										<a href='{$path}/Admin/Obituaries?objectAction=edit&amp;id={$obituary.obituaryId}' title='Edit this Obituary' class='btn btn-xs btn-default'>
+											Edit
+										</a>
+										<a href='{$path}/Admin/Obituaries?objectAction=delete&amp;id={$obituary.obituaryId}' title='Delete this Obituary' onclick='return confirm("Removing this obituary will permanently remove it from the system.	Are you sure?")' class='btn btn-xs btn-danger'>
+											Delete
+										</a>
+									</div>
+								{/if}
+							</div>
+							{if $obituary.contents && $obituary.picture}
+								<div class="obituaryText">{if $obituary.picture|escape}<a href='{$path}/files/original/{$obituary.picture|escape}'><img class='obitPicture' src='{$path}/files/medium/{$obituary.picture|escape}'></a>{/if}{$obituary.contents|escape}</div>
+								<div class="clearer"></div>
+							{elseif $obituary.contents}
+								<div class="obituaryText">{$obituary.contents|escape|replace:"\r":"<br>"}</div>
+								<div class="clearer"></div>
+							{elseif $obituary.picture}
+								<div class="obituaryPicture">{if $obituary.picture|escape}<a href='{$path}/files/original/{$obituary.picture|escape}'><img class='obitPicture' src='{$path}/files/medium/{$obituary.picture|escape}'></a>{/if}</div>
+								<div class="clearer"></div>
+							{/if}
+
+						{/foreach}
+					</div>
+				</div>
+			</div>
+		{/if}
+
+		{if $genealogyData->cemeteryName || $genealogyData->cemeteryLocation || $genealogyData->mortuaryName || $genealogyData->cemeteryAvenue || $genealogyData->lot || $genealogyData->block || $genealogyData->grave || $genealogyData->addition}
+			<div class="panel {*active*}{*toggle on for open*}" id="burialDetailsPanel">
+				<a href="#burialDetailsPanelBody" data-toggle="collapse">
+					<div class="panel-heading">
+						<div class="panel-title">
+							Burial Details
+						</div>
+					</div>
+				</a>
+				<div id="burialDetailsPanelBody" class="panel-collapse collapse {*in*}{*toggle on for open*}">
+					<div class="panel-body">
+						{if $genealogyData->cemeteryName}
+							<div class='genealogyDataDetail'><span class='result-label'>Cemetery Name: </span><span class='genealogyDataDetailValue'>{$genealogyData->cemeteryName}</span></div>
+						{/if}
+						{if $genealogyData->cemeteryLocation}
+							<div class='genealogyDataDetail'><span class='result-label'>Cemetery Location: </span><span class='genealogyDataDetailValue'>{$genealogyData->cemeteryLocation}</span></div>
+						{/if}
+						{if $genealogyData->cemeteryAvenue}
+							<div class='genealogyDataDetail'><span class='result-label'>Cemetery Avenue: </span><span class='genealogyDataDetailValue'>{$genealogyData->cemeteryAvenue}</span></div>
+						{/if}
+						{if $genealogyData->addition || $genealogyData->lot || $genealogyData->block || $genealogyData->grave}
+							<div class='genealogyDataDetail'><span class='result-label'>Burial Location:</span>
+								<span class='genealogyDataDetailValue'>
+									{if $genealogyData->addition}Addition {$genealogyData->addition}{if $genealogyData->block || $genealogyData->lot || $genealogyData->grave}, {/if}{/if}
+									{if $genealogyData->block}Block {$genealogyData->block}{if $genealogyData->lot || $genealogyData->grave}, {/if}{/if}
+									{if $genealogyData->lot}Lot {$genealogyData->lot}{if $genealogyData->grave}, {/if}{/if}
+									{if $genealogyData->grave}Grave {$genealogyData->grave}{/if}
+								</span>
+							</div>
+							{if $genealogyData->tombstoneInscription}
+								<div class='genealogyDataDetail'><span class='result-label'>Tombstone Inscription: </span><div class='genealogyDataDetailValue'>{$genealogyData->tombstoneInscription}</div></div>
+							{/if}
+						{/if}
+						{if $genealogyData->mortuaryName}
+							<div class='genealogyDataDetail'><span class='result-label'>Mortuary Name: </span><span class='genealogyDataDetailValue'>{$genealogyData->mortuaryName}</span></div>
+						{/if}
+					</div>
+				</div>
+			</div>
+		{/if}
 
 		{* Context Notes *}
 		{if !empty($marmotExtension->contextNotes)}
@@ -56,27 +166,27 @@
 		{/if}
 
 		{if $mods->subject}
-				<div class="panel active{*toggle on for open*}" id="subjectPanel">
-					<a href="#subjectPanelBody" data-toggle="collapse">
-						<div class="panel-heading">
-							<div class="panel-title">
-								Subject
-							</div>
-						</div>
-					</a>
-					<div id="subjectPanelBody" class="panel-collapse collapse in{*toggle on for open*}">
-						<div class="panel-body">
-							{foreach from=$subjects item=subject}
-								<a href='{$subject.link}'>
-									{$subject.label}
-								</a><br>
-							{/foreach}
+			<div class="panel active{*toggle on for open*}" id="subjectPanel">
+				<a href="#subjectPanelBody" data-toggle="collapse">
+					<div class="panel-heading">
+						<div class="panel-title">
+							Subject
 						</div>
 					</div>
+				</a>
+				<div id="subjectPanelBody" class="panel-collapse collapse in{*toggle on for open*}">
+					<div class="panel-body">
+						{foreach from=$subjects item=subject}
+							<a href='{$subject.link}'>
+								{$subject.label}
+							</a><br>
+						{/foreach}
+					</div>
 				</div>
+			</div>
 		{/if}
 
-		{if $relatedPeople}
+		{if $relatedPeople || count($marriages) > 0}
 			<div class="panel active{*toggle on for open*}" id="relatedPeoplePanel">
 				<a href="#relatedPeoplePanelBody" data-toggle="collapse">
 					<div class="panel-heading">
@@ -87,6 +197,16 @@
 				</a>
 				<div id="relatedPeoplePanelBody" class="panel-collapse collapse in{*toggle on for open*}">
 					<div class="panel-body">
+						{if count($marriages) > 0}
+							{foreach from=$marriages item=marriage}
+								<div class="marriageTitle">
+									Married: {$marriage.spouseName}{if $marriage.formattedMarriageDate} - {$marriage.formattedMarriageDate}{/if}
+								</div>
+								{if $marriage.comments}
+									<div class="marriageComments">{$marriage.comments|escape}</div>
+								{/if}
+							{/foreach}
+						{/if}
 
 						{foreach from=$relatedPeople item=entity}
 							<a href='{$entity.link}'>
@@ -164,13 +284,13 @@
 						<div class="row">
 							<div class="result-label col-sm-4">Military Branch: </div>
 							<div class="result-value col-sm-8">
-								{$militaryRecord.branch}
+								<a href="{$militaryRecord.branchLink}">{$militaryRecord.branch}</a>
 							</div>
 						</div>
 						<div class="row">
 							<div class="result-label col-sm-4">Conflict: </div>
 							<div class="result-value col-sm-8">
-								{$militaryRecord.conflict}
+								<a href="{$militaryRecord.conflictLink}">{$militaryRecord.conflict}</a>
 							</div>
 						</div>
 
@@ -179,8 +299,49 @@
 			</div>
 		{/if}
 
+		{if count($notes) > 0}
+			<div class="panel active" id="notesPanel">
+				<a href="#notesPanelBody" data-toggle="collapse">
+					<div class="panel-heading">
+						<div class="panel-title">
+							Notes
+						</div>
+					</div>
+				</a>
+				<div id="notesPanelBody" class="panel-collapse collapse in">
+					<div class="panel-body">
+						{foreach from=$notes item=note}
+							<div>
+								{$note}
+							</div>
+						{/foreach}
+					</div>
+				</div>
+			</div>
+		{/if}
 
-
+		{if count($externalLinks) > 0}
+			<div class="panel active" id="externalLinksPanel">
+				<a href="#externalLinksPanelBody" data-toggle="collapse">
+					<div class="panel-heading">
+						<div class="panel-title">
+							Links
+						</div>
+					</div>
+				</a>
+				<div id="externalLinksPanelBody" class="panel-collapse collapse in">
+					<div class="panel-body">
+						{foreach from=$externalLinks item=link}
+							<div>
+								<a href="{$link.link}" target="_blank">
+									{$link.text}
+								</a>
+							</div>
+						{/foreach}
+					</div>
+				</div>
+			</div>
+		{/if}
 
 		{if $mods->identifier || $mods->recordInfo}
 			<div class="panel {*active*}{*toggle on for open*}" id="moreDetailsPanel">
@@ -313,27 +474,30 @@
 			</div>
 		{/if}
 
-			{if $repositoryLink}
-				<div class="panel {*active*}{*toggle on for open*}" id="staffViewPanel">
-					<a href="#staffViewPanelBody" data-toggle="collapse">
-						<div class="panel-heading">
-							<div class="panel-title">
-								Staff View
-							</div>
-						</div>
-					</a>
-					<div id="staffViewPanelBody" class="panel-collapse collapse {*in*}{*toggle on for open*}">
-						<div class="panel-body">
-							<a class="btn btn-small btn-default" href="{$repositoryLink}" target="_blank">
-								View in Islandora
-							</a>
-							<a class="btn btn-small btn-default" href="{$repositoryLink}/datastream/MODS/view" target="_blank">
-								View MODS Record
-							</a>
+		{if $repositoryLink}
+			<div class="panel {*active*}{*toggle on for open*}" id="staffViewPanel">
+				<a href="#staffViewPanelBody" data-toggle="collapse">
+					<div class="panel-heading">
+						<div class="panel-title">
+							Staff View
 						</div>
 					</div>
+				</a>
+				<div id="staffViewPanelBody" class="panel-collapse collapse {*in*}{*toggle on for open*}">
+					<div class="panel-body">
+						<a class="btn btn-small btn-default" href="{$repositoryLink}" target="_blank">
+							View in Islandora
+						</a>
+						<a class="btn btn-small btn-default" href="{$repositoryLink}/datastream/MODS/view" target="_blank">
+							View MODS Record
+						</a>
+						<a class="btn btn-small btn-default" href="{$repositoryLink}/datastream/MODS/edit" target="_blank">
+							Edit MODS Record
+						</a>
+					</div>
 				</div>
-			{/if}
+			</div>
+		{/if}
 
 
 	</div>

@@ -49,7 +49,7 @@ while read line; do
 	if [[ $line =~ ^\[.+?\] && $line != '[Sideload]' ]]; then
 		section=false;
 	fi
-	if [[ $section == true && $line =~ 'Command' ]]; then
+	if [[ $section == true && ! $line =~ ^\; && $line =~ 'Command' ]]; then
 		# key = strip off longest string from end containing Command
                 key=$(trim "${line%%Command*}");
 		# value = strip off shortest string from beginning containing =
