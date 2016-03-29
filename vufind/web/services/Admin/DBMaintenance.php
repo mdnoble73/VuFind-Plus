@@ -769,6 +769,20 @@ class DBMaintenance extends Admin_Admin {
 					),
 				),
 
+				'nongrouped_records' => array(
+						'title' => 'Non-grouped Records Table',
+						'description' => 'Create non-grouped Records table to store records that should not be grouped',
+						'sql' => array(
+								"CREATE TABLE `nongrouped_records` (
+									id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+									`source` VARCHAR( 50 ) NOT NULL,
+									`recordId` VARCHAR( 36 ) NOT NULL,
+									`notes` VARCHAR( 255 ) NOT NULL,
+									UNIQUE INDEX (source, recordId)
+								)",
+						),
+				),
+
 				'variables_table' => array(
 					'title' => 'Variables Table',
 					'description' => 'Create Variables Table for storing basic variables for use in programs (system writable config)',
