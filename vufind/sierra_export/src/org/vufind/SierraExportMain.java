@@ -251,6 +251,8 @@ public class SierraExportMain{
 			Long lastSierraExtractTime = null;
 			Long lastSierraExtractTimeVariableId = null;
 
+			Long exportStartTime = new Date().getTime() / 1000;
+
 			String individualMarcPath = ini.get("Reindex", "individualMarcPath");
 			itemTag = ini.get("Reindex", "itemTag");
 			itemRecordNumberSubfield = getSubfieldIndicatorFromConfig(ini, "itemRecordNumberSubfield");
@@ -292,7 +294,8 @@ public class SierraExportMain{
 				String apiBaseUrl = ini.get("Catalog", "url") + "/iii/sierra-api/v" + apiVersion;
 
 				//Last Update in UTC
-				Date lastExtractDate = new Date(lastSierraExtractTime * 1000);
+				//Add a small buffer to be
+				Date lastExtractDate = new Date((lastSierraExtractTime - 120) * 1000);
 
 				SimpleDateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
 				dateFormatter.setTimeZone(TimeZone.getTimeZone("UTC"));
@@ -423,13 +426,13 @@ public class SierraExportMain{
 				Long finishTime = new Date().getTime() / 1000;
 				if (lastSierraExtractTimeVariableId != null) {
 					PreparedStatement updateVariableStmt = vufindConn.prepareStatement("UPDATE variables set value = ? WHERE id = ?");
-					updateVariableStmt.setLong(1, finishTime);
+					updateVariableStmt.setLong(1, exportStartTime);
 					updateVariableStmt.setLong(2, lastSierraExtractTimeVariableId);
 					updateVariableStmt.executeUpdate();
 					updateVariableStmt.close();
 				} else {
 					PreparedStatement insertVariableStmt = vufindConn.prepareStatement("INSERT INTO variables (`name`, `value`) VALUES ('last_sierra_extract_time', ?)");
-					insertVariableStmt.setString(1, Long.toString(finishTime));
+					insertVariableStmt.setString(1, Long.toString(exportStartTime));
 					insertVariableStmt.executeUpdate();
 					insertVariableStmt.close();
 				}
