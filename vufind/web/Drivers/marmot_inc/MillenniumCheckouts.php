@@ -109,8 +109,7 @@ class MillenniumCheckouts {
 							$shortId = $matches[1];
 							$bibid = '.' . $matches[1]; //Technically, this isn't correct since the check digit is missing
 							$title = strip_tags($matches[2]);
-						}elseif (preg_match('/.*<a href=".*?\/record\/C__R(.*?)\\?.*?">(.*?)<\/a>.*/si', $scols[$i], $matches)){
-							//TODO: this needs tested; based on regex updating in extract_title_from_row
+						}elseif (preg_match('/<a href=".*?\/record\/C__R(.*?)\?.*?"patFuncTitleMain">(.*?)<\/span>/si', $scols[$i], $matches)){
 							//Encore
 							$shortId = $matches[1];
 							$bibid = '.' . $matches[1]; //Technically, this isn't correct since the check digit is missing
