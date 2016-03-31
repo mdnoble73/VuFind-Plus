@@ -22,9 +22,19 @@ class MillenniumCheckouts {
 			return trim(strip_tags($matches[2]));
 		}
 		//Encore
-		elseif (preg_match('/<a href=".*?\/record\/C__R(.*?)\?.*?"patFuncTitleMain">(.*?)<\/span>/si', $row, $matches)){
+		elseif (preg_match('/<a href=".*?\/record\/C__R(.*?)\?.*?"patFuncTitleMain">(.*?)<\/span>/si', $row, $matches)) {
+			// This Regex developed using output from Nashville webpac.  plb 3-31-2016
+			//TODO: may need to be modified to match both patFuncTitle & patFuncTitleMain, using '/<a href=".*?\/record\/C__R(.*?)\?.*?"patFuncTitle.*?">(.*?)<\/span>/si'. plb 3-31-2016
 			return trim(strip_tags($matches[2]));
-		}else{
+		}
+		// Prospector Holds in Sierra WebPAC
+		elseif (preg_match('/<td.*?"patFuncTitle">(.*?)<\/td>/si', $row, $matches)){
+			// This Regex developed using output from Marmot Sierra webpac.  plb 3-31-2016
+			// Note: this regex doesn't extract a record id like the two above do.
+			return trim(strip_tags($matches[1]));
+		}
+		// Fallback option
+		else{
 			return trim(strip_tags($row));
 		}
 	}
@@ -100,6 +110,7 @@ class MillenniumCheckouts {
 							$bibid = '.' . $matches[1]; //Technically, this isn't correct since the check digit is missing
 							$title = strip_tags($matches[2]);
 						}elseif (preg_match('/.*<a href=".*?\/record\/C__R(.*?)\\?.*?">(.*?)<\/a>.*/si', $scols[$i], $matches)){
+							//TODO: this needs tested; based on regex updating in extract_title_from_row
 							//Encore
 							$shortId = $matches[1];
 							$bibid = '.' . $matches[1]; //Technically, this isn't correct since the check digit is missing
@@ -237,7 +248,7 @@ class MillenniumCheckouts {
 		);
 
 		$checkedOutPageText = $driver->_curlPostPage($curl_url, $renewAllPostVariables);
-		//$logger->log("Result of Renew All\r\n" . $sresult, PEAR_LOG_INFO);
+		//$logger->log("Result of Renew All\r\n" . $checkedOutPageText, PEAR_LOG_INFO);
 
 		//Clear the existing patron info and get new information.
 		$renew_result = array(
@@ -284,7 +295,7 @@ class MillenniumCheckouts {
 								// Add Title to message
 								$title = $this->extract_title_from_row($row);
 
-								$renew_result['message'][] = "Unable to renew $title: $msg.";
+								$renew_result['message'][] = "<p style=\"font-style:italic\">$title</p><p>Unable to renew: $msg.</p>";
 							}
 
 					}
@@ -343,6 +354,7 @@ class MillenniumCheckouts {
 		$message = 'Unable to load renewal information for this entry.';
 		$success = false;
 		if (preg_match('/<h2>\\s*You cannot renew items because:\\s*<\/h2><ul><li>(.*?)<\/ul>/si', $checkedOutPageText, $matches)) {
+			//TODO: extract Title for this message
 			$success = false;
 			$msg = ucfirst(strtolower(trim($matches[1])));
 			$message = "Unable to renew this item: $msg.";
@@ -365,7 +377,6 @@ class MillenniumCheckouts {
 			if (preg_match_all('/<tr class="patFuncEntry">(.*?)<\/tr>/s', $checkedOutTitleTable, $rowMatches, PREG_SET_ORDER)){
 				//$logger->log("Checked out titles table has " . count($rowMatches) . "rows", PEAR_LOG_DEBUG);
 				//$logger->log(print_r($rowMatches, true), PEAR_LOG_DEBUG);
-//				for ($i = 0; $i < count($rowMatches); $i++) {
 					foreach ($rowMatches as $i => $row) {
 					$rowData = $row[1];
 					if (preg_match("/{$itemId}/", $rowData)){
@@ -375,13 +386,14 @@ class MillenniumCheckouts {
 							$success = false;
 							$msg = ucfirst(strtolower(trim($statusMatches[1])));
 							$title = $this->extract_title_from_row($rowData);
-							$message = "Unable to renew $title: $msg.";
+							$message = "<p style=\"font-style:italic\">$title</p><p>Unable to renew: $msg.</p>";
+
 							// title needed for in renewSelectedItems to distinguish which item failed.
 						}elseif (preg_match('/<td.*?class="patFuncStatus".*?>.*?<em><div style="color:red">(.*?)<\/div><\/em>.*?<\/td>/s', $rowData, $statusMatches)){
 							$success = false;
-							$msg = ucfirst(strtolower(trim( $statusMatches[1])));
+							$msg = ucfirst(strtolower(trim($statusMatches[1])));
 							$title = $this->extract_title_from_row($rowData);
-							$message = "Unable to renew $title: $msg.";
+							$message = "<p style=\"font-style:italic\">$title</p><p>Unable to renew: $msg.</p>";
 							// title needed for in renewSelectedItems to distinguish which item failed.
 						} elseif (preg_match('/<td.*?class="patFuncStatus".*?>.*?<em>(.*?)<\/em>.*?<\/td>/s', $rowData, $statusMatches)){
 							$success = true;
