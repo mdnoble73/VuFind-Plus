@@ -22,7 +22,7 @@ class MillenniumCheckouts {
 			return trim(strip_tags($matches[2]));
 		}
 		//Encore
-		elseif (preg_match('/.*<a href=".*?\/record\/C__R(.*?)\\?.*?">(.*?)<\/a>.*/si', $row, $matches)){
+		elseif (preg_match('/<a href=".*?\/record\/C__R(.*?)\?.*?"patFuncTitleMain">(.*?)<\/span>/si', $row, $matches)){
 			return trim(strip_tags($matches[2]));
 		}else{
 			return trim(strip_tags($row));
@@ -249,7 +249,8 @@ class MillenniumCheckouts {
 		$renew_result['Total'] = $curCheckedOut;
 
 		// pattern from marmot sierra :  <b>  RENEWED</b>
-		$numRenewals = preg_match_all("/<b>\s*RENEWED<\/b>/si", $checkedOutPageText, $matches);
+		// pattern from Nashville WebPAC : <b> RENEWED successfully</b>
+		$numRenewals = preg_match_all("/<b>\s*RENEWED.*?<\/b>/si", $checkedOutPageText, $matches);
 		$renew_result['Renewed'] = $numRenewals;
 		$renew_result['Unrenewed'] = $renew_result['Total'] - $renew_result['Renewed'];
 		if ($renew_result['Unrenewed'] > 0) {
