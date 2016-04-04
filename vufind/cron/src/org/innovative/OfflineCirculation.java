@@ -92,7 +92,14 @@ public class OfflineCirculation implements IProcessHandler {
 			}
 			patronName = URLEncoder.encode(patronName, "UTF-8");
 			String bibId = URLEncoder.encode(holdsToProcessRS.getString("bibId"), "UTF-8");
-			URL placeHoldUrl = new URL(baseUrl + "/API/UserAPI?method=placeHold&username=" + patronName + "&password=" + patronBarcode + "&bibId=" + bibId);
+			String itemId = holdsToProcessRS.getString("itemId");
+			URL placeHoldUrl;
+			if (itemId != null && itemId.length() > 0){
+				placeHoldUrl = new URL(baseUrl + "/API/UserAPI?method=placeItemHold&username=" + patronName + "&password=" + patronBarcode + "&bibId=" + bibId + "&itemId=" + itemId);
+			}else{
+				placeHoldUrl = new URL(baseUrl + "/API/UserAPI?method=placeHold&username=" + patronName + "&password=" + patronBarcode + "&bibId=" + bibId);
+			}
+
 			Object placeHoldDataRaw = placeHoldUrl.getContent();
 			if (placeHoldDataRaw instanceof InputStream) {
 				String placeHoldDataJson = Util.convertStreamToString((InputStream) placeHoldDataRaw);

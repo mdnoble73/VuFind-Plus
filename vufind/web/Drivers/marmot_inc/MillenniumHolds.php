@@ -156,7 +156,13 @@ class MillenniumHolds{
 		);
 
 		foreach ($xNum as $tmpXnumInfo) {
-			list($tmpBib, $tmpXnum) = explode('~', $tmpXnumInfo);
+			if (strpos($tmpXnumInfo, '~') !== false){
+				list($tmpBib, $tmpXnum) = explode('~', $tmpXnumInfo);
+			}else{
+				$tmpBib = $tmpXnumInfo;
+				$tmpXnum = '';
+			}
+
 			if ($type == 'cancel') {
 				$POSTVariables['cancel' . $tmpBib . 'x' . $tmpXnum] = $cancelValue;
 			}
