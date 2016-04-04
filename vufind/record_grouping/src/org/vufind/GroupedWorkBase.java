@@ -30,6 +30,7 @@ public abstract class GroupedWorkBase {
 	protected String originalAuthorName = "";
 	protected String author = "";             //Up to 50  chars
 	protected String groupingCategory = "";   //Up to 25  chars
+	protected String uniqueIdentifier = null;
 	protected HashSet<RecordIdentifier> identifiers = new HashSet<RecordIdentifier>();
 
 	//Load authorities
@@ -62,6 +63,9 @@ public abstract class GroupedWorkBase {
 					idGenerator.update("--null--".getBytes());
 				}else{
 					idGenerator.update(groupingCategory.getBytes());
+				}
+				if (uniqueIdentifier != null){
+					idGenerator.update(uniqueIdentifier.getBytes());
 				}
 				permanentId = new BigInteger(1, idGenerator.digest()).toString(16);
 				while (permanentId.length() < 32){
@@ -167,5 +171,9 @@ public abstract class GroupedWorkBase {
 
 	public String getOriginalAuthor() {
 		return originalAuthorName;
+	}
+
+	public void makeUnique(String primaryIdentifier) {
+		uniqueIdentifier = primaryIdentifier;
 	}
 }
