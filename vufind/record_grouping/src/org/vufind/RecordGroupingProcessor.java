@@ -122,7 +122,8 @@ public class RecordGroupingProcessor {
 				PreparedStatement recordsToNotGroupStmt = dbConnection.prepareStatement("SELECT * from nongrouped_records");
 				ResultSet nonGroupedRecordsRS = recordsToNotGroupStmt.executeQuery();
 				while (nonGroupedRecordsRS.next()){
-					recordsToNotGroup.add(nonGroupedRecordsRS.getString("source") + ":" + nonGroupedRecordsRS.getString("recordId"));
+					String identifier = nonGroupedRecordsRS.getString("source") + ":" + nonGroupedRecordsRS.getString("recordId");
+					recordsToNotGroup.add(identifier.toLowerCase());
 				}
 				nonGroupedRecordsRS.close();
 
@@ -385,7 +386,7 @@ public class RecordGroupingProcessor {
 	 */
 	protected void addGroupedWorkToDatabase(RecordIdentifier primaryIdentifier, GroupedWorkBase groupedWork, boolean primaryDataChanged) {
 		//Check to see if we need to ungroup this
-		if (recordsToNotGroup.contains(primaryIdentifier.toString())){
+		if (recordsToNotGroup.contains(primaryIdentifier.toString().toLowerCase())){
 			groupedWork.makeUnique(primaryIdentifier.toString());
 		}
 
