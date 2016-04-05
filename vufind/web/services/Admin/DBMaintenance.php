@@ -1359,6 +1359,14 @@ class DBMaintenance extends Admin_Admin {
 					),
 				),
 
+					'loan_rule_determiners_increase_ptype_length' => array(
+							'title' => 'Increase PType field length for Loan Rule Determiners',
+							'description' => 'Increase PType field length for Loan Rule Determiners',
+							'sql' => array(
+								"ALTER TABLE loan_rule_determiners CHANGE COLUMN patronType `patronType` VARCHAR(255) NOT NULL COMMENT 'The patron types that this rule applies to'",
+							),
+					),
+
 				'location_hours' => array(
 					'title' => 'Location Hours',
 					'description' => 'Build table to store hours for a location',
