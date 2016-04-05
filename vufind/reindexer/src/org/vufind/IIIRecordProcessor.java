@@ -437,8 +437,9 @@ public abstract class IIIRecordProcessor extends IlsRecordProcessor{
 						scopingInfo.setLocallyOwned(scope.isItemOwnedByScope(profileType, location, ""));
 					}
 					if (scope.isLibraryScope()) {
-						scopingInfo.setLibraryOwned(scope.isItemOwnedByScope(profileType, location, ""));
-						if (itemInfo.getShelfLocation().equals("On Order")){
+						boolean isLibraryOwned = scope.isItemOwnedByScope(profileType, location, "");
+						scopingInfo.setLibraryOwned(isLibraryOwned);
+						if (itemInfo.getShelfLocation().equals("On Order") && isLibraryOwned){
 							itemInfo.setShelfLocation(scopingInfo.getScope().getFacetLabel() + " On Order");
 						}
 					}
