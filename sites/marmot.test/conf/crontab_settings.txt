@@ -69,10 +69,6 @@
 # Accelerated Reader data
 45 22 * * * expect /root/cron/copyAcceleratedReaderData.exp
 
-# CCU Ebrary Marc Updates
-03 23 * * * /root/cron/copyEbraryCCUExport.sh
-# transfer any uploaded files before marmot.test full updates
-
 ###############################
 # Data Extract TO ftp server  #
 ###############################
