@@ -78,10 +78,6 @@
 1-51/10 * * * * /root/cron/copyAspencatCovers.sh
 # 10 minute gap was missed for 51-01. plb 6-9-2015
 
-# CCU Ebrary Marc Updates
-03 23 * * * /root/cron/copyEbraryCCUExport.sh
-# transfer any uploaded files before opac.marmot.org full updates
-
 # Check Apache Solr process and website that it has not stalled.
 */10 * * * * cd /usr/local/vufind-plus/vufind/cron/; ./solrTest.sh
 
