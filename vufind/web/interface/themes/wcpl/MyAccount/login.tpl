@@ -26,7 +26,7 @@
 							<input type="password" name="password" id="password" size="28" onkeypress="return VuFind.submitOnEnter(event, '#loginForm');" class="form-control">
 							{if $showForgotPinLink}
 								<p class="help-block">
-									<strong>Forgot PIN?</strong> <a href="email:{$supportEmail}">E-mail us at {$supportEmail}</a>
+									<strong>Forgot PIN?</strong> <a href="mailto:{$supportEmail}">E-mail us at {$supportEmail}</a>
 								</p>
 							{/if}
 
