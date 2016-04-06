@@ -60,11 +60,14 @@ abstract class Archive_Object extends Action{
 
 			foreach ($subjects->topic as $subjectPart){
 				$subjectLink = $configArray['Site']['path'] . '/Archive/Results?lookfor=';
-				$subjectLink .= '&filter[]=mods_subject_topic_ms:"' . $subjectPart . '"';
-				$formattedSubjects[] = array(
-						'link' => $subjectLink,
-						'label' => $subjectPart
-				);
+				if (strlen($subjectPart) > 0){$subjectLink .= '&filter[]=mods_subject_topic_ms:"' . $subjectPart . '"';
+					$formattedSubjects[] = array(
+							'link' => $subjectLink,
+							'label' => $subjectPart
+					);
+
+				}
+
 			}
 		}
 		$this->formattedSubjects = $formattedSubjects;
@@ -192,18 +195,20 @@ abstract class Archive_Object extends Action{
 					$linkAttributes = $linkInfo->attributes();
 					if (strlen($linkInfo->linkText) == 0) {
 						if (strlen((string)$linkAttributes['type']) == 0) {
-							$linkText = $linkInfo->link;
+							$linkText = (string)$linkInfo->link;
 						} else {
-							$linkText = $linkAttributes['type'];
+							$linkText = (string)$linkAttributes['type'];
 						}
 					}else{
 						$linkText = (string)$linkInfo->linkText;
 					}
-					$this->links[] = array(
-							'type' => (string)$linkAttributes['type'],
-							'link' => (string)$linkInfo->link,
-							'text' => $linkText
-					);
+					if  (strlen($linkInfo->link) > 0){
+						$this->links[] = array(
+								'type' => (string)$linkAttributes['type'],
+								'link' => (string)$linkInfo->link,
+								'text' => $linkText
+						);
+					}
 				}
 				$interface->assign('externalLinks', $this->links);
 			}
@@ -373,7 +378,7 @@ abstract class Archive_Object extends Action{
 				$searchTerm = str_replace('https://en.wikipedia.org/wiki/', '', $link['link']);
 				$url = "http://en.wikipedia.org/w/api.php" .
 						'?action=query&prop=revisions&rvprop=content&format=json' .
-						'&titles=' . urlencode($searchTerm);
+						'&titles=' . urlencode(urldecode($searchTerm));
 				$wikipediaData = $wikipediaParser->getWikipediaPage($url);
 				$interface->assign('wikipediaData', $wikipediaData);
 			}elseif($link['type'] == 'marmotGenealogy'){

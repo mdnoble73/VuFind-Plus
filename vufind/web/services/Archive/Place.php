@@ -8,8 +8,8 @@
  * Time: 7:55 AM
  */
 
-require_once ROOT_DIR . '/services/Archive/Object.php';
-class Archive_Place extends Archive_Object{
+require_once ROOT_DIR . '/services/Archive/Entity.php';
+class Archive_Place extends Archive_Entity{
 	function launch(){
 		global $interface;
 		global $configArray;
@@ -17,6 +17,7 @@ class Archive_Place extends Archive_Object{
 		$this->loadArchiveObjectData();
 		$this->loadExploreMoreContent();
 		$this->loadLinkedData();
+		$this->loadRelatedContentForEntity();
 
 		$interface->assign('showExploreMore', true);
 

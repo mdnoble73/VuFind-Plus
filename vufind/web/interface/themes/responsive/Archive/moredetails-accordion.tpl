@@ -165,7 +165,7 @@
 			</div>
 		{/if}
 
-		{if $mods->subject}
+		{if count($subjects) > 0}
 			<div class="panel active{*toggle on for open*}" id="subjectPanel">
 				<a href="#subjectPanelBody" data-toggle="collapse">
 					<div class="panel-heading">
