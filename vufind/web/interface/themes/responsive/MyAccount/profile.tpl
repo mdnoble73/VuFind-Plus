@@ -58,7 +58,7 @@
 										<div class="col-xs-4"><strong>{translate text='Fines'}:</strong></div>
 										<div class="col-xs-8">{$profile->fines|escape}</div>
 									</div>
-									{if $barcodePin and ctype_digit($profile->cat_username)}
+									{if $barcodePin}
 									{* Only Display Barcode when the barcode is used as a username and not a password *}
 									<div class="form-group">
 										<div class="col-xs-4"><strong>{translate text='Library Barcode'}:</strong></div>
