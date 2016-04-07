@@ -104,7 +104,19 @@ abstract class Archive_Object extends Action{
 							)
 					);
 				}
+
+				if (count($marmotLocal->alternateName) > 0){
+					$alternateNames = array();
+					foreach ($marmotLocal->alternateName as $alternateName){
+						if (strlen($alternateName->alternateName) > 0){
+							$alternateNames[] = (string)$alternateName->alternateName;
+						}
+					}
+					$interface->assign('alternateNames', $alternateNames);
+				}
 			}
+
+
 
 			$entities = $marmotExtension->marmotLocal->relatedEntity;
 			/** @var SimpleXMLElement $entity */
@@ -214,17 +226,56 @@ abstract class Archive_Object extends Action{
 			}
 
 			$addressInfo = array();
-			if (count($marmotExtension->marmotLocal->latitude) > 0){
+			if (strlen($marmotExtension->marmotLocal->latitude) ||
+					strlen($marmotExtension->marmotLocal->longitude) ||
+					strlen($marmotExtension->marmotLocal->addressStreetNumber) ||
+					strlen($marmotExtension->marmotLocal->addressStreet) ||
+					strlen($marmotExtension->marmotLocal->addressCity) ||
+					strlen($marmotExtension->marmotLocal->addressCounty) ||
+					strlen($marmotExtension->marmotLocal->addressState) ||
+					strlen($marmotExtension->marmotLocal->addressZipCode) ||
+					strlen($marmotExtension->marmotLocal->addressCountry) ||
+					strlen($marmotExtension->marmotLocal->addressOtherRegion)){
+
 				if (strlen((string)$marmotExtension->marmotLocal->latitude) > 0){
 					$addressInfo['latitude'] = (string)$marmotExtension->marmotLocal->latitude;
 				}
-			}
-			if (count($marmotExtension->marmotLocal->longitude) > 0){
 				if (strlen((string)$marmotExtension->marmotLocal->longitude) > 0) {
 					$addressInfo['longitude'] = (string)$marmotExtension->marmotLocal->longitude;
 				}
+
+				if (strlen((string)$marmotExtension->marmotLocal->addressStreetNumber) > 0) {
+					$addressInfo['hasDetailedAddress'] = true;
+					$addressInfo['addressStreetNumber'] = (string)$marmotExtension->marmotLocal->addressStreetNumber;
+				}
+				if (strlen((string)$marmotExtension->marmotLocal->addressStreet) > 0) {
+					$addressInfo['hasDetailedAddress'] = true;
+					$addressInfo['addressStreet'] = (string)$marmotExtension->marmotLocal->addressStreet;
+				}
+				if (strlen((string)$marmotExtension->marmotLocal->addressCity) > 0) {
+					$addressInfo['hasDetailedAddress'] = true;
+					$addressInfo['addressCity'] = (string)$marmotExtension->marmotLocal->addressCity;
+				}
+				if (strlen((string)$marmotExtension->marmotLocal->addressState) > 0) {
+					$addressInfo['hasDetailedAddress'] = true;
+					$addressInfo['addressCounty'] = (string)$marmotExtension->marmotLocal->addressCounty;
+				}
+				if (strlen((string)$marmotExtension->marmotLocal->addressState) > 0) {
+					$addressInfo['hasDetailedAddress'] = true;
+					$addressInfo['addressState'] = (string)$marmotExtension->marmotLocal->addressState;
+				}
+				if (strlen((string)$marmotExtension->marmotLocal->addressZipCode) > 0) {
+					$addressInfo['hasDetailedAddress'] = true;
+					$addressInfo['addressZipCode'] = (string)$marmotExtension->marmotLocal->addressZipCode;
+				}
+				if (strlen((string)$marmotExtension->marmotLocal->addressStreet) > 0) {
+					$addressInfo['hasDetailedAddress'] = true;
+					$addressInfo['addressCountry'] = (string)$marmotExtension->marmotLocal->addressCountry;
+				}
+
+
+				$interface->assign('addressInfo', $addressInfo);
 			}
-			$interface->assign('addressInfo', $addressInfo);
 
 			$notes = array();
 			if (strlen($marmotExtension->marmotLocal->personNotes) > 0){
