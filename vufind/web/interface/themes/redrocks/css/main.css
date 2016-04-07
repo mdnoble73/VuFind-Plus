@@ -10310,6 +10310,7 @@ a.browse-thumbnail.active {
 }
 .header-button {
   color: #770B0B !important;
+  border: 1px solid #770B0B;
 }
 #header-container {
   border-bottom-width: 2px;
