@@ -86,7 +86,8 @@ abstract class Archive_Object extends Action{
 		$marmotExtension = $this->modsData->extension->children('http://marmot.org/local_mods_extension');
 
 		$this->relatedPeople = array();
-		$this->relatedPlaces = array();
+		$this->relatedPeople = array();
+		$this->relatedOrganizations = array();
 		$this->relatedEvents = array();
 
 		if (@count($marmotExtension) > 0){
@@ -121,6 +122,9 @@ abstract class Archive_Object extends Action{
 			$entities = $marmotExtension->marmotLocal->relatedEntity;
 			/** @var SimpleXMLElement $entity */
 			foreach ($entities as $entity){
+				if (strlen($entity->entityPid) == 0){
+					continue;
+				}
 				$entityType = '';
 				foreach ($entity->attributes() as $name => $value){
 					if ($name == 'type'){
@@ -128,9 +132,14 @@ abstract class Archive_Object extends Action{
 						break;
 					}
 				}
+				if ($entityType == '' && strlen($entity->entityPid)){
+					//Get the type based on the pid
+					list($entityType, $id) = explode(':', $entity->entityPid);
+				}
 				$entityInfo = array(
 						'pid' => (string)$entity->entityPid,
-						'label' => (string)$entity->entityTitle
+						'label' => (string)$entity->entityTitle,
+						'note' => (string)$entity->entityRelationshipNote,
 				);
 				if ($entityType == 'person'){
 					$entityInfo['link']= '/Archive/' . $entity->entityPid . '/Person';
@@ -141,6 +150,9 @@ abstract class Archive_Object extends Action{
 				}elseif ($entityType == 'event'){
 					$entityInfo['link']= '/Archive/' . $entity->entityPid . '/Event';
 					$this->relatedEvents[(string)$entity->entityPid] = $entityInfo;
+				}elseif ($entityType == 'organization'){
+					$entityInfo['link']= '/Archive/' . $entity->entityPid . '/Organization';
+					$this->relatedOrganizations[(string)$entity->entityPid] = $entityInfo;
 				}
 			}
 			if ($marmotExtension->marmotLocal->hasInterviewee){

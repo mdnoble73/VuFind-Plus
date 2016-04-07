@@ -215,6 +215,9 @@
 							{if $entity.role}
 								&nbsp;({$entity.role})
 							{/if}
+							{if $entity.note}
+								&nbsp;- {$entity.note}
+							{/if}
 							<br>
 						{/foreach}
 

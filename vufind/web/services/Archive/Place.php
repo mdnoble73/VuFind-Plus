@@ -46,6 +46,6 @@ class Archive_Place extends Archive_Entity{
 		}
 
 		// Display Page
-		$this->display('place.tpl');
+		$this->display('baseArchiveObject.tpl');
 	}
 }
