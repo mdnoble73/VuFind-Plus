@@ -45,7 +45,7 @@
 								{if $showUsernameField}
 									<div class="form-group">
 										<div class="col-xs-4"><strong>Username:</strong></div>
-										<div class="col-xs-8"><input type="text" name="username" is="username" value="{if !is_numeric(trim($profile->alt_username))}{$profile->alt_username|escape}{/if}" size='25' maxlength='25' class="form-control">
+										<div class="col-xs-8"><input type="text" name="username" id="username" value="{if !is_numeric(trim($profile->alt_username))}{$profile->alt_username|escape}{/if}" size="25" maxlength="25" class="form-control">
 											<a href="#" onclick="$('#usernameHelp').toggle()">What is this?</a>
 											<div id="usernameHelp" style="display:none">
 												A username is an optional feature. If you set one, your username will be your alias on hold slips and can also be used to log into your account in place of your card number.  A username can be set, reset or removed from the “Account Settings” section of your online account. Usernames must be between 6 and 25 characters (letters and number only, no special characters).
@@ -54,8 +54,21 @@
 									</div>
 								{/if}
 								{if !$offline}
-									<div class="form-group"><div class="col-xs-4"><strong>{translate text='Fines'}:</strong></div><div class="col-xs-8">{$profile->fines|escape}</div></div>
-									<div class="form-group"><div class="col-xs-4"><strong>{translate text='Expiration Date'}:</strong></div><div class="col-xs-8">{$profile->expires|escape}</div></div>
+									<div class="form-group">
+										<div class="col-xs-4"><strong>{translate text='Fines'}:</strong></div>
+										<div class="col-xs-8">{$profile->fines|escape}</div>
+									</div>
+									{if $barcodePin}
+									{* Only Display Barcode when the barcode is used as a username and not a password *}
+									<div class="form-group">
+										<div class="col-xs-4"><strong>{translate text='Library Barcode'}:</strong></div>
+										<div class="col-xs-8">{$profile->cat_username|escape}</div>
+									</div>
+									{/if}
+									<div class="form-group">
+										<div class="col-xs-4"><strong>{translate text='Expiration Date'}:</strong></div>
+										<div class="col-xs-8">{$profile->expires|escape}</div>
+									</div>
 								{/if}
 								<div class="form-group">
 									<div class="col-xs-4"><strong>{translate text='Home Library'}:</strong></div><div class="col-xs-8">{$profile->homeLocation|escape}</div>
@@ -68,9 +81,9 @@
 										</div>
 										<div class="col-xs-8">
 											{if $edit && $canUpdateContactInfo && $canUpdateAddress && $ils != 'Horizon'}
-												<input name='address1' id="address1" value='{$profile->address1|escape}' size='50' maxlength='75' class="form-control required">
+												<input name="address1" id="address1" value='{$profile->address1|escape}' size="50" maxlength="75" class="form-control required">
 											{elseif $edit && $millenniumNoAddress}
-												<input name='address1' id="address1" value='{$profile->address1|escape}' type="hidden">
+												<input name="address1" id="address1" value='{$profile->address1|escape}' type="hidden">
 												{$profile->address1|escape}
 											{else}
 												{$profile->address1|escape}

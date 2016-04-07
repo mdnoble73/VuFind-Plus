@@ -141,7 +141,7 @@ solrTestResults=`get_info`
 solrResultsTemp1=""
 solrResultsTemp2=""
  if [ "$solrTestResults" != "ok" ]; then
-        sleep 5s
+        sleep 10s
         solrTestResults=`get_info`
         if [ "$solrTestResults" != "ok" ]; then
                 solrResultsTemp1=$solrTestResults
