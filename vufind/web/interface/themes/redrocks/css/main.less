@@ -9,11 +9,15 @@
 
 .header-button{
   color: @redrocks-red !important;
+  border: 1px solid @redrocks-red;
 }
 
+#header-container {
+  border-bottom-width: 2px;
+}
 
 // Banner for larger devices
-@media (min-width: 768px) {
+@media (min-width: 1000px) {
   #header-container {
     background-image: url('/interface/themes/aspencat/images/redrocks_header_background.png');
   }
@@ -22,9 +26,10 @@
   }
 }
 // Logo for mobile-phone sized devices */
-@media (max-width: 767px) {
+@media (max-width: 1000px) {
   #header-container {
     background-image: none;
+    background-color: #FFF;
   }
   #header-logo {
     display: block;
