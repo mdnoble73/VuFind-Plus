@@ -50,8 +50,8 @@
 						<div class="related-objects results-covers home-page-browse-thumbnails">
 							{foreach from=$directlyRelatedObjects.objects item=image}
 								<figure class="browse-thumbnail">
-									<a href="{$image.link}" {if $image.label}data-title="{$image.label}"{/if}>
-										<img src="{$image.thumbnail}" {if $image.label}alt="{$image.label}"{/if}>
+									<a href="{$image.link}" {if $image.label}data-title="{$image.label|urlencode}"{/if}>
+										<img src="{$image.thumbnail}" {if $image.label}alt="{$image.label|urlencode}"{/if}>
 									</a>
 									<figcaption class="explore-more-category-title">
 										<strong>{$image.label}</strong>
@@ -209,16 +209,24 @@
 						{/if}
 
 						{foreach from=$relatedPeople item=entity}
-							<a href='{$entity.link}'>
-								{$entity.label}
-							</a>
-							{if $entity.role}
-								&nbsp;({$entity.role})
-							{/if}
-							{if $entity.note}
-								&nbsp;- {$entity.note}
-							{/if}
-							<br>
+							<div class="relatedPerson row">
+								<div class="col-tn-2">
+									<a href="{$entity.link}" {if $entity.label}data-title="{$entity.label|urlencode}"{/if}>
+										<img src="{$entity.thumbnail}" {if $entity.label}alt="{$entity.label|urlencode}"{/if} class="img-responsive img-thumbnail">
+									</a>
+								</div>
+								<div class="col-tn-10">
+									<a href='{$entity.link}'>
+										{$entity.label}
+									</a>
+									{if $entity.role}
+										&nbsp;({$entity.role})
+									{/if}
+									{if $entity.note}
+										&nbsp;- {$entity.note}
+									{/if}
+								</div>
+							</div>
 						{/foreach}
 
 					</div>

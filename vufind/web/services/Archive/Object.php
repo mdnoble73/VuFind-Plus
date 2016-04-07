@@ -193,10 +193,13 @@ abstract class Archive_Object extends Action{
 				$entityInfo = array(
 						'pid' => (string)$entity->entityPid,
 						'label' => (string)$entity->entityTitle,
-						'role' => (string)$entity->tole,
+						'role' => (string)$entity->role,
 						'note' => (string)$entity->entityRelationshipNote,
+
 				);
 				if ($entityType == 'person'){
+					$personObject = $fedoraUtils->getObject($entity->entityPid);
+					$entityInfo['thumbnail'] = $fedoraUtils->getObjectImageUrl($personObject, 'medium');
 					$entityInfo['link']= '/Archive/' . $entity->entityPid . '/Person';
 					$this->relatedPeople[(string)$entity->entityPid] = $entityInfo;
 				}elseif ($entityType == 'place'){
