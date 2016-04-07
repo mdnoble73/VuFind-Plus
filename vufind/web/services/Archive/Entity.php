@@ -39,10 +39,9 @@ abstract class Archive_Entity extends Archive_Object {
 		$response = $searchObject->processSearch(true, false);
 		if ($response && $response['response']['numFound'] > 0) {
 			$directlyRelatedObjects = array(
-					'numFound' => $response['response']['numFound'],
+					'numFound' => 0,
 					'objects' => array(),
 			);
-			$directlyRelatedObjects['numFound'] = $response['response']['numFound'];
 			foreach ($response['response']['docs'] as $doc) {
 				$entityDriver = RecordDriverFactory::initRecordDriver($doc);
 				$objectInfo = array(
@@ -61,6 +60,7 @@ abstract class Archive_Entity extends Archive_Object {
 					$this->relatedPlaces[] = $objectInfo;
 				}else{
 					$directlyRelatedObjects['objects'][] = $objectInfo;
+					$directlyRelatedObjects['numFound']++;
 				}
 			}
 

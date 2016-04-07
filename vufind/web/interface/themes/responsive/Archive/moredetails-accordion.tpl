@@ -45,7 +45,7 @@
 						</div>
 					</div>
 				</a>
-				<div id="transcriptionPanelBody" class="panel-collapse collapse in">
+				<div id="relatedObjectsPanelBody" class="panel-collapse collapse in">
 					<div class="panel-body">
 						<div class="related-objects results-covers home-page-browse-thumbnails">
 							{foreach from=$directlyRelatedObjects.objects item=image}

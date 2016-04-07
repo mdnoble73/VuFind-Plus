@@ -29,6 +29,12 @@ abstract class Archive_Object extends Action{
 	 */
 	function display($mainContentTemplate, $pageTitle=null) {
 		global $interface;
+		//Sort all the related information
+		usort($this->relatedEvents, 'sortRelatedEntities');
+		usort($this->relatedPeople, 'sortRelatedEntities');
+		usort($this->relatedOrganizations, 'sortRelatedEntities');
+		usort($this->relatedPlaces, 'sortRelatedEntities');
+
 		//Do final assignment
 		$interface->assign('relatedEvents', $this->relatedEvents);
 		$interface->assign('relatedPeople', $this->relatedPeople);
@@ -87,7 +93,7 @@ abstract class Archive_Object extends Action{
 		$marmotExtension = $this->modsData->extension->children('http://marmot.org/local_mods_extension');
 
 		$this->relatedPeople = array();
-		$this->relatedPeople = array();
+		$this->relatedPlaces = array();
 		$this->relatedOrganizations = array();
 		$this->relatedEvents = array();
 
@@ -156,6 +162,7 @@ abstract class Archive_Object extends Action{
 					$this->relatedOrganizations[(string)$entity->entityPid] = $entityInfo;
 				}
 			}
+
 			if ($marmotExtension->marmotLocal->hasInterviewee){
 				$interviewee = $marmotExtension->marmotLocal->hasInterviewee;
 				$this->relatedPeople[] = array(
@@ -164,6 +171,44 @@ abstract class Archive_Object extends Action{
 						'link' =>  '/Archive/' . $interviewee->entityPid . '/Person',
 						'role' => 'Interviewee'
 				);
+			}
+
+			$entities = $marmotExtension->marmotLocal->relatedPersonOrg;
+			/** @var SimpleXMLElement $entity */
+			foreach ($entities as $entity){
+				if (strlen($entity->entityPid) == 0){
+					continue;
+				}
+				$entityType = '';
+				foreach ($entity->attributes() as $name => $value){
+					if ($name == 'type'){
+						$entityType = $value;
+						break;
+					}
+				}
+				if ($entityType == '' && strlen($entity->entityPid)){
+					//Get the type based on the pid
+					list($entityType, $id) = explode(':', $entity->entityPid);
+				}
+				$entityInfo = array(
+						'pid' => (string)$entity->entityPid,
+						'label' => (string)$entity->entityTitle,
+						'role' => (string)$entity->tole,
+						'note' => (string)$entity->entityRelationshipNote,
+				);
+				if ($entityType == 'person'){
+					$entityInfo['link']= '/Archive/' . $entity->entityPid . '/Person';
+					$this->relatedPeople[(string)$entity->entityPid] = $entityInfo;
+				}elseif ($entityType == 'place'){
+					$entityInfo['link']= '/Archive/' . $entity->entityPid . '/Place';
+					$this->relatedPlaces[(string)$entity->entityPid] = $entityInfo;
+				}elseif ($entityType == 'event'){
+					$entityInfo['link']= '/Archive/' . $entity->entityPid . '/Event';
+					$this->relatedEvents[(string)$entity->entityPid] = $entityInfo;
+				}elseif ($entityType == 'organization'){
+					$entityInfo['link']= '/Archive/' . $entity->entityPid . '/Organization';
+					$this->relatedOrganizations[(string)$entity->entityPid] = $entityInfo;
+				}
 			}
 
 			foreach ($marmotExtension->marmotLocal->relatedPlace as $entity){
@@ -498,4 +543,8 @@ abstract class Archive_Object extends Action{
 			}
 		}
 	}
+}
+
+function sortRelatedEntities($a, $b){
+	return strcasecmp($a["label"], $b["label"]);
 }

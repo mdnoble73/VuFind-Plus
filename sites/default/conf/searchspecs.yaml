@@ -688,4 +688,6 @@ IslandoraRelationshipsById:
       - [exact, ~]
     - mods_extension_marmotLocal_militaryService_militaryRecord_relatedPlace_entityPlace_entityPid_ms:
       - [exact, ~]
+    - mods_extension_marmotLocal_militaryService_militaryRecord_militaryBranch_ms:
+      - [exact, ~]
 
