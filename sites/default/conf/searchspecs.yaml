@@ -662,7 +662,7 @@ IslandoraKeyword:
       - [exact, 1000]
       - [and, 100]
 
-IslandoraPeopleById:
+IslandoraRelationshipsById:
   QueryFields:
     - mods_extension_marmotLocal_hasCreator_entityPid_ms:
       - [exact, ~]
@@ -673,5 +673,19 @@ IslandoraPeopleById:
     - mods_extension_marmotLocal_relatedPersonOrg_entityPid_ms:
       - [exact, ~]
     - mods_extension_marmotLocal_relatedEntity_person_entityPid_ms:
+      - [exact, ~]
+    - mods_extension_marmotLocal_relatedEntity_place_entityPid_ms:
+      - [exact, ~]
+    - mods_extension_marmotLocal_relatedEntity_organization_entityPid_ms:
+      - [exact, ~]
+    - mods_extension_marmotLocal_relatedEntity_event_entityPid_ms:
+      - [exact, ~]
+    - mods_extension_marmotLocal_relatedEntity_event_entityPid_ms:
+      - [exact, ~]
+    - mods_extension_marmotLocal_hasAddress_entityPid_ms:
+      - [exact, ~]
+    - mods_extension_marmotLocal_relatedPlace_entityPlace_entityPid_ms:
+      - [exact, ~]
+    - mods_extension_marmotLocal_militaryService_militaryRecord_relatedPlace_entityPlace_entityPid_ms:
       - [exact, ~]
 

@@ -73,6 +73,15 @@
 					</div>
 				{/if}
 
+				{if strlen($marmotExtension->marmotLocal->dateEstablished) || strlen($marmotExtension->marmotLocal->dateDisbanded)}
+					<div class="row">
+						<div class="result-label col-sm-4">Dates: </div>
+						<div class="result-value col-sm-8">
+							{$marmotExtension->marmotLocal->dateEstablished} to {$marmotExtension->marmotLocal->dateDisbanded}
+						</div>
+					</div>
+				{/if}
+
 				{if $description}
 					<div class="row">
 						<div class="result-label col-sm-4">Description: </div>

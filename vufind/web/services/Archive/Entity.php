@@ -27,7 +27,7 @@ abstract class Archive_Entity extends Archive_Object {
 		//$searchObject->addHiddenFilter('-RELS_EXT_hasModel_uri_s', '*collectionCModel');
 		$searchObject->setSearchTerms(array(
 			'lookfor' => '"' . $this->pid . '"',
-			'index' => 'IslandoraPeopleById'
+			'index' => 'IslandoraRelationshipsById'
 		));
 		$searchObject->addHiddenFilter('!RELS_EXT_isViewableByRole_literal_ms', "administrator");
 
@@ -45,12 +45,23 @@ abstract class Archive_Entity extends Archive_Object {
 			$directlyRelatedObjects['numFound'] = $response['response']['numFound'];
 			foreach ($response['response']['docs'] as $doc) {
 				$entityDriver = RecordDriverFactory::initRecordDriver($doc);
-				$directlyRelatedObjects['objects'][] = array(
-						'title' => $entityDriver->getTitle(),
+				$objectInfo = array(
+						'label' => $entityDriver->getTitle(),
 						'description' => $entityDriver->getTitle(),
 						'thumbnail' => $entityDriver->getBookcoverUrl('medium'),
 						'link' => $entityDriver->getRecordUrl(),
 				);
+				if ($entityDriver instanceof EventDriver) {
+					$this->relatedEvents[] = $objectInfo;
+				}elseif ($entityDriver instanceof PersonDriver){
+					$this->relatedPeople[] = $objectInfo;
+				}elseif ($entityDriver instanceof OrganizationDriver){
+					$this->relatedOrganizations[] = $objectInfo;
+				}elseif ($entityDriver instanceof PlaceDriver){
+					$this->relatedPlaces[] = $objectInfo;
+				}else{
+					$directlyRelatedObjects['objects'][] = $objectInfo;
+				}
 			}
 
 			global $interface;

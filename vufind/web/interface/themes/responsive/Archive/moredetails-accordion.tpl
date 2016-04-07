@@ -50,11 +50,11 @@
 						<div class="related-objects results-covers home-page-browse-thumbnails">
 							{foreach from=$directlyRelatedObjects.objects item=image}
 								<figure class="browse-thumbnail">
-									<a href="{$image.link}" {if $image.title}data-title="{$image.title}"{/if}>
-										<img src="{$image.thumbnail}" {if $image.title}alt="{$image.title}"{/if}>
+									<a href="{$image.link}" {if $image.label}data-title="{$image.label}"{/if}>
+										<img src="{$image.thumbnail}" {if $image.label}alt="{$image.label}"{/if}>
 									</a>
 									<figcaption class="explore-more-category-title">
-										<strong>{$image.title}</strong>
+										<strong>{$image.label}</strong>
 									</figcaption>
 								</figure>
 							{/foreach}
@@ -226,6 +226,29 @@
 			</div>
 		{/if}
 
+		{if $relatedOrganizations}
+			<div class="panel active{*toggle on for open*}" id="relatedOrganizationsPanel">
+				<a href="#relatedOrganizationsPanelBody" data-toggle="collapse">
+					<div class="panel-heading">
+						<div class="panel-title">
+							Related Organizations
+						</div>
+					</div>
+				</a>
+				<div id="relatedOrganizationsPanelBody" class="panel-collapse collapse in{*toggle on for open*}">
+					<div class="panel-body">
+
+						{foreach from=$relatedOrganizations item=entity}
+							<a href='{$entity.link}'>
+								{$entity.label}
+							</a><br>
+						{/foreach}
+
+					</div>
+				</div>
+			</div>
+		{/if}
+
 		{if $relatedPlaces}
 			<div class="panel active{*toggle on for open*}" id="relatedPlacesPanel">
 				<a href="#relatedPlacesPanelBody" data-toggle="collapse">
@@ -237,6 +260,9 @@
 				</a>
 				<div id="relatedPlacesPanelBody" class="panel-collapse collapse in{*toggle on for open*}">
 					<div class="panel-body">
+						{if $mapsKey && $relatedPlaces.centerX && $relatedPlaces.centerY}
+							<iframe width="100%" height="" frameborder="0" style="border:0" src="https://www.google.com/maps/embed/v1/place?q={$relatedPlaces.centerX|escape}%2C%20{$relatedPlaces.centerX|escape}&key={$mapsKey}" allowfullscreen></iframe>
+						{/if}
 
 						{foreach from=$relatedPlaces item=entity}
 							<a href='{$entity.link}'>

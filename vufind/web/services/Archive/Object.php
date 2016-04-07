@@ -19,6 +19,7 @@ abstract class Archive_Object extends Action{
 	protected $relatedPeople;
 	protected $relatedPlaces;
 	protected $relatedEvents;
+	protected $relatedOrganizations;
 	protected $formattedSubjects;
 	protected $links;
 
@@ -27,6 +28,13 @@ abstract class Archive_Object extends Action{
 	 * @param string $pageTitle            What to display is the html title tag
 	 */
 	function display($mainContentTemplate, $pageTitle=null) {
+		global $interface;
+		//Do final assignment
+		$interface->assign('relatedEvents', $this->relatedEvents);
+		$interface->assign('relatedPeople', $this->relatedPeople);
+		$interface->assign('relatedOrganizations', $this->relatedOrganizations);
+		$interface->assign('relatedPlaces', $this->relatedPlaces);
+
 		$pageTitle = $pageTitle == null ? $this->archiveObject->label : $pageTitle;
 		parent::display($mainContentTemplate, $pageTitle);
 	}
@@ -42,13 +50,6 @@ abstract class Archive_Object extends Action{
 		$this->pid = urldecode($_REQUEST['id']);
 		$interface->assign('pid', $this->pid);
 		$this->archiveObject = $fedoraUtils->getObject($this->pid);
-
-		//Load the dublin core data stream
-		/*$dublinCoreStream = $this->archiveObject->getDatastream('DC');
-		$temp = tempnam('/tmp', 'dc');
-		$result = $dublinCoreStream->getContent($temp);
-		$this->dcData = trim(file_get_contents($temp));
-		unlink($temp);*/
 
 		//Load the MODS data stream
 		$this->modsData = $fedoraUtils->getModsData($this->archiveObject);

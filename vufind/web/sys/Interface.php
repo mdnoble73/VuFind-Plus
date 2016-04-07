@@ -53,6 +53,12 @@ class UInterface extends Smarty
 			$this->assign('google_verification_key', $configArray['Site']['google_verification_key']);
 		}
 
+		//Get all images related to the event
+		if (isset($configArray['Maps']) && isset($configArray['Maps']['apiKey'])){
+			$mapsKey = $configArray['Maps']['apiKey'];
+			$this->assign('mapsKey', $mapsKey);
+		}
+
 		if (isset($_REQUEST['print'])) {
 			$this->assign('print', true);
 		}

@@ -21,12 +21,6 @@ class Archive_Place extends Archive_Entity{
 
 		$interface->assign('showExploreMore', true);
 
-		//Get all images related to the event
-		if (isset($configArray['Maps']) && isset($configArray['Maps']['apiKey'])){
-			$mapsKey = $configArray['Maps']['apiKey'];
-			$interface->assign('mapsKey', $mapsKey);
-		}
-
 		//Look to see if we have a link to who's on first.  If so, show the polygon
 		foreach ($this->links as $link){
 			if ($link['type'] == 'whosOnFirst'){
