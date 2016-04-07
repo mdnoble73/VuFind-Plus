@@ -65,7 +65,6 @@ function checkProhibitedTimes() {
 
 #First make sure that we aren't running at a bad time.  This is really here in case we run manually.
 # since the run in cron is timed to avoid sensitive times.
-# Flatirons has no prohibited times (yet)
 #checkProhibitedTimes "23:50" "00:40"
 
 #Check for any conflicting processes that we shouldn't do a full index during.
@@ -83,7 +82,8 @@ cd /usr/local/vufind-plus/sites/${PIKASERVER}; ./${PIKASERVER}.sh restart
 #Extract from ILS is done automatically
 
 #Extract from Hoopla
-cd /usr/local/vufind-plus/vufind/cron;./HOOPLA.sh ${PIKASERVER} >> ${OUTPUT_FILE}
+#cd /usr/local/vufind-plus/vufind/cron;./HOOPLA.sh ${PIKASERVER} >> ${OUTPUT_FILE}
+cd /usr/local/vufind-plus/vufind/cron;./GetHooplaFromMarmot.sh >> ${OUTPUT_FILE}
 
 #Extract Lexile Data
 cd /data/vufind-plus/; rm lexileTitles.txt*; wget -N --no-verbose http://venus.marmot.org/lexileTitles.txt

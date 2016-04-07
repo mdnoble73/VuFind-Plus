@@ -62,3 +62,11 @@ cd /data/vufind-plus/hoopla/marc
 #wget -N --user=$HooplaFtpUser --password=$HooplaFtpPassword ftp://ftp.midwesttapes.com/*_removed.mrc; # test
 wget -N -q --user=$HooplaFtpUser --password=$HooplaFtpPassword ftp://ftp.midwesttapes.com/USA_*.mrc
 wget -N -q --user=$HooplaFtpUser --password=$HooplaFtpPassword 'ftp://ftp.midwesttapes.com/Only libraries loading All/USA_ALL_*.mrc'
+
+# Check that the Hoopla Marc is updating monthly
+OLDHOOPLA=$(find /data/vufind-plus/hoopla/marc/ -name "*.mrc" -mtime +30)
+if [ -n "$OLDHOOPLA" ]
+then
+	echo "There are Hoopla Marc files older than 30 days : "
+	echo "$OLDHOOPLA"
+fi
