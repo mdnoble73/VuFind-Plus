@@ -165,6 +165,8 @@ class MyAccount_Profile extends MyAccount
 			$interface->assign('userIsStaff', $userIsStaff);
 
 			$interface->assign('profile', $patron); //
+			$interface->assign('barcodePin', $patron->getAccountProfile()->loginConfiguration == 'barcode_pin');
+				// Switch for displaying the barcode in the account profile
 		}
 
 		// switch for hack for Millennium driver profile updating when updating is allowed but address updating is not allowed.

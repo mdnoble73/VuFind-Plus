@@ -80,15 +80,6 @@ checkConflictingProcesses "reindexer.jar arlington.production"
 #Restart Solr
 cd /usr/local/vufind-plus/sites/${PIKASERVER}; ./${PIKASERVER}.sh restart
 
-#Extract from ILS
-# last export file is transferred starting at 4am Eastern. plb 12-15-2015
-/usr/local/vufind-plus/sites/${PIKASERVER}/moveSierraExport.sh >> ${OUTPUT_FILE}
-# (this script also deletes any export older that 7 days from the data directory)
-
-#Get the updated volume information
-cd /usr/local/vufind-plus/vufind/cron;
-nice -n -10 java -jar cron.jar ${PIKASERVER} ExportSierraData >> ${OUTPUT_FILE}
-
 #Extract from Hoopla
 cd /usr/local/vufind-plus/vufind/cron;./GetHooplaFromMarmot.sh >> ${OUTPUT_FILE}
 
@@ -107,20 +98,71 @@ then
 	nice -n -10 java -jar overdrive_extract.jar ${PIKASERVER} fullReload >> ${OUTPUT_FILE}
 fi
 
-# should test for new bib extract file
-# should copy old bib extract file
+#Extract from ILS
+FILE1=$(find /home/sierraftp/ -name FULLEXPORT1*.MRC -mtime -1 | sort -n | tail -1)
+FILE2=$(find /home/sierraftp/ -name FULLEXPORT2*.MRC -mtime -1 | sort -n | tail -1)
+if [ -n "$FILE1" ]
+then
+	if [ -n "$FILE2" ]
+	then
 
-#Validate the export
-cd /usr/local/vufind-plus/vufind/cron; java -server -XX:+UseG1GC -jar cron.jar ${PIKASERVER} ValidateMarcExport >> ${OUTPUT_FILE}
+		MINFILE1SIZE=$((735000000))
+		MINFILE2SIZE=$((45000000))
+		FILE1SIZE=$(wc -c <"$FILE1")
+		if [ $FILE1SIZE -ge $MINFILE1SIZE ]; then
+		 FILE2SIZE=$(wc -c <"$FILE2")
+		 if [ $FILE2SIZE -ge $MINFILE2SIZE ]; then
 
-#Full Regroup
-cd /usr/local/vufind-plus/vufind/record_grouping; java -server -XX:+UseG1GC -Xmx2G -jar record_grouping.jar ${PIKASERVER} fullRegroupingNoClear >> ${OUTPUT_FILE}
+			echo "Latest file (1) is " $FILE1 >> ${OUTPUT_FILE}
+			echo "Latest file (2) is " $FILE2 >> ${OUTPUT_FILE}
 
-#Full Reindex
-cd /usr/local/vufind-plus/vufind/reindexer; java -server -XX:+UseG1GC -Xmx2G -jar reindexer.jar ${PIKASERVER} fullReindex >> ${OUTPUT_FILE}
+			# Date For Backup filename
+			TODAY=$(date +"%m_%d_%Y")
 
-#Remove all ITEM_UPDATE_EXTRACT_PIKA files so continuous_partial_reindex can start fresh
-find /data/vufind-plus/${PIKASERVER}/marc -name 'ITEM_UPDATE_EXTRACT_PIKA*' -delete
+			# Copy to data directory to process
+			cp $FILE1 /data/vufind-plus/arlington.production/marc/pika1.mrc
+			# Move to marc_export to keep as a backup
+			mv $FILE1 /data/vufind-plus/arlington.production/marc_export/pika1.$TODAY.mrc
+
+			# Copy to data directory to process
+			cp $FILE2 /data/vufind-plus/arlington.production/marc/pika2.mrc
+			# Move to marc_export to keep as a backup
+			mv $FILE2 /data/vufind-plus/arlington.production/marc_export/pika2.$TODAY.mrc
+
+
+			#Get the updated volume information
+			cd /usr/local/vufind-plus/vufind/cron;
+			nice -n -10 java -jar cron.jar ${PIKASERVER} ExportSierraData >> ${OUTPUT_FILE}
+
+			#Validate the export
+			cd /usr/local/vufind-plus/vufind/cron; java -server -XX:+UseG1GC -jar cron.jar ${PIKASERVER} ValidateMarcExport >> ${OUTPUT_FILE}
+
+			#Full Regroup
+			cd /usr/local/vufind-plus/vufind/record_grouping; java -server -XX:+UseG1GC -Xmx2G -jar record_grouping.jar ${PIKASERVER} fullRegroupingNoClear >> ${OUTPUT_FILE}
+
+			#Full Reindex
+			cd /usr/local/vufind-plus/vufind/reindexer; java -server -XX:+UseG1GC -Xmx2G -jar reindexer.jar ${PIKASERVER} fullReindex >> ${OUTPUT_FILE}
+
+
+			# Delete any exports over 7 days
+			find /data/vufind-plus/arlington.production/marc_export/ -mindepth 1 -maxdepth 1 -name *.mrc -type f -mtime +7 -delete
+
+			# Secure Copy to Marmot Test Server
+
+			else
+				echo $FILE2 " size " $FILE2SIZE "is less than minimum size :" $MINFILE2SIZE "; Export was not moved to data directory." >> ${OUTPUT_FILE}
+			fi
+		else
+			echo $FILE1 " size " $FILE1SIZE "is less than minimum size :" $MINFILE1SIZE "; Export was not moved to data directory." >> ${OUTPUT_FILE}
+		fi
+
+	else
+		echo "Did not find a Sierra export file (2) from the last 24 hours." >> ${OUTPUT_FILE}
+	fi
+
+else
+	echo "Did not find a Sierra export file (1) from the last 24 hours." >> ${OUTPUT_FILE}
+fi
 
 # Clean-up Solr Logs
 find /usr/local/vufind-plus/sites/default/solr/jetty/logs -name "solr_log_*" -mtime +7 -delete
@@ -133,7 +175,7 @@ cd /usr/local/vufind-plus/sites/${PIKASERVER}; ./${PIKASERVER}.sh restart
 FILESIZE=$(stat -c%s ${OUTPUT_FILE})
 if [[ ${FILESIZE} > 0 ]]
 then
-# send mail
-mail -s "Full Extract and Reindexing - ${PIKASERVER}" $EMAIL < ${OUTPUT_FILE}
+	# send mail
+	mail -s "Full Extract and Reindexing - ${PIKASERVER}" $EMAIL < ${OUTPUT_FILE}
 fi
 

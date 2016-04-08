@@ -311,7 +311,7 @@
 			{/if}
 
 			{if $user && ($user->hasRole('cataloging') || $user->hasRole('opacAdmin'))}
-				{if in_array($action, array('MergedGroupedWorks'))}
+				{if in_array($action, array('MergedGroupedWorks', 'NonGroupedRecords'))}
 					{assign var="curSection" value=true}
 				{else}
 					{assign var="curSection" value=false}
@@ -327,6 +327,7 @@
 					<div id="catalogingRequestMenu" class="panel-collapse collapse {if $curSection}in{/if}">
 						<div class="panel-body">
 							<div class="adminMenuLink{if $action == "MergedGroupedWorks"}active{/if}"><a href="{$path}/Admin/MergedGroupedWorks">Grouped Work Merging</a></div>
+							<div class="adminMenuLink{if $action == "NonGroupedRecords"}active{/if}"><a href="{$path}/Admin/NonGroupedRecords">Records To Not Merge</a></div>
 						</div>
 					</div>
 				</div>

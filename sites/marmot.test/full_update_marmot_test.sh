@@ -42,6 +42,9 @@ cd /usr/local/vufind-plus/sites/${PIKASERVER}; ./${PIKASERVER}.sh restart
 #Extract from Hoopla
 cd /usr/local/vufind-plus/vufind/cron;./HOOPLA.sh ${PIKASERVER} >> ${OUTPUT_FILE}
 
+# CCU Ebrary Marc Updates
+/root/cron/copyEbraryCCUExport.sh >> ${OUTPUT_FILE}
+
 #Do a full extract from OverDrive just once a week to catch anything that doesn't
 #get caught in the regular extract
 DAYOFWEEK=$(date +"%u")

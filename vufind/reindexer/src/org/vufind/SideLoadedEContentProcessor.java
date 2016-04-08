@@ -162,43 +162,49 @@ public class SideLoadedEContentProcessor extends IlsRecordProcessor{
 					logger.warn("Unable to parse format boost " + formatBoostStr + " for format " + firstFormat + " " + econtentRecord.getFullIdentifier());
 					econtentRecord.setFormatBoost(1);
 				}
-			}
-			//Convert formats from print to eContent version
-			for (String format : printFormats) {
-				if (format.equalsIgnoreCase("Book") || format.equalsIgnoreCase("LargePrint") || format.equalsIgnoreCase("GraphicNovel") || format.equalsIgnoreCase("Manuscript")) {
-					econtentItem.setFormat("eBook");
-					econtentItem.setFormatCategory("eBook");
-					econtentRecord.setFormatBoost(10);
-				}else if (format.equalsIgnoreCase("Journal") || format.equalsIgnoreCase("Serial")) {
-					econtentItem.setFormat("eMagazine");
-					econtentItem.setFormatCategory("eBook");
-					econtentRecord.setFormatBoost(3);
-				} else if (format.equalsIgnoreCase("SoundRecording") || format.equalsIgnoreCase("SoundDisc") || format.equalsIgnoreCase("Playaway") || format.equalsIgnoreCase("CDROM")) {
-					econtentItem.setFormat("eAudiobook");
-					econtentItem.setFormatCategory("Audio Books");
-					econtentRecord.setFormatBoost(8);
-				} else if (format.equalsIgnoreCase("MusicRecording")) {
-					econtentItem.setFormat("eMusic");
-					econtentItem.setFormatCategory("Music");
-					econtentRecord.setFormatBoost(5);
-				} else if (format.equalsIgnoreCase("Movies")) {
-					econtentItem.setFormat("eVideo");
-					econtentItem.setFormatCategory("Movies");
-					econtentRecord.setFormatBoost(10);
-				} else if (format.equalsIgnoreCase("Electronic") || format.equalsIgnoreCase("Software")) {
-					econtentItem.setFormat("Online Materials");
-					econtentItem.setFormatCategory("Other");
-					econtentRecord.setFormatBoost(2);
-				} else if (format.equalsIgnoreCase("Photo")) {
-					econtentItem.setFormat("Photo");
-					econtentItem.setFormatCategory("Other");
-					econtentRecord.setFormatBoost(2);
-				} else if (format.equalsIgnoreCase("Map")) {
-					econtentItem.setFormat("Map");
-					econtentItem.setFormatCategory("Other");
-					econtentRecord.setFormatBoost(2);
-				} else {
-					logger.warn("Could not find appropriate eContent format for " + format + " while side loading eContent " + econtentRecord.getFullIdentifier());
+			} else {
+				//Convert formats from print to eContent version
+				for (String format : printFormats) {
+					if (format.equalsIgnoreCase("Book") || format.equalsIgnoreCase("LargePrint") || format.equalsIgnoreCase("GraphicNovel") || format.equalsIgnoreCase("Manuscript")) {
+						econtentItem.setFormat("eBook");
+						econtentItem.setFormatCategory("eBook");
+						econtentRecord.setFormatBoost(10);
+					}else if (format.equalsIgnoreCase("Journal") || format.equalsIgnoreCase("Serial")) {
+						econtentItem.setFormat("eMagazine");
+						econtentItem.setFormatCategory("eBook");
+						econtentRecord.setFormatBoost(3);
+					} else if (format.equalsIgnoreCase("SoundRecording") || format.equalsIgnoreCase("SoundDisc") || format.equalsIgnoreCase("Playaway") || format.equalsIgnoreCase("CDROM")) {
+						econtentItem.setFormat("eAudiobook");
+						econtentItem.setFormatCategory("Audio Books");
+						econtentRecord.setFormatBoost(8);
+					} else if (format.equalsIgnoreCase("MusicRecording")) {
+						econtentItem.setFormat("eMusic");
+						econtentItem.setFormatCategory("Music");
+						econtentRecord.setFormatBoost(5);
+					} else if (format.equalsIgnoreCase("MusicalScore")) {
+					//Proposed settings for musical Score. plb 3-31-2016
+						econtentItem.setFormat("MusicalScore");
+						econtentItem.setFormatCategory("eBook");
+						econtentRecord.setFormatBoost(5);
+					} else if (format.equalsIgnoreCase("Movies") || format.equalsIgnoreCase("Video")) {
+						econtentItem.setFormat("eVideo");
+						econtentItem.setFormatCategory("Movies");
+						econtentRecord.setFormatBoost(10);
+					} else if (format.equalsIgnoreCase("Electronic") || format.equalsIgnoreCase("Software")) {
+						econtentItem.setFormat("Online Materials");
+						econtentItem.setFormatCategory("Other");
+						econtentRecord.setFormatBoost(2);
+					} else if (format.equalsIgnoreCase("Photo")) {
+						econtentItem.setFormat("Photo");
+						econtentItem.setFormatCategory("Other");
+						econtentRecord.setFormatBoost(2);
+					} else if (format.equalsIgnoreCase("Map")) {
+						econtentItem.setFormat("Map");
+						econtentItem.setFormatCategory("Other");
+						econtentRecord.setFormatBoost(2);
+					} else {
+						logger.warn("Could not find appropriate eContent format for " + format + " while side loading eContent " + econtentRecord.getFullIdentifier());
+					}
 				}
 			}
 		}

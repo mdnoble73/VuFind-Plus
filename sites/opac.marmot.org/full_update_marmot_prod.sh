@@ -42,6 +42,9 @@ cd /usr/local/vufind-plus/sites/${PIKASERVER}; ./${PIKASERVER}.sh restart
 #Extract from Hoopla
 cd /usr/local/vufind-plus/vufind/cron;./HOOPLA.sh ${PIKASERVER} >> ${OUTPUT_FILE}
 
+# CCU Ebrary Marc Updates
+/root/cron/copyEbraryCCUExport.sh >> ${OUTPUT_FILE}
+
 #Extract Lexile Data
 cd /data/vufind-plus/; wget -N --no-verbose http://venus.marmot.org/lexileTitles.txt
 # hoping --no-verbose will remove download status indicator text from logs but keep errors

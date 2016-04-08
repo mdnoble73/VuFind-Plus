@@ -103,7 +103,7 @@ abstract class Archive_Object extends Action{
 				}
 			}
 
-			$entities = $marmotExtension->xpath('/marmotLocal/relatedEntity');
+			$entities = $marmotExtension->marmotLocal->relatedEntity;
 			/** @var SimpleXMLElement $entity */
 			foreach ($entities as $entity){
 				$entityType = '';
@@ -114,18 +114,18 @@ abstract class Archive_Object extends Action{
 					}
 				}
 				$entityInfo = array(
-						'pid' => $entity->entityPid,
-						'label' => $entity->entityTitle
+						'pid' => (string)$entity->entityPid,
+						'label' => (string)$entity->entityTitle
 				);
 				if ($entityType == 'person'){
 					$entityInfo['link']= '/Archive/' . $entity->entityPid . '/Person';
-					$this->relatedPeople[] = $entityInfo;
+					$this->relatedPeople[(string)$entity->entityPid] = $entityInfo;
 				}elseif ($entityType == 'place'){
 					$entityInfo['link']= '/Archive/' . $entity->entityPid . '/Place';
-					$this->relatedPlaces[] = $entityInfo;
+					$this->relatedPlaces[(string)$entity->entityPid] = $entityInfo;
 				}elseif ($entityType == 'event'){
 					$entityInfo['link']= '/Archive/' . $entity->entityPid . '/Event';
-					$this->relatedEvents[] = $entityInfo;
+					$this->relatedEvents[(string)$entity->entityPid] = $entityInfo;
 				}
 			}
 			if ($marmotExtension->marmotLocal->hasInterviewee){
@@ -137,19 +137,52 @@ abstract class Archive_Object extends Action{
 						'role' => 'Interviewee'
 				);
 			}
+
+			foreach ($marmotExtension->marmotLocal->relatedPlace as $entity){
+				if (count($entity->entityPlace) > 0 && strlen($entity->entityPlace->entityPid) > 0){
+					$entityInfo = array(
+							'pid' => (string)$entity->entityPlace->entityPid,
+							'label' => (string)$entity->entityPlace->entityTitle
+
+					);
+					$entityInfo['link']= '/Archive/' . (string)$entity->entityPlace->entityPid . '/Place';
+					$this->relatedPlaces[] = $entityInfo;
+				}else {
+					//Check to see if we have anything for this place
+					if (strlen($entity->generalPlace->latitude) ||
+							strlen($entity->generalPlace->longitude) ||
+							strlen($entity->generalPlace->addressStreetNumber) ||
+							strlen($entity->generalPlace->addressStreet) ||
+							strlen($entity->generalPlace->addressCity) ||
+							strlen($entity->generalPlace->addressCounty) ||
+							strlen($entity->generalPlace->addressState) ||
+							strlen($entity->generalPlace->addressZipCode) ||
+							strlen($entity->generalPlace->addressCountry) ||
+							strlen($entity->generalPlace->addressOtherRegion)){
+					}
+				}
+			}
+
 			$interface->assign('relatedPeople', $this->relatedPeople);
 			$interface->assign('relatedPlaces', $this->relatedPlaces);
 			$interface->assign('relatedEvents', $this->relatedEvents);
 
+
+
+			$interface->assign('hasMilitaryService', false);
 			if (count($marmotExtension->marmotLocal->militaryService) > 0){
-				$interface->assign('hasMilitaryService', true);
 				/** @var SimpleXMLElement $record */
 				$record = $marmotExtension->marmotLocal->militaryService->militaryRecord;
-				$militaryRecord = array(
-						'branch' => $fedoraUtils->getObjectLabel((string)$record->militaryBranch),
-						'conflict' => $fedoraUtils->getObjectLabel((string)$record->militaryConflict),
-				);
-				$interface->assign('militaryRecord', $militaryRecord);
+				if ($record->militaryBranch != 'none' || $record->militaryConflict != 'none'){
+					$militaryRecord = array(
+							'branch' => $fedoraUtils->getObjectLabel((string)$record->militaryBranch),
+							'branchLink' => '/Archive/' . $record->militaryBranch . '/Organization',
+							'conflict' => $fedoraUtils->getObjectLabel((string)$record->militaryConflict),
+							'conflictLink' => '/Archive/' . $record->militaryConflict . '/Event',
+					);
+					$interface->assign('militaryRecord', $militaryRecord);
+					$interface->assign('hasMilitaryService', true);
+				}
 			}
 
 			if (count($marmotExtension->marmotLocal->externalLink) > 0){
@@ -157,9 +190,19 @@ abstract class Archive_Object extends Action{
 				/** @var SimpleXMLElement $linkInfo */
 				foreach ($marmotExtension->marmotLocal->externalLink as $linkInfo){
 					$linkAttributes = $linkInfo->attributes();
+					if (strlen($linkInfo->linkText) == 0) {
+						if (strlen((string)$linkAttributes['type']) == 0) {
+							$linkText = $linkInfo->link;
+						} else {
+							$linkText = $linkAttributes['type'];
+						}
+					}else{
+						$linkText = (string)$linkInfo->linkText;
+					}
 					$this->links[] = array(
 							'type' => (string)$linkAttributes['type'],
-							'link' => (string)$linkInfo->link
+							'link' => (string)$linkInfo->link,
+							'text' => $linkText
 					);
 				}
 				$interface->assign('externalLinks', $this->links);
@@ -167,12 +210,22 @@ abstract class Archive_Object extends Action{
 
 			$addressInfo = array();
 			if (count($marmotExtension->marmotLocal->latitude) > 0){
-				$addressInfo['latitude'] = (string)$marmotExtension->marmotLocal->latitude;
+				if (strlen((string)$marmotExtension->marmotLocal->latitude) > 0){
+					$addressInfo['latitude'] = (string)$marmotExtension->marmotLocal->latitude;
+				}
 			}
 			if (count($marmotExtension->marmotLocal->longitude) > 0){
-				$addressInfo['longitude'] = (string)$marmotExtension->marmotLocal->longitude;
+				if (strlen((string)$marmotExtension->marmotLocal->longitude) > 0) {
+					$addressInfo['longitude'] = (string)$marmotExtension->marmotLocal->longitude;
+				}
 			}
 			$interface->assign('addressInfo', $addressInfo);
+
+			$notes = array();
+			if (strlen($marmotExtension->marmotLocal->personNotes) > 0){
+				$notes[] = (string)$marmotExtension->marmotLocal->personNotes;
+			}
+			$interface->assign('notes', $notes);
 		}
 
 		//Load the RELS-EXT data stream
@@ -204,6 +257,7 @@ abstract class Archive_Object extends Action{
 
 	function loadExploreMoreContent(){
 		require_once ROOT_DIR . '/sys/ArchiveSubject.php';
+		global $interface;
 		$archiveSubjects = new ArchiveSubject();
 		$subjectsToIgnore = array();
 		$subjectsToRestrict = array();
@@ -211,7 +265,7 @@ abstract class Archive_Object extends Action{
 			$subjectsToIgnore = array_flip(explode("\r\n", strtolower($archiveSubjects->subjectsToIgnore)));
 			$subjectsToRestrict = array_flip(explode("\r\n", strtolower($archiveSubjects->subjectsToRestrict)));
 		}
-		$this->getRelatedCollections();
+		$relatedCollections = $this->getRelatedCollections();
 		$relatedSubjects = array();
 		$numSubjectsAdded = 0;
 		if (strlen($this->archiveObject->label) > 0) {
@@ -219,17 +273,19 @@ abstract class Archive_Object extends Action{
 		}
 		for ($i = 0; $i < 2; $i++){
 			foreach ($this->formattedSubjects as $subject) {
-				$lowerSubject = strtolower($subject['label']);
+				$searchSubject = preg_replace('/\(.*?\)/',"", $subject['label']);
+				$searchSubject = trim(preg_replace('/[\/|:.,"]/',"", $searchSubject));
+				$lowerSubject = strtolower($searchSubject);
 				if (!array_key_exists($lowerSubject, $subjectsToIgnore)) {
 					if ($i == 0){
 						//First pass, just add primary subjects
 						if (!array_key_exists($lowerSubject, $subjectsToRestrict)) {
-							$relatedSubjects[$lowerSubject] = '"' . $subject['label'] . '"';
+							$relatedSubjects[$lowerSubject] = '"' . $searchSubject . '"';
 						}
 					}else{
 						//Second pass, add restricted subjects, but only if we don't have 5 subjects already
 						if (array_key_exists($lowerSubject, $subjectsToRestrict) && count($relatedSubjects) <= 5) {
-							$relatedSubjects[$lowerSubject] = '"' . $subject['label'] . '"';
+							$relatedSubjects[$lowerSubject] = '"' . $searchSubject . '"';
 						}
 					}
 				}
@@ -243,9 +299,19 @@ abstract class Archive_Object extends Action{
 		}
 		$relatedSubjects = array_slice($relatedSubjects, 0, 8);
 
-		$this->getRelatedWorks($relatedSubjects);
-		$this->getRelatedArticles($relatedSubjects);
-		$this->getRelatedArchiveContent($relatedSubjects);
+		//Get works that are directly related to this entity based on linked data
+		$linkedWorks = $this->getLinkedWorks($relatedCollections);
+
+		$exploreMore = new ExploreMore();
+		$exploreMore->getRelatedWorks($relatedSubjects);
+		$ebscoMatches = $exploreMore->loadEbscoOptions('archive', array(), implode($relatedSubjects, " or "));
+		if (count($ebscoMatches) > 0){
+			$interface->assign('relatedArticles', $ebscoMatches);
+		}
+		$searchTerm = implode(" OR ", $relatedSubjects);
+		$exploreMore->getRelatedArchiveContent('archive', array(), $searchTerm);
+
+
 	}
 
 	protected function getRelatedCollections() {
@@ -290,159 +356,14 @@ abstract class Archive_Object extends Action{
 			}
 		}
 		$interface->assign('collections', $collections);
-	}
-
-	/**
-	 * @param string[] $relatedSubjects
-	 */
-	protected function getRelatedWorks($relatedSubjects) {
-		global $interface;
-		//Load related catalog content
-		$searchTerm = implode(" OR ", $relatedSubjects);
-
-		if (strlen($searchTerm) > 0) {
-			/** @var SearchObject_Solr $searchObject */
-			$searchObject = SearchObjectFactory::initSearchObject();
-			$searchObject->init('local', $searchTerm);
-			$searchObject->setSearchTerms(array(
-					'lookfor' => $searchTerm,
-					'index' => 'Keyword'
-			));
-			$searchObject->addFilter('literary_form_full:Non Fiction');
-			$searchObject->addFilter('target_audience:Adult');
-			$searchObject->setPage(1);
-			$searchObject->setLimit(5);
-			$results = $searchObject->processSearch(true, false);
-
-			if ($results && isset($results['response'])) {
-				$similarTitles = array(
-						'numFound' => $results['response']['numFound'],
-						'allResultsLink' => $searchObject->renderSearchUrl(),
-						'topHits' => array()
-				);
-				foreach ($results['response']['docs'] as $doc) {
-					/** @var GroupedWorkDriver $driver */
-					$driver = RecordDriverFactory::initRecordDriver($doc);
-					$similarTitle = array(
-							'title' => $driver->getTitle(),
-							'link' => $driver->getLinkUrl(),
-							'cover' => $driver->getBookcoverUrl('small')
-					);
-					$similarTitles['topHits'][] = $similarTitle;
-				}
-			} else {
-				$similarTitles = array(
-						'numFound' => 0,
-						'topHits' => array()
-				);
-			}
-			$interface->assign('related_titles', $similarTitles);
-		}
-	}
-
-	private function getRelatedArchiveContent($relatedSubjects) {
-		global $interface;
-		require_once ROOT_DIR . '/sys/Utils/FedoraUtils.php';
-		$exploreMoreOptions = array();
-
-		/** @var SearchObject_Islandora $searchObject */
-		$searchObject = SearchObjectFactory::initSearchObject('Islandora');
-		$searchObject->init();
-		$searchObject->setDebugging(false, false);
-
-		//Get a list of objects in the archive related to this search
-		$searchTerm = implode(" OR ", $relatedSubjects);
-		$searchObject->setSearchTerms(array(
-				'lookfor' => $searchTerm,
-				'index' => 'IslandoraKeyword'
-		));
-		$searchObject->clearHiddenFilters();
-		$searchObject->addHiddenFilter('!RELS_EXT_isViewableByRole_literal_ms', "administrator");
-		$searchObject->clearFilters();
-		$searchObject->addFacet('RELS_EXT_hasModel_uri_s', 'Format');
-
-		$response = $searchObject->processSearch(true, false);
-		if ($response && $response['response']['numFound'] > 0) {
-			//Using the facets, look for related entities
-			foreach ($response['facet_counts']['facet_fields']['RELS_EXT_hasModel_uri_s'] as $relatedContentType) {
-				if ($relatedContentType[0] != 'info:fedora/islandora:collectionCModel' &&
-						$relatedContentType[0] != 'info:fedora/islandora:personCModel' &&
-						$relatedContentType[0] != 'info:fedora/islandora:placeCModel' &&
-						$relatedContentType[0] != 'info:fedora/islandora:eventCModel'
-				) {
-
-					/** @var SearchObject_Islandora $searchObject2 */
-					$searchObject2 = SearchObjectFactory::initSearchObject('Islandora');
-					$searchObject2->init();
-					$searchObject2->setDebugging(false, false);
-					$searchObject2->setSearchTerms(array(
-							'lookfor' => $searchTerm,
-							'index' => 'IslandoraKeyword'
-					));
-					$searchObject2->clearHiddenFilters();
-					$searchObject2->addHiddenFilter('!RELS_EXT_isViewableByRole_literal_ms', "administrator");
-					$searchObject2->clearFilters();
-					$searchObject2->addFilter("RELS_EXT_hasModel_uri_s:{$relatedContentType[0]}");
-					$response2 = $searchObject2->processSearch(true, false);
-					if ($response2 && $response2['response']['numFound'] > 0) {
-						$firstObject = reset($response2['response']['docs']);
-						/** @var IslandoraDriver $firstObjectDriver */
-						$firstObjectDriver = RecordDriverFactory::initRecordDriver($firstObject);
-						$numMatches = $response2['response']['numFound'];
-						$contentType = translate($relatedContentType[0]);
-						if ($numMatches == 1) {
-							$exploreMoreOptions[] = array(
-									'title' => $firstObjectDriver->getTitle(),
-									'description' => $firstObjectDriver->getTitle(),
-									'thumbnail' => $firstObjectDriver->getBookcoverUrl('medium'),
-									'link' => $firstObjectDriver->getRecordUrl(),
-							);
-						} else {
-							$exploreMoreOptions[] = array(
-									'title' => "{$contentType}s ({$numMatches})",
-									'description' => "{$contentType}s related to this",
-									'thumbnail' => $firstObjectDriver->getBookcoverUrl('medium'),
-									'link' => $searchObject2->renderSearchUrl(),
-							);
-						}
-					}
-				}
-			}
-			$interface->assign('relatedArchiveData', $exploreMoreOptions);
-		}
-	}
-
-	private function getRelatedArticles($relatedSubjects) {
-		global $library;
-		global $configArray;
-		global $interface;
-		if ($library->edsApiProfile){
-			//Load EDS options
-			require_once ROOT_DIR . '/sys/Ebsco/EDS_API.php';
-			$edsApi = EDS_API::getInstance();
-			if ($edsApi->authenticate()){
-				//Find related titles
-				$searchTerm = implode(' OR ', $relatedSubjects);
-				$edsResults = $edsApi->getSearchResults($relatedSubjects);
-				if ($edsResults){
-					$numMatches = $edsResults->Statistics->TotalHits;
-					if ($numMatches > 0){
-						$relatedArticles = array(
-								'title' => "Articles ({$numMatches})",
-								'description' => "Articles related to {$searchTerm}",
-								'thumbnail' => $configArray['Site']['path'] . '/interface/themes/responsive/images/ebsco_eds.png',
-								'link' => '/EBSCO/Results?lookfor=' . urlencode($searchTerm)
-						);
-						$interface->assign('relatedArticles', $relatedArticles);
-					}
-				}
-
-			}
-		}
+		return $collections;
 	}
 
 	protected function loadLinkedData(){
 		global $interface;
+		if (!isset($this->links)){
+			return;
+		}
 		foreach ($this->links as $link){
 			if ($link['type'] == 'wikipedia'){
 				require_once ROOT_DIR . '/sys/WikipediaParser.php';
@@ -455,6 +376,56 @@ abstract class Archive_Object extends Action{
 						'&titles=' . urlencode($searchTerm);
 				$wikipediaData = $wikipediaParser->getWikipediaPage($url);
 				$interface->assign('wikipediaData', $wikipediaData);
+			}elseif($link['type'] == 'marmotGenealogy'){
+				$matches = array();
+				if (preg_match('/.*Person\/(\d+)/', $link['link'], $matches)){
+					$personId = $matches[1];
+					require_once ROOT_DIR . '/sys/Genealogy/Person.php';
+					$person = new Person();
+					$person->personId = $personId;
+					if ($person->find(true)){
+						$interface->assign('genealogyData', $person);
+
+						$formattedBirthdate = $person->formatPartialDate($person->birthDateDay, $person->birthDateMonth, $person->birthDateYear);
+						$interface->assign('birthDate', $formattedBirthdate);
+
+						$formattedDeathdate = $person->formatPartialDate($person->deathDateDay, $person->deathDateMonth, $person->deathDateYear);
+						$interface->assign('deathDate', $formattedDeathdate);
+
+						$marriages = array();
+						$personMarriages = $person->marriages;
+						if (isset($personMarriages)){
+							foreach ($personMarriages as $marriage){
+								$marriageArray = (array)$marriage;
+								$marriageArray['formattedMarriageDate'] = $person->formatPartialDate($marriage->marriageDateDay, $marriage->marriageDateMonth, $marriage->marriageDateYear);
+								$marriages[] = $marriageArray;
+							}
+						}
+						$interface->assign('marriages', $marriages);
+						$obituaries = array();
+						$personObituaries =$person->obituaries;
+						if (isset($personObituaries)){
+							foreach ($personObituaries as $obit){
+								$obitArray = (array)$obit;
+								$obitArray['formattedObitDate'] = $person->formatPartialDate($obit->dateDay, $obit->dateMonth, $obit->dateYear);
+								$obituaries[] = $obitArray;
+							}
+						}
+						$interface->assign('obituaries', $obituaries);
+					}
+				}
+			}
+		}
+	}
+
+	private function getLinkedWorks($relatedCollections) {
+		//Check for works that are directly related to this entity
+		if (isset($this->links)) {
+			foreach ($this->links as $link) {
+				if ($link['type'] == 'relatedPika') {
+					preg_match('/^.*\/GroupedWork\/([a-f0-9-]+)$/', $link['link'], $matches);
+					$workId = $matches[1];
+				}
 			}
 		}
 	}

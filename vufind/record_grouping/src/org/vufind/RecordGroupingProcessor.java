@@ -54,6 +54,7 @@ public class RecordGroupingProcessor {
 
 	//A list of grouped works that have been manually merged.
 	protected HashMap<String, String> mergedGroupedWorks = new HashMap<>();
+	protected HashSet<String> recordsToNotGroup = new HashSet<>();
 
 	/**
 	 * Default constructor for use by subclasses
@@ -118,6 +119,14 @@ public class RecordGroupingProcessor {
 					mergedGroupedWorks.put(mergedWorksRS.getString("sourceGroupedWorkId"), mergedWorksRS.getString("destinationGroupedWorkId"));
 				}
 				mergedWorksRS.close();
+				PreparedStatement recordsToNotGroupStmt = dbConnection.prepareStatement("SELECT * from nongrouped_records");
+				ResultSet nonGroupedRecordsRS = recordsToNotGroupStmt.executeQuery();
+				while (nonGroupedRecordsRS.next()){
+					String identifier = nonGroupedRecordsRS.getString("source") + ":" + nonGroupedRecordsRS.getString("recordId");
+					recordsToNotGroup.add(identifier.toLowerCase());
+				}
+				nonGroupedRecordsRS.close();
+
 			}catch (Exception e){
 				logger.error("Error setting up prepared statements", e);
 		}
@@ -376,6 +385,11 @@ public class RecordGroupingProcessor {
 	 * @param groupedWork       Information about the work itself
 	 */
 	protected void addGroupedWorkToDatabase(RecordIdentifier primaryIdentifier, GroupedWorkBase groupedWork, boolean primaryDataChanged) {
+		//Check to see if we need to ungroup this
+		if (recordsToNotGroup.contains(primaryIdentifier.toString().toLowerCase())){
+			groupedWork.makeUnique(primaryIdentifier.toString());
+		}
+
 		String groupedWorkPermanentId = groupedWork.getPermanentId();
 
 		//Check to see if we are doing a manual merge of the work
@@ -419,11 +433,9 @@ public class RecordGroupingProcessor {
 			}
 
 			//Update identifiers
-			if (fullRegrouping || primaryDataChanged) {
-				addPrimaryIdentifierForWorkToDB(groupedWorkId, primaryIdentifier);
-				//We no longer utilize secondary identifiers for works. We can skip calling this now
-				//addIdentifiersForRecordToDB(groupedWorkId, groupedWork.getIdentifiers(), primaryIdentifier);
-			}
+			addPrimaryIdentifierForWorkToDB(groupedWorkId, primaryIdentifier);
+			//We no longer utilize secondary identifiers for works. We can skip calling this now
+			//addIdentifiersForRecordToDB(groupedWorkId, groupedWork.getIdentifiers(), primaryIdentifier);
 		}catch (Exception e){
 			logger.error("Error adding grouped record to grouped work ", e);
 		}

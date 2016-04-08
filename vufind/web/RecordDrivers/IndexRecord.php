@@ -782,7 +782,7 @@ class IndexRecord extends RecordInterface
 	 * @access  protected
 	 * @return array
 	 */
-	protected function getAllSubjectHeadings()
+	public function getAllSubjectHeadings()
 	{
 		$topic = isset($this->fields['topic']) ? $this->fields['topic'] : array();
 		$geo = isset($this->fields['geographic']) ?
@@ -1002,6 +1002,11 @@ class IndexRecord extends RecordInterface
 	public function getFormats()
 	{
 		return isset($this->fields['format']) ? $this->fields['format'] : array();
+	}
+
+	public function getPrimaryFormat(){
+		$formats = $this->getFormats();
+		return reset($formats);
 	}
 
 	/**
@@ -1681,6 +1686,10 @@ class IndexRecord extends RecordInterface
 					);
 				}
 			}
+
+			require_once ROOT_DIR . '/sys/ExploreMore.php';
+			$exploreMore = new ExploreMore();
+			$exploreMore->loadExploreMoreSidebar('catalog', $this);
 		}
 		return $exploreMoreOptions;
 	}

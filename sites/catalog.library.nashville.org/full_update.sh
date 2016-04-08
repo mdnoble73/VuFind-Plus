@@ -158,6 +158,11 @@ java -server -XX:+UseG1GC -Xmx6G -jar reindexer.jar ${PIKASERVER} fullReindex >>
 #Remove all ITEM_UPDATE_EXTRACT_PIKA files so continuous_partial_reindex can start fresh
 find /data/vufind-plus/catalog.library.nashville.org/marc -name 'ITEM_UPDATE_EXTRACT_PIKA*' -delete
 
+# Clean-up Solr Logs
+# (/usr/local/vufind-plus/sites/default/solr/jetty/logs is a symbolic link to /var/log/vufind-plus/solr)
+find /var/log/vufind-plus/solr -name "solr_log_*" -mtime +7 -delete
+find /var/log/vufind-plus/solr -name "solr_gc_log_*" -mtime +7 -delete
+
 #Restart Solr
 cd /usr/local/vufind-plus/sites/${PIKASERVER}; ./${PIKASERVER}.sh restart
 

@@ -102,5 +102,3 @@ class VuFindPager {
 		return $this->pager->_totalItems - ($this->pager->_perPage * ($this->pager->_currentPage - 1));
 	}
 }
-
-?>

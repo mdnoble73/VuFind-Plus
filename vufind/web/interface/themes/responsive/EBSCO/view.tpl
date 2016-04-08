@@ -30,13 +30,22 @@
 		</div>
 
 		{if $recordDriver->hasFullText()}
-		<div class="row">
-			{$recordDriver->getFullText()}
-		</div>
+			<div class="row">
+				<div class="col-xs-12">
+					{$recordDriver->getFullText()}
+				</div>
+			</div>
 		{/if}
 
 		<div class="row">
 			{include file=$moreDetailsTemplate}
+		</div>
+
+		{* Show a link to EBSCO for now *}
+		<div class="row">
+			<div class="col-xs-12">
+				<a href="{$recordDriver->getEbscoUrl()}" target="_blank" class="btn btn-sm btn-info">View in EBSCO EDS</a>
+			</div>
 		</div>
 
 	</div>

@@ -644,7 +644,8 @@ public abstract class MarcRecordProcessor {
 
 		//author_display = 100a:110a:260b:710a:245c, first
 		//#ARL-95 Do not show display author from the 710 or from the 245c since neither are truly authors
-		String displayAuthor = this.getFirstFieldVal(record, "100a:110ab:260b");
+		//#ARL-200 Do not show display author from the 260b since it is also not the author
+		String displayAuthor = this.getFirstFieldVal(record, "100a:110ab");
 		if (displayAuthor != null && displayAuthor.indexOf(';') > 0){
 			displayAuthor = displayAuthor.substring(0, displayAuthor.indexOf(';') -1);
 		}

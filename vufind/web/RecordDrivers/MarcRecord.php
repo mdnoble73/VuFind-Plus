@@ -414,7 +414,7 @@ class MarcRecord extends IndexRecord
 	 * @access  protected
 	 * @return array
 	 */
-	protected function getAllSubjectHeadings()
+	public function getAllSubjectHeadings()
 	{
 		// These are the fields that may contain subject headings:
 		$fields = array('600', '610', '630', '650', '651', '655');
@@ -1256,14 +1256,16 @@ class MarcRecord extends IndexRecord
 		if ($isHoldable && $showHoldButton){
 			if (!is_null($volumeData) && count($volumeData) > 0){
 				foreach ($volumeData as $volumeInfo){
-					$id = $this->getIdWithSource();
-					$id .= ':' . $volumeInfo->volumeId;
-					$actions[] = array(
-							'title' => 'Hold ' . $volumeInfo->displayLabel,
-							'url' => '',
-							'onclick' => "return VuFind.Record.showPlaceHold('{$this->getModule()}', '$id');",
-							'requireLogin' => false,
-					);
+					if (isset($volumeInfo->holdable) && $volumeInfo->holdable){
+						$id = $this->getIdWithSource();
+						$id .= ':' . $volumeInfo->volumeId;
+						$actions[] = array(
+								'title' => 'Hold ' . $volumeInfo->displayLabel,
+								'url' => '',
+								'onclick' => "return VuFind.Record.showPlaceHold('{$this->getModule()}', '$id');",
+								'requireLogin' => false,
+						);
+					}
 				}
 			}else{
 				$actions[] = array(
@@ -1457,7 +1459,7 @@ class MarcRecord extends IndexRecord
 		//If this is a periodical we may have additional information
 		$isPeriodical = false;
 		foreach ($this->getFormats() as $format){
-			if ($format == 'Journal' || $format == 'Newspaper' || $format == 'Print Periodical'){
+			if ($format == 'Journal' || $format == 'Newspaper' || $format == 'Print Periodical' || $format == 'Magazine'){
 				$isPeriodical = true;
 				break;
 			}
@@ -1709,32 +1711,38 @@ class MarcRecord extends IndexRecord
 
 	function getNotes(){
 		$additionalNotesFields = array(
-			'520' => 'Description',
-			'500' => 'General Note',
-			'504' => 'Bibliography',
-			'511' => 'Participants/Performers',
-			'518' => 'Date/Time and Place of Event',
 			'310' => 'Current Publication Frequency',
 			'321' => 'Former Publication Frequency',
 			'351' => 'Organization & arrangement of materials',
 			'362' => 'Dates of publication and/or sequential designation',
+			'500' => 'General Note',
 			'501' => '"With"',
 			'502' => 'Dissertation',
+			'504' => 'Bibliography',
+			'505' => 'Formatted Contents',
 			'506' => 'Restrictions on Access',
 			'507' => 'Scale for Graphic Material',
 			'508' => 'Creation/Production Credits',
 			'510' => 'Citation/References',
+			'511' => 'Participants/Performers',
 			'513' => 'Type of Report an Period Covered',
 			'515' => 'Numbering Peculiarities',
+			'518' => 'Date/Time and Place of Event',
+			'520' => 'Description',
 			'521' => 'Target Audience',
 			'522' => 'Geographic Coverage',
+			'524' => 'Preferred Citation of Described Materials',
 			'525' => 'Supplement',
 			'526' => 'Study Program Information',
 			'530' => 'Additional Physical Form',
 			'533' => 'Reproduction',
 			'534' => 'Original Version',
+			'535' => 'Location of Originals/Duplicates',
 			'536' => 'Funding Information',
 			'538' => 'System Details',
+			'540' => 'Terms Governing Use and Reproduction',
+			'541' => 'Immediate Source of Acquisition',
+			'544' => 'Location of Other Archival Materials',
 			'545' => 'Biographical or Historical Data',
 			'546' => 'Language',
 			'547' => 'Former Title Complexity',
@@ -1745,6 +1753,9 @@ class MarcRecord extends IndexRecord
 			'563' => 'Binding Information',
 			'580' => 'Linking Entry Complexity',
 			'581' => 'Publications About Described Materials',
+			'583' => 'Action',
+			'584' => 'Accumulation and Frequency of Use',
+			'585' => 'Exhibitions',
 			'586' => 'Awards',
 			'590' => 'Local note',
 			'599' => 'Differentiable Local note',

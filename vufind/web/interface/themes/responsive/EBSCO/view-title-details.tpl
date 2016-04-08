@@ -45,4 +45,17 @@
 			</div>
 		</div>
 	{/if}
+
+	{if $recordDriver->getAllSubjectHeadings()}
+		<div class="row">
+			<div class="result-label col-md-3">{translate text='Subjects'}:</div>
+			<div class="col-md-9 result-value">
+				{foreach from=$recordDriver->getAllSubjectHeadings() item=subject}
+					<div>
+					{$subject}
+					</div>
+				{/foreach}
+			</div>
+		</div>
+	{/if}
 {/strip}

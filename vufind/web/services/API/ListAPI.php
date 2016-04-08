@@ -112,6 +112,10 @@ class ListAPI extends Action {
 			return array('success'=>false, 'message'=>'The username and password must be provided to load lists.');
 		}
 
+		if ($user == false){
+			return array('success'=>false, 'message'=>'Sorry, we could not find a user with those credentials.');
+		}
+
 		$userId = $user->id;
 
 		$list = new UserList();

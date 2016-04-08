@@ -301,43 +301,8 @@ class GroupedWorkDriver extends RecordInterface{
 		$interface->assign('summISBN', $isbn);
 		$interface->assign('summFormats', $this->getFormats());
 
-		$summPublisher = null;
-		$summPubDate = null;
-		$summPhysicalDesc = null;
-		$summEdition = null;
-		$summLanguage = null;
-		$isFirst = true;
-		foreach ($relatedRecords as $relatedRecord){
-			if ($isFirst){
-				$summPublisher = $relatedRecord['publisher'];
-				$summPubDate = $relatedRecord['publicationDate'];
-				$summPhysicalDesc = $relatedRecord['physical'];
-				$summEdition = $relatedRecord['edition'];
-				$summLanguage = $relatedRecord['language'];
-			}else{
-				if ($summPublisher != $relatedRecord['publisher']){
-					$summPublisher = null;
-				}
-				if ($summPubDate != $relatedRecord['publicationDate']){
-					$summPubDate = null;
-				}
-				if ($summPhysicalDesc != $relatedRecord['physical']){
-					$summPhysicalDesc = null;
-				}
-				if ($summEdition != $relatedRecord['edition']){
-					$summEdition = null;
-				}
-				if ($summLanguage != $relatedRecord['language']){
-					$summLanguage = null;
-				}
-			}
-			$isFirst = false;
-		}
-		$interface->assign('summPublisher', $summPublisher);
-		$interface->assign('summPubDate', $summPubDate);
-		$interface->assign('summPhysicalDesc', $summPhysicalDesc);
-		$interface->assign('summEdition', $summEdition);
-		$interface->assign('summLanguage', $summLanguage);
+		$this->assignBasicTitleDetails();
+
 
 		$interface->assign('numRelatedRecords', $this->getNumRelatedRecords());
 
@@ -2340,6 +2305,7 @@ class GroupedWorkDriver extends RecordInterface{
 		$volumeData = array();
 		$volumeDataDB = new IlsVolumeInfo();
 		$volumeDataDB->recordId = $recordDetails[0];
+		$volumeDataDB->whereAdd('length(relatedItems) > 0');
 		if ($volumeDataDB->find()){
 			while ($volumeDataDB->fetch()){
 				$volumeData[] = clone($volumeDataDB);
@@ -2503,6 +2469,9 @@ class GroupedWorkDriver extends RecordInterface{
 					if (strpos($volumeDataPoint->relatedItems, $curItem[1]) !== false){
 						$volume = $volumeDataPoint->displayLabel;
 						$volumeId = $volumeDataPoint->volumeId;
+						if ($holdable){
+							$volumeDataPoint->holdable = true;
+						}
 						break;
 					}
 				}
@@ -2624,5 +2593,48 @@ class GroupedWorkDriver extends RecordInterface{
 
 	public function getModule() {
 		return 'GroupedWork';
+	}
+
+	public function assignBasicTitleDetails() {
+		global $interface;
+		$relatedRecords = $this->getRelatedRecords();
+
+		$summPublisher = null;
+		$summPubDate = null;
+		$summPhysicalDesc = null;
+		$summEdition = null;
+		$summLanguage = null;
+		$isFirst = true;
+		foreach ($relatedRecords as $relatedRecord){
+			if ($isFirst){
+				$summPublisher = $relatedRecord['publisher'];
+				$summPubDate = $relatedRecord['publicationDate'];
+				$summPhysicalDesc = $relatedRecord['physical'];
+				$summEdition = $relatedRecord['edition'];
+				$summLanguage = $relatedRecord['language'];
+			}else{
+				if ($summPublisher != $relatedRecord['publisher']){
+					$summPublisher = null;
+				}
+				if ($summPubDate != $relatedRecord['publicationDate']){
+					$summPubDate = null;
+				}
+				if ($summPhysicalDesc != $relatedRecord['physical']){
+					$summPhysicalDesc = null;
+				}
+				if ($summEdition != $relatedRecord['edition']){
+					$summEdition = null;
+				}
+				if ($summLanguage != $relatedRecord['language']){
+					$summLanguage = null;
+				}
+			}
+			$isFirst = false;
+		}
+		$interface->assign('summPublisher', $summPublisher);
+		$interface->assign('summPubDate', $summPubDate);
+		$interface->assign('summPhysicalDesc', $summPhysicalDesc);
+		$interface->assign('summEdition', $summEdition);
+		$interface->assign('summLanguage', $summLanguage);
 	}
 }

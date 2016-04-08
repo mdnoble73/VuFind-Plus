@@ -387,7 +387,6 @@ class UserAPI extends Action {
 	 * <ul>
 	 * <li>username - The barcode of the user.  Can be truncated to the last 7 or 9 digits.</li>
 	 * <li>password - The pin number for the user. </li>
-	 * <li>includeEContent - Optional flag for whether or not to include eContent holds. Set to false to only include print titles.</li>
 	 * </ul>
 	 *
 	 * Returns:
@@ -483,11 +482,6 @@ class UserAPI extends Action {
 	function getPatronHolds(){
 		$username = $_REQUEST['username'];
 		$password = $_REQUEST['password'];
-		$includeEContent = true;
-		if (isset($_REQUEST['includeEContent'])){
-			$includeEContent = $_REQUEST['includeEContent'];
-		}
-
 
 		global $user;
 		$user = UserAccount::validateAccount($username, $password);
@@ -992,17 +986,49 @@ class UserAPI extends Action {
 		$password = $_REQUEST['password'];
 		$bibId = $_REQUEST['bibId'];
 
-		if (isset($_REQUEST['campus'])){
-			$pickupBranch=trim($_REQUEST['campus']);
+		$patron = UserAccount::validateAccount($username, $password);
+		if ($patron && !PEAR_Singleton::isError($patron)){
+			if (isset($_REQUEST['campus'])){
+				$pickupBranch=trim($_REQUEST['campus']);
+			}else{
+				$pickupBranch = $patron->homeLocationId;
+			}
+			$holdMessage = $this->getCatalogConnection()->placeHold($patron, $bibId, $pickupBranch);
+			return $holdMessage;
 		}else{
-			global $user;
-			$pickupBranch = $user->homeLocationId;
+			return array('success'=>false, 'message'=>'Login unsuccessful');
 		}
+	}
+
+	function placeItemHold(){
+		$username = $_REQUEST['username'];
+		$password = $_REQUEST['password'];
+		$bibId = $_REQUEST['bibId'];
+		$itemId = $_REQUEST['itemId'];
 
 		$patron = UserAccount::validateAccount($username, $password);
 		if ($patron && !PEAR_Singleton::isError($patron)){
-			$holdMessage = $this->getCatalogConnection()->placeHold($patron, $bibId, $pickupBranch);
+			if (isset($_REQUEST['campus'])){
+				$pickupBranch=trim($_REQUEST['campus']);
+			}else{
+				$pickupBranch = $patron->homeLocationId;
+			}
+			$holdMessage = $this->getCatalogConnection()->placeItemHold($patron, $bibId, $itemId, $pickupBranch);
 			return $holdMessage;
+		}else{
+			return array('success'=>false, 'message'=>'Login unsuccessful');
+		}
+	}
+
+	function changeHoldPickUpLocation(){
+		$username = $_REQUEST['username'];
+		$password = $_REQUEST['password'];
+		$holdId = $_REQUEST['holdId'];
+		$newLocation = $_REQUEST['location'];
+		$patron = UserAccount::validateAccount($username, $password);
+		if ($patron && !PEAR_Singleton::isError($patron)){
+			$holdMessage = $patron->changeHoldPickUpLocation($holdId, $newLocation);
+			return array('success'=> $holdMessage['success'], 'holdMessage'=>$holdMessage['message']);
 		}else{
 			return array('success'=>false, 'message'=>'Login unsuccessful');
 		}

@@ -769,6 +769,20 @@ class DBMaintenance extends Admin_Admin {
 					),
 				),
 
+				'nongrouped_records' => array(
+						'title' => 'Non-grouped Records Table',
+						'description' => 'Create non-grouped Records table to store records that should not be grouped',
+						'sql' => array(
+								"CREATE TABLE `nongrouped_records` (
+									id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+									`source` VARCHAR( 50 ) NOT NULL,
+									`recordId` VARCHAR( 36 ) NOT NULL,
+									`notes` VARCHAR( 255 ) NOT NULL,
+									UNIQUE INDEX (source, recordId)
+								)",
+						),
+				),
+
 				'variables_table' => array(
 					'title' => 'Variables Table',
 					'description' => 'Create Variables Table for storing basic variables for use in programs (system writable config)',
@@ -1345,6 +1359,14 @@ class DBMaintenance extends Admin_Admin {
 					),
 				),
 
+					'loan_rule_determiners_increase_ptype_length' => array(
+							'title' => 'Increase PType field length for Loan Rule Determiners',
+							'description' => 'Increase PType field length for Loan Rule Determiners',
+							'sql' => array(
+								"ALTER TABLE loan_rule_determiners CHANGE COLUMN patronType `patronType` VARCHAR(255) NOT NULL COMMENT 'The patron types that this rule applies to'",
+							),
+					),
+
 				'location_hours' => array(
 					'title' => 'Location Hours',
 					'description' => 'Build table to store hours for a location',
@@ -1751,6 +1773,14 @@ class DBMaintenance extends Admin_Admin {
 						"ALTER TABLE `offline_hold` ADD COLUMN `patronName` VARCHAR( 200 ) NULL",
 					)
 				),
+
+					'offline_holds_update_2' => array(
+							'title' => 'Offline Holds Update 2',
+							'description' => 'Add the ability to store a name for patrons that have not logged in before.  Also used for conversions',
+							'sql' => array(
+									"ALTER TABLE `offline_hold` ADD COLUMN `itemId` VARCHAR( 20 ) NULL",
+							)
+					),
 
 				'offline_circulation' => array(
 					'title' => 'Offline Circulation',

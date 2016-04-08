@@ -996,7 +996,7 @@ class User extends DB_DataObject
 
 //		function changeHoldPickUpLocation($recordId, $itemToUpdateId, $newPickupLocation){
 			//$recordId is not used to update change hold pick up location in driver
-		function changeHoldPickUpLocation($itemToUpdateId, $newPickupLocation){
+	function changeHoldPickUpLocation($itemToUpdateId, $newPickupLocation){
 		$result = $this->getCatalogDriver()->changeHoldPickupLocation($this, null, $itemToUpdateId, $newPickupLocation);
 		$this->clearCache();
 		return $result;

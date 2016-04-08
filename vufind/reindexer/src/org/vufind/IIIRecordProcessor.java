@@ -389,7 +389,11 @@ public abstract class IIIRecordProcessor extends IlsRecordProcessor{
 		ItemInfo itemInfo = new ItemInfo();
 		String orderNumber = orderItem.getOrderRecordId();
 		String location = orderItem.getLocationCode();
-		itemInfo.setLocationCode(orderItem.getLocationCode());
+		if (location == null){
+			logger.warn("No location set for order " + orderNumber + " skipping");
+			return;
+		}
+		itemInfo.setLocationCode(location);
 		itemInfo.setItemIdentifier(orderNumber);
 		itemInfo.setNumCopies(orderItem.getNumCopies());
 		itemInfo.setIsEContent(false);
@@ -419,13 +423,23 @@ public abstract class IIIRecordProcessor extends IlsRecordProcessor{
 			for (Scope scope: indexer.getScopes()){
 				if (scope.isItemPartOfScope(profileType, location, "", true, true, false)){
 					ScopingInfo scopingInfo = itemInfo.addScope(scope);
+					if (scopingInfo == null){
+						logger.error("Could not add scoping information for " + scope.getScopeName() + " for item " + orderNumber);
+						continue;
+					}
 					if (scope.isLocationScope()) {
-						scopingInfo.setLibraryOwned(scope.getLibraryScope().isItemOwnedByScope(profileType, location, ""));
+						if (scope.getLibraryScope() == null){
+							logger.warn("Location scope " + scope.getScopeName() + " does not have an associated library");
+							continue;
+						}else{
+							scopingInfo.setLibraryOwned(scope.getLibraryScope().isItemOwnedByScope(profileType, location, ""));
+						}
 						scopingInfo.setLocallyOwned(scope.isItemOwnedByScope(profileType, location, ""));
 					}
 					if (scope.isLibraryScope()) {
-						scopingInfo.setLibraryOwned(scope.isItemOwnedByScope(profileType, location, ""));
-						if (itemInfo.getShelfLocation().equals("On Order")){
+						boolean isLibraryOwned = scope.isItemOwnedByScope(profileType, location, "");
+						scopingInfo.setLibraryOwned(isLibraryOwned);
+						if (itemInfo.getShelfLocation().equals("On Order") && isLibraryOwned){
 							itemInfo.setShelfLocation(scopingInfo.getScope().getFacetLabel() + " On Order");
 						}
 					}

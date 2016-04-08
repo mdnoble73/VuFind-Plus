@@ -47,6 +47,7 @@ public class SierraExportMain{
 	private static String lastCheckInFormat;
 	private static boolean exportItemHolds = true;
 	private static boolean suppressOrderRecordsThatAreReceivedAndCatalogged = false;
+	private static boolean suppressOrderRecordsThatAreCatalogged = false;
 	private static String orderStatusesToExport;
 
 	public static void main(String[] args){
@@ -74,6 +75,10 @@ public class SierraExportMain{
 		String suppressOrderRecordsThatAreReceivedAndCataloggedStr = ini.get("Catalog", "suppressOrderRecordsThatAreReceivedAndCatalogged");
 		if (suppressOrderRecordsThatAreReceivedAndCataloggedStr != null){
 			suppressOrderRecordsThatAreReceivedAndCatalogged = suppressOrderRecordsThatAreReceivedAndCataloggedStr.equalsIgnoreCase("true");
+		}
+		String suppressOrderRecordsThatAreCataloggedStr = ini.get("Catalog", "suppressOrderRecordsThatAreCatalogged");
+		if (suppressOrderRecordsThatAreCataloggedStr != null){
+			suppressOrderRecordsThatAreCatalogged = suppressOrderRecordsThatAreCataloggedStr.equalsIgnoreCase("true");
 		}
 
 		//Connect to the vufind database
@@ -251,6 +256,8 @@ public class SierraExportMain{
 			Long lastSierraExtractTime = null;
 			Long lastSierraExtractTimeVariableId = null;
 
+			Long exportStartTime = new Date().getTime() / 1000;
+
 			String individualMarcPath = ini.get("Reindex", "individualMarcPath");
 			itemTag = ini.get("Reindex", "itemTag");
 			itemRecordNumberSubfield = getSubfieldIndicatorFromConfig(ini, "itemRecordNumberSubfield");
@@ -292,7 +299,8 @@ public class SierraExportMain{
 				String apiBaseUrl = ini.get("Catalog", "url") + "/iii/sierra-api/v" + apiVersion;
 
 				//Last Update in UTC
-				Date lastExtractDate = new Date(lastSierraExtractTime * 1000);
+				//Add a small buffer to be
+				Date lastExtractDate = new Date((lastSierraExtractTime - 120) * 1000);
 
 				SimpleDateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
 				dateFormatter.setTimeZone(TimeZone.getTimeZone("UTC"));
@@ -423,13 +431,13 @@ public class SierraExportMain{
 				Long finishTime = new Date().getTime() / 1000;
 				if (lastSierraExtractTimeVariableId != null) {
 					PreparedStatement updateVariableStmt = vufindConn.prepareStatement("UPDATE variables set value = ? WHERE id = ?");
-					updateVariableStmt.setLong(1, finishTime);
+					updateVariableStmt.setLong(1, exportStartTime);
 					updateVariableStmt.setLong(2, lastSierraExtractTimeVariableId);
 					updateVariableStmt.executeUpdate();
 					updateVariableStmt.close();
 				} else {
 					PreparedStatement insertVariableStmt = vufindConn.prepareStatement("INSERT INTO variables (`name`, `value`) VALUES ('last_sierra_extract_time', ?)");
-					insertVariableStmt.setString(1, Long.toString(finishTime));
+					insertVariableStmt.setString(1, Long.toString(exportStartTime));
 					insertVariableStmt.executeUpdate();
 					insertVariableStmt.close();
 				}
@@ -552,6 +560,8 @@ public class SierraExportMain{
 				"where (" + orderStatusCodesSQL + ") and order_view.is_suppressed = 'f' and location_code != 'multi'";
 		if (suppressOrderRecordsThatAreReceivedAndCatalogged){
 			activeOrderSQL += " and (catalog_date_gmt IS NULL or received_date_gmt IS NULL) ";
+		}else if (suppressOrderRecordsThatAreCatalogged){
+			activeOrderSQL += " and (catalog_date_gmt IS NULL) ";
 		}
 		PreparedStatement getActiveOrdersStmt = conn.prepareStatement(activeOrderSQL, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 		ResultSet activeOrdersRS = null;

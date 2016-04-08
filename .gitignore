@@ -117,6 +117,16 @@ sites/*.marmot.org
 ###########################
 sites/*catalog.aspencat.info
 
+# Flatirons Symbolic Links #
+############################
+sites/*.flatironslibrary.org
+sites/*.boulderlibrary.org
+sites/*.flatironsconsortium.org
+
+# Specific files on Venus #
+###########################
+vufind/web/code_club_*.mp4
+
 # Nashville Symbolic Links #
 ############################
 sites/galacto.library.nashville.org

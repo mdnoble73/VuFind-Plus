@@ -8,6 +8,10 @@
 	{include file="cssAndJsIncludes.tpl" includeAutoLogoutCode=false}
 	{*TODO a smaller suite of javascript for List Widgets*}
 
+	{if $resizeIframe}
+	<script type="text/javascript" src="{$path}/js/iframeResizer/iframeResizer.contentWindow.min.js"></script>
+	{/if}
+
   {if $widget->customCss}
   	<link rel="stylesheet" type="text/css" href="{$widget->customCss}" />
   {/if}
