@@ -59,7 +59,7 @@
 					<div class="row">
 						<div class="result-label col-sm-4">Dates: </div>
 						<div class="result-value col-sm-8">
-							{$marmotExtension->marmotLocal->placeDateStart} to {$marmotExtension->marmotLocal->placeDateEnd}
+							{$marmotExtension->marmotLocal->placeDateStart}{if $marmotExtension->marmotLocal->placeDateEnd} to {/if}{$marmotExtension->marmotLocal->placeDateEnd}
 						</div>
 					</div>
 				{/if}
@@ -68,7 +68,7 @@
 					<div class="row">
 						<div class="result-label col-sm-4">Dates: </div>
 						<div class="result-value col-sm-8">
-							{$marmotExtension->marmotLocal->eventStartDate} to {$marmotExtension->marmotLocal->eventEndDate}
+							{$marmotExtension->marmotLocal->eventStartDate}{if $marmotExtension->marmotLocal->eventEndDate} to {/if}{$marmotExtension->marmotLocal->eventEndDate}
 						</div>
 					</div>
 				{/if}
@@ -77,7 +77,7 @@
 					<div class="row">
 						<div class="result-label col-sm-4">Dates: </div>
 						<div class="result-value col-sm-8">
-							{$marmotExtension->marmotLocal->dateEstablished} to {$marmotExtension->marmotLocal->dateDisbanded}
+							{$marmotExtension->marmotLocal->dateEstablished}{if $marmotExtension->marmotLocal->dateDisbanded} to {/if}{$marmotExtension->marmotLocal->dateDisbanded}
 						</div>
 					</div>
 				{/if}

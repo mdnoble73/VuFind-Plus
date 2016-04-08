@@ -249,7 +249,14 @@
 						{foreach from=$relatedOrganizations item=entity}
 							<a href='{$entity.link}'>
 								{$entity.label}
-							</a><br>
+							</a>
+							{if $entity.role}
+								&nbsp;({$entity.role})
+							{/if}
+							{if $entity.note}
+								&nbsp;- {$entity.note}
+							{/if}
+							<br>
 						{/foreach}
 
 					</div>
@@ -275,7 +282,14 @@
 						{foreach from=$relatedPlaces item=entity}
 							<a href='{$entity.link}'>
 								{$entity.label}
-							</a><br>
+							</a>
+							{if $entity.role}
+								&nbsp;({$entity.role})
+							{/if}
+							{if $entity.note}
+								&nbsp;- {$entity.note}
+							{/if}
+							<br>
 						{/foreach}
 
 					</div>
@@ -298,7 +312,14 @@
 						{foreach from=$relatedEvents item=entity}
 							<a href='{$entity.link}'>
 								{$entity.label}
-							</a><br>
+							</a>
+							{if $entity.role}
+								&nbsp;({$entity.role})
+							{/if}
+							{if $entity.note}
+								&nbsp;- {$entity.note}
+							{/if}
+							<br>
 						{/foreach}
 
 					</div>
