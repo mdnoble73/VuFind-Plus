@@ -13,6 +13,8 @@ abstract class Archive_Object extends Action{
 	protected $pid;
 	/** @var  FedoraObject $archiveObject */
 	protected $archiveObject;
+	/** @var IslandoraDriver $recordDriver */
+	protected $recordDriver;
 	//protected $dcData;
 	protected $modsData;
 	protected $relsExtData;
@@ -47,7 +49,6 @@ abstract class Archive_Object extends Action{
 
 	//TODO: This should eventually move onto a Record Driver
 	function loadArchiveObjectData(){
-
 		global $interface;
 		global $configArray;
 		$fedoraUtils = FedoraUtils::getInstance();
@@ -56,29 +57,14 @@ abstract class Archive_Object extends Action{
 		$this->pid = urldecode($_REQUEST['id']);
 		$interface->assign('pid', $this->pid);
 		$this->archiveObject = $fedoraUtils->getObject($this->pid);
+		$this->recordDriver = RecordDriverFactory::initRecordDriver($this->archiveObject);
 
 		//Load the MODS data stream
-		$this->modsData = $fedoraUtils->getModsData($this->archiveObject);
+		$this->modsData = $this->recordDriver->getModsData();
 		$interface->assign('mods', $this->modsData);
 
-		//Extract Subjects
-		$formattedSubjects = array();
-		foreach ($this->modsData->subject as $subjects){
-
-			foreach ($subjects->topic as $subjectPart){
-				$subjectLink = $configArray['Site']['path'] . '/Archive/Results?lookfor=';
-				if (strlen($subjectPart) > 0){$subjectLink .= '&filter[]=mods_subject_topic_ms:"' . $subjectPart . '"';
-					$formattedSubjects[] = array(
-							'link' => $subjectLink,
-							'label' => $subjectPart
-					);
-
-				}
-
-			}
-		}
-		$this->formattedSubjects = $formattedSubjects;
-		$interface->assign('subjects', $formattedSubjects);
+		$this->formattedSubjects = $this->recordDriver->getAllSubjectsWithLinks();
+		$interface->assign('subjects', $this->formattedSubjects);
 
 		$rightsStatements = array();
 		foreach ($this->modsData->accessCondition as $condition){
@@ -395,48 +381,14 @@ abstract class Archive_Object extends Action{
 	}
 
 	function loadExploreMoreContent(){
-		require_once ROOT_DIR . '/sys/ArchiveSubject.php';
+		require_once ROOT_DIR . '/sys/ExploreMore.php';
 		global $interface;
-		$archiveSubjects = new ArchiveSubject();
-		$subjectsToIgnore = array();
-		$subjectsToRestrict = array();
-		if ($archiveSubjects->find(true)){
-			$subjectsToIgnore = array_flip(explode("\r\n", strtolower($archiveSubjects->subjectsToIgnore)));
-			$subjectsToRestrict = array_flip(explode("\r\n", strtolower($archiveSubjects->subjectsToRestrict)));
-		}
-		$relatedCollections = $this->getRelatedCollections();
-		$relatedSubjects = array();
-		$numSubjectsAdded = 0;
-		if (strlen($this->archiveObject->label) > 0) {
-			$relatedSubjects[$this->archiveObject->label] = '"' . $this->archiveObject->label . '"';
-		}
-		for ($i = 0; $i < 2; $i++){
-			foreach ($this->formattedSubjects as $subject) {
-				$searchSubject = preg_replace('/\(.*?\)/',"", $subject['label']);
-				$searchSubject = trim(preg_replace('/[\/|:.,"]/',"", $searchSubject));
-				$lowerSubject = strtolower($searchSubject);
-				if (!array_key_exists($lowerSubject, $subjectsToIgnore)) {
-					if ($i == 0){
-						//First pass, just add primary subjects
-						if (!array_key_exists($lowerSubject, $subjectsToRestrict)) {
-							$relatedSubjects[$lowerSubject] = '"' . $searchSubject . '"';
-						}
-					}else{
-						//Second pass, add restricted subjects, but only if we don't have 5 subjects already
-						if (array_key_exists($lowerSubject, $subjectsToRestrict) && count($relatedSubjects) <= 5) {
-							$relatedSubjects[$lowerSubject] = '"' . $searchSubject . '"';
-						}
-					}
-				}
-			}
-		}
-		$relatedSubjects = array_slice($relatedSubjects, 0, 5);
-		foreach ($this->relatedPeople as $person) {
-			$label = (string)$person['label'];
-			$relatedSubjects[$label] = '"' . $label . '"';
-			$numSubjectsAdded++;
-		}
-		$relatedSubjects = array_slice($relatedSubjects, 0, 8);
+		$exploreMore = new ExploreMore();
+		$exploreMore->loadExploreMoreSidebar('archive', $this->recordDriver);
+
+
+		$relatedCollections = $this->recordDriver->getRelatedCollections();
+		$relatedSubjects = $this->recordDriver->getAllSubjectHeadings();
 
 		//Get works that are directly related to this entity based on linked data
 		$linkedWorks = $this->getLinkedWorks($relatedCollections);
@@ -453,50 +405,7 @@ abstract class Archive_Object extends Action{
 
 	}
 
-	protected function getRelatedCollections() {
-		global $interface;
 
-		//Get parent collection(s) for the entity.
-		$collectionsRaw = $this->archiveObject->relationships->get(FEDORA_RELS_EXT_URI, 'isMemberOfCollection');
-		$collections = array();
-		$fedoraUtils = FedoraUtils::getInstance();
-		foreach ($collectionsRaw as $collectionInfo) {
-			$collectionObject = $fedoraUtils->getObject($collectionInfo['object']['value']);
-			if ($collectionObject != null) {
-				$okToAdd = true;
-				$mods = FedoraUtils::getInstance()->getModsData($collectionObject);
-				if ($mods != null) {
-					if (count($mods->extension) > 0) {
-						/** @var SimpleXMLElement $marmotExtension */
-						$marmotExtension = $mods->extension->children('http://marmot.org/local_mods_extension');
-						if (count($marmotExtension) > 0) {
-							$marmotLocal = $marmotExtension->marmotLocal;
-							if ($marmotLocal->count() > 0) {
-								$pikaOptions = $marmotLocal->pikaOptions;
-								if ($pikaOptions->count() > 0) {
-									$okToAdd = $pikaOptions->includeInPika != 'no';
-								}
-							}
-						}
-					}
-				} else {
-					//If we don't get mods, exclude from the display
-					$okToAdd = false;
-				}
-
-				if ($okToAdd) {
-					$collections[] = array(
-							'pid' => $collectionInfo['object']['value'],
-							'label' => $collectionObject->label,
-							'link' => '/Archive/' . $collectionInfo['object']['value'] . '/Exhibit',
-							'image' => $fedoraUtils->getObjectImageUrl($collectionObject, 'small'),
-					);
-				}
-			}
-		}
-		$interface->assign('collections', $collections);
-		return $collections;
-	}
 
 	protected function loadLinkedData(){
 		global $interface;

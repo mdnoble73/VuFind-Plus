@@ -10,7 +10,10 @@
  */
 require_once ROOT_DIR . '/RecordDrivers/Interface.php';
 abstract class IslandoraDriver extends RecordInterface {
+	/** @var AbstractFedoraObject|null */
+	protected $archiveObject;
 
+	protected $modsData = null;
 	/**
 	 * Constructor.  We build the object using all the data retrieved
 	 * from the (Solr) index.  Since we have to
@@ -22,7 +25,12 @@ abstract class IslandoraDriver extends RecordInterface {
 	 * @access  public
 	 */
 	public function __construct($recordData) {
-		$this->fields = $recordData;
+		$fedoraUtils = FedoraUtils::getInstance();
+		if (is_array($recordData)){
+			$this->archiveObject = $fedoraUtils->getObject($recordData['PID']);
+		}else{
+			$this->archiveObject = $fedoraUtils->getObject($recordData);
+		}
 
 		global $configArray;
 		// Load highlighting/snippet preferences:
@@ -36,9 +44,9 @@ abstract class IslandoraDriver extends RecordInterface {
 		global $configArray;
 		$objectUrl = $configArray['Islandora']['objectUrl'];
 		if ($size == 'small'){
-			if (array_key_exists('fedora_datastream_info_SC_ID_mt', $this->fields)){
+			if ($this->archiveObject->getDatastream('SC') != null){
 				return $objectUrl . '/' . $this->getUniqueID() . '/datastream/SC/view';
-			}else if (array_key_exists('fedora_datastream_info_SC_TN_mt', $this->fields)){
+			}elseif ($this->archiveObject->getDatastream('TN') != null){
 				return $objectUrl . '/' . $this->getUniqueID() . '/datastream/TN/view';
 			}else{
 				//return a placeholder
@@ -46,22 +54,24 @@ abstract class IslandoraDriver extends RecordInterface {
 			}
 
 		}elseif ($size == 'medium'){
-			if (array_key_exists('fedora_datastream_info_MC_ID_mt', $this->fields)) {
+			if ($this->archiveObject->getDatastream('MC') != null){
 				return $objectUrl . '/' . $this->getUniqueID() . '/datastream/MC/view';
-			}else if (array_key_exists('fedora_datastream_info_TN_ID_mt', $this->fields)) {
+			}elseif ($this->archiveObject->getDatastream('TN') != null){
 				return $objectUrl . '/' . $this->getUniqueID() . '/datastream/TN/view';
 			}else{
 				return $this->getPlaceholderImage();
 			}
-		}if ($size == 'large'){
-			if (array_key_exists('fedora_datastream_info_JPG_ID_mt', $this->fields)) {
+		}elseif ($size == 'large'){
+			if ($this->archiveObject->getDatastream('JPG') != null){
 				return $objectUrl . '/' . $this->getUniqueID() . '/datastream/JPG/view';
-			}elseif (array_key_exists('fedora_datastream_info_LC_ID_mt', $this->fields)){
+			}elseif ($this->archiveObject->getDatastream('LC') != null){
 				return $objectUrl . '/' . $this->getUniqueID() . '/datastream/LC/view';
 			}else{
 				return $this->getPlaceholderImage();
 			}
 
+		}else{
+			return $this->getPlaceholderImage();
 		}
 	}
 
@@ -73,7 +83,7 @@ abstract class IslandoraDriver extends RecordInterface {
 	 * @return  string              Breadcrumb text to represent this record.
 	 */
 	public function getBreadcrumb() {
-		return $this->getShortTitle();
+		return $this->getTitle();
 	}
 
 	public function getBrowseResult(){
@@ -260,11 +270,7 @@ abstract class IslandoraDriver extends RecordInterface {
 	}
 
 	public function getTitle() {
-		if (isset($this->fields['dc.title'])){
-			return $this->fields['dc.title'][0];
-		}else{
-			return 'Untitled';
-		}
+		return $this->archiveObject->label;
 	}
 
 	/**
@@ -288,7 +294,7 @@ abstract class IslandoraDriver extends RecordInterface {
 	 * @return  string              Unique identifier.
 	 */
 	public function getUniqueID() {
-		return $this->fields['PID'];
+		return $this->archiveObject->id;
 	}
 
 	/**
@@ -298,7 +304,7 @@ abstract class IslandoraDriver extends RecordInterface {
 	 * @return  bool
 	 */
 	public function hasAudio() {
-		// TODO: Implement hasAudio() method.
+		return false;
 	}
 
 	/**
@@ -308,7 +314,7 @@ abstract class IslandoraDriver extends RecordInterface {
 	 * @return  bool
 	 */
 	public function hasExcerpt() {
-		// TODO: Implement hasExcerpt() method.
+		return false;
 	}
 
 	/**
@@ -321,7 +327,7 @@ abstract class IslandoraDriver extends RecordInterface {
 	 * @return  bool
 	 */
 	public function hasFullText() {
-		// TODO: Implement hasFullText() method.
+		return false;
 	}
 
 	/**
@@ -331,7 +337,7 @@ abstract class IslandoraDriver extends RecordInterface {
 	 * @return  bool
 	 */
 	public function hasImages() {
-		// TODO: Implement hasImages() method.
+		return true;
 	}
 
 	/**
@@ -351,7 +357,7 @@ abstract class IslandoraDriver extends RecordInterface {
 	 * @return  bool
 	 */
 	public function hasReviews() {
-		// TODO: Implement hasReviews() method.
+		return false;
 	}
 
 	/**
@@ -361,7 +367,7 @@ abstract class IslandoraDriver extends RecordInterface {
 	 * @return  bool
 	 */
 	public function hasTOC() {
-		// TODO: Implement hasTOC() method.
+		return false;
 	}
 
 	/**
@@ -371,7 +377,7 @@ abstract class IslandoraDriver extends RecordInterface {
 	 * @return  bool
 	 */
 	public function hasVideo() {
-		// TODO: Implement hasVideo() method.
+		return false;
 	}
 
 	public function getDescription() {
@@ -410,5 +416,126 @@ abstract class IslandoraDriver extends RecordInterface {
 	protected function getPlaceholderImage() {
 		global $configArray;
 		return $configArray['Site']['path'] . '/interface/themes/responsive/images/History.png';
+	}
+
+	private $subjectHeadings = null;
+	public function getAllSubjectHeadings() {
+		if ($this->subjectHeadings == null) {
+			require_once ROOT_DIR . '/sys/ArchiveSubject.php';
+			$archiveSubjects = new ArchiveSubject();
+			$subjectsToIgnore = array();
+			$subjectsToRestrict = array();
+			if ($archiveSubjects->find(true)){
+				$subjectsToIgnore = array_flip(explode("\r\n", strtolower($archiveSubjects->subjectsToIgnore)));
+				$subjectsToRestrict = array_flip(explode("\r\n", strtolower($archiveSubjects->subjectsToRestrict)));
+			}
+
+			$subjectsWithLinks = $this->getAllSubjectsWithLinks();
+			$relatedSubjects = array();
+			$numSubjectsAdded = 0;
+			if (strlen($this->archiveObject->label) > 0) {
+				$relatedSubjects[$this->archiveObject->label] = '"' . $this->archiveObject->label . '"';
+			}
+			for ($i = 0; $i < 2; $i++){
+				foreach ($subjectsWithLinks as $subject) {
+					$searchSubject = preg_replace('/\(.*?\)/',"", $subject['label']);
+					$searchSubject = trim(preg_replace('/[\/|:.,"]/',"", $searchSubject));
+					$lowerSubject = strtolower($searchSubject);
+					if (!array_key_exists($lowerSubject, $subjectsToIgnore)) {
+						if ($i == 0){
+							//First pass, just add primary subjects
+							if (!array_key_exists($lowerSubject, $subjectsToRestrict)) {
+								$relatedSubjects[$lowerSubject] = '"' . $searchSubject . '"';
+							}
+						}else{
+							//Second pass, add restricted subjects, but only if we don't have 5 subjects already
+							if (array_key_exists($lowerSubject, $subjectsToRestrict) && count($relatedSubjects) <= 5) {
+								$relatedSubjects[$lowerSubject] = '"' . $searchSubject . '"';
+							}
+						}
+					}
+				}
+			}
+			$relatedSubjects = array_slice($relatedSubjects, 0, 5);
+
+			//Extract Subjects
+			$this->subjectHeadings = $relatedSubjects;
+		}
+		return $this->subjectHeadings;
+	}
+
+	private $subjectsWithLinks = null;
+	public function getAllSubjectsWithLinks() {
+		global $configArray;
+		if ($this->subjectsWithLinks == null) {
+			//Extract Subjects
+			$this->subjectsWithLinks = array();
+			foreach ($this->modsData->subject as $subjects) {
+
+				foreach ($subjects->topic as $subjectPart) {
+					$subjectLink = $configArray['Site']['path'] . '/Archive/Results?lookfor=';
+					if (strlen($subjectPart) > 0) {
+						$subjectLink .= '&filter[]=mods_subject_topic_ms:"' . $subjectPart . '"';
+						$this->subjectsWithLinks[] = array(
+								'link' => $subjectLink,
+								'label' => $subjectPart
+						);
+
+					}
+
+				}
+			}
+		}
+		return $this->subjectsWithLinks;
+	}
+
+	public function getModsData(){
+		if ($this->modsData == null){
+			$fedoraUtils = FedoraUtils::getInstance();
+			$this->modsData = $fedoraUtils->getModsData($this->archiveObject);
+		}
+		return $this->modsData;
+	}
+
+	public function getRelatedCollections() {
+		//Get parent collection(s) for the entity.
+		$collectionsRaw = $this->archiveObject->relationships->get(FEDORA_RELS_EXT_URI, 'isMemberOfCollection');
+		$collections = array();
+		$fedoraUtils = FedoraUtils::getInstance();
+		foreach ($collectionsRaw as $collectionInfo) {
+			$collectionObject = $fedoraUtils->getObject($collectionInfo['object']['value']);
+			if ($collectionObject != null) {
+				$okToAdd = true;
+				$mods = FedoraUtils::getInstance()->getModsData($collectionObject);
+				if ($mods != null) {
+					if (count($mods->extension) > 0) {
+						/** @var SimpleXMLElement $marmotExtension */
+						$marmotExtension = $mods->extension->children('http://marmot.org/local_mods_extension');
+						if (count($marmotExtension) > 0) {
+							$marmotLocal = $marmotExtension->marmotLocal;
+							if ($marmotLocal->count() > 0) {
+								$pikaOptions = $marmotLocal->pikaOptions;
+								if ($pikaOptions->count() > 0) {
+									$okToAdd = $pikaOptions->includeInPika != 'no';
+								}
+							}
+						}
+					}
+				} else {
+					//If we don't get mods, exclude from the display
+					$okToAdd = false;
+				}
+
+				if ($okToAdd) {
+					$collections[] = array(
+							'pid' => $collectionInfo['object']['value'],
+							'label' => $collectionObject->label,
+							'link' => '/Archive/' . $collectionInfo['object']['value'] . '/Exhibit',
+							'image' => $fedoraUtils->getObjectImageUrl($collectionObject, 'small'),
+					);
+				}
+			}
+		}
+		return $collections;
 	}
 }

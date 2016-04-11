@@ -2,6 +2,18 @@
 	<div id="explore-more-header" class="row">Explore More</div>
 
 	<div id="explore-more-body" class="row"> {* To Get use of the full width there is*}
+		{foreach from=$exploreMoreSections item=section}
+			<div class="sectionHeader">{$section.title}</div>
+			{if $section.format == 'scroller'}
+			{else}
+				{foreach from=$section.values item=value}
+					<div class="section">
+						<a href="{$value.link}"><img src="{$value.image}" alt="{$value.label}" class="img-responsive img-thumbnail"></a>
+					</div>
+				{/foreach}
+			{/if}
+		{/foreach}
+
 		{*<div class="col-xs-10*}{* col-xs-offset-1*}{*">*}
 		{foreach from=$collections item=collection}
 			<strong>{$collection.label}</strong>

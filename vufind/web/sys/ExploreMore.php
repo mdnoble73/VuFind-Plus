@@ -9,9 +9,25 @@
  * Time: 8:06 PM
  */
 class ExploreMore {
+	private $relatedCollections;
 
 	function loadExploreMoreSidebar($activeSection, $recordDriver){
 		global $interface;
+		$exploreMoreSectionsToShow = array();
+
+		if ($activeSection == 'archive'){
+			/** @var IslandoraDriver $archiveDriver */
+			$archiveDriver = $recordDriver;
+			$this->relatedCollections = $archiveDriver->getRelatedCollections();
+			if (count($this->relatedCollections) > 0){
+				$exploreMoreSectionsToShow['relatedCollections'] = array(
+						'title' => 'Related Collections',
+						'format' => 'list',
+						'values' => $this->relatedCollections
+				);
+			}
+		}
+
 		//Get related search terms
 		$subjects = $recordDriver->getAllSubjectHeadings();
 		$subjectsForSearching = array();
@@ -55,6 +71,8 @@ class ExploreMore {
 		if ($activeSection != 'catalog'){
 			$this->getRelatedWorks($quotedSubjectsForSearching);
 		}
+
+		$interface->assign('exploreMoreSections', $exploreMoreSectionsToShow);
 	}
 
 	function loadExploreMoreBar($activeSection){
