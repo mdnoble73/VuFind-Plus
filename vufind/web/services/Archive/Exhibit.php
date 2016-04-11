@@ -16,6 +16,7 @@ class Archive_Exhibit extends Archive_Object{
 
 		$this->loadArchiveObjectData();
 		$this->loadExploreMoreContent();
+		$this->loadRelatedObjects();
 
 		if ($this->archiveObject->getDatastream('BANNER') != null) {
 			$interface->assign('main_image', $configArray['Islandora']['objectUrl'] . "/{$this->pid}/datastream/BANNER/view");
@@ -27,7 +28,7 @@ class Archive_Exhibit extends Archive_Object{
 		$this->display('exhibit.tpl');
 	}
 
-	function loadExploreMoreContent(){
+	function loadRelatedObjects(){
 		global $interface;
 		/** @var SearchObject_Islandora $searchObject */
 		$searchObject = SearchObjectFactory::initSearchObject('Islandora');

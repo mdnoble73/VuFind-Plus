@@ -269,30 +269,8 @@ abstract class Archive_Object extends Action{
 				}
 			}
 
-			if (count($marmotExtension->marmotLocal->externalLink) > 0){
-				$this->links = array();
-				/** @var SimpleXMLElement $linkInfo */
-				foreach ($marmotExtension->marmotLocal->externalLink as $linkInfo){
-					$linkAttributes = $linkInfo->attributes();
-					if (strlen($linkInfo->linkText) == 0) {
-						if (strlen((string)$linkAttributes['type']) == 0) {
-							$linkText = (string)$linkInfo->link;
-						} else {
-							$linkText = (string)$linkAttributes['type'];
-						}
-					}else{
-						$linkText = (string)$linkInfo->linkText;
-					}
-					if  (strlen($linkInfo->link) > 0){
-						$this->links[] = array(
-								'type' => (string)$linkAttributes['type'],
-								'link' => (string)$linkInfo->link,
-								'text' => $linkText
-						);
-					}
-				}
-				$interface->assign('externalLinks', $this->links);
-			}
+			$this->links = $this->recordDriver->getLinks();
+			$interface->assign('externalLinks', $this->links);
 
 			$addressInfo = array();
 			if (strlen($marmotExtension->marmotLocal->latitude) ||
@@ -387,11 +365,7 @@ abstract class Archive_Object extends Action{
 		$exploreMore->loadExploreMoreSidebar('archive', $this->recordDriver);
 
 
-		$relatedCollections = $this->recordDriver->getRelatedCollections();
 		$relatedSubjects = $this->recordDriver->getAllSubjectHeadings();
-
-		//Get works that are directly related to this entity based on linked data
-		$linkedWorks = $this->getLinkedWorks($relatedCollections);
 
 		$exploreMore = new ExploreMore();
 		$exploreMore->getRelatedWorks($relatedSubjects);
@@ -401,11 +375,7 @@ abstract class Archive_Object extends Action{
 		}
 		$searchTerm = implode(" OR ", $relatedSubjects);
 		$exploreMore->getRelatedArchiveContent('archive', array(), $searchTerm);
-
-
 	}
-
-
 
 	protected function loadLinkedData(){
 		global $interface;
@@ -466,17 +436,7 @@ abstract class Archive_Object extends Action{
 		}
 	}
 
-	private function getLinkedWorks($relatedCollections) {
-		//Check for works that are directly related to this entity
-		if (isset($this->links)) {
-			foreach ($this->links as $link) {
-				if ($link['type'] == 'relatedPika') {
-					preg_match('/^.*\/GroupedWork\/([a-f0-9-]+)$/', $link['link'], $matches);
-					$workId = $matches[1];
-				}
-			}
-		}
-	}
+
 }
 
 function sortRelatedEntities($a, $b){

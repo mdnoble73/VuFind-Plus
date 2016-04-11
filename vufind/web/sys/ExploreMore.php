@@ -26,6 +26,17 @@ class ExploreMore {
 						'values' => $this->relatedCollections
 				);
 			}
+
+			//Find content from the catalog that is directly related to the object or collection based on linked data
+			$relatedPikaContent = $recordDriver->getRelatedPikaContent();
+			if (count($relatedPikaContent) > 0){
+				$exploreMoreSectionsToShow['linkedCatalogRecords'] = array(
+						'title' => 'From the Catalog',
+						'format' => 'scroller',
+						'values' => $relatedPikaContent
+				);
+			}
+
 		}
 
 		//Get related search terms

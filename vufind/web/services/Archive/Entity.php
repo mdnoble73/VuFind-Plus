@@ -11,9 +11,6 @@
 require_once ROOT_DIR . '/services/Archive/Object.php';
 abstract class Archive_Entity extends Archive_Object {
 	function loadRelatedContentForEntity(){
-		require_once ROOT_DIR . '/sys/Utils/FedoraUtils.php';
-		$fedoraUtils = FedoraUtils::getInstance();
-
 		// Include Search Engine Class
 		require_once ROOT_DIR . '/sys/Solr.php';
 

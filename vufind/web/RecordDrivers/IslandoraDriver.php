@@ -9,6 +9,7 @@
  * Time: 1:47 PM
  */
 require_once ROOT_DIR . '/RecordDrivers/Interface.php';
+require_once ROOT_DIR . '/sys/Utils/FedoraUtils.php';
 abstract class IslandoraDriver extends RecordInterface {
 	/** @var AbstractFedoraObject|null */
 	protected $archiveObject;
@@ -432,7 +433,6 @@ abstract class IslandoraDriver extends RecordInterface {
 
 			$subjectsWithLinks = $this->getAllSubjectsWithLinks();
 			$relatedSubjects = array();
-			$numSubjectsAdded = 0;
 			if (strlen($this->archiveObject->label) > 0) {
 				$relatedSubjects[$this->archiveObject->label] = '"' . $this->archiveObject->label . '"';
 			}
@@ -511,9 +511,11 @@ abstract class IslandoraDriver extends RecordInterface {
 					if (count($mods->extension) > 0) {
 						/** @var SimpleXMLElement $marmotExtension */
 						$marmotExtension = $mods->extension->children('http://marmot.org/local_mods_extension');
-						if (count($marmotExtension) > 0) {
+						if ($marmotExtension->count() > 0) {
+							/** @var SimpleXMLElement $marmotLocal */
 							$marmotLocal = $marmotExtension->marmotLocal;
 							if ($marmotLocal->count() > 0) {
+								/** @var SimpleXMLElement $pikaOptions */
 								$pikaOptions = $marmotLocal->pikaOptions;
 								if ($pikaOptions->count() > 0) {
 									$okToAdd = $pikaOptions->includeInPika != 'no';
@@ -532,10 +534,83 @@ abstract class IslandoraDriver extends RecordInterface {
 							'label' => $collectionObject->label,
 							'link' => '/Archive/' . $collectionInfo['object']['value'] . '/Exhibit',
 							'image' => $fedoraUtils->getObjectImageUrl($collectionObject, 'small'),
+							'object' => $collectionObject,
 					);
 				}
 			}
 		}
 		return $collections;
+	}
+
+	protected $links = null;
+	public function getLinks(){
+		if ($this->links == null){
+			$this->links = array();
+			$marmotExtension = $this->getModsData()->extension->children('http://marmot.org/local_mods_extension');
+			if (count($marmotExtension->marmotLocal->externalLink) > 0){
+				/** @var SimpleXMLElement $linkInfo */
+				foreach ($marmotExtension->marmotLocal->externalLink as $linkInfo){
+					$linkAttributes = $linkInfo->attributes();
+					if (strlen($linkInfo->linkText) == 0) {
+						if (strlen((string)$linkAttributes['type']) == 0) {
+							$linkText = (string)$linkInfo->link;
+						} else {
+							$linkText = (string)$linkAttributes['type'];
+						}
+					}else{
+						$linkText = (string)$linkInfo->linkText;
+					}
+					if  (strlen($linkInfo->link) > 0){
+						$this->links[] = array(
+								'type' => (string)$linkAttributes['type'],
+								'link' => (string)$linkInfo->link,
+								'text' => $linkText
+						);
+					}
+				}
+			}
+		}
+		return $this->links;
+	}
+
+	protected $relatedPikaRecords;
+	public function getRelatedPikaContent(){
+		if ($this->relatedPikaRecords == null){
+			require_once ROOT_DIR . '/RecordDrivers/GroupedWorkDriver.php';
+
+			$this->relatedPikaRecords = array();
+
+			//Look for things linked directly to this object
+			$links = $this->getLinks();
+			foreach ($links as $link){
+				if ($link['type'] == 'relatedPika'){
+					if (preg_match('/^.*\/GroupedWork\/([a-f0-9-]+)$/', $link['link'], $matches)){
+						$workId = $matches[1];
+						$workDriver = new GroupedWorkDriver($workId);
+						if ($workDriver->isValid){
+							$this->relatedPikaRecords[] = array(
+									'link' => $workDriver->getLinkUrl(),
+									'title' => $workDriver->getTitle(),
+									'image' => $workDriver->getBookcoverUrl('medium')
+							);
+						}
+					}else{
+						//Didn't get a valid grouped work id
+					}
+				}
+			}
+
+			//Look for links related to the collection(s) this object is linked to
+			$collections = $this->getRelatedCollections();
+			foreach ($collections as $collection){
+				/** @var IslandoraDriver $collectionDriver */
+				$collectionDriver = RecordDriverFactory::initRecordDriver($collection['object']);
+				$relatedFromCollection = $collectionDriver->getRelatedPikaContent();
+				if (count($relatedFromCollection)){
+					$this->relatedPikaRecords = array_merge($this->relatedPikaRecords, $relatedFromCollection);
+				}
+			}
+		}
+		return $this->relatedPikaRecords;
 	}
 }

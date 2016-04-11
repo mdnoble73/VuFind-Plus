@@ -4,8 +4,31 @@
 	<div id="explore-more-body" class="row"> {* To Get use of the full width there is*}
 		{foreach from=$exploreMoreSections item=section}
 			<div class="sectionHeader">{$section.title}</div>
+
 			{if $section.format == 'scroller'}
+				{* JCarousel with related titles *}
+				<div class="jcarousel-wrapper">
+					{*<a href="#" class="jcarousel-control-prev"*}{* data-target="-=1"*}{*><i class="glyphicon glyphicon-chevron-left"></i></a>*}
+					<a href="#" class="jcarousel-control-next"{* data-target="+=1"*}><i class="glyphicon glyphicon-chevron-right"></i></a>
+
+					<div class="relatedTitlesContainer jcarousel"> {* relatedTitlesContainer used in initCarousels *}
+						<ul>
+							{foreach from=$section.values item=title}
+								<li class="relatedTitle">
+									<a href="{$title.link}">
+										<figure class="thumbnail">
+											<img src="{$title.image}" alt="{$title.label|removeTrailingPunctuation|truncate:80:"..."}">
+											<figcaption>{$title.label|removeTrailingPunctuation|truncate:80:"..."}</figcaption>
+										</figure>
+									</a>
+								</li>
+							{/foreach}
+						</ul>
+					</div>
+				</div>
 			{else}
+
+				{* Simple display with one thumbnail per item *}
 				{foreach from=$section.values item=value}
 					<div class="section">
 						<a href="{$value.link}"><img src="{$value.image}" alt="{$value.label}" class="img-responsive img-thumbnail"></a>
