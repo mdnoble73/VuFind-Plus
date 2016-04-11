@@ -81,7 +81,7 @@ class SearchAPI extends Action {
 
 		// Full Index //
 		$lastFullIndexVariable = new Variable();
-		$lastFullIndexVariable->name= 'lastFullReindexFinish';
+		$lastFullIndexVariable->name = 'lastFullReindexFinish';
 		if ($lastFullIndexVariable->find(true)){
 			//Check to see if the last full index finished more than FULL_INDEX_INTERVAL seconds ago
 			if ($lastFullIndexVariable->value < ($currentTime - self::FULL_INDEX_INTERVAL_WARN)){
@@ -113,31 +113,58 @@ class SearchAPI extends Action {
 		//Also do not check these from 9pm to 7am since between these hours, we're running full indexing and these issues wind up being ok.
 		$curHour = date('H');
 		if (!$fullIndexRunning && !$recordGroupingRunning && ($curHour >= 7 && $curHour <= 21)) {
-			// Partial Index //
-			$lastPartialIndexVariable = new Variable();
-			$lastPartialIndexVariable->name = 'lastPartialReindexFinish';
-			if ($lastPartialIndexVariable->find(true)) {
-				//Get the last time either a full or partial index finished
-				$lastIndexFinishedWasFull = false;
-				$lastIndexTime = $lastPartialIndexVariable->value;
-				if ($lastFullIndexVariable && $lastFullIndexVariable->value > $lastIndexTime){
-					$lastIndexTime = $lastFullIndexVariable->value;
-					$lastIndexFinishedWasFull = true;
-				}
 
-				//Check to see if the last partial index finished more than PARTIAL_INDEX_INTERVAL_WARN seconds ago
-				if ($lastIndexTime < ($currentTime - self::PARTIAL_INDEX_INTERVAL_WARN)) {
-					$status[] = ($lastIndexTime < ($currentTime - self::PARTIAL_INDEX_INTERVAL_CRITICAL)) ? self::STATUS_CRITICAL : self::STATUS_WARN;
+			$IsPartialIndexPaused = false;
+			$partialIndexPauseIntervals = new Variable();
+			$partialIndexPauseIntervals->name = 'partial_index_pause_intervals';
+			if ($partialIndexPauseIntervals->find(true)) {
+				// Format should be hh:mm-hh:mm;hh:mm-hh:mm (some spacing tolerated) (24 hour format; Intervals can't cross 24:00/00:00)
+				$intervals = explode(';', trim($partialIndexPauseIntervals->value));
+				foreach ($intervals as $interval) {
+					list($start, $stop)         = explode('-', trim($interval));
+					list($startHour, $startMin) = explode(':', trim($start));
+					list($stopHour, $stopMin)   = explode(':', trim($stop));
 
-					if ($lastIndexFinishedWasFull ){
-						$notes[] = 'Full Index last finished ' . date('m-d-Y H:i:s', $lastPartialIndexVariable->value) . ' - ' . round(($currentTime - $lastPartialIndexVariable->value) / 60, 2) . ' minutes ago, and a new partial index hasn\'t completed since.';
-					}else{
-						$notes[] = 'Partial Index last finished ' . date('m-d-Y H:i:s', $lastPartialIndexVariable->value) . ' - ' . round(($currentTime - $lastPartialIndexVariable->value) / 60, 2) . ' minutes ago';
+					if (is_numeric($startHour) && is_numeric($startMin) && is_numeric($stopHour) && is_numeric($startMin)) {
+						$startTimeStamp = mktime($startHour, $startMin, 0);
+						$stopTimeStamp  = mktime($stopHour, $stopMin, 0);
+						if ($currentTime >= $startTimeStamp && $currentTime <= $stopTimeStamp) {
+							$IsPartialIndexPaused = true;
+							$status[]             = self::STATUS_OK;
+							$notes[]              = 'Partial Index monitoring is currently paused';
+							break;
+						}
 					}
 				}
-			} else {
-				$status[] = self::STATUS_WARN;
-				$notes[]  = 'Partial index has never been run';
+			}
+
+			if (!$IsPartialIndexPaused) {
+				// Partial Index //
+				$lastPartialIndexVariable       = new Variable();
+				$lastPartialIndexVariable->name = 'lastPartialReindexFinish';
+				if ($lastPartialIndexVariable->find(true)) {
+					//Get the last time either a full or partial index finished
+					$lastIndexFinishedWasFull = false;
+					$lastIndexTime            = $lastPartialIndexVariable->value;
+					if ($lastFullIndexVariable && $lastFullIndexVariable->value > $lastIndexTime) {
+						$lastIndexTime            = $lastFullIndexVariable->value;
+						$lastIndexFinishedWasFull = true;
+					}
+
+					//Check to see if the last partial index finished more than PARTIAL_INDEX_INTERVAL_WARN seconds ago
+					if ($lastIndexTime < ($currentTime - self::PARTIAL_INDEX_INTERVAL_WARN)) {
+						$status[] = ($lastIndexTime < ($currentTime - self::PARTIAL_INDEX_INTERVAL_CRITICAL)) ? self::STATUS_CRITICAL : self::STATUS_WARN;
+
+						if ($lastIndexFinishedWasFull) {
+							$notes[] = 'Full Index last finished ' . date('m-d-Y H:i:s', $lastPartialIndexVariable->value) . ' - ' . round(($currentTime - $lastPartialIndexVariable->value) / 60, 2) . ' minutes ago, and a new partial index hasn\'t completed since.';
+						} else {
+							$notes[] = 'Partial Index last finished ' . date('m-d-Y H:i:s', $lastPartialIndexVariable->value) . ' - ' . round(($currentTime - $lastPartialIndexVariable->value) / 60, 2) . ' minutes ago';
+						}
+					}
+				} else {
+					$status[] = self::STATUS_WARN;
+					$notes[]  = 'Partial index has never been run';
+				}
 			}
 
 			// OverDrive Extract //
@@ -575,10 +602,10 @@ class SearchAPI extends Action {
 			$recordSet = $searchObject->getResultRecordSet();
 			foreach($recordSet as $recordKey => $record){
 				$jsonResults[] = array(
-					'id' => $record['id'], 
-					'title'=> $record['title'], 
-					'author' => isset($record['author']) ? $record['author'] : (isset($record['author2']) ? $record['author2'] : ''),
-					'format' => isset($record['format']) ? $record['format'] : '',
+					'id'              => $record['id'],
+					'title'           => isset($record['title']) ? $record['title'] : null,
+					'author'          => isset($record['author']) ? $record['author'] : (isset($record['author2']) ? $record['author2'] : ''),
+					'format'          => isset($record['format']) ? $record['format'] : '',
 					'format_category' => isset($record['format_category']) ? $record['format_category'] : '',
 				);
 			}
