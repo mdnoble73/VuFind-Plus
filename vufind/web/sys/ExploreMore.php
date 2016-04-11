@@ -28,7 +28,7 @@ class ExploreMore {
 			}
 
 			//Find content from the catalog that is directly related to the object or collection based on linked data
-			$relatedPikaContent = $recordDriver->getRelatedPikaContent();
+			$relatedPikaContent = $archiveDriver->getRelatedPikaContent();
 			if (count($relatedPikaContent) > 0){
 				$exploreMoreSectionsToShow['linkedCatalogRecords'] = array(
 						'title' => 'From the Catalog',

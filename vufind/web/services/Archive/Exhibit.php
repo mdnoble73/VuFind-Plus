@@ -16,6 +16,7 @@ class Archive_Exhibit extends Archive_Object{
 
 		$this->loadArchiveObjectData();
 		$this->loadExploreMoreContent();
+
 		$this->loadRelatedObjects();
 
 		if ($this->archiveObject->getDatastream('BANNER') != null) {

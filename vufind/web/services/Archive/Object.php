@@ -18,10 +18,7 @@ abstract class Archive_Object extends Action{
 	//protected $dcData;
 	protected $modsData;
 	protected $relsExtData;
-	protected $relatedPeople;
-	protected $relatedPlaces;
-	protected $relatedEvents;
-	protected $relatedOrganizations;
+
 	protected $formattedSubjects;
 	protected $links;
 
@@ -31,17 +28,23 @@ abstract class Archive_Object extends Action{
 	 */
 	function display($mainContentTemplate, $pageTitle=null) {
 		global $interface;
+
+		$relatedEvents = $this->recordDriver->getRelatedEvents();
+		$relatedPeople = $this->recordDriver->getRelatedPeople();
+		$relatedOrganizations = $this->recordDriver->getRelatedOrganizations();
+		$relatedPlaces = $this->recordDriver->getRelatedPlaces();
+
 		//Sort all the related information
-		usort($this->relatedEvents, 'sortRelatedEntities');
-		usort($this->relatedPeople, 'sortRelatedEntities');
-		usort($this->relatedOrganizations, 'sortRelatedEntities');
-		usort($this->relatedPlaces, 'sortRelatedEntities');
+		usort($relatedEvents, 'sortRelatedEntities');
+		usort($relatedPeople, 'sortRelatedEntities');
+		usort($relatedOrganizations, 'sortRelatedEntities');
+		usort($relatedPlaces, 'sortRelatedEntities');
 
 		//Do final assignment
-		$interface->assign('relatedEvents', $this->relatedEvents);
-		$interface->assign('relatedPeople', $this->relatedPeople);
-		$interface->assign('relatedOrganizations', $this->relatedOrganizations);
-		$interface->assign('relatedPlaces', $this->relatedPlaces);
+		$interface->assign('relatedEvents', $relatedEvents);
+		$interface->assign('relatedPeople', $relatedPeople);
+		$interface->assign('relatedOrganizations', $relatedOrganizations);
+		$interface->assign('relatedPlaces', $relatedPlaces);
 
 		$pageTitle = $pageTitle == null ? $this->archiveObject->label : $pageTitle;
 		parent::display($mainContentTemplate, $pageTitle);
@@ -77,12 +80,6 @@ abstract class Archive_Object extends Action{
 
 		/** @var SimpleXMLElement $marmotExtension */
 		$marmotExtension = $this->modsData->extension->children('http://marmot.org/local_mods_extension');
-
-		$this->relatedPeople = array();
-		$this->relatedPlaces = array();
-		$this->relatedOrganizations = array();
-		$this->relatedEvents = array();
-
 		if (@count($marmotExtension) > 0){
 			$interface->assign('marmotExtension', $marmotExtension);
 
@@ -110,148 +107,7 @@ abstract class Archive_Object extends Action{
 				}
 			}
 
-
-
-			$entities = $marmotExtension->marmotLocal->relatedEntity;
-			/** @var SimpleXMLElement $entity */
-			foreach ($entities as $entity){
-				if (strlen($entity->entityPid) == 0){
-					continue;
-				}
-				$entityType = '';
-				foreach ($entity->attributes() as $name => $value){
-					if ($name == 'type'){
-						$entityType = $value;
-						break;
-					}
-				}
-				if ($entityType == '' && strlen($entity->entityPid)){
-					//Get the type based on the pid
-					list($entityType, $id) = explode(':', $entity->entityPid);
-				}
-				$entityInfo = array(
-						'pid' => (string)$entity->entityPid,
-						'label' => (string)$entity->entityTitle,
-						'note' => (string)$entity->entityRelationshipNote,
-				);
-				if ($entityType == 'person'){
-					$entityInfo['link']= '/Archive/' . $entity->entityPid . '/Person';
-					$this->relatedPeople[(string)$entity->entityPid] = $entityInfo;
-				}elseif ($entityType == 'place'){
-					$entityInfo['link']= '/Archive/' . $entity->entityPid . '/Place';
-					$this->relatedPlaces[(string)$entity->entityPid] = $entityInfo;
-				}elseif ($entityType == 'event'){
-					$entityInfo['link']= '/Archive/' . $entity->entityPid . '/Event';
-					$this->relatedEvents[(string)$entity->entityPid] = $entityInfo;
-				}elseif ($entityType == 'organization'){
-					$entityInfo['link']= '/Archive/' . $entity->entityPid . '/Organization';
-					$this->relatedOrganizations[(string)$entity->entityPid] = $entityInfo;
-				}
-			}
-
-			if ($marmotExtension->marmotLocal->hasInterviewee){
-				$interviewee = $marmotExtension->marmotLocal->hasInterviewee;
-				$this->relatedPeople[] = array(
-						'pid' => $interviewee->entityPid,
-						'label' => $interviewee->entityTitle,
-						'link' =>  '/Archive/' . $interviewee->entityPid . '/Person',
-						'role' => 'Interviewee'
-				);
-			}
-
-			$entities = $marmotExtension->marmotLocal->relatedPersonOrg;
-			/** @var SimpleXMLElement $entity */
-			foreach ($entities as $entity){
-				if (strlen($entity->entityPid) == 0){
-					continue;
-				}
-				$entityType = '';
-				foreach ($entity->attributes() as $name => $value){
-					if ($name == 'type'){
-						$entityType = $value;
-						break;
-					}
-				}
-				if ($entityType == '' && strlen($entity->entityPid)){
-					//Get the type based on the pid
-					list($entityType, $id) = explode(':', $entity->entityPid);
-				}
-				$entityInfo = array(
-						'pid' => (string)$entity->entityPid,
-						'label' => (string)$entity->entityTitle,
-						'role' => (string)$entity->role,
-						'note' => (string)$entity->entityRelationshipNote,
-
-				);
-				if ($entityType == 'person'){
-					$personObject = $fedoraUtils->getObject($entity->entityPid);
-					$entityInfo['thumbnail'] = $fedoraUtils->getObjectImageUrl($personObject, 'medium');
-					$entityInfo['link']= '/Archive/' . $entity->entityPid . '/Person';
-					$this->relatedPeople[(string)$entity->entityPid] = $entityInfo;
-				}elseif ($entityType == 'organization'){
-					$entityInfo['link']= '/Archive/' . $entity->entityPid . '/Organization';
-					$this->relatedOrganizations[(string)$entity->entityPid] = $entityInfo;
-				}
-			}
-
-			$entities = $marmotExtension->marmotLocal->relatedEvent;
-			/** @var SimpleXMLElement $entity */
-			foreach ($entities as $entity){
-				if (strlen($entity->entityPid) == 0){
-					continue;
-				}
-				$entityType = '';
-				foreach ($entity->attributes() as $name => $value){
-					if ($name == 'type'){
-						$entityType = $value;
-						break;
-					}
-				}
-				if ($entityType == '' && strlen($entity->entityPid)){
-					//Get the type based on the pid
-					list($entityType, $id) = explode(':', $entity->entityPid);
-				}
-				$entityInfo = array(
-						'pid' => (string)$entity->entityPid,
-						'label' => (string)$entity->entityTitle,
-						'role' => (string)$entity->type,
-						'note' => (string)$entity->entityRelationshipNote,
-
-				);
-				$entityInfo['link']= '/Archive/' . $entity->entityPid . '/Event';
-				$this->relatedEvents[(string)$entity->entityPid] = $entityInfo;
-			}
-
-			foreach ($marmotExtension->marmotLocal->relatedPlace as $entity){
-				if (count($entity->entityPlace) > 0 && strlen($entity->entityPlace->entityPid) > 0){
-					$entityInfo = array(
-							'pid' => (string)$entity->entityPlace->entityPid,
-							'label' => (string)$entity->entityPlace->entityTitle
-
-					);
-					$entityInfo['link']= '/Archive/' . (string)$entity->entityPlace->entityPid . '/Place';
-					$this->relatedPlaces[] = $entityInfo;
-				}else {
-					//Check to see if we have anything for this place
-					if (strlen($entity->generalPlace->latitude) ||
-							strlen($entity->generalPlace->longitude) ||
-							strlen($entity->generalPlace->addressStreetNumber) ||
-							strlen($entity->generalPlace->addressStreet) ||
-							strlen($entity->generalPlace->addressCity) ||
-							strlen($entity->generalPlace->addressCounty) ||
-							strlen($entity->generalPlace->addressState) ||
-							strlen($entity->generalPlace->addressZipCode) ||
-							strlen($entity->generalPlace->addressCountry) ||
-							strlen($entity->generalPlace->addressOtherRegion)){
-					}
-				}
-			}
-
-			$interface->assign('relatedPeople', $this->relatedPeople);
-			$interface->assign('relatedPlaces', $this->relatedPlaces);
-			$interface->assign('relatedEvents', $this->relatedEvents);
-
-
+			$this->recordDriver->loadRelatedEntities();
 
 			$interface->assign('hasMilitaryService', false);
 			if (count($marmotExtension->marmotLocal->militaryService) > 0){
