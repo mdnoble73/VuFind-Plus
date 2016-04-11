@@ -703,7 +703,7 @@ class ListAPI extends Action {
 	 * Returns:
 	 * <ul>
 	 * <li>success - true if the account is valid and the list could be created, false if the username or password were incorrect or the list could not be created.</li>
-	 * <li>listId - te id of the new list that is created.</li>
+	 * <li>listId - the id of the new list that is created.</li>
 	 * </ul>
 	 *
 	 * Sample Call:
@@ -732,7 +732,8 @@ class ListAPI extends Action {
 			$list->user_id = $user->id;
 			$list->insert();
 			$list->find();
-			if (!isset($_REQUEST['recordIds'])){
+			if (isset($_REQUEST['recordIds'])){
+				$_REQUEST['listId'] = $list->id;
 				$result = $this->addTitlesToList();
 				return $result;
 			}
