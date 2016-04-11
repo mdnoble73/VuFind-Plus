@@ -211,9 +211,11 @@
 						{foreach from=$relatedPeople item=entity}
 							<div class="relatedPerson row">
 								<div class="col-tn-2">
-									<a href="{$entity.link}" {if $entity.label}data-title="{$entity.label|urlencode}"{/if}>
-										<img src="{$entity.thumbnail}" {if $entity.label}alt="{$entity.label|urlencode}"{/if} class="img-responsive img-thumbnail">
-									</a>
+									{if $entity.thumbnail}
+										<a href="{$entity.link}" {if $entity.label}data-title="{$entity.label|urlencode}"{/if}>
+											<img src="{$entity.thumbnail}" {if $entity.label}alt="{$entity.label|urlencode}"{/if} class="img-responsive img-thumbnail">
+										</a>
+									{/if}
 								</div>
 								<div class="col-tn-10">
 									<a href='{$entity.link}'>
