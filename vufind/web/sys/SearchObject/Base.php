@@ -858,7 +858,9 @@ abstract class SearchObject_Base
 		if (count($this->filterList) > 0) {
 			foreach ($this->filterList as $field => $filter) {
 				foreach ($filter as $value) {
-					if (preg_match('/\\[.*?\\sTO\\s.*?\\]/', $value)){
+					if (preg_match('/\\[.*?\\sTO\\s.*?\\]/', $value)) {
+						$params[] = "filter[]=$field:$value";
+					}elseif (preg_match('/\\(.*?\\)/', $value)){
 						$params[] = "filter[]=$field:$value";
 					}else{
 						$params[] = "filter[]=" . urlencode("$field:\"$value\"");

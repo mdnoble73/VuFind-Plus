@@ -11,10 +11,15 @@
 class ExploreMore {
 	private $relatedCollections;
 
+	/**
+	 * @param string $activeSection
+	 * @param IndexRecord $recordDriver
+	 */
 	function loadExploreMoreSidebar($activeSection, $recordDriver){
 		global $interface;
 		$exploreMoreSectionsToShow = array();
 
+		$relatedPikaContent = array();
 		if ($activeSection == 'archive'){
 			/** @var IslandoraDriver $archiveDriver */
 			$archiveDriver = $recordDriver;
@@ -37,9 +42,10 @@ class ExploreMore {
 				);
 			}
 
+			//Find other entities
 		}
 
-		//Get related search terms
+		//Get subjects that can be used for searching other systems
 		$subjects = $recordDriver->getAllSubjectHeadings();
 		$subjectsForSearching = array();
 		$quotedSubjectsForSearching = array();
@@ -59,11 +65,16 @@ class ExploreMore {
 		$searchTerm = implode(' or ', $subjectsForSearching);
 		$quotedSearchTerm = implode(' OR ', $quotedSubjectsForSearching);
 
+		//Get objects from the archive based on search subjects
 		if ($activeSection != 'archive'){
 			foreach ($subjectsForSearching as $curSubject){
 				$exactEntityMatches = $this->loadExactEntityMatches(array(), $curSubject);
 				if (count($exactEntityMatches) > 0){
-					$interface->assign('exactEntityMatches', $exactEntityMatches);
+					$exploreMoreSectionsToShow['exactEntityMatches'] = array(
+							'title' => 'People, Places &amp; Events',
+							'format' => 'list',
+							'values' => $exactEntityMatches
+					);
 				}
 			}
 		}
@@ -74,13 +85,35 @@ class ExploreMore {
 			$interface->assign('relatedArticles', $ebscoMatches);
 		}
 
-		$archiveMatches = $this->getRelatedArchiveContent($activeSection, array(), $quotedSearchTerm);
-		if (count($archiveMatches) > 0){
-			$interface->assign('relatedArchiveData', $archiveMatches);
+		//Load related content from the archive
+		$relatedArchiveContent = $this->getRelatedArchiveObjects($quotedSearchTerm);
+		if ($activeSection == 'archive'){
+			/** @var IslandoraDriver $archiveDriver */
+			$archiveDriver = $recordDriver;
+			$relatedArchiveEntities = $this->getRelatedArchiveEntities($archiveDriver);
+			if (count($relatedArchiveEntities) > 0){
+				$relatedArchiveContent = array_merge($relatedArchiveContent, $relatedArchiveEntities);
+			}
+		}
+		if (count($relatedArchiveContent) > 0){
+			$exploreMoreSectionsToShow['relatedArchiveData'] = array(
+					'title' => 'From the Archive',
+					'format' => 'subsections',
+					'values' => $relatedArchiveContent
+			);
 		}
 
 		if ($activeSection != 'catalog'){
-			$this->getRelatedWorks($quotedSubjectsForSearching);
+			$relatedWorks = $this->getRelatedWorks($quotedSubjectsForSearching, $relatedPikaContent);
+			if ($relatedWorks['numFound'] > 0){
+				$exploreMoreSectionsToShow['relatedCatalog'] = array(
+						'title' => 'More From the Catalog',
+						'format' => 'scrollerWithLink',
+						'values' => $relatedWorks['values'],
+						'link' => $relatedWorks['link'],
+						'numFound' => $relatedWorks['numFound'],
+				);
+			}
 		}
 
 		$interface->assign('exploreMoreSections', $exploreMoreSectionsToShow);
@@ -151,9 +184,11 @@ class ExploreMore {
 								if (count($mods->extension) > 0){
 									/** @var SimpleXMLElement $marmotExtension */
 									$marmotExtension = $mods->extension->children('http://marmot.org/local_mods_extension');
-									if (count($marmotExtension) > 0) {
+									if ($marmotExtension->count() > 0) {
+										/** @var SimpleXMLElement $marmotLocal */
 										$marmotLocal = $marmotExtension->marmotLocal;
 										if ($marmotLocal->count() > 0) {
+											/** @var SimpleXMLElement $pikaOptions */
 											$pikaOptions = $marmotLocal->pikaOptions;
 											if ($pikaOptions->count() > 0) {
 												$okToAdd = $pikaOptions->includeInPika != 'no';
@@ -293,6 +328,7 @@ class ExploreMore {
 
 	/**
 	 * @param $exploreMoreOptions
+	 * @param string $searchTerm
 	 * @return array
 	 */
 	protected function loadExactEntityMatches($exploreMoreOptions, $searchTerm) {
@@ -321,9 +357,8 @@ class ExploreMore {
 					foreach ($response['response']['docs'] as $doc) {
 						$entityDriver = RecordDriverFactory::initRecordDriver($doc);
 						$exploreMoreOptions[] = array(
-								'title' => $entityDriver->getTitle(),
-								'description' => $entityDriver->getTitle(),
-								'thumbnail' => $entityDriver->getBookcoverUrl('medium'),
+								'label' => $entityDriver->getTitle(),
+								'image' => $entityDriver->getBookcoverUrl('medium'),
 								'link' => $entityDriver->getRecordUrl(),
 						);
 						$numProcessed++;
@@ -490,19 +525,16 @@ class ExploreMore {
 		$relatedSubjects = array_slice($relatedSubjects, 0, 8);
 
 		$exploreMore = new ExploreMore();
-		$this->getRelatedWorks($relatedSubjects);
+
 		$exploreMore->loadEbscoOptions('archive', array(), implode($relatedSubjects, " or "));
 		$searchTerm = implode(" OR ", $relatedSubjects);
-		$exploreMore->getRelatedArchiveContent('archive', array(), $searchTerm);
+		$exploreMore->getRelatedArchiveObjects($searchTerm);
 	}
 
-	public function getRelatedArchiveContent($activeSection, $exploreMoreOptions, $searchTerm) {
-		global $interface;
+	public function getRelatedArchiveObjects($searchTerm) {
+		$relatedArchiveContent = array();
 
-		$interface->assign('activeExploreMoreSection', $activeSection);
 		require_once ROOT_DIR . '/sys/Utils/FedoraUtils.php';
-		$exploreMoreOptions = array();
-
 		/** @var SearchObject_Islandora $searchObject */
 		$searchObject = SearchObjectFactory::initSearchObject('Islandora');
 		$searchObject->init();
@@ -525,6 +557,7 @@ class ExploreMore {
 				if ($relatedContentType[0] != 'info:fedora/islandora:collectionCModel' &&
 						$relatedContentType[0] != 'info:fedora/islandora:personCModel' &&
 						$relatedContentType[0] != 'info:fedora/islandora:placeCModel' &&
+						$relatedContentType[0] != 'info:fedora/islandora:organizationCModel' &&
 						$relatedContentType[0] != 'info:fedora/islandora:eventCModel'
 				) {
 
@@ -548,14 +581,14 @@ class ExploreMore {
 						$numMatches = $response2['response']['numFound'];
 						$contentType = translate($relatedContentType[0]);
 						if ($numMatches == 1) {
-							$exploreMoreOptions[] = array(
+							$relatedArchiveContent[] = array(
 									'title' => $firstObjectDriver->getTitle(),
 									'description' => $firstObjectDriver->getTitle(),
 									'thumbnail' => $firstObjectDriver->getBookcoverUrl('medium'),
 									'link' => $firstObjectDriver->getRecordUrl(),
 							);
 						} else {
-							$exploreMoreOptions[] = array(
+							$relatedArchiveContent[] = array(
 									'title' => "{$contentType}s ({$numMatches})",
 									'description' => "{$contentType}s related to this",
 									'thumbnail' => $firstObjectDriver->getBookcoverUrl('medium'),
@@ -565,19 +598,47 @@ class ExploreMore {
 					}
 				}
 			}
-			$interface->assign('relatedArchiveData', $exploreMoreOptions);
 		}
+		return $relatedArchiveContent;
+	}
+
+	/**
+	 * @param IslandoraDriver $archiveDriver
+	 * @return array
+	 */
+	public function getRelatedArchiveEntities($archiveDriver){
+
 	}
 
 	/**
 	 * @param string[] $relatedSubjects
+	 * @param array    $directlyRelatedRecords
+	 *
+	 * @return array
 	 */
-	public function getRelatedWorks($relatedSubjects) {
-		global $interface;
+	public function getRelatedWorks($relatedSubjects, $directlyRelatedRecords) {
 		//Load related catalog content
 		$searchTerm = implode(" OR ", $relatedSubjects);
 
+		$similarTitles = array(
+				'numFound' => 0,
+				'link' => '',
+				'values' => array()
+		);
+
 		if (strlen($searchTerm) > 0) {
+			//Blacklist any records that we have specific links to
+			$recordsToAvoid = '';
+			foreach ($directlyRelatedRecords as $record){
+				if (strlen($recordsToAvoid) > 0){
+					$recordsToAvoid .= ' OR ';
+				}
+				$recordsToAvoid .= $record['id'];
+			}
+			if (strlen($recordsToAvoid) > 0){
+				$searchTerm .= " AND NOT id:($recordsToAvoid)";
+			}
+
 			/** @var SearchObject_Solr $searchObject */
 			$searchObject = SearchObjectFactory::initSearchObject();
 			$searchObject->init('local', $searchTerm);
@@ -586,7 +647,8 @@ class ExploreMore {
 					'index' => 'Keyword'
 			));
 			$searchObject->addFilter('literary_form_full:Non Fiction');
-			$searchObject->addFilter('target_audience:Adult');
+			$searchObject->addFilter('target_audience:(Adult OR Unknown)');
+
 			$searchObject->setPage(1);
 			$searchObject->setLimit(5);
 			$results = $searchObject->processSearch(true, false);
@@ -594,26 +656,22 @@ class ExploreMore {
 			if ($results && isset($results['response'])) {
 				$similarTitles = array(
 						'numFound' => $results['response']['numFound'],
-						'allResultsLink' => $searchObject->renderSearchUrl(),
+						'link' => $searchObject->renderSearchUrl(),
 						'topHits' => array()
 				);
 				foreach ($results['response']['docs'] as $doc) {
 					/** @var GroupedWorkDriver $driver */
 					$driver = RecordDriverFactory::initRecordDriver($doc);
 					$similarTitle = array(
-							'title' => $driver->getTitle(),
+							'label' => $driver->getTitle(),
 							'link' => $driver->getLinkUrl(),
-							'cover' => $driver->getBookcoverUrl('small')
+							'image' => $driver->getBookcoverUrl('medium')
 					);
-					$similarTitles['topHits'][] = $similarTitle;
+					$similarTitles['values'][] = $similarTitle;
 				}
-			} else {
-				$similarTitles = array(
-						'numFound' => 0,
-						'topHits' => array()
-				);
 			}
-			$interface->assign('related_titles', $similarTitles);
 		}
+		return $similarTitles;
 	}
+
 }

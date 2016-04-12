@@ -223,14 +223,10 @@ abstract class Archive_Object extends Action{
 
 		$relatedSubjects = $this->recordDriver->getAllSubjectHeadings();
 
-		$exploreMore = new ExploreMore();
-		$exploreMore->getRelatedWorks($relatedSubjects);
 		$ebscoMatches = $exploreMore->loadEbscoOptions('archive', array(), implode($relatedSubjects, " or "));
 		if (count($ebscoMatches) > 0){
 			$interface->assign('relatedArticles', $ebscoMatches);
 		}
-		$searchTerm = implode(" OR ", $relatedSubjects);
-		$exploreMore->getRelatedArchiveContent('archive', array(), $searchTerm);
 	}
 
 	protected function loadLinkedData(){

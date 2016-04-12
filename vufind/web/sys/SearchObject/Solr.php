@@ -1278,6 +1278,8 @@ class SearchObject_Solr extends SearchObject_Base
 					$filterQuery[] = "$field:$value";
 				} elseif (preg_match('/\\A\\[.*?\\sTO\\s.*?]\\z/', $value)){
 					$filterQuery[] = "$field:$value";
+				} elseif (preg_match('/\\(.*?\\)/', $value)){
+					$filterQuery[] = "$field:$value";
 				} else {
 					if (!empty($value)){
 						if ($isAvailabilityToggle) {
