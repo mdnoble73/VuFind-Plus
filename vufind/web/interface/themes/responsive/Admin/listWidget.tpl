@@ -58,6 +58,7 @@
 				<p>Width and height can be adjusted as needed to fit within your site.</p>
 				<blockquote class="alert-warning"> Note: Please avoid using percentages for the iframe width &amp; height as these values are not respected on iPads and other iOS devices & browsers.</blockquote>
 				<blockquote class="alert-warning"> Note: Text Only List Widgets use the iframe's scrollbar.</blockquote>
+				<blockquote class="alert-warning"> Recommend: set iframe attribute frameborder="0" and put border any desired styling in your Style Sheet.</blockquote>
 			</div>
 		</div>
 
@@ -90,9 +91,9 @@
 
 &lt;!-- Horizontal Resizing : Based on Iframe Content --&gt;
 
-&lt;script type=&quot;text/javascript&quot; src=&quot;{$url}/js/iframeResizer/iframeResizer.min.js&quot;&gt;&lt;/script&gt;
+&lt;script type=&quot;text/javascript&quot; src=&quot;{/literal}{$url}{literal}/js/iframeResizer/iframeResizer.min.js&quot;&gt;&lt;/script&gt;
 &lt;script type=&quot;text/javascript&quot;&gt;
-	jQuery(&quot;#listWidget{$object->id}&quot;).iFrameResize();
+	jQuery(&quot;#listWidget{/literal}{$object->id}{literal}&quot;).iFrameResize();
 &lt;/script&gt;
 
 &lt;!-- Vertical Resizing : When Iframe is larger than viewport width,
