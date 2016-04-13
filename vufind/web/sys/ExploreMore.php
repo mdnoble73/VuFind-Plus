@@ -71,7 +71,7 @@ class ExploreMore {
 				$exactEntityMatches = $this->loadExactEntityMatches(array(), $curSubject);
 				if (count($exactEntityMatches) > 0){
 					$exploreMoreSectionsToShow['exactEntityMatches'] = array(
-							'title' => 'People, Places &amp; Events',
+							'title' => 'Related People, Places &amp; Events',
 							'format' => 'list',
 							'values' => $exactEntityMatches
 					);
@@ -86,15 +86,44 @@ class ExploreMore {
 		}
 
 		//Load related content from the archive
-		$relatedArchiveContent = $this->getRelatedArchiveObjects($quotedSearchTerm);
+
 		if ($activeSection == 'archive'){
 			/** @var IslandoraDriver $archiveDriver */
 			$archiveDriver = $recordDriver;
 			$relatedArchiveEntities = $this->getRelatedArchiveEntities($archiveDriver);
 			if (count($relatedArchiveEntities) > 0){
-				$relatedArchiveContent = array_merge($relatedArchiveContent, $relatedArchiveEntities);
+				if (isset($relatedArchiveEntities['people'])){
+					$exploreMoreSectionsToShow['relatedPeople'] = array(
+							'title' => 'Associated People',
+							'format' => 'list',
+							'values' => $relatedArchiveEntities['people']
+					);
+				}
+				if (isset($relatedArchiveEntities['places'])){
+					$exploreMoreSectionsToShow['relatedPlaces'] = array(
+							'title' => 'Associated Places',
+							'format' => 'list',
+							'values' => $relatedArchiveEntities['places']
+					);
+				}
+				if (isset($relatedArchiveEntities['organizations'])){
+					$exploreMoreSectionsToShow['relatedOrganizations'] = array(
+							'title' => 'Associated Organizations',
+							'format' => 'list',
+							'values' => $relatedArchiveEntities['organizations']
+					);
+				}
+				if (isset($relatedArchiveEntities['events'])){
+					$exploreMoreSectionsToShow['relatedEvents'] = array(
+							'title' => 'Associated Events',
+							'format' => 'list',
+							'values' => $relatedArchiveEntities['events']
+					);
+				}
 			}
 		}
+
+		$relatedArchiveContent = $this->getRelatedArchiveObjects($quotedSearchTerm);
 		if (count($relatedArchiveContent) > 0){
 			$exploreMoreSectionsToShow['relatedArchiveData'] = array(
 					'title' => 'From the Archive',
@@ -205,7 +234,7 @@ class ExploreMore {
 								$exploreMoreOptions[] = array(
 									'title' => $archiveObject->label,
 									'description' => $archiveObject->label,
-									'thumbnail' => $fedoraUtils->getObjectImageUrl($archiveObject, 'small'),
+									'image' => $fedoraUtils->getObjectImageUrl($archiveObject, 'small'),
 									'link' => $configArray['Site']['path'] . "/Archive/{$archiveObject->id}/Exhibit",
 									'usageCount' => $collectionInfo[1]
 								);
@@ -243,14 +272,14 @@ class ExploreMore {
 									$exploreMoreOptions[] = array(
 										'title' => "{$contentType}s ({$numMatches})",
 										'description' => "{$contentType}s related to {$searchObject2->getQuery()}",
-										'thumbnail' => $firstObjectDriver->getBookcoverUrl('medium'),
+										'image' => $firstObjectDriver->getBookcoverUrl('medium'),
 										'link' => $firstObjectDriver->getRecordUrl(),
 									);
 								} else {
 									$exploreMoreOptions[] = array(
 										'title' => "{$contentType}s ({$numMatches})",
 										'description' => "{$contentType}s related to {$searchObject2->getQuery()}",
-										'thumbnail' => $firstObjectDriver->getBookcoverUrl('medium'),
+										'image' => $firstObjectDriver->getBookcoverUrl('medium'),
 										'link' => $searchObject2->renderSearchUrl(),
 									);
 								}
@@ -271,7 +300,7 @@ class ExploreMore {
 							$exploreMoreOptions[] = array(
 								'title' => "People (" . $numPeople . ")",
 								'description' => "People related to {$searchObject->getQuery()}",
-								'thumbnail' => $fedoraUtils->getObjectImageUrl($archiveObject, 'small', 'personCModel'),
+								'image' => $fedoraUtils->getObjectImageUrl($archiveObject, 'small', 'personCModel'),
 								'link' => '/Archive/RelatedEntities?lookfor=' . urlencode($_REQUEST['lookfor']) . '&entityType=person',
 								'usageCount' => $numPeople
 							);
@@ -290,7 +319,7 @@ class ExploreMore {
 							$exploreMoreOptions[] = array(
 								'title' => "Places (" . $numPlaces . ")",
 								'description' => "Places related to {$searchObject->getQuery()}",
-								'thumbnail' => $fedoraUtils->getObjectImageUrl($archiveObject, 'small', 'placeCModel'),
+								'image' => $fedoraUtils->getObjectImageUrl($archiveObject, 'small', 'placeCModel'),
 								'link' => '/Archive/RelatedEntities?lookfor=' . urlencode($_REQUEST['lookfor']) . '&entityType=place',
 								'usageCount' => $numPlaces
 							);
@@ -309,7 +338,7 @@ class ExploreMore {
 							$exploreMoreOptions[] = array(
 								'title' => "Events (" . $numEvents . ")",
 								'description' => "Places related to {$searchObject->getQuery()}",
-								'thumbnail' => $fedoraUtils->getObjectImageUrl($archiveObject, 'small', 'eventCModel'),
+								'image' => $fedoraUtils->getObjectImageUrl($archiveObject, 'small', 'eventCModel'),
 								'link' => '/Archive/RelatedEntities?lookfor=' . urlencode($_REQUEST['lookfor']) . '&entityType=event',
 								'usageCount' => $numEvents
 							);
@@ -408,7 +437,7 @@ class ExploreMore {
 							$exploreMoreOptions[] = array(
 									'title' => "Catalog Results ($numCatalogResults)",
 									'description' => "Catalog Results ($numCatalogResults)",
-									'thumbnail' => $configArray['Site']['path'] . '/interface/themes/responsive/images/library_symbol.png',
+									'image' => $configArray['Site']['path'] . '/interface/themes/responsive/images/library_symbol.png',
 									'link' => $searchObjectSolr->renderSearchUrl(),
 									'usageCount' => 1
 							);
@@ -417,7 +446,7 @@ class ExploreMore {
 							$exploreMoreOptions[] = array(
 									'title' => $driver->getTitle(),
 									'description' => $driver->getTitle(),
-									'thumbnail' => $driver->getBookcoverUrl('small'),
+									'image' => $driver->getBookcoverUrl('small'),
 									'link' => $driver->getLinkUrl(),
 									'usageCount' => 1
 							);
@@ -461,7 +490,7 @@ class ExploreMore {
 										$exploreMoreOptions[] = array(
 												'title' => "$facetValueStr ({$numFacetMatches})",
 												'description' => "{$facetValueStr} in EBSCO related to {$searchTerm}",
-												'thumbnail' => $configArray['Site']['path'] . "/interface/themes/responsive/images/{$iconName}.png",
+												'image' => $configArray['Site']['path'] . "/interface/themes/responsive/images/{$iconName}.png",
 												'link' => '/EBSCO/Results?lookfor=' . urlencode($searchTerm) . '&filter[]=' . $facetInfo->Id . ':' . $facetValueStr,
 										);
 									}
@@ -473,7 +502,7 @@ class ExploreMore {
 						$exploreMoreOptions[] = array(
 								'title' => "All EBSCO Results ({$numMatches})",
 								'description' => "All Results in EBSCO related to {$searchTerm}",
-								'thumbnail' => $configArray['Site']['path'] . '/interface/themes/responsive/images/ebsco_eds.png',
+								'image' => $configArray['Site']['path'] . '/interface/themes/responsive/images/ebsco_eds.png',
 								'link' => '/EBSCO/Results?lookfor=' . urlencode($searchTerm)
 						);
 					}
@@ -584,14 +613,14 @@ class ExploreMore {
 							$relatedArchiveContent[] = array(
 									'title' => $firstObjectDriver->getTitle(),
 									'description' => $firstObjectDriver->getTitle(),
-									'thumbnail' => $firstObjectDriver->getBookcoverUrl('medium'),
+									'image' => $firstObjectDriver->getBookcoverUrl('medium'),
 									'link' => $firstObjectDriver->getRecordUrl(),
 							);
 						} else {
 							$relatedArchiveContent[] = array(
 									'title' => "{$contentType}s ({$numMatches})",
 									'description' => "{$contentType}s related to this",
-									'thumbnail' => $firstObjectDriver->getBookcoverUrl('medium'),
+									'image' => $firstObjectDriver->getBookcoverUrl('medium'),
 									'link' => $searchObject2->renderSearchUrl(),
 							);
 						}
@@ -603,11 +632,71 @@ class ExploreMore {
 	}
 
 	/**
+	 * Load entities that are related to this entity but that are not directly related.
+	 * I.e. we want to see
+	 *
 	 * @param IslandoraDriver $archiveDriver
 	 * @return array
 	 */
 	public function getRelatedArchiveEntities($archiveDriver){
+		$directlyRelatedPeople = $archiveDriver->getRelatedPeople();
+		$directlyRelatedPlaces = $archiveDriver->getRelatedPlaces();
+		$directlyRelatedOrganizations = $archiveDriver->getRelatedOrganizations();
+		$directlyRelatedEvents = $archiveDriver->getRelatedEvents();
 
+		$relatedPeople = array();
+		$relatedPlaces = array();
+		$relatedOrganizations = array();
+		$relatedEvents = array();
+		$relatedObjects = $archiveDriver->getDirectlyLinkedArchiveObjects();
+
+		foreach ($relatedObjects['objects'] as $object){
+			/** @var IslandoraDriver $objectDriver */
+			$objectDriver = $object['driver'];
+
+			$peopleRelatedToObject = $objectDriver->getRelatedPeople();
+			foreach($peopleRelatedToObject as $entity){
+				if ($entity['pid'] != $archiveDriver->getUniqueID() && !array_key_exists($entity['pid'], $directlyRelatedPeople)){
+					$relatedPeople = $this->addAssociatedEntity($entity, $relatedPeople, $objectDriver);
+				}
+			}
+
+			$placesRelatedToObject = $objectDriver->getRelatedPlaces();
+			foreach($placesRelatedToObject as $entity){
+				if ($entity['pid'] != $archiveDriver->getUniqueID() && !array_key_exists($entity['pid'], $directlyRelatedPlaces)){
+					$relatedPlaces = $this->addAssociatedEntity($entity, $relatedPlaces, $objectDriver);
+				}
+			}
+
+			$organizationsRelatedToObject = $objectDriver->getRelatedOrganizations();
+			foreach($organizationsRelatedToObject as $entity){
+				if ($entity['pid'] != $archiveDriver->getUniqueID() && !array_key_exists($entity['pid'], $directlyRelatedOrganizations)){
+					$relatedOrganizations = $this->addAssociatedEntity($entity, $relatedOrganizations, $objectDriver);
+				}
+			}
+
+			$eventsRelatedToObject = $objectDriver->getRelatedEvents();
+			foreach($eventsRelatedToObject as $entity){
+				if ($entity['pid'] != $archiveDriver->getUniqueID() && !array_key_exists($entity['pid'], $directlyRelatedEvents)){
+					$relatedEvents = $this->addAssociatedEntity($entity, $relatedEvents, $objectDriver);
+				}
+			}
+		}
+
+		$relatedEntities = array();
+		if (count($relatedPeople) > 0){
+			$relatedEntities['people'] = $relatedPeople;
+		}
+		if (count($relatedPlaces) > 0){
+			$relatedEntities['places'] = $relatedPlaces;
+		}
+		if (count($relatedOrganizations) > 0){
+			$relatedEntities['organizations'] = $relatedOrganizations;
+		}
+		if (count($relatedEvents) > 0){
+			$relatedEntities['events'] = $relatedEvents;
+		}
+		return $relatedEntities;
 	}
 
 	/**
@@ -672,6 +761,21 @@ class ExploreMore {
 			}
 		}
 		return $similarTitles;
+	}
+
+	private function addAssociatedEntity($entity, $relatedEntities, $objectDriver) {
+		if (!isset($relatedEntities[$entity['pid']])){
+			$relatedEntities[$entity['pid']] = $entity;
+			if (!isset($relatedEntities[$entity['pid']]['linkingReason'])) {
+				$relatedEntities[$entity['pid']]['linkingReason'] = "Both link to: ";
+			}
+		}
+
+		if (strpos($relatedEntities[$entity['pid']]['linkingReason'], "\r\n - " . $objectDriver->getTitle()) === false){
+			$relatedEntities[$entity['pid']]['linkingReason'] .= "\r\n - " . $objectDriver->getTitle();
+		}
+
+		return $relatedEntities;
 	}
 
 }

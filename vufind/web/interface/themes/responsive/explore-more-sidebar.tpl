@@ -38,7 +38,7 @@
 						<div class="row">
 							<div class="subsectionTitle col-xs-5">{$section.title}</div>
 							<div class="subsection col-xs-5">
-								<a href="{$section.link}"><img src="{$section.thumbnail}" alt="{$section.description}" class="img-responsive img-thumbnail"></a>
+								<a href="{$section.link}"><img src="{$section.image}" alt="{$section.description}" class="img-responsive img-thumbnail"></a>
 							</div>
 						</div>
 					</div>
@@ -71,7 +71,16 @@
 				{* Simple display with one thumbnail per item *}
 				{foreach from=$section.values item=value}
 					<div class="section">
-						<a href="{$value.link}"><img src="{$value.image}" alt="{$value.label}" class="img-responsive img-thumbnail"></a>
+						<a href="{$value.link}">
+							{if $value.image}
+								<img src="{$value.image}" alt="{$value.label}" class="img-responsive img-thumbnail">
+							{else}
+								{$value.label}
+							{/if}
+						</a>
+						{if $value.linkingReason}
+							&nbsp;<img src="/images/silk/help.png" title="{$value.linkingReason|escape}"/>
+						{/if}
 					</div>
 				{/foreach}
 			{/if}
@@ -85,7 +94,7 @@
 				<div class="row">
 					<a href="{$section.link}">
 						<div class="subsection col-xs-5">
-							<img src="{$section.thumbnail}" alt="{$section.description}" class="img-responsive img-thumbnail">
+							<img src="{$section.image}" alt="{$section.description}" class="img-responsive img-thumbnail">
 						</div>
 						<div class="subsectionTitle col-xs-5">{$section.title}</div>
 					</a>

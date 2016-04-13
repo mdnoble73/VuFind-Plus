@@ -567,140 +567,143 @@ abstract class IslandoraDriver extends RecordInterface {
 			$this->relatedEvents = array();
 
 			$marmotExtension = $this->getMarmotExtension();
-			$entities = $marmotExtension->marmotLocal->relatedEntity;
-			/** @var SimpleXMLElement $entity */
-			foreach ($entities as $entity){
-				if (strlen($entity->entityPid) == 0){
-					continue;
-				}
-				$entityType = '';
-				foreach ($entity->attributes() as $name => $value){
-					if ($name == 'type'){
-						$entityType = $value;
-						break;
+			if ($marmotExtension != null){
+				$entities = $marmotExtension->marmotLocal->relatedEntity;
+				/** @var SimpleXMLElement $entity */
+				foreach ($entities as $entity){
+					if (strlen($entity->entityPid) == 0){
+						continue;
 					}
-				}
-				if ($entityType == '' && strlen($entity->entityPid)){
-					//Get the type based on the pid
-					list($entityType, $id) = explode(':', $entity->entityPid);
-				}
-				$entityInfo = array(
-						'pid' => (string)$entity->entityPid,
-						'label' => (string)$entity->entityTitle,
-						'note' => (string)$entity->entityRelationshipNote,
-				);
-				if ($entityType == 'person'){
-					$entityInfo['link']= '/Archive/' . $entity->entityPid . '/Person';
-					$this->relatedPeople[(string)$entity->entityPid] = $entityInfo;
-				}elseif ($entityType == 'place'){
-					$entityInfo['link']= '/Archive/' . $entity->entityPid . '/Place';
-					$this->relatedPlaces[(string)$entity->entityPid] = $entityInfo;
-				}elseif ($entityType == 'event'){
-					$entityInfo['link']= '/Archive/' . $entity->entityPid . '/Event';
-					$this->relatedEvents[(string)$entity->entityPid] = $entityInfo;
-				}elseif ($entityType == 'organization'){
-					$entityInfo['link']= '/Archive/' . $entity->entityPid . '/Organization';
-					$this->relatedOrganizations[(string)$entity->entityPid] = $entityInfo;
-				}
-			}
-
-			if ($marmotExtension->marmotLocal->hasInterviewee){
-				$interviewee = $marmotExtension->marmotLocal->hasInterviewee;
-				$this->relatedPeople[] = array(
-						'pid' => $interviewee->entityPid,
-						'label' => $interviewee->entityTitle,
-						'link' =>  '/Archive/' . $interviewee->entityPid . '/Person',
-						'role' => 'Interviewee'
-				);
-			}
-
-			$entities = $marmotExtension->marmotLocal->relatedPersonOrg;
-			/** @var SimpleXMLElement $entity */
-			foreach ($entities as $entity){
-				if (strlen($entity->entityPid) == 0){
-					continue;
-				}
-				$entityType = '';
-				foreach ($entity->attributes() as $name => $value){
-					if ($name == 'type'){
-						$entityType = $value;
-						break;
+					$entityType = '';
+					foreach ($entity->attributes() as $name => $value){
+						if ($name == 'type'){
+							$entityType = $value;
+							break;
+						}
 					}
-				}
-				if ($entityType == '' && strlen($entity->entityPid)){
-					//Get the type based on the pid
-					list($entityType, $id) = explode(':', $entity->entityPid);
-				}
-				$entityInfo = array(
-						'pid' => (string)$entity->entityPid,
-						'label' => (string)$entity->entityTitle,
-						'role' => (string)$entity->role,
-						'note' => (string)$entity->entityRelationshipNote,
-
-				);
-				if ($entityType == 'person'){
-					$personObject = $fedoraUtils->getObject($entity->entityPid);
-					$entityInfo['thumbnail'] = $fedoraUtils->getObjectImageUrl($personObject, 'medium');
-					$entityInfo['link']= '/Archive/' . $entity->entityPid . '/Person';
-					$this->relatedPeople[(string)$entity->entityPid] = $entityInfo;
-				}elseif ($entityType == 'organization'){
-					$entityInfo['link']= '/Archive/' . $entity->entityPid . '/Organization';
-					$this->relatedOrganizations[(string)$entity->entityPid] = $entityInfo;
-				}
-			}
-
-			$entities = $marmotExtension->marmotLocal->relatedEvent;
-			/** @var SimpleXMLElement $entity */
-			foreach ($entities as $entity){
-				if (strlen($entity->entityPid) == 0){
-					continue;
-				}
-				$entityType = '';
-				foreach ($entity->attributes() as $name => $value){
-					if ($name == 'type'){
-						$entityType = $value;
-						break;
+					if ($entityType == '' && strlen($entity->entityPid)){
+						//Get the type based on the pid
+						list($entityType, $id) = explode(':', $entity->entityPid);
 					}
-				}
-				if ($entityType == '' && strlen($entity->entityPid)){
-					//Get the type based on the pid
-					list($entityType, $id) = explode(':', $entity->entityPid);
-				}
-				$entityInfo = array(
-						'pid' => (string)$entity->entityPid,
-						'label' => (string)$entity->entityTitle,
-						'role' => (string)$entity->type,
-						'note' => (string)$entity->entityRelationshipNote,
-
-				);
-				$entityInfo['link']= '/Archive/' . $entity->entityPid . '/Event';
-				$this->relatedEvents[(string)$entity->entityPid] = $entityInfo;
-			}
-
-			foreach ($marmotExtension->marmotLocal->relatedPlace as $entity){
-				if (count($entity->entityPlace) > 0 && strlen($entity->entityPlace->entityPid) > 0){
 					$entityInfo = array(
-							'pid' => (string)$entity->entityPlace->entityPid,
-							'label' => (string)$entity->entityPlace->entityTitle
+							'pid' => (string)$entity->entityPid,
+							'label' => (string)$entity->entityTitle,
+							'note' => (string)$entity->entityRelationshipNote,
+					);
+					if ($entityType == 'person'){
+						$entityInfo['link']= '/Archive/' . $entity->entityPid . '/Person';
+						$this->relatedPeople[(string)$entity->entityPid] = $entityInfo;
+					}elseif ($entityType == 'place'){
+						$entityInfo['link']= '/Archive/' . $entity->entityPid . '/Place';
+						$this->relatedPlaces[(string)$entity->entityPid] = $entityInfo;
+					}elseif ($entityType == 'event'){
+						$entityInfo['link']= '/Archive/' . $entity->entityPid . '/Event';
+						$this->relatedEvents[(string)$entity->entityPid] = $entityInfo;
+					}elseif ($entityType == 'organization'){
+						$entityInfo['link']= '/Archive/' . $entity->entityPid . '/Organization';
+						$this->relatedOrganizations[(string)$entity->entityPid] = $entityInfo;
+					}
+				}
+
+				if ($marmotExtension->marmotLocal->hasInterviewee){
+					$interviewee = $marmotExtension->marmotLocal->hasInterviewee;
+					$this->relatedPeople[(string)$interviewee->entityPid] = array(
+							'pid' => (string)$interviewee->entityPid,
+							'label' => (string)$interviewee->entityTitle,
+							'link' =>  '/Archive/' . $interviewee->entityPid . '/Person',
+							'role' => 'Interviewee'
+					);
+				}
+
+				$entities = $marmotExtension->marmotLocal->relatedPersonOrg;
+				/** @var SimpleXMLElement $entity */
+				foreach ($entities as $entity){
+					if (strlen($entity->entityPid) == 0){
+						continue;
+					}
+					$entityType = '';
+					foreach ($entity->attributes() as $name => $value){
+						if ($name == 'type'){
+							$entityType = $value;
+							break;
+						}
+					}
+					if ($entityType == '' && strlen($entity->entityPid)){
+						//Get the type based on the pid
+						list($entityType, $id) = explode(':', $entity->entityPid);
+					}
+					$entityInfo = array(
+							'pid' => (string)$entity->entityPid,
+							'label' => (string)$entity->entityTitle,
+							'role' => (string)$entity->role,
+							'note' => (string)$entity->entityRelationshipNote,
 
 					);
-					$entityInfo['link']= '/Archive/' . (string)$entity->entityPlace->entityPid . '/Place';
-					$this->relatedPlaces[] = $entityInfo;
-				}else {
-					//Check to see if we have anything for this place
-					if (strlen($entity->generalPlace->latitude) ||
-							strlen($entity->generalPlace->longitude) ||
-							strlen($entity->generalPlace->addressStreetNumber) ||
-							strlen($entity->generalPlace->addressStreet) ||
-							strlen($entity->generalPlace->addressCity) ||
-							strlen($entity->generalPlace->addressCounty) ||
-							strlen($entity->generalPlace->addressState) ||
-							strlen($entity->generalPlace->addressZipCode) ||
-							strlen($entity->generalPlace->addressCountry) ||
-							strlen($entity->generalPlace->addressOtherRegion)){
+					if ($entityType == 'person'){
+						$personObject = $fedoraUtils->getObject($entity->entityPid);
+						$entityInfo['image'] = $fedoraUtils->getObjectImageUrl($personObject, 'medium');
+						$entityInfo['link']= '/Archive/' . $entity->entityPid . '/Person';
+						$this->relatedPeople[(string)$entity->entityPid] = $entityInfo;
+					}elseif ($entityType == 'organization'){
+						$entityInfo['link']= '/Archive/' . $entity->entityPid . '/Organization';
+						$this->relatedOrganizations[(string)$entity->entityPid] = $entityInfo;
+					}
+				}
+
+				$entities = $marmotExtension->marmotLocal->relatedEvent;
+				/** @var SimpleXMLElement $entity */
+				foreach ($entities as $entity){
+					if (strlen($entity->entityPid) == 0){
+						continue;
+					}
+					$entityType = '';
+					foreach ($entity->attributes() as $name => $value){
+						if ($name == 'type'){
+							$entityType = $value;
+							break;
+						}
+					}
+					if ($entityType == '' && strlen($entity->entityPid)){
+						//Get the type based on the pid
+						list($entityType, $id) = explode(':', $entity->entityPid);
+					}
+					$entityInfo = array(
+							'pid' => (string)$entity->entityPid,
+							'label' => (string)$entity->entityTitle,
+							'role' => (string)$entity->type,
+							'note' => (string)$entity->entityRelationshipNote,
+
+					);
+					$entityInfo['link']= '/Archive/' . $entity->entityPid . '/Event';
+					$this->relatedEvents[(string)$entity->entityPid] = $entityInfo;
+				}
+
+				foreach ($marmotExtension->marmotLocal->relatedPlace as $entity){
+					if (count($entity->entityPlace) > 0 && strlen($entity->entityPlace->entityPid) > 0){
+						$entityInfo = array(
+								'pid' => (string)$entity->entityPlace->entityPid,
+								'label' => (string)$entity->entityPlace->entityTitle
+
+						);
+						$entityInfo['link']= '/Archive/' . (string)$entity->entityPlace->entityPid . '/Place';
+						$this->relatedPlaces[$entityInfo['pid']] = $entityInfo;
+					}else {
+						//Check to see if we have anything for this place
+						if (strlen($entity->generalPlace->latitude) ||
+								strlen($entity->generalPlace->longitude) ||
+								strlen($entity->generalPlace->addressStreetNumber) ||
+								strlen($entity->generalPlace->addressStreet) ||
+								strlen($entity->generalPlace->addressCity) ||
+								strlen($entity->generalPlace->addressCounty) ||
+								strlen($entity->generalPlace->addressState) ||
+								strlen($entity->generalPlace->addressZipCode) ||
+								strlen($entity->generalPlace->addressCountry) ||
+								strlen($entity->generalPlace->addressOtherRegion)){
+						}
 					}
 				}
 			}
+
 		}
 	}
 
@@ -737,33 +740,45 @@ abstract class IslandoraDriver extends RecordInterface {
 	}
 
 	protected function getMarmotExtension(){
-		return $this->getModsData()->extension->children('http://marmot.org/local_mods_extension');
+		$modsData = $this->getModsData();
+		if ($modsData->extension->count() > 0){
+			return $modsData->extension->children('http://marmot.org/local_mods_extension');
+		}else{
+			return null;
+		}
 	}
 
 	protected $links = null;
 	public function getLinks(){
 		if ($this->links == null){
 			$this->links = array();
+			/** @var SimpleXMLElement $marmotExtension */
 			$marmotExtension = $this->getMarmotExtension();
-			if (count($marmotExtension->marmotLocal->externalLink) > 0){
-				/** @var SimpleXMLElement $linkInfo */
-				foreach ($marmotExtension->marmotLocal->externalLink as $linkInfo){
-					$linkAttributes = $linkInfo->attributes();
-					if (strlen($linkInfo->linkText) == 0) {
-						if (strlen((string)$linkAttributes['type']) == 0) {
-							$linkText = (string)$linkInfo->link;
-						} else {
-							$linkText = (string)$linkAttributes['type'];
+			if ($marmotExtension != null && $marmotExtension->count() > 0){
+				/** @var SimpleXMLElement $marmotLocal */
+				$marmotLocal = $marmotExtension->marmotLocal;
+				if ($marmotLocal->count() > 0){
+					if ($marmotLocal->externalLink->count() > 0){
+						/** @var SimpleXMLElement $linkInfo */
+						foreach ($marmotExtension->marmotLocal->externalLink as $linkInfo){
+							$linkAttributes = $linkInfo->attributes();
+							if (strlen($linkInfo->linkText) == 0) {
+								if (strlen((string)$linkAttributes['type']) == 0) {
+									$linkText = (string)$linkInfo->link;
+								} else {
+									$linkText = (string)$linkAttributes['type'];
+								}
+							}else{
+								$linkText = (string)$linkInfo->linkText;
+							}
+							if  (strlen($linkInfo->link) > 0){
+								$this->links[] = array(
+										'type' => (string)$linkAttributes['type'],
+										'link' => (string)$linkInfo->link,
+										'text' => $linkText
+								);
+							}
 						}
-					}else{
-						$linkText = (string)$linkInfo->linkText;
-					}
-					if  (strlen($linkInfo->link) > 0){
-						$this->links[] = array(
-								'type' => (string)$linkAttributes['type'],
-								'link' => (string)$linkInfo->link,
-								'text' => $linkText
-						);
 					}
 				}
 			}
@@ -817,6 +832,10 @@ abstract class IslandoraDriver extends RecordInterface {
 
 	public function getDirectlyLinkedArchiveObjects(){
 		if ($this->directlyRelatedObjects == null){
+			$this->directlyRelatedObjects = array(
+					'numFound' => 0,
+					'objects' => array(),
+			);
 			// Include Search Engine Class
 			require_once ROOT_DIR . '/sys/Solr.php';
 
@@ -841,29 +860,26 @@ abstract class IslandoraDriver extends RecordInterface {
 
 			$response = $searchObject->processSearch(true, false);
 			if ($response && $response['response']['numFound'] > 0) {
-				$this->directlyRelatedObjects = array(
-						'numFound' => 0,
-						'objects' => array(),
-				);
 				foreach ($response['response']['docs'] as $doc) {
 					$entityDriver = RecordDriverFactory::initRecordDriver($doc);
 					$objectInfo = array(
+							'pid' => $entityDriver->getUniqueID(),
 							'label' => $entityDriver->getTitle(),
 							'description' => $entityDriver->getTitle(),
-							'thumbnail' => $entityDriver->getBookcoverUrl('medium'),
+							'image' => $entityDriver->getBookcoverUrl('medium'),
 							'link' => $entityDriver->getRecordUrl(),
 							'driver' => $entityDriver
 					);
 					if ($entityDriver instanceof EventDriver) {
-						$this->relatedEvents[] = $objectInfo;
+						$this->relatedEvents[$objectInfo['pid']] = $objectInfo;
 					}elseif ($entityDriver instanceof PersonDriver){
-						$this->relatedPeople[] = $objectInfo;
+						$this->relatedPeople[$objectInfo['pid']] = $objectInfo;
 					}elseif ($entityDriver instanceof OrganizationDriver){
-						$this->relatedOrganizations[] = $objectInfo;
+						$this->relatedOrganizations[$objectInfo['pid']] = $objectInfo;
 					}elseif ($entityDriver instanceof PlaceDriver){
-						$this->relatedPlaces[] = $objectInfo;
+						$this->relatedPlaces[$objectInfo['pid']] = $objectInfo;
 					}else{
-						$this->directlyRelatedObjects['objects'][] = $objectInfo;
+						$this->directlyRelatedObjects['objects'][$objectInfo['pid']] = $objectInfo;
 						$this->directlyRelatedObjects['numFound']++;
 					}
 				}

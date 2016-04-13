@@ -12,7 +12,6 @@ require_once ROOT_DIR . '/services/Archive/Entity.php';
 class Archive_Place extends Archive_Entity{
 	function launch(){
 		global $interface;
-		global $configArray;
 
 		$this->loadArchiveObjectData();
 		$this->loadExploreMoreContent();

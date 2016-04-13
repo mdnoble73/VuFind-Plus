@@ -49,7 +49,7 @@ class Archive_Exhibit extends Archive_Object{
 				$relatedImages[] = array(
 						'title' => $firstObjectDriver->getTitle(),
 						'description' => "Update me",
-						'thumbnail' => $firstObjectDriver->getBookcoverUrl('medium'),
+						'image' => $firstObjectDriver->getBookcoverUrl('medium'),
 						'link' => $firstObjectDriver->getRecordUrl(),
 				);
 			}

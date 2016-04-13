@@ -51,7 +51,7 @@
 							{foreach from=$directlyRelatedObjects.objects item=image}
 								<figure class="browse-thumbnail">
 									<a href="{$image.link}" {if $image.label}data-title="{$image.label|urlencode}"{/if}>
-										<img src="{$image.thumbnail}" {if $image.label}alt="{$image.label|urlencode}"{/if}>
+										<img src="{$image.image}" {if $image.label}alt="{$image.label|urlencode}"{/if}>
 									</a>
 									<figcaption class="explore-more-category-title">
 										<strong>{$image.label}</strong>
@@ -211,9 +211,9 @@
 						{foreach from=$relatedPeople item=entity}
 							<div class="relatedPerson row">
 								<div class="col-tn-2">
-									{if $entity.thumbnail}
+									{if $entity.image}
 										<a href="{$entity.link}" {if $entity.label}data-title="{$entity.label|urlencode}"{/if}>
-											<img src="{$entity.thumbnail}" {if $entity.label}alt="{$entity.label|urlencode}"{/if} class="img-responsive img-thumbnail">
+											<img src="{$entity.image}" {if $entity.label}alt="{$entity.label|urlencode}"{/if} class="img-responsive img-thumbnail">
 										</a>
 									{/if}
 								</div>
