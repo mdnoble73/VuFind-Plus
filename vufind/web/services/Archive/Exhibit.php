@@ -39,6 +39,7 @@ class Archive_Exhibit extends Archive_Object{
 		$searchObject->addHiddenFilter('!RELS_EXT_isViewableByRole_literal_ms', "administrator");
 		$searchObject->clearFilters();
 		$searchObject->addFilter("RELS_EXT_isMemberOfCollection_uri_ms:\"info:fedora/{$this->pid}\"");
+		$searchObject->setLimit(48);
 
 		$relatedImages = array();
 		$response = $searchObject->processSearch(true, false);
