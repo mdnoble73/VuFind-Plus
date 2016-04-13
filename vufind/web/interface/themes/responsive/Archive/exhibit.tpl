@@ -11,12 +11,13 @@
 	</h2>
 
 	<div class="lead">
-		{if $thumbnail}
+		{if $thumbnail && !$main_image}
 			<img src="{$thumbnail}" class="img-responsive thumbnail exhibit-thumbnail">
 		{/if}
 		{$description}
 	</div>
 
+	<div class="clear-both"></div>
 
 	<div class="related-exhibit-images {if count($relatedImages) >= 18}results-covers home-page-browse-thumbnails{else}browse-thumbnails-few{/if}">
 		{foreach from=$relatedImages item=image}
