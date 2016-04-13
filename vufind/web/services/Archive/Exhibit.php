@@ -23,6 +23,10 @@ class Archive_Exhibit extends Archive_Object{
 			$interface->assign('main_image', $configArray['Islandora']['objectUrl'] . "/{$this->pid}/datastream/BANNER/view");
 		}
 
+		if ($this->archiveObject->getDatastream('TN') != null) {
+			$interface->assign('thumbnail', $configArray['Islandora']['objectUrl'] . "/{$this->pid}/datastream/TN/view");
+		}
+
 		$interface->assign('showExploreMore', true);
 
 		// Display Page

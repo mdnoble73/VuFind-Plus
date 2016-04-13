@@ -11,7 +11,10 @@
 	</h2>
 
 	<div class="lead">
-	{$description}
+		{if $thumbnail}
+			<img src="{$thumbnail}" class="img-responsive thumbnail exhibit-thumbnail">
+		{/if}
+		{$description}
 	</div>
 
 

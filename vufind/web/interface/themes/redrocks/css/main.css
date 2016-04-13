@@ -10201,6 +10201,10 @@ a.browse-thumbnail.active {
 #explore-more-body .relatedTitlesContainer {
   height: 100%;
 }
+.exhibit-thumbnail {
+  margin: 8px;
+  float: left;
+}
 .exploreMoreBar {
   border: solid 3px #770B0B;
   margin: 10px 5px 15px;
