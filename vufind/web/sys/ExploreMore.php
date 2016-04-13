@@ -73,7 +73,7 @@ class ExploreMore {
 					$exploreMoreSectionsToShow['exactEntityMatches'] = array(
 							'title' => 'Related People, Places &amp; Events',
 							'format' => 'list',
-							'values' => $exactEntityMatches
+							'values' => usort($exactEntityMatches, 'ExploreMore::sortRelatedEntities')
 					);
 				}
 			}
@@ -93,30 +93,34 @@ class ExploreMore {
 			$relatedArchiveEntities = $this->getRelatedArchiveEntities($archiveDriver);
 			if (count($relatedArchiveEntities) > 0){
 				if (isset($relatedArchiveEntities['people'])){
+					usort($relatedArchiveEntities['people'], 'ExploreMore::sortRelatedEntities');
 					$exploreMoreSectionsToShow['relatedPeople'] = array(
 							'title' => 'Associated People',
-							'format' => 'list',
+							'format' => 'textOnlyList',
 							'values' => $relatedArchiveEntities['people']
 					);
 				}
 				if (isset($relatedArchiveEntities['places'])){
+					usort($relatedArchiveEntities['places'], 'ExploreMore::sortRelatedEntities');
 					$exploreMoreSectionsToShow['relatedPlaces'] = array(
 							'title' => 'Associated Places',
-							'format' => 'list',
+							'format' => 'textOnlyList',
 							'values' => $relatedArchiveEntities['places']
 					);
 				}
 				if (isset($relatedArchiveEntities['organizations'])){
+					usort($relatedArchiveEntities['organizations'], 'ExploreMore::sortRelatedEntities');
 					$exploreMoreSectionsToShow['relatedOrganizations'] = array(
 							'title' => 'Associated Organizations',
-							'format' => 'list',
+							'format' => 'textOnlyList',
 							'values' => $relatedArchiveEntities['organizations']
 					);
 				}
 				if (isset($relatedArchiveEntities['events'])){
+					usort($relatedArchiveEntities['events'], 'ExploreMore::sortRelatedEntities');
 					$exploreMoreSectionsToShow['relatedEvents'] = array(
 							'title' => 'Associated Events',
-							'format' => 'list',
+							'format' => 'textOnlyList',
 							'values' => $relatedArchiveEntities['events']
 					);
 				}
@@ -778,4 +782,8 @@ class ExploreMore {
 		return $relatedEntities;
 	}
 
+	static function sortRelatedEntities($a, $b){
+		return strcasecmp($a["label"], $b["label"]);
+	}
 }
+

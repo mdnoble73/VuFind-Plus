@@ -581,38 +581,61 @@ abstract class IslandoraDriver extends RecordInterface {
 							break;
 						}
 					}
-					if ($entityType == '' && strlen($entity->entityPid)){
-						//Get the type based on the pid
-						list($entityType, $id) = explode(':', $entity->entityPid);
-					}
-					$entityInfo = array(
-							'pid' => (string)$entity->entityPid,
-							'label' => (string)$entity->entityTitle,
-							'note' => (string)$entity->entityRelationshipNote,
-					);
-					if ($entityType == 'person'){
-						$entityInfo['link']= '/Archive/' . $entity->entityPid . '/Person';
-						$this->relatedPeople[(string)$entity->entityPid] = $entityInfo;
-					}elseif ($entityType == 'place'){
-						$entityInfo['link']= '/Archive/' . $entity->entityPid . '/Place';
-						$this->relatedPlaces[(string)$entity->entityPid] = $entityInfo;
-					}elseif ($entityType == 'event'){
-						$entityInfo['link']= '/Archive/' . $entity->entityPid . '/Event';
-						$this->relatedEvents[(string)$entity->entityPid] = $entityInfo;
-					}elseif ($entityType == 'organization'){
-						$entityInfo['link']= '/Archive/' . $entity->entityPid . '/Organization';
-						$this->relatedOrganizations[(string)$entity->entityPid] = $entityInfo;
-					}
+					$this->addRelatedEntityToArrays((string)$entity->entityPid, (string)$entity->entityTitle, $entityType, (string)$entity->relationshipNote, '');
+
 				}
 
 				if ($marmotExtension->marmotLocal->hasInterviewee){
 					$interviewee = $marmotExtension->marmotLocal->hasInterviewee;
-					$this->relatedPeople[(string)$interviewee->entityPid] = array(
-							'pid' => (string)$interviewee->entityPid,
-							'label' => (string)$interviewee->entityTitle,
-							'link' =>  '/Archive/' . $interviewee->entityPid . '/Person',
-							'role' => 'Interviewee'
-					);
+					$this->addRelatedEntityToArrays((string)$interviewee->entityPid, (string)$interviewee->entityTitle, 'person', '', 'Interviewee');
+				}
+
+				if ($marmotExtension->marmotLocal->hasPublisher){
+					$publisher = $marmotExtension->marmotLocal->hasPublisher;
+					$this->addRelatedEntityToArrays((string)$publisher->entityPid, (string)$publisher->entityTitle, '', '', 'Publisher');
+				}
+				if ($marmotExtension->marmotLocal->hasTranscription->count() && $marmotExtension->marmotLocal->hasTranscription->transcriber){
+					$entity = $marmotExtension->marmotLocal->hasTranscription->transcriber;
+					$this->addRelatedEntityToArrays((string)$entity->entityPid, (string)$entity->entityTitle, '', '', 'Transcriber');
+				}
+
+				if ($marmotExtension->marmotLocal->hasCreator){
+					$creators = $marmotExtension->marmotLocal->hasCreator;
+					foreach ($creators as $entity) {
+						if (strlen($entity->entityPid) == 0) {
+							continue;
+						}
+						$entityType = '';
+						$entityRole = '';
+						foreach ($entity->attributes() as $name => $value){
+							if ($name == 'type'){
+								$entityType = $value;
+							}elseif ($name == 'role'){
+								$entityRole = ucfirst($value);
+							}
+						}
+						$this->addRelatedEntityToArrays((string)$entity->entityPid, (string)$entity->entityTitle, $entityType, (string)$entity->relationshipNote, $entityRole);
+					}
+				}
+
+				if ($marmotExtension->marmotLocal->describedEntity){
+					$entities = $marmotExtension->marmotLocal->describedEntity;
+					foreach ($entities as $entity) {
+						if (strlen($entity->entityPid) == 0) {
+							continue;
+						}
+						$this->addRelatedEntityToArrays((string)$entity->entityPid, (string)$entity->entityTitle, '', (string)$entity->relationshipNote, 'Described');
+					}
+				}
+
+				if ($marmotExtension->marmotLocal->picturedEntity){
+					$entities = $marmotExtension->marmotLocal->picturedEntity;
+					foreach ($entities as $entity) {
+						if (strlen($entity->entityPid) == 0) {
+							continue;
+						}
+						$this->addRelatedEntityToArrays((string)$entity->entityPid, (string)$entity->entityTitle, '', (string)$entity->relationshipNote, 'Described');
+					}
 				}
 
 				$entities = $marmotExtension->marmotLocal->relatedPersonOrg;
@@ -887,5 +910,36 @@ abstract class IslandoraDriver extends RecordInterface {
 		}
 
 		return $this->directlyRelatedObjects;
+	}
+
+	private function addRelatedEntityToArrays($pid, $entityName, $entityType, $note, $role) {
+		if (strlen($pid) == 0){
+			return;
+		}
+		$fedoraUtils = FedoraUtils::getInstance();
+		if ($entityType == '' && strlen($pid)){
+			//Get the type based on the pid
+			list($entityType, $id) = explode(':', $pid);
+		}
+		$entityInfo = array(
+				'pid' => $pid,
+				'label' => $entityName,
+				'note' => $note,
+				'role' => $role,
+				'image' => $fedoraUtils->getObjectImageUrl($fedoraUtils->getObject($pid), 'medium', $entityType),
+		);
+		if ($entityType == 'person'){
+			$entityInfo['link']= '/Archive/' . $pid . '/Person';
+			$this->relatedPeople[$pid.$role] = $entityInfo;
+		}elseif ($entityType == 'place'){
+			$entityInfo['link']= '/Archive/' . $pid . '/Place';
+			$this->relatedPlaces[$pid.$role] = $entityInfo;
+		}elseif ($entityType == 'event'){
+			$entityInfo['link']= '/Archive/' . $pid . '/Event';
+			$this->relatedEvents[$pid.$role] = $entityInfo;
+		}elseif ($entityType == 'organization'){
+			$entityInfo['link']= '/Archive/' . $pid . '/Organization';
+			$this->relatedOrganizations[$pid.$role] = $entityInfo;
+		}
 	}
 }

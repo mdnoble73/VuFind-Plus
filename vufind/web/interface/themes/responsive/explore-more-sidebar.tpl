@@ -66,7 +66,21 @@
 				</div>
 
 				<a href="{$section.link}">All Results ({$section.numFound})</a>
-			{else}
+			{elseif $section.format == 'textOnlyList'}
+				<ul>
+				{foreach from=$section.values item=value}
+					<li>
+						<a href="{$value.link}">
+							{$value.label}
+						</a>
+						{if $value.linkingReason}
+							&nbsp;<img src="/images/silk/help.png" title="{$value.linkingReason|escape}"/>
+						{/if}
+					</li>
+				{/foreach}
+				</ul>
+
+			{else} {* list *}
 
 				{* Simple display with one thumbnail per item *}
 				{foreach from=$section.values item=value}

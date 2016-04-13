@@ -35,10 +35,10 @@ abstract class Archive_Object extends Action{
 		$relatedPlaces = $this->recordDriver->getRelatedPlaces();
 
 		//Sort all the related information
-		usort($relatedEvents, 'sortRelatedEntities');
-		usort($relatedPeople, 'sortRelatedEntities');
-		usort($relatedOrganizations, 'sortRelatedEntities');
-		usort($relatedPlaces, 'sortRelatedEntities');
+		usort($relatedEvents, 'ExploreMore::sortRelatedEntities');
+		usort($relatedPeople, 'ExploreMore::sortRelatedEntities');
+		usort($relatedOrganizations, 'ExploreMore::sortRelatedEntities');
+		usort($relatedPlaces, 'ExploreMore::sortRelatedEntities');
 
 		//Do final assignment
 		$interface->assign('relatedEvents', $relatedEvents);
@@ -288,9 +288,4 @@ abstract class Archive_Object extends Action{
 		}
 	}
 
-
-}
-
-function sortRelatedEntities($a, $b){
-	return strcasecmp($a["label"], $b["label"]);
 }
