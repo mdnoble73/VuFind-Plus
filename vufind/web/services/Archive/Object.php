@@ -17,6 +17,8 @@ abstract class Archive_Object extends Action{
 	protected $recordDriver;
 	//protected $dcData;
 	protected $modsData;
+	//Data with a namespace of mods
+	protected $modsModsData;
 	protected $relsExtData;
 
 	protected $formattedSubjects;
@@ -65,15 +67,16 @@ abstract class Archive_Object extends Action{
 		//Load the MODS data stream
 		$this->modsData = $this->recordDriver->getModsData();
 		$interface->assign('mods', $this->modsData);
+		$this->modsModsData = $this->modsData->children('http://www.loc.gov/mods/v3');
 
 		$this->formattedSubjects = $this->recordDriver->getAllSubjectsWithLinks();
 		$interface->assign('subjects', $this->formattedSubjects);
 
 		$rightsStatements = array();
-		foreach ($this->modsData->accessCondition as $condition){
-			$marmotData = $condition->children('http://marmot.org/local_mods_extension');
-			if (strlen($marmotData->rightsStatement)){
-				$rightsStatements[] = (string)$marmotData->rightsStatement;
+		if ($this->modsData->accessCondition->count()){
+			$accessConditions = $this->modsData->accessCondition->children('http://marmot.org/local_mods_extension');
+			if (strlen($accessConditions->rightsStatement)){
+				$rightsStatements[] = (string)$accessConditions->rightsStatement;
 			}
 		}
 		$interface->assign('rightsStatements', $rightsStatements);
@@ -184,6 +187,9 @@ abstract class Archive_Object extends Action{
 			if (strlen($marmotExtension->marmotLocal->personNotes) > 0){
 				$notes[] = (string)$marmotExtension->marmotLocal->personNotes;
 			}
+			if (strlen($marmotExtension->marmotLocal->citationNotes) > 0){
+				$notes[] = (string)$marmotExtension->marmotLocal->citationNotes;
+			}
 			$interface->assign('notes', $notes);
 		}
 
@@ -204,8 +210,13 @@ abstract class Archive_Object extends Action{
 		$title = $this->archiveObject->label;
 		$interface->assign('title', $title);
 		$interface->setPageTitle($title);
-		$description = (string)$this->modsData->abstract;
-		$interface->assign('description', $description);
+		if ($this->modsData->abstract){
+			$description = (string)$this->modsData->abstract;
+			$interface->assign('description', $description);
+		}else{
+			$description = (string)$this->modsModsData->abstract;
+			$interface->assign('description', $description);
+		}
 
 		$interface->assign('large_image', $fedoraUtils->getObjectImageUrl($this->archiveObject, 'large', $model));
 		$interface->assign('medium_image', $fedoraUtils->getObjectImageUrl($this->archiveObject, 'medium', $model));
