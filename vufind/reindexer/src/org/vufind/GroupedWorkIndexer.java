@@ -882,7 +882,7 @@ public class GroupedWorkIndexer {
 			String type = groupedWorkPrimaryIdentifiers.getString("type");
 			String identifier = groupedWorkPrimaryIdentifiers.getString("identifier");
 			//This does the bulk of the work building fields for the solr document
-			updateGroupedWorkForPrimaryIdentifier(groupedWork, type, identifier);
+			groupedWork = updateGroupedWorkForPrimaryIdentifier(groupedWork, type, identifier);
 			numPrimaryIdentifiers++;
 		}
 		groupedWorkPrimaryIdentifiers.close();
@@ -973,14 +973,14 @@ public class GroupedWorkIndexer {
 		}
 	}
 
-	private void updateGroupedWorkForPrimaryIdentifier(GroupedWorkSolr groupedWork, String type, String identifier)  {
+	private GroupedWorkSolr updateGroupedWorkForPrimaryIdentifier(GroupedWorkSolr groupedWork, String type, String identifier)  {
 		//Make a copy of the grouped work so we can revert if we don't add any records
 		GroupedWorkSolr originalWork;
 		try {
 			originalWork = groupedWork.clone();
 		}catch (CloneNotSupportedException cne){
 			logger.error("Could not clone grouped work", cne);
-			return;
+			return groupedWork;
 		}
 		//Figure out how many records we had originally
 		int numRecords = originalWork.getNumRecords();
@@ -1005,6 +1005,7 @@ public class GroupedWorkIndexer {
 			//No change in the number of records, revert to the previous
 			groupedWork = originalWork;
 		}
+		return groupedWork;
 	}
 
 	/*private void updateGroupedWorkForSecondaryIdentifier(GroupedWorkSolr groupedWork, String type, String identifier) {
