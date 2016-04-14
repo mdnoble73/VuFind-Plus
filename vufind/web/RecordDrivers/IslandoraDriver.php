@@ -708,6 +708,9 @@ abstract class IslandoraDriver extends RecordInterface {
 								'label' => (string)$entity->entityPlace->entityTitle
 
 						);
+						if ($entity->significance){
+							$entityInfo['role'] = ucfirst((string)$entity->significance);
+						}
 						$entityInfo['link']= '/Archive/' . (string)$entity->entityPlace->entityPid . '/Place';
 						$this->relatedPlaces[$entityInfo['pid']] = $entityInfo;
 					}else {
@@ -722,6 +725,8 @@ abstract class IslandoraDriver extends RecordInterface {
 								strlen($entity->generalPlace->addressZipCode) ||
 								strlen($entity->generalPlace->addressCountry) ||
 								strlen($entity->generalPlace->addressOtherRegion)){
+
+							//TODO: We should probably show something here, but not sure what or how
 						}
 					}
 				}
