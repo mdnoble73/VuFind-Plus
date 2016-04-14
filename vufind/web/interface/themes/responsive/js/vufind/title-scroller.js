@@ -88,7 +88,7 @@ TitleScroller.prototype.updateScroller = function() {
 				scrollerBodyContents += this.scrollerTitles[i]['formattedTitle'];
 			}
 			scrollerBody.html(scrollerBodyContents)
-					.width(this.scrollerTitles.length * 131)
+					.width(this.scrollerTitles.length * 300) // use a large enough interval to accomodate medium covers sizes
 					.waitForImages(function() {
 						TitleScroller.prototype.finishLoadingScroller.call(curScroller);
 					});
@@ -99,6 +99,7 @@ TitleScroller.prototype.updateScroller = function() {
 			scrollerBody.html(scrollerBodyContents)
 					.height(this.scrollerTitles.length * 131)
 					.waitForImages(function() {
+						console.log(scrollerBody);
 						TitleScroller.prototype.finishLoadingScroller.call(curScroller);
 					});
 		}else if (this.style == 'text-list'){
