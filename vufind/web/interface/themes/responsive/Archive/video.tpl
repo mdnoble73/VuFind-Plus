@@ -4,7 +4,7 @@
 			{$title|escape}
 		</h2>
 
-		<video width="100%" controls poster="{$medium_image}">
+		<video width="100%" controls poster="{$medium_image}" id="player">
 			<source src="{$videoLink}" type="video/mp4">
 		</video>
 

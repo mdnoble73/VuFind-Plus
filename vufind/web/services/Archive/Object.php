@@ -91,10 +91,25 @@ abstract class Archive_Object extends Action{
 				if ($marmotLocal->hasTranscription){
 					$transcriptionText = (string)$marmotExtension->marmotLocal->hasTranscription->transcriptionText;
 					$transcriptionText = str_replace("\r\n", '<br/>', $transcriptionText);
+
+					//Add links to timestamps
+					$transcriptionTextWithLinks = $transcriptionText;
+					if (preg_match_all('/\\(\\d{1,2}:\d{1,2}\\)/', $transcriptionText, $allMatches)){
+						foreach ($allMatches[0] as $match){
+							$offset = str_replace('(', '', $match);
+							$offset = str_replace(')', '', $offset);
+							list($minutes, $seconds) = explode(':', $offset);
+							$offset = $minutes * 60 + $seconds;
+							$replacement = '<a onclick="document.getElementById(\'player\').currentTime=\'' . $offset . '\';" style="cursor:pointer">' . $match . '</a>';
+							$transcriptionTextWithLinks = str_replace($match, $replacement, $transcriptionTextWithLinks);
+						}
+
+					}
+
 					$interface->assign('transcription',
 							array(
 									'language' => (string)$marmotExtension->marmotLocal->hasTranscription->transcriptionLanguage,
-									'text' => $transcriptionText
+									'text' => $transcriptionTextWithLinks,
 							)
 					);
 				}
