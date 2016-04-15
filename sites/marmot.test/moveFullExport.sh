@@ -30,7 +30,7 @@ else
 		$LOG "~~ cp $LOCAL/$SOURCE/*.mrc /data/vufind-plus/$DESTINATION/marc/"
 		cp $LOCAL/$SOURCE/*.mrc /data/vufind-plus/$DESTINATION/marc/
 
-		if [ $? ]; then
+		if [ $? -ne 0 ]; then
 			$LOG "~~ Moving marc files failed."
 			echo "Moving marc files failed."
 		fi
