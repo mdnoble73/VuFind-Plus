@@ -152,6 +152,19 @@ class ExploreMore {
 		if ($activeSection == 'archive'){
 			/** @var IslandoraDriver $archiveDriver */
 			$archiveDriver = $recordDriver;
+
+			//Load related subjects
+			$relatedSubjects = $this->getRelatedArchiveSubjects($archiveDriver);
+			if (count($relatedSubjects) > 0){
+				usort($relatedSubjects, 'ExploreMore::sortRelatedEntities');
+				$exploreMoreSectionsToShow['relatedSubjects'] = array(
+						'title' => 'Related Subjects',
+						'format' => 'textOnlyList',
+						'values' => $relatedSubjects
+				);
+			}
+
+			//Load DPLA Content
 			if ($archiveDriver->isEntity()){
 				require_once ROOT_DIR . '/sys/SearchObject/DPLA.php';
 				$dpla = new DPLA();
@@ -582,6 +595,27 @@ class ExploreMore {
 		$exploreMore->loadEbscoOptions('archive', array(), implode($relatedSubjects, " or "));
 		$searchTerm = implode(" OR ", $relatedSubjects);
 		$exploreMore->getRelatedArchiveObjects($searchTerm);
+	}
+
+	/**
+	 * @param IslandoraDriver $archiveDriver
+	 *
+	 * @return array
+	 */
+	public function getRelatedArchiveSubjects($archiveDriver){
+		$relatedObjects = $archiveDriver->getDirectlyLinkedArchiveObjects();
+		$relatedSubjects = array();
+
+		foreach ($relatedObjects['objects'] as $object){
+			/** @var IslandoraDriver $relatedObjectDriver */
+			$relatedObjectDriver = $object['driver'];
+			foreach ($relatedObjectDriver->getAllSubjectsWithLinks() as $subject){
+				if (!array_key_exists($subject['label'], $relatedSubjects)){
+					$relatedSubjects[$subject['label']] = $subject;
+				}
+			}
+		}
+		return $relatedSubjects;
 	}
 
 	public function getRelatedArchiveObjects($searchTerm) {
