@@ -64,8 +64,8 @@
 						</ul>
 					</div>
 				</div>
+				<a href="{$section.link}" {if $section.openInNewWindow}target="_blank"{/if}>All Results {if $section.numFound}({$section.numFound}){/if}</a>
 
-				<a href="{$section.link}">All Results ({$section.numFound})</a>
 			{elseif $section.format == 'textOnlyList'}
 				<ul>
 				{foreach from=$section.values item=value}

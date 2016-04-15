@@ -149,6 +149,26 @@ class ExploreMore {
 			}
 		}
 
+		if ($activeSection == 'archive'){
+			/** @var IslandoraDriver $archiveDriver */
+			$archiveDriver = $recordDriver;
+			if ($archiveDriver->isEntity()){
+				require_once ROOT_DIR . '/sys/SearchObject/DPLA.php';
+				$dpla = new DPLA();
+				//Check to see if we get any results from DPLA for this entity
+				$dplaResults = $dpla->getDPLAResults('"' . $archiveDriver->getTitle() . '"');
+				if (count($dplaResults)){
+					$exploreMoreSectionsToShow['relatedCatalog'] = array(
+							'title' => 'Digital Public Library of America',
+							'format' => 'scrollerWithLink',
+							'values' => $dplaResults,
+							'link' => 'http://dp.la/search?q=' . urlencode('"' . $archiveDriver->getTitle() . '"'),
+							'openInNewWindow' => true,
+					);
+				}
+			}
+		}
+
 		$interface->assign('exploreMoreSections', $exploreMoreSectionsToShow);
 	}
 
