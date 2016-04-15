@@ -493,6 +493,8 @@ abstract class IslandoraDriver extends RecordInterface {
 		if ($this->modsData == null){
 			$fedoraUtils = FedoraUtils::getInstance();
 			$this->modsData = $fedoraUtils->getModsData($this->archiveObject);
+
+			$this->modsData = $this->modsData->children('http://www.loc.gov/mods/v3');
 		}
 		return $this->modsData;
 	}
