@@ -58,6 +58,12 @@ cd /usr/local/vufind-plus/vufind/cron;./HOOPLA.sh ${PIKASERVER} >> ${OUTPUT_FILE
 /usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh mcvsd/mackinvia/mvrr mackinvia/mvrr >> ${OUTPUT_FILE}
 /usr/local/vufind/sites/marmot.test/moveFullExport.sh mcvsd/mackinvia/mvtm mackinvia/mvtm >> ${OUTPUT_FILE}
 
+# Learning Express
+# TODO: set up actual ftp update paths
+#/usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh {ftpdir} learning_express/steamboatsprings >> ${OUTPUT_FILE}
+#/usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh {ftpdir} learning_express/garfield >> ${OUTPUT_FILE}
+#/usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh {ftpdir} learning_express/vail >> ${OUTPUT_FILE}
+
 #Do a full extract from OverDrive just once a week to catch anything that doesn't
 #get caught in the regular extract
 DAYOFWEEK=$(date +"%u")
