@@ -206,16 +206,28 @@ class OverDrive_AJAX extends Action {
 			return json_encode(
 				array(
 					'promptNeeded' => true,
-					'promptTitle' => $promptTitle,
-					'prompts' => $interface->fetch('OverDrive/ajax-overdrive-checkout-prompt.tpl'),
-					'buttons' => '<input class="btn btn-primary" type="submit" name="submit" value="Checkout Title" onclick="return VuFind.OverDrive.processOverDriveCheckoutPrompts();"/>'
+					'promptTitle'  => $promptTitle,
+					'prompts'      => $interface->fetch('OverDrive/ajax-overdrive-checkout-prompt.tpl'),
+					'buttons'      => '<input class="btn btn-primary" type="submit" name="submit" value="Checkout Title" onclick="return VuFind.OverDrive.processOverDriveCheckoutPrompts();">'
 				)
 			);
-		}else{
+		} elseif (count($overDriveUsers) == 1){
 			return json_encode(
 				array(
 					'patronId' => reset($overDriveUsers)->id,
 					'promptNeeded' => false,
+				)
+			);
+		} else {
+			// No Overdrive Account Found, give the user an error message
+			global $logger;
+			$logger->log('No valid Overdrive account was found to check out an Overdrive title.', PEAR_LOG_ERR);
+			return json_encode(
+				array(
+					'promptNeeded' => true,
+					'promptTitle'  => 'Error',
+					'prompts'      => 'No valid Overdrive account was found to check this title out with.',
+					'buttons'      => ''
 				)
 			);
 		}
