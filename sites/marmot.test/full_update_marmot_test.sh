@@ -42,18 +42,34 @@ cd /usr/local/vufind-plus/sites/${PIKASERVER}; ./${PIKASERVER}.sh restart
 #Extract from Hoopla
 cd /usr/local/vufind-plus/vufind/cron;./HOOPLA.sh ${PIKASERVER} >> ${OUTPUT_FILE}
 
-# CCU Ebrary Marc Updates
-/root/cron/copyEbraryCCUExport.sh >> ${OUTPUT_FILE}
+# Ebrary Marc Updates
+#/root/cron/copyEbraryCCUExport.sh >> ${OUTPUT_FILE}
+#TODO: refactor CCU's ebrary destination
+/usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh ccu_ebrary ebrary_ccu >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh adams/ebrary ebrary/adams >> ${OUTPUT_FILE}
 
 # CCU Ebsco Marc Updates
-/root/cron/copyEbscoCCUExport.sh >> ${OUTPUT_FILE}
+#/root/cron/copyEbscoCCUExport.sh >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh ebsco_ccu ebsco/ccu >> ${OUTPUT_FILE}
+
+# SD51 Mackin VIA Marc Updates
+/usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh mcvsd/mackinvia/mvcp mackinvia/mvcp >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh mcvsd/mackinvia/mvem mackinvia/mvem >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh mcvsd/mackinvia/mvrr mackinvia/mvrr >> ${OUTPUT_FILE}
+/usr/local/vufind/sites/marmot.test/moveFullExport.sh mcvsd/mackinvia/mvtm mackinvia/mvtm >> ${OUTPUT_FILE}
+
+# Learning Express
+# TODO: set up actual ftp update paths
+#/usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh {ftpdir} learning_express/steamboatsprings >> ${OUTPUT_FILE}
+#/usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh {ftpdir} learning_express/garfield >> ${OUTPUT_FILE}
+#/usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh {ftpdir} learning_express/vail >> ${OUTPUT_FILE}
 
 #Do a full extract from OverDrive just once a week to catch anything that doesn't
 #get caught in the regular extract
 DAYOFWEEK=$(date +"%u")
 if [ "${DAYOFWEEK}" -eq 5 ];
 then
-	cd /usr/local/vufind-plus/vufind/overdrive_api_extract/
+	cd /usr/local/vufind-plus/vufind-plus/overdrive_api_extract/
 	nice -n -10 java -jar overdrive_extract.jar ${PIKASERVER} fullReload >> ${OUTPUT_FILE}
 fi
 

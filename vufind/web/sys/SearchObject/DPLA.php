@@ -25,7 +25,9 @@ class DPLA {
 				$curResult['id'] = @$this->getDataForNode($curDoc->id);
 				$curResult['link'] = @$this->getDataForNode($curDoc->isShownAt);
 				$curResult['object'] = @$this->getDataForNode($curDoc->object);
+				$curResult['image'] = @$this->getDataForNode($curDoc->object);
 				$curResult['title'] = @$this->getDataForNode($curDoc->sourceResource->title);
+				$curResult['label'] = @$this->getDataForNode($curDoc->sourceResource->title);
 				$curResult['description'] = @$this->getDataForNode($curDoc->sourceResource->description);
 				$results[] = $curResult;
 			}

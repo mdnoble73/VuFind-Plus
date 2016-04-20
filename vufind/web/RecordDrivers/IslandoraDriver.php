@@ -475,10 +475,10 @@ abstract class IslandoraDriver extends RecordInterface {
 				foreach ($subjects->topic as $subjectPart) {
 					$subjectLink = $configArray['Site']['path'] . '/Archive/Results?lookfor=';
 					if (strlen($subjectPart) > 0) {
-						$subjectLink .= '&filter[]=mods_subject_topic_ms:"' . $subjectPart . '"';
+						$subjectLink .= '&filter[]=mods_subject_topic_ms%3A' . urlencode('"' .(string)$subjectPart . '"');
 						$this->subjectsWithLinks[] = array(
 								'link' => $subjectLink,
-								'label' => $subjectPart
+								'label' => (string)$subjectPart
 						);
 
 					}
@@ -493,6 +493,8 @@ abstract class IslandoraDriver extends RecordInterface {
 		if ($this->modsData == null){
 			$fedoraUtils = FedoraUtils::getInstance();
 			$this->modsData = $fedoraUtils->getModsData($this->archiveObject);
+
+			$this->modsData = $this->modsData->children('http://www.loc.gov/mods/v3');
 		}
 		return $this->modsData;
 	}
@@ -708,6 +710,9 @@ abstract class IslandoraDriver extends RecordInterface {
 								'label' => (string)$entity->entityPlace->entityTitle
 
 						);
+						if ($entity->significance){
+							$entityInfo['role'] = ucfirst((string)$entity->significance);
+						}
 						$entityInfo['link']= '/Archive/' . (string)$entity->entityPlace->entityPid . '/Place';
 						$this->relatedPlaces[$entityInfo['pid']] = $entityInfo;
 					}else {
@@ -722,6 +727,8 @@ abstract class IslandoraDriver extends RecordInterface {
 								strlen($entity->generalPlace->addressZipCode) ||
 								strlen($entity->generalPlace->addressCountry) ||
 								strlen($entity->generalPlace->addressOtherRegion)){
+
+							//TODO: We should probably show something here, but not sure what or how
 						}
 					}
 				}
