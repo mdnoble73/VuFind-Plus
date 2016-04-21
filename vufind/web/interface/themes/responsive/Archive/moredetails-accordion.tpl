@@ -165,27 +165,6 @@
 			</div>
 		{/if}
 
-		{if count($subjects) > 0}
-			<div class="panel active{*toggle on for open*}" id="subjectPanel">
-				<a href="#subjectPanelBody" data-toggle="collapse">
-					<div class="panel-heading">
-						<div class="panel-title">
-							Subject
-						</div>
-					</div>
-				</a>
-				<div id="subjectPanelBody" class="panel-collapse collapse in{*toggle on for open*}">
-					<div class="panel-body">
-						{foreach from=$subjects item=subject}
-							<a href='{$subject.link}'>
-								{$subject.label}
-							</a><br>
-						{/foreach}
-					</div>
-				</div>
-			</div>
-		{/if}
-
 		{if $relatedPeople || count($marriages) > 0}
 			<div class="panel active{*toggle on for open*}" id="relatedPeoplePanel">
 				<a href="#relatedPeoplePanelBody" data-toggle="collapse">
@@ -374,6 +353,27 @@
 							<div>
 								{$note}
 							</div>
+						{/foreach}
+					</div>
+				</div>
+			</div>
+		{/if}
+
+		{if count($subjects) > 0}
+			<div class="panel active{*toggle on for open*}" id="subjectPanel">
+				<a href="#subjectPanelBody" data-toggle="collapse">
+					<div class="panel-heading">
+						<div class="panel-title">
+							Subject
+						</div>
+					</div>
+				</a>
+				<div id="subjectPanelBody" class="panel-collapse collapse in{*toggle on for open*}">
+					<div class="panel-body">
+						{foreach from=$subjects item=subject}
+							<a href='{$subject.link}'>
+								{$subject.label}
+							</a><br>
 						{/foreach}
 					</div>
 				</div>
