@@ -112,6 +112,8 @@ documentation/~*.tmp
 # Marmot Symbolic Links #
 #########################
 sites/*.marmot.org
+!sites/opac.marmot.org/
+#re-include the marmot production directory
 
 # Aspencat Symbolic Links #
 ###########################
