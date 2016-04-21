@@ -784,7 +784,7 @@ class ListAPI extends Action {
 		}
 		$recordIds = array();
 		if (!isset($_REQUEST['recordIds'])){
-			return array('success'=>false, 'message'=>'You must provide one or more records to add tot he list.');
+			return array('success'=>false, 'message'=>'You must provide one or more records to add to the list.');
 		}else if (!is_array($_REQUEST['recordIds'])){
 			$recordIds[] = $_REQUEST['recordIds'];
 		}else{
@@ -801,6 +801,7 @@ class ListAPI extends Action {
 			}else{
 				$numAdded = 0;
 				foreach ($recordIds as $id){
+					require_once ROOT_DIR . '/sys/LocalEnrichment/UserListEntry.php';
 					$userListEntry = new UserListEntry();
 					$userListEntry->listId = $list->id;
 					$userListEntry->groupedWorkPermanentId = $id;
