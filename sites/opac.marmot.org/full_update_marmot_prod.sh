@@ -48,6 +48,9 @@ cd /usr/local/vufind-plus/vufind/cron;./HOOPLA.sh ${PIKASERVER} >> ${OUTPUT_FILE
 # CCU Ebsco Marc Updates
 /usr/local/vufind-plus/sites/opac.marmot.org/moveFullExport.sh ebsco_ccu ebsco/ccu >> ${OUTPUT_FILE}
 
+# OneClick digital
+/usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh englewood/oneclickdigital oneclickdigital/englewood >> ${OUTPUT_FILE}
+
 #Extract Lexile Data
 #cd /data/vufind-plus/; wget -N --no-verbose http://venus.marmot.org/lexileTitles.txt
 cd /data/vufind-plus/; curl --remote-name --remote-time --silent --show-error --compressed --time-cond /data/vufind-plus/lexileTitles.txt http://venus.marmot.org/lexileTitles.txt
