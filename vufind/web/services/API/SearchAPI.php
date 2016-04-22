@@ -227,6 +227,26 @@ class SearchAPI extends Action {
 				$status[] = self::STATUS_CRITICAL;
 				$notes[]  = 'Could not get status from Solr';
 			}
+
+
+			// Count Number of Back-up Index Folders
+			$solrSearcherPath = rtrim($configArray['Index']['local'], '/');
+			$solrSearcherPath = str_replace('solr', 'solr_searcher/grouped/', $solrSearcherPath); // modify path to solr search grouped core path
+			if (strpos($solrSearcherPath, 'grouped')) { // If we didn't make a good path, skip the rest of these checks
+				$indexBackupDirectories = glob($solrSearcherPath.'index.*',  GLOB_ONLYDIR);
+				$numIndexBackupDirectories = count($indexBackupDirectories);
+				if ($numIndexBackupDirectories >= 7) {
+					$status[] = self::STATUS_CRITICAL;
+					$notes[]  = "There are $numIndexBackupDirectories Solr Searcher Grouped Index directories";
+				}
+				elseif ($numIndexBackupDirectories >= 4) {
+					$status[] = self::STATUS_WARN;
+					$notes[]  = "There are $numIndexBackupDirectories Solr Searcher Grouped Index directories";
+				}
+
+			}
+
+
 		}
 
 		// Unprocessed Offline Circs //
