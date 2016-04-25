@@ -271,7 +271,11 @@ abstract class IslandoraDriver extends RecordInterface {
 	}
 
 	public function getTitle() {
-		return $this->archiveObject->label;
+		$title = $this->archiveObject->label;
+		if ($title == ''){
+			//$title = $this->getModsData()->
+		}
+		return $title;
 	}
 
 	/**

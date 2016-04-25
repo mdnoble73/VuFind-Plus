@@ -19,10 +19,10 @@
 						<li class="explore-more-option">
 							<figure class="thumbnail">
 								<a href='{$exploreMoreCategory.link}'>
-									<img src="{$exploreMoreCategory.image}" alt="{$exploreMoreCategory.title}">
+									<img src="{$exploreMoreCategory.image}" alt="{$exploreMoreCategory.label}">
 								</a>
 								<figcaption class="explore-more-category-title">
-									<strong>{$exploreMoreCategory.title}</strong>
+									<strong>{$exploreMoreCategory.label}</strong>
 								</figcaption>
 							</figure>
 						</li>

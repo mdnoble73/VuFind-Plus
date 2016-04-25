@@ -269,7 +269,7 @@ class ExploreMore {
 
 							if ($okToAdd){
 								$exploreMoreOptions[] = array(
-									'title' => $archiveObject->label,
+									'label' => $archiveObject->label,
 									'description' => $archiveObject->label,
 									'image' => $fedoraUtils->getObjectImageUrl($archiveObject, 'small'),
 									'link' => $configArray['Site']['path'] . "/Archive/{$archiveObject->id}/Exhibit",
@@ -307,14 +307,14 @@ class ExploreMore {
 								$contentType = translate($relatedContentType[0]);
 								if ($numMatches == 1) {
 									$exploreMoreOptions[] = array(
-										'title' => "{$contentType}s ({$numMatches})",
+										'label' => "{$contentType}s ({$numMatches})",
 										'description' => "{$contentType}s related to {$searchObject2->getQuery()}",
 										'image' => $firstObjectDriver->getBookcoverUrl('medium'),
 										'link' => $firstObjectDriver->getRecordUrl(),
 									);
 								} else {
 									$exploreMoreOptions[] = array(
-										'title' => "{$contentType}s ({$numMatches})",
+										'label' => "{$contentType}s ({$numMatches})",
 										'description' => "{$contentType}s related to {$searchObject2->getQuery()}",
 										'image' => $firstObjectDriver->getBookcoverUrl('medium'),
 										'link' => $searchObject2->renderSearchUrl(),
@@ -335,7 +335,7 @@ class ExploreMore {
 						$searchObject->addFilter('RELS_EXT_hasModel_uri_s:info:fedora/islandora:personCModel');
 						if ($archiveObject != null) {
 							$exploreMoreOptions[] = array(
-								'title' => "People (" . $numPeople . ")",
+								'label' => "People (" . $numPeople . ")",
 								'description' => "People related to {$searchObject->getQuery()}",
 								'image' => $fedoraUtils->getObjectImageUrl($archiveObject, 'small', 'personCModel'),
 								'link' => '/Archive/RelatedEntities?lookfor=' . urlencode($_REQUEST['lookfor']) . '&entityType=person',
@@ -354,7 +354,7 @@ class ExploreMore {
 						$searchObject->addFilter('RELS_EXT_hasModel_uri_s:info:fedora/islandora:placeCModel');
 						if ($archiveObject != null) {
 							$exploreMoreOptions[] = array(
-								'title' => "Places (" . $numPlaces . ")",
+								'label' => "Places (" . $numPlaces . ")",
 								'description' => "Places related to {$searchObject->getQuery()}",
 								'image' => $fedoraUtils->getObjectImageUrl($archiveObject, 'small', 'placeCModel'),
 								'link' => '/Archive/RelatedEntities?lookfor=' . urlencode($_REQUEST['lookfor']) . '&entityType=place',
@@ -373,7 +373,7 @@ class ExploreMore {
 						$searchObject->addFilter('RELS_EXT_hasModel_uri_s:info:fedora/islandora:eventCModel');
 						if ($archiveObject != null) {
 							$exploreMoreOptions[] = array(
-								'title' => "Events (" . $numEvents . ")",
+								'label' => "Events (" . $numEvents . ")",
 								'description' => "Places related to {$searchObject->getQuery()}",
 								'image' => $fedoraUtils->getObjectImageUrl($archiveObject, 'small', 'eventCModel'),
 								'link' => '/Archive/RelatedEntities?lookfor=' . urlencode($_REQUEST['lookfor']) . '&entityType=event',
@@ -472,7 +472,7 @@ class ExploreMore {
 						if ($numCatalogResultsAdded == 4 && $numCatalogResults > 5) {
 							//Add a link to remaining catalog results
 							$exploreMoreOptions[] = array(
-									'title' => "Catalog Results ($numCatalogResults)",
+									'label' => "Catalog Results ($numCatalogResults)",
 									'description' => "Catalog Results ($numCatalogResults)",
 									'image' => $configArray['Site']['path'] . '/interface/themes/responsive/images/library_symbol.png',
 									'link' => $searchObjectSolr->renderSearchUrl(),
@@ -481,7 +481,7 @@ class ExploreMore {
 						} else {
 							//Add a link to the actual title
 							$exploreMoreOptions[] = array(
-									'title' => $driver->getTitle(),
+									'label' => $driver->getTitle(),
 									'description' => $driver->getTitle(),
 									'image' => $driver->getBookcoverUrl('small'),
 									'link' => $driver->getLinkUrl(),
@@ -525,7 +525,7 @@ class ExploreMore {
 										$numFacetMatches = (int)$facetValue->Count;
 										$iconName = 'ebsco_' . str_replace(' ', '_', strtolower($facetValueStr));
 										$exploreMoreOptions[] = array(
-												'title' => "$facetValueStr ({$numFacetMatches})",
+												'label' => "$facetValueStr ({$numFacetMatches})",
 												'description' => "{$facetValueStr} in EBSCO related to {$searchTerm}",
 												'image' => $configArray['Site']['path'] . "/interface/themes/responsive/images/{$iconName}.png",
 												'link' => '/EBSCO/Results?lookfor=' . urlencode($searchTerm) . '&filter[]=' . $facetInfo->Id . ':' . $facetValueStr,
@@ -537,7 +537,7 @@ class ExploreMore {
 						}
 
 						$exploreMoreOptions[] = array(
-								'title' => "All EBSCO Results ({$numMatches})",
+								'label' => "All EBSCO Results ({$numMatches})",
 								'description' => "All Results in EBSCO related to {$searchTerm}",
 								'image' => $configArray['Site']['path'] . '/interface/themes/responsive/images/ebsco_eds.png',
 								'link' => '/EBSCO/Results?lookfor=' . urlencode($searchTerm)
@@ -610,9 +610,17 @@ class ExploreMore {
 			/** @var IslandoraDriver $relatedObjectDriver */
 			$relatedObjectDriver = $object['driver'];
 			foreach ($relatedObjectDriver->getAllSubjectsWithLinks() as $subject){
-				if (!array_key_exists($subject['label'], $relatedSubjects)){
+				if (!isset($relatedSubjects[$subject['label']])){
 					$relatedSubjects[$subject['label']] = $subject;
+					if (!isset($relatedSubjects[$subject['label']]['linkingReason'])) {
+						$relatedSubjects[$subject['label']]['linkingReason'] = "Used in: ";
+					}
 				}
+
+				if (strpos($relatedSubjects[$subject['label']]['linkingReason'], "\r\n - " . $relatedObjectDriver->getTitle()) === false){
+					$relatedSubjects[$subject['label']]['linkingReason'] .= "\r\n - " . $relatedObjectDriver->getTitle();
+				}
+
 			}
 		}
 		return $relatedSubjects;
