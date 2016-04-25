@@ -56,7 +56,7 @@ cd /usr/local/vufind-plus/vufind/cron;./HOOPLA.sh ${PIKASERVER} >> ${OUTPUT_FILE
 /usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh mcvsd/mackinvia/mvcp mackinvia/mvcp >> ${OUTPUT_FILE}
 /usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh mcvsd/mackinvia/mvem mackinvia/mvem >> ${OUTPUT_FILE}
 /usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh mcvsd/mackinvia/mvrr mackinvia/mvrr >> ${OUTPUT_FILE}
-/usr/local/vufind/sites/marmot.test/moveFullExport.sh mcvsd/mackinvia/mvtm mackinvia/mvtm >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh mcvsd/mackinvia/mvtm mackinvia/mvtm >> ${OUTPUT_FILE}
 
 # Learning Express
 #/usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh budwerner/learning_express learning_express/steamboatsprings >> ${OUTPUT_FILE}
