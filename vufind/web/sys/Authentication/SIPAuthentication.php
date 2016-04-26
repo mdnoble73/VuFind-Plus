@@ -241,6 +241,11 @@ class SIPAuthentication implements Authentication {
 				$location->fetch();
 				$user->homeLocationId = $location->locationId;
 			}
+			if ((!isset($user->homeLocationId) || $user->homeLocationId == 0)) {
+				// Logging for Diagnosing PK-1846
+				global $logger;
+				$logger->log('Sip Authentication: Attempted look up user\'s homeLocationId and failed to find one. User : '.$user->id, PEAR_LOG_WARNING);
+			}
 		}
 
 		if ($insert) {

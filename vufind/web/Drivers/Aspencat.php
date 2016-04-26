@@ -507,10 +507,20 @@ class Aspencat implements DriverInterface{
 						if ($location->N == 0){
 							unset($location);
 							$user->homeLocationId = -1;
+							// Logging for Diagnosing PK-1846
+							global $logger;
+							$logger->log('Aspencat Driver: No Location found, user\'s homeLocationId being set to -1. User : '.$user->id, PEAR_LOG_WARNING);
 						}else{
 							//Setup default location information if it hasn't been loaded or has been changed
 							if ($user->homeLocationId == 0 || $location->locationId != $user->homeLocationId) {
+
 								$user->homeLocationId = $location->locationId;
+								if ((!isset($user->homeLocationId) || $user->homeLocationId == 0)) {
+									// Logging for Diagnosing PK-1846
+									global $logger;
+									$logger->log('Aspencat Driver: Attempted look up user\'s homeLocationId and failed to find one. User : '.$user->id, PEAR_LOG_WARNING);
+								}
+
 								if ($location->nearbyLocation1 > 0){
 									$user->myLocation1Id = $location->nearbyLocation1;
 								}else{
