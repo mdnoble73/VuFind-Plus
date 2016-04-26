@@ -807,7 +807,34 @@ abstract class IslandoraDriver extends RecordInterface {
 								if (strlen((string)$linkAttributes['type']) == 0) {
 									$linkText = (string)$linkInfo->link;
 								} else {
-									$linkText = (string)$linkAttributes['type'];
+									switch ((string)$linkAttributes['type']){
+										case 'relatedPika':
+											$linkText = 'Related title from the catalog';
+											break;
+										case 'marmotGenealogy':
+											$linkText = 'Genealogy Record';
+											break;
+										case 'findAGrave':
+											$linkText = 'Grave site information on Find a Grave';
+											break;
+										case 'fortLewisGeoPlaces':
+											//Skip this one
+											continue;
+										case 'geoNames':
+											$linkText = 'Geographic information from GeoNames.org';
+											continue;
+										case 'samePika':
+											$linkText = 'This record within the catalog';
+											continue;
+										case 'whosOnFirst':
+											$linkText = 'Geographic information from Who\'s on First';
+											continue;
+										case 'wikipedia':
+											$linkText = 'Information from Wikipedia';
+											continue;
+										default:
+											$linkText = (string)$linkAttributes['type'];
+									}
 								}
 							}else{
 								$linkText = (string)$linkInfo->linkText;
@@ -836,7 +863,7 @@ abstract class IslandoraDriver extends RecordInterface {
 
 			//Look for things linked directly to this object
 			$links = $this->getLinks();
-			foreach ($links as $link){
+			foreach ($links as $id => $link){
 				if ($link['type'] == 'relatedPika'){
 					if (preg_match('/^.*\/GroupedWork\/([a-f0-9-]+)$/', $link['link'], $matches)){
 						$workId = $matches[1];
@@ -849,6 +876,7 @@ abstract class IslandoraDriver extends RecordInterface {
 									'id' => $workId
 							);
 						}
+						unset($this->links[$id]);
 					}else{
 						//Didn't get a valid grouped work id
 					}
