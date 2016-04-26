@@ -22,6 +22,7 @@
 									<img src="{$exploreMoreCategory.image}" alt="{$exploreMoreCategory.label|escape}">
 								</a>
 								<figcaption class="explore-more-category-title">
+									<strong>{$exploreMoreCategory.label|truncate:30}</strong>
 								</figcaption>
 							</figure>
 						</li>
