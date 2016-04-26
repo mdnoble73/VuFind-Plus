@@ -857,6 +857,7 @@ abstract class IslandoraDriver extends RecordInterface {
 	protected $relatedPikaRecords;
 	public function getRelatedPikaContent(){
 		if ($this->relatedPikaRecords == null){
+			global $interface;
 			require_once ROOT_DIR . '/RecordDrivers/GroupedWorkDriver.php';
 
 			$this->relatedPikaRecords = array();
@@ -875,8 +876,10 @@ abstract class IslandoraDriver extends RecordInterface {
 									'image' => $workDriver->getBookcoverUrl('medium'),
 									'id' => $workId
 							);
+							unset($this->links[$id]);
+							$interface->assign('externalLinks', $this->getLinks());
 						}
-						unset($this->links[$id]);
+
 					}else{
 						//Didn't get a valid grouped work id
 					}
