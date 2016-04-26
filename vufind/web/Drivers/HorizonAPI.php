@@ -108,7 +108,14 @@ abstract class HorizonAPI extends Horizon{
 				}
 
 				if ($user->homeLocationId == 0 && isset($location)) {
+
 					$user->homeLocationId = $location->locationId;
+					if ((!isset($user->homeLocationId) || $user->homeLocationId == 0)) {
+						// Logging for Diagnosing PK-1846
+						global $logger;
+						$logger->log('HorizonAPI Driver: Attempted look up user\'s homeLocationId and failed to find one. User : '.$user->id, PEAR_LOG_WARNING);
+					}
+
 					if ($location->nearbyLocation1 > 0) {
 						$user->myLocation1Id = $location->nearbyLocation1;
 					} else {
@@ -121,6 +128,11 @@ abstract class HorizonAPI extends Horizon{
 					}
 				}else if (isset($location) && $location->locationId != $user->homeLocationId){
 					$user->homeLocationId = $location->locationId;
+					if ((!isset($user->homeLocationId) || $user->homeLocationId == 0)) {
+						// Logging for Diagnosing PK-1846
+						global $logger;
+						$logger->log('HorizonAPI Driver: Attempted changing user\'s homeLocationId and failed to find one. User : '.$user->id, PEAR_LOG_WARNING);
+					}
 				}
 
 				//Get display name for preferred location 1
@@ -862,7 +874,6 @@ abstract class HorizonAPI extends Horizon{
 
 		//email the pin to the user
 		$updatePinUrl = $configArray['Catalog']['webServiceUrl'] . '/standard/emailMyPin?clientID=' . $configArray['Catalog']['clientId'] . '&login=' . $barcode . '&profile=' . $this->hipProfile;
-
 		$updatePinResponse = $this->getWebServiceResponse($updatePinUrl);
 
 		if ($updatePinResponse == true && !isset($updatePinResponse['code'])){
@@ -982,6 +993,8 @@ abstract class HorizonAPI extends Horizon{
 				return $xml;
 			}
 		}else{
+			global $logger;
+			$logger->log('Curl problem in getWebServiceResponse', PEAR_LOG_WARNING);
 			return false;
 		}
 	}
