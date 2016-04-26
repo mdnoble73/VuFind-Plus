@@ -15,6 +15,7 @@ abstract class IslandoraDriver extends RecordInterface {
 	protected $archiveObject;
 
 	protected $modsData = null;
+	protected $modsModsData = null;
 	/**
 	 * Constructor.  We build the object using all the data retrieved
 	 * from the (Solr) index.  Since we have to
@@ -389,7 +390,13 @@ abstract class IslandoraDriver extends RecordInterface {
 		if (isset($this->fields['mods_abstract_s'])){
 			return $this->fields['mods_abstract_s'];
 		} else{
-			return 'No Description Provided';
+			if (count($this->getModsData()) && count($this->getModsData()->abstract)){
+				return (string)$this->modsData->abstract;
+			}elseif (count($this->modsModsData->abstract)){
+				return (string)$this->modsModsData->abstract;
+			}else{
+				return 'No Description Provided';
+			}
 		}
 	}
 
@@ -498,7 +505,7 @@ abstract class IslandoraDriver extends RecordInterface {
 			$fedoraUtils = FedoraUtils::getInstance();
 			$this->modsData = $fedoraUtils->getModsData($this->archiveObject);
 
-			$this->modsData = $this->modsData->children('http://www.loc.gov/mods/v3');
+			$this->modsModsData = $this->modsData->children('http://www.loc.gov/mods/v3');
 		}
 		return $this->modsData;
 	}

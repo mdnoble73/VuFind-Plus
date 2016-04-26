@@ -225,13 +225,7 @@ abstract class Archive_Object extends Action{
 		$title = $this->archiveObject->label;
 		$interface->assign('title', $title);
 		$interface->setPageTitle($title);
-		if ($this->modsData->abstract){
-			$description = (string)$this->modsData->abstract;
-			$interface->assign('description', $description);
-		}else{
-			$description = (string)$this->modsModsData->abstract;
-			$interface->assign('description', $description);
-		}
+		$interface->assign('description', $this->recordDriver->getDescription());
 
 		$interface->assign('large_image', $fedoraUtils->getObjectImageUrl($this->archiveObject, 'large', $model));
 		$interface->assign('medium_image', $fedoraUtils->getObjectImageUrl($this->archiveObject, 'medium', $model));
