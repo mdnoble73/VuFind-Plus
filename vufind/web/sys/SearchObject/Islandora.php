@@ -1347,7 +1347,7 @@ class SearchObject_Islandora extends SearchObject_Base
 		$filters = array();
 		global $library;
 		if ($library->hideAllCollectionsFromOtherLibraries && $library->archiveNamespace){
-			$filters[] = "RELS_EXT_isMemberOfCollection_uri_ms:info\\:fedora/{$library->archiveNamespace}\\:*";
+			$filters[] = "RELS_EXT_isMemberOfCollection_uri_ms:info\\:fedora/{$library->archiveNamespace}\\:* OR RELS_EXT_isMemberOfCollection_uri_ms:info\\:fedora/marmot\\:*";
 		}else if ($library->collectionsToHide){
 			$collectionsToHide = explode("\r\n", $library->collectionsToHide);
 			$filter = '';
@@ -1360,7 +1360,7 @@ class SearchObject_Islandora extends SearchObject_Base
 			$filters[] = $filter;
 
 		}
-		$filters[] = "mods_extension_marmotLocal_pikaOptions_includeInPika_ms:yes";
+		$filters[] = "!mods_extension_marmotLocal_pikaOptions_includeInPika_ms:no";
 		return $filters;
 	}
 }

@@ -43,6 +43,7 @@ class Archive_Results extends Action {
 		$searchObject->init();
 		//$searchObject->addHiddenFilter('-RELS_EXT_hasModel_uri_s', '*collectionCModel');
 		$searchObject->addHiddenFilter('!RELS_EXT_isViewableByRole_literal_ms', "administrator");
+		$searchObject->addHiddenFilter('!mods_extension_marmotLocal_pikaOptions_showInSearchResults_ms', "no");
 
 		// Build RSS Feed for Results (if requested)
 		if ($searchObject->getView() == 'rss') {
