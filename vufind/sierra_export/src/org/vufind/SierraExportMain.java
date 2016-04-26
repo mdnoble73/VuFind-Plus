@@ -287,6 +287,7 @@ public class SierraExportMain{
 			int maxRecordsToUpdateDuringExtract = 5000;
 			if (maxRecordsToUpdateDuringExtractStr != null){
 				maxRecordsToUpdateDuringExtract = Integer.parseInt(maxRecordsToUpdateDuringExtractStr);
+				logger.info("Extracting a maximum of " + maxRecordsToUpdateDuringExtract + " records");
 			}
 
 			//Only mark records as changed
@@ -320,7 +321,13 @@ public class SierraExportMain{
 				PreparedStatement markGroupedWorkForBibAsChangedStmt = vufindConn.prepareStatement("UPDATE grouped_work SET date_updated = ? where id = (SELECT grouped_work_id from grouped_work_primary_identifiers WHERE type = 'ils' and identifier = ?)") ;
 				boolean firstLoad = true;
 				HashMap<String, ArrayList<ItemChangeInfo>> changedBibs = new HashMap<>();
-				int bufferSize = 250;
+				int bufferSize = 1000;
+				String recordsToExtractBatchSizeStr = ini.get("Sierra", "recordsToExtractBatchSize");
+				if (recordsToExtractBatchSizeStr != null){
+					bufferSize = Integer.parseInt(recordsToExtractBatchSizeStr);
+					logger.info("Loading records in batches of " + bufferSize + " records");
+				}
+
 				while (moreToRead){
 					JSONObject changedRecords = callSierraApiURL(ini, apiBaseUrl, apiBaseUrl + "/items/?updatedDate=[" + dateUpdated + ",]&limit=" + bufferSize + "&fields=id,bibIds,location,status,fixedFields&deleted=false&suppressed=false&offset=" + offset, false);
 					int numChangedIds = 0;
@@ -335,7 +342,7 @@ public class SierraExportMain{
 							}
 						}else{
 							int numUpdates = changedRecords.getInt("total");
-							logger.info("Loaded an additional batch of " + numUpdates);
+							logger.info("Loaded an additional batch of " + numUpdates + " current offset is " + offset);
 						}
 						JSONArray changedIds = changedRecords.getJSONArray("entries");
 						numChangedIds = changedIds.length();
@@ -397,7 +404,7 @@ public class SierraExportMain{
 					//If we have the same number of records as the buffer that is ok.  Sierra does not return the correct total anymore
 					moreToRead = (numChangedIds >= bufferSize);
 					offset += bufferSize;
-					if (offset > maxRecordsToUpdateDuringExtract){
+					if (offset >= maxRecordsToUpdateDuringExtract){
 						logger.warn("There are an abnormally large number of changed records, breaking");
 						break;
 					}
