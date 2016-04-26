@@ -1347,7 +1347,12 @@ class SearchObject_Islandora extends SearchObject_Base
 		$filters = array();
 		global $library;
 		if ($library->hideAllCollectionsFromOtherLibraries && $library->archiveNamespace){
-			$filters[] = "RELS_EXT_isMemberOfCollection_uri_ms:info\\:fedora/{$library->archiveNamespace}\\:* OR RELS_EXT_isMemberOfCollection_uri_ms:info\\:fedora/marmot\\:*";
+			$filters[] = "RELS_EXT_isMemberOfCollection_uri_ms:info\\:fedora/{$library->archiveNamespace}\\:*
+			  OR RELS_EXT_isMemberOfCollection_uri_ms:info\\:fedora/marmot\\:events
+			  OR RELS_EXT_isMemberOfCollection_uri_ms:info\\:fedora/marmot\\:organizations
+			  OR RELS_EXT_isMemberOfCollection_uri_ms:info\\:fedora/marmot\\:people
+			  OR RELS_EXT_isMemberOfCollection_uri_ms:info\\:fedora/marmot\\:places
+			  OR RELS_EXT_isMemberOfCollection_uri_ms:info\\:fedora/marmot\\:families";
 		}else if ($library->collectionsToHide){
 			$collectionsToHide = explode("\r\n", $library->collectionsToHide);
 			$filter = '';
