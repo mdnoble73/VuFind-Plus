@@ -710,6 +710,8 @@ class SearchObject_Islandora extends SearchObject_Base
 
 		// Define Filter Query
 		$filterQuery = $this->hiddenFilters;
+
+		$filterQuery = array_merge($filterQuery, $this->getStandardFilters());
 		//Remove any empty filters if we get them
 		//(typically happens when a subdomain has a function disabled that is enabled in the main scope)
 		foreach ($this->filterList as $field => $filter) {
@@ -1334,5 +1336,31 @@ class SearchObject_Islandora extends SearchObject_Base
 
 
 		return $params;
+	}
+
+	/**
+	 * Get an array of filters that should always be applied based on the library
+	 *
+	 * @return array
+	 */
+	private function getStandardFilters() {
+		$filters = array();
+		global $library;
+		if ($library->hideAllCollectionsFromOtherLibraries && $library->archiveNamespace){
+			$filters[] = "RELS_EXT_isMemberOfCollection_uri_ms:info\\:fedora/{$library->archiveNamespace}\\:*";
+		}else if ($library->collectionsToHide){
+			$collectionsToHide = explode("\r\n", $library->collectionsToHide);
+			$filter = '';
+			foreach ($collectionsToHide as $collection){
+				if (strlen($filter) > 0){
+					$filter .= ' AND ';
+				}
+				$filter .= "!RELS_EXT_isMemberOfCollection_uri_ms:\"info:fedora/{$collection}\"";
+			}
+			$filters[] = $filter;
+
+		}
+		$filters[] = "mods_extension_marmotLocal_pikaOptions_includeInPika_ms:yes";
+		return $filters;
 	}
 }
