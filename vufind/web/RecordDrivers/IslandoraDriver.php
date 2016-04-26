@@ -395,7 +395,7 @@ abstract class IslandoraDriver extends RecordInterface {
 			}elseif (count($this->modsModsData->abstract)){
 				return (string)$this->modsModsData->abstract;
 			}else{
-				return 'No Description Provided';
+				return '';
 			}
 		}
 	}
@@ -789,6 +789,16 @@ abstract class IslandoraDriver extends RecordInterface {
 		}
 	}
 
+	public function getVisibleLinks(){
+		$allLinks = $this->getLinks();
+		$visibleLinks = array();
+		foreach ($allLinks as $link){
+			if (!$link['hidden']){
+				$visibleLinks[] = $link;
+			}
+		}
+		return $visibleLinks;
+	}
 	protected $links = null;
 	public function getLinks(){
 		if ($this->links == null){
@@ -803,11 +813,12 @@ abstract class IslandoraDriver extends RecordInterface {
 						/** @var SimpleXMLElement $linkInfo */
 						foreach ($marmotExtension->marmotLocal->externalLink as $linkInfo){
 							$linkAttributes = $linkInfo->attributes();
+							$linkType = (string)$linkAttributes['type'];
 							if (strlen($linkInfo->linkText) == 0) {
-								if (strlen((string)$linkAttributes['type']) == 0) {
+								if (strlen($linkType) == 0) {
 									$linkText = (string)$linkInfo->link;
 								} else {
-									switch ((string)$linkAttributes['type']){
+									switch ($linkType){
 										case 'relatedPika':
 											$linkText = 'Related title from the catalog';
 											break;
@@ -833,17 +844,22 @@ abstract class IslandoraDriver extends RecordInterface {
 											$linkText = 'Information from Wikipedia';
 											continue;
 										default:
-											$linkText = (string)$linkAttributes['type'];
+											$linkText = $linkType;
 									}
 								}
 							}else{
 								$linkText = (string)$linkInfo->linkText;
 							}
 							if  (strlen($linkInfo->link) > 0){
+								$isHidden = false;
+								if ($linkType == 'wikipedia' || $linkType == 'geoNames' || $linkType == 'whosOnFirst'){
+									$isHidden = true;
+								}
 								$this->links[] = array(
 										'type' => (string)$linkAttributes['type'],
 										'link' => (string)$linkInfo->link,
-										'text' => $linkText
+										'text' => $linkText,
+										'hidden' => $isHidden
 								);
 							}
 						}
@@ -876,8 +892,7 @@ abstract class IslandoraDriver extends RecordInterface {
 									'image' => $workDriver->getBookcoverUrl('medium'),
 									'id' => $workId
 							);
-							unset($this->links[$id]);
-							$interface->assign('externalLinks', $this->getLinks());
+							$this->links[$id]['hidden'] = true;
 						}
 
 					}else{

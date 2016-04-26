@@ -380,6 +380,7 @@
 			</div>
 		{/if}
 
+		{assign var="externalLinks" value=$recordDriver->getVisibleLinks()}
 		{if count($externalLinks) > 0}
 			<div class="panel active" id="externalLinksPanel">
 				<a href="#externalLinksPanelBody" data-toggle="collapse">

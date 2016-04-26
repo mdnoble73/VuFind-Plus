@@ -63,6 +63,7 @@ abstract class Archive_Object extends Action{
 		$interface->assign('pid', $this->pid);
 		$this->archiveObject = $fedoraUtils->getObject($this->pid);
 		$this->recordDriver = RecordDriverFactory::initRecordDriver($this->archiveObject);
+		$interface->assign('recordDriver', $this->recordDriver);
 
 		//Load the MODS data stream
 		$this->modsData = $this->recordDriver->getModsData();
@@ -142,9 +143,6 @@ abstract class Archive_Object extends Action{
 					$interface->assign('hasMilitaryService', true);
 				}
 			}
-
-			$this->links = $this->recordDriver->getLinks();
-			$interface->assign('externalLinks', $this->links);
 
 			$addressInfo = array();
 			if (strlen($marmotExtension->marmotLocal->latitude) ||
@@ -251,10 +249,7 @@ abstract class Archive_Object extends Action{
 
 	protected function loadLinkedData(){
 		global $interface;
-		if (!isset($this->links)){
-			return;
-		}
-		foreach ($this->links as $link){
+		foreach ($this->recordDriver->getLinks() as $link){
 			if ($link['type'] == 'wikipedia'){
 				require_once ROOT_DIR . '/sys/WikipediaParser.php';
 				$wikipediaParser = new WikipediaParser('en');
