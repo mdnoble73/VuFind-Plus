@@ -159,6 +159,7 @@ class Search_Results extends Action {
 		/** @var SearchObject_Solr $searchObject */
 		$searchObject = SearchObjectFactory::initSearchObject();
 		$searchObject->init($searchSource);
+		$searchObject->setPrimarySearch(true);
 		$timer->logTime("Init Search Object");
 //		$searchObject->viewOptions = $this->viewOptions; // set valid view options for the search object
 

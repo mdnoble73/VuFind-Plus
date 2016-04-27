@@ -96,8 +96,10 @@ class Genealogy_Results extends Action {
 		$timer->logTime('Include search engine');
 
 		// Initialise from the current search globals
+		/** @var SearchObject_Genealogy $searchObject */
 		$searchObject = SearchObjectFactory::initSearchObject($configArray['Genealogy']['searchObject']);
 		$searchObject->init($searchSource);
+		$searchObject->setPrimarySearch(true);
 
 		// Build RSS Feed for Results (if requested)
 		if ($searchObject->getView() == 'rss') {

@@ -147,6 +147,7 @@ class SearchObject_Islandora extends SearchObject_Base
 
 		$this->indexEngine->debug = $this->debug;
 		$this->indexEngine->debugSolrQuery = $this->debugSolrQuery;
+		$this->indexEngine->isPrimarySearch = $this->isPrimarySearch;
 
 		$this->resultsModule = 'Archive';
 		$this->resultsAction = 'Results';
@@ -1367,5 +1368,10 @@ class SearchObject_Islandora extends SearchObject_Base
 		}
 		$filters[] = "!mods_extension_marmotLocal_pikaOptions_includeInPika_ms:no";
 		return $filters;
+	}
+
+	public function setPrimarySearch($flag){
+		parent::setPrimarySearch($flag);
+		$this->indexEngine->isPrimarySearch = $flag;
 	}
 }

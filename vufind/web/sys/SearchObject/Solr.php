@@ -2193,4 +2193,8 @@ class SearchObject_Solr extends SearchObject_Base
 		return $fieldsToReturn;
 	}
 
+	public function setPrimarySearch($flag){
+		parent::setPrimarySearch($flag);
+		$this->indexEngine->isPrimarySearch = $flag;
+	}
 }

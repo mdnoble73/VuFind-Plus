@@ -46,6 +46,8 @@ class Solr implements IndexEngine {
 	 */
 	public $debugSolrQuery = false;
 
+	public $isPrimarySearch = false;
+
 	/**
 	 * Whether to Serialize to a PHP Array or not.
 	 * @var bool
@@ -1401,6 +1403,8 @@ class Solr implements IndexEngine {
 				$handler = 'TitleProper';
 			}else if ($handler == 'Title'){
 				$handler = 'TitleProper';
+			}else if ($handler == 'IslandoraKeyword'){
+				$handler = 'IslandoraKeywordProper';
 			}
 		}
 
@@ -1690,8 +1694,10 @@ class Solr implements IndexEngine {
 				$solrSearchDebug .= "\nSort: " . $options['sort'];
 			}
 
-			global $interface;
-			$interface->assign('solrSearchDebug', $solrSearchDebug);
+			if ($this->isPrimarySearch){
+				global $interface;
+				$interface->assign('solrSearchDebug', $solrSearchDebug);
+			}
 		}
 		if ($this->debugSolrQuery || $this->debug){
 			$options['debugQuery'] = 'on';
@@ -2222,9 +2228,12 @@ class Solr implements IndexEngine {
 			if ($this->debugSolrQuery) {
 				$solrQueryDebug .=  "<a href='" . $debugSearchUrl . "' target='_blank'>$fullSearchUrl</a>";
 			}
-			global $interface;
-			if ($interface){
-				$interface->assign('solrLinkDebug', $solrQueryDebug);
+
+			if ($this->isPrimarySearch) {
+				global $interface;
+				if ($interface) {
+					$interface->assign('solrLinkDebug', $solrQueryDebug);
+				}
 			}
 		}
 

@@ -83,6 +83,7 @@ abstract class SearchObject_Base
 	// Debugging flag
 	protected $debug = false;
 	protected $debugSolrQuery = false;
+	protected $isPrimarySearch = false;
 	// Search options for the user
 	protected $advancedTypes = array();
 	protected $basicTypes = array();
@@ -2220,7 +2221,15 @@ public function getNextPrevLinks(){
 			$timer->logTime('Got next/previous links');
 		}
 	}
-}
+
+	/**
+	 * Set weather or not this is a primary search.  If it is, we will show links to it in search result debuggin
+	 * @param boolean $flag
+	 */
+	public function setPrimarySearch($flag){
+		$this->isPrimarySearch = $flag;
+	}
+}//End of SearchObject_Base
 
 /**
  * ****************************************************
@@ -2302,5 +2311,4 @@ class minSO
 		//Minify sort
 
 	}
-}
-?>
+} //End of minso object (not SearchObject_Base)
