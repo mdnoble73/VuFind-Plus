@@ -654,13 +654,43 @@ IslandoraKeyword:
       - [and, 300]
     - mods_subject_topic_mt:
       - [and, 300]
-    - eaccpf_cpfDescription_description_biogHist_p_t:
-      - [and, 100]
     - mods_extension_marmotLocal_hasTranscription_transcriptionText_mt:
       - [and, 25]
     - PID:
       - [exact, 1000]
       - [and, 100]
+    - mods_extension_marmotLocal_hasCreator_entityTitle_mt:
+      - [and, ~]
+    - mods_extension_marmotLocal_hasInterviewee_entityTitle_mt:
+      - [and, ~]
+    - mods_extension_marmotLocal_describedEntity_entityTitle_mt:
+      - [and, ~]
+    - mods_extension_marmotLocal_relatedPersonOrg_entityTitle_mt:
+      - [and, ~]
+    - mods_extension_marmotLocal_relatedEntity_person_entityTitle_mt:
+      - [and, ~]
+    - mods_extension_marmotLocal_relatedEntity_place_entityTitle_mt:
+      - [and, ~]
+    - mods_extension_marmotLocal_relatedEntity_organization_entityTitle_mt:
+      - [and, ~]
+    - mods_extension_marmotLocal_relatedEntity_event_entityTitle_mt:
+      - [and, ~]
+    - mods_extension_marmotLocal_relatedEntity_event_entityTitle_mt:
+      - [and, ~]
+    - mods_extension_marmotLocal_hasAddress_entityTitle_mt:
+      - [and, ~]
+    - mods_extension_marmotLocal_relatedPlace_entityPlace_entityTitle_mt:
+      - [and, ~]
+    - mods_extension_marmotLocal_militaryService_militaryRecord_relatedPlace_entityPlace_entityTitle_mt:
+      - [and, ~]
+    - mods_extension_marmotLocal_militaryService_militaryRecord_militaryBranch_mt:
+      - [and, ~]
+    - mods_extension_marmotLocal_relatedEvent_entityTitle_mt:
+      - [and, ~]
+    - mods_extension_marmotLocal_hasTranscription_transcriber_entityTitle_mt:
+      - [and, ~]
+    - mods_extension_marmotLocal_hasPublisher_entityTitle_mt:
+      - [and, ~]
 
 IslandoraKeywordProper:
   QueryFields:
@@ -676,12 +706,42 @@ IslandoraKeywordProper:
       - [exact, 300]
     - mods_subject_topic_mt:
       - [exact, 300]
-    - eaccpf_cpfDescription_description_biogHist_p_t:
-      - [exact, 100]
     - mods_extension_marmotLocal_hasTranscription_transcriptionText_mt:
       - [exact, 25]
     - PID:
       - [exact, 1000]
+    - mods_extension_marmotLocal_hasCreator_entityTitle_ms:
+      - [exact, ~]
+    - mods_extension_marmotLocal_hasInterviewee_entityTitle_ms:
+      - [exact, ~]
+    - mods_extension_marmotLocal_describedEntity_entityTitle_ms:
+      - [exact, ~]
+    - mods_extension_marmotLocal_relatedPersonOrg_entityTitle_ms:
+      - [exact, ~]
+    - mods_extension_marmotLocal_relatedEntity_person_entityTitle_ms:
+      - [exact, ~]
+    - mods_extension_marmotLocal_relatedEntity_place_entityTitle_ms:
+      - [exact, ~]
+    - mods_extension_marmotLocal_relatedEntity_organization_entityTitle_ms:
+      - [exact, ~]
+    - mods_extension_marmotLocal_relatedEntity_event_entityTitle_ms:
+      - [exact, ~]
+    - mods_extension_marmotLocal_relatedEntity_event_entityTitle_ms:
+      - [exact, ~]
+    - mods_extension_marmotLocal_hasAddress_entityTitle_ms:
+      - [exact, ~]
+    - mods_extension_marmotLocal_relatedPlace_entityPlace_entityTitle_ms:
+      - [exact, ~]
+    - mods_extension_marmotLocal_militaryService_militaryRecord_relatedPlace_entityPlace_entityTitle_ms:
+      - [exact, ~]
+    - mods_extension_marmotLocal_militaryService_militaryRecord_militaryBranch_ms:
+      - [exact, ~]
+    - mods_extension_marmotLocal_relatedEvent_entityTitle_ms:
+      - [exact, ~]
+    - mods_extension_marmotLocal_hasTranscription_transcriber_entityTitle_ms:
+      - [exact, ~]
+    - mods_extension_marmotLocal_hasPublisher_entityTitle_ms:
+      - [exact, ~]
 
 IslandoraRelationshipsById:
   QueryFields:
