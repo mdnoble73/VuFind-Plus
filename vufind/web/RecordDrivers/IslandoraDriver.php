@@ -303,6 +303,12 @@ abstract class IslandoraDriver extends RecordInterface {
 		return $this->archiveObject->id;
 	}
 
+	public function getType(){
+		$id = $this->getUniqueID();
+		$type = explode(':', $id, 1);
+		return $type;
+	}
+
 	/**
 	 * Does this record have audio content available?
 	 *
@@ -390,9 +396,10 @@ abstract class IslandoraDriver extends RecordInterface {
 		if (isset($this->fields['mods_abstract_s'])){
 			return $this->fields['mods_abstract_s'];
 		} else{
-			if (count($this->getModsData()) && count($this->getModsData()->abstract)){
+			$modsData = $this->getModsData();
+			if (isset($modsData) && count($modsData) && count($modsData->abstract)){
 				return (string)$this->modsData->abstract;
-			}elseif (count($this->modsModsData->abstract)){
+			}elseif ($this->modsModsData && count($this->modsModsData->abstract)){
 				return (string)$this->modsModsData->abstract;
 			}else{
 				return '';
@@ -505,7 +512,9 @@ abstract class IslandoraDriver extends RecordInterface {
 			$fedoraUtils = FedoraUtils::getInstance();
 			$this->modsData = $fedoraUtils->getModsData($this->archiveObject);
 
-			$this->modsModsData = $this->modsData->children('http://www.loc.gov/mods/v3');
+			if ($this->modsData){
+				$this->modsModsData = $this->modsData->children('http://www.loc.gov/mods/v3');
+			}
 		}
 		return $this->modsData;
 	}
