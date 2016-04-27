@@ -19,6 +19,15 @@ class ExploreMore {
 		global $interface;
 		$exploreMoreSectionsToShow = array();
 
+		$isEntity = false;
+		if ($activeSection == 'archive') {
+			/** @var IslandoraDriver $archiveDriver */
+			$archiveDriver = $recordDriver;
+			if ($archiveDriver instanceof EventDriver || $archiveDriver instanceof PlaceDriver || $archiveDriver instanceof PersonDriver || $archiveDriver instanceof OrganizationDriver){
+				$isEntity = true;
+			}
+		}
+
 		$relatedPikaContent = array();
 		if ($activeSection == 'archive'){
 			/** @var IslandoraDriver $archiveDriver */
@@ -127,13 +136,15 @@ class ExploreMore {
 			}
 		}
 
-		$relatedArchiveContent = $this->getRelatedArchiveObjects($quotedSearchTerm);
-		if (count($relatedArchiveContent) > 0){
-			$exploreMoreSectionsToShow['relatedArchiveData'] = array(
-					'title' => 'From the Archive',
-					'format' => 'subsections',
-					'values' => $relatedArchiveContent
-			);
+		if ($activeSection == 'archive'){
+			$relatedArchiveContent = $this->getRelatedArchiveObjects($quotedSearchTerm);
+			if (count($relatedArchiveContent) > 0) {
+				$exploreMoreSectionsToShow['relatedArchiveData'] = array(
+						'title' => 'From the Archive',
+						'format' => 'subsections',
+						'values' => $relatedArchiveContent
+				);
+			}
 		}
 
 		if ($activeSection != 'catalog'){
@@ -641,7 +652,7 @@ class ExploreMore {
 		return $relatedSubjects;
 	}
 
-	public function getRelatedArchiveObjects($searchTerm) {
+	public function getRelatedArchiveObjects($searchTerm, $recordDriver = null) {
 		$relatedArchiveContent = array();
 
 		require_once ROOT_DIR . '/sys/Utils/FedoraUtils.php';
