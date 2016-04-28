@@ -305,7 +305,7 @@ abstract class IslandoraDriver extends RecordInterface {
 
 	public function getType(){
 		$id = $this->getUniqueID();
-		$type = explode(':', $id, 1);
+		list($type) = explode(':', $id, 2);
 		return $type;
 	}
 

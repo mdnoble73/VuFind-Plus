@@ -82,6 +82,26 @@
 					</div>
 				{/if}
 
+				{if $relatedPlaces && $recordDriver->getType() == 'event'}
+					<div class="row">
+						<div class="result-label col-sm-4">Took place at: </div>
+						<div class="result-value col-sm-8">
+							{foreach from=$relatedPlaces item=entity}
+								<a href='{$entity.link}'>
+									{$entity.label}
+								</a>
+								{if $entity.role}
+									&nbsp;({$entity.role})
+								{/if}
+								{if $entity.note}
+									&nbsp;- {$entity.note}
+								{/if}
+								<br>
+							{/foreach}
+						</div>
+					</div>
+				{/if}
+
 				{if $description}
 					<div class="row">
 						<div class="result-label col-sm-4">Description: </div>

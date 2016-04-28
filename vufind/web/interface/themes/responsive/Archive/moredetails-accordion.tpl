@@ -245,7 +245,7 @@
 			</div>
 		{/if}
 
-		{if $relatedPlaces}
+		{if $relatedPlaces && $recordDriver->getType() != 'event'}
 			<div class="panel active{*toggle on for open*}" id="relatedPlacesPanel">
 				<a href="#relatedPlacesPanelBody" data-toggle="collapse">
 					<div class="panel-heading">
