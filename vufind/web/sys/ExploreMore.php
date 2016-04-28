@@ -182,7 +182,7 @@ class ExploreMore {
 				//Check to see if we get any results from DPLA for this entity
 				$dplaResults = $dpla->getDPLAResults('"' . $archiveDriver->getTitle() . '"');
 				if (count($dplaResults)){
-					$exploreMoreSectionsToShow['relatedCatalog'] = array(
+					$exploreMoreSectionsToShow['dpla'] = array(
 							'title' => 'Digital Public Library of America',
 							'format' => 'scrollerWithLink',
 							'values' => $dplaResults,
