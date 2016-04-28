@@ -136,7 +136,7 @@ class ExploreMore {
 			}
 		}
 
-		if ($activeSection == 'archive'){
+		if ($activeSection != 'archive'){
 			$relatedArchiveContent = $this->getRelatedArchiveObjects($quotedSearchTerm);
 			if (count($relatedArchiveContent) > 0) {
 				$exploreMoreSectionsToShow['relatedArchiveData'] = array(
@@ -652,7 +652,7 @@ class ExploreMore {
 		return $relatedSubjects;
 	}
 
-	public function getRelatedArchiveObjects($searchTerm, $recordDriver = null) {
+	public function getRelatedArchiveObjects($searchTerm) {
 		$relatedArchiveContent = array();
 
 		require_once ROOT_DIR . '/sys/Utils/FedoraUtils.php';
