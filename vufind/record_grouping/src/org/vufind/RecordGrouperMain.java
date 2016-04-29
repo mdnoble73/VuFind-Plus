@@ -1321,7 +1321,12 @@ public class RecordGrouperMain {
 									RecordIdentifier recordIdentifier = recordGroupingProcessor.getPrimaryIdentifierFromMarcRecord(curBib, curProfile.name);
 									if (recordIdentifier == null) {
 										//logger.debug("Record with control number " + curBib.getControlNumber() + " was suppressed or is eContent");
-										suppressedControlNumbersInExport.add(curBib.getControlNumber());
+										String controlNumebr = curBib.getControlNumber();
+										if (controlNumebr != null) {
+											suppressedControlNumbersInExport.add(curBib.getControlNumber());
+										}else{
+											logger.warn("Bib did not have control number or identifier");
+										}
 									}else if (recordIdentifier.isSuppressed()) {
 										//logger.debug("Record with control number " + curBib.getControlNumber() + " was suppressed or is eContent");
 										suppressedControlNumbersInExport.add(recordIdentifier.getIdentifier());
