@@ -96,6 +96,7 @@ class MergedGroupedWork extends DB_DataObject {
 			);
 		}else{
 			//Make sure the destination actually exists (not a big deal if the source doesn't since invalid ones will just be skipped)
+			require_once ROOT_DIR . '/sys/Grouping/GroupedWork.php';
 			$groupedWork = new GroupedWork();
 			$groupedWork->permanent_id = $this->destinationGroupedWorkId;
 			if (!$groupedWork->find(true)){
