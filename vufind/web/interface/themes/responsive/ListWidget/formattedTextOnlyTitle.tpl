@@ -1,6 +1,6 @@
 {strip}
 	<div id="scrollerTitle{$listName}{$key}" class="scrollerTitle">
-		<span class="scrollerTextOnlyListNumber">{$key}) </span>
+		<span class="scrollerTextOnlyListNumber">{$key+1}) </span>
 		<a onclick="trackEvent('ListWidget', 'Title Click', '{$listName}')" href="{$titleURL}" id="descriptionTrigger{$shortId}">
 			<span class="scrollerTextOnlyListTitle">{$title}</span>
 		</a>
