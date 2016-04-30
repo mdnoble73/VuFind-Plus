@@ -27,14 +27,14 @@ require_once ROOT_DIR . '/sys/Utils/Pagination.php';
 class ListAPI extends Action {
 
 	function launch() {
-		$method = $_GET['method'];
+		$method = $_REQUEST['method'];
 		if ($method == 'getRSSFeed'){
 			header ('Content-type: text/xml');
 			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
 			header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
 			$xml = '<?xml version="1.0" encoding="UTF-8"?' . ">\n";
-			if (is_callable(array($this, $_GET['method']))) {
-				$xml .= $this->$_GET['method']();
+			if (is_callable(array($this, $_REQUEST['method']))) {
+				$xml .= $this->$_REQUEST['method']();
 			} else {
 				$xml .= '<Error>Invalid Method</Error>';
 			}
@@ -45,8 +45,8 @@ class ListAPI extends Action {
 			header('Content-type: text/plain');
 			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
 			header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
-			if (is_callable(array($this, $_GET['method']))) {
-				$output = json_encode(array('result'=>$this->$_GET['method']()));
+			if (is_callable(array($this, $_REQUEST['method']))) {
+				$output = json_encode(array('result'=>$this->$_REQUEST['method']()));
 			} else {
 				$output = json_encode(array('error'=>'invalid_method'));
 			}
