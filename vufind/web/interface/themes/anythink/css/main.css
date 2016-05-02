@@ -8490,6 +8490,11 @@ hr.menu {
     margin-right: 0;
   }
 }
+@media (min-width: 991px) {
+  #footer-container {
+    padding-left: 40px;
+  }
+}
 #install-info {
   padding-left: 20px;
 }
@@ -8789,9 +8794,7 @@ hr.menu {
   margin-top: 5px;
 }
 #home-page-library-section {
-  background-color: #eeeeee;
   padding: 15px 0;
-  height: 100%;
 }
 .sidebar-button {
   text-align: center;
