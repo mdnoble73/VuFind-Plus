@@ -311,6 +311,13 @@ abstract class HorizonAPI extends Horizon{
 
 					//Load rating information
 					$curHold['ratingData'] = $recordDriver->getRatingData();
+
+					if (empty($curHold['title'])){
+						$curHold['title'] = $recordDriver->getTitle();
+					}
+					if (empty($curHold['author'])){
+						$curHold['author'] = $recordDriver->getPrimaryAuthor();
+					}
 				}
 				$curHold['user'] = $patron->getNameAndLibraryLabel();
 
