@@ -377,7 +377,7 @@ class ListAPI extends Action {
 		$list = new UserList();
 		$list->id = $listId;
 		if ($list->find(true)){
-			//Make sure the user has acess to the list
+			//Make sure the user has access to the list
 			if ($list->public == 0){
 				if (!$user){
 					return array('success'=>false, 'message'=>'The user was invalid.  A valid user must be provided for private lists.');
@@ -646,10 +646,12 @@ class ListAPI extends Action {
 	}
 
 	function loadTitleInformationForIds($ids, $descriptions = array(), $datesSaved = array()){
+		/** @var SearchObject_Solr $searchObject */
 		$searchObject = SearchObjectFactory::initSearchObject();
 		$searchObject->init();
 		$titles = array();
 		if (count($ids) > 0){
+			$searchObject->setLimit(count($ids));
 			$searchObject->setQueryIDs($ids);
 			$searchObject->processSearch();
 			$titles = $searchObject->getListWidgetTitles();
