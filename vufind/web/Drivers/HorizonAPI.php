@@ -721,8 +721,14 @@ abstract class HorizonAPI extends Horizon{
 					if ($recordDriver->isValid()){
 						$curTitle['coverUrl'] = $recordDriver->getBookcoverUrl('medium');
 						$curTitle['groupedWorkId'] = $recordDriver->getGroupedWorkId();
-						$formats = $recordDriver->getFormats();
-						$curTitle['format'] = reset($formats);
+						$curTitle['format'] = $recordDriver->getPrimaryFormat();
+						if (empty($curTitle['title'])){
+							$curTitle['title'] = $recordDriver->getTitle();
+							$curTitle['title_sort'] = $recordDriver->getSortableTitle();
+						}
+						if (empty($curTitle['author'])){
+							$curTitle['author'] = $recordDriver->getPrimaryAuthor();
+						}
 					}else{
 						$curTitle['coverUrl'] = "";
 					}
