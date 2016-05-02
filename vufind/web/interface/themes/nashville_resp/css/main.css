@@ -10165,14 +10165,16 @@ a.browse-thumbnail.active {
   padding: 10px 25px 5px 0;
   text-align: right;
   color: #FFF;
-  background-color: #F16530;
+  background-color: #ef5318;
   font-variant: small-caps;
   font-weight: bold;
   font-size: 16px;
 }
 #explore-more-body {
-  border: solid 3px #F16530;
-  border-width: 0 3px 3px 0;
+  background-color: #f8f8f8;
+  border: solid 1px #F16530;
+  border-width: 0 1px 0 0;
+  height: 100vh;
   margin-left: -15px;
   padding-left: 10px;
 }
@@ -10211,7 +10213,7 @@ a.browse-thumbnail.active {
   float: left;
 }
 .exploreMoreBar {
-  border: solid 3px #F16530;
+  border: solid 1px #F16530;
   margin: 10px 5px 15px;
 }
 .exploreMoreBar .exploreMoreBarLabel {
