@@ -454,7 +454,11 @@ class User extends DB_DataObject
 
 	function insert(){
 		//set default values as needed
-		if (!isset($this->homeLocationId)) $this->homeLocationId = 0;
+		if (!isset($this->homeLocationId)) {
+			$this->homeLocationId = 0;
+			global $logger;
+			$logger->log('No Home Location ID was set for newly created user.', PEAR_LOG_WARNING);
+		}
 		if (!isset($this->myLocation1Id)) $this->myLocation1Id = 0;
 		if (!isset($this->myLocation2Id)) $this->myLocation2Id = 0;
 		if (!isset($this->bypassAutoLogout)) $this->bypassAutoLogout = 0;
