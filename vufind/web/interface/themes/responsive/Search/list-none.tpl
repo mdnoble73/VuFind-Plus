@@ -76,6 +76,10 @@
 		</div>
 	{/if}
 
+	{if $exploreMoreOptions && ($smarty.foreach.recordLoop.iteration == 2 || count($recordSet) < 2)}
+		{include file="Search/explore-more-bar.tpl"}
+	{/if}
+
 	{if $unscopedResults}
 		<h2>Results from the entire {$consortiumName} Catalog</h2>
 		{*{foreach from=$unscopedResults item=record name="recordLoop"}*}
