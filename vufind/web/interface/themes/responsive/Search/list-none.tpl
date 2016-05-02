@@ -43,10 +43,6 @@
 		</div>
 	{/if}
 
-	{if $exploreMoreOptions}
-		{include file="Search/explore-more-bar.tpl"}
-	{/if}
-
 	{if $spellingSuggestions}
 		<div class="correction">
 			<h2>Spelling Suggestions</h2>
@@ -76,7 +72,7 @@
 		</div>
 	{/if}
 
-	{if $exploreMoreOptions && ($smarty.foreach.recordLoop.iteration == 2 || count($recordSet) < 2)}
+	{if $exploreMoreOptions}
 		{include file="Search/explore-more-bar.tpl"}
 	{/if}
 

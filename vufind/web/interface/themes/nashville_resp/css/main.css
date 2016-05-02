@@ -10170,18 +10170,19 @@ a.browse-thumbnail.active {
   font-weight: bold;
   font-size: 16px;
 }
-#explore-more-body {
+#sidebar-content {
   background-color: #f8f8f8;
   border: solid 1px #F16530;
   border-width: 0 1px 0 0;
-  height: 100vh;
-  margin-left: -15px;
-  padding-left: 10px;
 }
 @media (max-width: 767px) {
-  #explore-more-body {
+  #sidebar-content {
     border: none;
   }
+}
+#explore-more-body {
+  margin-left: -15px;
+  padding-left: 10px;
 }
 #explore-more-body .sectionHeader {
   text-transform: uppercase;
@@ -11166,6 +11167,11 @@ p.alert.alert-success {
   border-top: 1px solid #BBBBBB;
   margin-left: auto;
   margin-right: auto;
+}
+@media (min-width: 768px) {
+  #footer-container {
+    padding-left: 40px;
+  }
 }
 #footer {
   font-size: 18px;
