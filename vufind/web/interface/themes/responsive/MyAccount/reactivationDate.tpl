@@ -10,9 +10,9 @@
 	</form>
 	<script	type="text/javascript">
 		{literal}
-		$(function() {
+		$(function(){
 			$( "#reactivationDate" ).datepicker({
-				minDate: 0,
+				startDate: Date(),
 				orientation:"top"
 			});
 		});
