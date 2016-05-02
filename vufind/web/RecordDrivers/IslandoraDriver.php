@@ -607,15 +607,6 @@ abstract class IslandoraDriver extends RecordInterface {
 
 				}
 
-				if ($marmotExtension->marmotLocal->hasInterviewee){
-					$interviewee = $marmotExtension->marmotLocal->hasInterviewee;
-					$this->addRelatedEntityToArrays((string)$interviewee->entityPid, (string)$interviewee->entityTitle, 'person', '', 'Interviewee');
-				}
-
-				if ($marmotExtension->marmotLocal->hasPublisher){
-					$publisher = $marmotExtension->marmotLocal->hasPublisher;
-					$this->addRelatedEntityToArrays((string)$publisher->entityPid, (string)$publisher->entityTitle, '', '', 'Publisher');
-				}
 				if ($marmotExtension->marmotLocal->hasTranscription->count() && $marmotExtension->marmotLocal->hasTranscription->transcriber){
 					$entity = $marmotExtension->marmotLocal->hasTranscription->transcriber;
 					$this->addRelatedEntityToArrays((string)$entity->entityPid, (string)$entity->entityTitle, '', '', 'Transcriber');
