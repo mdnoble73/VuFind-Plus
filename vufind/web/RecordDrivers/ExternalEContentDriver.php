@@ -96,6 +96,10 @@ class ExternalEContentDriver extends BaseEContentDriver{
 
 		$isbn = $this->getCleanISBN();
 
+		//Load table of contents
+		$tableOfContents = $this->getTOC();
+		$interface->assign('tableOfContents', $tableOfContents);
+
 		//Get Related Records to make sure we initialize items
 		$recordInfo = $this->getGroupedWorkDriver()->getRelatedRecord('external_econtent:' . $this->getIdWithSource());
 
