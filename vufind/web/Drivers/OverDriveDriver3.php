@@ -913,7 +913,7 @@ class OverDriveDriver3 {
 
 		$url = $configArray['OverDrive']['patronApiUrl'] . "/v1/patrons/me/checkouts/{$overDriveId}/formats/{$format}/downloadlink";
 		$url .= '?errorpageurl=' . urlencode($configArray['Site']['url'] . '/Help/OverDriveError');
-		if ($format == 'ebook-overdrive' || format == 'ebook-mediado'){
+		if ($format == 'ebook-overdrive' || $format == 'ebook-mediado'){
 			$url .= '&odreadauthurl=' . urlencode($configArray['Site']['url'] . '/Help/OverDriveError');
 		}elseif ($format == 'audiobook-overdrive'){
 			$url .= '&odreadauthurl=' . urlencode($configArray['Site']['url'] . '/Help/OverDriveError');
