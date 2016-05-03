@@ -297,11 +297,9 @@ abstract class HorizonAPI extends Horizon{
 					$curHold['reactivateTime'] = (int)$hold->reactivateDate;
 				}
 				$curHold['freezeable'] = true;
-				if (strcasecmp($curHold['status'], 'Transit')) {
-					//TODO: verify this is the correct phrase for an In Transit Hold for Horizon
+				if (strcasecmp($curHold['status'], 'Transit') == 0) {
 					$curHold['freezeable'] = false;
 				}
-
 
 				$curHold['sortTitle'] = (string)$hold->title;
 				$recordDriver = new MarcRecord($bibId);
