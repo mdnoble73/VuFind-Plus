@@ -1,20 +1,24 @@
 VuFind.Responsive = (function(){
 	$(function(){
 		// Attach Responsive Actions to window resizing
-		$(window).resize(function(){
+		/*$(window).resize(function(){
 			VuFind.Responsive.adjustLayout();
 		});
 
 		try{
-			$('.collapse').on('hidden.bs.collapse', function () {
-				//console.log("collapse element hidden");
-				VuFind.Responsive.adjustLayout();
-			}).on('shown.bs.collapse', function () {
-				//console.log("collapse element shown");
+			var mainContentElement = $("#main-content-with-sidebar");
+			mainContentElement.resize(function(){
+				console.log("main content resized");
 				VuFind.Responsive.adjustLayout();
 			});
+			var sidebarContentElem = $("#sidebar-content");
+			sidebarContentElem.resize(function(){
+				console.log("sidebar resized ");
+				VuFind.Responsive.adjustLayout();
+			});
+			console.log("resize listeners setup ");
 		}catch(err){
-			console.log("Could not bind to resize of main content " + err);
+			console.log("Could not setup resize sensors " + err);
 			//Ignore errors if main content doesn't exist
 		}
 
@@ -22,7 +26,7 @@ VuFind.Responsive = (function(){
 			function(){
 				VuFind.Responsive.adjustLayout();
 			}
-		);
+		);*/
 
 		// auto adjust the height of the search box
 		// (Only side bar search box for now)
@@ -69,13 +73,8 @@ VuFind.Responsive = (function(){
 
 
 	return {
-		resizing: false,
 		originalSidebarHeight: -1,
 		adjustLayout: function(){
-			if (VuFind.Responsive.resizing){
-				return;
-			}
-			VuFind.Responsive.resizing = true;
 			// get resolution
 			var resolutionX = document.documentElement.clientWidth;
 
@@ -87,7 +86,8 @@ VuFind.Responsive = (function(){
 				if (VuFind.Responsive.originalSidebarHeight == -1){
 					VuFind.Responsive.originalSidebarHeight = sidebarContentElem.height();
 				}
-				var heightToTest = Math.min(sidebarContentElem.height(), VuFind.Responsive.originalSidebarHeight);
+				//var heightToTest = Math.min(sidebarContentElem.height(), VuFind.Responsive.originalSidebarHeight);
+				var heightToTest = sidebarContentElem.height();
 				var maxHeight = Math.max(mainContentElement.height() + 15, heightToTest);
 				if (mainContentElement.height() + 15 != maxHeight){
 					mainContentElement.height(maxHeight);
@@ -116,7 +116,6 @@ VuFind.Responsive = (function(){
 			//		VuFind.initCarousels();
 			//	}
 			}
-			VuFind.Responsive.resizing = false;
 		}
 	};
 }(VuFind.Responsive || {}));

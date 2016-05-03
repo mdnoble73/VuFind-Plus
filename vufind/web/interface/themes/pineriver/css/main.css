@@ -10171,7 +10171,8 @@ a.browse-thumbnail.active {
 #sidebar-content {
   background-color: #f8f8f8;
   border: solid 1px #7AB92C;
-  border-width: 0 1px 0 0;
+  border-width: 1px 2px 3px 0;
+  padding-bottom: 8px;
 }
 @media (max-width: 767px) {
   #sidebar-content {
