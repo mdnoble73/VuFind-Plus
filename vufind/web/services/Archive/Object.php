@@ -217,16 +217,13 @@ abstract class Archive_Object extends Action{
 		$this->relsExtData = $relsExtData;
 		unlink($temp);*/
 
-		$model = $this->archiveObject->models[0];
-		$model = str_replace('islandora:', '', $model);
-
 		$title = $this->archiveObject->label;
 		$interface->assign('title', $title);
 		$interface->setPageTitle($title);
 		$interface->assign('description', $this->recordDriver->getDescription());
 
-		$interface->assign('large_image', $fedoraUtils->getObjectImageUrl($this->archiveObject, 'large', $model));
-		$interface->assign('medium_image', $fedoraUtils->getObjectImageUrl($this->archiveObject, 'medium', $model));
+		$interface->assign('large_image', $this->recordDriver->getBookcoverUrl('large'));
+		$interface->assign('medium_image', $this->recordDriver->getBookcoverUrl('medium'));
 
 		$repositoryLink = $configArray['Islandora']['repositoryUrl'] . '/islandora/object/' . $this->pid;
 		$interface->assign('repositoryLink', $repositoryLink);
