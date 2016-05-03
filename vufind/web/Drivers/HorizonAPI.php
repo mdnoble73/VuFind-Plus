@@ -297,7 +297,7 @@ abstract class HorizonAPI extends Horizon{
 					$curHold['reactivateTime'] = (int)$hold->reactivateDate;
 				}
 				$curHold['freezeable'] = true;
-				if (strcasecmp($curHold['status'], 'In Transit')) {
+				if (strcasecmp($curHold['status'], 'Transit')) {
 					//TODO: verify this is the correct phrase for an In Transit Hold for Horizon
 					$curHold['freezeable'] = false;
 				}
