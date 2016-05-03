@@ -1069,8 +1069,9 @@ abstract class SearchObject_Base
 	public function getBasicTypes() {
 		$searchIndex = $this->getSearchIndex();
 		$basicSearchTypes = $this->basicTypes;
-		if ($this->searchType != 'genealogy' && $_REQUEST['searchSource'] != 'genealogy' &&
-				$this->searchType != 'islandora' && $_REQUEST['searchSource'] != 'islandora'
+		$searchSource = isset($_REQUEST['searchSource']) ? $_REQUEST['searchSource'] : 'local';
+		if ($this->searchType != 'genealogy' && $searchSource != 'genealogy' &&
+				$this->searchType != 'islandora' && $searchSource != 'islandora'
 			) {
 			if (!array_key_exists($searchIndex, $basicSearchTypes)) {
 				$basicSearchTypes[$searchIndex] = $searchIndex;

@@ -489,7 +489,7 @@ class Aspencat implements DriverInterface{
 						$user->numHoldsAvailableIls = $numAvailableHolds;
 
 						//Get number of unavailable
-						$waitingHoldsRS = mysqli_query($this->dbConnection, 'SELECT count(*) as numHolds FROM reserves WHERE found <> "W" and borrowernumber = ' . $user->username);
+						$waitingHoldsRS = mysqli_query($this->dbConnection, 'SELECT count(*) as numHolds FROM reserves WHERE (found <> "W" or found is null) and borrowernumber = ' . $user->username);
 						$numWaitingHolds = 0;
 						if ($waitingHoldsRS){
 							$waitingHolds = $waitingHoldsRS->fetch_assoc();
