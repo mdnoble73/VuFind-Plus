@@ -404,7 +404,7 @@ class ExploreMore {
 			$logger->log('Islandora Search Failed.', PEAR_LOG_WARNING);
 		}
 
-		if (count($exploreMoreOptions) > 0 && count($exploreMoreOptions) < 3){
+		/*if (count($exploreMoreOptions) > 0 && count($exploreMoreOptions) < 3){
 			$exploreMoreOptions[] = array(
 					'label' => "",
 					'description' => "Explore the archive",
@@ -412,7 +412,7 @@ class ExploreMore {
 					'link' => '/Archive/Results',
 					'placeholder' => true,
 			);
-		}
+		}*/
 
 		$interface->assign('exploreMoreOptions', $exploreMoreOptions);
 	}
