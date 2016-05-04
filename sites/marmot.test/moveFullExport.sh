@@ -15,8 +15,6 @@ else
 	LOG="logger -t $0"
 	# tag logging with script name and command line options
 
-	$LOG "Testing the script."
-
 	REMOTE="10.1.2.6:/ftp"
 	LOCAL="/mnt/ftp"
 
@@ -25,7 +23,7 @@ else
 
 	if [ -d "$LOCAL/$SOURCE/" ]; then
 		if [ -d "/data/vufind-plus/$DESTINATION/marc/" ]; then
-			if [ $(ls -1A "$LOCAL/$SOURCE/" | wc -l) -gt 0 ] ; then
+			if [ $(ls -1A "$LOCAL/$SOURCE/" | grep .mrc | wc -l) -gt 0 ] ; then
 			# only do copy command if there are files present to move
 
 				$LOG "~~ Copy fullexport marc file(s)."
@@ -35,6 +33,9 @@ else
 				if [ $? -ne 0 ]; then
 					$LOG "~~ Moving $SOURCE marc files failed."
 					echo "Moving $SOURCE marc files failed."
+				else
+					$LOG "~~ $SOURCE marc files were copied."
+					echo "$SOURCE marc files were copied."
 				fi
 
 #				TODO: Implement Old Marc File check. Need to change initial parameter test
