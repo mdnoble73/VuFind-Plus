@@ -20,7 +20,7 @@
 				<div id="loginPasswordRow" class="form-group">
 					<label for="password" class="control-label col-xs-12 col-sm-4">{$passwordLabel}: </label>
 					<div class="col-xs-12 col-sm-8">
-						<input type="password" title="PIN should be 4 numeric digits" pattern="[0-9]{ldelim}4,{rdelim}" name="password" id="password" size="28" class="form-control">
+						<input type="password" title="PIN should be 4 numbers" pattern="[0-9]{ldelim}4,{rdelim}" name="password" id="password" size="28" class="form-control">
 					</div>
 				</div>
  				<div id="loginPasswordConfirmRow" class="form-group" style="display:none">
