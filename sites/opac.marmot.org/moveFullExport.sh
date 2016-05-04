@@ -31,8 +31,8 @@ else
 		cp $LOCAL/$SOURCE/*.mrc /data/vufind-plus/$DESTINATION/marc/
 
 		if [ $? -ne 0 ]; then
-			$LOG "~~ Moving marc files failed."
-			echo "Moving marc files failed."
+			$LOG "~~ Moving $SOURCE marc files failed."
+			echo "Moving $SOURCE marc files failed."
 		fi
 
 #TODO: Implement Old Marc File check. Need to change initial parameter test
