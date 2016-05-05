@@ -108,7 +108,7 @@ then
 	if [ -n "$FILE2" ]
 	then
 
-		MINFILE1SIZE=$((735000000))
+		MINFILE1SIZE=$((733000000))
 		MINFILE2SIZE=$((45000000))
 		FILE1SIZE=$(wc -c <"$FILE1")
 		if [ $FILE1SIZE -ge $MINFILE1SIZE ]; then
