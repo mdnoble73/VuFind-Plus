@@ -11,3 +11,6 @@ Disallow: /Record/*/Search/
 
 User-agent: SemrushBot
 Disallow: /
+
+User-agent: SemrushBot-SA
+Disallow: /
