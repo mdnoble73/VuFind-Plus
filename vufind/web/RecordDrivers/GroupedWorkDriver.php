@@ -2366,7 +2366,6 @@ class GroupedWorkDriver extends RecordInterface{
 		$libraryCallNumber = null;
 		$relatedUrls = array();
 
-		$recordAvailable = false;
 		$recordHoldable = false;
 		$recordBookable = false;
 
@@ -2394,9 +2393,6 @@ class GroupedWorkDriver extends RecordInterface{
 			$status = $curItem[13];
 			$locallyOwned = $scopingDetails[4] == 'true';
 			$available = $scopingDetails[5] == 'true';
-			if ($available) {
-				$recordAvailable = true;
-			}
 			$holdable = $scopingDetails[6] == 'true';
 			$bookable = $scopingDetails[7] == 'true';
 			$inLibraryUseOnly = $scopingDetails[8] == 'true';
@@ -2524,11 +2520,14 @@ class GroupedWorkDriver extends RecordInterface{
 				$sectionId = 6;
 			}
 
+			if ((strlen($volume) > 0) && !substr($callNumber, -strlen($volume)) == $volume){
+				$callNumber = trim($callNumber . ' ' . $volume);
+			}
 			//Add the item to the item summary
 			$itemSummaryInfo = array(
 					'description' => $description,
 					'shelfLocation' => $shelfLocation,
-					'callNumber' => trim($callNumber . ' ' . $volume),
+					'callNumber' => $callNumber,
 					'totalCopies' => 1,
 					'availableCopies' => ($available && !$isOrderItem) ? $numCopies : 0,
 					'isLocalItem' => $locallyOwned,
@@ -2579,7 +2578,7 @@ class GroupedWorkDriver extends RecordInterface{
 		ksort($relatedRecord['itemDetails']);
 		$timer->logTime("Setup record items");
 
-		$relatedRecord['actions'] = $recordDriver != null ? $recordDriver->getRecordActions($relatedRecord['availableLocally'], $recordHoldable, $recordBookable, $relatedUrls, $volumeData) : array();
+		$relatedRecord['actions'] = $recordDriver != null ? $recordDriver->getRecordActions($relatedRecord['availableLocally'] || $relatedRecord['availableOnline'], $recordHoldable, $recordBookable, $relatedUrls, $volumeData) : array();
 		$timer->logTime("Loaded actions");
 		return $relatedRecord;
 	}
