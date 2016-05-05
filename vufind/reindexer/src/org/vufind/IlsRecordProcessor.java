@@ -937,10 +937,6 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 					fullCallNumber.append(' ');
 				}
 				fullCallNumber.append(volume);
-				if (sortableCallNumber.length() > 0 && sortableCallNumber.charAt(sortableCallNumber.length() - 1) != ' '){
-					sortableCallNumber.append(' ');
-				}
-				sortableCallNumber.append(volume);
 			}
 			if (fullCallNumber.length() > 0){
 				hasCallNumber = true;
@@ -971,7 +967,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 			}
 			if (callNumber != null) {
 
-				if (volume != null && volume.length() > 0){
+				if (volume != null && volume.length() > 0 && !callNumber.endsWith(volume)){
 					if (callNumber.length() > 0 && callNumber.charAt(callNumber.length() - 1) != ' '){
 						callNumber += " ";
 					}
