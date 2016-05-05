@@ -45,9 +45,9 @@ class UserAPI extends Action {
 		header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
 		header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
 
-		if (is_callable(array($this, $_GET['method']))) {
+		if (is_callable(array($this, $_REQUEST['method']))) {
 			try{
-				$result = $this->$_GET['method']();
+				$result = $this->$_REQUEST['method']();
 				require_once ROOT_DIR . '/sys/Utils/ArrayUtils.php';
 				$utf8EncodedValue = ArrayUtils::utf8EncodeArray(array('result'=>$result));
 				$output = json_encode($utf8EncodedValue);
@@ -77,7 +77,6 @@ class UserAPI extends Action {
 	}
 
 	function getCatalogConnection(){
-		global $configArray;
 		if ($this->catalog == null){
 			// Connect to Catalog
 			$this->catalog = CatalogFactory::getCatalogConnectionInstance();
@@ -566,44 +565,6 @@ class UserAPI extends Action {
 			$eContentDriver = OverDriveDriverFactory::getDriver();
 			$eContentHolds = $eContentDriver->getOverDriveHolds($user);
 			return array('success'=>true, 'holds'=>$eContentHolds);
-		}else{
-			return array('success'=>false, 'message'=>'Login unsuccessful');
-		}
-	}
-
-	/**
-	 * Get a list of items in the user's OverDrive cart.
-	 * For patrons tha use OverDrive exclusively with VuFind this method will never content because
-	 * the cart is always empty except during the checkout process.
-	 *
-	 * Parameters:
-	 * <ul>
-	 * <li>username - The barcode of the user.  Can be truncated to the last 7 or 9 digits.</li>
-	 * <li>password - The pin number for the user. </li>
-	 * </ul>
-	 *
-	 * Sample Call:
-	 * <code>
-	 * http://catalog.douglascountylibraries.org/API/UserAPI?method=getPatronCartOverDrive&username=23025003575917&password=7604
-	 * </code>
-	 *
-	 * Sample Response:
-	 * <code>
-	 * {"result":{"success":true,"items":[]}}
-	 * </code>
-	 *
-	 * @author Mark Noble <mnoble@turningleaftech.com>
-	 */
-	function getPatronCartOverDrive(){
-		$username = $_REQUEST['username'];
-		$password = $_REQUEST['password'];
-		global $user;
-		$user = UserAccount::validateAccount($username, $password);
-		if ($user && !PEAR_Singleton::isError($user)){
-			require_once ROOT_DIR . '/Drivers/OverDriveDriverFactory.php';
-			$eContentDriver = OverDriveDriverFactory::getDriver();
-			$eContentCartItems = $eContentDriver->getOverDriveCart($user);
-			return array('success'=>true, 'items'=>$eContentCartItems['items']);
 		}else{
 			return array('success'=>false, 'message'=>'Login unsuccessful');
 		}

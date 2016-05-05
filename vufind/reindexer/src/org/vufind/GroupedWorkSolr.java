@@ -15,7 +15,7 @@ import java.util.*;
  * Date: 11/25/13
  * Time: 3:19 PM
  */
-public class GroupedWorkSolr {
+public class GroupedWorkSolr implements Cloneable {
 	private String id;
 
 	private HashMap<String, RecordInfo> relatedRecords = new HashMap<>();
@@ -101,6 +101,60 @@ public class GroupedWorkSolr {
 	public GroupedWorkSolr(GroupedWorkIndexer groupedWorkIndexer, Logger logger) {
 		this.logger = logger;
 		this.groupedWorkIndexer = groupedWorkIndexer;
+	}
+
+	protected GroupedWorkSolr clone() throws CloneNotSupportedException{
+		GroupedWorkSolr clonedWork = (GroupedWorkSolr)super.clone();
+		//Clone collections as well
+		clonedWork.relatedRecords = (HashMap<String, RecordInfo>) relatedRecords.clone();
+		clonedWork.alternateIds = (HashSet<String>) alternateIds.clone();
+		clonedWork.primaryAuthors = (HashMap<String,Long>) primaryAuthors.clone();
+		clonedWork.authorAdditional = (HashSet<String>) authorAdditional.clone();
+		clonedWork.author2 = (HashSet<String>) author2.clone();
+		clonedWork.authAuthor2 = (HashSet<String>) authAuthor2.clone();
+		clonedWork.author2Role = (HashSet<String>) author2Role.clone();
+		clonedWork.awards = (HashSet<String>) awards.clone();
+		clonedWork.barcodes = (HashSet<String>) barcodes.clone();
+		clonedWork.contents = (HashSet<String>) contents.clone();
+		clonedWork.dateSpans = (HashSet<String>) dateSpans.clone();
+		clonedWork.description = (HashSet<String>) description.clone();
+		clonedWork.econtentDevices = (HashSet<String>) econtentDevices.clone();
+		clonedWork.editions = (HashSet<String>) editions.clone();
+		clonedWork.eras = (HashSet<String>) eras.clone();
+		clonedWork.fullTitles = (HashSet<String>) fullTitles.clone();
+		clonedWork.genres = (HashSet<String>) genres.clone();
+		clonedWork.genreFacets = (HashSet<String>) genreFacets.clone();
+		clonedWork.geographic = (HashSet<String>) geographic.clone();
+		clonedWork.geographicFacets = (HashSet<String>) geographicFacets.clone();
+		clonedWork.isbns = (HashMap<String,Long>) isbns.clone();
+		clonedWork.issns = (HashSet<String>) geographicFacets.clone();
+		clonedWork.keywords = (HashSet<String>) geographicFacets.clone();
+		clonedWork.languages = (HashSet<String>) geographicFacets.clone();
+		clonedWork.translations = (HashSet<String>) geographicFacets.clone();
+		clonedWork.lccns = (HashSet<String>) geographicFacets.clone();
+		clonedWork.lcSubjects = (HashSet<String>) geographicFacets.clone();
+		clonedWork.literaryFormFull = (HashMap<String,Integer>) literaryFormFull.clone();
+		clonedWork.literaryForm = (HashMap<String,Integer>) literaryForm.clone();
+		clonedWork.mpaaRatings = (HashSet<String>) mpaaRatings.clone();
+		clonedWork.oclcs = (HashSet<String>) oclcs.clone();
+		clonedWork.physicals = (HashSet<String>) physicals.clone();
+		clonedWork.publishers = (HashSet<String>) publishers.clone();
+		clonedWork.publicationDates = (HashSet<String>) publicationDates.clone();
+		clonedWork.series = (HashMap<String,String>) series.clone();
+		clonedWork.series2 = (HashSet<String>) series2.clone();
+		clonedWork.seriesWithVolume = (HashSet<String>) seriesWithVolume.clone();
+		clonedWork.targetAudienceFull = (HashSet<String>) targetAudienceFull.clone();
+		clonedWork.targetAudience = (HashSet<String>) targetAudience.clone();
+		clonedWork.titleAlt = (HashSet<String>) titleAlt.clone();
+		clonedWork.titleOld = (HashSet<String>) titleOld.clone();
+		clonedWork.titleNew = (HashSet<String>) titleNew.clone();
+		clonedWork.topics = (HashSet<String>) topics.clone();
+		clonedWork.topicFacets = (HashSet<String>) topicFacets.clone();
+		clonedWork.subjects = (HashSet<String>) subjects.clone();
+		clonedWork.upcs = (HashMap<String,Long>) upcs.clone();
+		clonedWork.systemLists = (HashSet<String>) systemLists.clone();
+
+		return clonedWork;
 	}
 
 	public SolrInputDocument getSolrDocument(int availableAtBoostValue, int ownedByBoostValue) {
@@ -1327,4 +1381,7 @@ public class GroupedWorkSolr {
 		}
 	}
 
+	public int getNumRecords() {
+		return this.relatedRecords.size();
+	}
 }

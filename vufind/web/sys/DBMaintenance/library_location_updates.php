@@ -1176,6 +1176,16 @@ function getLibraryLocationUpdates(){
 					),
 			),
 
+			'archive_filtering' => array(
+					'title' => 'Archive Filtering',
+					'description' => 'Allow filtering of archive content',
+					'sql' => array(
+							'ALTER TABLE library ADD COLUMN archiveNamespace VARCHAR(30)',
+							'ALTER TABLE library ADD COLUMN hideAllCollectionsFromOtherLibraries TINYINT(1) DEFAULT 0',
+							'ALTER TABLE library ADD COLUMN collectionsToHide MEDIUMTEXT',
+					),
+			),
+
 			'remove_order_options' => array(
 					'title' => 'Remove Order Options',
 					'description' => 'Remove Unused Order Record Options from libraries table',

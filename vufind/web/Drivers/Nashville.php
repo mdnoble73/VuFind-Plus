@@ -286,7 +286,7 @@ class Nashville extends Millennium{
 				$user->cat_password = $newPin;
 				$user->update();
 //				UserAccount::updateSession($user); // needed?? TODO if needed, determine this $user is the same as the user logged in.
-				return "Your pin number was updated /successfully.";
+				return "Your pin number was updated successfully.";
 			} else if (preg_match('/class="errormessage">(.+?)<\/div>/is', $sresult, $matches)){
 				return trim($matches[1]);
 //POSSIBLE ERRORS FROM /newpin

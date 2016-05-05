@@ -83,6 +83,7 @@ abstract class SearchObject_Base
 	// Debugging flag
 	protected $debug = false;
 	protected $debugSolrQuery = false;
+	protected $isPrimarySearch = false;
 	// Search options for the user
 	protected $advancedTypes = array();
 	protected $basicTypes = array();
@@ -858,7 +859,9 @@ abstract class SearchObject_Base
 		if (count($this->filterList) > 0) {
 			foreach ($this->filterList as $field => $filter) {
 				foreach ($filter as $value) {
-					if (preg_match('/\\[.*?\\sTO\\s.*?\\]/', $value)){
+					if (preg_match('/\\[.*?\\sTO\\s.*?\\]/', $value)) {
+						$params[] = "filter[]=$field:$value";
+					}elseif (preg_match('/^\\(.*?\\)$/', $value)){
 						$params[] = "filter[]=$field:$value";
 					}else{
 						$params[] = "filter[]=" . urlencode("$field:\"$value\"");
@@ -1066,8 +1069,9 @@ abstract class SearchObject_Base
 	public function getBasicTypes() {
 		$searchIndex = $this->getSearchIndex();
 		$basicSearchTypes = $this->basicTypes;
-		if ($this->searchType != 'genealogy' && $_REQUEST['searchSource'] != 'genealogy' &&
-				$this->searchType != 'islandora' && $_REQUEST['searchSource'] != 'islandora'
+		$searchSource = isset($_REQUEST['searchSource']) ? $_REQUEST['searchSource'] : 'local';
+		if ($this->searchType != 'genealogy' && $searchSource != 'genealogy' &&
+				$this->searchType != 'islandora' && $searchSource != 'islandora'
 			) {
 			if (!array_key_exists($searchIndex, $basicSearchTypes)) {
 				$basicSearchTypes[$searchIndex] = $searchIndex;
@@ -2218,7 +2222,15 @@ public function getNextPrevLinks(){
 			$timer->logTime('Got next/previous links');
 		}
 	}
-}
+
+	/**
+	 * Set weather or not this is a primary search.  If it is, we will show links to it in search result debuggin
+	 * @param boolean $flag
+	 */
+	public function setPrimarySearch($flag){
+		$this->isPrimarySearch = $flag;
+	}
+}//End of SearchObject_Base
 
 /**
  * ****************************************************
@@ -2300,5 +2312,4 @@ class minSO
 		//Minify sort
 
 	}
-}
-?>
+} //End of minso object (not SearchObject_Base)

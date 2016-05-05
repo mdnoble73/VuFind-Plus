@@ -27,14 +27,14 @@ require_once ROOT_DIR . '/sys/Utils/Pagination.php';
 class ListAPI extends Action {
 
 	function launch() {
-		$method = $_GET['method'];
+		$method = $_REQUEST['method'];
 		if ($method == 'getRSSFeed'){
 			header ('Content-type: text/xml');
 			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
 			header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
 			$xml = '<?xml version="1.0" encoding="UTF-8"?' . ">\n";
-			if (is_callable(array($this, $_GET['method']))) {
-				$xml .= $this->$_GET['method']();
+			if (is_callable(array($this, $_REQUEST['method']))) {
+				$xml .= $this->$_REQUEST['method']();
 			} else {
 				$xml .= '<Error>Invalid Method</Error>';
 			}
@@ -45,8 +45,8 @@ class ListAPI extends Action {
 			header('Content-type: text/plain');
 			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
 			header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
-			if (is_callable(array($this, $_GET['method']))) {
-				$output = json_encode(array('result'=>$this->$_GET['method']()));
+			if (is_callable(array($this, $_REQUEST['method']))) {
+				$output = json_encode(array('result'=>$this->$_REQUEST['method']()));
 			} else {
 				$output = json_encode(array('error'=>'invalid_method'));
 			}
@@ -377,7 +377,7 @@ class ListAPI extends Action {
 		$list = new UserList();
 		$list->id = $listId;
 		if ($list->find(true)){
-			//Make sure the user has acess to the list
+			//Make sure the user has access to the list
 			if ($list->public == 0){
 				if (!$user){
 					return array('success'=>false, 'message'=>'The user was invalid.  A valid user must be provided for private lists.');
@@ -646,10 +646,12 @@ class ListAPI extends Action {
 	}
 
 	function loadTitleInformationForIds($ids, $descriptions = array(), $datesSaved = array()){
+		/** @var SearchObject_Solr $searchObject */
 		$searchObject = SearchObjectFactory::initSearchObject();
 		$searchObject->init();
 		$titles = array();
 		if (count($ids) > 0){
+			$searchObject->setLimit(count($ids));
 			$searchObject->setQueryIDs($ids);
 			$searchObject->processSearch();
 			$titles = $searchObject->getListWidgetTitles();
@@ -703,7 +705,7 @@ class ListAPI extends Action {
 	 * Returns:
 	 * <ul>
 	 * <li>success - true if the account is valid and the list could be created, false if the username or password were incorrect or the list could not be created.</li>
-	 * <li>listId - te id of the new list that is created.</li>
+	 * <li>listId - the id of the new list that is created.</li>
 	 * </ul>
 	 *
 	 * Sample Call:
@@ -732,7 +734,8 @@ class ListAPI extends Action {
 			$list->user_id = $user->id;
 			$list->insert();
 			$list->find();
-			if (!isset($_REQUEST['recordIds'])){
+			if (isset($_REQUEST['recordIds'])){
+				$_REQUEST['listId'] = $list->id;
 				$result = $this->addTitlesToList();
 				return $result;
 			}
@@ -783,7 +786,7 @@ class ListAPI extends Action {
 		}
 		$recordIds = array();
 		if (!isset($_REQUEST['recordIds'])){
-			return array('success'=>false, 'message'=>'You must provide one or more records to add tot he list.');
+			return array('success'=>false, 'message'=>'You must provide one or more records to add to the list.');
 		}else if (!is_array($_REQUEST['recordIds'])){
 			$recordIds[] = $_REQUEST['recordIds'];
 		}else{
@@ -800,6 +803,7 @@ class ListAPI extends Action {
 			}else{
 				$numAdded = 0;
 				foreach ($recordIds as $id){
+					require_once ROOT_DIR . '/sys/LocalEnrichment/UserListEntry.php';
 					$userListEntry = new UserListEntry();
 					$userListEntry->listId = $list->id;
 					$userListEntry->groupedWorkPermanentId = $id;

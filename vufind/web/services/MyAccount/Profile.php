@@ -114,10 +114,10 @@ class MyAccount_Profile extends MyAccount
 		*/
 					$patron->updateOverDriveOptions();
 				} elseif ($updateScope == 'pin') {
-//				$errors = $this->catalog->updatePin();
 					$errors = $patron->updatePin();
 					session_start(); // any writes to the session storage also closes session. possibly happens in updatePin. plb 4-21-2015
 					$_SESSION['profileUpdateErrors'] = $errors;
+					// Template checks for update Pin success message and presents as success even though stored in this errors variable
 				}
 
 				session_write_close();

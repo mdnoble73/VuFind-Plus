@@ -88,7 +88,7 @@ TitleScroller.prototype.updateScroller = function() {
 				scrollerBodyContents += this.scrollerTitles[i]['formattedTitle'];
 			}
 			scrollerBody.html(scrollerBodyContents)
-					.width(this.scrollerTitles.length * 131)
+					.width(this.scrollerTitles.length * 300) // use a large enough interval to accomodate medium covers sizes
 					.waitForImages(function() {
 						TitleScroller.prototype.finishLoadingScroller.call(curScroller);
 					});
@@ -99,30 +99,17 @@ TitleScroller.prototype.updateScroller = function() {
 			scrollerBody.html(scrollerBodyContents)
 					.height(this.scrollerTitles.length * 131)
 					.waitForImages(function() {
+						//console.log(scrollerBody);
 						TitleScroller.prototype.finishLoadingScroller.call(curScroller);
 					});
 		}else if (this.style == 'text-list'){
-			$.each(this.scrollerTitles, function(j, val){
-				//var idname = curScroller.scrollerId+ j.toString();
-				scrollerBodyContents = $('<div>').attr({ // create containing dev
-					id:curScroller.scrollerId+ j.toString()
-					,class:'scrollerTitle'
-				}).html( // create link tag
-						$('<a><b>'+val['title']+'</b> by <b>'+val['author']+'</b></a>').attr({
-							href: val['titleURL']
-							,onclick:"trackEvent('ListWidget', 'Title Click', '"+this.scrollerShortName+"')"
-							,id:'descriptionTrigger'+val['shortId']
-						}).prepend((j+1)+') ')
-				);
-				scrollerBodyContents.appendTo(scrollerBody);
-				//console.log(scrollerBodyContents);
-				//console.log(scrollerBodyContents.height());
-				//console.log(idname+' Height:'+ $('#'+idname).height());
-			});
-			scrollerBody.height(this.scrollerTitles.length * 40); //TODO re-calibrate
+			for ( var i in this.scrollerTitles) {
+				scrollerBodyContents += this.scrollerTitles[i]['formattedTextOnlyTitle'];
+			}
+			scrollerBody.html(scrollerBodyContents)
+					.height(this.scrollerTitles.length * 40); //TODO re-calibrate
 
 			TitleScroller.prototype.finishLoadingScroller.call(curScroller);
-
 		}else{
 			this.currentScrollerIndex = 0;
 			scrollerBody.html(this.scrollerTitles[this.currentScrollerIndex]['formattedTitle']);

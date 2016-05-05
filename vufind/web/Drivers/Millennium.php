@@ -312,7 +312,14 @@ class Millennium extends ScreenScrapingDriver
 				if ($location->find(true)){
 					//Setup default location information if it hasn't been loaded or has been changed
 					if ($user->homeLocationId == 0 || $location->locationId != $user->homeLocationId) {
+
 						$user->homeLocationId = $location->locationId;
+						if ((!isset($user->homeLocationId) || $user->homeLocationId == 0)) {
+							// Logging for Diagnosing PK-1846
+							global $logger;
+							$logger->log('Millennium Driver: Attempted look up user\'s homeLocationId and failed to find one. User : '.$user->id, PEAR_LOG_WARNING);
+						}
+
 						if ($location->nearbyLocation1 > 0){
 							$user->myLocation1Id = $location->nearbyLocation1;
 						}else{
@@ -344,6 +351,10 @@ class Millennium extends ScreenScrapingDriver
 				}else{
 					unset($location);
 				}
+			} else {
+					// Logging for Diagnosing PK-1846
+					global $logger;
+					$logger->log('Millennium Driver: No Home Library Location or Hold location found in patron dump. User : '.$user->id, PEAR_LOG_WARNING);
 			}
 
 			$user->expired     = 0; // default setting

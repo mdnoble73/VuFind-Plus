@@ -8490,6 +8490,11 @@ hr.menu {
     margin-right: 0;
   }
 }
+@media (min-width: 991px) {
+  #footer-container {
+    padding-left: 40px;
+  }
+}
 #install-info {
   padding-left: 20px;
 }
@@ -8781,9 +8786,7 @@ hr.menu {
   margin-top: 5px;
 }
 #home-page-library-section {
-  background-color: #eeeeee;
   padding: 15px 0;
-  height: 100%;
 }
 .sidebar-button {
   text-align: center;
@@ -9152,7 +9155,8 @@ hr.menu {
   margin-top: 5px;
 }
 .home-page-browse-thumbnails,
-.home-page-browse-grid {
+.home-page-browse-grid,
+.browse-thumbnails-few {
   -webkit-column-gap: 15px;
   -moz-column-gap: 15px;
   column-gap: 15px;
@@ -9183,6 +9187,34 @@ hr.menu {
     -webkit-column-count: 6;
     -moz-column-count: 6;
     column-count: 6;
+  }
+}
+@media (min-width: 0) {
+  .browse-thumbnails-few {
+    -webkit-column-count: 1;
+    -moz-column-count: 1;
+    column-count: 1;
+  }
+}
+@media (min-width: 480px) {
+  .browse-thumbnails-few {
+    -webkit-column-count: 1;
+    -moz-column-count: 1;
+    column-count: 1;
+  }
+}
+@media (min-width: 992px) {
+  .browse-thumbnails-few {
+    -webkit-column-count: 2;
+    -moz-column-count: 2;
+    column-count: 2;
+  }
+}
+@media (min-width: 1200px) {
+  .browse-thumbnails-few {
+    -webkit-column-count: 2;
+    -moz-column-count: 2;
+    column-count: 2;
   }
 }
 @media (min-width: 0) {
@@ -9339,6 +9371,11 @@ a.browse-thumbnail.active {
 #mobileHeader .myAccountLink {
   font-weight: bold;
   font-size: 18px;
+}
+#contactUpdateForm .btn-group .btn-default.active {
+  background-color: #428bca;
+  box-shadow: none;
+  color: #fff;
 }
 /**
  * Additional Styling related to the help system
@@ -10126,21 +10163,25 @@ a.browse-thumbnail.active {
   padding: 10px 25px 5px 0;
   text-align: right;
   color: #FFF;
-  background-color: #00a4e3;
+  background-color: #0092ca;
   font-variant: small-caps;
   font-weight: bold;
   font-size: 16px;
 }
-#explore-more-body {
-  border: solid 3px #00a4e3;
-  border-width: 0 3px 3px 0;
-  margin-left: -15px;
-  padding-left: 10px;
+#sidebar-content {
+  background-color: #f8f8f8;
+  border: solid 1px #00a4e3;
+  border-width: 1px 2px 3px 0;
+  padding-bottom: 8px;
 }
 @media (max-width: 767px) {
-  #explore-more-body {
+  #sidebar-content {
     border: none;
   }
+}
+#explore-more-body {
+  margin-left: -15px;
+  padding-left: 10px;
 }
 #explore-more-body .sectionHeader {
   text-transform: uppercase;
@@ -10167,8 +10208,12 @@ a.browse-thumbnail.active {
 #explore-more-body .relatedTitlesContainer {
   height: 100%;
 }
+.exhibit-thumbnail {
+  margin: 8px;
+  float: left;
+}
 .exploreMoreBar {
-  border: solid 3px #00a4e3;
+  border: solid 1px #00a4e3;
   margin: 10px 5px 15px;
 }
 .exploreMoreBar .exploreMoreBarLabel {

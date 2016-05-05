@@ -255,6 +255,7 @@ class AJAX extends Action {
 //						$titleShort = preg_replace('/\:.*?$/','', $rawData['title']);
 //						$titleShort = preg_replace('/\s*\/$\s*/','', $titleShort);
 						$interface->assign('title', $titleShort);
+						$interface->assign('author', $rawData['author']);
 						$interface->assign('description', isset($rawData['description']) ? $rawData['description'] : null);
 						$interface->assign('length', isset($rawData['length']) ? $rawData['length'] : null);
 						$interface->assign('publisher', isset($rawData['publisher']) ? $rawData['publisher'] : null);
@@ -275,7 +276,8 @@ class AJAX extends Action {
 							$interface->assign('showNotInterested', false);
 						}
 
-						$rawData['formattedTitle'] = $interface->fetch('ListWidget/formattedTitle.tpl');
+						$rawData['formattedTitle']         = $interface->fetch('ListWidget/formattedTitle.tpl');
+						$rawData['formattedTextOnlyTitle'] = $interface->fetch('ListWidget/formattedTextOnlyTitle.tpl');
 
 						$titles[$key] = $rawData;
 					}

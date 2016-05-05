@@ -39,7 +39,8 @@ public class AspencatRecordProcessor extends IlsRecordProcessor {
 			kohaConn = DriverManager.getConnection(kohaConnectionJDBC);
 
 			//Get a list of all items that are in transit
-			PreparedStatement getInTransitItemsStmt = kohaConn.prepareStatement("SELECT itemnumber from reserves WHERE found = 'T'");
+			//PreparedStatement getInTransitItemsStmt = kohaConn.prepareStatement("SELECT itemnumber from reserves WHERE found = 'T'");
+			PreparedStatement getInTransitItemsStmt = kohaConn.prepareStatement("SELECT itemnumber from branchtransfers WHERE datearrived IS NULL");
 			ResultSet inTransitItemsRS = getInTransitItemsStmt.executeQuery();
 			while (inTransitItemsRS.next()){
 				inTransitItems.add(inTransitItemsRS.getString("itemnumber"));

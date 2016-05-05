@@ -17,8 +17,14 @@ class Archive_Exhibit extends Archive_Object{
 		$this->loadArchiveObjectData();
 		$this->loadExploreMoreContent();
 
+		$this->loadRelatedObjects();
+
 		if ($this->archiveObject->getDatastream('BANNER') != null) {
 			$interface->assign('main_image', $configArray['Islandora']['objectUrl'] . "/{$this->pid}/datastream/BANNER/view");
+		}
+
+		if ($this->archiveObject->getDatastream('TN') != null) {
+			$interface->assign('thumbnail', $configArray['Islandora']['objectUrl'] . "/{$this->pid}/datastream/TN/view");
 		}
 
 		$interface->assign('showExploreMore', true);
@@ -27,7 +33,7 @@ class Archive_Exhibit extends Archive_Object{
 		$this->display('exhibit.tpl');
 	}
 
-	function loadExploreMoreContent(){
+	function loadRelatedObjects(){
 		global $interface;
 		/** @var SearchObject_Islandora $searchObject */
 		$searchObject = SearchObjectFactory::initSearchObject('Islandora');
@@ -37,6 +43,7 @@ class Archive_Exhibit extends Archive_Object{
 		$searchObject->addHiddenFilter('!RELS_EXT_isViewableByRole_literal_ms', "administrator");
 		$searchObject->clearFilters();
 		$searchObject->addFilter("RELS_EXT_isMemberOfCollection_uri_ms:\"info:fedora/{$this->pid}\"");
+		$searchObject->setLimit(48);
 
 		$relatedImages = array();
 		$response = $searchObject->processSearch(true, false);
@@ -47,7 +54,7 @@ class Archive_Exhibit extends Archive_Object{
 				$relatedImages[] = array(
 						'title' => $firstObjectDriver->getTitle(),
 						'description' => "Update me",
-						'thumbnail' => $firstObjectDriver->getBookcoverUrl('medium'),
+						'image' => $firstObjectDriver->getBookcoverUrl('medium'),
 						'link' => $firstObjectDriver->getRecordUrl(),
 				);
 			}

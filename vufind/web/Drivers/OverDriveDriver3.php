@@ -58,14 +58,14 @@ class OverDriveDriver3 {
 			global $configArray;
 			if (isset($configArray['OverDrive']['clientKey']) && $configArray['OverDrive']['clientKey'] != '' && isset($configArray['OverDrive']['clientSecret']) && $configArray['OverDrive']['clientSecret'] != ''){
 				$ch = curl_init("https://oauth.overdrive.com/token");
-				curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 15);
 				curl_setopt($ch, CURLOPT_USERAGENT,"Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)");
 				curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 				curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
 				curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
 				curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/x-www-form-urlencoded;charset=UTF-8'));
 				curl_setopt($ch, CURLOPT_USERPWD, $configArray['OverDrive']['clientKey'] . ":" . $configArray['OverDrive']['clientSecret']);
-				curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+				curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+				curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 1);
 				curl_setopt($ch, CURLOPT_POST, 1);
 				curl_setopt($ch, CURLOPT_POSTFIELDS, "grant_type=client_credentials");
 				curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
@@ -109,7 +109,6 @@ class OverDriveDriver3 {
 					return false;
 				}
 				$clientSecret = $configArray['OverDrive']['clientSecret'];
-				curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 15);
 				curl_setopt($ch, CURLOPT_USERAGENT,"Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)");
 				curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 				curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
@@ -123,7 +122,8 @@ class OverDriveDriver3 {
 				//curl_setopt($ch, CURLOPT_USERPWD, "");
 				//$clientSecret = $configArray['OverDrive']['clientSecret'];
 				//curl_setopt($ch, CURLOPT_USERPWD, $configArray['OverDrive']['clientKey'] . ":" . $clientSecret);
-				curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+				curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+				curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 1);
 				curl_setopt($ch, CURLOPT_POST, 1);
 
 				if ($patronPin == null){
@@ -166,12 +166,12 @@ class OverDriveDriver3 {
 		$tokenData = $this->_connectToAPI();
 		if ($tokenData){
 			$ch = curl_init($url);
-			curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 15);
 			curl_setopt($ch, CURLOPT_USERAGENT,"Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)");
 			curl_setopt($ch, CURLOPT_HTTPHEADER, array("Authorization: {$tokenData->token_type} {$tokenData->access_token}", "User-Agent: VuFind-Plus"));
 			curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 			curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
-			curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+			curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+			curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 1);
 			curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
 			$return = curl_exec($ch);
 			curl_close($ch);
@@ -240,7 +240,6 @@ class OverDriveDriver3 {
 		}
 		if ($tokenData){
 			$ch = curl_init($url);
-			curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 15);
 			curl_setopt($ch, CURLOPT_USERAGENT,"Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)");
 			if (isset($tokenData->token_type) && isset($tokenData->access_token)){
 				$authorizationData = $tokenData->token_type . ' ' . $tokenData->access_token;
@@ -260,7 +259,8 @@ class OverDriveDriver3 {
 
 			curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 			curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
-			curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+			curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+			curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 1);
 			curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
 			if ($postParams != null){
 				curl_setopt($ch, CURLOPT_POST, 1);
@@ -300,7 +300,6 @@ class OverDriveDriver3 {
 		//TODO: Remove || true when oauth works
 		if ($tokenData || true){
 			$ch = curl_init($url);
-			curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 15);
 			curl_setopt($ch, CURLOPT_USERAGENT,"Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)");
 			if ($tokenData){
 				$authorizationData = $tokenData->token_type . ' ' . $tokenData->access_token;
@@ -316,7 +315,8 @@ class OverDriveDriver3 {
 
 			curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 			curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
-			curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+			curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+			curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 1);
 			curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
 			curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'DELETE');
 			curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
@@ -897,7 +897,7 @@ class OverDriveDriver3 {
 		}else{
 			$tokenData = $this->_connectToPatronAPI($user, $userBarcode, null, false);
 		}
-		return $tokenData !== false;
+		return ($tokenData !== false) && ($tokenData !== null);
 	}
 
 	public function updateLendingOptions(){
