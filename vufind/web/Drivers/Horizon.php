@@ -473,7 +473,7 @@ abstract class Horizon extends ScreenScrapingDriver{
 					$mailer = new VuFindMailer();
 					$subject = "PIN number for your Library Card";
 					$body = "The PIN number for your Library Card is $pin.  You may use this PIN number to login to your account.";
-					$mailer->send($email, $configArray['Site']['email'],$subject, $body);
+					$mailer->send($email, $configArray['Site']['email'], $subject, $body);
 					return array(
 						'success' => true,
 						'pin' => $pin,
@@ -484,7 +484,7 @@ abstract class Horizon extends ScreenScrapingDriver{
 				}
 			} catch (PDOException $e) {
 				return array(
-					'error' => 'Unable to ready you PIN from the database.  Please try again later.'
+					'error' => 'Unable to read your PIN from the database.  Please try again later.'
 					);
 			}
 		}else{

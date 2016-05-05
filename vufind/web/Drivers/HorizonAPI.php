@@ -889,9 +889,10 @@ abstract class HorizonAPI extends Horizon{
 		$barcode = $_REQUEST['barcode'];
 
 		//email the pin to the user
-		$updatePinUrl = $configArray['Catalog']['webServiceUrl'] . '/standard/emailMyPin?clientID=' . $configArray['Catalog']['clientId'] . '&login=' . $barcode . '&profile=' . $this->hipProfile;
+		$updatePinUrl = $configArray['Catalog']['webServiceUrl'] . '/standard/emailMyPin?clientID=' . $configArray['Catalog']['clientId'] . '&secret=' . $configArray['Catalog']['clientSecret'] . '&login=' . $barcode . '&profile=' . $this->hipProfile;
 		$updatePinResponse = $this->getWebServiceResponse($updatePinUrl);
-		//$updatePinResponse is an XML object, at least when there is an error
+		//$updatePinResponse is an XML object, at least when there is an error with the API call
+		// otherwise, it is true for the pin sent, or false for pin not sent.
 
 		if ($updatePinResponse && !isset($updatePinResponse->code)){
 			return array(
@@ -902,7 +903,7 @@ abstract class HorizonAPI extends Horizon{
 				'error' => "Sorry, we could not e-mail your pin to you.  Please visit the library to reset your pin."
 			);
 			if (isset($updatePinResponse->code)){
-				$result['error'] .= '  ' . $updatePinResponse->code;
+				$result['error'] .= '  ' . $updatePinResponse->string;
 			}
 			return $result;
 		}
