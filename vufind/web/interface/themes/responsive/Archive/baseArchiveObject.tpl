@@ -102,6 +102,15 @@
 					</div>
 				{/if}
 
+				{if $primaryUrl}
+					<div class="row">
+						<div class="result-label col-sm-4">Website: </div>
+						<div class="result-value col-sm-8">
+							<a href="{$primaryUrl}">{$primaryUrl}</a>
+						</div>
+					</div>
+				{/if}
+
 				{if $description}
 					<div class="row">
 						<div class="result-label col-sm-4">Description: </div>

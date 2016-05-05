@@ -73,6 +73,11 @@ abstract class Archive_Object extends Action{
 		$this->formattedSubjects = $this->recordDriver->getAllSubjectsWithLinks();
 		$interface->assign('subjects', $this->formattedSubjects);
 
+		if ($this->modsData->location->count()){
+			$primaryUrl = $this->modsData->location->url;
+			$interface->assign('primaryUrl', $primaryUrl);
+		}
+
 		$rightsStatements = array();
 		if ($this->modsData->accessCondition->count()){
 			$accessConditions = $this->modsData->accessCondition->children('http://marmot.org/local_mods_extension');
