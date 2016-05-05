@@ -19,4 +19,8 @@ class PlaceDriver extends IslandoraDriver {
 		global $configArray;
 		return $configArray['Site']['path'] . '/interface/themes/responsive/images/places.png';
 	}
+
+	public function isEntity(){
+		return true;
+	}
 }

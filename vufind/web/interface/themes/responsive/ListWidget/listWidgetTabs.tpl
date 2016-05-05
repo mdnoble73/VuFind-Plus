@@ -111,7 +111,7 @@
 				var availableLists = availableListsSelector[0];
 				var selectedOption = availableLists.options[0];
 				var selectedValue = selectedOption.value;
-			availableListsSelector.val(selectedValue)
+			availableListsSelector.val(selectedValue);
 			{/if}
 		{rdelim});
 

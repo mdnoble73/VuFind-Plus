@@ -8,3 +8,9 @@ Disallow: /images/fiveStar/
 Disallow: /bookcover.php
 Disallow: /vufind/
 Disallow: /Record/*/Search/
+
+User-agent: SemrushBot
+Disallow: /
+
+User-agent: SemrushBot-SA
+Disallow: /

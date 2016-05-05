@@ -874,9 +874,9 @@ class MyAccount_AJAX
 
 		$title = translate('Freeze Hold'); // language customization
 		$results = array(
-			'title' => $title,
-			'modalBody' => $interface->fetch("MyAccount/reactivationDate.tpl"),
-			'modalButtons' => "<span class='tool btn btn-primary' onclick='VuFind.Account.doFreezeHoldWithReactivationDate(this); return false;'>$title</span>"
+			'title'        => $title,
+			'modalBody'    => $interface->fetch("MyAccount/reactivationDate.tpl"),
+			'modalButtons' => "<button class='tool btn btn-primary' onclick='VuFind.Account.doFreezeHoldWithReactivationDate(this); return false;'>$title</button>"
 		);
 		return $results;
 	}

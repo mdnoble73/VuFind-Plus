@@ -2579,7 +2579,7 @@ class GroupedWorkDriver extends RecordInterface{
 		ksort($relatedRecord['itemDetails']);
 		$timer->logTime("Setup record items");
 
-		$relatedRecord['actions'] = $recordDriver != null ? $recordDriver->getRecordActions($recordAvailable, $recordHoldable, $recordBookable, $relatedUrls, $volumeData) : array();
+		$relatedRecord['actions'] = $recordDriver != null ? $recordDriver->getRecordActions($relatedRecord['availableLocally'], $recordHoldable, $recordBookable, $relatedUrls, $volumeData) : array();
 		$timer->logTime("Loaded actions");
 		return $relatedRecord;
 	}

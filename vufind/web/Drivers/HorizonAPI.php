@@ -108,7 +108,14 @@ abstract class HorizonAPI extends Horizon{
 				}
 
 				if ($user->homeLocationId == 0 && isset($location)) {
+
 					$user->homeLocationId = $location->locationId;
+					if ((!isset($user->homeLocationId) || $user->homeLocationId == 0)) {
+						// Logging for Diagnosing PK-1846
+						global $logger;
+						$logger->log('HorizonAPI Driver: Attempted look up user\'s homeLocationId and failed to find one. User : '.$user->id, PEAR_LOG_WARNING);
+					}
+
 					if ($location->nearbyLocation1 > 0) {
 						$user->myLocation1Id = $location->nearbyLocation1;
 					} else {
@@ -121,6 +128,11 @@ abstract class HorizonAPI extends Horizon{
 					}
 				}else if (isset($location) && $location->locationId != $user->homeLocationId){
 					$user->homeLocationId = $location->locationId;
+					if ((!isset($user->homeLocationId) || $user->homeLocationId == 0)) {
+						// Logging for Diagnosing PK-1846
+						global $logger;
+						$logger->log('HorizonAPI Driver: Attempted changing user\'s homeLocationId and failed to find one. User : '.$user->id, PEAR_LOG_WARNING);
+					}
 				}
 
 				//Get display name for preferred location 1
@@ -285,6 +297,9 @@ abstract class HorizonAPI extends Horizon{
 					$curHold['reactivateTime'] = (int)$hold->reactivateDate;
 				}
 				$curHold['freezeable'] = true;
+				if (strcasecmp($curHold['status'], 'Transit') == 0) {
+					$curHold['freezeable'] = false;
+				}
 
 				$curHold['sortTitle'] = (string)$hold->title;
 				$recordDriver = new MarcRecord($bibId);
@@ -299,6 +314,13 @@ abstract class HorizonAPI extends Horizon{
 
 					//Load rating information
 					$curHold['ratingData'] = $recordDriver->getRatingData();
+
+					if (empty($curHold['title'])){
+						$curHold['title'] = $recordDriver->getTitle();
+					}
+					if (empty($curHold['author'])){
+						$curHold['author'] = $recordDriver->getPrimaryAuthor();
+					}
 				}
 				$curHold['user'] = $patron->getNameAndLibraryLabel();
 
@@ -721,8 +743,14 @@ abstract class HorizonAPI extends Horizon{
 					if ($recordDriver->isValid()){
 						$curTitle['coverUrl'] = $recordDriver->getBookcoverUrl('medium');
 						$curTitle['groupedWorkId'] = $recordDriver->getGroupedWorkId();
-						$formats = $recordDriver->getFormats();
-						$curTitle['format'] = reset($formats);
+						$curTitle['format'] = $recordDriver->getPrimaryFormat();
+						if (empty($curTitle['title'])){
+							$curTitle['title'] = $recordDriver->getTitle();
+							$curTitle['title_sort'] = $recordDriver->getSortableTitle();
+						}
+						if (empty($curTitle['author'])){
+							$curTitle['author'] = $recordDriver->getPrimaryAuthor();
+						}
 					}else{
 						$curTitle['coverUrl'] = "";
 					}
@@ -862,10 +890,10 @@ abstract class HorizonAPI extends Horizon{
 
 		//email the pin to the user
 		$updatePinUrl = $configArray['Catalog']['webServiceUrl'] . '/standard/emailMyPin?clientID=' . $configArray['Catalog']['clientId'] . '&login=' . $barcode . '&profile=' . $this->hipProfile;
-
 		$updatePinResponse = $this->getWebServiceResponse($updatePinUrl);
+		//$updatePinResponse is an XML object, at least when there is an error
 
-		if ($updatePinResponse == true && !isset($updatePinResponse['code'])){
+		if ($updatePinResponse && !isset($updatePinResponse->code)){
 			return array(
 				'success' => true,
 			);
@@ -873,8 +901,8 @@ abstract class HorizonAPI extends Horizon{
 			$result = array(
 				'error' => "Sorry, we could not e-mail your pin to you.  Please visit the library to reset your pin."
 			);
-			if (isset($updatePinResponse['code'])){
-				$result['error'] .= '  ' . $updatePinResponse['code'];
+			if (isset($updatePinResponse->code)){
+				$result['error'] .= '  ' . $updatePinResponse->code;
 			}
 			return $result;
 		}
@@ -982,6 +1010,8 @@ abstract class HorizonAPI extends Horizon{
 				return $xml;
 			}
 		}else{
+			global $logger;
+			$logger->log('Curl problem in getWebServiceResponse', PEAR_LOG_WARNING);
 			return false;
 		}
 	}

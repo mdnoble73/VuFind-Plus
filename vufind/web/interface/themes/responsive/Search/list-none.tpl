@@ -43,10 +43,6 @@
 		</div>
 	{/if}
 
-	{if $exploreMoreOptions}
-		{include file="Search/explore-more-bar.tpl"}
-	{/if}
-
 	{if $spellingSuggestions}
 		<div class="correction">
 			<h2>Spelling Suggestions</h2>
@@ -74,6 +70,10 @@
 				{/foreach}
 			</div>
 		</div>
+	{/if}
+
+	{if $exploreMoreOptions}
+		{include file="Search/explore-more-bar.tpl"}
 	{/if}
 
 	{if $unscopedResults}

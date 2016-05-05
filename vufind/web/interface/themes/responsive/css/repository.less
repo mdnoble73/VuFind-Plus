@@ -16,13 +16,16 @@
   font-weight: bold;
   font-size: 16px;
 }
-#explore-more-body{
+#sidebar-content{
+  background-color: @explore-more-sidebar-body-bg-color;
   border: solid @explore-more-bar-border-width @explore-more-bar-label-bg-color;
-  border-width: 0 @explore-more-bar-border-width @explore-more-bar-border-width 0;
-
+  border-width: @explore-more-bar-border-width @explore-more-bar-border-width+1 @explore-more-bar-border-width+2 0;
+  padding-bottom: 8px;
   @media (max-width: @screen-xs-max) {
     border: none;
   }
+}
+#explore-more-body{
 
   margin-left: floor(-@grid-gutter-width / 2); // undo padding of parent #sidebar-content with negative margin
   padding-left: @padding-small-horizontal; // add smaller padding
@@ -60,6 +63,10 @@
   }
 }
 
+.exhibit-thumbnail{
+  margin: 8px;
+  float: left;
+}
 
 // Styling for Explore More Bar in Search Results
 .exploreMoreBar {

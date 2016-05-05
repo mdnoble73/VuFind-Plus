@@ -32,17 +32,23 @@ public class MergeMarcUpdatesAndDeletes implements IProcessHandler{
 		CronProcessLogEntry processLog = new CronProcessLogEntry(cronEntry.getLogEntryId(), "Merge Marc Updates and Deletes");
 		processLog.saveToDatabase(vufindConn, logger);
 
+		//TODO: Load a list of indexing profiles that require merging
+		//TODO: SQL to load the indexing profiles
+
+		//TODO: Loop through the indexing profiles
 
 		//Get a list of marc records that need to be processed
+		//TODO: Read these from the indexing profile
 		String exportPath = configIni.get("Reindex", "marcPath");
-		File mainFile = null;
-		File deletesFile = null;
-		File updatesFile = null;
 		String backupPath = configIni.get("Reindex", "marcBackupPath");
 		String marcEncoding = configIni.get("Reindex", "marcEncoding");
-
 		recordNumberTag = configIni.get("Reindex", "recordNumberTag");
 		recordNumberPrefix = configIni.get("Reindex", "recordNumberPrefix");
+		File mainFile = null;
+
+		//TODO: Handle more than one set of updates and deletes (in order of creation date)
+		File deletesFile = null;
+		File updatesFile = null;
 
 		int numUpdates = 0;
 		int numDeletions = 0;
@@ -52,6 +58,7 @@ public class MergeMarcUpdatesAndDeletes implements IProcessHandler{
 			File[] filesInExport = new File(exportPath).listFiles();
 			if (filesInExport != null) {
 				for (File exportFile : filesInExport) {
+					//TODO: Read the pattern for updates and deletes from the indexing profil
 					if (exportFile.getName().matches(".*updated.*")) {
 						updatesFile = exportFile;
 					}else if (exportFile.getName().matches(".*deleted.*")) {
@@ -68,6 +75,7 @@ public class MergeMarcUpdatesAndDeletes implements IProcessHandler{
 				}else {
 					boolean errorOccurred = false;
 					HashMap<String, Record> recordsToUpdate = new HashMap<>();
+					//TODO: Handle multiple update files
 					if (updatesFile != null) {
 						try {
 							FileInputStream marcFileStream = new FileInputStream(updatesFile);
@@ -89,6 +97,7 @@ public class MergeMarcUpdatesAndDeletes implements IProcessHandler{
 					}
 
 					HashSet<String> recordsToDelete = new HashSet<>();
+					//TODO: Handle multiple delete files
 					if (deletesFile != null) {
 						try {
 							FileInputStream marcFileStream = new FileInputStream(deletesFile);

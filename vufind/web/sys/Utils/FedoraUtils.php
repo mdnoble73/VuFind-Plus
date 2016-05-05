@@ -93,38 +93,39 @@ class FedoraUtils {
 	function getObjectImageUrl($archiveObject, $size = 'small', $defaultType = null){
 		global $configArray;
 		$objectUrl = $configArray['Islandora']['objectUrl'];
+
 		if ($size == 'thumbnail'){
-			if ($archiveObject->getDatastream('TN') != null){
+			if ($archiveObject && $archiveObject->getDatastream('TN') != null){
 				return $objectUrl . '/' . $archiveObject->id . '/datastream/TN/view';
-			}else if ($archiveObject->getDatastream('SC') != null){
+			}else if ($archiveObject && $archiveObject->getDatastream('SC') != null){
 				return $objectUrl . '/' . $archiveObject->id . '/datastream/SC/view';
 			}else {
 				//return a placeholder
 				return $this->getPlaceholderImage($defaultType);
 			}
 		}elseif ($size == 'small'){
-			if ($archiveObject->getDatastream('SC') != null){
+			if ($archiveObject && $archiveObject->getDatastream('SC') != null){
 				return $objectUrl . '/' . $archiveObject->id . '/datastream/SC/view';
-			}else if ($archiveObject->getDatastream('TN') != null){
+			}else if ($archiveObject && $archiveObject->getDatastream('TN') != null){
 				return $objectUrl . '/' . $archiveObject->id . '/datastream/TN/view';
 			}else{
 				//return a placeholder
 				return $this->getPlaceholderImage($defaultType);
 			}
 		}elseif ($size == 'medium'){
-			if ($archiveObject->getDatastream('MC') != null) {
+			if ($archiveObject && $archiveObject->getDatastream('MC') != null) {
 				return $objectUrl . '/' . $archiveObject->id . '/datastream/MC/view';
-			}else if ($archiveObject->getDatastream('MEDIUM_SIZE') != null) {
+			}else if ($archiveObject && $archiveObject->getDatastream('MEDIUM_SIZE') != null) {
 				return $objectUrl . '/' . $archiveObject->id . '/datastream/MEDIUM_SIZE/view';
-			}else if ($archiveObject->getDatastream('TN') != null) {
+			}else if ($archiveObject && $archiveObject->getDatastream('TN') != null) {
 				return $objectUrl . '/' . $archiveObject->id . '/datastream/TN/view';
 			}else{
 				return $this->getObjectImageUrl($archiveObject, 'small', $defaultType);
 			}
 		}if ($size == 'large'){
-			if ($archiveObject->getDatastream('JPG') != null) {
+			if ($archiveObject && $archiveObject->getDatastream('JPG') != null) {
 				return $objectUrl . '/' . $archiveObject->id . '/datastream/JPG/view';
-			}elseif ($archiveObject->getDatastream('LC') != null){
+			}elseif ($archiveObject && $archiveObject->getDatastream('LC') != null){
 				return $objectUrl . '/' . $archiveObject->id . '/datastream/LC/view';
 			}else{
 				return $this->getObjectImageUrl($archiveObject, 'medium', $defaultType);

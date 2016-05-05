@@ -881,9 +881,28 @@ public class GroupedWorkIndexer {
 		while (groupedWorkPrimaryIdentifiers.next()){
 			String type = groupedWorkPrimaryIdentifiers.getString("type");
 			String identifier = groupedWorkPrimaryIdentifiers.getString("identifier");
+
+			//Make a copy of the grouped work so we can revert if we don't add any records
+			GroupedWorkSolr originalWork;
+			try {
+				originalWork = groupedWork.clone();
+			}catch (CloneNotSupportedException cne){
+				logger.error("Could not clone grouped work", cne);
+				return;
+			}
+			//Figure out how many records we had originally
+			int numRecords = originalWork.getNumRecords();
+
 			//This does the bulk of the work building fields for the solr document
 			updateGroupedWorkForPrimaryIdentifier(groupedWork, type, identifier);
-			numPrimaryIdentifiers++;
+
+			//If we didn't add any records to the work (because they are all suppressed) revert to the original
+			if (groupedWork.getNumRecords() == numRecords){
+				//No change in the number of records, revert to the previous
+				groupedWork = originalWork;
+			}else{
+				numPrimaryIdentifiers++;
+			}
 		}
 		groupedWorkPrimaryIdentifiers.close();
 
@@ -973,7 +992,7 @@ public class GroupedWorkIndexer {
 		}
 	}
 
-	private void updateGroupedWorkForPrimaryIdentifier(GroupedWorkSolr groupedWork, String type, String identifier) {
+	private void updateGroupedWorkForPrimaryIdentifier(GroupedWorkSolr groupedWork, String type, String identifier)  {
 		groupedWork.addAlternateId(identifier);
 		type = type.toLowerCase();
 		switch (type) {
@@ -987,7 +1006,6 @@ public class GroupedWorkIndexer {
 					logger.debug("Could not find a record processor for type " + type);
 				}
 				break;
-
 		}
 	}
 

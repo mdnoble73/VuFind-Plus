@@ -20,4 +20,8 @@ class EventDriver extends IslandoraDriver {
 		global $configArray;
 		return $configArray['Site']['path'] . '/interface/themes/responsive/images/events.png';
 	}
+
+	public function isEntity(){
+		return true;
+	}
 }

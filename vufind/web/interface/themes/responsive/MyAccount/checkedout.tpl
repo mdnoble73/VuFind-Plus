@@ -56,14 +56,11 @@
 					{/foreach}
 				</div>
 
+				{if translate('CheckedOut_Econtent_notice')}
 				<p class="alert alert-info">
 					{translate text='CheckedOut_Econtent_notice'}
-					{*Most eBooks and eAudiobooks cannot be renewed before they expire.  <br>*}
-					{*However, eContent from OverDrive can be renewed within the OverDrive app starting 3 days before the due date if the title is not on hold by other patrons.*}
-					{*You may need to download the title again after renewal.<br>*}
-					{*For other content, if you want to renew, please wait for the title to expire and then check it out again.  You may need to download the title again after you check it out.*}
-					{*You may be able to place a new hold on the title a few days before the title expires to help ensure continuous reading/listening.*}
 				</p>
+				{/if}
 
 				<div class="btn-group">
 					<a href="#" onclick="VuFind.Account.renewSelectedTitles()" class="btn btn-sm btn-default">Renew Selected Items</a>

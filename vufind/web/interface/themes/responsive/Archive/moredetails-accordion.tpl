@@ -45,16 +45,16 @@
 						</div>
 					</div>
 				</a>
-				<div id="transcriptionPanelBody" class="panel-collapse collapse in">
+				<div id="relatedObjectsPanelBody" class="panel-collapse collapse in">
 					<div class="panel-body">
 						<div class="related-objects results-covers home-page-browse-thumbnails">
 							{foreach from=$directlyRelatedObjects.objects item=image}
 								<figure class="browse-thumbnail">
-									<a href="{$image.link}" {if $image.title}data-title="{$image.title}"{/if}>
-										<img src="{$image.thumbnail}" {if $image.title}alt="{$image.title}"{/if}>
+									<a href="{$image.link}" {if $image.label}data-title="{$image.label|urlencode}"{/if}>
+										<img src="{$image.image}" {if $image.label}alt="{$image.label|urlencode}"{/if}>
 									</a>
 									<figcaption class="explore-more-category-title">
-										<strong>{$image.title}</strong>
+										<strong>{$image.label}</strong>
 									</figcaption>
 								</figure>
 							{/foreach}
@@ -165,27 +165,6 @@
 			</div>
 		{/if}
 
-		{if $mods->subject}
-			<div class="panel active{*toggle on for open*}" id="subjectPanel">
-				<a href="#subjectPanelBody" data-toggle="collapse">
-					<div class="panel-heading">
-						<div class="panel-title">
-							Subject
-						</div>
-					</div>
-				</a>
-				<div id="subjectPanelBody" class="panel-collapse collapse in{*toggle on for open*}">
-					<div class="panel-body">
-						{foreach from=$subjects item=subject}
-							<a href='{$subject.link}'>
-								{$subject.label}
-							</a><br>
-						{/foreach}
-					</div>
-				</div>
-			</div>
-		{/if}
-
 		{if $relatedPeople || count($marriages) > 0}
 			<div class="panel active{*toggle on for open*}" id="relatedPeoplePanel">
 				<a href="#relatedPeoplePanelBody" data-toggle="collapse">
@@ -209,11 +188,54 @@
 						{/if}
 
 						{foreach from=$relatedPeople item=entity}
+							<div class="relatedPerson row">
+								<div class="col-tn-2">
+									{if $entity.image}
+										<a href="{$entity.link}" {if $entity.label}data-title="{$entity.label|urlencode}"{/if}>
+											<img src="{$entity.image}" {if $entity.label}alt="{$entity.label|urlencode}"{/if} class="img-responsive img-thumbnail">
+										</a>
+									{/if}
+								</div>
+								<div class="col-tn-10">
+									<a href='{$entity.link}'>
+										{$entity.label}
+									</a>
+									{if $entity.role}
+										&nbsp;({$entity.role})
+									{/if}
+									{if $entity.note}
+										&nbsp;- {$entity.note}
+									{/if}
+								</div>
+							</div>
+						{/foreach}
+
+					</div>
+				</div>
+			</div>
+		{/if}
+
+		{if $relatedOrganizations}
+			<div class="panel active{*toggle on for open*}" id="relatedOrganizationsPanel">
+				<a href="#relatedOrganizationsPanelBody" data-toggle="collapse">
+					<div class="panel-heading">
+						<div class="panel-title">
+							Related Organizations
+						</div>
+					</div>
+				</a>
+				<div id="relatedOrganizationsPanelBody" class="panel-collapse collapse in{*toggle on for open*}">
+					<div class="panel-body">
+
+						{foreach from=$relatedOrganizations item=entity}
 							<a href='{$entity.link}'>
 								{$entity.label}
 							</a>
 							{if $entity.role}
 								&nbsp;({$entity.role})
+							{/if}
+							{if $entity.note}
+								&nbsp;- {$entity.note}
 							{/if}
 							<br>
 						{/foreach}
@@ -223,7 +245,7 @@
 			</div>
 		{/if}
 
-		{if $relatedPlaces}
+		{if $relatedPlaces && $recordDriver->getType() != 'event'}
 			<div class="panel active{*toggle on for open*}" id="relatedPlacesPanel">
 				<a href="#relatedPlacesPanelBody" data-toggle="collapse">
 					<div class="panel-heading">
@@ -234,11 +256,21 @@
 				</a>
 				<div id="relatedPlacesPanelBody" class="panel-collapse collapse in{*toggle on for open*}">
 					<div class="panel-body">
+						{if $mapsKey && $relatedPlaces.centerX && $relatedPlaces.centerY}
+							<iframe width="100%" height="" frameborder="0" style="border:0" src="https://www.google.com/maps/embed/v1/place?q={$relatedPlaces.centerX|escape}%2C%20{$relatedPlaces.centerX|escape}&key={$mapsKey}" allowfullscreen></iframe>
+						{/if}
 
 						{foreach from=$relatedPlaces item=entity}
 							<a href='{$entity.link}'>
 								{$entity.label}
-							</a><br>
+							</a>
+							{if $entity.role}
+								&nbsp;({$entity.role})
+							{/if}
+							{if $entity.note}
+								&nbsp;- {$entity.note}
+							{/if}
+							<br>
 						{/foreach}
 
 					</div>
@@ -261,7 +293,14 @@
 						{foreach from=$relatedEvents item=entity}
 							<a href='{$entity.link}'>
 								{$entity.label}
-							</a><br>
+							</a>
+							{if $entity.role}
+								&nbsp;({$entity.role})
+							{/if}
+							{if $entity.note}
+								&nbsp;- {$entity.note}
+							{/if}
+							<br>
 						{/foreach}
 
 					</div>
@@ -320,6 +359,28 @@
 			</div>
 		{/if}
 
+		{if count($subjects) > 0}
+			<div class="panel active{*toggle on for open*}" id="subjectPanel">
+				<a href="#subjectPanelBody" data-toggle="collapse">
+					<div class="panel-heading">
+						<div class="panel-title">
+							Subject
+						</div>
+					</div>
+				</a>
+				<div id="subjectPanelBody" class="panel-collapse collapse in{*toggle on for open*}">
+					<div class="panel-body">
+						{foreach from=$subjects item=subject}
+							<a href='{$subject.link}'>
+								{$subject.label}
+							</a><br>
+						{/foreach}
+					</div>
+				</div>
+			</div>
+		{/if}
+
+		{assign var="externalLinks" value=$recordDriver->getVisibleLinks()}
 		{if count($externalLinks) > 0}
 			<div class="panel active" id="externalLinksPanel">
 				<a href="#externalLinksPanelBody" data-toggle="collapse">
@@ -474,7 +535,7 @@
 			</div>
 		{/if}
 
-		{if $repositoryLink}
+		{if $repositoryLink && $user && ($user->hasRole('archives') || $user->hasRole('opacAdmin'))}
 			<div class="panel {*active*}{*toggle on for open*}" id="staffViewPanel">
 				<a href="#staffViewPanelBody" data-toggle="collapse">
 					<div class="panel-heading">

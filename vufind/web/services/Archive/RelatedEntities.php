@@ -79,7 +79,7 @@ class Archive_RelatedEntities extends Action {
 					$relatedEntities[] = array(
 						'title' => $archiveObject->label,
 						'description' => $archiveObject->label,
-						'thumbnail' => $fedoraUtils->getObjectImageUrl($archiveObject, 'small', $entityType),
+						'image' => $fedoraUtils->getObjectImageUrl($archiveObject, 'small', $entityType),
 						'link' => $configArray['Site']['path'] . "/Archive/{$archiveObject->id}/$urlAction",
 					);
 				}

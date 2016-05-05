@@ -65,6 +65,8 @@ class ExternalEContent_Home extends Action{
 		}else{
 			$interface->assign('recordDriver', $recordDriver);
 
+			$this->loadCitations($recordDriver);
+
 			$interface->assign('cleanDescription', strip_tags($recordDriver->getDescriptionFast(), '<p><br><b><i><em><strong>'));
 
 			// Retrieve User Search History
@@ -98,6 +100,22 @@ class ExternalEContent_Home extends Action{
 			$this->display('view.tpl', $recordDriver->getTitle());
 
 		}
+	}
+
+	/**
+	 * @param HooplaRecordDriver $recordDriver
+	 */
+	function loadCitations($recordDriver)
+	{
+		global $interface;
+
+		$citationCount = 0;
+		$formats = $recordDriver->getCitationFormats();
+		foreach($formats as $current) {
+			$interface->assign(strtolower($current), $recordDriver->getCitation($current));
+			$citationCount++;
+		}
+		$interface->assign('citationCount', $citationCount);
 	}
 
 }
