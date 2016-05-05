@@ -75,7 +75,9 @@ abstract class Archive_Object extends Action{
 
 		if ($this->modsData->location->count()){
 			$primaryUrl = $this->modsData->location->url;
-			$interface->assign('primaryUrl', $primaryUrl);
+			if (strlen($primaryUrl) > 0) {
+				$interface->assign('primaryUrl', $primaryUrl);
+			}
 		}
 
 		$rightsStatements = array();
