@@ -313,7 +313,8 @@ var VuFind = (function(){
 			return false;
 		},
 
-		showElementInPopup: function(title, elementId){
+		showElementInPopup: function(title, elementId, buttonsElementId){
+			// buttonsElementId is optional
 			var modalDialog = $("#modalDialog");
 			if (modalDialog.is(":visible")){
 				VuFind.closeLightbox(function(){VuFind.showElementInPopup(title, elementId)});
@@ -321,6 +322,11 @@ var VuFind = (function(){
 				$(".modal-title").html(title);
 				var elementText = $(elementId).html();
 				$(".modal-body").html(elementText);
+				if (buttonsElementId) {
+					var elementButtons = $(buttonsElementId).html();
+					console.log(buttonsElementId, $(buttonsElementId));
+					$('.modal-buttons').html(elementButtons)
+				}
 				modalDialog.modal('show');
 				return false;
 			}

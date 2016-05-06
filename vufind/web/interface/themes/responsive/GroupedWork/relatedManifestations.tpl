@@ -2,7 +2,7 @@
 	<div class="related-manifestations">
 		<div class="row related-manifestations-header">
 			<div class="col-xs-12 result-label related-manifestations-label">
-				Formats
+				{translate text="Choose a Format"}
 			</div>
 		</div>
 		{assign var=hasHiddenFormats value=false}
@@ -15,7 +15,7 @@
 				  <div class="row">
 						<div class="col-tn-3 col-xs-4 col-md-3 manifestation-format">
 							{if $relatedManifestation.numRelatedRecords == 1}
-								<span class='manifestation-toggle-placeholder'>&nbsp;</span>
+								<span class="manifestation-toggle-placeholder">&nbsp;</span>
 								<a href="{$relatedManifestation.url}">{$relatedManifestation.format}</a>
 							{else}
 								<a href="#" onclick="return VuFind.ResultsList.toggleRelatedManifestations('{$id|escapeCSS}_{$relatedManifestation.format|escapeCSS}');">
@@ -23,14 +23,18 @@
 								</a>
 								<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 								<a href="#" onclick="return VuFind.ResultsList.toggleRelatedManifestations('{$id|escapeCSS}_{$relatedManifestation.format|escapeCSS}');">
-									<span class='manifestation-toggle-text label label-info' id='manifestation-toggle-text-{$id|escapeCSS}_{$relatedManifestation.format|escapeCSS}'>Show&nbsp;Editions</span>
+									<span class="manifestation-toggle-text label label-info" id='manifestation-toggle-text-{$id|escapeCSS}_{$relatedManifestation.format|escapeCSS}'>Show&nbsp;Editions</span>
 								</a>
 							{/if}
 						</div>
 						<div class="col-tn-9 col-xs-8 col-md-5 col-lg-6">
 							{include file='GroupedWork/statusIndicator.tpl' statusInformation=$relatedManifestation}
 
-							{include file='GroupedWork/copySummary.tpl' summary=$relatedManifestation.itemSummary totalCopies=$relatedManifestation.copies itemSummaryId=$id}
+							{if $relatedManifestation.numRelatedRecords == 1}
+								{include file='GroupedWork/copySummary.tpl' summary=$relatedManifestation.itemSummary totalCopies=$relatedManifestation.copies itemSummaryId=$id recordViewUrl=$relatedManifestation.url}
+							{else}
+								{include file='GroupedWork/copySummary.tpl' summary=$relatedManifestation.itemSummary totalCopies=$relatedManifestation.copies itemSummaryId=$id}
+							{/if}
 
 						</div>
 						<div class="col-tn-9 col-tn-offset-3 col-xs-8 col-xs-offset-4 col-md-4 col-md-offset-0 col-lg-3 manifestation-actions">

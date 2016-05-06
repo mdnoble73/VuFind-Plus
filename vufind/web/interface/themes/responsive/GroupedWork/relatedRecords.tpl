@@ -50,7 +50,7 @@
 				<td>
 					{include file='GroupedWork/statusIndicator.tpl' statusInformation=$relatedRecord}
 
-					{include file='GroupedWork/copySummary.tpl' summary=$relatedRecord.itemSummary totalCopies=$relatedRecord.copies itemSummaryId=$relatedRecord.id}
+					{include file='GroupedWork/copySummary.tpl' summary=$relatedRecord.itemSummary totalCopies=$relatedRecord.copies itemSummaryId=$relatedRecord.id recordViewUrl=$relatedRecord.url}
 
 					{if $relatedRecord.usageRestrictions}
 						<br/>{$relatedRecord.usageRestrictions}
