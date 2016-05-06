@@ -320,13 +320,11 @@ var VuFind = (function(){
 				VuFind.closeLightbox(function(){VuFind.showElementInPopup(title, elementId)});
 			}else{
 				$(".modal-title").html(title);
-				var elementText = $(elementId).html();
+				var elementText = $(elementId).html(),
+						elementButtons = buttonsElementId ? $(buttonsElementId).html() : '';
 				$(".modal-body").html(elementText);
-				if (buttonsElementId) {
-					var elementButtons = $(buttonsElementId).html();
-					console.log(buttonsElementId, $(buttonsElementId));
-					$('.modal-buttons').html(elementButtons)
-				}
+				$('.modal-buttons').html(elementButtons);
+
 				modalDialog.modal('show');
 				return false;
 			}
