@@ -1,8 +1,8 @@
 {strip}
 	{if $format == 'Journal' || $format == 'Newspaper' || $format == 'Print Periodical' || $format == 'Magazine'}
-		{if $recordUrl}
+		{if $recordViewUrl}
 			<div class="itemSummary">
-				&nbsp;&nbsp;<a href="{$recordUrl}#copiesPanelBody">
+				&nbsp;&nbsp;<a href="{$recordViewUrl}#copiesPanelBody">
 					{translate text="Quick Copy View"}
 				</a>
 			</div>

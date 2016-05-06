@@ -29,7 +29,7 @@
 							{include file='GroupedWork/statusIndicator.tpl' statusInformation=$relatedManifestation}
 
 							{if $relatedManifestation.numRelatedRecords == 1}
-								{include file='GroupedWork/copySummary.tpl' summary=$relatedManifestation.itemSummary totalCopies=$relatedManifestation.copies itemSummaryId=$id format=$relatedManifestation.format recordUrl=$relatedManifestation.url}
+								{include file='GroupedWork/copySummary.tpl' summary=$relatedManifestation.itemSummary totalCopies=$relatedManifestation.copies itemSummaryId=$id format=$relatedManifestation.format recordViewUrl=$relatedManifestation.url}
 							{else}
 								{include file='GroupedWork/copySummary.tpl' summary=$relatedManifestation.itemSummary totalCopies=$relatedManifestation.copies itemSummaryId=$id format=$relatedManifestation.format}
 							{/if}
