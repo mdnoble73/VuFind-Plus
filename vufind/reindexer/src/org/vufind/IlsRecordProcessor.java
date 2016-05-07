@@ -279,6 +279,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		try{
 			//If the entire bib is suppressed, update stats and bail out now.
 			if (isBibSuppressed(record)){
+				logger.debug("Bib record " + identifier + " is suppressed skipping");
 				return;
 			}
 
@@ -289,6 +290,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 			//If we don't get anything remove the record we just added
 			if (recordInfo.getNumPrintCopies() == 0 && recordInfo.getNumCopiesOnOrder() == 0 && suppressItemlessBibs) {
 				groupedWork.removeRelatedRecord(recordInfo);
+				logger.debug("Removing related print record for " + identifier + " because there are no print copies, no on order copies and suppress itemless bibs is on");
 			}else{
 				allRelatedRecords.add(recordInfo);
 			}
