@@ -891,7 +891,8 @@ public class GroupedWorkIndexer {
 				return;
 			}
 			//Figure out how many records we had originally
-			int numRecords = originalWork.getNumRecords();
+			int numRecords = groupedWork.getNumRecords();
+			logger.debug("Processing " + type + ":" + identifier + " work currently has " + numRecords + " records");
 
 			//This does the bulk of the work building fields for the solr document
 			updateGroupedWorkForPrimaryIdentifier(groupedWork, type, identifier);
@@ -899,7 +900,7 @@ public class GroupedWorkIndexer {
 			//If we didn't add any records to the work (because they are all suppressed) revert to the original
 			if (groupedWork.getNumRecords() == numRecords){
 				//No change in the number of records, revert to the previous
-				logger.info("Record " + identifier + " did not contribute any records to the work, reverting to previous state");
+				logger.info("Record " + identifier + " did not contribute any records to the work, reverting to previous state " + groupedWork.getNumRecords());
 				groupedWork = originalWork;
 			}else{
 				logger.debug("Record " + identifier + " added to work " + permanentId);
