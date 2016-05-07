@@ -242,7 +242,17 @@ public class ArlingtonRecordProcessor extends IIIRecordProcessor {
 			//Check the mat type
 			String matType = getFirstFieldVal(record, "998d");
 			//Get the bib location
-			String bibLocation = getFirstFieldVal(record, "998a");
+			String bibLocation = null;
+			Set<String> bibLocations = getFieldList(record, "998a");
+			for (String tmpBibLocation : bibLocations){
+				if (tmpBibLocation.matches("[a-zA-Z]{1,5}")){
+					bibLocation = tmpBibLocation;
+					break;
+				}else if (tmpBibLocation.matches("\\\\(\\d+\\\\)([a-zA-Z]{1,5})")){
+					bibLocation = tmpBibLocation.replaceAll("\\\\(\\d+\\\\)", "");
+					break;
+				}
+			}
 			//Get the url
 			String url = getFirstFieldVal(record, "856u");
 
