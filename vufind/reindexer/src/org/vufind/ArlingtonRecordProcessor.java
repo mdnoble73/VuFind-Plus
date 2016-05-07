@@ -344,6 +344,7 @@ public class ArlingtonRecordProcessor extends IIIRecordProcessor {
 			if (suppressionSubfield != null){
 				String bCode3 = suppressionSubfield.getData().toLowerCase().trim();
 				if (bCode3.matches("^[xnopwhd]$")){
+					logger.debug("Bib record is suppressed due to bcode3 " + bCode3);
 					return true;
 				}
 			}
@@ -358,6 +359,7 @@ public class ArlingtonRecordProcessor extends IIIRecordProcessor {
 
 			//Suppress icode2 codes
 			if (icode2.matches("^(d|e|h|n|p|y|4|5|6)$")) {
+				logger.debug("Item record is suppressed due to icode2 " + icode2);
 				return true;
 			}
 		}
