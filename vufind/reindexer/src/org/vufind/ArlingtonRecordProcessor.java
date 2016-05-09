@@ -242,7 +242,17 @@ public class ArlingtonRecordProcessor extends IIIRecordProcessor {
 			//Check the mat type
 			String matType = getFirstFieldVal(record, "998d");
 			//Get the bib location
-			String bibLocation = getFirstFieldVal(record, "998a");
+			String bibLocation = null;
+			Set<String> bibLocations = getFieldList(record, "998a");
+			for (String tmpBibLocation : bibLocations){
+				if (tmpBibLocation.matches("[a-zA-Z]{1,5}")){
+					bibLocation = tmpBibLocation;
+					break;
+				}else if (tmpBibLocation.matches("\\\\(\\d+\\\\)([a-zA-Z]{1,5})")){
+					bibLocation = tmpBibLocation.replaceAll("\\\\(\\d+\\\\)", "");
+					break;
+				}
+			}
 			//Get the url
 			String url = getFirstFieldVal(record, "856u");
 
@@ -334,6 +344,7 @@ public class ArlingtonRecordProcessor extends IIIRecordProcessor {
 			if (suppressionSubfield != null){
 				String bCode3 = suppressionSubfield.getData().toLowerCase().trim();
 				if (bCode3.matches("^[xnopwhd]$")){
+					logger.debug("Bib record is suppressed due to bcode3 " + bCode3);
 					return true;
 				}
 			}
@@ -348,6 +359,7 @@ public class ArlingtonRecordProcessor extends IIIRecordProcessor {
 
 			//Suppress icode2 codes
 			if (icode2.matches("^(d|e|h|n|p|y|4|5|6)$")) {
+				logger.debug("Item record is suppressed due to icode2 " + icode2);
 				return true;
 			}
 		}

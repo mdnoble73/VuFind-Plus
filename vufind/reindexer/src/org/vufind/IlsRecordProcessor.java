@@ -243,6 +243,8 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 			}catch (Exception e) {
 				logger.error("Error updating solr based on marc record", e);
 			}
+		}else{
+			logger.warn("Could not load marc record from disk for " + identifier);
 		}
 	}
 
@@ -279,16 +281,19 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		try{
 			//If the entire bib is suppressed, update stats and bail out now.
 			if (isBibSuppressed(record)){
+				logger.debug("Bib record " + identifier + " is suppressed skipping");
 				return;
 			}
 
 			// Let's first look for the print/order record
 			RecordInfo recordInfo = groupedWork.addRelatedRecord(profileType, identifier);
+			logger.debug("Added record for " + identifier + " work now has " + groupedWork.getNumRecords() + " records");
 			loadUnsuppressedPrintItems(groupedWork, recordInfo, identifier, record);
 			loadOnOrderItems(groupedWork, recordInfo, record, recordInfo.getNumPrintCopies() > 0);
 			//If we don't get anything remove the record we just added
 			if (recordInfo.getNumPrintCopies() == 0 && recordInfo.getNumCopiesOnOrder() == 0 && suppressItemlessBibs) {
 				groupedWork.removeRelatedRecord(recordInfo);
+				logger.debug("Removing related print record for " + identifier + " because there are no print copies, no on order copies and suppress itemless bibs is on");
 			}else{
 				allRelatedRecords.add(recordInfo);
 			}
@@ -523,11 +528,14 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 
 	protected void loadUnsuppressedPrintItems(GroupedWorkSolr groupedWork, RecordInfo recordInfo, String identifier, Record record){
 		List<DataField> itemRecords = getDataFields(record, itemTag);
+		logger.debug("Found " + itemRecords.size() + " items for record " + identifier);
 		for (DataField itemField : itemRecords){
 			if (!isItemSuppressed(itemField)){
 				getPrintIlsItem(groupedWork, recordInfo, record, itemField);
 				//Can return null if the record does not have status and location
 				//This happens with secondary call numbers sometimes.
+			}else{
+				logger.debug("item was suppressed");
 			}
 		}
 	}
