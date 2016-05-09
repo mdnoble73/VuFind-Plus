@@ -237,6 +237,7 @@ abstract class Archive_Object extends Action{
 		$interface->setPageTitle($title);
 		$interface->assign('description', $this->recordDriver->getDescription());
 
+		$interface->assign('original_image', $this->recordDriver->getBookcoverUrl('original'));
 		$interface->assign('large_image', $this->recordDriver->getBookcoverUrl('large'));
 		$interface->assign('medium_image', $this->recordDriver->getBookcoverUrl('medium'));
 

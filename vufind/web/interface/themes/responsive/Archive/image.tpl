@@ -5,8 +5,10 @@
 		</h2>
 
 		<div class="main-project-image">
-			<a href="{$large_image}">
-				<img src="{$medium_image}" class="img-responsive">
+			{* TODO: restrict access to original image *}
+			<a href="{$original_image}">
+				<img src="{$large_image}" class="img-responsive">
+
 			</a>
 		</div>
 
