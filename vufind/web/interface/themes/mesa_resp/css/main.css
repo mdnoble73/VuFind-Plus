@@ -5069,6 +5069,7 @@ button.close {
 }
 .modal.fade .modal-dialog {
   -webkit-transform: translate(0, -25%);
+  -ms-transform: translate(0, -25%);
   transform: translate(0, -25%);
   -webkit-transition: -webkit-transform 0.3s ease-out;
   transition: -webkit-transform 0.3s ease-out;
@@ -5077,6 +5078,7 @@ button.close {
 }
 .modal.in .modal-dialog {
   -webkit-transform: translate(0, 0);
+  -ms-transform: translate(0, 0);
   transform: translate(0, 0);
 }
 .modal-dialog {
@@ -7957,6 +7959,7 @@ fieldset[disabled] .datepicker table tr td span.active.disabled:hover.active {
   bottom: -25px;
   left: 50%;
   -webkit-transform: translate(-50%, 0);
+  -ms-transform: translate(-50%, 0);
   transform: translate(-50%, 0);
   margin: 0;
 }
@@ -8035,6 +8038,7 @@ fieldset[disabled] .datepicker table tr td span.active.disabled:hover.active {
   vertical-align: text-top;
   text-align: center;
   -webkit-transform: scale(0.6);
+      -ms-transform: scale(0.6);
           transform: scale(0.6);
   margin-top: -1px;
   margin-bottom: -1px;
@@ -8604,8 +8608,10 @@ hr.menu {
   display: inline-block;
   white-space: nowrap;
   -webkit-transform: rotate(-90deg) translateX(-100%);
+      -ms-transform: rotate(-90deg) translateX(-100%);
           transform: rotate(-90deg) translateX(-100%);
   -webkit-transform-origin: 0 0;
+      -ms-transform-origin: 0 0;
           transform-origin: 0 0;
 }
 .rotated-text-inner:after {
@@ -9925,6 +9931,9 @@ a.browse-thumbnail.active {
 .related-manifestations-header {
   border-bottom: 1px solid #d3d3d3;
 }
+.related-manifestations-label {
+  font-size: 10pt;
+}
 .manifestation-actions .btn-default {
   background-color: #088ec6;
   color: #fff;
@@ -10233,8 +10242,10 @@ a.browse-thumbnail.active {
 .exploreMoreBar .label-left .exploreMoreBarLabel {
   position: absolute;
   -webkit-transform: rotate(-90deg) translateX(-100%);
+      -ms-transform: rotate(-90deg) translateX(-100%);
           transform: rotate(-90deg) translateX(-100%);
   -webkit-transform-origin: 0 0;
+      -ms-transform-origin: 0 0;
           transform-origin: 0 0;
   padding-right: 10px;
   padding-left: 5px;
@@ -10337,3 +10348,18 @@ a.browse-thumbnail.active {
   border-bottom: 0;
   box-shadow: 2px 2px 5px #fff;
 }
+/*
+.myRating {
+  // Flex Box
+  display: flex;
+  flex-wrap: wrap;
+
+  >div{
+    flex: 1 1 auto;
+    border: 1px solid crimson;
+  }
+  .author, .title {
+    flex-grow: 2;
+  }
+}
+*/
