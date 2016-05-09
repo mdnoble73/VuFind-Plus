@@ -111,7 +111,15 @@ abstract class Archive_Object extends Action{
 							$replacement = '<a onclick="document.getElementById(\'player\').currentTime=\'' . $offset . '\';" style="cursor:pointer">' . $match . '</a>';
 							$transcriptionTextWithLinks = str_replace($match, $replacement, $transcriptionTextWithLinks);
 						}
-
+					}elseif (preg_match_all('/\\[\\d{1,2}:\d{1,2}:\d{1,2}\\]/', $transcriptionText, $allMatches)){
+						foreach ($allMatches[0] as $match){
+							$offset = str_replace('(', '', $match);
+							$offset = str_replace(')', '', $offset);
+							list($hours, $minutes, $seconds) = explode(':', $offset);
+							$offset = $hours * 3600 + $minutes * 60 + $seconds;
+							$replacement = '<a onclick="document.getElementById(\'player\').currentTime=\'' . $offset . '\';" style="cursor:pointer">' . $match . '</a>';
+							$transcriptionTextWithLinks = str_replace($match, $replacement, $transcriptionTextWithLinks);
+						}
 					}
 
 					$interface->assign('transcription',
