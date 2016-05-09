@@ -37,7 +37,6 @@
 				{/if}
 				{display_if_inconsistent array=$relatedRecords key="edition"}
 					<td>{*<a href="{$relatedRecord.url}">*}{$relatedRecord.edition}{*</a>*}</td>
-							{* Arlington Request no link on edition information *}
 				{/display_if_inconsistent}
 				{display_if_inconsistent array=$relatedRecords key="publisher"}
 					<td><a href="{$relatedRecord.url}">{$relatedRecord.publisher}</a></td>
