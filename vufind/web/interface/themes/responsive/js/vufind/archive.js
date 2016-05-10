@@ -8,6 +8,12 @@ VuFind.Archive = (function(){
 			viewer.addHandler("animationfinish", this.update_clip);
 		},
 
+		/**
+		 * All this is doing is updatign a URL so the patron can download a clipped portion of the image
+		 * not needed for our basic implementation
+		 *
+		 * @param viewer
+		 */
 		update_clip: function(viewer) {
 			var fitWithinBoundingBox = function(d, max) {
 				if (d.width/d.height > max.x/max.y) {

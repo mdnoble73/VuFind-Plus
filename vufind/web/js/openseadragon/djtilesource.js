@@ -34,14 +34,17 @@
         });
       }
       data = jQuery.parseJSON(data);
+
+      //$.console.log('tileSize = ' + settings.tileSize);
+      //$.console.log('tileOverlap = ' + settings.tileOverlap);
       $.TileSource.call(
-	that,
-	parseInt(data.width),
-	parseInt(data.height),
-	parseInt(settings.tileSize),
-	parseInt(settings.tileOverlap),
-	1,
-	parseInt(data.levels)
+        that,
+        parseInt(data.width),
+        parseInt(data.height),
+        parseInt(settings.tileSize),
+        parseInt(settings.tileOverlap),
+        1,
+        parseInt(data.levels)
       );
       //XXX:  Kinda gross, but Seadragon.TileSource put the methods directly
       // on the object, not through "prototype"...
@@ -87,6 +90,7 @@
       'svc.region': region,
       'svc.level': level
     };
-    return this.baseURL + '?' + jQuery.param(params);
+    var fullUrl = this.baseURL + '?' + jQuery.param(params);
+    return fullUrl;
   };
 }(OpenSeadragon));
