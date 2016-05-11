@@ -6,10 +6,26 @@
 
 		<div class="main-project-image">
 			{* TODO: restrict access to original image *}
-			<a href="{$original_image}">
+			{if $anonymousMasterDownload || ($user && $verifiedMasterDownload)}
+				<a href="{$original_image}">
+			{/if}
 				<img src="{$large_image}" class="img-responsive">
+			{if $anonymousMasterDownload || ($user && $verifiedMasterDownload)}
+				</a>
+			{/if}
+		</div>
 
-			</a>
+		<div id="image-download-options">
+			{if $anonymousLcDownload || ($user && $verifiedLcDownload)}
+				<button class="btn btn-default">Download Large Image</button>
+			{elseif (!$user && $verifiedLcDownload)}
+				<button class="btn btn-default">Login to Download Large Image</button>
+			{/if}
+			{if $anonymousMasterDownload || ($user && $verifiedMasterDownload)}
+				<button class="btn btn-default">Download Original Image</button>
+			{elseif (!$user && $verifiedLcDownload)}
+				<button class="btn btn-default">Login to Download Original Image</button>
+			{/if}
 		</div>
 
 {* //Moved to accordion
