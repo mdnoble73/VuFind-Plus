@@ -1,9 +1,12 @@
 {strip}
 <div id="page-content" class="col-xs-12">
-	{if $message}<p class="text-error lead">{$message|translate}</p>{/if}
 	<h2>{translate text='Login to your account'}</h2>
 	<div id="loginFormWrapper">
-		<p class="alert alert-danger" id="loginError" style="display: none"></p>
+		{if $message}{* Errors for Full Login Page *}
+			<p class="alert alert-danger" id="loginError" >{$message|translate}</p>
+		{else}
+			<p class="alert alert-danger" id="loginError" style="display: none"></p>
+		{/if}
 		<p class="alert alert-danger" id="cookiesError" style="display: none">It appears that you do not have cookies enabled on this computer.  Cookies are required to access account information.</p>
 		<p class="alert alert-info" id="loading" style="display: none">
 			Logging you in now. Please wait.

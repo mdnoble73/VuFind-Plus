@@ -262,7 +262,7 @@ class Millennium extends ScreenScrapingDriver
 			$userExistsInDB = false;
 			$user = new User();
 			//Get the unique user id from Millennium
-			$user->source = $this->accountProfile->name;
+			$user->source   = $this->accountProfile->name;
 			$user->username = $patronDump['RECORD_#'];
 			if ($user->find(true)) {
 				$userExistsInDB = true;
@@ -377,29 +377,29 @@ class Millennium extends ScreenScrapingDriver
 			//Get additional information that doesn't necessarily get stored in the User Table
 			if (isset($patronDump['ADDRESS'])){
 				$fullAddress = $patronDump['ADDRESS'];
-				$addressParts =explode('$',$fullAddress);
+				$addressParts = explode('$',$fullAddress);
 				$user->address1 = $addressParts[0];
-				$user->city = isset($addressParts[1]) ? $addressParts[1] : '';
-				$user->state = isset($addressParts[2]) ? $addressParts[2] : '';
-				$user->zip = isset($addressParts[3]) ? $addressParts[3] : '';
+				$user->city     = isset($addressParts[1]) ? $addressParts[1] : '';
+				$user->state    = isset($addressParts[2]) ? $addressParts[2] : '';
+				$user->zip      = isset($addressParts[3]) ? $addressParts[3] : '';
 
 				if (preg_match('/(.*?),\\s+(.*)\\s+(\\d*(?:-\\d*)?)/', $user->city, $matches)) {
-					$user->city = $matches[1];
+					$user->city  = $matches[1];
 					$user->state = $matches[2];
-					$user->zip = $matches[3];
+					$user->zip   = $matches[3];
 				}else if (preg_match('/(.*?)\\s+(\\w{2})\\s+(\\d*(?:-\\d*)?)/', $user->city, $matches)) {
-					$user->city = $matches[1];
+					$user->city  = $matches[1];
 					$user->state = $matches[2];
-					$user->zip = $matches[3];
+					$user->zip   = $matches[3];
 				}
 			}else{
 				$user->address1 = "";
-				$user->city = "";
-				$user->state = "";
-				$user->zip = "";
+				$user->city     = "";
+				$user->state    = "";
+				$user->zip      = "";
 			}
-			$user->address2 = $user->city . ', ' . $user->state;
 
+			$user->address2  = $user->city . ', ' . $user->state;
 			$user->workPhone = (isset($patronDump) && isset($patronDump['G/WK_PHONE'])) ? $patronDump['G/WK_PHONE'] : '';
 			if (isset($patronDump) && isset($patronDump['MOBILE_NO'])){
 				$user->mobileNumber = $patronDump['MOBILE_NO'];
@@ -412,7 +412,7 @@ class Millennium extends ScreenScrapingDriver
 			}
 
 			$user->finesVal = floatval(preg_replace('/[^\\d.]/', '', $patronDump['MONEY_OWED']));
-			$user->fines = $patronDump['MONEY_OWED'];
+			$user->fines    = $patronDump['MONEY_OWED'];
 
 			if (isset($patronDump['USERNAME'])){
 				$user->alt_username = $patronDump['USERNAME'];
@@ -430,11 +430,11 @@ class Millennium extends ScreenScrapingDriver
 					}
 				}
 			}
-			$user->numCheckedOutIls = $patronDump['CUR_CHKOUT'];
-			$user->numHoldsIls = isset($patronDump) ? (isset($patronDump['HOLD']) ? count($patronDump['HOLD']) : 0) : '?';
+			$user->numCheckedOutIls     = $patronDump['CUR_CHKOUT'];
+			$user->numHoldsIls          = isset($patronDump) ? (isset($patronDump['HOLD']) ? count($patronDump['HOLD']) : 0) : '?';
 			$user->numHoldsAvailableIls = $numHoldsAvailable;
 			$user->numHoldsRequestedIls = $numHoldsRequested;
-			$user->numBookings = isset($patronDump) ? (isset($patronDump['BOOKING']) ? count($patronDump['BOOKING']) : 0) : '?';
+			$user->numBookings          = isset($patronDump) ? (isset($patronDump['BOOKING']) ? count($patronDump['BOOKING']) : 0) : '?';
 
 			$noticeLabels = array(
 				//'-' => 'Mail',  // officially None in Sierra, as in No Preference Selected.
@@ -577,16 +577,17 @@ class Millennium extends ScreenScrapingDriver
 
 	public function _curl_login($patron) {
 		global $logger;
+		$loginResult = false;
 
-		$curlUrl = $this->getVendorOpacUrl() . "/patroninfo/";
-		$post_data   = $this->_getLoginFormValues($patron);
+		$curlUrl   = $this->getVendorOpacUrl() . "/patroninfo/";
+		$post_data = $this->_getLoginFormValues($patron);
 
 		$logger->log('Loading page ' . $curlUrl, PEAR_LOG_INFO);
 
-		$loginResult = $this->_curlPostPage($curlUrl, $post_data);
+		$loginResponse = $this->_curlPostPage($curlUrl, $post_data);
 
 		//When a library uses IPSSO, the initial login does a redirect and requires additional parameters.
-		if (preg_match('/<input type="hidden" name="lt" value="(.*?)" \/>/si', $loginResult, $loginMatches)) {
+		if (preg_match('/<input type="hidden" name="lt" value="(.*?)" \/>/si', $loginResponse, $loginMatches)) {
 			$lt = $loginMatches[1]; //Get the lt value
 			//Login again
 			$post_data['lt']       = $lt;
@@ -596,13 +597,25 @@ class Millennium extends ScreenScrapingDriver
 			$post_string = http_build_query($post_data);
 			curl_setopt($this->curl_connection, CURLOPT_POSTFIELDS, $post_string);
 
-			$loginResult = curl_exec($this->curl_connection);
+			$loginResponse = curl_exec($this->curl_connection);
 		}
 
-		// Pause briefly after logging in as some follow-up millennium operations (done via curl) will fail if done too quickly
-		usleep(150000);
+		if ($loginResponse) {
+			$loginResult = true;
 
-		return $loginResult;// Note: $this->_fetchPatronInfoPage uses the actual html result of this
+			// Check for Login Error Responses
+			$numMatches = preg_match('/<span.\s?class="errormessage">(?P<error>.+?)<\/span>/is', $loginResponse, $matches);
+			if ($numMatches > 0) {
+				$logger->log('Millennium Curl Login Attempt received an Error response : ' . $matches['error'], PEAR_LOG_DEBUG);
+				$loginResult = false;
+			} else {
+
+				// Pause briefly after logging in as some follow-up millennium operations (done via curl) will fail if done too quickly
+				usleep(150000);
+			}
+		}
+
+		return $loginResult;
 	}
 
 	/**
@@ -631,18 +644,19 @@ class Millennium extends ScreenScrapingDriver
 	 * @return string             The page from classic
 	 */
 	public function _fetchPatronInfoPage($patron, $page){
-		$scope = $this->getDefaultScope();
-
 		//First we have to login to classic
-		$this->_curl_login($patron);
+		if ($this->_curl_login($patron)) {
+			$scope = $this->getDefaultScope();
 
-		//Now we can get the page
-		$curlUrl = $this->getVendorOpacUrl() . "/patroninfo~S{$scope}/" . $patron->username ."/$page";
-		$curlResponse = $this->_curlGetPage($curlUrl);
+			//Now we can get the page
+			$curlUrl      = $this->getVendorOpacUrl() . "/patroninfo~S{$scope}/" . $patron->username . "/$page";
+			$curlResponse = $this->_curlGetPage($curlUrl);
 
-		//Strip HTML comments
-		$curlResponse = preg_replace("/<!--([^(-->)]*)-->/"," ",$curlResponse);
-		return $curlResponse;
+			//Strip HTML comments
+			$curlResponse = preg_replace("/<!--([^(-->)]*)-->/", " ", $curlResponse);
+			return $curlResponse;
+		}
+		return false;
 	}
 
 	public function getReadingHistory($patron, $page = 1, $recordsPerPage = -1, $sortOption = "checkedOut") {
