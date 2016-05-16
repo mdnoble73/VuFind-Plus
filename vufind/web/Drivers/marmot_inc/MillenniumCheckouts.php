@@ -58,165 +58,164 @@ class MillenniumCheckouts {
 		//Load the information from millennium using CURL
 		$sResult = $this->driver->_fetchPatronInfoPage($user, 'items');
 		$timer->logTime("Loaded checked out titles from Millennium");
+		if ($sResult) {
 
-		$sResult = preg_replace("/<[^<]+?>\\W<[^<]+?>\\W\\d* ITEM.? CHECKED OUT<[^<]+?>\\W<[^<]+?>/i", "", $sResult);
+			$sResult = preg_replace("/<[^<]+?>\\W<[^<]+?>\\W\\d* ITEM.? CHECKED OUT<[^<]+?>\\W<[^<]+?>/i", "", $sResult);
 
-		$s = substr($sResult, stripos($sResult, 'patFunc'));
+			$s = substr($sResult, stripos($sResult, 'patFunc'));
+			$s = substr($s, strpos($s, ">") + 1);
+			$s = substr($s, 0, stripos($s, "</table"));
+			$s = preg_replace("/<br \\/>/", "", $s);
 
-		$s = substr($s,strpos($s,">")+1);
+			$sRows            = preg_split("/<tr([^>]*)>/", $s);
+			$sCount           = 0;
+			$sKeys            = array_pad(array(), 10, "");
+			$checkedOutTitles = array();
 
-		$s = substr($s,0,stripos($s,"</table"));
-
-		$s = preg_replace ("/<br \\/>/","", $s);
-
-		$sRows = preg_split("/<tr([^>]*)>/",$s);
-		$sCount = 0;
-		$sKeys = array_pad(array(),10,"");
-		$checkedOutTitles = array();
-
-		//Get patron's location to determine if renewals are allowed.
-		global $locationSingleton;
-		/** @var Location $patronLocation */
-		$patronLocation = $locationSingleton->getUserHomeLocation();
-		if (isset($patronLocation)){
-			$patronPType = $user->patronType;
-			$patronCanRenew = false;
-			if ($patronLocation->ptypesToAllowRenewals == '*'){
-				$patronCanRenew = true;
-			}else if (preg_match("/^({$patronLocation->ptypesToAllowRenewals})$/", $patronPType)){
+			//Get patron's location to determine if renewals are allowed.
+			global $locationSingleton;
+			/** @var Location $patronLocation */
+			$patronLocation = $locationSingleton->getUserHomeLocation();
+			if (isset($patronLocation)) {
+				$patronPType    = $user->patronType;
+				$patronCanRenew = false;
+				if ($patronLocation->ptypesToAllowRenewals == '*') {
+					$patronCanRenew = true;
+				} else if (preg_match("/^({$patronLocation->ptypesToAllowRenewals})$/", $patronPType)) {
+					$patronCanRenew = true;
+				}
+			} else {
 				$patronCanRenew = true;
 			}
-		}else{
-			$patronCanRenew = true;
-		}
-		$timer->logTime("Determined if patron can renew");
+			$timer->logTime("Determined if patron can renew");
 
-		foreach ($sRows as $srow) {
-			$scols = preg_split("/<t(h|d)([^>]*)>/",$srow);
-			$curTitle = array();
-			for ($i=0; $i < sizeof($scols); $i++) {
-				$scols[$i] = str_replace("&nbsp;"," ",$scols[$i]);
-				$scols[$i] = preg_replace ("/<br+?>/"," ", $scols[$i]);
-				$scols[$i] = html_entity_decode(trim(substr($scols[$i],0,stripos($scols[$i],"</t"))));
-				//print_r($scols[$i]);
-				if ($sCount == 1) {
-					$sKeys[$i] = $scols[$i];
-				} else if ($sCount > 1) {
+			foreach ($sRows as $srow) {
+				$scols    = preg_split("/<t(h|d)([^>]*)>/", $srow);
+				$curTitle = array();
+				for ($i = 0; $i < sizeof($scols); $i++) {
+					$scols[$i] = str_replace("&nbsp;", " ", $scols[$i]);
+					$scols[$i] = preg_replace("/<br+?>/", " ", $scols[$i]);
+					$scols[$i] = html_entity_decode(trim(substr($scols[$i], 0, stripos($scols[$i], "</t"))));
+					//print_r($scols[$i]);
+					if ($sCount == 1) {
+						$sKeys[$i] = $scols[$i];
+					} else if ($sCount > 1) {
 
-					if (stripos($sKeys[$i],"TITLE") > -1) {
-						if (preg_match('/.*?<a href=\\"\/record=(.*?)(?:~S\\d{1,2})\\">(.*?)<\/a>.*/', $scols[$i], $matches)) {
-							//Standard Millennium WebPAC
-							$shortId = $matches[1];
-							$bibid = '.' . $matches[1]; //Technically, this isn't correct since the check digit is missing
-							$title = strip_tags($matches[2]);
-						}elseif (preg_match('/<a href=".*?\/record\/C__R(.*?)\?.*?"patFuncTitleMain">(.*?)<\/span>/si', $scols[$i], $matches)){
-							//Encore
-							$shortId = $matches[1];
-							$bibid = '.' . $matches[1]; //Technically, this isn't correct since the check digit is missing
-							$title = strip_tags($matches[2]);
-						}else{
-							$title = strip_tags($scols[$i]);
-							$shortId = '';
-							$bibid = '';
-						}
-						$curTitle['checkoutSource'] = 'ILS';
-						$curTitle['shortId'] = $shortId;
-						$curTitle['id'] = $bibid;
-						$curTitle['title'] = utf8_encode($title);
-						if (preg_match('/.*<span class="patFuncVol">(.*?)<\/span>.*/si', $scols[$i], $matches)){
-							$curTitle['volume'] = $matches[1];
-						}
-					}
-
-					if (stripos($sKeys[$i],"STATUS") > -1) {
-						// $sret[$scount-2]['dueDate'] = strip_tags($scols[$i]);
-						$due = trim(str_replace("DUE", "", strip_tags($scols[$i])));
-						$renewCount = 0;
-						if (preg_match('/FINE\(\s*up to now\) (\$\d+\.\d+)/i', $due, $matches)){
-							$curTitle['fine'] = trim($matches[1]);
-						}
-						if (preg_match('/(.*)Renewed (\d+) time(?:s)?/i', $due, $matches)){
-							$due = trim($matches[1]);
-							$renewCount = $matches[2];
-						}else if (preg_match('/(.*)\+\d+ HOLD.*/i', $due, $matches)){
-							$due = trim($matches[1]);
-						}
-						if (preg_match('/(\d{2}-\d{2}-\d{2})/', $due, $dueMatches)){
-							$dateDue = DateTime::createFromFormat('m-d-y', $dueMatches[1]);
-							if ($dateDue){
-								$dueTime = $dateDue->getTimestamp();
-							}else{
-								$dueTime = null;
+						if (stripos($sKeys[$i], "TITLE") > -1) {
+							if (preg_match('/.*?<a href=\\"\/record=(.*?)(?:~S\\d{1,2})\\">(.*?)<\/a>.*/', $scols[$i], $matches)) {
+								//Standard Millennium WebPAC
+								$shortId = $matches[1];
+								$bibid   = '.' . $matches[1]; //Technically, this isn't correct since the check digit is missing
+								$title   = strip_tags($matches[2]);
+							} elseif (preg_match('/<a href=".*?\/record\/C__R(.*?)\?.*?"patFuncTitleMain">(.*?)<\/span>/si', $scols[$i], $matches)) {
+								//Encore
+								$shortId = $matches[1];
+								$bibid   = '.' . $matches[1]; //Technically, this isn't correct since the check digit is missing
+								$title   = strip_tags($matches[2]);
+							} else {
+								$title   = strip_tags($scols[$i]);
+								$shortId = '';
+								$bibid   = '';
 							}
-						}else{
-							$dueTime = strtotime($due);
-						}
-						if ($dueTime != null){
-							$curTitle['dueDate'] = $dueTime;
-						}
-						$curTitle['renewCount'] = $renewCount;
-
-					}
-
-					if (stripos($sKeys[$i],"BARCODE") > -1) {
-						$curTitle['barcode'] = strip_tags($scols[$i]);
-					}
-
-
-					if (stripos($sKeys[$i],"RENEW") > -1) {
-						$matches = array();
-						if (preg_match('/<input\s*type="checkbox"\s*name="renew(\d+)"\s*id="renew(\d+)"\s*value="(.*?)"\s*\/>/', $scols[$i], $matches)){
-							$curTitle['canrenew'] = $patronCanRenew;
-							$curTitle['itemindex'] = $matches[1];
-							$curTitle['itemid'] = $matches[3];
-							$curTitle['renewIndicator'] = $curTitle['itemid'] . '|' . $curTitle['itemindex'];
-							$curTitle['renewMessage'] = '';
-						}else{
-							$curTitle['canrenew'] = false;
+							$curTitle['checkoutSource'] = 'ILS';
+							$curTitle['shortId']        = $shortId;
+							$curTitle['id']             = $bibid;
+							$curTitle['title']          = utf8_encode($title);
+							if (preg_match('/.*<span class="patFuncVol">(.*?)<\/span>.*/si', $scols[$i], $matches)) {
+								$curTitle['volume'] = $matches[1];
+							}
 						}
 
-					}
+						if (stripos($sKeys[$i], "STATUS") > -1) {
+							// $sret[$scount-2]['dueDate'] = strip_tags($scols[$i]);
+							$due        = trim(str_replace("DUE", "", strip_tags($scols[$i])));
+							$renewCount = 0;
+							if (preg_match('/FINE\(\s*up to now\) (\$\d+\.\d+)/i', $due, $matches)) {
+								$curTitle['fine'] = trim($matches[1]);
+							}
+							if (preg_match('/(.*)Renewed (\d+) time(?:s)?/i', $due, $matches)) {
+								$due        = trim($matches[1]);
+								$renewCount = $matches[2];
+							} else if (preg_match('/(.*)\+\d+ HOLD.*/i', $due, $matches)) {
+								$due = trim($matches[1]);
+							}
+							if (preg_match('/(\d{2}-\d{2}-\d{2})/', $due, $dueMatches)) {
+								$dateDue = DateTime::createFromFormat('m-d-y', $dueMatches[1]);
+								if ($dateDue) {
+									$dueTime = $dateDue->getTimestamp();
+								} else {
+									$dueTime = null;
+								}
+							} else {
+								$dueTime = strtotime($due);
+							}
+							if ($dueTime != null) {
+								$curTitle['dueDate'] = $dueTime;
+							}
+							$curTitle['renewCount'] = $renewCount;
+
+						}
+
+						if (stripos($sKeys[$i], "BARCODE") > -1) {
+							$curTitle['barcode'] = strip_tags($scols[$i]);
+						}
 
 
-					if (stripos($sKeys[$i],"CALL NUMBER") > -1) {
-						$curTitle['request'] = "null";
+						if (stripos($sKeys[$i], "RENEW") > -1) {
+							$matches = array();
+							if (preg_match('/<input\s*type="checkbox"\s*name="renew(\d+)"\s*id="renew(\d+)"\s*value="(.*?)"\s*\/>/', $scols[$i], $matches)) {
+								$curTitle['canrenew']       = $patronCanRenew;
+								$curTitle['itemindex']      = $matches[1];
+								$curTitle['itemid']         = $matches[3];
+								$curTitle['renewIndicator'] = $curTitle['itemid'] . '|' . $curTitle['itemindex'];
+								$curTitle['renewMessage']   = '';
+							} else {
+								$curTitle['canrenew'] = false;
+							}
+
+						}
+
+
+						if (stripos($sKeys[$i], "CALL NUMBER") > -1) {
+							$curTitle['request'] = "null";
+						}
 					}
+
+				}
+				if ($sCount > 1) {
+					//Get additional information from the MARC Record
+					if (isset($curTitle['shortId']) && strlen($curTitle['shortId']) > 0) {
+						$checkDigit           = $this->driver->getCheckDigit($curTitle['shortId']);
+						$curTitle['recordId'] = '.' . $curTitle['shortId'] . $checkDigit;
+						$curTitle['id']       = '.' . $curTitle['shortId'] . $checkDigit;
+						require_once ROOT_DIR . '/RecordDrivers/MarcRecord.php';
+						$recordDriver = new MarcRecord($this->driver->accountProfile->recordSource . ":" . $curTitle['recordId']);
+						if ($recordDriver->isValid()) {
+							$curTitle['coverUrl']      = $recordDriver->getBookcoverUrl('medium');
+							$curTitle['groupedWorkId'] = $recordDriver->getGroupedWorkId();
+							$curTitle['ratingData']    = $recordDriver->getRatingData();
+							$formats                   = $recordDriver->getFormats();
+							$curTitle['format']        = reset($formats);
+							$curTitle['author']        = $recordDriver->getPrimaryAuthor();
+							//Always use title from the index since classic will show 240 rather than 245
+							$curTitle['title'] = $recordDriver->getTitle();
+						} else {
+							$curTitle['coverUrl']      = "";
+							$curTitle['groupedWorkId'] = "";
+							$curTitle['format']        = "Unknown";
+							$curTitle['author']        = "";
+						}
+						$curTitle['link'] = $recordDriver->getLinkUrl();
+					}
+					$checkedOutTitles[] = $curTitle;
 				}
 
+				$sCount++;
 			}
-			if ($sCount > 1){
-				//Get additional information from the MARC Record
-				if (isset($curTitle['shortId']) && strlen($curTitle['shortId']) > 0){
-					$checkDigit = $this->driver->getCheckDigit($curTitle['shortId']);
-					$curTitle['recordId'] = '.' . $curTitle['shortId'] . $checkDigit;
-					$curTitle['id'] = '.' . $curTitle['shortId'] . $checkDigit;
-					require_once ROOT_DIR . '/RecordDrivers/MarcRecord.php';
-					$recordDriver = new MarcRecord( $this->driver->accountProfile->recordSource . ":" . $curTitle['recordId']);
-					if ($recordDriver->isValid()){
-						$curTitle['coverUrl'] = $recordDriver->getBookcoverUrl('medium');
-						$curTitle['groupedWorkId'] = $recordDriver->getGroupedWorkId();
-						$curTitle['ratingData'] = $recordDriver->getRatingData();
-						$formats = $recordDriver->getFormats();
-						$curTitle['format'] = reset($formats);
-						$curTitle['author'] = $recordDriver->getPrimaryAuthor();
-						//Always use title from the index since classic will show 240 rather than 245
-						$curTitle['title'] = $recordDriver->getTitle();
-					}else{
-						$curTitle['coverUrl'] = "";
-						$curTitle['groupedWorkId'] = "";
-						$curTitle['format'] = "Unknown";
-						$curTitle['author'] = "";
-					}
-					$curTitle['link'] = $recordDriver->getLinkUrl();
-				}
-				$checkedOutTitles[] = $curTitle;
-			}
+			$timer->logTime("Parsed checkout information");
 
-			$sCount++;
+			return $checkedOutTitles;
 		}
-		$timer->logTime("Parsed checkout information");
-
-		return $checkedOutTitles;
 	}
 
 	public function renewAll($patron){

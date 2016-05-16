@@ -109,6 +109,13 @@ class UserAccount {
 
 			// If we authenticated, store the user in the session:
 			if (!PEAR_Singleton::isError($tempUser)) {
+				global $library;
+				if (isset($library) && $library->preventExpiredCardLogin && $tempUser->expired) {
+					// Create error
+					$cardExpired = new PEAR_Error('expired_library_card');
+					return $cardExpired;
+				}
+
 				/** @var Memcache $memCache */
 				global $memCache;
 				global $serverName;

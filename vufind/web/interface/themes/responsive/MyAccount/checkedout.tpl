@@ -20,11 +20,12 @@
 		{if $libraryHoursMessage}
 			<div class="libraryHours alert alert-success">{$libraryHoursMessage}</div>
 		{/if}
+
 		{if $transList}
 			<form id="renewForm" action="{$path}/MyAccount/RenewMultiple">
 				<div id="pager" class="navbar form-inline">
 					<label for="accountSort" class="control-label">{translate text='Sort by'}:&nbsp;</label>
-						<select name="accountSort" id="accountSort" class="form-control" onchange="VuFind.Account.changeAccountSort($(this).val());">
+					<select name="accountSort" id="accountSort" class="form-control" onchange="VuFind.Account.changeAccountSort($(this).val());">
 						{foreach from=$sortOptions item=sortDesc key=sortVal}
 							<option value="{$sortVal}"{if $defaultSortOption == $sortVal} selected="selected"{/if}>{translate text=$sortDesc}</option>
 						{/foreach}
@@ -57,9 +58,9 @@
 				</div>
 
 				{if translate('CheckedOut_Econtent_notice')}
-				<p class="alert alert-info">
-					{translate text='CheckedOut_Econtent_notice'}
-				</p>
+					<p class="alert alert-info">
+						{translate text='CheckedOut_Econtent_notice'}
+					</p>
 				{/if}
 
 				<div class="btn-group">
@@ -69,7 +70,7 @@
 					<a href="{$path}/MyAccount/CheckedOut?exportToExcel" class="btn btn-sm btn-default" id="exportToExcelBottom" >Export to Excel</a>
 				</div>
 			</form>
-			
+
 		{else}
 			{translate text='You do not have any items checked out'}.
 		{/if}

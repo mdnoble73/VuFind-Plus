@@ -433,6 +433,14 @@ function getLibraryLocationUpdates(){
 			),
 		),
 
+		'library_prevent_expired_card_login' => array(
+			'title'       => 'Library Prevent Expired Card Login',
+			'description' => 'Allow libraries to stop users with expired cards to log into their account.',
+			'sql'         => array(
+				"ALTER TABLE `library` ADD `preventExpiredCardLogin` TINYINT(1) DEFAULT 0",
+			),
+		),
+
 		'library_location_boosting' => array(
 			'title' => 'Library Location Boosting',
 			'description' => 'Allow additional boosting for library and location holdings in addition to the default in the index.',
