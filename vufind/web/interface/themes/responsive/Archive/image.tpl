@@ -17,14 +17,14 @@
 
 		<div id="image-download-options">
 			{if $anonymousLcDownload || ($user && $verifiedLcDownload)}
-				<button class="btn btn-default">Download Large Image</button>
+				<a class="btn btn-default" href="/Archive/{$pid}/DownloadLC">Download Large Image</a>
 			{elseif (!$user && $verifiedLcDownload)}
-				<button class="btn btn-default">Login to Download Large Image</button>
+				<a class="btn btn-default" onclick="return VuFind.Archive.followLinkIfLoggedIn(this)" href="/Archive/{$pid}/DownloadLC">Login to Download Large Image</a>
 			{/if}
 			{if $anonymousMasterDownload || ($user && $verifiedMasterDownload)}
-				<button class="btn btn-default">Download Original Image</button>
+				<a class="btn btn-default" href="/Archive/{$pid}/DownloadOriginal">Download Original Image</a>
 			{elseif (!$user && $verifiedLcDownload)}
-				<button class="btn btn-default">Login to Download Original Image</button>
+				<a class="btn btn-default" onclick="return VuFind.Account.followLinkIfLoggedIn(this)" href="/Archive/{$pid}/DownloadOriginal">Login to Download Original Image</a>
 			{/if}
 		</div>
 
