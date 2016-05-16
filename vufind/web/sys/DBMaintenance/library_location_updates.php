@@ -987,6 +987,15 @@ function getLibraryLocationUpdates(){
 			),
 		),
 
+		'search_results_view_configuration_options' => array(
+			'title' => 'Add "Show in Main Details section of search results" configuration options.',
+			'description' => 'Allows a library to choose some of the main details to display for a record in search results.',
+			'continueOnError' => true,
+			'sql' => array(
+			  "ALTER TABLE `library` ADD COLUMN `showInSearchResultsMainDetails` VARCHAR(255) NULL DEFAULT 'a:2:{i:0;s:13:\"showPublisher\";i:1;s:19:\"showPublicationDate\";}';"
+			),
+		),
+
 		'dpla_integration' => array(
 			'title' => 'DPLA Integration',
 			'description' => 'Add a switch to determine whether or not we should include DPLA information within an interface',

@@ -149,6 +149,7 @@ class Library extends DB_DataObject
 	public $treatPrintNoticesAsPhoneNotices;
 	public $includeDplaResults;
 	public $showInMainDetails;
+	public $showInSearchResultsMainDetails;
 	public $selfRegistrationFormMessage;
 	public $selfRegistrationSuccessMessage;
 	public $selfRegistrationTemplate;
@@ -179,16 +180,22 @@ class Library extends DB_DataObject
 	// You should be able to add options here without needing to change the database.
 	// set the key to the desired SMARTY template variable name, set the value to the label to show in the library configuration page
 	static $showInMainDetailsOptions = array(
-		'showPublicationDetails' => 'Published',
-		'showFormats' => 'Formats',
-		'showEditions' => 'Editions',
+		'showPublicationDetails'   => 'Published',
+		'showFormats'              => 'Formats',
+		'showEditions'             => 'Editions',
 		'showPhysicalDescriptions' => 'Physical Descriptions',
-		'showLocations' => 'Locations',
-		'showISBNs' => 'ISBNs',
+		'showLocations'            => 'Locations',
+		'showISBNs'                => 'ISBNs',
 	);
 
-	/* Static get */
-//	function staticGet($k,$v=NULL) { return DB_DataObject::staticGet('Library',$k,$v); }
+	//TODO: Based on Template, do any others options need to be added to this set.
+	static $searchResultsMainDetailsOptions = array(
+		'showPublisher'            => 'Publisher',
+		'showPublicationDate'      => 'Publisher Date',
+		'showEditions'             => 'Editions',
+		'showPhysicalDescriptions' => 'Physical Descriptions',
+	);
+
 
 	function keys() {
 		return array('libraryId', 'subdomain');
@@ -365,6 +372,7 @@ class Library extends DB_DataObject
 			)),
 
 			// Searching //
+			//TODO: I would like to organize this into at least three subsections: Search Box, Search Facets, Search Results
 			'searchingSection' => array('property'=>'searchingSection', 'type' => 'section', 'label' =>'Searching', 'hideInLists' => true,
 					'helpLink'=>'https://docs.google.com/document/d/1QQ7bNfGx75ImTguxEOmf7eCtdrVN9vi8FpWtWY_O3OU', 'properties' => array(
 				'horizontalSearchBar' => array('property' => 'horizontalSearchBar', 'type'=>'checkbox', 'label' => 'Use Horizontal Search Bar', 'description' => 'Instead of the default sidebar search box, a horizontal search bar is shown below the header that spans the screen.', 'hideInLists' => true, 'default' => false),
@@ -390,7 +398,15 @@ class Library extends DB_DataObject
 				'showAdvancedSearchbox'  => array('property'=>'showAdvancedSearchbox', 'type'=>'checkbox', 'label'=>'Show Advanced Search Link', 'description'=>'Whether or not users should see the advanced search link below the search box.', 'hideInLists' => true, 'default' => 1),
 				'applyNumberOfHoldingsBoost' => array('property'=>'applyNumberOfHoldingsBoost', 'type'=>'checkbox', 'label'=>'Apply Number Of Holdings Boost', 'description'=>'Whether or not the relevance will use boosting by number of holdings in the catalog.', 'hideInLists' => true, 'default' => 1),
 				'showSearchTools'  => array('property'=>'showSearchTools', 'type'=>'checkbox', 'label'=>'Show Search Tools', 'description'=>'Turn on to activate search tools (save search, export to excel, rss feed, etc).', 'hideInLists' => true),
-			)),
+
+				//TODO: Note which details are mandatory
+				'showInSearchResultsMainDetails' => array('property' => 'showInSearchResultsMainDetails', 'type' => 'multiSelect', 'label' => 'Optional details to show for a record in search results : ',
+				                             'description' => 'Selected details will be shown in the main details section of a record on a search results page.',
+				                             'listStyle' => 'checkboxSimple',
+				                             'values' => self::$searchResultsMainDetailsOptions,
+				),
+
+				)),
 
 			// Catalog Enrichment //
 			'enrichmentSection' => array('property'=>'enrichmentSection', 'type' => 'section', 'label' =>'Catalog Enrichment', 'hideInLists' => true,
@@ -432,10 +448,10 @@ class Library extends DB_DataObject
 				  'values' => self::$showInMainDetailsOptions,
 				),
 				'moreDetailsOptions' => array(
-						'property'=>'moreDetailsOptions',
-						'type'=>'oneToMany',
-						'label'=>'Full Record Options',
-						'description'=>'Record Options for the display of full record',
+						'property' => 'moreDetailsOptions',
+						'type' => 'oneToMany',
+						'label' => 'Full Record Options',
+						'description' => 'Record Options for the display of full record',
 						'keyThis' => 'libraryId',
 						'keyOther' => 'libraryId',
 						'subObjectType' => 'LibraryMoreDetails',
@@ -901,6 +917,26 @@ class Library extends DB_DataObject
 				$default = array_keys($default);
 				$this->showInMainDetails = $default;
 			}
+			if (isset($this->showInSearchResultsMainDetails) && is_string($this->showInSearchResultsMainDetails) && !empty($this->showInSearchResultsMainDetails)) {
+				// convert to array retrieving from database
+				$this->showInSearchResultsMainDetails = unserialize($this->showInSearchResultsMainDetails);
+				if (!$this->showInSearchResultsMainDetails) $this->showInSearchResultsMainDetails = array();
+			}
+			elseif (empty($this->showInSearchResultsMainDetails)) {
+				//TODO: Is this block needed?
+				// Convert to empty array
+				$this->showInSearchResultsMainDetails = array();
+			}
+
+			//TODO: assume all if empty, not the expected behavior, remove this when determined.
+//			elseif (empty($this->showInSearchResultsMainDetails)) {
+//				// when a value is not set, assume set to show all options, eg null = all
+//				$default = self::showInSearchResultsMainDetails;
+//				// remove options below that aren't to be part of the default
+//				unset($default['showISBNs']);
+//				$default = array_keys($default);
+//				$this->showInSearchResultsMainDetails = $default;
+//			}
 		}
 		return $return;
 	}
@@ -913,6 +949,10 @@ class Library extends DB_DataObject
 		if (isset($this->showInMainDetails) && is_array($this->showInMainDetails)) {
 			// convert array to string before storing in database
 			$this->showInMainDetails = serialize($this->showInMainDetails);
+		}
+		if (isset($this->showInSearchResultsMainDetails) && is_array($this->showInSearchResultsMainDetails)) {
+			// convert array to string before storing in database
+			$this->showInSearchResultsMainDetails = serialize($this->showInSearchResultsMainDetails);
 		}
 		$ret = parent::update();
 		if ($ret !== FALSE ){
@@ -947,6 +987,10 @@ class Library extends DB_DataObject
 		if (isset($this->showInMainDetails) && is_array($this->showInMainDetails)) {
 			// convert array to string before storing in database
 			$this->showInMainDetails = serialize($this->showInMainDetails);
+		}
+		if (isset($this->showInSearchResultsMainDetails) && is_array($this->showInSearchResultsMainDetails)) {
+			// convert array to string before storing in database
+			$this->showInSearchResultsMainDetails = serialize($this->showInSearchResultsMainDetails);
 		}
 		$ret = parent::insert();
 		if ($ret !== FALSE ){
