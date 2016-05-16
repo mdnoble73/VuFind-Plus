@@ -18,7 +18,16 @@ class DownloadLC extends Archive_Object{
 		$verifiedLcDownload = $interface->getVariable('verifiedLcDownload');
 
 		if ($anonymousLcDownload || ($user && $verifiedLcDownload)){
-
+			$expires = 60*60*24*14;  //expire the cover in 2 weeks on the client side
+			header("Cache-Control: maxage=".$expires);
+			header('Expires: ' . gmdate('D, d M Y H:i:s', time()+$expires) . ' GMT');
+			$pid = $this->pid;
+			$pid = str_replace(':', '_', $pid);
+			header('Content-Disposition: attachment; filename=' . $pid . '_lc' . $this->recordDriver->getExtension($this->archiveObject->getDatastream('LC')->mimetype));
+			header('Content-type: ' . $this->archiveObject->getDatastream('LC')->mimetype);
+			$lcDataStream = $this->archiveObject->getDatastream('LC');
+			echo($lcDataStream->content);
+			exit();
 		}else{
 			PEAR_Singleton::raiseError('Sorry, You do not have permission to download this image.');
 		}
