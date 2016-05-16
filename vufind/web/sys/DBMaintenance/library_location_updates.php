@@ -992,7 +992,7 @@ function getLibraryLocationUpdates(){
 			'description' => 'Allows a library to choose some of the main details to display for a record in search results.',
 			'continueOnError' => true,
 			'sql' => array(
-			  "ALTER TABLE `library` ADD COLUMN `showInSearchResultsMainDetails` VARCHAR(255) NULL DEFAULT 'a:2:{i:0;s:13:\"showPublisher\";i:1;s:19:\"showPublicationDate\";}';"
+			  "ALTER TABLE `library` ADD COLUMN `showInSearchResultsMainDetails` VARCHAR(255) NULL DEFAULT 'a:4:{i:0;s:10:\"showSeries\";i:1;s:13:\"showPublisher\";i:2;s:19:\"showPublicationDate\";i:3;s:13:\"showLanguages\";}';"
 			),
 		),
 

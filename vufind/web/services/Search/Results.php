@@ -58,6 +58,13 @@ class Search_Results extends Action {
 			}
 		}
 
+		// Set Show in Search Results Main Details Section options for template
+		// (needs to be set before moreDetailsOptions)
+		global $library;
+		foreach ($library->showInSearchResultsMainDetails as $detailoption) {
+			$interface->assign($detailoption, true);
+		}
+
 
 		// Include Search Engine Class
 		require_once ROOT_DIR . '/sys/Solr.php';

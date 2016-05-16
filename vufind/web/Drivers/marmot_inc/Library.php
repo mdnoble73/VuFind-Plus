@@ -188,12 +188,16 @@ class Library extends DB_DataObject
 		'showISBNs'                => 'ISBNs',
 	);
 
-	//TODO: Based on Template, do any others options need to be added to this set.
+	// Use this to set which details will be shown in the the Main Details section of the record in the search results.
+	// You should be able to add options here without needing to change the database.
+	// set the key to the desired SMARTY template variable name, set the value to the label to show in the library configuration page
 	static $searchResultsMainDetailsOptions = array(
+		'showSeries'               => 'Show Series',
 		'showPublisher'            => 'Publisher',
 		'showPublicationDate'      => 'Publisher Date',
 		'showEditions'             => 'Editions',
 		'showPhysicalDescriptions' => 'Physical Descriptions',
+		'showLanguages'            => 'Show Language'
 	);
 
 
@@ -399,7 +403,6 @@ class Library extends DB_DataObject
 				'applyNumberOfHoldingsBoost' => array('property'=>'applyNumberOfHoldingsBoost', 'type'=>'checkbox', 'label'=>'Apply Number Of Holdings Boost', 'description'=>'Whether or not the relevance will use boosting by number of holdings in the catalog.', 'hideInLists' => true, 'default' => 1),
 				'showSearchTools'  => array('property'=>'showSearchTools', 'type'=>'checkbox', 'label'=>'Show Search Tools', 'description'=>'Turn on to activate search tools (save search, export to excel, rss feed, etc).', 'hideInLists' => true),
 
-				//TODO: Note which details are mandatory
 				'showInSearchResultsMainDetails' => array('property' => 'showInSearchResultsMainDetails', 'type' => 'multiSelect', 'label' => 'Optional details to show for a record in search results : ',
 				                             'description' => 'Selected details will be shown in the main details section of a record on a search results page.',
 				                             'listStyle' => 'checkboxSimple',
@@ -922,11 +925,11 @@ class Library extends DB_DataObject
 				$this->showInSearchResultsMainDetails = unserialize($this->showInSearchResultsMainDetails);
 				if (!$this->showInSearchResultsMainDetails) $this->showInSearchResultsMainDetails = array();
 			}
-			elseif (empty($this->showInSearchResultsMainDetails)) {
-				//TODO: Is this block needed?
-				// Convert to empty array
-				$this->showInSearchResultsMainDetails = array();
-			}
+//			elseif (empty($this->showInSearchResultsMainDetails)) {
+//				//TODO: Is this block needed?
+//				// Convert to empty array
+//				$this->showInSearchResultsMainDetails = array();
+//			}
 
 			//TODO: assume all if empty, not the expected behavior, remove this when determined.
 //			elseif (empty($this->showInSearchResultsMainDetails)) {
