@@ -7,8 +7,7 @@
  * @author Mark Noble <mark@marmot.org>
  * @author Niles Ingalls <ningalls@ena.com>
  * @author James Staub <james.staub@nashville.gov>
- * Date: 2/23/2016
- * Time: 3:30 PM
+ * Date: 4/4/2016
  */
 
 require_once ROOT_DIR . '/services/MyAccount/MyAccount.php';
@@ -35,6 +34,7 @@ class PayOnlineNashville extends Action{
 
 	function __construct() {
 		global $configArray;
+
 		$this->uri = $configArray['NashvilleOnlinePayments']['uri'];
 		$this->hostname = $configArray['NashvilleOnlinePayments']['hostname'];
 		$this->username = $configArray['NashvilleOnlinePayments']['username'];
@@ -75,13 +75,29 @@ class PayOnlineNashville extends Action{
 		$process = $this->process($search);
 
 		if($process->ProcessPaymentResult->ResultCode == 'Approved') {
+// receipt 
+$receipt = "Payment method: ";
+$receipt .= $process->ProcessPaymentResult->CardType;
+//$receipt .= " last digits: ";
+//$receipt .= $process->ProcessPaymentResult->Last4Digits;
+$receipt .= "<br>Transaction Date: ";
+$receipt .= date("m/d/Y H:i:s T", strtotime($process->ProcessPaymentResult->TransactionDate));
+$receipt .= "<br>Transaction ID: ";
+$receipt .= $process->ProcessPaymentResult->TransactionId;
+$receipt .= "<br>Library fines/fees: ";
+$receipt .= $process->ProcessPaymentResult->MerchantAmount;
+$receipt .= "<br>Convenience fee: ";
+$receipt .= $process->ProcessPaymentResult->ConvenienceFee;
+$receipt .= "<br>Total Paid: ";
+$receipt .= $process->ProcessPaymentResult->TotalAmount;
+
 			if($this->credit($search)) {
-				$interface->assign('paymentresult', 'Thank You, Payment has been applied.');
+				$interface->assign('paymentresult', '<div class="alert alert-success">Thank You, Payment has been applied.</div><div>'.$receipt.'</div>');
 			} else {
-				$interface->assign('paymentresult', 'Thank You, Payment will be credited within the next 24 hours.');
+				$interface->assign('paymentresult', '<div class="alert alert-warning">Thank You, Payment will be credited within the next 24 hours.</div>'.$receipt.'</div>');
 			}
 		} else {
-				$interface->assign('paymentresult', 'Payment not approved<br>' . $process->ProcessPaymentResult->ResponseMessage);
+				$interface->assign('paymentresult', '<div class="alert alert-danger">Payment not approved. ERROR: ' . $process->ProcessPaymentResult->ResponseMessage . '</div>');
 		}
 
 		//Present a success or failure message
@@ -98,7 +114,9 @@ class PayOnlineNashville extends Action{
 	}
 
 	function credit($patron) {
+print_r($this->sqldb);
 		$db = new SQLite3($this->sqldb);
+$fail = FALSE;
 		foreach($patron->bills AS $billkey=>$bill) {
 			$json = json_encode(array('username' => $this->username,'password' => $this->password,'hostname' => $this->hostname,'port' => $this->port,'amount' => $bill['ITEM_CHARGE'],'type' => 1,'invoice' => $bill['INVOICE_ID'],'initials' => 'onlinecc','patronID' => $patron->patronID));
 			$patron->bills[$billkey]['JSON'] = $json;
@@ -135,19 +153,45 @@ class PayOnlineNashville extends Action{
 
 	function process($patron) {
 		// get payment stuff ready.
+		$invoiceIdsMaxCountPerField = 28; // 255 max characters per UserPartX field divided by (6 digits per invoice id + 3 chars to urlencode pipe separator)
+		$fieldCount = 4; // UserPart3,4,5,6
+		$invoiceIdsMaxCount = $invoiceIdsMaxCountPerField * $fieldCount;
 		$UserPart1 = $patron->patronid;
 		$UserPart2 = $this->librarycard;
 		if(is_array($patron->bills)) {
 			foreach($patron->bills AS $each_bill) $invoices[] = $each_bill['INVOICE_ID']; // concat invoice #'s
+			$invoiceCount = count($invoices);
+			if ($invoiceCount > $invoiceIdsMaxCount) { // TO DO: make this more graceful
+				die("$invoiceCount total invoices exceeds online payment maximum. Please contact the Library.\n");
+			}
 			asort($invoices);
-			$UserPart3 = implode("|", $invoices);
+			$UserPartsInvoiceIDs = array_chunk($invoices,$invoiceIdsMaxCountPerField);
+// EPP Bug: If UserPartX is undefined, NULL, or Empty, SOAP response nests the undefined/NULL/Empty UserPartXes 
+// and most problematically nests resultcode and responsemessage within the last UserPartX.
+// Workaround is to define dummy values
+			$UserPart3 = implode("|", $UserPartsInvoiceIDs[0]);
+			if (isset($UserPartsInvoiceIDs[1])) {
+				$UserPart4 = implode("|", $UserPartsInvoiceIDs[1]);
+			} else {
+				$UserPart4 = 'na';
+			}
+			if (isset($UserPartsInvoiceIDs[2])) {
+				$UserPart5 = implode("|", $UserPartsInvoiceIDs[2]);
+			} else {
+				$UserPart5 = 'na';
+			}
+			if (isset($UserPartsInvoiceIDs[3])) {
+				$UserPart6 = implode("|", $UserPartsInvoiceIDs[3]);
+			} else {
+				$UserPart6 = 'na';
+			}
 			// make sure bill amounts match.
 			foreach($patron->bills AS $each_bill) $amount[] = $each_bill['ITEM_CHARGE'];
 			$amounts = array_sum($amount);
 			if(!($patron->bill*100) == $amounts) { // needs to be more graceful
 				echo $patron->bill*100 . " $amounts\n";
 				die("bills don't match\n");
-		    	} else {
+		    	} else { // 20160408 JAMES asks: can I kill this else? above, if true, script dies. implicit: if false, continue.
 		      		$ConvenienceFee = ceil(($patron->bill * $this->cc_ConvenienceFee) * 100)/100;
 				$TransactionAmount = $patron->bill + $ConvenienceFee;
 	      			$client_param = array('appId' => $this->appId,
@@ -162,6 +206,9 @@ class PayOnlineNashville extends Action{
 								'UserPart1' => $UserPart1, // patronid
 								'UserPart2' => $UserPart2, // patron barcode
        		   						'UserPart3' => $UserPart3, // invoice number(s)
+								'UserPart4' => $UserPart4, // invoice number(s)
+								'UserPart5' => $UserPart5, // invoice number(s)
+								'UserPart6' => $UserPart6, // invoice number(s)
 								'BillingName' => $this->cc_fullname,
 								'BillingZip' => $this->cc_zipcode,
 								'BillingEmail' => $patron->email[0],
@@ -181,13 +228,12 @@ try {
 					$result = $process->ProcessPayment($client_param);
 					print_r("\r\n\r\nRESULT\r\n");
 					print_r($result);
-					$request = $process->__getLastRequest();
-					print_r("\r\n\r\nREQUEST\r\n");
-					print_r($request);
-					$response = $process->__getLastResponse();
-					print_r("\r\n\r\nRESPONSE\r\n");
-					print_r($response);
-					
+					$paymentRequest = $process->__getLastRequest();
+					print_r("\r\n\r\nPAYMENT Request\r\n");
+					print_r($paymentRequest);
+					$paymentReply = $process->__getLastResponse();
+					print_r("\r\n\r\nPAYMENT Reply\r\n");
+					print_r($paymentReply);
 					return $result;
 } catch (Exception $e) {
 echo "\r\nException\r\n";

@@ -139,98 +139,86 @@ abstract class Archive_Object extends Action{
 					}
 					$interface->assign('alternateNames', $alternateNames);
 				}
-			}
 
-			$this->recordDriver->loadRelatedEntities();
+				$this->recordDriver->loadRelatedEntities();
 
-			$interface->assign('hasMilitaryService', false);
-			if (count($marmotExtension->marmotLocal->militaryService) > 0){
-				/** @var SimpleXMLElement $record */
-				$record = $marmotExtension->marmotLocal->militaryService->militaryRecord;
-				if ($record->militaryBranch != 'none' || $record->militaryConflict != 'none'){
-					$militaryRecord = array(
-							'branch' => $fedoraUtils->getObjectLabel((string)$record->militaryBranch),
-							'branchLink' => '/Archive/' . $record->militaryBranch . '/Organization',
-							'conflict' => $fedoraUtils->getObjectLabel((string)$record->militaryConflict),
-							'conflictLink' => '/Archive/' . $record->militaryConflict . '/Event',
-					);
-					$interface->assign('militaryRecord', $militaryRecord);
-					$interface->assign('hasMilitaryService', true);
-				}
-			}
-
-			$addressInfo = array();
-			if (strlen($marmotExtension->marmotLocal->latitude) ||
-					strlen($marmotExtension->marmotLocal->longitude) ||
-					strlen($marmotExtension->marmotLocal->addressStreetNumber) ||
-					strlen($marmotExtension->marmotLocal->addressStreet) ||
-					strlen($marmotExtension->marmotLocal->addressCity) ||
-					strlen($marmotExtension->marmotLocal->addressCounty) ||
-					strlen($marmotExtension->marmotLocal->addressState) ||
-					strlen($marmotExtension->marmotLocal->addressZipCode) ||
-					strlen($marmotExtension->marmotLocal->addressCountry) ||
-					strlen($marmotExtension->marmotLocal->addressOtherRegion)){
-
-				if (strlen((string)$marmotExtension->marmotLocal->latitude) > 0){
-					$addressInfo['latitude'] = (string)$marmotExtension->marmotLocal->latitude;
-				}
-				if (strlen((string)$marmotExtension->marmotLocal->longitude) > 0) {
-					$addressInfo['longitude'] = (string)$marmotExtension->marmotLocal->longitude;
+				$interface->assign('hasMilitaryService', false);
+				if (count($marmotExtension->marmotLocal->militaryService) > 0){
+					/** @var SimpleXMLElement $record */
+					$record = $marmotExtension->marmotLocal->militaryService->militaryRecord;
+					if ($record->militaryBranch != 'none' || $record->militaryConflict != 'none'){
+						$militaryRecord = array(
+								'branch' => $fedoraUtils->getObjectLabel((string)$record->militaryBranch),
+								'branchLink' => '/Archive/' . $record->militaryBranch . '/Organization',
+								'conflict' => $fedoraUtils->getObjectLabel((string)$record->militaryConflict),
+								'conflictLink' => '/Archive/' . $record->militaryConflict . '/Event',
+						);
+						$interface->assign('militaryRecord', $militaryRecord);
+						$interface->assign('hasMilitaryService', true);
+					}
 				}
 
-				if (strlen((string)$marmotExtension->marmotLocal->addressStreetNumber) > 0) {
-					$addressInfo['hasDetailedAddress'] = true;
-					$addressInfo['addressStreetNumber'] = (string)$marmotExtension->marmotLocal->addressStreetNumber;
-				}
-				if (strlen((string)$marmotExtension->marmotLocal->addressStreet) > 0) {
-					$addressInfo['hasDetailedAddress'] = true;
-					$addressInfo['addressStreet'] = (string)$marmotExtension->marmotLocal->addressStreet;
-				}
-				if (strlen((string)$marmotExtension->marmotLocal->addressCity) > 0) {
-					$addressInfo['hasDetailedAddress'] = true;
-					$addressInfo['addressCity'] = (string)$marmotExtension->marmotLocal->addressCity;
-				}
-				if (strlen((string)$marmotExtension->marmotLocal->addressState) > 0) {
-					$addressInfo['hasDetailedAddress'] = true;
-					$addressInfo['addressCounty'] = (string)$marmotExtension->marmotLocal->addressCounty;
-				}
-				if (strlen((string)$marmotExtension->marmotLocal->addressState) > 0) {
-					$addressInfo['hasDetailedAddress'] = true;
-					$addressInfo['addressState'] = (string)$marmotExtension->marmotLocal->addressState;
-				}
-				if (strlen((string)$marmotExtension->marmotLocal->addressZipCode) > 0) {
-					$addressInfo['hasDetailedAddress'] = true;
-					$addressInfo['addressZipCode'] = (string)$marmotExtension->marmotLocal->addressZipCode;
-				}
-				if (strlen((string)$marmotExtension->marmotLocal->addressStreet) > 0) {
-					$addressInfo['hasDetailedAddress'] = true;
-					$addressInfo['addressCountry'] = (string)$marmotExtension->marmotLocal->addressCountry;
-				}
+				$addressInfo = array();
+				if (strlen($marmotExtension->marmotLocal->latitude) ||
+						strlen($marmotExtension->marmotLocal->longitude) ||
+						strlen($marmotExtension->marmotLocal->addressStreetNumber) ||
+						strlen($marmotExtension->marmotLocal->addressStreet) ||
+						strlen($marmotExtension->marmotLocal->addressCity) ||
+						strlen($marmotExtension->marmotLocal->addressCounty) ||
+						strlen($marmotExtension->marmotLocal->addressState) ||
+						strlen($marmotExtension->marmotLocal->addressZipCode) ||
+						strlen($marmotExtension->marmotLocal->addressCountry) ||
+						strlen($marmotExtension->marmotLocal->addressOtherRegion)) {
 
+					if (strlen((string)$marmotExtension->marmotLocal->latitude) > 0) {
+						$addressInfo['latitude'] = (string)$marmotExtension->marmotLocal->latitude;
+					}
+					if (strlen((string)$marmotExtension->marmotLocal->longitude) > 0) {
+						$addressInfo['longitude'] = (string)$marmotExtension->marmotLocal->longitude;
+					}
 
-				$interface->assign('addressInfo', $addressInfo);
-			}
+					if (strlen((string)$marmotExtension->marmotLocal->addressStreetNumber) > 0) {
+						$addressInfo['hasDetailedAddress'] = true;
+						$addressInfo['addressStreetNumber'] = (string)$marmotExtension->marmotLocal->addressStreetNumber;
+					}
+					if (strlen((string)$marmotExtension->marmotLocal->addressStreet) > 0) {
+						$addressInfo['hasDetailedAddress'] = true;
+						$addressInfo['addressStreet'] = (string)$marmotExtension->marmotLocal->addressStreet;
+					}
+					if (strlen((string)$marmotExtension->marmotLocal->addressCity) > 0) {
+						$addressInfo['hasDetailedAddress'] = true;
+						$addressInfo['addressCity'] = (string)$marmotExtension->marmotLocal->addressCity;
+					}
+					if (strlen((string)$marmotExtension->marmotLocal->addressState) > 0) {
+						$addressInfo['hasDetailedAddress'] = true;
+						$addressInfo['addressCounty'] = (string)$marmotExtension->marmotLocal->addressCounty;
+					}
+					if (strlen((string)$marmotExtension->marmotLocal->addressState) > 0) {
+						$addressInfo['hasDetailedAddress'] = true;
+						$addressInfo['addressState'] = (string)$marmotExtension->marmotLocal->addressState;
+					}
+					if (strlen((string)$marmotExtension->marmotLocal->addressZipCode) > 0) {
+						$addressInfo['hasDetailedAddress'] = true;
+						$addressInfo['addressZipCode'] = (string)$marmotExtension->marmotLocal->addressZipCode;
+					}
+					if (strlen((string)$marmotExtension->marmotLocal->addressStreet) > 0) {
+						$addressInfo['hasDetailedAddress'] = true;
+						$addressInfo['addressCountry'] = (string)$marmotExtension->marmotLocal->addressCountry;
+					}
+					$interface->assign('addressInfo', $addressInfo);
+				}//End verifying checking for address information
 
-			$notes = array();
-			if (strlen($marmotExtension->marmotLocal->personNotes) > 0){
-				$notes[] = (string)$marmotExtension->marmotLocal->personNotes;
-			}
-			if (strlen($marmotExtension->marmotLocal->citationNotes) > 0){
-				$notes[] = (string)$marmotExtension->marmotLocal->citationNotes;
-			}
-			$interface->assign('notes', $notes);
-		}
+				$notes = array();
+				if (strlen($marmotExtension->marmotLocal->personNotes) > 0){
+					$notes[] = (string)$marmotExtension->marmotLocal->personNotes;
+				}
+				if (strlen($marmotExtension->marmotLocal->citationNotes) > 0){
+					$notes[] = (string)$marmotExtension->marmotLocal->citationNotes;
+				}
+				$interface->assign('notes', $notes);
 
-		//Load the RELS-EXT data stream
-		/*$relsExtStream = $this->archiveObject->getDatastream('RELS-EXT');
-		$temp = tempnam('/tmp', 'relext');
-		$result = $relsExtStream->getContent($temp);
-		$relsExtData = simplexml_load_string(file_get_contents($temp));
-		if (count($relsExtData) == 0){
-			$relsExtData = $relsExtData->children('http://www.w3.org/1999/02/22-rdf-syntax-ns#');
-		}
-		$this->relsExtData = $relsExtData;
-		unlink($temp);*/
+			}//End verifying marmot local is valid
+		}//End verifying marmot extension is valid
 
 		$title = $this->archiveObject->label;
 		$interface->assign('title', $title);
@@ -243,6 +231,32 @@ abstract class Archive_Object extends Action{
 
 		$repositoryLink = $configArray['Islandora']['repositoryUrl'] . '/islandora/object/' . $this->pid;
 		$interface->assign('repositoryLink', $repositoryLink);
+
+		//Check for display restrictions
+		/** @var CollectionDriver $collection */
+		$anonymousMasterDownload = true;
+		$verifiedMasterDownload = true;
+		$anonymousLcDownload = true;
+		$verifiedLcDownload = true;
+		foreach ($this->recordDriver->getRelatedCollections() as $collection){
+			$collectionDriver = RecordDriverFactory::initRecordDriver($collection['object']);
+			if (!$collectionDriver->canAnonymousDownloadMaster()){
+				$anonymousMasterDownload = false;
+			}
+			if (!$collectionDriver->canVerifiedDownloadMaster()){
+				$verifiedMasterDownload = false;
+			}
+			if (!$collectionDriver->canAnonymousDownloadLC()){
+				$anonymousLcDownload = false;
+			}
+			if (!$collectionDriver->canVerifiedDownloadLC()){
+				$verifiedLcDownload = false;
+			}
+		}
+		$interface->assign('anonymousMasterDownload', $anonymousMasterDownload);
+		$interface->assign('verifiedMasterDownload', $verifiedMasterDownload);
+		$interface->assign('anonymousLcDownload', $anonymousLcDownload);
+		$interface->assign('verifiedLcDownload', $verifiedLcDownload);
 	}
 
 	function loadExploreMoreContent(){

@@ -10328,6 +10328,10 @@ a.browse-thumbnail.active {
   padding: 15px;
   box-sizing: border-box;
 }
+#image-download-options {
+  margin-top: 5px;
+  margin-bottom: 7px;
+}
 .openseadragon {
   display: block;
   width: 100%;
