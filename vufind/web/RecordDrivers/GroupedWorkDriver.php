@@ -528,6 +528,8 @@ class GroupedWorkDriver extends RecordInterface{
 		$summEdition      = null;
 		$summLanguage     = null;
 		$isFirst = true;
+		global $library;
+		$alwaysShowMainDetails = $library ? $library->alwaysShowSearchResultsMainDetails : false;
 		foreach ($relatedRecords as $relatedRecord){
 			if ($isFirst){
 				$summPublisher    = $relatedRecord['publisher'];
@@ -537,24 +539,19 @@ class GroupedWorkDriver extends RecordInterface{
 				$summLanguage     = $relatedRecord['language'];
 			}else{
 				if ($summPublisher != $relatedRecord['publisher']){
-//					$summPublisher = null;
-					$summPublisher = translate('Varies, see individual formats and editions');
+					$summPublisher = $alwaysShowMainDetails ? translate('Varies, see individual formats and editions') : null;
 				}
 				if ($summPubDate != $relatedRecord['publicationDate']){
-//					$summPubDate = null;
-					$summPubDate = translate('Varies, see individual formats and editions');
+					$summPubDate = $alwaysShowMainDetails ? translate('Varies, see individual formats and editions') : null;
 				}
 				if ($summPhysicalDesc != $relatedRecord['physical']){
-//					$summPhysicalDesc = null;
-					$summPhysicalDesc = translate('Varies, see individual formats and editions');
+					$summPhysicalDesc = $alwaysShowMainDetails ? translate('Varies, see individual formats and editions') : null;
 				}
 				if ($summEdition != $relatedRecord['edition']){
-//					$summEdition = null;
-					$summEdition = translate('Varies, see individual formats');
+					$summEdition = $alwaysShowMainDetails ? translate('Varies, see individual formats and editions') : null;
 				}
 				if ($summLanguage != $relatedRecord['language']){
-//					$summLanguage = null;
-					$summLanguage = translate('Varies, see individual formats and editions');
+					$summLanguage = $alwaysShowMainDetails ? translate('Varies, see individual formats and editions') : null;
 				}
 			}
 			$isFirst = false;

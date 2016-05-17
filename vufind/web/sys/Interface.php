@@ -363,6 +363,7 @@ class UInterface extends Smarty
 			$this->assign('showRatings', $library->showRatings);
 			$this->assign('show856LinksAsTab', $library->show856LinksAsTab);
 			$this->assign('showSearchTools', $library->showSearchTools);
+			$this->assign('alwaysShowSearchResultsMainDetails', $library->alwaysShowSearchResultsMainDetails);
 			$this->assign('showExpirationWarnings', $library->showExpirationWarnings);
 			$this->assign('showSimilarTitles', $library->showSimilarTitles);
 			$this->assign('showSimilarAuthors', $library->showSimilarAuthors);
@@ -380,6 +381,7 @@ class UInterface extends Smarty
 			$this->assign('showRatings', 1);
 			$this->assign('show856LinksAsTab', 1);
 			$this->assign('showSearchTools', 1);
+			$this->assign('alwaysShowSearchResultsMainDetails', 0);
 			$this->assign('showExpirationWarnings', 1);
 			$this->assign('showSimilarTitles', 1);
 			$this->assign('showSimilarAuthors', 1);

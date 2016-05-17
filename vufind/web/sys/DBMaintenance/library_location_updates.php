@@ -1105,6 +1105,15 @@ function getLibraryLocationUpdates(){
 			),
 		),
 
+		'always_show_search_results_Main_details' => array(
+			'title' => 'Enable Always Show Search Results Main Details',
+			'description' => 'Library configuration switch to always display chosen details in search results even when the info is not supplied or the details vary.',
+			'continueOnError' => true,
+			'sql' => array(
+				"ALTER TABLE `library` ADD COLUMN `alwaysShowSearchResultsMainDetails` TINYINT(1) DEFAULT 0;",
+			),
+		),
+
 		'right_hand_sidebar' => array(
 			'title' => 'Enable Right Hand Sidebar',
 			'description' => 'Library configuration switch to display sidebars on the right of the page instead of the default left side.',
