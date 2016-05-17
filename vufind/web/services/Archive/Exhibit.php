@@ -29,8 +29,16 @@ class Archive_Exhibit extends Archive_Object{
 
 		$interface->assign('showExploreMore', true);
 
-		// Display Page
-		$this->display('exhibit.tpl');
+		$displayType = 'basic';
+		if ($this->pid == 'evld:localHistoryArchive'){
+			$displayType = 'timeline';
+		}
+		// Determine what type of page to show
+		if ($displayType == 'basic'){
+			$this->display('exhibit.tpl');
+		} else if ($displayType == 'timeline'){
+			$this->display('timeline.tpl');
+		}
 	}
 
 	function loadRelatedObjects(){
