@@ -37,6 +37,7 @@ class ExternalEContentDriver extends BaseEContentDriver{
 		}else if ($sharing == 'library'){
 			$searchLibrary = Library::getSearchLibrary();
 			if ($searchLibrary == null || $searchLibrary->econtentLocationsToInclude == 'all' || strlen($searchLibrary->econtentLocationsToInclude) == 0  || $searchLibrary->includeOutOfSystemExternalLinks || (strlen($searchLibrary->ilsCode) > 0 && strpos($locationCode, $searchLibrary->ilsCode) === 0)){
+				// TODO: econtentLocationsToInclude setting no longer in use. plb 5-17-2016
 				return true;
 			}else{
 				return false;
