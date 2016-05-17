@@ -508,7 +508,7 @@ class GroupedWorkDriver extends RecordInterface{
 		$interface->assign('summUrl', $linkUrl);
 		$interface->assign('summTitle', $this->getTitleShort(true));
 		$interface->assign('summSubTitle', $this->getSubtitle(true));
-		$interface->assign('summAuthor', $this->getPrimaryAuthor(true));
+		$interface->assign('summAuthor', rtrim($this->getPrimaryAuthor(true), ','));
 		$isbn = $this->getCleanISBN();
 		$interface->assign('summISBN', $isbn);
 		$interface->assign('summFormats', $this->getFormats());
@@ -522,39 +522,44 @@ class GroupedWorkDriver extends RecordInterface{
 		//Generate COinS URL for Zotero support
 		$interface->assign('summCOinS', $this->getOpenURL());
 
-		$summPublisher = null;
-		$summPubDate = null;
+		$summPublisher    = null;
+		$summPubDate      = null;
 		$summPhysicalDesc = null;
-		$summEdition = null;
-		$summLanguage = null;
+		$summEdition      = null;
+		$summLanguage     = null;
 		$isFirst = true;
 		foreach ($relatedRecords as $relatedRecord){
 			if ($isFirst){
-				$summPublisher = $relatedRecord['publisher'];
-				$summPubDate = $relatedRecord['publicationDate'];
+				$summPublisher    = $relatedRecord['publisher'];
+				$summPubDate      = $relatedRecord['publicationDate'];
 				$summPhysicalDesc = $relatedRecord['physical'];
-				$summEdition = $relatedRecord['edition'];
-				$summLanguage = $relatedRecord['language'];
+				$summEdition      = $relatedRecord['edition'];
+				$summLanguage     = $relatedRecord['language'];
 			}else{
 				if ($summPublisher != $relatedRecord['publisher']){
-					$summPublisher = null;
+//					$summPublisher = null;
+					$summPublisher = translate('Varies, see individual formats and editions');
 				}
 				if ($summPubDate != $relatedRecord['publicationDate']){
-					$summPubDate = null;
+//					$summPubDate = null;
+					$summPubDate = translate('Varies, see individual formats and editions');
 				}
 				if ($summPhysicalDesc != $relatedRecord['physical']){
-					$summPhysicalDesc = null;
+//					$summPhysicalDesc = null;
+					$summPhysicalDesc = translate('Varies, see individual formats and editions');
 				}
 				if ($summEdition != $relatedRecord['edition']){
-					$summEdition = null;
+//					$summEdition = null;
+					$summEdition = translate('Varies, see individual formats');
 				}
 				if ($summLanguage != $relatedRecord['language']){
-					$summLanguage = null;
+//					$summLanguage = null;
+					$summLanguage = translate('Varies, see individual formats and editions');
 				}
 			}
 			$isFirst = false;
 		}
-		$interface->assign('summPublisher', $summPublisher);
+		$interface->assign('summPublisher', rtrim($summPublisher, ','));
 		$interface->assign('summPubDate', $summPubDate);
 		$interface->assign('summPhysicalDesc', $summPhysicalDesc);
 		$interface->assign('summEdition', $summEdition);

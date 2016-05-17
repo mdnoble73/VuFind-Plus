@@ -90,7 +90,7 @@
 							{if $summPublisher}
 								{$summPublisher}
 							{else}
-								Varies, see individual formats and editions
+								{translate text="Not Supplied"}
 							{/if}
 						</div>
 					</div>
@@ -103,7 +103,7 @@
 							{if $summPubDate}
 								{$summPubDate|escape}
 							{else}
-								Varies, see individual formats and editions
+								{translate text="Not Supplied"}
 							{/if}
 						</div>
 					</div>
@@ -116,22 +116,20 @@
 							{if $summEdition}
 								{$summEdition}
 							{else}
-								Varies, see individual formats
+								{translate text="Not Supplied"}
 							{/if}
 						</div>
 					</div>
 				{/if}
 
 				{if $showPhysicalDescriptions}
-					{* TODO: Only show if the physical description is populated? *}
 					<div class="row">
 						<div class="result-label col-tn-3 col-xs-3">{translate text='Physical Desc'}: </div>
 						<div class="result-value col-tn-9 col-xs-9">
 							{if $summPhysicalDesc}
-								{*{implode subject=$physicalDescriptions glue="<br>"}*}
 								{$summPhysicalDesc}
 							{else}
-								Varies, see individual formats and editions
+								{translate text="Not Supplied"}
 							{/if}
 						</div>
 					</div>
