@@ -1266,6 +1266,15 @@ function getLibraryLocationUpdates(){
 					),
 			),
 
+			'library_subject_display_2' => array(
+					'title' => 'Library Subject Display Options Update',
+					'description' => 'Add Show Other subjects option and rename show Standard Subjects option to Show LC Subjects.',
+					'sql' => array(
+							'ALTER TABLE `library` CHANGE COLUMN `showStandardSubjects` `showLCSubjects` TINYINT(1) DEFAULT 1',
+							'ALTER TABLE `library` ADD COLUMN `showOtherSubjects` TINYINT(1) DEFAULT 1 AFTER `showFastAddSubjects`',
+					),
+			),
+
 			'library_max_fines_for_account_update' => array(
 					'title' => 'Library Maximum fines to allow account updates',
 					'description' => 'Add option to prevent patrons with high fines from updating their account',
