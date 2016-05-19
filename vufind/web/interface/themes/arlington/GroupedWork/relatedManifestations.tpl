@@ -16,6 +16,12 @@
 						<div class="col-tn-3 col-xs-4 col-md-3 manifestation-format">
 							{if $relatedManifestation.numRelatedRecords == 1}
 								<a class="btn btn-xs btn-primary" href="{$relatedManifestation.url}">{$relatedManifestation.format}</a>
+								{*<a href="#" class="btn btn-xs btn-primary" onclick="return VuFind.ResultsList.toggleRelatedManifestations('{$id|escapeCSS}_{$relatedManifestation.format|escapeCSS}');">*}
+									{*{$relatedManifestation.format}*}
+								{*</a>*}
+								<a href="#" onclick="return VuFind.ResultsList.toggleRelatedManifestations('{$id|escapeCSS}_{$relatedManifestation.format|escapeCSS}');">
+									<span class="manifestation-toggle-text label label-default" id='manifestation-toggle-text-{$id|escapeCSS}_{$relatedManifestation.format|escapeCSS}'>Show&nbsp;Edition</span>
+								</a>
 							{else}
 								<a href="#" class="btn btn-xs btn-primary" onclick="return VuFind.ResultsList.toggleRelatedManifestations('{$id|escapeCSS}_{$relatedManifestation.format|escapeCSS}');">
 									{$relatedManifestation.format}

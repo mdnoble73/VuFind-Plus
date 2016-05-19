@@ -8,15 +8,9 @@
 			{if $relatedManifestation.format == 'eBook' || $relatedManifestation.format == 'eAudiobook' || $relatedManifestation.format == 'eMagazine'}
 				<th>Source</th>
 			{/if}
-			{assign var="displayEdition" value=false}
-			{foreach from=$relatedRecords item=relatedRecord}
-				{if !empty($relatedRecord.edition)}
-					{assign var="displayEdition" value=true}
-				{/if}
-			{/foreach}
-			{if $displayEdition}
+			{display_if_inconsistent array=$relatedRecords key="edition"}
 				<th>Edition</th>
-			{/if}
+			{/display_if_inconsistent}
 			{display_if_inconsistent array=$relatedRecords key="publisher"}
 				<th>Publisher</th>
 			{/display_if_inconsistent}
@@ -41,9 +35,9 @@
 				{if $relatedManifestation.format == 'eBook' || $relatedManifestation.format == 'eAudiobook' || $relatedManifestation.format == 'eMagazine'}
 					<td><a href="{$relatedRecord.url}">{$relatedRecord.eContentSource}</a></td>
 				{/if}
-				{if $displayEdition}
-					<td>{$relatedRecord.edition}</td>
-				{/if}
+				{display_if_inconsistent array=$relatedRecords key="edition"}
+					<td>{*<a href="{$relatedRecord.url}">*}{$relatedRecord.edition}{*</a>*}</td>
+				{/display_if_inconsistent}
 				{display_if_inconsistent array=$relatedRecords key="publisher"}
 					<td><a href="{$relatedRecord.url}">{$relatedRecord.publisher}</a></td>
 				{/display_if_inconsistent}

@@ -539,10 +539,15 @@ function display_if_inconsistent($params, $content, &$smarty, &$repeat){
 	//This function is called twice, once for the opening tag and once for the
 	//closing tag.  Content is only set if
 	if (isset($content)) {
-		$consistent = true;
-		$firstValue = null;
 		$array = $params['array'];
 		$key = $params['key'];
+
+		if (count($array) === 1) {
+			// If we have only one row of items, display that row
+			return empty($array[0][$key]) ? '' : $content;
+		}
+		$consistent = true;
+		$firstValue = null;
 		$iterationNumber = 0;
 		foreach ($array as $arrayValue){
 			if ($iterationNumber == 0){

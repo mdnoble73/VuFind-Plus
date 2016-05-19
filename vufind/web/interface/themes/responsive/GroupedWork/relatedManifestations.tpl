@@ -15,8 +15,16 @@
 				  <div class="row">
 						<div class="col-tn-3 col-xs-4 col-md-3 manifestation-format">
 							{if $relatedManifestation.numRelatedRecords == 1}
-								<span class="manifestation-toggle-placeholder">&nbsp;</span>
-								<a href="{$relatedManifestation.url}">{$relatedManifestation.format}</a>
+								<a href="#" onclick="return VuFind.ResultsList.toggleRelatedManifestations('{$id|escapeCSS}_{$relatedManifestation.format|escapeCSS}');">
+									<span class="manifestation-toggle collapsed" id='manifestation-toggle-{$id|escapeCSS}_{$relatedManifestation.format|escapeCSS}'>+</span> {$relatedManifestation.format}
+								</a>
+								<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+								<a href="#" onclick="return VuFind.ResultsList.toggleRelatedManifestations('{$id|escapeCSS}_{$relatedManifestation.format|escapeCSS}');">
+									<span class="manifestation-toggle-text label label-default" id='manifestation-toggle-text-{$id|escapeCSS}_{$relatedManifestation.format|escapeCSS}'>Show&nbsp;Edition</span>
+								</a>
+
+								{*<span class="manifestation-toggle-placeholder">&nbsp;</span>*}
+								{*<a href="{$relatedManifestation.url}">{$relatedManifestation.format}</a>*}
 							{else}
 								<a href="#" onclick="return VuFind.ResultsList.toggleRelatedManifestations('{$id|escapeCSS}_{$relatedManifestation.format|escapeCSS}');">
 									<span class="manifestation-toggle collapsed" id='manifestation-toggle-{$id|escapeCSS}_{$relatedManifestation.format|escapeCSS}'>+</span> {$relatedManifestation.format}
@@ -52,7 +60,7 @@
 						</div>
 				  </div>
 					<div class="row">
-						<div class="col-sm-12 hidden" id="relatedRecordPopup_{$id|escapeCSS}_{$relatedManifestation.format|escapeCSS}">
+						<div class="col-sm-12{*{if $relatedManifestation.numRelatedRecords != 1}*} hidden{*{/if}*}" id="relatedRecordPopup_{$id|escapeCSS}_{$relatedManifestation.format|escapeCSS}">
 							{include file="GroupedWork/relatedRecords.tpl" relatedRecords=$relatedManifestation.relatedRecords relatedManifestation=$relatedManifestation}
 						</div>
 					</div>
