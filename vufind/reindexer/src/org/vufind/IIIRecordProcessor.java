@@ -27,7 +27,6 @@ public abstract class IIIRecordProcessor extends IlsRecordProcessor{
 	private boolean loanRuleDataLoaded = false;
 	protected ArrayList<Long> pTypes = new ArrayList<>();
 	protected HashMap<String, HashSet<String>> pTypesByLibrary = new HashMap<>();
-	protected HashMap<String, HashSet<String>> pTypesForSpecialLocationCodes = new HashMap<>();
 	protected HashSet<String> allPTypes = new HashSet<>();
 	private HashMap<Long, LoanRule> loanRules = new HashMap<>();
 	private ArrayList<LoanRuleDeterminer> loanRuleDeterminers = new ArrayList<>();
@@ -54,29 +53,17 @@ public abstract class IIIRecordProcessor extends IlsRecordProcessor{
 					allPTypes.add(pTypesRS.getString("pType"));
 				}
 
-				PreparedStatement pTypesByLibraryStmt = vufindConn.prepareStatement("SELECT pTypes, ilsCode, econtentLocationsToInclude from library", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+				PreparedStatement pTypesByLibraryStmt = vufindConn.prepareStatement("SELECT pTypes, ilsCode from library", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 				ResultSet pTypesByLibraryRS = pTypesByLibraryStmt.executeQuery();
 				while (pTypesByLibraryRS.next()) {
 					String ilsCode = pTypesByLibraryRS.getString("ilsCode");
 					String pTypes = pTypesByLibraryRS.getString("pTypes");
-					String econtentLocationsToIncludeStr = pTypesByLibraryRS.getString("econtentLocationsToInclude");
 					if (pTypes != null && pTypes.length() > 0){
 						String[] pTypeElements = pTypes.split(",");
 						HashSet<String> pTypesForLibrary = new HashSet<>();
 						Collections.addAll(pTypesForLibrary, pTypeElements);
 						pTypesByLibrary.put(ilsCode, pTypesForLibrary);
-						if (econtentLocationsToIncludeStr.length() > 0) {
-							String[] econtentLocationsToInclude = econtentLocationsToIncludeStr.split(",");
-							for (String econtentLocationToInclude : econtentLocationsToInclude) {
-								econtentLocationToInclude = econtentLocationToInclude.trim();
-								if (econtentLocationToInclude.length() > 0) {
-									if (!pTypesForSpecialLocationCodes.containsKey(econtentLocationToInclude)) {
-										pTypesForSpecialLocationCodes.put(econtentLocationToInclude, new HashSet<String>());
-									}
-									pTypesForSpecialLocationCodes.get(econtentLocationToInclude).addAll(pTypesForLibrary);
-								}
-							}
-						}
+
 					}
 				}
 
