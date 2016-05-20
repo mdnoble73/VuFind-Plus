@@ -14,7 +14,7 @@ class Archive_LargeImage extends Archive_Object{
 		global $interface;
 		global $configArray;
 		$this->loadArchiveObjectData();
-		$this->loadExploreMoreContent();
+		//$this->loadExploreMoreContent();
 
 		$hasImage = false;
 		if ($this->archiveObject->getDatastream('JP2') != null) {

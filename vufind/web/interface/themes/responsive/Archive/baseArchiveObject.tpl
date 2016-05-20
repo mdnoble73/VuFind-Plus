@@ -57,29 +57,11 @@
 					</div>
 				{/if}
 
-				{if strlen($marmotExtension->marmotLocal->placeDateStart) || strlen($marmotExtension->marmotLocal->placeDateEnd)}
+				{if strlen($startDate) || strlen($endDate)}
 					<div class="row">
 						<div class="result-label col-sm-4">Dates: </div>
 						<div class="result-value col-sm-8">
-							{$marmotExtension->marmotLocal->placeDateStart}{if $marmotExtension->marmotLocal->placeDateEnd} to {/if}{$marmotExtension->marmotLocal->placeDateEnd}
-						</div>
-					</div>
-				{/if}
-
-				{if strlen($marmotExtension->marmotLocal->eventStartDate) || strlen($marmotExtension->marmotLocal->eventEndDate)}
-					<div class="row">
-						<div class="result-label col-sm-4">Dates: </div>
-						<div class="result-value col-sm-8">
-							{$marmotExtension->marmotLocal->eventStartDate}{if $marmotExtension->marmotLocal->eventEndDate} to {/if}{$marmotExtension->marmotLocal->eventEndDate}
-						</div>
-					</div>
-				{/if}
-
-				{if strlen($marmotExtension->marmotLocal->dateEstablished) || strlen($marmotExtension->marmotLocal->dateDisbanded)}
-					<div class="row">
-						<div class="result-label col-sm-4">Dates: </div>
-						<div class="result-value col-sm-8">
-							{$marmotExtension->marmotLocal->dateEstablished}{if $marmotExtension->marmotLocal->dateDisbanded} to {/if}{$marmotExtension->marmotLocal->dateDisbanded}
+							{$startDate}{if $endDate} to {/if}{$endDate}
 						</div>
 					</div>
 				{/if}
@@ -135,3 +117,8 @@
 		{include file="Archive/metadata.tpl"}
 	</div>
 {/strip}
+<script type="text/javascript">
+	$().ready(function(){ldelim}
+		VuFind.Archive.loadExploreMore('{$pid|urlencode}');
+	{rdelim});
+</script>

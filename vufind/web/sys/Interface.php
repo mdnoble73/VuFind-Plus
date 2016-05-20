@@ -58,6 +58,10 @@ class UInterface extends Smarty
 			$mapsKey = $configArray['Maps']['apiKey'];
 			$this->assign('mapsKey', $mapsKey);
 		}
+		if (isset($configArray['Maps']) && isset($configArray['Maps']['browserKey'])){
+			$mapsKey = $configArray['Maps']['browserKey'];
+			$this->assign('mapsBrowserKey', $mapsKey);
+		}
 
 		if (isset($_REQUEST['print'])) {
 			$this->assign('print', true);

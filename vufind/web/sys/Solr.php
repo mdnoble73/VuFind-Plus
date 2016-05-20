@@ -375,7 +375,7 @@ class Solr implements IndexEngine {
 			$timer->logTime("Prepare to send get (ids)  request to solr");
 			$result = $this->client->sendRequest();
 			//$this->client->clearPostData();
-			$timer->logTime("Send data to solr");
+			$timer->logTime("Send data to solr during getRecord $id");
 
 			if (PEAR_Singleton::isError($result)) {
 				PEAR_Singleton::raiseError($result);
@@ -477,7 +477,7 @@ class Solr implements IndexEngine {
 			$timer->logTime("Prepare to send get (ids)  request to solr");
 			$result = $this->client->sendRequest();
 			//$this->client->clearPostData();
-			$timer->logTime("Send data to solr");
+			$timer->logTime("Send data to solr for getRecords");
 
 			if (PEAR_Singleton::isError($result)) {
 				PEAR_Singleton::raiseError($result);
@@ -2247,7 +2247,7 @@ class Solr implements IndexEngine {
 		$timer->logTime("Prepare to send request to solr");
 		$result = $this->client->sendRequest();
 		//$this->client->clearPostData();
-		$timer->logTime("Send data to solr");
+		$timer->logTime("Send data to solr for select $queryString");
 
 		if (!PEAR_Singleton::isError($result)) {
 			return $this->_process($this->client->getResponseBody(), $returnSolrError, $queryString);

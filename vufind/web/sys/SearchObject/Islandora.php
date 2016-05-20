@@ -43,8 +43,8 @@ class SearchObject_Islandora extends SearchObject_Base
 	// Index
 	private $index = null;
 	// Field List
-	private $fields = '*,score';
-	//private $fields = 'PID,dc.title,mods_abstract_s,RELS_EXT_hasModel_uri_s,score';
+	//private $fields = '*,score';
+	private $fields = 'PID,fgs_label_s,dc.title,mods_abstract_s,RELS_EXT_hasModel_uri_s,score';
 	// HTTP Method
 	//    private $method = HTTP_REQUEST_METHOD_GET;
 	private $method = HTTP_REQUEST_METHOD_POST;

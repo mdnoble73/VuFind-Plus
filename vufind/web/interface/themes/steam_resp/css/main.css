@@ -10338,3 +10338,7 @@ a.browse-thumbnail.active {
   background-color: #F00;
   opacity: 0.5;
 }
+#exhibit-map {
+  width: 100%;
+  height: 500px;
+}

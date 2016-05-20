@@ -3,9 +3,25 @@
  */
 VuFind.Archive = (function(){
 	return {
+		archive_map: null,
+		archive_info_window: null,
+
 		initializeOpenSeadragon: function(viewer){
 			viewer.addHandler("open", this.update_clip);
 			viewer.addHandler("animationfinish", this.update_clip);
+		},
+
+		handleMapClick: function(marker, exhibitPid, placePid){
+			this.archive_info_window.setContent("This is just a test " + placePid);
+			this.archive_info_window.open(this.archive_map, marker);
+		},
+
+		loadExploreMore: function(pid){
+			$.getJSON(Globals.path + "/Archive/AJAX?id=" + encodeURI(pid) + "&method=getExploreMoreContent", function(data){
+				if (data.success){
+					$("#explore-more-body").html(data.exploreMore);
+				}
+			});
 		},
 
 		/**

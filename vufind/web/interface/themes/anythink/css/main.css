@@ -10346,6 +10346,10 @@ a.browse-thumbnail.active {
   background-color: #F00;
   opacity: 0.5;
 }
+#exhibit-map {
+  width: 100%;
+  height: 500px;
+}
 #header-container {
   background-image: url('/interface/themes/anythink/images/headerbg.png');
   background-repeat: no-repeat;

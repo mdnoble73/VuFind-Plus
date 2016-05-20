@@ -41,23 +41,9 @@ class CollectionDriver extends IslandoraDriver {
 		if ($this->anonymousMasterDownload != null){
 			return;
 		}
-		$this->anonymousMasterDownload = true;
-		$this->verifiedMasterDownload = true;
-		$this->anonymousLcDownload = true;
-		$this->verifiedLcDownload = true;
-		if ($this->getMarmotExtension()){
-			/** @var SimpleXMLElement $marmotLocal */
-			$marmotLocal = $this->getMarmotExtension()->marmotLocal;
-			if ($marmotLocal->count() > 0) {
-				if ($marmotLocal->pikaOptions->count() > 0){
-					/** @var SimpleXMLElement $pikaOptions */
-					$pikaOptions = $marmotLocal->pikaOptions;
-					$this->anonymousMasterDownload = $pikaOptions->anonymousMasterDownload == 'yes';
-					$this->verifiedMasterDownload = $pikaOptions->verifiedMasterDownload == 'yes';
-					$this->anonymousLcDownload = $pikaOptions->anonymousLcDownload == 'yes';
-					$this->verifiedLcDownload = $pikaOptions->verifiedLcDownload == 'yes';
-				}
-			}
-		}
+		$this->anonymousMasterDownload = $this->getModsValue('anonymousMasterDownload', 'marmot') != 'no';
+		$this->verifiedMasterDownload = $this->getModsValue('verifiedMasterDownload', 'marmot') != 'no';
+		$this->anonymousLcDownload = $this->getModsValue('anonymousLcDownload', 'marmot') != 'no';
+		$this->verifiedLcDownload = $this->getModsValue('verifiedLcDownload', 'marmot') != 'no';
 	}
 }

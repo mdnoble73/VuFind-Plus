@@ -19,6 +19,11 @@
 
 	<div class="clear-both"></div>
 
+	<div id="exhibit-timeline" class="">
+		Timeline goes here
+	</div>
+
+	
 	<div class="related-exhibit-images {if count($relatedImages) >= 18}results-covers home-page-browse-thumbnails{else}browse-thumbnails-few{/if}">
 		{foreach from=$relatedImages item=image}
 			<figure class="browse-thumbnail">

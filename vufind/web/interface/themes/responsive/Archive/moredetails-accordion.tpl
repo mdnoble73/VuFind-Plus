@@ -148,7 +148,7 @@
 		{/if}
 
 		{* Context Notes *}
-		{if !empty($marmotExtension->contextNotes)}
+		{if !empty($contextNotes)}
 			<div class="panel {*active*}{*toggle on for open*}" id="contextNotesPanel">
 				<a href="#contextNotesPanelBody" data-toggle="collapse">
 					<div class="panel-heading">
@@ -159,7 +159,7 @@
 				</a>
 				<div id="contextNotesPanelBody" class="panel-collapse collapse {*in*}{*toggle on for open*}">
 					<div class="panel-body">
-						{$marmotExtension->contextNotes}
+						{$contextNotes}
 					</div>
 				</div>
 			</div>
@@ -404,7 +404,7 @@
 			</div>
 		{/if}
 
-		{if $mods->identifier || $mods->recordInfo}
+		{if $identifier || $hasRecordInfo}
 			<div class="panel {*active*}{*toggle on for open*}" id="moreDetailsPanel">
 				<a href="#moreDetailsPanelBody" data-toggle="collapse">
 					<div class="panel-heading">
@@ -417,34 +417,34 @@
 					<div class="panel-body">
 
 						{* Date Created *}
-						{if $mods->originInfo && strlen($mods->originInfo->dateCreated)}
+						{if $dateCreated}
 							<div class="row">
 								<div class="result-label col-sm-4">Created: </div>
 								<div class="result-value col-sm-8">
-									{$mods->originInfo->dateCreated}
+									{$dateCreated}
 								</div>
 							</div>
 						{/if}
 
 						{* Local Identifier *}
-						{if $mods->identifier}
+						{if $identifier}
 							<div class="row">
 								<div class="result-label col-sm-4">Local Identifier: </div>
 								<div class="result-value col-sm-8">
-									{$mods->identifier}
+									{$identifier}
 								</div>
 							</div>
 						{/if}
 
 
-						{if $mods->physicalDescription || $mods->physicalLocation || $mods->shelfLocator}
+						{if $$physicalExtents || $physicalLocation || $shelfLocator}
 
 							{* Physical Description *}
-							{if !empty($mods->physicalDescription)}
+							{if !empty($physicalExtents)}
 								<div class="row">
 									<div class="result-label col-sm-4">Physical Description: </div>
 									<div class="result-value col-sm-8">
-										{foreach from=$mods->physicalDescription->extent item=extent}
+										{foreach from=$physicalExtents item=extent}
 											{if $extent}
 												<div>{$extent}</div>
 											{/if}
@@ -454,11 +454,11 @@
 							{/if}
 
 							{* Physical Location *}
-							{if !empty($mods->physicalLocation)}
+							{if !empty($physicalLocation)}
 								<div class="row">
 									<div class="result-label col-sm-4">Located at: </div>
 									<div class="result-value col-sm-8">
-										{foreach from=$mods->physicalLocation item=location}
+										{foreach from=$physicalLocation item=location}
 											{if $location}
 												<div>{$location}</div>
 											{/if}
@@ -468,11 +468,11 @@
 							{/if}
 
 							{* Shelf Locator *}
-							{if !empty($mods->shelfLocator)}
+							{if !empty($shelfLocator)}
 								<div class="row">
 									<div class="result-label col-sm-4">Shelf Locator: </div>
 									<div class="result-value col-sm-8">
-										{foreach from=$mods->shelfLocator item=location}
+										{foreach from=$shelfLocator item=location}
 											{if $location}
 												<div>{$location}</div>
 											{/if}
@@ -483,28 +483,28 @@
 						{/if}
 
 						{* Record Origin Info *}
-						{if $mods->recordInfo}
-							{if $mods->recordInfo->recordOrigin}
+						{if $hasRecordInfo}
+							{if $recordOrigin}
 								<div class="row">
 									<div class="result-label col-sm-4">Entered By: </div>
 									<div class="result-value col-sm-8">
-										{$mods->recordInfo->recordOrigin}
+										{$recordOrigin}
 									</div>
 								</div>
 							{/if}
-							{if $mods->recordInfo->recordCreationDate}
+							{if $recordCreationDate}
 								<div class="row">
 									<div class="result-label col-sm-4">Entered On: </div>
 									<div class="result-value col-sm-8">
-										{$mods->recordInfo->recordCreationDate}
+										{$recordCreationDate}
 									</div>
 								</div>
 							{/if}
-							{if $mods->recordInfo->recordChangeDate}
+							{if $recordChangeDate}
 								<div class="row">
 									<div class="result-label col-sm-4">Last Changed: </div>
 									<div class="result-value col-sm-8">
-										{$mods->recordInfo->recordChangeDate}
+										{$recordChangeDate}
 									</div>
 								</div>
 							{/if}

@@ -14,7 +14,6 @@ class Archive_Video  extends Archive_Object{
 		global $interface;
 		global $configArray;
 		$this->loadArchiveObjectData();
-		$this->loadExploreMoreContent();
 
 		if ($this->archiveObject->getDatastream('MP4') != null) {
 			$interface->assign('videoLink', $configArray['Islandora']['objectUrl'] . "/{$this->pid}/datastream/MP4/view");

@@ -13,7 +13,7 @@ class Archive_Image extends Archive_Object{
 	function launch(){
 		global $interface;
 		$this->loadArchiveObjectData();
-		$this->loadExploreMoreContent();
+		//$this->loadExploreMoreContent();
 
 		//TODO: This should be the collapsible sidebar
 		//$interface->assign('sidebar', 'Record/full-record-sidebar.tpl');

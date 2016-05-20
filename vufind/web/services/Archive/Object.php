@@ -68,157 +68,216 @@ abstract class Archive_Object extends Action{
 		//Load the MODS data stream
 		$this->modsData = $this->recordDriver->getModsData();
 		$interface->assign('mods', $this->modsData);
-		$this->modsModsData = $this->modsData->children('http://www.loc.gov/mods/v3');
+
+		$originInfo = $this->recordDriver->getModsValue('originInfo', 'mods');
+		if (strlen($originInfo)){
+			$dateCreated = $this->recordDriver->getModsValue('dateCreated', 'mods', $originInfo);
+			$interface->assign('dateCreated', $dateCreated);
+		}
+		
+		$identifier = $this->recordDriver->getModsValue('identifier', 'mods');
+		$interface->assign('identifier', $identifier);
+
+		$physicalDescriptions = $this->recordDriver->getModsValues('physicalDescription', 'mods');
+		$physicalExtents = array();
+		foreach ($physicalDescriptions as $physicalDescription){
+			$extent = $this->recordDriver->getModsValue('identifier', 'mods', $physicalDescription);
+			$physicalExtents[] = $extent;
+		}
+		$interface->assign('physicalExtents', $physicalExtents);
+
+		$physicalLocation = $this->recordDriver->getModsValues('physicalLocation', 'mods');
+		$interface->assign('physicalLocation', $physicalLocation);
+		
+		$shelfLocator = $this->recordDriver->getModsValues('shelfLocator', 'mods');
+		$interface->assign('shelfLocator', $shelfLocator);
+
+		$recordInfo = $this->recordDriver->getModsValue('identifier', 'recordInfo');
+		if (strlen($recordInfo)){
+			$interface->assign('hasRecordInfo', true);
+			$recordOrigin = $this->recordDriver->getModsValue('recordOrigin', 'mods', $recordInfo);
+			$interface->assign('recordOrigin', $recordOrigin);
+
+			$recordCreationDate = $this->recordDriver->getModsValue('recordCreationDate', 'mods', $recordInfo);
+			$interface->assign('recordCreationDate', $recordCreationDate);
+
+			$recordChangeDate = $this->recordDriver->getModsValue('recordChangeDate', 'mods', $recordInfo);
+			$interface->assign('recordChangeDate', $recordChangeDate);
+		}
 
 		$this->formattedSubjects = $this->recordDriver->getAllSubjectsWithLinks();
 		$interface->assign('subjects', $this->formattedSubjects);
 
-		if ($this->modsData->location->count()){
-			$primaryUrl = $this->modsData->location->url;
-			if (strlen($primaryUrl) > 0) {
-				$interface->assign('primaryUrl', $primaryUrl);
-			}
+		$location = $this->recordDriver->getModsValue('mods', 'location');
+		if (strlen($location) > 0){
+			$interface->assign('primaryUrl', $this->recordDriver->getModsValue('mods', 'url', $location));
 		}
 
-		$rightsStatements = array();
-		if ($this->modsData->accessCondition->count()){
-			$accessConditions = $this->modsData->accessCondition->children('http://marmot.org/local_mods_extension');
-			if (strlen($accessConditions->rightsStatement)){
-				$rightsStatements[] = (string)$accessConditions->rightsStatement;
-			}
-		}
+		$rightsStatements = $this->recordDriver->getModsValues('rightsStatement', 'marmot');
 		$interface->assign('rightsStatements', $rightsStatements);
 
-		/** @var SimpleXMLElement $marmotExtension */
-		$marmotExtension = $this->modsData->extension->children('http://marmot.org/local_mods_extension');
-		if (@count($marmotExtension) > 0){
-			$interface->assign('marmotExtension', $marmotExtension);
+		$transcription = $this->recordDriver->getModsValue('hasTranscription', 'marmotLocal');
+		if (strlen($transcription)){
+			$transcriptionText = $this->recordDriver->getModsValue('transcriptionText', 'marmotLocal', $transcription);
+			$transcriptionText = str_replace("\r\n", '<br/>', $transcriptionText);
 
-			$marmotLocal = $marmotExtension->marmotLocal;
-			if (count($marmotLocal) > 0){
-				if ($marmotLocal->hasTranscription){
-					$transcriptionText = (string)$marmotExtension->marmotLocal->hasTranscription->transcriptionText;
-					$transcriptionText = str_replace("\r\n", '<br/>', $transcriptionText);
-
-					//Add links to timestamps
-					$transcriptionTextWithLinks = $transcriptionText;
-					if (preg_match_all('/\\(\\d{1,2}:\d{1,2}\\)/', $transcriptionText, $allMatches)){
-						foreach ($allMatches[0] as $match){
-							$offset = str_replace('(', '', $match);
-							$offset = str_replace(')', '', $offset);
-							list($minutes, $seconds) = explode(':', $offset);
-							$offset = $minutes * 60 + $seconds;
-							$replacement = '<a onclick="document.getElementById(\'player\').currentTime=\'' . $offset . '\';" style="cursor:pointer">' . $match . '</a>';
-							$transcriptionTextWithLinks = str_replace($match, $replacement, $transcriptionTextWithLinks);
-						}
-					}elseif (preg_match_all('/\\[\\d{1,2}:\d{1,2}:\d{1,2}\\]/', $transcriptionText, $allMatches)){
-						foreach ($allMatches[0] as $match){
-							$offset = str_replace('(', '', $match);
-							$offset = str_replace(')', '', $offset);
-							list($hours, $minutes, $seconds) = explode(':', $offset);
-							$offset = $hours * 3600 + $minutes * 60 + $seconds;
-							$replacement = '<a onclick="document.getElementById(\'player\').currentTime=\'' . $offset . '\';" style="cursor:pointer">' . $match . '</a>';
-							$transcriptionTextWithLinks = str_replace($match, $replacement, $transcriptionTextWithLinks);
-						}
-					}
-
-					$interface->assign('transcription',
-							array(
-									'language' => (string)$marmotExtension->marmotLocal->hasTranscription->transcriptionLanguage,
-									'text' => $transcriptionTextWithLinks,
-							)
-					);
+			//Add links to timestamps
+			$transcriptionTextWithLinks = $transcriptionText;
+			if (preg_match_all('/\\(\\d{1,2}:\d{1,2}\\)/', $transcriptionText, $allMatches)){
+				foreach ($allMatches[0] as $match){
+					$offset = str_replace('(', '', $match);
+					$offset = str_replace(')', '', $offset);
+					list($minutes, $seconds) = explode(':', $offset);
+					$offset = $minutes * 60 + $seconds;
+					$replacement = '<a onclick="document.getElementById(\'player\').currentTime=\'' . $offset . '\';" style="cursor:pointer">' . $match . '</a>';
+					$transcriptionTextWithLinks = str_replace($match, $replacement, $transcriptionTextWithLinks);
 				}
-
-				if (count($marmotLocal->alternateName) > 0){
-					$alternateNames = array();
-					foreach ($marmotLocal->alternateName as $alternateName){
-						if (strlen($alternateName->alternateName) > 0){
-							$alternateNames[] = (string)$alternateName->alternateName;
-						}
-					}
-					$interface->assign('alternateNames', $alternateNames);
+			}elseif (preg_match_all('/\\[\\d{1,2}:\d{1,2}:\d{1,2}\\]/', $transcriptionText, $allMatches)){
+				foreach ($allMatches[0] as $match){
+					$offset = str_replace('(', '', $match);
+					$offset = str_replace(')', '', $offset);
+					list($hours, $minutes, $seconds) = explode(':', $offset);
+					$offset = $hours * 3600 + $minutes * 60 + $seconds;
+					$replacement = '<a onclick="document.getElementById(\'player\').currentTime=\'' . $offset . '\';" style="cursor:pointer">' . $match . '</a>';
+					$transcriptionTextWithLinks = str_replace($match, $replacement, $transcriptionTextWithLinks);
 				}
+			}
 
-				$this->recordDriver->loadRelatedEntities();
+			$interface->assign('transcription',
+					array(
+							'language' => $this->recordDriver->getModsValue('transcriptionLanguage', 'marmotLocal', $transcription),
+							'text' => $transcriptionTextWithLinks,
+					)
+			);
+		}
 
-				$interface->assign('hasMilitaryService', false);
-				if (count($marmotExtension->marmotLocal->militaryService) > 0){
-					/** @var SimpleXMLElement $record */
-					$record = $marmotExtension->marmotLocal->militaryService->militaryRecord;
-					if ($record->militaryBranch != 'none' || $record->militaryConflict != 'none'){
-						$militaryRecord = array(
-								'branch' => $fedoraUtils->getObjectLabel((string)$record->militaryBranch),
-								'branchLink' => '/Archive/' . $record->militaryBranch . '/Organization',
-								'conflict' => $fedoraUtils->getObjectLabel((string)$record->militaryConflict),
-								'conflictLink' => '/Archive/' . $record->militaryConflict . '/Event',
-						);
-						$interface->assign('militaryRecord', $militaryRecord);
-						$interface->assign('hasMilitaryService', true);
-					}
+		$alternateNames = $this->recordDriver->getModsValues('alternateName', 'marmotLocal');
+		$interface->assign('alternateNames', $alternateNames);
+
+		$this->recordDriver->loadRelatedEntities();
+
+		$interface->assign('hasMilitaryService', false);
+		$militaryService = $this->recordDriver->getModsValue('militaryService', 'marmotLocal');
+		if (strlen($militaryService) > 0){
+			/** @var SimpleXMLElement $record */
+			$militaryRecord = $this->recordDriver->getModsValue('militaryRecord', 'marmotLocal', $militaryService);
+			$militaryBranch = $this->recordDriver->getModsValue('militaryBranch', 'marmotLocal', $militaryRecord);
+			$militaryConflict = $this->recordDriver->getModsValue('militaryConflict', 'marmotLocal', $militaryRecord);
+			if ($militaryBranch != 'none' || $militaryConflict != 'none'){
+				$militaryRecord = array(
+						'branch' => $fedoraUtils->getObjectLabel($militaryBranch),
+						'branchLink' => '/Archive/' . $militaryBranch . '/Organization',
+						'conflict' => $fedoraUtils->getObjectLabel($militaryConflict),
+						'conflictLink' => '/Archive/' . $militaryConflict . '/Event',
+				);
+				$interface->assign('militaryRecord', $militaryRecord);
+				$interface->assign('hasMilitaryService', true);
+			}
+		}
+
+		$addressInfo = array();
+		$latitude = $this->recordDriver->getModsValue('latitude', 'marmot');
+		$longitude = $this->recordDriver->getModsValue('longitude', 'marmot');
+		$addressStreetNumber = $this->recordDriver->getModsValue('addressStreetNumber', 'marmot');
+		$addressStreet = $this->recordDriver->getModsValue('addressStreet', 'marmot');
+		$addressCity = $this->recordDriver->getModsValue('addressCity', 'marmot');
+		$addressCounty = $this->recordDriver->getModsValue('addressCounty', 'marmot');
+		$addressState = $this->recordDriver->getModsValue('addressState', 'marmot');
+		$addressZipCode = $this->recordDriver->getModsValue('addressZipCode', 'marmot');
+		$addressCountry = $this->recordDriver->getModsValue('addressCountry', 'marmot');
+		$addressOtherRegion = $this->recordDriver->getModsValue('addressOtherRegion', 'marmot');
+		if (strlen($latitude) ||
+				strlen($longitude) ||
+				strlen($addressStreetNumber) ||
+				strlen($addressStreet) ||
+				strlen($addressCity) ||
+				strlen($addressCounty) ||
+				strlen($addressState) ||
+				strlen($addressZipCode) ||
+				strlen($addressCountry) ||
+				strlen($addressOtherRegion)) {
+
+			if (strlen($latitude) > 0) {
+				$addressInfo['latitude'] = $latitude;
+			}
+			if (strlen($longitude) > 0) {
+				$addressInfo['longitude'] = $longitude;
+			}
+
+			if (strlen($addressStreetNumber) > 0) {
+				$addressInfo['hasDetailedAddress'] = true;
+				$addressInfo['addressStreetNumber'] = $addressStreetNumber;
+			}
+			if (strlen($addressStreet) > 0) {
+				$addressInfo['hasDetailedAddress'] = true;
+				$addressInfo['addressStreet'] = $addressStreet;
+			}
+			if (strlen($addressCity) > 0) {
+				$addressInfo['hasDetailedAddress'] = true;
+				$addressInfo['addressCity'] = $addressCity;
+			}
+			if (strlen($addressState) > 0) {
+				$addressInfo['hasDetailedAddress'] = true;
+				$addressInfo['addressCounty'] = $addressCounty;
+			}
+			if (strlen($addressState) > 0) {
+				$addressInfo['hasDetailedAddress'] = true;
+				$addressInfo['addressState'] = $addressState;
+			}
+			if (strlen($addressZipCode) > 0) {
+				$addressInfo['hasDetailedAddress'] = true;
+				$addressInfo['addressZipCode'] = $addressZipCode;
+			}
+			if (strlen($addressStreet) > 0) {
+				$addressInfo['hasDetailedAddress'] = true;
+				$addressInfo['addressCountry'] = $addressCountry;
+			}
+			$interface->assign('addressInfo', $addressInfo);
+		}//End verifying checking for address information
+
+		$notes = array();
+		$personNotes = $this->recordDriver->getModsValue('personNotes', 'marmot');
+		if (strlen($personNotes) > 0){
+			$notes[] = $personNotes;
+		}
+		$citationNotes = $this->recordDriver->getModsValue('citationNotes', 'marmot');
+		if (strlen($citationNotes) > 0){
+			$notes[] = $citationNotes;
+		}
+		$interface->assign('notes', $notes);
+
+		//Load information about dates
+		$startDate = $this->recordDriver->getModsValue('placeDateStart', 'marmot');
+		if ($startDate){
+			$interface->assign('startDate', $startDate);
+		}else{
+			$startDate = $this->recordDriver->getModsValue('eventStartDate', 'marmot');
+			if ($startDate){
+				$interface->assign('startDate', $startDate);
+			}else{
+				$startDate = $this->recordDriver->getModsValue('dateEstablished', 'marmot');
+				if ($startDate){
+					$interface->assign('startDate', $startDate);
 				}
-
-				$addressInfo = array();
-				if (strlen($marmotExtension->marmotLocal->latitude) ||
-						strlen($marmotExtension->marmotLocal->longitude) ||
-						strlen($marmotExtension->marmotLocal->addressStreetNumber) ||
-						strlen($marmotExtension->marmotLocal->addressStreet) ||
-						strlen($marmotExtension->marmotLocal->addressCity) ||
-						strlen($marmotExtension->marmotLocal->addressCounty) ||
-						strlen($marmotExtension->marmotLocal->addressState) ||
-						strlen($marmotExtension->marmotLocal->addressZipCode) ||
-						strlen($marmotExtension->marmotLocal->addressCountry) ||
-						strlen($marmotExtension->marmotLocal->addressOtherRegion)) {
-
-					if (strlen((string)$marmotExtension->marmotLocal->latitude) > 0) {
-						$addressInfo['latitude'] = (string)$marmotExtension->marmotLocal->latitude;
-					}
-					if (strlen((string)$marmotExtension->marmotLocal->longitude) > 0) {
-						$addressInfo['longitude'] = (string)$marmotExtension->marmotLocal->longitude;
-					}
-
-					if (strlen((string)$marmotExtension->marmotLocal->addressStreetNumber) > 0) {
-						$addressInfo['hasDetailedAddress'] = true;
-						$addressInfo['addressStreetNumber'] = (string)$marmotExtension->marmotLocal->addressStreetNumber;
-					}
-					if (strlen((string)$marmotExtension->marmotLocal->addressStreet) > 0) {
-						$addressInfo['hasDetailedAddress'] = true;
-						$addressInfo['addressStreet'] = (string)$marmotExtension->marmotLocal->addressStreet;
-					}
-					if (strlen((string)$marmotExtension->marmotLocal->addressCity) > 0) {
-						$addressInfo['hasDetailedAddress'] = true;
-						$addressInfo['addressCity'] = (string)$marmotExtension->marmotLocal->addressCity;
-					}
-					if (strlen((string)$marmotExtension->marmotLocal->addressState) > 0) {
-						$addressInfo['hasDetailedAddress'] = true;
-						$addressInfo['addressCounty'] = (string)$marmotExtension->marmotLocal->addressCounty;
-					}
-					if (strlen((string)$marmotExtension->marmotLocal->addressState) > 0) {
-						$addressInfo['hasDetailedAddress'] = true;
-						$addressInfo['addressState'] = (string)$marmotExtension->marmotLocal->addressState;
-					}
-					if (strlen((string)$marmotExtension->marmotLocal->addressZipCode) > 0) {
-						$addressInfo['hasDetailedAddress'] = true;
-						$addressInfo['addressZipCode'] = (string)$marmotExtension->marmotLocal->addressZipCode;
-					}
-					if (strlen((string)$marmotExtension->marmotLocal->addressStreet) > 0) {
-						$addressInfo['hasDetailedAddress'] = true;
-						$addressInfo['addressCountry'] = (string)$marmotExtension->marmotLocal->addressCountry;
-					}
-					$interface->assign('addressInfo', $addressInfo);
-				}//End verifying checking for address information
-
-				$notes = array();
-				if (strlen($marmotExtension->marmotLocal->personNotes) > 0){
-					$notes[] = (string)$marmotExtension->marmotLocal->personNotes;
+			}
+		}
+		$endDate = $this->recordDriver->getModsValue('placeDateEnd', 'marmot');
+		if ($endDate){
+			$interface->assign('endDate', $endDate);
+		}else{
+			$endDate = $this->recordDriver->getModsValue('eventEndDate', 'marmot');
+			if ($endDate){
+				$interface->assign('endDate', $endDate);
+			}else{
+				$endDate = $this->recordDriver->getModsValue('dateDisbanded', 'marmot');
+				if ($endDate){
+					$interface->assign('endDate', $endDate);
 				}
-				if (strlen($marmotExtension->marmotLocal->citationNotes) > 0){
-					$notes[] = (string)$marmotExtension->marmotLocal->citationNotes;
-				}
-				$interface->assign('notes', $notes);
+			}
+		}
 
-			}//End verifying marmot local is valid
-		}//End verifying marmot extension is valid
+		$contextNotes = $this->recordDriver->getModsValue('contextNotes', 'marmot');
+		$interface->assign('contextNotes', $contextNotes);
 
 		$title = $this->archiveObject->label;
 		$interface->assign('title', $title);
@@ -233,44 +292,31 @@ abstract class Archive_Object extends Action{
 		$interface->assign('repositoryLink', $repositoryLink);
 
 		//Check for display restrictions
-		/** @var CollectionDriver $collection */
-		$anonymousMasterDownload = true;
-		$verifiedMasterDownload = true;
-		$anonymousLcDownload = true;
-		$verifiedLcDownload = true;
-		foreach ($this->recordDriver->getRelatedCollections() as $collection){
-			$collectionDriver = RecordDriverFactory::initRecordDriver($collection['object']);
-			if (!$collectionDriver->canAnonymousDownloadMaster()){
-				$anonymousMasterDownload = false;
+		if ($this->recordDriver instanceof BasicImageDriver || $this->recordDriver instanceof LargeImageDriver){
+			/** @var CollectionDriver $collection */
+			$anonymousMasterDownload = true;
+			$verifiedMasterDownload = true;
+			$anonymousLcDownload = true;
+			$verifiedLcDownload = true;
+			foreach ($this->recordDriver->getRelatedCollections() as $collection){
+				$collectionDriver = RecordDriverFactory::initRecordDriver($collection['object']);
+				if (!$collectionDriver->canAnonymousDownloadMaster()){
+					$anonymousMasterDownload = false;
+				}
+				if (!$collectionDriver->canVerifiedDownloadMaster()){
+					$verifiedMasterDownload = false;
+				}
+				if (!$collectionDriver->canAnonymousDownloadLC()){
+					$anonymousLcDownload = false;
+				}
+				if (!$collectionDriver->canVerifiedDownloadLC()){
+					$verifiedLcDownload = false;
+				}
 			}
-			if (!$collectionDriver->canVerifiedDownloadMaster()){
-				$verifiedMasterDownload = false;
-			}
-			if (!$collectionDriver->canAnonymousDownloadLC()){
-				$anonymousLcDownload = false;
-			}
-			if (!$collectionDriver->canVerifiedDownloadLC()){
-				$verifiedLcDownload = false;
-			}
-		}
-		$interface->assign('anonymousMasterDownload', $anonymousMasterDownload);
-		$interface->assign('verifiedMasterDownload', $verifiedMasterDownload);
-		$interface->assign('anonymousLcDownload', $anonymousLcDownload);
-		$interface->assign('verifiedLcDownload', $verifiedLcDownload);
-	}
-
-	function loadExploreMoreContent(){
-		require_once ROOT_DIR . '/sys/ExploreMore.php';
-		global $interface;
-		$exploreMore = new ExploreMore();
-		$exploreMore->loadExploreMoreSidebar('archive', $this->recordDriver);
-
-
-		$relatedSubjects = $this->recordDriver->getAllSubjectHeadings();
-
-		$ebscoMatches = $exploreMore->loadEbscoOptions('archive', array(), implode($relatedSubjects, " or "));
-		if (count($ebscoMatches) > 0){
-			$interface->assign('relatedArticles', $ebscoMatches);
+			$interface->assign('anonymousMasterDownload', $anonymousMasterDownload);
+			$interface->assign('verifiedMasterDownload', $verifiedMasterDownload);
+			$interface->assign('anonymousLcDownload', $anonymousLcDownload);
+			$interface->assign('verifiedLcDownload', $verifiedLcDownload);
 		}
 	}
 

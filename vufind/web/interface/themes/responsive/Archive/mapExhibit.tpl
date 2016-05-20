@@ -19,11 +19,51 @@
 
 	<div class="clear-both"></div>
 
-	<div id="exhibit-timeline" class="">
-		Timeline goes here
+	<div id="exhibit-map" class="">
+	</div>
+	<div id="exhibit-map-legend" class="">
+		{/strip}
+		{if $mapsBrowserKey}
+			<script type="text/javascript">
+				var infowindow;
+				function initMap() {ldelim}
+					VuFind.Archive.archive_map = new google.maps.Map(document.getElementById('exhibit-map'), {ldelim}
+							center: {ldelim}lat: {$mapCenterLat}, lng: {$mapCenterLong}{rdelim},
+							zoom: 10
+					{rdelim});
+
+					VuFind.Archive.archive_info_window = new google.maps.InfoWindow({ldelim}{rdelim});
+
+					{foreach from=$mappedPlaces item=place name=place}
+						{if $place.latitude && $place.longitude}
+							var marker{$smarty.foreach.place.index} = new google.maps.Marker({ldelim}
+								position: {ldelim}lat: {$place.latitude}, lng: {$place.longitude}{rdelim},
+								map: VuFind.Archive.archive_map,
+								title: '{$place.label}'
+							{rdelim});
+
+							marker{$smarty.foreach.place.index}.addListener('click', function(){ldelim}
+								VuFind.Archive.handleMapClick(marker{$smarty.foreach.place.index}, '{$pid}', '{$place.pid}');
+
+							{rdelim});
+						{/if}
+					{/foreach}
+				{rdelim}
+			</script>
+		{/if}
+		{strip}
+		<ol>
+		{foreach from=$mappedPlaces item=place}
+			<li>
+				<a href="{$place.url}">
+					{$place.label} {$place.pid} ({$place.latitude}, {$place.longitude}) has {$place.count} objects
+				</a>
+			</li>
+		{/foreach}
+		</ol>
 	</div>
 
-	
+	{*
 	<div class="related-exhibit-images {if count($relatedImages) >= 18}results-covers home-page-browse-thumbnails{else}browse-thumbnails-few{/if}">
 		{foreach from=$relatedImages item=image}
 			<figure class="browse-thumbnail">
@@ -36,6 +76,7 @@
 			</figure>
 		{/foreach}
 	</div>
+	*}
 
 	{if $repositoryLink && $user && ($user->hasRole('archives') || $user->hasRole('opacAdmin'))}
 		<div id="more-details-accordion" class="panel-group">
@@ -64,4 +105,12 @@
 		</div>
 	{/if}
 </div>
+	{if $mapsBrowserKey}
+		<script src="https://maps.googleapis.com/maps/api/js?key={$mapsJsKey}&callback=initMap" async defer></script>
+	{/if}
 {/strip}
+<script type="text/javascript">
+	$().ready(function(){ldelim}
+		VuFind.Archive.loadExploreMore('{$pid|urlencode}');
+		{rdelim});
+</script>

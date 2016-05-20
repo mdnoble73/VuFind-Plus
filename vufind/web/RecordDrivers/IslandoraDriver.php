@@ -15,7 +15,6 @@ abstract class IslandoraDriver extends RecordInterface {
 	protected $archiveObject;
 
 	protected $modsData = null;
-	protected $modsModsData = null;
 	/**
 	 * Constructor.  We build the object using all the data retrieved
 	 * from the (Solr) index.  Since we have to
@@ -28,7 +27,9 @@ abstract class IslandoraDriver extends RecordInterface {
 	 */
 	public function __construct($recordData) {
 		$fedoraUtils = FedoraUtils::getInstance();
-		if (is_array($recordData)){
+		if ($recordData instanceof AbstractFedoraObject){
+			$this->archiveObject = $recordData;
+		}elseif (is_array($recordData)){
 			$this->archiveObject = $fedoraUtils->getObject($recordData['PID']);
 		}else{
 			$this->archiveObject = $fedoraUtils->getObject($recordData);
@@ -402,13 +403,7 @@ abstract class IslandoraDriver extends RecordInterface {
 			return $this->fields['mods_abstract_s'];
 		} else{
 			$modsData = $this->getModsData();
-			if (isset($modsData) && count($modsData) && count($modsData->abstract)){
-				return (string)$this->modsData->abstract;
-			}elseif ($this->modsModsData && count($this->modsModsData->abstract)){
-				return (string)$this->modsModsData->abstract;
-			}else{
-				return '';
-			}
+			return $this->getModsValue('abstract', 'mods');
 		}
 	}
 
@@ -493,40 +488,76 @@ abstract class IslandoraDriver extends RecordInterface {
 		if ($this->subjectsWithLinks == null) {
 			//Extract Subjects
 			$this->subjectsWithLinks = array();
-			foreach ($this->modsData->subject as $subjects) {
-
-				foreach ($subjects->topic as $subjectPart) {
-					$subjectLink = $configArray['Site']['path'] . '/Archive/Results?lookfor=';
-					if (strlen($subjectPart) > 0) {
-						$subjectLink .= '&filter[]=mods_subject_topic_ms%3A' . urlencode('"' .(string)$subjectPart . '"');
-						$this->subjectsWithLinks[] = array(
-								'link' => $subjectLink,
-								'label' => (string)$subjectPart
-						);
-
-					}
-
+			$matches = $this->getModsValues('topic');
+			foreach ($matches as $subjectPart) {
+				$subjectLink = $configArray['Site']['path'] . '/Archive/Results?lookfor=';
+				if (strlen($subjectPart) > 0) {
+					$subjectLink .= '&filter[]=mods_subject_topic_ms%3A' . urlencode('"' .(string)$subjectPart . '"');
+					$this->subjectsWithLinks[] = array(
+							'link' => $subjectLink,
+							'label' => (string)$subjectPart
+					);
 				}
 			}
 		}
 		return $this->subjectsWithLinks;
 	}
 
+	public function getModsAttribute($attribute, $snippet){
+		return FedoraUtils::getInstance()->getModsAttribute($attribute, $snippet);
+	}
+
+	/**
+	 * Gets a single valued field from the MODS data using regular expressions
+	 *
+	 * @param $tag
+	 * @param $namespace
+	 * @param $snippet - The snippet of XML to load from
+	 *
+	 * @return string
+	 */
+	public function getModsValue($tag, $namespace = null, $snippet = null){
+		if ($snippet == null){
+			$modsData = $this->getModsData();
+		}else{
+			$modsData = $snippet;
+		}
+		return FedoraUtils::getInstance()->getModsValue($tag, $namespace, $modsData);
+	}
+
+	/**
+	 * Gets a multi valued field from the MODS data using regular expressions
+	 *
+	 * @param $tag
+	 * @param $namespace
+	 * @param $snippet - The snippet of XML to load from
+	 * @param $includeTag - whether or not the surrounding tag should be included
+	 *
+	 * @return string[]
+	 */
+	public function getModsValues($tag, $namespace = null, $snippet = null, $includeTag = false){
+		if ($snippet == null){
+			$modsData = $this->getModsData();
+		}else{
+			$modsData = $snippet;
+		}
+		return FedoraUtils::getInstance()->getModsValues($tag, $namespace, $modsData, $includeTag);
+	}
+
 	public function getModsData(){
+		global $timer;
 		if ($this->modsData == null){
 			$fedoraUtils = FedoraUtils::getInstance();
 			$this->modsData = $fedoraUtils->getModsData($this->archiveObject);
-
-			if ($this->modsData){
-				$this->modsModsData = $this->modsData->children('http://www.loc.gov/mods/v3');
-			}
+			$timer->logTime('Loaded MODS data for ' . $this->getUniqueID());
 		}
 		return $this->modsData;
 	}
 
 	protected $relatedCollections = null;
 	public function getRelatedCollections() {
-		if ($this->relatedCollections == null){
+		if ($this->relatedCollections === null){
+			global $timer;
 			$this->relatedCollections = array();
 			if ($this->isEntity()){
 				//Get collections related to objects related to this entity
@@ -540,44 +571,21 @@ abstract class IslandoraDriver extends RecordInterface {
 				$collectionsRaw = $this->archiveObject->relationships->get(FEDORA_RELS_EXT_URI, 'isMemberOfCollection');
 				$fedoraUtils = FedoraUtils::getInstance();
 				foreach ($collectionsRaw as $collectionInfo) {
-					$collectionObject = $fedoraUtils->getObject($collectionInfo['object']['value']);
-					if ($collectionObject != null) {
-						$okToAdd = true;
-						$mods = FedoraUtils::getInstance()->getModsData($collectionObject);
-						if ($mods != null) {
-							if (count($mods->extension) > 0) {
-								/** @var SimpleXMLElement $marmotExtension */
-								$marmotExtension = $mods->extension->children('http://marmot.org/local_mods_extension');
-								if ($marmotExtension->count() > 0) {
-									/** @var SimpleXMLElement $marmotLocal */
-									$marmotLocal = $marmotExtension->marmotLocal;
-									if ($marmotLocal->count() > 0) {
-										/** @var SimpleXMLElement $pikaOptions */
-										$pikaOptions = $marmotLocal->pikaOptions;
-										if ($pikaOptions->count() > 0) {
-											$okToAdd = $pikaOptions->includeInPika != 'no';
-										}
-									}
-								}
-							}
-						} else {
-							//If we don't get mods, exclude from the display
-							$okToAdd = false;
-						}
-
-						if ($okToAdd) {
-							$this->relatedCollections[$collectionInfo['object']['value']] = array(
-									'pid' => $collectionInfo['object']['value'],
-									'label' => $collectionObject->label,
-									'link' => '/Archive/' . $collectionInfo['object']['value'] . '/Exhibit',
-									'image' => $fedoraUtils->getObjectImageUrl($collectionObject, 'small'),
-									'object' => $collectionObject,
-							);
-						}
+					if ($fedoraUtils->isPidValidForPika($collectionInfo['object']['value'])){
+						$collectionObject = $fedoraUtils->getObject($collectionInfo['object']['value']);
+						$this->relatedCollections[$collectionInfo['object']['value']] = array(
+								'pid' => $collectionInfo['object']['value'],
+								'label' => $collectionObject->label,
+								'link' => '/Archive/' . $collectionInfo['object']['value'] . '/Exhibit',
+								'image' => $fedoraUtils->getObjectImageUrl($collectionObject, 'small'),
+								'object' => $collectionObject,
+						);
 					}
 				}
 			}
+			$timer->logTime('Loaded related collections for ' . $this->getUniqueID());
 		}
+
 		return $this->relatedCollections;
 	}
 
@@ -595,158 +603,134 @@ abstract class IslandoraDriver extends RecordInterface {
 
 			$marmotExtension = $this->getMarmotExtension();
 			if ($marmotExtension != null){
-				$entities = $marmotExtension->marmotLocal->relatedEntity;
-				/** @var SimpleXMLElement $entity */
+				$entities = $this->getModsValues('relatedEntity', 'marmot', null, true);
 				foreach ($entities as $entity){
-					if (strlen($entity->entityPid) == 0){
+					$entityPid = $this->getModsValue('entityPid', 'marmot', $entity);
+					if (strlen($entityPid) == 0){
 						continue;
 					}
-					$entityType = '';
-					foreach ($entity->attributes() as $name => $value){
-						if ($name == 'type'){
-							$entityType = $value;
-							break;
-						}
-					}
-					$this->addRelatedEntityToArrays((string)$entity->entityPid, (string)$entity->entityTitle, $entityType, (string)$entity->relationshipNote, '');
+					$entityTitle = $this->getModsValue('entityTitle', 'marmot', $entity);
+					$entityType = $this->getModsAttribute('type', $entity);
+					$relationshipNote = $this->getModsValue('relationshipNote', 'marmot', $entity);
+					$this->addRelatedEntityToArrays($entityPid, $entityTitle, $entityType, $relationshipNote, '');
 
 				}
 
-				if ($marmotExtension->marmotLocal->hasTranscription->count() && $marmotExtension->marmotLocal->hasTranscription->transcriber){
-					$entity = $marmotExtension->marmotLocal->hasTranscription->transcriber;
-					$this->addRelatedEntityToArrays((string)$entity->entityPid, (string)$entity->entityTitle, '', '', 'Transcriber');
+				$transcriber = $this->getModsValue('transcriber', 'marmot');
+				if ($transcriber){
+					$transcriberPid = $this->getModsValue('entityPid', 'marmot', $transcriber);
+					$transcriberTitle = $this->getModsValue('entityTitle', 'marmot', $transcriber);
+					$this->addRelatedEntityToArrays($transcriberPid, $transcriberTitle, '', '', 'Transcriber');
 				}
 
-				if ($marmotExtension->marmotLocal->hasCreator){
-					$creators = $marmotExtension->marmotLocal->hasCreator;
-					foreach ($creators as $entity) {
-						if (strlen($entity->entityPid) == 0) {
-							continue;
-						}
-						$entityType = '';
-						$entityRole = '';
-						foreach ($entity->attributes() as $name => $value){
-							if ($name == 'type'){
-								$entityType = $value;
-							}elseif ($name == 'role'){
-								$entityRole = ucfirst($value);
-							}
-						}
-						$this->addRelatedEntityToArrays((string)$entity->entityPid, (string)$entity->entityTitle, $entityType, (string)$entity->relationshipNote, $entityRole);
-					}
-				}
-
-				if ($marmotExtension->marmotLocal->describedEntity){
-					$entities = $marmotExtension->marmotLocal->describedEntity;
-					foreach ($entities as $entity) {
-						if (strlen($entity->entityPid) == 0) {
-							continue;
-						}
-						$this->addRelatedEntityToArrays((string)$entity->entityPid, (string)$entity->entityTitle, '', (string)$entity->relationshipNote, 'Described');
-					}
-				}
-
-				if ($marmotExtension->marmotLocal->picturedEntity){
-					$entities = $marmotExtension->marmotLocal->picturedEntity;
-					foreach ($entities as $entity) {
-						if (strlen($entity->entityPid) == 0) {
-							continue;
-						}
-						$this->addRelatedEntityToArrays((string)$entity->entityPid, (string)$entity->entityTitle, '', (string)$entity->relationshipNote, 'Described');
-					}
-				}
-
-				$entities = $marmotExtension->marmotLocal->relatedPersonOrg;
-				/** @var SimpleXMLElement $entity */
-				foreach ($entities as $entity){
-					if (strlen($entity->entityPid) == 0){
+				$creators = $this->getModsValues('hasCreator', 'marmot', null, true);
+				foreach ($creators as $entity) {
+					$entityPid = $this->getModsValue('entityPid', 'marmot', $entity);
+					if (strlen($entityPid) == 0) {
 						continue;
 					}
-					$entityType = '';
-					foreach ($entity->attributes() as $name => $value){
-						if ($name == 'type'){
-							$entityType = $value;
-							break;
-						}
+					$entityTitle = $this->getModsValue('entityTitle', 'marmot', $entity);
+					$relationshipNote = $this->getModsValue('relationshipNote', 'marmot', $entity);
+					$entityType = $this->getModsAttribute('type', $entity);
+					$entityRole = $this->getModsAttribute('role', $entity);
+					$this->addRelatedEntityToArrays($entityPid, $entityTitle, $entityType, $relationshipNote, $entityRole);
+				}
+
+				$entities = $this->getModsValues('describedEntity', 'marmot', null, true);
+				foreach ($entities as $entity) {
+					$entityPid = $this->getModsValue('entityPid', 'marmot', $entity);
+					if (strlen($entityPid) == 0) {
+						continue;
 					}
-					if ($entityType == '' && strlen($entity->entityPid)){
+					$entityTitle = $this->getModsValue('entityTitle', 'marmot', $entity);
+					$relationshipNote = $this->getModsValue('relationshipNote', 'marmot', $entity);
+					$entityType = $this->getModsAttribute('type', $entity);
+					$this->addRelatedEntityToArrays($entityPid, $entityTitle, $entityType, $relationshipNote, 'Described');
+				}
+
+				$entities = $this->getModsValues('picturedEntity', 'marmot', null, true);
+				foreach ($entities as $entity) {
+					$entityPid = $this->getModsValue('entityPid', 'marmot', $entity);
+					if (strlen($entityPid) == 0) {
+						continue;
+					}
+					$entityTitle = $this->getModsValue('entityTitle', 'marmot', $entity);
+					$relationshipNote = $this->getModsValue('relationshipNote', 'marmot', $entity);
+					$entityType = $this->getModsAttribute('type', $entity);
+					$this->addRelatedEntityToArrays($entityPid, $entityTitle, $entityType, $relationshipNote, 'Pictured');
+				}
+
+				$entities = $this->getModsValues('relatedPersonOrg', 'marmot', null, true);
+				foreach ($entities as $entity){
+					$entityPid = $this->getModsValue('entityPid', 'marmot', $entity);
+					if (strlen($entityPid) == 0) {
+						continue;
+					}
+					$entityType = $this->getModsAttribute('type', $entity);
+					if ($entityType == '' && strlen($entityPid)){
 						//Get the type based on the pid
-						list($entityType, $id) = explode(':', $entity->entityPid);
+						list($entityType, $id) = explode(':', $entityPid);
 					}
+					$entityTitle = $this->getModsValue('entityTitle', 'marmot', $entity);
+					$relationshipNote = $this->getModsValue('relationshipNote', 'marmot', $entity);
+					$entityRole = $this->getModsAttribute('role', $entity);
 					$entityInfo = array(
-							'pid' => (string)$entity->entityPid,
-							'label' => (string)$entity->entityTitle,
-							'role' => (string)$entity->role,
-							'note' => (string)$entity->entityRelationshipNote,
+							'pid' => $entityPid,
+							'label' => $entityTitle,
+							'role' => $entityRole,
+							'note' => $relationshipNote,
 
 					);
 					if ($entityType == 'person'){
-						$personObject = $fedoraUtils->getObject($entity->entityPid);
+						$personObject = $fedoraUtils->getObject($entityPid);
 						$entityInfo['image'] = $fedoraUtils->getObjectImageUrl($personObject, 'medium');
-						$entityInfo['link']= '/Archive/' . $entity->entityPid . '/Person';
-						$this->relatedPeople[(string)$entity->entityPid] = $entityInfo;
+						$entityInfo['link']= '/Archive/' . $entityPid . '/Person';
+						$this->relatedPeople[$entityPid] = $entityInfo;
 					}elseif ($entityType == 'organization'){
-						$entityInfo['link']= '/Archive/' . $entity->entityPid . '/Organization';
-						$this->relatedOrganizations[(string)$entity->entityPid] = $entityInfo;
+						$entityInfo['link']= '/Archive/' . $entityPid . '/Organization';
+						$this->relatedOrganizations[$entityPid] = $entityInfo;
 					}
 				}
 
-				$entities = $marmotExtension->marmotLocal->relatedEvent;
-				/** @var SimpleXMLElement $entity */
+				$entities = $this->getModsValues('relatedEvent', 'marmot', null, true);
 				foreach ($entities as $entity){
-					if (strlen($entity->entityPid) == 0){
+					$entityPid = $this->getModsValue('entityPid', 'marmot', $entity);
+					if (strlen($entityPid) == 0) {
 						continue;
 					}
-					$entityType = '';
-					foreach ($entity->attributes() as $name => $value){
-						if ($name == 'type'){
-							$entityType = $value;
-							break;
-						}
-					}
-					if ($entityType == '' && strlen($entity->entityPid)){
-						//Get the type based on the pid
-						list($entityType, $id) = explode(':', $entity->entityPid);
-					}
+					$entityTitle = $this->getModsValue('entityTitle', 'marmot', $entity);
+					$relationshipNote = $this->getModsValue('relationshipNote', 'marmot', $entity);
+					$entityRole = $this->getModsAttribute('role', $entity);
 					$entityInfo = array(
-							'pid' => (string)$entity->entityPid,
-							'label' => (string)$entity->entityTitle,
-							'role' => (string)$entity->type,
-							'note' => (string)$entity->entityRelationshipNote,
+							'pid' => $entityPid,
+							'label' => $entityTitle,
+							'role' => $entityRole,
+							'note' => $relationshipNote,
 
 					);
-					$entityInfo['link']= '/Archive/' . $entity->entityPid . '/Event';
-					$this->relatedEvents[(string)$entity->entityPid] = $entityInfo;
+					$entityInfo['link']= '/Archive/' . $entityPid . '/Event';
+					$this->relatedEvents[(string)$entityPid] = $entityInfo;
 				}
 
-				foreach ($marmotExtension->marmotLocal->relatedPlace as $entity){
-					if (count($entity->entityPlace) > 0 && strlen($entity->entityPlace->entityPid) > 0){
-						$entityInfo = array(
-								'pid' => (string)$entity->entityPlace->entityPid,
-								'label' => (string)$entity->entityPlace->entityTitle
-
-						);
-						if ($entity->significance){
-							$entityInfo['role'] = ucfirst((string)$entity->significance);
-						}
-						$entityInfo['link']= '/Archive/' . (string)$entity->entityPlace->entityPid . '/Place';
-						$this->relatedPlaces[$entityInfo['pid']] = $entityInfo;
-					}else {
-						//Check to see if we have anything for this place
-						if (strlen($entity->generalPlace->latitude) ||
-								strlen($entity->generalPlace->longitude) ||
-								strlen($entity->generalPlace->addressStreetNumber) ||
-								strlen($entity->generalPlace->addressStreet) ||
-								strlen($entity->generalPlace->addressCity) ||
-								strlen($entity->generalPlace->addressCounty) ||
-								strlen($entity->generalPlace->addressState) ||
-								strlen($entity->generalPlace->addressZipCode) ||
-								strlen($entity->generalPlace->addressCountry) ||
-								strlen($entity->generalPlace->addressOtherRegion)){
-
-							//TODO: We should probably show something here, but not sure what or how
-						}
+				$entities = $this->getModsValues('relatedPlace', 'marmot', null, true);
+				foreach ($entities as $entity){
+					$entityPid = $this->getModsValue('entityPid', 'marmot', $entity);
+					if (strlen($entityPid) == 0) {
+						//TODO: If we don't get a PID we may still want to display address information?
+						continue;
 					}
+					$entityTitle = $this->getModsValue('entityTitle', 'marmot', $entity);
+					$entityInfo = array(
+							'pid' => $entityPid,
+							'label' => $entityTitle
+
+					);
+					$significance = $this->getModsValue('significance', 'marmot', $entity);
+					if ($significance){
+						$entityInfo['role'] = ucfirst($significance);
+					}
+					$entityInfo['link']= '/Archive/' . $entityPid . '/Place';
+					$this->relatedPlaces[$entityInfo['pid']] = $entityInfo;
 				}
 			}
 
@@ -785,13 +769,11 @@ abstract class IslandoraDriver extends RecordInterface {
 		return false;
 	}
 
+	/**
+	 * @return string
+	 */
 	protected function getMarmotExtension(){
-		$modsData = $this->getModsData();
-		if ($modsData->extension->count() > 0){
-			return $modsData->extension->children('http://marmot.org/local_mods_extension');
-		}else{
-			return null;
-		}
+		return $this->getModsValue('extension', 'mods');
 	}
 
 	public function getVisibleLinks(){
@@ -807,70 +789,64 @@ abstract class IslandoraDriver extends RecordInterface {
 	protected $links = null;
 	public function getLinks(){
 		if ($this->links == null){
+			global $timer;
 			$this->links = array();
-			/** @var SimpleXMLElement $marmotExtension */
 			$marmotExtension = $this->getMarmotExtension();
-			if ($marmotExtension != null && $marmotExtension->count() > 0){
-				/** @var SimpleXMLElement $marmotLocal */
-				$marmotLocal = $marmotExtension->marmotLocal;
-				if ($marmotLocal->count() > 0){
-					if ($marmotLocal->externalLink->count() > 0){
-						/** @var SimpleXMLElement $linkInfo */
-						foreach ($marmotExtension->marmotLocal->externalLink as $linkInfo){
-							$linkAttributes = $linkInfo->attributes();
-							$linkType = (string)$linkAttributes['type'];
-							if (strlen($linkInfo->linkText) == 0) {
-								if (strlen($linkType) == 0) {
-									$linkText = (string)$linkInfo->link;
-								} else {
-									switch ($linkType){
-										case 'relatedPika':
-											$linkText = 'Related title from the catalog';
-											break;
-										case 'marmotGenealogy':
-											$linkText = 'Genealogy Record';
-											break;
-										case 'findAGrave':
-											$linkText = 'Grave site information on Find a Grave';
-											break;
-										case 'fortLewisGeoPlaces':
-											//Skip this one
-											continue;
-										case 'geoNames':
-											$linkText = 'Geographic information from GeoNames.org';
-											continue;
-										case 'samePika':
-											$linkText = 'This record within the catalog';
-											continue;
-										case 'whosOnFirst':
-											$linkText = 'Geographic information from Who\'s on First';
-											continue;
-										case 'wikipedia':
-											$linkText = 'Information from Wikipedia';
-											continue;
-										default:
-											$linkText = $linkType;
-									}
-								}
-							}else{
-								$linkText = (string)$linkInfo->linkText;
-							}
-							if  (strlen($linkInfo->link) > 0){
-								$isHidden = false;
-								if ($linkType == 'wikipedia' || $linkType == 'geoNames' || $linkType == 'whosOnFirst'){
-									$isHidden = true;
-								}
-								$this->links[] = array(
-										'type' => (string)$linkAttributes['type'],
-										'link' => (string)$linkInfo->link,
-										'text' => $linkText,
-										'hidden' => $isHidden
-								);
+			if (strlen($marmotExtension) > 0){
+				$linkData = $this->getModsValues('externalLink', 'marmot', $marmotExtension, true);
+				foreach ($linkData as $linkInfo) {
+					$linkType = $this->getModsAttribute('type', $linkInfo);
+					$link = $this->getModsValue('link', 'marmot', $linkInfo);
+					$linkText = $this->getModsValue('link', 'marmot', $linkInfo);
+					if (strlen($linkText) == 0) {
+						if (strlen($linkType) == 0) {
+							$linkText = $link;
+						} else {
+							switch ($linkType) {
+								case 'relatedPika':
+									$linkText = 'Related title from the catalog';
+									break;
+								case 'marmotGenealogy':
+									$linkText = 'Genealogy Record';
+									break;
+								case 'findAGrave':
+									$linkText = 'Grave site information on Find a Grave';
+									break;
+								case 'fortLewisGeoPlaces':
+									//Skip this one
+									continue;
+								case 'geoNames':
+									$linkText = 'Geographic information from GeoNames.org';
+									continue;
+								case 'samePika':
+									$linkText = 'This record within the catalog';
+									continue;
+								case 'whosOnFirst':
+									$linkText = 'Geographic information from Who\'s on First';
+									continue;
+								case 'wikipedia':
+									$linkText = 'Information from Wikipedia';
+									continue;
+								default:
+									$linkText = $linkType;
 							}
 						}
 					}
+					if (strlen($link) > 0) {
+						$isHidden = false;
+						if ($linkType == 'wikipedia' || $linkType == 'geoNames' || $linkType == 'whosOnFirst') {
+							$isHidden = true;
+						}
+						$this->links[] = array(
+								'type' => $linkType,
+								'link' => $link,
+								'text' => $linkText,
+								'hidden' => $isHidden
+						);
+					}
 				}
 			}
+			$timer->logTime("Loaded links");
 		}
 		return $this->links;
 	}
@@ -924,6 +900,8 @@ abstract class IslandoraDriver extends RecordInterface {
 
 	public function getDirectlyLinkedArchiveObjects(){
 		if ($this->directlyRelatedObjects == null){
+			global $timer;
+			$timer->logTime("Starting getDirectlyLinkedArchiveObjects");
 			$this->directlyRelatedObjects = array(
 					'numFound' => 0,
 					'objects' => array(),
@@ -951,6 +929,7 @@ abstract class IslandoraDriver extends RecordInterface {
 			$searchObject->clearFilters();
 			$searchObject->addFacet('RELS_EXT_hasModel_uri_s', 'Format');
 
+
 			$response = $searchObject->processSearch(true, false);
 			if ($response && $response['response']['numFound'] > 0) {
 				foreach ($response['response']['docs'] as $doc) {
@@ -977,6 +956,7 @@ abstract class IslandoraDriver extends RecordInterface {
 					}
 				}
 			}
+			$timer->logTime("Finished getDirectlyLinkedArchiveObjects");
 		}
 
 		return $this->directlyRelatedObjects;
