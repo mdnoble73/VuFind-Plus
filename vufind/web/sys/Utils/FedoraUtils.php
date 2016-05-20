@@ -229,7 +229,7 @@ class FedoraUtils {
 				return $this->isObjectValidForPika($archiveObject);
 			}else{
 				global $configArray;
-				$memCache->set('islandora_object_valid_in_pika_' . $pid, 0, $configArray['Caching']['islandora_object_valid']);
+				$memCache->set('islandora_object_valid_in_pika_' . $pid, 0, 0, $configArray['Caching']['islandora_object_valid']);
 				return false;
 			}
 
