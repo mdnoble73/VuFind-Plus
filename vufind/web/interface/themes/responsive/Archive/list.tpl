@@ -10,7 +10,7 @@
 	<div class="resulthead">
 		{if $recordCount}
 			{translate text="Showing"}
-			<b>{$recordStart}</b> - <b>{$recordEnd} </b>
+			<b> {$recordStart}</b> - <b>{$recordEnd} </b>
 			{translate text='of'} <b>{$recordCount} </b>
 			{if $searchType == 'basic'}{translate text='for search'}: <b>'{$lookfor|escape:"html"}'</b>,{/if}
 		{/if}
