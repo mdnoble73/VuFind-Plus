@@ -1305,21 +1305,23 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 				@SuppressWarnings("unchecked")
 				List<Subfield> subFields = field.getSubfields();
 				for (Subfield subfield : subFields) {
-					String physicalDescriptionData = subfield.getData().toLowerCase();
-					if (physicalDescriptionData.contains("large type") || physicalDescriptionData.contains("large print")) {
-						result.add("LargePrint");
-					} else if (physicalDescriptionData.contains("bluray") || physicalDescriptionData.contains("blu-ray")) {
-						result.add("Blu-ray");
-					} else if (physicalDescriptionData.contains("computer optical disc")) {
-						result.add("Software");
-					} else if (physicalDescriptionData.contains("sound cassettes")) {
-						result.add("SoundCassette");
-					} else if (physicalDescriptionData.contains("sound discs") || physicalDescriptionData.contains("audio discs")) {
-						result.add("SoundDisc");
-					}
-					//Since this is fairly generic, only use it if we have no other formats yet
-					if (result.size() == 0 && subfield.getCode() == 'f' && physicalDescriptionData.matches("^.*?\\d+\\s+(p\\.|pages).*$")) {
-						result.add("Book");
+					if (subfield.getCode() != 'e') {
+						String physicalDescriptionData = subfield.getData().toLowerCase();
+						if (physicalDescriptionData.contains("large type") || physicalDescriptionData.contains("large print")) {
+							result.add("LargePrint");
+						} else if (physicalDescriptionData.contains("bluray") || physicalDescriptionData.contains("blu-ray")) {
+							result.add("Blu-ray");
+						} else if (physicalDescriptionData.contains("computer optical disc")) {
+							result.add("Software");
+						} else if (physicalDescriptionData.contains("sound cassettes")) {
+							result.add("SoundCassette");
+						} else if (physicalDescriptionData.contains("sound discs") || physicalDescriptionData.contains("audio discs")) {
+							result.add("SoundDisc");
+						}
+						//Since this is fairly generic, only use it if we have no other formats yet
+						if (result.size() == 0 && subfield.getCode() == 'f' && physicalDescriptionData.matches("^.*?\\d+\\s+(p\\.|pages).*$")) {
+							result.add("Book");
+						}
 					}
 				}
 			}
