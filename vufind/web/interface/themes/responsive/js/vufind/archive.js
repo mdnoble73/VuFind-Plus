@@ -11,9 +11,15 @@ VuFind.Archive = (function(){
 			viewer.addHandler("animationfinish", this.update_clip);
 		},
 
-		handleMapClick: function(marker, exhibitPid, placePid){
-			this.archive_info_window.setContent("This is just a test " + placePid);
+		handleMapClick: function(marker, exhibitPid, placePid, label){
+			this.archive_info_window.setContent(label);
 			this.archive_info_window.open(this.archive_map, marker);
+			$.getJSON(Globals.path + "/Archive/AJAX?method=getRelatedObjectsForMappedCollection&collectionId=" + exhibitPid + "&placeId=" + placePid, function(data){
+				if (data.success){
+					$("#related-objects-for-exhibit").html(data.relatedObjects);
+				}
+			});
+
 		},
 
 		loadExploreMore: function(pid){

@@ -43,7 +43,7 @@
 							{rdelim});
 
 							marker{$smarty.foreach.place.index}.addListener('click', function(){ldelim}
-								VuFind.Archive.handleMapClick(marker{$smarty.foreach.place.index}, '{$pid}', '{$place.pid}');
+								VuFind.Archive.handleMapClick(marker{$smarty.foreach.place.index}, '{$pid|urlencode}', '{$place.pid|urlencode}', '{$place.label}');
 
 							{rdelim});
 						{/if}
@@ -52,6 +52,7 @@
 			</script>
 		{/if}
 		{strip}
+		{*
 		<ol>
 		{foreach from=$mappedPlaces item=place}
 			<li>
@@ -61,22 +62,12 @@
 			</li>
 		{/foreach}
 		</ol>
+		*}
 	</div>
 
-	{*
-	<div class="related-exhibit-images {if count($relatedImages) >= 18}results-covers home-page-browse-thumbnails{else}browse-thumbnails-few{/if}">
-		{foreach from=$relatedImages item=image}
-			<figure class="browse-thumbnail">
-				<a href="{$image.link}" {if $image.title}data-title="{$image.title}"{/if}>
-					<img src="{$image.image}" {if $image.title}alt="{$image.title}"{/if}>
-				</a>
-				<figcaption class="explore-more-category-title">
-					<strong>{$image.title}</strong>
-				</figcaption>
-			</figure>
-		{/foreach}
+	<div id="related-objects-for-exhibit">
+		Click any location to view more information about that location.
 	</div>
-	*}
 
 	{if $repositoryLink && $user && ($user->hasRole('archives') || $user->hasRole('opacAdmin'))}
 		<div id="more-details-accordion" class="panel-group">

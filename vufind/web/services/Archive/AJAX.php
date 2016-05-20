@@ -34,6 +34,73 @@ class Archive_AJAX extends Action {
 		echo json_encode($this->$method());
 	}
 
+	function getRelatedObjectsForMappedCollection(){
+		if (isset($_REQUEST['collectionId']) && isset($_REQUEST['placeId'])){
+			global $interface;
+			global $timer;
+			require_once ROOT_DIR . '/sys/Utils/FedoraUtils.php';
+			$fedoraUtils = FedoraUtils::getInstance();
+			$pid = urldecode($_REQUEST['collectionId']);
+			$interface->assign('pid', $pid);
+			$archiveObject = $fedoraUtils->getObject($pid);
+			$recordDriver = RecordDriverFactory::initRecordDriver($archiveObject);
+
+			$placeId = urldecode($_REQUEST['placeId']);
+			/** @var FedoraObject $placeObject */
+			$placeObject = $fedoraUtils->getObject($placeId);
+			$interface->assign('label', $placeObject->label);
+
+			/** @var SearchObject_Islandora $searchObject */
+			$searchObject = SearchObjectFactory::initSearchObject('Islandora');
+			$searchObject->init();
+			$searchObject->setDebugging(false, false);
+			$searchObject->clearHiddenFilters();
+			$searchObject->addHiddenFilter('!RELS_EXT_isViewableByRole_literal_ms', "administrator");
+			$searchObject->clearFilters();
+			$searchObject->addFilter("RELS_EXT_isMemberOfCollection_uri_ms:\"info:fedora/{$pid}\"");
+			$searchObject->setBasicQuery("mods_extension_marmotLocal_relatedEntity_place_entityPid_ms:\"{$placeId}\" OR " .
+					"mods_extension_marmotLocal_relatedPlace_entityPlace_entityPid_ms:\"{$placeId}\" OR " .
+					"mods_extension_marmotLocal_militaryService_militaryRecord_relatedPlace_entityPlace_entityPid_ms:\"{$placeId}\" OR " .
+					"mods_extension_marmotLocal_describedEntity_entityPid_ms:\"{$placeId}\" OR " .
+					"mods_extension_marmotLocal_picturedEntity_entityPid_ms:\"{$placeId}\""
+			);
+			$searchObject->clearFacets();
+
+			$searchObject->setLimit(24);
+
+			$relatedObjects = array();
+			$response = $searchObject->processSearch(true, false, true);
+			if ($response && $response['response']['numFound'] > 0) {
+				$summary = $searchObject->getResultSummary();
+				$interface->assign('recordCount', $summary['resultTotal']);
+				$interface->assign('recordStart', $summary['startRecord']);
+				$interface->assign('recordEnd',   $summary['endRecord']);
+
+				foreach ($response['response']['docs'] as $objectInCollection){
+					/** @var IslandoraDriver $firstObjectDriver */
+					$firstObjectDriver = RecordDriverFactory::initRecordDriver($objectInCollection);
+					$relatedObjects[] = array(
+							'title' => $firstObjectDriver->getTitle(),
+							'description' => "Update me",
+							'image' => $firstObjectDriver->getBookcoverUrl('medium'),
+							'link' => $firstObjectDriver->getRecordUrl(),
+					);
+					$timer->logTime('Loaded related object');
+				}
+			}
+			$interface->assign('relatedObjects', $relatedObjects);
+			return array(
+					'success' => true,
+					'relatedObjects' => $interface->fetch('Archive/relatedObjects.tpl')
+			);
+		}else{
+			return array(
+					'success' => false,
+					'message' => 'You must supply the collection and place to load data for'
+			);
+		}
+	}
+
 	function getExploreMoreContent(){
 		if (!isset($_REQUEST['id'])){
 			return array(
@@ -44,18 +111,18 @@ class Archive_AJAX extends Action {
 		global $interface;
 		require_once ROOT_DIR . '/sys/Utils/FedoraUtils.php';
 		$fedoraUtils = FedoraUtils::getInstance();
-		$this->pid = urldecode($_REQUEST['id']);
-		$interface->assign('pid', $this->pid);
-		$this->archiveObject = $fedoraUtils->getObject($this->pid);
-		$this->recordDriver = RecordDriverFactory::initRecordDriver($this->archiveObject);
-		$interface->assign('recordDriver', $this->recordDriver);
+		$pid = urldecode($_REQUEST['id']);
+		$interface->assign('pid', $pid);
+		$archiveObject = $fedoraUtils->getObject($pid);
+		$recordDriver = RecordDriverFactory::initRecordDriver($archiveObject);
+		$interface->assign('recordDriver', $recordDriver);
 
 		require_once ROOT_DIR . '/sys/ExploreMore.php';
 		$exploreMore = new ExploreMore();
-		$exploreMore->loadExploreMoreSidebar('archive', $this->recordDriver);
+		$exploreMore->loadExploreMoreSidebar('archive', $recordDriver);
 
 
-		$relatedSubjects = $this->recordDriver->getAllSubjectHeadings();
+		$relatedSubjects = $recordDriver->getAllSubjectHeadings();
 
 		$ebscoMatches = $exploreMore->loadEbscoOptions('archive', array(), implode($relatedSubjects, " or "));
 		if (count($ebscoMatches) > 0){

@@ -648,9 +648,12 @@ class SearchObject_Genealogy extends SearchObject_Base
 	 *                                     method (true)?
 	 * @param   bool   $recommendations    Should we process recommendations along
 	 *                                     with the search itself?
+	 * @param   bool   $preventQueryModification   Should we allow the search engine
+	 *                                             to modify the query or is it already
+	 *                                             a well formatted query
 	 * @return  object solr result structure (for now)
 	 */
-	public function processSearch($returnIndexErrors = false, $recommendations = false)
+	public function processSearch($returnIndexErrors = false, $recommendations = false, $preventQueryModification = false)
 	{
 		// Our search has already been processed in init()
 		$search = $this->searchTerms;
@@ -661,7 +664,11 @@ class SearchObject_Genealogy extends SearchObject_Base
 		}
 
 		// Build Query
-		$query = $this->indexEngine->buildQuery($search);
+		if ($preventQueryModification){
+			$query = $search;
+		}else{
+			$query = $this->indexEngine->buildQuery($search, false);
+		}
 		if (PEAR_Singleton::isError($query)) {
 			return $query;
 		}
