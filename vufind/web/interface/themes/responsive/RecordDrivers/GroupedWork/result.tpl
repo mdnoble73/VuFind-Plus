@@ -84,56 +84,63 @@
 				{/if}
 
 				{if $showPublisher}
+				{if $alwaysShowSearchResultsMainDetails || $summPublisher}
 					<div class="row">
 						<div class="result-label col-tn-3 col-xs-3">Publisher: </div>
 						<div class="result-value col-tn-9 col-xs-9">
 							{if $summPublisher}
 								{$summPublisher}
-							{else}
+							{elseif $alwaysShowSearchResultsMainDetails}
 								{translate text="Not Supplied"}
 							{/if}
 						</div>
 					</div>
+				{/if}
 				{/if}
 
 				{if $showPublicationDate}
-					<div class="row">
-						<div class="result-label col-tn-3 col-xs-3">Pub. Date: </div>
-						<div class="result-value col-tn-9 col-xs-9">
-							{if $summPubDate}
-								{$summPubDate|escape}
-							{else}
-								{translate text="Not Supplied"}
-							{/if}
+					{if $alwaysShowSearchResultsMainDetails || $summPubDate}
+						<div class="row">
+							<div class="result-label col-tn-3 col-xs-3">Pub. Date: </div>
+							<div class="result-value col-tn-9 col-xs-9">
+								{if $summPubDate}
+									{$summPubDate|escape}
+								{elseif $alwaysShowSearchResultsMainDetails}
+									{translate text="Not Supplied"}
+								{/if}
+							</div>
 						</div>
-					</div>
+					{/if}
 				{/if}
 
 				{if $showEditions}
-					<div class="row">
-						<div class="result-label col-tn-3 col-xs-3">Edition: </div>
-						<div class="result-value col-tn-9 col-xs-9">
-							{if $summEdition}
-								{$summEdition}
-							{else}
-								{translate text="Not Supplied"}
-							{/if}
+					{if $alwaysShowSearchResultsMainDetails || $summEdition}
+						<div class="row">
+							<div class="result-label col-tn-3 col-xs-3">Edition: </div>
+							<div class="result-value col-tn-9 col-xs-9">
+								{if $summEdition}
+									{$summEdition}
+								{elseif $alwaysShowSearchResultsMainDetails}
+									{translate text="Not Supplied"}
+								{/if}
+							</div>
 						</div>
-					</div>
+					{/if}
 				{/if}
 
 				{if $showPhysicalDescriptions}
-					<div class="row">
-						<div class="result-label col-tn-3 col-xs-3">{translate text='Physical Desc'}: </div>
-						<div class="result-value col-tn-9 col-xs-9">
-							{if $summPhysicalDesc}
-								{$summPhysicalDesc}
-							{else}
-								{translate text="Not Supplied"}
-							{/if}
+					{if $alwaysShowSearchResultsMainDetails || $summPhysicalDesc}
+						<div class="row">
+							<div class="result-label col-tn-3 col-xs-3">{translate text='Physical Desc'}: </div>
+							<div class="result-value col-tn-9 col-xs-9">
+								{if $summPhysicalDesc}
+									{$summPhysicalDesc}
+								{elseif $alwaysShowSearchResultsMainDetails}
+									{translate text="Not Supplied"}
+								{/if}
+							</div>
 						</div>
-					</div>
-
+					{/if}
 				{/if}
 
 				{if $showLangauges && $summLanguage}

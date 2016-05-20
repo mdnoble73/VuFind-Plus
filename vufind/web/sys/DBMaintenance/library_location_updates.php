@@ -1105,6 +1105,15 @@ function getLibraryLocationUpdates(){
 			),
 		),
 
+		'always_show_search_results_Main_details' => array(
+			'title' => 'Enable Always Show Search Results Main Details',
+			'description' => 'Library configuration switch to always display chosen details in search results even when the info is not supplied or the details vary.',
+			'continueOnError' => true,
+			'sql' => array(
+				"ALTER TABLE `library` ADD COLUMN `alwaysShowSearchResultsMainDetails` TINYINT(1) DEFAULT 0;",
+			),
+		),
+
 		'right_hand_sidebar' => array(
 			'title' => 'Enable Right Hand Sidebar',
 			'description' => 'Library configuration switch to display sidebars on the right of the page instead of the default left side.',
@@ -1254,6 +1263,15 @@ function getLibraryLocationUpdates(){
 							'ALTER TABLE `library` ADD COLUMN `showStandardSubjects` TINYINT(1) DEFAULT 1',
 							'ALTER TABLE `library` ADD COLUMN `showBisacSubjects` TINYINT(1) DEFAULT 1',
 							'ALTER TABLE `library` ADD COLUMN `showFastAddSubjects` TINYINT(1) DEFAULT 1',
+					),
+			),
+
+			'library_subject_display_2' => array(
+					'title' => 'Library Subject Display Options Update',
+					'description' => 'Add Show Other subjects option and rename show Standard Subjects option to Show LC Subjects.',
+					'sql' => array(
+							'ALTER TABLE `library` CHANGE COLUMN `showStandardSubjects` `showLCSubjects` TINYINT(1) DEFAULT 1',
+							'ALTER TABLE `library` ADD COLUMN `showOtherSubjects` TINYINT(1) DEFAULT 1 AFTER `showFastAddSubjects`',
 					),
 			),
 

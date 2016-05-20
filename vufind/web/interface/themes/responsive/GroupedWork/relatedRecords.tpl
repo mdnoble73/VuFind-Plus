@@ -52,7 +52,7 @@
 					{include file='GroupedWork/copySummary.tpl' summary=$relatedRecord.itemSummary totalCopies=$relatedRecord.copies itemSummaryId=$relatedRecord.id recordViewUrl=$relatedRecord.url}
 
 					{if $relatedRecord.usageRestrictions}
-						<br/>{$relatedRecord.usageRestrictions}
+						<br>{$relatedRecord.usageRestrictions}
 					{/if}
 				</td>
 				<td>
