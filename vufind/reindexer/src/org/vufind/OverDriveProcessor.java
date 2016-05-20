@@ -85,12 +85,10 @@ public class OverDriveProcessor {
 							subtitle = "";
 						}
 						groupedWork.setTitle(title);
-						groupedWork.setDisplayTitle(title);
 						groupedWork.setSubTitle(subtitle);
 						String fullTitle = title + " " + subtitle;
 						fullTitle = fullTitle.trim();
 						groupedWork.addFullTitle(fullTitle);
-						groupedWork.setDisplayTitle(fullTitle);
 						String mediaType = productRS.getString("mediaType");
 						String formatCategory;
 						String primaryFormat;
@@ -109,6 +107,7 @@ public class OverDriveProcessor {
 								break;
 						}
 
+						groupedWork.setDisplayTitle(title, primaryFormat);
 						groupedWork.addSeries(series);
 						groupedWork.addSeriesWithVolume(series);
 						groupedWork.setAuthor(productRS.getString("primaryCreatorName"));

@@ -44,6 +44,7 @@ public class GroupedWorkSolr implements Cloneable {
 	private String displayDescription = "";
 	private String displayDescriptionFormat = "";
 	private String displayTitle;
+	private String displayTitleFormat = "";
 	private Long earliestPublicationDate = null;
 	private HashSet<String> econtentDevices = new HashSet<>();
 	private HashSet<String> editions = new HashSet<>();
@@ -837,9 +838,11 @@ public class GroupedWorkSolr implements Cloneable {
 		if (title != null){
 			title = Util.trimTrailingPunctuation(title);
 			//TODO: determine if the title should be changed or always use the first one?
+			//@pascal use the same logic we have for display title to get the correct title based on format.
 			if (this.title == null){
 				this.title = title;
 			}
+			//Create an alternate title for searching by replacing ampersands with the word and.
 			String tmpTitle = title.replace("&", " and ").replace("  ", " ");
 			if (!tmpTitle.equals(title)){
 				this.titleAlt.add(tmpTitle);
@@ -848,7 +851,7 @@ public class GroupedWorkSolr implements Cloneable {
 		}
 	}
 
-	public void setDisplayTitle(String newTitle){
+	public void setDisplayTitle(String newTitle, String recordFormat){
 		if (newTitle == null){
 			return;
 		}
@@ -867,8 +870,41 @@ public class GroupedWorkSolr implements Cloneable {
 			newTitle = tmpTitle;
 		}
 
-		if (this.displayTitle == null || newTitle.length() > this.displayTitle.length()){
+		//Figure out if we want to use this title or if the one we have is better.
+		boolean updateTitle = false;
+		if (this.displayTitle == null){
+			updateTitle = true;
+		}else{
+			//Only overwrite if we get a better format
+			if (recordFormat.equals("Book")){
+				//We have a book, update if we didn't have a book before
+				if (!recordFormat.equals(displayTitleFormat)){
+					updateTitle = true;
+				//or update if we had a book before and this title is longer
+				}else if (newTitle.length() > this.displayTitle.length()){
+					updateTitle = true;
+				}
+			} else if (recordFormat.equals("eBook")){
+				//Update if the format we had before is not a book
+				if (!displayTitleFormat.equals("Book")){
+					//And the new format was not an eBook or the new title is longer than what we had before
+					if (!recordFormat.equals(displayTitleFormat)){
+						updateTitle = true;
+						//or update if we had a book before and this title is longer
+					}else if (newTitle.length() > this.displayTitle.length()){
+						updateTitle = true;
+					}
+				}
+			} else if (!displayTitleFormat.equals("Book") && !displayTitleFormat.equals("eBook")){
+				//If we don't have a Book or an eBook then we can update the title if we get a longer title
+				if (newTitle.length() > this.displayTitle.length()) {
+					updateTitle = true;
+				}
+			}
+		}
+		if (updateTitle){
 			this.displayTitle = newTitle;
+			this.displayTitleFormat = recordFormat;
 		}
 	}
 
@@ -1315,22 +1351,40 @@ public class GroupedWorkSolr implements Cloneable {
 			return;
 		}
 		this.description.add(description);
-		if (this.displayDescription.length() == 0){
-			this.displayDescription = description;
-			this.displayDescriptionFormat = recordFormat;
-		}else{
+		boolean updateDescription = false;
+		if (this.displayDescription == null){
+			updateDescription = true;
+		}else {
 			//Only overwrite if we get a better format
-			if (recordFormat.equals("Book") || recordFormat.equals("eBook") || recordFormat.equals(displayDescriptionFormat) ){
-				if (description.length() > this.displayDescription.length()){
-					this.displayDescription = description;
-					this.displayDescriptionFormat = recordFormat;
+			if (recordFormat.equals("Book")) {
+				//We have a book, update if we didn't have a book before
+				if (!recordFormat.equals(displayDescriptionFormat)) {
+					updateDescription = true;
+					//or update if we had a book before and this Description is longer
+				} else if (description.length() > this.displayDescription.length()) {
+					updateDescription = true;
 				}
-			} else if (!displayDescriptionFormat.equals("Book") && !displayDescriptionFormat.equals("eBook")){
+			} else if (recordFormat.equals("eBook")) {
+				//Update if the format we had before is not a book
+				if (!displayDescriptionFormat.equals("Book")) {
+					//And the new format was not an eBook or the new Description is longer than what we had before
+					if (!recordFormat.equals(displayDescriptionFormat)) {
+						updateDescription = true;
+						//or update if we had a book before and this Description is longer
+					} else if (description.length() > this.displayDescription.length()) {
+						updateDescription = true;
+					}
+				}
+			} else if (!displayDescriptionFormat.equals("Book") && !displayDescriptionFormat.equals("eBook")) {
+				//If we don't have a Book or an eBook then we can update the Description if we get a longer Description
 				if (description.length() > this.displayDescription.length()) {
-					this.displayDescription = description;
-					this.displayDescriptionFormat = recordFormat;
+					updateDescription = true;
 				}
 			}
+		}
+		if (updateDescription){
+			this.displayDescription = description;
+			this.displayDescriptionFormat = recordFormat;
 		}
 	}
 

@@ -53,7 +53,7 @@ public abstract class MarcRecordProcessor {
 	}
 
 	protected void updateGroupedWorkSolrDataBasedOnStandardMarcData(GroupedWorkSolr groupedWork, Record record, HashSet<ItemInfo> printItems, String identifier, String format) {
-		loadTitles(groupedWork, record);
+		loadTitles(groupedWork, record, format);
 		loadAuthors(groupedWork, record, identifier);
 		loadSubjects(groupedWork, record);
 		/*List<DataField> seriesFields = getDataFields(record, "490");
@@ -652,7 +652,7 @@ public abstract class MarcRecordProcessor {
 		groupedWork.setAuthorDisplay(displayAuthor);
 	}
 
-	protected void loadTitles(GroupedWorkSolr groupedWork, Record record) {
+	protected void loadTitles(GroupedWorkSolr groupedWork, Record record, String format) {
 		//title (full title done by index process by concatenating short and subtitle
 
 		//title short
@@ -661,7 +661,7 @@ public abstract class MarcRecordProcessor {
 		//MDN 2/6/2016 add np to subtitle #ARL-163
 		groupedWork.setSubTitle(this.getFirstFieldVal(record, "245bnp"));
 		//display title
-		groupedWork.setDisplayTitle(this.getFirstFieldVal(record, "245abnp"));
+		groupedWork.setDisplayTitle(this.getFirstFieldVal(record, "245abnp"), format);
 		//title full
 		groupedWork.addFullTitles(this.getAllSubfields(record, "245", " "));
 		//title sort
