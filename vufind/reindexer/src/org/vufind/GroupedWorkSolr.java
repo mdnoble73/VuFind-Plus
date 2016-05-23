@@ -848,9 +848,6 @@ public class GroupedWorkSolr implements Cloneable {
 				if (recordFormat.equals("Book")){
 					//We have a book, update if we didn't have a book before
 					if (!recordFormat.equals(titleFormat)){
-
-						//QUESTION: titleFormat only? Why not this.titleFormat ?
-
 						updateTitle = true;
 						//Or update if we had a book before and this title is longer
 					}else if (newTitle.length() > this.title.length()){
@@ -890,21 +887,6 @@ public class GroupedWorkSolr implements Cloneable {
 		}
 	}
 
-//	// Original Version
-//	public void setTitle(String title) {
-//		if (title != null){
-//			title = Util.trimTrailingPunctuation(title);
-//			//TODO: determine if the title should be changed or always use the first one?
-//			if (this.title == null){
-//				this.title = title;
-//			}
-//			String tmpTitle = title.replace("&", " and ").replace("  ", " ");
-//			if (!tmpTitle.equals(title)){
-//				this.titleAlt.add(tmpTitle);
-//			}
-//			keywords.add(title);
-//		}
-//	}
 
 	public void setDisplayTitle(String newTitle, String recordFormat){
 		if (newTitle == null){
