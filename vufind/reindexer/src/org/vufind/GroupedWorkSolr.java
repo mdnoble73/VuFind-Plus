@@ -90,6 +90,7 @@ public class GroupedWorkSolr implements Cloneable {
 	private HashSet<String> titleOld = new HashSet<>();
 	private HashSet<String> titleNew = new HashSet<>();
 	private String titleSort;
+	private String titleFormat = "";
 	private HashSet<String> topics = new HashSet<>();
 	private HashSet<String> topicFacets = new HashSet<>();
 	private HashSet<String> subjects = new HashSet<>();
@@ -834,22 +835,76 @@ public class GroupedWorkSolr implements Cloneable {
 		this.id = id;
 	}
 
-	public void setTitle(String title) {
-		if (title != null){
-			title = Util.trimTrailingPunctuation(title);
-			//TODO: determine if the title should be changed or always use the first one?
-			//@pascal use the same logic we have for display title to get the correct title based on format.
+	public void setTitle(String newTitle, String recordFormat) {
+		if (newTitle != null){
+			newTitle = Util.trimTrailingPunctuation(newTitle);
+
+			//Figure out if we want to use this title or if the one we have is better.
+			boolean updateTitle = false;
 			if (this.title == null){
-				this.title = title;
+				updateTitle = true;
+			} else {
+				//Only overwrite if we get a better format
+				if (recordFormat.equals("Book")){
+					//We have a book, update if we didn't have a book before
+					if (!recordFormat.equals(titleFormat)){
+
+						//QUESTION: titleFormat only? Why not this.titleFormat ?
+
+						updateTitle = true;
+						//Or update if we had a book before and this title is longer
+					}else if (newTitle.length() > this.title.length()){
+						updateTitle = true;
+					}
+				} else if (recordFormat.equals("eBook")){
+					//Update if the format we had before is not a book
+					if (!titleFormat.equals("Book")){
+						//And the new format was not an eBook or the new title is longer than what we had before
+						if (!recordFormat.equals(titleFormat)){
+							updateTitle = true;
+							//or update if we had a book before and this title is longer
+						}else if (newTitle.length() > this.title.length()){
+							updateTitle = true;
+						}
+					}
+				} else if (!titleFormat.equals("Book") && !titleFormat.equals("eBook")){
+					//If we don't have a Book or an eBook then we can update the title if we get a longer title
+					if (newTitle.length() > this.title.length()) {
+						updateTitle = true;
+					}
+				}
 			}
+
+			if (updateTitle){
+				this.title = newTitle;
+				this.titleFormat = recordFormat;
+			}
+
 			//Create an alternate title for searching by replacing ampersands with the word and.
-			String tmpTitle = title.replace("&", " and ").replace("  ", " ");
-			if (!tmpTitle.equals(title)){
+			String tmpTitle = newTitle.replace("&", " and ").replace("  ", " ");
+			if (!tmpTitle.equals(newTitle)){
 				this.titleAlt.add(tmpTitle);
+				// alt title has multiple values
 			}
-			keywords.add(title);
+			keywords.add(newTitle);
 		}
 	}
+
+//	// Original Version
+//	public void setTitle(String title) {
+//		if (title != null){
+//			title = Util.trimTrailingPunctuation(title);
+//			//TODO: determine if the title should be changed or always use the first one?
+//			if (this.title == null){
+//				this.title = title;
+//			}
+//			String tmpTitle = title.replace("&", " and ").replace("  ", " ");
+//			if (!tmpTitle.equals(title)){
+//				this.titleAlt.add(tmpTitle);
+//			}
+//			keywords.add(title);
+//		}
+//	}
 
 	public void setDisplayTitle(String newTitle, String recordFormat){
 		if (newTitle == null){

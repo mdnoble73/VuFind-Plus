@@ -656,7 +656,7 @@ public abstract class MarcRecordProcessor {
 		//title (full title done by index process by concatenating short and subtitle
 
 		//title short
-		groupedWork.setTitle(this.getFirstFieldVal(record, "245a"));
+		groupedWork.setTitle(this.getFirstFieldVal(record, "245a"), format);
 		//title sub
 		//MDN 2/6/2016 add np to subtitle #ARL-163
 		groupedWork.setSubTitle(this.getFirstFieldVal(record, "245bnp"));
