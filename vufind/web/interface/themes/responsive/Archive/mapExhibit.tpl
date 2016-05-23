@@ -29,7 +29,7 @@
 				function initMap() {ldelim}
 					VuFind.Archive.archive_map = new google.maps.Map(document.getElementById('exhibit-map'), {ldelim}
 							center: {ldelim}lat: {$mapCenterLat}, lng: {$mapCenterLong}{rdelim},
-							zoom: 10
+							zoom: {$mapZoom}
 					{rdelim});
 
 					VuFind.Archive.archive_info_window = new google.maps.InfoWindow({ldelim}{rdelim});

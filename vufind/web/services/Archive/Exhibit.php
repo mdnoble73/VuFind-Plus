@@ -20,9 +20,12 @@ class Archive_Exhibit extends Archive_Object{
 		//$this->loadExploreMoreContent();
 		$timer->logTime('Loaded Explore More Content');
 
+		$pikaCollectionDisplay = $this->recordDriver->getModsValue('pikaCollectionDisplay', 'marmot');
 		$displayType = 'basic';
-		if ($this->pid == 'evld:localHistoryArchive'){
+		if ($pikaCollectionDisplay == 'map'){
 			$displayType = 'map';
+			$mapZoom = $this->recordDriver->getModsValue('mapZoomLevel', 'marmot');
+			$interface->assign('mapZoom', $mapZoom);
 		}
 		$this->loadRelatedObjects($displayType);
 		$timer->logTime('Loaded Related Objects');
