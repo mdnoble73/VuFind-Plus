@@ -755,7 +755,7 @@ class ListAPI extends Action {
 	 * <li>listId   - The id of the list to add items to.</li>
 	 * <li>recordIds - The id of the record(s) to add to the list.</li>
 	 * <li>tags   - A comma separated string of tags to apply to the titles within the list. (optional)</li>
-	 * <li>notes  - descriptive text to apply to the titles.  Can be viewed while on the list.  (optional)</li>
+	 * <li>notes  - descriptive text to apply to the titles.  Can be viewed while on the list.  Notes will apply to all titles being added.  (optional)</li>
 	 * </ul>
 	 *
 	 * Note: You may also provide the parameters to addTitlesToList and titles will be added to the list
@@ -831,6 +831,54 @@ class ListAPI extends Action {
 			}
 
 
+		}else{
+			return array('success'=>false, 'message'=>'Login unsuccessful');
+		}
+	}
+
+	/**
+	 * Clears all titles on a list given a list id
+	 *
+	 * Parameters:
+	 * <ul>
+	 * <li>username - The barcode of the user.  Can be truncated to the last 7 or 9 digits.</li>
+	 * <li>password - The pin number for the user. </li>
+	 * <li>listId   - The id of the list to add items to.</li>
+	 * </ul>
+	 *
+	 * Returns:
+	 * <ul>
+	 * <li>success - true if the account is valid and the titles could be added to the list, false if the username or password were incorrect or the list could not be created.</li>
+	 * </ul>
+	 *
+	 * Sample Call:
+	 * <code>
+	 * http://catalog.douglascountylibraries.org/API/ListAPI?method=clearListTitles&username=23025003575917&password=1234&listId=1234
+	 * </code>
+	 *
+	 * Sample Response:
+	 * <code>
+	 * {"result":{"success":true}}
+	 * </code>
+	 */
+	function clearListTitles(){
+		$username = $_REQUEST['username'];
+		$password = $_REQUEST['password'];
+		if (!isset($_REQUEST['listId'])){
+			return array('success'=>false, 'message'=>'You must provide the listId to clear titles from.');
+		}
+		global $user;
+		$user = UserAccount::validateAccount($username, $password);
+		if ($user && !PEAR_Singleton::isError($user)){
+			$list = new UserList();
+			$list->id = $_REQUEST['listId'];
+			$list->user_id = $user->id;
+			if (!$list->find(true)){
+				return array('success'=>false, 'message'=>'Unable to find the list to clear titles from.');
+			}else{
+				$list->removeAllListEntries();
+				return array('success' => true);
+			}
 		}else{
 			return array('success'=>false, 'message'=>'Login unsuccessful');
 		}
