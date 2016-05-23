@@ -84,12 +84,12 @@ public class OverDriveProcessor {
 						if (subtitle == null) {
 							subtitle = "";
 						}
-						groupedWork.setTitle(title);
+						String mediaType = productRS.getString("mediaType");
+						groupedWork.setTitle(title, mediaType); //TODO: Use mediaType for format when setting Title?
 						groupedWork.setSubTitle(subtitle);
 						String fullTitle = title + " " + subtitle;
 						fullTitle = fullTitle.trim();
 						groupedWork.addFullTitle(fullTitle);
-						String mediaType = productRS.getString("mediaType");
 						String formatCategory;
 						String primaryFormat;
 						switch (mediaType) {
