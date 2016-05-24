@@ -1036,7 +1036,24 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		if (subfieldIndicator == ' '){
 			return null;
 		}else {
-			return itemField.getSubfield(subfieldIndicator) != null ? itemField.getSubfield(subfieldIndicator).getData().trim() : null;
+//			return itemField.getSubfield(subfieldIndicator) != null ? itemField.getSubfield(subfieldIndicator).getData().trim() : null;
+
+			List<Subfield> subfields = itemField.getSubfields(subfieldIndicator);
+			if (subfields.size() == 1) {
+				return subfields.get(0).getData();
+			} else if (subfields.size() == 0) {
+				return null;
+			} else {
+				StringBuilder subfieldData = new StringBuilder();
+				for (Subfield subfield:subfields) {
+					if (subfieldData.length() > 0 && subfieldData.charAt(subfieldData.length() - 1) != ' '){
+						subfieldData.append(' ');
+					}
+					subfieldData.append(subfield.getData());
+				}
+				return subfieldData.toString().trim();
+			}
+
 		}
 	}
 
@@ -1044,7 +1061,23 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		if (subfieldIndicator == ' '){
 			return null;
 		}else {
-			return itemField.getSubfield(subfieldIndicator) != null ? itemField.getSubfield(subfieldIndicator).getData() : null;
+//			return itemField.getSubfield(subfieldIndicator) != null ? itemField.getSubfield(subfieldIndicator).getData() : null;
+
+			List<Subfield> subfields = itemField.getSubfields(subfieldIndicator);
+			if (subfields.size() == 1) {
+				return subfields.get(0).getData();
+			} else if (subfields.size() == 0) {
+				return null;
+			} else {
+				StringBuilder subfieldData = new StringBuilder();
+				for (Subfield subfield:subfields) {
+					if (subfieldData.length() > 0 && subfieldData.charAt(subfieldData.length() - 1) != ' '){
+						subfieldData.append(' ');
+					}
+					subfieldData.append(subfield.getData());
+				}
+				return subfieldData.toString();
+			}
 		}
 	}
 
