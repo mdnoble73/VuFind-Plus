@@ -1604,6 +1604,8 @@ class Solr implements IndexEngine {
 				}
 			}
 
+
+
 			if (isset($facet['field'])){
 				$options['facet.field'] = $facet['field'];
 				if ($options['facet.field'] && is_array($options['facet.field'])){
@@ -1642,6 +1644,7 @@ class Solr implements IndexEngine {
 				$options[$param] = $value;
 			}
 		}
+
 		$timer->logTime("build facet options");
 
 		//Check to see if there are filters we want to show all values for

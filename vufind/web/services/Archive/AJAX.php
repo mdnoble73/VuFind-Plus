@@ -41,14 +41,19 @@ class Archive_AJAX extends Action {
 			require_once ROOT_DIR . '/sys/Utils/FedoraUtils.php';
 			$fedoraUtils = FedoraUtils::getInstance();
 			$pid = urldecode($_REQUEST['collectionId']);
-			$interface->assign('pid', $pid);
-			$archiveObject = $fedoraUtils->getObject($pid);
-			$recordDriver = RecordDriverFactory::initRecordDriver($archiveObject);
+			$interface->assign('exhibitPid', $pid);
 
 			$placeId = urldecode($_REQUEST['placeId']);
 			/** @var FedoraObject $placeObject */
 			$placeObject = $fedoraUtils->getObject($placeId);
+			$interface->assign('placePid', $placeId);
 			$interface->assign('label', $placeObject->label);
+
+			$page = isset($_REQUEST['page']) ? $_REQUEST['page'] : 1;
+			$interface->assign('page', $page);
+
+			$sort = isset($_REQUEST['sort']) ? $_REQUEST['sort'] : 'title';
+			$interface->assign('sort', $sort);
 
 			/** @var SearchObject_Islandora $searchObject */
 			$searchObject = SearchObjectFactory::initSearchObject('Islandora');
@@ -65,6 +70,14 @@ class Archive_AJAX extends Action {
 					"mods_extension_marmotLocal_picturedEntity_entityPid_ms:\"{$placeId}\""
 			);
 			$searchObject->clearFacets();
+			$searchObject->addFacet('mods_originInfo_dateCreated_dt', 'Date Created');
+			if ($sort == 'title') {
+				$searchObject->setSort('fgs_label_s');
+			}elseif ($sort == 'newest') {
+				$searchObject->setSort('mods_originInfo_dateCreated_dt desc,fgs_label_s asc');
+			}elseif ($sort == 'oldest') {
+				$searchObject->setSort('mods_originInfo_dateCreated_dt asc,fgs_label_s asc');
+			}
 
 			$searchObject->setLimit(24);
 
@@ -83,6 +96,7 @@ class Archive_AJAX extends Action {
 							'title' => $firstObjectDriver->getTitle(),
 							'description' => "Update me",
 							'image' => $firstObjectDriver->getBookcoverUrl('medium'),
+							'dateCreated' => $firstObjectDriver->getDateCreated(),
 							'link' => $firstObjectDriver->getRecordUrl(),
 					);
 					$timer->logTime('Loaded related object');

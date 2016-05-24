@@ -5,10 +5,21 @@ VuFind.Archive = (function(){
 	return {
 		archive_map: null,
 		archive_info_window: null,
+		curPage: 1,
+		sort: 'title',
 
 		initializeOpenSeadragon: function(viewer){
 			viewer.addHandler("open", this.update_clip);
 			viewer.addHandler("animationfinish", this.update_clip);
+		},
+
+		getMoreMapResults: function(exhibitPid, placePid){
+			this.curPage = this.curPage +1;
+			$.getJSON(Globals.path + "/Archive/AJAX?method=getRelatedObjectsForMappedCollection&collectionId=" + exhibitPid + "&placeId=" + placePid + "&page=" + this.curPage + "&sort=" + this.sort, function(data){
+				if (data.success){
+					$("#nextInsertPoint").replaceWith(data.relatedObjects);
+				}
+			});
 		},
 
 		handleMapClick: function(marker, exhibitPid, placePid, label){
@@ -19,7 +30,15 @@ VuFind.Archive = (function(){
 					$("#related-objects-for-exhibit").html(data.relatedObjects);
 				}
 			});
+		},
 
+		reloadMapResults: function(exhibitPid, placePid){
+			this.curPage = 1;
+			$.getJSON(Globals.path + "/Archive/AJAX?method=getRelatedObjectsForMappedCollection&collectionId=" + exhibitPid + "&placeId=" + placePid + "&page=" + this.curPage + "&sort=" + this.sort, function(data){
+				if (data.success){
+					$("#related-objects-for-exhibit").html(data.relatedObjects);
+				}
+			});
 		},
 
 		loadExploreMore: function(pid){
