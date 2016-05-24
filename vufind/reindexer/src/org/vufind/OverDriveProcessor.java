@@ -85,11 +85,6 @@ public class OverDriveProcessor {
 							subtitle = "";
 						}
 						String mediaType = productRS.getString("mediaType");
-						groupedWork.setTitle(title, mediaType); //TODO: Use mediaType for format when setting Title?
-						groupedWork.setSubTitle(subtitle);
-						String fullTitle = title + " " + subtitle;
-						fullTitle = fullTitle.trim();
-						groupedWork.addFullTitle(fullTitle);
 						String formatCategory;
 						String primaryFormat;
 						switch (mediaType) {
@@ -106,6 +101,12 @@ public class OverDriveProcessor {
 								primaryFormat = mediaType;
 								break;
 						}
+
+						groupedWork.setTitle(title, primaryFormat);
+						groupedWork.setSubTitle(subtitle);
+						String fullTitle = title + " " + subtitle;
+						fullTitle = fullTitle.trim();
+						groupedWork.addFullTitle(fullTitle);
 
 						groupedWork.setDisplayTitle(title, primaryFormat);
 						groupedWork.addSeries(series);
