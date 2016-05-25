@@ -430,7 +430,7 @@ KeywordProper:
     - title_proper^850
     - series_proper^100
     - auth_author^300
-    - table_of_contents^10
+    - table_of_contents_proper^10
     - topic_proper^500
     - geographic_proper^300
     - genre_proper^300
@@ -461,7 +461,7 @@ KeywordProper:
       - [onephrase, 300]
     auth_author2:
       - [onephrase, 300]
-    table_of_contents:
+    table_of_contents_proper:
       - [and, 10]
     topic_proper:
       - [onephrase, 500]

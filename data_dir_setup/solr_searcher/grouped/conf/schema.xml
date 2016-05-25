@@ -137,7 +137,7 @@
 		<field name="title_sort" type="alphaOnlySort" indexed="true" stored="true"/> <!-- title for sorting -->
 		<field name="title_sub" type="text" indexed="true" stored="true"/>
 		<field name="title_short" type="text" indexed="true" stored="true"/>
-		<field name="title_full" type="text" indexed="true" stored="true" multiValued="true"/>  <!-- Title full includes the author -->
+		<field name="title_full" type="text" indexed="true" stored="true" multiValued="true"/> <!-- Title full includes the author -->
 		<field name="title_fullStr" type="string" indexed="true" stored="true" multiValued="true"/>
 		<field name="title_alt" type="text" indexed="true" stored="true" multiValued="true"/>
 		<field name="title_old" type="text" indexed="true" stored="true" multiValued="true"/>
@@ -153,7 +153,7 @@
 		<field name="auth_authorStr" type="string" indexed="true" stored="false"/>
 		<field name="author2" type="text" indexed="true" stored="true" multiValued="true"/>
 		<field name="author2Str" type="string" indexed="true" stored="true" multiValued="true"/>
-		<field name="author2-role" type="string" indexed="true" stored="true" multiValued="true"/>
+		<field name="author2-role" type="string" indexed="true" stored="true" multiValued="true"/> <!-- The contributor with role and title appended -->
 		<field name="auth_author2" type="textProper" indexed="true" stored="true" multiValued="true"/>
 		<field name="auth_author2Str" type="string" indexed="true" stored="false" multiValued="true"/>
 		<field name="author_additional" type="text" indexed="true" stored="true" multiValued="true"/>
@@ -224,6 +224,7 @@
 		<dynamicField name="econtent_protection_type_*" type="string" indexed="true" stored="true" multiValued="true" docValues="true"/>
 		<!-- Broad Search Terms -->
 		<field name="table_of_contents" type="text" indexed="true" stored="true" multiValued="true"/>
+		<field name="table_of_contents_proper" type="textProper" indexed="true" stored="true" multiValued="true"/>
 		<field name="keywords" type="text" indexed="true" stored="false"/>
 		<field name="keywords_proper" type="textProper" indexed="true" stored="false"/>
 		<field name="description" type="text" indexed="true" stored="false"/>
@@ -280,6 +281,7 @@
 	<copyField source="title" dest="title_exact"/>
 	<copyField source="title" dest="title_left"/>
 	<copyField source="keywords" dest="keywords_proper"/>
+	<copyField source="table_of_contents" dest="table_of_contents_proper"/>
 	<copyField source="series" dest="series_proper"/>
 	<copyField source="topic" dest="topic_proper"/>
 	<copyField source="subject_facet" dest="subject"/>
