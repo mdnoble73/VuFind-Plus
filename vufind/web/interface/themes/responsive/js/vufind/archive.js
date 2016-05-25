@@ -15,7 +15,13 @@ VuFind.Archive = (function(){
 
 		getMoreMapResults: function(exhibitPid, placePid){
 			this.curPage = this.curPage +1;
-			$.getJSON(Globals.path + "/Archive/AJAX?method=getRelatedObjectsForMappedCollection&collectionId=" + exhibitPid + "&placeId=" + placePid + "&page=" + this.curPage + "&sort=" + this.sort, function(data){
+			var url = Globals.path + "/Archive/AJAX?method=getRelatedObjectsForMappedCollection&collectionId=" + exhibitPid + "&placeId=" + placePid + "&page=" + this.curPage + "&sort=" + this.sort;
+			$("input[name=dateFilter]:checked").each(function(){
+				url = url + "&dateFilter[]="+$(this).val();
+			});
+			url = url + "&reloadHeader=0";
+
+			$.getJSON(url, function(data){
 				if (data.success){
 					$("#nextInsertPoint").replaceWith(data.relatedObjects);
 				}
@@ -32,11 +38,22 @@ VuFind.Archive = (function(){
 			});
 		},
 
-		reloadMapResults: function(exhibitPid, placePid){
+		reloadMapResults: function(exhibitPid, placePid, reloadHeader){
 			this.curPage = 1;
-			$.getJSON(Globals.path + "/Archive/AJAX?method=getRelatedObjectsForMappedCollection&collectionId=" + exhibitPid + "&placeId=" + placePid + "&page=" + this.curPage + "&sort=" + this.sort, function(data){
+			var url = Globals.path + "/Archive/AJAX?method=getRelatedObjectsForMappedCollection&collectionId=" + exhibitPid + "&placeId=" + placePid + "&page=" + this.curPage + "&sort=" + this.sort;
+			$("input[name=dateFilter]:checked").each(function(){
+				url = url + "&dateFilter[]="+$(this).val();
+			});
+			url = url + "&reloadHeader=" + reloadHeader;
+
+			$.getJSON(url, function(data){
 				if (data.success){
-					$("#related-objects-for-exhibit").html(data.relatedObjects);
+					if (reloadHeader){
+						$("#related-objects-for-exhibit").html(data.relatedObjects);
+					}else{
+						$("#results").html(data.relatedObjects);
+					}
+
 				}
 			});
 		},

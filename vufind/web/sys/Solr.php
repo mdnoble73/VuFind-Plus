@@ -1641,8 +1641,14 @@ class Solr implements IndexEngine {
 			}
 
 			foreach($facet as $param => $value) {
-				$options[$param] = $value;
+				if ($param != 'additionalOptions'){
+					$options[$param] = $value;
+				}
 			}
+		}
+
+		if (isset($facet['additionalOptions'])){
+			$options = array_merge($options, $facet['additionalOptions']);
 		}
 
 		$timer->logTime("build facet options");
@@ -2223,17 +2229,17 @@ class Solr implements IndexEngine {
 		// Save to file for Jmeter
 		//$write_result = file_put_contents(ROOT_DIR . '\solrQueries.csv', $fullSearchUrl."\n", FILE_APPEND);
 
+		$this->fullSearchUrl = $this->host . "/select/?" . $queryString;
 		if ($this->debug || $this->debugSolrQuery) {
 			$solrQueryDebug = "";
 			if ($this->debugSolrQuery) {
 				$solrQueryDebug .= "$method: ";
 			}
-			$fullSearchUrl = print_r($this->host . "/select/?" . $queryString, true);
 			//Add debug parameter so we can see the explain section at the bottom.
-			$debugSearchUrl = print_r($this->host . "/select/?debugQuery=on&" . $queryString, true);
+			$this->debugSearchUrl = $this->host . "/select/?debugQuery=on&" . $queryString;
 
 			if ($this->debugSolrQuery) {
-				$solrQueryDebug .=  "<a href='" . $debugSearchUrl . "' target='_blank'>$fullSearchUrl</a>";
+				$solrQueryDebug .=  "<a href='" . $this->debugSearchUrl . "' target='_blank'>$this->fullSearchUrl</a>";
 			}
 
 			if ($this->isPrimarySearch) {

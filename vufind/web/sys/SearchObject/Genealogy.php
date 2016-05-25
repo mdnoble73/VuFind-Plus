@@ -726,6 +726,10 @@ class SearchObject_Genealogy extends SearchObject_Base
 			}
 		}
 
+		if (!empty($this->facetOptions)){
+			$facetSet['additionalOptions'] = $this->facetOptions;
+		}
+
 		// Build our spellcheck query
 		if ($this->spellcheck) {
 			if ($this->spellSimple) {

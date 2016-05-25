@@ -1362,6 +1362,9 @@ class SearchObject_Solr extends SearchObject_Base
 				$facetSet['sort'] = $this->facetSort;
 			}
 		}
+		if (!empty($this->facetOptions)){
+			$facetSet['additionalOptions'] = $this->facetOptions;
+		}
 		$timer->logTime("create facets");
 
 		// Build our spellcheck query

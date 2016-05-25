@@ -42,6 +42,11 @@ class Archive_AJAX extends Action {
 			$fedoraUtils = FedoraUtils::getInstance();
 			$pid = urldecode($_REQUEST['collectionId']);
 			$interface->assign('exhibitPid', $pid);
+			if (isset($_REQUEST['reloadHeader'])){
+				$interface->assign('reloadHeader', $_REQUEST['reloadHeader']);
+			}else{
+				$interface->assign('reloadHeader', '1');
+			}
 
 			$placeId = urldecode($_REQUEST['placeId']);
 			/** @var FedoraObject $placeObject */
@@ -69,8 +74,37 @@ class Archive_AJAX extends Action {
 					"mods_extension_marmotLocal_describedEntity_entityPid_ms:\"{$placeId}\" OR " .
 					"mods_extension_marmotLocal_picturedEntity_entityPid_ms:\"{$placeId}\""
 			);
+			//Add filtering based on date filters
+			if (isset($_REQUEST['dateFilter'])){
+				$filter = '';
+				foreach($_REQUEST['dateFilter'] as $date){
+					if (strlen($filter) > 0){
+						$filter .= ' OR ';
+					}
+					if ($date == ''){
+						$filter .= "mods_originInfo_dateCreated_dt:[* TO *]";
+					}elseif ($date == 'before1880'){
+						$filter .= "mods_originInfo_dateCreated_dt:[* TO 1879-12-31T23:59:59Z]";
+					}else{
+						$startYear = substr($date, 0, 4);
+						$endYear = $startYear + 9;
+						$filter .= "mods_originInfo_dateCreated_dt:[$date TO $endYear-12-31T23:59:59Z]";
+					}
+
+				}
+				$searchObject->addFilter($filter);
+			}
 			$searchObject->clearFacets();
 			$searchObject->addFacet('mods_originInfo_dateCreated_dt', 'Date Created');
+			$searchObject->addFacetOptions(array(
+					'facet.range' => 'mods_originInfo_dateCreated_dt',
+					'f.mods_originInfo_dateCreated_dt.facet.missing' => 'true',
+					'f.mods_originInfo_dateCreated_dt.facet.range.start' => '1880-01-01T00:00:00Z',
+					'f.mods_originInfo_dateCreated_dt.facet.range.end' => 'NOW/YEAR',
+					'f.mods_originInfo_dateCreated_dt.facet.range.hardend' => 'true',
+					'f.mods_originInfo_dateCreated_dt.facet.range.gap' => '+10YEAR',
+					'f.mods_originInfo_dateCreated_dt.facet.range.other' => 'all',
+			));
 			if ($sort == 'title') {
 				$searchObject->setSort('fgs_label_s');
 			}elseif ($sort == 'newest') {
@@ -83,7 +117,11 @@ class Archive_AJAX extends Action {
 
 			$relatedObjects = array();
 			$response = $searchObject->processSearch(true, false, true);
-			if ($response && $response['response']['numFound'] > 0) {
+			if ($response && isset($response['error'])){
+				$interface->assign('solrError', $response['error']['msg']);
+				$interface->assign('solrLink', $searchObject->getFullSearchUrl());
+			}
+			if ($response && isset($response['response']) && $response['response']['numFound'] > 0) {
 				$summary = $searchObject->getResultSummary();
 				$interface->assign('recordCount', $summary['resultTotal']);
 				$interface->assign('recordStart', $summary['startRecord']);
@@ -101,7 +139,38 @@ class Archive_AJAX extends Action {
 					);
 					$timer->logTime('Loaded related object');
 				}
+				if (count($response['facet_counts']['facet_ranges']) > 0){
+					$dateFacetInfo = array();
+					$dateCreatedInfo = $response['facet_counts']['facet_ranges']['mods_originInfo_dateCreated_dt'];
+					if ($dateCreatedInfo['before'] > 0){
+						$dateFacetInfo[] = array(
+								'label' => 'Before 1880',
+								'count' => $dateCreatedInfo['before'],
+								'value' => 'before1880'
+						);
+					}
+					foreach($dateCreatedInfo['counts'] as $facetInfo){
+						$dateFacetInfo[] = array(
+								'label' => substr($facetInfo[0], 0,4) . '\'s',
+								'count' => $facetInfo[1],
+								'value' => $facetInfo[0]
+						);
+					}
+					if (isset($response['facet_counts']['facet_fields'])){
+						foreach($response['facet_counts']['facet_fields']['mods_originInfo_dateCreated_dt'] as $facetInfo){
+							if ($facetInfo[0] == null){
+								$dateFacetInfo[] = array(
+										'label' => 'Unknown',
+										'count' => $facetInfo[1],
+										'value' => $facetInfo[0]
+								);
+							}
+						}
+					}
+					$interface->assign('dateFacetInfo', $dateFacetInfo);
+				}
 			}
+
 			$interface->assign('relatedObjects', $relatedObjects);
 			return array(
 					'success' => true,

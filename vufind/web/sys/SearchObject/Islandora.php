@@ -249,6 +249,10 @@ class SearchObject_Islandora extends SearchObject_Base
 		$this->allFacetSettings[$section][$setting] : '';
 	}
 
+	public function getFullSearchUrl() {
+		return isset($this->indexEngine->fullSearchUrl) ? $this->indexEngine->fullSearchUrl : 'Unknown';
+	}
+
 	/**
 	 * Used during repeated deminification (such as search history).
 	 *   To scrub fields populated above.
@@ -765,6 +769,10 @@ class SearchObject_Islandora extends SearchObject_Base
 			if ($this->facetSort != null) {
 				$facetSet['sort'] = $this->facetSort;
 			}
+		}
+
+		if (!empty($this->facetOptions)){
+			$facetSet['additionalOptions'] = $this->facetOptions;
 		}
 
 		// Build our spellcheck query

@@ -63,6 +63,7 @@ abstract class SearchObject_Base
 	protected $resultsAction = 'Results';
 	// Facets information
 	protected $facetConfig = array();    // Array of valid facet fields=>labels
+	protected $facetOptions = array();
 	protected $checkboxFacets = array(); // Boolean facets represented as checkboxes
 	protected $translatedFacets = array();  // Facets that need to be translated
 	protected $pidFacets = array();
@@ -1184,6 +1185,10 @@ abstract class SearchObject_Base
 			$newAlias = $newField;
 		}
 		$this->facetConfig[$newField] = $newAlias;
+	}
+
+	public function addFacetOptions($options){
+		$this->facetOptions = $options;
 	}
 
 	/**
