@@ -60,6 +60,10 @@ class BookCoverProcessor{
 			if ($this->getColoradoGovDocCover()){
 				return;
 			}
+		} elseif (stripos($this->type, 'ebrary') !== false){
+			if ($this->getEbraryCover()) {
+				return;
+			}
 		}
 		$this->log("Looking for cover from providers", PEAR_LOG_INFO);
 		if ($this->getCoverFromProvider()){
@@ -104,6 +108,25 @@ class BookCoverProcessor{
 		}else{
 			return false;
 		}
+	}
+
+	/**
+	 * @param null $ebraryId  When using a grouped work, the Ebrary Id should be passed to this function
+	 * @return bool
+	 */
+	private function getEbraryCover($ebraryId = null) {
+		$id = $ebraryId ? $ebraryId : $this->id;
+		if (strpos($id, ':') !== false){
+			list(, $id) = explode(":", $id);
+		}
+		$coverId = str_replace('ebr', '', $id);
+		$coverUrl = "http://covers.ebrary.com/cc/$coverId-l.jpg";
+		if ($this->processImageURL($coverUrl, true)){
+			return true;
+		}else{
+			return false;
+		}
+
 	}
 
 	private function getOverDriveCover($id = null){
@@ -198,8 +221,8 @@ class BookCoverProcessor{
 		}
 
 
-		$this->category = isset($_GET['category']) ? strtolower($_GET['category']) : null;
-		$this->format = isset($_GET['format']) ? strtolower($_GET['format']) : null;
+		$this->category = !empty($_GET['category']) ? strtolower($_GET['category']) : null;
+		$this->format   = !empty($_GET['format']) ? strtolower($_GET['format']) : null;
 		//First check to see if this has a custom cover due to being an e-book
 		if (!is_null($this->id)){
 			if ($this->isEContent){
@@ -964,12 +987,16 @@ class BookCoverProcessor{
 					if ($this->getOverDriveCover($relatedRecord['id'])){
 						return true;
 					}
-				}elseif (strcasecmp($relatedRecord['source'], 'Hoopla')  == 0){
+				}elseif (strcasecmp($relatedRecord['source'], 'Hoopla') == 0){
 					if ($this->getHooplaCover($relatedRecord['id'])){
 						return true;
 					}
-				}elseif (strcasecmp($relatedRecord['source'], 'Colorado State Government Documents')  == 0){
+				}elseif (strcasecmp($relatedRecord['source'], 'Colorado State Government Documents') == 0){
 					if ($this->getColoradoGovDocCover()){
+						return true;
+					}
+				}elseif (stripos($relatedRecord['source'], 'ebrary') !== false){
+					if ($this->getEbraryCover($relatedRecord['id'])){
 						return true;
 					}
 				}else{
@@ -1028,7 +1055,7 @@ class BookCoverProcessor{
 			}else{
 				require_once ROOT_DIR . '/RecordDrivers/Factory.php';
 				$recordDriver = RecordDriverFactory::initRecordDriverById($this->type . ':' . $this->id);
-				if ($recordDriver->isValid()){
+				if ($recordDriver && $recordDriver->isValid()){
 					$this->groupedWork = $recordDriver->getGroupedWorkDriver();
 					if (!$this->groupedWork->isValid){
 						$this->groupedWork = false;

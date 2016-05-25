@@ -68,6 +68,11 @@ cd /usr/local/vufind-plus/vufind/cron;./HOOPLA.sh ${PIKASERVER} >> ${OUTPUT_FILE
 # Colorado State Gov Docs Marc Updates
 /usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh cologovdocs colorado_gov_docs >> ${OUTPUT_FILE}
 
+#Lynda.com Marc Updates
+# (EVLD)
+#Extracts for sideloaded eContent; settings defined in config.pwd.ini [Sideload]
+cd /usr/local/vufind-plus/vufind/cron; ./sideload.sh ${PIKASERVER}
+
 
 #Do a full extract from OverDrive just once a week to catch anything that doesn't
 #get caught in the regular extract
