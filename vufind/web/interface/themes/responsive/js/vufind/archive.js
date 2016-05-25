@@ -66,6 +66,15 @@ VuFind.Archive = (function(){
 			});
 		},
 
+		showObjectInPopup: function(pid){
+			var url = Globals.path + "/Archive/AJAX?id=" + encodeURI(pid) + "&method=getObjectInfo";
+			VuFind.loadingMessage();
+			$.getJSON(url, function(data){
+				VuFind.showMessageWithButtons(data.title, data.modalBody, data.modalButtons);
+			}).fail(VuFind.ajaxFail);
+			return false;
+		},
+
 		/**
 		 * All this is doing is updatign a URL so the patron can download a clipped portion of the image
 		 * not needed for our basic implementation

@@ -132,10 +132,11 @@ class Archive_AJAX extends Action {
 					$firstObjectDriver = RecordDriverFactory::initRecordDriver($objectInCollection);
 					$relatedObjects[] = array(
 							'title' => $firstObjectDriver->getTitle(),
-							'description' => "Update me",
+							'description' => $firstObjectDriver->getDescription(),
 							'image' => $firstObjectDriver->getBookcoverUrl('medium'),
 							'dateCreated' => $firstObjectDriver->getDateCreated(),
 							'link' => $firstObjectDriver->getRecordUrl(),
+							'pid' => $firstObjectDriver->getUniqueID()
 					);
 					$timer->logTime('Loaded related object');
 				}
@@ -215,6 +216,29 @@ class Archive_AJAX extends Action {
 		return array(
 				'success' => true,
 				'exploreMore' => $interface->fetch('explore-more-sidebar.tpl')
+		);
+	}
+
+	public function getObjectInfo(){
+		global $interface;
+		require_once ROOT_DIR . '/sys/Utils/FedoraUtils.php';
+		$fedoraUtils = FedoraUtils::getInstance();
+
+		$pid = urldecode($_REQUEST['id']);
+		$interface->assign('pid', $pid);
+		$archiveObject = $fedoraUtils->getObject($pid);
+		$recordDriver = RecordDriverFactory::initRecordDriver($archiveObject);
+		$interface->assign('recordDriver', $recordDriver);
+
+		$url =  $recordDriver->getLinkUrl();
+		$interface->assign('url', $url);
+		$interface->assign('description', $recordDriver->getDescription());
+		$interface->assign('image', $recordDriver->getBookcoverUrl('medium'));
+
+		return array(
+				'title' => "<a href='$url'>{$recordDriver->getTitle()}</a>",
+				'modalBody' => $interface->fetch('Archive/archivePopup.tpl'),
+				'modalButtons' => "<a href='$url'><button class='modal-buttons btn btn-primary'>More Info</button></a>"
 		);
 	}
 }

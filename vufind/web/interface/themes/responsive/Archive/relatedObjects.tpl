@@ -48,12 +48,12 @@
 	<div class="results-covers home-page-browse-thumbnails">
 		{foreach from=$relatedObjects item=image}
 			<figure class="browse-thumbnail">
-				<a href="{$image.link}" {if $image.title}data-title="{$image.title}"{/if}>
+				<a href="{$image.link}" {if $image.title}data-title="{$image.title}"{/if} onclick="return VuFind.Archive.showObjectInPopup('{$image.pid|urlencode}')">
 					<img src="{$image.image}" {if $image.title}alt="{$image.title}"{/if}>
+					<figcaption class="explore-more-category-title">
+						<strong>{$image.title} ({$image.dateCreated})</strong>
+					</figcaption>
 				</a>
-				<figcaption class="explore-more-category-title">
-					<strong>{$image.title} ({$image.dateCreated})</strong>
-				</figcaption>
 			</figure>
 		{/foreach}
 	</div>
