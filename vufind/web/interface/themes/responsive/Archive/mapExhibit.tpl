@@ -44,8 +44,12 @@
 
 							marker{$smarty.foreach.place.index}.addListener('click', function(){ldelim}
 								VuFind.Archive.handleMapClick(marker{$smarty.foreach.place.index}, '{$pid|urlencode}', '{$place.pid|urlencode}', '{$place.label}');
-
 							{rdelim});
+
+							{if $smarty.foreach.place.index == 0}
+								{* Click the first marker so we show images by default *}
+								VuFind.Archive.handleMapClick(marker{$smarty.foreach.place.index}, '{$pid|urlencode}', '{$place.pid|urlencode}', '{$place.label}');
+							{/if}
 						{/if}
 					{/foreach}
 				{rdelim}

@@ -178,7 +178,7 @@ class Archive_Exhibit extends Archive_Object{
 					$firstObjectDriver = RecordDriverFactory::initRecordDriver($objectInCollection);
 					$relatedImages[] = array(
 							'title' => $firstObjectDriver->getTitle(),
-							'description' => "Update me",
+							'description' => $firstObjectDriver->getDescription(),
 							'image' => $firstObjectDriver->getBookcoverUrl('medium'),
 							'link' => $firstObjectDriver->getRecordUrl(),
 					);
