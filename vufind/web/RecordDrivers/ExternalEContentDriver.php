@@ -115,6 +115,11 @@ class ExternalEContentDriver extends BaseEContentDriver{
 			'openByDefault' => true
 		);
 
+		$notes = $this->getNotes();
+		if (count($notes) > 0){
+			$interface->assign('notes', $notes);
+		}
+
 		$moreDetailsOptions['moreDetails'] = array(
 			'label' => 'More Details',
 			'body' => $interface->fetch('ExternalEContent/view-more-details.tpl'),

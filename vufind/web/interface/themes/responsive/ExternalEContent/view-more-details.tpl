@@ -83,4 +83,13 @@
 		</div>
 	{/if}
 
+	{if $notes}
+		<h4>{translate text='Notes'}</h4>
+		{foreach from=$notes item=note name=loop}
+			<div class="row">
+				<div class="result-label col-sm-3">{$note.label}</div>
+				<div class="col-sm-9 result-value">{$note.note}</div>
+			</div>
+		{/foreach}
+	{/if}
 {/strip}
