@@ -409,7 +409,7 @@ Keyword:
         - [and, 30]
 # Check everything else
     - table_of_contents:
-      - [proximal, 50]
+      - [and, 50]
     - topic:
       - [onephrase, 125]
     - geographic:
@@ -417,9 +417,9 @@ Keyword:
     - genre:
       - [onephrase, 75]
     - keywords:
-      - [proximal, 10]
+      - [and, 10]
     - description:
-      - [proximal, 60]
+      - [and, 60]
     - target_audience:
       - [onephrase, 75]
     - literary_form_full:
