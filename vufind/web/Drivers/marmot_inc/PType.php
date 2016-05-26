@@ -8,6 +8,7 @@ require_once 'DB/DataObject/Cast.php';
 class PType extends DB_DataObject
 {
 	public $__table = 'ptype';   // table name
+	public $id;
 	public $pType;				//int(11)
 	public $maxHolds;			//int(11)
 
@@ -20,7 +21,7 @@ class PType extends DB_DataObject
 
 	function getObjectStructure(){
 		$structure = array(
-			'id' => array('property'=>'id', 'type'=>'label', 'label'=>'Id', 'description'=>'The unique id of the p-type within the database', 'hideInLists' => true),
+			'id' => array('property'=>'id', 'type'=>'label', 'label'=>'Id', 'description'=>'The unique id of the p-type within the database', 'hideInLists' => false),
 			'pType' => array('property'=>'pType', 'type'=>'integer', 'label'=>'P-Type', 'description'=>'The P-Type for the patron'),
 			'maxHolds' => array('property'=>'maxHolds', 'type'=>'integer', 'label'=>'Max Holds', 'description'=>'The maximum holds that a patron can have.', 'default' => 300),
 		);

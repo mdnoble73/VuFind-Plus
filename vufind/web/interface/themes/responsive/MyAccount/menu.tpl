@@ -213,8 +213,10 @@
 							{if $user->hasRole('opacAdmin')}
 								<div class="adminMenuLink{if $action == "UserSuggestions"} active{/if}"><a href="{$path}/Admin/UserSuggestions">User Suggestions</a></div>
 								{* Sierra/Millennium OPAC Admin Actions*}
-								{if ($ils == 'Millennium' || $ils == 'Sierra')}
+								{if ($ils == 'Millennium' || $ils == 'Sierra' || $ils == 'Horizon')}
 								<div class="adminMenuLink{if $action == "PTypes"} active{/if}"><a href="{$path}/Admin/PTypes">P-Types</a></div>
+								{/if}
+								{if ($ils == 'Millennium' || $ils == 'Sierra')}
 								<div class="adminMenuLink{if $action == "CirculationStatuses"} active{/if}"><a href="{$path}/Admin/CirculationStatuses">Circulation Statuses</a></div>
 								<div class="adminMenuLink{if $action == "LoanRules"} active{/if}"><a href="{$path}/Admin/LoanRules">Loan Rules</a></div>
 								<div class="adminMenuLink{if $action == "LoanRuleDeterminers"} active{/if}"><a href="{$path}/Admin/LoanRuleDeterminers">Loan Rule Determiners</a></div>
