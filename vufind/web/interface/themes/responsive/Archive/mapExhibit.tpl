@@ -19,8 +19,10 @@
 
 	<div class="clear-both"></div>
 
-	<div id="exhibit-map" class="">
+	<div id="exhibit-map">
 	</div>
+
+	<div class="clear-both"></div>
 	<div id="exhibit-map-legend" class="">
 		{/strip}
 		{if $mapsBrowserKey}
@@ -53,6 +55,12 @@
 							{/if}
 						{/if}
 					{/foreach}
+					{foreach from=$unmappedPlaces item=place}
+						{if $selectedPlace == $place.pid}
+							{* Click the first marker so we show images by default *}
+							VuFind.Archive.handleMapClick(-1, '{$pid|urlencode}', '{$place.pid|urlencode}', '{$place.label}');
+						{/if}
+					{/foreach}
 				{rdelim}
 			</script>
 		{/if}
@@ -70,8 +78,31 @@
 		*}
 	</div>
 
+	<div id="related-objects-header" class="row">
+		<div class="col-sm-8">
+			Showing {$mappedPlaces|@count} locations.  Click any location to view more information about that location.
+		</div>
+		{if count($unmappedPlaces) > 0}
+			<div class="col-sm-4">
+				<button class="btn btn-info btn-xs" onclick="VuFind.showElementInPopup('Unmapped Locations', '#unmappedLocations');">Show Unmapped Locations</button>
+			</div>
+			<div id="unmappedLocations" style="display: none">
+				Click any location to view more information about that location.
+				<ol>
+					{foreach from=$unmappedPlaces item=place}
+						<li>
+							<a href="{$place.url}" onclick="VuFind.closeLightbox();return VuFind.Archive.handleMapClick(-1, '{$pid|urlencode}', '{$place.pid|urlencode}', '{$place.label}');">
+								{$place.label} has {$place.count} objects
+							</a>
+						</li>
+					{/foreach}
+				</ol>
+			</div>
+		{/if}
+	</div>
+
 	<div id="related-objects-for-exhibit">
-		Click any location to view more information about that location.
+		Loading...
 	</div>
 
 	{if $repositoryLink && $user && ($user->hasRole('archives') || $user->hasRole('opacAdmin'))}

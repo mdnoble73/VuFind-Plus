@@ -30,9 +30,11 @@ VuFind.Archive = (function(){
 		},
 
 		handleMapClick: function(markerIndex, exhibitPid, placePid, label){
-			$("#related-objects-for-exhibit").html('Loading.');
+			$("#related-objects-for-exhibit").html('<h2>Loading...</h2>');
 			this.archive_info_window.setContent(label);
-			this.archive_info_window.open(this.archive_map, this.markers[markerIndex]);
+			if (markerIndex >= 0){
+				this.archive_info_window.open(this.archive_map, this.markers[markerIndex]);
+			}
 			$.getJSON(Globals.path + "/Archive/AJAX?method=getRelatedObjectsForMappedCollection&collectionId=" + exhibitPid + "&placeId=" + placePid, function(data){
 				if (data.success){
 					$("#related-objects-for-exhibit").html(data.relatedObjects);
@@ -50,6 +52,7 @@ VuFind.Archive = (function(){
 			if (document.location.href != newUrl){
 				history.pushState(stateObj, label, newUrl);
 			}
+			return false;
 		},
 
 		reloadMapResults: function(exhibitPid, placePid, reloadHeader){

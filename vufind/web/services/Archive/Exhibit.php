@@ -74,12 +74,14 @@ class Archive_Exhibit extends Archive_Object{
 			$searchObject->addFacet('mods_extension_marmotLocal_militaryService_militaryRecord_relatedPlace_entityPlace_entityPid_ms');
 			$searchObject->addFacet('mods_extension_marmotLocal_describedEntity_entityPid_ms');
 			$searchObject->addFacet('mods_extension_marmotLocal_picturedEntity_entityPid_ms');
+			$searchObject->setFacetLimit(250);
 		}
 
 		$searchObject->setLimit(48);
 
 		$relatedImages = array();
 		$mappedPlaces = array();
+		$unmappedPlaces = array();
 		$response = $searchObject->processSearch(true, false);
 		$timer->logTime('Did initial search for related objects');
 		if ($response && $response['response']['numFound'] > 0) {
@@ -134,9 +136,9 @@ class Archive_Exhibit extends Archive_Object{
 								}
 								$timer->logTime('Loaded information about related place');
 							}else {
+								$mappedPlace['label'] = $cache->title;
+								$mappedPlace['url'] = '/Archive/' . $cache->pid . '/Place';
 								if ($cache->hasLatLong){
-									$mappedPlace['label'] = $cache->title;
-									$mappedPlace['url'] = '/Archive/' . $cache->pid . '/Place';
 									$mappedPlace['latitude'] = $cache->latitude;
 									$mappedPlace['longitude'] = $cache->longitude;
 								}
@@ -165,6 +167,8 @@ class Archive_Exhibit extends Archive_Object{
 								if (count($mappedPlaces) == 1){
 									$interface->assign('selectedPlace', $mappedPlace['pid']);
 								}
+							}else{
+								$unmappedPlaces[] = $mappedPlace;
 							}
 						}
 					}
@@ -196,6 +200,7 @@ class Archive_Exhibit extends Archive_Object{
 		}
 
 		$interface->assign('mappedPlaces', $mappedPlaces);
+		$interface->assign('unmappedPlaces', $unmappedPlaces);
 		$interface->assign('relatedImages', $relatedImages);
 	}
 }
