@@ -66,7 +66,7 @@ class BookCoverProcessor{
 			}
 		// Any Sideloaded Collection that has a cover in the 856 tag (and additional conditionals)
 		} elseif (stripos($this->type, 'lynda') !== false){
-			if ($this->getSideLoadedCover($this->id)) {
+			if ($this->getSideLoadedCover($this->type.':'.$this->id)) {
 				return;
 			}
 		}
@@ -106,12 +106,14 @@ class BookCoverProcessor{
 		return false;
 	}
 
-	private function getSideLoadedCover($id){
-		require_once ROOT_DIR . '/RecordDrivers/SideLoadedRecord.php';
-		if (strpos($id, ':') !== false){
+	private function getSideLoadedCover($sourceAndId){
+		if (strpos($sourceAndId, ':') !== false){
+			global $logger;
+			$logger->log('sideload id: ' . $sourceAndId, PEAR_LOG_DEBUG);
 			// Sideloaded Record requires both source & id
 
-			$driver = new SideLoadedRecord($id);
+			require_once ROOT_DIR . '/RecordDrivers/SideLoadedRecord.php';
+			$driver = new SideLoadedRecord($sourceAndId);
 			if ($driver) {
 				/** @var File_MARC_Data_Field[] $linkFields */
 				$linkFields = $driver->getMarcRecord()->getFields('856');
