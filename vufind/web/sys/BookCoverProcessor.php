@@ -108,8 +108,6 @@ class BookCoverProcessor{
 
 	private function getSideLoadedCover($sourceAndId){
 		if (strpos($sourceAndId, ':') !== false){
-			global $logger;
-			$logger->log('sideload id: ' . $sourceAndId, PEAR_LOG_DEBUG);
 			// Sideloaded Record requires both source & id
 
 			require_once ROOT_DIR . '/RecordDrivers/SideLoadedRecord.php';
