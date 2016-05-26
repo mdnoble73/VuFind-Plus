@@ -1,63 +1,3 @@
-//// Core variables and mixins
-//@import (reference) "../../responsive/css/variables.less";
-//@import (reference) "variables";
-//
-//// Always include the base .less file
-//@import "../../responsive/css/responsive_base.less";
-//
-//#header-container {
-//  //min-height: @header-height + 20;
-//  // in some other themes, @header-height is less than the min height set in responsive, set at 110px. plb 9-24-2014
-//}
-//
-//#header-logo {
-//  max-width: 290px;   // constrain logo to containing box so that Logo isn't under display name
-//  @media (min-width: 992px) and (max-width: 1199px) {
-//    max-width: 240px;   // constrain logo to containing box so that Logo isn't under display name
-//  }
-//  margin-top: 10px;
-//}
-//
-//#library-name-header{
-//  //font-size: 22px;
-//  //color: #B48C4E;
-//  font-variant: small-caps;
-//  //font-weight: bold;
-//  letter-spacing: -0.02em;
-//}
-//
-//.header-login-button-mixin(@header-buttons-background-color); // to match logo. plb 3-31-2015
-//
-//// mixin to select all the typical states of <a> like tags
-//.allLinkStates(@rules) {
-//  &, &:hover, &:active, &:visited {
-//    @rules();
-//  }
-//}
-//
-//#browse-category-picker {
-//  .jcarousel-control-prev, .jcarousel-control-next {
-//    //background-color: #fff;
-//    //color: @selectedCategoryColor;
-//    &:active, &:hover {
-//      //color: @font-red;
-//      text-decoration: none;
-//    }
-//    .box-shadow(none);
-//  }
-//  .jcarousel-pagination a {
-//    &.active {
-//      background: @browseCarouselControlColor;
-//      // keep shadowing in place on active item
-//      .box-shadow(0 0 2px #4E443C);
-//    }
-//    @detached-outline-ruleset: {outline: none};
-//    .allLinkStates(@detached-outline-ruleset)
-//  }
-//}
-
-// Original Styling before new logo
-
 // Core variables and mixins
 @import (reference) "../../responsive/css/variables.less";
 @import (reference) "variables";
@@ -65,22 +5,170 @@
 // Always include the base .less file
 @import "../../responsive/css/responsive_base.less";
 
+@font-face {
+  font-family: 'HalisR-Regular';
+  src: url('../HalisR-Regular.otf');
+}
+@font-face {
+  font-family: 'HalisR-SRegular';
+  src: url('../HalisR-S-Regular.otf');
+}
+
 #header-container {
-  min-height: @header-height + 20;
+  min-height: @header-height;
   // in some other themes, @header-height is less than the min height set in responsive, set at 110px. plb 9-24-2014
 }
 
 #header-logo {
-  margin-top: 7px;
-  // half the header height minus half the image height
+  max-width: 290px;   // constrain logo to containing box so that Logo isn't under display name
+  @media (min-width: 992px) and (max-width: 1199px) {
+    max-width: 240px;   // constrain logo to containing box so that Logo isn't under display name
+  }
+  margin-top: 10px;
 }
 
-#library-name-header{
-  //font-size: 22px;
-  //color: #B48C4E;
-  font-variant: small-caps;
-  //font-weight: bold;
-  letter-spacing: -0.02em;
-}
+// This vertically centers #library-name-header (taken from https://css-tricks.com/centering-in-the-unknown/)
+// looks to only work when the library name doesn't wrap
+//#headingInfo:before {
+//  content: '';
+//  display: inline-block;
+//  height: 100%;
+//  vertical-align: middle;
+//  margin-right: -0.25em; // Adjusts for spacing
+//}
+
 
 .header-login-button-mixin(@header-buttons-background-color); // to match logo. plb 3-31-2015
+
+.header-button {
+  line-height: 40px !important;
+}
+
+// Browse Category customizations based on AnyThink
+
+// mixin to select all the typical states of <a> like tags
+.allLinkStates(@rules) {
+  &, &:hover, &:active, &:visited {
+    @rules();
+  }
+}
+
+#browse-label {
+  background-color: #ffffff;
+  //  background: linear-gradient(to bottom, #fff, #fff 98%, @browse-label-text-color 99%);
+  border-bottom: 1px solid @browse-label-text-color;
+  margin: 25px 0 15px;
+  height: auto;
+  padding-bottom: 20px;
+  .browse-label-text{
+    font-weight: 600;
+  }
+}
+
+#browse-category-picker {
+  .jcarousel-control-prev, .jcarousel-control-next {
+    //background-color: #fff;
+    //color: @selectedCategoryColor;
+    &:active, &:hover {
+      text-decoration: none;
+    }
+    .box-shadow(none);
+  }
+  .jcarousel-pagination a {
+    &.active {
+      background: @browseCarouselControlColor;
+      // keep shadowing in place on active item
+      .box-shadow(0 0 2px #4E443C);
+    }
+    @detached-outline-ruleset: {outline: none};
+    .allLinkStates(@detached-outline-ruleset)
+  }
+}
+
+// the category text
+.browse-category {
+  padding-top: 20px; // extra padding on top to center text
+  height: 120px;
+
+  div {
+    color: @browse-label-text-color;
+    text-shadow: none;
+    text-transform: uppercase;
+    font-size: large;
+    font-weight: 500;
+    &:focus {
+      outline: none; // hide outlining of clicked category
+    }
+  }
+  &.selected {
+    border: none;
+    background-color: @selectedCategoryColor;
+    background: @selectedCategoryColor;
+    background: linear-gradient(to bottom, @selectedCategoryColor 0%,@selectedCategoryColor 75%, #fff 75%, #fff 80%, #CCCCCC 80%, #fff 100%);
+    div {
+      color: #fff;
+    }
+  }
+
+   // Left/Right Arrows on browse category carousel
+  #browse-category-picker {
+    .jcarousel-control-prev, .jcarousel-control-next {
+      background-color: #fff;
+      color: @selectedCategoryColor;
+      &:active, &:hover {
+        color: @aspencat-yellow;
+        text-decoration: none;
+      }
+      .box-shadow(none);
+      font-size: 20px;
+    }
+    a {
+      &.jcarousel-control-next:after {
+        content: "▶";
+      }
+      &.jcarousel-control-prev:before {
+        content: "◀";
+      }
+    }
+    // indicator dots at bottom of browse category carousel
+    .jcarousel-pagination a {
+      &.active {
+        background: @aspencat-yellow;
+        // keep shadowing in place on active item
+        .box-shadow(0 0 2px #4E443C);
+      }
+      @detached-outline-ruleset: {outline: none};
+      .allLinkStates(@detached-outline-ruleset)
+    }
+  }
+
+  #selected-browse-label {
+    color: black; //TODO: set color
+    background: none; //override line through label
+    padding: 20px 0;
+    border-top: 1px solid @browse-label-text-color;
+  }
+
+  .selected-browse-label-search {
+    background: none;
+    a {
+      color: @browse-label-text-color;
+    }
+  }
+
+  #selected-browse-search-link{
+    text-transform: uppercase;
+  }
+}
+
+#browse-sub-category-menu {
+  button.selected {
+    background-color: @selectedCategoryColor;
+
+  }
+}
+
+// Button Styling
+.btn-primary {
+  .button-variant(#FFF, @aspencat-blue, darken(@aspencat-blue, 5%));
+}

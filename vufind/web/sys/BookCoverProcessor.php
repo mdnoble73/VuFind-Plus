@@ -61,7 +61,12 @@ class BookCoverProcessor{
 				return;
 			}
 		} elseif (stripos($this->type, 'ebrary') !== false){
-			if ($this->getEbraryCover()) {
+			if ($this->getEbraryCover($this->id)) {
+				return;
+			}
+		// Any Sideloaded Collection that has a cover in the 856 tag (and additional conditionals)
+		} elseif (stripos($this->type, 'lynda') !== false){
+			if ($this->getSideLoadedCover($this->type.':'.$this->id)) {
 				return;
 			}
 		}
@@ -101,6 +106,27 @@ class BookCoverProcessor{
 		return false;
 	}
 
+	private function getSideLoadedCover($sourceAndId){
+		if (strpos($sourceAndId, ':') !== false){
+			// Sideloaded Record requires both source & id
+
+			require_once ROOT_DIR . '/RecordDrivers/SideLoadedRecord.php';
+			$driver = new SideLoadedRecord($sourceAndId);
+			if ($driver) {
+				/** @var File_MARC_Data_Field[] $linkFields */
+				$linkFields = $driver->getMarcRecord()->getFields('856');
+				foreach ($linkFields as $linkField) {
+					// TODO: use additional field checks like in getCoverFromMarc() ?
+					if ($linkField->getIndicator(1) == 4 && $linkField->getIndicator(2) == 2) {
+						$coverUrl = $linkField->getSubfield('u')->getData();
+						return $this->processImageURL($coverUrl, true);
+					}
+				}
+			}
+		}
+		return false;
+	}
+
 	private function getColoradoGovDocCover(){
 		$filename = "interface/themes/responsive/images/state_flag_of_colorado.png";
 		if ($this->processImageURL($filename, true)){
@@ -114,8 +140,7 @@ class BookCoverProcessor{
 	 * @param null $ebraryId  When using a grouped work, the Ebrary Id should be passed to this function
 	 * @return bool
 	 */
-	private function getEbraryCover($ebraryId = null) {
-		$id = $ebraryId ? $ebraryId : $this->id;
+	private function getEbraryCover($id) {
 		if (strpos($id, ':') !== false){
 			list(, $id) = explode(":", $id);
 		}
@@ -126,7 +151,6 @@ class BookCoverProcessor{
 		}else{
 			return false;
 		}
-
 	}
 
 	private function getOverDriveCover($id = null){
@@ -997,6 +1021,10 @@ class BookCoverProcessor{
 					}
 				}elseif (stripos($relatedRecord['source'], 'ebrary') !== false){
 					if ($this->getEbraryCover($relatedRecord['id'])){
+						return true;
+					}
+				} elseif (stripos($relatedRecord['source'], 'lynda') !== false){
+					if ($this->getSideLoadedCover($relatedRecord['id'])) {
 						return true;
 					}
 				}else{
