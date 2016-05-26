@@ -160,7 +160,11 @@ class Archive_Exhibit extends Archive_Object{
 								if ($maxLong == null || $mappedPlace['longitude'] > $maxLong) {
 									$maxLong = $mappedPlace['longitude'];
 								}
+
 								$mappedPlaces[] = $mappedPlace;
+								if (count($mappedPlaces) == 1){
+									$interface->assign('selectedPlace', $mappedPlace['pid']);
+								}
 							}
 						}
 					}
@@ -171,6 +175,10 @@ class Archive_Exhibit extends Archive_Object{
 				$interface->assign('maxLong', $maxLong);
 				$interface->assign('mapCenterLat', $geometricMeanLat / $numPoints);
 				$interface->assign('mapCenterLong', $geometricMeanLong / $numPoints);
+
+				if (isset($_REQUEST['placePid'])){
+					$interface->assign('selectedPlace', urldecode($_REQUEST['placePid']));
+				}
 			}else{
 				//Load related objects
 				foreach ($response['response']['docs'] as $objectInCollection){

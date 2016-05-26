@@ -6,6 +6,7 @@ VuFind.Archive = (function(){
 		archive_map: null,
 		archive_info_window: null,
 		curPage: 1,
+		markers: [],
 		sort: 'title',
 
 		initializeOpenSeadragon: function(viewer){
@@ -28,14 +29,27 @@ VuFind.Archive = (function(){
 			});
 		},
 
-		handleMapClick: function(marker, exhibitPid, placePid, label){
+		handleMapClick: function(markerIndex, exhibitPid, placePid, label){
+			$("#related-objects-for-exhibit").html('Loading.');
 			this.archive_info_window.setContent(label);
-			this.archive_info_window.open(this.archive_map, marker);
+			this.archive_info_window.open(this.archive_map, this.markers[markerIndex]);
 			$.getJSON(Globals.path + "/Archive/AJAX?method=getRelatedObjectsForMappedCollection&collectionId=" + exhibitPid + "&placeId=" + placePid, function(data){
 				if (data.success){
 					$("#related-objects-for-exhibit").html(data.relatedObjects);
 				}
 			});
+			var stateObj = {
+				marker: markerIndex,
+				exhibitPid: exhibitPid,
+				placePid: placePid,
+				label: label,
+				page: "MapExhibit"
+			};
+			var newUrl = VuFind.buildUrl(document.location.origin + document.location.pathname, 'placePid', placePid);
+			//Push the new url, but only if we aren't going back where we just were.
+			if (document.location.href != newUrl){
+				history.pushState(stateObj, label, newUrl);
+			}
 		},
 
 		reloadMapResults: function(exhibitPid, placePid, reloadHeader){

@@ -29,11 +29,22 @@ var VuFind = (function(){
 					$(this).removeClass('active');
 				});
 
+		$(window).on("popstate", function () {
+			// if the state is the page you expect, pull the name and load it.
+			if (history.state && history.state.page === "MapExhibit") {
+				VuFind.Archive.handleMapClick(history.state.marker, history.state.exhibitPid, history.state.placePid, history.state.label);
+			}
+		});
 	});
 	/**
 	 * Created by mark on 1/14/14.
 	 */
 	return {
+		buildUrl: function(base, key, value) {
+			var sep = (base.indexOf('?') > -1) ? '&' : '?';
+			return base + sep + key + '=' + value;
+		},
+
 		changePageSize: function(){
 			var url = window.location.href;
 			if (url.match(/[&?]pagesize=\d+/)) {
