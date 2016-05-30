@@ -81,7 +81,7 @@ VuFind.Archive = (function(){
 					$("#explore-more-body").html(data.exploreMore);
 					VuFind.initCarousels("#explore-more-body .jcarousel");
 				}
-			});
+			}).fail(VuFind.ajaxFail);
 		},
 
 		showObjectInPopup: function(pid){

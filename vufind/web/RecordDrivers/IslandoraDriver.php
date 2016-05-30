@@ -589,18 +589,15 @@ abstract class IslandoraDriver extends RecordInterface {
 		return $this->relatedCollections;
 	}
 
-	protected $relatedPeople = null;
-	protected $relatedPlaces = null;
-	protected $relatedEvents = null;
-	protected $relatedOrganizations = null;
+	protected $relatedPeople = array();
+	protected $relatedPlaces = array();
+	protected $relatedEvents = array();
+	protected $relatedOrganizations = array();
+	private $loadedRelatedEntities = false;
 	public function loadRelatedEntities(){
-		if ($this->relatedPeople == null){
+		if ($this->loadedRelatedEntities == false){
+			$this->loadedRelatedEntities = true;
 			$fedoraUtils = FedoraUtils::getInstance();
-			$this->relatedPeople = array();
-			$this->relatedPlaces = array();
-			$this->relatedOrganizations = array();
-			$this->relatedEvents = array();
-
 			$marmotExtension = $this->getMarmotExtension();
 			if ($marmotExtension != null){
 				$entities = $this->getModsValues('relatedEntity', 'marmot', null, true);
