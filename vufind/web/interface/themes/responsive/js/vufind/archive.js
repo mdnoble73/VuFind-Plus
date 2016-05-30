@@ -79,6 +79,7 @@ VuFind.Archive = (function(){
 			$.getJSON(Globals.path + "/Archive/AJAX?id=" + encodeURI(pid) + "&method=getExploreMoreContent", function(data){
 				if (data.success){
 					$("#explore-more-body").html(data.exploreMore);
+					VuFind.initCarousels("#explore-more-body .jcarousel");
 				}
 			});
 		},

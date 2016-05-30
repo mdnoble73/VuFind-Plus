@@ -259,26 +259,10 @@ class ExploreMore {
 						$archiveObject = $fedoraUtils->getObject($collectionInfo[0]);
 						if ($archiveObject != null) {
 							//Check the mods data to see if it should be suppressed in Pika
-							$okToAdd = true;
-							$mods = FedoraUtils::getInstance()->getModsData($archiveObject);
-							if ($mods != null){
-								if (count($mods->extension) > 0){
-									/** @var SimpleXMLElement $marmotExtension */
-									$marmotExtension = $mods->extension->children('http://marmot.org/local_mods_extension');
-									if ($marmotExtension->count() > 0) {
-										/** @var SimpleXMLElement $marmotLocal */
-										$marmotLocal = $marmotExtension->marmotLocal;
-										if ($marmotLocal->count() > 0) {
-											/** @var SimpleXMLElement $pikaOptions */
-											$pikaOptions = $marmotLocal->pikaOptions;
-											if ($pikaOptions->count() > 0) {
-												$okToAdd = $pikaOptions->includeInPika != 'no';
-											}
-										}
-									}
-								}
+							$mods = $fedoraUtils->getModsData($archiveObject);
+							if ($fedoraUtils->getModsValue('includeInPika', 'marmot', $mods) != 'no'){
+								$okToAdd = true;
 							}else{
-								//If we don't get mods, exclude from the display
 								$okToAdd = false;
 							}
 

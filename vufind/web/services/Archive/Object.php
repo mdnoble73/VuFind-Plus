@@ -116,9 +116,9 @@ abstract class Archive_Object extends Action{
 		$rightsStatements = $this->recordDriver->getModsValues('rightsStatement', 'marmot');
 		$interface->assign('rightsStatements', $rightsStatements);
 
-		$transcription = $this->recordDriver->getModsValue('hasTranscription', 'marmotLocal');
+		$transcription = $this->recordDriver->getModsValue('hasTranscription', 'marmot');
 		if (strlen($transcription)){
-			$transcriptionText = $this->recordDriver->getModsValue('transcriptionText', 'marmotLocal', $transcription);
+			$transcriptionText = $this->recordDriver->getModsValue('transcriptionText', 'marmot', $transcription);
 			$transcriptionText = str_replace("\r\n", '<br/>', $transcriptionText);
 
 			//Add links to timestamps
