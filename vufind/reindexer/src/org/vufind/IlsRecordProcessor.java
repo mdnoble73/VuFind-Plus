@@ -244,7 +244,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 				logger.error("Error updating solr based on marc record", e);
 			}
 		}else{
-			logger.warn("Could not load marc record from disk for " + identifier);
+			logger.info("Could not load marc record from disk for " + identifier);
 		}
 	}
 
