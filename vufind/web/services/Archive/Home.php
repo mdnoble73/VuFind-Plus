@@ -29,6 +29,7 @@ class Archive_Home extends Action{
 		$searchObject->addHiddenFilter('!RELS_EXT_isViewableByRole_literal_ms', "administrator");
 		$searchObject->addHiddenFilter('!mods_extension_marmotLocal_pikaOptions_includeInPika_ms', "no");
 		$searchObject->addHiddenFilter('!mods_extension_marmotLocal_pikaOptions_showInSearchResults_ms', "no");
+		$searchObject->addHiddenFilter('mods_extension_marmotLocal_pikaOptions_showOnPikaArchiveHomepage_ms', "yes");
 		$searchObject->setLimit(50);
 		$searchObject->setSort('fgs_label_s');
 		$timer->logTime('Setup Search');
