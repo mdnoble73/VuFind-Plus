@@ -8668,6 +8668,12 @@ hr.menu {
     display: block !important;
   }
 }
+.jcarousel ul > li {
+  text-align: center;
+}
+.jcarousel .thumbnail img {
+  max-height: 125px !important;
+}
 #home-page-search {
   background-color: #00a4e3;
   background: -webkit-linear-gradient(top, #00a4e3, #147ce2);
@@ -10289,12 +10295,18 @@ a.browse-thumbnail.active {
   overflow-x: hidden;
 }
 #explore-more-body .jcarousel .thumbnail,
+#relatedProjectScroller .jcarousel .thumbnail,
+#relatedContentTypesContainer .jcarousel .thumbnail,
 .exploreMoreBar .jcarousel .thumbnail {
   margin-bottom: 0;
 }
 #explore-more-body .jcarousel-control-prev,
+#relatedProjectScroller .jcarousel-control-prev,
+#relatedContentTypesContainer .jcarousel-control-prev,
 .exploreMoreBar .jcarousel-control-prev,
 #explore-more-body .jcarousel-control-next,
+#relatedProjectScroller .jcarousel-control-next,
+#relatedContentTypesContainer .jcarousel-control-next,
 .exploreMoreBar .jcarousel-control-next {
   height: 100%;
   background: #fff;
@@ -10302,22 +10314,34 @@ a.browse-thumbnail.active {
   z-index: 2;
 }
 #explore-more-body .jcarousel-control-prev:focus,
+#relatedProjectScroller .jcarousel-control-prev:focus,
+#relatedContentTypesContainer .jcarousel-control-prev:focus,
 .exploreMoreBar .jcarousel-control-prev:focus,
 #explore-more-body .jcarousel-control-next:focus,
+#relatedProjectScroller .jcarousel-control-next:focus,
+#relatedContentTypesContainer .jcarousel-control-next:focus,
 .exploreMoreBar .jcarousel-control-next:focus {
   outline: none;
 }
 #explore-more-body .jcarousel-control-prev .glyphicon,
+#relatedProjectScroller .jcarousel-control-prev .glyphicon,
+#relatedContentTypesContainer .jcarousel-control-prev .glyphicon,
 .exploreMoreBar .jcarousel-control-prev .glyphicon,
 #explore-more-body .jcarousel-control-next .glyphicon,
+#relatedProjectScroller .jcarousel-control-next .glyphicon,
+#relatedContentTypesContainer .jcarousel-control-next .glyphicon,
 .exploreMoreBar .jcarousel-control-next .glyphicon {
   top: 20px;
 }
 #explore-more-body .jcarousel-control-prev,
+#relatedProjectScroller .jcarousel-control-prev,
+#relatedContentTypesContainer .jcarousel-control-prev,
 .exploreMoreBar .jcarousel-control-prev {
   left: 2px;
 }
 #explore-more-body .jcarousel-control-next,
+#relatedProjectScroller .jcarousel-control-next,
+#relatedContentTypesContainer .jcarousel-control-next,
 .exploreMoreBar .jcarousel-control-next {
   right: 2px;
 }
@@ -10715,7 +10739,7 @@ div#browse-category-carousel ul > li.browse-category:hover {
   margin: 10px auto;
   position: relative;
 }
-.jcarousel li {
+.jcarousel ul > li {
   border: 0px solid #fff;
 }
 .jcarousel-control-prev,
