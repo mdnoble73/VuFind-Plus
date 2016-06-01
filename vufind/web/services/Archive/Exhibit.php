@@ -113,7 +113,13 @@ class Archive_Exhibit extends Archive_Object{
 								$placeEntityDriver = RecordDriverFactory::initRecordDriver($fedoraUtils->getObject($mappedPlace['pid']));
 								$mappedPlace['label'] = $placeEntityDriver->getTitle();
 								$mappedPlace['url'] = $placeEntityDriver->getRecordUrl();
-								$geoData = $placeEntityDriver->getGeoData();
+								if ($placeEntityDriver instanceof PlaceDriver){
+									$geoData = $placeEntityDriver->getGeoData();
+								}else{
+									//echo("Warning {$placeEntityDriver->getTitle()} ({$placeEntityDriver->getUniqueID()}) was not a place");
+									continue;
+								}
+
 								if ($geoData){
 									$mappedPlace['latitude'] = $geoData['latitude'];
 									$mappedPlace['longitude'] = $geoData['longitude'];

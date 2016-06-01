@@ -914,7 +914,6 @@ abstract class IslandoraDriver extends RecordInterface {
 			$searchObject = SearchObjectFactory::initSearchObject('Islandora');
 			$searchObject->init();
 			$searchObject->setSort('fgs_label_s');
-			//$searchObject->addHiddenFilter('-RELS_EXT_hasModel_uri_s', '*collectionCModel');
 			$searchObject->setSearchTerms(array(
 					'lookfor' => '"' . $this->getUniqueID() . '"',
 					'index' => 'IslandoraRelationshipsById'
