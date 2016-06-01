@@ -165,7 +165,12 @@ class FedoraUtils {
 			$modsStream = $archiveObject->getDatastream('MODS');
 			if ($modsStream){
 				$timer->logTime('Retrieved mods stream from fedora ' . $archiveObject->id);
-				$modsData = $modsStream->content;
+				try{
+					$modsData = $modsStream->content;
+				}catch (HttpConnectionException $e){
+					throw new Exception("Unable to load MODS data for " . $archiveObject->id);
+				}
+
 				/*if (strlen($modsStream->content) > 0){
 					$modsData = simplexml_load_file($modsStream->content, 'SimpleXmlElement', 0, 'http://www.loc.gov/mods/v3', false);
 					$timer->logTime('Parsed as xml with simple xml');
