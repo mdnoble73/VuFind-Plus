@@ -41,7 +41,16 @@
 							var marker{$smarty.foreach.place.index} = new google.maps.Marker({ldelim}
 								position: {ldelim}lat: {$place.latitude}, lng: {$place.longitude}{rdelim},
 								map: VuFind.Archive.archive_map,
-								title: '{$place.label}'
+								title: '{$place.label} ({$place.count})',
+								icon: {ldelim}
+									path: google.maps.SymbolPath.CIRCLE,
+									title: '{$place.count}',
+									scale: {if $place.count > 999}35{elseif $place.count > 500}30{elseif $place.count > 250}25{elseif $place.count > 99}20{elseif $place.count > 49}17{elseif $place.count > 9}12{else}8{/if},
+									strokeWeight: 2,
+									strokeColor: 'white',
+									fillOpacity: 0.9,
+									fillColor: 'DodgerBlue'
+									{rdelim}
 							{rdelim});
 
 							VuFind.Archive.markers[{$smarty.foreach.place.index}] = marker{$smarty.foreach.place.index};
