@@ -167,8 +167,8 @@ class FedoraUtils {
 				$timer->logTime('Retrieved mods stream from fedora ' . $archiveObject->id);
 				try{
 					$modsData = $modsStream->content;
-				}catch (HttpConnectionException $e){
-					throw new Exception("Unable to load MODS data for " . $archiveObject->id);
+				}catch (Exception $e){
+					echo("Unable to load MODS data for " . $archiveObject->id);
 				}
 
 				/*if (strlen($modsStream->content) > 0){
