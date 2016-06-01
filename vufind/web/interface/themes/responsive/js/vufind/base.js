@@ -126,8 +126,12 @@ var VuFind = (function(){
 				Carousel.jcarousel('items').css('width', Math.floor(width) + 'px');// Set Width
 
 				//console.log(Carousel, 'num to show', numItemsToShow, 'width', width);
+				if (numItemsToShow >= numCategories){
+					$('.jcarousel-control-prev', wrapper).hide();
+					$('.jcarousel-control-next', wrapper).hide();
+				}
 
-					})
+			})
 			.jcarousel({
 				wrap: 'circular'
 			});
