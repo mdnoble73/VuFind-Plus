@@ -1595,7 +1595,6 @@ class MarcRecord extends IndexRecord
 								$subjects[]   = $subject;
 								break;
 							case 'other' :
-								$standardSubjects[] = $subject; //TODO: remove
 								$otherSubjects[] = $subject;
 							default :
 								$subjects[]         = $subject;
