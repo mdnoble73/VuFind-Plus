@@ -2169,7 +2169,7 @@ class SearchObject_Solr extends SearchObject_Base
 		if (isset($_REQUEST['allFields'])){
 			$fieldsToReturn = '*,score';
 		}else{
-			$fieldsToReturn = $this->fields;
+			$fieldsToReturn = SearchObject_Solr::$fields;
 			global $solrScope;
 			if ($solrScope != false){
 				//$fieldsToReturn .= ',related_record_ids_' . $solrScope;
