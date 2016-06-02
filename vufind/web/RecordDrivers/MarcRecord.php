@@ -101,7 +101,6 @@ class MarcRecord extends IndexRecord
 		}else{
 			$this->groupedWork = $groupedWork;
 		}
-
 	}
 
 	public function getModule(){

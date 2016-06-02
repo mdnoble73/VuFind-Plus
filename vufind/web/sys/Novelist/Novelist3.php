@@ -166,6 +166,7 @@ class Novelist3{
 	 */
 	function loadEnrichment($groupedRecordId, $isbns){
 		global $timer;
+		global $memoryWatcher;
 		global $configArray;
 
 		//First make sure that Novelist is enabled
@@ -185,6 +186,7 @@ class Novelist3{
 		global $memCache;
 		$novelistData = $memCache->get("novelist_enrichment_$groupedRecordId");
 		if ($novelistData != false && !isset($_REQUEST['reload'])){
+			$memoryWatcher->logMemory('Got novelist data from memcache');
 			return $novelistData;
 		}
 

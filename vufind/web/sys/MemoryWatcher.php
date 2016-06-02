@@ -45,7 +45,7 @@ class MemoryWatcher{
 			$totalMemoryUsage = number_format($curMemoryUsage - $this->firstMemory);
 			$timingInfo = "\r\nMemory usage for: " . $_SERVER['REQUEST_URI'] . "\r\n";
 			$timingInfo .= implode("\r\n", $this->memoryMessages);
-			$timingInfo .= "\r\nTotal Memory usage was: $totalMemoryUsage bytes.\r\n";
+			$timingInfo .= "\r\nFinal Memory usage was: $totalMemoryUsage bytes.";
 			$peakUsage = number_format(memory_get_peak_usage());
 			$timingInfo .= "\r\nPeak Memory usage was: $peakUsage bytes.\r\n";
 			$logger->log($timingInfo, PEAR_LOG_NOTICE);
@@ -59,8 +59,10 @@ class MemoryWatcher{
 				$curMemoryUsage = memory_get_usage();
 				$totalMemoryUsage = number_format($curMemoryUsage - $this->firstMemory);
 				$timingInfo = "\r\nMemory usage for: " . $_SERVER['REQUEST_URI'] . "\r\n";
-				$timingInfo .= implode("\r\n", $this->memoryMessages);
-				$timingInfo .= "\r\nTotal Memory usage was: $totalMemoryUsage bytes.\r\n";
+				if (count($this->memoryMessages) > 0){
+					$timingInfo .= implode("\r\n", $this->memoryMessages);
+				}
+				$timingInfo .= "\r\nFinal Memory usage in destructor was: $totalMemoryUsage bytes.\r\n";
 				$logger->log($timingInfo, PEAR_LOG_NOTICE);
 			}
 		}

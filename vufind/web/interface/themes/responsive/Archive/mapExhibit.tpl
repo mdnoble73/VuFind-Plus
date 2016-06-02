@@ -48,7 +48,8 @@
 									scale: {if $place.count > 999}35{elseif $place.count > 500}30{elseif $place.count > 250}25{elseif $place.count > 99}20{elseif $place.count > 49}17{elseif $place.count > 9}12{else}8{/if},
 									strokeWeight: 2,
 									strokeColor: 'white',
-									fillOpacity: 0.9,
+									strokeOpacity: 0.9,
+									fillOpacity: 0.85,
 									fillColor: 'DodgerBlue'
 									{rdelim}
 							{rdelim});

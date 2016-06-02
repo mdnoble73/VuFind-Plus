@@ -44,7 +44,7 @@ class SearchObject_Solr extends SearchObject_Base
 	// Index
 	private $index = null;
 	// Field List
-	private $fields = 'auth_author2,author2-role,id,mpaaRating,title_display,title_full,title_short,title_sub,author,author_display,isbn,upc,issn,series,series_with_volume,recordtype,display_description,literary_form,literary_form_full,num_titles,record_details,item_details,publisherStr,publishDate,subject_facet,topic_facet,primary_isbn,primary_upc';
+	public static $fields = 'auth_author2,author2-role,id,mpaaRating,title_display,title_full,title_short,title_sub,author,author_display,isbn,upc,issn,series,series_with_volume,recordtype,display_description,literary_form,literary_form_full,num_titles,record_details,item_details,publisherStr,publishDate,subject_facet,topic_facet,primary_isbn,primary_upc';
 	private $fieldsFull = '*,score';
 	// HTTP Method
 	//    private $method = HTTP_REQUEST_METHOD_GET;
@@ -756,6 +756,8 @@ class SearchObject_Solr extends SearchObject_Base
 				} else {
 					$html[] = "Unable to find record";
 				}
+				//Free some memory
+				unset($record);
 			}
 		}
 		return $html;

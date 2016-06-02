@@ -120,6 +120,7 @@ class GroupedWork_AJAX {
 	function getEnrichmentInfo(){
 		global $configArray;
 		global $interface;
+		global $memoryWatcher;
 
 		require_once ROOT_DIR . '/RecordDrivers/GroupedWorkDriver.php';
 		$id = $_REQUEST['id'];
@@ -127,6 +128,7 @@ class GroupedWork_AJAX {
 
 		$enrichmentResult = array();
 		$enrichmentData = $recordDriver->loadEnrichment();
+		$memoryWatcher->logMemory('Loaded Enrichment information from Novelist');
 
 		//Process series data
 		$titles = array();
@@ -140,6 +142,7 @@ class GroupedWork_AJAX {
 			$seriesInfo = array('titles' => $titles, 'currentIndex' => $enrichmentData['novelist']->seriesDefaultIndex);
 			$enrichmentResult['seriesInfo'] = $seriesInfo;
 		}
+		$memoryWatcher->logMemory('Loaded Series information');
 
 		//Process other data from novelist
 		if (isset($enrichmentData['novelist']) && isset($enrichmentData['novelist']->similarTitles)){
@@ -150,6 +153,7 @@ class GroupedWork_AJAX {
 				$enrichmentResult['similarTitlesNovelist'] = $interface->fetch('GroupedWork/similarTitlesNovelist.tpl');
 			}
 		}
+		$memoryWatcher->logMemory('Loaded Similar titles from Novelist');
 
 		if (isset($enrichmentData['novelist']) && isset($enrichmentData['novelist']->authors)){
 			$interface->assign('similarAuthors', $enrichmentData['novelist']->authors);
@@ -159,6 +163,7 @@ class GroupedWork_AJAX {
 				$enrichmentResult['similarAuthorsNovelist'] = $interface->fetch('GroupedWork/similarAuthorsNovelist.tpl');
 			}
 		}
+		$memoryWatcher->logMemory('Loaded Similar authors from Novelist');
 
 		if (isset($enrichmentData['novelist']) && isset($enrichmentData['novelist']->similarSeries)){
 			$interface->assign('similarSeries', $enrichmentData['novelist']->similarSeries);
@@ -168,6 +173,7 @@ class GroupedWork_AJAX {
 				$enrichmentResult['similarSeriesNovelist'] = $interface->fetch('GroupedWork/similarSeriesNovelist.tpl');
 			}
 		}
+		$memoryWatcher->logMemory('Loaded Similar series from Novelist');
 
 		//Load Similar titles (from Solr)
 		$class = $configArray['Index']['engine'];
@@ -176,6 +182,7 @@ class GroupedWork_AJAX {
 		$db = new $class($url);
 		$db->disableScoping();
 		$similar = $db->getMoreLikeThis2($id);
+		$memoryWatcher->logMemory('Loaded More Like This data from Solr');
 		// Send the similar items to the template; if there is only one, we need
 		// to force it to be an array or things will not display correctly.
 		if (isset($similar) && count($similar['response']['docs']) > 0) {
@@ -187,6 +194,7 @@ class GroupedWork_AJAX {
 			$similarTitlesInfo = array('titles' => $similarTitles, 'currentIndex' => 0);
 			$enrichmentResult['similarTitles'] = $similarTitlesInfo;
 		}
+		$memoryWatcher->logMemory('Loaded More Like This scroller data');
 
 		//Load go deeper options
 		//TODO: Additional go deeper options
@@ -202,6 +210,7 @@ class GroupedWork_AJAX {
 				$enrichmentResult['goDeeperOptions'] = $goDeeperOptions['options'];
 			}
 		}
+		$memoryWatcher->logMemory('Loaded additional go deeper data');
 
 		//Related data
 		$enrichmentResult['relatedContent'] = $interface->fetch('Record/relatedContent.tpl');
@@ -211,7 +220,7 @@ class GroupedWork_AJAX {
 
 	function getScrollerTitle($record, $index, $scrollerName){
 		$cover = $record['mediumCover'];
-		$title = preg_replace("/\s*(\/|:)\s*$/","", $record['title']);
+		$title = preg_replace("/\\s*(\\/|:)\\s*$/","", $record['title']);
 		if (isset($record['series']) && $record['series'] != null){
 			if (is_array($record['series'])){
 				foreach($record['series'] as $series){

@@ -1724,12 +1724,14 @@ class GroupedWorkDriver extends RecordInterface{
 	}
 
 	public function loadEnrichment() {
+		global $memoryWatcher;
 		$isbn = $this->getCleanISBN();
 		$enrichment = array();
 		if ($isbn == null || strlen($isbn) == 0){
 			return $enrichment;
 		}
 		$novelist = NovelistFactory::getNovelist();
+		$memoryWatcher->logMemory('Setup Novelist Connection');
 		$enrichment['novelist'] = $novelist->loadEnrichment($this->getPermanentId(), $this->getISBNs());
 		return $enrichment;
 	}

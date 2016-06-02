@@ -561,7 +561,7 @@ class Solr implements IndexEngine {
 			$originalResult = $this->getRecord($id);
 		}
 		// Query String Parameters
-		$options = array('q' => "id:$id", 'qt' => 'morelikethis2', 'mlt.interestingTerms' => 'details', 'rows' => 25);
+		$options = array('q' => "id:$id", 'qt' => 'morelikethis2', 'mlt.interestingTerms' => 'details', 'rows' => 25, 'fl' => SearchObject_Solr::$fields);
 		if ($originalResult){
 			$options['fq'] = array();
 			if (isset($originalResult['target_audience_full'])){
@@ -2186,6 +2186,8 @@ class Solr implements IndexEngine {
 	private function _select($method = HTTP_REQUEST_METHOD_GET, $params = array(), $returnSolrError = false)
 	{
 		global $timer;
+		global $memoryWatcher;
+		$memoryWatcher->logMemory('Start Solr Select');
 		$this->client->setMethod($method);
 		$this->client->setURL($this->host . "/select/");
 
@@ -2258,9 +2260,11 @@ class Solr implements IndexEngine {
 
 		// Send Request
 		$timer->logTime("Prepare to send request to solr");
+		$memoryWatcher->logMemory('Prepare to send request to solr');
 		$result = $this->client->sendRequest();
 		//$this->client->clearPostData();
 		$timer->logTime("Send data to solr for select $queryString");
+		$memoryWatcher->logMemory("Send data to solr for select $queryString");
 
 		if (!PEAR_Singleton::isError($result)) {
 			return $this->_process($this->client->getResponseBody(), $returnSolrError, $queryString);
@@ -2344,6 +2348,7 @@ class Solr implements IndexEngine {
 	private function _process($result, $returnSolrError = false, $queryString = null)
 	{
 		global $timer;
+		global $memoryWatcher;
 		// Catch errors from SOLR
 		if (substr(trim($result), 0, 2) == '<h') {
 			$errorMsg = substr($result, strpos($result, '<pre>'));
@@ -2362,8 +2367,10 @@ class Solr implements IndexEngine {
 
 			}
 		}
+		$memoryWatcher->logMemory('receive result from solr result is ' . strlen($result) . ' bytes long');
 		$result = json_decode($result, true);
 		$timer->logTime("receive result from solr and load from json data");
+		$memoryWatcher->logMemory('load json for solr result');
 
 		// Inject highlighting details into results if necessary:
 		if (isset($result['highlighting'])) {
