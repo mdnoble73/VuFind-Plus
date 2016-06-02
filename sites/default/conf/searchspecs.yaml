@@ -311,6 +311,11 @@ TitleProper:
       - [onephrase, 100]
       - [and, 50]
 
+StartOfTitle:
+  QueryFields:
+    - title_left:
+      - [localized_callnumber, 1600]
+
 Series:
   DismaxFields:
     - series^100
