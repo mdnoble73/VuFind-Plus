@@ -16,9 +16,9 @@
 							{foreach from=$relatedProjects item=project}
 								<li class="relatedTitle">
 									<a href="{$project.link}">
-										<figure class="">
-											<figcaption>{$project.title|removeTrailingPunctuation|truncate:80:"..."}</figcaption>
+										<figure class="thumbnail">
 											<img src="{$project.image}" alt="{$project.title|removeTrailingPunctuation|truncate:80:"..."}|urlencode">
+											<figcaption>{$project.title|removeTrailingPunctuation|truncate:80:"..."}</figcaption>
 										</figure>
 									</a>
 								</li>
@@ -41,7 +41,7 @@
 							{foreach from=$relatedContentTypes item=contentType}
 								<li class="relatedTitle">
 									<a href="{$contentType.link}">
-										<figure class="">
+										<figure class="thumbnail">
 											<img src="{$contentType.image}" alt="{$contentType.title|removeTrailingPunctuation|truncate:80:"..."|urlencode}">
 											<figcaption>{$contentType.title|removeTrailingPunctuation|truncate:80:"..."}</figcaption>
 										</figure>
