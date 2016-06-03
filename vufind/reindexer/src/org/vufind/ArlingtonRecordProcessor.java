@@ -166,7 +166,7 @@ public class ArlingtonRecordProcessor extends IIIRecordProcessor {
 			if (matType.equals("w") || matType.equals("b")){
 				ItemInfo itemInfo = new ItemInfo();
 				//Load base information from the Marc Record
-				String locationCode = getFirstFieldVal(record, "998a");
+				String locationCode = getFirstFieldVal(record, "998a").trim();
 
 				String itemStatus = "Library Use Only";
 
