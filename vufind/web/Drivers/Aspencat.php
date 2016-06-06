@@ -444,12 +444,12 @@ class Aspencat implements DriverInterface{
 						if ($forceDisplayNameUpdate){
 							$user->displayName = '';
 						}
-						$user->fullname = $userFromDb['firstname'] . ' ' . $userFromDb['surname'];
+						$user->fullname     = $userFromDb['firstname'] . ' ' . $userFromDb['surname'];
 						$user->cat_username = $barcode;
-						$user->cat_password =  $password;
-						$user->email = $userFromDb['email'];
-						$user->patronType = $userFromDb['categorycode'];
-						$user->web_note = '';
+						$user->cat_password = $password;
+						$user->email        = $userFromDb['email'];
+						$user->patronType   = $userFromDb['categorycode'];
+						$user->web_note     = '';
 
 						$city = strtok($userFromDb['city'], ',');
 						$state = strtok(',');
@@ -457,15 +457,15 @@ class Aspencat implements DriverInterface{
 						$state = trim($state);
 
 						$user->address1 = trim($userFromDb['streetnumber'] . ' ' . $userFromDb['address'] . ' ' . $userFromDb['address2']);
-						$user->city = $city;
-						$user->state = $state;
-						$user->zip = $userFromDb['zipcode'];
-						$user->phone = $userFromDb['phone'];
+						$user->city     = $city;
+						$user->state    = $state;
+						$user->zip      = $userFromDb['zipcode'];
+						$user->phone    = $userFromDb['phone'];
 
 						//Get fines
 						//Load fines from database
 						$outstandingFines = $this->getOutstandingFineTotal($user);
-						$user->fines = sprintf('$%0.2f', $outstandingFines);
+						$user->fines    = sprintf('$%0.2f', $outstandingFines);
 						$user->finesVal = floatval($outstandingFines);
 
 						//Get number of items checked out
@@ -499,60 +499,76 @@ class Aspencat implements DriverInterface{
 						$user->numHoldsRequestedIls = $numWaitingHolds;
 						$user->numHoldsIls = $user->numHoldsAvailableIls + $user->numHoldsRequestedIls;
 
-						$homeBranchCode = $userFromDb['branchcode'];
+						$homeBranchCode = strtolower($userFromDb['branchcode']);
 						$location = new Location();
 						$location->code = $homeBranchCode;
-						$location->orderBy('isMainBranch desc');
-						$location->find(1);
-						if ($location->N == 0){
+						if (!$location->find(1)){
 							unset($location);
-							$user->homeLocationId = -1;
+							$user->homeLocationId = 0;
 							// Logging for Diagnosing PK-1846
 							global $logger;
-							$logger->log('Aspencat Driver: No Location found, user\'s homeLocationId being set to -1. User : '.$user->id, PEAR_LOG_WARNING);
-						}else{
-							//Setup default location information if it hasn't been loaded or has been changed
-							if ($user->homeLocationId == 0 || $location->locationId != $user->homeLocationId) {
+							$logger->log('Aspencat Driver: No Location found, user\'s homeLocationId being set to 0. User : '.$user->id, PEAR_LOG_WARNING);
+						}
 
-								$user->homeLocationId = $location->locationId;
-								if ((!isset($user->homeLocationId) || $user->homeLocationId == 0)) {
-									// Logging for Diagnosing PK-1846
+						if ((empty($user->homeLocationId) || $user->homeLocationId == -1) || (isset($location) && $user->homeLocationId != $location->locationId)) { // When homeLocation isn't set or has changed
+							if ((empty($user->homeLocationId) || $user->homeLocationId == -1) && !isset($location)) {
+								// homeBranch Code not found in location table and the user doesn't have an assigned homelocation,
+								// try to find the main branch to assign to user
+								// or the first location for the library
+								global $library;
+
+								$location            = new Location();
+								$location->libraryId = $library->libraryId;
+								$location->orderBy('isMainBranch desc'); // gets the main branch first or the first location
+								if (!$location->find(true)) {
+									// Seriously no locations even?
 									global $logger;
-									$logger->log('Aspencat Driver: Attempted look up user\'s homeLocationId and failed to find one. User : '.$user->id, PEAR_LOG_WARNING);
-								}
-
-								if ($location->nearbyLocation1 > 0){
-									$user->myLocation1Id = $location->nearbyLocation1;
-								}else{
-									$user->myLocation1Id = $location->locationId;
-								}
-								if ($location->nearbyLocation2 > 0){
-									$user->myLocation2Id = $location->nearbyLocation2;
-								}else{
-									$user->myLocation2Id = $location->locationId;
+									$logger->log('Failed to find any location to assign to user as home location', PEAR_LOG_ERR);
+									unset($location);
 								}
 							}
-							//Get display names that aren't stored
-							$user->homeLocationCode = $location->code;
-							$user->homeLocation = $location->displayName;
+							if (isset($location)) {
+								$user->homeLocationId = $location->locationId;
+								$user->myLocation1Id  = ($location->nearbyLocation1 > 0) ? $location->nearbyLocation1 : $location->locationId;
+								$user->myLocation2Id  = ($location->nearbyLocation2 > 0) ? $location->nearbyLocation2 : $location->locationId;
 
-							//Get display name for preferred location 1
-							$myLocation1 = new Location();
-							$myLocation1->whereAdd("locationId = '$user->myLocation1Id'");
-							if ($myLocation1->find(true)){
-								$user->myLocation1 = $myLocation1->displayName;
-							}
+								//Get display names that aren't stored
+								$user->homeLocationCode = $location->code;
+								$user->homeLocation     = $location->displayName;
 
-							//Get display name for preferred location 2
-							$myLocation2 = new Location();
-							$myLocation2->whereAdd("locationId = '$user->myLocation2Id'");
-							if ($myLocation2->find(true)){
-								$user->myLocation2 = $myLocation2->displayName;
+								//Get display name for preferred location 1
+								$myLocation1 = new Location();
+								$myLocation1->locationId = $user->myLocation1Id;
+								if ($myLocation1->find(true)) {
+									$user->myLocation1 = $myLocation1->displayName;
+								}
+
+								//Get display name for preferred location 2
+								$myLocation2 = new Location();
+								$myLocation2->locationId = $user->myLocation2Id;
+								if ($myLocation2->find(true)) {
+									$user->myLocation2 = $myLocation2->displayName;
+								}
 							}
 						}
 
-						$user->expires = $userFromDb['dateexpiry'];
-						//TODO: Implement determining if the user is expired or if expiration is close
+						$user->expires = $userFromDb['dateexpiry']; //TODO: format is year-month-day; millennium is month-day-year; needs converting??
+
+						$user->expired     = 0; // default setting
+						$user->expireClose = 0;
+
+						if (!empty($userFromDb['dateexpiry'])) { // TODO: probably need a better check of this field
+							list ($yearExp, $monthExp, $dayExp) = explode('-', $userFromDb['dateexpiry']);
+							$timeExpire   = strtotime($monthExp . "/" . $dayExp . "/" . $yearExp);
+							$timeNow      = time();
+							$timeToExpire = $timeExpire - $timeNow;
+							if ($timeToExpire <= 30 * 24 * 60 * 60) {
+								if ($timeToExpire <= 0) {
+									$user->expired = 1;
+								}
+								$user->expireClose = 1;
+							}
+						}
 
 						$user->noticePreferenceLabel = 'Unknown';
 
