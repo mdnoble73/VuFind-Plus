@@ -1046,10 +1046,30 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 			} else {
 				StringBuilder subfieldData = new StringBuilder();
 				for (Subfield subfield:subfields) {
-					if (subfieldData.length() > 0 && subfieldData.charAt(subfieldData.length() - 1) != ' '){
-						subfieldData.append(' ');
+					String trimmedValue = subfield.getData().trim();
+					boolean okToAdd = false;
+					if (trimmedValue.length() == 0){
+						continue;
 					}
-					subfieldData.append(subfield.getData());
+					try {
+						if (subfieldData.length() == 0) {
+							okToAdd = true;
+						} else if (subfieldData.length() < trimmedValue.length()) {
+							okToAdd = true;
+						} else if (!subfieldData.substring(subfieldData.length() - trimmedValue.length()).equals(trimmedValue)) {
+							okToAdd = true;
+						}
+					}catch (Exception e){
+						logger.error("Error determining if the new value is already part of the string", e);
+					}
+					if (okToAdd) {
+						if (subfieldData.length() > 0 && subfieldData.charAt(subfieldData.length() - 1) != ' ') {
+							subfieldData.append(' ');
+						}
+						subfieldData.append(trimmedValue);
+					}else{
+						logger.debug("Not appending subfield because the value looks redundant");
+					}
 				}
 				return subfieldData.toString().trim();
 			}
