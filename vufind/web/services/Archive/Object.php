@@ -108,9 +108,9 @@ abstract class Archive_Object extends Action{
 		$this->formattedSubjects = $this->recordDriver->getAllSubjectsWithLinks();
 		$interface->assign('subjects', $this->formattedSubjects);
 
-		$location = $this->recordDriver->getModsValue('mods', 'location');
+		$location = $this->recordDriver->getModsValue('location', 'mods');
 		if (strlen($location) > 0){
-			$interface->assign('primaryUrl', $this->recordDriver->getModsValue('mods', 'url', $location));
+			$interface->assign('primaryUrl', $this->recordDriver->getModsValue('url', 'mods', $location));
 		}
 
 		$rightsStatements = $this->recordDriver->getModsValues('rightsStatement', 'marmot');
