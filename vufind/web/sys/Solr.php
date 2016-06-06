@@ -401,7 +401,7 @@ class Solr implements IndexEngine {
 		}
 
 		// Query String Parameters
-		$options = array('q' => "barcode:\"$barcode\"");
+		$options = array('q' => "barcode:\"$barcode\"", 'fl' => SearchObject_Solr::$fields);
 		$result = $this->_select('GET', $options);
 		if (PEAR_Singleton::isError($result)) {
 			PEAR_Singleton::raiseError($result);
@@ -416,7 +416,7 @@ class Solr implements IndexEngine {
 
 	function getRecordByIsbn($isbns){
 		// Query String Parameters
-		$options = array('q' => 'isbn:' . implode(' OR ', $isbns));
+		$options = array('q' => 'isbn:' . implode(' OR ', $isbns), 'fl' => SearchObject_Solr::$fields);
 		$result = $this->_select('GET', $options);
 		if (PEAR_Singleton::isError($result)) {
 			PEAR_Singleton::raiseError($result);
@@ -509,7 +509,7 @@ class Solr implements IndexEngine {
 			}
 			$idString .= "id:\"$id\"";
 		}
-		$options = array('q' => $idString, 'rows' => count($ids));
+		$options = array('q' => $idString, 'rows' => count($ids), 'fl' => SearchObject_Solr::$fields);
 		$result = $this->_select('GET', $options);
 		if (PEAR_Singleton::isError($result)) {
 			PEAR_Singleton::raiseError($result);
@@ -532,7 +532,7 @@ class Solr implements IndexEngine {
 	function getMoreLikeThis($id)
 	{
 		// Query String Parameters
-		$options = array('q' => "id:$id", 'qt' => 'morelikethis');
+		$options = array('q' => "id:$id", 'qt' => 'morelikethis', 'fl' => SearchObject_Solr::$fields);
 		$result = $this->_select('GET', $options);
 		if (PEAR_Singleton::isError($result)) {
 			PEAR_Singleton::raiseError($result);
