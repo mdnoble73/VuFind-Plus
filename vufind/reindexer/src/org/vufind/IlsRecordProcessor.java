@@ -1236,7 +1236,14 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 	private void filterPrintFormats(Set<String> printFormats) {
 		if (printFormats.contains("Video") && printFormats.contains("DVD")){
 			printFormats.remove("Video");
-		}if (printFormats.contains("SoundDisc") && printFormats.contains("SoundRecording")){
+		}
+		if (printFormats.contains("Video") && printFormats.contains("VideoDisc")){
+			printFormats.remove("Video");
+		}
+		if (printFormats.contains("Blu-ray") && printFormats.contains("VideoDisc")){
+			printFormats.remove("VideoDisc");
+		}
+		if (printFormats.contains("SoundDisc") && printFormats.contains("SoundRecording")){
 			printFormats.remove("SoundRecording");
 		}
 		if (printFormats.contains("SoundDisc") && printFormats.contains("CDROM")){
