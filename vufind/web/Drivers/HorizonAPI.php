@@ -97,7 +97,7 @@ abstract class HorizonAPI extends Horizon{
 
 				//Get additional information about the patron's home branch for display.
 				if (isset($lookupMyAccountInfoResponse->locationID)){
-					$homeBranchCode = trim((string)$lookupMyAccountInfoResponse->locationID);
+					$homeBranchCode = strtolower(trim((string)$lookupMyAccountInfoResponse->locationID));
 					//Translate home branch to plain text
 					$location = new Location();
 					$location->code = $homeBranchCode;
@@ -111,10 +111,13 @@ abstract class HorizonAPI extends Horizon{
 					// The code below will attempt to find a location for the library anyway if the homeLocation is already set
 				}
 
-				// User's Home Location isn't set or has changed
-				if (empty($user->homeLocationId) || (isset($location) && $user->homeLocationId != $location->locationId)) {
+				if (empty($user->homeLocationId) || (isset($location) && $user->homeLocationId != $location->locationId)) { // When homeLocation isn't set or has changed
 					if (empty($user->homeLocationId) && !isset($location)) {
+						// homeBranch Code not found in location table and the user doesn't have an assigned homelocation,
+						// try to find the main branch to assign to user
+						// or the first location for the library
 						global $library;
+
 						$location            = new Location();
 						$location->libraryId = $library->libraryId;
 						$location->orderBy('isMainBranch desc'); // gets the main branch first or the first location
@@ -124,27 +127,32 @@ abstract class HorizonAPI extends Horizon{
 							$logger->log('Failed to find any location to assign to user as home location', PEAR_LOG_ERR);
 							unset($location);
 						}
-						if (isset($location)) {
-							$user->homeLocationId = $location->locationId;
-							$user->myLocation1Id  = ($location->nearbyLocation1 > 0) ? $location->nearbyLocation1 : $location->locationId;
-							$user->myLocation2Id  = ($location->nearbyLocation2 > 0) ? $location->nearbyLocation2 : $location->locationId;
+					}
+					if (isset($location)) {
+						$user->homeLocationId = $location->locationId;
+						$user->myLocation1Id  = ($location->nearbyLocation1 > 0) ? $location->nearbyLocation1 : $location->locationId;
+						$user->myLocation2Id  = ($location->nearbyLocation2 > 0) ? $location->nearbyLocation2 : $location->locationId;
 
-							//Get display name for preferred location 1
-							$myLocation1             = new Location();
-							$myLocation1->locationId = $user->myLocation1Id;
-							if ($myLocation1->find(true)) {
-								$user->myLocation1 = $myLocation1->displayName;
-							}
+						//Get display names that aren't stored
+						$user->homeLocationCode = $location->code;
+						$user->homeLocation     = $location->displayName;
 
-							//Get display name for preferred location 1
-							$myLocation2 = new Location();
-							$myLocation2->locationId = $user->myLocation2Id;
-							if ($myLocation2->find(true)) {
-								$user->myLocation2 = $myLocation2->displayName;
-							}
+						//Get display name for preferred location 1
+						$myLocation1 = new Location();
+						$myLocation1->locationId = $user->myLocation1Id;
+						if ($myLocation1->find(true)) {
+							$user->myLocation1 = $myLocation1->displayName;
+						}
+
+						//Get display name for preferred location 2
+						$myLocation2 = new Location();
+						$myLocation2->locationId = $user->myLocation2Id;
+						if ($myLocation2->find(true)) {
+							$user->myLocation2 = $myLocation2->displayName;
 						}
 					}
 				}
+
 
 				//TODO: See if we can get information about card expiration date
 				$expireClose = 0;
