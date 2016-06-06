@@ -236,6 +236,7 @@ public class GroupedWorkSolr implements Cloneable {
 		doc.addField("literary_form", literaryForm.keySet());
 		checkDefaultValue(targetAudienceFull, "Unknown");
 		checkDefaultValue(targetAudienceFull, "Other");
+		checkDefaultValue(targetAudienceFull, "No Attempt To Code");
 		doc.addField("target_audience_full", targetAudienceFull);
 		checkDefaultValue(targetAudience, "Unknown");
 		checkDefaultValue(targetAudience, "Other");
