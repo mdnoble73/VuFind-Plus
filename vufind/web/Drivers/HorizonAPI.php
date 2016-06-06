@@ -97,53 +97,62 @@ abstract class HorizonAPI extends Horizon{
 
 				//Get additional information about the patron's home branch for display.
 				if (isset($lookupMyAccountInfoResponse->locationID)){
-					$homeBranchCode = trim((string)$lookupMyAccountInfoResponse->locationID);
+					$homeBranchCode = strtolower(trim((string)$lookupMyAccountInfoResponse->locationID));
 					//Translate home branch to plain text
 					$location = new Location();
 					$location->code = $homeBranchCode;
 					$location->find(1);
-					if ($location->N == 0){
+					if (!$location->find(true)){
 						unset($location);
 					}
+				} else {
+					global $logger;
+					$logger->log('HorizonAPI Driver: No Home Library Location or Hold location found in account look-up. User : '.$user->id, PEAR_LOG_ERR);
+					// The code below will attempt to find a location for the library anyway if the homeLocation is already set
 				}
 
-				if ($user->homeLocationId == 0 && isset($location)) {
+				if (empty($user->homeLocationId) || (isset($location) && $user->homeLocationId != $location->locationId)) { // When homeLocation isn't set or has changed
+					if (empty($user->homeLocationId) && !isset($location)) {
+						// homeBranch Code not found in location table and the user doesn't have an assigned homelocation,
+						// try to find the main branch to assign to user
+						// or the first location for the library
+						global $library;
 
-					$user->homeLocationId = $location->locationId;
-					if ((!isset($user->homeLocationId) || $user->homeLocationId == 0)) {
-						// Logging for Diagnosing PK-1846
-						global $logger;
-						$logger->log('HorizonAPI Driver: Attempted look up user\'s homeLocationId and failed to find one. User : '.$user->id, PEAR_LOG_WARNING);
+						$location            = new Location();
+						$location->libraryId = $library->libraryId;
+						$location->orderBy('isMainBranch desc'); // gets the main branch first or the first location
+						if (!$location->find(true)) {
+							// Seriously no locations even?
+							global $logger;
+							$logger->log('Failed to find any location to assign to user as home location', PEAR_LOG_ERR);
+							unset($location);
+						}
 					}
+					if (isset($location)) {
+						$user->homeLocationId = $location->locationId;
+						$user->myLocation1Id  = ($location->nearbyLocation1 > 0) ? $location->nearbyLocation1 : $location->locationId;
+						$user->myLocation2Id  = ($location->nearbyLocation2 > 0) ? $location->nearbyLocation2 : $location->locationId;
 
-					if ($location->nearbyLocation1 > 0) {
-						$user->myLocation1Id = $location->nearbyLocation1;
-					} else {
-						$user->myLocation1Id = $location->locationId;
-					}
-					if ($location->nearbyLocation2 > 0) {
-						$user->myLocation2Id = $location->nearbyLocation2;
-					} else {
-						$user->myLocation2Id = $location->locationId;
-					}
-				}else if (isset($location) && $location->locationId != $user->homeLocationId){
-					$user->homeLocationId = $location->locationId;
-					if ((!isset($user->homeLocationId) || $user->homeLocationId == 0)) {
-						// Logging for Diagnosing PK-1846
-						global $logger;
-						$logger->log('HorizonAPI Driver: Attempted changing user\'s homeLocationId and failed to find one. User : '.$user->id, PEAR_LOG_WARNING);
+						//Get display names that aren't stored
+						$user->homeLocationCode = $location->code;
+						$user->homeLocation     = $location->displayName;
+
+						//Get display name for preferred location 1
+						$myLocation1 = new Location();
+						$myLocation1->locationId = $user->myLocation1Id;
+						if ($myLocation1->find(true)) {
+							$user->myLocation1 = $myLocation1->displayName;
+						}
+
+						//Get display name for preferred location 2
+						$myLocation2 = new Location();
+						$myLocation2->locationId = $user->myLocation2Id;
+						if ($myLocation2->find(true)) {
+							$user->myLocation2 = $myLocation2->displayName;
+						}
 					}
 				}
 
-				//Get display name for preferred location 1
-				$myLocation1 = new Location();
-				$myLocation1->whereAdd("locationId = '$user->myLocation1Id'");
-				$myLocation1->find(1);
-
-				//Get display name for preferred location 1
-				$myLocation2 = new Location();
-				$myLocation2->whereAdd("locationId = '$user->myLocation2Id'");
-				$myLocation2->find(1);
 
 				//TODO: See if we can get information about card expiration date
 				$expireClose = 0;
@@ -179,13 +188,15 @@ abstract class HorizonAPI extends Horizon{
 				$user->finesVal = $finesVal;
 				$user->expires = ''; //TODO: Determine if we can get this
 				$user->expireClose = $expireClose;
-				$user->homeLocationCode = isset($homeBranchCode) ? trim($homeBranchCode) : '';
-				$user->homeLocationId = isset($location) ? $location->locationId : 0;
-				$user->homeLocation = isset($location) ? $location->displayName : '';
-				$user->myLocation1Id = ($user) ? $user->myLocation1Id : -1;
-				$user->myLocation1 = isset($myLocation1) ? $myLocation1->displayName : '';
-				$user->myLocation2Id = ($user) ? $user->myLocation2Id : -1;
-				$user->myLocation2 = isset($myLocation2) ? $myLocation2->displayName : '';
+
+				// This is set above when we have good location data
+//				$user->homeLocationCode = isset($homeBranchCode) ? trim($homeBranchCode) : '';
+//				$user->homeLocationId = isset($location) ? $location->locationId : 0;
+//				$user->homeLocation = isset($location) ? $location->displayName : '';
+//				$user->myLocation1Id = ($user) ? $user->myLocation1Id : -1;
+//				$user->myLocation1 = isset($myLocation1) ? $myLocation1->displayName : '';
+//				$user->myLocation2Id = ($user) ? $user->myLocation2Id : -1;
+//				$user->myLocation2 = isset($myLocation2) ? $myLocation2->displayName : '';
 				$user->numCheckedOutIls = isset($lookupMyAccountInfoResponse->ItemsOutInfo) ? count($lookupMyAccountInfoResponse->ItemsOutInfo) : 0;
 				$user->numHoldsIls = $numHoldsAvailable + $numHoldsRequested;
 				$user->numHoldsAvailableIls = $numHoldsAvailable;
