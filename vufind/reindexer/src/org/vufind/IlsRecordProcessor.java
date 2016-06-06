@@ -1040,7 +1040,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 
 			List<Subfield> subfields = itemField.getSubfields(subfieldIndicator);
 			if (subfields.size() == 1) {
-				return subfields.get(0).getData();
+				return subfields.get(0).getData().trim();
 			} else if (subfields.size() == 0) {
 				return null;
 			} else {
