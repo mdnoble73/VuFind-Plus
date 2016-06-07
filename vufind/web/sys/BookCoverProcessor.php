@@ -69,6 +69,10 @@ class BookCoverProcessor{
 			if ($this->getSideLoadedCover($this->type.':'.$this->id)) {
 				return;
 			}
+		} elseif (stripos($this->type, 'Zinio') !== false){
+			if ($this->getZinioCover($this->type.':'.$this->id)) {
+				return;
+			}
 		}
 		$this->log("Looking for cover from providers", PEAR_LOG_INFO);
 		if ($this->getCoverFromProvider()){
@@ -173,6 +177,28 @@ class BookCoverProcessor{
 			return false;
 		}
 	}
+
+        private function getZinioCover($sourceAndId) {
+                if (strpos($sourceAndId, ':') !== false){
+                        // Sideloaded Record requires both source & id
+
+                        require_once ROOT_DIR . '/RecordDrivers/SideLoadedRecord.php';
+                        $driver = new SideLoadedRecord($sourceAndId);
+                        if ($driver) {
+                                /** @var File_MARC_Data_Field[] $linkFields */
+                                $linkFields = $driver->getMarcRecord()->getFields('856');
+                                foreach ($linkFields as $linkField) {
+                                        // TODO: use additional field checks like in getCoverFromMarc() ?
+                                        if ($linkField->getIndicator(1) == 4 && $linkField->getSubfield('3') != NULL && $linkField->getSubfield('3')->getData() == 'Image') {
+                                                $coverUrl = $linkField->getSubfield('u')->getData();
+						$coverUrl = str_replace('size=200','size=lg',$coverUrl);
+                                                return $this->processImageURL($coverUrl, true);
+                                        }
+                                }
+                        }
+                }
+                return false;
+        }
 
 	private function initDatabaseConnection(){
 		// Setup Local Database Connection
@@ -1025,6 +1051,10 @@ class BookCoverProcessor{
 					}
 				} elseif (stripos($relatedRecord['source'], 'lynda') !== false){
 					if ($this->getSideLoadedCover($relatedRecord['id'])) {
+						return true;
+					}
+				} elseif (stripos($relatedRecord['source'], 'Zinio') !== false){
+					if ($this->getZinioCover($relatedRecord['id'])) {
 						return true;
 					}
 				}else{
