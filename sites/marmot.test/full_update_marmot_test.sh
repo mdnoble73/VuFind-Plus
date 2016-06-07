@@ -40,7 +40,8 @@ cd /usr/local/vufind-plus/sites/${PIKASERVER}; ./${PIKASERVER}.sh restart
 /root/cron/copySierraExport.sh >> ${OUTPUT_FILE}
 
 #Extract from Hoopla
-cd /usr/local/vufind-plus/vufind/cron;./HOOPLA.sh ${PIKASERVER} >> ${OUTPUT_FILE}
+#cd /usr/local/vufind-plus/vufind/cron;./HOOPLA.sh ${PIKASERVER} >> ${OUTPUT_FILE}
+# Grab manually from Nashville, after James does Marc Clean up work.  pascal 6-7-2016
 
 # Ebrary Marc Updates
 #TODO: refactor CCU's ebrary destination
