@@ -120,6 +120,7 @@ abstract class Archive_Object extends Action{
 		if (strlen($transcription)){
 			$transcriptionText = $this->recordDriver->getModsValue('transcriptionText', 'marmot', $transcription);
 			$transcriptionText = str_replace("\r\n", '<br/>', $transcriptionText);
+			$transcriptionText = str_replace("&#xD;", '<br/>', $transcriptionText);
 
 			//Add links to timestamps
 			$transcriptionTextWithLinks = $transcriptionText;
