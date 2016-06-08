@@ -44,7 +44,6 @@ public class GroupedWorkSolr implements Cloneable {
 	private String displayDescription = "";
 	private String displayDescriptionFormat = "";
 	private String displayTitle;
-	private String displayTitleFormat = "";
 	private Long earliestPublicationDate = null;
 	private HashSet<String> econtentDevices = new HashSet<>();
 	private HashSet<String> editions = new HashSet<>();
@@ -836,9 +835,9 @@ public class GroupedWorkSolr implements Cloneable {
 		this.id = id;
 	}
 
-	public void setTitle(String newTitle, String recordFormat) {
-		if (newTitle != null){
-			newTitle = Util.trimTrailingPunctuation(newTitle);
+	public void setTitle(String shortTitle, String displayTitle, String sortableTitle, String recordFormat) {
+		if (shortTitle != null){
+			shortTitle = Util.trimTrailingPunctuation(shortTitle);
 
 			//Figure out if we want to use this title or if the one we have is better.
 			boolean updateTitle = false;
@@ -851,7 +850,7 @@ public class GroupedWorkSolr implements Cloneable {
 					if (!recordFormat.equals(titleFormat)){
 						updateTitle = true;
 						//Or update if we had a book before and this title is longer
-					}else if (newTitle.length() > this.title.length()){
+					}else if (shortTitle.length() > this.title.length()){
 						updateTitle = true;
 					}
 				} else if (recordFormat.equals("eBook")){
@@ -861,101 +860,64 @@ public class GroupedWorkSolr implements Cloneable {
 						if (!recordFormat.equals(titleFormat)){
 							updateTitle = true;
 							//or update if we had a book before and this title is longer
-						}else if (newTitle.length() > this.title.length()){
+						}else if (shortTitle.length() > this.title.length()){
 							updateTitle = true;
 						}
 					}
 				} else if (!titleFormat.equals("Book") && !titleFormat.equals("eBook")){
 					//If we don't have a Book or an eBook then we can update the title if we get a longer title
-					if (newTitle.length() > this.title.length()) {
+					if (shortTitle.length() > this.title.length()) {
 						updateTitle = true;
 					}
 				}
 			}
 
 			if (updateTitle){
-				this.title = newTitle;
+				this.title = shortTitle;
 				this.titleFormat = recordFormat;
+				//Strip out anything in brackets unless that would cause us to show nothing
+				String tmpTitle = sortableTitle.replaceAll("\\[.*?\\]", "").trim();
+				if (tmpTitle.length() > 0){
+					sortableTitle = tmpTitle;
+				}
+				//Remove common formats
+				tmpTitle = sortableTitle.replaceAll("(?i)((?:a )?graphic novel|audio cd|book club kit)$", "").trim();
+				if (tmpTitle.length() > 0){
+					sortableTitle = tmpTitle;
+				}
+				//remove punctuation from the sortable title
+				sortableTitle = sortableTitle.replaceAll("[.\\\\/()\\[\\]:;]", "");
+				this.titleSort = sortableTitle.trim();
+				displayTitle = Util.trimTrailingPunctuation(displayTitle);
+				//Strip out anything in brackets unless that would cause us to show nothing
+				tmpTitle = displayTitle.replaceAll("\\[.*?\\]", "").trim();
+				if (tmpTitle.length() > 0){
+					displayTitle = tmpTitle;
+				}
+				//Remove common formats
+				tmpTitle = displayTitle.replaceAll("(?i)((?:a )?graphic novel|audio cd|book club kit)$", "").trim();
+				if (tmpTitle.length() > 0){
+					displayTitle = tmpTitle;
+				}
+				this.displayTitle = displayTitle.trim();
 			}
 
 			//Create an alternate title for searching by replacing ampersands with the word and.
-			String tmpTitle = newTitle.replace("&", " and ").replace("  ", " ");
-			if (!tmpTitle.equals(newTitle)){
-				this.titleAlt.add(tmpTitle);
+			String tmpTitle = shortTitle.replace("&", " and ").replace("  ", " ");
+			if (!tmpTitle.equals(shortTitle)){
+				this.titleAlt.add(shortTitle);
 				// alt title has multiple values
 			}
-			keywords.add(newTitle);
+			keywords.add(shortTitle);
 		}
 	}
 
-
-	public void setDisplayTitle(String newTitle, String recordFormat){
-		if (newTitle == null){
-			return;
-		}
-		//MDN 1/24/16 - not sure why this was replacing ampersands, but that functionality breaks other things.
-		//Especially S&P perhaps we could replace " & " with " and "?
-		//newTitle = Util.trimTrailingPunctuation(newTitle.replace("&", "and"));
-		newTitle = Util.trimTrailingPunctuation(newTitle);
-		//Strip out anything in brackets unless that would cause us to show nothing
-		String tmpTitle = newTitle.replaceAll("\\[.*?\\]", "").trim();
-		if (tmpTitle.length() > 0){
-			newTitle = tmpTitle;
-		}
-		//Remove common formats
-		tmpTitle = newTitle.replaceAll("(?i)((?:a )?graphic novel|audio cd|book club kit)$", "").trim();
-		if (tmpTitle.length() > 0){
-			newTitle = tmpTitle;
-		}
-
-		//Figure out if we want to use this title or if the one we have is better.
-		boolean updateTitle = false;
-		if (this.displayTitle == null){
-			updateTitle = true;
-		}else{
-			//Only overwrite if we get a better format
-			if (recordFormat.equals("Book")){
-				//We have a book, update if we didn't have a book before
-				if (!recordFormat.equals(displayTitleFormat)){
-					updateTitle = true;
-				//or update if we had a book before and this title is longer
-				}else if (newTitle.length() > this.displayTitle.length()){
-					updateTitle = true;
-				}
-			} else if (recordFormat.equals("eBook")){
-				//Update if the format we had before is not a book
-				if (!displayTitleFormat.equals("Book")){
-					//And the new format was not an eBook or the new title is longer than what we had before
-					if (!recordFormat.equals(displayTitleFormat)){
-						updateTitle = true;
-						//or update if we had a book before and this title is longer
-					}else if (newTitle.length() > this.displayTitle.length()){
-						updateTitle = true;
-					}
-				}
-			} else if (!displayTitleFormat.equals("Book") && !displayTitleFormat.equals("eBook")){
-				//If we don't have a Book or an eBook then we can update the title if we get a longer title
-				if (newTitle.length() > this.displayTitle.length()) {
-					updateTitle = true;
-				}
-			}
-		}
-		if (updateTitle){
-			this.displayTitle = newTitle;
-			this.displayTitleFormat = recordFormat;
-		}
-	}
 
 	public void setSubTitle(String subTitle) {
 		if (subTitle != null){
 			//TODO: determine if the subtitle should be changed?
 			this.subTitle = subTitle;
 			keywords.add(subTitle);
-		}
-	}
-	public void setSortableTitle(String sortableTitle) {
-		if (sortableTitle != null){
-			this.titleSort = sortableTitle;
 		}
 	}
 
