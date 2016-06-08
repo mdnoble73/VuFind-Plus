@@ -242,7 +242,7 @@ class FedoraUtils {
 	}
 
 	public function getModsAttribute($attribute, $snippet){
-		if (preg_match("/$attribute\\s*=\\s*\"(.*?)\"/s", $snippet, $matches)){
+		if (preg_match("/$attribute\\s*=\\s*[\"'](.*?)[\"']/s", $snippet, $matches)){
 			return $matches[1];
 		}
 	}
