@@ -10,7 +10,7 @@
 				<div class="coversColumn col-xs-3 col-sm-3 col-md-3 col-lg-2 text-center">
 					{if $user->disableCoverArt != 1}
 						<a href="{$summUrl}">
-							<img src="{$bookCoverUrlMedium}" class="listResultImage img-thumbnail{* img-responsive // shouldn't be needed *}" alt="{translate text='Cover Image'}">
+							<img src="{$bookCoverUrlMedium}" class="listResultImage img-thumbnail" alt="{translate text='Cover Image'}">
 						</a>
 					{/if}
 
@@ -53,68 +53,97 @@
 					</div>
 				{/if}
 
-				{assign var=indexedSeries value=$recordDriver->getIndexedSeries()}
-				{if $summSeries || $indexedSeries}
-					<div class="series{$summISBN} row">
-						<div class="result-label col-tn-3 col-xs-3">Series: </div>
-						<div class="result-value col-tn-9 col-xs-9">
-							{if $summSeries}
-								<a href="{$path}/GroupedWork/{$summId}/Series">{$summSeries.seriesTitle}</a>{if $summSeries.volume} volume {$summSeries.volume}{/if}<br>
-							{/if}
-							{if $indexedSeries}
-								{assign var=showMoreSeries value=false}
-								{if count($indexedSeries) > 4}
-									{assign var=showMoreSeries value=true}
+				{if $showSeries}
+					{assign var=indexedSeries value=$recordDriver->getIndexedSeries()}
+					{if $summSeries || $indexedSeries}
+						<div class="series{$summISBN} row">
+							<div class="result-label col-tn-3 col-xs-3">Series: </div>
+							<div class="result-value col-tn-9 col-xs-9">
+								{if $summSeries}
+									<a href="{$path}/GroupedWork/{$summId}/Series">{$summSeries.seriesTitle}</a>{if $summSeries.volume} volume {$summSeries.volume}{/if}<br>
 								{/if}
-								{foreach from=$indexedSeries item=seriesItem name=loop}
-									<a href="{$path}/Search/Results?basicType=Series&lookfor=%22{$seriesItem.seriesTitle|removeTrailingPunctuation|escape:"url"}%22">{$seriesItem.seriesTitle|removeTrailingPunctuation|escape}</a>{if $seriesItem.volume} volume {$seriesItem.volume}{/if}<br>
-									{if $showMoreSeries && $smarty.foreach.loop.iteration == 3}
-										<a onclick="$('#moreSeries_{$summId}').show();$('#moreSeriesLink_{$summId}').hide();" id="moreSeriesLink_{$summId}">More Series...</a>
-										<div id="moreSeries_{$summId}" style="display:none">
+								{if $indexedSeries}
+									{assign var=showMoreSeries value=false}
+									{if count($indexedSeries) > 4}
+										{assign var=showMoreSeries value=true}
 									{/if}
-								{/foreach}
-								{if $showMoreSeries}
-									</div>
+									{foreach from=$indexedSeries item=seriesItem name=loop}
+										<a href="{$path}/Search/Results?basicType=Series&lookfor=%22{$seriesItem.seriesTitle|removeTrailingPunctuation|escape:"url"}%22">{$seriesItem.seriesTitle|removeTrailingPunctuation|escape}</a>{if $seriesItem.volume} volume {$seriesItem.volume}{/if}<br>
+										{if $showMoreSeries && $smarty.foreach.loop.iteration == 3}
+											<a onclick="$('#moreSeries_{$summId}').show();$('#moreSeriesLink_{$summId}').hide();" id="moreSeriesLink_{$summId}">More Series...</a>
+											<div id="moreSeries_{$summId}" style="display:none">
+										{/if}
+									{/foreach}
+									{if $showMoreSeries}
+										</div>
+									{/if}
 								{/if}
+							</div>
+						</div>
+					{/if}
+				{/if}
+
+				{if $showPublisher}
+				{if $alwaysShowSearchResultsMainDetails || $summPublisher}
+					<div class="row">
+						<div class="result-label col-tn-3 col-xs-3">Publisher: </div>
+						<div class="result-value col-tn-9 col-xs-9">
+							{if $summPublisher}
+								{$summPublisher}
+							{elseif $alwaysShowSearchResultsMainDetails}
+								{translate text="Not Supplied"}
 							{/if}
 						</div>
 					</div>
 				{/if}
-
-				{if $summEdition}
-					<div class="row">
-						<div class="result-label col-tn-3 col-xs-3">Edition: </div>
-						<div class="result-value col-tn-9 col-xs-9">
-							{$summEdition}
-						</div>
-					</div>
 				{/if}
 
+				{if $showPublicationDate}
+					{if $alwaysShowSearchResultsMainDetails || $summPubDate}
+						<div class="row">
+							<div class="result-label col-tn-3 col-xs-3">Pub. Date: </div>
+							<div class="result-value col-tn-9 col-xs-9">
+								{if $summPubDate}
+									{$summPubDate|escape}
+								{elseif $alwaysShowSearchResultsMainDetails}
+									{translate text="Not Supplied"}
+								{/if}
+							</div>
+						</div>
+					{/if}
+				{/if}
 
-				<div class="row">
-					<div class="result-label col-tn-3 col-xs-3">Publisher: </div>
-					<div class="result-value col-tn-9 col-xs-9">
-						{if $summPublisher}
-							{$summPublisher}
-						{else}
-							Varies, see individual formats and editions
-						{/if}
-					</div>
-				</div>
+				{if $showEditions}
+					{if $alwaysShowSearchResultsMainDetails || $summEdition}
+						<div class="row">
+							<div class="result-label col-tn-3 col-xs-3">Edition: </div>
+							<div class="result-value col-tn-9 col-xs-9">
+								{if $summEdition}
+									{$summEdition}
+								{elseif $alwaysShowSearchResultsMainDetails}
+									{translate text="Not Supplied"}
+								{/if}
+							</div>
+						</div>
+					{/if}
+				{/if}
 
+				{if $showPhysicalDescriptions}
+					{if $alwaysShowSearchResultsMainDetails || $summPhysicalDesc}
+						<div class="row">
+							<div class="result-label col-tn-3 col-xs-3">{translate text='Physical Desc'}: </div>
+							<div class="result-value col-tn-9 col-xs-9">
+								{if $summPhysicalDesc}
+									{$summPhysicalDesc}
+								{elseif $alwaysShowSearchResultsMainDetails}
+									{translate text="Not Supplied"}
+								{/if}
+							</div>
+						</div>
+					{/if}
+				{/if}
 
-				<div class="row">
-					<div class="result-label col-tn-3 col-xs-3">Pub. Date: </div>
-					<div class="result-value col-tn-9 col-xs-9">
-						{if $summPubDate}
-							{$summPubDate|escape}
-						{else}
-							Varies, see individual formats and editions
-						{/if}
-					</div>
-				</div>
-
-				{if $summLanguage}
+				{if $showLangauges && $summLanguage}
 					<div class="row">
 						<div class="result-label col-tn-3 col-xs-3">Language: </div>
 						<div class="result-value col-tn-9 col-xs-9">

@@ -29,11 +29,22 @@ var VuFind = (function(){
 					$(this).removeClass('active');
 				});
 
+		$(window).on("popstate", function () {
+			// if the state is the page you expect, pull the name and load it.
+			if (history.state && history.state.page === "MapExhibit") {
+				VuFind.Archive.handleMapClick(history.state.marker, history.state.exhibitPid, history.state.placePid, history.state.label);
+			}
+		});
 	});
 	/**
 	 * Created by mark on 1/14/14.
 	 */
 	return {
+		buildUrl: function(base, key, value) {
+			var sep = (base.indexOf('?') > -1) ? '&' : '?';
+			return base + sep + key + '=' + value;
+		},
+
 		changePageSize: function(){
 			var url = window.location.href;
 			if (url.match(/[&?]pagesize=\d+/)) {
@@ -115,8 +126,12 @@ var VuFind = (function(){
 				Carousel.jcarousel('items').css('width', Math.floor(width) + 'px');// Set Width
 
 				//console.log(Carousel, 'num to show', numItemsToShow, 'width', width);
+				if (numItemsToShow >= numCategories){
+					$('.jcarousel-control-prev', wrapper).hide();
+					$('.jcarousel-control-next', wrapper).hide();
+				}
 
-					})
+			})
 			.jcarousel({
 				wrap: 'circular'
 			});
@@ -313,14 +328,18 @@ var VuFind = (function(){
 			return false;
 		},
 
-		showElementInPopup: function(title, elementId){
+		showElementInPopup: function(title, elementId, buttonsElementId){
+			// buttonsElementId is optional
 			var modalDialog = $("#modalDialog");
 			if (modalDialog.is(":visible")){
 				VuFind.closeLightbox(function(){VuFind.showElementInPopup(title, elementId)});
 			}else{
 				$(".modal-title").html(title);
-				var elementText = $(elementId).html();
+				var elementText = $(elementId).html(),
+						elementButtons = buttonsElementId ? $(buttonsElementId).html() : '';
 				$(".modal-body").html(elementText);
+				$('.modal-buttons').html(elementButtons);
+
 				modalDialog.modal('show');
 				return false;
 			}

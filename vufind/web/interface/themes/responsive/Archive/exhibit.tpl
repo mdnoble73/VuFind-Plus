@@ -19,7 +19,7 @@
 
 	<div class="clear-both"></div>
 
-	<div class="related-exhibit-images {if count($relatedImages) >= 18}results-covers home-page-browse-thumbnails{else}browse-thumbnails-few{/if}">
+	<div id="related-exhibit-images" class="{if count($relatedImages) >= 18}results-covers home-page-browse-thumbnails{else}browse-thumbnails-few{/if}">
 		{foreach from=$relatedImages item=image}
 			<figure class="browse-thumbnail">
 				<a href="{$image.link}" {if $image.title}data-title="{$image.title}"{/if}>
@@ -60,3 +60,8 @@
 	{/if}
 </div>
 {/strip}
+<script type="text/javascript">
+	$().ready(function(){ldelim}
+		VuFind.Archive.loadExploreMore('{$pid|urlencode}');
+		{rdelim});
+</script>

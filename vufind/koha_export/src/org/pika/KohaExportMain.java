@@ -327,7 +327,7 @@ public class KohaExportMain {
 					writer.write(marcRecord);
 					writer.close();
 				} else {
-					logger.warn("Could not read marc record for " + curBibId);
+					logger.info("Could not read marc record for " + curBibId + " the bib was empty");
 				}
 			}else{
 				logger.debug("Marc Record does not exist for " + curBibId + " it is not part of the main extract yet.");

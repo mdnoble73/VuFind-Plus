@@ -16,6 +16,10 @@ $configArray = readConfig();
 require_once ROOT_DIR . '/sys/Timer.php';
 global $timer;
 $timer = new Timer($startTime);
+require_once ROOT_DIR . '/sys/MemoryWatcher.php';
+global $memoryWatcher;
+$memoryWatcher = new MemoryWatcher();
+
 global $logger;
 $logger = new Logger();
 $timer->logTime("Read Config");

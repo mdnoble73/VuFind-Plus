@@ -44,7 +44,7 @@ class PTypes extends ObjectEditor
 			$library->orderBy('pType');
 			$library->find();
 			while ($library->fetch()){
-				$libraryList[$library->pType] = clone $library;
+				$libraryList[$library->id] = clone $library;
 			}
 		}
 
@@ -57,7 +57,7 @@ class PTypes extends ObjectEditor
 		return 'pType';
 	}
 	function getIdKeyColumn(){
-		return 'pType';
+		return 'id';
 	}
 	function getAllowableRoles(){
 		return array('opacAdmin');

@@ -40,7 +40,9 @@ cd /usr/local/vufind-plus/sites/${PIKASERVER}; ./${PIKASERVER}.sh restart
 /root/cron/copySierraExport.sh >> ${OUTPUT_FILE}
 
 #Extract from Hoopla
-cd /usr/local/vufind-plus/vufind/cron;./HOOPLA.sh ${PIKASERVER} >> ${OUTPUT_FILE}
+#cd /usr/local/vufind-plus/vufind/cron;./HOOPLA.sh ${PIKASERVER} >> ${OUTPUT_FILE}
+cd /usr/local/vufind-plus/vufind/cron;./GetHooplaFromMarmot.sh >> ${OUTPUT_FILE}
+# Grab cleaned, updated marc files from venus after they have been retrieved from Nashville
 
 # Ebrary Marc Updates
 #TODO: refactor CCU's ebrary destination
@@ -58,6 +60,11 @@ cd /usr/local/vufind-plus/vufind/cron;./HOOPLA.sh ${PIKASERVER} >> ${OUTPUT_FILE
 
 # Colorado State Gov Docs Marc Updates
 /usr/local/vufind-plus/sites/opac.marmot.org/moveFullExport.sh cologovdocs colorado_gov_docs >> ${OUTPUT_FILE}
+
+#Lynda.com Marc Updates
+# (EVLD, Vail)
+#Extracts for sideloaded eContent; settings defined in config.pwd.ini [Sideload]
+cd /usr/local/vufind-plus/vufind/cron; ./sideload.sh ${PIKASERVER}
 
 
 #Extract Lexile Data

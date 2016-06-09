@@ -63,9 +63,12 @@ class MarcLoader{
 			}
 		}
 		//Make sure not to use to much memory
+		global $memoryWatcher;
 		if (count(MarcLoader::$loadedMarcRecords) > 50){
 			array_shift(MarcLoader::$loadedMarcRecords);
+			$memoryWatcher->logMemory("Removed Cached MARC");
 		}
+		$memoryWatcher->logMemory("Loaded MARC for $id");
 		MarcLoader::$loadedMarcRecords[$id] = $marcRecord;
 		return $marcRecord;
 	}
@@ -145,10 +148,13 @@ class MarcLoader{
 			}
 		}
 		//Make sure not to use to much memory
+		global $memoryWatcher;
 		if (count(MarcLoader::$loadedMarcRecords) > 50){
 			array_shift(MarcLoader::$loadedMarcRecords);
+			$memoryWatcher->logMemory("Removed cached MARC for Hoopla");
 		}
 		MarcLoader::$loadedMarcRecords[$id] = $marcRecord;
+		$memoryWatcher->logMemory("Loaded MARC for Hoopla record $id");
 		return $marcRecord;
 	}
 }

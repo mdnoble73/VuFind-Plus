@@ -55,7 +55,7 @@ class MyAccount_CheckedOut extends MyAccount{
 				$interface->assign('libraryHoursMessage', $libraryHoursMessage);
 			}
 
-			if ($user){
+			if ($user) {
 				// Get My Transactions
 				$allCheckedOut = $user->getMyCheckouts();
 
@@ -65,58 +65,58 @@ class MyAccount_CheckedOut extends MyAccount{
 				foreach ($allCheckedOut as $i => $curTitle) {
 					$curTransaction++;
 					$sortTitle = isset($curTitle['title_sort']) ? $curTitle['title_sort'] : $curTitle['title'];
-					$sortKey = $sortTitle;
-					if ($selectedSortOption == 'title'){
+					$sortKey   = $sortTitle;
+					if ($selectedSortOption == 'title') {
 						$sortKey = $sortTitle;
-					}elseif ($selectedSortOption == 'author'){
+					} elseif ($selectedSortOption == 'author') {
 						$sortKey = (isset($curTitle['author']) ? $curTitle['author'] : "Unknown") . '-' . $sortTitle;
-					}elseif ($selectedSortOption == 'dueDate'){
-						if (isset($curTitle['dueDate'])){
+					} elseif ($selectedSortOption == 'dueDate') {
+						if (isset($curTitle['dueDate'])) {
 							if (preg_match('/.*?(\\d{1,2})[-\/](\\d{1,2})[-\/](\\d{2,4}).*/', $curTitle['dueDate'], $matches)) {
 								$sortKey = $matches[3] . '-' . $matches[1] . '-' . $matches[2] . '-' . $sortTitle;
 							} else {
 								$sortKey = $curTitle['dueDate'] . '-' . $sortTitle;
 							}
 						}
-					}elseif ($selectedSortOption == 'format'){
+					} elseif ($selectedSortOption == 'format') {
 						$sortKey = (isset($curTitle['format']) ? $curTitle['format'] : "Unknown") . '-' . $sortTitle;
-					}elseif ($selectedSortOption == 'renewed'){
+					} elseif ($selectedSortOption == 'renewed') {
 						$sortKey = str_pad((isset($curTitle['renewCount']) ? $curTitle['renewCount'] : 0), 3, '0', STR_PAD_LEFT) . '-' . $sortTitle;
-					}elseif ($selectedSortOption == 'holdQueueLength'){
+					} elseif ($selectedSortOption == 'holdQueueLength') {
 						$sortKey = str_pad((isset($curTitle['holdQueueLength']) ? $curTitle['holdQueueLength'] : 0), 3, '0', STR_PAD_LEFT) . '-' . $sortTitle;
 					}
-					$sortKey = utf8_encode($sortKey. '-' . $curTransaction);
+					$sortKey = utf8_encode($sortKey . '-' . $curTransaction);
 
 					$itemBarcode = isset($curTitle['barcode']) ? $curTitle['barcode'] : null;
-					$itemId = isset($curTitle['itemid']) ? $curTitle['itemid'] : null;
-					if ($itemBarcode != null && isset($_SESSION['renew_message'][$itemBarcode])){
-						$renewMessage = $_SESSION['renew_message'][$itemBarcode]['message'];
-						$renewResult = $_SESSION['renew_message'][$itemBarcode]['success'];
+					$itemId      = isset($curTitle['itemid']) ? $curTitle['itemid'] : null;
+					if ($itemBarcode != null && isset($_SESSION['renew_message'][$itemBarcode])) {
+						$renewMessage             = $_SESSION['renew_message'][$itemBarcode]['message'];
+						$renewResult              = $_SESSION['renew_message'][$itemBarcode]['success'];
 						$curTitle['renewMessage'] = $renewMessage;
 						$curTitle['renewResult']  = $renewResult;
-						$allCheckedOut[$sortKey] = $curTitle;
+						$allCheckedOut[$sortKey]  = $curTitle;
 						unset($_SESSION['renew_message'][$itemBarcode]);
 						//$logger->log("Found renewal message in session for $itemBarcode", PEAR_LOG_INFO);
-					}else if ($itemId != null && isset($_SESSION['renew_message'][$itemId])){
-						$renewMessage = $_SESSION['renew_message'][$itemId]['message'];
-						$renewResult = $_SESSION['renew_message'][$itemId]['success'];
+					} else if ($itemId != null && isset($_SESSION['renew_message'][$itemId])) {
+						$renewMessage             = $_SESSION['renew_message'][$itemId]['message'];
+						$renewResult              = $_SESSION['renew_message'][$itemId]['success'];
 						$curTitle['renewMessage'] = $renewMessage;
 						$curTitle['renewResult']  = $renewResult;
-						$allCheckedOut[$sortKey] = $curTitle;
+						$allCheckedOut[$sortKey]  = $curTitle;
 						unset($_SESSION['renew_message'][$itemId]);
 						//$logger->log("Found renewal message in session for $itemBarcode", PEAR_LOG_INFO);
-					}else{
+					} else {
 						$allCheckedOut[$sortKey] = $curTitle;
-						$renewMessage = null;
-						$renewResult = null;
+						$renewMessage            = null;
+						$renewResult             = null;
 					}
 					unset($allCheckedOut[$i]);
 				}
 
 				//Now that we have all the transactions we can sort them
-				if ($selectedSortOption == 'renewed' || $selectedSortOption == 'holdQueueLength'){
+				if ($selectedSortOption == 'renewed' || $selectedSortOption == 'holdQueueLength') {
 					krsort($allCheckedOut);
-				}else{
+				} else {
 					ksort($allCheckedOut);
 				}
 

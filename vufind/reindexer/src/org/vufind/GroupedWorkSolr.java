@@ -89,6 +89,7 @@ public class GroupedWorkSolr implements Cloneable {
 	private HashSet<String> titleOld = new HashSet<>();
 	private HashSet<String> titleNew = new HashSet<>();
 	private String titleSort;
+	private String titleFormat = "";
 	private HashSet<String> topics = new HashSet<>();
 	private HashSet<String> topicFacets = new HashSet<>();
 	private HashSet<String> subjects = new HashSet<>();
@@ -234,6 +235,7 @@ public class GroupedWorkSolr implements Cloneable {
 		doc.addField("literary_form", literaryForm.keySet());
 		checkDefaultValue(targetAudienceFull, "Unknown");
 		checkDefaultValue(targetAudienceFull, "Other");
+		checkDefaultValue(targetAudienceFull, "No Attempt To Code");
 		doc.addField("target_audience_full", targetAudienceFull);
 		checkDefaultValue(targetAudience, "Unknown");
 		checkDefaultValue(targetAudience, "Other");
@@ -833,55 +835,89 @@ public class GroupedWorkSolr implements Cloneable {
 		this.id = id;
 	}
 
-	public void setTitle(String title) {
-		if (title != null){
-			title = Util.trimTrailingPunctuation(title);
-			//TODO: determine if the title should be changed or always use the first one?
+	public void setTitle(String shortTitle, String displayTitle, String sortableTitle, String recordFormat) {
+		if (shortTitle != null){
+			shortTitle = Util.trimTrailingPunctuation(shortTitle);
+
+			//Figure out if we want to use this title or if the one we have is better.
+			boolean updateTitle = false;
 			if (this.title == null){
-				this.title = title;
+				updateTitle = true;
+			} else {
+				//Only overwrite if we get a better format
+				if (recordFormat.equals("Book")){
+					//We have a book, update if we didn't have a book before
+					if (!recordFormat.equals(titleFormat)){
+						updateTitle = true;
+						//Or update if we had a book before and this title is longer
+					}else if (shortTitle.length() > this.title.length()){
+						updateTitle = true;
+					}
+				} else if (recordFormat.equals("eBook")){
+					//Update if the format we had before is not a book
+					if (!titleFormat.equals("Book")){
+						//And the new format was not an eBook or the new title is longer than what we had before
+						if (!recordFormat.equals(titleFormat)){
+							updateTitle = true;
+							//or update if we had a book before and this title is longer
+						}else if (shortTitle.length() > this.title.length()){
+							updateTitle = true;
+						}
+					}
+				} else if (!titleFormat.equals("Book") && !titleFormat.equals("eBook")){
+					//If we don't have a Book or an eBook then we can update the title if we get a longer title
+					if (shortTitle.length() > this.title.length()) {
+						updateTitle = true;
+					}
+				}
 			}
-			String tmpTitle = title.replace("&", " and ").replace("  ", " ");
-			if (!tmpTitle.equals(title)){
-				this.titleAlt.add(tmpTitle);
+
+			if (updateTitle){
+				this.title = shortTitle;
+				this.titleFormat = recordFormat;
+				//Strip out anything in brackets unless that would cause us to show nothing
+				String tmpTitle = sortableTitle.replaceAll("\\[.*?\\]", "").trim();
+				if (tmpTitle.length() > 0){
+					sortableTitle = tmpTitle;
+				}
+				//Remove common formats
+				tmpTitle = sortableTitle.replaceAll("(?i)((?:a )?graphic novel|audio cd|book club kit)$", "").trim();
+				if (tmpTitle.length() > 0){
+					sortableTitle = tmpTitle;
+				}
+				//remove punctuation from the sortable title
+				sortableTitle = sortableTitle.replaceAll("[.\\\\/()\\[\\]:;]", "");
+				this.titleSort = sortableTitle.trim();
+				displayTitle = Util.trimTrailingPunctuation(displayTitle);
+				//Strip out anything in brackets unless that would cause us to show nothing
+				tmpTitle = displayTitle.replaceAll("\\[.*?\\]", "").trim();
+				if (tmpTitle.length() > 0){
+					displayTitle = tmpTitle;
+				}
+				//Remove common formats
+				tmpTitle = displayTitle.replaceAll("(?i)((?:a )?graphic novel|audio cd|book club kit)$", "").trim();
+				if (tmpTitle.length() > 0){
+					displayTitle = tmpTitle;
+				}
+				this.displayTitle = displayTitle.trim();
 			}
-			keywords.add(title);
+
+			//Create an alternate title for searching by replacing ampersands with the word and.
+			String tmpTitle = shortTitle.replace("&", " and ").replace("  ", " ");
+			if (!tmpTitle.equals(shortTitle)){
+				this.titleAlt.add(shortTitle);
+				// alt title has multiple values
+			}
+			keywords.add(shortTitle);
 		}
 	}
 
-	public void setDisplayTitle(String newTitle){
-		if (newTitle == null){
-			return;
-		}
-		//MDN 1/24/16 - not sure why this was replacing ampersands, but that functionality breaks other things.
-		//Especially S&P perhaps we could replace " & " with " and "?
-		//newTitle = Util.trimTrailingPunctuation(newTitle.replace("&", "and"));
-		newTitle = Util.trimTrailingPunctuation(newTitle);
-		//Strip out anything in brackets unless that would cause us to show nothing
-		String tmpTitle = newTitle.replaceAll("\\[.*?\\]", "").trim();
-		if (tmpTitle.length() > 0){
-			newTitle = tmpTitle;
-		}
-		//Remove common formats
-		tmpTitle = newTitle.replaceAll("(?i)((?:a )?graphic novel|audio cd|book club kit)$", "").trim();
-		if (tmpTitle.length() > 0){
-			newTitle = tmpTitle;
-		}
-
-		if (this.displayTitle == null || newTitle.length() > this.displayTitle.length()){
-			this.displayTitle = newTitle;
-		}
-	}
 
 	public void setSubTitle(String subTitle) {
 		if (subTitle != null){
 			//TODO: determine if the subtitle should be changed?
 			this.subTitle = subTitle;
 			keywords.add(subTitle);
-		}
-	}
-	public void setSortableTitle(String sortableTitle) {
-		if (sortableTitle != null){
-			this.titleSort = sortableTitle;
 		}
 	}
 
@@ -1315,22 +1351,40 @@ public class GroupedWorkSolr implements Cloneable {
 			return;
 		}
 		this.description.add(description);
-		if (this.displayDescription.length() == 0){
-			this.displayDescription = description;
-			this.displayDescriptionFormat = recordFormat;
-		}else{
+		boolean updateDescription = false;
+		if (this.displayDescription == null){
+			updateDescription = true;
+		}else {
 			//Only overwrite if we get a better format
-			if (recordFormat.equals("Book") || recordFormat.equals("eBook") || recordFormat.equals(displayDescriptionFormat) ){
-				if (description.length() > this.displayDescription.length()){
-					this.displayDescription = description;
-					this.displayDescriptionFormat = recordFormat;
+			if (recordFormat.equals("Book")) {
+				//We have a book, update if we didn't have a book before
+				if (!recordFormat.equals(displayDescriptionFormat)) {
+					updateDescription = true;
+					//or update if we had a book before and this Description is longer
+				} else if (description.length() > this.displayDescription.length()) {
+					updateDescription = true;
 				}
-			} else if (!displayDescriptionFormat.equals("Book") && !displayDescriptionFormat.equals("eBook")){
+			} else if (recordFormat.equals("eBook")) {
+				//Update if the format we had before is not a book
+				if (!displayDescriptionFormat.equals("Book")) {
+					//And the new format was not an eBook or the new Description is longer than what we had before
+					if (!recordFormat.equals(displayDescriptionFormat)) {
+						updateDescription = true;
+						//or update if we had a book before and this Description is longer
+					} else if (description.length() > this.displayDescription.length()) {
+						updateDescription = true;
+					}
+				}
+			} else if (!displayDescriptionFormat.equals("Book") && !displayDescriptionFormat.equals("eBook")) {
+				//If we don't have a Book or an eBook then we can update the Description if we get a longer Description
 				if (description.length() > this.displayDescription.length()) {
-					this.displayDescription = description;
-					this.displayDescriptionFormat = recordFormat;
+					updateDescription = true;
 				}
 			}
+		}
+		if (updateDescription){
+			this.displayDescription = description;
+			this.displayDescriptionFormat = recordFormat;
 		}
 	}
 

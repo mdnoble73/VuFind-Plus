@@ -12,7 +12,7 @@
 # 20150130: Grab Hoopla marc records for Pika. Read Hoopla ftp user and password from ... site/[site]/config/config.pwd.ini
 
 if [[ $# -ne 1 ]]; then
-	echo "Please provide site directory, e.g., ./HOOPLA.sh opac.marmot.org"
+	echo "Please provide site directory, e.g., ${0} opac.marmot.org"
 	exit
 fi
 

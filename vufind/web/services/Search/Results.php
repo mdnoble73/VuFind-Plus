@@ -33,6 +33,7 @@ class Search_Results extends Action {
 		global $interface;
 		global $configArray;
 		global $timer;
+		global $memoryWatcher;
 		global $analytics;
 		global $library;
 
@@ -58,10 +59,18 @@ class Search_Results extends Action {
 			}
 		}
 
+		// Set Show in Search Results Main Details Section options for template
+		// (needs to be set before moreDetailsOptions)
+		global $library;
+		foreach ($library->showInSearchResultsMainDetails as $detailoption) {
+			$interface->assign($detailoption, true);
+		}
+
 
 		// Include Search Engine Class
 		require_once ROOT_DIR . '/sys/Solr.php';
 		$timer->logTime('Include search engine');
+		$memoryWatcher->logMemory('Include search engine');
 
 		//Check to see if the year has been set and if so, convert to a filter and resend.
 		$dateFilters = array('publishDate');
@@ -161,6 +170,7 @@ class Search_Results extends Action {
 		$searchObject->init($searchSource);
 		$searchObject->setPrimarySearch(true);
 		$timer->logTime("Init Search Object");
+		$memoryWatcher->logMemory("Init Search Object");
 //		$searchObject->viewOptions = $this->viewOptions; // set valid view options for the search object
 
 		// Build RSS Feed for Results (if requested)
@@ -205,6 +215,7 @@ class Search_Results extends Action {
 			PEAR_Singleton::raiseError($result->getMessage());
 		}
 		$timer->logTime('Process Search');
+		$memoryWatcher->logMemory('Process Search');
 
 		// Some more variables
 		//   Those we can construct AFTER the search is executed, but we need
@@ -253,8 +264,6 @@ class Search_Results extends Action {
 			$interface->assign('showProspectorLink', false);
 		}
 		$interface->assign('showRatings', $showRatings);
-
-		$numUnscopedTitlesToLoad = 0;
 
 		// Save the ID of this search to the session so we can return to it easily:
 		$_SESSION['lastSearchId'] = $searchObject->getSearchId();
@@ -363,8 +372,6 @@ class Search_Results extends Action {
 				}
 			}
 
-			// Set up to try an Unscoped Search //
-			$numUnscopedTitlesToLoad = 10;
 			$timer->logTime('no hits processing');
 
 		}
@@ -392,9 +399,11 @@ class Search_Results extends Action {
 			$interface->assign('recordCount', $summary['resultTotal']);
 			$interface->assign('recordStart', $summary['startRecord']);
 			$interface->assign('recordEnd',   $summary['endRecord']);
+			$memoryWatcher->logMemory('Get Result Summary');
 
 			$facetSet = $searchObject->getFacetList();
 			$interface->assign('facetSet', $facetSet);
+			$memoryWatcher->logMemory('Get Facet List');
 
 			//Check to see if a format category is already set
 			$categorySelected = false;
@@ -444,6 +453,7 @@ class Search_Results extends Action {
 		$recordSet = $searchObject->getResultRecordHTML($displayMode);
 		$interface->assign('recordSet', $recordSet);
 		$timer->logTime('load result records');
+		$memoryWatcher->logMemory('load result records');
 
 		//Load explore more data
 		require_once ROOT_DIR . '/sys/ExploreMore.php';

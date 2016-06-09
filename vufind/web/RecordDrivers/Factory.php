@@ -39,22 +39,71 @@ class RecordDriverFactory {
 	static function initRecordDriver($record)
 	{
 		global $configArray;
+		global $timer;
 
 		// Determine driver path based on record type:
 		if (is_object($record) && $record instanceof AbstractFedoraObject){
-			foreach ($record->models as $model){
-				$recordType = $model;
+			require_once ROOT_DIR . '/sys/Islandora/IslandoraObjectCache.php';
+			$islandoraObjectCache = new IslandoraObjectCache();
+			$islandoraObjectCache->pid = $record->id;
+			if ($islandoraObjectCache->find(true)){
+				$driver = $islandoraObjectCache->driverName;
+				$path = $islandoraObjectCache->driverPath;
+			}else{
+				$models = $record->models;
+				$timer->logTime("Loaded models for object");
+				foreach ($models as $model){
+					$recordType = $model;
+					//Get rid of islandora namespace information
+					$recordType = str_replace(array(
+							'info:fedora/islandora:', 'sp_', 'sp-', '_cmodel', 'CModel','islandora:',
+					), '', $recordType);
+
+					$driverNameParts = explode('_', $recordType);
+					$normalizedRecordType = '';
+					foreach ($driverNameParts as $driverPart){
+						$normalizedRecordType .= (ucfirst($driverPart));
+					}
+					$driver = $normalizedRecordType . 'Driver' ;
+					$path = "{$configArray['Site']['local']}/RecordDrivers/{$driver}.php";
+
+					// If we can't load the driver, fall back to the default, index-based one:
+					if (!is_readable($path)) {
+						//print_r($record);
+						PEAR_Singleton::raiseError('Unable to load Driver for ' . $recordType . " ($normalizedRecordType)");
+					}else{
+						$islandoraObjectCache = new IslandoraObjectCache();
+						$islandoraObjectCache->pid = $record->id;
+						$islandoraObjectCache->driverName = $driver;
+						$islandoraObjectCache->driverPath = $path;
+						$islandoraObjectCache->title = $record->label;
+						$islandoraObjectCache->insert();
+						break;
+					}
+				}
+				$timer->logTime('Found Driver for archive object ' . $driver);
+			}
+
+		}elseif (is_array($record) && !array_key_exists('recordtype', $record)){
+			require_once ROOT_DIR . '/sys/Islandora/IslandoraObjectCache.php';
+			$islandoraObjectCache = new IslandoraObjectCache();
+			$islandoraObjectCache->pid = $record['PID'];
+			if ($islandoraObjectCache->find(true)){
+				$driver = $islandoraObjectCache->driverName;
+				$path = $islandoraObjectCache->driverPath;
+			}else {
+				$recordType = $record['RELS_EXT_hasModel_uri_s'];
 				//Get rid of islandora namespace information
 				$recordType = str_replace(array(
-						'info:fedora/islandora:', 'sp_', 'sp-', '_cmodel', 'CModel','islandora:',
+						'info:fedora/islandora:', 'sp_', 'sp-', '_cmodel', 'CModel',
 				), '', $recordType);
 
 				$driverNameParts = explode('_', $recordType);
 				$normalizedRecordType = '';
-				foreach ($driverNameParts as $driverPart){
+				foreach ($driverNameParts as $driverPart) {
 					$normalizedRecordType .= (ucfirst($driverPart));
 				}
-				$driver = $normalizedRecordType . 'Driver' ;
+				$driver = $normalizedRecordType . 'Driver';
 				$path = "{$configArray['Site']['local']}/RecordDrivers/{$driver}.php";
 
 				// If we can't load the driver, fall back to the default, index-based one:
@@ -62,29 +111,15 @@ class RecordDriverFactory {
 					//print_r($record);
 					PEAR_Singleton::raiseError('Unable to load Driver for ' . $recordType . " ($normalizedRecordType)");
 				}else{
-					break;
+					$islandoraObjectCache = new IslandoraObjectCache();
+					$islandoraObjectCache->pid = $record['PID'];
+					$islandoraObjectCache->driverName = $driver;
+					$islandoraObjectCache->driverPath = $path;
+					$islandoraObjectCache->title = $record['fgs_label_s'];
+					$islandoraObjectCache->insert();
 				}
 			}
-		}elseif (is_array($record) && !array_key_exists('recordtype', $record)){
-			$recordType = $record['RELS_EXT_hasModel_uri_s'];
-			//Get rid of islandora namespace information
-			$recordType = str_replace(array(
-					'info:fedora/islandora:', 'sp_', 'sp-', '_cmodel', 'CModel',
-				), '', $recordType);
-
-			$driverNameParts = explode('_', $recordType);
-			$normalizedRecordType = '';
-			foreach ($driverNameParts as $driverPart){
-				$normalizedRecordType .= (ucfirst($driverPart));
-			}
-			$driver = $normalizedRecordType . 'Driver' ;
-			$path = "{$configArray['Site']['local']}/RecordDrivers/{$driver}.php";
-
-			// If we can't load the driver, fall back to the default, index-based one:
-			if (!is_readable($path)) {
-				//print_r($record);
-				PEAR_Singleton::raiseError('Unable to load Driver for ' . $recordType . " ($normalizedRecordType)");
-			}
+			$timer->logTime('Found Driver for archive object from solr doc ' . $driver);
 		}else{
 			$driver = ucwords($record['recordtype']) . 'Record';
 			$path = "{$configArray['Site']['local']}/RecordDrivers/{$driver}.php";
@@ -111,16 +146,20 @@ class RecordDriverFactory {
 		}
 
 		// Build the object:
-		require_once $path;
-		if (class_exists($driver)) {
-			disableErrorHandler();
-			$obj = new $driver($record);
-			if (PEAR_Singleton::isError($obj)){
-				global $logger;
-				$logger->log("Error loading record driver", PEAR_LOG_DEBUG);
+		if ($path) {
+			require_once $path;
+			if (class_exists($driver)) {
+				disableErrorHandler();
+				/** @var RecordInterface $obj */
+				$obj = new $driver($record);
+				if (PEAR_Singleton::isError($obj)) {
+					global $logger;
+					$logger->log("Error loading record driver", PEAR_LOG_DEBUG);
+				}
+				enableErrorHandler();
+				$timer->logTime('Loaded record driver for ' . $obj->getUniqueID());
+				return $obj;
 			}
-			enableErrorHandler();
-			return $obj;
 		}
 
 		// If we got here, something went very wrong:

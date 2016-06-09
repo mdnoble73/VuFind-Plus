@@ -53,7 +53,7 @@ public abstract class MarcRecordProcessor {
 	}
 
 	protected void updateGroupedWorkSolrDataBasedOnStandardMarcData(GroupedWorkSolr groupedWork, Record record, HashSet<ItemInfo> printItems, String identifier, String format) {
-		loadTitles(groupedWork, record);
+		loadTitles(groupedWork, record, format);
 		loadAuthors(groupedWork, record, identifier);
 		loadSubjects(groupedWork, record);
 		/*List<DataField> seriesFields = getDataFields(record, "490");
@@ -652,20 +652,16 @@ public abstract class MarcRecordProcessor {
 		groupedWork.setAuthorDisplay(displayAuthor);
 	}
 
-	protected void loadTitles(GroupedWorkSolr groupedWork, Record record) {
+	protected void loadTitles(GroupedWorkSolr groupedWork, Record record, String format) {
 		//title (full title done by index process by concatenating short and subtitle
 
 		//title short
-		groupedWork.setTitle(this.getFirstFieldVal(record, "245a"));
+		groupedWork.setTitle(this.getFirstFieldVal(record, "245a"), this.getFirstFieldVal(record, "245abnp"), this.getSortableTitle(record), format);
 		//title sub
 		//MDN 2/6/2016 add np to subtitle #ARL-163
 		groupedWork.setSubTitle(this.getFirstFieldVal(record, "245bnp"));
-		//display title
-		groupedWork.setDisplayTitle(this.getFirstFieldVal(record, "245abnp"));
 		//title full
 		groupedWork.addFullTitles(this.getAllSubfields(record, "245", " "));
-		//title sort
-		groupedWork.setSortableTitle(this.getSortableTitle(record));
 		//title alt
 		groupedWork.addAlternateTitles(this.getFieldList(record, "130adfgklnpst:240a:246a:700tnr:730adfgklnpst:740a"));
 		//title old
@@ -1141,10 +1137,10 @@ public abstract class MarcRecordProcessor {
 	}
 
 	/**
-	 * Get the title (245ab) from a record, without non-filing chars as specified
+	 * Get the title (245abnp) from a record, without non-filing chars as specified
 	 * in 245 2nd indicator, and lower cased.
 	 *
-	 * @return 245a and 245b values concatenated, with trailing punctuation removed, and
+	 * @return 245a and 245b and 245n and 245p values concatenated, with trailing punctuation removed, and
 	 *         with non-filing characters omitted. Null returned if no title can
 	 *         be found.
 	 */
@@ -1155,7 +1151,7 @@ public abstract class MarcRecordProcessor {
 
 		int nonFilingInt = getInd2AsInt(titleField);
 
-		String title = titleField.getSubfield('a').getData();
+		String title = getFirstFieldVal(record, "245abnp");
 		title = title.toLowerCase();
 
 		// Skip non-filing chars, if possible.

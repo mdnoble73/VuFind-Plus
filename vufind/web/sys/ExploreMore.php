@@ -245,6 +245,8 @@ class ExploreMore {
 				));
 				$searchObject->clearHiddenFilters();
 				$searchObject->addHiddenFilter('!RELS_EXT_isViewableByRole_literal_ms', "administrator");
+				$searchObject->addHiddenFilter('!mods_extension_marmotLocal_pikaOptions_includeInPika_ms', "no");
+				$searchObject->addHiddenFilter('!mods_extension_marmotLocal_pikaOptions_showInSearchResults_ms', "no");
 				$searchObject->clearFilters();
 				$searchObject->addFacet('RELS_EXT_hasModel_uri_s', 'Format');
 				$searchObject->addFacet('RELS_EXT_isMemberOfCollection_uri_ms', 'Collection');
@@ -259,26 +261,12 @@ class ExploreMore {
 						$archiveObject = $fedoraUtils->getObject($collectionInfo[0]);
 						if ($archiveObject != null) {
 							//Check the mods data to see if it should be suppressed in Pika
-							$okToAdd = true;
-							$mods = FedoraUtils::getInstance()->getModsData($archiveObject);
-							if ($mods != null){
-								if (count($mods->extension) > 0){
-									/** @var SimpleXMLElement $marmotExtension */
-									$marmotExtension = $mods->extension->children('http://marmot.org/local_mods_extension');
-									if ($marmotExtension->count() > 0) {
-										/** @var SimpleXMLElement $marmotLocal */
-										$marmotLocal = $marmotExtension->marmotLocal;
-										if ($marmotLocal->count() > 0) {
-											/** @var SimpleXMLElement $pikaOptions */
-											$pikaOptions = $marmotLocal->pikaOptions;
-											if ($pikaOptions->count() > 0) {
-												$okToAdd = $pikaOptions->includeInPika != 'no';
-											}
-										}
-									}
-								}
+							$mods = $fedoraUtils->getModsData($archiveObject);
+							if ($mods == null){
+								$okToAdd = false;
+							}elseif ($fedoraUtils->getModsValue('includeInPika', 'marmot', $mods) != 'no'){
+								$okToAdd = true;
 							}else{
-								//If we don't get mods, exclude from the display
 								$okToAdd = false;
 							}
 

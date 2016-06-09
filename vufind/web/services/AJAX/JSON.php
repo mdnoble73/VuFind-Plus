@@ -83,11 +83,21 @@ class AJAX_JSON extends Action {
 		if (!$user || PEAR_Singleton::isError($user)){
 			$user = UserAccount::login();
 
-			$interface->assign('user', $user);
+			$interface->assign('user', $user); // PLB Assignment Needed before error checking?
 			if (!$user || PEAR_Singleton::isError($user)){
+
+				// Expired Card Notice
+				if ($user && $user->message == 'expired_library_card') {
+					return array(
+						'success' => false,
+						'message' => translate('expired_library_card')
+					);
+				}
+
+				// General Login Error
 				return array(
-					'success'=>false,
-					'message'=>translate("Sorry that login information was not recognized, please try again.")
+					'success' => false,
+					'message' => translate("Sorry that login information was not recognized, please try again.")
 				);
 			}
 		}

@@ -127,6 +127,7 @@ class Library extends DB_DataObject
 	public $generalContactLink;
 
 	public $allowPinReset;
+	public $preventExpiredCardLogin;
 	public $showLibraryHoursAndLocationsLink;
 	public $showLibraryHoursNoticeOnAccountPages;
 	public $showSearchTools;
@@ -148,6 +149,7 @@ class Library extends DB_DataObject
 	public $treatPrintNoticesAsPhoneNotices;
 	public $includeDplaResults;
 	public $showInMainDetails;
+	public $showInSearchResultsMainDetails;
 	public $selfRegistrationFormMessage;
 	public $selfRegistrationSuccessMessage;
 	public $selfRegistrationTemplate;
@@ -162,9 +164,10 @@ class Library extends DB_DataObject
 	public $archiveNamespace;
 	public $hideAllCollectionsFromOtherLibraries;
 	public $collectionsToHide;
+	public $showLCSubjects; // Library of Congress Subjects
 	public $showBisacSubjects;
-	public $showStandardSubjects;
 	public $showFastAddSubjects;
+	public $showOtherSubjects;
 	public $maxFinesToAllowAccountUpdates;
 	public $edsApiProfile;
 	public $edsApiUsername;
@@ -173,21 +176,32 @@ class Library extends DB_DataObject
 	private $patronNameDisplayStyleChanged = false; //Track changes so we can clear values for existing patrons
 	public $includeAllRecordsInShelvingFacets;
 	public $includeAllRecordsInDateAddedFacets;
+	public $alwaysShowSearchResultsMainDetails;
 
 	// Use this to set which details will be shown in the the Main Details section of the record view.
 	// You should be able to add options here without needing to change the database.
 	// set the key to the desired SMARTY template variable name, set the value to the label to show in the library configuration page
 	static $showInMainDetailsOptions = array(
-		'showPublicationDetails' => 'Published',
-		'showFormats' => 'Formats',
-		'showEditions' => 'Editions',
+		'showPublicationDetails'   => 'Published',
+		'showFormats'              => 'Formats',
+		'showEditions'             => 'Editions',
 		'showPhysicalDescriptions' => 'Physical Descriptions',
-		'showLocations' => 'Locations',
-		'showISBNs' => 'ISBNs',
+		'showLocations'            => 'Locations',
+		'showISBNs'                => 'ISBNs',
 	);
 
-	/* Static get */
-//	function staticGet($k,$v=NULL) { return DB_DataObject::staticGet('Library',$k,$v); }
+	// Use this to set which details will be shown in the the Main Details section of the record in the search results.
+	// You should be able to add options here without needing to change the database.
+	// set the key to the desired SMARTY template variable name, set the value to the label to show in the library configuration page
+	static $searchResultsMainDetailsOptions = array(
+		'showSeries'               => 'Show Series',
+		'showPublisher'            => 'Publisher',
+		'showPublicationDate'      => 'Publisher Date',
+		'showEditions'             => 'Editions',
+		'showPhysicalDescriptions' => 'Physical Descriptions',
+		'showLanguages'            => 'Show Language'
+	);
+
 
 	function keys() {
 		return array('libraryId', 'subdomain');
@@ -301,55 +315,56 @@ class Library extends DB_DataObject
 				'showLibraryHoursNoticeOnAccountPages' => array('property'=>'showLibraryHoursNoticeOnAccountPages', 'type'=>'checkbox', 'label'=>'Show Library Hours Notice on Account Pages', 'description'=>'Whether or not the Library Hours notice should be shown at the top of My Account\'s Checked Out, Holds and Bookings pages.', 'hideInLists' => true, 'default'=>true),
 				'pTypesSection' => array('property' => 'pTypesSectionSection', 'type' => 'section', 'label' => 'P-Types', 'hideInLists' => true,
 						'helpLink'=>'https://docs.google.com/document/d/1SmCcWYIV8bnUEaGu4HYvyiF8iqOKt06ooBbJukkJdO8','properties' => array(
-					'pTypes'  => array('property'=>'pTypes', 'type'=>'text', 'label'=>'P-Types', 'description'=>'A list of pTypes that are valid for the library.  Separate multiple pTypes with commas.'),
-					'defaultPType'  => array('property'=>'defaultPType', 'type'=>'text', 'label'=>'Default P-Type', 'description'=>'The P-Type to use when accessing a subdomain if the patron is not logged in.'),
+					'pTypes'       => array('property'=>'pTypes', 'type'=>'text', 'label'=>'P-Types', 'description'=>'A list of pTypes that are valid for the library.  Separate multiple pTypes with commas.'),
+					'defaultPType' => array('property'=>'defaultPType', 'type'=>'text', 'label'=>'Default P-Type', 'description'=>'The P-Type to use when accessing a subdomain if the patron is not logged in.'),
 				)),
 				'barcodeSection' => array('property' => 'barcodeSection', 'type' => 'section', 'label' => 'Barcode', 'hideInLists' => true,
 						'helpLink' => 'https://docs.google.com/document/d/13vk5Cx_bWRwc_XtwwzKei92ZeTGS8LcMnZadE2CxaBU', 'properties' => array(
 					'minBarcodeLength' => array('property'=>'minBarcodeLength', 'type'=>'integer', 'label'=>'Min Barcode Length', 'description'=>'A minimum length the patron barcode is expected to be. Leave as 0 to extra processing of barcodes.', 'hideInLists' => true, 'default'=>0),
 					'maxBarcodeLength' => array('property'=>'maxBarcodeLength', 'type'=>'integer', 'label'=>'Max Barcode Length', 'description'=>'The maximum length the patron barcode is expected to be. Leave as 0 to extra processing of barcodes.', 'hideInLists' => true, 'default'=>0),
-					'barcodePrefix' => array('property'=>'barcodePrefix', 'type'=>'text', 'label'=>'Barcode Prefix', 'description'=>'A barcode prefix to apply to the barcode if it does not start with the barcode prefix or if it is not within the expected min/max range.  Multiple prefixes can be specified by separating them with commas. Leave blank to avoid additional processing of barcodes.', 'hideInLists' => true,'default'=>''),
+					'barcodePrefix'    => array('property'=>'barcodePrefix', 'type'=>'text', 'label'=>'Barcode Prefix', 'description'=>'A barcode prefix to apply to the barcode if it does not start with the barcode prefix or if it is not within the expected min/max range.  Multiple prefixes can be specified by separating them with commas. Leave blank to avoid additional processing of barcodes.', 'hideInLists' => true,'default'=>''),
 				)),
 				'userProfileSection' => array('property' => 'userProfileSection', 'type' => 'section', 'label' => 'User Profile', 'hideInLists' => true,
 						'helpLink'=>'https://docs.google.com/document/d/1S8s8KYPaw6x7IIcxUbzkXgCnnHXR6t8W_2CwXiQyjrE', 'properties' => array(
-					'patronNameDisplayStyle'   => array('property'=>'patronNameDisplayStyle', 'type'=>'enum', 'values'=>array('firstinitial_lastname'=>'First Initial. Last Name', 'lastinitial_firstname'=>'First Name Last Initial.'), 'label'=>'Patron Display Name Style', 'description'=>'How to generate the patron display name'),
-					'allowProfileUpdates' => array('property'=>'allowProfileUpdates', 'type'=>'checkbox', 'label'=>'Allow Profile Updates', 'description'=>'Whether or not the user can update their own profile.', 'hideInLists' => true, 'default' => 1),
-					'allowPatronAddressUpdates' => array('property' => 'allowPatronAddressUpdates', 'type'=>'checkbox', 'label'=>'Allow Patrons to Update Their Address', 'description'=>'Whether or not patrons should be able to update their own address in their profile.', 'hideInLists' => true, 'default' => 1),
+					'patronNameDisplayStyle'               => array('property'=>'patronNameDisplayStyle', 'type'=>'enum', 'values'=>array('firstinitial_lastname'=>'First Initial. Last Name', 'lastinitial_firstname'=>'First Name Last Initial.'), 'label'=>'Patron Display Name Style', 'description'=>'How to generate the patron display name'),
+					'allowProfileUpdates'                  => array('property'=>'allowProfileUpdates', 'type'=>'checkbox', 'label'=>'Allow Profile Updates', 'description'=>'Whether or not the user can update their own profile.', 'hideInLists' => true, 'default' => 1),
+					'allowPatronAddressUpdates'            => array('property' => 'allowPatronAddressUpdates', 'type'=>'checkbox', 'label'=>'Allow Patrons to Update Their Address', 'description'=>'Whether or not patrons should be able to update their own address in their profile.', 'hideInLists' => true, 'default' => 1),
 					'showAlternateLibraryOptionsInProfile' => array('property' => 'showAlternateLibraryOptionsInProfile', 'type'=>'checkbox', 'label'=>'Allow Patrons to Update their Alternate Libraries', 'description'=>'Allow Patrons to See and Change Alternate Library Settings in the Catalog Options Tab in their profile.', 'hideInLists' => true, 'default' => 1),
-					'showWorkPhoneInProfile' => array('property' => 'showWorkPhoneInProfile', 'type'=>'checkbox', 'label'=>'Show Work Phone in Profile', 'description'=>'Whether or not patrons should be able to change a secondary/work phone number in their profile.', 'hideInLists' => true, 'default' => 0),
-					'treatPrintNoticesAsPhoneNotices' => array('property' => 'treatPrintNoticesAsPhoneNotices', 'type' => 'checkbox', 'label' => 'Treat Print Notices As Phone Notices', 'description' => 'When showing detailed information about hold notices, treat print notices as if they are phone calls', 'hideInLists' => true, 'default' => 0),
-					'showNoticeTypeInProfile' => array('property' => 'showNoticeTypeInProfile', 'type'=>'checkbox', 'label'=>'Show Notice Type in Profile', 'description'=>'Whether or not patrons should be able to change how they receive notices in their profile.', 'hideInLists' => true, 'default' => 0),
-					'showPickupLocationInProfile' => array('property' => 'showPickupLocationInProfile', 'type'=>'checkbox', 'label'=>'Allow Patrons to Update Their Pickup Location', 'description'=>'Whether or not patrons should be able to update their preferred pickup location in their profile.', 'hideInLists' => true, 'default' => 0),
-					'addSMSIndicatorToPhone' => array('property' => 'addSMSIndicatorToPhone', 'type'=>'checkbox', 'label'=>'Add SMS Indicator to Primary Phone', 'description'=>'Whether or not add TEXT ONLY to the user\'s primary phone number when they opt in to SMS notices.', 'hideInLists' => true, 'default' => 0),
-					'maxFinesToAllowAccountUpdates' => array('property' => 'maxFinesToAllowAccountUpdates', 'type'=>'currency', 'displayFormat'=>'%0.2f', 'label'=>'Maximum Fine Amount to Allow Account Updates', 'description'=>'The maximum amount that a patron can owe and still update their account. Any value <= 0 will disable this functionality.', 'hideInLists' => true, 'default' => 10)
+					'showWorkPhoneInProfile'               => array('property' => 'showWorkPhoneInProfile', 'type'=>'checkbox', 'label'=>'Show Work Phone in Profile', 'description'=>'Whether or not patrons should be able to change a secondary/work phone number in their profile.', 'hideInLists' => true, 'default' => 0),
+					'treatPrintNoticesAsPhoneNotices'      => array('property' => 'treatPrintNoticesAsPhoneNotices', 'type' => 'checkbox', 'label' => 'Treat Print Notices As Phone Notices', 'description' => 'When showing detailed information about hold notices, treat print notices as if they are phone calls', 'hideInLists' => true, 'default' => 0),
+					'showNoticeTypeInProfile'              => array('property' => 'showNoticeTypeInProfile', 'type'=>'checkbox', 'label'=>'Show Notice Type in Profile', 'description'=>'Whether or not patrons should be able to change how they receive notices in their profile.', 'hideInLists' => true, 'default' => 0),
+					'showPickupLocationInProfile'          => array('property' => 'showPickupLocationInProfile', 'type'=>'checkbox', 'label'=>'Allow Patrons to Update Their Pickup Location', 'description'=>'Whether or not patrons should be able to update their preferred pickup location in their profile.', 'hideInLists' => true, 'default' => 0),
+					'addSMSIndicatorToPhone'               => array('property' => 'addSMSIndicatorToPhone', 'type'=>'checkbox', 'label'=>'Add SMS Indicator to Primary Phone', 'description'=>'Whether or not add TEXT ONLY to the user\'s primary phone number when they opt in to SMS notices.', 'hideInLists' => true, 'default' => 0),
+					'maxFinesToAllowAccountUpdates'        => array('property' => 'maxFinesToAllowAccountUpdates', 'type'=>'currency', 'displayFormat'=>'%0.2f', 'label'=>'Maximum Fine Amount to Allow Account Updates', 'description'=>'The maximum amount that a patron can owe and still update their account. Any value <= 0 will disable this functionality.', 'hideInLists' => true, 'default' => 10)
 				)),
 				'holdsSection' => array('property' => 'holdsSection', 'type' => 'section', 'label' => 'Holds', 'hideInLists' => true,
 					'helpLink'=>'https://docs.google.com/document/d/1tFkmGhqBrTdluS2tOzQ_xtzl3HxfjGhmFgk4r3BTVY8', 'properties' => array(
-					'showHoldButton'  => array('property'=>'showHoldButton', 'type'=>'checkbox', 'label'=>'Show Hold Button', 'description'=>'Whether or not the hold button is displayed so patrons can place holds on items', 'hideInLists' => true, 'default' => 1),
-					'showHoldButtonInSearchResults'  => array('property'=>'showHoldButtonInSearchResults', 'type'=>'checkbox', 'label'=>'Show Hold Button within the search results', 'description'=>'Whether or not the hold button is displayed within the search results so patrons can place holds on items', 'hideInLists' => true, 'default' => 1),
+					'showHoldButton'                    => array('property'=>'showHoldButton', 'type'=>'checkbox', 'label'=>'Show Hold Button', 'description'=>'Whether or not the hold button is displayed so patrons can place holds on items', 'hideInLists' => true, 'default' => 1),
+					'showHoldButtonInSearchResults'     => array('property'=>'showHoldButtonInSearchResults', 'type'=>'checkbox', 'label'=>'Show Hold Button within the search results', 'description'=>'Whether or not the hold button is displayed within the search results so patrons can place holds on items', 'hideInLists' => true, 'default' => 1),
 					'showHoldButtonForUnavailableOnly'  => array('property'=>'showHoldButtonForUnavailableOnly', 'type'=>'checkbox', 'label'=>'Show Hold Button for items that are checked out only', 'description'=>'Whether or not the hold button is displayed within the search results so patrons can place holds on items', 'hideInLists' => true, 'default' => 1),
-					'showHoldCancelDate'   => array('property'=>'showHoldCancelDate', 'type'=>'checkbox', 'label'=>'Show Cancellation Date', 'description'=>'Whether or not the patron should be able to set a cancellation date (not needed after date) when placing holds.', 'hideInLists' => true, 'default' => 1),
-					'allowFreezeHolds'  => array('property'=>'allowFreezeHolds', 'type'=>'checkbox', 'label'=>'Allow Freezing Holds', 'description'=>'Whether or not the user can freeze their holds.', 'hideInLists' => true, 'default' => 1),
-					'defaultNotNeededAfterDays'=> array('property'=>'defaultNotNeededAfterDays', 'type'=>'integer', 'label'=>'Default Not Needed After Days', 'description'=>'Number of days to use for not needed after date by default. Use -1 for no default.', 'hideInLists' => true,),
+					'showHoldCancelDate'                => array('property'=>'showHoldCancelDate', 'type'=>'checkbox', 'label'=>'Show Cancellation Date', 'description'=>'Whether or not the patron should be able to set a cancellation date (not needed after date) when placing holds.', 'hideInLists' => true, 'default' => 1),
+					'allowFreezeHolds'                  => array('property'=>'allowFreezeHolds', 'type'=>'checkbox', 'label'=>'Allow Freezing Holds', 'description'=>'Whether or not the user can freeze their holds.', 'hideInLists' => true, 'default' => 1),
+					'defaultNotNeededAfterDays'         => array('property'=>'defaultNotNeededAfterDays', 'type'=>'integer', 'label'=>'Default Not Needed After Days', 'description'=>'Number of days to use for not needed after date by default. Use -1 for no default.', 'hideInLists' => true,),
 					'showDetailedHoldNoticeInformation' => array('property' => 'showDetailedHoldNoticeInformation', 'type' => 'checkbox', 'label' => 'Show Detailed Hold Notice Information', 'description' => 'Whether or not the user should be presented with detailed hold notification information, i.e. you will receive an e-mail/phone call to xxx when the hold is available', 'hideInLists' => true, 'default' => 1),
-					'inSystemPickupsOnly'  => array('property'=>'inSystemPickupsOnly', 'type'=>'checkbox', 'label'=>'In System Pickups Only', 'description'=>'Restrict pickup locations to only locations within this library system.', 'hideInLists' => true,),
-					'validPickupSystems'  => array('property'=>'validPickupSystems', 'type'=>'text', 'label'=>'Valid Pickup Library Systems', 'description'=>'Additional Library Systems that can be used as pickup locations if the &quot;In System Pickups Only&quot; is on. List the libraries\' subdomains separated by pipes |', 'size'=>'20', 'hideInLists' => true,),
-					'holdDisclaimer' => array('property'=>'holdDisclaimer', 'type'=>'textarea', 'label'=>'Hold Disclaimer', 'description'=>'A disclaimer to display to patrons when they are placing a hold on items letting them know that their information may be available to other libraries.  Leave blank to not show a disclaimer.', 'hideInLists' => true,),
+					'inSystemPickupsOnly'               => array('property'=>'inSystemPickupsOnly', 'type'=>'checkbox', 'label'=>'In System Pickups Only', 'description'=>'Restrict pickup locations to only locations within this library system.', 'hideInLists' => true,),
+					'validPickupSystems'                => array('property'=>'validPickupSystems', 'type'=>'text', 'label'=>'Valid Pickup Library Systems', 'description'=>'Additional Library Systems that can be used as pickup locations if the &quot;In System Pickups Only&quot; is on. List the libraries\' subdomains separated by pipes |', 'size'=>'20', 'hideInLists' => true,),
+					'holdDisclaimer'                    => array('property'=>'holdDisclaimer', 'type'=>'textarea', 'label'=>'Hold Disclaimer', 'description'=>'A disclaimer to display to patrons when they are placing a hold on items letting them know that their information may be available to other libraries.  Leave blank to not show a disclaimer.', 'hideInLists' => true,),
 				)),
 				'loginSection' => array('property' => 'loginSection', 'type' => 'section', 'label' => 'Login', 'hideInLists' => true,
 						'helpLink' => 'https://docs.google.com/document/d/13vk5Cx_bWRwc_XtwwzKei92ZeTGS8LcMnZadE2CxaBU', 'properties' => array(
-					'showLoginButton'  => array('property'=>'showLoginButton', 'type'=>'checkbox', 'label'=>'Show Login Button', 'description'=>'Whether or not the login button is displayed so patrons can login to the site', 'hideInLists' => true, 'default' => 1),
-					'allowPinReset' => array('property'=>'allowPinReset', 'type'=>'checkbox', 'label'=>'Allow PIN Reset', 'description'=>'Whether or not the user can reset their PIN if they forget it.', 'hideInLists' => true, 'default' => 0),
+					'showLoginButton'         => array('property'=>'showLoginButton', 'type'=>'checkbox', 'label'=>'Show Login Button', 'description'=>'Whether or not the login button is displayed so patrons can login to the site', 'hideInLists' => true, 'default' => 1),
+					'allowPinReset'           => array('property'=>'allowPinReset', 'type'=>'checkbox', 'label'=>'Allow PIN Reset', 'description'=>'Whether or not the user can reset their PIN if they forget it.', 'hideInLists' => true, 'default' => 0),
+					'preventExpiredCardLogin' => array('property'=>'preventExpiredCardLogin', 'type'=>'checkbox', 'label'=>'Prevent Login for Expired Cards', 'description'=>'Users with expired cards will not be allowed to login. They will recieve an expired card notice instead.', 'hideInLists' => true, 'default' => 0),
 					'loginFormUsernameLabel'  => array('property'=>'loginFormUsernameLabel', 'type'=>'text', 'label'=>'Login Form Username Label', 'description'=>'The label to show for the username when logging in', 'size'=>'50', 'hideInLists' => true, 'default'=>'Your Name'),
 					'loginFormPasswordLabel'  => array('property'=>'loginFormPasswordLabel', 'type'=>'text', 'label'=>'Login Form Password Label', 'description'=>'The label to show for the password when logging in', 'size'=>'50', 'hideInLists' => true, 'default'=>'Library Card Number'),
 				)),
 				'selfRegistrationSection' => array('property' => 'selfRegistrationSection', 'type' => 'section', 'label' => 'Self Registration', 'hideInLists' => true,
 						'helpLink' => 'https://docs.google.com/document/d/1MZAOlg3F2IEa0WKsJmDQiCFUrw-pVo_fnSNexAV4MbQ', 'properties' => array(
-					'enableSelfRegistration' => array('property'=>'enableSelfRegistration', 'type'=>'checkbox', 'label'=>'Enable Self Registration', 'description'=>'Whether or not patrons can self register on the site', 'hideInLists' => true),
-					'promptForBirthDateInSelfReg' => array('property' => 'promptForBirthDateInSelfReg', 'type' => 'checkbox', 'label' => 'Prompt For Birth Date', 'description'=>'Whether or not to prompt for birth date when self registering'),
-					'selfRegistrationFormMessage' => array('property'=>'selfRegistrationFormMessage', 'type'=>'html', 'label'=>'Self Registration Form Message', 'description'=>'Message shown to users with the form to submit the self registration.  Leave blank to give users the default message.', 'hideInLists' => true),
+					'enableSelfRegistration'         => array('property'=>'enableSelfRegistration', 'type'=>'checkbox', 'label'=>'Enable Self Registration', 'description'=>'Whether or not patrons can self register on the site', 'hideInLists' => true),
+					'promptForBirthDateInSelfReg'    => array('property' => 'promptForBirthDateInSelfReg', 'type' => 'checkbox', 'label' => 'Prompt For Birth Date', 'description'=>'Whether or not to prompt for birth date when self registering'),
+					'selfRegistrationFormMessage'    => array('property'=>'selfRegistrationFormMessage', 'type'=>'html', 'label'=>'Self Registration Form Message', 'description'=>'Message shown to users with the form to submit the self registration.  Leave blank to give users the default message.', 'hideInLists' => true),
 					'selfRegistrationSuccessMessage' => array('property'=>'selfRegistrationSuccessMessage', 'type'=>'html', 'label'=>'Self Registration Success Message', 'description'=>'Message shown to users when the self registration has been completed successfully.  Leave blank to give users the default message.', 'hideInLists' => true),
-					'selfRegistrationTemplate' => array('property'=>'selfRegistrationTemplate', 'type'=>'text', 'label'=>'Self Registration Template', 'description'=>'The ILS template to use during self registration (Sierra and Millennium).', 'hideInLists' => true, 'default' => 'default'),
+					'selfRegistrationTemplate'       => array('property'=>'selfRegistrationTemplate', 'type'=>'text', 'label'=>'Self Registration Template', 'description'=>'The ILS template to use during self registration (Sierra and Millennium).', 'hideInLists' => true, 'default' => 'default'),
 				)),
 			)),
 
@@ -365,75 +380,103 @@ class Library extends DB_DataObject
 			// Searching //
 			'searchingSection' => array('property'=>'searchingSection', 'type' => 'section', 'label' =>'Searching', 'hideInLists' => true,
 					'helpLink'=>'https://docs.google.com/document/d/1QQ7bNfGx75ImTguxEOmf7eCtdrVN9vi8FpWtWY_O3OU', 'properties' => array(
-				'horizontalSearchBar' => array('property' => 'horizontalSearchBar', 'type'=>'checkbox', 'label' => 'Use Horizontal Search Bar', 'description' => 'Instead of the default sidebar search box, a horizontal search bar is shown below the header that spans the screen.', 'hideInLists' => true, 'default' => false),
-				'facetLabel' => array('property'=>'facetLabel', 'type'=>'text', 'label'=>'Facet Label', 'description'=>'The label for the library system in the Library System Facet.', 'size'=>'40', 'hideInLists' => true,),
-				'restrictSearchByLibrary' => array('property'=>'restrictSearchByLibrary', 'type'=>'checkbox', 'label'=>'Restrict Search By Library', 'description'=>'Whether or not search results should only include titles from this library', 'hideInLists' => true),
-				'econtentLocationsToInclude' => array('property'=>'econtentLocationsToInclude', 'type'=>'text', 'label'=>'eContent Locations To Include', 'description'=>'A list of eContent Locations to include within the scope.', 'size'=>'40', 'hideInLists' => true,),
-				'includeOutOfSystemExternalLinks' => array('property' => 'includeOutOfSystemExternalLinks', 'type'=>'checkbox', 'label'=>'Include Out Of System External Links', 'description'=>'Whether or not to include external links from other library systems.  Should only be enabled for global scope.', 'hideInLists' => true, 'default'=>0),
-				'publicListsToInclude' => array('property' => 'publicListsToInclude', 'type'=>'enum', 'values' => array(0 => 'No Lists', '1' => 'Lists from this library', '3'=>'Lists from library list publishers Only', '4'=>'Lists from all list publishers', '2' => 'All Lists'), 'label'=>'Public Lists To Include', 'description'=>'Which lists should be included in this scope'),
-				'boostByLibrary' => array('property'=>'boostByLibrary', 'type'=>'checkbox', 'label'=>'Boost By Library', 'description'=>'Whether or not boosting of titles owned by this library should be applied', 'hideInLists' => true),
-				'additionalLocalBoostFactor' => array('property'=>'additionalLocalBoostFactor', 'type'=>'integer', 'label'=>'Additional Local Boost Factor', 'description'=>'An additional numeric boost to apply to any locally owned and locally available titles', 'hideInLists' => true),
-				'restrictOwningBranchesAndSystems' => array('property'=>'restrictOwningBranchesAndSystems', 'type'=>'checkbox', 'label'=>'Restrict Owning Branch and System Facets to this library', 'description'=>'Whether or not the Owning Branch and Owning System Facets will only display values relevant to this library.', 'hideInLists' => true),
-				'showAvailableAtAnyLocation' => array('property'=>'showAvailableAtAnyLocation', 'type'=>'checkbox', 'label'=>'Show Available At Any Location?', 'description'=>'Whether or not to show any Marmot Location within the Available At facet', 'hideInLists' => true),
-				'repeatSearchOption' => array('property'=>'repeatSearchOption', 'type'=>'enum', 'values'=>array('none'=>'None', 'librarySystem'=>'Library System','marmot'=>'Consortium'), 'label'=>'Repeat Search Options', 'description'=>'Where to allow repeating search. Valid options are: none, librarySystem, marmot, all'),
-				'systemsToRepeatIn' => array('property'=>'systemsToRepeatIn', 'type'=>'text', 'label'=>'Systems To Repeat In', 'description'=>'A list of library codes that you would like to repeat search in separated by pipes |.', 'size'=>'20', 'hideInLists' => true,),
-				'additionalLocationsToShowAvailabilityFor' => array('property'=>'additionalLocationsToShowAvailabilityFor', 'type'=>'text', 'label'=>'Additional Locations to Include in Available At Facet', 'description'=>'A list of library codes that you would like included in the available at facet separated by pipes |.', 'size'=>'20', 'hideInLists' => true,),
-				'includeAllRecordsInShelvingFacets' => array('property'=>'includeAllRecordsInShelvingFacets', 'type'=>'checkbox', 'label'=>'Include All Records In Shelving Facets', 'description'=>'Turn on to include all records (owned and included) in shelving related facets (detailed location, collection).', 'hideInLists' => true, 'default'=>false),
-				'includeAllRecordsInDateAddedFacets' => array('property'=>'includeAllRecordsInDateAddedFacets', 'type'=>'checkbox', 'label'=>'Include All Records In Date Added Facets', 'description'=>'Turn on to include all records (owned and included) in date added facets.', 'hideInLists' => true, 'default'=>false),
-				'availabilityToggleLabelSuperScope' => array('property' => 'availabilityToggleLabelSuperScope', 'type' => 'text', 'label' => 'SuperScope Toggle Label', 'description' => 'The label to show when viewing super scope i.e. Consortium Name / Entire Collection / Everything.  Does not show if superscope is not enabled.', 'default' => 'Entire Collection'),
-				'availabilityToggleLabelLocal' => array('property' => 'availabilityToggleLabelLocal', 'type' => 'text', 'label' => 'Local Collection Toggle Label', 'description' => 'The label to show when viewing the local collection i.e. Library Name / Local Collection.  Leave blank to hide the button.', 'default' => ''),
-				'availabilityToggleLabelAvailable' => array('property' => 'availabilityToggleLabelAvailable', 'type' => 'text', 'label' => 'Available Toggle Label', 'description' => 'The label to show when viewing available items i.e. Available Now / Available Locally / Available Here.', 'default' => 'Available Now'),
-				'repeatInOnlineCollection' => array('property'=>'repeatInOnlineCollection', 'type'=>'checkbox', 'label'=>'Repeat In Online Collection', 'description'=>'Turn on to allow repeat search in the Online Collection.', 'hideInLists' => true, 'default'=>false),
-				'allowAutomaticSearchReplacements' => array('property'=>'allowAutomaticSearchReplacements', 'type'=>'checkbox', 'label'=>'Allow Automatic Search Corrections', 'description'=>'Turn on to allow Pika to replace search terms that have no results if the current search term looks like a misspelling.', 'hideInLists' => true, 'default'=>true),
-				'showAdvancedSearchbox'  => array('property'=>'showAdvancedSearchbox', 'type'=>'checkbox', 'label'=>'Show Advanced Search Link', 'description'=>'Whether or not users should see the advanced search link below the search box.', 'hideInLists' => true, 'default' => 1),
-				'applyNumberOfHoldingsBoost' => array('property'=>'applyNumberOfHoldingsBoost', 'type'=>'checkbox', 'label'=>'Apply Number Of Holdings Boost', 'description'=>'Whether or not the relevance will use boosting by number of holdings in the catalog.', 'hideInLists' => true, 'default' => 1),
-				'showSearchTools'  => array('property'=>'showSearchTools', 'type'=>'checkbox', 'label'=>'Show Search Tools', 'description'=>'Turn on to activate search tools (save search, export to excel, rss feed, etc).', 'hideInLists' => true),
-			)),
+				'restrictSearchByLibrary'                  => array('property' => 'restrictSearchByLibrary', 'type'=>'checkbox', 'label'=>'Restrict Search By Library', 'description'=>'Whether or not search results should only include titles from this library', 'hideInLists' => true),
+//				'econtentLocationsToInclude'               => array('property' => 'econtentLocationsToInclude', 'type'=>'text', 'label'=>'eContent Locations To Include', 'description'=>'A list of eContent Locations to include within the scope.', 'size'=>'40', 'hideInLists' => true,),
+				'includeOutOfSystemExternalLinks'          => array('property' => 'includeOutOfSystemExternalLinks', 'type'=>'checkbox', 'label'=>'Include Out Of System External Links', 'description'=>'Whether or not to include external links from other library systems.  Should only be enabled for global scope.', 'hideInLists' => true, 'default'=>0),
+				'publicListsToInclude'                     => array('property' => 'publicListsToInclude', 'type'=>'enum', 'values' => array(0 => 'No Lists', '1' => 'Lists from this library', '3'=>'Lists from library list publishers Only', '4'=>'Lists from all list publishers', '2' => 'All Lists'), 'label'=>'Public Lists To Include', 'description'=>'Which lists should be included in this scope'),
+				'boostByLibrary'                           => array('property' => 'boostByLibrary', 'type'=>'checkbox', 'label'=>'Boost By Library', 'description'=>'Whether or not boosting of titles owned by this library should be applied', 'hideInLists' => true),
+				'additionalLocalBoostFactor'               => array('property' => 'additionalLocalBoostFactor', 'type'=>'integer', 'label'=>'Additional Local Boost Factor', 'description'=>'An additional numeric boost to apply to any locally owned and locally available titles', 'hideInLists' => true),
+				'allowAutomaticSearchReplacements'         => array('property' => 'allowAutomaticSearchReplacements', 'type'=>'checkbox', 'label'=>'Allow Automatic Search Corrections', 'description'=>'Turn on to allow Pika to replace search terms that have no results if the current search term looks like a misspelling.', 'hideInLists' => true, 'default'=>true),
+				'applyNumberOfHoldingsBoost'               => array('property' => 'applyNumberOfHoldingsBoost', 'type'=>'checkbox', 'label'=>'Apply Number Of Holdings Boost', 'description'=>'Whether or not the relevance will use boosting by number of holdings in the catalog.', 'hideInLists' => true, 'default' => 1),
+				'searchBoxSection' => array('property' => 'searchBoxSection', 'type' => 'section', 'label' => 'Search Box', 'hideInLists' => true, 'properties' => array(
+					'horizontalSearchBar'                    => array('property' => 'horizontalSearchBar',      'type'=>'checkbox', 'label' => 'Use Horizontal Search Bar',   'description' => 'Instead of the default sidebar search box, a horizontal search bar is shown below the header that spans the screen.', 'hideInLists' => true, 'default' => false),
+					'repeatSearchOption'                     => array('property' => 'repeatSearchOption',       'type'=>'enum',     'label' => 'Repeat Search Options',       'description'=>'Where to allow repeating search. Valid options are: none, librarySystem, marmot, all', 'values'=>array('none'=>'None', 'librarySystem'=>'Library System','marmot'=>'Consortium'),),
+					'repeatInOnlineCollection'               => array('property' => 'repeatInOnlineCollection', 'type'=>'checkbox', 'label' => 'Repeat In Online Collection', 'description'=>'Turn on to allow repeat search in the Online Collection.', 'hideInLists' => true, 'default'=>false),
+					'showAdvancedSearchbox'                  => array('property' => 'showAdvancedSearchbox',    'type'=>'checkbox', 'label' => 'Show Advanced Search Link',   'description'=>'Whether or not users should see the advanced search link below the search box.', 'hideInLists' => true, 'default' => 1),
+				)),
+				'searchResultsSection' => array('property' => 'searchResultsSection', 'type' => 'section', 'label' => 'Search Results', 'hideInLists' => true, 'properties' => array(
+					'systemsToRepeatIn'                      => array('property' => 'systemsToRepeatIn',                  'type' => 'text',        'label' => 'Systems To Repeat In',                                       'description' => 'A list of library codes that you would like to repeat search in separated by pipes |.', 'size'=>'20', 'hideInLists' => true,),
+					'showSearchTools'                        => array('property' => 'showSearchTools',                    'type' => 'checkbox',    'label' => 'Show Search Tools',                                          'description' => 'Turn on to activate search tools (save search, export to excel, rss feed, etc).', 'hideInLists' => true),
+					'showInSearchResultsMainDetails'         => array('property' => 'showInSearchResultsMainDetails',     'type' => 'multiSelect', 'label' => 'Optional details to show for a record in search results : ', 'description' => 'Selected details will be shown in the main details section of a record on a search results page.', 'listStyle' => 'checkboxSimple', 'values' => self::$searchResultsMainDetailsOptions),
+					'alwaysShowSearchResultsMainDetails'     => array('property' => 'alwaysShowSearchResultsMainDetails', 'type' => 'checkbox',    'label' => 'Always Show Selected Search Results Main Details',           'description' => 'Turn on to always show the selected details even when there is no info supplied for a detail, or the detail varies due to multiple formats and/or editions). Does not apply to Series & Language', 'hideInLists' => true),
+
+				)),
+				'searchFacetsSection' => array('property' => 'searchFacetsSection', 'type' => 'section', 'label' => 'Search Facets', 'hideInLists' => true, 'properties' => array(
+					'availabilityToggleLabelSuperScope'        => array('property' => 'availabilityToggleLabelSuperScope',        'type' => 'text',     'label' => 'SuperScope Toggle Label',                                  'description' => 'The label to show when viewing super scope i.e. Consortium Name / Entire Collection / Everything.  Does not show if superscope is not enabled.', 'default' => 'Entire Collection'),
+					'availabilityToggleLabelLocal'             => array('property' => 'availabilityToggleLabelLocal',             'type' => 'text',     'label' => 'Local Collection Toggle Label',                            'description' => 'The label to show when viewing the local collection i.e. Library Name / Local Collection.  Leave blank to hide the button.', 'default' => ''),
+					'availabilityToggleLabelAvailable'         => array('property' => 'availabilityToggleLabelAvailable',         'type' => 'text',     'label' => 'Available Toggle Label',                                   'description' => 'The label to show when viewing available items i.e. Available Now / Available Locally / Available Here.', 'default' => 'Available Now'),
+					'facetLabel'                               => array('property' => 'facetLabel',                               'type' => 'text',     'label' => 'Library System Facet Label',                               'description'=>'The label for the library system in the Library System Facet.', 'size'=>'40', 'hideInLists' => true,),
+					'restrictOwningBranchesAndSystems'         => array('property' => 'restrictOwningBranchesAndSystems',         'type' => 'checkbox', 'label' => 'Restrict Owning Branch and System Facets to this library', 'description'=>'Whether or not the Owning Branch and Owning System Facets will only display values relevant to this library.', 'hideInLists' => true),
+					'showAvailableAtAnyLocation'               => array('property' => 'showAvailableAtAnyLocation',               'type' => 'checkbox', 'label' => 'Show Available At Any Location?',                          'description'=>'Whether or not to show any Marmot Location within the Available At facet', 'hideInLists' => true),
+					'additionalLocationsToShowAvailabilityFor' => array('property' => 'additionalLocationsToShowAvailabilityFor', 'type' => 'text',     'label' => 'Additional Locations to Include in Available At Facet',    'description'=>'A list of library codes that you would like included in the available at facet separated by pipes |.', 'size'=>'20', 'hideInLists' => true,),
+					'includeAllRecordsInShelvingFacets'        => array('property' => 'includeAllRecordsInShelvingFacets',        'type' => 'checkbox', 'label' => 'Include All Records In Shelving Facets',                   'description'=>'Turn on to include all records (owned and included) in shelving related facets (detailed location, collection).', 'hideInLists' => true, 'default'=>false),
+					'includeAllRecordsInDateAddedFacets'       => array('property' => 'includeAllRecordsInDateAddedFacets',       'type' => 'checkbox', 'label' => 'Include All Records In Date Added Facets',                 'description'=>'Turn on to include all records (owned and included) in date added facets.', 'hideInLists' => true, 'default'=>false),
+
+					'facets' => array(
+						'property' => 'facets',
+						'type' => 'oneToMany',
+						'label' => 'Facets',
+						'description' => 'A list of facets to display in search results',
+						'helpLink' => 'https://docs.google.com/document/d/1DIOZ-HCqnrBAMFwAomqwI4xv41bALk0Z1Z2fMrhQ3wY',
+						'keyThis' => 'libraryId',
+						'keyOther' => 'libraryId',
+						'subObjectType' => 'LibraryFacetSetting',
+						'structure' => $facetSettingStructure,
+						'sortable' => true,
+						'storeDb' => true,
+						'allowEdit' => true,
+						'canEdit' => true,
+					),
+				)),
+
+
+				)),
 
 			// Catalog Enrichment //
 			'enrichmentSection' => array('property'=>'enrichmentSection', 'type' => 'section', 'label' =>'Catalog Enrichment', 'hideInLists' => true,
 					'helpLink' => 'https://docs.google.com/document/d/1fJ2Sc62fTieJlPvaFz4XUoSr8blou_3MfxDGh1luI84', 'properties' => array(
-				'showStandardReviews'  => array('property'=>'showStandardReviews', 'type'=>'checkbox', 'label'=>'Show Standard Reviews', 'description'=>'Whether or not reviews from Content Cafe/Syndetics are displayed on the full record page.', 'hideInLists' => true, 'default' => 1),
-				'showGoodReadsReviews' => array('property'=>'showGoodReadsReviews', 'type'=>'checkbox', 'label'=>'Show GoodReads Reviews', 'description'=>'Whether or not reviews from GoodReads are displayed on the full record page.', 'hideInLists' => true, 'default'=>true),
-				'preferSyndeticsSummary' => array('property'=>'preferSyndeticsSummary', 'type'=>'checkbox', 'label'=>'Prefer Syndetics/Content Cafe Description', 'description'=>'Whether or not the Description loaded from an enrichment service should be preferred over the Description in the Marc Record.', 'hideInLists' => true, 'default' => 1),
-				'showSimilarAuthors' => array('property'=>'showSimilarAuthors', 'type'=>'checkbox', 'label'=>'Show Similar Authors', 'description'=>'Whether or not Similar Authors from Novelist is shown.', 'default' => 1, 'hideInLists' => true,),
-				'showSimilarTitles' => array('property'=>'showSimilarTitles', 'type'=>'checkbox', 'label'=>'Show Similar Titles', 'description'=>'Whether or not Similar Titles from Novelist is shown.', 'default' => 1, 'hideInLists' => true,),
-				'showGoDeeper' => array('property'=>'showGoDeeper', 'type'=>'checkbox', 'label'=>'Show Content Enrichment (TOC, Excerpts, etc)', 'description'=>'Whether or not additional content enrichment like Table of Contents, Exceprts, etc are shown to the user', 'default' => 1, 'hideInLists' => true,),
-				'showRatings'  => array('property'=>'showRatings', 'type'=>'checkbox', 'label'=>'Enable User Ratings', 'description'=>'Whether or not ratings are shown', 'hideInLists' => true, 'default' => 1),
-				'showComments'  => array('property'=>'showComments', 'type'=>'checkbox', 'label'=>'Enable User Reviews', 'description'=>'Whether or not user reviews are shown (also disables adding user reviews)', 'hideInLists' => true, 'default' => 1),
+				'showStandardReviews'      => array('property'=>'showStandardReviews', 'type'=>'checkbox', 'label'=>'Show Standard Reviews', 'description'=>'Whether or not reviews from Content Cafe/Syndetics are displayed on the full record page.', 'hideInLists' => true, 'default' => 1),
+				'showGoodReadsReviews'     => array('property'=>'showGoodReadsReviews', 'type'=>'checkbox', 'label'=>'Show GoodReads Reviews', 'description'=>'Whether or not reviews from GoodReads are displayed on the full record page.', 'hideInLists' => true, 'default'=>true),
+				'preferSyndeticsSummary'   => array('property'=>'preferSyndeticsSummary', 'type'=>'checkbox', 'label'=>'Prefer Syndetics/Content Cafe Description', 'description'=>'Whether or not the Description loaded from an enrichment service should be preferred over the Description in the Marc Record.', 'hideInLists' => true, 'default' => 1),
+				'showSimilarAuthors'       => array('property'=>'showSimilarAuthors', 'type'=>'checkbox', 'label'=>'Show Similar Authors', 'description'=>'Whether or not Similar Authors from Novelist is shown.', 'default' => 1, 'hideInLists' => true,),
+				'showSimilarTitles'        => array('property'=>'showSimilarTitles', 'type'=>'checkbox', 'label'=>'Show Similar Titles', 'description'=>'Whether or not Similar Titles from Novelist is shown.', 'default' => 1, 'hideInLists' => true,),
+				'showGoDeeper'             => array('property'=>'showGoDeeper', 'type'=>'checkbox', 'label'=>'Show Content Enrichment (TOC, Excerpts, etc)', 'description'=>'Whether or not additional content enrichment like Table of Contents, Exceprts, etc are shown to the user', 'default' => 1, 'hideInLists' => true,),
+				'showRatings'              => array('property'=>'showRatings', 'type'=>'checkbox', 'label'=>'Enable User Ratings', 'description'=>'Whether or not ratings are shown', 'hideInLists' => true, 'default' => 1),
+				'showComments'             => array('property'=>'showComments', 'type'=>'checkbox', 'label'=>'Enable User Reviews', 'description'=>'Whether or not user reviews are shown (also disables adding user reviews)', 'hideInLists' => true, 'default' => 1),
 				// showComments & hideCommentsWithBadWords moved from full record display to this section. plb 6-30-2015
-				'hideCommentsWithBadWords'  => array('property'=>'hideCommentsWithBadWords', 'type'=>'checkbox', 'label'=>'Hide Comments with Bad Words', 'description'=>'If checked, any User Lists or User Reviews with bad words are completely removed from the user interface for everyone except the original poster.', 'hideInLists' => true,),
-				'showFavorites'  => array('property'=>'showFavorites', 'type'=>'checkbox', 'label'=>'Enable User Lists', 'description'=>'Whether or not users can maintain favorites lists', 'hideInLists' => true, 'default' => 1),
+				'hideCommentsWithBadWords' => array('property'=>'hideCommentsWithBadWords', 'type'=>'checkbox', 'label'=>'Hide Comments with Bad Words', 'description'=>'If checked, any User Lists or User Reviews with bad words are completely removed from the user interface for everyone except the original poster.', 'hideInLists' => true,),
+				'showFavorites'            => array('property'=>'showFavorites', 'type'=>'checkbox', 'label'=>'Enable User Lists', 'description'=>'Whether or not users can maintain favorites lists', 'hideInLists' => true, 'default' => 1),
 				//TODO database column rename?
-				'showWikipediaContent' => array('property'=>'showWikipediaContent', 'type'=>'checkbox', 'label'=>'Show Wikipedia Content', 'description'=>'Whether or not Wikipedia content should be shown on author page', 'default'=>'1', 'hideInLists' => true,),
+				'showWikipediaContent'     => array('property'=>'showWikipediaContent', 'type'=>'checkbox', 'label'=>'Show Wikipedia Content', 'description'=>'Whether or not Wikipedia content should be shown on author page', 'default'=>'1', 'hideInLists' => true,),
 			)),
 
 			// Full Record Display //
 			'fullRecordSection' => array('property'=>'fullRecordSection', 'type' => 'section', 'label' =>'Full Record Display', 'hideInLists' => true,
 					'helpLink'=>'https://docs.google.com/document/d/1ZZsoKW2NOfGMad36BkWeF5ROqH5Wyg5up3eIhki5Lec', 'properties' => array(
-				'showTextThis'  => array('property'=>'showTextThis', 'type'=>'checkbox', 'label'=>'Show Text This', 'description'=>'Whether or not the Text This link is shown', 'hideInLists' => true, 'default' => 1),
-				'showEmailThis'  => array('property'=>'showEmailThis', 'type'=>'checkbox', 'label'=>'Show Email This', 'description'=>'Whether or not the Email This link is shown', 'hideInLists' => true, 'default' => 1),
-				'showShareOnExternalSites'  => array('property'=>'showShareOnExternalSites', 'type'=>'checkbox', 'label'=>'Show Sharing To External Sites', 'description'=>'Whether or not sharing on external sites (Twitter, Facebook, Pinterest, etc. is shown)', 'hideInLists' => true, 'default' => 1),
-				'showQRCode'  => array('property'=>'showQRCode', 'type'=>'checkbox', 'label'=>'Show QR Code', 'description'=>'Whether or not the catalog should show a QR Code in full record view', 'hideInLists' => true, 'default' => 1),
-				'showTagging'  => array('property'=>'showTagging', 'type'=>'checkbox', 'label'=>'Show Tagging', 'description'=>'Whether or not tags are shown (also disables adding tags)', 'hideInLists' => true, 'default' => 1),
-				'notesTabName' => array('property'=>'notesTabName', 'type'=>'text', 'label'=>'Notes Tab Name', 'description'=>'Text to display for the the notes tab.', 'size'=>'40', 'maxLength' => '50', 'hideInLists' => true, 'default' => 'Notes'),
-				'exportOptions' => array('property'=>'exportOptions', 'type'=>'text', 'label'=>'Export Options', 'description'=>'A list of export options that should be enabled separated by pipes.  Valid values are currently RefWorks and EndNote.', 'size'=>'40', 'hideInLists' => true,),
-				'show856LinksAsTab'  => array('property'=>'show856LinksAsTab', 'type'=>'checkbox', 'label'=>'Show 856 Links as Tab', 'description'=>'Whether or not 856 links will be shown in their own tab or on the same tab as holdings.', 'hideInLists' => true, 'default' => 1),
-				'showCheckInGrid' => array('property'=>'showCheckInGrid', 'type'=>'checkbox', 'label'=>'Show Check-in Grid', 'description'=>'Whether or not the check-in grid is shown for periodicals.', 'default' => 1, 'hideInLists' => true,),
-				'showStaffView' => array('property'=>'showStaffView', 'type'=>'checkbox', 'label'=>'Show Staff View', 'description'=>'Whether or not the staff view is displayed in full record view.', 'hideInLists' => true, 'default'=>true),
-				'showStandardSubjects' => array('property'=>'showStandardSubjects', 'type'=>'checkbox', 'label'=>'Show Standard Subjects', 'description'=>'Whether or not standard (LC) subjects are displayed in full record view.', 'hideInLists' => true, 'default'=>true),
-				'showBisacSubjects' => array('property'=>'showBisacSubjects', 'type'=>'checkbox', 'label'=>'Show Bisac Subjects', 'description'=>'Whether or not Bisac subjects are displayed in full record view.', 'hideInLists' => true, 'default'=>true),
-				'showFastAddSubjects' => array('property'=>'showFastAddSubjects', 'type'=>'checkbox', 'label'=>'Show OCLC Fast Subjects', 'description'=>'Whether or not OCLC Fast Add subjects are displayed in full record view.', 'hideInLists' => true, 'default'=>true),
+				'showTextThis'             => array('property'=>'showTextThis',             'type'=>'checkbox', 'label'=>'Show Text This',                    'description'=>'Whether or not the Text This link is shown', 'hideInLists' => true, 'default' => 1),
+				'showEmailThis'            => array('property'=>'showEmailThis',            'type'=>'checkbox', 'label'=>'Show Email This',                   'description'=>'Whether or not the Email This link is shown', 'hideInLists' => true, 'default' => 1),
+				'showShareOnExternalSites' => array('property'=>'showShareOnExternalSites', 'type'=>'checkbox', 'label'=>'Show Sharing To External Sites',    'description'=>'Whether or not sharing on external sites (Twitter, Facebook, Pinterest, etc. is shown)', 'hideInLists' => true, 'default' => 1),
+				'showQRCode'               => array('property'=>'showQRCode',               'type'=>'checkbox', 'label'=>'Show QR Code',                      'description'=>'Whether or not the catalog should show a QR Code in full record view', 'hideInLists' => true, 'default' => 1),
+				'showTagging'              => array('property'=>'showTagging',              'type'=>'checkbox', 'label'=>'Show Tagging',                      'description'=>'Whether or not tags are shown (also disables adding tags)', 'hideInLists' => true, 'default' => 1),
+				'notesTabName'             => array('property'=>'notesTabName',             'type'=>'text',     'label'=>'Notes Tab Name',                    'description'=>'Text to display for the the notes tab.', 'size'=>'40', 'maxLength' => '50', 'hideInLists' => true, 'default' => 'Notes'),
+				'exportOptions'            => array('property'=>'exportOptions',            'type'=>'text',     'label'=>'Export Options',                    'description'=>'A list of export options that should be enabled separated by pipes.  Valid values are currently RefWorks and EndNote.', 'size'=>'40', 'hideInLists' => true,),
+				'show856LinksAsTab'        => array('property'=>'show856LinksAsTab',        'type'=>'checkbox', 'label'=>'Show 856 Links as Tab',             'description'=>'Whether or not 856 links will be shown in their own tab or on the same tab as holdings.', 'hideInLists' => true, 'default' => 1),
+				'showCheckInGrid'          => array('property'=>'showCheckInGrid',          'type'=>'checkbox', 'label'=>'Show Check-in Grid',                'description'=>'Whether or not the check-in grid is shown for periodicals.', 'default' => 1, 'hideInLists' => true,),
+				'showStaffView'            => array('property'=>'showStaffView',            'type'=>'checkbox', 'label'=>'Show Staff View',                   'description'=>'Whether or not the staff view is displayed in full record view.', 'hideInLists' => true, 'default'=>true),
+				'showLCSubjects'           => array('property'=>'showLCSubjects',           'type'=>'checkbox', 'label'=>'Show Library of Congress Subjects', 'description'=>'Whether or not standard (LC) subjects are displayed in full record view.', 'hideInLists' => true, 'default'=>true),
+				'showBisacSubjects'        => array('property'=>'showBisacSubjects',        'type'=>'checkbox', 'label'=>'Show Bisac Subjects',               'description'=>'Whether or not Bisac subjects are displayed in full record view.', 'hideInLists' => true, 'default'=>true),
+				'showFastAddSubjects'      => array('property'=>'showFastAddSubjects',      'type'=>'checkbox', 'label'=>'Show OCLC Fast Subjects',           'description'=>'Whether or not OCLC Fast Add subjects are displayed in full record view.', 'hideInLists' => true, 'default'=>true),
+				'showOtherSubjects'        => array('property'=>'showOtherSubjects',        'type'=>'checkbox', 'label'=>'Show Other Subjects',               'description'=>'Whether or other subjects from the MARC are displayed in full record view.', 'hideInLists' => true, 'default'=>true),
 
 				'showInMainDetails' => array('property' => 'showInMainDetails', 'type' => 'multiSelect', 'label'=>'Which details to show in the main/top details section : ', 'description'=> 'Selected details will be shown in the top/main section of the full record view. Details not selected are moved to the More Details accordion.',
-					'listStyle'=> 'checkboxSimple',
+					'listStyle' => 'checkboxSimple',
 				  'values' => self::$showInMainDetailsOptions,
 				),
 				'moreDetailsOptions' => array(
-						'property'=>'moreDetailsOptions',
-						'type'=>'oneToMany',
-						'label'=>'Full Record Options',
-						'description'=>'Record Options for the display of full record',
+						'property' => 'moreDetailsOptions',
+						'type' => 'oneToMany',
+						'label' => 'Full Record Options',
+						'description' => 'Record Options for the display of full record',
 						'keyThis' => 'libraryId',
 						'keyOther' => 'libraryId',
 						'subObjectType' => 'LibraryMoreDetails',
@@ -507,18 +550,17 @@ class Library extends DB_DataObject
 
 			'overdriveSection' => array('property'=>'overdriveSection', 'type' => 'section', 'label' =>'OverDrive', 'hideInLists' => true,
 					'helpLink'=>'https://docs.google.com/document/d/1HG7duKI4-gbOlgDvMlQrib52LV0BBUhzGD7Q69QLziM', 'properties' => array(
-				'enableOverdriveCollection' => array('property'=>'enableOverdriveCollection', 'type'=>'checkbox', 'label'=>'Enable Overdrive Collection', 'description'=>'Whether or not titles from the Overdrive collection should be included in searches', 'hideInLists' => true),
-				'includeOverDriveAdult' => array('property'=>'includeOverDriveAdult', 'type'=>'checkbox', 'label'=>'Include Adult Titles', 'description'=>'Whether or not adult titles from the Overdrive collection should be included in searches', 'hideInLists' => true, 'default' => true),
-				'includeOverDriveTeen' => array('property'=>'includeOverDriveTeen', 'type'=>'checkbox', 'label'=>'Include Teen Titles', 'description'=>'Whether or not teen titles from the Overdrive collection should be included in searches', 'hideInLists' => true, 'default' => true),
-				'includeOverDriveKids' => array('property'=>'includeOverDriveKids', 'type'=>'checkbox', 'label'=>'Include Kids Titles', 'description'=>'Whether or not kids titles from the Overdrive collection should be included in searches', 'hideInLists' => true, 'default' => true),
-
-				'repeatInOverdrive' => array('property'=>'repeatInOverdrive', 'type'=>'checkbox', 'label'=>'Repeat In Overdrive', 'description'=>'Turn on to allow repeat search in Overdrive functionality.', 'hideInLists' => true, 'default' => 0),
+				'enableOverdriveCollection'      => array('property'=>'enableOverdriveCollection', 'type'=>'checkbox', 'label'=>'Enable Overdrive Collection', 'description'=>'Whether or not titles from the Overdrive collection should be included in searches', 'hideInLists' => true),
+				'includeOverDriveAdult'          => array('property'=>'includeOverDriveAdult', 'type'=>'checkbox', 'label'=>'Include Adult Titles', 'description'=>'Whether or not adult titles from the Overdrive collection should be included in searches', 'hideInLists' => true, 'default' => true),
+				'includeOverDriveTeen'           => array('property'=>'includeOverDriveTeen', 'type'=>'checkbox', 'label'=>'Include Teen Titles', 'description'=>'Whether or not teen titles from the Overdrive collection should be included in searches', 'hideInLists' => true, 'default' => true),
+				'includeOverDriveKids'           => array('property'=>'includeOverDriveKids', 'type'=>'checkbox', 'label'=>'Include Kids Titles', 'description'=>'Whether or not kids titles from the Overdrive collection should be included in searches', 'hideInLists' => true, 'default' => true),
+				'repeatInOverdrive'              => array('property'=>'repeatInOverdrive', 'type'=>'checkbox', 'label'=>'Repeat In Overdrive', 'description'=>'Turn on to allow repeat search in Overdrive functionality.', 'hideInLists' => true, 'default' => 0),
 				'overdriveAuthenticationILSName' => array('property'=>'overdriveAuthenticationILSName', 'type'=>'text', 'label'=>'The ILS Name Overdrive uses for user Authentication', 'description'=>'The name of the ILS that OverDrive uses to authenticate users logging into the Overdrive website.', 'size'=>'20', 'hideInLists' => true),
-				'overdriveRequirePin' => array('property'=>'overdriveRequirePin', 'type'=>'checkbox', 'label'=>'Is a Pin Required to log into Overdrive website?', 'description'=>'Turn on to allow repeat search in Overdrive functionality.', 'hideInLists' => true, 'default' => 0),
-				'overdriveAdvantageName' => array('property'=>'overdriveAdvantageName', 'type'=>'text', 'label'=>'Overdrive Advantage Name', 'description'=>'The name of the OverDrive Advantage account if any.', 'size'=>'80', 'hideInLists' => true,),
-				'overdriveAdvantageProductsKey' => array('property'=>'overdriveAdvantageProductsKey', 'type'=>'text', 'label'=>'Overdrive Advantage Products Key', 'description'=>'The products key for use when building urls to the API from the advantageAccounts call.', 'size'=>'80', 'hideInLists' => false,),
+				'overdriveRequirePin'            => array('property'=>'overdriveRequirePin', 'type'=>'checkbox', 'label'=>'Is a Pin Required to log into Overdrive website?', 'description'=>'Turn on to allow repeat search in Overdrive functionality.', 'hideInLists' => true, 'default' => 0),
+				'overdriveAdvantageName'         => array('property'=>'overdriveAdvantageName', 'type'=>'text', 'label'=>'Overdrive Advantage Name', 'description'=>'The name of the OverDrive Advantage account if any.', 'size'=>'80', 'hideInLists' => true,),
+				'overdriveAdvantageProductsKey'  => array('property'=>'overdriveAdvantageProductsKey', 'type'=>'text', 'label'=>'Overdrive Advantage Products Key', 'description'=>'The products key for use when building urls to the API from the advantageAccounts call.', 'size'=>'80', 'hideInLists' => false,),
 			)),
-			'archiveSection' => array('property'=>'archiveSection', 'type' => 'section', 'label' =>'Local Content Archive', 'hideInLists' => true, 'properties' => array(
+			'archiveSection' => array('property'=>'archiveSection', 'type' => 'section', 'label' =>'Local Content Archive', 'hideInLists' => true, 'helpLink'=>'https://docs.google.com/a/marmot.org/document/d/128wrNtZu_sUqm2_NypC6Sx8cOvM2cdmeOUDp0hUhQb4/edit?usp=sharing_eid&ts=57324e27', 'properties' => array(
 					'enableArchive' => array('property'=>'enableArchive', 'type'=>'checkbox', 'label'=>'Allow Searching the Archive', 'description'=>'Whether or not information from the archive is shown in Pika.', 'hideInLists' => true, 'default' => 0),
 					'archiveNamespace' => array('property'=>'archiveNamespace', 'type'=>'text', 'label'=>'Archive Namespace', 'description'=>'The namespace of your library in the archive', 'hideInLists' => true, 'maxLength' => 30, 'size'=>'30'),
 					'hideAllCollectionsFromOtherLibraries' => array('property'=>'hideAllCollectionsFromOtherLibraries', 'type'=>'checkbox', 'label'=>'Hide Collections from Other Libraries', 'description'=>'Whether or not collections created by other libraries is shown in Pika.', 'hideInLists' => true, 'default' => 0),
@@ -537,37 +579,24 @@ class Library extends DB_DataObject
 
 			'holidays' => array(
 				'property' => 'holidays',
-				'type'=> 'oneToMany',
+				'type' => 'oneToMany',
+				'label' => 'Holidays',
+				'description' => 'Holidays',
+				'helpLink' => 'https://docs.google.com/document/d/12UGkTOZja5p_ms9IuqfGj4ruJk-OvousGXWvN870Qbc',
 				'keyThis' => 'libraryId',
 				'keyOther' => 'libraryId',
 				'subObjectType' => 'Holiday',
 				'structure' => $holidaysStructure,
-				'label' => 'Holidays',
-				'description' => 'Holidays',
 				'sortable' => false,
 				'storeDb' => true
 			),
 
-			'facets' => array(
-				'property'=>'facets',
-				'type'=>'oneToMany',
-				'label'=>'Facets',
-				'description'=>'A list of facets to display in search results',
-				'keyThis' => 'libraryId',
-				'keyOther' => 'libraryId',
-				'subObjectType' => 'LibraryFacetSetting',
-				'structure' => $facetSettingStructure,
-				'sortable' => true,
-				'storeDb' => true,
-				'allowEdit' => true,
-				'canEdit' => true,
-			),
-
 			'libraryLinks' => array(
-				'property'=>'libraryLinks',
-				'type'=>'oneToMany',
-				'label'=>'Sidebar Links',
-				'description'=>'Links To Show in the sidebar',
+				'property' => 'libraryLinks',
+				'type' => 'oneToMany',
+				'label' => 'Sidebar Links',
+				'description' => 'Links To Show in the sidebar',
+				'helpLink' => 'https://docs.google.com/document/d/1wEzrwkxLCeykNcX_1-0Jd1Acw251L05IoZ9ipV-HaWA',
 				'keyThis' => 'libraryId',
 				'keyOther' => 'libraryId',
 				'subObjectType' => 'LibraryLink',
@@ -579,10 +608,11 @@ class Library extends DB_DataObject
 			),
 
 			'libraryTopLinks' => array(
-				'property'=>'libraryTopLinks',
-				'type'=>'oneToMany',
-				'label'=>'Header Links',
-				'description'=>'Links To Show in the header',
+				'property' => 'libraryTopLinks',
+				'type' => 'oneToMany',
+				'label' => 'Header Links',
+				'description' => 'Links To Show in the header',
+				'helpLink' => 'https://docs.google.com/document/d/1wEzrwkxLCeykNcX_1-0Jd1Acw251L05IoZ9ipV-HaWA',
 				'keyThis' => 'libraryId',
 				'keyOther' => 'libraryId',
 				'subObjectType' => 'LibraryTopLinks',
@@ -594,10 +624,11 @@ class Library extends DB_DataObject
 			),
 
 			'recordsOwned' => array(
-				'property'=>'recordsOwned',
-				'type'=>'oneToMany',
-				'label'=>'Records Owned',
-				'description'=>'Information about what records are owned by the library',
+				'property' => 'recordsOwned',
+				'type' => 'oneToMany',
+				'label' => 'Records Owned',
+				'description' => 'Information about what records are owned by the library',
+				'helpLink' => 'https://docs.google.com/document/d/1pFio8rYsgR5QVzZJfvceWwJ5aCF9eaoEJ0lunV_9CE0',
 				'keyThis' => 'libraryId',
 				'keyOther' => 'libraryId',
 				'subObjectType' => 'LibraryRecordOwned',
@@ -609,10 +640,11 @@ class Library extends DB_DataObject
 			),
 
 			'recordsToInclude' => array(
-				'property'=>'recordsToInclude',
-				'type'=>'oneToMany',
-				'label'=>'Records To Include',
-				'description'=>'Information about what records to include in this scope',
+				'property' => 'recordsToInclude',
+				'type' => 'oneToMany',
+				'label' => 'Records To Include',
+				'description' => 'Information about what records to include in this scope',
+				'helpLink' => 'https://docs.google.com/document/d/1pFio8rYsgR5QVzZJfvceWwJ5aCF9eaoEJ0lunV_9CE0',
 				'keyThis' => 'libraryId',
 				'keyOther' => 'libraryId',
 				'subObjectType' => 'LibraryRecordToInclude',
@@ -899,6 +931,11 @@ class Library extends DB_DataObject
 				$default = array_keys($default);
 				$this->showInMainDetails = $default;
 			}
+			if (isset($this->showInSearchResultsMainDetails) && is_string($this->showInSearchResultsMainDetails) && !empty($this->showInSearchResultsMainDetails)) {
+				// convert to array retrieving from database
+				$this->showInSearchResultsMainDetails = unserialize($this->showInSearchResultsMainDetails);
+				if (!$this->showInSearchResultsMainDetails) $this->showInSearchResultsMainDetails = array();
+			}
 		}
 		return $return;
 	}
@@ -911,6 +948,10 @@ class Library extends DB_DataObject
 		if (isset($this->showInMainDetails) && is_array($this->showInMainDetails)) {
 			// convert array to string before storing in database
 			$this->showInMainDetails = serialize($this->showInMainDetails);
+		}
+		if (isset($this->showInSearchResultsMainDetails) && is_array($this->showInSearchResultsMainDetails)) {
+			// convert array to string before storing in database
+			$this->showInSearchResultsMainDetails = serialize($this->showInSearchResultsMainDetails);
 		}
 		$ret = parent::update();
 		if ($ret !== FALSE ){
@@ -945,6 +986,10 @@ class Library extends DB_DataObject
 		if (isset($this->showInMainDetails) && is_array($this->showInMainDetails)) {
 			// convert array to string before storing in database
 			$this->showInMainDetails = serialize($this->showInMainDetails);
+		}
+		if (isset($this->showInSearchResultsMainDetails) && is_array($this->showInSearchResultsMainDetails)) {
+			// convert array to string before storing in database
+			$this->showInSearchResultsMainDetails = serialize($this->showInSearchResultsMainDetails);
 		}
 		$ret = parent::insert();
 		if ($ret !== FALSE ){

@@ -40,7 +40,8 @@ cd /usr/local/vufind-plus/sites/${PIKASERVER}; ./${PIKASERVER}.sh restart
 /root/cron/copySierraExport.sh >> ${OUTPUT_FILE}
 
 #Extract from Hoopla
-cd /usr/local/vufind-plus/vufind/cron;./HOOPLA.sh ${PIKASERVER} >> ${OUTPUT_FILE}
+#cd /usr/local/vufind-plus/vufind/cron;./HOOPLA.sh ${PIKASERVER} >> ${OUTPUT_FILE}
+# Grab manually from Nashville, after James does Marc Clean up work.  pascal 6-7-2016
 
 # Ebrary Marc Updates
 #TODO: refactor CCU's ebrary destination
@@ -67,6 +68,11 @@ cd /usr/local/vufind-plus/vufind/cron;./HOOPLA.sh ${PIKASERVER} >> ${OUTPUT_FILE
 
 # Colorado State Gov Docs Marc Updates
 /usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh cologovdocs colorado_gov_docs >> ${OUTPUT_FILE}
+
+#Lynda.com Marc Updates
+# (EVLD, Vail)
+#Extracts for sideloaded eContent; settings defined in config.pwd.ini [Sideload]
+cd /usr/local/vufind-plus/vufind/cron; ./sideload.sh ${PIKASERVER}
 
 
 #Do a full extract from OverDrive just once a week to catch anything that doesn't

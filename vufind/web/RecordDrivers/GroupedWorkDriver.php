@@ -508,7 +508,7 @@ class GroupedWorkDriver extends RecordInterface{
 		$interface->assign('summUrl', $linkUrl);
 		$interface->assign('summTitle', $this->getTitleShort(true));
 		$interface->assign('summSubTitle', $this->getSubtitle(true));
-		$interface->assign('summAuthor', $this->getPrimaryAuthor(true));
+		$interface->assign('summAuthor', rtrim($this->getPrimaryAuthor(true), ','));
 		$isbn = $this->getCleanISBN();
 		$interface->assign('summISBN', $isbn);
 		$interface->assign('summFormats', $this->getFormats());
@@ -522,39 +522,41 @@ class GroupedWorkDriver extends RecordInterface{
 		//Generate COinS URL for Zotero support
 		$interface->assign('summCOinS', $this->getOpenURL());
 
-		$summPublisher = null;
-		$summPubDate = null;
+		$summPublisher    = null;
+		$summPubDate      = null;
 		$summPhysicalDesc = null;
-		$summEdition = null;
-		$summLanguage = null;
+		$summEdition      = null;
+		$summLanguage     = null;
 		$isFirst = true;
+		global $library;
+		$alwaysShowMainDetails = $library ? $library->alwaysShowSearchResultsMainDetails : false;
 		foreach ($relatedRecords as $relatedRecord){
 			if ($isFirst){
-				$summPublisher = $relatedRecord['publisher'];
-				$summPubDate = $relatedRecord['publicationDate'];
+				$summPublisher    = $relatedRecord['publisher'];
+				$summPubDate      = $relatedRecord['publicationDate'];
 				$summPhysicalDesc = $relatedRecord['physical'];
-				$summEdition = $relatedRecord['edition'];
-				$summLanguage = $relatedRecord['language'];
+				$summEdition      = $relatedRecord['edition'];
+				$summLanguage     = $relatedRecord['language'];
 			}else{
 				if ($summPublisher != $relatedRecord['publisher']){
-					$summPublisher = null;
+					$summPublisher = $alwaysShowMainDetails ? translate('Varies, see individual formats and editions') : null;
 				}
 				if ($summPubDate != $relatedRecord['publicationDate']){
-					$summPubDate = null;
+					$summPubDate = $alwaysShowMainDetails ? translate('Varies, see individual formats and editions') : null;
 				}
 				if ($summPhysicalDesc != $relatedRecord['physical']){
-					$summPhysicalDesc = null;
+					$summPhysicalDesc = $alwaysShowMainDetails ? translate('Varies, see individual formats and editions') : null;
 				}
 				if ($summEdition != $relatedRecord['edition']){
-					$summEdition = null;
+					$summEdition = $alwaysShowMainDetails ? translate('Varies, see individual formats and editions') : null;
 				}
 				if ($summLanguage != $relatedRecord['language']){
-					$summLanguage = null;
+					$summLanguage = $alwaysShowMainDetails ? translate('Varies, see individual formats and editions') : null;
 				}
 			}
 			$isFirst = false;
 		}
-		$interface->assign('summPublisher', $summPublisher);
+		$interface->assign('summPublisher', rtrim($summPublisher, ','));
 		$interface->assign('summPubDate', $summPubDate);
 		$interface->assign('summPhysicalDesc', $summPhysicalDesc);
 		$interface->assign('summEdition', $summEdition);
@@ -1722,12 +1724,14 @@ class GroupedWorkDriver extends RecordInterface{
 	}
 
 	public function loadEnrichment() {
+		global $memoryWatcher;
 		$isbn = $this->getCleanISBN();
 		$enrichment = array();
 		if ($isbn == null || strlen($isbn) == 0){
 			return $enrichment;
 		}
 		$novelist = NovelistFactory::getNovelist();
+		$memoryWatcher->logMemory('Setup Novelist Connection');
 		$enrichment['novelist'] = $novelist->loadEnrichment($this->getPermanentId(), $this->getISBNs());
 		return $enrichment;
 	}

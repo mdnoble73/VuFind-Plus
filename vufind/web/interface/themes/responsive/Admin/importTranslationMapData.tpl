@@ -30,10 +30,11 @@
 		<div>
 			<input type="hidden" name="objectAction" value="doAppend" id="objectAction">
 			<input type="hidden" name="id" value="{$id}">
-			<textarea rows="20" cols="80" name="translationMapData"></textarea>
-			<br>
+			<p>
+				<textarea rows="20" cols="80" name="translationMapData"></textarea>
+			</p>
 			<input type="submit" name="reload" value="Append/Overwrite Values" class="btn btn-primary" onclick="setObjectAction('doAppend')">
-			<input type="submit" name="reload" value="Reload Map Values" class="btn btn-primary" onclick="setObjectAction('doReload')">
+			<input type="submit" name="reload" value="Reload Map Values" class="btn btn-danger" onclick="if(confirm('Confirm Map Reload? This will erase all current translations for this map.'))setObjectAction('doReload');else return false;">
 		</div>
 	</form>
 </div>

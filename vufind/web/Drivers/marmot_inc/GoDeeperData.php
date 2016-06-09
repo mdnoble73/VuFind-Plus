@@ -100,27 +100,28 @@ class GoDeeperData{
 			}
 
 			// Use Content Cafe Data
-			elseif (!empty($configArray['Contentcafe']['pw'])) {
+			elseif (!empty($configArray['Contentcafe']['pw']) && $configArray['Contentcafe']['pw'] != 'xxxxxx') {
 				$response = self::getContentCafeData($isbn, $upc);
-
-				$availableContent = $response[0]->AvailableContent;
-				if ($configArray['Contentcafe']['showExcerpt'] && $availableContent->Excerpt) {
-					$validEnrichmentTypes['excerpt'] = 'Excerpt';
-					if (!isset($defaultOption)) $defaultOption = 'excerpt';
+				if ($response != false){
+					$availableContent = $response[0]->AvailableContent;
+					if ($configArray['Contentcafe']['showExcerpt'] && $availableContent->Excerpt) {
+						$validEnrichmentTypes['excerpt'] = 'Excerpt';
+						if (!isset($defaultOption)) $defaultOption = 'excerpt';
+					}
+					if ($configArray['Contentcafe']['showToc'] && $availableContent->TOC) {
+						$validEnrichmentTypes['tableOfContents'] = 'Table of Contents';
+						if (!isset($defaultOption)) $defaultOption = 'tableOfContents';
+					}
+					if ($configArray['Contentcafe']['showAuthorNotes'] && $availableContent->Biography) {
+						$validEnrichmentTypes['authorNotes'] = 'Author Notes';
+						if (!isset($defaultOption)) $defaultOption = 'authorNotes';
+					}
+					if ($configArray['Contentcafe']['showSummary'] && $availableContent->Annotation) {
+						$validEnrichmentTypes['summary'] = 'Summary';
+						if (!isset($defaultOption)) $defaultOption = 'summary';
+					}
+					$timer->logTime("Finished processing Content Cafe options");
 				}
-				if ($configArray['Contentcafe']['showToc'] && $availableContent->TOC) {
-					$validEnrichmentTypes['tableOfContents'] = 'Table of Contents';
-					if (!isset($defaultOption)) $defaultOption = 'tableOfContents';
-				}
-				if ($configArray['Contentcafe']['showAuthorNotes'] && $availableContent->Biography) {
-					$validEnrichmentTypes['authorNotes'] = 'Author Notes';
-					if (!isset($defaultOption)) $defaultOption = 'authorNotes';
-				}
-				if ($configArray['Contentcafe']['showSummary'] && $availableContent->Annotation) {
-					$validEnrichmentTypes['summary'] = 'Summary';
-					if (!isset($defaultOption)) $defaultOption = 'summary';
-				}
-				$timer->logTime("Finished processing Content Cafe options");
 			}
 
 			$goDeeperOptions = array('options' => $validEnrichmentTypes);

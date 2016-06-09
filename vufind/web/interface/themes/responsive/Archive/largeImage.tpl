@@ -1,4 +1,4 @@
-{strip}
+{* {strip} *}
 	<div class="col-xs-12">
 		<h2>
 			{$title|escape}
@@ -8,14 +8,32 @@
 				Sorry we could not find an image for this object.
 			</div>
 		{elseif $large_image}
-			<div id="pika-openseadragon" class="openseadragon"></div>
+			<div class="large-image-wrapper">
+				{* <a id="clip" title="Clip Image" href="#">
+					Clip Image
+				</a> *}
+				<div class="large-image-content">
+					<div id="pika-openseadragon" class="openseadragon"></div>
+				</div>
+			</div>
 		{else}
 			<div class="main-project-image">
-				<a href="{$image}">
-					<img src="{$image}" class="img-responsive">
-				</a>
+				<img src="{$image}" class="img-responsive">
 			</div>
 		{/if}
+
+		<div id="image-download-options">
+			{if $anonymousLcDownload || ($user && $verifiedLcDownload)}
+				<a class="btn btn-default" href="/Archive/{$pid}/DownloadLC">Download Large Image</a>
+			{elseif (!$user && $verifiedLcDownload)}
+				<a class="btn btn-default" onclick="return VuFind.Account.followLinkIfLoggedIn(this)" href="/Archive/{$pid}/DownloadLC">Login to Download Large Image</a>
+			{/if}
+			{if $anonymousMasterDownload || ($user && $verifiedMasterDownload)}
+				<a class="btn btn-default" href="/Archive/{$pid}/DownloadOriginal">Download Original Image</a>
+			{elseif (!$user && $verifiedLcDownload)}
+				<a class="btn btn-default" onclick="return VuFind.Account.followLinkIfLoggedIn(this)" href="/Archive/{$pid}/DownloadOriginal">Login to Download Original Image</a>
+			{/if}
+		</div>
 
 {*//Moved to accordion
 
@@ -35,21 +53,25 @@
 	<script src="{$path}/js/openseadragon/djtilesource.js" ></script>
 	<script type="text/javascript">
 		$(document).ready(function(){ldelim}
-			{* var openSeadragonSettings = {ldelim}
+			if (!$('#pika-openseadragon').hasClass('processed')) {ldelim}
+				var openSeadragonSettings = {ldelim}
 					"pid":"{$pid}",
-					"resourceUri":"{$large_image}",
+					"resourceUri":{$large_image|@json_encode nofilter},
 					"tileSize":256,
 					"tileOverlap":0,
+					"id":"pika-openseadragon",
 					"settings": {ldelim}
 							"id":"pika-openseadragon",
-							"prefixUrl":"/js/openseadragon/images/",
-							"debugMode":true,
-							"djatokaServerBaseURL":"https://islandora.marmot.org/adore-djatoka/resolver",
+							"prefixUrl":"https:\/\/islandora.marmot.org\/sites\/all\/libraries\/openseadragon\/images\/",
+							"debugMode":false,
+							"djatokaServerBaseURL":"https:\/\/islandora.marmot.org\/adore-djatoka\/resolver",
+							"tileSize":256,
+							"tileOverlap":0,
 							"animationTime":1.5,
 							"blendTime":0.1,
 							"alwaysBlend":false,
-							"autoHideControls":1
-							,"immediateRender":false,
+							"autoHideControls":1,
+							"immediateRender":true,
 							"wrapHorizontal":false,
 							"wrapVertical":false,
 							"wrapOverlays":false,
@@ -67,29 +89,25 @@
 							"zoomPerSecond":2,
 							"showNavigator":1,
 							"defaultZoomLevel":1
-				{rdelim}
-			{rdelim};
-			var tileSource = new OpenSeadragon.DjatokaTileSource(
-					"https://islandora.marmot.org/adore-djatoka/resolver",
-					'{$large_image}',
-					openSeadragonSettings
-			);
-			var viewer = OpenSeadragon({ldelim}
-				id: "pika-openseadragon",
-				preserveViewport: true,
-				prefixUrl: '/js/openseadragon/images/',
-				tileSource : tileSource
-			{rdelim});
-			VuFind.Archive.initializeOpenSeadragon(viewer); *}
-			var viewer = OpenSeadragon({ldelim}
-				id: "pika-openseadragon",
-				prefixUrl: '/js/openseadragon/images/',
-				tileSources : {ldelim}
-					type: 'image',
-					url: '{$image}',
-					buildPyramid: true
-				{rdelim}
-			{rdelim});
+					{rdelim}
+				{rdelim};
+				openSeadragonSettings.settings.tileSources = new Array();
+				var tileSource = new OpenSeadragon.DjatokaTileSource(
+						"https://islandora.marmot.org/adore-djatoka/resolver",
+						'{$large_image}',
+						openSeadragonSettings.settings
+				);
+				openSeadragonSettings.settings.tileSources.push(tileSource);
+
+				var viewer = new OpenSeadragon(openSeadragonSettings.settings);
+				//VuFind.Archive.initializeOpenSeadragon(viewer);
+				$('#pika-openseadragon').addClass('processed');
+			{rdelim}
 		{rdelim});
 	</script>
-{/strip}
+{* {/strip} *}
+<script type="text/javascript">
+	$().ready(function(){ldelim}
+		VuFind.Archive.loadExploreMore('{$pid|urlencode}');
+		{rdelim});
+</script>

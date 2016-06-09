@@ -167,6 +167,9 @@ find /var/log/vufind-plus/solr -name "solr_gc_log_*" -mtime +7 -delete
 #Restart Solr
 cd /usr/local/vufind-plus/sites/${PIKASERVER}; ./${PIKASERVER}.sh restart
 
+#Delete Zinio Covers
+cd /usr/local/vufind-plus/vufind/cron; ./zinioDeleteCovers.sh ${PIKASERVER}
+
 #Email results
 FILESIZE=$(stat -c%s ${OUTPUT_FILE})
 if [[ ${FILESIZE} > 0 ]]

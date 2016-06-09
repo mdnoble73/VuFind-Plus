@@ -58,6 +58,10 @@ class UInterface extends Smarty
 			$mapsKey = $configArray['Maps']['apiKey'];
 			$this->assign('mapsKey', $mapsKey);
 		}
+		if (isset($configArray['Maps']) && isset($configArray['Maps']['browserKey'])){
+			$mapsKey = $configArray['Maps']['browserKey'];
+			$this->assign('mapsBrowserKey', $mapsKey);
+		}
 
 		if (isset($_REQUEST['print'])) {
 			$this->assign('print', true);
@@ -363,6 +367,7 @@ class UInterface extends Smarty
 			$this->assign('showRatings', $library->showRatings);
 			$this->assign('show856LinksAsTab', $library->show856LinksAsTab);
 			$this->assign('showSearchTools', $library->showSearchTools);
+			$this->assign('alwaysShowSearchResultsMainDetails', $library->alwaysShowSearchResultsMainDetails);
 			$this->assign('showExpirationWarnings', $library->showExpirationWarnings);
 			$this->assign('showSimilarTitles', $library->showSimilarTitles);
 			$this->assign('showSimilarAuthors', $library->showSimilarAuthors);
@@ -380,6 +385,7 @@ class UInterface extends Smarty
 			$this->assign('showRatings', 1);
 			$this->assign('show856LinksAsTab', 1);
 			$this->assign('showSearchTools', 1);
+			$this->assign('alwaysShowSearchResultsMainDetails', 0);
 			$this->assign('showExpirationWarnings', 1);
 			$this->assign('showSimilarTitles', 1);
 			$this->assign('showSimilarAuthors', 1);
@@ -537,10 +543,15 @@ function display_if_inconsistent($params, $content, &$smarty, &$repeat){
 	//This function is called twice, once for the opening tag and once for the
 	//closing tag.  Content is only set if
 	if (isset($content)) {
-		$consistent = true;
-		$firstValue = null;
 		$array = $params['array'];
 		$key = $params['key'];
+
+		if (count($array) === 1) {
+			// If we have only one row of items, display that row
+			return empty($array[0][$key]) ? '' : $content;
+		}
+		$consistent = true;
+		$firstValue = null;
 		$iterationNumber = 0;
 		foreach ($array as $arrayValue){
 			if ($iterationNumber == 0){

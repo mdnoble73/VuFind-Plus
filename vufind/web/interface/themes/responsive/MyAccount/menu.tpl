@@ -213,8 +213,10 @@
 							{if $user->hasRole('opacAdmin')}
 								<div class="adminMenuLink{if $action == "UserSuggestions"} active{/if}"><a href="{$path}/Admin/UserSuggestions">User Suggestions</a></div>
 								{* Sierra/Millennium OPAC Admin Actions*}
-								{if ($ils == 'Millennium' || $ils == 'Sierra')}
+								{if ($ils == 'Millennium' || $ils == 'Sierra' || $ils == 'Horizon')}
 								<div class="adminMenuLink{if $action == "PTypes"} active{/if}"><a href="{$path}/Admin/PTypes">P-Types</a></div>
+								{/if}
+								{if ($ils == 'Millennium' || $ils == 'Sierra')}
 								<div class="adminMenuLink{if $action == "CirculationStatuses"} active{/if}"><a href="{$path}/Admin/CirculationStatuses">Circulation Statuses</a></div>
 								<div class="adminMenuLink{if $action == "LoanRules"} active{/if}"><a href="{$path}/Admin/LoanRules">Loan Rules</a></div>
 								<div class="adminMenuLink{if $action == "LoanRuleDeterminers"} active{/if}"><a href="{$path}/Admin/LoanRuleDeterminers">Loan Rule Determiners</a></div>
@@ -287,7 +289,7 @@
 				</div>
 			{/if}
 
-			{if $user && $enableMaterialsRequest &&($user->hasRole('cataloging') || $user->hasRole('library_material_requests') || $user->hasRole('opacAdmin') || $user->hasRole('libraryAdmin'))}
+			{if $user && $enableMaterialsRequest && ($user->hasRole('cataloging') || $user->hasRole('library_material_requests') || $user->hasRole('opacAdmin') || $user->hasRole('libraryAdmin'))}
 				{if in_array($action, array('ManageRequests', 'SummaryReport', 'UserReport', 'ManageStatuses'))}
 					{assign var="curSection" value=true}
 				{else}
@@ -307,6 +309,7 @@
 							<div class="adminMenuLink{if $action == "SummaryReport"}active{/if}"><a href="{$path}/MaterialsRequest/SummaryReport">Summary Report</a></div>
 							<div class="adminMenuLink{if $action == "UserReport"}active{/if}"><a href="{$path}/MaterialsRequest/UserReport">Report By User</a></div>
 							<div class="adminMenuLink{if $action == "ManageStatuses"}active{/if}"><a href="{$path}/Admin/ManageStatuses">Manage Statuses</a></div>
+							<div class="adminMenuLink"><a href="https://docs.google.com/document/d/1s9qOhlHLfQi66qMMt5m-dJ0kGNyHiOjSrqYUbe0hEcA">Documentation</a></div>
 						</div>
 					</div>
 				</div>

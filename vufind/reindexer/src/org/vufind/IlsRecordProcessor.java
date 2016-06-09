@@ -243,6 +243,8 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 			}catch (Exception e) {
 				logger.error("Error updating solr based on marc record", e);
 			}
+		}else{
+			logger.info("Could not load marc record from disk for " + identifier);
 		}
 	}
 
@@ -279,16 +281,19 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		try{
 			//If the entire bib is suppressed, update stats and bail out now.
 			if (isBibSuppressed(record)){
+				logger.debug("Bib record " + identifier + " is suppressed skipping");
 				return;
 			}
 
 			// Let's first look for the print/order record
 			RecordInfo recordInfo = groupedWork.addRelatedRecord(profileType, identifier);
+			logger.debug("Added record for " + identifier + " work now has " + groupedWork.getNumRecords() + " records");
 			loadUnsuppressedPrintItems(groupedWork, recordInfo, identifier, record);
 			loadOnOrderItems(groupedWork, recordInfo, record, recordInfo.getNumPrintCopies() > 0);
 			//If we don't get anything remove the record we just added
 			if (recordInfo.getNumPrintCopies() == 0 && recordInfo.getNumCopiesOnOrder() == 0 && suppressItemlessBibs) {
 				groupedWork.removeRelatedRecord(recordInfo);
+				logger.debug("Removing related print record for " + identifier + " because there are no print copies, no on order copies and suppress itemless bibs is on");
 			}else{
 				allRelatedRecords.add(recordInfo);
 			}
@@ -523,11 +528,14 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 
 	protected void loadUnsuppressedPrintItems(GroupedWorkSolr groupedWork, RecordInfo recordInfo, String identifier, Record record){
 		List<DataField> itemRecords = getDataFields(record, itemTag);
+		logger.debug("Found " + itemRecords.size() + " items for record " + identifier);
 		for (DataField itemField : itemRecords){
 			if (!isItemSuppressed(itemField)){
 				getPrintIlsItem(groupedWork, recordInfo, record, itemField);
 				//Can return null if the record does not have status and location
 				//This happens with secondary call numbers sometimes.
+			}else{
+				logger.debug("item was suppressed");
 			}
 		}
 	}
@@ -1028,7 +1036,44 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		if (subfieldIndicator == ' '){
 			return null;
 		}else {
-			return itemField.getSubfield(subfieldIndicator) != null ? itemField.getSubfield(subfieldIndicator).getData().trim() : null;
+//			return itemField.getSubfield(subfieldIndicator) != null ? itemField.getSubfield(subfieldIndicator).getData().trim() : null;
+
+			List<Subfield> subfields = itemField.getSubfields(subfieldIndicator);
+			if (subfields.size() == 1) {
+				return subfields.get(0).getData().trim();
+			} else if (subfields.size() == 0) {
+				return null;
+			} else {
+				StringBuilder subfieldData = new StringBuilder();
+				for (Subfield subfield:subfields) {
+					String trimmedValue = subfield.getData().trim();
+					boolean okToAdd = false;
+					if (trimmedValue.length() == 0){
+						continue;
+					}
+					try {
+						if (subfieldData.length() == 0) {
+							okToAdd = true;
+						} else if (subfieldData.length() < trimmedValue.length()) {
+							okToAdd = true;
+						} else if (!subfieldData.substring(subfieldData.length() - trimmedValue.length()).equals(trimmedValue)) {
+							okToAdd = true;
+						}
+					}catch (Exception e){
+						logger.error("Error determining if the new value is already part of the string", e);
+					}
+					if (okToAdd) {
+						if (subfieldData.length() > 0 && subfieldData.charAt(subfieldData.length() - 1) != ' ') {
+							subfieldData.append(' ');
+						}
+						subfieldData.append(trimmedValue);
+					}else{
+						logger.debug("Not appending subfield because the value looks redundant");
+					}
+				}
+				return subfieldData.toString().trim();
+			}
+
 		}
 	}
 
@@ -1036,7 +1081,23 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		if (subfieldIndicator == ' '){
 			return null;
 		}else {
-			return itemField.getSubfield(subfieldIndicator) != null ? itemField.getSubfield(subfieldIndicator).getData() : null;
+//			return itemField.getSubfield(subfieldIndicator) != null ? itemField.getSubfield(subfieldIndicator).getData() : null;
+
+			List<Subfield> subfields = itemField.getSubfields(subfieldIndicator);
+			if (subfields.size() == 1) {
+				return subfields.get(0).getData();
+			} else if (subfields.size() == 0) {
+				return null;
+			} else {
+				StringBuilder subfieldData = new StringBuilder();
+				for (Subfield subfield:subfields) {
+					if (subfieldData.length() > 0 && subfieldData.charAt(subfieldData.length() - 1) != ' '){
+						subfieldData.append(' ');
+					}
+					subfieldData.append(subfield.getData());
+				}
+				return subfieldData.toString();
+			}
 		}
 	}
 
@@ -1175,7 +1236,14 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 	private void filterPrintFormats(Set<String> printFormats) {
 		if (printFormats.contains("Video") && printFormats.contains("DVD")){
 			printFormats.remove("Video");
-		}if (printFormats.contains("SoundDisc") && printFormats.contains("SoundRecording")){
+		}
+		if (printFormats.contains("Video") && printFormats.contains("VideoDisc")){
+			printFormats.remove("Video");
+		}
+		if (printFormats.contains("Blu-ray") && printFormats.contains("VideoDisc")){
+			printFormats.remove("VideoDisc");
+		}
+		if (printFormats.contains("SoundDisc") && printFormats.contains("SoundRecording")){
 			printFormats.remove("SoundRecording");
 		}
 		if (printFormats.contains("SoundDisc") && printFormats.contains("CDROM")){
@@ -1297,21 +1365,23 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 				@SuppressWarnings("unchecked")
 				List<Subfield> subFields = field.getSubfields();
 				for (Subfield subfield : subFields) {
-					String physicalDescriptionData = subfield.getData().toLowerCase();
-					if (physicalDescriptionData.contains("large type") || physicalDescriptionData.contains("large print")) {
-						result.add("LargePrint");
-					} else if (physicalDescriptionData.contains("bluray") || physicalDescriptionData.contains("blu-ray")) {
-						result.add("Blu-ray");
-					} else if (physicalDescriptionData.contains("computer optical disc")) {
-						result.add("Software");
-					} else if (physicalDescriptionData.contains("sound cassettes")) {
-						result.add("SoundCassette");
-					} else if (physicalDescriptionData.contains("sound discs") || physicalDescriptionData.contains("audio discs")) {
-						result.add("SoundDisc");
-					}
-					//Since this is fairly generic, only use it if we have no other formats yet
-					if (result.size() == 0 && subfield.getCode() == 'f' && physicalDescriptionData.matches("^.*?\\d+\\s+(p\\.|pages).*$")) {
-						result.add("Book");
+					if (subfield.getCode() != 'e') {
+						String physicalDescriptionData = subfield.getData().toLowerCase();
+						if (physicalDescriptionData.contains("large type") || physicalDescriptionData.contains("large print")) {
+							result.add("LargePrint");
+						} else if (physicalDescriptionData.contains("bluray") || physicalDescriptionData.contains("blu-ray")) {
+							result.add("Blu-ray");
+						} else if (physicalDescriptionData.contains("computer optical disc")) {
+							result.add("Software");
+						} else if (physicalDescriptionData.contains("sound cassettes")) {
+							result.add("SoundCassette");
+						} else if (physicalDescriptionData.contains("sound discs") || physicalDescriptionData.contains("audio discs")) {
+							result.add("SoundDisc");
+						}
+						//Since this is fairly generic, only use it if we have no other formats yet
+						if (result.size() == 0 && subfield.getCode() == 'f' && physicalDescriptionData.matches("^.*?\\d+\\s+(p\\.|pages).*$")) {
+							result.add("Book");
+						}
 					}
 				}
 			}

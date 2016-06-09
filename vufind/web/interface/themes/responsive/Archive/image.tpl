@@ -5,9 +5,27 @@
 		</h2>
 
 		<div class="main-project-image">
-			<a href="{$large_image}">
-				<img src="{$medium_image}" class="img-responsive">
-			</a>
+			{* TODO: restrict access to original image *}
+			{if $anonymousMasterDownload || ($user && $verifiedMasterDownload)}
+				<a href="{$original_image}">
+			{/if}
+				<img src="{$large_image}" class="img-responsive">
+			{if $anonymousMasterDownload || ($user && $verifiedMasterDownload)}
+				</a>
+			{/if}
+		</div>
+
+		<div id="image-download-options">
+			{if $anonymousLcDownload || ($user && $verifiedLcDownload)}
+				<a class="btn btn-default" href="/Archive/{$pid}/DownloadLC">Download Large Image</a>
+			{elseif (!$user && $verifiedLcDownload)}
+				<a class="btn btn-default" onclick="return VuFind.Account.followLinkIfLoggedIn(this)" href="/Archive/{$pid}/DownloadLC">Login to Download Large Image</a>
+			{/if}
+			{if $anonymousMasterDownload || ($user && $verifiedMasterDownload)}
+				<a class="btn btn-default" href="/Archive/{$pid}/DownloadOriginal">Download Original Image</a>
+			{elseif (!$user && $verifiedLcDownload)}
+				<a class="btn btn-default" onclick="return VuFind.Account.followLinkIfLoggedIn(this)" href="/Archive/{$pid}/DownloadOriginal">Login to Download Original Image</a>
+			{/if}
 		</div>
 
 {* //Moved to accordion
@@ -24,3 +42,8 @@
 		{include file="Archive/metadata.tpl"}
 	</div>
 {/strip}
+<script type="text/javascript">
+	$().ready(function(){ldelim}
+		VuFind.Archive.loadExploreMore('{$pid|urlencode}');
+		{rdelim});
+</script>

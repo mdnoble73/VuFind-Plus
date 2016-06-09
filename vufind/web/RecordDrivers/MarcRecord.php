@@ -101,7 +101,6 @@ class MarcRecord extends IndexRecord
 		}else{
 			$this->groupedWork = $groupedWork;
 		}
-
 	}
 
 	public function getModule(){
@@ -1529,7 +1528,8 @@ class MarcRecord extends IndexRecord
 			$subjectFields = explode(',', $subjectFieldsToShow);
 
 			$subjects = array();
-			$standardSubjects = array();
+			$otherSubjects = array();
+			$lcSubjects = array();
 			$bisacSubjects = array();
 			$oclcFastSubjects = array();
 			$localSubjects = array();
@@ -1541,7 +1541,10 @@ class MarcRecord extends IndexRecord
 						$searchSubject = "";
 						$subject = array();
 						//Determine the type of the subject
-						$type = 'standard';
+						$type = 'other';
+						if ($marcField->getIndicator(2) == 0) {
+							$type = 'lc';
+						}
 						$subjectSource = $marcField->getSubfield('2');
 						if ($subjectSource != null){
 							if (preg_match('/bisac/i', $subjectSource->getData())){
@@ -1574,27 +1577,37 @@ class MarcRecord extends IndexRecord
 								'search' => trim($search),
 								'title'  => $title,
 						);
-						if ($type == 'bisac'){
-							$bisacSubjects[] = $subject;
-							$subjects[] = $subject;
-						}elseif ($type == 'fast'){
-							//Suppress fast subjects by default
-							$oclcFastSubjects[] = $subject;
-						}elseif ($type == 'local'){
-							//Suppress fast subjects by default
-							$localSubjects[] = $subject;
-							$subjects[] = $subject;
-						}else{
-							$subjects[] = $subject;
-							$standardSubjects[] = $subject;
+						switch ($type) {
+							case 'fast' :
+								// Suppress fast subjects by default
+								$oclcFastSubjects[] = $subject;
+								break;
+							case 'local' :
+								$localSubjects[] = $subject;
+								$subjects[]      = $subject;
+							case 'bisac' :
+								$bisacSubjects[] = $subject;
+								$subjects[]      = $subject;
+								break;
+							case 'lc' :
+								$lcSubjects[] = $subject;
+								$subjects[]   = $subject;
+								break;
+							case 'other' :
+								$otherSubjects[] = $subject;
+							default :
+								$subjects[]         = $subject;
 						}
 
 					}
 				}
 			}
 			$interface->assign('subjects', $subjects);
-			if ($library->showStandardSubjects){
-				$interface->assign('standardSubjects', $standardSubjects);
+			if ($library->showLCSubjects) {
+				$interface->assign('lcSubjects', $lcSubjects);
+			}
+			if ($library->showOtherSubjects) {
+				$interface->assign('otherSubjects', $otherSubjects);
 			}
 			if ($library->showBisacSubjects) {
 				$interface->assign('bisacSubjects', $bisacSubjects);

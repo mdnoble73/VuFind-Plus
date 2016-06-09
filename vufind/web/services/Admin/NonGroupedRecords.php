@@ -55,4 +55,12 @@ class Admin_NonGroupedRecords extends ObjectEditor
 	function getAllowableRoles(){
 		return array('opacAdmin', 'cataloging');
 	}
+	function getInstructions(){
+		return 'For more information on how to ungroup works, see the <a href="https://docs.google.com/document/d/1fTjDQ04gctT6GpTmKU8uGZyZRgLW6z09eE4DwNsOxOw">online documentation</a>.';
+	}
+	function getListInstructions(){
+		return $this->getInstructions();
+	}
+
+
 }

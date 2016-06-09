@@ -22,10 +22,12 @@
 require_once 'bootstrap.php';
 
 global $timer;
+global $memoryWatcher;
 
 //Do additional tasks that are only needed when running the full website
 loadModuleActionId();
 $timer->logTime("Loaded Module and Action Id");
+$memoryWatcher->logMemory("Loaded Module and Action Id");
 spl_autoload_register('vufind_autoloader');
 initializeSession();
 $timer->logTime("Initialized session");
@@ -376,7 +378,7 @@ if ($module == 'MyAccount' && $action == 'Home' && $user){
 
 $interface->assign('module', $module);
 $interface->assign('action', $action);
-$timer->logTime('Load module and action');
+$timer->logTime('Assign module and action');
 
 if (isset($_REQUEST['basicType'])){
 	$interface->assign('basicSearchIndex', $_REQUEST['basicType']);
@@ -451,8 +453,6 @@ if ($action == "AJAX" || $action == "JSON"){
 		$ebscoSearchObject = new EDS_API();
 		$interface->assign('ebscoSearchTypes', $ebscoSearchObject->getSearchTypes());
 	}
-
-
 
 	if (!($module == 'Search' && $action == 'Home')){
 		/** @var SearchObject_Base $savedSearch */
@@ -635,6 +635,8 @@ if (!is_dir(ROOT_DIR . "/services/$module")){
 }
 $timer->logTime('Finished Index');
 $timer->writeTimings();
+$memoryWatcher->logMemory("Finished index");
+$memoryWatcher->writeMemory();
 //$analytics->finish();
 
 function processFollowup(){
