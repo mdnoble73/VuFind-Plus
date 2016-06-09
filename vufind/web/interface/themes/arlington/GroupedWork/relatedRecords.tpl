@@ -30,22 +30,22 @@
 				{$relatedRecord.holdRatio}
 				</td> *}
 				{display_if_inconsistent array=$relatedRecords key="publicationDate"}
-					<td><a href="{$relatedRecord.url}">{$relatedRecord.publicationDate}</a></td>
+					<td>{$relatedRecord.publicationDate}</td>
 				{/display_if_inconsistent}
 				{if $relatedManifestation.format == 'eBook' || $relatedManifestation.format == 'eAudiobook' || $relatedManifestation.format == 'eMagazine'}
-					<td><a href="{$relatedRecord.url}">{$relatedRecord.eContentSource}</a></td>
+					<td>{$relatedRecord.eContentSource}</td>
 				{/if}
 				{display_if_inconsistent array=$relatedRecords key="edition"}
 					<td>{*<a href="{$relatedRecord.url}">*}{$relatedRecord.edition}{*</a>*}</td>
 				{/display_if_inconsistent}
 				{display_if_inconsistent array=$relatedRecords key="publisher"}
-					<td><a href="{$relatedRecord.url}">{$relatedRecord.publisher}</a></td>
+					<td>{$relatedRecord.publisher}</td>
 				{/display_if_inconsistent}
 				{display_if_inconsistent array=$relatedRecords key="physical"}
-					<td><a href="{$relatedRecord.url}">{$relatedRecord.physical}</a></td>
+					<td>{$relatedRecord.physical}</td>
 				{/display_if_inconsistent}
 				{display_if_inconsistent array=$relatedRecords key="language"}
-					<td><a href="{$relatedRecord.url}">{implode subject=$relatedRecord.language glue=","}</a></td>
+					<td>{implode subject=$relatedRecord.language glue=","}</td>
 				{/display_if_inconsistent}
 				<td>
 					{include file='GroupedWork/statusIndicator.tpl' statusInformation=$relatedRecord}
