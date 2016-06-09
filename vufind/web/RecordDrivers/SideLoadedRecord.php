@@ -11,7 +11,7 @@
 require_once ROOT_DIR . '/RecordDrivers/ExternalEContentDriver.php';
 class SideLoadedRecord extends ExternalEContentDriver {
 	/**
-	 * Constructor.  We build the object using data from the Hoopla records stored on disk.
+	 * Constructor.  We build the object using data from the Side-loaded records stored on disk.
 	 * Will be similar to a MarcRecord with slightly different functionality
 	 *
 	 * @param array|File_MARC_Record|string $record
