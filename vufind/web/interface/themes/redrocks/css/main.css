@@ -5069,6 +5069,7 @@ button.close {
 }
 .modal.fade .modal-dialog {
   -webkit-transform: translate(0, -25%);
+  -ms-transform: translate(0, -25%);
   transform: translate(0, -25%);
   -webkit-transition: -webkit-transform 0.3s ease-out;
   transition: -webkit-transform 0.3s ease-out;
@@ -5077,6 +5078,7 @@ button.close {
 }
 .modal.in .modal-dialog {
   -webkit-transform: translate(0, 0);
+  -ms-transform: translate(0, 0);
   transform: translate(0, 0);
 }
 .modal-dialog {
@@ -7960,6 +7962,7 @@ fieldset[disabled] .datepicker table tr td span.active.disabled:hover.active {
   bottom: -25px;
   left: 50%;
   -webkit-transform: translate(-50%, 0);
+  -ms-transform: translate(-50%, 0);
   transform: translate(-50%, 0);
   margin: 0;
 }
@@ -8038,6 +8041,7 @@ fieldset[disabled] .datepicker table tr td span.active.disabled:hover.active {
   vertical-align: text-top;
   text-align: center;
   -webkit-transform: scale(0.6);
+      -ms-transform: scale(0.6);
           transform: scale(0.6);
   margin-top: -1px;
   margin-bottom: -1px;
@@ -8541,7 +8545,7 @@ hr.menu {
   float: left;
 }
 #horizontal-menu-bar-container .menu-icon.menu-icon-selected {
-  background-color: #FFF;
+  background-color: #CCC;
 }
 #horizontal-menu-bar-container.sticky-menu-bar {
   position: fixed;
@@ -8575,8 +8579,8 @@ hr.menu {
   position: relative;
 }
 #vertical-menu-bar .menu-bar-option.menu-icon-selected {
-  background-color: #FFF;
-  color: #770B0B;
+  background-color: #CCC;
+  color: #666;
 }
 #vertical-menu-bar .menu-icon {
   padding: 5px;
@@ -8607,8 +8611,10 @@ hr.menu {
   display: inline-block;
   white-space: nowrap;
   -webkit-transform: rotate(-90deg) translateX(-100%);
+      -ms-transform: rotate(-90deg) translateX(-100%);
           transform: rotate(-90deg) translateX(-100%);
   -webkit-transform-origin: 0 0;
+      -ms-transform-origin: 0 0;
           transform-origin: 0 0;
 }
 .rotated-text-inner:after {
@@ -8665,12 +8671,6 @@ hr.menu {
     width: 100%;
     display: block !important;
   }
-}
-.jcarousel ul > li {
-  text-align: center;
-}
-.jcarousel .thumbnail img {
-  max-height: 125px !important;
 }
 #home-page-search {
   background-color: #770B0B;
@@ -10245,8 +10245,10 @@ a.browse-thumbnail.active {
 .exploreMoreBar .label-left .exploreMoreBarLabel {
   position: absolute;
   -webkit-transform: rotate(-90deg) translateX(-100%);
+      -ms-transform: rotate(-90deg) translateX(-100%);
           transform: rotate(-90deg) translateX(-100%);
   -webkit-transform-origin: 0 0;
+      -ms-transform-origin: 0 0;
           transform-origin: 0 0;
   padding-right: 10px;
   padding-left: 5px;
@@ -10290,18 +10292,12 @@ a.browse-thumbnail.active {
   overflow-x: hidden;
 }
 #explore-more-body .jcarousel .thumbnail,
-#relatedProjectScroller .jcarousel .thumbnail,
-#relatedContentTypesContainer .jcarousel .thumbnail,
 .exploreMoreBar .jcarousel .thumbnail {
   margin-bottom: 0;
 }
 #explore-more-body .jcarousel-control-prev,
-#relatedProjectScroller .jcarousel-control-prev,
-#relatedContentTypesContainer .jcarousel-control-prev,
 .exploreMoreBar .jcarousel-control-prev,
 #explore-more-body .jcarousel-control-next,
-#relatedProjectScroller .jcarousel-control-next,
-#relatedContentTypesContainer .jcarousel-control-next,
 .exploreMoreBar .jcarousel-control-next {
   height: 100%;
   background: #fff;
@@ -10309,40 +10305,24 @@ a.browse-thumbnail.active {
   z-index: 2;
 }
 #explore-more-body .jcarousel-control-prev:focus,
-#relatedProjectScroller .jcarousel-control-prev:focus,
-#relatedContentTypesContainer .jcarousel-control-prev:focus,
 .exploreMoreBar .jcarousel-control-prev:focus,
 #explore-more-body .jcarousel-control-next:focus,
-#relatedProjectScroller .jcarousel-control-next:focus,
-#relatedContentTypesContainer .jcarousel-control-next:focus,
 .exploreMoreBar .jcarousel-control-next:focus {
   outline: none;
 }
 #explore-more-body .jcarousel-control-prev .glyphicon,
-#relatedProjectScroller .jcarousel-control-prev .glyphicon,
-#relatedContentTypesContainer .jcarousel-control-prev .glyphicon,
 .exploreMoreBar .jcarousel-control-prev .glyphicon,
 #explore-more-body .jcarousel-control-next .glyphicon,
-#relatedProjectScroller .jcarousel-control-next .glyphicon,
-#relatedContentTypesContainer .jcarousel-control-next .glyphicon,
 .exploreMoreBar .jcarousel-control-next .glyphicon {
   top: 20px;
 }
 #explore-more-body .jcarousel-control-prev,
-#relatedProjectScroller .jcarousel-control-prev,
-#relatedContentTypesContainer .jcarousel-control-prev,
 .exploreMoreBar .jcarousel-control-prev {
   left: 2px;
 }
 #explore-more-body .jcarousel-control-next,
-#relatedProjectScroller .jcarousel-control-next,
-#relatedContentTypesContainer .jcarousel-control-next,
 .exploreMoreBar .jcarousel-control-next {
   right: 2px;
-}
-#relatedProjectScroller .thumbnail,
-#relatedContentTypesContainer .thumbnail {
-  border-width: 0;
 }
 .large-image-content {
   background-color: #f2f2f2;
@@ -10368,10 +10348,6 @@ a.browse-thumbnail.active {
 .openseadragon-highlight {
   background-color: #F00;
   opacity: 0.5;
-}
-#exhibit-map {
-  width: 100%;
-  height: 500px;
 }
 .header-button {
   border: 0;
@@ -10410,4 +10386,15 @@ a.browse-thumbnail.active {
   #header-logo {
     display: block;
   }
+}
+#vertical-menu-bar .menu-bar-option.menu-icon-selected .menu-bar-label {
+  color: #666;
+}
+#vertical-menu-bar .menu-bar-option.menu-icon-selected img {
+  -webkit-filter: invert(60%);
+          filter: invert(60%);
+}
+#horizontal-menu-bar-container .menu-icon-selected img {
+  -webkit-filter: invert(60%);
+          filter: invert(60%);
 }
