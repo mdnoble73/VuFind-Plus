@@ -36,3 +36,25 @@
   }
 
 }
+
+#vertical-menu-bar {
+  .menu-bar-option {
+    &.menu-icon-selected {
+      .menu-bar-label {
+        //color: #666; // matches invert image below
+        color: @menu-bar-selected-color;
+        //TODO: This rule should be added to layout.less, line ~237
+      }
+      img {
+        filter: invert(60%);
+      }
+    }
+  }
+}
+#horizontal-menu-bar-container {
+  .menu-icon-selected {
+    img {
+      filter: invert(60%);
+    }
+  }
+}
