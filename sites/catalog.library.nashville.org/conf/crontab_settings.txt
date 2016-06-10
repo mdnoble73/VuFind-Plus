@@ -39,13 +39,14 @@
 #####################
 # Daily full update #
 #####################
-# Set the start for 10:10PM
+# Set the start for 10:25PM
 # Criteria for start time:
 # Have both the library and schools closed for business? M-Th 8PM; F 6PM; Sat-Sun 5PM
 # Has the nightly schools extract completed? 9:45PM-ish
 # Has the nightly schools extract been zipped? 10:02PM-ish
 # Has the nightly schools extract been delivered to limitless@catalog.library.nashville.org? 10:03PM-ish
-10 22 * * * cd /usr/local/vufind-plus/sites/catalog.library.nashville.org; ./full_update.sh
+# Has the weekly RHEL package update been completed? 10:10-10:25PM-ish 
+25 22 * * * cd /usr/local/vufind-plus/sites/catalog.library.nashville.org; ./full_update.sh
 
 ################
 # Pika Cleanup #
