@@ -35,7 +35,7 @@ class ExploreMore {
 			$this->relatedCollections = $archiveDriver->getRelatedCollections();
 			if (count($this->relatedCollections) > 0){
 				$exploreMoreSectionsToShow['relatedCollections'] = array(
-						'title' => 'Related Collections',
+						'title' => 'Related Archive Collections',
 						'format' => 'list',
 						'values' => $this->relatedCollections
 				);
@@ -45,7 +45,7 @@ class ExploreMore {
 			$relatedPikaContent = $archiveDriver->getRelatedPikaContent();
 			if (count($relatedPikaContent) > 0){
 				$exploreMoreSectionsToShow['linkedCatalogRecords'] = array(
-						'title' => 'From the Catalog',
+						'title' => 'Librarian Picks',
 						'format' => 'scroller',
 						'values' => $relatedPikaContent
 				);
