@@ -433,6 +433,14 @@ function getLibraryLocationUpdates(){
 			),
 		),
 
+		'library_prevent_expired_card_login' => array(
+			'title'       => 'Library Prevent Expired Card Login',
+			'description' => 'Allow libraries to stop users with expired cards to log into their account.',
+			'sql'         => array(
+				"ALTER TABLE `library` ADD `preventExpiredCardLogin` TINYINT(1) DEFAULT 0",
+			),
+		),
+
 		'library_location_boosting' => array(
 			'title' => 'Library Location Boosting',
 			'description' => 'Allow additional boosting for library and location holdings in addition to the default in the index.',
@@ -979,6 +987,15 @@ function getLibraryLocationUpdates(){
 			),
 		),
 
+		'search_results_view_configuration_options' => array(
+			'title' => 'Add "Show in Main Details section of search results" configuration options.',
+			'description' => 'Allows a library to choose some of the main details to display for a record in search results.',
+			'continueOnError' => true,
+			'sql' => array(
+			  "ALTER TABLE `library` ADD COLUMN `showInSearchResultsMainDetails` VARCHAR(255) NULL DEFAULT 'a:4:{i:0;s:10:\"showSeries\";i:1;s:13:\"showPublisher\";i:2;s:19:\"showPublicationDate\";i:3;s:13:\"showLanguages\";}';"
+			),
+		),
+
 		'dpla_integration' => array(
 			'title' => 'DPLA Integration',
 			'description' => 'Add a switch to determine whether or not we should include DPLA information within an interface',
@@ -1085,6 +1102,15 @@ function getLibraryLocationUpdates(){
 			'continueOnError' => true,
 			'sql' => array(
 				"ALTER TABLE `library` ADD COLUMN `horizontalSearchBar` TINYINT(1) DEFAULT 0;",
+			),
+		),
+
+		'always_show_search_results_Main_details' => array(
+			'title' => 'Enable Always Show Search Results Main Details',
+			'description' => 'Library configuration switch to always display chosen details in search results even when the info is not supplied or the details vary.',
+			'continueOnError' => true,
+			'sql' => array(
+				"ALTER TABLE `library` ADD COLUMN `alwaysShowSearchResultsMainDetails` TINYINT(1) DEFAULT 0;",
 			),
 		),
 
@@ -1237,6 +1263,15 @@ function getLibraryLocationUpdates(){
 							'ALTER TABLE `library` ADD COLUMN `showStandardSubjects` TINYINT(1) DEFAULT 1',
 							'ALTER TABLE `library` ADD COLUMN `showBisacSubjects` TINYINT(1) DEFAULT 1',
 							'ALTER TABLE `library` ADD COLUMN `showFastAddSubjects` TINYINT(1) DEFAULT 1',
+					),
+			),
+
+			'library_subject_display_2' => array(
+					'title' => 'Library Subject Display Options Update',
+					'description' => 'Add Show Other subjects option and rename show Standard Subjects option to Show LC Subjects.',
+					'sql' => array(
+							'ALTER TABLE `library` CHANGE COLUMN `showStandardSubjects` `showLCSubjects` TINYINT(1) DEFAULT 1',
+							'ALTER TABLE `library` ADD COLUMN `showOtherSubjects` TINYINT(1) DEFAULT 1 AFTER `showFastAddSubjects`',
 					),
 			),
 

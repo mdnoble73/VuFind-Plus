@@ -149,7 +149,7 @@ class MillenniumBooking {
 
 
 		// Look for Error Messages
-		$numMatches = preg_match('/<span.\s?class="errormessage">(?P<error>.+?)<\/span>/', $curlResponse, $matches);
+		$numMatches = preg_match('/<span.\s?class="errormessage">(?P<error>.+?)<\/span>/is', $curlResponse, $matches);
 		// ?P<name> syntax will creates named matches in the matches array
 		if ($numMatches) {
 			return array(

@@ -5069,6 +5069,7 @@ button.close {
 }
 .modal.fade .modal-dialog {
   -webkit-transform: translate(0, -25%);
+  -ms-transform: translate(0, -25%);
   transform: translate(0, -25%);
   -webkit-transition: -webkit-transform 0.3s ease-out;
   transition: -webkit-transform 0.3s ease-out;
@@ -5077,6 +5078,7 @@ button.close {
 }
 .modal.in .modal-dialog {
   -webkit-transform: translate(0, 0);
+  -ms-transform: translate(0, 0);
   transform: translate(0, 0);
 }
 .modal-dialog {
@@ -7043,6 +7045,9 @@ a.bg-overdue:hover,
 a.bg-overdue:focus {
   background-color: #e4b9b9;
 }
+#propertyRowfacets {
+  overflow-x: scroll;
+}
 .unsortedHeader {
   background-image: url(/images/unsorted_icon.gif);
   cursor: pointer;
@@ -7957,6 +7962,7 @@ fieldset[disabled] .datepicker table tr td span.active.disabled:hover.active {
   bottom: -25px;
   left: 50%;
   -webkit-transform: translate(-50%, 0);
+  -ms-transform: translate(-50%, 0);
   transform: translate(-50%, 0);
   margin: 0;
 }
@@ -8035,6 +8041,7 @@ fieldset[disabled] .datepicker table tr td span.active.disabled:hover.active {
   vertical-align: text-top;
   text-align: center;
   -webkit-transform: scale(0.6);
+      -ms-transform: scale(0.6);
           transform: scale(0.6);
   margin-top: -1px;
   margin-bottom: -1px;
@@ -8538,7 +8545,7 @@ hr.menu {
   float: left;
 }
 #horizontal-menu-bar-container .menu-icon.menu-icon-selected {
-  background-color: #FFF;
+  background-color: #CCC;
 }
 #horizontal-menu-bar-container.sticky-menu-bar {
   position: fixed;
@@ -8572,8 +8579,8 @@ hr.menu {
   position: relative;
 }
 #vertical-menu-bar .menu-bar-option.menu-icon-selected {
-  background-color: #FFF;
-  color: #770B0B;
+  background-color: #CCC;
+  color: #666;
 }
 #vertical-menu-bar .menu-icon {
   padding: 5px;
@@ -8604,8 +8611,10 @@ hr.menu {
   display: inline-block;
   white-space: nowrap;
   -webkit-transform: rotate(-90deg) translateX(-100%);
+      -ms-transform: rotate(-90deg) translateX(-100%);
           transform: rotate(-90deg) translateX(-100%);
   -webkit-transform-origin: 0 0;
+      -ms-transform-origin: 0 0;
           transform-origin: 0 0;
 }
 .rotated-text-inner:after {
@@ -9925,6 +9934,9 @@ a.browse-thumbnail.active {
 .related-manifestations-header {
   border-bottom: 1px solid #d3d3d3;
 }
+.related-manifestations-label {
+  font-size: 10pt;
+}
 .manifestation-actions .btn-default {
   background-color: #088ec6;
   color: #fff;
@@ -10233,8 +10245,10 @@ a.browse-thumbnail.active {
 .exploreMoreBar .label-left .exploreMoreBarLabel {
   position: absolute;
   -webkit-transform: rotate(-90deg) translateX(-100%);
+      -ms-transform: rotate(-90deg) translateX(-100%);
           transform: rotate(-90deg) translateX(-100%);
   -webkit-transform-origin: 0 0;
+      -ms-transform-origin: 0 0;
           transform-origin: 0 0;
   padding-right: 10px;
   padding-left: 5px;
@@ -10310,10 +10324,22 @@ a.browse-thumbnail.active {
 .exploreMoreBar .jcarousel-control-next {
   right: 2px;
 }
+.large-image-content {
+  background-color: #f2f2f2;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  padding: 15px;
+  box-sizing: border-box;
+}
+#image-download-options {
+  margin-top: 5px;
+  margin-bottom: 7px;
+}
 .openseadragon {
   display: block;
   width: 100%;
   height: 500px;
+  box-sizing: border-box;
 }
 .openseadragon canvas {
   background-color: #000 !important;
@@ -10360,4 +10386,15 @@ a.browse-thumbnail.active {
   #header-logo {
     display: block;
   }
+}
+#vertical-menu-bar .menu-bar-option.menu-icon-selected .menu-bar-label {
+  color: #666;
+}
+#vertical-menu-bar .menu-bar-option.menu-icon-selected img {
+  -webkit-filter: invert(60%);
+          filter: invert(60%);
+}
+#horizontal-menu-bar-container .menu-icon-selected img {
+  -webkit-filter: invert(60%);
+          filter: invert(60%);
 }

@@ -1,21 +1,20 @@
 {strip}
 	<div id="page-content" class="content">
-		{if $error}<p class="error">{$error}</p>{/if}
+		{if $error}<p class="alert alert-danger">{$error}</p>{/if}
 		<div id="sidebar">
-			<div class="button"><a href="{$path}/MyAccount/Home">Return to Account</a></div>
-			<hr />
 
 			{* Report filters *}
 			<div class="sidegroup">
 				<h4>Report Filters</h4>
 				<div class="sidegroupContents">
 					<form id="offlineHoldsFilter">
-						<div>
-							<div>
-								<label for="startDate">Start Date</label> <input type="text" name="startDate" id="startDate" size="10" value="{$startDate|date_format:'%m/%d/%Y'}"/>
+						<div class="form-horizontal">
+							<div class="form-group">
+								<label for="startDate" class="control-label col-sm-2">Start Date</label>
+								<input type="text" name="startDate" id="startDate" size="10" value="{$startDate|date_format:'%m/%d/%Y'}" class="form-control col-sm-3" style="width: auto;">
 							</div>
-							<div>
-								<label for="endDate">End Date</label> <input type="text" name="endDate" id="endDate" size="10" value="{$endDate|date_format:'%m/%d/%Y'}"/>
+							<div class="form-group">
+								<label for="endDate" class="control-label col-sm-2">End Date</label> <input type="text" name="endDate" id="endDate" size="10" value="{$endDate|date_format:'%m/%d/%Y'}" class="form-control col-sm-3" style="width: auto;">
 							</div>
 							{*
 							<div>
@@ -27,25 +26,32 @@
 								</select>
 							</div>
 							*}
-							<div>
-								<label for="loginsToInclude">Logins To Show</label> <input type="text" name="loginsToInclude" id="startDate" size="10" value="{$loginsToInclude}" title="Separate multiple logins with commas, leave blank to include all"/>
-								<p>(Separate multiple logins with commas, leave blank to include all)</p>
+							<div class="form-group">
+								<label for="loginsToInclude" class="control-label col-sm-2">Logins To Show</label> <input type="text" name="loginsToInclude" id="startDate" size="60" value="{$loginsToInclude}" title="Separate multiple logins with commas, leave blank to include all" class="form-control col-sm-6" style="width: auto;">
 							</div>
-							<div>
-								<label for="hideNotProcessed"><input type="checkbox" name="hideNotProcessed" id="hideNotProcessed" {if $hideNotProcessed}checked="checked"{/if}/> Hide Not Processed</label>
-							</div>
-							<div>
-								<label for="hideFailed"><input type="checkbox" name="hideFailed" id="hideFailed" {if $hideFailed}checked="checked"{/if}/> Hide Failed</label>
-							</div>
-							<div>
-								<label for="hideSuccess"><input type="checkbox" name="hideSuccess" id="hideSuccess" {if $hideSuccess}checked="checked"{/if}/> Hide Successful</label>
-							</div>
-							<br/>
-							<div>
-								<input type="submit" name="updateFilters" value="Update Filters"/>
-							</div>
-
+						<div class="row">
+						<p class="alert alert-info col-sm-8 col-sm-offset-2">Separate multiple logins with commas. Leave blank to include all logins.</p>
 						</div>
+						<div class="form-group">
+							<label class="control-label col-sm-2">Status</label>
+							<div class="col-sm-6">
+								<div class="checkbox">
+									<label for="hideNotProcessed"><input type="checkbox" name="hideNotProcessed" id="hideNotProcessed" {if $hideNotProcessed}checked="checked"{/if}/> Hide Not Processed</label>
+								</div>
+								<div class="checkbox">
+									<label for="hideFailed"><input type="checkbox" name="hideFailed" id="hideFailed" {if $hideFailed}checked="checked"{/if}/> Hide Failed</label>
+								</div>
+								<div class="checkbox">
+									<label for="hideSuccess"><input type="checkbox" name="hideSuccess" id="hideSuccess" {if $hideSuccess}checked="checked"{/if}/> Hide Successful</label>
+								</div>
+							</div>
+						</div>
+						<br>
+						<div>
+							<input type="submit" name="updateFilters" value="Update Filters" class="btn btn-primary">
+						</div>
+						</div>
+
 					</form>
 				</div>
 			</div>
@@ -55,7 +61,7 @@
 
 		<div id="main-content">
 			<h2>Offline Circulation Summary</h2>
-			<table class="citation">
+			<table class="table table-striped">
 				<tr><th>Total Records</th><td>{$totalRecords}</td></tr>
 				<tr><th>Not Processed</th><td>{$totalNotProcessed}</td></tr>
 				<tr><th>Passed</th><td>{$totalPassed}</td></tr>

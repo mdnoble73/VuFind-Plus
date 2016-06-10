@@ -67,6 +67,9 @@ public class FlatironsRecordProcessor extends IIIRecordProcessor{
 					RecordInfo eContentRecord = getEContentIlsRecord(groupedWork, record, identifier, itemField);
 					if (eContentRecord != null) {
 						unsuppressedEcontentRecords.add(eContentRecord);
+
+						//Set the target audience based on the location code for the record based on the item locations
+						this.loadTargetAudiences(groupedWork, record, eContentRecord.getRelatedItems(), identifier);
 					}
 				}
 			}
@@ -77,6 +80,12 @@ public class FlatironsRecordProcessor extends IIIRecordProcessor{
 					ItemInfo itemInfo = new ItemInfo();
 					itemInfo.setIsEContent(true);
 					itemInfo.setLocationCode(eContentLocation);
+
+					//Set the target audience based on the location code for the record based on the bib level location
+					String lastCharacter = eContentLocation.substring(eContentLocation.length() - 1);
+					groupedWork.addTargetAudience(translateValue("target_audience", lastCharacter, identifier));
+					groupedWork.addTargetAudienceFull(translateValue("target_audience", lastCharacter, identifier));
+
 					itemInfo.seteContentSource("External eContent");
 					itemInfo.seteContentProtectionType("external");
 					if (url.contains("ebrary.com")) {

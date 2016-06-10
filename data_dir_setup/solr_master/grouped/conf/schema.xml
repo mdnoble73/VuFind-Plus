@@ -224,6 +224,7 @@
 		<dynamicField name="econtent_protection_type_*" type="string" indexed="true" stored="true" multiValued="true" docValues="true"/>
 		<!-- Broad Search Terms -->
 		<field name="table_of_contents" type="text" indexed="true" stored="true" multiValued="true"/>
+		<field name="table_of_contents_proper" type="textProper" indexed="true" stored="true" multiValued="true"/>
 		<field name="keywords" type="text" indexed="true" stored="false"/>
 		<field name="keywords_proper" type="textProper" indexed="true" stored="false"/>
 		<field name="description" type="text" indexed="true" stored="false"/>
@@ -280,6 +281,7 @@
 	<copyField source="title" dest="title_exact"/>
 	<copyField source="title" dest="title_left"/>
 	<copyField source="keywords" dest="keywords_proper"/>
+	<copyField source="table_of_contents" dest="table_of_contents_proper"/>
 	<copyField source="series" dest="series_proper"/>
 	<copyField source="topic" dest="topic_proper"/>
 	<copyField source="subject_facet" dest="subject"/>

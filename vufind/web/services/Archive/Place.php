@@ -14,30 +14,21 @@ class Archive_Place extends Archive_Entity{
 		global $interface;
 
 		$this->loadArchiveObjectData();
-		$this->loadExploreMoreContent();
 		$this->loadLinkedData();
 		$this->loadRelatedContentForEntity();
 
 		$interface->assign('showExploreMore', true);
 
-		//Look to see if we have a link to who's on first.  If so, show the polygon
-		if (isset($this->links) && is_array($this->links)){
-			foreach ($this->links as $link){
-				if ($link['type'] == 'whosOnFirst'){
-					$addressInfo = $interface->getVariable('addressInfo');
-					if ($addressInfo == null || count($addressInfo) == 0){
-						$whosOnFirstDataRaw = file_get_contents($link['link']);
-						$whosOnFirstData = json_decode($whosOnFirstDataRaw, true);
+		/** @var PlaceDriver $placeDriver */
+		$placeDriver = $this->recordDriver;
+		$geoData = $placeDriver->getGeoData();
+		$addressInfo = $interface->getVariable('addressInfo');
+		if ($addressInfo == null || count($addressInfo) == 0 && $geoData != null){
 
-						$addressInfo['latitude'] = $whosOnFirstData['properties']['lbl:latitude'];
-						$addressInfo['longitude'] = $whosOnFirstData['properties']['lbl:longitude'];
+			$addressInfo['latitude'] = $geoData['latitude'];
+			$addressInfo['longitude'] = $geoData['longitude'];
 
-						$boundingBox = $whosOnFirstData['bbox'];
-
-						$interface->assign('addressInfo', $addressInfo);
-					}
-				}
-			}
+			$interface->assign('addressInfo', $addressInfo);
 		}
 
 

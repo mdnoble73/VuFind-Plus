@@ -189,10 +189,7 @@ class MaterialsRequest_ManageRequests extends Admin_Admin {
 		if (isset($_REQUEST['exportSelected'])){
 			$this->exportToExcel($_REQUEST['select'], $allRequests);
 		}else{
-			$interface->setTemplate('manageRequests.tpl');
-			$interface->setPageTitle('Manage Materials Requests');
-			$interface->assign('sidebar', 'MyAccount/account-sidebar.tpl');
-			$interface->display('layout.tpl');
+			$this->display('manageRequests.tpl', 'Manage Materials Requests');
 		}
 	}
 

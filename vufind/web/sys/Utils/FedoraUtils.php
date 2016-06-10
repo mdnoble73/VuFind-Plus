@@ -30,6 +30,8 @@ class FedoraUtils {
 	public static function getInstance(){
 		if (FedoraUtils::$singleton == null){
 			FedoraUtils::$singleton = new FedoraUtils();
+			global $timer;
+			$timer->logTime('Setup Fedora Utils');
 		}
 		return FedoraUtils::$singleton;
 	}
@@ -56,11 +58,13 @@ class FedoraUtils {
 	public function getObject($pid) {
 		//Clean up the pid in case we get extra data
 		$pid = str_replace('info:fedora/', '', $pid);
+		$object = null;
 		try{
-			return $this->repository->getObject($pid);
+			$object = $this->repository->getObject($pid);
 		}catch (Exception $e){
-			return null;
+			$object = null;
 		}
+		return $object;
 	}
 
 	/** AbstractObject */
@@ -154,21 +158,24 @@ class FedoraUtils {
 	 * @return SimpleXMLElement
 	 */
 	public function getModsData($archiveObject){
+		global $timer;
 		if (array_key_exists($archiveObject->id, $this->modsCache)) {
 			$modsData = $this->modsCache[$archiveObject->id];
 		}else{
 			$modsStream = $archiveObject->getDatastream('MODS');
 			if ($modsStream){
-				$temp = tempnam('/tmp', 'mods');
-				$modsStream->getContent($temp);
-				$modsStreamContent = trim(file_get_contents($temp));
-				if (strlen($modsStreamContent) > 0){
-					$modsData = simplexml_load_string($modsStreamContent);
-					if (sizeof($modsData) == 0){
-						$modsData = $modsData->children('http://www.loc.gov/mods/v3');
-					}
+				$timer->logTime('Retrieved mods stream from fedora ' . $archiveObject->id);
+				try{
+					$modsData = $modsStream->content;
+				}catch (Exception $e){
+					echo("Unable to load MODS data for " . $archiveObject->id);
 				}
-				unlink($temp);
+
+				/*if (strlen($modsStream->content) > 0){
+					$modsData = simplexml_load_file($modsStream->content, 'SimpleXmlElement', 0, 'http://www.loc.gov/mods/v3', false);
+					$timer->logTime('Parsed as xml with simple xml');
+				}*/
+				$timer->logTime('Retrieved mods stream content from fedora ' . $archiveObject->id);
 				$this->modsCache[$archiveObject->id] = $modsData;
 			}else{
 				return null;
@@ -184,4 +191,104 @@ class FedoraUtils {
 		return $results;
 	}
 
+	/**
+	 * @param FedoraObject $archiveObject
+	 * @return bool
+	 */
+	public function isObjectValidForPika($archiveObject){
+		/** @var Memcache $memCache */
+		global $memCache;
+		global $timer;
+		$isValid = $memCache->get('islandora_object_valid_in_pika_' . $archiveObject->id);
+		if ($isValid !== FALSE){
+			return $isValid == 1;
+		}else{
+			$mods = FedoraUtils::getInstance()->getModsData($archiveObject);
+			if (strlen($mods) > 0) {
+				$includeInPika = $this->getModsValue('includeInPika', 'marmot', $mods);
+				$okToAdd = $includeInPika != 'no';
+			} else {
+				//If we don't get mods, exclude from the display
+				$okToAdd = false;
+			}
+			$timer->logTime("Checked if {$archiveObject->id} is valid to include");
+			global $configArray;
+			$memCache->set('islandora_object_valid_in_pika_' . $archiveObject->id, $okToAdd ? 1 : 0, 0, $configArray['Caching']['islandora_object_valid']);
+			return $okToAdd;
+		}
+	}
+
+	/**
+	 * @param string $pid
+	 * @return bool
+	 */
+	public function isPidValidForPika($pid){
+		/** @var Memcache $memCache */
+		global $memCache;
+		$isValid = $memCache->get('islandora_object_valid_in_pika_' . $pid);
+		if ($isValid !== FALSE){
+			return $isValid == 1;
+		}else{
+			$archiveObject = $this->getObject($pid);
+			if ($archiveObject != null) {
+				return $this->isObjectValidForPika($archiveObject);
+			}else{
+				global $configArray;
+				$memCache->set('islandora_object_valid_in_pika_' . $pid, 0, 0, $configArray['Caching']['islandora_object_valid']);
+				return false;
+			}
+
+		}
+	}
+
+	public function getModsAttribute($attribute, $snippet){
+		if (preg_match("/$attribute\\s*=\\s*[\"'](.*?)[\"']/s", $snippet, $matches)){
+			return $matches[1];
+		}
+	}
+
+	/**
+	 * Gets a single valued field from the MODS data using regular expressions
+	 *
+	 * @param $tag
+	 * @param $namespace
+	 * @param $snippet - The snippet of XML to load from
+	 *
+	 * @return string
+	 */
+	public function getModsValue($tag, $namespace = null, $snippet = null){
+		if ($namespace == null){
+			if (preg_match("/<$tag.*?>(.*?)<\\/$tag>/s", $snippet, $matches)){
+				return $matches[1];
+			}
+		}else{
+			if (preg_match("/<(?:$namespace:)?$tag.*?>(.*?)<\\/(?:$namespace:)?$tag>/s", $snippet, $matches)){
+				return $matches[1];
+			}
+		}
+		return '';
+	}
+
+	/**
+	 * Gets a multi valued field from the MODS data using regular expressions
+	 *
+	 * @param $tag
+	 * @param $namespace
+	 * @param $snippet - The snippet of XML to load from
+	 * @param $includeTag - whether or not the surrounding tag should be included
+	 *
+	 * @return string[]
+	 */
+	public function getModsValues($tag, $namespace = null, $snippet = null, $includeTag = false){
+		if ($namespace == null){
+			if (preg_match_all("/<$tag.*?>(.*?)<\\/$tag>/s", $snippet, $matches, PREG_PATTERN_ORDER)){
+				return $includeTag ? $matches[0] : $matches[1];
+			}
+		}else{
+			if (preg_match_all("/<(?:$namespace:)?$tag.*?>(.*?)<\\/(?:$namespace:)?{$tag}>/s", $snippet, $matches, PREG_PATTERN_ORDER)){
+				return $includeTag ? $matches[0] : $matches[1];
+			}
+		}
+		return array();
+	}
 }

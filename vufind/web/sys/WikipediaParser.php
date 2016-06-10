@@ -282,11 +282,13 @@ class WikipediaParser {
 	}
 
 	public function getWikipediaPage($pageUrl) {
-		$result = file_get_contents($pageUrl);
-		$jsonResult = json_decode($result, true);
-		$info = $this->parseWikipedia($jsonResult);
-		if (!PEAR_Singleton::isError($info)) {
-			return $info;
+		if (filter_var($pageUrl, FILTER_VALIDATE_URL)){
+			$result = file_get_contents($pageUrl);
+			$jsonResult = json_decode($result, true);
+			$info = $this->parseWikipedia($jsonResult);
+			if (!PEAR_Singleton::isError($info)) {
+				return $info;
+			}
 		}
 		return null;
 

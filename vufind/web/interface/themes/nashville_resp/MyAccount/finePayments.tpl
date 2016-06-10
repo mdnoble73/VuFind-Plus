@@ -52,6 +52,7 @@
 	<div class="modal-dialog">
 		<div class="modal-content">
 			<form id="online_payment_form" accept-charset="UTF-8" action="/MyAccount/PayOnlineNashville" method="post">
+
 				<fieldset>
 					<div class="modal-header">
 						<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
@@ -63,22 +64,19 @@
 					<div>
 						<label for="cc-num">Card Number</label><br />
 <!--						<input id="cc-num" name="payment[cc]" type="text" placeholder="•••• •••• •••• ••••" onblur="this.value=this.value.replace(/\D/g,''); this.checkValidity()" {literal}pattern="(?:4[0-9]{12}(?:[0-9]{3})?|5[1-5][0-9]{14}|3[47][0-9]{13}|6(?:011|5[0-9]{2})[0-9]{12})"{/literal} required="required">
--->						<input id="cc-num" name="payment[cc]" type="text" placeholder="•••• •••• •••• ••••" onblur="this.value=this.value.replace(/\D/g,''); this.checkValidity()" {literal}pattern="(?:4[0-9]{12}(?:[0-9]{3})?|5[1-5][0-9]{14}|3[47][0-9]{13}|6(?:011|5[0-9]{2})[0-9]{12})"{/literal} required="required" value="5454545454545454">
+-->						<input id="cc-num" name="payment[cc]" type="text" placeholder="•••• •••• •••• ••••" onblur="this.value=this.value.replace(/\D/g,''); this.checkValidity()" {literal}pattern="(?:4[0-9]{12}(?:[0-9]{3})?|5[1-5][0-9]{14}|3[47][0-9]{13}|6(?:011|5[0-9]{2})[0-9]{12})"{/literal} required="required" value="371449635398431">
 					</div>
 					<div>
-						<label for="cc-exp">Expires Month</label><br />
-<!--						<input id="cc-exp" name="payment[cc_month]" type="text" placeholder="MM" {literal}pattern="[0-9]{2}"{/literal} required="required">
--->						<input id="cc-exp" name="payment[cc_month]" type="text" placeholder="MM" {literal}pattern="[0-9]{2}"{/literal} required="required" value="12">
-					</div>
-					<div>
-						<label for="cc-exp">Expires Year</label><br />
-<!--						<input id="cc-exp" name="payment[cc_year]" type="text" placeholder="YY" {literal}pattern="[0-9]{2}"{/literal} required="required">
--->						<input id="cc-exp" name="payment[cc_year]" type="text" placeholder="YY" {literal}pattern="[0-9]{2}"{/literal} required="required" value="16">
+						<label for="cc-exp">Expires Month / Year</label><br />
+<!--						<input id="cc-exp" name="payment[cc_month]" type="text" placeholder="MM" {literal}pattern="[0-9]{2}"{/literal} size="2" required="required">
+						<input id="cc-exp" name="payment[cc_year]" type="text" placeholder="YY" {literal}pattern="[0-9]{2}"{/literal} size="2" required="required">
+-->						<input id="cc-exp" name="payment[cc_month]" type="text" placeholder="MM" {literal}pattern="[0-9]{2}"{/literal} size="2" required="required" value="12"> / 
+						<input id="cc-exp" name="payment[cc_year]" type="text" placeholder="YY" {literal}pattern="[0-9]{2}"{/literal} size="2" required="required" value="16">
 					</div>
 					<div>
 						<label for="cc-cvv">Security Code</label><br />
 <!--						<input id="cc-cvv" name="payment[cc_cvv]" type="text" placeholder="••••" {literal}pattern="[0-9]{3,4}"{/literal} required="required">
--->						<input id="cc-cvv" name="payment[cc_cvv]" type="text" placeholder="••••" {literal}pattern="[0-9]{3,4}"{/literal} required="required" value="545">
+-->						<input id="cc-cvv" name="payment[cc_cvv]" type="text" placeholder="••••" {literal}pattern="[0-9]{3,4}"{/literal} required="required" value="7357">
 					</div>
 					<div>
 						<label for="cc-fullname">Name on Credit Card</label><br />

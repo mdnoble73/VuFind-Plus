@@ -8,7 +8,9 @@
 		<div class="row">
 			<div class="col-xs-4 col-sm-5 col-md-4 col-lg-3 text-center">
 				<div class="main-project-image">
+					{if $large_image}<a href="{$large_image}">{/if}
 					<img src="{$medium_image}" class="img-responsive"/>
+						{if $large_image}</a>{/if}
 				</div>
 
 				{* Display map if it exists *}
@@ -55,29 +57,11 @@
 					</div>
 				{/if}
 
-				{if strlen($marmotExtension->marmotLocal->placeDateStart) || strlen($marmotExtension->marmotLocal->placeDateEnd)}
+				{if strlen($startDate) || strlen($endDate)}
 					<div class="row">
 						<div class="result-label col-sm-4">Dates: </div>
 						<div class="result-value col-sm-8">
-							{$marmotExtension->marmotLocal->placeDateStart}{if $marmotExtension->marmotLocal->placeDateEnd} to {/if}{$marmotExtension->marmotLocal->placeDateEnd}
-						</div>
-					</div>
-				{/if}
-
-				{if strlen($marmotExtension->marmotLocal->eventStartDate) || strlen($marmotExtension->marmotLocal->eventEndDate)}
-					<div class="row">
-						<div class="result-label col-sm-4">Dates: </div>
-						<div class="result-value col-sm-8">
-							{$marmotExtension->marmotLocal->eventStartDate}{if $marmotExtension->marmotLocal->eventEndDate} to {/if}{$marmotExtension->marmotLocal->eventEndDate}
-						</div>
-					</div>
-				{/if}
-
-				{if strlen($marmotExtension->marmotLocal->dateEstablished) || strlen($marmotExtension->marmotLocal->dateDisbanded)}
-					<div class="row">
-						<div class="result-label col-sm-4">Dates: </div>
-						<div class="result-value col-sm-8">
-							{$marmotExtension->marmotLocal->dateEstablished}{if $marmotExtension->marmotLocal->dateDisbanded} to {/if}{$marmotExtension->marmotLocal->dateDisbanded}
+							{$startDate}{if $endDate} to {/if}{$endDate}
 						</div>
 					</div>
 				{/if}
@@ -98,6 +82,15 @@
 								{/if}
 								<br>
 							{/foreach}
+						</div>
+					</div>
+				{/if}
+
+				{if $primaryUrl}
+					<div class="row">
+						<div class="result-label col-sm-4">Website: </div>
+						<div class="result-value col-sm-8">
+							<a href="{$primaryUrl}">{$primaryUrl}</a>
 						</div>
 					</div>
 				{/if}
@@ -124,3 +117,8 @@
 		{include file="Archive/metadata.tpl"}
 	</div>
 {/strip}
+<script type="text/javascript">
+	$().ready(function(){ldelim}
+		VuFind.Archive.loadExploreMore('{$pid|urlencode}');
+	{rdelim});
+</script>

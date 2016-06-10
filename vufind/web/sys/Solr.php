@@ -375,7 +375,7 @@ class Solr implements IndexEngine {
 			$timer->logTime("Prepare to send get (ids)  request to solr");
 			$result = $this->client->sendRequest();
 			//$this->client->clearPostData();
-			$timer->logTime("Send data to solr");
+			$timer->logTime("Send data to solr during getRecord $id");
 
 			if (PEAR_Singleton::isError($result)) {
 				PEAR_Singleton::raiseError($result);
@@ -401,7 +401,7 @@ class Solr implements IndexEngine {
 		}
 
 		// Query String Parameters
-		$options = array('q' => "barcode:\"$barcode\"");
+		$options = array('q' => "barcode:\"$barcode\"", 'fl' => SearchObject_Solr::$fields);
 		$result = $this->_select('GET', $options);
 		if (PEAR_Singleton::isError($result)) {
 			PEAR_Singleton::raiseError($result);
@@ -416,7 +416,7 @@ class Solr implements IndexEngine {
 
 	function getRecordByIsbn($isbns){
 		// Query String Parameters
-		$options = array('q' => 'isbn:' . implode(' OR ', $isbns));
+		$options = array('q' => 'isbn:' . implode(' OR ', $isbns), 'fl' => SearchObject_Solr::$fields);
 		$result = $this->_select('GET', $options);
 		if (PEAR_Singleton::isError($result)) {
 			PEAR_Singleton::raiseError($result);
@@ -477,7 +477,7 @@ class Solr implements IndexEngine {
 			$timer->logTime("Prepare to send get (ids)  request to solr");
 			$result = $this->client->sendRequest();
 			//$this->client->clearPostData();
-			$timer->logTime("Send data to solr");
+			$timer->logTime("Send data to solr for getRecords");
 
 			if (PEAR_Singleton::isError($result)) {
 				PEAR_Singleton::raiseError($result);
@@ -509,7 +509,7 @@ class Solr implements IndexEngine {
 			}
 			$idString .= "id:\"$id\"";
 		}
-		$options = array('q' => $idString, 'rows' => count($ids));
+		$options = array('q' => $idString, 'rows' => count($ids), 'fl' => SearchObject_Solr::$fields);
 		$result = $this->_select('GET', $options);
 		if (PEAR_Singleton::isError($result)) {
 			PEAR_Singleton::raiseError($result);
@@ -532,7 +532,7 @@ class Solr implements IndexEngine {
 	function getMoreLikeThis($id)
 	{
 		// Query String Parameters
-		$options = array('q' => "id:$id", 'qt' => 'morelikethis');
+		$options = array('q' => "id:$id", 'qt' => 'morelikethis', 'fl' => SearchObject_Solr::$fields);
 		$result = $this->_select('GET', $options);
 		if (PEAR_Singleton::isError($result)) {
 			PEAR_Singleton::raiseError($result);
@@ -561,7 +561,7 @@ class Solr implements IndexEngine {
 			$originalResult = $this->getRecord($id);
 		}
 		// Query String Parameters
-		$options = array('q' => "id:$id", 'qt' => 'morelikethis2', 'mlt.interestingTerms' => 'details', 'rows' => 25);
+		$options = array('q' => "id:$id", 'qt' => 'morelikethis2', 'mlt.interestingTerms' => 'details', 'rows' => 25, 'fl' => SearchObject_Solr::$fields);
 		if ($originalResult){
 			$options['fq'] = array();
 			if (isset($originalResult['target_audience_full'])){
@@ -1573,20 +1573,22 @@ class Solr implements IndexEngine {
 
 			//Determine which fields should be treated as enums
 			global $solrScope;
-			$options["f.target_audience_full.facet.method"] = 'enum';
-			$options["f.target_audience.facet.method"] = 'enum';
-			$options["f.literary_form_full.facet.method"] = 'enum';
-			$options["f.literary_form.facet.method"] = 'enum';
-			$options["f.literary_form.econtent_device"] = 'enum';
-			$options["f.literary_form.lexile_code"] = 'enum';
-			$options["f.literary_form.mpaa_rating"] = 'enum';
-			$options["f.literary_form.rating_facet"] = 'enum';
-			$options["f.format_category_{$solrScope}.rating_facet"] = 'enum';
-			$options["f.format_{$solrScope}.rating_facet"] = 'enum';
-			$options["f.availability_toggle_{$solrScope}.rating_facet"] = 'enum';
-			$options["f.local_time_since_added_{$solrScope}.rating_facet"] = 'enum';
-			$options["f.owning_library_{$solrScope}.rating_facet"] = 'enum';
-			$options["f.owning_location_{$solrScope}.rating_facet"] = 'enum';
+			if (preg_match('/.*(grouped).*/i', $this->host)) {
+				$options["f.target_audience_full.facet.method"] = 'enum';
+				$options["f.target_audience.facet.method"] = 'enum';
+				$options["f.literary_form_full.facet.method"] = 'enum';
+				$options["f.literary_form.facet.method"] = 'enum';
+				$options["f.literary_form.econtent_device"] = 'enum';
+				$options["f.literary_form.lexile_code"] = 'enum';
+				$options["f.literary_form.mpaa_rating"] = 'enum';
+				$options["f.literary_form.rating_facet"] = 'enum';
+				$options["f.format_category_{$solrScope}.rating_facet"] = 'enum';
+				$options["f.format_{$solrScope}.rating_facet"] = 'enum';
+				$options["f.availability_toggle_{$solrScope}.rating_facet"] = 'enum';
+				$options["f.local_time_since_added_{$solrScope}.rating_facet"] = 'enum';
+				$options["f.owning_library_{$solrScope}.rating_facet"] = 'enum';
+				$options["f.owning_location_{$solrScope}.rating_facet"] = 'enum';
+			}
 
 			unset($facet['limit']);
 			if (isset($facet['field']) && is_array($facet['field']) && in_array('date_added', $facet['field'])){
@@ -1601,6 +1603,8 @@ class Solr implements IndexEngine {
 					}
 				}
 			}
+
+
 
 			if (isset($facet['field'])){
 				$options['facet.field'] = $facet['field'];
@@ -1630,14 +1634,23 @@ class Solr implements IndexEngine {
 				$options['facet.limit'] = $facet['limit'];
 				unset($facet['limit']);
 			}
-			if (isset($searchLibrary) && $searchLibrary->showAvailableAtAnyLocation){
-				$options['f.available_at.facet.missing'] = 'true';
+			if (preg_match('/.*(grouped).*/i', $this->host)) {
+				if (isset($searchLibrary) && $searchLibrary->showAvailableAtAnyLocation) {
+					$options['f.available_at.facet.missing'] = 'true';
+				}
 			}
 
 			foreach($facet as $param => $value) {
-				$options[$param] = $value;
+				if ($param != 'additionalOptions'){
+					$options[$param] = $value;
+				}
 			}
 		}
+
+		if (isset($facet['additionalOptions'])){
+			$options = array_merge($options, $facet['additionalOptions']);
+		}
+
 		$timer->logTime("build facet options");
 
 		//Check to see if there are filters we want to show all values for
@@ -2173,6 +2186,8 @@ class Solr implements IndexEngine {
 	private function _select($method = HTTP_REQUEST_METHOD_GET, $params = array(), $returnSolrError = false)
 	{
 		global $timer;
+		global $memoryWatcher;
+		$memoryWatcher->logMemory('Start Solr Select');
 		$this->client->setMethod($method);
 		$this->client->setURL($this->host . "/select/");
 
@@ -2216,17 +2231,17 @@ class Solr implements IndexEngine {
 		// Save to file for Jmeter
 		//$write_result = file_put_contents(ROOT_DIR . '\solrQueries.csv', $fullSearchUrl."\n", FILE_APPEND);
 
+		$this->fullSearchUrl = $this->host . "/select/?" . $queryString;
 		if ($this->debug || $this->debugSolrQuery) {
 			$solrQueryDebug = "";
 			if ($this->debugSolrQuery) {
 				$solrQueryDebug .= "$method: ";
 			}
-			$fullSearchUrl = print_r($this->host . "/select/?" . $queryString, true);
 			//Add debug parameter so we can see the explain section at the bottom.
-			$debugSearchUrl = print_r($this->host . "/select/?debugQuery=on&" . $queryString, true);
+			$this->debugSearchUrl = $this->host . "/select/?debugQuery=on&" . $queryString;
 
 			if ($this->debugSolrQuery) {
-				$solrQueryDebug .=  "<a href='" . $debugSearchUrl . "' target='_blank'>$fullSearchUrl</a>";
+				$solrQueryDebug .=  "<a href='" . $this->debugSearchUrl . "' target='_blank'>$this->fullSearchUrl</a>";
 			}
 
 			if ($this->isPrimarySearch) {
@@ -2245,9 +2260,11 @@ class Solr implements IndexEngine {
 
 		// Send Request
 		$timer->logTime("Prepare to send request to solr");
+		$memoryWatcher->logMemory('Prepare to send request to solr');
 		$result = $this->client->sendRequest();
 		//$this->client->clearPostData();
-		$timer->logTime("Send data to solr");
+		$timer->logTime("Send data to solr for select $queryString");
+		$memoryWatcher->logMemory("Send data to solr for select $queryString");
 
 		if (!PEAR_Singleton::isError($result)) {
 			return $this->_process($this->client->getResponseBody(), $returnSolrError, $queryString);
@@ -2331,6 +2348,7 @@ class Solr implements IndexEngine {
 	private function _process($result, $returnSolrError = false, $queryString = null)
 	{
 		global $timer;
+		global $memoryWatcher;
 		// Catch errors from SOLR
 		if (substr(trim($result), 0, 2) == '<h') {
 			$errorMsg = substr($result, strpos($result, '<pre>'));
@@ -2349,8 +2367,10 @@ class Solr implements IndexEngine {
 
 			}
 		}
+		$memoryWatcher->logMemory('receive result from solr result is ' . strlen($result) . ' bytes long');
 		$result = json_decode($result, true);
 		$timer->logTime("receive result from solr and load from json data");
+		$memoryWatcher->logMemory('load json for solr result');
 
 		// Inject highlighting details into results if necessary:
 		if (isset($result['highlighting'])) {

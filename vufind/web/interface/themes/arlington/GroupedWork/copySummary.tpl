@@ -1,9 +1,9 @@
 {strip}
 	{if $format == 'Journal' || $format == 'Newspaper' || $format == 'Print Periodical' || $format == 'Magazine'}
-		{if $recordUrl}
+		{if $recordViewUrl}
 			<div class="itemSummary">
-				&nbsp;&nbsp;<a href="{$recordUrl}#copiesPanelBody">
-					View all copies
+				&nbsp;&nbsp;<a href="{$recordViewUrl}#copiesPanelBody">
+					{translate text="Quick Copy View"}
 				</a>
 			</div>
 		{/if}
@@ -45,8 +45,8 @@
 			{assign var=numRemainingCopies value=$totalCopies-$numDefaultItems}
 			{if $numRemainingCopies > 0}
 				<div class="itemSummary">
-					&nbsp;&nbsp;<a href="#" onclick="return VuFind.showElementInPopup('Copy Summary', '#itemSummaryPopup_{$itemSummaryId|escapeCSS}_{$relatedManifestation.format|escapeCSS}');">
-						View all copies
+					&nbsp;&nbsp;<a href="#" onclick="return VuFind.showElementInPopup('Copy Summary', '#itemSummaryPopup_{$itemSummaryId|escapeCSS}_{$relatedManifestation.format|escapeCSS}'{if $recordViewUrl}, '#itemSummaryPopupButtons_{$itemSummaryId|escapeCSS}_{$relatedManifestation.format|escapeCSS}'{/if});">
+						{translate text="Quick Copy View"}
 					</a>
 				</div>
 				<div id="itemSummaryPopup_{$itemSummaryId|escapeCSS}_{$relatedManifestation.format|escapeCSS}" class="itemSummaryPopup" style="display: none">
@@ -78,6 +78,11 @@
 						</tbody>
 					</table>
 				</div>
+				{if $recordViewUrl}
+					<div id="itemSummaryPopupButtons_{$itemSummaryId|escapeCSS}_{$relatedManifestation.format|escapeCSS}" {*class="itemSummaryPopup"*} style="display: none">
+						<a href="{$recordViewUrl}" class="btn btn-primary" role="button">{translate text="See Full Copy Details"}</a>
+					</div>
+				{/if}
 			{/if}
 		{/if}
 	{/if}

@@ -355,7 +355,11 @@ class OverDriveRecordDriver extends RecordInterface {
 			unset($productRaw->links);
 			unset($productRaw->contentDetails->account);
 			$interface->assign('overDriveProductRaw', $productRaw);
-			$interface->assign('overDriveMetaDataRaw', json_decode($overDriveAPIProduct->metaDataRaw));
+			$overDriveMetadata = $overDriveAPIProduct->metaDataRaw;
+			//Replace http links to content reserve with https so we don't get mixed content warnings
+			$overDriveMetadata = str_replace('http://images.contentreserve.com', 'https://images.contentreserve.com', $overDriveMetadata);
+			$overDriveMetadata = json_decode($overDriveMetadata);
+			$interface->assign('overDriveMetaDataRaw', $overDriveMetadata);
 		}
 
 		return 'RecordDrivers/Marc/staff.tpl';

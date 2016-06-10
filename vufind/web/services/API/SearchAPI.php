@@ -53,6 +53,8 @@ class SearchAPI extends Action {
 		OVERDRIVE_EXTRACT_INTERVAL_CRITICAL = 18000,  // 5 Hours (in seconds)
 		SOLR_RESTART_INTERVAL_WARN          = 86400,  // 24 Hours (in seconds)
 		SOLR_RESTART_INTERVAL_CRITICAL      = 129600, // 36 Hours (in seconds)
+		OVERDRIVE_DELETED_ITEMS_WARN        = 250,
+		OVERDRIVE_DELETED_ITEMS_CRITICAL    = 1000,
 
 		STATUS_OK       = 'okay',
 		STATUS_WARN     = 'warning',
@@ -245,8 +247,22 @@ class SearchAPI extends Action {
 				}
 
 			}
+		}
 
+		// Check How Many Overdrive Items have been deleted in the last 24 hours
+		if (!empty($configArray['OverDrive']['url'])) {
+			// Checking that the url is set as a proxy for Overdrive being enabled
 
+			require_once ROOT_DIR . '/sys/OverDrive/OverDriveAPIProduct.php';
+			$overdriveItems = new OverDriveAPIProduct();
+			$overdriveItems->deleted = true;
+			$overdriveItems->whereAdd('dateDeleted > unix_timestamp(DATE_SUB(CURDATE(),INTERVAL 1 DAY) )');
+			// where deleted = 1 and dateDeleted > unix_timestamp(DATE_SUB(CURDATE(),INTERVAL 1 DAY) )
+			$deletedOverdriveItems = $overdriveItems->count();
+			if ($deletedOverdriveItems !== false && $deletedOverdriveItems >= self::OVERDRIVE_DELETED_ITEMS_WARN) {
+				$notes[] = "$deletedOverdriveItems Overdrive Items have been marked as deleted in the last 24 hours";
+				$status[] = $deletedOverdriveItems >= self::OVERDRIVE_DELETED_ITEMS_CRITICAL ? self::STATUS_CRITICAL : self::STATUS_WARN;
+			}
 		}
 
 		// Unprocessed Offline Circs //

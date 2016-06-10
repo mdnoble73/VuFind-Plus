@@ -1,0 +1,39 @@
+<?php
+/**
+ * Updates related to islandora for cleanliness
+ *
+ * @category Pika
+ * @author Mark Noble <mark@marmot.org>
+ * Date: 7/29/14
+ * Time: 2:25 PM
+ */
+
+function getIslandoraUpdates() {
+	return array(
+			'islandora_driver_cache' => array(
+				'title' => 'Islandora Driver Caching',
+				'description' => 'Caching for Islandora to store information about the driver to use',
+				'sql' => array(
+					"CREATE TABLE islandora_object_cache (
+								id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+								pid VARCHAR (100) NOT NULL,
+								driverName VARCHAR(25) NOT NULL,
+								driverPath VARCHAR(100) NOT NULL,
+								UNIQUE(pid)
+							) ENGINE = INNODB"
+				),
+			),
+
+			'islandora_lat_long_cache' => array(
+					'title' => 'Islandora Latitude Longitude Caching',
+					'description' => 'Caching for Islandora to store latitude and longitude for the object',
+					'sql' => array(
+							"ALTER TABLE islandora_object_cache ADD COLUMN title VARCHAR (255)",
+							"ALTER TABLE islandora_object_cache ADD COLUMN hasLatLong TINYINT DEFAULT NULL",
+							"ALTER TABLE islandora_object_cache ADD COLUMN latitude FLOAT DEFAULT NULL",
+							"ALTER TABLE islandora_object_cache ADD COLUMN longitude FLOAT DEFAULT NULL",
+							"ALTER TABLE islandora_object_cache ADD COLUMN lastUpdate INT(11) DEFAULT 0",
+					),
+			),
+	);
+}

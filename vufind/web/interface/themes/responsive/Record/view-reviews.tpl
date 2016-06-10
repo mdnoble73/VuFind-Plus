@@ -2,7 +2,7 @@
 {foreach from=$reviews item=providerList key=provider}
 	{if $provider == 'goodReads'}
 		<div class="goodReads">
-			<img src="/images/goodreads_logo.png" alt="Reviews from GoodReads" />
+			<img src="/images/goodreads_logo.png" alt="Reviews from GoodReads">
 			<iframe src="{$providerList.sampleReviewsUrl}" width="100%" height="2020px" class="goodReadsIFrame" style="border-width: 0px;"></iframe>
 		</div>
 	{else}
@@ -24,7 +24,7 @@
 			</div>
 			{/if}
 			</div>
-			<hr/>
+			<hr>
 		{/foreach}
 	{/if}
 {/foreach}

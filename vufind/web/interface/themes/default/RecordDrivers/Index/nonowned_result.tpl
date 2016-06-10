@@ -40,7 +40,7 @@
 
 		<div class="row related-manifestations-header">
 			<div class="col-xs-12 result-label related-manifestations-label">
-				Formats
+				{translate text="Choose a Format"}
 			</div>
 		</div>
 		<div class="row related-manifestation">

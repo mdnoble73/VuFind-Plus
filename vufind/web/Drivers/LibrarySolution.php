@@ -67,61 +67,68 @@ class LibrarySolution extends ScreenScrapingDriver {
 			if ($forceDisplayNameUpdate){
 				$user->displayName = '';
 			}
-			$user->fullname = $accountSummary->patron->fullName;
+			$user->fullname     = $accountSummary->patron->fullName;
 			$user->cat_username = $accountSummary->patron->patronId;
 			$user->cat_password = $accountSummary->patron->pin;
-			$user->phone = $accountSummary->patron->phone;
-			$user->email = $accountSummary->patron->email;
+			$user->phone        = $accountSummary->patron->phone;
+			$user->email        = $accountSummary->patron->email;
 
 			//Setup home location
 			$location = null;
-			if (isset($accountSummary->patron->issuingBranchId) || isset($accountSummary->patron->defaultRequestPickupBranch)){
+			if (isset($accountSummary->patron->issuingBranchId) || isset($accountSummary->patron->defaultRequestPickupBranch)) {
 				$homeBranchCode = isset($accountSummary->patron->issuingBranchId) ? $accountSummary->patron->issuingBranchId : $accountSummary->patron->defaultRequestPickupBranch;
 				$homeBranchCode = str_replace('+', '', $homeBranchCode);
 				//Translate home branch to plain text
-				$location = new Location();
+				$location       = new Location();
 				$location->code = $homeBranchCode;
-				if ($location->find(1)){
-					//Setup default location information if it hasn't been loaded or has been changed
-					if ($user->homeLocationId == 0 || $location->locationId != $user->homeLocationId) {
+				if (!$location->find(true)) {
+					unset($location);
+				}
+			} else {
+					global $logger;
+					$logger->log('Library Solution Driver: No Home Library Location or Hold location found in account look-up. User : '.$user->id, PEAR_LOG_ERR);
+					// The code below will attempt to find a location for the library anyway if the homeLocation is already set
+			}
 
-						$user->homeLocationId = $location->locationId;
-						if ((!isset($user->homeLocationId) || $user->homeLocationId == 0)) {
-							// Logging for Diagnosing PK-1846
-							global $logger;
-							$logger->log('LIbrary Solution Driver: Attempted look up user\'s homeLocationId and failed to find one. User : '.$user->id, PEAR_LOG_WARNING);
-						}
+			if (empty($user->homeLocationId) || (isset($location) && $user->homeLocationId != $location->locationId)) { // When homeLocation isn't set or has changed
+				if (empty($user->homeLocationId) && !isset($location)) {
+					// homeBranch Code not found in location table and the user doesn't have an assigned homelocation,
+					// try to find the main branch to assign to user
+					// or the first location for the library
+					global $library;
 
-						if ($location->nearbyLocation1 > 0){
-							$user->myLocation1Id = $location->nearbyLocation1;
-						}else{
-							$user->myLocation1Id = $location->locationId;
-						}
-						if ($location->nearbyLocation2 > 0){
-							$user->myLocation2Id = $location->nearbyLocation2;
-						}else{
-							$user->myLocation2Id = $location->locationId;
-						}
+					$location            = new Location();
+					$location->libraryId = $library->libraryId;
+					$location->orderBy('isMainBranch desc'); // gets the main branch first or the first location
+					if (!$location->find(true)) {
+						// Seriously no locations even?
+						global $logger;
+						$logger->log('Failed to find any location to assign to user as home location', PEAR_LOG_ERR);
+						unset($location);
 					}
+				}
+				if (isset($location)) {
+					$user->homeLocationId = $location->locationId;
+					$user->myLocation1Id  = ($location->nearbyLocation1 > 0) ? $location->nearbyLocation1 : $location->locationId;
+					$user->myLocation2Id  = ($location->nearbyLocation2 > 0) ? $location->nearbyLocation2 : $location->locationId;
+
 					//Get display names that aren't stored
 					$user->homeLocationCode = $location->code;
-					$user->homeLocation = $location->displayName;
+					$user->homeLocation     = $location->displayName;
 
 					//Get display name for preferred location 1
 					$myLocation1 = new Location();
-					$myLocation1->whereAdd("locationId = '$user->myLocation1Id'");
-					if ($myLocation1->find(true)){
+					$myLocation1->locationId = $user->myLocation1Id;
+					if ($myLocation1->find(true)) {
 						$user->myLocation1 = $myLocation1->displayName;
 					}
 
 					//Get display name for preferred location 2
 					$myLocation2 = new Location();
-					$myLocation2->whereAdd("locationId = '$user->myLocation2Id'");
-					if ($myLocation2->find(true)){
+					$myLocation2->locationId = $user->myLocation2Id;
+					if ($myLocation2->find(true)) {
 						$user->myLocation2 = $myLocation2->displayName;
 					}
-				}else{
-					unset($location);
 				}
 			}
 

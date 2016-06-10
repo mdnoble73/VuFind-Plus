@@ -154,7 +154,7 @@
 }
 
 // Common Rules between Explore More Bar & Explore More Sidebar
-#explore-more-body,.exploreMoreBar {
+#explore-more-body, #relatedProjectScroller, #relatedContentTypesContainer,.exploreMoreBar {
   .jcarousel {
     .thumbnail {
       margin-bottom: 0;
@@ -183,10 +183,28 @@
 
 }
 
+#relatedProjectScroller .thumbnail, #relatedContentTypesContainer .thumbnail{
+  border-width: 0;
+}
+
+.large-image-content{
+  background-color: #f2f2f2;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  padding: 15px;
+  box-sizing: border-box;
+}
+
+#image-download-options{
+  margin-top: 5px;
+  margin-bottom: 7px;
+}
+
 .openseadragon {
   display: block;
   width: 100%;
   height: 500px;
+  box-sizing: border-box;
 
   canvas {
     background-color: #000 !important; /* should be replaced with OpenSeadragon setting */
@@ -197,4 +215,9 @@
 {
   background-color: #F00;
   opacity: 0.5;
+}
+
+#exhibit-map{
+  width: 100%;
+  height: 500px;
 }

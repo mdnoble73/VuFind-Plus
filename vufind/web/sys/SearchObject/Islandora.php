@@ -43,8 +43,8 @@ class SearchObject_Islandora extends SearchObject_Base
 	// Index
 	private $index = null;
 	// Field List
-	private $fields = '*,score';
-	//private $fields = 'PID,dc.title,mods_abstract_s,RELS_EXT_hasModel_uri_s,score';
+	//private $fields = '*,score';
+	private $fields = 'PID,fgs_label_s,dc.title,mods_abstract_s,RELS_EXT_hasModel_uri_s,mods_originInfo_dateCreated_dt,score';
 	// HTTP Method
 	//    private $method = HTTP_REQUEST_METHOD_GET;
 	private $method = HTTP_REQUEST_METHOD_POST;
@@ -247,6 +247,10 @@ class SearchObject_Islandora extends SearchObject_Base
 	{
 		return isset($this->allFacetSettings[$section][$setting]) ?
 		$this->allFacetSettings[$section][$setting] : '';
+	}
+
+	public function getFullSearchUrl() {
+		return isset($this->indexEngine->fullSearchUrl) ? $this->indexEngine->fullSearchUrl : 'Unknown';
 	}
 
 	/**
@@ -686,9 +690,12 @@ class SearchObject_Islandora extends SearchObject_Base
 	 *                                     method (true)?
 	 * @param   bool   $recommendations    Should we process recommendations along
 	 *                                     with the search itself?
+	 * @param   bool   $preventQueryModification   Should we allow the search engine
+	 *                                             to modify the query or is it already
+	 *                                             a well formatted query
 	 * @return  object solr result structure (for now)
 	 */
-	public function processSearch($returnIndexErrors = false, $recommendations = false)
+	public function processSearch($returnIndexErrors = false, $recommendations = false, $preventQueryModification = false)
 	{
 		// Our search has already been processed in init()
 		$search = $this->searchTerms;
@@ -699,7 +706,12 @@ class SearchObject_Islandora extends SearchObject_Base
 		}
 
 		// Build Query
-		$query = $this->indexEngine->buildQuery($search);
+		if ($preventQueryModification){
+			$query = $search[0]['lookfor'];
+		}else{
+			$query = $this->indexEngine->buildQuery($search, false);
+		}
+
 		if (PEAR_Singleton::isError($query)) {
 			return $query;
 		}
@@ -757,6 +769,10 @@ class SearchObject_Islandora extends SearchObject_Base
 			if ($this->facetSort != null) {
 				$facetSet['sort'] = $this->facetSort;
 			}
+		}
+
+		if (!empty($this->facetOptions)){
+			$facetSet['additionalOptions'] = $this->facetOptions;
 		}
 
 		// Build our spellcheck query

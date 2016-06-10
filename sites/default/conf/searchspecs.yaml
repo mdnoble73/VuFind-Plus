@@ -311,6 +311,11 @@ TitleProper:
       - [onephrase, 100]
       - [and, 50]
 
+StartOfTitle:
+  QueryFields:
+    - title_left:
+      - [localized_callnumber, 1600]
+
 Series:
   DismaxFields:
     - series^100
@@ -409,7 +414,7 @@ Keyword:
         - [and, 30]
 # Check everything else
     - table_of_contents:
-      - [proximal, 50]
+      - [and, 50]
     - topic:
       - [onephrase, 125]
     - geographic:
@@ -417,9 +422,9 @@ Keyword:
     - genre:
       - [onephrase, 75]
     - keywords:
-      - [proximal, 10]
+      - [and, 10]
     - description:
-      - [proximal, 60]
+      - [and, 60]
     - target_audience:
       - [onephrase, 75]
     - literary_form_full:
@@ -430,7 +435,7 @@ KeywordProper:
     - title_proper^850
     - series_proper^100
     - auth_author^300
-    - table_of_contents^10
+    - table_of_contents_proper^10
     - topic_proper^500
     - geographic_proper^300
     - genre_proper^300
@@ -461,7 +466,7 @@ KeywordProper:
       - [onephrase, 300]
     auth_author2:
       - [onephrase, 300]
-    table_of_contents:
+    table_of_contents_proper:
       - [and, 10]
     topic_proper:
       - [onephrase, 500]
@@ -730,6 +735,8 @@ IslandoraKeywordProper:
       - [exact, ~]
     - mods_extension_marmotLocal_militaryService_militaryRecord_militaryBranch_ms:
       - [exact, ~]
+    - mods_extension_marmotLocal_militaryService_militaryRecord_militaryConflict_ms:
+      - [exact, ~]
     - mods_extension_marmotLocal_relatedEvent_entityTitle_ms:
       - [exact, ~]
     - mods_extension_marmotLocal_hasTranscription_transcriber_entityTitle_ms:
@@ -760,6 +767,8 @@ IslandoraRelationshipsById:
     - mods_extension_marmotLocal_militaryService_militaryRecord_relatedPlace_entityPlace_entityPid_ms:
       - [exact, ~]
     - mods_extension_marmotLocal_militaryService_militaryRecord_militaryBranch_ms:
+      - [exact, ~]
+    - mods_extension_marmotLocal_militaryService_militaryRecord_militaryConflict_ms:
       - [exact, ~]
     - mods_extension_marmotLocal_relatedEvent_entityPid_ms:
       - [exact, ~]

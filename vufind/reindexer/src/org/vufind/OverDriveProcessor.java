@@ -84,13 +84,6 @@ public class OverDriveProcessor {
 						if (subtitle == null) {
 							subtitle = "";
 						}
-						groupedWork.setTitle(title);
-						groupedWork.setDisplayTitle(title);
-						groupedWork.setSubTitle(subtitle);
-						String fullTitle = title + " " + subtitle;
-						fullTitle = fullTitle.trim();
-						groupedWork.addFullTitle(fullTitle);
-						groupedWork.setDisplayTitle(fullTitle);
 						String mediaType = productRS.getString("mediaType");
 						String formatCategory;
 						String primaryFormat;
@@ -108,6 +101,14 @@ public class OverDriveProcessor {
 								primaryFormat = mediaType;
 								break;
 						}
+
+						HashMap<String, String> metadata = loadOverDriveMetadata(groupedWork, productId, primaryFormat);
+
+						String fullTitle = title + " " + subtitle;
+						fullTitle = fullTitle.trim();
+						groupedWork.setTitle(title, title, metadata.get("sortTitle"), primaryFormat);
+						groupedWork.setSubTitle(subtitle);
+						groupedWork.addFullTitle(fullTitle);
 
 						groupedWork.addSeries(series);
 						groupedWork.addSeriesWithVolume(series);
@@ -140,7 +141,6 @@ public class OverDriveProcessor {
 
 						productRS.close();
 
-						HashMap<String, String> metadata = loadOverDriveMetadata(groupedWork, productId, primaryFormat);
 						String primaryLanguage = loadOverDriveLanguages(groupedWork, productId, identifier);
 						String targetAudience = loadOverDriveSubjects(groupedWork, productId);
 
@@ -454,7 +454,7 @@ public class OverDriveProcessor {
 		getProductMetadataStmt.setLong(1, productId);
 		ResultSet metadataRS = getProductMetadataStmt.executeQuery();
 		if (metadataRS.next()){
-			groupedWork.setSortableTitle(metadataRS.getString("sortTitle"));
+			returnMetadata.put("sortTitle", metadataRS.getString("sortTitle"));
 			String publisher = metadataRS.getString("publisher");
 			groupedWork.addPublisher(publisher);
 			returnMetadata.put("publisher", publisher);

@@ -88,6 +88,8 @@ class DBMaintenance extends Admin_Admin {
 		$list_widget_updates = getListWidgetUpdates();
 		require_once ROOT_DIR . '/sys/DBMaintenance/indexing_updates.php';
 		$indexing_updates = getIndexingUpdates();
+		require_once ROOT_DIR . '/sys/DBMaintenance/islandora_updates.php';
+		$islandora_updates = getIslandoraUpdates();
 
 		return array_merge(
 			$library_location_updates,
@@ -95,6 +97,7 @@ class DBMaintenance extends Admin_Admin {
 			$grouped_work_updates,
 			$list_widget_updates,
 			$indexing_updates,
+			$islandora_updates,
 			array(
 				'index_search_stats' => array(
 					'title' => 'Index search stats table',
