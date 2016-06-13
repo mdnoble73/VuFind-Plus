@@ -142,4 +142,8 @@ class PlaceDriver extends IslandoraDriver {
 		} // Don't do anything for N or E
 		return $dd;
 	}
+
+	public function getFormat(){
+		return 'Place';
+	}
 }

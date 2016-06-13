@@ -13,4 +13,12 @@ class AudioDriver extends IslandoraDriver {
 	public function getViewAction() {
 		return 'Audio';
 	}
+
+	public function getFormat(){
+		$genre = $this->getModsValue('genre', 'mods');
+		if ($genre != null){
+			return ucwords($genre);
+		}
+		return 'Audio File';
+	}
 }

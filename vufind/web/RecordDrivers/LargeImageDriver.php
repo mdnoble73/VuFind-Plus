@@ -14,4 +14,8 @@ class LargeImageDriver extends IslandoraDriver {
 	public function getViewAction() {
 		return 'LargeImage';
 	}
+
+	public function getFormat(){
+		return 'High Resolution Image';
+	}
 }

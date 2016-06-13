@@ -15,4 +15,8 @@ class BasicImageDriver extends IslandoraDriver {
 	public function getViewAction() {
 		return 'Image';
 	}
+
+	public function getFormat(){
+		return 'Low Resolution Image';
+	}
 }

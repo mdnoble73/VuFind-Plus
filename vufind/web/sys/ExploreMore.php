@@ -221,8 +221,10 @@ class ExploreMore {
 			}
 		}
 
-		//Check the archive to see if we match an entity.  Always do this since we may not get the record high in the search results.
-		$exploreMoreOptions = $this->loadExactEntityMatches($exploreMoreOptions, $searchTerm);
+		//Check the archive to see if we match an entity.
+		if ($library->enableArchive && $activeSection != 'archive') {
+			$exploreMoreOptions = $this->loadExactEntityMatches($exploreMoreOptions, $searchTerm);
+		}
 
 		$exploreMoreOptions = $this->loadCatalogOptions($activeSection, $exploreMoreOptions, $searchTerm);
 
@@ -497,7 +499,7 @@ class ExploreMore {
 							$exploreMoreOptions[] = array(
 									'label' => $driver->getTitle(),
 									'description' => $driver->getTitle(),
-									'image' => $driver->getBookcoverUrl('small'),
+									'image' => $driver->getBookcoverUrl('medium'),
 									'link' => $driver->getLinkUrl(),
 									'usageCount' => 1
 							);

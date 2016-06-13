@@ -43,20 +43,6 @@
 					{if $google_translate_key}
 						{literal}
 						<div id="google_translate_element">
-							<script type="text/javascript">
-								function googleTranslateElementInit() {
-									new google.translate.TranslateElement({
-										pageLanguage: 'en',
-										layout: google.translate.TranslateElement.InlineLayout.SIMPLE
-										{/literal}
-										{if $google_included_languages}
-										, includedLanguages: '{$google_included_languages}'
-										{/if}
-										{literal}
-									}, 'google_translate_element');
-								}
-							</script>
-							<script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 						</div>
 						{/literal}
 					{/if}
@@ -86,8 +72,6 @@
 			<div id="content-container">
 				<div class="row">
 
-					{* TODO Explore More Side Bar needs to be implemented *}
-
 					{if !empty($sidebar)} {* Main Content & Sidebars *}
 
 						{if $sideBarOnRight}  {*Sidebar on the right *}
@@ -96,6 +80,9 @@
 							</div>
 							<div class="rightSidebar col-xs-12 col-sm-8 col-sm-pull-4 col-md-9 col-md-pull-3 col-lg-9 col-lg-pull-3" id="main-content-with-sidebar" style="overflow-x: auto;">
 								{* If main content overflows, use a scrollbar *}
+								{if $sectionLabel}
+									<div id="sectionLabel">{$sectionLabel}</div>
+								{/if}
 								{if $module}
 									{include file="$module/$pageTemplate"}
 								{else}
@@ -104,10 +91,17 @@
 							</div>
 
 						{else} {* Sidebar on the left *}
-							<div class="col-xs-12 col-sm-4 col-md-3 col-lg-3" id="side-bar">
+							<div class="col-xs-12 col-sm-4 col-md-3 col-lg-3 " id="side-bar">
 								{include file="sidebar.tpl"}
 							</div>
 							<div class="col-xs-12 col-sm-8 col-md-9 col-lg-9" id="main-content-with-sidebar">
+								{if $sectionLabel}
+									<div class="row">
+										<div class="col-tn-12">
+											<div id="sectionLabel">{$sectionLabel}</div>
+										</div>
+									</div>
+								{/if}
 								{if $module}
 									{include file="$module/$pageTemplate"}
 								{else}
@@ -117,6 +111,9 @@
 						{/if}
 
 					{else} {* Main Content Only, no sidebar *}
+						{if $sectionLabel}
+							<div id="sectionLabel">{$sectionLabel}</div>
+						{/if}
 						{if $module}
 							{include file="$module/$pageTemplate"}
 						{else}
@@ -142,3 +139,21 @@
 		{/strip}
 	</body>
 </html>
+{if $google_translate_key}
+{literal}
+	<script type="text/javascript">
+		function googleTranslateElementInit() {
+		new google.translate.TranslateElement({
+		pageLanguage: 'en',
+		layout: google.translate.TranslateElement.InlineLayout.SIMPLE
+{/literal}
+	{if $google_included_languages}
+	, includedLanguages: '{$google_included_languages}'
+	{/if}
+{literal}
+		}, 'google_translate_element');
+		}
+	</script>
+	<script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+{/literal}
+{/if}

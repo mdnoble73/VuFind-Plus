@@ -51,6 +51,15 @@
 			</div>
 		{/if}
 
+		{if $summFormat}
+			<div class="row">
+				<div class="result-label col-xs-3">Format: </div>
+				<div class="col-xs-9 result-value">
+					{$summFormat}
+				</div>
+			</div>
+		{/if}
+
 		{if $summPubDate}
 			<div class="row">
 				<div class="result-label col-xs-3">Pub. Date: </div>

@@ -203,6 +203,7 @@ class Archive_Results extends Action {
 		$exploreMore->loadExploreMoreBar('archive');
 
 		// Done, display the page
+		$interface->assign('sectionLabel', 'Local History Archive Results');
 		$interface->setTemplate($searchObject->getResultTotal() ? 'list.tpl' : 'list-none.tpl'); // main search results content
 		$interface->assign('sidebar', 'Search/results-sidebar.tpl');
 		$interface->display('layout.tpl');

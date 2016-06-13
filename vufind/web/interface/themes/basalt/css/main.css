@@ -8672,6 +8672,21 @@ hr.menu {
 .jcarousel .thumbnail img {
   max-height: 125px !important;
 }
+#sectionLabel {
+  width: 100%;
+  background-color: #dcf3fb;
+  color: #137DE2;
+  text-transform: capitalize;
+  font-weight: bold;
+  padding: 5px;
+  text-align: center;
+  font-size: 16px;
+  text-shadow: 1px 1px lightgrey;
+}
+.nopadding {
+  padding: 0 !important;
+  margin: 0 !important;
+}
 #home-page-search {
   background-color: #EC5802;
   background: -webkit-linear-gradient(top, #EC5802, #FEA501);
@@ -10211,11 +10226,14 @@ a.browse-thumbnail.active {
   margin-top: 5px;
 }
 #explore-more-body .jcarousel {
-  left: 0;
-  width: calc(100% - 30px);
+  left: 30px;
+  width: calc(100% - 60px);
+}
+#explore-more-body .thumbnail {
+  height: 175px;
 }
 #explore-more-body .relatedTitlesContainer {
-  height: 100%;
+  height: 175px;
 }
 .exhibit-thumbnail {
   margin: 8px;
@@ -10269,9 +10287,6 @@ a.browse-thumbnail.active {
   padding-left: 10px;
   display: inline-block;
 }
-.exploreMoreBar .exploreMoreItemsContainer {
-  white-space: nowrap;
-}
 .exploreMoreBar .jcarousel-wrapper {
   margin: 5px auto;
 }
@@ -10281,7 +10296,7 @@ a.browse-thumbnail.active {
   height: 100%;
 }
 .exploreMoreBar .explore-more-option .thumbnail a img {
-  max-height: 92px;
+  max-height: 150px;
 }
 .exploreMoreBar .explore-more-option figcaption {
   margin-top: 4px;
@@ -10294,6 +10309,7 @@ a.browse-thumbnail.active {
 #relatedContentTypesContainer .jcarousel .thumbnail,
 .exploreMoreBar .jcarousel .thumbnail {
   margin-bottom: 0;
+  height: 175px;
 }
 #explore-more-body .jcarousel-control-prev,
 #relatedProjectScroller .jcarousel-control-prev,

@@ -104,6 +104,8 @@ abstract class IslandoraDriver extends RecordInterface {
 		$interface->assign('summUrl', $url);
 		$interface->assign('summTitle', $this->getTitle());
 
+		$interface->assign('summFormat', $this->getFormat());
+
 		//Get Rating
 		$interface->assign('bookCoverUrl', $this->getBookcoverUrl('small'));
 		$interface->assign('bookCoverUrlMedium', $this->getBookcoverUrl('medium'));
@@ -257,6 +259,7 @@ abstract class IslandoraDriver extends RecordInterface {
 		$interface->assign('module', $this->getModule());
 		$interface->assign('summUrl', $this->getLinkUrl());
 		$interface->assign('summDescription', $this->getDescription());
+		$interface->assign('summFormat', $this->getFormat());
 
 		//Determine the cover to use
 		$interface->assign('bookCoverUrl', $this->getBookcoverUrl('small'));
@@ -1027,5 +1030,13 @@ abstract class IslandoraDriver extends RecordInterface {
 		}else{
 			return $dateCreated;
 		}
+	}
+
+	public function getFormat(){
+		$genre = $this->getModsValue('genre', 'mods');
+		if ($genre != null){
+			return ucwords($genre);
+		}
+		return null;
 	}
 }
