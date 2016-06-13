@@ -10303,8 +10303,11 @@ a.browse-thumbnail.active {
   padding-right: 10px;
   height: 100%;
 }
+.exploreMoreBar .explore-more-option .thumbnail {
+  border: 0 solid white;
+}
 .exploreMoreBar .explore-more-option .thumbnail a img {
-  max-height: 150px;
+  height: 175px;
 }
 .exploreMoreBar .explore-more-option figcaption {
   margin-top: 4px;

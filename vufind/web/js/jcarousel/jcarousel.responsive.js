@@ -14,7 +14,8 @@
 						width = width / 2;
 					}
 
-					jcarousel.jcarousel('items').css('width', width + 'px');
+					jcarousel.jcarousel('items').css('width', width + 'px')
+					.('.thumbnail').css('width', width + 'px');
 				})
 				.jcarousel({
 					wrap: 'circular'

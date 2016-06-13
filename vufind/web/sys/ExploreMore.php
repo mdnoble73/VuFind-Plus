@@ -276,7 +276,7 @@ class ExploreMore {
 								$exploreMoreOptions[] = array(
 									'label' => $archiveObject->label,
 									'description' => $archiveObject->label,
-									'image' => $fedoraUtils->getObjectImageUrl($archiveObject, 'small'),
+									'image' => $fedoraUtils->getObjectImageUrl($archiveObject, 'medium'),
 									'link' => $configArray['Site']['path'] . "/Archive/{$archiveObject->id}/Exhibit",
 									'usageCount' => $collectionInfo[1]
 								);
@@ -342,7 +342,7 @@ class ExploreMore {
 							$exploreMoreOptions[] = array(
 								'label' => "People (" . $numPeople . ")",
 								'description' => "People related to {$searchObject->getQuery()}",
-								'image' => $fedoraUtils->getObjectImageUrl($archiveObject, 'small', 'personCModel'),
+								'image' => $fedoraUtils->getObjectImageUrl($archiveObject, 'medium', 'personCModel'),
 								'link' => '/Archive/RelatedEntities?lookfor=' . urlencode($_REQUEST['lookfor']) . '&entityType=person',
 								'usageCount' => $numPeople
 							);
@@ -361,7 +361,7 @@ class ExploreMore {
 							$exploreMoreOptions[] = array(
 								'label' => "Places (" . $numPlaces . ")",
 								'description' => "Places related to {$searchObject->getQuery()}",
-								'image' => $fedoraUtils->getObjectImageUrl($archiveObject, 'small', 'placeCModel'),
+								'image' => $fedoraUtils->getObjectImageUrl($archiveObject, 'medium', 'placeCModel'),
 								'link' => '/Archive/RelatedEntities?lookfor=' . urlencode($_REQUEST['lookfor']) . '&entityType=place',
 								'usageCount' => $numPlaces
 							);
@@ -380,7 +380,7 @@ class ExploreMore {
 							$exploreMoreOptions[] = array(
 								'label' => "Events (" . $numEvents . ")",
 								'description' => "Places related to {$searchObject->getQuery()}",
-								'image' => $fedoraUtils->getObjectImageUrl($archiveObject, 'small', 'eventCModel'),
+								'image' => $fedoraUtils->getObjectImageUrl($archiveObject, 'medium', 'eventCModel'),
 								'link' => '/Archive/RelatedEntities?lookfor=' . urlencode($_REQUEST['lookfor']) . '&entityType=event',
 								'usageCount' => $numEvents
 							);
