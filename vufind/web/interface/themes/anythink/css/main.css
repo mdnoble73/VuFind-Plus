@@ -10318,6 +10318,7 @@ a.browse-thumbnail.active {
 .exploreMoreBar .jcarousel .thumbnail {
   margin-bottom: 0;
   height: 175px;
+  border: 0 solid white;
 }
 #explore-more-body .jcarousel-control-prev,
 #relatedProjectScroller .jcarousel-control-prev,
@@ -10331,6 +10332,7 @@ a.browse-thumbnail.active {
   background: #fff;
   color: #9e1b32;
   z-index: 2;
+  box-shadow: white 0px 0px 0px 0px;
 }
 #explore-more-body .jcarousel-control-prev:focus,
 #relatedProjectScroller .jcarousel-control-prev:focus,
@@ -10350,7 +10352,7 @@ a.browse-thumbnail.active {
 #relatedProjectScroller .jcarousel-control-next .glyphicon,
 #relatedContentTypesContainer .jcarousel-control-next .glyphicon,
 .exploreMoreBar .jcarousel-control-next .glyphicon {
-  top: 20px;
+  top: 39px;
 }
 #explore-more-body .jcarousel-control-prev,
 #relatedProjectScroller .jcarousel-control-prev,

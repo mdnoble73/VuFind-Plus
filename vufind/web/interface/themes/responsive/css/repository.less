@@ -159,6 +159,7 @@
     .thumbnail {
       margin-bottom: 0;
       height:175px;
+      border: 0 solid white;
     }
   }
 
@@ -167,11 +168,12 @@
     background: @content-bg;
     color: @explore-more-bar-label-bg-color;
     z-index: 2; // keep above carousel content
+    box-shadow: white 0px 0px 0px 0px;
     &:focus {
       outline: none;
     }
     .glyphicon {
-      top: 20px; // center the button a bit better. I haven't find a good way to make it center with out a specific value yet
+      top: 39px; // center the button a bit better. I haven't find a good way to make it center with out a specific value yet
     }
   }
   // Horizontal Placement of Previous Next Buttons
