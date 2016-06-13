@@ -869,7 +869,7 @@ abstract class IslandoraDriver extends RecordInterface {
 						if ($workDriver->isValid){
 							$this->relatedPikaRecords[] = array(
 									'link' => $workDriver->getLinkUrl(),
-									'title' => $workDriver->getTitle(),
+									'label' => $workDriver->getTitle(),
 									'image' => $workDriver->getBookcoverUrl('medium'),
 									'id' => $workId
 							);
