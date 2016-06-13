@@ -117,8 +117,8 @@ public class ExtractOverDriveInfo {
 			clearIdentifiersStmt = econtentConn.prepareStatement("DELETE FROM overdrive_api_product_identifiers where productId = ?");
 			addIdentifierStmt = econtentConn.prepareStatement("INSERT INTO overdrive_api_product_identifiers set productId = ?, type = ?, value = ?");
 			checkForExistingAvailabilityStmt = econtentConn.prepareStatement("SELECT * from overdrive_api_product_availability where productId = ? and libraryId = ?");
-			updateAvailabilityStmt = econtentConn.prepareStatement("UPDATE overdrive_api_product_availability set available = ?, copiesOwned = ?, copiesAvailable = ?, numberOfHolds = ? WHERE id = ?");
-			addAvailabilityStmt = econtentConn.prepareStatement("INSERT INTO overdrive_api_product_availability set productId = ?, libraryId = ?, available = ?, copiesOwned = ?, copiesAvailable = ?, numberOfHolds = ?");
+			updateAvailabilityStmt = econtentConn.prepareStatement("UPDATE overdrive_api_product_availability set available = ?, copiesOwned = ?, copiesAvailable = ?, numberOfHolds = ?, availabilityType = ? WHERE id = ?");
+			addAvailabilityStmt = econtentConn.prepareStatement("INSERT INTO overdrive_api_product_availability set productId = ?, libraryId = ?, available = ?, copiesOwned = ?, copiesAvailable = ?, numberOfHolds = ?, availabilityType = ?");
 			deleteAvailabilityStmt = econtentConn.prepareStatement("DELETE FROM overdrive_api_product_availability where id = ?");
 			updateProductAvailabilityStmt = econtentConn.prepareStatement("UPDATE overdrive_api_products SET lastAvailabilityCheck = ?, lastAvailabilityChange = ? where id = ?");
 			markGroupedWorkForBibAsChangedStmt = vufindConn.prepareStatement("UPDATE grouped_work SET date_updated = ? where id = (SELECT grouped_work_id from grouped_work_primary_identifiers WHERE type = 'overdrive' and identifier = ?)") ;
@@ -973,18 +973,21 @@ public class ExtractOverDriveInfo {
 							copiesAvailable = 0;
 						}
 						int numberOfHolds = availability.getInt("numberOfHolds");
+						String availabilityType = availability.getString("availabilityType");
 						if (hasExistingAvailability){
 							//Check to see if the availability has changed
 							if (available != existingAvailabilityRS.getBoolean("available") || 
 									copiesOwned != existingAvailabilityRS.getInt("copiesOwned") || 
 									copiesAvailable != existingAvailabilityRS.getInt("copiesAvailable") || 
-									numberOfHolds != existingAvailabilityRS.getInt("numberOfHolds")
+									numberOfHolds != existingAvailabilityRS.getInt("numberOfHolds") ||
+									!availabilityType.equals(existingAvailabilityRS.getString("availabilityType"))
 									){
 								updateAvailabilityStmt.setBoolean(1, available);
 								updateAvailabilityStmt.setInt(2, copiesOwned);
 								updateAvailabilityStmt.setInt(3, copiesAvailable);
 								updateAvailabilityStmt.setInt(4, numberOfHolds);
-								updateAvailabilityStmt.setLong(5, existingAvailabilityRS.getLong("id"));
+								updateAvailabilityStmt.setString(5, availabilityType);
+								updateAvailabilityStmt.setLong(6, existingAvailabilityRS.getLong("id"));
 								updateAvailabilityStmt.executeUpdate();
 								availabilityChanged = true;
 							}
@@ -995,6 +998,7 @@ public class ExtractOverDriveInfo {
 							addAvailabilityStmt.setInt(4, copiesOwned);
 							addAvailabilityStmt.setInt(5, copiesAvailable);
 							addAvailabilityStmt.setInt(6, numberOfHolds);
+							addAvailabilityStmt.setString(7, availabilityType);
 							addAvailabilityStmt.executeUpdate();
 							availabilityChanged = true;
 						}
