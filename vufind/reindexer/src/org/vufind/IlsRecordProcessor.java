@@ -1135,7 +1135,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		if (locationSubfield == null){
 			return true;
 		}else{
-			if (locationSubfield.getData().matches(locationsToSuppress)){
+			if (locationSubfield.getData().trim().matches(locationsToSuppress)){
 				return true;
 			}
 		}
