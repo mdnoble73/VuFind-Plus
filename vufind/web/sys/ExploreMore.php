@@ -64,6 +64,10 @@ class ExploreMore {
 			}else{
 				$searchSubject = $subject;
 			}
+			$separatorPosition = strpos($searchSubject, ' -- ');
+			if ($separatorPosition > 0){
+				$searchSubject = substr($searchSubject, 0, $separatorPosition);
+			}
 			$searchSubject = preg_replace('/\(.*?\)/',"", $searchSubject);
 			$searchSubject = trim(preg_replace('/[\/|:.,"]/',"", $searchSubject));
 			$subjectsForSearching[] = $searchSubject;
@@ -583,6 +587,10 @@ class ExploreMore {
 		for ($i = 0; $i < 2; $i++){
 			foreach ($this->formattedSubjects as $subject) {
 				$lowerSubject = strtolower($subject['label']);
+				//Ignore anything after a -- if it exists
+				if (strpos($lowerSubject, ' -- ') >= 0){
+					$lowerSubject = substr($lowerSubject, 0, strpos($lowerSubject, ' -- '));
+				}
 				if (!array_key_exists($lowerSubject, $subjectsToIgnore)) {
 					if ($i == 0){
 						//First pass, just add primary subjects
