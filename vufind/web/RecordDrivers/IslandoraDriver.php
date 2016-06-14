@@ -854,7 +854,6 @@ abstract class IslandoraDriver extends RecordInterface {
 	protected $relatedPikaRecords;
 	public function getRelatedPikaContent(){
 		if ($this->relatedPikaRecords == null){
-			global $interface;
 			require_once ROOT_DIR . '/RecordDrivers/GroupedWorkDriver.php';
 
 			$this->relatedPikaRecords = array();

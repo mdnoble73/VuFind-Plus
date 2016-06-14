@@ -12,6 +12,10 @@ require_once ROOT_DIR . '/RecordDrivers/IslandoraDriver.php';
 class CompoundDriver extends IslandoraDriver {
 
 	public function getViewAction() {
+		$genre = $this->getModsValue('genre', 'mods');
+		if ($genre != null && strlen($genre) > 0){
+			return ucfirst($genre);
+		}
 		return "Compound";
 	}
 }
