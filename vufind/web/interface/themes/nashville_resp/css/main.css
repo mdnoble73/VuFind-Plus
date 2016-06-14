@@ -10399,6 +10399,9 @@ a.browse-thumbnail.active {
   width: 100%;
   height: 500px;
 }
+#alternate-image-navigator {
+  text-align: center;
+}
 .alternate-image {
   display: inline-block;
   margin: 3px;
