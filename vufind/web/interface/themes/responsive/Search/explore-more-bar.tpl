@@ -25,9 +25,11 @@
 						{else}
 							<li class="explore-more-option">
 								<figure class="thumbnail" title="{$exploreMoreCategory.label|escape}">
-									<a href='{$exploreMoreCategory.link}'>
-										<img src="{$exploreMoreCategory.image}" alt="{$exploreMoreCategory.label|escape}">
-									</a>
+									<div class="explore-more-image">
+										<a href='{$exploreMoreCategory.link}'>
+											<img src="{$exploreMoreCategory.image}" alt="{$exploreMoreCategory.label|escape}">
+										</a>
+									</div>
 									<figcaption class="explore-more-category-title">
 										<strong>{$exploreMoreCategory.label|truncate:30}</strong>
 									</figcaption>

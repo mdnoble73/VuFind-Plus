@@ -10305,15 +10305,27 @@ a.browse-thumbnail.active {
 }
 .exploreMoreBar .explore-more-option .thumbnail {
   border: 0 solid white;
+  position: relative;
+  display: block;
 }
 .exploreMoreBar .explore-more-option .thumbnail a img {
-  height: 150px;
+  height: 125px;
+}
+.exploreMoreBar .explore-more-option .thumbnail .explore-more-image {
+  position: absolute;
+  top: 62px;
+  -webkit-transform: translate(0, -50%);
+          transform: translate(0, -50%);
 }
 .exploreMoreBar .explore-more-option figcaption {
   margin-top: 4px;
   margin-bottom: 4px;
   font-weight: 100;
   overflow-x: hidden;
+  position: absolute;
+  top: 130px;
+  width: 100%;
+  text-align: center;
 }
 #explore-more-body .jcarousel .thumbnail,
 #relatedProjectScroller .jcarousel .thumbnail,
