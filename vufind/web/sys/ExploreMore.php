@@ -140,8 +140,9 @@ class ExploreMore {
 			}
 		}
 
-		if ($activeSection != 'archive'){
-			$relatedArchiveContent = $this->getRelatedArchiveObjects($quotedSearchTerm);
+		//if ($activeSection != 'archive'){
+			$searchSubjectsOnly = $activeSection -= 'archive';
+			$relatedArchiveContent = $this->getRelatedArchiveObjects($quotedSearchTerm, $searchSubjectsOnly);
 			if (count($relatedArchiveContent) > 0) {
 				$exploreMoreSectionsToShow['relatedArchiveData'] = array(
 						'title' => 'From the Archive',
@@ -149,7 +150,7 @@ class ExploreMore {
 						'values' => $relatedArchiveContent
 				);
 			}
-		}
+		//}
 
 		if ($activeSection != 'catalog'){
 			$relatedWorks = $this->getRelatedWorks($quotedSubjectsForSearching, $relatedPikaContent);
@@ -650,7 +651,7 @@ class ExploreMore {
 		return $relatedSubjects;
 	}
 
-	public function getRelatedArchiveObjects($searchTerm) {
+	public function getRelatedArchiveObjects($searchTerm, $searchSubjectsOnly) {
 		$relatedArchiveContent = array();
 
 		require_once ROOT_DIR . '/sys/Utils/FedoraUtils.php';
@@ -662,7 +663,7 @@ class ExploreMore {
 		//Get a list of objects in the archive related to this search
 		$searchObject->setSearchTerms(array(
 				'lookfor' => $searchTerm,
-				'index' => 'IslandoraKeyword'
+				'index' => $searchSubjectsOnly ? 'IslandoraKeyword' : 'IslandoraSubject'
 		));
 		$searchObject->clearHiddenFilters();
 		$searchObject->addHiddenFilter('!RELS_EXT_isViewableByRole_literal_ms', "administrator");

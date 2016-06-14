@@ -34,7 +34,7 @@
 
 					<div class="row">
 						<div class="subsectionTitle col-xs-5">{$section.title}</div>
-						<div class="subsection col-xs-5">
+						<div class="subsection col-xs-7">
 							<a href="{$section.link}"><img src="{$section.image}" alt="{$section.description}" class="img-responsive img-thumbnail"></a>
 						</div>
 					</div>
@@ -106,7 +106,7 @@
 					<div class="subsection col-xs-5">
 						<img src="{$section.image}" alt="{$section.description}" class="img-responsive img-thumbnail">
 					</div>
-					<div class="subsectionTitle col-xs-5">{$section.title}</div>
+					<div class="subsectionTitle col-xs-7">{$section.title}</div>
 				</a>
 			</div>
 			{/foreach}

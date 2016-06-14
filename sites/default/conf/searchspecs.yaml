@@ -742,6 +742,13 @@ IslandoraKeywordProper:
     - mods_extension_marmotLocal_hasTranscription_transcriber_entityTitle_ms:
       - [exact, ~]
 
+IslandoraSubject:
+  QueryFields:
+    - mods_subject_subject_mt:
+      - [and, 300]
+    - mods_subject_topic_mt:
+      - [and, 300]
+
 IslandoraRelationshipsById:
   QueryFields:
     - mods_extension_marmotLocal_hasCreator_entityPid_ms:
