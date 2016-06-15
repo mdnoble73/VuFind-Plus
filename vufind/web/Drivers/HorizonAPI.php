@@ -767,6 +767,7 @@ abstract class HorizonAPI extends Horizon{
 					}
 					$curTitle['link'] = $recordDriver->getLinkUrl();
 				}
+				//TODO: Sort Keys Created in CheckedOut.php. Needed here?
 				$sortTitle = isset($curTitle['title_sort']) ? $curTitle['title_sort'] : $curTitle['title'];
 				$sortKey = $sortTitle;
 				if ($sortOption == 'title'){

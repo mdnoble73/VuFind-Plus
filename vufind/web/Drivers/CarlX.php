@@ -334,6 +334,66 @@ class CarlX extends SIP2Driver{
 	 * @access public
 	 */
 	public function getMyCheckouts($user) {
+		$checkedOutTitles = array();
+
 		// TODO: Implement getMyCheckouts() method.
+		//Search for the patron in the database
+		$soapClient = new SoapClient($this->patronWsdl);
+
+		$request = new stdClass();
+		$request->SearchType = 'Patron ID';
+		$request->SearchID   = $user->cat_username; // TODO: Question: barcode/pin check
+		$request->Modifiers  = '';
+
+		$result = $soapClient->getPatronTransactions($request);
+
+		if ($result && !empty($result->ChargeItems)) {
+			foreach ($result->ChargeItems->ChargeItem as $chargeItem) {
+				//TODO: BID may be the bib number and may be needed for recordID, shortID, & ID instead of ItemNumber, which may be the barcode instead.
+				$curTitle['checkoutSource']  = 'ILS';
+				$curTitle['recordId']        = $chargeItem->ItemNumber;
+				$curTitle['shortId']         = $chargeItem->ItemNumber;
+				$curTitle['id']              = $chargeItem->ItemNumber;
+				$curTitle['title']           = $chargeItem->Title; //TODO: trim trailing slashes?
+				$curTitle['author']          = $chargeItem->Author;
+				$dueDate = strstr($chargeItem->DueDate, 'T', true);
+				$curTitle['dueDate']         = strtotime($dueDate);
+				$curTitle['checkoutdate']    = strstr($chargeItem->TransactionDate, 'T', true);
+				$curTitle['renewCount']      = $chargeItem->RenewalCount;
+				$curTitle['canrenew']        = true; //TODO: Figure out if the user can renew the title or not
+				$curTitle['renewIndicator']  = '';   //TODO: needed? Maybe a Millennium only field
+				$curTitle['barcode']         = '';   //TODO: needed?
+				$curTitle['holdQueueLength'] = $this->getNumHolds($chargeItem->ItemNumber);  //TODO: implement getNumHolds()
+
+				$curTitle['format']          = 'Unknown';
+				if (!empty($curTitle['id'])){
+					require_once ROOT_DIR . '/RecordDrivers/MarcRecord.php';
+					$recordDriver = new MarcRecord($curTitle['id']);
+					if ($recordDriver->isValid()){
+						$curTitle['coverUrl']      = $recordDriver->getBookcoverUrl('medium');
+						$curTitle['groupedWorkId'] = $recordDriver->getGroupedWorkId();
+						$curTitle['format']        = $recordDriver->getPrimaryFormat();
+						if (empty($curTitle['title'])){
+							$curTitle['title']       = $recordDriver->getTitle();
+							$curTitle['title_sort']  = $recordDriver->getSortableTitle();
+						}
+						if (empty($curTitle['author'])){
+							$curTitle['author']     = $recordDriver->getPrimaryAuthor();
+						}
+					}else{
+						$curTitle['coverUrl']     = "";
+					}
+					$curTitle['link']           = $recordDriver->getLinkUrl();
+				}
+				$checkedOutTitles[] = $curTitle;
+
+			}
+
+		} else {
+			//TODO: Log error
+		}
+
+	return $checkedOutTitles;
 	}
+
 }
