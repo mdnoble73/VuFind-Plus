@@ -832,9 +832,9 @@ class ExploreMore {
 				}
 				$recordsToAvoid .= $record['id'];
 			}
-			if (strlen($recordsToAvoid) > 0){
+			/*if (strlen($recordsToAvoid) > 0){
 				$searchTerm .= " AND NOT id:($recordsToAvoid)";
-			}
+			}*/
 
 			/** @var SearchObject_Solr $searchObject */
 			$searchObject = SearchObjectFactory::initSearchObject();
@@ -845,6 +845,7 @@ class ExploreMore {
 			));
 			$searchObject->addFilter('literary_form_full:Non Fiction');
 			$searchObject->addFilter('target_audience:(Adult OR Unknown)');
+			$searchObject->addHiddenFilter('!id', $recordsToAvoid);
 
 			$searchObject->setPage(1);
 			$searchObject->setLimit(5);
