@@ -10295,26 +10295,31 @@ a.browse-thumbnail.active {
 .exploreMoreBar .jcarousel-wrapper {
   margin: 5px auto;
 }
-.exploreMoreBar .explore-more-option {
+.exploreMoreBar .jcarousel-wrapper .jcarousel li {
+  display: block !important;
+}
+.exploreMoreBar .jcarousel-wrapper .jcarousel .explore-more-option {
   padding-left: 10px;
   padding-right: 10px;
   height: 100%;
 }
-.exploreMoreBar .explore-more-option .thumbnail {
+.exploreMoreBar .jcarousel-wrapper .jcarousel .explore-more-option .thumbnail {
   border: 0 solid white;
   position: relative;
   display: block;
 }
-.exploreMoreBar .explore-more-option .thumbnail a img {
+.exploreMoreBar .jcarousel-wrapper .jcarousel .explore-more-option .thumbnail a img {
   height: 125px;
 }
-.exploreMoreBar .explore-more-option .thumbnail .explore-more-image {
+.exploreMoreBar .jcarousel-wrapper .jcarousel .explore-more-option .thumbnail .explore-more-image {
+  width: 100%;
   position: absolute;
   top: 62px;
-  -webkit-transform: translate(0, -50%);
-          transform: translate(0, -50%);
+  -webkit-transform: translate(-50%, -50%);
+          transform: translate(-50%, -50%);
+  left: 50%;
 }
-.exploreMoreBar .explore-more-option figcaption {
+.exploreMoreBar .jcarousel-wrapper .jcarousel .explore-more-option figcaption {
   margin-top: 4px;
   margin-bottom: 4px;
   font-weight: 100;
