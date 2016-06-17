@@ -1380,8 +1380,14 @@ class SearchObject_Islandora extends SearchObject_Base
 				$filter .= "!RELS_EXT_isMemberOfCollection_uri_ms:\"info:fedora/{$collection}\"";
 			}
 			$filters[] = $filter;
-
 		}
+		$filters[] = "!PID:islandora\\:*";
+		$filters[] = "!PID:demo\\:*";
+		$filters[] = "!PID:testCollection\\:*";
+		$filters[] = "!PID:marmot\\:*";
+		$filters[] = "!PID:ssb\\:*";
+		$filters[] = "!PID:mandala\\:*";
+
 		$filters[] = "!mods_extension_marmotLocal_pikaOptions_includeInPika_ms:no";
 		return $filters;
 	}
