@@ -12,11 +12,13 @@ require_once ROOT_DIR . '/Drivers/SIP2Driver.php';
 class CarlX extends SIP2Driver{
 	public $accountProfile;
 	public $patronWsdl;
+	public $catalogServiceWsdl;
 
 	public function __construct($accountProfile) {
 		$this->accountProfile = $accountProfile;
 		global $configArray;
 		$this->patronWsdl = $configArray['Catalog']['patronApiWsdl'];
+		$this->catalogServiceWsdl = 'http://devapp.carl.org:8080/CarlXAPI/CatalogAPI.wsdl'; //TODO: Move to config file
 	}
 
 	public function patronLogin($username, $password){
@@ -229,6 +231,13 @@ class CarlX extends SIP2Driver{
 		// TODO: Implement renewItem() method.
 	}
 
+	private $holdStatusCodes = array( //TODO: Set to Pika Common Values so they can be translated? (look at templates, Horizon Driver seems to just use Horizon values)
+	                                  'H'  => 'Hold Shelf',
+		                                ''   => 'In Queue',
+		                                'IH' => 'In Transit',
+		                                // '?' => 'Suspended',
+	                                  // '?' => 'filled',
+	);
 	/**
 	 * Get Patron Holds
 	 *
@@ -240,7 +249,157 @@ class CarlX extends SIP2Driver{
 	 * @access public
 	 */
 	public function getMyHolds($user) {
-		// TODO: Implement getMyHolds() method.
+		$holds = array(
+			'available'   => array(),
+			'unavailable' => array()
+		);
+
+		//Search for the patron in the database
+		$result = $this->getParonTransactions($user);
+
+		if ($result && ($result->HoldItemsCount > 0 || $result->UnavailableHoldsCount > 0)) {
+			if ($result->HoldItemsCount > 0) {
+				//TODO: a single hold is not in an array; Need to verify that multiple holds are in an array
+				if (!is_array($result->HoldItems->HoldItem)) $result->HoldItems->HoldItem = array($result->HoldItems->HoldItem); // For the case of a single hold
+				foreach($result->HoldItems->HoldItem as $hold) {
+					$curHold = array();
+					$bibId          = $hold->BID;
+					$expireDate     = isset($hold->ExpirationDate) ? $this->extractDateFromCarlXDateField($hold->ExpirationDate) : null;
+					$pickUpBranch   = $this->getBranchInformation($hold->PickUpBranch); //TODO: Use local DB; will require adding ILS branch numbers to DB or memcache (there is a getAllBranchInfo Call)
+//					$location       = $this->getLocationInformation($hold->Location); // IDK what this is referring to yet, or if it is needed
+
+//						$reactivateDate = $this->extractDateFromCarlXDateField($hold) //TODO: activation date? unavailable holds only
+//					$curHold['user']               = $user->getNameAndLibraryLabel(); // Done in CatalogConnection
+					$curHold['id']                 = $bibId;
+					$curHold['holdSource']         = 'ILS';
+					$curHold['itemId']             = $hold->ItemNumber;
+//						$curHold['cancelId']           = (string)$hold->holdKey; //TODO: Determine Cancellation Method
+					$curHold['position']           = $hold->QueuePosition;
+					$curHold['recordId']           = $bibId;
+					$curHold['shortId']            = $bibId;
+					$curHold['title']              = $hold->Title;
+					$curHold['sortTitle']          = $hold->Title;
+					$curHold['author']             = $hold->Author;
+					$curHold['location']           = empty($pickUpBranch->BranchName) ? '' : $pickUpBranch->BranchName;
+					$curHold['locationUpdateable'] = true; //TODO: unless status is in transit?
+					$curHold['currentPickupName']  = empty($pickUpBranch->BranchName) ? '' : $pickUpBranch->BranchName;
+//					$curHold['status']             = ucfirst(strtolower((string)$hold->status));
+					$curHold['status']             = $this->holdStatusCodes[$hold->ItemStatus];  // TODO: Is this the correct thing for hold status. Alternative is Transaction Code
+					//TODO: Look up values for Hold Statuses
+
+					$curHold['expire']             = $expireDate;
+					$curHold['expireTime']         = strtotime($expireDate);
+//						$curHold['reactivate']         = $reactivateDate; //TODO unavailable only
+//						$curHold['reactivateTime']     = strtotime($reactivateDate); //TODO unavailable only
+					$curHold['cancelable']         = strcasecmp($curHold['status'], 'Suspended') != 0; //TODO: need frozen status
+//					$curHold['frozen']             = strcasecmp($curHold['status'], 'Suspended') == 0; //TODO: need frozen status
+					$curHold['frozen']             = false;
+//					if ($curHold['frozen']){  //TODO Can CarlX holds be frozen?
+//						$curHold['reactivateTime']   = (int)$hold->reactivateDate;
+//					}
+					$curHold['freezeable'] = false;
+//					$curHold['freezeable'] = true; //TODO Can CarlX holds be frozen?
+//					if (strcasecmp($curHold['status'], 'Transit') == 0) {
+//						$curHold['freezeable'] = false;
+//					}
+
+					require_once ROOT_DIR . '/RecordDrivers/MarcRecord.php';
+					$recordDriver = new MarcRecord($bibId);
+					if ($recordDriver->isValid()){
+						$curHold['sortTitle']       = $recordDriver->getSortableTitle();
+						$curHold['format']          = $recordDriver->getFormat();
+						$curHold['isbn']            = $recordDriver->getCleanISBN();
+						$curHold['upc']             = $recordDriver->getCleanUPC();
+						$curHold['format_category'] = $recordDriver->getFormatCategory();
+						$curHold['coverUrl']        = $recordDriver->getBookcoverUrl();
+						$curHold['link']            = $recordDriver->getRecordUrl();
+						$curHold['ratingData']      = $recordDriver->getRatingData(); //Load rating information
+
+						if (empty($curHold['title'])){
+							$curHold['title'] = $recordDriver->getTitle();
+						}
+						if (empty($curHold['author'])){
+							$curHold['author'] = $recordDriver->getPrimaryAuthor();
+						}
+					}
+					$holds['available'][]   = $curHold;
+
+				}
+			}
+			if ($result->UnavailableHoldsCount > 0) {
+				// TODO: SHould foreach loops be consolidated into one loop
+				if (!is_array($result->UnavailableHoldItems->UnavailableHoldItem)) $result->UnavailableHoldItems->UnavailableHoldItem = array($result->UnavailableHoldItems->UnavailableHoldItem); // For the case of a single hold
+				foreach($result->UnavailableHoldItems->UnavailableHoldItem as $hold) {
+					$curHold = array();
+					$bibId          = $hold->BID;
+					$expireDate     = isset($hold->ExpirationDate) ? $this->extractDateFromCarlXDateField($hold->ExpirationDate) : null;
+					$pickUpBranch   = $this->getBranchInformation($hold->PickUpBranch);
+//					$location       = $this->getLocationInformation($hold->Location); // IDK what this is referring to yet, or if it is needed
+
+//						$reactivateDate = $this->extractDateFromCarlXDateField($hold) //TODO: activation date? unavailable holds only
+//					$curHold['user']               = $user->getNameAndLibraryLabel(); // Done in CatalogConnection
+					$curHold['id']                 = $bibId;
+					$curHold['holdSource']         = 'ILS';
+					$curHold['itemId']             = $hold->ItemNumber;
+//						$curHold['cancelId']           = (string)$hold->holdKey; //TODO: Determine Cancellation Method
+					$curHold['position']           = $hold->QueuePosition;
+					$curHold['recordId']           = $bibId;
+					$curHold['shortId']            = $bibId;
+					$curHold['title']              = $hold->Title;
+					$curHold['sortTitle']          = $hold->Title;
+					$curHold['author']             = $hold->Author;
+					$curHold['location']           = empty($pickUpBranch->BranchName) ? '' : $pickUpBranch->BranchName;
+					$curHold['locationUpdateable'] = true; //TODO: unless status is in transit?
+					$curHold['currentPickupName']  = empty($pickUpBranch->BranchName) ? '' : $pickUpBranch->BranchName;
+//					$curHold['status']             = ucfirst(strtolower((string)$hold->status));
+					$curHold['status']             = $this->holdStatusCodes[$hold->ItemStatus];  // TODO: Is this the correct thing for hold status. Alternative is Transaction Code
+					//TODO: Look up values for Hold Statuses
+
+					$curHold['expire']             = $expireDate;
+					$curHold['expireTime']         = strtotime($expireDate);
+//						$curHold['reactivate']         = $reactivateDate; //TODO unavailable only
+//						$curHold['reactivateTime']     = strtotime($reactivateDate); //TODO unavailable only
+					$curHold['cancelable']         = strcasecmp($curHold['status'], 'Suspended') != 0; //TODO: need frozen status
+//					$curHold['frozen']             = strcasecmp($curHold['status'], 'Suspended') == 0; //TODO: need frozen status
+					$curHold['frozen']             = false;
+//					if ($curHold['frozen']){  //TODO Can CarlX holds be frozen?
+//						$curHold['reactivateTime']   = (int)$hold->reactivateDate;
+//					}
+					$curHold['freezeable'] = false;
+//					$curHold['freezeable'] = true; //TODO Can CarlX holds be frozen?
+//					if (strcasecmp($curHold['status'], 'Transit') == 0) {
+//						$curHold['freezeable'] = false;
+//					}
+
+					require_once ROOT_DIR . '/RecordDrivers/MarcRecord.php';
+					$recordDriver = new MarcRecord($bibId);
+					if ($recordDriver->isValid()){
+						$curHold['sortTitle']       = $recordDriver->getSortableTitle();
+						$curHold['format']          = $recordDriver->getFormat();
+						$curHold['isbn']            = $recordDriver->getCleanISBN();
+						$curHold['upc']             = $recordDriver->getCleanUPC();
+						$curHold['format_category'] = $recordDriver->getFormatCategory();
+						$curHold['coverUrl']        = $recordDriver->getBookcoverUrl();
+						$curHold['link']            = $recordDriver->getRecordUrl();
+						$curHold['ratingData']      = $recordDriver->getRatingData(); //Load rating information
+
+						if (empty($curHold['title'])){
+							$curHold['title'] = $recordDriver->getTitle();
+						}
+						if (empty($curHold['author'])){
+							$curHold['author'] = $recordDriver->getPrimaryAuthor();
+						}
+					}
+					$holds['unavailable'][] = $curHold;
+
+				}
+			}
+
+		} else {
+			//TODO: Log Errors
+		}
+
+		return $holds;
 	}
 
 	/**
@@ -334,6 +493,117 @@ class CarlX extends SIP2Driver{
 	 * @access public
 	 */
 	public function getMyCheckouts($user) {
+		$checkedOutTitles = array();
+
 		// TODO: Implement getMyCheckouts() method.
+		//Search for the patron in the database
+		$result = $this->getParonTransactions($user);
+
+		if ($result && !empty($result->ChargeItems)) {
+			foreach ($result->ChargeItems->ChargeItem as $chargeItem) {
+				//TODO: BID may be the bib number and may be needed for recordID, shortID, & ID instead of ItemNumber, which may be the barcode instead.
+				$curTitle['checkoutSource']  = 'ILS';
+				$curTitle['recordId']        = $chargeItem->ItemNumber;
+				$curTitle['shortId']         = $chargeItem->ItemNumber;
+				$curTitle['id']              = $chargeItem->ItemNumber;
+				$curTitle['title']           = $chargeItem->Title; //TODO: trim trailing slashes?
+				$curTitle['author']          = $chargeItem->Author;
+				$dueDate = strstr($chargeItem->DueDate, 'T', true);
+				$curTitle['dueDate']         = strtotime($dueDate);
+				$curTitle['checkoutdate']    = strstr($chargeItem->TransactionDate, 'T', true);
+				$curTitle['renewCount']      = $chargeItem->RenewalCount;
+				$curTitle['canrenew']        = true; //TODO: Figure out if the user can renew the title or not
+				$curTitle['renewIndicator']  = '';   //TODO: needed? Maybe a Millennium only field
+				$curTitle['barcode']         = '';   //TODO: needed?
+				$curTitle['holdQueueLength'] = $this->getNumHolds($chargeItem->ItemNumber);  //TODO: implement getNumHolds()
+
+				$curTitle['format']          = 'Unknown';
+				if (!empty($curTitle['id'])){
+					require_once ROOT_DIR . '/RecordDrivers/MarcRecord.php';
+					$recordDriver = new MarcRecord($curTitle['id']);
+					if ($recordDriver->isValid()){
+						$curTitle['coverUrl']      = $recordDriver->getBookcoverUrl('medium');
+						$curTitle['groupedWorkId'] = $recordDriver->getGroupedWorkId();
+						$curTitle['format']        = $recordDriver->getPrimaryFormat();
+						if (empty($curTitle['title'])){
+							$curTitle['title']       = $recordDriver->getTitle();
+							$curTitle['title_sort']  = $recordDriver->getSortableTitle();
+						}
+						if (empty($curTitle['author'])){
+							$curTitle['author']     = $recordDriver->getPrimaryAuthor();
+						}
+					}else{
+						$curTitle['coverUrl']     = "";
+					}
+					$curTitle['link']           = $recordDriver->getLinkUrl();
+				}
+				$checkedOutTitles[] = $curTitle;
+
+			}
+
+		} else {
+			//TODO: Log error
+		}
+
+	return $checkedOutTitles;
 	}
+
+	/**
+	 * @param $user
+	 * @return mixed
+	 */
+	private function getParonTransactions($user)
+	{
+		$soapClient = new SoapClient($this->patronWsdl);
+
+		$request             = new stdClass();
+		$request->SearchType = 'Patron ID';
+		$request->SearchID   = $user->cat_username; // TODO: Question: barcode/pin check
+		$request->Modifiers  = '';
+
+		$result = $soapClient->getPatronTransactions($request);
+		return $result;
+	}
+
+	private function getLocationInformation($locationNumber) {
+		$soapClient = new SoapClient(($this->catalogServiceWsdl));
+
+		$request = new stdClass();
+		$request->LocationSearchType = 'Location Number';
+		$request->LocationSearchValue = $locationNumber;
+		$request->Modifiers  = '';
+
+		$result = $soapClient->GetLocationInformation($request);
+		if ($result && $result->LocationInfo) {
+			return $result->LocationInfo; // convert to array instead?
+		}
+		return false;
+
+	}
+
+	private function getBranchInformation($branchNumber)
+	{
+		$soapClient = new SoapClient(($this->catalogServiceWsdl));
+
+		$request                    = new stdClass();
+		$request->BranchSearchType  = 'Branch Number';
+		$request->BranchSearchValue = $branchNumber;
+		$request->Modifiers         = '';
+
+		$result = $soapClient->GetBranchInformation($request);
+		if ($result && $result->BranchInfo) {
+			return $result->BranchInfo; // convert to array instead?
+		}
+		return false;
+	}
+
+	/**
+	 * @param $dateField string
+	 * @return string
+	 */
+	private function extractDateFromCarlXDateField($dateField)
+	{
+		return strstr($dateField, 'T', true);
+	}
+
 }
