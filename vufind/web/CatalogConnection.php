@@ -568,6 +568,9 @@ class CatalogConnection
 				$curTitle['user'] = $user->getNameAndLibraryLabel();
 				$curTitle['userId'] = $user->id;
 				$curTitle['allowFreezeHolds'] = $user->getHomeLibrary()->allowFreezeHolds;
+				if (!isset($curTitle['sortTitle'])){
+					$curTitle['sortTitle'] = $curTitle['title'];
+				}
 				$holds[$section][$key] = $curTitle;
 			}
 		}
