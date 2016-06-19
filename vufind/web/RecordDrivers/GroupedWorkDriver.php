@@ -1896,6 +1896,9 @@ class GroupedWorkDriver extends RecordInterface{
 		}
 
 		if ($hasArData){
+			if ($arData['pointValue'] == 0 && $arData['readingLevel'] == 0){
+				return null;
+			}
 			return $arData;
 		}else{
 			return null;
