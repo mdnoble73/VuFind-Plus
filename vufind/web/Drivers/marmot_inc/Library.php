@@ -188,6 +188,8 @@ class Library extends DB_DataObject
 		'showPhysicalDescriptions' => 'Physical Descriptions',
 		'showLocations'            => 'Locations',
 		'showISBNs'                => 'ISBNs',
+		'showArInfo'               => 'Show Accelerated Reader Information',
+		'showLexileInfo'           => 'Show Lexile Information'
 	);
 
 	// Use this to set which details will be shown in the the Main Details section of the record in the search results.
@@ -199,7 +201,9 @@ class Library extends DB_DataObject
 		'showPublicationDate'      => 'Publisher Date',
 		'showEditions'             => 'Editions',
 		'showPhysicalDescriptions' => 'Physical Descriptions',
-		'showLanguages'            => 'Show Language'
+		'showLanguages'            => 'Show Language',
+		'showArInfo'               => 'Show Accelerated Reader Information',
+		'showLexileInfo'           => 'Show Lexile Information'
 	);
 
 
@@ -1284,7 +1288,7 @@ class Library extends DB_DataObject
 		$defaultFacets[] = $facet;
 
 		$facet = new LibraryFacetSetting();
-		$facet->setupAdvancedFacet('econtent_source', 'eContent Source', true);
+		$facet->setupSideFacet('econtent_source', 'eContent Source', true);
 		$facet->libraryId = $libraryId;
 		$facet->weight = count($defaultFacets) + 1;
 		$defaultFacets[] = $facet;
