@@ -178,33 +178,24 @@ abstract class HorizonAPI extends Horizon{
 					}
 				}
 
-				$user->address1 = $Address1;
-				$user->address2 = $City . ', ' . $State;
-				$user->city = $City;
-				$user->state = $State;
-				$user->zip = $Zip;
-				$user->phone = isset($lookupMyAccountInfoResponse->phone) ? (string)$lookupMyAccountInfoResponse->phone : '';
-				$user->fines = sprintf('$%01.2f', $finesVal);
-				$user->finesVal = $finesVal;
-				$user->expires = ''; //TODO: Determine if we can get this
-				$user->expireClose = $expireClose;
-
-				// This is set above when we have good location data
-//				$user->homeLocationCode = isset($homeBranchCode) ? trim($homeBranchCode) : '';
-//				$user->homeLocationId = isset($location) ? $location->locationId : 0;
-//				$user->homeLocation = isset($location) ? $location->displayName : '';
-//				$user->myLocation1Id = ($user) ? $user->myLocation1Id : -1;
-//				$user->myLocation1 = isset($myLocation1) ? $myLocation1->displayName : '';
-//				$user->myLocation2Id = ($user) ? $user->myLocation2Id : -1;
-//				$user->myLocation2 = isset($myLocation2) ? $myLocation2->displayName : '';
-				$user->numCheckedOutIls = isset($lookupMyAccountInfoResponse->ItemsOutInfo) ? count($lookupMyAccountInfoResponse->ItemsOutInfo) : 0;
-				$user->numHoldsIls = $numHoldsAvailable + $numHoldsRequested;
-				$user->numHoldsAvailableIls = $numHoldsAvailable;
-				$user->numHoldsRequestedIls = $numHoldsRequested;
-				$user->patronType = 0;
-				$user->notices = '-';
-				$user->noticePreferenceLabel = 'e-mail';
-				$user->web_note = '';
+				$user->address1              = $Address1;
+				$user->address2              = $City . ', ' . $State;
+				$user->city                  = $City;
+				$user->state                 = $State;
+				$user->zip                   = $Zip;
+				$user->phone                 = isset($lookupMyAccountInfoResponse->phone) ? (string)$lookupMyAccountInfoResponse->phone : '';
+				$user->fines                 = sprintf('$%01.2f', $finesVal);
+				$user->finesVal              = $finesVal;
+				$user->expires               = ''; //TODO: Determine if we can get this
+				$user->expireClose           = $expireClose;
+				$user->numCheckedOutIls      = isset($lookupMyAccountInfoResponse->ItemsOutInfo) ? count($lookupMyAccountInfoResponse->ItemsOutInfo) : 0;
+				$user->numHoldsIls           = $numHoldsAvailable + $numHoldsRequested;
+				$user->numHoldsAvailableIls  = $numHoldsAvailable;
+				$user->numHoldsRequestedIls  = $numHoldsRequested;
+				$user->patronType            = 0;
+				$user->notices               = '-';
+				$user->noticePreferenceLabel = 'E-mail';
+				$user->web_note              = '';
 
 				if ($userExistsInDB){
 					$user->update();
@@ -217,6 +208,9 @@ abstract class HorizonAPI extends Horizon{
 				return $user;
 			} else {
 				$timer->logTime("lookupMyAccountInfo failed");
+				global $logger;
+				$logger->log('Horizon API call lookupMyAccountInfo failed.', PEAR_LOG_ERR);
+//				$logger->log($configArray['Catalog']['webServiceUrl'] . '/standard/lookupMyAccountInfo?clientID=' . $configArray['Catalog']['clientId'] . '&sessionToken=' . $sessionToken . '&includeAddressInfo=true&includeHoldInfo=true&includeBlockInfo=true&includeItemsOutInfo=true', PEAR_LOG_ERR);
 				return null;
 			}
 		}
