@@ -645,12 +645,19 @@ class OverDriveRecordDriver extends RecordInterface {
 	public function getAcceleratedReaderData(){
 		return $this->getGroupedWorkDriver()->getAcceleratedReaderData();
 	}
+	public function getAcceleratedReaderDisplayString() {
+		return $this->getGroupedWorkDriver()->getAcceleratedReaderDisplayString();
+	}
 	public function getLexileCode(){
 		return $this->getGroupedWorkDriver()->getLexileCode();
 	}
 	public function getLexileScore(){
 		return $this->getGroupedWorkDriver()->getLexileScore();
 	}
+	public function getLexileDisplayString() {
+		return $this->getGroupedWorkDriver()->getLexileDisplayString();
+	}
+
 	public function getSubjects(){
 		return $this->getOverDriveMetaData()->getDecodedRawData()->subjects;
 	}

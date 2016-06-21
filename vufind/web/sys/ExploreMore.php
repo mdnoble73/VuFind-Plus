@@ -19,7 +19,6 @@ class ExploreMore {
 		global $interface;
 		$exploreMoreSectionsToShow = array();
 
-		$isEntity = false;
 		if ($activeSection == 'archive') {
 			/** @var IslandoraDriver $archiveDriver */
 			$archiveDriver = $recordDriver;
@@ -140,17 +139,16 @@ class ExploreMore {
 			}
 		}
 
-		//if ($activeSection != 'archive'){
-			$searchSubjectsOnly = $activeSection -= 'archive';
-			$relatedArchiveContent = $this->getRelatedArchiveObjects($quotedSearchTerm, $searchSubjectsOnly);
-			if (count($relatedArchiveContent) > 0) {
-				$exploreMoreSectionsToShow['relatedArchiveData'] = array(
-						'title' => 'From the Archive',
-						'format' => 'subsections',
-						'values' => $relatedArchiveContent
-				);
-			}
-		//}
+		$searchSubjectsOnly = $activeSection == 'archive';
+		$driver = $activeSection == 'archive' ? $recordDriver : null;
+		$relatedArchiveContent = $this->getRelatedArchiveObjects($quotedSearchTerm, $searchSubjectsOnly, $driver);
+		if (count($relatedArchiveContent) > 0) {
+			$exploreMoreSectionsToShow['relatedArchiveData'] = array(
+					'title' => 'From the Archive',
+					'format' => 'subsections',
+					'values' => $relatedArchiveContent
+			);
+		}
 
 		if ($activeSection != 'catalog'){
 			$relatedWorks = $this->getRelatedWorks($quotedSubjectsForSearching, $relatedPikaContent);
@@ -651,7 +649,13 @@ class ExploreMore {
 		return $relatedSubjects;
 	}
 
-	public function getRelatedArchiveObjects($searchTerm, $searchSubjectsOnly) {
+	/**
+	 * @param string $searchTerm
+	 * @param bool   $searchSubjectsOnly
+	 * @param IslandoraDriver $archiveDriver
+	 * @return array
+	 */
+	public function getRelatedArchiveObjects($searchTerm, $searchSubjectsOnly, $archiveDriver = null) {
 		$relatedArchiveContent = array();
 
 		require_once ROOT_DIR . '/sys/Utils/FedoraUtils.php';
@@ -667,6 +671,9 @@ class ExploreMore {
 		));
 		$searchObject->clearHiddenFilters();
 		$searchObject->addHiddenFilter('!RELS_EXT_isViewableByRole_literal_ms', "administrator");
+		if ($archiveDriver != null){
+			$searchObject->addHiddenFilter('!PID', str_replace(':', '\:', $archiveDriver->getUniqueID()));
+		}
 		$searchObject->clearFilters();
 		$searchObject->addFacet('RELS_EXT_hasModel_uri_s', 'Format');
 
@@ -685,6 +692,9 @@ class ExploreMore {
 					$searchObject2 = SearchObjectFactory::initSearchObject('Islandora');
 					$searchObject2->init();
 					$searchObject2->setDebugging(false, false);
+					if ($archiveDriver != null){
+						$searchObject2->addHiddenFilter('!PID', str_replace(':', '\:', $archiveDriver->getUniqueID()));
+					}
 					$searchObject2->setSearchTerms(array(
 							'lookfor' => $searchTerm,
 							'index' => 'IslandoraKeyword'
@@ -696,9 +706,16 @@ class ExploreMore {
 					$response2 = $searchObject2->processSearch(true, false);
 					if ($response2 && $response2['response']['numFound'] > 0) {
 						$firstObject = reset($response2['response']['docs']);
+						$numMatches = $response2['response']['numFound'];
+						if ($archiveDriver != null && $firstObject['PID'] == $archiveDriver->getUniqueID()){
+							if ($numMatches == 1) {
+								continue;
+							}else{
+								$firstObject = next($response2['response']['docs']);
+							}
+						}
 						/** @var IslandoraDriver $firstObjectDriver */
 						$firstObjectDriver = RecordDriverFactory::initRecordDriver($firstObject);
-						$numMatches = $response2['response']['numFound'];
 						$contentType = translate($relatedContentType[0]);
 						if ($numMatches == 1) {
 							$relatedArchiveContent[] = array(
@@ -815,9 +832,9 @@ class ExploreMore {
 				}
 				$recordsToAvoid .= $record['id'];
 			}
-			if (strlen($recordsToAvoid) > 0){
+			/*if (strlen($recordsToAvoid) > 0){
 				$searchTerm .= " AND NOT id:($recordsToAvoid)";
-			}
+			}*/
 
 			/** @var SearchObject_Solr $searchObject */
 			$searchObject = SearchObjectFactory::initSearchObject();
@@ -828,6 +845,7 @@ class ExploreMore {
 			));
 			$searchObject->addFilter('literary_form_full:Non Fiction');
 			$searchObject->addFilter('target_audience:(Adult OR Unknown)');
+			$searchObject->addHiddenFilter('!id', $recordsToAvoid);
 
 			$searchObject->setPage(1);
 			$searchObject->setLimit(5);

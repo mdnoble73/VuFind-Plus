@@ -642,6 +642,8 @@ IslandoraTitle:
   QueryFields:
     - mods_titleInfo_title_t:
       - [onephrase, 1200]
+      - [proximal, 800]
+      - [and, 500]
     - fgs_label_t:
       - [onephrase, 1200]
 

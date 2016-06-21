@@ -513,6 +513,14 @@ class GroupedWorkDriver extends RecordInterface{
 		$interface->assign('summISBN', $isbn);
 		$interface->assign('summFormats', $this->getFormats());
 		$interface->assign('numRelatedRecords', count($relatedRecords));
+		$acceleratedReaderInfo = $this->getAcceleratedReaderDisplayString();
+		if ($acceleratedReaderInfo != null){
+			$interface->assign('summArInfo', $acceleratedReaderInfo);
+		}
+		$lexileInfo = $this->getLexileDisplayString();
+		if ($lexileInfo != null){
+			$interface->assign('summLexileInfo', $lexileInfo);
+		}
 		$timer->logTime("Finished assignment of main data");
 
 		// Obtain and assign snippet (highlighting) information:
@@ -1874,20 +1882,23 @@ class GroupedWorkDriver extends RecordInterface{
 	public function getAcceleratedReaderData(){
 		$hasArData = false;
 		$arData = array();
-		if ($this->fields['accelerated_reader_point_value'] > 0){
+		if (isset($this->fields['accelerated_reader_point_value'])){
 			$arData['pointValue'] = $this->fields['accelerated_reader_point_value'];
 			$hasArData = true;
 		}
-		if ($this->fields['accelerated_reader_reading_level'] > 0){
+		if (isset($this->fields['accelerated_reader_reading_level'])){
 			$arData['readingLevel'] = $this->fields['accelerated_reader_reading_level'];
 			$hasArData = true;
 		}
-		if ($this->fields['accelerated_reader_interest_level'] > 0){
+		if (isset($this->fields['accelerated_reader_interest_level'])){
 			$arData['interestLevel'] = $this->fields['accelerated_reader_interest_level'];
 			$hasArData = true;
 		}
 
 		if ($hasArData){
+			if ($arData['pointValue'] == 0 && $arData['readingLevel'] == 0){
+				return null;
+			}
 			return $arData;
 		}else{
 			return null;
@@ -2639,5 +2650,44 @@ class GroupedWorkDriver extends RecordInterface{
 		$interface->assign('summPhysicalDesc', $summPhysicalDesc);
 		$interface->assign('summEdition', $summEdition);
 		$interface->assign('summLanguage', $summLanguage);
+		$interface->assign('summArInfo', $this->getAcceleratedReaderDisplayString());
+		$interface->assign('summLexileInfo', $this->getLexileDisplayString());
+	}
+
+	public function getAcceleratedReaderDisplayString() {
+		$acceleratedReaderInfo = $this->getAcceleratedReaderData();
+		if ($acceleratedReaderInfo != null){
+			$arDetails = '';
+			if (isset($acceleratedReaderInfo['interestLevel'])){
+				$arDetails .= 'IL: <strong>' . $acceleratedReaderInfo['interestLevel'] . '</strong>';
+			}
+			if (isset($acceleratedReaderInfo['readingLevel'])){
+				if (strlen($arDetails) > 0){
+					$arDetails .= ' - ';
+				}
+				$arDetails .= 'BL: <strong>' . $acceleratedReaderInfo['readingLevel'] . '</strong>';
+			}
+			if (isset($acceleratedReaderInfo['pointValue'])){
+				if (strlen($arDetails) > 0){
+					$arDetails .= ' - ';
+				}
+				$arDetails .= 'AR Pts: <strong>' . $acceleratedReaderInfo['pointValue'] . '</strong>';
+			}
+			return $arDetails;
+		}
+		return null;
+	}
+
+	public function getLexileDisplayString() {
+		$lexileScore = $this->getLexileScore();
+		if ($lexileScore != null){
+			$lexileInfo = $lexileScore;
+			$lexileCode = $this->getLexileCode();
+			if ($lexileCode != null){
+				$lexileInfo .= ' ' . $lexileCode;
+			}
+			return $lexileInfo;
+		}
+		return null;
 	}
 }

@@ -594,6 +594,7 @@ class OverDriveDriver3 {
 					$hold['coverUrl'] = $overDriveRecord->getCoverUrl('medium');
 					$hold['recordUrl'] = $configArray['Site']['path'] . '/OverDrive/' . $overDriveRecord->getUniqueID() . '/Home';
 					$hold['title'] = $overDriveRecord->getTitle();
+					$hold['sortTitle'] = $overDriveRecord->getTitle();
 					$hold['author'] = $overDriveRecord->getAuthor();
 					$hold['linkUrl'] = $overDriveRecord->getLinkUrl(false);
 					$hold['format'] = $overDriveRecord->getFormats();
