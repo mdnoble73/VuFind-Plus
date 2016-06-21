@@ -20,6 +20,8 @@ abstract class SIP2Driver implements DriverInterface{
 		$itemSip2Data = $memCache->get("item_sip2_data_{$barcode}");
 		if ($itemSip2Data == false || isset($_REQUEST['reload'])){
 			//Check to see if the SIP2 information is already cached
+			//TODO: Add Host and Port
+			// set in config .in SIP section
 			if ($this->initSipConnection()){
 				$in = $this->sipConnection->msgItemInformation($barcode);
 				$msg_result = $this->sipConnection->get_message($in);

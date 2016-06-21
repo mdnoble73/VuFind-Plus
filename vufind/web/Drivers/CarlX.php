@@ -29,7 +29,11 @@ class CarlX extends SIP2Driver{
 		$password = trim($password);
 
 		//Search for the patron in the database
-		$soapClient = new SoapClient($this->patronWsdl);
+		$soapClient = new SoapClient($this->patronWsdl
+			,array(
+				'trace' => 1
+			)
+		);
 
 		$request = new stdClass();
 		$request->SearchType = 'Patron ID';
@@ -82,7 +86,7 @@ class CarlX extends SIP2Driver{
 						$user->homeLocationId = 0;
 						// Logging for Diagnosing PK-1846
 						global $logger;
-						$logger->log('Aspencat Driver: No Location found, user\'s homeLocationId being set to 0. User : '.$user->id, PEAR_LOG_WARNING);
+						$logger->log('CarlX Driver: No Location found, user\'s homeLocationId being set to 0. User : '.$user->id, PEAR_LOG_WARNING);
 					}
 
 					if ((empty($user->homeLocationId) || $user->homeLocationId == -1) || (isset($location) && $user->homeLocationId != $location->locationId)) { // When homeLocation isn't set or has changed
@@ -139,14 +143,15 @@ class CarlX extends SIP2Driver{
 						if ($primaryAddress != null){
 							$user->address1 = $primaryAddress->Street;
 							$user->address2 = $primaryAddress->City . ', ' . $primaryAddress->State;
-							$user->city = $primaryAddress->City;
-							$user->state = $primaryAddress->State;
-							$user->zip = $primaryAddress->PostalCode;
+							$user->city     = $primaryAddress->City;
+							$user->state    = $primaryAddress->State;
+							$user->zip      = $primaryAddress->PostalCode;
 						}
 					}
 
 					$user->phone = $result->Patron->Phone1;
-					$user->expires = substr($result->Patron->ExpirationDate, 0, strpos($result->Patron->ExpirationDate, 'T'));
+//					$user->expires = substr($result->Patron->ExpirationDate, 0, strpos($result->Patron->ExpirationDate, 'T'));
+					$user->expires = $this->extractDateFromCarlXDateField($result->Patron->ExpirationDate);
 					$user->expired     = 0; // default setting
 					$user->expireClose = 0;
 					$timeExpire   = strtotime($user->expires);
@@ -548,6 +553,93 @@ class CarlX extends SIP2Driver{
 	return $checkedOutTitles;
 	}
 
+	public function updatePatronInfo($user, $canUpdateContactInfo) {
+		$updateErrors = array();
+		if ($canUpdateContactInfo){
+			$soapClient = new SoapClient($this->patronWsdl
+				,array(
+					'features' => SOAP_WAIT_ONE_WAY_CALLS, // This setting overcomes the SOAP client's expectation that there is no response from our update request.
+					'trace' => 1, // enable use of __getLastResponse, so that we can determine the response.
+					//					'exceptions' => 0,
+				)
+			);
+
+//			$soapClient = new SoapClientDebug($this->patronWsdl
+//				,array(
+////					'req' => 'http://tlcdelivers.com/cx/schemas/request',
+////			    'soap_version' => SOAP_1_2,
+//					'trace' => 1
+//				) // extra options for debugging
+//			);
+
+			$request             = new stdClass();
+			$request->SearchType = 'Patron ID';
+			$request->SearchID   = $user->cat_username; // TODO: Question: barcode/pin check
+			$request->Modifiers  = '';
+//			$request->Modifiers->DebugMode = true;
+//			$request->Patron = new stdClass();
+
+			// Patron Info to update.
+			$request->Patron->Email  = $_REQUEST['email'];
+			$request->Patron->Phone1 = $_REQUEST['phone'];
+//			$request->Patron->PhoneType = 0; // Set phone Type for Primary Phone (PhoneType 0 is Home, 1 is Work)
+//			$phoneTypes = $this->getPhoneTypeList();
+//			print_r($phoneTypes);
+
+			if (isset($_REQUEST['workPhone'])){
+				$request->Patron->Phone2 = $_REQUEST['workPhone'];
+			}
+
+			$request->Patron->Addresses->Address->Type        = 'Primary';
+			$request->Patron->Addresses->Address->Street      = $_REQUEST['address1'];
+			$request->Patron->Addresses->Address->City        = $_REQUEST['city'];
+			$request->Patron->Addresses->Address->State       = $_REQUEST['state'];
+			$request->Patron->Addresses->Address->PostalCode  = $_REQUEST['zip'];
+
+			$result = $soapClient->updatePatron($request);
+
+			if (is_null($result)) {
+				$result = $soapClient->__getLastResponse();
+				if ($result) {
+					$options = array('parseAttributes' => 'true',
+					                 'keyAttribute' => 'name');
+					$unxml   = &new XML_Unserializer($options);
+					$unxml->unserialize($result);
+					$response = $unxml->getUnserializedData();
+
+					$test = new XML_Parser_Simple();
+
+					if ($response) {
+
+					} else {
+						$updateErrors[] = 'Unable to update your information.';
+						global $logger;
+						$logger->log('Unable to read XML from CarlX response when attempting to update Patron Information.', PEAR_LOG_ERR);
+					}
+
+				} else {
+					$updateErrors[] = 'Unable to update your information.';
+					global $logger;
+					$logger->log('CarlX ILS gave no response when attempting to update Patron Information.', PEAR_LOG_ERR);
+				}
+			}
+
+//			if ($result) {
+//
+//			} else {
+//				$updateErrors[] = 'Unable to update your information.';
+//				global $logger;
+//				$logger->log('CarlX ILS gave no response when attempting to update Patron Information.', PEAR_LOG_ERR);
+//			}
+
+		} else {
+			$updateErrors[] = 'You can not update your information.';
+		}
+		return $updateErrors;
+	}
+
+
+
 	/**
 	 * @param $user
 	 * @return mixed
@@ -563,6 +655,24 @@ class CarlX extends SIP2Driver{
 
 		$result = $soapClient->getPatronTransactions($request);
 		return $result;
+	}
+
+	private function getPhoneTypeList()
+	{
+		$soapClient = new SoapClient($this->patronWsdl);
+
+		$request             = new stdClass();
+		$request->Modifiers  = '';
+
+		$result = $soapClient->getPhoneTypeList($request);
+		if ($result) {
+			$phoneTypes = array();
+			foreach ($result->PhoneTypes->PhoneType as $phoneType) {
+				$phoneTypes[$phoneType->SortGroup][$phoneType->PhoneTypeId] = $phoneType->Description;
+			}
+			return $phoneTypes;
+		}
+		return false;
 	}
 
 	private function getLocationInformation($locationNumber) {
@@ -606,4 +716,14 @@ class CarlX extends SIP2Driver{
 		return strstr($dateField, 'T', true);
 	}
 
+}
+
+class SoapClientDebug extends SoapClient
+{
+	public function __doRequest($request, $location, $action, $version, $one_way = NULL)
+	{
+//		file_put_contents('soap_log.txt', $request);
+
+		return parent::__doRequest($request, $location, $action, $version, $one_way);
+	}
 }

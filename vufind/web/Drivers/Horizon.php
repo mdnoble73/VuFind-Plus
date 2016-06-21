@@ -18,7 +18,7 @@
  *
  */
 
-require_once ROOT_DIR . '/sys/SIP2.php';
+//require_once ROOT_DIR . '/sys/SIP2.php'; // not used at this time. plb 6-17-2016
 require_once ROOT_DIR . '/Drivers/ScreenScrapingDriver.php';
 abstract class Horizon extends ScreenScrapingDriver{
 
