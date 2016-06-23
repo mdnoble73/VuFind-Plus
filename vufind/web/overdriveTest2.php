@@ -40,8 +40,10 @@ echo"<h1>{$libraryInfo->name}</h1>",
 $productInfo = $driver->getProductsInAccount($libraryInfo->links->products->href);
 $firstProduct = reset($productInfo->products);
 
+$subtitle = isset($firstProduct->subtitle) ? ": {$firstProduct->subtitle}" : '';
+
 echo "<h2>First Product Details</h2>",
-	"{$firstProduct->title}: {$firstProduct->subtitle}<br/>",
+	"{$firstProduct->title}$subtitle<br/>",
 	"By {$firstProduct->primaryCreator->name}<br/>";
 
 easy_printr($firstProduct);
@@ -60,9 +62,37 @@ echo "<h3>Metadata</h3>",
 //$metadata = $driver->getProductMetadata($firstProduct->links->metadata->href);
 
 //$metadata = $driver->getProductMetadata("cda4632c-0593-46e7-94a4-1e4c4451da09", "L1BMAEAAA2k");
-$metadata = $driver->getProductMetadata("cda4632c-0593-46e7-94a4-1e4c4451da09", $productKey);
+
+if (!empty($_REQUEST['id'])) {
+	$overDriveId = $_REQUEST['id'];
+} else {
+	$overDriveId = "cda4632c-0593-46e7-94a4-1e4c4451da09";
+}
+$metadata    = $driver->getProductMetadata($overDriveId, $productKey);
 
 easy_printr($metadata);
+
+
+//Get Update Batch Instead
+echo "<h2>OverDrive Extract Batch</h2>",
+	'<p>Set url paramater id={OverdriveProductID} to see a specific Product</p>';
+
+
+require_once ROOT_DIR . '/sys/Variable.php';
+$lastOverDriveExtractVariable = new Variable();
+$lastOverDriveExtractVariable->name = 'last_overdrive_extract_time';
+if ($lastOverDriveExtractVariable->find(true)) {
+	$lastUpdateTime = date(DATE_W3C, $lastOverDriveExtractVariable->value/1000);
+
+}
+
+$url = "http://api.overdrive.com/v1/collections/v1L1ByAAAAA2r/products?lastupdatetime=$lastUpdateTime&offset=0&limit=300";
+echo "<p>$url</p>";
+
+$productInfo = $driver->_callUrl($url);
+easy_printr($productInfo);
+
+
 
 
 

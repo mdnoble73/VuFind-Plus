@@ -361,7 +361,7 @@ class OverDriveDriver3 {
 			$libraryId = $configArray['OverDrive']['accountId'];
 			$productsUrl = "http://api.overdrive.com/v1/collections/$libraryId/products";
 		}
-		$productsUrl .= "?offeset=$start&limit=$limit";
+		$productsUrl .= "?offset=$start&limit=$limit";
 		return $this->_callUrl($productsUrl);
 	}
 
