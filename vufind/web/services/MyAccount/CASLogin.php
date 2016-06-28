@@ -51,6 +51,20 @@ class MyAccount_CASLogin extends Action
 		// force CAS authentication
 		phpCAS::forceAuthentication();
 
+		echo
+"<html>
+  <head>
+    <title>phpCAS simple client</title>
+  </head>
+  <body>
+    <h1>Successful Authentication!</h1>
+    <?php require 'script_info.php' ?>
+		<p>the user's login is <b>{phpCAS::getUser()}</b>.</p>
+		<p>phpCAS version is <b>{phpCAS::getVersion()}</b>.</p>
+		<p><a href='?logout='>Logout</a></p>
+	</body>
+</html>";
+
 	}
 }
 
