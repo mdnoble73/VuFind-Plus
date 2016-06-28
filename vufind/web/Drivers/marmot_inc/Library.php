@@ -177,6 +177,9 @@ class Library extends DB_DataObject
 	public $includeAllRecordsInShelvingFacets;
 	public $includeAllRecordsInDateAddedFacets;
 	public $alwaysShowSearchResultsMainDetails;
+	public $casHost;
+	public $casPort;
+	public $casContext;
 
 	// Use this to set which details will be shown in the the Main Details section of the record view.
 	// You should be able to add options here without needing to change the database.
@@ -575,6 +578,12 @@ class Library extends DB_DataObject
 					'edsApiProfile' => array('property'=>'edsApiProfile', 'type'=>'text', 'label'=>'EDS API Profile', 'description'=>'The profile to use when connecting to the EBSCO API', 'hideInLists' => true),
 					'edsApiUsername' => array('property'=>'edsApiUsername', 'type'=>'text', 'label'=>'EDS API Username', 'description'=>'The username to use when connecting to the EBSCO API', 'hideInLists' => true),
 					'edsApiPassword' => array('property'=>'edsApiPassword', 'type'=>'text', 'label'=>'EDS API Password', 'description'=>'The password to use when connecting to the EBSCO API', 'hideInLists' => true),
+			)),
+
+			'casSection' => array('property'=>'casSection', 'type' => 'section', 'label' =>'CAS Single Sign On', 'hideInLists' => true, 'properties' => array(
+					'edsApiProfile' => array('property'=>'casHost', 'type'=>'text', 'label'=>'CAS Host', 'description'=>'The host to use for CAS authentication', 'hideInLists' => true),
+					'edsApiUsername' => array('property'=>'casPort', 'type'=>'integer', 'label'=>'CAS Port', 'description'=>'The port to use for CAS authentication (typically 443)', 'hideInLists' => true),
+					'edsApiPassword' => array('property'=>'casContext', 'type'=>'text', 'label'=>'CAS Context', 'description'=>'The context to use for CAS', 'hideInLists' => true),
 			)),
 
 			'dplaSection' => array('property'=>'dplaSection', 'type' => 'section', 'label' =>'DPLA', 'hideInLists' => true, 'helpLink'=> 'https://docs.google.com/document/d/1I6RuNhKNwDJOMpM63a4V5Lm0URgWp23465HegEIkP_w', 'properties' => array(

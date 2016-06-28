@@ -771,6 +771,9 @@ function getGitBranch(){
 }
 // Set up autoloader (needed for YAML)
 function vufind_autoloader($class) {
+	if (substr($class, 0, 4) == 'CAS_') {
+		return CAS_autoload($class);
+	}
 	if (strpos($class, '.php') > 0){
 		$class = substr($class, 0, strpos($class, '.php'));
 	}
