@@ -1328,5 +1328,15 @@ function getLibraryLocationUpdates(){
 							'ALTER TABLE location ADD COLUMN includeAllRecordsInDateAddedFacets TINYINT DEFAULT 0',
 					),
 			),
+
+			'library_cas_configuration' => array(
+					'title' => 'Library CAS Configuration',
+					'description' => 'Add configuration options for CAS SSO support',
+					'sql' => array(
+							'ALTER TABLE `library` ADD COLUMN `casHost` VARCHAR(50)',
+							'ALTER TABLE `library` ADD COLUMN `casPort` SMALLINT',
+							'ALTER TABLE `library` ADD COLUMN `casContext` VARCHAR(50)',
+					),
+			),
 	);
 }
