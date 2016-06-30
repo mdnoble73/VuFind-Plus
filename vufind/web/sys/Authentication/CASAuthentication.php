@@ -68,8 +68,9 @@ class CASAuthentication implements Authentication {
 	}
 
 	public function logout() {
+		global $logger;
 		$this->initializeCASClient();
-
+		$logger->log('Logging the user out from CAS', PEAR_LOG_INFO);
 		phpCAS::logout();
 	}
 
