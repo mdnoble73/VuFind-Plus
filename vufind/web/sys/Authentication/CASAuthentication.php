@@ -3,30 +3,15 @@ require_once 'Authentication.php';
 require_once ROOT_DIR . '/CatalogConnection.php';
 
 class CASAuthentication implements Authentication {
-	private $username;
-	private $password;
-	private $driverName;
-	/** @var  AccountProfile */
-	private $accountProfile;
-	private $catalogConnection;
+	private $clientInitialized = false;
+
 
 	public function __construct($additionalInfo) {
 
 	}
 
 	public function authenticate($validatedViaSSO){
-		global $configArray;
-		global $library;
-		require_once ROOT_DIR . '/CAS-1.3.4/CAS.php';
-
-		if ($configArray['System']['debug']){
-			phpCAS::setDebug();
-			phpCAS::setVerbose(true);
-		}
-
-		phpCAS::client(CAS_VERSION_3_0, $library->casHost, (int)$library->casPort, $library->casContext);
-
-		phpCAS::setNoCasServerValidation();
+		$this->initializeCASClient();
 
 		try{
 			$isValidated = phpCAS::forceAuthentication();
@@ -56,19 +41,8 @@ class CASAuthentication implements Authentication {
 	 * @return bool|PEAR_Error|string return false if the user cannot authenticate, the barcode if they can, and an error if configuration is incorrect
 	 */
 	public function validateAccount($username, $password, $parentAccount, $validatedViaSSO) {
-		if($this->username == '' || $this->password == ''){
-			global $configArray;
-			global $library;
-			require_once ROOT_DIR . '/CAS-1.3.4/CAS.php';
-
-			if ($configArray['System']['debug']){
-				phpCAS::setDebug();
-				phpCAS::setVerbose(true);
-			}
-
-			phpCAS::client(CAS_VERSION_3_0, $library->casHost, (int)$library->casPort, $library->casContext);
-
-			phpCAS::setNoCasServerValidation();
+		if($username == '' || $password == ''){
+			$this->initializeCASClient();
 
 			$isValidated = phpCAS::checkAuthentication();
 			if ($isValidated){
@@ -87,19 +61,27 @@ class CASAuthentication implements Authentication {
 	}
 
 	public function logout() {
-		global $configArray;
-		global $library;
-		require_once ROOT_DIR . '/CAS-1.3.4/CAS.php';
-
-		if ($configArray['System']['debug']){
-			phpCAS::setDebug();
-			phpCAS::setVerbose(true);
-		}
-
-		phpCAS::client(CAS_VERSION_3_0, $library->casHost, (int)$library->casPort, $library->casContext);
-
-		phpCAS::setNoCasServerValidation();
+		$this->initializeCASClient();
 
 		phpCAS::logout();
+	}
+
+	protected function initializeCASClient() {
+		if (!$this->clientInitialized) {
+			require_once ROOT_DIR . '/CAS-1.3.4/CAS.php';
+
+			global $library;
+			global $configArray;
+			if ($configArray['System']['debug']) {
+				phpCAS::setDebug();
+				phpCAS::setVerbose(true);
+			}
+
+			phpCAS::client(CAS_VERSION_3_0, $library->casHost, (int)$library->casPort, $library->casContext);
+
+			phpCAS::setNoCasServerValidation();
+
+			$this->clientInitialized = true;
+		}
 	}
 }
