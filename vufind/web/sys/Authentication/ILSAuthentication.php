@@ -59,6 +59,7 @@ class ILSAuthentication implements Authentication {
 
 	public function validateAccount($username, $password, $parentAccount, $validatedViaSSO) {
 		global $user;
+		global $logger;
 		$this->username = $username;
 		$this->password = $password;
 
