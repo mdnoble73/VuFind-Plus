@@ -68,6 +68,7 @@ class UserAccount {
 					return false;
 				}else{
 					//We have a valid user via CAS, need to do a login to Pika
+					$_REQUEST['casLogin'] = true;
 					$userData = UserAccount::login();
 				}
 			}
