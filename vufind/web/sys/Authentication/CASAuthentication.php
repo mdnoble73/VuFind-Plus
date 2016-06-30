@@ -28,7 +28,14 @@ class CASAuthentication implements Authentication {
 
 		phpCAS::setNoCasServerValidation();
 
-		$isValidated = phpCAS::forceAuthentication();
+		try{
+			$isValidated = phpCAS::forceAuthentication();
+		}catch (CAS_AuthenticationException $e){
+			global $logger;
+			$logger->error("Error authenticating $e", PEAR_LOG_ERR);
+			$isValidated = false;
+		}
+
 		return $isValidated;
 	}
 
