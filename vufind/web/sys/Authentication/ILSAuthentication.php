@@ -35,7 +35,7 @@ class ILSAuthentication implements Authentication {
 		$this->password = isset($_REQUEST['password']) ? $_REQUEST['password'] : '';
 
 		$logger->log("Authenticating user '{$this->username}', '{$this->password}' via the ILS", PEAR_LOG_DEBUG);
-		if($this->username == '' || ($this->password == '' && !$validatedViaSSO)){
+		if(!$validatedViaSSO && ($this->username == '' || $this->password == '')){
 			$user = new PEAR_Error('authentication_error_blank');
 		} else {
 			// Connect to the correct catalog depending on the driver for this account
