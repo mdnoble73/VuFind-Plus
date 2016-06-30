@@ -267,7 +267,6 @@ class UserAccount {
 	{
 		global $user;
 		global $logger;
-		$logger->log('Logging the user out', PEAR_LOG_INFO);
 		if ($user && $user->loggedInViaCAS){
 			require_once ROOT_DIR . '/sys/Authentication/CASAuthentication.php';
 			$casAuthentication = new CASAuthentication(null);
