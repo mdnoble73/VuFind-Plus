@@ -63,7 +63,8 @@ abstract class SIP2Driver implements DriverInterface{
 		}
 		return $itemSip2Data;
 	}
-	public function patronLogin($username, $password) {
+	public function patronLogin($username, $password, $validatedViaSSO) {
+		//TODO: Implement $validatedViaSSO
 		//Koha uses SIP2 authentication for login.  See
 		//The catalog is offline, check the database to see if the user is valid
 		global $timer;
