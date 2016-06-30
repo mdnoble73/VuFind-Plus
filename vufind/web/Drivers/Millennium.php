@@ -224,6 +224,7 @@ class Millennium extends ScreenScrapingDriver
 	public function patronLogin($username, $password, $validatedViaSSO) {
 		global $timer;
 		global $configArray;
+		global $logger;
 
 		//Get the barcode property
 		if ($this->accountProfile->loginConfiguration == 'barcode_pin'){
@@ -241,6 +242,7 @@ class Millennium extends ScreenScrapingDriver
 
 		//Load the raw information about the patron
 		$patronDump = $this->_getPatronDump($barcode);
+		$logger->log("Retrieved patron dump for $barcode\r\n" . print_r($patronDump, true), PEAR_LOG_INFO);
 
 		//Create a variety of possible name combinations for testing purposes.
 		$userValid = false;
