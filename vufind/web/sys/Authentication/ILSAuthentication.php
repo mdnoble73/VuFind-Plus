@@ -31,7 +31,7 @@ class ILSAuthentication implements Authentication {
 				return $user;
 			}
 		}
-		$this->username = $_REQUEST['username'];
+		$this->username = isset($_REQUEST['username']) ? $_REQUEST['username'] : '';
 		$this->password = isset($_REQUEST['password']) ? $_REQUEST['password'] : '';
 
 		$logger->log("Authenticating user '{$this->username}', '{$this->password}' via the ILS", PEAR_LOG_DEBUG);
