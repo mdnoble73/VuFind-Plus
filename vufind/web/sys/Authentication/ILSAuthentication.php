@@ -22,6 +22,7 @@ class ILSAuthentication implements Authentication {
 	}
 
 	public function authenticate($validatedViaSSO){
+		global $logger;
 		//Check to see if the username and password are provided
 		if (!array_key_exists('username', $_REQUEST) && !array_key_exists('password', $_REQUEST)){
 			//If not, check to see if we have a valid user already authenticated
@@ -33,7 +34,8 @@ class ILSAuthentication implements Authentication {
 		$this->username = $_REQUEST['username'];
 		$this->password = $_REQUEST['password'];
 
-		if($this->username == '' || $this->password == ''){
+		$logger->log("Authenticating user '{$this->username}', '{$this->password}' via the ILS", PEAR_LOG_INFO);
+		if($this->username == '' || ($this->password == '' && !$validatedViaSSO)){
 			$user = new PEAR_Error('authentication_error_blank');
 		} else {
 			// Connect to the correct catalog depending on the driver for this account
@@ -56,10 +58,12 @@ class ILSAuthentication implements Authentication {
 	}
 
 	public function validateAccount($username, $password, $parentAccount, $validatedViaSSO) {
+		global $user;
 		$this->username = $username;
 		$this->password = $password;
 
-		if($this->username == '' || $this->password == ''){
+		$logger->log("validating account for user '{$this->username}', '{$this->password}' via the ILS", PEAR_LOG_INFO);
+		if($this->username == '' || ($this->password == '' && !$validatedViaSSO)){
 			$user = new PEAR_Error('authentication_error_blank');
 		} else {
 			// Connect to the correct catalog depending on the driver for this account

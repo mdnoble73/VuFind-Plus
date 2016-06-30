@@ -92,18 +92,22 @@ class UserAccount {
 	 */
 	public static function login() {
 		global $user;
+		global $logger;
 
 		$validUsers = array();
 
 		$validatedViaSSO = false;
 		if (isset($_REQUEST['casLogin'])){
+			$logger->log("Logging the user in via CAS", PEAR_LOG_INFO);
 			//Check CAS first
 			$casAuthentication = new CASAuthentication(null);
-			$casUsername = $casAuthentication->authenticate();
+			$casUsername = $casAuthentication->authenticate(false);
 			if ($casUsername == false || PEAR_Singleton::isError($casUsername)){
 				//The user could not be authenticated in CAS
-				return new PEAR_Error('Could not authenticate in sign on service');;
+				$logger->log("The user could not be logged in", PEAR_LOG_INFO);
+				return new PEAR_Error('Could not authenticate in sign on service');
 			}else{
+				$logger->log("User logged in OK CAS Username $casUsername", PEAR_LOG_INFO);
 				$_REQUEST['username'] = $casUsername;
 				$validatedViaSSO = true;
 			}
