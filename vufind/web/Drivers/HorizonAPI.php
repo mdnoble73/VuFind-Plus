@@ -26,7 +26,7 @@ abstract class HorizonAPI extends Horizon{
 	//TODO: Additional caching of sessionIds by patron
 	private static $sessionIdsForUsers = array();
 	/** uses SIP2 login the user via web services API **/
-	public function patronLogin($username, $password){
+	public function patronLogin($username, $password, $validatedViaSSO){
 		global $timer;
 		global $configArray;
 
@@ -37,6 +37,9 @@ abstract class HorizonAPI extends Horizon{
 		//Authenticate the user via WebService
 		//First call loginUser
 		list($userValid, $sessionToken, $userID) = $this->loginViaWebService($username, $password);
+		if ($validatedViaSSO){
+			$userValid = true;
+		}
 		if ($userValid){
 			$lookupMyAccountInfoResponse = $this->getWebServiceResponse($configArray['Catalog']['webServiceUrl'] . '/standard/lookupMyAccountInfo?clientID=' . $configArray['Catalog']['clientId'] . '&sessionToken=' . $sessionToken . '&includeAddressInfo=true&includeHoldInfo=true&includeBlockInfo=true&includeItemsOutInfo=true');
 			if ($lookupMyAccountInfoResponse){

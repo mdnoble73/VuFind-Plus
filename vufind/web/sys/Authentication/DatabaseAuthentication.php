@@ -12,7 +12,7 @@ class DatabaseAuthentication implements Authentication {
 		return $this->login($username, $password);
 	}
 
-	public function validateAccount($username, $password, $parentAccount = null) {
+	public function validateAccount($username, $password, $parentAccount = null, $validatedViaSSO = false) {
 		return $this->login($username, $password);
 	}
 

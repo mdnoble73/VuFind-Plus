@@ -153,14 +153,15 @@ class CatalogConnection
 	 *
 	 * This is responsible for authenticating a patron against the catalog.
 	 *
-	 * @param string $username        The patron username
-	 * @param string $password        The patron password
-	 * @param User   $parentAccount   A parent account that we are linking from if any
+	 * @param string  $username        The patron username
+	 * @param string  $password        The patron password
+	 * @param User    $parentAccount   A parent account that we are linking from if any
+	 * @param boolean $validatedViaSSO True if the patron has already been validated via SSO.  If so we don't need to validation, just retrieve information
 	 *
 	 * @return User|null     User object or null if the user cannot be logged in
 	 * @access public
 	 */
-	public function patronLogin($username, $password, $parentAccount = null) {
+	public function patronLogin($username, $password, $parentAccount = null, $validatedViaSSO = false) {
 		global $timer;
 		global $configArray;
 
@@ -203,7 +204,7 @@ class CatalogConnection
 				return null;
 			}
 		}else {
-			$user = $this->driver->patronLogin($username, $password);
+			$user = $this->driver->patronLogin($username, $password, $validatedViaSSO);
 		}
 
 		if ($user){

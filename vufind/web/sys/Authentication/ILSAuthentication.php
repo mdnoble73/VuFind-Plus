@@ -55,7 +55,7 @@ class ILSAuthentication implements Authentication {
 		return $user;
 	}
 
-	public function validateAccount($username, $password, $parentAccount) {
+	public function validateAccount($username, $password, $parentAccount, $validatedViaSSO) {
 		$this->username = $username;
 		$this->password = $password;
 
@@ -66,7 +66,7 @@ class ILSAuthentication implements Authentication {
 			$catalog = CatalogFactory::getCatalogConnectionInstance($this->driverName);
 
 			if ($catalog->status) {
-				$patron = $catalog->patronLogin($this->username, $this->password, $parentAccount);
+				$patron = $catalog->patronLogin($this->username, $this->password, $parentAccount, $validatedViaSSO);
 				if ($patron && !PEAR_Singleton::isError($patron)) {
 					$user = $patron;
 				} else {

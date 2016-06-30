@@ -161,10 +161,25 @@ class UserAccount {
 		//Test all valid authentication methods and see which (if any) result in a valid login.
 		$driversToTest = self::loadAccountProfiles();
 
+		global $library;
+		$validatedViaSSO = false;
+		if (strlen($library->casHost) > 0 && $username == null && $password == null){
+			//Check CAS first
+			$casAuthentication = new CASAuthentication(null);
+			$casUsername = $casAuthentication->validateAccount(null, null, $parentAccount, false);
+			if ($casUsername == false || PEAR_Singleton::isError($casUsername)){
+				//The user could not be authenticated in CAS
+				return false;
+			}else{
+				$username = true;
+				$validatedViaSSO = true;
+			}
+		}
+
 		foreach ($driversToTest as $driverName => $additionalInfo){
 			if ($accountSource == null || $accountSource == $additionalInfo['accountProfile']->name) {
 				$authN = AuthenticationFactory::initAuthentication($additionalInfo['authenticationMethod'], $additionalInfo);
-				$validatedUser = $authN->validateAccount($username, $password, $parentAccount);
+				$validatedUser = $authN->validateAccount($username, $password, $parentAccount, $validatedViaSSO);
 				if ($validatedUser && !PEAR_Singleton::isError($validatedUser)) {
 					/** @var Memcache $memCache */
 					global $memCache;

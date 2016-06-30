@@ -34,7 +34,7 @@ interface DriverInterface
 {
 	public function __construct($accountProfile);
 
-	public function patronLogin($username, $password);
+	public function patronLogin($username, $password, $validatedViaSSO);
 	public function hasNativeReadingHistory();
 	public function getNumHolds($id);
 

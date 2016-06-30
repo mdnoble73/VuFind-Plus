@@ -29,7 +29,6 @@ class MyAccount_CASLogin extends Action
 	function launch($msg = null)
 	{
 		global $configArray;
-		global $interface;
 		global $library;
 		require_once ROOT_DIR . '/CAS-1.3.4/CAS.php';
 

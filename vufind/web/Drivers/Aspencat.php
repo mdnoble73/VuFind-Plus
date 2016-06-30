@@ -390,7 +390,7 @@ class Aspencat implements DriverInterface{
 
 	/** @var mysqli_stmt  */
 	private $getUserInfoStmt = null;
-	public function patronLogin($username, $password) {
+	public function patronLogin($username, $password, $validatedViaSSO) {
 		//Remove any spaces from the barcode
 		$username = trim($username);
 		$password = trim($password);
@@ -420,7 +420,7 @@ class Aspencat implements DriverInterface{
 			if ($this->getUserInfoStmt->execute()) {
 				if ($userFromDbResultSet = $this->getUserInfoStmt->get_result()) {
 					$userFromDb = $userFromDbResultSet->fetch_assoc();
-					if ($userFromDb['password'] == $encodedPassword) {
+					if ($userFromDb['password'] == $encodedPassword || $validatedViaSSO) {
 						$userExistsInDB = false;
 						$user = new User();
 						//Get the unique user id from Millennium

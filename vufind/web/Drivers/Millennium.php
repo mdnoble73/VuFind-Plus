@@ -213,13 +213,15 @@ class Millennium extends ScreenScrapingDriver
 	 * This is responsible for authenticating a patron against the catalog.
 	 * Interface defined in CatalogConnection.php
 	 *
-	 * @param   string  $username   The patron username
-	 * @param   string  $password   The patron password
+	 * @param   string  $username         The patron username
+	 * @param   string  $password         The patron password
+	 * @param   boolean $validatedViaSSO  True if the patron has already been validated via SSO.  If so we don't need to validation, just retrieve information
+	 *
 	 * @return  User|null           A string of the user's ID number
 	 *                              If an error occurs, return a PEAR_Error
 	 * @access  public
 	 */
-	public function patronLogin($username, $password) {
+	public function patronLogin($username, $password, $validatedViaSSO) {
 		global $timer;
 		global $configArray;
 
@@ -250,6 +252,10 @@ class Millennium extends ScreenScrapingDriver
 				$patronName = $patronDump['PATRN_NAME'];
 				list($fullName, $lastName, $firstName, $userValid) = $this->validatePatronName($username, $patronName);
 			}
+		}
+
+		if ($validatedViaSSO){
+			$userValid = true;
 		}
 
 		if ($userValid) {

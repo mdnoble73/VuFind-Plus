@@ -21,7 +21,7 @@ class CarlX extends SIP2Driver{
 		$this->catalogServiceWsdl = 'http://devapp.carl.org:8080/CarlXAPI/CatalogAPI.wsdl'; //TODO: Move to config file
 	}
 
-	public function patronLogin($username, $password){
+	public function patronLogin($username, $password, $validatedViaSSO){
 		global $timer;
 
 		//Remove any spaces from the barcode
@@ -46,7 +46,7 @@ class CarlX extends SIP2Driver{
 		if ($result){
 			if ($result->Patron){
 				//Check to see if the pin matches
-				if ($result->Patron->PatronPIN == $password){
+				if ($result->Patron->PatronPIN == $password || $validatedViaSSO){
 					$fullName = $result->Patron->FullName;
 					$firstName = $result->Patron->FirstName;
 					$lastName = $result->Patron->LastName;
