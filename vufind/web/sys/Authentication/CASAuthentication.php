@@ -30,6 +30,15 @@ class CASAuthentication implements Authentication {
 
 		try{
 			$isValidated = phpCAS::forceAuthentication();
+			if ($isValidated){
+				$userAttributes = phpCAS::getAttributes();
+				//TODO: If we use other CAS systems we will need a configuration option to store which
+				//attribute the id is in
+				$userId = $userAttributes['flcid'];
+				return $userId;
+			}else{
+				return false;
+			}
 		}catch (CAS_AuthenticationException $e){
 			global $logger;
 			$logger->log("Error authenticating $e", PEAR_LOG_ERR);
