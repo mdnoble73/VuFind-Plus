@@ -26,6 +26,8 @@ class CASAuthentication implements Authentication {
 
 		phpCAS::client(CAS_VERSION_3_0, $library->casHost, (int)$library->casPort, $library->casContext);
 
+		phpCAS::setNoCasServerValidation();
+
 		$isValidated = phpCAS::forceAuthentication();
 		return $isValidated;
 	}
@@ -49,6 +51,8 @@ class CASAuthentication implements Authentication {
 			}
 
 			phpCAS::client(CAS_VERSION_3_0, $library->casHost, (int)$library->casPort, $library->casContext);
+
+			phpCAS::setNoCasServerValidation();
 
 			$isValidated = phpCAS::checkAuthentication();
 			if ($isValidated){
