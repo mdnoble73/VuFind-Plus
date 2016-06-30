@@ -32,7 +32,7 @@ class ILSAuthentication implements Authentication {
 			}
 		}
 		$this->username = $_REQUEST['username'];
-		$this->password = $_REQUEST['password'];
+		$this->password = isset($_REQUEST['password']) ? $_REQUEST['password'] : '';
 
 		$logger->log("Authenticating user '{$this->username}', '{$this->password}' via the ILS", PEAR_LOG_INFO);
 		if($this->username == '' || ($this->password == '' && !$validatedViaSSO)){
