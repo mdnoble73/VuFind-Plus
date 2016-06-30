@@ -26,7 +26,7 @@ class CASAuthentication implements Authentication {
 			}
 		}catch (CAS_AuthenticationException $e){
 			global $logger;
-			$logger->log("Error authenticating $e", PEAR_LOG_ERR);
+			$logger->log("Error authenticating in CAS $e", PEAR_LOG_ERR);
 			$isValidated = false;
 		}
 
@@ -44,7 +44,14 @@ class CASAuthentication implements Authentication {
 		if($username == '' || $password == ''){
 			$this->initializeCASClient();
 
-			$isValidated = phpCAS::checkAuthentication();
+			try{
+				$isValidated = phpCAS::checkAuthentication();
+			}catch (CAS_AuthenticationException $e){
+				global $logger;
+				$logger->log("Error validating account in CAS $e", PEAR_LOG_ERR);
+				$isValidated = false;
+			}
+
 			if ($isValidated){
 				//We have a valid user within CAS.  Return the user id
 				$userAttributes = phpCAS::getAttributes();

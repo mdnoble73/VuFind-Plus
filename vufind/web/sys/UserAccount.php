@@ -24,7 +24,8 @@ require_once 'XML/Serializer.php';
 require_once ROOT_DIR . '/sys/Authentication/AuthenticationFactory.php';
 
 class UserAccount {
-
+	static $isLoggedIn = null;
+	static $primaryUserData = null;
 	/**
 	 * Checks whether the user is logged in.
 	 *
@@ -34,6 +35,14 @@ class UserAccount {
 	 * @return bool|User
 	 */
 	public static function isLoggedIn() {
+		if (UserAccount::$isLoggedIn != null){
+			if (UserAccount::$isLoggedIn){
+				return UserAccount::$primaryUserData;
+			}else{
+				return false;
+			}
+		}
+		global $action;
 		$userData = false;
 		if (isset($_SESSION['activeUserId'])) {
 			$activeUserId = $_SESSION['activeUserId'];
@@ -55,7 +64,8 @@ class UserAccount {
 				global $timer;
 				$timer->logTime("Updated Runtime Information");
 			}
-		}else{
+			UserAccount::$isLoggedIn = true;
+		}elseif ($action != 'AJAX' && $action != 'Logout' && !isset($_REQUEST['username'])){
 			//If the library uses CAS/SSO we may already be logged in even though they never logged in within Pika
 			global $library;
 			if (strlen($library->casHost) > 0){
@@ -65,13 +75,18 @@ class UserAccount {
 				$casUsername = $casAuthentication->validateAccount(null, null, null, false);
 				if ($casUsername == false || PEAR_Singleton::isError($casUsername)){
 					//The user could not be authenticated in CAS
+					UserAccount::$isLoggedIn = false;
 					return false;
 				}else{
 					//We have a valid user via CAS, need to do a login to Pika
 					$_REQUEST['casLogin'] = true;
 					$userData = UserAccount::login();
+					UserAccount::$isLoggedIn = true;
 				}
 			}
+		}
+		if (UserAccount::$isLoggedIn){
+			UserAccount::$primaryUserData = $userData;
 		}
 		return $userData;
 	}
@@ -181,6 +196,8 @@ class UserAccount {
 
 		// Send back the user object (which may be a PEAR error):
 		if ($primaryUser){
+			UserAccount::$isLoggedIn = true;
+			UserAccount::$primaryUserData = $primaryUser;
 			return $primaryUser;
 		}else{
 			return $lastError;
@@ -254,6 +271,8 @@ class UserAccount {
 			$casAuthentication = new CASAuthentication(null);
 			$casAuthentication->logout();
 		}
+		UserAccount::$isLoggedIn = false;
+		UserAccount::$primaryUserData = null;
 		session_destroy();
 		session_regenerate_id(true);
 		$_SESSION = array();
@@ -266,6 +285,14 @@ class UserAccount {
 	public static function softLogout(){
 		if (isset($_SESSION['activeUserId'])){
 			unset($_SESSION['activeUserId']);
+			global $user;
+			if ($user && $user->loggedInViaCAS){
+				require_once ROOT_DIR . '/sys/Authentication/CASAuthentication.php';
+				$casAuthentication = new CASAuthentication(null);
+				$casAuthentication->logout();
+			}
+			UserAccount::$isLoggedIn = false;
+			UserAccount::$primaryUserData = null;
 			session_commit();
 		}
 	}
