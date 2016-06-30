@@ -3,7 +3,7 @@ require_once 'Authentication.php';
 require_once ROOT_DIR . '/CatalogConnection.php';
 
 class CASAuthentication implements Authentication {
-	private $clientInitialized = false;
+	static $clientInitialized = false;
 
 
 	public function __construct($additionalInfo) {
@@ -67,7 +67,7 @@ class CASAuthentication implements Authentication {
 	}
 
 	protected function initializeCASClient() {
-		if (!$this->clientInitialized) {
+		if (!CASAuthentication::$clientInitialized) {
 			require_once ROOT_DIR . '/CAS-1.3.4/CAS.php';
 
 			global $library;
@@ -81,7 +81,7 @@ class CASAuthentication implements Authentication {
 
 			phpCAS::setNoCasServerValidation();
 
-			$this->clientInitialized = true;
+			CASAuthentication::$clientInitialized = true;
 		}
 	}
 }
