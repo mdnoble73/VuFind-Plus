@@ -12,13 +12,13 @@ require_once ROOT_DIR . '/Drivers/SIP2Driver.php';
 class CarlX extends SIP2Driver{
 	public $accountProfile;
 	public $patronWsdl;
-	public $catalogServiceWsdl;
+	public $catalogWsdl;
 
 	public function __construct($accountProfile) {
 		$this->accountProfile = $accountProfile;
 		global $configArray;
-		$this->patronWsdl = $configArray['Catalog']['patronApiWsdl'];
-		$this->catalogServiceWsdl = 'http://devapp.carl.org:8080/CarlXAPI/CatalogAPI.wsdl'; //TODO: Move to config file
+		$this->patronWsdl  = $configArray['Catalog']['patronApiWsdl'];
+		$this->catalogWsdl = $configArray['Catalog']['catalogApiWsdl'];
 	}
 
 	public function patronLogin($username, $password, $validatedViaSSO){
@@ -149,11 +149,22 @@ class CarlX extends SIP2Driver{
 						}
 					}
 
-					$user->phone = $result->Patron->Phone1;
-//					$user->expires = substr($result->Patron->ExpirationDate, 0, strpos($result->Patron->ExpirationDate, 'T'));
-					$user->expires = $this->extractDateFromCarlXDateField($result->Patron->ExpirationDate);
+					if ($result->Patron->EmailReceiptFlag === true) {
+						//$result->Patron->EmailNotices as ~4 values: "do not send email",
+						$user->notices = 'z';
+						$user->noticePreferenceLabel = 'E-mail';
+					} else {
+						// TODO: Set Phone Notice Setting
+						$user->notices = '-';
+					}
+
+					$user->patronType  = $result->Patron->PatronType; // Example: "ADULT"
+					$user->web_note    = '';
+					$user->phone       = $result->Patron->Phone1;
+					$user->expires     = $this->extractDateFromCarlXDateField($result->Patron->ExpirationDate);
 					$user->expired     = 0; // default setting
 					$user->expireClose = 0;
+
 					$timeExpire   = strtotime($user->expires);
 					$timeNow      = time();
 					$timeToExpire = $timeExpire - $timeNow;
@@ -166,14 +177,14 @@ class CarlX extends SIP2Driver{
 
 					//Load summary information for number of holds, checkouts, etc
 					$patronSummaryRequest = new stdClass();
-					$patronSummaryRequest->PatronID = $username;
+					$patronSummaryRequest->PatronID  = $username;
 					$patronSummaryRequest->Modifiers = '';
 					$patronSummaryResponse = $soapClient->getPatronSummaryOverview($patronSummaryRequest);
 
-					$user->numCheckedOutIls = $patronSummaryResponse->ChargedItemsCount;
+					$user->numCheckedOutIls     = $patronSummaryResponse->ChargedItemsCount;
 					$user->numHoldsAvailableIls = $patronSummaryResponse->HoldItemsCount;
 					$user->numHoldsRequestedIls = $patronSummaryResponse->UnavailableHoldsCount;
-					$user->numHoldsIls = $user->numHoldsAvailableIls + $user->numHoldsRequestedIls;
+					$user->numHoldsIls          = $user->numHoldsAvailableIls + $user->numHoldsRequestedIls;
 
 					$outstandingFines = $patronSummaryResponse->FineTotal + $patronSummaryResponse->LostItemFeeTotal;
 					$user->fines    = sprintf('$%0.2f', $outstandingFines);
@@ -199,7 +210,7 @@ class CarlX extends SIP2Driver{
 	}
 
 	public function hasNativeReadingHistory() {
-		// TODO: Implement hasNativeReadingHistory() method.
+		return true;
 	}
 
 	public function getNumHolds($id) {
@@ -560,24 +571,17 @@ class CarlX extends SIP2Driver{
 				,array(
 					'features' => SOAP_WAIT_ONE_WAY_CALLS, // This setting overcomes the SOAP client's expectation that there is no response from our update request.
 					'trace' => 1, // enable use of __getLastResponse, so that we can determine the response.
-					//					'exceptions' => 0,
+//					'exceptions' => 0,
 				)
 			);
 
 //			$soapClient = new SoapClientDebug($this->patronWsdl
 //				,array(
-////					'req' => 'http://tlcdelivers.com/cx/schemas/request',
-////			    'soap_version' => SOAP_1_2,
 //					'trace' => 1
-//				) // extra options for debugging
 //			);
 
-			$request             = new stdClass();
-			$request->SearchType = 'Patron ID';
-			$request->SearchID   = $user->cat_username; // TODO: Question: barcode/pin check
-			$request->Modifiers  = '';
-//			$request->Modifiers->DebugMode = true;
-//			$request->Patron = new stdClass();
+			$request = $this->getSearchbyPatronIdRequest($user);
+
 
 			// Patron Info to update.
 			$request->Patron->Email  = $_REQUEST['email'];
@@ -596,20 +600,39 @@ class CarlX extends SIP2Driver{
 			$request->Patron->Addresses->Address->State       = $_REQUEST['state'];
 			$request->Patron->Addresses->Address->PostalCode  = $_REQUEST['zip'];
 
+			if (isset($_REQUEST['notices'])){
+				$noticeLabels = array(
+					//'-' => 'Mail',  // officially None in Sierra, as in No Preference Selected.
+					'-' => '',        // notification will generally be based on what information is available so can't determine here. plb 12-02-2014
+					'a' => 'Mail',    // officially Print in Sierra
+					'p' => 'Telephone',
+					'z' => 'E-mail',
+				);
+
+				if ($_REQUEST['notices'] == 'z') {
+					$request->Patron->EmailReceiptFlag = true;
+				} else {
+					//TODO: Set when phone preference is used
+					$request->Patron->EmailReceiptFlag = false;
+				}
+
+			}
+
 			$result = $soapClient->updatePatron($request);
 
 			if (is_null($result)) {
 				$result = $soapClient->__getLastResponse();
 				if ($result) {
-					$options = array('parseAttributes' => 'true',
-					                 'keyAttribute' => 'name');
-					$unxml   = &new XML_Unserializer($options);
+					$unxml   = new XML_Unserializer();
 					$unxml->unserialize($result);
 					$response = $unxml->getUnserializedData();
 
-					$test = new XML_Parser_Simple();
-
 					if ($response) {
+						$success = stripos($response['SOAP-ENV:Body']['ns3:GenericResponse']['ns3:ResponseStatuses']['ns2:ResponseStatus']['ns2:ShortMessage'], 'Success') !== false;
+						if (!$success) {
+							$errorMessage = $response['SOAP-ENV:Body']['ns3:GenericResponse']['ns3:ResponseStatuses']['ns2:ResponseStatus']['ns2:LongMessage'];
+							$updateErrors[] = 'Failed to update your information'. ($errorMessage ? ' : ' .$errorMessage : '');
+						}
 
 					} else {
 						$updateErrors[] = 'Unable to update your information.';
@@ -624,21 +647,48 @@ class CarlX extends SIP2Driver{
 				}
 			}
 
-//			if ($result) {
-//
-//			} else {
-//				$updateErrors[] = 'Unable to update your information.';
-//				global $logger;
-//				$logger->log('CarlX ILS gave no response when attempting to update Patron Information.', PEAR_LOG_ERR);
-//			}
-
 		} else {
 			$updateErrors[] = 'You can not update your information.';
 		}
 		return $updateErrors;
 	}
 
+	public function getReadingHistory($user, $page = 1, $recordsPerPage = -1, $sortOption = "checkedOut") {
+		global $timer;
 
+		$readHistoryEnabled = true; //TODO: do check for enabled
+
+		if ($readHistoryEnabled) { // Create Reading History Request
+			$historyActive = true;
+			$readingHistoryTitles = array();
+			$numTitles = 0;
+
+			$soapClient = new SoapClient($this->patronWsdl);
+
+			$request              = $this->getSearchbyPatronIdRequest($user);
+			$request->HistoryType = 'L';
+
+			$result = $soapClient->getPatronChargeHistory($request);
+
+			if ($result) {
+				// Process Reading History Response
+
+				// Fetch Additional Information for each Item
+
+				// Return Reading History
+				return array('historyActive'=>$historyActive, 'titles'=>$readingHistoryTitles, 'numTitles'=> $numTitles);
+
+			} else {
+				global $logger;
+				$logger->log('CarlX ILS gave no response when attempting to get Reading History.', PEAR_LOG_ERR);
+			}
+		}
+		return array('historyActive' => false, 'titles' => array(), 'numTitles' => 0);
+	}
+
+	public function doReadingHistoryAction($user, $action, $selectedTitles){
+
+	}
 
 	/**
 	 * @param $user
@@ -648,10 +698,7 @@ class CarlX extends SIP2Driver{
 	{
 		$soapClient = new SoapClient($this->patronWsdl);
 
-		$request             = new stdClass();
-		$request->SearchType = 'Patron ID';
-		$request->SearchID   = $user->cat_username; // TODO: Question: barcode/pin check
-		$request->Modifiers  = '';
+		$request = $this->getSearchbyPatronIdRequest($user);
 
 		$result = $soapClient->getPatronTransactions($request);
 		return $result;
@@ -676,7 +723,7 @@ class CarlX extends SIP2Driver{
 	}
 
 	private function getLocationInformation($locationNumber) {
-		$soapClient = new SoapClient(($this->catalogServiceWsdl));
+		$soapClient = new SoapClient(($this->catalogWsdl));
 
 		$request = new stdClass();
 		$request->LocationSearchType = 'Location Number';
@@ -693,7 +740,7 @@ class CarlX extends SIP2Driver{
 
 	private function getBranchInformation($branchNumber)
 	{
-		$soapClient = new SoapClient(($this->catalogServiceWsdl));
+		$soapClient = new SoapClient(($this->catalogWsdl));
 
 		$request                    = new stdClass();
 		$request->BranchSearchType  = 'Branch Number';
@@ -716,14 +763,27 @@ class CarlX extends SIP2Driver{
 		return strstr($dateField, 'T', true);
 	}
 
-}
-
-class SoapClientDebug extends SoapClient
-{
-	public function __doRequest($request, $location, $action, $version, $one_way = NULL)
+	/**
+	 * @param $user
+	 * @return stdClass
+	 */
+	private function getSearchbyPatronIdRequest($user)
 	{
-//		file_put_contents('soap_log.txt', $request);
-
-		return parent::__doRequest($request, $location, $action, $version, $one_way);
+		$request             = new stdClass();
+		$request->SearchType = 'Patron ID';
+		$request->SearchID   = $user->cat_username; // TODO: Question: barcode/pin check
+		$request->Modifiers  = '';
+		return $request;
 	}
+
 }
+
+//class SoapClientDebug extends SoapClient
+//{
+//	public function __doRequest($request, $location, $action, $version, $one_way = NULL)
+//	{
+////		file_put_contents('soap_log.txt', $request);
+//
+//		return parent::__doRequest($request, $location, $action, $version, $one_way);
+//	}
+//}
