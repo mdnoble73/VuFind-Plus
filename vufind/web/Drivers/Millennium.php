@@ -245,17 +245,17 @@ class Millennium extends ScreenScrapingDriver
 		//Create a variety of possible name combinations for testing purposes.
 		$userValid = false;
 		//Break up the patron name into first name, last name and middle name based on the
-		if ($this->accountProfile->loginConfiguration == 'barcode_pin'){
-			$userValid = $this->_doPinTest($barcode, $password);
-		}else{
-			if (isset($patronDump['PATRN_NAME'])){
-				$patronName = $patronDump['PATRN_NAME'];
-				list($fullName, $lastName, $firstName, $userValid) = $this->validatePatronName($username, $patronName);
-			}
-		}
-
-		if ($validatedViaSSO){
+		if ($validatedViaSSO) {
 			$userValid = true;
+		}else{
+			if ($this->accountProfile->loginConfiguration == 'barcode_pin'){
+				$userValid = $this->_doPinTest($barcode, $password);
+			}else{
+				if (isset($patronDump['PATRN_NAME'])){
+					$patronName = $patronDump['PATRN_NAME'];
+					list($fullName, $lastName, $firstName, $userValid) = $this->validatePatronName($username, $patronName);
+				}
+			}
 		}
 
 		if ($userValid) {

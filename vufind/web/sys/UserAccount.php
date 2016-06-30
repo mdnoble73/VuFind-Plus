@@ -109,7 +109,10 @@ class UserAccount {
 				return new PEAR_Error('Could not authenticate in sign on service');
 			}else{
 				$logger->log("User logged in OK CAS Username $casUsername", PEAR_LOG_INFO);
+				//Set both username and password since authentication methods could use either.
+				//Each authentication method will need to deal with the possibility that it gets a barcode for both user and password
 				$_REQUEST['username'] = $casUsername;
+				$_REQUEST['password'] = $casUsername;
 				$validatedViaSSO = true;
 			}
 		}
@@ -128,6 +131,9 @@ class UserAccount {
 
 			// If we authenticated, store the user in the session:
 			if (!PEAR_Singleton::isError($tempUser)) {
+				if ($validatedViaSSO){
+					$user->loggedInViaCAS = true;
+				}
 				global $library;
 				if (isset($library) && $library->preventExpiredCardLogin && $tempUser->expired) {
 					// Create error
@@ -191,7 +197,10 @@ class UserAccount {
 				//The user could not be authenticated in CAS
 				return false;
 			}else{
+				//Set both username and password since authentication methods could use either.
+				//Each authentication method will need to deal with the possibility that it gets a barcode for both user and password
 				$username = $casUsername;
+				$password = $casUsername;
 				$validatedViaSSO = true;
 			}
 		}
@@ -206,6 +215,9 @@ class UserAccount {
 					global $serverName;
 					global $configArray;
 					$memCache->set("user_{$serverName}_{$validatedUser->id}", $validatedUser, 0, $configArray['Caching']['user']);
+					if ($validatedViaSSO){
+						$validatedUser->loggedInViaCAS = true;
+					}
 					return $validatedUser;
 				}
 			}
