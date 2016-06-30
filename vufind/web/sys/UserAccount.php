@@ -184,6 +184,7 @@ class UserAccount {
 		$validatedViaSSO = false;
 		if (strlen($library->casHost) > 0 && $username == null && $password == null){
 			//Check CAS first
+			require_once ROOT_DIR . '/sys/Authentication/CASAuthentication.php';
 			$casAuthentication = new CASAuthentication(null);
 			$casUsername = $casAuthentication->validateAccount(null, null, $parentAccount, false);
 			if ($casUsername == false || PEAR_Singleton::isError($casUsername)){
@@ -218,6 +219,12 @@ class UserAccount {
 	 */
 	public static function logout()
 	{
+		global $user;
+		if ($user && $user->loggedInViaCAS){
+			require_once ROOT_DIR . '/sys/Authentication/CASAuthentication.php';
+			$casAuthentication = new CASAuthentication(null);
+			$casAuthentication->logout();
+		}
 		session_destroy();
 		session_regenerate_id(true);
 		$_SESSION = array();

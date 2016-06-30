@@ -76,4 +76,21 @@ class CASAuthentication implements Authentication {
 			return new PEAR_Error('Should not pass username and password to account validation for CAS');
 		}
 	}
+
+	public function logout() {
+		global $configArray;
+		global $library;
+		require_once ROOT_DIR . '/CAS-1.3.4/CAS.php';
+
+		if ($configArray['System']['debug']){
+			phpCAS::setDebug();
+			phpCAS::setVerbose(true);
+		}
+
+		phpCAS::client(CAS_VERSION_3_0, $library->casHost, (int)$library->casPort, $library->casContext);
+
+		phpCAS::setNoCasServerValidation();
+
+		phpCAS::logout();
+	}
 }
