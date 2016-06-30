@@ -34,7 +34,7 @@ class ILSAuthentication implements Authentication {
 		$this->username = $_REQUEST['username'];
 		$this->password = isset($_REQUEST['password']) ? $_REQUEST['password'] : '';
 
-		$logger->log("Authenticating user '{$this->username}', '{$this->password}' via the ILS", PEAR_LOG_INFO);
+		$logger->log("Authenticating user '{$this->username}', '{$this->password}' via the ILS", PEAR_LOG_DEBUG);
 		if($this->username == '' || ($this->password == '' && !$validatedViaSSO)){
 			$user = new PEAR_Error('authentication_error_blank');
 		} else {
@@ -63,7 +63,7 @@ class ILSAuthentication implements Authentication {
 		$this->username = $username;
 		$this->password = $password;
 
-		$logger->log("validating account for user '{$this->username}', '{$this->password}' via the ILS", PEAR_LOG_INFO);
+		$logger->log("validating account for user '{$this->username}', '{$this->password}' via the ILS", PEAR_LOG_DENUG);
 		if($this->username == '' || ($this->password == '' && !$validatedViaSSO)){
 			$user = new PEAR_Error('authentication_error_blank');
 		} else {

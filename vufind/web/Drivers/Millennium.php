@@ -242,7 +242,7 @@ class Millennium extends ScreenScrapingDriver
 
 		//Load the raw information about the patron
 		$patronDump = $this->_getPatronDump($barcode);
-		$logger->log("Retrieved patron dump for $barcode\r\n" . print_r($patronDump, true), PEAR_LOG_INFO);
+		$logger->log("Retrieved patron dump for $barcode\r\n" . print_r($patronDump, true), PEAR_LOG_DEBUG);
 
 		//Create a variety of possible name combinations for testing purposes.
 		$userValid = false;

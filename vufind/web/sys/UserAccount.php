@@ -55,6 +55,22 @@ class UserAccount {
 				global $timer;
 				$timer->logTime("Updated Runtime Information");
 			}
+		}else{
+			//If the library uses CAS/SSO we may already be logged in even though they never logged in within Pika
+			global $library;
+			if (strlen($library->casHost) > 0){
+				//Check CAS first
+				require_once ROOT_DIR . '/sys/Authentication/CASAuthentication.php';
+				$casAuthentication = new CASAuthentication(null);
+				$casUsername = $casAuthentication->validateAccount(null, null, null, false);
+				if ($casUsername == false || PEAR_Singleton::isError($casUsername)){
+					//The user could not be authenticated in CAS
+					return false;
+				}else{
+					//We have a valid user via CAS, need to do a login to Pika
+					$userData = UserAccount::login();
+				}
+			}
 		}
 		return $userData;
 	}
