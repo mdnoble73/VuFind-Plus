@@ -132,7 +132,7 @@ class UserAccount {
 			// If we authenticated, store the user in the session:
 			if (!PEAR_Singleton::isError($tempUser)) {
 				if ($validatedViaSSO){
-					$user->loggedInViaCAS = true;
+					$tempUser->loggedInViaCAS = true;
 				}
 				global $library;
 				if (isset($library) && $library->preventExpiredCardLogin && $tempUser->expired) {
