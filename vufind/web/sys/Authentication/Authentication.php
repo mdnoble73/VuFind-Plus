@@ -5,9 +5,11 @@ interface Authentication {
 	/**
 	 * Authenticate the user in the system
 	 *
+	 * @param $validatedViaSSO boolean
+	 *
 	 * @return mixed
 	 */
-	public function authenticate();
+	public function authenticate($validatedViaSSO);
 
 	/**
 	 * @param $username       string

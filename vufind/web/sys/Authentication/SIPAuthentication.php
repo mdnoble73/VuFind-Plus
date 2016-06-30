@@ -84,7 +84,7 @@ class SIPAuthentication implements Authentication {
 		}
 		
 	}
-	public function authenticate() {
+	public function authenticate($validatedViaSSO) {
 		global $configArray;
 		global $timer;
 

@@ -14,7 +14,7 @@ class CASAuthentication implements Authentication {
 
 	}
 
-	public function authenticate(){
+	public function authenticate($validatedViaSSO){
 		global $configArray;
 		global $library;
 		require_once ROOT_DIR . '/CAS-1.3.4/CAS.php';
@@ -27,30 +27,7 @@ class CASAuthentication implements Authentication {
 		phpCAS::client(CAS_VERSION_3_0, $library->casHost, (int)$library->casPort, $library->casContext);
 
 		$isValidated = phpCAS::forceAuthentication();
-		if ($isValidated){
-
-		}
-
-		if($this->username == '' || $this->password == ''){
-			$user = new PEAR_Error('authentication_error_blank');
-		} else {
-			// Connect to the correct catalog depending on the driver for this account
-			$catalog = $this->catalogConnection;
-
-			if ($catalog->status) {
-				/** @var User $patron */
-				$patron = $catalog->patronLogin($this->username, $this->password);
-				if ($patron && !PEAR_Singleton::isError($patron)) {
-					/** @var User $user */
-					$user = $patron;
-				} else {
-					$user = new PEAR_Error('authentication_error_invalid');
-				}
-			} else {
-				$user = new PEAR_Error('authentication_error_technical');
-			}
-		}
-		return $user;
+		return $isValidated;
 	}
 
 	/**

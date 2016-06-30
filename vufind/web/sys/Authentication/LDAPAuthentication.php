@@ -13,7 +13,7 @@ class LDAPAuthentication implements Authentication {
 		$this->ldapConfigurationParameter = new LDAPConfigurationParameter();
 	}
 
-	public function authenticate() {
+	public function authenticate($validatedViaSSO) {
 		$this->username = $_POST['username'];
 		$this->password = $_POST['password'];
 		if ($this->username == '' || $this->password == '') {
@@ -152,5 +152,3 @@ class LDAPAuthentication implements Authentication {
 		}
 	}
 }
-
-?>

@@ -21,7 +21,7 @@ class ILSAuthentication implements Authentication {
 		$this->catalogConnection = CatalogFactory::getCatalogConnectionInstance($this->driverName, $this->accountProfile);
 	}
 
-	public function authenticate(){
+	public function authenticate($validatedViaSSO){
 		//Check to see if the username and password are provided
 		if (!array_key_exists('username', $_REQUEST) && !array_key_exists('password', $_REQUEST)){
 			//If not, check to see if we have a valid user already authenticated
@@ -41,7 +41,7 @@ class ILSAuthentication implements Authentication {
 
 			if ($catalog->status) {
 				/** @var User $patron */
-				$patron = $catalog->patronLogin($this->username, $this->password);
+				$patron = $catalog->patronLogin($this->username, $this->password, null, $validatedViaSSO);
 				if ($patron && !PEAR_Singleton::isError($patron)) {
 					/** @var User $user */
 					$user = $patron;

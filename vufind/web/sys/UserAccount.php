@@ -95,6 +95,20 @@ class UserAccount {
 
 		$validUsers = array();
 
+		$validatedViaSSO = false;
+		if (isset($_REQUEST['casLogin'])){
+			//Check CAS first
+			$casAuthentication = new CASAuthentication(null);
+			$casUsername = $casAuthentication->authenticate();
+			if ($casUsername == false || PEAR_Singleton::isError($casUsername)){
+				//The user could not be authenticated in CAS
+				return new PEAR_Error('Could not authenticate in sign on service');;
+			}else{
+				$_REQUEST['username'] = $casUsername;
+				$validatedViaSSO = true;
+			}
+		}
+
 		/** @var User $primaryUser */
 		$primaryUser = null;
 		$lastError = null;
@@ -105,7 +119,7 @@ class UserAccount {
 		foreach ($driversToTest as $driverName => $driverData){
 			// Perform authentication:
 			$authN = AuthenticationFactory::initAuthentication($driverData['authenticationMethod'], $driverData);
-			$tempUser = $authN->authenticate();
+			$tempUser = $authN->authenticate($validatedViaSSO);
 
 			// If we authenticated, store the user in the session:
 			if (!PEAR_Singleton::isError($tempUser)) {
@@ -171,7 +185,7 @@ class UserAccount {
 				//The user could not be authenticated in CAS
 				return false;
 			}else{
-				$username = true;
+				$username = $casUsername;
 				$validatedViaSSO = true;
 			}
 		}
