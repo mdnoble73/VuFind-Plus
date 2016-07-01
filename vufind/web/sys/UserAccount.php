@@ -43,6 +43,7 @@ class UserAccount {
 			}
 		}
 		global $action;
+		global $module;
 		$userData = false;
 		if (isset($_SESSION['activeUserId'])) {
 			$activeUserId = $_SESSION['activeUserId'];
@@ -65,7 +66,9 @@ class UserAccount {
 				$timer->logTime("Updated Runtime Information");
 			}
 			UserAccount::$isLoggedIn = true;
-		}elseif ($action != 'AJAX' && $action != 'Logout' && !isset($_REQUEST['username'])){
+
+		//Check to see if the patron is already logged in within CAS as long as we aren't on a page that is likely to be a login page
+		}elseif ($action != 'AJAX' && $action != 'Logout' && !($module == 'MyAccount') && !isset($_REQUEST['username'])){
 			//If the library uses CAS/SSO we may already be logged in even though they never logged in within Pika
 			global $library;
 			if (strlen($library->casHost) > 0){
