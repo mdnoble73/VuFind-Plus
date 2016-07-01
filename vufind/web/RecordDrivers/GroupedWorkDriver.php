@@ -151,7 +151,7 @@ class GroupedWorkDriver extends RecordInterface{
 	 * @return  string              Breadcrumb text to represent this record.
 	 */
 	public function getBreadcrumb() {
-		return $this->getTitle();
+		return $this->getTitleShort();
 	}
 
 	/**

@@ -49,6 +49,9 @@ abstract class Archive_Object extends Action{
 		$interface->assign('relatedPlaces', $relatedPlaces);
 
 		$pageTitle = $pageTitle == null ? $this->archiveObject->label : $pageTitle;
+
+		$interface->assign('breadcrumbText', $pageTitle);
+
 		parent::display($mainContentTemplate, $pageTitle);
 	}
 

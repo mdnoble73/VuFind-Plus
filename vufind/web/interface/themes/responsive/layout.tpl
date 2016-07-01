@@ -30,13 +30,12 @@
 			{/if}
 			<div class="row breadcrumbs">
 				<div class="col-xs-12 col-sm-9">
-					{if $showBreadcrumbs}
+					{* if $showBreadcrumbs}
 					<ul class="breadcrumb">
-						<li><a href="{$homeBreadcrumbLink}" id="home-breadcrumb">{*<i class="icon-home"></i>*} {translate text=$homeLinkText}</a> <span class="divider">&raquo;</span></li>
+						<li><a href="{$homeBreadcrumbLink}" id="home-breadcrumb"> {translate text=$homeLinkText}</a> <span class="divider">&raquo;</span></li>
 						{include file="$module/breadcrumbs.tpl"}
 					</ul>
-					{/if}
-
+					{/if *}
 				</div>
 				<a id="top"></a>
 				<div class="col-xs-12 col-sm-3 text-right">
@@ -80,8 +79,8 @@
 							</div>
 							<div class="rightSidebar col-xs-12 col-sm-8 col-sm-pull-4 col-md-9 col-md-pull-3 col-lg-9 col-lg-pull-3" id="main-content-with-sidebar" style="overflow-x: auto;">
 								{* If main content overflows, use a scrollbar *}
-								{if $sectionLabel}
-									<div id="sectionLabel">{$sectionLabel}</div>
+								{if $showBreadcrumbs}
+									{include file="breadcrumbs.tpl"}
 								{/if}
 								{if $module}
 									{include file="$module/$pageTemplate"}
@@ -95,12 +94,8 @@
 								{include file="sidebar.tpl"}
 							</div>
 							<div class="col-xs-12 col-sm-8 col-md-9 col-lg-9" id="main-content-with-sidebar">
-								{if $sectionLabel}
-									<div class="row">
-										<div class="col-tn-12">
-											<div id="sectionLabel">{$sectionLabel}</div>
-										</div>
-									</div>
+								{if $showBreadcrumbs}
+									{include file="breadcrumbs.tpl"}
 								{/if}
 								{if $module}
 									{include file="$module/$pageTemplate"}
@@ -111,9 +106,6 @@
 						{/if}
 
 					{else} {* Main Content Only, no sidebar *}
-						{if $sectionLabel}
-							<div id="sectionLabel">{$sectionLabel}</div>
-						{/if}
 						{if $module}
 							{include file="$module/$pageTemplate"}
 						{else}

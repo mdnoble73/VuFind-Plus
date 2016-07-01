@@ -54,6 +54,9 @@ class GroupedWork_Home extends Action{
 
 		$interface->assign('semanticData', json_encode($recordDriver->getSemanticData()));
 
+		// Send down text for inclusion in breadcrumbs
+		$interface->assign('breadcrumbText', $recordDriver->getBreadcrumb());
+
 		// Display Page
 
 //		global $configArray;

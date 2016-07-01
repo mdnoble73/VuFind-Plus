@@ -1,6 +1,6 @@
 {strip}
 	<div id="groupedRecord{$summId|escape}" class="resultsList">
-
+		<a name="record{$summId|escape}"/>
 		{if isset($summExplain)}
 			<div class="hidden" id="scoreExplanationValue{$summId|escape}">{$summExplain}</div>
 		{/if}
