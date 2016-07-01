@@ -15,7 +15,7 @@
 
 			<div class="col-sm-6">
 				<p><strong>Students, Faculty, and staff</strong>, login with your Fort Lewis College Network Account.</p>
-				<a href="{$path}MyAccount/Home?casLogin" class="btn btn-primary">Student/Faculty/Staff Login</a>
+				<a href="{$path}/MyAccount/Home?casLogin" class="btn btn-primary">Student/Faculty/Staff Login</a>
 			</div>
 
 			<div class="col-sm-6">

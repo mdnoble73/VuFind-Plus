@@ -11,12 +11,12 @@
 		<p class="alert alert-info" id="loading" style="display: none">
 			Logging you in now. Please wait.
 		</p>
-		<form method="post" action="{$path}MyAccount/Home" id="loginForm" class="form-horizontal">
+		<form method="post" action="{$path}/MyAccount/Home" id="loginForm" class="form-horizontal">
 			<div class="row">
 
 				<div class="col-sm-6">
 					<p><strong>Students, Faculty, and staff</strong>, login with your Fort Lewis College Network Account.</p>
-					<a href="{$path}MyAccount/Home?casLogin" class="btn btn-primary">Student/Faculty/Staff Login</a>
+					<a href="{$path}/MyAccount/Home?casLogin" class="btn btn-primary">Student/Faculty/Staff Login</a>
 				</div>
 
 				<div class="col-sm-6">
