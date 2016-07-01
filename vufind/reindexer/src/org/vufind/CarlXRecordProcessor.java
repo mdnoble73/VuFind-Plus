@@ -2,6 +2,7 @@ package org.vufind;
 
 import org.apache.log4j.Logger;
 import org.ini4j.Ini;
+import org.marc4j.marc.DataField;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -21,5 +22,19 @@ public class CarlXRecordProcessor extends IlsRecordProcessor {
 	@Override
 	protected boolean isItemAvailable(ItemInfo itemInfo) {
 		return itemInfo.getStatusCode().equals("S") || itemInfo.getStatusCode().equals("SI");
+	}
+
+	protected String getShelfLocationForItem(ItemInfo itemInfo, DataField itemField, String identifier) {
+		String locationCode = getItemSubfieldData(locationSubfieldIndicator, itemField);
+		String location = translateValue("location", locationCode, identifier);
+		String shelvingLocation = getItemSubfieldData(shelvingLocationSubfield, itemField);
+		if (shelvingLocation != null && !shelvingLocation.equals(locationCode)){
+			if (location == null){
+				location = translateValue("shelf_location", shelvingLocation, identifier);
+			}else {
+				location += " - " + translateValue("shelf_location", shelvingLocation, identifier);
+			}
+		}
+		return location;
 	}
 }
