@@ -81,7 +81,8 @@ checkConflictingProcesses "reindexer.jar arlington.production"
 cd /usr/local/vufind-plus/sites/${PIKASERVER}; ./${PIKASERVER}.sh restart
 
 #Extract from Hoopla
-cd /usr/local/vufind-plus/vufind/cron;./GetHooplaFromMarmot.sh >> ${OUTPUT_FILE}
+#Don't do, Arlington loads Hoopla records into Sierra
+#cd /usr/local/vufind-plus/vufind/cron;./GetHooplaFromMarmot.sh >> ${OUTPUT_FILE}
 
 #Extract Lexile Data
 #cd /data/vufind-plus/; wget -N --no-verbose http://venus.marmot.org/lexileTitles.txt
