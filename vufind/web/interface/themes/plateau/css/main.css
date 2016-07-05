@@ -10417,6 +10417,10 @@ a.browse-thumbnail.active {
   display: inline-block;
   margin: 3px;
 }
+.explore-more-scroller-link {
+  display: block;
+  text-align: center;
+}
 #header-logo {
   border-radius: 0.5em;
   margin-top: 7px;

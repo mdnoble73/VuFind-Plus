@@ -61,7 +61,7 @@
 					</ul>
 				</div>
 			</div>
-			<a href="{$section.link}" {if $section.openInNewWindow}target="_blank"{/if}>All Results {if $section.numFound}({$section.numFound}){/if}</a>
+			<a class="explore-more-scroller-link" href="{$section.link}" {if $section.openInNewWindow}target="_blank"{/if}>All Results {if $section.numFound}({$section.numFound}){/if}</a>
 
 		{elseif $section.format == 'textOnlyList'}
 			<ul>

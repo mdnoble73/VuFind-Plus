@@ -10417,3 +10417,7 @@ a.browse-thumbnail.active {
   display: inline-block;
   margin: 3px;
 }
+.explore-more-scroller-link {
+  display: block;
+  text-align: center;
+}

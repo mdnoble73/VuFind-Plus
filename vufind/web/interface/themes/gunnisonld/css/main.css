@@ -10417,6 +10417,10 @@ a.browse-thumbnail.active {
   display: inline-block;
   margin: 3px;
 }
+.explore-more-scroller-link {
+  display: block;
+  text-align: center;
+}
 @media (min-width: 768px) {
   #header-container {
     background-image: url('/interface/themes/gunnisonld/images/header_background.png');

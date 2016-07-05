@@ -10417,6 +10417,10 @@ a.browse-thumbnail.active {
   display: inline-block;
   margin: 3px;
 }
+.explore-more-scroller-link {
+  display: block;
+  text-align: center;
+}
 #header-container {
   background-image: url('/interface/themes/rampart/images/header_background.png');
 }
