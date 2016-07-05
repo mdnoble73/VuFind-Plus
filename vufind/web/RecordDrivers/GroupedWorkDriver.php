@@ -514,13 +514,9 @@ class GroupedWorkDriver extends RecordInterface{
 		$interface->assign('summFormats', $this->getFormats());
 		$interface->assign('numRelatedRecords', count($relatedRecords));
 		$acceleratedReaderInfo = $this->getAcceleratedReaderDisplayString();
-		if ($acceleratedReaderInfo != null){
-			$interface->assign('summArInfo', $acceleratedReaderInfo);
-		}
+		$interface->assign('summArInfo', $acceleratedReaderInfo);
 		$lexileInfo = $this->getLexileDisplayString();
-		if ($lexileInfo != null){
-			$interface->assign('summLexileInfo', $lexileInfo);
-		}
+		$interface->assign('summLexileInfo', $lexileInfo);
 		$timer->logTime("Finished assignment of main data");
 
 		// Obtain and assign snippet (highlighting) information:
