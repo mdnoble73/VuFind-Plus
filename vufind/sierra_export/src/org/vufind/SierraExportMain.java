@@ -303,6 +303,14 @@ public class SierraExportMain{
 				//Add a small buffer to be
 				Date lastExtractDate = new Date((lastSierraExtractTime - 120) * 1000);
 
+				Date now = new Date();
+				Date yesterday = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+
+				if (lastExtractDate.before(yesterday)){
+					logger.warn("Last Extract date was more than 24 hours ago.  Just getting the last 24 hours since we should have a full extract.");
+					lastExtractDate = yesterday;
+				}
+
 				SimpleDateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
 				dateFormatter.setTimeZone(TimeZone.getTimeZone("UTC"));
 				String dateUpdated = dateFormatter.format(lastExtractDate);
