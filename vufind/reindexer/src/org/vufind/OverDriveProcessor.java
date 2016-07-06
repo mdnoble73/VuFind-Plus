@@ -196,6 +196,9 @@ public class OverDriveProcessor {
 							itemInfo.setSubFormats(detailedFormats);
 							itemInfo.setFormatCategory(formatCategory);
 
+							//Need to set an identifier based on the scope so we can filter later.
+							itemInfo.setItemIdentifier(Long.toString(libraryId));
+
 							//TODO: Check to see if this is a pre-release title.  If not, suppress if the record has 0 copies owned
 							int copiesOwned = availabilityRS.getInt("copiesOwned");
 							itemInfo.setNumCopies(copiesOwned);
