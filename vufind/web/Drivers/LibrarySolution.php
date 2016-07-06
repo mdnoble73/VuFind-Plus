@@ -488,8 +488,7 @@ class LibrarySolution extends ScreenScrapingDriver {
 				}
 
 				//$expireDate = (string)$hold->expireDate;
-				//$curHold['expire'] = $expireDate;
-				//$curHold['expireTime'] = strtotime($expireDate);
+				//$curHold['expire'] = strtotime($expireDate);
 				$curHold['reactivate'] = $hold->suspendUntilDateString;
 
 				//MDN - it looks like holdCancelable is not accurate, setting to true always

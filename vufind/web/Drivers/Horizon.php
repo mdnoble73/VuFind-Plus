@@ -59,7 +59,7 @@ abstract class Horizon extends ScreenScrapingDriver{
 			}
 		}else{
 				$this->useDb = false;
-			}
+		}
 	}
 
 	public function getMyFines($patron, $includeMessages){

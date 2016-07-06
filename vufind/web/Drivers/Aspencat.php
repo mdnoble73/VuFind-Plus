@@ -1223,7 +1223,8 @@ class Aspencat implements DriverInterface{
 						$curHold['create'] = date_parse_from_format('m/d/Y', $tableCell);
 					}elseif ($headerLabels[$col] == 'expires on'){
 						if (strlen($tableCell) != 0){
-							$curHold['expire'] = date_parse_from_format('m/d/Y', $tableCell);
+							$dateTime = date_create_from_format('m/d/Y', $tableCell);
+							$curHold['expire'] = $dateTime->getTimestamp();
 						}
 					}elseif ($headerLabels[$col] == 'pick up location'){
 						if (strlen($tableCell) != 0){
@@ -1303,7 +1304,9 @@ class Aspencat implements DriverInterface{
 			$curHold['recordId'] = $curRow['biblionumber'];
 			$curHold['title'] = $curRow['title'];
 			$curHold['create'] = date_parse_from_format('Y-M-d H:m:s', $curRow['reservedate']);
-			$curHold['expire'] = date_parse_from_format('Y-M-d', $curRow['expirationdate']);
+			$dateTime = date_create_from_format('Y-M-d', $curRow['expirationdate']);
+			$curHold['expire'] = $dateTime->getTimestamp();
+
 			$curHold['location'] = $curRow['branchcode'];
 			$curHold['locationUpdateable'] = false;
 			$curHold['currentPickupName'] = $curHold['location'];

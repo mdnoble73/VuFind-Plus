@@ -303,8 +303,7 @@ class CarlX extends SIP2Driver{
 					$curHold['status']             = $this->holdStatusCodes[$hold->ItemStatus];  // TODO: Is this the correct thing for hold status. Alternative is Transaction Code
 					//TODO: Look up values for Hold Statuses
 
-					$curHold['expire']             = $expireDate;
-					$curHold['expireTime']         = strtotime($expireDate);
+					$curHold['expire']         = strtotime($expireDate);
 //						$curHold['reactivate']         = $reactivateDate; //TODO unavailable only
 //						$curHold['reactivateTime']     = strtotime($reactivateDate); //TODO unavailable only
 					$curHold['cancelable']         = strcasecmp($curHold['status'], 'Suspended') != 0; //TODO: need frozen status
@@ -371,8 +370,7 @@ class CarlX extends SIP2Driver{
 					$curHold['status']             = $this->holdStatusCodes[$hold->ItemStatus];  // TODO: Is this the correct thing for hold status. Alternative is Transaction Code
 					//TODO: Look up values for Hold Statuses
 
-					$curHold['expire']             = $expireDate;
-					$curHold['expireTime']         = strtotime($expireDate);
+					$curHold['expire']         = strtotime($expireDate);
 //						$curHold['reactivate']         = $reactivateDate; //TODO unavailable only
 //						$curHold['reactivateTime']     = strtotime($reactivateDate); //TODO unavailable only
 					$curHold['cancelable']         = strcasecmp($curHold['status'], 'Suspended') != 0; //TODO: need frozen status
