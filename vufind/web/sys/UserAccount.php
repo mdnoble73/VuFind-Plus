@@ -192,8 +192,10 @@ class UserAccount {
 				}
 			}else{
 				global $logger;
-				$logger->log("Error authenticating patron for driver {$driverName}\r\n" . print_r($user, true), PEAR_LOG_ERR);
+				$username = isset($_REQUEST['username']) ? $_REQUEST['username'] : 'No username provided';
+				$logger->log("Error authenticating patron $username for driver {$driverName}\r\n" . print_r($user, true), PEAR_LOG_ERR);
 				$lastError = $tempUser;
+				$logger->log($lastError->toString(), PEAR_LOG_ERR);
 			}
 		}
 

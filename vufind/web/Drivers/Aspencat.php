@@ -265,12 +265,8 @@ class Aspencat implements DriverInterface{
 
 		$this->initDatabaseConnection();
 
-		$sql = "SELECT issues.*, items.biblionumber, title, author from issues left join items on items.itemnumber = issues.itemnumber left join biblio ON items.biblionumber = biblio.biblionumber where borrowernumber = ?";
-		$checkoutsStmt = mysqli_prepare($this->dbConnection, $sql);
-		$checkoutsStmt->bind_param('i', $patron->username);
-		$checkoutsStmt->execute();
-
-		$results = $checkoutsStmt->get_result();
+		$sql = "SELECT issues.*, items.biblionumber, title, author from issues left join items on items.itemnumber = issues.itemnumber left join biblio ON items.biblionumber = biblio.biblionumber where borrowernumber = {$patron->username}";
+		$results = mysqli_query($this->dbConnection, $sql);
 		while ($curRow = $results->fetch_assoc()){
 			$transaction = array();
 			$transaction['checkoutSource'] = 'ILS';
@@ -388,9 +384,8 @@ class Aspencat implements DriverInterface{
 		return $sResult;
 	}
 
-	/** @var mysqli_stmt  */
-	private $getUserInfoStmt = null;
 	public function patronLogin($username, $password, $validatedViaSSO) {
+		global $logger;
 		//Remove any spaces from the barcode
 		$username = trim($username);
 		$password = trim($password);
@@ -414,11 +409,12 @@ class Aspencat implements DriverInterface{
 		}
 
 		foreach ($barcodesToTest as $i=>$barcode) {
-			$this->getUserInfoStmt->bind_param('ss', $barcode, $barcode);
+			$sql = "SELECT borrowernumber, cardnumber, surname, firstname, streetnumber, streettype, address, address2, city, zipcode, country, email, phone, mobile, categorycode, dateexpiry, password, userid, branchcode from borrowers where cardnumber = '" . mysqli_escape_string($this->dbConnection, $barcode). "' OR userid = '" . mysqli_escape_string($this->dbConnection, $barcode). "'";
 			$encodedPassword = rtrim(base64_encode(pack('H*', md5($password))), '=');
 
-			if ($this->getUserInfoStmt->execute()) {
-				if ($userFromDbResultSet = $this->getUserInfoStmt->get_result()) {
+			$lookupUserResult = mysqli_query($this->dbConnection, $sql, MYSQLI_USE_RESULT);
+			if ($lookupUserResult) {
+				if ($userFromDbResultSet = $lookupUserResult) {
 					$userFromDb = $userFromDbResultSet->fetch_assoc();
 					if ($userFromDb['password'] == $encodedPassword || $validatedViaSSO) {
 						$userExistsInDB = false;
@@ -584,7 +580,11 @@ class Aspencat implements DriverInterface{
 						$userFromDbResultSet->close();
 						return $user;
 					}
+				}else{
+					$logger->log("MySQL did not return a result for getUserInfoStmt", PEAR_LOG_ERR);
 				}
+			}else{
+				$logger->log("Unable to execute getUserInfoStmt " .  mysqli_error($this->dbConnection), PEAR_LOG_ERR);
 			}
 		}
 		return null;
@@ -599,9 +599,6 @@ class Aspencat implements DriverInterface{
 				global $logger;
 				$logger->log("Error connecting to Koha database " . mysqli_error($this->dbConnection), PEAR_LOG_ERR);
 				$this->dbConnection = null;
-			}else{
-				$sql = "SELECT borrowernumber, cardnumber, surname, firstname, streetnumber, streettype, address, address2, city, zipcode, country, email, phone, mobile, categorycode, dateexpiry, password, userid, branchcode from borrowers where cardnumber = ? OR userid = ?";
-				$this->getUserInfoStmt = mysqli_prepare($this->dbConnection, $sql);
 			}
 			global $timer;
 			$timer->logTime("Initialized connection to Koha");
@@ -628,6 +625,7 @@ class Aspencat implements DriverInterface{
 			}
 			mysqli_close($this->dbConnection);
 		}
+
 		if ($this->cookieFile != null){
 			unlink($this->cookieFile);
 		}
@@ -682,18 +680,16 @@ class Aspencat implements DriverInterface{
 					LEFT JOIN items on items.itemnumber=issues.itemnumber
 					LEFT JOIN biblio ON items.biblionumber=biblio.biblionumber
 					LEFT JOIN biblioitems ON items.biblioitemnumber=biblioitems.biblioitemnumber
-					WHERE borrowernumber=?
+					WHERE borrowernumber={$patron->username}
 					UNION ALL
 					SELECT *,old_issues.renewals AS renewals,items.renewals AS totalrenewals,items.timestamp AS itemstimestamp
 					FROM old_issues
 					LEFT JOIN items on items.itemnumber=old_issues.itemnumber
 					LEFT JOIN biblio ON items.biblionumber=biblio.biblionumber
 					LEFT JOIN biblioitems ON items.biblioitemnumber=biblioitems.biblioitemnumber
-					WHERE borrowernumber=?";
-				$readingHistoryTitleStmt = mysqli_prepare($this->dbConnection, $readingHistoryTitleSql);
-				$readingHistoryTitleStmt->bind_param('ii', $patron->username, $patron->username);
-				if ($readingHistoryTitleStmt->execute()){
-					$readingHistoryTitleRS = $readingHistoryTitleStmt->get_result();
+					WHERE borrowernumber={$patron->username}";
+				$readingHistoryTitleRS = mysqli_query($this->dbConnection, $readingHistoryTitleSql);
+				if ($readingHistoryTitleRS){
 					while ($readingHistoryTitleRow = $readingHistoryTitleRS->fetch_assoc()){
 						$curTitle = array();
 						$curTitle['id'] = $readingHistoryTitleRow['biblionumber'];
@@ -1295,12 +1291,8 @@ class Aspencat implements DriverInterface{
 
 		$this->initDatabaseConnection();
 
-		$sql = "SELECT *, title, author FROM reserves inner join biblio on biblio.biblionumber = reserves.biblionumber where borrowernumber = ?";
-		$holdsStmt = mysqli_prepare($this->dbConnection, $sql);
-		$holdsStmt->bind_param('i', $patron->username);
-		$holdsStmt->execute();
-
-		$results = $holdsStmt->get_result();
+		$sql = "SELECT *, title, author FROM reserves inner join biblio on biblio.biblionumber = reserves.biblionumber where borrowernumber = {$patron->username}";
+		$results = mysqli_query($this->dbConnection, $sql);
 		while ($curRow = $results->fetch_assoc()){
 			//Each row in the table represents a hold
 			$curHold= array();
@@ -1590,23 +1582,17 @@ class Aspencat implements DriverInterface{
 		$this->initDatabaseConnection();
 
 		//Get a list of outstanding fees
-		$query = "SELECT * FROM fees JOIN fee_transactions AS ft on(id = fee_id) WHERE borrowernumber = ? and accounttype in (select accounttype from accounttypes where class='fee' or class='invoice') ";
+		$query = "SELECT * FROM fees JOIN fee_transactions AS ft on(id = fee_id) WHERE borrowernumber = {$patron->username} and accounttype in (select accounttype from accounttypes where class='fee' or class='invoice') ";
 
-		$allFeesStmt = mysqli_prepare($this->dbConnection, $query);
-		$allFeesStmt->bind_param('i', $patron->username);
-		$allFeesStmt->execute( );
-		$allFeesRS = $allFeesStmt->get_result();
-
-		$query2 = "SELECT sum(amount) as amountOutstanding from fees LEFT JOIN fee_transactions on (fees.id=fee_transactions.fee_id) where fees.id = ?";
-		$outstandingFeesStmt = mysqli_prepare($this->dbConnection, $query2);
+		$allFeesRS = mysqli_query($this->dbConnection, $query);
 
 		$fines = array();
 		while ($allFeesRow = $allFeesRS->fetch_assoc()){
 			$feeId = $allFeesRow['id'];
-			$outstandingFeesStmt->bind_param('i', $feeId);
-			$outstandingFeesStmt->execute();
+			$query2 = "SELECT sum(amount) as amountOutstanding from fees LEFT JOIN fee_transactions on (fees.id=fee_transactions.fee_id) where fees.id = $feeId";
 
-			$outstandingFeesRow = $outstandingFeesStmt->get_result()->fetch_assoc();
+			$outstandingFeesRS = mysqli_query($this->dbConnection, $query2);
+			$outstandingFeesRow = $outstandingFeesRS->fetch_assoc();
 			$amountOutstanding = $outstandingFeesRow['amountOutstanding'];
 			if ($amountOutstanding > 0){
 				$curFine = array(
@@ -1618,7 +1604,9 @@ class Aspencat implements DriverInterface{
 				);
 				$fines[] = $curFine;
 			}
+			$outstandingFeesRS->close();
 		}
+		$allFeesRS->close();
 
 		return $fines;
 	}
@@ -1684,17 +1672,12 @@ class Aspencat implements DriverInterface{
 		$numHolds = 0;
 
 		$this->initDatabaseConnection();
-		if ($this->getNumHoldsStmt == null){
-			$sql = "SELECT count(*) from reserves where biblionumber = ?";
-			$this->getNumHoldsStmt = mysqli_prepare($this->dbConnection, $sql);
-		}
-		$this->getNumHoldsStmt->bind_param("i", $recordId);
-		if (!$this->getNumHoldsStmt->execute()){
+		$sql = "SELECT count(*) from reserves where biblionumber = $id";
+		$results = mysqli_query($this->dbConnection, $sql);
+		if (!$results){
 			global $logger;
-			$logger->log("Unable to load hold count from Koha ({$this->getNumHoldsStmt->errno}) {$this->getNumHoldsStmt->error}", PEAR_LOG_ERR);
-
+			$logger->log("Unable to load hold count from Koha (" . mysqli_errno($this->dbConnection) . ") " . mysqli_error($this->dbConnection), PEAR_LOG_ERR);
 		}else{
-			$results = $this->getNumHoldsStmt->get_result();
 			$curRow = $results->fetch_row();
 			$numHolds = $curRow[0];
 			$results->close();
@@ -1708,9 +1691,6 @@ class Aspencat implements DriverInterface{
 		return $numHolds;
 	}
 
-	/** @var mysqli_stmt  */
-	private $getHoldsForBibStmt = null;
-
 	private function getInTransitHoldsForBibFromKohaDB($recordId){
 		$holdsForBib = array();
 
@@ -1720,18 +1700,14 @@ class Aspencat implements DriverInterface{
 
 		$this->initDatabaseConnection();
 
-		if ($this->getHoldsForBibStmt == null){
-			$sql = "SELECT itemnumber from reserves WHERE biblionumber = ? AND found = 'T'";
-			$this->getHoldsForBibStmt = mysqli_prepare($this->dbConnection, $sql);
-		}
-		$this->getHoldsForBibStmt->bind_param("i", $recordId);
+		$sql = "SELECT count(*) from reserves where biblionumber = $recordId AND found = 'T'";
+		$results = mysqli_query($this->dbConnection, $sql);
 
-		if (!$this->getHoldsForBibStmt->execute()){
+		if (!$results){
 			global $logger;
-			$logger->log("Unable to load holdings from Koha ({$this->getHoldingsStmt->errno}) {$this->getHoldingsStmt->error}", PEAR_LOG_ERR);
+			$logger->log("Unable to load in transit hold count from Koha (" . mysqli_errno($this->dbConnection) . ") " . mysqli_error($this->dbConnection), PEAR_LOG_ERR);
 		}else{
 			//Read the information
-			$results = $this->getHoldsForBibStmt->get_result();
 			while ($curRow = $results->fetch_assoc()){
 				$holdsForBib[$curRow['itemnumber']] = $curRow['itemnumber'];
 			}
@@ -1751,21 +1727,23 @@ class Aspencat implements DriverInterface{
 		//Since borrowernumber is stored in fees and payments, not fee_transactions,
 		//this is done with two queries: the first gets all outstanding charges, the second
 		//picks up any unallocated credits.
+		$amountOutstanding = 0;
 		$this->initDatabaseConnection();
-		$stmt = mysqli_prepare($this->dbConnection, "SELECT SUM(amount) FROM fees LEFT JOIN fee_transactions on(fees.id = fee_transactions.fee_id) where fees.borrowernumber = ?");
-		$stmt->bind_param('i', $patron->username);
-		/** @var mysqli_result $result */
-		$stmt->execute( );
-		$amountOutstanding = $stmt->get_result()->fetch_array();
-		$amountOutstanding = $amountOutstanding[0];
+		$amountOutstandingRS = mysqli_query($this->dbConnection, "SELECT SUM(amount) FROM fees LEFT JOIN fee_transactions on(fees.id = fee_transactions.fee_id) where fees.borrowernumber = {$patron->username}");
+		if ($amountOutstandingRS){
+			$amountOutstanding = $amountOutstandingRS->fetch_array();
+			$amountOutstanding = $amountOutstanding[0];
+			$amountOutstandingRS->close();
+		}
 
-		$creditStmt = mysqli_prepare($this->dbConnection, "SELECT SUM(amount) FROM payments LEFT JOIN fee_transactions on(payments.id = fee_transactions.payment_id) where payments.borrowernumber = ? and fee_id is null" );
-		$creditStmt->bind_param('i', $patron->username);
-		$creditStmt->execute();
-		$credit = $creditStmt->get_result()->fetch_array();
-		$credit = $credit[0];
-		if ($credit != null){
-			$amountOutstanding += $credit;
+		$creditRS = mysqli_query($this->dbConnection, "SELECT SUM(amount) FROM payments LEFT JOIN fee_transactions on(payments.id = fee_transactions.payment_id) where payments.borrowernumber = ? and fee_id is null" );
+		if ($creditRS){
+			$credit = $creditRS->fetch_array();
+			$credit = $credit[0];
+			if ($credit != null){
+				$amountOutstanding += $credit;
+			}
+			$creditRS->close();
 		}
 
 		return $amountOutstanding ;
