@@ -295,8 +295,7 @@ abstract class HorizonAPI extends Horizon{
 				$curHold['locationUpdateable'] = true;
 				$curHold['currentPickupName']  = $curHold['location'];
 				$curHold['status']             = ucfirst(strtolower((string)$hold->status));
-				$curHold['expire']             = $expireDate;
-				$curHold['expireTime']         = strtotime($expireDate);
+				$curHold['expire']             = strtotime($expireDate);
 				$curHold['reactivate']         = $reactivateDate;
 				$curHold['reactivateTime']     = strtotime($reactivateDate);
 				$curHold['cancelable']         = strcasecmp($curHold['status'], 'Suspended') != 0;

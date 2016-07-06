@@ -224,7 +224,7 @@ class MyAccount_Holds extends MyAccount{
 				->setCellValue('D'.$a, isset($row['createTime']) ? date('M d, Y', $row['createTime']) : '')
 				->setCellValue('E'.$a, $row['location'])
 				->setCellValue('F'.$a, isset($row['availableTime']) ? date('M d, Y', strtotime($row['availableTime'])) : 'Now')
-				->setCellValue('G'.$a, date('M d, Y', !empty($row['expireTime']) ? $row['expireTime'] : $row['expire'])); //prefer expireTime because it is a timestamp
+				->setCellValue('G'.$a, date('M d, Y', $row['expire'])); //prefer expireTime because it is a timestamp
 			} else {
 				if (isset($row['status'])){
 					$statusCell = $row['status'];

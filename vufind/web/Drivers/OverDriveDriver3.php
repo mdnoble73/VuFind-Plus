@@ -581,8 +581,7 @@ class OverDriveDriver3 {
 				$hold['holdQueuePosition'] = $curTitle->holdListPosition;
 				$hold['available'] = isset($curTitle->actions->checkout);
 				if ($hold['available']){
-					$hold['expirationDate'] = strtotime($curTitle->holdExpires);
-					$hold['expire'] = $hold['expirationDate'];
+					$hold['expire'] = strtotime($curTitle->holdExpires);
 				}
 				$hold['holdSource'] = 'OverDrive';
 
