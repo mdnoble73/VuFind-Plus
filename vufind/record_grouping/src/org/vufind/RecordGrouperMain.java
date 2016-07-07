@@ -22,6 +22,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.Date;
+import java.util.regex.Pattern;
 import java.util.zip.CRC32;
 
 /**
@@ -208,7 +209,6 @@ public class RecordGrouperMain {
 		}
 
 		RecordGroupingProcessor recordGroupingProcessor = new RecordGroupingProcessor(vufindConn, serverName, configIni, logger, true);
-		generateAuthorAuthoritiesForHooplaRecords(configIni, currentAuthorities, manualAuthorities, authoritiesWriter, recordGroupingProcessor);
 		generateAuthorAuthoritiesForIlsRecords(configIni, currentAuthorities, manualAuthorities, authoritiesWriter, recordGroupingProcessor);
 		generateAuthorAuthoritiesForOverDriveRecords(econtentConnection, currentAuthorities, manualAuthorities, authoritiesWriter);
 
@@ -361,46 +361,6 @@ public class RecordGrouperMain {
 					}
 					logger.info("Finished grouping " + numRecordsRead + " records from the ils file " + curBibFile.getName());
 				}
-			}
-		}
-	}
-
-	private static void generateAuthorAuthoritiesForHooplaRecords(Ini configIni, HashMap<String, String> currentAuthorities, HashMap<String, String> manualAuthorities, CSVWriter authoritiesWriter, RecordGroupingProcessor recordGroupingProcessor) {
-		if (configIni.containsKey("Hoopla")){
-			int numRecordsRead;
-			Profile.Section hooplaSection = configIni.get("Hoopla");
-			String marcPath = hooplaSection.get("marcPath");
-			if(marcPath == null){
-				return;
-			}
-			String marcEncoding = configIni.get("Hoopla", "marcEncoding");
-
-			logger.debug("Generating authorities for Hoopla Records");
-
-			//Figure out what we need to process
-			ArrayList<File> marcRecordFilesToProcess = loadHooplaFilesToProcess(hooplaSection, marcPath, true);
-
-			//Process each file in turn
-			for (File marcFile : marcRecordFilesToProcess){
-				numRecordsRead = 0;
-				try {
-					FileInputStream marcFileStream = new FileInputStream(marcFile);
-					MarcReader catalogReader = new MarcPermissiveStreamReader(marcFileStream, true, true, marcEncoding);
-
-					//File has been opened, process each record within the file
-					while (catalogReader.hasNext()) {
-						Record curBib = catalogReader.next();
-						GroupedWorkBase work = recordGroupingProcessor.setupBasicWorkForHooplaRecord(curBib);
-						addAlternateAuthoritiesForWorkToAuthoritiesFile(currentAuthorities, manualAuthorities, authoritiesWriter, work);
-
-						numRecordsRead++;
-					}
-
-					marcFileStream.close();
-				} catch (Exception e) {
-					logger.error("Error loading hoopla bibs on record " + numRecordsRead , e);
-				}
-				logger.info("Finished loading authorities, read " + numRecordsRead + " records from the hoopla file " + marcFile.getName());
 			}
 		}
 	}
@@ -720,6 +680,7 @@ public class RecordGrouperMain {
 					profile.id = indexingProfilesRS.getLong(1);
 					profile.name = indexingProfilesRS.getString("name");
 					profile.marcPath = indexingProfilesRS.getString("marcPath");
+					profile.filenamesToInclude = indexingProfilesRS.getString("filenamesToInclude");
 					profile.individualMarcPath = indexingProfilesRS.getString("individualMarcPath");
 					profile.groupingClass = indexingProfilesRS.getString("groupingClass");
 					profile.recordNumberTag = indexingProfilesRS.getString("recordNumberTag");
@@ -738,9 +699,6 @@ public class RecordGrouperMain {
 				System.exit(1);
 			}
 
-			if (indexingProfileToRun == null || indexingProfileToRun.equalsIgnoreCase("hoopla")) {
-				groupHooplaRecords(configIni, recordGroupingProcessor, explodeMarcsOnly);
-			}
 			if (indexingProfileToRun == null || indexingProfileToRun.equalsIgnoreCase("overdrive")) {
 				groupOverDriveRecords(configIni, econtentConnection, recordGroupingProcessor, explodeMarcsOnly);
 			}
@@ -836,83 +794,6 @@ public class RecordGrouperMain {
 		return result;
 	}
 
-	private static void groupHooplaRecords(Ini configIni, RecordGroupingProcessor recordGroupingProcessor, boolean explodeMarcsOnly) {
-		if (configIni.containsKey("Hoopla")){
-			int numRecordsProcessed;
-			int numRecordsRead;
-			Profile.Section hooplaSection = configIni.get("Hoopla");
-			String marcPath = hooplaSection.get("marcPath");
-			if(marcPath == null){
-				return;
-			}
-			String marcEncoding = configIni.get("Hoopla", "marcEncoding");
-			String individualMarcPath = configIni.get("Hoopla", "individualMarcPath");
-
-			//Setup to write record numbers to file so we can do validation to make sure that
-			//all records are accounted for when we index.
-			TreeSet<String> recordNumbersInExport = new TreeSet<>();
-
-			logger.debug("Grouping Hoopla Records");
-
-			//Figure out what we need to process
-			ArrayList<File> marcRecordFilesToProcess = loadHooplaFilesToProcess(hooplaSection, marcPath, false);
-			if (marcRecordFilesToProcess.size() == 0){
-				return;
-			}
-
-			//Load all files in the individual marc path.  This allows us to list directories rather than doing millions of
-			//individual look ups
-			HashSet<String> existingMarcFiles = new HashSet<>();
-			File individualMarcFile = new File(individualMarcPath);
-			logger.debug("Starting to read existing marc files for Hoopla from disc");
-			loadExistingMarcFiles(individualMarcFile, existingMarcFiles);
-			logger.debug("Finished reading existing marc files for Hoopla from disc");
-
-			//Process each file in turn
-			for (File marcFile : marcRecordFilesToProcess){
-				numRecordsProcessed = 0;
-				numRecordsRead = 0;
-				try {
-					FileInputStream marcFileStream = new FileInputStream(marcFile);
-					MarcReader catalogReader = new MarcPermissiveStreamReader(marcFileStream, true, true, marcEncoding);
-
-					//File has been opened, process each record within the file
-					while (catalogReader.hasNext()) {
-						Record curBib = catalogReader.next();
-						//Get the unique record number for the Hoopla record (in this case we will use 001)
-						String recordNumber = curBib.getControlNumber();
-						recordNumbersInExport.add(recordNumber);
-						boolean marcUpToDate = writeIndividualMarc(existingMarcFiles, individualMarcPath, curBib, recordNumber, "hoopla", 7);
-						if (!explodeMarcsOnly) {
-							if (!marcUpToDate || fullRegroupingNoClear) {
-								recordGroupingProcessor.processHooplaRecord(curBib, recordNumber, !marcUpToDate);
-								numRecordsProcessed++;
-							}
-							//Mark that the record was processed
-							if (!marcRecordIdsInDatabase.remove("hoopla:" + recordNumber)) {
-								//This happens for newly added records
-								//logger.warn("Did not find hoopla:" + recordNumber + " in marcRecordIdsInDatabase");
-							}
-						}
-						numRecordsRead++;
-						if (numRecordsRead % 100000 == 0){
-							recordGroupingProcessor.dumpStats();
-						}
-					}
-
-					marcFileStream.close();
-				} catch (Exception e) {
-					logger.error("Error loading hoopla bibs on record " + numRecordsRead, e);
-				}
-				logger.info("Finished grouping " + numRecordsRead + " records with " + numRecordsProcessed + " actual changes from the hoopla file " + marcFile.getName());
-			}
-
-			writeExistingRecordsFile(configIni, recordNumbersInExport, "record_grouping_hoopla_bibs_in_export");
-		}
-
-		//TODO: Don't forget to process deletions
-	}
-
 	private static SimpleDateFormat dayFormatter = new SimpleDateFormat("yyyy-MM-dd");
 	private static void writeExistingRecordsFile(Ini configIni, TreeSet<String> recordNumbersInExport, String filePrefix) {
 		try {
@@ -931,100 +812,6 @@ public class RecordGrouperMain {
 		} catch (IOException e) {
 			logger.error("Unable to write existing records to " + filePrefix, e);
 		}
-	}
-
-	/**
-	 * Load hoopla files to be processed.
-	 * If we are generating authorities, we will skip the music because hoopla has some
-	 * "strange" formatting in the records.
-	 *
-	 * @param hooplaSection   The hoopla section of config ini
-	 * @param marcPath        The path to hoopla data
-	 * @param forAuthorities  Whether or not we are loading for authority information
-	 * @return a list of files to be processed.
-	 */
-	private static ArrayList<File> loadHooplaFilesToProcess(Profile.Section hooplaSection, String marcPath, boolean forAuthorities) {
-		ArrayList<File> marcRecordFilesToProcess = new ArrayList<>();
-		boolean includeAudioBooks = cleanIniValue(hooplaSection.get("includeAudioBooks")).equalsIgnoreCase("true");
-		boolean includeNoPAMusic = cleanIniValue(hooplaSection.get("includeNoPAMusic")).equalsIgnoreCase("true");
-		boolean includePAMusic = cleanIniValue(hooplaSection.get("includePAMusic")).equalsIgnoreCase("true");
-		boolean includeAllMusic = cleanIniValue(hooplaSection.get("includeAllMusic")).equalsIgnoreCase("true");
-		boolean includeTV = cleanIniValue(hooplaSection.get("includeTV")).equalsIgnoreCase("true");
-		boolean includeMovies = cleanIniValue(hooplaSection.get("includeMovies")).equalsIgnoreCase("true");
-		boolean includeEBooks = cleanIniValue(hooplaSection.get("includeEBooks")).equalsIgnoreCase("true");
-		boolean includeComics = cleanIniValue(hooplaSection.get("includeComics")).equalsIgnoreCase("true");
-
-		if (includeAudioBooks){
-			File marcFile = new File(marcPath + "/USA_AB.mrc");
-			if (marcFile.exists()){
-				marcRecordFilesToProcess.add(marcFile);
-			}else{
-				logger.warn("Configuration states that Hoopla Audiobooks should be processed, but file was not found. " + marcFile.toString());
-			}
-		}
-
-		if (includeAllMusic && !forAuthorities){
-			File marcFile = new File(marcPath + "/USA_ALL_Music.mrc");
-			if (marcFile.exists()) {
-				marcRecordFilesToProcess.add(marcFile);
-			} else {
-				logger.warn("Configuration states that ALL Hoopla Music should be processed, but file was not found. " + marcFile.toString());
-			}
-		} else {
-			if (includeNoPAMusic && !forAuthorities) {
-				File marcFile = new File(marcPath + "/USA_No_PA_Music.mrc");
-				if (marcFile.exists()) {
-					marcRecordFilesToProcess.add(marcFile);
-				} else {
-					logger.warn("Configuration states that Hoopla Music with no Parental Advisories should be processed, but file was not found. " + marcFile.toString());
-				}
-			}
-			if (includePAMusic && !forAuthorities) {
-				File marcFile = new File(marcPath + "/USA_Only_PA_Music.mrc");
-				if (marcFile.exists()) {
-					marcRecordFilesToProcess.add(marcFile);
-				} else {
-					logger.warn("Configuration states that Hoopla Music with Parental Advisories should be processed, but file was not found. " + marcFile.toString());
-				}
-			}
-		}
-
-		if (includeTV){
-			File marcFile = new File(marcPath + "/USA_TV_Video.mrc");
-			if (marcFile.exists()){
-				marcRecordFilesToProcess.add(marcFile);
-			}else{
-				logger.warn("Configuration states that Hoopla TV Video should be processed, but file was not found. " + marcFile.toString());
-			}
-		}
-
-		if (includeMovies){
-			File marcFile = new File(marcPath + "/USA_Video.mrc");
-			if (marcFile.exists()){
-				marcRecordFilesToProcess.add(marcFile);
-			}else{
-				logger.warn("Configuration states that Hoopla Movies should be processed, but file was not found. " + marcFile.toString());
-			}
-		}
-
-		if (includeEBooks){
-			File marcFile = new File(marcPath + "/USA_ALL_eBook.mrc");
-			if (marcFile.exists()){
-				marcRecordFilesToProcess.add(marcFile);
-			}else{
-				logger.warn("Configuration states that Hoopla eBooks should be processed, but file was not found. " + marcFile.toString());
-			}
-		}
-
-		if (includeComics){
-			File marcFile = new File(marcPath + "/USA_ALL_Comic.mrc");
-			if (marcFile.exists()){
-				marcRecordFilesToProcess.add(marcFile);
-			}else{
-				logger.warn("Configuration states that Hoopla Comics should be processed, but file was not found. " + marcFile.toString());
-			}
-		}
-		return marcRecordFilesToProcess;
 	}
 
 	private static void updateLastGroupingTime(Connection vufindConn) {
@@ -1278,8 +1065,7 @@ public class RecordGrouperMain {
 			}else if (curProfile.groupingClass.equals("SideLoadedRecordGrouper")){
 				recordGroupingProcessor = new SideLoadedRecordGrouper(dbConnection, curProfile, logger, fullRegrouping);
 			}else if (curProfile.groupingClass.equals("HooplaRecordGrouper")){
-				//Ignore hoopla records since those group separately
-				continue;
+				recordGroupingProcessor = new HooplaRecordGrouper(dbConnection, curProfile, logger, fullRegrouping);
 			}else{
 				logger.error("Unknown class for record grouping " + curProfile.groupingClass);
 				continue;
@@ -1308,10 +1094,11 @@ public class RecordGrouperMain {
 			TreeSet<String> recordNumbersToIndex = new TreeSet<>();
 
 			File[] catalogBibFiles = new File(marcPath).listFiles();
+			Pattern filesToMatchPattern = Pattern.compile(curProfile.filenamesToInclude, Pattern.CASE_INSENSITIVE);
 			if (catalogBibFiles != null) {
 				String lastRecordProcessed = "";
 				for (File curBibFile : catalogBibFiles) {
-					if (curBibFile.getName().toLowerCase().endsWith(".mrc") || curBibFile.getName().toLowerCase().endsWith(".marc")) {
+					if (filesToMatchPattern.matcher(curBibFile.getName()).matches()) {
 						try {
 							FileInputStream marcFileStream = new FileInputStream(curBibFile);
 							MarcReader catalogReader = new MarcPermissiveStreamReader(marcFileStream, true, true, marcEncoding);
@@ -1332,7 +1119,7 @@ public class RecordGrouperMain {
 										suppressedControlNumbersInExport.add(recordIdentifier.getIdentifier());
 									}else{
 										String recordNumber = recordIdentifier.getIdentifier();
-										boolean marcUpToDate = writeIndividualMarc(existingMarcFiles, individualMarcPath, curBib, recordNumber, curProfile.name, 4);
+										boolean marcUpToDate = writeIndividualMarc(existingMarcFiles, individualMarcPath, curBib, recordNumber, curProfile.name, recordGroupingProcessor.getNumCharsInPrefix());
 										recordNumbersInExport.add(recordIdentifier.toString());
 										if (!explodeMarcsOnly) {
 											if (!marcUpToDate || fullRegroupingNoClear) {

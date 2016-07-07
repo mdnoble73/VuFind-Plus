@@ -199,6 +199,14 @@ function getIndexingUpdates() {
 			)
 		),
 
+		'indexing_profile_filenames_to_include' => array(
+			'title' => 'Indexing Profiles - filenames to include',
+			'description' => 'Allow additional control over which files are included in an indexing profile',
+			'sql' => array(
+					"ALTER TABLE indexing_profiles ADD COLUMN `filenamesToInclude` varchar(250) DEFAULT '.*\\\\.ma?rc'",
+			)
+		),
+
 		'translation_map_regex' => array(
 			'title' => 'Translation Maps Regex',
 			'description' => 'Setup Translation Maps to use regular expressions',

@@ -95,4 +95,8 @@ public class MarcRecordGrouper extends RecordGroupingProcessor{
 			return false;
 		}
 	}
+
+	public int getNumCharsInPrefix() {
+		return 4;
+	}
 }
