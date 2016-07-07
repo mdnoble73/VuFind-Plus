@@ -1738,7 +1738,6 @@ class MarcRecord extends IndexRecord
 			'501' => '"With"',
 			'502' => 'Dissertation',
 			'504' => 'Bibliography',
-			'505' => 'Formatted Contents',
 			'506' => 'Restrictions on Access',
 			'507' => 'Scale for Graphic Material',
 			'508' => 'Creation/Production Credits',
