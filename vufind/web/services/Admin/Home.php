@@ -27,6 +27,12 @@ class Home extends Admin_Admin {
 		global $configArray;
 		global $interface;
 
+		require_once ROOT_DIR . '/services/API/SearchAPI.php';
+		$indexStatus = new SearchAPI();
+		$pikaStatus = $indexStatus->getIndexStatus();
+		$interface->assign('PikaStatus', $pikaStatus['status']);
+		$interface->assign('PikaStatusMessages', explode(';', $pikaStatus['message']));
+
 		// Load SOLR Statistics
 		if ($configArray['Index']['engine'] == 'Solr') {
 			$xml = @file_get_contents($configArray['Index']['url'] . '/admin/cores');
@@ -53,10 +59,7 @@ class Home extends Admin_Admin {
 			}
 		}
 
-		$interface->assign('sidebar', 'MyAccount/account-sidebar.tpl');
-		$interface->setTemplate('home.tpl');
-		$interface->setPageTitle('Home');
-		$interface->display('layout.tpl');
+		$this->display('home.tpl', 'Solr Information');
 	}
 
 	function getAllowableRoles() {
