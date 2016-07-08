@@ -53,7 +53,7 @@ class CarlX extends SIP2Driver{
 
 					$userExistsInDB = false;
 					$user = new User();
-					$user->source = $this->accountProfile->name;
+					$user->source   = $this->accountProfile->name;
 					$user->username = $result->Patron->GeneralUserID;
 					if ($user->find(true)){
 						$userExistsInDB = true;
@@ -73,10 +73,14 @@ class CarlX extends SIP2Driver{
 					if ($forceDisplayNameUpdate){
 						$user->displayName = '';
 					}
-					$user->fullname = isset($fullName) ? $fullName : '';
+					$user->fullname     = isset($fullName) ? $fullName : '';
 					$user->cat_username = $username;
 					$user->cat_password = $password;
-					$user->email = $result->Patron->Email;
+					$user->email        = $result->Patron->Email;
+
+					if ($userExistsInDB && $user->trackReadingHistory != $result->Patron->LoanHistoryOptInFlag) {
+						$user->trackReadingHistory = $result->Patron->LoanHistoryOptInFlag;
+					}
 
 					$homeBranchCode = strtolower($result->Patron->DefaultBranch);
 					$location = new Location();
@@ -271,7 +275,7 @@ class CarlX extends SIP2Driver{
 		);
 
 		//Search for the patron in the database
-		$result = $this->getParonTransactions($user);
+		$result = $this->getPatronTransactions($user);
 
 		if ($result && ($result->HoldItemsCount > 0 || $result->UnavailableHoldsCount > 0)) {
 			if ($result->HoldItemsCount > 0) {
@@ -303,7 +307,7 @@ class CarlX extends SIP2Driver{
 					$curHold['status']             = $this->holdStatusCodes[$hold->ItemStatus];  // TODO: Is this the correct thing for hold status. Alternative is Transaction Code
 					//TODO: Look up values for Hold Statuses
 
-					$curHold['expire']         = strtotime($expireDate);
+					$curHold['expire']         = strtotime($expireDate); // give a time stamp
 //						$curHold['reactivate']         = $reactivateDate; //TODO unavailable only
 //						$curHold['reactivateTime']     = strtotime($reactivateDate); //TODO unavailable only
 					$curHold['cancelable']         = strcasecmp($curHold['status'], 'Suspended') != 0; //TODO: need frozen status
@@ -511,7 +515,7 @@ class CarlX extends SIP2Driver{
 
 		// TODO: Implement getMyCheckouts() method.
 		//Search for the patron in the database
-		$result = $this->getParonTransactions($user);
+		$result = $this->getPatronTransactions($user);
 
 		if ($result && !empty($result->ChargeItems)) {
 			foreach ($result->ChargeItems->ChargeItem as $chargeItem) {
@@ -654,17 +658,21 @@ class CarlX extends SIP2Driver{
 	public function getReadingHistory($user, $page = 1, $recordsPerPage = -1, $sortOption = "checkedOut") {
 		global $timer;
 
-		$readHistoryEnabled = true; //TODO: do check for enabled
+		$soapClient = new SoapClient($this->patronWsdl);
+
+		$request = $this->getSearchbyPatronIdRequest($user);
+		$result = $soapClient->getPatronInformation($request);
+
+		if ($result && $result->Patron) {
+			$readHistoryEnabled = $result->Patron->LoanHistoryOptInFlag;
+		}
 
 		if ($readHistoryEnabled) { // Create Reading History Request
 			$historyActive = true;
 			$readingHistoryTitles = array();
 			$numTitles = 0;
 
-			$soapClient = new SoapClient($this->patronWsdl);
-
-			$request              = $this->getSearchbyPatronIdRequest($user);
-			$request->HistoryType = 'L';
+			$request->HistoryType = 'L'; //  From Documentation: The type of charge history to return, (O)utreach or (L)oan History opt-in
 
 			$result = $soapClient->getPatronChargeHistory($request);
 
@@ -685,6 +693,53 @@ class CarlX extends SIP2Driver{
 	}
 
 	public function doReadingHistoryAction($user, $action, $selectedTitles){
+		switch ($action) {
+			case 'optIn' :
+			case 'optOut' :
+				$soapClient = new SoapClient($this->patronWsdl
+					,array(
+						'features' => SOAP_WAIT_ONE_WAY_CALLS, // This setting overcomes the SOAP client's expectation that there is no response from our update request.
+						'trace' => 1, // enable use of __getLastResponse, so that we can determine the response.
+						//					'exceptions' => 0,
+					)
+				);
+				$request = $this->getSearchbyPatronIdRequest($user);
+				$request->Patron->LoanHistoryOptInFlag = ($action == 'optIn');
+				$result = $soapClient->updatePatron($request);
+
+				$success = false;
+				// code block below has been taken from updatePatronInfo()
+				if (is_null($result)) {
+					$result = $soapClient->__getLastResponse();
+					if ($result) {
+						$unxml   = new XML_Unserializer();
+						$unxml->unserialize($result);
+						$response = $unxml->getUnserializedData();
+
+						if ($response) {
+							$success = stripos($response['SOAP-ENV:Body']['ns3:GenericResponse']['ns3:ResponseStatuses']['ns2:ResponseStatus']['ns2:ShortMessage'], 'Success') !== false;
+							if (!$success) {
+								$errorMessage = $response['SOAP-ENV:Body']['ns3:GenericResponse']['ns3:ResponseStatuses']['ns2:ResponseStatus']['ns2:LongMessage'];
+								$updateErrors[] = 'Failed to update your information'. ($errorMessage ? ' : ' .$errorMessage : '');
+							}
+
+						} else {
+							$updateErrors[] = 'Unable to update your information.';
+							global $logger;
+							$logger->log('Unable to read XML from CarlX response when attempting to update Patron Information.', PEAR_LOG_ERR);
+						}
+
+					} else {
+						$updateErrors[] = 'Unable to update your information.';
+						global $logger;
+						$logger->log('CarlX ILS gave no response when attempting to update Patron Information.', PEAR_LOG_ERR);
+					}
+				}
+				return $success;
+
+				break;
+
+		}
 
 	}
 
@@ -692,7 +747,7 @@ class CarlX extends SIP2Driver{
 	 * @param $user
 	 * @return mixed
 	 */
-	private function getParonTransactions($user)
+	private function getPatronTransactions($user)
 	{
 		$soapClient = new SoapClient($this->patronWsdl);
 
@@ -738,7 +793,7 @@ class CarlX extends SIP2Driver{
 
 	private function getBranchInformation($branchNumber)
 	{
-		$soapClient = new SoapClient(($this->catalogWsdl));
+		$soapClient = new SoapClient($this->catalogWsdl);
 
 		$request                    = new stdClass();
 		$request->BranchSearchType  = 'Branch Number';

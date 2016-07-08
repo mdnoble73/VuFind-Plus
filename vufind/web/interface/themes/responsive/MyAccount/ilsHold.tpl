@@ -108,10 +108,10 @@
 						</div>
 					</div>
 
-					{if $showPlacedColumn}
+					{if $showPlacedColumn && $record.create}
 						<div class="row">
-							<div class="result-label col-sm-3">{translate text='Date Placed'}</div>
-							<div class="col-sm-9 result-value">
+							<div class="result-label col-tn-3">{translate text='Date Placed'}</div>
+							<div class="col-tn-9 result-value">
 								{$record.create|date_format}
 							</div>
 						</div>
