@@ -683,7 +683,7 @@ abstract class IslandoraDriver extends RecordInterface {
 
 					);
 					if ($entityType == 'person'){
-						$isProductionTeam = strlen($entityRole) > 0 && !strcasecmp($entityRole, 'interviewee');
+						$isProductionTeam = strlen($entityRole) > 0 && strtolower($entityRole) !=  'interviewee';
 						$personObject = $fedoraUtils->getObject($entityPid);
 						$entityInfo['image'] = $fedoraUtils->getObjectImageUrl($personObject, 'medium');
 						$entityInfo['link']= '/Archive/' . $entityPid . '/Person';
@@ -990,7 +990,7 @@ abstract class IslandoraDriver extends RecordInterface {
 		);
 		if ($entityType == 'person'){
 			$entityInfo['link']= '/Archive/' . $pid . '/Person';
-			if (strlen($role) > 0 && !strcasecmp($role, 'interviewee')){
+			if (strlen($role) > 0 && strtolower($role) != 'interviewee'){
 				$this->productionTeam[$pid.$role] = $entityInfo;
 			}else{
 				$this->relatedPeople[$pid.$role] = $entityInfo;
