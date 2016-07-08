@@ -61,7 +61,7 @@
 
 	{if $showArInfo && $recordDriver->getAcceleratedReaderDisplayString()}
 		<div class="row">
-			<div class="result-label col-sm-4">Accelerated Reader: </div>
+			<div class="result-label col-sm-4">{translate text='Accelerated Reader'}: </div>
 			<div class="result-value col-sm-8">
 				{$recordDriver->getAcceleratedReaderDisplayString()}
 			</div>
