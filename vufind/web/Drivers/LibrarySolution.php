@@ -26,13 +26,17 @@ class LibrarySolution extends ScreenScrapingDriver {
 	 * This is responsible for authenticating a patron against the catalog.
 	 * Interface defined in CatalogConnection.php
 	 *
-	 * @param   string  $username   The patron username
-	 * @param   string  $password   The patron password
+	 * This driver does not currently support SSO since we have to pass the password for login
+	 *
+	 * @param   string  $username         The patron username
+	 * @param   string  $password         The patron password
+	 * @param   boolean $validatedViaSSO  True if the patron has already been validated via SSO.  If so we don't need to validation, just retrieve information
+	 *
 	 * @return  User|null           A string of the user's ID number
 	 *                              If an error occurs, return a PEAR_Error
 	 * @access  public
 	 */
-	public function patronLogin($username, $password) {
+	public function patronLogin($username, $password, $validatedViaSSO) {
 		global $timer;
 
 		//Post enter barcode and pin to the login screen
@@ -484,8 +488,7 @@ class LibrarySolution extends ScreenScrapingDriver {
 				}
 
 				//$expireDate = (string)$hold->expireDate;
-				//$curHold['expire'] = $expireDate;
-				//$curHold['expireTime'] = strtotime($expireDate);
+				//$curHold['expire'] = strtotime($expireDate);
 				$curHold['reactivate'] = $hold->suspendUntilDateString;
 
 				//MDN - it looks like holdCancelable is not accurate, setting to true always

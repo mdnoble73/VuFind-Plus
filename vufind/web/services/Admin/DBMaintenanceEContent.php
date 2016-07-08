@@ -238,6 +238,14 @@ class DBMaintenanceEContent extends Admin_Admin {
 				),
 			),
 
+				'overdrive_api_data_availability_type' => array(
+						'title' => 'Add availability type to OverDrive API',
+						'description' => 'Update Availability table to add availability type',
+						'sql' => array(
+								"ALTER TABLE overdrive_api_product_availability ADD COLUMN availabilityType VARCHAR(35) DEFAULT 'Normal'",
+						),
+				),
+
 			'utf8_update' => array(
 				'title' => 'Update to UTF-8',
 				'description' => 'Update database to use UTF-8 encoding',

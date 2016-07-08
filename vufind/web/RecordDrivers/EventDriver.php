@@ -24,4 +24,8 @@ class EventDriver extends IslandoraDriver {
 	public function isEntity(){
 		return true;
 	}
+
+	public function getFormat(){
+		return 'Event';
+	}
 }

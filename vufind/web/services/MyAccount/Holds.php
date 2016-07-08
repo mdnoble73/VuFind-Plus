@@ -65,7 +65,7 @@ class MyAccount_Holds extends MyAccount{
 		if ($configArray['Catalog']['offline']){
 			$interface->assign('offline', true);
 		}else{
-			if ($user){
+			if ($user) {
 				$interface->assign('sortOptions', $sortOptions);
 				$selectedSortOption = isset($_REQUEST['accountSort']) ? $_REQUEST['accountSort'] : 'dueDate';
 				$interface->assign('defaultSortOption', $selectedSortOption);
@@ -80,11 +80,10 @@ class MyAccount_Holds extends MyAccount{
 				$interface->assign('recordList', $allHolds);
 
 				//make call to export function
-				if ((isset($_GET['exportToExcelAvailable'])) || (isset($_GET['exportToExcelUnavailable']))){
+				if ((isset($_GET['exportToExcelAvailable'])) || (isset($_GET['exportToExcelUnavailable']))) {
 					if (isset($_GET['exportToExcelAvailable'])) {
 						$exportType = "available";
-					}
-					else {
+					} else {
 						$exportType = "unavailable";
 					}
 					$this->exportToExcel($allHolds, $exportType, $showDateWhenSuspending, $showPosition, $showExpireTime);
@@ -225,7 +224,7 @@ class MyAccount_Holds extends MyAccount{
 				->setCellValue('D'.$a, isset($row['createTime']) ? date('M d, Y', $row['createTime']) : '')
 				->setCellValue('E'.$a, $row['location'])
 				->setCellValue('F'.$a, isset($row['availableTime']) ? date('M d, Y', strtotime($row['availableTime'])) : 'Now')
-				->setCellValue('G'.$a, date('M d, Y', $row['expire']));
+				->setCellValue('G'.$a, date('M d, Y', $row['expire'])); //prefer expireTime because it is a timestamp
 			} else {
 				if (isset($row['status'])){
 					$statusCell = $row['status'];

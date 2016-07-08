@@ -68,15 +68,41 @@ if [ $# = 1 ];then
   chgrp apache $WD/vufind/web/interface/compile $WD/vufind/web/interface/cache
   chmod g+w $WD/vufind/web/interface/compile $WD/vufind/web/interface/cache
   #-----------------
-  echo "setting up Pika log rotation. Note: Servername must be manually set."
-  cp $WD/install/pika /etc/logrotate.d/
+  echo "setting up Pika log rotation."
+  cat $WD/install/pika |sed -r 's/\{servername\}/$HOST/' > /etc/logrotate.d/pika
+  # The line above updates the log rotation file so that it doesn't need to be manually modifed
   #-----------------
+  #echo "setting up Pika log rotation. Note: Servername must be manually set."
+  #cp $WD/install/pika /etc/logrotate.d/
+  #-----------------
+  echo "Creating symbolic link in /etc/httpd/conf.d to apache config file"
+  ln -s $WD/sites/$HOST/httpd-$HOST.conf /etc/httpd/conf.d/httpd-$HOST.conf
+  #-----------------
+  echo "Copying mysql config file to /etc/my.cnf.d"
+  # Probably centos 7/mariadb setups only
+  cp $WD/install/my.cnf /etc/my.cnf.d/my.cnf
+  #-----------------
+#  echo "Creating symbolic link in /etc/my.cnf.d to mysql config file"
+#  # Probably centos 7/mariadb setups only
+#  ln -s $WD/install/my.cnf /etc/my.cnf.d/my.cnf
+#  #-----------------
+  echo "Installing Solr Files for $HOST"
+  $WD/data_dir_setup/update_solr_files.sh $HOST
+  #-----------------
+  echo "Creating pika system service for $HOST"
+#  cat $WD/sites/default/pika_startup.sh |sed -r 's/\{servername\}/$HOST/' > /etc/init.d/pika.sh
+  cat $WD/sites/default/pika_startup.sh |sed -r 's/\{servername\}/$HOST/'|sed -r 's/mysqld/mariadb/' > /etc/init.d/pika.sh
+  chmod u+x /etc/init.d/pika.sh
+#  CentOS7 version that uses mariadb instead
+
+
   echo ""
   cd $WD
   exit 0
 else
   echo ""
-  echo "Usage:  $0 <server.domain.tld>"
+  echo "Usage:  $0 {Pika Sites Directory Name for this instance}"
+  echo "eg: $0 pika.test"
   echo ""
   exit 1
 fi

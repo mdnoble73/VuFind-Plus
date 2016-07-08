@@ -12,143 +12,6 @@ abstract class SIP2Driver implements DriverInterface{
 	/** @var sip2 $sipConnection  */
 	private $sipConnection = null;
 
-	private $transactions = array();
-	public function getMyCheckouts($page = 1, $recordsPerPage = -1, $sortOption = 'dueDate') {
-		global $logger;
-		global $user;
-		if (isset($this->transactions[$user->id])){
-			return $this->transactions[$user->id];
-		}
-		//Get transactions by screen scraping
-		$transactions = array();
-		//Login to Koha classic interface
-		$result = $this->loginToKoha($user);
-		if (!$result['success']){
-			return $transactions;
-		}
-		//Get the checked out titles page
-		$transactionPage = $result['summaryPage'];
-		//Parse the checked out titles page
-		if (preg_match_all('/<table id="checkoutst">(.*?)<\/table>/si', $transactionPage, $transactionTableData, PREG_SET_ORDER)){
-			$transactionTable = $transactionTableData[0][0];
-			//Get the header row labels in case the columns are ever rearranged?
-			$headerLabels = array();
-			preg_match_all('/<th>([^<]*?)<\/th>/si', $transactionTable, $tableHeaders, PREG_PATTERN_ORDER);
-			foreach ($tableHeaders[1] as $col => $tableHeader){
-				$headerLabels[$col] = trim(strtolower($tableHeader));
-			}
-			//Get each row within the table
-			//Grab the table body
-			preg_match('/<tbody>(.*?)<\/tbody>/si', $transactionTable, $tableBody);
-			$tableBody = $tableBody[1];
-			preg_match_all('/<tr>(.*?)<\/tr>/si', $tableBody, $tableData, PREG_PATTERN_ORDER);
-			foreach ($tableData[1] as $tableRow){
-				//Each row represents a transaction
-				$transaction = array();
-				$transaction['checkoutSource'] = 'ILS';
-				//Go through each cell in the row
-				preg_match_all('/<td[^>]*>(.*?)<\/td>/si', $tableRow, $tableCells, PREG_PATTERN_ORDER);
-				foreach ($tableCells[1] as $col => $tableCell){
-					//Based off which column we are in, fill out the transaction
-					if ($headerLabels[$col] == 'title'){
-						//Title column contains title, author, and id link
-						if (preg_match('/biblionumber=(\\d+)">\\s*([^<]*)\\s*<\/a>.*?>\\s*(.*?)\\s*<\/span>/si', $tableCell, $cellDetails)) {
-							$transaction['id'] = $cellDetails[1];
-							$transaction['shortId'] = $cellDetails[1];
-							$transaction['title'] = $cellDetails[2];
-							$transaction['author'] = $cellDetails[3];
-						}else{
-							$logger->log("Could not parse title for checkout", PEAR_LOG_WARNING);
-							$transaction['title'] = strip_tags($tableCell);
-						}
-					}elseif ($headerLabels[$col] == 'call no.'){
-						//Ignore this column for now
-					}elseif ($headerLabels[$col] == 'due'){
-						if (preg_match('/(\d{2}\/\d{2}\/\d{4})/', $tableCell, $dueMatches)){
-							$dateDue = DateTime::createFromFormat('m/d/Y', $dueMatches[1]);
-							if ($dateDue){
-								$dueTime = $dateDue->getTimestamp();
-							}else{
-								$dueTime = null;
-							}
-						}else{
-							$dueTime = strtotime($tableCell);
-						}
-						if ($dueTime != null){
-							$transaction['dueDate'] = $dueTime;
-						}
-					}elseif ($headerLabels[$col] == 'renew'){
-						if (preg_match('/item=(\\d+).*?\\((\\d+) of (\\d+) renewals/si', $tableCell, $renewalData)) {
-							$transaction['itemid'] = $renewalData[1];
-							$transaction['renewIndicator'] = $renewalData[1];
-							$numRenewalsRemaining = $renewalData[2];
-							$numRenewalsAllowed = $renewalData[3];
-							$transaction['renewCount'] = $numRenewalsAllowed - $numRenewalsRemaining;
-						}
-					}
-					//TODO: Add display of fines on a title?
-				}
-				if ($transaction['id'] && strlen($transaction['id']) > 0){
-					$transaction['recordId'] = $transaction['id'];
-					require_once ROOT_DIR . '/RecordDrivers/MarcRecord.php';
-					$recordDriver = new MarcRecord($transaction['recordId']);
-					if ($recordDriver->isValid()){
-						$transaction['coverUrl'] = $recordDriver->getBookcoverUrl('medium');
-						$transaction['groupedWorkId'] = $recordDriver->getGroupedWorkId();
-						$formats = $recordDriver->getFormats();
-						$transaction['format'] = reset($formats);
-						$transaction['author'] = $recordDriver->getPrimaryAuthor();
-						if (!isset($transaction['title']) || empty($transaction['title'])){
-							$transaction['title'] = $recordDriver->getTitle();
-						}
-					}else{
-						$transaction['coverUrl'] = "";
-						$transaction['groupedWorkId'] = "";
-						$transaction['format'] = "Unknown";
-						$transaction['author'] = "";
-					}
-				}
-				$transactions[] = $transaction;
-			}
-		}
-		//Process sorting
-		$sortKeys = array();
-		$i = 0;
-		foreach ($transactions as $key => $transaction){
-			$sortTitle = isset($transaction['sortTitle']) ? $transaction['sortTitle'] : "Unknown";
-			if ($sortOption == 'title'){
-				$sortKeys[$key] = $sortTitle;
-			}elseif ($sortOption == 'author'){
-				$sortKeys[$key] = (isset($transaction['author']) ? $transaction['author'] : "Unknown") . '-' . $sortTitle;
-			}elseif ($sortOption == 'dueDate'){
-				if (preg_match('/.*?(\\d{1,2})[-\/](\\d{1,2})[-\/](\\d{2,4}).*/', $transaction['dueDate'], $matches)) {
-					$sortKeys[$key] = $matches[3] . '-' . $matches[1] . '-' . $matches[2] . '-' . $sortTitle;
-				} else {
-					$sortKeys[$key] = $transaction['dueDate'] . '-' . $sortTitle;
-				}
-			}elseif ($sortOption == 'format'){
-				$sortKeys[$key] = (isset($transaction['format']) ? $transaction['format'] : "Unknown") . '-' . $sortTitle;
-			}elseif ($sortOption == 'renewed'){
-				$sortKeys[$key] = (isset($transaction['renewCount']) ? $transaction['renewCount'] : 0) . '-' . $sortTitle;
-			}elseif ($sortOption == 'holdQueueLength'){
-				$sortKeys[$key] = (isset($transaction['holdQueueLength']) ? $transaction['holdQueueLength'] : 0) . '-' . $sortTitle;
-			}
-			$sortKeys[$key] = $sortKeys[$key] . '-' . $i++;
-		}
-		array_multisort($sortKeys, $transactions);
-		//Limit to a specific number of records
-		$totalTransactions = count($transactions);
-		if ($recordsPerPage != -1){
-			$startRecord = ($page - 1) * $recordsPerPage;
-			$transactions = array_slice($transactions, $startRecord, $recordsPerPage);
-		}
-		$this->transactions[$user->id] = $transactions;
-		return array(
-			'transactions' => $transactions,
-			'numTransactions' => $totalTransactions
-		);
-	}
-
 	private function _loadItemSIP2Data($barcode, $itemStatus){
 		/** @var Memcache $memCache */
 		global $memCache;
@@ -157,6 +20,8 @@ abstract class SIP2Driver implements DriverInterface{
 		$itemSip2Data = $memCache->get("item_sip2_data_{$barcode}");
 		if ($itemSip2Data == false || isset($_REQUEST['reload'])){
 			//Check to see if the SIP2 information is already cached
+			//TODO: Add Host and Port
+			// set in config .in SIP section
 			if ($this->initSipConnection()){
 				$in = $this->sipConnection->msgItemInformation($barcode);
 				$msg_result = $this->sipConnection->get_message($in);
@@ -198,7 +63,8 @@ abstract class SIP2Driver implements DriverInterface{
 		}
 		return $itemSip2Data;
 	}
-	public function patronLogin($username, $password) {
+	public function patronLogin($username, $password, $validatedViaSSO) {
+		//TODO: Implement $validatedViaSSO
 		//Koha uses SIP2 authentication for login.  See
 		//The catalog is offline, check the database to see if the user is valid
 		global $timer;

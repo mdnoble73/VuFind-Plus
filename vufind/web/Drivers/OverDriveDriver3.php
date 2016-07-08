@@ -361,7 +361,7 @@ class OverDriveDriver3 {
 			$libraryId = $configArray['OverDrive']['accountId'];
 			$productsUrl = "http://api.overdrive.com/v1/collections/$libraryId/products";
 		}
-		$productsUrl .= "?offeset=$start&limit=$limit";
+		$productsUrl .= "?offset=$start&limit=$limit";
 		return $this->_callUrl($productsUrl);
 	}
 
@@ -581,8 +581,7 @@ class OverDriveDriver3 {
 				$hold['holdQueuePosition'] = $curTitle->holdListPosition;
 				$hold['available'] = isset($curTitle->actions->checkout);
 				if ($hold['available']){
-					$hold['expirationDate'] = strtotime($curTitle->holdExpires);
-					$hold['expire'] = $hold['expirationDate'];
+					$hold['expire'] = strtotime($curTitle->holdExpires);
 				}
 				$hold['holdSource'] = 'OverDrive';
 
@@ -594,6 +593,7 @@ class OverDriveDriver3 {
 					$hold['coverUrl'] = $overDriveRecord->getCoverUrl('medium');
 					$hold['recordUrl'] = $configArray['Site']['path'] . '/OverDrive/' . $overDriveRecord->getUniqueID() . '/Home';
 					$hold['title'] = $overDriveRecord->getTitle();
+					$hold['sortTitle'] = $overDriveRecord->getTitle();
 					$hold['author'] = $overDriveRecord->getAuthor();
 					$hold['linkUrl'] = $overDriveRecord->getLinkUrl(false);
 					$hold['format'] = $overDriveRecord->getFormats();

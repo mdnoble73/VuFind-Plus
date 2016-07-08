@@ -14,4 +14,8 @@ class PageDriver extends IslandoraDriver {
 	public function getViewAction() {
 		return 'Page';
 	}
+
+	public function getFormat(){
+		return 'Page';
+	}
 }

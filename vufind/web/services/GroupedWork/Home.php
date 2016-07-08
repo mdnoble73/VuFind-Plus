@@ -25,6 +25,14 @@ class GroupedWork_Home extends Action{
 			die();
 		}
 		$interface->assign('recordDriver', $recordDriver);
+
+		// Set Show in Search Results Main Details Section options for template
+		// (needs to be set before moreDetailsOptions)
+		global $library;
+		foreach ($library->showInMainDetails as $detailoption) {
+			$interface->assign($detailoption, true);
+		}
+
 		$recordDriver->assignBasicTitleDetails();
 		$timer->logTime('Initialized the Record Driver');
 
@@ -45,6 +53,9 @@ class GroupedWork_Home extends Action{
 		$interface->assign('metadataTemplate', 'GroupedWork/metadata.tpl');
 
 		$interface->assign('semanticData', json_encode($recordDriver->getSemanticData()));
+
+		// Send down text for inclusion in breadcrumbs
+		$interface->assign('breadcrumbText', $recordDriver->getBreadcrumb());
 
 		// Display Page
 

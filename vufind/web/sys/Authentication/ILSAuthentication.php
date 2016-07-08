@@ -21,7 +21,8 @@ class ILSAuthentication implements Authentication {
 		$this->catalogConnection = CatalogFactory::getCatalogConnectionInstance($this->driverName, $this->accountProfile);
 	}
 
-	public function authenticate(){
+	public function authenticate($validatedViaSSO){
+		global $logger;
 		//Check to see if the username and password are provided
 		if (!array_key_exists('username', $_REQUEST) && !array_key_exists('password', $_REQUEST)){
 			//If not, check to see if we have a valid user already authenticated
@@ -30,10 +31,11 @@ class ILSAuthentication implements Authentication {
 				return $user;
 			}
 		}
-		$this->username = $_REQUEST['username'];
-		$this->password = $_REQUEST['password'];
+		$this->username = isset($_REQUEST['username']) ? $_REQUEST['username'] : '';
+		$this->password = isset($_REQUEST['password']) ? $_REQUEST['password'] : '';
 
-		if($this->username == '' || $this->password == ''){
+		$logger->log("Authenticating user '{$this->username}', '{$this->password}' via the ILS", PEAR_LOG_DEBUG);
+		if(!$validatedViaSSO && ($this->username == '' || $this->password == '')){
 			$user = new PEAR_Error('authentication_error_blank');
 		} else {
 			// Connect to the correct catalog depending on the driver for this account
@@ -41,7 +43,7 @@ class ILSAuthentication implements Authentication {
 
 			if ($catalog->status) {
 				/** @var User $patron */
-				$patron = $catalog->patronLogin($this->username, $this->password);
+				$patron = $catalog->patronLogin($this->username, $this->password, null, $validatedViaSSO);
 				if ($patron && !PEAR_Singleton::isError($patron)) {
 					/** @var User $user */
 					$user = $patron;
@@ -55,18 +57,21 @@ class ILSAuthentication implements Authentication {
 		return $user;
 	}
 
-	public function validateAccount($username, $password, $parentAccount) {
+	public function validateAccount($username, $password, $parentAccount, $validatedViaSSO) {
+		global $user;
+		global $logger;
 		$this->username = $username;
 		$this->password = $password;
 
-		if($this->username == '' || $this->password == ''){
+		$logger->log("validating account for user '{$this->username}', '{$this->password}' via the ILS", PEAR_LOG_DEBUG);
+		if($this->username == '' || ($this->password == '' && !$validatedViaSSO)){
 			$user = new PEAR_Error('authentication_error_blank');
 		} else {
 			// Connect to the correct catalog depending on the driver for this account
 			$catalog = CatalogFactory::getCatalogConnectionInstance($this->driverName);
 
 			if ($catalog->status) {
-				$patron = $catalog->patronLogin($this->username, $this->password, $parentAccount);
+				$patron = $catalog->patronLogin($this->username, $this->password, $parentAccount, $validatedViaSSO);
 				if ($patron && !PEAR_Singleton::isError($patron)) {
 					$user = $patron;
 				} else {

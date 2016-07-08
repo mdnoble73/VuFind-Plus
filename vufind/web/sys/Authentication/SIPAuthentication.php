@@ -9,7 +9,7 @@ class SIPAuthentication implements Authentication {
 
 	}
 	
-	public function validateAccount($username, $password, $parentAccount) {
+	public function validateAccount($username, $password, $parentAccount, $validatedViaSSO) {
 		global $configArray;
 		global $timer;
 		global $logger;
@@ -84,7 +84,7 @@ class SIPAuthentication implements Authentication {
 		}
 		
 	}
-	public function authenticate() {
+	public function authenticate($validatedViaSSO) {
 		global $configArray;
 		global $timer;
 

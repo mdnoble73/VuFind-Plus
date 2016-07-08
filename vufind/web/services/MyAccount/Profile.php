@@ -140,8 +140,9 @@ class MyAccount_Profile extends MyAccount
 
 //			$interface->assign('overDriveUrl', $configArray['OverDrive']['url']);
 			global $translator;
-			$notice = $translator->translate('overdrive_account_preferences_notice');
-			$notice = str_replace('{OVERDRIVEURL}', $configArray['OverDrive']['url'], $notice); // Insert the Overdrive URL into the notice
+			$notice         = $translator->translate('overdrive_account_preferences_notice');
+			$replacementUrl = empty($configArray['OverDrive']['url']) ? '#' : $configArray['OverDrive']['url'];
+			$notice         = str_replace('{OVERDRIVEURL}', $replacementUrl, $notice); // Insert the Overdrive URL into the notice
 			$interface->assign('overdrivePreferencesNotice', $notice);
 
 

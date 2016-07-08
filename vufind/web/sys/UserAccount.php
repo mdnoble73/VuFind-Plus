@@ -24,7 +24,8 @@ require_once 'XML/Serializer.php';
 require_once ROOT_DIR . '/sys/Authentication/AuthenticationFactory.php';
 
 class UserAccount {
-
+	static $isLoggedIn = null;
+	static $primaryUserData = null;
 	/**
 	 * Checks whether the user is logged in.
 	 *
@@ -34,6 +35,15 @@ class UserAccount {
 	 * @return bool|User
 	 */
 	public static function isLoggedIn() {
+		if (UserAccount::$isLoggedIn != null){
+			if (UserAccount::$isLoggedIn){
+				return UserAccount::$primaryUserData;
+			}else{
+				return false;
+			}
+		}
+		global $action;
+		global $module;
 		$userData = false;
 		if (isset($_SESSION['activeUserId'])) {
 			$activeUserId = $_SESSION['activeUserId'];
@@ -55,6 +65,31 @@ class UserAccount {
 				global $timer;
 				$timer->logTime("Updated Runtime Information");
 			}
+			UserAccount::$isLoggedIn = true;
+
+		//Check to see if the patron is already logged in within CAS as long as we aren't on a page that is likely to be a login page
+		}elseif ($action != 'AJAX' && $action != 'Logout' && $module != 'MyAccount' && !isset($_REQUEST['username'])){
+			//If the library uses CAS/SSO we may already be logged in even though they never logged in within Pika
+			global $library;
+			if (strlen($library->casHost) > 0){
+				//Check CAS first
+				require_once ROOT_DIR . '/sys/Authentication/CASAuthentication.php';
+				$casAuthentication = new CASAuthentication(null);
+				$casUsername = $casAuthentication->validateAccount(null, null, null, false);
+				if ($casUsername == false || PEAR_Singleton::isError($casUsername)){
+					//The user could not be authenticated in CAS
+					UserAccount::$isLoggedIn = false;
+					return false;
+				}else{
+					//We have a valid user via CAS, need to do a login to Pika
+					$_REQUEST['casLogin'] = true;
+					$userData = UserAccount::login();
+					UserAccount::$isLoggedIn = true;
+				}
+			}
+		}
+		if (UserAccount::$isLoggedIn){
+			UserAccount::$primaryUserData = $userData;
 		}
 		return $userData;
 	}
@@ -92,8 +127,30 @@ class UserAccount {
 	 */
 	public static function login() {
 		global $user;
+		global $logger;
 
 		$validUsers = array();
+
+		$validatedViaSSO = false;
+		if (isset($_REQUEST['casLogin'])){
+			$logger->log("Logging the user in via CAS", PEAR_LOG_INFO);
+			//Check CAS first
+			require_once ROOT_DIR . '/sys/Authentication/CASAuthentication.php';
+			$casAuthentication = new CASAuthentication(null);
+			$casUsername = $casAuthentication->authenticate(false);
+			if ($casUsername == false || PEAR_Singleton::isError($casUsername)){
+				//The user could not be authenticated in CAS
+				$logger->log("The user could not be logged in", PEAR_LOG_INFO);
+				return new PEAR_Error('Could not authenticate in sign on service');
+			}else{
+				$logger->log("User logged in OK CAS Username $casUsername", PEAR_LOG_INFO);
+				//Set both username and password since authentication methods could use either.
+				//Each authentication method will need to deal with the possibility that it gets a barcode for both user and password
+				$_REQUEST['username'] = $casUsername;
+				$_REQUEST['password'] = $casUsername;
+				$validatedViaSSO = true;
+			}
+		}
 
 		/** @var User $primaryUser */
 		$primaryUser = null;
@@ -105,10 +162,13 @@ class UserAccount {
 		foreach ($driversToTest as $driverName => $driverData){
 			// Perform authentication:
 			$authN = AuthenticationFactory::initAuthentication($driverData['authenticationMethod'], $driverData);
-			$tempUser = $authN->authenticate();
+			$tempUser = $authN->authenticate($validatedViaSSO);
 
 			// If we authenticated, store the user in the session:
 			if (!PEAR_Singleton::isError($tempUser)) {
+				if ($validatedViaSSO){
+					$tempUser->loggedInViaCAS = true;
+				}
 				global $library;
 				if (isset($library) && $library->preventExpiredCardLogin && $tempUser->expired) {
 					// Create error
@@ -132,13 +192,17 @@ class UserAccount {
 				}
 			}else{
 				global $logger;
-				$logger->log("Error authenticating patron for driver {$driverName}\r\n" . print_r($user, true), PEAR_LOG_ERR);
+				$username = isset($_REQUEST['username']) ? $_REQUEST['username'] : 'No username provided';
+				$logger->log("Error authenticating patron $username for driver {$driverName}\r\n" . print_r($user, true), PEAR_LOG_ERR);
 				$lastError = $tempUser;
+				$logger->log($lastError->toString(), PEAR_LOG_ERR);
 			}
 		}
 
 		// Send back the user object (which may be a PEAR error):
 		if ($primaryUser){
+			UserAccount::$isLoggedIn = true;
+			UserAccount::$primaryUserData = $primaryUser;
 			return $primaryUser;
 		}else{
 			return $lastError;
@@ -161,16 +225,38 @@ class UserAccount {
 		//Test all valid authentication methods and see which (if any) result in a valid login.
 		$driversToTest = self::loadAccountProfiles();
 
+		global $library;
+		$validatedViaSSO = false;
+		if (strlen($library->casHost) > 0 && $username == null && $password == null){
+			//Check CAS first
+			require_once ROOT_DIR . '/sys/Authentication/CASAuthentication.php';
+			$casAuthentication = new CASAuthentication(null);
+			$casUsername = $casAuthentication->validateAccount(null, null, $parentAccount, false);
+			if ($casUsername == false || PEAR_Singleton::isError($casUsername)){
+				//The user could not be authenticated in CAS
+				return false;
+			}else{
+				//Set both username and password since authentication methods could use either.
+				//Each authentication method will need to deal with the possibility that it gets a barcode for both user and password
+				$username = $casUsername;
+				$password = $casUsername;
+				$validatedViaSSO = true;
+			}
+		}
+
 		foreach ($driversToTest as $driverName => $additionalInfo){
 			if ($accountSource == null || $accountSource == $additionalInfo['accountProfile']->name) {
 				$authN = AuthenticationFactory::initAuthentication($additionalInfo['authenticationMethod'], $additionalInfo);
-				$validatedUser = $authN->validateAccount($username, $password, $parentAccount);
+				$validatedUser = $authN->validateAccount($username, $password, $parentAccount, $validatedViaSSO);
 				if ($validatedUser && !PEAR_Singleton::isError($validatedUser)) {
 					/** @var Memcache $memCache */
 					global $memCache;
 					global $serverName;
 					global $configArray;
 					$memCache->set("user_{$serverName}_{$validatedUser->id}", $validatedUser, 0, $configArray['Caching']['user']);
+					if ($validatedViaSSO){
+						$validatedUser->loggedInViaCAS = true;
+					}
 					return $validatedUser;
 				}
 			}
@@ -184,6 +270,15 @@ class UserAccount {
 	 */
 	public static function logout()
 	{
+		global $user;
+		global $logger;
+		if ($user && $user->loggedInViaCAS){
+			require_once ROOT_DIR . '/sys/Authentication/CASAuthentication.php';
+			$casAuthentication = new CASAuthentication(null);
+			$casAuthentication->logout();
+		}
+		UserAccount::$isLoggedIn = false;
+		UserAccount::$primaryUserData = null;
 		session_destroy();
 		session_regenerate_id(true);
 		$_SESSION = array();
@@ -196,6 +291,14 @@ class UserAccount {
 	public static function softLogout(){
 		if (isset($_SESSION['activeUserId'])){
 			unset($_SESSION['activeUserId']);
+			global $user;
+			if ($user && $user->loggedInViaCAS){
+				require_once ROOT_DIR . '/sys/Authentication/CASAuthentication.php';
+				$casAuthentication = new CASAuthentication(null);
+				$casAuthentication->logout();
+			}
+			UserAccount::$isLoggedIn = false;
+			UserAccount::$primaryUserData = null;
 			session_commit();
 		}
 	}

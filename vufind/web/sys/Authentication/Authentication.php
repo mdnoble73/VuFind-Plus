@@ -5,9 +5,18 @@ interface Authentication {
 	/**
 	 * Authenticate the user in the system
 	 *
+	 * @param $validatedViaSSO boolean
+	 *
 	 * @return mixed
 	 */
-	public function authenticate();
+	public function authenticate($validatedViaSSO);
 
-	public function validateAccount($username, $password, $parentAccount);
+	/**
+	 * @param $username       string
+	 * @param $password       string
+	 * @param $parentAccount  User|null
+	 * @param $validatedViaSSO boolean
+	 * @return bool|PEAR_Error|string
+	 */
+	public function validateAccount($username, $password, $parentAccount, $validatedViaSSO);
 }

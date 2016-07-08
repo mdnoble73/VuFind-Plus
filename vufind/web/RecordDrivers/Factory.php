@@ -64,6 +64,15 @@ class RecordDriverFactory {
 					foreach ($driverNameParts as $driverPart){
 						$normalizedRecordType .= (ucfirst($driverPart));
 					}
+
+					if ($normalizedRecordType == 'Compound'){
+						//Get the genre
+						$fedoraUtils = FedoraUtils::getInstance();
+						$genre = $fedoraUtils->getModsValue('genre', 'mods');
+						if ($genre != null){
+							$normalizedRecordType = ucfirst($genre);
+						}
+					}
 					$driver = $normalizedRecordType . 'Driver' ;
 					$path = "{$configArray['Site']['local']}/RecordDrivers/{$driver}.php";
 

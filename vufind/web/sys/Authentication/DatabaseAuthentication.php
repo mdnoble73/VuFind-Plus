@@ -6,13 +6,13 @@ class DatabaseAuthentication implements Authentication {
 
 	}
 
-	public function authenticate() {
+	public function authenticate($validatedViaSSO) {
 		$username = $_POST['username'];
 		$password = $_POST['password'];
 		return $this->login($username, $password);
 	}
 
-	public function validateAccount($username, $password, $parentAccount = null) {
+	public function validateAccount($username, $password, $parentAccount = null, $validatedViaSSO = false) {
 		return $this->login($username, $password);
 	}
 

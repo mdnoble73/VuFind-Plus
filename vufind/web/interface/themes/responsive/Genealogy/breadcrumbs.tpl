@@ -1,5 +1,5 @@
 {if $searchId}
-	<li>{translate text="Search"}: {$lookfor|capitalize|escape:"html"} <span class="divider">&raquo;</span></li>
+	<li>Genealogy {translate text="Search"} <span class="divider">&raquo;</span> {$lookfor|capitalize|escape:"html"} <span class="divider">&raquo;</span></li>
 {elseif $pageTemplate=="newitem.tpl" || $pageTemplate=="newitem-list.tpl"}
 	<li>{translate text="New Items"} <span class="divider">&raquo;</span></li>
 {elseif $subTemplate}

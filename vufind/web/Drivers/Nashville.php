@@ -51,18 +51,18 @@ class Nashville extends Millennium{
 	 *
 	 * @see Drivers/Millennium::patronLogin()
 	 */
-	public function patronLogin($barcode, $pin)
+	public function patronLogin($barcode, $pin, $validatedViaSSO)
 	{
 		global $configArray;
 		if ($configArray['Catalog']['offline'] == true){
-			return parent::patronLogin($barcode, $pin);
+			return parent::patronLogin($barcode, $pin, $validatedViaSSO);
 		}else{
 			// if patron attempts to Create New PIN
 			if (isset($_REQUEST['password2']) && strlen($_REQUEST['password2']) > 0){
 				$errors = $this->_pin_create($barcode,$_REQUEST['password'],$_REQUEST['password2']);
 				//TODO pass error messages back to user.
 			}
-			return parent::patronLogin($barcode, $pin);
+			return parent::patronLogin($barcode, $pin, $validatedViaSSO);
 		}
 	}
 
