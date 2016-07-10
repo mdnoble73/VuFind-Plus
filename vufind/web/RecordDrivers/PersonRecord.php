@@ -10,6 +10,7 @@ require_once ROOT_DIR . '/sys/Genealogy/Person.php';
  */
 class PersonRecord extends IndexRecord
 {
+	private $person;
 	public function __construct($record)
 	{
 		// Call the parent's constructor...
@@ -39,6 +40,7 @@ class PersonRecord extends IndexRecord
 		if ($person->N > 0){
 			$person->fetch();
 			$interface->assign('summPicture', $person->picture);
+			$this->person = $person;
 		}
 
 		$name = $this->getName();
@@ -74,5 +76,9 @@ class PersonRecord extends IndexRecord
 			$name .= ' ' . $this->fields['lastName'];
 		}
 		return $name;
+	}
+
+	function getPermanentId() {
+		return $this->person->id;
 	}
 }
