@@ -207,6 +207,14 @@ function getIndexingUpdates() {
 			)
 		),
 
+			'indexing_profile_collectionsToSuppress' => array(
+					'title' => 'Indexing Profiles - collections to suppress',
+					'description' => 'Allow specific collection codes to be suppressed',
+					'sql' => array(
+							"ALTER TABLE indexing_profiles ADD COLUMN `collectionsToSuppress` varchar(100) DEFAULT ''",
+					)
+			),
+
 		'translation_map_regex' => array(
 			'title' => 'Translation Maps Regex',
 			'description' => 'Setup Translation Maps to use regular expressions',
