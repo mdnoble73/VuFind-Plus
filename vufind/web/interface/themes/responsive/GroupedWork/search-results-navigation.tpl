@@ -18,7 +18,7 @@
 			{/if}
 			{if $lastsearch}
 				<div id="returnToSearch" class="btn">
-					<a href="{$lastsearch|escape}#record{$id|escape:"url"}">{translate text="Return to Search Results"}</a>
+					<a href="{$lastsearch|escape}#record{$recordDriver->getPermanentId()|escape:"url"}">{translate text="Return to Search Results"}</a>
 				</div>
 			{/if}
 			{if isset($nextId)}

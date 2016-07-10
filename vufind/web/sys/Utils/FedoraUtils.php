@@ -291,4 +291,55 @@ class FedoraUtils {
 		}
 		return array();
 	}
+
+	/**
+	 * Return an array of pids that are part of a compound object.
+	 */
+	function getCompoundObjectParts($pid, $ret_title = FALSE) {
+		$rels_predicate = 'isConstituentOf';
+		$objects = array();
+
+		$escaped_pid = str_replace(':', '_', $pid);
+		$query = <<<EOQ
+PREFIX islandora-rels-ext: <http://islandora.ca/ontology/relsext#>
+SELECT ?object ?title ?seq
+FROM <#ri>
+WHERE {
+?object <fedora-model:label> ?title ;
+        <fedora-rels-ext:$rels_predicate> <info:fedora/$pid> .
+OPTIONAL {
+  ?object islandora-rels-ext:isSequenceNumberOf$escaped_pid ?seq
+}
+}
+EOQ;
+		$results = $this->doSparqlQuery($query);
+
+		// Sort the objects into their proper order.
+		$sort = function($a, $b) {
+			$a = $a['seq']['value'];
+			$b = $b['seq']['value'];
+			if ($a === $b) {
+				return 0;
+			}
+			if (empty($a)) {
+				return 1;
+			}
+			if (empty($b)) {
+				return -1;
+			}
+			return $a - $b;
+		};
+		uasort($results, $sort);
+
+		foreach ($results as $result) {
+			//TODO: Make sure the user can see this object
+			$objects[$result['seq']['value']] = array(
+					'pid' => $result['object']['value'],
+					'title' => $result['title']['value'],
+					'seq' => $result['seq']['value'],
+			);
+		}
+
+		return $objects;
+	}
 }

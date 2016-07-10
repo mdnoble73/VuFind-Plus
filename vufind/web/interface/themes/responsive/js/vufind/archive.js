@@ -8,6 +8,7 @@ VuFind.Archive = (function(){
 		curPage: 1,
 		markers: [],
 		sort: 'title',
+		openSeaDragonViewer: null,
 
 		initializeOpenSeadragon: function(viewer){
 			viewer.addHandler("open", this.update_clip);

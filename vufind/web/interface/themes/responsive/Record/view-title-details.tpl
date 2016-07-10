@@ -107,6 +107,23 @@
 		</div>
 	{/if}
 
+	{if $showArInfo && $recordDriver->getAcceleratedReaderDisplayString()}
+		<div class="row">
+			<div class="result-label col-sm-4">Accelerated Reader: </div>
+			<div class="result-value col-sm-8">
+				{$recordDriver->getAcceleratedReaderDisplayString()}
+			</div>
+		</div>
+	{/if}
+
+	{if $showLexileInfo && $recordDriver->getLexileDisplayString()}
+		<div class="row">
+			<div class="result-label col-sm-4">Lexile Score: </div>
+			<div class="result-value col-sm-8">
+				{$recordDriver->getLexileDisplayString()}
+			</div>
+		</div>
+	{/if}
 
 	{if $mpaaRating}
 		<div class="row">

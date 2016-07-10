@@ -642,6 +642,8 @@ IslandoraTitle:
   QueryFields:
     - mods_titleInfo_title_t:
       - [onephrase, 1200]
+      - [proximal, 800]
+      - [and, 500]
     - fgs_label_t:
       - [onephrase, 1200]
 
@@ -741,6 +743,13 @@ IslandoraKeywordProper:
       - [exact, ~]
     - mods_extension_marmotLocal_hasTranscription_transcriber_entityTitle_ms:
       - [exact, ~]
+
+IslandoraSubject:
+  QueryFields:
+    - mods_subject_subject_mt:
+      - [and, 300]
+    - mods_subject_topic_mt:
+      - [and, 300]
 
 IslandoraRelationshipsById:
   QueryFields:

@@ -8672,6 +8672,20 @@ hr.menu {
 .jcarousel .thumbnail img {
   max-height: 125px !important;
 }
+#sectionLabel {
+  width: 100%;
+  background-color: #dcf3fb;
+  color: #137DE2;
+  text-transform: capitalize;
+  font-weight: bold;
+  padding: 5px;
+  text-align: center;
+  font-size: 16px;
+}
+.nopadding {
+  padding: 0 !important;
+  margin: 0 !important;
+}
 #home-page-search {
   background-color: #00a4e3;
   background: -webkit-linear-gradient(top, #00a4e3, #147ce2);
@@ -10211,11 +10225,14 @@ a.browse-thumbnail.active {
   margin-top: 5px;
 }
 #explore-more-body .jcarousel {
-  left: 0;
-  width: calc(100% - 30px);
+  left: 30px;
+  width: calc(100% - 60px);
+}
+#explore-more-body .thumbnail {
+  height: 175px;
 }
 #explore-more-body .relatedTitlesContainer {
-  height: 100%;
+  height: 175px;
 }
 .exhibit-thumbnail {
   margin: 8px;
@@ -10269,31 +10286,50 @@ a.browse-thumbnail.active {
   padding-left: 10px;
   display: inline-block;
 }
-.exploreMoreBar .exploreMoreItemsContainer {
-  white-space: nowrap;
-}
 .exploreMoreBar .jcarousel-wrapper {
   margin: 5px auto;
 }
-.exploreMoreBar .explore-more-option {
+.exploreMoreBar .jcarousel-wrapper .jcarousel li {
+  display: block !important;
+}
+.exploreMoreBar .jcarousel-wrapper .jcarousel .explore-more-option {
   padding-left: 10px;
   padding-right: 10px;
   height: 100%;
 }
-.exploreMoreBar .explore-more-option .thumbnail a img {
-  max-height: 92px;
+.exploreMoreBar .jcarousel-wrapper .jcarousel .explore-more-option .thumbnail {
+  border: 0 solid white;
+  position: relative;
+  display: block;
 }
-.exploreMoreBar .explore-more-option figcaption {
+.exploreMoreBar .jcarousel-wrapper .jcarousel .explore-more-option .thumbnail a img {
+  height: 125px;
+}
+.exploreMoreBar .jcarousel-wrapper .jcarousel .explore-more-option .thumbnail .explore-more-image {
+  width: 100%;
+  position: absolute;
+  top: 62px;
+  -webkit-transform: translate(-50%, -50%);
+          transform: translate(-50%, -50%);
+  left: 50%;
+}
+.exploreMoreBar .jcarousel-wrapper .jcarousel .explore-more-option figcaption {
   margin-top: 4px;
   margin-bottom: 4px;
   font-weight: 100;
   overflow-x: hidden;
+  position: absolute;
+  top: 130px;
+  width: 100%;
+  text-align: center;
 }
 #explore-more-body .jcarousel .thumbnail,
 #relatedProjectScroller .jcarousel .thumbnail,
 #relatedContentTypesContainer .jcarousel .thumbnail,
 .exploreMoreBar .jcarousel .thumbnail {
   margin-bottom: 0;
+  height: 175px;
+  border: 0 solid white;
 }
 #explore-more-body .jcarousel-control-prev,
 #relatedProjectScroller .jcarousel-control-prev,
@@ -10307,6 +10343,7 @@ a.browse-thumbnail.active {
   background: #fff;
   color: #646510;
   z-index: 2;
+  box-shadow: white 0px 0px 0px 0px;
 }
 #explore-more-body .jcarousel-control-prev:focus,
 #relatedProjectScroller .jcarousel-control-prev:focus,
@@ -10326,7 +10363,7 @@ a.browse-thumbnail.active {
 #relatedProjectScroller .jcarousel-control-next .glyphicon,
 #relatedContentTypesContainer .jcarousel-control-next .glyphicon,
 .exploreMoreBar .jcarousel-control-next .glyphicon {
-  top: 20px;
+  top: 39px;
 }
 #explore-more-body .jcarousel-control-prev,
 #relatedProjectScroller .jcarousel-control-prev,
@@ -10372,4 +10409,15 @@ a.browse-thumbnail.active {
 #exhibit-map {
   width: 100%;
   height: 500px;
+}
+#alternate-image-navigator {
+  text-align: center;
+}
+.alternate-image {
+  display: inline-block;
+  margin: 3px;
+}
+.explore-more-scroller-link {
+  display: block;
+  text-align: center;
 }

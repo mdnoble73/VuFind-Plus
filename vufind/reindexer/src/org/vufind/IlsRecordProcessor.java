@@ -1135,7 +1135,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		if (locationSubfield == null){
 			return true;
 		}else{
-			if (locationSubfield.getData().matches(locationsToSuppress)){
+			if (locationSubfield.getData().trim().matches(locationsToSuppress)){
 				return true;
 			}
 		}
@@ -1275,9 +1275,6 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		}
 		if (printFormats.contains("Book") && printFormats.contains("Kit")){
 			printFormats.remove("Book");
-		}
-		if (printFormats.contains("Book") && printFormats.contains("Manuscript")){
-			printFormats.remove("Manuscript");
 		}
 		if (printFormats.contains("Kinect") || printFormats.contains("XBox360")  || printFormats.contains("Xbox360")
 				|| printFormats.contains("XBoxOne") || printFormats.contains("PlayStation")

@@ -259,7 +259,7 @@ public class RecordGroupingProcessor {
 		return identifiers;
 	}
 
-	private List<DataField> getDataFields(Record marcRecord, String tag) {
+	protected List<DataField> getDataFields(Record marcRecord, String tag) {
 		List variableFields = marcRecord.getVariableFields(tag);
 		List<DataField> variableFieldsReturn = new ArrayList<>();
 		for (Object variableField : variableFields){
@@ -286,7 +286,15 @@ public class RecordGroupingProcessor {
 
 		//Title
 		DataField field245 = setWorkTitleBasedOnMarcRecord(marcRecord, workForTitle);
+		String groupingFormat = setGroupingCategoryForWork(marcRecord, loadFormatFrom, formatSubfield, specifiedFormatCategory, workForTitle);
 
+
+		//Author
+		setWorkAuthorBasedOnMarcRecord(marcRecord, workForTitle, field245, groupingFormat);
+		return workForTitle;
+	}
+
+	protected String setGroupingCategoryForWork(Record marcRecord, String loadFormatFrom, char formatSubfield, String specifiedFormatCategory, GroupedWorkBase workForTitle) {
 		//Format
 		String groupingFormat;
 		switch (loadFormatFrom) {
@@ -304,10 +312,7 @@ public class RecordGroupingProcessor {
 				break;
 		}
 		workForTitle.setGroupingCategory(groupingFormat);
-
-		//Author
-		setWorkAuthorBasedOnMarcRecord(marcRecord, workForTitle, field245, groupingFormat);
-		return workForTitle;
+		return groupingFormat;
 	}
 
 	public void setWorkAuthorBasedOnMarcRecord(Record marcRecord, GroupedWorkBase workForTitle, DataField field245, String groupingFormat) {
@@ -1210,49 +1215,5 @@ public class RecordGroupingProcessor {
 			}
 		}
 		return translatedValue;
-	}
-
-	public void processHooplaRecord(Record marcRecord, String recordNumber, boolean primaryDataChanged) {
-		//Create primary identifier so we can get back to the record later
-		RecordIdentifier primaryIdentifier = new RecordIdentifier();
-		primaryIdentifier.setValue("hoopla", recordNumber);
-		GroupedWorkBase workForTitle = setupBasicWorkForHooplaRecord(marcRecord);
-
-		//Get isbns and upcs for cover images, etc.
-		workForTitle.setIdentifiers(getIdentifiersFromMarcRecord(marcRecord));
-
-		addGroupedWorkToDatabase(primaryIdentifier, workForTitle, primaryDataChanged);
-	}
-
-	public GroupedWorkBase setupBasicWorkForHooplaRecord(Record marcRecord) {
-		//Create Grouped Work
-		GroupedWorkBase workForTitle = GroupedWorkFactory.getInstance(-1);
-
-		//Extract title so that we can group with other records
-		DataField field245 = setWorkTitleBasedOnMarcRecord(marcRecord, workForTitle);
-
-		//Load the format (broad format for grouping book, music, movie) we can get these from the 099
-		List<DataField> fields099 = getDataFields(marcRecord, "099");
-		String groupingFormat = "";
-		for (DataField cur099 : fields099){
-			String format = cur099.getSubfield('a').getData();
-			if (format.equalsIgnoreCase("eAudiobook hoopla") || format.equalsIgnoreCase("eComic hoopla") || format.equalsIgnoreCase("eBook hoopla")){
-				groupingFormat = "book";
-				break;
-			}else if (format.equalsIgnoreCase("eVideo hoopla")){
-				groupingFormat = "movie";
-				break;
-			}else if (format.equalsIgnoreCase("eMusic hoopla")){
-				groupingFormat = "music";
-				break;
-			}else{
-				logger.warn("Unknown Hoopla format " + format);
-			}
-		}
-		workForTitle.setGroupingCategory(groupingFormat);
-
-		//Extract author
-		setWorkAuthorBasedOnMarcRecord(marcRecord, workForTitle, field245, groupingFormat);
-		return workForTitle;
 	}
 }

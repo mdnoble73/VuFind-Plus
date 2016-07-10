@@ -1,0 +1,5 @@
+# Nothing should go in the root crontab.  Please use the vufind user since
+# it has permissions to connect to the Millennium server
+
+# Restart apache
+0 0-7 * * * /usr/sbin/apachectl graceful > /dev/null 2>&1

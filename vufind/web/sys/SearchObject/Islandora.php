@@ -44,7 +44,7 @@ class SearchObject_Islandora extends SearchObject_Base
 	private $index = null;
 	// Field List
 	//private $fields = '*,score';
-	private $fields = 'PID,fgs_label_s,dc.title,mods_abstract_s,RELS_EXT_hasModel_uri_s,mods_originInfo_dateCreated_dt,score';
+	private $fields = 'PID,fgs_label_s,dc.title,mods_abstract_s,mods_genre_s,RELS_EXT_hasModel_uri_s,mods_originInfo_dateCreated_dt,score';
 	// HTTP Method
 	//    private $method = HTTP_REQUEST_METHOD_GET;
 	private $method = HTTP_REQUEST_METHOD_POST;
@@ -1380,8 +1380,14 @@ class SearchObject_Islandora extends SearchObject_Base
 				$filter .= "!RELS_EXT_isMemberOfCollection_uri_ms:\"info:fedora/{$collection}\"";
 			}
 			$filters[] = $filter;
-
 		}
+		$filters[] = "!PID:islandora\\:*";
+		$filters[] = "!PID:demo\\:*";
+		$filters[] = "!PID:testCollection\\:*";
+		$filters[] = "!PID:marmot\\:*";
+		$filters[] = "!PID:ssb\\:*";
+		$filters[] = "!PID:mandala\\:*";
+
 		$filters[] = "!mods_extension_marmotLocal_pikaOptions_includeInPika_ms:no";
 		return $filters;
 	}

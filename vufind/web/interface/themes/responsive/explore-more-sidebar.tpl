@@ -10,7 +10,7 @@
 		{if $section.format == 'scroller'}
 			{* JCarousel with related titles *}
 			<div class="jcarousel-wrapper">
-				{*<a href="#" class="jcarousel-control-prev"*}{* data-target="-=1"*}{*><i class="glyphicon glyphicon-chevron-left"></i></a>*}
+				<a href="#" class="jcarousel-control-prev"{* data-target="-=1"*}><i class="glyphicon glyphicon-chevron-left"></i></a>
 				<a href="#" class="jcarousel-control-next"{* data-target="+=1"*}><i class="glyphicon glyphicon-chevron-right"></i></a>
 
 				<div class="relatedTitlesContainer jcarousel"> {* relatedTitlesContainer used in initCarousels *}
@@ -34,7 +34,7 @@
 
 					<div class="row">
 						<div class="subsectionTitle col-xs-5">{$section.title}</div>
-						<div class="subsection col-xs-5">
+						<div class="subsection col-xs-7">
 							<a href="{$section.link}"><img src="{$section.image}" alt="{$section.description}" class="img-responsive img-thumbnail"></a>
 						</div>
 					</div>
@@ -43,7 +43,7 @@
 		{elseif $section.format == 'scrollerWithLink'}
 			{* Related Titles Widget *}
 			<div class="jcarousel-wrapper">
-				{*<a href="#" class="jcarousel-control-prev"*}{* data-target="-=1"*}{*><i class="glyphicon glyphicon-chevron-left"></i></a>*}
+				<a href="#" class="jcarousel-control-prev"{* data-target="-=1"*}><i class="glyphicon glyphicon-chevron-left"></i></a>
 				<a href="#" class="jcarousel-control-next"{* data-target="+=1"*}><i class="glyphicon glyphicon-chevron-right"></i></a>
 
 				<div class="relatedTitlesContainer jcarousel"> {* relatedTitlesContainer used in initCarousels *}
@@ -61,7 +61,7 @@
 					</ul>
 				</div>
 			</div>
-			<a href="{$section.link}" {if $section.openInNewWindow}target="_blank"{/if}>All Results {if $section.numFound}({$section.numFound}){/if}</a>
+			<a class="explore-more-scroller-link" href="{$section.link}" {if $section.openInNewWindow}target="_blank"{/if}>All Results {if $section.numFound}({$section.numFound}){/if}</a>
 
 		{elseif $section.format == 'textOnlyList'}
 			<ul>
@@ -78,7 +78,6 @@
 			</ul>
 
 		{else} {* list *}
-
 			{* Simple display with one thumbnail per item *}
 			{foreach from=$section.values item=value}
 				<div class="section">
@@ -107,7 +106,7 @@
 					<div class="subsection col-xs-5">
 						<img src="{$section.image}" alt="{$section.description}" class="img-responsive img-thumbnail">
 					</div>
-					<div class="subsectionTitle col-xs-5">{$section.title}</div>
+					<div class="subsectionTitle col-xs-7">{$section.title}</div>
 				</a>
 			</div>
 			{/foreach}
@@ -118,6 +117,7 @@
 	{foreach from=$exploreMoreInfo item=exploreMoreOption}
 		<div class="sectionHeader"{if $exploreMoreOption.hideByDefault} style="display: none;"{/if}>{$exploreMoreOption.label}</div>
 		<div class="{*col-sm-12 *}jcarousel-wrapper"{if $exploreMoreOption.hideByDefault} style="display: none;"{/if}>
+			<a href="#" class="jcarousel-control-prev"{* data-target="-=1"*}><i class="glyphicon glyphicon-chevron-left"></i></a>
 			<a href="#" class="jcarousel-control-next"{* data-target="+=1"*}><i class="glyphicon glyphicon-chevron-right"></i></a>
 			{$exploreMoreOption.body}
 		</div>

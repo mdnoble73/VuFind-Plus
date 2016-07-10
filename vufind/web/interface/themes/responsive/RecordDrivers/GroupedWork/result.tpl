@@ -1,6 +1,6 @@
 {strip}
 	<div id="groupedRecord{$summId|escape}" class="resultsList">
-
+		<a name="record{$summId|escape}"/>
 		{if isset($summExplain)}
 			<div class="hidden" id="scoreExplanationValue{$summId|escape}">{$summExplain}</div>
 		{/if}
@@ -126,6 +126,24 @@
 							</div>
 						</div>
 					{/if}
+				{/if}
+
+				{if $showArInfo && $summArInfo}
+					<div class="row">
+						<div class="result-label col-tn-3 col-xs-3">Accelerated Reader: </div>
+						<div class="result-value col-tn-9 col-xs-9">
+							{$summArInfo}
+						</div>
+					</div>
+				{/if}
+
+				{if $showLexileInfo && $summLexileInfo}
+					<div class="row">
+						<div class="result-label col-tn-3 col-xs-3">Lexile Score: </div>
+						<div class="result-value col-tn-9 col-xs-9">
+							{$summLexileInfo}
+						</div>
+					</div>
 				{/if}
 
 				{if $showPhysicalDescriptions}

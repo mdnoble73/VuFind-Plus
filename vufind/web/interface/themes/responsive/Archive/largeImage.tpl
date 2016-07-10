@@ -77,7 +77,7 @@
 							"wrapOverlays":false,
 							"panHorizontal":1,
 							"panVertical":1,
-							"minZoomImageRatio":0.8,
+							"minZoomImageRatio":0.35,
 							"maxZoomPixelRatio":2,
 							"visibilityRatio":0.5,
 							"springStiffness":5,

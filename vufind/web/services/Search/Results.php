@@ -466,6 +466,7 @@ class Search_Results extends Action {
 			$searchStat->saveSearch( strip_tags($_GET['lookfor']),  strip_tags(isset($_GET['type']) ? $_GET['type'] : (isset($_GET['basicType']) ? $_GET['basicType'] : 'Keyword')), $searchObject->getResultTotal());
 		}
 
+		$interface->assign('sectionLabel', 'Library Catalog');
 		// Done, display the page
 		$this->display($searchObject->getResultTotal() ? 'list.tpl' : 'list-none.tpl', $pageTitle, 'Search/results-sidebar.tpl');
 	} // End launch()

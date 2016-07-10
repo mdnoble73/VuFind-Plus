@@ -9,18 +9,23 @@
 	{* Information about the search *}
 	<div class="result-head">
 
-		{if $recordCount}
-			{if $displayMode == 'covers'}
-				There are {$recordCount|number_format} total results.
+		<div>
+			{if $recordCount}
+				{if $displayMode == 'covers'}
+					There are {$recordCount|number_format} total results.
+				{else}
+					{translate text="Showing"}
+					{$recordStart} - {$recordEnd}
+					{translate text='of'} {$recordCount|number_format}
+				{/if}
 			{else}
-				{translate text="Showing"}
-				{$recordStart} - {$recordEnd}
-				{translate text='of'} {$recordCount|number_format}
+				No results found in {$sectionLabel}
 			{/if}
-		{/if}
-		<span class="hidden-phone">
+			<span class="hidden-phone">
 			 {translate text='query time'}: {$qtime}s
-		</span>
+			</span>
+		</div>
+
 		{if $replacementTerm}
 			<div id="replacement-search-info-block">
 				<div id="replacement-search-info"><span class="replacement-search-info-text">Showing Results for</span> {$replacementTerm}</div>

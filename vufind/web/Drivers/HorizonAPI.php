@@ -26,7 +26,7 @@ abstract class HorizonAPI extends Horizon{
 	//TODO: Additional caching of sessionIds by patron
 	private static $sessionIdsForUsers = array();
 	/** uses SIP2 login the user via web services API **/
-	public function patronLogin($username, $password){
+	public function patronLogin($username, $password, $validatedViaSSO){
 		global $timer;
 		global $configArray;
 
@@ -37,6 +37,9 @@ abstract class HorizonAPI extends Horizon{
 		//Authenticate the user via WebService
 		//First call loginUser
 		list($userValid, $sessionToken, $userID) = $this->loginViaWebService($username, $password);
+		if ($validatedViaSSO){
+			$userValid = true;
+		}
 		if ($userValid){
 			$lookupMyAccountInfoResponse = $this->getWebServiceResponse($configArray['Catalog']['webServiceUrl'] . '/standard/lookupMyAccountInfo?clientID=' . $configArray['Catalog']['clientId'] . '&sessionToken=' . $sessionToken . '&includeAddressInfo=true&includeHoldInfo=true&includeBlockInfo=true&includeItemsOutInfo=true');
 			if ($lookupMyAccountInfoResponse){
@@ -178,33 +181,24 @@ abstract class HorizonAPI extends Horizon{
 					}
 				}
 
-				$user->address1 = $Address1;
-				$user->address2 = $City . ', ' . $State;
-				$user->city = $City;
-				$user->state = $State;
-				$user->zip = $Zip;
-				$user->phone = isset($lookupMyAccountInfoResponse->phone) ? (string)$lookupMyAccountInfoResponse->phone : '';
-				$user->fines = sprintf('$%01.2f', $finesVal);
-				$user->finesVal = $finesVal;
-				$user->expires = ''; //TODO: Determine if we can get this
-				$user->expireClose = $expireClose;
-
-				// This is set above when we have good location data
-//				$user->homeLocationCode = isset($homeBranchCode) ? trim($homeBranchCode) : '';
-//				$user->homeLocationId = isset($location) ? $location->locationId : 0;
-//				$user->homeLocation = isset($location) ? $location->displayName : '';
-//				$user->myLocation1Id = ($user) ? $user->myLocation1Id : -1;
-//				$user->myLocation1 = isset($myLocation1) ? $myLocation1->displayName : '';
-//				$user->myLocation2Id = ($user) ? $user->myLocation2Id : -1;
-//				$user->myLocation2 = isset($myLocation2) ? $myLocation2->displayName : '';
-				$user->numCheckedOutIls = isset($lookupMyAccountInfoResponse->ItemsOutInfo) ? count($lookupMyAccountInfoResponse->ItemsOutInfo) : 0;
-				$user->numHoldsIls = $numHoldsAvailable + $numHoldsRequested;
-				$user->numHoldsAvailableIls = $numHoldsAvailable;
-				$user->numHoldsRequestedIls = $numHoldsRequested;
-				$user->patronType = 0;
-				$user->notices = '-';
-				$user->noticePreferenceLabel = 'e-mail';
-				$user->web_note = '';
+				$user->address1              = $Address1;
+				$user->address2              = $City . ', ' . $State;
+				$user->city                  = $City;
+				$user->state                 = $State;
+				$user->zip                   = $Zip;
+				$user->phone                 = isset($lookupMyAccountInfoResponse->phone) ? (string)$lookupMyAccountInfoResponse->phone : '';
+				$user->fines                 = sprintf('$%01.2f', $finesVal);
+				$user->finesVal              = $finesVal;
+				$user->expires               = ''; //TODO: Determine if we can get this
+				$user->expireClose           = $expireClose;
+				$user->numCheckedOutIls      = isset($lookupMyAccountInfoResponse->ItemsOutInfo) ? count($lookupMyAccountInfoResponse->ItemsOutInfo) : 0;
+				$user->numHoldsIls           = $numHoldsAvailable + $numHoldsRequested;
+				$user->numHoldsAvailableIls  = $numHoldsAvailable;
+				$user->numHoldsRequestedIls  = $numHoldsRequested;
+				$user->patronType            = 0;
+				$user->notices               = '-';
+				$user->noticePreferenceLabel = 'E-mail';
+				$user->web_note              = '';
 
 				if ($userExistsInDB){
 					$user->update();
@@ -217,6 +211,9 @@ abstract class HorizonAPI extends Horizon{
 				return $user;
 			} else {
 				$timer->logTime("lookupMyAccountInfo failed");
+				global $logger;
+				$logger->log('Horizon API call lookupMyAccountInfo failed.', PEAR_LOG_ERR);
+//				$logger->log($configArray['Catalog']['webServiceUrl'] . '/standard/lookupMyAccountInfo?clientID=' . $configArray['Catalog']['clientId'] . '&sessionToken=' . $sessionToken . '&includeAddressInfo=true&includeHoldInfo=true&includeBlockInfo=true&includeItemsOutInfo=true', PEAR_LOG_ERR);
 				return null;
 			}
 		}
@@ -259,7 +256,7 @@ abstract class HorizonAPI extends Horizon{
 		$availableHolds = array();
 		$unavailableHolds = array();
 		$holds = array(
-			'available'=> $availableHolds,
+			'available'   => $availableHolds,
 			'unavailable' => $unavailableHolds
 		);
 
@@ -279,52 +276,50 @@ abstract class HorizonAPI extends Horizon{
 		if (isset($lookupMyAccountInfoResponse->HoldInfo)){
 			require_once ROOT_DIR . '/RecordDrivers/MarcRecord.php';
 			foreach ($lookupMyAccountInfoResponse->HoldInfo as $hold){
-				$curHold= array();
-				$bibId = (string)$hold->titleKey;
-				$curHold['id'] = $bibId;
-				$curHold['holdSource'] = 'ILS';
-				$curHold['itemId'] = (string)$hold->itemKey;
-				$curHold['cancelId'] = (string)$hold->holdKey;
-				$curHold['position'] = (string)$hold->queuePosition;
-				$curHold['recordId'] = $bibId;
-				$curHold['shortId'] = $bibId;
-				$curHold['title'] = (string)$hold->title;
-				$curHold['author'] = (string)$hold->author;
-				$curHold['location'] = (string)$hold->pickupLocDescription;
-				//$curHold['locationId'] = $matches[1];
+				$curHold = array();
+				$bibId          = (string) $hold->titleKey;
+				$expireDate     = (string) $hold->expireDate;
+				$reactivateDate = (string) $hold->reactivateDate;
+				$curHold['user']               = $patron->getNameAndLibraryLabel(); //TODO: Likely not needed, because Done in Catalog Connection
+				$curHold['id']                 = $bibId;
+				$curHold['holdSource']         = 'ILS';
+				$curHold['itemId']             = (string)$hold->itemKey;
+				$curHold['cancelId']           = (string)$hold->holdKey;
+				$curHold['position']           = (string)$hold->queuePosition;
+				$curHold['recordId']           = $bibId;
+				$curHold['shortId']            = $bibId;
+				$curHold['title']              = (string)$hold->title;
+				$curHold['sortTitle']          = (string)$hold->title;
+				$curHold['author']             = (string)$hold->author;
+				$curHold['location']           = (string)$hold->pickupLocDescription;
 				$curHold['locationUpdateable'] = true;
-				$curHold['currentPickupName'] = $curHold['location'];
-				$curHold['status'] = ucfirst(strtolower((string)$hold->status));
-				$expireDate = (string)$hold->expireDate;
-				$curHold['expire'] = $expireDate;
-				$curHold['expireTime'] = strtotime($expireDate);
-				$reactivateDate = (string)$hold->reactivateDate;
-				$curHold['reactivate'] = $reactivateDate;
-				$curHold['reactivateTime'] = strtotime($reactivateDate);
-
-				$curHold['cancelable'] = strcasecmp($curHold['status'], 'Suspended') != 0;
-				$curHold['frozen'] = strcasecmp($curHold['status'], 'Suspended') == 0;
+				$curHold['currentPickupName']  = $curHold['location'];
+				$curHold['status']             = ucfirst(strtolower((string)$hold->status));
+				$curHold['expire']             = strtotime($expireDate);
+				$curHold['reactivate']         = $reactivateDate;
+				$curHold['reactivateTime']     = strtotime($reactivateDate);
+				$curHold['cancelable']         = strcasecmp($curHold['status'], 'Suspended') != 0;
+				$curHold['frozen']             = strcasecmp($curHold['status'], 'Suspended') == 0;
 				if ($curHold['frozen']){
-					$curHold['reactivateTime'] = (int)$hold->reactivateDate;
+					$curHold['reactivateTime']   = (int)$hold->reactivateDate;
 				}
 				$curHold['freezeable'] = true;
 				if (strcasecmp($curHold['status'], 'Transit') == 0) {
 					$curHold['freezeable'] = false;
 				}
 
-				$curHold['sortTitle'] = (string)$hold->title;
 				$recordDriver = new MarcRecord($bibId);
 				if ($recordDriver->isValid()){
-					$curHold['sortTitle'] = $recordDriver->getSortableTitle();
-					$curHold['format'] = $recordDriver->getFormat();
-					$curHold['isbn'] = $recordDriver->getCleanISBN();
-					$curHold['upc'] = $recordDriver->getCleanUPC();
+					$curHold['sortTitle']       = $recordDriver->getSortableTitle();
+					$curHold['format']          = $recordDriver->getFormat();
+					$curHold['isbn']            = $recordDriver->getCleanISBN();
+					$curHold['upc']             = $recordDriver->getCleanUPC();
 					$curHold['format_category'] = $recordDriver->getFormatCategory();
-					$curHold['coverUrl'] = $recordDriver->getBookcoverUrl();
-					$curHold['link'] = $recordDriver->getRecordUrl();
+					$curHold['coverUrl']        = $recordDriver->getBookcoverUrl();
+					$curHold['link']            = $recordDriver->getRecordUrl();
 
 					//Load rating information
-					$curHold['ratingData'] = $recordDriver->getRatingData();
+					$curHold['ratingData']      = $recordDriver->getRatingData();
 
 					if (empty($curHold['title'])){
 						$curHold['title'] = $recordDriver->getTitle();
@@ -333,12 +328,11 @@ abstract class HorizonAPI extends Horizon{
 						$curHold['author'] = $recordDriver->getPrimaryAuthor();
 					}
 				}
-				$curHold['user'] = $patron->getNameAndLibraryLabel();
 
 				if (!isset($curHold['status']) || strcasecmp($curHold['status'], "filled") != 0){
 					$holds['unavailable'][] = $curHold;
 				}else{
-					$holds['available'][] = $curHold;
+					$holds['available'][]   = $curHold;
 				}
 			}
 		}
@@ -767,6 +761,7 @@ abstract class HorizonAPI extends Horizon{
 					}
 					$curTitle['link'] = $recordDriver->getLinkUrl();
 				}
+				//TODO: Sort Keys Created in CheckedOut.php. Needed here?
 				$sortTitle = isset($curTitle['title_sort']) ? $curTitle['title_sort'] : $curTitle['title'];
 				$sortKey = $sortTitle;
 				if ($sortOption == 'title'){

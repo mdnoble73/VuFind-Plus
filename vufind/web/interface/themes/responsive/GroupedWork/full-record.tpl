@@ -69,7 +69,31 @@
 					</div>
 				{/if}
 
-				{if $summEdition}
+				{if $showPublicationDetails}
+					<div class="row">
+						<div class="result-label col-tn-3 col-xs-3">Publisher: </div>
+						<div class="result-value col-tn-9 col-xs-9">
+							{if $summPublisher}
+								{$summPublisher}
+							{else}
+								Varies, see individual formats and editions
+							{/if}
+						</div>
+					</div>
+
+					<div class="row">
+						<div class="result-label col-tn-3 col-xs-3">Pub. Date: </div>
+						<div class="result-value col-tn-9 col-xs-9">
+							{if $summPubDate}
+								{$summPubDate|escape}
+							{else}
+								Varies, see individual formats and editions
+							{/if}
+						</div>
+					</div>
+				{/if}
+
+				{if $showEditions && $summEdition}
 					<div class="row">
 						<div class="result-label col-tn-3 col-xs-3">Edition: </div>
 						<div class="result-value col-tn-9 col-xs-9">
@@ -77,30 +101,6 @@
 						</div>
 					</div>
 				{/if}
-
-
-				<div class="row">
-					<div class="result-label col-tn-3 col-xs-3">Publisher: </div>
-					<div class="result-value col-tn-9 col-xs-9">
-						{if $summPublisher}
-							{$summPublisher}
-						{else}
-							Varies, see individual formats and editions
-						{/if}
-					</div>
-				</div>
-
-
-				<div class="row">
-					<div class="result-label col-tn-3 col-xs-3">Pub. Date: </div>
-					<div class="result-value col-tn-9 col-xs-9">
-						{if $summPubDate}
-							{$summPubDate|escape}
-						{else}
-							Varies, see individual formats and editions
-						{/if}
-					</div>
-				</div>
 
 				{if $summLanguage}
 					<div class="row">
@@ -111,6 +111,24 @@
 							{else}
 								{$summLanguage}
 							{/if}
+						</div>
+					</div>
+				{/if}
+
+				{if $showArInfo && $summArInfo}
+					<div class="row">
+						<div class="result-label col-tn-3 col-xs-3">Accelerated Reader: </div>
+						<div class="result-value col-tn-9 col-xs-9">
+							{$summArInfo}
+						</div>
+					</div>
+				{/if}
+
+				{if $showLexileInfo && $summLexileInfo}
+					<div class="row">
+						<div class="result-label col-tn-3 col-xs-3">Lexile Score: </div>
+						<div class="result-value col-tn-9 col-xs-9">
+							{$summLexileInfo}
 						</div>
 					</div>
 				{/if}

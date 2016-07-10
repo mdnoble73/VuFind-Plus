@@ -380,6 +380,38 @@
 			</div>
 		{/if}
 
+		{if $productionTeam}
+			<div class="panel {*active toggle on for open*}" id="relatedPeoplePanel">
+				<a href="#productionTeamPanelBody" data-toggle="collapse">
+					<div class="panel-heading">
+						<div class="panel-title">
+							Production Team
+						</div>
+					</div>
+				</a>
+				<div id="productionTeamPanelBody" class="panel-collapse collapse {*in toggle on for open*}">
+					<div class="panel-body">
+						{foreach from=$productionTeam item=entity}
+							<div class="relatedPerson row">
+								<div class="col-tn-12">
+									<a href='{$entity.link}'>
+										{$entity.label}
+									</a>
+									{if $entity.role}
+										&nbsp;({$entity.role})
+									{/if}
+									{if $entity.note}
+										&nbsp;- {$entity.note}
+									{/if}
+								</div>
+							</div>
+						{/foreach}
+
+					</div>
+				</div>
+			</div>
+		{/if}
+
 		{assign var="externalLinks" value=$recordDriver->getVisibleLinks()}
 		{if count($externalLinks) > 0}
 			<div class="panel active" id="externalLinksPanel">

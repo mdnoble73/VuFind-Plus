@@ -303,11 +303,19 @@ public class SierraExportMain{
 				//Add a small buffer to be
 				Date lastExtractDate = new Date((lastSierraExtractTime - 120) * 1000);
 
+				Date now = new Date();
+				Date yesterday = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+
+				if (lastExtractDate.before(yesterday)){
+					logger.warn("Last Extract date was more than 24 hours ago.  Just getting the last 24 hours since we should have a full extract.");
+					lastExtractDate = yesterday;
+				}
+
 				SimpleDateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
 				dateFormatter.setTimeZone(TimeZone.getTimeZone("UTC"));
 				String dateUpdated = dateFormatter.format(lastExtractDate);
 				long updateTime = new Date().getTime() / 1000;
-
+				logger.info("Loading records changed since " + dateUpdated);
 
 				SimpleDateFormat marcDateFormat = new SimpleDateFormat(dueDateFormat);
 				SimpleDateFormat marcCheckInFormat = new SimpleDateFormat(lastCheckInFormat);
@@ -316,39 +324,50 @@ public class SierraExportMain{
 				//That the grouped record has changed which will force the work to be indexed
 				//In reality, this will only update availability unless we pull the full marc record
 				//from the API since we only have updated availability, not location data or metadata
-				long offset = 0;
+				long firstRecordIdToLoad = 1;
 				boolean moreToRead = true;
 				PreparedStatement markGroupedWorkForBibAsChangedStmt = vufindConn.prepareStatement("UPDATE grouped_work SET date_updated = ? where id = (SELECT grouped_work_id from grouped_work_primary_identifiers WHERE type = 'ils' and identifier = ?)") ;
-				boolean firstLoad = true;
 				HashMap<String, ArrayList<ItemChangeInfo>> changedBibs = new HashMap<>();
-				int bufferSize = 1000;
-				String recordsToExtractBatchSizeStr = ini.get("Sierra", "recordsToExtractBatchSize");
+				int bufferSize = 100;
+				/*String recordsToExtractBatchSizeStr = ini.get("Sierra", "recordsToExtractBatchSize");
 				if (recordsToExtractBatchSizeStr != null){
 					bufferSize = Integer.parseInt(recordsToExtractBatchSizeStr);
 					logger.info("Loading records in batches of " + bufferSize + " records");
-				}
+				}*/
 
+				int numRead = 0;
+				int recordOffset = 50000;
 				while (moreToRead){
-					JSONObject changedRecords = callSierraApiURL(ini, apiBaseUrl, apiBaseUrl + "/items/?updatedDate=[" + dateUpdated + ",]&limit=" + bufferSize + "&fields=id,bibIds,location,status,fixedFields&deleted=false&suppressed=false&offset=" + offset, false);
+					long lastRecord = firstRecordIdToLoad + recordOffset;
+					logger.info("Loading items with changes from " + firstRecordIdToLoad);
+					JSONObject changedRecords = null;
+					int numTries = 0;
+					while ((numTries == 0 || lastCallTimedOut) && numTries < 5){
+						numTries++;
+						//Try loading again
+						if (lastCallTimedOut) {
+							logger.info(" - timed out, retrying");
+							Thread.sleep(2500);
+						}
+						//changedRecords = callSierraApiURL(ini, apiBaseUrl, apiBaseUrl + "/items/?updatedDate=[" + dateUpdated + ",]&limit=" + bufferSize + "&fields=id,bibIds,location,status,fixedFields&deleted=false&suppressed=false&id=[" + firstRecordIdToLoad + "," + (lastRecord > 999999999 ? "" : lastRecord) + "]", false);
+						changedRecords = callSierraApiURL(ini, apiBaseUrl, apiBaseUrl + "/items/?updatedDate=[" + dateUpdated + ",]&limit=" + bufferSize + "&fields=id,bibIds,location,status,fixedFields&deleted=false&suppressed=false&id=[" + firstRecordIdToLoad + ",]", false);
+					}
+					if (lastCallTimedOut){
+						logger.error(" - call " + numTries + " timed out, data will be lost!");
+					}
 					int numChangedIds = 0;
 					if (changedRecords != null && changedRecords.has("entries")){
-						if (firstLoad){
-							int numUpdates = changedRecords.getInt("total");
-							logger.info("A total of " + numUpdates + " items have been updated since " + dateUpdated);
-							firstLoad = false;
-							if (numUpdates > maxRecordsToUpdateDuringExtract){
-								logger.warn("Too many records to extract from Sierra, aborting extract until next full record load");
-								break;
-							}
-						}else{
-							int numUpdates = changedRecords.getInt("total");
-							logger.info("Loaded an additional batch of " + numUpdates + " current offset is " + offset);
-						}
+						//int numUpdates = changedRecords.getInt("total");
 						JSONArray changedIds = changedRecords.getJSONArray("entries");
 						numChangedIds = changedIds.length();
+						logger.info(" - Found " + numChangedIds + " changes");
+						int lastId = 0;
 						for(int i = 0; i < numChangedIds; i++){
+							numRead++;
 							JSONObject curItem = changedIds.getJSONObject(i);
 							String itemId = curItem.getString("id");
+							lastId = Integer.parseInt(itemId) + 1;
+
 							String location;
 							if (curItem.has("location")) {
 								location = curItem.getJSONObject("location").getString("code");
@@ -379,6 +398,7 @@ public class SierraExportMain{
 
 							ItemChangeInfo changeInfo = new ItemChangeInfo();
 							String itemIdFull = ".i" + itemId + getCheckDigit(itemId);
+
 							changeInfo.setItemId(itemIdFull);
 							changeInfo.setLocation(location);
 							changeInfo.setStatus(status);
@@ -400,12 +420,20 @@ public class SierraExportMain{
 								itemChanges.add(changeInfo);
 							}
 						}
+						if (numChangedIds >= bufferSize){
+							firstRecordIdToLoad = lastId + 1;
+						}else{
+							firstRecordIdToLoad += recordOffset;
+						}
+					}else{
+						logger.info(" - Found no changes");
+						firstRecordIdToLoad += recordOffset;
 					}
+					logger.info(" - " + changedBibs.size() + " bibs have changes (so far)");
 					//If we have the same number of records as the buffer that is ok.  Sierra does not return the correct total anymore
-					moreToRead = (numChangedIds >= bufferSize);
-					offset += bufferSize;
-					if (offset >= maxRecordsToUpdateDuringExtract){
-						logger.warn("There are an abnormally large number of changed records, breaking");
+					moreToRead = (numChangedIds >= bufferSize); // || firstRecordIdToLoad <= 999999999;
+					if (changedBibs.size() >= maxRecordsToUpdateDuringExtract){
+						logger.warn(changedBibs.size() + " records changed, halting.  This will result in some changes being skipped!");
 						break;
 					}
 				}
@@ -758,7 +786,10 @@ public class SierraExportMain{
 		return true;
 	}
 
+	private static boolean lastCallTimedOut = false;
+
 	private static JSONObject callSierraApiURL(Ini configIni, String baseUrl, String sierraUrl, boolean logErrors) {
+		lastCallTimedOut = false;
 		if (connectToSierraAPI(configIni, baseUrl)){
 			//Connect to the API to get our token
 			HttpURLConnection conn;
@@ -778,8 +809,8 @@ public class SierraExportMain{
 				}
 				conn.setRequestMethod("GET");
 				conn.setRequestProperty("Authorization", sierraAPITokenType + " " + sierraAPIToken);
-				conn.setReadTimeout(30000);
-				conn.setConnectTimeout(30000);
+				conn.setReadTimeout(20000);
+				conn.setConnectTimeout(5000);
 
 				StringBuilder response = new StringBuilder();
 				if (conn.getResponseCode() == 200) {
@@ -806,10 +837,16 @@ public class SierraExportMain{
 
 						rd.close();
 					}else{
-						logger.debug("Received error " + conn.getResponseCode() + " calling sierra API " + sierraUrl);
+						//logger.debug("Received error " + conn.getResponseCode() + " calling sierra API " + sierraUrl);
 					}
 				}
 
+			} catch (java.net.SocketTimeoutException e) {
+				logger.debug("Socket timeout talking to to sierra API " + e.toString() );
+				lastCallTimedOut = true;
+			} catch (java.net.ConnectException e) {
+				logger.debug("Timeout connecting to sierra API " + e.toString() );
+				lastCallTimedOut = true;
 			} catch (Exception e) {
 				logger.debug("Error loading data from sierra API ", e );
 			}

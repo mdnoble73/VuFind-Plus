@@ -12,6 +12,7 @@ public class IndexingProfile {
 	public Long id;
 	public String name;
 	public String marcPath;
+	public String filenamesToInclude;
 	public String marcEncoding;
 	public String individualMarcPath;
 	public String groupingClass;

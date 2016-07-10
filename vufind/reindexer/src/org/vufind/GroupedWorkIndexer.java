@@ -218,7 +218,10 @@ public class GroupedWorkIndexer {
 							break;
 						case "Arlington":
 							ilsRecordProcessors.put(curIdentifier, new ArlingtonRecordProcessor(this, vufindConn, configIni, indexingProfileRS, logger, fullReindex));
-						break;
+							break;
+						case "CarlX":
+							ilsRecordProcessors.put(curIdentifier, new CarlXRecordProcessor(this, vufindConn, configIni, indexingProfileRS, logger, fullReindex));
+							break;
 						case "SideLoadedEContent":
 							ilsRecordProcessors.put(curIdentifier, new SideLoadedEContentProcessor(this, vufindConn, configIni, indexingProfileRS, logger, fullReindex));
 							break;

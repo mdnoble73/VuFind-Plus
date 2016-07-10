@@ -213,15 +213,18 @@ class Millennium extends ScreenScrapingDriver
 	 * This is responsible for authenticating a patron against the catalog.
 	 * Interface defined in CatalogConnection.php
 	 *
-	 * @param   string  $username   The patron username
-	 * @param   string  $password   The patron password
+	 * @param   string  $username         The patron username
+	 * @param   string  $password         The patron password
+	 * @param   boolean $validatedViaSSO  True if the patron has already been validated via SSO.  If so we don't need to validation, just retrieve information
+	 *
 	 * @return  User|null           A string of the user's ID number
 	 *                              If an error occurs, return a PEAR_Error
 	 * @access  public
 	 */
-	public function patronLogin($username, $password) {
+	public function patronLogin($username, $password, $validatedViaSSO) {
 		global $timer;
 		global $configArray;
+		global $logger;
 
 		//Get the barcode property
 		if ($this->accountProfile->loginConfiguration == 'barcode_pin'){
@@ -239,16 +242,21 @@ class Millennium extends ScreenScrapingDriver
 
 		//Load the raw information about the patron
 		$patronDump = $this->_getPatronDump($barcode);
+		//$logger->log("Retrieved patron dump for $barcode\r\n" . print_r($patronDump, true), PEAR_LOG_DEBUG);
 
 		//Create a variety of possible name combinations for testing purposes.
 		$userValid = false;
 		//Break up the patron name into first name, last name and middle name based on the
-		if ($this->accountProfile->loginConfiguration == 'barcode_pin'){
-			$userValid = $this->_doPinTest($barcode, $password);
+		if ($validatedViaSSO) {
+			$userValid = true;
 		}else{
-			if (isset($patronDump['PATRN_NAME'])){
-				$patronName = $patronDump['PATRN_NAME'];
-				list($fullName, $lastName, $firstName, $userValid) = $this->validatePatronName($username, $patronName);
+			if ($this->accountProfile->loginConfiguration == 'barcode_pin'){
+				$userValid = $this->_doPinTest($barcode, $password);
+			}else{
+				if (isset($patronDump['PATRN_NAME'])){
+					$patronName = $patronDump['PATRN_NAME'];
+					list($fullName, $lastName, $firstName, $userValid) = $this->validatePatronName($username, $patronName);
+				}
 			}
 		}
 

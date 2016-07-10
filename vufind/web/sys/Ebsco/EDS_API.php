@@ -450,4 +450,8 @@ BODY;
 			}
 		}
 	}
+
+	public function displayQuery(){
+		return $this->searchTerm;
+	}
 }

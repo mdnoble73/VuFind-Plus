@@ -14,4 +14,12 @@ class VideoDriver extends IslandoraDriver {
 	public function getViewAction() {
 		return 'Video';
 	}
+
+	public function getFormat(){
+		$genre = $this->getModsValue('genre', 'mods');
+		if ($genre != null){
+			return ucwords($genre);
+		}
+		return 'Video';
+	}
 }

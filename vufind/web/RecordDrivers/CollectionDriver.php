@@ -46,4 +46,8 @@ class CollectionDriver extends IslandoraDriver {
 		$this->anonymousLcDownload = $this->getModsValue('anonymousLcDownload', 'marmot') != 'no';
 		$this->verifiedLcDownload = $this->getModsValue('verifiedLcDownload', 'marmot') != 'no';
 	}
+
+	public function getFormat(){
+		return 'Collection';
+	}
 }

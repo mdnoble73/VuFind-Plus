@@ -266,7 +266,7 @@ if ($user) {
 	//Create a cookie for the user's home branch so we can sort holdings even if they logout.
 	//Cookie expires in 1 week.
 	setcookie('home_location', $user->homeLocationId, time()+60*60*24*7, '/');
-} else if (isset($_POST['username']) && isset($_POST['password']) && ($action != 'Account' && $module != 'AJAX')) {
+} else if ( (isset($_POST['username']) && isset($_POST['password']) && ($action != 'Account' && $module != 'AJAX')) || isset($_REQUEST['casLogin']) ) {
 	//The user is trying to log in
 	$user = UserAccount::login();
 	$timer->logTime('Login the user');
@@ -771,6 +771,9 @@ function getGitBranch(){
 }
 // Set up autoloader (needed for YAML)
 function vufind_autoloader($class) {
+	if (substr($class, 0, 4) == 'CAS_') {
+		return CAS_autoload($class);
+	}
 	if (strpos($class, '.php') > 0){
 		$class = substr($class, 0, strpos($class, '.php'));
 	}

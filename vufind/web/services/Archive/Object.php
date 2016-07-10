@@ -33,22 +33,28 @@ abstract class Archive_Object extends Action{
 
 		$relatedEvents = $this->recordDriver->getRelatedEvents();
 		$relatedPeople = $this->recordDriver->getRelatedPeople();
+		$productionTeam = $this->recordDriver->getProductionTeam();
 		$relatedOrganizations = $this->recordDriver->getRelatedOrganizations();
 		$relatedPlaces = $this->recordDriver->getRelatedPlaces();
 
 		//Sort all the related information
 		usort($relatedEvents, 'ExploreMore::sortRelatedEntities');
 		usort($relatedPeople, 'ExploreMore::sortRelatedEntities');
+		usort($productionTeam, 'ExploreMore::sortRelatedEntities');
 		usort($relatedOrganizations, 'ExploreMore::sortRelatedEntities');
 		usort($relatedPlaces, 'ExploreMore::sortRelatedEntities');
 
 		//Do final assignment
 		$interface->assign('relatedEvents', $relatedEvents);
 		$interface->assign('relatedPeople', $relatedPeople);
+		$interface->assign('productionTeam', $productionTeam);
 		$interface->assign('relatedOrganizations', $relatedOrganizations);
 		$interface->assign('relatedPlaces', $relatedPlaces);
 
 		$pageTitle = $pageTitle == null ? $this->archiveObject->label : $pageTitle;
+
+		$interface->assign('breadcrumbText', $pageTitle);
+
 		parent::display($mainContentTemplate, $pageTitle);
 	}
 

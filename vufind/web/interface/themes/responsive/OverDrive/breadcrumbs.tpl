@@ -1,9 +1,5 @@
 {if $lastsearch}
-<a href="{$lastsearch|escape}#record{$id|escape:"url"}">{translate text="Return to Search Results"}</a> <span class="divider">&raquo;</span>
+&nbsp;<a href="{$lastsearch|escape}#record{$id|escape:"url"}">{translate text="Return to Search Results"}</a> <span class="divider">&raquo;</span>
 {/if}
-{if $breadcrumbText}
-<em>{$breadcrumbText|truncate:30:"..."|escape}</em> <span class="divider">&raquo;</span>
-{/if}
-{if $subTemplate!=""}
-<em>{$subTemplate|replace:'view-':''|replace:'.tpl':''|replace:'../MyResearch/':''|capitalize|translate}</em> 
-{/if}
+&nbsp;{if !$lastsearch}Catalog {/if}<a href="{$path}/GroupedWork/{$recordDriver->getPermanentId()}">{$recordDriver->getTitle()|truncate:30:"..."|escape}</a> <span class="divider">&raquo;</span>
+&nbsp;<em>{$groupedWorkDriver->getFormatCategory()}</em> <span class="divider">&raquo;</span>

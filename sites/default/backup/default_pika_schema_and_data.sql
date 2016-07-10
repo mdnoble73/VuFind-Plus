@@ -1,10 +1,8 @@
-CREATE DATABASE  IF NOT EXISTS `pika` /*!40100 DEFAULT CHARACTER SET utf8 */;
-USE `pika`;
--- MySQL dump 10.13  Distrib 5.6.17, for Win32 (x86)
+-- MySQL dump 10.13  Distrib 5.7.12, for Win64 (x86_64)
 --
--- Host: 127.0.0.1    Database: pika
+-- Host: localhost    Database: pika
 -- ------------------------------------------------------
--- Server version	5.6.20-log
+-- Server version	5.5.47-MariaDB
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
@@ -45,7 +43,7 @@ CREATE TABLE `account_profiles` (
 
 LOCK TABLES `account_profiles` WRITE;
 /*!40000 ALTER TABLE `account_profiles` DISABLE KEYS */;
-INSERT INTO `account_profiles` VALUES (1,'ils','Library','barcode_pin','ils','defaultURL','defaultURL','ils',0);
+INSERT INTO `account_profiles` VALUES (1,'ils','Library','barcode_pin','db','defaultURL','defaultURL','ils',1);
 /*!40000 ALTER TABLE `account_profiles` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -63,7 +61,7 @@ CREATE TABLE `administrators` (
   `name` varchar(100) NOT NULL COMMENT 'A name to use when displaying the administrator',
   PRIMARY KEY (`id`),
   UNIQUE KEY `login` (`login`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8 COMMENT='Stores information about users who can administer the system';
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 COMMENT='Stores information about users who can administer the system';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -135,7 +133,7 @@ CREATE TABLE `analytics_device` (
   `value` varchar(128) DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `value` (`value`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM AUTO_INCREMENT=2 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -210,7 +208,7 @@ CREATE TABLE `analytics_page_view` (
   KEY `objectId` (`objectId`),
   KEY `language` (`language`),
   KEY `loadTime` (`loadTime`)
-) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -234,7 +232,7 @@ CREATE TABLE `analytics_patron_type` (
   `value` varchar(128) DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `value` (`value`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -258,7 +256,7 @@ CREATE TABLE `analytics_physical_location` (
   `value` varchar(128) DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `value` (`value`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -342,7 +340,7 @@ CREATE TABLE `analytics_session` (
   KEY `physicalLocationId` (`physicalLocationId`),
   KEY `patronTypeId` (`patronTypeId`),
   KEY `homeLocationId` (`homeLocationId`)
-) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -437,7 +435,7 @@ CREATE TABLE `analytics_theme` (
   `value` varchar(128) DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `value` (`value`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -447,6 +445,30 @@ CREATE TABLE `analytics_theme` (
 LOCK TABLES `analytics_theme` WRITE;
 /*!40000 ALTER TABLE `analytics_theme` DISABLE KEYS */;
 /*!40000 ALTER TABLE `analytics_theme` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `archive_subjects`
+--
+
+DROP TABLE IF EXISTS `archive_subjects`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `archive_subjects` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `subjectsToIgnore` mediumtext,
+  `subjectsToRestrict` mediumtext,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `archive_subjects`
+--
+
+LOCK TABLES `archive_subjects` WRITE;
+/*!40000 ALTER TABLE `archive_subjects` DISABLE KEYS */;
+/*!40000 ALTER TABLE `archive_subjects` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -628,7 +650,7 @@ CREATE TABLE `circulation_status` (
   `holdable` tinyint(4) NOT NULL COMMENT 'Whether or not patrons can place holds on items with this status',
   `available` tinyint(4) NOT NULL COMMENT 'Whether or not the item is available for immediate usage (if the patron is at that branch)',
   PRIMARY KEY (`circulationStatusId`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8 COMMENT='Stores informattion about the circulation statuses in millen';
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 COMMENT='Stores informattion about the circulation statuses in millen';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -718,7 +740,7 @@ CREATE TABLE `db_update` (
 
 LOCK TABLES `db_update` WRITE;
 /*!40000 ALTER TABLE `db_update` DISABLE KEYS */;
-INSERT INTO `db_update` VALUES ('account_profiles_1','2015-10-12 22:07:55'),('additional_library_contact_links','2015-10-12 22:01:41'),('additional_locations_for_availability','2015-10-12 22:01:42'),('addTablelistWidgetListsLinks','2015-10-12 22:07:47'),('add_indexes','2012-04-21 03:11:53'),('add_indexes2','2012-04-21 03:12:16'),('add_sms_indicator_to_phone','2015-10-12 22:03:51'),('alpha_browse_setup','2012-03-30 23:23:56'),('alpha_browse_setup_2','2015-10-12 22:07:31'),('alpha_browse_setup_3','2015-10-12 22:07:32'),('alpha_browse_setup_4','2015-10-12 22:07:32'),('alpha_browse_setup_5','2015-10-12 22:07:32'),('alpha_browse_setup_6','2015-10-12 22:07:32'),('alpha_browse_setup_7','2015-10-12 22:07:32'),('alpha_browse_setup_8','2015-10-12 22:07:33'),('alpha_browse_setup_9','2015-10-12 22:07:34'),('analytics','2015-10-12 22:07:49'),('analytics_1','2015-10-12 22:07:49'),('analytics_2','2015-10-12 22:07:49'),('analytics_3','2015-10-12 22:07:50'),('analytics_4','2015-10-12 22:07:50'),('analytics_5','2015-10-12 22:07:50'),('analytics_6','2015-10-12 22:07:51'),('analytics_7','2015-10-12 22:07:52'),('analytics_8','2015-10-12 22:07:52'),('authentication_profiles','2015-10-12 22:07:55'),('availability_toggle_customization','2015-10-12 22:01:41'),('book_store','2015-10-12 22:07:48'),('book_store_1','2015-10-12 22:07:48'),('boost_disabling','2015-10-12 22:07:47'),('browse_categories','2015-10-12 22:07:53'),('browse_categories_lists','2015-10-12 22:07:53'),('browse_categories_search_term_and_stats','2015-10-12 22:07:53'),('browse_categories_search_term_length','2015-10-12 22:07:53'),('browse_category_default_view_mode','2015-10-12 22:03:51'),('browse_category_ratings_mode','2015-10-12 22:03:51'),('catalogingRole','2012-03-03 18:00:27'),('collapse_facets','2015-10-12 22:00:46'),('contentEditor','2015-10-12 22:07:31'),('coverArt_suppress','2011-10-31 21:03:41'),('cronLog','2015-10-12 22:07:34'),('default_library','2015-10-12 22:03:51'),('detailed_hold_notice_configuration','2015-10-12 22:01:41'),('dpla_integration','2015-10-12 22:01:42'),('econtent_locations_to_include','2015-10-12 21:59:43'),('editorial_review','2011-09-29 18:50:37'),('editorial_review_1','2015-10-12 22:06:41'),('editorial_review_2','2015-10-12 22:06:42'),('epub_files_update_1','2011-09-13 20:01:41'),('epub_files_update_2','2011-09-19 16:56:22'),('epub_files_update_3','2011-09-26 23:12:16'),('epub_history_update_1','2011-09-20 17:25:30'),('epub_transactions','2011-05-28 04:44:32'),('evoke_setup','2015-10-12 22:04:57'),('externalLinkTracking','2012-01-06 15:25:54'),('external_materials_request','2015-10-12 22:03:51'),('facet_grouping_updates','2015-10-12 22:00:46'),('full_record_view_configuration_options','2015-10-12 22:01:42'),('genealogy','2012-04-21 03:07:16'),('genealogy_1','2012-04-21 03:06:18'),('genealogy_nashville_1','2015-10-12 22:06:41'),('goodreads_library_contact_link','2015-10-12 22:01:41'),('grouped_works','2015-10-12 22:04:56'),('grouped_works_1','2015-10-12 22:04:56'),('grouped_works_2','2015-10-12 22:04:56'),('grouped_works_partial_updates','2015-10-12 22:04:57'),('grouped_works_primary_identifiers','2015-10-12 22:04:57'),('grouped_works_primary_identifiers_1','2015-10-12 22:04:57'),('grouped_works_remove_split_titles','2015-10-12 22:04:57'),('grouped_work_duplicate_identifiers','2015-10-12 22:04:57'),('grouped_work_engine','2015-10-12 22:04:57'),('grouped_work_evoke','2015-10-12 22:04:57'),('grouped_work_identifiers_ref_indexing','2015-10-12 22:04:57'),('grouped_work_index_cleanup','2015-10-12 22:04:57'),('grouped_work_index_date_updated','2015-10-12 22:04:57'),('grouped_work_merging','2015-10-12 22:04:57'),('grouped_work_primary_identifiers_hoopla','2015-10-12 22:04:57'),('grouped_work_primary_identifier_types','2015-10-12 22:04:57'),('header_text','2015-10-12 22:03:51'),('holiday','2015-10-12 22:07:48'),('holiday_1','2015-10-12 22:07:48'),('hoopla_library_options','2015-10-12 22:01:41'),('hours_and_locations_control','2015-10-12 21:59:43'),('ils_code_records_owned_length','2015-10-12 22:03:51'),('ils_hold_summary','2015-10-12 22:07:54'),('ils_marc_checksums','2015-10-12 22:07:52'),('ils_marc_checksum_first_detected','2015-10-12 22:07:52'),('ils_marc_checksum_first_detected_signed','2015-10-12 22:07:52'),('ils_marc_checksum_source','2015-10-12 22:07:52'),('indexing_profile','2015-10-12 22:07:54'),('indexing_profile_catalog_driver','2015-10-12 22:07:55'),('indexing_profile_collection','2015-10-12 22:07:55'),('indexing_profile_holdability','2015-10-12 22:07:55'),('indexLog','2012-03-31 04:05:31'),('indexUsageTracking','2012-04-21 03:11:53'),('index_resources','2012-04-21 03:11:53'),('index_search_stats','2012-01-06 15:26:59'),('index_search_stats_counts','2015-10-12 22:06:41'),('ip_lookup_1','2015-10-12 22:07:31'),('ip_lookup_2','2015-10-12 22:07:31'),('libraryAdmin','2015-10-12 22:07:31'),('library_1','2012-03-03 18:00:08'),('library_10','2015-10-12 21:58:15'),('library_11','2015-10-12 21:58:15'),('library_12','2015-10-12 21:58:15'),('library_13','2015-10-12 21:58:15'),('library_14','2015-10-12 21:58:15'),('library_15','2015-10-12 21:58:15'),('library_16','2015-10-12 21:58:16'),('library_17','2015-10-12 21:58:16'),('library_18','2015-10-12 21:58:16'),('library_19','2015-10-12 21:58:16'),('library_2','2012-03-03 18:00:08'),('library_20','2015-10-12 21:58:16'),('library_21','2015-10-12 21:58:16'),('library_23','2015-10-12 21:58:16'),('library_24','2015-10-12 21:59:03'),('library_25','2015-10-12 21:59:03'),('library_26','2015-10-12 21:59:03'),('library_28','2015-10-12 21:59:03'),('library_29','2015-10-12 21:59:03'),('library_3','2012-03-03 18:00:09'),('library_30','2015-10-12 21:59:03'),('library_31','2015-10-12 21:59:03'),('library_32','2015-10-12 21:59:03'),('library_33','2015-10-12 21:59:03'),('library_34','2015-10-12 21:59:04'),('library_35_marmot','2015-10-12 21:59:04'),('library_35_nashville','2015-10-12 21:59:04'),('library_36_nashville','2015-10-12 21:59:04'),('library_4','2012-03-03 18:00:09'),('library_5','2012-03-03 18:00:09'),('library_6','2012-04-10 22:15:00'),('library_7','2012-04-13 19:05:08'),('library_8','2015-10-12 21:58:15'),('library_9','2015-10-12 21:58:15'),('library_barcodes','2015-10-12 21:59:44'),('library_bookings','2015-10-12 21:59:43'),('library_contact_links','2015-10-12 21:59:04'),('library_css','2015-10-12 21:59:04'),('library_expiration_warning','2015-10-12 21:59:43'),('library_facets','2015-10-12 21:59:44'),('library_facets_1','2015-10-12 22:00:46'),('library_facets_2','2015-10-12 22:00:46'),('library_grouping','2015-10-12 21:59:04'),('library_ils_code_expansion','2015-10-12 21:59:43'),('library_ils_code_expansion_2','2015-10-12 21:59:43'),('library_links','2015-10-12 21:59:04'),('library_links_show_html','2015-10-12 21:59:04'),('library_location_boosting','2015-10-12 21:59:43'),('library_location_display_controls','2015-10-12 21:59:44'),('library_location_repeat_online','2015-10-12 21:59:43'),('library_materials_request_limits','2015-10-12 21:59:04'),('library_order_information','2015-10-12 21:59:43'),('library_pin_reset','2015-10-12 21:59:43'),('library_prompt_birth_date','2015-10-12 21:59:44'),('library_show_display_name','2015-10-12 21:59:44'),('library_top_links','2015-10-12 21:59:43'),('linked_accounts_switch','2015-10-12 22:03:51'),('list_cache','2011-07-15 22:25:22'),('list_cache_2','2011-07-18 16:32:28'),('list_cache_2_update_1','2012-03-03 18:00:09'),('list_wdiget_list_update_1','2012-03-03 18:00:09'),('list_wdiget_update_1','2012-03-03 18:00:09'),('list_widgets','2011-09-01 19:34:18'),('list_widgets_home','2011-09-01 19:34:18'),('list_widgets_update_1','2015-10-12 22:04:57'),('list_widgets_update_2','2015-10-12 22:04:57'),('list_widget_style_update','2015-10-12 22:04:57'),('list_widget_update_2','2015-10-12 22:04:57'),('list_widget_update_3','2015-10-12 22:04:57'),('list_widget_update_4','2015-10-12 22:04:57'),('list_widget_update_5','2015-10-12 22:04:57'),('load_resource_info','2011-10-26 00:01:48'),('loan_rule_determiners_1','2015-10-12 22:07:48'),('localized_browse_categories','2015-10-12 22:07:53'),('location_1','2015-10-12 22:00:46'),('location_10','2015-10-12 22:01:40'),('location_2','2015-10-12 22:00:46'),('location_3','2015-10-12 22:00:46'),('location_4','2015-10-12 22:00:46'),('location_5','2015-10-12 22:00:46'),('location_6','2015-10-12 22:00:46'),('location_7','2015-10-12 22:00:46'),('location_8','2015-10-12 22:01:40'),('location_9','2015-10-12 22:01:40'),('location_address','2015-10-12 22:01:40'),('location_facets','2015-10-12 22:00:46'),('location_facets_1','2015-10-12 22:00:46'),('location_hours','2015-10-12 22:07:48'),('location_increase_code_column_size','2015-10-12 22:01:40'),('location_show_display_name','2015-10-12 22:01:40'),('location_sublocation','2015-10-12 22:01:40'),('location_sublocation_uniqueness','2015-10-12 22:01:41'),('login_form_labels','2015-10-12 22:01:41'),('logo_linking','2015-10-12 22:03:51'),('marcImport','2012-03-31 05:15:32'),('marcImport_1','2015-10-12 22:07:34'),('marcImport_2','2015-10-12 22:07:34'),('marcImport_3','2015-10-12 22:07:34'),('materialRequestsRole','2015-10-12 22:06:43'),('materialsRequest','2012-03-03 18:00:26'),('materialsRequestStatus','2012-03-20 05:17:54'),('materialsRequestStatus_update1','2015-10-12 22:06:43'),('materialsRequest_update1','2012-03-03 18:00:27'),('materialsRequest_update2','2012-03-08 23:51:37'),('materialsRequest_update3','2012-03-08 23:51:39'),('materialsRequest_update4','2012-03-19 22:10:45'),('materialsRequest_update5','2012-04-02 19:59:55'),('materialsRequest_update6','2015-10-12 22:06:43'),('merged_records','2015-10-12 22:07:31'),('millenniumTables','2015-10-12 22:07:47'),('more_details_customization','2015-10-12 22:01:41'),('nearby_book_store','2015-10-12 22:07:48'),('new_search_stats','2015-10-12 22:06:41'),('notInterested','2015-10-12 22:06:42'),('notInterestedWorks','2015-10-12 22:06:43'),('notInterestedWorksRemoveUserIndex','2015-10-12 22:06:43'),('novelist_data','2015-10-12 22:07:52'),('offline_circulation','2015-10-12 22:07:52'),('offline_holds','2015-10-12 22:07:52'),('offline_holds_update_1','2015-10-12 22:07:52'),('overdrive_integration','2015-10-12 22:01:42'),('overdrive_integration_2','2015-10-12 22:01:42'),('overdrive_integration_3','2015-10-12 22:01:42'),('ptype','2015-10-12 22:07:48'),('pTypesForLibrary','2015-10-12 21:59:43'),('purchase_link_tracking','2011-10-12 15:07:49'),('readingHistory','2012-03-19 22:10:44'),('readingHistoryUpdate1','2012-03-19 22:10:44'),('readingHistory_deletion','2015-10-12 22:06:42'),('readingHistory_work','2015-10-12 22:06:42'),('recommendations_optOut','2011-09-06 20:13:38'),('reindexLog','2012-04-19 21:15:02'),('reindexLog_1','2015-10-12 22:07:34'),('reindexLog_2','2015-10-12 22:07:34'),('reindexLog_grouping','2015-10-12 22:07:34'),('remove_browse_tables','2015-10-12 22:07:53'),('remove_old_resource_tables','2015-10-12 22:07:53'),('remove_old_tables','2012-03-15 16:00:16'),('remove_unused_options','2015-10-12 22:07:54'),('rename_tables','2012-04-21 00:36:00'),('resource_callnumber','2012-03-31 03:40:15'),('resource_subject','2012-03-31 05:15:24'),('resource_update3','2012-03-03 18:18:56'),('resource_update4','2012-04-21 03:10:53'),('resource_update5','2012-04-10 22:15:12'),('resource_update6','2012-04-21 03:11:04'),('resource_update7','2015-10-12 22:06:42'),('resource_update8','2015-10-12 22:06:42'),('resource_update_table','2011-10-31 21:03:40'),('resource_update_table_2','2012-01-24 22:59:51'),('roles_1','2012-03-19 22:10:44'),('roles_2','2015-10-12 22:03:51'),('search_sources','2015-10-12 22:01:41'),('search_sources_1','2015-10-12 22:01:41'),('selfreg_customization','2015-10-12 22:01:42'),('selfreg_template','2015-10-12 22:01:42'),('session_update_1','2015-10-12 22:07:52'),('setup_default_indexing_profiles','2015-10-12 22:07:55'),('setup_econtent','2011-11-06 02:51:24'),('show_catalog_options_in_profile','2015-10-12 22:01:41'),('show_place_hold_on_unavailable','2015-10-12 22:03:51'),('sip2_item_cache','2011-07-18 16:32:28'),('sip2_item_cache_1','2012-03-03 18:00:09'),('spelling_optimization','2012-04-02 06:21:47'),('sub-browse_categories','2015-10-12 22:07:53'),('syndetics_data','2015-10-12 22:07:52'),('theme_name_length','2015-10-12 22:03:51'),('translation_map_regex','2015-10-12 22:07:55'),('usage_tracking','2011-10-25 19:03:16'),('userRatings1','2015-10-12 22:06:43'),('user_account','2015-10-12 22:03:52'),('user_display_name','2011-07-06 21:58:22'),('user_epub_history_1','2011-08-17 22:29:55'),('user_ilsType','2012-03-15 16:00:16'),('user_linking','2015-10-12 22:03:52'),('user_link_blocking','2015-10-12 22:03:53'),('user_list_entry','2015-10-12 22:07:52'),('user_list_indexing','2015-10-12 22:07:53'),('user_list_sorting','2015-10-12 22:07:53'),('user_overdrive_email','2015-10-12 22:03:52'),('user_phone','2012-04-21 03:10:53'),('user_preference_review_prompt','2015-10-12 22:03:52'),('user_preferred_library_interface','2015-10-12 22:03:52'),('user_track_reading_history','2015-10-12 22:03:52'),('utf8_update','2012-03-03 18:02:08'),('variables_table','2015-10-12 22:07:31'),('variables_table_uniqueness','2015-10-12 22:07:31'),('work_level_ratings','2015-10-12 22:07:52'),('work_level_tagging','2015-10-12 22:07:52');
+INSERT INTO `db_update` VALUES ('account_profiles_1','2015-10-12 22:07:55'),('additional_library_contact_links','2015-10-12 22:01:41'),('additional_locations_for_availability','2015-10-12 22:01:42'),('addTablelistWidgetListsLinks','2015-10-12 22:07:47'),('add_indexes','2012-04-21 03:11:53'),('add_indexes2','2012-04-21 03:12:16'),('add_sms_indicator_to_phone','2015-10-12 22:03:51'),('alpha_browse_setup','2012-03-30 23:23:56'),('alpha_browse_setup_2','2015-10-12 22:07:31'),('alpha_browse_setup_3','2015-10-12 22:07:32'),('alpha_browse_setup_4','2015-10-12 22:07:32'),('alpha_browse_setup_5','2015-10-12 22:07:32'),('alpha_browse_setup_6','2015-10-12 22:07:32'),('alpha_browse_setup_7','2015-10-12 22:07:32'),('alpha_browse_setup_8','2015-10-12 22:07:33'),('alpha_browse_setup_9','2015-10-12 22:07:34'),('always_show_search_results_Main_details','2016-06-30 16:37:29'),('analytics','2015-10-12 22:07:49'),('analytics_1','2015-10-12 22:07:49'),('analytics_2','2015-10-12 22:07:49'),('analytics_3','2015-10-12 22:07:50'),('analytics_4','2015-10-12 22:07:50'),('analytics_5','2015-10-12 22:07:50'),('analytics_6','2015-10-12 22:07:51'),('analytics_7','2015-10-12 22:07:52'),('analytics_8','2015-10-12 22:07:52'),('archivesRole','2016-06-30 16:37:31'),('archive_filtering','2016-06-30 16:37:30'),('archive_subjects','2016-06-30 16:37:31'),('authentication_profiles','2015-10-12 22:07:55'),('availability_toggle_customization','2015-10-12 22:01:41'),('book_store','2015-10-12 22:07:48'),('book_store_1','2015-10-12 22:07:48'),('boost_disabling','2015-10-12 22:07:47'),('browse_categories','2015-10-12 22:07:53'),('browse_categories_lists','2015-10-12 22:07:53'),('browse_categories_search_term_and_stats','2015-10-12 22:07:53'),('browse_categories_search_term_length','2015-10-12 22:07:53'),('browse_category_default_view_mode','2015-10-12 22:03:51'),('browse_category_ratings_mode','2015-10-12 22:03:51'),('catalogingRole','2012-03-03 18:00:27'),('clear_analytics','2016-06-30 16:37:31'),('collapse_facets','2015-10-12 22:00:46'),('contentEditor','2015-10-12 22:07:31'),('coverArt_suppress','2011-10-31 21:03:41'),('cronLog','2015-10-12 22:07:34'),('default_library','2015-10-12 22:03:51'),('detailed_hold_notice_configuration','2015-10-12 22:01:41'),('disable_auto_correction_of_searches','2016-06-30 16:37:29'),('dpla_integration','2015-10-12 22:01:42'),('econtent_locations_to_include','2015-10-12 21:59:43'),('editorial_review','2011-09-29 18:50:37'),('editorial_review_1','2015-10-12 22:06:41'),('editorial_review_2','2015-10-12 22:06:42'),('enable_archive','2016-06-30 16:37:30'),('epub_files_update_1','2011-09-13 20:01:41'),('epub_files_update_2','2011-09-19 16:56:22'),('epub_files_update_3','2011-09-26 23:12:16'),('epub_history_update_1','2011-09-20 17:25:30'),('epub_transactions','2011-05-28 04:44:32'),('evoke_setup','2015-10-12 22:04:57'),('externalLinkTracking','2012-01-06 15:25:54'),('external_materials_request','2015-10-12 22:03:51'),('facet_grouping_updates','2015-10-12 22:00:46'),('full_record_view_configuration_options','2015-10-12 22:01:42'),('genealogy','2012-04-21 03:07:16'),('genealogy_1','2012-04-21 03:06:18'),('genealogy_nashville_1','2015-10-12 22:06:41'),('goodreads_library_contact_link','2015-10-12 22:01:41'),('grouped_works','2015-10-12 22:04:56'),('grouped_works_1','2015-10-12 22:04:56'),('grouped_works_2','2015-10-12 22:04:56'),('grouped_works_partial_updates','2015-10-12 22:04:57'),('grouped_works_primary_identifiers','2015-10-12 22:04:57'),('grouped_works_primary_identifiers_1','2015-10-12 22:04:57'),('grouped_works_remove_split_titles','2015-10-12 22:04:57'),('grouped_work_duplicate_identifiers','2015-10-12 22:04:57'),('grouped_work_engine','2015-10-12 22:04:57'),('grouped_work_evoke','2015-10-12 22:04:57'),('grouped_work_identifiers_ref_indexing','2015-10-12 22:04:57'),('grouped_work_index_cleanup','2015-10-12 22:04:57'),('grouped_work_index_date_updated','2015-10-12 22:04:57'),('grouped_work_merging','2015-10-12 22:04:57'),('grouped_work_primary_identifiers_hoopla','2015-10-12 22:04:57'),('grouped_work_primary_identifier_types','2015-10-12 22:04:57'),('header_text','2015-10-12 22:03:51'),('holiday','2015-10-12 22:07:48'),('holiday_1','2015-10-12 22:07:48'),('hoopla_library_options','2015-10-12 22:01:41'),('hoopla_library_options_remove','2016-06-30 16:37:29'),('horizontal_search_bar','2016-06-30 16:37:29'),('hours_and_locations_control','2015-10-12 21:59:43'),('ils_code_records_owned_length','2015-10-12 22:03:51'),('ils_hold_summary','2015-10-12 22:07:54'),('ils_marc_checksums','2015-10-12 22:07:52'),('ils_marc_checksum_first_detected','2015-10-12 22:07:52'),('ils_marc_checksum_first_detected_signed','2015-10-12 22:07:52'),('ils_marc_checksum_source','2015-10-12 22:07:52'),('indexing_profile','2015-10-12 22:07:54'),('indexing_profile_catalog_driver','2015-10-12 22:07:55'),('indexing_profile_collection','2015-10-12 22:07:55'),('indexing_profile_holdability','2015-10-12 22:07:55'),('indexing_profile_last_checkin_date','2016-06-30 16:37:30'),('indexing_profile_marc_encoding','2016-06-30 16:37:30'),('indexing_profile_specific_order_location','2016-06-30 16:37:30'),('indexing_profile_speicified_formats','2016-06-30 16:37:30'),('indexLog','2012-03-31 04:05:31'),('indexUsageTracking','2012-04-21 03:11:53'),('index_resources','2012-04-21 03:11:53'),('index_search_stats','2012-01-06 15:26:59'),('index_search_stats_counts','2015-10-12 22:06:41'),('index_subsets_of_overdrive','2016-06-30 16:37:30'),('ip_lookup_1','2015-10-12 22:07:31'),('ip_lookup_2','2015-10-12 22:07:31'),('ip_lookup_3','2016-06-30 16:37:31'),('islandora_driver_cache','2016-06-30 16:37:30'),('islandora_lat_long_cache','2016-06-30 16:37:31'),('last_check_in_status_adjustments','2016-06-30 16:37:30'),('libraryAdmin','2015-10-12 22:07:31'),('library_1','2012-03-03 18:00:08'),('library_10','2015-10-12 21:58:15'),('library_11','2015-10-12 21:58:15'),('library_12','2015-10-12 21:58:15'),('library_13','2015-10-12 21:58:15'),('library_14','2015-10-12 21:58:15'),('library_15','2015-10-12 21:58:15'),('library_16','2015-10-12 21:58:16'),('library_17','2015-10-12 21:58:16'),('library_18','2015-10-12 21:58:16'),('library_19','2015-10-12 21:58:16'),('library_2','2012-03-03 18:00:08'),('library_20','2015-10-12 21:58:16'),('library_21','2015-10-12 21:58:16'),('library_23','2015-10-12 21:58:16'),('library_24','2015-10-12 21:59:03'),('library_25','2015-10-12 21:59:03'),('library_26','2015-10-12 21:59:03'),('library_28','2015-10-12 21:59:03'),('library_29','2015-10-12 21:59:03'),('library_3','2012-03-03 18:00:09'),('library_30','2015-10-12 21:59:03'),('library_31','2015-10-12 21:59:03'),('library_32','2015-10-12 21:59:03'),('library_33','2015-10-12 21:59:03'),('library_34','2015-10-12 21:59:04'),('library_35_marmot','2015-10-12 21:59:04'),('library_35_nashville','2015-10-12 21:59:04'),('library_36_nashville','2015-10-12 21:59:04'),('library_4','2012-03-03 18:00:09'),('library_5','2012-03-03 18:00:09'),('library_6','2012-04-10 22:15:00'),('library_7','2012-04-13 19:05:08'),('library_8','2015-10-12 21:58:15'),('library_9','2015-10-12 21:58:15'),('library_barcodes','2015-10-12 21:59:44'),('library_bookings','2015-10-12 21:59:43'),('library_cas_configuration','2016-06-30 16:37:30'),('library_contact_links','2015-10-12 21:59:04'),('library_css','2015-10-12 21:59:04'),('library_eds_integration','2016-06-30 16:37:30'),('library_expiration_warning','2015-10-12 21:59:43'),('library_facets','2015-10-12 21:59:44'),('library_facets_1','2015-10-12 22:00:46'),('library_facets_2','2015-10-12 22:00:46'),('library_grouping','2015-10-12 21:59:04'),('library_ils_code_expansion','2015-10-12 21:59:43'),('library_ils_code_expansion_2','2015-10-12 21:59:43'),('library_links','2015-10-12 21:59:04'),('library_links_show_html','2015-10-12 21:59:04'),('library_location_boosting','2015-10-12 21:59:43'),('library_location_display_controls','2015-10-12 21:59:44'),('library_location_repeat_online','2015-10-12 21:59:43'),('library_materials_request_limits','2015-10-12 21:59:04'),('library_max_fines_for_account_update','2016-06-30 16:37:30'),('library_order_information','2015-10-12 21:59:43'),('library_patronNameDisplayStyle','2016-06-30 16:37:30'),('library_pin_reset','2015-10-12 21:59:43'),('library_prevent_expired_card_login','2016-06-30 16:37:29'),('library_prompt_birth_date','2015-10-12 21:59:44'),('library_show_display_name','2015-10-12 21:59:44'),('library_subject_display','2016-06-30 16:37:30'),('library_subject_display_2','2016-06-30 16:37:30'),('library_top_links','2015-10-12 21:59:43'),('linked_accounts_switch','2015-10-12 22:03:51'),('listPublisherRole','2016-06-30 16:37:31'),('list_cache','2011-07-15 22:25:22'),('list_cache_2','2011-07-18 16:32:28'),('list_cache_2_update_1','2012-03-03 18:00:09'),('list_wdiget_list_update_1','2012-03-03 18:00:09'),('list_wdiget_update_1','2012-03-03 18:00:09'),('list_widgets','2011-09-01 19:34:18'),('list_widgets_home','2011-09-01 19:34:18'),('list_widgets_update_1','2015-10-12 22:04:57'),('list_widgets_update_2','2015-10-12 22:04:57'),('list_widget_style_update','2015-10-12 22:04:57'),('list_widget_update_2','2015-10-12 22:04:57'),('list_widget_update_3','2015-10-12 22:04:57'),('list_widget_update_4','2015-10-12 22:04:57'),('list_widget_update_5','2015-10-12 22:04:57'),('load_resource_info','2011-10-26 00:01:48'),('loan_rule_determiners_1','2015-10-12 22:07:48'),('loan_rule_determiners_increase_ptype_length','2016-06-30 16:37:31'),('localized_browse_categories','2015-10-12 22:07:53'),('location_1','2015-10-12 22:00:46'),('location_10','2015-10-12 22:01:40'),('location_2','2015-10-12 22:00:46'),('location_3','2015-10-12 22:00:46'),('location_4','2015-10-12 22:00:46'),('location_5','2015-10-12 22:00:46'),('location_6','2015-10-12 22:00:46'),('location_7','2015-10-12 22:00:46'),('location_8','2015-10-12 22:01:40'),('location_9','2015-10-12 22:01:40'),('location_additional_branches_to_show_in_facets','2016-06-30 16:37:30'),('location_address','2015-10-12 22:01:40'),('location_facets','2015-10-12 22:00:46'),('location_facets_1','2015-10-12 22:00:46'),('location_hours','2015-10-12 22:07:48'),('location_increase_code_column_size','2015-10-12 22:01:40'),('location_library_control_shelf_location_and_date_added_facets','2016-06-30 16:37:30'),('location_show_display_name','2015-10-12 22:01:40'),('location_sublocation','2015-10-12 22:01:40'),('location_sublocation_uniqueness','2015-10-12 22:01:41'),('login_form_labels','2015-10-12 22:01:41'),('logo_linking','2015-10-12 22:03:51'),('main_location_switch','2016-06-30 16:37:29'),('marcImport','2012-03-31 05:15:32'),('marcImport_1','2015-10-12 22:07:34'),('marcImport_2','2015-10-12 22:07:34'),('marcImport_3','2015-10-12 22:07:34'),('materialRequestsRole','2015-10-12 22:06:43'),('materialsRequest','2012-03-03 18:00:26'),('materialsRequestStatus','2012-03-20 05:17:54'),('materialsRequestStatus_update1','2015-10-12 22:06:43'),('materialsRequest_update1','2012-03-03 18:00:27'),('materialsRequest_update2','2012-03-08 23:51:37'),('materialsRequest_update3','2012-03-08 23:51:39'),('materialsRequest_update4','2012-03-19 22:10:45'),('materialsRequest_update5','2012-04-02 19:59:55'),('materialsRequest_update6','2015-10-12 22:06:43'),('merged_records','2015-10-12 22:07:31'),('millenniumTables','2015-10-12 22:07:47'),('more_details_customization','2015-10-12 22:01:41'),('nearby_book_store','2015-10-12 22:07:48'),('newRolesJan2016','2016-06-30 16:37:31'),('new_search_stats','2015-10-12 22:06:41'),('nongrouped_records','2016-06-30 16:37:31'),('notInterested','2015-10-12 22:06:42'),('notInterestedWorks','2015-10-12 22:06:43'),('notInterestedWorksRemoveUserIndex','2015-10-12 22:06:43'),('novelist_data','2015-10-12 22:07:52'),('offline_circulation','2015-10-12 22:07:52'),('offline_holds','2015-10-12 22:07:52'),('offline_holds_update_1','2015-10-12 22:07:52'),('offline_holds_update_2','2016-06-30 16:37:31'),('overdrive_integration','2015-10-12 22:01:42'),('overdrive_integration_2','2015-10-12 22:01:42'),('overdrive_integration_3','2015-10-12 22:01:42'),('ptype','2015-10-12 22:07:48'),('pTypesForLibrary','2015-10-12 21:59:43'),('public_lists_to_include','2016-06-30 16:37:30'),('purchase_link_tracking','2011-10-12 15:07:49'),('readingHistory','2012-03-19 22:10:44'),('readingHistoryUpdate1','2012-03-19 22:10:44'),('readingHistory_deletion','2015-10-12 22:06:42'),('readingHistory_work','2015-10-12 22:06:42'),('recommendations_optOut','2011-09-06 20:13:38'),('reindexLog','2012-04-19 21:15:02'),('reindexLog_1','2015-10-12 22:07:34'),('reindexLog_2','2015-10-12 22:07:34'),('reindexLog_grouping','2015-10-12 22:07:34'),('remove_browse_tables','2015-10-12 22:07:53'),('remove_consortial_results_in_search','2016-06-30 16:37:30'),('remove_old_resource_tables','2015-10-12 22:07:53'),('remove_old_tables','2012-03-15 16:00:16'),('remove_order_options','2016-06-30 16:37:30'),('remove_unused_enrichment_and_full_record_options','2016-06-30 16:37:30'),('remove_unused_location_options_2015_14_0','2016-06-30 16:37:30'),('remove_unused_options','2015-10-12 22:07:54'),('rename_tables','2012-04-21 00:36:00'),('resource_callnumber','2012-03-31 03:40:15'),('resource_subject','2012-03-31 05:15:24'),('resource_update3','2012-03-03 18:18:56'),('resource_update4','2012-04-21 03:10:53'),('resource_update5','2012-04-10 22:15:12'),('resource_update6','2012-04-21 03:11:04'),('resource_update7','2015-10-12 22:06:42'),('resource_update8','2015-10-12 22:06:42'),('resource_update_table','2011-10-31 21:03:40'),('resource_update_table_2','2012-01-24 22:59:51'),('right_hand_sidebar','2016-06-30 16:37:29'),('roles_1','2012-03-19 22:10:44'),('roles_2','2015-10-12 22:03:51'),('search_results_view_configuration_options','2016-06-30 16:37:29'),('search_sources','2015-10-12 22:01:41'),('search_sources_1','2015-10-12 22:01:41'),('selfreg_customization','2015-10-12 22:01:42'),('selfreg_template','2015-10-12 22:01:42'),('session_update_1','2015-10-12 22:07:52'),('setup_default_indexing_profiles','2015-10-12 22:07:55'),('setup_econtent','2011-11-06 02:51:24'),('show_catalog_options_in_profile','2015-10-12 22:01:41'),('show_library_hours_notice_on_account_pages','2016-06-30 16:37:30'),('show_place_hold_on_unavailable','2015-10-12 22:03:51'),('show_Refresh_Account_Button','2016-06-30 16:37:30'),('sip2_item_cache','2011-07-18 16:32:28'),('sip2_item_cache_1','2012-03-03 18:00:09'),('spelling_optimization','2012-04-02 06:21:47'),('sub-browse_categories','2015-10-12 22:07:53'),('syndetics_data','2015-10-12 22:07:52'),('theme_name_length','2015-10-12 22:03:51'),('translation_map_regex','2015-10-12 22:07:55'),('usage_tracking','2011-10-25 19:03:16'),('userRatings1','2015-10-12 22:06:43'),('user_account','2015-10-12 22:03:52'),('user_display_name','2011-07-06 21:58:22'),('user_epub_history_1','2011-08-17 22:29:55'),('user_ilsType','2012-03-15 16:00:16'),('user_linking','2015-10-12 22:03:52'),('user_link_blocking','2015-10-12 22:03:53'),('user_list_entry','2015-10-12 22:07:52'),('user_list_indexing','2015-10-12 22:07:53'),('user_list_sorting','2015-10-12 22:07:53'),('user_overdrive_email','2015-10-12 22:03:52'),('user_phone','2012-04-21 03:10:53'),('user_preference_review_prompt','2015-10-12 22:03:52'),('user_preferred_library_interface','2015-10-12 22:03:52'),('user_track_reading_history','2015-10-12 22:03:52'),('utf8_update','2012-03-03 18:02:08'),('variables_table','2015-10-12 22:07:31'),('variables_table_uniqueness','2015-10-12 22:07:31'),('volume_information','2016-06-30 16:37:30'),('work_level_ratings','2015-10-12 22:07:52'),('work_level_tagging','2015-10-12 22:07:52');
 /*!40000 ALTER TABLE `db_update` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -1024,6 +1046,34 @@ LOCK TABLES `ils_marc_checksums` WRITE;
 UNLOCK TABLES;
 
 --
+-- Table structure for table `ils_volume_info`
+--
+
+DROP TABLE IF EXISTS `ils_volume_info`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `ils_volume_info` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `recordId` varchar(50) NOT NULL COMMENT 'Full Record ID including the source',
+  `displayLabel` varchar(255) NOT NULL,
+  `relatedItems` varchar(512) NOT NULL,
+  `volumeId` varchar(30) NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `volumeId` (`volumeId`),
+  KEY `recordId` (`recordId`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `ils_volume_info`
+--
+
+LOCK TABLES `ils_volume_info` WRITE;
+/*!40000 ALTER TABLE `ils_volume_info` DISABLE KEYS */;
+/*!40000 ALTER TABLE `ils_volume_info` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `indexing_profiles`
 --
 
@@ -1034,13 +1084,13 @@ CREATE TABLE `indexing_profiles` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(50) NOT NULL,
   `marcPath` varchar(100) NOT NULL,
-  `marcEncoding` enum('MARC8','UTF','UNIMARC','ISO8859_1','BESTGUESS') NOT NULL DEFAULT 'MARC8',
+  `marcEncoding` enum('MARC8','UTF8','UNIMARC','ISO8859_1','BESTGUESS') NOT NULL DEFAULT 'MARC8',
   `individualMarcPath` varchar(100) NOT NULL,
   `groupingClass` varchar(100) NOT NULL DEFAULT 'MarcRecordGrouper',
   `indexingClass` varchar(50) NOT NULL,
   `recordDriver` varchar(100) NOT NULL DEFAULT 'MarcRecord',
   `recordUrlComponent` varchar(25) NOT NULL DEFAULT 'Record',
-  `formatSource` enum('bib','item') NOT NULL DEFAULT 'bib',
+  `formatSource` enum('bib','item','specified') NOT NULL DEFAULT 'bib',
   `recordNumberTag` char(3) NOT NULL,
   `recordNumberPrefix` varchar(10) NOT NULL,
   `suppressItemlessBibs` tinyint(1) NOT NULL DEFAULT '1',
@@ -1082,9 +1132,15 @@ CREATE TABLE `indexing_profiles` (
   `nonHoldableITypes` varchar(255) DEFAULT NULL,
   `nonHoldableStatuses` varchar(255) DEFAULT NULL,
   `nonHoldableLocations` varchar(512) DEFAULT NULL,
+  `lastCheckinFormat` varchar(20) DEFAULT NULL,
+  `lastCheckinDate` char(1) DEFAULT NULL,
+  `orderLocationSingle` char(1) DEFAULT NULL,
+  `specifiedFormat` varchar(50) DEFAULT NULL,
+  `specifiedFormatCategory` varchar(50) DEFAULT NULL,
+  `specifiedFormatBoost` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `name` (`name`)
-) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1110,10 +1166,11 @@ CREATE TABLE `ip_lookup` (
   `ip` varchar(255) NOT NULL,
   `startIpVal` bigint(20) DEFAULT NULL,
   `endIpVal` bigint(20) DEFAULT NULL,
+  `isOpac` tinyint(3) unsigned NOT NULL DEFAULT '1',
   PRIMARY KEY (`id`),
   KEY `startIpVal` (`startIpVal`),
   KEY `endIpVal` (`endIpVal`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1123,6 +1180,37 @@ CREATE TABLE `ip_lookup` (
 LOCK TABLES `ip_lookup` WRITE;
 /*!40000 ALTER TABLE `ip_lookup` DISABLE KEYS */;
 /*!40000 ALTER TABLE `ip_lookup` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `islandora_object_cache`
+--
+
+DROP TABLE IF EXISTS `islandora_object_cache`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `islandora_object_cache` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `pid` varchar(100) NOT NULL,
+  `driverName` varchar(25) NOT NULL,
+  `driverPath` varchar(100) NOT NULL,
+  `title` varchar(255) DEFAULT NULL,
+  `hasLatLong` tinyint(4) DEFAULT NULL,
+  `latitude` float DEFAULT NULL,
+  `longitude` float DEFAULT NULL,
+  `lastUpdate` int(11) DEFAULT '0',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `pid` (`pid`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `islandora_object_cache`
+--
+
+LOCK TABLES `islandora_object_cache` WRITE;
+/*!40000 ALTER TABLE `islandora_object_cache` DISABLE KEYS */;
+/*!40000 ALTER TABLE `islandora_object_cache` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -1185,14 +1273,10 @@ CREATE TABLE `library` (
   `useHomeLinkInBreadcrumbs` tinyint(4) NOT NULL DEFAULT '0',
   `enableMaterialsRequest` tinyint(4) DEFAULT '1',
   `eContentLinkRules` varchar(512) DEFAULT '',
-  `showOtherEditionsPopup` tinyint(4) DEFAULT '1',
-  `showTableOfContentsTab` tinyint(4) DEFAULT '1',
   `notesTabName` varchar(50) DEFAULT 'Notes',
   `showHoldButtonInSearchResults` tinyint(4) DEFAULT '1',
-  `showCopiesLineInHoldingsSummary` tinyint(4) DEFAULT '1',
   `showSimilarAuthors` tinyint(4) DEFAULT '1',
   `showSimilarTitles` tinyint(4) DEFAULT '1',
-  `showProspectorTitlesAsTab` tinyint(4) DEFAULT '1',
   `show856LinksAsTab` tinyint(4) DEFAULT '0',
   `applyNumberOfHoldingsBoost` tinyint(4) DEFAULT '1',
   `worldCatUrl` varchar(100) DEFAULT '',
@@ -1206,7 +1290,6 @@ CREATE TABLE `library` (
   `defaultNotNeededAfterDays` int(11) DEFAULT '0',
   `showCheckInGrid` int(11) DEFAULT '1',
   `recordsToBlackList` mediumtext,
-  `showMarmotResultsAtEndOfSearch` int(11) DEFAULT '1',
   `homeLinkText` varchar(50) DEFAULT 'Home',
   `showOtherFormatCategory` tinyint(1) DEFAULT '1',
   `showWikipediaContent` tinyint(1) DEFAULT '1',
@@ -1221,7 +1304,6 @@ CREATE TABLE `library` (
   `restrictOwningBranchesAndSystems` tinyint(1) DEFAULT '1',
   `showAvailableAtAnyLocation` tinyint(1) DEFAULT '1',
   `accountingUnit` int(11) DEFAULT '10',
-  `makeOrderRecordsAvailableToOtherLibraries` tinyint(1) DEFAULT '0',
   `allowPatronAddressUpdates` tinyint(1) DEFAULT '1',
   `showWorkPhoneInProfile` tinyint(1) DEFAULT '0',
   `showNoticeTypeInProfile` tinyint(1) DEFAULT '0',
@@ -1239,11 +1321,11 @@ CREATE TABLE `library` (
   `additionalLocalBoostFactor` int(11) DEFAULT '1',
   `repeatInOnlineCollection` int(11) DEFAULT '1',
   `showExpirationWarnings` tinyint(1) DEFAULT '1',
-  `orderAccountingUnit` int(11) DEFAULT NULL,
   `econtentLocationsToInclude` varchar(255) DEFAULT NULL,
   `pTypes` varchar(255) DEFAULT NULL,
   `enableMaterialsBooking` tinyint(4) NOT NULL DEFAULT '0',
   `showLibraryHoursAndLocationsLink` int(11) DEFAULT '1',
+  `showLibraryHoursNoticeOnAccountPages` tinyint(1) DEFAULT '1',
   `showShareOnExternalSites` int(11) DEFAULT '1',
   `showQRCode` int(11) DEFAULT '1',
   `showGoodReadsReviews` int(11) DEFAULT '1',
@@ -1263,7 +1345,6 @@ CREATE TABLE `library` (
   `showDetailedHoldNoticeInformation` tinyint(4) DEFAULT '1',
   `treatPrintNoticesAsPhoneNotices` tinyint(4) DEFAULT '0',
   `showAlternateLibraryOptionsInProfile` tinyint(1) DEFAULT '1',
-  `includeHoopla` tinyint(1) DEFAULT '0',
   `additionalLocationsToShowAvailabilityFor` varchar(255) NOT NULL DEFAULT '',
   `showInMainDetails` varchar(255) DEFAULT NULL,
   `includeDplaResults` tinyint(1) DEFAULT '0',
@@ -1279,9 +1360,38 @@ CREATE TABLE `library` (
   `showHoldButtonForUnavailableOnly` tinyint(1) DEFAULT '0',
   `allowLinkedAccounts` tinyint(1) DEFAULT '1',
   `boostByLibrary` tinyint(4) DEFAULT '1',
+  `preventExpiredCardLogin` tinyint(1) DEFAULT '0',
+  `showInSearchResultsMainDetails` varchar(255) DEFAULT 'a:4:{i:0;s:10:"showSeries";i:1;s:13:"showPublisher";i:2;s:19:"showPublicationDate";i:3;s:13:"showLanguages";}',
+  `horizontalSearchBar` tinyint(1) DEFAULT '0',
+  `alwaysShowSearchResultsMainDetails` tinyint(1) DEFAULT '0',
+  `sideBarOnRight` tinyint(1) DEFAULT '0',
+  `allowAutomaticSearchReplacements` tinyint(1) DEFAULT '1',
+  `includeOverDriveAdult` tinyint(1) DEFAULT '1',
+  `includeOverDriveTeen` tinyint(1) DEFAULT '1',
+  `includeOverDriveKids` tinyint(1) DEFAULT '1',
+  `publicListsToInclude` tinyint(1) DEFAULT NULL,
+  `enableArchive` tinyint(1) DEFAULT '0',
+  `archiveNamespace` varchar(30) DEFAULT NULL,
+  `hideAllCollectionsFromOtherLibraries` tinyint(1) DEFAULT '0',
+  `collectionsToHide` mediumtext,
+  `showLCSubjects` tinyint(1) DEFAULT '1',
+  `showBisacSubjects` tinyint(1) DEFAULT '1',
+  `showFastAddSubjects` tinyint(1) DEFAULT '1',
+  `showOtherSubjects` tinyint(1) DEFAULT '1',
+  `maxFinesToAllowAccountUpdates` float DEFAULT '10',
+  `showRefreshAccountButton` tinyint(4) NOT NULL DEFAULT '1',
+  `edsApiProfile` varchar(50) DEFAULT NULL,
+  `edsApiUsername` varchar(50) DEFAULT NULL,
+  `edsApiPassword` varchar(50) DEFAULT NULL,
+  `patronNameDisplayStyle` enum('firstinitial_lastname','lastinitial_firstname') DEFAULT 'firstinitial_lastname',
+  `includeAllRecordsInShelvingFacets` tinyint(4) DEFAULT '0',
+  `includeAllRecordsInDateAddedFacets` tinyint(4) DEFAULT '0',
+  `casHost` varchar(50) DEFAULT NULL,
+  `casPort` smallint(6) DEFAULT NULL,
+  `casContext` varchar(50) DEFAULT NULL,
   PRIMARY KEY (`libraryId`),
   UNIQUE KEY `subdomain` (`subdomain`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1517,7 +1627,7 @@ CREATE TABLE `list_widget_lists` (
   `fullListLink` varchar(500) DEFAULT '',
   PRIMARY KEY (`id`),
   KEY `ListWidgetId` (`listWidgetId`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8 COMMENT='The lists that should appear within the widget';
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 COMMENT='The lists that should appear within the widget';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1582,7 +1692,7 @@ CREATE TABLE `list_widgets` (
   `viewMoreLinkMode` enum('covers','list') NOT NULL DEFAULT 'list',
   `showListWidgetTitle` tinyint(4) NOT NULL DEFAULT '1',
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8 COMMENT='A widget that can be displayed within Pika or within other sites';
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 COMMENT='A widget that can be displayed within Pika or within other sites';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1605,7 +1715,7 @@ CREATE TABLE `loan_rule_determiners` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `rowNumber` int(11) NOT NULL COMMENT 'The row of the determiner.  Rules are processed in reverse order',
   `location` varchar(10) NOT NULL,
-  `patronType` varchar(50) NOT NULL COMMENT 'The patron types that this rule applies to',
+  `patronType` varchar(255) NOT NULL COMMENT 'The patron types that this rule applies to',
   `itemType` varchar(255) NOT NULL DEFAULT '0' COMMENT 'The item types that this rule applies to',
   `ageRange` varchar(10) NOT NULL,
   `loanRuleId` varchar(10) NOT NULL COMMENT 'Close hour (24hr format) HH:MM',
@@ -1677,6 +1787,7 @@ CREATE TABLE `location` (
   `useScope` tinyint(4) NOT NULL COMMENT 'Whether or not the scope should be used when displaying holdings.  ',
   `facetFile` varchar(15) NOT NULL DEFAULT 'default' COMMENT 'The name of the facet file which should be used while searching use default to not override the file',
   `showHoldButton` tinyint(4) NOT NULL COMMENT 'Whether or not the hold button is displayed so patrons can place holds on items',
+  `isMainBranch` tinyint(1) DEFAULT '0',
   `showStandardReviews` tinyint(4) NOT NULL COMMENT 'Whether or not reviews from Content Cafe/Syndetics are displayed on the full record page.',
   `repeatSearchOption` enum('none','librarySystem','marmot','all') NOT NULL DEFAULT 'all' COMMENT 'Where to allow repeating search. Valid options are: none, librarySystem, marmot, all',
   `facetLabel` varchar(50) NOT NULL COMMENT 'The Facet value used to identify this system.  If this value is changed, system_map.properties must be updated as well and the catalog must be reindexed.',
@@ -1703,7 +1814,6 @@ CREATE TABLE `location` (
   `recordsToBlackList` mediumtext,
   `automaticTimeoutLength` int(11) DEFAULT '90',
   `automaticTimeoutLengthLoggedOut` int(11) DEFAULT '450',
-  `extraLocationCodesToInclude` varchar(255) DEFAULT '',
   `restrictSearchByLocation` tinyint(1) DEFAULT '0',
   `enableOverdriveCollection` tinyint(1) DEFAULT '1',
   `suppressHoldings` tinyint(1) DEFAULT '0',
@@ -1718,10 +1828,18 @@ CREATE TABLE `location` (
   `defaultBrowseMode` varchar(25) DEFAULT NULL,
   `browseCategoryRatingsMode` varchar(25) DEFAULT NULL,
   `boostByLocation` tinyint(4) DEFAULT '1',
+  `includeOverDriveAdult` tinyint(1) DEFAULT '1',
+  `includeOverDriveTeen` tinyint(1) DEFAULT '1',
+  `includeOverDriveKids` tinyint(1) DEFAULT '1',
+  `publicListsToInclude` tinyint(1) DEFAULT NULL,
+  `includeAllLibraryBranchesInFacets` tinyint(4) DEFAULT '1',
+  `additionalLocationsToShowAvailabilityFor` varchar(100) NOT NULL DEFAULT '',
+  `includeAllRecordsInShelvingFacets` tinyint(4) DEFAULT '0',
+  `includeAllRecordsInDateAddedFacets` tinyint(4) DEFAULT '0',
   PRIMARY KEY (`locationId`),
   UNIQUE KEY `code` (`code`,`subLocation`),
   KEY `ValidHoldPickupBranch` (`validHoldPickupBranch`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8 COMMENT='Stores information about the various locations that are part';
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 COMMENT='Stores information about the various locations that are part';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -2054,7 +2172,7 @@ CREATE TABLE `materials_request_status` (
   KEY `isOpen_2` (`isOpen`),
   KEY `isPatronCancel_2` (`isPatronCancel`),
   KEY `libraryId` (`libraryId`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=21 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -2063,6 +2181,7 @@ CREATE TABLE `materials_request_status` (
 
 LOCK TABLES `materials_request_status` WRITE;
 /*!40000 ALTER TABLE `materials_request_status` DISABLE KEYS */;
+INSERT INTO `materials_request_status` VALUES (1,'Request Pending',1,0,'',1,0,-1),(2,'Already owned/On order',0,1,'This e-mail is to let you know the status of your recent request for an item that you did not find in our catalog. The Library already owns this item or it is already on order. Please access our catalog to place this item on hold.  Please check our online catalog periodically to put a hold for this item.',0,0,-1),(3,'Item purchased',0,1,'This e-mail is to let you know the status of your recent request for an item that you did not find in our catalog. Outcome: The library is purchasing the item you requested. Please check our online catalog periodically to put yourself on hold for this item. We anticipate that this item will be available soon for you to place a hold.',0,0,-1),(4,'Referred to Collection Development - Adult',0,0,'',1,0,-1),(5,'Referred to Collection Development - J/YA',0,0,'',1,0,-1),(6,'Referred to Collection Development - AV',0,0,'',1,0,-1),(7,'ILL Under Review',0,0,'',1,0,-1),(8,'Request Referred to ILL',0,1,'This e-mail is to let you know the status of your recent request for an item that you did not find in our catalog. The library\'s Interlibrary loan department is reviewing your request. We will attempt to borrow this item from another system. This process generally takes about 2 - 6 weeks.',1,0,-1),(9,'Request Filled by ILL',0,1,'This e-mail is to let you know the status of your recent request for an item that you did not find in our catalog. Our Interlibrary Loan Department is set to borrow this item from another library.',0,0,-1),(10,'Ineligible ILL',0,1,'This e-mail is to let you know the status of your recent request for an item that you did not find in our catalog. Your library account is not eligible for interlibrary loan at this time.',0,0,-1),(11,'Not enough info - please contact Collection Development to clarify',0,1,'This e-mail is to let you know the status of your recent request for an item that you did not find in our catalog. We need more specific information in order to locate the exact item you need. Please re-submit your request with more details.',1,0,-1),(12,'Unable to acquire the item - out of print',0,1,'This e-mail is to let you know the status of your recent request for an item that you did not find in our catalog. We regret that we are unable to acquire the item you requested. This item is out of print.',0,0,-1),(13,'Unable to acquire the item - not available in the US',0,1,'This e-mail is to let you know the status of your recent request for an item that you did not find in our catalog. We regret that we are unable to acquire the item you requested. This item is not available in the US.',0,0,-1),(14,'Unable to acquire the item - not available from vendor',0,1,'This e-mail is to let you know the status of your recent request for an item that you did not find in our catalog. We regret that we are unable to acquire the item you requested. This item is not available from a preferred vendor.',0,0,-1),(15,'Unable to acquire the item - not published',0,1,'This e-mail is to let you know the status of your recent request for an item that you did not find in our catalog. The item you requested has not yet been published. Please check our catalog when the publication date draws near.',0,0,-1),(16,'Unable to acquire the item - price',0,1,'This e-mail is to let you know the status of your recent request for an item that you did not find in our catalog. We regret that we are unable to acquire the item you requested. This item does not fit our collection guidelines.',0,0,-1),(17,'Unable to acquire the item - publication date',0,1,'This e-mail is to let you know the status of your recent request for an item that you did not find in our catalog. We regret that we are unable to acquire the item you requested. This item does not fit our collection guidelines.',0,0,-1),(18,'Unavailable',0,1,'This e-mail is to let you know the status of your recent request for an item that you did not find in our catalog. The item you requested cannot be purchased at this time from any of our regular suppliers and is not available from any of our lending libraries.',0,0,-1),(19,'Cancelled by Patron',0,0,'',0,1,-1),(20,'Cancelled - Duplicate Request',0,0,'',0,0,-1);
 /*!40000 ALTER TABLE `materials_request_status` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -2196,6 +2315,32 @@ LOCK TABLES `non_holdable_locations` WRITE;
 UNLOCK TABLES;
 
 --
+-- Table structure for table `nongrouped_records`
+--
+
+DROP TABLE IF EXISTS `nongrouped_records`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `nongrouped_records` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `source` varchar(50) NOT NULL,
+  `recordId` varchar(36) NOT NULL,
+  `notes` varchar(255) NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `source` (`source`,`recordId`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `nongrouped_records`
+--
+
+LOCK TABLES `nongrouped_records` WRITE;
+/*!40000 ALTER TABLE `nongrouped_records` DISABLE KEYS */;
+/*!40000 ALTER TABLE `nongrouped_records` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `novelist_data`
 --
 
@@ -2313,6 +2458,7 @@ CREATE TABLE `offline_hold` (
   `status` enum('Not Processed','Hold Succeeded','Hold Failed') DEFAULT NULL,
   `notes` varchar(512) DEFAULT NULL,
   `patronName` varchar(200) DEFAULT NULL,
+  `itemId` varchar(20) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `timeEntered` (`timeEntered`),
   KEY `timeProcessed` (`timeProcessed`),
@@ -2496,7 +2642,7 @@ CREATE TABLE `reindex_log` (
   `numWorksProcessed` int(11) NOT NULL DEFAULT '0',
   `numListsProcessed` int(11) NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -2574,7 +2720,7 @@ CREATE TABLE `roles` (
   `name` varchar(50) NOT NULL COMMENT 'The internal name of the role',
   `description` varchar(100) NOT NULL COMMENT 'A description of what the role allows',
   PRIMARY KEY (`roleId`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8 COMMENT='A role identifying what the user can do.';
+) ENGINE=MyISAM AUTO_INCREMENT=20 DEFAULT CHARSET=utf8 COMMENT='A role identifying what the user can do.';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -2583,6 +2729,7 @@ CREATE TABLE `roles` (
 
 LOCK TABLES `roles` WRITE;
 /*!40000 ALTER TABLE `roles` DISABLE KEYS */;
+INSERT INTO `roles` VALUES (1,'userAdmin','Allows administration of users.'),(2,'opacAdmin','Allows administration of the opac display (libraries, locations, etc).'),(3,'genealogyContributor','Allows Genealogy data to be entered  by the user.'),(4,'epubAdmin','Allows administration of eContent.'),(5,'cataloging','Allows user to perform cataloging activities.'),(6,'libraryAdmin','Allows user to update library configuration for their library system only for their home location.'),(7,'contentEditor','Allows entering of editorial reviews and creation of widgets.'),(8,'library_material_requests','Allows user to manage material requests for a specific library.'),(9,'locationReports','Allows the user to view reports for their location.'),(10,'libraryManager','Allows user to do basic configuration for their library.'),(11,'locationManager','Allows user to do basic configuration for their location.'),(12,'circulationReports','Allows user to view offline circulation reports.'),(13,'listPublisher','Optionally only include lists from people with this role in search results.'),(14,'archives','Control overall archives integration.'),(15,'libraryManager','Allows user to do basic configuration for their library.'),(16,'locationManager','Allows user to do basic configuration for their location.'),(17,'circulationReports','Allows user to view offline circulation reports.'),(18,'listPublisher','Optionally only include lists from people with this role in search results.'),(19,'archives','Control overall archives integration.');
 /*!40000 ALTER TABLE `roles` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -2606,7 +2753,7 @@ CREATE TABLE `search` (
   KEY `user_id` (`user_id`),
   KEY `folder_id` (`folder_id`),
   KEY `session_id` (`session_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -2668,7 +2815,7 @@ CREATE TABLE `session` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `session_id` (`session_id`),
   KEY `last_used` (`last_used`)
-) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -2783,6 +2930,35 @@ CREATE TABLE `tags` (
 LOCK TABLES `tags` WRITE;
 /*!40000 ALTER TABLE `tags` DISABLE KEYS */;
 /*!40000 ALTER TABLE `tags` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `time_to_reshelve`
+--
+
+DROP TABLE IF EXISTS `time_to_reshelve`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `time_to_reshelve` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `indexingProfileId` int(11) NOT NULL,
+  `locations` varchar(100) NOT NULL,
+  `numHoursToOverride` int(11) NOT NULL,
+  `status` varchar(50) NOT NULL,
+  `groupedStatus` varchar(50) NOT NULL,
+  `weight` int(11) NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `indexingProfileId` (`indexingProfileId`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `time_to_reshelve`
+--
+
+LOCK TABLES `time_to_reshelve` WRITE;
+/*!40000 ALTER TABLE `time_to_reshelve` DISABLE KEYS */;
+/*!40000 ALTER TABLE `time_to_reshelve` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -2904,7 +3080,7 @@ CREATE TABLE `user` (
   `source` varchar(50) DEFAULT 'ils',
   PRIMARY KEY (`id`),
   UNIQUE KEY `username` (`source`,`username`)
-) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -2913,6 +3089,7 @@ CREATE TABLE `user` (
 
 LOCK TABLES `user` WRITE;
 /*!40000 ALTER TABLE `user` DISABLE KEYS */;
+INSERT INTO `user` VALUES (1,'pika','pika','','','','','','','','0000-00-00 00:00:00',0,0,0,0,0,'',0,0,'','','',1,NULL,0,0,'ils');
 /*!40000 ALTER TABLE `user` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -2931,7 +3108,7 @@ CREATE TABLE `user_epub_history` (
   `action` varchar(30) NOT NULL DEFAULT 'Read Online',
   `accessType` tinyint(4) NOT NULL DEFAULT '0',
   PRIMARY KEY (`userHistoryId`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8 COMMENT='The epub reading history for patrons';
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 COMMENT='The epub reading history for patrons';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -3096,7 +3273,7 @@ CREATE TABLE `user_rating` (
   UNIQUE KEY `uniqueness` (`userid`,`resourceid`),
   KEY `Resourceid` (`resourceid`),
   KEY `UserId` (`userid`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -3288,4 +3465,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2015-10-13  9:09:16
+-- Dump completed on 2016-06-30 11:13:27
