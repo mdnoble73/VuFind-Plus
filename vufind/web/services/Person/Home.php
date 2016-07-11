@@ -71,6 +71,7 @@ class Person_Home extends Action
 		$interface->assign('record', $record);
 		$interface->assign('person', $person);
 		$this->recordDriver = RecordDriverFactory::initRecordDriver($record);
+		$interface->assign('recordDriver', $this->recordDriver);
 		$timer->logTime('Initialized the Record Driver');
 
 		$marriages = array();
