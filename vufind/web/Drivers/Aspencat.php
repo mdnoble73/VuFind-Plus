@@ -416,6 +416,7 @@ class Aspencat implements DriverInterface{
 			if ($lookupUserResult) {
 				if ($userFromDbResultSet = $lookupUserResult) {
 					$userFromDb = $userFromDbResultSet->fetch_assoc();
+					$userFromDbResultSet->close();
 					if ($userFromDb['password'] == $encodedPassword || $validatedViaSSO) {
 						$userExistsInDB = false;
 						$user = new User();
@@ -465,7 +466,7 @@ class Aspencat implements DriverInterface{
 						$user->finesVal = floatval($outstandingFines);
 
 						//Get number of items checked out
-						$checkedOutItemsRS = mysqli_query($this->dbConnection, 'SELECT count(*) as numCheckouts FROM issues WHERE borrowernumber = ' . $user->username);
+						$checkedOutItemsRS = mysqli_query($this->dbConnection, 'SELECT count(*) as numCheckouts FROM issues WHERE borrowernumber = ' . $user->username, MYSQLI_USE_RESULT);
 						$numCheckouts = 0;
 						if ($checkedOutItemsRS){
 							$checkedOutItems = $checkedOutItemsRS->fetch_assoc();
@@ -475,7 +476,7 @@ class Aspencat implements DriverInterface{
 						$user->numCheckedOutIls = $numCheckouts;
 
 						//Get number of available holds
-						$availableHoldsRS = mysqli_query($this->dbConnection, 'SELECT count(*) as numHolds FROM reserves WHERE found = "W" and borrowernumber = ' . $user->username);
+						$availableHoldsRS = mysqli_query($this->dbConnection, 'SELECT count(*) as numHolds FROM reserves WHERE found = "W" and borrowernumber = ' . $user->username, MYSQLI_USE_RESULT);
 						$numAvailableHolds = 0;
 						if ($availableHoldsRS){
 							$availableHolds = $availableHoldsRS->fetch_assoc();
@@ -485,7 +486,7 @@ class Aspencat implements DriverInterface{
 						$user->numHoldsAvailableIls = $numAvailableHolds;
 
 						//Get number of unavailable
-						$waitingHoldsRS = mysqli_query($this->dbConnection, 'SELECT count(*) as numHolds FROM reserves WHERE (found <> "W" or found is null) and borrowernumber = ' . $user->username);
+						$waitingHoldsRS = mysqli_query($this->dbConnection, 'SELECT count(*) as numHolds FROM reserves WHERE (found <> "W" or found is null) and borrowernumber = ' . $user->username, MYSQLI_USE_RESULT);
 						$numWaitingHolds = 0;
 						if ($waitingHoldsRS){
 							$waitingHolds = $waitingHoldsRS->fetch_assoc();
@@ -577,7 +578,6 @@ class Aspencat implements DriverInterface{
 
 						$timer->logTime("patron logged in successfully");
 
-						$userFromDbResultSet->close();
 						return $user;
 					}
 				}else{

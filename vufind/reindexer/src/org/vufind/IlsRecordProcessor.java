@@ -49,6 +49,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 	protected char locationSubfieldIndicator;
 	protected Pattern nonHoldableLocations;
 	protected String locationsToSuppress;
+	protected String collectionsToSuppress;
 	protected char subLocationSubfield;
 	protected char iTypeSubfield;
 	protected Pattern nonHoldableITypes;
@@ -115,6 +116,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 			shelvingLocationSubfield = getSubfieldIndicatorFromConfig(indexingProfileRS, "shelvingLocation");
 			collectionSubfield = getSubfieldIndicatorFromConfig(indexingProfileRS, "collection");
 			locationsToSuppress = indexingProfileRS.getString("locationsToSuppress");
+			collectionsToSuppress = indexingProfileRS.getString("collectionsToSuppress");
 
 			itemUrlSubfieldIndicator = getSubfieldIndicatorFromConfig(indexingProfileRS, "itemUrl");
 
@@ -1137,6 +1139,16 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		}else{
 			if (locationSubfield.getData().trim().matches(locationsToSuppress)){
 				return true;
+			}
+		}
+		if (collectionSubfield != ' '){
+			Subfield collectionSubfieldValue = curItem.getSubfield(collectionSubfield);
+			if (collectionSubfieldValue == null){
+				return true;
+			}else{
+				if (collectionSubfieldValue.getData().trim().matches(collectionsToSuppress)){
+					return true;
+				}
 			}
 		}
 		return false;
