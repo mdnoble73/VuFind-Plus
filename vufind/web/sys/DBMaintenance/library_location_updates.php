@@ -1346,5 +1346,13 @@ function getLibraryLocationUpdates(){
 							'ALTER TABLE `library` ADD COLUMN `showSidebarMenu` TINYINT DEFAULT 1',
 					),
 			),
+
+			'library_sidebar_menu_button_text' => array(
+					'title' => 'Library Sidebar Menu Button Text',
+					'description' => 'Allow individual libraries to customize the text of the help/menu button in the sidebar',
+					'sql' => array(
+							"ALTER TABLE `library` ADD COLUMN `sidebarMenuButtonText` VARCHAR(40) DEFAULT 'Help'",
+					),
+			),
 	);
 }

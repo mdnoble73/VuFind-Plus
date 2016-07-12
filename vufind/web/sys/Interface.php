@@ -381,6 +381,7 @@ class UInterface extends Smarty
 			if ($this->getVariable('displaySidebarMenu') && !$library->showSidebarMenu){
 				$this->assign('displaySidebarMenu', false);
 			}
+			$this->assign('sidebarMenuButtonText', $library->sidebarMenuButtonText);
 		}else{
 			$this->assign('showLoginButton', 1);
 			$this->assign('showAdvancedSearchbox', 1);
