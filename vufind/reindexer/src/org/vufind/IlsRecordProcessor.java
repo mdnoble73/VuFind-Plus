@@ -1312,6 +1312,17 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 				printFormats.add("BookClubKit");
 			}
 		}
+		String titleForm = getFirstFieldVal(record, "245h");
+		if (titleForm != null){
+			titleForm = titleForm.toLowerCase();
+			if (titleForm.contains("sound recording-cass")){
+				printFormats.add("SoundCassette");
+			}else if (titleForm.contains("large print")){
+				printFormats.add("LargePrint");
+			}else if (titleForm.contains("book club kit")){
+				printFormats.add("BookClubKit");
+			}
+		}
 		String titlePart = getFirstFieldVal(record, "245p");
 		if (titlePart != null){
 			titlePart = titlePart.toLowerCase();
