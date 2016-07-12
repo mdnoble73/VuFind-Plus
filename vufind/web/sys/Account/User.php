@@ -888,16 +888,16 @@ class User extends DB_DataObject
 	 *                                message - the message to display
 	 * @access  public
 	 */
-	function placeHold($recordId, $pickupBranch) {
-		$result = $this->getCatalogDriver()->placeHold($this, $recordId, $pickupBranch);
+	function placeHold($recordId, $pickupBranch, $cancelDate = null) {
+		$result = $this->getCatalogDriver()->placeHold($this, $recordId, $pickupBranch, $cancelDate);
 		if ($result['success']){
 			$this->clearCache();
 		}
 		return $result;
 	}
 
-	function placeVolumeHold($recordId, $volumeId, $pickupBranch){
-		$result = $this->getCatalogDriver()->placeVolumeHold($this, $recordId, $volumeId, $pickupBranch);
+	function placeVolumeHold($recordId, $volumeId, $pickupBranch, $cancelDate = null){
+		$result = $this->getCatalogDriver()->placeVolumeHold($this, $recordId, $volumeId, $pickupBranch, $cancelDate);
 		if ($result['success']){
 			$this->clearCache();
 		}

@@ -785,7 +785,7 @@ class Aspencat implements DriverInterface{
 	 *                                If an error occurs, return a PEAR_Error
 	 * @access  public
 	 */
-	public function placeHold($patron, $recordId, $pickupBranch){
+	public function placeHold($patron, $recordId, $pickupBranch, $cancelDate = null){
 		$hold_result = array();
 		$hold_result['success'] = false;
 

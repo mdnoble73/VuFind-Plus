@@ -247,15 +247,22 @@ class CarlX extends SIP2Driver{
 	 * @param $itemIndex  string
 	 * @return mixed
 	 */
-	public function renewItem($patron, $recordId, $itemId, $itemIndex) {
-		// TODO: Implement renewItem() method.
+	public function renewItem($patron, $recordId, $itemId=null, $itemIndex=null) {
+		// For CarlX RecordId is the same as the itemId
+
+		// Renew Via SIP
+		return $result = $this->renewItemViaSIP($patron, $recordId);
+
+		// For an AlternateSIP Port
+//		$useAlternateSIP = false;
+//		$result = $this->renewItemViaSIP($patron, $itemId, $useAlternateSIP);
 	}
 
 	private $holdStatusCodes = array( //TODO: Set to Pika Common Values so they can be translated? (look at templates, Horizon Driver seems to just use Horizon values)
 	                                  'H'  => 'Hold Shelf',
-		                                ''   => 'In Queue',
-		                                'IH' => 'In Transit',
-		                                // '?' => 'Suspended',
+	                                  ''   => 'In Queue',
+	                                  'IH' => 'In Transit',
+	                                  // '?' => 'Suspended',
 	                                  // '?' => 'filled',
 	);
 	/**
@@ -284,18 +291,18 @@ class CarlX extends SIP2Driver{
 				foreach($result->HoldItems->HoldItem as $hold) {
 					$curHold = array();
 					$bibId          = $hold->BID;
+					$carlID         = $this->fullCarlIDfromBID($bibId);
 					$expireDate     = isset($hold->ExpirationDate) ? $this->extractDateFromCarlXDateField($hold->ExpirationDate) : null;
 					$pickUpBranch   = $this->getBranchInformation($hold->PickUpBranch); //TODO: Use local DB; will require adding ILS branch numbers to DB or memcache (there is a getAllBranchInfo Call)
 //					$location       = $this->getLocationInformation($hold->Location); // IDK what this is referring to yet, or if it is needed
 
 //						$reactivateDate = $this->extractDateFromCarlXDateField($hold) //TODO: activation date? unavailable holds only
-//					$curHold['user']               = $user->getNameAndLibraryLabel(); // Done in CatalogConnection
 					$curHold['id']                 = $bibId;
 					$curHold['holdSource']         = 'ILS';
 					$curHold['itemId']             = $hold->ItemNumber;
 //						$curHold['cancelId']           = (string)$hold->holdKey; //TODO: Determine Cancellation Method
 					$curHold['position']           = $hold->QueuePosition;
-					$curHold['recordId']           = $bibId;
+					$curHold['recordId']           = $carlID;
 					$curHold['shortId']            = $bibId;
 					$curHold['title']              = $hold->Title;
 					$curHold['sortTitle']          = $hold->Title;
@@ -323,7 +330,7 @@ class CarlX extends SIP2Driver{
 //					}
 
 					require_once ROOT_DIR . '/RecordDrivers/MarcRecord.php';
-					$recordDriver = new MarcRecord($bibId);
+					$recordDriver = new MarcRecord($carlID);
 					if ($recordDriver->isValid()){
 						$curHold['sortTitle']       = $recordDriver->getSortableTitle();
 						$curHold['format']          = $recordDriver->getFormat();
@@ -351,6 +358,7 @@ class CarlX extends SIP2Driver{
 				foreach($result->UnavailableHoldItems->UnavailableHoldItem as $hold) {
 					$curHold = array();
 					$bibId          = $hold->BID;
+					$carlID         = $this->fullCarlIDfromBID($bibId);
 					$expireDate     = isset($hold->ExpirationDate) ? $this->extractDateFromCarlXDateField($hold->ExpirationDate) : null;
 					$pickUpBranch   = $this->getBranchInformation($hold->PickUpBranch);
 //					$location       = $this->getLocationInformation($hold->Location); // IDK what this is referring to yet, or if it is needed
@@ -362,7 +370,7 @@ class CarlX extends SIP2Driver{
 					$curHold['itemId']             = $hold->ItemNumber;
 //						$curHold['cancelId']           = (string)$hold->holdKey; //TODO: Determine Cancellation Method
 					$curHold['position']           = $hold->QueuePosition;
-					$curHold['recordId']           = $bibId;
+					$curHold['recordId']           = $carlID;
 					$curHold['shortId']            = $bibId;
 					$curHold['title']              = $hold->Title;
 					$curHold['sortTitle']          = $hold->Title;
@@ -390,7 +398,7 @@ class CarlX extends SIP2Driver{
 //					}
 
 					require_once ROOT_DIR . '/RecordDrivers/MarcRecord.php';
-					$recordDriver = new MarcRecord($bibId);
+					$recordDriver = new MarcRecord($carlID);
 					if ($recordDriver->isValid()){
 						$curHold['sortTitle']       = $recordDriver->getSortableTitle();
 						$curHold['format']          = $recordDriver->getFormat();
@@ -435,8 +443,8 @@ class CarlX extends SIP2Driver{
 	 *                                title - the title of the record the user is placing a hold on
 	 * @access  public
 	 */
-	public function placeHold($patron, $recordId, $pickupBranch) {
-		// TODO: Implement placeHold() method.
+	public function placeHold($patron, $recordId, $pickupBranch, $cancelDate = null) {
+		return $this->placeHoldViaSIP($patron, $recordId, $pickupBranch, $cancelDate);
 	}
 
 	/**
@@ -513,17 +521,22 @@ class CarlX extends SIP2Driver{
 	public function getMyCheckouts($user) {
 		$checkedOutTitles = array();
 
-		// TODO: Implement getMyCheckouts() method.
 		//Search for the patron in the database
 		$result = $this->getPatronTransactions($user);
 
-		if ($result && !empty($result->ChargeItems)) {
+		if ($result && !empty($result->ChargeItems->ChargeItem)) {
 			foreach ($result->ChargeItems->ChargeItem as $chargeItem) {
-				//TODO: BID may be the bib number and may be needed for recordID, shortID, & ID instead of ItemNumber, which may be the barcode instead.
+				$carlID = $this->fullCarlIDfromBID($chargeItem->BID); //TODO this should be adjusted
 				$curTitle['checkoutSource']  = 'ILS';
 				$curTitle['recordId']        = $chargeItem->ItemNumber;
-				$curTitle['shortId']         = $chargeItem->ItemNumber;
-				$curTitle['id']              = $chargeItem->ItemNumber;
+//				$curTitle['recordId']        = $carlID;
+				$curTitle['shortId']         = $chargeItem->BID;
+				$curTitle['id']              = $carlID;
+				$curTitle['barcode']         = $chargeItem->ItemNumber;   // Barcode & ItemNumber are the same for CarlX
+//				$curTitle['recordId']        = $chargeItem->ItemNumber;
+//				$curTitle['shortId']         = $chargeItem->ItemNumber;
+//				$curTitle['id']              = $chargeItem->ItemNumber;
+//				$curTitle['barcode']         = $chargeItem->ItemNumber;   // Barcode & ItemNumber are the same for CarlX
 				$curTitle['title']           = $chargeItem->Title; //TODO: trim trailing slashes?
 				$curTitle['author']          = $chargeItem->Author;
 				$dueDate = strstr($chargeItem->DueDate, 'T', true);
@@ -531,14 +544,14 @@ class CarlX extends SIP2Driver{
 				$curTitle['checkoutdate']    = strstr($chargeItem->TransactionDate, 'T', true);
 				$curTitle['renewCount']      = $chargeItem->RenewalCount;
 				$curTitle['canrenew']        = true; //TODO: Figure out if the user can renew the title or not
-				$curTitle['renewIndicator']  = '';   //TODO: needed? Maybe a Millennium only field
-				$curTitle['barcode']         = '';   //TODO: needed?
-				$curTitle['holdQueueLength'] = $this->getNumHolds($chargeItem->ItemNumber);  //TODO: implement getNumHolds()
+				$curTitle['renewIndicator']  = null;
+//				$curTitle['holdQueueLength'] = $this->getNumHolds($chargeItem->ItemNumber);  //TODO: implement getNumHolds()
+				// ToDO: HoldQUeueLength Needed for CHecks outs??
 
 				$curTitle['format']          = 'Unknown';
-				if (!empty($curTitle['id'])){
+				if (!empty($carlID)){
 					require_once ROOT_DIR . '/RecordDrivers/MarcRecord.php';
-					$recordDriver = new MarcRecord($curTitle['id']);
+					$recordDriver = new MarcRecord($carlID); // This needs the $carlID
 					if ($recordDriver->isValid()){
 						$curTitle['coverUrl']      = $recordDriver->getBookcoverUrl('medium');
 						$curTitle['groupedWorkId'] = $recordDriver->getGroupedWorkId();
@@ -546,6 +559,8 @@ class CarlX extends SIP2Driver{
 						if (empty($curTitle['title'])){
 							$curTitle['title']       = $recordDriver->getTitle();
 							$curTitle['title_sort']  = $recordDriver->getSortableTitle();
+						} else {
+							$curTitle['title_sort']  = $curTitle['title']; // TODO: Always use getSortableTitle??
 						}
 						if (empty($curTitle['author'])){
 							$curTitle['author']     = $recordDriver->getPrimaryAuthor();
@@ -678,8 +693,13 @@ class CarlX extends SIP2Driver{
 
 			if ($result) {
 				// Process Reading History Response
+				if (!empty($result->ChargeHistoryItems)) {
+					// Process Reading History Entries
 
-				// Fetch Additional Information for each Item
+					// Fetch Additional Information for each Item
+
+				}
+
 
 				// Return Reading History
 				return array('historyActive'=>$historyActive, 'titles'=>$readingHistoryTitles, 'numTitles'=> $numTitles);
@@ -720,17 +740,17 @@ class CarlX extends SIP2Driver{
 							$success = stripos($response['SOAP-ENV:Body']['ns3:GenericResponse']['ns3:ResponseStatuses']['ns2:ResponseStatus']['ns2:ShortMessage'], 'Success') !== false;
 							if (!$success) {
 								$errorMessage = $response['SOAP-ENV:Body']['ns3:GenericResponse']['ns3:ResponseStatuses']['ns2:ResponseStatus']['ns2:LongMessage'];
-								$updateErrors[] = 'Failed to update your information'. ($errorMessage ? ' : ' .$errorMessage : '');
+//								$updateErrors[] = 'Failed to update your information'. ($errorMessage ? ' : ' .$errorMessage : '');
 							}
 
 						} else {
-							$updateErrors[] = 'Unable to update your information.';
+//							$updateErrors[] = 'Unable to update your information.';
 							global $logger;
 							$logger->log('Unable to read XML from CarlX response when attempting to update Patron Information.', PEAR_LOG_ERR);
 						}
 
 					} else {
-						$updateErrors[] = 'Unable to update your information.';
+//						$updateErrors[] = 'Unable to update your information.';
 						global $logger;
 						$logger->log('CarlX ILS gave no response when attempting to update Patron Information.', PEAR_LOG_ERR);
 					}
@@ -828,6 +848,201 @@ class CarlX extends SIP2Driver{
 		$request->Modifiers  = '';
 		return $request;
 	}
+
+
+
+	public function placeHoldViaSIP($patron, $recordId, $pickupBranch = null, $cancelDate = null, $type = null){
+		global $configArray;
+		//Place the hold via SIP 2
+		$mysip = new sip2();
+		$mysip->hostname = $configArray['SIP2']['host'];
+		$mysip->port     = $configArray['SIP2']['port'];
+
+		$success = false;
+		$title = '';
+		$message = 'Failed to connect to complete requested action.';
+		if ($mysip->connect()) {
+			//send selfcheck status message
+			$in = $mysip->msgSCStatus();
+			$msg_result = $mysip->get_message($in);
+			// Make sure the response is 98 as expected
+			if (preg_match("/^98/", $msg_result)) {
+				$result = $mysip->parseACSStatusResponse($msg_result);
+
+				//  Use result to populate SIP2 setings
+				// These settings don't seem to apply to the CarlX Sandbox. pascal 7-12-2016
+				if (!empty($result['variable']['AO'][0])) $mysip->AO = $result['variable']['AO'][0]; /* set AO to value returned */
+				if (!empty($result['variable']['AN'][0])) $mysip->AN = $result['variable']['AN'][0]; /* set AN to value returned */
+
+				$mysip->patron    = $patron->cat_username;
+				$mysip->patronpwd = $patron->cat_password;
+
+				//TODO: test this
+				if (empty($pickupBranch)){
+					//Get the code for the location
+					$locationLookup = new Location();
+					$locationLookup->locationId = $patron->homeLocationId;
+					$locationLookup->find(1);
+					if ($locationLookup->N > 0){
+						$pickupBranch = $locationLookup->code;
+					}
+				}
+
+//				if (!empty($pickupBranch)){
+//					$campus = trim($pickupBranch);
+//				}else{
+//					$campus = $patron->homeLocationId;
+//					//Get the code for the location
+//					$locationLookup = new Location();
+//					$locationLookup->locationId = $campus;
+//					$locationLookup->find();
+//					if ($locationLookup->N > 0){
+//						$locationLookup->fetch();
+//						$pickupBranch = $locationLookup->code;
+//					}
+//				}
+//
+				//place the hold
+				if ($type == 'cancel' || $type == 'recall'){
+					$mode = '-';
+				}elseif ($type == 'update'){
+					$mode = '*';
+				}else{
+					$mode = '+';
+				}
+
+				if (!empty($cancelDate)) {
+					$dateObject = date_create_from_format('m/d/Y', $cancelDate);
+					$expirationTime = $dateObject->getTimestamp();
+				} else {
+					//expire the hold in 2 years by default
+					$expirationTime = time() + 2 * 365 * 24 * 60 * 60;
+				}
+
+				$holdId = $this->BIDfromFullCarlID($recordId);
+				$in = $mysip->msgHold($mode, $expirationTime, '2', '', $holdId, '', $pickupBranch);
+				$msg_result = $mysip->get_message($in);
+
+//				$title = $this->getRecordTitle($recordId); //TODO: method isn't defined
+
+				if (preg_match("/^16/", $msg_result)) {
+					$result = $mysip->parseHoldResponse($msg_result );
+					$success = ($result['fixed']['Ok'] == 1);
+					$message = $result['variable']['AF'][0];
+					if (!empty($result['variable']['AJ'][0])) {
+						$title = $result['variable']['AJ'][0];
+					}
+				}
+			}
+		}
+		return array(
+				'title'   => $title,
+				'bib'     => $recordId,
+				'success' => $success,
+				'message' => $message
+		);
+	}
+
+
+	public function renewItemViaSIP($patron, $itemId, $useAlternateSIP = false){
+		global $configArray;
+
+		//renew the item via SIP 2
+		require_once ROOT_DIR . '/sys/SIP2.php';
+		$mysip = new sip2();
+		$mysip->hostname = $configArray['SIP2']['host'];
+		if ($useAlternateSIP){
+			$mysip->port = $configArray['SIP2']['alternate_port'];
+		}else{
+			$mysip->port = $configArray['SIP2']['port'];
+		}
+
+		$success = false;
+		$message = 'Failed to connect to complete requested action.';
+		if ($mysip->connect()) {
+			//send selfcheck status message
+			$in = $mysip->msgSCStatus();
+			$msg_result = $mysip->get_message($in);
+			// Make sure the response is 98 as expected
+			if (preg_match("/^98/", $msg_result)) {
+				$result = $mysip->parseACSStatusResponse($msg_result);
+
+				//  Use result to populate SIP2 settings
+				// These settings don't seem to apply to the CarlX Sandbox. pascal 7-12-2016
+				if (!empty($result['variable']['AO'][0])) $mysip->AO = $result['variable']['AO'][0]; /* set AO to value returned */
+				if (!empty($result['variable']['AN'][0])) $mysip->AN = $result['variable']['AN'][0]; /* set AN to value returned */
+
+				$mysip->patron    = $patron->cat_username;
+				$mysip->patronpwd = $patron->cat_password;
+
+				$in = $mysip->msgRenew($itemId, '', '', '', 'N', 'N', 'Y');
+				//print_r($in . '<br/>');
+				$msg_result = $mysip->get_message($in);
+				//print_r($msg_result);
+
+				if (preg_match("/^30/", $msg_result)) {
+					$result = $mysip->parseRenewResponse($msg_result);
+
+					$title = $result['variable']['AJ'][0];
+
+					$success = ($result['fixed']['Ok'] == 1);
+					$message = $result['variable']['AF'][0];
+
+					//Looks like a holds process, rather than a renewal process. pascal 7-12-2016
+//					//If the renew fails, check to see if we need to override the SIP port
+//					$alternatePortSet = false;
+//					if (isset($configArray['SIP2']['alternate_port']) && strlen($configArray['SIP2']['alternate_port']) > 0 && $configArray['SIP2']['alternate_port'] != $configArray['SIP2']['port']){
+//						$alternatePortSet = true;
+//					}
+//					if ($alternatePortSet && $success == false && $useAlternateSIP == false){
+//						//Can override the SIP port if there are sufficient copies on the shelf to cover any holds
+//
+//						//Get the id for the item
+//						$searchObject = SearchObjectFactory::initSearchObject();
+//						$class = $configArray['Index']['engine'];
+//						$url = $configArray['Index']['url'];
+//						$index = new $class($url);
+//
+//						$record = $index->getRecordByBarcode($itemId);
+//
+//						if ($record){
+//							//Get holdings summary
+//							$statusSummary = $this->getStatusSummary($record['id'], $record, $mysip);
+//
+//							//If # of available copies >= waitlist change sip port and renew
+//							if ($statusSummary['availableCopies'] >= $statusSummary['holdQueueLength']){  // this looks like a hold test, rather than renewal. plb 7-12-2016
+//								$renew_result = $this->renewItemViaSIP($patron, $itemId, true);
+//							}
+//						}
+//					}
+				}
+			}
+		}else{
+			$message = "Could not connect to circulation server, please try again later.";
+		}
+
+		return array(
+			'itemId'  => $itemId,
+			'success' => $success,
+			'message' => $message
+		);
+	}
+
+	/**
+	 * @param $BID
+	 * @return string CARL ID
+	 */
+	private function fullCarlIDfromBID($BID)
+	{
+		return 'CARL' . str_pad($BID, 10, '0', STR_PAD_LEFT);
+	}
+
+	private function BIDfromFullCarlID($CarlID) {
+		$temp = str_replace('CARL', '', $CarlID);  // Remove CARL prefix
+		$temp = ltrim($temp, '0'); // Remove preceding zeros
+		return $temp;
+	}
+
 
 }
 
