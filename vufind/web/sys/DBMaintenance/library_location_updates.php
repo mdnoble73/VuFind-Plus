@@ -1338,5 +1338,13 @@ function getLibraryLocationUpdates(){
 							'ALTER TABLE `library` ADD COLUMN `casContext` VARCHAR(50)',
 					),
 			),
+
+			'library_sidebar_menu' => array(
+					'title' => 'Library Sidebar Menu',
+					'description' => 'Allow individual libraries to determine if the sidebar menu should show',
+					'sql' => array(
+							'ALTER TABLE `library` ADD COLUMN `showSidebarMenu` TINYINT DEFAULT 1',
+					),
+			),
 	);
 }

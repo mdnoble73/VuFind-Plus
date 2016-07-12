@@ -377,6 +377,10 @@ class UInterface extends Smarty
 			$this->assign('horizontalSearchBar', $library->horizontalSearchBar);
 			$this->assign('sideBarOnRight', $library->sideBarOnRight);
 			$this->assign('showHoldCancelDate', $library->showHoldCancelDate);
+
+			if ($this->getVariable('displaySidebarMenu') && !$library->showSidebarMenu){
+				$this->assign('displaySidebarMenu', false);
+			}
 		}else{
 			$this->assign('showLoginButton', 1);
 			$this->assign('showAdvancedSearchbox', 1);
