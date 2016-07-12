@@ -314,7 +314,7 @@ class CarlX extends SIP2Driver{
 					$curHold['status']             = $this->holdStatusCodes[$hold->ItemStatus];  // TODO: Is this the correct thing for hold status. Alternative is Transaction Code
 					//TODO: Look up values for Hold Statuses
 
-					$curHold['expire']         = strtotime($expireDate); // give a time stamp
+					$curHold['expire']         = strtotime($expireDate); // give a time stamp  // use this for available holds
 //						$curHold['reactivate']         = $reactivateDate; //TODO unavailable only
 //						$curHold['reactivateTime']     = strtotime($reactivateDate); //TODO unavailable only
 					$curHold['cancelable']         = strcasecmp($curHold['status'], 'Suspended') != 0; //TODO: need frozen status
@@ -353,7 +353,7 @@ class CarlX extends SIP2Driver{
 				}
 			}
 			if ($result->UnavailableHoldsCount > 0) {
-				// TODO: SHould foreach loops be consolidated into one loop
+				// TODO: SHould foreach loops be consolidated into one loop?
 				if (!is_array($result->UnavailableHoldItems->UnavailableHoldItem)) $result->UnavailableHoldItems->UnavailableHoldItem = array($result->UnavailableHoldItems->UnavailableHoldItem); // For the case of a single hold
 				foreach($result->UnavailableHoldItems->UnavailableHoldItem as $hold) {
 					$curHold = array();
@@ -382,7 +382,8 @@ class CarlX extends SIP2Driver{
 					$curHold['status']             = $this->holdStatusCodes[$hold->ItemStatus];  // TODO: Is this the correct thing for hold status. Alternative is Transaction Code
 					//TODO: Look up values for Hold Statuses
 
-					$curHold['expire']         = strtotime($expireDate);
+					$curHold['automaticCancellation'] = strtotime($expireDate); // use this for unavailable holds
+//					$curHold['expire']         = strtotime($expireDate); // use this for available holds
 //						$curHold['reactivate']         = $reactivateDate; //TODO unavailable only
 //						$curHold['reactivateTime']     = strtotime($reactivateDate); //TODO unavailable only
 					$curHold['cancelable']         = strcasecmp($curHold['status'], 'Suspended') != 0; //TODO: need frozen status
