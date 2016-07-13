@@ -361,14 +361,12 @@ class CarlX extends SIP2Driver{
 					$carlID         = $this->fullCarlIDfromBID($bibId);
 					$expireDate     = isset($hold->ExpirationDate) ? $this->extractDateFromCarlXDateField($hold->ExpirationDate) : null;
 					$pickUpBranch   = $this->getBranchInformation($hold->PickUpBranch);
-//					$location       = $this->getLocationInformation($hold->Location); // IDK what this is referring to yet, or if it is needed
 
 //						$reactivateDate = $this->extractDateFromCarlXDateField($hold) //TODO: activation date? unavailable holds only
-//					$curHold['user']               = $user->getNameAndLibraryLabel(); // Done in CatalogConnection
 					$curHold['id']                 = $bibId;
 					$curHold['holdSource']         = 'ILS';
 					$curHold['itemId']             = $hold->ItemNumber;
-//						$curHold['cancelId']           = (string)$hold->holdKey; //TODO: Determine Cancellation Method
+					$curHold['cancelId']           = $bibId; // Unavailable holds only
 					$curHold['position']           = $hold->QueuePosition;
 					$curHold['recordId']           = $carlID;
 					$curHold['shortId']            = $bibId;
@@ -378,7 +376,6 @@ class CarlX extends SIP2Driver{
 					$curHold['location']           = empty($pickUpBranch->BranchName) ? '' : $pickUpBranch->BranchName;
 					$curHold['locationUpdateable'] = true; //TODO: unless status is in transit?
 					$curHold['currentPickupName']  = empty($pickUpBranch->BranchName) ? '' : $pickUpBranch->BranchName;
-//					$curHold['status']             = ucfirst(strtolower((string)$hold->status));
 					$curHold['status']             = $this->holdStatusCodes[$hold->ItemStatus];  // TODO: Is this the correct thing for hold status. Alternative is Transaction Code
 					//TODO: Look up values for Hold Statuses
 
@@ -488,7 +485,9 @@ class CarlX extends SIP2Driver{
 	}
 
 	function changeHoldPickupLocation($patron, $recordId, $itemToUpdateId, $newPickupLocation) {
-		// TODO: Implement changeHoldPickupLocation() method.
+		// The recordId ends up being passed via the $itemToUpdateId
+		$result = $this->placeHoldViaSIP($patron, $itemToUpdateId, $newPickupLocation, null, 'update');
+		return $result;
 	}
 
 	/**
@@ -896,13 +895,16 @@ class CarlX extends SIP2Driver{
 					$mode = '-';
 					$holdId = $recordId;
 
+					// Get Title  (Title is not part of the cancel response)
 					require_once ROOT_DIR . '/RecordDrivers/MarcRecord.php';
 					$recordDriver = new MarcRecord($this->fullCarlIDfromBID($recordId));
 					if ($recordDriver->isValid()) {
 						$title = $recordDriver->getTitle();
 					}
+
 				}elseif ($type == 'update'){
 					$mode = '*';
+					$holdId = $recordId;
 				}else{
 					$mode = '+';
 					$holdId = $this->BIDfromFullCarlID($recordId);
