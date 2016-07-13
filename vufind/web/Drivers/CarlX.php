@@ -384,6 +384,7 @@ class CarlX extends SIP2Driver{
 
 					$curHold['automaticCancellation'] = strtotime($expireDate); // use this for unavailable holds
 //					$curHold['expire']         = strtotime($expireDate); // use this for available holds
+
 //						$curHold['reactivate']         = $reactivateDate; //TODO unavailable only
 //						$curHold['reactivateTime']     = strtotime($reactivateDate); //TODO unavailable only
 					$curHold['cancelable']         = strcasecmp($curHold['status'], 'Suspended') != 0; //TODO: need frozen status
@@ -474,7 +475,8 @@ class CarlX extends SIP2Driver{
 	 * @return  array
 	 */
 	function cancelHold($patron, $recordId, $cancelId) {
-		// TODO: Implement cancelHold() method.
+		return $this->placeHoldViaSIP($patron, $recordId, null, null, 'cancel');
+
 	}
 
 	function freezeHold($patron, $recordId, $itemToFreezeId, $dateToReactivate) {
@@ -855,6 +857,7 @@ class CarlX extends SIP2Driver{
 	public function placeHoldViaSIP($patron, $recordId, $pickupBranch = null, $cancelDate = null, $type = null){
 		global $configArray;
 		//Place the hold via SIP 2
+		require_once ROOT_DIR . '/sys/SIP2.php';
 		$mysip = new sip2();
 		$mysip->hostname = $configArray['SIP2']['host'];
 		$mysip->port     = $configArray['SIP2']['port'];
@@ -878,7 +881,6 @@ class CarlX extends SIP2Driver{
 				$mysip->patron    = $patron->cat_username;
 				$mysip->patronpwd = $patron->cat_password;
 
-				//TODO: test this
 				if (empty($pickupBranch)){
 					//Get the code for the location
 					$locationLookup = new Location();
@@ -889,27 +891,21 @@ class CarlX extends SIP2Driver{
 					}
 				}
 
-//				if (!empty($pickupBranch)){
-//					$campus = trim($pickupBranch);
-//				}else{
-//					$campus = $patron->homeLocationId;
-//					//Get the code for the location
-//					$locationLookup = new Location();
-//					$locationLookup->locationId = $campus;
-//					$locationLookup->find();
-//					if ($locationLookup->N > 0){
-//						$locationLookup->fetch();
-//						$pickupBranch = $locationLookup->code;
-//					}
-//				}
-//
 				//place the hold
 				if ($type == 'cancel' || $type == 'recall'){
 					$mode = '-';
+					$holdId = $recordId;
+
+					require_once ROOT_DIR . '/RecordDrivers/MarcRecord.php';
+					$recordDriver = new MarcRecord($this->fullCarlIDfromBID($recordId));
+					if ($recordDriver->isValid()) {
+						$title = $recordDriver->getTitle();
+					}
 				}elseif ($type == 'update'){
 					$mode = '*';
 				}else{
 					$mode = '+';
+					$holdId = $this->BIDfromFullCarlID($recordId);
 				}
 
 				if (!empty($cancelDate)) {
@@ -920,7 +916,6 @@ class CarlX extends SIP2Driver{
 					$expirationTime = time() + 2 * 365 * 24 * 60 * 60;
 				}
 
-				$holdId = $this->BIDfromFullCarlID($recordId);
 				$in = $mysip->msgHold($mode, $expirationTime, '2', '', $holdId, '', $pickupBranch);
 				$msg_result = $mysip->get_message($in);
 
@@ -1043,6 +1038,9 @@ class CarlX extends SIP2Driver{
 		$temp = ltrim($temp, '0'); // Remove preceding zeros
 		return $temp;
 	}
+
+
+
 
 
 }
