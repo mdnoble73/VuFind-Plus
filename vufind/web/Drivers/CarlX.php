@@ -9,6 +9,7 @@
  * Time: 1:53 PM
  */
 require_once ROOT_DIR . '/Drivers/SIP2Driver.php';
+//TODO: CarlX Driver doesn't make use of anything in SIP2Driver. Instead it relies on SIP2.php
 class CarlX extends SIP2Driver{
 	public $accountProfile;
 	public $patronWsdl;
@@ -226,6 +227,8 @@ class CarlX extends SIP2Driver{
 	 */
 	public function hasFastRenewAll() {
 		// TODO: Implement hasFastRenewAll() method.
+		// TODO: Does look like there is a Renew All throught SIP
+		return false;
 	}
 
 	/**
@@ -237,6 +240,8 @@ class CarlX extends SIP2Driver{
 	public function renewAll($patron) {
 		// TODO: Implement renewAll() method.
 	}
+
+
 
 	/**
 	 * Renew a single title currently checked out to the user
@@ -815,6 +820,30 @@ class CarlX extends SIP2Driver{
 
 	}
 
+	public function getMyFines($user) {
+		$myFines = array();
+
+		$soapClient = new SoapClient($this->patronWsdl);
+		$request = $this->getSearchbyPatronIdRequest($user);
+		$request->CirculationFilter = false;
+		$result = $soapClient->getPatronFiscalHistory($request);
+		if ($result && !empty($result->FiscalHistoryItem)) {
+			foreach($result->FiscalHistoryItem as $fine) {
+				$amount = $fine->Amount > 0 ? '$' . sprintf('%0.2f', $fine->Amount / 100) : ''; // amounts are in cents
+				$myFines[] = array(
+					'reason'  => $fine->Notes,
+					'amount'  => $amount,
+					'message' => $fine->Title,
+					'date'    => $fine->TransDate, //TODO: set as datetime?
+//					'balance' => '', // Found in Horizon Driver
+//					'checkout'=> '', // Found in Horizon Driver
+				);
+			}
+		}
+
+		return $myFines;
+	}
+
 	/**
 	 * @param $user
 	 * @return mixed
@@ -900,7 +929,6 @@ class CarlX extends SIP2Driver{
 		$request->Modifiers  = '';
 		return $request;
 	}
-
 
 
 	public function placeHoldViaSIP($patron, $recordId, $pickupBranch = null, $cancelDate = null, $type = null){
