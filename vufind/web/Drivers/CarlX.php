@@ -701,7 +701,7 @@ class CarlX extends SIP2Driver{
 						$curTitle['id']           = $readingHistoryEntry->BID;
 						$curTitle['shortId']      = $readingHistoryEntry->BID;
 						$curTitle['recordId']     = $this->fullCarlIDfromBID($readingHistoryEntry->BID);
-						$curTitle['title']        = $readingHistoryEntry->Title;
+						$curTitle['title']        = rtrim($readingHistoryEntry->Title, ' /');
 						$curTitle['checkout']     = $checkOutDate->format('m-d-Y'); // this format is expected by Pika's java cron program.
 						$curTitle['borrower_num'] = $user->id;
 						$curTitle['dueDate']      = null; // Not available in ChargeHistoryItems
@@ -960,6 +960,7 @@ class CarlX extends SIP2Driver{
 					$holdId = $this->BIDfromFullCarlID($recordId);
 				}
 
+				//TODO: Should change cancellation date when updating pick up locations
 				if (!empty($cancelDate)) {
 					$dateObject = date_create_from_format('m/d/Y', $cancelDate);
 					$expirationTime = $dateObject->getTimestamp();
