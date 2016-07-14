@@ -527,21 +527,20 @@ class CarlX extends SIP2Driver{
 		$result = $this->getPatronTransactions($user);
 
 		if ($result && !empty($result->ChargeItems->ChargeItem)) {
+			if (!is_array($result->ChargeItems->ChargeItem)) {
+				// Structure an single entry as an array of one.
+				$result->ChargeItems->ChargeItem = array($result->ChargeItems->ChargeItem);
+			}
 			foreach ($result->ChargeItems->ChargeItem as $chargeItem) {
-				$carlID = $this->fullCarlIDfromBID($chargeItem->BID); //TODO this should be adjusted
-				$curTitle['checkoutSource']  = 'ILS';
-				$curTitle['recordId']        = $chargeItem->ItemNumber;
-//				$curTitle['recordId']        = $carlID;
-				$curTitle['shortId']         = $chargeItem->BID;
-				$curTitle['id']              = $carlID;
-				$curTitle['barcode']         = $chargeItem->ItemNumber;   // Barcode & ItemNumber are the same for CarlX
-//				$curTitle['recordId']        = $chargeItem->ItemNumber;
-//				$curTitle['shortId']         = $chargeItem->ItemNumber;
-//				$curTitle['id']              = $chargeItem->ItemNumber;
-//				$curTitle['barcode']         = $chargeItem->ItemNumber;   // Barcode & ItemNumber are the same for CarlX
-				$curTitle['title']           = $chargeItem->Title; //TODO: trim trailing slashes?
-				$curTitle['author']          = $chargeItem->Author;
+				$carlID = $this->fullCarlIDfromBID($chargeItem->BID);
 				$dueDate = strstr($chargeItem->DueDate, 'T', true);
+				$curTitle['checkoutSource']  = 'ILS';
+				$curTitle['recordId']        = $carlID;
+				$curTitle['shortId']         = $chargeItem->BID;
+				$curTitle['id']              = $chargeItem->BID;
+				$curTitle['barcode']         = $chargeItem->ItemNumber;   // Barcode & ItemNumber are the same for CarlX
+				$curTitle['title']           = $chargeItem->Title;
+				$curTitle['author']          = $chargeItem->Author;
 				$curTitle['dueDate']         = strtotime($dueDate);
 				$curTitle['checkoutdate']    = strstr($chargeItem->TransactionDate, 'T', true);
 				$curTitle['renewCount']      = $chargeItem->RenewalCount;
@@ -562,7 +561,7 @@ class CarlX extends SIP2Driver{
 							$curTitle['title']       = $recordDriver->getTitle();
 							$curTitle['title_sort']  = $recordDriver->getSortableTitle();
 						} else {
-							$curTitle['title_sort']  = $curTitle['title']; // TODO: Always use getSortableTitle??
+							$curTitle['title_sort']  = $curTitle['title']; // TODO: Always use getSortableTitle?? set to all lower case
 						}
 						if (empty($curTitle['author'])){
 							$curTitle['author']     = $recordDriver->getPrimaryAuthor();
@@ -675,11 +674,10 @@ class CarlX extends SIP2Driver{
 	public function getReadingHistory($user, $page = 1, $recordsPerPage = -1, $sortOption = "checkedOut") {
 		global $timer;
 
+		$readHistoryEnabled = false;
 		$soapClient = new SoapClient($this->patronWsdl);
-
 		$request = $this->getSearchbyPatronIdRequest($user);
 		$result = $soapClient->getPatronInformation($request);
-
 		if ($result && $result->Patron) {
 			$readHistoryEnabled = $result->Patron->LoanHistoryOptInFlag;
 		}
@@ -690,18 +688,70 @@ class CarlX extends SIP2Driver{
 			$numTitles = 0;
 
 			$request->HistoryType = 'L'; //  From Documentation: The type of charge history to return, (O)utreach or (L)oan History opt-in
-
 			$result = $soapClient->getPatronChargeHistory($request);
 
 			if ($result) {
 				// Process Reading History Response
-				if (!empty($result->ChargeHistoryItems)) {
-					// Process Reading History Entries
+				if (!empty($result->ChargeHistoryItems->ChargeItem)) {
+					foreach ($result->ChargeHistoryItems->ChargeItem as $readingHistoryEntry) {
+						// Process Reading History Entries
+						$checkOutDate  = new DateTime($readingHistoryEntry->ChargeDateTime);
+						$curTitle  = array();
+						$curTitle['itemId']       = $readingHistoryEntry->ItemNumber;
+						$curTitle['id']           = $readingHistoryEntry->BID;
+						$curTitle['shortId']      = $readingHistoryEntry->BID;
+						$curTitle['recordId']     = $this->fullCarlIDfromBID($readingHistoryEntry->BID);
+						$curTitle['title']        = $readingHistoryEntry->Title;
+						$curTitle['checkout']     = $checkOutDate->format('m-d-Y'); // this format is expected by Pika's java cron program.
+						$curTitle['borrower_num'] = $user->id;
+						$curTitle['dueDate']      = null; // Not available in ChargeHistoryItems
+						$curTitle['author']       = null; // Not available in ChargeHistoryItems
+
+						$readingHistoryTitles[] = $curTitle;
+					}
+
+					$numTitles = count($readingHistoryTitles);
+
+					//process pagination
+					if ($recordsPerPage != -1){
+						$startRecord = ($page - 1) * $recordsPerPage;
+						$readingHistoryTitles = array_slice($readingHistoryTitles, $startRecord, $recordsPerPage);
+					}
+
+					set_time_limit(20 * count($readingHistoryTitles)); // Taken from Aspencat Driver
 
 					// Fetch Additional Information for each Item
+					foreach ($readingHistoryTitles as $key => $historyEntry){
+						//Get additional information from resources table
+						$historyEntry['ratingData']  = null;
+						$historyEntry['permanentId'] = null;
+						$historyEntry['linkUrl']     = null;
+						$historyEntry['coverUrl']    = null;
+						$historyEntry['format']      = 'Unknown';
+						if (!empty($historyEntry['recordId'])){
+							require_once ROOT_DIR . '/RecordDrivers/MarcRecord.php';
+							$recordDriver = new MarcRecord($this->accountProfile->recordSource.':'.$historyEntry['recordId']);
+							if ($recordDriver->isValid()){
+								$historyEntry['ratingData']  = $recordDriver->getRatingData();
+								$historyEntry['permanentId'] = $recordDriver->getPermanentId();
+								$historyEntry['linkUrl']     = $recordDriver->getGroupedWorkDriver()->getLinkUrl();
+								$historyEntry['coverUrl']    = $recordDriver->getBookcoverUrl('medium');
+								$historyEntry['format']      = $recordDriver->getFormats();
+								$historyEntry['author']      = $recordDriver->getPrimaryAuthor();
+								if (empty($curTitle['title'])){
+									$curTitle['title']         = $recordDriver->getTitle();
+								}
+							}
+
+							$recordDriver = null;
+						}
+						$historyEntry['title_sort'] = preg_replace('/[^a-z\s]/', '', strtolower($historyEntry['title']));
+
+						$readingHistoryTitles[$key] = $historyEntry;
+					}
+
 
 				}
-
 
 				// Return Reading History
 				return array('historyActive'=>$historyActive, 'titles'=>$readingHistoryTitles, 'numTitles'=> $numTitles);
