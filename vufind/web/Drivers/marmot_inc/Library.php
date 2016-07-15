@@ -584,7 +584,7 @@ class Library extends DB_DataObject
 					'edsApiPassword' => array('property'=>'edsApiPassword', 'type'=>'text', 'label'=>'EDS API Password', 'description'=>'The password to use when connecting to the EBSCO API', 'hideInLists' => true),
 			)),
 
-			'casSection' => array('property'=>'casSection', 'type' => 'section', 'label' =>'CAS Single Sign On', 'hideInLists' => true, 'properties' => array(
+			'casSection' => array('property'=>'casSection', 'type' => 'section', 'label' =>'CAS Single Sign On', 'hideInLists' => true, 'helpLink'=>'https://docs.google.com/document/d/1KQ_RMVvHhB2ulTyXnGF7rJXUQuzbL5RVTtnqlXdoNTk/edit?usp=sharing', 'properties' => array(
 					'edsApiProfile' => array('property'=>'casHost', 'type'=>'text', 'label'=>'CAS Host', 'description'=>'The host to use for CAS authentication', 'hideInLists' => true),
 					'edsApiUsername' => array('property'=>'casPort', 'type'=>'integer', 'label'=>'CAS Port', 'description'=>'The port to use for CAS authentication (typically 443)', 'hideInLists' => true),
 					'edsApiPassword' => array('property'=>'casContext', 'type'=>'text', 'label'=>'CAS Context', 'description'=>'The context to use for CAS', 'hideInLists' => true),
