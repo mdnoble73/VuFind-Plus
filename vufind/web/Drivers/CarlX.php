@@ -825,20 +825,29 @@ class CarlX extends SIP2Driver{
 
 		$soapClient = new SoapClient($this->patronWsdl);
 		$request = $this->getSearchbyPatronIdRequest($user);
-		$request->CirculationFilter = false;
+//		$request->CirculationFilter = false; //TODO: not sure what this filters, might be needed in actual system
+		$request->CirculationFilter = true;
 		$result = $soapClient->getPatronFiscalHistory($request);
 		if ($result && !empty($result->FiscalHistoryItem)) {
+			if (!is_array($result->FiscalHistoryItem)) {
+				$result->FiscalHistoryItem = array($result->FiscalHistoryItem); // single entries are not presented as an array
+			}
 			foreach($result->FiscalHistoryItem as $fine) {
-				$amount = $fine->Amount > 0 ? '$' . sprintf('%0.2f', $fine->Amount / 100) : ''; // amounts are in cents
+				if ($fine->FiscalType == 'Credit') {
+					$amount = $fine->Amount > 0 ? '-$' . sprintf('%0.2f', $fine->Amount / 100) : ''; // amounts are in cents
+				} else {
+					$amount = $fine->Amount > 0 ? '$' . sprintf('%0.2f', $fine->Amount / 100) : ''; // amounts are in cents
+				}
 				$myFines[] = array(
 					'reason'  => $fine->Notes,
 					'amount'  => $amount,
 					'message' => $fine->Title,
-					'date'    => $fine->TransDate, //TODO: set as datetime?
-//					'balance' => '', // Found in Horizon Driver
-//					'checkout'=> '', // Found in Horizon Driver
+//					'date'    => $this->extractDateFromCarlXDateField($fine->TransDate), //TODO: set as datetime?
+					'date'    => date('M j, Y', strtotime($fine->TransDate)), //TODO: set as datetime?
 				);
 			}
+
+			//TODO: Look At Page Result if additional Calls need to be made.
 		}
 
 		return $myFines;

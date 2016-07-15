@@ -207,8 +207,8 @@ abstract class Horizon extends ScreenScrapingDriver{
                                     'message'  => $comment,
                                     'amount'   => $amount > 0 ? '$' . sprintf('%0.2f', $amount / 100) : '',
                                     'reason'   => $this->translateFineMessageType($row['FINE']),
-                                    'balance'  => $balance,
-                                    'checkout' => $checkout,
+                                    'balance'  => $balance,  // TODO: not in my fines template
+                                    'checkout' => $checkout, // TODO: not in my fines template
                                     'date'     => date('M j, Y', strtotime($duedate)));
 			}
 			return $fineList;
