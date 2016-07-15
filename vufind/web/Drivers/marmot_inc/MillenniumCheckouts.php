@@ -416,8 +416,8 @@ class MillenniumCheckouts {
 		$timer->logTime('Finished Renew Item attempt');
 
 		return array(
-			'itemId' => $itemId,
-			'success'  => $success,
+			'itemId'  => $itemId,
+			'success' => $success,
 			'message' => $message);
 	}
 }

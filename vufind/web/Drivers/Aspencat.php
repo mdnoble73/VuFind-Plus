@@ -691,13 +691,12 @@ class Aspencat implements DriverInterface{
 				$readingHistoryTitleRS = mysqli_query($this->dbConnection, $readingHistoryTitleSql);
 				if ($readingHistoryTitleRS){
 					while ($readingHistoryTitleRow = $readingHistoryTitleRS->fetch_assoc()){
-						$curTitle = array();
-						$curTitle['id'] = $readingHistoryTitleRow['biblionumber'];
-						$curTitle['shortId'] = $readingHistoryTitleRow['biblionumber'];
-						$curTitle['recordId'] = $readingHistoryTitleRow['biblionumber'];
-						$curTitle['title'] = $readingHistoryTitleRow['title'];
-
 						$checkOutDate = new DateTime($readingHistoryTitleRow['itemstimestamp']);
+						$curTitle = array();
+						$curTitle['id']       = $readingHistoryTitleRow['biblionumber'];
+						$curTitle['shortId']  = $readingHistoryTitleRow['biblionumber'];
+						$curTitle['recordId'] = $readingHistoryTitleRow['biblionumber'];
+						$curTitle['title']    = $readingHistoryTitleRow['title'];
 						$curTitle['checkout'] = $checkOutDate->format('m-d-Y'); // this format is expected by Pika's java cron program.
 
 						$readingHistoryTitles[] = $curTitle;
@@ -716,22 +715,23 @@ class Aspencat implements DriverInterface{
 			set_time_limit(20 * count($readingHistoryTitles));
 			foreach ($readingHistoryTitles as $key => $historyEntry){
 				//Get additional information from resources table
-				$historyEntry['ratingData'] = null;
+				$historyEntry['ratingData']  = null;
 				$historyEntry['permanentId'] = null;
-				$historyEntry['linkUrl'] = null;
-				$historyEntry['coverUrl'] = null;
-				$historyEntry['format'] = array();
+				$historyEntry['linkUrl']     = null;
+				$historyEntry['coverUrl']    = null;
+				$historyEntry['format']      = "Unknown";
+				;
 				if (!empty($historyEntry['recordId'])){
 //					if (is_int($historyEntry['recordId'])) $historyEntry['recordId'] = (string) $historyEntry['recordId']; // Marc Record Contructor expects the recordId as a string.
 					require_once ROOT_DIR . '/RecordDrivers/MarcRecord.php';
 					$recordDriver = new MarcRecord($this->accountProfile->recordSource.':'.$historyEntry['recordId']);
 					if ($recordDriver->isValid()){
-						$historyEntry['ratingData'] = $recordDriver->getRatingData();
+						$historyEntry['ratingData']  = $recordDriver->getRatingData();
 						$historyEntry['permanentId'] = $recordDriver->getPermanentId();
-						$historyEntry['linkUrl'] = $recordDriver->getGroupedWorkDriver()->getLinkUrl();
-						$historyEntry['coverUrl'] = $recordDriver->getBookcoverUrl('medium');
-						$historyEntry['format'] = $recordDriver->getFormats();
-						$historyEntry['author'] = $recordDriver->getPrimaryAuthor();
+						$historyEntry['linkUrl']     = $recordDriver->getGroupedWorkDriver()->getLinkUrl();
+						$historyEntry['coverUrl']    = $recordDriver->getBookcoverUrl('medium');
+						$historyEntry['format']      = $recordDriver->getFormats();
+						$historyEntry['author']      = $recordDriver->getPrimaryAuthor();
 					}
 					$recordDriver = null;
 				}
@@ -785,7 +785,7 @@ class Aspencat implements DriverInterface{
 	 *                                If an error occurs, return a PEAR_Error
 	 * @access  public
 	 */
-	public function placeHold($patron, $recordId, $pickupBranch){
+	public function placeHold($patron, $recordId, $pickupBranch, $cancelDate = null){
 		$hold_result = array();
 		$hold_result['success'] = false;
 
