@@ -29,7 +29,7 @@ class AJAX extends Action {
 		$method = $_REQUEST['method'];
 		$text_methods = array('GetAutoSuggestList', 'SysListTitles', 'getEmailForm', 'sendEmail', 'getDplaResults');
 		//TODO reconfig to use the JSON outputting here.
-		$json_methods = array('getMoreSearchResults', 'GetListTitles');
+		$json_methods = array('getMoreSearchResults', 'GetListTitles', 'loadExploreMoreBar');
 		// Plain Text Methods //
 		if (in_array($method, $text_methods)) {
 			header('Content-type: text/plain');
@@ -386,6 +386,30 @@ class AJAX extends Action {
 		);
 		// let front end know if we have reached the end of the result set
 		if ($searchObject->getPage() * $searchObject->getLimit() >= $searchObject->getResultTotal()) $result['lastPage'] = true;
+		return $result;
+	}
+
+	function loadExploreMoreBar(){
+		global $interface;
+
+		$section = $_REQUEST['section'];
+		$searchTerm = $_REQUEST['searchTerm'];
+
+		//Load explore more data
+		require_once ROOT_DIR . '/sys/ExploreMore.php';
+		$exploreMore = new ExploreMore();
+		$exploreMoreOptions = $exploreMore->loadExploreMoreBar($section, $searchTerm);
+		if (count($exploreMoreOptions) == 0){
+			$result = array(
+					'success' => false,
+			);
+		}else{
+			$result = array(
+					'success' => true,
+					'exploreMoreBar' => $interface->fetch("Search/explore-more-bar.tpl")
+			);
+		}
+
 		return $result;
 	}
 

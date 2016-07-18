@@ -3,7 +3,14 @@
     {* This is raw HTML -- do not escape it: *}
     {$record}
   </div>
-  {if $exploreMoreOptions && ($smarty.foreach.recordLoop.iteration == 2 || count($recordSet) < 2)}
-    {include file="Search/explore-more-bar.tpl"}
+  {if $showExploreMoreBar && ($smarty.foreach.recordLoop.iteration == 2 || count($recordSet) < 2)}
+    <div id="explore-more-bar-placeholder"></div>
+    <script type="text/javascript">
+      $(document).ready(
+        function () {ldelim}
+          VuFind.Searches.loadExploreMoreBar('ebsco', '{$exploreMoreSearchTerm|escape:"html"}');
+        {rdelim}
+      );
+    </script>
   {/if}
 {/foreach}

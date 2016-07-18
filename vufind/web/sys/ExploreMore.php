@@ -199,16 +199,7 @@ class ExploreMore {
 		$interface->assign('exploreMoreSections', $exploreMoreSectionsToShow);
 	}
 
-	function loadExploreMoreBar($activeSection){
-		if (isset($_REQUEST['page']) && $_REQUEST['page'] > 1){
-			return;
-		}
-		//Get data from the repository
-		global $interface;
-		global $configArray;
-		global $library;
-		$exploreMoreOptions = array();
-
+	function getExploreMoreQuery(){
 		if (isset($_REQUEST['lookfor'])){
 			$searchTerm = $_REQUEST['lookfor'];
 		}else{
@@ -218,13 +209,27 @@ class ExploreMore {
 			if (isset($_REQUEST['filter'])){
 				foreach ($_REQUEST['filter'] as $filter){
 					$filterVals = explode(':', $filter);
-					if ($filterVals[0] != 'mods_genre_s'){
+					if ($filterVals[0] != 'mods_genre_s' &&
+							$filterVals[0] != 'literary_form' && $filterVals[0] != 'literary_form_full' &&
+							$filterVals[0] != 'target_audience' && $filterVals[0] != 'target_audience_full'){
 						$searchTerm = str_replace('"', '', $filterVals[1]);
 						break;
 					}
 				}
 			}
 		}
+		return $searchTerm;
+	}
+
+	function loadExploreMoreBar($activeSection, $searchTerm){
+		if (isset($_REQUEST['page']) && $_REQUEST['page'] > 1){
+			return;
+		}
+		//Get data from the repository
+		global $interface;
+		global $configArray;
+		global $library;
+		$exploreMoreOptions = array();
 
 		//Check the archive to see if we match an entity.
 		if ($library->enableArchive && $activeSection != 'archive') {
@@ -236,7 +241,7 @@ class ExploreMore {
 		$exploreMoreOptions = $this->loadEbscoOptions($activeSection, $exploreMoreOptions, $searchTerm);
 
 		if ($library->enableArchive && $activeSection != 'archive'){
-			if (isset($configArray['Islandora']) && isset($configArray['Islandora']['solrUrl']) && !empty($_GET['lookfor']) && !is_array($_GET['lookfor'])) {
+			if (isset($configArray['Islandora']) && isset($configArray['Islandora']['solrUrl']) && !empty($searchTerm)) {
 				require_once ROOT_DIR . '/sys/Utils/FedoraUtils.php';
 				$fedoraUtils = FedoraUtils::getInstance();
 
@@ -247,7 +252,7 @@ class ExploreMore {
 
 				//Get a list of objects in the archive related to this search
 				$searchObject->setSearchTerms(array(
-					'lookfor' => $_REQUEST['lookfor'],
+					'lookfor' => $searchTerm,
 					'index' => 'IslandoraKeyword'
 				));
 				$searchObject->clearHiddenFilters();
@@ -270,7 +275,7 @@ class ExploreMore {
 						$searchObject2->init();
 						$searchObject2->setDebugging(false, false);
 						$searchObject2->setSearchTerms(array(
-								'lookfor' => $_REQUEST['lookfor'],
+								'lookfor' => $searchTerm,
 								'index' => 'IslandoraKeyword'
 						));
 						$searchObject2->clearHiddenFilters();
@@ -343,7 +348,7 @@ class ExploreMore {
 								'label' => "People (" . $numPeople . ")",
 								'description' => "People related to {$searchObject->getQuery()}",
 								'image' => $fedoraUtils->getObjectImageUrl($archiveObject, 'medium', 'personCModel'),
-								'link' => '/Archive/RelatedEntities?lookfor=' . urlencode($_REQUEST['lookfor']) . '&entityType=person',
+								'link' => '/Archive/RelatedEntities?lookfor=' . urlencode($searchTerm) . '&entityType=person',
 								'usageCount' => $numPeople
 							);
 						}
@@ -362,7 +367,7 @@ class ExploreMore {
 								'label' => "Places (" . $numPlaces . ")",
 								'description' => "Places related to {$searchObject->getQuery()}",
 								'image' => $fedoraUtils->getObjectImageUrl($archiveObject, 'medium', 'placeCModel'),
-								'link' => '/Archive/RelatedEntities?lookfor=' . urlencode($_REQUEST['lookfor']) . '&entityType=place',
+								'link' => '/Archive/RelatedEntities?lookfor=' . urlencode($searchTerm) . '&entityType=place',
 								'usageCount' => $numPlaces
 							);
 						}
@@ -381,7 +386,7 @@ class ExploreMore {
 								'label' => "Events (" . $numEvents . ")",
 								'description' => "Places related to {$searchObject->getQuery()}",
 								'image' => $fedoraUtils->getObjectImageUrl($archiveObject, 'medium', 'eventCModel'),
-								'link' => '/Archive/RelatedEntities?lookfor=' . urlencode($_REQUEST['lookfor']) . '&entityType=event',
+								'link' => '/Archive/RelatedEntities?lookfor=' . urlencode($searchTerm) . '&entityType=event',
 								'usageCount' => $numEvents
 							);
 						}
@@ -405,6 +410,8 @@ class ExploreMore {
 		}*/
 
 		$interface->assign('exploreMoreOptions', $exploreMoreOptions);
+
+		return $exploreMoreOptions;
 	}
 
 	/**
