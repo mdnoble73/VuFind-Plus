@@ -59,10 +59,16 @@ class EBSCO_Results extends Action{
 			$interface->assign('pageLinks', $pager->getLinks());
 		}
 
-		//Load explore more data
-		require_once ROOT_DIR . '/sys/ExploreMore.php';
+		//Setup explore more
+		$showExploreMoreBar = true;
+		if (isset($_REQUEST['page']) && $_REQUEST['page'] > 1){
+			$showExploreMoreBar = false;
+		}
 		$exploreMore = new ExploreMore();
-		$exploreMore->loadExploreMoreBar('ebsco');
+		$exploreMoreSearchTerm = $exploreMore->getExploreMoreQuery();
+		$interface->assign('exploreMoreSection', 'ebsco');
+		$interface->assign('showExploreMoreBar', $showExploreMoreBar);
+		$interface->assign('exploreMoreSearchTerm', $exploreMoreSearchTerm);
 
 		$displayTemplate = 'EBSCO/list-list.tpl'; // structure for regular results
 		$interface->assign('breadcrumbText', $searchObject->displayQuery());

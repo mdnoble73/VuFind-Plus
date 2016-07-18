@@ -27,6 +27,13 @@
 <br/>
 {/if}
 
-{if $userIsAdmin}
-<a href='{$path}/Admin/People?objectAction=addNew' class='btn btn-sm btn-info'>Add someone new</a>
+{if $showExploreMoreBar}
+  <div id="explore-more-bar-placeholder"></div>
+  <script type="text/javascript">
+    $(document).ready(
+      function () {ldelim}
+        VuFind.Searches.loadExploreMoreBar('{$exploreMoreSection}', '{$exploreMoreSearchTerm|escape:"html"}');
+      {rdelim}
+    );
+  </script>
 {/if}

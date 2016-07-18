@@ -408,24 +408,26 @@ BODY;
 
 	public function getFacetSet() {
 		$availableFacets = array();
-		foreach ($this->lastSearchResults->AvailableFacets->AvailableFacet as $facet){
-			$facetId = (string)$facet->Id;
-			$availableFacets[$facetId] = array(
-					'collapseByDefault' => true,
-					'label' => (string)$facet->Label,
-					'valuesToShow' => 5,
-			);
-			$list = array();
-			foreach ($facet->AvailableFacetValues->AvailableFacetValue as $value){
-				$facetValue = (string)$value->Value;
-				$urlWithFacet = $this->renderSearchUrl() . '&filter[]=' . $facetId . ':' . urlencode($facetValue);
-				$list[] = array(
-						'display' => $facetValue,
-						'count' => (string)$value->Count,
-						'url' => $urlWithFacet
+		if (isset($this->lastSearchResults) && isset($this->lastSearchResults->AvailableFacets)){
+			foreach ($this->lastSearchResults->AvailableFacets->AvailableFacet as $facet){
+				$facetId = (string)$facet->Id;
+				$availableFacets[$facetId] = array(
+						'collapseByDefault' => true,
+						'label' => (string)$facet->Label,
+						'valuesToShow' => 5,
 				);
+				$list = array();
+				foreach ($facet->AvailableFacetValues->AvailableFacetValue as $value){
+					$facetValue = (string)$value->Value;
+					$urlWithFacet = $this->renderSearchUrl() . '&filter[]=' . $facetId . ':' . urlencode($facetValue);
+					$list[] = array(
+							'display' => $facetValue,
+							'count' => (string)$value->Count,
+							'url' => $urlWithFacet
+					);
+				}
+				$availableFacets[$facetId]['list'] = $list;
 			}
-			$availableFacets[$facetId]['list'] = $list;
 		}
 		return $availableFacets;
 	}
