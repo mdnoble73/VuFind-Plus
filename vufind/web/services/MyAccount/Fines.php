@@ -50,7 +50,7 @@ class Fines extends MyAccount
 				$userAccountLabel[$userId] = $user->getUserReferredTo($userId)->getNameAndLibraryLabel();
 				$total = $totalOutstanding = 0;
 				foreach ($finesDetails as $fine) {
-					if ($fine['amount'][0] == '-') {
+					if (!empty($fine['amount']) && $fine['amount'][0] == '-') {
 						$amount = - ltrim($fine['amount'], '-'.$this->currency_symbol);
 					} else {
 						$amount = ltrim($fine['amount'], $this->currency_symbol);

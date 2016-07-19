@@ -825,33 +825,83 @@ class CarlX extends SIP2Driver{
 
 		$soapClient = new SoapClient($this->patronWsdl);
 		$request = $this->getSearchbyPatronIdRequest($user);
-//		$request->CirculationFilter = false; //TODO: not sure what this filters, might be needed in actual system
-		$request->CirculationFilter = true;
-		$result = $soapClient->getPatronFiscalHistory($request);
-		if ($result && !empty($result->FiscalHistoryItem)) {
-			if (!is_array($result->FiscalHistoryItem)) {
-				$result->FiscalHistoryItem = array($result->FiscalHistoryItem); // single entries are not presented as an array
+
+		// Fines
+		$request->TransactionType = 'Fine';
+		$result = $soapClient->getPatronTransactions($request);
+
+		if ($result && !empty($result->FineItems->FineItem)) {
+			if (!is_array($result->FineItems->FineItem)) {
+				$result->FineItems->FineItem = array($result->FineItems->FineItem);
 			}
-			foreach($result->FiscalHistoryItem as $fine) {
-				if ($fine->FiscalType == 'Credit') {
-					$amount = $fine->Amount > 0 ? '-$' . sprintf('%0.2f', $fine->Amount / 100) : ''; // amounts are in cents
-				} else {
-					$amount = $fine->Amount > 0 ? '$' . sprintf('%0.2f', $fine->Amount / 100) : ''; // amounts are in cents
+			foreach($result->FineItems->FineItem as $fine) {
+				if ($fine->FineAmountPaid > 0) {
+					$fine->FineAmount -= $fine->FineAmountPaid;
 				}
 				$myFines[] = array(
-					'reason'  => $fine->Notes,
-					'amount'  => $amount,
+					'reason'  => $fine->FeeNotes,
+					'amount'  => $fine->FineAmount,
 					'message' => $fine->Title,
-//					'date'    => $this->extractDateFromCarlXDateField($fine->TransDate), //TODO: set as datetime?
-					'date'    => date('M j, Y', strtotime($fine->TransDate)), //TODO: set as datetime?
+					'date'    => date('M j, Y', strtotime($fine->FineAssessedDate)),
 				);
 			}
+		}
 
-			//TODO: Look At Page Result if additional Calls need to be made.
+		// Lost Item Fees
+
+		// TODO: Lost Items don't have the fine amount
+		$request->TransactionType = 'Lost';
+		$result = $soapClient->getPatronTransactions($request);
+
+		if ($result && !empty($result->LostItems->LostItem)) {
+			if (!is_array($result->LostItems->LostItem)) {
+				$result->LostItems->LostItem = array($result->LostItems->LostItem);
+			}
+			foreach($result->LostItems->LostItem as $fine) {
+				$myFines[] = array(
+					'reason'  => $fine->FeeNotes,
+//					'amount'  => $fine->FineAmount, // TODO: There is no corresponding amount
+					'amount'  => '',
+					'message' => $fine->Title,
+					'date'    => date('M j, Y', strtotime($fine->TransactionDate)),
+				);
+			}
 		}
 
 		return $myFines;
 	}
+//	public function getMyFines($user) {
+//		$myFines = array();
+//
+//		$soapClient = new SoapClient($this->patronWsdl);
+//		$request = $this->getSearchbyPatronIdRequest($user);
+////		$request->CirculationFilter = false; //TODO: not sure what this filters, might be needed in actual system
+//		$request->CirculationFilter = true;
+//		$result = $soapClient->getPatronFiscalHistory($request);
+//		if ($result && !empty($result->FiscalHistoryItem)) {
+//			if (!is_array($result->FiscalHistoryItem)) {
+//				$result->FiscalHistoryItem = array($result->FiscalHistoryItem); // single entries are not presented as an array
+//			}
+//			foreach($result->FiscalHistoryItem as $fine) {
+//				if ($fine->FiscalType == 'Credit') {
+//					$amount = $fine->Amount > 0 ? '-$' . sprintf('%0.2f', $fine->Amount / 100) : ''; // amounts are in cents
+//				} else {
+//					$amount = $fine->Amount > 0 ? '$' . sprintf('%0.2f', $fine->Amount / 100) : ''; // amounts are in cents
+//				}
+//				$myFines[] = array(
+//					'reason'  => $fine->Notes,
+//					'amount'  => $amount,
+//					'message' => $fine->Title,
+////					'date'    => $this->extractDateFromCarlXDateField($fine->TransDate), //TODO: set as datetime?
+//					'date'    => date('M j, Y', strtotime($fine->TransDate)), //TODO: set as datetime?
+//				);
+//			}
+//
+//			//TODO: Look At Page Result if additional Calls need to be made.
+//		}
+//
+//		return $myFines;
+//	}
 
 	/**
 	 * @param $user
