@@ -607,7 +607,8 @@ class Novelist3{
 		//Check to see if we have cached data, first check MemCache.
 		/** @var Memcache $memCache */
 		global $memCache;
-		$novelistData = $memCache->get("novelist_series_$groupedRecordId");
+		global $solrScope;
+		$novelistData = $memCache->get("novelist_series_{$groupedRecordId}_{$solrScope}");
 		if ($novelistData != false && !isset($_REQUEST['reload'])){
 			return $novelistData;
 		}
@@ -685,7 +686,7 @@ class Novelist3{
 			}//Loop on each ISBN
 		}//Check for number of ISBNs
 
-		$memCache->set("novelist_series_$groupedRecordId", $novelistData, 0, $configArray['Caching']['novelist_enrichment']);
+		$memCache->set("novelist_series_{$groupedRecordId}_{$solrScope}", $novelistData, 0, $configArray['Caching']['novelist_enrichment']);
 		return $novelistData;
 	}
 
@@ -763,14 +764,13 @@ class Novelist3{
 	}
 
 	private function loadNoveListTitle($currentId, $item, &$titleList, &$titlesOwned, $seriesName = ''){
-		global $user;
 		global $timer;
 		global $configArray;
 		$timer->logTime("Start loadNoveListTitle");
 
 		/** @var SearchObject_Solr $searchObject */
 		$searchObject = SearchObjectFactory::initSearchObject();
-		$searchObject->disableScoping();
+		//$searchObject->disableScoping();
 		if (function_exists('disableErrorHandler')){
 			disableErrorHandler();
 		}
@@ -827,7 +827,7 @@ class Novelist3{
 					}
 				}
 				//Load data about the record
-				$ratingData = $recordDriver->getRatingData($user);
+				$ratingData = $recordDriver->getRatingData();
 				$timer->logTime("Get Rating data");
 				$fullRecordLink = $recordDriver->getLinkUrl();
 
