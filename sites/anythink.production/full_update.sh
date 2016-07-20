@@ -107,7 +107,7 @@ fi
 # Date For Backup filename
 TODAY=$(date +"%m_%d_%Y")
 
-FILE=$(find /data/vufind-plus/marc -name RLDexport*.mrc -mtime -1 | sort -n | tail -1)
+FILE=$(find /data/vufind-plus/anythink.production/marc -name RLDexport*.mrc -mtime -1 | sort -n | tail -1)
 
 if [ -n "$FILE" ]
 then
