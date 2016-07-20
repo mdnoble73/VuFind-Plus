@@ -41,7 +41,13 @@ class CarlX extends SIP2Driver{
 		$request->SearchID = $username;
 		$request->Modifiers = '';
 
-		$result = $soapClient->getPatronInformation($request);
+		try {
+			$result = $soapClient->getPatronInformation($request);
+		} catch (SoapFault $e) {
+			global $logger;
+			$logger->log('Soap Client error in CarlX', PEAR_LOG_ERR);
+			return false;
+		}
 
 		$patronValid = false;
 		if ($result){
@@ -674,6 +680,111 @@ class CarlX extends SIP2Driver{
 			$updateErrors[] = 'You can not update your information.';
 		}
 		return $updateErrors;
+	}
+
+	public function getSelfRegistrationFields() {
+		global $library;
+		$fields = array();
+		$fields[] = array('property'=>'firstName',   'type'=>'text', 'label'=>'First Name', 'description'=>'Your first name', 'maxLength' => 40, 'required' => true);
+		$fields[] = array('property'=>'middleName',  'type'=>'text', 'label'=>'Middle Name', 'description'=>'Your middle name', 'maxLength' => 40, 'required' => true);
+		// gets added to the first name separated by a space
+		$fields[] = array('property'=>'lastName',   'type'=>'text', 'label'=>'Last Name', 'description'=>'Your last name', 'maxLength' => 40, 'required' => true);
+		if ($library && $library->promptForBirthDateInSelfReg){
+			$fields[] = array('property'=>'birthDate', 'type'=>'date', 'label'=>'Date of Birth (MM-DD-YYYY)', 'description'=>'Date of birth', 'maxLength' => 10, 'required' => true);
+		}
+		$fields[] = array('property'=>'address',     'type'=>'text', 'label'=>'Mailing Address', 'description'=>'Mailing Address', 'maxLength' => 128, 'required' => true);
+		$fields[] = array('property'=>'city',        'type'=>'text', 'label'=>'City', 'description'=>'City', 'maxLength' => 48, 'required' => true);
+		$fields[] = array('property'=>'state',       'type'=>'text', 'label'=>'State', 'description'=>'State', 'maxLength' => 32, 'required' => true);
+		$fields[] = array('property'=>'zip',         'type'=>'text', 'label'=>'Zip Code', 'description'=>'Zip Code', 'maxLength' => 32, 'required' => true);
+		$fields[] = array('property'=>'email',       'type'=>'email', 'label'=>'E-Mail', 'description'=>'E-Mail', 'maxLength' => 128, 'required' => false);
+		//$fields[] = array('property'=>'universityID', 'type'=>'text', 'label'=>'Drivers License #', 'description'=>'Drivers License', 'maxLength' => 128, 'required' => false);
+
+		//TODO: PIN Number
+		return $fields;
+
+	}
+
+	public function selfRegister(){
+		global $library;
+		$success = false;
+
+		$firstName =  trim($_REQUEST['firstName']);
+		$middleName = trim($_REQUEST['middleName']);
+		$lastName =   trim($_REQUEST['lastName']);
+		$address =    trim($_REQUEST['address']);
+		$city =       trim($_REQUEST['city']);
+		$state =      trim($_REQUEST['state']);
+		$zip =        trim($_REQUEST['zip']);
+		$email =      trim($_REQUEST['email']);
+
+		$soapClient = new SoapClient($this->patronWsdl
+			,array(
+				'features' => SOAP_WAIT_ONE_WAY_CALLS, // This setting overcomes the SOAP client's expectation that there is no response from our update request.
+				'trace' => 1, // enable use of __getLastResponse, so that we can determine the response.
+				//					'exceptions' => 0,
+			)
+		);
+
+		$request                                          = new stdClass();
+		$request->Modifiers                               = '';
+		$request->Patron->Email                           = $email;
+		$request->Patron->FirstName                       = $firstName;
+		$request->Patron->MiddleName                      = $middleName;
+		$request->Patron->LastName                        = $lastName;
+		$request->Patron->Addresses->Address->Type        = 'Primary';
+		$request->Patron->Addresses->Address->Street      = $address;
+		$request->Patron->Addresses->Address->City        = $city;
+		$request->Patron->Addresses->Address->State       = $state;
+		$request->Patron->Addresses->Address->PostalCode  = $zip;
+
+		if ($library && $library->promptForBirthDateInSelfReg){
+			$birthDate = trim($_REQUEST['birthDate']);
+			$date = DateTime::createFromFormat('m-d-Y', $birthDate);
+			$request->Patron->BirthDate = $date->format('Y-m-d');
+		}
+
+		// Maybe needed
+		$request->Patron->RegisteredBy = 'Pika Discovery Layer';
+
+		$result = $soapClient->createPatron($request);
+
+		if (is_null($result)) {
+			$result = $soapClient->__getLastResponse();
+			echo '<pre>';
+			print_r($soapClient->__getFunctions());
+			echo '</pre>';
+			if ($result) {
+				$unxml   = new XML_Unserializer();
+				$unxml->unserialize($result);
+				$response = $unxml->getUnserializedData();
+
+				if ($response) {
+					$success = stripos($response['SOAP-ENV:Body']['ns3:GenericResponse']['ns3:ResponseStatuses']['ns2:ResponseStatus']['ns2:ShortMessage'], 'Success') !== false;
+					if (!$success) {
+//						$errorMessage = $response['SOAP-ENV:Body']['ns3:GenericResponse']['ns3:ResponseStatuses']['ns2:ResponseStatus']['ns2:LongMessage'];
+//						$updateErrors[] = 'Failed to update your information'. ($errorMessage ? ' : ' .$errorMessage : '');
+					} else {
+						//TODO: retrieve User's barcode
+						//TODO: User also needs an initial Pin
+					}
+
+				} else {
+//					$updateErrors[] = 'Unable to update your information.';
+					global $logger;
+					$logger->log('Unable to read XML from CarlX response when attempting to create Patron.', PEAR_LOG_ERR);
+				}
+
+			} else {
+//				$updateErrors[] = 'Unable to update your information.';
+				global $logger;
+				$logger->log('CarlX ILS gave no response when attempting to create Patron.', PEAR_LOG_ERR);
+			}
+		}
+
+		return array(
+			'success' => $success
+		);
+
 	}
 
 	public function getReadingHistory($user, $page = 1, $recordsPerPage = -1, $sortOption = "checkedOut") {
