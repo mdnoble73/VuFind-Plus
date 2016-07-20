@@ -351,7 +351,7 @@ abstract class HorizonAPI extends Horizon{
 	 *                                If an error occurs, return a PEAR_Error
 	 * @access  public
 	 */
-	public function placeHold($patron, $recordId, $pickupBranch) {
+	public function placeHold($patron, $recordId, $pickupBranch, $cancelDate = null) {
 		$result = $this->placeItemHold($patron, $recordId, null, $pickupBranch);
 		return $result;
 	}
@@ -406,15 +406,16 @@ abstract class HorizonAPI extends Horizon{
 			$offlineHold->timeEntered = time();
 			$offlineHold->status = 'Not Processed';
 			if ($offlineHold->insert()){
+				//TODO: use bib or bid ??
 				return array(
-					'title' => $title,
-					'bib' => $recordId,
+					'title'   => $title,
+					'bib'     => $recordId,
 					'success' => true,
 					'message' => 'The circulation system is currently offline.  This hold will be entered for you automatically when the circulation system is online.');
 			}else{
 				return array(
-					'title' => $title,
-					'bib' => $recordId,
+					'title'   => $title,
+					'bib'     => $recordId,
 					'success' => false,
 					'message' => 'The circulation system is currently offline and we could not place this hold.  Please try again later.');
 			}
@@ -423,7 +424,7 @@ abstract class HorizonAPI extends Horizon{
 			if ($type == 'cancel' || $type == 'recall' || $type == 'update') {
 				$result = $this->updateHold($patron, $recordId, $type/*, $title*/);
 				$result['title'] = $title;
-				$result['bid'] = $recordId;
+				$result['bid']   = $recordId;
 				return $result;
 
 			} else {
@@ -456,7 +457,7 @@ abstract class HorizonAPI extends Horizon{
 				}
 
 				$hold_result['title']  = $title;
-				$hold_result['bid'] = $recordId;
+				$hold_result['bid']    = $recordId;
 				global $analytics;
 				if ($analytics){
 					if ($hold_result['success'] == true){

@@ -2162,7 +2162,7 @@ class SearchObject_Solr extends SearchObject_Base
 	 * @return  string              The requested resource
 	 */
 	function getRecordByIsbn($isbn){
-		return $this->indexEngine->getRecordByIsbn($isbn);
+		return $this->indexEngine->getRecordByIsbn($isbn, $this->getFieldsToReturn());
 	}
 
 	private function getFieldsToReturn() {

@@ -351,6 +351,21 @@ VuFind.Searches = (function(){
 			$(".existingFilter").prop('checked', true);
 		},
 
+		loadExploreMoreBar: function(section, searchTerm){
+			var url = Globals.path + "/Search/AJAX";
+			var params = "method=loadExploreMoreBar&section=" + encodeURIComponent(section);
+			params += "&searchTerm=" + encodeURIComponent(searchTerm);
+			var fullUrl = url + "?" + params;
+			$.getJSON(fullUrl,
+				function(data) {
+					if (data.success == true){
+						$("#explore-more-bar-placeholder").html(data.exploreMoreBar);
+						VuFind.initCarousels();
+					}
+				}
+			);
+		}
+
 /* Advanced Popup has been turned off. plb 10-22-2015
 		submitAdvancedSearch: function(){
 			$('#advancedPopup').submit();

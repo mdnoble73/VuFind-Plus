@@ -27,7 +27,6 @@ class GroupedWork_Series extends Action
 		global $interface;
 		global $timer;
 		global $logger;
-		global $user;
 
 		$id = $_REQUEST['id'];
 
@@ -66,7 +65,7 @@ class GroupedWork_Series extends Action
 				if ($title['libraryOwned']){
 					/** @var GroupedWorkDriver $tmpRecordDriver */
 					$tmpRecordDriver = $title['recordDriver'];
-					$resourceList[] = $interface->fetch($tmpRecordDriver->getSearchResult($user, null, false));
+					$resourceList[] = $interface->fetch($tmpRecordDriver->getSearchResult('list', false));
 				}else{
 					$interface->assign('record', $title);
 					$resourceList[] = $interface->fetch('RecordDrivers/Index/nonowned_result.tpl');

@@ -593,6 +593,7 @@ abstract class IslandoraDriver extends RecordInterface {
 	}
 
 	protected $relatedPeople = array();
+	protected $productionTeam = array();
 	protected $relatedPlaces = array();
 	protected $relatedEvents = array();
 	protected $relatedOrganizations = array();
@@ -682,10 +683,16 @@ abstract class IslandoraDriver extends RecordInterface {
 
 					);
 					if ($entityType == 'person'){
+						$isProductionTeam = strlen($entityRole) > 0 && strtolower($entityRole) !=  'interviewee';
 						$personObject = $fedoraUtils->getObject($entityPid);
 						$entityInfo['image'] = $fedoraUtils->getObjectImageUrl($personObject, 'medium');
 						$entityInfo['link']= '/Archive/' . $entityPid . '/Person';
-						$this->relatedPeople[$entityPid] = $entityInfo;
+						if ($isProductionTeam){
+							$this->productionTeam[$entityPid] = $entityInfo;
+						}else{
+							$this->relatedPeople[$entityPid] = $entityInfo;
+						}
+
 					}elseif ($entityType == 'organization'){
 						$entityInfo['link']= '/Archive/' . $entityPid . '/Organization';
 						$this->relatedOrganizations[$entityPid] = $entityInfo;
@@ -749,6 +756,13 @@ abstract class IslandoraDriver extends RecordInterface {
 			$this->loadRelatedEntities();
 		}
 		return $this->relatedPeople;
+	}
+
+	public function getProductionTeam(){
+		if ($this->productionTeam == null){
+			$this->loadRelatedEntities();
+		}
+		return $this->productionTeam;
 	}
 
 	public function getRelatedPlaces(){
@@ -834,7 +848,7 @@ abstract class IslandoraDriver extends RecordInterface {
 					}
 					if (strlen($link) > 0) {
 						$isHidden = false;
-						if ($linkType == 'wikipedia' || $linkType == 'geoNames' || $linkType == 'whosOnFirst') {
+						if ($linkType == 'wikipedia' || $linkType == 'geoNames' || $linkType == 'whosOnFirst' || 'relatedPika') {
 							$isHidden = true;
 						}
 						$this->links[] = array(
@@ -925,8 +939,6 @@ abstract class IslandoraDriver extends RecordInterface {
 			$searchObject->clearHiddenFilters();
 			$searchObject->addHiddenFilter('!RELS_EXT_isViewableByRole_literal_ms', "administrator");
 			$searchObject->clearFilters();
-			$searchObject->addFacet('RELS_EXT_hasModel_uri_s', 'Format');
-
 
 			$response = $searchObject->processSearch(true, false);
 			if ($response && $response['response']['numFound'] > 0) {
@@ -978,7 +990,12 @@ abstract class IslandoraDriver extends RecordInterface {
 		);
 		if ($entityType == 'person'){
 			$entityInfo['link']= '/Archive/' . $pid . '/Person';
-			$this->relatedPeople[$pid.$role] = $entityInfo;
+			if (strlen($role) > 0 && strtolower($role) != 'interviewee'){
+				$this->productionTeam[$pid.$role] = $entityInfo;
+			}else{
+				$this->relatedPeople[$pid.$role] = $entityInfo;
+			}
+
 		}elseif ($entityType == 'place'){
 			$entityInfo['link']= '/Archive/' . $pid . '/Place';
 			$this->relatedPlaces[$pid.$role] = $entityInfo;

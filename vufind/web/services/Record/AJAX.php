@@ -342,6 +342,7 @@ class Record_AJAX extends Action {
 				//Rather than asking the user for this explicitly, we do it based on the pickup location
 				$campus = $_REQUEST['campus'];
 
+				$patron = null;
 				if (!empty($_REQUEST['selectedUser'])) {
 					$selectedUserId = $_REQUEST['selectedUser'];
 					if (is_numeric($selectedUserId)) { // we expect an id
@@ -363,7 +364,6 @@ class Record_AJAX extends Action {
 					$location = new Location();
 					/** @var Location[] $userPickupLocations */
 					$userPickupLocations = $location->getPickupBranches($user);
-					$patron              = null;
 					foreach ($userPickupLocations as $tmpLocation) {
 						if ($tmpLocation->code == $campus) {
 							$patron = $user;
@@ -393,20 +393,36 @@ class Record_AJAX extends Action {
 					$results = array(
 						'success' => false,
 						'message' => 'You must select a valid user to place the hold for.',
-						'title' => 'Select valid user',
+						'title'   => 'Select valid user',
 					);
 				} else {
+					$homeLibrary = $patron->getHomeLibrary();
+
 					if (isset($_REQUEST['selectedItem'])) {
 						$return = $patron->placeItemHold($shortId, $_REQUEST['selectedItem'], $campus);
 					} else {
 						if (isset($_REQUEST['volume'])){
 							$return = $patron->placeVolumeHold($shortId, $_REQUEST['volume'], $campus);
 						}else{
-							$return = $patron->placeHold($shortId, $campus);
+
+							if (!empty($_REQUEST['canceldate'])){
+								$cancelDate = $_REQUEST['canceldate'];
+							}else{
+								if ($homeLibrary->defaultNotNeededAfterDays == 0){
+									//Default to a date 6 months (half a year) in the future.
+									$sixMonthsFromNow = time() + 182.5 * 24 * 60 * 60;
+									$cancelDate = date('m/d/Y', $sixMonthsFromNow);
+								}else{
+									//Default to a date 6 months (half a year) in the future.
+									$nnaDate = time() + $homeLibrary->defaultNotNeededAfterDays * 24 * 60 * 60;
+									$cancelDate = date('m/d/Y', $nnaDate);
+								}
+							}
+
+							$return = $patron->placeHold($shortId, $campus, $cancelDate);
 						}
 					}
 
-					$homeLibrary = $patron->getHomeLibrary();
 					if (isset($return['items'])) {
 						$interface->assign('campus', $campus);
 						$items = $return['items'];
@@ -459,7 +475,7 @@ class Record_AJAX extends Action {
 						$results = array(
 							'success' => $return['success'],
 							'message' => $interface->fetch('Record/hold-success-popup.tpl'),
-							'title' => isset($return['title']) ? $return['title'] : '',
+							'title'   => isset($return['title']) ? $return['title'] : '',
 						);
 						if (isset($_REQUEST['autologout'])) {
 							UserAccount::softLogout();

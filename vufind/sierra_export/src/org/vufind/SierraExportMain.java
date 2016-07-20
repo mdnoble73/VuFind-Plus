@@ -357,12 +357,12 @@ public class SierraExportMain{
 					}
 					int numChangedIds = 0;
 					if (changedRecords != null && changedRecords.has("entries")){
-						int numUpdates = changedRecords.getInt("total");
-						logger.info(" - Found " + numUpdates + " changes");
+						//int numUpdates = changedRecords.getInt("total");
 						JSONArray changedIds = changedRecords.getJSONArray("entries");
 						numChangedIds = changedIds.length();
+						logger.info(" - Found " + numChangedIds + " changes");
 						int lastId = 0;
-						for(int i = 0; i < numUpdates; i++){
+						for(int i = 0; i < numChangedIds; i++){
 							numRead++;
 							JSONObject curItem = changedIds.getJSONObject(i);
 							String itemId = curItem.getString("id");
@@ -420,7 +420,7 @@ public class SierraExportMain{
 								itemChanges.add(changeInfo);
 							}
 						}
-						if (numUpdates >= bufferSize){
+						if (numChangedIds >= bufferSize){
 							firstRecordIdToLoad = lastId + 1;
 						}else{
 							firstRecordIdToLoad += recordOffset;

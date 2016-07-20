@@ -49,6 +49,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 	protected char locationSubfieldIndicator;
 	protected Pattern nonHoldableLocations;
 	protected String locationsToSuppress;
+	protected String collectionsToSuppress;
 	protected char subLocationSubfield;
 	protected char iTypeSubfield;
 	protected Pattern nonHoldableITypes;
@@ -115,6 +116,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 			shelvingLocationSubfield = getSubfieldIndicatorFromConfig(indexingProfileRS, "shelvingLocation");
 			collectionSubfield = getSubfieldIndicatorFromConfig(indexingProfileRS, "collection");
 			locationsToSuppress = indexingProfileRS.getString("locationsToSuppress");
+			collectionsToSuppress = indexingProfileRS.getString("collectionsToSuppress");
 
 			itemUrlSubfieldIndicator = getSubfieldIndicatorFromConfig(indexingProfileRS, "itemUrl");
 
@@ -1139,6 +1141,16 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 				return true;
 			}
 		}
+		if (collectionSubfield != ' '){
+			Subfield collectionSubfieldValue = curItem.getSubfield(collectionSubfield);
+			if (collectionSubfieldValue == null){
+				return true;
+			}else{
+				if (collectionSubfieldValue.getData().trim().matches(collectionsToSuppress)){
+					return true;
+				}
+			}
+		}
 		return false;
 	}
 
@@ -1297,6 +1309,17 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 			}else if (titleMedium.contains("large print")){
 				printFormats.add("LargePrint");
 			}else if (titleMedium.contains("book club kit")){
+				printFormats.add("BookClubKit");
+			}
+		}
+		String titleForm = getFirstFieldVal(record, "245k");
+		if (titleForm != null){
+			titleForm = titleForm.toLowerCase();
+			if (titleForm.contains("sound recording-cass")){
+				printFormats.add("SoundCassette");
+			}else if (titleForm.contains("large print")){
+				printFormats.add("LargePrint");
+			}else if (titleForm.contains("book club kit")){
 				printFormats.add("BookClubKit");
 			}
 		}

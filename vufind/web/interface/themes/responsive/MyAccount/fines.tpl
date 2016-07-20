@@ -52,7 +52,7 @@
 								</td>
 							{/if}
 							<td>
-								{$fine.message}
+								{$fine.message|removeTrailingPunctuation}
 								{if $fine.details}
 									{foreach from=$fine.details item=detail}
 										<div class="row">

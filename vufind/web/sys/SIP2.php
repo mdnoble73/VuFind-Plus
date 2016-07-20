@@ -2,7 +2,7 @@
 /**
  * SIP2 Class
  *
- * This class provides a methoid of communicating with an Integrated
+ * This class provides a method of communicating with an Integrated
  * Library System using 3M's SIP2 standard.
  *
  * PHP version 5
@@ -411,9 +411,9 @@ class sip2
 		$this->_addFixedOption($thirdParty, 1);
 		$this->_addFixedOption($noBlock, 1);
 		$this->_addFixedOption($this->_datestamp(), 18);
-		if ($nbDueDate != '') {
-			/* override defualt date due */
-			$this->_addFixedOption($this->_datestamp($nbDueDate), 18);
+		if ($nbDateDue != '') {
+			/* override default date due */
+			$this->_addFixedOption($this->_datestamp($nbDateDue), 18);
 		} else {
 			/* send a blank date due to allow ACS to use default date due computed for item */
 			$this->_addFixedOption('', 18);

@@ -27,9 +27,9 @@
 					</div>
 				{/if}
 				<div class="menu-bar-option">
-					<a href="#" onclick="VuFind.Menu.SideBar.showMenu(this)" class="menu-icon" title="Help">
-						<img src="{img filename='/interface/themes/responsive/images/Menu.png'}" alt="Help">
-						<div class="menu-bar-label rotated-text"><span class="rotated-text-inner">Help</span></div>
+					<a href="#" onclick="VuFind.Menu.SideBar.showMenu(this)" class="menu-icon" title="Additional menu options including links to information about the library and other library resources">
+						<img src="{img filename='/interface/themes/responsive/images/Menu.png'}" alt="Additional menu options including links to information about the library and other library resources">
+						<div class="menu-bar-label rotated-text"><span class="rotated-text-inner">{$sidebarMenuButtonText}</span></div>
 					</a>
 				</div>
 				{if $showExploreMore}

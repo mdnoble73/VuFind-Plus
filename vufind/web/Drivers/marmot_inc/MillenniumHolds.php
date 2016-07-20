@@ -707,7 +707,7 @@ class MillenniumHolds{
 	 *                              If an error occurs, return a PEAR_Error
 	 * @access  public
 	 */
-	function placeItemHold($patron, $recordId, $itemId, $pickupBranch) {
+	function placeItemHold($patron, $recordId, $itemId, $pickupBranch, $cancelDate) {
 		global $logger;
 		global $configArray;
 		global $library;
@@ -772,7 +772,6 @@ class MillenniumHolds{
 					$nnaDate = time() + $library->defaultNotNeededAfterDays * 24 * 60 * 60;
 					$date = date('m/d/Y', $nnaDate);
 				}
-
 			}
 
 			list($Month, $Day, $Year)=explode("/", $date);

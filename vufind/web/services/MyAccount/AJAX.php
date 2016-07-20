@@ -840,26 +840,35 @@ class MyAccount_AJAX
 		/** @var $interface UInterface
 		 * @var $user User */
 		global $user;
-		$patronId = $_REQUEST['patronId'];
-		$interface->assign('patronId', $patronId);
-		$patronOwningHold = $user->getUserReferredTo($patronId);
+		if ($user) {
+			$patronId = $_REQUEST['patronId'];
+			$interface->assign('patronId', $patronId);
+			$patronOwningHold = $user->getUserReferredTo($patronId);
 
-		$id = $_REQUEST['holdId'];
-		$interface->assign('holdId', $id);
+			$id = $_REQUEST['holdId'];
+			$interface->assign('holdId', $id);
 
-		$location = new Location();
-		$pickupBranches = $location->getPickupBranches($patronOwningHold, null);
-		$locationList = array();
-		foreach ($pickupBranches as $curLocation) {
-			$locationList[$curLocation->code] = $curLocation->displayName;
+			$location = new Location();
+			$pickupBranches = $location->getPickupBranches($patronOwningHold, null);
+			$locationList = array();
+			foreach ($pickupBranches as $curLocation) {
+				$locationList[$curLocation->code] = $curLocation->displayName;
+			}
+			$interface->assign('pickupLocations', $locationList);
+
+			$results = array(
+				'title'        => 'Change Hold Location',
+				'modalBody'    => $interface->fetch("MyAccount/changeHoldLocation.tpl"),
+				'modalButtons' => '<span class="tool btn btn-primary" onclick="VuFind.Account.doChangeHoldLocation(); return false;">Change Location</span>'
+			);
+		} else {
+			$results = array(
+				'title'        => 'Please login',
+				'modalBody'    => "You must be logged in.  Please close this dialog and login before changing your hold's pick-up location.",
+				'modalButtons' => ""
+			);
 		}
-		$interface->assign('pickupLocations', $locationList);
 
-		$results = array(
-			'title' => 'Change Hold Location',
-			'modalBody' => $interface->fetch("MyAccount/changeHoldLocation.tpl"),
-			'modalButtons' => '<span class="tool btn btn-primary" onclick="VuFind.Account.doChangeHoldLocation(); return false;">Change Location</span>'
-		);
 		return $results;
 	}
 
@@ -891,11 +900,21 @@ class MyAccount_AJAX
 			$newPickupLocation = $_REQUEST['newLocation'];
 			global $user;
 
-			$patronId = $_REQUEST['patronId'];
-			$patronOwningHold = $user->getUserReferredTo($patronId);
+			if ($user){
 
-			$result = $patronOwningHold->changeHoldPickUpLocation($holdId, $newPickupLocation);
-			return $result;
+				$patronId = $_REQUEST['patronId'];
+				$patronOwningHold = $user->getUserReferredTo($patronId);
+
+				$result = $patronOwningHold->changeHoldPickUpLocation($holdId, $newPickupLocation);
+				return $result;
+			}else{
+				return $results = array(
+					'title' => 'Please login',
+					'modalBody' => "You must be logged in.  Please close this dialog and login to change this hold's pick up location.",
+					'modalButtons' => ""
+				);
+			}
+
 		} catch (PDOException $e) {
 			// What should we do with this error?
 			if ($configArray['System']['debug']) {
@@ -905,7 +924,7 @@ class MyAccount_AJAX
 			}
 		}
 		return array(
-			'result' => false,
+			'result'  => false,
 			'message' => 'We could not connect to the circulation system, please try again later.'
 		);
 	}
