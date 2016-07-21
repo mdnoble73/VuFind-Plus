@@ -795,7 +795,7 @@ class DBMaintenance extends Admin_Admin {
 									`authorName` VARCHAR( 255 ) NOT NULL,
 									`hideWikipedia` TINYINT( 1 ),
 									`wikipediaUrl` VARCHAR( 255 ),
-									INDEX(authorName, authorDates)
+									INDEX(authorName)
 								)",
 						),
 				),
