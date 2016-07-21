@@ -6,7 +6,7 @@
 	<h2>Pika Status</h2>
 		<table class="table table-bordered">
 			<tr class="{if $PikaStatus == 'critical'}danger{elseif $PikaStatus == 'warning'}warning{else}success{/if}">
-				<th>{$PikaStatus|Capitalize}</th>
+				<th>{$PikaStatus|capitalize}</th>
 			</tr>
 			{foreach from=$PikaStatusMessages item=message}
 				<tr>
