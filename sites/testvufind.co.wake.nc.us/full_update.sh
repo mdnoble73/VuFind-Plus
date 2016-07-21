@@ -37,7 +37,7 @@ checkConflictingProcesses "horizon_export.jar ${PIKASERVER}"
 cd /usr/local/vufind-plus/sites/${PIKASERVER}; ./${PIKASERVER}.sh restart
 
 #Extract from ILS
-/data/vufind-plus/testvufind.co.wake.nc.us/move_export.sh
+#/data/vufind-plus/testvufind.co.wake.nc.us/move_export.sh >> ${OUTPUT_FILE}
 
 #Extract from Hoopla
 cd /usr/local/vufind-plus/vufind/cron;./HOOPLA.sh ${PIKASERVER} >> ${OUTPUT_FILE}
@@ -59,16 +59,41 @@ then
 	nice -n -10 java -server -XX:+UseG1GC -jar overdrive_extract.jar ${PIKASERVER} fullReload >> ${OUTPUT_FILE}
 fi
 
-#Validate the export
-cd /usr/local/vufind-plus/vufind/cron; java -server -XX:+UseG1GC -jar cron.jar ${PIKASERVER} ValidateMarcExport >> ${OUTPUT_FILE}
+# File Export arrives in /data/vufind-plus/testvufind.co.wake.nc.us/marc_export/
+FILE=$(find /data/vufind-plus/testvufind.co.wake.nc.us/marc_export/ -name *.mrc -mtime -1 | sort -n | tail -1)
 
-#Full Regroup
-cd /usr/local/vufind-plus/vufind/record_grouping; java -server -XX:+UseG1GC -Xmx6G -jar record_grouping.jar ${PIKASERVER} fullRegroupingNoClear >> ${OUTPUT_FILE}
+if [ -n "$FILE" ]
+then
+  #check file size
+	MINFILE1SIZE=$((360000000))
+	FILE1SIZE=$(wc -c <"$FILE")
+	if [ $FILE1SIZE -ge $MINFILE1SIZE ]; then
 
-#TODO: Determine if we should do a partial update from the ILS and OverDrive before running the reindex to grab last minute changes
+		echo "Latest export file is " $FILE >> ${OUTPUT_FILE}
 
-#Full Reindex
-cd /usr/local/vufind-plus/vufind/reindexer; nice -n -3 java -server -XX:+UseG1GC -jar reindexer.jar ${PIKASERVER} fullReindex >> ${OUTPUT_FILE}
+		#Copy in the latest marc export
+		cp $FILE /data/vufind-plus/testvufind.co.wake.nc.us/marc/vufind.mrc >> ${OUTPUT_FILE}
+
+		#Validate the export
+		cd /usr/local/vufind-plus/vufind/cron; java -server -XX:+UseG1GC -jar cron.jar ${PIKASERVER} ValidateMarcExport >> ${OUTPUT_FILE}
+
+		#Full Regroup
+		cd /usr/local/vufind-plus/vufind/record_grouping; java -server -XX:+UseG1GC -Xmx6G -jar record_grouping.jar ${PIKASERVER} fullRegroupingNoClear >> ${OUTPUT_FILE}
+
+		#TODO: Determine if we should do a partial update from the ILS and OverDrive before running the reindex to grab last minute changes
+
+		#Full Reindex
+		cd /usr/local/vufind-plus/vufind/reindexer; nice -n -3 java -server -XX:+UseG1GC -jar reindexer.jar ${PIKASERVER} fullReindex >> ${OUTPUT_FILE}
+
+		# Delete any exports over 14 days
+		find /data/vufind-plus/testvufind.co.wake.nc.us/marc_export -mindepth 1 -maxdepth 1 -name "vufind*.mrc" -mtime +14 -type f -delete
+
+	else
+		echo $FILE " size " $FILE1SIZE "is less than minimum size :" $MINFILE1SIZE "; Export was not moved to data directory, Full Regrouping & Full Reindexing skipped." >> ${OUTPUT_FILE}
+	fi
+else
+	echo "Did not find a Horizon export file from the last 24 hours, Full Regrouping & Full Reindexing skipped." >> ${OUTPUT_FILE}
+fi
 
 # Clean-up Solr Logs
 find /usr/local/vufind-plus/sites/default/solr/jetty/logs -name "solr_log_*" -mtime +7 -delete
