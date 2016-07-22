@@ -58,14 +58,13 @@ class ILSAuthentication implements Authentication {
 	}
 
 	public function validateAccount($username, $password, $parentAccount, $validatedViaSSO) {
-		global $user;
 		global $logger;
 		$this->username = $username;
 		$this->password = $password;
 
 		$logger->log("validating account for user '{$this->username}', '{$this->password}' via the ILS", PEAR_LOG_DEBUG);
 		if($this->username == '' || ($this->password == '' && !$validatedViaSSO)){
-			$user = new PEAR_Error('authentication_error_blank');
+			$validUser = new PEAR_Error('authentication_error_blank');
 		} else {
 			// Connect to the correct catalog depending on the driver for this account
 			$catalog = CatalogFactory::getCatalogConnectionInstance($this->driverName);
@@ -73,14 +72,14 @@ class ILSAuthentication implements Authentication {
 			if ($catalog->status) {
 				$patron = $catalog->patronLogin($this->username, $this->password, $parentAccount, $validatedViaSSO);
 				if ($patron && !PEAR_Singleton::isError($patron)) {
-					$user = $patron;
+					$validUser = $patron;
 				} else {
-					$user = new PEAR_Error('authentication_error_invalid');
+					$validUser = new PEAR_Error('authentication_error_invalid');
 				}
 			} else {
-				$user = new PEAR_Error('authentication_error_technical');
+				$validUser = new PEAR_Error('authentication_error_technical');
 			}
 		}
-		return $user;
+		return $validUser;
 	}
 }

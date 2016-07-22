@@ -24,6 +24,7 @@ import java.util.Set;
  */
 public class AspencatRecordProcessor extends IlsRecordProcessor {
 	private HashSet<String> inTransitItems = new HashSet<>();
+	private HashSet<String> onHoldShelfItems = new HashSet<>();
 	public AspencatRecordProcessor(GroupedWorkIndexer indexer, Connection vufindConn, Ini configIni, ResultSet indexingProfileRS, Logger logger, boolean fullReindex) {
 		super(indexer, vufindConn, configIni, indexingProfileRS, logger, fullReindex);
 
@@ -45,6 +46,17 @@ public class AspencatRecordProcessor extends IlsRecordProcessor {
 			while (inTransitItemsRS.next()){
 				inTransitItems.add(inTransitItemsRS.getString("itemnumber"));
 			}
+			inTransitItemsRS.close();
+			getInTransitItemsStmt.close();
+
+			PreparedStatement onHoldShelfItemsStmt = kohaConn.prepareStatement("SELECT itemnumber from reserves WHERE found = 'W'");
+			ResultSet onHoldShelfItemsRS = onHoldShelfItemsStmt.executeQuery();
+			while (onHoldShelfItemsRS.next()){
+				onHoldShelfItems.add(onHoldShelfItemsRS.getString("itemnumber"));
+			}
+			onHoldShelfItemsRS.close();
+			onHoldShelfItemsStmt.close();
+
 		} catch (Exception e) {
 			logger.error("Error connecting to koha database ", e);
 			//System.exit(1);
@@ -98,6 +110,10 @@ public class AspencatRecordProcessor extends IlsRecordProcessor {
 		if (inTransitItems.contains(itemIdentifier)){
 			return "In Transit";
 		}
+		if (onHoldShelfItems.contains(itemIdentifier)){
+			return "On Hold Shelf";
+		}
+
 		//Determining status for Koha relies on a number of different fields
 		String status = getStatusFromSubfield(itemField, '0', "Withdrawn");
 		if (status != null) return status;
