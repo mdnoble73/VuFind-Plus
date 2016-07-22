@@ -41,7 +41,7 @@ class MyAccount_Profile extends MyAccount
 
 			// Linked Accounts Selection Form set-up
 			if (count($linkedUsers) > 0) {
-				array_unshift($linkedUsers, $user);
+				array_unshift($linkedUsers, $user); // Adds primary account to list for display in account selector
 				$interface->assign('linkedUsers', $linkedUsers);
 				$interface->assign('selectedUser', $patronId);
 			}
