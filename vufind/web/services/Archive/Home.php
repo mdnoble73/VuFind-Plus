@@ -14,11 +14,9 @@ class Archive_Home extends Action{
 
 	function launch() {
 		global $interface;
-		global $configArray;
 		global $timer;
 
 		//Get a list of all available projects
-		$fedoraUtils = FedoraUtils::getInstance();
 		/** @var SearchObject_Islandora $searchObject */
 		$searchObject = SearchObjectFactory::initSearchObject('Islandora');
 		$searchObject->init();
@@ -74,7 +72,6 @@ class Archive_Home extends Action{
 		$searchObject->addHiddenFilter('!RELS_EXT_isViewableByRole_literal_ms', "administrator");
 		$searchObject->addHiddenFilter('!mods_extension_marmotLocal_pikaOptions_includeInPika_ms', "no");
 		$searchObject->addHiddenFilter('!mods_extension_marmotLocal_pikaOptions_showInSearchResults_ms', "no");
-		$searchObject->addFacet('RELS_EXT_hasModel_uri_s');
 		$searchObject->addFacet('mods_genre_s');
 		$searchObject->setLimit(1);
 		$searchObject->setSort('fgs_label_s');
@@ -88,51 +85,6 @@ class Archive_Home extends Action{
 
 		$relatedContentTypes = array();
 		if ($response && isset($response['response'])){
-			foreach ($response['facet_counts']['facet_fields']['RELS_EXT_hasModel_uri_s'] as $relatedContentType) {
-				if ($relatedContentType[0] != 'info:fedora/islandora:collectionCModel' &&
-						$relatedContentType[0] != 'info:fedora/islandora:personCModel' &&
-						$relatedContentType[0] != 'info:fedora/islandora:placeCModel' &&
-						$relatedContentType[0] != 'info:fedora/islandora:organizationCModel' &&
-						$relatedContentType[0] != 'info:fedora/islandora:eventCModel' &&
-						$relatedContentType[0] != 'info:fedora/islandora:compoundCModel'
-				) {
-
-					/** @var SearchObject_Islandora $searchObject2 */
-					$searchObject2 = SearchObjectFactory::initSearchObject('Islandora');
-					$searchObject2->init();
-					$searchObject2->setDebugging(false, false);
-					$searchObject2->clearHiddenFilters();
-					$searchObject2->addHiddenFilter('!RELS_EXT_isViewableByRole_literal_ms', "administrator");
-					$searchObject2->addHiddenFilter('!mods_extension_marmotLocal_pikaOptions_includeInPika_ms', "no");
-					$searchObject2->addHiddenFilter('!mods_extension_marmotLocal_pikaOptions_showInSearchResults_ms', "no");
-					$searchObject2->clearFilters();
-					$searchObject2->addFilter("RELS_EXT_hasModel_uri_s:{$relatedContentType[0]}");
-					$response2 = $searchObject2->processSearch(true, false);
-					if ($response2 && $response2['response']['numFound'] > 0) {
-						$firstObject = reset($response2['response']['docs']);
-						/** @var IslandoraDriver $firstObjectDriver */
-						$firstObjectDriver = RecordDriverFactory::initRecordDriver($firstObject);
-						$numMatches = $response2['response']['numFound'];
-						$contentType = translate($relatedContentType[0]);
-						if ($numMatches == 1) {
-							$relatedContentTypes[] = array(
-									'title' => "{$contentType} ({$numMatches})",
-									'description' => "{$contentType} related to this",
-									'image' => $firstObjectDriver->getBookcoverUrl('medium'),
-									'link' => $firstObjectDriver->getRecordUrl(),
-							);
-						} else {
-							$relatedContentTypes[] = array(
-									'title' => "{$contentType}s ({$numMatches})",
-									'description' => "{$contentType}s related to this",
-									'image' => $firstObjectDriver->getBookcoverUrl('medium'),
-									'link' => $searchObject2->renderSearchUrl(),
-							);
-						}
-					}
-				}
-			}
-
 			foreach ($response['facet_counts']['facet_fields']['mods_genre_s'] as $genre) {
 				/** @var SearchObject_Islandora $searchObject2 */
 				$searchObject2 = SearchObjectFactory::initSearchObject('Islandora');

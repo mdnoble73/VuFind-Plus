@@ -148,7 +148,7 @@ class BookCoverProcessor{
 		if (strpos($id, ':') !== false){
 			list(, $id) = explode(":", $id);
 		}
-		$coverId = str_replace('ebr', '', $id);
+		$coverId = str_replace(array('ebr', "PQE"), '', $id);
 		$coverUrl = "http://covers.ebrary.com/cc/$coverId-l.jpg";
 		if ($this->processImageURL($coverUrl, true)){
 			return true;
@@ -178,27 +178,27 @@ class BookCoverProcessor{
 		}
 	}
 
-        private function getZinioCover($sourceAndId) {
-                if (strpos($sourceAndId, ':') !== false){
-                        // Sideloaded Record requires both source & id
+	private function getZinioCover($sourceAndId) {
+		if (strpos($sourceAndId, ':') !== false){
+			// Sideloaded Record requires both source & id
 
-                        require_once ROOT_DIR . '/RecordDrivers/SideLoadedRecord.php';
-                        $driver = new SideLoadedRecord($sourceAndId);
-                        if ($driver) {
-                                /** @var File_MARC_Data_Field[] $linkFields */
-                                $linkFields = $driver->getMarcRecord()->getFields('856');
-                                foreach ($linkFields as $linkField) {
-                                        // TODO: use additional field checks like in getCoverFromMarc() ?
-                                        if ($linkField->getIndicator(1) == 4 && $linkField->getSubfield('3') != NULL && $linkField->getSubfield('3')->getData() == 'Image') {
-                                                $coverUrl = $linkField->getSubfield('u')->getData();
+			require_once ROOT_DIR . '/RecordDrivers/SideLoadedRecord.php';
+			$driver = new SideLoadedRecord($sourceAndId);
+			if ($driver) {
+				/** @var File_MARC_Data_Field[] $linkFields */
+				$linkFields = $driver->getMarcRecord()->getFields('856');
+				foreach ($linkFields as $linkField) {
+					// TODO: use additional field checks like in getCoverFromMarc() ?
+					if ($linkField->getIndicator(1) == 4 && $linkField->getSubfield('3') != NULL && $linkField->getSubfield('3')->getData() == 'Image') {
+						$coverUrl = $linkField->getSubfield('u')->getData();
 						$coverUrl = str_replace('size=200','size=lg',$coverUrl);
-                                                return $this->processImageURL($coverUrl, true);
-                                        }
-                                }
-                        }
-                }
-                return false;
-        }
+						return $this->processImageURL($coverUrl, true);
+					}
+				}
+			}
+		}
+		return false;
+	}
 
 	private function initDatabaseConnection(){
 		// Setup Local Database Connection

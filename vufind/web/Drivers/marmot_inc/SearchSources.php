@@ -156,8 +156,8 @@ class SearchSources{
 
 		if ($searchArchive){
 			$searchOptions['islandora'] = array(
-					'name' => 'Local History Archive',
-					'description' => 'Local History Archive in Colorado',
+					'name' => 'Local Digital Archive',
+					'description' => 'Local Digital Archive in Colorado',
 					'catalogType' => 'islandora'
 			);
 		}

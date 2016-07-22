@@ -66,9 +66,7 @@ class RecordDriverFactory {
 					}
 
 					if ($normalizedRecordType == 'Compound'){
-						//Get the genre
-						$fedoraUtils = FedoraUtils::getInstance();
-						$genre = $fedoraUtils->getModsValue('genre', 'mods');
+						$genre = $record['mods_genre_s'];
 						if ($genre != null){
 							$normalizedRecordType = ucfirst($genre);
 						}

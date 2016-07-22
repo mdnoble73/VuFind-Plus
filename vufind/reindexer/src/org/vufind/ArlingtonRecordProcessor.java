@@ -164,68 +164,75 @@ public class ArlingtonRecordProcessor extends IIIRecordProcessor {
 		if (recordInfo.getNumPrintCopies() == 0){
 			String matType = getFirstFieldVal(record, "998d");
 			if (matType.equals("w") || matType.equals("b")){
-				ItemInfo itemInfo = new ItemInfo();
-				//Load base information from the Marc Record
-				String locationCode = getFirstFieldVal(record, "998a").trim();
+				//We may have multiple items
+				Set<String> locationFields = getFieldList(record, "998a");
+				for(String locationField: locationFields){
+					ItemInfo itemInfo = new ItemInfo();
+					//Load base information from the Marc Record
+					String locationCode = locationField.trim();
 
-				String itemStatus = "Library Use Only";
+					//Remove a count of items
+					locationCode = locationCode.replaceAll("\\(\\d+\\)", "").trim();
 
-				itemInfo.setLocationCode(locationCode);
+					String itemStatus = "Library Use Only";
 
-				//if the status and location are null, we can assume this is not a valid item
-				if (!isItemValid(itemStatus, locationCode)) return;
+					itemInfo.setLocationCode(locationCode);
 
-				itemInfo.setShelfLocationCode(locationCode);
-				itemInfo.setShelfLocation(getShelfLocationForItem(itemInfo, null, recordInfo.getRecordIdentifier()));
+					//if the status and location are null, we can assume this is not a valid item
+					if (!isItemValid(itemStatus, locationCode)) return;
 
-				loadItemCallNumber(record, null, itemInfo);
+					itemInfo.setShelfLocationCode(locationCode);
+					itemInfo.setShelfLocation(getShelfLocationForItem(itemInfo, null, recordInfo.getRecordIdentifier()));
 
-				itemInfo.setCollection(translateValue("collection", locationCode, recordInfo.getRecordIdentifier()));
+					loadItemCallNumber(record, null, itemInfo);
 
-				//set status towards the end so we can access date added and other things that may need to
-				itemInfo.setStatusCode(itemStatus);
-				itemInfo.setDetailedStatus(itemStatus);
+					itemInfo.setCollection(translateValue("collection", locationCode, recordInfo.getRecordIdentifier()));
 
-				//Determine Availability
-				boolean available = isItemAvailable(itemInfo);
+					//set status towards the end so we can access date added and other things that may need to
+					itemInfo.setStatusCode(itemStatus);
+					itemInfo.setDetailedStatus(itemStatus);
 
-				//Determine which scopes have access to this record
-				String displayStatus = getDisplayStatus(itemInfo, recordInfo.getRecordIdentifier());
-				String groupedDisplayStatus = getDisplayGroupedStatus(itemInfo, recordInfo.getRecordIdentifier());
-				String overiddenStatus = getOverriddenStatus(itemInfo, true);
-				if (overiddenStatus != null && !overiddenStatus.equals("On Shelf") && !overiddenStatus.equals("Library Use Only") && !overiddenStatus.equals("Available Online")){
-					available = false;
-				}
+					//Determine Availability
+					boolean available = isItemAvailable(itemInfo);
 
-				for (Scope curScope : indexer.getScopes()) {
-					//Check to see if the record is holdable for this scope
-					if (curScope.isItemPartOfScope(profileType, locationCode, "", false, false, false)){
-						ScopingInfo scopingInfo = itemInfo.addScope(curScope);
-						scopingInfo.setAvailable(available);
-						scopingInfo.setHoldable(false);
-						scopingInfo.setHoldablePTypes("");
-						scopingInfo.setBookable(false);
-						scopingInfo.setBookablePTypes("");
+					//Determine which scopes have access to this record
+					String displayStatus = getDisplayStatus(itemInfo, recordInfo.getRecordIdentifier());
+					String groupedDisplayStatus = getDisplayGroupedStatus(itemInfo, recordInfo.getRecordIdentifier());
+					String overiddenStatus = getOverriddenStatus(itemInfo, true);
+					if (overiddenStatus != null && !overiddenStatus.equals("On Shelf") && !overiddenStatus.equals("Library Use Only") && !overiddenStatus.equals("Available Online")){
+						available = false;
+					}
 
-						scopingInfo.setInLibraryUseOnly(determineLibraryUseOnly(itemInfo, curScope));
+					for (Scope curScope : indexer.getScopes()) {
+						//Check to see if the record is holdable for this scope
+						if (curScope.isItemPartOfScope(profileType, locationCode, "", false, false, false)){
+							ScopingInfo scopingInfo = itemInfo.addScope(curScope);
+							scopingInfo.setAvailable(available);
+							scopingInfo.setHoldable(false);
+							scopingInfo.setHoldablePTypes("");
+							scopingInfo.setBookable(false);
+							scopingInfo.setBookablePTypes("");
 
-						scopingInfo.setStatus(displayStatus);
-						scopingInfo.setGroupedStatus(groupedDisplayStatus);
-						if (curScope.isLocationScope()) {
-							scopingInfo.setLocallyOwned(curScope.isItemOwnedByScope(profileType, locationCode, ""));
-							if (curScope.getLibraryScope() != null) {
-								scopingInfo.setLibraryOwned(curScope.getLibraryScope().isItemOwnedByScope(profileType, locationCode, ""));
+							scopingInfo.setInLibraryUseOnly(determineLibraryUseOnly(itemInfo, curScope));
+
+							scopingInfo.setStatus(displayStatus);
+							scopingInfo.setGroupedStatus(groupedDisplayStatus);
+							if (curScope.isLocationScope()) {
+								scopingInfo.setLocallyOwned(curScope.isItemOwnedByScope(profileType, locationCode, ""));
+								if (curScope.getLibraryScope() != null) {
+									scopingInfo.setLibraryOwned(curScope.getLibraryScope().isItemOwnedByScope(profileType, locationCode, ""));
+								}
+							}
+							if (curScope.isLibraryScope()) {
+								scopingInfo.setLibraryOwned(curScope.isItemOwnedByScope(profileType, locationCode, ""));
 							}
 						}
-						if (curScope.isLibraryScope()) {
-							scopingInfo.setLibraryOwned(curScope.isItemOwnedByScope(profileType, locationCode, ""));
-						}
 					}
+
+					groupedWork.addKeywords(locationCode);
+
+					recordInfo.addItem(itemInfo);
 				}
-
-				groupedWork.addKeywords(locationCode);
-
-				recordInfo.addItem(itemInfo);
 			}
 		}
 	}
@@ -248,8 +255,8 @@ public class ArlingtonRecordProcessor extends IIIRecordProcessor {
 				if (tmpBibLocation.matches("[a-zA-Z]{1,5}")){
 					bibLocation = tmpBibLocation;
 					break;
-				}else if (tmpBibLocation.matches("\\\\(\\d+\\\\)([a-zA-Z]{1,5})")){
-					bibLocation = tmpBibLocation.replaceAll("\\\\(\\d+\\\\)", "");
+				}else if (tmpBibLocation.matches("\\(\\d+\\)([a-zA-Z]{1,5})")){
+					bibLocation = tmpBibLocation.replaceAll("\\(\\d+\\)", "");
 					break;
 				}
 			}

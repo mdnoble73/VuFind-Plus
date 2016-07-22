@@ -361,10 +361,14 @@ class MarcRecord extends IndexRecord
 	public function getTOC()
 	{
 		$tableOfContents = array();
-		$marcFields505 = $this->getMarcRecord()->getFields('505');
-		if ($marcFields505){
-			$tableOfContents = $this->processTableOfContentsFields($marcFields505);
+		$marcRecord = $this->getMarcRecord();
+		if ($marcRecord != null){
+			$marcFields505 = $marcRecord->getFields('505');
+			if ($marcFields505){
+				$tableOfContents = $this->processTableOfContentsFields($marcFields505);
+			}
 		}
+
 		return $tableOfContents;
 	}
 
