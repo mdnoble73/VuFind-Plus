@@ -786,6 +786,20 @@ class DBMaintenance extends Admin_Admin {
 						),
 				),
 
+				'author_enrichment' => array(
+						'title' => 'Author Enrichment',
+						'description' => 'Create Variables Table for storing basic variables for use in programs (system writable config)',
+						'sql' => array(
+								"CREATE TABLE `author_enrichment` (
+									id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+									`authorName` VARCHAR( 255 ) NOT NULL,
+									`hideWikipedia` TINYINT( 1 ),
+									`wikipediaUrl` VARCHAR( 255 ),
+									INDEX(authorName)
+								)",
+						),
+				),
+
 				'variables_table' => array(
 					'title' => 'Variables Table',
 					'description' => 'Create Variables Table for storing basic variables for use in programs (system writable config)',

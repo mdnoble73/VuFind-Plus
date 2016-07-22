@@ -612,19 +612,19 @@ if (!is_dir(ROOT_DIR . "/services/$module")){
 	$actionFile = ROOT_DIR . "/services/$module/$action.php";
 	require_once $actionFile;
 	$moduleActionClass = "{$module}_{$action}";
-	if (class_exists($action, false)) {
-		/** @var Action $service */
-		$service = new $action();
-		$timer->logTime('Start launch of action');
-		$service->launch();
-		$timer->logTime('Finish launch of action');
-	}elseif (class_exists($moduleActionClass, false)) {
+	if (class_exists($moduleActionClass, false)) {
 		/** @var Action $service */
 		$service = new $moduleActionClass();
 		$timer->logTime('Start launch of action');
 		$service->launch();
 		$timer->logTime('Finish launch of action');
-	} else {
+	}else if (class_exists($action, false)) {
+		/** @var Action $service */
+		$service = new $action();
+		$timer->logTime('Start launch of action');
+		$service->launch();
+		$timer->logTime('Finish launch of action');
+	}else{
 		PEAR_Singleton::raiseError(new PEAR_Error('Unknown Action'));
 	}
 } else {
