@@ -340,7 +340,7 @@
 			{/if}
 
 			{if $user && ($user->hasRole('archives') || $user->hasRole('opacAdmin'))}
-				{if in_array($action, array('ArchiveSubjects'))}
+				{if in_array($action, array('ArchiveSubjects', 'ArchiveRequests'))}
 					{assign var="curSection" value=true}
 				{else}
 					{assign var="curSection" value=false}
@@ -355,6 +355,7 @@
 					</a>
 					<div id="archivesMenu" class="panel-collapse collapse {if $curSection}in{/if}">
 						<div class="panel-body">
+							<div class="adminMenuLink{if $action == "ArchiveRequests"}active{/if}"><a href="{$path}/Admin/ArchiveRequests">Archive Material Requests</a></div>
 							<div class="adminMenuLink{if $action == "ArchiveSubjects"}active{/if}"><a href="{$path}/Admin/ArchiveSubjects">Archive Subject Control</a></div>
 						</div>
 					</div>

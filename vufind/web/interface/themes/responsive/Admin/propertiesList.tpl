@@ -37,10 +37,10 @@
 								{if $dataItem->class != 'objectDeleted'}
 									<a href='{$path}/{$module}/{$toolName}?objectAction=edit&amp;id={$id}'>&nbsp;</span>{$propValue}</a>
 								{/if}
-							{elseif $property.type == 'text' || $property.type == 'hidden' || $property.type == 'file' || $property.type == 'integer'}
+							{elseif $property.type == 'text' || $property.type == 'hidden' || $property.type == 'file' || $property.type == 'integer' || $property.type == 'email'}
 								{$propValue}
 							{elseif $property.type == 'date'}
-								{$propValue}
+								{$propValue|date_format}
 							{elseif $property.type == 'partialDate'}
 								{assign var=propNameMonth value=$property.propNameMonth}
 								{assign var=propMonthValue value=$dataItem->$propNameMonth}

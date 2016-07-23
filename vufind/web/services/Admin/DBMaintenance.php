@@ -2159,6 +2159,34 @@ class DBMaintenance extends Admin_Admin {
 									) ENGINE=InnoDB  DEFAULT CHARSET=utf8",
 							)
 					),
+
+					'archive_requests' => array(
+							'title' => 'Archive Requests',
+							'description' => 'Create a table to store information about the requests for copies of archive information',
+							'continueOnError' => true,
+							'sql' => array(
+									"CREATE TABLE IF NOT EXISTS archive_requests (
+									  `id` int(11) NOT NULL AUTO_INCREMENT,
+									  name VARCHAR(100) NOT NULL,
+									  address VARCHAR(200),
+									  address2 VARCHAR(200),
+									  city VARCHAR(200),
+									  state VARCHAR(200),
+									  zip VARCHAR(12),
+									  country VARCHAR(50),
+									  phone VARCHAR(20),
+									  alternatePhone VARCHAR(20),
+									  email VARCHAR(100),
+									  format MEDIUMTEXT,
+									  purpose MEDIUMTEXT,
+									  pid VARCHAR(50),
+									  dateRequested INT(11),
+									  PRIMARY KEY (`id`),
+									  INDEX(`pid`),
+									  INDEX(`name`)
+									) ENGINE=InnoDB  DEFAULT CHARSET=utf8",
+							)
+					),
 			)
 		);
 	}
