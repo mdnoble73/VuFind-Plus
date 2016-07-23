@@ -9,6 +9,7 @@
  * Time: 4:04 PM
  */
 require_once ROOT_DIR . '/sys/Archive/ArchiveRequest.php';
+require_once ROOT_DIR . '/recaptcha/recaptchalib.php';
 class Archive_RequestCopy extends Action{
 	function launch(){
 		global $configArray;
