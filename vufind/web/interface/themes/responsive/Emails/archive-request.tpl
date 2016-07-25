@@ -6,23 +6,20 @@ Address:
 {$requestResult->address2}
 {/if}{$requestResult->city} {$requestResult->state}, {$requestResult->zip} {$requestResult->country}
 
-Phone: {$requestResult->phone}
-{if $requestResult->alternatePhone}
+Phone: {$requestResult->phone}{if $requestResult->alternatePhone}
 	{$requestResult->alternatePhone} (alternate)
 {/if}
-
 E-mail: {$requestResult->email}
 
-Format Requested:
+{if $requestResults->format}Format Requested:
 {$requestResult->format}
-
+{/if}
 Purpose:
 {$requestResult->purpose}
 
 Object Requested:
 {if $requestedObject}
 {$requestedObject->getTitle()}
-{$url}{$requestedObject->getRecordUrl()}
 {else}
-	Could not load requested object.  Pid is {$requestResult->purpose}
+Could not load requested object.  Pid is {$requestResult->purpose}
 {/if}
