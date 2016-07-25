@@ -22,5 +22,9 @@ Purpose:
 {$requestResult->purpose}
 
 Object Requested:
+{if $requestedObject}
 {$requestedObject->getTitle()}
 {$requestedObject->getRecordUrl()}
+{else}
+	Could not load requested object.  Pid is {$requestResult->purpose}
+{/if}
