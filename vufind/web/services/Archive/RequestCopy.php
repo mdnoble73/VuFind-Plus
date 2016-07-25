@@ -48,16 +48,17 @@ class Archive_RequestCopy extends Action{
 				if ($newObject !== false){
 					$interface->assign('requestResult', $newObject);
 
+					require_once ROOT_DIR . '/sys/Utils/FedoraUtils.php';
+					$archiveObject = FedoraUtils::getInstance()->getObject($newObject->pid);
+					$requestedObject = RecordDriverFactory::initRecordDriver($archiveObject);
+					$interface->assign('requestedObject', $requestedObject);
+
 					$body = $interface->fetch('Emails/archive-request.tpl');
 
 					//Find the owning library
 					$owningLibrary = new Library();
 					list($namespace) = explode(':', $newObject->pid);
 
-					require_once ROOT_DIR . '/sys/Utils/FedoraUtils.php';
-					$archiveObject = FedoraUtils::getInstance()->getObject($newObject->pid);
-					$requestedObject = RecordDriverFactory::initRecordDriver($archiveObject);
-					$interface->assign('requestedObject', $requestedObject);
 					$owningLibrary->archiveNamespace = $namespace;
 					if ($owningLibrary->find(true) && $owningLibrary->N == 1){
 						//Send a copy of the request to the proper administrator
