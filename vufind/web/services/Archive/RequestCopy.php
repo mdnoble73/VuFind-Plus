@@ -34,8 +34,10 @@ class Archive_RequestCopy extends Action{
 
 				// Pre-fill form with user supplied data
 				foreach ($archiveRequestFields as &$property) {
-					$uservalue = $_REQUEST[$property['property']];
-					$property['default'] = $uservalue;
+					if (isset($_REQUEST[$property['property']])){
+						$uservalue = $_REQUEST[$property['property']];
+						$property['default'] = $uservalue;
+					}
 				}
 
 			} else {
