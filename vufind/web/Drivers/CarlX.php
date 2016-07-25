@@ -697,9 +697,10 @@ class CarlX extends SIP2Driver{
 		$fields[] = array('property'=>'state',       'type'=>'text', 'label'=>'State', 'description'=>'State', 'maxLength' => 32, 'required' => true);
 		$fields[] = array('property'=>'zip',         'type'=>'text', 'label'=>'Zip Code', 'description'=>'Zip Code', 'maxLength' => 32, 'required' => true);
 		$fields[] = array('property'=>'email',       'type'=>'email', 'label'=>'E-Mail', 'description'=>'E-Mail', 'maxLength' => 128, 'required' => false);
+		$fields[] = array('property'=>'pin',         'type'=>'text', 'label'=>'Pin', 'description'=>'Your desired 4-digit pin', 'maxLength' => 4, 'required' => true);
+		$fields[] = array('property'=>'pin1',        'type'=>'text', 'label'=>'Confirm Pin', 'description'=>'Re-type your desired 4-digit pin', 'maxLength' => 4, 'required' => true);
 		//$fields[] = array('property'=>'universityID', 'type'=>'text', 'label'=>'Drivers License #', 'description'=>'Drivers License', 'maxLength' => 128, 'required' => false);
 
-		//TODO: PIN Number
 		return $fields;
 
 	}
