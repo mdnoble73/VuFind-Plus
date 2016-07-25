@@ -1,12 +1,10 @@
 New request for a copy of materials in the Local Digital Archive.
 
-
-
 Name: {$requestResult->name}
 Address:
-{$requestResult->address}
+{$requestResult->address}{if $requestResult->address2}
 {$requestResult->address2}
-{$requestResult->city} {$requestResult->state}, {$requestResult->zip} {$requestResult->country}
+{/if}{$requestResult->city} {$requestResult->state}, {$requestResult->zip} {$requestResult->country}
 
 Phone: {$requestResult->phone}
 {if $requestResult->alternatePhone}
@@ -24,7 +22,7 @@ Purpose:
 Object Requested:
 {if $requestedObject}
 {$requestedObject->getTitle()}
-{$requestedObject->getRecordUrl()}
+{$url}{$requestedObject->getRecordUrl()}
 {else}
 	Could not load requested object.  Pid is {$requestResult->purpose}
 {/if}
