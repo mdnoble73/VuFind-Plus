@@ -22,5 +22,5 @@ Purpose:
 {$requestResult.purpose}
 
 Object Requested:
-{$requestedObject.getTitle()}
-{$requestedObject.getRecordUrl()}
+{$requestedObject->getTitle()}
+{$requestedObject->getRecordUrl()}
