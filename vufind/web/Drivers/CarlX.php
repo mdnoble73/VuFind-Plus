@@ -705,80 +705,105 @@ class CarlX extends SIP2Driver{
 	}
 
 	public function selfRegister(){
-		global $library;
+		global $library,
+		       $configArray;
 		$success = false;
 
-		$firstName =  trim($_REQUEST['firstName']);
-		$middleName = trim($_REQUEST['middleName']);
-		$lastName =   trim($_REQUEST['lastName']);
-		$address =    trim($_REQUEST['address']);
-		$city =       trim($_REQUEST['city']);
-		$state =      trim($_REQUEST['state']);
-		$zip =        trim($_REQUEST['zip']);
-		$email =      trim($_REQUEST['email']);
+		$lastPatronID = new Variable();
+		$lastPatronID->get('name', 'last_selfreg_patron_id');
 
-		$soapClient = new SoapClient($this->patronWsdl
-			,array(
-				'features' => SOAP_WAIT_ONE_WAY_CALLS, // This setting overcomes the SOAP client's expectation that there is no response from our update request.
-				'trace' => 1, // enable use of __getLastResponse, so that we can determine the response.
-				//					'exceptions' => 0,
-			)
-		);
+		if (!empty($lastPatronID->value)) {
+			$currentPatronIDNumber = ++$lastPatronID->value;
 
-		$request                                          = new stdClass();
-		$request->Modifiers                               = '';
-		$request->Patron->Email                           = $email;
-		$request->Patron->FirstName                       = $firstName;
-		$request->Patron->MiddleName                      = $middleName;
-		$request->Patron->LastName                        = $lastName;
-		$request->Patron->Addresses->Address->Type        = 'Primary';
-		$request->Patron->Addresses->Address->Street      = $address;
-		$request->Patron->Addresses->Address->City        = $city;
-		$request->Patron->Addresses->Address->State       = $state;
-		$request->Patron->Addresses->Address->PostalCode  = $zip;
+			$tempPatronID = $configArray['Catalog']['selfRegIDPrefix'] . str_pad($currentPatronIDNumber, $configArray['Catalog']['selfRegIDNumberLength'], '0', STR_PAD_LEFT);
 
-		if ($library && $library->promptForBirthDateInSelfReg){
-			$birthDate = trim($_REQUEST['birthDate']);
-			$date = DateTime::createFromFormat('m-d-Y', $birthDate);
-			$request->Patron->BirthDate = $date->format('Y-m-d');
-		}
+			$firstName    = trim($_REQUEST['firstName']);
+			$middleName   = trim($_REQUEST['middleName']);
+			$lastName     = trim($_REQUEST['lastName']);
+			$address      = trim($_REQUEST['address']);
+			$city         = trim($_REQUEST['city']);
+			$state        = trim($_REQUEST['state']);
+			$zip          = trim($_REQUEST['zip']);
+			$email        = trim($_REQUEST['email']);
 
-		// Maybe needed
-		$request->Patron->RegisteredBy = 'Pika Discovery Layer';
+			$soapClient = new SoapClient($this->patronWsdl
+				, array(
+					'features' => SOAP_WAIT_ONE_WAY_CALLS, // This setting overcomes the SOAP client's expectation that there is no response from our update request.
+					'trace' => 1, // enable use of __getLastResponse, so that we can determine the response.
+					//					'exceptions' => 0,
+				)
+			);
 
-		$result = $soapClient->createPatron($request);
+			$request                                         = new stdClass();
+			$request->Modifiers                              = '';
+			$request->Patron->PatronID                       = $tempPatronID;
+			$request->Patron->Email                          = $email;
+			$request->Patron->FirstName                      = $firstName;
+			$request->Patron->MiddleName                     = $middleName;
+			$request->Patron->LastName                       = $lastName;
+			$request->Patron->Addresses->Address->Type       = 'Primary';
+			$request->Patron->Addresses->Address->Street     = $address;
+			$request->Patron->Addresses->Address->City       = $city;
+			$request->Patron->Addresses->Address->State      = $state;
+			$request->Patron->Addresses->Address->PostalCode = $zip;
 
-		if (is_null($result)) {
-			$result = $soapClient->__getLastResponse();
-			echo '<pre>';
-			print_r($soapClient->__getFunctions());
-			echo '</pre>';
-			if ($result) {
-				$unxml   = new XML_Unserializer();
-				$unxml->unserialize($result);
-				$response = $unxml->getUnserializedData();
+			if ($library && $library->promptForBirthDateInSelfReg) {
+				$birthDate                  = trim($_REQUEST['birthDate']);
+				$date                       = DateTime::createFromFormat('m-d-Y', $birthDate);
+				$request->Patron->BirthDate = $date->format('Y-m-d');
+			}
 
-				if ($response) {
-					$success = stripos($response['SOAP-ENV:Body']['ns3:GenericResponse']['ns3:ResponseStatuses']['ns2:ResponseStatus']['ns2:ShortMessage'], 'Success') !== false;
-					if (!$success) {
+			// Maybe needed
+			$request->Patron->RegisteredBy = 'Pika Discovery Layer';
+
+			$result = $soapClient->createPatron($request);
+
+			if (is_null($result)) {
+				$result = $soapClient->__getLastResponse();
+//				echo '<pre>';
+//				print_r($soapClient->__getFunctions());
+//				echo '</pre>';
+				if ($result) {
+					$unxml = new XML_Unserializer();
+					$unxml->unserialize($result);
+					$response = $unxml->getUnserializedData();
+
+					if ($response) {
+						$success = stripos($response['SOAP-ENV:Body']['ns3:GenericResponse']['ns3:ResponseStatuses']['ns2:ResponseStatus']['ns2:ShortMessage'], 'Success') !== false;
+						if (!$success) {
 //						$errorMessage = $response['SOAP-ENV:Body']['ns3:GenericResponse']['ns3:ResponseStatuses']['ns2:ResponseStatus']['ns2:LongMessage'];
 //						$updateErrors[] = 'Failed to update your information'. ($errorMessage ? ' : ' .$errorMessage : '');
+						} else {
+							$lastPatronID->value = $currentPatronIDNumber;
+							if (!$lastPatronID->update()) {
+								global $logger;
+								$logger->log('Failed to update Variables table with new value '.$currentPatronIDNumber.' for "last_selfreg_patron_id" in CarlX Driver', PEAR_LOG_ERR);
+							}
+							//TODO: retrieve User's barcode
+							//TODO: User also needs an initial Pin
+							return array(
+								'success' => $success,
+								'barcode' => $tempPatronID,
+//								'pin'     => $pin,
+							);
+						}
+
 					} else {
-						//TODO: retrieve User's barcode
-						//TODO: User also needs an initial Pin
+//					$updateErrors[] = 'Unable to update your information.';
+						global $logger;
+						$logger->log('Unable to read XML from CarlX response when attempting to create Patron.', PEAR_LOG_ERR);
 					}
 
 				} else {
-//					$updateErrors[] = 'Unable to update your information.';
-					global $logger;
-					$logger->log('Unable to read XML from CarlX response when attempting to create Patron.', PEAR_LOG_ERR);
-				}
-
-			} else {
 //				$updateErrors[] = 'Unable to update your information.';
-				global $logger;
-				$logger->log('CarlX ILS gave no response when attempting to create Patron.', PEAR_LOG_ERR);
+					global $logger;
+					$logger->log('CarlX ILS gave no response when attempting to create Patron.', PEAR_LOG_ERR);
+				}
 			}
+		} else {
+			global $logger;
+			$logger->log('No value for "last_selfreg_patron_id" set in Variables table. Can not self-register patron in CarlX Driver.', PEAR_LOG_ERR);
+
 		}
 
 		return array(
