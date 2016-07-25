@@ -52,7 +52,9 @@ class Archive_RequestCopy extends Action{
 					$owningLibrary = new Library();
 					list($namespace) = explode(':', $newObject->pid);
 
-					$requestedObject = RecordDriverFactory::initRecordDriverById($newObject->pid);
+					require_once ROOT_DIR . '/sys/Utils/FedoraUtils.php';
+					$archiveObject = FedoraUtils::getInstance()->getObject($newObject->pid);
+					$requestedObject = RecordDriverFactory::initRecordDriver($archiveObject);
 					$interface->assign('requestedObject', $requestedObject);
 					$owningLibrary->archiveNamespace = $namespace;
 					if ($owningLibrary->find(true) && $owningLibrary->N == 1){
