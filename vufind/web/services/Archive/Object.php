@@ -67,6 +67,17 @@ abstract class Archive_Object extends Action{
 		// Replace 'object:pid' with the PID of the object to be loaded.
 		$this->pid = urldecode($_REQUEST['id']);
 		$interface->assign('pid', $this->pid);
+
+		list($namespace) = explode(':', $this->pid);
+		//Find the owning library
+		$owningLibrary = new Library();
+		$owningLibrary->archiveNamespace = $namespace;
+		if ($owningLibrary->find(true) && $owningLibrary->N == 1){
+			$interface->assign ('allowRequestsForArchiveMaterials', $owningLibrary->allowRequestsForArchiveMaterials);
+		} else {
+			$interface->assign ('allowRequestsForArchiveMaterials', false);
+		}
+
 		$this->archiveObject = $fedoraUtils->getObject($this->pid);
 		$this->recordDriver = RecordDriverFactory::initRecordDriver($this->archiveObject);
 		$interface->assign('recordDriver', $this->recordDriver);

@@ -119,7 +119,7 @@ then
 		echo "Latest export file is " $FILE >> ${OUTPUT_FILE}
 
 		# Move to marc_export to keep as a backup
-		cp $FILE /data/vufind-plus/anythink.production/marc_export/pika.$TODAY.mrc
+		cp $FILE /data/vufind-plus/anythink.production/marc_export/pika.$TODAY.mrc >> ${OUTPUT_FILE}
 
 		#Validate the export
 		cd /usr/local/vufind-plus/vufind/cron; java -server -XX:+UseG1GC -jar cron.jar ${PIKASERVER} ValidateMarcExport >> ${OUTPUT_FILE}

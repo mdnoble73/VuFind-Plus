@@ -42,7 +42,6 @@ class SelfReg extends Action {
 
 		if (isset($_REQUEST['submit'])) {
 
-			$recaptchaValid = false;
 			if (isset($configArray['ReCaptcha']['privateKey'])){
 				$privatekey = $configArray['ReCaptcha']['privateKey'];
 				$resp = recaptcha_check_answer ($privatekey,

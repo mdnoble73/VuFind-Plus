@@ -9,6 +9,12 @@
 			<source src="{$audioLink}" type="audio/mpeg">
 		</audio>
 
+		<div id="image-download-options">
+			{if $allowRequestsForArchiveMaterials}
+				<a class="btn btn-default" href="{$path}/Archive/RequestCopy?pid={$pid}">Request Copy</a>
+			{/if}
+		</div>
+
 {*//Moved to accordion
 		{if $description}
 			<div class="row">

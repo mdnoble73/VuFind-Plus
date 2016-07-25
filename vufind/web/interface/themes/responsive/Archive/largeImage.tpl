@@ -33,6 +33,9 @@
 			{elseif (!$user && $verifiedLcDownload)}
 				<a class="btn btn-default" onclick="return VuFind.Account.followLinkIfLoggedIn(this)" href="/Archive/{$pid}/DownloadOriginal">Login to Download Original Image</a>
 			{/if}
+			{if $allowRequestsForArchiveMaterials}
+				<a class="btn btn-default" href="{$path}/Archive/RequestCopy?pid={$pid}">Request Copy</a>
+			{/if}
 		</div>
 
 {*//Moved to accordion

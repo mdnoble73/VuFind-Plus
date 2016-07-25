@@ -47,8 +47,7 @@ abstract class Admin_Admin extends Action
 		}
 
 		if (!$userCanAccess){
-			$interface->setTemplate('../Admin/noPermission.tpl');
-			$interface->display('layout.tpl');
+			$this->display('../Admin/noPermission.tpl', 'Access Error');
 			exit();
 		}
 	}

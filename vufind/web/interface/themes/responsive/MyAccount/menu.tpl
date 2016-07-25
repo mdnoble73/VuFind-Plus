@@ -316,7 +316,7 @@
 			{/if}
 
 			{if $user && ($user->hasRole('cataloging') || $user->hasRole('opacAdmin'))}
-				{if in_array($action, array('MergedGroupedWorks', 'NonGroupedRecords'))}
+				{if in_array($action, array('MergedGroupedWorks', 'NonGroupedRecords', 'AuthorEnrichment'))}
 					{assign var="curSection" value=true}
 				{else}
 					{assign var="curSection" value=false}
@@ -333,13 +333,14 @@
 						<div class="panel-body">
 							<div class="adminMenuLink{if $action == "MergedGroupedWorks"}active{/if}"><a href="{$path}/Admin/MergedGroupedWorks">Grouped Work Merging</a></div>
 							<div class="adminMenuLink{if $action == "NonGroupedRecords"}active{/if}"><a href="{$path}/Admin/NonGroupedRecords">Records To Not Merge</a></div>
+							<div class="adminMenuLink{if $action == "AuthorEnrichment"}active{/if}"><a href="{$path}/Admin/AuthorEnrichment">Author Enrichment</a></div>
 						</div>
 					</div>
 				</div>
 			{/if}
 
 			{if $user && ($user->hasRole('archives') || $user->hasRole('opacAdmin'))}
-				{if in_array($action, array('ArchiveSubjects'))}
+				{if in_array($action, array('ArchiveSubjects', 'ArchiveRequests'))}
 					{assign var="curSection" value=true}
 				{else}
 					{assign var="curSection" value=false}
@@ -354,6 +355,7 @@
 					</a>
 					<div id="archivesMenu" class="panel-collapse collapse {if $curSection}in{/if}">
 						<div class="panel-body">
+							<div class="adminMenuLink{if $action == "ArchiveRequests"}active{/if}"><a href="{$path}/Admin/ArchiveRequests">Archive Material Requests</a></div>
 							<div class="adminMenuLink{if $action == "ArchiveSubjects"}active{/if}"><a href="{$path}/Admin/ArchiveSubjects">Archive Subject Control</a></div>
 						</div>
 					</div>

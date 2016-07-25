@@ -1354,5 +1354,14 @@ function getLibraryLocationUpdates(){
 							"ALTER TABLE `library` ADD COLUMN `sidebarMenuButtonText` VARCHAR(40) DEFAULT 'Help'",
 					),
 			),
+
+			'library_archive_material_requests' => array(
+					'title' => 'Library Request Copies of Archive Materials',
+					'description' => 'Updates to allow patrons to request copies of materials in the archive',
+					'sql' => array(
+							'ALTER TABLE library ADD COLUMN allowRequestsForArchiveMaterials TINYINT DEFAULT 0',
+							'ALTER TABLE library ADD COLUMN archiveRequestEmail VARCHAR(100)',
+					)
+			),
 	);
 }
