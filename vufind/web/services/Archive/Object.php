@@ -214,7 +214,6 @@ abstract class Archive_Object extends Action{
 				strlen($addressCounty) ||
 				strlen($addressState) ||
 				strlen($addressZipCode) ||
-				strlen($addressCountry) ||
 				strlen($addressOtherRegion)) {
 
 			if (strlen($latitude) > 0) {
@@ -242,19 +241,17 @@ abstract class Archive_Object extends Action{
 			}
 			if (strlen($addressState) > 0) {
 				$addressInfo['hasDetailedAddress'] = true;
-				$addressInfo['addressCounty'] = $addressCounty;
-			}
-			if (strlen($addressState) > 0) {
-				$addressInfo['hasDetailedAddress'] = true;
 				$addressInfo['addressState'] = $addressState;
+			}
+			if (strlen($addressCounty) > 0) {
+				$addressInfo['addressCounty'] = $addressCounty;
 			}
 			if (strlen($addressZipCode) > 0) {
 				$addressInfo['hasDetailedAddress'] = true;
 				$addressInfo['addressZipCode'] = $addressZipCode;
 			}
-			if (strlen($addressStreet) > 0) {
-				$addressInfo['hasDetailedAddress'] = true;
-				$addressInfo['addressCountry'] = $addressCountry;
+			if (strlen($addressOtherRegion) > 0) {
+				$addressInfo['addressOtherRegion'] = $addressOtherRegion;
 			}
 			$interface->assign('addressInfo', $addressInfo);
 		}//End verifying checking for address information
