@@ -134,9 +134,11 @@ then
 		#Full Reindex
 		cd /usr/local/vufind-plus/vufind/reindexer; java -server -XX:+UseG1GC -jar reindexer.jar ${PIKASERVER} fullReindex >> ${OUTPUT_FILE}
 
+		#Send Export to Marmot for the test server
+		scp -q /data/vufind-plus/flatirons.production/marc/pika1.mrc flatirons_marc_export@ftp1.marmot.org:~/ >> ${OUTPUT_FILE}
 
-	# Delete any exports over 7 days
-	find /data/vufind-plus/flatirons.production/marc_export/ -mindepth 1 -maxdepth 1 -name *.mrc -type f -mtime +7 -delete
+		# Delete any exports over 7 days
+		find /data/vufind-plus/flatirons.production/marc_export/ -mindepth 1 -maxdepth 1 -name *.mrc -type f -mtime +7 -delete
 
 	else
 		echo $FILE " size " $FILE1SIZE "is less than minimum size :" $MINFILE1SIZE "; Export was not moved to data directory, Full Regrouping & Full Reindexing skipped." >> ${OUTPUT_FILE}

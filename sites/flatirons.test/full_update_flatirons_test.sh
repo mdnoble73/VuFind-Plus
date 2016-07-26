@@ -113,6 +113,8 @@ then
 fi
 
 # should test for new bib extract file
+/usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh flatirons_marc_export flatirons.test >> ${OUTPUT_FILE}
+
 # should copy old bib extract file
 
 #Validate the export
