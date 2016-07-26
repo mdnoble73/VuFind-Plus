@@ -198,6 +198,7 @@ abstract class Archive_Object extends Action{
 		$longitude = $this->recordDriver->getModsValue('longitude', 'marmot');
 		$addressStreetNumber = $this->recordDriver->getModsValue('addressStreetNumber', 'marmot');
 		$addressStreet = $this->recordDriver->getModsValue('addressStreet', 'marmot');
+		$address2 = $this->recordDriver->getModsValue('address2', 'marmot');
 		$addressCity = $this->recordDriver->getModsValue('addressCity', 'marmot');
 		$addressCounty = $this->recordDriver->getModsValue('addressCounty', 'marmot');
 		$addressState = $this->recordDriver->getModsValue('addressState', 'marmot');
@@ -208,6 +209,7 @@ abstract class Archive_Object extends Action{
 				strlen($longitude) ||
 				strlen($addressStreetNumber) ||
 				strlen($addressStreet) ||
+				strlen($address2) ||
 				strlen($addressCity) ||
 				strlen($addressCounty) ||
 				strlen($addressState) ||
@@ -229,6 +231,10 @@ abstract class Archive_Object extends Action{
 			if (strlen($addressStreet) > 0) {
 				$addressInfo['hasDetailedAddress'] = true;
 				$addressInfo['addressStreet'] = $addressStreet;
+			}
+			if (strlen($address2) > 0) {
+				$addressInfo['hasDetailedAddress'] = true;
+				$addressInfo['address2'] = $address2;
 			}
 			if (strlen($addressCity) > 0) {
 				$addressInfo['hasDetailedAddress'] = true;

@@ -44,6 +44,9 @@
 							{if $addressInfo.addressStreetNumber || $addressInfo.addressStreet}
 								{$addressInfo.addressStreetNumber} {$addressInfo.addressStreet}<br/>
 							{/if}
+							{if $addressInfo.address2}
+								{$addressInfo.address2}<br/>
+							{/if}
 							{if $addressInfo.addressCity || $addressInfo.addressState || $addressInfo.addressZipCode}
 								{$addressInfo.addressCity}{if $addressInfo.addressCity && $addressInfo.addressState}, {/if}{$addressInfo.addressState} {$addressInfo.addressZipCode}<br/>
 							{/if}
