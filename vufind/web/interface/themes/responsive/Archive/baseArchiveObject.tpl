@@ -98,14 +98,6 @@
 					</div>
 				{/if}
 
-				{if $description}
-					<div class="row">
-						<div class="result-label col-sm-4">Description: </div>
-						<div class="col-sm-8 result-value">
-							{$description}
-						</div>
-					</div>
-				{/if}
 				{if $wikipediaData}
 					{$wikipediaData.description}
 					<div class="row smallText">
