@@ -163,24 +163,24 @@ abstract class Archive_Object extends Action{
 
 			$interface->assign('transcription',
 					array(
-							'language' => $this->recordDriver->getModsValue('transcriptionLanguage', 'marmotLocal', $transcription),
+							'language' => $this->recordDriver->getModsValue('transcriptionLanguage', 'marmot', $transcription),
 							'text' => $transcriptionTextWithLinks,
 					)
 			);
 		}
 
-		$alternateNames = $this->recordDriver->getModsValues('alternateName', 'marmotLocal');
+		$alternateNames = $this->recordDriver->getModsValues('alternateName', 'marmot');
 		$interface->assign('alternateNames', $alternateNames);
 
 		$this->recordDriver->loadRelatedEntities();
 
 		$interface->assign('hasMilitaryService', false);
-		$militaryService = $this->recordDriver->getModsValue('militaryService', 'marmotLocal');
+		$militaryService = $this->recordDriver->getModsValue('militaryService', 'marmot');
 		if (strlen($militaryService) > 0){
 			/** @var SimpleXMLElement $record */
-			$militaryRecord = $this->recordDriver->getModsValue('militaryRecord', 'marmotLocal', $militaryService);
-			$militaryBranch = $this->recordDriver->getModsValue('militaryBranch', 'marmotLocal', $militaryRecord);
-			$militaryConflict = $this->recordDriver->getModsValue('militaryConflict', 'marmotLocal', $militaryRecord);
+			$militaryRecord = $this->recordDriver->getModsValue('militaryRecord', 'marmot', $militaryService);
+			$militaryBranch = $this->recordDriver->getModsValue('militaryBranch', 'marmot', $militaryRecord);
+			$militaryConflict = $this->recordDriver->getModsValue('militaryConflict', 'marmot', $militaryRecord);
 			if ($militaryBranch != 'none' || $militaryConflict != 'none'){
 				$militaryRecord = array(
 						'branch' => $fedoraUtils->getObjectLabel($militaryBranch),
