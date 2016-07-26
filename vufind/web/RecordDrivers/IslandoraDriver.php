@@ -811,7 +811,7 @@ abstract class IslandoraDriver extends RecordInterface {
 				foreach ($linkData as $linkInfo) {
 					$linkType = $this->getModsAttribute('type', $linkInfo);
 					$link = $this->getModsValue('link', 'marmot', $linkInfo);
-					$linkText = $this->getModsValue('link', 'marmot', $linkInfo);
+					$linkText = $this->getModsValue('linkText', 'marmot', $linkInfo);
 					if (strlen($linkText) == 0) {
 						if (strlen($linkType) == 0) {
 							$linkText = $link;
@@ -848,7 +848,7 @@ abstract class IslandoraDriver extends RecordInterface {
 					}
 					if (strlen($link) > 0) {
 						$isHidden = false;
-						if ($linkType == 'wikipedia' || $linkType == 'geoNames' || $linkType == 'whosOnFirst' || 'relatedPika') {
+						if ($linkType == 'wikipedia' || $linkType == 'geoNames' || $linkType == 'whosOnFirst' || $linkType == 'relatedPika') {
 							$isHidden = true;
 						}
 						$this->links[] = array(

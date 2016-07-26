@@ -972,9 +972,11 @@ class GroupedWorkDriver extends RecordInterface{
 			foreach ($relatedRecords as $relatedRecord){
 				$language = is_array($relatedRecord['language']) ? $relatedRecord['language'][0] : $relatedRecord['language'];
 				if (($relatedRecord['format'] != 'Book' && $relatedRecord['format'] != 'eBook') || !$language == 'English'){
-					$fastDescription = $relatedRecord['driver']->getDescriptionFast();
-					if ($fastDescription != null && strlen($fastDescription) > 0){
-						$this->fastDescription =  $fastDescription;
+					if ($relatedRecord['driver']){
+						$fastDescription = $relatedRecord['driver']->getDescriptionFast();
+						if ($fastDescription != null && strlen($fastDescription) > 0){
+							$this->fastDescription =  $fastDescription;
+						}
 					}
 				}
 			}
