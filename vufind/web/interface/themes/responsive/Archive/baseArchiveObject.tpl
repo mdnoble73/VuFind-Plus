@@ -44,6 +44,9 @@
 							{if $addressInfo.addressStreetNumber || $addressInfo.addressStreet}
 								{$addressInfo.addressStreetNumber} {$addressInfo.addressStreet}<br/>
 							{/if}
+							{if $addressInfo.address2}
+								{$addressInfo.address2}<br/>
+							{/if}
 							{if $addressInfo.addressCity || $addressInfo.addressState || $addressInfo.addressZipCode}
 								{$addressInfo.addressCity}{if $addressInfo.addressCity && $addressInfo.addressState}, {/if}{$addressInfo.addressState} {$addressInfo.addressZipCode}<br/>
 							{/if}
@@ -95,14 +98,6 @@
 					</div>
 				{/if}
 
-				{if $description}
-					<div class="row">
-						<div class="result-label col-sm-4">Description: </div>
-						<div class="col-sm-8 result-value">
-							{$description}
-						</div>
-					</div>
-				{/if}
 				{if $wikipediaData}
 					{$wikipediaData.description}
 					<div class="row smallText">

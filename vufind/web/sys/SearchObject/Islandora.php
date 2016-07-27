@@ -1085,6 +1085,14 @@ class SearchObject_Islandora extends SearchObject_Base
 						continue;
 					}
 
+					//Check to see if this is a value that should be suppressed
+					if ($field == 'RELS_EXT_isMemberOfCollection_uri_ms'){
+						if (in_array($pid, array('marmot:people', 'marmot:events', 'marmot:families', 'marmot:organizations', 'marmot:places'))){
+							continue;
+						}
+
+					}
+
 				}elseif ($translate){
 					$currentSettings['display'] = translate($facet[0]);
 				}else{
@@ -1114,24 +1122,6 @@ class SearchObject_Islandora extends SearchObject_Base
 
 				// Store the collected values:
 				$list[$field]['list'][$valueKey] = $currentSettings;
-			}
-
-			if ($field == 'veteranOf'){
-				//Add a field for Any war
-				$currentSettings = array();
-				$currentSettings['value'] = '[* TO *]';
-				$currentSettings['display'] = $translate ? translate('Any War') : 'Any War';
-				$currentSettings['count'] = '';
-				$currentSettings['isApplied'] = false;
-				if (in_array($field, array_keys($this->filterList))) {
-					// and is this value a selected filter?
-					if (in_array($currentSettings['value'], $this->filterList[$field])) {
-						$currentSettings['isApplied'] = true;
-						$currentSettings['removalUrl'] =  $this->renderLinkWithoutFilter("$field:{$facet[0]}");
-					}
-				}
-				$currentSettings['url'] = $this->renderLinkWithFilter("veteranOf:" . $currentSettings['value']);
-				$list[$field]['list']['Any War'] = $currentSettings;
 			}
 
 			//How many facets should be shown by default
