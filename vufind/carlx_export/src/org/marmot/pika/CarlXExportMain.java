@@ -7,13 +7,24 @@ import java.net.URL;
 import java.sql.*;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
+import java.util.TimeZone;
+
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 import org.ini4j.Ini;
 import org.ini4j.InvalidFileFormatException;
 import org.ini4j.Profile;
 import org.ini4j.Profile.Section;
+import org.marc4j.MarcPermissiveStreamReader;
+import org.marc4j.MarcStreamWriter;
+import org.marc4j.MarcWriter;
+import org.marc4j.marc.DataField;
+import org.marc4j.marc.Record;
+import org.marc4j.marc.VariableField;
+import org.marc4j.marc.impl.SubfieldImpl;
 import org.w3c.dom.Document;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
@@ -34,6 +45,17 @@ import javax.xml.parsers.ParserConfigurationException;
 public class CarlXExportMain {
 	private static Logger logger = Logger.getLogger(CarlXExportMain.class);
 	private static String serverName;
+
+	private static String itemTag;
+	private static char itemRecordNumberSubfield;
+	private static char locationSubfield;
+	private static char statusSubfield;
+	private static char dueDateSubfield;
+	private static String dueDateFormat;
+	private static char lastCheckInSubfield;
+	private static String lastCheckInFormat;
+
+	private static String individualMarcPath;
 
 
 	public static void main(String[] args) {
@@ -62,27 +84,43 @@ public class CarlXExportMain {
 			System.exit(1);
 		}
 
+		Long lastCarlXExtractTime           = null;
+		Long lastCarlXExtractTimeVariableId = null;
+
 		//Get the Indexing Profile from the database
 		try {
 			PreparedStatement getCarlXIndexingProfileStmt = vufindConn.prepareStatement("SELECT * FROM indexing_profiles where name ='ils'");
 			ResultSet carlXIndexingProfileRS = getCarlXIndexingProfileStmt.executeQuery();
 			if (carlXIndexingProfileRS.next()) {
+				String itemTag                  = carlXIndexingProfileRS.getString("itemTag");
+				String itemRecordNumberSubfield = carlXIndexingProfileRS.getString("itemRecordNumber");
+				String lastCheckinDateSubfield  = carlXIndexingProfileRS.getString("lastCheckinDate");
+				String lastCheckinFormat        = carlXIndexingProfileRS.getString("lastCheckinFormat");
+				String locationSubfield         = carlXIndexingProfileRS.getString("location");
+				String itemStatusSubfield       = carlXIndexingProfileRS.getString("status");
+				String dueDateSubfield          = carlXIndexingProfileRS.getString("dueDate");
+				String individualMarcPath       = carlXIndexingProfileRS.getString("individualMarcPath");
+
+				CarlXExportMain.itemTag                  = itemTag;
+				CarlXExportMain.itemRecordNumberSubfield = itemRecordNumberSubfield.length() > 0 ? itemRecordNumberSubfield.charAt(0) : ' ';
+				CarlXExportMain.lastCheckInSubfield      = lastCheckinDateSubfield.length() > 0 ? lastCheckinDateSubfield.charAt(0) : ' ';
+				CarlXExportMain.lastCheckInFormat        = lastCheckinFormat;
+				CarlXExportMain.locationSubfield         = locationSubfield.length() > 0 ? locationSubfield.charAt(0) : ' ';
+				CarlXExportMain.statusSubfield           = itemStatusSubfield.length() > 0 ? itemStatusSubfield.charAt(0) : ' ';
+				CarlXExportMain.dueDateSubfield          = dueDateSubfield.length() > 0 ? dueDateSubfield.charAt(0) : ' ';
+				// TODO: No value in CarlX sandbox indexing profile.  Might not use?
+				CarlXExportMain.dueDateFormat            = lastCheckinFormat;
+				// TODO: Not in indexing profile
+				CarlXExportMain.individualMarcPath = individualMarcPath;
+
 				String carlXExportPath          = carlXIndexingProfileRS.getString("marcPath");
 //				String filenamesToInclude      = carlXIndexingProfileRS.getString("filenamesToInclude");
-				String individualMarcPath       = carlXIndexingProfileRS.getString("individualMarcPath");
 //				String groupingClass           = carlXIndexingProfileRS.getString("groupingClass");
 				String recordNumberTag          = carlXIndexingProfileRS.getString("recordNumberTag");
 				String recordNumberPrefix       = carlXIndexingProfileRS.getString("recordNumberPrefix");
 //				String marcEncoding            = carlXIndexingProfileRS.getString("marcEncoding");
-				String itemTag                  = carlXIndexingProfileRS.getString("itemTag");
-				String itemRecordNumberSubfield = carlXIndexingProfileRS.getString("itemRecordNumber");
 				String callNumberSubfield       = carlXIndexingProfileRS.getString("callNumber");
 				String itemBarcodeSubfield      = carlXIndexingProfileRS.getString("barcode");
-				String itemStatusSubfield       = carlXIndexingProfileRS.getString("status");
-				String dueDateSubfield          = carlXIndexingProfileRS.getString("dueDate");
-				// empty in profile.
-				String lastCheckinDateSubfield  = carlXIndexingProfileRS.getString("lastCheckinDate");
-				String locationSubfield         = carlXIndexingProfileRS.getString("location");
 				String shelvingLocationSubfield = carlXIndexingProfileRS.getString("shelvingLocation");
 				String collectionSubfield       = carlXIndexingProfileRS.getString("collection");
 				// shelvingLocation & collection sub fields are the same in the sandbox
@@ -90,60 +128,68 @@ public class CarlXExportMain {
 			} else {
 				logger.error("Unable to find carlx indexing profile, please create a profile with the name ils.");
 			}
+
 		}catch (Exception e){
 			logger.error("Error reading index profile for CarlX", e);
 		}
 
+		// Get Last Extract Time
+		String beginTimeString = null;
+		try {
+			PreparedStatement loadLastCarlXExtractTimeStmt = vufindConn.prepareStatement("SELECT * from variables WHERE name = 'last_carlx_extract_time'", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+			ResultSet lastCarlXExtractTimeRS = loadLastCarlXExtractTimeStmt.executeQuery();
+			if (lastCarlXExtractTimeRS.next()){
+				lastCarlXExtractTime           = lastCarlXExtractTimeRS.getLong("value");
+				lastCarlXExtractTimeVariableId = lastCarlXExtractTimeRS.getLong("id");
+			}
+
+			DateFormat beginTimeFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+			beginTimeFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+
+			//Last Update in UTC
+			Date now             = new Date();
+			Date yesterday       = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+			Date lastExtractDate = (lastCarlXExtractTime != null) ? new Date((lastCarlXExtractTime - 120) * 1000) : yesterday;
+			// Add a small buffer to the last extract time
+
+			if (lastExtractDate.before(yesterday)){
+				logger.warn("Last Extract date was more than 24 hours ago.  Just getting the last 24 hours since we should have a full extract.");
+				lastExtractDate = yesterday;
+			}
+
+
+			beginTimeString = beginTimeFormat.format(lastExtractDate);
+
+			beginTimeString = "2013-12-31T12:00:00Z";
+			// TODO: Delete Line; Use the value from the Example for now
+
+		} catch (Exception e) {
+			logger.error("Error getting last Extract Time for CarlX", e);
+		}
 
 		// Get MarcOut WSDL url for SOAP calls
 		String marcOutURL = ini.get("Catalog", "marcOutApiWsdl");
 
-//		TODO: determine actual date-time to fetch record changes from.
-		DateFormat BeginTimeFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
-//		TODO: timezones??
-		Date BeginTime = new Date();
-//		TODO: Look up actual cut off time
-		String BeginTimeString = BeginTimeFormat.format(BeginTime);
 
-		BeginTimeString = "2013-12-31T12:00:00";
-		// Use the value from the Example for now
 
-/*  Example Call
-		<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:mar="http://tlcdelivers.com/cx/schemas/marcoutAPI" xmlns:req="http://tlcdelivers.com/cx/schemas/request">
-		<soapenv:Header/>
-		<soapenv:Body>
-		<mar:GetChangedItemsRequest>
-		<mar:BeginTime>2013-12-31T12:00:00</mar:BeginTime>
-		<mar:Modifiers/>
-		</mar:GetChangedItemsRequest>
-		</soapenv:Body>
-		</soapenv:Envelope>
-*/
-		String exampleSoapRequest = "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:mar=\"http://tlcdelivers.com/cx/schemas/marcoutAPI\" xmlns:req=\"http://tlcdelivers.com/cx/schemas/request\">\n" +
+		String changedItemsSoapRequest = "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:mar=\"http://tlcdelivers.com/cx/schemas/marcoutAPI\" xmlns:req=\"http://tlcdelivers.com/cx/schemas/request\">\n" +
 				"<soapenv:Header/>\n" +
 				"<soapenv:Body>\n" +
 				"<mar:GetChangedItemsRequest>\n" +
-				"<mar:BeginTime>"+ BeginTimeString + "</mar:BeginTime>\n" +
+				"<mar:BeginTime>"+ beginTimeString + "</mar:BeginTime>\n" +
 				"<mar:Modifiers/>\n" +
 				"</mar:GetChangedItemsRequest>\n" +
 				"</soapenv:Body>\n" +
 				"</soapenv:Envelope>";
 
-		URLPostResponse SOAPResponse = postToURL(marcOutURL, exampleSoapRequest, "text/xml", null, logger);
+		URLPostResponse SOAPResponse = postToURL(marcOutURL, changedItemsSoapRequest, "text/xml", null, logger);
 
-//		TODO: Parse & Process Response
-		DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
-		DocumentBuilder dBuilder = null;
-		Document doc;
+		String[] createdItemIDs = new String[0];
+		String[] updatedItemIDs = new String[0];
+		String[] deletedItemIDs = new String[0];
+
 		try {
-			dBuilder = dbFactory.newDocumentBuilder();
-
-			byte[]                soapResponseByteArray            = SOAPResponse.getMessage().getBytes("utf-8");
-			ByteArrayInputStream  soapResponseByteArrayInputStream = new ByteArrayInputStream(soapResponseByteArray);
-			InputSource           soapResponseInputSource          = new InputSource(soapResponseByteArrayInputStream);
-
-			doc = dBuilder.parse(soapResponseInputSource);
-			doc.getDocumentElement().normalize();
+			Document doc = createXMLDocumentForSoapResponse(SOAPResponse);
 
 			// Navigate Down Soap Response
 //			Node soapEnvelopeNode            = doc.getChildNodes().item(0);
@@ -155,8 +201,8 @@ public class CarlXExportMain {
 			Node createdItemsNode            = getChangedItemsResponseNode.getChildNodes().item(3); // 4th element of getChangedItemsResponseNode
 			Node updatedItemsNode            = getChangedItemsResponseNode.getChildNodes().item(4); // 5th element of getChangedItemsResponseNode
 			Node deletedItemsNode            = getChangedItemsResponseNode.getChildNodes().item(5); // 6th element of getChangedItemsResponseNode
-			String totalItems                = getChangedItemsResponseNode.getChildNodes().item(0).getChildNodes().item(2).getTextContent();
-
+			Node responseStatusNode          = getChangedItemsResponseNode.getChildNodes().item(0).getChildNodes().item(0);
+			String totalItems                = responseStatusNode.getChildNodes().item(3).getTextContent();
 
 			// These will be re-used
 			NodeList walkThroughme;
@@ -165,7 +211,7 @@ public class CarlXExportMain {
 			// Created Items
 			walkThroughme = createdItemsNode.getChildNodes();
 			l = walkThroughme.getLength();
-			String[] createdItemIDs = new String[l];
+			createdItemIDs = new String[l];
 			for (int i = 0; i < l; i++) {
 				createdItemIDs[i] = walkThroughme.item(i).getTextContent();
 			}
@@ -175,7 +221,7 @@ public class CarlXExportMain {
 			// Updated Items
 			walkThroughme = updatedItemsNode.getChildNodes();
 			l = walkThroughme.getLength();
-			String[] updatedItemIDs = new String[l];
+			updatedItemIDs = new String[l];
 			for (int i = 0; i < l; i++) {
 				updatedItemIDs[i] = walkThroughme.item(i).getTextContent();
 			}
@@ -186,21 +232,101 @@ public class CarlXExportMain {
 			// Deleted Items
 			walkThroughme = deletedItemsNode.getChildNodes();
 			l = walkThroughme.getLength();
-			String[] deletedItemIDs = new String[l];
+			deletedItemIDs = new String[l];
 			for (int i = 0; i < l; i++) {
 				deletedItemIDs[i] = walkThroughme.item(i).getTextContent();
 			}
 //			printNote(doc.getElementsByTagNameNS("ns3", "DeletedItems"));
 			//parent: doc.getChildNodes().item(0).getChildNodes().item(1).getChildNodes().item(0).getChildNodes().item(5)
 
-
-//			printNote(doc.getChildNodes());
-
-
 		} catch (Exception e) {
 			logger.error("Error Parsing SOAP Response", e);
 		}
 
+		// Fetch Item Information
+		String getItemInformationSoapRequest;
+		String getItemInformationSoapRequestStart = "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:mar=\"http://tlcdelivers.com/cx/schemas/marcoutAPI\" xmlns:req=\"http://tlcdelivers.com/cx/schemas/request\">\n" +
+				"<soapenv:Header/>\n" +
+				"<soapenv:Body>\n" +
+				"<mar:GetItemInformationRequest>\n" +
+				"<mar:ItemSearchType>ITEM</mar:ItemSearchType>\n";
+		String getItemInformationSoapRequestEnd =
+				"<mar:IncludeSuppressItems>true</mar:IncludeSuppressItems>\n" + // TODO: Do we want this on??
+				"<mar:Modifiers>\n" +
+				"</mar:Modifiers>\n" +
+				"</mar:GetItemInformationRequest>\n" +
+				"</soapenv:Body>\n" +
+				"</soapenv:Envelope>";
+		try {
+			if (updatedItemIDs.length > 0) {
+				getItemInformationSoapRequest = getItemInformationSoapRequestStart;
+				// Updated Items
+				for (String updatedItem : updatedItemIDs) {
+					getItemInformationSoapRequest += "<mar:ItemSearchTerm>" + updatedItem + "</mar:ItemSearchTerm>\n";
+				}
+				getItemInformationSoapRequest += getItemInformationSoapRequestEnd;
+
+				URLPostResponse ItemInformationSOAPResponse = postToURL(marcOutURL, getItemInformationSoapRequest, "text/xml", null, logger);
+
+				// Parse Response
+				Document doc = createXMLDocumentForSoapResponse(ItemInformationSOAPResponse);
+
+				// Navigate Down Soap Response
+				Node soapEnvelopeNode               = doc.getFirstChild();
+				Node soapBodyNode                   = soapEnvelopeNode.getLastChild();
+				Node getItemInformationResponseNode = soapBodyNode.getFirstChild();
+				NodeList ItemStatuses               = getItemInformationResponseNode.getChildNodes();
+
+				int l = ItemStatuses.getLength();
+				for (int i = 1;i < l; i++) {
+					// start with i = 1 to skip first node, because that is the response status node and not an item status
+					Node itemStatus = ItemStatuses.item(i);
+					ItemChangeInfo currentItem = new ItemChangeInfo();
+
+					NodeList itemDetails = itemStatus.getChildNodes();
+					int dl = itemDetails.getLength();
+					for (int j = 0;j < dl; j++) {
+						Node detail        = itemDetails.item(j);
+						String detailName  = detail.getNodeName();
+						String detailValue = detail.getTextContent();
+
+						detailName = detailName.replaceFirst("ns4:", ""); // strip out namespace prefix
+
+						// Handle each detail
+						switch (detailName) {
+							case "BID" :
+								currentItem.setBID(detailValue);
+								break;
+							case "ItemID" :
+								currentItem.setItemId(detailValue);
+								break;
+							case "LocationCode" :
+								currentItem.setLocation(detailValue);
+								//TODO: use Branch Number ??
+								break;
+							case "Status" :
+								currentItem.setStatus(detailValue);
+								break;
+							case "DueDate" :
+								currentItem.setDueDate(detailValue);
+								break;
+							case "LastCheckinDate" :
+								// There is no LastCheckinDate field in ItemInformation Call
+								currentItem.setLastCheckinDate(detailValue);
+								break;
+						}
+					}
+					// TODO: Write Item information into marc record
+					updateMarc(individualMarcPath, currentItem.getBID(), currentItem);
+				}
+
+
+			}
+
+		} catch (Exception e) {
+			logger.error("Error Creating SOAP Call", e);
+
+		}
 
 		if (vufindConn != null){
 			try{
@@ -216,6 +342,191 @@ public class CarlXExportMain {
 
 
 
+	}
+
+	private static void updateMarc(String individualMarcPath, String curBibId, ItemChangeInfo itemChangeInfo) {
+		//Load the existing marc record from file
+		try {
+			File marcFile = getFileForIlsRecord(individualMarcPath, curBibId);
+			if (marcFile.exists()) {
+				FileInputStream inputStream = new FileInputStream(marcFile);
+				MarcPermissiveStreamReader marcReader = new MarcPermissiveStreamReader(inputStream, true, true, "UTF-8");
+				if (marcReader.hasNext()) {
+					Record marcRecord = marcReader.next();
+					inputStream.close();
+
+					//Loop through all item fields to see what has changed
+					List<VariableField> itemFields = marcRecord.getVariableFields(itemTag);
+					for (VariableField itemFieldVar : itemFields) {
+						DataField itemField = (DataField) itemFieldVar;
+						if (itemField.getSubfield(itemRecordNumberSubfield) != null) {
+							String itemRecordNumber = itemField.getSubfield(itemRecordNumberSubfield).getData();
+							//Update the items
+//							for (ItemChangeInfo curItem : itemChangeInfo) {
+							ItemChangeInfo curItem = itemChangeInfo;
+								//Find the correct item
+								if (itemRecordNumber.equals(curItem.getItemId())) {
+									itemField.getSubfield(locationSubfield).setData(curItem.getLocation());
+									itemField.getSubfield(statusSubfield).setData(curItem.getStatus());
+									if (curItem.getDueDate() == null) {
+										if (itemField.getSubfield(dueDateSubfield) != null) {
+											if (dueDateFormat.contains("-")){
+												itemField.getSubfield(dueDateSubfield).setData("  -  -  ");
+											} else {
+												itemField.getSubfield(dueDateSubfield).setData("      ");
+											}
+										}
+									} else {
+										if (itemField.getSubfield(dueDateSubfield) == null) {
+											itemField.addSubfield(new SubfieldImpl(dueDateSubfield, curItem.getDueDate()));
+										} else {
+											itemField.getSubfield(dueDateSubfield).setData(curItem.getDueDate());
+										}
+									}
+									if (lastCheckInSubfield != ' ') {
+										if (curItem.getLastCheckinDate() == null) {
+											if (itemField.getSubfield(lastCheckInSubfield) != null) {
+												if (lastCheckInFormat.contains("-")) {
+													itemField.getSubfield(lastCheckInSubfield).setData("  -  -  ");
+												} else {
+													itemField.getSubfield(lastCheckInSubfield).setData("      ");
+												}
+											}
+										} else {
+											if (itemField.getSubfield(lastCheckInSubfield) == null) {
+												itemField.addSubfield(new SubfieldImpl(lastCheckInSubfield, curItem.getLastCheckinDate()));
+											} else {
+												itemField.getSubfield(lastCheckInSubfield).setData(curItem.getLastCheckinDate());
+											}
+										}
+									}
+								}
+//							} // end of for loop
+						}
+					}
+
+					//Write the new marc record
+					MarcWriter writer = new MarcStreamWriter(new FileOutputStream(marcFile, false));
+					writer.write(marcRecord);
+					writer.close();
+				} else {
+					logger.info("Could not read marc record for " + curBibId + " the bib was empty");
+				}
+			}else{
+				logger.debug("Marc Record does not exist for " + curBibId + " it is not part of the main extract yet.");
+			}
+		}catch (Exception e){
+			logger.error("Error updating marc record for bib " + curBibId, e);
+		}
+	}
+
+	// Array of ItemChangeInfo, the above version will be for a single item
+	private static void updateMarc(String individualMarcPath, String curBibId, ArrayList<ItemChangeInfo> itemChangeInfo) {
+		//Load the existing marc record from file
+		try {
+			File marcFile = getFileForIlsRecord(individualMarcPath, curBibId);
+			if (marcFile.exists()) {
+				FileInputStream inputStream = new FileInputStream(marcFile);
+				MarcPermissiveStreamReader marcReader = new MarcPermissiveStreamReader(inputStream, true, true, "UTF-8");
+				if (marcReader.hasNext()) {
+					Record marcRecord = marcReader.next();
+					inputStream.close();
+
+					//Loop through all item fields to see what has changed
+					List<VariableField> itemFields = marcRecord.getVariableFields(itemTag);
+					for (VariableField itemFieldVar : itemFields) {
+						DataField itemField = (DataField) itemFieldVar;
+						if (itemField.getSubfield(itemRecordNumberSubfield) != null) {
+							String itemRecordNumber = itemField.getSubfield(itemRecordNumberSubfield).getData();
+							//Update the items
+							for (ItemChangeInfo curItem : itemChangeInfo) {
+								//Find the correct item
+								if (itemRecordNumber.equals(curItem.getItemId())) {
+									itemField.getSubfield(locationSubfield).setData(curItem.getLocation());
+									itemField.getSubfield(statusSubfield).setData(curItem.getStatus());
+									if (curItem.getDueDate() == null) {
+										if (itemField.getSubfield(dueDateSubfield) != null) {
+											if (dueDateFormat.contains("-")){
+												itemField.getSubfield(dueDateSubfield).setData("  -  -  ");
+											} else {
+												itemField.getSubfield(dueDateSubfield).setData("      ");
+											}
+										}
+									} else {
+										if (itemField.getSubfield(dueDateSubfield) == null) {
+											itemField.addSubfield(new SubfieldImpl(dueDateSubfield, curItem.getDueDate()));
+										} else {
+											itemField.getSubfield(dueDateSubfield).setData(curItem.getDueDate());
+										}
+									}
+									if (lastCheckInSubfield != ' ') {
+										if (curItem.getLastCheckinDate() == null) {
+											if (itemField.getSubfield(lastCheckInSubfield) != null) {
+												if (lastCheckInFormat.contains("-")) {
+													itemField.getSubfield(lastCheckInSubfield).setData("  -  -  ");
+												} else {
+													itemField.getSubfield(lastCheckInSubfield).setData("      ");
+												}
+											}
+										} else {
+											if (itemField.getSubfield(lastCheckInSubfield) == null) {
+												itemField.addSubfield(new SubfieldImpl(lastCheckInSubfield, curItem.getLastCheckinDate()));
+											} else {
+												itemField.getSubfield(lastCheckInSubfield).setData(curItem.getLastCheckinDate());
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+
+					//Write the new marc record
+					MarcWriter writer = new MarcStreamWriter(new FileOutputStream(marcFile, false));
+					writer.write(marcRecord);
+					writer.close();
+				} else {
+					logger.info("Could not read marc record for " + curBibId + " the bib was empty");
+				}
+			}else{
+				logger.debug("Marc Record does not exist for " + curBibId + " it is not part of the main extract yet.");
+			}
+		}catch (Exception e){
+			logger.error("Error updating marc record for bib " + curBibId, e);
+		}
+	}
+
+	private static File getFileForIlsRecord(String individualMarcPath, String recordNumber) {
+		String shortId = getFileIdForRecordNumber(recordNumber);
+		String firstChars = shortId.substring(0, 4);
+		String basePath = individualMarcPath + "/" + firstChars;
+		String individualFilename = basePath + "/" + shortId + ".mrc";
+		return new File(individualFilename);
+	}
+
+	private static String getFileIdForRecordNumber(String recordNumber) {
+		String shortId = recordNumber.replace(".", "");
+		while (shortId.length() < 9){
+			shortId = "0" + shortId;
+		}
+		return shortId;
+	}
+
+	private static Document createXMLDocumentForSoapResponse(URLPostResponse SoapResponse) throws ParserConfigurationException, IOException, SAXException {
+		DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+		DocumentBuilder dBuilder = null;
+		Document doc;
+
+		dBuilder = dbFactory.newDocumentBuilder();
+
+		byte[]                soapResponseByteArray            = SoapResponse.getMessage().getBytes("utf-8");
+		ByteArrayInputStream  soapResponseByteArrayInputStream = new ByteArrayInputStream(soapResponseByteArray);
+		InputSource           soapResponseInputSource          = new InputSource(soapResponseByteArrayInputStream);
+
+		doc = dBuilder.parse(soapResponseInputSource);
+		doc.getDocumentElement().normalize();
+
+		return doc;
 	}
 
 	private static Ini loadConfigFile(String filename){
