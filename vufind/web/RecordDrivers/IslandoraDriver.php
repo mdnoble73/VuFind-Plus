@@ -670,7 +670,7 @@ abstract class IslandoraDriver extends RecordInterface {
 					$entityType = $this->getModsAttribute('type', $entity);
 					if ($entityType == '' && strlen($entityPid)){
 						//Get the type based on the pid
-						list($entityType, $id) = explode(':', $entityPid);
+						list($entityType) = explode(':', $entityPid);
 					}
 					$entityTitle = $this->getModsValue('entityTitle', 'marmot', $entity);
 					$relationshipNote = $this->getModsValue('relationshipNote', 'marmot', $entity);
