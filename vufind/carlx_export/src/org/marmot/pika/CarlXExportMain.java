@@ -1,13 +1,12 @@
 package org.marmot.pika;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
+import java.io.*;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.sql.*;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
@@ -15,6 +14,19 @@ import org.ini4j.Ini;
 import org.ini4j.InvalidFileFormatException;
 import org.ini4j.Profile;
 import org.ini4j.Profile.Section;
+import org.w3c.dom.Document;
+import org.w3c.dom.NamedNodeMap;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
+
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLSession;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 
 /**
  * Created by pbrammeier on 7/25/2016.
@@ -86,7 +98,15 @@ public class CarlXExportMain {
 		// Get MarcOut WSDL url for SOAP calls
 		String marcOutURL = ini.get("Catalog", "marcOutApiWsdl");
 
-//		TODO: call APIs for records that have changed since last time.
+//		TODO: determine actual date-time to fetch record changes from.
+		DateFormat BeginTimeFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
+//		TODO: timezones??
+		Date BeginTime = new Date();
+//		TODO: Look up actual cut off time
+		String BeginTimeString = BeginTimeFormat.format(BeginTime);
+
+		BeginTimeString = "2013-12-31T12:00:00";
+		// Use the value from the Example for now
 
 /*  Example Call
 		<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:mar="http://tlcdelivers.com/cx/schemas/marcoutAPI" xmlns:req="http://tlcdelivers.com/cx/schemas/request">
@@ -99,15 +119,88 @@ public class CarlXExportMain {
 		</soapenv:Body>
 		</soapenv:Envelope>
 */
-		String exampleSoapRequest = "\t\t<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:mar=\"http://tlcdelivers.com/cx/schemas/marcoutAPI\" xmlns:req=\"http://tlcdelivers.com/cx/schemas/request\">\n" +
-				"\t\t<soapenv:Header/>\n" +
-				"\t\t<soapenv:Body>\n" +
-				"\t\t<mar:GetChangedItemsRequest>\n" +
-				"\t\t<mar:BeginTime>2013-12-31T12:00:00</mar:BeginTime>\n" +
-				"\t\t<mar:Modifiers/>\n" +
-				"\t\t</mar:GetChangedItemsRequest>\n" +
-				"\t\t</soapenv:Body>\n" +
-				"\t\t</soapenv:Envelope>";
+		String exampleSoapRequest = "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:mar=\"http://tlcdelivers.com/cx/schemas/marcoutAPI\" xmlns:req=\"http://tlcdelivers.com/cx/schemas/request\">\n" +
+				"<soapenv:Header/>\n" +
+				"<soapenv:Body>\n" +
+				"<mar:GetChangedItemsRequest>\n" +
+				"<mar:BeginTime>"+ BeginTimeString + "</mar:BeginTime>\n" +
+				"<mar:Modifiers/>\n" +
+				"</mar:GetChangedItemsRequest>\n" +
+				"</soapenv:Body>\n" +
+				"</soapenv:Envelope>";
+
+		URLPostResponse SOAPResponse = postToURL(marcOutURL, exampleSoapRequest, "text/xml", null, logger);
+
+//		TODO: Parse & Process Response
+		DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+		DocumentBuilder dBuilder = null;
+		Document doc;
+		try {
+			dBuilder = dbFactory.newDocumentBuilder();
+
+			byte[]                soapResponseByteArray            = SOAPResponse.getMessage().getBytes("utf-8");
+			ByteArrayInputStream  soapResponseByteArrayInputStream = new ByteArrayInputStream(soapResponseByteArray);
+			InputSource           soapResponseInputSource          = new InputSource(soapResponseByteArrayInputStream);
+
+			doc = dBuilder.parse(soapResponseInputSource);
+			doc.getDocumentElement().normalize();
+
+			// Navigate Down Soap Response
+//			Node soapEnvelopeNode            = doc.getChildNodes().item(0);
+			Node soapEnvelopeNode            = doc.getFirstChild();
+//			Node soapBodyNode                = soapEnvelopeNode.getChildNodes().item(1);
+			Node soapBodyNode                = soapEnvelopeNode.getLastChild();
+//			Node getChangedItemsResponseNode = soapBodyNode.getChildNodes().item(0);
+			Node getChangedItemsResponseNode = soapBodyNode.getFirstChild();
+			Node createdItemsNode            = getChangedItemsResponseNode.getChildNodes().item(3); // 4th element of getChangedItemsResponseNode
+			Node updatedItemsNode            = getChangedItemsResponseNode.getChildNodes().item(4); // 5th element of getChangedItemsResponseNode
+			Node deletedItemsNode            = getChangedItemsResponseNode.getChildNodes().item(5); // 6th element of getChangedItemsResponseNode
+			String totalItems                = getChangedItemsResponseNode.getChildNodes().item(0).getChildNodes().item(2).getTextContent();
+
+
+			// These will be re-used
+			NodeList walkThroughme;
+			int l;
+
+			// Created Items
+			walkThroughme = createdItemsNode.getChildNodes();
+			l = walkThroughme.getLength();
+			String[] createdItemIDs = new String[l];
+			for (int i = 0; i < l; i++) {
+				createdItemIDs[i] = walkThroughme.item(i).getTextContent();
+			}
+//			printNote(doc.getElementsByTagNameNS("ns3", "CreatedItems"));
+//		parent: doc.getChildNodes().item(0).getChildNodes().item(1).getChildNodes().item(0).getChildNodes().item(3)
+
+			// Updated Items
+			walkThroughme = updatedItemsNode.getChildNodes();
+			l = walkThroughme.getLength();
+			String[] updatedItemIDs = new String[l];
+			for (int i = 0; i < l; i++) {
+				updatedItemIDs[i] = walkThroughme.item(i).getTextContent();
+			}
+//			printNote(doc.getElementsByTagNameNS("ns3", "UpdatedItems"));
+			//parent: doc.getChildNodes().item(0).getChildNodes().item(1).getChildNodes().item(0).getChildNodes().item(4)
+			// doc.getChildNodes().item(0).getChildNodes().item(1).getChildNodes().item(0).getChildNodes().item(4).getChildNodes().item(0).getTextContent()
+
+			// Deleted Items
+			walkThroughme = deletedItemsNode.getChildNodes();
+			l = walkThroughme.getLength();
+			String[] deletedItemIDs = new String[l];
+			for (int i = 0; i < l; i++) {
+				deletedItemIDs[i] = walkThroughme.item(i).getTextContent();
+			}
+//			printNote(doc.getElementsByTagNameNS("ns3", "DeletedItems"));
+			//parent: doc.getChildNodes().item(0).getChildNodes().item(1).getChildNodes().item(0).getChildNodes().item(5)
+
+
+//			printNote(doc.getChildNodes());
+
+
+		} catch (Exception e) {
+			logger.error("Error Parsing SOAP Response", e);
+		}
+
 
 		if (vufindConn != null){
 			try{
@@ -201,5 +294,136 @@ public class CarlXExportMain {
 		return value;
 	}
 
+	public static URLPostResponse postToURL(String url, String postData, String contentType, String referer, Logger logger) {
+		URLPostResponse retVal;
+		HttpURLConnection conn = null;
+		try {
+			URL emptyIndexURL = new URL(url);
+			conn = (HttpURLConnection) emptyIndexURL.openConnection();
+			conn.setConnectTimeout(1000);
+			conn.setReadTimeout(300000);
+			logger.debug("Posting To URL " + url + (postData != null && postData.length() > 0 ? "?" + postData : ""));
+
+			if (conn instanceof HttpsURLConnection){
+				HttpsURLConnection sslConn = (HttpsURLConnection)conn;
+				sslConn.setHostnameVerifier(new HostnameVerifier() {
+
+					@Override
+					public boolean verify(String hostname, SSLSession session) {
+						//Do not verify host names
+						return true;
+					}
+				});
+			}
+			conn.setDoInput(true);
+			if (referer != null){
+				conn.setRequestProperty("Referer", referer);
+			}
+			conn.setRequestMethod("POST");
+			if (postData != null && postData.length() > 0) {
+				conn.setRequestProperty("Content-Type", contentType + "; charset=utf-8");
+				conn.setRequestProperty("Content-Language", "en-US");
+				conn.setRequestProperty("Connection", "keep-alive");
+
+				conn.setDoOutput(true);
+				OutputStreamWriter wr = new OutputStreamWriter(conn.getOutputStream(), "UTF8");
+				wr.write(postData);
+				wr.flush();
+				wr.close();
+			}
+
+			StringBuffer response = new StringBuffer();
+			if (conn.getResponseCode() == 200) {
+				// Get the response
+				BufferedReader rd = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+				String line;
+				while ((line = rd.readLine()) != null) {
+					response.append(line);
+				}
+
+				rd.close();
+				retVal = new URLPostResponse(true, 200, response.toString());
+			} else {
+				logger.error("Received error " + conn.getResponseCode() + " posting to " + url);
+				logger.info(postData);
+				// Get any errors
+				BufferedReader rd = new BufferedReader(new InputStreamReader(conn.getErrorStream()));
+				String line;
+				while ((line = rd.readLine()) != null) {
+					response.append(line);
+				}
+
+				rd.close();
+
+				if (response.length() == 0){
+					//Try to load the regular body as well
+					// Get the response
+					BufferedReader rd2 = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+					while ((line = rd2.readLine()) != null) {
+						response.append(line);
+					}
+
+					rd.close();
+				}
+				retVal = new URLPostResponse(false, conn.getResponseCode(), response.toString());
+			}
+
+		} catch (MalformedURLException e) {
+			logger.error("URL to post (" + url + ") is malformed", e);
+			retVal = new URLPostResponse(false, -1, "URL to post (" + url + ") is malformed");
+		} catch (IOException e) {
+			logger.error("Error posting to url \r\n" + url, e);
+			retVal = new URLPostResponse(false, -1, "Error posting to url \r\n" + url + "\r\n" + e.toString());
+		}finally{
+			if (conn != null) conn.disconnect();
+		}
+		return retVal;
+	}
+
+
+	/**
+	 * I used this to initially walk through SOAP document. It can be deleted and removed.
+	 * @param nodeList
+	 */
+	private static void printNote(NodeList nodeList) {
+
+		for (int count = 0; count < nodeList.getLength(); count++) {
+
+			Node tempNode = nodeList.item(count);
+
+			// make sure it's element node.
+			if (tempNode.getNodeType() == Node.ELEMENT_NODE) {
+
+				// get node name and value
+				System.out.println("\nNode Name =" + tempNode.getNodeName() + " [OPEN]");
+				System.out.println("Node Value =" + tempNode.getTextContent());
+
+				if (tempNode.hasAttributes()) {
+
+					// get attributes names and values
+					NamedNodeMap nodeMap = tempNode.getAttributes();
+
+					for (int i = 0; i < nodeMap.getLength(); i++) {
+
+						Node node = nodeMap.item(i);
+						System.out.println("attr name : " + node.getNodeName());
+						System.out.println("attr value : " + node.getNodeValue());
+
+					}
+
+				}
+
+				if (tempNode.hasChildNodes()) {
+
+					// loop again if has child nodes
+					printNote(tempNode.getChildNodes());
+
+				}
+
+				System.out.println("Node Name =" + tempNode.getNodeName() + " [CLOSE]");
+
+			}
+		}
+	}
 
 }
