@@ -244,11 +244,15 @@ abstract class Archive_Object extends Action{
 				$addressInfo['addressState'] = $addressState;
 			}
 			if (strlen($addressCounty) > 0) {
+				$addressInfo['hasDetailedAddress'] = true;
 				$addressInfo['addressCounty'] = $addressCounty;
 			}
 			if (strlen($addressZipCode) > 0) {
 				$addressInfo['hasDetailedAddress'] = true;
 				$addressInfo['addressZipCode'] = $addressZipCode;
+			}
+			if (strlen($addressCountry) > 0) {
+				$addressInfo['addressCountry'] = $addressCountry;
 			}
 			if (strlen($addressOtherRegion) > 0) {
 				$addressInfo['addressOtherRegion'] = $addressOtherRegion;

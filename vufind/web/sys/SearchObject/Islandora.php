@@ -85,7 +85,7 @@ class SearchObject_Islandora extends SearchObject_Base
 		$this->searchType = 'islandora';
 		$this->basicSearchType = 'islandora';
 		// Initialise the index
-		$this->indexEngine = new Solr($configArray['Islandora']['solrUrl'], 'islandora');
+		$this->indexEngine = new Solr($configArray['Islandora']['solrUrl'], isset($configArray['Islandora']['solrCore']) ? $configArray['Islandora']['solrCore'] : 'islandora');
 		$timer->logTime('Created Index Engine for Islandora');
 
 		//Make sure to turn off sharding for islandora
@@ -1087,7 +1087,7 @@ class SearchObject_Islandora extends SearchObject_Base
 
 					//Check to see if this is a value that should be suppressed
 					if ($field == 'RELS_EXT_isMemberOfCollection_uri_ms'){
-						if (in_array($pid, array('marmot:people', 'marmot:events', 'marmot:families', 'marmot:organizations', 'marmot:places'))){
+						if (in_array($pid, array('marmot:people', 'marmot:events', 'marmot:families', 'marmot:organizations', 'marmot:places', 'islandora:entity_collection', 'islandora_sp_basic_image_collection'))){
 							continue;
 						}
 
@@ -1377,6 +1377,7 @@ class SearchObject_Islandora extends SearchObject_Base
 		$filters[] = "!PID:marmot\\:*";
 		$filters[] = "!PID:ssb\\:*";
 		$filters[] = "!PID:mandala\\:*";
+		$filters[] = "!PID:ir\\:*";
 
 		$filters[] = "!mods_extension_marmotLocal_pikaOptions_includeInPika_ms:no";
 		return $filters;
