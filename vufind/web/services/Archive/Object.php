@@ -92,20 +92,29 @@ abstract class Archive_Object extends Action{
 			$interface->assign('dateCreated', $dateCreated);
 		}
 		
-		$identifier = $this->recordDriver->getModsValue('identifier', 'mods');
-		$interface->assign('identifier', $identifier);
+		$identifier = $this->recordDriver->getModsValues('identifier', 'mods');
+		$interface->assign('identifier', FedoraUtils::cleanValues($identifier));
 
 		$physicalDescriptions = $this->recordDriver->getModsValues('physicalDescription', 'mods');
 		$physicalExtents = array();
 		foreach ($physicalDescriptions as $physicalDescription){
-			$extent = $this->recordDriver->getModsValue('identifier', 'mods', $physicalDescription);
+			$extent = $this->recordDriver->getModsValue('extent', 'mods', $physicalDescription);
+			$form = $this->recordDriver->getModsValue('form', 'mods', $physicalDescription);
+			if (empty($extent)){
+				$extent = $form;
+			}elseif (!empty($form)){
+				$extent .= " ($form)";
+			}
 			$physicalExtents[] = $extent;
+
 		}
 		$interface->assign('physicalExtents', $physicalExtents);
 
 		$physicalLocation = $this->recordDriver->getModsValues('physicalLocation', 'mods');
 		$interface->assign('physicalLocation', $physicalLocation);
-		
+
+		$interface->assign('postcardPublisherNumber', $this->recordDriver->getModsValue('postcardPublisherNumber', 'marmot'));
+
 		$shelfLocator = $this->recordDriver->getModsValues('shelfLocator', 'mods');
 		$interface->assign('shelfLocator', $shelfLocator);
 
