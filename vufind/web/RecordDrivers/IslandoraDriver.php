@@ -624,6 +624,12 @@ abstract class IslandoraDriver extends RecordInterface {
 					$this->addRelatedEntityToArrays($transcriberPid, $transcriberTitle, '', '', 'Transcriber');
 				}
 
+				$militaryConflict = $this->getModsValue('militaryConflict', 'marmot');
+				if ($militaryConflict){
+					$militaryConflictTitle = FedoraUtils::getInstance()->getObjectLabel($militaryConflict);
+					$this->addRelatedEntityToArrays($militaryConflict, $militaryConflictTitle, '', '', '');
+				}
+
 				$creators = $this->getModsValues('hasCreator', 'marmot', null, true);
 				foreach ($creators as $entity) {
 					$entityPid = $this->getModsValue('entityPid', 'marmot', $entity);
