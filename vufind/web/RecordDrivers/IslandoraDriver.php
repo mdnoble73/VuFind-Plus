@@ -936,11 +936,11 @@ abstract class IslandoraDriver extends RecordInterface {
 			$searchObject = SearchObjectFactory::initSearchObject('Islandora');
 			$searchObject->init();
 			$searchObject->setSort('fgs_label_s');
+			$searchObject->setLimit(100);
 			$searchObject->setSearchTerms(array(
 					'lookfor' => '"' . $this->getUniqueID() . '"',
 					'index' => 'IslandoraRelationshipsById'
 			));
-			$searchObject->addHiddenFilter('!RELS_EXT_isViewableByRole_literal_ms', "administrator");
 
 			$searchObject->clearHiddenFilters();
 			$searchObject->addHiddenFilter('!RELS_EXT_isViewableByRole_literal_ms', "administrator");
