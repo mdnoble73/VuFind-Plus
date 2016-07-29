@@ -292,6 +292,21 @@ class FedoraUtils {
 		return array();
 	}
 
+	public static function cleanValues($values){
+		$newValues = array();
+		foreach ($values as $value){
+			$newValue = FedoraUtils::cleanValue($value);
+			if (strlen($newValue) > 0){
+				$newValues[] = $value;
+			}
+		}
+		return $newValues;
+	}
+
+	public static function cleanValue($value){
+		return trim(strip_tags($value));
+	}
+
 	/**
 	 * Return an array of pids that are part of a compound object.
 	 */

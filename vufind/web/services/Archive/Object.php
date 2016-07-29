@@ -170,7 +170,7 @@ abstract class Archive_Object extends Action{
 		}
 
 		$alternateNames = $this->recordDriver->getModsValues('alternateName', 'marmot');
-		$interface->assign('alternateNames', $alternateNames);
+		$interface->assign('alternateNames', FedoraUtils::cleanValues($alternateNames));
 
 		$this->recordDriver->loadRelatedEntities();
 

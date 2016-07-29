@@ -27,9 +27,9 @@
 				{/if}
 			</div>
 			<div id="main-content" class="col-xs-8 col-sm-7 col-md-8 col-lg-9">
-				{if $alternateNames}
+				{if count($alternateNames) > 0}
 					<div class="row">
-						<div class="result-label col-sm-4">Alternate Name{if count($alternateNames)}s{/if}: </div>
+						<div class="result-label col-sm-4">Alternate Name{if count($alternateNames) > 1}s{/if}: </div>
 						<div class="result-value col-sm-8">
 							{foreach from=$alternateNames item=alternateName}
 								{$alternateName}<br/>
