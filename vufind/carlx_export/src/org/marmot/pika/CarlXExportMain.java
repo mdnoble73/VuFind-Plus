@@ -50,7 +50,7 @@ public class CarlXExportMain {
 	private static char itemRecordNumberSubfield;
 	private static char locationSubfield;
 	private static char statusSubfield;
-	private static char dueDateSubfield;
+	private static char dueDateSubfield; //TODO: Ignore for now
 	private static String dueDateFormat;
 	private static char lastCheckInSubfield;
 	private static String lastCheckInFormat;
@@ -171,7 +171,6 @@ public class CarlXExportMain {
 		String marcOutURL = ini.get("Catalog", "marcOutApiWsdl");
 
 
-
 		String changedItemsSoapRequest = "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:mar=\"http://tlcdelivers.com/cx/schemas/marcoutAPI\" xmlns:req=\"http://tlcdelivers.com/cx/schemas/request\">\n" +
 				"<soapenv:Header/>\n" +
 				"<soapenv:Body>\n" +
@@ -184,60 +183,57 @@ public class CarlXExportMain {
 
 		URLPostResponse SOAPResponse = postToURL(marcOutURL, changedItemsSoapRequest, "text/xml", null, logger);
 
-		String[] createdItemIDs = new String[0];
 		String[] updatedItemIDs = new String[0];
-		String[] deletedItemIDs = new String[0];
+//		String[] createdItemIDs = new String[0];
+//		String[] deletedItemIDs = new String[0];
 
 		try {
 			Document doc = createXMLDocumentForSoapResponse(SOAPResponse);
 
 			// Navigate Down Soap Response
-//			Node soapEnvelopeNode            = doc.getChildNodes().item(0);
+//			Node soapEnvelopeNode            = doc.getChildNodes().item(0); // alternative path
 			Node soapEnvelopeNode            = doc.getFirstChild();
-//			Node soapBodyNode                = soapEnvelopeNode.getChildNodes().item(1);
+//			Node soapBodyNode                = soapEnvelopeNode.getChildNodes().item(1); // alternative path
 			Node soapBodyNode                = soapEnvelopeNode.getLastChild();
-//			Node getChangedItemsResponseNode = soapBodyNode.getChildNodes().item(0);
+//			Node getChangedItemsResponseNode = soapBodyNode.getChildNodes().item(0); // alternative path
 			Node getChangedItemsResponseNode = soapBodyNode.getFirstChild();
-			Node createdItemsNode            = getChangedItemsResponseNode.getChildNodes().item(3); // 4th element of getChangedItemsResponseNode
 			Node updatedItemsNode            = getChangedItemsResponseNode.getChildNodes().item(4); // 5th element of getChangedItemsResponseNode
-			Node deletedItemsNode            = getChangedItemsResponseNode.getChildNodes().item(5); // 6th element of getChangedItemsResponseNode
 			Node responseStatusNode          = getChangedItemsResponseNode.getChildNodes().item(0).getChildNodes().item(0);
+			//TODO: use the responseStatusNode to give diagnostic errors
 			String totalItems                = responseStatusNode.getChildNodes().item(3).getTextContent();
 
+//			Node createdItemsNode            = getChangedItemsResponseNode.getChildNodes().item(3); // 4th element of getChangedItemsResponseNode
+//			Node deletedItemsNode            = getChangedItemsResponseNode.getChildNodes().item(5); // 6th element of getChangedItemsResponseNode
+
 			// These will be re-used
-			NodeList walkThroughme;
+			NodeList walkThroughMe;
 			int l;
 
-			// Created Items
-			walkThroughme = createdItemsNode.getChildNodes();
-			l = walkThroughme.getLength();
-			createdItemIDs = new String[l];
-			for (int i = 0; i < l; i++) {
-				createdItemIDs[i] = walkThroughme.item(i).getTextContent();
-			}
-//			printNote(doc.getElementsByTagNameNS("ns3", "CreatedItems"));
-//		parent: doc.getChildNodes().item(0).getChildNodes().item(1).getChildNodes().item(0).getChildNodes().item(3)
-
 			// Updated Items
-			walkThroughme = updatedItemsNode.getChildNodes();
-			l = walkThroughme.getLength();
+			walkThroughMe = updatedItemsNode.getChildNodes();
+			l = walkThroughMe.getLength();
 			updatedItemIDs = new String[l];
 			for (int i = 0; i < l; i++) {
-				updatedItemIDs[i] = walkThroughme.item(i).getTextContent();
+				updatedItemIDs[i] = walkThroughMe.item(i).getTextContent();
 			}
-//			printNote(doc.getElementsByTagNameNS("ns3", "UpdatedItems"));
-			//parent: doc.getChildNodes().item(0).getChildNodes().item(1).getChildNodes().item(0).getChildNodes().item(4)
-			// doc.getChildNodes().item(0).getChildNodes().item(1).getChildNodes().item(0).getChildNodes().item(4).getChildNodes().item(0).getTextContent()
 
-			// Deleted Items
-			walkThroughme = deletedItemsNode.getChildNodes();
-			l = walkThroughme.getLength();
-			deletedItemIDs = new String[l];
-			for (int i = 0; i < l; i++) {
-				deletedItemIDs[i] = walkThroughme.item(i).getTextContent();
-			}
-//			printNote(doc.getElementsByTagNameNS("ns3", "DeletedItems"));
-			//parent: doc.getChildNodes().item(0).getChildNodes().item(1).getChildNodes().item(0).getChildNodes().item(5)
+			// TODO: Process Created Items in the future
+//			// Created Items
+//			walkThroughMe = createdItemsNode.getChildNodes();
+//			l = walkThroughMe.getLength();
+//			createdItemIDs = new String[l];
+//			for (int i = 0; i < l; i++) {
+//				createdItemIDs[i] = walkThroughMe.item(i).getTextContent();
+//			}
+
+			// TODO: Process Deleted Items in the future
+//			// Deleted Items
+//			walkThroughMe = deletedItemsNode.getChildNodes();
+//			l = walkThroughMe.getLength();
+//			deletedItemIDs = new String[l];
+//			for (int i = 0; i < l; i++) {
+//				deletedItemIDs[i] = walkThroughMe.item(i).getTextContent();
+//			}
 
 		} catch (Exception e) {
 			logger.error("Error Parsing SOAP Response", e);
@@ -259,6 +255,7 @@ public class CarlXExportMain {
 				"</soapenv:Envelope>";
 		try {
 			if (updatedItemIDs.length > 0) {
+				//TODO: Set an upper limit on number of IDs for one request, and process in batches
 				getItemInformationSoapRequest = getItemInformationSoapRequestStart;
 				// Updated Items
 				for (String updatedItem : updatedItemIDs) {
@@ -276,6 +273,8 @@ public class CarlXExportMain {
 				Node soapBodyNode                   = soapEnvelopeNode.getLastChild();
 				Node getItemInformationResponseNode = soapBodyNode.getFirstChild();
 				NodeList ItemStatuses               = getItemInformationResponseNode.getChildNodes();
+//				Node itemInformationResponseNodeResponseStatus = getItemInformationResponseNode.getFirstChild();
+				// TODO: Read for errors
 
 				int l = ItemStatuses.getLength();
 				for (int i = 1;i < l; i++) {
@@ -295,7 +294,7 @@ public class CarlXExportMain {
 						// Handle each detail
 						switch (detailName) {
 							case "BID" :
-								currentItem.setBID(detailValue);
+								currentItem.setBID(detailValue); // TODO: Or add CARL prefix here?
 								break;
 							case "ItemID" :
 								currentItem.setItemId(detailValue);
@@ -305,6 +304,7 @@ public class CarlXExportMain {
 								//TODO: use Branch Number ??
 								break;
 							case "Status" :
+								//TODO: Reverse Translate; I need a new map
 								currentItem.setStatus(detailValue);
 								break;
 							case "DueDate" :
@@ -406,9 +406,10 @@ public class CarlXExportMain {
 					}
 
 					//Write the new marc record
-					MarcWriter writer = new MarcStreamWriter(new FileOutputStream(marcFile, false));
-					writer.write(marcRecord);
-					writer.close();
+//					MarcWriter writer = new MarcStreamWriter(new FileOutputStream(marcFile, false));
+//					writer.write(marcRecord);
+//					writer.close();
+//					TODO: uncomment above.
 				} else {
 					logger.info("Could not read marc record for " + curBibId + " the bib was empty");
 				}
@@ -498,18 +499,20 @@ public class CarlXExportMain {
 
 	private static File getFileForIlsRecord(String individualMarcPath, String recordNumber) {
 		String shortId = getFileIdForRecordNumber(recordNumber);
-		String firstChars = shortId.substring(0, 4);
+//		String firstChars = shortId.substring(0, 4);
+//		TODO: individual marc record folder creation needs adjusting for CarlX
+		String firstChars = "CARL";
 		String basePath = individualMarcPath + "/" + firstChars;
 		String individualFilename = basePath + "/" + shortId + ".mrc";
 		return new File(individualFilename);
 	}
 
 	private static String getFileIdForRecordNumber(String recordNumber) {
-		String shortId = recordNumber.replace(".", "");
-		while (shortId.length() < 9){
-			shortId = "0" + shortId;
+		while (recordNumber.length() < 10){ // pad up to a 10-digit number
+			recordNumber = "0" + recordNumber;
 		}
-		return shortId;
+		String fileId = "CARL" + recordNumber; // add Carl prefix
+		return fileId;
 	}
 
 	private static Document createXMLDocumentForSoapResponse(URLPostResponse SoapResponse) throws ParserConfigurationException, IOException, SAXException {
