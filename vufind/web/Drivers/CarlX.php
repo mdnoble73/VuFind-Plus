@@ -31,29 +31,12 @@ class CarlX extends SIP2Driver{
 		$username = trim($username);
 		$password = trim($password);
 
-		//Search for the patron in the database
-//		$soapClient = new SoapClient($this->patronWsdl
-//			,array(
-//				'trace' => 1
-//			)
-//		);
-
 		$request = new stdClass();
 		$request->SearchType = 'Patron ID';
 		$request->SearchID   = $username;
 		$request->Modifiers  = '';
 
-
-		$result = $this->doSoapRequest('getPatronInformation', $this->patronWsdl, $request, array('trace' => 1));
-		//TODO: I think trace can be turned off
-
-//		try {
-//			$result = $soapClient->getPatronInformation($request);
-//		} catch (SoapFault $e) {
-//			global $logger;
-//			$logger->log('Soap Client error in CarlX', PEAR_LOG_ERR);
-//			return false;
-//		}
+		$result = $this->doSoapRequest('getPatronInformation', $request);
 
 		$patronValid = false;
 		if ($result){
@@ -197,8 +180,7 @@ class CarlX extends SIP2Driver{
 					$patronSummaryRequest->PatronID  = $username;
 					$patronSummaryRequest->Modifiers = '';
 
-					$patronSummaryResponse = $this->doSoapRequest('getPatronSummaryOverview', $this->patronWsdl, $patronSummaryRequest);
-//					$patronSummaryResponse = $this->soapClient->getPatronSummaryOverview($patronSummaryRequest);
+					$patronSummaryResponse = $this->doSoapRequest('getPatronSummaryOverview', $patronSummaryRequest, $this->patronWsdl);
 
 					if (!empty($patronSummaryRequest)) {
 						$user->numCheckedOutIls     = $patronSummaryResponse->ChargedItemsCount;
@@ -257,8 +239,22 @@ class CarlX extends SIP2Driver{
 		// TODO: Implement renewAll() method.
 	}
 
+	private $genericResponseSOAPCallOptions = array(
+		'features' => SOAP_WAIT_ONE_WAY_CALLS, // This setting overcomes the SOAP client's expectation that there is no response from our update request.
+		'trace' => 1,                          // enable use of __getLastResponse, so that we can determine the response.
+	);
 
-	private function doSoapRequest($requestName, $WSDL, $request, $soapRequestOptions = array()) {
+	private function doSoapRequest($requestName, $request, $WSDL = '', $soapRequestOptions = array()) {
+		if (empty($WSDL)) { // Let the patron WSDL be the assumed default WSDL when not specified.
+			if (!empty($this->patronWsdl)) {
+				$WSDL = $this->patronWsdl;
+			} else {
+				global $logger;
+				$logger->log('No Default Patron WSDL defined for SOAP calls in CarlX Driver', PEAR_LOG_ERR);
+				return false;
+			}
+		}
+
 		// There are exceptions in the Soap Client that need to be caught for smooth functioning
 		try {
 			$this->soapClient = new SoapClient($WSDL, $soapRequestOptions);
@@ -386,7 +382,7 @@ class CarlX extends SIP2Driver{
 				}
 			}
 			if ($result->UnavailableHoldsCount > 0) {
-				// TODO: SHould foreach loops be consolidated into one loop?
+				// TODO: Should foreach loops be consolidated into one loop?
 				if (!is_array($result->UnavailableHoldItems->UnavailableHoldItem)) $result->UnavailableHoldItems->UnavailableHoldItem = array($result->UnavailableHoldItems->UnavailableHoldItem); // For the case of a single hold
 				foreach($result->UnavailableHoldItems->UnavailableHoldItem as $hold) {
 					$curHold = array();
@@ -423,8 +419,7 @@ class CarlX extends SIP2Driver{
 //					if ($curHold['frozen']){  //TODO Can CarlX holds be frozen?
 //						$curHold['reactivateTime']   = (int)$hold->reactivateDate;
 //					}
-					$curHold['freezeable'] = false;
-//					$curHold['freezeable'] = true; //TODO Can CarlX holds be frozen?
+					$curHold['freezeable'] = true; //TODO Can CarlX holds be frozen?
 //					if (strcasecmp($curHold['status'], 'Transit') == 0) {
 //						$curHold['freezeable'] = false;
 //					}
@@ -580,7 +575,7 @@ class CarlX extends SIP2Driver{
 				$curTitle['canrenew']        = true; //TODO: Figure out if the user can renew the title or not
 				$curTitle['renewIndicator']  = null;
 //				$curTitle['holdQueueLength'] = $this->getNumHolds($chargeItem->ItemNumber);  //TODO: implement getNumHolds()
-				// ToDO: HoldQUeueLength Needed for CHecks outs??
+				// TODO: HoldQueueLength Needed for Checks outs??
 
 				$curTitle['format']          = 'Unknown';
 				if (!empty($carlID)){
@@ -609,7 +604,8 @@ class CarlX extends SIP2Driver{
 			}
 
 		} else {
-			//TODO: Log error
+			global $logger;
+			$logger->log('Failed to retrieve user Check outs from CarlX API call.', PEAR_LOG_WARNING);
 		}
 
 	return $checkedOutTitles;
@@ -618,10 +614,7 @@ class CarlX extends SIP2Driver{
 	public function updatePin($user, $oldPin, $newPin, $confirmNewPin) {
 		$request = $this->getSearchbyPatronIdRequest($user);
 		$request->Patron->PatronPIN = $newPin;
-		$result = $this->doSoapRequest('updatePatron', $this->patronWsdl, $request, array(
-			'features' => SOAP_WAIT_ONE_WAY_CALLS, // This setting overcomes the SOAP client's expectation that there is no response from our update request.
-			'trace'    => 1,                       // enable use of __getLastResponse, so that we can determine the response.
-		));
+		$result = $this->doSoapRequest('updatePatron', $request, $this->patronWsdl, $this->genericResponseSOAPCallOptions);
 
 		if (is_null($result)) {
 			$result = $this->soapClient->__getLastResponse();
@@ -661,18 +654,6 @@ class CarlX extends SIP2Driver{
 	public function updatePatronInfo($user, $canUpdateContactInfo) {
 		$updateErrors = array();
 		if ($canUpdateContactInfo){
-			$soapClient = new SoapClient($this->patronWsdl
-				,array(
-					'features' => SOAP_WAIT_ONE_WAY_CALLS, // This setting overcomes the SOAP client's expectation that there is no response from our update request.
-					'trace' => 1, // enable use of __getLastResponse, so that we can determine the response.
-//					'exceptions' => 0,
-				)
-			);
-
-//			$soapClient = new SoapClientDebug($this->patronWsdl
-//				,array(
-//					'trace' => 1
-//			);
 
 			$request = $this->getSearchbyPatronIdRequest($user);
 
@@ -712,10 +693,10 @@ class CarlX extends SIP2Driver{
 
 			}
 
-			$result = $soapClient->updatePatron($request);
+			$result = $this->doSoapRequest('updatePatron', $request, $this->patronWsdl, $this->genericResponseSOAPCallOptions);
 
 			if (is_null($result)) {
-				$result = $soapClient->__getLastResponse();
+				$result = $this->soapClient->__getLastResponse();
 				if ($result) {
 					$unxml   = new XML_Unserializer();
 					$unxml->unserialize($result);
@@ -797,14 +778,6 @@ class CarlX extends SIP2Driver{
 
 			if (!empty($pin) && !empty($pin1) && $pin == $pin1) {
 
-//				$soapClient = new SoapClient($this->patronWsdl
-//					, array(
-//						'features' => SOAP_WAIT_ONE_WAY_CALLS, // This setting overcomes the SOAP client's expectation that there is no response from our update request.
-//						'trace' => 1, // enable use of __getLastResponse, so that we can determine the response.
-//						//					'exceptions' => 0,
-//					)
-//				);
-
 				$request                                         = new stdClass();
 				$request->Modifiers                              = '';
 				$request->Patron->PatronID                       = $tempPatronID;
@@ -826,23 +799,14 @@ class CarlX extends SIP2Driver{
 					$request->Patron->BirthDate = $date->format('Y-m-d');
 				}
 
-				// Maybe needed
 				$request->Patron->RegisteredBy = 'Pika Discovery Layer';
 
-				$result = $this->doSoapRequest('createPatron', $this->patronWsdl, $request, array(
-						'features' => SOAP_WAIT_ONE_WAY_CALLS, // This setting overcomes the SOAP client's expectation that there is no response from our update request.
-						'trace' => 1, // enable use of __getLastResponse, so that we can determine the response.
-						//					'exceptions' => 0,
-					)
-				);
-
-//				$result = $soapClient->createPatron($request);
+				$result = $this->doSoapRequest('createPatron', $request, $this->patronWsdl, $this->genericResponseSOAPCallOptions);
 
 				if (is_null($result) && $this->soapClient) {
 					$result = $this->soapClient->__getLastResponse();
-//					$result = $soapClient->__getLastResponse();
 //				echo '<pre>';
-//				print_r($soapClient->__getFunctions());
+//				print_r($this->soapClient->__getFunctions());
 //				echo '</pre>';
 					if ($result) {
 						$unxml = new XML_Unserializer();
@@ -877,6 +841,37 @@ class CarlX extends SIP2Driver{
 									global $logger;
 									$logger->log('Failed to update Variables table with new value ' . $currentPatronIDNumber . ' for "last_selfreg_patron_id" in CarlX Driver', PEAR_LOG_ERR);
 								}
+								// Get Patron
+								$request = new stdClass();
+								$request->SearchType = 'Patron ID';
+								$request->SearchID   = $tempPatronID;
+								$request->Modifiers  = '';
+
+								$result = $this->doSoapRequest('getPatronInformation', $request);
+								// Check Pin was set
+								if ($result && $result->Patron && $result->Patron->PatronPIN == '') {
+									$request->Patron->PatronPIN = $pin;
+									$result = $this->doSoapRequest('updatePatron', $request, $this->patronWsdl, $this->genericResponseSOAPCallOptions);
+									if (is_null($result)) {
+										$result = $this->soapClient->__getLastResponse();
+										if ($result) {
+											$unxml = new XML_Unserializer();
+											$unxml->unserialize($result);
+											$response = $unxml->getUnserializedData();
+
+											if ($response) {
+												$success = stripos($response['SOAP-ENV:Body']['ns3:GenericResponse']['ns3:ResponseStatuses']['ns2:ResponseStatus']['ns2:ShortMessage'], 'Success') !== false;
+												if (!$success) {
+													//TODO: Damn we have a real problem here.
+												}
+											}
+										}
+									}
+								}
+
+
+								//Do Pin Update
+
 								return array(
 									'success' => $success,
 									'barcode' => $tempPatronID,
@@ -915,9 +910,8 @@ class CarlX extends SIP2Driver{
 		global $timer;
 
 		$readHistoryEnabled = false;
-		$soapClient = new SoapClient($this->patronWsdl);
 		$request = $this->getSearchbyPatronIdRequest($user);
-		$result = $soapClient->getPatronInformation($request);
+		$result = $this->doSoapRequest('getPatronInformation', $request, $this->patronWsdl);
 		if ($result && $result->Patron) {
 			$readHistoryEnabled = $result->Patron->LoanHistoryOptInFlag;
 		}
@@ -928,7 +922,7 @@ class CarlX extends SIP2Driver{
 			$numTitles = 0;
 
 			$request->HistoryType = 'L'; //  From Documentation: The type of charge history to return, (O)utreach or (L)oan History opt-in
-			$result = $soapClient->getPatronChargeHistory($request);
+			$result = $this->doSoapRequest('getPatronChargeHistory', $request);
 
 			if ($result) {
 				// Process Reading History Response
@@ -1008,21 +1002,14 @@ class CarlX extends SIP2Driver{
 		switch ($action) {
 			case 'optIn' :
 			case 'optOut' :
-				$soapClient = new SoapClient($this->patronWsdl
-					,array(
-						'features' => SOAP_WAIT_ONE_WAY_CALLS, // This setting overcomes the SOAP client's expectation that there is no response from our update request.
-						'trace' => 1, // enable use of __getLastResponse, so that we can determine the response.
-						//					'exceptions' => 0,
-					)
-				);
 				$request = $this->getSearchbyPatronIdRequest($user);
 				$request->Patron->LoanHistoryOptInFlag = ($action == 'optIn');
-				$result = $soapClient->updatePatron($request);
+				$result = $this->doSoapRequest('updatePatron', $request, $this->patronWsdl, $this->genericResponseSOAPCallOptions);
 
 				$success = false;
 				// code block below has been taken from updatePatronInfo()
 				if (is_null($result)) {
-					$result = $soapClient->__getLastResponse();
+					$result = $this->soapClient->__getLastResponse();
 					if ($result) {
 						$unxml   = new XML_Unserializer();
 						$unxml->unserialize($result);
@@ -1058,12 +1045,11 @@ class CarlX extends SIP2Driver{
 	public function getMyFines($user) {
 		$myFines = array();
 
-		$soapClient = new SoapClient($this->patronWsdl);
 		$request = $this->getSearchbyPatronIdRequest($user);
 
 		// Fines
 		$request->TransactionType = 'Fine';
-		$result = $soapClient->getPatronTransactions($request);
+		$result = $this->doSoapRequest('getPatronTransactions', $request);
 
 		if ($result && !empty($result->FineItems->FineItem)) {
 			if (!is_array($result->FineItems->FineItem)) {
@@ -1086,7 +1072,7 @@ class CarlX extends SIP2Driver{
 
 		// TODO: Lost Items don't have the fine amount
 		$request->TransactionType = 'Lost';
-		$result = $soapClient->getPatronTransactions($request);
+		$result = $this->doSoapRequest('getPatronTransactions', $request);
 
 		if ($result && !empty($result->LostItems->LostItem)) {
 			if (!is_array($result->LostItems->LostItem)) {
@@ -1105,14 +1091,14 @@ class CarlX extends SIP2Driver{
 
 		return $myFines;
 	}
+
 //	public function getMyFines($user) {
 //		$myFines = array();
 //
-//		$soapClient = new SoapClient($this->patronWsdl);
 //		$request = $this->getSearchbyPatronIdRequest($user);
 ////		$request->CirculationFilter = false; //TODO: not sure what this filters, might be needed in actual system
 //		$request->CirculationFilter = true;
-//		$result = $soapClient->getPatronFiscalHistory($request);
+//		$result = $this->doSoapRequest('getPatronFiscalHistory', $request);
 //		if ($result && !empty($result->FiscalHistoryItem)) {
 //			if (!is_array($result->FiscalHistoryItem)) {
 //				$result->FiscalHistoryItem = array($result->FiscalHistoryItem); // single entries are not presented as an array
@@ -1144,23 +1130,16 @@ class CarlX extends SIP2Driver{
 	 */
 	private function getPatronTransactions($user)
 	{
-//		$soapClient = new SoapClient($this->patronWsdl);
-
 		$request = $this->getSearchbyPatronIdRequest($user);
-
-//		$result = $soapClient->getPatronTransactions($request);
-		$result = $this->doSoapRequest('getPatronTransactions', $this->patronWsdl, $request);
+		$result = $this->doSoapRequest('getPatronTransactions', $request, $this->patronWsdl);
 		return $result;
 	}
 
-	private function getPhoneTypeList()
-	{
-		$soapClient = new SoapClient($this->patronWsdl);
-
+	private function getPhoneTypeList() {
 		$request             = new stdClass();
 		$request->Modifiers  = '';
 
-		$result = $soapClient->getPhoneTypeList($request);
+		$result = $this->doSoapRequest('getPhoneTypeList', $request);
 		if ($result) {
 			$phoneTypes = array();
 			foreach ($result->PhoneTypes->PhoneType as $phoneType) {
@@ -1172,14 +1151,13 @@ class CarlX extends SIP2Driver{
 	}
 
 	private function getLocationInformation($locationNumber) {
-		$soapClient = new SoapClient(($this->catalogWsdl));
 
 		$request = new stdClass();
 		$request->LocationSearchType = 'Location Number';
 		$request->LocationSearchValue = $locationNumber;
 		$request->Modifiers  = '';
 
-		$result = $soapClient->GetLocationInformation($request);
+		$result = $this->doSoapRequest('GetLocationInformation', $request, $this->catalogWsdl);
 		if ($result && $result->LocationInfo) {
 			return $result->LocationInfo; // convert to array instead?
 		}
@@ -1187,16 +1165,14 @@ class CarlX extends SIP2Driver{
 
 	}
 
-	private function getBranchInformation($branchNumber)
-	{
-		$soapClient = new SoapClient($this->catalogWsdl);
+	private function getBranchInformation($branchNumber) {
 
 		$request                    = new stdClass();
 		$request->BranchSearchType  = 'Branch Number';
 		$request->BranchSearchValue = $branchNumber;
 		$request->Modifiers         = '';
 
-		$result = $soapClient->GetBranchInformation($request);
+		$result = $this->doSoapRequest('GetBranchInformation', $request, $this->catalogWsdl);
 		if ($result && $result->BranchInfo) {
 			return $result->BranchInfo; // convert to array instead?
 		}
@@ -1416,17 +1392,4 @@ class CarlX extends SIP2Driver{
 	}
 
 
-
-
-
 }
-
-//class SoapClientDebug extends SoapClient
-//{
-//	public function __doRequest($request, $location, $action, $version, $one_way = NULL)
-//	{
-////		file_put_contents('soap_log.txt', $request);
-//
-//		return parent::__doRequest($request, $location, $action, $version, $one_way);
-//	}
-//}
