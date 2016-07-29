@@ -615,8 +615,47 @@ class CarlX extends SIP2Driver{
 	return $checkedOutTitles;
 	}
 
-	public function updatePin($patron, $oldPin, $newPin, $confirmNewPin) {
+	public function updatePin($user, $oldPin, $newPin, $confirmNewPin) {
+		$request = $this->getSearchbyPatronIdRequest($user);
+		$request->Patron->PatronPIN = $newPin;
+		$result = $this->doSoapRequest('updatePatron', $this->patronWsdl, $request, array(
+			'features' => SOAP_WAIT_ONE_WAY_CALLS, // This setting overcomes the SOAP client's expectation that there is no response from our update request.
+			'trace'    => 1,                       // enable use of __getLastResponse, so that we can determine the response.
+		));
 
+		if (is_null($result)) {
+			$result = $this->soapClient->__getLastResponse();
+			if ($result) {
+				$unxml   = new XML_Unserializer();
+				$unxml->unserialize($result);
+				$response = $unxml->getUnserializedData();
+
+				if ($response) {
+					$success = stripos($response['SOAP-ENV:Body']['ns3:GenericResponse']['ns3:ResponseStatuses']['ns2:ResponseStatus']['ns2:ShortMessage'], 'Success') !== false;
+					if (!$success) {
+						// TODO: might not want to include sending message back to user
+						$errorMessage = $response['SOAP-ENV:Body']['ns3:GenericResponse']['ns3:ResponseStatuses']['ns2:ResponseStatus']['ns2:LongMessage'];
+						return 'Failed to update your pin'. ($errorMessage ? ' : ' .$errorMessage : '');
+					} else {
+						$user->cat_password = $newPin;
+						$user->update();
+						return "Your pin number was updated successfully.";
+					}
+
+				} else {
+					global $logger;
+					$logger->log('Unable to read XML from CarlX response when attempting to update Patron PIN.', PEAR_LOG_ERR);
+					return 'Unable to update your pin.';
+				}
+
+			} else {
+				global $logger;
+				$logger->log('CarlX ILS gave no response when attempting to update Patron PIN.', PEAR_LOG_ERR);
+				return 'Unable to update your pin.';
+			}
+		} elseif (!$result) {
+			return 'Failed to contact Circulation System.';
+		}
 	}
 
 	public function updatePatronInfo($user, $canUpdateContactInfo) {
@@ -1105,11 +1144,12 @@ class CarlX extends SIP2Driver{
 	 */
 	private function getPatronTransactions($user)
 	{
-		$soapClient = new SoapClient($this->patronWsdl);
+//		$soapClient = new SoapClient($this->patronWsdl);
 
 		$request = $this->getSearchbyPatronIdRequest($user);
 
-		$result = $soapClient->getPatronTransactions($request);
+//		$result = $soapClient->getPatronTransactions($request);
+		$result = $this->doSoapRequest('getPatronTransactions', $this->patronWsdl, $request);
 		return $result;
 	}
 
