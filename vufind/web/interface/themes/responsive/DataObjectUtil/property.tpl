@@ -76,6 +76,10 @@
 		{elseif $property.type == 'password'}
 			{include file="DataObjectUtil/password.tpl"}
 
+		{elseif $property.type == 'pin'}
+			<input type='password' name='{$propName}' id='{$propName}' value='{$propValue|escape}' {if $property.maxLength}maxlength='{$property.maxLength}'{/if} {if $property.size}size='{$property.size}'{/if} class='form-control digits {if $property.required}required{/if}'>
+
+
 		{elseif $property.type == 'currency'}
 			{include file="DataObjectUtil/currency.tpl"}
 
