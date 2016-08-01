@@ -40,7 +40,7 @@ cd /usr/local/vufind-plus/sites/${PIKASERVER}; ./${PIKASERVER}.sh restart
 #/data/vufind-plus/testvufind.co.wake.nc.us/move_export.sh >> ${OUTPUT_FILE}
 
 #Extract from Hoopla
-cd /usr/local/vufind-plus/vufind/cron;./HOOPLA.sh ${PIKASERVER} >> ${OUTPUT_FILE}
+#cd /usr/local/vufind-plus/vufind/cron;./HOOPLA.sh ${PIKASERVER} >> ${OUTPUT_FILE}
 
 #Extract Lexile Data
 cd /data/vufind-plus/; curl --remote-name --remote-time --silent --show-error --compressed --time-cond /data/vufind-plus/lexileTitles.txt http://venus.marmot.org/lexileTitles.txt
@@ -65,7 +65,7 @@ FILE=$(find /data/vufind-plus/testvufind.co.wake.nc.us/marc_export/ -name *.mrc 
 if [ -n "$FILE" ]
 then
   #check file size
-	MINFILE1SIZE=$((360000000))
+	MINFILE1SIZE=$((355000000))
 	FILE1SIZE=$(wc -c <"$FILE")
 	if [ $FILE1SIZE -ge $MINFILE1SIZE ]; then
 
