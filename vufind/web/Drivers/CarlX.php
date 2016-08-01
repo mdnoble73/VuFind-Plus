@@ -40,7 +40,7 @@ class CarlX extends SIP2Driver{
 
 		$patronValid = false;
 		if ($result){
-			if ($result->Patron){
+			if (isset($result->Patron)){
 				//Check to see if the pin matches
 				if ($result->Patron->PatronPIN == $password || $validatedViaSSO){
 					$fullName = $result->Patron->FullName;
@@ -780,6 +780,7 @@ class CarlX extends SIP2Driver{
 
 				$request                                         = new stdClass();
 				$request->Modifiers                              = '';
+				$request->PatronFlags->PatronFlag                = 'DUPCHECK_NAME_DOB'; // Do a duplicate name/date of birth check
 				$request->Patron->PatronID                       = $tempPatronID;
 				$request->Patron->Email                          = $email;
 				$request->Patron->FirstName                      = $firstName;
@@ -791,7 +792,8 @@ class CarlX extends SIP2Driver{
 				$request->Patron->Addresses->Address->State      = $state;
 				$request->Patron->Addresses->Address->PostalCode = $zip;
 				$request->Patron->PatronPIN                      = $pin;
-				// TODO: Set Home Branch
+				// TODO: Set Home Branch?
+				// TODO: Set Expiration Date?
 
 				if ($library && $library->promptForBirthDateInSelfReg) {
 					$birthDate                  = trim($_REQUEST['birthDate']);
@@ -848,8 +850,8 @@ class CarlX extends SIP2Driver{
 								$request->Modifiers  = '';
 
 								$result = $this->doSoapRequest('getPatronInformation', $request);
-								// Check Pin was set
-								if ($result && $result->Patron && $result->Patron->PatronPIN == '') {
+								// Check That the Pin was set  (the create Patron call does not seem to set the Pin)
+								if ($result && isset($result->Patron) && $result->Patron->PatronPIN == '') {
 									$request->Patron->PatronPIN = $pin;
 									$result = $this->doSoapRequest('updatePatron', $request, $this->patronWsdl, $this->genericResponseSOAPCallOptions);
 									if (is_null($result)) {
@@ -862,15 +864,19 @@ class CarlX extends SIP2Driver{
 											if ($response) {
 												$success = stripos($response['SOAP-ENV:Body']['ns3:GenericResponse']['ns3:ResponseStatuses']['ns2:ResponseStatus']['ns2:ShortMessage'], 'Success') !== false;
 												if (!$success) {
-													//TODO: Damn we have a real problem here.
+													global $logger;
+													$logger->log('Unable to set pin for Self-Registered user on update call after initial creation call.', PEAR_LOG_ERR);
+													// The Pin will be an empty.
+													// Return Success Any way, because the account was created.
+													return array(
+														'success' => true,
+														'barcode' => $tempPatronID,
+													);
 												}
 											}
 										}
 									}
 								}
-
-
-								//Do Pin Update
 
 								return array(
 									'success' => $success,
