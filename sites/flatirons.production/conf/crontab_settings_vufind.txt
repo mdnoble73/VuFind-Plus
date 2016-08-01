@@ -47,6 +47,11 @@
 7 20 * * * cd /usr/local/vufind-plus/vufind/cron/; java -jar cron.jar flatirons.production UpdateReadingHistory
 20 0 * * * cd /usr/local/vufind-plus/vufind/cron/; java -jar cron.jar flatirons.production DatabaseCleanup
 
+###############################################
+# Copy Original Covers from Marmot FTP Server #
+###############################################
+14 */2 * * * scp flatirons_pika_covers@ftp1.marmot.org:/ftp/flatirons_pika_covers/* /data/vufind-plus/flatirons.production/covers/original/
+
 ################
 # Pika Cleanup #
 ################

@@ -70,9 +70,6 @@
 		</div>
 	</form>
 </div>
-<div class="modal-footer">
-	<button class="btn" data-dismiss="modal" id="modalClose">Close</button>
-</div>
 {/strip}
 {literal}
 <script type="text/javascript">

@@ -85,7 +85,7 @@ class SearchObject_Islandora extends SearchObject_Base
 		$this->searchType = 'islandora';
 		$this->basicSearchType = 'islandora';
 		// Initialise the index
-		$this->indexEngine = new Solr($configArray['Islandora']['solrUrl'], 'islandora');
+		$this->indexEngine = new Solr($configArray['Islandora']['solrUrl'], isset($configArray['Islandora']['solrCore']) ? $configArray['Islandora']['solrCore'] : 'islandora');
 		$timer->logTime('Created Index Engine for Islandora');
 
 		//Make sure to turn off sharding for islandora
@@ -1085,6 +1085,14 @@ class SearchObject_Islandora extends SearchObject_Base
 						continue;
 					}
 
+					//Check to see if this is a value that should be suppressed
+					if ($field == 'RELS_EXT_isMemberOfCollection_uri_ms'){
+						if (in_array($pid, array('marmot:people', 'marmot:events', 'marmot:families', 'marmot:organizations', 'marmot:places', 'islandora:entity_collection', 'islandora_sp_basic_image_collection'))){
+							continue;
+						}
+
+					}
+
 				}elseif ($translate){
 					$currentSettings['display'] = translate($facet[0]);
 				}else{
@@ -1114,24 +1122,6 @@ class SearchObject_Islandora extends SearchObject_Base
 
 				// Store the collected values:
 				$list[$field]['list'][$valueKey] = $currentSettings;
-			}
-
-			if ($field == 'veteranOf'){
-				//Add a field for Any war
-				$currentSettings = array();
-				$currentSettings['value'] = '[* TO *]';
-				$currentSettings['display'] = $translate ? translate('Any War') : 'Any War';
-				$currentSettings['count'] = '';
-				$currentSettings['isApplied'] = false;
-				if (in_array($field, array_keys($this->filterList))) {
-					// and is this value a selected filter?
-					if (in_array($currentSettings['value'], $this->filterList[$field])) {
-						$currentSettings['isApplied'] = true;
-						$currentSettings['removalUrl'] =  $this->renderLinkWithoutFilter("$field:{$facet[0]}");
-					}
-				}
-				$currentSettings['url'] = $this->renderLinkWithFilter("veteranOf:" . $currentSettings['value']);
-				$list[$field]['list']['Any War'] = $currentSettings;
 			}
 
 			//How many facets should be shown by default
@@ -1387,6 +1377,7 @@ class SearchObject_Islandora extends SearchObject_Base
 		$filters[] = "!PID:marmot\\:*";
 		$filters[] = "!PID:ssb\\:*";
 		$filters[] = "!PID:mandala\\:*";
+		$filters[] = "!PID:ir\\:*";
 
 		$filters[] = "!mods_extension_marmotLocal_pikaOptions_includeInPika_ms:no";
 		return $filters;

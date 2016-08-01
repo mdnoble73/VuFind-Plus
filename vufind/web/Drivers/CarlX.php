@@ -15,6 +15,8 @@ class CarlX extends SIP2Driver{
 	public $patronWsdl;
 	public $catalogWsdl;
 
+	private $soapClient;
+
 	public function __construct($accountProfile) {
 		$this->accountProfile = $accountProfile;
 		global $configArray;
@@ -29,25 +31,12 @@ class CarlX extends SIP2Driver{
 		$username = trim($username);
 		$password = trim($password);
 
-		//Search for the patron in the database
-		$soapClient = new SoapClient($this->patronWsdl
-			,array(
-				'trace' => 1
-			)
-		);
-
 		$request = new stdClass();
 		$request->SearchType = 'Patron ID';
-		$request->SearchID = $username;
-		$request->Modifiers = '';
+		$request->SearchID   = $username;
+		$request->Modifiers  = '';
 
-		try {
-			$result = $soapClient->getPatronInformation($request);
-		} catch (SoapFault $e) {
-			global $logger;
-			$logger->log('Soap Client error in CarlX', PEAR_LOG_ERR);
-			return false;
-		}
+		$result = $this->doSoapRequest('getPatronInformation', $request);
 
 		$patronValid = false;
 		if ($result){
@@ -190,16 +179,19 @@ class CarlX extends SIP2Driver{
 					$patronSummaryRequest = new stdClass();
 					$patronSummaryRequest->PatronID  = $username;
 					$patronSummaryRequest->Modifiers = '';
-					$patronSummaryResponse = $soapClient->getPatronSummaryOverview($patronSummaryRequest);
 
-					$user->numCheckedOutIls     = $patronSummaryResponse->ChargedItemsCount;
-					$user->numHoldsAvailableIls = $patronSummaryResponse->HoldItemsCount;
-					$user->numHoldsRequestedIls = $patronSummaryResponse->UnavailableHoldsCount;
-					$user->numHoldsIls          = $user->numHoldsAvailableIls + $user->numHoldsRequestedIls;
+					$patronSummaryResponse = $this->doSoapRequest('getPatronSummaryOverview', $patronSummaryRequest, $this->patronWsdl);
 
-					$outstandingFines = $patronSummaryResponse->FineTotal + $patronSummaryResponse->LostItemFeeTotal;
-					$user->fines    = sprintf('$%0.2f', $outstandingFines);
-					$user->finesVal = floatval($outstandingFines);
+					if (!empty($patronSummaryRequest)) {
+						$user->numCheckedOutIls     = $patronSummaryResponse->ChargedItemsCount;
+						$user->numHoldsAvailableIls = $patronSummaryResponse->HoldItemsCount;
+						$user->numHoldsRequestedIls = $patronSummaryResponse->UnavailableHoldsCount;
+						$user->numHoldsIls          = $user->numHoldsAvailableIls + $user->numHoldsRequestedIls;
+
+						$outstandingFines = $patronSummaryResponse->FineTotal + $patronSummaryResponse->LostItemFeeTotal;
+						$user->fines      = sprintf('$%0.2f', $outstandingFines);
+						$user->finesVal   = floatval($outstandingFines);
+					}
 
 					if ($userExistsInDB){
 						$user->update();
@@ -233,7 +225,7 @@ class CarlX extends SIP2Driver{
 	 */
 	public function hasFastRenewAll() {
 		// TODO: Implement hasFastRenewAll() method.
-		// TODO: Does look like there is a Renew All throught SIP
+		// TODO: There is a Renew All through SIP, this should become true
 		return false;
 	}
 
@@ -247,7 +239,33 @@ class CarlX extends SIP2Driver{
 		// TODO: Implement renewAll() method.
 	}
 
+	private $genericResponseSOAPCallOptions = array(
+		'features' => SOAP_WAIT_ONE_WAY_CALLS, // This setting overcomes the SOAP client's expectation that there is no response from our update request.
+		'trace' => 1,                          // enable use of __getLastResponse, so that we can determine the response.
+	);
 
+	private function doSoapRequest($requestName, $request, $WSDL = '', $soapRequestOptions = array()) {
+		if (empty($WSDL)) { // Let the patron WSDL be the assumed default WSDL when not specified.
+			if (!empty($this->patronWsdl)) {
+				$WSDL = $this->patronWsdl;
+			} else {
+				global $logger;
+				$logger->log('No Default Patron WSDL defined for SOAP calls in CarlX Driver', PEAR_LOG_ERR);
+				return false;
+			}
+		}
+
+		// There are exceptions in the Soap Client that need to be caught for smooth functioning
+		try {
+			$this->soapClient = new SoapClient($WSDL, $soapRequestOptions);
+			$result = $this->soapClient->$requestName($request);
+		} catch (SoapFault $e) {
+			global $logger;
+			$logger->log('Soap Client error in CarlX: '.$e->getMessage(), PEAR_LOG_ERR);
+			return false;
+		}
+	return $result;
+	}
 
 	/**
 	 * Renew a single title currently checked out to the user
@@ -364,7 +382,7 @@ class CarlX extends SIP2Driver{
 				}
 			}
 			if ($result->UnavailableHoldsCount > 0) {
-				// TODO: SHould foreach loops be consolidated into one loop?
+				// TODO: Should foreach loops be consolidated into one loop?
 				if (!is_array($result->UnavailableHoldItems->UnavailableHoldItem)) $result->UnavailableHoldItems->UnavailableHoldItem = array($result->UnavailableHoldItems->UnavailableHoldItem); // For the case of a single hold
 				foreach($result->UnavailableHoldItems->UnavailableHoldItem as $hold) {
 					$curHold = array();
@@ -401,8 +419,7 @@ class CarlX extends SIP2Driver{
 //					if ($curHold['frozen']){  //TODO Can CarlX holds be frozen?
 //						$curHold['reactivateTime']   = (int)$hold->reactivateDate;
 //					}
-					$curHold['freezeable'] = false;
-//					$curHold['freezeable'] = true; //TODO Can CarlX holds be frozen?
+					$curHold['freezeable'] = true; //TODO Can CarlX holds be frozen?
 //					if (strcasecmp($curHold['status'], 'Transit') == 0) {
 //						$curHold['freezeable'] = false;
 //					}
@@ -558,7 +575,7 @@ class CarlX extends SIP2Driver{
 				$curTitle['canrenew']        = true; //TODO: Figure out if the user can renew the title or not
 				$curTitle['renewIndicator']  = null;
 //				$curTitle['holdQueueLength'] = $this->getNumHolds($chargeItem->ItemNumber);  //TODO: implement getNumHolds()
-				// ToDO: HoldQUeueLength Needed for CHecks outs??
+				// TODO: HoldQueueLength Needed for Checks outs??
 
 				$curTitle['format']          = 'Unknown';
 				if (!empty($carlID)){
@@ -587,27 +604,56 @@ class CarlX extends SIP2Driver{
 			}
 
 		} else {
-			//TODO: Log error
+			global $logger;
+			$logger->log('Failed to retrieve user Check outs from CarlX API call.', PEAR_LOG_WARNING);
 		}
 
 	return $checkedOutTitles;
 	}
 
+	public function updatePin($user, $oldPin, $newPin, $confirmNewPin) {
+		$request = $this->getSearchbyPatronIdRequest($user);
+		$request->Patron->PatronPIN = $newPin;
+		$result = $this->doSoapRequest('updatePatron', $request, $this->patronWsdl, $this->genericResponseSOAPCallOptions);
+
+		if (is_null($result)) {
+			$result = $this->soapClient->__getLastResponse();
+			if ($result) {
+				$unxml   = new XML_Unserializer();
+				$unxml->unserialize($result);
+				$response = $unxml->getUnserializedData();
+
+				if ($response) {
+					$success = stripos($response['SOAP-ENV:Body']['ns3:GenericResponse']['ns3:ResponseStatuses']['ns2:ResponseStatus']['ns2:ShortMessage'], 'Success') !== false;
+					if (!$success) {
+						// TODO: might not want to include sending message back to user
+						$errorMessage = $response['SOAP-ENV:Body']['ns3:GenericResponse']['ns3:ResponseStatuses']['ns2:ResponseStatus']['ns2:LongMessage'];
+						return 'Failed to update your pin'. ($errorMessage ? ' : ' .$errorMessage : '');
+					} else {
+						$user->cat_password = $newPin;
+						$user->update();
+						return "Your pin number was updated successfully.";
+					}
+
+				} else {
+					global $logger;
+					$logger->log('Unable to read XML from CarlX response when attempting to update Patron PIN.', PEAR_LOG_ERR);
+					return 'Unable to update your pin.';
+				}
+
+			} else {
+				global $logger;
+				$logger->log('CarlX ILS gave no response when attempting to update Patron PIN.', PEAR_LOG_ERR);
+				return 'Unable to update your pin.';
+			}
+		} elseif (!$result) {
+			return 'Failed to contact Circulation System.';
+		}
+	}
+
 	public function updatePatronInfo($user, $canUpdateContactInfo) {
 		$updateErrors = array();
 		if ($canUpdateContactInfo){
-			$soapClient = new SoapClient($this->patronWsdl
-				,array(
-					'features' => SOAP_WAIT_ONE_WAY_CALLS, // This setting overcomes the SOAP client's expectation that there is no response from our update request.
-					'trace' => 1, // enable use of __getLastResponse, so that we can determine the response.
-//					'exceptions' => 0,
-				)
-			);
-
-//			$soapClient = new SoapClientDebug($this->patronWsdl
-//				,array(
-//					'trace' => 1
-//			);
 
 			$request = $this->getSearchbyPatronIdRequest($user);
 
@@ -647,10 +693,10 @@ class CarlX extends SIP2Driver{
 
 			}
 
-			$result = $soapClient->updatePatron($request);
+			$result = $this->doSoapRequest('updatePatron', $request, $this->patronWsdl, $this->genericResponseSOAPCallOptions);
 
 			if (is_null($result)) {
-				$result = $soapClient->__getLastResponse();
+				$result = $this->soapClient->__getLastResponse();
 				if ($result) {
 					$unxml   = new XML_Unserializer();
 					$unxml->unserialize($result);
@@ -697,88 +743,161 @@ class CarlX extends SIP2Driver{
 		$fields[] = array('property'=>'state',       'type'=>'text', 'label'=>'State', 'description'=>'State', 'maxLength' => 32, 'required' => true);
 		$fields[] = array('property'=>'zip',         'type'=>'text', 'label'=>'Zip Code', 'description'=>'Zip Code', 'maxLength' => 32, 'required' => true);
 		$fields[] = array('property'=>'email',       'type'=>'email', 'label'=>'E-Mail', 'description'=>'E-Mail', 'maxLength' => 128, 'required' => false);
+		$fields[] = array('property'=>'pin',         'type'=>'pin',   'label'=>'Pin', 'description'=>'Your desired 4-digit pin', 'maxLength' => 4, 'size' => 4, 'required' => true);
+		$fields[] = array('property'=>'pin1',        'type'=>'pin',   'label'=>'Confirm Pin', 'description'=>'Re-type your desired 4-digit pin', 'maxLength' => 4, 'size' => 4, 'required' => true);
 		//$fields[] = array('property'=>'universityID', 'type'=>'text', 'label'=>'Drivers License #', 'description'=>'Drivers License', 'maxLength' => 128, 'required' => false);
 
-		//TODO: PIN Number
+		//TODO: Home Branch
 		return $fields;
 
 	}
 
 	public function selfRegister(){
-		global $library;
+		global $library,
+		       $configArray;
 		$success = false;
 
-		$firstName =  trim($_REQUEST['firstName']);
-		$middleName = trim($_REQUEST['middleName']);
-		$lastName =   trim($_REQUEST['lastName']);
-		$address =    trim($_REQUEST['address']);
-		$city =       trim($_REQUEST['city']);
-		$state =      trim($_REQUEST['state']);
-		$zip =        trim($_REQUEST['zip']);
-		$email =      trim($_REQUEST['email']);
+		$lastPatronID = new Variable();
+		$lastPatronID->get('name', 'last_selfreg_patron_id');
 
-		$soapClient = new SoapClient($this->patronWsdl
-			,array(
-				'features' => SOAP_WAIT_ONE_WAY_CALLS, // This setting overcomes the SOAP client's expectation that there is no response from our update request.
-				'trace' => 1, // enable use of __getLastResponse, so that we can determine the response.
-				//					'exceptions' => 0,
-			)
-		);
+		if (!empty($lastPatronID->value)) {
+			$currentPatronIDNumber = ++$lastPatronID->value;
 
-		$request                                          = new stdClass();
-		$request->Modifiers                               = '';
-		$request->Patron->Email                           = $email;
-		$request->Patron->FirstName                       = $firstName;
-		$request->Patron->MiddleName                      = $middleName;
-		$request->Patron->LastName                        = $lastName;
-		$request->Patron->Addresses->Address->Type        = 'Primary';
-		$request->Patron->Addresses->Address->Street      = $address;
-		$request->Patron->Addresses->Address->City        = $city;
-		$request->Patron->Addresses->Address->State       = $state;
-		$request->Patron->Addresses->Address->PostalCode  = $zip;
+			$tempPatronID = $configArray['Catalog']['selfRegIDPrefix'] . str_pad($currentPatronIDNumber, $configArray['Catalog']['selfRegIDNumberLength'], '0', STR_PAD_LEFT);
 
-		if ($library && $library->promptForBirthDateInSelfReg){
-			$birthDate = trim($_REQUEST['birthDate']);
-			$date = DateTime::createFromFormat('m-d-Y', $birthDate);
-			$request->Patron->BirthDate = $date->format('Y-m-d');
-		}
+			$firstName  = trim($_REQUEST['firstName']);
+			$middleName = trim($_REQUEST['middleName']);
+			$lastName   = trim($_REQUEST['lastName']);
+			$address    = trim($_REQUEST['address']);
+			$city       = trim($_REQUEST['city']);
+			$state      = trim($_REQUEST['state']);
+			$zip        = trim($_REQUEST['zip']);
+			$email      = trim($_REQUEST['email']);
+			$pin        = trim($_REQUEST['pin']);
+			$pin1       = trim($_REQUEST['pin1']);
 
-		// Maybe needed
-		$request->Patron->RegisteredBy = 'Pika Discovery Layer';
+			if (!empty($pin) && !empty($pin1) && $pin == $pin1) {
 
-		$result = $soapClient->createPatron($request);
+				$request                                         = new stdClass();
+				$request->Modifiers                              = '';
+				$request->Patron->PatronID                       = $tempPatronID;
+				$request->Patron->Email                          = $email;
+				$request->Patron->FirstName                      = $firstName;
+				$request->Patron->MiddleName                     = $middleName;
+				$request->Patron->LastName                       = $lastName;
+				$request->Patron->Addresses->Address->Type       = 'Primary';
+				$request->Patron->Addresses->Address->Street     = $address;
+				$request->Patron->Addresses->Address->City       = $city;
+				$request->Patron->Addresses->Address->State      = $state;
+				$request->Patron->Addresses->Address->PostalCode = $zip;
+				$request->Patron->PatronPIN                      = $pin;
+				// TODO: Set Home Branch
 
-		if (is_null($result)) {
-			$result = $soapClient->__getLastResponse();
-			echo '<pre>';
-			print_r($soapClient->__getFunctions());
-			echo '</pre>';
-			if ($result) {
-				$unxml   = new XML_Unserializer();
-				$unxml->unserialize($result);
-				$response = $unxml->getUnserializedData();
-
-				if ($response) {
-					$success = stripos($response['SOAP-ENV:Body']['ns3:GenericResponse']['ns3:ResponseStatuses']['ns2:ResponseStatus']['ns2:ShortMessage'], 'Success') !== false;
-					if (!$success) {
-//						$errorMessage = $response['SOAP-ENV:Body']['ns3:GenericResponse']['ns3:ResponseStatuses']['ns2:ResponseStatus']['ns2:LongMessage'];
-//						$updateErrors[] = 'Failed to update your information'. ($errorMessage ? ' : ' .$errorMessage : '');
-					} else {
-						//TODO: retrieve User's barcode
-						//TODO: User also needs an initial Pin
-					}
-
-				} else {
-//					$updateErrors[] = 'Unable to update your information.';
-					global $logger;
-					$logger->log('Unable to read XML from CarlX response when attempting to create Patron.', PEAR_LOG_ERR);
+				if ($library && $library->promptForBirthDateInSelfReg) {
+					$birthDate                  = trim($_REQUEST['birthDate']);
+					$date                       = DateTime::createFromFormat('m-d-Y', $birthDate);
+					$request->Patron->BirthDate = $date->format('Y-m-d');
 				}
 
-			} else {
+				$request->Patron->RegisteredBy = 'Pika Discovery Layer';
+
+				$result = $this->doSoapRequest('createPatron', $request, $this->patronWsdl, $this->genericResponseSOAPCallOptions);
+
+				if (is_null($result) && $this->soapClient) {
+					$result = $this->soapClient->__getLastResponse();
+//				echo '<pre>';
+//				print_r($this->soapClient->__getFunctions());
+//				echo '</pre>';
+					if ($result) {
+						$unxml = new XML_Unserializer();
+						$unxml->unserialize($result);
+						$response = $unxml->getUnserializedData();
+						if ($response) {
+							$success = isset($response['SOAP-ENV:Body']['ns3:GenericResponse']['ns3:ResponseStatuses']['ns2:ResponseStatus']['ns2:ShortMessage'])
+								&& stripos($response['SOAP-ENV:Body']['ns3:GenericResponse']['ns3:ResponseStatuses']['ns2:ResponseStatus']['ns2:ShortMessage'], 'Success') !== false;
+							if (!$success) {
+								$errorMessage = array();
+								if (is_array($response['SOAP-ENV:Body']['ns3:GenericResponse']['ns3:ResponseStatuses']['ns2:ResponseStatus'])) {
+									foreach($response['SOAP-ENV:Body']['ns3:GenericResponse']['ns3:ResponseStatuses']['ns2:ResponseStatus'] as $errorResponse) {
+										$errorMessage[] = $errorResponse['ns2:LongMessage'];
+									}
+								} else {
+									$errorMessage[] = $response['SOAP-ENV:Body']['ns3:GenericResponse']['ns3:ResponseStatuses']['ns2:ResponseStatus']['ns2:LongMessage'];
+								}
+								if (in_array('A patron with that id already exists', $errorMessage)) {
+									global $logger;
+									$logger->log('While self-registering user for CarlX, temp id number was reported in use. Increasing internal counter', PEAR_LOG_ERR);
+									// Increment the temp patron id number.
+									$lastPatronID->value = $currentPatronIDNumber;
+									if (!$lastPatronID->update()) {
+										$logger->log('Failed to update Variables table with new value ' . $currentPatronIDNumber . ' for "last_selfreg_patron_id" in CarlX Driver', PEAR_LOG_ERR);
+									}
+								}
+//						$updateErrors[] = 'Failed to update your information'. ($errorMessage ? ' : ' .$errorMessage : '');
+
+							} else {
+								$lastPatronID->value = $currentPatronIDNumber;
+								if (!$lastPatronID->update()) {
+									global $logger;
+									$logger->log('Failed to update Variables table with new value ' . $currentPatronIDNumber . ' for "last_selfreg_patron_id" in CarlX Driver', PEAR_LOG_ERR);
+								}
+								// Get Patron
+								$request = new stdClass();
+								$request->SearchType = 'Patron ID';
+								$request->SearchID   = $tempPatronID;
+								$request->Modifiers  = '';
+
+								$result = $this->doSoapRequest('getPatronInformation', $request);
+								// Check Pin was set
+								if ($result && $result->Patron && $result->Patron->PatronPIN == '') {
+									$request->Patron->PatronPIN = $pin;
+									$result = $this->doSoapRequest('updatePatron', $request, $this->patronWsdl, $this->genericResponseSOAPCallOptions);
+									if (is_null($result)) {
+										$result = $this->soapClient->__getLastResponse();
+										if ($result) {
+											$unxml = new XML_Unserializer();
+											$unxml->unserialize($result);
+											$response = $unxml->getUnserializedData();
+
+											if ($response) {
+												$success = stripos($response['SOAP-ENV:Body']['ns3:GenericResponse']['ns3:ResponseStatuses']['ns2:ResponseStatus']['ns2:ShortMessage'], 'Success') !== false;
+												if (!$success) {
+													//TODO: Damn we have a real problem here.
+												}
+											}
+										}
+									}
+								}
+
+
+								//Do Pin Update
+
+								return array(
+									'success' => $success,
+									'barcode' => $tempPatronID,
+								);
+							}
+
+						} else {
+//					$updateErrors[] = 'Unable to update your information.';
+							global $logger;
+							$logger->log('Unable to read XML from CarlX response when attempting to create Patron.', PEAR_LOG_ERR);
+						}
+
+					} else {
 //				$updateErrors[] = 'Unable to update your information.';
+						global $logger;
+						$logger->log('CarlX ILS gave no response when attempting to create Patron.', PEAR_LOG_ERR);
+					}
+				}
+			} else {
 				global $logger;
-				$logger->log('CarlX ILS gave no response when attempting to create Patron.', PEAR_LOG_ERR);
+				$logger->log('CarlX Self Registration Form was passed bad data for a user\'s pin.', PEAR_LOG_WARNING);
 			}
+		} else {
+			global $logger;
+			$logger->log('No value for "last_selfreg_patron_id" set in Variables table. Can not self-register patron in CarlX Driver.', PEAR_LOG_ERR);
+
 		}
 
 		return array(
@@ -791,9 +910,8 @@ class CarlX extends SIP2Driver{
 		global $timer;
 
 		$readHistoryEnabled = false;
-		$soapClient = new SoapClient($this->patronWsdl);
 		$request = $this->getSearchbyPatronIdRequest($user);
-		$result = $soapClient->getPatronInformation($request);
+		$result = $this->doSoapRequest('getPatronInformation', $request, $this->patronWsdl);
 		if ($result && $result->Patron) {
 			$readHistoryEnabled = $result->Patron->LoanHistoryOptInFlag;
 		}
@@ -804,7 +922,7 @@ class CarlX extends SIP2Driver{
 			$numTitles = 0;
 
 			$request->HistoryType = 'L'; //  From Documentation: The type of charge history to return, (O)utreach or (L)oan History opt-in
-			$result = $soapClient->getPatronChargeHistory($request);
+			$result = $this->doSoapRequest('getPatronChargeHistory', $request);
 
 			if ($result) {
 				// Process Reading History Response
@@ -884,21 +1002,14 @@ class CarlX extends SIP2Driver{
 		switch ($action) {
 			case 'optIn' :
 			case 'optOut' :
-				$soapClient = new SoapClient($this->patronWsdl
-					,array(
-						'features' => SOAP_WAIT_ONE_WAY_CALLS, // This setting overcomes the SOAP client's expectation that there is no response from our update request.
-						'trace' => 1, // enable use of __getLastResponse, so that we can determine the response.
-						//					'exceptions' => 0,
-					)
-				);
 				$request = $this->getSearchbyPatronIdRequest($user);
 				$request->Patron->LoanHistoryOptInFlag = ($action == 'optIn');
-				$result = $soapClient->updatePatron($request);
+				$result = $this->doSoapRequest('updatePatron', $request, $this->patronWsdl, $this->genericResponseSOAPCallOptions);
 
 				$success = false;
 				// code block below has been taken from updatePatronInfo()
 				if (is_null($result)) {
-					$result = $soapClient->__getLastResponse();
+					$result = $this->soapClient->__getLastResponse();
 					if ($result) {
 						$unxml   = new XML_Unserializer();
 						$unxml->unserialize($result);
@@ -934,12 +1045,11 @@ class CarlX extends SIP2Driver{
 	public function getMyFines($user) {
 		$myFines = array();
 
-		$soapClient = new SoapClient($this->patronWsdl);
 		$request = $this->getSearchbyPatronIdRequest($user);
 
 		// Fines
 		$request->TransactionType = 'Fine';
-		$result = $soapClient->getPatronTransactions($request);
+		$result = $this->doSoapRequest('getPatronTransactions', $request);
 
 		if ($result && !empty($result->FineItems->FineItem)) {
 			if (!is_array($result->FineItems->FineItem)) {
@@ -962,7 +1072,7 @@ class CarlX extends SIP2Driver{
 
 		// TODO: Lost Items don't have the fine amount
 		$request->TransactionType = 'Lost';
-		$result = $soapClient->getPatronTransactions($request);
+		$result = $this->doSoapRequest('getPatronTransactions', $request);
 
 		if ($result && !empty($result->LostItems->LostItem)) {
 			if (!is_array($result->LostItems->LostItem)) {
@@ -981,14 +1091,14 @@ class CarlX extends SIP2Driver{
 
 		return $myFines;
 	}
+
 //	public function getMyFines($user) {
 //		$myFines = array();
 //
-//		$soapClient = new SoapClient($this->patronWsdl);
 //		$request = $this->getSearchbyPatronIdRequest($user);
 ////		$request->CirculationFilter = false; //TODO: not sure what this filters, might be needed in actual system
 //		$request->CirculationFilter = true;
-//		$result = $soapClient->getPatronFiscalHistory($request);
+//		$result = $this->doSoapRequest('getPatronFiscalHistory', $request);
 //		if ($result && !empty($result->FiscalHistoryItem)) {
 //			if (!is_array($result->FiscalHistoryItem)) {
 //				$result->FiscalHistoryItem = array($result->FiscalHistoryItem); // single entries are not presented as an array
@@ -1020,22 +1130,16 @@ class CarlX extends SIP2Driver{
 	 */
 	private function getPatronTransactions($user)
 	{
-		$soapClient = new SoapClient($this->patronWsdl);
-
 		$request = $this->getSearchbyPatronIdRequest($user);
-
-		$result = $soapClient->getPatronTransactions($request);
+		$result = $this->doSoapRequest('getPatronTransactions', $request, $this->patronWsdl);
 		return $result;
 	}
 
-	private function getPhoneTypeList()
-	{
-		$soapClient = new SoapClient($this->patronWsdl);
-
+	private function getPhoneTypeList() {
 		$request             = new stdClass();
 		$request->Modifiers  = '';
 
-		$result = $soapClient->getPhoneTypeList($request);
+		$result = $this->doSoapRequest('getPhoneTypeList', $request);
 		if ($result) {
 			$phoneTypes = array();
 			foreach ($result->PhoneTypes->PhoneType as $phoneType) {
@@ -1047,14 +1151,13 @@ class CarlX extends SIP2Driver{
 	}
 
 	private function getLocationInformation($locationNumber) {
-		$soapClient = new SoapClient(($this->catalogWsdl));
 
 		$request = new stdClass();
 		$request->LocationSearchType = 'Location Number';
 		$request->LocationSearchValue = $locationNumber;
 		$request->Modifiers  = '';
 
-		$result = $soapClient->GetLocationInformation($request);
+		$result = $this->doSoapRequest('GetLocationInformation', $request, $this->catalogWsdl);
 		if ($result && $result->LocationInfo) {
 			return $result->LocationInfo; // convert to array instead?
 		}
@@ -1062,16 +1165,14 @@ class CarlX extends SIP2Driver{
 
 	}
 
-	private function getBranchInformation($branchNumber)
-	{
-		$soapClient = new SoapClient($this->catalogWsdl);
+	private function getBranchInformation($branchNumber) {
 
 		$request                    = new stdClass();
 		$request->BranchSearchType  = 'Branch Number';
 		$request->BranchSearchValue = $branchNumber;
 		$request->Modifiers         = '';
 
-		$result = $soapClient->GetBranchInformation($request);
+		$result = $this->doSoapRequest('GetBranchInformation', $request, $this->catalogWsdl);
 		if ($result && $result->BranchInfo) {
 			return $result->BranchInfo; // convert to array instead?
 		}
@@ -1291,17 +1392,4 @@ class CarlX extends SIP2Driver{
 	}
 
 
-
-
-
 }
-
-//class SoapClientDebug extends SoapClient
-//{
-//	public function __doRequest($request, $location, $action, $version, $one_way = NULL)
-//	{
-////		file_put_contents('soap_log.txt', $request);
-//
-//		return parent::__doRequest($request, $location, $action, $version, $one_way);
-//	}
-//}

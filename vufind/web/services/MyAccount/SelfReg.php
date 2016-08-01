@@ -93,10 +93,6 @@ class SelfReg extends Action {
 		$interface->assign('selfRegistrationSuccessMessage', $library->selfRegistrationSuccessMessage);
 		$interface->assign('promptForBirthDateInSelfReg', $library->promptForBirthDateInSelfReg);
 
-//		$interface->setTemplate('selfReg.tpl');
-//		$interface->assign('sidebar', 'MyAccount/account-sidebar.tpl');
-//		$interface->display('layout.tpl');
-
 		$this->display('selfReg.tpl', 'Self Registration');
 
 	}
