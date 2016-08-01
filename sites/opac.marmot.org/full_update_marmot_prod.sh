@@ -52,7 +52,7 @@ cd /usr/local/vufind-plus/vufind/cron;./GetHooplaFromMarmot.sh >> ${OUTPUT_FILE}
 # CCU Ebsco Marc Updates
 /usr/local/vufind-plus/sites/opac.marmot.org/moveFullExport.sh ebsco_ccu ebsco/ccu >> ${OUTPUT_FILE}
 
-# CCU Ebsco Academic Marc Updates
+# CMC Ebsco Academic Marc Updates
 /usr/local/vufind-plus/sites/opac.marmot.org/moveFullExport.sh cmc/ebsco ebsco/cmc >> ${OUTPUT_FILE}
 
 # Learning Express Marc Updates
