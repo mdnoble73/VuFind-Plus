@@ -21,9 +21,9 @@ class MyAccount_Holds extends MyAccount{
 		$interface->assign('allowFreezeHolds', true);
 
 		$ils = $configArray['Catalog']['ils'];
-		$showPosition = ($ils == 'Horizon' || $ils = 'Koha');
+		$showPosition = ($ils == 'Horizon' || $ils == 'Koha');
 		$showExpireTime = ($ils == 'Horizon');
-		$suspendRequiresReactivationDate = ($ils == 'Horizon');
+		$suspendRequiresReactivationDate = ($ils == 'Horizon' || $ils == 'CarlX');
 		$interface->assign('suspendRequiresReactivationDate', $suspendRequiresReactivationDate);
 		$canChangePickupLocation = ($ils != 'Koha');
 		$interface->assign('canChangePickupLocation', $canChangePickupLocation);
@@ -57,7 +57,7 @@ class MyAccount_Holds extends MyAccount{
 //		$showPlacedColumn = true;
 		$showPlacedColumn = false;
 		$interface->assign('showPlacedColumn', $showPlacedColumn);
-		$showDateWhenSuspending = ($ils == 'Horizon');
+		$showDateWhenSuspending = ($ils == 'Horizon' || $ils == 'CarlX');
 		$interface->assign('showDateWhenSuspending', $showDateWhenSuspending);
 
 		$interface->assign('showPosition', $showPosition);

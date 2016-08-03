@@ -148,15 +148,16 @@
 							<div class="result-label col-tn-3">{translate text='Status'}</div>
 							<div class="col-tn-9 result-value">
 								{if $record.frozen}
-									<span class='frozenHold'>
+									<span class="frozenHold">
 								{/if}
 								{$record.status}
-								{if $record.frozen && $showDateWhenSuspending} until {$record.reactivate}</span>{/if}
+								{if $record.frozen && $showDateWhenSuspending} until {$record.reactivate|date_format:"%b %d, %Y"}</span>{/if}
+								{* No references to freezeMessage in php code found. plb 8-3-2016
 								{if strlen($record.freezeMessage) > 0}
 									<div class='{if $record.freezeResult == true}freezePassed{else}freezeFailed{/if}'>
 										{$record.freezeMessage|escape}
 									</div>
-								{/if}
+								{/if}*}
 							</div>
 						</div>
 

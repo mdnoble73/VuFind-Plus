@@ -44,7 +44,7 @@
  *    // connect to SIP server
  *    $result = $mysip->connect();
  *
- *    // selfcheck status mesage goes here...
+ *    // selfcheck status message goes here...
  *
  *
  *    // Get Charged Items Raw response
@@ -399,6 +399,97 @@ class sip2
 		$this->_addVarOption('AJ',$title, true);
 		$this->_addVarOption('AC',$this->AC, true);
 		$this->_addVarOption('BO',$fee, true); /* Y when user has agreed to a fee notice */
+
+		return $this->_returnMessage();
+
+	}
+
+	// For CarlX Only
+	function freezeSuspendHold($reactivateDate = '', $freeze = true, $expDate = '', $holdtype = '', $item = '', $title = '', $fee='N', $pkupLocation = '5')
+	{
+		$mode = '*';
+		/* mode validity check */
+		/*
+		 * - remove hold
+		 * + place hold
+		 * * modify hold
+		 */
+		if (strpos('-+*',$mode) === false) {
+			/* not a valid mode - exit */
+			$this->_debugmsg( "SIP2: Invalid hold mode: {$mode}");
+			return false;
+		}
+
+		if ($holdtype != '' && ($holdtype < 1 || $holdtype > 9)) {
+			/*
+			 * Valid hold types range from 1 - 9
+			 * 1   other
+			 * 2   any copy of title
+			 * 3   specific copy
+			 * 4   any copy at a single branch or location
+			 */
+			$this->_debugmsg( "SIP2: Invalid hold type code: {$holdtype}");
+			return false;
+		}
+
+		$this->_newMessage('15');
+		$this->_addFixedOption($mode, 1);
+		$this->_addFixedOption($this->_datestamp(), 18);
+		$this->msgBuild .= $this->fldTerminator;
+//		if ($expDate != '') {
+//			/* hold expiration date,  due to the use of the datestamp function, we have to check here for empty value. when datestamp is passed an empty value it will generate a current datestamp */
+//			$this->_addVarOption('BW', $this->_datestamp($expDate), true); /*spec says this is fixed field, but it behaves like a var field and is optional... */
+//		}
+		$this->_addVarOption('BW', '', false);
+		$this->_addVarOption('BS',$pkupLocation, true);
+		$this->_addVarOption('BY',$holdtype, true);
+		$this->_addVarOption('AO',$this->AO);
+		$this->_addVarOption('AA',$this->patron);
+		$this->_addVarOption('AD',$this->patronpwd, true);
+//		$this->_addVarOption('AB',$item, true);
+		$this->_addVarOption('AB',$item, false);
+		$this->_addVarOption('AJ',$title, true);
+//		$this->_addVarOption('AC',$this->AC, true);
+		$this->_addVarOption('AC',$this->AC, false);
+		$this->_addVarOption('BO',$fee, true); /* Y when user has agreed to a fee notice */
+
+		$this->_addVarOption('BR', '1', false);
+		$this->_addVarOption('XG', '', false);
+		$this->_addVarOption('XI',$reactivateDate . ($freeze ? 'B' : ''), true);  // Custom Field to suspend holds
+
+		return $this->_returnMessage();
+
+	}
+
+	// For CarlX Only
+	function freezeHoldCarlX($reactivateDate = '',  $title = '' )
+	{
+		$freeze = true;
+		$mode = '*';
+		$pickupLocation = '5';
+		$fee='N';
+		$holdtype = '2';
+
+
+
+		$this->_newMessage('15');
+		$this->_addFixedOption($mode, 19);
+		$this->msgBuild .= $this->fldTerminator;
+		$this->_addVarOption('BW', '', false);
+		$this->_addVarOption('BS',$pickupLocation, true);
+		$this->_addVarOption('BY',$holdtype, true);
+		$this->_addVarOption('AO',$this->AO);
+		$this->_addVarOption('AA',$this->patron);
+		$this->_addVarOption('AB','', false);
+		$this->_addVarOption('AD',$this->patronpwd, true);
+		$this->_addVarOption('AJ',$title, true);
+//		$this->_addVarOption('AC',$this->AC, true);
+		$this->_addVarOption('AC',$this->AC, false);
+		$this->_addVarOption('BO',$fee, true); /* Y when user has agreed to a fee notice */
+
+		$this->_addVarOption('BR', '1', false);
+		$this->_addVarOption('XG', '', false);
+		$this->_addVarOption('XI',$reactivateDate . ($freeze ? 'B' : ''), true);  // Custom Field to suspend holds
 
 		return $this->_returnMessage();
 
