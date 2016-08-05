@@ -65,7 +65,7 @@
 		{foreachelse}
 			<div class="row related-manifestation">
 				<div class="col-sm-12">
-					No formats of this title are currently available to you.  {if !$user}You may be able to access additional titles if you login.{/if}
+					Arlington Public Library does not own this item.
 				</div>
 			</div>
 		{/foreach}

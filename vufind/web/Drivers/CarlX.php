@@ -40,7 +40,7 @@ class CarlX extends SIP2Driver{
 
 		$patronValid = false;
 		if ($result){
-			if ($result->Patron){
+			if (isset($result->Patron)){
 				//Check to see if the pin matches
 				if ($result->Patron->PatronPIN == $password || $validatedViaSSO){
 					$fullName = $result->Patron->FullName;
@@ -314,6 +314,8 @@ class CarlX extends SIP2Driver{
 		$result = $this->getPatronTransactions($user);
 
 		if ($result && ($result->HoldItemsCount > 0 || $result->UnavailableHoldsCount > 0)) {
+
+			// Available Holds
 			if ($result->HoldItemsCount > 0) {
 				//TODO: a single hold is not in an array; Need to verify that multiple holds are in an array
 				if (!is_array($result->HoldItems->HoldItem)) $result->HoldItems->HoldItem = array($result->HoldItems->HoldItem); // For the case of a single hold
@@ -323,13 +325,11 @@ class CarlX extends SIP2Driver{
 					$carlID         = $this->fullCarlIDfromBID($bibId);
 					$expireDate     = isset($hold->ExpirationDate) ? $this->extractDateFromCarlXDateField($hold->ExpirationDate) : null;
 					$pickUpBranch   = $this->getBranchInformation($hold->PickUpBranch); //TODO: Use local DB; will require adding ILS branch numbers to DB or memcache (there is a getAllBranchInfo Call)
-//					$location       = $this->getLocationInformation($hold->Location); // IDK what this is referring to yet, or if it is needed
 
-//						$reactivateDate = $this->extractDateFromCarlXDateField($hold) //TODO: activation date? unavailable holds only
 					$curHold['id']                 = $bibId;
 					$curHold['holdSource']         = 'ILS';
 					$curHold['itemId']             = $hold->ItemNumber;
-//						$curHold['cancelId']           = (string)$hold->holdKey; //TODO: Determine Cancellation Method
+					$curHold['cancelId']           = $bibId;
 					$curHold['position']           = $hold->QueuePosition;
 					$curHold['recordId']           = $carlID;
 					$curHold['shortId']            = $bibId;
@@ -339,24 +339,15 @@ class CarlX extends SIP2Driver{
 					$curHold['location']           = empty($pickUpBranch->BranchName) ? '' : $pickUpBranch->BranchName;
 					$curHold['locationUpdateable'] = true; //TODO: unless status is in transit?
 					$curHold['currentPickupName']  = empty($pickUpBranch->BranchName) ? '' : $pickUpBranch->BranchName;
-//					$curHold['status']             = ucfirst(strtolower((string)$hold->status));
 					$curHold['status']             = $this->holdStatusCodes[$hold->ItemStatus];  // TODO: Is this the correct thing for hold status. Alternative is Transaction Code
 					//TODO: Look up values for Hold Statuses
 
-					$curHold['expire']         = strtotime($expireDate); // give a time stamp  // use this for available holds
-//						$curHold['reactivate']         = $reactivateDate; //TODO unavailable only
-//						$curHold['reactivateTime']     = strtotime($reactivateDate); //TODO unavailable only
-					$curHold['cancelable']         = strcasecmp($curHold['status'], 'Suspended') != 0; //TODO: need frozen status
-//					$curHold['frozen']             = strcasecmp($curHold['status'], 'Suspended') == 0; //TODO: need frozen status
-					$curHold['frozen']             = false;
-//					if ($curHold['frozen']){  //TODO Can CarlX holds be frozen?
-//						$curHold['reactivateTime']   = (int)$hold->reactivateDate;
-//					}
-					$curHold['freezeable'] = false;
-//					$curHold['freezeable'] = true; //TODO Can CarlX holds be frozen?
-//					if (strcasecmp($curHold['status'], 'Transit') == 0) {
-//						$curHold['freezeable'] = false;
-//					}
+					$curHold['expire']             = strtotime($expireDate); // give a time stamp  // use this for available holds
+					$curHold['reactivate']         = null;
+					$curHold['reactivateTime']     = null;
+					$curHold['frozen']             = $hold->Suspended == true;
+					$curHold['cancelable']         = true; //TODO: Can Cancel Available Holds?
+					$curHold['freezeable']         = false;
 
 					require_once ROOT_DIR . '/RecordDrivers/MarcRecord.php';
 					$recordDriver = new MarcRecord($carlID);
@@ -381,8 +372,9 @@ class CarlX extends SIP2Driver{
 
 				}
 			}
+
+			// Unavailable Holds
 			if ($result->UnavailableHoldsCount > 0) {
-				// TODO: Should foreach loops be consolidated into one loop?
 				if (!is_array($result->UnavailableHoldItems->UnavailableHoldItem)) $result->UnavailableHoldItems->UnavailableHoldItem = array($result->UnavailableHoldItems->UnavailableHoldItem); // For the case of a single hold
 				foreach($result->UnavailableHoldItems->UnavailableHoldItem as $hold) {
 					$curHold = array();
@@ -391,7 +383,6 @@ class CarlX extends SIP2Driver{
 					$expireDate     = isset($hold->ExpirationDate) ? $this->extractDateFromCarlXDateField($hold->ExpirationDate) : null;
 					$pickUpBranch   = $this->getBranchInformation($hold->PickUpBranch);
 
-//						$reactivateDate = $this->extractDateFromCarlXDateField($hold) //TODO: activation date? unavailable holds only
 					$curHold['id']                 = $bibId;
 					$curHold['holdSource']         = 'ILS';
 					$curHold['itemId']             = $hold->ItemNumber;
@@ -405,21 +396,21 @@ class CarlX extends SIP2Driver{
 					$curHold['location']           = empty($pickUpBranch->BranchName) ? '' : $pickUpBranch->BranchName;
 					$curHold['locationUpdateable'] = true; //TODO: unless status is in transit?
 					$curHold['currentPickupName']  = empty($pickUpBranch->BranchName) ? '' : $pickUpBranch->BranchName;
-					$curHold['status']             = $this->holdStatusCodes[$hold->ItemStatus];  // TODO: Is this the correct thing for hold status. Alternative is Transaction Code
+					$curHold['frozen']             = $hold->Suspended;
+					$curHold['status']             = $this->holdStatusCodes[$hold->ItemStatus];
+					// TODO: Is this the correct thing for hold status. Alternative is Transaction Code
 					//TODO: Look up values for Hold Statuses
 
 					$curHold['automaticCancellation'] = strtotime($expireDate); // use this for unavailable holds
-//					$curHold['expire']         = strtotime($expireDate); // use this for available holds
 
-//						$curHold['reactivate']         = $reactivateDate; //TODO unavailable only
-//						$curHold['reactivateTime']     = strtotime($reactivateDate); //TODO unavailable only
-					$curHold['cancelable']         = strcasecmp($curHold['status'], 'Suspended') != 0; //TODO: need frozen status
-//					$curHold['frozen']             = strcasecmp($curHold['status'], 'Suspended') == 0; //TODO: need frozen status
-					$curHold['frozen']             = false;
-//					if ($curHold['frozen']){  //TODO Can CarlX holds be frozen?
-//						$curHold['reactivateTime']   = (int)$hold->reactivateDate;
-//					}
-					$curHold['freezeable'] = true; //TODO Can CarlX holds be frozen?
+					$curHold['cancelable']         = true;
+
+					if ($curHold['frozen']){
+						$curHold['reactivate']         = $this->extractDateFromCarlXDateField($hold->SuspendedUntilDate);
+						$curHold['reactivateTime']     = strtotime($hold->SuspendedUntilDate);
+						$curHold['status']             = 'Frozen';
+					}
+					$curHold['freezeable'] = true;
 //					if (strcasecmp($curHold['status'], 'Transit') == 0) {
 //						$curHold['freezeable'] = false;
 //					}
@@ -505,7 +496,8 @@ class CarlX extends SIP2Driver{
 	}
 
 	function freezeHold($patron, $recordId, $itemToFreezeId, $dateToReactivate) {
-		// TODO: Implement freezeHold() method.
+		$result = $this->freezeThawHoldViaSIP($patron, $recordId, null, $dateToReactivate);
+		return $result;
 	}
 
 	function thawHold($patron, $recordId, $itemToThawId) {
@@ -780,6 +772,7 @@ class CarlX extends SIP2Driver{
 
 				$request                                         = new stdClass();
 				$request->Modifiers                              = '';
+				$request->PatronFlags->PatronFlag                = 'DUPCHECK_NAME_DOB'; // Do a duplicate name/date of birth check
 				$request->Patron->PatronID                       = $tempPatronID;
 				$request->Patron->Email                          = $email;
 				$request->Patron->FirstName                      = $firstName;
@@ -791,7 +784,8 @@ class CarlX extends SIP2Driver{
 				$request->Patron->Addresses->Address->State      = $state;
 				$request->Patron->Addresses->Address->PostalCode = $zip;
 				$request->Patron->PatronPIN                      = $pin;
-				// TODO: Set Home Branch
+				// TODO: Set Home Branch?
+				// TODO: Set Expiration Date?
 
 				if ($library && $library->promptForBirthDateInSelfReg) {
 					$birthDate                  = trim($_REQUEST['birthDate']);
@@ -848,8 +842,8 @@ class CarlX extends SIP2Driver{
 								$request->Modifiers  = '';
 
 								$result = $this->doSoapRequest('getPatronInformation', $request);
-								// Check Pin was set
-								if ($result && $result->Patron && $result->Patron->PatronPIN == '') {
+								// Check That the Pin was set  (the create Patron call does not seem to set the Pin)
+								if ($result && isset($result->Patron) && $result->Patron->PatronPIN == '') {
 									$request->Patron->PatronPIN = $pin;
 									$result = $this->doSoapRequest('updatePatron', $request, $this->patronWsdl, $this->genericResponseSOAPCallOptions);
 									if (is_null($result)) {
@@ -862,15 +856,19 @@ class CarlX extends SIP2Driver{
 											if ($response) {
 												$success = stripos($response['SOAP-ENV:Body']['ns3:GenericResponse']['ns3:ResponseStatuses']['ns2:ResponseStatus']['ns2:ShortMessage'], 'Success') !== false;
 												if (!$success) {
-													//TODO: Damn we have a real problem here.
+													global $logger;
+													$logger->log('Unable to set pin for Self-Registered user on update call after initial creation call.', PEAR_LOG_ERR);
+													// The Pin will be an empty.
+													// Return Success Any way, because the account was created.
+													return array(
+														'success' => true,
+														'barcode' => $tempPatronID,
+													);
 												}
 											}
 										}
 									}
 								}
-
-
-								//Do Pin Update
 
 								return array(
 									'success' => $success,
@@ -1202,32 +1200,84 @@ class CarlX extends SIP2Driver{
 	}
 
 
-	public function placeHoldViaSIP($patron, $recordId, $pickupBranch = null, $cancelDate = null, $type = null){
+	public function freezeThawHoldViaSIP($patron, $recordId, $itemToFreezeId = null, $dateToReactivate = null, $type = 'freeze'){
 		global $configArray;
 		//Place the hold via SIP 2
 		require_once ROOT_DIR . '/sys/SIP2.php';
-		$mysip = new sip2();
-		$mysip->hostname = $configArray['SIP2']['host'];
-		$mysip->port     = $configArray['SIP2']['port'];
+		$mySip = new sip2();
+		$mySip->hostname = $configArray['SIP2']['host'];
+		$mySip->port     = $configArray['SIP2']['port'];
 
 		$success = false;
 		$title = '';
 		$message = 'Failed to connect to complete requested action.';
-		if ($mysip->connect()) {
-			//send selfcheck status message
-			$in = $mysip->msgSCStatus();
-			$msg_result = $mysip->get_message($in);
+		if ($mySip->connect()) {
+			//send self check status message
+			$in = $mySip->msgSCStatus();
+			$msg_result = $mySip->get_message($in);
 			// Make sure the response is 98 as expected
 			if (preg_match("/^98/", $msg_result)) {
-				$result = $mysip->parseACSStatusResponse($msg_result);
+				$result = $mySip->parseACSStatusResponse($msg_result);
 
 				//  Use result to populate SIP2 setings
 				// These settings don't seem to apply to the CarlX Sandbox. pascal 7-12-2016
-				if (!empty($result['variable']['AO'][0])) $mysip->AO = $result['variable']['AO'][0]; /* set AO to value returned */
-				if (!empty($result['variable']['AN'][0])) $mysip->AN = $result['variable']['AN'][0]; /* set AN to value returned */
+				if (!empty($result['variable']['AO'][0])) $mySip->AO = $result['variable']['AO'][0]; /* set AO to value returned */
+				if (!empty($result['variable']['AN'][0])) $mySip->AN = $result['variable']['AN'][0]; /* set AN to value returned */
 
-				$mysip->patron    = $patron->cat_username;
-				$mysip->patronpwd = $patron->cat_password;
+				$mySip->patron    = $patron->cat_username;
+				$mySip->patronpwd = $patron->cat_password;
+
+				$holdId = $recordId;
+
+				$in = $mySip->freezeSuspendHold($dateToReactivate, true, '', '1', '', $holdId);
+//				$in = $mySip->freezeSuspendHold($dateToReactivate, true, '', '2', '', $holdId);
+//				$in = $mySip->freezeHoldCarlX($dateToReactivate, $holdId);
+				$msg_result = $mySip->get_message($in);
+
+				if (preg_match("/^16/", $msg_result)) {
+					$result = $mySip->parseHoldResponse($msg_result );
+					$success = ($result['fixed']['Ok'] == 1);
+					$message = $result['variable']['AF'][0];
+					if (!empty($result['variable']['AJ'][0])) {
+						$title = $result['variable']['AJ'][0];
+					}
+				}
+			}
+		}
+		return array(
+			'title'   => $title,
+			'bib'     => $recordId,
+			'success' => $success,
+			'message' => $message
+		);
+	}
+
+	public function placeHoldViaSIP($patron, $recordId, $pickupBranch = null, $cancelDate = null, $type = null){
+		global $configArray;
+		//Place the hold via SIP 2
+		require_once ROOT_DIR . '/sys/SIP2.php';
+		$mySip = new sip2();
+		$mySip->hostname = $configArray['SIP2']['host'];
+		$mySip->port     = $configArray['SIP2']['port'];
+
+		$success = false;
+		$title = '';
+		$message = 'Failed to connect to complete requested action.';
+		if ($mySip->connect()) {
+			//send selfcheck status message
+			$in = $mySip->msgSCStatus();
+			$msg_result = $mySip->get_message($in);
+			// Make sure the response is 98 as expected
+			if (preg_match("/^98/", $msg_result)) {
+				$result = $mySip->parseACSStatusResponse($msg_result);
+
+				//  Use result to populate SIP2 setings
+				// These settings don't seem to apply to the CarlX Sandbox. pascal 7-12-2016
+				if (!empty($result['variable']['AO'][0])) $mySip->AO = $result['variable']['AO'][0]; /* set AO to value returned */
+				if (!empty($result['variable']['AN'][0])) $mySip->AN = $result['variable']['AN'][0]; /* set AN to value returned */
+
+				$mySip->patron    = $patron->cat_username;
+				$mySip->patronpwd = $patron->cat_password;
 
 				if (empty($pickupBranch)){
 					//Get the code for the location
@@ -1268,13 +1318,13 @@ class CarlX extends SIP2Driver{
 					$expirationTime = time() + 2 * 365 * 24 * 60 * 60;
 				}
 
-				$in = $mysip->msgHold($mode, $expirationTime, '2', '', $holdId, '', $pickupBranch);
-				$msg_result = $mysip->get_message($in);
+				$in = $mySip->msgHold($mode, $expirationTime, '2', '', $holdId, '', $pickupBranch);
+				$msg_result = $mySip->get_message($in);
 
 //				$title = $this->getRecordTitle($recordId); //TODO: method isn't defined
 
 				if (preg_match("/^16/", $msg_result)) {
-					$result = $mysip->parseHoldResponse($msg_result );
+					$result = $mySip->parseHoldResponse($msg_result );
 					$success = ($result['fixed']['Ok'] == 1);
 					$message = $result['variable']['AF'][0];
 					if (!empty($result['variable']['AJ'][0])) {
