@@ -42,7 +42,6 @@ class SelfReg extends Action {
 
 		if (isset($_REQUEST['submit'])) {
 
-			$recaptchaValid = false;
 			if (isset($configArray['ReCaptcha']['privateKey'])){
 				$privatekey = $configArray['ReCaptcha']['privateKey'];
 				$resp = recaptcha_check_answer ($privatekey,
@@ -93,10 +92,6 @@ class SelfReg extends Action {
 		$interface->assign('selfRegistrationFormMessage', $library->selfRegistrationFormMessage);
 		$interface->assign('selfRegistrationSuccessMessage', $library->selfRegistrationSuccessMessage);
 		$interface->assign('promptForBirthDateInSelfReg', $library->promptForBirthDateInSelfReg);
-
-//		$interface->setTemplate('selfReg.tpl');
-//		$interface->assign('sidebar', 'MyAccount/account-sidebar.tpl');
-//		$interface->display('layout.tpl');
 
 		$this->display('selfReg.tpl', 'Self Registration');
 

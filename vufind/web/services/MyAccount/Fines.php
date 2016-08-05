@@ -33,7 +33,7 @@ class Fines extends MyAccount
 		       $configArray;
 
 		$ils = $configArray['Catalog']['ils'];
-		$interface->assign('showDate', $ils == 'Koha' || $ils == 'Horizon');
+		$interface->assign('showDate', $ils == 'Koha' || $ils == 'Horizon' || $ils == 'CarlX');
 		$interface->assign('showReason', $ils != 'Koha');
 		$useOutstanding = $ils == 'Koha';
 		$interface->assign('showOutstanding', $useOutstanding);
@@ -50,7 +50,11 @@ class Fines extends MyAccount
 				$userAccountLabel[$userId] = $user->getUserReferredTo($userId)->getNameAndLibraryLabel();
 				$total = $totalOutstanding = 0;
 				foreach ($finesDetails as $fine) {
-					$amount = ltrim($fine['amount'], $this->currency_symbol);
+					if (!empty($fine['amount']) && $fine['amount'][0] == '-') {
+						$amount = - ltrim($fine['amount'], '-'.$this->currency_symbol);
+					} else {
+						$amount = ltrim($fine['amount'], $this->currency_symbol);
+					}
 					if (is_numeric($amount)) $total += $amount;
 					if ($useOutstanding && $fine['amountOutstanding']) {
 						$outstanding = ltrim($fine['amountOutstanding'], $this->currency_symbol);

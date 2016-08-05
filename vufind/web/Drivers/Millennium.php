@@ -721,8 +721,8 @@ class Millennium extends ScreenScrapingDriver
 	 *                                If an error occurs, return a PEAR_Error
 	 * @access  public
 	 */
-	function placeHold($patron, $recordId, $pickupBranch) {
-		$result = $this->placeItemHold($patron, $recordId, '', $pickupBranch);
+	function placeHold($patron, $recordId, $pickupBranch, $cancelDate = null) {
+		$result = $this->placeItemHold($patron, $recordId, '', $pickupBranch, $cancelDate);
 		return $result;
 	}
 
@@ -739,10 +739,10 @@ class Millennium extends ScreenScrapingDriver
 	 *                              If an error occurs, return a PEAR_Error
 	 * @access  public
 	 */
-	function placeItemHold($patron, $recordId, $itemId, $pickupBranch) {
+	function placeItemHold($patron, $recordId, $itemId, $pickupBranch, $cancelDate = null) {
 		require_once ROOT_DIR . '/Drivers/marmot_inc/MillenniumHolds.php';
 		$millenniumHolds = new MillenniumHolds($this);
-		return $millenniumHolds->placeItemHold($patron, $recordId, $itemId, $pickupBranch);
+		return $millenniumHolds->placeItemHold($patron, $recordId, $itemId, $pickupBranch, $cancelDate);
 	}
 
 	/**

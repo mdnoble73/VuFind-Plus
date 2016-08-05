@@ -8686,6 +8686,9 @@ hr.menu {
   padding: 0 !important;
   margin: 0 !important;
 }
+.required-input {
+  color: red;
+}
 #home-page-search {
   background-color: #6E002B;
   background: -webkit-linear-gradient(top, #6E002B, #5D0022);

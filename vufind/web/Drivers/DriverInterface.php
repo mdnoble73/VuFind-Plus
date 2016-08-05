@@ -102,7 +102,7 @@ interface DriverInterface
 	 *                                title - the title of the record the user is placing a hold on
 	 * @access  public
 	 */
-	public function placeHold($patron, $recordId, $pickupBranch);
+	public function placeHold($patron, $recordId, $pickupBranch, $cancelDate = null);
 
 	/**
 	 * Place Item Hold

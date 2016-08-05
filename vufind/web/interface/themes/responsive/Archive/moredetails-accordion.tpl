@@ -459,17 +459,26 @@
 						{/if}
 
 						{* Local Identifier *}
-						{if $identifier}
+						{if count($identifier) > 0}
 							<div class="row">
-								<div class="result-label col-sm-4">Local Identifier: </div>
+								<div class="result-label col-sm-4">Local Identifier{if count($identifier) > 1}s{/if}: </div>
 								<div class="result-value col-sm-8">
-									{$identifier}
+									{implode subject=$identifier glue=', '}
 								</div>
 							</div>
 						{/if}
 
+						{* Date Created *}
+						{if $postcardPublisherNumber}
+							<div class="row">
+								<div class="result-label col-sm-4">Postcard Publisher Number: </div>
+								<div class="result-value col-sm-8">
+									{$postcardPublisherNumber}
+								</div>
+							</div>
+						{/if}
 
-						{if $$physicalExtents || $physicalLocation || $shelfLocator}
+						{if $physicalExtents || $physicalLocation || $shelfLocator}
 
 							{* Physical Description *}
 							{if !empty($physicalExtents)}

@@ -67,6 +67,17 @@ abstract class Archive_Object extends Action{
 		// Replace 'object:pid' with the PID of the object to be loaded.
 		$this->pid = urldecode($_REQUEST['id']);
 		$interface->assign('pid', $this->pid);
+
+		list($namespace) = explode(':', $this->pid);
+		//Find the owning library
+		$owningLibrary = new Library();
+		$owningLibrary->archiveNamespace = $namespace;
+		if ($owningLibrary->find(true) && $owningLibrary->N == 1){
+			$interface->assign ('allowRequestsForArchiveMaterials', $owningLibrary->allowRequestsForArchiveMaterials);
+		} else {
+			$interface->assign ('allowRequestsForArchiveMaterials', false);
+		}
+
 		$this->archiveObject = $fedoraUtils->getObject($this->pid);
 		$this->recordDriver = RecordDriverFactory::initRecordDriver($this->archiveObject);
 		$interface->assign('recordDriver', $this->recordDriver);
@@ -81,20 +92,29 @@ abstract class Archive_Object extends Action{
 			$interface->assign('dateCreated', $dateCreated);
 		}
 		
-		$identifier = $this->recordDriver->getModsValue('identifier', 'mods');
-		$interface->assign('identifier', $identifier);
+		$identifier = $this->recordDriver->getModsValues('identifier', 'mods');
+		$interface->assign('identifier', FedoraUtils::cleanValues($identifier));
 
 		$physicalDescriptions = $this->recordDriver->getModsValues('physicalDescription', 'mods');
 		$physicalExtents = array();
 		foreach ($physicalDescriptions as $physicalDescription){
-			$extent = $this->recordDriver->getModsValue('identifier', 'mods', $physicalDescription);
+			$extent = $this->recordDriver->getModsValue('extent', 'mods', $physicalDescription);
+			$form = $this->recordDriver->getModsValue('form', 'mods', $physicalDescription);
+			if (empty($extent)){
+				$extent = $form;
+			}elseif (!empty($form)){
+				$extent .= " ($form)";
+			}
 			$physicalExtents[] = $extent;
+
 		}
 		$interface->assign('physicalExtents', $physicalExtents);
 
 		$physicalLocation = $this->recordDriver->getModsValues('physicalLocation', 'mods');
 		$interface->assign('physicalLocation', $physicalLocation);
-		
+
+		$interface->assign('postcardPublisherNumber', $this->recordDriver->getModsValue('postcardPublisherNumber', 'marmot'));
+
 		$shelfLocator = $this->recordDriver->getModsValues('shelfLocator', 'mods');
 		$interface->assign('shelfLocator', $shelfLocator);
 
@@ -152,24 +172,24 @@ abstract class Archive_Object extends Action{
 
 			$interface->assign('transcription',
 					array(
-							'language' => $this->recordDriver->getModsValue('transcriptionLanguage', 'marmotLocal', $transcription),
+							'language' => $this->recordDriver->getModsValue('transcriptionLanguage', 'marmot', $transcription),
 							'text' => $transcriptionTextWithLinks,
 					)
 			);
 		}
 
-		$alternateNames = $this->recordDriver->getModsValues('alternateName', 'marmotLocal');
-		$interface->assign('alternateNames', $alternateNames);
+		$alternateNames = $this->recordDriver->getModsValues('alternateName', 'marmot');
+		$interface->assign('alternateNames', FedoraUtils::cleanValues($alternateNames));
 
 		$this->recordDriver->loadRelatedEntities();
 
 		$interface->assign('hasMilitaryService', false);
-		$militaryService = $this->recordDriver->getModsValue('militaryService', 'marmotLocal');
+		$militaryService = $this->recordDriver->getModsValue('militaryService', 'marmot');
 		if (strlen($militaryService) > 0){
 			/** @var SimpleXMLElement $record */
-			$militaryRecord = $this->recordDriver->getModsValue('militaryRecord', 'marmotLocal', $militaryService);
-			$militaryBranch = $this->recordDriver->getModsValue('militaryBranch', 'marmotLocal', $militaryRecord);
-			$militaryConflict = $this->recordDriver->getModsValue('militaryConflict', 'marmotLocal', $militaryRecord);
+			$militaryRecord = $this->recordDriver->getModsValue('militaryRecord', 'marmot', $militaryService);
+			$militaryBranch = $this->recordDriver->getModsValue('militaryBranch', 'marmot', $militaryRecord);
+			$militaryConflict = $this->recordDriver->getModsValue('militaryConflict', 'marmot', $militaryRecord);
 			if ($militaryBranch != 'none' || $militaryConflict != 'none'){
 				$militaryRecord = array(
 						'branch' => $fedoraUtils->getObjectLabel($militaryBranch),
@@ -187,6 +207,7 @@ abstract class Archive_Object extends Action{
 		$longitude = $this->recordDriver->getModsValue('longitude', 'marmot');
 		$addressStreetNumber = $this->recordDriver->getModsValue('addressStreetNumber', 'marmot');
 		$addressStreet = $this->recordDriver->getModsValue('addressStreet', 'marmot');
+		$address2 = $this->recordDriver->getModsValue('address2', 'marmot');
 		$addressCity = $this->recordDriver->getModsValue('addressCity', 'marmot');
 		$addressCounty = $this->recordDriver->getModsValue('addressCounty', 'marmot');
 		$addressState = $this->recordDriver->getModsValue('addressState', 'marmot');
@@ -197,11 +218,11 @@ abstract class Archive_Object extends Action{
 				strlen($longitude) ||
 				strlen($addressStreetNumber) ||
 				strlen($addressStreet) ||
+				strlen($address2) ||
 				strlen($addressCity) ||
 				strlen($addressCounty) ||
 				strlen($addressState) ||
 				strlen($addressZipCode) ||
-				strlen($addressCountry) ||
 				strlen($addressOtherRegion)) {
 
 			if (strlen($latitude) > 0) {
@@ -219,25 +240,31 @@ abstract class Archive_Object extends Action{
 				$addressInfo['hasDetailedAddress'] = true;
 				$addressInfo['addressStreet'] = $addressStreet;
 			}
+			if (strlen($address2) > 0) {
+				$addressInfo['hasDetailedAddress'] = true;
+				$addressInfo['address2'] = $address2;
+			}
 			if (strlen($addressCity) > 0) {
 				$addressInfo['hasDetailedAddress'] = true;
 				$addressInfo['addressCity'] = $addressCity;
 			}
 			if (strlen($addressState) > 0) {
 				$addressInfo['hasDetailedAddress'] = true;
-				$addressInfo['addressCounty'] = $addressCounty;
-			}
-			if (strlen($addressState) > 0) {
-				$addressInfo['hasDetailedAddress'] = true;
 				$addressInfo['addressState'] = $addressState;
+			}
+			if (strlen($addressCounty) > 0) {
+				$addressInfo['hasDetailedAddress'] = true;
+				$addressInfo['addressCounty'] = $addressCounty;
 			}
 			if (strlen($addressZipCode) > 0) {
 				$addressInfo['hasDetailedAddress'] = true;
 				$addressInfo['addressZipCode'] = $addressZipCode;
 			}
-			if (strlen($addressStreet) > 0) {
-				$addressInfo['hasDetailedAddress'] = true;
+			if (strlen($addressCountry) > 0) {
 				$addressInfo['addressCountry'] = $addressCountry;
+			}
+			if (strlen($addressOtherRegion) > 0) {
+				$addressInfo['addressOtherRegion'] = $addressOtherRegion;
 			}
 			$interface->assign('addressInfo', $addressInfo);
 		}//End verifying checking for address information
@@ -289,7 +316,8 @@ abstract class Archive_Object extends Action{
 		$title = $this->archiveObject->label;
 		$interface->assign('title', $title);
 		$interface->setPageTitle($title);
-		$interface->assign('description', $this->recordDriver->getDescription());
+		$description = html_entity_decode($this->recordDriver->getDescription());
+		$interface->assign('description', $description);
 
 		$interface->assign('original_image', $this->recordDriver->getBookcoverUrl('original'));
 		$interface->assign('large_image', $this->recordDriver->getBookcoverUrl('large'));

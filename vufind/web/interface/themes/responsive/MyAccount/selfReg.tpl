@@ -57,5 +57,22 @@
 		});
 	});
 	{/literal}
+	{* Pin Validation for CarlX *}
+	{literal}
+	if ($('#pin').length > 0 && $('#pin1').length > 0) {
+		$("#objectEditor").validate({
+			rules: {
+				pin: {
+					minlength: 4
+				},
+				pin1: {
+					minlength: 4,
+					equalTo: "#pin"
+				}
+			}
+		});
+	}
+	{/literal}
+
 </script>
 {/if}

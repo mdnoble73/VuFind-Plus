@@ -10,7 +10,7 @@
 		{$title|escape}
 	</h2>
 
-	<div class="lead">
+	<div class="lead row">
 		{if $thumbnail && !$main_image}
 			<img src="{$thumbnail}" class="img-responsive thumbnail exhibit-thumbnail">
 		{/if}

@@ -201,18 +201,17 @@ class LibrarySolution extends ScreenScrapingDriver {
 			$loanInfo = json_decode($loanInfoRaw);
 
 			foreach ($loanInfo->loanHistory as $loan){
-				$curTitle = array();
-				$curTitle['itemId'] = $loan->itemId;
-				$curTitle['id'] = $loan->bibliographicId;
-				$curTitle['shortId'] = $loan->bibliographicId;
-				$curTitle['recordId'] = $loan->bibliographicId;
-				$curTitle['title'] = utf8_encode($loan->title);
-				$curTitle['author'] = utf8_encode($loan->author);
 				$dueDate = $loan->dueDate;
-				$curTitle['dueDate'] = $dueDate;        // item likely will not have a dueDate, (get null value)
-				$curTitle['checkout'] = $loan->outDateString; // item always has a outDateString
+				$curTitle = array();
+				$curTitle['itemId']       = $loan->itemId;
+				$curTitle['id']           = $loan->bibliographicId;
+				$curTitle['shortId']      = $loan->bibliographicId;
+				$curTitle['recordId']     = $loan->bibliographicId;
+				$curTitle['title']        = utf8_encode($loan->title);
+				$curTitle['author']       = utf8_encode($loan->author);
+				$curTitle['dueDate']      = $dueDate;        // item likely will not have a dueDate, (get null value)
+				$curTitle['checkout']     = $loan->outDateString; // item always has a outDateString
 				$curTitle['borrower_num'] = $patron->id;
-				$curTitle['title_sort'] = preg_replace('/[^a-z\s]/', '', strtolower($curTitle['title']));
 
 				//Get additional information from MARC Record
 				if ($curTitle['shortId'] && strlen($curTitle['shortId']) > 0){
@@ -220,23 +219,23 @@ class LibrarySolution extends ScreenScrapingDriver {
 					$recordDriver = new MarcRecord( $this->accountProfile->recordSource . ":" . $curTitle['recordId']);
 					if ($recordDriver->isValid()){
 						$historyEntry['permanentId'] = $recordDriver->getPermanentId();
-						$curTitle['coverUrl'] = $recordDriver->getBookcoverUrl('medium');
-						$curTitle['groupedWorkId'] = $recordDriver->getGroupedWorkId();
-						$curTitle['ratingData'] = $recordDriver->getRatingData();
-						$formats = $recordDriver->getFormats();
-						$curTitle['format'] = reset($formats);
-						$curTitle['author'] = $recordDriver->getPrimaryAuthor();
+						$curTitle['coverUrl']        = $recordDriver->getBookcoverUrl('medium');
+						$curTitle['groupedWorkId']   = $recordDriver->getGroupedWorkId();
+						$curTitle['ratingData']      = $recordDriver->getRatingData();
+						$curTitle['linkUrl']         = $recordDriver->getGroupedWorkDriver()->getLinkUrl();
+						$curTitle['format']          = $recordDriver->getFormats();
+						$curTitle['author']          = $recordDriver->getPrimaryAuthor();
 						if (!isset($curTitle['title']) || empty($curTitle['title'])){
-							$curTitle['title'] = $recordDriver->getTitle();
+							$curTitle['title']         = $recordDriver->getTitle();
 						}
 					}else{
 						$historyEntry['permanentId'] = null;
-						$curTitle['coverUrl'] = "";
-						$curTitle['groupedWorkId'] = "";
-						$curTitle['format'] = "Unknown";
+						$curTitle['coverUrl']        = "";
+						$curTitle['groupedWorkId']   = "";
+						$curTitle['format']          = "Unknown";
 					}
-					$curTitle['linkUrl'] = $recordDriver->getGroupedWorkDriver()->getLinkUrl();
 				}
+				$curTitle['title_sort'] = preg_replace('/[^a-z\s]/', '', strtolower($curTitle['title'])); // set after title might have been fetched from Marc
 
 				$readingHistory[] = $curTitle;
 			}
@@ -543,7 +542,7 @@ class LibrarySolution extends ScreenScrapingDriver {
 	 *                                If an error occurs, return a PEAR_Error
 	 * @access  public
 	 */
-	function placeHold($patron, $recordId, $pickupBranch) {
+	function placeHold($patron, $recordId, $pickupBranch, $cancelDate = null) {
 		$recordDriver = RecordDriverFactory::initRecordDriverById($this->accountProfile->recordSource . ':' . $recordId);
 		$result = array(
 			'success' => false,

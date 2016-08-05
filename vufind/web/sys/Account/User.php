@@ -888,16 +888,16 @@ class User extends DB_DataObject
 	 *                                message - the message to display
 	 * @access  public
 	 */
-	function placeHold($recordId, $pickupBranch) {
-		$result = $this->getCatalogDriver()->placeHold($this, $recordId, $pickupBranch);
+	function placeHold($recordId, $pickupBranch, $cancelDate = null) {
+		$result = $this->getCatalogDriver()->placeHold($this, $recordId, $pickupBranch, $cancelDate);
 		if ($result['success']){
 			$this->clearCache();
 		}
 		return $result;
 	}
 
-	function placeVolumeHold($recordId, $volumeId, $pickupBranch){
-		$result = $this->getCatalogDriver()->placeVolumeHold($this, $recordId, $volumeId, $pickupBranch);
+	function placeVolumeHold($recordId, $volumeId, $pickupBranch, $cancelDate = null){
+		$result = $this->getCatalogDriver()->placeVolumeHold($this, $recordId, $volumeId, $pickupBranch, $cancelDate);
 		if ($result['success']){
 			$this->clearCache();
 		}
@@ -1088,11 +1088,11 @@ class User extends DB_DataObject
 
 	public function updatePin(){
 		if (isset($_REQUEST['pin'])){
-			$oldpin = $_REQUEST['pin'];
+			$oldPin = $_REQUEST['pin'];
 		}else{
 			return "Please enter your current pin number";
 		}
-		if ($this->cat_password != $oldpin){
+		if ($this->cat_password != $oldPin){
 			return "The old pin number is incorrect";
 		}
 		if (!empty($_REQUEST['pin1'])){
@@ -1108,7 +1108,7 @@ class User extends DB_DataObject
 		if ($newPin != $confirmNewPin){
 			return "New PINs do not match. Please try again.";
 		}
-		$result = $this->getCatalogDriver()->updatePin($this, $oldpin, $newPin, $confirmNewPin);
+		$result = $this->getCatalogDriver()->updatePin($this, $oldPin, $newPin, $confirmNewPin);
 		$this->clearCache();
 		return $result;
 	}

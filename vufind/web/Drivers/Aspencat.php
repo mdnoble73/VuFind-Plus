@@ -691,13 +691,12 @@ class Aspencat implements DriverInterface{
 				$readingHistoryTitleRS = mysqli_query($this->dbConnection, $readingHistoryTitleSql);
 				if ($readingHistoryTitleRS){
 					while ($readingHistoryTitleRow = $readingHistoryTitleRS->fetch_assoc()){
-						$curTitle = array();
-						$curTitle['id'] = $readingHistoryTitleRow['biblionumber'];
-						$curTitle['shortId'] = $readingHistoryTitleRow['biblionumber'];
-						$curTitle['recordId'] = $readingHistoryTitleRow['biblionumber'];
-						$curTitle['title'] = $readingHistoryTitleRow['title'];
-
 						$checkOutDate = new DateTime($readingHistoryTitleRow['itemstimestamp']);
+						$curTitle = array();
+						$curTitle['id']       = $readingHistoryTitleRow['biblionumber'];
+						$curTitle['shortId']  = $readingHistoryTitleRow['biblionumber'];
+						$curTitle['recordId'] = $readingHistoryTitleRow['biblionumber'];
+						$curTitle['title']    = $readingHistoryTitleRow['title'];
 						$curTitle['checkout'] = $checkOutDate->format('m-d-Y'); // this format is expected by Pika's java cron program.
 
 						$readingHistoryTitles[] = $curTitle;
@@ -716,22 +715,23 @@ class Aspencat implements DriverInterface{
 			set_time_limit(20 * count($readingHistoryTitles));
 			foreach ($readingHistoryTitles as $key => $historyEntry){
 				//Get additional information from resources table
-				$historyEntry['ratingData'] = null;
+				$historyEntry['ratingData']  = null;
 				$historyEntry['permanentId'] = null;
-				$historyEntry['linkUrl'] = null;
-				$historyEntry['coverUrl'] = null;
-				$historyEntry['format'] = array();
+				$historyEntry['linkUrl']     = null;
+				$historyEntry['coverUrl']    = null;
+				$historyEntry['format']      = "Unknown";
+				;
 				if (!empty($historyEntry['recordId'])){
 //					if (is_int($historyEntry['recordId'])) $historyEntry['recordId'] = (string) $historyEntry['recordId']; // Marc Record Contructor expects the recordId as a string.
 					require_once ROOT_DIR . '/RecordDrivers/MarcRecord.php';
 					$recordDriver = new MarcRecord($this->accountProfile->recordSource.':'.$historyEntry['recordId']);
 					if ($recordDriver->isValid()){
-						$historyEntry['ratingData'] = $recordDriver->getRatingData();
+						$historyEntry['ratingData']  = $recordDriver->getRatingData();
 						$historyEntry['permanentId'] = $recordDriver->getPermanentId();
-						$historyEntry['linkUrl'] = $recordDriver->getGroupedWorkDriver()->getLinkUrl();
-						$historyEntry['coverUrl'] = $recordDriver->getBookcoverUrl('medium');
-						$historyEntry['format'] = $recordDriver->getFormats();
-						$historyEntry['author'] = $recordDriver->getPrimaryAuthor();
+						$historyEntry['linkUrl']     = $recordDriver->getGroupedWorkDriver()->getLinkUrl();
+						$historyEntry['coverUrl']    = $recordDriver->getBookcoverUrl('medium');
+						$historyEntry['format']      = $recordDriver->getFormats();
+						$historyEntry['author']      = $recordDriver->getPrimaryAuthor();
 					}
 					$recordDriver = null;
 				}
@@ -785,7 +785,7 @@ class Aspencat implements DriverInterface{
 	 *                                If an error occurs, return a PEAR_Error
 	 * @access  public
 	 */
-	public function placeHold($patron, $recordId, $pickupBranch){
+	public function placeHold($patron, $recordId, $pickupBranch, $cancelDate = null){
 		$hold_result = array();
 		$hold_result['success'] = false;
 
@@ -1121,27 +1121,28 @@ class Aspencat implements DriverInterface{
 					if ($headerLabels[$col] == 'title'){
 						//Title column contains title, author, and id link
 						if (preg_match('/biblionumber=(\\d+)".*?>(.*?)<\/a>/si', $tableCell, $cellDetails)) {
-							$curHold['id'] = $cellDetails[1];
-							$curHold['shortId'] = $cellDetails[1];
-							$curHold['recordId'] = $cellDetails[1];
 							$bibId = $cellDetails[1];
-							$curHold['title'] = $cellDetails[2];
+							$curHold['id']       = $cellDetails[1];
+							$curHold['shortId']  = $cellDetails[1];
+							$curHold['recordId'] = $cellDetails[1];
+							$curHold['title']    = $cellDetails[2];
 						}else{
 							$logger->log("Could not parse title for checkout", PEAR_LOG_WARNING);
 							$curHold['title'] = strip_tags($tableCell);
 						}
 					}elseif ($headerLabels[$col] == 'placed on'){
-						$curHold['create'] = date_parse_from_format('m/d/Y', $tableCell);
+						$tempDate = DateTime::createFromFormat('m/d/Y', $tableCell);
+						$curHold['create'] = $tempDate->getTimestamp();
 					}elseif ($headerLabels[$col] == 'expires on'){
 						if (strlen($tableCell) != 0){
-							$expireDate = DateTime::createFromFormat('m/d/Y', $tableCell);
-							$curHold['expire'] = $expireDate->getTimestamp();
+							$tempDate = DateTime::createFromFormat('m/d/Y', $tableCell);
+							$curHold['expire'] = $tempDate->getTimestamp();
 						}
 					}elseif ($headerLabels[$col] == 'pick up location'){
 						if (strlen($tableCell) != 0){
-							$curHold['location'] = trim($tableCell);
+							$curHold['location']           = trim($tableCell);
 							$curHold['locationUpdateable'] = false;
-							$curHold['currentPickupName'] = $curHold['location'];
+							$curHold['currentPickupName']  = $curHold['location'];
 						}
 					}elseif ($headerLabels[$col] == 'priority'){
 						$curHold['position'] = trim($tableCell);
@@ -1165,15 +1166,14 @@ class Aspencat implements DriverInterface{
 					require_once ROOT_DIR . '/RecordDrivers/MarcRecord.php';
 					$recordDriver = new MarcRecord($bibId);
 					if ($recordDriver->isValid()){
-						$curHold['sortTitle'] = $recordDriver->getSortableTitle();
-						$curHold['format'] = $recordDriver->getFormat();
-						$curHold['isbn'] = $recordDriver->getCleanISBN();
-						$curHold['upc'] = $recordDriver->getCleanUPC();
+						$curHold['sortTitle']       = $recordDriver->getSortableTitle();
+						$curHold['format']          = $recordDriver->getFormat();
+						$curHold['isbn']            = $recordDriver->getCleanISBN();
+						$curHold['upc']             = $recordDriver->getCleanUPC();
 						$curHold['format_category'] = $recordDriver->getFormatCategory();
-						$curHold['coverUrl'] = $recordDriver->getBookcoverUrl();
-						$curHold['link'] = $recordDriver->getRecordUrl();
-						//Load rating information
-						$curHold['ratingData'] = $recordDriver->getRatingData();
+						$curHold['coverUrl']        = $recordDriver->getBookcoverUrl();
+						$curHold['link']            = $recordDriver->getRecordUrl();
+						$curHold['ratingData']      = $recordDriver->getRatingData();
 					}
 				}
 				if (!isset($curHold['status']) || !preg_match('/^Item waiting.*/i', $curHold['status'])){
@@ -1199,9 +1199,9 @@ class Aspencat implements DriverInterface{
 			preg_match_all('/<tr[^>]*>(.*?)<\/tr>/si', $tableBody, $tableData, PREG_PATTERN_ORDER);
 			foreach ($tableData[1] as $tableRow){
 				//Each row in the table represents a hold
-				$curHold= array();
+				$curHold = array();
 				$curHold['holdSource'] = 'ILS';
-				$curHold['frozen'] = true;
+				$curHold['frozen']    = true;
 				//Go through each cell in the row
 				preg_match_all('/<td[^>]*>(.*?)<\/td>/si', $tableRow, $tableCells, PREG_PATTERN_ORDER);
 				$bibId = "";
@@ -1210,27 +1210,28 @@ class Aspencat implements DriverInterface{
 					if ($headerLabels[$col] == 'title'){
 						//Title column contains title, author, and id link
 						if (preg_match('/biblionumber=(\\d+)".*?>(.*?)<\/a>/si', $tableCell, $cellDetails)) {
-							$curHold['id'] = $cellDetails[1];
-							$curHold['shortId'] = $cellDetails[1];
-							$curHold['recordId'] = $cellDetails[1];
 							$bibId = $cellDetails[1];
-							$curHold['title'] = $cellDetails[2];
+							$curHold['id']       = $cellDetails[1];
+							$curHold['shortId']  = $cellDetails[1];
+							$curHold['recordId'] = $cellDetails[1];
+							$curHold['title']    = $cellDetails[2];
 						}else{
 							$logger->log("Could not parse title for checkout", PEAR_LOG_WARNING);
 							$curHold['title'] = strip_tags($tableCell);
 						}
 					}elseif ($headerLabels[$col] == 'placed on'){
-						$curHold['create'] = date_parse_from_format('m/d/Y', $tableCell);
+						$tempDate = DateTime::createFromFormat('m/d/Y', $tableCell);
+						$curHold['create'] = $tempDate->getTimestamp();
 					}elseif ($headerLabels[$col] == 'expires on'){
 						if (strlen($tableCell) != 0){
-							$dateTime = date_create_from_format('m/d/Y', $tableCell);
-							$curHold['expire'] = $dateTime->getTimestamp();
+							$tempDate = DateTime::createFromFormat('m/d/Y', $tableCell);
+							$curHold['expire'] = $tempDate->getTimestamp();
 						}
 					}elseif ($headerLabels[$col] == 'pick up location'){
 						if (strlen($tableCell) != 0){
-							$curHold['location'] = $tableCell;
+							$curHold['location']           = $tableCell;
 							$curHold['locationUpdateable'] = false;
-							$curHold['currentPickupName'] = $curHold['location'];
+							$curHold['currentPickupName']  = $curHold['location'];
 						}
 					}elseif ($headerLabels[$col] == 'resume now'){
 						$curHold['cancelable'] = false;
@@ -1244,15 +1245,14 @@ class Aspencat implements DriverInterface{
 					require_once ROOT_DIR . '/RecordDrivers/MarcRecord.php';
 					$recordDriver = new MarcRecord($bibId);
 					if ($recordDriver->isValid()){
-						$curHold['sortTitle'] = $recordDriver->getSortableTitle();
-						$curHold['format'] = $recordDriver->getFormat();
-						$curHold['isbn'] = $recordDriver->getCleanISBN();
-						$curHold['upc'] = $recordDriver->getCleanUPC();
+						$curHold['sortTitle']       = $recordDriver->getSortableTitle();
+						$curHold['format']          = $recordDriver->getFormat();
+						$curHold['isbn']            = $recordDriver->getCleanISBN();
+						$curHold['upc']             = $recordDriver->getCleanUPC();
 						$curHold['format_category'] = $recordDriver->getFormatCategory();
-						$curHold['coverUrl'] = $recordDriver->getBookcoverUrl();
-						$curHold['link'] = $recordDriver->getRecordUrl();
-						//Load rating information
-						$curHold['ratingData'] = $recordDriver->getRatingData();
+						$curHold['coverUrl']        = $recordDriver->getBookcoverUrl();
+						$curHold['link']            = $recordDriver->getRecordUrl();
+						$curHold['ratingData']      = $recordDriver->getRatingData();
 					}
 				}
 				$curHold['user'] = $patron->getNameAndLibraryLabel();

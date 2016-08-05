@@ -47,10 +47,7 @@ class Archive_Exhibit extends Archive_Object{
 			$this->display('timelineExhibit.tpl');
 		} else if ($displayType == 'map'){
 			//Get a list of related places for the object by searching solr to find all objects
-			$relatedPlaces = $this->recordDriver->getRelatedPlaces();
-			foreach ($relatedPlaces as $relatedPlace){
-
-			}
+			$this->recordDriver->getRelatedPlaces();
 			$this->display('mapExhibit.tpl');
 		}
 	}

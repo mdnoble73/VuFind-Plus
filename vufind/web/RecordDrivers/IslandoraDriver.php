@@ -624,6 +624,12 @@ abstract class IslandoraDriver extends RecordInterface {
 					$this->addRelatedEntityToArrays($transcriberPid, $transcriberTitle, '', '', 'Transcriber');
 				}
 
+				$militaryConflict = $this->getModsValue('militaryConflict', 'marmot');
+				if ($militaryConflict){
+					$militaryConflictTitle = FedoraUtils::getInstance()->getObjectLabel($militaryConflict);
+					$this->addRelatedEntityToArrays($militaryConflict, $militaryConflictTitle, '', '', '');
+				}
+
 				$creators = $this->getModsValues('hasCreator', 'marmot', null, true);
 				foreach ($creators as $entity) {
 					$entityPid = $this->getModsValue('entityPid', 'marmot', $entity);
@@ -670,7 +676,7 @@ abstract class IslandoraDriver extends RecordInterface {
 					$entityType = $this->getModsAttribute('type', $entity);
 					if ($entityType == '' && strlen($entityPid)){
 						//Get the type based on the pid
-						list($entityType, $id) = explode(':', $entityPid);
+						list($entityType) = explode(':', $entityPid);
 					}
 					$entityTitle = $this->getModsValue('entityTitle', 'marmot', $entity);
 					$relationshipNote = $this->getModsValue('relationshipNote', 'marmot', $entity);
@@ -811,7 +817,7 @@ abstract class IslandoraDriver extends RecordInterface {
 				foreach ($linkData as $linkInfo) {
 					$linkType = $this->getModsAttribute('type', $linkInfo);
 					$link = $this->getModsValue('link', 'marmot', $linkInfo);
-					$linkText = $this->getModsValue('link', 'marmot', $linkInfo);
+					$linkText = $this->getModsValue('linkText', 'marmot', $linkInfo);
 					if (strlen($linkText) == 0) {
 						if (strlen($linkType) == 0) {
 							$linkText = $link;
@@ -848,7 +854,7 @@ abstract class IslandoraDriver extends RecordInterface {
 					}
 					if (strlen($link) > 0) {
 						$isHidden = false;
-						if ($linkType == 'wikipedia' || $linkType == 'geoNames' || $linkType == 'whosOnFirst' || 'relatedPika') {
+						if ($linkType == 'wikipedia' || $linkType == 'geoNames' || $linkType == 'whosOnFirst' || $linkType == 'relatedPika') {
 							$isHidden = true;
 						}
 						$this->links[] = array(
@@ -930,11 +936,11 @@ abstract class IslandoraDriver extends RecordInterface {
 			$searchObject = SearchObjectFactory::initSearchObject('Islandora');
 			$searchObject->init();
 			$searchObject->setSort('fgs_label_s');
+			$searchObject->setLimit(100);
 			$searchObject->setSearchTerms(array(
 					'lookfor' => '"' . $this->getUniqueID() . '"',
 					'index' => 'IslandoraRelationshipsById'
 			));
-			$searchObject->addHiddenFilter('!RELS_EXT_isViewableByRole_literal_ms', "administrator");
 
 			$searchObject->clearHiddenFilters();
 			$searchObject->addHiddenFilter('!RELS_EXT_isViewableByRole_literal_ms', "administrator");

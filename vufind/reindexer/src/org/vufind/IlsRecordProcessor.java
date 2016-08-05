@@ -1246,6 +1246,11 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 	}
 
 	private void filterPrintFormats(Set<String> printFormats) {
+		if (printFormats.contains("Archival Materials")){
+			printFormats.clear();
+			printFormats.add("Archival Materials");
+			return;
+		}
 		if (printFormats.contains("Video") && printFormats.contains("DVD")){
 			printFormats.remove("Video");
 		}
@@ -1438,6 +1443,17 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 				String noteValue = noteField.getSubfield('a').getData().toLowerCase();
 				if (noteValue.contains("vertical file")) {
 					result.add("VerticalFile");
+				}
+			}
+		}
+
+		// Check for formats in the 590 tag
+		DataField localNoteField = (DataField) record.getVariableField("590");
+		if (localNoteField != null) {
+			if (localNoteField.getSubfield('a') != null) {
+				String noteValue = localNoteField.getSubfield('a').getData().toLowerCase();
+				if (noteValue.contains("archival materials")) {
+					result.add("Archival Materials");
 				}
 			}
 		}
