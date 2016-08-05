@@ -562,7 +562,9 @@ class MillenniumHolds{
 						//$logger->log('Status for item ' . $curHold['id'] . '=' . $sCols[$i], PEAR_LOG_INFO);
 					}
 					elseif (stripos($sKeys[$i],"CANCEL IF NOT FILLED BY") > -1) {
-						$curHold['automaticCancellation'] = strip_tags($sCols[$i]);
+						$extractedDate = strip_tags($sCols[$i]);
+						$extractedDate = date_create_from_format('m-j-y', $extractedDate);
+						$curHold['automaticCancellation'] = $extractedDate ? $extractedDate->getTimestamp() : null;
 					}
 					elseif (stripos($sKeys[$i],"FREEZE") > -1) {
 						$matches = array();
