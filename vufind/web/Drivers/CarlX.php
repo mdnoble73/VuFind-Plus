@@ -411,9 +411,7 @@ class CarlX extends SIP2Driver{
 						$curHold['status']             = 'Frozen';
 					}
 					$curHold['freezeable'] = true;
-//					if (strcasecmp($curHold['status'], 'Transit') == 0) {
-//						$curHold['freezeable'] = false;
-//					}
+
 
 					require_once ROOT_DIR . '/RecordDrivers/MarcRecord.php';
 					$recordDriver = new MarcRecord($carlID);
@@ -501,7 +499,10 @@ class CarlX extends SIP2Driver{
 	}
 
 	function thawHold($patron, $recordId, $itemToThawId) {
-		// TODO: Implement thawHold() method.
+		$timeStamp = strtotime('+1 year');
+		$date = date('m/d/Y', $timeStamp);
+		$result = $this->freezeThawHoldViaSIP($patron, $recordId, null, $date, 'thaw');
+		return $result;
 	}
 
 	function changeHoldPickupLocation($patron, $recordId, $itemToUpdateId, $newPickupLocation) {
@@ -529,17 +530,6 @@ class CarlX extends SIP2Driver{
 		return array($fullName, $lastName, $firstName);
 	}
 
-	/**
-	 * Get Patron Transactions
-	 *
-	 * This is responsible for retrieving all transactions (i.e. checked out items)
-	 * by a specific patron.
-	 *
-	 * @param User $user The user to load transactions for
-	 *
-	 * @return array        Array of the patron's transactions on success
-	 * @access public
-	 */
 	public function getMyCheckouts($user) {
 		$checkedOutTitles = array();
 
@@ -1123,8 +1113,15 @@ class CarlX extends SIP2Driver{
 //	}
 
 	/**
-	 * @param $user
-	 * @return mixed
+	 * Get Patron Transactions
+	 *
+	 * This is responsible for retrieving all transactions (i.e. checked out items)
+	 * by a specific patron.
+	 *
+	 * @param User $user The user to load transactions for
+	 *
+	 * @return array        Array of the patron's transactions on success
+	 * @access public
 	 */
 	private function getPatronTransactions($user)
 	{
@@ -1164,6 +1161,7 @@ class CarlX extends SIP2Driver{
 	}
 
 	private function getBranchInformation($branchNumber) {
+//		TODO: Store in Memcache instead
 
 		$request                    = new stdClass();
 		$request->BranchSearchType  = 'Branch Number';
@@ -1229,18 +1227,33 @@ class CarlX extends SIP2Driver{
 
 				$holdId = $recordId;
 
-				$in = $mySip->freezeSuspendHold($dateToReactivate, true, '', '1', '', $holdId);
-//				$in = $mySip->freezeSuspendHold($dateToReactivate, true, '', '2', '', $holdId);
-//				$in = $mySip->freezeHoldCarlX($dateToReactivate, $holdId);
-				$msg_result = $mySip->get_message($in);
+//				$holds = $this->getMyHolds($patron);
+				$hold = $this->getUnavailableHold($patron, $holdId);
+				if ($hold) {
 
-				if (preg_match("/^16/", $msg_result)) {
-					$result = $mySip->parseHoldResponse($msg_result );
-					$success = ($result['fixed']['Ok'] == 1);
-					$message = $result['variable']['AF'][0];
-					if (!empty($result['variable']['AJ'][0])) {
-						$title = $result['variable']['AJ'][0];
+					$pickupLocation = $hold->PickUpBranch;
+					if (!empty($hold->Title)) {
+						$title = $hold->Title;
 					}
+					$freeze = true;
+					if ($type == 'thaw') {
+						$freeze = false;
+					}
+
+					$in = $mySip->freezeSuspendHold($dateToReactivate, $freeze, '', '1', '', $holdId, 'N', $pickupLocation);
+//				$in = $mySip->freezeHoldCarlX($dateToReactivate, $holdId);
+					$msg_result = $mySip->get_message($in);
+
+					if (preg_match("/^16/", $msg_result)) {
+						$result  = $mySip->parseHoldResponse($msg_result);
+						$success = ($result['fixed']['Ok'] == 1);
+						$message = $result['variable']['AF'][0];
+						if (!empty($result['variable']['AJ'][0])) {
+							$title = $result['variable']['AJ'][0];
+						}
+					}
+				} else {
+					$message = 'Failed to get Pickup Location';
 				}
 			}
 		}
@@ -1250,6 +1263,24 @@ class CarlX extends SIP2Driver{
 			'success' => $success,
 			'message' => $message
 		);
+	}
+
+	private function getUnavailableHold($patron, $holdID) {
+		$request = $this->getSearchbyPatronIdRequest($patron);
+		$request->TransactionType = 'UnavailableHold';
+		$result = $this->doSoapRequest('getPatronTransactions', $request);
+
+		if ($result && !empty($result->UnavailableHoldItems->UnavailableHoldItem)) {
+			if (!is_array($result->UnavailableHoldItems->UnavailableHoldItem)) {
+				$result->UnavailableHoldItems->UnavailableHoldItem = array($result->UnavailableHoldItems->UnavailableHoldItem);
+			}
+			foreach($result->UnavailableHoldItems->UnavailableHoldItem as $hold) {
+				if ($hold->BID == $holdID) {
+					return $hold;
+				}
+			}
+		}
+		return false;
 	}
 
 	public function placeHoldViaSIP($patron, $recordId, $pickupBranch = null, $cancelDate = null, $type = null){
