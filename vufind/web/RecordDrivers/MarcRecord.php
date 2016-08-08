@@ -520,16 +520,19 @@ class MarcRecord extends IndexRecord
 		$matches = array();
 
 		if ($this->isValid()){
-			// Try to look up the specified field, return empty array if it doesn't exist.
-			$fields = $this->getMarcRecord()->getFields($field);
-			if (!is_array($fields)) {
-				return $matches;
-			}
+			$marcRecord = $this->getMarcRecord();
+			if ($marcRecord != null){
+				// Try to look up the specified field, return empty array if it doesn't exist.
+				$fields = $marcRecord->getFields($field);
+				if (!is_array($fields)) {
+					return $matches;
+				}
 
-			// Extract all the requested subfields, if applicable.
-			foreach($fields as $currentField) {
-				$next = $this->getSubfieldArray($currentField, $subfields, $concat);
-				$matches = array_merge($matches, $next);
+				// Extract all the requested subfields, if applicable.
+				foreach($fields as $currentField) {
+					$next = $this->getSubfieldArray($currentField, $subfields, $concat);
+					$matches = array_merge($matches, $next);
+				}
 			}
 		}
 
