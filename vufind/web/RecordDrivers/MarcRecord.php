@@ -1428,12 +1428,16 @@ class MarcRecord extends IndexRecord
 		}else{
 			$upcs = array();
 			/** @var File_MARC_Data_Field[] $upcFields */
-			$upcFields = $this->getMarcRecord()->getFields('024');
-			foreach($upcFields as $upcField){
-				if ($upcField->getSubfield('a') != null){
-					$upcs[] = $upcField->getSubfield('a')->getData();
+			$marcRecord = $this->getMarcRecord();
+			if ($marcRecord != null){
+				$upcFields = $marcRecord->getFields('024');
+				foreach($upcFields as $upcField){
+					if ($upcField->getSubfield('a') != null){
+						$upcs[] = $upcField->getSubfield('a')->getData();
+					}
 				}
 			}
+			
 			return $upcs;
 		}
 	}
