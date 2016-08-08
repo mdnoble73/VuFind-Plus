@@ -1646,6 +1646,10 @@ class MarcRecord extends IndexRecord
 		if ($this->marcRecord == null){
 			try{
 				$this->marcRecord = MarcLoader::loadMarcRecordByILSId("{$this->profileType}:{$this->id}");
+				if (PEAR_Singleton::isError($this->marcRecord)){
+					$this->valid = false;
+					$this->marcRecord = null;
+				}
 			}catch (Exception $e){
 				//Unable to load record this happens from time to time
 			}
