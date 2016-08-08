@@ -243,7 +243,9 @@ class AJAX extends Action {
 			$showRatings = isset($_REQUEST['showRatings']) && $_REQUEST['showRatings'];
 			$interface->assign('showRatings', $showRatings); // overwrite values that come from library settings
 
-			$titles = $listAPI->getListTitles();
+			$numTitlesToShow = isset($_REQUEST['numTitlesToShow']) ? $_REQUEST['numTitlesToShow'] : 25;
+
+			$titles = $listAPI->getListTitles(null, $numTitlesToShow);
 			$timer->logTime("getListTitles");
 			if ($titles['success'] == true){
 				$titles = $titles['titles'];
