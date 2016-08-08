@@ -1,33 +1,35 @@
-<div class="row">
-	<div class="result-label col-xs-2">Grouped Work ID: </div>
-	<div class="col-xs-10 result-value">
-		{$recordDriver->getPermanentId()}
+{if $recordDriver}
+	<div class="row">
+		<div class="result-label col-xs-2">Grouped Work ID: </div>
+		<div class="col-xs-10 result-value">
+			{$recordDriver->getPermanentId()}
+		</div>
 	</div>
-</div>
 
-<div class="row">
-	<div class="col-xs-12">
-		<a href="{$path}/GroupedWork/{$recordDriver->getPermanentId()}" class="btn btn-sm btn-default">Go To Grouped Work</a>
-		<button onclick="return VuFind.Record.reloadCover('{$recordDriver->getModule()}', '{$id}')" class="btn btn-sm btn-default">Reload Cover</button>
-		<button onclick="return VuFind.GroupedWork.reloadEnrichment('{$recordDriver->getPermanentId()}')" class="btn btn-sm btn-default" >Reload Enrichment</button>
-		{if $staffClientUrl}
-			<a href="{$staffClientUrl}" class="btn btn-sm btn-info">View in Staff Client</a>
-		{/if}
-		{if $user && ($user->hasRole('opacAdmin') || $user->hasRole('cataloging'))}
-			{if $classicUrl}
-				<a href="{$classicUrl}" class="btn btn-sm btn-info">View in Classic</a>
+	<div class="row">
+		<div class="col-xs-12">
+			<a href="{$path}/GroupedWork/{$recordDriver->getPermanentId()}" class="btn btn-sm btn-default">Go To Grouped Work</a>
+			<button onclick="return VuFind.Record.reloadCover('{$recordDriver->getModule()}', '{$id}')" class="btn btn-sm btn-default">Reload Cover</button>
+			<button onclick="return VuFind.GroupedWork.reloadEnrichment('{$recordDriver->getPermanentId()}')" class="btn btn-sm btn-default" >Reload Enrichment</button>
+			{if $staffClientUrl}
+				<a href="{$staffClientUrl}" class="btn btn-sm btn-info">View in Staff Client</a>
 			{/if}
-			<button onclick="return VuFind.GroupedWork.forceReindex('{$recordDriver->getPermanentId()}')" class="btn btn-sm btn-default">Force Reindex</button>
-			<button onclick="return VuFind.GroupedWork.forceRegrouping('{$recordDriver->getPermanentId()}')" class="btn btn-sm btn-default">Force Regrouping</button>
-			<a href="{$path}/{$recordDriver->getModule()}/{$id|escape:"url"}/AJAX?method=downloadMarc" class="btn btn-sm btn-default">{translate text="Download Marc"}</a>
-		{/if}
+			{if $user && ($user->hasRole('opacAdmin') || $user->hasRole('cataloging'))}
+				{if $classicUrl}
+					<a href="{$classicUrl}" class="btn btn-sm btn-info">View in Classic</a>
+				{/if}
+				<button onclick="return VuFind.GroupedWork.forceReindex('{$recordDriver->getPermanentId()}')" class="btn btn-sm btn-default">Force Reindex</button>
+				<button onclick="return VuFind.GroupedWork.forceRegrouping('{$recordDriver->getPermanentId()}')" class="btn btn-sm btn-default">Force Regrouping</button>
+				<a href="{$path}/{$recordDriver->getModule()}/{$id|escape:"url"}/AJAX?method=downloadMarc" class="btn btn-sm btn-default">{translate text="Download Marc"}</a>
+			{/if}
+		</div>
 	</div>
-</div>
 
 	{* QR Code *}
 	{if $showQRCode}
 		<div id="record-qr-code" class="text-center hidden-xs visible-md"><img src="{$recordDriver->getQRCodeUrl()}" alt="QR Code for Record"></div>
 	{/if}
+{/if}
 
 {if $marcRecord}
 	<div id="formattedMarcRecord">

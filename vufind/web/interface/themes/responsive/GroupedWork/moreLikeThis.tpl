@@ -1,4 +1,5 @@
 {strip}
+	{if $recordDriver}
 	<div id="moreLikeThisInfo" style="display:none" class="row">
 		<div class="col-sm-12">
 			{assign var="scrollerName" value="MoreLikeThis"}
@@ -9,4 +10,5 @@
 			{include file='ListWidget/titleScroller.tpl'}
 		</div>
 	</div>
+	{/if}
 {/strip}

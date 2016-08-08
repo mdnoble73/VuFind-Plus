@@ -521,7 +521,7 @@ class MarcRecord extends IndexRecord
 
 		if ($this->isValid()){
 			$marcRecord = $this->getMarcRecord();
-			if ($marcRecord != null){
+			if ($marcRecord != false){
 				// Try to look up the specified field, return empty array if it doesn't exist.
 				$fields = $marcRecord->getFields($field);
 				if (!is_array($fields)) {
@@ -1052,7 +1052,7 @@ class MarcRecord extends IndexRecord
 				}
 			}
 		}
-		if ($useMarcSummary){
+		if ($useMarcSummary && $this->marcRecord != false){
 			if ($summaryFields = $this->marcRecord->getFields('520')) {
 				$summaries = array();
 				$summary = '';
@@ -1339,19 +1339,25 @@ class MarcRecord extends IndexRecord
 	 * @access  public
 	 * @return  array
 	 */
-	public function getPublicationDates()
-	{
-		$publicationDates = $this->getFieldArray('260', array('c'));
-		/** @var File_MARC_Data_Field[] $rdaPublisherFields */
-		$rdaPublisherFields = $this->getMarcRecord()->getFields('264');
-		foreach ($rdaPublisherFields as $rdaPublisherField){
-			if ($rdaPublisherField->getIndicator(2) == 1 && $rdaPublisherField->getSubfield('c') != null){
-				$publicationDates[] = $rdaPublisherField->getSubfield('c')->getData();
+	public function getPublicationDates() {
+		$publicationDates = array();
+		if ($this->isValid()){
+			$publicationDates = $this->getFieldArray('260', array('c'));
+			$marcRecord = $this->getMarcRecord();
+			if ($marcRecord != false){
+				/** @var File_MARC_Data_Field[] $rdaPublisherFields */
+				$rdaPublisherFields = $marcRecord->getFields('264');
+				foreach ($rdaPublisherFields as $rdaPublisherField){
+					if ($rdaPublisherField->getIndicator(2) == 1 && $rdaPublisherField->getSubfield('c') != null){
+						$publicationDates[] = $rdaPublisherField->getSubfield('c')->getData();
+					}
+				}
+				foreach ($publicationDates as $key => $publicationDate){
+					$publicationDates[$key] = preg_replace('/[.,]$/', '', $publicationDate);
+				}
 			}
 		}
-		foreach ($publicationDates as $key => $publicationDate){
-			$publicationDates[$key] = preg_replace('/[.,]$/', '', $publicationDate);
-		}
+
 		return $publicationDates;
 	}
 
@@ -1363,16 +1369,21 @@ class MarcRecord extends IndexRecord
 	 */
 	protected function getPublishers()
 	{
-		$publishers = $this->getFieldArray('260', array('b'));
-		/** @var File_MARC_Data_Field[] $rdaPublisherFields */
-		$rdaPublisherFields = $this->getMarcRecord()->getFields('264');
-		foreach ($rdaPublisherFields as $rdaPublisherField){
-			if ($rdaPublisherField->getIndicator(2) == 1 && $rdaPublisherField->getSubfield('b') != null){
-				$publishers[] = $rdaPublisherField->getSubfield('b')->getData();
+		$marcRecord = $this->getMarcRecord();
+		if ($marcRecord != null){
+			$publishers = $this->getFieldArray('260', array('b'));
+			/** @var File_MARC_Data_Field[] $rdaPublisherFields */
+			$rdaPublisherFields = $marcRecord->getFields('264');
+			foreach ($rdaPublisherFields as $rdaPublisherField){
+				if ($rdaPublisherField->getIndicator(2) == 1 && $rdaPublisherField->getSubfield('b') != null){
+					$publishers[] = $rdaPublisherField->getSubfield('b')->getData();
+				}
 			}
-		}
-		foreach ($publishers as $key => $publisher){
-			$publishers[$key] = preg_replace('/[.,]$/', '', $publisher);
+			foreach ($publishers as $key => $publisher){
+				$publishers[$key] = preg_replace('/[.,]$/', '', $publisher);
+			}
+		}else{
+			$publishers = array();
 		}
 		return $publishers;
 	}
@@ -1434,7 +1445,7 @@ class MarcRecord extends IndexRecord
 			$upcs = array();
 			/** @var File_MARC_Data_Field[] $upcFields */
 			$marcRecord = $this->getMarcRecord();
-			if ($marcRecord != null){
+			if ($marcRecord != false){
 				$upcFields = $marcRecord->getFields('024');
 				foreach($upcFields as $upcField){
 					if ($upcField->getSubfield('a') != null){
@@ -1547,82 +1558,85 @@ class MarcRecord extends IndexRecord
 		global $configArray;
 		global $library;
 		$marcRecord = $this->getMarcRecord();
-		if (isset($configArray['Content']['subjectFieldsToShow'])){
-			$subjectFieldsToShow = $configArray['Content']['subjectFieldsToShow'];
-			$subjectFields = explode(',', $subjectFieldsToShow);
+		$subjects = array();
+		$otherSubjects = array();
+		$lcSubjects = array();
+		$bisacSubjects = array();
+		$oclcFastSubjects = array();
+		$localSubjects = array();
+		if ($marcRecord){
+			if (isset($configArray['Content']['subjectFieldsToShow'])) {
+				$subjectFieldsToShow = $configArray['Content']['subjectFieldsToShow'];
+				$subjectFields = explode(',', $subjectFieldsToShow);
 
-			$subjects = array();
-			$otherSubjects = array();
-			$lcSubjects = array();
-			$bisacSubjects = array();
-			$oclcFastSubjects = array();
-			$localSubjects = array();
-			foreach ($subjectFields as $subjectField){
-				/** @var File_MARC_Data_Field[] $marcFields */
-				$marcFields = $marcRecord->getFields($subjectField);
-				if ($marcFields){
-					foreach ($marcFields as $marcField){
-						$searchSubject = "";
-						$subject = array();
-						//Determine the type of the subject
-						$type = 'other';
-						if ($marcField->getIndicator(2) == 0) {
-							$type = 'lc';
-						}
-						$subjectSource = $marcField->getSubfield('2');
-						if ($subjectSource != null){
-							if (preg_match('/bisac/i', $subjectSource->getData())){
-								$type = 'bisac';
-							}elseif (preg_match('/fast/i', $subjectSource->getData())){
-								$type = 'fast';
+
+				foreach ($subjectFields as $subjectField) {
+					/** @var File_MARC_Data_Field[] $marcFields */
+					$marcFields = $marcRecord->getFields($subjectField);
+					if ($marcFields) {
+						foreach ($marcFields as $marcField) {
+							$searchSubject = "";
+							$subject = array();
+							//Determine the type of the subject
+							$type = 'other';
+							if ($marcField->getIndicator(2) == 0) {
+								$type = 'lc';
 							}
-						}
-						if ($marcField->getTag() == '690'){
-							$type = 'local';
-						}
-
-						$search = '';
-						$title = '';
-						foreach ($marcField->getSubFields() as $subField){
-							/** @var File_MARC_Subfield $subField */
-							if ($subField->getCode() != '2' && $subField->getCode() != '0'){
-								$subFieldData = $subField->getData();
-								if ($type == 'bisac' && $subField->getCode() == 'a'){
-									$subFieldData = ucwords(strtolower($subFieldData));
+							$subjectSource = $marcField->getSubfield('2');
+							if ($subjectSource != null) {
+								if (preg_match('/bisac/i', $subjectSource->getData())) {
+									$type = 'bisac';
+								} elseif (preg_match('/fast/i', $subjectSource->getData())) {
+									$type = 'fast';
 								}
-								$search .= " " . $subFieldData;
-								if (strlen($title) > 0){
-									$title .= ' -- ';
-								}
-								$title .= $subFieldData;
 							}
-						}
-						$subject[$title] = array(
-								'search' => trim($search),
-								'title'  => $title,
-						);
-						switch ($type) {
-							case 'fast' :
-								// Suppress fast subjects by default
-								$oclcFastSubjects[] = $subject;
-								break;
-							case 'local' :
-								$localSubjects[] = $subject;
-								$subjects[]      = $subject;
-							case 'bisac' :
-								$bisacSubjects[] = $subject;
-								$subjects[]      = $subject;
-								break;
-							case 'lc' :
-								$lcSubjects[] = $subject;
-								$subjects[]   = $subject;
-								break;
-							case 'other' :
-								$otherSubjects[] = $subject;
-							default :
-								$subjects[]         = $subject;
-						}
+							if ($marcField->getTag() == '690') {
+								$type = 'local';
+							}
 
+							$search = '';
+							$title = '';
+							foreach ($marcField->getSubFields() as $subField) {
+								/** @var File_MARC_Subfield $subField */
+								if ($subField->getCode() != '2' && $subField->getCode() != '0') {
+									$subFieldData = $subField->getData();
+									if ($type == 'bisac' && $subField->getCode() == 'a') {
+										$subFieldData = ucwords(strtolower($subFieldData));
+									}
+									$search .= " " . $subFieldData;
+									if (strlen($title) > 0) {
+										$title .= ' -- ';
+									}
+									$title .= $subFieldData;
+								}
+							}
+							$subject[$title] = array(
+									'search' => trim($search),
+									'title' => $title,
+							);
+							switch ($type) {
+								case 'fast' :
+									// Suppress fast subjects by default
+									$oclcFastSubjects[] = $subject;
+									break;
+								case 'local' :
+									$localSubjects[] = $subject;
+									$subjects[] = $subject;
+								case 'bisac' :
+									$bisacSubjects[] = $subject;
+									$subjects[] = $subject;
+									break;
+								case 'lc' :
+									$lcSubjects[] = $subject;
+									$subjects[] = $subject;
+									break;
+								case 'other' :
+									$otherSubjects[] = $subject;
+								default :
+									$subjects[] = $subject;
+							}
+
+						}
 					}
 				}
 			}
@@ -1659,14 +1673,14 @@ class MarcRecord extends IndexRecord
 			disableErrorHandler();
 			try{
 				$this->marcRecord = MarcLoader::loadMarcRecordByILSId("{$this->profileType}:{$this->id}");
-				if (PEAR_Singleton::isError($this->marcRecord)){
+				if (PEAR_Singleton::isError($this->marcRecord) || $this->marcRecord == false){
 					$this->valid = false;
-					$this->marcRecord = null;
+					$this->marcRecord = false;
 				}
 			}catch (Exception $e){
 				//Unable to load record this happens from time to time
 				$this->valid = false;
-				$this->marcRecord = null;
+				$this->marcRecord = false;
 			}
 			enableErrorHandler();
 
@@ -1965,24 +1979,27 @@ class MarcRecord extends IndexRecord
 
 	private function getLinks() {
 		$links = array();
-		$linkFields = $this->getMarcRecord()->getFields('856');
-		/** @var File_MARC_Data_Field $field */
-		foreach ($linkFields as $field){
-			if ($field->getSubfield('u') != null){
-				$url = $field->getSubfield('u')->getData();
-				if ($field->getSubfield('y') != null) {
-					$title = $field->getSubfield('y')->getData();
-				}else if ($field->getSubfield('3') != null){
-					$title = $field->getSubfield('3')->getData();
-				}else if ($field->getSubfield('z') != null){
-					$title = $field->getSubfield('z')->getData();
-				}else{
-					$title = $url;
+		$marcRecord = $this->getMarcRecord();
+		if ($marcRecord != false){
+			$linkFields = $marcRecord->getFields('856');
+			/** @var File_MARC_Data_Field $field */
+			foreach ($linkFields as $field){
+				if ($field->getSubfield('u') != null){
+					$url = $field->getSubfield('u')->getData();
+					if ($field->getSubfield('y') != null) {
+						$title = $field->getSubfield('y')->getData();
+					}else if ($field->getSubfield('3') != null){
+						$title = $field->getSubfield('3')->getData();
+					}else if ($field->getSubfield('z') != null){
+						$title = $field->getSubfield('z')->getData();
+					}else{
+						$title = $url;
+					}
+					$links[] = array(
+							'title' => $title,
+							'url' => $url,
+					);
 				}
-				$links[] = array(
-						'title' => $title,
-						'url' => $url,
-				);
 			}
 		}
 
