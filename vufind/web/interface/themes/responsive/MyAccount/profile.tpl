@@ -400,7 +400,7 @@
 							</div>
 						</div>
 					</a>
-					<div id="userPreference" class="panel-collapse collapse in">
+					<div id="userPreferencePanel" class="panel-collapse collapse in">
 						<div class="panel-body">
 							{* Empty action attribute uses the page loaded. this keeps the selected user patronId in the parameters passed back to server *}
 							<form action="" method="post" class="form-horizontal">
@@ -453,7 +453,7 @@
 								{if !$offline && $edit == true}
 									<div class="form-group">
 										<div class="col-xs-8 col-xs-offset-4">
-											<input type='submit' value='Update My Preferences' name='updateMyPreferences' class="btn btn-sm btn-primary">
+											<input type="submit" value="Update My Preferences" name="updateMyPreferences" class="btn btn-sm btn-primary">
 										</div>
 									</div>
 								{/if}
