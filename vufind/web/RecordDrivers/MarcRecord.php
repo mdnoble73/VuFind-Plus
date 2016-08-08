@@ -1394,10 +1394,13 @@ class MarcRecord extends IndexRecord
 				$isbns = array();
 				/** @var File_MARC_Data_Field[] $isbnFields */
 				if ($this->isValid()) {
-					$isbnFields = $this->getMarcRecord()->getFields('020');
-					foreach ($isbnFields as $isbnField) {
-						if ($isbnField->getSubfield('a') != null) {
-							$isbns[] = $isbnField->getSubfield('a')->getData();
+					$marcRecord = $this->getMarcRecord();
+					if ($marcRecord != null){
+						$isbnFields = $this->getMarcRecord()->getFields('020');
+						foreach ($isbnFields as $isbnField) {
+							if ($isbnField->getSubfield('a') != null) {
+								$isbns[] = $isbnField->getSubfield('a')->getData();
+							}
 						}
 					}
 				}
