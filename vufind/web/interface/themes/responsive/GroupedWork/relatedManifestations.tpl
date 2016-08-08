@@ -69,7 +69,7 @@
 		{foreachelse}
 			<div class="row related-manifestation">
 				<div class="col-sm-12">
-					No formats of this title are currently available to you.  {if !$user}You may be able to access additional titles if you login.{/if}
+					The library does not own any copies of this title.
 				</div>
 			</div>
 		{/foreach}
