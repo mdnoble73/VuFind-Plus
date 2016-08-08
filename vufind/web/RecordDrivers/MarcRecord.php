@@ -1393,10 +1393,12 @@ class MarcRecord extends IndexRecord
 			}else{
 				$isbns = array();
 				/** @var File_MARC_Data_Field[] $isbnFields */
-				$isbnFields = $this->getMarcRecord()->getFields('020');
-				foreach($isbnFields as $isbnField){
-					if ($isbnField->getSubfield('a') != null){
-						$isbns[] = $isbnField->getSubfield('a')->getData();
+				if ($this->isValid()) {
+					$isbnFields = $this->getMarcRecord()->getFields('020');
+					foreach ($isbnFields as $isbnField) {
+						if ($isbnField->getSubfield('a') != null) {
+							$isbns[] = $isbnField->getSubfield('a')->getData();
+						}
 					}
 				}
 				$this->isbns = $isbns;
@@ -1642,7 +1644,12 @@ class MarcRecord extends IndexRecord
 	 */
 	public function getMarcRecord(){
 		if ($this->marcRecord == null){
-			$this->marcRecord = MarcLoader::loadMarcRecordByILSId("{$this->profileType}:{$this->id}");
+			try{
+				$this->marcRecord = MarcLoader::loadMarcRecordByILSId("{$this->profileType}:{$this->id}");
+			}catch (Exception $e){
+				//Unable to load record this happens from time to time
+			}
+
 			global $timer;
 			$timer->logTime("Finished loading marc record for {$this->id}");
 		}
