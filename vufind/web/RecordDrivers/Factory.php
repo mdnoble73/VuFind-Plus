@@ -114,6 +114,14 @@ class RecordDriverFactory {
 				foreach ($driverNameParts as $driverPart) {
 					$normalizedRecordType .= (ucfirst($driverPart));
 				}
+
+				if ($normalizedRecordType == 'Compound'){
+					$genre = $record['mods_genre_s'];
+					if ($genre != null){
+						$normalizedRecordType = ucfirst($genre);
+					}
+				}
+
 				$driver = $normalizedRecordType . 'Driver';
 				$path = "{$configArray['Site']['local']}/RecordDrivers/{$driver}.php";
 

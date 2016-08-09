@@ -43,36 +43,7 @@
 					"tileSize":256,
 					"tileOverlap":0,
 					"id":"pika-openseadragon",
-					"settings": {ldelim}
-							"id":"pika-openseadragon",
-							"prefixUrl":"https:\/\/islandora.marmot.org\/sites\/all\/libraries\/openseadragon\/images\/",
-							"debugMode":false,
-							"djatokaServerBaseURL":"https:\/\/islandora.marmot.org\/adore-djatoka\/resolver",
-							"tileSize":256,
-							"tileOverlap":0,
-							"animationTime":1.5,
-							"blendTime":0.1,
-							"alwaysBlend":false,
-							"autoHideControls":1,
-							"immediateRender":true,
-							"wrapHorizontal":false,
-							"wrapVertical":false,
-							"wrapOverlays":false,
-							"panHorizontal":1,
-							"panVertical":1,
-							"minZoomImageRatio":0.35,
-							"maxZoomPixelRatio":2,
-							"visibilityRatio":0.5,
-							"springStiffness":5,
-							"imageLoaderLimit":5,
-							"clickTimeThreshold":300,
-							"clickDistThreshold":5,
-							"zoomPerClick":2,
-							"zoomPerScroll":1.2,
-							"zoomPerSecond":2,
-							"showNavigator":1,
-							"defaultZoomLevel":1
-					{rdelim}
+					"settings": VuFind.Archive.openSeadragonViewerSettings
 				{rdelim};
 				openSeadragonSettings.settings.tileSources = new Array();
 				var frontTile = new OpenSeadragon.DjatokaTileSource(

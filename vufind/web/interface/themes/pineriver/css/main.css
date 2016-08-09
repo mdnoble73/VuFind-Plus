@@ -10329,7 +10329,8 @@ a.browse-thumbnail.active {
 #explore-more-body .jcarousel .thumbnail,
 #relatedProjectScroller .jcarousel .thumbnail,
 #relatedContentTypesContainer .jcarousel .thumbnail,
-.exploreMoreBar .jcarousel .thumbnail {
+.exploreMoreBar .jcarousel .thumbnail,
+#book-sections .jcarousel .thumbnail {
   margin-bottom: 0;
   height: 175px;
   border: 0 solid white;
@@ -10338,10 +10339,12 @@ a.browse-thumbnail.active {
 #relatedProjectScroller .jcarousel-control-prev,
 #relatedContentTypesContainer .jcarousel-control-prev,
 .exploreMoreBar .jcarousel-control-prev,
+#book-sections .jcarousel-control-prev,
 #explore-more-body .jcarousel-control-next,
 #relatedProjectScroller .jcarousel-control-next,
 #relatedContentTypesContainer .jcarousel-control-next,
-.exploreMoreBar .jcarousel-control-next {
+.exploreMoreBar .jcarousel-control-next,
+#book-sections .jcarousel-control-next {
   height: 100%;
   background: #fff;
   color: #7AB92C;
@@ -10352,32 +10355,38 @@ a.browse-thumbnail.active {
 #relatedProjectScroller .jcarousel-control-prev:focus,
 #relatedContentTypesContainer .jcarousel-control-prev:focus,
 .exploreMoreBar .jcarousel-control-prev:focus,
+#book-sections .jcarousel-control-prev:focus,
 #explore-more-body .jcarousel-control-next:focus,
 #relatedProjectScroller .jcarousel-control-next:focus,
 #relatedContentTypesContainer .jcarousel-control-next:focus,
-.exploreMoreBar .jcarousel-control-next:focus {
+.exploreMoreBar .jcarousel-control-next:focus,
+#book-sections .jcarousel-control-next:focus {
   outline: none;
 }
 #explore-more-body .jcarousel-control-prev .glyphicon,
 #relatedProjectScroller .jcarousel-control-prev .glyphicon,
 #relatedContentTypesContainer .jcarousel-control-prev .glyphicon,
 .exploreMoreBar .jcarousel-control-prev .glyphicon,
+#book-sections .jcarousel-control-prev .glyphicon,
 #explore-more-body .jcarousel-control-next .glyphicon,
 #relatedProjectScroller .jcarousel-control-next .glyphicon,
 #relatedContentTypesContainer .jcarousel-control-next .glyphicon,
-.exploreMoreBar .jcarousel-control-next .glyphicon {
+.exploreMoreBar .jcarousel-control-next .glyphicon,
+#book-sections .jcarousel-control-next .glyphicon {
   top: 39px;
 }
 #explore-more-body .jcarousel-control-prev,
 #relatedProjectScroller .jcarousel-control-prev,
 #relatedContentTypesContainer .jcarousel-control-prev,
-.exploreMoreBar .jcarousel-control-prev {
+.exploreMoreBar .jcarousel-control-prev,
+#book-sections .jcarousel-control-prev {
   left: 2px;
 }
 #explore-more-body .jcarousel-control-next,
 #relatedProjectScroller .jcarousel-control-next,
 #relatedContentTypesContainer .jcarousel-control-next,
-.exploreMoreBar .jcarousel-control-next {
+.exploreMoreBar .jcarousel-control-next,
+#book-sections .jcarousel-control-next {
   right: 2px;
 }
 #relatedProjectScroller .thumbnail,
