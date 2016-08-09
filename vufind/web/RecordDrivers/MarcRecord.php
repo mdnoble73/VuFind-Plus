@@ -712,7 +712,7 @@ class MarcRecord extends IndexRecord
 					// Can we find a name using the specified subfield list?
 					$name = $this->getSubfieldArray($currentField, $subfields);
 					if (isset($name[0])) {
-						$currentArray = array('name' => $name[0]);
+						$currentArray = array('seriesTitle' => $name[0]);
 
 						// Can we find a number in subfield v?  (Note that number is
 						// always in subfield v regardless of whether we are dealing
@@ -720,7 +720,7 @@ class MarcRecord extends IndexRecord
 						// rather than another parameter in $fieldInfo).
 						$number = $this->getSubfieldArray($currentField, array('v'));
 						if (isset($number[0])) {
-							$currentArray['number'] = $number[0];
+							$currentArray['volume'] = $number[0];
 						}
 
 						// Save the current match:
@@ -1424,6 +1424,44 @@ class MarcRecord extends IndexRecord
 			}
 		}
 		return $this->isbns;
+	}
+
+	private $issns = null;
+	/**
+	 * Get an array of all ISSNs associated with the record (may be empty).
+	 *
+	 * @access  protected
+	 * @return  array
+	 */
+	public function getISSNs()
+	{
+		if ($this->issns == null){
+			// If ISBN is in the index, it should automatically be an array... but if
+			// it's not set at all, we should normalize the value to an empty array.
+			if (isset($this->fields['issn'])){
+				if (is_array($this->fields['issn'])){
+					$this->issns = $this->fields['issn'];
+				}else{
+					$this->issns = array($this->fields['issn']);
+				}
+			}else{
+				$issns = array();
+				/** @var File_MARC_Data_Field[] $isbnFields */
+				if ($this->isValid()) {
+					$marcRecord = $this->getMarcRecord();
+					if ($marcRecord != null){
+						$isbnFields = $this->getMarcRecord()->getFields('022');
+						foreach ($isbnFields as $isbnField) {
+							if ($isbnField->getSubfield('a') != null) {
+								$issns[] = $isbnField->getSubfield('a')->getData();
+							}
+						}
+					}
+				}
+				$this->issns = $issns;
+			}
+		}
+		return $this->issns;
 	}
 
 	/**
