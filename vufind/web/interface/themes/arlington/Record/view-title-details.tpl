@@ -98,6 +98,13 @@
 		</div>
 	{/if}
 
+	{if $recordDriver->getISSNs()}
+		<div class="row">
+			<div class="result-label col-md-3">{translate text='ISSN'}:</div>
+			<div class="col-md-9 result-value">{implode subject=$recordDriver->getISSNs()}</div>
+		</div>
+	{/if}
+
 	{if $showPhysicalDescriptions && $physicalDescriptions}
 		<div class="row">
 			<div class="result-label col-sm-4">{translate text='Physical Desc'}:</div>

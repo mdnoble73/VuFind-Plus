@@ -712,7 +712,7 @@ class MarcRecord extends IndexRecord
 					// Can we find a name using the specified subfield list?
 					$name = $this->getSubfieldArray($currentField, $subfields);
 					if (isset($name[0])) {
-						$currentArray = array('name' => $name[0]);
+						$currentArray = array('seriesTitle' => $name[0]);
 
 						// Can we find a number in subfield v?  (Note that number is
 						// always in subfield v regardless of whether we are dealing
@@ -720,7 +720,7 @@ class MarcRecord extends IndexRecord
 						// rather than another parameter in $fieldInfo).
 						$number = $this->getSubfieldArray($currentField, array('v'));
 						if (isset($number[0])) {
-							$currentArray['number'] = $number[0];
+							$currentArray['volume'] = $number[0];
 						}
 
 						// Save the current match:
