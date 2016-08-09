@@ -8,8 +8,8 @@
  * Date: 6/10/2016
  * Time: 1:53 PM
  */
-require_once ROOT_DIR . '/Drivers/SIP2Driver.php';
-//TODO: CarlX Driver doesn't make use of anything in SIP2Driver. Instead it relies on SIP2.php
+//require_once ROOT_DIR . '/Drivers/SIP2Driver.php';
+require_once ROOT_DIR . '/sys/SIP2.php';
 class CarlX extends SIP2Driver{
 	public $accountProfile;
 	public $patronWsdl;
@@ -149,13 +149,12 @@ class CarlX extends SIP2Driver{
 						}
 					}
 
-					if ($result->Patron->EmailReceiptFlag === true) {
-						//$result->Patron->EmailNotices as ~4 values: "do not send email",
+					if ($result->Patron->EmailNotices == 'send email') {
 						$user->notices = 'z';
 						$user->noticePreferenceLabel = 'E-mail';
-					} else {
-						// TODO: Set Phone Notice Setting
+					} elseif ($result->Patron->EmailNotices == 'do not send email' || $result->Patron->EmailNotices == 'opted out') {
 						$user->notices = '-';
+						$user->noticePreferenceLabel = null;
 					}
 
 					$user->patronType  = $result->Patron->PatronType; // Example: "ADULT"
@@ -237,6 +236,7 @@ class CarlX extends SIP2Driver{
 	 */
 	public function renewAll($patron) {
 		// TODO: Implement renewAll() method.
+		return false;
 	}
 
 	private $genericResponseSOAPCallOptions = array(
@@ -287,7 +287,7 @@ class CarlX extends SIP2Driver{
 //		$result = $this->renewItemViaSIP($patron, $itemId, $useAlternateSIP);
 	}
 
-	private $holdStatusCodes = array( //TODO: Set to Pika Common Values so they can be translated? (look at templates, Horizon Driver seems to just use Horizon values)
+	private $holdStatusCodes = array(
 	                                  'H'  => 'Hold Shelf',
 	                                  ''   => 'In Queue',
 	                                  'IH' => 'In Transit',
@@ -339,9 +339,7 @@ class CarlX extends SIP2Driver{
 					$curHold['location']           = empty($pickUpBranch->BranchName) ? '' : $pickUpBranch->BranchName;
 					$curHold['locationUpdateable'] = true; //TODO: unless status is in transit?
 					$curHold['currentPickupName']  = empty($pickUpBranch->BranchName) ? '' : $pickUpBranch->BranchName;
-					$curHold['status']             = $this->holdStatusCodes[$hold->ItemStatus];  // TODO: Is this the correct thing for hold status. Alternative is Transaction Code
-					//TODO: Look up values for Hold Statuses
-
+					$curHold['status']             = $this->holdStatusCodes[$hold->ItemStatus];
 					$curHold['expire']             = strtotime($expireDate); // give a time stamp  // use this for available holds
 					$curHold['reactivate']         = null;
 					$curHold['reactivateTime']     = null;
@@ -398,11 +396,7 @@ class CarlX extends SIP2Driver{
 					$curHold['currentPickupName']  = empty($pickUpBranch->BranchName) ? '' : $pickUpBranch->BranchName;
 					$curHold['frozen']             = $hold->Suspended;
 					$curHold['status']             = $this->holdStatusCodes[$hold->ItemStatus];
-					// TODO: Is this the correct thing for hold status. Alternative is Transaction Code
-					//TODO: Look up values for Hold Statuses
-
 					$curHold['automaticCancellation'] = strtotime($expireDate); // use this for unavailable holds
-
 					$curHold['cancelable']         = true;
 
 					if ($curHold['frozen']){
@@ -554,10 +548,8 @@ class CarlX extends SIP2Driver{
 				$curTitle['dueDate']         = strtotime($dueDate);
 				$curTitle['checkoutdate']    = strstr($chargeItem->TransactionDate, 'T', true);
 				$curTitle['renewCount']      = $chargeItem->RenewalCount;
-				$curTitle['canrenew']        = true; //TODO: Figure out if the user can renew the title or not
+				$curTitle['canrenew']        = true;
 				$curTitle['renewIndicator']  = null;
-//				$curTitle['holdQueueLength'] = $this->getNumHolds($chargeItem->ItemNumber);  //TODO: implement getNumHolds()
-				// TODO: HoldQueueLength Needed for Checks outs??
 
 				$curTitle['format']          = 'Unknown';
 				if (!empty($carlID)){
@@ -658,19 +650,18 @@ class CarlX extends SIP2Driver{
 			$request->Patron->Addresses->Address->PostalCode  = $_REQUEST['zip'];
 
 			if (isset($_REQUEST['notices'])){
-				$noticeLabels = array(
-					//'-' => 'Mail',  // officially None in Sierra, as in No Preference Selected.
-					'-' => '',        // notification will generally be based on what information is available so can't determine here. plb 12-02-2014
-					'a' => 'Mail',    // officially Print in Sierra
-					'p' => 'Telephone',
-					'z' => 'E-mail',
-				);
+//				$noticeLabels = array(
+//					//'-' => 'Mail',  // officially None in Sierra, as in No Preference Selected.
+//					'-' => '',        // notification will generally be based on what information is available so can't determine here. plb 12-02-2014
+//					'a' => 'Mail',    // officially Print in Sierra
+//					'p' => 'Telephone',
+//					'z' => 'E-mail',
+//				);
 
 				if ($_REQUEST['notices'] == 'z') {
-					$request->Patron->EmailReceiptFlag = true;
+					$request->Patron->EmailNotices = 'send email';
 				} else {
-					//TODO: Set when phone preference is used
-					$request->Patron->EmailReceiptFlag = false;
+					$request->Patron->EmailNotices = 'do not send email';
 				}
 
 			}
