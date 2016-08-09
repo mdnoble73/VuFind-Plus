@@ -1426,6 +1426,44 @@ class MarcRecord extends IndexRecord
 		return $this->isbns;
 	}
 
+	private $issns = null;
+	/**
+	 * Get an array of all ISSNs associated with the record (may be empty).
+	 *
+	 * @access  protected
+	 * @return  array
+	 */
+	public function getISSNs()
+	{
+		if ($this->issns == null){
+			// If ISBN is in the index, it should automatically be an array... but if
+			// it's not set at all, we should normalize the value to an empty array.
+			if (isset($this->fields['issn'])){
+				if (is_array($this->fields['issn'])){
+					$this->issns = $this->fields['issn'];
+				}else{
+					$this->issns = array($this->fields['issn']);
+				}
+			}else{
+				$issns = array();
+				/** @var File_MARC_Data_Field[] $isbnFields */
+				if ($this->isValid()) {
+					$marcRecord = $this->getMarcRecord();
+					if ($marcRecord != null){
+						$isbnFields = $this->getMarcRecord()->getFields('022');
+						foreach ($isbnFields as $isbnField) {
+							if ($isbnField->getSubfield('a') != null) {
+								$issns[] = $isbnField->getSubfield('a')->getData();
+							}
+						}
+					}
+				}
+				$this->issns = $issns;
+			}
+		}
+		return $this->issns;
+	}
+
 	/**
 	 * Get the UPC associated with the record (may be empty).
 	 *
