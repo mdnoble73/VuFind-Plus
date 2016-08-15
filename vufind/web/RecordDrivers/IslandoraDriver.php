@@ -981,6 +981,8 @@ abstract class IslandoraDriver extends RecordInterface {
 			$searchObject->addHiddenFilter('!RELS_EXT_isViewableByRole_literal_ms', "administrator");
 			$searchObject->clearFilters();
 
+			$searchObject->setDebugging(true, true);
+			$searchObject->setPrimarySearch(true);
 			$response = $searchObject->processSearch(true, false);
 			if ($response && $response['response']['numFound'] > 0) {
 				foreach ($response['response']['docs'] as $doc) {
