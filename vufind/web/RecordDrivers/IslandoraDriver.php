@@ -598,7 +598,7 @@ abstract class IslandoraDriver extends RecordInterface {
 	protected $relatedEvents = array();
 	protected $relatedOrganizations = array();
 	private $loadedRelatedEntities = false;
-	private static $nonProductionTeamRoles = array('interviewee', 'artist', 'described', 'contributor');
+	private static $nonProductionTeamRoles = array('interviewee', 'artist', 'described', 'contributor', 'author');
 	public function loadRelatedEntities(){
 		if ($this->loadedRelatedEntities == false){
 			$this->loadedRelatedEntities = true;
