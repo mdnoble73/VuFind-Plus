@@ -72,42 +72,55 @@ EOQ;
 
 		$queryResults = $fedoraUtils->doSparqlQuery($query);
 
-		// Sort the objects into their proper order.
-		$sort = function($a, $b) {
-			$a = $a['seq']['value'];
-			$b = $b['seq']['value'];
-			if ($a === $b) {
-				return 0;
-			}
-			if (empty($a)) {
-				return 1;
-			}
-			if (empty($b)) {
-				return -1;
-			}
-			return $a - $b;
-		};
-		uasort($queryResults, $sort);
-
-		foreach ($queryResults as $result) {
-			$objectPid = $result['object']['value'];
-			//TODO: check access
-			/** @var FedoraObject $sectionObject */
-			$sectionObject = $fedoraUtils->getObject($objectPid);
+		if (count($queryResults) == 0){
 			$sectionDetails = array(
-					'pid' => $objectPid,
-					'title' => $result['title']['value'],
-					'seq' => $result['seq']['value'],
-					'cover' => $fedoraUtils->getObjectImageUrl($sectionObject, 'thumbnail')
+					'pid' => $this->pid,
+					'title' => $this->recordDriver->getTitle(),
+					'seq' => 0,
+					'cover' => $this->recordDriver->getBookcoverUrl('small')
 			);
-			$pdfStream = $sectionObject->getDatastream('PDF');
-			if ($pdfStream != null){
-				$sectionDetails['pdf'] = $objectUrl . '/' . $objectPid . '/datastream/PDF/view';;
-			}
-			//Load individual pages for this section
+			$sectionObject = $fedoraUtils->getObject($this->pid);
 			$sectionDetails = $this->loadPagesForSection($sectionObject, $sectionDetails);
 
-			$sections[$objectPid] = $sectionDetails;
+			$sections[$this->pid] = $sectionDetails;
+		}else{
+			// Sort the objects into their proper order.
+			$sort = function($a, $b) {
+				$a = $a['seq']['value'];
+				$b = $b['seq']['value'];
+				if ($a === $b) {
+					return 0;
+				}
+				if (empty($a)) {
+					return 1;
+				}
+				if (empty($b)) {
+					return -1;
+				}
+				return $a - $b;
+			};
+			uasort($queryResults, $sort);
+
+			foreach ($queryResults as $result) {
+				$objectPid = $result['object']['value'];
+				//TODO: check access
+				/** @var FedoraObject $sectionObject */
+				$sectionObject = $fedoraUtils->getObject($objectPid);
+				$sectionDetails = array(
+						'pid' => $objectPid,
+						'title' => $result['title']['value'],
+						'seq' => $result['seq']['value'],
+						'cover' => $fedoraUtils->getObjectImageUrl($sectionObject, 'thumbnail')
+				);
+				$pdfStream = $sectionObject->getDatastream('PDF');
+				if ($pdfStream != null){
+					$sectionDetails['pdf'] = $objectUrl . '/' . $objectPid . '/datastream/PDF/view';;
+				}
+				//Load individual pages for this section
+				$sectionDetails = $this->loadPagesForSection($sectionObject, $sectionDetails);
+
+				$sections[$objectPid] = $sectionDetails;
+			}
 		}
 
 		return $sections;
