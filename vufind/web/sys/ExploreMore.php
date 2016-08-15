@@ -630,7 +630,7 @@ class ExploreMore {
 	 * @return array
 	 */
 	public function getRelatedArchiveSubjects($archiveDriver){
-		$relatedObjects = $archiveDriver->getDirectlyLinkedArchiveObjects();
+		$relatedObjects = $archiveDriver->getDirectlyRelatedArchiveObjects();
 		$relatedSubjects = array();
 
 		foreach ($relatedObjects['objects'] as $object){
@@ -752,7 +752,7 @@ class ExploreMore {
 		$relatedPlaces = array();
 		$relatedOrganizations = array();
 		$relatedEvents = array();
-		$relatedObjects = $archiveDriver->getDirectlyLinkedArchiveObjects();
+		$relatedObjects = $archiveDriver->getDirectlyRelatedArchiveObjects();
 
 		foreach ($relatedObjects['objects'] as $object){
 			/** @var IslandoraDriver $objectDriver */

@@ -564,7 +564,7 @@ abstract class IslandoraDriver extends RecordInterface {
 			$this->relatedCollections = array();
 			if ($this->isEntity()){
 				//Get collections related to objects related to this entity
-				$directlyLinkedObjects = $this->getDirectlyLinkedArchiveObjects();
+				$directlyLinkedObjects = $this->getDirectlyRelatedArchiveObjects();
 				foreach ($directlyLinkedObjects['objects'] as $tmpObject){
 					$linkedCollections = $tmpObject['driver']->getRelatedCollections();
 					$this->relatedCollections = array_merge($this->relatedCollections, $linkedCollections);
@@ -917,14 +917,47 @@ abstract class IslandoraDriver extends RecordInterface {
 
 	protected $directlyRelatedObjects = null;
 
-	public function getDirectlyLinkedArchiveObjects(){
+	/**
+	 * Load objects that are related directly to this object
+	 * Either based on a link from this object to another object
+	 * Or based on a link from another object to this object
+	 *
+	 * @return array|null
+	 */
+	public function getDirectlyRelatedArchiveObjects(){
 		if ($this->directlyRelatedObjects == null){
 			global $timer;
+			$fedoraUtils = FedoraUtils::getInstance();
+
 			$timer->logTime("Starting getDirectlyLinkedArchiveObjects");
 			$this->directlyRelatedObjects = array(
 					'numFound' => 0,
 					'objects' => array(),
 			);
+
+			$relatedObjects = $this->getModsValues('relatedObject', 'marmot');
+			foreach ($relatedObjects as $relatedObjectSnippets){
+				$objectPid = $this->getModsValue('objectPid', 'marmot', $relatedObjectSnippets);
+				if (strlen($objectPid) > 0){
+					$archiveObject = $fedoraUtils->getObject($objectPid);
+					if ($archiveObject != null){
+						$entityDriver = RecordDriverFactory::initRecordDriver($archiveObject);
+						$objectInfo = array(
+								'pid' => $entityDriver->getUniqueID(),
+								'label' => $entityDriver->getTitle(),
+								'description' => $entityDriver->getTitle(),
+								'image' => $entityDriver->getBookcoverUrl('medium'),
+								'link' => $entityDriver->getRecordUrl(),
+								'driver' => $entityDriver
+						);
+						$this->directlyRelatedObjects['objects'][$objectInfo['pid']] = $objectInfo;
+						$this->directlyRelatedObjects['numFound']++;
+					}
+				}
+
+			}
+
+
 			// Include Search Engine Class
 			require_once ROOT_DIR . '/sys/Solr.php';
 
