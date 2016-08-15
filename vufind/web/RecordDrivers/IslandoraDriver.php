@@ -1014,7 +1014,7 @@ abstract class IslandoraDriver extends RecordInterface {
 	}
 
 	private function addRelatedEntityToArrays($pid, $entityName, $entityType, $note, $role) {
-		if (strlen($pid) == 0){
+		if (strlen($pid) == 0 || strpos($pid, ':') === false){
 			return;
 		}
 		$fedoraUtils = FedoraUtils::getInstance();
