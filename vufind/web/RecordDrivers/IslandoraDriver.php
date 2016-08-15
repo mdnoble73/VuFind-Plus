@@ -598,6 +598,7 @@ abstract class IslandoraDriver extends RecordInterface {
 	protected $relatedEvents = array();
 	protected $relatedOrganizations = array();
 	private $loadedRelatedEntities = false;
+	private static $nonProductionTeamRoles = array('interviewee', 'artist', 'described', 'contributor');
 	public function loadRelatedEntities(){
 		if ($this->loadedRelatedEntities == false){
 			$this->loadedRelatedEntities = true;
@@ -689,7 +690,8 @@ abstract class IslandoraDriver extends RecordInterface {
 
 					);
 					if ($entityType == 'person'){
-						$isProductionTeam = strlen($entityRole) > 0 && strtolower($entityRole) !=  'interviewee';
+
+						$isProductionTeam = strlen($entityRole) > 0 && !in_array(strtolower($entityRole), IslandoraDriver::$nonProductionTeamRoles);
 						$personObject = $fedoraUtils->getObject($entityPid);
 						$entityInfo['image'] = $fedoraUtils->getObjectImageUrl($personObject, 'medium');
 						$entityInfo['link']= '/Archive/' . $entityPid . '/Person';
@@ -1029,7 +1031,7 @@ abstract class IslandoraDriver extends RecordInterface {
 		);
 		if ($entityType == 'person'){
 			$entityInfo['link']= '/Archive/' . $pid . '/Person';
-			if (strlen($role) > 0 && strtolower($role) != 'interviewee'){
+			if (strlen($role) > 0 && !in_array(strtolower($role), IslandoraDriver::$nonProductionTeamRoles)){
 				$this->productionTeam[$pid.$role] = $entityInfo;
 			}else{
 				$this->relatedPeople[$pid.$role] = $entityInfo;

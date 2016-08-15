@@ -671,14 +671,17 @@ class ExploreMore {
 		//Get a list of objects in the archive related to this search
 		$searchObject->setSearchTerms(array(
 				'lookfor' => $searchTerm,
-				'index' => $searchSubjectsOnly ? 'IslandoraKeyword' : 'IslandoraSubject'
+				//TODO: do additional testing with this since it was reversed.
+				'index' => 'IslandoraKeyword'
+				//'index' => $searchSubjectsOnly ? 'IslandoraSubject' : 'IslandoraKeyword'
 		));
 		$searchObject->clearHiddenFilters();
+		$searchObject->clearFilters();
 		$searchObject->addHiddenFilter('!RELS_EXT_isViewableByRole_literal_ms', "administrator");
 		if ($archiveDriver != null){
 			$searchObject->addHiddenFilter('!PID', str_replace(':', '\:', $archiveDriver->getUniqueID()));
 		}
-		$searchObject->clearFilters();
+		$searchObject->addHiddenFilter('!mods_extension_marmotLocal_pikaOptions_showInSearchResults_ms', "no");
 		$searchObject->addFacet('mods_genre_s', 'Format');
 
 		$response = $searchObject->processSearch(true, false);
@@ -695,10 +698,15 @@ class ExploreMore {
 				$searchObject2->setSearchTerms(array(
 						'lookfor' => $searchTerm,
 						'index' => 'IslandoraKeyword'
+						//'index' => $searchSubjectsOnly ? 'IslandoraSubject' : 'IslandoraKeyword'
 				));
+				$searchObject2->clearFilters();
 				$searchObject2->clearHiddenFilters();
 				$searchObject2->addHiddenFilter('!RELS_EXT_isViewableByRole_literal_ms', "administrator");
-				$searchObject2->clearFilters();
+				if ($archiveDriver != null){
+					$searchObject2->addHiddenFilter('!PID', str_replace(':', '\:', $archiveDriver->getUniqueID()));
+				}
+				$searchObject2->addHiddenFilter('!mods_extension_marmotLocal_pikaOptions_showInSearchResults_ms', "no");
 				$searchObject2->addFilter("mods_genre_s:{$relatedContentType[0]}");
 				$response2 = $searchObject2->processSearch(true, false);
 				if ($response2 && $response2['response']['numFound'] > 0) {
