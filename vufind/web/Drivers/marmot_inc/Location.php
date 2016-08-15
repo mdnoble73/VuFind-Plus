@@ -358,7 +358,7 @@ class Location extends DB_DataObject
 			unset($structure['automaticTimeoutLength']);
 			unset($structure['automaticTimeoutLengthLoggedOut']);
 		}
-		if (!$user->hasRole('opacAdmin')){
+		if (!$user->hasRole('opacAdmin') && !$user->hasRole('libraryAdmin')){
 			unset($structure['isMainBranch']);
 		}
 		return $structure;

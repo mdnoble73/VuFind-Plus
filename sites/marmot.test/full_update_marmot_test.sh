@@ -90,6 +90,12 @@ cd /usr/local/vufind-plus/sites/${PIKASERVER}; ./${PIKASERVER}.sh restart
 # Western Oxford Reference Marc Updates
 /usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh western/oxfordReference oxfordReference/western >> ${OUTPUT_FILE}
 
+# Western Springer Marc Updates
+/usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh western/springer springer/western >> ${OUTPUT_FILE}
+
+# Western Kanopy Marc Updates
+/usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh western/kanopy kanopy/western >> ${OUTPUT_FILE}
+
 # SD51 Mackin VIA Marc Updates
 /usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh mcvsd/mackinvia/mvcp mackinvia/mvcp >> ${OUTPUT_FILE}
 /usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh mcvsd/mackinvia/mvem mackinvia/mvem >> ${OUTPUT_FILE}
