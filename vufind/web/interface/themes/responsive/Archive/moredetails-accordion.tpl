@@ -19,7 +19,7 @@
 			</div>
 		{/if}
 
-		{if $transcription}
+		{if $transcription && strlen($transcription.text) > 0}
 			<div class="panel {*active*}{*toggle on for open*}" id="transcriptionPanel">
 				<a href="#transcriptionPanelBody" data-toggle="collapse">
 					<div class="panel-heading">
