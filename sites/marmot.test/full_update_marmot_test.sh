@@ -7,9 +7,6 @@ EMAIL=root@venus
 PIKASERVER=marmot.test
 OUTPUT_FILE="/var/log/vufind-plus/${PIKASERVER}/full_update_output.log"
 
-#truncate the output file so you don't spend a week debugging an error from a week ago!
-: > $OUTPUT_FILE;
-
 # Check if full_update is already running
 #TODO: Verify that the PID file doesn't get log-rotated
 PIDFILE="/var/log/vufind-plus/${PIKASERVER}/full_update.pid"
@@ -19,16 +16,16 @@ then
 	ps -p $PID > /dev/null 2>&1
 	if [ $? -eq 0 ]
 	then
-		echo "$0 is already running"  >> ${OUTPUT_FILE}
-		mail -s "Full Extract and Reindexing - ${PIKASERVER}" $EMAIL < ${OUTPUT_FILE}
+#		echo "$0 is already running"
+		mail -s "Full Extract and Reindexing - ${PIKASERVER}" $EMAIL <<< "$0 is already running"
 		exit 1
 	else
 		## Process not found assume not running
 		echo $$ > $PIDFILE
 		if [ $? -ne 0 ]
 		then
-			echo "Could not create PID file for $0" >> ${OUTPUT_FILE}
-			mail -s "Full Extract and Reindexing - ${PIKASERVER}" $EMAIL < ${OUTPUT_FILE}
+#			echo "Could not create PID file for $0"
+			mail -s "Full Extract and Reindexing - ${PIKASERVER}" $EMAIL <<< "Could not create PID file for $0"
 			exit 1
 		fi
 	fi
@@ -36,11 +33,14 @@ else
 	echo $$ > $PIDFILE
 	if [ $? -ne 0 ]
 	then
-		echo "Could not create PID file for $0" >> ${OUTPUT_FILE}
-		mail -s "Full Extract and Reindexing - ${PIKASERVER}" $EMAIL < ${OUTPUT_FILE}
+#		echo "Could not create PID file for $0"
+		mail -s "Full Extract and Reindexing - ${PIKASERVER}" $EMAIL <<< "Could not create PID file for $0"
 		exit 1
 	fi
 fi
+#truncate the output file so you don't spend a week debugging an error from a week ago!
+: > $OUTPUT_FILE;
+
 
 # Check for conflicting processes currently running
 function checkConflictingProcesses() {
