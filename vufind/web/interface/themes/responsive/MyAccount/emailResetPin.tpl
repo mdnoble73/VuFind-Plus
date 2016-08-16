@@ -1,7 +1,7 @@
 {strip}
 	<div id="page-content" class="col-xs-12">
 
-		<h2>{translate text='Reset Your PIN'}</h2>
+		<h2>{translate text='Reset My PIN'}</h2>
 		<div class="alert alert-info">Please enter your complete card number.  A email will be sent to the email address on file for your account containing a link to reset your PIN.</div>
 
 		<form id="emailResetPin" method="POST" action="{$path}/MyAccount/EmailResetPin" class="form-horizontal">
