@@ -51,6 +51,9 @@ abstract class Archive_Object extends Action{
 		$interface->assign('relatedOrganizations', $relatedOrganizations);
 		$interface->assign('relatedPlaces', $relatedPlaces);
 
+		$directlyRelatedObjects = $this->recordDriver->getDirectlyRelatedArchiveObjects();
+		$interface->assign('directlyRelatedObjects', $directlyRelatedObjects);
+
 		$pageTitle = $pageTitle == null ? $this->archiveObject->label : $pageTitle;
 
 		$interface->assign('breadcrumbText', $pageTitle);
@@ -177,6 +180,7 @@ abstract class Archive_Object extends Action{
 					)
 			);
 		}
+
 
 		$alternateNames = $this->recordDriver->getModsValues('alternateName', 'marmot');
 		$interface->assign('alternateNames', FedoraUtils::cleanValues($alternateNames));

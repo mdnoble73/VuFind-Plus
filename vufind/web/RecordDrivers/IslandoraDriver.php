@@ -564,7 +564,7 @@ abstract class IslandoraDriver extends RecordInterface {
 			$this->relatedCollections = array();
 			if ($this->isEntity()){
 				//Get collections related to objects related to this entity
-				$directlyLinkedObjects = $this->getDirectlyLinkedArchiveObjects();
+				$directlyLinkedObjects = $this->getDirectlyRelatedArchiveObjects();
 				foreach ($directlyLinkedObjects['objects'] as $tmpObject){
 					$linkedCollections = $tmpObject['driver']->getRelatedCollections();
 					$this->relatedCollections = array_merge($this->relatedCollections, $linkedCollections);
@@ -598,6 +598,7 @@ abstract class IslandoraDriver extends RecordInterface {
 	protected $relatedEvents = array();
 	protected $relatedOrganizations = array();
 	private $loadedRelatedEntities = false;
+	private static $nonProductionTeamRoles = array('interviewee', 'artist', 'described', 'contributor', 'author');
 	public function loadRelatedEntities(){
 		if ($this->loadedRelatedEntities == false){
 			$this->loadedRelatedEntities = true;
@@ -689,9 +690,10 @@ abstract class IslandoraDriver extends RecordInterface {
 
 					);
 					if ($entityType == 'person'){
-						$isProductionTeam = strlen($entityRole) > 0 && strtolower($entityRole) !=  'interviewee';
+
+						$isProductionTeam = strlen($entityRole) > 0 && !in_array(strtolower($entityRole), IslandoraDriver::$nonProductionTeamRoles);
 						$personObject = $fedoraUtils->getObject($entityPid);
-						$entityInfo['image'] = $fedoraUtils->getObjectImageUrl($personObject, 'medium');
+						$entityInfo['image'] = $fedoraUtils->getObjectImageUrl($personObject, 'medium', $entityType);
 						$entityInfo['link']= '/Archive/' . $entityPid . '/Person';
 						if ($isProductionTeam){
 							$this->productionTeam[$entityPid] = $entityInfo;
@@ -882,10 +884,10 @@ abstract class IslandoraDriver extends RecordInterface {
 			$links = $this->getLinks();
 			foreach ($links as $id => $link){
 				if ($link['type'] == 'relatedPika'){
-					if (preg_match('/^.*\/GroupedWork\/([a-f0-9-]+)$/', $link['link'], $matches)){
+					if (preg_match('/^.*\/GroupedWork\/([a-f0-9-]{36})/', $link['link'], $matches)) {
 						$workId = $matches[1];
 						$workDriver = new GroupedWorkDriver($workId);
-						if ($workDriver->isValid){
+						if ($workDriver->isValid) {
 							$this->relatedPikaRecords[] = array(
 									'link' => $workDriver->getLinkUrl(),
 									'label' => $workDriver->getTitle(),
@@ -894,7 +896,6 @@ abstract class IslandoraDriver extends RecordInterface {
 							);
 							$this->links[$id]['hidden'] = true;
 						}
-
 					}else{
 						//Didn't get a valid grouped work id
 					}
@@ -917,14 +918,47 @@ abstract class IslandoraDriver extends RecordInterface {
 
 	protected $directlyRelatedObjects = null;
 
-	public function getDirectlyLinkedArchiveObjects(){
+	/**
+	 * Load objects that are related directly to this object
+	 * Either based on a link from this object to another object
+	 * Or based on a link from another object to this object
+	 *
+	 * @return array|null
+	 */
+	public function getDirectlyRelatedArchiveObjects(){
 		if ($this->directlyRelatedObjects == null){
 			global $timer;
+			$fedoraUtils = FedoraUtils::getInstance();
+
 			$timer->logTime("Starting getDirectlyLinkedArchiveObjects");
 			$this->directlyRelatedObjects = array(
 					'numFound' => 0,
 					'objects' => array(),
 			);
+
+			$relatedObjects = $this->getModsValues('relatedObject', 'marmot');
+			foreach ($relatedObjects as $relatedObjectSnippets){
+				$objectPid = $this->getModsValue('objectPid', 'marmot', $relatedObjectSnippets);
+				if (strlen($objectPid) > 0){
+					$archiveObject = $fedoraUtils->getObject($objectPid);
+					if ($archiveObject != null){
+						$entityDriver = RecordDriverFactory::initRecordDriver($archiveObject);
+						$objectInfo = array(
+								'pid' => $entityDriver->getUniqueID(),
+								'label' => $entityDriver->getTitle(),
+								'description' => $entityDriver->getTitle(),
+								'image' => $entityDriver->getBookcoverUrl('medium'),
+								'link' => $entityDriver->getRecordUrl(),
+								'driver' => $entityDriver
+						);
+						$this->directlyRelatedObjects['objects'][$objectInfo['pid']] = $objectInfo;
+						$this->directlyRelatedObjects['numFound']++;
+					}
+				}
+
+			}
+
+
 			// Include Search Engine Class
 			require_once ROOT_DIR . '/sys/Solr.php';
 
@@ -946,6 +980,8 @@ abstract class IslandoraDriver extends RecordInterface {
 			$searchObject->addHiddenFilter('!RELS_EXT_isViewableByRole_literal_ms', "administrator");
 			$searchObject->clearFilters();
 
+			//$searchObject->setDebugging(true, true);
+			//$searchObject->setPrimarySearch(true);
 			$response = $searchObject->processSearch(true, false);
 			if ($response && $response['response']['numFound'] > 0) {
 				foreach ($response['response']['docs'] as $doc) {
@@ -979,7 +1015,7 @@ abstract class IslandoraDriver extends RecordInterface {
 	}
 
 	private function addRelatedEntityToArrays($pid, $entityName, $entityType, $note, $role) {
-		if (strlen($pid) == 0){
+		if (strlen($pid) == 0 || strpos($pid, ':') === false){
 			return;
 		}
 		$fedoraUtils = FedoraUtils::getInstance();
@@ -996,7 +1032,7 @@ abstract class IslandoraDriver extends RecordInterface {
 		);
 		if ($entityType == 'person'){
 			$entityInfo['link']= '/Archive/' . $pid . '/Person';
-			if (strlen($role) > 0 && strtolower($role) != 'interviewee'){
+			if (strlen($role) > 0 && !in_array(strtolower($role), IslandoraDriver::$nonProductionTeamRoles)){
 				$this->productionTeam[$pid.$role] = $entityInfo;
 			}else{
 				$this->relatedPeople[$pid.$role] = $entityInfo;
