@@ -1,7 +1,7 @@
 {strip}
 	<div id="page-content" class="content">
 		<div id="main-content">
-			<div class="resulthead"><h3>{translate text='Reset Your PIN'}</h3></div>
+			<div class="resulthead"><h3>{translate text='Reset My PIN'}</h3></div>
 			<div class="page">
 				{if $emailResult.error}
 					<p class="alert alert-danger">{$emailResult.error}</p>
