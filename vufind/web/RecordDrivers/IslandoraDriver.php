@@ -598,7 +598,7 @@ abstract class IslandoraDriver extends RecordInterface {
 	protected $relatedEvents = array();
 	protected $relatedOrganizations = array();
 	private $loadedRelatedEntities = false;
-	private static $nonProductionTeamRoles = array('interviewee', 'artist', 'described', 'contributor', 'author');
+	private static $nonProductionTeamRoles = array('interviewee', 'artist', 'described', 'contributor', 'author', 'child', 'parent', 'sibling', 'spouse');
 	public function loadRelatedEntities(){
 		if ($this->loadedRelatedEntities == false){
 			$this->loadedRelatedEntities = true;
@@ -682,6 +682,9 @@ abstract class IslandoraDriver extends RecordInterface {
 					$entityTitle = $this->getModsValue('entityTitle', 'marmot', $entity);
 					$relationshipNote = $this->getModsValue('relationshipNote', 'marmot', $entity);
 					$entityRole = $this->getModsAttribute('role', $entity);
+					if (strlen($entityRole) == 0){
+						$entityRole = $this->getModsValue('role', 'marmot', $entity);
+					}
 					$entityInfo = array(
 							'pid' => $entityPid,
 							'label' => $entityTitle,
@@ -986,6 +989,7 @@ abstract class IslandoraDriver extends RecordInterface {
 			if ($response && $response['response']['numFound'] > 0) {
 				foreach ($response['response']['docs'] as $doc) {
 					$entityDriver = RecordDriverFactory::initRecordDriver($doc);
+					//TODO: Add the role of the user
 					$objectInfo = array(
 							'pid' => $entityDriver->getUniqueID(),
 							'label' => $entityDriver->getTitle(),
