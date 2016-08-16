@@ -884,10 +884,10 @@ abstract class IslandoraDriver extends RecordInterface {
 			$links = $this->getLinks();
 			foreach ($links as $id => $link){
 				if ($link['type'] == 'relatedPika'){
-					if (preg_match('/^.*\/GroupedWork\/([a-f0-9-]+)$/', $link['link'], $matches)){
+					if (preg_match('/^.*\/GroupedWork\/([a-f0-9-]{36})/', $link['link'], $matches)) {
 						$workId = $matches[1];
 						$workDriver = new GroupedWorkDriver($workId);
-						if ($workDriver->isValid){
+						if ($workDriver->isValid) {
 							$this->relatedPikaRecords[] = array(
 									'link' => $workDriver->getLinkUrl(),
 									'label' => $workDriver->getTitle(),
@@ -896,7 +896,6 @@ abstract class IslandoraDriver extends RecordInterface {
 							);
 							$this->links[$id]['hidden'] = true;
 						}
-
 					}else{
 						//Didn't get a valid grouped work id
 					}
