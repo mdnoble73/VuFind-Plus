@@ -1,7 +1,7 @@
 {strip}
 	<div id="page-content" class="col-xs-12">
 
-		<h2>{translate text='Reset Your PIN'}</h2>
+		<h2>{translate text='Reset My PIN'}</h2>
 		<div class="alert alert-info">
 			Please enter a new 4 digit PIN number.
 		</div>

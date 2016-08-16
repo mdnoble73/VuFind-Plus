@@ -76,9 +76,9 @@ class ResetPin extends Action{
 				);
 			}
 			$interface->assign('resetPinResult', $resetPinResult);
-			$this->display('resetPinResults.tpl', 'Email Pin');
+			$this->display('resetPinResults.tpl', 'Reset My Pin');
 		}else{
-			$this->display('resetPin.tpl', 'Reset Pin');
+			$this->display('resetPin.tpl', 'Reset My Pin');
 		}
 	}
 }
