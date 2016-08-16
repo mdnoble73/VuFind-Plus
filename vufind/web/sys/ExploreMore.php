@@ -17,27 +17,53 @@ class ExploreMore {
 	 */
 	function loadExploreMoreSidebar($activeSection, $recordDriver){
 		global $interface;
+		require_once ROOT_DIR . '/sys/Utils/FedoraUtils.php';
+		$fedoraUtils = FedoraUtils::getInstance();
 		$exploreMoreSectionsToShow = array();
-
-		if ($activeSection == 'archive') {
-			/** @var IslandoraDriver $archiveDriver */
-			$archiveDriver = $recordDriver;
-			if ($archiveDriver instanceof EventDriver || $archiveDriver instanceof PlaceDriver || $archiveDriver instanceof PersonDriver || $archiveDriver instanceof OrganizationDriver){
-				$isEntity = true;
-			}
-		}
 
 		$relatedPikaContent = array();
 		if ($activeSection == 'archive'){
+			//Check to see if the record is part of a compound object.  If so we will want to link to the parent compound object.
+			if ($recordDriver instanceof PageDriver){
+				$parentObject = $recordDriver->getParentObject();
+				if ($parentObject != null){
+					$parentDriver = RecordDriverFactory::initRecordDriver($parentObject);
+					$exploreMoreSectionsToShow['parentBook'] = array(
+							'title' => 'Entire Book',
+							'format' => 'list',
+							'values' => array(
+									array(
+											'pid' => $parentObject->id,
+											'label' => $parentDriver->getTitle(),
+											'link' => $parentDriver->getRecordUrl(),
+											'image' => $parentDriver->getBookcoverUrl('small'),
+											'object' => $parentObject,
+									),
+							)
+					);
+
+					$this->relatedCollections = $parentDriver->getRelatedCollections();
+					if (count($this->relatedCollections) > 0){
+						$exploreMoreSectionsToShow['relatedCollections'] = array(
+								'title' => 'Related Archive Collections',
+								'format' => 'list',
+								'values' => $this->relatedCollections
+						);
+					}
+				}
+			}
+
 			/** @var IslandoraDriver $archiveDriver */
 			$archiveDriver = $recordDriver;
-			$this->relatedCollections = $archiveDriver->getRelatedCollections();
-			if (count($this->relatedCollections) > 0){
-				$exploreMoreSectionsToShow['relatedCollections'] = array(
-						'title' => 'Related Archive Collections',
-						'format' => 'list',
-						'values' => $this->relatedCollections
-				);
+			if (!isset($this->relatedCollections)){
+				$this->relatedCollections = $archiveDriver->getRelatedCollections();
+				if (count($this->relatedCollections) > 0){
+					$exploreMoreSectionsToShow['relatedCollections'] = array(
+							'title' => 'Related Archive Collections',
+							'format' => 'list',
+							'values' => $this->relatedCollections
+					);
+				}
 			}
 
 			//Find content from the catalog that is directly related to the object or collection based on linked data
