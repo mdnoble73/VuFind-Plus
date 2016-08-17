@@ -1775,7 +1775,12 @@ class MarcRecord extends IndexRecord
 			$logger->log('fetching num of Holds from MarcRecord', PEAR_LOG_DEBUG);
 
 			$catalog = CatalogFactory::getCatalogConnectionInstance();
-			$this->numHolds = $catalog->getNumHolds($this->getUniqueID());
+//			$logger->log('$catalog :'.var_export($catalog, true), PEAR_LOG_DEBUG);
+			if (isset($catalog->status) && $catalog->status) {
+				$this->numHolds = $catalog->getNumHolds($this->getUniqueID());
+			} else {
+				$this->numHolds = 0;
+			}
 		}else{
 
 			require_once ROOT_DIR . '/Drivers/marmot_inc/IlsHoldSummary.php';
