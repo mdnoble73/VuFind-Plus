@@ -17,8 +17,6 @@ class ExploreMore {
 	 */
 	function loadExploreMoreSidebar($activeSection, $recordDriver){
 		global $interface;
-		require_once ROOT_DIR . '/sys/Utils/FedoraUtils.php';
-		$fedoraUtils = FedoraUtils::getInstance();
 		$exploreMoreSectionsToShow = array();
 
 		$relatedPikaContent = array();

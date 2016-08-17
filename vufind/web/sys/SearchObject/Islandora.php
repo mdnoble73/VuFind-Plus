@@ -1388,4 +1388,13 @@ class SearchObject_Islandora extends SearchObject_Base
 		parent::setPrimarySearch($flag);
 		$this->indexEngine->isPrimarySearch = $flag;
 	}
+
+	/**
+	 * @param string[] $fields
+	 *
+	 * @return void
+	 */
+	public function addFieldsToReturn($fields){
+		$this->fields .= ',' . implode(',', $fields);
+	}
 }
