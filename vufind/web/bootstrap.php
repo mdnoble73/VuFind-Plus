@@ -327,7 +327,10 @@ function loadSearchInformation(){
 	require_once ROOT_DIR . '/sys/Indexing/IndexingProfile.php';
 	/** @var $indexingProfiles IndexingProfile[] */
 	global $indexingProfiles;
-	$indexingProfiles = $memCache->get("{$serverName}_indexing_profiles", $indexingProfiles);
+	$indexingProfiles = $memCache->get("{$serverName}_indexing_profiles");
+	global $logger;
+	$logger->log('indexingProfiles = '.var_export($indexingProfiles, true), PEAR_LOG_DEBUG);
+	// TODO: this logging can be removed once PK-2138 is solved.
 	if ($indexingProfiles === false || isset($_REQUEST['reload'])){
 		$indexingProfiles = array();
 		$indexingProfile = new IndexingProfile();
