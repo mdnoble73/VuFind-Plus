@@ -491,7 +491,7 @@ abstract class IslandoraDriver extends RecordInterface {
 		if ($this->subjectsWithLinks == null) {
 			//Extract Subjects
 			$this->subjectsWithLinks = array();
-			$matches = $this->getModsValues('topic');
+			$matches = $this->getModsValues('topic', 'mods');
 			foreach ($matches as $subjectPart) {
 				$subjectLink = $configArray['Site']['path'] . '/Archive/Results?lookfor=';
 				if (strlen($subjectPart) > 0) {
@@ -982,7 +982,11 @@ abstract class IslandoraDriver extends RecordInterface {
 			$searchObject->clearHiddenFilters();
 			$searchObject->addHiddenFilter('!RELS_EXT_isViewableByRole_literal_ms', "administrator");
 			$searchObject->clearFilters();
-
+			$searchObject->addFieldsToReturn(array(
+					'mods_extension_marmotLocal_relatedPersonOrg_entityPid_ms',
+					'mods_extension_marmotLocal_relatedPersonOrg_role_ms',
+					'mods_extension_marmotLocal_relatedPersonOrg_entityTitle_ms'
+			));
 			//$searchObject->setDebugging(true, true);
 			//$searchObject->setPrimarySearch(true);
 			$response = $searchObject->processSearch(true, false);
