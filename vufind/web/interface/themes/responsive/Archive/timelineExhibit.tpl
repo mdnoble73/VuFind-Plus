@@ -37,7 +37,7 @@
 		{/foreach}
 	</div>
 
-	{if $repositoryLink && $user && ($user->hasRole('archives') || $user->hasRole('opacAdmin'))}
+	{if $repositoryLink && $user && ($user->hasRole('archives') || $user->hasRole('opacAdmin') || $user->hasRole('libraryAdmin'))}
 		<div id="more-details-accordion" class="panel-group">
 			<div class="panel {*active*}{*toggle on for open*}" id="staffViewPanel">
 				<a href="#staffViewPanelBody" data-toggle="collapse">

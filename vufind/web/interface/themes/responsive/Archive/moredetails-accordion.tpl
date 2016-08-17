@@ -589,7 +589,7 @@
 			</div>
 		{/if}
 
-		{if $repositoryLink && $user && ($user->hasRole('archives') || $user->hasRole('opacAdmin'))}
+		{if $repositoryLink && $user && ($user->hasRole('archives') || $user->hasRole('opacAdmin') || $user->hasRole('libraryAdmin'))}
 			<div class="panel {*active*}{*toggle on for open*}" id="staffViewPanel">
 				<a href="#staffViewPanelBody" data-toggle="collapse">
 					<div class="panel-heading">
