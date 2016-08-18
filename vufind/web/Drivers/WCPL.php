@@ -19,9 +19,9 @@
  */
 
 require_once 'DriverInterface.php';
-require_once ROOT_DIR . '/Drivers/HorizonAPI.php';
+require_once ROOT_DIR . '/Drivers/HorizonAPI3_23.php';
 
-class WCPL extends HorizonAPI
+class WCPL extends HorizonAPI3_23
 {
 
 	function translateFineMessageType($code){

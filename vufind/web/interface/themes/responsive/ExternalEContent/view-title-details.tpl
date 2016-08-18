@@ -9,16 +9,14 @@
 		</div>
 	{/if}
 
-	{if $recordDriver->getSeries()}
+	{assign var=series value=$recordDriver->getSeries()}
+	{if $series}
 		<div class="series row">
 			<div class="result-label col-md-3">Series: </div>
 			<div class="col-md-9 result-value">
-				{assign var=summSeries value=$recordDriver->getSeries()}
-				{if $summSeries->fromNovelist}
-					<a href="{$path}/GroupedWork/{$recordDriver->getPermanentId()}/Series">{$summSeries.seriesTitle}</a>{if $summSeries.volume} volume {$summSeries.volume}{/if}
-				{else}
-					<a href="{$path}/Search/Results?lookfor={$summSeries.seriesTitle}">{$summSeries.seriesTitle}</a>{if $summSeries.volume} volume {$summSeries.volume}{/if}
-				{/if}
+				{foreach from=$series item=seriesItem name=loop}
+					<a href="{$path}/Search/Results?basicType=Series&lookfor=%22{$seriesItem.seriesTitle|removeTrailingPunctuation|escape:"url"}%22">{$seriesItem.seriesTitle|removeTrailingPunctuation|escape}</a>{if $seriesItem.volume} volume {$seriesItem.volume}{/if}<br/>
+				{/foreach}
 			</div>
 		</div>
 	{/if}

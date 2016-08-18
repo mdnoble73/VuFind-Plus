@@ -124,5 +124,13 @@ function getListWidgetUpdates(){
 			),
 		),
 
+			'list_widget_num_results' => array(
+					'title' => 'List Widget Number of titles to show',
+					'description' => 'Add the ability to determine how many results should be shown for a list.',
+					'sql' => array(
+							"ALTER TABLE `list_widgets` ADD COLUMN `numTitlesToShow` INT NOT NULL DEFAULT '25'",
+					),
+			),
+
 	);
 }

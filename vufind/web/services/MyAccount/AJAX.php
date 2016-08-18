@@ -720,6 +720,7 @@ class MyAccount_AJAX
 
 	function GetListTitles()
 	{
+		/** @var MemCache $memCache */
 		global $memCache;
 		global $configArray;
 		global $timer;

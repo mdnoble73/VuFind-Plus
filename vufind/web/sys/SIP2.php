@@ -405,7 +405,7 @@ class sip2
 	}
 
 	// For CarlX Only
-	function freezeSuspendHold($reactivateDate = '', $freeze = true, $expDate = '', $holdtype = '', $item = '', $title = '', $fee='N', $pkupLocation = '5')
+	function freezeSuspendHold($reactivateDate = '', $freeze = true, $expDate = '', $holdtype = '', $item = '', $title = '', $fee='N', $pkupLocation = '')
 	{
 		$mode = '*';
 		/* mode validity check */
@@ -441,7 +441,7 @@ class sip2
 //			$this->_addVarOption('BW', $this->_datestamp($expDate), true); /*spec says this is fixed field, but it behaves like a var field and is optional... */
 //		}
 		$this->_addVarOption('BW', '', false);
-		$this->_addVarOption('BS',$pkupLocation, true);
+		$this->_addVarOption('BS',$pkupLocation, false);
 		$this->_addVarOption('BY',$holdtype, true);
 		$this->_addVarOption('AO',$this->AO);
 		$this->_addVarOption('AA',$this->patron);
@@ -449,8 +449,8 @@ class sip2
 //		$this->_addVarOption('AB',$item, true);
 		$this->_addVarOption('AB',$item, false);
 		$this->_addVarOption('AJ',$title, true);
-//		$this->_addVarOption('AC',$this->AC, true);
-		$this->_addVarOption('AC',$this->AC, false);
+//		$this->_addVarOption('AC',$this->AC, false);
+		$this->_addVarOption('AC','', true);
 		$this->_addVarOption('BO',$fee, true); /* Y when user has agreed to a fee notice */
 
 		$this->_addVarOption('BR', '1', false);
@@ -462,35 +462,35 @@ class sip2
 	}
 
 	// For CarlX Only
-	function freezeHoldCarlX($reactivateDate = '',  $title = '' )
+	function freezeHoldCarlX($reactivateDate = '',  $title = '', $pickupLocation)
 	{
 		$freeze = true;
 		$mode = '*';
 		$pickupLocation = '5';
 		$fee='N';
-		$holdtype = '2';
-
-
+		$holdType = '1';
 
 		$this->_newMessage('15');
 		$this->_addFixedOption($mode, 19);
 		$this->msgBuild .= $this->fldTerminator;
 		$this->_addVarOption('BW', '', false);
 		$this->_addVarOption('BS',$pickupLocation, true);
-		$this->_addVarOption('BY',$holdtype, true);
-		$this->_addVarOption('AO',$this->AO);
+		$this->_addVarOption('BY',$holdType, true);
+		$this->_addVarOption('AO','');
+//		$this->_addVarOption('AO',$this->AO);
 		$this->_addVarOption('AA',$this->patron);
 		$this->_addVarOption('AB','', false);
 		$this->_addVarOption('AD',$this->patronpwd, true);
 		$this->_addVarOption('AJ',$title, true);
+		$this->_addVarOption('AC','', false);
 //		$this->_addVarOption('AC',$this->AC, true);
-		$this->_addVarOption('AC',$this->AC, false);
 		$this->_addVarOption('BO',$fee, true); /* Y when user has agreed to a fee notice */
 
 		$this->_addVarOption('BR', '1', false);
 		$this->_addVarOption('XG', '', false);
 		$this->_addVarOption('XI',$reactivateDate . ($freeze ? 'B' : ''), true);  // Custom Field to suspend holds
 
+//		return $this->_returnMessage(false, true);
 		return $this->_returnMessage();
 
 	}

@@ -41,7 +41,16 @@ abstract class HorizonAPI extends Horizon{
 			$userValid = true;
 		}
 		if ($userValid){
-			$lookupMyAccountInfoResponse = $this->getWebServiceResponse($configArray['Catalog']['webServiceUrl'] . '/standard/lookupMyAccountInfo?clientID=' . $configArray['Catalog']['clientId'] . '&sessionToken=' . $sessionToken . '&includeAddressInfo=true&includeHoldInfo=true&includeBlockInfo=true&includeItemsOutInfo=true');
+			if (!empty($this->accountProfile->patronApiUrl)) {
+				$webServiceURL = $this->accountProfile->patronApiUrl;
+			} elseif (!empty($configArray['Catalog']['webServiceUrl'])) {
+				$webServiceURL = $configArray['Catalog']['webServiceUrl'];
+			} else {
+				global $logger;
+				$logger->log('No Web Service URL defined in Horizon API Driver', PEAR_LOG_CRIT);
+				return null;
+			}
+			$lookupMyAccountInfoResponse = $this->getWebServiceResponse($webServiceURL . '/standard/lookupMyAccountInfo?clientID=' . $configArray['Catalog']['clientId'] . '&sessionToken=' . $sessionToken . '&includeAddressInfo=true&includeHoldInfo=true&includeBlockInfo=true&includeItemsOutInfo=true');
 			if ($lookupMyAccountInfoResponse){
 				$fullName = (string)$lookupMyAccountInfoResponse->name;
 				list($fullName, $lastName, $firstName) = $this->splitFullName($fullName);
@@ -55,7 +64,7 @@ abstract class HorizonAPI extends Horizon{
 
 				$userExistsInDB = false;
 				$user = new User();
-				$user->source = $this->accountProfile->name;
+//				$user->source = $this->accountProfile->name;
 				$user->username = $userID;
 				if ($user->find(true)){
 					$userExistsInDB = true;
@@ -219,7 +228,7 @@ abstract class HorizonAPI extends Horizon{
 		}
 	}
 
-	private function loginViaWebService($username, $password) {
+	protected function loginViaWebService($username, $password) {
 		global $configArray;
 		$loginUserUrl = $configArray['Catalog']['webServiceUrl'] . '/standard/loginUser?clientID=' . $configArray['Catalog']['clientId'] . '&login=' . urlencode($username) . '&password=' . urlencode($password);
 		$loginUserResponse = $this->getWebServiceResponse($loginUserUrl);
@@ -862,6 +871,10 @@ abstract class HorizonAPI extends Horizon{
 		return 0;
 	}
 
+	function resetPin($user) {
+
+	}
+
 	function updatePin($user, $oldPin, $newPin, $confirmNewPin){
 		global $configArray;
 		$userId = $user->id;
@@ -891,9 +904,41 @@ abstract class HorizonAPI extends Horizon{
 		}
 	}
 
+	// Original
+//	function updatePin($user, $oldPin, $newPin, $confirmNewPin){
+//		global $configArray;
+//		$userId = $user->id;
+//
+//		//Get the session token for the user
+//		if (isset(HorizonAPI::$sessionIdsForUsers[$userId])){
+//			$sessionToken = HorizonAPI::$sessionIdsForUsers[$userId];
+//		}else{
+//			//Log the user in
+//			list($userValid, $sessionToken) = $this->loginViaWebService($user->cat_username, $user->cat_password);
+//			if (!$userValid){
+//				return 'Sorry, it does not look like you are logged in currently.  Please login and try again';
+//			}
+//		}
+//
+//		//create the hold using the web service
+//		$updatePinUrl = $configArray['Catalog']['webServiceUrl'] . '/standard/changeMyPin?clientID=' . $configArray['Catalog']['clientId'] . '&sessionToken=' . $sessionToken . '&currentPin=' . $oldPin . '&newPin=' . $newPin;
+//		$updatePinResponse = $this->getWebServiceResponse($updatePinUrl);
+//
+//		if ($updatePinResponse){
+//			$user->cat_password = $newPin;
+//			$user->update();
+////			UserAccount::updateSession($user);  //TODO only if $user is the primary user
+//			return "Your pin number was updated successfully.";
+//		}else{
+//			return "Sorry, we could not update your pin number. Please try again later.";
+//		}
+//	}
+//
 	public function emailPin($barcode){
 		global $configArray;
-		$barcode = $_REQUEST['barcode'];
+		if (empty($barcode)) {
+			$barcode = $_REQUEST['barcode'];
+		}
 
 		//email the pin to the user
 		$updatePinUrl = $configArray['Catalog']['webServiceUrl'] . '/standard/emailMyPin?clientID=' . $configArray['Catalog']['clientId'] . '&secret=' . $configArray['Catalog']['clientSecret'] . '&login=' . $barcode . '&profile=' . $this->hipProfile;

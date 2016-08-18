@@ -27,6 +27,7 @@ class ListWidget extends DB_DataObject
 	public $showViewMoreLink;
 	public $viewMoreLinkMode;
 	public $showListWidgetTitle; // whether or not the widget title bar is shown
+	public $numTitlesToShow;
 
 	// List Widget Styles and their labels
 	public $styles = array('horizontal' => 'Horizontal', 'vertical'=> 'Vertical', 'single'=>'Single Title', 'single-with-next' => 'Single Title with a Next Button', 'text-list' => 'Text Only List');
@@ -102,6 +103,14 @@ class ListWidget extends DB_DataObject
         'default' => true,
         'hideInLists' => true,
       ),*/
+			'numTitlesToShow' => array(
+					'property' => 'numTitlesToShow',
+					'type' => 'integer',
+					'label' => 'The number of titles that should be shown for the widget',
+					'storeDb' => true,
+					'default' => 25,
+					'hideInLists' => true,
+			),
 			'showTitle' => array(
 				'property' => 'showTitle',
 				'type' => 'checkbox',

@@ -371,7 +371,7 @@ class ListAPI extends Action {
 		return array('success'=>true, 'lists'=>$systemLists);
 	}
 
-	private function _getUserListTitles($listId){
+	private function _getUserListTitles($listId, $numTitlesToShow){
 		global $user;
 		//The list is a patron generated list
 		$list = new UserList();
@@ -394,7 +394,7 @@ class ListAPI extends Action {
 				$ids[] = $listEntry->groupedWorkPermanentId;
 				$datesSaved[$listEntry->groupedWorkPermanentId] = $listEntry->dateAdded;
 			}
-			$titles = $this->loadTitleInformationForIds($ids, array(), $datesSaved);
+			$titles = $this->loadTitleInformationForIds($ids, $numTitlesToShow);
 			return array('success' => true, 'listName' => $list->title, 'listDescription' => $list->description, 'titles'=>$titles, 'cacheLength'=>24);
 		}else{
 			return array('success'=>false, 'message'=>'The specified list could not be found.');
@@ -404,8 +404,12 @@ class ListAPI extends Action {
 	/**
 	 * Returns information about the titles within a list including:
 	 * - Title, Author, Bookcover URL, description, record id
+	 *
+	 * @param string $listId - The list to show
+	 * @param integer $numTitlesToShow - the maximum number of titles that should be shown
+	 * @return array
 	 */
-	function getListTitles($listId = NULL, Pagination $pagination = NULL) {
+	function getListTitles($listId = NULL, $numTitlesToShow = 25) {
 		global $configArray;
 
 		if (!$listId){
@@ -424,19 +428,19 @@ class ListAPI extends Action {
 			global $user;
 		}
 
-		if ($user){
-			$userId = $user->id;
+		if (!is_numeric($numTitlesToShow)){
+			$numTitlesToShow = 25;
 		}
 
 		if (is_numeric($listId) || preg_match('/list[-:](.*)/', $listId, $listInfo)){
 			if (isset($listInfo)){
 				$listId = $listInfo[1];
 			}
-			return $this->_getUserListTitles($listId);
+			return $this->_getUserListTitles($listId, $numTitlesToShow);
 		}
 		elseif (preg_match('/search:(?<searchID>.*)/', $listId, $searchInfo)){
 			if (is_numeric($searchInfo[1])){
-				$titles = $this->getSavedSearchTitles($searchInfo[1]);
+				$titles = $this->getSavedSearchTitles($searchInfo[1], $numTitlesToShow);
 				if ($titles === false) { // Didn't find saved search
 					return array('success'=>false, 'message' => 'The specified search could not be found.');
 				} else { // successful search with or without any results. (javascript can handle no results returned.)
@@ -444,7 +448,7 @@ class ListAPI extends Action {
 				}
 			}else{
 				//Do a default search
-				$titles = $this->getSystemListTitles($listId);
+				$titles = $this->getSystemListTitles($listId, $numTitlesToShow);
 				if (count($titles) > 0 ){
 					return array('success'=>true, 'listTitle' => $listId, 'listDescription' => "System Generated List", 'titles'=>$titles, 'cacheLength'=>4);
 				}else{
@@ -463,31 +467,31 @@ class ListAPI extends Action {
 			}
 			//The list is a system generated list
 			if ($listId == 'highestRated'){
-				$query = "SELECT record_id, AVG(rating) FROM `user_rating` inner join resource on resourceid = resource.id GROUP BY resourceId order by AVG(rating) DESC LIMIT 30";
+				$query = "SELECT record_id, AVG(rating) FROM `user_rating` inner join resource on resourceid = resource.id GROUP BY resourceId order by AVG(rating) DESC LIMIT $numTitlesToShow";
 				$result = mysql_query($query);
 				$ids = array();
 				while ($epubInfo = mysql_fetch_assoc($result)){
 					$ids[] = $epubInfo['record_id'];
 				}
-				$titles = $this->loadTitleInformationForIds($ids);
+				$titles = $this->loadTitleInformationForIds($ids, $numTitlesToShow);
 				return array('success'=>true, 'listTitle' => $systemList['title'], 'listDescription' => $systemList['description'], 'titles'=>$titles, 'cacheLength'=>1);
 			} elseif ($listId == 'recentlyReviewed'){
-				$query = "SELECT record_id, MAX(created) FROM `comments` inner join resource on resource_id = resource.id group by resource_id order by max(created) DESC LIMIT 30";
+				$query = "SELECT record_id, MAX(created) FROM `comments` inner join resource on resource_id = resource.id group by resource_id order by max(created) DESC LIMIT $numTitlesToShow";
 				$result = mysql_query($query);
 				$ids = array();
 				while ($epubInfo = mysql_fetch_assoc($result)){
 					$ids[] = $epubInfo['record_id'];
 				}
-				$titles = $this->loadTitleInformationForIds($ids);
+				$titles = $this->loadTitleInformationForIds($ids, $numTitlesToShow);
 				return array('success'=>true, 'listTitle' => $systemList['title'], 'listDescription' => $systemList['description'], 'titles'=>$titles, 'cacheLength'=>1);
 			}elseif ($listId == 'mostPopular'){
-				$query = "SELECT record_id, count(userId) from user_reading_history inner join resource on resourceId = resource.id GROUP BY resourceId order by count(userId) DESC LIMIT 30";
+				$query = "SELECT record_id, count(userId) from user_reading_history inner join resource on resourceId = resource.id GROUP BY resourceId order by count(userId) DESC LIMIT $numTitlesToShow";
 				$result = mysql_query($query);
 				$ids = array();
 				while ($epubInfo = mysql_fetch_assoc($result)){
 					$ids[] = $epubInfo['record_id'];
 				}
-				$titles = $this->loadTitleInformationForIds($ids);
+				$titles = $this->loadTitleInformationForIds($ids, $numTitlesToShow);
 				return array('success'=>true, 'listTitle' => $systemList['title'], 'listDescription' => $systemList['description'], 'titles'=>$titles, 'cacheLength'=>1);
 			}elseif ($listId == 'recommendations'){
 				if (!$user){
@@ -554,13 +558,6 @@ class ListAPI extends Action {
 		}else{
 			global $user;
 		}
-
-		if ($user){
-			$userId = $user->id;
-		}else{
-			$userId = '';
-		}
-
 
 		if (is_numeric($listId) || preg_match('/list[-:](.*)/', $listId, $listInfo)){
 			if (isset($listInfo)){
@@ -645,13 +642,13 @@ class ListAPI extends Action {
 		}
 	}
 
-	function loadTitleInformationForIds($ids, $descriptions = array(), $datesSaved = array()){
+	function loadTitleInformationForIds($ids, $numTitlesToShow){
 		/** @var SearchObject_Solr $searchObject */
 		$searchObject = SearchObjectFactory::initSearchObject();
 		$searchObject->init();
 		$titles = array();
 		if (count($ids) > 0){
-			$searchObject->setLimit(count($ids));
+			$searchObject->setLimit($numTitlesToShow);
 			$searchObject->setQueryIDs($ids);
 			$searchObject->processSearch();
 			$titles = $searchObject->getListWidgetTitles();
@@ -659,7 +656,7 @@ class ListAPI extends Action {
 		return $titles;
 	}
 
-	function getSavedSearchTitles($searchId){
+	function getSavedSearchTitles($searchId, $numTitlesToShow){
 		/** @var Memcache $memCache */
 		global $memCache;
 		global $configArray;
@@ -675,7 +672,7 @@ class ListAPI extends Action {
 				if (isset($_REQUEST['numTitles'])) {
 					$searchObj->setLimit($_REQUEST['numTitles']);
 				} else {
-					$searchObj->setLimit(25);
+					$searchObj->setLimit($numTitlesToShow);
 				}
 				$searchObj->processSearch(false, false);
 				$listTitles = $searchObj->getListWidgetTitles();
@@ -884,7 +881,7 @@ class ListAPI extends Action {
 		}
 	}
 
-	function getSystemListTitles($listName){
+	function getSystemListTitles($listName, $numTitlesToShow){
 		/** @var Memcache $memCache */
 		global $memCache;
 		global $configArray;
@@ -900,7 +897,7 @@ class ListAPI extends Action {
 			if (isset($_REQUEST['numTitles'])){
 				$searchObj->setLimit($_REQUEST['numTitles']);
 			}else{
-				$searchObj->setLimit(25);
+				$searchObj->setLimit($numTitlesToShow);
 			}
 			$searchObj->processSearch(false, false);
 			$listTitles = $searchObj->getListWidgetTitles();

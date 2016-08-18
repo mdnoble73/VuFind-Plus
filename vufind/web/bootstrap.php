@@ -327,7 +327,10 @@ function loadSearchInformation(){
 	require_once ROOT_DIR . '/sys/Indexing/IndexingProfile.php';
 	/** @var $indexingProfiles IndexingProfile[] */
 	global $indexingProfiles;
-	$indexingProfiles = $memCache->get("{$serverName}_indexing_profiles", $indexingProfiles);
+	$indexingProfiles = $memCache->get("{$serverName}_indexing_profiles");
+	global $logger;
+	$logger->log('indexingProfiles = '.var_export($indexingProfiles, true), PEAR_LOG_DEBUG);
+	// TODO: this logging can be removed once PK-2138 is solved.
 	if ($indexingProfiles === false || isset($_REQUEST['reload'])){
 		$indexingProfiles = array();
 		$indexingProfile = new IndexingProfile();
@@ -336,7 +339,12 @@ function loadSearchInformation(){
 		while ($indexingProfile->fetch()){
 			$indexingProfiles[$indexingProfile->name] = clone($indexingProfile);
 		}
-		$memCache->set("{$serverName}_indexing_profiles", $indexingProfiles, 0, $configArray['Caching']['indexing_profiles']);
+		global $logger;
+		$logger->log("Updating memcache variable {$serverName}_indexing_profiles", PEAR_LOG_DEBUG);
+		if (!$memCache->set("{$serverName}_indexing_profiles", $indexingProfiles, 0, $configArray['Caching']['indexing_profiles'])) {
+			global $logger;
+			$logger->log("Failed to update memcache variable {$serverName}_indexing_profiles", PEAR_LOG_ERR);
+		};
 	}
 }
 

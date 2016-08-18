@@ -1355,6 +1355,7 @@ class SearchObject_Islandora extends SearchObject_Base
 		global $library;
 		if ($library->hideAllCollectionsFromOtherLibraries && $library->archiveNamespace){
 			$filters[] = "RELS_EXT_isMemberOfCollection_uri_ms:info\\:fedora/{$library->archiveNamespace}\\:*
+				OR PID:{$library->archiveNamespace}\\:*
 			  OR RELS_EXT_isMemberOfCollection_uri_ms:info\\:fedora/marmot\\:events
 			  OR RELS_EXT_isMemberOfCollection_uri_ms:info\\:fedora/marmot\\:organizations
 			  OR RELS_EXT_isMemberOfCollection_uri_ms:info\\:fedora/marmot\\:people
@@ -1386,5 +1387,14 @@ class SearchObject_Islandora extends SearchObject_Base
 	public function setPrimarySearch($flag){
 		parent::setPrimarySearch($flag);
 		$this->indexEngine->isPrimarySearch = $flag;
+	}
+
+	/**
+	 * @param string[] $fields
+	 *
+	 * @return void
+	 */
+	public function addFieldsToReturn($fields){
+		$this->fields .= ',' . implode(',', $fields);
 	}
 }

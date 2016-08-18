@@ -9,6 +9,63 @@ VuFind.Archive = (function(){
 		markers: [],
 		sort: 'title',
 		openSeaDragonViewer: null,
+		pageDetails: [],
+		activeBookViewer: 'jp2',
+		activeBookPage: null,
+		openSeadragonViewerSettings: {
+			"id":"pika-openseadragon",
+			"prefixUrl":"https:\/\/islandora.marmot.org\/sites\/all\/libraries\/openseadragon\/images\/",
+			"debugMode":false,
+			"djatokaServerBaseURL":"https:\/\/islandora.marmot.org\/adore-djatoka\/resolver",
+			"tileSize":256,
+			"tileOverlap":0,
+			"animationTime":1.5,
+			"blendTime":0.1,
+			"alwaysBlend":false,
+			"autoHideControls":1,
+			"immediateRender":true,
+			"wrapHorizontal":false,
+			"wrapVertical":false,
+			"wrapOverlays":false,
+			"panHorizontal":1,
+			"panVertical":1,
+			"minZoomImageRatio":0.35,
+			"maxZoomPixelRatio":2,
+			"visibilityRatio":0.5,
+			"springStiffness":5,
+			"imageLoaderLimit":5,
+			"clickTimeThreshold":300,
+			"clickDistThreshold":5,
+			"zoomPerClick":2,
+			"zoomPerScroll":1.2,
+			"zoomPerSecond":2,
+			"showNavigator":1,
+			"defaultZoomLevel":0,
+			"homeFillsViewer":false
+		},
+
+		changeActiveBookViewer: function(viewerName){
+			this.activeBookViewer = viewerName;
+
+			if (viewerName == 'pdf'){
+				$('#view-toggle-pdf').prop('checked', true);
+				$("#view-pdf").show();
+				$("#view-image").hide();
+				$("#view-transcription").hide();
+			}else if (viewerName == 'image'){
+				$('#view-toggle-image').prop('checked', true);
+				$("#view-image").show();
+				$("#view-pdf").hide();
+				$("#view-transcription").hide();
+			}else if (viewerName == 'transcription'){
+				$('#view-toggle-transcription').prop('checked', true);
+				$("#view-transcription").show();
+				$("#view-pdf").hide();
+				$("#view-image").hide();
+
+			}
+			return this.loadPage(this.activeBookPage);
+		},
 
 		initializeOpenSeadragon: function(viewer){
 			viewer.addHandler("open", this.update_clip);
@@ -85,6 +142,50 @@ VuFind.Archive = (function(){
 			}).fail(VuFind.ajaxFail);
 		},
 
+		/**
+		 * Load a new page into the active viewer
+		 *
+		 * @param pid
+		 */
+		loadPage: function(pid){
+			if (pid == null){
+				return false;
+			}
+			this.activeBookPage = pid;
+			console.log('Page: '+ this.activeBookPage, 'Active Viewer : '+ this.activeBookViewer);
+
+			if (this.activeBookViewer == 'pdf') {
+				console.log('PDF View called');
+				$('#view-pdf').load(this.pageDetails[pid]['pdf']);
+
+
+			}else if(this.activeBookViewer == 'transcript') {
+				console.log('Transcript Viewer called');
+				$('#view-transcription').load(this.pageDetails[pid]['transcript']);
+
+
+			}else if (this.activeBookViewer == 'image'){
+				var tile = new OpenSeadragon.DjatokaTileSource(
+						"https://islandora.marmot.org/adore-djatoka/resolver",
+						this.pageDetails[pid]['jp2'],
+						VuFind.Archive.openSeadragonViewerSettings
+				);
+				if (!$('#pika-openseadragon').hasClass('processed')) {
+					$('#pika-openseadragon').addClass('processed');
+					VuFind.Archive.openSeadragonViewerSettings.tileSources = new Array();
+					VuFind.Archive.openSeadragonViewerSettings.tileSources.push(tile);
+					VuFind.Archive.openSeaDragonViewer = new OpenSeadragon(VuFind.Archive.openSeadragonViewerSettings);
+				}else{
+					//VuFind.Archive.openSeadragonViewerSettings.tileSources = new Array();
+					//VuFind.Archive.openSeaDragonViewer.close();
+					VuFind.Archive.openSeaDragonViewer.open(tile);
+				}
+				//VuFind.Archive.openSeaDragonViewer.viewport.fitVertically(true);
+			}
+			//alert("Changing display to pid " + pid + " active viewer is " + this.activeBookViewer)
+			return false;
+		},
+
 		showObjectInPopup: function(pid){
 			var url = Globals.path + "/Archive/AJAX?id=" + encodeURI(pid) + "&method=getObjectInfo";
 			VuFind.loadingMessage();
@@ -95,7 +196,7 @@ VuFind.Archive = (function(){
 		},
 
 		/**
-		 * All this is doing is updatign a URL so the patron can download a clipped portion of the image
+		 * All this is doing is updating a URL so the patron can download a clipped portion of the image
 		 * not needed for our basic implementation
 		 *
 		 * @param viewer
@@ -107,7 +208,7 @@ VuFind.Archive = (function(){
 				} else {
 					return new OpenSeadragon.Point(parseInt(d.width * max.y/d.height),max.y);
 				}
-			}
+			};
 			var getDisplayRegion = function(viewer, source) {
 				// Determine portion of scaled image that is being displayed.
 				var box = new OpenSeadragon.Rect(0, 0, source.x, source.y);
@@ -136,7 +237,7 @@ VuFind.Archive = (function(){
 					}
 				}
 				return box;
-			}
+			};
 			var source = viewer.source;
 			var zoom = viewer.viewport.getZoom();
 			var size = new OpenSeadragon.Rect(0, 0, source.dimensions.x, source.dimensions.y);
