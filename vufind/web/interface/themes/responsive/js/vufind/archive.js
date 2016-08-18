@@ -152,18 +152,26 @@ VuFind.Archive = (function(){
 				return false;
 			}
 			this.activeBookPage = pid;
-			console.log('Page: '+ this.activeBookPage, 'Active Viewer : '+ this.activeBookViewer);
+			// console.log('Page: '+ this.activeBookPage, 'Active Viewer : '+ this.activeBookViewer);
 
 			if (this.activeBookViewer == 'pdf') {
-				console.log('PDF View called');
-				$('#view-pdf').load(this.pageDetails[pid]['pdf']);
+				// console.log('PDF View called');
+				$('#view-pdf').html(
+						$('<object />').attr({
+							type: 'application/pdf',
+							data: this.pageDetails[pid]['pdf'],
+							class: 'book-pdf' // Class that styles/sizes the PDF page
+						})
+				);
+			}else if(this.activeBookViewer == 'transcription') {
+				// console.log('Transcript Viewer called');
 
+				var islandoraURL = this.pageDetails[pid]['transcript'];
+				var reverseProxy = islandoraURL.replace(/([^\/]*)(?=\/islandora\/)/, location.host);
+				// reverseProxy = reverseProxy.replace('https', 'http'); // TODO: remove, for local instance only (no https)
+				// console.log('Fetching: '+reverseProxy);
 
-			}else if(this.activeBookViewer == 'transcript') {
-				console.log('Transcript Viewer called');
-				$('#view-transcription').load(this.pageDetails[pid]['transcript']);
-
-
+				$('#view-transcription').load(reverseProxy);
 			}else if (this.activeBookViewer == 'image'){
 				var tile = new OpenSeadragon.DjatokaTileSource(
 						"https://islandora.marmot.org/adore-djatoka/resolver",
