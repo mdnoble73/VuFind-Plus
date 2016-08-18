@@ -152,8 +152,17 @@ VuFind.Archive = (function(){
 				return false;
 			}
 			this.activeBookPage = pid;
+			console.log('Page: '+ this.activeBookPage, 'Active Viewer : '+ this.activeBookViewer);
 
-			if (this.activeBookViewer == 'pdf'){
+			if (this.activeBookViewer == 'pdf') {
+				console.log('PDF View called');
+				$('#view-pdf').load(this.pageDetails[pid]['pdf']);
+
+
+			}else if(this.activeBookViewer == 'transcript') {
+				console.log('Transcript Viewer called');
+				$('#view-transcription').load(this.pageDetails[pid]['transcript']);
+
 
 			}else if (this.activeBookViewer == 'image'){
 				var tile = new OpenSeadragon.DjatokaTileSource(
@@ -199,7 +208,7 @@ VuFind.Archive = (function(){
 				} else {
 					return new OpenSeadragon.Point(parseInt(d.width * max.y/d.height),max.y);
 				}
-			}
+			};
 			var getDisplayRegion = function(viewer, source) {
 				// Determine portion of scaled image that is being displayed.
 				var box = new OpenSeadragon.Rect(0, 0, source.x, source.y);
@@ -228,7 +237,7 @@ VuFind.Archive = (function(){
 					}
 				}
 				return box;
-			}
+			};
 			var source = viewer.source;
 			var zoom = viewer.viewport.getZoom();
 			var size = new OpenSeadragon.Rect(0, 0, source.dimensions.x, source.dimensions.y);
