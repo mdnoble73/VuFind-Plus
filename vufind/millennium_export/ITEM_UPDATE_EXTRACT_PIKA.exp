@@ -1,7 +1,7 @@
 #!/usr/bin/expect -f
 
-log_user 0 ; # do NOT send screens to stdout
-set testing false
+log_user 0 ; # 0 = do NOT send screens to stdout
+set testing false ; # testing mode skips over INNOPAC create list
 
 # ITEM_UPDATE_EXTRACT_PIKA.exp 
 # James Staub
@@ -13,6 +13,10 @@ set testing false
 
 # TO DO
 # + Provide details on INNOPAC user privileges necessary
+# + Fix expect statements to include a line terminator or prompt to ensure INNOPAC is ready for input
+
+# 20160818
+# + correct query (UPDATED) and output (ITEM RECORD #) fields that got renumbered following removal of ITEMSTICKYS fixed length field
 
 # 20150818
 # + read config.pwd.ini isProduction
@@ -176,8 +180,8 @@ expect {
 }
 expect "I > ITEM list"
 send "I"
-expect "34 UPDATED"
-send "34"
+expect "33 UPDATED"
+send "33"
 expect "Enter boolean condition (=, ~, >, <, G, L, W, N)"
 send "="
 expect "UPDATED ="
@@ -210,8 +214,8 @@ expect "Output Item #2 >"
 send "?" ; # OTHER TYPES
 expect "I > ITEM"
 send "I"
-expect "32 RECORD #"
-send "32" ; # ITEM RECORD NUMBER
+expect "31 RECORD #"
+send "31" ; # ITEM RECORD NUMBER
 expect "Output Item #2 >"
 send "24" ; # ITEM STATUS
 expect "Output Item #3 >"
