@@ -10,6 +10,7 @@ VuFind.Archive = (function(){
 		sort: 'title',
 		openSeaDragonViewer: null,
 		pageDetails: [],
+		multiPage: false,
 		activeBookViewer: 'jp2',
 		activeBookPage: null,
 		openSeadragonViewerSettings: {
@@ -151,6 +152,10 @@ VuFind.Archive = (function(){
 			if (pid == null){
 				return false;
 			}
+			var pageChanged = false;
+			if (this.activeBookPage != pid){
+				pageChanged = true;
+			}
 			this.activeBookPage = pid;
 			// console.log('Page: '+ this.activeBookPage, 'Active Viewer : '+ this.activeBookViewer);
 
@@ -194,6 +199,16 @@ VuFind.Archive = (function(){
 					VuFind.Archive.openSeaDragonViewer.open(tile);
 				}
 				//VuFind.Archive.openSeaDragonViewer.viewport.fitVertically(true);
+			}
+			if (pageChanged && this.multiPage){
+				url = Globals.path + "/Archive/AJAX?method=getAdditionalRelatedObjects&id=" + pid;
+				var additionalRelatedObjectsTarget = $("#additional-related-objects");
+				additionalRelatedObjectsTarget.html("");
+				$.getJSON(url, function(data) {
+					if (data.success) {
+						additionalRelatedObjectsTarget.html(data.additionalObjects);
+					}
+				});
 			}
 			//alert("Changing display to pid " + pid + " active viewer is " + this.activeBookViewer)
 			return false;

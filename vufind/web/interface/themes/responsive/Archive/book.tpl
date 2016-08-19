@@ -109,6 +109,11 @@
 		{/foreach}
 	{/foreach}
 
+	{* Greater than 2 because we increment page counter after an object is displayed *}
+	{if $pageCounter > 2}
+		VuFind.Archive.multiPage = true;
+	{/if}
+
 	$().ready(function(){ldelim}
 		VuFind.Archive.changeActiveBookViewer('{$activeViewer}')
 		VuFind.Archive.loadPage('{$activePage}');

@@ -71,6 +71,7 @@
 									</figcaption>
 								</figure>
 							{/foreach}
+							<span id="additional-related-objects"></span>
 						</div>
 					</div>
 				</div>

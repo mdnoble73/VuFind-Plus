@@ -266,6 +266,26 @@ class Archive_AJAX extends Action {
 				);
 			}
 		}
+	}
 
+	public function getAdditionalRelatedObjects(){
+		global $interface;
+		require_once ROOT_DIR . '/sys/Utils/FedoraUtils.php';
+		$fedoraUtils = FedoraUtils::getInstance();
+
+		$pid = $_REQUEST['id'];
+		$interface->assign('pid', $pid);
+		$archiveObject = $fedoraUtils->getObject($pid);
+		/** @var IslandoraDriver $recordDriver */
+		$recordDriver = RecordDriverFactory::initRecordDriver($archiveObject);
+		$interface->assign('recordDriver', $recordDriver);
+		$directlyRelatedObjects = $recordDriver->getDirectlyRelatedArchiveObjects();
+
+		$interface->assign('directlyRelatedObjects', $directlyRelatedObjects);
+
+		return array(
+				'success' => true,
+				'additionalObjects' => $interface->fetch('Archive/additionalRelatedObjects.tpl')
+		);
 	}
 }
