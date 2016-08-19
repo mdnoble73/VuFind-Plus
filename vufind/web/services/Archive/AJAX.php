@@ -246,18 +246,26 @@ class Archive_AJAX extends Action {
 		global $configArray;
 		$objectUrl = $configArray['Islandora']['objectUrl'];
 		$transcriptIdentifier = urldecode($_REQUEST['transcriptId']);
-		$transcriptUrl = $objectUrl . '/' . $transcriptIdentifier;
-		$transcript = file_get_contents($transcriptUrl);
-
-		if ($transcript){
+		if (strlen($transcriptIdentifier) == 0){
 			return array(
 					'success' => true,
-					'transcript' => $transcript,
+					'transcript' => "There is no transcription available for this page.",
 			);
 		}else{
-			return array(
-					'success' => false,
-			);
+			$transcriptUrl = $objectUrl . '/' . $transcriptIdentifier;
+			$transcript = file_get_contents($transcriptUrl);
+
+			if ($transcript){
+				return array(
+						'success' => true,
+						'transcript' => $transcript,
+				);
+			}else{
+				return array(
+						'success' => false,
+				);
+			}
 		}
+
 	}
 }
