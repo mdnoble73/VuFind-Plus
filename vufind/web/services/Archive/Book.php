@@ -22,8 +22,9 @@ class Archive_Book extends Archive_Object{
 		$interface->assign('showExploreMore', true);
 
 		//Get the active page pid
-		if (isset($_REQUEST['page'])){
-			$interface->assign('activePage', $_REQUEST['page']);
+		if (isset($_REQUEST['pagePid'])){
+			$interface->assign('activePage', $_REQUEST['pagePid']);
+			// The variable page is used by the javascript url creation to track the kind of object we are in, ie Book, Map, ..
 		}else{
 			//Get the first page from the contents
 			foreach($bookContents as $section){

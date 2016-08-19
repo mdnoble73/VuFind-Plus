@@ -47,19 +47,23 @@ VuFind.Archive = (function(){
 
 		changeActiveBookViewer: function(viewerName){
 			this.activeBookViewer = viewerName;
+			// $('#view-toggle').children(".btn .active").removeClass('active');
 
 			if (viewerName == 'pdf'){
 				$('#view-toggle-pdf').prop('checked', true);
+						// .parent('.btn').addClass('active');
 				$("#view-pdf").show();
 				$("#view-image").hide();
 				$("#view-transcription").hide();
 			}else if (viewerName == 'image'){
 				$('#view-toggle-image').prop('checked', true);
+						// .parent('.btn').addClass('active');
 				$("#view-image").show();
 				$("#view-pdf").hide();
 				$("#view-transcription").hide();
 			}else if (viewerName == 'transcription'){
 				$('#view-toggle-transcription').prop('checked', true);
+					// .parent('.btn').addClass('active');
 				$("#view-transcription").show();
 				$("#view-pdf").hide();
 				$("#view-image").hide();
@@ -112,6 +116,34 @@ VuFind.Archive = (function(){
 				history.pushState(stateObj, label, newUrl);
 			}
 			return false;
+		},
+
+		handleBookClick: function(bookPid, pagePid, bookViewer) {
+			// Load specified page & viewer
+			//Loading message
+			//Load Page  set-up
+			this.activeBookViewer = bookViewer;
+			this.activeBookPage = pagePid;
+
+			VuFind.Archive.changeActiveBookViewer(bookViewer);
+			// VuFind.Archive.loadPage(pagePid);
+
+			// store in browser history
+			var stateObj = {
+				bookPid: bookPid,
+				pagePid: pagePid,
+				viewer: bookViewer,
+				page: 'Book'
+			},
+					newUrl = VuFind.buildUrl(document.location.origin + document.location.pathname, 'bookPid', bookPid),
+					newUrl = VuFind.buildUrl(newUrl, 'pagePid', pagePid),
+					newUrl = VuFind.buildUrl(newUrl, 'viewer', bookViewer);
+			//Push the new url, but only if we aren't going back where we just were.
+			if (document.location.href != newUrl){
+				history.pushState(stateObj, '', newUrl);
+			}
+			return false;
+
 		},
 
 		reloadMapResults: function(exhibitPid, placePid, reloadHeader){
@@ -182,6 +214,12 @@ VuFind.Archive = (function(){
 					function(){transcriptionTarget.html("Could not load Transcript.")}
 				);
 
+				// var islandoraURL = this.pageDetails[pid]['transcript'];
+				// var reverseProxy = islandoraURL.replace(/([^\/]*)(?=\/islandora\/)/, location.host);
+				// // reverseProxy = reverseProxy.replace('https', 'http'); // TODO: remove, for local instance only (no https)
+				// // console.log('Fetching: '+reverseProxy);
+				//
+				// $('#view-transcription').load(reverseProxy);
 			}else if (this.activeBookViewer == 'image'){
 				var tile = new OpenSeadragon.DjatokaTileSource(
 						"https://islandora.marmot.org/adore-djatoka/resolver",

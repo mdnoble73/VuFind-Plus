@@ -9,22 +9,26 @@
 			<div id="main-content" class="col-xs-12 text-center">
 				<div id="view-toggle" class="btn-group" role="group" data-toggle="buttons">
 					<label class="btn btn-group-small btn-default">
-						<input type="radio" name="pageView" id="view-toggle-pdf" autocomplete="off" onchange="return VuFind.Archive.changeActiveBookViewer('pdf');">
+						<input type="radio" name="pageView" id="view-toggle-pdf" autocomplete="off" onchange="return VuFind.Archive.handleBookClick('', VuFind.Archive.activeBookPage, 'pdf');">
+						{*TODO: set bookPID*}
+
 						View As PDF
 					</label>
 					<label class="btn btn-group-small btn-default">
-						<input type="radio" name="pageView" id="view-toggle-image" autocomplete="off" onchange="return VuFind.Archive.changeActiveBookViewer('image');">
+						<input type="radio" name="pageView" id="view-toggle-image" autocomplete="off" onchange="return VuFind.Archive.handleBookClick('', VuFind.Archive.activeBookPage, 'image');">
+
 						View As Image
 					</label>
 					<label class="btn btn-group-small btn-default">
-						<input type="radio" name="pageView" id="view-toggle-transcription" autocomplete="off" onchange="return VuFind.Archive.changeActiveBookViewer('transcription');">
+						<input type="radio" name="pageView" id="view-toggle-transcription" autocomplete="off" onchange="return VuFind.Archive.handleBookClick('', VuFind.Archive.activeBookPage, 'transcription');">
+
 						View Transcription
 					</label>
 				</div>
 
-				<br/>
+				<br>
 
-				<div id="view-pdf" width="100%" height="600px">
+				<div id="view-pdf" width="100%" height="600px" style="display: none">
 					No PDF loaded
 				</div>
 
@@ -65,7 +69,7 @@
 								{else}
 									{foreach from=$section.pages item=page}
 										<li class="relatedTitle">
-											<a href="{$page.link}?page={$page.pid}" onclick="return VuFind.Archive.loadPage('{$page.pid}');">
+											<a href="{$page.link}?pagePid={$page.pid}" onclick="return VuFind.Archive.handleBookClick('', '{$page.pid}', VuFind.Archive.activeBookViewer);">
 												<figure class="thumbnail">
 													<img src="{$page.cover}" alt="Page {$pageCounter}">
 													<figcaption>{$pageCounter}</figcaption>
@@ -114,9 +118,9 @@
 		VuFind.Archive.multiPage = true;
 	{/if}
 
-	$().ready(function(){ldelim}
-		VuFind.Archive.changeActiveBookViewer('{$activeViewer}')
-		VuFind.Archive.loadPage('{$activePage}');
+	$(function(){ldelim}
+		VuFind.Archive.handleBookClick('', '{$activePage}', '{$activeViewer}');
+		//TODO: set Book PID
 		VuFind.Archive.loadExploreMore('{$pid|urlencode}');
 	{rdelim});
 </script>
