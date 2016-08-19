@@ -993,6 +993,21 @@ abstract class IslandoraDriver extends RecordInterface {
 			if ($response && $response['response']['numFound'] > 0) {
 				foreach ($response['response']['docs'] as $doc) {
 					$entityDriver = RecordDriverFactory::initRecordDriver($doc);
+
+					//Try to find the relationship to the person
+					$role = '';
+					if (isset($doc['mods_extension_marmotLocal_relatedPersonOrg_entityPid_ms']) && isset($doc['mods_extension_marmotLocal_relatedPersonOrg_role_ms'])){
+						foreach ($doc['mods_extension_marmotLocal_relatedPersonOrg_entityPid_ms'] as $index => $value) {
+							if ($value == $this->getUniqueID()) {
+								$role = $doc['mods_extension_marmotLocal_relatedPersonOrg_role_ms'][$index];
+								//Reverse roles as appropriate
+								if ($role == 'child'){
+									$role = 'parent';
+								}
+							}
+						}
+					}
+
 					//TODO: Add the role of the user
 					$objectInfo = array(
 							'pid' => $entityDriver->getUniqueID(),
@@ -1000,6 +1015,7 @@ abstract class IslandoraDriver extends RecordInterface {
 							'description' => $entityDriver->getTitle(),
 							'image' => $entityDriver->getBookcoverUrl('medium'),
 							'link' => $entityDriver->getRecordUrl(),
+							'role' => $role,
 							'driver' => $entityDriver
 					);
 					if ($entityDriver instanceof EventDriver) {
