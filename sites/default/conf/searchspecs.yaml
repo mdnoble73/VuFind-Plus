@@ -794,4 +794,8 @@ IslandoraRelationshipsById:
       - [exact, ~]
     - mods_extension_marmotLocal_relatedObject_interview_objectPid_ms:
       - [exact, ~]
+    - mods_extension_marmotLocal_relatedObject_ephermera_objectPid_ms:
+      - [exact, ~]
+    - mods_extension_marmotLocal_relatedObject_ephemera_objectPid_ms:
+      - [exact, ~]
 
