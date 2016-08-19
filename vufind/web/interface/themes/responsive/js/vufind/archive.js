@@ -165,13 +165,18 @@ VuFind.Archive = (function(){
 				);
 			}else if(this.activeBookViewer == 'transcription') {
 				// console.log('Transcript Viewer called');
+				var transcriptIdentifier = this.pageDetails[pid]['transcript'];
+				var url = Globals.path + "/Archive/AJAX?transcriptId=" + encodeURI(transcriptIdentifier) + "&method=getTranscript";
+				var transcriptionTarget = $('#view-transcription');
+				transcriptionTarget.html("Loading Transcript, please wait.");
+				$.getJSON(url, function(data) {
+					if (data.success) {
+						transcriptionTarget.html(data.transcript);
+					}
+				}).fail(
+					function(){transcriptionTarget.html("Could not load Transcript.")}
+				);
 
-				var islandoraURL = this.pageDetails[pid]['transcript'];
-				var reverseProxy = islandoraURL.replace(/([^\/]*)(?=\/islandora\/)/, location.host);
-				// reverseProxy = reverseProxy.replace('https', 'http'); // TODO: remove, for local instance only (no https)
-				// console.log('Fetching: '+reverseProxy);
-
-				$('#view-transcription').load(reverseProxy);
 			}else if (this.activeBookViewer == 'image'){
 				var tile = new OpenSeadragon.DjatokaTileSource(
 						"https://islandora.marmot.org/adore-djatoka/resolver",

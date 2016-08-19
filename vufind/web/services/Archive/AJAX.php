@@ -241,4 +241,23 @@ class Archive_AJAX extends Action {
 				'modalButtons' => "<a href='$url'><button class='modal-buttons btn btn-primary'>More Info</button></a>"
 		);
 	}
+
+	public function getTranscript(){
+		global $configArray;
+		$objectUrl = $configArray['Islandora']['objectUrl'];
+		$transcriptIdentifier = urldecode($_REQUEST['transcriptId']);
+		$transcriptUrl = $objectUrl . '/' . $transcriptIdentifier;
+		$transcript = file_get_contents($transcriptUrl);
+
+		if ($transcript){
+			return array(
+					'success' => true,
+					'transcript' => $transcript,
+			);
+		}else{
+			return array(
+					'success' => false,
+			);
+		}
+	}
 }

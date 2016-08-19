@@ -192,9 +192,9 @@ EOQ;
 				$page['pdf'] = $objectUrl . '/' . $page['pid'] . '/datastream/PDF/view';
 			}
 			if ($pageObject->getDataStream('HOCR') != null){
-				$page['transcript'] = $objectUrl . '/' . $page['pid'] . '/datastream/HOCR/view';
+				$page['transcript'] = $page['pid'] . '/datastream/HOCR/view';
 			}elseif ($pageObject->getDataStream('OCR') != null){
-				$page['transcript'] = $objectUrl . '/' . $page['pid'] . '/datastream/OCR/view';
+				$page['transcript'] = $page['pid'] . '/datastream/OCR/view';
 			}
 			$page['cover'] = $fedoraUtils->getObjectImageUrl($pageObject, 'thumbnail');
 			$pages[$index] = $page;

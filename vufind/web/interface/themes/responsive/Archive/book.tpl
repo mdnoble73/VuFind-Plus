@@ -9,18 +9,20 @@
 			<div id="main-content" class="col-xs-12 text-center">
 				<div id="view-toggle" class="btn-group" role="group" data-toggle="buttons">
 					<label class="btn btn-group-small btn-default">
-						<input type="radio" name="pageView" id="view-toggle-pdf" autocomplete="off" onchange="VuFind.Archive.changeActiveBookViewer('pdf');">
+						<input type="radio" name="pageView" id="view-toggle-pdf" autocomplete="off" onchange="return VuFind.Archive.changeActiveBookViewer('pdf');">
 						View As PDF
 					</label>
 					<label class="btn btn-group-small btn-default">
-						<input type="radio" name="pageView" id="view-toggle-image" autocomplete="off" onchange="VuFind.Archive.changeActiveBookViewer('image');">
+						<input type="radio" name="pageView" id="view-toggle-image" autocomplete="off" onchange="return VuFind.Archive.changeActiveBookViewer('image');">
 						View As Image
 					</label>
 					<label class="btn btn-group-small btn-default">
-						<input type="radio" name="pageView" id="view-toggle-transcription" autocomplete="off" onchange="VuFind.Archive.changeActiveBookViewer('transcription');">
+						<input type="radio" name="pageView" id="view-toggle-transcription" autocomplete="off" onchange="return VuFind.Archive.changeActiveBookViewer('transcription');">
 						View Transcription
 					</label>
 				</div>
+
+				<br/>
 
 				<div id="view-pdf" width="100%" height="600px">
 					No PDF loaded
