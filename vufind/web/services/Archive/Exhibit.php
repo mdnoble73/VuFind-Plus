@@ -74,7 +74,7 @@ class Archive_Exhibit extends Archive_Object{
 			$searchObject->setFacetLimit(250);
 		}
 
-		$searchObject->setLimit(48);
+		$searchObject->setLimit(24);
 
 		$searchObject->setSort('fgs_label_s');
 		$interface->assign('showThumbnailsSorted', true);
@@ -207,6 +207,10 @@ class Archive_Exhibit extends Archive_Object{
 					$timer->logTime('Loaded related object');
 				}
 				$interface->assign('showWidgetView', $allObjectsAreCollections);
+				$summary = $searchObject->getResultSummary();
+				$interface->assign('recordCount', $summary['resultTotal']);
+				$interface->assign('recordStart', $summary['startRecord']);
+				$interface->assign('recordEnd',   $summary['endRecord']);
 
 				//Check the MODS for the collection to see if it has information about ordering
 				$sortingInfo = $this->recordDriver->getModsValues('collectionOrder', 'marmot');
