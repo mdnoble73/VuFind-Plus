@@ -10489,6 +10489,9 @@ a.browse-thumbnail-sorted.active {
   border-radius: 5px;
   padding: 15px;
 }
+#book-sections li.active figure {
+  outline: dotted thin;
+}
 #header-container {
   background-image: url('/interface/themes/anythink/images/headerbg.png');
   background-repeat: no-repeat;

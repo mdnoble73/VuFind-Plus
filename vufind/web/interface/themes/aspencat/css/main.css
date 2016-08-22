@@ -10481,6 +10481,9 @@ a.browse-thumbnail-sorted.active {
   border-radius: 5px;
   padding: 15px;
 }
+#book-sections li.active figure {
+  outline: dotted thin;
+}
 @font-face {
   font-family: 'HalisR-Regular';
   src: url('../HalisR-Regular.otf');

@@ -10481,6 +10481,9 @@ a.browse-thumbnail-sorted.active {
   border-radius: 5px;
   padding: 15px;
 }
+#book-sections li.active figure {
+  outline: dotted thin;
+}
 #header-container {
   min-height: 140px;
 }
