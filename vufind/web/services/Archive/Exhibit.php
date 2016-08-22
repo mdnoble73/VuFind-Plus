@@ -76,6 +76,9 @@ class Archive_Exhibit extends Archive_Object{
 
 		$searchObject->setLimit(48);
 
+		$searchObject->setSort('fgs_label_s');
+		$interface->assign('showThumbnailsSorted', true);
+
 		$relatedImages = array();
 		$mappedPlaces = array();
 		$unmappedPlaces = array();
@@ -188,16 +191,35 @@ class Archive_Exhibit extends Archive_Object{
 				}
 			}else{
 				//Load related objects
+				$allObjectsAreCollections = true;
 				foreach ($response['response']['docs'] as $objectInCollection){
 					/** @var IslandoraDriver $firstObjectDriver */
 					$firstObjectDriver = RecordDriverFactory::initRecordDriver($objectInCollection);
-					$relatedImages[] = array(
+					$relatedImages[$firstObjectDriver->getUniqueID()] = array(
 							'title' => $firstObjectDriver->getTitle(),
 							'description' => $firstObjectDriver->getDescription(),
 							'image' => $firstObjectDriver->getBookcoverUrl('medium'),
 							'link' => $firstObjectDriver->getRecordUrl(),
 					);
+					if (!($firstObjectDriver instanceof CollectionDriver)){
+						$allObjectsAreCollections = false;
+					}
 					$timer->logTime('Loaded related object');
+				}
+				$interface->assign('showWidgetView', $allObjectsAreCollections);
+
+				//Check the MODS for the collection to see if it has information about ordering
+				$sortingInfo = $this->recordDriver->getModsValues('collectionOrder', 'marmot');
+				if (count($sortingInfo) > 0){
+					$sortedImages = array();
+					foreach ($sortingInfo as $curSortSection){
+						$pid = $this->recordDriver->getModsValue('objectPid', 'marmot', $curSortSection);
+						if (array_key_exists($pid, $relatedImages)){
+							$sortedImages[] = $relatedImages[$pid];
+						}
+					}
+					$relatedImages = $sortedImages;
+					$interface->assign('showThumbnailsSorted', true);
 				}
 			}
 		}
@@ -205,5 +227,6 @@ class Archive_Exhibit extends Archive_Object{
 		$interface->assign('mappedPlaces', $mappedPlaces);
 		$interface->assign('unmappedPlaces', $unmappedPlaces);
 		$interface->assign('relatedImages', $relatedImages);
+
 	}
 }
