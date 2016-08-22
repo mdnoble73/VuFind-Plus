@@ -109,6 +109,7 @@
 				jp2: '{$page.jp2}',
 				transcript: '{$page.transcript}'
 			{rdelim};
+			{if $page.pid == $activePage}{assign var=scrollToPage value=$pageCounter}{/if}
 			{assign var=pageCounter value=$pageCounter+1}
 		{/foreach}
 	{/foreach}
@@ -119,8 +120,22 @@
 	{/if}
 
 	$(function(){ldelim}
-		VuFind.Archive.handleBookClick('', '{$activePage}', '{$activeViewer}');
-		//TODO: set Book PID
+		{* Below click events trigger indirectly the handleBookClick function, and properly sets the appropriate button. *}
+		VuFind.Archive.activeBookPage = '{$activePage}';
+		{if $activeViewer == 'transcription'}
+		$('#view-toggle-transcription').click();
+		{elseif $activeViewer == 'pdf'}
+		$('#view-toggle-pdf').click();
+		{else} {* $activeViewer should == 'image', but use this block as a catch all *}
+		$('#view-toggle-image').click();
+		{/if}
+		$('#book-sections .jcarousel').jcarousel('scroll', {$scrollToPage-1}, false);
+		$('#book-sections .jcarousel li:eq({$scrollToPage})').addClass('active');
+		$('#book-sections .jcarousel li').click(function() {ldelim}
+			$('#book-sections li').removeClass('active');
+			$(this).addClass('active');
+		{rdelim});
+
 		VuFind.Archive.loadExploreMore('{$pid|urlencode}');
 	{rdelim});
 </script>
