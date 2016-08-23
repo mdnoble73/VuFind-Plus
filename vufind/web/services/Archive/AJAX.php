@@ -288,4 +288,108 @@ class Archive_AJAX extends Action {
 				'additionalObjects' => $interface->fetch('Archive/additionalRelatedObjects.tpl')
 		);
 	}
+
+	function getSaveToListForm(){
+		global $interface;
+		global $user;
+
+		$id = $_REQUEST['id'];
+		$interface->assign('id', $id);
+
+		require_once ROOT_DIR . '/sys/LocalEnrichment/UserListEntry.php';
+
+		//Get a list of all lists for the user
+		$containingLists = array();
+		$nonContainingLists = array();
+
+		$userLists = new UserList();
+		$userLists->user_id = $user->id;
+		$userLists->deleted = 0;
+		$userLists->find();
+		while ($userLists->fetch()){
+			//Check to see if the user has already added the title to the list.
+			$userListEntry = new UserListEntry();
+			$userListEntry->listId = $userLists->id;
+			$userListEntry->groupedWorkPermanentId = $id;
+			if ($userListEntry->find(true)){
+				$containingLists[] = array(
+					'id' => $userLists->id,
+					'title' => $userLists->title
+				);
+			}else{
+				$nonContainingLists[] = array(
+					'id' => $userLists->id,
+					'title' => $userLists->title
+				);
+			}
+		}
+
+		$interface->assign('containingLists', $containingLists);
+		$interface->assign('nonContainingLists', $nonContainingLists);
+
+		$results = array(
+			'title' => 'Add To List',
+			'modalBody' => $interface->fetch("GroupedWork/save.tpl"),
+			'modalButtons' => "<button class='tool btn btn-primary' onclick='VuFind.Archive.saveToList(\"{$id}\"); return false;'>Save To List</button>"
+		);
+		return $results;
+	}
+
+	function saveToList(){
+		$result = array();
+
+		global $user;
+		if ($user === false) {
+			$result['success'] = false;
+			$result['message'] = 'Please login before adding a title to list.';
+		}else{
+			require_once ROOT_DIR . '/sys/LocalEnrichment/UserList.php';
+			require_once ROOT_DIR . '/sys/LocalEnrichment/UserListEntry.php';
+			$result['success'] = true;
+			$id = urldecode($_REQUEST['id']);
+			$listId = $_REQUEST['listId'];
+			$notes = $_REQUEST['notes'];
+
+			//Check to see if we need to create a list
+			$userList = new UserList();
+			$listOk = true;
+			if (empty($listId)){
+				$userList->title = "My Favorites";
+				$userList->user_id = $user->id;
+				$userList->public = 0;
+				$userList->description = '';
+				$userList->insert();
+			}else{
+				$userList->id = $listId;
+				if (!$userList->find(true)){
+					$result['success'] = false;
+					$result['message'] = 'Sorry, we could not find that list in the system.';
+					$listOk = false;
+				}
+			}
+
+			if ($listOk){
+				$userListEntry = new UserListEntry();
+				$userListEntry->listId = $userList->id;
+				$userListEntry->groupedWorkPermanentId = $id;
+
+				$existingEntry = false;
+				if ($userListEntry->find(true)){
+					$existingEntry = true;
+				}
+				$userListEntry->notes = $notes;
+				$userListEntry->dateAdded = time();
+				if ($existingEntry){
+					$userListEntry->update();
+				}else{
+					$userListEntry->insert();
+				}
+			}
+
+			$result['success'] = true;
+			$result['message'] = 'This title was saved to your list successfully.';
+		}
+
+		return $result;
+	}
 }

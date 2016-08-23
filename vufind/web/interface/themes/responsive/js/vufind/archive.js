@@ -327,7 +327,48 @@ VuFind.Archive = (function(){
 						'clip': source.baseURL + '?' + jQuery.param(params),
 						'dimensions': dimensions,
 					}));
-		}
+		},
+
+		showSaveToListForm: function (trigger, id){
+			if (Globals.loggedIn){
+				VuFind.loadingMessage();
+				var url = Globals.path + "/Archive/" + id + "/AJAX?method=getSaveToListForm";
+				$.getJSON(url, function(data){
+					VuFind.showMessageWithButtons(data.title, data.modalBody, data.modalButtons);
+				}).fail(VuFind.ajaxFail);
+			}else{
+				VuFind.Account.ajaxLogin($(trigger), function (){
+					VuFind.Archive.showSaveToListForm(trigger, id);
+				});
+			}
+			return false;
+		},
+
+		saveToList: function(id){
+			if (Globals.loggedIn){
+				var listId = $('#addToList-list').val(),
+						notes  = $('#addToList-notes').val(),
+						url    = Globals.path + "/Archive/" + encodeURIComponent(id) + "/AJAX",
+						params = {
+							'method':'saveToList'
+							,notes:notes
+							,listId:listId
+						};
+				$.getJSON(url, params,
+						function(data) {
+							if (data.success) {
+								VuFind.showMessage("Added Successfully", data.message, 2000); // auto-close after 2 seconds.
+							} else {
+								VuFind.showMessage("Error", data.message);
+							}
+						}
+				).fail(VuFind.ajaxFail);
+			}
+			return false;
+		},
+
 	}
+
+
 
 }(VuFind.Archive || {}));

@@ -210,9 +210,73 @@ abstract class IslandoraDriver extends RecordInterface {
 	 * @param   bool $allowEdit Should we display edit controls?
 	 * @return  string              Name of Smarty template file to display.
 	 */
+//	public function getListEntry($user, $listId = null, $allowEdit = true) {
+//		// TODO: Implement getListEntry() method.
+//	}
+
+	/**
+	 * Assign necessary Smarty variables and return a template name to
+	 * load in order to display a summary of the item suitable for use in
+	 * user's favorites list.
+	 *
+	 * @access  public
+	 * @param   object $user User object owning tag/note metadata.
+	 * @param   int $listId ID of list containing desired tags/notes (or
+	 *                              null to show tags/notes from all user's lists).
+	 * @param   bool $allowEdit Should we display edit controls?
+	 * @return  string              Name of Smarty template file to display.
+	 */
 	public function getListEntry($user, $listId = null, $allowEdit = true) {
-		// TODO: Implement getListEntry() method.
+		global $configArray;
+		global $interface;
+		global $timer;
+
+		$id = $this->getUniqueID();
+		$interface->assign('summId', $id);
+		$interface->assign('summTitle', $this->getTitle());
+		$interface->assign('module', $this->getModule());
+		$interface->assign('summUrl', $this->getLinkUrl());
+		$interface->assign('summDescription', $this->getDescription());
+		$interface->assign('summFormat', $this->getFormat());
+
+		// The below template variables are in the listentry.tpl but the driver doesn't currently
+		// supply this information, so we are making sure they are set to a null value.
+		$interface->assign('summTitleStatement', null);
+		$interface->assign('summAuthor', null);
+		$interface->assign('summPublisher', null);
+		$interface->assign('summPubDate', null);
+		$interface->assign('$summSnippets', null);
+
+
+		//Determine the cover to use
+//		$interface->assign('bookCoverUrl', $this->getBookcoverUrl('small'));
+		$interface->assign('bookCoverUrlMedium', $this->getBookcoverUrl('medium'));
+
+
+		//Get information from list entry
+		if ($listId) {
+			require_once ROOT_DIR . '/sys/LocalEnrichment/UserListEntry.php';
+			$listEntry                         = new UserListEntry();
+			$listEntry->groupedWorkPermanentId = $this->getUniqueID();
+			$listEntry->listId                 = $listId;
+			if ($listEntry->find(true)) {
+				$interface->assign('listEntryNotes', $listEntry->notes);
+			}
+			$interface->assign('listEditAllowed', $allowEdit);
+		}
+		$interface->assign('bookCoverUrl', $this->getBookcoverUrl('small'));
+		$interface->assign('bookCoverUrlMedium', $this->getBookcoverUrl('medium'));
+
+		// By default, do not display AJAX status; we won't assume that all
+		// records exist in the ILS.  Child classes can override this setting
+		// to turn on AJAX as needed:
+		$interface->assign('summAjaxStatus', false);
+
+		$interface->assign('recordDriver', $this);
+
+		return 'RecordDrivers/Islandora/listentry.tpl';
 	}
+
 
 	public function getModule() {
 		return 'Archive';

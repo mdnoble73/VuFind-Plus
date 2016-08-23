@@ -85,7 +85,7 @@ class SearchObject_Islandora extends SearchObject_Base
 		$this->searchType = 'islandora';
 		$this->basicSearchType = 'islandora';
 		// Initialise the index
-		$this->indexEngine = new Solr($configArray['Islandora']['solrUrl'], isset($configArray['Islandora']['solrCore']) ? $configArray['Islandora']['solrCore'] : 'islandora');
+		$this->indexEngine = new Solr($configArray['Islandora']['solrUrl'], 'islandora');
 		$timer->logTime('Created Index Engine for Islandora');
 
 		//Make sure to turn off sharding for islandora
@@ -302,22 +302,53 @@ class SearchObject_Islandora extends SearchObject_Base
 	 * results suitable for use on a user's "favorites" page.
 	 *
 	 * @access  public
-	 * @param   object  $user       User object owning tag/note metadata.
-	 * @param   int     $listId     ID of list containing desired tags/notes (or
+	 * @param   object $user User object owning tag/note metadata.
+	 * @param   int $listId ID of list containing desired tags/notes (or
 	 *                              null to show tags/notes from all user's lists).
-	 * @param   bool    $allowEdit  Should we display edit controls?
-	 * @return  array   Array of HTML chunks for individual records.
+	 * @param   bool $allowEdit Should we display edit controls?
+	 * @param   array   $IDList     optional list of IDs to re-order the archive Objects by (ie User List sorts)
+	 * @return array Array of HTML chunks for individual records.
 	 */
-	public function getResultListHTML($user, $listId = null, $allowEdit = true)
+	public function getResultListHTML($user, $listId = null, $allowEdit = true, $IDList = null)
 	{
 		global $interface;
-
 		$html = array();
+
+		if ($IDList){
+			//Reorder the documents based on the list of id's
+			//TODO: taken from Solr.php (May need to adjust for Islandora
+			$x = 0;
+			foreach ($IDList as $currentId){
+				// use $IDList as the order guide for the html
+				$current = null; // empty out in case we don't find the matching record
+				foreach ($this->indexResult['response']['docs'] as $index => $doc) {
+					if ($doc['id'] == $currentId) {
+						$current = & $this->indexResult['response']['docs'][$index];
+						break;
+					}
+				}
+				if (empty($current)) {
+					continue; // In the case the record wasn't found, move on to the next record
+				}else {
+					$interface->assign('recordIndex', $x + 1);
+					$interface->assign('resultIndex', $x + 1 + (($this->page - 1) * $this->limit));
+					if (!$this->debug){
+						unset($current['explain']);
+						unset($current['score']);
+					}
+					/** @var GroupedWorkDriver $record */
+					$record = RecordDriverFactory::initRecordDriver($current);
+					$html[] = $interface->fetch($record->getListEntry($user, $listId, $allowEdit));
+					$x++;
+				}
+			}
+		}else{
 		for ($x = 0; $x < count($this->indexResult['response']['docs']); $x++) {
-			$current = & $this->indexResult['response']['docs'][$x];
-			$record = RecordDriverFactory::initRecordDriver($current);
-			$html[] = $interface->fetch($record->getListEntry($user, $listId, $allowEdit));
+			$current = &$this->indexResult['response']['docs'][$x];
+			$record  = RecordDriverFactory::initRecordDriver($current);
+			$html[]  = $interface->fetch($record->getListEntry($user, $listId, $allowEdit));
 		}
+	}
 		return $html;
 	}
 
@@ -366,14 +397,18 @@ class SearchObject_Islandora extends SearchObject_Base
 	}
 
 	/**
-	 * Set an overriding array of record IDs.
+	 * Set an overriding array of archive PIDs.
 	 *
 	 * @access  public
-	 * @param   array   $ids        Record IDs to load
+	 * @param   array   $ids        archive PIDs to load
 	 */
 	public function setQueryIDs($ids)
 	{
-		$this->query = 'id:(' . implode(' OR ', $ids) . ')';
+		$quoteIDs = function ($id) {
+			return "\"$id\"";
+		};
+		$ids = array_map($quoteIDs, $ids);
+		$this->query = 'PID:(' . implode(' OR ', $ids) . ')';
 	}
 
 	/**
@@ -1085,14 +1120,6 @@ class SearchObject_Islandora extends SearchObject_Base
 						continue;
 					}
 
-					//Check to see if this is a value that should be suppressed
-					if ($field == 'RELS_EXT_isMemberOfCollection_uri_ms'){
-						if (in_array($pid, array('marmot:people', 'marmot:events', 'marmot:families', 'marmot:organizations', 'marmot:places', 'islandora:entity_collection', 'islandora_sp_basic_image_collection'))){
-							continue;
-						}
-
-					}
-
 				}elseif ($translate){
 					$currentSettings['display'] = translate($facet[0]);
 				}else{
@@ -1122,6 +1149,24 @@ class SearchObject_Islandora extends SearchObject_Base
 
 				// Store the collected values:
 				$list[$field]['list'][$valueKey] = $currentSettings;
+			}
+
+			if ($field == 'veteranOf'){
+				//Add a field for Any war
+				$currentSettings = array();
+				$currentSettings['value'] = '[* TO *]';
+				$currentSettings['display'] = $translate ? translate('Any War') : 'Any War';
+				$currentSettings['count'] = '';
+				$currentSettings['isApplied'] = false;
+				if (in_array($field, array_keys($this->filterList))) {
+					// and is this value a selected filter?
+					if (in_array($currentSettings['value'], $this->filterList[$field])) {
+						$currentSettings['isApplied'] = true;
+						$currentSettings['removalUrl'] =  $this->renderLinkWithoutFilter("$field:{$facet[0]}");
+					}
+				}
+				$currentSettings['url'] = $this->renderLinkWithFilter("veteranOf:" . $currentSettings['value']);
+				$list[$field]['list']['Any War'] = $currentSettings;
 			}
 
 			//How many facets should be shown by default
@@ -1355,7 +1400,6 @@ class SearchObject_Islandora extends SearchObject_Base
 		global $library;
 		if ($library->hideAllCollectionsFromOtherLibraries && $library->archiveNamespace){
 			$filters[] = "RELS_EXT_isMemberOfCollection_uri_ms:info\\:fedora/{$library->archiveNamespace}\\:*
-				OR PID:{$library->archiveNamespace}\\:*
 			  OR RELS_EXT_isMemberOfCollection_uri_ms:info\\:fedora/marmot\\:events
 			  OR RELS_EXT_isMemberOfCollection_uri_ms:info\\:fedora/marmot\\:organizations
 			  OR RELS_EXT_isMemberOfCollection_uri_ms:info\\:fedora/marmot\\:people
@@ -1378,7 +1422,6 @@ class SearchObject_Islandora extends SearchObject_Base
 		$filters[] = "!PID:marmot\\:*";
 		$filters[] = "!PID:ssb\\:*";
 		$filters[] = "!PID:mandala\\:*";
-		$filters[] = "!PID:ir\\:*";
 
 		$filters[] = "!mods_extension_marmotLocal_pikaOptions_includeInPika_ms:no";
 		return $filters;
@@ -1389,12 +1432,4 @@ class SearchObject_Islandora extends SearchObject_Base
 		$this->indexEngine->isPrimarySearch = $flag;
 	}
 
-	/**
-	 * @param string[] $fields
-	 *
-	 * @return void
-	 */
-	public function addFieldsToReturn($fields){
-		$this->fields .= ',' . implode(',', $fields);
-	}
 }

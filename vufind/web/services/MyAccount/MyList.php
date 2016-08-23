@@ -148,12 +148,12 @@ class MyAccount_MyList extends MyAccount {
 		// Create a handler for displaying favorites and use it to assign
 		// appropriate template variables:
 		$interface->assign('allowEdit', $userCanEdit);
-//		$favList = new FavoriteHandler($list->getListEntries($sort), $listUser, $list->id, $userCanEdit, $list->defaultSort);
-		// signature change to below
 		$favList = new FavoriteHandler($list, $listUser, $userCanEdit);
 		$favList->assign();
 
-		$this->display('list.tpl', isset($list->title) ? $list->title : 'My List');
+//		$this->display('list.tpl', isset($list->title) ? $list->title : 'My List');
+		$this->display('../MyAccount/list.tpl', isset($list->title) ? $list->title : 'My List');
+		// this template path is used when an Archive object is in the list; TODO: Need to verify this works when the list is only catalog items
 	}
 
 	function bulkAddTitles($list){
