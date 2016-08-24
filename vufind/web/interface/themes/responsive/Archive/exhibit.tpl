@@ -53,16 +53,23 @@
 		</div>
 	{else}
 		{* Standard View a la Browse Categories*}
+		<div class="row">
+			<div class="col-sm-4">
+				{if $recordCount}
+					{$recordCount} objects for this collection.
+				{/if}
+			</div>
+		</div>
 		<div id="related-exhibit-images" class="{if $showThumbnailsSorted && count($relatedImages) >= 18}row{elseif count($relatedImages) >= 18}results-covers home-page-browse-thumbnails{else}browse-thumbnails-few{/if}">
 			{foreach from=$relatedImages item=image}
 				{if $showThumbnailsSorted && count($relatedImages) >= 18}<div class="col-xs-6 col-sm-4 col-md-3">{/if}
 					<figure class="{if $showThumbnailsSorted && count($relatedImages) >= 18}browse-thumbnail-sorted{else}browse-thumbnail{/if}">
-						<a href="{$image.link}" {if $image.title}data-title="{$image.title}"{/if}>
+						<a href="{$image.link}" {if $image.title}data-title="{$image.title}"{/if} onclick="return VuFind.Archive.showObjectInPopup('{$image.pid|urlencode}')">
 							<img src="{$image.image}" {if $image.title}alt="{$image.title}"{/if}>
+							<figcaption class="explore-more-category-title">
+								<strong>{$image.title}</strong>
+							</figcaption>
 						</a>
-						<figcaption class="explore-more-category-title">
-							<strong>{$image.title}</strong>
-						</figcaption>
 					</figure>
 				{if $showThumbnailsSorted && count($relatedImages) >= 18}</div>{/if}
 			{/foreach}
@@ -71,7 +78,7 @@
 		{* Show more link if we aren't seeing all the records already *}
 		<div id="nextInsertPoint">
 		{if $recordEnd < $recordCount}
-			<a onclick="return VuFind.Archive.getMoreExhibitResults('{$exhibitPid|urlencode}')">
+			<a onclick="return VuFind.Archive.getMoreExhibitResults('{$pid|urlencode}')">
 				<div class="row" id="more-browse-results">
 					<img src="{img filename="browse_more_arrow.png"}" alt="Load More Results" title="Load More Results">
 				</div>

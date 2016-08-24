@@ -27,6 +27,7 @@ class Archive_Exhibit extends Archive_Object{
 			$mapZoom = $this->recordDriver->getModsValue('mapZoomLevel', 'marmot');
 			$interface->assign('mapZoom', $mapZoom);
 		}
+		$interface->assign('displayType', $displayType);
 		$this->loadRelatedObjects($displayType);
 		$timer->logTime('Loaded Related Objects');
 
@@ -196,6 +197,7 @@ class Archive_Exhibit extends Archive_Object{
 					/** @var IslandoraDriver $firstObjectDriver */
 					$firstObjectDriver = RecordDriverFactory::initRecordDriver($objectInCollection);
 					$relatedImages[$firstObjectDriver->getUniqueID()] = array(
+							'pid' => $firstObjectDriver->getUniqueID(),
 							'title' => $firstObjectDriver->getTitle(),
 							'description' => $firstObjectDriver->getDescription(),
 							'image' => $firstObjectDriver->getBookcoverUrl('medium'),

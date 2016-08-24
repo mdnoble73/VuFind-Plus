@@ -34,6 +34,80 @@ class Archive_AJAX extends Action {
 		echo json_encode($this->$method());
 	}
 
+	function getRelatedObjectsForExhibit(){
+		if (isset($_REQUEST['collectionId'])){
+			global $interface;
+			global $timer;
+			require_once ROOT_DIR . '/sys/Utils/FedoraUtils.php';
+			$fedoraUtils = FedoraUtils::getInstance();
+			$pid = urldecode($_REQUEST['collectionId']);
+			$interface->assign('exhibitPid', $pid);
+
+			$page = isset($_REQUEST['page']) ? $_REQUEST['page'] : 1;
+			$interface->assign('page', $page);
+
+			$sort = isset($_REQUEST['sort']) ? $_REQUEST['sort'] : 'title';
+			$interface->assign('sort', $sort);
+
+			$displayType = 'basic';
+			$interface->assign('displayType', $displayType);
+
+			/** @var SearchObject_Islandora $searchObject */
+			$searchObject = SearchObjectFactory::initSearchObject('Islandora');
+			$searchObject->init();
+			$searchObject->setDebugging(false, false);
+			$searchObject->clearHiddenFilters();
+			$searchObject->addHiddenFilter('!RELS_EXT_isViewableByRole_literal_ms', "administrator");
+			$searchObject->clearFilters();
+			$searchObject->addFilter("RELS_EXT_isMemberOfCollection_uri_ms:\"info:fedora/{$pid}\"");
+			$searchObject->clearFacets();
+
+			$searchObject->setLimit(24);
+
+			$searchObject->setSort('fgs_label_s');
+			$interface->assign('showThumbnailsSorted', true);
+
+			$relatedObjects = array();
+			$response = $searchObject->processSearch(true, false);
+			if ($response && isset($response['error'])){
+				$interface->assign('solrError', $response['error']['msg']);
+				$interface->assign('solrLink', $searchObject->getFullSearchUrl());
+			}
+			if ($response && isset($response['response']) && $response['response']['numFound'] > 0) {
+				$summary = $searchObject->getResultSummary();
+				$interface->assign('recordCount', $summary['resultTotal']);
+				$interface->assign('recordStart', $summary['startRecord']);
+				$interface->assign('recordEnd',   $summary['endRecord']);
+
+				foreach ($response['response']['docs'] as $objectInCollection){
+					/** @var IslandoraDriver $firstObjectDriver */
+					$firstObjectDriver = RecordDriverFactory::initRecordDriver($objectInCollection);
+					$relatedObjects[] = array(
+							'title' => $firstObjectDriver->getTitle(),
+							'description' => $firstObjectDriver->getDescription(),
+							'image' => $firstObjectDriver->getBookcoverUrl('medium'),
+							'dateCreated' => $firstObjectDriver->getDateCreated(),
+							'link' => $firstObjectDriver->getRecordUrl(),
+							'pid' => $firstObjectDriver->getUniqueID()
+					);
+					$timer->logTime('Loaded related object');
+				}
+
+			}
+
+			$interface->assign('relatedObjects', $relatedObjects);
+			return array(
+					'success' => true,
+					'relatedObjects' => $interface->fetch('Archive/relatedObjects.tpl')
+			);
+		}else{
+			return array(
+					'success' => false,
+					'message' => 'You must supply the collection and place to load data for'
+			);
+		}
+	}
+
 	function getRelatedObjectsForMappedCollection(){
 		if (isset($_REQUEST['collectionId']) && isset($_REQUEST['placeId'])){
 			global $interface;
@@ -52,6 +126,9 @@ class Archive_AJAX extends Action {
 			/** @var FedoraObject $placeObject */
 			$placeObject = $fedoraUtils->getObject($placeId);
 			$interface->assign('placePid', $placeId);
+
+			$interface->assign('displayType', 'map');
+
 			$interface->assign('label', $placeObject->label);
 
 			$page = isset($_REQUEST['page']) ? $_REQUEST['page'] : 1;

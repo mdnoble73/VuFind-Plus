@@ -60,9 +60,9 @@
 		{/foreach}
 	</div>
 
-	<div id="nextInsertPoint"></div>
-	{if $page == 1 && $reloadHeader == 1}
-		</div>
+	<div id="nextInsertPoint">
+	{if $displayType == 'map'}
+		{* {$recordCount-$recordEnd} more records to load *}
 		{if $recordEnd < $recordCount}
 			<a onclick="return VuFind.Archive.getMoreMapResults('{$exhibitPid|urlencode}', '{$placePid|urlencode}')">
 				<div class="row" id="more-browse-results">
@@ -70,7 +70,17 @@
 				</div>
 			</a>
 		{/if}
+	{else}
+		{if $recordEnd < $recordCount}
+			{* {$recordCount-$recordEnd} more records to load *}
+			<a onclick="return VuFind.Archive.getMoreExhibitResults('{$exhibitPid|urlencode}')">
+				<div class="row" id="more-browse-results">
+					<img src="{img filename="browse_more_arrow.png"}" alt="Load More Search Results" title="Load More Search Results">
+				</div>
+			</a>
+		{/if}
 	{/if}
 	</div>
+
 
 {/strip}
