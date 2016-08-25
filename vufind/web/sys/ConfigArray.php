@@ -200,7 +200,7 @@ function readConfig()
 	$configFile = '../../sites/default/conf/config.ini';
 	$mainArray = parse_ini_file($configFile, true);
 
-	global $serverName;
+	global $serverName, $instanceName;
 	$serverUrl = $_SERVER['SERVER_NAME'];
 	$server = $serverUrl;
 	$serverParts = explode('.', $server);
@@ -237,6 +237,11 @@ function readConfig()
 		echo("Unable to parse configuration file $configFile, please check syntax");
 	}
 	// @codeCoverageIgnoreEnd
+
+	// Set a instanceName so that memcache variables can be stored for a specific instance of Pika,
+	// rather than the $serverName will depend on the specific interface a user is browsing to.
+	$instanceName = parse_url($mainArray['Site']['url'], PHP_URL_HOST);
+		// Have to set the instanceName before the transformation of $mainArray['Site']['url'] below.
 
 	//If we are accessing the site via a subdomain, need to preserve the subdomain
 	//Don't try to preserve SSL since the combination of proxy and SSL does not work nicely.
