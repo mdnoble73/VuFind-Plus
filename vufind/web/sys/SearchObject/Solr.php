@@ -537,23 +537,26 @@ class SearchObject_Solr extends SearchObject_Base
 	 * results suitable for use while displaying lists
 	 *
 	 * @access  public
-	 * @param   object  $user       User object owning tag/note metadata.
-	 * @param   int     $listId     ID of list containing desired tags/notes (or
+	 * @param   object $user User object owning tag/note metadata.
+	 * @param   int $listId ID of list containing desired tags/notes (or
 	 *                              null to show tags/notes from all user's lists).
-	 * @param   bool    $allowEdit  Should we display edit controls?
-	 * @param   array   $IDList     optional list of IDs to re-order the records by (ie User List sorts)
-	 * @return  array   Array of HTML chunks for individual records.
+	 * @param   bool $allowEdit Should we display edit controls?
+	 * @param   array $IDList optional list of IDs to re-order the records by (ie User List sorts)
+	 * @param    bool $isMixedUserList Used to correctly number items in a list of mixed content (eg catalog & archive content)
+	 * @return array Array of HTML chunks for individual records.
 	 */
-	public function getResultListHTML($user, $listId = null, $allowEdit = true, $IDList = null)
+	public function getResultListHTML($user, $listId = null, $allowEdit = true, $IDList = null, $isMixedUserList = false)
 	{
 		global $interface;
 		$html = array();
 		if ($IDList){
 			//Reorder the documents based on the list of id's
 			$x = 0;
-			foreach ($IDList as $currentId){
+			$nullHolder = null;
+			foreach ($IDList as $listPosition => $currentId){
 				// use $IDList as the order guide for the html
-				$current = null; // empty out in case we don't find the matching record
+				$current = &$nullHolder; // empty out in case we don't find the matching record
+				reset($this->indexResult['response']['docs']);
 				foreach ($this->indexResult['response']['docs'] as $index => $doc) {
 					if ($doc['id'] == $currentId) {
 						$current = & $this->indexResult['response']['docs'][$index];
@@ -563,16 +566,25 @@ class SearchObject_Solr extends SearchObject_Base
 				if (empty($current)) {
 					continue; // In the case the record wasn't found, move on to the next record
 				}else {
-					$interface->assign('recordIndex', $x + 1);
-					$interface->assign('resultIndex', $x + 1 + (($this->page - 1) * $this->limit));
+					if ($isMixedUserList) {
+						$interface->assign('recordIndex', $listPosition + 1);
+						$interface->assign('resultIndex', $listPosition + 1 + (($this->page - 1) * $this->limit));
+					} else {
+						$interface->assign('recordIndex', $x + 1);
+						$interface->assign('resultIndex', $x + 1 + (($this->page - 1) * $this->limit));
+					}
 					if (!$this->debug){
 						unset($current['explain']);
 						unset($current['score']);
 					}
 					/** @var GroupedWorkDriver $record */
 					$record = RecordDriverFactory::initRecordDriver($current);
-					$html[] = $interface->fetch($record->getListEntry($user, $listId, $allowEdit));
-					$x++;
+					if ($isMixedUserList) {
+						$html[$listPosition] = $interface->fetch($record->getListEntry($user, $listId, $allowEdit));
+					} else {
+						$html[] = $interface->fetch($record->getListEntry($user, $listId, $allowEdit));
+						$x++;
+					}
 				}
 			}
 		}else{

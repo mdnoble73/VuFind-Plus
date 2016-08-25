@@ -147,8 +147,5 @@
 		</div>
 
 		</div>
-
-
-
 	</div>
 {/strip}

@@ -1232,6 +1232,7 @@ class MyAccount_AJAX
 				require_once ROOT_DIR . '/sys/LocalEnrichment/UserListEntry.php';
 				$success = true; // assume success now
 				foreach ($updates as $update) {
+					$update['id'] = str_replace('_', ':', $update['id']); // Rebuilt Islandora PIDs
 					$userListEntry                         = new UserListEntry();
 					$userListEntry->listId                 = $listId;
 					$userListEntry->groupedWorkPermanentId = $update['id'];

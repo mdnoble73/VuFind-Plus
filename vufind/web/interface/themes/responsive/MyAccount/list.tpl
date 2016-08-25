@@ -1,4 +1,4 @@
-{strip}
+{*{strip}*}
 	<form action="{$path}/MyAccount/MyList/{$favList->id}" id="myListFormHead">
 		<div>
 			<input type="hidden" name="myListActionHead" id="myListActionHead" class="form">
@@ -131,7 +131,7 @@
 					</div>
 				{/foreach}
 			</div>
-			{if $userSort}
+{if $userSort}
 				<script type="text/javascript">
 					{literal}
 					$(function(){
@@ -146,11 +146,12 @@
 								var updates = [],
 										firstItemOnPage = {/literal}{$recordStart}{literal};
 								$('#UserList>div>div').each(function(currentOrder){
-									var GroupID = this.id.replace('groupedRecord',''),
+									var id = this.id.replace('groupedRecord','') /* Grouped IDs for catalog items */
+																	.replace('archive',''),      /*modified Islandora PIDs for archive items*/
 													originalOrder = $(this).data('order'),
 													change = currentOrder+firstItemOnPage-originalOrder,
 													newOrder = originalOrder+change;
-									if (change != 0) updates.push({'id':GroupID, 'newOrder':newOrder});
+									if (change != 0) updates.push({'id':id, 'newOrder':newOrder});
 								});
 								$.getJSON(Globals.path + '/MyAccount/AJAX',
 												{
@@ -161,9 +162,15 @@
 												, function(response){
 													if (response.success) {
 														updates.forEach(function(e){
-															$('#groupedRecord'+ e.id).data('order', e.newOrder)
-																			.find('span.result-index').text(e.newOrder+')');
-//															$('#weight_'+ e.id).val(e.newOrder);
+															if ($('#groupedRecord'+ e.id).length > 0) {
+																$('#groupedRecord' + e.id).data('order', e.newOrder)
+																				.find('span.result-index').text(e.newOrder + ')');
+															/*$('#weight_'+ e.id).val(e.newOrder);*/
+															} else if ($('#archive'+ e.id).length > 0) {
+																$('#archive' + e.id).data('order', e.newOrder)
+																				.find('span.result-index').text(e.newOrder + ')');
+															/*$('#weight_'+ e.id).val(e.newOrder);*/
+															}
 														})
 													}
 												})
@@ -179,4 +186,4 @@
 			{translate text='You do not have any saved resources'}
 		{/if}
 	{/if}
-{/strip}
+{*{/strip}*}

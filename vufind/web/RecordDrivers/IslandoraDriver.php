@@ -227,12 +227,11 @@ abstract class IslandoraDriver extends RecordInterface {
 	 * @return  string              Name of Smarty template file to display.
 	 */
 	public function getListEntry($user, $listId = null, $allowEdit = true) {
-		global $configArray;
 		global $interface;
-		global $timer;
 
 		$id = $this->getUniqueID();
 		$interface->assign('summId', $id);
+		$interface->assign('jquerySafeId', str_replace(':', '_', $id)); // make id safe for jquery & css calls
 		$interface->assign('summTitle', $this->getTitle());
 		$interface->assign('module', $this->getModule());
 		$interface->assign('summUrl', $this->getLinkUrl());
@@ -241,6 +240,7 @@ abstract class IslandoraDriver extends RecordInterface {
 
 		// The below template variables are in the listentry.tpl but the driver doesn't currently
 		// supply this information, so we are making sure they are set to a null value.
+		$interface->assign('summShortId', null);
 		$interface->assign('summTitleStatement', null);
 		$interface->assign('summAuthor', null);
 		$interface->assign('summPublisher', null);
