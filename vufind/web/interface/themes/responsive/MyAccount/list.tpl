@@ -109,7 +109,7 @@
 				<div class="col-xs-12">
 						{translate text="Showing"} <b>{$recordStart}</b> - <b>{$recordEnd}</b> {translate text='of'} <b>{$recordCount}</b>
 						{if $debug}
-							&nbsp;There are {$favList->numValidItems()} valid Items.
+							&nbsp;There are {$favList->numValidListItems()} valid Items.
 						{/if}
 				</div>
 			</div>

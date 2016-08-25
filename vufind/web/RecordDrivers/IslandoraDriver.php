@@ -103,10 +103,11 @@ abstract class IslandoraDriver extends RecordInterface {
 
 		$interface->assign('summUrl', $url);
 		$interface->assign('summTitle', $this->getTitle());
+//		$interface->assign('summAuthor', null); // Commented out in the template for now. plb 8-25-2016
 
-		$interface->assign('summFormat', $this->getFormat());
+//		$interface->assign('summFormat', $this->getFormat()); // Not used in the template below. plb 8-25-2016
 
-		//Get Rating
+		//Get Book Covers
 		$interface->assign('bookCoverUrl', $this->getBookcoverUrl('small'));
 		$interface->assign('bookCoverUrlMedium', $this->getBookcoverUrl('medium'));
 

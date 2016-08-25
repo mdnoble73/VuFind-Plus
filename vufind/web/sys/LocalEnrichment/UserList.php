@@ -239,19 +239,40 @@ class UserList extends DB_DataObject
 	public function getBrowseRecords($start, $numTitles) {
 		global $interface;
 		$browseRecords = array();
-		$titles = $this->getListEntries();
-		$titles = array_slice($titles, $start, $numTitles);
-		foreach ($titles as $groupedWorkId){
-			require_once ROOT_DIR . '/RecordDrivers/GroupedWorkDriver.php';
-			$groupedWork = new GroupedWorkDriver($groupedWorkId);
-			if ($groupedWork->isValid){
-				if (method_exists($groupedWork, 'getBrowseResult')){
-					$browseRecords[] = $interface->fetch($groupedWork->getBrowseResult());
-				}else{
+		$titles        = $this->getListEntries();
+		$titles        = array_slice($titles, $start, $numTitles);
+		foreach ($titles as $groupedWorkId) {
+			if (strpos($groupedWorkId, ':') === false) {
+				// Catalog Items
+				require_once ROOT_DIR . '/RecordDrivers/GroupedWorkDriver.php';
+				$groupedWork = new GroupedWorkDriver($groupedWorkId);
+				if ($groupedWork->isValid) {
+					if (method_exists($groupedWork, 'getBrowseResult')) {
+						$browseRecords[] = $interface->fetch($groupedWork->getBrowseResult());
+					} else {
+						$browseRecords[] = 'Browse Result not available';
+					}
+				}
+			} // Archive Items
+			else {
+//				require_once ROOT_DIR . '/RecordDrivers/IslandoraDriver.php';
+				/* var IslandoraDriver $archiveObject*/
+//				$archiveObject = new IslandoraDriver($groupedWorkId);
+				$archiveObject = new GenericIslandoraObject($groupedWorkId);
+				if (method_exists($archiveObject, 'getBrowseResult')) {
+					$browseRecords[] = $interface->fetch($archiveObject->getBrowseResult());
+				} else {
 					$browseRecords[] = 'Browse Result not available';
 				}
 			}
 		}
 		return $browseRecords;
+	}
+}
+
+require_once ROOT_DIR . '/RecordDrivers/IslandoraDriver.php';
+class GenericIslandoraObject extends IslandoraDriver {
+	public function getViewAction() {
+// TODO: Implement getViewAction() method.
 	}
 }
