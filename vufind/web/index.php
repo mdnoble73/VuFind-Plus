@@ -939,7 +939,7 @@ function loadUserData(){
 					'name' => $tmpList->title,
 					'url' => '/MyAccount/MyList/' .$tmpList->id ,
 					'id' => $tmpList->id,
-					'numTitles' => $tmpList->num_titles()
+					'numTitles' => $tmpList->numValidListItems()
 			);
 		}
 	}

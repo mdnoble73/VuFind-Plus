@@ -62,6 +62,25 @@ class UserList extends DB_DataObject
 		);
 		return $structure;
 	}
+
+	function numValidListItems() {
+		$archiveItems = $this->num_archive_items();
+		$catalogItems = $this->num_titles();
+		return $archiveItems + $catalogItems;
+	}
+
+	function num_archive_items() {
+		require_once ROOT_DIR . '/sys/LocalEnrichment/UserListEntry.php';
+		//Join with grouped work to make sure we only load valid entries
+		$listEntry = new UserListEntry();
+		$listEntry->listId = $this->id;
+
+		require_once ROOT_DIR . '/sys/Islandora/IslandoraObjectCache.php';
+		$islandoraObject = new IslandoraObjectCache();
+		$listEntry->joinAdd($islandoraObject);
+		return $listEntry->count();
+	}
+
 	function num_titles(){
 		require_once ROOT_DIR . '/sys/LocalEnrichment/UserListEntry.php';
 		//Join with grouped work to make sure we only load valid entries
@@ -71,10 +90,9 @@ class UserList extends DB_DataObject
 		require_once ROOT_DIR . '/sys/Grouping/GroupedWork.php';
 		$groupedWork = new GroupedWork();
 		$listEntry->joinAdd($groupedWork);
-		$listEntry->find();
-
-		return $listEntry->N;
+		return $listEntry->count();
 	}
+
 	function insert(){
 		$this->created = time();
 		$this->dateUpdated = time();
