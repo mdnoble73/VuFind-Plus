@@ -5071,7 +5071,6 @@ button.close {
 }
 .modal.fade .modal-dialog {
   -webkit-transform: translate(0, -25%);
-  -ms-transform: translate(0, -25%);
   transform: translate(0, -25%);
   -webkit-transition: -webkit-transform 0.3s ease-out;
   transition: -webkit-transform 0.3s ease-out;
@@ -5080,7 +5079,6 @@ button.close {
 }
 .modal.in .modal-dialog {
   -webkit-transform: translate(0, 0);
-  -ms-transform: translate(0, 0);
   transform: translate(0, 0);
 }
 .modal-dialog {
@@ -7964,7 +7962,6 @@ fieldset[disabled] .datepicker table tr td span.active.disabled:hover.active {
   bottom: -25px;
   left: 50%;
   -webkit-transform: translate(-50%, 0);
-  -ms-transform: translate(-50%, 0);
   transform: translate(-50%, 0);
   margin: 0;
 }
@@ -8043,7 +8040,6 @@ fieldset[disabled] .datepicker table tr td span.active.disabled:hover.active {
   vertical-align: text-top;
   text-align: center;
   -webkit-transform: scale(0.6);
-      -ms-transform: scale(0.6);
           transform: scale(0.6);
   margin-top: -1px;
   margin-bottom: -1px;
@@ -8613,10 +8609,8 @@ hr.menu {
   display: inline-block;
   white-space: nowrap;
   -webkit-transform: rotate(-90deg) translateX(-100%);
-      -ms-transform: rotate(-90deg) translateX(-100%);
           transform: rotate(-90deg) translateX(-100%);
   -webkit-transform-origin: 0 0;
-      -ms-transform-origin: 0 0;
           transform-origin: 0 0;
 }
 .rotated-text-inner:after {
@@ -9314,6 +9308,41 @@ a.browse-thumbnail.active {
 }
 .browse-thumbnail img {
   width: 100%;
+}
+.browse-thumbnail-sorted {
+  display: block;
+  padding: 4px;
+  margin-bottom: 20px;
+  line-height: 1.42857143;
+  background-color: #fff;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  -webkit-transition: all 0.2s ease-in-out;
+  transition: all 0.2s ease-in-out;
+  border-width: 0px;
+  height: 210px;
+  overflow: hidden;
+  text-align: center;
+}
+.browse-thumbnail-sorted > img,
+.browse-thumbnail-sorted a > img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin-left: auto;
+  margin-right: auto;
+}
+a.browse-thumbnail-sorted:hover,
+a.browse-thumbnail-sorted:focus,
+a.browse-thumbnail-sorted.active {
+  border-color: #428bca;
+}
+.browse-thumbnail-sorted .caption {
+  padding: 9px;
+  color: #333333;
+}
+.browse-thumbnail-sorted img {
+  max-height: 150px;
 }
 .browse-list {
   page-break-inside: avoid;
@@ -10276,10 +10305,8 @@ a.browse-thumbnail.active {
 .exploreMoreBar .label-left .exploreMoreBarLabel {
   position: absolute;
   -webkit-transform: rotate(-90deg) translateX(-100%);
-      -ms-transform: rotate(-90deg) translateX(-100%);
           transform: rotate(-90deg) translateX(-100%);
   -webkit-transform-origin: 0 0;
-      -ms-transform-origin: 0 0;
           transform-origin: 0 0;
   padding-right: 10px;
   padding-left: 5px;
@@ -10326,7 +10353,6 @@ a.browse-thumbnail.active {
   position: absolute;
   top: 62px;
   -webkit-transform: translate(-50%, -50%);
-      -ms-transform: translate(-50%, -50%);
           transform: translate(-50%, -50%);
   left: 50%;
 }
@@ -10828,7 +10854,7 @@ div#browse-category-carousel ul > li.browse-category:hover {
   margin: 10px auto;
   position: relative;
 }
-.jcarousel li {
+.jcarousel ul > li {
   border: 0px solid #fff;
 }
 .jcarousel-control-prev,

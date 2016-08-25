@@ -77,6 +77,18 @@ VuFind.Archive = (function(){
 			viewer.addHandler("animationfinish", this.update_clip);
 		},
 
+		getMoreExhibitResults: function(exhibitPid){
+			this.curPage = this.curPage +1;
+			var url = Globals.path + "/Archive/AJAX?method=getRelatedObjectsForExhibit&collectionId=" + exhibitPid + "&page=" + this.curPage + "&sort=" + this.sort;
+			url = url + "&reloadHeader=0";
+
+			$.getJSON(url, function(data){
+				if (data.success){
+					$("#nextInsertPoint").replaceWith(data.relatedObjects);
+				}
+			});
+		},
+
 		getMoreMapResults: function(exhibitPid, placePid){
 			this.curPage = this.curPage +1;
 			var url = Globals.path + "/Archive/AJAX?method=getRelatedObjectsForMappedCollection&collectionId=" + exhibitPid + "&placeId=" + placePid + "&page=" + this.curPage + "&sort=" + this.sort;
