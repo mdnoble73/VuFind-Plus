@@ -1092,7 +1092,7 @@ class SearchObject_Solr extends SearchObject_Base
 						// for reserves:
 						'course', 'inst', 'dept',
 						// for favorites/list:
-						'tag'
+						'tag', 'pagesize'
 					);
 					foreach ($preserveParams as $current) {
 						if (isset($_GET[$current])) {

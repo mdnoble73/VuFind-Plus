@@ -3,6 +3,7 @@
 		{* Because colons give css & jquery trouble the Ids from Islandora have : replaced with _ *}
 		<a name="record{$summId|escape:"url"}"></a>
 		<div class="row">
+			{if $showCovers}
 			<div class="col-xs-12 col-sm-3 col-md-3 col-lg-2 text-center">
 				{if $user->disableCoverArt != 1}
 					<a href="{$summUrl}">
@@ -10,8 +11,9 @@
 					</a>
 				{/if}
 			</div>
+			{/if}
 
-			<div class="col-xs-7 col-sm-7 col-md-7 col-lg-9">
+			<div class="{if !$showCovers}col-xs-10 col-sm-10 col-md-10 col-lg-11{else}col-xs-7 col-sm-7 col-md-7 col-lg-9{/if}">
 				<div class="row">
 					<div class="col-xs-12">
 						<span class="result-index">{$resultIndex})</span>&nbsp;

@@ -199,6 +199,15 @@ class SearchObject_Islandora extends SearchObject_Base
 			$this->query = $_REQUEST['q'];
 		}
 
+		global $module, $action;
+		if ($module == 'MyAccount') {
+			// Users Lists
+//			$this->spellcheck = false;
+			$this->searchType = ($action == 'Home') ? 'favorites' : 'list';
+			// This is to set the sorting URLs for a User List of Archive Items. pascal 8-25-2016
+		}
+
+
 		return true;
 	} // End init()
 
@@ -307,9 +316,10 @@ class SearchObject_Islandora extends SearchObject_Base
 	 *                              null to show tags/notes from all user's lists).
 	 * @param   bool $allowEdit Should we display edit controls?
 	 * @param   array   $IDList     optional list of IDs to re-order the archive Objects by (ie User List sorts)
+	 * @param   bool $isMixedUserList Used to correctly number items in a list of mixed content (eg catalog & archive content)
 	 * @return array Array of HTML chunks for individual records.
 	 */
-	public function getResultListHTML($user, $listId = null, $allowEdit = true, $IDList = null)
+	public function getResultListHTML($user, $listId = null, $allowEdit = true, $IDList = null, $isMixedUserList = false)
 	{
 		global $interface;
 		$html = array();
@@ -318,11 +328,11 @@ class SearchObject_Islandora extends SearchObject_Base
 			//Reorder the documents based on the list of id's
 			//TODO: taken from Solr.php (May need to adjust for Islandora
 			$x = 0;
-			foreach ($IDList as $currentId){
+			foreach ($IDList as $listPosition => $currentId){
 				// use $IDList as the order guide for the html
 				$current = null; // empty out in case we don't find the matching record
 				foreach ($this->indexResult['response']['docs'] as $index => $doc) {
-					if ($doc['id'] == $currentId) {
+					if ($doc['PID'] == $currentId) {
 						$current = & $this->indexResult['response']['docs'][$index];
 						break;
 					}
@@ -330,20 +340,31 @@ class SearchObject_Islandora extends SearchObject_Base
 				if (empty($current)) {
 					continue; // In the case the record wasn't found, move on to the next record
 				}else {
-					$interface->assign('recordIndex', $x + 1);
-					$interface->assign('resultIndex', $x + 1 + (($this->page - 1) * $this->limit));
+					if ($isMixedUserList) {
+						$interface->assign('recordIndex', $listPosition + 1);
+						$interface->assign('resultIndex', $listPosition + 1 + (($this->page - 1) * $this->limit));
+					} else {
+						$interface->assign('recordIndex', $x + 1);
+						$interface->assign('resultIndex', $x + 1 + (($this->page - 1) * $this->limit));
+					}
 					if (!$this->debug){
 						unset($current['explain']);
 						unset($current['score']);
 					}
-					/** @var GroupedWorkDriver $record */
+					/** @var IslandoraDriver $record */
 					$record = RecordDriverFactory::initRecordDriver($current);
-					$html[] = $interface->fetch($record->getListEntry($user, $listId, $allowEdit));
-					$x++;
+					if ($isMixedUserList) {
+						$html[$listPosition] = $interface->fetch($record->getListEntry($user, $listId, $allowEdit));
+					} else {
+						$html[] = $interface->fetch($record->getListEntry($user, $listId, $allowEdit));
+						$x++;
+					}
 				}
 			}
 		}else{
 		for ($x = 0; $x < count($this->indexResult['response']['docs']); $x++) {
+			$interface->assign('recordIndex', $x + 1);
+			$interface->assign('resultIndex', $x + 1 + (($this->page - 1) * $this->limit));
 			$current = &$this->indexResult['response']['docs'][$x];
 			$record  = RecordDriverFactory::initRecordDriver($current);
 			$html[]  = $interface->fetch($record->getListEntry($user, $listId, $allowEdit));
@@ -676,6 +697,10 @@ class SearchObject_Islandora extends SearchObject_Base
 	 */
 	protected function getBaseUrl()
 	{
+		if ($this->searchType == 'list') {
+			return $this->serverUrl . '/MyAccount/MyList/' .
+			urlencode($_GET['id']) . '?';
+		}
 		// Base URL is different for author searches:
 		return $this->serverUrl . '/Archive/Results?';
 	}
@@ -1369,6 +1394,7 @@ class SearchObject_Islandora extends SearchObject_Base
 		return $this->indexEngine->getRecord($id);
 	}
 
+	protected $params;
 	/**
 	 * Get an array of strings to attach to a base URL in order to reproduce the
 	 * current search.
@@ -1378,16 +1404,41 @@ class SearchObject_Islandora extends SearchObject_Base
 	 */
 	protected function getSearchParams()
 	{
-		$params = parent::getSearchParams();
+		if (is_null($this->params)) {
+			$params = array();
+			switch ($this->searchType) {
+				case 'islandora' :
+				default :
+					$params = parent::getSearchParams();
+					if (isset($_REQUEST['islandoraType'])) {
+						$params[] = 'islandoraType=' . $_REQUEST['islandoraType'];
+					} else {
+						$params[] = 'islandoraType=' . $this->defaultIndex;
+					}
+					break;
+				case 'list' :
+				case "favorites":
+				case "list":
+					$preserveParams = array(
+						// for favorites/list:
+						'tag', 'pagesize'
+					);
+					foreach ($preserveParams as $current) {
+						if (isset($_GET[$current])) {
+							if (is_array($_GET[$current])) {
+								foreach ($_GET[$current] as $value) {
+									$params[] = $current . '[]=' . urlencode($value);
+								}
+							} else {
+								$params[] = $current . '=' . urlencode($_GET[$current]);
+							}
+						}
+					}
 
-		if (isset($_REQUEST['islandoraType'])){
-			$params[] = 'islandoraType=' . $_REQUEST['islandoraType'];
-		}else{
-			$params[] = 'islandoraType=' . $this->defaultIndex;
+			}
+			$this->params = $params;
 		}
-
-
-		return $params;
+		return $this->params;
 	}
 
 	/**
