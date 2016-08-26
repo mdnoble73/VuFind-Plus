@@ -20,6 +20,15 @@ class UserList extends DB_DataObject
 	public $dateUpdated;
 	public $defaultSort; // string(20) null
 
+	// Used by FavoriteHandler as well/**/
+	protected $userListSortOptions = array(
+		// URL_value => SQL code for Order BY clause
+		'dateAdded' => 'dateAdded ASC',
+		'custom' => 'weight ASC',  // this puts items with no set weight towards the end of the list
+		//								'custom' => 'weight IS NULL, weight ASC',  // this puts items with no set weight towards the end of the list
+	);
+
+
 	/* Static get */
 	function staticGet($k,$v=NULL) { return DB_DataObject::staticGet('UserList',$k,$v); }
 
@@ -239,7 +248,8 @@ class UserList extends DB_DataObject
 	public function getBrowseRecords($start, $numTitles) {
 		global $interface;
 		$browseRecords = array();
-		$titles        = $this->getListEntries();
+		$sort          = in_array($this->defaultSort, array_keys($this->userListSortOptions)) ? $this->userListSortOptions[$this->defaultSort] : null;
+		$titles        = $this->getListEntries($sort);
 		$titles        = array_slice($titles, $start, $numTitles);
 		foreach ($titles as $groupedWorkId) {
 			if (strpos($groupedWorkId, ':') === false) {
@@ -267,6 +277,14 @@ class UserList extends DB_DataObject
 			}
 		}
 		return $browseRecords;
+	}
+
+	/**
+	 * @return array
+	 */
+	public function getUserListSortOptions()
+	{
+		return $this->userListSortOptions;
 	}
 }
 
