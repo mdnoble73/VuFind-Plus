@@ -20,6 +20,15 @@ class UserList extends DB_DataObject
 	public $dateUpdated;
 	public $defaultSort; // string(20) null
 
+	// Used by FavoriteHandler as well/**/
+	protected $userListSortOptions = array(
+		// URL_value => SQL code for Order BY clause
+		'dateAdded' => 'dateAdded ASC',
+		'custom' => 'weight ASC',  // this puts items with no set weight towards the end of the list
+		//								'custom' => 'weight IS NULL, weight ASC',  // this puts items with no set weight towards the end of the list
+	);
+
+
 	/* Static get */
 	function staticGet($k,$v=NULL) { return DB_DataObject::staticGet('UserList',$k,$v); }
 
@@ -62,6 +71,25 @@ class UserList extends DB_DataObject
 		);
 		return $structure;
 	}
+
+	function numValidListItems() {
+		$archiveItems = $this->num_archive_items();
+		$catalogItems = $this->num_titles();
+		return $archiveItems + $catalogItems;
+	}
+
+	function num_archive_items() {
+		require_once ROOT_DIR . '/sys/LocalEnrichment/UserListEntry.php';
+		//Join with grouped work to make sure we only load valid entries
+		$listEntry = new UserListEntry();
+		$listEntry->listId = $this->id;
+
+		require_once ROOT_DIR . '/sys/Islandora/IslandoraObjectCache.php';
+		$islandoraObject = new IslandoraObjectCache();
+		$listEntry->joinAdd($islandoraObject);
+		return $listEntry->count();
+	}
+
 	function num_titles(){
 		require_once ROOT_DIR . '/sys/LocalEnrichment/UserListEntry.php';
 		//Join with grouped work to make sure we only load valid entries
@@ -71,10 +99,9 @@ class UserList extends DB_DataObject
 		require_once ROOT_DIR . '/sys/Grouping/GroupedWork.php';
 		$groupedWork = new GroupedWork();
 		$listEntry->joinAdd($groupedWork);
-		$listEntry->find();
-
-		return $listEntry->N;
+		return $listEntry->count();
 	}
+
 	function insert(){
 		$this->created = time();
 		$this->dateUpdated = time();
@@ -221,19 +248,49 @@ class UserList extends DB_DataObject
 	public function getBrowseRecords($start, $numTitles) {
 		global $interface;
 		$browseRecords = array();
-		$titles = $this->getListEntries();
-		$titles = array_slice($titles, $start, $numTitles);
-		foreach ($titles as $groupedWorkId){
-			require_once ROOT_DIR . '/RecordDrivers/GroupedWorkDriver.php';
-			$groupedWork = new GroupedWorkDriver($groupedWorkId);
-			if ($groupedWork->isValid){
-				if (method_exists($groupedWork, 'getBrowseResult')){
-					$browseRecords[] = $interface->fetch($groupedWork->getBrowseResult());
-				}else{
+		$sort          = in_array($this->defaultSort, array_keys($this->userListSortOptions)) ? $this->userListSortOptions[$this->defaultSort] : null;
+		$titles        = $this->getListEntries($sort);
+		$titles        = array_slice($titles, $start, $numTitles);
+		foreach ($titles as $groupedWorkId) {
+			if (strpos($groupedWorkId, ':') === false) {
+				// Catalog Items
+				require_once ROOT_DIR . '/RecordDrivers/GroupedWorkDriver.php';
+				$groupedWork = new GroupedWorkDriver($groupedWorkId);
+				if ($groupedWork->isValid) {
+					if (method_exists($groupedWork, 'getBrowseResult')) {
+						$browseRecords[] = $interface->fetch($groupedWork->getBrowseResult());
+					} else {
+						$browseRecords[] = 'Browse Result not available';
+					}
+				}
+			} // Archive Items
+			else {
+//				require_once ROOT_DIR . '/RecordDrivers/IslandoraDriver.php';
+				/* var IslandoraDriver $archiveObject*/
+//				$archiveObject = new IslandoraDriver($groupedWorkId);
+				$archiveObject = new GenericIslandoraObject($groupedWorkId);
+				if (method_exists($archiveObject, 'getBrowseResult')) {
+					$browseRecords[] = $interface->fetch($archiveObject->getBrowseResult());
+				} else {
 					$browseRecords[] = 'Browse Result not available';
 				}
 			}
 		}
 		return $browseRecords;
+	}
+
+	/**
+	 * @return array
+	 */
+	public function getUserListSortOptions()
+	{
+		return $this->userListSortOptions;
+	}
+}
+
+require_once ROOT_DIR . '/RecordDrivers/IslandoraDriver.php';
+class GenericIslandoraObject extends IslandoraDriver {
+	public function getViewAction() {
+// TODO: Implement getViewAction() method.
 	}
 }
