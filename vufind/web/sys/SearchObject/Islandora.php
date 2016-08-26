@@ -85,7 +85,7 @@ class SearchObject_Islandora extends SearchObject_Base
 		$this->searchType = 'islandora';
 		$this->basicSearchType = 'islandora';
 		// Initialise the index
-		$this->indexEngine = new Solr($configArray['Islandora']['solrUrl'], 'islandora');
+		$this->indexEngine = new Solr($configArray['Islandora']['solrUrl'], isset($configArray['Islandora']['solrCore']) ? $configArray['Islandora']['solrCore'] : 'islandora');
 		$timer->logTime('Created Index Engine for Islandora');
 
 		//Make sure to turn off sharding for islandora
@@ -1087,6 +1087,59 @@ class SearchObject_Islandora extends SearchObject_Base
 	}
 
 	/**
+	 * Return an array structure containing all current filters
+	 *    and urls to remove them.
+	 *
+	 * @access  public
+	 * @param   bool   $excludeCheckboxFilters  Should we exclude checkbox filters
+	 *                                          from the list (to be used as a
+	 *                                          complement to getCheckboxFacets()).
+	 * @return  array    Field, values and removal urls
+	 */
+	public function getFilterList($excludeCheckboxFilters = false)
+	{
+		require_once ROOT_DIR . '/sys/Utils/FedoraUtils.php';
+		$fedoraUtils = FedoraUtils::getInstance();
+
+		// Get a list of checkbox filters to skip if necessary:
+		$skipList = $excludeCheckboxFilters ? array_keys($this->checkboxFacets) : array();
+
+		$list = array();
+		// Loop through all the current filter fields
+		foreach ($this->filterList as $field => $values) {
+			// and each value currently used for that field
+			$translate = in_array($field, $this->translatedFacets);
+			$lookupPid = in_array($field, $this->pidFacets);
+			foreach ($values as $value) {
+				// Add to the list unless it's in the list of fields to skip:
+				if (!in_array($field, $skipList)) {
+					$facetLabel = $this->getFacetLabel($field);
+					if ($lookupPid) {
+						$pid = str_replace('info:fedora/', '', $value);
+						$display = $fedoraUtils->getObjectLabel($pid);
+						if ($display == 'Invalid Object'){
+							continue;
+						}
+
+					}elseif ($translate){
+						$display = translate($value);
+					}else{
+						$display = $value;
+					}
+
+					$list[$facetLabel][] = array(
+							'value'      => $value,     // raw value for use with Solr
+							'display'    => $display,   // version to display to user
+							'field'      => $field,
+							'removalUrl' => $this->renderLinkWithoutFilter("$field:$value")
+					);
+				}
+			}
+		}
+		return $list;
+	}
+
+	/**
 	 * Process facets from the results object
 	 *
 	 * @access  public
@@ -1178,24 +1231,6 @@ class SearchObject_Islandora extends SearchObject_Base
 
 				// Store the collected values:
 				$list[$field]['list'][$valueKey] = $currentSettings;
-			}
-
-			if ($field == 'veteranOf'){
-				//Add a field for Any war
-				$currentSettings = array();
-				$currentSettings['value'] = '[* TO *]';
-				$currentSettings['display'] = $translate ? translate('Any War') : 'Any War';
-				$currentSettings['count'] = '';
-				$currentSettings['isApplied'] = false;
-				if (in_array($field, array_keys($this->filterList))) {
-					// and is this value a selected filter?
-					if (in_array($currentSettings['value'], $this->filterList[$field])) {
-						$currentSettings['isApplied'] = true;
-						$currentSettings['removalUrl'] =  $this->renderLinkWithoutFilter("$field:{$facet[0]}");
-					}
-				}
-				$currentSettings['url'] = $this->renderLinkWithFilter("veteranOf:" . $currentSettings['value']);
-				$list[$field]['list']['Any War'] = $currentSettings;
 			}
 
 			//How many facets should be shown by default
@@ -1487,4 +1522,7 @@ class SearchObject_Islandora extends SearchObject_Base
 		$this->indexEngine->isPrimarySearch = $flag;
 	}
 
+	public function addFieldsToReturn($fields){
+		$this->fields .= ',' . implode(',', $fields);
+	}
 }

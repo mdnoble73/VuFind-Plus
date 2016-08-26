@@ -148,22 +148,6 @@ class Archive_Results extends Action {
 			$facetSet = $searchObject->getFacetList();
 			$interface->assign('facetSet',       $facetSet);
 
-			//Check to see if a format category is already set
-			$categorySelected = false;
-			if (isset($facetSet['top'])){
-				foreach ($facetSet['top'] as $title=>$cluster){
-					if ($cluster['label'] == 'Category'){
-						foreach ($cluster['list'] as $thisFacet){
-							if ($thisFacet['isApplied']){
-								$categorySelected = true;
-							}
-						}
-					}
-				}
-			}
-			$interface->assign('categorySelected', $categorySelected);
-			$timer->logTime('load selected category');
-
 			// Big one - our results
 			$recordSet = $searchObject->getResultRecordHTML();
 			$interface->assign('recordSet', $recordSet);
