@@ -67,7 +67,7 @@
 							"id":"pika-openseadragon",
 							"prefixUrl":"{$encodedRepositoryUrl}\/sites\/all\/libraries\/openseadragon\/images\/",
 							"debugMode":false,
-							"djatokaServerBaseURL":"{$encodedRepositoryUrl}\/adore-djatoka\/resolver",
+							"djatokaServerBaseURL":"\/AJAX\/DjatokaResolver",
 							"tileSize":256,
 							"tileOverlap":0,
 							"animationTime":1.5,
@@ -96,7 +96,7 @@
 				{rdelim};
 				openSeadragonSettings.settings.tileSources = new Array();
 				var tileSource = new OpenSeadragon.DjatokaTileSource(
-						"{$repositoryUrl}/adore-djatoka/resolver",
+						"/AJAX/DjatokaResolver",
 						'{$large_image}',
 						openSeadragonSettings.settings
 				);
