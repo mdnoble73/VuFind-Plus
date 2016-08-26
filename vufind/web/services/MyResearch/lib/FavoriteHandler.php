@@ -438,6 +438,30 @@ class FavoriteHandler
 	{
 		return $this->sort;
 	}
+
+	/**
+	 * @return array
+	 */
+	public function getCatalogIds()
+	{
+		return $this->catalogIds;
+	}
+
+	/**
+	 * @return array
+	 */
+	public function getArchiveIds()
+	{
+		return $this->archiveIds;
+	}
+
+	/**
+	 * @return boolean
+	 */
+	public function isMixedUserList()
+	{
+		return $this->isMixedUserList;
+	}
 }
 
 ?>

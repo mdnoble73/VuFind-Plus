@@ -646,17 +646,18 @@ class GroupedWorkDriver extends RecordInterface{
 
 	public function getListWidgetTitle(){
 		$widgetTitleInfo = array(
-				'id' => $this->getPermanentId(),
-				'shortId' => $this->getPermanentId(),
+				'id' =>          $this->getPermanentId(),
+				'shortId' =>     $this->getPermanentId(),
 				'recordtype' => 'grouped_work',
-				'image' => $this->getBookcoverUrl('medium'),
+				'image' =>       $this->getBookcoverUrl('medium'),
 				'small_image' => $this->getBookcoverUrl('small'),
-				'title' => $this->getTitle(),
-				'author' => $this->getPrimaryAuthor(),
+				'title' =>       $this->getTitle(),
+				'titleURL' =>    $this->getLinkUrl(true),
+				'author' =>      $this->getPrimaryAuthor(),
 				'description' => $this->getDescriptionFast(),
-				'length' => '',
-				'publisher' => '',
-				'ratingData' => $this->getRatingData(),
+				'length' =>      '',
+				'publisher' =>   '',
+				'ratingData' =>  $this->getRatingData(),
 		);
 		return $widgetTitleInfo;
 	}

@@ -1,6 +1,6 @@
 {* Errors *}
 {if isset($errors) && count($errors) > 0}
-	<div id='errors'>
+	<div id='errors' class="alert alert-error">
 	{foreach from=$errors item=error}
 		<div id='error'>{$error}</div>
 	{/foreach}

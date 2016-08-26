@@ -385,16 +385,35 @@ class ListAPI extends Action {
 					return array('success'=>false, 'message'=>'The user does not have access to this list.');
 				}
 			}
-			//Load the titles for the list.
-			$listTitles = $list->getListTitles();
+//			//Load the titles for the list.
+//			$listTitles = $list->getListTitles();
+//
+//			$ids = array();
+////			$datesSaved = array();
+//			foreach ($listTitles as $listEntry){
+//				$ids[] = $listEntry->groupedWorkPermanentId;
+////				$datesSaved[$listEntry->groupedWorkPermanentId] = $listEntry->dateAdded; // $datesSaved isn't used anywhere. pascal 8-26-2016
+//			}
 
-			$ids = array();
-			$datesSaved = array();
-			foreach ($listTitles as $listEntry){
-				$ids[] = $listEntry->groupedWorkPermanentId;
-				$datesSaved[$listEntry->groupedWorkPermanentId] = $listEntry->dateAdded;
+			// Load the userlist Ids to get the Items' Information
+			// TODO: set Sort if user sort is used.
+//			$ids = $list->getListEntries();
+
+			require_once ROOT_DIR . '/services/MyResearch/lib/FavoriteHandler.php';
+			$favoriteHandler = new FavoriteHandler($list, $user, false);
+
+			$catalogItems = $archiveItems = array();
+			$catalogIds   = $favoriteHandler->getCatalogIds();
+			$archiveIds   = $favoriteHandler->getArchiveIds();
+			if (count($catalogIds) > 0) {
+				$catalogItems = $this->loadTitleInformationForIds($catalogIds, $numTitlesToShow);
 			}
-			$titles = $this->loadTitleInformationForIds($ids, $numTitlesToShow);
+			if (count($archiveIds) > 0 ) {
+				$archiveItems = $this->loadArchiveInformationForIds($archiveIds, $numTitlesToShow);
+			}
+
+			$titles = array_merge($catalogItems, $archiveItems);
+
 			return array('success' => true, 'listName' => $list->title, 'listDescription' => $list->description, 'titles'=>$titles, 'cacheLength'=>24);
 		}else{
 			return array('success'=>false, 'message'=>'The specified list could not be found.');
@@ -567,7 +586,7 @@ class ListAPI extends Action {
 				'cacheType' => 'general',
 				'cacheName' => 'list_general_list:' . $listId,
 				'cacheLength' => $configArray['Caching']['list_general'],
-				'fullListLink' => $configArray['Site']['path'] . '/MyResearch/MyList/' . $listId,
+				'fullListLink' => $configArray['Site']['path'] . '/MyResearch/MyList/' . $listId, // TODO: switch to /MyAccount/MyList/
 			);
 
 		}elseif (preg_match('/review:(.*)/', $listId, $reviewInfo)){
@@ -643,15 +662,32 @@ class ListAPI extends Action {
 	}
 
 	function loadTitleInformationForIds($ids, $numTitlesToShow){
-		/** @var SearchObject_Solr $searchObject */
-		$searchObject = SearchObjectFactory::initSearchObject();
-		$searchObject->init();
 		$titles = array();
 		if (count($ids) > 0){
+			/** @var SearchObject_Solr $searchObject */
+			$searchObject = SearchObjectFactory::initSearchObject();
+			$searchObject->init();
 			$searchObject->setLimit($numTitlesToShow);
 			$searchObject->setQueryIDs($ids);
 			$searchObject->processSearch();
 			$titles = $searchObject->getListWidgetTitles();
+		}
+		return $titles;
+	}
+
+	function loadArchiveInformationForIds($ids, $numTitlesToShow){
+		$titles = array();
+		if (count($ids) > 0){
+			/** @var SearchObject_Islandora $archiveSearchObject */
+			$archiveSearchObject = SearchObjectFactory::initSearchObject('Islandora');
+			$archiveSearchObject->init();
+			$archiveSearchObject->setPrimarySearch(true);
+			$archiveSearchObject->addHiddenFilter('!RELS_EXT_isViewableByRole_literal_ms', "administrator");
+			$archiveSearchObject->addHiddenFilter('!mods_extension_marmotLocal_pikaOptions_showInSearchResults_ms', "no");
+			$archiveSearchObject->setLimit($numTitlesToShow);
+			$archiveSearchObject->setQueryIDs($ids);
+			$archiveSearchObject->processSearch();
+			$titles = $archiveSearchObject->getListWidgetTitles();
 		}
 		return $titles;
 	}

@@ -113,6 +113,25 @@ abstract class IslandoraDriver extends RecordInterface {
 
 		return 'RecordDrivers/Islandora/browse_result.tpl';
 	}
+	public function getListWidgetTitle(){
+		$widgetTitleInfo = array(
+			'id' =>          $this->getUniqueID(),
+			'shortId' =>     $this->getUniqueID(),
+			'recordtype' => 'archive', //TODO: meh, islandora?
+			'image' =>       $this->getBookcoverUrl('medium'),
+			'small_image' => $this->getBookcoverUrl('small'),
+			'title' =>       $this->getTitle(),
+		  'titleURL' =>    $this->getLinkUrl(true), // Include site URL
+//			'author' =>      $this->getPrimaryAuthor(),
+			'author' =>      null,
+			'description' => $this->getDescription(),
+			'length' =>      '', // TODO: do list widgets use this
+			'publisher' =>   '', // TODO: do list widgets use this
+			'ratingData' =>  null,
+//			'ratingData' =>  $this->getRatingData(),
+		);
+		return $widgetTitleInfo;
+	}
 
 	/**
 	 * Assign necessary Smarty variables and return a template name
@@ -487,15 +506,19 @@ abstract class IslandoraDriver extends RecordInterface {
 		// TODO: Implement getRecordActions() method.
 	}
 
-	public function getLinkUrl($unscoped = false) {
-		$linkUrl = $this->getRecordUrl();
+//	public function getLinkUrl($unscoped = false) {
+	public function getLinkUrl($absolutePath = false) {  // Signature is modeled after Grouped Work Driver to implement URLs for List Widgets
+		$linkUrl = $this->getRecordUrl($absolutePath);
 		return $linkUrl;
 	}
-	function getRecordUrl(){
+	function getRecordUrl($absolutePath = false){
 		global $configArray;
 		$recordId = $this->getUniqueID();
-
-		return $configArray['Site']['path'] . '/Archive/' . urlencode($recordId) . '/' . $this->getViewAction();
+		if ($absolutePath){
+			return $configArray['Site']['url'] . '/Archive/' . urlencode($recordId) . '/' . $this->getViewAction();
+		}else{
+			return $configArray['Site']['path'] . '/Archive/' . urlencode($recordId) . '/' . $this->getViewAction();
+		}
 	}
 
 	public abstract function getViewAction();

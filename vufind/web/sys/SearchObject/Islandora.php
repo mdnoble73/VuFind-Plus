@@ -385,13 +385,33 @@ class SearchObject_Islandora extends SearchObject_Base
 		foreach ($recordSet as $key => $record){
 			// Additional Information for Emailing a list of Archive Objects
 			$recordDriver = RecordDriverFactory::initRecordDriver($record);
-			$record['url'] = $recordDriver->getLinkUrl();
+			$record['url']    = $recordDriver->getLinkUrl();
 			$record['format'] = $recordDriver->getFormat();
 
 			$recordSet[$key] = $record;
 		}
 		return $recordSet;
 	}
+
+	public function getListWidgetTitles(){
+		$widgetTitles = array();
+		for ($x = 0; $x < count($this->indexResult['response']['docs']); $x++) {
+			$current = & $this->indexResult['response']['docs'][$x];
+			$record = RecordDriverFactory::initRecordDriver($current);
+			if (!PEAR_Singleton::isError($record)){
+				if (method_exists($record, 'getListWidgetTitle')){
+					$widgetTitles[] = $record->getListWidgetTitle();
+				}else{
+					$widgetTitles[] = 'List Widget Title not available';
+				}
+
+			}else{
+				$widgetTitles[] = "Unable to find record";
+			}
+		}
+		return $widgetTitles;
+	}
+
 
 	/**
 	 * Use the record driver to build an array of HTML displays from the search

@@ -253,25 +253,25 @@ class AJAX extends Action {
 					foreach ($titles as $key => $rawData){
 						$interface->assign('key', $key);
 						// 20131206 James Staub: bookTitle is in the list API and it removes the final frontslash, but I didn't get $rawData['bookTitle'] to load
+
 						$titleShort = preg_replace(array('/\:.*?$/', '/\s*\/$\s*/'),'', $rawData['title']);
 //						$titleShort = preg_replace('/\:.*?$/','', $rawData['title']);
 //						$titleShort = preg_replace('/\s*\/$\s*/','', $titleShort);
-						$interface->assign('title', $titleShort);
-						$interface->assign('author', $rawData['author']);
-						$interface->assign('description', isset($rawData['description']) ? $rawData['description'] : null);
-						$interface->assign('length', isset($rawData['length']) ? $rawData['length'] : null);
-						$interface->assign('publisher', isset($rawData['publisher']) ? $rawData['publisher'] : null);
-						$interface->assign('shortId', $rawData['shortId']);
-						$interface->assign('id', $rawData['id']);
-
-						$rawData['titleURL'] = $configArray['Site']['path'].'/GroupedWork/'.$rawData['id']; // assumes all are grouped works
-						$interface->assign('titleURL', $rawData['titleURL']);
 
 						$imageUrl = $rawData['small_image'];
 						if (isset($_REQUEST['coverSize']) && $_REQUEST['coverSize'] == 'medium'){
 							$imageUrl = $rawData['image'];
 						}
-						$interface->assign('imageUrl', $imageUrl);
+
+						$interface->assign('title',       $titleShort);
+						$interface->assign('author',      $rawData['author']);
+						$interface->assign('description', isset($rawData['description']) ? $rawData['description'] : null);
+						$interface->assign('length',      isset($rawData['length']) ? $rawData['length'] : null);
+						$interface->assign('publisher',   isset($rawData['publisher']) ? $rawData['publisher'] : null);
+						$interface->assign('shortId',     $rawData['shortId']);
+						$interface->assign('id',          $rawData['id']);
+						$interface->assign('titleURL',    $rawData['titleURL']);
+						$interface->assign('imageUrl',    $imageUrl);
 
 						if ($showRatings){
 							$interface->assign('ratingData', $rawData['ratingData']);
@@ -280,6 +280,7 @@ class AJAX extends Action {
 
 						$rawData['formattedTitle']         = $interface->fetch('ListWidget/formattedTitle.tpl');
 						$rawData['formattedTextOnlyTitle'] = $interface->fetch('ListWidget/formattedTextOnlyTitle.tpl');
+						// TODO: Modify these for Archive Objects
 
 						$titles[$key] = $rawData;
 					}
