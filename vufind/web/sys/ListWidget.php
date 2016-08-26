@@ -114,7 +114,7 @@ class ListWidget extends DB_DataObject
 			'showTitle' => array(
 				'property' => 'showTitle',
 				'type' => 'checkbox',
-				'label' => 'Should the title for the currently selected title be shown?',
+				'label' => 'Should the title for the currently selected item be shown?',
 				'storeDb' => true,
 				'default' => true,
 				'hideInLists' => true,
@@ -122,7 +122,6 @@ class ListWidget extends DB_DataObject
 			'showAuthor' => array(
 				'property' => 'showAuthor',
 				'type' => 'checkbox',
-				'label' => 'Should the author for the currently selected title be shown?',
 				'storeDb' => true,
 				'default' => true,
 				'hideInLists' => true,
