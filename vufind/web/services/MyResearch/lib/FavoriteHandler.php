@@ -32,13 +32,12 @@ class FavoriteHandler
 {
  /** @var UserList */
 	private $list;
-	/** @var UserListEntry[] */
-	private $favorites;
 	/** @var User */
 	private $user;
 	private $listId;
 	private $allowEdit;
-	private $ids = array(),
+	private $favorites = array(),
+					$ids = array(),  //TODO: replace all uses of $this->ds with $this->favorites
 					$catalogIds = array(),
 					$archiveIds = array();
 	private $defaultSort = 'dateAdded'; // initial setting (Use a userlist sorting option initially)
@@ -279,7 +278,7 @@ class FavoriteHandler
 			foreach ($this->userListSortOptions as $option => $value_ignored) { // Non-Solr options
 				if (!isset($sortOptions[$option])) { // Skip if already done by the catalog searches above
 					$sortOptions[$option]        = array(
-						'sortUrl' => $archiveSearchObject->renderLinkWithSort($option),
+						'sortUrl'  => $archiveSearchObject->renderLinkWithSort($option),
 						'desc'     => "sort_{$option}_userlist", // description in translation dictionary
 						'selected' => ($option == $this->sort)
 					);
@@ -461,6 +460,14 @@ class FavoriteHandler
 	public function isMixedUserList()
 	{
 		return $this->isMixedUserList;
+	}
+
+	/**
+	 * @return UserListEntry[]
+	 */
+	public function getFavorites()
+	{
+		return $this->favorites;
 	}
 }
 

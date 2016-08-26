@@ -691,18 +691,28 @@ class SearchObject_Solr extends SearchObject_Base
 		return $recordSet;
 	}
 
-	public function getListWidgetTitles(){
+	/**
+	 * @param array $orderedListOfIDs  Use the index of the matched ID as the index of the resulting array of ListWidget data (for later merging)
+	 * @return array
+	 */
+	public function getListWidgetTitles($orderedListOfIDs = array()){
 		$widgetTitles = array();
 		for ($x = 0; $x < count($this->indexResult['response']['docs']); $x++) {
 			$current = & $this->indexResult['response']['docs'][$x];
 			$record = RecordDriverFactory::initRecordDriver($current);
 			if (!PEAR_Singleton::isError($record)){
 				if (method_exists($record, 'getListWidgetTitle')){
-					$widgetTitles[] = $record->getListWidgetTitle();
+					if (!empty($orderedListOfIDs)){
+						$position = array_search($current['id'], $orderedListOfIDs);
+						if ($position !== false){
+							$widgetTitles[$position] = $record->getListWidgetTitle();
+						}
+					} else {
+						$widgetTitles[] = $record->getListWidgetTitle();
+					}
 				}else{
 					$widgetTitles[] = 'List Widget Title not available';
 				}
-
 			}else{
 				$widgetTitles[] = "Unable to find record";
 			}

@@ -385,34 +385,31 @@ class ListAPI extends Action {
 					return array('success'=>false, 'message'=>'The user does not have access to this list.');
 				}
 			}
-//			//Load the titles for the list.
-//			$listTitles = $list->getListTitles();
-//
-//			$ids = array();
-////			$datesSaved = array();
-//			foreach ($listTitles as $listEntry){
-//				$ids[] = $listEntry->groupedWorkPermanentId;
-////				$datesSaved[$listEntry->groupedWorkPermanentId] = $listEntry->dateAdded; // $datesSaved isn't used anywhere. pascal 8-26-2016
-//			}
-
-			// Load the userlist Ids to get the Items' Information
-			// TODO: set Sort if user sort is used.
-//			$ids = $list->getListEntries();
 
 			require_once ROOT_DIR . '/services/MyResearch/lib/FavoriteHandler.php';
 			$favoriteHandler = new FavoriteHandler($list, $user, false);
+			$isMixedContentList = $favoriteHandler->isMixedUserList();
+			$orderedListOfIds = $isMixedContentList ? $favoriteHandler->getFavorites() : array();
+				// Use this array to combined Mixed Lists Back into their list-defined order
 
 			$catalogItems = $archiveItems = array();
 			$catalogIds   = $favoriteHandler->getCatalogIds();
 			$archiveIds   = $favoriteHandler->getArchiveIds();
 			if (count($catalogIds) > 0) {
-				$catalogItems = $this->loadTitleInformationForIds($catalogIds, $numTitlesToShow);
+				$catalogItems = $this->loadTitleInformationForIds($catalogIds, $numTitlesToShow, $orderedListOfIds);
 			}
 			if (count($archiveIds) > 0 ) {
-				$archiveItems = $this->loadArchiveInformationForIds($archiveIds, $numTitlesToShow);
+				$archiveItems = $this->loadArchiveInformationForIds($archiveIds, $numTitlesToShow, $orderedListOfIds);
+			}
+			if ($isMixedContentList) {
+				$titles = $catalogItems + $archiveItems;
+				ksort($titles, SORT_NUMERIC);
+				$titles = array_slice($titles, 0, $numTitlesToShow);
+
+			} else {
+				$titles = $catalogItems + $archiveItems; // One of these should always be empty, but add them together just in case
 			}
 
-			$titles = array_merge($catalogItems, $archiveItems);
 
 			return array('success' => true, 'listName' => $list->title, 'listDescription' => $list->description, 'titles'=>$titles, 'cacheLength'=>24);
 		}else{
@@ -661,7 +658,7 @@ class ListAPI extends Action {
 		}
 	}
 
-	function loadTitleInformationForIds($ids, $numTitlesToShow){
+	function loadTitleInformationForIds($ids, $numTitlesToShow, $orderedListOfIds = array()){
 		$titles = array();
 		if (count($ids) > 0){
 			/** @var SearchObject_Solr $searchObject */
@@ -670,12 +667,12 @@ class ListAPI extends Action {
 			$searchObject->setLimit($numTitlesToShow);
 			$searchObject->setQueryIDs($ids);
 			$searchObject->processSearch();
-			$titles = $searchObject->getListWidgetTitles();
+			$titles = $searchObject->getListWidgetTitles($orderedListOfIds);
 		}
 		return $titles;
 	}
 
-	function loadArchiveInformationForIds($ids, $numTitlesToShow){
+	function loadArchiveInformationForIds($ids, $numTitlesToShow, $orderedListOfIds = array()){
 		$titles = array();
 		if (count($ids) > 0){
 			/** @var SearchObject_Islandora $archiveSearchObject */
@@ -687,7 +684,7 @@ class ListAPI extends Action {
 			$archiveSearchObject->setLimit($numTitlesToShow);
 			$archiveSearchObject->setQueryIDs($ids);
 			$archiveSearchObject->processSearch();
-			$titles = $archiveSearchObject->getListWidgetTitles();
+			$titles = $archiveSearchObject->getListWidgetTitles($orderedListOfIds);
 		}
 		return $titles;
 	}
