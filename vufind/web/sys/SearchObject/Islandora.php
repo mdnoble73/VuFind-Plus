@@ -381,9 +381,13 @@ class SearchObject_Islandora extends SearchObject_Base
 	 */
 	public function getResultRecordSet()
 	{
-		//Marmot add shortIds without dot for use in display.
 		$recordSet = $this->indexResult['response']['docs'];
 		foreach ($recordSet as $key => $record){
+			// Additional Information for Emailing a list of Archive Objects
+			$recordDriver = RecordDriverFactory::initRecordDriver($record);
+			$record['url'] = $recordDriver->getLinkUrl();
+			$record['format'] = $recordDriver->getFormat();
+
 			$recordSet[$key] = $record;
 		}
 		return $recordSet;

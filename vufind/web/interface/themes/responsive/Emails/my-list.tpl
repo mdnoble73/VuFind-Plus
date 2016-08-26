@@ -17,7 +17,8 @@
 {$title.author_display}
 {$url}/GroupedWork/{$title.id}/Home
 {elseif $title.fgs_label_s}{$title.fgs_label_s}
-{$url}/Archive/{$title.PID}/{$title.mods_genre_s}{/if}
+{$title.format}
+{if $title.url}{$url}{$title.url}{/if}{/if}
 
 {section name=listEntry loop=$listEntries}
 {*If the listEntry has a note see if it is the same work*}

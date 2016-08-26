@@ -149,7 +149,7 @@ class MyAccount_MyList extends MyAccount {
 		// appropriate template variables:
 		$interface->assign('allowEdit', $userCanEdit);
 		$favList = new FavoriteHandler($list, $listUser, $userCanEdit);
-		$favList->assign();
+		$favList->buildListForDisplay();
 
 //		$this->display('list.tpl', isset($list->title) ? $list->title : 'My List');
 		$this->display('../MyAccount/list.tpl', isset($list->title) ? $list->title : 'My List');

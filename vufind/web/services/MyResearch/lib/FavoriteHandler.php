@@ -141,7 +141,7 @@ class FavoriteHandler
 	 *
 	 * @access  public
 	 */
-	public function assign()
+	public function buildListForDisplay()
 	{
 		global $interface;
 

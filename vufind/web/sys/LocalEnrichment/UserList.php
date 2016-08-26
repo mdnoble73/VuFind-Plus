@@ -246,17 +246,23 @@ class UserList extends DB_DataObject
 			$this->removeListEntry($listEntry);
 		}
 	}
-	public function getBrowseRecords($start, $numTitles) {
+
+	/**
+	 * @param $start     position of first list item to fetch
+	 * @param $numItems  Number of items to fetch for this result
+	 * @return array     Array of HTML to display to the user
+	 */
+	public function getBrowseRecords($start, $numItems) {
 		global $interface;
 		$browseRecords = array();
 		$sort          = in_array($this->defaultSort, array_keys($this->userListSortOptions)) ? $this->userListSortOptions[$this->defaultSort] : null;
-		$titles        = $this->getListEntries($sort);
-		$titles        = array_slice($titles, $start, $numTitles);
-		foreach ($titles as $groupedWorkId) {
-			if (strpos($groupedWorkId, ':') === false) {
+		$listEntries        = $this->getListEntries($sort);
+		$listEntries        = array_slice($listEntries, $start, $numItems);
+		foreach ($listEntries as $listItemId) {
+			if (strpos($listItemId, ':') === false) {
 				// Catalog Items
 				require_once ROOT_DIR . '/RecordDrivers/GroupedWorkDriver.php';
-				$groupedWork = new GroupedWorkDriver($groupedWorkId);
+				$groupedWork = new GroupedWorkDriver($listItemId);
 				if ($groupedWork->isValid) {
 					if (method_exists($groupedWork, 'getBrowseResult')) {
 						$browseRecords[] = $interface->fetch($groupedWork->getBrowseResult());
@@ -266,12 +272,12 @@ class UserList extends DB_DataObject
 				}
 			} // Archive Items
 			else {
-//				require_once ROOT_DIR . '/RecordDrivers/IslandoraDriver.php';
-				/* var IslandoraDriver $archiveObject*/
-//				$archiveObject = new IslandoraDriver($groupedWorkId);
-				$archiveObject = new GenericIslandoraObject($groupedWorkId);
-				if (method_exists($archiveObject, 'getBrowseResult')) {
-					$browseRecords[] = $interface->fetch($archiveObject->getBrowseResult());
+				require_once ROOT_DIR . './sys/Utils/FedoraUtils.php';
+				$fedoraUtils = FedoraUtils::getInstance();
+				$archiveObject = $fedoraUtils->getObject($listItemId);
+				$recordDriver = RecordDriverFactory::initRecordDriver($archiveObject);
+				if (method_exists($recordDriver, 'getBrowseResult')) {
+					$browseRecords[] = $interface->fetch($recordDriver->getBrowseResult());
 				} else {
 					$browseRecords[] = 'Browse Result not available';
 				}
@@ -286,12 +292,5 @@ class UserList extends DB_DataObject
 	public function getUserListSortOptions()
 	{
 		return $this->userListSortOptions;
-	}
-}
-
-require_once ROOT_DIR . '/RecordDrivers/IslandoraDriver.php';
-class GenericIslandoraObject extends IslandoraDriver {
-	public function getViewAction() {
-// TODO: Implement getViewAction() method.
 	}
 }
