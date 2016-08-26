@@ -190,6 +190,8 @@ class Archive_Exhibit extends Archive_Object{
 				if (isset($_REQUEST['placePid'])){
 					$interface->assign('selectedPlace', urldecode($_REQUEST['placePid']));
 				}
+				$interface->assign('mappedPlaces', $mappedPlaces);
+				$interface->assign('unmappedPlaces', $unmappedPlaces);
 			}else{
 				//Load related objects
 				$allObjectsAreCollections = true;
@@ -222,17 +224,18 @@ class Archive_Exhibit extends Archive_Object{
 						$pid = $this->recordDriver->getModsValue('objectPid', 'marmot', $curSortSection);
 						if (array_key_exists($pid, $relatedImages)){
 							$sortedImages[] = $relatedImages[$pid];
+							unset($relatedImages[$pid]);
 						}
 					}
-					$relatedImages = $sortedImages;
-					$interface->assign('showThumbnailsSorted', true);
+					//Add any images that weren't specifically sorted
+					$relatedImages = $sortedImages + $relatedImages;
 				}
+				$interface->assign('relatedImages', $relatedImages);
 			}
 		}
 
-		$interface->assign('mappedPlaces', $mappedPlaces);
-		$interface->assign('unmappedPlaces', $unmappedPlaces);
-		$interface->assign('relatedImages', $relatedImages);
+
+
 
 	}
 }
