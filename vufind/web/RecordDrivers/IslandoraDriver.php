@@ -1064,10 +1064,12 @@ abstract class IslandoraDriver extends RecordInterface {
 					if (isset($doc['mods_extension_marmotLocal_relatedPersonOrg_entityPid_ms']) && isset($doc['mods_extension_marmotLocal_relatedPersonOrg_role_ms'])){
 						foreach ($doc['mods_extension_marmotLocal_relatedPersonOrg_entityPid_ms'] as $index => $value) {
 							if ($value == $this->getUniqueID()) {
-								$role = $doc['mods_extension_marmotLocal_relatedPersonOrg_role_ms'][$index];
-								//Reverse roles as appropriate
-								if ($role == 'child'){
-									$role = 'parent';
+								if (isset($doc['mods_extension_marmotLocal_relatedPersonOrg_role_ms'][$index])){
+									$role = $doc['mods_extension_marmotLocal_relatedPersonOrg_role_ms'][$index];
+									//Reverse roles as appropriate
+									if ($role == 'child'){
+										$role = 'parent';
+									}
 								}
 							}
 						}
