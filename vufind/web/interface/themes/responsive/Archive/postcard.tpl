@@ -43,17 +43,17 @@
 					"tileSize":256,
 					"tileOverlap":0,
 					"id":"pika-openseadragon",
-					"settings": VuFind.Archive.openSeadragonViewerSettings
+					"settings": VuFind.Archive.openSeadragonViewerSettings()
 				{rdelim};
 				openSeadragonSettings.settings.tileSources = new Array();
 				var frontTile = new OpenSeadragon.DjatokaTileSource(
-						"https://islandora.marmot.org/adore-djatoka/resolver",
+						"/AJAX/DjatokaResolver",
 						'{$front_image}',
 						openSeadragonSettings.settings
 				);
 				openSeadragonSettings.settings.tileSources.push(frontTile);
 				var backTile = new OpenSeadragon.DjatokaTileSource(
-						"https://islandora.marmot.org/adore-djatoka/resolver",
+						"/AJAX/DjatokaResolver",
 						'{$back_image}',
 						openSeadragonSettings.settings
 				);

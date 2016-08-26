@@ -9,6 +9,8 @@ var Globals = (function () {
 		loggedIn:  false,
 		opac:  false, // true prevents browser storage of user viewing settings
 		automaticTimeoutLength: 0,
-		automaticTimeoutLengthLoggedOut: 0
+		automaticTimeoutLengthLoggedOut: 0,
+		repositoryUrl: '',
+		encodedRepositoryUrl: ''
 	}
 })(Globals || {});

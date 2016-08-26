@@ -65,9 +65,9 @@
 					"id":"pika-openseadragon",
 					"settings": {ldelim}
 							"id":"pika-openseadragon",
-							"prefixUrl":"https:\/\/islandora.marmot.org\/sites\/all\/libraries\/openseadragon\/images\/",
+							"prefixUrl":"{$encodedRepositoryUrl}\/sites\/all\/libraries\/openseadragon\/images\/",
 							"debugMode":false,
-							"djatokaServerBaseURL":"https:\/\/islandora.marmot.org\/adore-djatoka\/resolver",
+							"djatokaServerBaseURL":"\/AJAX\/DjatokaResolver",
 							"tileSize":256,
 							"tileOverlap":0,
 							"animationTime":1.5,
@@ -96,7 +96,7 @@
 				{rdelim};
 				openSeadragonSettings.settings.tileSources = new Array();
 				var tileSource = new OpenSeadragon.DjatokaTileSource(
-						"https://islandora.marmot.org/adore-djatoka/resolver",
+						"/AJAX/DjatokaResolver",
 						'{$large_image}',
 						openSeadragonSettings.settings
 				);
