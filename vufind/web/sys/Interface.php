@@ -132,10 +132,11 @@ class UInterface extends Smarty
 		$this->assign('template_dir',$this->template_dir);
 		$this->assign('url', $url);
 		$this->assign('coverUrl', $configArray['Site']['coverUrl']);
-		if (isset($configArray['Site']['repositoryUrl'])) {
-			//TODO: This is currently only used for supplemental images during development.
-			//We can delete eventually
-			$this->assign('repositoryUrl', $configArray['Site']['repositoryUrl']);
+
+		if (isset($configArray['Islandora']['repositoryUrl'])) {
+			$this->assign('repositoryUrl', $configArray['Islandora']['repositoryUrl']);
+			$this->assign('encodedRepositoryUrl', str_replace('/', '\/', $configArray['Islandora']['repositoryUrl']));
+
 		}
 
 		$this->assign('fullPath', str_replace('&', '&amp;', $_SERVER['REQUEST_URI']));

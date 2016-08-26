@@ -71,6 +71,11 @@
 			Globals.url = '{$url}';
 			Globals.loggedIn = {$loggedIn};
 			Globals.opac = {if $onInternalIP}true{else}false{/if};
+			{if $repositoryUrl}
+				Globals.repositoryUrl = '{$repositoryUrl}';
+				Globals.encodedRepositoryUrl = '{$encodedRepositoryUrl}';
+			{/if}
+
 			{if $automaticTimeoutLength}
 			Globals.automaticTimeoutLength = {$automaticTimeoutLength};
 			{/if}

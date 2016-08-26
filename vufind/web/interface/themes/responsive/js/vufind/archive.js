@@ -15,9 +15,9 @@ VuFind.Archive = (function(){
 		activeBookPage: null,
 		openSeadragonViewerSettings: {
 			"id":"pika-openseadragon",
-			"prefixUrl":"https:\/\/islandora.marmot.org\/sites\/all\/libraries\/openseadragon\/images\/",
+			"prefixUrl":Globals.encodedRepositoryUrl + "\/sites\/all\/libraries\/openseadragon\/images\/",
 			"debugMode":false,
-			"djatokaServerBaseURL":"https:\/\/islandora.marmot.org\/adore-djatoka\/resolver",
+			"djatokaServerBaseURL":Globals.encodedRepositoryUrl + "\/adore-djatoka\/resolver",
 			"tileSize":256,
 			"tileOverlap":0,
 			"animationTime":1.5,
@@ -234,7 +234,7 @@ VuFind.Archive = (function(){
 				// $('#view-transcription').load(reverseProxy);
 			}else if (this.activeBookViewer == 'image'){
 				var tile = new OpenSeadragon.DjatokaTileSource(
-						"https://islandora.marmot.org/adore-djatoka/resolver",
+						Globals.repositoryUrl + "/adore-djatoka/resolver",
 						this.pageDetails[pid]['jp2'],
 						VuFind.Archive.openSeadragonViewerSettings
 				);
@@ -335,7 +335,7 @@ VuFind.Archive = (function(){
 				'svc.region': scaled_box.y + ',' + scaled_box.x + ',' + (scaled_box.getBottomRight().y - scaled_box.y) + ',' + (scaled_box.getBottomRight().x - scaled_box.x),
 			};
 			var dimensions = (zoom <= 1) ? source.dimensions.x + ',' + source.dimensions.y : container.x + ',' + container.y;
-			jQuery("#clip").attr('href',  'https://islandora.marmot.org/islandora/object/' + settings.islandoraOpenSeadragon.pid + '/print?' + jQuery.param({
+			jQuery("#clip").attr('href',  Globals.repositoryUrl + '/islandora/object/' + settings.islandoraOpenSeadragon.pid + '/print?' + jQuery.param({
 						'clip': source.baseURL + '?' + jQuery.param(params),
 						'dimensions': dimensions,
 					}));

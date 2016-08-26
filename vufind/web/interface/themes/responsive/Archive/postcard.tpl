@@ -47,13 +47,13 @@
 				{rdelim};
 				openSeadragonSettings.settings.tileSources = new Array();
 				var frontTile = new OpenSeadragon.DjatokaTileSource(
-						"https://islandora.marmot.org/adore-djatoka/resolver",
+						"{$repositoryUrl}/adore-djatoka/resolver",
 						'{$front_image}',
 						openSeadragonSettings.settings
 				);
 				openSeadragonSettings.settings.tileSources.push(frontTile);
 				var backTile = new OpenSeadragon.DjatokaTileSource(
-						"https://islandora.marmot.org/adore-djatoka/resolver",
+						"{$repositoryUrl}/adore-djatoka/resolver",
 						'{$back_image}',
 						openSeadragonSettings.settings
 				);
