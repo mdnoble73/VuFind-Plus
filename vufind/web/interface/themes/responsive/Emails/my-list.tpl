@@ -13,13 +13,15 @@
 {else}
 {foreach from=$titles item=title}
 
-{$title.title_display}
+{if $title.title_display}{$title.title_display}
 {$title.author_display}
 {$url}/GroupedWork/{$title.id}/Home
+{elseif $title.fgs_label_s}{$title.fgs_label_s}
+{$url}/Archive/{$title.PID}/{$title.mods_genre_s}{/if}
 
 {section name=listEntry loop=$listEntries}
 {*If the listEntry has a note see if it is the same work*}
-{if $listEntries[listEntry]->notes && $listEntries[listEntry]->groupedWorkPermanentId == $title.id}
+{if $listEntries[listEntry]->notes && ($listEntries[listEntry]->groupedWorkPermanentId == $title.id || $listEntries[listEntry]->groupedWorkPermanentId == $title.PID)}
 {translate text="Notes"}: {$listEntries[listEntry]->notes}
 
 {/if}

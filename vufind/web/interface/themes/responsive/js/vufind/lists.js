@@ -22,46 +22,33 @@ VuFind.Lists = (function(){
 
 		makeListPublicAction: function (){
 			return this.submitListForm('makePublic');
-			//$('#myListActionHead').val('makePublic');
-			//$('#myListFormHead').submit();
-			//return false;
 		},
 
 		makeListPrivateAction: function (){
 			return this.submitListForm('makePrivate');
-			//$('#myListActionHead').val('makePrivate');
-			//$('#myListFormHead').submit();
-			//return false;
 		},
 
 		deleteListAction: function (){
 			if (confirm("Are you sure you want to delete this list?")){
 				this.submitListForm('deleteList');
-				//$('#myListActionHead').val('deleteList');
-				//$('#myListFormHead').submit();
 			}
 			return false;
 		},
 
 		updateListAction: function (){
 			return this.submitListForm('saveList');
-			//$('#myListActionHead').val('saveList');
-			//$('#myListFormHead').submit();
-			//return false;
 		},
 
 		deleteAllListItemsAction: function (){
 			if (confirm("Are you sure you want to delete all titles from this list?  This cannot be undone.")){
 				this.submitListForm('deleteAll');
-				//$('#myListActionItem').val('deleteAll');
-				//$('#myListFormItem').submit();
 			}
 			return false;
 		},
 
 		emailListAction: function (listId) {
 			var urlToDisplay = Globals.path + '/MyAccount/AJAX';
-			VuFind.showMessage("Loading, please wait", "...");
+			VuFind.loadingMessage();
 			$.getJSON(urlToDisplay, {
 					method  : 'getEmailMyListForm'
 					,listId : listId

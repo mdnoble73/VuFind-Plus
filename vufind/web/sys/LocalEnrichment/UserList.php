@@ -180,13 +180,13 @@ class UserList extends DB_DataObject
 		global $user;
 
 		// Connect to Database
-		$this->catalog = CatalogFactory::getCatalogConnectionInstance();;
+		$this->catalog = CatalogFactory::getCatalogConnectionInstance();
 
 		//Filter list information for bad words as needed.
 		if ($user == false || $this->user_id != $user->id){
 			//Load all bad words.
 			global $library;
-			require_once(ROOT_DIR . '/Drivers/marmot_inc/BadWord.php');
+			require_once ROOT_DIR . '/Drivers/marmot_inc/BadWord.php';
 			$badWords = new BadWord();
 //			$badWordsList = $badWords->getBadWordExpressions();
 
@@ -205,7 +205,8 @@ class UserList extends DB_DataObject
 				//Filter notes
 				// TODO: possible problem: $notesText overwrites the above description?
 				$notesText = $badWords->censorBadWords($listEntry->notes);
-				$this->description = $notesText;
+//				$this->notes = $notesText;
+				$listEntry->notes = $notesText;
 			}else{
 				//Check for bad words in the title or description
 				$titleText = $this->title;

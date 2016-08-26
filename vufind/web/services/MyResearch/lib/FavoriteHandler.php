@@ -383,25 +383,37 @@ class FavoriteHandler
 	function getTitles($numListEntries){
 		// Currently only used by AJAX call for emailing lists
 
-		// Initialise from the current search globals
-		/** @var SearchObject_Solr $searchObject */
-		$searchObject = SearchObjectFactory::initSearchObject();
-		$searchObject->init();
-		// these are added for emailing list  plb 10-8-2014
-		$searchObject->disableScoping(); // get title data regardless of scope
-		$searchObject->setLimit($numListEntries); // only get results for each item
-
+		$catalogRecordSet = $archiveRecordSet = array();
 		// Retrieve records from index (currently, only Solr IDs supported):
-		if (count($this->ids) > 0) {
-			$searchObject->setQueryIDs($this->ids);
-			$searchObject->processSearch();
-			$recordSet = $searchObject->getResultRecordSet();
-			//TODO: user list sorting here
+		if (count($this->catalogIds) > 0) {
+			// Initialise from the current search globals
+			/** @var SearchObject_Solr $searchObject */
+			$searchObject = SearchObjectFactory::initSearchObject();
+			$searchObject->init();
+			// these are added for emailing list  plb 10-8-2014
+			$searchObject->disableScoping(); // get title data regardless of scope
+			$searchObject->setLimit($numListEntries); // only get results for each item
 
-			return $recordSet;
-		}else{
-			return array();
+			$searchObject->setQueryIDs($this->catalogIds);
+			$searchObject->processSearch();
+			$catalogRecordSet = $searchObject->getResultRecordSet();
+			//TODO: user list sorting here
 		}
+		if (count($this->archiveIds) > 0) {
+			// Initialise from the current search globals
+			/** @var SearchObject_Islandora $archiveSearchObject */
+			$archiveSearchObject = SearchObjectFactory::initSearchObject('Islandora');
+			$archiveSearchObject->init();
+			$archiveSearchObject->setPrimarySearch(true);
+			$archiveSearchObject->addHiddenFilter('!RELS_EXT_isViewableByRole_literal_ms', "administrator");
+			$archiveSearchObject->addHiddenFilter('!mods_extension_marmotLocal_pikaOptions_showInSearchResults_ms', "no");
+			$archiveSearchObject->setQueryIDs($this->archiveIds);
+			$archiveSearchObject->processSearch();
+			$archiveRecordSet = $archiveSearchObject->getResultRecordSet();
+
+
+		}
+		return array_merge($catalogRecordSet, $archiveRecordSet);
 	}
 
 	function getCitations($citationFormat){

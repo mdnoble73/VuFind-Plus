@@ -967,7 +967,6 @@ class MyAccount_AJAX
 
 
 	function sendMyListEmail(){
-		// TODO: Implements sending emails of list
 		global $interface, $user;
 
 		// Get data from AJAX request
@@ -983,16 +982,15 @@ class MyAccount_AJAX
 			$list->id = $listId;
 			if ($list->find(true)){
 				// Build Favorites List
-				$titles = $list->getListTitles();
-				$interface->assign('listEntries', $titles); // TODO: if not used, i would like to remove
+				$listEntries = $list->getListTitles();
+				$interface->assign('listEntries', $listEntries);
 
 				// Load the User object for the owner of the list (if necessary):
 				if ($list->public == true || ($user && $user->id == $list->user_id)) {
 					//The user can access the list
 					require_once ROOT_DIR . '/services/MyResearch/lib/FavoriteHandler.php';
-//				$favoriteHandler = new FavoriteHandler($titles, $user, $list->id, false);
 					$favoriteHandler = new FavoriteHandler($list, $user, false);
-					$titleDetails = $favoriteHandler->getTitles(count($titles));
+					$titleDetails = $favoriteHandler->getTitles(count($listEntries));
 					// get all titles for email list, not just a page's worth
 					$interface->assign('titles', $titleDetails);
 					$interface->assign('list', $list);
