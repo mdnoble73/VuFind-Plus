@@ -43,7 +43,7 @@
 					"tileSize":256,
 					"tileOverlap":0,
 					"id":"pika-openseadragon",
-					"settings": VuFind.Archive.openSeadragonViewerSettings
+					"settings": VuFind.Archive.openSeadragonViewerSettings()
 				{rdelim};
 				openSeadragonSettings.settings.tileSources = new Array();
 				var frontTile = new OpenSeadragon.DjatokaTileSource(
