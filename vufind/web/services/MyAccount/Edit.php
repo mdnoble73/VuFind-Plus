@@ -51,14 +51,15 @@ class MyAccount_Edit extends Action
 		}
 
 		// Save Data
+		$listId = $_REQUEST['list_id'];
 		if (isset($_POST['submit'])) {
 			$this->saveChanges($user);
 
 			// After changes are saved, send the user back to an appropriate page;
 			// either the list they were viewing when they started editing, or the
 			// overall favorites list.
-			if (isset($_REQUEST['list_id'])) {
-				$nextAction = 'MyList/' . $_REQUEST['list_id'];
+			if (isset($listId)) {
+				$nextAction = 'MyList/' . $listId;
 			} else {
 				$nextAction = 'Home';
 			}
@@ -66,36 +67,55 @@ class MyAccount_Edit extends Action
 			exit();
 		}
 
-		require_once ROOT_DIR . '/sys/LocalEnrichment/UserList.php';
-		$userList = new UserList();
-		$userList->id = $_REQUEST['list_id'];
-		$userList->find(true);
-		$interface->assign('list', $userList);
+		if (!empty($listId) && ctype_digit($listId)) {
 
-		require_once ROOT_DIR . '/RecordDrivers/GroupedWorkDriver.php';
-		$id = $_GET['id'];
-		$groupedWorkDriver = new GroupedWorkDriver($id);
+			require_once ROOT_DIR . '/sys/LocalEnrichment/UserList.php';
+			$userList     = new UserList();
+			$userList->id = $listId;
+			if ($userList->find(true)) {
+				$interface->assign('list', $userList);
 
-		if ($groupedWorkDriver->isValid){
-			$interface->assign('recordDriver', $groupedWorkDriver);
+				$id = $_GET['id'];
+				if (!empty($id)) {
+					// Item ID
+					$interface->assign('recordId', $id);
+
+					if (strpos($id, ':') === false) {
+						// Grouped Works (Catalog Items)
+						require_once ROOT_DIR . '/RecordDrivers/GroupedWorkDriver.php';
+						$groupedWorkDriver = new GroupedWorkDriver($id);
+						if ($groupedWorkDriver->isValid) {
+							$interface->assign('recordDriver', $groupedWorkDriver);
+						}
+					} else {
+						// Archive Objects
+						require_once ROOT_DIR . './sys/Utils/FedoraUtils.php';
+						$fedoraUtils         = FedoraUtils::getInstance();
+						$archiveObject       = $fedoraUtils->getObject($id);
+						$archiveRecordDriver = RecordDriverFactory::initRecordDriver($archiveObject);
+						$interface->assign('recordDriver', $archiveRecordDriver);
+					}
+
+					// Retrieve saved information about record
+					require_once ROOT_DIR . '/sys/LocalEnrichment/UserListEntry.php';
+					$userListEntry                         = new UserListEntry();
+					$userListEntry->groupedWorkPermanentId = $id;
+					$userListEntry->listId                 = $listId;
+					if ($userListEntry->find(true)) {
+						$interface->assign('listEntry', $userListEntry);
+					} else {
+						$interface->assign('error', 'The item you selected is not part of the selected list.');
+					}
+				} else {
+					$interface->assign('error', 'No ID for the list item.');
+				}
+			} else {
+				$interface->assign('error', "List {$listId} was not found.");
+			}
+		} else {
+			$interface->assign('error', 'Invalid List ID.');
 		}
-
-		// Record ID
-		$interface->assign('recordId', $id);
-
-		// Retrieve saved information about record
-		require_once ROOT_DIR . '/sys/LocalEnrichment/UserListEntry.php';
-		$userListEntry = new UserListEntry();
-		$userListEntry->groupedWorkPermanentId = $id;
-		$userListEntry->listId = $_REQUEST['list_id'];
-		$userListEntry->find(true);
-		$interface->assign('listEntry', $userListEntry);
-
-		$interface->assign('listFilter', $_GET['list_id']);
-
-		$interface->setTemplate('editListTitle.tpl');
-		$interface->display('layout.tpl');
+		$this->display('editListTitle.tpl', 'Edit List Entry');
 	}
 }
 
-?>

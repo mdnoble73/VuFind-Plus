@@ -1,23 +1,18 @@
+{strip}
 <div id="page-content" class="content">
 	<div id="main-content">
+		{if $error}
+			<div class="alert alert-danger">{$error}</div>
+		{else}
 
-		<div class="record">
-		
-			<h3 id='resourceTitle'>{$recordDriver->getTitle()|escape:"html"}</h3>
+			<div class="record">
 
-			<form method="post" id="listEntryEditForm" action="{$path}/MyAccount/Edit" class="form-horizontal">
-				<input type="hidden" name="listEntry" value="{$listEntry->id}" />
-				<input type="hidden" name="list_id" value="{$list->id}" />
-				<div>
-					{if empty($listEntry)}
-						<p>
-						{if isset($listFilter)}
-							{translate text='The record you selected is not part of the selected list.'}
-						{else}
-							{translate text='The record you selected is not part of any of your lists.'}
-						{/if}
-						</p>
-					{else}
+				<h3 id="resourceTitle">{$recordDriver->getTitle()|escape:"html"}</h3>
+
+				<form method="post" id="listEntryEditForm" action="{$path}/MyAccount/Edit" class="form-horizontal">
+					<input type="hidden" name="listEntry" value="{$listEntry->id}">
+					<input type="hidden" name="list_id" value="{$list->id}">
+					<div>
 						<div class="form-group">
 							<label for="listName" class="col-sm-3">{translate text='List'}: </label>
 							<div class="col-sm-9">{$list->title|escape:"html"}</div>
@@ -33,13 +28,15 @@
 						<div class="form-group">
 							<div class="col-sm-3"></div>
 							<div class="col-sm-9">
-								<input type="submit" name="submit" value="{translate text='Save'}" class="btn btn-primary" />
+								<input type="submit" name="submit" value="{translate text='Save'}" class="btn btn-primary">
 							</div>
 						</div>
-					{/if}
-				</div>
-			</form>
+					</div>
+				</form>
 
-		</div>
+			</div>
+		{/if}
+
 	</div>
 </div>
+{/strip}
