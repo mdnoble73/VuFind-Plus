@@ -236,9 +236,9 @@ VuFind.Archive = (function(){
 				// $('#view-transcription').load(reverseProxy);
 			}else if (this.activeBookViewer == 'image'){
 				var tile = new OpenSeadragon.DjatokaTileSource(
-						Globals.repositoryUrl + "/AJAX/DjatokaResolver",
+						"/AJAX/DjatokaResolver",
 						this.pageDetails[pid]['jp2'],
-						VuFind.Archive.openSeadragonViewerSettings
+						VuFind.Archive.openSeadragonViewerSettings()
 				);
 				if (!$('#pika-openseadragon').hasClass('processed')) {
 					$('#pika-openseadragon').addClass('processed');
