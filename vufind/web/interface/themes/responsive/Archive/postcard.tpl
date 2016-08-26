@@ -47,13 +47,13 @@
 				{rdelim};
 				openSeadragonSettings.settings.tileSources = new Array();
 				var frontTile = new OpenSeadragon.DjatokaTileSource(
-						"{$repositoryUrl}/adore-djatoka/resolver",
+						"/AJAX/DjatokaResolver",
 						'{$front_image}',
 						openSeadragonSettings.settings
 				);
 				openSeadragonSettings.settings.tileSources.push(frontTile);
 				var backTile = new OpenSeadragon.DjatokaTileSource(
-						"{$repositoryUrl}/adore-djatoka/resolver",
+						"/AJAX/DjatokaResolver",
 						'{$back_image}',
 						openSeadragonSettings.settings
 				);

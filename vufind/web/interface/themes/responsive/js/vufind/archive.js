@@ -17,7 +17,7 @@ VuFind.Archive = (function(){
 			"id":"pika-openseadragon",
 			"prefixUrl":Globals.encodedRepositoryUrl + "\/sites\/all\/libraries\/openseadragon\/images\/",
 			"debugMode":false,
-			"djatokaServerBaseURL":Globals.encodedRepositoryUrl + "\/adore-djatoka\/resolver",
+			"djatokaServerBaseURL":Globals.encodedRepositoryUrl + "\/AJAX\/DjatokaResolver",
 			"tileSize":256,
 			"tileOverlap":0,
 			"animationTime":1.5,
@@ -234,7 +234,7 @@ VuFind.Archive = (function(){
 				// $('#view-transcription').load(reverseProxy);
 			}else if (this.activeBookViewer == 'image'){
 				var tile = new OpenSeadragon.DjatokaTileSource(
-						Globals.repositoryUrl + "/adore-djatoka/resolver",
+						Globals.repositoryUrl + "/AJAX/DjatokaResolver",
 						this.pageDetails[pid]['jp2'],
 						VuFind.Archive.openSeadragonViewerSettings
 				);
