@@ -338,6 +338,7 @@ class FavoriteHandler
 		$interface->assign('userSort', ($this->getSort() == 'custom')); // switch for when users can sort their list
 
 
+		$resourceList = array();
 		if ($this->isMixedUserList) {
 			$resourceList = $catalogResourceList + $archiveResourceList;
 			// Depends on numbered indexing reflect each item's position in the list
