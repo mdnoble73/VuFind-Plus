@@ -107,9 +107,13 @@
 				title: 'Page {$pageCounter}',
 				pdf: '{$page.pdf}',
 				jp2: '{$page.jp2}',
-				transcript: '{$page.transcript}'
+				transcript: '{$page.transcript}',
+				index: '{$pageCounter}'
 			{rdelim};
-			{if $page.pid == $activePage}{assign var=scrollToPage value=$pageCounter}{/if}
+			{if $page.pid == $activePage}
+				{assign var=scrollToPage value=$pageCounter}
+				VuFind.Archive.curPage = {$pageCounter};
+			{/if}
 			{assign var=pageCounter value=$pageCounter+1}
 		{/foreach}
 	{/foreach}
@@ -130,7 +134,7 @@
 		$('#view-toggle-image').click();
 		{/if}
 		$('#book-sections .jcarousel').jcarousel('scroll', {$scrollToPage-1}, false);
-		$('#book-sections .jcarousel li:eq({$scrollToPage})').addClass('active');
+		$('#book-sections .jcarousel li:eq({$scrollToPage-1})').addClass('active');
 		$('#book-sections .jcarousel li').click(function() {ldelim}
 			$('#book-sections li').removeClass('active');
 			$(this).addClass('active');

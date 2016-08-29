@@ -1211,4 +1211,27 @@ abstract class IslandoraDriver extends RecordInterface {
 		}
 		return null;
 	}
+
+	/**
+	 * @return null|FedoraObject
+	 */
+	public function getParentObject(){
+		require_once ROOT_DIR . '/sys/Utils/FedoraUtils.php';
+		$fedoraUtils = FedoraUtils::getInstance();
+
+		$parentIdArray = $this->archiveObject->relationships->get(FEDORA_RELS_EXT_URI, 'isMemberOf');
+		if ($parentIdArray != null){
+			$parentIdInfo = reset($parentIdArray);
+			$parentId = $parentIdInfo['object']['value'];
+			return $fedoraUtils->getObject($parentId);
+		}else{
+			$parentIdArray = $this->archiveObject->relationships->get(FEDORA_RELS_EXT_URI, 'isConstituentOf');
+			if ($parentIdArray != null){
+				$parentIdInfo = reset($parentIdArray);
+				$parentId = $parentIdInfo['object']['value'];
+				return $fedoraUtils->getObject($parentId);
+			}
+		}
+		return null;
+	}
 }

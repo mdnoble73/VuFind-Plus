@@ -201,6 +201,7 @@ VuFind.Archive = (function(){
 			var pageChanged = false;
 			if (this.activeBookPage != pid){
 				pageChanged = true;
+				this.curPage = this.pageDetails[pid]['index'];
 			}
 			this.activeBookPage = pid;
 			// console.log('Page: '+ this.activeBookPage, 'Active Viewer : '+ this.activeBookViewer);
@@ -262,6 +263,13 @@ VuFind.Archive = (function(){
 						additionalRelatedObjectsTarget.html(data.additionalObjects);
 					}
 				});
+
+				var pageScroller = $("#book-sections .jcarousel");
+				if (pageScroller){
+					pageScroller.jcarousel('scroll', this.curPage - 1, true);
+					$('#book-sections li').removeClass('active');
+					$('#book-sections .jcarousel li:eq(' + (this.curPage - 1) + ')').addClass('active');
+				}
 			}
 			//alert("Changing display to pid " + pid + " active viewer is " + this.activeBookViewer)
 			return false;

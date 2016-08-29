@@ -63,6 +63,16 @@
 			</div>
 			<a class="explore-more-scroller-link" href="{$section.link}" {if $section.openInNewWindow}target="_blank"{/if}>All Results {if $section.numFound}({$section.numFound}){/if}</a>
 
+		{elseif $section.format == 'tableOfContents'}
+			<ul>
+				{foreach from=$section.values item=value}
+					<li>
+						<a href="#" onclick="return VuFind.Archive.loadPage('{$value.pid}');">
+							{$value.label}
+						</a>
+					</li>
+				{/foreach}
+			</ul>
 		{elseif $section.format == 'textOnlyList'}
 			<ul>
 			{foreach from=$section.values item=value}

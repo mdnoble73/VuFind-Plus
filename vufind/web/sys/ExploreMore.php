@@ -21,11 +21,28 @@ class ExploreMore {
 
 		$relatedPikaContent = array();
 		if ($activeSection == 'archive'){
+			$fedoraUtils = FedoraUtils::getInstance();
+			//If this is a book or a page, show a table of contents
 			//Check to see if the record is part of a compound object.  If so we will want to link to the parent compound object.
 			if ($recordDriver instanceof PageDriver){
+				/** @var IslandoraDriver $parentObject */
 				$parentObject = $recordDriver->getParentObject();
+
 				if ($parentObject != null){
+					/** @var IslandoraDriver $parentDriver */
 					$parentDriver = RecordDriverFactory::initRecordDriver($parentObject);
+
+					//If the parent object is a section then get the parent again
+					/** @var IslandoraDriver $parentOfParent */
+					$parentOfParent = $parentDriver->getParentObject();
+					if ($parentOfParent != null ){
+						$parentOfParentDriver = RecordDriverFactory::initRecordDriver($parentOfParent);
+						if ($parentOfParentDriver){
+							$parentObject = $parentOfParent;
+							$parentDriver = $parentOfParentDriver;
+						}
+					}
+
 					$exploreMoreSectionsToShow['parentBook'] = array(
 							'title' => 'Entire Book',
 							'format' => 'list',
@@ -40,6 +57,8 @@ class ExploreMore {
 							)
 					);
 
+					$exploreMoreSectionsToShow = $this->setupTableOfContentsForBook($parentDriver, $exploreMoreSectionsToShow, false);
+
 					$this->relatedCollections = $parentDriver->getRelatedCollections();
 					if (count($this->relatedCollections) > 0){
 						$exploreMoreSectionsToShow['relatedCollections'] = array(
@@ -49,6 +68,9 @@ class ExploreMore {
 						);
 					}
 				}
+			}elseif ($recordDriver instanceof BookDriver || $recordDriver instanceof CompoundDriver){
+				/** @var BookDriver $bookDriver */
+				$exploreMoreSectionsToShow = $this->setupTableOfContentsForBook($recordDriver, $exploreMoreSectionsToShow, true);
 			}
 
 			/** @var IslandoraDriver $archiveDriver */
@@ -917,6 +939,40 @@ class ExploreMore {
 
 	static function sortRelatedEntities($a, $b){
 		return strcasecmp($a["label"], $b["label"]);
+	}
+
+	/**
+	 * @param CompoundDriver $bookDriver
+	 * @param array $exploreMoreSectionsToShow
+	 * @param bool $currentlyShowingBook
+	 * @return array
+	 */
+	private function setupTableOfContentsForBook($bookDriver, $exploreMoreSectionsToShow, $currentlyShowingBook) {
+		global $interface;
+		$bookContents = $bookDriver->loadBookContents();
+		if (count($bookContents) > 1){
+			$exploreMoreSectionsToShow['tableOfContents'] = array(
+					'title' => 'Table of Contents',
+					'format' => 'tableOfContents',
+					'values' => array()
+			);
+			if (!$currentlyShowingBook){
+				$exploreMoreSectionsToShow['tableOfContents']['format'] = 'textOnlyList';
+			}
+			foreach ($bookContents as $section){
+				$firstPageInSection = reset($section['pages']);
+				$section = array(
+						'pid' => $firstPageInSection['pid'],
+						'label' => $section['title'],
+				);
+				if (!$currentlyShowingBook){
+					$section['link'] = $bookDriver->getRecordUrl(false) . '?pagePid=' . $firstPageInSection['pid'];
+				}
+				$exploreMoreSectionsToShow['tableOfContents']['values'][] = $section;
+			}
+		}
+		$interface->assign('bookPid', $bookDriver->getUniqueId());
+		return $exploreMoreSectionsToShow;
 	}
 }
 
