@@ -976,7 +976,7 @@ class ListAPI extends Action {
 			//Get the title and description for the selected list
 			foreach ($availableLists->results as $listInformation){
 				if ($listInformation->list_name_encoded == $selectedList){
-					$selectedListTitle = $listInformation->display_name;
+					$selectedListTitle = 'NYT - ' . $listInformation->display_name;
 					break;
 				}
 			}
