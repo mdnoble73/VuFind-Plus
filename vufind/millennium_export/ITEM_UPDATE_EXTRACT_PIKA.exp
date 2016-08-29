@@ -1,6 +1,7 @@
 #!/usr/bin/expect -f
 
-log_user 0 ; # 0 = do NOT send screens to stdout
+log_user 0 ; # 1 = send screens to stdout
+exp_internal 0 ; # 1 = verbose debugging to stdout
 set testing false ; # testing mode skips over INNOPAC create list
 
 # ITEM_UPDATE_EXTRACT_PIKA.exp 
