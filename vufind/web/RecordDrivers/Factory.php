@@ -125,6 +125,7 @@ class RecordDriverFactory {
 					$genre = $record['mods_genre_s'];
 					if ($genre != null){
 						$normalizedRecordType = ucfirst($genre);
+						$normalizedRecordType = str_replace(' ', '', $normalizedRecordType);
 
 						$driver = $normalizedRecordType . 'Driver';
 						$path = "{$configArray['Site']['local']}/RecordDrivers/{$driver}.php";

@@ -43,6 +43,10 @@ abstract class IslandoraDriver extends RecordInterface {
 		$this->snippetCaptions = isset($searchSettings['Snippet_Captions']) && is_array($searchSettings['Snippet_Captions']) ? $searchSettings['Snippet_Captions'] : array();
 	}
 
+	function getArchiveObject(){
+		return $this->archiveObject;
+	}
+
 	function getBookcoverUrl($size = 'small'){
 		global $configArray;
 		$objectUrl = $configArray['Islandora']['objectUrl'];
