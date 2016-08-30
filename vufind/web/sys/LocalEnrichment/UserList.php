@@ -77,7 +77,7 @@ class UserList extends DB_DataObject
 		$listEntry = new UserListEntry();
 		$listEntry->listId = $this->id;
 
-		// These conditions retrieve list items with a valid groupedworked or archive ID.
+		// These conditions retrieve list items with a valid groupedwork ID or archive ID.
 		// (This prevents list strangeness when our searches don't find the ID in the search indexes)
 		$listEntry->whereAdd(
 			'(
