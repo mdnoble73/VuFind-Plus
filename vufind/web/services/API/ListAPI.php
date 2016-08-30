@@ -128,7 +128,7 @@ class ListAPI extends Action {
           'id' => $list->id,
           'title' => $list->title,
           'description' => $list->description,
-          'numTitles' => $list->num_titles(),
+          'numTitles' => $list->numValidListItems(),
           'public' => $list->public == 1,
 				);
 			}
@@ -973,10 +973,12 @@ class ListAPI extends Action {
 
 			//Get the human readable title for our selected list
 			$selectedListTitle = null;
+			$selectedListTitleShort = null;
 			//Get the title and description for the selected list
 			foreach ($availableLists->results as $listInformation){
 				if ($listInformation->list_name_encoded == $selectedList){
 					$selectedListTitle = 'NYT - ' . $listInformation->display_name;
+					$selectedListTitleShort = $listInformation->display_name;
 					break;
 				}
 			}
@@ -1008,6 +1010,7 @@ class ListAPI extends Action {
 				$createListURL = $pikaUrl . "/API/ListAPI?method=createList&username=" . urlencode($pikaUsername) .
 						"&password=" . urlencode($pikaPassword) .
 						"&title=" . urlencode($selectedListTitle) .
+						"&description=" . urlencode("New York Times - " . $selectedListTitleShort) .
 						"&public=1";
 				$createListResultRaw = file_get_contents($createListURL);
 				$createListResult = json_decode($createListResultRaw);
@@ -1039,6 +1042,11 @@ class ListAPI extends Action {
 					);
 				}
 			}
+
+			$nytList = new UserList();
+			$nytList->id = $listID;
+			$nytList->find(true);
+
 			// We need to add titles to the list
 			//Get a list of titles from NYT API
 			$availableListsRaw = $nyt_api->get_list($selectedList);
@@ -1052,6 +1060,7 @@ class ListAPI extends Action {
 			$searchObject = SearchObjectFactory::initSearchObject();
 			$searchObject->init();
 
+			$numTitlesAdded = 0;
 			foreach ($availableLists->results as $titleResult) {
 				$pikaID = null;
 				// go through each list item
@@ -1087,21 +1096,27 @@ class ListAPI extends Action {
 					if ($titleResult->weeks_on_list != 0) {
 						$note .= "  It has been on the list for {$titleResult->weeks_on_list} week(s).";
 					}
-					//Add this one title to the list with notes
-					$addTitleToListURL = $pikaUrl . "/API/ListAPI?method=addTitlesToList&username=" . urlencode($pikaUsername) .
-							"&password=" . urlencode($pikaPassword) .
-							"&listId=" . urlencode($listID) .
-							"&recordIds=" . $pikaID .
-							"&notes=" . urlencode($note);
 
-					$addTitlesToListResultRaw = file_get_contents($addTitleToListURL);
-					$addTitlesToListResult = json_decode($addTitlesToListResultRaw);
-					if (!$addTitlesToListResult->result->success){
-						$results['success'] = false;
-						$results['message'] = $addTitlesToListResult->message;
+					$userListEntry = new UserListEntry();
+					$userListEntry->listId = $listID;
+					$userListEntry->groupedWorkPermanentId = $pikaID;
+
+					$existingEntry = false;
+					if ($userListEntry->find(true)){
+						$existingEntry = true;
 					}
+
+					$userListEntry->notes = $note;
+					$userListEntry->dateAdded = time();
+					if ($existingEntry){
+						$userListEntry->update();
+					}else{
+						$userListEntry->insert();
+					}
+					$numTitlesAdded++;
 				}
 			}
+			$results['message'] .= "<br/> Added $numTitlesAdded Titles to the list";
 		}
 
 		return $results;
