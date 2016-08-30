@@ -10484,3 +10484,10 @@ a.browse-thumbnail-sorted.active {
 #book-sections li.active figure {
   outline: dotted thin;
 }
+.transcriptLocation {
+  font-weight: bold;
+  font-size: larger;
+}
+.transcript {
+  margin-bottom: 5px;
+}

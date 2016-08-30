@@ -19,6 +19,10 @@ class CompoundDriver extends IslandoraDriver {
 		return "Compound";
 	}
 
+	public function getFormat(){
+		return $this->getViewAction();
+	}
+
 	public function loadBookContents() {
 		global $configArray;
 		$objectUrl = $configArray['Islandora']['objectUrl'];

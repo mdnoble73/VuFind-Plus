@@ -21,7 +21,6 @@ class ExploreMore {
 
 		$relatedPikaContent = array();
 		if ($activeSection == 'archive'){
-			$fedoraUtils = FedoraUtils::getInstance();
 			//If this is a book or a page, show a table of contents
 			//Check to see if the record is part of a compound object.  If so we will want to link to the parent compound object.
 			if ($recordDriver instanceof PageDriver){
@@ -69,8 +68,10 @@ class ExploreMore {
 					}
 				}
 			}elseif ($recordDriver instanceof BookDriver || $recordDriver instanceof CompoundDriver){
-				/** @var BookDriver $bookDriver */
-				$exploreMoreSectionsToShow = $this->setupTableOfContentsForBook($recordDriver, $exploreMoreSectionsToShow, true);
+				if ($recordDriver->getFormat() != 'Postcard'){
+					/** @var CompoundDriver $bookDriver */
+					$exploreMoreSectionsToShow = $this->setupTableOfContentsForBook($recordDriver, $exploreMoreSectionsToShow, true);
+				}
 			}
 
 			/** @var IslandoraDriver $archiveDriver */
