@@ -15,4 +15,8 @@ class MagazineDriver extends BookDriver {
 		return 'Magazine';
 	}
 
+	public function getFormat(){
+		return 'Magazine';
+	}
+
 }
