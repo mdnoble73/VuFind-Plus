@@ -1051,14 +1051,9 @@ class ListAPI extends Action {
 			//Get a list of titles from NYT API
 			$availableListsRaw = $nyt_api->get_list($selectedList);
 			$availableLists = json_decode($availableListsRaw);
-			$listPikaIDs=array();
 
 			// Include Search Engine Class
 			require_once ROOT_DIR . '/sys/' . $configArray['Index']['engine'] . '.php';
-
-			/** @var SearchObject_Solr $searchObject */
-			$searchObject = SearchObjectFactory::initSearchObject();
-			$searchObject->init();
 
 			$numTitlesAdded = 0;
 			foreach ($availableLists->results as $titleResult) {
@@ -1069,14 +1064,18 @@ class ListAPI extends Action {
 						$isbn = empty($isbns->isbn13) ? $isbns->isbn10 : $isbns->isbn13;
 						if ($isbn) {
 							//look the title up in Pika by ISBN
+							/** @var SearchObject_Solr $searchObject */
+							$searchObject = SearchObjectFactory::initSearchObject();
+							$searchObject->init();
+							$searchObject->clearFacets();
+							$searchObject->clearFilters();
 							$searchObject->setBasicQuery($isbn, "ISN");
-							$result = $searchObject->processSearch(true, true);
+							$result = $searchObject->processSearch(true, false);
 							if ($result && $searchObject->getResultTotal() >= 1){
 								$recordSet = $searchObject->getResultRecordSet();
 								foreach($recordSet as $recordKey => $record){
 									if (!empty($record['id'])) {
 										$pikaID = $record['id'];
-										$listPikaIDs[$pikaID] = $pikaID;
 										break;
 									}
 								}
@@ -1109,11 +1108,15 @@ class ListAPI extends Action {
 					$userListEntry->notes = $note;
 					$userListEntry->dateAdded = time();
 					if ($existingEntry){
-						$userListEntry->update();
+						if ($userListEntry->update()){
+							$numTitlesAdded++;
+						}
 					}else{
-						$userListEntry->insert();
+						if ($userListEntry->insert()){
+							$numTitlesAdded++;
+						}
 					}
-					$numTitlesAdded++;
+
 				}
 			}
 			$results['message'] .= "<br/> Added $numTitlesAdded Titles to the list";
