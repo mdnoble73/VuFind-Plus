@@ -43,6 +43,10 @@ abstract class IslandoraDriver extends RecordInterface {
 		$this->snippetCaptions = isset($searchSettings['Snippet_Captions']) && is_array($searchSettings['Snippet_Captions']) ? $searchSettings['Snippet_Captions'] : array();
 	}
 
+	function getArchiveObject(){
+		return $this->archiveObject;
+	}
+
 	function getBookcoverUrl($size = 'small'){
 		global $configArray;
 		$objectUrl = $configArray['Islandora']['objectUrl'];
@@ -686,7 +690,7 @@ abstract class IslandoraDriver extends RecordInterface {
 	protected $relatedEvents = array();
 	protected $relatedOrganizations = array();
 	private $loadedRelatedEntities = false;
-	private static $nonProductionTeamRoles = array('interviewee', 'artist', 'described', 'contributor', 'author', 'child', 'parent', 'sibling', 'spouse');
+	private static $nonProductionTeamRoles = array('interviewee', 'artist', 'described', 'contributor', 'author', 'child', 'parent', 'sibling', 'spouse', 'donor');
 	public function loadRelatedEntities(){
 		if ($this->loadedRelatedEntities == false){
 			$this->loadedRelatedEntities = true;

@@ -261,11 +261,15 @@ class UserList extends DB_DataObject
 	function removeListEntry($workToRemove)
 	{
 		// Remove the Saved List Entry
-		require_once ROOT_DIR . '/sys/LocalEnrichment/UserListEntry.php';
-		$listEntry = new UserListEntry();
-		$listEntry->groupedWorkPermanentId = $workToRemove;
-		$listEntry->listId = $this->id;
-		$listEntry->delete();
+		if ($workToRemove instanceof UserListEntry){
+			$workToRemove->delete();
+		}else{
+			require_once ROOT_DIR . '/sys/LocalEnrichment/UserListEntry.php';
+			$listEntry = new UserListEntry();
+			$listEntry->groupedWorkPermanentId = $workToRemove;
+			$listEntry->listId = $this->id;
+			$listEntry->delete();
+		}
 
 		unset($this->listTitles[$this->id]);
 	}
@@ -281,8 +285,8 @@ class UserList extends DB_DataObject
 	}
 
 	/**
-	 * @param $start     position of first list item to fetch
-	 * @param $numItems  Number of items to fetch for this result
+	 * @param int $start     position of first list item to fetch
+	 * @param int $numItems  Number of items to fetch for this result
 	 * @return array     Array of HTML to display to the user
 	 */
 	public function getBrowseRecords($start, $numItems) {
@@ -305,7 +309,7 @@ class UserList extends DB_DataObject
 				}
 			} // Archive Items
 			else {
-				require_once ROOT_DIR . './sys/Utils/FedoraUtils.php';
+				require_once ROOT_DIR . '/sys/Utils/FedoraUtils.php';
 				$fedoraUtils = FedoraUtils::getInstance();
 				$archiveObject = $fedoraUtils->getObject($listItemId);
 				$recordDriver = RecordDriverFactory::initRecordDriver($archiveObject);

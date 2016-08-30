@@ -118,6 +118,68 @@ abstract class Archive_Object extends Action{
 
 		$interface->assign('postcardPublisherNumber', $this->recordDriver->getModsValue('postcardPublisherNumber', 'marmot'));
 
+		$correspondence = $this->recordDriver->getModsValue('correspondence', 'marmot');
+		$hasCorrespondenceInfo = false;
+		if ($correspondence){
+			$includesStamp = $this->recordDriver->getModsValue('includesStamp', 'marmot', $correspondence);
+			if ($includesStamp == 'yes'){
+				$interface->assign('includesStamp', true);
+				$hasCorrespondenceInfo = true;
+			}
+			$datePostmarked = $this->recordDriver->getModsValue('datePostmarked', 'marmot', $correspondence);
+			if ($datePostmarked){
+				$interface->assign('datePostmarked', $datePostmarked);
+				$hasCorrespondenceInfo = true;
+			}
+			$relatedPlace = $this->recordDriver->getModsValue('entityPlace', 'marmot', $correspondence);
+			$placePid = $this->recordDriver->getModsValue('entityPid', 'marmot', $relatedPlace);
+			if ($placePid){
+				$postMarkLocationObject = $fedoraUtils->getObject($placePid);
+				if ($postMarkLocationObject){
+					$postMarkLocationDriver = RecordDriverFactory::initRecordDriver($postMarkLocationObject);
+					$interface->assign('postMarkLocation', array(
+							'link' => $postMarkLocationDriver->getRecordUrl(),
+							'label' => $postMarkLocationDriver->getTitle(),
+							'role' => 'Postmark Location'
+					));
+					$hasCorrespondenceInfo = true;
+				}
+			}else{
+				$placeTitle = $this->recordDriver->getModsValue('entityTitle', 'marmot', $relatedPlace);
+				if ($placeTitle){
+					$interface->assign('postMarkLocation', array(
+							'label' => $placeTitle,
+							'role' => 'Postmark Location'
+					));
+					$hasCorrespondenceInfo = true;
+				}
+			}
+			$relatedPerson = $this->recordDriver->getModsValue('relatedPersonOrg', 'marmot', $correspondence);
+			$personPid = $this->recordDriver->getModsValue('entityPid', 'marmot', $relatedPerson);
+			if ($personPid){
+				$correspondenceRecipientObject = $fedoraUtils->getObject($personPid);
+				if ($correspondenceRecipientObject){
+					$correspondenceRecipientDriver = RecordDriverFactory::initRecordDriver($correspondenceRecipientObject);
+					$interface->assign('correspondenceRecipient', array(
+							'link' => $correspondenceRecipientDriver->getRecordUrl(),
+							'label' => $correspondenceRecipientDriver->getTitle(),
+							'role' => 'Correspondence Recipient'
+					));
+					$hasCorrespondenceInfo = true;
+				}
+			}else{
+				$personTitle = $this->recordDriver->getModsValue('entityTitle', 'marmot', $relatedPerson);
+				if ($personTitle){
+					$interface->assign('correspondenceRecipient', array(
+							'label' => $personTitle,
+							'role' => 'Correspondence Recipient'
+					));
+					$hasCorrespondenceInfo = true;
+				}
+			}
+		}
+		$interface->assign('hasCorrespondenceInfo', $hasCorrespondenceInfo);
+
 		$shelfLocator = $this->recordDriver->getModsValues('shelfLocator', 'mods');
 		$interface->assign('shelfLocator', $shelfLocator);
 

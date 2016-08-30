@@ -124,15 +124,11 @@ class ListAPI extends Action {
 		$results = array();
 		if ($list->N > 0){
 			while ($list->fetch()){
-				$query = "SELECT count(resource_id) as numTitles FROM user_resource where list_id = " . $list->id;
-				$numTitleResults = mysql_query($query);
-				$numTitles = mysql_fetch_assoc($numTitleResults);
-
 				$results[] = array(
           'id' => $list->id,
           'title' => $list->title,
           'description' => $list->description,
-          'numTitles' => $numTitles['numTitles'],
+          'numTitles' => $list->num_titles(),
           'public' => $list->public == 1,
 				);
 			}
@@ -938,5 +934,176 @@ class ListAPI extends Action {
 			$memCache->set('system_list_titles_' . $listName, $listTitles, 0, $configArray['Caching']['system_list_titles']);
 		}
 		return $listTitles;
+	}
+
+	/**
+	 * Creates or updates a user defined list from information obtained from the New York Times API
+	 *
+	 * @param string $selectedList machine readable name of the new york times list
+	 * @return array
+	 */
+	public function createUserListFromNYT($selectedList) {
+		global $configArray;
+
+		$results = array(
+				'success' => false,
+				'message' => 'Unknown error'
+		);
+
+		if (!isset($configArray['NYT_API']) || !isset($configArray['NYT_API']['books_API_key']) || strlen($configArray['NYT_API']['books_API_key']) == 0){
+			$results['message'] = 'API Key missing';
+		}else {
+			$api_key = $configArray['NYT_API']['books_API_key'];
+
+			// instantiate class with api key
+			require_once ROOT_DIR . '/sys/NYTApi.php';
+			$nyt_api = new NYTApi($api_key);
+
+			//Check Pika to see if the list has been created
+			//  currently we have 2 options:
+			//  1) Get a list of all public lists (for all people)
+			//  2) Get a list of lists for a particular account
+			$pikaUsername = $configArray['NYT_API']['pika_username'];
+			$pikaPassword = $configArray['NYT_API']['pika_password'];
+
+			//Get the raw response from the API with a list of all the names
+			$availableListsRaw = $nyt_api->get_list('names');
+			//Convert into an object that can be processed
+			$availableLists = json_decode($availableListsRaw);
+
+			//Get the human readable title for our selected list
+			$selectedListTitle = null;
+			//Get the title and description for the selected list
+			foreach ($availableLists->results as $listInformation){
+				if ($listInformation->list_name_encoded == $selectedList){
+					$selectedListTitle = 'NYT - ' . $listInformation->display_name;
+					break;
+				}
+			}
+
+			//Call Pika to get a list of all lists for our username
+			$pikaUrl = $configArray['Site']['url'];
+			$apiUrl = $pikaUrl . "/API/ListAPI?method=getUserLists&username=" . urlencode($pikaUsername) . "&password=" . urlencode($pikaPassword);
+			$getUserListResults = file_get_contents($apiUrl);
+
+			$getUserListResultsJSON = json_decode($getUserListResults);
+			//Loop through the set of all lists to see if we have one by this name
+			$listExistsInPika = false;
+			foreach ($getUserListResultsJSON->result->lists as $listName){
+				//Compare the list name from Pika to the human readable name
+				if ($listName->title == $selectedListTitle){
+					$listExistsInPika = true;
+					$listID = $listName->id;
+					$results = array(
+							'success' => true,
+							'message' =>"Updating existing list <a href='/MyAccount/MyList/{$listID}'>{$listName->title}</a>"
+					);
+					break;
+				}
+			}
+
+			//We didn't get a list in Pika, create one
+			if (!$listExistsInPika){
+				//Call the create list API
+				$createListURL = $pikaUrl . "/API/ListAPI?method=createList&username=" . urlencode($pikaUsername) .
+						"&password=" . urlencode($pikaPassword) .
+						"&title=" . urlencode($selectedListTitle) .
+						"&public=1";
+				$createListResultRaw = file_get_contents($createListURL);
+				$createListResult = json_decode($createListResultRaw);
+
+				if ($createListResult->result->success){
+					$newlyCreatedListId = $createListResult->result->listId;
+					$listID = $newlyCreatedListId;
+					$results = array(
+							'success' => true,
+							'message' =>"Created list <a href='/MyAccount/MyList/{$listID}'>{$listName->title}</a>"
+					);
+				}else{
+					return array(
+							'success' => false,
+							'message' => 'Could not create list' . $createListResult->result->message
+					);
+				}
+			}else{
+				//We already have a list, clear the contents so we don't have titles from last time
+				$clearListTitlesURL = $pikaUrl . "/API/ListAPI?method=clearListTitles&username=" . urlencode($pikaUsername) .
+						"&password=" . urlencode($pikaPassword) .
+						"&listId=" . $listID;
+				$clearListResultRaw = file_get_contents($clearListTitlesURL);
+				$clearListResult = json_decode($clearListResultRaw);
+				if (!$clearListResult->result->success){
+					return array(
+							'success' => false,
+							'message' => "Could not clear titles from list " . $listID
+					);
+				}
+			}
+			// We need to add titles to the list
+			//Get a list of titles from NYT API
+			$availableListsRaw = $nyt_api->get_list($selectedList);
+			$availableLists = json_decode($availableListsRaw);
+			$listPikaIDs=array();
+
+			// Include Search Engine Class
+			require_once ROOT_DIR . '/sys/' . $configArray['Index']['engine'] . '.php';
+
+			/** @var SearchObject_Solr $searchObject */
+			$searchObject = SearchObjectFactory::initSearchObject();
+			$searchObject->init();
+
+			foreach ($availableLists->results as $titleResult) {
+				$pikaID = null;
+				// go through each list item
+				if (!empty($titleResult->isbns)) {
+					foreach ($titleResult->isbns as $isbns) {
+						$isbn = empty($isbns->isbn13) ? $isbns->isbn10 : $isbns->isbn13;
+						if ($isbn) {
+							//look the title up in Pika by ISBN
+							$searchObject->setBasicQuery($isbn, "ISN");
+							$result = $searchObject->processSearch(true, true);
+							if ($result && $searchObject->getResultTotal() >= 1){
+								$recordSet = $searchObject->getResultRecordSet();
+								foreach($recordSet as $recordKey => $record){
+									if (!empty($record['id'])) {
+										$pikaID = $record['id'];
+										$listPikaIDs[$pikaID] = $pikaID;
+										break;
+									}
+								}
+							}
+						}
+						//break if we found a pika id for the title
+						if ($pikaID != null) {
+							break;
+						}
+					}
+				}//Done checking ISBNs
+				if ($pikaID != null) {
+					$note = "#{$titleResult->rank} on the {$titleResult->display_name} list for {$titleResult->published_date}.";
+					if ($titleResult->rank_last_week != 0) {
+						$note .= '  Last week it was ranked ' . $titleResult->rank_last_week . '.';
+					}
+					if ($titleResult->weeks_on_list != 0) {
+						$note .= "  It has been on the list for {$titleResult->weeks_on_list} week(s).";
+					}
+					//Add this one title to the list with notes
+					$addTitleToListURL = $pikaUrl . "/API/ListAPI?method=addTitlesToList&username=" . urlencode($pikaUsername) .
+							"&password=" . urlencode($pikaPassword) .
+							"&listId=" . urlencode($listID) .
+							"&recordIds=" . $pikaID .
+							"&notes=" . urlencode($note);
+
+					$addTitlesToListResultRaw = file_get_contents($addTitleToListURL);
+					$addTitlesToListResult = json_decode($addTitlesToListResultRaw);
+					if (!$addTitlesToListResult->result->success){
+						$results['success'] = false;
+						$results['message'] = $addTitlesToListResult->message;
+					}
+				}
+			}
+		}
+
+		return $results;
 	}
 }
