@@ -19,7 +19,7 @@
 			</div>
 		{/if}
 
-		{if $transcription && strlen($transcription.text) > 0}
+		{if $transcription}
 			<div class="panel {*active*}{*toggle on for open*}" id="transcriptionPanel">
 				<a href="#transcriptionPanelBody" data-toggle="collapse">
 					<div class="panel-heading">
@@ -30,22 +30,29 @@
 				</a>
 				<div id="transcriptionPanelBody" class="panel-collapse collapse {*in*}{*toggle on for open*}">
 					<div class="panel-body">
-						{$transcription.text}
+						{foreach from=$transcription item=transcript}
+							<div class="transcript">
+								{if $transcript.location}
+									<div class="transcriptLocation">From the {$transcript.location}</div>
+								{/if}
+								{$transcript.text}
+							</div>
+						{/foreach}
 					</div>
 				</div>
 			</div>
 		{/if}
 
 		{if $hasCorrespondenceInfo}
-			<div class="panel active" id="transcriptionPanel">
-				<a href="#transcriptionPanelBody" data-toggle="collapse">
+			<div class="panel active" id="correspondencePanel">
+				<a href="#correspondencePanelBody" data-toggle="collapse">
 					<div class="panel-heading">
 						<div class="panel-title">
 							Correspondence information
 						</div>
 					</div>
 				</a>
-				<div id="transcriptionPanelBody" class="panel-collapse collapse in">
+				<div id="correspondencePanelBody" class="panel-collapse collapse in">
 					<div class="panel-body">
 						{if $includesStamp}
 							<div class="row">
