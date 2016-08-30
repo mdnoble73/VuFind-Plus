@@ -73,34 +73,51 @@ class UserList extends DB_DataObject
 	}
 
 	function numValidListItems() {
-		$archiveItems = $this->num_archive_items();
-		$catalogItems = $this->num_titles();
-		return $archiveItems + $catalogItems;
-	}
-
-	function num_archive_items() {
 		require_once ROOT_DIR . '/sys/LocalEnrichment/UserListEntry.php';
-		//Join with grouped work to make sure we only load valid entries
 		$listEntry = new UserListEntry();
 		$listEntry->listId = $this->id;
 
-		require_once ROOT_DIR . '/sys/Islandora/IslandoraObjectCache.php';
-		$islandoraObject = new IslandoraObjectCache();
-		$listEntry->joinAdd($islandoraObject);
+		// These conditions retrieve list items with a valid groupedworked or archive ID.
+		// (This prevents list strangeness when our searches don't find the ID in the search indexes)
+		$listEntry->whereAdd(
+			'(
+     (user_list_entry.groupedWorkPermanentId NOT LIKE "%:%" AND user_list_entry.groupedWorkPermanentId IN (SELECT permanent_id FROM grouped_work) )
+    OR
+    (user_list_entry.groupedWorkPermanentId LIKE "%:%" AND user_list_entry.groupedWorkPermanentId IN (SELECT pid FROM islandora_object_cache) )
+)'
+		);
+
 		return $listEntry->count();
 	}
 
-	function num_titles(){
-		require_once ROOT_DIR . '/sys/LocalEnrichment/UserListEntry.php';
-		//Join with grouped work to make sure we only load valid entries
-		$listEntry = new UserListEntry();
-		$listEntry->listId = $this->id;
-
-		require_once ROOT_DIR . '/sys/Grouping/GroupedWork.php';
-		$groupedWork = new GroupedWork();
-		$listEntry->joinAdd($groupedWork);
-		return $listEntry->count();
-	}
+//	function numValidListItems() {
+//		$archiveItems = $this->num_archive_items();
+//		$catalogItems = $this->num_titles();
+//		return $archiveItems + $catalogItems;
+//	);
+//	function num_archive_items() {
+//		require_once ROOT_DIR . '/sys/LocalEnrichment/UserListEntry.php';
+//		//Join with grouped work to make sure we only load valid entries
+//		$listEntry = new UserListEntry();
+//		$listEntry->listId = $this->id;
+//
+//		require_once ROOT_DIR . '/sys/Islandora/IslandoraObjectCache.php';
+//		$islandoraObject = new IslandoraObjectCache();
+//		$listEntry->joinAdd($islandoraObject);
+//		return $listEntry->count();
+//	}
+//
+//	function num_titles(){
+//		require_once ROOT_DIR . '/sys/LocalEnrichment/UserListEntry.php';
+//		//Join with grouped work to make sure we only load valid entries
+//		$listEntry = new UserListEntry();
+//		$listEntry->listId = $this->id;
+//
+//		require_once ROOT_DIR . '/sys/Grouping/GroupedWork.php';
+//		$groupedWork = new GroupedWork();
+//		$listEntry->joinAdd($groupedWork);
+//		return $listEntry->count();
+//	}
 
 	function insert(){
 		$this->created = time();
@@ -134,12 +151,29 @@ class UserList extends DB_DataObject
 		$listEntry = new UserListEntry();
 		$listEntry->listId = $this->id;
 		if ($sort) $listEntry->orderBy($sort);
-		$listEntries = array();
+
+		// These conditions retrieve list items with a valid groupedworked or archive ID.
+		// (This prevents list strangeness when our searches don't find the ID in the search indexes)
+		$listEntry->whereAdd(
+			'(
+     (user_list_entry.groupedWorkPermanentId NOT LIKE "%:%" AND user_list_entry.groupedWorkPermanentId IN (SELECT permanent_id FROM grouped_work) )
+    OR
+    (user_list_entry.groupedWorkPermanentId LIKE "%:%" AND user_list_entry.groupedWorkPermanentId IN (SELECT pid FROM islandora_object_cache) )
+)'
+		);
+
+		$listEntries = $archiveIDs = $catalogIDs = array();
 		$listEntry->find();
 		while ($listEntry->fetch()){
+			if (strpos($listEntry->groupedWorkPermanentId, ':') !== false) {
+				$archiveIDs[] = $listEntry->groupedWorkPermanentId;
+			} else {
+				$catalogIDs[] = $listEntry->groupedWorkPermanentId;
+			}
 			$listEntries[] = $listEntry->groupedWorkPermanentId;
 		}
-		return $listEntries;
+
+		return array($listEntries, $catalogIDs, $archiveIDs);
 	}
 
 	/**
@@ -254,8 +288,8 @@ class UserList extends DB_DataObject
 	public function getBrowseRecords($start, $numItems) {
 		global $interface;
 		$browseRecords = array();
-		$sort          = in_array($this->defaultSort, array_keys($this->userListSortOptions)) ? $this->userListSortOptions[$this->defaultSort] : null;
-		$listEntries        = $this->getListEntries($sort);
+		$sort               = in_array($this->defaultSort, array_keys($this->userListSortOptions)) ? $this->userListSortOptions[$this->defaultSort] : null;
+		list($listEntries)  = $this->getListEntries($sort);
 		$listEntries        = array_slice($listEntries, $start, $numItems);
 		foreach ($listEntries as $listItemId) {
 			if (strpos($listItemId, ':') === false) {

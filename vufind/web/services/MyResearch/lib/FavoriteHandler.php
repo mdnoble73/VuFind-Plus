@@ -91,26 +91,28 @@ class FavoriteHandler
 
 		// Get the Favorites //
 		$userListSort = $this->isUserListSort ? $this->userListSortOptions[$this->sort] : null;
-		$this->favorites = $list->getListEntries($userListSort); // when using a user list sorting, rather than solr sorting, get results in order
+		list($this->favorites, $this->catalogIds, $this->archiveIds) = $list->getListEntries($userListSort); // when using a user list sorting, rather than solr sorting, get results in order
 		// we start with a default userlist sorting until we determine whether the userlist is Mixed items or not.
 
-		// Process the IDs found in the favorites
-		$hasArchiveItems = $hasCatalogItems = false;
-		foreach ($this->favorites as $favorite){
-			$favoriteID = is_object($favorite) ? $favorite->groupedWorkPermanentId : $favorite;
-			$this->ids[] = $favoriteID;
-			//TODO: Filter out Archive Object IDs? (Determine different uses of $this->ids from $this->favorites)
-			if (strpos($favoriteID, ':') !== false) {
-				//Is an archive Object
-				// (This may be the point where a specified source is needed for UserList Items.)
-				$this->archiveIds[] = $favoriteID;
-				$hasArchiveItems = true;
-			} else {
-				// Assuming all other Ids are grouped work Ids.
-				$this->catalogIds[] = $favoriteID;
-				$hasCatalogItems = true;
-			}
-		}
+		$this->ids = $this->favorites; // TODO: Remove references to this->ids and use $this->favorites instead
+		$hasCatalogItems = !empty($this->catalogIds);
+		$hasArchiveItems = !empty($this->archiveIds);
+//		// Process the IDs found in the favorites
+//		$hasArchiveItems = $hasCatalogItems = false;
+//		foreach ($this->favorites as $favorite){
+//			$favoriteID = is_object($favorite) ? $favorite->groupedWorkPermanentId : $favorite;
+//			$this->ids[] = $favoriteID;
+//			if (strpos($favoriteID, ':') !== false) {
+//				//Is an archive Object
+//				// (This may be the point where a specified source is needed for UserList Items.)
+//				$this->archiveIds[] = $favoriteID;
+//				$hasArchiveItems = true;
+//			} else {
+//				// Assuming all other Ids are grouped work Ids.
+//				$this->catalogIds[] = $favoriteID;
+//				$hasCatalogItems = true;
+//			}
+//		}
 
 		// Determine if this UserList mixes catalog & archive Items
 		if ($hasArchiveItems && $hasCatalogItems) {
@@ -118,7 +120,7 @@ class FavoriteHandler
 		} elseif ($hasArchiveItems && !$hasCatalogItems){
 			// Archive Only Lists
 			if (!$userSpecifiedTheSort && !isset($list->defaultSort)) {
-				// If no actual sorting setting were set, reset default to an Islandora Sort
+				// If no actual sorting settings were set, reset default to an Islandora Sort
 				$this->defaultSort    = $this->islandoraSortOptions[0];
 				$this->sort           = $this->defaultSort;
 				$this->isUserListSort = false;
@@ -126,7 +128,7 @@ class FavoriteHandler
 		} elseif ($hasCatalogItems && !$hasArchiveItems) {
 			// Catalog Only Lists
 			if (!$userSpecifiedTheSort && !isset($list->defaultSort)) {
-				// If no actual sorting setting were set, reset default to an Solr Sort
+				// If no actual sorting settings were set, reset default to an Solr Sort
 				$this->defaultSort    = $this->solrSortOptions[0];
 				$this->sort           = $this->defaultSort;
 				$this->isUserListSort = false;
@@ -180,7 +182,6 @@ class FavoriteHandler
 			$catalogSearchObject->init();
 			$catalogSearchObject->disableScoping();
 			$catalogSearchObject->setLimit($recordsPerPage); //MDN 3/30 this was set to 200, but should be based off the page size
-//			$catalogSearchObject->setPage($page);
 
 			if (!$this->isUserListSort && !$this->isMixedUserList) { // is a solr sort
 				$catalogSearchObject->setSort($this->sort); // set solr sort. (have to set before retrieving solr sort options below)
