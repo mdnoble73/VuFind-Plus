@@ -19,6 +19,9 @@ class DjatokaResolver extends Action{
 		$queryString = $_SERVER['QUERY_STRING'];
 		$queryString = str_replace('module=AJAX&', '', $queryString);
 		$queryString = str_replace('action=DjatokaResolver&', '', $queryString);
+		if (substr($queryString, 0, 1) == '&'){
+			$queryString = substr($queryString, 1);
+		}
 		$requestUrl = $configArray['Islandora']['repositoryUrl'] . '/adore-djatoka/resolver?' . $queryString;
 
 		try{
@@ -26,7 +29,7 @@ class DjatokaResolver extends Action{
 			if (!$response){
 				$response = json_encode(array(
 						'success' => false,
-						'message' => 'Could not load from the specified URL'
+						'message' => 'Could not load from the specified URL ' . $requestUrl
 				));
 			}
 		}catch (Exception $e){
