@@ -275,7 +275,7 @@ class UserList extends DB_DataObject
 				}
 			} // Archive Items
 			else {
-				require_once ROOT_DIR . './sys/Utils/FedoraUtils.php';
+				require_once ROOT_DIR . '/sys/Utils/FedoraUtils.php';
 				$fedoraUtils = FedoraUtils::getInstance();
 				$archiveObject = $fedoraUtils->getObject($listItemId);
 				$recordDriver = RecordDriverFactory::initRecordDriver($archiveObject);
