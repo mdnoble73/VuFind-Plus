@@ -942,8 +942,12 @@ class ListAPI extends Action {
 	 * @param string $selectedList machine readable name of the new york times list
 	 * @return array
 	 */
-	public function createUserListFromNYT($selectedList) {
+	public function createUserListFromNYT($selectedList = null) {
 		global $configArray;
+
+		if ($selectedList == null){
+			$selectedList = $_REQUEST['listToUpdate'];
+		}
 
 		$results = array(
 				'success' => false,
