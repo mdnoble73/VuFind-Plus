@@ -16,9 +16,25 @@ class DjatokaResolver extends Action{
 		//Pass the request to the Islandora server for processing
 
 		global $configArray;
-		$requestUrl = $configArray['Islandora']['repositoryUrl'] . '/adore-djatoka/resolver?' . $_SERVER['QUERY_STRING'];
+		$queryString = $_SERVER['QUERY_STRING'];
+		$queryString = str_replace('module=AJAX&', '', $queryString);
+		$queryString = str_replace('action=DjatokaResolver&', '', $queryString);
+		$requestUrl = $configArray['Islandora']['repositoryUrl'] . '/adore-djatoka/resolver?' . $queryString;
 
-		$response = file_get_contents($requestUrl);
+		try{
+			$response = @file_get_contents($requestUrl);
+			if (!$response){
+				$response = json_encode(array(
+						'success' => false,
+						'message' => 'Could not load from the specified URL'
+				));
+			}
+		}catch (Exception $e){
+			$response = json_encode(array(
+					'success' => false,
+					'message' => $e
+			));
+		}
 
 		echo($response);
 	}
