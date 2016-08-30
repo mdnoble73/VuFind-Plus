@@ -434,6 +434,7 @@ class Archive_AJAX extends Action {
 		$userLists = new UserList();
 		$userLists->user_id = $user->id;
 		$userLists->deleted = 0;
+		$userLists->orderBy('title');
 		$userLists->find();
 		while ($userLists->fetch()){
 			//Check to see if the user has already added the title to the list.
