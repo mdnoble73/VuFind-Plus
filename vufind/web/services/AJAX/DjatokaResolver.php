@@ -22,7 +22,9 @@ class DjatokaResolver extends Action{
 		if (substr($queryString, 0, 1) == '&'){
 			$queryString = substr($queryString, 1);
 		}
-		$requestUrl = $configArray['Islandora']['repositoryUrl'] . '/adore-djatoka/resolver?' . $queryString;
+		$baseRepositoryUrl = $configArray['Islandora']['repositoryUrl'];
+		$baseRepositoryUrl = str_replace('https', 'http', $baseRepositoryUrl);
+		$requestUrl = $baseRepositoryUrl . '/adore-djatoka/resolver?' . $queryString;
 
 		try{
 			$response = @file_get_contents($requestUrl);
