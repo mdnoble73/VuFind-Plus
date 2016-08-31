@@ -47,7 +47,7 @@ VuFind.Archive = (function(){
 			}
 		},
 
-		changeActiveBookViewer: function(viewerName){
+		changeActiveBookViewer: function(viewerName, pagePid){
 			this.activeBookViewer = viewerName;
 			// $('#view-toggle').children(".btn .active").removeClass('active');
 
@@ -71,7 +71,7 @@ VuFind.Archive = (function(){
 				$("#view-image").hide();
 
 			}
-			return this.loadPage(this.activeBookPage);
+			return this.loadPage(pagePid);
 		},
 
 		initializeOpenSeadragon: function(viewer){
@@ -136,11 +136,7 @@ VuFind.Archive = (function(){
 			// Load specified page & viewer
 			//Loading message
 			//Load Page  set-up
-			this.activeBookViewer = bookViewer;
-			this.activeBookPage = pagePid;
-
-			VuFind.Archive.changeActiveBookViewer(bookViewer);
-			// VuFind.Archive.loadPage(pagePid);
+			VuFind.Archive.changeActiveBookViewer(bookViewer, pagePid);
 
 			// store in browser history
 			var stateObj = {

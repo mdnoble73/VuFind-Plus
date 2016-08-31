@@ -67,7 +67,7 @@
 			<ul>
 				{foreach from=$section.values item=value}
 					<li>
-						<a href="#" onclick="return VuFind.Archive.loadPage('{$value.pid}');">
+						<a href="#" onclick="return VuFind.Archive.handleBookClick('{$bookPid}', '{$value.pid}', VuFind.Archive.activeBookViewer);">
 							{$value.label}
 						</a>
 					</li>

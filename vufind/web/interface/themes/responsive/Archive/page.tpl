@@ -9,15 +9,15 @@
 			<div id="main-content" class="col-xs-12 text-center">
 				<div id="view-toggle" class="btn-group" role="group" data-toggle="buttons">
 					<label class="btn btn-group-small btn-default">
-						<input type="radio" name="pageView" id="view-toggle-pdf" autocomplete="off" onchange="VuFind.Archive.changeActiveBookViewer('pdf');">
+						<input type="radio" name="pageView" id="view-toggle-pdf" autocomplete="off" onchange="VuFind.Archive.changeActiveBookViewer('pdf', VuFind.Archive.activeBookPage);">
 						View As PDF
 					</label>
 					<label class="btn btn-group-small btn-default">
-						<input type="radio" name="pageView" id="view-toggle-image" autocomplete="off" onchange="VuFind.Archive.changeActiveBookViewer('image');">
+						<input type="radio" name="pageView" id="view-toggle-image" autocomplete="off" onchange="VuFind.Archive.changeActiveBookViewer('image', VuFind.Archive.activeBookPage);">
 						View As Image
 					</label>
 					<label class="btn btn-group-small btn-default">
-						<input type="radio" name="pageView" id="view-toggle-transcription" autocomplete="off" onchange="VuFind.Archive.changeActiveBookViewer('transcription');">
+						<input type="radio" name="pageView" id="view-toggle-transcription" autocomplete="off" onchange="VuFind.Archive.changeActiveBookViewer('transcription', VuFind.Archive.activeBookPage);">
 						View Transcription
 					</label>
 				</div>
@@ -57,8 +57,7 @@
 	{assign var=pageCounter value=$pageCounter+1}
 
 	$().ready(function(){ldelim}
-		VuFind.Archive.changeActiveBookViewer('{$activeViewer}')
-		VuFind.Archive.loadPage('{$page.pid}');
+		VuFind.Archive.changeActiveBookViewer('{$activeViewer}', '{$page.pid}')
 		VuFind.Archive.loadExploreMore('{$pid|urlencode}');
 	{rdelim});
 </script>

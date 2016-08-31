@@ -9,18 +9,18 @@
 			<div id="main-content" class="col-xs-12 text-center">
 				<div id="view-toggle" class="btn-group" role="group" data-toggle="buttons">
 					<label class="btn btn-group-small btn-default">
-						<input type="radio" name="pageView" id="view-toggle-pdf" autocomplete="off" onchange="return VuFind.Archive.handleBookClick('', VuFind.Archive.activeBookPage, 'pdf');">
+						<input type="radio" name="pageView" id="view-toggle-pdf" autocomplete="off" onchange="return VuFind.Archive.handleBookClick('{$pid}', VuFind.Archive.activeBookPage, 'pdf');">
 						{*TODO: set bookPID*}
 
 						View As PDF
 					</label>
 					<label class="btn btn-group-small btn-default">
-						<input type="radio" name="pageView" id="view-toggle-image" autocomplete="off" onchange="return VuFind.Archive.handleBookClick('', VuFind.Archive.activeBookPage, 'image');">
+						<input type="radio" name="pageView" id="view-toggle-image" autocomplete="off" onchange="return VuFind.Archive.handleBookClick('{$pid}', VuFind.Archive.activeBookPage, 'image');">
 
 						View As Image
 					</label>
 					<label class="btn btn-group-small btn-default">
-						<input type="radio" name="pageView" id="view-toggle-transcription" autocomplete="off" onchange="return VuFind.Archive.handleBookClick('', VuFind.Archive.activeBookPage, 'transcription');">
+						<input type="radio" name="pageView" id="view-toggle-transcription" autocomplete="off" onchange="return VuFind.Archive.handleBookClick('{$pid}', VuFind.Archive.activeBookPage, 'transcription');">
 
 						View Transcription
 					</label>
@@ -125,20 +125,7 @@
 
 	$(function(){ldelim}
 		{* Below click events trigger indirectly the handleBookClick function, and properly sets the appropriate button. *}
-		VuFind.Archive.activeBookPage = '{$activePage}';
-		{if $activeViewer == 'transcription'}
-		$('#view-toggle-transcription').click();
-		{elseif $activeViewer == 'pdf'}
-		$('#view-toggle-pdf').click();
-		{else} {* $activeViewer should == 'image', but use this block as a catch all *}
-		$('#view-toggle-image').click();
-		{/if}
-		$('#book-sections .jcarousel').jcarousel('scroll', {$scrollToPage-1}, false);
-		$('#book-sections .jcarousel li:eq({$scrollToPage-1})').addClass('active');
-		$('#book-sections .jcarousel li').click(function() {ldelim}
-			$('#book-sections li').removeClass('active');
-			$(this).addClass('active');
-		{rdelim});
+		VuFind.Archive.handleBookClick('{$pid}', '{$activePage}', '{$activeViewer}');
 
 		VuFind.Archive.loadExploreMore('{$pid|urlencode}');
 	{rdelim});
