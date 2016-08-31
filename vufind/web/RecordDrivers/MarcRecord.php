@@ -1607,7 +1607,7 @@ class MarcRecord extends IndexRecord
 				$subjectFieldsToShow = $configArray['Content']['subjectFieldsToShow'];
 				$subjectFields = explode(',', $subjectFieldsToShow);
 
-
+				$lcSubjectTagNumbers = array(600, 610, 611, 630, 650, 651); // Official LC subject Tags (from CMU)
 				foreach ($subjectFields as $subjectField) {
 					/** @var File_MARC_Data_Field[] $marcFields */
 					$marcFields = $marcRecord->getFields($subjectField);
@@ -1617,7 +1617,7 @@ class MarcRecord extends IndexRecord
 							$subject = array();
 							//Determine the type of the subject
 							$type = 'other';
-							if ($marcField->getIndicator(2) == 0) {
+							if (in_array($subjectField, $lcSubjectTagNumbers) && $marcField->getIndicator(2) == 0) {
 								$type = 'lc';
 							}
 							$subjectSource = $marcField->getSubfield('2');
@@ -1650,7 +1650,7 @@ class MarcRecord extends IndexRecord
 							}
 							$subject[$title] = array(
 									'search' => trim($search),
-									'title' => $title,
+									'title'  => $title,
 							);
 							switch ($type) {
 								case 'fast' :
@@ -1660,6 +1660,7 @@ class MarcRecord extends IndexRecord
 								case 'local' :
 									$localSubjects[] = $subject;
 									$subjects[] = $subject;
+									break;
 								case 'bisac' :
 									$bisacSubjects[] = $subject;
 									$subjects[] = $subject;
@@ -1678,19 +1679,29 @@ class MarcRecord extends IndexRecord
 					}
 				}
 			}
+			$subjectTitleCompareFunction = function ($subjectArray0, $subjectArray1) {
+				return strcasecmp(key($subjectArray0), key($subjectArray1));
+			};
+
+			usort($subjects, $subjectTitleCompareFunction);
 			$interface->assign('subjects', $subjects);
 			if ($library->showLCSubjects) {
+				usort($lcSubjects, $subjectTitleCompareFunction);
 				$interface->assign('lcSubjects', $lcSubjects);
 			}
 			if ($library->showOtherSubjects) {
+				usort($otherSubjects, $subjectTitleCompareFunction);
 				$interface->assign('otherSubjects', $otherSubjects);
 			}
 			if ($library->showBisacSubjects) {
+				usort($bisacSubjects, $subjectTitleCompareFunction);
 				$interface->assign('bisacSubjects', $bisacSubjects);
 			}
 			if ($library->showFastAddSubjects) {
+				usort($oclcFastSubjects, $subjectTitleCompareFunction);
 				$interface->assign('oclcFastSubjects', $oclcFastSubjects);
 			}
+			usort($localSubjects, $subjectTitleCompareFunction);
 			$interface->assign('localSubjects', $localSubjects);
 		}
 	}
