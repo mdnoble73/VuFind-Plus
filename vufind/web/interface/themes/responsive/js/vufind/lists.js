@@ -86,6 +86,10 @@ VuFind.Lists = (function(){
 			//TODO: ajax call not working
 		},
 
+		processCiteListForm: function(){
+			$("#citeListForm").submit();
+		},
+
 		batchAddToListAction: function (id){
 			return VuFind.Account.ajaxLightbox(Globals.path + '/MyAccount/AJAX/?method=getBulkAddToListForm&listId=' + id);
 			//return false;

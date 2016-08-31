@@ -28,7 +28,7 @@ class MyAccount_AJAX
 			'getReactivationDateForm', //not checked
 			'renewItem', 'renewAll', 'renewSelectedItems', 'getPinResetForm',
 			'getAddAccountLinkForm', 'addAccountLink', 'removeAccountLink',
-			'cancelBooking',
+			'cancelBooking', 'getCitationFormatsForm'
 		);
 		$method = $_GET['method'];
 		if (in_array($method, $valid_json_methods)) {
@@ -60,7 +60,7 @@ class MyAccount_AJAX
 			}
 			echo $output;
 
-		} elseif (in_array($method, array('LoginForm', 'getBulkAddToListForm', 'getPinUpdateForm', 'getCitationFormatsForm'))) {
+		} elseif (in_array($method, array('LoginForm', 'getBulkAddToListForm', 'getPinUpdateForm'))) {
 			header('Content-type: text/html');
 			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
 			header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
@@ -171,7 +171,7 @@ class MyAccount_AJAX
 		$interface->assign('popupTitle', 'Add titles to list');
 		$formDefinition = array(
 			'title' => 'Add titles to list',
-			'modalBody' => $interface->fetch('MyResearch/bulkAddToListPopup.tpl'),
+			'modalBody' => $interface->fetch('MyAccount/bulkAddToListPopup.tpl'),
 			'modalButtons' => "<span class='tool btn btn-primary' onclick='VuFind.Lists.processBulkAddForm(); return false;'>Add To List</span>"
 		);
 		return $formDefinition;
@@ -960,9 +960,12 @@ class MyAccount_AJAX
 		$interface->assign('listId', $_REQUEST['listId']);
 		$citationFormats = CitationBuilder::getCitationFormats();
 		$interface->assign('citationFormats', $citationFormats);
-		$pageContent = $interface->fetch('MyResearch/getCitationFormatPopup.tpl');
-		$interface->assign('popupContent', $pageContent);
-		return $interface->fetch('popup-wrapper.tpl');
+		$pageContent = $interface->fetch('MyAccount/getCitationFormatPopup.tpl');
+		return array(
+				'title' => 'Select Citation Format',
+				'modalBody' => $pageContent,
+				'modalButtons' => '<input class="btn btn-primary"  onclick="VuFind.Lists.processCiteListForm(); return false;" value="' . translate('Generate Citations') . '">'
+		);
 	}
 
 

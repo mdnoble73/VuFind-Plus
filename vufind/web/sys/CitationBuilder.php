@@ -117,17 +117,30 @@ class CitationBuilder
 
 	private function getMLAFormat(){
 		$formats = $this->details['format'];
-		foreach ($formats as $format){
-			if ($format == 'CD'){
+		if (is_array($formats)){
+			foreach ($formats as $format){
+				if ($format == 'CD'){
+					return 'CD';
+				}elseif ($format == 'DVD' || $format == 'Blu-ray'){
+					return 'DVD';
+				}elseif ($format == 'Book' || $format == 'Large Print' || $format == 'Serial' || $format == 'Musical Score' || $format == 'Journal' || $format == 'Manuscript' || $format == 'Newspaper'){
+					return 'Print';
+				}elseif ($format == 'Internet Link' || $format == 'eBook' || $format == 'eBook' || $format == 'EPUB EBook' || $format == 'Kindle Book' || $format == 'Kindle' || $format == 'Plucker' || $format == 'Adobe PDF eBook' || $format == 'overdrive' || $format == 'Adobe PDF'){
+					return 'Web';
+				}
+			}
+		}else{
+			if ($formats == 'CD'){
 				return 'CD';
-			}elseif ($format == 'DVD' || $format == 'Blu-ray'){
+			}elseif ($formats == 'DVD' || $formats == 'Blu-ray'){
 				return 'DVD';
-			}elseif ($format == 'Book' || $format == 'Large Print' || $format == 'Serial' || $format == 'Musical Score' || $format == 'Journal' || $format == 'Manuscript' || $format == 'Newspaper'){
+			}elseif ($formats == 'Book' || $formats == 'Large Print' || $formats == 'Serial' || $formats == 'Musical Score' || $formats == 'Journal' || $formats == 'Manuscript' || $formats == 'Newspaper'){
 				return 'Print';
-			}elseif ($format == 'Internet Link' || $format == 'eBook' || $format == 'eBook' || $format == 'EPUB EBook' || $format == 'Kindle Book' || $format == 'Kindle' || $format == 'Plucker' || $format == 'Adobe PDF eBook' || $format == 'overdrive' || $format == 'Adobe PDF'){
+			}elseif ($formats == 'Internet Link' || $formats == 'eBook' || $formats == 'eBook' || $formats == 'EPUB EBook' || $formats == 'Kindle Book' || $formats == 'Kindle' || $formats == 'Plucker' || $formats == 'Adobe PDF eBook' || $formats == 'overdrive' || $formats == 'Adobe PDF'){
 				return 'Web';
 			}
 		}
+
 		return '';
 	}
 
