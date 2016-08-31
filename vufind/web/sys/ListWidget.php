@@ -122,6 +122,7 @@ class ListWidget extends DB_DataObject
 			'showAuthor' => array(
 				'property' => 'showAuthor',
 				'type' => 'checkbox',
+				'label' => 'Should the author (catalog items) /format (archive items) for the currently selected item be shown?',
 				'storeDb' => true,
 				'default' => true,
 				'hideInLists' => true,
