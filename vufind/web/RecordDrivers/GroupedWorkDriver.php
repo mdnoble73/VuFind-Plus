@@ -165,7 +165,46 @@ class GroupedWorkDriver extends RecordInterface{
 	 * @return  string              Name of Smarty template file to display.
 	 */
 	public function getCitation($format) {
-		// TODO: Implement getCitation() method.
+		require_once ROOT_DIR . '/sys/CitationBuilder.php';
+
+		// Build author list:
+		$authors = array();
+		$primary = $this->getPrimaryAuthor();
+		if (!empty($primary)) {
+			$authors[] = $primary;
+		}
+		//$authors = array_unique(array_merge($authors, $this->getSecondaryAuthors()));
+
+		// Collect all details for citation builder:
+		$publishers = $this->getPublishers();
+		$pubDates = $this->getPublicationDates();
+		//$pubPlaces = $this->getPlacesOfPublication();
+		$details = array(
+				'authors' => $authors,
+				'title' => $this->getTitleShort(),
+				'subtitle' => $this->getSubtitle(),
+				//'pubPlace' => count($pubPlaces) > 0 ? $pubPlaces[0] : null,
+				'pubName' => count($publishers) > 0 ? $publishers[0] : null,
+				'pubDate' => count($pubDates) > 0 ? $pubDates[0] : null,
+				'edition' => $this->getEdition(),
+				'format' => $this->getFormats()
+		);
+
+		// Build the citation:
+		$citation = new CitationBuilder($details);
+		switch($format) {
+			case 'APA':
+				return $citation->getAPA();
+			case 'AMA':
+				return $citation->getAMA();
+			case 'ChicagoAuthDate':
+				return $citation->getChicagoAuthDate();
+			case 'ChicagoHumanities':
+				return $citation->getChicagoHumanities();
+			case 'MLA':
+				return $citation->getMLA();
+		}
+		return '';
 	}
 
 	/**
@@ -176,7 +215,7 @@ class GroupedWorkDriver extends RecordInterface{
 	 * @return  array               Strings representing citation formats.
 	 */
 	public function getCitationFormats() {
-		// TODO: Implement getCitationFormats() method.
+		return array('AMA', 'APA', 'ChicagoHumanities', 'ChicagoAuthDate', 'MLA');
 	}
 
 	/**

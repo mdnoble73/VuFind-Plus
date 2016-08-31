@@ -419,6 +419,7 @@ class FavoriteHandler
 
 	function getCitations($citationFormat){
 		// Initialise from the current search globals
+		/** @var SearchObject_Solr $searchObject */
 		$searchObject = SearchObjectFactory::initSearchObject();
 		$searchObject->init();
 

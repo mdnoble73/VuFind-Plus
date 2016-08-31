@@ -81,9 +81,13 @@ VuFind.Lists = (function(){
 		},
 
 		citeListAction: function (id) {
-			return VuFind.Account.ajaxLightbox("Citations for List Titles", Globals.path + '/MyAccount/AJAX?method=getCitationFormatsForm&listId=' + id);
+			return VuFind.Account.ajaxLightbox(Globals.path + '/MyAccount/AJAX?method=getCitationFormatsForm&listId=' + id, false);
 			//return false;
 			//TODO: ajax call not working
+		},
+
+		processCiteListForm: function(){
+			$("#citeListForm").submit();
 		},
 
 		batchAddToListAction: function (id){

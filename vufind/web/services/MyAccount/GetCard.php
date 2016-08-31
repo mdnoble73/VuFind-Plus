@@ -84,5 +84,3 @@ class GetCard extends Action
 		$interface->display('layout.tpl');
 	}
 }
-
-?>
