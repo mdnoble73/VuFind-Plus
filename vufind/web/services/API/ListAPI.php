@@ -1024,7 +1024,7 @@ class ListAPI extends Action {
 					$listID = $newlyCreatedListId;
 					$results = array(
 							'success' => true,
-							'message' =>"Created list <a href='/MyAccount/MyList/{$listID}'>{$listName->title}</a>"
+							'message' =>"Created list <a href='/MyAccount/MyList/{$listID}'>{$selectedListTitle}</a>"
 					);
 				}else{
 					return array(
