@@ -1968,7 +1968,22 @@ class GroupedWorkDriver extends RecordInterface{
 		$oclcFastSubjects = array();
 		$localSubjects = array();
 
-		if (!empty($this->fields['lc_subjects'])) {
+		if (!empty($this->fields['lc_subject'])) {
+			$lcSubjects = $this->fields['lc_subject'];
+			$subjects   = array_merge($subjects, $this->fields['lc_subject']);
+		}
+
+		if (!empty($this->fields['bisac_subject'])) {
+			$bisacSubjects = $this->fields['bisac_subject'];
+			$subjects      = array_merge($subjects, $this->fields['bisac_subject']);
+		}
+
+		if (!empty($this->fields['topic_facet'])) {
+			$subjects = array_merge($subjects, $this->fields['topic_facet']);
+		}
+
+		if (!empty($this->fields['subject_facet'])) {
+			$subjects = array_merge($subjects, $this->fields['subject_facet']);
 		}
 
 		// TODO: get local Subjects
@@ -1976,6 +1991,7 @@ class GroupedWorkDriver extends RecordInterface{
 		// TODO: get other subjects
 
 
+		natcasesort($subjects);
 		$interface->assign('subjects', $subjects);
 		$interface->assign('showLCSubjects', $library->showLCSubjects);
 		$interface->assign('showBisacSubjects', $library->showBisacSubjects);
@@ -1983,17 +1999,22 @@ class GroupedWorkDriver extends RecordInterface{
 		$interface->assign('showOtherSubjects', $library->showOtherSubjects);
 
 		if ($library->showLCSubjects) {
+			natcasesort($lcSubjects);
 			$interface->assign('lcSubjects', $lcSubjects);
 		}
 		if ($library->showBisacSubjects) {
+			natcasesort($bisacSubjects);
 			$interface->assign('bisacSubjects', $bisacSubjects);
 		}
 		if ($library->showFastAddSubjects) {
+			natcasesort($oclcFastSubjects);
 			$interface->assign('oclcFastSubjects', $oclcFastSubjects);
 		}
 		if ($library->showOtherSubjects) {
+			natcasesort($otherSubjects);
 			$interface->assign('otherSubjects', $otherSubjects);
 		}
+		natcasesort($localSubjects);
 		$interface->assign('localSubjects', $localSubjects);
 
 	}
