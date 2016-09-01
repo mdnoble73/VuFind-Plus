@@ -661,23 +661,37 @@ abstract class IslandoraDriver extends RecordInterface {
 					$linkedCollections = $tmpObject['driver']->getRelatedCollections();
 					$this->relatedCollections = array_merge($this->relatedCollections, $linkedCollections);
 				}
-			}else{
-				//Get collections directly related to the object
-				$collectionsRaw = $this->archiveObject->relationships->get(FEDORA_RELS_EXT_URI, 'isMemberOfCollection');
-				$fedoraUtils = FedoraUtils::getInstance();
+			}
+			//Get collections directly related to the object
+			$collectionsRaw = $this->archiveObject->relationships->get(FEDORA_RELS_EXT_URI, 'isMemberOfCollection');
+			$fedoraUtils = FedoraUtils::getInstance();
+			foreach ($collectionsRaw as $collectionInfo) {
+				if ($fedoraUtils->isPidValidForPika($collectionInfo['object']['value'])){
+					$collectionObject = $fedoraUtils->getObject($collectionInfo['object']['value']);
+					$this->relatedCollections[$collectionInfo['object']['value']] = array(
+							'pid' => $collectionInfo['object']['value'],
+							'label' => $collectionObject->label,
+							'link' => '/Archive/' . $collectionInfo['object']['value'] . '/Exhibit',
+							'image' => $fedoraUtils->getObjectImageUrl($collectionObject, 'small'),
+							'object' => $collectionObject,
+					);
+				}
+			}
+
+			if (count($this->relatedCollections) == 0){
 				foreach ($collectionsRaw as $collectionInfo) {
-					if ($fedoraUtils->isPidValidForPika($collectionInfo['object']['value'])){
-						$collectionObject = $fedoraUtils->getObject($collectionInfo['object']['value']);
-						$this->relatedCollections[$collectionInfo['object']['value']] = array(
-								'pid' => $collectionInfo['object']['value'],
-								'label' => $collectionObject->label,
-								'link' => '/Archive/' . $collectionInfo['object']['value'] . '/Exhibit',
-								'image' => $fedoraUtils->getObjectImageUrl($collectionObject, 'small'),
-								'object' => $collectionObject,
-						);
+					if (!$fedoraUtils->isPidValidForPika($collectionInfo['object']['value'])){
+						$parentObject = $fedoraUtils->getObject($collectionInfo['object']['value']);
+						/** @var IslandoraDriver $parentDriver */
+						$parentDriver = RecordDriverFactory::initRecordDriver($parentObject);
+						$this->relatedCollections = $parentDriver->getRelatedCollections();
+						if (count($this->relatedCollections) != 0){
+							break;
+						}
 					}
 				}
 			}
+
 			$timer->logTime('Loaded related collections for ' . $this->getUniqueID());
 		}
 
