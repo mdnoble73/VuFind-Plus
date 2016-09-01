@@ -15,5 +15,11 @@ class BookDriver extends CompoundDriver {
 		return 'Book';
 	}
 
-
+	public function getFormat() {
+		$genre = $this->getModsValue('genre', 'mods');
+		if ($genre != null && strlen($genre) > 0){
+			return ucfirst($genre);
+		}
+		return "Book";
+	}
 }
