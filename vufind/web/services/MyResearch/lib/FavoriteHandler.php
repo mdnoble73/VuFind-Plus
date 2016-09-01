@@ -473,5 +473,3 @@ class FavoriteHandler
 		return $this->favorites;
 	}
 }
-
-?>

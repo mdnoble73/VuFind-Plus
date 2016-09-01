@@ -361,6 +361,7 @@ class GroupedWorkDriver extends RecordInterface{
 			$interface->assign('summSeries', $this->getSeries());
 		}else{
 			$interface->assign('ajaxSeries', true);
+			$interface->assign('summSeries', '');
 		}
 
 		$timer->logTime('Finished Loading Series');
@@ -373,6 +374,8 @@ class GroupedWorkDriver extends RecordInterface{
 			$listEntry->listId                 = $listId;
 			if ($listEntry->find(true)) {
 				$interface->assign('listEntryNotes', $listEntry->notes);
+			}else{
+				$interface->assign('listEntryNotes', '');
 			}
 			$interface->assign('listEditAllowed', $allowEdit);
 		}
