@@ -30,7 +30,7 @@
 			{*{$user->firstname|capitalize} {$user->lastname|capitalize|substr:0:1}'s Account*}{*TODO: remove once Nashville approves change. plb 1-12-2016*}
 			<a id="myAccountNameLink" href="{$path}/MyAccount/Home">
 				<div class="header-button header-primary">
-					{$user->displayName|capitalize}'s Account
+					{if $user->displayName}{$user->displayName|capitalize}'s Account{else}My Account{/if}
 				</div>
 			</a>
 		</div>
