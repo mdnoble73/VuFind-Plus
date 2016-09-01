@@ -1956,18 +1956,46 @@ class GroupedWorkDriver extends RecordInterface{
 		}
 		return null;
 	}
+
 	public function getSubjects(){
-		if (isset($this->fields['topic_facet'])) {
-			$subjects = $this->fields['topic_facet'];
-			asort($subjects);
-			return $subjects;
-		}elseif (isset($this->fields['subject_facet'])){
-			$subjects = $this->fields['subject_facet'];
-			asort($subjects);
-			return $subjects;
-		}else{
-			return null;
+		global  $library,
+						$interface;
+
+		$subjects = array();
+		$otherSubjects = array();
+		$lcSubjects = array();
+		$bisacSubjects = array();
+		$oclcFastSubjects = array();
+		$localSubjects = array();
+
+		if (!empty($this->fields['lc_subjects'])) {
 		}
+
+		// TODO: get local Subjects
+		// TODO: get oclc Fast Subjects
+		// TODO: get other subjects
+
+
+		$interface->assign('subjects', $subjects);
+		$interface->assign('showLCSubjects', $library->showLCSubjects);
+		$interface->assign('showBisacSubjects', $library->showBisacSubjects);
+		$interface->assign('showFastAddSubjects', $library->showFastAddSubjects);
+		$interface->assign('showOtherSubjects', $library->showOtherSubjects);
+
+		if ($library->showLCSubjects) {
+			$interface->assign('lcSubjects', $lcSubjects);
+		}
+		if ($library->showBisacSubjects) {
+			$interface->assign('bisacSubjects', $bisacSubjects);
+		}
+		if ($library->showFastAddSubjects) {
+			$interface->assign('oclcFastSubjects', $oclcFastSubjects);
+		}
+		if ($library->showOtherSubjects) {
+			$interface->assign('otherSubjects', $otherSubjects);
+		}
+		$interface->assign('localSubjects', $localSubjects);
+
 	}
 
 	private function mergeItemSummary($localCopies, $itemSummary) {
