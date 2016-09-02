@@ -160,7 +160,7 @@ VuFind.Account = (function(){
 								$('.logoutOptions, #logoutOptions').show();
 
 								// Show user name on page in case page doesn't reload
-								var name = response.result.name.trim();
+								var name = $.trim(response.result.name);
 								//name = 'Logged In As ' + name.slice(0, name.lastIndexOf(' ') + 2) + '.';
 								name = 'Logged In As ' + name.slice(0, 1) + '. ' + name.slice(name.lastIndexOf(' ') + 1, name.length) + '.';
 								$('#side-bar #myAccountNameLink').html(name);
@@ -264,7 +264,7 @@ VuFind.Account = (function(){
 		renewAll: function() {
 			if (Globals.loggedIn) {
 				if (confirm('Renew All Items?')) {
-					VuFind.showMessage('Loading', 'Loading, please wait');
+					VuFind.loadingMessage();
 					$.getJSON(Globals.path + "/MyAccount/AJAX?method=renewAll", function (data) {
 						VuFind.showMessage(data.title, data.modalBody, data.success);
 						// autoclose when all successful
