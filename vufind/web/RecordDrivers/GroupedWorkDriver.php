@@ -165,7 +165,46 @@ class GroupedWorkDriver extends RecordInterface{
 	 * @return  string              Name of Smarty template file to display.
 	 */
 	public function getCitation($format) {
-		// TODO: Implement getCitation() method.
+		require_once ROOT_DIR . '/sys/CitationBuilder.php';
+
+		// Build author list:
+		$authors = array();
+		$primary = $this->getPrimaryAuthor();
+		if (!empty($primary)) {
+			$authors[] = $primary;
+		}
+		//$authors = array_unique(array_merge($authors, $this->getSecondaryAuthors()));
+
+		// Collect all details for citation builder:
+		$publishers = $this->getPublishers();
+		$pubDates = $this->getPublicationDates();
+		//$pubPlaces = $this->getPlacesOfPublication();
+		$details = array(
+				'authors' => $authors,
+				'title' => $this->getTitleShort(),
+				'subtitle' => $this->getSubtitle(),
+				//'pubPlace' => count($pubPlaces) > 0 ? $pubPlaces[0] : null,
+				'pubName' => count($publishers) > 0 ? $publishers[0] : null,
+				'pubDate' => count($pubDates) > 0 ? $pubDates[0] : null,
+				'edition' => $this->getEdition(),
+				'format' => $this->getFormats()
+		);
+
+		// Build the citation:
+		$citation = new CitationBuilder($details);
+		switch($format) {
+			case 'APA':
+				return $citation->getAPA();
+			case 'AMA':
+				return $citation->getAMA();
+			case 'ChicagoAuthDate':
+				return $citation->getChicagoAuthDate();
+			case 'ChicagoHumanities':
+				return $citation->getChicagoHumanities();
+			case 'MLA':
+				return $citation->getMLA();
+		}
+		return '';
 	}
 
 	/**
@@ -176,7 +215,7 @@ class GroupedWorkDriver extends RecordInterface{
 	 * @return  array               Strings representing citation formats.
 	 */
 	public function getCitationFormats() {
-		// TODO: Implement getCitationFormats() method.
+		return array('AMA', 'APA', 'ChicagoHumanities', 'ChicagoAuthDate', 'MLA');
 	}
 
 	/**
@@ -322,6 +361,7 @@ class GroupedWorkDriver extends RecordInterface{
 			$interface->assign('summSeries', $this->getSeries());
 		}else{
 			$interface->assign('ajaxSeries', true);
+			$interface->assign('summSeries', '');
 		}
 
 		$timer->logTime('Finished Loading Series');
@@ -334,6 +374,8 @@ class GroupedWorkDriver extends RecordInterface{
 			$listEntry->listId                 = $listId;
 			if ($listEntry->find(true)) {
 				$interface->assign('listEntryNotes', $listEntry->notes);
+			}else{
+				$interface->assign('listEntryNotes', '');
 			}
 			$interface->assign('listEditAllowed', $allowEdit);
 		}
@@ -646,17 +688,18 @@ class GroupedWorkDriver extends RecordInterface{
 
 	public function getListWidgetTitle(){
 		$widgetTitleInfo = array(
-				'id' => $this->getPermanentId(),
-				'shortId' => $this->getPermanentId(),
+				'id' =>          $this->getPermanentId(),
+				'shortId' =>     $this->getPermanentId(),
 				'recordtype' => 'grouped_work',
-				'image' => $this->getBookcoverUrl('medium'),
+				'image' =>       $this->getBookcoverUrl('medium'),
 				'small_image' => $this->getBookcoverUrl('small'),
-				'title' => $this->getTitle(),
-				'author' => $this->getPrimaryAuthor(),
+				'title' =>       $this->getTitle(),
+				'titleURL' =>    $this->getLinkUrl(true),
+				'author' =>      $this->getPrimaryAuthor(),
 				'description' => $this->getDescriptionFast(),
-				'length' => '',
-				'publisher' => '',
-				'ratingData' => $this->getRatingData(),
+				'length' =>      '',
+				'publisher' =>   '',
+				'ratingData' =>  $this->getRatingData(),
 		);
 		return $widgetTitleInfo;
 	}
@@ -1916,18 +1959,67 @@ class GroupedWorkDriver extends RecordInterface{
 		}
 		return null;
 	}
+
 	public function getSubjects(){
-		if (isset($this->fields['topic_facet'])) {
-			$subjects = $this->fields['topic_facet'];
-			asort($subjects);
-			return $subjects;
-		}elseif (isset($this->fields['subject_facet'])){
-			$subjects = $this->fields['subject_facet'];
-			asort($subjects);
-			return $subjects;
-		}else{
-			return null;
+		global  $library,
+						$interface;
+
+		$subjects = array();
+		$otherSubjects = array();
+		$lcSubjects = array();
+		$bisacSubjects = array();
+		$oclcFastSubjects = array();
+		$localSubjects = array();
+
+		if (!empty($this->fields['lc_subject'])) {
+			$lcSubjects = $this->fields['lc_subject'];
+			$subjects   = array_merge($subjects, $this->fields['lc_subject']);
 		}
+
+		if (!empty($this->fields['bisac_subject'])) {
+			$bisacSubjects = $this->fields['bisac_subject'];
+			$subjects      = array_merge($subjects, $this->fields['bisac_subject']);
+		}
+
+		if (!empty($this->fields['topic_facet'])) {
+			$subjects = array_merge($subjects, $this->fields['topic_facet']);
+		}
+
+		if (!empty($this->fields['subject_facet'])) {
+			$subjects = array_merge($subjects, $this->fields['subject_facet']);
+		}
+
+		// TODO: get local Subjects
+		// TODO: get oclc Fast Subjects
+		// TODO: get other subjects
+
+
+		natcasesort($subjects);
+		$interface->assign('subjects', $subjects);
+		$interface->assign('showLCSubjects', $library->showLCSubjects);
+		$interface->assign('showBisacSubjects', $library->showBisacSubjects);
+		$interface->assign('showFastAddSubjects', $library->showFastAddSubjects);
+		$interface->assign('showOtherSubjects', $library->showOtherSubjects);
+
+		if ($library->showLCSubjects) {
+			natcasesort($lcSubjects);
+			$interface->assign('lcSubjects', $lcSubjects);
+		}
+		if ($library->showBisacSubjects) {
+			natcasesort($bisacSubjects);
+			$interface->assign('bisacSubjects', $bisacSubjects);
+		}
+		if ($library->showFastAddSubjects) {
+			natcasesort($oclcFastSubjects);
+			$interface->assign('oclcFastSubjects', $oclcFastSubjects);
+		}
+		if ($library->showOtherSubjects) {
+			natcasesort($otherSubjects);
+			$interface->assign('otherSubjects', $otherSubjects);
+		}
+		natcasesort($localSubjects);
+		$interface->assign('localSubjects', $localSubjects);
+
 	}
 
 	private function mergeItemSummary($localCopies, $itemSummary) {

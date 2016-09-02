@@ -29,9 +29,11 @@ class CiteList extends Action {
 		//Get all lists for the user
 
 		// Fetch List object
-		if (isset($_REQUEST['id'])){
+		if (isset($_REQUEST['listId'])){
 			/** @var UserList $list */
-			$list = UserList::staticGet($_GET['listId']);
+			$list = new UserList();
+			$list->id = $_GET['listId'];
+			$list->find(true);
 		}
 		$interface->assign('favList', $list);
 
@@ -48,9 +50,7 @@ class CiteList extends Action {
 		$interface->assign('citations', $citations);
 
 		// Display Page
-		$interface->assign('listId', strip_tags($_REQUEST['id']));
-		$interface->setTemplate('listCitations.tpl');
-		$interface->display('layout.tpl');
+		$interface->assign('listId', $list->id);
+		$this->display('listCitations.tpl', 'Citations for ' . $list->title);
 	}
 }
-?>

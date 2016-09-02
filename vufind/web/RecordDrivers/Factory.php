@@ -46,7 +46,7 @@ class RecordDriverFactory {
 			require_once ROOT_DIR . '/sys/Islandora/IslandoraObjectCache.php';
 			$islandoraObjectCache = new IslandoraObjectCache();
 			$islandoraObjectCache->pid = $record->id;
-			if ($islandoraObjectCache->find(true)){
+			if ($islandoraObjectCache->find(true) && !isset($_REQUEST['reload'])){
 				$driver = $islandoraObjectCache->driverName;
 				$path = $islandoraObjectCache->driverPath;
 			}else{
@@ -69,6 +69,12 @@ class RecordDriverFactory {
 						$genre = $record['mods_genre_s'];
 						if ($genre != null){
 							$normalizedRecordType = ucfirst($genre);
+							$driver = $normalizedRecordType . 'Driver';
+							$path = "{$configArray['Site']['local']}/RecordDrivers/{$driver}.php";
+							if (!is_readable($path)) {
+								//print_r($record);
+								$normalizedRecordType = 'Compound';
+							}
 						}
 					}
 					$driver = $normalizedRecordType . 'Driver' ;
@@ -95,7 +101,7 @@ class RecordDriverFactory {
 			require_once ROOT_DIR . '/sys/Islandora/IslandoraObjectCache.php';
 			$islandoraObjectCache = new IslandoraObjectCache();
 			$islandoraObjectCache->pid = $record['PID'];
-			if ($islandoraObjectCache->find(true)){
+			if ($islandoraObjectCache->find(true) && !isset($_REQUEST['reload'])){
 				$driver = $islandoraObjectCache->driverName;
 				$path = $islandoraObjectCache->driverPath;
 			}else {
@@ -114,6 +120,22 @@ class RecordDriverFactory {
 				foreach ($driverNameParts as $driverPart) {
 					$normalizedRecordType .= (ucfirst($driverPart));
 				}
+
+				if ($normalizedRecordType == 'Compound'){
+					$genre = $record['mods_genre_s'];
+					if ($genre != null){
+						$normalizedRecordType = ucfirst($genre);
+						$normalizedRecordType = str_replace(' ', '', $normalizedRecordType);
+
+						$driver = $normalizedRecordType . 'Driver';
+						$path = "{$configArray['Site']['local']}/RecordDrivers/{$driver}.php";
+						if (!is_readable($path)) {
+							//print_r($record);
+							$normalizedRecordType = 'Compound';
+						}
+					}
+				}
+
 				$driver = $normalizedRecordType . 'Driver';
 				$path = "{$configArray['Site']['local']}/RecordDrivers/{$driver}.php";
 

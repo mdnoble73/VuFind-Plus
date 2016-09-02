@@ -9,10 +9,86 @@ VuFind.Archive = (function(){
 		markers: [],
 		sort: 'title',
 		openSeaDragonViewer: null,
+		pageDetails: [],
+		multiPage: false,
+		activeBookViewer: 'jp2',
+		activeBookPage: null,
+		openSeadragonViewerSettings: function(){
+			return {
+				"id": "pika-openseadragon",
+				"prefixUrl": Globals.encodedRepositoryUrl + "\/sites\/all\/libraries\/openseadragon\/images\/",
+				"debugMode": false,
+				"djatokaServerBaseURL": Globals.encodedRepositoryUrl + "\/AJAX\/DjatokaResolver",
+				"tileSize": 256,
+				"tileOverlap": 0,
+				"animationTime": 1.5,
+				"blendTime": 0.1,
+				"alwaysBlend": false,
+				"autoHideControls": 1,
+				"immediateRender": true,
+				"wrapHorizontal": false,
+				"wrapVertical": false,
+				"wrapOverlays": false,
+				"panHorizontal": 1,
+				"panVertical": 1,
+				"minZoomImageRatio": 0.35,
+				"maxZoomPixelRatio": 2,
+				"visibilityRatio": 0.5,
+				"springStiffness": 5,
+				"imageLoaderLimit": 5,
+				"clickTimeThreshold": 300,
+				"clickDistThreshold": 5,
+				"zoomPerClick": 2,
+				"zoomPerScroll": 1.2,
+				"zoomPerSecond": 2,
+				"showNavigator": 1,
+				"defaultZoomLevel": 0,
+				"homeFillsViewer": false
+			}
+		},
+
+		changeActiveBookViewer: function(viewerName, pagePid){
+			this.activeBookViewer = viewerName;
+			// $('#view-toggle').children(".btn .active").removeClass('active');
+
+			if (viewerName == 'pdf'){
+				$('#view-toggle-pdf').prop('checked', true);
+						// .parent('.btn').addClass('active');
+				$("#view-pdf").show();
+				$("#view-image").hide();
+				$("#view-transcription").hide();
+			}else if (viewerName == 'image'){
+				$('#view-toggle-image').prop('checked', true);
+						// .parent('.btn').addClass('active');
+				$("#view-image").show();
+				$("#view-pdf").hide();
+				$("#view-transcription").hide();
+			}else if (viewerName == 'transcription'){
+				$('#view-toggle-transcription').prop('checked', true);
+					// .parent('.btn').addClass('active');
+				$("#view-transcription").show();
+				$("#view-pdf").hide();
+				$("#view-image").hide();
+
+			}
+			return this.loadPage(pagePid);
+		},
 
 		initializeOpenSeadragon: function(viewer){
 			viewer.addHandler("open", this.update_clip);
 			viewer.addHandler("animationfinish", this.update_clip);
+		},
+
+		getMoreExhibitResults: function(exhibitPid){
+			this.curPage = this.curPage +1;
+			var url = Globals.path + "/Archive/AJAX?method=getRelatedObjectsForExhibit&collectionId=" + exhibitPid + "&page=" + this.curPage + "&sort=" + this.sort;
+			url = url + "&reloadHeader=0";
+
+			$.getJSON(url, function(data){
+				if (data.success){
+					$("#nextInsertPoint").replaceWith(data.relatedObjects);
+				}
+			});
 		},
 
 		getMoreMapResults: function(exhibitPid, placePid){
@@ -56,6 +132,30 @@ VuFind.Archive = (function(){
 			return false;
 		},
 
+		handleBookClick: function(bookPid, pagePid, bookViewer) {
+			// Load specified page & viewer
+			//Loading message
+			//Load Page  set-up
+			VuFind.Archive.changeActiveBookViewer(bookViewer, pagePid);
+
+			// store in browser history
+			var stateObj = {
+				bookPid: bookPid,
+				pagePid: pagePid,
+				viewer: bookViewer,
+				page: 'Book'
+			},
+					newUrl = VuFind.buildUrl(document.location.origin + document.location.pathname, 'bookPid', bookPid),
+					newUrl = VuFind.buildUrl(newUrl, 'pagePid', pagePid),
+					newUrl = VuFind.buildUrl(newUrl, 'viewer', bookViewer);
+			//Push the new url, but only if we aren't going back where we just were.
+			if (document.location.href != newUrl){
+				history.pushState(stateObj, '', newUrl);
+			}
+			return false;
+
+		},
+
 		reloadMapResults: function(exhibitPid, placePid, reloadHeader){
 			this.curPage = 1;
 			var url = Globals.path + "/Archive/AJAX?method=getRelatedObjectsForMappedCollection&collectionId=" + exhibitPid + "&placeId=" + placePid + "&page=" + this.curPage + "&sort=" + this.sort;
@@ -85,6 +185,92 @@ VuFind.Archive = (function(){
 			}).fail(VuFind.ajaxFail);
 		},
 
+		/**
+		 * Load a new page into the active viewer
+		 *
+		 * @param pid
+		 */
+		loadPage: function(pid){
+			if (pid == null){
+				return false;
+			}
+			var pageChanged = false;
+			if (this.activeBookPage != pid){
+				pageChanged = true;
+				this.curPage = this.pageDetails[pid]['index'];
+			}
+			this.activeBookPage = pid;
+			// console.log('Page: '+ this.activeBookPage, 'Active Viewer : '+ this.activeBookViewer);
+
+			if (this.activeBookViewer == 'pdf') {
+				// console.log('PDF View called');
+				$('#view-pdf').html(
+						$('<object />').attr({
+							type: 'application/pdf',
+							data: this.pageDetails[pid]['pdf'],
+							class: 'book-pdf' // Class that styles/sizes the PDF page
+						})
+				);
+			}else if(this.activeBookViewer == 'transcription') {
+				// console.log('Transcript Viewer called');
+				var transcriptIdentifier = this.pageDetails[pid]['transcript'];
+				var url = Globals.path + "/Archive/AJAX?transcriptId=" + encodeURI(transcriptIdentifier) + "&method=getTranscript";
+				var transcriptionTarget = $('#view-transcription');
+				transcriptionTarget.html("Loading Transcript, please wait.");
+				$.getJSON(url, function(data) {
+					if (data.success) {
+						transcriptionTarget.html(data.transcript);
+					}
+				}).fail(
+					function(){transcriptionTarget.html("Could not load Transcript.")}
+				);
+
+				// var islandoraURL = this.pageDetails[pid]['transcript'];
+				// var reverseProxy = islandoraURL.replace(/([^\/]*)(?=\/islandora\/)/, location.host);
+				// // reverseProxy = reverseProxy.replace('https', 'http'); // TODO: remove, for local instance only (no https)
+				// // console.log('Fetching: '+reverseProxy);
+				//
+				// $('#view-transcription').load(reverseProxy);
+			}else if (this.activeBookViewer == 'image'){
+				var tile = new OpenSeadragon.DjatokaTileSource(
+						"/AJAX/DjatokaResolver",
+						this.pageDetails[pid]['jp2'],
+						VuFind.Archive.openSeadragonViewerSettings()
+				);
+				if (!$('#pika-openseadragon').hasClass('processed')) {
+					$('#pika-openseadragon').addClass('processed');
+					settings = VuFind.Archive.openSeadragonViewerSettings();
+					settings.tileSources = new Array();
+					settings.tileSources.push(tile);
+					VuFind.Archive.openSeaDragonViewer = new OpenSeadragon(settings);
+				}else{
+					//VuFind.Archive.openSeadragonViewerSettings.tileSources = new Array();
+					//VuFind.Archive.openSeaDragonViewer.close();
+					VuFind.Archive.openSeaDragonViewer.open(tile);
+				}
+				//VuFind.Archive.openSeaDragonViewer.viewport.fitVertically(true);
+			}
+			if (pageChanged && this.multiPage){
+				url = Globals.path + "/Archive/AJAX?method=getAdditionalRelatedObjects&id=" + pid;
+				var additionalRelatedObjectsTarget = $("#additional-related-objects");
+				additionalRelatedObjectsTarget.html("");
+				$.getJSON(url, function(data) {
+					if (data.success) {
+						additionalRelatedObjectsTarget.html(data.additionalObjects);
+					}
+				});
+
+				var pageScroller = $("#book-sections .jcarousel");
+				if (pageScroller){
+					pageScroller.jcarousel('scroll', this.curPage - 1, true);
+					$('#book-sections li').removeClass('active');
+					$('#book-sections .jcarousel li:eq(' + (this.curPage - 1) + ')').addClass('active');
+				}
+			}
+			//alert("Changing display to pid " + pid + " active viewer is " + this.activeBookViewer)
+			return false;
+		},
+
 		showObjectInPopup: function(pid){
 			var url = Globals.path + "/Archive/AJAX?id=" + encodeURI(pid) + "&method=getObjectInfo";
 			VuFind.loadingMessage();
@@ -95,7 +281,7 @@ VuFind.Archive = (function(){
 		},
 
 		/**
-		 * All this is doing is updatign a URL so the patron can download a clipped portion of the image
+		 * All this is doing is updating a URL so the patron can download a clipped portion of the image
 		 * not needed for our basic implementation
 		 *
 		 * @param viewer
@@ -107,7 +293,7 @@ VuFind.Archive = (function(){
 				} else {
 					return new OpenSeadragon.Point(parseInt(d.width * max.y/d.height),max.y);
 				}
-			}
+			};
 			var getDisplayRegion = function(viewer, source) {
 				// Determine portion of scaled image that is being displayed.
 				var box = new OpenSeadragon.Rect(0, 0, source.x, source.y);
@@ -136,7 +322,7 @@ VuFind.Archive = (function(){
 					}
 				}
 				return box;
-			}
+			};
 			var source = viewer.source;
 			var zoom = viewer.viewport.getZoom();
 			var size = new OpenSeadragon.Rect(0, 0, source.dimensions.x, source.dimensions.y);
@@ -156,11 +342,52 @@ VuFind.Archive = (function(){
 				'svc.region': scaled_box.y + ',' + scaled_box.x + ',' + (scaled_box.getBottomRight().y - scaled_box.y) + ',' + (scaled_box.getBottomRight().x - scaled_box.x),
 			};
 			var dimensions = (zoom <= 1) ? source.dimensions.x + ',' + source.dimensions.y : container.x + ',' + container.y;
-			jQuery("#clip").attr('href',  'https://islandora.marmot.org/islandora/object/' + settings.islandoraOpenSeadragon.pid + '/print?' + jQuery.param({
+			jQuery("#clip").attr('href',  Globals.repositoryUrl + '/islandora/object/' + settings.islandoraOpenSeadragon.pid + '/print?' + jQuery.param({
 						'clip': source.baseURL + '?' + jQuery.param(params),
 						'dimensions': dimensions,
 					}));
-		}
+		},
+
+		showSaveToListForm: function (trigger, id){
+			if (Globals.loggedIn){
+				VuFind.loadingMessage();
+				var url = Globals.path + "/Archive/" + id + "/AJAX?method=getSaveToListForm";
+				$.getJSON(url, function(data){
+					VuFind.showMessageWithButtons(data.title, data.modalBody, data.modalButtons);
+				}).fail(VuFind.ajaxFail);
+			}else{
+				VuFind.Account.ajaxLogin($(trigger), function (){
+					VuFind.Archive.showSaveToListForm(trigger, id);
+				});
+			}
+			return false;
+		},
+
+		saveToList: function(id){
+			if (Globals.loggedIn){
+				var listId = $('#addToList-list').val(),
+						notes  = $('#addToList-notes').val(),
+						url    = Globals.path + "/Archive/" + encodeURIComponent(id) + "/AJAX",
+						params = {
+							'method':'saveToList'
+							,notes:notes
+							,listId:listId
+						};
+				$.getJSON(url, params,
+						function(data) {
+							if (data.success) {
+								VuFind.showMessage("Added Successfully", data.message, 2000); // auto-close after 2 seconds.
+							} else {
+								VuFind.showMessage("Error", data.message);
+							}
+						}
+				).fail(VuFind.ajaxFail);
+			}
+			return false;
+		},
+
 	}
+
+
 
 }(VuFind.Archive || {}));

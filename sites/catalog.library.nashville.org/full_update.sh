@@ -92,6 +92,11 @@ checkConflictingProcesses "reindexer.jar"
 #Restart Solr
 cd /usr/local/vufind-plus/sites/${PIKASERVER}; ./${PIKASERVER}.sh restart
 
+#Extracts from sideloaded eContent; log defined in config.pwd.ini [Sideload]
+# Problems with full_update starting late 201608: James moved sideload.sh 
+# initiation to crontab
+# cd /usr/local/vufind-plus/vufind/cron; ./sideload.sh ${PIKASERVER}
+
 #Extract from ILS
 if [ ${PRODUCTION} == "false" ]; then
 # if development or test, scp from production as vufind@catalog.library.nashville.org
@@ -121,9 +126,6 @@ elif [ ${PRODUCTION} == "true" ]; then
 	cd /usr/local/VuFind-Plus/vufind/millennium_export/; expect -f BIB_HOLDS_EXTRACT_PIKA.exp ${PIKASERVER} ${ILSSERVER} >> ${OUTPUT_FILE}
 	cd /usr/local/VuFind-Plus/vufind/millennium_export/; expect -f BIB_EXTRACT_PIKA.exp ${PIKASERVER} ${ILSSERVER} >> ${OUTPUT_FILE}
 fi
-
-#Extracts from sideloaded eContent; log defined in config.pwd.ini [Sideload]
-cd /usr/local/vufind-plus/vufind/cron; ./sideload.sh ${PIKASERVER}
 
 #Extract Lexile Data
 #cd /data/vufind-plus/; wget -N --no-verbose http://venus.marmot.org/lexileTitles.txt

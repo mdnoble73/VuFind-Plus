@@ -19,25 +19,72 @@ class ExploreMore {
 		global $interface;
 		$exploreMoreSectionsToShow = array();
 
-		if ($activeSection == 'archive') {
-			/** @var IslandoraDriver $archiveDriver */
-			$archiveDriver = $recordDriver;
-			if ($archiveDriver instanceof EventDriver || $archiveDriver instanceof PlaceDriver || $archiveDriver instanceof PersonDriver || $archiveDriver instanceof OrganizationDriver){
-				$isEntity = true;
-			}
-		}
-
 		$relatedPikaContent = array();
 		if ($activeSection == 'archive'){
+			//If this is a book or a page, show a table of contents
+			//Check to see if the record is part of a compound object.  If so we will want to link to the parent compound object.
+			if ($recordDriver instanceof PageDriver){
+				/** @var IslandoraDriver $parentObject */
+				$parentObject = $recordDriver->getParentObject();
+
+				if ($parentObject != null){
+					/** @var IslandoraDriver $parentDriver */
+					$parentDriver = RecordDriverFactory::initRecordDriver($parentObject);
+
+					//If the parent object is a section then get the parent again
+					/** @var IslandoraDriver $parentOfParent */
+					$parentOfParent = $parentDriver->getParentObject();
+					if ($parentOfParent != null ){
+						$parentOfParentDriver = RecordDriverFactory::initRecordDriver($parentOfParent);
+						if ($parentOfParentDriver){
+							$parentObject = $parentOfParent;
+							$parentDriver = $parentOfParentDriver;
+						}
+					}
+
+					$exploreMoreSectionsToShow['parentBook'] = array(
+							'title' => 'Entire Book',
+							'format' => 'list',
+							'values' => array(
+									array(
+											'pid' => $parentObject->id,
+											'label' => $parentDriver->getTitle(),
+											'link' => $parentDriver->getRecordUrl(),
+											'image' => $parentDriver->getBookcoverUrl('small'),
+											'object' => $parentObject,
+									),
+							)
+					);
+
+					$exploreMoreSectionsToShow = $this->setupTableOfContentsForBook($parentDriver, $exploreMoreSectionsToShow, false);
+
+					$this->relatedCollections = $parentDriver->getRelatedCollections();
+					if (count($this->relatedCollections) > 0){
+						$exploreMoreSectionsToShow['relatedCollections'] = array(
+								'title' => 'Related Archive Collections',
+								'format' => 'list',
+								'values' => $this->relatedCollections
+						);
+					}
+				}
+			}elseif ($recordDriver instanceof BookDriver || $recordDriver instanceof CompoundDriver){
+				if ($recordDriver->getFormat() != 'Postcard'){
+					/** @var CompoundDriver $bookDriver */
+					$exploreMoreSectionsToShow = $this->setupTableOfContentsForBook($recordDriver, $exploreMoreSectionsToShow, true);
+				}
+			}
+
 			/** @var IslandoraDriver $archiveDriver */
 			$archiveDriver = $recordDriver;
-			$this->relatedCollections = $archiveDriver->getRelatedCollections();
-			if (count($this->relatedCollections) > 0){
-				$exploreMoreSectionsToShow['relatedCollections'] = array(
-						'title' => 'Related Archive Collections',
-						'format' => 'list',
-						'values' => $this->relatedCollections
-				);
+			if (!isset($this->relatedCollections)){
+				$this->relatedCollections = $archiveDriver->getRelatedCollections();
+				if (count($this->relatedCollections) > 0){
+					$exploreMoreSectionsToShow['relatedCollections'] = array(
+							'title' => 'Related Archive Collections',
+							'format' => 'list',
+							'values' => $this->relatedCollections
+					);
+				}
 			}
 
 			//Find content from the catalog that is directly related to the object or collection based on linked data
@@ -630,7 +677,7 @@ class ExploreMore {
 	 * @return array
 	 */
 	public function getRelatedArchiveSubjects($archiveDriver){
-		$relatedObjects = $archiveDriver->getDirectlyLinkedArchiveObjects();
+		$relatedObjects = $archiveDriver->getDirectlyRelatedArchiveObjects();
 		$relatedSubjects = array();
 
 		foreach ($relatedObjects['objects'] as $object){
@@ -671,14 +718,17 @@ class ExploreMore {
 		//Get a list of objects in the archive related to this search
 		$searchObject->setSearchTerms(array(
 				'lookfor' => $searchTerm,
-				'index' => $searchSubjectsOnly ? 'IslandoraKeyword' : 'IslandoraSubject'
+				//TODO: do additional testing with this since it was reversed.
+				'index' => 'IslandoraKeyword'
+				//'index' => $searchSubjectsOnly ? 'IslandoraSubject' : 'IslandoraKeyword'
 		));
 		$searchObject->clearHiddenFilters();
+		$searchObject->clearFilters();
 		$searchObject->addHiddenFilter('!RELS_EXT_isViewableByRole_literal_ms', "administrator");
 		if ($archiveDriver != null){
 			$searchObject->addHiddenFilter('!PID', str_replace(':', '\:', $archiveDriver->getUniqueID()));
 		}
-		$searchObject->clearFilters();
+		$searchObject->addHiddenFilter('!mods_extension_marmotLocal_pikaOptions_showInSearchResults_ms', "no");
 		$searchObject->addFacet('mods_genre_s', 'Format');
 
 		$response = $searchObject->processSearch(true, false);
@@ -695,10 +745,15 @@ class ExploreMore {
 				$searchObject2->setSearchTerms(array(
 						'lookfor' => $searchTerm,
 						'index' => 'IslandoraKeyword'
+						//'index' => $searchSubjectsOnly ? 'IslandoraSubject' : 'IslandoraKeyword'
 				));
+				$searchObject2->clearFilters();
 				$searchObject2->clearHiddenFilters();
 				$searchObject2->addHiddenFilter('!RELS_EXT_isViewableByRole_literal_ms', "administrator");
-				$searchObject2->clearFilters();
+				if ($archiveDriver != null){
+					$searchObject2->addHiddenFilter('!PID', str_replace(':', '\:', $archiveDriver->getUniqueID()));
+				}
+				$searchObject2->addHiddenFilter('!mods_extension_marmotLocal_pikaOptions_showInSearchResults_ms', "no");
 				$searchObject2->addFilter("mods_genre_s:{$relatedContentType[0]}");
 				$response2 = $searchObject2->processSearch(true, false);
 				if ($response2 && $response2['response']['numFound'] > 0) {
@@ -752,7 +807,7 @@ class ExploreMore {
 		$relatedPlaces = array();
 		$relatedOrganizations = array();
 		$relatedEvents = array();
-		$relatedObjects = $archiveDriver->getDirectlyLinkedArchiveObjects();
+		$relatedObjects = $archiveDriver->getDirectlyRelatedArchiveObjects();
 
 		foreach ($relatedObjects['objects'] as $object){
 			/** @var IslandoraDriver $objectDriver */
@@ -885,6 +940,40 @@ class ExploreMore {
 
 	static function sortRelatedEntities($a, $b){
 		return strcasecmp($a["label"], $b["label"]);
+	}
+
+	/**
+	 * @param CompoundDriver $bookDriver
+	 * @param array $exploreMoreSectionsToShow
+	 * @param bool $currentlyShowingBook
+	 * @return array
+	 */
+	private function setupTableOfContentsForBook($bookDriver, $exploreMoreSectionsToShow, $currentlyShowingBook) {
+		global $interface;
+		$bookContents = $bookDriver->loadBookContents();
+		if (count($bookContents) > 1){
+			$exploreMoreSectionsToShow['tableOfContents'] = array(
+					'title' => 'Table of Contents',
+					'format' => 'tableOfContents',
+					'values' => array()
+			);
+			if (!$currentlyShowingBook){
+				$exploreMoreSectionsToShow['tableOfContents']['format'] = 'textOnlyList';
+			}
+			foreach ($bookContents as $section){
+				$firstPageInSection = reset($section['pages']);
+				$section = array(
+						'pid' => $firstPageInSection['pid'],
+						'label' => $section['title'],
+				);
+				if (!$currentlyShowingBook){
+					$section['link'] = $bookDriver->getRecordUrl(false) . '?pagePid=' . $firstPageInSection['pid'];
+				}
+				$exploreMoreSectionsToShow['tableOfContents']['values'][] = $section;
+			}
+		}
+		$interface->assign('bookPid', $bookDriver->getUniqueId());
+		return $exploreMoreSectionsToShow;
 	}
 }
 

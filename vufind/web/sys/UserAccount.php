@@ -309,9 +309,9 @@ class UserAccount {
 	protected static function loadAccountProfiles() {
 		/** @var Memcache $memCache */
 		global $memCache;
-		global $serverName;
+		global $instanceName;
 		global $configArray;
-		$accountProfiles = $memCache->get('account_profiles_' . $serverName);
+		$accountProfiles = $memCache->get('account_profiles_' . $instanceName);
 
 		if ($accountProfiles == false || isset($_REQUEST['reload'])){
 			$accountProfiles = array();
@@ -357,7 +357,7 @@ class UserAccount {
 				);
 				$accountProfiles['ils'] = $additionalInfo;
 			}
-			$memCache->set('account_profiles_' . $serverName, $accountProfiles, 0, $configArray['Caching']['account_profiles']);
+			$memCache->set('account_profiles_' . $instanceName, $accountProfiles, 0, $configArray['Caching']['account_profiles']);
 			global $timer;
 			$timer->logTime("Loaded Account Profiles");
 		}

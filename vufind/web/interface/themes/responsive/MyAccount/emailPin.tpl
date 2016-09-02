@@ -1,3 +1,4 @@
+{strip}
 <div id="page-content" class="col-xs-12">
 
 	<h2>{translate text='Forget Your PIN?'}</h2>
@@ -17,9 +18,10 @@
 		</div>
 	</form>
 </div>
+{/strip}
 <script type="text/javascript">
 	{literal}
-	$(document).ready(function () {
+	$(function () {
 		$("#emailPin").validate();
 	});
 	{/literal}

@@ -1,4 +1,5 @@
 {strip}
+	{if $recordDriver}
 	<div class="row">
 		<div class="result-label col-md-3">{translate text='Tags'}:</div>
 		<div class="col-md-9 result-value">
@@ -25,4 +26,5 @@
 		</div>
 
 	</div>
+	{/if}
 {/strip}

@@ -537,23 +537,26 @@ class SearchObject_Solr extends SearchObject_Base
 	 * results suitable for use while displaying lists
 	 *
 	 * @access  public
-	 * @param   object  $user       User object owning tag/note metadata.
-	 * @param   int     $listId     ID of list containing desired tags/notes (or
+	 * @param   object $user User object owning tag/note metadata.
+	 * @param   int $listId ID of list containing desired tags/notes (or
 	 *                              null to show tags/notes from all user's lists).
-	 * @param   bool    $allowEdit  Should we display edit controls?
-	 * @param   array   $IDList     optional list of IDs to re-order the records by (ie User List sorts)
-	 * @return  array   Array of HTML chunks for individual records.
+	 * @param   bool $allowEdit Should we display edit controls?
+	 * @param   array $IDList optional list of IDs to re-order the records by (ie User List sorts)
+	 * @param    bool $isMixedUserList Used to correctly number items in a list of mixed content (eg catalog & archive content)
+	 * @return array Array of HTML chunks for individual records.
 	 */
-	public function getResultListHTML($user, $listId = null, $allowEdit = true, $IDList = null)
+	public function getResultListHTML($user, $listId = null, $allowEdit = true, $IDList = null, $isMixedUserList = false)
 	{
 		global $interface;
 		$html = array();
 		if ($IDList){
 			//Reorder the documents based on the list of id's
 			$x = 0;
-			foreach ($IDList as $currentId){
+			$nullHolder = null;
+			foreach ($IDList as $listPosition => $currentId){
 				// use $IDList as the order guide for the html
-				$current = null; // empty out in case we don't find the matching record
+				$current = &$nullHolder; // empty out in case we don't find the matching record
+				reset($this->indexResult['response']['docs']);
 				foreach ($this->indexResult['response']['docs'] as $index => $doc) {
 					if ($doc['id'] == $currentId) {
 						$current = & $this->indexResult['response']['docs'][$index];
@@ -563,16 +566,25 @@ class SearchObject_Solr extends SearchObject_Base
 				if (empty($current)) {
 					continue; // In the case the record wasn't found, move on to the next record
 				}else {
-					$interface->assign('recordIndex', $x + 1);
-					$interface->assign('resultIndex', $x + 1 + (($this->page - 1) * $this->limit));
+					if ($isMixedUserList) {
+						$interface->assign('recordIndex', $listPosition + 1);
+						$interface->assign('resultIndex', $listPosition + 1 + (($this->page - 1) * $this->limit));
+					} else {
+						$interface->assign('recordIndex', $x + 1);
+						$interface->assign('resultIndex', $x + 1 + (($this->page - 1) * $this->limit));
+					}
 					if (!$this->debug){
 						unset($current['explain']);
 						unset($current['score']);
 					}
 					/** @var GroupedWorkDriver $record */
 					$record = RecordDriverFactory::initRecordDriver($current);
-					$html[] = $interface->fetch($record->getListEntry($user, $listId, $allowEdit));
-					$x++;
+					if ($isMixedUserList) {
+						$html[$listPosition] = $interface->fetch($record->getListEntry($user, $listId, $allowEdit));
+					} else {
+						$html[] = $interface->fetch($record->getListEntry($user, $listId, $allowEdit));
+						$x++;
+					}
 				}
 			}
 		}else{
@@ -679,18 +691,28 @@ class SearchObject_Solr extends SearchObject_Base
 		return $recordSet;
 	}
 
-	public function getListWidgetTitles(){
+	/**
+	 * @param array $orderedListOfIDs  Use the index of the matched ID as the index of the resulting array of ListWidget data (for later merging)
+	 * @return array
+	 */
+	public function getListWidgetTitles($orderedListOfIDs = array()){
 		$widgetTitles = array();
 		for ($x = 0; $x < count($this->indexResult['response']['docs']); $x++) {
 			$current = & $this->indexResult['response']['docs'][$x];
 			$record = RecordDriverFactory::initRecordDriver($current);
 			if (!PEAR_Singleton::isError($record)){
 				if (method_exists($record, 'getListWidgetTitle')){
-					$widgetTitles[] = $record->getListWidgetTitle();
+					if (!empty($orderedListOfIDs)){
+						$position = array_search($current['id'], $orderedListOfIDs);
+						if ($position !== false){
+							$widgetTitles[$position] = $record->getListWidgetTitle();
+						}
+					} else {
+						$widgetTitles[] = $record->getListWidgetTitle();
+					}
 				}else{
 					$widgetTitles[] = 'List Widget Title not available';
 				}
-
 			}else{
 				$widgetTitles[] = "Unable to find record";
 			}
@@ -1080,7 +1102,7 @@ class SearchObject_Solr extends SearchObject_Base
 						// for reserves:
 						'course', 'inst', 'dept',
 						// for favorites/list:
-						'tag'
+						'tag', 'pagesize'
 					);
 					foreach ($preserveParams as $current) {
 						if (isset($_GET[$current])) {

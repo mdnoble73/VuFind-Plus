@@ -4,7 +4,7 @@
 		{if $user->disableCoverArt != 1}
 			{*<div class='descriptionContent{$summShortId|escape}' style='display:none'>{$summDescription}</div>*}
 			<a href="{$summUrl}">
-				<img src="{$bookCoverUrlMedium}" class="listResultImage img-thumbnail img-responsive" alt="{translate text='Cover Image'}" />
+				<img src="{$bookCoverUrlMedium}" class="listResultImage img-thumbnail img-responsive" alt="{translate text='Cover Image'}">
 			</a>
 		{/if}
 	</div>
@@ -82,6 +82,12 @@
 
 		<div class="row well-small">
 			<div class="col-xs-12 result-value" id="descriptionValue{$summId|escape}">{$summDescription|highlight|truncate_html:450:"..."}</div>
+		</div>
+
+		<div class="row">
+			<div class="col-xs-12">
+				{include file='Archive/result-tools-horizontal.tpl'}
+			</div>
 		</div>
 
 	</div>

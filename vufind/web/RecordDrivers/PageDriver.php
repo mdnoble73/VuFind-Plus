@@ -18,4 +18,6 @@ class PageDriver extends IslandoraDriver {
 	public function getFormat(){
 		return 'Page';
 	}
+
+
 }

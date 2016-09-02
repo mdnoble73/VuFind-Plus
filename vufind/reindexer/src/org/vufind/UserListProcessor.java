@@ -152,22 +152,27 @@ public class UserListProcessor {
 			//Get information about all of the list titles.
 			getTitlesForListStmt.setLong(1, listId);
 			ResultSet allTitlesRS = getTitlesForListStmt.executeQuery();
-			while (allTitlesRS.next()){
+			while (allTitlesRS.next()) {
 				String groupedWorkId = allTitlesRS.getString("groupedWorkPermanentId");
-				SolrQuery query = new SolrQuery();
-				query.setQuery("id:" + groupedWorkId + " AND recordtype:grouped_work");
-				query.setFields("title", "author");
+				if (!groupedWorkId.contains(":")) {
+					// Skip archive object Ids
+					SolrQuery query = new SolrQuery();
+					query.setQuery("id:" + groupedWorkId + " AND recordtype:grouped_work");
+					query.setFields("title", "author");
 
-				QueryResponse response = solrServer.query(query);
-				SolrDocumentList results = response.getResults();
-				//Should only ever get one response
-				if (results.size() >= 1){
-					SolrDocument curWork = results.get(0);
-					userListSolr.addListTitle(groupedWorkId, curWork.getFieldValue("title"), curWork.getFieldValue("author"));
+					QueryResponse response = solrServer.query(query);
+					SolrDocumentList results = response.getResults();
+					//Should only ever get one response
+					if (results.size() >= 1) {
+						SolrDocument curWork = results.get(0);
+						userListSolr.addListTitle(groupedWorkId, curWork.getFieldValue("title"), curWork.getFieldValue("author"));
+					}
 				}
-			}
+				//TODO: Handle Archive Objects from a User List
+				// Index in the catalog solr?
 
-			updateServer.add(userListSolr.getSolrDocument(availableAtLocationBoostValue, ownedByLocationBoostValue));
+				updateServer.add(userListSolr.getSolrDocument(availableAtLocationBoostValue, ownedByLocationBoostValue));
+			}
 		}
 	}
 }

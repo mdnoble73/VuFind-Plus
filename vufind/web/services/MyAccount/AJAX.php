@@ -28,7 +28,7 @@ class MyAccount_AJAX
 			'getReactivationDateForm', //not checked
 			'renewItem', 'renewAll', 'renewSelectedItems', 'getPinResetForm',
 			'getAddAccountLinkForm', 'addAccountLink', 'removeAccountLink',
-			'cancelBooking',
+			'cancelBooking', 'getCitationFormatsForm'
 		);
 		$method = $_GET['method'];
 		if (in_array($method, $valid_json_methods)) {
@@ -60,7 +60,7 @@ class MyAccount_AJAX
 			}
 			echo $output;
 
-		} elseif (in_array($method, array('LoginForm', 'getBulkAddToListForm', 'getPinUpdateForm', 'getCitationFormatsForm'))) {
+		} elseif (in_array($method, array('LoginForm', 'getBulkAddToListForm', 'getPinUpdateForm'))) {
 			header('Content-type: text/html');
 			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
 			header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
@@ -171,7 +171,7 @@ class MyAccount_AJAX
 		$interface->assign('popupTitle', 'Add titles to list');
 		$formDefinition = array(
 			'title' => 'Add titles to list',
-			'modalBody' => $interface->fetch('MyResearch/bulkAddToListPopup.tpl'),
+			'modalBody' => $interface->fetch('MyAccount/bulkAddToListPopup.tpl'),
 			'modalButtons' => "<span class='tool btn btn-primary' onclick='VuFind.Lists.processBulkAddForm(); return false;'>Add To List</span>"
 		);
 		return $formDefinition;
@@ -720,6 +720,7 @@ class MyAccount_AJAX
 
 	function GetListTitles()
 	{
+		/** @var MemCache $memCache */
 		global $memCache;
 		global $configArray;
 		global $timer;
@@ -959,14 +960,16 @@ class MyAccount_AJAX
 		$interface->assign('listId', $_REQUEST['listId']);
 		$citationFormats = CitationBuilder::getCitationFormats();
 		$interface->assign('citationFormats', $citationFormats);
-		$pageContent = $interface->fetch('MyResearch/getCitationFormatPopup.tpl');
-		$interface->assign('popupContent', $pageContent);
-		return $interface->fetch('popup-wrapper.tpl');
+		$pageContent = $interface->fetch('MyAccount/getCitationFormatPopup.tpl');
+		return array(
+				'title' => 'Select Citation Format',
+				'modalBody' => $pageContent,
+				'modalButtons' => '<input class="btn btn-primary"  onclick="VuFind.Lists.processCiteListForm(); return false;" value="' . translate('Generate Citations') . '">'
+		);
 	}
 
 
 	function sendMyListEmail(){
-		// TODO: Implements sending emails of list
 		global $interface, $user;
 
 		// Get data from AJAX request
@@ -982,16 +985,15 @@ class MyAccount_AJAX
 			$list->id = $listId;
 			if ($list->find(true)){
 				// Build Favorites List
-				$titles = $list->getListTitles();
-				$interface->assign('listEntries', $titles); // TODO: if not used, i would like to remove
+				$listEntries = $list->getListTitles();
+				$interface->assign('listEntries', $listEntries);
 
 				// Load the User object for the owner of the list (if necessary):
 				if ($list->public == true || ($user && $user->id == $list->user_id)) {
 					//The user can access the list
 					require_once ROOT_DIR . '/services/MyResearch/lib/FavoriteHandler.php';
-//				$favoriteHandler = new FavoriteHandler($titles, $user, $list->id, false);
 					$favoriteHandler = new FavoriteHandler($list, $user, false);
-					$titleDetails = $favoriteHandler->getTitles(count($titles));
+					$titleDetails = $favoriteHandler->getTitles(count($listEntries));
 					// get all titles for email list, not just a page's worth
 					$interface->assign('titles', $titleDetails);
 					$interface->assign('list', $list);
@@ -1231,6 +1233,7 @@ class MyAccount_AJAX
 				require_once ROOT_DIR . '/sys/LocalEnrichment/UserListEntry.php';
 				$success = true; // assume success now
 				foreach ($updates as $update) {
+					$update['id'] = str_replace('_', ':', $update['id']); // Rebuilt Islandora PIDs
 					$userListEntry                         = new UserListEntry();
 					$userListEntry->listId                 = $listId;
 					$userListEntry->groupedWorkPermanentId = $update['id'];

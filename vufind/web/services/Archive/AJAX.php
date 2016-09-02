@@ -34,6 +34,80 @@ class Archive_AJAX extends Action {
 		echo json_encode($this->$method());
 	}
 
+	function getRelatedObjectsForExhibit(){
+		if (isset($_REQUEST['collectionId'])){
+			global $interface;
+			global $timer;
+			require_once ROOT_DIR . '/sys/Utils/FedoraUtils.php';
+			$fedoraUtils = FedoraUtils::getInstance();
+			$pid = urldecode($_REQUEST['collectionId']);
+			$interface->assign('exhibitPid', $pid);
+
+			$page = isset($_REQUEST['page']) ? $_REQUEST['page'] : 1;
+			$interface->assign('page', $page);
+
+			$sort = isset($_REQUEST['sort']) ? $_REQUEST['sort'] : 'title';
+			$interface->assign('sort', $sort);
+
+			$displayType = 'basic';
+			$interface->assign('displayType', $displayType);
+
+			/** @var SearchObject_Islandora $searchObject */
+			$searchObject = SearchObjectFactory::initSearchObject('Islandora');
+			$searchObject->init();
+			$searchObject->setDebugging(false, false);
+			$searchObject->clearHiddenFilters();
+			$searchObject->addHiddenFilter('!RELS_EXT_isViewableByRole_literal_ms', "administrator");
+			$searchObject->clearFilters();
+			$searchObject->addFilter("RELS_EXT_isMemberOfCollection_uri_ms:\"info:fedora/{$pid}\"");
+			$searchObject->clearFacets();
+
+			$searchObject->setLimit(24);
+
+			$searchObject->setSort('fgs_label_s');
+			$interface->assign('showThumbnailsSorted', true);
+
+			$relatedObjects = array();
+			$response = $searchObject->processSearch(true, false);
+			if ($response && isset($response['error'])){
+				$interface->assign('solrError', $response['error']['msg']);
+				$interface->assign('solrLink', $searchObject->getFullSearchUrl());
+			}
+			if ($response && isset($response['response']) && $response['response']['numFound'] > 0) {
+				$summary = $searchObject->getResultSummary();
+				$interface->assign('recordCount', $summary['resultTotal']);
+				$interface->assign('recordStart', $summary['startRecord']);
+				$interface->assign('recordEnd',   $summary['endRecord']);
+
+				foreach ($response['response']['docs'] as $objectInCollection){
+					/** @var IslandoraDriver $firstObjectDriver */
+					$firstObjectDriver = RecordDriverFactory::initRecordDriver($objectInCollection);
+					$relatedObjects[] = array(
+							'title' => $firstObjectDriver->getTitle(),
+							'description' => $firstObjectDriver->getDescription(),
+							'image' => $firstObjectDriver->getBookcoverUrl('medium'),
+							'dateCreated' => $firstObjectDriver->getDateCreated(),
+							'link' => $firstObjectDriver->getRecordUrl(),
+							'pid' => $firstObjectDriver->getUniqueID()
+					);
+					$timer->logTime('Loaded related object');
+				}
+
+			}
+
+			$interface->assign('relatedObjects', $relatedObjects);
+			return array(
+					'success' => true,
+					'relatedObjects' => $interface->fetch('Archive/relatedObjects.tpl')
+			);
+		}else{
+			return array(
+					'success' => false,
+					'message' => 'You must supply the collection and place to load data for'
+			);
+		}
+	}
+
 	function getRelatedObjectsForMappedCollection(){
 		if (isset($_REQUEST['collectionId']) && isset($_REQUEST['placeId'])){
 			global $interface;
@@ -52,6 +126,9 @@ class Archive_AJAX extends Action {
 			/** @var FedoraObject $placeObject */
 			$placeObject = $fedoraUtils->getObject($placeId);
 			$interface->assign('placePid', $placeId);
+
+			$interface->assign('displayType', 'map');
+
 			$interface->assign('label', $placeObject->label);
 
 			$page = isset($_REQUEST['page']) ? $_REQUEST['page'] : 1;
@@ -82,36 +159,45 @@ class Archive_AJAX extends Action {
 						$filter .= ' OR ';
 					}
 					if ($date == ''){
-						$filter .= "mods_originInfo_dateCreated_dt:[* TO *]";
+						$filter .= "mods_originInfo_point_start_qualifier__dateCreated_dt:[* TO *] OR mods_originInfo_point_start_dateCreated_dt:[* TO *]";
 					}elseif ($date == 'before1880'){
-						$filter .= "mods_originInfo_dateCreated_dt:[* TO 1879-12-31T23:59:59Z]";
+						$filter .= "mods_originInfo_point_start_qualifier__dateCreated_dt:[* TO 1879-12-31T23:59:59Z] OR mods_originInfo_point_start_dateCreated_dt:[* TO 1879-12-31T23:59:59Z]";
 					}else{
 						$startYear = substr($date, 0, 4);
 						$endYear = $startYear + 9;
-						$filter .= "mods_originInfo_dateCreated_dt:[$date TO $endYear-12-31T23:59:59Z]";
+						$filter .= "mods_originInfo_point_start_qualifier__dateCreated_dt:[$date TO $endYear-12-31T23:59:59Z] OR mods_originInfo_point_start_dateCreated_dt:[$date TO $endYear-12-31T23:59:59Z]";
 					}
 
 				}
 				$searchObject->addFilter($filter);
 			}
 			$searchObject->clearFacets();
-			$searchObject->addFacet('mods_originInfo_dateCreated_dt', 'Date Created');
+			$searchObject->addFacet('mods_originInfo_point_start_qualifier__dateCreated_dt', 'Date Created');
+			$searchObject->addFacet('mods_originInfo_point_start_dateCreated_dt', 'Date Created 2');
 			$searchObject->addFacetOptions(array(
-					'facet.range' => 'mods_originInfo_dateCreated_dt',
-					'f.mods_originInfo_dateCreated_dt.facet.missing' => 'true',
-					'f.mods_originInfo_dateCreated_dt.facet.range.start' => '1880-01-01T00:00:00Z',
-					'f.mods_originInfo_dateCreated_dt.facet.range.end' => 'NOW/YEAR',
-					'f.mods_originInfo_dateCreated_dt.facet.range.hardend' => 'true',
-					'f.mods_originInfo_dateCreated_dt.facet.range.gap' => '+10YEAR',
-					'f.mods_originInfo_dateCreated_dt.facet.range.other' => 'all',
+					'facet.range' => array('mods_originInfo_point_start_qualifier__dateCreated_dt', 'mods_originInfo_point_start_dateCreated_dt'),
+					'facet.range.1' => 'mods_originInfo_point_start_dateCreated_dt',
+					'f.mods_originInfo_point_start_qualifier__dateCreated_dt.facet.missing' => 'true',
+					'f.mods_originInfo_point_start_qualifier__dateCreated_dt.facet.range.start' => '1880-01-01T00:00:00Z',
+					'f.mods_originInfo_point_start_qualifier__dateCreated_dt.facet.range.end' => 'NOW/YEAR',
+					'f.mods_originInfo_point_start_qualifier__dateCreated_dt.facet.range.hardend' => 'true',
+					'f.mods_originInfo_point_start_qualifier__dateCreated_dt.facet.range.gap' => '+10YEAR',
+					'f.mods_originInfo_point_start_qualifier__dateCreated_dt.facet.range.other' => 'all',
+					'f.mods_originInfo_point_start_dateCreated_dt.facet.missing' => 'true',
+					'f.mods_originInfo_point_start_dateCreated_dt.facet.range.start' => '1880-01-01T00:00:00Z',
+					'f.mods_originInfo_point_start_dateCreated_dt.facet.range.end' => 'NOW/YEAR',
+					'f.mods_originInfo_point_start_dateCreated_dt.facet.range.hardend' => 'true',
+					'f.mods_originInfo_point_start_dateCreated_dt.facet.range.gap' => '+10YEAR',
+					'f.mods_originInfo_point_start_dateCreated_dt.facet.range.other' => 'all',
 			));
 			if ($sort == 'title') {
 				$searchObject->setSort('fgs_label_s');
 			}elseif ($sort == 'newest') {
-				$searchObject->setSort('mods_originInfo_dateCreated_dt desc,fgs_label_s asc');
+				$searchObject->setSort('mods_originInfo_point_start_qualifier__dateCreated_dt desc, mods_originInfo_point_start_dateCreated_dt desc,fgs_label_s asc');
 			}elseif ($sort == 'oldest') {
-				$searchObject->setSort('mods_originInfo_dateCreated_dt asc,fgs_label_s asc');
+				$searchObject->setSort('mods_originInfo_point_start_qualifier__dateCreated_dt asc, mods_originInfo_point_start_dateCreated_dt asc,fgs_label_s asc');
 			}
+			$interface->assign('showThumbnailsSorted', true);
 
 			$searchObject->setLimit(24);
 
@@ -142,32 +228,75 @@ class Archive_AJAX extends Action {
 				}
 				if (count($response['facet_counts']['facet_ranges']) > 0){
 					$dateFacetInfo = array();
-					$dateCreatedInfo = $response['facet_counts']['facet_ranges']['mods_originInfo_dateCreated_dt'];
-					if ($dateCreatedInfo['before'] > 0){
-						$dateFacetInfo[] = array(
-								'label' => 'Before 1880',
-								'count' => $dateCreatedInfo['before'],
-								'value' => 'before1880'
-						);
+					if (isset($response['facet_counts']['facet_ranges']['mods_originInfo_point_start_qualifier__dateCreated_dt'])){
+						$dateCreatedInfo = $response['facet_counts']['facet_ranges']['mods_originInfo_point_start_qualifier__dateCreated_dt'];
+						if ($dateCreatedInfo['before'] > 0){
+							$dateFacetInfo['Before 1880'] = array(
+									'label' => 'Before 1880',
+									'count' => $dateCreatedInfo['before'],
+									'value' => 'before1880'
+							);
+						}
+						foreach($dateCreatedInfo['counts'] as $facetInfo){
+							$dateFacetInfo[substr($facetInfo[0], 0,4) . '\'s'] = array(
+									'label' => substr($facetInfo[0], 0,4) . '\'s',
+									'count' => $facetInfo[1],
+									'value' => $facetInfo[0]
+							);
+						}
+						if (isset($response['facet_counts']['facet_fields'])){
+							foreach($response['facet_counts']['facet_fields']['mods_originInfo_point_start_qualifier__dateCreated_dt'] as $facetInfo){
+								if ($facetInfo[0] == null){
+									$dateFacetInfo['Unknown'] = array(
+											'label' => 'Unknown',
+											'count' => $facetInfo[1],
+											'value' => $facetInfo[0]
+									);
+								}
+							}
+						}
 					}
-					foreach($dateCreatedInfo['counts'] as $facetInfo){
-						$dateFacetInfo[] = array(
-								'label' => substr($facetInfo[0], 0,4) . '\'s',
-								'count' => $facetInfo[1],
-								'value' => $facetInfo[0]
-						);
-					}
-					if (isset($response['facet_counts']['facet_fields'])){
-						foreach($response['facet_counts']['facet_fields']['mods_originInfo_dateCreated_dt'] as $facetInfo){
-							if ($facetInfo[0] == null){
-								$dateFacetInfo[] = array(
-										'label' => 'Unknown',
+					if (isset($response['facet_counts']['facet_ranges']['mods_originInfo_point_start_dateCreated_dt'])) {
+						$dateCreatedInfo = $response['facet_counts']['facet_ranges']['mods_originInfo_point_start_dateCreated_dt'];
+						if ($dateCreatedInfo['before'] > 0) {
+							if (isset($dateFacetInfo['before'])) {
+								$dateFacetInfo['before']['count'] += $dateCreatedInfo['before'];
+							} else {
+								$dateFacetInfo['before'] = array(
+										'label' => 'Before 1880',
+										'count' => $dateCreatedInfo['before'],
+										'value' => 'before1880'
+								);
+							}
+						}
+						foreach ($dateCreatedInfo['counts'] as $facetInfo) {
+							if (isset($dateFacetInfo[substr($facetInfo[0], 0, 4) . '\'s'])) {
+								$dateFacetInfo[substr($facetInfo[0], 0, 4) . '\'s']['count'] += $facetInfo[1];
+							} else {
+								$dateFacetInfo[substr($facetInfo[0], 0, 4) . '\'s'] = array(
+										'label' => substr($facetInfo[0], 0, 4) . '\'s',
 										'count' => $facetInfo[1],
 										'value' => $facetInfo[0]
 								);
 							}
 						}
+						if (isset($response['facet_counts']['facet_fields'])) {
+							foreach ($response['facet_counts']['facet_fields']['mods_originInfo_point_start_qualifier__dateCreated_dt'] as $facetInfo) {
+								if ($facetInfo[0] == null) {
+									if (isset($dateFacetInfo['Unknown'])) {
+										$dateFacetInfo['Unknown']['count'] += $facetInfo[1];
+									} else {
+										$dateFacetInfo[] = array(
+												'label' => 'Unknown',
+												'count' => $facetInfo[1],
+												'value' => $facetInfo[0]
+										);
+									}
+								}
+							}
+						}
 					}
+
 					$interface->assign('dateFacetInfo', $dateFacetInfo);
 				}
 			}
@@ -240,5 +369,157 @@ class Archive_AJAX extends Action {
 				'modalBody' => $interface->fetch('Archive/archivePopup.tpl'),
 				'modalButtons' => "<a href='$url'><button class='modal-buttons btn btn-primary'>More Info</button></a>"
 		);
+	}
+
+	public function getTranscript(){
+		global $configArray;
+		$objectUrl = $configArray['Islandora']['objectUrl'];
+		$transcriptIdentifier = urldecode($_REQUEST['transcriptId']);
+		if (strlen($transcriptIdentifier) == 0){
+			return array(
+					'success' => true,
+					'transcript' => "There is no transcription available for this page.",
+			);
+		}else{
+			$transcriptUrl = $objectUrl . '/' . $transcriptIdentifier;
+			$transcript = file_get_contents($transcriptUrl);
+
+			if ($transcript){
+				return array(
+						'success' => true,
+						'transcript' => $transcript,
+				);
+			}else{
+				return array(
+						'success' => false,
+				);
+			}
+		}
+	}
+
+	public function getAdditionalRelatedObjects(){
+		global $interface;
+		require_once ROOT_DIR . '/sys/Utils/FedoraUtils.php';
+		$fedoraUtils = FedoraUtils::getInstance();
+
+		$pid = $_REQUEST['id'];
+		$interface->assign('pid', $pid);
+		$archiveObject = $fedoraUtils->getObject($pid);
+		/** @var IslandoraDriver $recordDriver */
+		$recordDriver = RecordDriverFactory::initRecordDriver($archiveObject);
+		$interface->assign('recordDriver', $recordDriver);
+		$directlyRelatedObjects = $recordDriver->getDirectlyRelatedArchiveObjects();
+
+		$interface->assign('directlyRelatedObjects', $directlyRelatedObjects);
+
+		return array(
+				'success' => true,
+				'additionalObjects' => $interface->fetch('Archive/additionalRelatedObjects.tpl')
+		);
+	}
+
+	function getSaveToListForm(){
+		global $interface;
+		global $user;
+
+		$id = $_REQUEST['id'];
+		$interface->assign('id', $id);
+
+		require_once ROOT_DIR . '/sys/LocalEnrichment/UserListEntry.php';
+
+		//Get a list of all lists for the user
+		$containingLists = array();
+		$nonContainingLists = array();
+
+		$userLists = new UserList();
+		$userLists->user_id = $user->id;
+		$userLists->deleted = 0;
+		$userLists->orderBy('title');
+		$userLists->find();
+		while ($userLists->fetch()){
+			//Check to see if the user has already added the title to the list.
+			$userListEntry = new UserListEntry();
+			$userListEntry->listId = $userLists->id;
+			$userListEntry->groupedWorkPermanentId = $id;
+			if ($userListEntry->find(true)){
+				$containingLists[] = array(
+					'id' => $userLists->id,
+					'title' => $userLists->title
+				);
+			}else{
+				$nonContainingLists[] = array(
+					'id' => $userLists->id,
+					'title' => $userLists->title
+				);
+			}
+		}
+
+		$interface->assign('containingLists', $containingLists);
+		$interface->assign('nonContainingLists', $nonContainingLists);
+
+		$results = array(
+			'title' => 'Add To List',
+			'modalBody' => $interface->fetch("GroupedWork/save.tpl"),
+			'modalButtons' => "<button class='tool btn btn-primary' onclick='VuFind.Archive.saveToList(\"{$id}\"); return false;'>Save To List</button>"
+		);
+		return $results;
+	}
+
+	function saveToList(){
+		$result = array();
+
+		global $user;
+		if ($user === false) {
+			$result['success'] = false;
+			$result['message'] = 'Please login before adding a title to list.';
+		}else{
+			require_once ROOT_DIR . '/sys/LocalEnrichment/UserList.php';
+			require_once ROOT_DIR . '/sys/LocalEnrichment/UserListEntry.php';
+			$result['success'] = true;
+			$id = urldecode($_REQUEST['id']);
+			$listId = $_REQUEST['listId'];
+			$notes = $_REQUEST['notes'];
+
+			//Check to see if we need to create a list
+			$userList = new UserList();
+			$listOk = true;
+			if (empty($listId)){
+				$userList->title = "My Favorites";
+				$userList->user_id = $user->id;
+				$userList->public = 0;
+				$userList->description = '';
+				$userList->insert();
+			}else{
+				$userList->id = $listId;
+				if (!$userList->find(true)){
+					$result['success'] = false;
+					$result['message'] = 'Sorry, we could not find that list in the system.';
+					$listOk = false;
+				}
+			}
+
+			if ($listOk){
+				$userListEntry = new UserListEntry();
+				$userListEntry->listId = $userList->id;
+				$userListEntry->groupedWorkPermanentId = $id;
+
+				$existingEntry = false;
+				if ($userListEntry->find(true)){
+					$existingEntry = true;
+				}
+				$userListEntry->notes = $notes;
+				$userListEntry->dateAdded = time();
+				if ($existingEntry){
+					$userListEntry->update();
+				}else{
+					$userListEntry->insert();
+				}
+			}
+
+			$result['success'] = true;
+			$result['message'] = 'This title was saved to your list successfully.';
+		}
+
+		return $result;
 	}
 }

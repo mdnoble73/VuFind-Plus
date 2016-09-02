@@ -477,7 +477,7 @@ public abstract class MarcRecordProcessor {
 					|| subjectForm.equalsIgnoreCase("Atlas")
 					|| subjectForm.equalsIgnoreCase("Atlases")
 					|| subjectForm.equalsIgnoreCase("Study guides")
-					){
+					) {
 				addToMapWithCount(literaryFormsWithCount, "Non Fiction");
 				addToMapWithCount(literaryFormsFull, "Non Fiction");
 			}else{
@@ -485,6 +485,18 @@ public abstract class MarcRecordProcessor {
 					//logger.warn("Unknown subject form " + subjectForm);
 					unknownSubjectForms.add(subjectForm);
 				}
+			}
+		}
+
+		//Check the subjects
+		Set<String> subjectGenreData = getFieldList(record, "655a");
+		for(String subjectForm : subjectGenreData) {
+			subjectForm = Util.trimTrailingPunctuation(subjectForm).toLowerCase();
+			if (subjectForm.startsWith("instructional film")
+					|| subjectForm.startsWith("educational film")
+					) {
+				addToMapWithCount(literaryFormsWithCount, "Non Fiction");
+				addToMapWithCount(literaryFormsFull, "Non Fiction");
 			}
 		}
 		groupedWork.addLiteraryForms(literaryFormsWithCount);

@@ -1408,6 +1408,8 @@ class Solr implements IndexEngine {
 				$handler = 'TitleProper';
 			}else if ($handler == 'IslandoraKeyword'){
 				$handler = 'IslandoraKeywordProper';
+			}else if ($handler == 'IslandoraSubject'){
+				$handler = 'IslandoraSubjectProper';
 			}
 		}
 
@@ -1696,8 +1698,8 @@ class Solr implements IndexEngine {
 			$options['f.title_full.hl.fragsize'] = 1000;
 		}
 
+		$solrSearchDebug = print_r($options, true) . "\n";
 		if ($this->debugSolrQuery) {
-			$solrSearchDebug = print_r($options, true) . "\n";
 
 			if ($filters) {
 				$solrSearchDebug .= "\nFilterQuery: ";

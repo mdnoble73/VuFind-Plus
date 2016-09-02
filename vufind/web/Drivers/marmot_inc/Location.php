@@ -358,7 +358,7 @@ class Location extends DB_DataObject
 			unset($structure['automaticTimeoutLength']);
 			unset($structure['automaticTimeoutLengthLoggedOut']);
 		}
-		if (!$user->hasRole('opacAdmin')){
+		if (!$user->hasRole('opacAdmin') && !$user->hasRole('libraryAdmin')){
 			unset($structure['isMainBranch']);
 		}
 		return $structure;
@@ -513,7 +513,7 @@ class Location extends DB_DataObject
 			$locationCode = $this->getBranchLocationCode();
 			if (!empty($locationCode) && $locationCode != 'all'){
 				$activeLocation = new Location();
-				$activeLocation->code = $locationCode;
+				$activeLocation->subLocation = $locationCode;
 				if ($activeLocation->find(true)){
 					//Only use the location if we are in the subdomain for the parent library
 					if ($library->libraryId == $activeLocation->libraryId){
@@ -525,7 +525,7 @@ class Location extends DB_DataObject
 				}else{
 					//Check to see if we can get the active location based off the sublocation
 					$activeLocation = new Location();
-					$activeLocation->subLocation = $locationCode;
+					$activeLocation->code = $locationCode;
 					if ($activeLocation->find(true)){
 						//Only use the location if we are in the subdomain for the parent library
 						if ($library->libraryId == $activeLocation->libraryId){

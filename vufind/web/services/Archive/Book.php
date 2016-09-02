@@ -16,68 +16,37 @@ class Archive_Book extends Archive_Object{
 		//$this->loadExploreMoreContent();
 
 		//Get the contents of the book
-		$bookContents = $this->loadBookContents();
+		$bookContents = $this->recordDriver->loadBookContents();
 		$interface->assign('bookContents', $bookContents);
 
 		$interface->assign('showExploreMore', true);
 
-		// Display Page
-		$this->display('book.tpl');
-	}
-
-	private function loadBookContents() {
-		$rels_predicate = 'isConstituentOf';
-		$objects = array();
-
-		$fedoraUtils = FedoraUtils::getInstance();
-
-		$escaped_pid = str_replace(':', '_', $this->pid);
-		$query = <<<EOQ
-PREFIX islandora-rels-ext: <http://islandora.ca/ontology/relsext#>
-SELECT ?object ?title ?seq
-FROM <#ri>
-WHERE {
-  ?object <fedora-model:label> ?title ;
-          <fedora-rels-ext:$rels_predicate> <info:fedora/{$this->pid}> .
-  OPTIONAL {
-    ?object islandora-rels-ext:isSequenceNumberOf$escaped_pid ?seq
-  }
-}
-EOQ;
-
-		$queryResults = $fedoraUtils->doSparqlQuery($query);
-
-		// Sort the objects into their proper order.
-		$sort = function($a, $b) {
-			$a = $a['seq']['value'];
-			$b = $b['seq']['value'];
-			if ($a === $b) {
-				return 0;
+		//Get the active page pid
+		if (isset($_REQUEST['pagePid'])){
+			$interface->assign('activePage', $_REQUEST['pagePid']);
+			// The variable page is used by the javascript url creation to track the kind of object we are in, ie Book, Map, ..
+		}else{
+			//Get the first page from the contents
+			foreach($bookContents as $section){
+				if (count($section['pages'])){
+					$firstPage = reset($section['pages']);
+					$interface->assign('activePage', $firstPage['pid']);
+					break;
+				}else{
+					$interface->assign('activePage', $section['pid']);
+					break;
+				}
 			}
-			if (empty($a)) {
-				return 1;
-			}
-			if (empty($b)) {
-				return -1;
-			}
-			return $a - $b;
-		};
-		uasort($queryResults, $sort);
-
-		foreach ($queryResults as $result) {
-			$objectPid = $result['object']['value'];
-			//TODO: check access
-			$archiveObject = $fedoraUtils->getObject($objectPid);
-			$objects[$objectPid] = array(
-					'pid' => $objectPid,
-					'title' => $result['title']['value'],
-					'seq' => $result['seq']['value'],
-					'cover' => $fedoraUtils->getObjectImageUrl($archiveObject, 'thumbnail')
-			);
 		}
 
-		return $objects;
+		if (isset($_REQUEST['viewer'])){
+			$interface->assign('activeViewer', $_REQUEST['viewer']);
+		}else{
+			$interface->assign('activeViewer', 'image');
+		}
 
+		// Display Page
+		$this->display('book.tpl');
 	}
 
 

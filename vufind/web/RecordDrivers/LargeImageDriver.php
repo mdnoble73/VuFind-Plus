@@ -16,6 +16,6 @@ class LargeImageDriver extends IslandoraDriver {
 	}
 
 	public function getFormat(){
-		return 'High Resolution Image';
+		return 'Image';
 	}
 }
