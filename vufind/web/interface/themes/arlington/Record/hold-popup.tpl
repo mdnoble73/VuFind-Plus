@@ -80,16 +80,16 @@
 							$('#campus').change(function(){
 								var users = $('option:selected', this).data('users'),
 										options = '';
-									users.forEach(function(userId){
-										options += '<option value="'+userId+'">'+userNames[userId]+'</option>'
-									});
+								$.each(users, function(indexIgnored,userId){
+									options += '<option value="'+userId+'">'+userNames[userId]+'</option>'
+								});
 									$('#userOption select').html(options);
 							}).change(); /* trigger on initial load */
 						})
 						{/literal}
 						{* /* when hiding single account pick-up locations */
 						if (Array.isArray(users) && users.length > 1) {
-									users.forEach(function(userId){
+								$.each(users, function(indexIgnored,userId){
 										options += '<option value="'+userId+'">'+userNames[userId]+'</option>'
 									});
 									$('#userOption select').html(options);
