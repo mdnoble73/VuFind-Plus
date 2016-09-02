@@ -43,6 +43,10 @@ abstract class IslandoraDriver extends RecordInterface {
 		$this->snippetCaptions = isset($searchSettings['Snippet_Captions']) && is_array($searchSettings['Snippet_Captions']) ? $searchSettings['Snippet_Captions'] : array();
 	}
 
+	function getArchiveObject(){
+		return $this->archiveObject;
+	}
+
 	function getBookcoverUrl($size = 'small'){
 		global $configArray;
 		$objectUrl = $configArray['Islandora']['objectUrl'];
@@ -103,14 +107,34 @@ abstract class IslandoraDriver extends RecordInterface {
 
 		$interface->assign('summUrl', $url);
 		$interface->assign('summTitle', $this->getTitle());
+//		$interface->assign('summAuthor', null); // Commented out in the template for now. plb 8-25-2016
 
-		$interface->assign('summFormat', $this->getFormat());
+//		$interface->assign('summFormat', $this->getFormat()); // Not used in the template below. plb 8-25-2016
 
-		//Get Rating
+		//Get Book Covers
 		$interface->assign('bookCoverUrl', $this->getBookcoverUrl('small'));
 		$interface->assign('bookCoverUrlMedium', $this->getBookcoverUrl('medium'));
 
 		return 'RecordDrivers/Islandora/browse_result.tpl';
+	}
+	public function getListWidgetTitle(){
+		$widgetTitleInfo = array(
+			'id' =>          $this->getUniqueID(),
+			'shortId' =>     $this->getUniqueID(),
+			'recordtype' => 'archive', //TODO: meh, islandora?
+			'image' =>       $this->getBookcoverUrl('medium'),
+			'small_image' => $this->getBookcoverUrl('small'),
+			'title' =>       $this->getTitle(),
+		  'titleURL' =>    $this->getLinkUrl(true), // Include site URL
+//			'author' =>      $this->getPrimaryAuthor(),
+			'author' =>      $this->getFormat(), // Display the Format of Archive Object where the author would be otherwise displayed in the ListWidget
+			'description' => $this->getDescription(),
+			'length' =>      '', // TODO: do list widgets use this
+			'publisher' =>   '', // TODO: do list widgets use this
+			'ratingData' =>  null,
+//			'ratingData' =>  $this->getRatingData(),
+		);
+		return $widgetTitleInfo;
 	}
 
 	/**
@@ -210,9 +234,73 @@ abstract class IslandoraDriver extends RecordInterface {
 	 * @param   bool $allowEdit Should we display edit controls?
 	 * @return  string              Name of Smarty template file to display.
 	 */
+//	public function getListEntry($user, $listId = null, $allowEdit = true) {
+//		// TODO: Implement getListEntry() method.
+//	}
+
+	/**
+	 * Assign necessary Smarty variables and return a template name to
+	 * load in order to display a summary of the item suitable for use in
+	 * user's favorites list.
+	 *
+	 * @access  public
+	 * @param   object $user User object owning tag/note metadata.
+	 * @param   int $listId ID of list containing desired tags/notes (or
+	 *                              null to show tags/notes from all user's lists).
+	 * @param   bool $allowEdit Should we display edit controls?
+	 * @return  string              Name of Smarty template file to display.
+	 */
 	public function getListEntry($user, $listId = null, $allowEdit = true) {
-		// TODO: Implement getListEntry() method.
+		global $interface;
+
+		$id = $this->getUniqueID();
+		$interface->assign('summId', $id);
+		$interface->assign('jquerySafeId', str_replace(':', '_', $id)); // make id safe for jquery & css calls
+		$interface->assign('summTitle', $this->getTitle());
+		$interface->assign('module', $this->getModule());
+		$interface->assign('summUrl', $this->getLinkUrl());
+		$interface->assign('summDescription', $this->getDescription());
+		$interface->assign('summFormat', $this->getFormat());
+
+		// The below template variables are in the listentry.tpl but the driver doesn't currently
+		// supply this information, so we are making sure they are set to a null value.
+		$interface->assign('summShortId', null);
+		$interface->assign('summTitleStatement', null);
+		$interface->assign('summAuthor', null);
+		$interface->assign('summPublisher', null);
+		$interface->assign('summPubDate', null);
+		$interface->assign('$summSnippets', null);
+
+
+		//Determine the cover to use
+//		$interface->assign('bookCoverUrl', $this->getBookcoverUrl('small'));
+		$interface->assign('bookCoverUrlMedium', $this->getBookcoverUrl('medium'));
+
+
+		//Get information from list entry
+		if ($listId) {
+			require_once ROOT_DIR . '/sys/LocalEnrichment/UserListEntry.php';
+			$listEntry                         = new UserListEntry();
+			$listEntry->groupedWorkPermanentId = $this->getUniqueID();
+			$listEntry->listId                 = $listId;
+			if ($listEntry->find(true)) {
+				$interface->assign('listEntryNotes', $listEntry->notes);
+			}
+			$interface->assign('listEditAllowed', $allowEdit);
+		}
+		$interface->assign('bookCoverUrl', $this->getBookcoverUrl('small'));
+		$interface->assign('bookCoverUrlMedium', $this->getBookcoverUrl('medium'));
+
+		// By default, do not display AJAX status; we won't assume that all
+		// records exist in the ILS.  Child classes can override this setting
+		// to turn on AJAX as needed:
+		$interface->assign('summAjaxStatus', false);
+
+		$interface->assign('recordDriver', $this);
+
+		return 'RecordDrivers/Islandora/listentry.tpl';
 	}
+
 
 	public function getModule() {
 		return 'Archive';
@@ -422,15 +510,19 @@ abstract class IslandoraDriver extends RecordInterface {
 		// TODO: Implement getRecordActions() method.
 	}
 
-	public function getLinkUrl($unscoped = false) {
-		$linkUrl = $this->getRecordUrl();
+//	public function getLinkUrl($unscoped = false) {
+	public function getLinkUrl($absolutePath = false) {  // Signature is modeled after Grouped Work Driver to implement URLs for List Widgets
+		$linkUrl = $this->getRecordUrl($absolutePath);
 		return $linkUrl;
 	}
-	function getRecordUrl(){
+	function getRecordUrl($absolutePath = false){
 		global $configArray;
 		$recordId = $this->getUniqueID();
-
-		return $configArray['Site']['path'] . '/Archive/' . urlencode($recordId) . '/' . $this->getViewAction();
+		if ($absolutePath){
+			return $configArray['Site']['url'] . '/Archive/' . urlencode($recordId) . '/' . $this->getViewAction();
+		}else{
+			return $configArray['Site']['path'] . '/Archive/' . urlencode($recordId) . '/' . $this->getViewAction();
+		}
 	}
 
 	public abstract function getViewAction();
@@ -491,7 +583,7 @@ abstract class IslandoraDriver extends RecordInterface {
 		if ($this->subjectsWithLinks == null) {
 			//Extract Subjects
 			$this->subjectsWithLinks = array();
-			$matches = $this->getModsValues('topic');
+			$matches = $this->getModsValues('topic', 'mods');
 			foreach ($matches as $subjectPart) {
 				$subjectLink = $configArray['Site']['path'] . '/Archive/Results?lookfor=';
 				if (strlen($subjectPart) > 0) {
@@ -564,28 +656,42 @@ abstract class IslandoraDriver extends RecordInterface {
 			$this->relatedCollections = array();
 			if ($this->isEntity()){
 				//Get collections related to objects related to this entity
-				$directlyLinkedObjects = $this->getDirectlyLinkedArchiveObjects();
+				$directlyLinkedObjects = $this->getDirectlyRelatedArchiveObjects();
 				foreach ($directlyLinkedObjects['objects'] as $tmpObject){
 					$linkedCollections = $tmpObject['driver']->getRelatedCollections();
 					$this->relatedCollections = array_merge($this->relatedCollections, $linkedCollections);
 				}
-			}else{
-				//Get collections directly related to the object
-				$collectionsRaw = $this->archiveObject->relationships->get(FEDORA_RELS_EXT_URI, 'isMemberOfCollection');
-				$fedoraUtils = FedoraUtils::getInstance();
+			}
+			//Get collections directly related to the object
+			$collectionsRaw = $this->archiveObject->relationships->get(FEDORA_RELS_EXT_URI, 'isMemberOfCollection');
+			$fedoraUtils = FedoraUtils::getInstance();
+			foreach ($collectionsRaw as $collectionInfo) {
+				if ($fedoraUtils->isPidValidForPika($collectionInfo['object']['value'])){
+					$collectionObject = $fedoraUtils->getObject($collectionInfo['object']['value']);
+					$this->relatedCollections[$collectionInfo['object']['value']] = array(
+							'pid' => $collectionInfo['object']['value'],
+							'label' => $collectionObject->label,
+							'link' => '/Archive/' . $collectionInfo['object']['value'] . '/Exhibit',
+							'image' => $fedoraUtils->getObjectImageUrl($collectionObject, 'small'),
+							'object' => $collectionObject,
+					);
+				}
+			}
+
+			if (count($this->relatedCollections) == 0){
 				foreach ($collectionsRaw as $collectionInfo) {
-					if ($fedoraUtils->isPidValidForPika($collectionInfo['object']['value'])){
-						$collectionObject = $fedoraUtils->getObject($collectionInfo['object']['value']);
-						$this->relatedCollections[$collectionInfo['object']['value']] = array(
-								'pid' => $collectionInfo['object']['value'],
-								'label' => $collectionObject->label,
-								'link' => '/Archive/' . $collectionInfo['object']['value'] . '/Exhibit',
-								'image' => $fedoraUtils->getObjectImageUrl($collectionObject, 'small'),
-								'object' => $collectionObject,
-						);
+					if (!$fedoraUtils->isPidValidForPika($collectionInfo['object']['value'])){
+						$parentObject = $fedoraUtils->getObject($collectionInfo['object']['value']);
+						/** @var IslandoraDriver $parentDriver */
+						$parentDriver = RecordDriverFactory::initRecordDriver($parentObject);
+						$this->relatedCollections = $parentDriver->getRelatedCollections();
+						if (count($this->relatedCollections) != 0){
+							break;
+						}
 					}
 				}
 			}
+
 			$timer->logTime('Loaded related collections for ' . $this->getUniqueID());
 		}
 
@@ -598,6 +704,7 @@ abstract class IslandoraDriver extends RecordInterface {
 	protected $relatedEvents = array();
 	protected $relatedOrganizations = array();
 	private $loadedRelatedEntities = false;
+	private static $nonProductionTeamRoles = array('interviewee', 'artist', 'described', 'contributor', 'author', 'child', 'parent', 'sibling', 'spouse', 'donor');
 	public function loadRelatedEntities(){
 		if ($this->loadedRelatedEntities == false){
 			$this->loadedRelatedEntities = true;
@@ -622,6 +729,12 @@ abstract class IslandoraDriver extends RecordInterface {
 					$transcriberPid = $this->getModsValue('entityPid', 'marmot', $transcriber);
 					$transcriberTitle = $this->getModsValue('entityTitle', 'marmot', $transcriber);
 					$this->addRelatedEntityToArrays($transcriberPid, $transcriberTitle, '', '', 'Transcriber');
+				}
+
+				$militaryConflict = $this->getModsValue('militaryConflict', 'marmot');
+				if ($militaryConflict){
+					$militaryConflictTitle = FedoraUtils::getInstance()->getObjectLabel($militaryConflict);
+					$this->addRelatedEntityToArrays($militaryConflict, $militaryConflictTitle, '', '', '');
 				}
 
 				$creators = $this->getModsValues('hasCreator', 'marmot', null, true);
@@ -670,11 +783,14 @@ abstract class IslandoraDriver extends RecordInterface {
 					$entityType = $this->getModsAttribute('type', $entity);
 					if ($entityType == '' && strlen($entityPid)){
 						//Get the type based on the pid
-						list($entityType, $id) = explode(':', $entityPid);
+						list($entityType) = explode(':', $entityPid);
 					}
 					$entityTitle = $this->getModsValue('entityTitle', 'marmot', $entity);
 					$relationshipNote = $this->getModsValue('relationshipNote', 'marmot', $entity);
 					$entityRole = $this->getModsAttribute('role', $entity);
+					if (strlen($entityRole) == 0){
+						$entityRole = $this->getModsValue('role', 'marmot', $entity);
+					}
 					$entityInfo = array(
 							'pid' => $entityPid,
 							'label' => $entityTitle,
@@ -683,9 +799,10 @@ abstract class IslandoraDriver extends RecordInterface {
 
 					);
 					if ($entityType == 'person'){
-						$isProductionTeam = strlen($entityRole) > 0 && strtolower($entityRole) !=  'interviewee';
+
+						$isProductionTeam = strlen($entityRole) > 0 && !in_array(strtolower($entityRole), IslandoraDriver::$nonProductionTeamRoles);
 						$personObject = $fedoraUtils->getObject($entityPid);
-						$entityInfo['image'] = $fedoraUtils->getObjectImageUrl($personObject, 'medium');
+						$entityInfo['image'] = $fedoraUtils->getObjectImageUrl($personObject, 'medium', $entityType);
 						$entityInfo['link']= '/Archive/' . $entityPid . '/Person';
 						if ($isProductionTeam){
 							$this->productionTeam[$entityPid] = $entityInfo;
@@ -811,7 +928,7 @@ abstract class IslandoraDriver extends RecordInterface {
 				foreach ($linkData as $linkInfo) {
 					$linkType = $this->getModsAttribute('type', $linkInfo);
 					$link = $this->getModsValue('link', 'marmot', $linkInfo);
-					$linkText = $this->getModsValue('link', 'marmot', $linkInfo);
+					$linkText = $this->getModsValue('linkText', 'marmot', $linkInfo);
 					if (strlen($linkText) == 0) {
 						if (strlen($linkType) == 0) {
 							$linkText = $link;
@@ -848,7 +965,7 @@ abstract class IslandoraDriver extends RecordInterface {
 					}
 					if (strlen($link) > 0) {
 						$isHidden = false;
-						if ($linkType == 'wikipedia' || $linkType == 'geoNames' || $linkType == 'whosOnFirst' || 'relatedPika') {
+						if ($linkType == 'wikipedia' || $linkType == 'geoNames' || $linkType == 'whosOnFirst' || $linkType == 'relatedPika') {
 							$isHidden = true;
 						}
 						$this->links[] = array(
@@ -876,10 +993,10 @@ abstract class IslandoraDriver extends RecordInterface {
 			$links = $this->getLinks();
 			foreach ($links as $id => $link){
 				if ($link['type'] == 'relatedPika'){
-					if (preg_match('/^.*\/GroupedWork\/([a-f0-9-]+)$/', $link['link'], $matches)){
+					if (preg_match('/^.*\/GroupedWork\/([a-f0-9-]{36})/', $link['link'], $matches)) {
 						$workId = $matches[1];
 						$workDriver = new GroupedWorkDriver($workId);
-						if ($workDriver->isValid){
+						if ($workDriver->isValid) {
 							$this->relatedPikaRecords[] = array(
 									'link' => $workDriver->getLinkUrl(),
 									'label' => $workDriver->getTitle(),
@@ -888,7 +1005,6 @@ abstract class IslandoraDriver extends RecordInterface {
 							);
 							$this->links[$id]['hidden'] = true;
 						}
-
 					}else{
 						//Didn't get a valid grouped work id
 					}
@@ -911,14 +1027,47 @@ abstract class IslandoraDriver extends RecordInterface {
 
 	protected $directlyRelatedObjects = null;
 
-	public function getDirectlyLinkedArchiveObjects(){
+	/**
+	 * Load objects that are related directly to this object
+	 * Either based on a link from this object to another object
+	 * Or based on a link from another object to this object
+	 *
+	 * @return array|null
+	 */
+	public function getDirectlyRelatedArchiveObjects(){
 		if ($this->directlyRelatedObjects == null){
 			global $timer;
+			$fedoraUtils = FedoraUtils::getInstance();
+
 			$timer->logTime("Starting getDirectlyLinkedArchiveObjects");
 			$this->directlyRelatedObjects = array(
 					'numFound' => 0,
 					'objects' => array(),
 			);
+
+			$relatedObjects = $this->getModsValues('relatedObject', 'marmot');
+			foreach ($relatedObjects as $relatedObjectSnippets){
+				$objectPid = $this->getModsValue('objectPid', 'marmot', $relatedObjectSnippets);
+				if (strlen($objectPid) > 0){
+					$archiveObject = $fedoraUtils->getObject($objectPid);
+					if ($archiveObject != null){
+						$entityDriver = RecordDriverFactory::initRecordDriver($archiveObject);
+						$objectInfo = array(
+								'pid' => $entityDriver->getUniqueID(),
+								'label' => $entityDriver->getTitle(),
+								'description' => $entityDriver->getTitle(),
+								'image' => $entityDriver->getBookcoverUrl('medium'),
+								'link' => $entityDriver->getRecordUrl(),
+								'driver' => $entityDriver
+						);
+						$this->directlyRelatedObjects['objects'][$objectInfo['pid']] = $objectInfo;
+						$this->directlyRelatedObjects['numFound']++;
+					}
+				}
+
+			}
+
+
 			// Include Search Engine Class
 			require_once ROOT_DIR . '/sys/Solr.php';
 
@@ -930,26 +1079,51 @@ abstract class IslandoraDriver extends RecordInterface {
 			$searchObject = SearchObjectFactory::initSearchObject('Islandora');
 			$searchObject->init();
 			$searchObject->setSort('fgs_label_s');
+			$searchObject->setLimit(100);
 			$searchObject->setSearchTerms(array(
 					'lookfor' => '"' . $this->getUniqueID() . '"',
 					'index' => 'IslandoraRelationshipsById'
 			));
-			$searchObject->addHiddenFilter('!RELS_EXT_isViewableByRole_literal_ms', "administrator");
 
 			$searchObject->clearHiddenFilters();
 			$searchObject->addHiddenFilter('!RELS_EXT_isViewableByRole_literal_ms', "administrator");
 			$searchObject->clearFilters();
-
+			$searchObject->addFieldsToReturn(array(
+					'mods_extension_marmotLocal_relatedPersonOrg_entityPid_ms',
+					'mods_extension_marmotLocal_relatedPersonOrg_role_ms',
+					'mods_extension_marmotLocal_relatedPersonOrg_entityTitle_ms'
+			));
+			//$searchObject->setDebugging(true, true);
+			//$searchObject->setPrimarySearch(true);
 			$response = $searchObject->processSearch(true, false);
 			if ($response && $response['response']['numFound'] > 0) {
 				foreach ($response['response']['docs'] as $doc) {
 					$entityDriver = RecordDriverFactory::initRecordDriver($doc);
+
+					//Try to find the relationship to the person
+					$role = '';
+					if (isset($doc['mods_extension_marmotLocal_relatedPersonOrg_entityPid_ms']) && isset($doc['mods_extension_marmotLocal_relatedPersonOrg_role_ms'])){
+						foreach ($doc['mods_extension_marmotLocal_relatedPersonOrg_entityPid_ms'] as $index => $value) {
+							if ($value == $this->getUniqueID()) {
+								if (isset($doc['mods_extension_marmotLocal_relatedPersonOrg_role_ms'][$index])){
+									$role = $doc['mods_extension_marmotLocal_relatedPersonOrg_role_ms'][$index];
+									//Reverse roles as appropriate
+									if ($role == 'child'){
+										$role = 'parent';
+									}
+								}
+							}
+						}
+					}
+
+					//TODO: Add the role of the user
 					$objectInfo = array(
 							'pid' => $entityDriver->getUniqueID(),
 							'label' => $entityDriver->getTitle(),
 							'description' => $entityDriver->getTitle(),
 							'image' => $entityDriver->getBookcoverUrl('medium'),
 							'link' => $entityDriver->getRecordUrl(),
+							'role' => $role,
 							'driver' => $entityDriver
 					);
 					if ($entityDriver instanceof EventDriver) {
@@ -973,7 +1147,7 @@ abstract class IslandoraDriver extends RecordInterface {
 	}
 
 	private function addRelatedEntityToArrays($pid, $entityName, $entityType, $note, $role) {
-		if (strlen($pid) == 0){
+		if (strlen($pid) == 0 || strpos($pid, ':') === false){
 			return;
 		}
 		$fedoraUtils = FedoraUtils::getInstance();
@@ -990,7 +1164,7 @@ abstract class IslandoraDriver extends RecordInterface {
 		);
 		if ($entityType == 'person'){
 			$entityInfo['link']= '/Archive/' . $pid . '/Person';
-			if (strlen($role) > 0 && strtolower($role) != 'interviewee'){
+			if (strlen($role) > 0 && !in_array(strtolower($role), IslandoraDriver::$nonProductionTeamRoles)){
 				$this->productionTeam[$pid.$role] = $entityInfo;
 			}else{
 				$this->relatedPeople[$pid.$role] = $entityInfo;
@@ -1052,6 +1226,29 @@ abstract class IslandoraDriver extends RecordInterface {
 		$genre = $this->getModsValue('genre', 'mods');
 		if ($genre != null){
 			return ucwords($genre);
+		}
+		return null;
+	}
+
+	/**
+	 * @return null|FedoraObject
+	 */
+	public function getParentObject(){
+		require_once ROOT_DIR . '/sys/Utils/FedoraUtils.php';
+		$fedoraUtils = FedoraUtils::getInstance();
+
+		$parentIdArray = $this->archiveObject->relationships->get(FEDORA_RELS_EXT_URI, 'isMemberOf');
+		if ($parentIdArray != null){
+			$parentIdInfo = reset($parentIdArray);
+			$parentId = $parentIdInfo['object']['value'];
+			return $fedoraUtils->getObject($parentId);
+		}else{
+			$parentIdArray = $this->archiveObject->relationships->get(FEDORA_RELS_EXT_URI, 'isConstituentOf');
+			if ($parentIdArray != null){
+				$parentIdInfo = reset($parentIdArray);
+				$parentId = $parentIdInfo['object']['value'];
+				return $fedoraUtils->getObject($parentId);
+			}
 		}
 		return null;
 	}

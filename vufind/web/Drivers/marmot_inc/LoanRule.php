@@ -43,12 +43,14 @@ class LoanRule extends DB_DataObject
 	function insert(){
 		parent::insert();
 		global $memCache;
-		$memCache->delete('loan_rules');
+		global $instanceName;
+		$memCache->delete($instanceName . '_loan_rules');
 	}
 
 	function update($dataObject = false){
 		parent::update($dataObject);
 		global $memCache;
-		$memCache->delete('loan_rules');
+		global $instanceName;
+		$memCache->delete($instanceName . '_loan_rules');
 	}
 }

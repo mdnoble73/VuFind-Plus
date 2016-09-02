@@ -174,7 +174,7 @@
 
 			{* Admin Functionality if Available *}
 			{if $user && ($user->hasRole('opacAdmin') || $user->hasRole('libraryAdmin') || $user->hasRole('contentEditor') || $user->hasRole('libraryManager') || $user->hasRole('locationManager'))}
-				{if in_array($action, array('Libraries', 'Locations', 'IPAddresses', 'ListWidgets', 'BrowseCategories', 'UserSuggestions', 'PTypes', 'CirculationStatuses', 'LoanRules', 'LoanRuleDeterminers', 'AccountProfiles'))}
+				{if in_array($action, array('Libraries', 'Locations', 'IPAddresses', 'ListWidgets', 'BrowseCategories', 'UserSuggestions', 'PTypes', 'CirculationStatuses', 'LoanRules', 'LoanRuleDeterminers', 'AccountProfiles', 'NYTLists'))}
 					{assign var="curSection" value=true}
 				{else}
 					{assign var="curSection" value=false}
@@ -208,6 +208,9 @@
 							{* Content Editor Actions *}
 							<div class="adminMenuLink{if $action == "ListWidgets"} active{/if}"><a href="{$path}/Admin/ListWidgets">List Widgets</a></div>
 							<div class="adminMenuLink{if $action == "BrowseCategories"} active{/if}"><a href="{$path}/Admin/BrowseCategories">Browse Categories</a></div>
+							{if ($user->hasRole('opacAdmin') || $user->hasRole('libraryAdmin') || $user->hasRole('libraryManager') || $user->hasRole('contentEditor'))}
+								<div class="adminMenuLink{if $action == "NYTLists"} active{/if}"><a href="{$path}/Admin/NYTLists">NY Times Lists</a></div>
+							{/if}
 
 							{* OPAC Admin Actions*}
 							{if $user->hasRole('opacAdmin')}
@@ -316,7 +319,7 @@
 			{/if}
 
 			{if $user && ($user->hasRole('cataloging') || $user->hasRole('opacAdmin'))}
-				{if in_array($action, array('MergedGroupedWorks', 'NonGroupedRecords'))}
+				{if in_array($action, array('MergedGroupedWorks', 'NonGroupedRecords', 'AuthorEnrichment'))}
 					{assign var="curSection" value=true}
 				{else}
 					{assign var="curSection" value=false}
@@ -333,13 +336,14 @@
 						<div class="panel-body">
 							<div class="adminMenuLink{if $action == "MergedGroupedWorks"}active{/if}"><a href="{$path}/Admin/MergedGroupedWorks">Grouped Work Merging</a></div>
 							<div class="adminMenuLink{if $action == "NonGroupedRecords"}active{/if}"><a href="{$path}/Admin/NonGroupedRecords">Records To Not Merge</a></div>
+							<div class="adminMenuLink{if $action == "AuthorEnrichment"}active{/if}"><a href="{$path}/Admin/AuthorEnrichment">Author Enrichment</a></div>
 						</div>
 					</div>
 				</div>
 			{/if}
 
 			{if $user && ($user->hasRole('archives') || $user->hasRole('opacAdmin'))}
-				{if in_array($action, array('ArchiveSubjects'))}
+				{if in_array($action, array('ArchiveSubjects', 'ArchiveRequests'))}
 					{assign var="curSection" value=true}
 				{else}
 					{assign var="curSection" value=false}
@@ -354,6 +358,7 @@
 					</a>
 					<div id="archivesMenu" class="panel-collapse collapse {if $curSection}in{/if}">
 						<div class="panel-body">
+							<div class="adminMenuLink{if $action == "ArchiveRequests"}active{/if}"><a href="{$path}/Admin/ArchiveRequests">Archive Material Requests</a></div>
 							<div class="adminMenuLink{if $action == "ArchiveSubjects"}active{/if}"><a href="{$path}/Admin/ArchiveSubjects">Archive Subject Control</a></div>
 						</div>
 					</div>

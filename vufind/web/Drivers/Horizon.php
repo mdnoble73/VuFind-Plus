@@ -204,12 +204,12 @@ abstract class Horizon extends ScreenScrapingDriver{
 				}
 
 				$fineList[] = array('id' => $bib_num,
-                                    'message' => $comment,
-                                    'amount' => $amount > 0 ? '$' . sprintf('%0.2f', $amount / 100) : '',
-                                    'reason' => $this->translateFineMessageType($row['FINE']),
-                                    'balance' => $balance,
-                                    'checkout' => $checkout,
-                                    'date' => date('M j, Y', strtotime($duedate)));
+                                    'message'  => $comment,
+                                    'amount'   => $amount > 0 ? '$' . sprintf('%0.2f', $amount / 100) : '',
+                                    'reason'   => $this->translateFineMessageType($row['FINE']),
+                                    'balance'  => $balance,  // TODO: not in my fines template
+                                    'checkout' => $checkout, // TODO: not in my fines template
+                                    'date'     => date('M j, Y', strtotime($duedate)));
 			}
 			return $fineList;
 		} catch (PDOException $e) {

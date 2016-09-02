@@ -148,22 +148,6 @@ class Archive_Results extends Action {
 			$facetSet = $searchObject->getFacetList();
 			$interface->assign('facetSet',       $facetSet);
 
-			//Check to see if a format category is already set
-			$categorySelected = false;
-			if (isset($facetSet['top'])){
-				foreach ($facetSet['top'] as $title=>$cluster){
-					if ($cluster['label'] == 'Category'){
-						foreach ($cluster['list'] as $thisFacet){
-							if ($thisFacet['isApplied']){
-								$categorySelected = true;
-							}
-						}
-					}
-				}
-			}
-			$interface->assign('categorySelected', $categorySelected);
-			$timer->logTime('load selected category');
-
 			// Big one - our results
 			$recordSet = $searchObject->getResultRecordHTML();
 			$interface->assign('recordSet', $recordSet);
@@ -197,13 +181,19 @@ class Archive_Results extends Action {
 		// Save the URL of this search to the session so we can return to it easily:
 		$_SESSION['lastSearchURL'] = $searchObject->renderSearchUrl();
 
-		//Load explore more data
-		require_once ROOT_DIR . '/sys/ExploreMore.php';
+		//Setup explore more
+		$showExploreMoreBar = true;
+		if (isset($_REQUEST['page']) && $_REQUEST['page'] > 1){
+			$showExploreMoreBar = false;
+		}
 		$exploreMore = new ExploreMore();
-		$exploreMore->loadExploreMoreBar('archive');
+		$exploreMoreSearchTerm = $exploreMore->getExploreMoreQuery();
+		$interface->assign('exploreMoreSection', 'archive');
+		$interface->assign('showExploreMoreBar', $showExploreMoreBar);
+		$interface->assign('exploreMoreSearchTerm', $exploreMoreSearchTerm);
 
 		// Done, display the page
-		$interface->assign('sectionLabel', 'Local History Archive Results');
+		$interface->assign('sectionLabel', 'Local Digital Archive Results');
 		$interface->setTemplate($searchObject->getResultTotal() ? 'list.tpl' : 'list-none.tpl'); // main search results content
 		$interface->assign('sidebar', 'Search/results-sidebar.tpl');
 		$interface->display('layout.tpl');

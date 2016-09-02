@@ -52,12 +52,14 @@
 		</div>
 	{/if}
 
-	{if $recordDriver->getSeries()}
+	{assign var=series value=$recordDriver->getSeries()}
+	{if $series}
 		<div class="series row">
 			<div class="result-label col-sm-4">Series: </div>
 			<div class="col-sm-8 result-value">
-				{assign var=summSeries value=$recordDriver->getSeries()}
-				<a href="{$path}/GroupedWork/{$recordDriver->getPermanentId()}/Series">{$summSeries.seriesTitle}</a>{if $summSeries.volume} volume {$summSeries.volume}{/if}
+				{foreach from=$series item=seriesItem name=loop}
+					<a href="{$path}/Search/Results?basicType=Series&lookfor=%22{$seriesItem.seriesTitle|removeTrailingPunctuation|escape:"url"}%22">{$seriesItem.seriesTitle|removeTrailingPunctuation|escape}</a>{if $seriesItem.volume} volume {$seriesItem.volume}{/if}<br/>
+				{/foreach}
 			</div>
 		</div>
 	{/if}
@@ -109,7 +111,7 @@
 
 	{if $showArInfo && $recordDriver->getAcceleratedReaderDisplayString()}
 		<div class="row">
-			<div class="result-label col-sm-4">Accelerated Reader: </div>
+			<div class="result-label col-sm-4">{translate text='Accelerated Reader'}: </div>
 			<div class="result-value col-sm-8">
 				{$recordDriver->getAcceleratedReaderDisplayString()}
 			</div>

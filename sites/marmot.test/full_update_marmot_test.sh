@@ -7,6 +7,41 @@ EMAIL=root@venus
 PIKASERVER=marmot.test
 OUTPUT_FILE="/var/log/vufind-plus/${PIKASERVER}/full_update_output.log"
 
+# Check if full_update is already running
+#TODO: Verify that the PID file doesn't get log-rotated
+PIDFILE="/var/log/vufind-plus/${PIKASERVER}/full_update.pid"
+if [ -f $PIDFILE ]
+then
+	PID=$(cat $PIDFILE)
+	ps -p $PID > /dev/null 2>&1
+	if [ $? -eq 0 ]
+	then
+#		echo "$0 is already running"
+		mail -s "Full Extract and Reindexing - ${PIKASERVER}" $EMAIL <<< "$0 is already running"
+		exit 1
+	else
+		## Process not found assume not running
+		echo $$ > $PIDFILE
+		if [ $? -ne 0 ]
+		then
+#			echo "Could not create PID file for $0"
+			mail -s "Full Extract and Reindexing - ${PIKASERVER}" $EMAIL <<< "Could not create PID file for $0"
+			exit 1
+		fi
+	fi
+else
+	echo $$ > $PIDFILE
+	if [ $? -ne 0 ]
+	then
+#		echo "Could not create PID file for $0"
+		mail -s "Full Extract and Reindexing - ${PIKASERVER}" $EMAIL <<< "Could not create PID file for $0"
+		exit 1
+	fi
+fi
+#truncate the output file so you don't spend a week debugging an error from a week ago!
+: > $OUTPUT_FILE;
+
+
 # Check for conflicting processes currently running
 function checkConflictingProcesses() {
 	#Check to see if the conflict exists.
@@ -25,8 +60,6 @@ function checkConflictingProcesses() {
 	echo ${numInitialConflicts};
 }
 
-#truncate the output file so you don't spend a week debugging an error from a week ago!
-: > $OUTPUT_FILE;
 
 #Check for any conflicting processes that we shouldn't do a full index during.
 checkConflictingProcesses "sierra_export.jar ${PIKASERVER}"
@@ -50,6 +83,18 @@ cd /usr/local/vufind-plus/sites/${PIKASERVER}; ./${PIKASERVER}.sh restart
 
 # CCU Ebsco Marc Updates
 /usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh ebsco_ccu ebsco/ccu >> ${OUTPUT_FILE}
+
+# CCU Ebsco Academic Marc Updates
+/usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh cmc/ebsco ebsco/cmc >> ${OUTPUT_FILE}
+
+# Western Oxford Reference Marc Updates
+/usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh western/oxfordReference oxfordReference/western >> ${OUTPUT_FILE}
+
+# Western Springer Marc Updates
+/usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh western/springer springer/western >> ${OUTPUT_FILE}
+
+# Western Kanopy Marc Updates
+/usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh western/kanopy kanopy/western >> ${OUTPUT_FILE}
 
 # SD51 Mackin VIA Marc Updates
 /usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh mcvsd/mackinvia/mvcp mackinvia/mvcp >> ${OUTPUT_FILE}
@@ -111,4 +156,7 @@ then
 	# send mail
 	mail -s "Full Extract and Reindexing - ${PIKASERVER}" $EMAIL < ${OUTPUT_FILE}
 fi
+
+# Now that script is completed, remove the PID file
+rm $PIDFILE
 

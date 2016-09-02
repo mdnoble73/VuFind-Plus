@@ -178,8 +178,10 @@ class BrowseCategory extends DB_DataObject{
 		$sourceLists = array();
 		$sourceLists[-1] = 'Generate from search term and filters';
 		while ($userLists->fetch()){
-			if ($userLists->num_titles() > 0){
-				$sourceLists[$userLists->id] = "($userLists->id) $userLists->title - {$userLists->num_titles()} titles";
+
+			$numItems = $userLists->numValidListItems();
+			if ($numItems > 0){
+				$sourceLists[$userLists->id] = "($userLists->id) $userLists->title - $numItems entries";
 			}
 		}
 

@@ -160,8 +160,12 @@ class Library extends DB_DataObject
 	public $allowLinkedAccounts;
 	public $horizontalSearchBar;
 	public $sideBarOnRight;
+	public $showSidebarMenu;
+	public $sidebarMenuButtonText;
 	public $enableArchive;
 	public $archiveNamespace;
+	public $allowRequestsForArchiveMaterials;
+	public $archiveRequestEmail;
 	public $hideAllCollectionsFromOtherLibraries;
 	public $collectionsToHide;
 	public $showLCSubjects; // Library of Congress Subjects
@@ -287,6 +291,8 @@ class Library extends DB_DataObject
 				'homeLink' => array('property'=>'homeLink', 'type'=>'text', 'label'=>'Home Link', 'description'=>'The location to send the user when they click on the home button or logo.  Use default or blank to go back to the Pika home location.', 'size'=>'40', 'hideInLists' => true,),
 				'additionalCss' => array('property'=>'additionalCss', 'type'=>'textarea', 'label'=>'Additional CSS', 'description'=>'Extra CSS to apply to the site.  Will apply to all pages.', 'hideInLists' => true),
 				'headerText' => array('property'=>'headerText', 'type'=>'html', 'label'=>'Header Text', 'description'=>'Optional Text to display in the header, between the logo and the log in/out buttons.  Will apply to all pages.', 'allowableTags' => '<a><b><em><div><span><p><strong><sub><sup><h1><h2><h3><h4><h5><h6><img>', 'hideInLists' => true),
+				'showSidebarMenu' => array('property'=>'showSidebarMenu', 'type'=>'checkbox', 'label'=>'Display Sidebar Menu', 'description'=>'Determines whether or not the sidebar menu will be shown.  Must also be enabled in config.ini.', 'hideInLists' => true,),
+				'sidebarMenuButtonText' => array('property'=>'sidebarMenuButtonText', 'type'=>'text', 'label'=>'Sidebar Help Button Text', 'description'=>'The text to show for the help/menu button in the sidebar', 'size'=>'40', 'hideInLists' => true, 'default' => 'Help'),
 				'sideBarOnRight' => array('property'=>'sideBarOnRight', 'type'=>'checkbox', 'label'=>'Display Sidebar on the Right Side', 'description'=>'Sidebars will be displayed on the right side of the page rather than the default left side.', 'hideInLists' => true,),
 				'useHomeLinkInBreadcrumbs' => array('property'=>'useHomeLinkInBreadcrumbs', 'type'=>'checkbox', 'label'=>'Use Home Link in Breadcrumbs', 'description'=>'Whether or not the home link should be used in the breadcumbs.', 'hideInLists' => true,),
 				'useHomeLinkForLogo' => array('property'=>'useHomeLinkForLogo', 'type'=>'checkbox', 'label'=>'Use Home Link for Logo', 'description'=>'Whether or not the home link should be used as the link for the main logo.', 'hideInLists' => true,),
@@ -341,7 +347,7 @@ class Library extends DB_DataObject
 					'treatPrintNoticesAsPhoneNotices'      => array('property' => 'treatPrintNoticesAsPhoneNotices', 'type' => 'checkbox', 'label' => 'Treat Print Notices As Phone Notices', 'description' => 'When showing detailed information about hold notices, treat print notices as if they are phone calls', 'hideInLists' => true, 'default' => 0),
 					'showNoticeTypeInProfile'              => array('property' => 'showNoticeTypeInProfile', 'type'=>'checkbox', 'label'=>'Show Notice Type in Profile', 'description'=>'Whether or not patrons should be able to change how they receive notices in their profile.', 'hideInLists' => true, 'default' => 0),
 					'showPickupLocationInProfile'          => array('property' => 'showPickupLocationInProfile', 'type'=>'checkbox', 'label'=>'Allow Patrons to Update Their Pickup Location', 'description'=>'Whether or not patrons should be able to update their preferred pickup location in their profile.', 'hideInLists' => true, 'default' => 0),
-					'addSMSIndicatorToPhone'               => array('property' => 'addSMSIndicatorToPhone', 'type'=>'checkbox', 'label'=>'Add SMS Indicator to Primary Phone', 'description'=>'Whether or not add TEXT ONLY to the user\'s primary phone number when they opt in to SMS notices.', 'hideInLists' => true, 'default' => 0),
+					'addSMSIndicatorToPhone'               => array('property' => 'addSMSIndicatorToPhone', 'type'=>'checkbox', 'label'=>'Add SMS Indicator to Primary Phone', 'description'=>'Whether or not add ### TEXT ONLY to the user\'s primary phone number when they opt in to SMS notices.', 'hideInLists' => true, 'default' => 0),
 					'maxFinesToAllowAccountUpdates'        => array('property' => 'maxFinesToAllowAccountUpdates', 'type'=>'currency', 'displayFormat'=>'%0.2f', 'label'=>'Maximum Fine Amount to Allow Account Updates', 'description'=>'The maximum amount that a patron can owe and still update their account. Any value <= 0 will disable this functionality.', 'hideInLists' => true, 'default' => 10)
 				)),
 				'holdsSection' => array('property' => 'holdsSection', 'type' => 'section', 'label' => 'Holds', 'hideInLists' => true,
@@ -525,7 +531,7 @@ class Library extends DB_DataObject
 
 			'holdingsSummarySection' => array('property'=>'holdingsSummarySection', 'type' => 'section', 'label' =>'Holdings Summary', 'hideInLists' => true,
 					'helpLink' => 'https://docs.google.com/document/d/1PjlFlhPVNRVcg_uzzHLQLkRicyPEB1KeVNok4Wkye1I', 'properties' => array(
-					'showItsHere' => array('property'=>'showItsHere', 'type'=>'checkbox', 'label'=>'Show It\'s Here', 'description'=>'Whether or not the holdings summray should show It\'s here based on IP and the currently logged in patron\'s location.', 'hideInLists' => true, 'default' => 1),
+					'showItsHere' => array('property'=>'showItsHere', 'type'=>'checkbox', 'label'=>'Show It\'s Here', 'description'=>'Whether or not the holdings summary should show It\'s here based on IP and the currently logged in patron\'s location.', 'hideInLists' => true, 'default' => 1),
 			)),
 
 			'materialsRequestSection'=> array('property'=>'materialsRequestSection', 'type' => 'section', 'label' =>'Materials Request', 'hideInLists' => true,
@@ -572,6 +578,8 @@ class Library extends DB_DataObject
 					'archiveNamespace' => array('property'=>'archiveNamespace', 'type'=>'text', 'label'=>'Archive Namespace', 'description'=>'The namespace of your library in the archive', 'hideInLists' => true, 'maxLength' => 30, 'size'=>'30'),
 					'hideAllCollectionsFromOtherLibraries' => array('property'=>'hideAllCollectionsFromOtherLibraries', 'type'=>'checkbox', 'label'=>'Hide Collections from Other Libraries', 'description'=>'Whether or not collections created by other libraries is shown in Pika.', 'hideInLists' => true, 'default' => 0),
 					'collectionsToHide' => array('property'=>'collectionsToHide', 'type'=>'textarea', 'label'=>'Collections To Hide', 'description'=>'Specific collections to hide.', 'hideInLists' => true),
+					'allowRequestsForArchiveMaterials' => array('property'=>'allowRequestsForArchiveMaterials', 'type'=>'checkbox', 'label'=>'Allow Requests for Copies of Archive Materials', 'description'=>'Enable to allow requests for copies of your archive materials'),
+					'archiveRequestEmail' => array('property'=>'archiveRequestEmail', 'type'=>'email', 'label'=>'Email to send archive requests to', 'description'=>'The email address to send requests for archive materials to', 'hideInLists' => true),
 			)),
 
 			'edsSection' => array('property'=>'edsSection', 'type' => 'section', 'label' =>'EBSCO EDS', 'hideInLists' => true, 'properties' => array(
@@ -580,7 +588,7 @@ class Library extends DB_DataObject
 					'edsApiPassword' => array('property'=>'edsApiPassword', 'type'=>'text', 'label'=>'EDS API Password', 'description'=>'The password to use when connecting to the EBSCO API', 'hideInLists' => true),
 			)),
 
-			'casSection' => array('property'=>'casSection', 'type' => 'section', 'label' =>'CAS Single Sign On', 'hideInLists' => true, 'properties' => array(
+			'casSection' => array('property'=>'casSection', 'type' => 'section', 'label' =>'CAS Single Sign On', 'hideInLists' => true, 'helpLink'=>'https://docs.google.com/document/d/1KQ_RMVvHhB2ulTyXnGF7rJXUQuzbL5RVTtnqlXdoNTk/edit?usp=sharing', 'properties' => array(
 					'edsApiProfile' => array('property'=>'casHost', 'type'=>'text', 'label'=>'CAS Host', 'description'=>'The host to use for CAS authentication', 'hideInLists' => true),
 					'edsApiUsername' => array('property'=>'casPort', 'type'=>'integer', 'label'=>'CAS Port', 'description'=>'The port to use for CAS authentication (typically 443)', 'hideInLists' => true),
 					'edsApiPassword' => array('property'=>'casContext', 'type'=>'text', 'label'=>'CAS Context', 'description'=>'The context to use for CAS', 'hideInLists' => true),

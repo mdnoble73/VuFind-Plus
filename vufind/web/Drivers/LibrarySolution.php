@@ -46,133 +46,141 @@ class LibrarySolution extends ScreenScrapingDriver {
 			$url = $this->getVendorOpacUrl() . '/account/summary?_=' . time() * 1000;
 			$accountSummaryRaw = $this->_curlGetPage($url);
 			$accountSummary = json_decode($accountSummaryRaw);
+			if (!empty($accountSummary)) {
 
-			$userExistsInDB = false;
-			$user = new User();
-			$user->username = $accountSummary->patron->guid;
-			$user->source = $this->accountProfile->name;
-			if ($user->find(true)){
-				$userExistsInDB = true;
-			}
-
-			$user->password = $accountSummary->patron->pin;
-
-			$forceDisplayNameUpdate = false;
-			$firstName = $accountSummary->patron->firstName;
-			if ($user->firstname != $firstName) {
-				$user->firstname = $firstName;
-				$forceDisplayNameUpdate = true;
-			}
-			$lastName = $accountSummary->patron->lastName;
-			if ($user->lastname != $lastName){
-				$user->lastname = isset($lastName) ? $lastName : '';
-				$forceDisplayNameUpdate = true;
-			}
-			if ($forceDisplayNameUpdate){
-				$user->displayName = '';
-			}
-			$user->fullname     = $accountSummary->patron->fullName;
-			$user->cat_username = $accountSummary->patron->patronId;
-			$user->cat_password = $accountSummary->patron->pin;
-			$user->phone        = $accountSummary->patron->phone;
-			$user->email        = $accountSummary->patron->email;
-
-			//Setup home location
-			$location = null;
-			if (isset($accountSummary->patron->issuingBranchId) || isset($accountSummary->patron->defaultRequestPickupBranch)) {
-				$homeBranchCode = isset($accountSummary->patron->issuingBranchId) ? $accountSummary->patron->issuingBranchId : $accountSummary->patron->defaultRequestPickupBranch;
-				$homeBranchCode = str_replace('+', '', $homeBranchCode);
-				//Translate home branch to plain text
-				$location       = new Location();
-				$location->code = $homeBranchCode;
-				if (!$location->find(true)) {
-					unset($location);
+				$userExistsInDB = false;
+				$user           = new User();
+				$user->username = $accountSummary->patron->guid;
+				$user->source   = $this->accountProfile->name;
+				if ($user->find(true)) {
+					$userExistsInDB = true;
 				}
-			} else {
-					global $logger;
-					$logger->log('Library Solution Driver: No Home Library Location or Hold location found in account look-up. User : '.$user->id, PEAR_LOG_ERR);
-					// The code below will attempt to find a location for the library anyway if the homeLocation is already set
-			}
 
-			if (empty($user->homeLocationId) || (isset($location) && $user->homeLocationId != $location->locationId)) { // When homeLocation isn't set or has changed
-				if (empty($user->homeLocationId) && !isset($location)) {
-					// homeBranch Code not found in location table and the user doesn't have an assigned homelocation,
-					// try to find the main branch to assign to user
-					// or the first location for the library
-					global $library;
+				$user->password = $accountSummary->patron->pin;
 
-					$location            = new Location();
-					$location->libraryId = $library->libraryId;
-					$location->orderBy('isMainBranch desc'); // gets the main branch first or the first location
+				$forceDisplayNameUpdate = false;
+				$firstName              = $accountSummary->patron->firstName;
+				if ($user->firstname != $firstName) {
+					$user->firstname        = $firstName;
+					$forceDisplayNameUpdate = true;
+				}
+				$lastName = $accountSummary->patron->lastName;
+				if ($user->lastname != $lastName) {
+					$user->lastname         = isset($lastName) ? $lastName : '';
+					$forceDisplayNameUpdate = true;
+				}
+				if ($forceDisplayNameUpdate) {
+					$user->displayName = '';
+				}
+				$user->fullname     = $accountSummary->patron->fullName;
+				$user->cat_username = $accountSummary->patron->patronId;
+				$user->cat_password = $accountSummary->patron->pin;
+				$user->phone        = $accountSummary->patron->phone;
+				$user->email        = $accountSummary->patron->email;
+
+				//Setup home location
+				$location = null;
+				if (isset($accountSummary->patron->issuingBranchId) || isset($accountSummary->patron->defaultRequestPickupBranch)) {
+					$homeBranchCode = isset($accountSummary->patron->issuingBranchId) ? $accountSummary->patron->issuingBranchId : $accountSummary->patron->defaultRequestPickupBranch;
+					$homeBranchCode = str_replace('+', '', $homeBranchCode);
+					//Translate home branch to plain text
+					$location       = new Location();
+					$location->code = $homeBranchCode;
 					if (!$location->find(true)) {
-						// Seriously no locations even?
-						global $logger;
-						$logger->log('Failed to find any location to assign to user as home location', PEAR_LOG_ERR);
 						unset($location);
 					}
+				} else {
+					global $logger;
+					$logger->log('Library Solution Driver: No Home Library Location or Hold location found in account look-up. User : ' . $user->id, PEAR_LOG_ERR);
+					// The code below will attempt to find a location for the library anyway if the homeLocation is already set
 				}
-				if (isset($location)) {
-					$user->homeLocationId = $location->locationId;
-					$user->myLocation1Id  = ($location->nearbyLocation1 > 0) ? $location->nearbyLocation1 : $location->locationId;
-					$user->myLocation2Id  = ($location->nearbyLocation2 > 0) ? $location->nearbyLocation2 : $location->locationId;
 
-					//Get display names that aren't stored
-					$user->homeLocationCode = $location->code;
-					$user->homeLocation     = $location->displayName;
+				if (empty($user->homeLocationId) || (isset($location) && $user->homeLocationId != $location->locationId)) { // When homeLocation isn't set or has changed
+					if (empty($user->homeLocationId) && !isset($location)) {
+						// homeBranch Code not found in location table and the user doesn't have an assigned homelocation,
+						// try to find the main branch to assign to user
+						// or the first location for the library
+						global $library;
 
-					//Get display name for preferred location 1
-					$myLocation1 = new Location();
-					$myLocation1->locationId = $user->myLocation1Id;
-					if ($myLocation1->find(true)) {
-						$user->myLocation1 = $myLocation1->displayName;
+						$location            = new Location();
+						$location->libraryId = $library->libraryId;
+						$location->orderBy('isMainBranch desc'); // gets the main branch first or the first location
+						if (!$location->find(true)) {
+							// Seriously no locations even?
+							global $logger;
+							$logger->log('Failed to find any location to assign to user as home location', PEAR_LOG_ERR);
+							unset($location);
+						}
 					}
+					if (isset($location)) {
+						$user->homeLocationId = $location->locationId;
+						$user->myLocation1Id  = ($location->nearbyLocation1 > 0) ? $location->nearbyLocation1 : $location->locationId;
+						$user->myLocation2Id  = ($location->nearbyLocation2 > 0) ? $location->nearbyLocation2 : $location->locationId;
 
-					//Get display name for preferred location 2
-					$myLocation2 = new Location();
-					$myLocation2->locationId = $user->myLocation2Id;
-					if ($myLocation2->find(true)) {
-						$user->myLocation2 = $myLocation2->displayName;
+						//Get display names that aren't stored
+						$user->homeLocationCode = $location->code;
+						$user->homeLocation     = $location->displayName;
+
+						//Get display name for preferred location 1
+						$myLocation1             = new Location();
+						$myLocation1->locationId = $user->myLocation1Id;
+						if ($myLocation1->find(true)) {
+							$user->myLocation1 = $myLocation1->displayName;
+						}
+
+						//Get display name for preferred location 2
+						$myLocation2             = new Location();
+						$myLocation2->locationId = $user->myLocation2Id;
+						if ($myLocation2->find(true)) {
+							$user->myLocation2 = $myLocation2->displayName;
+						}
 					}
 				}
-			}
 
-			$user->expires = $accountSummary->patron->cardExpirationDate;
-			list ($yearExp, $monthExp, $dayExp) = explode("-",$user->expires);
-			$timeExpire = strtotime($monthExp . "/" . $dayExp . "/" . $yearExp);
-			$timeNow = time();
-			$timeToExpire = $timeExpire - $timeNow;
-			$user->expired = 0;
-			if ($timeToExpire <= 30 * 24 * 60 * 60){
-				if ($timeToExpire <= 0){
-					$user->expired = 1;
+				$user->expires = $accountSummary->patron->cardExpirationDate;
+				list ($yearExp, $monthExp, $dayExp) = explode("-", $user->expires);
+				$timeExpire    = strtotime($monthExp . "/" . $dayExp . "/" . $yearExp);
+				$timeNow       = time();
+				$timeToExpire  = $timeExpire - $timeNow;
+				$user->expired = 0;
+				if ($timeToExpire <= 30 * 24 * 60 * 60) {
+					if ($timeToExpire <= 0) {
+						$user->expired = 1;
+					}
+					$user->expireClose = 1;
+				} else {
+					$user->expireClose = 0;
 				}
-				$user->expireClose = 1;
+
+				$user->address1 = $accountSummary->patron->address1;
+				$user->city     = $accountSummary->patron->city;
+				$user->state    = $accountSummary->patron->state;
+				$user->zip      = $accountSummary->patron->zipcode;
+
+				$user->fines    = $accountSummary->patron->fees / 100;
+				$user->finesVal = floatval(preg_replace('/[^\\d.]/', '', $user->fines));
+
+				$user->numCheckedOutIls     = $accountSummary->accountSummary->loanCount;
+				$user->numHoldsAvailableIls = $accountSummary->accountSummary->arrivedHolds;
+				$user->numHoldsRequestedIls = $accountSummary->accountSummary->pendingHolds;
+				$user->numHoldsIls          = $user->numHoldsAvailableIls + $user->numHoldsRequestedIls;
+
+				if ($userExistsInDB) {
+					$user->update();
+				} else {
+					$user->created = date('Y-m-d');
+					$user->insert();
+				}
+
+				$timer->logTime("patron logged in successfully");
+				return $user;
 			}else{
-				$user->expireClose = 0;
+				// bad or empty response; or json decoding error
+				global $logger;
+				$logger->log('Bad or Empty response for Library Solution Account Summary call during login', PEAR_LOG_ERR);
+				$timer->logTime("patron login failed");
+				return null;
 			}
-
-			$user->address1 = $accountSummary->patron->address1;
-			$user->city = $accountSummary->patron->city;
-			$user->state = $accountSummary->patron->state;
-			$user->zip = $accountSummary->patron->zipcode;
-
-			$user->fines = $accountSummary->patron->fees / 100;
-			$user->finesVal = floatval(preg_replace('/[^\\d.]/', '', $user->fines));
-
-			$user->numCheckedOutIls = $accountSummary->accountSummary->loanCount;
-			$user->numHoldsAvailableIls = $accountSummary->accountSummary->arrivedHolds;
-			$user->numHoldsRequestedIls = $accountSummary->accountSummary->pendingHolds;
-			$user->numHoldsIls = $user->numHoldsAvailableIls + $user->numHoldsRequestedIls;
-
-			if ($userExistsInDB){
-				$user->update();
-			}else{
-				$user->created = date('Y-m-d');
-				$user->insert();
-			}
-
-			$timer->logTime("patron logged in successfully");
-			return $user;
 		}else{
 			$info = curl_getinfo($this->curl_connection);
 			$timer->logTime("patron login failed");
@@ -201,18 +209,17 @@ class LibrarySolution extends ScreenScrapingDriver {
 			$loanInfo = json_decode($loanInfoRaw);
 
 			foreach ($loanInfo->loanHistory as $loan){
-				$curTitle = array();
-				$curTitle['itemId'] = $loan->itemId;
-				$curTitle['id'] = $loan->bibliographicId;
-				$curTitle['shortId'] = $loan->bibliographicId;
-				$curTitle['recordId'] = $loan->bibliographicId;
-				$curTitle['title'] = utf8_encode($loan->title);
-				$curTitle['author'] = utf8_encode($loan->author);
 				$dueDate = $loan->dueDate;
-				$curTitle['dueDate'] = $dueDate;        // item likely will not have a dueDate, (get null value)
-				$curTitle['checkout'] = $loan->outDateString; // item always has a outDateString
+				$curTitle = array();
+				$curTitle['itemId']       = $loan->itemId;
+				$curTitle['id']           = $loan->bibliographicId;
+				$curTitle['shortId']      = $loan->bibliographicId;
+				$curTitle['recordId']     = $loan->bibliographicId;
+				$curTitle['title']        = utf8_encode($loan->title);
+				$curTitle['author']       = utf8_encode($loan->author);
+				$curTitle['dueDate']      = $dueDate;        // item likely will not have a dueDate, (get null value)
+				$curTitle['checkout']     = $loan->outDateString; // item always has a outDateString
 				$curTitle['borrower_num'] = $patron->id;
-				$curTitle['title_sort'] = preg_replace('/[^a-z\s]/', '', strtolower($curTitle['title']));
 
 				//Get additional information from MARC Record
 				if ($curTitle['shortId'] && strlen($curTitle['shortId']) > 0){
@@ -220,23 +227,23 @@ class LibrarySolution extends ScreenScrapingDriver {
 					$recordDriver = new MarcRecord( $this->accountProfile->recordSource . ":" . $curTitle['recordId']);
 					if ($recordDriver->isValid()){
 						$historyEntry['permanentId'] = $recordDriver->getPermanentId();
-						$curTitle['coverUrl'] = $recordDriver->getBookcoverUrl('medium');
-						$curTitle['groupedWorkId'] = $recordDriver->getGroupedWorkId();
-						$curTitle['ratingData'] = $recordDriver->getRatingData();
-						$formats = $recordDriver->getFormats();
-						$curTitle['format'] = reset($formats);
-						$curTitle['author'] = $recordDriver->getPrimaryAuthor();
+						$curTitle['coverUrl']        = $recordDriver->getBookcoverUrl('medium');
+						$curTitle['groupedWorkId']   = $recordDriver->getGroupedWorkId();
+						$curTitle['ratingData']      = $recordDriver->getRatingData();
+						$curTitle['linkUrl']         = $recordDriver->getGroupedWorkDriver()->getLinkUrl();
+						$curTitle['format']          = $recordDriver->getFormats();
+						$curTitle['author']          = $recordDriver->getPrimaryAuthor();
 						if (!isset($curTitle['title']) || empty($curTitle['title'])){
-							$curTitle['title'] = $recordDriver->getTitle();
+							$curTitle['title']         = $recordDriver->getTitle();
 						}
 					}else{
 						$historyEntry['permanentId'] = null;
-						$curTitle['coverUrl'] = "";
-						$curTitle['groupedWorkId'] = "";
-						$curTitle['format'] = "Unknown";
+						$curTitle['coverUrl']        = "";
+						$curTitle['groupedWorkId']   = "";
+						$curTitle['format']          = "Unknown";
 					}
-					$curTitle['linkUrl'] = $recordDriver->getGroupedWorkDriver()->getLinkUrl();
 				}
+				$curTitle['title_sort'] = preg_replace('/[^a-z\s]/', '', strtolower($curTitle['title'])); // set after title might have been fetched from Marc
 
 				$readingHistory[] = $curTitle;
 			}
@@ -543,7 +550,7 @@ class LibrarySolution extends ScreenScrapingDriver {
 	 *                                If an error occurs, return a PEAR_Error
 	 * @access  public
 	 */
-	function placeHold($patron, $recordId, $pickupBranch) {
+	function placeHold($patron, $recordId, $pickupBranch, $cancelDate = null) {
 		$recordDriver = RecordDriverFactory::initRecordDriverById($this->accountProfile->recordSource . ':' . $recordId);
 		$result = array(
 			'success' => false,

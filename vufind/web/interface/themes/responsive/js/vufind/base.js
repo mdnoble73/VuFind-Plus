@@ -34,6 +34,9 @@ var VuFind = (function(){
 			if (history.state && history.state.page === "MapExhibit") {
 				VuFind.Archive.handleMapClick(history.state.marker, history.state.exhibitPid, history.state.placePid, history.state.label);
 			}
+			else if (history.state && history.state.page === "Book") {
+				VuFind.Archive.handleBookClick(history.state.bookPid, history.state.pagePid, history.state.viewer);
+			}
 		});
 	});
 	/**

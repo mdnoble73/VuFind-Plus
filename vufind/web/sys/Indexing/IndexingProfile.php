@@ -44,6 +44,7 @@ class IndexingProfile extends DB_DataObject{
 	public $subLocation;
 	public $shelvingLocation;
 	public $collection;
+	public $collectionsToSuppress;
 	public $volume;
 	public $itemUrl;
 	public $barcode;
@@ -111,6 +112,7 @@ class IndexingProfile extends DB_DataObject{
 			'subLocation' => array('property' => 'subLocation', 'type' => 'text', 'label' => 'Sub Location', 'maxLength' => 1, 'description' => 'A secondary subfield to divide locations'),
 			'shelvingLocation' => array('property' => 'shelvingLocation', 'type' => 'text', 'label' => 'Shelving Location', 'maxLength' => 1, 'description' => 'A subfield for shelving location information'),
 			'collection' => array('property' => 'collection', 'type' => 'text', 'label' => 'Collection', 'maxLength' => 1, 'description' => 'A subfield for collection information'),
+			'collectionsToSuppress' => array('property' => 'collectionsToSuppress', 'type' => 'text', 'label' => 'Collections To Suppress', 'maxLength' => 100, 'description' => 'A regular expression for any collections that should be suppressed'),
 			'volume' => array('property' => 'volume', 'type' => 'text', 'label' => 'Volume', 'maxLength' => 1, 'description' => 'A subfield for volume information'),
 			'itemUrl' => array('property' => 'itemUrl', 'type' => 'text', 'label' => 'Item URL', 'maxLength' => 1, 'description' => 'Subfield for a URL specific to the item'),
 			'barcode' => array('property' => 'barcode', 'type' => 'text', 'label' => 'Barcode', 'maxLength' => 1, 'description' => 'Subfield for barcode'),
@@ -220,6 +222,8 @@ class IndexingProfile extends DB_DataObject{
 	public function update(){
 		$ret = parent::update();
 		if ($ret === FALSE ){
+			global $logger;
+			$logger->log('Failed to update indexing profile for '.$this->name, PEAR_LOG_ERR);
 			return $ret;
 		}else{
 			$this->saveTranslationMaps();
@@ -227,8 +231,11 @@ class IndexingProfile extends DB_DataObject{
 		}
 		/** @var Memcache $memCache */
 		global $memCache;
-		global $serverName;
-		$memCache->delete("{$serverName}_indexing_profiles");
+		global $instanceName;
+		if (!$memCache->delete("{$instanceName}_indexing_profiles")) {
+			global $logger;
+			$logger->log("Failed to delete memcache variable {$instanceName}_indexing_profiles when adding new indexing profile for {$this->name}", PEAR_LOG_ERR);
+		}
 		return true;
 	}
 
@@ -240,6 +247,8 @@ class IndexingProfile extends DB_DataObject{
 	public function insert(){
 		$ret = parent::insert();
 		if ($ret === FALSE ){
+			global $logger;
+			$logger->log('Failed to add new indexing profile for '.$this->name, PEAR_LOG_ERR);
 			return $ret;
 		}else{
 			$this->saveTranslationMaps();
@@ -247,8 +256,11 @@ class IndexingProfile extends DB_DataObject{
 		}
 		/** @var Memcache $memCache */
 		global $memCache;
-		global $serverName;
-		$memCache->delete("{$serverName}_indexing_profiles");
+		global $instanceName;
+		if (!$memCache->delete("{$instanceName}_indexing_profiles")) {
+			global $logger;
+			$logger->log("Failed to delete memcache variable {$instanceName}_indexing_profiles when adding new indexing profile for {$this->name}", PEAR_LOG_ERR);
+		}
 		return true;
 	}
 

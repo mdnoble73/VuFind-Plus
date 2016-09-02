@@ -90,8 +90,8 @@ class Millennium extends ScreenScrapingDriver
 			/** @var Memcache $memCache */
 			global $memCache;
 			global $configArray;
-			global $serverName;
-			$this->loanRules = $memCache->get($serverName . '_loan_rules');
+			global $instanceName;
+			$this->loanRules = $memCache->get($instanceName . '_loan_rules');
 			if (!$this->loanRules || isset($_REQUEST['reload'])){
 				$this->loanRules = array();
 				$loanRule = new LoanRule();
@@ -100,9 +100,9 @@ class Millennium extends ScreenScrapingDriver
 					$this->loanRules[$loanRule->loanRuleId] = clone($loanRule);
 				}
 			}
-			$memCache->set($serverName . '_loan_rules', $this->loanRules, 0, $configArray['Caching']['loan_rules']);
+			$memCache->set($instanceName . '_loan_rules', $this->loanRules, 0, $configArray['Caching']['loan_rules']);
 
-			$this->loanRuleDeterminers = $memCache->get($serverName . '_loan_rule_determiners');
+			$this->loanRuleDeterminers = $memCache->get($instanceName . '_loan_rule_determiners');
 			if (!$this->loanRuleDeterminers || isset($_REQUEST['reload'])){
 				$this->loanRuleDeterminers = array();
 				$loanRuleDeterminer = new LoanRuleDeterminer();
@@ -113,7 +113,7 @@ class Millennium extends ScreenScrapingDriver
 					$this->loanRuleDeterminers[$loanRuleDeterminer->rowNumber] = clone($loanRuleDeterminer);
 				}
 			}
-			$memCache->set($serverName . '_loan_rule_determiners', $this->loanRuleDeterminers, 0, $configArray['Caching']['loan_rules']);
+			$memCache->set($instanceName . '_loan_rule_determiners', $this->loanRuleDeterminers, 0, $configArray['Caching']['loan_rules']);
 		}
 	}
 
@@ -721,8 +721,8 @@ class Millennium extends ScreenScrapingDriver
 	 *                                If an error occurs, return a PEAR_Error
 	 * @access  public
 	 */
-	function placeHold($patron, $recordId, $pickupBranch) {
-		$result = $this->placeItemHold($patron, $recordId, '', $pickupBranch);
+	function placeHold($patron, $recordId, $pickupBranch, $cancelDate = null) {
+		$result = $this->placeItemHold($patron, $recordId, '', $pickupBranch, $cancelDate);
 		return $result;
 	}
 
@@ -739,10 +739,10 @@ class Millennium extends ScreenScrapingDriver
 	 *                              If an error occurs, return a PEAR_Error
 	 * @access  public
 	 */
-	function placeItemHold($patron, $recordId, $itemId, $pickupBranch) {
+	function placeItemHold($patron, $recordId, $itemId, $pickupBranch, $cancelDate = null) {
 		require_once ROOT_DIR . '/Drivers/marmot_inc/MillenniumHolds.php';
 		$millenniumHolds = new MillenniumHolds($this);
-		return $millenniumHolds->placeItemHold($patron, $recordId, $itemId, $pickupBranch);
+		return $millenniumHolds->placeItemHold($patron, $recordId, $itemId, $pickupBranch, $cancelDate);
 	}
 
 	/**
@@ -915,16 +915,22 @@ class Millennium extends ScreenScrapingDriver
 					global $library;
 					if ($library->addSMSIndicatorToPhone){
 						//If the user is using SMS notices append TEXT ONLY to the primary phone number
-						if (strpos($extraPostInfo['tele1'], 'TEXT ONLY') !== 0){
-							$extraPostInfo['tele1'] = 'TEXT ONLY ' . $extraPostInfo['tele1'];
+						if (strpos($extraPostInfo['tele1'], '### TEXT ONLY') !== 0) {
+							if (strpos($extraPostInfo['tele1'], 'TEXT ONLY') !== 0){
+								$extraPostInfo['tele1'] = str_replace('TEXT ONLY ', '', $extraPostInfo['tele1']);
+							}
+							$extraPostInfo['tele1'] = '### TEXT ONLY ' . $extraPostInfo['tele1'];
 						}
+
 					}
 				}else{
 					$extraPostInfo['optin'] = 'off';
 					$extraPostInfo['mobile'] = "";
 					global $library;
 					if ($library->addSMSIndicatorToPhone){
-						if (strpos($extraPostInfo['tele1'], 'TEXT ONLY') === 0){
+						if (strpos($extraPostInfo['tele1'], '### TEXT ONLY') === 0){
+							$extraPostInfo['tele1'] = str_replace('### TEXT ONLY ', '', $extraPostInfo['tele1']);
+						}else if (strpos($extraPostInfo['tele1'], 'TEXT ONLY') === 0){
 							$extraPostInfo['tele1'] = str_replace('TEXT ONLY ', '', $extraPostInfo['tele1']);
 						}
 					}

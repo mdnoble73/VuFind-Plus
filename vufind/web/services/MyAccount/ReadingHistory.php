@@ -44,8 +44,6 @@ class ReadingHistory extends MyAccount
 			// Get My Transactions
 			if ($user) {
 				$linkedUsers = $user->getLinkedUsers();
-//				$patronId = isset($_REQUEST['patronId']) ? $_REQUEST['patronId'] : $user->id;
-				//  Testing
 				$patronId = empty($_REQUEST['patronId']) ?  $user->id : $_REQUEST['patronId'];
 
 				$patron = $user->getUserReferredTo($patronId);
@@ -118,7 +116,7 @@ class ReadingHistory extends MyAccount
 					$options = array('totalItems' => $result['numTitles'],
 					                 'fileName'   => $link,
 					                 'perPage'    => $recordsPerPage,
-					                 'append'    => false,
+					                 'append'     => false,
 					                 );
 					$pager = new VuFindPager($options);
 					$interface->assign('pageLinks', $pager->getLinks());

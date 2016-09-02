@@ -41,7 +41,7 @@ class MyAccount_Profile extends MyAccount
 
 			// Linked Accounts Selection Form set-up
 			if (count($linkedUsers) > 0) {
-				array_unshift($linkedUsers, $user);
+				array_unshift($linkedUsers, $user); // Adds primary account to list for display in account selector
 				$interface->assign('linkedUsers', $linkedUsers);
 				$interface->assign('selectedUser', $patronId);
 			}
@@ -151,16 +151,18 @@ class MyAccount_Profile extends MyAccount
 				unset($_SESSION['profileUpdateErrors']);
 			}
 
-			//Get the list of locations for display in the user interface.
-			$location                        = new Location();
-			$location->validHoldPickupBranch = 1;
-			$location->find();
+			if ($showAlternateLibraryOptionsInProfile) {
+				//Get the list of locations for display in the user interface.
+				$location                        = new Location();
+				$location->validHoldPickupBranch = 1;
+				$location->find();
 
-			$locationList = array();
-			while ($location->fetch()) {
-				$locationList[$location->locationId] = $location->displayName;
+				$locationList = array();
+				while ($location->fetch()) {
+					$locationList[$location->locationId] = $location->displayName;
+				}
+				$interface->assign('locationList', $locationList);
 			}
-			$interface->assign('locationList', $locationList);
 
 			$userIsStaff = $patron->isStaff();
 			$interface->assign('userIsStaff', $userIsStaff);

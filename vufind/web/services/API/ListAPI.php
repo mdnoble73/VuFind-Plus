@@ -124,15 +124,11 @@ class ListAPI extends Action {
 		$results = array();
 		if ($list->N > 0){
 			while ($list->fetch()){
-				$query = "SELECT count(resource_id) as numTitles FROM user_resource where list_id = " . $list->id;
-				$numTitleResults = mysql_query($query);
-				$numTitles = mysql_fetch_assoc($numTitleResults);
-
 				$results[] = array(
           'id' => $list->id,
           'title' => $list->title,
           'description' => $list->description,
-          'numTitles' => $numTitles['numTitles'],
+          'numTitles' => $list->numValidListItems(),
           'public' => $list->public == 1,
 				);
 			}
@@ -371,7 +367,7 @@ class ListAPI extends Action {
 		return array('success'=>true, 'lists'=>$systemLists);
 	}
 
-	private function _getUserListTitles($listId){
+	private function _getUserListTitles($listId, $numTitlesToShow){
 		global $user;
 		//The list is a patron generated list
 		$list = new UserList();
@@ -385,16 +381,32 @@ class ListAPI extends Action {
 					return array('success'=>false, 'message'=>'The user does not have access to this list.');
 				}
 			}
-			//Load the titles for the list.
-			$listTitles = $list->getListTitles();
 
-			$ids = array();
-			$datesSaved = array();
-			foreach ($listTitles as $listEntry){
-				$ids[] = $listEntry->groupedWorkPermanentId;
-				$datesSaved[$listEntry->groupedWorkPermanentId] = $listEntry->dateAdded;
+			require_once ROOT_DIR . '/services/MyResearch/lib/FavoriteHandler.php';
+			$favoriteHandler = new FavoriteHandler($list, $user, false);
+			$isMixedContentList = $favoriteHandler->isMixedUserList();
+			$orderedListOfIds = $isMixedContentList ? $favoriteHandler->getFavorites() : array();
+				// Use this array to combined Mixed Lists Back into their list-defined order
+
+			$catalogItems = $archiveItems = array();
+			$catalogIds   = $favoriteHandler->getCatalogIds();
+			$archiveIds   = $favoriteHandler->getArchiveIds();
+			if (count($catalogIds) > 0) {
+				$catalogItems = $this->loadTitleInformationForIds($catalogIds, $numTitlesToShow, $orderedListOfIds);
 			}
-			$titles = $this->loadTitleInformationForIds($ids, array(), $datesSaved);
+			if (count($archiveIds) > 0 ) {
+				$archiveItems = $this->loadArchiveInformationForIds($archiveIds, $numTitlesToShow, $orderedListOfIds);
+			}
+			if ($isMixedContentList) {
+				$titles = $catalogItems + $archiveItems;
+				ksort($titles, SORT_NUMERIC);
+				$titles = array_slice($titles, 0, $numTitlesToShow);
+
+			} else {
+				$titles = $catalogItems + $archiveItems; // One of these should always be empty, but add them together just in case
+			}
+
+
 			return array('success' => true, 'listName' => $list->title, 'listDescription' => $list->description, 'titles'=>$titles, 'cacheLength'=>24);
 		}else{
 			return array('success'=>false, 'message'=>'The specified list could not be found.');
@@ -404,8 +416,12 @@ class ListAPI extends Action {
 	/**
 	 * Returns information about the titles within a list including:
 	 * - Title, Author, Bookcover URL, description, record id
+	 *
+	 * @param string $listId - The list to show
+	 * @param integer $numTitlesToShow - the maximum number of titles that should be shown
+	 * @return array
 	 */
-	function getListTitles($listId = NULL, Pagination $pagination = NULL) {
+	function getListTitles($listId = NULL, $numTitlesToShow = 25) {
 		global $configArray;
 
 		if (!$listId){
@@ -424,19 +440,19 @@ class ListAPI extends Action {
 			global $user;
 		}
 
-		if ($user){
-			$userId = $user->id;
+		if (!is_numeric($numTitlesToShow)){
+			$numTitlesToShow = 25;
 		}
 
 		if (is_numeric($listId) || preg_match('/list[-:](.*)/', $listId, $listInfo)){
 			if (isset($listInfo)){
 				$listId = $listInfo[1];
 			}
-			return $this->_getUserListTitles($listId);
+			return $this->_getUserListTitles($listId, $numTitlesToShow);
 		}
 		elseif (preg_match('/search:(?<searchID>.*)/', $listId, $searchInfo)){
 			if (is_numeric($searchInfo[1])){
-				$titles = $this->getSavedSearchTitles($searchInfo[1]);
+				$titles = $this->getSavedSearchTitles($searchInfo[1], $numTitlesToShow);
 				if ($titles === false) { // Didn't find saved search
 					return array('success'=>false, 'message' => 'The specified search could not be found.');
 				} else { // successful search with or without any results. (javascript can handle no results returned.)
@@ -444,7 +460,7 @@ class ListAPI extends Action {
 				}
 			}else{
 				//Do a default search
-				$titles = $this->getSystemListTitles($listId);
+				$titles = $this->getSystemListTitles($listId, $numTitlesToShow);
 				if (count($titles) > 0 ){
 					return array('success'=>true, 'listTitle' => $listId, 'listDescription' => "System Generated List", 'titles'=>$titles, 'cacheLength'=>4);
 				}else{
@@ -463,31 +479,31 @@ class ListAPI extends Action {
 			}
 			//The list is a system generated list
 			if ($listId == 'highestRated'){
-				$query = "SELECT record_id, AVG(rating) FROM `user_rating` inner join resource on resourceid = resource.id GROUP BY resourceId order by AVG(rating) DESC LIMIT 30";
+				$query = "SELECT record_id, AVG(rating) FROM `user_rating` inner join resource on resourceid = resource.id GROUP BY resourceId order by AVG(rating) DESC LIMIT $numTitlesToShow";
 				$result = mysql_query($query);
 				$ids = array();
 				while ($epubInfo = mysql_fetch_assoc($result)){
 					$ids[] = $epubInfo['record_id'];
 				}
-				$titles = $this->loadTitleInformationForIds($ids);
+				$titles = $this->loadTitleInformationForIds($ids, $numTitlesToShow);
 				return array('success'=>true, 'listTitle' => $systemList['title'], 'listDescription' => $systemList['description'], 'titles'=>$titles, 'cacheLength'=>1);
 			} elseif ($listId == 'recentlyReviewed'){
-				$query = "SELECT record_id, MAX(created) FROM `comments` inner join resource on resource_id = resource.id group by resource_id order by max(created) DESC LIMIT 30";
+				$query = "SELECT record_id, MAX(created) FROM `comments` inner join resource on resource_id = resource.id group by resource_id order by max(created) DESC LIMIT $numTitlesToShow";
 				$result = mysql_query($query);
 				$ids = array();
 				while ($epubInfo = mysql_fetch_assoc($result)){
 					$ids[] = $epubInfo['record_id'];
 				}
-				$titles = $this->loadTitleInformationForIds($ids);
+				$titles = $this->loadTitleInformationForIds($ids, $numTitlesToShow);
 				return array('success'=>true, 'listTitle' => $systemList['title'], 'listDescription' => $systemList['description'], 'titles'=>$titles, 'cacheLength'=>1);
 			}elseif ($listId == 'mostPopular'){
-				$query = "SELECT record_id, count(userId) from user_reading_history inner join resource on resourceId = resource.id GROUP BY resourceId order by count(userId) DESC LIMIT 30";
+				$query = "SELECT record_id, count(userId) from user_reading_history inner join resource on resourceId = resource.id GROUP BY resourceId order by count(userId) DESC LIMIT $numTitlesToShow";
 				$result = mysql_query($query);
 				$ids = array();
 				while ($epubInfo = mysql_fetch_assoc($result)){
 					$ids[] = $epubInfo['record_id'];
 				}
-				$titles = $this->loadTitleInformationForIds($ids);
+				$titles = $this->loadTitleInformationForIds($ids, $numTitlesToShow);
 				return array('success'=>true, 'listTitle' => $systemList['title'], 'listDescription' => $systemList['description'], 'titles'=>$titles, 'cacheLength'=>1);
 			}elseif ($listId == 'recommendations'){
 				if (!$user){
@@ -555,13 +571,6 @@ class ListAPI extends Action {
 			global $user;
 		}
 
-		if ($user){
-			$userId = $user->id;
-		}else{
-			$userId = '';
-		}
-
-
 		if (is_numeric($listId) || preg_match('/list[-:](.*)/', $listId, $listInfo)){
 			if (isset($listInfo)){
 				$listId = $listInfo[1];
@@ -570,7 +579,7 @@ class ListAPI extends Action {
 				'cacheType' => 'general',
 				'cacheName' => 'list_general_list:' . $listId,
 				'cacheLength' => $configArray['Caching']['list_general'],
-				'fullListLink' => $configArray['Site']['path'] . '/MyResearch/MyList/' . $listId,
+				'fullListLink' => $configArray['Site']['path'] . '/MyResearch/MyList/' . $listId, // TODO: switch to /MyAccount/MyList/
 			);
 
 		}elseif (preg_match('/review:(.*)/', $listId, $reviewInfo)){
@@ -645,21 +654,38 @@ class ListAPI extends Action {
 		}
 	}
 
-	function loadTitleInformationForIds($ids, $descriptions = array(), $datesSaved = array()){
-		/** @var SearchObject_Solr $searchObject */
-		$searchObject = SearchObjectFactory::initSearchObject();
-		$searchObject->init();
+	function loadTitleInformationForIds($ids, $numTitlesToShow, $orderedListOfIds = array()){
 		$titles = array();
 		if (count($ids) > 0){
-			$searchObject->setLimit(count($ids));
+			/** @var SearchObject_Solr $searchObject */
+			$searchObject = SearchObjectFactory::initSearchObject();
+			$searchObject->init();
+			$searchObject->setLimit($numTitlesToShow);
 			$searchObject->setQueryIDs($ids);
 			$searchObject->processSearch();
-			$titles = $searchObject->getListWidgetTitles();
+			$titles = $searchObject->getListWidgetTitles($orderedListOfIds);
 		}
 		return $titles;
 	}
 
-	function getSavedSearchTitles($searchId){
+	function loadArchiveInformationForIds($ids, $numTitlesToShow, $orderedListOfIds = array()){
+		$titles = array();
+		if (count($ids) > 0){
+			/** @var SearchObject_Islandora $archiveSearchObject */
+			$archiveSearchObject = SearchObjectFactory::initSearchObject('Islandora');
+			$archiveSearchObject->init();
+			$archiveSearchObject->setPrimarySearch(true);
+			$archiveSearchObject->addHiddenFilter('!RELS_EXT_isViewableByRole_literal_ms', "administrator");
+			$archiveSearchObject->addHiddenFilter('!mods_extension_marmotLocal_pikaOptions_showInSearchResults_ms', "no");
+			$archiveSearchObject->setLimit($numTitlesToShow);
+			$archiveSearchObject->setQueryIDs($ids);
+			$archiveSearchObject->processSearch();
+			$titles = $archiveSearchObject->getListWidgetTitles($orderedListOfIds);
+		}
+		return $titles;
+	}
+
+	function getSavedSearchTitles($searchId, $numTitlesToShow){
 		/** @var Memcache $memCache */
 		global $memCache;
 		global $configArray;
@@ -675,7 +701,7 @@ class ListAPI extends Action {
 				if (isset($_REQUEST['numTitles'])) {
 					$searchObj->setLimit($_REQUEST['numTitles']);
 				} else {
-					$searchObj->setLimit(25);
+					$searchObj->setLimit($numTitlesToShow);
 				}
 				$searchObj->processSearch(false, false);
 				$listTitles = $searchObj->getListWidgetTitles();
@@ -884,7 +910,7 @@ class ListAPI extends Action {
 		}
 	}
 
-	function getSystemListTitles($listName){
+	function getSystemListTitles($listName, $numTitlesToShow){
 		/** @var Memcache $memCache */
 		global $memCache;
 		global $configArray;
@@ -900,7 +926,7 @@ class ListAPI extends Action {
 			if (isset($_REQUEST['numTitles'])){
 				$searchObj->setLimit($_REQUEST['numTitles']);
 			}else{
-				$searchObj->setLimit(25);
+				$searchObj->setLimit($numTitlesToShow);
 			}
 			$searchObj->processSearch(false, false);
 			$listTitles = $searchObj->getListWidgetTitles();
@@ -908,5 +934,198 @@ class ListAPI extends Action {
 			$memCache->set('system_list_titles_' . $listName, $listTitles, 0, $configArray['Caching']['system_list_titles']);
 		}
 		return $listTitles;
+	}
+
+	/**
+	 * Creates or updates a user defined list from information obtained from the New York Times API
+	 *
+	 * @param string $selectedList machine readable name of the new york times list
+	 * @return array
+	 */
+	public function createUserListFromNYT($selectedList = null) {
+		global $configArray;
+
+		if ($selectedList == null){
+			$selectedList = $_REQUEST['listToUpdate'];
+		}
+
+		$results = array(
+				'success' => false,
+				'message' => 'Unknown error'
+		);
+
+		if (!isset($configArray['NYT_API']) || !isset($configArray['NYT_API']['books_API_key']) || strlen($configArray['NYT_API']['books_API_key']) == 0){
+			$results['message'] = 'API Key missing';
+		}else {
+			$api_key = $configArray['NYT_API']['books_API_key'];
+
+			// instantiate class with api key
+			require_once ROOT_DIR . '/sys/NYTApi.php';
+			$nyt_api = new NYTApi($api_key);
+
+			//Check Pika to see if the list has been created
+			//  currently we have 2 options:
+			//  1) Get a list of all public lists (for all people)
+			//  2) Get a list of lists for a particular account
+			$pikaUsername = $configArray['NYT_API']['pika_username'];
+			$pikaPassword = $configArray['NYT_API']['pika_password'];
+
+			//Get the raw response from the API with a list of all the names
+			$availableListsRaw = $nyt_api->get_list('names');
+			//Convert into an object that can be processed
+			$availableLists = json_decode($availableListsRaw);
+
+			//Get the human readable title for our selected list
+			$selectedListTitle = null;
+			$selectedListTitleShort = null;
+			//Get the title and description for the selected list
+			foreach ($availableLists->results as $listInformation){
+				if ($listInformation->list_name_encoded == $selectedList){
+					$selectedListTitle = 'NYT - ' . $listInformation->display_name;
+					$selectedListTitleShort = $listInformation->display_name;
+					break;
+				}
+			}
+
+			//Call Pika to get a list of all lists for our username
+			$pikaUrl = $configArray['Site']['url'];
+			$apiUrl = $pikaUrl . "/API/ListAPI?method=getUserLists&username=" . urlencode($pikaUsername) . "&password=" . urlencode($pikaPassword);
+			$getUserListResults = file_get_contents($apiUrl);
+
+			$getUserListResultsJSON = json_decode($getUserListResults);
+			//Loop through the set of all lists to see if we have one by this name
+			$listExistsInPika = false;
+			foreach ($getUserListResultsJSON->result->lists as $listName){
+				//Compare the list name from Pika to the human readable name
+				if ($listName->title == $selectedListTitle){
+					$listExistsInPika = true;
+					$listID = $listName->id;
+					$results = array(
+							'success' => true,
+							'message' =>"Updating existing list <a href='/MyAccount/MyList/{$listID}'>{$listName->title}</a>"
+					);
+					break;
+				}
+			}
+
+			//We didn't get a list in Pika, create one
+			if (!$listExistsInPika){
+				//Call the create list API
+				$createListURL = $pikaUrl . "/API/ListAPI?method=createList&username=" . urlencode($pikaUsername) .
+						"&password=" . urlencode($pikaPassword) .
+						"&title=" . urlencode($selectedListTitle) .
+						"&description=" . urlencode("New York Times - " . $selectedListTitleShort) .
+						"&public=1";
+				$createListResultRaw = file_get_contents($createListURL);
+				$createListResult = json_decode($createListResultRaw);
+
+				if ($createListResult->result->success){
+					$newlyCreatedListId = $createListResult->result->listId;
+					$listID = $newlyCreatedListId;
+					$results = array(
+							'success' => true,
+							'message' =>"Created list <a href='/MyAccount/MyList/{$listID}'>{$selectedListTitle}</a>"
+					);
+				}else{
+					return array(
+							'success' => false,
+							'message' => 'Could not create list' . $createListResult->result->message
+					);
+				}
+			}else{
+				//We already have a list, clear the contents so we don't have titles from last time
+				$clearListTitlesURL = $pikaUrl . "/API/ListAPI?method=clearListTitles&username=" . urlencode($pikaUsername) .
+						"&password=" . urlencode($pikaPassword) .
+						"&listId=" . $listID;
+				$clearListResultRaw = file_get_contents($clearListTitlesURL);
+				$clearListResult = json_decode($clearListResultRaw);
+				if (!$clearListResult->result->success){
+					return array(
+							'success' => false,
+							'message' => "Could not clear titles from list " . $listID
+					);
+				}
+			}
+
+			$nytList = new UserList();
+			$nytList->id = $listID;
+			$nytList->find(true);
+
+			// We need to add titles to the list
+			//Get a list of titles from NYT API
+			$availableListsRaw = $nyt_api->get_list($selectedList);
+			$availableLists = json_decode($availableListsRaw);
+
+			// Include Search Engine Class
+			require_once ROOT_DIR . '/sys/' . $configArray['Index']['engine'] . '.php';
+
+			$numTitlesAdded = 0;
+			foreach ($availableLists->results as $titleResult) {
+				$pikaID = null;
+				// go through each list item
+				if (!empty($titleResult->isbns)) {
+					foreach ($titleResult->isbns as $isbns) {
+						$isbn = empty($isbns->isbn13) ? $isbns->isbn10 : $isbns->isbn13;
+						if ($isbn) {
+							//look the title up in Pika by ISBN
+							/** @var SearchObject_Solr $searchObject */
+							$searchObject = SearchObjectFactory::initSearchObject();
+							$searchObject->init();
+							$searchObject->clearFacets();
+							$searchObject->clearFilters();
+							$searchObject->setBasicQuery($isbn, "ISN");
+							$result = $searchObject->processSearch(true, false);
+							if ($result && $searchObject->getResultTotal() >= 1){
+								$recordSet = $searchObject->getResultRecordSet();
+								foreach($recordSet as $recordKey => $record){
+									if (!empty($record['id'])) {
+										$pikaID = $record['id'];
+										break;
+									}
+								}
+							}
+						}
+						//break if we found a pika id for the title
+						if ($pikaID != null) {
+							break;
+						}
+					}
+				}//Done checking ISBNs
+				if ($pikaID != null) {
+					$note = "#{$titleResult->rank} on the {$titleResult->display_name} list for {$titleResult->published_date}.";
+					if ($titleResult->rank_last_week != 0) {
+						$note .= '  Last week it was ranked ' . $titleResult->rank_last_week . '.';
+					}
+					if ($titleResult->weeks_on_list != 0) {
+						$note .= "  It has been on the list for {$titleResult->weeks_on_list} week(s).";
+					}
+
+					$userListEntry = new UserListEntry();
+					$userListEntry->listId = $listID;
+					$userListEntry->groupedWorkPermanentId = $pikaID;
+
+					$existingEntry = false;
+					if ($userListEntry->find(true)){
+						$existingEntry = true;
+					}
+
+					$userListEntry->notes = $note;
+					$userListEntry->dateAdded = time();
+					if ($existingEntry){
+						if ($userListEntry->update()){
+							$numTitlesAdded++;
+						}
+					}else{
+						if ($userListEntry->insert()){
+							$numTitlesAdded++;
+						}
+					}
+
+				}
+			}
+			$results['message'] .= "<br/> Added $numTitlesAdded Titles to the list";
+		}
+
+		return $results;
 	}
 }

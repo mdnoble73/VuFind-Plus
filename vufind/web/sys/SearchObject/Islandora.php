@@ -85,7 +85,7 @@ class SearchObject_Islandora extends SearchObject_Base
 		$this->searchType = 'islandora';
 		$this->basicSearchType = 'islandora';
 		// Initialise the index
-		$this->indexEngine = new Solr($configArray['Islandora']['solrUrl'], 'islandora');
+		$this->indexEngine = new Solr($configArray['Islandora']['solrUrl'], isset($configArray['Islandora']['solrCore']) ? $configArray['Islandora']['solrCore'] : 'islandora');
 		$timer->logTime('Created Index Engine for Islandora');
 
 		//Make sure to turn off sharding for islandora
@@ -199,6 +199,15 @@ class SearchObject_Islandora extends SearchObject_Base
 			$this->query = $_REQUEST['q'];
 		}
 
+		global $module, $action;
+		if ($module == 'MyAccount') {
+			// Users Lists
+//			$this->spellcheck = false;
+			$this->searchType = ($action == 'Home') ? 'favorites' : 'list';
+			// This is to set the sorting URLs for a User List of Archive Items. pascal 8-25-2016
+		}
+
+
 		return true;
 	} // End init()
 
@@ -302,22 +311,65 @@ class SearchObject_Islandora extends SearchObject_Base
 	 * results suitable for use on a user's "favorites" page.
 	 *
 	 * @access  public
-	 * @param   object  $user       User object owning tag/note metadata.
-	 * @param   int     $listId     ID of list containing desired tags/notes (or
+	 * @param   object $user User object owning tag/note metadata.
+	 * @param   int $listId ID of list containing desired tags/notes (or
 	 *                              null to show tags/notes from all user's lists).
-	 * @param   bool    $allowEdit  Should we display edit controls?
-	 * @return  array   Array of HTML chunks for individual records.
+	 * @param   bool $allowEdit Should we display edit controls?
+	 * @param   array   $IDList     optional list of IDs to re-order the archive Objects by (ie User List sorts)
+	 * @param   bool $isMixedUserList Used to correctly number items in a list of mixed content (eg catalog & archive content)
+	 * @return array Array of HTML chunks for individual records.
 	 */
-	public function getResultListHTML($user, $listId = null, $allowEdit = true)
+	public function getResultListHTML($user, $listId = null, $allowEdit = true, $IDList = null, $isMixedUserList = false)
 	{
 		global $interface;
-
 		$html = array();
+
+		if ($IDList){
+			//Reorder the documents based on the list of id's
+			//TODO: taken from Solr.php (May need to adjust for Islandora
+			$x = 0;
+			foreach ($IDList as $listPosition => $currentId){
+				// use $IDList as the order guide for the html
+				$current = null; // empty out in case we don't find the matching record
+				foreach ($this->indexResult['response']['docs'] as $index => $doc) {
+					if ($doc['PID'] == $currentId) {
+						$current = & $this->indexResult['response']['docs'][$index];
+						break;
+					}
+				}
+				if (empty($current)) {
+					continue; // In the case the record wasn't found, move on to the next record
+				}else {
+					if ($isMixedUserList) {
+						$interface->assign('recordIndex', $listPosition + 1);
+						$interface->assign('resultIndex', $listPosition + 1 + (($this->page - 1) * $this->limit));
+					} else {
+						$interface->assign('recordIndex', $x + 1);
+						$interface->assign('resultIndex', $x + 1 + (($this->page - 1) * $this->limit));
+					}
+					if (!$this->debug){
+						unset($current['explain']);
+						unset($current['score']);
+					}
+					/** @var IslandoraDriver $record */
+					$record = RecordDriverFactory::initRecordDriver($current);
+					if ($isMixedUserList) {
+						$html[$listPosition] = $interface->fetch($record->getListEntry($user, $listId, $allowEdit));
+					} else {
+						$html[] = $interface->fetch($record->getListEntry($user, $listId, $allowEdit));
+						$x++;
+					}
+				}
+			}
+		}else{
 		for ($x = 0; $x < count($this->indexResult['response']['docs']); $x++) {
-			$current = & $this->indexResult['response']['docs'][$x];
-			$record = RecordDriverFactory::initRecordDriver($current);
-			$html[] = $interface->fetch($record->getListEntry($user, $listId, $allowEdit));
+			$interface->assign('recordIndex', $x + 1);
+			$interface->assign('resultIndex', $x + 1 + (($this->page - 1) * $this->limit));
+			$current = &$this->indexResult['response']['docs'][$x];
+			$record  = RecordDriverFactory::initRecordDriver($current);
+			$html[]  = $interface->fetch($record->getListEntry($user, $listId, $allowEdit));
 		}
+	}
 		return $html;
 	}
 
@@ -329,13 +381,47 @@ class SearchObject_Islandora extends SearchObject_Base
 	 */
 	public function getResultRecordSet()
 	{
-		//Marmot add shortIds without dot for use in display.
 		$recordSet = $this->indexResult['response']['docs'];
 		foreach ($recordSet as $key => $record){
+			// Additional Information for Emailing a list of Archive Objects
+			$recordDriver = RecordDriverFactory::initRecordDriver($record);
+			$record['url']    = $recordDriver->getLinkUrl();
+			$record['format'] = $recordDriver->getFormat();
+
 			$recordSet[$key] = $record;
 		}
 		return $recordSet;
 	}
+
+	/**
+	 * @param array $orderedListOfIDs  Use the index of the matched ID as the index of the resulting array of ListWidget data (for later merging)
+	 * @return array
+	 */
+	public function getListWidgetTitles($orderedListOfIDs = array()){
+		$widgetTitles = array();
+		for ($x = 0; $x < count($this->indexResult['response']['docs']); $x++) {
+			$current = & $this->indexResult['response']['docs'][$x];
+			$record = RecordDriverFactory::initRecordDriver($current);
+			if (!PEAR_Singleton::isError($record)){
+				if (method_exists($record, 'getListWidgetTitle')){
+					if (!empty($orderedListOfIDs)) {
+						$position = array_search($current['PID'], $orderedListOfIDs);
+						if ($position !== false) {
+							$widgetTitles[$position] = $record->getListWidgetTitle();
+						}
+					} else {
+						$widgetTitles[] = $record->getListWidgetTitle();
+					}
+				}else{
+					$widgetTitles[] = 'List Widget Item not available';
+				}
+			}else{
+				$widgetTitles[] = "Unable to find record";
+			}
+		}
+		return $widgetTitles;
+	}
+
 
 	/**
 	 * Use the record driver to build an array of HTML displays from the search
@@ -366,14 +452,18 @@ class SearchObject_Islandora extends SearchObject_Base
 	}
 
 	/**
-	 * Set an overriding array of record IDs.
+	 * Set an overriding array of archive PIDs.
 	 *
 	 * @access  public
-	 * @param   array   $ids        Record IDs to load
+	 * @param   array   $ids        archive PIDs to load
 	 */
 	public function setQueryIDs($ids)
 	{
-		$this->query = 'id:(' . implode(' OR ', $ids) . ')';
+		$quoteIDs = function ($id) {
+			return "\"$id\"";
+		};
+		$ids = array_map($quoteIDs, $ids);
+		$this->query = 'PID:(' . implode(' OR ', $ids) . ')';
 	}
 
 	/**
@@ -641,6 +731,10 @@ class SearchObject_Islandora extends SearchObject_Base
 	 */
 	protected function getBaseUrl()
 	{
+		if ($this->searchType == 'list') {
+			return $this->serverUrl . '/MyAccount/MyList/' .
+			urlencode($_GET['id']) . '?';
+		}
 		// Base URL is different for author searches:
 		return $this->serverUrl . '/Archive/Results?';
 	}
@@ -1023,6 +1117,59 @@ class SearchObject_Islandora extends SearchObject_Base
 	}
 
 	/**
+	 * Return an array structure containing all current filters
+	 *    and urls to remove them.
+	 *
+	 * @access  public
+	 * @param   bool   $excludeCheckboxFilters  Should we exclude checkbox filters
+	 *                                          from the list (to be used as a
+	 *                                          complement to getCheckboxFacets()).
+	 * @return  array    Field, values and removal urls
+	 */
+	public function getFilterList($excludeCheckboxFilters = false)
+	{
+		require_once ROOT_DIR . '/sys/Utils/FedoraUtils.php';
+		$fedoraUtils = FedoraUtils::getInstance();
+
+		// Get a list of checkbox filters to skip if necessary:
+		$skipList = $excludeCheckboxFilters ? array_keys($this->checkboxFacets) : array();
+
+		$list = array();
+		// Loop through all the current filter fields
+		foreach ($this->filterList as $field => $values) {
+			// and each value currently used for that field
+			$translate = in_array($field, $this->translatedFacets);
+			$lookupPid = in_array($field, $this->pidFacets);
+			foreach ($values as $value) {
+				// Add to the list unless it's in the list of fields to skip:
+				if (!in_array($field, $skipList)) {
+					$facetLabel = $this->getFacetLabel($field);
+					if ($lookupPid) {
+						$pid = str_replace('info:fedora/', '', $value);
+						$display = $fedoraUtils->getObjectLabel($pid);
+						if ($display == 'Invalid Object'){
+							continue;
+						}
+
+					}elseif ($translate){
+						$display = translate($value);
+					}else{
+						$display = $value;
+					}
+
+					$list[$facetLabel][] = array(
+							'value'      => $value,     // raw value for use with Solr
+							'display'    => $display,   // version to display to user
+							'field'      => $field,
+							'removalUrl' => $this->renderLinkWithoutFilter("$field:$value")
+					);
+				}
+			}
+		}
+		return $list;
+	}
+
+	/**
 	 * Process facets from the results object
 	 *
 	 * @access  public
@@ -1114,24 +1261,6 @@ class SearchObject_Islandora extends SearchObject_Base
 
 				// Store the collected values:
 				$list[$field]['list'][$valueKey] = $currentSettings;
-			}
-
-			if ($field == 'veteranOf'){
-				//Add a field for Any war
-				$currentSettings = array();
-				$currentSettings['value'] = '[* TO *]';
-				$currentSettings['display'] = $translate ? translate('Any War') : 'Any War';
-				$currentSettings['count'] = '';
-				$currentSettings['isApplied'] = false;
-				if (in_array($field, array_keys($this->filterList))) {
-					// and is this value a selected filter?
-					if (in_array($currentSettings['value'], $this->filterList[$field])) {
-						$currentSettings['isApplied'] = true;
-						$currentSettings['removalUrl'] =  $this->renderLinkWithoutFilter("$field:{$facet[0]}");
-					}
-				}
-				$currentSettings['url'] = $this->renderLinkWithFilter("veteranOf:" . $currentSettings['value']);
-				$list[$field]['list']['Any War'] = $currentSettings;
 			}
 
 			//How many facets should be shown by default
@@ -1334,6 +1463,7 @@ class SearchObject_Islandora extends SearchObject_Base
 		return $this->indexEngine->getRecord($id);
 	}
 
+	protected $params;
 	/**
 	 * Get an array of strings to attach to a base URL in order to reproduce the
 	 * current search.
@@ -1343,16 +1473,41 @@ class SearchObject_Islandora extends SearchObject_Base
 	 */
 	protected function getSearchParams()
 	{
-		$params = parent::getSearchParams();
+		if (is_null($this->params)) {
+			$params = array();
+			switch ($this->searchType) {
+				case 'islandora' :
+				default :
+					$params = parent::getSearchParams();
+					if (isset($_REQUEST['islandoraType'])) {
+						$params[] = 'islandoraType=' . $_REQUEST['islandoraType'];
+					} else {
+						$params[] = 'islandoraType=' . $this->defaultIndex;
+					}
+					break;
+				case 'list' :
+				case "favorites":
+				case "list":
+					$preserveParams = array(
+						// for favorites/list:
+						'tag', 'pagesize'
+					);
+					foreach ($preserveParams as $current) {
+						if (isset($_GET[$current])) {
+							if (is_array($_GET[$current])) {
+								foreach ($_GET[$current] as $value) {
+									$params[] = $current . '[]=' . urlencode($value);
+								}
+							} else {
+								$params[] = $current . '=' . urlencode($_GET[$current]);
+							}
+						}
+					}
 
-		if (isset($_REQUEST['islandoraType'])){
-			$params[] = 'islandoraType=' . $_REQUEST['islandoraType'];
-		}else{
-			$params[] = 'islandoraType=' . $this->defaultIndex;
+			}
+			$this->params = $params;
 		}
-
-
-		return $params;
+		return $this->params;
 	}
 
 	/**
@@ -1395,5 +1550,9 @@ class SearchObject_Islandora extends SearchObject_Base
 	public function setPrimarySearch($flag){
 		parent::setPrimarySearch($flag);
 		$this->indexEngine->isPrimarySearch = $flag;
+	}
+
+	public function addFieldsToReturn($fields){
+		$this->fields .= ',' . implode(',', $fields);
 	}
 }

@@ -479,6 +479,13 @@ class SearchAPI extends Action {
 		$widget = new ListWidget();
 		$id = $_REQUEST['id'];
 
+		if (isset($_REQUEST['reload'])){
+			$interface->assign('reload', true);
+		}else{
+			$interface->assign('reload', false);
+		}
+
+
 		$widget->id = $id;
 		if ($widget->find(true)){
 			$interface->assign('widget', $widget);

@@ -414,9 +414,12 @@ class Solr implements IndexEngine {
 		}
 	}
 
-	function getRecordByIsbn($isbns){
+	function getRecordByIsbn($isbns, $fieldsToReturn = null){
 		// Query String Parameters
-		$options = array('q' => 'isbn:' . implode(' OR ', $isbns), 'fl' => SearchObject_Solr::$fields);
+		if ($fieldsToReturn == null){
+			$fieldsToReturn = SearchObject_Solr::$fields;
+		}
+		$options = array('q' => 'isbn:' . implode(' OR ', $isbns), 'fl' => $fieldsToReturn);
 		$result = $this->_select('GET', $options);
 		if (PEAR_Singleton::isError($result)) {
 			PEAR_Singleton::raiseError($result);
@@ -1405,6 +1408,8 @@ class Solr implements IndexEngine {
 				$handler = 'TitleProper';
 			}else if ($handler == 'IslandoraKeyword'){
 				$handler = 'IslandoraKeywordProper';
+			}else if ($handler == 'IslandoraSubject'){
+				$handler = 'IslandoraSubjectProper';
 			}
 		}
 
@@ -1693,8 +1698,8 @@ class Solr implements IndexEngine {
 			$options['f.title_full.hl.fragsize'] = 1000;
 		}
 
+		$solrSearchDebug = print_r($options, true) . "\n";
 		if ($this->debugSolrQuery) {
-			$solrSearchDebug = print_r($options, true) . "\n";
 
 			if ($filters) {
 				$solrSearchDebug .= "\nFilterQuery: ";

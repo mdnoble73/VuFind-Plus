@@ -1,7 +1,7 @@
 {strip}
 	{if $cancelResults.title && !is_array($cancelResults.title)}
 		{* for single item results *}
-		<p><strong>{$cancelResults.title}</strong></p>
+		<p><strong>{$cancelResults.title|removeTrailingPunctuation}</strong></p>
 	{/if}
 	<div class="contents">
 		{if $cancelResults.success}

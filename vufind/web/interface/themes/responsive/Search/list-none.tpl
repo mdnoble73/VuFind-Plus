@@ -72,8 +72,15 @@
 		</div>
 	{/if}
 
-	{if $exploreMoreOptions}
-		{include file="Search/explore-more-bar.tpl"}
+	{if $showExploreMoreBar}
+		<div id="explore-more-bar-placeholder"></div>
+		<script type="text/javascript">
+			$(document).ready(
+					function () {ldelim}
+						VuFind.Searches.loadExploreMoreBar('{$exploreMoreSection}', '{$exploreMoreSearchTerm|escape:"html"}');
+						{rdelim}
+			);
+		</script>
 	{/if}
 
 	{if $unscopedResults}

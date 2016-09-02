@@ -21,9 +21,9 @@ class MyAccount_Holds extends MyAccount{
 		$interface->assign('allowFreezeHolds', true);
 
 		$ils = $configArray['Catalog']['ils'];
-		$showPosition = ($ils == 'Horizon' || $ils = 'Koha');
+		$showPosition = ($ils == 'Horizon' || $ils == 'Koha');
 		$showExpireTime = ($ils == 'Horizon');
-		$suspendRequiresReactivationDate = ($ils == 'Horizon');
+		$suspendRequiresReactivationDate = ($ils == 'Horizon' || $ils == 'CarlX');
 		$interface->assign('suspendRequiresReactivationDate', $suspendRequiresReactivationDate);
 		$canChangePickupLocation = ($ils != 'Koha');
 		$interface->assign('canChangePickupLocation', $canChangePickupLocation);
@@ -53,9 +53,11 @@ class MyAccount_Holds extends MyAccount{
 		$interface->assign('allowChangeLocation', $allowChangeLocation);
 		//$showPlacedColumn = ($ils == 'Horizon');
 		//Horizon Web Services does not include data placed anymore
+		//TODO: ShowPlacedColumn is never displayed on My Holds page
+//		$showPlacedColumn = true;
 		$showPlacedColumn = false;
 		$interface->assign('showPlacedColumn', $showPlacedColumn);
-		$showDateWhenSuspending = ($ils == 'Horizon');
+		$showDateWhenSuspending = ($ils == 'Horizon' || $ils == 'CarlX');
 		$interface->assign('showDateWhenSuspending', $showDateWhenSuspending);
 
 		$interface->assign('showPosition', $showPosition);
@@ -221,7 +223,8 @@ class MyAccount_Holds extends MyAccount{
 				->setCellValue('A'.$a, $titleCell)
 				->setCellValue('B'.$a, $authorCell)
 				->setCellValue('C'.$a, $formatString)
-				->setCellValue('D'.$a, isset($row['createTime']) ? date('M d, Y', $row['createTime']) : '')
+//				->setCellValue('D'.$a, isset($row['createTime']) ? date('M d, Y', $row['createTime']) : '')
+				->setCellValue('D'.$a, isset($row['create']) ? date('M d, Y', $row['create']) : '')
 				->setCellValue('E'.$a, $row['location'])
 				->setCellValue('F'.$a, isset($row['availableTime']) ? date('M d, Y', strtotime($row['availableTime'])) : 'Now')
 				->setCellValue('G'.$a, date('M d, Y', $row['expire'])); //prefer expireTime because it is a timestamp

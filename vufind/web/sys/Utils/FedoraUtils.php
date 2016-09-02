@@ -258,11 +258,11 @@ class FedoraUtils {
 	 */
 	public function getModsValue($tag, $namespace = null, $snippet = null){
 		if ($namespace == null){
-			if (preg_match("/<$tag.*?>(.*?)<\\/$tag>/s", $snippet, $matches)){
+			if (preg_match("/<{$tag}(?=[\\s>]).*?>(.*?)<\\/$tag>/s", $snippet, $matches)){
 				return $matches[1];
 			}
 		}else{
-			if (preg_match("/<(?:$namespace:)?$tag.*?>(.*?)<\\/(?:$namespace:)?$tag>/s", $snippet, $matches)){
+			if (preg_match("/<(?:$namespace:)?{$tag}(?=[\\s>]).*?>(.*?)<\\/(?:$namespace:)?$tag>/s", $snippet, $matches)){
 				return $matches[1];
 			}
 		}
@@ -281,15 +281,30 @@ class FedoraUtils {
 	 */
 	public function getModsValues($tag, $namespace = null, $snippet = null, $includeTag = false){
 		if ($namespace == null){
-			if (preg_match_all("/<$tag.*?>(.*?)<\\/$tag>/s", $snippet, $matches, PREG_PATTERN_ORDER)){
+			if (preg_match_all("/<{$tag}(?=[\\s>]).*?>(.*?)<\\/$tag>/s", $snippet, $matches, PREG_PATTERN_ORDER)){
 				return $includeTag ? $matches[0] : $matches[1];
 			}
 		}else{
-			if (preg_match_all("/<(?:$namespace:)?$tag.*?>(.*?)<\\/(?:$namespace:)?{$tag}>/s", $snippet, $matches, PREG_PATTERN_ORDER)){
+			if (preg_match_all("/<(?:$namespace:)?{$tag}(?=[\\s>]).*?>(.*?)<\\/(?:$namespace:)?{$tag}>/s", $snippet, $matches, PREG_PATTERN_ORDER)){
 				return $includeTag ? $matches[0] : $matches[1];
 			}
 		}
 		return array();
+	}
+
+	public static function cleanValues($values){
+		$newValues = array();
+		foreach ($values as $value){
+			$newValue = FedoraUtils::cleanValue($value);
+			if (strlen($newValue) > 0){
+				$newValues[] = $value;
+			}
+		}
+		return $newValues;
+	}
+
+	public static function cleanValue($value){
+		return trim(strip_tags($value));
 	}
 
 	/**

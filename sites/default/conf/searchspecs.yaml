@@ -751,6 +751,13 @@ IslandoraSubject:
     - mods_subject_topic_mt:
       - [and, 300]
 
+IslandoraSubjectProper:
+  QueryFields:
+    - mods_subject_subject_ms:
+      - [exact, 300]
+    - mods_subject_topic_ms:
+      - [exact, 300]
+
 IslandoraRelationshipsById:
   QueryFields:
     - mods_extension_marmotLocal_hasCreator_entityPid_ms:
@@ -782,5 +789,13 @@ IslandoraRelationshipsById:
     - mods_extension_marmotLocal_relatedEvent_entityPid_ms:
       - [exact, ~]
     - mods_extension_marmotLocal_hasTranscription_transcriber_entityPid_ms:
+      - [exact, ~]
+    - mods_extension_marmotLocal_relatedObject_related_publication_objectPid_ms:
+      - [exact, ~]
+    - mods_extension_marmotLocal_relatedObject_interview_objectPid_ms:
+      - [exact, ~]
+    - mods_extension_marmotLocal_relatedObject_ephermera_objectPid_ms:
+      - [exact, ~]
+    - mods_extension_marmotLocal_relatedObject_ephemera_objectPid_ms:
       - [exact, ~]
 

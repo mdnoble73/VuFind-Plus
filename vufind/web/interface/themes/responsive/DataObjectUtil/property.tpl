@@ -7,7 +7,7 @@
 	<div class="form-group" id="propertyRow{$propName}">
 		{* Output the label *}
 		{if $property.type == 'enum'}
-			<label for='{$propName}Select'{if $property.description} title="{$property.description}"{/if}>{$property.label}</label>
+			<label for='{$propName}Select'{if $property.description} title="{$property.description}"{/if}>{$property.label}{if $property.required}<span class="required-input">*</span>{/if}</label>
 		{elseif $property.type == 'oneToMany' && !empty($property.helpLink)}
 			<div class="row">
 			<div class="col-xs-11">
@@ -18,7 +18,7 @@
 			</div>
 			</div>
 		{elseif $property.type != 'section' && $property.type != 'checkbox'}
-			<label for='{$propName}'{if $property.description} title="{$property.description}"{/if}>{$property.label}</label>
+			<label for='{$propName}'{if $property.description} title="{$property.description}"{/if}>{$property.label}{if $property.required}<span class="required-input">*</span>{/if}</label>
 		{/if}
 		{* Output the editing control*}
 		{if $property.type == 'section'}
@@ -75,6 +75,10 @@
 
 		{elseif $property.type == 'password'}
 			{include file="DataObjectUtil/password.tpl"}
+
+		{elseif $property.type == 'pin'}
+			<input type='password' name='{$propName}' id='{$propName}' value='{$propValue|escape}' {if $property.maxLength}maxlength='{$property.maxLength}'{/if} {if $property.size}size='{$property.size}'{/if} class='form-control digits {if $property.required}required{/if}'>
+
 
 		{elseif $property.type == 'currency'}
 			{include file="DataObjectUtil/currency.tpl"}

@@ -51,6 +51,9 @@ abstract class Archive_Object extends Action{
 		$interface->assign('relatedOrganizations', $relatedOrganizations);
 		$interface->assign('relatedPlaces', $relatedPlaces);
 
+		$directlyRelatedObjects = $this->recordDriver->getDirectlyRelatedArchiveObjects();
+		$interface->assign('directlyRelatedObjects', $directlyRelatedObjects);
+
 		$pageTitle = $pageTitle == null ? $this->archiveObject->label : $pageTitle;
 
 		$interface->assign('breadcrumbText', $pageTitle);
@@ -67,6 +70,17 @@ abstract class Archive_Object extends Action{
 		// Replace 'object:pid' with the PID of the object to be loaded.
 		$this->pid = urldecode($_REQUEST['id']);
 		$interface->assign('pid', $this->pid);
+
+		list($namespace) = explode(':', $this->pid);
+		//Find the owning library
+		$owningLibrary = new Library();
+		$owningLibrary->archiveNamespace = $namespace;
+		if ($owningLibrary->find(true) && $owningLibrary->N == 1){
+			$interface->assign ('allowRequestsForArchiveMaterials', $owningLibrary->allowRequestsForArchiveMaterials);
+		} else {
+			$interface->assign ('allowRequestsForArchiveMaterials', false);
+		}
+
 		$this->archiveObject = $fedoraUtils->getObject($this->pid);
 		$this->recordDriver = RecordDriverFactory::initRecordDriver($this->archiveObject);
 		$interface->assign('recordDriver', $this->recordDriver);
@@ -81,20 +95,96 @@ abstract class Archive_Object extends Action{
 			$interface->assign('dateCreated', $dateCreated);
 		}
 		
-		$identifier = $this->recordDriver->getModsValue('identifier', 'mods');
-		$interface->assign('identifier', $identifier);
+		$identifier = $this->recordDriver->getModsValues('identifier', 'mods');
+		$interface->assign('identifier', FedoraUtils::cleanValues($identifier));
 
 		$physicalDescriptions = $this->recordDriver->getModsValues('physicalDescription', 'mods');
 		$physicalExtents = array();
 		foreach ($physicalDescriptions as $physicalDescription){
-			$extent = $this->recordDriver->getModsValue('identifier', 'mods', $physicalDescription);
+			$extent = $this->recordDriver->getModsValue('extent', 'mods', $physicalDescription);
+			$form = $this->recordDriver->getModsValue('form', 'mods', $physicalDescription);
+			if (empty($extent)){
+				$extent = $form;
+			}elseif (!empty($form)){
+				$extent .= " ($form)";
+			}
 			$physicalExtents[] = $extent;
+
 		}
 		$interface->assign('physicalExtents', $physicalExtents);
 
 		$physicalLocation = $this->recordDriver->getModsValues('physicalLocation', 'mods');
 		$interface->assign('physicalLocation', $physicalLocation);
-		
+
+		$interface->assign('postcardPublisherNumber', $this->recordDriver->getModsValue('postcardPublisherNumber', 'marmot'));
+
+		$correspondence = $this->recordDriver->getModsValue('correspondence', 'marmot');
+		$hasCorrespondenceInfo = false;
+		if ($correspondence){
+			$includesStamp = $this->recordDriver->getModsValue('includesStamp', 'marmot', $correspondence);
+			if ($includesStamp == 'yes'){
+				$interface->assign('includesStamp', true);
+				$hasCorrespondenceInfo = true;
+			}
+			$datePostmarked = $this->recordDriver->getModsValue('datePostmarked', 'marmot', $correspondence);
+			if ($datePostmarked){
+				$interface->assign('datePostmarked', $datePostmarked);
+				$hasCorrespondenceInfo = true;
+			}
+			$relatedPlace = $this->recordDriver->getModsValue('entityPlace', 'marmot', $correspondence);
+			if ($relatedPlace){
+				$placePid = $this->recordDriver->getModsValue('entityPid', 'marmot', $relatedPlace);
+				if ($placePid){
+					$postMarkLocationObject = $fedoraUtils->getObject($placePid);
+					if ($postMarkLocationObject){
+						$postMarkLocationDriver = RecordDriverFactory::initRecordDriver($postMarkLocationObject);
+						$interface->assign('postMarkLocation', array(
+								'link' => $postMarkLocationDriver->getRecordUrl(),
+								'label' => $postMarkLocationDriver->getTitle(),
+								'role' => 'Postmark Location'
+						));
+						$hasCorrespondenceInfo = true;
+					}
+				}else{
+					$placeTitle = $this->recordDriver->getModsValue('entityTitle', 'marmot', $relatedPlace);
+					if ($placeTitle){
+						$interface->assign('postMarkLocation', array(
+								'label' => $placeTitle,
+								'role' => 'Postmark Location'
+						));
+						$hasCorrespondenceInfo = true;
+					}
+				}
+			}
+
+			$relatedPerson = $this->recordDriver->getModsValue('relatedPersonOrg', 'marmot', $correspondence);
+			if ($relatedPerson){
+				$personPid = $this->recordDriver->getModsValue('entityPid', 'marmot', $relatedPerson);
+				if ($personPid){
+					$correspondenceRecipientObject = $fedoraUtils->getObject($personPid);
+					if ($correspondenceRecipientObject){
+						$correspondenceRecipientDriver = RecordDriverFactory::initRecordDriver($correspondenceRecipientObject);
+						$interface->assign('correspondenceRecipient', array(
+								'link' => $correspondenceRecipientDriver->getRecordUrl(),
+								'label' => $correspondenceRecipientDriver->getTitle(),
+								'role' => 'Correspondence Recipient'
+						));
+						$hasCorrespondenceInfo = true;
+					}
+				}else{
+					$personTitle = $this->recordDriver->getModsValue('entityTitle', 'marmot', $relatedPerson);
+					if ($personTitle){
+						$interface->assign('correspondenceRecipient', array(
+								'label' => $personTitle,
+								'role' => 'Correspondence Recipient'
+						));
+						$hasCorrespondenceInfo = true;
+					}
+				}
+			}
+		}
+		$interface->assign('hasCorrespondenceInfo', $hasCorrespondenceInfo);
+
 		$shelfLocator = $this->recordDriver->getModsValues('shelfLocator', 'mods');
 		$interface->assign('shelfLocator', $shelfLocator);
 
@@ -122,54 +212,63 @@ abstract class Archive_Object extends Action{
 		$rightsStatements = $this->recordDriver->getModsValues('rightsStatement', 'marmot');
 		$interface->assign('rightsStatements', $rightsStatements);
 
-		$transcription = $this->recordDriver->getModsValue('hasTranscription', 'marmot');
-		if (strlen($transcription)){
-			$transcriptionText = $this->recordDriver->getModsValue('transcriptionText', 'marmot', $transcription);
-			$transcriptionText = str_replace("\r\n", '<br/>', $transcriptionText);
-			$transcriptionText = str_replace("&#xD;", '<br/>', $transcriptionText);
+		$transcriptions = $this->recordDriver->getModsValues('hasTranscription', 'marmot');
+		if ($transcriptions){
+			$transcriptionInfo = array();
+			foreach ($transcriptions as $transcription){
+				$transcriptionText = $this->recordDriver->getModsValue('transcriptionText', 'marmot', $transcription);
+				$transcriptionText = str_replace("\r\n", '<br/>', $transcriptionText);
+				$transcriptionText = str_replace("&#xD;", '<br/>', $transcriptionText);
 
-			//Add links to timestamps
-			$transcriptionTextWithLinks = $transcriptionText;
-			if (preg_match_all('/\\(\\d{1,2}:\d{1,2}\\)/', $transcriptionText, $allMatches)){
-				foreach ($allMatches[0] as $match){
-					$offset = str_replace('(', '', $match);
-					$offset = str_replace(')', '', $offset);
-					list($minutes, $seconds) = explode(':', $offset);
-					$offset = $minutes * 60 + $seconds;
-					$replacement = '<a onclick="document.getElementById(\'player\').currentTime=\'' . $offset . '\';" style="cursor:pointer">' . $match . '</a>';
-					$transcriptionTextWithLinks = str_replace($match, $replacement, $transcriptionTextWithLinks);
+				//Add links to timestamps
+				$transcriptionTextWithLinks = $transcriptionText;
+				if (preg_match_all('/\\(\\d{1,2}:\d{1,2}\\)/', $transcriptionText, $allMatches)){
+					foreach ($allMatches[0] as $match){
+						$offset = str_replace('(', '', $match);
+						$offset = str_replace(')', '', $offset);
+						list($minutes, $seconds) = explode(':', $offset);
+						$offset = $minutes * 60 + $seconds;
+						$replacement = '<a onclick="document.getElementById(\'player\').currentTime=\'' . $offset . '\';" style="cursor:pointer">' . $match . '</a>';
+						$transcriptionTextWithLinks = str_replace($match, $replacement, $transcriptionTextWithLinks);
+					}
+				}elseif (preg_match_all('/\\[\\d{1,2}:\d{1,2}:\d{1,2}\\]/', $transcriptionText, $allMatches)){
+					foreach ($allMatches[0] as $match){
+						$offset = str_replace('(', '', $match);
+						$offset = str_replace(')', '', $offset);
+						list($hours, $minutes, $seconds) = explode(':', $offset);
+						$offset = $hours * 3600 + $minutes * 60 + $seconds;
+						$replacement = '<a onclick="document.getElementById(\'player\').currentTime=\'' . $offset . '\';" style="cursor:pointer">' . $match . '</a>';
+						$transcriptionTextWithLinks = str_replace($match, $replacement, $transcriptionTextWithLinks);
+					}
 				}
-			}elseif (preg_match_all('/\\[\\d{1,2}:\d{1,2}:\d{1,2}\\]/', $transcriptionText, $allMatches)){
-				foreach ($allMatches[0] as $match){
-					$offset = str_replace('(', '', $match);
-					$offset = str_replace(')', '', $offset);
-					list($hours, $minutes, $seconds) = explode(':', $offset);
-					$offset = $hours * 3600 + $minutes * 60 + $seconds;
-					$replacement = '<a onclick="document.getElementById(\'player\').currentTime=\'' . $offset . '\';" style="cursor:pointer">' . $match . '</a>';
-					$transcriptionTextWithLinks = str_replace($match, $replacement, $transcriptionTextWithLinks);
+				if (strlen($transcriptionTextWithLinks) > 0){
+					$transcript = array(
+							'language' => $this->recordDriver->getModsValue('transcriptionLanguage', 'marmot', $transcription),
+							'text' => $transcriptionTextWithLinks,
+							'location' => $this->recordDriver->getModsValue('transcriptionLocation', 'marmot', $transcription)
+					);
+					$transcriptionInfo[] = $transcript;
 				}
 			}
 
-			$interface->assign('transcription',
-					array(
-							'language' => $this->recordDriver->getModsValue('transcriptionLanguage', 'marmotLocal', $transcription),
-							'text' => $transcriptionTextWithLinks,
-					)
-			);
+			if (count($transcriptionInfo) > 0){
+				$interface->assign('transcription',$transcriptionInfo);
+			}
 		}
 
-		$alternateNames = $this->recordDriver->getModsValues('alternateName', 'marmotLocal');
-		$interface->assign('alternateNames', $alternateNames);
+
+		$alternateNames = $this->recordDriver->getModsValues('alternateName', 'marmot');
+		$interface->assign('alternateNames', FedoraUtils::cleanValues($alternateNames));
 
 		$this->recordDriver->loadRelatedEntities();
 
 		$interface->assign('hasMilitaryService', false);
-		$militaryService = $this->recordDriver->getModsValue('militaryService', 'marmotLocal');
+		$militaryService = $this->recordDriver->getModsValue('militaryService', 'marmot');
 		if (strlen($militaryService) > 0){
 			/** @var SimpleXMLElement $record */
-			$militaryRecord = $this->recordDriver->getModsValue('militaryRecord', 'marmotLocal', $militaryService);
-			$militaryBranch = $this->recordDriver->getModsValue('militaryBranch', 'marmotLocal', $militaryRecord);
-			$militaryConflict = $this->recordDriver->getModsValue('militaryConflict', 'marmotLocal', $militaryRecord);
+			$militaryRecord = $this->recordDriver->getModsValue('militaryRecord', 'marmot', $militaryService);
+			$militaryBranch = $this->recordDriver->getModsValue('militaryBranch', 'marmot', $militaryRecord);
+			$militaryConflict = $this->recordDriver->getModsValue('militaryConflict', 'marmot', $militaryRecord);
 			if ($militaryBranch != 'none' || $militaryConflict != 'none'){
 				$militaryRecord = array(
 						'branch' => $fedoraUtils->getObjectLabel($militaryBranch),
@@ -187,6 +286,7 @@ abstract class Archive_Object extends Action{
 		$longitude = $this->recordDriver->getModsValue('longitude', 'marmot');
 		$addressStreetNumber = $this->recordDriver->getModsValue('addressStreetNumber', 'marmot');
 		$addressStreet = $this->recordDriver->getModsValue('addressStreet', 'marmot');
+		$address2 = $this->recordDriver->getModsValue('address2', 'marmot');
 		$addressCity = $this->recordDriver->getModsValue('addressCity', 'marmot');
 		$addressCounty = $this->recordDriver->getModsValue('addressCounty', 'marmot');
 		$addressState = $this->recordDriver->getModsValue('addressState', 'marmot');
@@ -197,11 +297,11 @@ abstract class Archive_Object extends Action{
 				strlen($longitude) ||
 				strlen($addressStreetNumber) ||
 				strlen($addressStreet) ||
+				strlen($address2) ||
 				strlen($addressCity) ||
 				strlen($addressCounty) ||
 				strlen($addressState) ||
 				strlen($addressZipCode) ||
-				strlen($addressCountry) ||
 				strlen($addressOtherRegion)) {
 
 			if (strlen($latitude) > 0) {
@@ -219,25 +319,31 @@ abstract class Archive_Object extends Action{
 				$addressInfo['hasDetailedAddress'] = true;
 				$addressInfo['addressStreet'] = $addressStreet;
 			}
+			if (strlen($address2) > 0) {
+				$addressInfo['hasDetailedAddress'] = true;
+				$addressInfo['address2'] = $address2;
+			}
 			if (strlen($addressCity) > 0) {
 				$addressInfo['hasDetailedAddress'] = true;
 				$addressInfo['addressCity'] = $addressCity;
 			}
 			if (strlen($addressState) > 0) {
 				$addressInfo['hasDetailedAddress'] = true;
-				$addressInfo['addressCounty'] = $addressCounty;
-			}
-			if (strlen($addressState) > 0) {
-				$addressInfo['hasDetailedAddress'] = true;
 				$addressInfo['addressState'] = $addressState;
+			}
+			if (strlen($addressCounty) > 0) {
+				$addressInfo['hasDetailedAddress'] = true;
+				$addressInfo['addressCounty'] = $addressCounty;
 			}
 			if (strlen($addressZipCode) > 0) {
 				$addressInfo['hasDetailedAddress'] = true;
 				$addressInfo['addressZipCode'] = $addressZipCode;
 			}
-			if (strlen($addressStreet) > 0) {
-				$addressInfo['hasDetailedAddress'] = true;
+			if (strlen($addressCountry) > 0) {
 				$addressInfo['addressCountry'] = $addressCountry;
+			}
+			if (strlen($addressOtherRegion) > 0) {
+				$addressInfo['addressOtherRegion'] = $addressOtherRegion;
 			}
 			$interface->assign('addressInfo', $addressInfo);
 		}//End verifying checking for address information
@@ -289,7 +395,10 @@ abstract class Archive_Object extends Action{
 		$title = $this->archiveObject->label;
 		$interface->assign('title', $title);
 		$interface->setPageTitle($title);
-		$interface->assign('description', $this->recordDriver->getDescription());
+		$description = html_entity_decode($this->recordDriver->getDescription());
+		$description = str_replace("\r\n", '<br/>', $description);
+		$description = str_replace("&#xD;", '<br/>', $description);
+		$interface->assign('description', $description);
 
 		$interface->assign('original_image', $this->recordDriver->getBookcoverUrl('original'));
 		$interface->assign('large_image', $this->recordDriver->getBookcoverUrl('large'));

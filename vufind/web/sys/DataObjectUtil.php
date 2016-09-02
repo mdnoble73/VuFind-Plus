@@ -167,7 +167,9 @@ class DataObjectUtil
 				DataObjectUtil::processProperty($object, $subProperty);
 			}
 		}else if (in_array($property['type'], array('text', 'enum', 'hidden', 'url', 'email', 'multiemail'))){
-			$object->$propertyName = strip_tags(trim($_REQUEST[$propertyName]));
+			if (isset($_REQUEST[$propertyName])){
+				$object->$propertyName = strip_tags(trim($_REQUEST[$propertyName]));
+			}
 
 		}else if (in_array( $property['type'], array('textarea', 'html', 'folder', 'crSeparated'))){
 			if (strlen(trim($_REQUEST[$propertyName])) == 0){

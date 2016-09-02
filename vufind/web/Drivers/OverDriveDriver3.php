@@ -783,7 +783,7 @@ class OverDriveDriver3 {
 			}
 		}else{
 			$result['message'] = 'Sorry, we could not checkout this title to you.';
-			if ($response->errorCode == 'PatronHasExceededCheckoutLimit'){
+			if (isset($response->errorCode) && $response->errorCode == 'PatronHasExceededCheckoutLimit'){
 				$result['message'] .= "\r\n\r\nYou have reached the maximum number of OverDrive titles you can checkout one time.";
 			}else{
 				if (isset($response->message)) $result['message'] .= "  {$response->message}";

@@ -44,12 +44,9 @@ class EmailPin extends Action{
 				);
 			}
 			$interface->assign('emailResult', $emailResult);
-			$interface->setTemplate('emailPinResults.tpl');
+			$this->display('emailPinResults.tpl', 'Email Pin');
 		}else{
-			$interface->setTemplate('emailPin.tpl');
+			$this->display('emailPin.tpl', 'Email Pin');
 		}
-		$interface->assign('sidebar', 'MyAccount/account-sidebar.tpl');
-
-		$interface->display('layout.tpl');
 	}
 }

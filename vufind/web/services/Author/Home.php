@@ -76,65 +76,66 @@ class Author_Home extends Action
 		$interface->assign('basicSearchIndex', 'Author');
 		$interface->assign('searchIndex', 'Author');
 
-		if (!$interface->is_cached('layout.tpl|Author' . $_GET['author'])) {
-			// Clean up author string
-			$author = $_GET['author'];
-			$author = trim(str_replace('"', '', $author));
-			if (substr($author, strlen($author) - 1, 1) == ",") {
-				$author = substr($author, 0, strlen($author) - 1);
-			}
-			$author = explode(',', $author);
-			$interface->assign('author', $author);
+		// Clean up author string
+		$author = $_GET['author'];
 
-			// Create First Name
-			$firstName = '';
-			if (isset($author[1])) {
-				$firstName = $author[1];
-				if (isset($author[2])) {
-					// Remove punctuation
-					if ((strlen($author[2]) > 2) && (substr($author[2], -1) == '.')) {
-						$author[2] = substr($author[2], 0, -1);
-					}
-					$firstName = $author[2] . ' ' . $firstName;
+		$author = trim(str_replace('"', '', $author));
+		if (substr($author, strlen($author) - 1, 1) == ",") {
+			$author = substr($author, 0, strlen($author) - 1);
+		}
+		$wikipediaAuthorName = $author;
+		$author = explode(',', $author);
+		$interface->assign('author', $author);
+
+		// Create First Name
+		$firstName = '';
+		if (isset($author[1])) {
+			$firstName = $author[1];
+
+			if (isset($author[2])) {
+				// Remove punctuation
+				if ((strlen($author[2]) > 2) && (substr($author[2], -1) == '.')) {
+					$author[2] = substr($author[2], 0, -1);
 				}
 			}
+		}
 
-			// Remove dates
-			$firstName = preg_replace('/[0-9]+-[0-9]*/', '', $firstName);
+		// Remove dates
+		$firstName = preg_replace('/[0-9]+-[0-9]*/', '', $firstName);
 
-			// Build Author name to display.
-			if (substr($firstName, -3, 1) == ' ') {
-				// Keep period after initial
-				$authorName = $firstName . ' ';
+		// Build Author name to display.
+		if (substr($firstName, -3, 1) == ' ') {
+			// Keep period after initial
+			$authorName = $firstName . ' ';
+		} else {
+			// No initial so strip any punctuation from the end
+			if ((substr(trim($firstName), -1) == ',') ||
+			(substr(trim($firstName), -1) == '.')) {
+				$authorName = substr(trim($firstName), 0, -1) . ' ';
 			} else {
-				// No initial so strip any punctuation from the end
-				if ((substr(trim($firstName), -1) == ',') ||
-				(substr(trim($firstName), -1) == '.')) {
-					$authorName = substr(trim($firstName), 0, -1) . ' ';
-				} else {
-					$authorName = $firstName . ' ';
-				}
+				$authorName = $firstName . ' ';
 			}
-			$authorName .= $author[0];
-			$interface->assign('authorName', trim($authorName));
+		}
+		$authorName .= $author[0];
+		$interface->assign('authorName', trim($authorName));
 
-			// Pull External Author Content
-			$interface->assign('showWikipedia', false);
-			if ($searchObject->getPage() == 1) {
-				// Only load Wikipedia info if turned on in config file:
-				if (isset($configArray['Content']['authors'])
-						&& stristr($configArray['Content']['authors'], 'wikipedia')
-						&& (!$library || $library->showWikipediaContent == 1)
-						) {
+		// Pull External Author Content
+		$interface->assign('showWikipedia', false);
+		if ($searchObject->getPage() == 1) {
+			// Only load Wikipedia info if turned on in config file:
+			if (isset($configArray['Content']['authors'])
+					&& stristr($configArray['Content']['authors'], 'wikipedia')
+					&& (!$library || $library->showWikipediaContent == 1)
+					) {
 
-					$interface->assign('showWikipedia', true);
-					$wikipediaAuthorName = $authorName;
-					//Strip anything in parenthesis
-					if (strpos($wikipediaAuthorName, '(') > 0){
-						$wikipediaAuthorName = substr($wikipediaAuthorName, 0, strpos($wikipediaAuthorName, '(') );
-					}
-					$interface->assign('wikipediaAuthorName', $wikipediaAuthorName);
+				$interface->assign('showWikipedia', true);
+
+				//Strip anything in parenthesis
+				if (strpos($wikipediaAuthorName, '(') > 0){
+					$wikipediaAuthorName = substr($wikipediaAuthorName, 0, strpos($wikipediaAuthorName, '(') );
 				}
+				$wikipediaAuthorName = trim($wikipediaAuthorName);
+				$interface->assign('wikipediaAuthorName', $wikipediaAuthorName);
 			}
 		}
 

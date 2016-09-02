@@ -30,7 +30,97 @@
 				</a>
 				<div id="transcriptionPanelBody" class="panel-collapse collapse {*in*}{*toggle on for open*}">
 					<div class="panel-body">
-						{$transcription.text}
+						{foreach from=$transcription item=transcript}
+							<div class="transcript">
+								{if $transcript.location}
+									<div class="transcriptLocation">From the {$transcript.location}</div>
+								{/if}
+								{$transcript.text}
+							</div>
+						{/foreach}
+					</div>
+				</div>
+			</div>
+		{/if}
+
+		{if $hasCorrespondenceInfo}
+			<div class="panel active" id="correspondencePanel">
+				<a href="#correspondencePanelBody" data-toggle="collapse">
+					<div class="panel-heading">
+						<div class="panel-title">
+							Correspondence information
+						</div>
+					</div>
+				</a>
+				<div id="correspondencePanelBody" class="panel-collapse collapse in">
+					<div class="panel-body">
+						{if $includesStamp}
+							<div class="row">
+								<div class="result-label col-sm-4">Includes Stamp: </div>
+								<div class="result-value col-sm-8">
+									Yes
+								</div>
+							</div>
+						{/if}
+						{if $datePostmarked}
+							<div class="row">
+								<div class="result-label col-sm-4">Date Postmarked: </div>
+								<div class="result-value col-sm-8">
+									{$datePostmarked}
+								</div>
+							</div>
+						{/if}
+						{if $postmarkLocation}
+							<div class="relatedPlace row">
+								<div class="result-label col-sm-4">
+									Postmark Location:
+								</div>
+								<div class="result-value col-sm-8">
+									{if $postMarkLocation.link}
+										<a href='{$postMarkLocation.link}'>
+											{$postMarkLocation.label}
+										</a>
+									{else}
+										{$postMarkLocation.label}
+									{/if}
+									{if $postMarkLocation.role}
+										&nbsp;({$postMarkLocation.role})
+									{/if}
+								</div>
+							</div>
+						{/if}
+						{if $postmarkLocation}
+							<div class="relatedPlace row">
+								<div class="result-label col-sm-4">
+									Postmark Location:
+								</div>
+								<div class="result-value col-sm-8">
+									{if $postMarkLocation.link}
+										<a href='{$postMarkLocation.link}'>
+											{$postMarkLocation.label}
+										</a>
+									{else}
+										{$postMarkLocation.label}
+									{/if}
+								</div>
+							</div>
+						{/if}
+						{if $correspondenceRecipient}
+							<div class="relatedPlace row">
+								<div class="result-label col-sm-4">
+									Correspondence Recipient:
+								</div>
+								<div class="result-value col-sm-8">
+									{if $correspondenceRecipient.link}
+										<a href='{$correspondenceRecipient.link}'>
+											{$correspondenceRecipient.label}
+										</a>
+									{else}
+										{$correspondenceRecipient.label}
+									{/if}
+								</div>
+							</div>
+						{/if}
 					</div>
 				</div>
 			</div>
@@ -47,6 +137,19 @@
 				</a>
 				<div id="relatedObjectsPanelBody" class="panel-collapse collapse in">
 					<div class="panel-body">
+						{if $solrSearchDebug}
+							<div id="solrSearchOptionsToggle" onclick="$('#solrSearchOptions').toggle()">Show Search Options</div>
+							<div id="solrSearchOptions" style="display:none">
+								<pre>Search options: {$solrSearchDebug}</pre>
+							</div>
+						{/if}
+
+						{if $solrLinkDebug}
+							<div id='solrLinkToggle' onclick='$("#solrLink").toggle()'>Show Solr Link</div>
+							<div id='solrLink' style='display:none'>
+								<pre>{$solrLinkDebug}</pre>
+							</div>
+						{/if}
 						<div class="related-objects results-covers home-page-browse-thumbnails">
 							{foreach from=$directlyRelatedObjects.objects item=image}
 								<figure class="browse-thumbnail">
@@ -58,6 +161,7 @@
 									</figcaption>
 								</figure>
 							{/foreach}
+							<span id="additional-related-objects"></span>
 						</div>
 					</div>
 				</div>
@@ -459,17 +563,26 @@
 						{/if}
 
 						{* Local Identifier *}
-						{if $identifier}
+						{if count($identifier) > 0}
 							<div class="row">
-								<div class="result-label col-sm-4">Local Identifier: </div>
+								<div class="result-label col-sm-4">Local Identifier{if count($identifier) > 1}s{/if}: </div>
 								<div class="result-value col-sm-8">
-									{$identifier}
+									{implode subject=$identifier glue=', '}
 								</div>
 							</div>
 						{/if}
 
+						{* Date Created *}
+						{if $postcardPublisherNumber}
+							<div class="row">
+								<div class="result-label col-sm-4">Postcard Publisher Number: </div>
+								<div class="result-value col-sm-8">
+									{$postcardPublisherNumber}
+								</div>
+							</div>
+						{/if}
 
-						{if $$physicalExtents || $physicalLocation || $shelfLocator}
+						{if $physicalExtents || $physicalLocation || $shelfLocator}
 
 							{* Physical Description *}
 							{if !empty($physicalExtents)}
@@ -567,7 +680,7 @@
 			</div>
 		{/if}
 
-		{if $repositoryLink && $user && ($user->hasRole('archives') || $user->hasRole('opacAdmin'))}
+		{if $repositoryLink && $user && ($user->hasRole('archives') || $user->hasRole('opacAdmin') || $user->hasRole('libraryAdmin'))}
 			<div class="panel {*active*}{*toggle on for open*}" id="staffViewPanel">
 				<a href="#staffViewPanelBody" data-toggle="collapse">
 					<div class="panel-heading">

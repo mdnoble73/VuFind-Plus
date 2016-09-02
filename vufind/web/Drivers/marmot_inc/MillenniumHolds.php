@@ -562,7 +562,9 @@ class MillenniumHolds{
 						//$logger->log('Status for item ' . $curHold['id'] . '=' . $sCols[$i], PEAR_LOG_INFO);
 					}
 					elseif (stripos($sKeys[$i],"CANCEL IF NOT FILLED BY") > -1) {
-						$curHold['automaticCancellation'] = strip_tags($sCols[$i]);
+						$extractedDate = strip_tags($sCols[$i]);
+						$extractedDate = date_create_from_format('m-j-y', $extractedDate);
+						$curHold['automaticCancellation'] = $extractedDate ? $extractedDate->getTimestamp() : null;
 					}
 					elseif (stripos($sKeys[$i],"FREEZE") > -1) {
 						$matches = array();
@@ -707,7 +709,7 @@ class MillenniumHolds{
 	 *                              If an error occurs, return a PEAR_Error
 	 * @access  public
 	 */
-	function placeItemHold($patron, $recordId, $itemId, $pickupBranch) {
+	function placeItemHold($patron, $recordId, $itemId, $pickupBranch, $cancelDate) {
 		global $logger;
 		global $configArray;
 		global $library;
@@ -772,7 +774,6 @@ class MillenniumHolds{
 					$nnaDate = time() + $library->defaultNotNeededAfterDays * 24 * 60 * 60;
 					$date = date('m/d/Y', $nnaDate);
 				}
-
 			}
 
 			list($Month, $Day, $Year)=explode("/", $date);

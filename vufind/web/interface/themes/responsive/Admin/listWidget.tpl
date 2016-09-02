@@ -24,7 +24,10 @@
 		<h4>Display Type</h4>
 		{assign var="selectedDisplayType" value=$object->listDisplayType}
 		<div id="selectedWidgetDisplayType" class="well well-sm">{$object->displayTypes.$selectedDisplayType}</div>
-		
+
+		<h4>Maximum Titles to show</h4>
+		<div id="maxTitlesToShow" class="well well-sm">{$object->numTitlesToShow}</div>
+
 		{if count($object->lists) > 0}
 			<h4 id="selectedWidgetListsHeader">Lists</h4>
 			<table id="selectedWidgetLists" class="table table-bordered">
@@ -64,7 +67,7 @@
 
 		<h4>Live Preview</h4>
 
-		<iframe src="{$url}/API/SearchAPI?method=getListWidget&id={$object->id}" width="{$width}" height="{$height}" scrolling="{if $selectedStyle == "text-list"}yes{else}no{/if}">
+		<iframe src="{$url}/API/SearchAPI?method=getListWidget&id={$object->id}&reload=true" width="{$width}" height="{$height}" scrolling="{if $selectedStyle == "text-list"}yes{else}no{/if}" >
 			<p>Your browser does not support iframes. :( </p>
 		</iframe>
 	<hr>
@@ -133,7 +136,7 @@
 
 		</div>
 	<h4>Live Preview</h4>
-	<iframe id="listWidget{$object->id}" onload="setWidgetSizing(this, 30)" src="{$url}/API/SearchAPI?method=getListWidget&id={$object->id}&resizeIframe=on" width="{$width}" {*height="{$height}"*} scrolling="{if $selectedStyle == "text-list"}yes{else}no{/if}">
+	<iframe id="listWidget{$object->id}" onload="setWidgetSizing(this, 30)" src="{$url}/API/SearchAPI?method=getListWidget&id={$object->id}&resizeIframe=on&reload=true" width="{$width}" {*height="{$height}"*} scrolling="{if $selectedStyle == "text-list"}yes{else}no{/if}">
 		<p>Your browser does not support iframes. :( </p>
 	</iframe>
 

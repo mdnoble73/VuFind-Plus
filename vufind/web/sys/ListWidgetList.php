@@ -105,7 +105,6 @@ class ListWidgetList extends DB_DataObject
 		require_once ROOT_DIR . '/services/API/ListAPI.php';
 		$listAPI = new ListAPI();
 		$cacheInfo = $listAPI->getCacheInfoForListId($this->source);
-		$link = $cacheInfo['fullListLink'];
 		//Get the widget for the list
 		$widget = new ListWidget();
 		$widget->id = $this->listWidgetId;

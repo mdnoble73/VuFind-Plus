@@ -591,8 +591,8 @@ class CatalogConnection
 	 *                                If an error occurs, return a PEAR_Error
 	 * @access  public
 	 */
-	function placeHold($patron, $recordId, $pickupBranch) {
-		$result =  $this->driver->placeHold($patron, $recordId, $pickupBranch);
+	function placeHold($patron, $recordId, $pickupBranch, $cancelDate = null) {
+		$result =  $this->driver->placeHold($patron, $recordId, $pickupBranch, $cancelDate);
 		return $result;
 	}
 

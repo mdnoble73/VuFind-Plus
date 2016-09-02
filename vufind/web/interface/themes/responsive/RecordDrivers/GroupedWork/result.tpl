@@ -130,7 +130,7 @@
 
 				{if $showArInfo && $summArInfo}
 					<div class="row">
-						<div class="result-label col-tn-3 col-xs-3">Accelerated Reader: </div>
+						<div class="result-label col-tn-3 col-xs-3">{translate text='Accelerated Reader'}: </div>
 						<div class="result-value col-tn-9 col-xs-9">
 							{$summArInfo}
 						</div>

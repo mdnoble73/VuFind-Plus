@@ -39,22 +39,22 @@ class AccountProfile extends DB_DataObject {
 	function insert(){
 		/** @var Memcache $memCache */
 		global $memCache;
-		global $serverName;
-		$memCache->delete('account_profiles_' . $serverName);
+		global $instanceName;
+		$memCache->delete('account_profiles_' . $instanceName);
 		return parent::insert();
 	}
 	function update(){
 		/** @var Memcache $memCache */
 		global $memCache;
-		global $serverName;
-		$memCache->delete('account_profiles_' . $serverName);
+		global $instanceName;
+		$memCache->delete('account_profiles_' . $instanceName);
 		return parent::update();
 	}
 	function delete(){
 		/** @var Memcache $memCache */
 		global $memCache;
-		global $serverName;
-		$memCache->delete('account_profiles_' . $serverName);
+		global $instanceName;
+		$memCache->delete('account_profiles_' . $instanceName);
 		return parent::delete();
 	}
 }

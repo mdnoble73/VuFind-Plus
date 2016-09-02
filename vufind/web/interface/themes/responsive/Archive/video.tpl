@@ -8,6 +8,12 @@
 			<source src="{$videoLink}" type="video/mp4">
 		</video>
 
+		<div id="image-download-options">
+			{if $allowRequestsForArchiveMaterials}
+				<a class="btn btn-default" href="{$path}/Archive/RequestCopy?pid={$pid}">Request Copy</a>
+			{/if}
+		</div>
+
 		{include file="Archive/metadata.tpl"}
 	</div>
 {/strip}

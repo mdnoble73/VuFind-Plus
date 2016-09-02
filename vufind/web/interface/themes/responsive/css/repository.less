@@ -173,7 +173,7 @@
 }
 
 // Common Rules between Explore More Bar & Explore More Sidebar
-#explore-more-body, #relatedProjectScroller, #relatedContentTypesContainer,.exploreMoreBar {
+#explore-more-body, #relatedProjectScroller, #relatedContentTypesContainer,.exploreMoreBar, #book-sections {
   .jcarousel {
     .thumbnail {
       margin-bottom: 0;
@@ -254,4 +254,33 @@
 .explore-more-scroller-link{
   display: block;
   text-align: center;
+}
+
+.book-pdf{
+  width: 100%;
+  height: 600px;
+}
+
+#view-transcription{
+  width: 100%;
+  height: 600px;
+  text-align: left;
+  overflow: auto;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  padding: 15px;
+}
+
+// The page that is currently displayed in book.tpl will have the active class applied to
+// the corresponding li tag in the jcarousel
+#book-sections li.active figure {
+  outline: dotted thin;
+}
+
+.transcriptLocation{
+  font-weight: bold;
+  font-size: larger;
+}
+.transcript{
+  margin-bottom: 5px;
 }

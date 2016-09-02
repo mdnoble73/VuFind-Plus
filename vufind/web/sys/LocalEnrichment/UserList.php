@@ -20,6 +20,15 @@ class UserList extends DB_DataObject
 	public $dateUpdated;
 	public $defaultSort; // string(20) null
 
+	// Used by FavoriteHandler as well/**/
+	protected $userListSortOptions = array(
+		// URL_value => SQL code for Order BY clause
+		'dateAdded' => 'dateAdded ASC',
+		'custom' => 'weight ASC',  // this puts items with no set weight towards the end of the list
+		//								'custom' => 'weight IS NULL, weight ASC',  // this puts items with no set weight towards the end of the list
+	);
+
+
 	/* Static get */
 	function staticGet($k,$v=NULL) { return DB_DataObject::staticGet('UserList',$k,$v); }
 
@@ -62,19 +71,54 @@ class UserList extends DB_DataObject
 		);
 		return $structure;
 	}
-	function num_titles(){
+
+	function numValidListItems() {
 		require_once ROOT_DIR . '/sys/LocalEnrichment/UserListEntry.php';
-		//Join with grouped work to make sure we only load valid entries
 		$listEntry = new UserListEntry();
 		$listEntry->listId = $this->id;
 
-		require_once ROOT_DIR . '/sys/Grouping/GroupedWork.php';
-		$groupedWork = new GroupedWork();
-		$listEntry->joinAdd($groupedWork);
-		$listEntry->find();
+		// These conditions retrieve list items with a valid groupedwork ID or archive ID.
+		// (This prevents list strangeness when our searches don't find the ID in the search indexes)
+		$listEntry->whereAdd(
+			'(
+     (user_list_entry.groupedWorkPermanentId NOT LIKE "%:%" AND user_list_entry.groupedWorkPermanentId IN (SELECT permanent_id FROM grouped_work) )
+    OR
+    (user_list_entry.groupedWorkPermanentId LIKE "%:%" AND user_list_entry.groupedWorkPermanentId IN (SELECT pid FROM islandora_object_cache) )
+)'
+		);
 
-		return $listEntry->N;
+		return $listEntry->count();
 	}
+
+//	function numValidListItems() {
+//		$archiveItems = $this->num_archive_items();
+//		$catalogItems = $this->num_titles();
+//		return $archiveItems + $catalogItems;
+//	);
+//	function num_archive_items() {
+//		require_once ROOT_DIR . '/sys/LocalEnrichment/UserListEntry.php';
+//		//Join with grouped work to make sure we only load valid entries
+//		$listEntry = new UserListEntry();
+//		$listEntry->listId = $this->id;
+//
+//		require_once ROOT_DIR . '/sys/Islandora/IslandoraObjectCache.php';
+//		$islandoraObject = new IslandoraObjectCache();
+//		$listEntry->joinAdd($islandoraObject);
+//		return $listEntry->count();
+//	}
+//
+//	function num_titles(){
+//		require_once ROOT_DIR . '/sys/LocalEnrichment/UserListEntry.php';
+//		//Join with grouped work to make sure we only load valid entries
+//		$listEntry = new UserListEntry();
+//		$listEntry->listId = $this->id;
+//
+//		require_once ROOT_DIR . '/sys/Grouping/GroupedWork.php';
+//		$groupedWork = new GroupedWork();
+//		$listEntry->joinAdd($groupedWork);
+//		return $listEntry->count();
+//	}
+
 	function insert(){
 		$this->created = time();
 		$this->dateUpdated = time();
@@ -107,15 +151,31 @@ class UserList extends DB_DataObject
 		$listEntry = new UserListEntry();
 		$listEntry->listId = $this->id;
 		if ($sort) $listEntry->orderBy($sort);
-		$listEntries = array();
+
+		// These conditions retrieve list items with a valid groupedworked or archive ID.
+		// (This prevents list strangeness when our searches don't find the ID in the search indexes)
+		$listEntry->whereAdd(
+			'(
+     (user_list_entry.groupedWorkPermanentId NOT LIKE "%:%" AND user_list_entry.groupedWorkPermanentId IN (SELECT permanent_id FROM grouped_work) )
+    OR
+    (user_list_entry.groupedWorkPermanentId LIKE "%:%" AND user_list_entry.groupedWorkPermanentId IN (SELECT pid FROM islandora_object_cache) )
+)'
+		);
+
+		$listEntries = $archiveIDs = $catalogIDs = array();
 		$listEntry->find();
 		while ($listEntry->fetch()){
+			if (strpos($listEntry->groupedWorkPermanentId, ':') !== false) {
+				$archiveIDs[] = $listEntry->groupedWorkPermanentId;
+			} else {
+				$catalogIDs[] = $listEntry->groupedWorkPermanentId;
+			}
 			$listEntries[] = $listEntry->groupedWorkPermanentId;
 		}
-		return $listEntries;
+
+		return array($listEntries, $catalogIDs, $archiveIDs);
 	}
 
-	//TODO: should getListEntries() & getListTitles() be the same function?
 	/**
 	 * @return UserListEntry[]|null
 	 */
@@ -153,13 +213,13 @@ class UserList extends DB_DataObject
 		global $user;
 
 		// Connect to Database
-		$this->catalog = CatalogFactory::getCatalogConnectionInstance();;
+		$this->catalog = CatalogFactory::getCatalogConnectionInstance();
 
 		//Filter list information for bad words as needed.
 		if ($user == false || $this->user_id != $user->id){
 			//Load all bad words.
 			global $library;
-			require_once(ROOT_DIR . '/Drivers/marmot_inc/BadWord.php');
+			require_once ROOT_DIR . '/Drivers/marmot_inc/BadWord.php';
 			$badWords = new BadWord();
 //			$badWordsList = $badWords->getBadWordExpressions();
 
@@ -178,7 +238,8 @@ class UserList extends DB_DataObject
 				//Filter notes
 				// TODO: possible problem: $notesText overwrites the above description?
 				$notesText = $badWords->censorBadWords($listEntry->notes);
-				$this->description = $notesText;
+//				$this->notes = $notesText;
+				$listEntry->notes = $notesText;
 			}else{
 				//Check for bad words in the title or description
 				$titleText = $this->title;
@@ -200,11 +261,15 @@ class UserList extends DB_DataObject
 	function removeListEntry($workToRemove)
 	{
 		// Remove the Saved List Entry
-		require_once ROOT_DIR . '/sys/LocalEnrichment/UserListEntry.php';
-		$listEntry = new UserListEntry();
-		$listEntry->groupedWorkPermanentId = $workToRemove;
-		$listEntry->listId = $this->id;
-		$listEntry->delete();
+		if ($workToRemove instanceof UserListEntry){
+			$workToRemove->delete();
+		}else{
+			require_once ROOT_DIR . '/sys/LocalEnrichment/UserListEntry.php';
+			$listEntry = new UserListEntry();
+			$listEntry->groupedWorkPermanentId = $workToRemove;
+			$listEntry->listId = $this->id;
+			$listEntry->delete();
+		}
 
 		unset($this->listTitles[$this->id]);
 	}
@@ -218,22 +283,51 @@ class UserList extends DB_DataObject
 			$this->removeListEntry($listEntry);
 		}
 	}
-	public function getBrowseRecords($start, $numTitles) {
+
+	/**
+	 * @param int $start     position of first list item to fetch
+	 * @param int $numItems  Number of items to fetch for this result
+	 * @return array     Array of HTML to display to the user
+	 */
+	public function getBrowseRecords($start, $numItems) {
 		global $interface;
 		$browseRecords = array();
-		$titles = $this->getListEntries();
-		$titles = array_slice($titles, $start, $numTitles);
-		foreach ($titles as $groupedWorkId){
-			require_once ROOT_DIR . '/RecordDrivers/GroupedWorkDriver.php';
-			$groupedWork = new GroupedWorkDriver($groupedWorkId);
-			if ($groupedWork->isValid){
-				if (method_exists($groupedWork, 'getBrowseResult')){
-					$browseRecords[] = $interface->fetch($groupedWork->getBrowseResult());
-				}else{
+		$sort               = in_array($this->defaultSort, array_keys($this->userListSortOptions)) ? $this->userListSortOptions[$this->defaultSort] : null;
+		list($listEntries)  = $this->getListEntries($sort);
+		$listEntries        = array_slice($listEntries, $start, $numItems);
+		foreach ($listEntries as $listItemId) {
+			if (strpos($listItemId, ':') === false) {
+				// Catalog Items
+				require_once ROOT_DIR . '/RecordDrivers/GroupedWorkDriver.php';
+				$groupedWork = new GroupedWorkDriver($listItemId);
+				if ($groupedWork->isValid) {
+					if (method_exists($groupedWork, 'getBrowseResult')) {
+						$browseRecords[] = $interface->fetch($groupedWork->getBrowseResult());
+					} else {
+						$browseRecords[] = 'Browse Result not available';
+					}
+				}
+			} // Archive Items
+			else {
+				require_once ROOT_DIR . '/sys/Utils/FedoraUtils.php';
+				$fedoraUtils = FedoraUtils::getInstance();
+				$archiveObject = $fedoraUtils->getObject($listItemId);
+				$recordDriver = RecordDriverFactory::initRecordDriver($archiveObject);
+				if (method_exists($recordDriver, 'getBrowseResult')) {
+					$browseRecords[] = $interface->fetch($recordDriver->getBrowseResult());
+				} else {
 					$browseRecords[] = 'Browse Result not available';
 				}
 			}
 		}
 		return $browseRecords;
+	}
+
+	/**
+	 * @return array
+	 */
+	public function getUserListSortOptions()
+	{
+		return $this->userListSortOptions;
 	}
 }

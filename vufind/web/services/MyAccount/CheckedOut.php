@@ -38,7 +38,9 @@ class MyAccount_CheckedOut extends MyAccount{
 				'dueDate' => 'Due Date',
 				'format'  => 'Format',
 			);
-
+			if (count($user->getLinkedUsers()) > 0){
+				$sortOptions['libraryAccount'] = 'Library Account';
+			}
 			if ($showWaitList){
 				$sortOptions['holdQueueLength']  = 'Wait List';
 			}
@@ -84,6 +86,8 @@ class MyAccount_CheckedOut extends MyAccount{
 						$sortKey = str_pad((isset($curTitle['renewCount']) ? $curTitle['renewCount'] : 0), 3, '0', STR_PAD_LEFT) . '-' . $sortTitle;
 					} elseif ($selectedSortOption == 'holdQueueLength') {
 						$sortKey = str_pad((isset($curTitle['holdQueueLength']) ? $curTitle['holdQueueLength'] : 0), 3, '0', STR_PAD_LEFT) . '-' . $sortTitle;
+					} elseif ($selectedSortOption == 'libraryAccount') {
+						$sortKey =  $curTitle['user'] . '-' . $sortTitle;
 					}
 					$sortKey = utf8_encode($sortKey . '-' . $curTransaction);
 

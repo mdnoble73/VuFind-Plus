@@ -41,13 +41,15 @@ class LoanRuleDeterminer extends DB_DataObject
 	function insert(){
 		parent::insert();
 		global $memCache;
-		$memCache->delete('loan_rule_determiners');
+		global $instanceName;
+		$memCache->delete($instanceName . '_loan_rule_determiners');
 	}
 
 	function update($dataObject = false){
 		parent::update($dataObject);
 		global $memCache;
-		$memCache->delete('loan_rule_determiners');
+		global $instanceName;
+		$memCache->delete($instanceName . '_loan_rule_determiners');
 	}
 
 	private $iTypeArray = null;

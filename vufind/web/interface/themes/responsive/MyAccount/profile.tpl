@@ -129,7 +129,7 @@
 										<div class="col-xs-4"><label for="phone">{translate text='Primary Phone Number'}:</label></div>
 										<div class="col-xs-8">
 											{if $edit && $canUpdateContactInfo && ($ils != 'Horizon')}
-												<input type="tel" name="phone" id="phone" value="{$profile->phone|replace:'TEXT ONLY':''|escape}" size="50" maxlength="75" class="form-control{*{if $primaryTheme =='arlington'} //Keep for debugging*}{if $libraryName =='Arlington Public Library'} digits{/if}">
+												<input type="tel" name="phone" id="phone" value="{$profile->phone|replace:'### TEXT ONLY':''|replace:'TEXT ONLY':''|escape}" size="50" maxlength="75" class="form-control{*{if $primaryTheme =='arlington'} //Keep for debugging*}{if $libraryName =='Arlington Public Library'} digits{/if}">
 											{else}
 												{$profile->phone|escape}
 											{/if}
@@ -181,15 +181,21 @@
 											{if $edit == true && $canUpdateContactInfo == true}
 												<div class="btn-group btn-group-sm" data-toggle="buttons">
 													{if $treatPrintNoticesAsPhoneNotices}
-														{* Tell the User the notice is Phone even though in the ILS it will be print *}
-														{* MDN 2/24/2016 - If the user changes their notice preference, make it phone to be more accurate, but show as selected if either print or mail is shown *}
-														<label for="noticesMail" class="btn btn-sm btn-default {if $profile->notices == 'a' || $profile->notices == 'p'}active{/if}"><input type="radio" value="p" id="noticesMail" name="notices" {if $profile->notices == 'a' || $profile->notices == 'p'}checked="checked"{/if}> Telephone</label>
+														{if $ils != 'CarlX'} {* CarlX doesn't have this option *}
+															{* Tell the User the notice is Phone even though in the ILS it will be print *}
+															{* MDN 2/24/2016 - If the user changes their notice preference, make it phone to be more accurate, but show as selected if either print or mail is shown *}
+															<label for="noticesMail" class="btn btn-sm btn-default {if $profile->notices == 'a' || $profile->notices == 'p'}active{/if}"><input type="radio" value="p" id="noticesMail" name="notices" {if $profile->notices == 'a' || $profile->notices == 'p'}checked="checked"{/if}> Telephone</label>
+														{/if}
 													{else}
 														{if $ils != 'CarlX'} {* CarlX doesn't have this option *}
 															<label for="noticesMail" class="btn btn-sm btn-default {if $profile->notices == 'a'}active{/if}"><input type="radio" value="a" id="noticesMail" name="notices" {if $profile->notices == 'a'}checked="checked"{/if}> Postal Mail</label>
+															<label for="noticesTel" class="btn btn-sm btn-default {if $profile->notices == 'p'}active{/if}"><input type="radio" value="p" id="noticesTel" name="notices" {if $profile->notices == 'p'}checked="checked"{/if}> Telephone</label>
 														{/if}
-														<label for="noticesTel" class="btn btn-sm btn-default {if $profile->notices == 'p'}active{/if}"><input type="radio" value="p" id="noticesTel" name="notices" {if $profile->notices == 'p'}checked="checked"{/if}> Telephone</label>
 													{/if}
+													{if $ils == 'CarlX'} {* Add a none option to turn this switch into on/off for email *}
+														<label for="noticesNone" class="btn btn-sm btn-default {if $profile->notices == '-'}active{/if}"><input type="radio" value="-" id="noticesNone" name="notices" {if $profile->notices == '-'}checked="checked"{/if}> None</label>
+													{/if}
+
 													<label for="noticesEmail" class="btn btn-sm btn-default {if $profile->notices == 'z'}active{/if}"><input type="radio" value="z" id="noticesEmail" name="notices" {if $profile->notices == 'z'}checked="checked"{/if}> Email</label>
 												</div>
 											{else}
@@ -394,7 +400,7 @@
 							</div>
 						</div>
 					</a>
-					<div id="userPreference" class="panel-collapse collapse in">
+					<div id="userPreferencePanel" class="panel-collapse collapse in">
 						<div class="panel-body">
 							{* Empty action attribute uses the page loaded. this keeps the selected user patronId in the parameters passed back to server *}
 							<form action="" method="post" class="form-horizontal">
@@ -447,7 +453,7 @@
 								{if !$offline && $edit == true}
 									<div class="form-group">
 										<div class="col-xs-8 col-xs-offset-4">
-											<input type='submit' value='Update My Preferences' name='updateMyPreferences' class="btn btn-sm btn-primary">
+											<input type="submit" value="Update My Preferences" name="updateMyPreferences" class="btn btn-sm btn-primary">
 										</div>
 									</div>
 								{/if}

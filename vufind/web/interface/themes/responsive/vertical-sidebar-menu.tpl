@@ -27,9 +27,9 @@
 					</div>
 				{/if}
 				<div class="menu-bar-option">
-					<a href="#" onclick="VuFind.Menu.SideBar.showMenu(this)" class="menu-icon" title="Help">
-						<img src="{img filename='/interface/themes/responsive/images/Menu.png'}" alt="Help">
-						<div class="menu-bar-label rotated-text"><span class="rotated-text-inner">Help</span></div>
+					<a href="#" onclick="VuFind.Menu.SideBar.showMenu(this)" class="menu-icon" title="Additional menu options including links to information about the library and other library resources">
+						<img src="{img filename='/interface/themes/responsive/images/Menu.png'}" alt="Additional menu options including links to information about the library and other library resources">
+						<div class="menu-bar-label rotated-text"><span class="rotated-text-inner">{$sidebarMenuButtonText}</span></div>
 					</a>
 				</div>
 				{if $showExploreMore}
@@ -57,7 +57,7 @@
 						{* Treat Public Lists not owned by user as a Search Page rather than an MyAccount Page *}
 						{* Click Search Menu Bar Button *}
 						$('.menu-bar-option:nth-child(1)>a', '#vertical-menu-bar').filter(':visible').click();
-						{elseif ($action != 'RequestPinReset' && !$isLoginPage) && ($module == "MyAccount" || $module == "Admin" || $module == "Circa" || $module == "EditorialReview" || $module == "Report")}
+						{elseif ($action != 'RequestPinReset' && !$isLoginPage && $action != 'SelfReg') && ($module == "MyAccount" || $module == "Admin" || $module == "Circa" || $module == "EditorialReview" || $module == "Report")}
 						{* Prevent this action on the Pin Reset Page && Login Page *}
 						{* Click Account Menu Bar Button *}
 						$('.menu-bar-option:nth-child(2)>a', '#vertical-menu-bar').filter(':visible').click();

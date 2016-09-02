@@ -455,10 +455,16 @@ class Search_Results extends Action {
 		$timer->logTime('load result records');
 		$memoryWatcher->logMemory('load result records');
 
-		//Load explore more data
-		require_once ROOT_DIR . '/sys/ExploreMore.php';
+		//Setup explore more
+		$showExploreMoreBar = true;
+		if (isset($_REQUEST['page']) && $_REQUEST['page'] > 1){
+			$showExploreMoreBar = false;
+		}
 		$exploreMore = new ExploreMore();
-		$exploreMore->loadExploreMoreBar('catalog');
+		$exploreMoreSearchTerm = $exploreMore->getExploreMoreQuery();
+		$interface->assign('exploreMoreSection', 'catalog');
+		$interface->assign('showExploreMoreBar', $showExploreMoreBar);
+		$interface->assign('exploreMoreSearchTerm', $exploreMoreSearchTerm);
 
 		if ($configArray['Statistics']['enabled'] && isset( $_GET['lookfor']) && !is_array($_GET['lookfor'])) {
 			require_once(ROOT_DIR . '/Drivers/marmot_inc/SearchStatNew.php');

@@ -69,21 +69,21 @@ class MillenniumReadingHistory {
 		set_time_limit(20 * count($readingHistoryTitles));
 		foreach ($readingHistoryTitles as $key => $historyEntry){
 			//Get additional information from resources table
-			$historyEntry['ratingData'] = null;
+			$historyEntry['ratingData']  = null;
 			$historyEntry['permanentId'] = null;
-			$historyEntry['linkUrl'] = null;
-			$historyEntry['coverUrl'] = null;
-			$historyEntry['format'] = array();
+			$historyEntry['linkUrl']     = null;
+			$historyEntry['coverUrl']    = null;
+			$historyEntry['format']      = array();
 			if (isset($historyEntry['shortId']) && strlen($historyEntry['shortId']) > 0){
 				$historyEntry['recordId'] = "." . $historyEntry['shortId'] . $this->driver->getCheckDigit($historyEntry['shortId']);
 				require_once ROOT_DIR . '/RecordDrivers/MarcRecord.php';
 				$recordDriver = new MarcRecord($this->driver->accountProfile->recordSource . ':' . $historyEntry['recordId']);
 				if ($recordDriver->isValid()){
-					$historyEntry['ratingData'] = $recordDriver->getRatingData();
+					$historyEntry['ratingData']  = $recordDriver->getRatingData();
 					$historyEntry['permanentId'] = $recordDriver->getPermanentId();
-					$historyEntry['linkUrl'] = $recordDriver->getGroupedWorkDriver()->getLinkUrl();
-					$historyEntry['coverUrl'] = $recordDriver->getBookcoverUrl('medium');
-					$historyEntry['format'] = $recordDriver->getFormats();
+					$historyEntry['linkUrl']     = $recordDriver->getGroupedWorkDriver()->getLinkUrl();
+					$historyEntry['coverUrl']    = $recordDriver->getBookcoverUrl('medium');
+					$historyEntry['format']      = $recordDriver->getFormats();
 				}
 				$recordDriver = null;
 			}

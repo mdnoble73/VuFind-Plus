@@ -29,7 +29,7 @@ class AJAX extends Action {
 		$method = $_REQUEST['method'];
 		$text_methods = array('GetAutoSuggestList', 'SysListTitles', 'getEmailForm', 'sendEmail', 'getDplaResults');
 		//TODO reconfig to use the JSON outputting here.
-		$json_methods = array('getMoreSearchResults', 'GetListTitles');
+		$json_methods = array('getMoreSearchResults', 'GetListTitles', 'loadExploreMoreBar');
 		// Plain Text Methods //
 		if (in_array($method, $text_methods)) {
 			header('Content-type: text/plain');
@@ -243,7 +243,9 @@ class AJAX extends Action {
 			$showRatings = isset($_REQUEST['showRatings']) && $_REQUEST['showRatings'];
 			$interface->assign('showRatings', $showRatings); // overwrite values that come from library settings
 
-			$titles = $listAPI->getListTitles();
+			$numTitlesToShow = isset($_REQUEST['numTitlesToShow']) ? $_REQUEST['numTitlesToShow'] : 25;
+
+			$titles = $listAPI->getListTitles(null, $numTitlesToShow);
 			$timer->logTime("getListTitles");
 			if ($titles['success'] == true){
 				$titles = $titles['titles'];
@@ -251,25 +253,25 @@ class AJAX extends Action {
 					foreach ($titles as $key => $rawData){
 						$interface->assign('key', $key);
 						// 20131206 James Staub: bookTitle is in the list API and it removes the final frontslash, but I didn't get $rawData['bookTitle'] to load
+
 						$titleShort = preg_replace(array('/\:.*?$/', '/\s*\/$\s*/'),'', $rawData['title']);
 //						$titleShort = preg_replace('/\:.*?$/','', $rawData['title']);
 //						$titleShort = preg_replace('/\s*\/$\s*/','', $titleShort);
-						$interface->assign('title', $titleShort);
-						$interface->assign('author', $rawData['author']);
-						$interface->assign('description', isset($rawData['description']) ? $rawData['description'] : null);
-						$interface->assign('length', isset($rawData['length']) ? $rawData['length'] : null);
-						$interface->assign('publisher', isset($rawData['publisher']) ? $rawData['publisher'] : null);
-						$interface->assign('shortId', $rawData['shortId']);
-						$interface->assign('id', $rawData['id']);
-
-						$rawData['titleURL'] = $configArray['Site']['path'].'/GroupedWork/'.$rawData['id']; // assumes all are grouped works
-						$interface->assign('titleURL', $rawData['titleURL']);
 
 						$imageUrl = $rawData['small_image'];
 						if (isset($_REQUEST['coverSize']) && $_REQUEST['coverSize'] == 'medium'){
 							$imageUrl = $rawData['image'];
 						}
-						$interface->assign('imageUrl', $imageUrl);
+
+						$interface->assign('title',       $titleShort);
+						$interface->assign('author',      $rawData['author']);
+						$interface->assign('description', isset($rawData['description']) ? $rawData['description'] : null);
+						$interface->assign('length',      isset($rawData['length']) ? $rawData['length'] : null);
+						$interface->assign('publisher',   isset($rawData['publisher']) ? $rawData['publisher'] : null);
+						$interface->assign('shortId',     $rawData['shortId']);
+						$interface->assign('id',          $rawData['id']);
+						$interface->assign('titleURL',    $rawData['titleURL']);
+						$interface->assign('imageUrl',    $imageUrl);
 
 						if ($showRatings){
 							$interface->assign('ratingData', $rawData['ratingData']);
@@ -278,6 +280,7 @@ class AJAX extends Action {
 
 						$rawData['formattedTitle']         = $interface->fetch('ListWidget/formattedTitle.tpl');
 						$rawData['formattedTextOnlyTitle'] = $interface->fetch('ListWidget/formattedTextOnlyTitle.tpl');
+						// TODO: Modify these for Archive Objects
 
 						$titles[$key] = $rawData;
 					}
@@ -386,6 +389,30 @@ class AJAX extends Action {
 		);
 		// let front end know if we have reached the end of the result set
 		if ($searchObject->getPage() * $searchObject->getLimit() >= $searchObject->getResultTotal()) $result['lastPage'] = true;
+		return $result;
+	}
+
+	function loadExploreMoreBar(){
+		global $interface;
+
+		$section = $_REQUEST['section'];
+		$searchTerm = $_REQUEST['searchTerm'];
+
+		//Load explore more data
+		require_once ROOT_DIR . '/sys/ExploreMore.php';
+		$exploreMore = new ExploreMore();
+		$exploreMoreOptions = $exploreMore->loadExploreMoreBar($section, $searchTerm);
+		if (count($exploreMoreOptions) == 0){
+			$result = array(
+					'success' => false,
+			);
+		}else{
+			$result = array(
+					'success' => true,
+					'exploreMoreBar' => $interface->fetch("Search/explore-more-bar.tpl")
+			);
+		}
+
 		return $result;
 	}
 

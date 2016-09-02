@@ -673,7 +673,7 @@ class DB_DataObject extends DB_DataObject_Overload
     /**
      * Adds a condition to the WHERE statement, defaults to AND
      *
-     * $object->whereAdd(); //reset or cleaer ewhwer
+     * $object->whereAdd(); //reset or clear where
      * $object->whereAdd("ID > 20");
      * $object->whereAdd("age > 20","OR");
      *

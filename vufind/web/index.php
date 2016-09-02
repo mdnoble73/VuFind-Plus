@@ -612,19 +612,19 @@ if (!is_dir(ROOT_DIR . "/services/$module")){
 	$actionFile = ROOT_DIR . "/services/$module/$action.php";
 	require_once $actionFile;
 	$moduleActionClass = "{$module}_{$action}";
-	if (class_exists($action, false)) {
-		/** @var Action $service */
-		$service = new $action();
-		$timer->logTime('Start launch of action');
-		$service->launch();
-		$timer->logTime('Finish launch of action');
-	}elseif (class_exists($moduleActionClass, false)) {
+	if (class_exists($moduleActionClass, false)) {
 		/** @var Action $service */
 		$service = new $moduleActionClass();
 		$timer->logTime('Start launch of action');
 		$service->launch();
 		$timer->logTime('Finish launch of action');
-	} else {
+	}else if (class_exists($action, false)) {
+		/** @var Action $service */
+		$service = new $action();
+		$timer->logTime('Start launch of action');
+		$service->launch();
+		$timer->logTime('Finish launch of action');
+	}else{
 		PEAR_Singleton::raiseError(new PEAR_Error('Unknown Action'));
 	}
 } else {
@@ -826,10 +826,12 @@ function loadModuleActionId(){
 		$_REQUEST['id'] = '';
 	}elseif (preg_match('/\/(Archive)\/((?:[\\w\\d:]|%3A)+)\/([^\/?]+)/', $requestURI, $matches)){
 		$_GET['module'] = $matches[1];
-		$_GET['id'] = $matches[2];
+//		$_GET['id'] = $matches[2];// TODO: Leaving in case change below, effects other Pika functionality
+		$_GET['id'] =  urldecode($matches[2]); // Decodes colons % codes back into colons.
 		$_GET['action'] = $matches[3];
 		$_REQUEST['module'] = $matches[1];
-		$_REQUEST['id'] = $matches[2];
+//		$_REQUEST['id'] = $matches[2]; // TODO: Leaving in case change below, effects other Pika functionality
+		$_REQUEST['id'] = urldecode($matches[2]);  // Decodes colons % codes back into colons.
 		$_REQUEST['action'] = $matches[3];
 		//Redirect things /GroupedWork/AJAX to the proper action
 	}elseif (preg_match("/($allRecordModules)\/([a-zA-Z]+)(?:\?|\/?$)/", $requestURI, $matches)){
@@ -937,7 +939,7 @@ function loadUserData(){
 					'name' => $tmpList->title,
 					'url' => '/MyAccount/MyList/' .$tmpList->id ,
 					'id' => $tmpList->id,
-					'numTitles' => $tmpList->num_titles()
+					'numTitles' => $tmpList->numValidListItems()
 			);
 		}
 	}
