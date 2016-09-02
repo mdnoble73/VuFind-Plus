@@ -16,7 +16,6 @@ then
 	ps -p $PID > /dev/null 2>&1
 	if [ $? -eq 0 ]
 	then
-#		echo "$0 is already running"
 		mail -s "Full Extract and Reindexing - ${PIKASERVER}" $EMAIL <<< "$0 is already running"
 		exit 1
 	else
@@ -24,7 +23,6 @@ then
 		echo $$ > $PIDFILE
 		if [ $? -ne 0 ]
 		then
-#			echo "Could not create PID file for $0"
 			mail -s "Full Extract and Reindexing - ${PIKASERVER}" $EMAIL <<< "Could not create PID file for $0"
 			exit 1
 		fi
@@ -33,7 +31,6 @@ else
 	echo $$ > $PIDFILE
 	if [ $? -ne 0 ]
 	then
-#		echo "Could not create PID file for $0"
 		mail -s "Full Extract and Reindexing - ${PIKASERVER}" $EMAIL <<< "Could not create PID file for $0"
 		exit 1
 	fi
@@ -65,6 +62,9 @@ function checkConflictingProcesses() {
 checkConflictingProcesses "sierra_export.jar ${PIKASERVER}"
 checkConflictingProcesses "overdrive_extract.jar ${PIKASERVER}"
 checkConflictingProcesses "reindexer.jar ${PIKASERVER}"
+
+# Back-up Solr Master Index
+tar -czf /data/vufind-plus/marmot.test/solr_master_backup.tar.gz /data/vufind-plus/marmot.test/solr_master/grouped/index/
 
 #Restart Solr
 cd /usr/local/vufind-plus/sites/${PIKASERVER}; ./${PIKASERVER}.sh restart
