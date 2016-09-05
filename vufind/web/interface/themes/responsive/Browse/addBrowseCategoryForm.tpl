@@ -7,7 +7,11 @@
 	</div>
 	<form method="post" name="createBrowseCategory" id="createBrowseCategory" action="{$path}/Browse/AJAX" class="form">
 		<div>
-			<input type="hidden" name="searchId" value="{$searchId}" id="searchId">
+			{if $searchId}
+				<input type="hidden" name="searchId" value="{$searchId}" id="searchId">
+			{else}
+				<input type="hidden" name="listId" value="{$listId}" id="listId">
+			{/if}
 			<input type="hidden" name="method" value="createBrowseCategory">
 			<div class="form-group">
 				<label for="categoryName" class="control-label">New Category Name</label>
