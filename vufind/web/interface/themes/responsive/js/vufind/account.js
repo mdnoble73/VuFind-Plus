@@ -36,7 +36,7 @@ VuFind.Account = (function(){
 						};
 			$.getJSON(url, params,function (data) {
 					if (data.success) {
-						VuFind.showMessage("Added Successfully", data.message, true);
+						VuFind.showMessage("Added Successfully", data.message, true, true);
 					} else {
 						VuFind.showMessage("Error", data.message);
 					}

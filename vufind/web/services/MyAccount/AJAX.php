@@ -608,8 +608,12 @@ class MyAccount_AJAX
 	{
 		global $interface;
 
-		$id = $_REQUEST['recordId'];
-		$interface->assign('recordId', $id);
+		if (isset($_REQUEST['recordId'])){
+			$id = $_REQUEST['recordId'];
+			$interface->assign('recordId', $id);
+		}else{
+			$id = '';
+		}
 
 		$results = array(
 			'title' => 'Create new List',

@@ -46,6 +46,7 @@ class MyAccount_MyList extends MyAccount {
 
 		//QUESTION : When does this intentionally come into play?
 		// It looks to be a way for users to create a list with the number of their own choosing. plb 1-25-2016
+		// Pascal this would create the default "My Favorites" list if none currently exists.
 		if (!$list->find(true)){
 			//TODO: Use the first list?
 			$list = new UserList();
