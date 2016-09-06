@@ -134,13 +134,13 @@ Author:
       - [localized_callnumber, 1400]
     - author:
       - [onephrase, 350]
-      - [and, 200]
+      - [proximal, 200]
     - author2:
       - [onephrase, 100]
-      - [and, 50]
+      - [proximal, 50]
     - author_additional:
       - [onephrase, 100]
-      - [and, 50]
+      - [proximal, 50]
 
 AuthorProper:
   QueryFields:
@@ -372,11 +372,13 @@ Keyword:
         - [localized_callnumber, 1000]
       - author:
         - [onephrase, 800]
-        - [and, 200]
+        - [proximal, 200]
       - author2:
-        - [and, 50]
+        - [onephrase, 100]
+        - [proximal, 50]
       - author_additional:
-        - [and, 50]
+        - [onephrase, 100]
+        - [proximal, 50]
 #IDs within the records
     -
       - [OR, 300]
