@@ -64,7 +64,7 @@ checkConflictingProcesses "overdrive_extract.jar ${PIKASERVER}"
 checkConflictingProcesses "reindexer.jar ${PIKASERVER}"
 
 # Back-up Solr Master Index
-tar -czf /data/vufind-plus/marmot.test/solr_master_backup.tar.gz /data/vufind-plus/marmot.test/solr_master/grouped/index/
+tar -czf /data/vufind-plus/${PIKASERVER}/solr_master_backup.tar.gz /data/vufind-plus/${PIKASERVER}/solr_master/grouped/index/ >> ${OUTPUT_FILE}
 
 #Restart Solr
 cd /usr/local/vufind-plus/sites/${PIKASERVER}; ./${PIKASERVER}.sh restart
