@@ -73,7 +73,7 @@ abstract class IslandoraDriver extends RecordInterface {
 				return $objectUrl . '/' . $this->getUniqueID() . '/datastream/JPG/view';
 			}elseif ($this->archiveObject->getDatastream('LC') != null) {
 				return $objectUrl . '/' . $this->getUniqueID() . '/datastream/LC/view';
-			}elseif ($this->archiveObject->getDatastream('OBJ') != null && $this->archiveObject->getDatastream('OBJ')->mimetype == 'image/jpg') {
+			}elseif ($this->archiveObject->getDatastream('OBJ') != null && ($this->archiveObject->getDatastream('OBJ')->mimetype == 'image/jpg' || $this->archiveObject->getDatastream('OBJ')->mimetype == 'image/jpeg')) {
 				return $objectUrl . '/' . $this->getUniqueID() . '/datastream/OBJ/view';
 			}else{
 				return $this->getPlaceholderImage();
