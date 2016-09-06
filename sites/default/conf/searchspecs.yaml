@@ -764,6 +764,8 @@ IslandoraRelationshipsById:
       - [exact, ~]
     - mods_extension_marmotLocal_describedEntity_entityPid_ms:
       - [exact, ~]
+    - mods_extension_marmotLocal_picturedEntity_entityPid_ms:
+      - [exact, ~]
     - mods_extension_marmotLocal_relatedPersonOrg_entityPid_ms:
       - [exact, ~]
     - mods_extension_marmotLocal_relatedEntity_person_entityPid_ms:
