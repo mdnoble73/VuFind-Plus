@@ -986,6 +986,10 @@ class ListAPI extends Action {
 					break;
 				}
 			}
+			if (empty($selectedListTitleShort)) {
+				$results['message'] = "We did not find list '{$selectedList}' in The New York Times API";
+				return $results;
+			}
 
 			//Call Pika to get a list of all lists for our username
 			$pikaUrl = $configArray['Site']['url'];

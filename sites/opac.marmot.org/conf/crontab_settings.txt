@@ -32,7 +32,7 @@
 # On Reboot #
 #############
 # Continuous Re-Indexing
-@reboot cd /usr/local/vufind-plus/sites/opac.marmot.org; ./continuous_partial_reindex.sh
+@reboot /usr/local/vufind-plus/sites/opac.marmot.org/continuous_partial_reindex.sh
 @reboot /usr/local/vufind-plus/sites/aspencat.production/continuous_partial_reindex.sh
 
 #####################
@@ -54,6 +54,12 @@
 27 */2 * * * cd /tmp; /bin/rm -rf epb*
 # Restart apache
 0 0-6 * * * /usr/sbin/apachectl graceful > /dev/null 2>&1
+
+#############################################
+# New York Times Best seller Lists Updating #
+#############################################
+23 7 * * 0 cd /usr/local/vufind/sites/opac.marmot.org; ./updateNYTLists.sh
+# update on Sundays at 7:23
 
 ##########
 # Cron   #
