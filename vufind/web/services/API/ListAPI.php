@@ -1051,6 +1051,7 @@ class ListAPI extends Action {
 				}
 			}
 
+			require_once ROOT_DIR . '/sys/LocalEnrichment/UserList.php';
 			$nytList = new UserList();
 			$nytList->id = $listID;
 			$nytList->find(true);
@@ -1062,6 +1063,8 @@ class ListAPI extends Action {
 
 			// Include Search Engine Class
 			require_once ROOT_DIR . '/sys/' . $configArray['Index']['engine'] . '.php';
+			// Include UserListEntry Class
+			require_once ROOT_DIR . '/sys/LocalEnrichment/UserListEntry.php';
 
 			$numTitlesAdded = 0;
 			foreach ($availableLists->results as $titleResult) {
