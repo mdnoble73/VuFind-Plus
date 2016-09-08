@@ -33,7 +33,7 @@ class RecordDriverFactory {
 	 * This constructs a search object for the specified engine.
 	 *
 	 * @access  public
-	 * @param   array   $record     The fields retrieved from the Solr index.
+	 * @param   array|AbstractFedoraObject   $record     The fields retrieved from the Solr index.
 	 * @return  RecordInterface     The record driver for handling the record.
 	 */
 	static function initRecordDriver($record)

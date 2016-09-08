@@ -986,6 +986,10 @@ class ListAPI extends Action {
 					break;
 				}
 			}
+			if (empty($selectedListTitleShort)) {
+				$results['message'] = "We did not find list '{$selectedList}' in The New York Times API";
+				return $results;
+			}
 
 			//Call Pika to get a list of all lists for our username
 			$pikaUrl = $configArray['Site']['url'];
@@ -1047,6 +1051,7 @@ class ListAPI extends Action {
 				}
 			}
 
+			require_once ROOT_DIR . '/sys/LocalEnrichment/UserList.php';
 			$nytList = new UserList();
 			$nytList->id = $listID;
 			$nytList->find(true);
@@ -1058,6 +1063,8 @@ class ListAPI extends Action {
 
 			// Include Search Engine Class
 			require_once ROOT_DIR . '/sys/' . $configArray['Index']['engine'] . '.php';
+			// Include UserListEntry Class
+			require_once ROOT_DIR . '/sys/LocalEnrichment/UserListEntry.php';
 
 			$numTitlesAdded = 0;
 			foreach ($availableLists->results as $titleResult) {

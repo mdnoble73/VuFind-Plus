@@ -604,6 +604,9 @@ class User extends DB_DataObject
 			$userLibrary = Library::getLibraryForLocation($this->homeLocationId);
 			if ($userLibrary->libraryId == $listLibrary->libraryId){
 				return true;
+			}elseif(strpos($list->title, 'NYT - ') === 0 && ($this->hasRole('libraryAdmin') || $this->hasRole('contentEditor'))){
+				//Allow NYT Times lists to be edited by any library admins and library managers
+				return true;
 			}
 		}elseif ($this->hasRole('locationManager')){
 			$listUser = new User();

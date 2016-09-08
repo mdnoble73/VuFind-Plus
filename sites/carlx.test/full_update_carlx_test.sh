@@ -31,6 +31,9 @@ function checkConflictingProcesses() {
 #Check for any conflicting processes that we shouldn't do a full index during.
 checkConflictingProcesses "reindexer.jar ${PIKASERVER}"
 
+# Back-up Solr Master Index
+tar -czf /data/vufind-plus/${PIKASERVER}/solr_master_backup.tar.gz /data/vufind-plus/${PIKASERVER}/solr_master/grouped/index/
+
 #Restart Solr
 cd /usr/local/vufind-plus/sites/${PIKASERVER}; ./${PIKASERVER}.sh restart
 

@@ -8855,9 +8855,9 @@ hr.menu {
   color: #333333;
   background-color: #eeeeee;
 }
-.sidebar-links .panel-body a,
-.sidebar-links .panel-body a:visited,
-.sidebar-links .panel-body a:hover {
+.sidebar-links .panel-body a:not(.btn),
+.sidebar-links .panel-body a:visited:not(.btn),
+.sidebar-links .panel-body a:hover:not(.btn) {
   color: #007290;
 }
 .ui-helper-hidden {
