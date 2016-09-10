@@ -1006,36 +1006,39 @@ class ListAPI extends Action {
 					$listID = $listName->id;
 					$results = array(
 							'success' => true,
-							'message' =>"Updating existing list <a href='/MyAccount/MyList/{$listID}'>{$listName->title}</a>"
+							'message' => "Updating existing list <a href='/MyAccount/MyList/{$listID}'>{$listName->title}</a>"
 					);
 					break;
 				}
 			}
 
 			//We didn't get a list in Pika, create one
-			if (!$listExistsInPika){
-				//Call the create list API
-				$createListURL = $pikaUrl . "/API/ListAPI?method=createList&username=" . urlencode($pikaUsername) .
-						"&password=" . urlencode($pikaPassword) .
-						"&title=" . urlencode($selectedListTitle) .
-						"&description=" . urlencode("New York Times - " . $selectedListTitleShort) .
-						"&public=1";
-				$createListResultRaw = file_get_contents($createListURL);
-				$createListResult = json_decode($createListResultRaw);
+			if (!$listExistsInPika) {
+				$pikaUser = UserAccount::validateAccount($pikaUsername, $pikaPassword);
+				if ($pikaUser && !PEAR_Singleton::isError($pikaUser)) {
+					$list              = new UserList();
+					$list->title       = $selectedListTitle;
+					$list->description = "New York Times - " . $selectedListTitleShort;
+					$list->public      = 1;
+					$list->defaultSort = 'custom';
+					$list->user_id     = $pikaUser->id;
+					$success = $list->insert();
+					$list->find(true);
 
-				if ($createListResult->result->success){
-					$newlyCreatedListId = $createListResult->result->listId;
-					$listID = $newlyCreatedListId;
-					$results = array(
-							'success' => true,
-							'message' =>"Created list <a href='/MyAccount/MyList/{$listID}'>{$selectedListTitle}</a>"
+
+				if ($success) {
+					$listID             = $list->id;
+					$results            = array(
+						'success' => true,
+						'message' => "Created list <a href='/MyAccount/MyList/{$listID}'>{$selectedListTitle}</a>"
 					);
-				}else{
+				} else {
 					return array(
-							'success' => false,
-							'message' => 'Could not create list' . $createListResult->result->message
+						'success' => false,
+						'message' => 'Could not create list'
 					);
 				}
+			}
 			}else{
 				//We already have a list, clear the contents so we don't have titles from last time
 				$clearListTitlesURL = $pikaUrl . "/API/ListAPI?method=clearListTitles&username=" . urlencode($pikaUsername) .
@@ -1116,7 +1119,8 @@ class ListAPI extends Action {
 						$existingEntry = true;
 					}
 
-					$userListEntry->notes = $note;
+					$userListEntry->weight    = $titleResult->rank;
+					$userListEntry->notes     = $note;
 					$userListEntry->dateAdded = time();
 					if ($existingEntry){
 						if ($userListEntry->update()){
