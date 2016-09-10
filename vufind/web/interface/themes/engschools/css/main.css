@@ -9313,6 +9313,41 @@ a.browse-thumbnail.active {
 .browse-thumbnail img {
   width: 100%;
 }
+.browse-thumbnail-sorted {
+  display: block;
+  padding: 4px;
+  margin-bottom: 20px;
+  line-height: 1.42857143;
+  background-color: #fff;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  -webkit-transition: all 0.2s ease-in-out;
+  transition: all 0.2s ease-in-out;
+  border-width: 0px;
+  height: 210px;
+  overflow: hidden;
+  text-align: center;
+}
+.browse-thumbnail-sorted > img,
+.browse-thumbnail-sorted a > img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin-left: auto;
+  margin-right: auto;
+}
+a.browse-thumbnail-sorted:hover,
+a.browse-thumbnail-sorted:focus,
+a.browse-thumbnail-sorted.active {
+  border-color: #428bca;
+}
+.browse-thumbnail-sorted .caption {
+  padding: 9px;
+  color: #333333;
+}
+.browse-thumbnail-sorted img {
+  max-height: 150px;
+}
 .browse-list {
   page-break-inside: avoid;
        break-inside: avoid-column;
@@ -10457,4 +10492,11 @@ a.browse-thumbnail.active {
 }
 #book-sections li.active figure {
   outline: dotted thin;
+}
+.transcriptLocation {
+  font-weight: bold;
+  font-size: larger;
+}
+.transcript {
+  margin-bottom: 5px;
 }
