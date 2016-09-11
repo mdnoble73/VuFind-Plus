@@ -86,7 +86,7 @@
 #############################################
 # New York Times Best seller Lists Updating #
 #############################################
-23 7 * * 0 cd /usr/local/vufind/sites/marmot.test; ./updateNYTLists.sh
+23 7 * * 0 cd /usr/local/vufind-plus/sites/marmot.test; ./updateNYTLists.sh
 # update on Sundays at 7:23
 
 ##########

@@ -58,7 +58,7 @@
 #############################################
 # New York Times Best seller Lists Updating #
 #############################################
-23 7 * * 0 cd /usr/local/vufind/sites/opac.marmot.org; ./updateNYTLists.sh
+23 7 * * 0 /usr/local/vufind-plus/sites/opac.marmot.org; ./updateNYTLists.sh
 # update on Sundays at 7:23
 
 ##########
