@@ -30,25 +30,6 @@
   }
 }
 
-#browse-category-picker {
-  .jcarousel-control-prev, .jcarousel-control-next {
-    //background-color: #fff;
-    //color: @selectedCategoryColor;
-    &:active, &:hover {
-      text-decoration: none;
-    }
-    .box-shadow(none);
-  }
-  .jcarousel-pagination a {
-    &.active {
-      background: @browseCarouselControlColor;
-      // keep shadowing in place on active item
-      .box-shadow(0 0 2px #4E443C);
-    }
-    @detached-outline-ruleset: {outline: none};
-    .allLinkStates(@detached-outline-ruleset)
-  }
-}
 
 // the category text
 .browse-category {
@@ -69,62 +50,63 @@
     border: none;
     background-color: @selectedCategoryColor;
     background: @selectedCategoryColor;
-    background: linear-gradient(to bottom, @selectedCategoryColor 0%,@selectedCategoryColor 75%, #fff 75%, #fff 80%, #CCCCCC 80%, #fff 100%);
+    background: linear-gradient(to bottom, @selectedCategoryColor 0%, @selectedCategoryColor 75%, #fff 75%, #fff 80%, #CCCCCC 80%, #fff 100%);
     div {
       color: #fff;
     }
   }
+}
 
-  // Left/Right Arrows on browse category carousel
-  #browse-category-picker {
-    .jcarousel-control-prev, .jcarousel-control-next {
-      background-color: #fff;
+// Left/Right Arrows on browse category carousel
+#browse-category-picker {
+  .jcarousel-control-prev, .jcarousel-control-next {
+    background-color: #fff;
+    color: @browseCarouselControlColor;
+    &:active, &:hover {
       color: @selectedCategoryColor;
-      &:active, &:hover {
-        color: @marmot-dark-orange;
-        text-decoration: none;
-      }
-      .box-shadow(none);
-      font-size: 20px;
+      text-decoration: none;
     }
-    a {
-      &.jcarousel-control-next:after {
-        content: "▶";
-      }
-      &.jcarousel-control-prev:before {
-        content: "◀";
-      }
+    .box-shadow(none);
+    font-size: 20px;
+  }
+  a {
+    &.jcarousel-control-next:after {
+      content: "▶";
     }
-    // indicator dots at bottom of browse category carousel
-    .jcarousel-pagination a {
-      &.active {
-        background: @marmot-dark-orange;
-        // keep shadowing in place on active item
-        .box-shadow(0 0 2px #4E443C);
-      }
-      @detached-outline-ruleset: {outline: none};
-      .allLinkStates(@detached-outline-ruleset)
+    &.jcarousel-control-prev:before {
+      content: "◀";
     }
   }
-
-  #selected-browse-label {
-    color: black; //TODO: set color
-    background: none; //override line through label
-    padding: 20px 0;
-    border-top: 1px solid @browse-label-text-color;
-  }
-
-  .selected-browse-label-search {
-    background: none;
-    a {
-      color: @browse-label-text-color;
+  // indicator dots at bottom of browse category carousel
+  .jcarousel-pagination a {
+    &.active {
+      background: @browseCarouselControlColor;
+      // keep shadowing in place on active item
+      .box-shadow(0 0 2px #4E443C);
     }
-  }
-
-  #selected-browse-search-link{
-    text-transform: uppercase;
+    @detached-outline-ruleset: {outline: none};
+    .allLinkStates(@detached-outline-ruleset)
   }
 }
+
+#selected-browse-label {
+  color: black; //TODO: set color
+  background: none; //override line through label
+  padding: 20px 0;
+  border-top: 1px solid @browse-label-text-color;
+}
+
+.selected-browse-label-search {
+  background: none;
+  a {
+    color: @browse-label-text-color;
+  }
+}
+
+#selected-browse-search-link{
+  text-transform: uppercase;
+}
+
 
 #browse-sub-category-menu {
   button.selected {
