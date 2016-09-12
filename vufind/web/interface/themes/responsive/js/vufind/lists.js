@@ -1,5 +1,10 @@
 VuFind.Lists = (function(){
 	return {
+		addToHomePage: function(listId){
+			VuFind.Account.ajaxLightbox(Globals.path + '/MyAccount/AJAX?method=getAddBrowseCategoryFromListForm&listId=' + listId, true);
+			return false;
+		},
+
 		editListAction: function (){
 			$('#listDescription,#listTitle,#FavEdit').hide();
 			$('#listEditControls,#FavSave').show();

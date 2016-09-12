@@ -207,10 +207,17 @@ VuFind.Browse = (function(){
 			var url = Globals.path + "/Browse/AJAX",
 					params = {
 							method:'createBrowseCategory'
-							,searchId:$('#searchId').val()
 							,categoryName:$('#categoryName').val()
 							,addAsSubCategoryOf:$('#addAsSubCategoryOfSelect').val()
 							};
+				var searchId = $("#searchId");
+				if (searchId){
+					params['searchId'] = searchId.val()
+				}
+				var listId = $("#listId");
+				if (listId){
+					params['listId'] = listId.val()
+				}
 				$.getJSON(url, params, function (data) {
 					if (data.success == false) {
 						VuFind.showMessage("Unable to create category", data.message);

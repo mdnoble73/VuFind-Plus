@@ -54,10 +54,11 @@ class NYTLists extends Admin_Admin {
 		}
 
 
-		$interface->assign('sidebar', 'MyAccount/account-sidebar.tpl');
-		$interface->setTemplate('nytLists.tpl');
-		$interface->setPageTitle('Lists from New York Times');
-		$interface->display('layout.tpl');
+//		$interface->assign('sidebar', 'MyAccount/account-sidebar.tpl');
+//		$interface->setTemplate('nytLists.tpl');
+//		$interface->setPageTitle('Lists from New York Times');
+//		$interface->display('layout.tpl');
+		$this->display('nytLists.tpl', 'Lists from New York Times');
 	}
 
 	function getAllowableRoles() {

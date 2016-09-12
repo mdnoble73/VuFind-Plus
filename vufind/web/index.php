@@ -427,7 +427,7 @@ if ($action == "AJAX" || $action == "JSON"){
 	$searchObject = SearchObjectFactory::initSearchObject();
 	$searchObject->init();
 	$timer->logTime('Create Search Object');
-	$basicSearchTypes = is_object($searchObject) ?    $searchObject->getBasicTypes() : array();
+	$basicSearchTypes = is_object($searchObject) ? $searchObject->getBasicTypes() : array();
 	$interface->assign('basicSearchTypes', $basicSearchTypes);
 
 	// Set search results display mode in search-box //

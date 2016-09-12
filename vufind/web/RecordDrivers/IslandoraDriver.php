@@ -73,7 +73,7 @@ abstract class IslandoraDriver extends RecordInterface {
 				return $objectUrl . '/' . $this->getUniqueID() . '/datastream/JPG/view';
 			}elseif ($this->archiveObject->getDatastream('LC') != null) {
 				return $objectUrl . '/' . $this->getUniqueID() . '/datastream/LC/view';
-			}elseif ($this->archiveObject->getDatastream('OBJ') != null && $this->archiveObject->getDatastream('OBJ')->mimetype == 'image/jpg') {
+			}elseif ($this->archiveObject->getDatastream('OBJ') != null && ($this->archiveObject->getDatastream('OBJ')->mimetype == 'image/jpg' || $this->archiveObject->getDatastream('OBJ')->mimetype == 'image/jpeg')) {
 				return $objectUrl . '/' . $this->getUniqueID() . '/datastream/OBJ/view';
 			}else{
 				return $this->getPlaceholderImage();
@@ -704,7 +704,7 @@ abstract class IslandoraDriver extends RecordInterface {
 	protected $relatedEvents = array();
 	protected $relatedOrganizations = array();
 	private $loadedRelatedEntities = false;
-	private static $nonProductionTeamRoles = array('interviewee', 'artist', 'described', 'contributor', 'author', 'child', 'parent', 'sibling', 'spouse', 'donor');
+	private static $nonProductionTeamRoles = array('interviewee', 'artist', 'described', 'contributor', 'author', 'child', 'parent', 'sibling', 'spouse', 'donor', 'attendee');
 	public function loadRelatedEntities(){
 		if ($this->loadedRelatedEntities == false){
 			$this->loadedRelatedEntities = true;
@@ -798,6 +798,17 @@ abstract class IslandoraDriver extends RecordInterface {
 							'note' => $relationshipNote,
 
 					);
+
+					if ($entityType != 'person' && $entityType != 'organization'){
+						//Need to check the actual content model
+						$fedoraObject = $fedoraUtils->getObject($entityInfo['pid']);
+						$recordDriver = RecordDriverFactory::initRecordDriver($fedoraObject);
+						if ($recordDriver instanceof PersonDriver){
+							$entityType = 'person';
+						}elseif ($recordDriver instanceof OrganizationDriver){
+							$entityType = 'organization';
+						}
+					}
 					if ($entityType == 'person'){
 
 						$isProductionTeam = strlen($entityRole) > 0 && !in_array(strtolower($entityRole), IslandoraDriver::$nonProductionTeamRoles);
@@ -1071,9 +1082,6 @@ abstract class IslandoraDriver extends RecordInterface {
 			// Include Search Engine Class
 			require_once ROOT_DIR . '/sys/Solr.php';
 
-			// Include Search Engine Class
-			require_once ROOT_DIR . '/sys/Solr.php';
-
 			// Initialise from the current search globals
 			/** @var SearchObject_Islandora $searchObject */
 			$searchObject = SearchObjectFactory::initSearchObject('Islandora');
@@ -1179,6 +1187,28 @@ abstract class IslandoraDriver extends RecordInterface {
 		}elseif ($entityType == 'organization'){
 			$entityInfo['link']= '/Archive/' . $pid . '/Organization';
 			$this->relatedOrganizations[$pid.$role] = $entityInfo;
+		}else{
+			//Need to check the actual content model
+			$fedoraObject = $fedoraUtils->getObject($entityInfo['pid']);
+			$recordDriver = RecordDriverFactory::initRecordDriver($fedoraObject);
+			if ($recordDriver instanceof PersonDriver){
+				$entityInfo['link']= '/Archive/' . $pid . '/Person';
+				if (strlen($role) > 0 && !in_array(strtolower($role), IslandoraDriver::$nonProductionTeamRoles)){
+					$this->productionTeam[$pid.$role] = $entityInfo;
+				}else{
+					$this->relatedPeople[$pid.$role] = $entityInfo;
+				}
+
+			}elseif ($recordDriver instanceof PlaceDriver){
+				$entityInfo['link']= '/Archive/' . $pid . '/Place';
+				$this->relatedPlaces[$pid.$role] = $entityInfo;
+			}elseif ($recordDriver instanceof EventDriver){
+				$entityInfo['link']= '/Archive/' . $pid . '/Event';
+				$this->relatedEvents[$pid.$role] = $entityInfo;
+			}elseif ($recordDriver instanceof OrganizationDriver){
+				$entityInfo['link']= '/Archive/' . $pid . '/Organization';
+				$this->relatedOrganizations[$pid.$role] = $entityInfo;
+			}
 		}
 	}
 

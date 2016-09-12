@@ -57,6 +57,9 @@
 								{if $user && ($user->hasRole('opacAdmin') || $user->hasRole('libraryAdmin') || $user->hasRole('contentEditor'))}
 									&nbsp;&nbsp;<a href="#" class="button btn btn-sm btn-default" id="FavCreateWidget" onclick="return VuFind.ListWidgets.createWidgetFromList('{$favList->id}')">Create Widget</a>
 								{/if}
+								{if $user && ($user->hasRole('opacAdmin') || $user->hasRole('libraryAdmin') || $user->hasRole('contentEditor') || $user->hasRole('libraryManager') || $user->hasRole('locationManager'))}
+									<a href="#" id="FavHome" class="btn btn-sm btn-default" onclick="return VuFind.Lists.addToHomePage('{$favList->id}')">{translate text='Add To Home Page'}</a>
+								{/if}
 							{/if}
 						</div>
 					{/if}
