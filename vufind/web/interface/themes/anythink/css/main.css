@@ -10508,6 +10508,9 @@ a.browse-thumbnail-sorted.active {
 .transcript {
   margin-bottom: 5px;
 }
+.editor .panel-group .panel-body > .form-group > .controls {
+  overflow-x: auto;
+}
 #header-container {
   background-image: url('/interface/themes/anythink/images/headerbg.png');
   background-repeat: no-repeat;

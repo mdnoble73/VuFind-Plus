@@ -10500,6 +10500,9 @@ a.browse-thumbnail-sorted.active {
 .transcript {
   margin-bottom: 5px;
 }
+.editor .panel-group .panel-body > .form-group > .controls {
+  overflow-x: auto;
+}
 #header-container {
   min-height: 140px;
 }

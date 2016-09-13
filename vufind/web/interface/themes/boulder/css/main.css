@@ -10500,6 +10500,9 @@ a.browse-thumbnail-sorted.active {
 .transcript {
   margin-bottom: 5px;
 }
+.editor .panel-group .panel-body > .form-group > .controls {
+  overflow-x: auto;
+}
 #searchSource {
   color: #597635;
 }

@@ -10500,6 +10500,9 @@ a.browse-thumbnail-sorted.active {
 .transcript {
   margin-bottom: 5px;
 }
+.editor .panel-group .panel-body > .form-group > .controls {
+  overflow-x: auto;
+}
 @media (min-width: 768px) {
   #header-container {
     background-image: url('/interface/themes/gunnisonld/images/header_background.png');
