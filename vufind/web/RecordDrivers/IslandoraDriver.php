@@ -1062,17 +1062,21 @@ abstract class IslandoraDriver extends RecordInterface {
 				if (strlen($objectPid) > 0){
 					$archiveObject = $fedoraUtils->getObject($objectPid);
 					if ($archiveObject != null){
+						/** @var IslandoraDriver $entityDriver */
 						$entityDriver = RecordDriverFactory::initRecordDriver($archiveObject);
-						$objectInfo = array(
-								'pid' => $entityDriver->getUniqueID(),
-								'label' => $entityDriver->getTitle(),
-								'description' => $entityDriver->getTitle(),
-								'image' => $entityDriver->getBookcoverUrl('medium'),
-								'link' => $entityDriver->getRecordUrl(),
-								'driver' => $entityDriver
-						);
-						$this->directlyRelatedObjects['objects'][$objectInfo['pid']] = $objectInfo;
-						$this->directlyRelatedObjects['numFound']++;
+						$includeInPika = $entityDriver->getModsValue('includeInPika', 'marmot');
+						if ($includeInPika != null && strcasecmp($includeInPika, 'no') != 0) {
+							$objectInfo = array(
+									'pid' => $entityDriver->getUniqueID(),
+									'label' => $entityDriver->getTitle(),
+									'description' => $entityDriver->getTitle(),
+									'image' => $entityDriver->getBookcoverUrl('medium'),
+									'link' => $entityDriver->getRecordUrl(),
+									'driver' => $entityDriver
+							);
+							$this->directlyRelatedObjects['objects'][$objectInfo['pid']] = $objectInfo;
+							$this->directlyRelatedObjects['numFound']++;
+						}
 					}
 				}
 
