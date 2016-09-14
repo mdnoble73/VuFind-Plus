@@ -57,7 +57,7 @@
 		<div class="series row">
 			<div class="result-label col-sm-4">Series: </div>
 			<div class="col-sm-8 result-value">
-				{if is_array($series)}
+				{if is_array($series) && !isset($series.seriesTitle)}
 					{foreach from=$series item=seriesItem name=loop}
 						<a href="{$path}/Search/Results?basicType=Series&lookfor=%22{$seriesItem.seriesTitle|removeTrailingPunctuation|escape:"url"}%22">{$seriesItem.seriesTitle|removeTrailingPunctuation|escape}</a>{if $seriesItem.volume} volume {$seriesItem.volume}{/if}<br/>
 					{/foreach}
