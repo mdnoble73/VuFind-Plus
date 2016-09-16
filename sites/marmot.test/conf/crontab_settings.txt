@@ -92,6 +92,8 @@
 # update on Sundays at 7:23
 31 7 * * 0 /usr/local/vufind-plus/vufind/cron/updateNYTLists.sh arlington.test
 # update on Sundays at 7:31
+31 7 * * 0 /usr/local/vufind-plus/vufind/cron/updateNYTLists.sh aspencat.test
+# update on Sundays at 7:37
 
 ##########
 # Cron   #
