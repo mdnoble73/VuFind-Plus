@@ -96,7 +96,7 @@
 				{rdelim};
 				openSeadragonSettings.settings.tileSources = new Array();
 				var tileSource = new OpenSeadragon.DjatokaTileSource(
-						"/AJAX/DjatokaResolver",
+						Globals.url + "/AJAX/DjatokaResolver",
 						'{$large_image}',
 						openSeadragonSettings.settings
 				);

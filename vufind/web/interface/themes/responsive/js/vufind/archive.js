@@ -233,7 +233,7 @@ VuFind.Archive = (function(){
 				// $('#view-transcription').load(reverseProxy);
 			}else if (this.activeBookViewer == 'image'){
 				var tile = new OpenSeadragon.DjatokaTileSource(
-						"/AJAX/DjatokaResolver",
+						Globals.url + "/AJAX/DjatokaResolver",
 						this.pageDetails[pid]['jp2'],
 						VuFind.Archive.openSeadragonViewerSettings()
 				);
