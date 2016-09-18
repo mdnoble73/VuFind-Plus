@@ -1525,7 +1525,8 @@ class SearchObject_Islandora extends SearchObject_Base
 			  OR RELS_EXT_isMemberOfCollection_uri_ms:info\\:fedora/marmot\\:people
 			  OR RELS_EXT_isMemberOfCollection_uri_ms:info\\:fedora/marmot\\:places
 			  OR RELS_EXT_isMemberOfCollection_uri_ms:info\\:fedora/marmot\\:families";
-		}else if ($library->collectionsToHide){
+		}
+		if ($library->collectionsToHide){
 			$collectionsToHide = explode("\r\n", $library->collectionsToHide);
 			$filter = '';
 			foreach ($collectionsToHide as $collection){
