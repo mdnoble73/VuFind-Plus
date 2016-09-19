@@ -39,6 +39,10 @@ class Archive_Exhibit extends Archive_Object{
 			$interface->assign('thumbnail', $configArray['Islandora']['objectUrl'] . "/{$this->pid}/datastream/TN/view");
 		}
 
+		//Get a list of sub collections to for searching
+		$subCollections = $this->recordDriver->getSubCollections();
+		$interface->assign('subCollections', $subCollections);
+
 		$interface->assign('showExploreMore', true);
 
 		// Determine what type of page to show
