@@ -396,7 +396,7 @@ class AJAX extends Action {
 		global $interface;
 
 		$section = $_REQUEST['section'];
-		$searchTerm = $_REQUEST['searchTerm'];
+		$searchTerm = urldecode($_REQUEST['searchTerm']);
 
 		//Load explore more data
 		require_once ROOT_DIR . '/sys/ExploreMore.php';
