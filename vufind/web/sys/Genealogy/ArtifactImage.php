@@ -15,9 +15,6 @@ class ArtifactImage extends DB_DataObject
     public $physicalDescription;
     public $copyright;
     
-    /* Static get */
-    function staticGet($k,$v=NULL) { return DB_DataObject::staticGet('ArtifactImage',$k,$v); }
-    
     function keys() {
         return array('artifactImageId');
     }

@@ -17,9 +17,6 @@ class SearchStat extends DB_DataObject
 	public $locationId;      //int(16)
 	public $libraryId;      //int(16)
 
-	/* Static get */
-	function staticGet($k,$v=NULL) { return DB_DataObject::staticGet('SearchStat',$k,$v); }
-
 	function keys() {
 		return array('id', 'phrase', 'type');
 	}

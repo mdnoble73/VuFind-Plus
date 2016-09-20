@@ -13,9 +13,6 @@ class SearchStatNew extends DB_DataObject
 	public $lastSearch;       //timestamp
 	public $numSearches;      //int(16)
 
-	/* Static get */
-	function staticGet($k,$v=NULL) { return DB_DataObject::staticGet('SearchStat',$k,$v); }
-
 	function keys() {
 		return array('id', 'phrase');
 	}

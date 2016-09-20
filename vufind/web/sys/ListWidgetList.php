@@ -16,9 +16,6 @@ class ListWidgetList extends DB_DataObject
 	public $source;                    //varchar(255)
 	public $weight;
 
-	/* Static get */
-	function staticGet($k,$v=NULL) { return DB_DataObject::staticGet('DB_DataObject',$k,$v); }
-
 	function keys() {
 		return array('id');
 	}

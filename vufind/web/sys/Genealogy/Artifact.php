@@ -24,9 +24,6 @@ class Artifact extends DB_DataObject
     public $lexiconSubCategory;
     public $subjects;
     
-    /* Static get */
-    function staticGet($k,$v=NULL) { return DB_DataObject::staticGet('Artifact',$k,$v); }
-    
     function keys() {
         return array('artifactId');
     }

@@ -8855,9 +8855,9 @@ hr.menu {
   color: #333333;
   background-color: #eeeeee;
 }
-.sidebar-links .panel-body a,
-.sidebar-links .panel-body a:visited,
-.sidebar-links .panel-body a:hover {
+.sidebar-links .panel-body a:not(.btn),
+.sidebar-links .panel-body a:visited:not(.btn),
+.sidebar-links .panel-body a:hover:not(.btn) {
   color: #428bca;
 }
 .ui-helper-hidden {
@@ -10490,4 +10490,7 @@ a.browse-thumbnail-sorted.active {
 }
 .transcript {
   margin-bottom: 5px;
+}
+.editor .panel-group .panel-body > .form-group > .controls {
+  overflow-x: auto;
 }

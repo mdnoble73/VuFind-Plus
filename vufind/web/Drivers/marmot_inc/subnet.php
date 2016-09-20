@@ -15,8 +15,6 @@ class subnet extends DB_DataObject
 	public $isOpac;                   //tinyint(1)
 	public $startIpVal;
 	public $endIpVal;
-	/* Static get */
-	function staticGet($k,$v=NULL) { return DB_DataObject::staticGet('ip_lookup',$k,$v); }
 
 	function keys() {
 		return array('id', 'locationid', 'ip');

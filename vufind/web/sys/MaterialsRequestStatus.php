@@ -17,9 +17,6 @@ class MaterialsRequestStatus extends DB_DataObject {
 	public $isPatronCancel;
 	public $libraryId;
 
-	/* Static get */
-	function staticGet($k,$v=NULL) { return DB_DataObject::staticGet('MaterialsRequestStatus',$k,$v); }
-
 	function keys() {
 		return array('id');
 	}

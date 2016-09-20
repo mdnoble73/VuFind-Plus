@@ -50,9 +50,6 @@ class MaterialsRequest extends DB_DataObject
 	public $firstName;
 	public $lastName;
 
-	/* Static get */
-	function staticGet($k,$v=NULL) { return DB_DataObject::staticGet('MaterialsRequest',$k,$v); }
-
 	function keys() {
 		return array('id');
 	}

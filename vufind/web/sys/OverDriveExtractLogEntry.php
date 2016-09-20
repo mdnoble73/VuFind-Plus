@@ -22,9 +22,6 @@ class OverDriveExtractLogEntry extends DB_DataObject
     public $numAvailabilityChanges;
     public $numMetadataChanges;
 	
-	/* Static get */
-	function staticGet($k,$v=NULL) { return DB_DataObject::staticGet('OverDriveExtractLogEntry',$k,$v); }
-
 	function keys() {
 		return array('id');
 	}

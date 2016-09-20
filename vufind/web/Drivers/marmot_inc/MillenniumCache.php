@@ -13,12 +13,9 @@ class MillenniumCache extends DB_DataObject
     public $holdingsInfo;             //mediumText
     public $framesetInfo;             //mediumText
     public $cacheDate;         //timestamp
-    /* Static get */
-    function staticGet($k,$v=NULL) { return DB_DataObject::staticGet('millennium_cache',$k,$v); }
-    
+
     function keys() {
         return array('recordId');
     }
 
 }
-?>

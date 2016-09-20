@@ -15,10 +15,6 @@ class ExternalLinkTracking extends DB_DataObject
 	public $linkHost;
 	public $trackingDate;
 	
-	private $lists; //varchar(500)
-	/* Static get */
-	function staticGet($k,$v=NULL) { return DB_DataObject::staticGet('ListWidget',$k,$v); }
-
 	function keys() {
 		return array('externalLinkId');
 	}

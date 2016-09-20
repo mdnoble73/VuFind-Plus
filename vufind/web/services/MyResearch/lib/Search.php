@@ -17,9 +17,6 @@ class SearchEntry extends DB_DataObject
 	public $search_object;									 // blob
 	public $session_id;											// varchar(128)
 
-	/* Static get */
-	function staticGet($k,$v=NULL) { return DB_DataObject::staticGet('Search',$k,$v); }
-
 	/**
 	 * Get an array of SearchEntry objects for the specified user.
 	 *

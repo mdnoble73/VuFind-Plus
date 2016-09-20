@@ -17,9 +17,6 @@ class Session extends DB_DataObject
 	public $created;                         // datetime(19)  not_null binary
 	public $remember_me;                     // tinyint
 
-	/* Static get */
-	function staticGet($k,$v=NULL) { return DB_DataObject::staticGet('Session',$k,$v); }
-
 	/* the code above is auto generated do not remove the tag below */
 	###END_AUTOCODE
 

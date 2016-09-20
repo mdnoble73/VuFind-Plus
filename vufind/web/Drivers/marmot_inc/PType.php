@@ -12,9 +12,6 @@ class PType extends DB_DataObject
 	public $pType;				//int(11)
 	public $maxHolds;			//int(11)
 
-	/* Static get */
-	function staticGet($k,$v=NULL) { return DB_DataObject::staticGet('PType',$k,$v); }
-
 	function keys() {
 		return array('id');
 	}

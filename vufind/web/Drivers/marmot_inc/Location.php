@@ -80,9 +80,6 @@ class Location extends DB_DataObject
 	/** @var  array $data */
 	protected $data;
 
-	/* Static get */
-	function staticGet($k,$v=NULL) { return DB_DataObject::staticGet('Location',$k,$v); }
-
 	function keys() {
 		return array('locationId', 'code');
 	}
@@ -459,26 +456,29 @@ class Location extends DB_DataObject
 		//if (count($locationList) == 0 && (isset($homeLibrary) && $homeLibrary->inSystemPickupsOnly == 1)){
 		if (!empty($patronProfile) && $patronProfile->homeLocationId != 0){
 			/** @var Location $homeLocation */
-			$homeLocation = Location::staticGet($patronProfile->homeLocationId);
-			if ($homeLocation->validHoldPickupBranch != 2){
-				//We didn't find any locations.  This for schools where we want holds available, but don't want the branch to be a
-				//pickup location anywhere else.
-				$homeLocation->pickupUsers[] = $patronProfile->id; // Add the user id to each pickup location to track multiple linked accounts having the same pick-up location.
-				$existingLocation = false;
-				foreach ($locationList as $location) {
-					if ($location->libraryId == $homeLocation->libraryId && $location->locationId == $homeLocation->locationId) {
-						$existingLocation = true;
-						if (!$isLinkedUser) {$location->selected = true;}
-						//TODO: update sorting key as well?
-						break;
+			$homeLocation = new Location();
+			$homeLocation->locationId = $patronProfile->homeLocationId;
+			if ($homeLocation->find(true)){
+				if ($homeLocation->validHoldPickupBranch != 2){
+					//We didn't find any locations.  This for schools where we want holds available, but don't want the branch to be a
+					//pickup location anywhere else.
+					$homeLocation->pickupUsers[] = $patronProfile->id; // Add the user id to each pickup location to track multiple linked accounts having the same pick-up location.
+					$existingLocation = false;
+					foreach ($locationList as $location) {
+						if ($location->libraryId == $homeLocation->libraryId && $location->locationId == $homeLocation->locationId) {
+							$existingLocation = true;
+							if (!$isLinkedUser) {$location->selected = true;}
+							//TODO: update sorting key as well?
+							break;
+						}
 					}
-				}
-				if (!$existingLocation) {
-					if (!$isLinkedUser) {
-						$homeLocation->selected                         = true;
-						$locationList['1' . $homeLocation->displayName] = clone $homeLocation;
-					} else {
-						$locationList['22' . $homeLocation->displayName] = clone $homeLocation;
+					if (!$existingLocation) {
+						if (!$isLinkedUser) {
+							$homeLocation->selected                         = true;
+							$locationList['1' . $homeLocation->displayName] = clone $homeLocation;
+						} else {
+							$locationList['22' . $homeLocation->displayName] = clone $homeLocation;
+						}
 					}
 				}
 			}

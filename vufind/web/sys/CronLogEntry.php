@@ -15,9 +15,6 @@ class CronLogEntry extends DB_DataObject
 	public $notes;
 	private $_processes = null;
 
-	/* Static get */
-	function staticGet($k,$v=NULL) { return DB_DataObject::staticGet('CronLogEntry',$k,$v); }
-
 	function keys() {
 		return array('id');
 	}

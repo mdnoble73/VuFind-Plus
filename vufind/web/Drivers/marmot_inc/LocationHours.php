@@ -15,11 +15,6 @@ class LocationHours extends DB_DataObject
 	public $close;                        // varchar(10)
 	public $closed;
 	
-	/* Static get */
-	function staticGet($k,$v=NULL) {
-		return DB_DataObject::staticGet('LocationHours',$k,$v);
-	}
-	
 	function keys() {
 		return array('id');
 	}

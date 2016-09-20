@@ -18,9 +18,6 @@ class UserRating extends DB_DataObject
 	public $record_id;
 
 
-  /* Static get */
-  function staticGet($k,$v=NULL) { return DB_DataObject::staticGet('UserRating',$k,$v); }
-
   function keys() {
       return array('id', 'userid', 'resourceid');
   }

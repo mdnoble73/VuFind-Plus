@@ -18,11 +18,6 @@ class Obituary extends DB_DataObject {
 	public $contents;
 	public $picture;
 
-	/* Static get */
-	function staticGet($k, $v = NULL) {
-		return DB_DataObject::staticGet('Obituary', $k, $v);
-	}
-
 	function keys() {
 		return array('obituaryId');
 	}
@@ -54,7 +49,9 @@ class Obituary extends DB_DataObject {
 		//Load the person this is for, and update solr
 		if ($this->personId) {
 			require_once ROOT_DIR . '/sys/Genealogy/Person.php';
-			$person = Person::staticGet('personId', $this->personId);
+			$person = new Person();
+			$person->personId = $this->personId;
+			$person->find(true);
 			$person->saveToSolr();
 		}
 		return $ret;
@@ -65,7 +62,9 @@ class Obituary extends DB_DataObject {
 		//Load the person this is for, and update solr
 		if ($this->personId) {
 			require_once ROOT_DIR . '/sys/Genealogy/Person.php';
-			$person = Person::staticGet('personId', $this->personId);
+			$person = new Person();
+			$person->personId = $this->personId;
+			$person->find(true);
 			$person->saveToSolr();
 		}
 		return $ret;
@@ -77,7 +76,9 @@ class Obituary extends DB_DataObject {
 		//Load the person this is for, and update solr
 		if ($personId) {
 			require_once ROOT_DIR . '/sys/Genealogy/Person.php';
-			$person = Person::staticGet('personId', $personId);
+			$person = new Person();
+			$person->personId = $this->personId;
+			$person->find(true);
 			$person->saveToSolr();
 		}
 		return $ret;

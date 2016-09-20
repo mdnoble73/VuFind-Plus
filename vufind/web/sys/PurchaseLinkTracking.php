@@ -14,10 +14,6 @@ class PurchaseLinkTracking extends DB_DataObject
 	public $store;
 	public $trackingDate;
 	
-	private $lists; //varchar(500)
-	/* Static get */
-	function staticGet($k,$v=NULL) { return DB_DataObject::staticGet('ListWidget',$k,$v); }
-
 	function keys() {
 		return array('purchaseLinkId');
 	}

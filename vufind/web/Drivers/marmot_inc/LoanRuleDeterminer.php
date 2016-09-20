@@ -17,9 +17,6 @@ class LoanRuleDeterminer extends DB_DataObject
 	public $loanRuleId;
 	public $active;
 
-	/* Static get */
-	function staticGet($k,$v=NULL) { return DB_DataObject::staticGet('LoanRuleDeterminer',$k,$v); }
-
 	function keys() {
 		return array('id');
 	}
