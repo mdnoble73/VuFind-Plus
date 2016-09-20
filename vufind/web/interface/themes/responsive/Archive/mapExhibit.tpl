@@ -143,7 +143,7 @@
 	{/if}
 </div>
 	{if $mapsBrowserKey}
-		<script src="https://maps.googleapis.com/maps/api/js?key={$mapsJsKey}&callback=initMap" async defer></script>
+		<script src="https://maps.googleapis.com/maps/api/js?key={$mapsBrowserKey}&callback=initMap" async defer></script>
 	{/if}
 {/strip}
 <script type="text/javascript">

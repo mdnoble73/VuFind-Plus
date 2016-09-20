@@ -106,11 +106,17 @@ VuFind.Archive = (function(){
 			});
 		},
 
-		handleMapClick: function(markerIndex, exhibitPid, placePid, label){
+		handleMapClick: function(markerIndex, exhibitPid, placePid, label, redirect){
 			$("#related-objects-for-exhibit").html('<h2>Loading...</h2>');
 			this.archive_info_window.setContent(label);
 			if (markerIndex >= 0){
 				this.archive_info_window.open(this.archive_map, this.markers[markerIndex]);
+			}
+
+			if (redirect != "undefined" && redirect === true){
+				var newUrl = VuFind.buildUrl(document.location.origin + document.location.pathname, 'placePid', placePid);
+				var newUrl = VuFind.buildUrl(newUrl, 'style', 'map');
+				document.location.href = newUrl;
 			}
 			$.getJSON(Globals.path + "/Archive/AJAX?method=getRelatedObjectsForMappedCollection&collectionId=" + exhibitPid + "&placeId=" + placePid, function(data){
 				if (data.success){

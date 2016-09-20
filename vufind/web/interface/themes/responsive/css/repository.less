@@ -284,3 +284,43 @@
 .transcript{
   margin-bottom: 5px;
 }
+
+.archiveComponentContainer{
+  .archiveComponent {
+    border: 1px solid lightgrey;
+    margin: 10px;
+
+    .archiveComponentHeader {
+      width: 100%;
+      background-color: @menu-bar-background-color;
+      color: @menu-bar-color;
+      font-size: @browse-category-font-size;
+      text-align: center;
+    }
+
+    .archiveComponentBody{
+      position: relative;
+      width:    100%;
+
+      .archiveComponentBox{
+        padding: 10px;
+        position: absolute;
+        top:      0;
+        left:     0;
+        bottom:   0;
+        right:    0;
+
+        #exhibit-map{
+          width: 100%;
+          height: 100%;
+        }
+      }
+    }
+    .archiveComponentBody:before{
+      content:     "";
+      display:     block;
+      padding-top: 50%; /* ratio of 2:1*/
+    }
+
+  }
+}
