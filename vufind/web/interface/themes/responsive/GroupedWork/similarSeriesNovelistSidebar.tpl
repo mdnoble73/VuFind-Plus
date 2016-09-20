@@ -1,6 +1,6 @@
 {strip}
 	{* TODO: put this in a help pop-up
-	<div class="alert alert-info">Novelist provides detailed suggestions for series you might like if you enjoyed this book.  Suggestions are based on recommendations from librarians and other contributors.</div>
+	<div class="alert alert-info">NoveList provides detailed suggestions for series you might like if you enjoyed this book.  Suggestions are based on recommendations from librarians and other contributors.</div>
 	*}
 	<div id="similarSeriesNoveList" class="jcarousel ajax-carousel col-tn-12">
 		<ul>
