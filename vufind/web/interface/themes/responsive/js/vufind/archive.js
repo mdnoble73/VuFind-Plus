@@ -131,6 +131,10 @@ VuFind.Archive = (function(){
 				page: "MapExhibit"
 			};
 			var newUrl = VuFind.buildUrl(document.location.origin + document.location.pathname, 'placePid', placePid);
+			var currentParameters = VuFind.getQuerystringParameters();
+			if (currentParameters["style"] != undefined){
+				var newUrl = VuFind.buildUrl(newUrl, 'style', currentParameters["style"]);
+			}
 			//Push the new url, but only if we aren't going back where we just were.
 			if (document.location.href != newUrl){
 				history.pushState(stateObj, label, newUrl);
