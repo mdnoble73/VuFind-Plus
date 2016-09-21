@@ -654,6 +654,9 @@ IslandoraKeyword:
     - mods_titleInfo_title_t:
       - [onephrase, 1200]
       - [and, 700]
+    - mods_titleInfo_subTitle_t:
+      - [onephrase, 1200]
+      - [and, 700]
     - fgs_label_t:
       - [onephrase, 1200]
       - [and, 700]
@@ -700,6 +703,9 @@ IslandoraKeyword:
 IslandoraKeywordProper:
   QueryFields:
     - mods_titleInfo_title_t:
+      - [onephrase, 1200]
+      - [exact, 700]
+    - mods_titleInfo_subTitle_t:
       - [onephrase, 1200]
       - [exact, 700]
     - fgs_label_t:
