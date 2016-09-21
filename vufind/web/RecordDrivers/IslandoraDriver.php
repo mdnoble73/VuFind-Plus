@@ -843,11 +843,11 @@ abstract class IslandoraDriver extends RecordInterface {
 							$entityType = 'organization';
 						}
 					}
+					$archiveObject = $fedoraUtils->getObject($entityPid);
+					$entityInfo['image'] = $fedoraUtils->getObjectImageUrl($archiveObject, 'medium', $entityType);
 					if ($entityType == 'person'){
 
 						$isProductionTeam = strlen($entityRole) > 0 && !in_array(strtolower($entityRole), IslandoraDriver::$nonProductionTeamRoles);
-						$personObject = $fedoraUtils->getObject($entityPid);
-						$entityInfo['image'] = $fedoraUtils->getObjectImageUrl($personObject, 'medium', $entityType);
 						$entityInfo['link']= '/Archive/' . $entityPid . '/Person';
 						if ($isProductionTeam){
 							$this->productionTeam[$entityPid] = $entityInfo;
