@@ -56,6 +56,12 @@
 26 * * * * cd /tmp; /bin/rm -rf CURLCOOKIE*
 27 */2 * * * cd /tmp; /bin/rm -rf epb*
 
+############################################
+# New York Times Bestseller Lists Updating #
+############################################
+23 7 * * 0 /usr/local/vufind-plus/vufind/cron/updateNYTLists.sh arlington.production
+# update on Sundays at 7:23
+
 ################
 # mySQL Backup #
 ################

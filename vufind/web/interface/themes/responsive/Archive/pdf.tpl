@@ -9,7 +9,9 @@
 			<div id="main-content" class="col-xs-12 text-center">
 
 				<div id="view-pdf" width="100%" height="600px">
-					<object type="pdf" class="book-pdf" data="{$pdf}"></object>
+					<object type="pdf" class="book-pdf" data="{$pdf}">
+						<embed type="application/pdf" src="{$pdf}" width="100%" height="600px">
+					</object>
 				</div>
 			</div>
 		</div>

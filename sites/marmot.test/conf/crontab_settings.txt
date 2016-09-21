@@ -83,11 +83,17 @@
 ###############################################
 11 */3 * * * cd /usr/local/vufind-plus/vufind/overdrive_api_extract; java -server -jar overdrive_extract.jar flatirons.test
 
-#############################################
-# New York Times Best seller Lists Updating #
-#############################################
-23 7 * * 0 cd /usr/local/vufind-plus/sites/marmot.test; ./updateNYTLists.sh
+############################################
+# New York Times Bestseller Lists Updating #
+############################################
+11 7 * * 0 /usr/local/vufind-plus/vufind/cron/updateNYTLists.sh marmot.test
+# update on Sundays at 7:11
+23 7 * * 0 /usr/local/vufind-plus/vufind/cron/updateNYTLists.sh flatirons.test
 # update on Sundays at 7:23
+31 7 * * 0 /usr/local/vufind-plus/vufind/cron/updateNYTLists.sh arlington.test
+# update on Sundays at 7:31
+31 7 * * 0 /usr/local/vufind-plus/vufind/cron/updateNYTLists.sh aspencat.test
+# update on Sundays at 7:37
 
 ##########
 # Cron   #

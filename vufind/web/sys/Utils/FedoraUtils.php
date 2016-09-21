@@ -226,7 +226,7 @@ class FedoraUtils {
 		/** @var Memcache $memCache */
 		global $memCache;
 		$isValid = $memCache->get('islandora_object_valid_in_pika_' . $pid);
-		if ($isValid !== FALSE){
+		if ($isValid !== FALSE && !isset($_REQUEST['reload'])){
 			return $isValid == 1;
 		}else{
 			$archiveObject = $this->getObject($pid);

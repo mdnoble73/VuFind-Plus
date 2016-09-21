@@ -649,9 +649,43 @@ abstract class IslandoraDriver extends RecordInterface {
 		return $this->modsData;
 	}
 
+	protected $subCollections = null;
+	public function getSubCollections(){
+		if ($this->subCollections == null){
+			$this->subCollections = array();
+			// Include Search Engine Class
+			require_once ROOT_DIR . '/sys/Solr.php';
+
+			// Initialise from the current search globals
+			/** @var SearchObject_Islandora $searchObject */
+			$searchObject = SearchObjectFactory::initSearchObject('Islandora');
+			$searchObject->init();
+			$searchObject->setLimit(100);
+			$searchObject->setSearchTerms(array(
+				'lookfor' => 'RELS_EXT_isMemberOfCollection_uri_mt:"info:fedora/' . $this->getUniqueID() . '" AND RELS_EXT_hasModel_uri_mt:"info:fedora/islandora:collectionCModel"',
+				'index' => 'IslandoraKeyword'
+			));
+
+			$searchObject->clearHiddenFilters();
+			$searchObject->addHiddenFilter('!RELS_EXT_isViewableByRole_literal_ms', "administrator");
+			$searchObject->clearFilters();
+			//$searchObject->setDebugging(true, true);
+			//$searchObject->setPrimarySearch(true);
+			$searchObject->setApplyStandardFilters(false);
+			$response = $searchObject->processSearch(true, false, true);
+			if ($response && $response['response']['numFound'] > 0) {
+				foreach ($response['response']['docs'] as $doc) {
+					$subCollectionPid = $doc['PID'];
+					$this->subCollections[] = $subCollectionPid;
+				}
+			}
+		}
+		return $this->subCollections;
+	}
+
 	protected $relatedCollections = null;
 	public function getRelatedCollections() {
-		if ($this->relatedCollections === null){
+		if ($this->relatedCollections == null){
 			global $timer;
 			$this->relatedCollections = array();
 			if ($this->isEntity()){
@@ -809,11 +843,11 @@ abstract class IslandoraDriver extends RecordInterface {
 							$entityType = 'organization';
 						}
 					}
+					$archiveObject = $fedoraUtils->getObject($entityPid);
+					$entityInfo['image'] = $fedoraUtils->getObjectImageUrl($archiveObject, 'medium', $entityType);
 					if ($entityType == 'person'){
 
 						$isProductionTeam = strlen($entityRole) > 0 && !in_array(strtolower($entityRole), IslandoraDriver::$nonProductionTeamRoles);
-						$personObject = $fedoraUtils->getObject($entityPid);
-						$entityInfo['image'] = $fedoraUtils->getObjectImageUrl($personObject, 'medium', $entityType);
 						$entityInfo['link']= '/Archive/' . $entityPid . '/Person';
 						if ($isProductionTeam){
 							$this->productionTeam[$entityPid] = $entityInfo;
@@ -1062,17 +1096,21 @@ abstract class IslandoraDriver extends RecordInterface {
 				if (strlen($objectPid) > 0){
 					$archiveObject = $fedoraUtils->getObject($objectPid);
 					if ($archiveObject != null){
+						/** @var IslandoraDriver $entityDriver */
 						$entityDriver = RecordDriverFactory::initRecordDriver($archiveObject);
-						$objectInfo = array(
-								'pid' => $entityDriver->getUniqueID(),
-								'label' => $entityDriver->getTitle(),
-								'description' => $entityDriver->getTitle(),
-								'image' => $entityDriver->getBookcoverUrl('medium'),
-								'link' => $entityDriver->getRecordUrl(),
-								'driver' => $entityDriver
-						);
-						$this->directlyRelatedObjects['objects'][$objectInfo['pid']] = $objectInfo;
-						$this->directlyRelatedObjects['numFound']++;
+						$includeInPika = $entityDriver->getModsValue('includeInPika', 'marmot');
+						if ($includeInPika != null && strcasecmp($includeInPika, 'no') != 0) {
+							$objectInfo = array(
+									'pid' => $entityDriver->getUniqueID(),
+									'label' => $entityDriver->getTitle(),
+									'description' => $entityDriver->getTitle(),
+									'image' => $entityDriver->getBookcoverUrl('medium'),
+									'link' => $entityDriver->getRecordUrl(),
+									'driver' => $entityDriver
+							);
+							$this->directlyRelatedObjects['objects'][$objectInfo['pid']] = $objectInfo;
+							$this->directlyRelatedObjects['numFound']++;
+						}
 					}
 				}
 

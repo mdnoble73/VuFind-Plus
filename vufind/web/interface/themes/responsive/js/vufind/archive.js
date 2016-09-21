@@ -106,11 +106,17 @@ VuFind.Archive = (function(){
 			});
 		},
 
-		handleMapClick: function(markerIndex, exhibitPid, placePid, label){
+		handleMapClick: function(markerIndex, exhibitPid, placePid, label, redirect){
 			$("#related-objects-for-exhibit").html('<h2>Loading...</h2>');
 			this.archive_info_window.setContent(label);
 			if (markerIndex >= 0){
 				this.archive_info_window.open(this.archive_map, this.markers[markerIndex]);
+			}
+
+			if (redirect != "undefined" && redirect === true){
+				var newUrl = VuFind.buildUrl(document.location.origin + document.location.pathname, 'placePid', placePid);
+				var newUrl = VuFind.buildUrl(newUrl, 'style', 'map');
+				document.location.href = newUrl;
 			}
 			$.getJSON(Globals.path + "/Archive/AJAX?method=getRelatedObjectsForMappedCollection&collectionId=" + exhibitPid + "&placeId=" + placePid, function(data){
 				if (data.success){
@@ -125,6 +131,10 @@ VuFind.Archive = (function(){
 				page: "MapExhibit"
 			};
 			var newUrl = VuFind.buildUrl(document.location.origin + document.location.pathname, 'placePid', placePid);
+			var currentParameters = VuFind.getQuerystringParameters();
+			if (currentParameters["style"] != undefined){
+				var newUrl = VuFind.buildUrl(newUrl, 'style', currentParameters["style"]);
+			}
 			//Push the new url, but only if we aren't going back where we just were.
 			if (document.location.href != newUrl){
 				history.pushState(stateObj, label, newUrl);
@@ -233,7 +243,7 @@ VuFind.Archive = (function(){
 				// $('#view-transcription').load(reverseProxy);
 			}else if (this.activeBookViewer == 'image'){
 				var tile = new OpenSeadragon.DjatokaTileSource(
-						"/AJAX/DjatokaResolver",
+						Globals.url + "/AJAX/DjatokaResolver",
 						this.pageDetails[pid]['jp2'],
 						VuFind.Archive.openSeadragonViewerSettings()
 				);

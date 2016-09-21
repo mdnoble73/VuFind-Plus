@@ -47,6 +47,12 @@
 7 20 * * * cd /usr/local/vufind-plus/vufind/cron/; java -jar cron.jar flatirons.production UpdateReadingHistory
 20 0 * * * cd /usr/local/vufind-plus/vufind/cron/; java -jar cron.jar flatirons.production DatabaseCleanup
 
+#############################################
+# New York Times Best seller Lists Updating #
+#############################################
+07 7 * * 0 /usr/local/vufind-plus/vufind/cron/updateNYTLists.sh flatirons.production
+# update on Sundays at 7:07
+
 ###############################################
 # Copy Original Covers from Marmot FTP Server #
 ###############################################

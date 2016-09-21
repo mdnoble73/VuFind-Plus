@@ -54,7 +54,7 @@
 	</div>
 
 	{if $topLinks}
-		<div class="col-xs-12" id="header-links">
+		<div class="col-tn-12" id="header-links">
 			{foreach from=$topLinks item=link}
 				<div class="header-link-wrapper">
 					<a href="{$link->url}" class="library-header-link">{$link->linkText}</a>

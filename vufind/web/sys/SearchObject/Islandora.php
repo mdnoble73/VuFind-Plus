@@ -51,6 +51,9 @@ class SearchObject_Islandora extends SearchObject_Base
 	// Result
 	private $indexResult;
 
+	//Whether or not filters should be applied
+	private $applyStandardFilters = true;
+
 	// OTHER VARIABLES
 	// Index
 	/** @var Solr */
@@ -818,7 +821,10 @@ class SearchObject_Islandora extends SearchObject_Base
 		// Define Filter Query
 		$filterQuery = $this->hiddenFilters;
 
-		$filterQuery = array_merge($filterQuery, $this->getStandardFilters());
+		if ($this->applyStandardFilters){
+			$filterQuery = array_merge($filterQuery, $this->getStandardFilters());
+		}
+
 		//Remove any empty filters if we get them
 		//(typically happens when a subdomain has a function disabled that is enabled in the main scope)
 		foreach ($this->filterList as $field => $filter) {
@@ -1195,7 +1201,7 @@ class SearchObject_Islandora extends SearchObject_Base
 		$list = array();
 
 		// If we have no facets to process, give up now
-		if (!is_array($this->indexResult['facet_counts']['facet_fields']) && !is_array($this->indexResult['facet_counts']['facet_dates'])) {
+		if (!isset($this->indexResult['facet_counts']) || (!is_array($this->indexResult['facet_counts']['facet_fields']) && !is_array($this->indexResult['facet_counts']['facet_dates']))) {
 			return $list;
 		}
 
@@ -1525,7 +1531,8 @@ class SearchObject_Islandora extends SearchObject_Base
 			  OR RELS_EXT_isMemberOfCollection_uri_ms:info\\:fedora/marmot\\:people
 			  OR RELS_EXT_isMemberOfCollection_uri_ms:info\\:fedora/marmot\\:places
 			  OR RELS_EXT_isMemberOfCollection_uri_ms:info\\:fedora/marmot\\:families";
-		}else if ($library->collectionsToHide){
+		}
+		if ($library->collectionsToHide){
 			$collectionsToHide = explode("\r\n", $library->collectionsToHide);
 			$filter = '';
 			foreach ($collectionsToHide as $collection){
@@ -1554,5 +1561,9 @@ class SearchObject_Islandora extends SearchObject_Base
 
 	public function addFieldsToReturn($fields){
 		$this->fields .= ',' . implode(',', $fields);
+	}
+
+	public function setApplyStandardFilters($flag){
+		$this->applyStandardFilters = $flag;
 	}
 }

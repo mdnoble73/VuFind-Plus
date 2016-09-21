@@ -154,18 +154,22 @@ public class UserListProcessor {
 			ResultSet allTitlesRS = getTitlesForListStmt.executeQuery();
 			while (allTitlesRS.next()) {
 				String groupedWorkId = allTitlesRS.getString("groupedWorkPermanentId");
-				if (!groupedWorkId.contains(":")) {
+				if (!groupedWorkId.contains(":") && groupedWorkId.length() > 0) {
 					// Skip archive object Ids
 					SolrQuery query = new SolrQuery();
 					query.setQuery("id:" + groupedWorkId + " AND recordtype:grouped_work");
 					query.setFields("title", "author");
 
-					QueryResponse response = solrServer.query(query);
-					SolrDocumentList results = response.getResults();
-					//Should only ever get one response
-					if (results.size() >= 1) {
-						SolrDocument curWork = results.get(0);
-						userListSolr.addListTitle(groupedWorkId, curWork.getFieldValue("title"), curWork.getFieldValue("author"));
+					try {
+						QueryResponse response = solrServer.query(query);
+						SolrDocumentList results = response.getResults();
+						//Should only ever get one response
+						if (results.size() >= 1) {
+							SolrDocument curWork = results.get(0);
+							userListSolr.addListTitle(groupedWorkId, curWork.getFieldValue("title"), curWork.getFieldValue("author"));
+						}
+					}catch(Exception e){
+						logger.error("Error loading information about title " + groupedWorkId);
 					}
 				}
 				//TODO: Handle Archive Objects from a User List

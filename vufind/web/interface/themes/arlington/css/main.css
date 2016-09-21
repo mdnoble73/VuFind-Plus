@@ -10491,6 +10491,39 @@ a.browse-thumbnail-sorted.active {
 .transcript {
   margin-bottom: 5px;
 }
+.archiveComponentContainer .archiveComponent {
+  border: 1px solid lightgrey;
+  margin: 10px;
+}
+.archiveComponentContainer .archiveComponent .archiveComponentHeader {
+  width: 100%;
+  background-color: #015cb9;
+  color: #FFF;
+  font-size: 20px;
+  text-align: center;
+}
+.archiveComponentContainer .archiveComponent .archiveComponentBody {
+  position: relative;
+  width: 100%;
+}
+.archiveComponentContainer .archiveComponent .archiveComponentBody .archiveComponentBox {
+  padding: 10px;
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+}
+.archiveComponentContainer .archiveComponent .archiveComponentBody .archiveComponentBox #exhibit-map {
+  width: 100%;
+  height: 100%;
+}
+.archiveComponentContainer .archiveComponent .archiveComponentBody:before {
+  content: "";
+  display: block;
+  padding-top: 50%;
+  /* ratio of 2:1*/
+}
 .editor .panel-group .panel-body > .form-group > .controls {
   overflow-x: auto;
 }

@@ -240,6 +240,48 @@ class ExploreMore {
 							'openInNewWindow' => true,
 					);
 				}
+			}else{
+				//Display donor and contributor information
+				$donor = null;
+				$owner = null;
+				foreach ($archiveDriver->getRelatedPeople() as $person){
+					if ($person['role'] == 'donor'){
+						$donor = $person;
+					}elseif ($person['role'] == 'owner'){
+						$owner = $person;
+					}
+				}
+				foreach ($archiveDriver->getRelatedOrganizations() as $organization){
+					if ($organization['role'] == 'donor'){
+						$donor = $organization;
+					}elseif ($organization['role'] == 'owner'){
+						$owner = $organization;
+					}
+				}
+
+				if ($donor != null || $owner != null){
+					$brandingResults = array();
+					if ($donor){
+						$brandingResults[] = array(
+								'label' => 'Donated by ' . $donor['label'],
+								'image' => $donor['image'],
+								'link' => $donor['link'],
+						);
+					}
+					if ($owner){
+						$brandingResults[] = array(
+								'label' => 'Owned by ' . $owner['label'],
+								'image' => $owner['image'],
+								'link' => $owner['link'],
+						);
+					}
+					$exploreMoreSectionsToShow['branding'] = array(
+							'title' => 'Contributors',
+							'format' => 'list',
+							'values' => $brandingResults,
+							'showTitles' => true,
+					);
+				}
 			}
 		}
 

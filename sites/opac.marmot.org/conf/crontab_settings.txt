@@ -55,10 +55,12 @@
 # Restart apache
 0 0-6 * * * /usr/sbin/apachectl graceful > /dev/null 2>&1
 
-#############################################
-# New York Times Best seller Lists Updating #
-#############################################
-23 7 * * 0 /usr/local/vufind-plus/sites/opac.marmot.org; ./updateNYTLists.sh
+############################################
+# New York Times Bestseller Lists Updating #
+############################################
+13 7 * * 0 /usr/local/vufind-plus/vufind/cron/updateNYTLists.sh opac.marmot.org
+# update on Sundays at 7:23
+23 7 * * 0 /usr/local/vufind-plus/vufind/cron/updateNYTLists.sh aspencat.production
 # update on Sundays at 7:23
 
 ##########
