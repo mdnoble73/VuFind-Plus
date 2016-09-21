@@ -785,6 +785,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 			//Check to see if the record is holdable for this scope
 			HoldabilityInformation isHoldable = isItemHoldable(itemInfo, curScope);
 			BookabilityInformation isBookable = isItemBookable(itemInfo, curScope);
+
 			if (curScope.isItemPartOfScope(profileType, itemLocation, itemSublocation, isHoldable.isHoldable(), false, false)){
 				ScopingInfo scopingInfo = itemInfo.addScope(curScope);
 				scopingInfo.setAvailable(available);
