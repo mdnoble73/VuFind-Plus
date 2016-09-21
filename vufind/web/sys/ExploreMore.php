@@ -17,6 +17,12 @@ class ExploreMore {
 	 */
 	function loadExploreMoreSidebar($activeSection, $recordDriver){
 		global $interface;
+		global $configArray;
+
+		if (isset($configArray['Islandora']) && isset($configArray['Islandora']['solrUrl'])) {
+			require_once ROOT_DIR . '/sys/Utils/FedoraUtils.php';
+			$fedoraUtils = FedoraUtils::getInstance();
+		}
 		$exploreMoreSectionsToShow = array();
 
 		$relatedPikaContent = array();
@@ -258,8 +264,19 @@ class ExploreMore {
 						$owner = $organization;
 					}
 				}
+				//Get the contributing institution
+				list($namespace) = explode(':', $recordDriver->getUniqueID());
+				$contributingLibrary = new Library();
+				$contributingLibrary->archiveNamespace = $namespace;
+				if (!$contributingLibrary->find(true)){
+					$contributingLibrary = null;
+				}else{
+					if ($contributingLibrary->archivePid == ''){
+						$contributingLibrary = null;
+					}
+				}
 
-				if ($donor != null || $owner != null){
+				if ($donor != null || $owner != null || $contributingLibrary != null){
 					$brandingResults = array();
 					if ($donor){
 						$brandingResults[] = array(
@@ -275,8 +292,17 @@ class ExploreMore {
 								'link' => $owner['link'],
 						);
 					}
-					$exploreMoreSectionsToShow['branding'] = array(
-							'title' => 'Contributors',
+					if ($contributingLibrary){
+						$contributingLibraryPid = $contributingLibrary->archivePid;
+						$contributingLibraryObject = $fedoraUtils->getObject($contributingLibraryPid);
+						$brandingResults[] = array(
+								'label' => 'Contributed by ' . $contributingLibrary->displayName,
+								'image' => $fedoraUtils->getObjectImageUrl($contributingLibraryObject, 'medium'),
+								'link' => "/Archive/$contributingLibraryPid/Organization",
+						);
+					}
+					$exploreMoreSectionsToShow['acknowledgements'] = array(
+							'title' => 'Acknowledgements',
 							'format' => 'list',
 							'values' => $brandingResults,
 							'showTitles' => true,

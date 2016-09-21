@@ -1363,5 +1363,14 @@ function getLibraryLocationUpdates(){
 							'ALTER TABLE library ADD COLUMN archiveRequestEmail VARCHAR(100)',
 					)
 			),
+
+			'library_archive_pid' => array(
+					'title' => 'Library Archive PID',
+					'description' => 'Setup a link from Pika to the archive',
+					'sql' => array(
+							'ALTER TABLE library ADD COLUMN archivePid VARCHAR(50)',
+					)
+			),
+
 	);
 }
