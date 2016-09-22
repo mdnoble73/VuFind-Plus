@@ -123,4 +123,7 @@ public class OverDriveExtractLogEntry {
 		numProducts = size;
 	}
 
+	public boolean hasErrors() {
+		return numErrors > 0;
+	}
 }
