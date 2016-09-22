@@ -102,6 +102,9 @@ public class ItemInfo {
 	}
 
 	public String getDueDate() {
+		if (dueDate == null){
+			dueDate = "";
+		}
 		return dueDate;
 	}
 
