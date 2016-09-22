@@ -22,7 +22,7 @@
 			</div>
 		{/if}
 
-		<div id="image-download-options">
+		<div id="download-options">
 			{if $hasLargeImage && ($anonymousLcDownload || ($user && $verifiedLcDownload))}
 				<a class="btn btn-default" href="/Archive/{$pid}/DownloadLC">Download Large Image</a>
 			{elseif ($hasLargeImage && !$user && $verifiedLcDownload)}
