@@ -288,13 +288,14 @@
 .archiveComponentContainer{
   .archiveComponent {
     border: 1px solid lightgrey;
+    background-color: @menu-bar-background-color;
+    background: linear-gradient(90deg, white, white 120px, @menu-bar-background-color 121px, @menu-bar-background-color);
+    color: @menu-bar-color;
+    font-size: @browse-category-font-size;
     margin: 10px;
 
     .archiveComponentHeader {
       width: 100%;
-      background-color: @menu-bar-background-color;
-      color: @menu-bar-color;
-      font-size: @browse-category-font-size;
       text-align: center;
     }
 
@@ -310,6 +311,24 @@
         bottom:   0;
         right:    0;
 
+        .archiveComponentImage{
+          position: absolute;
+
+        }
+
+        .archiveComponentControls{
+          position: absolute;
+          left: 130px;
+          overflow: hidden;
+        }
+
+        #searchComponentForm{
+          background-color: white;
+          border: 1px solid darken(@menu-bar-background-color, 10%);
+          padding: 3px;
+          margin-left: 5px;
+        }
+
         #exhibit-map{
           width: 100%;
           height: 100%;
@@ -319,7 +338,7 @@
     .archiveComponentBody:before{
       content:     "";
       display:     block;
-      padding-top: 50%; /* ratio of 2:1*/
+      padding-top: 32%; /* ratio of 2:1*/
     }
 
   }
