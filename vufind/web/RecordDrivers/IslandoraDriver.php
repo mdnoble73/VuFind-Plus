@@ -1277,6 +1277,7 @@ abstract class IslandoraDriver extends RecordInterface {
 			case 'image/png': return '.png';
 			case 'image/x-jps': return '.jps';
 			case 'image/x-freehand': return '.fh';
+			case 'application/pdf': return '.pdf';
 			default: return false;
 		}
 	}
