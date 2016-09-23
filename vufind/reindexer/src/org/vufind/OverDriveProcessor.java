@@ -71,7 +71,7 @@ public class OverDriveProcessor {
 					ResultSet numCopiesRS = getNumCopiesStmt.executeQuery();
 					numCopiesRS.next();
 					if (numCopiesRS.getInt("totalOwned") == 0) {
-						logger.info("Not processing overdrive product with no copies owned" + title + " - " + identifier);
+						logger.debug("Not processing overdrive product with no copies owned" + title + " - " + identifier);
 						indexer.overDriveRecordsSkipped.add(identifier);
 						return;
 					} else {

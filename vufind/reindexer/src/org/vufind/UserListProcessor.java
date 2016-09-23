@@ -114,6 +114,7 @@ public class UserListProcessor {
 		if (deleted == 1 || isPublic == 0){
 			updateServer.deleteByQuery("id:list");
 		}else{
+			logger.info("Processing list " + listId + " " + allPublicListsRS.getString("title"));
 			userListSolr.setId(listId);
 			userListSolr.setTitle(allPublicListsRS.getString("title"));
 			userListSolr.setDescription(allPublicListsRS.getString("description"));
@@ -154,7 +155,7 @@ public class UserListProcessor {
 			ResultSet allTitlesRS = getTitlesForListStmt.executeQuery();
 			while (allTitlesRS.next()) {
 				String groupedWorkId = allTitlesRS.getString("groupedWorkPermanentId");
-				if (!groupedWorkId.contains(":") && groupedWorkId.length() > 0) {
+				if (!allTitlesRS.wasNull() && groupedWorkId.length() > 0 && !groupedWorkId.contains(":")) {
 					// Skip archive object Ids
 					SolrQuery query = new SolrQuery();
 					query.setQuery("id:" + groupedWorkId + " AND recordtype:grouped_work");
@@ -173,10 +174,9 @@ public class UserListProcessor {
 					}
 				}
 				//TODO: Handle Archive Objects from a User List
-				// Index in the catalog solr?
-
-				updateServer.add(userListSolr.getSolrDocument(availableAtLocationBoostValue, ownedByLocationBoostValue));
 			}
+			// Index in the solr catalog
+			updateServer.add(userListSolr.getSolrDocument(availableAtLocationBoostValue, ownedByLocationBoostValue));
 		}
 	}
 }
