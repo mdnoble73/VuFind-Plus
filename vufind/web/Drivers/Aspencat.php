@@ -417,7 +417,9 @@ class Aspencat implements DriverInterface{
 				if ($userFromDbResultSet = $lookupUserResult) {
 					$userFromDb = $userFromDbResultSet->fetch_assoc();
 					$userFromDbResultSet->close();
-					if ($userFromDb['password'] == $encodedPassword || $validatedViaSSO) {
+					if ($userFromDb == null){
+						return new PEAR_Error('authentication_error_invalid');
+					}elseif (($userFromDb['password'] == $encodedPassword) || $validatedViaSSO) {
 						$userExistsInDB = false;
 						$user = new User();
 						//Get the unique user id from Millennium
@@ -579,12 +581,16 @@ class Aspencat implements DriverInterface{
 						$timer->logTime("patron logged in successfully");
 
 						return $user;
+					}else{
+						return new PEAR_Error('authentication_error_denied');
 					}
 				}else{
 					$logger->log("MySQL did not return a result for getUserInfoStmt", PEAR_LOG_ERR);
+					return new PEAR_Error('authentication_error_technical');
 				}
 			}else{
 				$logger->log("Unable to execute getUserInfoStmt " .  mysqli_error($this->dbConnection), PEAR_LOG_ERR);
+				return new PEAR_Error('authentication_error_technical');
 			}
 		}
 		return null;

@@ -207,7 +207,7 @@ class CatalogConnection
 			$user = $this->driver->patronLogin($username, $password, $validatedViaSSO);
 		}
 
-		if ($user){
+		if ($user && !PEAR_Singleton::isError($user)){
 			if ($user->displayName == '') {
 				if ($user->firstname == ''){
 					$user->displayName = $user->lastname;

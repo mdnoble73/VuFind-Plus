@@ -47,7 +47,9 @@ class ILSAuthentication implements Authentication {
 				if ($patron && !PEAR_Singleton::isError($patron)) {
 					/** @var User $user */
 					$user = $patron;
-				} else {
+				} elseif (PEAR_Singleton::isError($patron)){
+					$user = $patron;
+				} else{
 					$user = new PEAR_Error('authentication_error_invalid');
 				}
 			} else {
@@ -73,7 +75,9 @@ class ILSAuthentication implements Authentication {
 				$patron = $catalog->patronLogin($this->username, $this->password, $parentAccount, $validatedViaSSO);
 				if ($patron && !PEAR_Singleton::isError($patron)) {
 					$validUser = $patron;
-				} else {
+				} elseif (PEAR_Singleton::isError($patron)){
+					$validUser = $patron;
+				} else{
 					$validUser = new PEAR_Error('authentication_error_invalid');
 				}
 			} else {

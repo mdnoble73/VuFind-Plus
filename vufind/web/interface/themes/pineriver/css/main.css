@@ -10494,13 +10494,15 @@ a.browse-thumbnail-sorted.active {
 }
 .archiveComponentContainer .archiveComponent {
   border: 1px solid lightgrey;
+  background-color: #7AB92C;
+  background: -webkit-linear-gradient(left, white, white 120px, #7AB92C 121px, #7AB92C);
+  background: linear-gradient(90deg, white, white 120px, #7AB92C 121px, #7AB92C);
+  color: #FFF;
+  font-size: 20px;
   margin: 10px;
 }
 .archiveComponentContainer .archiveComponent .archiveComponentHeader {
   width: 100%;
-  background-color: #7AB92C;
-  color: #FFF;
-  font-size: 20px;
   text-align: center;
 }
 .archiveComponentContainer .archiveComponent .archiveComponentBody {
@@ -10515,6 +10517,20 @@ a.browse-thumbnail-sorted.active {
   bottom: 0;
   right: 0;
 }
+.archiveComponentContainer .archiveComponent .archiveComponentBody .archiveComponentBox .archiveComponentImage {
+  position: absolute;
+}
+.archiveComponentContainer .archiveComponent .archiveComponentBody .archiveComponentBox .archiveComponentControls {
+  position: absolute;
+  left: 130px;
+  overflow: hidden;
+}
+.archiveComponentContainer .archiveComponent .archiveComponentBody .archiveComponentBox #searchComponentForm {
+  background-color: white;
+  border: 1px solid #5f9022;
+  padding: 3px;
+  margin-left: 5px;
+}
 .archiveComponentContainer .archiveComponent .archiveComponentBody .archiveComponentBox #exhibit-map {
   width: 100%;
   height: 100%;
@@ -10522,7 +10538,7 @@ a.browse-thumbnail-sorted.active {
 .archiveComponentContainer .archiveComponent .archiveComponentBody:before {
   content: "";
   display: block;
-  padding-top: 50%;
+  padding-top: 32%;
   /* ratio of 2:1*/
 }
 #pdfContainer {

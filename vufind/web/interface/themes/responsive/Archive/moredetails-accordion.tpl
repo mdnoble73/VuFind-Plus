@@ -489,7 +489,7 @@
 				<a href="#productionTeamPanelBody" data-toggle="collapse">
 					<div class="panel-heading">
 						<div class="panel-title">
-							Production Team
+							Acknowledgements
 						</div>
 					</div>
 				</a>
