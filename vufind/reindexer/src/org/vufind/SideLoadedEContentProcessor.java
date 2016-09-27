@@ -182,7 +182,6 @@ public class SideLoadedEContentProcessor extends IlsRecordProcessor{
 						econtentItem.setFormatCategory("Music");
 						econtentRecord.setFormatBoost(5);
 					} else if (format.equalsIgnoreCase("MusicalScore")) {
-					//Proposed settings for musical Score. plb 3-31-2016
 						econtentItem.setFormat("MusicalScore");
 						econtentItem.setFormatCategory("eBook");
 						econtentRecord.setFormatBoost(5);
