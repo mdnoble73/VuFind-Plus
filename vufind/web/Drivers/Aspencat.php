@@ -418,7 +418,9 @@ class Aspencat implements DriverInterface{
 					$userFromDb = $userFromDbResultSet->fetch_assoc();
 					$userFromDbResultSet->close();
 					if ($userFromDb == null){
-						return new PEAR_Error('authentication_error_invalid');
+						if ($i == count($barcodesToTest) -1){
+							return new PEAR_Error('authentication_error_invalid');
+						}
 					}elseif (($userFromDb['password'] == $encodedPassword) || $validatedViaSSO) {
 						$userExistsInDB = false;
 						$user = new User();
@@ -582,15 +584,21 @@ class Aspencat implements DriverInterface{
 
 						return $user;
 					}else{
-						return new PEAR_Error('authentication_error_denied');
+						if ($i == count($barcodesToTest) -1){
+							return new PEAR_Error('authentication_error_denied');
+						}
 					}
 				}else{
 					$logger->log("MySQL did not return a result for getUserInfoStmt", PEAR_LOG_ERR);
-					return new PEAR_Error('authentication_error_technical');
+					if ($i == count($barcodesToTest) -1){
+						return new PEAR_Error('authentication_error_technical');
+					}
 				}
 			}else{
 				$logger->log("Unable to execute getUserInfoStmt " .  mysqli_error($this->dbConnection), PEAR_LOG_ERR);
-				return new PEAR_Error('authentication_error_technical');
+				if ($i == count($barcodesToTest) -1) {
+					return new PEAR_Error('authentication_error_technical');
+				}
 			}
 		}
 		return null;
