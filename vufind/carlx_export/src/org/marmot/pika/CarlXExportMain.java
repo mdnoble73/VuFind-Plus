@@ -612,12 +612,49 @@ public class CarlXExportMain {
 			}
 		}
 
+		try {
+			// Turn auto commit back on
+			vufindConn.commit();
+			vufindConn.setAutoCommit(true);
+		} catch (Exception e) {
+			logger.error("MySQL Error: " + e.toString());
+		}
+
+
+			//Connect to the CarlX database
+		String url        = ini.get("Catalog", "carlx_db");
+		String dbUser     = ini.get("Catalog", "carlx_db_user");
+		String dbPassword = ini.get("Catalog", "carlx_db_password");
+		if (url.startsWith("\"")){
+			url = url.substring(1, url.length() - 1);
+		}
+		Connection carlxConn = null;
+		try{
+			//Open the connection to the database
+			Properties props = new Properties();
+			props.setProperty("user", dbUser);
+			props.setProperty("password", dbPassword);
+			carlxConn = DriverManager.getConnection(url, props);
+//			orderStatusesToExport = ini.get("Reindex", "orderStatusesToExport");
+//			if (orderStatusesToExport == null){
+//				orderStatusesToExport = "o|1";
+//			}
+//			exportActiveOrders(exportPath, carlxConn);
+
+			exportHolds(carlxConn, vufindConn);
+
+			//Close CarlX connection
+			carlxConn.close();
+
+		}catch(Exception e){
+			System.out.println("Error: " + e.toString());
+			e.printStackTrace();
+		}
+
+
+
 		if (vufindConn != null) {
 			try {
-				// Turn auto commit back on
-				vufindConn.commit();
-				vufindConn.setAutoCommit(true);
-
 				// Wrap Up
 				if (!errorUpdatingDatabase) {
 					//Update the last extract time
@@ -1379,6 +1416,124 @@ public class CarlXExportMain {
 			logger.error("Error Creating SOAP Request for Marc Records", e);
 		}
 		return marcRecordFromAPICall;
+	}
+
+	private static void exportHolds(Connection carlxConn, Connection vufindConn) {
+
+		Savepoint startOfHolds = null;
+		try {
+			logger.info("Starting export of holds");
+
+			//Start a transaction so we can rebuild an entire table
+			startOfHolds = vufindConn.setSavepoint();
+			vufindConn.setAutoCommit(false);
+			vufindConn.prepareCall("TRUNCATE TABLE ils_hold_summary").executeQuery();
+
+			PreparedStatement addIlsHoldSummary = vufindConn.prepareStatement("INSERT INTO ils_hold_summary (ilsId, numHolds) VALUES (?, ?)");
+
+			HashMap<String, Long> numHoldsByBib = new HashMap<>();
+//			HashMap<String, Long> numHoldsByVolume = new HashMap<>();
+			//Export bib level holds
+			PreparedStatement bibHoldsStmt = carlxConn.prepareStatement("select bid,sum(count) numHolds from (\n" +
+					"  select bid,count(1) count from transbid_v group by bid\n" +
+					"  UNION ALL\n" +
+					"  select bid,count(1) count from transitem_v, item_v where\n" +
+					"    transcode like 'R%' and transitem_v.item=item_v.item\n" +
+					"  group by bid)\n" +
+					"group by bid\n" +
+					"order by bid", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+			ResultSet bibHoldsRS = bibHoldsStmt.executeQuery();
+			while (bibHoldsRS.next()){
+				String bibId = bibHoldsRS.getString("bid");
+				Long numHolds = bibHoldsRS.getLong("numHolds");
+				numHoldsByBib.put(bibId, numHolds);
+			}
+			bibHoldsRS.close();
+
+//			if (exportItemHolds) {
+//				//Export item level holds
+//				PreparedStatement itemHoldsStmt = carlxConn.prepareStatement("select count(hold.id) as numHolds, record_num\n" +
+//						"from sierra_view.hold \n" +
+//						"inner join sierra_view.bib_record_item_record_link ON hold.record_id = item_record_id \n" +
+//						"inner join sierra_view.record_metadata on bib_record_item_record_link.bib_record_id = record_metadata.id \n" +
+//						"WHERE status = '0' OR status = 't' " +
+//						"group by record_num", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+//				ResultSet itemHoldsRS = itemHoldsStmt.executeQuery();
+//				while (itemHoldsRS.next()) {
+//					String bibId = itemHoldsRS.getString("record_num");
+//					bibId = ".b" + bibId + getCheckDigit(bibId);
+//					Long numHolds = itemHoldsRS.getLong("numHolds");
+//					if (numHoldsByBib.containsKey(bibId)) {
+//						numHoldsByBib.put(bibId, numHolds + numHoldsByBib.get(bibId));
+//					} else {
+//						numHoldsByBib.put(bibId, numHolds);
+//					}
+//				}
+//				itemHoldsRS.close();
+//			}
+//
+//			//Export volume level holds
+//			PreparedStatement volumeHoldsStmt = carlxConn.prepareStatement("select count(hold.id) as numHolds, bib_metadata.record_num as bib_num, volume_metadata.record_num as volume_num\n" +
+//					"from sierra_view.hold \n" +
+//					"inner join sierra_view.bib_record_volume_record_link ON hold.record_id = volume_record_id \n" +
+//					"inner join sierra_view.record_metadata as volume_metadata on bib_record_volume_record_link.volume_record_id = volume_metadata.id \n" +
+//					"inner join sierra_view.record_metadata as bib_metadata on bib_record_volume_record_link.bib_record_id = bib_metadata.id \n" +
+//					"WHERE status = '0' OR status = 't'\n" +
+//					"GROUP BY bib_metadata.record_num, volume_metadata.record_num", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+//			ResultSet volumeHoldsRS = volumeHoldsStmt.executeQuery();
+//			while (volumeHoldsRS.next()) {
+//				String bibId = volumeHoldsRS.getString("bib_num");
+//				bibId = ".b" + bibId + getCheckDigit(bibId);
+//				String volumeId = volumeHoldsRS.getString("volume_num");
+//				volumeId = ".j" + volumeId + getCheckDigit(volumeId);
+//				Long numHolds = volumeHoldsRS.getLong("numHolds");
+//				//Do not count these in
+//				if (numHoldsByBib.containsKey(bibId)) {
+//					numHoldsByBib.put(bibId, numHolds + numHoldsByBib.get(bibId));
+//				} else {
+//					numHoldsByBib.put(bibId, numHolds);
+//				}
+//				if (numHoldsByVolume.containsKey(volumeId)) {
+//					numHoldsByVolume.put(volumeId, numHolds + numHoldsByVolume.get(bibId));
+//				} else {
+//					numHoldsByVolume.put(volumeId, numHolds);
+//				}
+//			}
+//			volumeHoldsRS.close();
+
+
+			for (String bibId : numHoldsByBib.keySet()){
+				addIlsHoldSummary.setString(1, bibId);
+				addIlsHoldSummary.setLong(2, numHoldsByBib.get(bibId));
+				addIlsHoldSummary.executeUpdate();
+			}
+
+//			for (String volumeId : numHoldsByVolume.keySet()){
+//				addIlsHoldSummary.setString(1, volumeId);
+//				addIlsHoldSummary.setLong(2, numHoldsByVolume.get(volumeId));
+//				addIlsHoldSummary.executeUpdate();
+//			}
+
+			try {
+				vufindConn.commit();
+				vufindConn.setAutoCommit(true);
+			}catch (Exception e){
+				logger.warn("error committing hold updates rolling back", e);
+				vufindConn.rollback(startOfHolds);
+			}
+
+		} catch (Exception e) {
+			logger.error("Unable to export holds from Sierra", e);
+			if (startOfHolds != null) {
+				try {
+					vufindConn.rollback(startOfHolds);
+				}catch (Exception e1){
+					logger.error("Unable to rollback due to exception", e1);
+				}
+			}
+		}
+		logger.info("Finished exporting holds");
+
 	}
 
 }
