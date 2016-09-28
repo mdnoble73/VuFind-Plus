@@ -148,21 +148,39 @@ fi
 
 # should test for new bib extract file
 # should copy old bib extract file
+FILE=$(find /data/vufind-plus/catalog.library.nashville.org/marc -name BIB_EXTRACT_PIKA.MRC -mtime -1 | sort -n | tail -1)
+#TODO: determine path, file name, and size value
 
-#Validate the export
-cd /usr/local/vufind-plus/vufind/cron; java -server -XX:+UseG1GC -jar cron.jar ${PIKASERVER} ValidateMarcExport >> ${OUTPUT_FILE}
+if [ -n "$FILE" ]
+then
+  #check file size
+	MINFILE1SIZE=$((825800000))
+	FILE1SIZE=$(wc -c <"$FILE")
+	if [ $FILE1SIZE -ge $MINFILE1SIZE ]; then
 
-#Full Regroup
-cd /usr/local/vufind-plus/vufind/record_grouping; 
-java -server -XX:+UseG1GC -Xmx6G -jar record_grouping.jar ${PIKASERVER} fullRegroupingNoClear >> ${OUTPUT_FILE}
+		echo "Latest export file is " $FILE >> ${OUTPUT_FILE}
 
-#Full Reindex
-#cd /usr/local/vufind-plus/vufind/reindexer; nice -n -3 java -jar reindexer.jar ${PIKASERVER} fullReindex >> ${OUTPUT_FILE}
-cd /usr/local/vufind-plus/vufind/reindexer; 
-java -server -XX:+UseG1GC -Xmx6G -jar reindexer.jar ${PIKASERVER} fullReindex >> ${OUTPUT_FILE}
+	#Validate the export
+	cd /usr/local/vufind-plus/vufind/cron; java -server -XX:+UseG1GC -jar cron.jar ${PIKASERVER} ValidateMarcExport >> ${OUTPUT_FILE}
 
-#Remove all ITEM_UPDATE_EXTRACT_PIKA files so continuous_partial_reindex can start fresh
-find /data/vufind-plus/catalog.library.nashville.org/marc -name 'ITEM_UPDATE_EXTRACT_PIKA*' -delete
+	#Full Regroup
+	cd /usr/local/vufind-plus/vufind/record_grouping;
+	java -server -XX:+UseG1GC -Xmx6G -jar record_grouping.jar ${PIKASERVER} fullRegroupingNoClear >> ${OUTPUT_FILE}
+
+	#Full Reindex
+	#cd /usr/local/vufind-plus/vufind/reindexer; nice -n -3 java -jar reindexer.jar ${PIKASERVER} fullReindex >> ${OUTPUT_FILE}
+	cd /usr/local/vufind-plus/vufind/reindexer;
+	java -server -XX:+UseG1GC -Xmx6G -jar reindexer.jar ${PIKASERVER} fullReindex >> ${OUTPUT_FILE}
+
+	else
+		echo $FILE " size " $FILE1SIZE "is less than minimum size :" $MINFILE1SIZE "; Export was not moved to data directory, Full Regrouping & Full Reindexing skipped." >> ${OUTPUT_FILE}
+	fi
+else
+	echo "Did not find a export file from the last 24 hours, Full Regrouping & Full Reindexing skipped." >> ${OUTPUT_FILE}
+fi
+
+	#Remove all ITEM_UPDATE_EXTRACT_PIKA files so continuous_partial_reindex can start fresh
+	find /data/vufind-plus/catalog.library.nashville.org/marc -name 'ITEM_UPDATE_EXTRACT_PIKA*' -delete
 
 # Clean-up Solr Logs
 # (/usr/local/vufind-plus/sites/default/solr/jetty/logs is a symbolic link to /var/log/vufind-plus/solr)
