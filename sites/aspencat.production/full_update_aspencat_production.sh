@@ -62,16 +62,34 @@ fi
 
 #Note, no need to extract from Accelerated Reader for this server since it is done by Marmot production extract
 
-#Validate the export
-cd /usr/local/vufind-plus/vufind/cron; java -server -XX:+UseG1GC -jar cron.jar ${PIKASERVER} ValidateMarcExport >> ${OUTPUT_FILE}
+FILE=$(find  /data/vufind-plus/aspencat.production/marc/ -name fullexport.mrc -mtime -1 | sort -n | tail -1)
 
-#Full Regroup
-cd /usr/local/vufind-plus/vufind/record_grouping; java -server -Xmx6G -XX:+UseG1GC -jar record_grouping.jar ${PIKASERVER} fullRegroupingNoClear >> ${OUTPUT_FILE}
+if [ -n "$FILE" ]
+then
+  #check file size
+	MINFILE1SIZE=$((1042000000))
+	FILE1SIZE=$(wc -c <"$FILE")
+	if [ $FILE1SIZE -ge $MINFILE1SIZE ]; then
 
-#TODO: Determine if we should do a partial update from the ILS and OverDrive before running the reindex to grab last minute changes
+		echo "Latest export file is " $FILE >> ${OUTPUT_FILE}
 
-#Full Reindex
-cd /usr/local/vufind-plus/vufind/reindexer; nice -n -3 java -server -XX:+UseG1GC -jar reindexer.jar ${PIKASERVER} fullReindex >> ${OUTPUT_FILE}
+		#Validate the export
+		cd /usr/local/vufind-plus/vufind/cron; java -server -XX:+UseG1GC -jar cron.jar ${PIKASERVER} ValidateMarcExport >> ${OUTPUT_FILE}
+
+		#Full Regroup
+		cd /usr/local/vufind-plus/vufind/record_grouping; java -server -Xmx6G -XX:+UseG1GC -jar record_grouping.jar ${PIKASERVER} fullRegroupingNoClear >> ${OUTPUT_FILE}
+
+		#TODO: Determine if we should do a partial update from the ILS and OverDrive before running the reindex to grab last minute changes
+
+		#Full Reindex
+		cd /usr/local/vufind-plus/vufind/reindexer; nice -n -3 java -server -XX:+UseG1GC -jar reindexer.jar ${PIKASERVER} fullReindex >> ${OUTPUT_FILE}
+
+	else
+		echo $FILE " size " $FILE1SIZE "is less than minimum size :" $MINFILE1SIZE "; Export was not moved to data directory, Full Regrouping & Full Reindexing skipped." >> ${OUTPUT_FILE}
+	fi
+else
+	echo "Did not find a export file from the last 24 hours, Full Regrouping & Full Reindexing skipped." >> ${OUTPUT_FILE}
+fi
 
 # Only needed once on mercury
 # Clean-up Solr Logs
