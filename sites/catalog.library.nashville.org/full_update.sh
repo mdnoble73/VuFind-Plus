@@ -148,8 +148,8 @@ fi
 
 # should test for new bib extract file
 # should copy old bib extract file
+
 FILE=$(find /data/vufind-plus/catalog.library.nashville.org/marc -name BIB_EXTRACT_PIKA.MRC -mtime -1 | sort -n | tail -1)
-#TODO: determine path, file name, and size value
 
 if [ -n "$FILE" ]
 then
