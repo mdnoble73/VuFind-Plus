@@ -151,11 +151,15 @@ public class OfflineCirculation implements IProcessHandler {
 			PreparedStatement updateCirculationEntry = vufindConn.prepareStatement("UPDATE offline_circulation set timeProcessed = ?, status = ?, notes = ? where id = ?");
 			String baseUrl = configIni.get("Catalog", "linking_url") + "/iii/airwkst";
 			ResultSet circulationEntriesToProcessRS = circulationEntryToProcessStmt.executeQuery();
+			int numProcessed = 0;
 			while (circulationEntriesToProcessRS.next()){
 				processOfflineCirculationEntry(updateCirculationEntry, baseUrl, circulationEntriesToProcessRS);
+				numProcessed++;
 			}
-			//Logout of the system
-			Util.getURL(baseUrl + "/airwkstcore?action=AirWkstReturnToWelcomeAction", logger);
+			if (numProcessed > 0) {
+				//Logout of the system
+				Util.getURL(baseUrl + "/airwkstcore?action=AirWkstReturnToWelcomeAction", logger);
+			}
 		} catch (SQLException e) {
 			processLog.incErrors();
 			processLog.addNote("Error processing offline holds " + e.toString());
