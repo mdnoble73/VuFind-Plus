@@ -14,8 +14,8 @@ class Archive_Person extends Archive_Entity{
 		global $interface;
 
 		$this->loadArchiveObjectData();
-		$this->loadLinkedData();
 		$this->loadRelatedContentForEntity();
+		$this->recordDriver->loadLinkedData();
 
 		$interface->assign('showExploreMore', true);
 

@@ -371,6 +371,40 @@ class Archive_AJAX extends Action {
 		);
 	}
 
+	public function getMetadata(){
+		global $interface;
+		$id = urldecode($_REQUEST['id']);
+		$interface->assign('pid', $id);
+
+		require_once ROOT_DIR . '/sys/Utils/FedoraUtils.php';
+		$fedoraUtils = FedoraUtils::getInstance();
+
+		$archiveObject = $fedoraUtils->getObject($id);
+		/** @var IslandoraDriver $recordDriver */
+		$recordDriver = RecordDriverFactory::initRecordDriver($archiveObject);
+		$interface->assign('recordDriver', $recordDriver);
+
+		$recordDriver->loadMetadata();
+
+		if (array_key_exists('secondaryId', $_REQUEST)){
+			$secondaryId = urldecode($_REQUEST['secondaryId']);
+
+			require_once ROOT_DIR . '/sys/Utils/FedoraUtils.php';
+			$fedoraUtils = FedoraUtils::getInstance();
+
+			$secondaryObject = $fedoraUtils->getObject($secondaryId);
+			/** @var IslandoraDriver $secondaryDriver */
+			$secondaryDriver = RecordDriverFactory::initRecordDriver($secondaryObject);
+
+			$secondaryDriver->loadMetadata();
+		}
+
+		$metadata = $interface->fetch('Archive/moredetails-accordion.tpl');
+		return array(
+				'success' => true,
+				'metadata' => $metadata,
+		);
+	}
 	public function getTranscript(){
 		global $configArray;
 		$objectUrl = $configArray['Islandora']['objectUrl'];

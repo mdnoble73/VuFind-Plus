@@ -13,6 +13,7 @@ VuFind.Archive = (function(){
 		multiPage: false,
 		activeBookViewer: 'jp2',
 		activeBookPage: null,
+		activeBookPid: null,
 		openSeadragonViewerSettings: function(){
 			return {
 				"id": "pika-openseadragon",
@@ -146,6 +147,7 @@ VuFind.Archive = (function(){
 			// Load specified page & viewer
 			//Loading message
 			//Load Page  set-up
+			VuFind.Archive.activeBookPid = bookPid;
 			VuFind.Archive.changeActiveBookViewer(bookViewer, pagePid);
 
 			// store in browser history
@@ -193,6 +195,22 @@ VuFind.Archive = (function(){
 					VuFind.initCarousels("#explore-more-body .jcarousel");
 				}
 			}).fail(VuFind.ajaxFail);
+		},
+
+		loadMetadata: function(pid, secondaryId){
+			var url = Globals.path + "/Archive/AJAX?id=" + encodeURI(pid) + "&method=getMetadata";
+			if (secondaryId !== undefined){
+				url += "&secondaryId=" + secondaryId;
+			}
+			var metadataTarget = $('#archive-metadata');
+			metadataTarget.html("Please wait while we load information about this object...")
+			$.getJSON(url, function(data) {
+				if (data.success) {
+					metadataTarget.html(data.metadata);
+				}
+			}).fail(
+					function(){metadataTarget.html("Could not load metadata.")}
+			);
 		},
 
 		/**
@@ -272,6 +290,7 @@ VuFind.Archive = (function(){
 					$('#view-toggle-pdf').parent().show();
 				}
 
+				this.loadMetadata(this.activeBookPid, pid);
 				//$("#downloadPageAsPDF").href = Globals.path + "/Archive/" + pid + "/DownloadPDF";
 				url = Globals.path + "/Archive/AJAX?method=getAdditionalRelatedObjects&id=" + pid;
 				var additionalRelatedObjectsTarget = $("#additional-related-objects");

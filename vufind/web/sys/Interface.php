@@ -524,6 +524,47 @@ class UInterface extends Smarty
 	public function getVariable($variableName) {
 		return $this->get_template_vars($variableName);
 	}
+
+	public function assignAppendToExisting($variableName, $newValue) {
+		$originalValue = $this->get_template_vars($variableName);
+		if ($originalValue == null){
+			$this->assign($variableName, $newValue);
+		}else{
+			if (is_array($originalValue)){
+				$valueToAssign = array_merge($originalValue, $newValue);
+			}else{
+				$valueToAssign = array();
+				$valueToAssign[] = $originalValue;
+				$valueToAssign[] = $newValue;
+			}
+			$this->assign($variableName, $valueToAssign);
+		}
+	}
+
+	public function assignAppendUniqueToExisting($variableName, $newValue) {
+		$originalValue = $this->get_template_vars($variableName);
+		if ($originalValue == null){
+			$this->assign($variableName, $newValue);
+		}else{
+			if (is_array($originalValue)){
+				$valueToAssign = $originalValue;
+				foreach($newValue as $tmpValue){
+					if (!in_array($tmpValue, $valueToAssign)){
+						$valueToAssign[] = $tmpValue;
+					}
+				}
+			}else{
+				if ($newValue != $originalValue){
+					$valueToAssign = array();
+					$valueToAssign[] = $originalValue;
+					$valueToAssign[] = $newValue;
+				}else{
+					return;
+				}
+			}
+			$this->assign($variableName, $valueToAssign);
+		}
+	}
 }
 
 function translate($params) {

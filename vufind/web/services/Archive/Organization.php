@@ -15,7 +15,7 @@ class Archive_Organization extends Archive_Entity{
 
 		$this->loadArchiveObjectData();
 		//$this->loadExploreMoreContent();
-		$this->loadLinkedData();
+		$this->recordDriver->loadLinkedData();
 		$this->loadRelatedContentForEntity();
 
 		$interface->assign('showExploreMore', true);

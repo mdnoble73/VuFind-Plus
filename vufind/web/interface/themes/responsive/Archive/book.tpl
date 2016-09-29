@@ -76,7 +76,7 @@
 								{else}
 									{foreach from=$section.pages item=page}
 										<li class="relatedTitle">
-											<a href="{$page.link}?pagePid={$page.pid}" onclick="return VuFind.Archive.handleBookClick('', '{$page.pid}', VuFind.Archive.activeBookViewer);">
+											<a href="{$page.link}?pagePid={$page.pid}" onclick="return VuFind.Archive.handleBookClick('{$pid}', '{$page.pid}', VuFind.Archive.activeBookViewer);">
 												<figure class="thumbnail">
 													<img src="{$page.cover}" alt="Page {$pageCounter}">
 													<figcaption>{$pageCounter}</figcaption>

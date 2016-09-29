@@ -1321,4 +1321,509 @@ abstract class IslandoraDriver extends RecordInterface {
 		}
 		return null;
 	}
+
+	public function loadMetadata(){
+		global $interface;
+		global $configArray;
+
+		$this->loadRelatedEntities();
+
+		$description = html_entity_decode($this->getDescription());
+		$description = str_replace("\r\n", '<br/>', $description);
+		$description = str_replace("&#xD;", '<br/>', $description);
+		if (strlen($description)){
+			$interface->assign('description', $description);
+		}
+
+		$contextNotes = $this->getModsValue('contextNotes', 'marmot');
+		if (strlen($contextNotes)) {
+			$interface->assign('contextNotes', $contextNotes);
+		}
+
+		$this->loadTranscription();
+		$this->loadCorrespondenceInfo();
+		$this->loadAcademicResearchData();
+		$this->loadEducationInfo();
+		$this->loadMilitaryServiceData();
+		$this->loadNotes();
+		$this->loadLinkedData();
+		$this->loadRecordInfo();
+		$this->loadRightsStatements();
+
+		$visibleLinks = $this->getVisibleLinks();
+		$interface->assignAppendToExisting('externalLinks', $visibleLinks);
+
+		$this->formattedSubjects = $this->getAllSubjectsWithLinks();
+		$interface->assignAppendToExisting('subjects', $this->formattedSubjects);
+
+		$directlyRelatedObjects = $this->getDirectlyRelatedArchiveObjects();
+		$existingValue = $interface->getVariable('directlyRelatedObjects');
+		if ($existingValue != null){
+			$directlyRelatedObjects['numFound'] += $existingValue['numFound'];
+			$directlyRelatedObjects['objects'] = array_merge($existingValue['objects'], $directlyRelatedObjects['objects']);
+		}
+		$interface->assign('directlyRelatedObjects', $directlyRelatedObjects);
+
+		$relatedEvents = $this->getRelatedEvents();
+		$relatedPeople = $this->getRelatedPeople();
+		$productionTeam = $this->getProductionTeam();
+		$relatedOrganizations = $this->getRelatedOrganizations();
+		$relatedPlaces = $this->getRelatedPlaces();
+
+		//Sort all the related information
+		usort($relatedEvents, 'ExploreMore::sortRelatedEntities');
+		usort($relatedPeople, 'ExploreMore::sortRelatedEntities');
+		usort($productionTeam, 'ExploreMore::sortRelatedEntities');
+		usort($relatedOrganizations, 'ExploreMore::sortRelatedEntities');
+		usort($relatedPlaces, 'ExploreMore::sortRelatedEntities');
+
+		//Do final assignment
+		$interface->assignAppendToExisting('relatedEvents', $relatedEvents);
+		$interface->assignAppendToExisting('relatedPeople', $relatedPeople);
+		$interface->assignAppendToExisting('productionTeam', $productionTeam);
+		$interface->assignAppendToExisting('relatedOrganizations', $relatedOrganizations);
+		$interface->assignAppendToExisting('relatedPlaces', $relatedPlaces);
+
+		$repositoryLink = $configArray['Islandora']['repositoryUrl'] . '/islandora/object/' . $this->getUniqueID();
+		$interface->assign('repositoryLink', $repositoryLink);
+	}
+
+	private function loadTranscription() {
+		global $interface;
+		$transcriptions = $this->getModsValues('hasTranscription', 'marmot');
+		if ($transcriptions){
+			$transcriptionInfo = array();
+			foreach ($transcriptions as $transcription){
+				$transcriptionText = $this->getModsValue('transcriptionText', 'marmot', $transcription);
+				$transcriptionText = str_replace("\r\n", '<br/>', $transcriptionText);
+				$transcriptionText = str_replace("&#xD;", '<br/>', $transcriptionText);
+
+				//Add links to timestamps
+				$transcriptionTextWithLinks = $transcriptionText;
+				if (preg_match_all('/\\(\\d{1,2}:\d{1,2}\\)/', $transcriptionText, $allMatches)){
+					foreach ($allMatches[0] as $match){
+						$offset = str_replace('(', '', $match);
+						$offset = str_replace(')', '', $offset);
+						list($minutes, $seconds) = explode(':', $offset);
+						$offset = $minutes * 60 + $seconds;
+						$replacement = '<a onclick="document.getElementById(\'player\').currentTime=\'' . $offset . '\';" style="cursor:pointer">' . $match . '</a>';
+						$transcriptionTextWithLinks = str_replace($match, $replacement, $transcriptionTextWithLinks);
+					}
+				}elseif (preg_match_all('/\\[\\d{1,2}:\d{1,2}:\d{1,2}\\]/', $transcriptionText, $allMatches)){
+					foreach ($allMatches[0] as $match){
+						$offset = str_replace('(', '', $match);
+						$offset = str_replace(')', '', $offset);
+						list($hours, $minutes, $seconds) = explode(':', $offset);
+						$offset = $hours * 3600 + $minutes * 60 + $seconds;
+						$replacement = '<a onclick="document.getElementById(\'player\').currentTime=\'' . $offset . '\';" style="cursor:pointer">' . $match . '</a>';
+						$transcriptionTextWithLinks = str_replace($match, $replacement, $transcriptionTextWithLinks);
+					}
+				}
+				if (strlen($transcriptionTextWithLinks) > 0){
+					$transcript = array(
+							'language' => $this->getModsValue('transcriptionLanguage', 'marmot', $transcription),
+							'text' => $transcriptionTextWithLinks,
+							'location' => $this->getModsValue('transcriptionLocation', 'marmot', $transcription)
+					);
+					$transcriptionInfo[] = $transcript;
+				}
+			}
+
+			if (count($transcriptionInfo) > 0){
+				$interface->assign('transcription',$transcriptionInfo);
+			}
+		}
+	}
+
+	private function loadCorrespondenceInfo() {
+		global $interface;
+		require_once ROOT_DIR . '/sys/Utils/FedoraUtils.php';
+		$fedoraUtils = FedoraUtils::getInstance();
+		
+		$correspondence = $this->getModsValue('correspondence', 'marmot');
+		$hasCorrespondenceInfo = false;
+		if ($correspondence){
+			$includesStamp = $this->getModsValue('includesStamp', 'marmot', $correspondence);
+			if ($includesStamp == 'yes'){
+				$interface->assign('includesStamp', true);
+				$hasCorrespondenceInfo = true;
+			}
+			$datePostmarked = $this->getModsValue('datePostmarked', 'marmot', $correspondence);
+			if ($datePostmarked){
+				$interface->assign('datePostmarked', $datePostmarked);
+				$hasCorrespondenceInfo = true;
+			}
+			$relatedPlace = $this->getModsValue('entityPlace', 'marmot', $correspondence);
+			if ($relatedPlace){
+				$placePid = $this->getModsValue('entityPid', 'marmot', $relatedPlace);
+				if ($placePid){
+					$postMarkLocationObject = $fedoraUtils->getObject($placePid);
+					if ($postMarkLocationObject){
+						$postMarkLocationDriver = RecordDriverFactory::initRecordDriver($postMarkLocationObject);
+						$interface->assign('postMarkLocation', array(
+								'link' => $postMarkLocationDriver->getRecordUrl(),
+								'label' => $postMarkLocationDriver->getTitle(),
+								'role' => 'Postmark Location'
+						));
+						$hasCorrespondenceInfo = true;
+					}
+				}else{
+					$placeTitle = $this->getModsValue('entityTitle', 'marmot', $relatedPlace);
+					if ($placeTitle){
+						$interface->assign('postMarkLocation', array(
+								'label' => $placeTitle,
+								'role' => 'Postmark Location'
+						));
+						$hasCorrespondenceInfo = true;
+					}
+				}
+			}
+
+			$relatedPerson = $this->getModsValue('relatedPersonOrg', 'marmot', $correspondence);
+			if ($relatedPerson){
+				$personPid = $this->getModsValue('entityPid', 'marmot', $relatedPerson);
+				if ($personPid){
+					$correspondenceRecipientObject = $fedoraUtils->getObject($personPid);
+					if ($correspondenceRecipientObject){
+						$correspondenceRecipientDriver = RecordDriverFactory::initRecordDriver($correspondenceRecipientObject);
+						$interface->assign('correspondenceRecipient', array(
+								'link' => $correspondenceRecipientDriver->getRecordUrl(),
+								'label' => $correspondenceRecipientDriver->getTitle(),
+								'role' => 'Correspondence Recipient'
+						));
+						$hasCorrespondenceInfo = true;
+					}
+				}else{
+					$personTitle = $this->getModsValue('entityTitle', 'marmot', $relatedPerson);
+					if ($personTitle){
+						$interface->assign('correspondenceRecipient', array(
+								'label' => $personTitle,
+								'role' => 'Correspondence Recipient'
+						));
+						$hasCorrespondenceInfo = true;
+					}
+				}
+			}
+		}
+		$interface->assign('hasCorrespondenceInfo', $hasCorrespondenceInfo);
+	}
+
+	private function loadAcademicResearchData() {
+		global $interface;
+		require_once ROOT_DIR . '/sys/Utils/FedoraUtils.php';
+		$fedoraUtils = FedoraUtils::getInstance();
+
+		$academicResearchSection = $this->getModsValue('academicResearch', 'marmot');
+		$hasAcademicResearchData = false;
+		if (!empty($academicResearchSection)){
+			$researchType = FedoraUtils::cleanValue($this->getModsValue('academicResearchType', 'marmot', $academicResearchSection));
+			if (strlen($researchType)){
+				$hasAcademicResearchData = true;
+				$interface->assign('researchType', $researchType);
+			}
+
+			$researchLevel = FedoraUtils::cleanValue($this->getModsValue('academicResearchLevel', 'marmot', $academicResearchSection));
+			if (strlen($researchLevel)) {
+				$hasAcademicResearchData = true;
+				$interface->assign('researchLevel', ucwords($researchLevel));
+			}
+
+			$degreeName = FedoraUtils::cleanValue($this->getModsValue('degreeName', 'marmot', $academicResearchSection));
+			if (strlen($degreeName)) {
+				$hasAcademicResearchData = true;
+				$interface->assign('degreeName', $degreeName);
+			}
+
+			$degreeDiscipline = FedoraUtils::cleanValue($this->getModsValue('degreeDiscipline', 'marmot', $academicResearchSection));
+			if (strlen($degreeDiscipline)){
+				$hasAcademicResearchData = true;
+				$interface->assign('degreeDiscipline', $degreeDiscipline);
+			}
+
+			$peerReview = FedoraUtils::cleanValue($this->getModsValue('peerReview', 'marmot', $academicResearchSection));
+			$interface->assign('peerReview', ucwords($peerReview));
+
+			$defenceDate = FedoraUtils::cleanValue($this->getModsValue('defenceDate', 'marmot', $academicResearchSection));
+			if (strlen($defenceDate)) {
+				$hasAcademicResearchData = true;
+				$interface->assign('defenceDate', $defenceDate);
+			}
+
+			$acceptedDate = FedoraUtils::cleanValue($this->getModsValue('acceptedDate', 'marmot', $academicResearchSection));
+			if (strlen($acceptedDate)) {
+				$hasAcademicResearchData = true;
+				$interface->assign('acceptedDate', $acceptedDate);
+			}
+
+			$relatedAcademicPeople = $this->getModsValues('relatedPersonOrg', 'marmot', $academicResearchSection);
+			if ($relatedAcademicPeople){
+				$academicPeople = array();
+				foreach ($relatedAcademicPeople as $relatedPerson){
+					$personPid = $this->getModsValue('entityPid', 'marmot', $relatedPerson);
+					$role = ucwords($this->getModsValue('role', 'marmot', $relatedPerson));
+					if ($personPid){
+						$academicPersonObject = $fedoraUtils->getObject($personPid);
+						if ($academicPersonObject){
+							$academicPersonDriver = RecordDriverFactory::initRecordDriver($academicPersonObject);
+							$academicPeople[] = array(
+									'link' => $academicPersonDriver->getRecordUrl(),
+									'label' => $academicPersonDriver->getTitle(),
+									'role' => $role
+							);
+						}
+					}else{
+						$personTitle = $this->getModsValue('entityTitle', 'marmot', $relatedPerson);
+						if ($personTitle){
+							$academicPeople[] = array(
+									'label' => $personTitle,
+									'role' => $role
+							);
+						}
+					}
+				}
+				if (count($academicPeople) > 0){
+					$interface->assign('academicPeople', $academicPeople);
+					$hasAcademicResearchData = true;
+				}
+			}
+
+		}
+		$interface->assign('hasAcademicResearchData', $hasAcademicResearchData);
+	}
+
+	public function loadLinkedData(){
+		global $interface;
+		foreach ($this->getLinks() as $link){
+			if ($link['type'] == 'wikipedia'){
+				require_once ROOT_DIR . '/sys/WikipediaParser.php';
+				$wikipediaParser = new WikipediaParser('en');
+
+				//Transform from a regular wikipedia link to an api link
+				$searchTerm = str_replace('https://en.wikipedia.org/wiki/', '', $link['link']);
+				$url = "http://en.wikipedia.org/w/api.php" .
+						'?action=query&prop=revisions&rvprop=content&format=json' .
+						'&titles=' . urlencode(urldecode($searchTerm));
+				$wikipediaData = $wikipediaParser->getWikipediaPage($url);
+				$interface->assign('wikipediaData', $wikipediaData);
+			}elseif($link['type'] == 'marmotGenealogy'){
+				$matches = array();
+				if (preg_match('/.*Person\/(\d+)/', $link['link'], $matches)){
+					$personId = $matches[1];
+					require_once ROOT_DIR . '/sys/Genealogy/Person.php';
+					$person = new Person();
+					$person->personId = $personId;
+					if ($person->find(true)){
+						$interface->assign('genealogyData', $person);
+
+						$formattedBirthdate = $person->formatPartialDate($person->birthDateDay, $person->birthDateMonth, $person->birthDateYear);
+						$interface->assign('birthDate', $formattedBirthdate);
+
+						$formattedDeathdate = $person->formatPartialDate($person->deathDateDay, $person->deathDateMonth, $person->deathDateYear);
+						$interface->assign('deathDate', $formattedDeathdate);
+
+						$marriages = array();
+						$personMarriages = $person->marriages;
+						if (isset($personMarriages)){
+							foreach ($personMarriages as $marriage){
+								$marriageArray = (array)$marriage;
+								$marriageArray['formattedMarriageDate'] = $person->formatPartialDate($marriage->marriageDateDay, $marriage->marriageDateMonth, $marriage->marriageDateYear);
+								$marriages[] = $marriageArray;
+							}
+						}
+						$interface->assign('marriages', $marriages);
+						$obituaries = array();
+						$personObituaries =$person->obituaries;
+						if (isset($personObituaries)){
+							foreach ($personObituaries as $obit){
+								$obitArray = (array)$obit;
+								$obitArray['formattedObitDate'] = $person->formatPartialDate($obit->dateDay, $obit->dateMonth, $obit->dateYear);
+								$obituaries[] = $obitArray;
+							}
+						}
+						$interface->assign('obituaries', $obituaries);
+					}
+				}
+			}
+		}
+	}
+
+	private function loadEducationInfo() {
+		global $interface;
+		require_once ROOT_DIR . '/sys/Utils/FedoraUtils.php';
+		$fedoraUtils = FedoraUtils::getInstance();
+
+		$interface->assign('hasEducationInfo', false);
+		$academicRecord = $this->getModsValue('education', 'marmot');
+		if (strlen($academicRecord) > 0){
+			$degreeName = FedoraUtils::cleanValue($this->getModsValue('degreeName', 'marmot', $academicRecord));
+			if ($degreeName){
+				$interface->assign('degreeName', $degreeName);
+				$hasEducationInfo = true;
+			}
+
+			$graduationDate = FedoraUtils::cleanValue($this->getModsValue('graduationDate', 'marmot', $academicRecord));
+			if ($graduationDate){
+				$interface->assign('graduationDate', $graduationDate);
+				$hasEducationInfo = true;
+			}
+
+			$relatedEducationPeople = $this->getModsValues('relatedPersonOrg', 'marmot', $academicRecord);
+			if ($relatedEducationPeople){
+				$educationPeople = array();
+				foreach ($relatedEducationPeople as $relatedPerson){
+					$personPid = $this->getModsValue('entityPid', 'marmot', $relatedPerson);
+					$role = ucwords($this->getModsValue('role', 'marmot', $relatedPerson));
+					if ($personPid){
+						$educationPersonObject = $fedoraUtils->getObject($personPid);
+						if ($educationPersonObject){
+							$educationPersonDriver = RecordDriverFactory::initRecordDriver($educationPersonObject);
+							$educationPeople[] = array(
+									'link' => $educationPersonDriver->getRecordUrl(),
+									'label' => $educationPersonDriver->getTitle(),
+									'role' => $role
+							);
+						}
+					}else{
+						$personTitle = $this->getModsValue('entityTitle', 'marmot', $relatedPerson);
+						if ($personTitle){
+							$educationPeople[] = array(
+									'label' => $personTitle,
+									'role' => $role
+							);
+						}
+					}
+					$hasEducationInfo = true;
+				}
+				if (count($educationPeople) > 0){
+					$interface->assign('educationPeople', $educationPeople);
+				}
+			}
+
+			$interface->assign('hasEducationInfo', $hasEducationInfo);
+		}
+	}
+
+	private function loadMilitaryServiceData() {
+		global $interface;
+		require_once ROOT_DIR . '/sys/Utils/FedoraUtils.php';
+		$fedoraUtils = FedoraUtils::getInstance();
+		
+		$interface->assign('hasMilitaryService', false);
+		$militaryService = $this->getModsValue('militaryService', 'marmot');
+		if (strlen($militaryService) > 0){
+			/** @var SimpleXMLElement $record */
+			$militaryRecord = $this->getModsValue('militaryRecord', 'marmot', $militaryService);
+			$militaryBranch = $this->getModsValue('militaryBranch', 'marmot', $militaryRecord);
+			$militaryConflict = $this->getModsValue('militaryConflict', 'marmot', $militaryRecord);
+			if ($militaryBranch != 'none' || $militaryConflict != 'none'){
+				$militaryRecord = array(
+						'branch' => $fedoraUtils->getObjectLabel($militaryBranch),
+						'branchLink' => '/Archive/' . $militaryBranch . '/Organization',
+						'conflict' => $fedoraUtils->getObjectLabel($militaryConflict),
+						'conflictLink' => '/Archive/' . $militaryConflict . '/Event',
+				);
+				$interface->assign('militaryRecord', $militaryRecord);
+				$interface->assign('hasMilitaryService', true);
+			}
+		}
+	}
+
+	private function loadNotes() {
+		global $interface;
+		$notes = array();
+		$personNotes = $this->getModsValue('personNotes', 'marmot');
+		if (strlen($personNotes) > 0){
+			$notes[] = $personNotes;
+		}
+		$citationNotes = $this->getModsValue('citationNotes', 'marmot');
+		if (strlen($citationNotes) > 0){
+			$notes[] = $citationNotes;
+		}
+		$interface->assignAppendToExisting('notes', $notes);
+	}
+
+	private function loadRecordInfo() {
+		global $interface;
+		$recordInfo = $this->getModsValue('identifier', 'recordInfo');
+		if (strlen($recordInfo)){
+			$interface->assign('hasRecordInfo', true);
+			$recordOrigin = $this->getModsValue('recordOrigin', 'mods', $recordInfo);
+			$interface->assign('recordOrigin', $recordOrigin);
+
+			$recordCreationDate = $this->getModsValue('recordCreationDate', 'mods', $recordInfo);
+			$interface->assign('recordCreationDate', $recordCreationDate);
+
+			$recordChangeDate = $this->getModsValue('recordChangeDate', 'mods', $recordInfo);
+			$interface->assign('recordChangeDate', $recordChangeDate);
+		}
+
+		$identifier = $this->getModsValues('identifier', 'mods');
+		$interface->assignAppendToExisting('identifier', FedoraUtils::cleanValues($identifier));
+
+		$originInfo = $this->getModsValue('originInfo', 'mods');
+		if (strlen($originInfo)){
+			$dateCreated = $this->getModsValue('dateCreated', 'mods', $originInfo);
+			$interface->assign('dateCreated', $dateCreated);
+
+			$dateIssued = $this->getModsValue('dateIssued', 'mods', $originInfo);
+			$interface->assign('dateIssued', $dateIssued);
+		}
+
+		$language = $this->getModsValue('languageTerm', 'mods');
+		$interface->assign('language', FedoraUtils::cleanValue($language));
+
+		$physicalDescriptions = $this->getModsValues('physicalDescription', 'mods');
+		$physicalExtents = array();
+		foreach ($physicalDescriptions as $physicalDescription){
+			$extent = $this->getModsValue('extent', 'mods', $physicalDescription);
+			$form = $this->getModsValue('form', 'mods', $physicalDescription);
+			if (empty($extent)){
+				$extent = $form;
+			}elseif (!empty($form)){
+				$extent .= " ($form)";
+			}
+			$physicalExtents[] = $extent;
+
+		}
+		$interface->assign('physicalExtents', $physicalExtents);
+
+		$physicalLocation = $this->getModsValues('physicalLocation', 'mods');
+		$interface->assign('physicalLocation', $physicalLocation);
+
+		$interface->assign('postcardPublisherNumber', $this->getModsValue('postcardPublisherNumber', 'marmot'));
+
+		$shelfLocator = $this->getModsValues('shelfLocator', 'mods');
+		$interface->assign('shelfLocator', FedoraUtils::cleanValues($shelfLocator));
+	}
+
+	private function loadRightsStatements() {
+		global $interface;
+		require_once ROOT_DIR . '/sys/Utils/FedoraUtils.php';
+		$fedoraUtils = FedoraUtils::getInstance();
+		
+		$rightsStatements = $this->getModsValues('rightsStatement', 'marmot');
+		$interface->assignAppendUniqueToExisting('rightsStatements', $rightsStatements);
+
+		$rightsHolder = $this->getModsValue('rightsHolder', 'marmot');
+		if (!empty($rightsHolder)) {
+			$rightsHolderPid = $this->getModsValue('entityPid', 'marmot', $rightsHolder);
+			$rightsHolderTitle = $this->getModsValue('entityTitle', 'marmot', $rightsHolder);
+			if ($rightsHolderPid) {
+				$interface->assign('rightsHolderTitle', $rightsHolderTitle);
+				$rightsHolderObj = RecordDriverFactory::initRecordDriver($fedoraUtils->getObject($rightsHolderPid));
+				$interface->assign('rightsHolderLink', $rightsHolderObj->getRecordUrl());
+			}
+		}
+
+		$rightsCreator = $this->getModsValue('rightsCreator', 'marmot');
+		if (!empty($rightsCreator)) {
+			$rightsCreatorPid = $this->getModsValue('entityPid', 'marmot', $rightsCreator);
+			$rightsCreatorTitle = $this->getModsValue('entityTitle', 'marmot', $rightsCreator);
+			if ($rightsCreatorPid) {
+				$interface->assign('rightsCreatorTitle', $rightsCreatorTitle);
+				$rightsCreatorObj = RecordDriverFactory::initRecordDriver($fedoraUtils->getObject($rightsCreatorPid));
+				$interface->assign('rightsCreatorLink', $rightsCreatorObj->getRecordUrl());
+			}
+		}
+	}
 }
