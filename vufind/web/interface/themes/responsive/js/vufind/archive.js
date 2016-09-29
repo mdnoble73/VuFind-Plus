@@ -261,6 +261,17 @@ VuFind.Archive = (function(){
 				//VuFind.Archive.openSeaDragonViewer.viewport.fitVertically(true);
 			}
 			if (pageChanged && this.multiPage){
+				if (this.pageDetails[pid]['transcript'] == ''){
+					$('#view-toggle-transcription').parent().hide();
+				}else{
+					$('#view-toggle-transcription').parent().show();
+				}
+				if (this.pageDetails[pid]['pdf'] == ''){
+					$('#view-toggle-pdf').parent().hide();
+				}else{
+					$('#view-toggle-pdf').parent().show();
+				}
+
 				//$("#downloadPageAsPDF").href = Globals.path + "/Archive/" + pid + "/DownloadPDF";
 				url = Globals.path + "/Archive/AJAX?method=getAdditionalRelatedObjects&id=" + pid;
 				var additionalRelatedObjectsTarget = $("#additional-related-objects");

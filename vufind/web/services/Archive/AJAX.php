@@ -376,25 +376,38 @@ class Archive_AJAX extends Action {
 		$objectUrl = $configArray['Islandora']['objectUrl'];
 		$transcriptIdentifier = urldecode($_REQUEST['transcriptId']);
 		if (strlen($transcriptIdentifier) == 0){
+			//Check to see if we can get it based on the
 			return array(
 					'success' => true,
 					'transcript' => "There is no transcription available for this page.",
 			);
-		}else{
-			$transcriptUrl = $objectUrl . '/' . $transcriptIdentifier;
-			$transcript = file_get_contents($transcriptUrl);
-
-			if ($transcript){
+		}elseif (strpos($transcriptIdentifier, 'mods:') === 0){
+			$objectPid = str_replace('mods:', '', $transcriptIdentifier);
+			require_once ROOT_DIR . '/sys/Utils/FedoraUtils.php';
+			$fedoraUtils = FedoraUtils::getInstance();
+			$pageObject = $fedoraUtils->getObject($objectPid);
+			$mods = $fedoraUtils->getModsData($pageObject);
+			$transcript = $fedoraUtils->getModsValue('transcriptionText', 'marmot', $mods);
+			if (strlen($transcript) > 0){
 				return array(
 						'success' => true,
 						'transcript' => $transcript,
 				);
-			}else{
+			}
+		}else{
+			$transcriptUrl = $objectUrl . '/' . $transcriptIdentifier;
+			$transcript = file_get_contents($transcriptUrl);
+
+			if ($transcript) {
 				return array(
-						'success' => false,
+						'success' => true,
+						'transcript' => $transcript,
 				);
 			}
 		}
+		return array(
+			'success' => false,
+		);
 	}
 
 	public function getAdditionalRelatedObjects(){

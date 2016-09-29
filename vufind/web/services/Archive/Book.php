@@ -16,7 +16,9 @@ class Archive_Book extends Archive_Object{
 		//$this->loadExploreMoreContent();
 
 		//Get the contents of the book
-		$bookContents = $this->recordDriver->loadBookContents();
+		/** @var BookDriver $bookDriver */
+		$bookDriver = $this->recordDriver;
+		$bookContents = $bookDriver->loadBookContents();
 		$interface->assign('bookContents', $bookContents);
 
 		$interface->assign('showExploreMore', true);

@@ -256,7 +256,7 @@ class FedoraUtils {
 	 *
 	 * @return string
 	 */
-	public function getModsValue($tag, $namespace = null, $snippet = null){
+	public function getModsValue($tag, $namespace = null, $snippet){
 		if ($namespace == null){
 			if (preg_match("/<{$tag}(?=[\\s>]).*?>(.*?)<\\/$tag>/s", $snippet, $matches)){
 				return $matches[1];
@@ -279,7 +279,7 @@ class FedoraUtils {
 	 *
 	 * @return string[]
 	 */
-	public function getModsValues($tag, $namespace = null, $snippet = null, $includeTag = false){
+	public function getModsValues($tag, $namespace = null, $snippet, $includeTag = false){
 		if ($namespace == null){
 			if (preg_match_all("/<{$tag}(?=[\\s>]).*?>(.*?)<\\/$tag>/s", $snippet, $matches, PREG_PATTERN_ORDER)){
 				return $includeTag ? $matches[0] : $matches[1];

@@ -241,27 +241,46 @@ abstract class Archive_Object extends Action{
 		}
 
 		$academicResearchSection = $this->recordDriver->getModsValue('academicResearch', 'marmot');
+		$hasAcademicResearchData = false;
 		if (!empty($academicResearchSection)){
 			$researchType = FedoraUtils::cleanValue($this->recordDriver->getModsValue('academicResearchType', 'marmot', $academicResearchSection));
-			$interface->assign('researchType', $researchType);
+			if (strlen($researchType)){
+				$hasAcademicResearchData = true;
+				$interface->assign('researchType', $researchType);
+			}
 
 			$researchLevel = FedoraUtils::cleanValue($this->recordDriver->getModsValue('academicResearchLevel', 'marmot', $academicResearchSection));
-			$interface->assign('researchLevel', ucwords($researchLevel));
+			if (strlen($researchLevel)) {
+				$hasAcademicResearchData = true;
+				$interface->assign('researchLevel', ucwords($researchLevel));
+			}
 
 			$degreeName = FedoraUtils::cleanValue($this->recordDriver->getModsValue('degreeName', 'marmot', $academicResearchSection));
-			$interface->assign('degreeName', $degreeName);
+			if (strlen($degreeName)) {
+				$hasAcademicResearchData = true;
+				$interface->assign('degreeName', $degreeName);
+			}
 
 			$degreeDiscipline = FedoraUtils::cleanValue($this->recordDriver->getModsValue('degreeDiscipline', 'marmot', $academicResearchSection));
-			$interface->assign('degreeDiscipline', $degreeDiscipline);
+			if (strlen($degreeDiscipline)){
+				$hasAcademicResearchData = true;
+				$interface->assign('degreeDiscipline', $degreeDiscipline);
+			}
 
 			$peerReview = FedoraUtils::cleanValue($this->recordDriver->getModsValue('peerReview', 'marmot', $academicResearchSection));
 			$interface->assign('peerReview', ucwords($peerReview));
 
 			$defenceDate = FedoraUtils::cleanValue($this->recordDriver->getModsValue('defenceDate', 'marmot', $academicResearchSection));
-			$interface->assign('defenceDate', $defenceDate);
+			if (strlen($defenceDate)) {
+				$hasAcademicResearchData = true;
+				$interface->assign('defenceDate', $defenceDate);
+			}
 
 			$acceptedDate = FedoraUtils::cleanValue($this->recordDriver->getModsValue('acceptedDate', 'marmot', $academicResearchSection));
-			$interface->assign('acceptedDate', $acceptedDate);
+			if (strlen($acceptedDate)) {
+				$hasAcademicResearchData = true;
+				$interface->assign('acceptedDate', $acceptedDate);
+			}
 
 			$relatedAcademicPeople = $this->recordDriver->getModsValues('relatedPersonOrg', 'marmot', $academicResearchSection);
 			if ($relatedAcademicPeople){
@@ -291,11 +310,12 @@ abstract class Archive_Object extends Action{
 				}
 				if (count($academicPeople) > 0){
 					$interface->assign('academicPeople', $academicPeople);
+					$hasAcademicResearchData = true;
 				}
 			}
 
-			$interface->assign('hasAcademicResearchData', true);
 		}
+		$interface->assign('hasAcademicResearchData', $hasAcademicResearchData);
 
 		$transcriptions = $this->recordDriver->getModsValues('hasTranscription', 'marmot');
 		if ($transcriptions){
