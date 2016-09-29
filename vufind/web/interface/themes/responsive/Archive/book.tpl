@@ -49,7 +49,7 @@
 		<div id="download-options" class="row">
 			<div class="col-xs-12">
 				<a class="btn btn-default" href="/Archive/{$pid}/DownloadPDF">Download Book As PDF</a>
-				<a class="btn btn-default" href="/Archive/{$activePage}/DownloadPDF">Download Page As PDF</a>
+				<a class="btn btn-default" href="/Archive/{$activePage}/DownloadPDF" id="downloadPageAsPDF">Download Page As PDF</a>
 			</div>
 		</div>
 *}

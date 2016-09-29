@@ -261,6 +261,7 @@ VuFind.Archive = (function(){
 				//VuFind.Archive.openSeaDragonViewer.viewport.fitVertically(true);
 			}
 			if (pageChanged && this.multiPage){
+				//$("#downloadPageAsPDF").href = Globals.path + "/Archive/" + pid + "/DownloadPDF";
 				url = Globals.path + "/Archive/AJAX?method=getAdditionalRelatedObjects&id=" + pid;
 				var additionalRelatedObjectsTarget = $("#additional-related-objects");
 				additionalRelatedObjectsTarget.html("");

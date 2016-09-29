@@ -93,10 +93,16 @@ abstract class Archive_Object extends Action{
 		if (strlen($originInfo)){
 			$dateCreated = $this->recordDriver->getModsValue('dateCreated', 'mods', $originInfo);
 			$interface->assign('dateCreated', $dateCreated);
+
+			$dateIssued = $this->recordDriver->getModsValue('dateIssued', 'mods', $originInfo);
+			$interface->assign('dateIssued', $dateIssued);
 		}
 		
 		$identifier = $this->recordDriver->getModsValues('identifier', 'mods');
 		$interface->assign('identifier', FedoraUtils::cleanValues($identifier));
+
+		$language = $this->recordDriver->getModsValue('languageTerm', 'mods');
+		$interface->assign('language', FedoraUtils::cleanValue($language));
 
 		$physicalDescriptions = $this->recordDriver->getModsValues('physicalDescription', 'mods');
 		$physicalExtents = array();
@@ -186,7 +192,7 @@ abstract class Archive_Object extends Action{
 		$interface->assign('hasCorrespondenceInfo', $hasCorrespondenceInfo);
 
 		$shelfLocator = $this->recordDriver->getModsValues('shelfLocator', 'mods');
-		$interface->assign('shelfLocator', $shelfLocator);
+		$interface->assign('shelfLocator', FedoraUtils::cleanValues($shelfLocator));
 
 		$recordInfo = $this->recordDriver->getModsValue('identifier', 'recordInfo');
 		if (strlen($recordInfo)){
@@ -211,6 +217,85 @@ abstract class Archive_Object extends Action{
 
 		$rightsStatements = $this->recordDriver->getModsValues('rightsStatement', 'marmot');
 		$interface->assign('rightsStatements', $rightsStatements);
+
+		$rightsHolder = $this->recordDriver->getModsValue('rightsHolder', 'marmot');
+		if (!empty($rightsHolder)){
+			$rightsHolderPid = $this->recordDriver->getModsValue('entityPid', 'marmot', $rightsHolder);
+			$rightsHolderTitle = $this->recordDriver->getModsValue('entityTitle', 'marmot', $rightsHolder);
+			if ($rightsHolderPid){
+				$interface->assign('rightsHolderTitle', $rightsHolderTitle);
+				$rightsHolderObj = RecordDriverFactory::initRecordDriver($fedoraUtils->getObject($rightsHolderPid));
+				$interface->assign('rightsHolderLink', $rightsHolderObj->getRecordUrl());
+			}
+		}
+
+		$rightsCreator = $this->recordDriver->getModsValue('rightsCreator', 'marmot');
+		if (!empty($rightsCreator)){
+			$rightsCreatorPid = $this->recordDriver->getModsValue('entityPid', 'marmot', $rightsCreator);
+			$rightsCreatorTitle = $this->recordDriver->getModsValue('entityTitle', 'marmot', $rightsCreator);
+			if ($rightsCreatorPid){
+				$interface->assign('rightsCreatorTitle', $rightsCreatorTitle);
+				$rightsCreatorObj = RecordDriverFactory::initRecordDriver($fedoraUtils->getObject($rightsCreatorPid));
+				$interface->assign('rightsCreatorLink', $rightsCreatorObj->getRecordUrl());
+			}
+		}
+
+		$academicResearchSection = $this->recordDriver->getModsValue('academicResearch', 'marmot');
+		if (!empty($academicResearchSection)){
+			$researchType = FedoraUtils::cleanValue($this->recordDriver->getModsValue('academicResearchType', 'marmot', $academicResearchSection));
+			$interface->assign('researchType', $researchType);
+
+			$researchLevel = FedoraUtils::cleanValue($this->recordDriver->getModsValue('academicResearchLevel', 'marmot', $academicResearchSection));
+			$interface->assign('researchLevel', ucwords($researchLevel));
+
+			$degreeName = FedoraUtils::cleanValue($this->recordDriver->getModsValue('degreeName', 'marmot', $academicResearchSection));
+			$interface->assign('degreeName', $degreeName);
+
+			$degreeDiscipline = FedoraUtils::cleanValue($this->recordDriver->getModsValue('degreeDiscipline', 'marmot', $academicResearchSection));
+			$interface->assign('degreeDiscipline', $degreeDiscipline);
+
+			$peerReview = FedoraUtils::cleanValue($this->recordDriver->getModsValue('peerReview', 'marmot', $academicResearchSection));
+			$interface->assign('peerReview', ucwords($peerReview));
+
+			$defenceDate = FedoraUtils::cleanValue($this->recordDriver->getModsValue('defenceDate', 'marmot', $academicResearchSection));
+			$interface->assign('defenceDate', $defenceDate);
+
+			$acceptedDate = FedoraUtils::cleanValue($this->recordDriver->getModsValue('acceptedDate', 'marmot', $academicResearchSection));
+			$interface->assign('acceptedDate', $acceptedDate);
+
+			$relatedAcademicPeople = $this->recordDriver->getModsValues('relatedPersonOrg', 'marmot', $academicResearchSection);
+			if ($relatedAcademicPeople){
+				$academicPeople = array();
+				foreach ($relatedAcademicPeople as $relatedPerson){
+					$personPid = $this->recordDriver->getModsValue('entityPid', 'marmot', $relatedPerson);
+					$role = ucwords($this->recordDriver->getModsValue('role', 'marmot', $relatedPerson));
+					if ($personPid){
+						$academicPersonObject = $fedoraUtils->getObject($personPid);
+						if ($academicPersonObject){
+							$academicPersonDriver = RecordDriverFactory::initRecordDriver($academicPersonObject);
+							$academicPeople[] = array(
+									'link' => $academicPersonDriver->getRecordUrl(),
+									'label' => $academicPersonDriver->getTitle(),
+									'role' => $role
+							);
+						}
+					}else{
+						$personTitle = $this->recordDriver->getModsValue('entityTitle', 'marmot', $relatedPerson);
+						if ($personTitle){
+							$academicPeople[] = array(
+									'label' => $personTitle,
+									'role' => $role
+							);
+						}
+					}
+				}
+				if (count($academicPeople) > 0){
+					$interface->assign('academicPeople', $academicPeople);
+				}
+			}
+
+			$interface->assign('hasAcademicResearchData', true);
+		}
 
 		$transcriptions = $this->recordDriver->getModsValues('hasTranscription', 'marmot');
 		if ($transcriptions){
@@ -261,6 +346,56 @@ abstract class Archive_Object extends Action{
 		$interface->assign('alternateNames', FedoraUtils::cleanValues($alternateNames));
 
 		$this->recordDriver->loadRelatedEntities();
+
+		$interface->assign('hasEducationInfo', false);
+		$academicRecord = $this->recordDriver->getModsValue('education', 'marmot');
+		if (strlen($academicRecord) > 0){
+			$degreeName = FedoraUtils::cleanValue($this->recordDriver->getModsValue('degreeName', 'marmot', $academicRecord));
+			if ($degreeName){
+				$interface->assign('degreeName', $degreeName);
+				$hasEducationInfo = true;
+			}
+
+			$graduationDate = FedoraUtils::cleanValue($this->recordDriver->getModsValue('graduationDate', 'marmot', $academicRecord));
+			if ($graduationDate){
+				$interface->assign('graduationDate', $graduationDate);
+				$hasEducationInfo = true;
+			}
+
+			$relatedEducationPeople = $this->recordDriver->getModsValues('relatedPersonOrg', 'marmot', $academicRecord);
+			if ($relatedEducationPeople){
+				$educationPeople = array();
+				foreach ($relatedEducationPeople as $relatedPerson){
+					$personPid = $this->recordDriver->getModsValue('entityPid', 'marmot', $relatedPerson);
+					$role = ucwords($this->recordDriver->getModsValue('role', 'marmot', $relatedPerson));
+					if ($personPid){
+						$educationPersonObject = $fedoraUtils->getObject($personPid);
+						if ($educationPersonObject){
+							$educationPersonDriver = RecordDriverFactory::initRecordDriver($educationPersonObject);
+							$educationPeople[] = array(
+									'link' => $educationPersonDriver->getRecordUrl(),
+									'label' => $educationPersonDriver->getTitle(),
+									'role' => $role
+							);
+						}
+					}else{
+						$personTitle = $this->recordDriver->getModsValue('entityTitle', 'marmot', $relatedPerson);
+						if ($personTitle){
+							$educationPeople[] = array(
+									'label' => $personTitle,
+									'role' => $role
+							);
+						}
+					}
+					$hasEducationInfo = true;
+				}
+				if (count($educationPeople) > 0){
+					$interface->assign('educationPeople', $educationPeople);
+				}
+			}
+
+			$interface->assign('hasEducationInfo', $hasEducationInfo);
+		}
 
 		$interface->assign('hasMilitaryService', false);
 		$militaryService = $this->recordDriver->getModsValue('militaryService', 'marmot');
