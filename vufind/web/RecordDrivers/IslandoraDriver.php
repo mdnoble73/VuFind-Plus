@@ -1860,4 +1860,33 @@ abstract class IslandoraDriver extends RecordInterface {
 		}
 		return $this->childObjects;
 	}
+
+	public function getRandomObject() {
+		// Include Search Engine Class
+		require_once ROOT_DIR . '/sys/Solr.php';
+
+		// Initialise from the current search globals
+		/** @var SearchObject_Islandora $searchObject */
+		$searchObject = SearchObjectFactory::initSearchObject('Islandora');
+		$searchObject->init();
+		$searchObject->setLimit(1);
+		$now = time();
+		$searchObject->setSort("random_$now asc");
+		$searchObject->setSearchTerms(array(
+				'lookfor' => '"info:fedora/' . $this->getUniqueID() .'"',
+				'index' => 'RELS_EXT_isMemberOfCollection_uri_mt'
+		));
+
+		$searchObject->clearHiddenFilters();
+		$searchObject->addHiddenFilter('!RELS_EXT_isViewableByRole_literal_ms', "administrator");
+		$searchObject->clearFilters();
+		$searchObject->setApplyStandardFilters(false);
+		$response = $searchObject->processSearch(true, false, true);
+		if ($response && $response['response']['numFound'] > 0) {
+			foreach ($response['response']['docs'] as $doc) {
+				return $doc['PID'];
+			}
+		}
+		return null;
+	}
 }

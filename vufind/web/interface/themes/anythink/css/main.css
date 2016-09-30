@@ -10548,6 +10548,15 @@ a.browse-thumbnail-sorted.active {
   font-size: 14px;
   color: #6B6B6B;
 }
+.archiveComponentContainer .archiveComponent .archiveComponentBody .archiveComponentBox .archiveComponentRandomImage {
+  padding: 20px;
+  font-size: 14px;
+  color: #6B6B6B;
+  text-align: center;
+}
+.archiveComponentContainer .archiveComponent .archiveComponentBody .archiveComponentBox .archiveComponentRandomImage figure a > img {
+  max-height: 170px;
+}
 .archiveComponentContainer .archiveComponent .archiveComponentBody:before {
   content: "";
   display: block;

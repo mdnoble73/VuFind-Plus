@@ -109,7 +109,18 @@ class Archive_Exhibit extends Archive_Object{
 					$interface->assignAppendToExisting('browseCollectionTitlesData', $browseCollectionTitlesData);
 					$collectionTemplates[] = $interface->fetch('Archive/browseCollectionTitles.tpl');
 				}else if ($option == 'randomImage' ){
-					//$collectionTemplates[] = $interface->fetch('Archive/randomImageComponent.tpl');
+					$randomImagePid = $this->recordDriver->getRandomObject();
+					if ($randomImagePid != null){
+						$randomObject = RecordDriverFactory::initRecordDriver($fedoraUtils->getObject($randomImagePid));
+						$randomObjectInfo = array(
+								'label' => $randomObject->getTitle(),
+								'link' => $randomObject->getRecordUrl(),
+								'image' => $randomObject->getBookcoverUrl('medium')
+						);
+						$interface->assign('randomObject', $randomObjectInfo);
+						$collectionTemplates[] = $interface->fetch('Archive/randomImageComponent.tpl');
+					}
+
 				}
 
 			}
