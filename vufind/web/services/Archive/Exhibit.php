@@ -15,6 +15,8 @@ class Archive_Exhibit extends Archive_Object{
 		global $configArray;
 		global $timer;
 
+		$fedoraUtils = FedoraUtils::getInstance();
+
 		$this->loadArchiveObjectData();
 		$timer->logTime('Loaded Archive Object Data');
 		//$this->loadExploreMoreContent();
@@ -24,6 +26,16 @@ class Archive_Exhibit extends Archive_Object{
 			$pikaCollectionDisplay = $_REQUEST['style'];
 		}else{
 			$pikaCollectionDisplay = $this->recordDriver->getModsValue('pikaCollectionDisplay', 'marmot');
+		}
+
+		$repositoryLink = $configArray['Islandora']['repositoryUrl'] . '/islandora/object/' . $this->recordDriver->getUniqueID();
+		$interface->assign('repositoryLink', $repositoryLink);
+
+		$description = html_entity_decode($this->recordDriver->getDescription());
+		$description = str_replace("\r\n", '<br/>', $description);
+		$description = str_replace("&#xD;", '<br/>', $description);
+		if (strlen($description)){
+			$interface->assign('description', $description);
 		}
 
 		$displayType = 'basic';
@@ -68,14 +80,38 @@ class Archive_Exhibit extends Archive_Object{
 			$collectionTemplates = array();
 			foreach ($collectionOptions as $option){
 				if ($option == 'searchCollection'){
-					$collectionTemplates[] = 'Archive/searchComponent.tpl';
-				}
-				if ($option == 'googleMap'){
+					$collectionTemplates[] = $interface->fetch('Archive/searchComponent.tpl');
+				}else if ($option == 'googleMap'){
 					$mapZoom = $this->recordDriver->getModsValue('mapZoomLevel', 'marmot');
 					$interface->assign('mapZoom', $mapZoom);
 					$this->recordDriver->getRelatedPlaces();
-					$collectionTemplates[] = 'Archive/browseByMapComponent.tpl';
+					$collectionTemplates[] = $interface->fetch('Archive/browseByMapComponent.tpl');
+				}else if (strpos($option, 'browseCollectionByTitle') === 0 ){
+					$collectionToLoadFromPID = str_replace('browseCollectionByTitle|', '', $option);
+					$collectionToLoadFromObject = $fedoraUtils->getObject($collectionToLoadFromPID);
+					$collectionDriver = RecordDriverFactory::initRecordDriver($collectionToLoadFromObject);
+
+					$collectionObjects = $collectionDriver->getChildren();
+					$collectionTitles = array();
+					foreach ($collectionObjects as $childPid){
+						$childObject = RecordDriverFactory::initRecordDriver($fedoraUtils->getObject($childPid));
+						$collectionTitles[] = array(
+								'title' => $childObject->getTitle(),
+								'link' => $childObject->getRecordUrl()
+						);
+					}
+
+
+					$browseCollectionTitlesData = array(
+						'title' => $collectionToLoadFromObject->label,
+						'collectionTitles' => $collectionTitles,
+					);
+					$interface->assignAppendToExisting('browseCollectionTitlesData', $browseCollectionTitlesData);
+					$collectionTemplates[] = $interface->fetch('Archive/browseCollectionTitles.tpl');
+				}else if ($option == 'randomImage' ){
+					//$collectionTemplates[] = $interface->fetch('Archive/randomImageComponent.tpl');
 				}
+
 			}
 			$interface->assign('collectionTemplates', $collectionTemplates);
 

@@ -1826,4 +1826,38 @@ abstract class IslandoraDriver extends RecordInterface {
 			}
 		}
 	}
+
+	protected $childObjects = null;
+	public function getChildren() {
+		if ($this->childObjects == null){
+			$this->childObjects = array();
+			// Include Search Engine Class
+			require_once ROOT_DIR . '/sys/Solr.php';
+
+			// Initialise from the current search globals
+			/** @var SearchObject_Islandora $searchObject */
+			$searchObject = SearchObjectFactory::initSearchObject('Islandora');
+			$searchObject->init();
+			$searchObject->setLimit(100);
+			$searchObject->setSort('fgs_label_s');
+			$searchObject->setSearchTerms(array(
+					'lookfor' => '"info:fedora/' . $this->getUniqueID() .'"',
+					'index' => 'RELS_EXT_isMemberOfCollection_uri_mt'
+			));
+			$searchObject->addFieldsToReturn(array('RELS_EXT_isMemberOfCollection_uri_mt'));
+
+			$searchObject->clearHiddenFilters();
+			$searchObject->addHiddenFilter('!RELS_EXT_isViewableByRole_literal_ms', "administrator");
+			$searchObject->clearFilters();
+			$searchObject->setApplyStandardFilters(false);
+			$response = $searchObject->processSearch(true, false, true);
+			if ($response && $response['response']['numFound'] > 0) {
+				foreach ($response['response']['docs'] as $doc) {
+					$subCollectionPid = $doc['PID'];
+					$this->childObjects[] = $subCollectionPid;
+				}
+			}
+		}
+		return $this->childObjects;
+	}
 }
