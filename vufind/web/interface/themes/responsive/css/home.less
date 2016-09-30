@@ -136,7 +136,9 @@
   padding: 3px 0;
   margin-bottom: 15px;
   a {
-    color:#fff;
+    &, &:visited, &:hover {
+      color: #fff;
+    }
   }
 }
 
@@ -163,6 +165,13 @@
   .active .panel-title {
     color: #fff;
     text-shadow: 1px 1px @gray;
+    //TODO: the two above probably belong within the a tag
+    a {
+      &, &:visited, &:hover {
+        color: #fff;
+      }
+    }
+
   }
   .panel-body {
     font-size: 13px;

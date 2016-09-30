@@ -5069,6 +5069,7 @@ button.close {
 }
 .modal.fade .modal-dialog {
   -webkit-transform: translate(0, -25%);
+  -ms-transform: translate(0, -25%);
   transform: translate(0, -25%);
   -webkit-transition: -webkit-transform 0.3s ease-out;
   transition: -webkit-transform 0.3s ease-out;
@@ -5077,6 +5078,7 @@ button.close {
 }
 .modal.in .modal-dialog {
   -webkit-transform: translate(0, 0);
+  -ms-transform: translate(0, 0);
   transform: translate(0, 0);
 }
 .modal-dialog {
@@ -7960,6 +7962,7 @@ fieldset[disabled] .datepicker table tr td span.active.disabled:hover.active {
   bottom: -25px;
   left: 50%;
   -webkit-transform: translate(-50%, 0);
+  -ms-transform: translate(-50%, 0);
   transform: translate(-50%, 0);
   margin: 0;
 }
@@ -8038,6 +8041,7 @@ fieldset[disabled] .datepicker table tr td span.active.disabled:hover.active {
   vertical-align: text-top;
   text-align: center;
   -webkit-transform: scale(0.6);
+      -ms-transform: scale(0.6);
           transform: scale(0.6);
   margin-top: -1px;
   margin-bottom: -1px;
@@ -8568,10 +8572,13 @@ hr.menu {
   color: #FFF;
   padding-left: 0;
   padding-right: 0;
+  margin-top: 2px;
+  border-right: 3px solid #fff;
 }
 #vertical-menu-bar .menu-bar-option {
   width: 100%;
   padding-top: 6px;
+  border-top: 3px solid #fff;
   position: relative;
 }
 #vertical-menu-bar .menu-bar-option.menu-icon-selected {
@@ -8607,8 +8614,10 @@ hr.menu {
   display: inline-block;
   white-space: nowrap;
   -webkit-transform: rotate(-90deg) translateX(-100%);
+      -ms-transform: rotate(-90deg) translateX(-100%);
           transform: rotate(-90deg) translateX(-100%);
   -webkit-transform-origin: 0 0;
+      -ms-transform-origin: 0 0;
           transform-origin: 0 0;
 }
 .rotated-text-inner:after {
@@ -8823,7 +8832,9 @@ hr.menu {
   padding: 3px 0;
   margin-bottom: 15px;
 }
-.sidebar-button a {
+.sidebar-button a,
+.sidebar-button a:visited,
+.sidebar-button a:hover {
   color: #fff;
 }
 .sidebar-links .panel-group .panel + .panel {
@@ -8849,6 +8860,11 @@ hr.menu {
 .sidebar-links .active .panel-title {
   color: #fff;
   text-shadow: 1px 1px #555555;
+}
+.sidebar-links .active .panel-title a,
+.sidebar-links .active .panel-title a:visited,
+.sidebar-links .active .panel-title a:hover {
+  color: #fff;
 }
 .sidebar-links .panel-body {
   font-size: 13px;
@@ -9866,15 +9882,6 @@ a.browse-thumbnail-sorted.active {
   padding: 3px 0;
   margin-top: 20px;
 }
-#narrow-search-label {
-  text-align: center;
-  background-color: #7c7c7d;
-  background: -webkit-linear-gradient(top, #7c7c7d, #3d4244);
-  background: linear-gradient(to bottom, #7c7c7d, #3d4244);
-  color: #fff;
-  padding: 3px 0;
-  margin-top: 20px;
-}
 .facetTitle {
   background-color: #e8e8e8;
   background: -webkit-linear-gradient(top, #e8e8e8, #d7d7d7);
@@ -10300,8 +10307,10 @@ a.browse-thumbnail-sorted.active {
 .exploreMoreBar .label-left .exploreMoreBarLabel {
   position: absolute;
   -webkit-transform: rotate(-90deg) translateX(-100%);
+      -ms-transform: rotate(-90deg) translateX(-100%);
           transform: rotate(-90deg) translateX(-100%);
   -webkit-transform-origin: 0 0;
+      -ms-transform-origin: 0 0;
           transform-origin: 0 0;
   padding-right: 10px;
   padding-left: 5px;
@@ -10348,6 +10357,7 @@ a.browse-thumbnail-sorted.active {
   position: absolute;
   top: 62px;
   -webkit-transform: translate(-50%, -50%);
+      -ms-transform: translate(-50%, -50%);
           transform: translate(-50%, -50%);
   left: 50%;
 }
@@ -10495,7 +10505,7 @@ a.browse-thumbnail-sorted.active {
 .archiveComponentContainer .archiveComponent {
   border: 1px solid lightgrey;
   background-color: #770B0B;
-  background: -webkit-linear-gradient(left, white, white 120px, #770B0B 121px, #770B0B);
+  background: -webkit-linear-gradient(0deg, white, white 120px, #770B0B 121px, #770B0B);
   background: linear-gradient(90deg, white, white 120px, #770B0B 121px, #770B0B);
   color: #FFF;
   font-size: 20px;
