@@ -59,6 +59,9 @@ cd /usr/local/vufind-plus/vufind/cron;./GetHooplaFromMarmot.sh >> ${OUTPUT_FILE}
 # CMC Ebsco Academic Marc Updates
 /usr/local/vufind-plus/sites/opac.marmot.org/moveFullExport.sh cmc/ebsco ebsco/cmc >> ${OUTPUT_FILE}
 
+# Fort Lewis Ebsco Academic Marc Updates
+/usr/local/vufind-plus/sites/opac.marmot.org/moveFullExport.sh fortlewis_sideload/EBSCO_Academic ebsco/fortlewis >> ${OUTPUT_FILE}
+
 # Western Oxford Reference Marc Updates
 /usr/local/vufind-plus/sites/opac.marmot.org/moveFullExport.sh western/oxfordReference oxfordReference/western >> ${OUTPUT_FILE}
 
