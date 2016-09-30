@@ -43,6 +43,12 @@ class Archive_Page extends Archive_Object{
 			$page['transcript'] = $objectUrl . '/' . $page['pid'] . '/datastream/HOCR/view';
 		}elseif ($pageObject->getDataStream('OCR') != null){
 			$page['transcript'] = $objectUrl . '/' . $page['pid'] . '/datastream/OCR/view';
+		}else{
+			$mods = $fedoraUtils->getModsData($pageObject);
+			$transcript = $fedoraUtils->getModsValue('transcriptionText', 'marmot', $mods);
+			if (strlen($transcript) > 0){
+				$page['transcript'] = 'mods:' . $page['pid'];
+			}
 		}
 		$page['cover'] = $fedoraUtils->getObjectImageUrl($pageObject, 'thumbnail');
 		$interface->assign('page', $page);
