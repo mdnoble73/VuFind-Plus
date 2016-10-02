@@ -57,7 +57,7 @@
 			<div class="result-label col-sm-4">Series: </div>
 			<div class="col-sm-8 result-value">
 				{assign var=summSeries value=$recordDriver->getSeries()}
-				<a href="{$path}/GroupedWork/{$recordDriver->getPermanentId()}/Series">{$summSeries.seriesTitle}</a>{if $summSeries.volume} volume {$summSeries.volume}{/if}
+				<a href="{$path}/GroupedWork/{$recordDriver->getPermanentId()}/Series">{$summSeries.seriesTitle}</a>{if !empty($seriesItem.volume)} volume {$summSeries.volume}{/if}
 			</div>
 		</div>
 	{/if}

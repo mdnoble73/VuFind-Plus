@@ -8820,9 +8820,9 @@ hr.menu {
 #home-page-library-section {
   padding: 15px 0;
 }
-#home-page-library-section a,
-#home-page-library-section a:visited,
-#home-page-library-section a:hover {
+#home-page-library-section > a,
+#home-page-library-section > a:visited,
+#home-page-library-section > a:hover {
   color: #fff;
 }
 .sidebar-button {
@@ -8834,11 +8834,6 @@ hr.menu {
   padding: 3px 0;
   margin-bottom: 15px;
 }
-.sidebar-button a,
-.sidebar-button a:visited,
-.sidebar-button a:hover {
-  color: #fff;
-}
 .sidebar-links .panel-group .panel + .panel {
   margin-top: 0;
 }
@@ -8849,24 +8844,24 @@ hr.menu {
   background: linear-gradient(to bottom, #e7e7e7, #d7d7d7);
   border-bottom: 1px solid #a1a1a1;
 }
-.sidebar-links .active .panel-heading {
-  background-color: #015cb9;
-  background: -webkit-linear-gradient(top, #015cb9, #014386);
-  background: linear-gradient(to bottom, #015cb9, #014386);
-}
-.sidebar-links .panel-title {
+.sidebar-links .panel > a,
+.sidebar-links .panel > a:visited,
+.sidebar-links .panel > a:hover {
   font-size: 14px;
   color: #333333;
   text-shadow: 1px 1px #fff;
 }
-.sidebar-links .active .panel-title {
+.sidebar-links .panel.active > a,
+.sidebar-links .panel.active > a:visited,
+.sidebar-links .panel.active > a:hover {
   color: #fff;
   text-shadow: 1px 1px #555555;
+  outline: none;
 }
-.sidebar-links .active .panel-title a,
-.sidebar-links .active .panel-title a:visited,
-.sidebar-links .active .panel-title a:hover {
-  color: #fff;
+.sidebar-links .active .panel-heading {
+  background-color: #015cb9;
+  background: -webkit-linear-gradient(top, #015cb9, #014386);
+  background: linear-gradient(to bottom, #015cb9, #014386);
 }
 .sidebar-links .panel-body {
   font-size: 13px;

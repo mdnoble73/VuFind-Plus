@@ -127,7 +127,7 @@
 
 #home-page-library-section{
   padding: 15px 0;
-  a {
+  > a {
     &, &:visited, &:hover {
       color: #fff;
     }
@@ -140,11 +140,12 @@
   color: #fff;
   padding: 3px 0;
   margin-bottom: 15px;
-  a {
-    &, &:visited, &:hover {
-      color: #fff;
-    }
-  }
+// the a link is now outside this div
+  //> a {
+  //  &, &:visited, &:hover {
+  //    color: #fff;
+  //  }
+  //}
 }
 
 // Library Link Formatting
@@ -158,25 +159,34 @@
     background: linear-gradient(to bottom, #e7e7e7, #d7d7d7);
     border-bottom: 1px solid #a1a1a1;
   }
-  .active .panel-heading {
-    background-color: @accordion-active-header-color;
-    background: linear-gradient(to bottom, @accordion-active-header-color, darken(@accordion-active-header-color, 10%));
-  }
-  .panel-title {
-    font-size: @sidebar-font-size;
-    color: @gray-dark;
-    text-shadow: 1px 1px #fff;
-  }
-  .active .panel-title {
-    color: #fff;
-    text-shadow: 1px 1px @gray;
-    //TODO: the two above probably belong within the a tag
-    a {
+  .panel {
+    & > a { // keep the title's link underlining the same color as the title
+      // these end up applying to content in div.panel-title
       &, &:visited, &:hover {
-        color: #fff;
+        font-size: @sidebar-font-size;
+        color: @gray-dark;
+        text-shadow: 1px 1px #fff;
       }
     }
+    &.active {
+      & > a { // keep the title's link underlining the same color as the title
+        // these end up applying to content in .active div.panel-title
+        &, &:visited, &:hover {
+          color: @accordion-active-header-color;
+          text-shadow: 1px 1px @gray;
+          outline: none;
+        }
+      }
+    }
+  }
+  .active {
+    .panel-heading {
+      background-color: @accordion-active-header-backgroundcolor;
+      background: linear-gradient(to bottom, @accordion-active-header-backgroundcolor, darken(@accordion-active-header-backgroundcolor, 10%));
+    }
+    .panel-title {
 
+    }
   }
   .panel-body {
     font-size: 13px;
