@@ -8822,6 +8822,11 @@ hr.menu {
 #home-page-library-section {
   padding: 15px 0;
 }
+#home-page-library-section a,
+#home-page-library-section a:visited,
+#home-page-library-section a:hover {
+  color: #fff;
+}
 .sidebar-button {
   text-align: center;
   background-color: #7c7c7d;
@@ -9876,8 +9881,8 @@ a.browse-thumbnail-sorted.active {
 .sidebar-label {
   text-align: center;
   background-color: #7c7c7d;
-  background: -webkit-linear-gradient(top, #7c7c7d, #3d4244);
-  background: linear-gradient(to bottom, #7c7c7d, #3d4244);
+  background: -webkit-linear-gradient(top, #7c7c7d, #414141);
+  background: linear-gradient(to bottom, #7c7c7d, #414141);
   color: #fff;
   padding: 3px 0;
   margin-top: 20px;
@@ -9904,16 +9909,6 @@ a.browse-thumbnail-sorted.active {
   .top-facet {
     display: none;
   }
-}
-#results-sort-label {
-  text-align: center;
-  background-color: #7c7c7d;
-  background: -webkit-linear-gradient(top, #7c7c7d, #3d4244);
-  background: linear-gradient(to bottom, #7c7c7d, #3d4244);
-  color: #fff;
-  padding: 3px 0;
-  margin-top: 20px;
-  font-size: 14px;
 }
 #results-sort {
   width: 80%;

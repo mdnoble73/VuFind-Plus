@@ -58,9 +58,10 @@
 }
 .sidebar-label{
   text-align: center;
-  background-color: #7c7c7d;
-  background: linear-gradient(to bottom, #7c7c7d, #3d4244);
-  color: #fff;
+  background-color: @sidebar-label-background-color;
+  //background: linear-gradient(to bottom, @sidebar-label-background-color, #3d4244); //TODO find precent darken for 2nd color and then change to a darken function
+  background: linear-gradient(to bottom, @sidebar-label-background-color, darken(desaturate(spin(@sidebar-label-background-color, -42.8571), 5.0248), 23.5294)); //TODO find precent darken for 2nd color and then change to a darken function
+  color: @sidebar-label-color;
   padding: 3px 0;
   margin-top: 20px;
 }
@@ -99,15 +100,16 @@
   }
 }
 
-#results-sort-label{
-  text-align: center;
-  background-color: #7c7c7d;
-  background: linear-gradient(to bottom, #7c7c7d, #3d4244);
-  color: #fff;
-  padding: 3px 0;
-  margin-top: 20px;
-  font-size: 14px;
-}
+// duplicate of .sidebar-label; add class to html tag instead
+//#results-sort-label{
+//  text-align: center;
+//  background-color: #7c7c7d;
+//  background: linear-gradient(to bottom, #7c7c7d, #3d4244);
+//  color: #fff;
+//  padding: 3px 0;
+//  margin-top: 20px;
+//  font-size: 14px;
+//}
 #results-sort{
   width: 80%;
   margin: 5px 10%;
