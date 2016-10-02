@@ -9163,7 +9163,7 @@ hr.menu {
 }
 .selected-browse-label-search {
   font-size: 20px;
-  color: #0072bc;
+  color: #646510;
   vertical-align: top;
   margin-left: 20px;
   float: left;
@@ -9171,7 +9171,7 @@ hr.menu {
   padding: 0 8px;
 }
 .selected-browse-label-search a {
-  color: #0072bc;
+  color: #646510;
 }
 #selected-browse-search-link .icon-before {
   position: relative;
@@ -10650,9 +10650,6 @@ a.browse-thumbnail-sorted.active {
 .browse-category a:visited,
 .browse-category a:hover,
 .browse-category a:active {
-  color: #646510;
-}
-.selected-browse-label-search a {
   color: #646510;
 }
 #selected-browse-label {

@@ -9171,7 +9171,7 @@ hr.menu {
 }
 .selected-browse-label-search {
   font-size: 20px;
-  color: #0072bc;
+  color: #998e85;
   vertical-align: top;
   margin-left: 20px;
   float: left;
@@ -9179,7 +9179,7 @@ hr.menu {
   padding: 0 8px;
 }
 .selected-browse-label-search a {
-  color: #0072bc;
+  color: #998e85;
 }
 #selected-browse-search-link .icon-before {
   position: relative;
@@ -10811,9 +10811,6 @@ div.bottom-border-line {
 }
 .selected-browse-label-search {
   background: none;
-}
-.selected-browse-label-search a {
-  color: #998e85;
 }
 #selected-browse-search-link {
   text-transform: uppercase;

@@ -9163,7 +9163,7 @@ hr.menu {
 }
 .selected-browse-label-search {
   font-size: 20px;
-  color: #0072bc;
+  color: #467E99;
   vertical-align: top;
   margin-left: 20px;
   float: left;
@@ -9171,7 +9171,7 @@ hr.menu {
   padding: 0 8px;
 }
 .selected-browse-label-search a {
-  color: #0072bc;
+  color: #467E99;
 }
 #selected-browse-search-link .icon-before {
   position: relative;
@@ -10677,9 +10677,6 @@ a.browse-thumbnail-sorted.active {
 }
 .selected-browse-label-search {
   background: none;
-}
-.selected-browse-label-search a {
-  color: #467E99;
 }
 #selected-browse-search-link {
   text-transform: uppercase;

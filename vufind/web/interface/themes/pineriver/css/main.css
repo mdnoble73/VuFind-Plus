@@ -9163,7 +9163,7 @@ hr.menu {
 }
 .selected-browse-label-search {
   font-size: 20px;
-  color: #0072bc;
+  color: #6F4400;
   vertical-align: top;
   margin-left: 20px;
   float: left;
@@ -9171,7 +9171,7 @@ hr.menu {
   padding: 0 8px;
 }
 .selected-browse-label-search a {
-  color: #0072bc;
+  color: #6F4400;
 }
 #selected-browse-search-link .icon-before {
   position: relative;
@@ -10631,7 +10631,4 @@ a.browse-thumbnail-sorted.active {
 #browse-category-picker .jcarousel-pagination a:hover,
 #browse-category-picker .jcarousel-pagination a:active {
   background: #00B0E2;
-}
-.selected-browse-label-search a {
-  color: #6F4400;
 }
