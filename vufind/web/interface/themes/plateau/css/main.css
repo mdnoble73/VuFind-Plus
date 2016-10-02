@@ -7910,7 +7910,6 @@ fieldset[disabled] .datepicker table tr td span.active.disabled:hover.active {
   margin: 20px auto;
   position: relative;
 }
-/** Carousel **/
 .jcarousel {
   position: relative;
   overflow: hidden;
@@ -7935,7 +7934,6 @@ fieldset[disabled] .datepicker table tr td span.active.disabled:hover.active {
   max-width: 100%;
   height: auto !important;
 }
-/** Carousel Controls **/
 .jcarousel-control-prev,
 .jcarousel-control-next {
   position: absolute;
@@ -7943,8 +7941,8 @@ fieldset[disabled] .datepicker table tr td span.active.disabled:hover.active {
   width: 30px;
   height: 100px;
   text-align: center;
-  background: #4E443C;
-  color: #fff;
+  background: #fff;
+  color: #4E443C;
   text-decoration: none;
   text-shadow: 0 0 1px #000;
   font: 24px/100px Arial, sans-serif;
@@ -7956,14 +7954,13 @@ fieldset[disabled] .datepicker table tr td span.active.disabled:hover.active {
 .jcarousel-control-next {
   right: 15px;
 }
-/** Carousel Pagination **/
 .jcarousel-pagination {
   position: absolute;
   bottom: -25px;
   left: 50%;
   -webkit-transform: translate(-50%, 0);
-  -ms-transform: translate(-50%, 0);
-  transform: translate(-50%, 0);
+      -ms-transform: translate(-50%, 0);
+          transform: translate(-50%, 0);
   margin: 0;
 }
 .jcarousel-pagination a {
@@ -10545,11 +10542,35 @@ a.browse-thumbnail-sorted.active {
   width: 100%;
   height: 100%;
 }
+.archiveComponentContainer .archiveComponent .archiveComponentBody .archiveComponentBox .archiveComponentLinks {
+  padding: 20px;
+  font-size: 14px;
+  color: #6B6B6B;
+}
+.archiveComponentContainer .archiveComponent .archiveComponentBody .archiveComponentBox .archiveComponentRandomImage {
+  padding: 20px;
+  font-size: 14px;
+  color: #6B6B6B;
+  text-align: center;
+}
+.archiveComponentContainer .archiveComponent .archiveComponentBody .archiveComponentBox .archiveComponentRandomImage figure a img {
+  max-height: 170px;
+}
 .archiveComponentContainer .archiveComponent .archiveComponentBody:before {
   content: "";
   display: block;
   padding-top: 32%;
   /* ratio of 2:1*/
+}
+.archiveComponentContainer .archiveComponent.horizontalComponent {
+  background-color: #22702A;
+  background: -webkit-linear-gradient(#22702A, #22702A 45px, white 46px, white);
+  background: linear-gradient(#22702A, #22702A 45px, white 46px, white);
+}
+.archiveComponentContainer .archiveComponent.horizontalComponent .archiveComponentBody:before {
+  content: "";
+  display: block;
+  padding-top: 64%;
 }
 #pdfContainer {
   border: 1px solid lightgrey;

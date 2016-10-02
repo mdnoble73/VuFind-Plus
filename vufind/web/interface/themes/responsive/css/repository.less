@@ -334,6 +334,23 @@
           width: 100%;
           height: 100%;
         }
+
+        .archiveComponentLinks{
+          padding: 20px;
+          font-size: 14px;
+          color: @body-text-color;
+        }
+
+        .archiveComponentRandomImage{
+          padding: 20px;
+          font-size: 14px;
+          color: @body-text-color;
+          text-align: center;
+
+          figure a img{
+            max-height: 170px;
+          }
+        }
       }
     }
     .archiveComponentBody:before{
@@ -341,7 +358,19 @@
       display:     block;
       padding-top: 32%; /* ratio of 2:1*/
     }
+  }
+}
 
+.archiveComponentContainer{
+  .archiveComponent.horizontalComponent{
+    background-color: @menu-bar-background-color;
+    background: linear-gradient(@menu-bar-background-color, @menu-bar-background-color 45px, white 46px, white);
+
+    .archiveComponentBody:before{
+      content:     "";
+      display:     block;
+      padding-top: 64%;
+    }
   }
 }
 

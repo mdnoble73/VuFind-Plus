@@ -10535,11 +10535,35 @@ a.browse-thumbnail-sorted.active {
   width: 100%;
   height: 100%;
 }
+.archiveComponentContainer .archiveComponent .archiveComponentBody .archiveComponentBox .archiveComponentLinks {
+  padding: 20px;
+  font-size: 14px;
+  color: #6B6B6B;
+}
+.archiveComponentContainer .archiveComponent .archiveComponentBody .archiveComponentBox .archiveComponentRandomImage {
+  padding: 20px;
+  font-size: 14px;
+  color: #6B6B6B;
+  text-align: center;
+}
+.archiveComponentContainer .archiveComponent .archiveComponentBody .archiveComponentBox .archiveComponentRandomImage figure a img {
+  max-height: 170px;
+}
 .archiveComponentContainer .archiveComponent .archiveComponentBody:before {
   content: "";
   display: block;
   padding-top: 32%;
   /* ratio of 2:1*/
+}
+.archiveComponentContainer .archiveComponent.horizontalComponent {
+  background-color: #00a4e3;
+  background: -webkit-linear-gradient(#00a4e3, #00a4e3 45px, white 46px, white);
+  background: linear-gradient(#00a4e3, #00a4e3 45px, white 46px, white);
+}
+.archiveComponentContainer .archiveComponent.horizontalComponent .archiveComponentBody:before {
+  content: "";
+  display: block;
+  padding-top: 64%;
 }
 #pdfContainer {
   border: 1px solid lightgrey;
