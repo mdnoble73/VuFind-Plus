@@ -31,6 +31,8 @@ public abstract class IIIRecordProcessor extends IlsRecordProcessor{
 	private HashMap<Long, LoanRule> loanRules = new HashMap<>();
 	private ArrayList<LoanRuleDeterminer> loanRuleDeterminers = new ArrayList<>();
 	protected String exportPath;
+	// A list of status codes that are eligible to show items as checked out.
+	protected HashSet<String> validCheckedOutStatusCodes = new HashSet<>();
 
 	public IIIRecordProcessor(GroupedWorkIndexer indexer, Connection vufindConn, Ini configIni, ResultSet indexingProfileRS, Logger logger, boolean fullReindex) {
 		super(indexer, vufindConn, configIni, indexingProfileRS, logger, fullReindex);
@@ -40,6 +42,7 @@ public abstract class IIIRecordProcessor extends IlsRecordProcessor{
 			logger.error("Unable to load marc path from indexing profile");
 		}
 		loadLoanRuleInformation(vufindConn, logger);
+		validCheckedOutStatusCodes.add("-");
 	}
 
 	private void loadLoanRuleInformation(Connection vufindConn, Logger logger) {
@@ -230,11 +233,11 @@ public abstract class IIIRecordProcessor extends IlsRecordProcessor{
 			return overriddenStatus;
 		}else {
 			String statusCode = itemInfo.getStatusCode();
-			if (statusCode.equals("-")) {
+			if (validCheckedOutStatusCodes.contains(statusCode)) {
 				//We need to override based on due date
 				String dueDate = itemInfo.getDueDate() == null ? "" : itemInfo.getDueDate();
 				if (dueDate.length() == 0 || dueDate.trim().equals("-  -")) {
-					return "On Shelf";
+					return translateValue("item_grouped_status", statusCode, identifier);
 				} else {
 					return "Checked Out";
 				}
@@ -250,11 +253,11 @@ public abstract class IIIRecordProcessor extends IlsRecordProcessor{
 			return overriddenStatus;
 		}else {
 			String statusCode = itemInfo.getStatusCode();
-			if (statusCode.equals("-")) {
+			if (validCheckedOutStatusCodes.contains(statusCode)) {
 				//We need to override based on due date
 				String dueDate = itemInfo.getDueDate() == null ? "" : itemInfo.getDueDate();
 				if (dueDate.length() == 0 || dueDate.trim().equals("-  -")) {
-					return "On Shelf";
+					return translateValue("item_status", statusCode, identifier);
 				} else {
 					return "Checked Out";
 				}
@@ -263,6 +266,8 @@ public abstract class IIIRecordProcessor extends IlsRecordProcessor{
 			}
 		}
 	}
+
+
 
 	protected abstract boolean loanRulesAreBasedOnCheckoutLocation();
 

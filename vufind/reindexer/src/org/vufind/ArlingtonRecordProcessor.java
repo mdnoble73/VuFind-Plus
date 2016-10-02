@@ -26,6 +26,8 @@ public class ArlingtonRecordProcessor extends IIIRecordProcessor {
 		languageFields = "008[35-37]";
 
 		loadOrderInformationFromExport();
+
+		validCheckedOutStatusCodes.add("o");
 	}
 
 	@Override
