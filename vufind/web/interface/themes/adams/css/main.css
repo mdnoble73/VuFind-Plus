@@ -10549,6 +10549,11 @@ a.browse-thumbnail-sorted.active {
 .archiveComponentContainer .archiveComponent .archiveComponentBody .archiveComponentBox .archiveComponentRandomImage figure a img {
   max-height: 170px;
 }
+.archiveComponentContainer .archiveComponent .archiveComponentBody .archiveComponentBox .archiveComponentRandomImage #refreshRandomImage {
+  position: absolute;
+  right: 10px;
+  top: 55px;
+}
 .archiveComponentContainer .archiveComponent .archiveComponentBody:before {
   content: "";
   display: block;

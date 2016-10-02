@@ -312,6 +312,14 @@ VuFind.Archive = (function(){
 			return false;
 		},
 
+		nextRandomObject: function(pid){
+			var url = Globals.path + "/Archive/AJAX?id=" + encodeURI(pid) + "&method=getNextRandomObject";
+			$.getJSON(url, function(data){
+				$('#randomImagePlaceholder').html(data.image);
+			}).fail(VuFind.ajaxFail);
+			return false;
+		},
+
 		showObjectInPopup: function(pid){
 			var url = Globals.path + "/Archive/AJAX?id=" + encodeURI(pid) + "&method=getObjectInfo";
 			VuFind.loadingMessage();

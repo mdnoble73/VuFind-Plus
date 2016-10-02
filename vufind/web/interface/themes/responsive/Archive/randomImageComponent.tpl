@@ -5,14 +5,10 @@
 				<div class="archiveComponentBox">
 					<div class="archiveComponentHeader">Random Image</div>
 					<div class="archiveComponentRandomImage row">
-						<figure class="" title="{$randomObject.label|escape}">
-							<a href='{$randomObject.link}'>
-								<img src="{$randomObject.image}" alt="{$randomObject.label|escape}">
-								<figcaption class="explore-more-category-title">
-									<strong>{$randomObject.label|truncate:120}</strong>
-								</figcaption>
-							</a>
+						<figure class="" id="randomImagePlaceholder">
+							{include file="Archive/randomImage.tpl"}
 						</figure>
+						<a href="#" onclick="return VuFind.Archive.nextRandomObject('{$pid}');"><img id="refreshRandomImage" src="{$path}/interface/themes/responsive/images/refresh.png" alt="New Random Image"></a>
 					</div>
 				</div>
 			</div>

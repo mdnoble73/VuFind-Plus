@@ -67,6 +67,18 @@ class Archive_Exhibit extends Archive_Object{
 
 		$interface->assign('showExploreMore', true);
 
+		$imageMapPID = $this->recordDriver->getModsValue('imageMapPID', 'marmot');
+		if ($imageMapPID != null && strlen($imageMapPID) > 0){
+			$interface->assign('hasImageMap', true);
+			$interface->assign('imageMapPID', $imageMapPID);
+
+			/** @var FedoraObject $imageMapObject */
+			$imageMapObject = $fedoraUtils->getObject($imageMapPID);
+			$imageMapDriver = RecordDriverFactory::initRecordDriver($imageMapObject);
+			$imageMapImage = $imageMapDriver->getBookcoverUrl('large');
+			$imageMapMap = $imageMapObject->getDatastream('MAP');
+		}
+
 		// Determine what type of page to show
 		if ($displayType == 'basic'){
 			$this->display('exhibit.tpl');

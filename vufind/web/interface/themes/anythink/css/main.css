@@ -10554,8 +10554,13 @@ a.browse-thumbnail-sorted.active {
   color: #6B6B6B;
   text-align: center;
 }
-.archiveComponentContainer .archiveComponent .archiveComponentBody .archiveComponentBox .archiveComponentRandomImage figure a > img {
+.archiveComponentContainer .archiveComponent .archiveComponentBody .archiveComponentBox .archiveComponentRandomImage figure a img {
   max-height: 170px;
+}
+.archiveComponentContainer .archiveComponent .archiveComponentBody .archiveComponentBox .archiveComponentRandomImage #refreshRandomImage {
+  position: absolute;
+  right: 10px;
+  top: 55px;
 }
 .archiveComponentContainer .archiveComponent .archiveComponentBody:before {
   content: "";
