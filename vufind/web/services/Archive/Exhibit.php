@@ -76,7 +76,11 @@ class Archive_Exhibit extends Archive_Object{
 			$imageMapObject = $fedoraUtils->getObject($imageMapPID);
 			$imageMapDriver = RecordDriverFactory::initRecordDriver($imageMapObject);
 			$imageMapImage = $imageMapDriver->getBookcoverUrl('large');
-			$imageMapMap = $imageMapObject->getDatastream('MAP');
+			$imageMapMap = $imageMapObject->getDatastream('MAP')->content;
+
+			//Substitute the imageMap for the source in the map
+			$imageMapMap = preg_replace('/src="(.*?)"/', "src=\"{$imageMapImage}\"", $imageMapMap);
+			$interface->assign('imageMap', $imageMapMap);
 		}
 
 		// Determine what type of page to show

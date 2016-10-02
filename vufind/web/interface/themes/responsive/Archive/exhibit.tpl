@@ -11,8 +11,18 @@
 	</h2>
 
 	<div class="lead row">
-		{if $thumbnail && !$main_image}
-			<img src="{$thumbnail}" class="img-responsive thumbnail exhibit-thumbnail">
+		{if $hasImageMap}
+			{$imageMap}
+			<script type="text/javascript">
+				$(document).ready(function(e) {ldelim}
+					$('img[usemap]').addClass('img-responsive');
+					$('img[usemap]').rwdImageMaps();
+				{rdelim});
+			</script>
+		{else}
+			{if $thumbnail && !$main_image}
+				<img src="{$thumbnail}" class="img-responsive thumbnail exhibit-thumbnail">
+			{/if}
 		{/if}
 		{$description}
 	</div>

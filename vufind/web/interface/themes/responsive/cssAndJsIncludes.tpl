@@ -30,6 +30,7 @@
 		<script src="{$path}/interface/themes/responsive/js/lib/bootstrap-switch.min.js"></script>
 		<script src="{$path}/interface/themes/responsive/js/lib/jquery.touchwipe.min.js"></script>
 		<script src="{$path}/interface/themes/responsive/js/lib/lightbox.js"></script>
+		<script src="{$path}/interface/themes/responsive/js/lib/jquery.rwdImageMaps.min.js"></script>
 
 		{* Load application specific Javascript *}
 		<script src="{$path}/interface/themes/responsive/js/vufind/globals.js"></script>
