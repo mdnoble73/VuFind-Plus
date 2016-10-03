@@ -10219,6 +10219,7 @@ a.browse-thumbnail-sorted.active {
 }
 #explore-more-header {
   padding: 10px 25px 5px 0;
+  margin-top: 5px;
   text-align: right;
   color: #FFF;
   background-color: #1c5c23;
