@@ -17,7 +17,7 @@ class NYTLists extends Admin_Admin {
 		$interface->assign('title', 'Lists from New York Times');
 
 		//Display a list of available lists within the New York Times API
-		if (!isset($configArray['NYT_API']) || !isset($configArray['NYT_API']['books_API_key']) || strlen($configArray['NYT_API']['books_API_key']) == 0){
+		if (!isset($configArray['NYT_API']) || empty($configArray['NYT_API']['books_API_key'])){
 			$interface->assign('error', 'The New York Times API is not configured properly, create a books_API_key in the NYT_API section');
 		}else{
 			$api_key = $configArray['NYT_API']['books_API_key'];
@@ -32,6 +32,17 @@ class NYTLists extends Admin_Admin {
 			$availableLists = json_decode($availableListsRaw);
 
 			$interface->assign('availableLists', $availableLists);
+
+			$nyTimesUser = new User();
+			$nyTimesUser->cat_username = $configArray['NYT_API']['pika_username'];
+			$nyTimesUser->cat_password = $configArray['NYT_API']['pika_password'];
+			$nyTimesUser->find(1); //TODO: error handling
+
+			$nyTimesUserLists = new UserList();
+			$nyTimesUserLists->user_id = $nyTimesUser->id;
+			$nyTimesUserLists->whereAdd('title like "NYT - %"');
+			$pikaLists = $nyTimesUserLists->fetchAll(); //TODO: just need certain values?
+			$interface->assign('pikaLists', $pikaLists);
 
 			$isListSelected = isset($_REQUEST['selectedList']);
 			$selectedList = null;
@@ -53,11 +64,6 @@ class NYTLists extends Admin_Admin {
 			}
 		}
 
-
-//		$interface->assign('sidebar', 'MyAccount/account-sidebar.tpl');
-//		$interface->setTemplate('nytLists.tpl');
-//		$interface->setPageTitle('Lists from New York Times');
-//		$interface->display('layout.tpl');
 		$this->display('nytLists.tpl', 'Lists from New York Times');
 	}
 

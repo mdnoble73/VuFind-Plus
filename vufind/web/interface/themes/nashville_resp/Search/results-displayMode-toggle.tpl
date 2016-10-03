@@ -7,7 +7,7 @@
 
 {* Sort the results*}{* Moved sort from results-sidebar.tpl to here - JE 6/18/15 *}
 	{if $recordCount}
-     {* <span class="results-sort-label">
+     {* <span class="sidebar-label">
             <label for="results-sort">{translate text='Sort'}</label></span> *}
         
         <select id="results-sort" name="sort" onchange="document.location.href = this.options[this.selectedIndex].value;" class="input-medium">

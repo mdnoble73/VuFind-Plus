@@ -6,8 +6,6 @@ require_once 'DB/DataObject.php';
 
 class UserList extends DB_DataObject
 {
-	###START_AUTOCODE
-	/* the code below is auto generated do not remove the above tag */
 
 	public $__table = 'user_list';												// table name
 	public $id;															// int(11)	not_null primary_key auto_increment
@@ -20,7 +18,7 @@ class UserList extends DB_DataObject
 	public $dateUpdated;
 	public $defaultSort; // string(20) null
 
-	// Used by FavoriteHandler as well/**/
+	// Used by FavoriteHandler as well//
 	protected $userListSortOptions = array(
 		// URL_value => SQL code for Order BY clause
 		'dateAdded' => 'dateAdded ASC',
@@ -28,9 +26,6 @@ class UserList extends DB_DataObject
 		//								'custom' => 'weight IS NULL, weight ASC',  // this puts items with no set weight towards the end of the list
 	);
 
-
-	/* the code above is auto generated do not remove the tag below */
-	###END_AUTOCODE
 
 	function getObjectStructure(){
 		$structure = array(
