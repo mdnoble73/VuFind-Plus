@@ -10242,7 +10242,7 @@ a.browse-thumbnail-sorted.active {
 #explore-more-body .sectionHeader {
   text-transform: uppercase;
   font-weight: bold;
-  color: #000075;
+  color: #646510;
   border-bottom: 2px solid #a3a60f;
   margin-top: 15px;
 }
@@ -10251,7 +10251,7 @@ a.browse-thumbnail-sorted.active {
   margin-bottom: 20px;
 }
 #explore-more-body .subsectionTitle {
-  color: #000075;
+  color: #646510;
 }
 #explore-more-body .jcarousel-wrapper {
   margin-left: -10px;
@@ -10691,4 +10691,23 @@ a.browse-thumbnail-sorted.active {
 }
 .facetTitle:hover {
   text-decoration: underline;
+}
+#explore-more-header {
+  font-variant: none;
+}
+#explore-more-body .jcarousel-control-next,
+#explore-more-body .jcarousel-control-prev,
+.exploreMoreBar .jcarousel-control-next,
+.exploreMoreBar .jcarousel-control-prev {
+  color: #c65500;
+  text-shadow: none;
+}
+.glyphicon-chevron-left:before {
+  content: "\e257";
+}
+.glyphicon-chevron-right:before {
+  content: "\e258";
+}
+#explore-more-body .subsectionTitle {
+  color: #333333;
 }
