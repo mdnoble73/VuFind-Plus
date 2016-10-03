@@ -10251,7 +10251,7 @@ a.browse-thumbnail-sorted.active {
   margin-bottom: 20px;
 }
 #explore-more-body .subsectionTitle {
-  color: #646510;
+  color: #333;
 }
 #explore-more-body .jcarousel-wrapper {
   margin-left: -10px;
@@ -10707,7 +10707,4 @@ a.browse-thumbnail-sorted.active {
 }
 .glyphicon-chevron-right:before {
   content: "\e258";
-}
-#explore-more-body .subsectionTitle {
-  color: #333333;
 }
