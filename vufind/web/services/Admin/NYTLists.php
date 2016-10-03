@@ -14,7 +14,6 @@ class NYTLists extends Admin_Admin {
 	function launch() {
 		global $interface;
 		global $configArray;
-		$interface->assign('title', 'Lists from New York Times');
 
 		//Display a list of available lists within the New York Times API
 		if (!isset($configArray['NYT_API']) || empty($configArray['NYT_API']['books_API_key'])){
@@ -33,18 +32,7 @@ class NYTLists extends Admin_Admin {
 
 			$interface->assign('availableLists', $availableLists);
 
-			$nyTimesUser = new User();
-			$nyTimesUser->cat_username = $configArray['NYT_API']['pika_username'];
-			$nyTimesUser->cat_password = $configArray['NYT_API']['pika_password'];
-			$nyTimesUser->find(1); //TODO: error handling
-
-			$nyTimesUserLists = new UserList();
-			$nyTimesUserLists->user_id = $nyTimesUser->id;
-			$nyTimesUserLists->whereAdd('title like "NYT - %"');
-			$pikaLists = $nyTimesUserLists->fetchAll(); //TODO: just need certain values?
-			$interface->assign('pikaLists', $pikaLists);
-
-			$isListSelected = isset($_REQUEST['selectedList']);
+			$isListSelected = !empty($_REQUEST['selectedList']);
 			$selectedList = null;
 			if ($isListSelected) {
 				$selectedList = $_REQUEST['selectedList'];
@@ -61,6 +49,23 @@ class NYTLists extends Admin_Admin {
 						$interface->assign('successMessage', $results['message']);
 					}
 				}
+			}
+
+			// Fetch lists after any updating has been done
+
+			// Get user id
+			$nyTimesUser = new User();
+			$nyTimesUser->cat_username = $configArray['NYT_API']['pika_username'];
+			$nyTimesUser->cat_password = $configArray['NYT_API']['pika_password'];
+			if ($nyTimesUser->find(1)) {
+				// Get User Lists
+				$nyTimesUserLists          = new UserList();
+				$nyTimesUserLists->user_id = $nyTimesUser->id;
+				$nyTimesUserLists->whereAdd('title like "NYT - %"');
+				$nyTimesUserLists->orderBy('title');
+				$pikaLists = $nyTimesUserLists->fetchAll();
+
+				$interface->assign('pikaLists', $pikaLists);
 			}
 		}
 
