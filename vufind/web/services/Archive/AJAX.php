@@ -405,6 +405,39 @@ class Archive_AJAX extends Action {
 				'metadata' => $metadata,
 		);
 	}
+
+	public function getNextRandomObject(){
+		global $interface;
+		require_once ROOT_DIR . '/sys/Utils/FedoraUtils.php';
+		$fedoraUtils = FedoraUtils::getInstance();
+
+		$pid = $_REQUEST['id'];
+
+		$archiveObject = $fedoraUtils->getObject($pid);
+		/** @var IslandoraDriver $recordDriver */
+		$recordDriver = RecordDriverFactory::initRecordDriver($archiveObject);
+
+		$randomImagePid = $recordDriver->getRandomObject();
+		if ($randomImagePid != null){
+			$randomObject = RecordDriverFactory::initRecordDriver($fedoraUtils->getObject($randomImagePid));
+			$randomObjectInfo = array(
+					'label' => $randomObject->getTitle(),
+					'link' => $randomObject->getRecordUrl(),
+					'image' => $randomObject->getBookcoverUrl('medium')
+			);
+			$interface->assign('randomObject', $randomObjectInfo);
+			return array(
+					'success' => true,
+					'image' => $interface->fetch('Archive/randomImage.tpl')
+			);
+		}else{
+			return array(
+					'success' => false,
+					'message' => 'No ID provided'
+			);
+		}
+	}
+
 	public function getTranscript(){
 		global $configArray;
 		$objectUrl = $configArray['Islandora']['objectUrl'];

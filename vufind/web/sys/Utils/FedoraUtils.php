@@ -121,6 +121,8 @@ class FedoraUtils {
 				return $objectUrl . '/' . $archiveObject->id . '/datastream/MC/view';
 			}else if ($archiveObject && $archiveObject->getDatastream('MEDIUM_SIZE') != null) {
 				return $objectUrl . '/' . $archiveObject->id . '/datastream/MEDIUM_SIZE/view';
+			}else if ($archiveObject && $archiveObject->getDatastream('PREVIEW') != null) {
+				return $objectUrl . '/' . $archiveObject->id . '/datastream/PREVIEW/view';
 			}else if ($archiveObject && $archiveObject->getDatastream('TN') != null) {
 				return $objectUrl . '/' . $archiveObject->id . '/datastream/TN/view';
 			}else{
@@ -131,6 +133,8 @@ class FedoraUtils {
 				return $objectUrl . '/' . $archiveObject->id . '/datastream/JPG/view';
 			}elseif ($archiveObject && $archiveObject->getDatastream('LC') != null){
 				return $objectUrl . '/' . $archiveObject->id . '/datastream/LC/view';
+			}elseif ($archiveObject && $archiveObject->getDatastream('PREVIEW') != null){
+				return $objectUrl . '/' . $archiveObject->id . '/datastream/PREVIEW/view';
 			}else{
 				return $this->getObjectImageUrl($archiveObject, 'medium', $defaultType);
 			}

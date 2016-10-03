@@ -63,6 +63,8 @@ abstract class IslandoraDriver extends RecordInterface {
 		}elseif ($size == 'medium'){
 			if ($this->archiveObject->getDatastream('MC') != null){
 				return $objectUrl . '/' . $this->getUniqueID() . '/datastream/MC/view';
+			}elseif ($this->archiveObject->getDatastream('PREVIEW') != null) {
+				return $objectUrl . '/' . $this->getUniqueID() . '/datastream/PREVIEW/view';
 			}elseif ($this->archiveObject->getDatastream('TN') != null){
 				return $objectUrl . '/' . $this->getUniqueID() . '/datastream/TN/view';
 			}else{
@@ -73,6 +75,8 @@ abstract class IslandoraDriver extends RecordInterface {
 				return $objectUrl . '/' . $this->getUniqueID() . '/datastream/JPG/view';
 			}elseif ($this->archiveObject->getDatastream('LC') != null) {
 				return $objectUrl . '/' . $this->getUniqueID() . '/datastream/LC/view';
+			}elseif ($this->archiveObject->getDatastream('PREVIEW') != null) {
+				return $objectUrl . '/' . $this->getUniqueID() . '/datastream/PREVIEW/view';
 			}elseif ($this->archiveObject->getDatastream('OBJ') != null && ($this->archiveObject->getDatastream('OBJ')->mimetype == 'image/jpg' || $this->archiveObject->getDatastream('OBJ')->mimetype == 'image/jpeg')) {
 				return $objectUrl . '/' . $this->getUniqueID() . '/datastream/OBJ/view';
 			}else{
@@ -1439,7 +1443,7 @@ abstract class IslandoraDriver extends RecordInterface {
 		global $interface;
 		require_once ROOT_DIR . '/sys/Utils/FedoraUtils.php';
 		$fedoraUtils = FedoraUtils::getInstance();
-		
+
 		$correspondence = $this->getModsValue('correspondence', 'marmot');
 		$hasCorrespondenceInfo = false;
 		if ($correspondence){
@@ -1707,7 +1711,7 @@ abstract class IslandoraDriver extends RecordInterface {
 		global $interface;
 		require_once ROOT_DIR . '/sys/Utils/FedoraUtils.php';
 		$fedoraUtils = FedoraUtils::getInstance();
-		
+
 		$interface->assign('hasMilitaryService', false);
 		$militaryService = $this->getModsValue('militaryService', 'marmot');
 		if (strlen($militaryService) > 0){
@@ -1800,7 +1804,7 @@ abstract class IslandoraDriver extends RecordInterface {
 		global $interface;
 		require_once ROOT_DIR . '/sys/Utils/FedoraUtils.php';
 		$fedoraUtils = FedoraUtils::getInstance();
-		
+
 		$rightsStatements = $this->getModsValues('rightsStatement', 'marmot');
 		$interface->assignAppendUniqueToExisting('rightsStatements', $rightsStatements);
 
