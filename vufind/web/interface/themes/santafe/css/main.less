@@ -26,27 +26,12 @@
   }
 }
 
-//#browse-label {
-//  background-color: #ffffff;
-//  //  background: linear-gradient(to bottom, #fff, #fff 98%, @browse-label-text-color 99%);
-//  border-bottom: 1px solid @browse-label-text-color;
-//  margin: 25px 0 15px;
-//  height: auto;
-//  padding-bottom: 20px;
-//  .browse-label-text{
-//    font-weight: 600;
-//  }
-//}
-
-
-
 // the category text
 .browse-category {
   padding-top: 20px; // extra padding on top to center text
   height: 120px;
 
   div {
-    color: @browse-label-text-color;
     text-shadow: none;
     text-transform: uppercase;
     font-size: large;
@@ -59,19 +44,16 @@
     border: none;
     background-color: @selectedCategoryColor;
     background: @selectedCategoryColor;
-    background: linear-gradient(to bottom, @selectedCategoryColor 0%, @selectedCategoryColor 75%, #fff 75%, #fff 80%, #CCCCCC 80%, #fff 100%);
+    background: linear-gradient(to bottom, @selectedCategoryColor 0%, @selectedCategoryColor 75%, @content-bg 75%, @content-bg 80%, #CCCCCC 80%, @content-bg 100%);
     div {
       color: #fff;
     }
   }
 }
 
-
 // Left/Right Arrows on browse category carousel
 #browse-category-picker {
   .jcarousel-control-prev, .jcarousel-control-next {
-    background-color: @santafe-off-white;
-    color: @selectedCategoryColor;
     &:active, &:hover {
       color: @santefe-light-blue;
       text-decoration: none;
@@ -99,17 +81,10 @@
   }
 }
 
-
-#selected-browse-label {
-  background-color: @santafe-off-white;
-  background: linear-gradient(to bottom, @santafe-off-white, @santafe-off-white 44%, @browse-label-line-color 45%, @browse-label-line-color 55%, @santafe-off-white 56%);
-}
-
 // Button Styling
 .btn-primary {
   .button-variant(#FFF, @primaryButtonBackgroundColor, darken(@primaryButtonBackgroundColor, 5%));
 }
-
 
 #footer-container {
   background-color: @santafe-footer-darkgray;

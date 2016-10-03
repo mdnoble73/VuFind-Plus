@@ -1,4 +1,4 @@
-@import (reference) "bootstrap/less/variables.less";
+//@import (reference) "bootstrap/less/variables.less";
 @import (reference) "bootstrap/less/glyphicons.less";
 @import (reference) "bootstrap/less/bootstrap.less";
 @import (reference) "variables.less";
@@ -58,7 +58,7 @@
 }
 
 .browse-category {
-  color: #fff;
+  color: @browse-category-text-color; //TODO: needed?
   font-size: @browse-category-font-size;
   padding: 10px;
   text-shadow: 1px 1px @gray;
@@ -73,7 +73,7 @@
   }
 
   div {
-    color: #fff;
+    color: @browse-category-text-color;
     cursor: pointer;
     &:focus {
       outline: none; // hide outlining of clicked category
@@ -129,14 +129,14 @@
 .selected-browse-label-mixin(@side: right){
   margin-@{side}: 20px;
   float: @side;
-  background-color: @body-bg;
+  background-color: @content-bg;
   padding: 0 8px;
 }
 
 #selected-browse-label{
-  background-color: #fff;
+  background-color: @content-bg;
   //  background: linear-gradient(to bottom, #fff, #fff 44%, #bbd4e3 45%, #bbd4e3 55%, #fff 56%);
-  background: linear-gradient(to bottom, #fff, #fff 44%, @browse-label-line-color 45%, @browse-label-line-color 55%, #fff 56%);
+  background: linear-gradient(to bottom, @content-bg, @content-bg 44%, @browse-label-line-color 45%, @browse-label-line-color 55%, @content-bg 56%);
   margin-bottom: 5px;
 
   // Browse Mode Toggle switch //

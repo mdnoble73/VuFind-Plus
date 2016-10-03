@@ -9020,7 +9020,7 @@ hr.menu {
   outline: none;
 }
 .browse-category {
-  color: #fff;
+  color: #467E99;
   font-size: 30px;
   padding: 10px;
   text-shadow: 1px 1px #555555;
@@ -9034,7 +9034,7 @@ hr.menu {
   color: darkblue;
 }
 .browse-category div {
-  color: #fff;
+  color: #467E99;
   cursor: pointer;
   height: 80px;
 }
@@ -10620,7 +10620,6 @@ a.browse-thumbnail-sorted.active {
   height: 120px;
 }
 .browse-category div {
-  color: #467E99;
   text-shadow: none;
   text-transform: uppercase;
   font-size: large;
