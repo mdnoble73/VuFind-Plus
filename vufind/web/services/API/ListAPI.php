@@ -995,6 +995,7 @@ class ListAPI extends Action {
 			$pikaUrl = $configArray['Site']['url'];
 			$apiUrl = $pikaUrl . "/API/ListAPI?method=getUserLists&username=" . urlencode($pikaUsername) . "&password=" . urlencode($pikaPassword);
 			$getUserListResults = file_get_contents($apiUrl);
+			//TODO: do direct call to class instead
 
 			$getUserListResultsJSON = json_decode($getUserListResults);
 			//Loop through the set of all lists to see if we have one by this name
@@ -1038,9 +1039,15 @@ class ListAPI extends Action {
 						'message' => 'Could not create list'
 					);
 				}
-			}
+			} else {
+					return array(
+						'success' => false,
+						'message' => 'Could not access list'
+					);
+				}
 			}else{
 				//We already have a list, clear the contents so we don't have titles from last time
+				//TODO: do direct call to class instead
 				$clearListTitlesURL = $pikaUrl . "/API/ListAPI?method=clearListTitles&username=" . urlencode($pikaUsername) .
 						"&password=" . urlencode($pikaPassword) .
 						"&listId=" . $listID;
@@ -1135,6 +1142,8 @@ class ListAPI extends Action {
 				}
 			}
 			$results['message'] .= "<br/> Added $numTitlesAdded Titles to the list";
+
+			$nytList->update(); // set the update time on the main list
 		}
 
 		return $results;
