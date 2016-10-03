@@ -10692,6 +10692,9 @@ a.browse-thumbnail-sorted.active {
 .facetTitle:hover {
   text-decoration: underline;
 }
+#explore-more-body a {
+  color: #333;
+}
 #explore-more-header {
   font-variant: none;
 }
