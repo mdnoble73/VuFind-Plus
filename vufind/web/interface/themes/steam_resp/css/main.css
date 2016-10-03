@@ -2405,8 +2405,8 @@ input[type="button"].btn-block {
 }
 @font-face {
   font-family: 'Glyphicons Halflings';
-  src: url('../../../../fonts/glyphicons-halflings-regular.eot');
-  src: url('../../../../fonts/glyphicons-halflings-regular.eot?#iefix') format('embedded-opentype'), url('../../../../fonts/glyphicons-halflings-regular.woff') format('woff'), url('../../../../fonts/glyphicons-halflings-regular.ttf') format('truetype'), url('../../../../fonts/glyphicons-halflings-regular.svg#glyphicons-halflingsregular') format('svg');
+  src: url('/fonts/glyphicons-halflings-regular.eot');
+  src: url('/fonts/glyphicons-halflings-regular.eot?#iefix') format('embedded-opentype'), url('/fonts/glyphicons-halflings-regular.woff') format('woff'), url('/fonts/glyphicons-halflings-regular.ttf') format('truetype'), url('/fonts/glyphicons-halflings-regular.svg#glyphicons-halflingsregular') format('svg');
 }
 .glyphicon {
   position: relative;
@@ -10683,7 +10683,6 @@ a.browse-thumbnail-sorted.active {
   background: -webkit-linear-gradient(top, #646510, #494A0C) repeat scroll 0 0 rgba(0, 0, 0, 0);
   background: linear-gradient(to bottom, #646510, #494A0C) repeat scroll 0 0 rgba(0, 0, 0, 0);
 }
-/* Mouseover for the Facet Categories */
 .facetTitle:hover {
   text-decoration: underline;
 }
