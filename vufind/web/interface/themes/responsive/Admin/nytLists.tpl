@@ -26,7 +26,7 @@
 
 	{if !empty($pikaLists)}
 		<h3>Existing New York Times Lists</h3>
-		<table class="table table-bordered">
+		<table class="table table-bordered table-hover">
 			<tr>
 				<th>
 					Name
