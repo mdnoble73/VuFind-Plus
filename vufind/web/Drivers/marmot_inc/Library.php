@@ -144,6 +144,7 @@ class Library extends DB_DataObject
 	public $availabilityToggleLabelLocal;
 	public $availabilityToggleLabelAvailable;
 	public $availabilityToggleLabelAvailableOnline;
+	public $includeOnlineMaterialsInAvailableToggle;
 	public $loginFormUsernameLabel;
 	public $loginFormPasswordLabel;
 	public $showDetailedHoldNoticeInformation;

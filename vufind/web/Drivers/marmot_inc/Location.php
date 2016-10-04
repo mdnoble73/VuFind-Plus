@@ -72,6 +72,7 @@ class Location extends DB_DataObject
 	public $availabilityToggleLabelAvailable;
 	public $availabilityToggleLabelAvailableOnline;
 	public $baseAvailabilityToggleOnLocalHoldingsOnly;
+	public $includeOnlineMaterialsInAvailableToggle;
 	public $defaultBrowseMode;
 	public $browseCategoryRatingsMode;
 	public $includeAllLibraryBranchesInFacets;
