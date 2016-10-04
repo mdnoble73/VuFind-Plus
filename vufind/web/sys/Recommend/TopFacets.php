@@ -172,14 +172,19 @@ class TopFacets implements RecommendationInterface
 					$localLabel = str_ireplace('{display name}', $searchLocation->displayName, $localLabel);
 					$availableLabel = $searchLocation->availabilityToggleLabelAvailable;
 					$availableLabel = str_ireplace('{display name}', $searchLocation->displayName, $availableLabel);
+					$availableOnlineLabel = $searchLocation->availabilityToggleLabelAvailableOnline;
+					$availableOnlineLabel = str_ireplace('{display name}', $searchLocation->displayName, $availableOnlineLabel);
 				}else{
 					$superScopeLabel = $searchLibrary->availabilityToggleLabelSuperScope;
 					$localLabel = $searchLibrary->availabilityToggleLabelLocal;
 					$localLabel = str_ireplace('{display name}', $searchLibrary->displayName, $localLabel);
 					$availableLabel = $searchLibrary->availabilityToggleLabelAvailable;
 					$availableLabel = str_ireplace('{display name}', $searchLibrary->displayName, $availableLabel);
+					$availableOnlineLabel = $searchLibrary->availabilityToggleLabelAvailableOnline;
+					$availableOnlineLabel = str_ireplace('{display name}', $searchLibrary->displayName, $availableOnlineLabel);
 				}
 
+				$numButtons = 4;
 				foreach ($facetSet['list'] as $facet){
 					if ($facet['value'] == 'Entire Collection'){
 
@@ -205,10 +210,17 @@ class TopFacets implements RecommendationInterface
 						$facet['value'] = $superScopeLabel;
 						$sortedFacetList[0] = $facet;
 						$numTitlesWithNoValue = $facet['count'];
-						break;
-					}else{
+					}elseif ($facet['value'] == 'Available Now'){
 						$facet['value'] = $availableLabel;
 						$sortedFacetList[2] = $facet;
+					}elseif ($facet['value'] == 'Available Online'){
+						if (strlen($availableOnlineLabel) > 0){
+							$facet['value'] = $availableOnlineLabel;
+							$sortedFacetList[3] = $facet;
+						}
+					}else{
+						//$facet['value'] = $availableLabel;
+						$sortedFacetList[$numButtons++] = $facet;
 					}
 				}
 				if (isset($sortedFacetList[0])){

@@ -1372,5 +1372,18 @@ function getLibraryLocationUpdates(){
 					)
 			),
 
+			'library_location_availability_toggle_updates' => array(
+					'title' => 'Library and Location Availability Updates',
+					'description' => 'Add the ability to show available online and control what goes into the toggles',
+					'continueOnError' => true,
+					'sql' => array(
+							"ALTER TABLE library ADD COLUMN availabilityToggleLabelAvailableOnline VARCHAR(50) DEFAULT ''",
+							"ALTER TABLE library ADD COLUMN includeOnlineMaterialsInAvailableToggle TINYINT(1) DEFAULT '1'",
+							"ALTER TABLE location ADD COLUMN availabilityToggleLabelAvailableOnline VARCHAR(50) DEFAULT ''",
+							"ALTER TABLE location ADD COLUMN baseAvailabilityToggleOnLocalHoldingsOnly TINYINT(1) DEFAULT '0'",
+							"ALTER TABLE location ADD COLUMN includeOnlineMaterialsInAvailableToggle TINYINT(1) DEFAULT '1'",
+					)
+			),
+
 	);
 }
