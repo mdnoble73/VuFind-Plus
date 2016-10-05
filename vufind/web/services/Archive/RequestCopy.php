@@ -17,6 +17,27 @@ class Archive_RequestCopy extends Action{
 
 		$archiveRequestFields = ArchiveRequest::getObjectStructure();
 
+		if (!isset($_REQUEST['pid'])) {
+			PEAR_Singleton::raiseError('No id provided, you must select which object you want a copy of');
+		}
+
+		$pid = $_REQUEST['pid'];
+		$archiveRequestFields['pid']['default'] = $pid;
+
+		require_once ROOT_DIR . '/sys/Utils/FedoraUtils.php';
+		$archiveObject = FedoraUtils::getInstance()->getObject($pid);
+		$requestedObject = RecordDriverFactory::initRecordDriver($archiveObject);
+		$interface->assign('requestedObject', $requestedObject);
+
+		//Find the owning library
+		$owningLibrary = new Library();
+		list($namespace) = explode(':', $pid);
+
+		$owningLibrary->archiveNamespace = $namespace;
+		if (!$owningLibrary->find(true) || $owningLibrary->N != 1){
+			PEAR_Singleton::raiseError('Could not determine which library owns this object, cannot request a copy.');
+		}
+
 		if (isset($_REQUEST['submit'])) {
 			if (isset($configArray['ReCaptcha']['privateKey'])){
 				$privatekey = $configArray['ReCaptcha']['privateKey'];
@@ -47,11 +68,6 @@ class Archive_RequestCopy extends Action{
 				$interface->assign('requestSubmitted', true);
 				if ($newObject !== false){
 					$interface->assign('requestResult', $newObject);
-
-					require_once ROOT_DIR . '/sys/Utils/FedoraUtils.php';
-					$archiveObject = FedoraUtils::getInstance()->getObject($newObject->pid);
-					$requestedObject = RecordDriverFactory::initRecordDriver($archiveObject);
-					$interface->assign('requestedObject', $requestedObject);
 
 					$body = $interface->fetch('Emails/archive-request.tpl');
 
@@ -94,13 +110,6 @@ class Archive_RequestCopy extends Action{
 					$interface->assign('error', $_SESSION['lastError']);
 				}
 			}
-		}else{
-			if (isset($_REQUEST['pid'])){
-				$pid = $_REQUEST['pid'];
-				$archiveRequestFields['pid']['default'] = $pid;
-			}else {
-				PEAR_Singleton::raiseError('No id provided, you must select which object you want a copy of');
-			}
 		}
 
 		unset($archiveRequestFields['dateRequested']);
@@ -108,6 +117,7 @@ class Archive_RequestCopy extends Action{
 		$interface->assign('submitUrl', $configArray['Site']['path'] . '/Archive/RequestCopy');
 		$interface->assign('structure', $archiveRequestFields);
 		$interface->assign('saveButtonText', 'Submit Request');
+		$interface->assign('archiveRequestMaterialsHeader', $owningLibrary->archiveRequestMaterialsHeader);
 
 		// Set up captcha to limit spam self registrations
 		if (isset($configArray['ReCaptcha']['publicKey'])) {

@@ -1385,5 +1385,12 @@ function getLibraryLocationUpdates(){
 					)
 			),
 
+			'library_archive_request_customization' => array(
+					'title' => 'Library Archive Request Customization',
+					'description' => 'Allow libraries to customize the text shown above the request materials page',
+					'sql' => array(
+							"ALTER TABLE library ADD COLUMN archiveRequestMaterialsHeader MEDIUMTEXT",
+					)
+			),
 	);
 }
