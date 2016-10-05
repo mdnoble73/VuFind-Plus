@@ -9,6 +9,7 @@ import org.ini4j.Profile.Section;
 import java.io.*;
 import java.sql.*;
 import java.text.SimpleDateFormat;
+import java.util.*;
 import java.util.Date;
 
 
@@ -91,6 +92,7 @@ public class GroupedReindexMain {
 		long numListsProcessed = 0;
 		try {
 			GroupedWorkIndexer groupedWorkIndexer = new GroupedWorkIndexer(serverName, vufindConn, econtentConn, configIni, fullReindex, individualWorkToProcess != null, logger);
+			ArrayList<SiteMapGroup> siteMapGroups = new ArrayList<>();
 			if (groupedWorkIndexer.isOkToIndex()) {
 				if (individualWorkToProcess != null) {
 					//Get more information about the work
@@ -99,9 +101,10 @@ public class GroupedReindexMain {
 						getInfoAboutWorkStmt.setString(1, individualWorkToProcess);
 						ResultSet infoAboutWork = getInfoAboutWorkStmt.executeQuery();
 						if (infoAboutWork.next()) {
+
 							groupedWorkIndexer.deleteRecord(individualWorkToProcess);
-							groupedWorkIndexer.processGroupedWork(infoAboutWork.getLong("id"), individualWorkToProcess, infoAboutWork.getString("grouping_category"));
-						}else{
+							groupedWorkIndexer.processGroupedWork(infoAboutWork.getLong("id"), individualWorkToProcess, infoAboutWork.getString("grouping_category"), null);
+						} else {
 							logger.error("Could not find a work with id " + individualWorkToProcess);
 						}
 						getInfoAboutWorkStmt.close();
@@ -110,9 +113,13 @@ public class GroupedReindexMain {
 					}
 				}else{
 					logger.info("Running Reindex");
-					numWorksProcessed = groupedWorkIndexer.processGroupedWorks();
+					numWorksProcessed = groupedWorkIndexer.processGroupedWorks(siteMapGroups);
 					numListsProcessed = groupedWorkIndexer.processPublicUserLists();
 				}
+				if (fullReindex) {
+					groupedWorkIndexer.createSiteMaps(siteMapGroups);
+				}
+
 				groupedWorkIndexer.finishIndexing();
 			}
 		} catch (Error e) {

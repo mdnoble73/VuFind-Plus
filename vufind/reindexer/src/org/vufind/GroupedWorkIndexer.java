@@ -592,6 +592,29 @@ public class GroupedWorkIndexer {
 		}
 	}
 
+	public void createSiteMaps(ArrayList<SiteMapGroup> siteMapGroups) {
+
+		File dataDir = new File(configIni.get("SiteMap", "filePath"));
+		String maxPopTitlesDefault = configIni.get("SiteMap", "num_titles_in_most_popular_sitemap");
+		String maxUniqueTitlesDefault = configIni.get("SiteMap", "num_title_in_unique_sitemap");
+		ArrayList<SiteMapLibrary> libraryNames = new ArrayList<>();
+		HashMap<Long, String> locationsHash = new HashMap<>();
+		for (Scope scope : this.getScopes()) {
+			if (scope.isLibraryScope())
+				libraryNames.add(new SiteMapLibrary(scope.getLibraryId(), scope.getScopeName(), scope.isLibraryScope()));
+			else
+				locationsHash.put(scope.getLibraryId(), scope.getScopeName());
+		}
+		try {
+			SiteMap siteMap = new SiteMap(logger, vufindConn,Integer.parseInt(maxUniqueTitlesDefault), Integer.parseInt(maxPopTitlesDefault) );
+			siteMap.createSiteMap(dataDir, libraryNames, locationsHash, siteMapGroups);
+
+		} catch (IOException ex) {
+			logger.error("Error creating site map");
+		}
+	}
+
+
 	public void finishIndexing(){
 		GroupedReindexMain.addNoteToReindexLog("Finishing indexing");
 		logger.info("Finishing indexing");
@@ -807,7 +830,7 @@ public class GroupedWorkIndexer {
 		}
 	}
 
-	public Long processGroupedWorks() {
+	public Long processGroupedWorks(ArrayList<SiteMapGroup> siteMapGroups) {
 		Long numWorksProcessed = 0L;
 		try {
 			PreparedStatement getAllGroupedWorks;
@@ -839,7 +862,7 @@ public class GroupedWorkIndexer {
 				if (groupedWorks.wasNull()){
 					lastUpdated = null;
 				}
-				processGroupedWork(id, permanentId, grouping_category);
+				processGroupedWork(id, permanentId, grouping_category, siteMapGroups);
 
 				numWorksProcessed++;
 				if (fullReindex && (numWorksProcessed % 5000 == 0)){
@@ -872,7 +895,7 @@ public class GroupedWorkIndexer {
 		return numWorksProcessed;
 	}
 
-	public void processGroupedWork(Long id, String permanentId, String grouping_category) throws SQLException {
+	public void processGroupedWork(Long id, String permanentId, String grouping_category, ArrayList<SiteMapGroup> siteMapGroups) throws SQLException {
 		//Create a solr record for the grouped work
 		GroupedWorkSolr groupedWork = new GroupedWorkSolr(this, logger);
 		groupedWork.setId(permanentId);
@@ -946,6 +969,16 @@ public class GroupedWorkIndexer {
 			//Log that this record did not have primary identifiers after
 			logger.debug("Grouped work " + permanentId + " did not have any primary identifiers for it, suppressing");
 		}
+
+
+		if (fullReindex) {
+			if (siteMapGroups == null)
+				return;
+
+			groupedWork.setOwnerShipCount();
+			siteMapGroups.add(new SiteMapGroup(id, permanentId, groupedWork.getPopularity(), false, groupedWork.getOwnerShipCount()));
+		}
+
 	}
 
 	private void loadLexileDataForWork(GroupedWorkSolr groupedWork) {

@@ -1060,6 +1060,10 @@ public class GroupedWorkSolr implements Cloneable {
 		this.popularity += itemPopularity;
 	}
 
+	public double getPopularity(){
+        return  popularity;
+    }
+
 	public void addTopic(Set<String> fieldList) {
 		this.topics.addAll(Util.trimTrailingPunctuation(fieldList));
 	}
@@ -1434,6 +1438,32 @@ public class GroupedWorkSolr implements Cloneable {
 			curRecord.updateIndexingStats(indexingStats);
 		}
 	}
+
+
+	private  int ownerShipCount;
+	public int getOwnerShipCount(){return  ownerShipCount;}
+	public int setOwnerShipCount(/*TreeMap<String, ScopedIndexingStats> indexingStats*/){
+		for (Scope scope: groupedWorkIndexer.getScopes()){
+			HashSet<RecordInfo> relatedRecordsForScope = new HashSet<>();
+			HashSet<ItemInfo> relatedItems = new HashSet<>();
+			loadRelatedRecordsAndItemsForScope(scope, relatedRecordsForScope, relatedItems);
+			if (relatedRecordsForScope.size() > 0){
+				/*ScopedIndexingStats stats = indexingStats.get(scope.getScopeName());
+*/
+				if (isLibraryOwned(relatedItems, scope)){
+					ownerShipCount++;
+				}
+			}
+		}
+
+
+
+
+
+		return ownerShipCount;
+	}
+
+
 
 	public int getNumRecords() {
 		return this.relatedRecords.size();
