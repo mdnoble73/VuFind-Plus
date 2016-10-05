@@ -115,7 +115,3 @@ then
 	# send mail
 	mail -s "Full Extract and Reindexing - ${PIKASERVER}" $EMAIL < ${OUTPUT_FILE}
 fi
-
-[mysqldump]
-user=pika
-password=mMOFMMnrWKTEpMcQtO80
