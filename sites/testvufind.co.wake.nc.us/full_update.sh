@@ -5,6 +5,7 @@
 # At the end of the index will email users with the results.
 EMAIL=diglib@wakegov.com,mark@marmot.org,pascal@marmot.org
 PIKASERVER=testvufind.co.wake.nc.us
+PIKADBNAME=vufind
 OUTPUT_FILE="/var/log/vufind-plus/${PIKASERVER}/full_update_output.log"
 
 # Check for conflicting processes currently running
@@ -34,7 +35,9 @@ checkConflictingProcesses "reindexer.jar ${PIKASERVER}"
 checkConflictingProcesses "horizon_export.jar ${PIKASERVER}"
 
 # Back-up Solr Master Index
-tar -czf /data/vufind-plus/${PIKASERVER}/solr_master_backup.tar.gz /data/vufind-plus/${PIKASERVER}/solr_master/grouped/index/
+mysqldump ${PIKADBNAME} grouped_work_primary_identifiers > /data/vufind-plus/${PIKASERVER}/grouped_work_primary_identifiers.sql
+tar -czf /data/vufind-plus/${PIKASERVER}/solr_master_backup.tar.gz /data/vufind-plus/${PIKASERVER}/solr_master/grouped/index/ /data/vufind-plus/${PIKASERVER}/grouped_work_primary_identifiers.sql >> ${OUTPUT_FILE}
+rm /data/vufind-plus/${PIKASERVER}/grouped_work_primary_identifiers.sql
 
 #Restart Solr
 cd /usr/local/vufind-plus/sites/${PIKASERVER}; ./${PIKASERVER}.sh restart
