@@ -11,7 +11,7 @@
 #
 # ie :
 # git pull origin {current branch}
-# sudo crontab -u vufind /usr/local/vufind-plus/sites/flatirons.production/conf/crontab_settings.txt
+# sudo crontab -u vufind /usr/local/vufind-plus/sites/flatirons.production/conf/crontab_settings_vufind.txt
 
 ###################
 # * * * * *  command to execute
