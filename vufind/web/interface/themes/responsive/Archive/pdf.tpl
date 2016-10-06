@@ -22,6 +22,9 @@
 		<div id="download-options" class="row">
 			<div class="col-xs-12">
 				<a class="btn btn-default" href="/Archive/{$pid}/DownloadPDF">Download PDF</a>
+				{if $allowRequestsForArchiveMaterials}
+					<a class="btn btn-default" href="{$path}/Archive/RequestCopy?pid={$pid}">Request Copy</a>
+				{/if}
 			</div>
 		</div>
 

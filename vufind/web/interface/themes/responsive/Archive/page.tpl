@@ -40,6 +40,12 @@
 			</div>
 		</div>
 
+		<div id="download-options">
+			{if $allowRequestsForArchiveMaterials}
+				<a class="btn btn-default" href="{$path}/Archive/RequestCopy?pid={$pid}">Request Copy</a>
+			{/if}
+		</div>
+
 		{include file="Archive/metadata.tpl"}
 	</div>
 {/strip}
