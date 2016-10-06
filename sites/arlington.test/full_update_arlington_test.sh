@@ -11,6 +11,7 @@
 # this version emails script output as a round finishes
 EMAIL=mark@marmot.org,pascal@marmot.org
 PIKASERVER=arlington.test
+PIKADBNAME=arlington_pika
 OUTPUT_FILE="/var/log/vufind-plus/${PIKASERVER}/full_update_output.log"
 
 # Check for conflicting processes currently running
@@ -73,6 +74,11 @@ function checkProhibitedTimes() {
 checkConflictingProcesses "sierra_export.jar arlington.test"
 checkConflictingProcesses "overdrive_extract.jar arlington.test"
 checkConflictingProcesses "reindexer.jar arlington.test"
+
+# Back-up Solr Master Index
+mysqldump ${PIKADBNAME} grouped_work_primary_identifiers > /data/vufind-plus/${PIKASERVER}/grouped_work_primary_identifiers.sql
+tar -czf /data/vufind-plus/${PIKASERVER}/solr_master_backup.tar.gz /data/vufind-plus/${PIKASERVER}/solr_master/grouped/index/ /data/vufind-plus/${PIKASERVER}/grouped_work_primary_identifiers.sql >> ${OUTPUT_FILE}
+rm /data/vufind-plus/${PIKASERVER}/grouped_work_primary_identifiers.sql
 
 #truncate the output file so you don't spend a week debugging an error from a week ago!
 : > $OUTPUT_FILE;

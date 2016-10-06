@@ -10597,6 +10597,9 @@ a.browse-thumbnail-sorted.active {
 .editor .panel-group .panel-body > .form-group > .controls {
   overflow-x: auto;
 }
+#browseCategories tr td:nth-child(3) > select {
+  max-width: 400px;
+}
 #header-container {
   background-color: #B5192B;
   background-image: url('/interface/themes/western_resp/images/header_background.png');
