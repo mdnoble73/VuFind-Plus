@@ -14,9 +14,6 @@ class CirculationStatus extends DB_DataObject
 	public $holdable;				//tinyint(4)
 	public $available;	            //tinyint(4)
 
-	/* Static get */
-	function staticGet($k,$v=NULL) { return DB_DataObject::staticGet('CirculationStatus',$k,$v); }
-
 	function keys() {
 		return array('circulationStatusId');
 	}

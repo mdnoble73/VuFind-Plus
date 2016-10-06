@@ -18,9 +18,6 @@ class EditorialReview extends DB_DataObject {
 
 	public $tabName;
 
-	/* Static get */
-	function staticGet($k,$v=NULL) { return DB_DataObject::staticGet('EditorialReview',$k,$v); }
-
 	function keys() {
 		return array('editorialReviewId', 'source');
 	}

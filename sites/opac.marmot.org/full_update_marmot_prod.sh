@@ -33,6 +33,9 @@ checkConflictingProcesses "sierra_export.jar ${PIKASERVER}"
 checkConflictingProcesses "overdrive_extract.jar ${PIKASERVER}"
 checkConflictingProcesses "reindexer.jar ${PIKASERVER}"
 
+# Back-up Solr Master Index
+tar -czf /data2/pika/${PIKASERVER}/solr_master_backup.tar.gz /data/vufind-plus/${PIKASERVER}/solr_master/grouped/index/
+
 #Restart Solr
 cd /usr/local/vufind-plus/sites/${PIKASERVER}; ./${PIKASERVER}.sh restart
 
@@ -48,12 +51,16 @@ cd /usr/local/vufind-plus/vufind/cron;./GetHooplaFromMarmot.sh >> ${OUTPUT_FILE}
 #TODO: refactor CCU's ebrary destination
 /usr/local/vufind-plus/sites/opac.marmot.org/moveFullExport.sh ccu_ebrary ebrary_ccu >> ${OUTPUT_FILE}
 /usr/local/vufind-plus/sites/opac.marmot.org/moveFullExport.sh adams/ebrary ebrary/adams >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/sites/opac.marmot.org/moveFullExport.sh western/ebrary ebrary/western >> ${OUTPUT_FILE}
 
 # CCU Ebsco Marc Updates
 /usr/local/vufind-plus/sites/opac.marmot.org/moveFullExport.sh ebsco_ccu ebsco/ccu >> ${OUTPUT_FILE}
 
 # CMC Ebsco Academic Marc Updates
 /usr/local/vufind-plus/sites/opac.marmot.org/moveFullExport.sh cmc/ebsco ebsco/cmc >> ${OUTPUT_FILE}
+
+# Fort Lewis Ebsco Academic Marc Updates
+/usr/local/vufind-plus/sites/opac.marmot.org/moveFullExport.sh fortlewis_sideload/EBSCO_Academic ebsco/fortlewis >> ${OUTPUT_FILE}
 
 # Western Oxford Reference Marc Updates
 /usr/local/vufind-plus/sites/opac.marmot.org/moveFullExport.sh western/oxfordReference oxfordReference/western >> ${OUTPUT_FILE}
@@ -78,7 +85,6 @@ cd /usr/local/vufind-plus/vufind/cron;./GetHooplaFromMarmot.sh >> ${OUTPUT_FILE}
 #Extracts for sideloaded eContent; settings defined in config.pwd.ini [Sideload]
 cd /usr/local/vufind-plus/vufind/cron; ./sideload.sh ${PIKASERVER}
 
-
 #Extract Lexile Data
 #cd /data/vufind-plus/; wget -N --no-verbose http://venus.marmot.org/lexileTitles.txt
 cd /data/vufind-plus/; curl --remote-name --remote-time --silent --show-error --compressed --time-cond /data/vufind-plus/lexileTitles.txt http://venus.marmot.org/lexileTitles.txt
@@ -96,16 +102,34 @@ then
 	nice -n -10 java -server -XX:+UseG1GC -jar overdrive_extract.jar ${PIKASERVER} fullReload >> ${OUTPUT_FILE}
 fi
 
-#Validate the export
-cd /usr/local/vufind-plus/vufind/cron; java -server -XX:+UseG1GC -jar cron.jar ${PIKASERVER} ValidateMarcExport >> ${OUTPUT_FILE}
+FILE=$(find  /data/vufind-plus/opac.marmot.org/marc/ -name fullexport.mrc -mtime -1 | sort -n | tail -1)
 
-#Full Regroup
-cd /usr/local/vufind-plus/vufind/record_grouping; java -server -XX:+UseG1GC -Xmx6G -jar record_grouping.jar ${PIKASERVER} fullRegroupingNoClear >> ${OUTPUT_FILE}
+if [ -n "$FILE" ]
+then
+  #check file size
+	MINFILE1SIZE=$((4388000000))
+	FILE1SIZE=$(wc -c <"$FILE")
+	if [ $FILE1SIZE -ge $MINFILE1SIZE ]; then
 
-#TODO: Determine if we should do a partial update from the ILS and OverDrive before running the reindex to grab last minute changes
+		echo "Latest export file is " $FILE >> ${OUTPUT_FILE}
 
-#Full Reindex
-cd /usr/local/vufind-plus/vufind/reindexer; nice -n -3 java -server -XX:+UseG1GC -jar reindexer.jar ${PIKASERVER} fullReindex >> ${OUTPUT_FILE}
+		#Validate the export
+		cd /usr/local/vufind-plus/vufind/cron; java -server -XX:+UseG1GC -jar cron.jar ${PIKASERVER} ValidateMarcExport >> ${OUTPUT_FILE}
+
+		#Full Regroup
+		cd /usr/local/vufind-plus/vufind/record_grouping; java -server -XX:+UseG1GC -Xmx6G -jar record_grouping.jar ${PIKASERVER} fullRegroupingNoClear >> ${OUTPUT_FILE}
+
+		#TODO: Determine if we should do a partial update from the ILS and OverDrive before running the reindex to grab last minute changes
+
+		#Full Reindex
+		cd /usr/local/vufind-plus/vufind/reindexer; nice -n -3 java -server -XX:+UseG1GC -jar reindexer.jar ${PIKASERVER} fullReindex >> ${OUTPUT_FILE}
+
+	else
+		echo $FILE " size " $FILE1SIZE "is less than minimum size :" $MINFILE1SIZE "; Export was not moved to data directory, Full Regrouping & Full Reindexing skipped." >> ${OUTPUT_FILE}
+	fi
+else
+	echo "Did not find a export file from the last 24 hours, Full Regrouping & Full Reindexing skipped." >> ${OUTPUT_FILE}
+fi
 
 # Clean-up Solr Logs
 find /usr/local/vufind-plus/sites/default/solr/jetty/logs -name "solr_log_*" -mtime +7 -delete

@@ -5,6 +5,7 @@
 # At the end of the index will email users with the results.
 EMAIL=root@venus
 PIKASERVER=marmot.test
+PIKADBNAME=vufind
 OUTPUT_FILE="/var/log/vufind-plus/${PIKASERVER}/full_update_output.log"
 
 # Check if full_update is already running
@@ -16,7 +17,6 @@ then
 	ps -p $PID > /dev/null 2>&1
 	if [ $? -eq 0 ]
 	then
-#		echo "$0 is already running"
 		mail -s "Full Extract and Reindexing - ${PIKASERVER}" $EMAIL <<< "$0 is already running"
 		exit 1
 	else
@@ -24,7 +24,6 @@ then
 		echo $$ > $PIDFILE
 		if [ $? -ne 0 ]
 		then
-#			echo "Could not create PID file for $0"
 			mail -s "Full Extract and Reindexing - ${PIKASERVER}" $EMAIL <<< "Could not create PID file for $0"
 			exit 1
 		fi
@@ -33,7 +32,6 @@ else
 	echo $$ > $PIDFILE
 	if [ $? -ne 0 ]
 	then
-#		echo "Could not create PID file for $0"
 		mail -s "Full Extract and Reindexing - ${PIKASERVER}" $EMAIL <<< "Could not create PID file for $0"
 		exit 1
 	fi
@@ -66,6 +64,11 @@ checkConflictingProcesses "sierra_export.jar ${PIKASERVER}"
 checkConflictingProcesses "overdrive_extract.jar ${PIKASERVER}"
 checkConflictingProcesses "reindexer.jar ${PIKASERVER}"
 
+# Back-up Solr Master Index
+mysqldump ${PIKADBNAME} grouped_work_primary_identifiers > /data/vufind-plus/${PIKASERVER}/grouped_work_primary_identifiers.sql
+tar -czf /data/vufind-plus/${PIKASERVER}/solr_master_backup.tar.gz /data/vufind-plus/${PIKASERVER}/solr_master/grouped/index/ /data/vufind-plus/${PIKASERVER}/grouped_work_primary_identifiers.sql >> ${OUTPUT_FILE}
+rm /data/vufind-plus/${PIKASERVER}/grouped_work_primary_identifiers.sql
+
 #Restart Solr
 cd /usr/local/vufind-plus/sites/${PIKASERVER}; ./${PIKASERVER}.sh restart
 
@@ -80,12 +83,16 @@ cd /usr/local/vufind-plus/sites/${PIKASERVER}; ./${PIKASERVER}.sh restart
 #TODO: refactor CCU's ebrary destination
 /usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh ccu_ebrary ebrary_ccu >> ${OUTPUT_FILE}
 /usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh adams/ebrary ebrary/adams >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh western/ebrary ebrary/western >> ${OUTPUT_FILE}
 
 # CCU Ebsco Marc Updates
 /usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh ebsco_ccu ebsco/ccu >> ${OUTPUT_FILE}
 
-# CCU Ebsco Academic Marc Updates
+# CMC Ebsco Academic Marc Updates
 /usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh cmc/ebsco ebsco/cmc >> ${OUTPUT_FILE}
+
+# Fort Lewis Ebsco Academic Marc Updates
+/usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh fortlewis_sideload/EBSCO_Academic ebsco/fortlewis >> ${OUTPUT_FILE}
 
 # Western Oxford Reference Marc Updates
 /usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh western/oxfordReference oxfordReference/western >> ${OUTPUT_FILE}

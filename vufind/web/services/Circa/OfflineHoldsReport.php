@@ -23,14 +23,30 @@ class Circa_OfflineHoldsReport extends Admin_Admin{
 		}else{
 			$endDate = new DateTime();
 		}
+		$endDate->setTime(23,59,59); //second before midnight
+		$hideNotProcessed = isset($_REQUEST['hideNotProcessed']);
+		$hideFailed = isset($_REQUEST['hideFailed']);
+		$hideSuccess = isset($_REQUEST['hideSuccess']);
 
 		$interface->assign('startDate', $startDate->getTimestamp());
 		$interface->assign('endDate', $endDate->getTimestamp());
+		$interface->assign('hideNotProcessed', $hideNotProcessed);
+		$interface->assign('hideFailed', $hideFailed);
+		$interface->assign('hideSuccess', $hideSuccess);
 
 
 		$offlineHolds = array();
 		$offlineHoldsObj = new OfflineHold();
 		$offlineHoldsObj->whereAdd("timeEntered >= " . $startDate->getTimestamp() . " AND timeEntered <= " . $endDate->getTimestamp());
+		if ($hideFailed){
+			$offlineHoldsObj->whereAdd("status != 'Hold Failed'", 'AND');
+		}
+		if ($hideSuccess){
+			$offlineHoldsObj->whereAdd("status != 'Hold Succeeded'", 'AND');
+		}
+		if ($hideNotProcessed){
+			$offlineHoldsObj->whereAdd("status != 'Not Processed'", 'AND');
+		}
 		$offlineHoldsObj->find();
 		while ($offlineHoldsObj->fetch()){
 			$offlineHold = array();

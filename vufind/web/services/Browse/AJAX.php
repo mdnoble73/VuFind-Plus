@@ -103,18 +103,23 @@ class Browse_AJAX extends Action {
 				'message' => "Sorry the title of the category was not unique.  Please enter a new name."
 			);
 		}else{
-			$searchId = $_REQUEST['searchId'];
+			if (isset($_REQUEST['searchId']) && strlen($_REQUEST['searchId']) > 0){
+				$searchId = $_REQUEST['searchId'];
 
-			/** @var SearchObject_Solr|SearchObject_Base $searchObj */
-			$searchObj = SearchObjectFactory::initSearchObject();
-			$searchObj->init();
-			$searchObj = $searchObj->restoreSavedSearch($searchId, false, true);
+				/** @var SearchObject_Solr|SearchObject_Base $searchObj */
+				$searchObj = SearchObjectFactory::initSearchObject();
+				$searchObj->init();
+				$searchObj = $searchObj->restoreSavedSearch($searchId, false, true);
 
-			if (!$browseCategory->updateFromSearch($searchObj)){
-				return array(
-					'success' => false,
-					'message' => "Sorry, this search is too complex to create a category from."
-				);
+				if (!$browseCategory->updateFromSearch($searchObj)){
+					return array(
+							'success' => false,
+							'message' => "Sorry, this search is too complex to create a category from."
+					);
+				}
+			}else{
+				$listId = $_REQUEST['listId'];
+				$browseCategory->sourceListId = $listId;
 			}
 
 			$browseCategory->label = $categoryName;
@@ -130,8 +135,7 @@ class Browse_AJAX extends Action {
 					'success' => false,
 					'message' => "There was an error saving the category.  Please contact Marmot."
 				);
-			}
-			elseif ($addAsSubCategoryOf) {
+			}elseif ($addAsSubCategoryOf) {
 				$id = $browseCategory->id; // get from above insertion operation
 				$subCategory = new SubBrowseCategories();
 				$subCategory->browseCategoryId = $addAsSubCategoryOf;
@@ -146,13 +150,6 @@ class Browse_AJAX extends Action {
 			}
 
 			//Now add to the library/location
-			/*if ($searchLocation){
-				require_once ROOT_DIR . '/sys/Browse/LocationBrowseCategory.php';
-				$locationBrowseCategory = new LocationBrowseCategory();
-				$locationBrowseCategory->locationId = $searchLocation->locationId;
-				$locationBrowseCategory->browseCategoryTextId = $textId;
-				$locationBrowseCategory->insert();
-			}else*/
 			if ($library && !$addAsSubCategoryOf){ // Only add main browse categories to the library carousel
 				require_once ROOT_DIR . '/sys/Browse/LibraryBrowseCategory.php';
 				$libraryBrowseCategory = new LibraryBrowseCategory();

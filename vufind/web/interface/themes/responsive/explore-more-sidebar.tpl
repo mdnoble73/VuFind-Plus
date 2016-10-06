@@ -93,7 +93,14 @@
 				<div class="section">
 					<a href="{$value.link}">
 						{if $value.image}
-							<img src="{$value.image}" alt="{$value.label}" class="img-responsive img-thumbnail">
+							<figure style="text-align: center">
+								<img src="{$value.image}" alt="{$value.label}" class="img-responsive img-thumbnail">
+								{if $section.showTitles}
+									<figcaption>
+										{$value.label}
+									</figcaption>
+								{/if}
+							</figure>
 						{else}
 							{$value.label}
 						{/if}

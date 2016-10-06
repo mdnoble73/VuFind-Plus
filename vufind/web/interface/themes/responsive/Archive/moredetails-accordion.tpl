@@ -126,6 +126,95 @@
 			</div>
 		{/if}
 
+		{if $hasAcademicResearchData}
+			<div class="panel active" id="academicResearchPanel">
+				<a href="#academicResearchPanelBody" data-toggle="collapse">
+					<div class="panel-heading">
+						<div class="panel-title">
+							Research Information
+						</div>
+					</div>
+				</a>
+				<div id="academicResearchPanelBody" class="panel-collapse collapse in">
+					<div class="panel-body">
+
+						{if $researchType}
+							<div class="row">
+								<div class="result-label col-sm-4">Research Type: </div>
+								<div class="result-value col-sm-8">
+									{$researchType}
+								</div>
+							</div>
+						{/if}
+						{if $degreeName}
+							<div class="row">
+								<div class="result-label col-sm-4">Degree Name: </div>
+								<div class="result-value col-sm-8">
+									{$degreeName}
+								</div>
+							</div>
+						{/if}
+						{if $degreeDiscipline}
+							<div class="row">
+								<div class="result-label col-sm-4">Degree Discipline: </div>
+								<div class="result-value col-sm-8">
+									{$degreeDiscipline}
+								</div>
+							</div>
+						{/if}
+						{if $researchLevel}
+							<div class="row">
+								<div class="result-label col-sm-4">Research Level: </div>
+								<div class="result-value col-sm-8">
+									{$researchLevel}
+								</div>
+							</div>
+						{/if}
+						{if $peerReview}
+							<div class="row">
+								<div class="result-label col-sm-4">Peer Reviewed? </div>
+								<div class="result-value col-sm-8">
+									{$peerReview}
+								</div>
+							</div>
+						{/if}
+						{if $defenceDate}
+							<div class="row">
+								<div class="result-label col-sm-4">Defence Date:  </div>
+								<div class="result-value col-sm-8">
+									{$defenceDate}
+								</div>
+							</div>
+						{/if}
+						{if $acceptedDate}
+							<div class="row">
+								<div class="result-label col-sm-4">Accepted Date: </div>
+								<div class="result-value col-sm-8">
+									{$acceptedDate}
+								</div>
+							</div>
+						{/if}
+						{foreach from=$academicPeople item="academicPerson"}
+							<div class="row">
+								<div class="result-label col-sm-4">
+									{$academicPerson.role}:
+								</div>
+								<div class="result-value col-sm-8">
+									{if $academicPerson.link}
+										<a href='{$academicPerson.link}'>
+											{$academicPerson.label}
+										</a>
+									{else}
+										{$academicPerson.label}
+									{/if}
+								</div>
+							</div>
+						{/foreach}
+					</div>
+				</div>
+			</div>
+		{/if}
+
 		{if $directlyRelatedObjects && $directlyRelatedObjects.numFound > 0}
 			<div class="panel active" id="relatedObjectsPanel">
 				<a href="#relatedObjectsPanelBody" data-toggle="collapse">
@@ -412,6 +501,54 @@
 			</div>
 		{/if}
 
+		{if $hasEducationInfo}
+			<div class="panel active{*toggle on for open*}" id="educationPanel">
+				<a href="#educationPanelBody" data-toggle="collapse">
+					<div class="panel-heading">
+						<div class="panel-title">
+							Education
+						</div>
+					</div>
+				</a>
+				<div id="educationPanelBody" class="panel-collapse collapse in{*toggle on for open*}">
+					<div class="panel-body">
+						{if $degreeName}
+							<div class="row">
+								<div class="result-label col-sm-4">Degree Name: </div>
+								<div class="result-value col-sm-8">
+									{$degreeName}
+								</div>
+							</div>
+						{/if}
+						{if $graduationDate}
+							<div class="row">
+								<div class="result-label col-sm-4">Graduation Date: </div>
+								<div class="result-value col-sm-8">
+									{$graduationDate}
+								</div>
+							</div>
+						{/if}
+						{foreach from=$educationPeople item="educationPerson"}
+							<div class="row">
+								<div class="result-label col-sm-4">
+									{$educationPerson.role}:
+								</div>
+								<div class="result-value col-sm-8">
+									{if $educationPerson.link}
+										<a href='{$educationPerson.link}'>
+											{$educationPerson.label}
+										</a>
+									{else}
+										{$educationPerson.label}
+									{/if}
+								</div>
+							</div>
+						{/foreach}
+					</div>
+				</div>
+			</div>
+		{/if}
+
 		{if $hasMilitaryService}
 			<div class="panel active{*toggle on for open*}" id="militaryServicePanel">
 				<a href="#militaryServicePanelBody" data-toggle="collapse">
@@ -489,7 +626,7 @@
 				<a href="#productionTeamPanelBody" data-toggle="collapse">
 					<div class="panel-heading">
 						<div class="panel-title">
-							Production Team
+							Acknowledgements
 						</div>
 					</div>
 				</a>
@@ -516,7 +653,6 @@
 			</div>
 		{/if}
 
-		{assign var="externalLinks" value=$recordDriver->getVisibleLinks()}
 		{if count($externalLinks) > 0}
 			<div class="panel active" id="externalLinksPanel">
 				<a href="#externalLinksPanelBody" data-toggle="collapse">
@@ -558,6 +694,24 @@
 								<div class="result-label col-sm-4">Created: </div>
 								<div class="result-value col-sm-8">
 									{$dateCreated}
+								</div>
+							</div>
+						{/if}
+
+						{if $dateIssued}
+							<div class="row">
+								<div class="result-label col-sm-4">Issued: </div>
+								<div class="result-value col-sm-8">
+									{$dateIssued}
+								</div>
+							</div>
+						{/if}
+
+						{if $language}
+							<div class="row">
+								<div class="result-label col-sm-4">Language: </div>
+								<div class="result-value col-sm-8">
+									{$language}
 								</div>
 							</div>
 						{/if}
@@ -658,7 +812,6 @@
 					</div>
 				</div>
 			</div>
-
 		{/if}
 
 		{if $rightsStatements}
@@ -675,6 +828,12 @@
 						{foreach from=$rightsStatements item=rightsStatement}
 							<div class="rightsStatement">{$rightsStatement}</div>
 						{/foreach}
+						{if $rightsHolderTitle}
+							<div><em>Rights held by <a href="{$rightsHolderLink}">{$rightsHolderTitle}</a></em></div>
+						{/if}
+						{if $rightsCreatorTitle}
+							<div><em>Rights created by <a href="{$rightsCreatorLink}">{$rightsCreatorTitle}</a></em></div>
+						{/if}
 					</div>
 				</div>
 			</div>
@@ -704,7 +863,6 @@
 				</div>
 			</div>
 		{/if}
-
 
 	</div>
 {/strip}

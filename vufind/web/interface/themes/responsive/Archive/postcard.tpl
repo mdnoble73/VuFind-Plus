@@ -14,7 +14,7 @@
 			<img src="{$back_thumbnail}" class="img-responsive alternate-image" onclick="VuFind.Archive.openSeaDragonViewer.goToPage(1);">
 		</div>
 
-		<div id="image-download-options">
+		<div id="download-options">
 			{if $anonymousLcDownload || ($user && $verifiedLcDownload)}
 				<a class="btn btn-default" href="/Archive/{$pid}/DownloadLC">Download Large Image</a>
 			{elseif (!$user && $verifiedLcDownload)}
@@ -47,13 +47,13 @@
 				{rdelim};
 				openSeadragonSettings.settings.tileSources = new Array();
 				var frontTile = new OpenSeadragon.DjatokaTileSource(
-						"/AJAX/DjatokaResolver",
+						Globals.url + "/AJAX/DjatokaResolver",
 						'{$front_image}',
 						openSeadragonSettings.settings
 				);
 				openSeadragonSettings.settings.tileSources.push(frontTile);
 				var backTile = new OpenSeadragon.DjatokaTileSource(
-						"/AJAX/DjatokaResolver",
+						Globals.url + "/AJAX/DjatokaResolver",
 						'{$back_image}',
 						openSeadragonSettings.settings
 				);

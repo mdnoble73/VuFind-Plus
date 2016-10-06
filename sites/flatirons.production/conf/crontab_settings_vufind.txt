@@ -11,7 +11,7 @@
 #
 # ie :
 # git pull origin {current branch}
-# sudo crontab -u vufind /usr/local/vufind-plus/sites/flatirons.production/conf/crontab_settings.txt
+# sudo crontab -u vufind /usr/local/vufind-plus/sites/flatirons.production/conf/crontab_settings_vufind.txt
 
 ###################
 # * * * * *  command to execute
@@ -46,6 +46,12 @@
 ###################
 7 20 * * * cd /usr/local/vufind-plus/vufind/cron/; java -jar cron.jar flatirons.production UpdateReadingHistory
 20 0 * * * cd /usr/local/vufind-plus/vufind/cron/; java -jar cron.jar flatirons.production DatabaseCleanup
+
+#############################################
+# New York Times Best seller Lists Updating #
+#############################################
+07 7 * * 0 /usr/local/vufind-plus/vufind/cron/updateNYTLists.sh flatirons.production
+# update on Sundays at 7:07
 
 ###############################################
 # Copy Original Covers from Marmot FTP Server #

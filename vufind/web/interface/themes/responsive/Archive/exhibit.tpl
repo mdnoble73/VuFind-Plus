@@ -11,8 +11,18 @@
 	</h2>
 
 	<div class="lead row">
-		{if $thumbnail && !$main_image}
-			<img src="{$thumbnail}" class="img-responsive thumbnail exhibit-thumbnail">
+		{if $hasImageMap}
+			{$imageMap}
+			<script type="text/javascript">
+				$(document).ready(function(e) {ldelim}
+					$('img[usemap]').addClass('img-responsive');
+					$('img[usemap]').rwdImageMaps();
+				{rdelim});
+			</script>
+		{else}
+			{if $thumbnail && !$main_image}
+				<img src="{$thumbnail}" class="img-responsive thumbnail exhibit-thumbnail">
+			{/if}
 		{/if}
 		{$description}
 	</div>
@@ -63,7 +73,11 @@
 							<button class="btn btn-default" type="submit">GO</button>
 						</div>
 						<input type="hidden" name="islandoraType" value="IslandoraKeyword"/>
+						{if count($subCollections) > 0}
+						<input type="hidden" name="filter[]" value='RELS_EXT_isMemberOfCollection_uri_ms:"info:fedora/{$pid}"{foreach from=$subCollections item=subCollectionPID} OR RELS_EXT_isMemberOfCollection_uri_ms:"info:fedora/{$subCollectionPID}"{/foreach}'/>
+						{else}
 						<input type="hidden" name="filter[]" value='RELS_EXT_isMemberOfCollection_uri_ms:"info:fedora/{$pid}"'/>
+						{/if}
 					</div>
 				</form>
 			</div>
@@ -141,5 +155,5 @@
 <script type="text/javascript">
 	$().ready(function(){ldelim}
 		VuFind.Archive.loadExploreMore('{$pid|urlencode}');
-		{rdelim});
+	{rdelim});
 </script>

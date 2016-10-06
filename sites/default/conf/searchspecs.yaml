@@ -134,13 +134,13 @@ Author:
       - [localized_callnumber, 1400]
     - author:
       - [onephrase, 350]
-      - [and, 200]
+      - [proximal, 200]
     - author2:
       - [onephrase, 100]
-      - [and, 50]
+      - [proximal, 50]
     - author_additional:
       - [onephrase, 100]
-      - [and, 50]
+      - [proximal, 50]
 
 AuthorProper:
   QueryFields:
@@ -372,11 +372,13 @@ Keyword:
         - [localized_callnumber, 1000]
       - author:
         - [onephrase, 800]
-        - [and, 200]
+        - [proximal, 200]
       - author2:
-        - [and, 50]
+        - [onephrase, 100]
+        - [proximal, 50]
       - author_additional:
-        - [and, 50]
+        - [onephrase, 100]
+        - [proximal, 50]
 #IDs within the records
     -
       - [OR, 300]
@@ -652,6 +654,9 @@ IslandoraKeyword:
     - mods_titleInfo_title_t:
       - [onephrase, 1200]
       - [and, 700]
+    - mods_titleInfo_subTitle_t:
+      - [onephrase, 1200]
+      - [and, 700]
     - fgs_label_t:
       - [onephrase, 1200]
       - [and, 700]
@@ -698,6 +703,9 @@ IslandoraKeyword:
 IslandoraKeywordProper:
   QueryFields:
     - mods_titleInfo_title_t:
+      - [onephrase, 1200]
+      - [exact, 700]
+    - mods_titleInfo_subTitle_t:
       - [onephrase, 1200]
       - [exact, 700]
     - fgs_label_t:
@@ -763,6 +771,8 @@ IslandoraRelationshipsById:
     - mods_extension_marmotLocal_hasCreator_entityPid_ms:
       - [exact, ~]
     - mods_extension_marmotLocal_describedEntity_entityPid_ms:
+      - [exact, ~]
+    - mods_extension_marmotLocal_picturedEntity_entityPid_ms:
       - [exact, ~]
     - mods_extension_marmotLocal_relatedPersonOrg_entityPid_ms:
       - [exact, ~]

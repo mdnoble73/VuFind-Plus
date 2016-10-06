@@ -16,9 +16,6 @@ class UserSuggestion extends DB_DataObject
     public $hide;              //tinyint(4)
     public $internalNotes;              //mediumText
     
-    /* Static get */
-    function staticGet($k,$v=NULL) { return DB_DataObject::staticGet('UserSuggestion',$k,$v); }
-    
     function keys() {
         return array('suggestionId');
     }

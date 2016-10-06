@@ -141,6 +141,8 @@
 									{*<div class="myAccountLink"><a href="{$list.url}">{$list.name}{if $list.numTitles} <span class="badge">{$list.numTitles}</span>{/if}</a></div>*}
 								{/if}
 							{/foreach}
+
+							<a href="#" onclick="return VuFind.Account.showCreateListForm();" class="btn btn-sm btn-primary">Create a New List</a>
 						</div>
 					</div>
 				</div>

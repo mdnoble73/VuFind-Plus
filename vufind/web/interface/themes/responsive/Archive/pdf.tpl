@@ -6,14 +6,33 @@
 			{$title|escape}
 		</h2>
 		<div class="row">
-			<div id="main-content" class="col-xs-12 text-center">
-
-				<div id="view-pdf" width="100%" height="600px">
-					<object type="pdf" class="book-pdf" data="{$pdf}"></object>
+			<div id="main-content" class="col-xs-12 hidden-tn hidden-xs text-center">
+				<div id="pdfContainer">
+					<div id="pdfContainerBody">
+						<div id="pdfComponentBox">
+							<object type="pdf" data="{$pdf}" id="view-pdf">
+								<embed type="application/pdf" src="{$pdf}">
+							</object>
+						</div>
+					</div>
 				</div>
+			</div>
+		</div>
+
+		<div id="download-options" class="row">
+			<div class="col-xs-12">
+				<a class="btn btn-default" href="/Archive/{$pid}/DownloadPDF">Download PDF</a>
+				{if $allowRequestsForArchiveMaterials}
+					<a class="btn btn-default" href="{$path}/Archive/RequestCopy?pid={$pid}">Request Copy</a>
+				{/if}
 			</div>
 		</div>
 
 		{include file="Archive/metadata.tpl"}
 	</div>
 {/strip}
+<script type="text/javascript">
+	$().ready(function(){ldelim}
+		VuFind.Archive.loadExploreMore('{$pid|urlencode}');
+		{rdelim});
+</script>

@@ -14,7 +14,6 @@ class Archive_Pdf extends Archive_Object{
 		global $interface;
 		global $configArray;
 		$objectUrl = $configArray['Islandora']['objectUrl'];
-		$fedoraUtils = FedoraUtils::getInstance();
 
 		$this->loadArchiveObjectData();
 		//$this->loadExploreMoreContent();

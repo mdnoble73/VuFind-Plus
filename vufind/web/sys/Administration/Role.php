@@ -12,9 +12,6 @@ class Role extends DB_DataObject
 	public $name;                     //varchar(50)
 	public $description;              //varchar(100)
 
-	/* Static get */
-	function staticGet($k,$v=NULL) { return DB_DataObject::staticGet('Role',$k,$v); }
-
 	function keys() {
 		return array('roleId');
 	}

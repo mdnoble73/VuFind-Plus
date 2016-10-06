@@ -48,6 +48,12 @@
 # Has the weekly RHEL package update been completed? 10:10-10:25PM-ish 
 25 22 * * * cd /usr/local/vufind-plus/sites/catalog.library.nashville.org; ./full_update.sh
 
+#############################################
+# New York Times Best seller Lists Updating #
+#############################################
+07 7 * * 0 /usr/local/vufind-plus/vufind/cron/updateNYTLists.sh catalog.library.nashville.org
+# update on Sundays at 7:07
+
 ################
 # Pika Cleanup #
 ################

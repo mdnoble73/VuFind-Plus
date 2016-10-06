@@ -28,9 +28,6 @@ class BlockPatronAccountLink extends DB_DataObject
 	public $blockedAccountBarCode;      //  The info the Admin user will see & input
 	public $blockedAccountName; // TODO
 
-	/* Static get */
-	function staticGet($k,$v=NULL) { return DB_DataObject::staticGet('BlockPatronAccountLink',$k,$v); }
-
 	/**
 	 * Override the fetch functionality to fetch Account BarCodes
 	 *

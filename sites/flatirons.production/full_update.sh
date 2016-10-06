@@ -11,6 +11,7 @@
 EMAIL=mark@marmot.org,pascal@marmot.org
 ILSSERVER=nell.boulderlibrary.org
 PIKASERVER=flatirons.production
+PIKADBNAME=pika
 OUTPUT_FILE="/var/log/vufind-plus/${PIKASERVER}/full_update_output.log"
 
 # Check for conflicting processes currently running
@@ -77,6 +78,11 @@ checkConflictingProcesses "reindexer.jar"
 #truncate the output file so you don't spend a week debugging an error from a week ago!
 : > $OUTPUT_FILE;
 
+# Back-up Solr Master Index
+mysqldump ${PIKADBNAME} grouped_work_primary_identifiers > /data/vufind-plus/${PIKASERVER}/grouped_work_primary_identifiers.sql
+tar -czf /data/vufind-plus/${PIKASERVER}/solr_master_backup.tar.gz /data/vufind-plus/${PIKASERVER}/solr_master/grouped/index/ /data/vufind-plus/${PIKASERVER}/grouped_work_primary_identifiers.sql >> ${OUTPUT_FILE}
+rm /data/vufind-plus/${PIKASERVER}/grouped_work_primary_identifiers.sql
+
 #Restart Solr
 cd /usr/local/vufind-plus/sites/${PIKASERVER}; ./${PIKASERVER}.sh restart
 
@@ -85,11 +91,27 @@ cd /usr/local/vufind-plus/sites/${PIKASERVER}; ./${PIKASERVER}.sh restart
 cd /usr/local/vufind-plus/vufind/cron;./GetHooplaFromMarmot.sh >> ${OUTPUT_FILE}
 
 #Extract Lexile Data
-cd /data/vufind-plus/; curl --remote-name --remote-time --silent --show-error --compressed --time-cond /data/vufind-plus/lexileTitles.txt http://venus.marmot.org/lexileTitles.txt
+cd /data/vufind-plus/; curl --remote-name --remote-time --silent --show-error --compressed --time-cond /data/vufind-plus/lexileTitles.txt http://venus.marmot.org/lexileTitles.txt >> ${OUTPUT_FILE}
 
 #Extract AR Data
 #cd /data/vufind-plus/accelerated_reader; wget -N --no-verbose http://venus.marmot.org/RLI-ARDataTAB.txt
-cd /data/vufind-plus/accelerated_reader; curl --remote-name --remote-time --silent --show-error --compressed --time-cond /data/vufind-plus/accelerated_reader/RLI-ARDataTAB.txt http://venus.marmot.org/RLI-ARDataTAB.txt
+cd /data/vufind-plus/accelerated_reader; curl --remote-name --remote-time --silent --show-error --compressed --time-cond /data/vufind-plus/accelerated_reader/RLI-ARDataTAB.txt http://venus.marmot.org/RLI-ARDataTAB.txt >> ${OUTPUT_FILE}
+
+#Zinio Marc Updates
+scp flatirons_sideload@ftp1.marmot.org:/ftp/flatirons_sideload/zinio/shared/*.mrc /data/vufind-plus/zinio/boulderBroomfield/marc/ >> ${OUTPUT_FILE}
+scp flatirons_sideload@ftp1.marmot.org:/ftp/flatirons_sideload/zinio/longmont/*.mrc /data/vufind-plus/zinio/longmont/marc/ >> ${OUTPUT_FILE}
+
+#Ebrary Marc Updates
+scp flatirons_sideload@ftp1.marmot.org:/ftp/flatirons_sideload/ebrary/boulder/*.mrc /data/vufind-plus/ebrary/bpl/marc/ >> ${OUTPUT_FILE}
+scp flatirons_sideload@ftp1.marmot.org:/ftp/flatirons_sideload/ebrary/broomfield/*.mrc /data/vufind-plus/ebrary/mde/marc/ >> ${OUTPUT_FILE}
+
+# Possible curl version; if I can figure out how to implement the --time-condition check on a range of files
+# (Can't do *.mrc; have to specify a range of files that curl will check for each one in the range)
+#curl --verbose --remote-name --remote-time --compressed --pubkey ~/.ssh/id_rsa.pub --key ~/.ssh/id_rsa sftp://flatirons_sideload@ftp1.marmot.org:22//ftp/flatirons_sideload/ebrary/boulder/Zinio_boulderco_1619_Magazine_[1-12]_[1-31]_[2016-2017].mrc
+
+#OneClick Digit Marc Updates
+scp flatirons_sideload@ftp1.marmot.org:/ftp/flatirons_sideload/oneclickdigital/longmont/*.mrc /data/vufind-plus/oneclickdigital/longmont/marc/ >> ${OUTPUT_FILE}
+
 
 #Do a full extract from OverDrive just once a week to catch anything that doesn't
 #get caught in the regular extract

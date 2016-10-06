@@ -170,6 +170,12 @@ EOQ;
 				$page['transcript'] = $page['pid'] . '/datastream/HOCR/view';
 			}elseif ($pageObject->getDataStream('OCR') != null){
 				$page['transcript'] = $page['pid'] . '/datastream/OCR/view';
+			}else{
+				$mods = $fedoraUtils->getModsData($pageObject);
+				$transcript = $fedoraUtils->getModsValue('transcriptionText', 'marmot', $mods);
+				if (strlen($transcript) > 0){
+					$page['transcript'] = 'mods:' . $page['pid'];
+				}
 			}
 			$page['cover'] = $fedoraUtils->getObjectImageUrl($pageObject, 'thumbnail');
 			$pages[$index] = $page;

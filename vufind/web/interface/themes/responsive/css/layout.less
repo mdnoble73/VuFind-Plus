@@ -1,4 +1,4 @@
-@import (reference) "bootstrap/less/variables.less";
+//@import (reference) "bootstrap/less/variables.less";
 @import (reference) "variables.less";
 
 //Functionality related to the overall layout
@@ -229,10 +229,13 @@ hr.menu{
   color: @menu-bar-color;
   padding-left: 0;
   padding-right: 0;
+  margin-top: 2px;
+  border-right: 3px solid @content-bg;
 
   .menu-bar-option {
     width: 100%;
     padding-top: @padding-base-vertical;
+    border-top: 3px solid @content-bg;
     &.menu-icon-selected {
       background-color: @menu-bar-selected-background-color;
       color: @menu-bar-selected-color;

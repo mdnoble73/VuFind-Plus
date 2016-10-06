@@ -13,11 +13,6 @@ class Holiday extends DB_DataObject
 	public $date;                  // date
 	public $name;                  // varchar(100)
 	
-	/* Static get */
-	function staticGet($k,$v=NULL) {
-		return DB_DataObject::staticGet('Holiday',$k,$v);
-	}
-	
 	function keys() {
 		return array('id');
 	}

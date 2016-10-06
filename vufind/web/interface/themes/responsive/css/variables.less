@@ -1,3 +1,5 @@
+@import (reference) "bootstrap/less/variables.less";
+
 //
 //Variables for Pika customization.  These can be overridden at the local theme level
 //
@@ -47,15 +49,19 @@
 //Sidebar font data
 @sidebar-font-size: 14px;
 @sidebar-link-color: @link-color-resp;
+@sidebar-label-background-color: #7c7c7d;
+@sidebar-label-color: #fff;
 
 //Home Page Browse Category labels
 @browse-header-background-color: #d7dce3;
-@home-page-browse-content-background-color: #fff;
+@home-page-browse-content-background-color: @content-bg;
 @browse-label-text-color: #3497d1;
 @browse-label-line-color: #bbd4e3;
+@selected-browse-label-search-color: #0072bc;
 
 //Home Page Browse categories
 @browse-category-font-size: 20px;
+@browse-category-text-color: #fff;
 @categoryLineShadow: #64b7d8;
 @categoryLineColor: #89cae5;
 @category1MainColor: #0d8ec7;
@@ -78,7 +84,8 @@
 @selectedSubCategoryBackgroundColor: @category1MainColor;
 
 //Accordions
-@accordion-active-header-color: #4dacde;
+@accordion-active-header-backgroundcolor: #4dacde;
+@accordion-active-header-color: #fff;
 
 // Explore More Bar
 @explore-more-bar-label-bg-color: @menu-bar-background-color;
@@ -95,4 +102,5 @@
 //@explore-more-sidebar-related-titles-height: 200px; TODO: delete if not used
 
 @title-color: #000075;
+@subsection-title-color: @title-color;
 

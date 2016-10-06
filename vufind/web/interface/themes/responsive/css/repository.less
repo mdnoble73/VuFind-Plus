@@ -1,4 +1,4 @@
-@import (reference) "bootstrap/less/variables.less";
+//@import (reference) "bootstrap/less/variables.less";
 @import (reference) "variables.less";
 
 // Explore More SideBar
@@ -8,6 +8,7 @@
 }
 #explore-more-header{
   padding: 10px 25px 5px 0;
+  margin-top: 5px; // to match other menus
   //margin-bottom:5px;
   text-align: right;
   color: @explore-more-sidebar-color;
@@ -43,7 +44,7 @@
     margin-bottom: 20px;
   }
   .subsectionTitle {
-    color: @title-color;
+    color: @subsection-title-color;
   }
   .subsection {
 
@@ -217,9 +218,10 @@
   box-sizing: border-box;
 }
 
-#image-download-options{
+#download-options{
   margin-top: 5px;
   margin-bottom: 7px;
+  text-align: center;
 }
 
 .openseadragon {
@@ -283,4 +285,127 @@
 }
 .transcript{
   margin-bottom: 5px;
+}
+
+.archiveComponentContainer{
+  .archiveComponent {
+    border: 1px solid lightgrey;
+    background-color: @menu-bar-background-color;
+    background: linear-gradient(90deg, white, white 120px, @menu-bar-background-color 121px, @menu-bar-background-color);
+    color: @menu-bar-color;
+    font-size: @browse-category-font-size;
+    margin: 10px;
+
+    .archiveComponentHeader {
+      width: 100%;
+      text-align: center;
+    }
+
+    .archiveComponentBody{
+      position: relative;
+      width:    100%;
+
+      .archiveComponentBox{
+        padding: 10px;
+        position: absolute;
+        top:      0;
+        left:     0;
+        bottom:   0;
+        right:    0;
+
+        .archiveComponentImage{
+          position: absolute;
+
+        }
+
+        .archiveComponentControls{
+          position: absolute;
+          left: 130px;
+          overflow: hidden;
+        }
+
+        #searchComponentForm{
+          background-color: white;
+          border: 1px solid darken(@menu-bar-background-color, 10%);
+          padding: 3px;
+          margin-left: 5px;
+        }
+
+        #exhibit-map{
+          width: 100%;
+          height: 100%;
+        }
+
+        .archiveComponentLinks{
+          padding: 20px;
+          font-size: 14px;
+          color: @body-text-color;
+        }
+
+        .archiveComponentRandomImage{
+          padding: 20px;
+          font-size: 14px;
+          color: @body-text-color;
+          text-align: center;
+
+          figure a img{
+            max-height: 170px;
+          }
+
+          #refreshRandomImage{
+            position: absolute;
+            right: 10px;
+            top: 55px;
+          }
+        }
+      }
+    }
+    .archiveComponentBody:before{
+      content:     "";
+      display:     block;
+      padding-top: 32%; /* ratio of 2:1*/
+    }
+  }
+}
+
+.archiveComponentContainer{
+  .archiveComponent.horizontalComponent{
+    background-color: @menu-bar-background-color;
+    background: linear-gradient(@menu-bar-background-color, @menu-bar-background-color 45px, white 46px, white);
+
+    .archiveComponentBody:before{
+      content:     "";
+      display:     block;
+      padding-top: 64%;
+    }
+  }
+}
+
+#pdfContainer{
+  border: 1px solid lightgrey;
+  margin: 10px;
+
+  #pdfContainerBody{
+    position: relative;
+    width:    100%;
+
+    #pdfComponentBox{
+      padding: 10px;
+      position: absolute;
+      top:      0;
+      left:     0;
+      bottom:   0;
+      right:    0;
+
+      #view-pdf{
+        width: 100%;
+        height: 100%;
+      }
+    }
+  }
+  #pdfContainerBody:before{
+    content:     "";
+    display:     block;
+    padding-top: 129.5%; /* ratio of 11:8.5*/
+  }
 }

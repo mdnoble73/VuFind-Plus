@@ -11,9 +11,6 @@ class SpellingWord extends DB_DataObject
 	public $word;                    //varchar(50)
 	public $commonality;             //int(11)
 	 
-	/* Static get */
-	function staticGet($k,$v=NULL) { return DB_DataObject::staticGet('BadWord',$k,$v); }
-
 	function keys() {
 		return array('word');
 	}

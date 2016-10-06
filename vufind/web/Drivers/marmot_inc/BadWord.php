@@ -12,9 +12,6 @@ class BadWord extends DB_DataObject
 	public $word;                    //varchar(50)
 	public $replacement;             //varchar(50)
 	 
-	/* Static get */
-	function staticGet($k,$v=NULL) { return DB_DataObject::staticGet('BadWord',$k,$v); }
-
 	function keys() {
 		return array('id', 'word');
 	}

@@ -14,6 +14,13 @@ public class ItemChangeInfo {
 	private String status;
 	private String dueDate;
 	private String lastCheckinDate;
+	private String dateCreated;
+	private String callNumber;
+	private String totalCheckouts;
+	private String yearToDateCheckouts;
+	private String shelvingLocation;
+	private String iType;
+
 
 	public String getItemId() {
 		return itemId;
@@ -61,5 +68,58 @@ public class ItemChangeInfo {
 
 	public void setLastCheckinDate(String lastCheckinDate) {
 		this.lastCheckinDate = lastCheckinDate;
+	}
+
+	private String value; // Delete This; for debugging
+	public void setMe(String value) {
+		this.value = value;
+	}
+
+	public String getCallNumber() {
+		return callNumber;
+	}
+
+	public void setCallNumber(String callNumber) {
+		this.callNumber = callNumber;
+	}
+
+	public String getTotalCheckouts() {
+		return totalCheckouts;
+	}
+
+	public void setTotalCheckouts(String totalCheckouts) {
+		this.totalCheckouts = totalCheckouts;
+	}
+
+	public String getDateCreated() {
+		return dateCreated;
+	}
+
+	public void setDateCreated(String dateCreated) {
+		this.dateCreated = dateCreated;
+	}
+
+	public String getYearToDateCheckouts() {
+		return yearToDateCheckouts;
+	}
+
+	public void setYearToDateCheckouts(String yearToDateCheckouts) {
+		this.yearToDateCheckouts = yearToDateCheckouts;
+	}
+
+	public String getShelvingLocation() {
+		return shelvingLocation;
+	}
+
+	public void setShelvingLocation(String shelvingLocation) {
+		this.shelvingLocation = shelvingLocation;
+	}
+
+	public String getiType() {
+		return iType;
+	}
+
+	public void setiType(String iType) {
+		this.iType = iType;
 	}
 }

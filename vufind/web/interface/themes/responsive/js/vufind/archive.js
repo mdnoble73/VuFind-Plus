@@ -13,6 +13,7 @@ VuFind.Archive = (function(){
 		multiPage: false,
 		activeBookViewer: 'jp2',
 		activeBookPage: null,
+		activeBookPid: null,
 		openSeadragonViewerSettings: function(){
 			return {
 				"id": "pika-openseadragon",
@@ -106,11 +107,17 @@ VuFind.Archive = (function(){
 			});
 		},
 
-		handleMapClick: function(markerIndex, exhibitPid, placePid, label){
+		handleMapClick: function(markerIndex, exhibitPid, placePid, label, redirect){
 			$("#related-objects-for-exhibit").html('<h2>Loading...</h2>');
 			this.archive_info_window.setContent(label);
 			if (markerIndex >= 0){
 				this.archive_info_window.open(this.archive_map, this.markers[markerIndex]);
+			}
+
+			if (redirect != "undefined" && redirect === true){
+				var newUrl = VuFind.buildUrl(document.location.origin + document.location.pathname, 'placePid', placePid);
+				var newUrl = VuFind.buildUrl(newUrl, 'style', 'map');
+				document.location.href = newUrl;
 			}
 			$.getJSON(Globals.path + "/Archive/AJAX?method=getRelatedObjectsForMappedCollection&collectionId=" + exhibitPid + "&placeId=" + placePid, function(data){
 				if (data.success){
@@ -125,6 +132,10 @@ VuFind.Archive = (function(){
 				page: "MapExhibit"
 			};
 			var newUrl = VuFind.buildUrl(document.location.origin + document.location.pathname, 'placePid', placePid);
+			var currentParameters = VuFind.getQuerystringParameters();
+			if (currentParameters["style"] != undefined){
+				var newUrl = VuFind.buildUrl(newUrl, 'style', currentParameters["style"]);
+			}
 			//Push the new url, but only if we aren't going back where we just were.
 			if (document.location.href != newUrl){
 				history.pushState(stateObj, label, newUrl);
@@ -136,6 +147,7 @@ VuFind.Archive = (function(){
 			// Load specified page & viewer
 			//Loading message
 			//Load Page  set-up
+			VuFind.Archive.activeBookPid = bookPid;
 			VuFind.Archive.changeActiveBookViewer(bookViewer, pagePid);
 
 			// store in browser history
@@ -183,6 +195,22 @@ VuFind.Archive = (function(){
 					VuFind.initCarousels("#explore-more-body .jcarousel");
 				}
 			}).fail(VuFind.ajaxFail);
+		},
+
+		loadMetadata: function(pid, secondaryId){
+			var url = Globals.path + "/Archive/AJAX?id=" + encodeURI(pid) + "&method=getMetadata";
+			if (secondaryId !== undefined){
+				url += "&secondaryId=" + secondaryId;
+			}
+			var metadataTarget = $('#archive-metadata');
+			metadataTarget.html("Please wait while we load information about this object...")
+			$.getJSON(url, function(data) {
+				if (data.success) {
+					metadataTarget.html(data.metadata);
+				}
+			}).fail(
+					function(){metadataTarget.html("Could not load metadata.")}
+			);
 		},
 
 		/**
@@ -233,7 +261,7 @@ VuFind.Archive = (function(){
 				// $('#view-transcription').load(reverseProxy);
 			}else if (this.activeBookViewer == 'image'){
 				var tile = new OpenSeadragon.DjatokaTileSource(
-						"/AJAX/DjatokaResolver",
+						Globals.url + "/AJAX/DjatokaResolver",
 						this.pageDetails[pid]['jp2'],
 						VuFind.Archive.openSeadragonViewerSettings()
 				);
@@ -251,6 +279,19 @@ VuFind.Archive = (function(){
 				//VuFind.Archive.openSeaDragonViewer.viewport.fitVertically(true);
 			}
 			if (pageChanged && this.multiPage){
+				if (this.pageDetails[pid]['transcript'] == ''){
+					$('#view-toggle-transcription').parent().hide();
+				}else{
+					$('#view-toggle-transcription').parent().show();
+				}
+				if (this.pageDetails[pid]['pdf'] == ''){
+					$('#view-toggle-pdf').parent().hide();
+				}else{
+					$('#view-toggle-pdf').parent().show();
+				}
+
+				this.loadMetadata(this.activeBookPid, pid);
+				//$("#downloadPageAsPDF").href = Globals.path + "/Archive/" + pid + "/DownloadPDF";
 				url = Globals.path + "/Archive/AJAX?method=getAdditionalRelatedObjects&id=" + pid;
 				var additionalRelatedObjectsTarget = $("#additional-related-objects");
 				additionalRelatedObjectsTarget.html("");
@@ -268,6 +309,14 @@ VuFind.Archive = (function(){
 				}
 			}
 			//alert("Changing display to pid " + pid + " active viewer is " + this.activeBookViewer)
+			return false;
+		},
+
+		nextRandomObject: function(pid){
+			var url = Globals.path + "/Archive/AJAX?id=" + encodeURI(pid) + "&method=getNextRandomObject";
+			$.getJSON(url, function(data){
+				$('#randomImagePlaceholder').html(data.image);
+			}).fail(VuFind.ajaxFail);
 			return false;
 		},
 

@@ -9,33 +9,11 @@
 			<source src="{$audioLink}" type="audio/mpeg">
 		</audio>
 
-		<div id="image-download-options">
+		<div id="download-options">
 			{if $allowRequestsForArchiveMaterials}
 				<a class="btn btn-default" href="{$path}/Archive/RequestCopy?pid={$pid}">Request Copy</a>
 			{/if}
 		</div>
-
-{*//Moved to accordion
-		{if $description}
-			<div class="row">
-				<div class="result-label col-sm-4">Description: </div>
-				<div class="col-sm-8 result-value">
-					{$description}
-				</div>
-			</div>
-		{/if}
-*}
-
-{*//Moved to accordion
-		{if $transcription}
-			<div class="row">
-				<div class="result-label col-xs-12">Transcription: </div>
-				<div class="col-xs-12 result-value">
-					{$transcription.text}
-				</div>
-			</div>
-		{/if}
-*}
 
 		{include file="Archive/metadata.tpl"}
 	</div>

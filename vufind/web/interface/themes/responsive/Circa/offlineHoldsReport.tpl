@@ -2,24 +2,37 @@
 	<div id="page-content" class="content">
 		{if $error}<p class="error">{$error}</p>{/if}
 		<div id="sidebar">
-			<div class="button"><a href="{$path}/MyAccount/Home">Return to Account</a></div>
-			<hr />
-
 			{* Report filters *}
 			<div class="sidegroup">
 				<h4>Report Filters</h4>
 				<div class="sidegroupContents">
 					<form id="offlineHoldsFilter">
-						<div>
-							<div>
-								<label for="startDate">Start Date</label> <input type="text" name="startDate" id="startDate" size="10" value="{$startDate|date_format:'%m/%d/%Y'}"/>
+						<div  class="form-horizontal">
+							<div class="form-group">
+								<label for="startDate" class="control-label col-sm-2">Start Date</label>
+								<input type="text" name="startDate" id="startDate" size="10" value="{$startDate|date_format:'%m/%d/%Y'}" class="form-control col-sm-3" style="width: auto;"/>
 							</div>
-							<div>
-								<label for="endDate">End Date</label> <input type="text" name="endDate" id="endDate" size="10" value="{$endDate|date_format:'%m/%d/%Y'}"/>
+							<div class="form-group">
+								<label for="endDate" class="control-label col-sm-2">End Date</label>
+								<input type="text" name="endDate" id="endDate" size="10" value="{$endDate|date_format:'%m/%d/%Y'}" class="form-control col-sm-3" style="width: auto;"/>
 							</div>
-
-							<div>
-								<input type="submit" name="updateFilters" value="Update Filters"/>
+							<div class="form-group">
+								<label class="control-label col-sm-2">Status</label>
+								<div class="col-sm-6">
+									<div class="checkbox">
+										<label for="hideNotProcessed"><input type="checkbox" name="hideNotProcessed" id="hideNotProcessed" {if $hideNotProcessed}checked="checked"{/if}/> Hide Not Processed</label>
+									</div>
+									<div class="checkbox">
+										<label for="hideFailed"><input type="checkbox" name="hideFailed" id="hideFailed" {if $hideFailed}checked="checked"{/if}/> Hide Failed</label>
+									</div>
+									<div class="checkbox">
+										<label for="hideSuccess"><input type="checkbox" name="hideSuccess" id="hideSuccess" {if $hideSuccess}checked="checked"{/if}/> Hide Successful</label>
+									</div>
+								</div>
+							</div>
+							<br>
+							<div class="form-group">
+								<input type="submit" name="updateFilters" value="Update Filters" class="btn btn-primary"/>
 							</div>
 
 						</div>

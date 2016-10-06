@@ -185,6 +185,18 @@ class SearchAPI extends Action {
 			}
 		}
 
+		// Overdrive extract errors
+		require_once ROOT_DIR . '/sys/OverDriveExtractLogEntry.php';
+		$logEntry = new OverDriveExtractLogEntry();
+		$logEntry->orderBy('id DESC');
+		$logEntry->limit(1);
+		if ($logEntry->find(true)){
+			if ($logEntry->numErrors > 0){
+				$status[] = self::STATUS_WARN;
+				$notes[]  = "Last OverDrive Extract had {$logEntry->numErrors} errors";
+			}
+		}
+
 		// Solr Restart //
 		global $configArray;
 		if ($configArray['Index']['engine'] == 'Solr') {

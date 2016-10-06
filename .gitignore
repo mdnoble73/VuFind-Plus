@@ -24,6 +24,7 @@ vufind/web/files/thumbnail/*
 vufind/web/files/original/*
 vufind/web/google*.html
 vufind/web/getWorkIdUpdates.php
+vufind/web/sitemaps/*
 tests/jmeter/results/*
 tests/selenium/*
 tests/conf/config.ini
@@ -416,3 +417,7 @@ sites/790.library.nashville.org
 sites/790t.library.nashville.org
 sites/805.library.nashville.org
 sites/805t.library.nashville.org
+sites/marmot.localhost/sql_backup/marmot_econtent.sql
+sites/marmot.localhost/sql_backup/marmot_vufind.sql
+sites/arlington.localhost/sql_backup/arlington_econtent.sql
+*.sql

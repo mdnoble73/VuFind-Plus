@@ -1363,5 +1363,34 @@ function getLibraryLocationUpdates(){
 							'ALTER TABLE library ADD COLUMN archiveRequestEmail VARCHAR(100)',
 					)
 			),
+
+			'library_archive_pid' => array(
+					'title' => 'Library Archive PID',
+					'description' => 'Setup a link from Pika to the archive',
+					'sql' => array(
+							'ALTER TABLE library ADD COLUMN archivePid VARCHAR(50)',
+					)
+			),
+
+			'library_location_availability_toggle_updates' => array(
+					'title' => 'Library and Location Availability Updates',
+					'description' => 'Add the ability to show available online and control what goes into the toggles',
+					'continueOnError' => true,
+					'sql' => array(
+							"ALTER TABLE library ADD COLUMN availabilityToggleLabelAvailableOnline VARCHAR(50) DEFAULT ''",
+							"ALTER TABLE library ADD COLUMN includeOnlineMaterialsInAvailableToggle TINYINT(1) DEFAULT '1'",
+							"ALTER TABLE location ADD COLUMN availabilityToggleLabelAvailableOnline VARCHAR(50) DEFAULT ''",
+							"ALTER TABLE location ADD COLUMN baseAvailabilityToggleOnLocalHoldingsOnly TINYINT(1) DEFAULT '0'",
+							"ALTER TABLE location ADD COLUMN includeOnlineMaterialsInAvailableToggle TINYINT(1) DEFAULT '1'",
+					)
+			),
+
+			'library_archive_request_customization' => array(
+					'title' => 'Library Archive Request Customization',
+					'description' => 'Allow libraries to customize the text shown above the request materials page',
+					'sql' => array(
+							"ALTER TABLE library ADD COLUMN archiveRequestMaterialsHeader MEDIUMTEXT",
+					)
+			),
 	);
 }

@@ -13,7 +13,7 @@
 			{* Hid sort and copied it to results-displayMode-toggle.tpl - JE 6/18/15 *}
 			{* Sort the results*}
 			{*	{if $recordCount}
-					<div id="results-sort-label" class="row">
+					<div id="results-sort-label" class="row sidebar-label">
 						<label for="results-sort">{translate text='Sort Results By'}</label>
 					</div>
 

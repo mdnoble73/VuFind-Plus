@@ -95,9 +95,12 @@ class AJAX_JSON extends Action {
 				}
 
 				// General Login Error
+				/** @var PEAR_Error $error */
+				$error = $user;
+				$message = PEAR_Singleton::isError($user) ? translate($error->getMessage()) : translate("Sorry that login information was not recognized, please try again.");
 				return array(
 					'success' => false,
-					'message' => translate("Sorry that login information was not recognized, please try again.")
+					'message' => $message
 				);
 			}
 		}

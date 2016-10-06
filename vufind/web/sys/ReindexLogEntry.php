@@ -16,9 +16,6 @@ class ReindexLogEntry extends DB_DataObject
 	public $numWorksProcessed;
 	public $numListsProcessed;
 
-	/* Static get */
-	function staticGet($k,$v=NULL) { return DB_DataObject::staticGet('ReindexLogEntry',$k,$v); }
-
 	function keys() {
 		return array('id');
 	}

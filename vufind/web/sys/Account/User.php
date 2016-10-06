@@ -87,9 +87,6 @@ class User extends DB_DataObject
 	private $data = array();
 
 
-	/* Static get */
-	function staticGet($k,$v=NULL) { return DB_DataObject::staticGet('User',$k,$v); }
-
 	/* the code above is auto generated do not remove the tag below */
 	###END_AUTOCODE
 
@@ -603,6 +600,9 @@ class User extends DB_DataObject
 			$listLibrary = Library::getLibraryForLocation($listUser->homeLocationId);
 			$userLibrary = Library::getLibraryForLocation($this->homeLocationId);
 			if ($userLibrary->libraryId == $listLibrary->libraryId){
+				return true;
+			}elseif(strpos($list->title, 'NYT - ') === 0 && ($this->hasRole('libraryAdmin') || $this->hasRole('contentEditor'))){
+				//Allow NYT Times lists to be edited by any library admins and library managers
 				return true;
 			}
 		}elseif ($this->hasRole('locationManager')){

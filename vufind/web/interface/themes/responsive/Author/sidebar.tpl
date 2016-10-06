@@ -10,7 +10,7 @@
 		<div id="refineSearch">
 			{* Sort the results*}
 			{if $recordCount}
-				<div id="results-sort-label" class="row"{if $displaySidebarMenu} style="display: none"{/if}>
+				<div id="results-sort-label" class="row sidebar-label"{if $displaySidebarMenu} style="display: none"{/if}>
 					<label for="results-sort">{translate text='Sort Results By'}</label>
 				</div>
 				{* The div below has to be immediately after the div above for the menubar hiding/showing to work *}

@@ -18,10 +18,6 @@ class SubBrowseCategories extends DB_DataObject {
 		$browseCategoryId, // ID of the Main or Parent browse category
 		$subCategoryId;    // ID of the browse Category which is the Sub-Category or Child browse category
 
-	/* Static get */
-	function staticGet($k,$v=NULL) { return DB_DataObject::staticGet('SubBrowseCategories',$k,$v); }
-// required component for all classes that extend DB_DataObject
-
 	static function getObjectStructure(){
 		$browseCategoryList = self::listBrowseCategories();
 		$structure = array(

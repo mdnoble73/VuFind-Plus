@@ -121,6 +121,8 @@ class FedoraUtils {
 				return $objectUrl . '/' . $archiveObject->id . '/datastream/MC/view';
 			}else if ($archiveObject && $archiveObject->getDatastream('MEDIUM_SIZE') != null) {
 				return $objectUrl . '/' . $archiveObject->id . '/datastream/MEDIUM_SIZE/view';
+			}else if ($archiveObject && $archiveObject->getDatastream('PREVIEW') != null) {
+				return $objectUrl . '/' . $archiveObject->id . '/datastream/PREVIEW/view';
 			}else if ($archiveObject && $archiveObject->getDatastream('TN') != null) {
 				return $objectUrl . '/' . $archiveObject->id . '/datastream/TN/view';
 			}else{
@@ -131,6 +133,8 @@ class FedoraUtils {
 				return $objectUrl . '/' . $archiveObject->id . '/datastream/JPG/view';
 			}elseif ($archiveObject && $archiveObject->getDatastream('LC') != null){
 				return $objectUrl . '/' . $archiveObject->id . '/datastream/LC/view';
+			}elseif ($archiveObject && $archiveObject->getDatastream('PREVIEW') != null){
+				return $objectUrl . '/' . $archiveObject->id . '/datastream/PREVIEW/view';
 			}else{
 				return $this->getObjectImageUrl($archiveObject, 'medium', $defaultType);
 			}
@@ -226,7 +230,7 @@ class FedoraUtils {
 		/** @var Memcache $memCache */
 		global $memCache;
 		$isValid = $memCache->get('islandora_object_valid_in_pika_' . $pid);
-		if ($isValid !== FALSE){
+		if ($isValid !== FALSE && !isset($_REQUEST['reload'])){
 			return $isValid == 1;
 		}else{
 			$archiveObject = $this->getObject($pid);
@@ -256,7 +260,7 @@ class FedoraUtils {
 	 *
 	 * @return string
 	 */
-	public function getModsValue($tag, $namespace = null, $snippet = null){
+	public function getModsValue($tag, $namespace = null, $snippet){
 		if ($namespace == null){
 			if (preg_match("/<{$tag}(?=[\\s>]).*?>(.*?)<\\/$tag>/s", $snippet, $matches)){
 				return $matches[1];
@@ -279,7 +283,7 @@ class FedoraUtils {
 	 *
 	 * @return string[]
 	 */
-	public function getModsValues($tag, $namespace = null, $snippet = null, $includeTag = false){
+	public function getModsValues($tag, $namespace = null, $snippet, $includeTag = false){
 		if ($namespace == null){
 			if (preg_match_all("/<{$tag}(?=[\\s>]).*?>(.*?)<\\/$tag>/s", $snippet, $matches, PREG_PATTERN_ORDER)){
 				return $includeTag ? $matches[0] : $matches[1];

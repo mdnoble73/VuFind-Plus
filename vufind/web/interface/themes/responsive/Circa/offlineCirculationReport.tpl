@@ -14,7 +14,8 @@
 								<input type="text" name="startDate" id="startDate" size="10" value="{$startDate|date_format:'%m/%d/%Y'}" class="form-control col-sm-3" style="width: auto;">
 							</div>
 							<div class="form-group">
-								<label for="endDate" class="control-label col-sm-2">End Date</label> <input type="text" name="endDate" id="endDate" size="10" value="{$endDate|date_format:'%m/%d/%Y'}" class="form-control col-sm-3" style="width: auto;">
+								<label for="endDate" class="control-label col-sm-2">End Date</label>
+								<input type="text" name="endDate" id="endDate" size="10" value="{$endDate|date_format:'%m/%d/%Y'}" class="form-control col-sm-3" style="width: auto;">
 							</div>
 							{*
 							<div>

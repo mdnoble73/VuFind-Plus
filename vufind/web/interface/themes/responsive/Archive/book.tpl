@@ -46,6 +46,16 @@
 			</div>
 		</div>
 
+		<div id="download-options">
+			{*
+			<a class="btn btn-default" href="/Archive/{$pid}/DownloadPDF">Download Book As PDF</a>
+			<a class="btn btn-default" href="/Archive/{$activePage}/DownloadPDF" id="downloadPageAsPDF">Download Page As PDF</a>
+			*}
+			{if $allowRequestsForArchiveMaterials}
+				<a class="btn btn-default" href="{$path}/Archive/RequestCopy?pid={$pid}">Request Copy</a>
+			{/if}
+		</div>
+
 		<div class="row">
 			<div class="col-xs-12 text-center">
 				<div class="jcarousel-wrapper" id="book-sections">
@@ -69,7 +79,7 @@
 								{else}
 									{foreach from=$section.pages item=page}
 										<li class="relatedTitle">
-											<a href="{$page.link}?pagePid={$page.pid}" onclick="return VuFind.Archive.handleBookClick('', '{$page.pid}', VuFind.Archive.activeBookViewer);">
+											<a href="{$page.link}?pagePid={$page.pid}" onclick="return VuFind.Archive.handleBookClick('{$pid}', '{$page.pid}', VuFind.Archive.activeBookViewer);">
 												<figure class="thumbnail">
 													<img src="{$page.cover}" alt="Page {$pageCounter}">
 													<figcaption>{$pageCounter}</figcaption>

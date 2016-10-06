@@ -20,10 +20,7 @@ class ReadingHistoryEntry extends DB_DataObject
 	public $checkInDate;
 	public $deleted;
 
-	/* Static get */
-    function staticGet($k,$v=NULL) { return DB_DataObject::staticGet('ReadingHistoryEntry',$k,$v); }
-    
 	function keys() {
-	    return array('id');
+		return array('id');
  	}
 }

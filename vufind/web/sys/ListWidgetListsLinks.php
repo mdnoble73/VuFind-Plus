@@ -18,13 +18,7 @@ class ListWidgetListsLinks extends DB_DataObject
 		return array('id');
 	}
 	
-	/* Static get */
-	function staticGet($k,$v=NULL) {
-		return DB_DataObject::staticGet('ListWidgetListLinks',$k,$v);
-	}
-	
 	static function getObjectStructure(){
-		global $configArray;
 		$structure = array(
 				'id' => array(
 						'property'=>'id',

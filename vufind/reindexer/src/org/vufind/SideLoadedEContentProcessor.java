@@ -165,7 +165,7 @@ public class SideLoadedEContentProcessor extends IlsRecordProcessor{
 			} else {
 				//Convert formats from print to eContent version
 				for (String format : printFormats) {
-					if (format.equalsIgnoreCase("Book") || format.equalsIgnoreCase("LargePrint") || format.equalsIgnoreCase("GraphicNovel") || format.equalsIgnoreCase("Manuscript")) {
+					if (format.equalsIgnoreCase("eBook") || format.equalsIgnoreCase("Book") || format.equalsIgnoreCase("LargePrint") || format.equalsIgnoreCase("GraphicNovel") || format.equalsIgnoreCase("Manuscript")) {
 						econtentItem.setFormat("eBook");
 						econtentItem.setFormatCategory("eBook");
 						econtentRecord.setFormatBoost(10);
@@ -173,7 +173,7 @@ public class SideLoadedEContentProcessor extends IlsRecordProcessor{
 						econtentItem.setFormat("eMagazine");
 						econtentItem.setFormatCategory("eBook");
 						econtentRecord.setFormatBoost(3);
-					} else if (format.equalsIgnoreCase("SoundRecording") || format.equalsIgnoreCase("SoundDisc") || format.equalsIgnoreCase("Playaway") || format.equalsIgnoreCase("CDROM") || format.equalsIgnoreCase("SoundCassette")) {
+					} else if (format.equalsIgnoreCase("SoundRecording") || format.equalsIgnoreCase("SoundDisc") || format.equalsIgnoreCase("Playaway") || format.equalsIgnoreCase("CDROM") || format.equalsIgnoreCase("SoundCassette") || format.equalsIgnoreCase("CompactDisc")) {
 						econtentItem.setFormat("eAudiobook");
 						econtentItem.setFormatCategory("Audio Books");
 						econtentRecord.setFormatBoost(8);
@@ -182,7 +182,6 @@ public class SideLoadedEContentProcessor extends IlsRecordProcessor{
 						econtentItem.setFormatCategory("Music");
 						econtentRecord.setFormatBoost(5);
 					} else if (format.equalsIgnoreCase("MusicalScore")) {
-					//Proposed settings for musical Score. plb 3-31-2016
 						econtentItem.setFormat("MusicalScore");
 						econtentItem.setFormatCategory("eBook");
 						econtentRecord.setFormatBoost(5);

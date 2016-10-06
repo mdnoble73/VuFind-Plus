@@ -328,8 +328,7 @@ class GroupedWork_AJAX {
 		$results = array(
 				'title' => "<a href='$url'>{$recordDriver->getTitle()}</a>",
 				'modalBody' => $interface->fetch('GroupedWork/work-details.tpl'),
-//				'modalButtons' => $interface->fetch('GroupedWork/work-details-modalButtons.tpl')
-		'modalButtons' => "<button onclick=\"return VuFind.GroupedWork.showSaveToListForm(this, '$escapedId');\" class=\"modal-buttons btn btn-primary\" style='float: left'>$buttonLabel</button>"
+				'modalButtons' => "<button onclick=\"return VuFind.GroupedWork.showSaveToListForm(this, '$escapedId');\" class=\"modal-buttons btn btn-primary\" style='float: left'>$buttonLabel</button>"
 					."<a href='$url'><button class='modal-buttons btn btn-primary'>More Info</button></a>"
 		);
 		return json_encode($results);

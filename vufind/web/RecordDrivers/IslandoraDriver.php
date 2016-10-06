@@ -63,6 +63,8 @@ abstract class IslandoraDriver extends RecordInterface {
 		}elseif ($size == 'medium'){
 			if ($this->archiveObject->getDatastream('MC') != null){
 				return $objectUrl . '/' . $this->getUniqueID() . '/datastream/MC/view';
+			}elseif ($this->archiveObject->getDatastream('PREVIEW') != null) {
+				return $objectUrl . '/' . $this->getUniqueID() . '/datastream/PREVIEW/view';
 			}elseif ($this->archiveObject->getDatastream('TN') != null){
 				return $objectUrl . '/' . $this->getUniqueID() . '/datastream/TN/view';
 			}else{
@@ -73,7 +75,9 @@ abstract class IslandoraDriver extends RecordInterface {
 				return $objectUrl . '/' . $this->getUniqueID() . '/datastream/JPG/view';
 			}elseif ($this->archiveObject->getDatastream('LC') != null) {
 				return $objectUrl . '/' . $this->getUniqueID() . '/datastream/LC/view';
-			}elseif ($this->archiveObject->getDatastream('OBJ') != null && $this->archiveObject->getDatastream('OBJ')->mimetype == 'image/jpg') {
+			}elseif ($this->archiveObject->getDatastream('PREVIEW') != null) {
+				return $objectUrl . '/' . $this->getUniqueID() . '/datastream/PREVIEW/view';
+			}elseif ($this->archiveObject->getDatastream('OBJ') != null && ($this->archiveObject->getDatastream('OBJ')->mimetype == 'image/jpg' || $this->archiveObject->getDatastream('OBJ')->mimetype == 'image/jpeg')) {
 				return $objectUrl . '/' . $this->getUniqueID() . '/datastream/OBJ/view';
 			}else{
 				return $this->getPlaceholderImage();
@@ -649,9 +653,43 @@ abstract class IslandoraDriver extends RecordInterface {
 		return $this->modsData;
 	}
 
+	protected $subCollections = null;
+	public function getSubCollections(){
+		if ($this->subCollections == null){
+			$this->subCollections = array();
+			// Include Search Engine Class
+			require_once ROOT_DIR . '/sys/Solr.php';
+
+			// Initialise from the current search globals
+			/** @var SearchObject_Islandora $searchObject */
+			$searchObject = SearchObjectFactory::initSearchObject('Islandora');
+			$searchObject->init();
+			$searchObject->setLimit(100);
+			$searchObject->setSearchTerms(array(
+				'lookfor' => 'RELS_EXT_isMemberOfCollection_uri_mt:"info:fedora/' . $this->getUniqueID() . '" AND RELS_EXT_hasModel_uri_mt:"info:fedora/islandora:collectionCModel"',
+				'index' => 'IslandoraKeyword'
+			));
+
+			$searchObject->clearHiddenFilters();
+			$searchObject->addHiddenFilter('!RELS_EXT_isViewableByRole_literal_ms', "administrator");
+			$searchObject->clearFilters();
+			//$searchObject->setDebugging(true, true);
+			//$searchObject->setPrimarySearch(true);
+			$searchObject->setApplyStandardFilters(false);
+			$response = $searchObject->processSearch(true, false, true);
+			if ($response && $response['response']['numFound'] > 0) {
+				foreach ($response['response']['docs'] as $doc) {
+					$subCollectionPid = $doc['PID'];
+					$this->subCollections[] = $subCollectionPid;
+				}
+			}
+		}
+		return $this->subCollections;
+	}
+
 	protected $relatedCollections = null;
 	public function getRelatedCollections() {
-		if ($this->relatedCollections === null){
+		if ($this->relatedCollections == null){
 			global $timer;
 			$this->relatedCollections = array();
 			if ($this->isEntity()){
@@ -668,12 +706,14 @@ abstract class IslandoraDriver extends RecordInterface {
 			foreach ($collectionsRaw as $collectionInfo) {
 				if ($fedoraUtils->isPidValidForPika($collectionInfo['object']['value'])){
 					$collectionObject = $fedoraUtils->getObject($collectionInfo['object']['value']);
+					$driver = RecordDriverFactory::initRecordDriver($collectionObject);
 					$this->relatedCollections[$collectionInfo['object']['value']] = array(
 							'pid' => $collectionInfo['object']['value'],
 							'label' => $collectionObject->label,
 							'link' => '/Archive/' . $collectionInfo['object']['value'] . '/Exhibit',
 							'image' => $fedoraUtils->getObjectImageUrl($collectionObject, 'small'),
 							'object' => $collectionObject,
+							'driver' => $driver,
 					);
 				}
 			}
@@ -704,7 +744,7 @@ abstract class IslandoraDriver extends RecordInterface {
 	protected $relatedEvents = array();
 	protected $relatedOrganizations = array();
 	private $loadedRelatedEntities = false;
-	private static $nonProductionTeamRoles = array('interviewee', 'artist', 'described', 'contributor', 'author', 'child', 'parent', 'sibling', 'spouse', 'donor');
+	private static $nonProductionTeamRoles = array('attendee', 'artist', 'child', 'correspondence recipient', 'employee', 'interviewee', 'member', 'parade marshal', 'parent', 'participant', 'president', 'rodeo royalty', 'described', 'author', 'sibling', 'spouse', 'pictured' );
 	public function loadRelatedEntities(){
 		if ($this->loadedRelatedEntities == false){
 			$this->loadedRelatedEntities = true;
@@ -798,11 +838,22 @@ abstract class IslandoraDriver extends RecordInterface {
 							'note' => $relationshipNote,
 
 					);
+
+					if ($entityType != 'person' && $entityType != 'organization'){
+						//Need to check the actual content model
+						$fedoraObject = $fedoraUtils->getObject($entityInfo['pid']);
+						$recordDriver = RecordDriverFactory::initRecordDriver($fedoraObject);
+						if ($recordDriver instanceof PersonDriver){
+							$entityType = 'person';
+						}elseif ($recordDriver instanceof OrganizationDriver){
+							$entityType = 'organization';
+						}
+					}
+					$archiveObject = $fedoraUtils->getObject($entityPid);
+					$entityInfo['image'] = $fedoraUtils->getObjectImageUrl($archiveObject, 'medium', $entityType);
 					if ($entityType == 'person'){
 
 						$isProductionTeam = strlen($entityRole) > 0 && !in_array(strtolower($entityRole), IslandoraDriver::$nonProductionTeamRoles);
-						$personObject = $fedoraUtils->getObject($entityPid);
-						$entityInfo['image'] = $fedoraUtils->getObjectImageUrl($personObject, 'medium', $entityType);
 						$entityInfo['link']= '/Archive/' . $entityPid . '/Person';
 						if ($isProductionTeam){
 							$this->productionTeam[$entityPid] = $entityInfo;
@@ -1051,25 +1102,26 @@ abstract class IslandoraDriver extends RecordInterface {
 				if (strlen($objectPid) > 0){
 					$archiveObject = $fedoraUtils->getObject($objectPid);
 					if ($archiveObject != null){
+						/** @var IslandoraDriver $entityDriver */
 						$entityDriver = RecordDriverFactory::initRecordDriver($archiveObject);
-						$objectInfo = array(
-								'pid' => $entityDriver->getUniqueID(),
-								'label' => $entityDriver->getTitle(),
-								'description' => $entityDriver->getTitle(),
-								'image' => $entityDriver->getBookcoverUrl('medium'),
-								'link' => $entityDriver->getRecordUrl(),
-								'driver' => $entityDriver
-						);
-						$this->directlyRelatedObjects['objects'][$objectInfo['pid']] = $objectInfo;
-						$this->directlyRelatedObjects['numFound']++;
+						$includeInPika = $entityDriver->getModsValue('includeInPika', 'marmot');
+						if ($includeInPika != null && strcasecmp($includeInPika, 'no') != 0) {
+							$objectInfo = array(
+									'pid' => $entityDriver->getUniqueID(),
+									'label' => $entityDriver->getTitle(),
+									'description' => $entityDriver->getTitle(),
+									'image' => $entityDriver->getBookcoverUrl('medium'),
+									'link' => $entityDriver->getRecordUrl(),
+									'driver' => $entityDriver
+							);
+							$this->directlyRelatedObjects['objects'][$objectInfo['pid']] = $objectInfo;
+							$this->directlyRelatedObjects['numFound']++;
+						}
 					}
 				}
 
 			}
 
-
-			// Include Search Engine Class
-			require_once ROOT_DIR . '/sys/Solr.php';
 
 			// Include Search Engine Class
 			require_once ROOT_DIR . '/sys/Solr.php';
@@ -1179,6 +1231,28 @@ abstract class IslandoraDriver extends RecordInterface {
 		}elseif ($entityType == 'organization'){
 			$entityInfo['link']= '/Archive/' . $pid . '/Organization';
 			$this->relatedOrganizations[$pid.$role] = $entityInfo;
+		}else{
+			//Need to check the actual content model
+			$fedoraObject = $fedoraUtils->getObject($entityInfo['pid']);
+			$recordDriver = RecordDriverFactory::initRecordDriver($fedoraObject);
+			if ($recordDriver instanceof PersonDriver){
+				$entityInfo['link']= '/Archive/' . $pid . '/Person';
+				if (strlen($role) > 0 && !in_array(strtolower($role), IslandoraDriver::$nonProductionTeamRoles)){
+					$this->productionTeam[$pid.$role] = $entityInfo;
+				}else{
+					$this->relatedPeople[$pid.$role] = $entityInfo;
+				}
+
+			}elseif ($recordDriver instanceof PlaceDriver){
+				$entityInfo['link']= '/Archive/' . $pid . '/Place';
+				$this->relatedPlaces[$pid.$role] = $entityInfo;
+			}elseif ($recordDriver instanceof EventDriver){
+				$entityInfo['link']= '/Archive/' . $pid . '/Event';
+				$this->relatedEvents[$pid.$role] = $entityInfo;
+			}elseif ($recordDriver instanceof OrganizationDriver){
+				$entityInfo['link']= '/Archive/' . $pid . '/Organization';
+				$this->relatedOrganizations[$pid.$role] = $entityInfo;
+			}
 		}
 	}
 
@@ -1209,6 +1283,7 @@ abstract class IslandoraDriver extends RecordInterface {
 			case 'image/png': return '.png';
 			case 'image/x-jps': return '.jps';
 			case 'image/x-freehand': return '.fh';
+			case 'application/pdf': return '.pdf';
 			default: return false;
 		}
 	}
@@ -1251,5 +1326,647 @@ abstract class IslandoraDriver extends RecordInterface {
 			}
 		}
 		return null;
+	}
+
+	public function loadMetadata(){
+		global $interface;
+		global $configArray;
+
+		$this->loadRelatedEntities();
+
+		$description = html_entity_decode($this->getDescription());
+		$description = str_replace("\r\n", '<br/>', $description);
+		$description = str_replace("&#xD;", '<br/>', $description);
+		if (strlen($description)){
+			$interface->assign('description', $description);
+		}
+
+		$contextNotes = $this->getModsValue('contextNotes', 'marmot');
+		if (strlen($contextNotes)) {
+			$interface->assign('contextNotes', $contextNotes);
+		}
+
+		$this->loadTranscription();
+		$this->loadCorrespondenceInfo();
+		$this->loadAcademicResearchData();
+		$this->loadEducationInfo();
+		$this->loadMilitaryServiceData();
+		$this->loadNotes();
+		$this->loadLinkedData();
+		$this->loadRecordInfo();
+		$this->loadRightsStatements();
+
+		$visibleLinks = $this->getVisibleLinks();
+		$interface->assignAppendToExisting('externalLinks', $visibleLinks);
+
+		$this->formattedSubjects = $this->getAllSubjectsWithLinks();
+		$interface->assignAppendToExisting('subjects', $this->formattedSubjects);
+
+		$directlyRelatedObjects = $this->getDirectlyRelatedArchiveObjects();
+		$existingValue = $interface->getVariable('directlyRelatedObjects');
+		if ($existingValue != null){
+			$directlyRelatedObjects['numFound'] += $existingValue['numFound'];
+			$directlyRelatedObjects['objects'] = array_merge($existingValue['objects'], $directlyRelatedObjects['objects']);
+		}
+		$interface->assign('directlyRelatedObjects', $directlyRelatedObjects);
+
+		$relatedEvents = $this->getRelatedEvents();
+		$relatedPeople = $this->getRelatedPeople();
+		$productionTeam = $this->getProductionTeam();
+		$relatedOrganizations = $this->getRelatedOrganizations();
+		$relatedPlaces = $this->getRelatedPlaces();
+
+		//Sort all the related information
+		usort($relatedEvents, 'ExploreMore::sortRelatedEntities');
+		usort($relatedPeople, 'ExploreMore::sortRelatedEntities');
+		usort($productionTeam, 'ExploreMore::sortRelatedEntities');
+		usort($relatedOrganizations, 'ExploreMore::sortRelatedEntities');
+		usort($relatedPlaces, 'ExploreMore::sortRelatedEntities');
+
+		//Do final assignment
+		$interface->assignAppendToExisting('relatedEvents', $relatedEvents);
+		$interface->assignAppendToExisting('relatedPeople', $relatedPeople);
+		$interface->assignAppendToExisting('productionTeam', $productionTeam);
+		$interface->assignAppendToExisting('relatedOrganizations', $relatedOrganizations);
+		$interface->assignAppendToExisting('relatedPlaces', $relatedPlaces);
+
+		$repositoryLink = $configArray['Islandora']['repositoryUrl'] . '/islandora/object/' . $this->getUniqueID();
+		$interface->assign('repositoryLink', $repositoryLink);
+	}
+
+	private function loadTranscription() {
+		global $interface;
+		$transcriptions = $this->getModsValues('hasTranscription', 'marmot');
+		if ($transcriptions){
+			$transcriptionInfo = array();
+			foreach ($transcriptions as $transcription){
+				$transcriptionText = $this->getModsValue('transcriptionText', 'marmot', $transcription);
+				$transcriptionText = str_replace("\r\n", '<br/>', $transcriptionText);
+				$transcriptionText = str_replace("&#xD;", '<br/>', $transcriptionText);
+
+				//Add links to timestamps
+				$transcriptionTextWithLinks = $transcriptionText;
+				if (preg_match_all('/\\(\\d{1,2}:\d{1,2}\\)/', $transcriptionText, $allMatches)){
+					foreach ($allMatches[0] as $match){
+						$offset = str_replace('(', '', $match);
+						$offset = str_replace(')', '', $offset);
+						list($minutes, $seconds) = explode(':', $offset);
+						$offset = $minutes * 60 + $seconds;
+						$replacement = '<a onclick="document.getElementById(\'player\').currentTime=\'' . $offset . '\';" style="cursor:pointer">' . $match . '</a>';
+						$transcriptionTextWithLinks = str_replace($match, $replacement, $transcriptionTextWithLinks);
+					}
+				}elseif (preg_match_all('/\\[\\d{1,2}:\d{1,2}:\d{1,2}\\]/', $transcriptionText, $allMatches)){
+					foreach ($allMatches[0] as $match){
+						$offset = str_replace('(', '', $match);
+						$offset = str_replace(')', '', $offset);
+						list($hours, $minutes, $seconds) = explode(':', $offset);
+						$offset = $hours * 3600 + $minutes * 60 + $seconds;
+						$replacement = '<a onclick="document.getElementById(\'player\').currentTime=\'' . $offset . '\';" style="cursor:pointer">' . $match . '</a>';
+						$transcriptionTextWithLinks = str_replace($match, $replacement, $transcriptionTextWithLinks);
+					}
+				}
+				if (strlen($transcriptionTextWithLinks) > 0){
+					$transcript = array(
+							'language' => $this->getModsValue('transcriptionLanguage', 'marmot', $transcription),
+							'text' => $transcriptionTextWithLinks,
+							'location' => $this->getModsValue('transcriptionLocation', 'marmot', $transcription)
+					);
+					$transcriptionInfo[] = $transcript;
+				}
+			}
+
+			if (count($transcriptionInfo) > 0){
+				$interface->assign('transcription',$transcriptionInfo);
+			}
+		}
+	}
+
+	private function loadCorrespondenceInfo() {
+		global $interface;
+		require_once ROOT_DIR . '/sys/Utils/FedoraUtils.php';
+		$fedoraUtils = FedoraUtils::getInstance();
+
+		$correspondence = $this->getModsValue('correspondence', 'marmot');
+		$hasCorrespondenceInfo = false;
+		if ($correspondence){
+			$includesStamp = $this->getModsValue('includesStamp', 'marmot', $correspondence);
+			if ($includesStamp == 'yes'){
+				$interface->assign('includesStamp', true);
+				$hasCorrespondenceInfo = true;
+			}
+			$datePostmarked = $this->getModsValue('datePostmarked', 'marmot', $correspondence);
+			if ($datePostmarked){
+				$interface->assign('datePostmarked', $datePostmarked);
+				$hasCorrespondenceInfo = true;
+			}
+			$relatedPlace = $this->getModsValue('entityPlace', 'marmot', $correspondence);
+			if ($relatedPlace){
+				$placePid = $this->getModsValue('entityPid', 'marmot', $relatedPlace);
+				if ($placePid){
+					$postMarkLocationObject = $fedoraUtils->getObject($placePid);
+					if ($postMarkLocationObject){
+						$postMarkLocationDriver = RecordDriverFactory::initRecordDriver($postMarkLocationObject);
+						$interface->assign('postMarkLocation', array(
+								'link' => $postMarkLocationDriver->getRecordUrl(),
+								'label' => $postMarkLocationDriver->getTitle(),
+								'role' => 'Postmark Location'
+						));
+						$hasCorrespondenceInfo = true;
+					}
+				}else{
+					$placeTitle = $this->getModsValue('entityTitle', 'marmot', $relatedPlace);
+					if ($placeTitle){
+						$interface->assign('postMarkLocation', array(
+								'label' => $placeTitle,
+								'role' => 'Postmark Location'
+						));
+						$hasCorrespondenceInfo = true;
+					}
+				}
+			}
+
+			$relatedPerson = $this->getModsValue('relatedPersonOrg', 'marmot', $correspondence);
+			if ($relatedPerson){
+				$personPid = $this->getModsValue('entityPid', 'marmot', $relatedPerson);
+				if ($personPid){
+					$correspondenceRecipientObject = $fedoraUtils->getObject($personPid);
+					if ($correspondenceRecipientObject){
+						$correspondenceRecipientDriver = RecordDriverFactory::initRecordDriver($correspondenceRecipientObject);
+						$interface->assign('correspondenceRecipient', array(
+								'link' => $correspondenceRecipientDriver->getRecordUrl(),
+								'label' => $correspondenceRecipientDriver->getTitle(),
+								'role' => 'Correspondence Recipient'
+						));
+						$hasCorrespondenceInfo = true;
+					}
+				}else{
+					$personTitle = $this->getModsValue('entityTitle', 'marmot', $relatedPerson);
+					if ($personTitle){
+						$interface->assign('correspondenceRecipient', array(
+								'label' => $personTitle,
+								'role' => 'Correspondence Recipient'
+						));
+						$hasCorrespondenceInfo = true;
+					}
+				}
+			}
+		}
+		$interface->assign('hasCorrespondenceInfo', $hasCorrespondenceInfo);
+	}
+
+	private function loadAcademicResearchData() {
+		global $interface;
+		require_once ROOT_DIR . '/sys/Utils/FedoraUtils.php';
+		$fedoraUtils = FedoraUtils::getInstance();
+
+		$academicResearchSection = $this->getModsValue('academicResearch', 'marmot');
+		$hasAcademicResearchData = false;
+		if (!empty($academicResearchSection)){
+			$researchType = FedoraUtils::cleanValue($this->getModsValue('academicResearchType', 'marmot', $academicResearchSection));
+			if (strlen($researchType)){
+				$hasAcademicResearchData = true;
+				$interface->assign('researchType', $researchType);
+			}
+
+			$researchLevel = FedoraUtils::cleanValue($this->getModsValue('academicResearchLevel', 'marmot', $academicResearchSection));
+			if (strlen($researchLevel)) {
+				$hasAcademicResearchData = true;
+				$interface->assign('researchLevel', ucwords($researchLevel));
+			}
+
+			$degreeName = FedoraUtils::cleanValue($this->getModsValue('degreeName', 'marmot', $academicResearchSection));
+			if (strlen($degreeName)) {
+				$hasAcademicResearchData = true;
+				$interface->assign('degreeName', $degreeName);
+			}
+
+			$degreeDiscipline = FedoraUtils::cleanValue($this->getModsValue('degreeDiscipline', 'marmot', $academicResearchSection));
+			if (strlen($degreeDiscipline)){
+				$hasAcademicResearchData = true;
+				$interface->assign('degreeDiscipline', $degreeDiscipline);
+			}
+
+			$peerReview = FedoraUtils::cleanValue($this->getModsValue('peerReview', 'marmot', $academicResearchSection));
+			$interface->assign('peerReview', ucwords($peerReview));
+
+			$defenceDate = FedoraUtils::cleanValue($this->getModsValue('defenceDate', 'marmot', $academicResearchSection));
+			if (strlen($defenceDate)) {
+				$hasAcademicResearchData = true;
+				$interface->assign('defenceDate', $defenceDate);
+			}
+
+			$acceptedDate = FedoraUtils::cleanValue($this->getModsValue('acceptedDate', 'marmot', $academicResearchSection));
+			if (strlen($acceptedDate)) {
+				$hasAcademicResearchData = true;
+				$interface->assign('acceptedDate', $acceptedDate);
+			}
+
+			$relatedAcademicPeople = $this->getModsValues('relatedPersonOrg', 'marmot', $academicResearchSection);
+			if ($relatedAcademicPeople){
+				$academicPeople = array();
+				foreach ($relatedAcademicPeople as $relatedPerson){
+					$personPid = $this->getModsValue('entityPid', 'marmot', $relatedPerson);
+					$role = ucwords($this->getModsValue('role', 'marmot', $relatedPerson));
+					if ($personPid){
+						$academicPersonObject = $fedoraUtils->getObject($personPid);
+						if ($academicPersonObject){
+							$academicPersonDriver = RecordDriverFactory::initRecordDriver($academicPersonObject);
+							$academicPeople[] = array(
+									'link' => $academicPersonDriver->getRecordUrl(),
+									'label' => $academicPersonDriver->getTitle(),
+									'role' => $role
+							);
+						}
+					}else{
+						$personTitle = $this->getModsValue('entityTitle', 'marmot', $relatedPerson);
+						if ($personTitle){
+							$academicPeople[] = array(
+									'label' => $personTitle,
+									'role' => $role
+							);
+						}
+					}
+				}
+				if (count($academicPeople) > 0){
+					$interface->assign('academicPeople', $academicPeople);
+					$hasAcademicResearchData = true;
+				}
+			}
+
+		}
+		$interface->assign('hasAcademicResearchData', $hasAcademicResearchData);
+	}
+
+	public function loadLinkedData(){
+		global $interface;
+		foreach ($this->getLinks() as $link){
+			if ($link['type'] == 'wikipedia'){
+				require_once ROOT_DIR . '/sys/WikipediaParser.php';
+				$wikipediaParser = new WikipediaParser('en');
+
+				//Transform from a regular wikipedia link to an api link
+				$searchTerm = str_replace('https://en.wikipedia.org/wiki/', '', $link['link']);
+				$url = "http://en.wikipedia.org/w/api.php" .
+						'?action=query&prop=revisions&rvprop=content&format=json' .
+						'&titles=' . urlencode(urldecode($searchTerm));
+				$wikipediaData = $wikipediaParser->getWikipediaPage($url);
+				$interface->assign('wikipediaData', $wikipediaData);
+			}elseif($link['type'] == 'marmotGenealogy'){
+				$matches = array();
+				if (preg_match('/.*Person\/(\d+)/', $link['link'], $matches)){
+					$personId = $matches[1];
+					require_once ROOT_DIR . '/sys/Genealogy/Person.php';
+					$person = new Person();
+					$person->personId = $personId;
+					if ($person->find(true)){
+						$interface->assign('genealogyData', $person);
+
+						$formattedBirthdate = $person->formatPartialDate($person->birthDateDay, $person->birthDateMonth, $person->birthDateYear);
+						$interface->assign('birthDate', $formattedBirthdate);
+
+						$formattedDeathdate = $person->formatPartialDate($person->deathDateDay, $person->deathDateMonth, $person->deathDateYear);
+						$interface->assign('deathDate', $formattedDeathdate);
+
+						$marriages = array();
+						$personMarriages = $person->marriages;
+						if (isset($personMarriages)){
+							foreach ($personMarriages as $marriage){
+								$marriageArray = (array)$marriage;
+								$marriageArray['formattedMarriageDate'] = $person->formatPartialDate($marriage->marriageDateDay, $marriage->marriageDateMonth, $marriage->marriageDateYear);
+								$marriages[] = $marriageArray;
+							}
+						}
+						$interface->assign('marriages', $marriages);
+						$obituaries = array();
+						$personObituaries =$person->obituaries;
+						if (isset($personObituaries)){
+							foreach ($personObituaries as $obit){
+								$obitArray = (array)$obit;
+								$obitArray['formattedObitDate'] = $person->formatPartialDate($obit->dateDay, $obit->dateMonth, $obit->dateYear);
+								$obituaries[] = $obitArray;
+							}
+						}
+						$interface->assign('obituaries', $obituaries);
+					}
+				}
+			}
+		}
+	}
+
+	private function loadEducationInfo() {
+		global $interface;
+		require_once ROOT_DIR . '/sys/Utils/FedoraUtils.php';
+		$fedoraUtils = FedoraUtils::getInstance();
+
+		$interface->assign('hasEducationInfo', false);
+		$academicRecord = $this->getModsValue('education', 'marmot');
+		if (strlen($academicRecord) > 0){
+			$degreeName = FedoraUtils::cleanValue($this->getModsValue('degreeName', 'marmot', $academicRecord));
+			if ($degreeName){
+				$interface->assign('degreeName', $degreeName);
+				$hasEducationInfo = true;
+			}
+
+			$graduationDate = FedoraUtils::cleanValue($this->getModsValue('graduationDate', 'marmot', $academicRecord));
+			if ($graduationDate){
+				$interface->assign('graduationDate', $graduationDate);
+				$hasEducationInfo = true;
+			}
+
+			$relatedEducationPeople = $this->getModsValues('relatedPersonOrg', 'marmot', $academicRecord);
+			if ($relatedEducationPeople){
+				$educationPeople = array();
+				foreach ($relatedEducationPeople as $relatedPerson){
+					$personPid = $this->getModsValue('entityPid', 'marmot', $relatedPerson);
+					$role = ucwords($this->getModsValue('role', 'marmot', $relatedPerson));
+					if ($personPid){
+						$educationPersonObject = $fedoraUtils->getObject($personPid);
+						if ($educationPersonObject){
+							$educationPersonDriver = RecordDriverFactory::initRecordDriver($educationPersonObject);
+							$educationPeople[] = array(
+									'link' => $educationPersonDriver->getRecordUrl(),
+									'label' => $educationPersonDriver->getTitle(),
+									'role' => $role
+							);
+						}
+					}else{
+						$personTitle = $this->getModsValue('entityTitle', 'marmot', $relatedPerson);
+						if ($personTitle){
+							$educationPeople[] = array(
+									'label' => $personTitle,
+									'role' => $role
+							);
+						}
+					}
+					$hasEducationInfo = true;
+				}
+				if (count($educationPeople) > 0){
+					$interface->assign('educationPeople', $educationPeople);
+				}
+			}
+
+			$interface->assign('hasEducationInfo', $hasEducationInfo);
+		}
+	}
+
+	private function loadMilitaryServiceData() {
+		global $interface;
+		require_once ROOT_DIR . '/sys/Utils/FedoraUtils.php';
+		$fedoraUtils = FedoraUtils::getInstance();
+
+		$interface->assign('hasMilitaryService', false);
+		$militaryService = $this->getModsValue('militaryService', 'marmot');
+		if (strlen($militaryService) > 0){
+			/** @var SimpleXMLElement $record */
+			$militaryRecord = $this->getModsValue('militaryRecord', 'marmot', $militaryService);
+			$militaryBranch = $this->getModsValue('militaryBranch', 'marmot', $militaryRecord);
+			$militaryConflict = $this->getModsValue('militaryConflict', 'marmot', $militaryRecord);
+			if ($militaryBranch != 'none' || $militaryConflict != 'none'){
+				$militaryRecord = array(
+						'branch' => $fedoraUtils->getObjectLabel($militaryBranch),
+						'branchLink' => '/Archive/' . $militaryBranch . '/Organization',
+						'conflict' => $fedoraUtils->getObjectLabel($militaryConflict),
+						'conflictLink' => '/Archive/' . $militaryConflict . '/Event',
+				);
+				$interface->assign('militaryRecord', $militaryRecord);
+				$interface->assign('hasMilitaryService', true);
+			}
+		}
+	}
+
+	private function loadNotes() {
+		global $interface;
+		$notes = array();
+		$personNotes = $this->getModsValue('personNotes', 'marmot');
+		if (strlen($personNotes) > 0){
+			$notes[] = $personNotes;
+		}
+		$citationNotes = $this->getModsValue('citationNotes', 'marmot');
+		if (strlen($citationNotes) > 0){
+			$notes[] = $citationNotes;
+		}
+		$interface->assignAppendToExisting('notes', $notes);
+	}
+
+	private function loadRecordInfo() {
+		global $interface;
+		$recordInfo = $this->getModsValue('identifier', 'recordInfo');
+		if (strlen($recordInfo)){
+			$interface->assign('hasRecordInfo', true);
+			$recordOrigin = $this->getModsValue('recordOrigin', 'mods', $recordInfo);
+			$interface->assign('recordOrigin', $recordOrigin);
+
+			$recordCreationDate = $this->getModsValue('recordCreationDate', 'mods', $recordInfo);
+			$interface->assign('recordCreationDate', $recordCreationDate);
+
+			$recordChangeDate = $this->getModsValue('recordChangeDate', 'mods', $recordInfo);
+			$interface->assign('recordChangeDate', $recordChangeDate);
+		}
+
+		$identifier = $this->getModsValues('identifier', 'mods');
+		$interface->assignAppendToExisting('identifier', FedoraUtils::cleanValues($identifier));
+
+		$originInfo = $this->getModsValue('originInfo', 'mods');
+		if (strlen($originInfo)){
+			$dateCreated = $this->getModsValue('dateCreated', 'mods', $originInfo);
+			$interface->assign('dateCreated', $dateCreated);
+
+			$dateIssued = $this->getModsValue('dateIssued', 'mods', $originInfo);
+			$interface->assign('dateIssued', $dateIssued);
+		}
+
+		$language = $this->getModsValue('languageTerm', 'mods');
+		$interface->assign('language', FedoraUtils::cleanValue($language));
+
+		$physicalDescriptions = $this->getModsValues('physicalDescription', 'mods');
+		$physicalExtents = array();
+		foreach ($physicalDescriptions as $physicalDescription){
+			$extent = $this->getModsValue('extent', 'mods', $physicalDescription);
+			$form = $this->getModsValue('form', 'mods', $physicalDescription);
+			if (empty($extent)){
+				$extent = $form;
+			}elseif (!empty($form)){
+				$extent .= " ($form)";
+			}
+			$physicalExtents[] = $extent;
+
+		}
+		$interface->assign('physicalExtents', $physicalExtents);
+
+		$physicalLocation = $this->getModsValues('physicalLocation', 'mods');
+		$interface->assign('physicalLocation', $physicalLocation);
+
+		$interface->assign('postcardPublisherNumber', $this->getModsValue('postcardPublisherNumber', 'marmot'));
+
+		$shelfLocator = $this->getModsValues('shelfLocator', 'mods');
+		$interface->assign('shelfLocator', FedoraUtils::cleanValues($shelfLocator));
+	}
+
+	private function loadRightsStatements() {
+		global $interface;
+		require_once ROOT_DIR . '/sys/Utils/FedoraUtils.php';
+		$fedoraUtils = FedoraUtils::getInstance();
+
+		$rightsStatements = $this->getModsValues('rightsStatement', 'marmot');
+		$interface->assignAppendUniqueToExisting('rightsStatements', $rightsStatements);
+
+		$rightsHolder = $this->getModsValue('rightsHolder', 'marmot');
+		if (!empty($rightsHolder)) {
+			$rightsHolderPid = $this->getModsValue('entityPid', 'marmot', $rightsHolder);
+			$rightsHolderTitle = $this->getModsValue('entityTitle', 'marmot', $rightsHolder);
+			if ($rightsHolderPid) {
+				$interface->assign('rightsHolderTitle', $rightsHolderTitle);
+				$rightsHolderObj = RecordDriverFactory::initRecordDriver($fedoraUtils->getObject($rightsHolderPid));
+				$interface->assign('rightsHolderLink', $rightsHolderObj->getRecordUrl());
+			}
+		}
+
+		$rightsCreator = $this->getModsValue('rightsCreator', 'marmot');
+		if (!empty($rightsCreator)) {
+			$rightsCreatorPid = $this->getModsValue('entityPid', 'marmot', $rightsCreator);
+			$rightsCreatorTitle = $this->getModsValue('entityTitle', 'marmot', $rightsCreator);
+			if ($rightsCreatorPid) {
+				$interface->assign('rightsCreatorTitle', $rightsCreatorTitle);
+				$rightsCreatorObj = RecordDriverFactory::initRecordDriver($fedoraUtils->getObject($rightsCreatorPid));
+				$interface->assign('rightsCreatorLink', $rightsCreatorObj->getRecordUrl());
+			}
+		}
+	}
+
+	protected $childObjects = null;
+	public function getChildren() {
+		if ($this->childObjects == null){
+			$this->childObjects = array();
+			// Include Search Engine Class
+			require_once ROOT_DIR . '/sys/Solr.php';
+
+			// Initialise from the current search globals
+			/** @var SearchObject_Islandora $searchObject */
+			$searchObject = SearchObjectFactory::initSearchObject('Islandora');
+			$searchObject->init();
+			$searchObject->setLimit(100);
+			$searchObject->setSort('fgs_label_s');
+			$searchObject->setSearchTerms(array(
+					'lookfor' => '"info:fedora/' . $this->getUniqueID() .'"',
+					'index' => 'RELS_EXT_isMemberOfCollection_uri_mt'
+			));
+			$searchObject->addFieldsToReturn(array('RELS_EXT_isMemberOfCollection_uri_mt'));
+
+			$searchObject->clearHiddenFilters();
+			$searchObject->addHiddenFilter('!RELS_EXT_isViewableByRole_literal_ms', "administrator");
+			$searchObject->clearFilters();
+			$searchObject->setApplyStandardFilters(false);
+			$response = $searchObject->processSearch(true, false, true);
+			if ($response && $response['response']['numFound'] > 0) {
+				foreach ($response['response']['docs'] as $doc) {
+					$subCollectionPid = $doc['PID'];
+					$this->childObjects[] = $subCollectionPid;
+				}
+			}
+		}
+		return $this->childObjects;
+	}
+
+	public function getRandomObject() {
+		// Include Search Engine Class
+		require_once ROOT_DIR . '/sys/Solr.php';
+
+		// Initialise from the current search globals
+		/** @var SearchObject_Islandora $searchObject */
+		$searchObject = SearchObjectFactory::initSearchObject('Islandora');
+		$searchObject->init();
+		$searchObject->setLimit(1);
+		$now = time();
+		$searchObject->setSort("random_$now asc");
+		$searchObject->setSearchTerms(array(
+				'lookfor' => '"info:fedora/' . $this->getUniqueID() .'"',
+				'index' => 'RELS_EXT_isMemberOfCollection_uri_mt'
+		));
+
+		$searchObject->clearHiddenFilters();
+		$searchObject->addHiddenFilter('!RELS_EXT_isViewableByRole_literal_ms', "administrator");
+		$searchObject->clearFilters();
+		$searchObject->setApplyStandardFilters(false);
+		$response = $searchObject->processSearch(true, false, true);
+		if ($response && $response['response']['numFound'] > 0) {
+			foreach ($response['response']['docs'] as $doc) {
+				return $doc['PID'];
+			}
+		}
+		return null;
+	}
+
+	public function getBrandingInformation() {
+		require_once ROOT_DIR . '/sys/Utils/FedoraUtils.php';
+		$fedoraUtils = FedoraUtils::getInstance();
+
+		$donor = null;
+		$owner = null;
+		foreach ($this->getProductionTeam() as $person){
+			if ($person['role'] == 'donor'){
+				$donor = $person;
+			}elseif ($person['role'] == 'owner'){
+				$owner = $person;
+			}elseif ($person['role'] == 'acknowledgement'){
+				$brandingResults[$person['pid']] = array(
+						'label' => '',
+						'image' => $person['image'],
+						'link' => $person['link'],
+				);
+			}
+		}
+		foreach ($this->getRelatedOrganizations() as $organization){
+			if ($organization['role'] == 'donor'){
+				$donor = $organization;
+			}elseif ($organization['role'] == 'owner'){
+				$owner = $organization;
+			}elseif ($organization['role'] == 'acknowledgement'){
+				$brandingResults[$organization['pid']] = array(
+						'label' => '',
+						'image' => $organization['image'],
+						'link' => $organization['link'],
+				);
+			}
+		}
+		//Get the contributing institution
+		list($namespace) = explode(':', $this->getUniqueID());
+		$contributingLibrary = new Library();
+		$contributingLibrary->archiveNamespace = $namespace;
+		if (!$contributingLibrary->find(true)){
+			$contributingLibrary = null;
+		}else{
+			if ($contributingLibrary->archivePid == ''){
+				$contributingLibrary = null;
+			}
+		}
+
+		$brandingResults = array();
+		if ($donor != null || $owner != null || $contributingLibrary != null){
+			if ($donor){
+				$brandingResults[$donor['pid']] = array(
+						'label' => 'Donated by ' . $donor['label'],
+						'image' => $donor['image'],
+						'link' => $donor['link'],
+				);
+			}
+			if ($owner){
+				$brandingResults[$owner['pid']] = array(
+						'label' => 'Owned by ' . $owner['label'],
+						'image' => $owner['image'],
+						'link' => $owner['link'],
+				);
+			}
+			if ($contributingLibrary){
+				$contributingLibraryPid = $contributingLibrary->archivePid;
+				$contributingLibraryObject = $fedoraUtils->getObject($contributingLibraryPid);
+				$brandingResults[$contributingLibraryPid] = array(
+						'label' => 'Contributed by ' . $contributingLibrary->displayName,
+						'image' => $fedoraUtils->getObjectImageUrl($contributingLibraryObject, 'medium'),
+						'link' => "/Archive/$contributingLibraryPid/Organization",
+				);
+			}
+		}
+
+		return $brandingResults;
 	}
 }

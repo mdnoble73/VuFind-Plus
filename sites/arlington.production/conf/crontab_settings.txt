@@ -49,12 +49,23 @@
 20 0 * * * cd /usr/local/vufind-plus/vufind/cron/; java -jar cron.jar arlington.production DatabaseCleanup
 0 20 * * * cd /usr/local/vufind-plus/vufind/cron/; java -jar cron.jar arlington.production UpdateReadingHistory
 
+###############################################
+# Copy Original Covers from Marmot FTP Server #
+###############################################
+14 */2 * * * scp arlington_pika_covers@ftp1.marmot.org:/ftp/arlington_pika_covers/* /data/vufind-plus/arlington.production/covers/original/
+
 ################
 # Pika Cleanup #
 ################
 # Clean Up Temporary Files
 26 * * * * cd /tmp; /bin/rm -rf CURLCOOKIE*
 27 */2 * * * cd /tmp; /bin/rm -rf epb*
+
+############################################
+# New York Times Bestseller Lists Updating #
+############################################
+23 7 * * 0 /usr/local/vufind-plus/vufind/cron/updateNYTLists.sh arlington.production
+# update on Sundays at 7:23
 
 ################
 # mySQL Backup #

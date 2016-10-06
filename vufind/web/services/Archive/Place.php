@@ -14,7 +14,7 @@ class Archive_Place extends Archive_Entity{
 		global $interface;
 
 		$this->loadArchiveObjectData();
-		$this->loadLinkedData();
+		$this->recordDriver->loadLinkedData();
 		$this->loadRelatedContentForEntity();
 
 		$interface->assign('showExploreMore', true);

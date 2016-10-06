@@ -17,6 +17,12 @@ class ExploreMore {
 	 */
 	function loadExploreMoreSidebar($activeSection, $recordDriver){
 		global $interface;
+		global $configArray;
+
+		if (isset($configArray['Islandora']) && isset($configArray['Islandora']['solrUrl'])) {
+			require_once ROOT_DIR . '/sys/Utils/FedoraUtils.php';
+			$fedoraUtils = FedoraUtils::getInstance();
+		}
 		$exploreMoreSectionsToShow = array();
 
 		$relatedPikaContent = array();
@@ -238,6 +244,22 @@ class ExploreMore {
 							'values' => $dplaResults,
 							'link' => 'http://dp.la/search?q=' . urlencode('"' . $archiveDriver->getTitle() . '"'),
 							'openInNewWindow' => true,
+					);
+				}
+			}else{
+				//Display donor and contributor information
+				$brandingResults = $archiveDriver->getBrandingInformation();
+				$collections = $archiveDriver->getRelatedCollections();
+				foreach ($collections as $collection){
+					$brandingResults = array_merge($brandingResults, $collection['driver']->getBrandingInformation());
+				}
+
+				if (count($brandingResults) > 0){
+					$exploreMoreSectionsToShow['acknowledgements'] = array(
+							'title' => 'Acknowledgements',
+							'format' => 'list',
+							'values' => $brandingResults,
+							'showTitles' => true,
 					);
 				}
 			}

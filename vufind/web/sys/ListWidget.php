@@ -40,8 +40,6 @@ class ListWidget extends DB_DataObject
 
 	/** @var  ListWidgetList[] */
 	private $lists;
-	/* Static get */
-	function staticGet($k,$v=NULL) { return DB_DataObject::staticGet('ListWidget',$k,$v); }
 
 	function keys() {
 		return array('id');

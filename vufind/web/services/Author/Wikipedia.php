@@ -2,7 +2,7 @@
 /**
  * Loads author data from Wikipedia and cleans it for display in the user interface
  *
- * @category VuFind-Plus 
+ * @category VuFind-Plus
  * @author Mark Noble <mark@marmot.org>
  * Date: 7/23/13
  * Time: 8:51 AM
@@ -20,7 +20,7 @@ class Author_Wikipedia {
 	 *
 	 * @param   string  $author The author to load data for
 	 * @param   string  $lang   The language code of the language to use
-	 * @return  string|PEAR_Error
+	 * @return  string|null
 	 * @access  public
 	 * @author  Andrew Nagy <andrew.nagy@villanova.edu>
 	 */
@@ -33,7 +33,29 @@ class Author_Wikipedia {
 				'?action=query&prop=revisions&rvprop=content&format=json' .
 				'&titles=' . urlencode($author);
 
-		return $wikipediaParser->getWikipediaPage($url);
+		$result = $wikipediaParser->getWikipediaPage($url);
+		if ($result == null){
+			//Try reversing the name
+			if (strpos($author, ',') > 0){
+				$authorParts = explode(',', $author, 2);
+				$author = trim($authorParts[1] . ' ' . $authorParts[0]);
+				$url = "http://{$lang}.wikipedia.org/w/api.php" .
+					'?action=query&prop=revisions&rvprop=content&format=json' .
+					'&titles=' . urlencode($author);
+
+				$result = $wikipediaParser->getWikipediaPage($url);
+			}
+			if ($result == null){
+				//Try one last time with no periods
+				$author = str_replace('.','', $author);
+				$url = "http://{$lang}.wikipedia.org/w/api.php" .
+					'?action=query&prop=revisions&rvprop=content&format=json' .
+					'&titles=' . urlencode($author);
+
+				$result = $wikipediaParser->getWikipediaPage($url);
+			}
+		}
+		return $result;
 	}
 
 }

@@ -70,6 +70,9 @@ class Location extends DB_DataObject
 	public $availabilityToggleLabelSuperScope;
 	public $availabilityToggleLabelLocal;
 	public $availabilityToggleLabelAvailable;
+	public $availabilityToggleLabelAvailableOnline;
+	public $baseAvailabilityToggleOnLocalHoldingsOnly;
+	public $includeOnlineMaterialsInAvailableToggle;
 	public $defaultBrowseMode;
 	public $browseCategoryRatingsMode;
 	public $includeAllLibraryBranchesInFacets;
@@ -79,9 +82,6 @@ class Location extends DB_DataObject
 
 	/** @var  array $data */
 	protected $data;
-
-	/* Static get */
-	function staticGet($k,$v=NULL) { return DB_DataObject::staticGet('Location',$k,$v); }
 
 	function keys() {
 		return array('locationId', 'code');
@@ -171,7 +171,7 @@ class Location extends DB_DataObject
 						array('property'=>'scope', 'type'=>'text', 'label'=>'Scope', 'description'=>'The scope for the system in Millennium to refine holdings to the branch.  If there is no scope defined for the branch, this can be set to 0.'),
 						array('property'=>'useScope', 'type'=>'checkbox', 'label'=>'Use Scope?', 'description'=>'Whether or not the scope should be used when displaying holdings.', 'hideInLists' => true),
 						array('property'=>'defaultPType', 'type'=>'text', 'label'=>'Default P-Type', 'description'=>'The P-Type to use when accessing a subdomain if the patron is not logged in.  Use -1 to use the library default PType.', 'default'=>-1),
-						array('property'=>'validHoldPickupBranch', 'type'=>'enum', 'values' => array('1' => 'Valid for all patrons', '0' => 'Valid for patrons of this branch only', '2' => 'Not Valid' ), 'label'=>'Valid Hold Pickup Branch?', 'description'=>'Determines if the location can be used as a pickup location if it is not the patrons home location or the location they are in.', 'hideInLists' => true, 'default'=>true),
+						array('property'=>'validHoldPickupBranch', 'type'=>'enum', 'values' => array('1' => 'Valid for all patrons', '0' => 'Valid for patrons of this branch only', '2' => 'Not Valid' ), 'label'=>'Valid Hold Pickup Branch?', 'description'=>'Determines if the location can be used as a pickup location if it is not the patrons home location or the location they are in.', 'hideInLists' => true, 'default' => 1),
 						array('property'=>'showHoldButton', 'type'=>'checkbox', 'label'=>'Show Hold Button', 'description'=>'Whether or not the hold button is displayed so patrons can place holds on items', 'hideInLists' => true, 'default'=>true),
 						array('property'=>'ptypesToAllowRenewals', 'type'=>'text', 'label'=>'PTypes that can renew', 'description'=>'A list of P-Types that can renew items or * to allow all P-Types to renew items.', 'hideInLists' => true),
 						array('property'=>'suppressHoldings','type'=>'checkbox', 'label'=>'Suppress Holdings', 'description'=>'Whether or not all items for the title should be suppressed', 'hideInLists' => true, 'default'=>false),
@@ -189,6 +189,10 @@ class Location extends DB_DataObject
 						array('property'=>'availabilityToggleLabelSuperScope', 'type' => 'text', 'label' => 'SuperScope Toggle Label', 'description' => 'The label to show when viewing super scope i.e. Consortium Name / Entire Collection / Everything.  Does not show if superscope is not enabled.', 'default' => 'Entire Collection'),
 						array('property'=>'availabilityToggleLabelLocal', 'type' => 'text', 'label' => 'Local Collection Toggle Label', 'description' => 'The label to show when viewing the local collection i.e. Library Name / Local Collection.  Leave blank to hide the button.', 'default' => '{display name}'),
 						array('property'=>'availabilityToggleLabelAvailable', 'type' => 'text', 'label' => 'Available Toggle Label', 'description' => 'The label to show when viewing available items i.e. Available Now / Available Locally / Available Here.', 'default' => 'Available Now'),
+						array('property'=>'availabilityToggleLabelAvailableOnline', 'type' => 'text', 'label' => 'Available Online Toggle Label', 'description' => 'The label to show when viewing available items i.e. Available Online.', 'default' => 'Available Online'),
+						array('property'=>'baseAvailabilityToggleOnLocalHoldingsOnly', 'type'=>'checkbox', 'label'=>'Base Availability Toggle on Local Holdings Only', 'description'=>'Turn on to use local materials only in availability toggle.', 'hideInLists' => true, 'default'=>false),
+						array('property'=>'includeOnlineMaterialsInAvailableToggle', 'type'=>'checkbox', 'label'=>'Include Online Materials in Available Toggle', 'description'=>'Turn on to include online materials in both the Available Now and Available Online Toggles.', 'hideInLists' => true, 'default'=>false),
+
 						array('property'=>'repeatSearchOption', 'type'=>'enum', 'values'=>array('none'=>'None', 'librarySystem'=>'Library System','marmot'=>'Entire Consortium'), 'label'=>'Repeat Search Options', 'description'=>'Where to allow repeating search. Valid options are: none, librarySystem, marmot, all', 'default'=>'marmot'),
 						array('property'=>'repeatInOnlineCollection', 'type'=>'checkbox', 'label'=>'Repeat In Online Collection', 'description'=>'Turn on to allow repeat search in the Online Collection.', 'hideInLists' => true, 'default'=>false),
 						array('property'=>'repeatInProspector', 'type'=>'checkbox', 'label'=>'Repeat In Prospector', 'description'=>'Turn on to allow repeat search in Prospector functionality.', 'hideInLists' => true, 'default'=>false),
@@ -419,7 +423,7 @@ class Location extends DB_DataObject
 
 
 		// Add the user id to each pickup location to track multiple linked accounts having the same pick-up location.
-		$this->pickupUsers[] = $patronProfile->id;
+ 		$this->pickupUsers[] = $patronProfile->id;
 
 		//Load the locations and sort them based on the user profile information as well as their physical location.
 		$physicalLocation = $this->getPhysicalLocation();
@@ -459,26 +463,29 @@ class Location extends DB_DataObject
 		//if (count($locationList) == 0 && (isset($homeLibrary) && $homeLibrary->inSystemPickupsOnly == 1)){
 		if (!empty($patronProfile) && $patronProfile->homeLocationId != 0){
 			/** @var Location $homeLocation */
-			$homeLocation = Location::staticGet($patronProfile->homeLocationId);
-			if ($homeLocation->validHoldPickupBranch != 2){
-				//We didn't find any locations.  This for schools where we want holds available, but don't want the branch to be a
-				//pickup location anywhere else.
-				$homeLocation->pickupUsers[] = $patronProfile->id; // Add the user id to each pickup location to track multiple linked accounts having the same pick-up location.
-				$existingLocation = false;
-				foreach ($locationList as $location) {
-					if ($location->libraryId == $homeLocation->libraryId && $location->locationId == $homeLocation->locationId) {
-						$existingLocation = true;
-						if (!$isLinkedUser) {$location->selected = true;}
-						//TODO: update sorting key as well?
-						break;
+			$homeLocation = new Location();
+			$homeLocation->locationId = $patronProfile->homeLocationId;
+			if ($homeLocation->find(true)){
+				if ($homeLocation->validHoldPickupBranch != 2){
+					//We didn't find any locations.  This for schools where we want holds available, but don't want the branch to be a
+					//pickup location anywhere else.
+					$homeLocation->pickupUsers[] = $patronProfile->id; // Add the user id to each pickup location to track multiple linked accounts having the same pick-up location.
+					$existingLocation = false;
+					foreach ($locationList as $location) {
+						if ($location->libraryId == $homeLocation->libraryId && $location->locationId == $homeLocation->locationId) {
+							$existingLocation = true;
+							if (!$isLinkedUser) {$location->selected = true;}
+							//TODO: update sorting key as well?
+							break;
+						}
 					}
-				}
-				if (!$existingLocation) {
-					if (!$isLinkedUser) {
-						$homeLocation->selected                         = true;
-						$locationList['1' . $homeLocation->displayName] = clone $homeLocation;
-					} else {
-						$locationList['22' . $homeLocation->displayName] = clone $homeLocation;
+					if (!$existingLocation) {
+						if (!$isLinkedUser) {
+							$homeLocation->selected                         = true;
+							$locationList['1' . $homeLocation->displayName] = clone $homeLocation;
+						} else {
+							$locationList['22' . $homeLocation->displayName] = clone $homeLocation;
+						}
 					}
 				}
 			}

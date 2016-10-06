@@ -785,6 +785,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 			//Check to see if the record is holdable for this scope
 			HoldabilityInformation isHoldable = isItemHoldable(itemInfo, curScope);
 			BookabilityInformation isBookable = isItemBookable(itemInfo, curScope);
+
 			if (curScope.isItemPartOfScope(profileType, itemLocation, itemSublocation, isHoldable.isHoldable(), false, false)){
 				ScopingInfo scopingInfo = itemInfo.addScope(curScope);
 				scopingInfo.setAvailable(available);
@@ -1293,6 +1294,9 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		if (printFormats.contains("Book") && printFormats.contains("Kit")){
 			printFormats.remove("Book");
 		}
+		if (printFormats.contains("AudioCD") && printFormats.contains("CD")){
+			printFormats.remove("AudioCD");
+		}
 		if (printFormats.contains("Kinect") || printFormats.contains("XBox360")  || printFormats.contains("Xbox360")
 				|| printFormats.contains("XBoxOne") || printFormats.contains("PlayStation")
 				|| printFormats.contains("PlayStation3") || printFormats.contains("PlayStation4")
@@ -1315,7 +1319,30 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 				printFormats.add("LargePrint");
 			}else if (titleMedium.contains("book club kit")){
 				printFormats.add("BookClubKit");
+			}else if (titleMedium.contains("ebook")){
+				printFormats.add("eBook");
+			}else if (titleMedium.contains("eaudio")){
+				printFormats.add("eAudio");
+			}else if (titleMedium.contains("emusic")){
+				printFormats.add("eMusic");
+			}else if (titleMedium.contains("evideo")){
+				printFormats.add("eVideo");
+			}else if (titleMedium.contains("ejournal")){
+				printFormats.add("eJournal");
+			}else if (titleMedium.contains("playaway")){
+				printFormats.add("Playaway");
+			}else if (titleMedium.contains("periodical")){
+				printFormats.add("Serial");
+			}else if (titleMedium.contains("vhs")){
+				printFormats.add("VideoCassette");
+			}else if (titleMedium.contains("blu-ray")){
+				printFormats.add("Blu-ray");
+			}else if (titleMedium.contains("dvd")){
+				printFormats.add("DVD");
+			}else if (titleMedium.contains("cd")){
+				printFormats.add("CompactDisc");
 			}
+
 		}
 		String titleForm = getFirstFieldVal(record, "245k");
 		if (titleForm != null){

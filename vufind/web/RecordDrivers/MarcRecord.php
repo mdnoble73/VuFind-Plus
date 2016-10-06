@@ -670,7 +670,7 @@ class MarcRecord extends IndexRecord
 	 */
 	public function getSeries()	{
 		$seriesInfo = $this->getGroupedWorkDriver()->getSeries();
-		if (count($seriesInfo) == 0){
+		if ($seriesInfo == null || count($seriesInfo) == 0){
 			// First check the 440, 800 and 830 fields for series information:
 			$primaryFields = array(
 					'440' => array('a', 'p'),

@@ -18,9 +18,6 @@ class LoanRule extends DB_DataObject
 	public $homePickup;
 	public $shippable;
 
-	/* Static get */
-	function staticGet($k,$v=NULL) { return DB_DataObject::staticGet('LoanRule',$k,$v); }
-
 	function keys() {
 		return array('iId');
 	}

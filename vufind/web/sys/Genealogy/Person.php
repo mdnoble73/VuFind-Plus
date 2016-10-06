@@ -66,9 +66,6 @@ class Person extends SolrDataObject
 
 	private $data;
 
-	/* Static get */
-	function staticGet($k,$v=NULL) { return DB_DataObject::staticGet('Person',$k,$v); }
-
 	function keys() {
 		return array('personId');
 	}
