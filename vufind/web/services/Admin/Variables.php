@@ -11,6 +11,7 @@ require_once ROOT_DIR . '/Action.php';
 require_once ROOT_DIR . '/services/Admin/ObjectEditor.php';
 
 class Admin_Variables extends ObjectEditor{
+
 	function getObjectType(){
 		return 'Variable';
 	}
@@ -50,4 +51,29 @@ class Admin_Variables extends ObjectEditor{
 		global $user;
 		return $user->hasRole('opacAdmin');
 	}
-} 
+
+
+	function getAdditionalObjectActions($existingObject){
+		$actions = array();
+		if ($existingObject && $existingObject->id != ''){
+			$actions[] = array(
+				'text' => '<span class="glyphicon glyphicon-time" aria-hidden="true"></span> Set to Current Timestamp',
+				'url' => "/{$this->getModule()}/{$this->getToolName()}?objectAction=setToNow&amp;id=" . $existingObject->id,
+			);
+		}
+		return $actions;
+	}
+
+	function setToNow(){
+		$id = $_REQUEST['id'];
+		if (!empty($id) && ctype_digit($id)) {
+			$variable = new Variable();
+			$variable->get($id);
+			if ($variable) {
+				$variable->value = time();
+				$variable->update();
+			}
+			header("Location: /{$this->getModule()}/{$this->getToolName()}?objectAction=edit&id=" . $id);
+		}
+	}
+}
