@@ -49,11 +49,11 @@ public class SiteMapIndex {
         }
     }
 
-    public void addSiteMapLocation(String path, String dateModified) {
+    public void addSiteMapLocation(String location, String dateModified) {
         Element sitemap = doc.createElement("sitemap");
         rootElement.appendChild(sitemap);
         Element loc = doc.createElement("loc");
-        loc.appendChild(doc.createTextNode(path));
+        loc.appendChild(doc.createTextNode(location));
 
         Element lastmod = doc.createElement("lastmod");
         lastmod.appendChild(doc.createTextNode(dateModified));
