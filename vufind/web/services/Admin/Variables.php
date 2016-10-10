@@ -50,4 +50,34 @@ class Admin_Variables extends ObjectEditor{
 		global $user;
 		return $user->hasRole('opacAdmin');
 	}
-} 
+
+
+	function getAdditionalObjectActions($existingObject){
+		$actions = array();
+		if ($existingObject && $existingObject->id != ''){
+			$actions[] = array(
+				'text' => '<span class="glyphicon glyphicon-time" aria-hidden="true"></span> Set to Current Timestamp (seconds)',
+				'url' => "/{$this->getModule()}/{$this->getToolName()}?objectAction=setToNowS&amp;id=" . $existingObject->id,
+			);
+			$actions[] = array(
+				'text' => '<span class="glyphicon glyphicon-time" aria-hidden="true"></span> Set to Current Timestamp (milliseconds)',
+				'url' => "/{$this->getModule()}/{$this->getToolName()}?objectAction=setToNow&amp;ms=1&amp;id=" . $existingObject->id,
+			);
+		}
+		return $actions;
+	}
+
+	function setToNow(){
+		$id = $_REQUEST['id'];
+		$useMilliseconds = isset($_REQUEST['ms']) && ($_REQUEST['ms'] == 1 || $_REQUEST['ms'] == 'true');
+		if (!empty($id) && ctype_digit($id)) {
+			$variable = new Variable();
+			$variable->get($id);
+			if ($variable) {
+				$variable->value = $useMilliseconds ? time() * 100: time();
+				$variable->update();
+			}
+			header("Location: /{$this->getModule()}/{$this->getToolName()}?objectAction=edit&id=" . $id);
+		}
+	}
+}
