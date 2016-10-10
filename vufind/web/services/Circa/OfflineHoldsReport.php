@@ -16,7 +16,7 @@ class Circa_OfflineHoldsReport extends Admin_Admin{
 			$startDate = new DateTime($_REQUEST['startDate']);
 		}else{
 			$startDate = new DateTime();
-			date_sub($startDate, new DateInterval('P1M'));
+			date_sub($startDate, new DateInterval('P1D')); // one day ago
 		}
 		if (isset($_REQUEST['endDate'])){
 			$endDate = new DateTime($_REQUEST['endDate']);
