@@ -11,6 +11,7 @@ require_once ROOT_DIR . '/Action.php';
 require_once ROOT_DIR . '/services/Admin/ObjectEditor.php';
 
 class Admin_Variables extends ObjectEditor{
+
 	function getObjectType(){
 		return 'Variable';
 	}
@@ -61,7 +62,15 @@ class Admin_Variables extends ObjectEditor{
 			);
 			$actions[] = array(
 				'text' => '<span class="glyphicon glyphicon-time" aria-hidden="true"></span> Set to Current Timestamp (milliseconds)',
-				'url' => "/{$this->getModule()}/{$this->getToolName()}?objectAction=setToNow&amp;ms=1&amp;id=" . $existingObject->id,
+				'url'  => "/{$this->getModule()}/{$this->getToolName()}?objectAction=setToNow&amp;ms=1&amp;id=" . $existingObject->id,
+			);
+			$actions[] = array(
+				'text' => '<span class="glyphicon glyphicon-arrow-up" aria-hidden="true"></span> Increase by 10,000',
+				'url'  => "/{$this->getModule()}/{$this->getToolName()}?objectAction=IncrementVariable&amp;direction=up&amp;id=" . $existingObject->id,
+			);
+			$actions[] = array(
+				'text' => '<span class="glyphicon glyphicon-arrow-down" aria-hidden="true"></span> Decrease by 500',
+				'url'  => "/{$this->getModule()}/{$this->getToolName()}?objectAction=IncrementVariable&amp;direction=down&amp;id=" . $existingObject->id,
 			);
 		}
 		return $actions;
@@ -76,6 +85,27 @@ class Admin_Variables extends ObjectEditor{
 			if ($variable) {
 				$variable->value = $useMilliseconds ? time() * 100: time();
 				$variable->update();
+			}
+			header("Location: /{$this->getModule()}/{$this->getToolName()}?objectAction=edit&id=" . $id);
+		}
+	}
+
+	function IncrementVariable(){
+		$id = $_REQUEST['id'];
+		if (!empty($id) && ctype_digit($id)) {
+			$variable = new Variable();
+			$variable->get($id);
+			if ($variable) {
+				$amount = 0;
+				if ($_REQUEST['direction'] == 'up') {
+					$amount = 10000;
+				} elseif ($_REQUEST['direction'] == 'down') {
+					$amount = -500;
+				}
+				if ($amount) {
+					$variable->value += $amount;
+					$variable->update();
+				}
 			}
 			header("Location: /{$this->getModule()}/{$this->getToolName()}?objectAction=edit&id=" . $id);
 		}
