@@ -1392,5 +1392,13 @@ function getLibraryLocationUpdates(){
 							"ALTER TABLE library ADD COLUMN archiveRequestMaterialsHeader MEDIUMTEXT",
 					)
 			),
+
+			'display_pika_logo' => array(
+					'title' => 'Library Option to Display Pika Logo',
+					'description' => 'Allow libraries to show the Pika logo in page footers.',
+					'sql' => array(
+						"ALTER TABLE `library` ADD `showPikaLogo` TINYINT DEFAULT '1';",
+					)
+			),
 	);
 }
