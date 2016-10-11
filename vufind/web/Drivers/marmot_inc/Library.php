@@ -188,6 +188,7 @@ class Library extends DB_DataObject
 	public $casHost;
 	public $casPort;
 	public $casContext;
+	public $showPikaLogo;
 
 	// Use this to set which details will be shown in the the Main Details section of the record view.
 	// You should be able to add options here without needing to change the database.
@@ -306,6 +307,7 @@ class Library extends DB_DataObject
 
 				'enableGenealogy' => array('property'=>'enableGenealogy', 'type'=>'checkbox', 'label'=>'Enable Genealogy Functionality', 'description'=>'Whether or not patrons can search genealogy.', 'hideInLists' => true, 'default' => 1),
 				'enableCourseReserves' => array('property'=>'enableCourseReserves', 'type'=>'checkbox', 'label'=>'Enable Repeat Search in Course Reserves', 'description'=>'Whether or not patrons can repeat searches within course reserves.', 'hideInLists' => true,),
+				'showPikaLogo' => array('property'=>'showPikaLogo', 'type'=>'checkbox', 'label'=>'Display Pika Logo', 'description'=>'Determines whether or not the Pika logo will be shown in the footer.', 'hideInLists' => true, 'default' => true),
 			)),
 
 			// Contact Links //
