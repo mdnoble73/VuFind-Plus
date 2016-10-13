@@ -83,7 +83,7 @@ class Admin_Variables extends ObjectEditor{
 			$variable = new Variable();
 			$variable->get($id);
 			if ($variable) {
-				$variable->value = $useMilliseconds ? time() * 100: time();
+				$variable->value = $useMilliseconds ? time() * 1000 : time();
 				$variable->update();
 			}
 			header("Location: /{$this->getModule()}/{$this->getToolName()}?objectAction=edit&id=" . $id);
