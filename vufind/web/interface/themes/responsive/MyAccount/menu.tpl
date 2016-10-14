@@ -109,18 +109,24 @@
 						<div class="myAccountLink{if $pageTemplate=="profile.tpl"} active{/if}"><a href="{$path}/MyAccount/Profile">Account Settings</a></div>
 						{* Only highlight saved searches as active if user is logged in: *}
 						<div class="myAccountLink{if $user && $pageTemplate=="history.tpl"} active{/if}"><a href="{$path}/Search/History?require_login">{translate text='history_saved_searches'}</a></div>
+						{if $user->canMasquerade()}{*TODO: can masquerade *}
+							{if !$masqueradeMode}
+								<hr class="menu">
+								<div class="myAccountLink"><a onclick="VuFind.Account.getMasqueradeForm();" href="#">Masquerade</a></div>
+							{/if}
+						{/if}
 					</div>
 				</div>
 			</div>
 
 			{* My Lists*}
-			{if $lists || $showConvertListsFromClassic}
+			{*{if $lists || $showConvertListsFromClassic}*}
 				{if $action == 'MyList'}
 					{assign var="curSection" value=true}
 				{else}
 					{assign var="curSection" value=false}
 				{/if}
-				<div class="panel{if $curSection} active{/if}">
+			<div class="panel{if $curSection} active{/if}">
 					<a data-toggle="collapse" data-parent="#account-link-accordion" href="#myListsPanel">
 						<div class="panel-heading">
 							<div class="panel-title">
@@ -146,7 +152,7 @@
 						</div>
 					</div>
 				</div>
-			{/if}
+			{*{/if}*}
 
 			{if $tagList}
 				<div class="panel">
@@ -253,7 +259,7 @@
 					<div id="adminMenuGroup" class="panel-collapse collapse {if $curSection}in{/if}">
 						<div class="panel-body">
 							{if $user->hasRole('userAdmin')}
-								<div class="adminMenuLink {if $action == "Administrators"}active{/if}"><a href="{$path}/Admin/Administrators">Administrators</a></div>
+								<div class="adminMenuLink {if $action == "Administrators"} active{/if}"><a href="{$path}/Admin/Administrators">Administrators</a></div>
 							{/if}
 							{if $user->hasRole('opacAdmin')}
 								<div class="adminMenuLink{if $action == "PTypes"} active{/if}"><a href="{$path}/Admin/PTypes">PTypes</a></div>
@@ -287,11 +293,11 @@
 					</a>
 					<div id="indexingMenuGroup" class="panel-collapse collapse {if $curSection}in{/if}">
 						<div class="panel-body">
-							<div class="adminMenuLink {if $action == "IndexingStats"}active{/if}"><a href="{$path}/Admin/IndexingStats">Indexing Statistics</a></div>
-							<div class="adminMenuLink {if $action == "ReindexLog"}active{/if}"><a href="{$path}/Admin/ReindexLog">Reindex Log</a></div>
-							<div class="adminMenuLink {if $action == "OverDriveExtractLog"}active{/if}"><a href="{$path}/Admin/OverDriveExtractLog">OverDrive Extract Log</a></div>
-							<div class="adminMenuLink {if $action == "IndexingProfiles"}active{/if}"><a href="{$path}/Admin/IndexingProfiles">Indexing Profiles</a></div>
-							<div class="adminMenuLink {if $action == "TranslationMaps"}active{/if}"><a href="{$path}/Admin/TranslationMaps">Translation Maps</a></div>
+							<div class="adminMenuLink{if $action == "IndexingStats"} active{/if}"><a href="{$path}/Admin/IndexingStats">Indexing Statistics</a></div>
+							<div class="adminMenuLink{if $action == "ReindexLog"} active{/if}"><a href="{$path}/Admin/ReindexLog">Reindex Log</a></div>
+							<div class="adminMenuLink{if $action == "OverDriveExtractLog"} active{/if}"><a href="{$path}/Admin/OverDriveExtractLog">OverDrive Extract Log</a></div>
+							<div class="adminMenuLink{if $action == "IndexingProfiles"} active{/if}"><a href="{$path}/Admin/IndexingProfiles">Indexing Profiles</a></div>
+							<div class="adminMenuLink{if $action == "TranslationMaps"} active{/if}"><a href="{$path}/Admin/TranslationMaps">Translation Maps</a></div>
 						</div>
 					</div>
 				</div>
@@ -313,10 +319,10 @@
 					</a>
 					<div id="materialsRequestMenu" class="panel-collapse collapse {if $curSection}in{/if}">
 						<div class="panel-body">
-							<div class="adminMenuLink{if $action == "ManageRequests"}active{/if}"><a href="{$path}/MaterialsRequest/ManageRequests">Manage Requests</a></div>
-							<div class="adminMenuLink{if $action == "SummaryReport"}active{/if}"><a href="{$path}/MaterialsRequest/SummaryReport">Summary Report</a></div>
-							<div class="adminMenuLink{if $action == "UserReport"}active{/if}"><a href="{$path}/MaterialsRequest/UserReport">Report By User</a></div>
-							<div class="adminMenuLink{if $action == "ManageStatuses"}active{/if}"><a href="{$path}/Admin/ManageStatuses">Manage Statuses</a></div>
+							<div class="adminMenuLink{if $action == "ManageRequests"} active{/if}"><a href="{$path}/MaterialsRequest/ManageRequests">Manage Requests</a></div>
+							<div class="adminMenuLink{if $action == "SummaryReport"} active{/if}"><a href="{$path}/MaterialsRequest/SummaryReport">Summary Report</a></div>
+							<div class="adminMenuLink{if $action == "UserReport"} active{/if}"><a href="{$path}/MaterialsRequest/UserReport">Report By User</a></div>
+							<div class="adminMenuLink{if $action == "ManageStatuses"} active{/if}"><a href="{$path}/Admin/ManageStatuses">Manage Statuses</a></div>
 							<div class="adminMenuLink"><a href="https://docs.google.com/document/d/1s9qOhlHLfQi66qMMt5m-dJ0kGNyHiOjSrqYUbe0hEcA">Documentation</a></div>
 						</div>
 					</div>
@@ -339,9 +345,9 @@
 					</a>
 					<div id="catalogingRequestMenu" class="panel-collapse collapse {if $curSection}in{/if}">
 						<div class="panel-body">
-							<div class="adminMenuLink{if $action == "MergedGroupedWorks"}active{/if}"><a href="{$path}/Admin/MergedGroupedWorks">Grouped Work Merging</a></div>
-							<div class="adminMenuLink{if $action == "NonGroupedRecords"}active{/if}"><a href="{$path}/Admin/NonGroupedRecords">Records To Not Merge</a></div>
-							<div class="adminMenuLink{if $action == "AuthorEnrichment"}active{/if}"><a href="{$path}/Admin/AuthorEnrichment">Author Enrichment</a></div>
+							<div class="adminMenuLink{if $action == "MergedGroupedWorks"} active{/if}"><a href="{$path}/Admin/MergedGroupedWorks">Grouped Work Merging</a></div>
+							<div class="adminMenuLink{if $action == "NonGroupedRecords"} active{/if}"><a href="{$path}/Admin/NonGroupedRecords">Records To Not Merge</a></div>
+							<div class="adminMenuLink{if $action == "AuthorEnrichment"} active{/if}"><a href="{$path}/Admin/AuthorEnrichment">Author Enrichment</a></div>
 						</div>
 					</div>
 				</div>
@@ -363,8 +369,8 @@
 					</a>
 					<div id="archivesMenu" class="panel-collapse collapse {if $curSection}in{/if}">
 						<div class="panel-body">
-							<div class="adminMenuLink{if $action == "ArchiveRequests"}active{/if}"><a href="{$path}/Admin/ArchiveRequests">Archive Material Requests</a></div>
-							<div class="adminMenuLink{if $action == "ArchiveSubjects"}active{/if}"><a href="{$path}/Admin/ArchiveSubjects">Archive Subject Control</a></div>
+							<div class="adminMenuLink{if $action == "ArchiveRequests"} active{/if}"><a href="{$path}/Admin/ArchiveRequests">Archive Material Requests</a></div>
+							<div class="adminMenuLink{if $action == "ArchiveSubjects"} active{/if}"><a href="{$path}/Admin/ArchiveSubjects">Archive Subject Control</a></div>
 						</div>
 					</div>
 				</div>
@@ -386,10 +392,10 @@
 					</a>
 					<div id="circulationMenu" class="panel-collapse collapse {if $curSection}in{/if}">
 						<div class="panel-body">
-							<div class="adminMenuLink{if $action == "Home" && $module == "Circa"}active{/if}"><a href="{$path}/Circa/Home">Inventory</a></div>
+							<div class="adminMenuLink{if $action == "Home" && $module == "Circa"} active{/if}"><a href="{$path}/Circa/Home">Inventory</a></div>
 							<div class="adminMenuLink{if $action == "OfflineCirculation" && $module == "Circa"} active{/if}"><a href="{$path}/Circa/OfflineCirculation">Offline Circulation</a></div>
-							<div class="adminMenuLink{if $action == "OfflineHoldsReport" && $module == "Circa"}active{/if}"><a href="{$path}/Circa/OfflineHoldsReport">Offline Holds Report</a></div>
-							<div class="adminMenuLink{if $action == "OfflineCirculationReport" && $module == "Circa"}active{/if}"><a href="{$path}/Circa/OfflineCirculationReport">Offline Circulation Report</a></div>
+							<div class="adminMenuLink{if $action == "OfflineHoldsReport" && $module == "Circa"} active{/if}"><a href="{$path}/Circa/OfflineHoldsReport">Offline Holds Report</a></div>
+							<div class="adminMenuLink{if $action == "OfflineCirculationReport" && $module == "Circa"} active{/if}"><a href="{$path}/Circa/OfflineCirculationReport">Offline Circulation Report</a></div>
 						</div>
 					</div>
 				</div>
@@ -411,8 +417,8 @@
 					</a>
 					<div id="editorialReviewMenu" class="panel-collapse collapse {if $curSection}in{/if}">
 						<div class="panel-body">
-							<div class="adminMenuLink{if $action == "Edit" && $module == "EditorialReview"}active{/if}"><a href="{$path}/EditorialReview/Edit">New Review</a></div>
-							<div class="adminMenuLink{if $action == "Search" && $module == "EditorialReview"}active{/if}"><a href="{$path}/EditorialReview/Search">Search Existing Reviews</a></div>
+							<div class="adminMenuLink{if $action == "Edit" && $module == "EditorialReview"} active{/if}"><a href="{$path}/EditorialReview/Edit">New Review</a></div>
+							<div class="adminMenuLink{if $action == "Search" && $module == "EditorialReview"} active{/if}"><a href="{$path}/EditorialReview/Search">Search Existing Reviews</a></div>
 						</div>
 					</div>
 				</div>
@@ -436,21 +442,21 @@
 						<div class="panel-body">
 							{if $user && ($user->hasRole('opacAdmin') || $user->hasRole('libraryAdmin'))}
 								{*
-								<div class="adminMenuLink{if $action == "Dashboard"}active{/if}"><a href="{$path}/Report/Dashboard">Dashboard</a></div>
-								<div class="adminMenuLink{if $action == "Searches"}active{/if}"><a href="{$path}/Report/Searches">Searches</a></div>
+								<div class="adminMenuLink{if $action == "Dashboard"} active{/if}"><a href="{$path}/Report/Dashboard">Dashboard</a></div>
+								<div class="adminMenuLink{if $action == "Searches"} active{/if}"><a href="{$path}/Report/Searches">Searches</a></div>
 								<div class="adminMenuLink">&nbsp;&nbsp;<a href="{$path}/Report/DetailedReport?source=searchesByScope">Searches by Scope</a></div>
-								<div class="adminMenuLink{if $action == "PageViews"}active{/if}"><a href="{$path}/Report/PageViews">Page Views</a></div>
+								<div class="adminMenuLink{if $action == "PageViews"} active{/if}"><a href="{$path}/Report/PageViews">Page Views</a></div>
 								<div class="adminMenuLink">&nbsp;&nbsp;<a href="{$path}/Report/DetailedReport?source=pageViewsByTheme">Page Views by Theme</a></div>
-								<div class="adminMenuLink{if $action == "ILSIntegration"}active{/if}"><a href="{$path}/Report/ILSIntegration">ILS Integration</a></div>
+								<div class="adminMenuLink{if $action == "ILSIntegration"} active{/if}"><a href="{$path}/Report/ILSIntegration">ILS Integration</a></div>
 								<div class="adminMenuLink">&nbsp;&nbsp;<a href="{$path}/Report/DetailedReport?source=holdsByResult">Holds Placed</a></div>
 								<div class="adminMenuLink">&nbsp;&nbsp;<a href="{$path}/Report/DetailedReport?source=renewalsByResult">Renewals</a></div>
 								*}
-								<div class="adminMenuLink{if $action == "ReportPurchase"}active{/if}"><a href="{$path}/Report/ReportPurchase">Purchase Tracking</a></div>
-								<div class="adminMenuLink{if $action == "ReportExternalLinks"}active{/if}"><a href="{$path}/Report/ReportExternalLinks">External Link Tracking</a></div>
-								<div class="adminMenuLink{if $action == "PatronStatus"}active{/if}"><a href="{$path}/Report/PatronStatus">Patron Status</a></div>
+								<div class="adminMenuLink{if $action == "ReportPurchase"} active{/if}"><a href="{$path}/Report/ReportPurchase">Purchase Tracking</a></div>
+								<div class="adminMenuLink{if $action == "ReportExternalLinks"} active{/if}"><a href="{$path}/Report/ReportExternalLinks">External Link Tracking</a></div>
+								<div class="adminMenuLink{if $action == "PatronStatus"} active{/if}"><a href="{$path}/Report/PatronStatus">Patron Status</a></div>
 							{/if}
 							{if $ils == 'Sierra' && $user && ($user->hasRole('opacAdmin') || $user->hasRole('libraryAdmin') || $user->hasRole('locationReports'))}
-								<div class="adminMenuLink{if $action == "StudentReport"}active{/if}"><a href="{$path}/Report/StudentReport">Student Reports</a></div>
+								<div class="adminMenuLink{if $action == "StudentReport"} active{/if}"><a href="{$path}/Report/StudentReport">Student Reports</a></div>
 							{/if}
 						</div>
 					</div>

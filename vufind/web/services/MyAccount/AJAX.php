@@ -29,6 +29,7 @@ class MyAccount_AJAX
 			'renewItem', 'renewAll', 'renewSelectedItems', 'getPinResetForm',
 			'getAddAccountLinkForm', 'addAccountLink', 'removeAccountLink',
 			'cancelBooking', 'getCitationFormatsForm', 'getAddBrowseCategoryFromListForm'
+		  ,'getMasqueradeAsForm'
 		);
 		$method = $_GET['method'];
 		if (in_array($method, $valid_json_methods)) {
@@ -853,6 +854,19 @@ class MyAccount_AJAX
 		return $interface->fetch('MyAccount/ajax-login.tpl');
 	}
 
+	function getMasqueradeAsForm(){
+		global $interface;
+		return array(
+			'title'        => translate('Masquerade As'),
+			'modalBody'    => $interface->fetch("MyAccount/masqueradeAs.tpl"),
+			'modalButtons' => '<button class="tool btn btn-primary" onclick="$(\'#masqueradeForm\').submit()">Start</button>'
+		);
+	}
+
+	function initiateMasquerade(){
+
+	}
+
 	function getPinUpdateForm()
 	{
 		global $interface;
@@ -917,7 +931,6 @@ class MyAccount_AJAX
 		);
 		return $results;
 	}
-
 
 	function changeHoldLocation()
 	{
@@ -991,7 +1004,7 @@ class MyAccount_AJAX
 		return array(
 				'title' => 'Select Citation Format',
 				'modalBody' => $pageContent,
-				'modalButtons' => '<input class="btn btn-primary"  onclick="VuFind.Lists.processCiteListForm(); return false;" value="' . translate('Generate Citations') . '">'
+				'modalButtons' => '<input class="btn btn-primary" onclick="VuFind.Lists.processCiteListForm(); return false;" value="' . translate('Generate Citations') . '">'
 		);
 	}
 

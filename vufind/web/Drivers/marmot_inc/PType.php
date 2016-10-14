@@ -26,9 +26,9 @@ class PType extends DB_DataObject
 
 	function getObjectStructure(){
 		$structure        = array(
-			'id'       => array('property'=>'id', 'type'=>'label', 'label'=>'Id', 'description'=>'The unique id of the p-type within the database', 'hideInLists' => false),
-			'pType'    => array('property'=>'pType', 'type'=>'integer', 'label'=>'P-Type', 'description'=>'The P-Type for the patron'),
-			'maxHolds' => array('property'=>'maxHolds', 'type'=>'integer', 'label'=>'Max Holds', 'description'=>'The maximum holds that a patron can have.', 'default' => 300),
+			'id'         => array('property'=>'id', 'type'=>'label', 'label'=>'Id', 'description'=>'The unique id of the p-type within the database', 'hideInLists' => false),
+			'pType'      => array('property'=>'pType', 'type'=>'integer', 'label'=>'P-Type', 'description'=>'The P-Type for the patron'),
+			'maxHolds'   => array('property'=>'maxHolds', 'type'=>'integer', 'label'=>'Max Holds', 'description'=>'The maximum holds that a patron can have.', 'default' => 300),
 			'masquerade' => array('property' => 'masquerade', 'type'=> 'enum', 'values' => self::$masqueradeLevels, 'label'=>'Masquerade Level', 'description'=>'The level at which this ptype can masquerade at', 'default'=>'none')
 		);
 		return $structure;

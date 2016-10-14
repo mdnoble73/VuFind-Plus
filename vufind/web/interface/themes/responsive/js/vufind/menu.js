@@ -13,6 +13,7 @@ VuFind.Menu = (function(){
 				VuFind.Menu.ExploreMoreSelectors;
 
 		// Set up Sticky Menus
+		console.log('Masquerade', Globals.masqueradeMode);
 		VuFind.Menu.stickyMenu('#horizontal-menu-bar-container', 'sticky-menu-bar');
 		VuFind.Menu.stickyMenu('#vertical-menu-bar', 'sticky-sidebar');
 
@@ -118,19 +119,26 @@ VuFind.Menu = (function(){
 		stickyMenu: function(menuContainerSelector, stickyMenuClass){
 			var menu = $(menuContainerSelector),
 					viewportHeight = $(window).height(),
-					switchPosition; // Meant to remain constant for the event handler below
-			if (menu.is(':visible')) switchPosition = menu.offset().top;
+					switchPosition, // Meant to remain constant for the event handler below
+					// masqueradeMode = $('#masquerade-header').is(':visible'),
+					switchPositionAdjustment = $('#masquerade-header').height();
+			// if (menu.is(':visible')) {
+			// 	switchPosition = menu.offset().top - switchPositionAdjustment;
+			// 	// console.log('Masquerade Mode', Globals.masqueradeMode, 'Initial offset : ' + menu.offset().top, 'switch position : ' + switchPosition);
+			//
+			// }
 			$(window).resize(function(){
 				viewportHeight = $(this).height()
 			})
 			.scroll(function(){
 				if (menu.is(':visible') && viewportHeight < $('#main-content-with-sidebar').height()) { // only do this if the menu is visible & the page is larger than the viewport
 					if (typeof switchPosition == 'undefined') {
-						switchPosition = menu.offset().top
+						switchPosition = menu.offset().top - switchPositionAdjustment;
+						// console.log('Initial offset after becoming visible : ' + menu.offset().top, 'switch position : ' + switchPosition);
 					}
 					var fixedOffset = menu.offset().top,
 							notFixedScrolledPosition = $(this).scrollTop();
-					//console.log('Selector :', menuContainerSelector, 'fixedOffset : ', fixedOffset, ' notFixedScrolledPosition : ', notFixedScrolledPosition, 'switch position : ', switchPosition);
+					// console.log('Masquerade Mode', Globals.masqueradeMode, 'Selector :', menuContainerSelector, 'fixedOffset : ', fixedOffset, ' notFixedScrolledPosition : ', notFixedScrolledPosition, 'switch position : ', switchPosition, 'offset : ' + menu.offset().top);
 
 					// Toggle into an embedded mode
 					if (menu.is('.' + stickyMenuClass) && fixedOffset <= switchPosition) {
@@ -138,10 +146,13 @@ VuFind.Menu = (function(){
 					}
 					// Toggle into a fixed mode
 					if (!menu.is('.' + stickyMenuClass) && notFixedScrolledPosition >= switchPosition) {
-						menu.addClass(stickyMenuClass)
+						menu.addClass(stickyMenuClass);
+						if (switchPositionAdjustment) {
+							menu.css('top', switchPositionAdjustment);
+						}
 					}
 				}
-			})
+			}).scroll();
 		},
 
 		// This version is for hiding content without using an animation.
