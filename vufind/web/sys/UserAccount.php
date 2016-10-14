@@ -67,7 +67,19 @@ class UserAccount {
 			}
 			UserAccount::$isLoggedIn = true;
 
-		//Check to see if the patron is already logged in within CAS as long as we aren't on a page that is likely to be a login page
+			global $masqueradeMode;
+			$masqueradeMode = false;
+			if (!empty($_SESSION['guidingUserId'])) {
+				$masqueradeMode = true;
+				global $guidingUser;
+				$guidingUser = $memCache->get("user_{$serverName}_{$_SESSION['guidingUserId']}"); //TODO: check if this ever works
+				if ($guidingUser === false || isset($_REQUEST['reload'])){
+					$guidingUser = new User();
+					$guidingUser->get($_SESSION['guidingUserId']);
+				}
+			}
+
+			//Check to see if the patron is already logged in within CAS as long as we aren't on a page that is likely to be a login page
 		}elseif ($action != 'AJAX' && $action != 'DjatokaResolver' && $action != 'Logout' && $module != 'MyAccount' && $module != 'API' && !isset($_REQUEST['username'])){
 			//If the library uses CAS/SSO we may already be logged in even though they never logged in within Pika
 			global $library;

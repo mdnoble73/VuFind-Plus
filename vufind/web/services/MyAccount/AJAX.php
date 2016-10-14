@@ -29,7 +29,7 @@ class MyAccount_AJAX
 			'renewItem', 'renewAll', 'renewSelectedItems', 'getPinResetForm',
 			'getAddAccountLinkForm', 'addAccountLink', 'removeAccountLink',
 			'cancelBooking', 'getCitationFormatsForm', 'getAddBrowseCategoryFromListForm'
-		  ,'getMasqueradeAsForm'
+		  ,'getMasqueradeAsForm', 'initiateMasquerade', 'endMasquerade'
 		);
 		$method = $_GET['method'];
 		if (in_array($method, $valid_json_methods)) {
@@ -864,7 +864,78 @@ class MyAccount_AJAX
 	}
 
 	function initiateMasquerade(){
+		$libraryCard = $_REQUEST['cardNumber'];
+		if (!empty($libraryCard)) {
+			global $guidingUser;
+			if (empty($guidingUser)) {
+				global $user;
+				if ($user && $user->canMasquerade()) {
+					$masqueradedUser = new User();
+					//TODO: below, when $masquerade User account is in another ILS (need different account Profile to check)
+					if ($user->getAccountProfile()->loginConfiguration == 'barcode_pin') {
+						$masqueradedUser->cat_username = $libraryCard;
+					}else{
+						$masqueradedUser->cat_password = $libraryCard;
+					}
+					if ($masqueradedUser->find(true)){
+						//TODO: Can User masquerade as this user?
+						switch ($user->getMasqueradeLevel()) {
+							case 'library' :
+							case 'location' :
+							case 'any' :
+								global $guidingUser;
+								$guidingUser = $user;
+								$_SESSION['guidingUserId'] = $guidingUser->id;
+								// NOW login in as masquerade user
+								$_REQUEST['username'] = $masqueradedUser->cat_username;
+								$_REQUEST['password'] = $masqueradedUser->cat_password;
+								$user = UserAccount::login();
+								global $masqueradeMode;
+								$masqueradeMode = true;
+								return array('success' => true);
+						}
+					} else {
+						return array(
+							'success' => false,
+							'error'   => 'Invalid User'
+						);
+					}
+				} else {
+					return array(
+						'success' => false,
+						'error'   => $user ? 'You are not allowed to Masquerade.' : 'Not logged in. Please Log in.'
+					);
+				}
+			} else {
+				return array(
+					'success' => false,
+					'error'   => 'Already Masquerading.'
+				);
+			}
+		} else {
+			return array(
+				'success' => false,
+				'error'   => 'Please enter a valid Library Card Number.'
+			);
+		}
+	}
 
+	function endMasquerade() {
+		global $user;
+		if ($user) {
+			global $guidingUser,
+			       $masqueradeMode;
+			unset($_SESSION['guidingUserId']);
+			$masqueradeMode = false;
+			if ($guidingUser) {
+				$_REQUEST['username'] = $guidingUser->cat_username;
+				$_REQUEST['password'] = $guidingUser->cat_password;
+				$user = UserAccount::login();
+				if ($user || !PEAR_Singleton::isError($user)) {
+					return array('success' => true);
+				}
+			}
+		}
 	}
 
 	function getPinUpdateForm()

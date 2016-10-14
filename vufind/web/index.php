@@ -253,7 +253,10 @@ if (isset($_REQUEST['lookfor'])) {
 
 //Check to see if the user is already logged in
 /** @var User $user */
-global $user;
+global $user,
+       $guidingUser,
+       $masqueradeMode;
+
 $user = UserAccount::isLoggedIn();
 $timer->logTime('Check if user is logged in');
 
@@ -266,6 +269,10 @@ if ($user) {
 	//Create a cookie for the user's home branch so we can sort holdings even if they logout.
 	//Cookie expires in 1 week.
 	setcookie('home_location', $user->homeLocationId, time()+60*60*24*7, '/');
+	$interface->assign('masqueradeMode', $masqueradeMode);
+	if ($masqueradeMode) {
+		$interface->assign('guidingUser', $guidingUser);
+	}
 } else if ( (isset($_POST['username']) && isset($_POST['password']) && ($action != 'Account' && $module != 'AJAX')) || isset($_REQUEST['casLogin']) ) {
 	//The user is trying to log in
 	$user = UserAccount::login();
@@ -285,7 +292,7 @@ if ($user) {
 	$interface->assign('loggedIn', $user == false ? 'false' : 'true');
 	//Check to see if there is a followup module and if so, use that module and action for the next page load
 	if (isset($_REQUEST['returnUrl'])) {
-		$followupUrl =  $_REQUEST['returnUrl'];
+		$followupUrl = $_REQUEST['returnUrl'];
 		header("Location: " . $followupUrl);
 		exit();
 	}

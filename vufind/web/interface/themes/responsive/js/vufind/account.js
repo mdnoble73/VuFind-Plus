@@ -734,11 +734,28 @@ VuFind.Account = (function(){
 
 		initiateMasquerade: function() {
 			var url = Globals.path + "/MyAccount/AJAX",
-					params = {method:"initiateMasquerade"};
+					params = {
+						method:"initiateMasquerade"
+						,cardNumber:$('#cardNumber').val()
+					};
 			$.getJSON(url, params, function(data){
-				VuFind.showMessageWithButtons(data.title, data.modalBody, data.modalButtons)
+				if (data.success) {
+					location.href = Globals.path + '/MyAccount/Home';
+				} else {
+					$('#masqueradeAsError').html(data.error).show();
+				}
+			}).fail(VuFind.ajaxFail);
+			return false;
+		},
+
+		endMasquerade: function () {
+			var url = Globals.path + "/MyAccount/AJAX",
+					params = {method:"endMasquerade"};
+			$.getJSON(url, params).done(function(){
+					location.href = Globals.path + '/MyAccount/Home';
 			}).fail(VuFind.ajaxFail);
 			return false;
 		}
+
 	};
 }(VuFind.Account || {}));

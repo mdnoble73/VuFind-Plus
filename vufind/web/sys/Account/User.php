@@ -38,6 +38,7 @@ class User extends DB_DataObject
 	public $preferredLibraryInterface;
 	public $noPromptForUserReviews; //tinyint(1)
 	private $roles;
+	private $masqueradeLevel;
 
 	/** @var User $parentUser */
 	private $parentUser;
@@ -178,7 +179,7 @@ class User extends DB_DataObject
 	}
 
 	function __set($name, $value){
-		if ($name == 'roles'){
+		if ($name == 'roles') {
 			$this->roles = $value;
 			//Update the database, first remove existing values
 			$this->saveRoles();
@@ -1134,5 +1135,31 @@ class User extends DB_DataObject
 
 	public function getShowUsernameField() {
 		return $this->getCatalogDriver()->getShowUsernameField();
+	}
+
+	/**
+	 * @return string
+	 */
+	public function getMasqueradeLevel()
+	{
+		if (empty($this->masqueradeLevel)) $this->setMasqueradeLevel();
+		return $this->masqueradeLevel;
+	}
+
+	private function setMasqueradeLevel()
+	{
+		$this->masqueradeLevel = 'none';
+		if (!empty($this->patronType)) {
+			require_once ROOT_DIR . '/Drivers/marmot_inc/PType.php';
+			$pType = new pType();
+			$pType->get('pType', $this->patronType);
+			if ($pType) {
+				$this->masqueradeLevel = $pType->masquerade;
+			}
+		}
+	}
+
+	public function canMasquerade() {
+		return $this->getMasqueradeLevel() != 'none';
 	}
 }
