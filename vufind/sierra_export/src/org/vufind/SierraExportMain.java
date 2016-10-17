@@ -509,7 +509,7 @@ public class SierraExportMain{
 			}
 			itemsToProcessWriter.flush();
 			itemsToProcessWriter.close();
-			logger.warn(itemsThatNeedToBeProcessed.size() + " items remain to be processed");
+			//logger.warn(itemsThatNeedToBeProcessed.size() + " items remain to be processed");
 
 			if (!errorUpdatingDatabase) {
 				//Update the last extract time
@@ -525,6 +525,10 @@ public class SierraExportMain{
 					insertVariableStmt.executeUpdate();
 					insertVariableStmt.close();
 				}
+				PreparedStatement setRemainingRecordsStmt = vufindConn.prepareStatement("INSERT INTO variables (`name`, `value`) VALUES ('remaining_sierra_records', ?) ON DUPLICATE KEY UPDATE value=VALUES(value)");
+				setRemainingRecordsStmt.setString(1, Long.toString(itemsThatNeedToBeProcessed.size()));
+				setRemainingRecordsStmt.executeUpdate();
+				setRemainingRecordsStmt.close();
 			}else{
 				logger.error("There was an error updating the database, not setting last extract time.");
 			}
