@@ -403,61 +403,65 @@ public class SierraExportMain{
 				HashSet<String> itemsThatNeedToBeProcessed2 = (HashSet<String>)itemsThatNeedToBeProcessed.clone();
 				for (String itemId : itemsThatNeedToBeProcessed2){
 					JSONObject itemData = callSierraApiURL(ini, apiBaseUrl, apiBaseUrl + "/items/?id=" + itemId + "&fields=id,bibIds,location,status,fixedFields,updatedDate&suppressed=false", false);
-					JSONObject curItem = itemData.getJSONArray("entries").getJSONObject(0);
+					if (itemData.has("entries")){
+						JSONObject curItem = itemData.getJSONArray("entries").getJSONObject(0);
 
-					String location;
-					if (curItem.has("location")) {
-						location = curItem.getJSONObject("location").getString("code");
-					}else{
-						location = "";
-					}
-					String status;
-					if (curItem.has("status")){
-						status = curItem.getJSONObject("status").getString("code");
-					}else{
-						status = "";
-					}
-
-					String dueDateMarc = null;
-					if (curItem.getJSONObject("fixedFields").has("65")){
-						String dueDateStr = curItem.getJSONObject("fixedFields").getJSONObject("65").getString("value");
-						//The due date is in the format 2014-10-16T10:00:00Z, convert to what the marc record shows which is just yymmdd
-						Date dueDate = dateFormatter.parse(dueDateStr);
-						dueDateMarc = marcDateFormat.format(dueDate);
-					}
-					String lastCheckInDateMarc = null;
-					if (curItem.getJSONObject("fixedFields").has("68")){
-						String lastCheckInDateStr = curItem.getJSONObject("fixedFields").getJSONObject("68").getString("value");
-						//The due date is in the format 2014-10-16T10:00:00Z, convert to what the marc record shows which is just yymmdd
-						Date lastCheckInDate = dateFormatter.parse(lastCheckInDateStr);
-						lastCheckInDateMarc = marcCheckInFormat.format(lastCheckInDate);
-					}
-
-					ItemChangeInfo changeInfo = new ItemChangeInfo();
-					String itemIdFull = ".i" + itemId + getCheckDigit(itemId);
-
-					changeInfo.setItemId(itemIdFull);
-					changeInfo.setLocation(location);
-					changeInfo.setStatus(status);
-
-					changeInfo.setDueDate(dueDateMarc);
-					changeInfo.setLastCheckinDate(lastCheckInDateMarc);
-
-					JSONArray bibIds = curItem.getJSONArray("bibIds");
-					for (int j = 0; j < bibIds.length(); j++){
-						String curId = bibIds.getString(j);
-						String fullId = ".b" + curId + getCheckDigit(curId);
-						ArrayList<ItemChangeInfo> itemChanges;
-						if (changedBibs.containsKey(fullId)) {
-							itemChanges = changedBibs.get(fullId);
+						String location;
+						if (curItem.has("location")) {
+							location = curItem.getJSONObject("location").getString("code");
 						}else{
-							itemChanges = new ArrayList<>();
-							changedBibs.put(fullId, itemChanges);
+							location = "";
 						}
-						itemChanges.add(changeInfo);
-					}
+						String status;
+						if (curItem.has("status")){
+							status = curItem.getJSONObject("status").getString("code");
+						}else{
+							status = "";
+						}
 
-					itemsThatNeedToBeProcessed.remove(itemId);
+						String dueDateMarc = null;
+						if (curItem.getJSONObject("fixedFields").has("65")){
+							String dueDateStr = curItem.getJSONObject("fixedFields").getJSONObject("65").getString("value");
+							//The due date is in the format 2014-10-16T10:00:00Z, convert to what the marc record shows which is just yymmdd
+							Date dueDate = dateFormatter.parse(dueDateStr);
+							dueDateMarc = marcDateFormat.format(dueDate);
+						}
+						String lastCheckInDateMarc = null;
+						if (curItem.getJSONObject("fixedFields").has("68")){
+							String lastCheckInDateStr = curItem.getJSONObject("fixedFields").getJSONObject("68").getString("value");
+							//The due date is in the format 2014-10-16T10:00:00Z, convert to what the marc record shows which is just yymmdd
+							Date lastCheckInDate = dateFormatter.parse(lastCheckInDateStr);
+							lastCheckInDateMarc = marcCheckInFormat.format(lastCheckInDate);
+						}
+
+						ItemChangeInfo changeInfo = new ItemChangeInfo();
+						String itemIdFull = ".i" + itemId + getCheckDigit(itemId);
+
+						changeInfo.setItemId(itemIdFull);
+						changeInfo.setLocation(location);
+						changeInfo.setStatus(status);
+
+						changeInfo.setDueDate(dueDateMarc);
+						changeInfo.setLastCheckinDate(lastCheckInDateMarc);
+
+						JSONArray bibIds = curItem.getJSONArray("bibIds");
+						for (int j = 0; j < bibIds.length(); j++){
+							String curId = bibIds.getString(j);
+							String fullId = ".b" + curId + getCheckDigit(curId);
+							ArrayList<ItemChangeInfo> itemChanges;
+							if (changedBibs.containsKey(fullId)) {
+								itemChanges = changedBibs.get(fullId);
+							}else{
+								itemChanges = new ArrayList<>();
+								changedBibs.put(fullId, itemChanges);
+							}
+							itemChanges.add(changeInfo);
+						}
+
+						itemsThatNeedToBeProcessed.remove(itemId);
+					}else{
+						logger.warn("Did not get item information (entries) for " + itemId);
+					}
 
 					//Check to see if we've used too much time
 					numProcessed++;
