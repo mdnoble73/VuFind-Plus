@@ -403,7 +403,9 @@ public class SierraExportMain{
 				HashSet<String> itemsThatNeedToBeProcessed2 = (HashSet<String>)itemsThatNeedToBeProcessed.clone();
 				for (String itemId : itemsThatNeedToBeProcessed2){
 					JSONObject itemData = callSierraApiURL(ini, apiBaseUrl, apiBaseUrl + "/items/?id=" + itemId + "&fields=id,bibIds,location,status,fixedFields,updatedDate&suppressed=false", false);
-					if (itemData.has("entries")){
+					if (itemData == null) {
+						logger.warn("Could not load item data (result was null) for " + itemId);
+					}else if (itemData.has("entries")){
 						JSONObject curItem = itemData.getJSONArray("entries").getJSONObject(0);
 
 						String location;
