@@ -46,8 +46,8 @@
 				</figure>
 				</a>
 			</div>
+			{/if}
 		</div>
-		{/if}
 		{if $user && ($user->hasRole('opacAdmin') || $user->hasRole('libraryAdmin') || $user->hasRole('cataloging') || $user->hasRole('libraryManager') || $user->hasRole('locationManager'))}
 			<div class="row">
 				<div class="col-sm-7 text-left" id="indexing-info">
@@ -56,6 +56,5 @@
 			</div>
 		{/if}
 	</div>
-
 </div>
 {/strip}
