@@ -2059,5 +2059,145 @@ class MarcRecord extends IndexRecord
 
 		return $links;
 	}
+	private function getSemanticData() {
+		
+		global $interface;
 
-}
+		// Schema.org
+		// Get information about the record
+		$groupedWork = $this->getGroupedWorkDriver();
+		$relatedRecords = $groupedWork->getRelatedRecords ();
+		$workExamples = array ();
+		foreach($records as $record ) {
+			$workExamples[] = $record['url'];
+		}
+
+		
+		/*
+		 *
+		 * The specific type of the work will be determined based on the format of the record. The following Types may be used:
+		 * Book
+		 * Game
+		 * Map
+		 * Movie
+		 * MusicAlbum
+		 * CreativeWork
+		 *
+		 */
+		
+		$semanticData [] = array (
+				'@context' => 'http://schema.org',
+				'@type' => $this->getPrimaryFormat(),//     'CreativeWork',/*TODO: This should change to a more specific Book/Movies as applicable*/
+		    	'name' => $this->getTitleSection (),
+				'creator' => $this->getPrimaryAuthor (),
+				'bookEdition' =>$this->getEdition(),
+				'isAccessibleForFree' => true,
+				'workExample' => $workExamples,
+				"offers" => getRelatedOffers(),
+				
+		);
+		
+		
+		//$interface->assign('semanticData', json_encode($semanticData));
+	 
+		return $semanticData;
+	}
+	
+	private function getRelatedOffers(){
+		$groupedWork = $this->getGroupedWorkDriver ();
+		$relatedManifestations = $groupedWork->getRelatedManifestations();
+		$offers = array();
+		foreach ($relatedManifestations as $key => $manifestation){
+			offer[]= array(
+				
+						"availableAtOrFrom" => $this->getBranchUrl(), //Branch that owns the work(),
+						"availability" => getAvailability($manifestation),
+						'availableDeliveryMethod' => getDeliveryMethod($manifestation),
+						"itemOffered"=> $this->getLinkUrl(), //URL to the record
+						"offeredBy" => getLibraryUrl(), //URL to the library that owns the item
+						"price" =>'0',
+						"@type" => $key,
+						
+				/* 
+						'format' => $curRecord['format'],
+						'formatCategory' => $curRecord['formatCategory'], */
+					
+					);
+      	}
+	}
+	
+ 
+	function getLibraryUrl(){
+		global $configArray;
+		$offerBy = array();
+	    $library = Library::getSearchLibrary();
+	    $location  = Location::getSearchLocation();
+			$offerBy[] = array(
+					"@type" =>"Library",
+					"@id" => $configArray['Site']['url'] . "/Library/{$location->libraryId}/System",
+					"name" => $library->displayName
+			);
+		return $offerBy;
+	}
+	
+	
+	function getBranchUrl(){
+		global $configArray;
+		$offerBy = array();
+		$library = Library::getSearchLibrary();
+		$location  = Location::getSearchLocation();
+		$offerBy[] = array(
+					
+				"@type" =>"Library Branch",
+				"@id" => $configArray['Site']['url'] . "/Library/{$location->libraryId}/",
+				"name" => $library->displayName
+		);
+		return $offerBy;
+	}
+	
+	
+	private function getDeliveryMethod($manifestation){
+		if ($manifestation['isEContent']){
+			return 'DeliveryModeDirectDownload';
+		}else{
+			return 'DeliveryModePickUp';
+		}
+	}
+	private function getAvailability($manifestation){
+		if ($manifestation['inLibraryUseOnly']){
+			return 'InStoreOnly';
+		}
+		
+		if ($manifestation['availableOnline'] ){
+			return 'OnlineOnly';
+		}
+		
+		if ($manifestation['localAvailableCopies'] > 0){
+			return  'InStock';
+		}
+			
+		if ($manifestation['groupedStatus'] != ''){
+			$ranking = $manifestation['groupedStatus'];
+			$availability ='';
+			switch ($ranking) {
+				case 4:
+					$availability =  'OutOfStock';
+					break;
+				case 2:
+				case 3.5:
+					$availability =  'PreOrder';
+					break;
+				case 1:
+					$availability =  'Discontinued';
+					break;
+			}
+			
+			return $availability;
+	     }
+	     
+	     return "";
+	     
+	}
+	
+	
+	
