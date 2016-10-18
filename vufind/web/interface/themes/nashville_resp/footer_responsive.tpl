@@ -3,7 +3,7 @@
 
     <div id="footer">
       <div class="l--constrained clearfix">
-        
+
         <div id="block-menu-footer-menu" class="block block-menu">
             <ul class="nav">
               <li class="first leaf nav-item"><a href="http://www.library.nashville.org/about/abt_about.asp" title="About" class="nav-link">About Us</a></li>
@@ -12,7 +12,7 @@
               <li class="last collapsed nav-item"><a href="http://www.library.nashville.org/Info/gen_privacy.asp" title="Privacy Notice" class="nav-link">Privacy Notice</a></li>
             </ul>
         </div>
-    
+
         <div id="block-infodesk-base-social" class="block block-infodesk-base">
             <div class="social">
               <ul>
@@ -25,16 +25,16 @@
               <a class="newsletter" href="http://www.library.nashville.org/Info/gen_email.asp">Newsletter Signup</a>
             </div>
         </div>
-        
+
       </div>
     </div>
-    
+
 <div class="navbar navbar-static-bottom">
-	<div class="navbar-inner">      
-<div class="l--constrained clearfix">
+	<div class="navbar-inner">
+		<div class="l--constrained clearfix">
 
 		<div class="row">
-			<div class="col-sm-12 text-left" id="install-info">
+			<div class="col-tn-12 {if $showPikaLogo}col-sm-4{else}col-sm-7{/if} text-left pull-left" id="install-info">
 				{if !$productionServer}
 					<small class='location_info'>{$physicalLocation}{if $debug} ({$activeIp}){/if} - {$deviceName}</small>
 				{/if}
@@ -46,6 +46,14 @@
 					<small class='scope_info'> / scope {$solrScope}</small>
 				{/if}
 			</div>
+
+			{if $showPikaLogo}
+				<div class="col-tn-12 col-sm-3 text-center pull-left">
+					<a href="http://www.marmot.org/content/pika-discovery-layer" title="Proud Pika Partner">
+						<img id="footer-pika-logo" src="{img filename='pika-logo.png'}" alt="Proud Pika Partner" style="max-width: 100%; max-height: 80px;">
+					</a>
+				</div>
+			{/if}
 	<!--		<div class="col-sm-5 text-right" id="connect-with-us-info">
 
 				{if $twitterLink || $facebookLink || $generalContactLink || $youtubeLink || $instagramLink || $goodreadsLink}
@@ -91,5 +99,5 @@
 </div>
 
 
-    
+
 {/strip}
