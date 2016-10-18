@@ -880,8 +880,46 @@ class MyAccount_AJAX
 					if ($masqueradedUser->find(true)){
 						//TODO: Can User masquerade as this user?
 						switch ($user->getMasqueradeLevel()) {
-							case 'library' :
 							case 'location' :
+								if (empty($user->homeLocationId)) {
+									return array(
+										'success' => false,
+										'error'   => 'Could not determine your home library branch.'
+									);
+								}
+								if (empty($masqueradedUser->homeLocationId)) {
+									return array(
+										'success' => false,
+										'error'   => 'Could not determine the patron\'s home library branch.'
+									);
+								}
+								if ($user->homeLocationId != $masqueradedUser->homeLocationId) {
+									return array(
+										'success' => false,
+										'error'   => 'You do not have the same home library branch as the patron.'
+									);
+								}
+							case 'library' :
+								$guidingUserLibrary = $user->getHomeLibrary();
+								if (!$guidingUserLibrary) {
+									return array(
+										'success' => false,
+										'error'   => 'Could not determine your home library.'
+									);
+								}
+								$masqueradedUserLibrary = $masqueradedUser->getHomeLibrary();
+								if (!$masqueradedUserLibrary) {
+									return array(
+										'success' => false,
+										'error' => 'Could not determine the patron\'s home library.'
+									);
+								}
+								if ($guidingUserLibrary->libraryId != $masqueradedUserLibrary->libraryId) {
+									return array(
+										'success' => false,
+										'error'   => 'You do not have the same home library as the patron.'
+									);
+								}
 							case 'any' :
 								global $guidingUser;
 								$guidingUser = $user;
@@ -895,10 +933,16 @@ class MyAccount_AJAX
 								return array('success' => true);
 						}
 					} else {
-						return array(
-							'success' => false,
-							'error'   => 'Invalid User'
-						);
+						//TODO:  if Masqueraded user hasn't logged into Pika before, we need to look up the card number in the ILS
+						if (0) {
+							// Card Number in ILS
+
+						} else {
+							return array(
+								'success' => false,
+								'error'   => 'Invalid User'
+							);
+						}
 					}
 				} else {
 					return array(
