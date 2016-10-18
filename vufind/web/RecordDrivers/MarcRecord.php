@@ -2069,7 +2069,12 @@ class MarcRecord extends IndexRecord
 		$relatedRecords = $groupedWork->getRelatedRecords ();
 		$workExamples = array ();
 		foreach($records as $record ) {
-			$workExamples[] = $record['url'];
+			foreach($records as $record ) {
+				$workExamples[] = array(
+						'@type' => $record['format'],
+						'url'=> $record['url'],
+						'@bookFormat' => $this->getBookFormat($record),
+				);	
 		}
 
 		
@@ -2103,7 +2108,12 @@ class MarcRecord extends IndexRecord
 		return $semanticData;
 	}
 	
-	private function getRelatedOffers(){
+	function getBookFormat($record){
+		
+	}
+	
+
+	 function getRelatedOffers(){
 		$groupedWork = $this->getGroupedWorkDriver ();
 		$relatedManifestations = $groupedWork->getRelatedManifestations();
 		$offers = array();
@@ -2156,14 +2166,14 @@ class MarcRecord extends IndexRecord
 	}
 	
 	
-	private function getDeliveryMethod($manifestation){
+	 function getDeliveryMethod($manifestation){
 		if ($manifestation['isEContent']){
 			return 'DeliveryModeDirectDownload';
 		}else{
 			return 'DeliveryModePickUp';
 		}
 	}
-	private function getAvailability($manifestation){
+	 function getAvailability($manifestation){
 		if ($manifestation['inLibraryUseOnly']){
 			return 'InStoreOnly';
 		}
