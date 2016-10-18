@@ -2093,7 +2093,7 @@ class MarcRecord extends IndexRecord
 				'bookEdition' =>$this->getEdition(),
 				'isAccessibleForFree' => true,
 				'workExample' => $workExamples,
-				"offers" => getRelatedOffers(),
+				"offers" => $this->getRelatedOffers(),
 				
 		);
 		
@@ -2109,12 +2109,11 @@ class MarcRecord extends IndexRecord
 		$offers = array();
 		foreach ($relatedManifestations as $key => $manifestation){
 			offer[]= array(
-				
 						"availableAtOrFrom" => $this->getBranchUrl(), //Branch that owns the work(),
-						"availability" => getAvailability($manifestation),
-						'availableDeliveryMethod' => getDeliveryMethod($manifestation),
+						"availability" => $this->getAvailability($manifestation),
+						'availableDeliveryMethod' => $this->getDeliveryMethod($manifestation),
 						"itemOffered"=> $this->getLinkUrl(), //URL to the record
-						"offeredBy" => getLibraryUrl(), //URL to the library that owns the item
+						"offeredBy" => $this->getLibraryUrl(), //URL to the library that owns the item
 						"price" =>'0',
 						"@type" => $key,
 						
@@ -2124,6 +2123,7 @@ class MarcRecord extends IndexRecord
 					
 					);
       	}
+      	return $offers;
 	}
 	
  
