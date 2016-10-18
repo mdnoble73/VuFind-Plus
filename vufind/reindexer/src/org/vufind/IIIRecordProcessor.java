@@ -277,8 +277,12 @@ public abstract class IIIRecordProcessor extends IlsRecordProcessor{
 		if (overriddenStatus != null) {
 			itemInfo.setDetailedStatus(overriddenStatus);
 		}else {
-			if (itemStatus.equals("-") && !(itemInfo.getDueDate().length() == 0 || itemInfo.getDueDate().trim().equals("-  -"))) {
-				itemInfo.setDetailedStatus("Due " + getDisplayDueDate(itemInfo.getDueDate(), identifier));
+			if (validCheckedOutStatusCodes.contains(itemStatus)) {
+				if (itemInfo.getDueDate().length() == 0 || itemInfo.getDueDate().trim().equals("-  -")) {
+					itemInfo.setDetailedStatus(translateValue("item_status", itemStatus, identifier));
+				}else{
+					itemInfo.setDetailedStatus("Due " + getDisplayDueDate(itemInfo.getDueDate(), identifier));
+				}
 			} else {
 				itemInfo.setDetailedStatus(translateValue("item_status", itemStatus, identifier));
 			}
