@@ -9,13 +9,17 @@
 				<p>Your request was submitted successfully.  The library will contact you with more information soon.</p>
 			{/if}
 		{else}
-			<p>
-				Please fill out this form to request copies of materials in the archive in physical or digital form.
-				The owning library will contact you to confirm the details of your request and detail any fees associated with your request.
-			</p>
-			<p>
-				For the best and most immediate service, please include your email address.
-			</p>
+			{if $archiveRequestMaterialsHeader}
+				{$archiveRequestMaterialsHeader}
+			{else}
+				<p>
+					Please fill out this form to request copies of materials in the archive in physical or digital form.
+					The owning library will contact you to confirm the details of your request and detail any fees associated with your request.
+				</p>
+				<p>
+					For the best and most immediate service, please include your email address.
+				</p>
+			{/if}
 
 			{if $captchaMessage}
 				<div id="selfRegFail" class="alert alert-warning">

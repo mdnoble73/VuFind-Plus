@@ -37,7 +37,7 @@
   height: 120px;
 
   div {
-    color: @browse-label-text-color;
+    //color: @browse-label-text-color;
     text-shadow: none;
     text-transform: uppercase;
     font-size: large;
@@ -60,7 +60,7 @@
 // Left/Right Arrows on browse category carousel
 #browse-category-picker {
   .jcarousel-control-prev, .jcarousel-control-next {
-    background-color: #fff;
+    background-color: @content-bg;
     color: @browseCarouselControlColor;
     &:active, &:hover {
       color: @selectedCategoryColor;
@@ -98,24 +98,14 @@
 
 .selected-browse-label-search {
   background: none;
-  a {
-    color: @browse-label-text-color;
-  }
 }
 
 #selected-browse-search-link{
   text-transform: uppercase;
 }
 
-
 #browse-sub-category-menu {
   button.selected {
     background-color: @selectedCategoryColor;
-
   }
-}
-
-// Button Styling
-.btn-primary {
-  .button-variant(#FFF, @primaryButtonBackgroundColor, darken(@primaryButtonBackgroundColor, 5%));
 }

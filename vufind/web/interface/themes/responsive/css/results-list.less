@@ -1,4 +1,4 @@
-@import (reference) "bootstrap/less/variables.less";
+//@import (reference) "bootstrap/less/variables.less";
 @import (reference) "variables.less";
 // **
 // * Additional styling specific to the results list.
@@ -58,21 +58,23 @@
 }
 .sidebar-label{
   text-align: center;
-  background-color: #7c7c7d;
-  background: linear-gradient(to bottom, #7c7c7d, #3d4244);
-  color: #fff;
+  background-color: @sidebar-label-background-color;
+  //background: linear-gradient(to bottom, @sidebar-label-background-color, #3d4244); //TODO find precent darken for 2nd color and then change to a darken function
+  background: linear-gradient(to bottom, @sidebar-label-background-color, darken(desaturate(spin(@sidebar-label-background-color, -42.8571), 5.0248), 23.5294)); //TODO find precent darken for 2nd color and then change to a darken function
+  color: @sidebar-label-color;
   padding: 3px 0;
   margin-top: 20px;
 }
 
-#narrow-search-label{
-  text-align: center;
-  background-color: #7c7c7d;
-  background: linear-gradient(to bottom, #7c7c7d, #3d4244);
-  color: #fff;
-  padding: 3px 0;
-  margin-top: 20px;
-}
+// The html tag also has .sidebar-label class so this is redundant
+//#narrow-search-label{
+//  text-align: center;
+//  background-color: #7c7c7d;
+//  background: linear-gradient(to bottom, #7c7c7d, #3d4244);
+//  color: #fff;
+//  padding: 3px 0;
+//  margin-top: 20px;
+//}
 
 .facetTitle{
   background-color: #e8e8e8;
@@ -98,15 +100,16 @@
   }
 }
 
-#results-sort-label{
-  text-align: center;
-  background-color: #7c7c7d;
-  background: linear-gradient(to bottom, #7c7c7d, #3d4244);
-  color: #fff;
-  padding: 3px 0;
-  margin-top: 20px;
-  font-size: 14px;
-}
+// duplicate of .sidebar-label; add class to html tag instead
+//#results-sort-label{
+//  text-align: center;
+//  background-color: #7c7c7d;
+//  background: linear-gradient(to bottom, #7c7c7d, #3d4244);
+//  color: #fff;
+//  padding: 3px 0;
+//  margin-top: 20px;
+//  font-size: 14px;
+//}
 #results-sort{
   width: 80%;
   margin: 5px 10%;
@@ -148,7 +151,7 @@
 }
 
 .gray-line-mixin() {
-  background: linear-gradient(to bottom, #fff, #fff 44%, #d5d6da 45%, #d5d6da 55%, #fff 56%);
+  background: linear-gradient(to bottom, @content-bg, @content-bg 44%, #d5d6da 45%, #d5d6da 55%, @content-bg 56%);
 }
 
 .results-covers{

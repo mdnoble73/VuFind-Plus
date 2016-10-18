@@ -955,186 +955,179 @@ class ListAPI extends Action {
 		);
 
 		if (!isset($configArray['NYT_API']) || !isset($configArray['NYT_API']['books_API_key']) || strlen($configArray['NYT_API']['books_API_key']) == 0){
-			$results['message'] = 'API Key missing';
-		}else {
-			$api_key = $configArray['NYT_API']['books_API_key'];
+			return array(
+				'success' => false,
+				'message' => 'API Key missing'
+			);
+		}
+		$api_key      = $configArray['NYT_API']['books_API_key'];
+		$pikaUsername = $configArray['NYT_API']['pika_username'];
+		$pikaPassword = $configArray['NYT_API']['pika_password'];
 
-			// instantiate class with api key
-			require_once ROOT_DIR . '/sys/NYTApi.php';
-			$nyt_api = new NYTApi($api_key);
+		if (empty($pikaUsername) || empty($pikaPassword)) {
+			return  array(
+				'success' => false,
+				'message' => 'Pika NY Times user not set'
+			);
+		}
 
-			//Check Pika to see if the list has been created
-			//  currently we have 2 options:
-			//  1) Get a list of all public lists (for all people)
-			//  2) Get a list of lists for a particular account
-			$pikaUsername = $configArray['NYT_API']['pika_username'];
-			$pikaPassword = $configArray['NYT_API']['pika_password'];
+		$pikaUser = UserAccount::validateAccount($pikaUsername, $pikaPassword);
+		if (!$pikaUser || PEAR_Singleton::isError($pikaUser)) {
+			return array(
+				'success' => false,
+				'message' => 'Invalid Pika NY Times user'
+			);
+		}
 
-			//Get the raw response from the API with a list of all the names
-			$availableListsRaw = $nyt_api->get_list('names');
-			//Convert into an object that can be processed
-			$availableLists = json_decode($availableListsRaw);
+		//Get the raw response from the API with a list of all the names
+		require_once ROOT_DIR . '/sys/NYTApi.php';
+		$nyt_api = new NYTApi($api_key);
+		$availableListsRaw = $nyt_api->get_list('names');
+		//Convert into an object that can be processed
+		$availableLists = json_decode($availableListsRaw);
 
-			//Get the human readable title for our selected list
-			$selectedListTitle = null;
-			$selectedListTitleShort = null;
-			//Get the title and description for the selected list
-			foreach ($availableLists->results as $listInformation){
-				if ($listInformation->list_name_encoded == $selectedList){
-					$selectedListTitle = 'NYT - ' . $listInformation->display_name;
-					$selectedListTitleShort = $listInformation->display_name;
-					break;
-				}
+		//Get the human readable title for our selected list
+		$selectedListTitle = null;
+		$selectedListTitleShort = null;
+		//Get the title and description for the selected list
+		foreach ($availableLists->results as $listInformation){
+			if ($listInformation->list_name_encoded == $selectedList){
+				$selectedListTitle = 'NYT - ' . $listInformation->display_name;
+				$selectedListTitleShort = $listInformation->display_name;
+				break;
 			}
-			if (empty($selectedListTitleShort)) {
-				$results['message'] = "We did not find list '{$selectedList}' in The New York Times API";
-				return $results;
-			}
+		}
+		if (empty($selectedListTitleShort)) {
+			return array(
+				'success' => false,
+				'message' => "We did not find list '{$selectedList}' in The New York Times API"
+			);
+		}
 
-			//Call Pika to get a list of all lists for our username
-			$pikaUrl = $configArray['Site']['url'];
-			$apiUrl = $pikaUrl . "/API/ListAPI?method=getUserLists&username=" . urlencode($pikaUsername) . "&password=" . urlencode($pikaPassword);
-			$getUserListResults = file_get_contents($apiUrl);
-
-			$getUserListResultsJSON = json_decode($getUserListResults);
-			//Loop through the set of all lists to see if we have one by this name
-			$listExistsInPika = false;
-			foreach ($getUserListResultsJSON->result->lists as $listName){
-				//Compare the list name from Pika to the human readable name
-				if ($listName->title == $selectedListTitle){
-					$listExistsInPika = true;
-					$listID = $listName->id;
-					$results = array(
-							'success' => true,
-							'message' => "Updating existing list <a href='/MyAccount/MyList/{$listID}'>{$listName->title}</a>"
-					);
-					break;
-				}
-			}
-
-			//We didn't get a list in Pika, create one
-			if (!$listExistsInPika) {
-				$pikaUser = UserAccount::validateAccount($pikaUsername, $pikaPassword);
-				if ($pikaUser && !PEAR_Singleton::isError($pikaUser)) {
-					$list              = new UserList();
-					$list->title       = $selectedListTitle;
-					$list->description = "New York Times - " . $selectedListTitleShort;
-					$list->public      = 1;
-					$list->defaultSort = 'custom';
-					$list->user_id     = $pikaUser->id;
-					$success = $list->insert();
-					$list->find(true);
+		//Get a list of titles from NYT API
+		$availableListsRaw = $nyt_api->get_list($selectedList);
+		$availableLists = json_decode($availableListsRaw);
+		//TODO: error handling for this call
 
 
-				if ($success) {
-					$listID             = $list->id;
-					$results            = array(
-						'success' => true,
-						'message' => "Created list <a href='/MyAccount/MyList/{$listID}'>{$selectedListTitle}</a>"
-					);
-				} else {
-					return array(
-						'success' => false,
-						'message' => 'Could not create list'
-					);
-				}
-			}
-			}else{
-				//We already have a list, clear the contents so we don't have titles from last time
-				$clearListTitlesURL = $pikaUrl . "/API/ListAPI?method=clearListTitles&username=" . urlencode($pikaUsername) .
-						"&password=" . urlencode($pikaPassword) .
-						"&listId=" . $listID;
-				$clearListResultRaw = file_get_contents($clearListTitlesURL);
-				$clearListResult = json_decode($clearListResultRaw);
-				if (!$clearListResult->result->success){
-					return array(
-							'success' => false,
-							'message' => "Could not clear titles from list " . $listID
-					);
-				}
-			}
+		// Look for selected List
+		require_once ROOT_DIR . '/sys/LocalEnrichment/UserList.php';
+		$nytList = new UserList();
+		$nytList->user_id = $pikaUser->id;
+		$nytList->title = $selectedListTitle;
+		$listExistsInPika = $nytList->find(1);
 
-			require_once ROOT_DIR . '/sys/LocalEnrichment/UserList.php';
+		//We didn't find the list in Pika, create one
+		if (!$listExistsInPika) {
 			$nytList = new UserList();
-			$nytList->id = $listID;
+			$nytList->title       = $selectedListTitle;
+			$nytList->description = "New York Times - " . $selectedListTitleShort; //TODO: Add update date to list description
+			$nytList->public      = 1;
+			$nytList->defaultSort = 'custom';
+			$nytList->user_id     = $pikaUser->id;
+			$success = $nytList->insert();
 			$nytList->find(true);
 
-			// We need to add titles to the list
-			//Get a list of titles from NYT API
-			$availableListsRaw = $nyt_api->get_list($selectedList);
-			$availableLists = json_decode($availableListsRaw);
+			if ($success) {
+				$listID  = $nytList->id;
+				$results = array(
+					'success' => true,
+					'message' => "Created list <a href='/MyAccount/MyList/{$listID}'>{$selectedListTitle}</a>"
+				);
+			} else {
+				return array(
+					'success' => false,
+					'message' => 'Could not create list'
+				);
+			}
 
-			// Include Search Engine Class
-			require_once ROOT_DIR . '/sys/' . $configArray['Index']['engine'] . '.php';
-			// Include UserListEntry Class
-			require_once ROOT_DIR . '/sys/LocalEnrichment/UserListEntry.php';
+		} else {
+			$listID  = $nytList->id;
+			$results = array(
+				'success' => true,
+				'message' => "Updated list <a href='/MyAccount/MyList/{$listID}'>{$selectedListTitle}</a>"
+			);
+			//We already have a list, clear the contents so we don't have titles from last time
+			$nytList->removeAllListEntries();
+		}
 
-			$numTitlesAdded = 0;
-			foreach ($availableLists->results as $titleResult) {
-				$pikaID = null;
-				// go through each list item
-				if (!empty($titleResult->isbns)) {
-					foreach ($titleResult->isbns as $isbns) {
-						$isbn = empty($isbns->isbn13) ? $isbns->isbn10 : $isbns->isbn13;
-						if ($isbn) {
-							//look the title up in Pika by ISBN
-							/** @var SearchObject_Solr $searchObject */
-							$searchObject = SearchObjectFactory::initSearchObject();
-							$searchObject->init();
-							$searchObject->clearFacets();
-							$searchObject->clearFilters();
-							$searchObject->setBasicQuery($isbn, "ISN");
-							$result = $searchObject->processSearch(true, false);
-							if ($result && $searchObject->getResultTotal() >= 1){
-								$recordSet = $searchObject->getResultRecordSet();
-								foreach($recordSet as $recordKey => $record){
-									if (!empty($record['id'])) {
-										$pikaID = $record['id'];
-										break;
-									}
+		// We need to add titles to the list //
+
+		// Include Search Engine Class
+		require_once ROOT_DIR . '/sys/' . $configArray['Index']['engine'] . '.php';
+		// Include UserListEntry Class
+		require_once ROOT_DIR . '/sys/LocalEnrichment/UserListEntry.php';
+
+		$numTitlesAdded = 0;
+		foreach ($availableLists->results as $titleResult) {
+			$pikaID = null;
+			// go through each list item
+			if (!empty($titleResult->isbns)) {
+				foreach ($titleResult->isbns as $isbns) {
+					$isbn = empty($isbns->isbn13) ? $isbns->isbn10 : $isbns->isbn13;
+					if ($isbn) {
+						//look the title up in Pika by ISBN
+						/** @var SearchObject_Solr $searchObject */
+						$searchObject = SearchObjectFactory::initSearchObject(); // QUESTION: Does this need to be done within the Loop??
+						$searchObject->init();
+						$searchObject->clearFacets();
+						$searchObject->clearFilters();
+						$searchObject->setBasicQuery($isbn, "ISN");
+						$result = $searchObject->processSearch(true, false);
+						if ($result && $searchObject->getResultTotal() >= 1){
+							$recordSet = $searchObject->getResultRecordSet();
+							foreach($recordSet as $recordKey => $record){
+								if (!empty($record['id'])) {
+									$pikaID = $record['id'];
+									break;
 								}
 							}
 						}
-						//break if we found a pika id for the title
-						if ($pikaID != null) {
-							break;
-						}
 					}
-				}//Done checking ISBNs
-				if ($pikaID != null) {
-					$note = "#{$titleResult->rank} on the {$titleResult->display_name} list for {$titleResult->published_date}.";
-					if ($titleResult->rank_last_week != 0) {
-						$note .= '  Last week it was ranked ' . $titleResult->rank_last_week . '.';
+					//break if we found a pika id for the title
+					if ($pikaID != null) {
+						break;
 					}
-					if ($titleResult->weeks_on_list != 0) {
-						$note .= "  It has been on the list for {$titleResult->weeks_on_list} week(s).";
-					}
+				}
+			}//Done checking ISBNs
+			if ($pikaID != null) {
+				$note = "#{$titleResult->rank} on the {$titleResult->display_name} list for {$titleResult->published_date}.";
+				if ($titleResult->rank_last_week != 0) {
+					$note .= '  Last week it was ranked ' . $titleResult->rank_last_week . '.';
+				}
+				if ($titleResult->weeks_on_list != 0) {
+					$note .= "  It has been on the list for {$titleResult->weeks_on_list} week(s).";
+				}
 
-					$userListEntry = new UserListEntry();
-					$userListEntry->listId = $listID;
-					$userListEntry->groupedWorkPermanentId = $pikaID;
+				$userListEntry = new UserListEntry();
+				$userListEntry->listId = $nytList->id;
+				$userListEntry->groupedWorkPermanentId = $pikaID;
 
-					$existingEntry = false;
-					if ($userListEntry->find(true)){
-						$existingEntry = true;
+				$existingEntry = false;
+				if ($userListEntry->find(true)){
+					$existingEntry = true;
+				}
+
+				$userListEntry->weight    = $titleResult->rank;
+				$userListEntry->notes     = $note;
+				$userListEntry->dateAdded = time();
+				if ($existingEntry){
+					if ($userListEntry->update()){
+						$numTitlesAdded++;
 					}
-
-					$userListEntry->weight    = $titleResult->rank;
-					$userListEntry->notes     = $note;
-					$userListEntry->dateAdded = time();
-					if ($existingEntry){
-						if ($userListEntry->update()){
-							$numTitlesAdded++;
-						}
-					}else{
-						if ($userListEntry->insert()){
-							$numTitlesAdded++;
-						}
+				}else{
+					if ($userListEntry->insert()){
+						$numTitlesAdded++;
 					}
-
 				}
 			}
+		}
+
+		if ($results['success']) {
 			$results['message'] .= "<br/> Added $numTitlesAdded Titles to the list";
+			if ($listExistsInPika) {
+				$nytList->update(); // set a new update time on the main list when it already exists
+			}
 		}
 
 		return $results;

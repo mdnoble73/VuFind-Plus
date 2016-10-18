@@ -248,59 +248,13 @@ class ExploreMore {
 				}
 			}else{
 				//Display donor and contributor information
-				$donor = null;
-				$owner = null;
-				foreach ($archiveDriver->getRelatedPeople() as $person){
-					if ($person['role'] == 'donor'){
-						$donor = $person;
-					}elseif ($person['role'] == 'owner'){
-						$owner = $person;
-					}
-				}
-				foreach ($archiveDriver->getRelatedOrganizations() as $organization){
-					if ($organization['role'] == 'donor'){
-						$donor = $organization;
-					}elseif ($organization['role'] == 'owner'){
-						$owner = $organization;
-					}
-				}
-				//Get the contributing institution
-				list($namespace) = explode(':', $recordDriver->getUniqueID());
-				$contributingLibrary = new Library();
-				$contributingLibrary->archiveNamespace = $namespace;
-				if (!$contributingLibrary->find(true)){
-					$contributingLibrary = null;
-				}else{
-					if ($contributingLibrary->archivePid == ''){
-						$contributingLibrary = null;
-					}
+				$brandingResults = $archiveDriver->getBrandingInformation();
+				$collections = $archiveDriver->getRelatedCollections();
+				foreach ($collections as $collection){
+					$brandingResults = array_merge($brandingResults, $collection['driver']->getBrandingInformation());
 				}
 
-				if ($donor != null || $owner != null || $contributingLibrary != null){
-					$brandingResults = array();
-					if ($donor){
-						$brandingResults[] = array(
-								'label' => 'Donated by ' . $donor['label'],
-								'image' => $donor['image'],
-								'link' => $donor['link'],
-						);
-					}
-					if ($owner){
-						$brandingResults[] = array(
-								'label' => 'Owned by ' . $owner['label'],
-								'image' => $owner['image'],
-								'link' => $owner['link'],
-						);
-					}
-					if ($contributingLibrary){
-						$contributingLibraryPid = $contributingLibrary->archivePid;
-						$contributingLibraryObject = $fedoraUtils->getObject($contributingLibraryPid);
-						$brandingResults[] = array(
-								'label' => 'Contributed by ' . $contributingLibrary->displayName,
-								'image' => $fedoraUtils->getObjectImageUrl($contributingLibraryObject, 'medium'),
-								'link' => "/Archive/$contributingLibraryPid/Organization",
-						);
-					}
+				if (count($brandingResults) > 0){
 					$exploreMoreSectionsToShow['acknowledgements'] = array(
 							'title' => 'Acknowledgements',
 							'format' => 'list',

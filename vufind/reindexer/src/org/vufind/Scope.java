@@ -44,6 +44,8 @@ public class Scope implements Comparable<Scope>{
 	private boolean includeAllLibraryBranchesInFacets; //Only applies to location scopes
 	private boolean includeAllRecordsInShelvingFacets;
 	private boolean includeAllRecordsInDateAddedFacets;
+	private boolean baseAvailabilityToggleOnLocalHoldingsOnly = false;
+	private boolean includeOnlineMaterialsInAvailableToggle  = true;
 
 	public String getScopeName() {
 		return scopeName;
@@ -284,5 +286,21 @@ public class Scope implements Comparable<Scope>{
 
 	public void setIncludeAllRecordsInDateAddedFacets(boolean includeAllRecordsInDateAddedFacets) {
 		this.includeAllRecordsInDateAddedFacets = includeAllRecordsInDateAddedFacets;
+	}
+
+	public boolean isBaseAvailabilityToggleOnLocalHoldingsOnly() {
+		return baseAvailabilityToggleOnLocalHoldingsOnly;
+	}
+
+	public void setBaseAvailabilityToggleOnLocalHoldingsOnly(boolean baseAvailabilityToggleOnLocalHoldingsOnly) {
+		this.baseAvailabilityToggleOnLocalHoldingsOnly = baseAvailabilityToggleOnLocalHoldingsOnly;
+	}
+
+	public boolean isIncludeOnlineMaterialsInAvailableToggle() {
+		return includeOnlineMaterialsInAvailableToggle;
+	}
+
+	public void setIncludeOnlineMaterialsInAvailableToggle(boolean includeOnlineMaterialsInAvailableToggle) {
+		this.includeOnlineMaterialsInAvailableToggle = includeOnlineMaterialsInAvailableToggle;
 	}
 }

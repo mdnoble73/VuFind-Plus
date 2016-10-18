@@ -1427,35 +1427,51 @@ class GroupedWorkDriver extends RecordInterface{
 		}
 
 		//Check to see what we need to do for actions, and determine if the record should be hidden by default
-		foreach ($relatedManifestations as $key => $manifestation){
+		$searchLibrary = Library::getSearchLibrary();
+		$searchLocation = Location::getSearchLocation();
+		foreach ($relatedManifestations as $key => $manifestation) {
 			$manifestation['numRelatedRecords'] = count($manifestation['relatedRecords']);
-			if (count($manifestation['relatedRecords']) == 1){
+			if (count($manifestation['relatedRecords']) == 1) {
 				$firstRecord = reset($manifestation['relatedRecords']);
 				$manifestation['url'] = $firstRecord['url'];
 				$manifestation['actions'] = $firstRecord['actions'];
-			}else{
+			} else {
 				//Figure out what the preferred record is to place a hold on.  Since sorting has been done properly, this should always be the first
 				$bestRecord = reset($manifestation['relatedRecords']);
 				$manifestation['actions'] = $bestRecord['actions'];
 			}
-			if ($selectedFormat && $selectedFormat != $manifestation['format']){
+			if ($selectedFormat && $selectedFormat != $manifestation['format']) {
 				//Do a secondary check to see if we have a more detailed format in the facet
 				$detailedFormat = mapValue('format_by_detailed_format', $selectedFormat);
 				//Also check the reverse
 				$detailedFormat2 = mapValue('format_by_detailed_format', $manifestation['format']);
-				if ($manifestation['format'] != $detailedFormat && $detailedFormat2 != $selectedFormat){
+				if ($manifestation['format'] != $detailedFormat && $detailedFormat2 != $selectedFormat) {
 					$manifestation['hideByDefault'] = true;
 				}
 			}
-			if ($selectedFormatCategory && $selectedFormatCategory != $manifestation['formatCategory']){
-				if (($manifestation['format'] == 'eAudiobook') && $selectedFormatCategory == 'eBook'){
+			if ($selectedFormatCategory && $selectedFormatCategory != $manifestation['formatCategory']) {
+				if (($manifestation['format'] == 'eAudiobook') && $selectedFormatCategory == 'eBook') {
 					//This is a special case where the format is in 2 categories
-				}else{
+				} else {
 					$manifestation['hideByDefault'] = true;
 				}
 			}
-			if ($selectedAvailability == 'Available Now' && !($manifestation['availableLocally'] || $manifestation['availableOnline'])){
+			if ($selectedAvailability == 'Available Online' && !($manifestation['availableOnline'])){
 				$manifestation['hideByDefault'] = true;
+			}elseif ($selectedAvailability == 'Available Now') {
+				if ($manifestation['availableOnline']) {
+					$addOnline = true;
+					if ($searchLocation != null) {
+						$addOnline = $searchLocation->includeOnlineMaterialsInAvailableToggle;
+					} elseif ($searchLibrary != null) {
+						$addOnline = $searchLibrary->includeOnlineMaterialsInAvailableToggle;
+					}
+					if (!$addOnline){
+						$manifestation['hideByDefault'] = true;
+					}
+				}else {
+					$manifestation['hideByDefault'] = !$manifestation['availableLocally'];
+				}
 			}elseif($selectedAvailability == 'Entire Collection' && (!($manifestation['hasLocalItem']) && !$manifestation['isEContent'])){
 				$manifestation['hideByDefault'] = true;
 			}

@@ -2405,8 +2405,8 @@ input[type="button"].btn-block {
 }
 @font-face {
   font-family: 'Glyphicons Halflings';
-  src: url('../../../../fonts/glyphicons-halflings-regular.eot');
-  src: url('../../../../fonts/glyphicons-halflings-regular.eot?#iefix') format('embedded-opentype'), url('../../../../fonts/glyphicons-halflings-regular.woff') format('woff'), url('../../../../fonts/glyphicons-halflings-regular.ttf') format('truetype'), url('../../../../fonts/glyphicons-halflings-regular.svg#glyphicons-halflingsregular') format('svg');
+  src: url('/fonts/glyphicons-halflings-regular.eot');
+  src: url('/fonts/glyphicons-halflings-regular.eot?#iefix') format('embedded-opentype'), url('/fonts/glyphicons-halflings-regular.woff') format('woff'), url('/fonts/glyphicons-halflings-regular.ttf') format('truetype'), url('/fonts/glyphicons-halflings-regular.svg#glyphicons-halflingsregular') format('svg');
 }
 .glyphicon {
   position: relative;
@@ -5069,6 +5069,7 @@ button.close {
 }
 .modal.fade .modal-dialog {
   -webkit-transform: translate(0, -25%);
+  -ms-transform: translate(0, -25%);
   transform: translate(0, -25%);
   -webkit-transition: -webkit-transform 0.3s ease-out;
   transition: -webkit-transform 0.3s ease-out;
@@ -5077,6 +5078,7 @@ button.close {
 }
 .modal.in .modal-dialog {
   -webkit-transform: translate(0, 0);
+  -ms-transform: translate(0, 0);
   transform: translate(0, 0);
 }
 .modal-dialog {
@@ -7908,7 +7910,6 @@ fieldset[disabled] .datepicker table tr td span.active.disabled:hover.active {
   margin: 20px auto;
   position: relative;
 }
-/** Carousel **/
 .jcarousel {
   position: relative;
   overflow: hidden;
@@ -7933,7 +7934,6 @@ fieldset[disabled] .datepicker table tr td span.active.disabled:hover.active {
   max-width: 100%;
   height: auto !important;
 }
-/** Carousel Controls **/
 .jcarousel-control-prev,
 .jcarousel-control-next {
   position: absolute;
@@ -7941,8 +7941,8 @@ fieldset[disabled] .datepicker table tr td span.active.disabled:hover.active {
   width: 30px;
   height: 100px;
   text-align: center;
-  background: #4E443C;
-  color: #fff;
+  background: #fff;
+  color: #4E443C;
   text-decoration: none;
   text-shadow: 0 0 1px #000;
   font: 24px/100px Arial, sans-serif;
@@ -7954,13 +7954,13 @@ fieldset[disabled] .datepicker table tr td span.active.disabled:hover.active {
 .jcarousel-control-next {
   right: 15px;
 }
-/** Carousel Pagination **/
 .jcarousel-pagination {
   position: absolute;
   bottom: -25px;
   left: 50%;
   -webkit-transform: translate(-50%, 0);
-  transform: translate(-50%, 0);
+      -ms-transform: translate(-50%, 0);
+          transform: translate(-50%, 0);
   margin: 0;
 }
 .jcarousel-pagination a {
@@ -8038,6 +8038,7 @@ fieldset[disabled] .datepicker table tr td span.active.disabled:hover.active {
   vertical-align: text-top;
   text-align: center;
   -webkit-transform: scale(0.6);
+      -ms-transform: scale(0.6);
           transform: scale(0.6);
   margin-top: -1px;
   margin-bottom: -1px;
@@ -8568,10 +8569,13 @@ hr.menu {
   color: #FFF;
   padding-left: 0;
   padding-right: 0;
+  margin-top: 2px;
+  border-right: 3px solid #fff;
 }
 #vertical-menu-bar .menu-bar-option {
   width: 100%;
   padding-top: 6px;
+  border-top: 3px solid #fff;
   position: relative;
 }
 #vertical-menu-bar .menu-bar-option.menu-icon-selected {
@@ -8607,8 +8611,10 @@ hr.menu {
   display: inline-block;
   white-space: nowrap;
   -webkit-transform: rotate(-90deg) translateX(-100%);
+      -ms-transform: rotate(-90deg) translateX(-100%);
           transform: rotate(-90deg) translateX(-100%);
   -webkit-transform-origin: 0 0;
+      -ms-transform-origin: 0 0;
           transform-origin: 0 0;
 }
 .rotated-text-inner:after {
@@ -8814,6 +8820,11 @@ hr.menu {
 #home-page-library-section {
   padding: 15px 0;
 }
+#home-page-library-section > a,
+#home-page-library-section > a:visited,
+#home-page-library-section > a:hover {
+  color: #fff;
+}
 .sidebar-button {
   text-align: center;
   background-color: #7c7c7d;
@@ -8822,9 +8833,6 @@ hr.menu {
   color: #fff;
   padding: 3px 0;
   margin-bottom: 15px;
-}
-.sidebar-button a {
-  color: #fff;
 }
 .sidebar-links .panel-group .panel + .panel {
   margin-top: 0;
@@ -8836,19 +8844,24 @@ hr.menu {
   background: linear-gradient(to bottom, #e7e7e7, #d7d7d7);
   border-bottom: 1px solid #a1a1a1;
 }
-.sidebar-links .active .panel-heading {
-  background-color: #4dacde;
-  background: -webkit-linear-gradient(top, #4dacde, #2796d1);
-  background: linear-gradient(to bottom, #4dacde, #2796d1);
-}
-.sidebar-links .panel-title {
+.sidebar-links .panel > a,
+.sidebar-links .panel > a:visited,
+.sidebar-links .panel > a:hover {
   font-size: 14px;
   color: #333333;
   text-shadow: 1px 1px #fff;
 }
-.sidebar-links .active .panel-title {
+.sidebar-links .panel.active > a,
+.sidebar-links .panel.active > a:visited,
+.sidebar-links .panel.active > a:hover {
   color: #fff;
   text-shadow: 1px 1px #555555;
+  outline: none;
+}
+.sidebar-links .active .panel-heading {
+  background-color: #4dacde;
+  background: -webkit-linear-gradient(top, #4dacde, #2796d1);
+  background: linear-gradient(to bottom, #4dacde, #2796d1);
 }
 .sidebar-links .panel-body {
   font-size: 13px;
@@ -9860,17 +9873,8 @@ a.browse-thumbnail-sorted.active {
 .sidebar-label {
   text-align: center;
   background-color: #7c7c7d;
-  background: -webkit-linear-gradient(top, #7c7c7d, #3d4244);
-  background: linear-gradient(to bottom, #7c7c7d, #3d4244);
-  color: #fff;
-  padding: 3px 0;
-  margin-top: 20px;
-}
-#narrow-search-label {
-  text-align: center;
-  background-color: #7c7c7d;
-  background: -webkit-linear-gradient(top, #7c7c7d, #3d4244);
-  background: linear-gradient(to bottom, #7c7c7d, #3d4244);
+  background: -webkit-linear-gradient(top, #7c7c7d, #414141);
+  background: linear-gradient(to bottom, #7c7c7d, #414141);
   color: #fff;
   padding: 3px 0;
   margin-top: 20px;
@@ -9897,16 +9901,6 @@ a.browse-thumbnail-sorted.active {
   .top-facet {
     display: none;
   }
-}
-#results-sort-label {
-  text-align: center;
-  background-color: #7c7c7d;
-  background: -webkit-linear-gradient(top, #7c7c7d, #3d4244);
-  background: linear-gradient(to bottom, #7c7c7d, #3d4244);
-  color: #fff;
-  padding: 3px 0;
-  margin-top: 20px;
-  font-size: 14px;
 }
 #results-sort {
   width: 80%;
@@ -10225,6 +10219,7 @@ a.browse-thumbnail-sorted.active {
 }
 #explore-more-header {
   padding: 10px 25px 5px 0;
+  margin-top: 5px;
   text-align: right;
   color: #FFF;
   background-color: #2d5986;
@@ -10300,8 +10295,10 @@ a.browse-thumbnail-sorted.active {
 .exploreMoreBar .label-left .exploreMoreBarLabel {
   position: absolute;
   -webkit-transform: rotate(-90deg) translateX(-100%);
+      -ms-transform: rotate(-90deg) translateX(-100%);
           transform: rotate(-90deg) translateX(-100%);
   -webkit-transform-origin: 0 0;
+      -ms-transform-origin: 0 0;
           transform-origin: 0 0;
   padding-right: 10px;
   padding-left: 5px;
@@ -10348,6 +10345,7 @@ a.browse-thumbnail-sorted.active {
   position: absolute;
   top: 62px;
   -webkit-transform: translate(-50%, -50%);
+      -ms-transform: translate(-50%, -50%);
           transform: translate(-50%, -50%);
   left: 50%;
 }
@@ -10495,7 +10493,7 @@ a.browse-thumbnail-sorted.active {
 .archiveComponentContainer .archiveComponent {
   border: 1px solid lightgrey;
   background-color: #336699;
-  background: -webkit-linear-gradient(left, white, white 120px, #336699 121px, #336699);
+  background: -webkit-linear-gradient(0deg, white, white 120px, #336699 121px, #336699);
   background: linear-gradient(90deg, white, white 120px, #336699 121px, #336699);
   color: #FFF;
   font-size: 20px;
@@ -10598,6 +10596,9 @@ a.browse-thumbnail-sorted.active {
 }
 .editor .panel-group .panel-body > .form-group > .controls {
   overflow-x: auto;
+}
+#browseCategories tr td:nth-child(3) > select {
+  max-width: 400px;
 }
 #header-container {
   background-image: url('/interface/themes/vail/images/header_background.png');
