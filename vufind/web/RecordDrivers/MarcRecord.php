@@ -2062,20 +2062,16 @@ class MarcRecord extends IndexRecord
 	private function getSemanticData() {
 		
 		global $interface;
-
 		// Schema.org
 		// Get information about the record
-		$groupedWork = $this->getGroupedWorkDriver();
-		$relatedRecords = $groupedWork->getRelatedRecords ();
+		$relatedRecords = $this->getGroupedWorkDriver()->getRelatedRecords ();
 		$workExamples = array ();
-		foreach($records as $record ) {
-			foreach($records as $record ) {
-				$workExamples[] = array(
-						'@type' => $record['format'],
-						'url'=> $record['url'],
-						'@bookFormat' => $this->getBookFormat($record),
-				);	
-		}
+		foreach($relatedRecords as $record ) {
+            $workExamples[] = array(
+                '@type' => $record['format'],
+                'url' => $record['url'],
+            );
+        }
 
 		
 		/*
@@ -2104,21 +2100,21 @@ class MarcRecord extends IndexRecord
 		
 		
 		//$interface->assign('semanticData', json_encode($semanticData));
+		
+		/* $this->display('marcRecord.tpl', $location->displayName); */
 	 
 		return $semanticData;
 	}
 	
-	function getBookFormat($record){
-		
-	}
+
 	
 
 	 function getRelatedOffers(){
-		$groupedWork = $this->getGroupedWorkDriver ();
-		$relatedManifestations = $groupedWork->getRelatedManifestations();
+
+		$relatedManifestations = $this->getGroupedWorkDriver ->getRelatedManifestations();
 		$offers = array();
 		foreach ($relatedManifestations as $key => $manifestation){
-			offer[]= array(
+			$offer[]= array(
 						"availableAtOrFrom" => $this->getBranchUrl(), //Branch that owns the work(),
 						"availability" => $this->getAvailability($manifestation),
 						'availableDeliveryMethod' => $this->getDeliveryMethod($manifestation),
@@ -2126,11 +2122,7 @@ class MarcRecord extends IndexRecord
 						"offeredBy" => $this->getLibraryUrl(), //URL to the library that owns the item
 						"price" =>'0',
 						"@type" => $key,
-						
-				/* 
-						'format' => $curRecord['format'],
-						'formatCategory' => $curRecord['formatCategory'], */
-					
+                        "@bookFormat" => $this->getBookFormat($manifestation)
 					);
       	}
       	return $offers;
@@ -2173,6 +2165,26 @@ class MarcRecord extends IndexRecord
 			return 'DeliveryModePickUp';
 		}
 	}
+	
+	function getBookFormat($manifestation){
+	
+		/* AudiobookFormat
+		EBook
+		Hardcover
+		Paperback */
+		if ($manifestation ['format'] == 'eAudiobook')
+			return BookFormatType::AudiobookFormat;
+		
+		if ($manifestation ['formatCategory'] == 'eBook')
+			return BookFormatType::EBook;
+
+        //TODO: Complete this section
+		if ($manifestation ['formatCategory'] == 'eBook')
+			return BookFormatType::EBook;
+		
+	}
+	
+	
 	 function getAvailability($manifestation){
 		if ($manifestation['inLibraryUseOnly']){
 			return 'InStoreOnly';
@@ -2210,4 +2222,10 @@ class MarcRecord extends IndexRecord
 	}
 	
 	
+	abstract class BookFormatType{
+		 const  AudiobookFormat = 0;
+		 const EBook =1;
+		 const Hardcover =2;
+		 const Paperback =3;
+	}
 	
