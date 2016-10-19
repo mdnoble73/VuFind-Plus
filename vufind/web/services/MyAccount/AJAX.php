@@ -858,7 +858,7 @@ class MyAccount_AJAX
 		global $interface;
 		return array(
 			'title'        => translate('Masquerade As'),
-			'modalBody'    => $interface->fetch("MyAccount/masqueradeAs.tpl"),
+			'modalBody'    => $interface->fetch("MyAccount/ajax-masqueradeAs.tpl"),
 			'modalButtons' => '<button class="tool btn btn-primary" onclick="$(\'#masqueradeForm\').submit()">Start</button>'
 		);
 	}
@@ -878,7 +878,7 @@ class MyAccount_AJAX
 						$masqueradedUser->cat_password = $libraryCard;
 					}
 					if ($masqueradedUser->find(true)){
-						//TODO: Can User masquerade as this user?
+						//TODO: prevent Masquerading as self, geez
 						switch ($user->getMasqueradeLevel()) {
 							case 'location' :
 								if (empty($user->homeLocationId)) {

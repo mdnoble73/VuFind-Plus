@@ -263,6 +263,11 @@ $timer->logTime('Check if user is logged in');
 // Process Authentication, must be done here so we can redirect based on user information
 // immediately after logging in.
 $interface->assign('loggedIn', $user == false ? 'false' : 'true');
+
+//TODO: temp hack; remove before commit
+if (isset($_REQUEST['username'])) $_POST['username'] = $_REQUEST['username'];
+if (isset($_REQUEST['password'])) $_POST['password'] = $_REQUEST['password'];
+
 if ($user) {
 	//The user is logged in
 	$interface->assign('user', $user);
@@ -425,6 +430,7 @@ if ($action == "AJAX" || $action == "JSON"){
 	$interface->assign('showTopSearchBox', 0);
 	$interface->assign('showBreadcrumbs', 0);
 }else{
+	//TODO: footerLists not in any current template
 	if (isset($configArray['FooterLists'])){
 		$interface->assign('footerLists', $configArray['FooterLists']);
 	}
@@ -501,8 +507,10 @@ if ($action == "AJAX" || $action == "JSON"){
 
 		$userLists = array();
 		foreach($lists as $current) {
-			$userLists[] = array('id' => $current->id,
-                    'title' => $current->title);
+			$userLists[] = array(
+				'id'    => $current->id,
+        'title' => $current->title
+			);
 		}
 		$interface->assign('userLists', $userLists);
 	}
@@ -580,6 +588,7 @@ $interface->assign('includeAutoLogoutCode', $includeAutoLogoutCode);
 $timer->logTime('Check whether or not to include auto logout code');
 
 // Process Login Followup
+//TODO:  this code may need to move up with there other followUp processing above
 if (isset($_REQUEST['followup'])) {
 	processFollowup();
 	$timer->logTime('Process followup');
