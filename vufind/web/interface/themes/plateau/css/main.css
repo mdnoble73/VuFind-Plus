@@ -3025,6 +3025,9 @@ input[type="button"].btn-block {
 .glyphicon-menu-hamburger:before {
   content: "\e236";
 }
+.glyphicon-sunglasses:before {
+  content: "\e240";
+}
 .caret {
   display: inline-block;
   width: 0;
@@ -8704,11 +8707,11 @@ hr.menu {
 }
 #home-page-search-label {
   font-size: 35px;
-  color: #fff;
+  color: #FFF;
   text-shadow: 1px 1px #999999;
 }
 #home-page-advanced-search-link {
-  color: #fff;
+  color: #FFF;
 }
 #lookfor:-ms-input-placeholder {
   font-size: 0;
@@ -8744,7 +8747,7 @@ hr.menu {
 }
 #keepFiltersSwitchLabel,
 #advancedSearchLink {
-  color: #fff;
+  color: #FFF;
   font-weight: normal;
   font-size: 85%;
 }
@@ -8788,7 +8791,7 @@ hr.menu {
   }
 }
 #horizontal-search-box #horizontal-search-label {
-  color: #fff;
+  color: #FFF;
 }
 #horizontal-search-box #lookfor {
   height: 34px;
@@ -8840,8 +8843,8 @@ hr.menu {
 .sidebar-links .panel-heading {
   padding: 5px 15px;
   background-color: #e7e7e7;
-  background: -webkit-linear-gradient(top, #e7e7e7, #d7d7d7);
-  background: linear-gradient(to bottom, #e7e7e7, #d7d7d7);
+  background: -webkit-linear-gradient(top, #fff, #d7d7d7);
+  background: linear-gradient(to bottom, #fff, #d7d7d7);
   border-bottom: 1px solid #a1a1a1;
 }
 .sidebar-links .panel > a,
@@ -10599,6 +10602,59 @@ a.browse-thumbnail-sorted.active {
 }
 #browseCategories tr td:nth-child(3) > select {
   max-width: 400px;
+}
+#masquerade-header {
+  height: 50px;
+  background-color: #8a00e6;
+  color: #FFF;
+}
+#masquerade-header-content {
+  padding: 5px;
+}
+#masquerade-header-end {
+  padding-top: 5px;
+}
+.btn-masquerade {
+  color: #000;
+  background-color: #ebccff;
+  border-color: #000;
+  font-weight: bold;
+}
+.btn-masquerade:hover,
+.btn-masquerade:focus,
+.btn-masquerade:active,
+.btn-masquerade.active,
+.open .dropdown-toggle.btn-masquerade {
+  color: #000;
+  background-color: #dba3ff;
+  border-color: #000000;
+}
+.btn-masquerade:active,
+.btn-masquerade.active,
+.open .dropdown-toggle.btn-masquerade {
+  background-image: none;
+}
+.btn-masquerade.disabled,
+.btn-masquerade[disabled],
+fieldset[disabled] .btn-masquerade,
+.btn-masquerade.disabled:hover,
+.btn-masquerade[disabled]:hover,
+fieldset[disabled] .btn-masquerade:hover,
+.btn-masquerade.disabled:focus,
+.btn-masquerade[disabled]:focus,
+fieldset[disabled] .btn-masquerade:focus,
+.btn-masquerade.disabled:active,
+.btn-masquerade[disabled]:active,
+fieldset[disabled] .btn-masquerade:active,
+.btn-masquerade.disabled.active,
+.btn-masquerade[disabled].active,
+fieldset[disabled] .btn-masquerade.active {
+  background-color: #ebccff;
+  border-color: #000;
+}
+.btn-masquerade .badge {
+  color: #ebccff;
+  background-color: #fff;
 }
 #header-logo {
   border-radius: 0.5em;
