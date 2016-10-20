@@ -1400,5 +1400,13 @@ function getLibraryLocationUpdates(){
 						"ALTER TABLE `library` ADD `showPikaLogo` TINYINT DEFAULT '1';",
 					)
 			),
+
+			'masquerade_automatic_timeout_length' => array(
+					'title' => 'Library Option to set Masquerade Mode time out length',
+					'description' => 'Allow libraries to set the value is seconds before an idle Masquerade session times out.',
+					'sql' => array(
+						'ALTER TABLE `library` ADD COLUMN `masqueradeAutomaticTimeoutLength` TINYINT(1) UNSIGNED NULL;',
+					)
+			),
 	);
 }

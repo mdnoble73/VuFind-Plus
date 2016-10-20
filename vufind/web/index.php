@@ -548,10 +548,7 @@ if (($isOpac || $masqueradeMode || (!empty($ipLocation) && $ipLocation->getOpacS
 
 	if ($masqueradeMode) {
 		// Masquerade Time Out Lengths
-		if ($library) {
-			$automaticTimeoutLength = $library->masqueradeAutomaticTimeoutLength;
-		}
-
+			$automaticTimeoutLength = empty($library->masqueradeAutomaticTimeoutLength) ? 90 : $library->masqueradeAutomaticTimeoutLength;
 	} else {
 		// Determine Regular Time Out Lengths
 
