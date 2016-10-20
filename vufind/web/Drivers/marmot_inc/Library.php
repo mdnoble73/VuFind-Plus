@@ -189,6 +189,7 @@ class Library extends DB_DataObject
 	public $casPort;
 	public $casContext;
 	public $showPikaLogo;
+	public $masqueradeAutomaticTimeoutLength = 90;
 
 	// Use this to set which details will be shown in the the Main Details section of the record view.
 	// You should be able to add options here without needing to change the database.

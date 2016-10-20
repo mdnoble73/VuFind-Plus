@@ -302,6 +302,7 @@ if ($user) {
 			// For Masquerade Follow up, start directly instead of a redirect
 			if ($_REQUEST['followupAction'] == 'Masquerade' && $_REQUEST['followupModule'] == 'MyAccount') {
 				require_once ROOT_DIR . '/services/MyAccount/Masquerade.php';
+				$masquerade = new MyAccount_Masquerade();
 				$masquerade->launch();
 				die;
 			}
@@ -534,52 +535,59 @@ $onInternalIP = false;
 $includeAutoLogoutCode = false;
 $automaticTimeoutLength = 0;
 $automaticTimeoutLengthLoggedOut = 0;
-if (($isOpac || (!empty($ipLocation) && $ipLocation->getOpacStatus()) ) && !$configArray['Catalog']['offline']){
+if (($isOpac || $masqueradeMode || (!empty($ipLocation) && $ipLocation->getOpacStatus()) ) && !$configArray['Catalog']['offline']) {
 	// Make sure we don't have timeouts if we are offline (because it's super annoying when doing offline checkouts and holds)
 
-	//$isOpac is set by URL parameter or cookie; pLocation->getOpacStatus() returns $opacStatus private variable which comes from the ip tables
+	//$isOpac is set by URL parameter or cookie; ipLocation->getOpacStatus() returns $opacStatus private variable which comes from the ip tables
 
 	// Turn on the auto log out
-	$onInternalIP = true;
-	$includeAutoLogoutCode = true;
+	$onInternalIP                    = true;
+	$includeAutoLogoutCode           = true;
 	$automaticTimeoutLength          = $locationSingleton::DEFAULT_AUTOLOGOUT_TIME;
 	$automaticTimeoutLengthLoggedOut = $locationSingleton::DEFAULT_AUTOLOGOUT_TIME_LOGGED_OUT;
 
-	// Only include auto logout code if we are not on the home page
-	if ($module == 'Search' && $action == 'Home'){
-		$includeAutoLogoutCode = false;
-	}
+	if ($masqueradeMode) {
+		// Masquerade Time Out Lengths
+		if ($library) {
+			$automaticTimeoutLength = $library->masqueradeAutomaticTimeoutLength;
+		}
 
-	if ($user){
-		// User has bypass AutoLog out setting turned on
-		if ($user->bypassAutoLogout == 1){
-		// The account setting profile template only presents this option to users that are staff
+	} else {
+		// Determine Regular Time Out Lengths
+
+		// Only include auto logout code if we are not on the home page
+		if ($module == 'Search' && $action == 'Home') {
 			$includeAutoLogoutCode = false;
 		}
-	}
 
-	// Determine Time Out Lengths
-	// If we know the branch, use the timeout settings from that branch
-	if ($isOpac && $location) {
-		$automaticTimeoutLength          = $location->automaticTimeoutLength;
-		$automaticTimeoutLengthLoggedOut = $location->automaticTimeoutLengthLoggedOut;
-	}
-	// If we know the branch by iplocation, use the settings based on that location
-	elseif ($ipLocation) {
-		//TODO: ensure we are checking that URL is consistent with location, if not turn off
-		// eg: browsing at fort lewis library from garfield county library
-		$automaticTimeoutLength          = $ipLocation->automaticTimeoutLength;
-		$automaticTimeoutLengthLoggedOut = $ipLocation->automaticTimeoutLengthLoggedOut;
-	}
-	// Otherwise, use the main branch's settings or the first location's settings
-	elseif ($library) {
-		$firstLocation = new Location();
-		$firstLocation->libraryId = $library->libraryId;
-		$firstLocation->orderBy('isMainBranch DESC');
-		if ($firstLocation->find(true)) {
-			// This finds either the main branch, or if there isn't one a location
-			$automaticTimeoutLength          = $firstLocation->automaticTimeoutLength;
-			$automaticTimeoutLengthLoggedOut = $firstLocation->automaticTimeoutLengthLoggedOut;
+		if ($user) {
+			// User has bypass AutoLog out setting turned on
+			if ($user->bypassAutoLogout == 1) {
+				// The account setting profile template only presents this option to users that are staff
+				$includeAutoLogoutCode = false;
+			}
+		}
+
+		// If we know the branch, use the timeout settings from that branch
+		if ($isOpac && $location) {
+			$automaticTimeoutLength          = $location->automaticTimeoutLength;
+			$automaticTimeoutLengthLoggedOut = $location->automaticTimeoutLengthLoggedOut;
+		} // If we know the branch by iplocation, use the settings based on that location
+		elseif ($ipLocation) {
+			//TODO: ensure we are checking that URL is consistent with location, if not turn off
+			// eg: browsing at fort lewis library from garfield county library
+			$automaticTimeoutLength          = $ipLocation->automaticTimeoutLength;
+			$automaticTimeoutLengthLoggedOut = $ipLocation->automaticTimeoutLengthLoggedOut;
+		} // Otherwise, use the main branch's settings or the first location's settings
+		elseif ($library) {
+			$firstLocation            = new Location();
+			$firstLocation->libraryId = $library->libraryId;
+			$firstLocation->orderBy('isMainBranch DESC');
+			if ($firstLocation->find(true)) {
+				// This finds either the main branch, or if there isn't one a location
+				$automaticTimeoutLength          = $firstLocation->automaticTimeoutLength;
+				$automaticTimeoutLengthLoggedOut = $firstLocation->automaticTimeoutLengthLoggedOut;
+			}
 		}
 	}
 }
