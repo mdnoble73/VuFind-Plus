@@ -864,122 +864,13 @@ class MyAccount_AJAX
 	}
 
 	function initiateMasquerade(){
-		$libraryCard = $_REQUEST['cardNumber'];
-		if (!empty($libraryCard)) {
-			global $guidingUser;
-			if (empty($guidingUser)) {
-				global $user;
-				if ($user && $user->canMasquerade()) {
-					$masqueradedUser = new User();
-					//TODO: below, when $masquerade User account is in another ILS (need different account Profile to check)
-					if ($user->getAccountProfile()->loginConfiguration == 'barcode_pin') {
-						$masqueradedUser->cat_username = $libraryCard;
-					}else{
-						$masqueradedUser->cat_password = $libraryCard;
-					}
-					if ($masqueradedUser->find(true)){
-						//TODO: prevent Masquerading as self, geez
-						switch ($user->getMasqueradeLevel()) {
-							case 'location' :
-								if (empty($user->homeLocationId)) {
-									return array(
-										'success' => false,
-										'error'   => 'Could not determine your home library branch.'
-									);
-								}
-								if (empty($masqueradedUser->homeLocationId)) {
-									return array(
-										'success' => false,
-										'error'   => 'Could not determine the patron\'s home library branch.'
-									);
-								}
-								if ($user->homeLocationId != $masqueradedUser->homeLocationId) {
-									return array(
-										'success' => false,
-										'error'   => 'You do not have the same home library branch as the patron.'
-									);
-								}
-							case 'library' :
-								$guidingUserLibrary = $user->getHomeLibrary();
-								if (!$guidingUserLibrary) {
-									return array(
-										'success' => false,
-										'error'   => 'Could not determine your home library.'
-									);
-								}
-								$masqueradedUserLibrary = $masqueradedUser->getHomeLibrary();
-								if (!$masqueradedUserLibrary) {
-									return array(
-										'success' => false,
-										'error' => 'Could not determine the patron\'s home library.'
-									);
-								}
-								if ($guidingUserLibrary->libraryId != $masqueradedUserLibrary->libraryId) {
-									return array(
-										'success' => false,
-										'error'   => 'You do not have the same home library as the patron.'
-									);
-								}
-							case 'any' :
-								global $guidingUser;
-								$guidingUser = $user;
-								$_SESSION['guidingUserId'] = $guidingUser->id;
-								// NOW login in as masquerade user
-								$_REQUEST['username'] = $masqueradedUser->cat_username;
-								$_REQUEST['password'] = $masqueradedUser->cat_password;
-								$user = UserAccount::login();
-								global $masqueradeMode;
-								$masqueradeMode = true;
-								return array('success' => true);
-						}
-					} else {
-						//TODO:  if Masqueraded user hasn't logged into Pika before, we need to look up the card number in the ILS
-						if (0) {
-							// Card Number in ILS
-
-						} else {
-							return array(
-								'success' => false,
-								'error'   => 'Invalid User'
-							);
-						}
-					}
-				} else {
-					return array(
-						'success' => false,
-						'error'   => $user ? 'You are not allowed to Masquerade.' : 'Not logged in. Please Log in.'
-					);
-				}
-			} else {
-				return array(
-					'success' => false,
-					'error'   => 'Already Masquerading.'
-				);
-			}
-		} else {
-			return array(
-				'success' => false,
-				'error'   => 'Please enter a valid Library Card Number.'
-			);
-		}
+		require_once ROOT_DIR . '/services/Myaccount/Masquerade.php';
+		return MyAccount_Masquerade::initiateMasquerade();
 	}
 
 	function endMasquerade() {
-		global $user;
-		if ($user) {
-			global $guidingUser,
-			       $masqueradeMode;
-			unset($_SESSION['guidingUserId']);
-			$masqueradeMode = false;
-			if ($guidingUser) {
-				$_REQUEST['username'] = $guidingUser->cat_username;
-				$_REQUEST['password'] = $guidingUser->cat_password;
-				$user = UserAccount::login();
-				if ($user || !PEAR_Singleton::isError($user)) {
-					return array('success' => true);
-				}
-			}
-		}
+		require_once ROOT_DIR . '/services/Myaccount/Masquerade.php';
+		return MyAccount_Masquerade::endMasquerade();
 	}
 
 	function getPinUpdateForm()

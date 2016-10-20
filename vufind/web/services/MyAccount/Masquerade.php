@@ -14,7 +14,7 @@ require_once ROOT_DIR . '/services/MyAccount/MyAccount.php';
 class MyAccount_Masquerade extends MyAccount
 {
 	// When username & password are passed as POST parameters, index.php will automatically attempt to login the user
-	// When the paramaters aren't passed and there is no user logged in, MyAccount::__construct will prompt user to login,
+	// When the parameters aren't passed and there is no user logged in, MyAccount::__construct will prompt user to login,
 	// with a followup action back to this class
 
 	function launch()
@@ -31,9 +31,7 @@ class MyAccount_Masquerade extends MyAccount
 		}
 	}
 
-	// this method can be used both here and in MyAccount_AJAX
-	// should probably go into another class that gets called
-	function initiateMasquerade() {
+	static function initiateMasquerade() {
 		if (!empty($_REQUEST['cardNumber'])) {
 			$libraryCard = $_REQUEST['cardNumber'];
 			global $guidingUser;
@@ -93,6 +91,7 @@ class MyAccount_Masquerade extends MyAccount
 							case 'any' :
 								global $guidingUser;
 								$guidingUser = $user;
+								@session_start(); // (suppress notice if the session is already started)
 								$_SESSION['guidingUserId'] = $guidingUser->id;
 								// NOW login in as masquerade user
 								$_REQUEST['username'] = $masqueradedUser->cat_username;
@@ -133,4 +132,25 @@ class MyAccount_Masquerade extends MyAccount
 			);
 		}
 	}
+
+	static function endMasquerade() {
+		global $user;
+		if ($user) {
+			global $guidingUser,
+			       $masqueradeMode;
+			@session_start();  // (suppress notice if the session is already started)
+			unset($_SESSION['guidingUserId']);
+			$masqueradeMode = false;
+			if ($guidingUser) {
+				$_REQUEST['username'] = $guidingUser->cat_username;
+				$_REQUEST['password'] = $guidingUser->cat_password;
+				$user = UserAccount::login();
+				if ($user && !PEAR_Singleton::isError($user)) {
+					return array('success' => true);
+				}
+			}
+		}
+		return array('success' => false);
+	}
+
 }

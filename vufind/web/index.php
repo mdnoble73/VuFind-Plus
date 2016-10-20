@@ -263,11 +263,6 @@ $timer->logTime('Check if user is logged in');
 // Process Authentication, must be done here so we can redirect based on user information
 // immediately after logging in.
 $interface->assign('loggedIn', $user == false ? 'false' : 'true');
-
-//TODO: temp hack; remove before commit
-if (isset($_REQUEST['username'])) $_POST['username'] = $_REQUEST['username'];
-if (isset($_REQUEST['password'])) $_POST['password'] = $_REQUEST['password'];
-
 if ($user) {
 	//The user is logged in
 	$interface->assign('user', $user);
@@ -303,10 +298,18 @@ if ($user) {
 	}
 	if ($user){
 		if (isset($_REQUEST['followupModule']) && isset($_REQUEST['followupAction'])) {
+
+			// For Masquerade Follow up, start directly instead of a redirect
+			if ($_REQUEST['followupAction'] == 'Masquerade' && $_REQUEST['followupModule'] == 'MyAccount') {
+				require_once ROOT_DIR . '/services/MyAccount/Masquerade.php';
+				$masquerade->launch();
+				die;
+			}
+
 			echo("Redirecting to followup location");
-			$followupUrl =  $configArray['Site']['path'] . "/".  strip_tags($_REQUEST['followupModule']);
+			$followupUrl = $configArray['Site']['path'] . "/". strip_tags($_REQUEST['followupModule']);
 			if (!empty($_REQUEST['recordId'])) {
-				$followupUrl .= "/" .  strip_tags($_REQUEST['recordId']);
+				$followupUrl .= "/" . strip_tags($_REQUEST['recordId']);
 			}
 			$followupUrl .= "/" .  strip_tags($_REQUEST['followupAction']);
 			if(isset($_REQUEST['comment'])) $followupUrl .= "?comment=" . urlencode($_REQUEST['comment']);
