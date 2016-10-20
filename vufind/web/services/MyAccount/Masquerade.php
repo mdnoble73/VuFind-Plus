@@ -46,7 +46,12 @@ class MyAccount_Masquerade extends MyAccount
 						$masqueradedUser->cat_password = $libraryCard;
 					}
 					if ($masqueradedUser->find(true)){
-						//TODO: prevent Masquerading as self, geez
+						if ($masqueradedUser->id == $user->id) {
+							return array(
+								'success' => false,
+								'error'   => 'No need to masquerade as yourself.'
+							);
+						}
 						switch ($user->getMasqueradeLevel()) {
 							case 'location' :
 								if (empty($user->homeLocationId)) {
