@@ -10643,9 +10643,9 @@ body.masqueradeMode:after {
   bottom: 0;
 }
 .btn-masquerade {
-  color: #000;
+  color: #003366;
   background-color: #ebccff;
-  border-color: #000;
+  border-color: #ccc;
   font-weight: bold;
 }
 .btn-masquerade:hover,
@@ -10653,9 +10653,9 @@ body.masqueradeMode:after {
 .btn-masquerade:active,
 .btn-masquerade.active,
 .open .dropdown-toggle.btn-masquerade {
-  color: #000;
+  color: #003366;
   background-color: #dba3ff;
-  border-color: #000000;
+  border-color: #adadad;
 }
 .btn-masquerade:active,
 .btn-masquerade.active,
@@ -10678,7 +10678,7 @@ fieldset[disabled] .btn-masquerade:active,
 .btn-masquerade[disabled].active,
 fieldset[disabled] .btn-masquerade.active {
   background-color: #ebccff;
-  border-color: #000;
+  border-color: #ccc;
 }
 .btn-masquerade .badge {
   color: #ebccff;
