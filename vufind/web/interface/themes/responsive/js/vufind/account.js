@@ -738,10 +738,13 @@ VuFind.Account = (function(){
 						method:"initiateMasquerade"
 						,cardNumber:$('#cardNumber').val()
 					};
+			$('#masqueradeAsError').hide();
+			$('#masqueradeLoading').show();
 			$.getJSON(url, params, function(data){
 				if (data.success) {
 					location.href = Globals.path + '/MyAccount/Home';
 				} else {
+					$('#masqueradeLoading').hide();
 					$('#masqueradeAsError').html(data.error).show();
 				}
 			}).fail(VuFind.ajaxFail);

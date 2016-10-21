@@ -1,4 +1,5 @@
 {strip}
+	<p class="alert alert-info" id="masqueradeLoading" style="display: none">Starting Masquerade Mode</p>
 	<p class="alert alert-danger" id="masqueradeAsError" style="display: none"></p>
 	{*<p class="alert alert-danger" id="cookiesError" style="display: none">It appears that you do not have cookies enabled on this computer.  Cookies are required to access account information.</p>*}
 

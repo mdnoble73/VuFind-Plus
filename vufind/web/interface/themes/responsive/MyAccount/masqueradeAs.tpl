@@ -1,4 +1,5 @@
 {strip}
+	<p class="alert alert-info" id="masqueradeLoading" style="display: none">Starting Masquerade Mode</p>
 	{if $error}
 	<p class="alert alert-danger" id="masqueradeAsError">{$error}</p>
 	{/if}
