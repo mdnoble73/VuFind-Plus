@@ -224,8 +224,8 @@ class AJAX_JSON extends Action {
 			'modalBody'    => $interface->fetch('AJAX/autoLogoutPrompt.tpl'),
 			'modalButtons' => "<div id='continueSession' class='btn btn-primary' onclick='continueSession();'>Continue</div>" .
 				( $masqueradeMode ?
-												"<div id='endSession' class='btn btn-warning' onclick='VuFind.Account.endMasquerade()'>End Masquerade</div>" .
-												"<div id='endSession' class='btn btn-danger' onclick='endSession()'>Logout</div>"
+												"<div id='endSession' class='btn btn-masquerade' onclick='VuFind.Account.endMasquerade()'>End Masquerade</div>" .
+												"<div id='endSession' class='btn btn-warning' onclick='endSession()'>Logout</div>"
 					:
 												"<div id='endSession' class='btn btn-warning' onclick='endSession()'>Logout</div>" )
 		);
