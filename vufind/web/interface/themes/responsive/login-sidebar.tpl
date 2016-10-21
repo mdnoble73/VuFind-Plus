@@ -3,8 +3,7 @@
 		{if $masqueradeMode}
 			<div class="sidebar-masquerade-section">
 				<div class="logoutOptions hidden-phone" {*{if !$user} style="display: none;"{/if}*}>
-					<a id="masqueradedMyAccountNameLink" href="{$path}/MyAccount/Home">Masquerading
-						As {$user->displayName|capitalize}</a>
+					<a id="masqueradedMyAccountNameLink" href="{$path}/MyAccount/Home">Masquerading As {$user->displayName|capitalize}</a>
 					<div class="bottom-border-line"></div> {* divs added to aid anythink styling. plb 11-19-2014 *}
 				</div>
 				<div class="logoutOptions">
