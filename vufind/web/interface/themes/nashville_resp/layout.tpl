@@ -26,7 +26,10 @@
 		{include file="cssAndJsIncludes.tpl"}
 		{/strip}
 	</head>
-	<body class="module_{$module} action_{$action}" id="{$module}-{$action}">
+	<body class="module_{$module} action_{$action}{if $masqueradeMode} masqueradeMode{/if}" id="{$module}-{$action}">
+	{if $masqueradeMode}
+		{include file="masquerade-top-navbar.tpl"}
+	{/if}
 		{strip}
 		<div class="container">
 			{if $systemMessage}
