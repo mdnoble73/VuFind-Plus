@@ -1408,5 +1408,13 @@ function getLibraryLocationUpdates(){
 						'ALTER TABLE `library` ADD COLUMN `masqueradeAutomaticTimeoutLength` TINYINT(1) UNSIGNED NULL;',
 					)
 			),
+
+			'allow_masquerade_mode' => array(
+					'title' => 'Library Option to enable Masquerade Mode for staff users',
+					'description' => 'Allow libraries to enable Masquerade Mode for staff users.',
+					'sql' => array(
+						'ALTER TABLE `library` ADD COLUMN `allowMasqueradeMode` TINYINT(1) DEFAULT "0";',
+					)
+			),
 	);
 }
