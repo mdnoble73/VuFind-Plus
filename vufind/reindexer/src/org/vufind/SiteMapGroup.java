@@ -1,12 +1,19 @@
 package org.vufind;
 
 
-import java.util.ArrayList;
-
 /**
  * Created by jabedo on 9/25/2016.
+ * Handles site generation for a grouped work
+ *
  */
 public class SiteMapGroup implements Comparable {
+
+    /*
+    *
+    * The ownership is determined by scope and the sitemap will be loaded by scope.
+So you need to either have a set of SiteMaps (1 per scope) or update SiteMapGroup to include the scope and then have a list of works within the SiteMapGroup.  The first option is probably better.
+When you add a grouped work to a SiteMap you will need to loop through all of the scopes that you are building sitemaps for and check each scope to see if the record isLibraryOwned.  The logic will be similar to the logic in: updateIndexingStats.
+*/
     private Long Id;
 
     public Long getId() {
@@ -24,31 +31,12 @@ public class SiteMapGroup implements Comparable {
     public double getPopularity() {
         return popularity;
     }
-
-    private boolean isLibraryOwned;
-
-    private ArrayList<String> scopeNames;
-
-    public  ArrayList<String> GetValidScopeNames(){
-        return scopeNames;
-    }
-
-    private int ownerShipCount;
-    public SiteMapGroup(Long Id, String permanentId, Double popularity, boolean isLibraryOwned, int ownerShipCount) {
+    public SiteMapGroup(Long Id, String permanentId, Double popularity) {
         this.permanentId = permanentId;
         this.Id = Id;
         this.popularity = popularity;
-        this.isLibraryOwned = isLibraryOwned;
-        this.ownerShipCount = ownerShipCount;
     }
 
-    public boolean getIsLibraryOwned() {
-        return isLibraryOwned;
-    }
-
-    public int getOwnerShipCount() {
-        return ownerShipCount;
-    }
 
     @Override
     public int compareTo(Object o) {

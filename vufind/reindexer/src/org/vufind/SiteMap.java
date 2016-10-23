@@ -15,7 +15,6 @@ import java.util.Date;
  */
 public class SiteMap {
 
-    private ArrayList<SiteMapGroup> siteMapGroups;
     private Logger logger;
     private final String org = "marmot.org";
     private int maxPopularTitles;
@@ -29,8 +28,8 @@ public class SiteMap {
         this.maxUniqueTitles = maxUnique;
     }
 
-    public void createSiteMap(File dataDir, ArrayList<SiteMapLibrary> siteMapLibraries, HashMap<Long, String> branchNames, ArrayList<SiteMapGroup> siteMapGroups
-    ) throws IOException {
+    public void createSiteMap(File dataDir, HashMap<Scope, ArrayList<SiteMapGroup>> siteMapsByScope,
+                              HashSet<Long> uniqueGroupedWorks/*, HashMap<String, Long> locationScopes */) throws IOException {
         //create a site maps directory if it doesn't exist
         if (!dataDir.exists()) {
             if (!dataDir.mkdirs()) {
@@ -41,59 +40,81 @@ public class SiteMap {
         //update the variables table
         updateVariablesTable();
 
-     
-        ArrayList<SiteMapGroup> unique = new ArrayList<>();
-        SortedSet<SiteMapGroup> popular = new TreeSet<>();
-
-        for (SiteMapGroup siteMapGroup : siteMapGroups) {
-            if (siteMapGroup.getOwnerShipCount() <= 1)
-                unique.add(siteMapGroup);
-            else
-                popular.add(siteMapGroup);
-        }
         //create site map index file
 
         int fileID = getFileID(dataDir);
         Date date = new Date();
-        for (SiteMapLibrary siteMapLibrary : siteMapLibraries) {
-            //write unique files
+        Iterator it = siteMapsByScope.entrySet().iterator();
+        while (it.hasNext()) {
             SiteMapIndex siteMapIndex = new SiteMapIndex(logger);
 
+            Map.Entry pair = (Map.Entry) it.next();
+            Scope scope = (Scope)pair.getKey();
+            String scopeName = scope.getScopeName();
+            Long libraryID = scope.getLibraryId();
+
+          /*   ArrayList<String> branchIds = new ArrayList<>();
+           for(Scope branchScope: scope.getLocationScopes()){
+                *//*branchIds.add( Long.toOctalString(branchScope.getLibraryId()));*//*
+                if(locationScopes.containsKey(branchScope.getScopeName())){
+                    branchIds.add(Long.toString( locationScopes.get(branchScope.getScopeName()))    );
+                    Long id= locationScopes.get(branchScope.getScopeName());
+                }
+
+            }
+            */
+
+            ArrayList<SiteMapGroup> siteMapGroups = (ArrayList<SiteMapGroup>)pair.getValue();
+            //separate the site maps into unique and popular
+            ArrayList<SiteMapGroup> unique = new ArrayList<>();
+            SortedSet<SiteMapGroup> popular = new TreeSet<>();
+            regroupSiteMapGroups(unique, popular, siteMapGroups, uniqueGroupedWorks);
+
             String fileType = "_unique_";
-            String fileName = buildSiteMapFileName(dataDir.getPath(), siteMapLibrary.getSubdomain(), fileType, fileID);
+            String fileName = buildSiteMapFileName(dataDir.getPath(), scopeName, fileType, fileID);
             TreeMap<String, List<SiteMapGroup>> fileMapsGroupings = buildSiteMapGroupings(unique, fileName);
-            Iterator it = fileMapsGroupings.entrySet().iterator();
-            while (it.hasNext()) {
-                Map.Entry pair = (Map.Entry) it.next();
-                writeSiteMap(branchNames, new ArrayList<SiteMapGroup>((List<SiteMapGroup>)pair.getValue()), (String)pair.getKey(), siteMapLibrary);
-                it.remove();
+            Iterator it2 = fileMapsGroupings.entrySet().iterator();
+            while (it2.hasNext()) {
+                Map.Entry kvp = (Map.Entry) it2.next();
+                writeSiteMap(new ArrayList<>((List<SiteMapGroup>) kvp.getValue()), (String) kvp.getKey(), scopeName, libraryID/*,branchIds*/);
+                it2.remove();
             }
-            siteMapIndex.addSiteMapLocation(buildLocationURL(siteMapLibrary.getSubdomain(), siteMapFileName(siteMapLibrary.getSubdomain(), fileType, fileID)), date.toString());
-
-
-            //write popular
-            fileType = "_popular_";
-            ArrayList<SiteMapGroup> pop = new ArrayList<SiteMapGroup>(popular);
-            fileName = buildSiteMapFileName(dataDir.getPath(), siteMapLibrary.getSubdomain(), fileType, fileID);
-            fileMapsGroupings = buildSiteMapGroupings(pop, fileName);
-            it = fileMapsGroupings.entrySet().iterator();
-            while (it.hasNext()) {
-                Map.Entry pair = (Map.Entry) it.next();
-                writeSiteMap(branchNames, new ArrayList<SiteMapGroup>((List<SiteMapGroup>)pair.getValue()), (String)pair.getKey(), siteMapLibrary);
-                it.remove();
+            siteMapIndex.addSiteMapLocation(buildLocationURL(scopeName, siteMapFileName(scopeName, fileType, fileID)), date.toString());
+             fileType = "_popular_";
+             fileName = buildSiteMapFileName(dataDir.getPath(), scopeName, fileType, fileID);
+             fileMapsGroupings = buildSiteMapGroupings(new ArrayList(popular), fileName);
+             it2 = fileMapsGroupings.entrySet().iterator();
+            while (it2.hasNext()) {
+                Map.Entry kvp = (Map.Entry) it2.next();
+                writeSiteMap(new ArrayList<>((List<SiteMapGroup>) kvp.getValue()), (String) kvp.getKey(), scopeName, libraryID/*,branchIds*/);
+                it2.remove();
             }
-            siteMapIndex.addSiteMapLocation(buildLocationURL(siteMapLibrary.getSubdomain(), siteMapFileName(siteMapLibrary.getSubdomain(), fileType, fileID)), date.toString());
-            File siteMapindexFile = getSiteMapIndexFile(dataDir.getPath(), siteMapLibrary.getSubdomain());
+            siteMapIndex.addSiteMapLocation(buildLocationURL(scopeName, siteMapFileName(scopeName, fileType, fileID)), date.toString());
+
+            File siteMapindexFile = getSiteMapIndexFile(dataDir.getPath(),scopeName);
             siteMapIndex.saveFile(siteMapindexFile);
+            it.remove();
         }
 
     }
 
-    private void writeSiteMap(HashMap<Long, String> branchNames, ArrayList<SiteMapGroup> siteMapGroups,  String fileName, SiteMapLibrary siteMapLibrary) {
+    ///regroups the works into unique and sorted popular works
+    private void regroupSiteMapGroups( ArrayList<SiteMapGroup> unique ,SortedSet<SiteMapGroup> popular, ArrayList<SiteMapGroup> siteMapGroups,HashSet<Long> uniqueGroupedWorks ){
+
+        for(int i = 0; i < siteMapGroups.size(); i++){
+            SiteMapGroup siteMapGroup =siteMapGroups.get(i);
+            if( uniqueGroupedWorks.contains(siteMapGroup.getId())){
+                unique.add(siteMapGroup);
+            }
+            else{
+                popular.add(siteMapGroup);
+            }
+        }
+    }
+
+    private void writeSiteMap( ArrayList<SiteMapGroup> siteMapGroups,  String fileName, String scopName, Long libraryID/*, ArrayList<String> branchIds*/) {
         try {
-
-            writeToOutputFile(siteMapLibrary.getSubdomain(), siteMapLibrary.getLibraryID(), branchNames, maxUniqueTitles, siteMapGroups, fileName);
-
+            writeToOutputFile(scopName, maxUniqueTitles, siteMapGroups, fileName,libraryID/*, branchIds*/);
         } catch (Exception ex) {
             logger.error(ex.getMessage());
         }
@@ -109,7 +130,6 @@ public class SiteMap {
     }
 
     private String buildLocationURL(String subdomain, String fileName) {
-        //http://adams.marmot.org/Home-- example
         StringBuilder builder = baseUrl(subdomain);
         builder.append("/")
                 .append("sitemaps")
@@ -117,6 +137,7 @@ public class SiteMap {
                 .append(fileName);
         return builder.toString();
     }
+
 
     private int getFileID(File dataDir) {
         int fileID = 0;
@@ -137,6 +158,7 @@ public class SiteMap {
         return fileID;
     }
 
+    //regroups the files into 50000 sizes---per google requirement
     private  TreeMap<String, List<SiteMapGroup>> buildSiteMapGroupings(ArrayList<SiteMapGroup> siteMapGroups, String fileName) {
         final int maxGoogleSiteMapCount = 50000;
         TreeMap<String, List<SiteMapGroup>> siteMapGroupings = new TreeMap<>();
@@ -188,7 +210,7 @@ public class SiteMap {
         return builder.toString();
     }
 
-    private void writeToOutputFile(String subdomain, Long libraryId, HashMap<Long, String> branchNames, int maxGroupedIds, ArrayList<SiteMapGroup> siteMapGroups, String fileName) {
+    private void writeToOutputFile(String subdomain, int maxGroupedIds, ArrayList<SiteMapGroup> siteMapGroups, String fileName, Long libraryID/*, ArrayList<String> branchIds*/) {
         BufferedWriter writer = null;
         try {
             File outputFile = new File(fileName);
@@ -197,22 +219,17 @@ public class SiteMap {
             logger.info("creating .." + fileName);
             FileWriter fw = new FileWriter(outputFile.getAbsoluteFile());
             writer = new BufferedWriter(fw);
-            //add home
+            //add system
             int urlCount = 1;
-            String baseUrl = buildBranchUrl(subdomain, "System");
+            String baseUrl = buildBranchUrl(subdomain, "System", Long.toString(libraryID) );
             writer.write(baseUrl);
             writer.newLine();
-            //add library branches
-            Iterator it = branchNames.entrySet().iterator();
-            while (it.hasNext()) {
-                Map.Entry pair = (Map.Entry) it.next();
-                if (pair.getKey() == libraryId) {
-                    writer.write(buildBranchUrl(subdomain, (String) pair.getValue()));
-                    urlCount++;
-                    writer.newLine();
-                }
-                it.remove();
-            }
+
+             baseUrl = buildBranchUrl(subdomain, "Branch",  Long.toString(libraryID));
+            writer.write(baseUrl);
+            writer.newLine();
+
+            //add library branches?
 
             int count = 0;
             for (SiteMapGroup siteMapGroup : siteMapGroups) {
@@ -260,10 +277,15 @@ public class SiteMap {
         return builder.toString();
     }
 
-    private String buildBranchUrl(String subdomain, String branch) {
-        //http://adams.marmot.org/as-- example
+    private String buildBranchUrl(String subdomain, String branch, String branchID) {
+        //https://adams.marmot.org/Library/1/Branch
+        //https://adams.marmot.org/Library/1/System
         StringBuilder builder = baseUrl(subdomain);
         builder.append("/")
+                .append("Library")
+                .append("/")
+                .append(branchID)
+                .append("/")
                 .append(branch);
         return builder.toString();
     }
