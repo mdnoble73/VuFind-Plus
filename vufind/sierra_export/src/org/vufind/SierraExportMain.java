@@ -404,7 +404,10 @@ public class SierraExportMain{
 				for (String itemId : itemsThatNeedToBeProcessed2){
 					JSONObject itemData = callSierraApiURL(ini, apiBaseUrl, apiBaseUrl + "/items/?id=" + itemId + "&fields=id,bibIds,location,status,fixedFields,updatedDate&suppressed=false", false);
 					if (itemData == null) {
-						logger.warn("Could not load item data (result was null) for " + itemId);
+						//This seems to be a normal issue if items get deleted or suppressed.
+						//Manual lookups show that they cannot be found in sierra either.
+						//logger.warn("Could not load item data (result was null) for " + itemId);
+						itemsThatNeedToBeProcessed.remove(itemId);
 					}else if (itemData.has("entries")){
 						JSONObject curItem = itemData.getJSONArray("entries").getJSONObject(0);
 
