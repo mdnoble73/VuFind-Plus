@@ -1,15 +1,16 @@
 {strip}
 	<div id="home-page-login" class="text-center row"{if $displaySidebarMenu} style="display: none"{/if}>
 		{if $masqueradeMode}
-			<div class="logoutOptions hidden-phone" {*{if !$user} style="display: none;"{/if}*}>
-				<a id="myAccountNameLink" href="{$path}/MyAccount/Home">Masquerading As {$user->displayName|capitalize}</a>
-				<div class="bottom-border-line"></div> {* divs added to aid anythink styling. plb 11-19-2014 *}
+			<div class="sidebar-masquerade-section">
+				<div class="logoutOptions hidden-phone" {*{if !$user} style="display: none;"{/if}*}>
+					<a id="masqueradedMyAccountNameLink" href="{$path}/MyAccount/Home">Masquerading As {$user->displayName|capitalize}</a>
+					<div class="bottom-border-line"></div> {* divs added to aid anythink styling. plb 11-19-2014 *}
+				</div>
+				<div class="logoutOptions">
+					<a href="#" onclick="VuFind.Account.endMasquerade()" id="logoutLink">{translate text="End Masquerading"}</a>
+					<div class="bottom-border-line"></div>
+				</div>
 			</div>
-			<div class="logoutOptions">
-				<a href="#" onclick="VuFind.Account.endMasquerade()" id="logoutLink">{translate text="End Masquerading"}</a>
-				<div class="bottom-border-line"></div>
-			</div>
-
 			<div class="logoutOptions hidden-phone" {if !$user} style="display: none;"{/if}>
 				<a id="myAccountNameLink" href="{$path}/MyAccount/Home">Logged In As {$guidingUser->displayName|capitalize}</a>
 				<div class="bottom-border-line"></div> {* divs added to aid anythink styling. plb 11-19-2014 *}

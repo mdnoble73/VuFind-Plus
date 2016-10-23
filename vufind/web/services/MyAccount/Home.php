@@ -9,7 +9,7 @@
  */
 require_once ROOT_DIR . '/services/MyAccount/MyAccount.php';
 require_once ROOT_DIR . '/services/MyResearch/lib/Suggestions.php';
-class MyAccount_Home  extends MyAccount{
+class MyAccount_Home extends MyAccount{
 	function launch(){
 		global $interface;
 		global $user;

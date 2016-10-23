@@ -218,11 +218,16 @@ class AJAX_JSON extends Action {
 
 	function getAutoLogoutPrompt(){
 		global $interface;
+		global $masqueradeMode;
 		$result = array(
 			'title'        => 'Still There?',
 			'modalBody'    => $interface->fetch('AJAX/autoLogoutPrompt.tpl'),
 			'modalButtons' => "<div id='continueSession' class='btn btn-primary' onclick='continueSession();'>Continue</div>" .
-												"<div id='endSession' class='btn btn-warning' onclick='endSession();'>Logout</div>"
+				( $masqueradeMode ?
+												"<div id='endSession' class='btn btn-masquerade' onclick='VuFind.Account.endMasquerade()'>End Masquerade</div>" .
+												"<div id='endSession' class='btn btn-warning' onclick='endSession()'>Logout</div>"
+					:
+												"<div id='endSession' class='btn btn-warning' onclick='endSession()'>Logout</div>" )
 		);
 		return $result;
 	}

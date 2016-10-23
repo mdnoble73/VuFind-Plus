@@ -13,7 +13,6 @@ VuFind.Menu = (function(){
 				VuFind.Menu.ExploreMoreSelectors;
 
 		// Set up Sticky Menus
-		console.log('Masquerade', Globals.masqueradeMode);
 		VuFind.Menu.stickyMenu('#horizontal-menu-bar-container', 'sticky-menu-bar');
 		VuFind.Menu.stickyMenu('#vertical-menu-bar', 'sticky-sidebar');
 
@@ -124,7 +123,7 @@ VuFind.Menu = (function(){
 					switchPositionAdjustment = $('#masquerade-header').height();
 			// if (menu.is(':visible')) {
 			// 	switchPosition = menu.offset().top - switchPositionAdjustment;
-			// 	// console.log('Masquerade Mode', Globals.masqueradeMode, 'Initial offset : ' + menu.offset().top, 'switch position : ' + switchPosition);
+			// 	// console.log('Initial offset : ' + menu.offset().top, 'switch position : ' + switchPosition);
 			//
 			// }
 			$(window).resize(function(){
@@ -138,7 +137,7 @@ VuFind.Menu = (function(){
 					}
 					var fixedOffset = menu.offset().top,
 							notFixedScrolledPosition = $(this).scrollTop();
-					// console.log('Masquerade Mode', Globals.masqueradeMode, 'Selector :', menuContainerSelector, 'fixedOffset : ', fixedOffset, ' notFixedScrolledPosition : ', notFixedScrolledPosition, 'switch position : ', switchPosition, 'offset : ' + menu.offset().top);
+					// console.log('Selector :', menuContainerSelector, 'fixedOffset : ', fixedOffset, ' notFixedScrolledPosition : ', notFixedScrolledPosition, 'switch position : ', switchPosition, 'offset : ' + menu.offset().top);
 
 					// Toggle into an embedded mode
 					if (menu.is('.' + stickyMenuClass) && fixedOffset <= switchPosition) {

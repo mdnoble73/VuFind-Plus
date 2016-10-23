@@ -1,8 +1,6 @@
 {strip}
 	<p class="alert alert-info" id="masqueradeLoading" style="display: none">Starting Masquerade Mode</p>
-	{if $error}
-	<p class="alert alert-danger" id="masqueradeAsError">{$error}</p>
-	{/if}
+	<p class="alert alert-danger" id="masqueradeAsError" style="display: none"></p>
 	{*<p class="alert alert-danger" id="cookiesError" style="display: none">It appears that you do not have cookies enabled on this computer.  Cookies are required to access account information.</p>*}
 
 <form id="masqueradeForm" class="form-horizontal" role="form">
@@ -12,7 +10,6 @@
 			<input type="text" name="cardNumber" id="cardNumber" value="{$cardNumber|escape}" size="28" class="form-control required">
 		</div>
 	</div>
-	<button class="tool btn btn-primary" onclick="$('#masqueradeForm').submit()">Start</button>
 </form>
 	<script type="text/javascript">
 		$('#cardNumber').focus().select();

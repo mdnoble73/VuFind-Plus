@@ -138,7 +138,6 @@ class UserAccount {
 	 * @throws UnknownAuthenticationMethodException
 	 */
 	public static function login() {
-		global $user;
 		global $logger;
 
 		$validUsers = array();
@@ -204,6 +203,7 @@ class UserAccount {
 				}
 			}else{
 				global $logger;
+				global $user;
 				$username = isset($_REQUEST['username']) ? $_REQUEST['username'] : 'No username provided';
 				$logger->log("Error authenticating patron $username for driver {$driverName}\r\n" . print_r($user, true), PEAR_LOG_ERR);
 				$lastError = $tempUser;
