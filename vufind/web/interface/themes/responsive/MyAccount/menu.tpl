@@ -109,8 +109,8 @@
 						<div class="myAccountLink{if $pageTemplate=="profile.tpl"} active{/if}"><a href="{$path}/MyAccount/Profile">Account Settings</a></div>
 						{* Only highlight saved searches as active if user is logged in: *}
 						<div class="myAccountLink{if $user && $pageTemplate=="history.tpl"} active{/if}"><a href="{$path}/Search/History?require_login">{translate text='history_saved_searches'}</a></div>
-						{if !$masqueradeMode}
-							{if $user->canMasquerade()}{*TODO: can masquerade *}
+						{if $allowMasqueradeMode && !$masqueradeMode}
+							{if $user->canMasquerade()}
 								<hr class="menu">
 								<div class="myAccountLink"><a onclick="VuFind.Account.getMasqueradeForm();" href="#">Masquerade</a></div>
 							{/if}

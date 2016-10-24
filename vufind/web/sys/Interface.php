@@ -379,6 +379,7 @@ class UInterface extends Smarty
 			$this->assign('sideBarOnRight', $library->sideBarOnRight);
 			$this->assign('showHoldCancelDate', $library->showHoldCancelDate);
 			$this->assign('showPikaLogo', $library->showPikaLogo);
+			$this->assign('allowMasqueradeMode', $library->allowMasqueradeMode);
 
 			if ($this->getVariable('displaySidebarMenu') && !$library->showSidebarMenu){
 				$this->assign('displaySidebarMenu', false);
@@ -403,6 +404,7 @@ class UInterface extends Smarty
 			$this->assign('sideBarOnRight', 0);
 			$this->assign('showHoldCancelDate', 0);
 			$this->assign('showPikaLogo', 1);
+			$this->assign('allowMasqueradeMode', 0);
 		}
 		if (isset($library) && $location != null){ // library and location
 			$this->assign('showFavorites', $location->showFavorites && $library->showFavorites);

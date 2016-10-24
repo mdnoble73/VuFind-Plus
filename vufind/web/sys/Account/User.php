@@ -1170,7 +1170,7 @@ class User extends DB_DataObject
 			require_once ROOT_DIR . '/Drivers/marmot_inc/PType.php';
 			$pType = new pType();
 			$pType->get('pType', $this->patronType);
-			if ($pType) {
+			if ($pType->N > 0) {
 				$this->masqueradeLevel = $pType->masquerade;
 			}
 		}
