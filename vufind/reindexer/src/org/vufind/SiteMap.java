@@ -6,9 +6,11 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.*;
-import java.util.Date;
 
 /**
  * Created by jabedo on 9/23/2016.
@@ -20,16 +22,38 @@ public class SiteMap {
     private int maxPopularTitles;
     private int maxUniqueTitles;
     private Connection vufindConn;
-
+    private HashMap<Long, ArrayList<Long>> librariesByHomeLocation ;
     public SiteMap(Logger log, Connection connection, int maxUnique, int maxPopular) {
         this.logger = log;
         this.vufindConn = connection;
         this.maxPopularTitles = maxPopular;
         this.maxUniqueTitles = maxUnique;
+        librariesByHomeLocation = new HashMap<>();
+        prepareLocationIds();
+    }
+
+    private void prepareLocationIds(){
+
+        try{
+            PreparedStatement getLibraryForHomeLocation = vufindConn.prepareStatement("SELECT libraryId, locationId from location");
+            ResultSet librariesByHomeLocationRS = getLibraryForHomeLocation.executeQuery();
+            while (librariesByHomeLocationRS.next()){
+                Long locationId =librariesByHomeLocationRS.getLong("locationId");
+                Long libraryId = librariesByHomeLocationRS.getLong("libraryId");
+                if(!librariesByHomeLocation.containsKey(libraryId)){
+                    librariesByHomeLocation.put(libraryId, new ArrayList<>());
+                }
+                librariesByHomeLocation.get(libraryId).add(locationId);
+            }
+            librariesByHomeLocationRS.close();
+        }catch (Exception ex){
+            logger.info("Unable to get location Ids");
+        }
+
     }
 
     public void createSiteMap(File dataDir, HashMap<Scope, ArrayList<SiteMapGroup>> siteMapsByScope,
-                              HashSet<Long> uniqueGroupedWorks/*, HashMap<String, Long> locationScopes */) throws IOException {
+                              HashSet<Long> uniqueGroupedWorks) throws IOException {
         //create a site maps directory if it doesn't exist
         if (!dataDir.exists()) {
             if (!dataDir.mkdirs()) {
@@ -53,17 +77,6 @@ public class SiteMap {
             String scopeName = scope.getScopeName();
             Long libraryID = scope.getLibraryId();
 
-          /*   ArrayList<String> branchIds = new ArrayList<>();
-           for(Scope branchScope: scope.getLocationScopes()){
-                *//*branchIds.add( Long.toOctalString(branchScope.getLibraryId()));*//*
-                if(locationScopes.containsKey(branchScope.getScopeName())){
-                    branchIds.add(Long.toString( locationScopes.get(branchScope.getScopeName()))    );
-                    Long id= locationScopes.get(branchScope.getScopeName());
-                }
-
-            }
-            */
-
             ArrayList<SiteMapGroup> siteMapGroups = (ArrayList<SiteMapGroup>)pair.getValue();
             //separate the site maps into unique and popular
             ArrayList<SiteMapGroup> unique = new ArrayList<>();
@@ -76,7 +89,7 @@ public class SiteMap {
             Iterator it2 = fileMapsGroupings.entrySet().iterator();
             while (it2.hasNext()) {
                 Map.Entry kvp = (Map.Entry) it2.next();
-                writeSiteMap(new ArrayList<>((List<SiteMapGroup>) kvp.getValue()), (String) kvp.getKey(), scopeName, libraryID/*,branchIds*/);
+                writeSiteMap(new ArrayList<>((List<SiteMapGroup>) kvp.getValue()), (String) kvp.getKey(), scopeName, libraryID);
                 it2.remove();
             }
             siteMapIndex.addSiteMapLocation(buildLocationURL(scopeName, siteMapFileName(scopeName, fileType, fileID)), date.toString());
@@ -86,7 +99,7 @@ public class SiteMap {
              it2 = fileMapsGroupings.entrySet().iterator();
             while (it2.hasNext()) {
                 Map.Entry kvp = (Map.Entry) it2.next();
-                writeSiteMap(new ArrayList<>((List<SiteMapGroup>) kvp.getValue()), (String) kvp.getKey(), scopeName, libraryID/*,branchIds*/);
+                writeSiteMap(new ArrayList<>((List<SiteMapGroup>) kvp.getValue()), (String) kvp.getKey(), scopeName, libraryID);
                 it2.remove();
             }
             siteMapIndex.addSiteMapLocation(buildLocationURL(scopeName, siteMapFileName(scopeName, fileType, fileID)), date.toString());
@@ -225,11 +238,13 @@ public class SiteMap {
             writer.write(baseUrl);
             writer.newLine();
 
-             baseUrl = buildBranchUrl(subdomain, "Branch",  Long.toString(libraryID));
-            writer.write(baseUrl);
-            writer.newLine();
-
             //add library branches?
+            ArrayList<Long> branches = librariesByHomeLocation.get(libraryID);
+            for(Long libId: branches){
+                baseUrl = buildBranchUrl(subdomain, "Branch",  Long.toString(libId));
+                writer.write(baseUrl);
+                writer.newLine();
+            }
 
             int count = 0;
             for (SiteMapGroup siteMapGroup : siteMapGroups) {
@@ -294,9 +309,9 @@ public class SiteMap {
         //https://adams.marmot.org/GroupedWork/24d6b52f-05de-a6d5-fc01-89ccefd7356e/Home -- example
         StringBuilder builder = baseUrl(subdomain);
         builder.append("/GroupedWork/")
-                .append(permanetID);
-                /*.append("/");
-                .append("Home");*/
+                .append(permanetID)
+                .append("/")
+                .append("Home");
         return builder.toString();
     }
 
