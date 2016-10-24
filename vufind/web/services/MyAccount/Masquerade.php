@@ -52,9 +52,22 @@ class MyAccount_Masquerade extends MyAccount
 							if ($masqueradedUser->id == $user->id) {
 								return array(
 									'success' => false,
-									'error'   => 'No need to masquerade as yourself.'
+									'error' => 'No need to masquerade as yourself.'
 								);
 							}
+						} else {
+							// Test for a user that hasn't logged into Pika before
+							$masqueradedUser = UserAccount::findNewUser($libraryCard);
+							if (!$masqueradedUser) {
+								return array(
+									'success' => false,
+									'error'   => 'Invalid User'
+								);
+							}
+						}
+
+						// Now that we have found the masqueraded User, check Masquerade Levels
+						if ($masqueradedUser) {
 							switch ($user->getMasqueradeLevel()) {
 								case 'location' :
 									if (empty($user->homeLocationId)) {
@@ -117,16 +130,7 @@ class MyAccount_Masquerade extends MyAccount
 									}
 							}
 						} else {
-							//TODO:  if Masqueraded user hasn't logged into Pika before, we need to look up the card number in the ILS
-							if (0) {
-								// Card Number in ILS
 
-							} else {
-								return array(
-									'success' => false,
-									'error'   => 'Invalid User'
-								);
-							}
 						}
 					} else {
 						return array(

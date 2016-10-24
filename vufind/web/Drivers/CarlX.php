@@ -1231,7 +1231,8 @@ class CarlX extends SIP2Driver{
 						$freeze = false;
 					}
 
-					$in = $mySip->freezeSuspendHold($dateToReactivate, $freeze, '', '1', '', $holdId, 'N', $pickupLocation);
+//					$in = $mySip->freezeSuspendHold($dateToReactivate, $freeze, '', '1', '', $holdId, 'N', $pickupLocation);
+					$in = $mySip->freezeSuspendHold($dateToReactivate, $freeze, '', '2', '', $holdId, 'N', $pickupLocation);
 //				$in = $mySip->freezeHoldCarlX($dateToReactivate, $holdId);
 					$msg_result = $mySip->get_message($in);
 
@@ -1463,5 +1464,25 @@ class CarlX extends SIP2Driver{
 		return $temp;
 	}
 
+
+	public function findNewUser($patronBarcode) {
+		//TODO: implement for authenicationMetod switch. Right now assuming barcode/pin
+		$request = new stdClass();
+		$request->SearchType = 'Patron ID';
+		$request->SearchID   = $patronBarcode;
+		$request->Modifiers  = '';
+
+		$result = $this->doSoapRequest('getPatronInformation', $request);
+		if ($result) {
+			if (isset($result->Patron)) {
+				$tmpPin = $result->PatronPIN;
+				$newUser = $this->patronLogin($patronBarcode, $tmpPin);
+				if (!empty($newUser) && !PEAR_Singleton::isError($newUser)) {
+					return $newUser;
+				}
+			}
+		}
+		return false;
+	}
 
 }
