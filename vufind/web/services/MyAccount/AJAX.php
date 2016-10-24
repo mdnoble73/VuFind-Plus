@@ -864,12 +864,12 @@ class MyAccount_AJAX
 	}
 
 	function initiateMasquerade(){
-		require_once ROOT_DIR . '/services/Myaccount/Masquerade.php';
+		require_once ROOT_DIR . '/services/MyAccount/Masquerade.php';
 		return MyAccount_Masquerade::initiateMasquerade();
 	}
 
 	function endMasquerade() {
-		require_once ROOT_DIR . '/services/Myaccount/Masquerade.php';
+		require_once ROOT_DIR . '/services/MyAccount/Masquerade.php';
 		return MyAccount_Masquerade::endMasquerade();
 	}
 
