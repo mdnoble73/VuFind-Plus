@@ -70,7 +70,7 @@ FILE=$(find  /data/vufind-plus/aspencat.production/marc/ -name fullexport.mrc -m
 if [ -n "$FILE" ]
 then
   #check file size
-	MINFILE1SIZE=$((1042000000))
+	MINFILE1SIZE=$((1038000000))
 	FILE1SIZE=$(wc -c <"$FILE")
 	if [ $FILE1SIZE -ge $MINFILE1SIZE ]; then
 

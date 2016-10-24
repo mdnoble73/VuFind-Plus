@@ -159,24 +159,24 @@ if ($mode['online'] === false) {
 }
 $timer->logTime('Checked availability mode');
 
-//Check to see if we have a collection applied.
-// TODO: collection url parameter doesn't look to be used for anything
-global $defaultCollection;
-if (isset($_GET['collection'])){
-	$defaultCollection = $_GET['collection'];
-	//Set a cookie so we don't have to transfer the ip from page to page.
-	if ($defaultCollection == '' || $defaultCollection == 'all'){
-		setcookie('collection', '', 0, '/');
-		$defaultCollection = null;
-	}else{
-		setcookie('collection', $defaultCollection, 0, '/');
-	}
-}elseif (isset($_COOKIE['collection'])){
-	$defaultCollection = $_COOKIE['collection'];
-}else{
-	//No collection has been set.
-}
-$timer->logTime('Check default collection');
+////Check to see if we have a collection applied.
+//// TODO: collection url parameter doesn't look to be used for anything
+//global $defaultCollection;
+//if (isset($_GET['collection'])){
+//	$defaultCollection = $_GET['collection'];
+//	//Set a cookie so we don't have to transfer the ip from page to page.
+//	if ($defaultCollection == '' || $defaultCollection == 'all'){
+//		setcookie('collection', '', 0, '/');
+//		$defaultCollection = null;
+//	}else{
+//		setcookie('collection', $defaultCollection, 0, '/');
+//	}
+//}elseif (isset($_COOKIE['collection'])){
+//	$defaultCollection = $_COOKIE['collection'];
+//}else{
+//	//No collection has been set.
+//}
+//$timer->logTime('Check default collection');
 
 // Proxy server settings
 if (isset($configArray['Proxy']['host'])) {
@@ -253,7 +253,10 @@ if (isset($_REQUEST['lookfor'])) {
 
 //Check to see if the user is already logged in
 /** @var User $user */
-global $user;
+global $user,
+       $guidingUser,
+       $masqueradeMode;
+
 $user = UserAccount::isLoggedIn();
 $timer->logTime('Check if user is logged in');
 
@@ -266,6 +269,10 @@ if ($user) {
 	//Create a cookie for the user's home branch so we can sort holdings even if they logout.
 	//Cookie expires in 1 week.
 	setcookie('home_location', $user->homeLocationId, time()+60*60*24*7, '/');
+	$interface->assign('masqueradeMode', $masqueradeMode);
+	if ($masqueradeMode) {
+		$interface->assign('guidingUser', $guidingUser);
+	}
 } else if ( (isset($_POST['username']) && isset($_POST['password']) && ($action != 'Account' && $module != 'AJAX')) || isset($_REQUEST['casLogin']) ) {
 	//The user is trying to log in
 	$user = UserAccount::login();
@@ -285,16 +292,25 @@ if ($user) {
 	$interface->assign('loggedIn', $user == false ? 'false' : 'true');
 	//Check to see if there is a followup module and if so, use that module and action for the next page load
 	if (isset($_REQUEST['returnUrl'])) {
-		$followupUrl =  $_REQUEST['returnUrl'];
+		$followupUrl = $_REQUEST['returnUrl'];
 		header("Location: " . $followupUrl);
 		exit();
 	}
 	if ($user){
 		if (isset($_REQUEST['followupModule']) && isset($_REQUEST['followupAction'])) {
+
+			// For Masquerade Follow up, start directly instead of a redirect
+			if ($_REQUEST['followupAction'] == 'Masquerade' && $_REQUEST['followupModule'] == 'MyAccount') {
+				require_once ROOT_DIR . '/services/MyAccount/Masquerade.php';
+				$masquerade = new MyAccount_Masquerade();
+				$masquerade->launch();
+				die;
+			}
+
 			echo("Redirecting to followup location");
-			$followupUrl =  $configArray['Site']['path'] . "/".  strip_tags($_REQUEST['followupModule']);
+			$followupUrl = $configArray['Site']['path'] . "/". strip_tags($_REQUEST['followupModule']);
 			if (!empty($_REQUEST['recordId'])) {
-				$followupUrl .= "/" .  strip_tags($_REQUEST['recordId']);
+				$followupUrl .= "/" . strip_tags($_REQUEST['recordId']);
 			}
 			$followupUrl .= "/" .  strip_tags($_REQUEST['followupAction']);
 			if(isset($_REQUEST['comment'])) $followupUrl .= "?comment=" . urlencode($_REQUEST['comment']);
@@ -418,6 +434,7 @@ if ($action == "AJAX" || $action == "JSON"){
 	$interface->assign('showTopSearchBox', 0);
 	$interface->assign('showBreadcrumbs', 0);
 }else{
+	//TODO: footerLists not in any current template
 	if (isset($configArray['FooterLists'])){
 		$interface->assign('footerLists', $configArray['FooterLists']);
 	}
@@ -494,8 +511,10 @@ if ($action == "AJAX" || $action == "JSON"){
 
 		$userLists = array();
 		foreach($lists as $current) {
-			$userLists[] = array('id' => $current->id,
-                    'title' => $current->title);
+			$userLists[] = array(
+				'id'    => $current->id,
+        'title' => $current->title
+			);
 		}
 		$interface->assign('userLists', $userLists);
 	}
@@ -516,52 +535,56 @@ $onInternalIP = false;
 $includeAutoLogoutCode = false;
 $automaticTimeoutLength = 0;
 $automaticTimeoutLengthLoggedOut = 0;
-if (($isOpac || (!empty($ipLocation) && $ipLocation->getOpacStatus()) ) && !$configArray['Catalog']['offline']){
+if (($isOpac || $masqueradeMode || (!empty($ipLocation) && $ipLocation->getOpacStatus()) ) && !$configArray['Catalog']['offline']) {
 	// Make sure we don't have timeouts if we are offline (because it's super annoying when doing offline checkouts and holds)
 
-	//$isOpac is set by URL parameter or cookie; pLocation->getOpacStatus() returns $opacStatus private variable which comes from the ip tables
+	//$isOpac is set by URL parameter or cookie; ipLocation->getOpacStatus() returns $opacStatus private variable which comes from the ip tables
 
 	// Turn on the auto log out
-	$onInternalIP = true;
-	$includeAutoLogoutCode = true;
+	$onInternalIP                    = true;
+	$includeAutoLogoutCode           = true;
 	$automaticTimeoutLength          = $locationSingleton::DEFAULT_AUTOLOGOUT_TIME;
 	$automaticTimeoutLengthLoggedOut = $locationSingleton::DEFAULT_AUTOLOGOUT_TIME_LOGGED_OUT;
 
-	// Only include auto logout code if we are not on the home page
-	if ($module == 'Search' && $action == 'Home'){
-		$includeAutoLogoutCode = false;
-	}
+	if ($masqueradeMode) {
+		// Masquerade Time Out Lengths
+			$automaticTimeoutLength = empty($library->masqueradeAutomaticTimeoutLength) ? 90 : $library->masqueradeAutomaticTimeoutLength;
+	} else {
+		// Determine Regular Time Out Lengths
 
-	if ($user){
-		// User has bypass AutoLog out setting turned on
-		if ($user->bypassAutoLogout == 1){
-		// The account setting profile template only presents this option to users that are staff
+		// Only include auto logout code if we are not on the home page
+		if ($module == 'Search' && $action == 'Home') {
 			$includeAutoLogoutCode = false;
 		}
-	}
 
-	// Determine Time Out Lengths
-	// If we know the branch, use the timeout settings from that branch
-	if ($isOpac && $location) {
-		$automaticTimeoutLength          = $location->automaticTimeoutLength;
-		$automaticTimeoutLengthLoggedOut = $location->automaticTimeoutLengthLoggedOut;
-	}
-	// If we know the branch by iplocation, use the settings based on that location
-	elseif ($ipLocation) {
-		//TODO: ensure we are checking that URL is consistent with location, if not turn off
-		// eg: browsing at fort lewis library from garfield county library
-		$automaticTimeoutLength          = $ipLocation->automaticTimeoutLength;
-		$automaticTimeoutLengthLoggedOut = $ipLocation->automaticTimeoutLengthLoggedOut;
-	}
-	// Otherwise, use the main branch's settings or the first location's settings
-	elseif ($library) {
-		$firstLocation = new Location();
-		$firstLocation->libraryId = $library->libraryId;
-		$firstLocation->orderBy('isMainBranch DESC');
-		if ($firstLocation->find(true)) {
-			// This finds either the main branch, or if there isn't one a location
-			$automaticTimeoutLength          = $firstLocation->automaticTimeoutLength;
-			$automaticTimeoutLengthLoggedOut = $firstLocation->automaticTimeoutLengthLoggedOut;
+		if ($user) {
+			// User has bypass AutoLog out setting turned on
+			if ($user->bypassAutoLogout == 1) {
+				// The account setting profile template only presents this option to users that are staff
+				$includeAutoLogoutCode = false;
+			}
+		}
+
+		// If we know the branch, use the timeout settings from that branch
+		if ($isOpac && $location) {
+			$automaticTimeoutLength          = $location->automaticTimeoutLength;
+			$automaticTimeoutLengthLoggedOut = $location->automaticTimeoutLengthLoggedOut;
+		} // If we know the branch by iplocation, use the settings based on that location
+		elseif ($ipLocation) {
+			//TODO: ensure we are checking that URL is consistent with location, if not turn off
+			// eg: browsing at fort lewis library from garfield county library
+			$automaticTimeoutLength          = $ipLocation->automaticTimeoutLength;
+			$automaticTimeoutLengthLoggedOut = $ipLocation->automaticTimeoutLengthLoggedOut;
+		} // Otherwise, use the main branch's settings or the first location's settings
+		elseif ($library) {
+			$firstLocation            = new Location();
+			$firstLocation->libraryId = $library->libraryId;
+			$firstLocation->orderBy('isMainBranch DESC');
+			if ($firstLocation->find(true)) {
+				// This finds either the main branch, or if there isn't one a location
+				$automaticTimeoutLength          = $firstLocation->automaticTimeoutLength;
+				$automaticTimeoutLengthLoggedOut = $firstLocation->automaticTimeoutLengthLoggedOut;
+			}
 		}
 	}
 }
@@ -573,6 +596,7 @@ $interface->assign('includeAutoLogoutCode', $includeAutoLogoutCode);
 $timer->logTime('Check whether or not to include auto logout code');
 
 // Process Login Followup
+//TODO:  this code may need to move up with there other followUp processing above
 if (isset($_REQUEST['followup'])) {
 	processFollowup();
 	$timer->logTime('Process followup');
@@ -721,7 +745,7 @@ function checkAvailabilityMode() {
 		$isMaintenance = false;
 		if (isset($configArray['System']['maintainenceIps'])){
 			$activeIp = $_SERVER['REMOTE_ADDR'];
-			$maintenanceIp =  $configArray['System']['maintainenceIps'];
+			$maintenanceIp =  $configArray['System']['maintainenceIps']; //TODO: system variable misspelled; change and update protected configs
 
 			$maintenanceIps = explode(",", $maintenanceIp);
 			foreach ($maintenanceIps as $curIp){

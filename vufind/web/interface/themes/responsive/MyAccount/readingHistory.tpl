@@ -19,6 +19,14 @@
 
 	<br>
 
+		{if $masqueradeMode}
+			<div class="row">
+				<div class="alert alert-warning">
+					Display of the patron's reading history is disabled in Masquerade Mode.
+				</div>
+			</div>
+		{/if}
+
 	<div class="row">
 		<div id="readingListDisclaimer" {if $historyActive == true}style="display: none"{/if} class="alert alert-info">
 			{* some necessary white space in notice was previously stripped out when needed. *}
@@ -28,6 +36,7 @@
 		</div>
 	</div>
 
+	{if !$masqueradeMode}
 	<form id="readingListForm" action="{$fullPath}" class="form-inline">
 
 		{* Reading History Actions *}
@@ -237,6 +246,7 @@
 			{/if}
 			</div>
 		</form>
+	{/if}
 	{/strip}
 {else}
 	<div class="page">

@@ -2,19 +2,7 @@
 <div class="navbar navbar-static-bottom">
 	<div class="navbar-inner">
 		<div class="row">
-			<div class="col-sm-7 text-left" id="install-info">
-				{if !$productionServer}
-					<small class='location_info'>{$physicalLocation}{if $debug} ({$activeIp}){/if} - {$deviceName}</small>
-				{/if}
-				<small class='version_info'>{if !$productionServer} / {/if}v. {$gitBranch}</small>
-				{if $debug}
-					<small class='session_info'> / session. {$session}</small>
-				{/if}
-				{if $debug}
-					<small class='scope_info'> / scope {$solrScope}</small>
-				{/if}
-			</div>
-			<div class="col-sm-5 text-right" id="connect-with-us-info">
+			<div class="col-tn-12 col-sm-5 text-right pull-right" id="connect-with-us-info">
 				{if $twitterLink || $facebookLink || $generalContactLink || $youtubeLink || $instagramLink || $goodreadsLink}
 					<span id="connect-with-us-label" class="large">CONNECT WITH US</span>
 					{if $twitterLink}
@@ -37,6 +25,25 @@
 					{/if}
 				{/if}
 			</div>
+			<div class="col-tn-12 {if $showPikaLogo}col-sm-4{else}col-sm-7{/if} text-left pull-left" id="install-info">
+				{if !$productionServer}
+					<small class='location_info'>{$physicalLocation}{if $debug} ({$activeIp}){/if} - {$deviceName}</small>
+				{/if}
+				<small class='version_info'>{if !$productionServer} / {/if}v. {$gitBranch}</small>
+				{if $debug}
+					<small class='session_info'> / session. {$session}</small>
+				{/if}
+				{if $debug}
+					<small class='scope_info'> / scope {$solrScope}</small>
+				{/if}
+			</div>
+			{if $showPikaLogo}
+			<div class="col-tn-12 col-sm-3 text-center pull-left">
+				<a href="http://www.marmot.org/content/pika-discovery-layer" title="Proud Pika Partner">
+					<img id="footer-pika-logo" src="{img filename='pika-logo.png'}" alt="Proud Pika Partner" style="max-width: 100%; max-height: 80px;">
+				</a>
+			</div>
+			{/if}
 		</div>
 		{if $user && ($user->hasRole('opacAdmin') || $user->hasRole('libraryAdmin') || $user->hasRole('cataloging') || $user->hasRole('libraryManager') || $user->hasRole('locationManager'))}
 			<div class="row">
@@ -46,6 +53,5 @@
 			</div>
 		{/if}
 	</div>
-
 </div>
 {/strip}

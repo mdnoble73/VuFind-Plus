@@ -27,7 +27,7 @@ class ILSAuthentication implements Authentication {
 		if (!array_key_exists('username', $_REQUEST) && !array_key_exists('password', $_REQUEST)){
 			//If not, check to see if we have a valid user already authenticated
 			global $user;
-			if ($user){
+			if ($user){ //TODO: prevent in case of masquerage??
 				return $user;
 			}
 		}
