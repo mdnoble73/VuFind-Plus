@@ -597,6 +597,14 @@ abstract class SearchObject_Base
 			$type = $this->defaultIndex;
 		}
 
+		if (strpos($searchTerm, ':') > 0){
+			$tempSearchInfo = explode(':', $searchTerm, 2);
+			if (in_array($tempSearchInfo[0], $this->basicTypes)){
+				$type = $tempSearchInfo[0];
+				$searchTerm = $tempSearchInfo[1];
+			}
+		}
+
 		$this->searchTerms[] = array(
             'index'   => $type,
             'lookfor' => $searchTerm
