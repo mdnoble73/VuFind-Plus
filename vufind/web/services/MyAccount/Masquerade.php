@@ -42,7 +42,7 @@ class MyAccount_Masquerade extends MyAccount
 					global $user;
 					if ($user && $user->canMasquerade()) {
 						$masqueradedUser = new User();
-						//TODO: below, when $masquerade User account is in another ILS (need different account Profile to check)
+						//TODO: below, when $masquerade User account is in another ILS and the other ILS has a different $authenticationMethod (ie barcode/pin)
 						if ($user->getAccountProfile()->loginConfiguration == 'barcode_pin') {
 							$masqueradedUser->cat_username = $libraryCard;
 						} else {
