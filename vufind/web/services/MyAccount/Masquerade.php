@@ -56,13 +56,31 @@ class MyAccount_Masquerade extends MyAccount
 								);
 							}
 						} else {
-							// Test for a user that hasn't logged into Pika before
-							$masqueradedUser = UserAccount::findNewUser($libraryCard);
-							if (!$masqueradedUser) {
-								return array(
-									'success' => false,
-									'error'   => 'Invalid User'
-								);
+
+							// Check for another ILS with a different login configuration
+							$accountProfile = new AccountProfile();
+							$accountProfile->groupBy('loginConfiguration');
+							$numConfigurations = $accountProfile->count('loginConfiguration');
+							if ($numConfigurations > 1) {
+								// Now that we know there is more than loginConfiguration type, check the opposite column
+								$masqueradedUser = new User();
+								if ($user->getAccountProfile()->loginConfiguration == 'barcode_pin') {
+									$masqueradedUser->cat_password = $libraryCard;
+								} else {
+									$masqueradedUser->cat_username = $libraryCard;
+								}
+								$masqueradedUser->find(true);
+							}
+
+							if ($masqueradedUser->N == 0) {
+								// Test for a user that hasn't logged into Pika before
+								$masqueradedUser = UserAccount::findNewUser($libraryCard);
+								if (!$masqueradedUser) {
+									return array(
+										'success' => false,
+										'error' => 'Invalid User'
+									);
+								}
 							}
 						}
 
