@@ -42,7 +42,7 @@ class MyAccount_Masquerade extends MyAccount
 					global $user;
 					if ($user && $user->canMasquerade()) {
 						$masqueradedUser = new User();
-						//TODO: below, when $masquerade User account is in another ILS (need different account Profile to check)
+						//TODO: below, when $masquerade User account is in another ILS and the other ILS has a different $authenticationMethod (ie barcode/pin)
 						if ($user->getAccountProfile()->loginConfiguration == 'barcode_pin') {
 							$masqueradedUser->cat_username = $libraryCard;
 						} else {
@@ -52,9 +52,40 @@ class MyAccount_Masquerade extends MyAccount
 							if ($masqueradedUser->id == $user->id) {
 								return array(
 									'success' => false,
-									'error'   => 'No need to masquerade as yourself.'
+									'error' => 'No need to masquerade as yourself.'
 								);
 							}
+						} else {
+
+							// Check for another ILS with a different login configuration
+							$accountProfile = new AccountProfile();
+							$accountProfile->groupBy('loginConfiguration');
+							$numConfigurations = $accountProfile->count('loginConfiguration');
+							if ($numConfigurations > 1) {
+								// Now that we know there is more than loginConfiguration type, check the opposite column
+								$masqueradedUser = new User();
+								if ($user->getAccountProfile()->loginConfiguration == 'barcode_pin') {
+									$masqueradedUser->cat_password = $libraryCard;
+								} else {
+									$masqueradedUser->cat_username = $libraryCard;
+								}
+								$masqueradedUser->find(true);
+							}
+
+							if ($masqueradedUser->N == 0) {
+								// Test for a user that hasn't logged into Pika before
+								$masqueradedUser = UserAccount::findNewUser($libraryCard);
+								if (!$masqueradedUser) {
+									return array(
+										'success' => false,
+										'error' => 'Invalid User'
+									);
+								}
+							}
+						}
+
+						// Now that we have found the masqueraded User, check Masquerade Levels
+						if ($masqueradedUser) {
 							switch ($user->getMasqueradeLevel()) {
 								case 'location' :
 									if (empty($user->homeLocationId)) {
@@ -99,27 +130,25 @@ class MyAccount_Masquerade extends MyAccount
 								case 'any' :
 									global $guidingUser;
 									$guidingUser = $user;
-									@session_start(); // (suppress notice if the session is already started)
-									$_SESSION['guidingUserId'] = $guidingUser->id;
 									// NOW login in as masquerade user
 									$_REQUEST['username'] = $masqueradedUser->cat_username;
 									$_REQUEST['password'] = $masqueradedUser->cat_password;
 									$user                 = UserAccount::login();
-									global $masqueradeMode;
-									$masqueradeMode = true;
-									return array('success' => true);
+									if (!empty($user) && !PEAR_Singleton::isError($user)){
+										@session_start(); // (suppress notice if the session is already started)
+										$_SESSION['guidingUserId'] = $guidingUser->id;
+										global $masqueradeMode;
+										$masqueradeMode = true;
+										return array('success' => true);
+									} else {
+										return array(
+											'success' => false,
+											'error'   => 'Failed to initiate masquerade as specified user.'
+										);
+									}
 							}
 						} else {
-							//TODO:  if Masqueraded user hasn't logged into Pika before, we need to look up the card number in the ILS
-							if (0) {
-								// Card Number in ILS
 
-							} else {
-								return array(
-									'success' => false,
-									'error'   => 'Invalid User'
-								);
-							}
 						}
 					} else {
 						return array(
