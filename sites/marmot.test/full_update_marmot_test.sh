@@ -83,9 +83,12 @@ cd /usr/local/vufind-plus/sites/${PIKASERVER}; ./${PIKASERVER}.sh restart
 #TODO: refactor CCU's ebrary destination
 /usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh ccu_ebrary ebrary_ccu >> ${OUTPUT_FILE}
 /usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh adams/ebrary ebrary/adams >> ${OUTPUT_FILE}
-#TODO: run the merge utility for DDA files for Adams
-#cd /usr/local/marcMergeUtility; java -jar MarcMergeUtility.jar /data/vufind-plus/ebrary/adams/ddaMergeConfig.ini
 /usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh western/ebrary ebrary/western >> ${OUTPUT_FILE}
+
+#Adams Ebrary DDA files
+/usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh adams/ebrary/DDA ebrary/adams/dda >> ${OUTPUT_FILE}
+cd /usr/local/marcMergeUtility; java -jar MarcMergeUtility.jar /data/vufind-plus/ebrary/adams/ddaMergeConfig.ini
+#TODO: set up for deletes, if/when those are recieved
 
 # CCU Ebsco Marc Updates
 /usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh ebsco_ccu ebsco/ccu >> ${OUTPUT_FILE}
