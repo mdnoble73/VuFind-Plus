@@ -2,7 +2,7 @@
 /**
  * Dynamic implementation of robots.txt to prevent indexing of non-production sites
  *
- * @category VuFind-Plus-2014 
+ * @category VuFind-Plus-2014
  * @author Mark Noble <mark@marmot.org>
  * Date: 5/9/14
  * Time: 11:19 AM
@@ -10,13 +10,13 @@
 
 require_once 'bootstrap.php';
 global $configArray;
+global $library;
 if ($configArray['Site']['isProduction']){
 	echo(@file_get_contents('robots.txt'));
-	
-	$activeLibrary = Library::getActiveLibrary();
-	if ($activeLibrary != null){
-		$subdomain = $activeLibrary->subdomain;
-	
+
+	if ($library != null){
+		$subdomain = $library->subdomain;
+
 		/*
 		 * sitemap: <sitemap_url>
 		 * */
@@ -25,13 +25,11 @@ if ($configArray['Site']['isProduction']){
 		$current = file_get_contents($file);
 		$fileName = $subdomain . '.marmot.org' . '.xml';
 		$siteMap_Url = 'sitemap: https' . '://' . $subdomain .'.marmot.org' . '/sitemaps/' .$fileName;
-		// Append a new line char to the file
-                $current .= "\n";
-                //Append the site map index file url
-		$current .= $siteMap_Url . "\n";
-		// Write the contents back to the file
-		file_put_contents($file, $current);
+		// Append a new line char
+		echo "\n";
+		//Append the site map index file url
+		echo $siteMap_Url . "\n";
 	}
 }else {
-    echo("User-agent: *\r\nDisallow: /\r\n");
+	echo("User-agent: *\r\nDisallow: /\r\n");
 }
