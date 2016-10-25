@@ -99,15 +99,22 @@ class MyAccount_Masquerade extends MyAccount
 								case 'any' :
 									global $guidingUser;
 									$guidingUser = $user;
-									@session_start(); // (suppress notice if the session is already started)
-									$_SESSION['guidingUserId'] = $guidingUser->id;
 									// NOW login in as masquerade user
 									$_REQUEST['username'] = $masqueradedUser->cat_username;
 									$_REQUEST['password'] = $masqueradedUser->cat_password;
 									$user                 = UserAccount::login();
-									global $masqueradeMode;
-									$masqueradeMode = true;
-									return array('success' => true);
+									if (!empty($user) && !PEAR_Singleton::isError($user)){
+										@session_start(); // (suppress notice if the session is already started)
+										$_SESSION['guidingUserId'] = $guidingUser->id;
+										global $masqueradeMode;
+										$masqueradeMode = true;
+										return array('success' => true);
+									} else {
+										return array(
+											'success' => false,
+											'error'   => 'Failed to initiate masquerade as specified user.'
+										);
+									}
 							}
 						} else {
 							//TODO:  if Masqueraded user hasn't logged into Pika before, we need to look up the card number in the ILS
