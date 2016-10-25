@@ -71,7 +71,7 @@ class CarlX extends SIP2Driver{
 					}
 					$user->fullname     = isset($fullName) ? $fullName : '';
 					$user->cat_username = $username;
-					$user->cat_password = $password;
+					$user->cat_password = $result->Patron->PatronPIN;
 					$user->email        = $result->Patron->Email;
 
 					if ($userExistsInDB && $user->trackReadingHistory != $result->Patron->LoanHistoryOptInFlag) {
@@ -1466,21 +1466,10 @@ class CarlX extends SIP2Driver{
 
 
 	public function findNewUser($patronBarcode) {
-		//TODO: implement for authenicationMetod switch. Right now assuming barcode/pin
-		$request = new stdClass();
-		$request->SearchType = 'Patron ID';
-		$request->SearchID   = $patronBarcode;
-		$request->Modifiers  = '';
-
-		$result = $this->doSoapRequest('getPatronInformation', $request);
-		if ($result) {
-			if (isset($result->Patron)) {
-				$tmpPin = $result->PatronPIN;
-				$newUser = $this->patronLogin($patronBarcode, $tmpPin);
-				if (!empty($newUser) && !PEAR_Singleton::isError($newUser)) {
-					return $newUser;
-				}
-			}
+		// Use the validateViaSSO switch to bypass Pin check. If a user is found, patronLogin will return a new User object.
+		$newUser = $this->patronLogin($patronBarcode, null, true);
+		if (!empty($newUser) && !PEAR_Singleton::isError($newUser)) {
+			return $newUser;
 		}
 		return false;
 	}
