@@ -985,7 +985,6 @@ public class GroupedWorkIndexer {
 			}
 			if (ownershipCount == 1) //unique works
 				uniqueGroupedWorks.add(id);
-
 		}
 
 	}
