@@ -87,7 +87,7 @@ cd /usr/local/vufind-plus/sites/${PIKASERVER}; ./${PIKASERVER}.sh restart
 
 #Adams Ebrary DDA files
 /usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh adams/ebrary/DDA ebrary/adams/dda >> ${OUTPUT_FILE}
-cd /usr/local/marcMergeUtility; java -jar MarcMergeUtility.jar /data/vufind-plus/ebrary/adams/ddaMergeConfig.ini
+cd /usr/local/marcMergeUtility; java -jar MarcMergeUtility.jar /data/vufind-plus/ebrary/adams/ddaMergeConfig.ini >> ${OUTPUT_FILE}
 #TODO: set up for deletes, if/when those are recieved
 
 # CCU Ebsco Marc Updates
