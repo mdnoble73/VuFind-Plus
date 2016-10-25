@@ -2113,20 +2113,20 @@ class MarcRecord extends IndexRecord
 		return $links;
 	}
 
-	private function getSemanticData()
+	public function getSemanticData()
 	{
-
-		global $interface;
 		// Schema.org
 		// Get information about the record
-		$relatedRecords = $this->getGroupedWorkDriver()->getRelatedRecords();
+		// Ayub, in this method we just care about this specific record.  We can point to the parent, but wouldn't want to
+		// link to all other records for the work.
+		/*$relatedRecords = $this->getGroupedWorkDriver()->getRelatedRecords();
 		$workExamples = array();
 		foreach ($relatedRecords as $record) {
 			$workExamples[] = array(
 					'@type' => $record['format'],
 					'url' => $record['url'],
 			);
-		}
+		}*/
 
 
 		/*
@@ -2148,7 +2148,7 @@ class MarcRecord extends IndexRecord
 				'creator' => $this->getPrimaryAuthor(),
 				'bookEdition' => $this->getEdition(),
 				'isAccessibleForFree' => true,
-				'workExample' => $workExamples,
+				//'workExample' => $workExamples,
 				"offers" => $this->getRelatedOffers(),
 
 		);
