@@ -887,15 +887,25 @@ public class GroupedWorkSolr implements Cloneable {
 			}
 
 			if (updateTitle){
+				//Strip out anything in brackets unless that would cause us to show nothing
+				String tmpTitle = shortTitle.replaceAll("\\[.*?\\]", "").trim();
+				if (shortTitle.length() > 0){
+					shortTitle = tmpTitle;
+				}
+				//Remove common formats
+				tmpTitle = shortTitle.replaceAll("(?i)((?:a )?graphic novel|audio cd|book club kit|large print)$", "").trim();
+				if (tmpTitle.length() > 0){
+					shortTitle = tmpTitle;
+				}
 				this.title = shortTitle;
 				this.titleFormat = recordFormat;
 				//Strip out anything in brackets unless that would cause us to show nothing
-				String tmpTitle = sortableTitle.replaceAll("\\[.*?\\]", "").trim();
+				tmpTitle = sortableTitle.replaceAll("\\[.*?\\]", "").trim();
 				if (tmpTitle.length() > 0){
 					sortableTitle = tmpTitle;
 				}
 				//Remove common formats
-				tmpTitle = sortableTitle.replaceAll("(?i)((?:a )?graphic novel|audio cd|book club kit)$", "").trim();
+				tmpTitle = sortableTitle.replaceAll("(?i)((?:a )?graphic novel|audio cd|book club kit|large print)$", "").trim();
 				if (tmpTitle.length() > 0){
 					sortableTitle = tmpTitle;
 				}
@@ -909,7 +919,7 @@ public class GroupedWorkSolr implements Cloneable {
 					displayTitle = tmpTitle;
 				}
 				//Remove common formats
-				tmpTitle = displayTitle.replaceAll("(?i)((?:a )?graphic novel|audio cd|book club kit)$", "").trim();
+				tmpTitle = displayTitle.replaceAll("(?i)((?:a )?graphic novel|audio cd|book club kit|large print)$", "").trim();
 				if (tmpTitle.length() > 0){
 					displayTitle = tmpTitle;
 				}
