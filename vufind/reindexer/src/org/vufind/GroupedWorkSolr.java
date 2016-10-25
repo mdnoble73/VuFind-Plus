@@ -1453,29 +1453,19 @@ public class GroupedWorkSolr implements Cloneable {
 		}
 	}
 
-
-	private  int ownerShipCount;
-	public int getOwnerShipCount(){return  ownerShipCount;}
-	public int setOwnerShipCount(/*TreeMap<String, ScopedIndexingStats> indexingStats*/){
-		for (Scope scope: groupedWorkIndexer.getScopes()){
-			HashSet<RecordInfo> relatedRecordsForScope = new HashSet<>();
-			HashSet<ItemInfo> relatedItems = new HashSet<>();
-			loadRelatedRecordsAndItemsForScope(scope, relatedRecordsForScope, relatedItems);
-			if (relatedRecordsForScope.size() > 0){
-				/*ScopedIndexingStats stats = indexingStats.get(scope.getScopeName());
-*/
-				if (isLibraryOwned(relatedItems, scope)){
-					ownerShipCount++;
-				}
+	public boolean getIsLibraryOwned(Scope scope){
+		HashSet<RecordInfo> relatedRecordsForScope = new HashSet<>();
+		HashSet<ItemInfo> relatedItems = new HashSet<>();
+		loadRelatedRecordsAndItemsForScope(scope, relatedRecordsForScope, relatedItems);
+		if (relatedRecordsForScope.size() > 0){
+			if (isLibraryOwned(relatedItems, scope)){
+				return true;
 			}
 		}
-
-
-
-
-
-		return ownerShipCount;
+		return false;
 	}
+
+
 
 
 
