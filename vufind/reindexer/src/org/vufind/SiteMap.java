@@ -41,7 +41,7 @@ public class SiteMap {
                 Long locationId =librariesByHomeLocationRS.getLong("locationId");
                 Long libraryId = librariesByHomeLocationRS.getLong("libraryId");
                 if(!librariesByHomeLocation.containsKey(libraryId)){
-                    librariesByHomeLocation.put(libraryId, new ArrayList<>());
+                    librariesByHomeLocation.put(libraryId, new ArrayList<Long>());
                 }
                 librariesByHomeLocation.get(libraryId).add(locationId);
             }

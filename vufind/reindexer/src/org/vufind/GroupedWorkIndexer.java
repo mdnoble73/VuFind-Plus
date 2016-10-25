@@ -977,7 +977,7 @@ public class GroupedWorkIndexer {
 			for (Scope scope : this.getScopes()) {
 				if (scope.isLibraryScope() && groupedWork.getIsLibraryOwned(scope)) {
 					if (!siteMapsByScope.containsKey(scope)) {
-						siteMapsByScope.put(scope, new ArrayList<>());
+						siteMapsByScope.put(scope, new ArrayList<SiteMapGroup>());
 					}
 					siteMapsByScope.get(scope).add(new SiteMapGroup(id, permanentId, groupedWork.getPopularity()));
 					ownershipCount++;
