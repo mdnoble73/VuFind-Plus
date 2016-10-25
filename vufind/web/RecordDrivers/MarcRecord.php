@@ -2164,6 +2164,7 @@ class MarcRecord extends IndexRecord
 
 	function getRelatedOffers()
 	{
+		//Ayub, this won't use related manifestations, you will use the copies information for the related record
 		$relatedManifestations = $this->getGroupedWorkDriver()->getRelatedRecord($this->getUniqueID());
 		$offers = array();
 		foreach ($relatedManifestations as $key => $manifestation) {
