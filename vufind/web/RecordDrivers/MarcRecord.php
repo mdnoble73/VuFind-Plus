@@ -2164,8 +2164,7 @@ class MarcRecord extends IndexRecord
 
 	function getRelatedOffers()
 	{
-
-		$relatedManifestations = $this->getGroupedWorkDriver->getRelatedManifestations();
+		$relatedManifestations = $this->getGroupedWorkDriver()->getRelatedRecord($this->getUniqueID());
 		$offers = array();
 		foreach ($relatedManifestations as $key => $manifestation) {
 			$offer[] = array(
