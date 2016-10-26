@@ -114,18 +114,19 @@ class Genealogy_Results extends Action {
 			exit();
 		}
 
-		// TODO : Investigate this... do we still need
-		// If user wants to print record show directly print-dialog box
-		if (isset($_GET['print'])) {
-			$interface->assign('print', true);
-		}
-
 		// Set Interface Variables
 		//   Those we can construct BEFORE the search is executed
 		$interface->setPageTitle('Search Results');
 		$interface->assign('sortList',   $searchObject->getSortList());
 		$interface->assign('rssLink',    $searchObject->getRSSUrl());
 		$interface->assign('excelLink',  $searchObject->getExcelUrl());
+
+		$displayQuery = $searchObject->displayQuery();
+		$pageTitle = $displayQuery;
+		if (strlen($pageTitle) > 20){
+			$pageTitle = substr($pageTitle, 0, 20) . '...';
+		}
+		$pageTitle .= ' | Search Results';
 
 		$timer->logTime('Setup Search');
 
@@ -147,10 +148,8 @@ class Genealogy_Results extends Action {
 		$interface->assign('searchIndex',         $searchObject->getSearchIndex());
 
 		// We'll need recommendations no matter how many results we found:
-		$interface->assign('topRecommendations',
-		$searchObject->getRecommendationsTemplates('top'));
-		$interface->assign('sideRecommendations',
-		$searchObject->getRecommendationsTemplates('side'));
+		$interface->assign('topRecommendations', $searchObject->getRecommendationsTemplates('top'));
+		$interface->assign('sideRecommendations', $searchObject->getRecommendationsTemplates('side'));
 
 		// 'Finish' the search... complete timers and log search history.
 		$searchObject->close();
@@ -171,7 +170,7 @@ class Genealogy_Results extends Action {
 			// No record found
 			$interface->assign('sitepath', $configArray['Site']['path']);
 			$interface->assign('subpage', 'Genealogy/list-none.tpl');
-			$interface->setTemplate('list.tpl');
+			$interface->setTemplate('Genealogy/list.tpl');
 			$interface->assign('recordCount', 0);
 
 			// Was the empty result set due to an error?
@@ -179,13 +178,15 @@ class Genealogy_Results extends Action {
 			if ($error !== false) {
 				// If it's a parse error or the user specified an invalid field, we
 				// should display an appropriate message:
-				if (stristr($error, 'org.apache.lucene.queryParser.ParseException') ||
-				preg_match('/^undefined field/', $error)) {
-					$interface->assign('parseError', true);
+				if (stristr($error['msg'], 'org.apache.lucene.queryParser.ParseException')
+						|| preg_match('/^undefined field/', $error['msg'])
+						|| stristr($error['msg'], 'org.apache.solr.search.SyntaxError')
+						) {
+					$interface->assign('parseError', $error['msg']);
 
 					// Unexpected error -- let's treat this as a fatal condition.
 				} else {
-					PEAR_Singleton::raiseError(new PEAR_Error('Unable to process query<br>' . 'Solr Returned: ' . $error));
+					PEAR_Singleton::raiseError(new PEAR_Error('Unable to process query<br>' . 'Solr Returned: ' . $error['msg']));
 				}
 			}
 
@@ -199,6 +200,36 @@ class Genealogy_Results extends Action {
 			$interface->assign('recordCount', $summary['resultTotal']);
 			$interface->assign('recordStart', $summary['startRecord']);
 			$interface->assign('recordEnd',   $summary['endRecord']);
+
+			// Was the empty result set due to an error?
+			$error = $searchObject->getIndexError();
+			if ($error !== false) {
+				// If it's a parse error or the user specified an invalid field, we
+				// should display an appropriate message:
+				if (stristr($error['msg'], 'org.apache.lucene.queryParser.ParseException') || preg_match('/^undefined field/', $error['msg'])) {
+					$interface->assign('parseError', $error['msg']);
+
+					if (preg_match('/^undefined field/', $error['msg'])) {
+						// Setup to try as a possible subtitle search
+						$fieldName = trim(str_replace('undefined field', '', $error['msg'], $replaced)); // strip out the phrase 'undefined field' to get just the fieldname
+						$original = urlencode("$fieldName:");
+						if ($replaced === 1 && !empty($fieldName) && strpos($_SERVER['REQUEST_URI'], $original)) {
+							// ensure only 1 replacement was done, that the fieldname isn't an empty string, and the label is in fact in the Search URL
+							$new = urlencode("$fieldName :"); // include space in between the field name & colon to avoid the parse error
+							$thisUrl = str_replace($original, $new, $_SERVER['REQUEST_URI'], $replaced);
+							if ($replaced === 1) { // ensure only one modification was made
+								header("Location: " . $thisUrl);
+								exit();
+							}
+						}
+					}
+
+					// Unexpected error -- let's treat this as a fatal condition.
+				} else {
+					PEAR_Singleton::raiseError(new PEAR_Error('Unable to process query<br>' .
+							'Solr Returned: ' . print_r($error, true)));
+				}
+			}
 
 			$facetSet = $searchObject->getFacetList();
 			$interface->assign('facetSet',       $facetSet);
@@ -227,7 +258,7 @@ class Genealogy_Results extends Action {
 			// Setup Display
 			$interface->assign('sitepath', $configArray['Site']['path']);
 			$interface->assign('subpage', 'Genealogy/list-list.tpl');
-			$interface->setTemplate('list.tpl');
+			$interface->setTemplate('Genealogy/list.tpl');
 
 			// Process Paging
 			$link = $searchObject->renderLinkPageTemplate();
@@ -248,6 +279,6 @@ class Genealogy_Results extends Action {
 		// Done, display the page
 		$interface->assign('sectionLabel', 'Genealogy Database');
 		$interface->assign('sidebar', 'Search/results-sidebar.tpl');
-		$interface->display('layout.tpl');
+		$this->display($searchObject->getResultTotal() ? 'list.tpl' : 'list-none.tpl', $pageTitle, 'Search/results-sidebar.tpl');
 	} // End launch()
 }

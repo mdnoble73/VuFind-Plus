@@ -136,6 +136,7 @@ class SearchObject_Genealogy extends SearchObject_Base
 
 		// Debugging
 		$this->indexEngine->debug = $this->debug;
+		$this->indexEngine->debugSolrQuery = $this->debugSolrQuery;
 
 		$this->recommendIni = 'genealogySearches';
 
@@ -152,9 +153,6 @@ class SearchObject_Genealogy extends SearchObject_Base
 	 */
 	public function init()
 	{
-		global $module;
-		global $action;
-
 		// Call the standard initialization routine in the parent:
 		parent::init();
 
@@ -757,18 +755,18 @@ class SearchObject_Genealogy extends SearchObject_Base
 		//  (page - 1) * limit = start
 		$recordStart = ($this->page - 1) * $this->limit;
 		$this->indexResult = $this->indexEngine->search(
-		$this->query,      // Query string
-		$this->index,      // DisMax Handler
-		$filterQuery,      // Filter query
-		$recordStart,      // Starting record
-		$this->limit,      // Records per page
-		$facetSet,         // Fields to facet on
-		$spellcheck,       // Spellcheck query
-		$this->dictionary, // Spellcheck dictionary
-		$finalSort,        // Field to sort on
-		$this->fields,     // Fields to return
-		$this->method,     // HTTP Request method
-		$returnIndexErrors // Include errors in response?
+			$this->query,      // Query string
+			$this->index,      // DisMax Handler
+			$filterQuery,      // Filter query
+			$recordStart,      // Starting record
+			$this->limit,      // Records per page
+			$facetSet,         // Fields to facet on
+			$spellcheck,       // Spellcheck query
+			$this->dictionary, // Spellcheck dictionary
+			$finalSort,        // Field to sort on
+			$this->fields,     // Fields to return
+			$this->method,     // HTTP Request method
+			$returnIndexErrors // Include errors in response?
 		);
 
 		// Get time after the query
@@ -797,6 +795,17 @@ class SearchObject_Genealogy extends SearchObject_Base
 			foreach($this->recommend as $currentSet) {
 				foreach($currentSet as $current) {
 					$current->process();
+				}
+			}
+		}
+
+		//Add debug information to the results if available
+		if ($this->debug && isset($this->indexResult['debug'])){
+			$explainInfo = $this->indexResult['debug']['explain'];
+			foreach ($this->indexResult['response']['docs'] as $key => $result){
+				if (array_key_exists($result['id'], $explainInfo)){
+					$result['explain'] = $explainInfo[$result['id']];
+					$this->indexResult['response']['docs'][$key] = $result;
 				}
 			}
 		}
@@ -1001,7 +1010,9 @@ class SearchObject_Genealogy extends SearchObject_Base
 		$list = array();
 
 		// If we have no facets to process, give up now
-		if (!is_array($this->indexResult['facet_counts']['facet_fields']) && !is_array($this->indexResult['facet_counts']['facet_dates'])) {
+		if (!isset($this->indexResult['facet_counts'])){
+			return $list;
+		}elseif (!is_array($this->indexResult['facet_counts']['facet_fields']) && !is_array($this->indexResult['facet_counts']['facet_dates'])) {
 			return $list;
 		}
 
@@ -1307,5 +1318,10 @@ class SearchObject_Genealogy extends SearchObject_Base
 		$params[] = 'searchSource='  . $_REQUEST['searchSource'];
 
 		return $params;
+	}
+
+	public function setPrimarySearch($flag){
+		parent::setPrimarySearch($flag);
+		$this->indexEngine->isPrimarySearch = $flag;
 	}
 }

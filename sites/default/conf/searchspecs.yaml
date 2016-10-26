@@ -617,7 +617,7 @@ GenealogyKeyword:
   DismaxFields:
     - keywords
   QueryFields:
-    - keywords
+    - keywords:
       - [onephrase, 100]
 
 GenealogyName:
