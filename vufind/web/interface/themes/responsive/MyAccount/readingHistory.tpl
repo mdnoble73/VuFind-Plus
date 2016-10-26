@@ -19,7 +19,7 @@
 
 	<br>
 
-		{if $masqueradeMode}
+		{if $masqueradeMode && !$allowReadingHistoryDisplayInMasqueradeMode}
 			<div class="row">
 				<div class="alert alert-warning">
 					Display of the patron's reading history is disabled in Masquerade Mode.
@@ -36,7 +36,8 @@
 		</div>
 	</div>
 
-	{if !$masqueradeMode}
+	{if !$masqueradeMode || ($masqueradeMode && $allowReadingHistoryDisplayInMasqueradeMode)}
+		{* Do not display Reading History in Masquerade Mode, unless the library has allowed it *}
 	<form id="readingListForm" action="{$fullPath}" class="form-inline">
 
 		{* Reading History Actions *}
