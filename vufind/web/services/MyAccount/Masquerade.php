@@ -52,9 +52,40 @@ class MyAccount_Masquerade extends MyAccount
 							if ($masqueradedUser->id == $user->id) {
 								return array(
 									'success' => false,
-									'error'   => 'No need to masquerade as yourself.'
+									'error' => 'No need to masquerade as yourself.'
 								);
 							}
+						} else {
+
+							// Check for another ILS with a different login configuration
+							$accountProfile = new AccountProfile();
+							$accountProfile->groupBy('loginConfiguration');
+							$numConfigurations = $accountProfile->count('loginConfiguration');
+							if ($numConfigurations > 1) {
+								// Now that we know there is more than loginConfiguration type, check the opposite column
+								$masqueradedUser = new User();
+								if ($user->getAccountProfile()->loginConfiguration == 'barcode_pin') {
+									$masqueradedUser->cat_password = $libraryCard;
+								} else {
+									$masqueradedUser->cat_username = $libraryCard;
+								}
+								$masqueradedUser->find(true);
+							}
+
+							if ($masqueradedUser->N == 0) {
+								// Test for a user that hasn't logged into Pika before
+								$masqueradedUser = UserAccount::findNewUser($libraryCard);
+								if (!$masqueradedUser) {
+									return array(
+										'success' => false,
+										'error' => 'Invalid User'
+									);
+								}
+							}
+						}
+
+						// Now that we have found the masqueraded User, check Masquerade Levels
+						if ($masqueradedUser) {
 							switch ($user->getMasqueradeLevel()) {
 								case 'location' :
 									if (empty($user->homeLocationId)) {
@@ -117,16 +148,7 @@ class MyAccount_Masquerade extends MyAccount
 									}
 							}
 						} else {
-							//TODO:  if Masqueraded user hasn't logged into Pika before, we need to look up the card number in the ILS
-							if (0) {
-								// Card Number in ILS
 
-							} else {
-								return array(
-									'success' => false,
-									'error'   => 'Invalid User'
-								);
-							}
 						}
 					} else {
 						return array(

@@ -180,25 +180,29 @@ class IndexingProfile extends DB_DataObject{
 			if (!isset($this->translationMaps)){
 				//Get the list of translation maps
 				$this->translationMaps = array();
-				$translationMap = new TranslationMap();
-				$translationMap->indexingProfileId = $this->id;
-				$translationMap->orderBy('name ASC');
-				$translationMap->find();
-				while($translationMap->fetch()){
-					$this->translationMaps[$translationMap->id] = clone($translationMap);
+				if ($this->id) { // When this is a new Indexing Profile, there are no maps yet.
+					$translationMap = new TranslationMap();
+					$translationMap->indexingProfileId = $this->id;
+					$translationMap->orderBy('name ASC');
+					$translationMap->find();
+					while($translationMap->fetch()){
+						$this->translationMaps[$translationMap->id] = clone($translationMap);
+					}
 				}
 			}
 			return $this->translationMaps;
 		}else if ($name == "timeToReshelve") {
-			if (!isset($this->timeToReshelve)){
+			if (!isset($this->timeToReshelve)) {
 				//Get the list of translation maps
 				$this->timeToReshelve = array();
-				$timeToReshelve = new TimeToReshelve();
-				$timeToReshelve->indexingProfileId = $this->id;
-				$timeToReshelve->orderBy('weight ASC');
-				$timeToReshelve->find();
-				while($timeToReshelve->fetch()){
-					$this->timeToReshelve[$timeToReshelve->id] = clone($timeToReshelve);
+				if ($this->id) { // When this is a new Indexing Profile, there are no maps yet.
+					$timeToReshelve                    = new TimeToReshelve();
+					$timeToReshelve->indexingProfileId = $this->id;
+					$timeToReshelve->orderBy('weight ASC');
+					$timeToReshelve->find();
+					while ($timeToReshelve->fetch()) {
+						$this->timeToReshelve[$timeToReshelve->id] = clone($timeToReshelve);
+					}
 				}
 			}
 			return $this->timeToReshelve;

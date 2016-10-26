@@ -71,7 +71,7 @@ class CarlX extends SIP2Driver{
 					}
 					$user->fullname     = isset($fullName) ? $fullName : '';
 					$user->cat_username = $username;
-					$user->cat_password = $password;
+					$user->cat_password = $result->Patron->PatronPIN;
 					$user->email        = $result->Patron->Email;
 
 					if ($userExistsInDB && $user->trackReadingHistory != $result->Patron->LoanHistoryOptInFlag) {
@@ -1231,7 +1231,8 @@ class CarlX extends SIP2Driver{
 						$freeze = false;
 					}
 
-					$in = $mySip->freezeSuspendHold($dateToReactivate, $freeze, '', '1', '', $holdId, 'N', $pickupLocation);
+//					$in = $mySip->freezeSuspendHold($dateToReactivate, $freeze, '', '1', '', $holdId, 'N', $pickupLocation);
+					$in = $mySip->freezeSuspendHold($dateToReactivate, $freeze, '', '2', '', $holdId, 'N', $pickupLocation);
 //				$in = $mySip->freezeHoldCarlX($dateToReactivate, $holdId);
 					$msg_result = $mySip->get_message($in);
 
@@ -1463,5 +1464,14 @@ class CarlX extends SIP2Driver{
 		return $temp;
 	}
 
+
+	public function findNewUser($patronBarcode) {
+		// Use the validateViaSSO switch to bypass Pin check. If a user is found, patronLogin will return a new User object.
+		$newUser = $this->patronLogin($patronBarcode, null, true);
+		if (!empty($newUser) && !PEAR_Singleton::isError($newUser)) {
+			return $newUser;
+		}
+		return false;
+	}
 
 }

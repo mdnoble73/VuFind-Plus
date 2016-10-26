@@ -76,6 +76,12 @@ class UserAccount {
 				if ($guidingUser === false || isset($_REQUEST['reload'])){
 					$guidingUser = new User();
 					$guidingUser->get($_SESSION['guidingUserId']);
+					if (!$guidingUser) {
+						global $logger;
+						$logger->log('Invalid Guiding User ID in session variable: '. $_SESSION['guidingUserId'], PEAR_LOG_ERR);
+						$masqueradeMode = false;
+						unset($_SESSION['guidingUserId']); // session_start(); session_commit(); probably needed for this to take effect, but might have other side effects
+					}
 				}
 			}
 
@@ -374,5 +380,25 @@ class UserAccount {
 			$timer->logTime("Loaded Account Profiles");
 		}
 		return $accountProfiles;
+	}
+
+
+	/**
+	 * Look up in ILS for a user that has never logged into Pika before, based on the patron's barcode.
+	 *
+	 * @param $patronBarcode
+	 */
+	public static function findNewUser($patronBarcode){
+		$driversToTest = self::loadAccountProfiles();
+		foreach ($driversToTest as $driverName => $driverData){
+			$catalogConnectionInstance = CatalogFactory::getCatalogConnectionInstance($driverData['driver'], $driverData['accountProfile']);
+			if (method_exists($catalogConnectionInstance->driver, 'findNewUser')) {
+				$tmpUser = $catalogConnectionInstance->driver->findNewUser($patronBarcode);
+				if (!empty($tmpUser) && !PEAR_Singleton::isError($tmpUser)) {
+					return $tmpUser;
+				}
+			}
+		}
+		return false;
 	}
 }
