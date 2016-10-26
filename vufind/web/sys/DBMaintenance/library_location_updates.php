@@ -1416,5 +1416,13 @@ function getLibraryLocationUpdates(){
 						'ALTER TABLE `library` ADD COLUMN `allowMasqueradeMode` TINYINT(1) DEFAULT "0";',
 					)
 			),
+
+			'allow_reading_history_display_in_masquerade_mode' => array(
+					'title' => 'Library Option to enable staff users in Masquerade Mode to view the masqueraded patron\'s Reading History.',
+					'description' => 'Allow display of Reading History in Masquerade Mode for staff users.',
+					'sql' => array(
+						'ALTER TABLE `library` ADD COLUMN `allowReadingHistoryDisplayInMasqueradeMode` TINYINT(1) DEFAULT "0";',
+					)
+			),
 	);
 }
