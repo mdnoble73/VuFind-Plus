@@ -23,12 +23,8 @@ class Admin_TranslationMaps extends ObjectEditor {
 				$interface->assign('mapName', $translationMap->name);
 			}
 			$interface->assign('id', $id);
-			$shortPageTitle = "Import Translation Map Data";
-			$interface->assign('shortPageTitle', $shortPageTitle);
-			$interface->setTemplate('../Admin/importTranslationMapData.tpl');
-			$interface->assign('sidebar', 'MyAccount/account-sidebar.tpl');
-			$interface->setPageTitle($shortPageTitle);
-			$interface->display('layout.tpl');
+			$interface->assign('additionalObjectActions', $this->getAdditionalObjectActions($translationMap));
+			$this->display('../Admin/importTranslationMapData.tpl', 'Import Translation Map Data');
 			exit();
 		}elseif($objectAction == 'doAppend' || $objectAction == 'doReload'){
 			$id = $_REQUEST['id'];
@@ -87,10 +83,8 @@ class Admin_TranslationMaps extends ObjectEditor {
 			if ($translationMap->find(true)){
 				$interface->assign('id', $id);
 				$interface->assign('translationMapValues', $translationMap->translationMapValues);
-				$interface->setTemplate('../Admin/viewTranslationMapAsIni.tpl');
-				$interface->assign('sidebar', 'MyAccount/account-sidebar.tpl');
-				$interface->setPageTitle("View Translation Map Data");
-				$interface->display('layout.tpl');
+				$interface->assign('additionalObjectActions', $this->getAdditionalObjectActions($translationMap));
+				$this->display('../Admin/viewTranslationMapAsIni.tpl', 'View Translation Map Data');
 				exit();
 			}else{
 				$interface->assign('error', "Sorry we could not find a translation map with that id");

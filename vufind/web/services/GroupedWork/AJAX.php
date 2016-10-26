@@ -354,9 +354,12 @@ class GroupedWork_AJAX {
 		$workReview->userId = $user->id;
 		if ($workReview->find(true)) {
 			if ($rating != $workReview->rating){ // update gives an error if the rating value is the same as stored.
-			$workReview->rating = $rating;
-			$success = $workReview->update();
-			} else $success = true; // pretend success since rating is already set to same value.
+				$workReview->rating = $rating;
+				$success = $workReview->update();
+			} else {
+				// pretend success since rating is already set to same value.
+				$success = true;
+			}
 		} else {
 			$workReview->rating = $rating;
 			$workReview->review = '';  // default value required for insert statements //TODO alter table structure, null should be default value.
@@ -368,7 +371,9 @@ class GroupedWork_AJAX {
 			global $analytics;
 			$analytics->addEvent('User Enrichment', 'Rate Title', $_REQUEST['id']);
 			return json_encode(array('rating'=>$rating));
-		} else return json_encode(array('error'=>'Unable to save your rating.'));
+		} else {
+			return json_encode(array('error'=>'Unable to save your rating.'));
+		}
 	}
 
 	function getReviewInfo(){
@@ -992,7 +997,7 @@ class GroupedWork_AJAX {
 		global $configArray;
 		$id = $_REQUEST['id'];
 		$recordDriver = new GroupedWorkDriver($id);
-		
+
 		//Reload small cover
 		$smallCoverUrl = $configArray['Site']['coverUrl'] . $recordDriver->getBookcoverUrl('small') . '&reload';
 		$ret = file_get_contents($smallCoverUrl);
@@ -1000,7 +1005,7 @@ class GroupedWork_AJAX {
 		//Reload medium cover
 		$mediumCoverUrl = $configArray['Site']['coverUrl'] . $recordDriver->getBookcoverUrl('medium') . '&reload';
 		$ret = file_get_contents($mediumCoverUrl);
-		
+
 		//Reload large cover
 		$largeCoverUrl = $configArray['Site']['coverUrl'] . $recordDriver->getBookcoverUrl('large') . '&reload';
 		$ret = file_get_contents($largeCoverUrl);
