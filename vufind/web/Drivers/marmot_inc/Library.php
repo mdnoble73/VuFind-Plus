@@ -191,6 +191,7 @@ class Library extends DB_DataObject
 	public $showPikaLogo;
 	public $masqueradeAutomaticTimeoutLength;
 	public $allowMasqueradeMode;
+	public $allowReadingHistoryDisplayInMasqueradeMode;
 
 	// Use this to set which details will be shown in the the Main Details section of the record view.
 	// You should be able to add options here without needing to change the database.
@@ -333,8 +334,6 @@ class Library extends DB_DataObject
 				'showExpirationWarnings'               => array('property'=>'showExpirationWarnings', 'type'=>'checkbox', 'label'=>'Show Expiration Warnings', 'description'=>'Whether or not the user should be shown expiration warnings if their card is nearly expired.', 'hideInLists' => true, 'default' => 1),
 				'enableMaterialsBooking'               => array('property'=>'enableMaterialsBooking', 'type'=>'checkbox', 'label'=>'Enable Materials Booking', 'description'=>'Check to enable integration of Sierra\'s Materials Booking module.', 'hideInLists' => true, 'default' => 0),
 				'allowLinkedAccounts'                  => array('property'=>'allowLinkedAccounts', 'type'=>'checkbox', 'label'=>'Allow Linked Accounts', 'description' => 'Whether or not users can link multiple library cards under a single Pika account.', 'hideInLists' => true, 'default' => 1),
-				'allowMasqueradeMode'                  => array('property'=>'allowMasqueradeMode', 'type'=>'checkbox', 'label'=>'Allow Masquerade Mode', 'description' => 'Whether or not staff users (depending on pType setting) can use Masquerade Mode.', 'hideInLists' => true, 'default' => false),
-				'masqueradeAutomaticTimeoutLength'     => array('property'=>'masqueradeAutomaticTimeoutLength', 'type'=>'integer', 'label'=>'Masquerade Mode Automatic Timeout Length', 'description'=>'The length of time before an idle user\'s Masquerade session automatically ends in seconds.', 'size'=>'8', 'hideInLists' => true, 'max' => 240),
 				'showLibraryHoursNoticeOnAccountPages' => array('property'=>'showLibraryHoursNoticeOnAccountPages', 'type'=>'checkbox', 'label'=>'Show Library Hours Notice on Account Pages', 'description'=>'Whether or not the Library Hours notice should be shown at the top of My Account\'s Checked Out, Holds and Bookings pages.', 'hideInLists' => true, 'default'=>true),
 				'pTypesSection'                        => array('property' => 'pTypesSectionSection', 'type' => 'section', 'label' => 'P-Types', 'hideInLists' => true,
 						'helpLink'=>'https://docs.google.com/document/d/1SmCcWYIV8bnUEaGu4HYvyiF8iqOKt06ooBbJukkJdO8','properties' => array(
@@ -388,6 +387,12 @@ class Library extends DB_DataObject
 					'selfRegistrationFormMessage'    => array('property'=>'selfRegistrationFormMessage', 'type'=>'html', 'label'=>'Self Registration Form Message', 'description'=>'Message shown to users with the form to submit the self registration.  Leave blank to give users the default message.', 'hideInLists' => true),
 					'selfRegistrationSuccessMessage' => array('property'=>'selfRegistrationSuccessMessage', 'type'=>'html', 'label'=>'Self Registration Success Message', 'description'=>'Message shown to users when the self registration has been completed successfully.  Leave blank to give users the default message.', 'hideInLists' => true),
 					'selfRegistrationTemplate'       => array('property'=>'selfRegistrationTemplate', 'type'=>'text', 'label'=>'Self Registration Template', 'description'=>'The ILS template to use during self registration (Sierra and Millennium).', 'hideInLists' => true, 'default' => 'default'),
+				)),
+				'masqueradeModeSection' => array('property' => 'masqueradeModeSection', 'type' => 'section', 'label' => 'Masquerade Mode', 'hideInLists' => true,
+				                                  'properties' => array(
+					'allowMasqueradeMode'                        => array('property'=>'allowMasqueradeMode', 'type'=>'checkbox', 'label'=>'Allow Masquerade Mode', 'description' => 'Whether or not staff users (depending on pType setting) can use Masquerade Mode.', 'hideInLists' => true, 'default' => false),
+					'masqueradeAutomaticTimeoutLength'           => array('property'=>'masqueradeAutomaticTimeoutLength', 'type'=>'integer', 'label'=>'Masquerade Mode Automatic Timeout Length', 'description'=>'The length of time before an idle user\'s Masquerade session automatically ends in seconds.', 'size'=>'8', 'hideInLists' => true, 'max' => 240),
+					'allowReadingHistoryDisplayInMasqueradeMode' => array('property'=>'allowReadingHistoryDisplayInMasqueradeMode', 'type'=>'checkbox', 'label'=>'Allow Display of Reading History in Masquerade Mode', 'description'=>'This option allows Guiding Users to view the Reading History of the masqueraded user.', 'hideInLists' => true, 'default' => false),
 				)),
 			)),
 

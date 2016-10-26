@@ -1017,7 +1017,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		String itemLocationCode =  itemInfo.getLocationCode();
 		if (nonHoldableLocations != null && itemLocationCode != null && itemLocationCode.length() > 0){
 			if (!locationsThatHaveHoldabilityChecked.containsKey(itemLocationCode)){
-				locationsThatHaveHoldabilityChecked.put(itemItypeCode, !nonHoldableLocations.matcher(itemLocationCode).matches());
+				locationsThatHaveHoldabilityChecked.put(itemLocationCode, !nonHoldableLocations.matcher(itemLocationCode).matches());
 			}
 			if (!locationsThatHaveHoldabilityChecked.get(itemLocationCode)){
 				return new HoldabilityInformation(false, new HashSet<Long>());
