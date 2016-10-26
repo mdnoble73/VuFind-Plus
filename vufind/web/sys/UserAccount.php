@@ -308,6 +308,10 @@ class UserAccount {
 	 */
 	public static function softLogout(){
 		if (isset($_SESSION['activeUserId'])){
+			if (isset($_SESSION['guidingUserId'])){
+				// Shouldn't end up here while in Masquerade Mode, but if does happen end masquerading as well
+				unset($_SESSION['guidingUserId']);
+			}
 			unset($_SESSION['activeUserId']);
 			global $user;
 			if ($user && $user->loggedInViaCAS){
