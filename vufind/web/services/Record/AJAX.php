@@ -478,8 +478,15 @@ class Record_AJAX extends Action {
 							'title'   => isset($return['title']) ? $return['title'] : '',
 						);
 						if (isset($_REQUEST['autologout'])) {
-							UserAccount::softLogout();
+							global $masqueradeMode;
+							if ($masqueradeMode) {
+								require_once ROOT_DIR . '/services/MyAccount/Masquerade.php';
+								MyAccount_Masquerade::endMasquerade();
+							} else {
+								UserAccount::softLogout();
+							}
 							$results['autologout'] = true;
+							unset($_REQUEST['autologout']); // Prevent entering the second auto log out code-block below.
 						}
 					}
 				}
@@ -492,7 +499,13 @@ class Record_AJAX extends Action {
 
 			if (isset($_REQUEST['autologout']) && !(isset($results['needsItemLevelHold']) && $results['needsItemLevelHold'])) {
 				// Only go through the auto-logout when the holds process is completed. Item level holds require another round of interaction with the user.
-				UserAccount::softLogout();
+				global $masqueradeMode;
+				if ($masqueradeMode) {
+					require_once ROOT_DIR . '/services/MyAccount/Masquerade.php';
+					MyAccount_Masquerade::endMasquerade();
+				} else {
+					UserAccount::softLogout();
+				}
 				$results['autologout'] = true;
 			}
 		} else {
