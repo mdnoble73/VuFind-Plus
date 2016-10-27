@@ -2113,172 +2113,124 @@ class MarcRecord extends IndexRecord
 		return $links;
 	}
 
-	public function getSemanticData()
-	{
-		// Schema.org
-		// Get information about the record
-		// Ayub, in this method we just care about this specific record.  We can point to the parent, but wouldn't want to
-		// link to all other records for the work.
-		/*$relatedRecords = $this->getGroupedWorkDriver()->getRelatedRecords();
-		$workExamples = array();
-		foreach ($relatedRecords as $record) {
-			$workExamples[] = array(
-					'@type' => $record['format'],
-					'url' => $record['url'],
-			);
-		}*/
+ 
 
-
-		/*
-		 *
-		 * The specific type of the work will be determined based on the format of the record. The following Types may be used:
-		 * Book
-		 * Game
-		 * Map
-		 * Movie
-		 * MusicAlbum
-		 * CreativeWork
-		 *
-		 */
-
-		$semanticData [] = array(
-				'@context' => 'http://schema.org',
-				'@type' => $this->getPrimaryFormat(),//     'CreativeWork',/*TODO: This should change to a more specific Book/Movies as applicable*/
-				'name' => $this->getTitleSection(),
-				'creator' => $this->getPrimaryAuthor(),
-				'bookEdition' => $this->getEdition(),
-				'isAccessibleForFree' => true,
-				//'workExample' => $workExamples,
-				"offers" => $this->getRelatedOffers(),
-
-		);
-
-
-		//$interface->assign('semanticData', json_encode($semanticData));
-
-		/* $this->display('marcRecord.tpl', $location->displayName); */
-
-		return $semanticData;
-	}
-
-
-	function getRelatedOffers()
-	{
-		//Ayub, this won't use related manifestations, you will use the copies information for the related record
-		$relatedManifestations = $this->getGroupedWorkDriver()->getRelatedRecord($this->getUniqueID());
-		$offers = array();
-		foreach ($relatedManifestations as $key => $manifestation) {
-			$offer[] = array(
-					"availableAtOrFrom" => $this->getBranchUrl(), //Branch that owns the work(),
-					"availability" => $this->getAvailability($manifestation),
-					'availableDeliveryMethod' => $this->getDeliveryMethod($manifestation),
-					"itemOffered" => $this->getLinkUrl(), //URL to the record
-					"offeredBy" => $this->getLibraryUrl(), //URL to the library that owns the item
-					"price" => '0',
-					"@type" => $key,
-					"@bookFormat" => $this->getBookFormat($manifestation)
-			);
-		}
-		return $offers;
-	}
-
-
-	function getLibraryUrl()
-	{
-		global $configArray;
-		$offerBy = array();
-		$library = Library::getSearchLibrary();
-		$location = Location::getSearchLocation();
-		$offerBy[] = array(
-				"@type" => "Library",
-				"@id" => $configArray['Site']['url'] . "/Library/{$location->libraryId}/System",
-				"name" => $library->displayName
-		);
-		return $offerBy;
-	}
-
-
-	function getBranchUrl()
-	{
-		global $configArray;
-		$offerBy = array();
-		$library = Library::getSearchLibrary();
-		$location = Location::getSearchLocation();
-		$offerBy[] = array(
-
-            "@type" => "Library Branch",
-            "@id" => $configArray['Site']['url'] . "/Library/{$location->libraryId}/Branch",
-            "name" => $library->displayName
-        );
-        return $offerBy;
-    }
-
-
-	function getDeliveryMethod($manifestation)
-	{
-		if ($manifestation['isEContent']) {
-			return 'DeliveryModeDirectDownload';
-		} else {
-			return 'DeliveryModePickUp';
-		}
-	}
-
-    function getBookFormat($manifestation)
+    public function getSemanticData()
     {
-
+    	// Schema.org
+    	// Get information about the record
+    	$semanticData [] = array(
+    			'@context' => 'http://schema.org',
+    			'@type' => $this->getPrimaryFormat(),
+    			'name' => $this->getTitleSection(),
+    			'creator' => $this->getPrimaryAuthor(),
+    			'bookEdition' => $this->getEdition(),
+    			'isAccessibleForFree' => true,
+    			"offers" => $this->getOffers(),
+    	);
+    	return $semanticData;
+    }
+    function getOffers()
+    {
+        $relatedRecord = $this->getGroupedWorkDriver()->getRelatedRecord($this->getUniqueID());
+    	$offers = array();
+    		$offers[] = array(
+    				"availableAtOrFrom" => $this->getBranchUrl(), //Branch that owns the work(),
+    				"availability" => $this->getAvailability(),
+    				'availableDeliveryMethod' => $this->getDeliveryMethod(),
+    				"itemOffered" => $this->getLinkUrl(), //URL to the record
+    				"offeredBy" => $this->getLibraryUrl(), //URL to the library that owns the item
+    				"price" => '0',
+    				"@type" => $relatedRecord['format'],
+    				"@bookFormat" => $this->getBookFormat()
+    		);
+    
+    	return $offers;
+    }
+    function getLibraryUrl()
+    {
+    	global $configArray;
+    	$offerBy = array();
+    	$library = Library::getSearchLibrary();
+    	$location = Location::getSearchLocation();
+    	$offerBy[] = array(
+    			"@type" => "Library",
+    			"@id" => $configArray['Site']['url'] . "/Library/{$location->libraryId}/System",
+    			"name" => $location->displayName
+    	);
+    	return $offerBy;
+    }
+    function getBranchUrl()
+    {
+    	global $configArray;
+    	$offerBy = array();
+    	$library = Library::getSearchLibrary();
+    	$location = Location::getSearchLocation();
+    	$offerBy[] = array(
+    			"@type" => "Library Branch",
+    			"@id" => $configArray['Site']['url'] . "/Library/{$location->libraryId}/Branch",
+    			"name" => $library->displayName
+    	);
+    	return $offerBy;
+    }
+    function getDeliveryMethod()
+    {
+        $relatedRecord = $this->getGroupedWorkDriver()->getRelatedRecord($this->getUniqueID());
+    	if ($relatedRecord['isEContent']) {
+    		return 'DeliveryModeDirectDownload';
+    	} else {
+    		return 'DeliveryModePickUp';
+    	}
+    }
+    function getBookFormat()
+    {
         /* AudiobookFormat
-		EBook
-		Hardcover
-		Paperback */
-        if ($manifestation ['format'] == 'eAudiobook')
-            return BookFormatType::AudiobookFormat;
-
-        if ($manifestation ['formatCategory'] == 'eBook')
-            return BookFormatType::EBook;
-
+            EBook
+            Hardcover
+            Paperback */
         //TODO: Complete this section
-        if ($manifestation ['formatCategory'] == 'eBook')
+        $relatedRecord = $this->getGroupedWorkDriver()->getRelatedRecord($this->getUniqueID());
+        if ($relatedRecord ['format'] == 'eAudiobook')
+            return BookFormatType::AudiobookFormat;
+        if ($relatedRecord ['formatCategory'] == 'eBook')
             return BookFormatType::EBook;
+        else {
 
+        }
+        return BookFormatType::Hardcover;
     }
-
-
-    function getAvailability($manifestation)
+    function getAvailability()
     {
-        if ($manifestation['inLibraryUseOnly']) {
-            return 'InStoreOnly';
-        }
-
-        if ($manifestation['availableOnline']) {
-            return 'OnlineOnly';
-        }
-
-        if ($manifestation['localAvailableCopies'] > 0) {
-            return 'InStock';
-        }
-
-        if ($manifestation['groupedStatus'] != '') {
-            $ranking = $manifestation['groupedStatus'];
-            $availability = '';
-            switch ($ranking) {
-                case 4:
-                    $availability = 'OutOfStock';
-                    break;
-                case 2:
-                case 3.5:
-                    $availability = 'PreOrder';
-                    break;
-                case 1:
-                    $availability = 'Discontinued';
-                    break;
-            }
-
-            return $availability;
-        }
-
-        return "";
-
+        $relatedRecord = $this->getGroupedWorkDriver()->getRelatedRecord($this->getUniqueID());
+    	if ($relatedRecord['inLibraryUseOnly']) {
+    		return 'InStoreOnly';
+    	}
+    	if ($relatedRecord['availableOnline']) {
+    		return 'OnlineOnly';
+    	}
+    	if ($relatedRecord['localAvailableCopies'] > 0) {
+    		return 'InStock';
+    	}
+    	if ($relatedRecord['groupedStatus'] != '') {
+    		$ranking = $relatedRecord['groupedStatus'];
+    		$availability = '';
+    		switch ($ranking) {
+    			case 4:
+    				$availability = 'OutOfStock';
+    				break;
+    			case 2:
+    			case 3.5:
+    				$availability = 'PreOrder';
+    				break;
+    			case 1:
+    				$availability = 'Discontinued';
+    				break;
+    		}
+    		return $availability;
+    	}
+    	return "";
     }
+    
 }
 
 
