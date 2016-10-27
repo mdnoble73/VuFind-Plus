@@ -601,9 +601,11 @@ public class GroupedWorkIndexer {
 		File dataDir = new File(configIni.get("SiteMap", "filePath"));
 		String maxPopTitlesDefault = configIni.get("SiteMap", "num_titles_in_most_popular_sitemap");
 		String maxUniqueTitlesDefault = configIni.get("SiteMap", "num_title_in_unique_sitemap");
+		String url = configIni.get("Site", "url");
 		try {
-			SiteMap siteMap = new SiteMap(logger, vufindConn,Integer.parseInt(maxUniqueTitlesDefault), Integer.parseInt(maxPopTitlesDefault) );
-			siteMap.createSiteMap(dataDir, siteMapsByScope, uniqueGroupedWorks/*, locationScopes*/);
+			SiteMap siteMap = new SiteMap(logger, vufindConn, Integer.parseInt(maxUniqueTitlesDefault), Integer.parseInt(maxPopTitlesDefault));
+			siteMap.createSiteMaps(url, dataDir, siteMapsByScope, uniqueGroupedWorks);
+
 		} catch (IOException ex) {
 			logger.error("Error creating site map");
 		}
@@ -985,7 +987,6 @@ public class GroupedWorkIndexer {
 			}
 			if (ownershipCount == 1) //unique works
 				uniqueGroupedWorks.add(id);
-
 		}
 
 	}
