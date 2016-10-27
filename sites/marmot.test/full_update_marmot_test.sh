@@ -88,7 +88,7 @@ cd /usr/local/vufind-plus/sites/${PIKASERVER}; ./${PIKASERVER}.sh restart
 #Adams Ebrary DDA files
 /usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh adams/ebrary/DDA ebrary/adams/dda >> ${OUTPUT_FILE}
 cd /usr/local/marcMergeUtility; java -jar MarcMergeUtility.jar /data/vufind-plus/ebrary/adams/ddaMergeConfig.ini >> ${OUTPUT_FILE}
-#TODO: set up for deletes, if/when those are recieved
+#TODO: set up for deletes, if/when those are received
 
 # CCU Ebsco Marc Updates
 /usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh ebsco_ccu ebsco/ccu >> ${OUTPUT_FILE}
@@ -130,6 +130,9 @@ cd /usr/local/marcMergeUtility; java -jar MarcMergeUtility.jar /data/vufind-plus
 # (EVLD, Vail)
 #Extracts for sideloaded eContent; settings defined in config.pwd.ini [Sideload]
 cd /usr/local/vufind-plus/vufind/cron; ./sideload.sh ${PIKASERVER}
+
+# Merge Vail Lynda.com
+cd /usr/local/marcMergeUtility; java -jar MarcMergeUtility.jar /data/vufind-plus/lynda/vail/mergeConfig.ini >> ${OUTPUT_FILE}
 
 
 #Do a full extract from OverDrive just once a week to catch anything that doesn't
