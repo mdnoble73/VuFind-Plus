@@ -7,12 +7,12 @@ fi
 
 if [[ ( "$1" == "stop" ) || ( "$1" == "restart") ]]
 	then
-		../default/solr/bin/solr stop -p 8181 -d "/usr/local/vufind-plus/sites/default/solr/jetty"
-		../default/solr/bin/solr stop -p 8081 -d "/usr/local/vufind-plus/sites/default/solr/jetty"
+		../default/solr/bin/solr stop -p 8180 -d "/usr/local/vufind-plus/sites/default/solr/jetty"
+		../default/solr/bin/solr stop -p 8080 -d "/usr/local/vufind-plus/sites/default/solr/jetty"
 fi
 
 if [[ ( "$1" == "start" ) || ( "$1" == "restart") ]]
 	then
-		../default/solr/bin/solr start -m 4g -p 8181 -s "/data/vufind-plus/aspencat.test/solr_master" -d "/usr/local/vufind-plus/sites/default/solr/jetty"
-		../default/solr/bin/solr start -m 4g -p 8081 -a "-Dsolr.masterport=8181" -s "/data/vufind-plus/aspencat.test/solr_searcher" -d "/usr/local/vufind-plus/sites/default/solr/jetty"
+		../default/solr/bin/solr start -m 4g -p 8180 -s "/data/vufind-plus/aspencat.test/solr_master" -d "/usr/local/vufind-plus/sites/default/solr/jetty"
+		../default/solr/bin/solr start -m 4g -p 8080 -a "-Dsolr.masterport=8181" -s "/data/vufind-plus/aspencat.test/solr_searcher" -d "/usr/local/vufind-plus/sites/default/solr/jetty"
 fi
