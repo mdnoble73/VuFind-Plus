@@ -11,6 +11,8 @@
 require_once 'bootstrap.php';
 global $configArray;
 global $library;
+global $serverName;
+global $interface;
 if ($configArray['Site']['isProduction']){
 	echo(@file_get_contents('robots.txt'));
 
@@ -23,8 +25,9 @@ if ($configArray['Site']['isProduction']){
 		$file = 'robots.txt';
 		// Open the file to get existing content
 		$current = file_get_contents($file);
-		$fileName = $subdomain . '.marmot.org' . '.xml';
-		$siteMap_Url = 'sitemap: https' . '://' . $subdomain .'.marmot.org' . '/sitemaps/' .$fileName;
+
+		$fileName = $subdomain . '.xml';
+		$siteMap_Url = 'Sitemap: ' . $configArray['Site']['url'] . '/sitemaps/' .$fileName;
 		// Append a new line char
 		echo "\n";
 		//Append the site map index file url

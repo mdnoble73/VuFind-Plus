@@ -92,7 +92,7 @@ public class GroupedReindexMain {
 		long numListsProcessed = 0;
 		try {
 			GroupedWorkIndexer groupedWorkIndexer = new GroupedWorkIndexer(serverName, vufindConn, econtentConn, configIni, fullReindex, individualWorkToProcess != null, logger);
-			HashMap<Scope, ArrayList<SiteMapGroup>>siteMapsByScope =   new HashMap<>();
+			HashMap<Scope, ArrayList<SiteMapEntry>> siteMapsByScope = new HashMap<>();
 			HashSet<Long> uniqueGroupedWorks = new HashSet<>();
 			if (groupedWorkIndexer.isOkToIndex()) {
 				if (individualWorkToProcess != null) {

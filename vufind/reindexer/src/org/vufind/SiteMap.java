@@ -13,327 +13,284 @@ import java.sql.SQLException;
 import java.util.*;
 
 /**
+ * Creates Sitemaps for publication to Google and other search engines.
+ * This class contains information to build all of the sitemaps for all scopes.
+ *
  * Created by jabedo on 9/23/2016.
  */
-public class SiteMap {
+class SiteMap {
 
-    private Logger logger;
-    private final String org = "marmot.org";
-    private int maxPopularTitles;
-    private int maxUniqueTitles;
-    private Connection vufindConn;
-    private HashMap<Long, ArrayList<Long>> librariesByHomeLocation ;
-    public SiteMap(Logger log, Connection connection, int maxUnique, int maxPopular) {
-        this.logger = log;
-        this.vufindConn = connection;
-        this.maxPopularTitles = maxPopular;
-        this.maxUniqueTitles = maxUnique;
-        librariesByHomeLocation = new HashMap<>();
-        prepareLocationIds();
-    }
+	private Logger logger;
+	private int maxPopularTitles;
+	private int maxUniqueTitles;
+	private Connection vufindConn;
+	private HashMap<Long, ArrayList<Long>> librariesByHomeLocation;
+	private ArrayList<SiteMapEntry> uniqueItemsToWrite;
+	private int fileID;
+	private int countTracker;
+	private int currentSiteMapCount;
+	private Long libraryIdToWrite;
+	private String scopeName;
+	private String filePath;
+	private final int maxGoogleSiteMapCount = 50000;
 
-    private void prepareLocationIds(){
+	SiteMap(Logger log, Connection connection, int maxUnique, int maxPopular) {
+		this.logger = log;
+		this.vufindConn = connection;
+		this.maxPopularTitles = maxPopular;
+		this.maxUniqueTitles = maxUnique;
+		librariesByHomeLocation = new HashMap<>();
+		prepareLocationIds();
+	}
 
-        try{
-            PreparedStatement getLibraryForHomeLocation = vufindConn.prepareStatement("SELECT libraryId, locationId from location");
-            ResultSet librariesByHomeLocationRS = getLibraryForHomeLocation.executeQuery();
-            while (librariesByHomeLocationRS.next()){
-                Long locationId =librariesByHomeLocationRS.getLong("locationId");
-                Long libraryId = librariesByHomeLocationRS.getLong("libraryId");
-                if(!librariesByHomeLocation.containsKey(libraryId)){
-                    librariesByHomeLocation.put(libraryId, new ArrayList<Long>());
-                }
-                librariesByHomeLocation.get(libraryId).add(locationId);
-            }
-            librariesByHomeLocationRS.close();
-        }catch (Exception ex){
-            logger.info("Unable to get location Ids");
-        }
+	private void prepareLocationIds() {
+		try {
+			PreparedStatement getLibraryForHomeLocation = vufindConn.prepareStatement("SELECT libraryId, locationId from location");
+			ResultSet librariesByHomeLocationRS = getLibraryForHomeLocation.executeQuery();
+			while (librariesByHomeLocationRS.next()) {
+				Long locationId = librariesByHomeLocationRS.getLong("locationId");
+				Long libraryId = librariesByHomeLocationRS.getLong("libraryId");
+				if (!librariesByHomeLocation.containsKey(libraryId)) {
+					librariesByHomeLocation.put(libraryId, new ArrayList<Long>());
+				}
+				librariesByHomeLocation.get(libraryId).add(locationId);
+			}
+			librariesByHomeLocationRS.close();
+		} catch (Exception ex) {
+			logger.error("Unable to get location Ids");
+		}
+	}
 
-    }
+	private void resetSiteMapDefaults() {
+		fileID = 1;
+		countTracker = 0;
+		currentSiteMapCount = 0;
+	}
 
-    private  ArrayList<SiteMapGroup> uniqueItemsToWrite;
-    private int fileID;
-    private int countTracker;
-    private int currentSiteMapCount;
-    private Long libraryIdToWrite;
-    private String scopeName;
-    private String filePath;
-    private String url;
-    private final int maxGoogleSiteMapCount = 50000;
+	void createSiteMaps(String baseUrl, File dataDir, HashMap<Scope, ArrayList<SiteMapEntry>> siteMapsByScope,
+	                           HashSet<Long> uniqueGroupedWorks) throws IOException {
 
-    private void siteMapDefaults() {
-        fileID = 1;
-        countTracker = 0;
-        currentSiteMapCount = 0;
-    }
+		//create a site maps directory if it doesn't exist
+		if (!dataDir.exists()) {
+			if (!dataDir.mkdirs()) {
+				logger.error("Could not create site map directory");
+				throw new IOException("Could not create site map directory");
+			}
+		}
+		//update the variables table
+		updateVariablesTable();
+		//create site map index file
+		filePath = dataDir.getPath();
+		Date date = new Date();
+		boolean isSSL = baseUrl.startsWith("https");
+		String urlWithoutProtocol = baseUrl.replace(isSSL ? "https://" : "http://", "");
 
-
-    public void createSiteMaps(String url, File dataDir, HashMap<Scope, ArrayList<SiteMapGroup>> siteMapsByScope,
-                                HashSet<Long> uniqueGroupedWorks) throws IOException {
-
-        //create a site maps directory if it doesn't exist
-        if (!dataDir.exists()) {
-            if (!dataDir.mkdirs()) {
-                logger.error("Could not create site map directory");
-                throw new IOException("Could not create site map directory");
-            }
-        }
-        //update the variables table
-        updateVariablesTable();
-       //create site map index file
-        filePath = dataDir.getPath();
-        this.url = url;
-        Date date = new Date();
-        Iterator it = siteMapsByScope.entrySet().iterator();
-        while (it.hasNext()) {
-            SiteMapIndex siteMapIndex = new SiteMapIndex(logger);
-
-            Map.Entry pair = (Map.Entry) it.next();
-            Scope scope = (Scope) pair.getKey();
-            scopeName = scope.getScopeName();
-            libraryIdToWrite = scope.getLibraryId();
-
-            ArrayList<SiteMapGroup> siteMapGroups = (ArrayList<SiteMapGroup>)pair.getValue();
-            //separate the site maps into unique and popular
-            ArrayList<SiteMapGroup> unique = new ArrayList<>();
-            SortedSet<SiteMapGroup> popular = new TreeSet<>();
-            regroupSiteMapGroups(unique, popular, siteMapGroups, uniqueGroupedWorks);
-
-            uniqueItemsToWrite = unique;
-            siteMapDefaults();
-            String fileName = buildSiteMapFileName("_unique_", fileID);
-            writeToFile(fileName, "_unique_", true, maxUniqueTitles);
-            siteMapIndex.addSiteMapLocation(buildLocationURL(siteMapFileName("_unique_")), date.toString());
-
-            uniqueItemsToWrite = new ArrayList<SiteMapGroup>(popular);
-            siteMapDefaults();
-            fileName = buildSiteMapFileName("_popular_", fileID);
-            writeToFile(fileName, "_popular_", false, maxPopularTitles);
-            siteMapIndex.addSiteMapLocation(buildLocationURL(siteMapFileName("_popular_")), date.toString());
-
-            File siteMapindexFile = getSiteMapIndexFile();
-            siteMapIndex.saveFile(siteMapindexFile);
+		for (Scope scope : siteMapsByScope.keySet()) {
+			SiteMapIndex siteMapIndex = new SiteMapIndex(logger);
+			scopeName = scope.getScopeName();
 
 
-            it.remove();
-        }
-    }
+			String scopedUrl = isSSL ? "https://" : "http://";
+			scopedUrl += scopeName;
+			String[] urlParts = urlWithoutProtocol.split("\\.");
+			for (int i = (urlParts.length == 2 ? 0 : 1); i < urlParts.length; i++){
+				scopedUrl += "." + urlParts[i];
+			}
+
+			libraryIdToWrite = scope.getLibraryId();
+
+			ArrayList<SiteMapEntry> siteMapEntries = siteMapsByScope.get(scope);
+
+			//separate the site maps into unique and popular
+			ArrayList<SiteMapEntry> unique = new ArrayList<>();
+			SortedSet<SiteMapEntry> popular = new TreeSet<>();
+			regroupSiteMapGroups(unique, popular, siteMapEntries, uniqueGroupedWorks);
+
+			uniqueItemsToWrite = unique;
+			resetSiteMapDefaults();
+			String fileName = buildSiteMapFileName("_unique_", fileID);
+			writeToFile(fileName, "_unique_", true, maxUniqueTitles, scopedUrl);
+			siteMapIndex.addSiteMapLocation(buildLocationURL(siteMapFileName("_unique_", 1), scopedUrl), date.toString());
+
+			uniqueItemsToWrite = new ArrayList<>(popular);
+			resetSiteMapDefaults();
+			fileName = buildSiteMapFileName("_popular_", fileID);
+			writeToFile(fileName, "_popular_", false, maxPopularTitles, scopedUrl);
+			siteMapIndex.addSiteMapLocation(buildLocationURL(siteMapFileName("_popular_", 1), scopedUrl), date.toString());
+
+			File siteMapindexFile = getSiteMapIndexFile();
+			siteMapIndex.saveFile(siteMapindexFile);
+		}
+	}
 
 
-    private void writeToFile(String fileName, String fileType, Boolean writeLibraryAndBranches, int maxTitles ) {
+	private void writeToFile(String fileName, String fileType, Boolean writeLibraryAndBranches, int maxTitles, String scopedUrl) {
 
-        BufferedWriter writer = null;
-        try {
-            File outputFile = new File(fileName);
-            if (outputFile.exists())
-                outputFile.delete();
+		BufferedWriter writer = null;
+		try {
+			File outputFile = new File(fileName);
+			logger.info("creating .." + fileName);
+			FileWriter fw = new FileWriter(outputFile.getAbsoluteFile(), false);
+			writer = new BufferedWriter(fw);
+			//add system
+			countTracker++;
 
-            outputFile.createNewFile();
-            logger.info("creating .." + fileName);
-            FileWriter fw = new FileWriter(outputFile.getAbsoluteFile());
-            writer = new BufferedWriter(fw);
-            //add system
-            countTracker++;
+			if (writeLibraryAndBranches) {
 
-            if (writeLibraryAndBranches) {
+				String librarySystemUrl = buildBranchUrl("System", Long.toString(libraryIdToWrite), scopedUrl);
+				writer.write(librarySystemUrl);
+				writer.newLine();
 
-                String baseUrl = buildBranchUrl("System", Long.toString(libraryIdToWrite));
-                writer.write(baseUrl);
-                writer.newLine();
+				//add library branches?
+				ArrayList<Long> branches = librariesByHomeLocation.get(libraryIdToWrite);
+				for (Long libId : branches) {
+					String branchUrl = buildBranchUrl("Branch", Long.toString(libId), scopedUrl);
+					writer.write(branchUrl);
+					writer.newLine();
+					countTracker++;
+				}
+			}
 
-                //add library branches?
-                ArrayList<Long> branches = librariesByHomeLocation.get(libraryIdToWrite);
-                for (Long libId : branches) {
-                    baseUrl = buildBranchUrl("Branch", Long.toString(libId));
-                    writer.write(baseUrl);
-                    writer.newLine();
-                    countTracker++;
-                }
-            }
+			for (int i = currentSiteMapCount; i < uniqueItemsToWrite.size(); i++) {
+				SiteMapEntry siteMapEntry = uniqueItemsToWrite.get(i);
 
-            for (int i = currentSiteMapCount; i < uniqueItemsToWrite.size(); i++) {
-                SiteMapGroup siteMapGroup = uniqueItemsToWrite.get(i);
+				if (i >= maxTitles)
+					break;
 
-                if(i >= maxTitles)
-                    break;
-
-                if (countTracker <= maxGoogleSiteMapCount) {
-                    writer.write(buildGroupedWorkSiteMap(siteMapGroup.getPermanentId()));
-                    writer.newLine();
-                    countTracker++;
-                } else {
-                    fileID++;
-                    currentSiteMapCount = i + 1;
-                    countTracker = 0;
-                    fileName = buildSiteMapFileName(fileType, fileID);
-                    writeToFile(fileName, fileType, false, maxTitles);
-                }
-            }
-            logger.info("created: " + fileName);
-        } catch (IOException ex) {
-            logger.error("Could not create unique works file");
-            logger.error("Error creating: " + fileName);
-        } finally {
-            try {
-                writer.close();
-            } catch (Exception ex) {
-                /*ignore*/
-            }
-        }
-    }
+				if (countTracker <= maxGoogleSiteMapCount) {
+					writer.write(buildGroupedWorkSiteMap(siteMapEntry.getPermanentId(), scopedUrl));
+					writer.newLine();
+					countTracker++;
+				} else {
+					fileID++;
+					currentSiteMapCount = i + 1;
+					countTracker = 0;
+					fileName = buildSiteMapFileName(fileType, fileID);
+					writeToFile(fileName, fileType, false, maxTitles, scopedUrl);
+				}
+			}
+			logger.info("created: " + fileName);
+		} catch (IOException ex) {
+			logger.error("Could not create unique works file");
+			logger.error("Error creating: " + fileName);
+		} finally {
+			try {
+				if (writer != null) {
+					writer.close();
+				}
+			} catch (Exception ex) {
+				logger.error("Could not close writer for : " + fileName, ex);
+			}
+		}
+	}
 
 
-    ///regroups the works into unique and sorted popular works
-    private void regroupSiteMapGroups( ArrayList<SiteMapGroup> unique ,SortedSet<SiteMapGroup> popular, ArrayList<SiteMapGroup> siteMapGroups,HashSet<Long> uniqueGroupedWorks ){
+	///regroups the works into unique and sorted popular works
+	private void regroupSiteMapGroups(ArrayList<SiteMapEntry> unique, SortedSet<SiteMapEntry> popular, ArrayList<SiteMapEntry> siteMapEntries, HashSet<Long> uniqueGroupedWorks) {
 
-        for(int i = 0; i < siteMapGroups.size(); i++){
-            SiteMapGroup siteMapGroup =siteMapGroups.get(i);
-            if( uniqueGroupedWorks.contains(siteMapGroup.getId())){
-                unique.add(siteMapGroup);
-            }
-            else{
-                popular.add(siteMapGroup);
-            }
-        }
-    }
+		for (SiteMapEntry siteMapEntry : siteMapEntries) {
+			if (uniqueGroupedWorks.contains(siteMapEntry.getId())) {
+				unique.add(siteMapEntry);
+			} else {
+				popular.add(siteMapEntry);
+			}
+		}
+	}
 
-    private StringBuilder baseUrl() {
-        StringBuilder builder = new StringBuilder();
-        builder.append("https://")
-                .append(scopeName)
-                .append(".")
-                .append(org);
-        return builder;
-    }
-
-    private String buildLocationURL(String fileName) {
-        StringBuilder builder = baseUrl();
-        builder.append("/")
-                .append("sitemaps")
-                .append("/")
-                .append(fileName);
-        return builder.toString();
-    }
+	private String buildLocationURL(String fileName, String scopedUrl) {
+		return scopedUrl +
+				"/" +
+				"sitemaps" +
+				"/" +
+				fileName;
+	}
 
 
+	private File getSiteMapIndexFile() {
+		return new File(buildSiteMapIndexFile());
+	}
 
-    private File getSiteMapIndexFile() {
-        try {
+	private String buildSiteMapIndexFile() {
 
-            File outputFile = new File(buildSiteMapIndexFile());
-            if (outputFile.exists())
-                outputFile.delete();
+		return filePath +
+				"/" +
+				scopeName +
+				".xml";
+	}
 
-            outputFile.createNewFile();
-            return outputFile;
-        } catch (IOException ex) {
-            logger.error("unable to create sitemaps index file");
-        }
-        return null;
-    }
+	private String buildSiteMapFileName(String fileTypeName, int fileID) {
+		return filePath + "\\" + siteMapFileName(fileTypeName, fileID);
+	}
 
-    private String buildSiteMapIndexFile() {
-
-        StringBuilder builder = new StringBuilder();
-        builder.append(filePath)
-                .append("\\")
-                .append(scopeName)
-                .append(".")
-                .append(org)
-                .append(".xml");
-
-        return builder.toString();
-    }
-
-    private String buildSiteMapFileName(String fileTypeName, int fileID) {
-        return filePath + "\\" + siteMapFileName(fileTypeName, fileID);
-    }
-    private String siteMapFileName(String fileTypeName) {
-        StringBuilder builder = new StringBuilder();
-        builder.append(scopeName)
-                .append(".")
-                .append(org)
-                .append(fileTypeName)
-                .append(String.format("%1$03d", fileID))
-                .append(".txt");
-
-        return builder.toString();
-    }
-
-    private String siteMapFileName(String fileTypeName, int fileID) {
-        StringBuilder builder = new StringBuilder();
-        builder.append(scopeName)
-                .append(".")
-                .append(org)
-                .append(fileTypeName)
-                .append(String.format("%1$03d", fileID))
-                .append(".txt");
-
-        return builder.toString();
-    }
+	private String siteMapFileName(String fileTypeName, int fileID) {
+		return scopeName +
+				fileTypeName +
+				String.format("%1$03d", fileID) +
+				".txt";
+	}
 
 
-    private String buildBranchUrl(String branch, String branchID) {
-        //https://adams.marmot.org/Library/1/Branch
-        //https://adams.marmot.org/Library/1/System
-        StringBuilder builder = baseUrl();
-        builder.append("/")
-                .append("Library")
-                .append("/")
-                .append(branchID)
-                .append("/")
-                .append(branch);
-        return builder.toString();
-    }
+	private String buildBranchUrl(String branch, String branchID, String scopedUrl) {
+		//https://adams.marmot.org/Library/1/Branch
+		//https://adams.marmot.org/Library/1/System
+		return scopedUrl +
+				"/" +
+				"Library" +
+				"/" +
+				branchID +
+				"/" +
+				branch;
+	}
 
-    private String buildGroupedWorkSiteMap(String id) {
-        //https://adams.marmot.org/GroupedWork/24d6b52f-05de-a6d5-fc01-89ccefd7356e/Home -- example
-        StringBuilder builder = baseUrl();
-        builder.append("/GroupedWork/")
-                .append(id)
-                .append("/")
-                .append("Home");
-        return builder.toString();
-    }
+	private String buildGroupedWorkSiteMap(String id, String scopedUrl) {
+		//https://adams.marmot.org/GroupedWork/24d6b52f-05de-a6d5-fc01-89ccefd7356e/Home -- example
+		return scopedUrl +
+				"/GroupedWork/" +
+				id +
+				"/" +
+				"Home";
+	}
 
-    private void updateVariablesTable() {
+	private void updateVariablesTable() {
 
-        try {
+		try {
 
-            maxUniqueTitles = addRowToVariablesTable("num_title_in_unique_sitemap", maxUniqueTitles);
-            maxPopularTitles = addRowToVariablesTable("num_titles_in_most_popular_sitemap", maxPopularTitles);
+			maxUniqueTitles = getVariableValue("num_title_in_unique_sitemap", maxUniqueTitles);
+			maxPopularTitles = getVariableValue("num_titles_in_most_popular_sitemap", maxPopularTitles);
 
-        } catch (SQLException ignored) {
+		} catch (SQLException ignored) {
 
-        }
-    }
+		}
+	}
 
-    private int addRowToVariablesTable(String variableName, int value) throws SQLException {
+	private int getVariableValue(String variableName, int defaultValue) throws SQLException {
+		ResultSet rs = null;
+		try {
+			PreparedStatement st = vufindConn.prepareStatement("SELECT value from variables WHERE name = ?");
+			st.setString(1, variableName);
+			rs = st.executeQuery();
 
-        try {
-            PreparedStatement st = vufindConn.prepareStatement("SELECT value from variables WHERE name = ?");
-            st.setString(1, variableName);
-            ResultSet rs = st.executeQuery();
+			if (rs != null && rs.next()) {
+				return Integer.parseInt(rs.getString("value"));
+			}
 
-            if (rs != null && rs.next()) {
-                return Integer.parseInt(rs.getString("value"));
-            }
+			PreparedStatement insertVariableStmt = vufindConn.prepareStatement("INSERT INTO variables (`name`, `value`) VALUES ('" + variableName + "', ?)");
+			insertVariableStmt.setString(1, Long.toString(defaultValue));
+			insertVariableStmt.executeUpdate();
+			insertVariableStmt.close();
 
-            PreparedStatement insertVariableStmt = vufindConn.prepareStatement("INSERT INTO variables (`name`, `value`) VALUES ('" + variableName + "', ?)");
-            insertVariableStmt.setString(1, Long.toString(value));
-            insertVariableStmt.executeUpdate();
-            insertVariableStmt.close();
+			return defaultValue;
 
-            return value;
-
-        } catch (Exception ex) {
+		} catch (Exception ex) {
             /*ignore*/
-        } finally {
-          /*ignore*/
-        }
-        return 0;
-    }
+		} finally {
+			/*ignore*/
+			if (rs != null){
+				rs.close();
+			}
+		}
+		return 0;
+	}
 
 }
 

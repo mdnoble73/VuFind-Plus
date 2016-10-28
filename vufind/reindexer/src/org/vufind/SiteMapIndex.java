@@ -16,11 +16,13 @@ import javax.xml.transform.stream.StreamResult;
 import java.io.File;
 
 /**
+ * Write an index of all possible sitemaps.
+ *
  * Created by jabedo on 10/3/2016.
  */
-public class SiteMapIndex {
-    //example from google
-    /* <?xml version="1.0" encoding="UTF-8"?>
+class SiteMapIndex {
+	//example from google
+	  /* <?xml version="1.0" encoding="UTF-8"?>
     <sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <sitemap>
        <loc>http://www.example.com/sitemap1.xml.gz</loc>
@@ -32,47 +34,47 @@ public class SiteMapIndex {
     </sitemap>
     </sitemapindex>*/
 
-    private Document doc;
-    private Element rootElement;
-    private Logger logger;
+	private Document doc;
+	private Element rootElement;
+	private Logger logger;
 
-    public SiteMapIndex(Logger log) {
-        this.logger = log;
-        try {
-            DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
-            DocumentBuilder docBuilder = docFactory.newDocumentBuilder();
-            doc = docBuilder.newDocument();
-            rootElement = doc.createElement("sitemapindex");
-            doc.appendChild(rootElement);
-        } catch (ParserConfigurationException ex) {
-            logger.error("Unable to create site map index");
-        }
-    }
+	SiteMapIndex(Logger log) {
+		this.logger = log;
+		try {
+			DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
+			DocumentBuilder docBuilder = docFactory.newDocumentBuilder();
+			doc = docBuilder.newDocument();
+			rootElement = doc.createElement("sitemapindex");
+			doc.appendChild(rootElement);
+		} catch (ParserConfigurationException ex) {
+			logger.error("Unable to create site map index");
+		}
+	}
 
-    public void addSiteMapLocation(String location, String dateModified) {
-        Element sitemap = doc.createElement("sitemap");
-        rootElement.appendChild(sitemap);
-        Element loc = doc.createElement("loc");
-        loc.appendChild(doc.createTextNode(location));
+	void addSiteMapLocation(String location, String dateModified) {
+		Element sitemap = doc.createElement("sitemap");
+		rootElement.appendChild(sitemap);
+		Element loc = doc.createElement("loc");
+		loc.appendChild(doc.createTextNode(location));
 
-        Element lastmod = doc.createElement("lastmod");
-        lastmod.appendChild(doc.createTextNode(dateModified));
+		Element lastmod = doc.createElement("lastmod");
+		lastmod.appendChild(doc.createTextNode(dateModified));
 
-        sitemap.appendChild(loc);
-        sitemap.appendChild(lastmod);
+		sitemap.appendChild(loc);
+		sitemap.appendChild(lastmod);
 
-    }
+	}
 
-    public void saveFile(File file) {
-        try {
-            TransformerFactory transformerFactory = TransformerFactory.newInstance();
-            Transformer transformer = transformerFactory.newTransformer();
-            DOMSource source = new DOMSource(doc);
-            StreamResult result = new StreamResult(file/*new File("/Users/myXml/ScoreDetail.xml")*/);
-            transformer.transform(source, result);
-        } catch (TransformerException ex) {
-            logger.error("Unable to save site map index");
-        }
-    }
+	void saveFile(File file) {
+		try {
+			TransformerFactory transformerFactory = TransformerFactory.newInstance();
+			Transformer transformer = transformerFactory.newTransformer();
+			DOMSource source = new DOMSource(doc);
+			StreamResult result = new StreamResult(file/*new File("/Users/myXml/ScoreDetail.xml")*/);
+			transformer.transform(source, result);
+		} catch (TransformerException ex) {
+			logger.error("Unable to save site map index");
+		}
+	}
 
 }

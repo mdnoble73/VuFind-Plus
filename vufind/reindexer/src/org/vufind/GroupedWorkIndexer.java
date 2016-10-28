@@ -1,6 +1,5 @@
 package org.vufind;
 
-import au.com.bytecode.opencsv.CSVReader;
 import au.com.bytecode.opencsv.CSVWriter;
 import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.impl.BinaryRequestWriter;
@@ -596,7 +595,7 @@ public class GroupedWorkIndexer {
 		}
 	}
 
-	public void createSiteMaps(HashMap<Scope, ArrayList<SiteMapGroup>>siteMapsByScope, HashSet<Long> uniqueGroupedWorks ) {
+	void createSiteMaps(HashMap<Scope, ArrayList<SiteMapEntry>>siteMapsByScope, HashSet<Long> uniqueGroupedWorks ) {
 
 		File dataDir = new File(configIni.get("SiteMap", "filePath"));
 		String maxPopTitlesDefault = configIni.get("SiteMap", "num_titles_in_most_popular_sitemap");
@@ -612,7 +611,7 @@ public class GroupedWorkIndexer {
 	}
 
 
-	public void finishIndexing(){
+	void finishIndexing(){
 		GroupedReindexMain.addNoteToReindexLog("Finishing indexing");
 		logger.info("Finishing indexing");
 		if (fullReindex) {
@@ -827,7 +826,7 @@ public class GroupedWorkIndexer {
 		}
 	}
 
-	public Long processGroupedWorks(HashMap<Scope, ArrayList<SiteMapGroup>> siteMapsByScope, HashSet<Long> uniqueGroupedWorks) {
+	public Long processGroupedWorks(HashMap<Scope, ArrayList<SiteMapEntry>> siteMapsByScope, HashSet<Long> uniqueGroupedWorks) {
 		Long numWorksProcessed = 0L;
 		try {
 			PreparedStatement getAllGroupedWorks;
@@ -892,7 +891,7 @@ public class GroupedWorkIndexer {
 		return numWorksProcessed;
 	}
 
-	public void processGroupedWork(Long id, String permanentId, String grouping_category, HashMap<Scope, ArrayList<SiteMapGroup>> siteMapsByScope, HashSet<Long> uniqueGroupedWorks) throws SQLException {
+	public void processGroupedWork(Long id, String permanentId, String grouping_category, HashMap<Scope, ArrayList<SiteMapEntry>> siteMapsByScope, HashSet<Long> uniqueGroupedWorks) throws SQLException {
 		//Create a solr record for the grouped work
 		GroupedWorkSolr groupedWork = new GroupedWorkSolr(this, logger);
 		groupedWork.setId(permanentId);
@@ -979,9 +978,9 @@ public class GroupedWorkIndexer {
 			for (Scope scope : this.getScopes()) {
 				if (scope.isLibraryScope() && groupedWork.getIsLibraryOwned(scope)) {
 					if (!siteMapsByScope.containsKey(scope)) {
-						siteMapsByScope.put(scope, new ArrayList<SiteMapGroup>());
+						siteMapsByScope.put(scope, new ArrayList<SiteMapEntry>());
 					}
-					siteMapsByScope.get(scope).add(new SiteMapGroup(id, permanentId, groupedWork.getPopularity()));
+					siteMapsByScope.get(scope).add(new SiteMapEntry(id, permanentId, groupedWork.getPopularity()));
 					ownershipCount++;
 				}
 			}
