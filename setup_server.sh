@@ -33,6 +33,8 @@ if [ $# = 1 ];then
   cd /data
   mkdir vufind-plus
   cd vufind-plus
+  echo "creating accelerated reader data folder"
+  mkdir accelerated_reader
   mkdir $HOST
   cd $HOST
   cp -rp $WD/data_dir_setup/* .
