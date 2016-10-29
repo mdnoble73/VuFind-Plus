@@ -2113,124 +2113,24 @@ class MarcRecord extends IndexRecord
 		return $links;
 	}
 
- 
-
-    public function getSemanticData()
+     public function getSemanticData()
     {
     	// Schema.org
     	// Get information about the record
+        require_once ROOT_DIR . '/RecordDrivers/LDRecordOffer.php';
+        $linkedDataRecord = new LDRecordOffer($this->getGroupedWorkDriver()->getRelatedRecord($this->getUniqueID()));
     	$semanticData [] = array(
     			'@context' => 'http://schema.org',
-    			'@type' => $this->getPrimaryFormat(),
+    			'@type' => $linkedDataRecord->getWorkType(),
     			'name' => $this->getTitleSection(),
     			'creator' => $this->getPrimaryAuthor(),
     			'bookEdition' => $this->getEdition(),
     			'isAccessibleForFree' => true,
-    			"offers" => $this->getOffers(),
+    			"offers" => $linkedDataRecord->getOffers()
     	);
     	return $semanticData;
     }
-    function getOffers()
-    {
-        $relatedRecord = $this->getGroupedWorkDriver()->getRelatedRecord($this->getUniqueID());
-    	$offers = array();
-    		$offers[] = array(
-    				"availableAtOrFrom" => $this->getBranchUrl(), //Branch that owns the work(),
-    				"availability" => $this->getAvailability(),
-    				'availableDeliveryMethod' => $this->getDeliveryMethod(),
-    				"itemOffered" => $this->getLinkUrl(), //URL to the record
-    				"offeredBy" => $this->getLibraryUrl(), //URL to the library that owns the item
-    				"price" => '0',
-    				"@type" => $relatedRecord['format'],
-    				"@bookFormat" => $this->getBookFormat()
-    		);
-    
-    	return $offers;
-    }
-    function getLibraryUrl()
-    {
-    	global $configArray;
-    	$offerBy = array();
-    	$library = Library::getSearchLibrary();
-    	$location = Location::getSearchLocation();
-    	$offerBy[] = array(
-    			"@type" => "Library",
-    			"@id" => $configArray['Site']['url'] . "/Library/{$location->libraryId}/System",
-    			"name" => $location->displayName
-    	);
-    	return $offerBy;
-    }
-    function getBranchUrl()
-    {
-    	global $configArray;
-    	$offerBy = array();
-    	$library = Library::getSearchLibrary();
-    	$location = Location::getSearchLocation();
-    	$offerBy[] = array(
-    			"@type" => "Library Branch",
-    			"@id" => $configArray['Site']['url'] . "/Library/{$location->libraryId}/Branch",
-    			"name" => $library->displayName
-    	);
-    	return $offerBy;
-    }
-    function getDeliveryMethod()
-    {
-        $relatedRecord = $this->getGroupedWorkDriver()->getRelatedRecord($this->getUniqueID());
-    	if ($relatedRecord['isEContent']) {
-    		return 'DeliveryModeDirectDownload';
-    	} else {
-    		return 'DeliveryModePickUp';
-    	}
-    }
-    function getBookFormat()
-    {
-        /* AudiobookFormat
-            EBook
-            Hardcover
-            Paperback */
-        //TODO: Complete this section
-        $relatedRecord = $this->getGroupedWorkDriver()->getRelatedRecord($this->getUniqueID());
-        if ($relatedRecord ['format'] == 'eAudiobook')
-            return BookFormatType::AudiobookFormat;
-        if ($relatedRecord ['formatCategory'] == 'eBook')
-            return BookFormatType::EBook;
-        else {
 
-        }
-        return BookFormatType::Hardcover;
-    }
-    function getAvailability()
-    {
-        $relatedRecord = $this->getGroupedWorkDriver()->getRelatedRecord($this->getUniqueID());
-    	if ($relatedRecord['inLibraryUseOnly']) {
-    		return 'InStoreOnly';
-    	}
-    	if ($relatedRecord['availableOnline']) {
-    		return 'OnlineOnly';
-    	}
-    	if ($relatedRecord['localAvailableCopies'] > 0) {
-    		return 'InStock';
-    	}
-    	if ($relatedRecord['groupedStatus'] != '') {
-    		$ranking = $relatedRecord['groupedStatus'];
-    		$availability = '';
-    		switch ($ranking) {
-    			case 4:
-    				$availability = 'OutOfStock';
-    				break;
-    			case 2:
-    			case 3.5:
-    				$availability = 'PreOrder';
-    				break;
-    			case 1:
-    				$availability = 'Discontinued';
-    				break;
-    		}
-    		return $availability;
-    	}
-    	return "";
-    }
-    
 }
 
 
