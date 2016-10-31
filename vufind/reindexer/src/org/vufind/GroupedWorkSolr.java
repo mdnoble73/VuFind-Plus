@@ -903,7 +903,7 @@ public class GroupedWorkSolr implements Cloneable {
 					shortTitle = tmpTitle;
 				}
 				//Remove common formats
-				tmpTitle = shortTitle.replaceAll("(?i)((?:a )?graphic novel|audio cd|book club kit|large print)$", "").trim();
+				tmpTitle = shortTitle.replaceAll("(?i)((?:[(])?(?:a )?graphic novel|audio cd|book club kit|large print(?:[)])?)$", "").trim();
 				if (tmpTitle.length() > 0){
 					shortTitle = tmpTitle;
 				}
@@ -949,7 +949,18 @@ public class GroupedWorkSolr implements Cloneable {
 
 	public void setSubTitle(String subTitle) {
 		if (subTitle != null){
+			subTitle = Util.trimTrailingPunctuation(subTitle);
 			//TODO: determine if the subtitle should be changed?
+			//Strip out anything in brackets unless that would cause us to show nothing
+			String tmpTitle = subTitle.replaceAll("\\[.*?\\]", "").trim();
+			if (tmpTitle.length() > 0){
+				subTitle = tmpTitle;
+			}
+			//Remove common formats
+			tmpTitle = subTitle.replaceAll("(?i)((?:a )?graphic novel|audio cd|book club kit|large print)$", "").trim();
+			if (tmpTitle.length() > 0){
+				subTitle = tmpTitle;
+			}
 			this.subTitle = subTitle;
 			keywords.add(subTitle);
 		}
@@ -1093,6 +1104,10 @@ public class GroupedWorkSolr implements Cloneable {
 	public void addPopularity(double itemPopularity) {
 		this.popularity += itemPopularity;
 	}
+
+	public double getPopularity(){
+        return  popularity;
+    }
 
 	public void addTopic(Set<String> fieldList) {
 		this.topics.addAll(Util.trimTrailingPunctuation(fieldList));
@@ -1468,6 +1483,22 @@ public class GroupedWorkSolr implements Cloneable {
 			curRecord.updateIndexingStats(indexingStats);
 		}
 	}
+
+	public boolean getIsLibraryOwned(Scope scope){
+		HashSet<RecordInfo> relatedRecordsForScope = new HashSet<>();
+		HashSet<ItemInfo> relatedItems = new HashSet<>();
+		loadRelatedRecordsAndItemsForScope(scope, relatedRecordsForScope, relatedItems);
+		if (relatedRecordsForScope.size() > 0){
+			if (isLibraryOwned(relatedItems, scope)){
+				return true;
+			}
+		}
+		return false;
+	}
+
+
+
+
 
 	public int getNumRecords() {
 		return this.relatedRecords.size();

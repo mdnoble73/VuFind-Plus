@@ -8,7 +8,7 @@ if [[ $# -ne 1 ]]; then
 else
 
 	SIDELOADDIR="/data/vufind-plus/$1"
-	SECONDPARAM=$2
+#	SECONDPARAM=$2
 
 	LOG="logger -t $0"
 	if [ -d "$SIDELOADDIR/" ]; then

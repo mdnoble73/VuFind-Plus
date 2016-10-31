@@ -4,7 +4,7 @@
  *
  * This class handles the display of Grouped Works within VuFind.
  *
- * @category VuFind-Plus 
+ * @category VuFind-Plus
  * @author Mark Noble <mark@marmot.org>
  * Date: 11/26/13
  * Time: 1:51 PM
@@ -2304,10 +2304,13 @@ class GroupedWorkDriver extends RecordInterface{
 		//Schema.org
 		$semanticData[] = array(
 				'@context' => 'http://schema.org',
-				'@type' => 'CreativeWork', /* TODO: This should change to a more specific type Book/Movie as applicable */
+				'@type' => 'CreativeWork',
 				'name' => $this->getTitle(),
 				'author' => $this->getPrimaryAuthor(),
+				'isAccessibleForFree' => true,
+				'workExample' => $this->getSemanticWorkExamples(),
 		);
+
 		//BibFrame
 		$semanticData[] = array(
 				'@context' => array(
@@ -2478,7 +2481,9 @@ class GroupedWorkDriver extends RecordInterface{
 				'itemSummary' => array(),
 				'groupedStatus' => 'Currently Unavailable',
 				'source' => $source,
-				'actions' => array()
+				'actions' => array(),
+				'schemaDotOrgType' => $this->getSchemaOrgType($recordDetails[1]),
+				'schemaDotOrgBookFormat' => $this->getSchemaOrgBookFormat($recordDetails[1]),
 		);
 		$timer->logTime("Setup base related record");
 
@@ -2525,6 +2530,8 @@ class GroupedWorkDriver extends RecordInterface{
 			$libraryOwned = $scopingDetails[9] == 'true';
 			$holdablePTypes = isset($scopingDetails[10]) ? $scopingDetails[10] : '';
 			$bookablePTypes = isset($scopingDetails[11]) ? $scopingDetails[11] : '';
+			$locationCode = isset($curItem[15]) ? $curItem[15] : '';
+			$subLocation = isset($curItem[16]) ? $curItem[16] : '';
 			if (strlen($holdablePTypes) > 0 && $holdablePTypes != '999') {
 				$holdablePTypes = explode(',', $holdablePTypes);
 				$matchingPTypes = array_intersect($holdablePTypes, $activePTypes);
@@ -2670,7 +2677,9 @@ class GroupedWorkDriver extends RecordInterface{
 					'lastCheckinDate' => isset($curItem[14]) ? $curItem[14] : '',
 					'volume' => $volume,
 					'volumeId' => $volumeId,
-					'isEContent' => $isEcontent
+					'isEContent' => $isEcontent,
+					'locationCode' => $locationCode,
+					'subLocation' => $subLocation
 			);
 			$itemSummaryInfo['actions'] = $recordDriver != null ? $recordDriver->getItemActions($itemSummaryInfo) : array();
 			//Group the item based on location and call number for display in the summary
@@ -2681,6 +2690,11 @@ class GroupedWorkDriver extends RecordInterface{
 					$relatedRecord['itemSummary'][$key]['displayByDefault'] = true;
 				}
 				$relatedRecord['itemSummary'][$key]['onOrderCopies'] += $itemSummaryInfo['onOrderCopies'];
+				$lastStatus = $relatedRecord['itemSummary'][$key]['status'];
+				$relatedRecord['itemSummary'][$key]['status'] = GroupedWorkDriver::keepBestGroupedStatus($lastStatus, $groupedStatus);
+				if ($lastStatus != $relatedRecord['itemSummary'][$key]['status']){
+					$relatedRecord['itemSummary'][$key]['statusFull'] = $itemSummaryInfo['statusFull'];
+				}
 			} else {
 				$relatedRecord['itemSummary'][$key] = $itemSummaryInfo;
 			}
@@ -2797,5 +2811,109 @@ class GroupedWorkDriver extends RecordInterface{
 			return $lexileInfo;
 		}
 		return null;
+	}
+
+	private function getSemanticWorkExamples() {
+		global $configArray;
+		$relatedWorkExamples = array();
+		$relatedRecords = $this->getRelatedRecords();
+		foreach ($relatedRecords as $record){
+			$relatedWorkExample = array(
+					'@id' => $configArray['Site']['url'] . $record['url'],
+					'@type' => $record['schemaDotOrgType']
+			);
+			if ($record['schemaDotOrgBookFormat']){
+				$relatedWorkExample['bookFormat'] = $record['schemaDotOrgBookFormat'];
+			}
+			$relatedWorkExamples[] = $relatedWorkExample;
+		}
+		return $relatedWorkExamples;
+	}
+
+	private function getSchemaOrgType($pikaFormat) {
+		switch ($pikaFormat){
+			case 'Audio':
+			case 'Audio Cassette':
+			case 'Audio CD':
+			case 'Book':
+			case 'Book Club Kit':
+			case 'eAudiobook':
+			case 'eBook':
+			case 'eMagazine':
+			case 'CD':
+			case 'Journal':
+			case 'Large Print':
+			case 'Manuscript':
+			case 'Musical Score':
+			case 'Newspaper':
+			case 'Playaway':
+			case 'Serial':
+				return 'Book';
+
+			case 'eComic':
+			case 'Graphic Novel':
+				return 'ComicStory';
+
+			case 'eMusic':
+			case 'Music Recording':
+			case 'Phonograph':
+				return 'MusicRecording';
+
+			case 'Blu-ray':
+			case 'DVD':
+			case 'eVideo':
+			case 'VHS':
+			case 'Video':
+				return 'Movie';
+
+			case 'Map':
+				return 'Map';
+
+			case 'Nintendo 3DS':
+			case 'Nintendo Wii':
+			case 'Nintendo Wii U':
+			case 'PlayStation':
+			case 'PlayStation 3':
+			case 'PlayStation 4':
+			case 'Windows Game':
+			case 'Xbox 360':
+			case 'Xbox 360 Kinect':
+			case 'Xbox One':
+				return 'Game';
+
+			case 'Web Content':
+				return 'WebPage';
+
+			default:
+				return 'CreativeWork';
+		}
+	}
+
+	private function getSchemaOrgBookFormat($pikaFormat) {
+		switch ($pikaFormat){
+			case 'Book':
+			case 'Large Print':
+			case 'Manuscript':
+				return 'Hardcover';
+
+			case 'Audio':
+			case 'Audio Cassette':
+			case 'Audio CD':
+			case 'CD':
+			case 'eAudiobook':
+			case 'Playaway':
+				return 'AudiobookFormat';
+
+			case 'eBook':
+			case 'eMagazine':
+				return 'EBook';
+
+			case 'Graphic Novel':
+			case 'Journal':
+				return 'Paperback';
+
+			default:
+				return '';
+		}
 	}
 }

@@ -54,6 +54,8 @@ class Record_Home extends Record_Record{
 		$exploreMoreInfo = $this->recordDriver->getExploreMoreInfo();
 		$interface->assign('exploreMoreInfo', $exploreMoreInfo);
 
+		$interface->assign('semanticData', json_encode($this->recordDriver->getSemanticData()));
+
 		// Display Page
 		global $configArray;
 		if ($configArray['Catalog']['showExploreMoreForFullRecords']) {
