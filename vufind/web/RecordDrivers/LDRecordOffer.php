@@ -46,7 +46,7 @@ class LDRecordOffer {
 		global $library;
 		$offerBy[] = array(
 				"@type" => "Library",
-				"@id" => $configArray['Site']['url'] . "Library/{$library->libraryId}/System",
+				"@id" => $configArray['Site']['url'] . "/Library/{$library->libraryId}/System",
 				"name" => $library->displayName
 		);
 		return $offerBy;
@@ -65,7 +65,7 @@ class LDRecordOffer {
 			$subLocations[] = array(
 					'@type' => 'Place',
 					'name' => $locations->displayName,
-					'@id' => $configArray['Site']['url'] . "Library/{$locations->locationId}/Branch"
+					'@id' => $configArray['Site']['url'] . "/Library/{$locations->locationId}/Branch"
 
 			);
 		}

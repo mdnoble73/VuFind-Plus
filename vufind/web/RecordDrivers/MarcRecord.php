@@ -2123,7 +2123,7 @@ class MarcRecord extends IndexRecord
 				'@type' => $linkedDataRecord->getWorkType(),
 				'name' => $this->getTitle(),
 				'exampleOfWork' => $this->getGroupedWorkDriver()->getLinkUrl(true),
-				'creator' => $this->getPrimaryAuthor(),
+				'author' => $this->getPrimaryAuthor(),
 				'bookEdition' => $this->getEdition(),
 				'isAccessibleForFree' => true,
 				"offers" => $linkedDataRecord->getOffers()
