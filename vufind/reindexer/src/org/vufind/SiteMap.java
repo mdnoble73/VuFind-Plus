@@ -223,7 +223,7 @@ class SiteMap {
 	}
 
 	private String buildSiteMapFileName(String fileTypeName, int fileID) {
-		return filePath + "\\" + siteMapFileName(fileTypeName, fileID);
+		return filePath + "/" + siteMapFileName(fileTypeName, fileID);
 	}
 
 	private String siteMapFileName(String fileTypeName, int fileID) {
