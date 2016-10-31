@@ -1105,6 +1105,10 @@ public class GroupedWorkSolr implements Cloneable {
 		this.popularity += itemPopularity;
 	}
 
+	public double getPopularity(){
+        return  popularity;
+    }
+
 	public void addTopic(Set<String> fieldList) {
 		this.topics.addAll(Util.trimTrailingPunctuation(fieldList));
 	}
@@ -1479,6 +1483,22 @@ public class GroupedWorkSolr implements Cloneable {
 			curRecord.updateIndexingStats(indexingStats);
 		}
 	}
+
+	public boolean getIsLibraryOwned(Scope scope){
+		HashSet<RecordInfo> relatedRecordsForScope = new HashSet<>();
+		HashSet<ItemInfo> relatedItems = new HashSet<>();
+		loadRelatedRecordsAndItemsForScope(scope, relatedRecordsForScope, relatedItems);
+		if (relatedRecordsForScope.size() > 0){
+			if (isLibraryOwned(relatedItems, scope)){
+				return true;
+			}
+		}
+		return false;
+	}
+
+
+
+
 
 	public int getNumRecords() {
 		return this.relatedRecords.size();

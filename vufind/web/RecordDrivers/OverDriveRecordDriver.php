@@ -1098,4 +1098,29 @@ class OverDriveRecordDriver extends RecordInterface {
 	function getVolumeHolds($volumeData){
 		return 0;
 	}
+
+
+    public function getSemanticData()
+    {
+        // Schema.org
+        // Get information about the record
+        require_once ROOT_DIR . '/RecordDrivers/LDRecordOffer.php';
+        $linkedDataRecord = new LDRecordOffer($this->getRelatedRecord());
+        $semanticData [] = array(
+            '@context' => 'http://schema.org',
+            '@type' => $linkedDataRecord->getWorkType(),
+            'name' => $this->getTitle(),                             //getTitleSection(),
+            'creator' => $this->getAuthor(),
+            'bookEdition' => $this->getEdition(),
+            'isAccessibleForFree' => true,
+            "offers" => $linkedDataRecord->getOffers()
+        );
+        return $semanticData;
+    }
+
+    function getRelatedRecord(){
+        $id = 'overdrive:'.$_REQUEST['id'];
+        return $this->getGroupedWorkDriver()->getRelatedRecord($id);
+    }
+
 }
