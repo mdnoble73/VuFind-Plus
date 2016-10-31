@@ -16,17 +16,27 @@ class LDRecordOffer {
 
 	public function getOffers() {
 		$offers = array();
-		$offers[] = array(
-				"availableAtOrFrom" => $this->getBranchUrl(), //Branch that owns the work(),
-				"availability" => $this->getOfferAvailability(),
-				'availableDeliveryMethod' => $this->getDeliveryMethod(),
-				"itemOffered" => array(
-						'@type' => 'CreativeWork',
-						'@id' => $this->getOfferLinkUrl(), //URL to the record
-				),
-				"offeredBy" => $this->getLibraryUrl(), //URL to the library that owns the item
-				"price" => '0',
-		);
+		foreach ($this->relatedRecord['itemSummary'] as $itemData){
+			if ($itemData['isLibraryItem'] ) {
+				$offerData = array(
+						"availability" => $this->getOfferAvailability($itemData),
+						'availableDeliveryMethod' => $this->getDeliveryMethod(),
+						"itemOffered" => array(
+								'@type' => 'CreativeWork',
+								'@id' => $this->getOfferLinkUrl(), //URL to the record
+						),
+						"offeredBy" => $this->getLibraryUrl(), //URL to the library that owns the item
+						"price" => '0',
+						"inventoryLevel" => $itemData['availableCopies'],
+				);
+				$locationCode = $itemData['locationCode'];
+				$subLocation = $itemData['subLocation'];
+				if (strlen($locationCode) > 0){
+					$offerData['availableAtOrFrom'] = $this->getBranchUrl($locationCode, $subLocation);
+				}
+				$offers[] = $offerData;
+			}
+		}
 
 		return $offers;
 	}
@@ -52,11 +62,43 @@ class LDRecordOffer {
 		return $offerBy;
 	}
 
-	function getBranchUrl() {
+	function getOfferAvailability($itemData) {
+		if ($itemData['inLibraryUseOnly']) {
+			return 'InStoreOnly';
+		}
+		if ($this->relatedRecord['availableOnline']) {
+			return 'OnlineOnly';
+		}
+		if ($itemData['availableCopies'] > 0) {
+			return 'InStock';
+		}
+
+		if ($itemData['status'] != '') {
+			switch (strtolower($itemData['status'])) {
+				case 'on order':
+				case 'in processing':
+					$availability = 'PreOrder';
+					break;
+				case 'currently unavailable':
+					$availability = 'Discontinued';
+					break;
+				default:
+					$availability = 'InStock';
+			}
+			return $availability;
+		}
+		return "";
+	}
+
+	function getBranchUrl($locationCode, $subLocation) {
 		global $configArray;
 		global $library;
 		$locations = new Location();
 		$locations->libraryId = $library->libraryId;
+		$locations->whereAdd("LEFT('$locationCode', LENGTH(code)) = code");
+		if ($subLocation){
+			$locations->subLocation = $subLocation;
+		}
 		$locations->orderBy('isMainBranch DESC, displayName'); // List Main Branches first, then sort by name
 		$locations->find();
 		$subLocations = array();
@@ -80,33 +122,5 @@ class LDRecordOffer {
 			return 'DeliveryModePickUp';
 		}
 
-	}
-
-	function getOfferAvailability() {
-		if ($this->relatedRecord['inLibraryUseOnly']) {
-			return 'InStoreOnly';
-		}
-		if ($this->relatedRecord['availableOnline']) {
-			return 'OnlineOnly';
-		}
-		if ($this->relatedRecord['localAvailableCopies'] > 0) {
-			return 'InStock';
-		}
-
-		if ($this->relatedRecord['groupedStatus'] != '') {
-			switch (strtolower($this->relatedRecord['groupedStatus'])) {
-				case 'on order':
-				case 'in processing':
-					$availability = 'PreOrder';
-					break;
-				case 'currently unavailable':
-					$availability = 'Discontinued';
-					break;
-				default:
-					$availability = 'InStock';
-			}
-			return $availability;
-		}
-		return "";
 	}
 }

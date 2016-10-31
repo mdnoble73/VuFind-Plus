@@ -2530,6 +2530,8 @@ class GroupedWorkDriver extends RecordInterface{
 			$libraryOwned = $scopingDetails[9] == 'true';
 			$holdablePTypes = isset($scopingDetails[10]) ? $scopingDetails[10] : '';
 			$bookablePTypes = isset($scopingDetails[11]) ? $scopingDetails[11] : '';
+			$locationCode = isset($curItem[15]) ? $curItem[15] : '';
+			$subLocation = isset($curItem[16]) ? $curItem[16] : '';
 			if (strlen($holdablePTypes) > 0 && $holdablePTypes != '999') {
 				$holdablePTypes = explode(',', $holdablePTypes);
 				$matchingPTypes = array_intersect($holdablePTypes, $activePTypes);
@@ -2675,7 +2677,9 @@ class GroupedWorkDriver extends RecordInterface{
 					'lastCheckinDate' => isset($curItem[14]) ? $curItem[14] : '',
 					'volume' => $volume,
 					'volumeId' => $volumeId,
-					'isEContent' => $isEcontent
+					'isEContent' => $isEcontent,
+					'locationCode' => $locationCode,
+					'subLocation' => $subLocation
 			);
 			$itemSummaryInfo['actions'] = $recordDriver != null ? $recordDriver->getItemActions($itemSummaryInfo) : array();
 			//Group the item based on location and call number for display in the summary
@@ -2686,6 +2690,11 @@ class GroupedWorkDriver extends RecordInterface{
 					$relatedRecord['itemSummary'][$key]['displayByDefault'] = true;
 				}
 				$relatedRecord['itemSummary'][$key]['onOrderCopies'] += $itemSummaryInfo['onOrderCopies'];
+				$lastStatus = $relatedRecord['itemSummary'][$key]['status'];
+				$relatedRecord['itemSummary'][$key]['status'] = GroupedWorkDriver::keepBestGroupedStatus($lastStatus, $groupedStatus);
+				if ($lastStatus != $relatedRecord['itemSummary'][$key]['status']){
+					$relatedRecord['itemSummary'][$key]['statusFull'] = $itemSummaryInfo['statusFull'];
+				}
 			} else {
 				$relatedRecord['itemSummary'][$key] = $itemSummaryInfo;
 			}
