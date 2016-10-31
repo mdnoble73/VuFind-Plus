@@ -91,10 +91,14 @@ class SiteMap {
 
 
 			String scopedUrl = isSSL ? "https://" : "http://";
-			scopedUrl += scopeName;
-			String[] urlParts = urlWithoutProtocol.split("\\.");
-			for (int i = (urlParts.length == 2 ? 0 : 1); i < urlParts.length; i++){
-				scopedUrl += "." + urlParts[i];
+			if (siteMapsByScope.size() > 1){
+				scopedUrl += scopeName;
+				String[] urlParts = urlWithoutProtocol.split("\\.");
+				for (int i = (urlParts.length == 2 ? 0 : 1); i < urlParts.length; i++){
+					scopedUrl += "." + urlParts[i];
+				}
+			}else{
+				scopedUrl = baseUrl;
 			}
 
 			libraryIdToWrite = scope.getLibraryId();

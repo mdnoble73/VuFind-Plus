@@ -2833,6 +2833,7 @@ class GroupedWorkDriver extends RecordInterface{
 	private function getSchemaOrgType($pikaFormat) {
 		switch ($pikaFormat){
 			case 'Audio':
+			case 'Audio Book':
 			case 'Audio Cassette':
 			case 'Audio CD':
 			case 'Book':

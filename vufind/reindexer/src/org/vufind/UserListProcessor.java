@@ -114,7 +114,7 @@ public class UserListProcessor {
 		if (deleted == 1 || isPublic == 0){
 			updateServer.deleteByQuery("id:list");
 		}else{
-			logger.info("Processing list " + listId + " " + allPublicListsRS.getString("title"));
+			logger.debug("Processing list " + listId + " " + allPublicListsRS.getString("title"));
 			userListSolr.setId(listId);
 			userListSolr.setTitle(allPublicListsRS.getString("title"));
 			userListSolr.setDescription(allPublicListsRS.getString("description"));
