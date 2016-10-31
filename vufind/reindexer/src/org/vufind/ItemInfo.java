@@ -181,6 +181,8 @@ public class ItemInfo {
 					.append(Util.getCleanDetailValue(subFormat)).append("|")
 					.append(Util.getCleanDetailValue(detailedStatus)).append("|")
 					.append(Util.getCleanDetailValue(formattedLastCheckinDate)).append("|")
+					.append(Util.getCleanDetailValue(locationCode)).append("|")
+					.append(Util.getCleanDetailValue(subLocation)).append("|")
 					.toString();
 		}
 		return baseDetails;
