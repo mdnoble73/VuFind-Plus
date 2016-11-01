@@ -152,7 +152,7 @@ class OverDriveDriver3 {
 							}
 						}
 					}else{
-						if (isset($patronTokenData->expires_in)){
+						if (property_exists($patronTokenData, 'expires_in')){
 							$memCache->set('overdrive_patron_token_' . $patronBarcode, $patronTokenData, 0, $patronTokenData->expires_in - 10);
 						}
 
