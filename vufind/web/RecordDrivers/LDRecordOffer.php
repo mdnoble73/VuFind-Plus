@@ -17,7 +17,7 @@ class LDRecordOffer {
 	public function getOffers() {
 		$offers = array();
 		foreach ($this->relatedRecord['itemSummary'] as $itemData){
-			if ($itemData['isLibraryItem'] ) {
+			if ($itemData['isLibraryItem'] || $itemData['isEContent']) {
 				$offerData = array(
 						"availability" => $this->getOfferAvailability($itemData),
 						'availableDeliveryMethod' => $this->getDeliveryMethod(),

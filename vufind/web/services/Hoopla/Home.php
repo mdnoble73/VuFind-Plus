@@ -71,6 +71,8 @@ class Hoopla_Home extends Action{
 
 			$interface->assign('moreDetailsOptions', $recordDriver->getMoreDetailsOptions());
 
+			$interface->assign('semanticData', json_encode($recordDriver->getSemanticData()));
+
 			// Display Page
 			$this->display('view.tpl', $recordDriver->getTitle());
 		}
