@@ -152,7 +152,10 @@ class OverDriveDriver3 {
 							}
 						}
 					}else{
-						$memCache->set('overdrive_patron_token_' . $patronBarcode, $patronTokenData, 0, $patronTokenData->expires_in - 10);
+						if ($patronTokenData->expires_in){
+							$memCache->set('overdrive_patron_token_' . $patronBarcode, $patronTokenData, 0, $patronTokenData->expires_in - 10);
+						}
+
 					}
 				}
 			}else{
@@ -251,7 +254,7 @@ class OverDriveDriver3 {
 				);
 			}else{
 				//The user is not valid
-				if ($configArray['Site']['debug'] == true){
+				if (isset($configArray['Site']['debug']) && $configArray['Site']['debug'] == true){
 					print_r($tokenData);
 				}
 				return false;
