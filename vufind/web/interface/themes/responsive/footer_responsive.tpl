@@ -39,7 +39,7 @@
 			</div>
 			{if $showPikaLogo}
 			<div class="col-tn-12 col-sm-3 text-center pull-left">
-				<a href="http://www.marmot.org/content/pika-discovery-layer" title="Proud Pika Partner">
+				<a href="http://marmot.org/pika-discovery/about-pika" title="Proud Pika Partner">
 					<img id="footer-pika-logo" src="{img filename='pika-logo.png'}" alt="Proud Pika Partner" style="max-width: 100%; max-height: 80px;">
 				</a>
 			</div>
