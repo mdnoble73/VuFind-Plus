@@ -2,6 +2,9 @@
 	<div id="main-content" class="col-md-12">
 		{if $user}
 			<h1>Student Report</h1>
+			<div class="alert alert-info">
+				For more information on using student reports, see the <a href="https://docs.google.com/document/d/1ASo7wHL0ADxG8Q8oIRTeXybja7QJq7mW-77e3C1X7f8">online documentation</a>.
+			</div>
 			{foreach from=$errors item=error}
 				<div class="error">{$error}</div>
 			{/foreach}
