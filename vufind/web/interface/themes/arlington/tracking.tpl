@@ -1,6 +1,6 @@
 {* Add Google Analytics*}
 {if $googleAnalyticsId}
-	{*
+
 {literal}
 	<script type="text/javascript">
 		var _gaq = _gaq || [];
@@ -20,12 +20,9 @@
 			var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
 		})();
 
-	</script>
-{/literal}*}
-{literal}
-	<script>
-		(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)})(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+{/literal}{* Multi-site linking code for Arlingtion *}{literal}
 
+		(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)})(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
 		ga('create', '{/literal}{$googleAnalyticsId}{literal}', 'auto', {'allowLinker': true});
 		ga('require', 'linker');
 		ga('linker:autoLink', ['library.arlingtonva.us', 'libsys.arlingtonva.us', 'm.libsys.arlingtonva.us', 'arlingtonva.libcal.com', 'library.arlingtonva.libguides.com', 'libraryarchives.arlingtonva.us', 'projectdaps.org', 'nauck.omeka.net'] );
