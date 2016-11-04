@@ -36,9 +36,6 @@ else
 		exit 1
 	fi
 fi
-#truncate the output file so you don't spend a week debugging an error from a week ago!
-: > $OUTPUT_FILE;
-
 
 # Check for conflicting processes currently running
 function checkConflictingProcesses() {
@@ -58,14 +55,17 @@ function checkConflictingProcesses() {
 	echo ${numInitialConflicts};
 }
 
-
 #Check for any conflicting processes that we shouldn't do a full index during.
 checkConflictingProcesses "sierra_export.jar ${PIKASERVER}"
 checkConflictingProcesses "overdrive_extract.jar ${PIKASERVER}"
 checkConflictingProcesses "reindexer.jar ${PIKASERVER}"
 
+#truncate the output file so you don't spend a week debugging an error from a week ago!
+: > $OUTPUT_FILE;
+
 # Back-up Solr Master Index
 mysqldump ${PIKADBNAME} grouped_work_primary_identifiers > /data/vufind-plus/${PIKASERVER}/grouped_work_primary_identifiers.sql
+sleep 2m
 tar -czf /data/vufind-plus/${PIKASERVER}/solr_master_backup.tar.gz /data/vufind-plus/${PIKASERVER}/solr_master/grouped/index/ /data/vufind-plus/${PIKASERVER}/grouped_work_primary_identifiers.sql >> ${OUTPUT_FILE}
 rm /data/vufind-plus/${PIKASERVER}/grouped_work_primary_identifiers.sql
 
