@@ -157,7 +157,8 @@ FILE=$(find /data/vufind-plus/catalog.library.nashville.org/marc -name BIB_EXTRA
 if [ -n "$FILE" ]
 then
   #check file size
-	MINFILE1SIZE=$((825800000))
+# JAMES set MIN 2016 11 03 actual extract size 825177201 
+	MINFILE1SIZE=$((825000000))
 	FILE1SIZE=$(wc -c <"$FILE")
 	if [ $FILE1SIZE -ge $MINFILE1SIZE ]; then
 
