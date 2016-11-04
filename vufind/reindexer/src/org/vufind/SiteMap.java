@@ -147,11 +147,13 @@ class SiteMap {
 
 				//add library branches?
 				ArrayList<Long> branches = librariesByHomeLocation.get(libraryIdToWrite);
-				for (Long libId : branches) {
-					String branchUrl = buildBranchUrl("Branch", Long.toString(libId), scopedUrl);
-					writer.write(branchUrl);
-					writer.newLine();
-					countTracker++;
+				if (branches != null) {
+					for (Long libId : branches) {
+						String branchUrl = buildBranchUrl("Branch", Long.toString(libId), scopedUrl);
+						writer.write(branchUrl);
+						writer.newLine();
+						countTracker++;
+					}
 				}
 			}
 
