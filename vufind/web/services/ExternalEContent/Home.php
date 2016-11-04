@@ -92,6 +92,7 @@ class ExternalEContent_Home extends Action{
 
 			$interface->assign('moreDetailsOptions', $recordDriver->getMoreDetailsOptions());
 
+			$interface->assign('semanticData', json_encode($recordDriver->getSemanticData()));
 
 			//Load Staff Details
 			$interface->assign('staffDetails', $recordDriver->getStaffView());

@@ -101,7 +101,13 @@ class HoldItems extends Action
 			unset($_SESSION['hold_referrer']);
 			if (isset($_SESSION['autologout'])){
 				unset($_SESSION['autologout']);
-				UserAccount::softLogout();
+				global $masqueradeMode;
+				if ($masqueradeMode) {
+					require_once ROOT_DIR . '/services/MyAccount/Masquerade.php';
+					MyAccount_Masquerade::endMasquerade();
+				} else {
+					UserAccount::softLogout();
+				}
 			}
 		}else{
 			$logger->log('No referrer set, but there is a message to show, go to the main holds page', PEAR_LOG_INFO);

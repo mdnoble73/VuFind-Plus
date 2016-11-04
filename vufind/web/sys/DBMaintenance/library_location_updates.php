@@ -1392,5 +1392,37 @@ function getLibraryLocationUpdates(){
 							"ALTER TABLE library ADD COLUMN archiveRequestMaterialsHeader MEDIUMTEXT",
 					)
 			),
+
+			'display_pika_logo' => array(
+					'title' => 'Library Option to Display Pika Logo',
+					'description' => 'Allow libraries to show the Pika logo in page footers.',
+					'sql' => array(
+						"ALTER TABLE `library` ADD `showPikaLogo` TINYINT DEFAULT '1';",
+					)
+			),
+
+			'masquerade_automatic_timeout_length' => array(
+					'title' => 'Library Option to set Masquerade Mode time out length',
+					'description' => 'Allow libraries to set the value is seconds before an idle Masquerade session times out.',
+					'sql' => array(
+						'ALTER TABLE `library` ADD COLUMN `masqueradeAutomaticTimeoutLength` TINYINT(1) UNSIGNED NULL;',
+					)
+			),
+
+			'allow_masquerade_mode' => array(
+					'title' => 'Library Option to enable Masquerade Mode for staff users',
+					'description' => 'Allow libraries to enable Masquerade Mode for staff users.',
+					'sql' => array(
+						'ALTER TABLE `library` ADD COLUMN `allowMasqueradeMode` TINYINT(1) DEFAULT "0";',
+					)
+			),
+
+			'allow_reading_history_display_in_masquerade_mode' => array(
+					'title' => 'Library Option to enable staff users in Masquerade Mode to view the masqueraded patron\'s Reading History.',
+					'description' => 'Allow display of Reading History in Masquerade Mode for staff users.',
+					'sql' => array(
+						'ALTER TABLE `library` ADD COLUMN `allowReadingHistoryDisplayInMasqueradeMode` TINYINT(1) DEFAULT "0";',
+					)
+			),
 	);
 }

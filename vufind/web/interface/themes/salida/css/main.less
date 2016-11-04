@@ -1,0 +1,21 @@
+// Core variables and mixins
+@import (reference) "../../responsive/css/variables.less";
+@import (reference) "variables.less";
+
+// Always include the base .less file
+@import "../../responsive/css/responsive_base.less";
+
+#header-container{
+  background-image: url('/interface/themes/salida/images/header.jpg');
+  height: 130px;
+}
+
+// modifications to logo for the spring 2015 header image plb 3-31-2015
+#header-logo{
+  background-color: white; // added background shading
+  border-radius: 0.5em;
+  padding: 4px 0;
+  margin-top: 12px;
+}
+
+.header-login-button-mixin(@header-buttons-background-color); // to match logo. plb 3-31-2015

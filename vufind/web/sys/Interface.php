@@ -112,6 +112,7 @@ class UInterface extends Smarty
 		unset($local);
 
 		$this->register_block('display_if_inconsistent', 'display_if_inconsistent');
+//		$this->register_block('display_if_inconsistent_in_any_manifestation', 'display_if_inconsistent_in_any_manifestation');
 		$this->register_block('display_if_set', 'display_if_set');
 		$this->register_function('translate', 'translate');
 		$this->register_function('char', 'char');
@@ -378,6 +379,9 @@ class UInterface extends Smarty
 			$this->assign('horizontalSearchBar', $library->horizontalSearchBar);
 			$this->assign('sideBarOnRight', $library->sideBarOnRight);
 			$this->assign('showHoldCancelDate', $library->showHoldCancelDate);
+			$this->assign('showPikaLogo', $library->showPikaLogo);
+			$this->assign('allowMasqueradeMode', $library->allowMasqueradeMode);
+			$this->assign('allowReadingHistoryDisplayInMasqueradeMode', $library->allowReadingHistoryDisplayInMasqueradeMode);
 
 			if ($this->getVariable('displaySidebarMenu') && !$library->showSidebarMenu){
 				$this->assign('displaySidebarMenu', false);
@@ -401,6 +405,9 @@ class UInterface extends Smarty
 			$this->assign('horizontalSearchBar', 0);
 			$this->assign('sideBarOnRight', 0);
 			$this->assign('showHoldCancelDate', 0);
+			$this->assign('showPikaLogo', 1);
+			$this->assign('allowMasqueradeMode', 0);
+			$this->assign('allowReadingHistoryDisplayInMasqueradeMode', 0);
 		}
 		if (isset($library) && $location != null){ // library and location
 			$this->assign('showFavorites', $location->showFavorites && $library->showFavorites);
@@ -619,6 +626,43 @@ function display_if_inconsistent($params, $content, &$smarty, &$repeat){
 	}
 	return null;
 }
+
+//function display_if_inconsistent_in_any_manifestation($params, $content, &$smarty, &$repeat){
+//	//This function is called twice, once for the opening tag and once for the
+//	//closing tag.  Content is only set if
+//	if (isset($content)) {
+//		$manifestations = $params['array'];
+//		$key            = $params['key'];
+//
+////		if (count($manifestations) === 1) {
+////			// If we have only one row of items, display that row
+////			return empty($manifestations[0][$key]) ? '' : $content;
+////		}
+//		$consistent      = true;
+//		$firstValue      = null;
+//		$iterationNumber = 0;
+//		foreach ($manifestations as $manifestation) {
+//
+//			foreach ($manifestation['relatedRecords'] as $arrayValue) {
+//				if ($iterationNumber == 0) {
+//					$firstValue = $arrayValue[$key];
+//				} else {
+//					if ($firstValue != $arrayValue[$key]) {
+//						$consistent = false;
+//						break;
+//					}
+//				}
+//				$iterationNumber++;
+//			}
+//		}
+//		if ($consistent == false){
+//			return $content;
+//		}else{
+//			return "";
+//		}
+//	}
+//	return null;
+//}
 
 function display_if_set($params, $content, &$smarty, &$repeat){
 	//This function is called twice, once for the opening tag and once for the

@@ -491,42 +491,17 @@ VuFind.Account = (function(){
 			return false;
 		},
 
-		/* update the sort parameter and redirect the user back to the same page */
 		changeAccountSort: function (newSort){
-			//// Get the current url
-			//var currentLocation = window.location.href;
-			//// Check to see if we already have a sort parameter.
-			//if (currentLocation.match(/(accountSort=[^&]*)/)) {
-			//	// Replace the existing sort with the new sort parameter
-			//	currentLocation = currentLocation.replace(/accountSort=[^&]*/, 'accountSort=' + newSort);
-			//} else {
-			//	// Add the new sort parameter
-			//	if (currentLocation.match(/\?/)) {
-			//		currentLocation += "&accountSort=" + newSort;
-			//	}else{
-			//		currentLocation += "?accountSort=" + newSort;
-			//	}
-			//}
-			//// Redirect back to this page.
-			//window.location.href = currentLocation;
 			var paramString = VuFind.Searches.replaceQueryParam('accountSort', newSort);
 			location.replace(location.pathname + paramString)
 		},
 
 		changeHoldPickupLocation: function (patronId, recordId, holdId){
 			if (Globals.loggedIn){
-				//var modalDialog = $("#modalDialog");
-				//$('#myModalLabel').html('Loading');
-				//$('.modal-body').html('');
 				VuFind.loadingMessage();
 				$.getJSON(Globals.path + "/MyAccount/AJAX?method=getChangeHoldLocationForm&patronId=" + patronId + "&recordId=" + recordId + "&holdId=" + holdId, function(data){
 					VuFind.showMessageWithButtons(data.title, data.modalBody, data.modalButtons)
-					//$('#myModalLabel').html(data.title);
-					//$('.modal-body').html(data.modalBody);
-					//$('.modal-buttons').html(data.modalButtons);
 				});
-				//modalDialog.load( );
-				//modalDialog.modal('show');
 			}else{
 				VuFind.Account.ajaxLogin(null, function(){
 					return VuFind.Account.changeHoldPickupLocation(patronId, recordId, holdId);
@@ -557,11 +532,7 @@ VuFind.Account = (function(){
 		},
 
 		doChangeHoldLocation: function(){
-			var //patronId = $('#patronId').val()
-					//,recordId = $('#recordId').val()
-					//,holdId = $('#holdId').val()
-					//,newLocation = $('#newPickupLocation').val()
-					url = Globals.path + "/MyAccount/AJAX"
+			var url = Globals.path + "/MyAccount/AJAX"
 					,params = {
 						'method': 'changeHoldLocation'
 						,patronId : $('#patronId').val()
@@ -749,6 +720,45 @@ VuFind.Account = (function(){
 			if (navigator.cookieEnabled == false){
 				$("#cookiesError").show();
 			}
+		},
+
+		getMasqueradeForm: function () {
+			VuFind.loadingMessage();
+			var url = Globals.path + "/MyAccount/AJAX",
+					params = {method:"getMasqueradeAsForm"};
+			$.getJSON(url, params, function(data){
+				VuFind.showMessageWithButtons(data.title, data.modalBody, data.modalButtons)
+			}).fail(VuFind.ajaxFail);
+			return false;
+		},
+
+		initiateMasquerade: function() {
+			var url = Globals.path + "/MyAccount/AJAX",
+					params = {
+						method:"initiateMasquerade"
+						,cardNumber:$('#cardNumber').val()
+					};
+			$('#masqueradeAsError').hide();
+			$('#masqueradeLoading').show();
+			$.getJSON(url, params, function(data){
+				if (data.success) {
+					location.href = Globals.path + '/MyAccount/Home';
+				} else {
+					$('#masqueradeLoading').hide();
+					$('#masqueradeAsError').html(data.error).show();
+				}
+			}).fail(VuFind.ajaxFail);
+			return false;
+		},
+
+		endMasquerade: function () {
+			var url = Globals.path + "/MyAccount/AJAX",
+					params = {method:"endMasquerade"};
+			$.getJSON(url, params).done(function(){
+					location.href = Globals.path + '/MyAccount/Home';
+			}).fail(VuFind.ajaxFail);
+			return false;
 		}
+
 	};
 }(VuFind.Account || {}));

@@ -47,7 +47,7 @@
 									<option value="{$location->code}"{if $location->selected == "selected"} selected="selected"{/if}
 													 data-users="[{$location->pickupUsers|@implode:','}]">{$location->displayName}</option>
 								{/foreach}
-							{else} 
+							{else}
 								<option>placeholder</option>
 							{/if}
 						</select>
@@ -67,10 +67,10 @@
 						$(function(){
 							var userNames = {
 							{/literal}
-							{$user->id}: "{$user->displayName} - {$user->getHomeLibrarySystemName()}",
+							{$user->id}: "{$user->displayName|escape:javascript} - {$user->getHomeLibrarySystemName()}",
 							{assign var="linkedUsers" value=$user->getLinkedUsers()}
 							{foreach from="$linkedUsers" item="tron"}
-								{$tron->id}: "{$tron->displayName} - {$tron->getHomeLibrarySystemName()}",
+								{$tron->id}: "{$tron->displayName|escape:javascript} - {$tron->getHomeLibrarySystemName()}",
 							{/foreach}
 							{literal}
 								};

@@ -69,6 +69,7 @@
 						{if $followupAction}<input type="hidden" name="followupAction" value="{$followupAction}">{/if}
 						{if $recordId}<input type="hidden" name="recordId" value="{$recordId|escape:"html"}">{/if}
 						{if $comment}<input type="hidden" id="comment" name="comment" value="{$comment|escape:"html"}">{/if}
+						{if $cardNumber}<input type="hidden" name="cardNumber" value="{$cardNumber|escape:"html"}">{/if}
 						{if $returnUrl}<input type="hidden" name="returnUrl" value="{$returnUrl}">{/if}
 					</div>
 				</div>

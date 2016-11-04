@@ -38,6 +38,8 @@ class User extends DB_DataObject
 	public $preferredLibraryInterface;
 	public $noPromptForUserReviews; //tinyint(1)
 	private $roles;
+	private $masqueradingRoles;
+	private $masqueradeLevel;
 
 	/** @var User $parentUser */
 	private $parentUser;
@@ -178,7 +180,7 @@ class User extends DB_DataObject
 	}
 
 	function __set($name, $value){
-		if ($name == 'roles'){
+		if ($name == 'roles') {
 			$this->roles = $value;
 			//Update the database, first remove existing values
 			$this->saveRoles();
@@ -187,19 +189,19 @@ class User extends DB_DataObject
 		}
 	}
 
-	function getRoles(){
+	function getRoles($isGuidingUser = false){
 		if (is_null($this->roles)){
 			$this->roles = array();
 			//Load roles for the user from the user
 			require_once ROOT_DIR . '/sys/Administration/Role.php';
 			$role = new Role();
-			$canMasquerade = false;
+			$canUseTestRoles = false;
 			if ($this->id){
 				$role->query("SELECT roles.* FROM roles INNER JOIN user_roles ON roles.roleId = user_roles.roleId WHERE userId = " . $this->id . " ORDER BY name");
 				while ($role->fetch()){
 					$this->roles[$role->roleId] = $role->name;
 					if ($role->name == 'userAdmin'){
-						$canMasquerade = true;
+						$canUseTestRoles = true;
 					}
 				}
 			}
@@ -211,7 +213,7 @@ class User extends DB_DataObject
 			}elseif (isset($_COOKIE['test_role'])){
 				$testRole = $_COOKIE['test_role'];
 			}
-			if ($canMasquerade && $testRole != ''){
+			if ($canUseTestRoles && $testRole != ''){
 				if (is_array($testRole)){
 					$testRoles = $testRole;
 				}else{
@@ -230,10 +232,26 @@ class User extends DB_DataObject
 					}
 				}
 			}
-			return $this->roles;
-		}else{
-			return $this->roles;
 		}
+
+
+		global $masqueradeMode;
+		if ($masqueradeMode && !$isGuidingUser) {
+			if (is_null($this->masqueradingRoles)) {
+				global /** @var User $guidingUser */
+				$guidingUser;
+				$guidingUserRoles = $guidingUser->getRoles(true);
+				if (in_array('opacAdmin', $guidingUserRoles)) {
+					$this->masqueradingRoles = $this->roles;
+				} else {
+					$this->masqueradingRoles = array_intersect($this->roles, $guidingUserRoles);
+				}
+			}
+			return $this->masqueradingRoles;
+		}
+		return $this->roles;
+
+
 	}
 
 	function getBarcode(){
@@ -1134,5 +1152,31 @@ class User extends DB_DataObject
 
 	public function getShowUsernameField() {
 		return $this->getCatalogDriver()->getShowUsernameField();
+	}
+
+	/**
+	 * @return string
+	 */
+	public function getMasqueradeLevel()
+	{
+		if (empty($this->masqueradeLevel)) $this->setMasqueradeLevel();
+		return $this->masqueradeLevel;
+	}
+
+	private function setMasqueradeLevel()
+	{
+		$this->masqueradeLevel = 'none';
+		if (!empty($this->patronType)) {
+			require_once ROOT_DIR . '/Drivers/marmot_inc/PType.php';
+			$pType = new pType();
+			$pType->get('pType', $this->patronType);
+			if ($pType->N > 0) {
+				$this->masqueradeLevel = $pType->masquerade;
+			}
+		}
+	}
+
+	public function canMasquerade() {
+		return $this->getMasqueradeLevel() != 'none';
 	}
 }

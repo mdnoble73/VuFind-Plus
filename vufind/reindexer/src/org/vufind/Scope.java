@@ -303,4 +303,12 @@ public class Scope implements Comparable<Scope>{
 	public void setIncludeOnlineMaterialsInAvailableToggle(boolean includeOnlineMaterialsInAvailableToggle) {
 		this.includeOnlineMaterialsInAvailableToggle = includeOnlineMaterialsInAvailableToggle;
 	}
+
+	private Boolean isUnscoped = null;
+	public boolean isUnscoped() {
+		if (isUnscoped == null){
+			isUnscoped = relatedNumericPTypes.contains(-1L);
+		}
+		return isUnscoped;
+	}
 }

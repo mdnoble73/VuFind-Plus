@@ -23,11 +23,15 @@ public class HoldabilityInformation {
 		return isHoldable;
 	}
 
+	String holdablePTypesString = null;
 	public String getHoldablePTypes() {
-		if (holdablePTypes.contains(999L)){
-			return "999";
-		}else{
-			return Util.getCsvSeparatedStringFromLongs(holdablePTypes);
+		if (holdablePTypesString == null){
+			if (holdablePTypes.contains(999L)){
+				holdablePTypesString = "999";
+			}else{
+				holdablePTypesString = Util.getCsvSeparatedStringFromLongs(holdablePTypes);
+			}
 		}
+		return holdablePTypesString;
 	}
 }

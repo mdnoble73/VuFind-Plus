@@ -55,6 +55,8 @@ class SearchAPI extends Action {
 		SOLR_RESTART_INTERVAL_CRITICAL      = 129600, // 36 Hours (in seconds)
 		OVERDRIVE_DELETED_ITEMS_WARN        = 250,
 		OVERDRIVE_DELETED_ITEMS_CRITICAL    = 1000,
+		SIERRA_MAX_REMAINING_ITEMS_WARN     = 5000,
+		SIERRA_MAX_REMAINING_ITEMS_CRITICAL = 20000,
 
 		STATUS_OK       = 'okay',
 		STATUS_WARN     = 'warning',
@@ -294,6 +296,17 @@ class SearchAPI extends Action {
 			$status[] = self::STATUS_CRITICAL;
 			$notes[]  = "There are $offlineHolds un-processed offline holds";
 		}
+
+		//Sierra Export Remaining items
+		$remainingSierraRecords = new Variable();
+		$remainingSierraRecords->name = 'remaining_sierra_records';
+		if ($remainingSierraRecords->find(true)){
+			if ($remainingSierraRecords->value >= self::SIERRA_MAX_REMAINING_ITEMS_WARN) {
+				$notes[] = "{$remainingSierraRecords->value} changed items remain to be processed from Sierra";
+				$status[] = $remainingSierraRecords->value >= self::SIERRA_MAX_REMAINING_ITEMS_CRITICAL ? self::STATUS_CRITICAL : self::STATUS_WARN;
+			}
+		}
+
 
 		if (count($notes) > 0){
 			$result = array(
@@ -617,7 +630,7 @@ class SearchAPI extends Action {
 			}
 		}
 	}
-	
+
 	function getTitleInfoForISBN(){
 		$isbn = str_replace('-', '', strip_tags($_REQUEST['isbn']));
 		$_REQUEST['lookfor'] = $isbn;

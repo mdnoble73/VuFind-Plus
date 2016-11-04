@@ -17,7 +17,7 @@ class Circa_OfflineCirculationReport extends Admin_Admin{
 			$startDate = new DateTime($_REQUEST['startDate']);
 		}else{
 			$startDate = new DateTime();
-			date_sub($startDate, new DateInterval('P1M')); // 1 month ago
+			date_sub($startDate, new DateInterval('P1D')); // 1 day ago
 		}
 		if (isset($_REQUEST['endDate'])){
 			$endDate = new DateTime($_REQUEST['endDate']);

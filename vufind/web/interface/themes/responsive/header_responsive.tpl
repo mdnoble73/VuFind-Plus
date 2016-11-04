@@ -35,7 +35,7 @@
 		</div>
 
 		<div class="hidden-xs col-sm-2 col-md-2 col-lg-2">
-			<a href="{$path}/MyAccount/Logout" id="logoutLink">
+			<a href="{$path}/MyAccount/Logout"{if $masqueradeMode} onclick="return confirm('This will end both Masquerade Mode and your session as well. Continue to log out?')"{/if} id="logoutLink">
 				<div class="header-button header-primary">
 					{translate text="Log Out"}
 				</div>

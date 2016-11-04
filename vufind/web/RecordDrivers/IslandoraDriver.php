@@ -1155,13 +1155,28 @@ abstract class IslandoraDriver extends RecordInterface {
 					//Try to find the relationship to the person
 					$role = '';
 					if (isset($doc['mods_extension_marmotLocal_relatedPersonOrg_entityPid_ms']) && isset($doc['mods_extension_marmotLocal_relatedPersonOrg_role_ms'])){
-						foreach ($doc['mods_extension_marmotLocal_relatedPersonOrg_entityPid_ms'] as $index => $value) {
-							if ($value == $this->getUniqueID()) {
-								if (isset($doc['mods_extension_marmotLocal_relatedPersonOrg_role_ms'][$index])){
-									$role = $doc['mods_extension_marmotLocal_relatedPersonOrg_role_ms'][$index];
-									//Reverse roles as appropriate
-									if ($role == 'child'){
-										$role = 'parent';
+						//Check to see if we have the same number of entities and roles.  If not we will need to load the full related object to determine role.
+						if (count($doc['mods_extension_marmotLocal_relatedPersonOrg_entityPid_ms']) != count($doc['mods_extension_marmotLocal_relatedPersonOrg_role_ms'])){
+							$relatedEntity = $fedoraUtils->getObject($doc['PID']);
+							/** @var IslandoraDriver $relatedEntityDriver */
+							$relatedEntityDriver = RecordDriverFactory::initRecordDriver($relatedEntity);
+							$relatedPeople = $relatedEntityDriver->getRelatedPeople();
+							foreach ($relatedPeople as $person){
+								if ($person['pid'] == $this->getUniqueID()){
+									$role = $person['role'];
+									break;
+								}
+							}
+
+						}else{
+							foreach ($doc['mods_extension_marmotLocal_relatedPersonOrg_entityPid_ms'] as $index => $value) {
+								if ($value == $this->getUniqueID()) {
+									if (isset($doc['mods_extension_marmotLocal_relatedPersonOrg_role_ms'][$index])){
+										$role = $doc['mods_extension_marmotLocal_relatedPersonOrg_role_ms'][$index];
+										//Reverse roles as appropriate
+										if ($role == 'child'){
+											$role = 'parent';
+										}
 									}
 								}
 							}

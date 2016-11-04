@@ -134,12 +134,12 @@ elif [ ${PRODUCTION} == "true" ]; then
 fi
 
 #Extract Lexile Data
-#cd /data/vufind-plus/; wget -N --no-verbose http://venus.marmot.org/lexileTitles.txt
-cd /data/vufind-plus/; curl --remote-name --remote-time --silent --show-error --compressed --time-cond /data/vufind-plus/lexileTitles.txt http://venus.marmot.org/lexileTitles.txt
+#cd /data/vufind-plus/; wget -N --no-verbose http://cassini.marmot.org/lexileTitles.txt
+cd /data/vufind-plus/; curl --remote-name --remote-time --silent --show-error --compressed --time-cond /data/vufind-plus/lexileTitles.txt http://cassini.marmot.org/lexileTitles.txt
 
 #Extract AR Data
-#cd /data/vufind-plus/accelerated_reader; wget -N --no-verbose http://venus.marmot.org/RLI-ARDataTAB.txt
-cd /data/vufind-plus/accelerated_reader; curl --remote-name --remote-time --silent --show-error --compressed --time-cond /data/vufind-plus/accelerated_reader/RLI-ARDataTAB.txt http://venus.marmot.org/RLI-ARDataTAB.txt
+#cd /data/vufind-plus/accelerated_reader; wget -N --no-verbose http://cassini.marmot.org/RLI-ARDataTAB.txt
+cd /data/vufind-plus/accelerated_reader; curl --remote-name --remote-time --silent --show-error --compressed --time-cond /data/vufind-plus/accelerated_reader/RLI-ARDataTAB.txt http://cassini.marmot.org/RLI-ARDataTAB.txt
 
 #Do a full extract from OverDrive just once a week to catch anything that doesn't
 #get caught in the regular extract
@@ -157,7 +157,7 @@ FILE=$(find /data/vufind-plus/catalog.library.nashville.org/marc -name BIB_EXTRA
 if [ -n "$FILE" ]
 then
   #check file size
-	MINFILE1SIZE=$((825800000))
+	MINFILE1SIZE=$((825000000))
 	FILE1SIZE=$(wc -c <"$FILE")
 	if [ $FILE1SIZE -ge $MINFILE1SIZE ]; then
 

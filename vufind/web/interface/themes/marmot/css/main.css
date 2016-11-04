@@ -3025,6 +3025,9 @@ input[type="button"].btn-block {
 .glyphicon-menu-hamburger:before {
   content: "\e236";
 }
+.glyphicon-sunglasses:before {
+  content: "\e240";
+}
 .caret {
   display: inline-block;
   width: 0;
@@ -5069,7 +5072,6 @@ button.close {
 }
 .modal.fade .modal-dialog {
   -webkit-transform: translate(0, -25%);
-  -ms-transform: translate(0, -25%);
   transform: translate(0, -25%);
   -webkit-transition: -webkit-transform 0.3s ease-out;
   transition: -webkit-transform 0.3s ease-out;
@@ -5078,7 +5080,6 @@ button.close {
 }
 .modal.in .modal-dialog {
   -webkit-transform: translate(0, 0);
-  -ms-transform: translate(0, 0);
   transform: translate(0, 0);
 }
 .modal-dialog {
@@ -7959,7 +7960,6 @@ fieldset[disabled] .datepicker table tr td span.active.disabled:hover.active {
   bottom: -25px;
   left: 50%;
   -webkit-transform: translate(-50%, 0);
-      -ms-transform: translate(-50%, 0);
           transform: translate(-50%, 0);
   margin: 0;
 }
@@ -8038,7 +8038,6 @@ fieldset[disabled] .datepicker table tr td span.active.disabled:hover.active {
   vertical-align: text-top;
   text-align: center;
   -webkit-transform: scale(0.6);
-      -ms-transform: scale(0.6);
           transform: scale(0.6);
   margin-top: -1px;
   margin-bottom: -1px;
@@ -8611,10 +8610,8 @@ hr.menu {
   display: inline-block;
   white-space: nowrap;
   -webkit-transform: rotate(-90deg) translateX(-100%);
-      -ms-transform: rotate(-90deg) translateX(-100%);
           transform: rotate(-90deg) translateX(-100%);
   -webkit-transform-origin: 0 0;
-      -ms-transform-origin: 0 0;
           transform-origin: 0 0;
 }
 .rotated-text-inner:after {
@@ -8704,11 +8701,11 @@ hr.menu {
 }
 #home-page-search-label {
   font-size: 35px;
-  color: #fff;
+  color: #FFF;
   text-shadow: 1px 1px #999999;
 }
 #home-page-advanced-search-link {
-  color: #fff;
+  color: #FFF;
 }
 #lookfor:-ms-input-placeholder {
   font-size: 0;
@@ -8744,7 +8741,7 @@ hr.menu {
 }
 #keepFiltersSwitchLabel,
 #advancedSearchLink {
-  color: #fff;
+  color: #FFF;
   font-weight: normal;
   font-size: 85%;
 }
@@ -8788,7 +8785,7 @@ hr.menu {
   }
 }
 #horizontal-search-box #horizontal-search-label {
-  color: #fff;
+  color: #FFF;
 }
 #horizontal-search-box #lookfor {
   height: 34px;
@@ -8840,8 +8837,8 @@ hr.menu {
 .sidebar-links .panel-heading {
   padding: 5px 15px;
   background-color: #e7e7e7;
-  background: -webkit-linear-gradient(top, #e7e7e7, #d7d7d7);
-  background: linear-gradient(to bottom, #e7e7e7, #d7d7d7);
+  background: -webkit-linear-gradient(top, #fff, #d7d7d7);
+  background: linear-gradient(to bottom, #fff, #d7d7d7);
   border-bottom: 1px solid #a1a1a1;
 }
 .sidebar-links .panel > a,
@@ -10295,10 +10292,8 @@ a.browse-thumbnail-sorted.active {
 .exploreMoreBar .label-left .exploreMoreBarLabel {
   position: absolute;
   -webkit-transform: rotate(-90deg) translateX(-100%);
-      -ms-transform: rotate(-90deg) translateX(-100%);
           transform: rotate(-90deg) translateX(-100%);
   -webkit-transform-origin: 0 0;
-      -ms-transform-origin: 0 0;
           transform-origin: 0 0;
   padding-right: 10px;
   padding-left: 5px;
@@ -10345,7 +10340,6 @@ a.browse-thumbnail-sorted.active {
   position: absolute;
   top: 62px;
   -webkit-transform: translate(-50%, -50%);
-      -ms-transform: translate(-50%, -50%);
           transform: translate(-50%, -50%);
   left: 50%;
 }
@@ -10493,7 +10487,7 @@ a.browse-thumbnail-sorted.active {
 .archiveComponentContainer .archiveComponent {
   border: 1px solid lightgrey;
   background-color: #467E99;
-  background: -webkit-linear-gradient(0deg, white, white 120px, #467E99 121px, #467E99);
+  background: -webkit-linear-gradient(left, white, white 120px, #467E99 121px, #467E99);
   background: linear-gradient(90deg, white, white 120px, #467E99 121px, #467E99);
   color: #FFF;
   font-size: 30px;
@@ -10599,6 +10593,82 @@ a.browse-thumbnail-sorted.active {
 }
 #browseCategories tr td:nth-child(3) > select {
   max-width: 400px;
+}
+#masquerade-header {
+  height: 50px;
+  background-color: #8a00e6;
+  color: #FFF;
+}
+#masquerade-header-content {
+  padding: 5px;
+}
+#masquerade-header-end {
+  padding-top: 5px;
+}
+.sidebar-masquerade-section {
+  background-color: #8a00e6;
+  color: #FFF;
+}
+body.masqueradeMode {
+  padding-top: 50px;
+  border-left: 3px solid #8a00e6;
+  border-right: 3px solid #8a00e6;
+}
+body.masqueradeMode:before,
+body.masqueradeMode:after {
+  content: "";
+  position: fixed;
+  background: #8a00e6;
+  left: 0;
+  right: 0;
+}
+body.masqueradeMode:before {
+  top: 0;
+}
+body.masqueradeMode:after {
+  bottom: 0;
+}
+.btn-masquerade {
+  color: #003366;
+  background-color: #ebccff;
+  border-color: #ccc;
+  font-weight: bold;
+}
+.btn-masquerade:hover,
+.btn-masquerade:focus,
+.btn-masquerade:active,
+.btn-masquerade.active,
+.open .dropdown-toggle.btn-masquerade {
+  color: #003366;
+  background-color: #dba3ff;
+  border-color: #adadad;
+}
+.btn-masquerade:active,
+.btn-masquerade.active,
+.open .dropdown-toggle.btn-masquerade {
+  background-image: none;
+}
+.btn-masquerade.disabled,
+.btn-masquerade[disabled],
+fieldset[disabled] .btn-masquerade,
+.btn-masquerade.disabled:hover,
+.btn-masquerade[disabled]:hover,
+fieldset[disabled] .btn-masquerade:hover,
+.btn-masquerade.disabled:focus,
+.btn-masquerade[disabled]:focus,
+fieldset[disabled] .btn-masquerade:focus,
+.btn-masquerade.disabled:active,
+.btn-masquerade[disabled]:active,
+fieldset[disabled] .btn-masquerade:active,
+.btn-masquerade.disabled.active,
+.btn-masquerade[disabled].active,
+fieldset[disabled] .btn-masquerade.active {
+  background-color: #ebccff;
+  border-color: #ccc;
+}
+.btn-masquerade .badge {
+  color: #ebccff;
+  background-color: #fff;
 }
 .header-button {
   border: 0;
