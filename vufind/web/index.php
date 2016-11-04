@@ -70,8 +70,10 @@ global $active_ip;
 $analytics = new Analytics($active_ip, $startTime);
 $timer->logTime('Setup Analytics');
 
-$googleAnalyticsId = isset($configArray['Analytics']['googleAnalyticsId']) ? $configArray['Analytics']['googleAnalyticsId'] : false;
+$googleAnalyticsId        = isset($configArray['Analytics']['googleAnalyticsId'])        ? $configArray['Analytics']['googleAnalyticsId'] : false;
+$googleAnalyticsLinkingId = isset($configArray['Analytics']['googleAnalyticsLinkingId']) ? $configArray['Analytics']['googleAnalyticsLinkingId'] : false;
 $interface->assign('googleAnalyticsId', $googleAnalyticsId);
+$interface->assign('googleAnalyticsLinkingId', $googleAnalyticsLinkingId);
 if ($googleAnalyticsId) {
 	$googleAnalyticsDomainName = isset($configArray['Analytics']['domainName']) ? $configArray['Analytics']['domainName'] : strstr($_SERVER['SERVER_NAME'], '.');
 	// check for a config setting, use that if found, otherwise grab domain name  but remove the first subdomain
