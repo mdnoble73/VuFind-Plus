@@ -19,6 +19,14 @@
 
 	<br>
 
+		{if $masqueradeMode && !$allowReadingHistoryDisplayInMasqueradeMode}
+			<div class="row">
+				<div class="alert alert-warning">
+					Display of the patron's reading history is disabled in Masquerade Mode.
+				</div>
+			</div>
+		{/if}
+
 	<div class="row">
 		<div id="readingListDisclaimer" {if $historyActive == true}style="display: none"{/if} class="alert alert-info">
 			{* some necessary white space in notice was previously stripped out when needed. *}
@@ -28,6 +36,8 @@
 		</div>
 	</div>
 
+	{if !$masqueradeMode || ($masqueradeMode && $allowReadingHistoryDisplayInMasqueradeMode)}
+		{* Do not display Reading History in Masquerade Mode, unless the library has allowed it *}
 	<form id="readingListForm" action="{$fullPath}" class="form-inline">
 
 		{* Reading History Actions *}
@@ -35,20 +45,29 @@
 			<input type="hidden" name="page" value="{$page}">
 			<input type="hidden" name="patronId" value="{$selectedUser}">
 			<input type="hidden" name="readingHistoryAction" id="readingHistoryAction" value="">
-			<div id="readingListActionsTop" class="col-xs-12">
+			<div id="readingListActionsTop" class="col-xs-6">
 				<div class="btn-group btn-group-sm">
 					{if $historyActive == true}
+						<button class="btn btn-sm btn-info" onclick="return VuFind.Account.ReadingHistory.exportListAction()">Export To Excel</button>
 						{if $transList}
 							<button class="btn btn-sm btn-warning" onclick="return VuFind.Account.ReadingHistory.deletedMarkedAction()">Delete Marked</button>
-							<button class="btn btn-sm btn-danger" onclick="return VuFind.Account.ReadingHistory.deleteAllAction()">Delete All</button>
 						{/if}
-						<button class="btn btn-sm btn-info" onclick="return VuFind.Account.ReadingHistory.exportListAction()">Export To Excel</button>
-						<button class="btn btn-sm btn-danger" onclick="return VuFind.Account.ReadingHistory.optOutAction()">Stop Recording My Reading History</button>
 					{else}
 						<button class="btn btn-sm btn-primary" onclick="return VuFind.Account.ReadingHistory.optInAction()">Start Recording My Reading History</button>
 					{/if}
 				</div>
 			</div>
+			{if $historyActive == true}
+				<div class="col-xs-6">
+					<div class="btn-group btn-group-sm pull-right">
+				{if $transList}
+					<button class="btn btn-sm btn-danger " onclick="return VuFind.Account.ReadingHistory.deleteAllAction()">Delete All</button>
+				{/if}
+				<button class="btn btn-sm btn-danger" onclick="return VuFind.Account.ReadingHistory.optOutAction()">Stop Recording My Reading History</button>
+				</div>
+			</div>
+			{/if}
+
 
 			<hr>
 
@@ -216,18 +235,18 @@
 				<hr>
 
 				<div class="row">
+					<div class="col-xs-12">
 					<div id="readingListActionsBottom" class="btn-group btn-group-sm">
-						{if $historyActive == true}
-							{if $transList}
-								<button class="btn btn-sm btn-warning" onclick="return VuFind.Account.ReadingHistory.deletedMarkedAction()">Delete Marked</button>
-								<button class="btn btn-sm btn-danger" onclick="return VuFind.Account.ReadingHistory.deleteAllAction()">Delete All</button>
+							{if $historyActive == true}
+								<button class="btn btn-sm btn-info" onclick="return VuFind.Account.ReadingHistory.exportListAction()">Export To Excel</button>
+								{if $transList}
+									<button class="btn btn-sm btn-warning" onclick="return VuFind.Account.ReadingHistory.deletedMarkedAction()">Delete Marked</button>
+								{/if}
+							{else}
+								<button class="btn btn-sm btn-primary" onclick="return VuFind.Account.ReadingHistory.optInAction()">Start Recording My Reading History</button>
 							{/if}
-							<button class="btn btn-sm btn-info" onclick="return VuFind.Account.ReadingHistory.exportListAction()">Export To Excel</button>
-							<button class="btn btn-sm btn-danger" onclick="return VuFind.Account.ReadingHistory.optOutAction()">Stop Recording My Reading History</button>
-						{else}
-							<button class="btn btn-sm btn-primary" onclick="return VuFind.Account.ReadingHistory.optInAction()">Start Recording My Reading History</button>
-						{/if}
 					</div>
+				</div>
 				</div>
 
 				{if $pageLinks.all}<div class="text-center">{$pageLinks.all}</div>{/if}
@@ -237,6 +256,7 @@
 			{/if}
 			</div>
 		</form>
+	{/if}
 	{/strip}
 {else}
 	<div class="page">

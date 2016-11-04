@@ -1,5 +1,6 @@
 package org.vufind;
 
+import java.util.HashMap;
 import java.util.regex.Pattern;
 
 /**
@@ -38,26 +39,35 @@ public class InclusionRule {
 		this.subLocationCodePattern = Pattern.compile(subLocationCode, Pattern.CASE_INSENSITIVE);
 	}
 
+	private HashMap<String, Boolean> inclusionCache = new HashMap<>();
 	public boolean isItemIncluded(String recordType, String locationCode, String subLocationCode, boolean isHoldable, boolean isOnOrder, boolean isEContent){
-		//Do the quick checks first
-		if (!isEContent && (includeHoldableOnly && !isHoldable)){
-			return false;
+		String key = new StringBuilder(recordType)
+				.append(locationCode)
+				.append(subLocationCode)
+				.append(isHoldable)
+				.append(isOnOrder)
+				.append(isHoldable)
+				.append(isEContent)
+				.toString();
+		if (!inclusionCache.containsKey(key)){
+			//Do the quick checks first
+			boolean isIncluded;
+			if (!isEContent && (includeHoldableOnly && !isHoldable)){
+				isIncluded = false;
+			}else if (!includeItemsOnOrder && isOnOrder){
+				isIncluded =  false;
+			}else if (!includeEContent && isEContent){
+				isIncluded =  false;
+			}else if (!this.recordType.equals(recordType)){
+				isIncluded =  false;
+			}else if (locationCodePattern.matcher(locationCode).lookingAt() && subLocationCodePattern.matcher(subLocationCode).lookingAt()){
+				//We got a match based on location so this is good to go
+				isIncluded =  true;
+			}else{
+				isIncluded =  false;
+			}
+			inclusionCache.put(key, isIncluded);
 		}
-		if (!includeItemsOnOrder && isOnOrder){
-			return false;
-		}
-		if (!includeEContent && isEContent){
-			return false;
-		}
-		//Now do the longer checks
-		if (!this.recordType.equals(recordType)){
-			return false;
-		}
-		if (locationCodePattern.matcher(locationCode).lookingAt() && subLocationCodePattern.matcher(subLocationCode).lookingAt()){
-			//We got a match based on location so this is good to go
-			return true;
-		}else{
-			return false;
-		}
+		return inclusionCache.get(key);
 	}
 }

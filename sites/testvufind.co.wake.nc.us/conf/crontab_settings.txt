@@ -53,7 +53,7 @@
 ########################
 # Full Update #
 ########################
-30 4 * * * cd /usr/local/vufind-plus/sites/testvufind.co.wake.nc.us; ./full_update.sh
+15 5 * * * cd /usr/local/vufind-plus/sites/testvufind.co.wake.nc.us; ./full_update.sh
 
 ################
 # mySQL Backup #

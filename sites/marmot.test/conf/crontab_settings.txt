@@ -65,6 +65,8 @@
 # Library supplied covers
 */10 * * * * /root/cron/copyCovers.sh
 1-51/10 * * * * /root/cron/copyCovers-AspencatTest.sh
+53 5 * * * /root/cron/copyCovers-ArlingtonTest.sh
+#14 6 * * * scp -Cqp -i /root/.ssh/id_rsa_arlington /data/vufind-plus/arlington.test/covers/original/* sierraftp@158.59.15.152:/data/vufind-plus/arlington.production/covers/original/
 
 # Accelerated Reader data
 45 22 * * * expect /root/cron/copyAcceleratedReaderData.exp

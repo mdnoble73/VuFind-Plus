@@ -53,6 +53,10 @@ cd /usr/local/vufind-plus/vufind/cron;./GetHooplaFromMarmot.sh >> ${OUTPUT_FILE}
 /usr/local/vufind-plus/sites/opac.marmot.org/moveFullExport.sh adams/ebrary ebrary/adams >> ${OUTPUT_FILE}
 /usr/local/vufind-plus/sites/opac.marmot.org/moveFullExport.sh western/ebrary ebrary/western >> ${OUTPUT_FILE}
 
+#Adams Ebrary DDA files
+/usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh adams/ebrary/DDA ebrary/adams/dda/merge >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/vufind/cron/mergeSideloadMarc.sh ebrary/adams/dda >> ${OUTPUT_FILE}
+
 # CCU Ebsco Marc Updates
 /usr/local/vufind-plus/sites/opac.marmot.org/moveFullExport.sh ebsco_ccu ebsco/ccu >> ${OUTPUT_FILE}
 
@@ -85,13 +89,17 @@ cd /usr/local/vufind-plus/vufind/cron;./GetHooplaFromMarmot.sh >> ${OUTPUT_FILE}
 #Extracts for sideloaded eContent; settings defined in config.pwd.ini [Sideload]
 cd /usr/local/vufind-plus/vufind/cron; ./sideload.sh ${PIKASERVER}
 
+# Merge Lynda.com Records
+/usr/local/vufind-plus/vufind/cron/mergeSideloadMarc.sh lynda/evld >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/vufind/cron/mergeSideloadMarc.sh lynda/vail >> ${OUTPUT_FILE}
+
 #Extract Lexile Data
-#cd /data/vufind-plus/; wget -N --no-verbose http://venus.marmot.org/lexileTitles.txt
-cd /data/vufind-plus/; curl --remote-name --remote-time --silent --show-error --compressed --time-cond /data/vufind-plus/lexileTitles.txt http://venus.marmot.org/lexileTitles.txt
+#cd /data/vufind-plus/; wget -N --no-verbose http://cassini.marmot.org/lexileTitles.txt
+cd /data/vufind-plus/; curl --remote-name --remote-time --silent --show-error --compressed --time-cond /data/vufind-plus/lexileTitles.txt http://cassini.marmot.org/lexileTitles.txt
 
 #Extract AR Data
-#cd /data/vufind-plus/accelerated_reader; wget -N --no-verbose http://venus.marmot.org/RLI-ARDataTAB.txt
-cd /data/vufind-plus/accelerated_reader; curl --remote-name --remote-time --silent --show-error --compressed --time-cond /data/vufind-plus/accelerated_reader/RLI-ARDataTAB.txt http://venus.marmot.org/RLI-ARDataTAB.txt
+#cd /data/vufind-plus/accelerated_reader; wget -N --no-verbose http://cassini.marmot.org/RLI-ARDataTAB.txt
+cd /data/vufind-plus/accelerated_reader; curl --remote-name --remote-time --silent --show-error --compressed --time-cond /data/vufind-plus/accelerated_reader/RLI-ARDataTAB.txt http://cassini.marmot.org/RLI-ARDataTAB.txt
 
 #Do a full extract from OverDrive just once a week to catch anything that doesn't
 #get caught in the regular extract
@@ -107,7 +115,7 @@ FILE=$(find  /data/vufind-plus/opac.marmot.org/marc/ -name fullexport.mrc -mtime
 if [ -n "$FILE" ]
 then
   #check file size
-	MINFILE1SIZE=$((4388000000))
+	MINFILE1SIZE=$((4000000000))
 	FILE1SIZE=$(wc -c <"$FILE")
 	if [ $FILE1SIZE -ge $MINFILE1SIZE ]; then
 

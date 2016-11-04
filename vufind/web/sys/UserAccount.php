@@ -67,7 +67,25 @@ class UserAccount {
 			}
 			UserAccount::$isLoggedIn = true;
 
-		//Check to see if the patron is already logged in within CAS as long as we aren't on a page that is likely to be a login page
+			global $masqueradeMode;
+			$masqueradeMode = false;
+			if (!empty($_SESSION['guidingUserId'])) {
+				$masqueradeMode = true;
+				global $guidingUser;
+				$guidingUser = $memCache->get("user_{$serverName}_{$_SESSION['guidingUserId']}"); //TODO: check if this ever works
+				if ($guidingUser === false || isset($_REQUEST['reload'])){
+					$guidingUser = new User();
+					$guidingUser->get($_SESSION['guidingUserId']);
+					if (!$guidingUser) {
+						global $logger;
+						$logger->log('Invalid Guiding User ID in session variable: '. $_SESSION['guidingUserId'], PEAR_LOG_ERR);
+						$masqueradeMode = false;
+						unset($_SESSION['guidingUserId']); // session_start(); session_commit(); probably needed for this to take effect, but might have other side effects
+					}
+				}
+			}
+
+			//Check to see if the patron is already logged in within CAS as long as we aren't on a page that is likely to be a login page
 		}elseif ($action != 'AJAX' && $action != 'DjatokaResolver' && $action != 'Logout' && $module != 'MyAccount' && $module != 'API' && !isset($_REQUEST['username'])){
 			//If the library uses CAS/SSO we may already be logged in even though they never logged in within Pika
 			global $library;
@@ -126,7 +144,6 @@ class UserAccount {
 	 * @throws UnknownAuthenticationMethodException
 	 */
 	public static function login() {
-		global $user;
 		global $logger;
 
 		$validUsers = array();
@@ -192,6 +209,7 @@ class UserAccount {
 				}
 			}else{
 				global $logger;
+				global $user;
 				$username = isset($_REQUEST['username']) ? $_REQUEST['username'] : 'No username provided';
 				$logger->log("Error authenticating patron $username for driver {$driverName}\r\n" . print_r($user, true), PEAR_LOG_ERR);
 				$lastError = $tempUser;
@@ -290,6 +308,10 @@ class UserAccount {
 	 */
 	public static function softLogout(){
 		if (isset($_SESSION['activeUserId'])){
+			if (isset($_SESSION['guidingUserId'])){
+				// Shouldn't end up here while in Masquerade Mode, but if does happen end masquerading as well
+				unset($_SESSION['guidingUserId']);
+			}
 			unset($_SESSION['activeUserId']);
 			global $user;
 			if ($user && $user->loggedInViaCAS){
@@ -362,5 +384,25 @@ class UserAccount {
 			$timer->logTime("Loaded Account Profiles");
 		}
 		return $accountProfiles;
+	}
+
+
+	/**
+	 * Look up in ILS for a user that has never logged into Pika before, based on the patron's barcode.
+	 *
+	 * @param $patronBarcode
+	 */
+	public static function findNewUser($patronBarcode){
+		$driversToTest = self::loadAccountProfiles();
+		foreach ($driversToTest as $driverName => $driverData){
+			$catalogConnectionInstance = CatalogFactory::getCatalogConnectionInstance($driverData['driver'], $driverData['accountProfile']);
+			if (method_exists($catalogConnectionInstance->driver, 'findNewUser')) {
+				$tmpUser = $catalogConnectionInstance->driver->findNewUser($patronBarcode);
+				if (!empty($tmpUser) && !PEAR_Singleton::isError($tmpUser)) {
+					return $tmpUser;
+				}
+			}
+		}
+		return false;
 	}
 }

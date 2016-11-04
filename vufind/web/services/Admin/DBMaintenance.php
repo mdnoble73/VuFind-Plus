@@ -1477,6 +1477,22 @@ class DBMaintenance extends Admin_Admin {
 					),
 				),
 
+				'masquerade_ptypes' => array(
+					'title' => 'P-Type setting for Masquerade Permissions',
+					'description' => 'Build tables to store information related to P-Types.',
+					'sql' => array(
+						'ALTER TABLE `ptype` ADD COLUMN `masquerade` VARCHAR(45) NOT NULL DEFAULT \'none\' AFTER `maxHolds`;',
+					),
+				),
+
+				'non_numeric_ptypes' => array(
+					'title' => 'Allow P-Types to be stored as strings',
+					'description' => 'This accomodates any ILS that does not use numeric P-Types',
+					'sql' => array(
+						'ALTER TABLE `ptype`  CHANGE COLUMN `pType` `pType` VARCHAR(20) NOT NULL ;'
+					),
+				),
+
 				'analytics' => array(
 					'title' => 'Analytics',
 					'description' => 'Build tables to store analytics information.',

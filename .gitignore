@@ -24,7 +24,8 @@ vufind/web/files/thumbnail/*
 vufind/web/files/original/*
 vufind/web/google*.html
 vufind/web/getWorkIdUpdates.php
-vufind/web/sitemaps/*
+vufind/web/sitemaps/*.xml
+vufind/web/sitemaps/*.txt
 tests/jmeter/results/*
 tests/selenium/*
 tests/conf/config.ini

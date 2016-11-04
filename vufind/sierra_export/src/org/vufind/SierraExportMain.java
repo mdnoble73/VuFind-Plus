@@ -92,7 +92,7 @@ public class SierraExportMain{
 		}
 
 		//Get a list of works that have changed since the last index
-		getChangedRecordsFromApi(ini, vufindConn);
+		getChangedRecordsFromApi(ini, vufindConn, exportPath);
 
 		//Connect to the sierra database
 		String url = ini.get("Catalog", "sierra_db");
@@ -249,7 +249,7 @@ public class SierraExportMain{
 		logger.info("Finished exporting holds");
 	}
 
-	private static void getChangedRecordsFromApi(Ini ini, Connection vufindConn) {
+	private static void getChangedRecordsFromApi(Ini ini, Connection vufindConn, String exportPath) {
 		//Get the time the last extract was done
 		try{
 			logger.info("Starting to load changed records from Sierra using the API");
@@ -257,6 +257,18 @@ public class SierraExportMain{
 			Long lastSierraExtractTimeVariableId = null;
 
 			Long exportStartTime = new Date().getTime() / 1000;
+
+			HashSet<String> itemsThatNeedToBeProcessed = new HashSet<>();
+			File changedItemsFile = new File(exportPath + "/changed_items_to_process.csv");
+			if (changedItemsFile.exists()){
+				BufferedReader changedItemsReader = new BufferedReader(new FileReader(changedItemsFile));
+				String curLine = changedItemsReader.readLine();
+				while (curLine != null){
+					itemsThatNeedToBeProcessed.add(curLine);
+					curLine = changedItemsReader.readLine();
+				}
+				changedItemsReader.close();
+			}
 
 			String individualMarcPath = ini.get("Reindex", "individualMarcPath");
 			itemTag = ini.get("Reindex", "itemTag");
@@ -283,12 +295,12 @@ public class SierraExportMain{
 				lastSierraExtractTimeVariableId = lastSierraExtractTimeRS.getLong("id");
 			}
 
-			String maxRecordsToUpdateDuringExtractStr = ini.get("Sierra", "maxRecordsToUpdateDuringExtract");
+			/*String maxRecordsToUpdateDuringExtractStr = ini.get("Sierra", "maxRecordsToUpdateDuringExtract");
 			int maxRecordsToUpdateDuringExtract = 5000;
 			if (maxRecordsToUpdateDuringExtractStr != null){
 				maxRecordsToUpdateDuringExtract = Integer.parseInt(maxRecordsToUpdateDuringExtractStr);
 				logger.info("Extracting a maximum of " + maxRecordsToUpdateDuringExtract + " records");
-			}
+			}*/
 
 			//Only mark records as changed
 			boolean errorUpdatingDatabase = false;
@@ -328,17 +340,17 @@ public class SierraExportMain{
 				boolean moreToRead = true;
 				PreparedStatement markGroupedWorkForBibAsChangedStmt = vufindConn.prepareStatement("UPDATE grouped_work SET date_updated = ? where id = (SELECT grouped_work_id from grouped_work_primary_identifiers WHERE type = 'ils' and identifier = ?)") ;
 				HashMap<String, ArrayList<ItemChangeInfo>> changedBibs = new HashMap<>();
-				int bufferSize = 100;
+				int bufferSize = 1000;
 				/*String recordsToExtractBatchSizeStr = ini.get("Sierra", "recordsToExtractBatchSize");
 				if (recordsToExtractBatchSizeStr != null){
 					bufferSize = Integer.parseInt(recordsToExtractBatchSizeStr);
 					logger.info("Loading records in batches of " + bufferSize + " records");
 				}*/
 
-				int numRead = 0;
+				//Get a list of everything that has changed, loading a minimum of data so we can get the ids as quickly as possible
 				int recordOffset = 50000;
 				while (moreToRead){
-					long lastRecord = firstRecordIdToLoad + recordOffset;
+					//long lastRecord = firstRecordIdToLoad + recordOffset;
 					logger.info("Loading items with changes from " + firstRecordIdToLoad);
 					JSONObject changedRecords = null;
 					int numTries = 0;
@@ -350,7 +362,7 @@ public class SierraExportMain{
 							Thread.sleep(2500);
 						}
 						//changedRecords = callSierraApiURL(ini, apiBaseUrl, apiBaseUrl + "/items/?updatedDate=[" + dateUpdated + ",]&limit=" + bufferSize + "&fields=id,bibIds,location,status,fixedFields&deleted=false&suppressed=false&id=[" + firstRecordIdToLoad + "," + (lastRecord > 999999999 ? "" : lastRecord) + "]", false);
-						changedRecords = callSierraApiURL(ini, apiBaseUrl, apiBaseUrl + "/items/?updatedDate=[" + dateUpdated + ",]&limit=" + bufferSize + "&fields=id,bibIds,location,status,fixedFields&deleted=false&suppressed=false&id=[" + firstRecordIdToLoad + ",]", false);
+						changedRecords = callSierraApiURL(ini, apiBaseUrl, apiBaseUrl + "/items/?updatedDate=[" + dateUpdated + ",]&limit=" + bufferSize + "&fields=id,bibIds&deleted=false&suppressed=false&id=[" + firstRecordIdToLoad + ",]", false);
 					}
 					if (lastCallTimedOut){
 						logger.error(" - call " + numTries + " timed out, data will be lost!");
@@ -363,62 +375,10 @@ public class SierraExportMain{
 						logger.info(" - Found " + numChangedIds + " changes");
 						int lastId = 0;
 						for(int i = 0; i < numChangedIds; i++){
-							numRead++;
 							JSONObject curItem = changedIds.getJSONObject(i);
 							String itemId = curItem.getString("id");
+							itemsThatNeedToBeProcessed.add(itemId);
 							lastId = Integer.parseInt(itemId) + 1;
-
-							String location;
-							if (curItem.has("location")) {
-								location = curItem.getJSONObject("location").getString("code");
-							}else{
-								location = "";
-							}
-							String status;
-							if (curItem.has("status")){
-								status = curItem.getJSONObject("status").getString("code");
-							}else{
-								status = "";
-							}
-
-							String dueDateMarc = null;
-							if (curItem.getJSONObject("fixedFields").has("65")){
-								String dueDateStr = curItem.getJSONObject("fixedFields").getJSONObject("65").getString("value");
-								//The due date is in the format 2014-10-16T10:00:00Z, convert to what the marc record shows which is just yymmdd
-								Date dueDate = dateFormatter.parse(dueDateStr);
-								dueDateMarc = marcDateFormat.format(dueDate);
-							}
-							String lastCheckInDateMarc = null;
-							if (curItem.getJSONObject("fixedFields").has("68")){
-								String lastCheckInDateStr = curItem.getJSONObject("fixedFields").getJSONObject("68").getString("value");
-								//The due date is in the format 2014-10-16T10:00:00Z, convert to what the marc record shows which is just yymmdd
-								Date lastCheckInDate = dateFormatter.parse(lastCheckInDateStr);
-								lastCheckInDateMarc = marcCheckInFormat.format(lastCheckInDate);
-							}
-
-							ItemChangeInfo changeInfo = new ItemChangeInfo();
-							String itemIdFull = ".i" + itemId + getCheckDigit(itemId);
-
-							changeInfo.setItemId(itemIdFull);
-							changeInfo.setLocation(location);
-							changeInfo.setStatus(status);
-
-							changeInfo.setDueDate(dueDateMarc);
-							changeInfo.setLastCheckinDate(lastCheckInDateMarc);
-
-							JSONArray bibIds = curItem.getJSONArray("bibIds");
-							for (int j = 0; j < bibIds.length(); j++){
-								String curId = bibIds.getString(j);
-								String fullId = ".b" + curId + getCheckDigit(curId);
-								ArrayList<ItemChangeInfo> itemChanges;
-								if (changedBibs.containsKey(fullId)) {
-									itemChanges = changedBibs.get(fullId);
-								}else{
-									itemChanges = new ArrayList<>();
-									changedBibs.put(fullId, itemChanges);
-								}
-								itemChanges.add(changeInfo);
-							}
 						}
 						if (numChangedIds >= bufferSize){
 							firstRecordIdToLoad = lastId + 1;
@@ -432,9 +392,88 @@ public class SierraExportMain{
 					logger.info(" - " + changedBibs.size() + " bibs have changes (so far)");
 					//If we have the same number of records as the buffer that is ok.  Sierra does not return the correct total anymore
 					moreToRead = (numChangedIds >= bufferSize); // || firstRecordIdToLoad <= 999999999;
-					if (changedBibs.size() >= maxRecordsToUpdateDuringExtract){
+					/*if (changedBibs.size() >= maxRecordsToUpdateDuringExtract){
 						logger.warn(changedBibs.size() + " records changed, halting.  This will result in some changes being skipped!");
 						break;
+					}*/
+				}
+
+				//Get details for each change.  This is a bit slower so we will just load for up to 5 minutes and save the rest for later if needed
+				int numProcessed = 0;
+				HashSet<String> itemsThatNeedToBeProcessed2 = (HashSet<String>)itemsThatNeedToBeProcessed.clone();
+				for (String itemId : itemsThatNeedToBeProcessed2){
+					JSONObject itemData = callSierraApiURL(ini, apiBaseUrl, apiBaseUrl + "/items/?id=" + itemId + "&fields=id,bibIds,location,status,fixedFields,updatedDate&suppressed=false", false);
+					if (itemData == null) {
+						//This seems to be a normal issue if items get deleted or suppressed.
+						//Manual lookups show that they cannot be found in sierra either.
+						//logger.warn("Could not load item data (result was null) for " + itemId);
+						itemsThatNeedToBeProcessed.remove(itemId);
+					}else if (itemData.has("entries")){
+						JSONObject curItem = itemData.getJSONArray("entries").getJSONObject(0);
+
+						String location;
+						if (curItem.has("location")) {
+							location = curItem.getJSONObject("location").getString("code");
+						}else{
+							location = "";
+						}
+						String status;
+						if (curItem.has("status")){
+							status = curItem.getJSONObject("status").getString("code");
+						}else{
+							status = "";
+						}
+
+						String dueDateMarc = null;
+						if (curItem.getJSONObject("fixedFields").has("65")){
+							String dueDateStr = curItem.getJSONObject("fixedFields").getJSONObject("65").getString("value");
+							//The due date is in the format 2014-10-16T10:00:00Z, convert to what the marc record shows which is just yymmdd
+							Date dueDate = dateFormatter.parse(dueDateStr);
+							dueDateMarc = marcDateFormat.format(dueDate);
+						}
+						String lastCheckInDateMarc = null;
+						if (curItem.getJSONObject("fixedFields").has("68")){
+							String lastCheckInDateStr = curItem.getJSONObject("fixedFields").getJSONObject("68").getString("value");
+							//The due date is in the format 2014-10-16T10:00:00Z, convert to what the marc record shows which is just yymmdd
+							Date lastCheckInDate = dateFormatter.parse(lastCheckInDateStr);
+							lastCheckInDateMarc = marcCheckInFormat.format(lastCheckInDate);
+						}
+
+						ItemChangeInfo changeInfo = new ItemChangeInfo();
+						String itemIdFull = ".i" + itemId + getCheckDigit(itemId);
+
+						changeInfo.setItemId(itemIdFull);
+						changeInfo.setLocation(location);
+						changeInfo.setStatus(status);
+
+						changeInfo.setDueDate(dueDateMarc);
+						changeInfo.setLastCheckinDate(lastCheckInDateMarc);
+
+						JSONArray bibIds = curItem.getJSONArray("bibIds");
+						for (int j = 0; j < bibIds.length(); j++){
+							String curId = bibIds.getString(j);
+							String fullId = ".b" + curId + getCheckDigit(curId);
+							ArrayList<ItemChangeInfo> itemChanges;
+							if (changedBibs.containsKey(fullId)) {
+								itemChanges = changedBibs.get(fullId);
+							}else{
+								itemChanges = new ArrayList<>();
+								changedBibs.put(fullId, itemChanges);
+							}
+							itemChanges.add(changeInfo);
+						}
+
+						itemsThatNeedToBeProcessed.remove(itemId);
+					}else{
+						logger.warn("Did not get item information (entries) for " + itemId);
+					}
+
+					//Check to see if we've used too much time
+					numProcessed++;
+					if (numProcessed % 250 == 0){
+						if ((new Date().getTime() / 1000) - exportStartTime >= 5 * 60){
+							break;
+						}
 					}
 				}
 
@@ -466,9 +505,17 @@ public class SierraExportMain{
 				//TODO: Process deleted records as well?
 			}
 
+			//Write any records that still haven't been processed
+			BufferedWriter itemsToProcessWriter = new BufferedWriter(new FileWriter(changedItemsFile, false));
+			for (String changedItem : itemsThatNeedToBeProcessed){
+				itemsToProcessWriter.write(changedItem + "\r\n");
+			}
+			itemsToProcessWriter.flush();
+			itemsToProcessWriter.close();
+			//logger.warn(itemsThatNeedToBeProcessed.size() + " items remain to be processed");
+
 			if (!errorUpdatingDatabase) {
 				//Update the last extract time
-				Long finishTime = new Date().getTime() / 1000;
 				if (lastSierraExtractTimeVariableId != null) {
 					PreparedStatement updateVariableStmt = vufindConn.prepareStatement("UPDATE variables set value = ? WHERE id = ?");
 					updateVariableStmt.setLong(1, exportStartTime);
@@ -481,6 +528,10 @@ public class SierraExportMain{
 					insertVariableStmt.executeUpdate();
 					insertVariableStmt.close();
 				}
+				PreparedStatement setRemainingRecordsStmt = vufindConn.prepareStatement("INSERT INTO variables (`name`, `value`) VALUES ('remaining_sierra_records', ?) ON DUPLICATE KEY UPDATE value=VALUES(value)");
+				setRemainingRecordsStmt.setString(1, Long.toString(itemsThatNeedToBeProcessed.size()));
+				setRemainingRecordsStmt.executeUpdate();
+				setRemainingRecordsStmt.close();
 			}else{
 				logger.error("There was an error updating the database, not setting last extract time.");
 			}

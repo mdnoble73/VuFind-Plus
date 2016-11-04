@@ -276,7 +276,12 @@ function continueSession(){
 }
 
 function endSession(){
-	//Redirect to logout page
-	window.location = Globals.path + "/MyAccount/Logout";
+	var masqueradeMode = $('#masquerade-header').is(':visible');
+	if (masqueradeMode) {
+		VuFind.Account.endMasquerade()
+	} else {
+		//Redirect to logout page
+		window.location = Globals.path + "/MyAccount/Logout";
+	}
 }
 

@@ -169,44 +169,54 @@ public abstract class IIIRecordProcessor extends IlsRecordProcessor{
 		return false;
 	}
 
+	private HashMap<String, HoldabilityInformation> holdabilityCache = new HashMap<>();
 	@Override
-	protected HoldabilityInformation isItemHoldable(ItemInfo itemInfo, Scope curScope) {
+	protected HoldabilityInformation isItemHoldable(ItemInfo itemInfo, Scope curScope, HoldabilityInformation isHoldableUnscoped) {
 		//Check to make sure this isn't an unscoped record
-		if (curScope.getRelatedNumericPTypes().contains(-1L)){
+		if (curScope.isUnscoped()){
 			//This is an unscoped scope (everything should be holdable unless the location/itype/status is not holdable
-			return super.isItemHoldable(itemInfo, curScope);
+			return isHoldableUnscoped;
 		}else{
-			String locationCode;
-			if (loanRulesAreBasedOnCheckoutLocation()) {
-				//Loan rule determiner by lending location
-				locationCode = curScope.getIlsCode();
-			}else{
-				//Loan rule determiner by owning location
-				locationCode = itemInfo.getLocationCode();
-			}
-
-			HashSet<RelevantLoanRule> relevantLoanRules = getRelevantLoanRules(itemInfo.getITypeCode(), locationCode, curScope.getRelatedNumericPTypes());
-			HashSet<Long> holdablePTypes = new HashSet<>();
 			//First check to see if the overall record is not holdable based on suppression rules
-			HoldabilityInformation holdability = super.isItemHoldable(itemInfo, curScope);
-			boolean holdable = false;
-			if (holdability.isHoldable()) {
-				//Set back to false and then prove true
-				holdable = false;
-				for (RelevantLoanRule loanRule : relevantLoanRules) {
-					if (loanRule.getLoanRule().getHoldable()) {
-						holdablePTypes.addAll(loanRule.getPatronTypes());
-						holdable = true;
-					}
+			if (isHoldableUnscoped.isHoldable()) {
+				String locationCode;
+				if (loanRulesAreBasedOnCheckoutLocation()) {
+					//Loan rule determiner by lending location
+					locationCode = curScope.getIlsCode();
+				}else{
+					//Loan rule determiner by owning location
+					locationCode = itemInfo.getLocationCode();
 				}
-			}
-			return new HoldabilityInformation(holdable, holdablePTypes);
-		}
 
+				String itemIType = itemInfo.getITypeCode();
+
+				String key = new StringBuilder(curScope.getScopeName()).append(locationCode).append(itemIType).toString();
+				HoldabilityInformation cachedInfo = holdabilityCache.get(key);
+				if (cachedInfo == null){
+					HashSet<RelevantLoanRule> relevantLoanRules = getRelevantLoanRules(itemIType, locationCode, curScope.getRelatedNumericPTypes());
+					HashSet<Long> holdablePTypes = new HashSet<>();
+
+					//Set back to false and then prove true
+					boolean holdable = false;
+					for (RelevantLoanRule loanRule : relevantLoanRules) {
+						if (loanRule.getLoanRule().getHoldable()) {
+							holdablePTypes.addAll(loanRule.getPatronTypes());
+							holdable = true;
+						}
+					}
+					cachedInfo = new HoldabilityInformation(holdable, holdablePTypes);
+					holdabilityCache.put(key, cachedInfo);
+				}
+				return cachedInfo;
+			}else{
+				return isHoldableUnscoped;
+			}
+		}
 	}
 
+	private HashMap<String, BookabilityInformation> bookabilityCache = new HashMap<>();
 	@Override
-	protected BookabilityInformation isItemBookable(ItemInfo itemInfo, Scope curScope) {
+	protected BookabilityInformation isItemBookable(ItemInfo itemInfo, Scope curScope, BookabilityInformation isBookableUnscoped) {
 		String locationCode;
 		if (loanRulesAreBasedOnCheckoutLocation()) {
 			//Loan rule determiner by lending location
@@ -215,16 +225,23 @@ public abstract class IIIRecordProcessor extends IlsRecordProcessor{
 			//Loan rule determiner by owning location
 			locationCode = itemInfo.getLocationCode();
 		}
-		HashSet<RelevantLoanRule> relevantLoanRules = getRelevantLoanRules(itemInfo.getITypeCode(), locationCode, curScope.getRelatedNumericPTypes());
-		HashSet<Long> bookablePTypes = new HashSet<>();
-		boolean isBookable = false;
-		for (RelevantLoanRule loanRule : relevantLoanRules){
-			if (loanRule.getLoanRule().getBookable()){
-				bookablePTypes.addAll(loanRule.getPatronTypes());
-				isBookable = true;
+
+		String itemIType = itemInfo.getITypeCode();
+
+		String key = new StringBuilder(curScope.getScopeName()).append("-").append(locationCode).append("-").append(itemIType).toString();
+		if (!bookabilityCache.containsKey(key)) {
+			HashSet<RelevantLoanRule> relevantLoanRules = getRelevantLoanRules(itemIType, locationCode, curScope.getRelatedNumericPTypes());
+			HashSet<Long> bookablePTypes = new HashSet<>();
+			boolean isBookable = false;
+			for (RelevantLoanRule loanRule : relevantLoanRules) {
+				if (loanRule.getLoanRule().getBookable()) {
+					bookablePTypes.addAll(loanRule.getPatronTypes());
+					isBookable = true;
+				}
 			}
+			bookabilityCache.put(key, new BookabilityInformation(isBookable, bookablePTypes));
 		}
-		return new BookabilityInformation(isBookable, bookablePTypes);
+		return bookabilityCache.get(key);
 	}
 
 	protected String getDisplayGroupedStatus(ItemInfo itemInfo, String identifier) {
@@ -277,8 +294,12 @@ public abstract class IIIRecordProcessor extends IlsRecordProcessor{
 		if (overriddenStatus != null) {
 			itemInfo.setDetailedStatus(overriddenStatus);
 		}else {
-			if (itemStatus.equals("-") && !(itemInfo.getDueDate().length() == 0 || itemInfo.getDueDate().trim().equals("-  -"))) {
-				itemInfo.setDetailedStatus("Due " + getDisplayDueDate(itemInfo.getDueDate(), identifier));
+			if (validCheckedOutStatusCodes.contains(itemStatus)) {
+				if (itemInfo.getDueDate().length() == 0 || itemInfo.getDueDate().trim().equals("-  -")) {
+					itemInfo.setDetailedStatus(translateValue("item_status", itemStatus, identifier));
+				}else{
+					itemInfo.setDetailedStatus("Due " + getDisplayDueDate(itemInfo.getDueDate(), identifier));
+				}
 			} else {
 				itemInfo.setDetailedStatus(translateValue("item_status", itemStatus, identifier));
 			}

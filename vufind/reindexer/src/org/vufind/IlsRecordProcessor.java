@@ -781,12 +781,26 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 			available = false;
 		}
 
+		loadScopeInfoForPrintIlsItem(itemInfo, itemLocation, itemSublocation, available, displayStatus, groupedDisplayStatus);
+
+		groupedWork.addKeywords(itemLocation);
+		if (itemSublocation.length() > 0){
+			groupedWork.addKeywords(itemSublocation);
+		}
+
+		recordInfo.addItem(itemInfo);
+		return itemInfo;
+	}
+
+	private void loadScopeInfoForPrintIlsItem(ItemInfo itemInfo, String itemLocation, String itemSublocation, boolean available, String displayStatus, String groupedDisplayStatus) {
+		HoldabilityInformation isHoldableUnscoped = isItemHoldableUnscoped(itemInfo);
+		BookabilityInformation isBookableUnscoped = isItemBookableUnscoped(itemInfo);
 		for (Scope curScope : indexer.getScopes()) {
 			//Check to see if the record is holdable for this scope
-			HoldabilityInformation isHoldable = isItemHoldable(itemInfo, curScope);
-			BookabilityInformation isBookable = isItemBookable(itemInfo, curScope);
+			HoldabilityInformation isHoldable = isItemHoldable(itemInfo, curScope, isHoldableUnscoped);
 
 			if (curScope.isItemPartOfScope(profileType, itemLocation, itemSublocation, isHoldable.isHoldable(), false, false)){
+				BookabilityInformation isBookable = isItemBookable(itemInfo, curScope, isBookableUnscoped);
 				ScopingInfo scopingInfo = itemInfo.addScope(curScope);
 				scopingInfo.setAvailable(available);
 				scopingInfo.setHoldable(isHoldable.isHoldable());
@@ -809,14 +823,6 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 				}
 			}
 		}
-
-		groupedWork.addKeywords(itemLocation);
-		if (itemSublocation.length() > 0){
-			groupedWork.addKeywords(itemSublocation);
-		}
-
-		recordInfo.addItem(itemInfo);
-		return itemInfo;
 	}
 
 	protected boolean determineLibraryUseOnly(ItemInfo itemInfo, Scope curScope) {
@@ -994,27 +1000,53 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		return true;
 	}
 
-	protected HoldabilityInformation isItemHoldable(ItemInfo itemInfo, Scope curScope){
-		if (nonHoldableITypes != null && itemInfo.getITypeCode() != null && itemInfo.getITypeCode().length() > 0){
-			if (nonHoldableITypes.matcher(itemInfo.getITypeCode()).matches()){
+	private HashMap<String, Boolean> iTypesThatHaveHoldabilityChecked = new HashMap<>();
+	private HashMap<String, Boolean> locationsThatHaveHoldabilityChecked = new HashMap<>();
+	private HashMap<String, Boolean> statusesThatHaveHoldabilityChecked = new HashMap<>();
+
+	protected HoldabilityInformation isItemHoldableUnscoped(ItemInfo itemInfo){
+		String itemItypeCode =  itemInfo.getITypeCode();
+		if (nonHoldableITypes != null && itemItypeCode != null && itemItypeCode.length() > 0){
+			if (!iTypesThatHaveHoldabilityChecked.containsKey(itemItypeCode)){
+				iTypesThatHaveHoldabilityChecked.put(itemItypeCode, !nonHoldableITypes.matcher(itemItypeCode).matches());
+			}
+			if (!iTypesThatHaveHoldabilityChecked.get(itemItypeCode)){
 				return new HoldabilityInformation(false, new HashSet<Long>());
 			}
 		}
-		if (nonHoldableLocations != null && itemInfo.getLocationCode() != null && itemInfo.getLocationCode().length() > 0){
-			if (nonHoldableLocations.matcher(itemInfo.getLocationCode()).matches()){
+		String itemLocationCode =  itemInfo.getLocationCode();
+		if (nonHoldableLocations != null && itemLocationCode != null && itemLocationCode.length() > 0){
+			if (!locationsThatHaveHoldabilityChecked.containsKey(itemLocationCode)){
+				locationsThatHaveHoldabilityChecked.put(itemLocationCode, !nonHoldableLocations.matcher(itemLocationCode).matches());
+			}
+			if (!locationsThatHaveHoldabilityChecked.get(itemLocationCode)){
 				return new HoldabilityInformation(false, new HashSet<Long>());
 			}
 		}
-		if (nonHoldableStatuses != null && itemInfo.getStatusCode() != null && itemInfo.getStatusCode().length() > 0){
-			if (nonHoldableStatuses.matcher(itemInfo.getStatusCode()).matches()){
+		String itemStatusCode = itemInfo.getStatusCode();
+		if (nonHoldableStatuses != null && itemStatusCode != null && itemStatusCode.length() > 0){
+			if (!statusesThatHaveHoldabilityChecked.containsKey(itemStatusCode)){
+				statusesThatHaveHoldabilityChecked.put(itemStatusCode, !nonHoldableStatuses.matcher(itemStatusCode).matches());
+			}
+			if (!statusesThatHaveHoldabilityChecked.get(itemStatusCode)){
+
+
 				return new HoldabilityInformation(false, new HashSet<Long>());
 			}
 		}
 		return new HoldabilityInformation(true, new HashSet<Long>());
 	}
 
-	protected BookabilityInformation isItemBookable(ItemInfo itemInfo, Scope curScope) {
+	protected HoldabilityInformation isItemHoldable(ItemInfo itemInfo, Scope curScope, HoldabilityInformation isHoldableUnscoped){
+		return isHoldableUnscoped;
+	}
+
+	protected BookabilityInformation isItemBookableUnscoped(ItemInfo itemInfo){
 		return new BookabilityInformation(false, new HashSet<Long>());
+	}
+
+	protected BookabilityInformation isItemBookable(ItemInfo itemInfo, Scope curScope, BookabilityInformation isBookableUnscoped) {
+		return isBookableUnscoped;
 	}
 
 	protected String getShelfLocationForItem(ItemInfo itemInfo, DataField itemField, String identifier) {

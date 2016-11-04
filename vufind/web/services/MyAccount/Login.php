@@ -91,6 +91,11 @@ class MyAccount_Login extends Action
 			if (isset($_REQUEST['comment'])) {
 				$interface->assign('comment', $_REQUEST['comment']);
 			}
+
+			// preserve card Number for Masquerading
+			if (isset($_REQUEST['cardNumber'])) {
+				$interface->assign('cardNumber', $_REQUEST['cardNumber']);
+			}
 		}
 		$interface->assign('message', $msg);
 		if (isset($_REQUEST['username'])) {
