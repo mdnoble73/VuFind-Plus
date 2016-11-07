@@ -50,7 +50,7 @@
 # Data Extract from other systems #
 ###################################
 # Library supplied covers
-1-51/10 * * * * /root/cron/copyCovers-AspencatTest.sh
+1-51/10 * * * * /root/cron/copyCover.sh
 
 ############################################
 # New York Times Bestseller Lists Updating #
