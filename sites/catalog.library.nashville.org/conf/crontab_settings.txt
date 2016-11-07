@@ -94,5 +94,5 @@
 #10 * * * * cd /usr/local/vufind-plus/sites/catalog.library.nashville.org; ./pika_restart.sh
 
 # Check Apache Solr process and website that it has not stalled.
-*/3 * * * * cd /usr/local/vufind-plus/vufind/cron/; ./solrTest.sh
+*/3 6-23 * * * cd /usr/local/vufind-plus/vufind/cron/; ./solrTest.sh
 
