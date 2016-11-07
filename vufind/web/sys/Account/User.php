@@ -435,8 +435,10 @@ class User extends DB_DataObject
 			$userLink->primaryAccountId = $this->id;
 			$userLink->linkedAccountId  = $user->id;
 			$result = $userLink->insert();
-			$this->linkedUsers[] = clone($user);
-			return true == $result; // return success or failure
+			if (true == $result) {
+				$this->linkedUsers[] = clone($user);
+				return true;
+			}
 		}
 		return false;
 	}
