@@ -113,7 +113,7 @@ abstract class HorizonAPI extends Horizon{
 					//Translate home branch to plain text
 					$location = new Location();
 					$location->code = $homeBranchCode;
-					$location->find(1);
+//					$location->find(1);
 					if (!$location->find(true)){
 						unset($location);
 					}
