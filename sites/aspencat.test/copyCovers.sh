@@ -20,7 +20,7 @@
 #-------------------------------------------------------------------------
 # declare variables
 #-------------------------------------------------------------------------
-REMOTE="10.1.2.26:/ftp"
+REMOTE="10.1.2.2:/ftp"
 LOCAL="/mnt/ftp_covers"
 SRC="/mnt/ftp_covers/aspencat_covers"
 DEST="/data/vufind-plus/aspencat.test/covers/original"
