@@ -35,7 +35,7 @@
 #####################
 # Daily full update #
 #####################
-00 18 2-29/3 * * cd /usr/local/vufind-plus/sites/flatirons.test; ./full_update_flatirons_test.sh
+00 18 2-29/3 * * cd /usr/local/vufind-plus/sites/flatirons.test; ./full_update.sh
 
 ################
 # Pika Cleanup #
