@@ -13,6 +13,7 @@
 #                            add optional all parameter to force copy of
 #                            all covers
 # 15 Sep 14 - v0.0.7 - plb - re-adjusted to 10 minute intervals
+# 08 Nov 16          - plb - Refactored for easy plug-and-play on test servers
 
 ##-------------------------------------------------------------------------
 # declare variables

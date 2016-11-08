@@ -49,8 +49,8 @@
 # Data Extract from other systems #
 ###################################
 # Library supplied covers
-1-51/10 * * * * /root/cron/copyCover.sh
-#TODO: change
+1-51/10 * * * * /usr/local/vufind-plus/sites/flatirons.test/copyCover.sh
+
 
 ############################################
 # New York Times Bestseller Lists Updating #
