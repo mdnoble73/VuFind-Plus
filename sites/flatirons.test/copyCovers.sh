@@ -18,8 +18,8 @@
 # declare variables
 #-------------------------------------------------------------------------
 
-FTPACCOUNT="aspencat_cover"
-PIKASITENAME="aspencat.test"
+FTPACCOUNT="flatirons_pika_covers"
+PIKASITENAME="flatirons.test"
 
 REMOTE="10.1.2.6:/ftp"
 LOCAL="/mnt/ftp"
