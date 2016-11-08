@@ -51,6 +51,13 @@
 # Library supplied covers
 1-51/10 * * * * /usr/local/vufind-plus/sites/flatirons.test/copyCover.sh
 
+###############################################
+# OverDrive Extract                           #
+# - For systems not doing continuous indexing #
+# - every 3 hours                             #
+###############################################
+11 */3 * * * cd /usr/local/vufind-plus/vufind/overdrive_api_extract; java -server -jar overdrive_extract.jar flatirons.test
+
 
 ############################################
 # New York Times Bestseller Lists Updating #
@@ -61,8 +68,8 @@
 ##########
 # Cron   #
 ##########
-14 20 * * * cd /usr/local/vufind-plus/vufind/cron/; java -jar cron.jar flatirons.test
-25 0 * * * cd /usr/local/vufind-plus/vufind/cron/; java -jar cron.jar flatirons.test DatabaseCleanup
+28 20 * * * cd /usr/local/vufind-plus/vufind/cron/; java -jar cron.jar flatirons.test
+35 0 * * * cd /usr/local/vufind-plus/vufind/cron/; java -jar cron.jar flatirons.test DatabaseCleanup
 
 # Check Apache Solr process and website that it has not stalled.
 */3 * * * * cd /usr/local/vufind-plus/vufind/cron/; ./solrTest.sh

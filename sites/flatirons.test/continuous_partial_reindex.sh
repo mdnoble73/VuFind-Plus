@@ -10,7 +10,6 @@
 # this version emails script output as a round finishes
 EMAIL=root@iapetus
 PIKASERVER=flatirons.test
-ILSSERVER=nell.boulderlibrary.org
 OUTPUT_FILE="/var/log/vufind-plus/${PIKASERVER}/continuous_partial_reindex_output.log"
 
 # Check for conflicting processes currently running
