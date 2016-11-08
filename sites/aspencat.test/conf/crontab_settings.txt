@@ -35,7 +35,7 @@
 #####################
 # Daily full update #
 #####################
-10 01 1-30/3 * * cd /usr/local/vufind-plus/sites/aspencat.test; ./full_update_aspencat_test.sh
+10 01 1-30/3 * * cd /usr/local/vufind-plus/sites/aspencat.test; ./full_update.sh
 # avoid 6pm - 11pm for AspenCat PLB  (PK-288)
 
 ################
