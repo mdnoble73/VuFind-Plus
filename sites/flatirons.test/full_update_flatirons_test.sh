@@ -10,7 +10,6 @@
 
 # this version emails script output as a round finishes
 EMAIL=mark@marmot.org,pascal@marmot.org
-ILSSERVER=nell.boulderlibrary.org
 PIKASERVER=flatirons.test
 PIKADBNAME=flatirons_pika
 OUTPUT_FILE="/var/log/vufind-plus/${PIKASERVER}/full_update_output.log"
@@ -89,29 +88,28 @@ rm /data/vufind-plus/${PIKASERVER}/grouped_work_primary_identifiers.sql
 #Restart Solr
 cd /usr/local/vufind-plus/sites/${PIKASERVER}; ./${PIKASERVER}.sh restart
 
-#Extract from ILS
-#copy extracts from production servers
-#TODO use scp to copy records from flatirons production server or have them pushed to the test server
-#cd /data/vufind-plus/flatirons.test/marc
-#wget -N --no-verbose http://flc.flatironslibrary.org/BIB_EXTRACT_PIKA.MRC
-#wget -N --no-verbose http://flc.flatironslibrary.org/BIB_HOLDS_EXTRACT_PIKA.TXT
-# --no-verbose Turn off verbose without being completely quiet (use -q for that), which means that error messages and basic information still get printed.
 
 #Extract from Hoopla
-#No need to copy on marmot test server
-#cd /usr/local/vufind-plus/vufind/cron;./HOOPLA.sh ${PIKASERVER} >> ${OUTPUT_FILE}
+cd /usr/local/vufind-plus/vufind/cron;./GetHooplaFromMarmot.sh >> ${OUTPUT_FILE}
 
 #Extract Lexile Data
-#No need to copy on marmot test server
-#cd /data/vufind-plus/; curl --remote-name --remote-time --silent --show-error --compressed --time-cond /data/vufind-plus/lexileTitles.txt http://cassini.marmot.org/lexileTitles.txt
+cd /data/vufind-plus/; curl --remote-name --remote-time --silent --show-error --compressed --time-cond /data/vufind-plus/lexileTitles.txt http://cassini.marmot.org/lexileTitles.txt >> ${OUTPUT_FILE}
 
 #Extract AR Data
-#No need to copy on marmot test server
-#cd /data/vufind-plus/accelerated_reader; curl --remote-name --remote-time --silent --show-error --compressed --time-cond /data/vufind-plus/accelerated_reader/RLI-ARDataTAB.txt http://cassini.marmot.org/RLI-ARDataTAB.txt
+#cd /data/vufind-plus/accelerated_reader; wget -N --no-verbose http://cassini.marmot.org/RLI-ARDataTAB.txt
+cd /data/vufind-plus/accelerated_reader; curl --remote-name --remote-time --silent --show-error --compressed --time-cond /data/vufind-plus/accelerated_reader/RLI-ARDataTAB.txt http://cassini.marmot.org/RLI-ARDataTAB.txt >> ${OUTPUT_FILE}
 
 #Zinio Marc Updates
-/usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh flatirons_sideload/zinio/shared zinio/boulderBroomfield >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh flatirons_sideload/zinio/shared zinio >> ${OUTPUT_FILE}
 /usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh flatirons_sideload/zinio/longmont zinio/longmont >> ${OUTPUT_FILE}
+
+#OneClick Digital Marc Updates
+/usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh flatirons_sideload/oneclickdigital/longmont oneclickdigital/longmont >> ${OUTPUT_FILE}
+
+#Ebrary Marc Updates
+/usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh flatirons_sideload/ebrary/boulder ebrary/bpl >> ${OUTPUT_FILE}
+#TODO: set up merge & delete
+/usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh flatirons_sideload/ebrary/broomfield ebrary/mde >> ${OUTPUT_FILE}
 
 #Do a full extract from OverDrive just once a week to catch anything that doesn't
 #get caught in the regular extract
@@ -136,10 +134,9 @@ cd /usr/local/vufind-plus/vufind/record_grouping; java -server -XX:+UseG1GC -Xmx
 #Full Reindex
 cd /usr/local/vufind-plus/vufind/reindexer; java -server -XX:+UseG1GC -jar reindexer.jar ${PIKASERVER} fullReindex >> ${OUTPUT_FILE}
 
-# Only needed once on venus
 # Clean-up Solr Logs
-#find /usr/local/vufind-plus/sites/default/solr/jetty/logs -name "solr_log_*" -mtime +7 -delete
-#find /usr/local/vufind-plus/sites/default/solr/jetty/logs -name "solr_gc_log_*" -mtime +7 -delete
+find /usr/local/vufind-plus/sites/default/solr/jetty/logs -name "solr_log_*" -mtime +7 -delete
+find /usr/local/vufind-plus/sites/default/solr/jetty/logs -name "solr_gc_log_*" -mtime +7 -delete
 
 #Restart Solr
 cd /usr/local/vufind-plus/sites/${PIKASERVER}; ./${PIKASERVER}.sh restart
