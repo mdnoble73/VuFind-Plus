@@ -10,8 +10,11 @@
 
 	<h2>My Materials Requests</h2>
 	{if $error}
-		<div class="error">{$error}</div>
+		<div class="alert alert-danger">{$error}</div>
 	{else}
+		<div id="materialsRequestSummary" class="alert alert-info">
+			You have used <strong>{$requestsThisYear}</strong> of your {$maxRequestsPerYear} yearly materials requests.  We also limit patrons to {$maxActiveRequests} active requests at a time.  You currently have <strong>{$openRequests}</strong> active requests.
+		</div>
 		<div id="materialsRequestFilters">
 			Filters:
 			<form action="{$path}/MaterialsRequest/MyRequests" method="get" class="form">
@@ -21,7 +24,9 @@
 						<label for="openRequests"><input type="radio" id="openRequests" name="requestsToShow" value="openRequests" {if $showOpen}checked="checked"{/if}/> Open Requests</label>
 						<label for="allRequests"><input type="radio" id="allRequests" name="requestsToShow" value="allRequests" {if !$showOpen}checked="checked"{/if}/> All Requests</label>
 					</div>
-					<div><input type="submit" name="submit" value="Update Filters" class="btn btn-sm btn-default"/></div>
+					<div>
+						<input type="submit" name="submit" value="Update Filters" class="btn btn-sm btn-default">
+					</div>
 				</div>
 			</form>
 		</div>
