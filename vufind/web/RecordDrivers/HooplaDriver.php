@@ -202,6 +202,6 @@ class HooplaRecordDriver extends MarcRecord {
 	}
 
 	function getNumHolds(){
-		return 0; 
+		return 0;
 	}
 }
