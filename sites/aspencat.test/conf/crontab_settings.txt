@@ -50,7 +50,7 @@
 # Data Extract from other systems #
 ###################################
 # Library supplied covers
-31 */2 * * * /usr/local/vufind-plus/sites/aspencat.test/copyCover.sh
+31 */2 * * * /usr/local/vufind-plus/sites/aspencat.test/copyCovers.sh
 
 ############################################
 # New York Times Bestseller Lists Updating #

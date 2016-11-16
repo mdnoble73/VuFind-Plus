@@ -49,7 +49,7 @@
 # Data Extract from other systems #
 ###################################
 # Library supplied covers
-53 5 * * * /usr/local/vufind-plus/sites/arlington.test/copyCover.sh
+53 5 * * * /usr/local/vufind-plus/sites/arlington.test/copyCovers.sh
 
 ############################################
 # New York Times Bestseller Lists Updating #

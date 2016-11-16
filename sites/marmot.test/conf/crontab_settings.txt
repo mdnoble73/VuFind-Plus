@@ -58,7 +58,7 @@
 # Data Extract from other systems #
 ###################################
 # Library supplied covers
-37 */2 * * * /usr/local/vufind-plus/sites/marmot.test/copyCover.sh
+37 */2 * * * /usr/local/vufind-plus/sites/marmot.test/copyCovers.sh
 
 ############################################
 # New York Times Bestseller Lists Updating #
