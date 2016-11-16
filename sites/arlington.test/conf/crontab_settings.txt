@@ -29,7 +29,7 @@
 # On Reboot #
 #############
 # Continuous Re-Indexing
-@reboot /usr/local/vufind-plus/sites/arlington.test/; ./arlington.test.sh start
+@reboot cd /usr/local/vufind-plus/sites/arlington.test/; ./arlington.test.sh start
 @reboot /usr/local/vufind-plus/sites/arlington.test/continuous_partial_reindex.sh
 
 #####################
