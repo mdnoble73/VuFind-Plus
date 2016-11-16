@@ -64,7 +64,7 @@
 		{else}
 			<div>There are no materials requests that meet your criteria.</div>
 		{/if}
-		<div id="createNewMaterialsRequest"><a href="{$path}/MaterialsRequest/NewRequest" class="btn btn-default btn-sm">Submit a New Materials Request</a></div>
+		<div id="createNewMaterialsRequest"><a href="{$path}/MaterialsRequest/NewRequest" class="btn btn-primary btn-sm">Submit a New Materials Request</a></div>
 	{/if}
 </div>
 <script type="text/javascript">

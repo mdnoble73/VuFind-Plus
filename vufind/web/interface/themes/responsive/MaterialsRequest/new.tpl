@@ -17,11 +17,11 @@
 						</p>
 					</div>
 					<div id="copyrightAgreement" class="formatSpecificField articleField col-sm-9 col-sm-offset-3">
-						<label for="acceptCopyrightYes"><input type="radio" name="acceptCopyright" class="required" id="acceptCopyrightYes" value="1"/>Accept</label>
-						<label for="acceptCopyrightNo"><input type="radio" name="acceptCopyright" id="acceptCopyrightNo" value="1"/>Decline</label>
+						<label for="acceptCopyrightYes"><input type="radio" name="acceptCopyright" class="required" id="acceptCopyrightYes" value="1">Accept</label>
+						<label for="acceptCopyrightNo"><input type="radio" name="acceptCopyright" id="acceptCopyrightNo" value="1">Decline</label>
 					</div>
 					<div class="col-sm-9 col-sm-offset-3">
-						<input type="submit" value="Submit Materials Request" class="btn btn-primary" />
+						<input type="submit" value="Submit Materials Request" class="btn btn-primary">
 					</div>
 				</div>
 			</form>

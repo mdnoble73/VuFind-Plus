@@ -42,6 +42,9 @@ class MaterialsRequest_Submit extends Action
 		$maxActiveRequests = isset($library) ? $library->maxOpenRequests : 5;
 		$maxRequestsPerYear = isset($library) ? $library->maxRequestsPerYear : 60;
 		$accountPageLink = $configArray['Site']['path'] . '/MaterialsRequest/MyRequests';
+		$interface->assign('accountPageLink', $accountPageLink);
+		$interface->assign('maxActiveRequests', $maxActiveRequests);
+		$interface->assign('maxRequestsPerYear', $maxRequestsPerYear);
 
 		//Make sure that the user is valid
 		$processForm = true;
@@ -79,24 +82,28 @@ class MaterialsRequest_Submit extends Action
 				$statusQuery->libraryId = $homeLibrary->libraryId;
 				$statusQuery->isOpen = 1;
 				$materialsRequest->joinAdd($statusQuery);
-				$materialsRequest->selectAdd();
-				$materialsRequest->selectAdd('materials_request.*, description as statusLabel');
+				$openRequests = $materialsRequest->count();
+//				$materialsRequest->selectAdd();
+//				$materialsRequest->selectAdd('materials_request.*, description as statusLabel');
+
 				$materialsRequest->find();
+				$interface->assign('openRequests', $openRequests);
+
 				if ($materialsRequest->N >= $maxActiveRequests){
 					$interface->assign('success', false);
 					$interface->assign('error', "You've already reached your maximum limit of $maxActiveRequests requests open at one time. Once we've processed your existing requests, you'll be able to submit again. To check the status of your current requests, visit your <a href='{$accountPageLink}'>account</a>.");
 				}else{
 					//Check the total number of requests created this year
-					$lastYear = new DateTime();
-					$lastYear->modify('-365 days');
 					$materialsRequest = new MaterialsRequest();
 					$materialsRequest->createdBy = $user->id;
-					$materialsRequest->whereAdd('dateCreated >= ' . $lastYear->getTimestamp());
+					$materialsRequest->whereAdd('dateCreated >= unix_timestamp(now() - interval 1 year)');
 					//To be fair, don't include any requests that were cancelled by the patron
 					$statusQuery = new MaterialsRequestStatus();
 					$statusQuery->isPatronCancel = 0;
 					$materialsRequest->joinAdd($statusQuery);
 					$materialsRequest->find();
+					$requestsThisYear = $materialsRequest->count();
+					$interface->assign('requestsThisYear', $requestsThisYear);
 					if ($materialsRequest->N >= $maxRequestsPerYear){
 						$interface->assign('success', false);
 						$interface->assign('error', "You've already reached your maximum limit of $maxRequestsPerYear requests per year. To check the status of your current requests, visit your <a href='{$accountPageLink}'>account page</a>.");
@@ -171,6 +178,9 @@ class MaterialsRequest_Submit extends Action
 							if ($materialsRequest->insert()){
 								$interface->assign('success', true);
 								$interface->assign('materialsRequest', $materialsRequest);
+								// Update Request Counts on success
+								$interface->assign('requestsThisYear', ++$requestsThisYear);
+								$interface->assign('openRequests', ++$openRequests);
 							}else{
 								$interface->assign('success', false);
 								$interface->assign('error', 'There was an error submitting your materials request.');
@@ -181,9 +191,6 @@ class MaterialsRequest_Submit extends Action
 			}
 		}
 
-		$interface->assign('sidebar', 'Search/home-sidebar.tpl');
-		$interface->setTemplate('submission-result.tpl');
-		$interface->setPageTitle('Submission Result');
-		$interface->display('layout.tpl');
+		$this->display('submission-result.tpl', 'Submission Result');
 	}
 }

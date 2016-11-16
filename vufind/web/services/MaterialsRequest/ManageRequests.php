@@ -129,9 +129,11 @@ class MaterialsRequest_ManageRequests extends Admin_Admin {
 			$materialsRequests = new MaterialsRequest();
 			$materialsRequests->joinAdd(new Location(), "LEFT");
 			$materialsRequests->joinAdd(new MaterialsRequestStatus());
-			$materialsRequests->joinAdd(new User(), 'INNER', 'user');
+			$materialsRequests->joinAdd(new User(), 'INNER', 'user', 'createdBy');
+			$materialsRequests->joinAdd(new User(), 'LEFT', 'assignee', 'assignedTo');
+//			$materialsRequests->whereAdd('materials_request.assignedTo = assignee.id');
 			$materialsRequests->selectAdd();
-			$materialsRequests->selectAdd('materials_request.*, description as statusLabel, location.displayName as location, firstname, lastname, ' . $configArray['Catalog']['barcodeProperty'] . ' as barcode');
+			$materialsRequests->selectAdd('materials_request.*, description as statusLabel, location.displayName as location, user.firstname, user.lastname, user.' . $configArray['Catalog']['barcodeProperty'] . ' as barcode, assignee.displayName as assignedTo');
 			if ($user->hasRole('library_material_requests')){
 				//Need to limit to only requests submitted for the user's home location
 				$userHomeLibrary = Library::getPatronHomeLibrary();

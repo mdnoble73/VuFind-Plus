@@ -45,6 +45,7 @@
 							<th>Patron</th>
 							<th>Hold?</th>
 							<th>ILL?</th>
+							<th>Assigned To</th>
 							<th>Status</th>
 							<th>Created</th>
 							<th>&nbsp;</th>
@@ -53,14 +54,15 @@
 					<tbody>
 						{foreach from=$allRequests item=request}
 							<tr>
-								<td><input type="checkbox" name="select[{$request->id}]" class="select"/></td>
+								<td><input type="checkbox" name="select[{$request->id}]" class="select"></td>
 								<td>{$request->id}</td>
 								<td>{$request->title}</td>
 								<td>{$request->author}</td>
 								<td>{$request->format}</td>
-								<td>{$request->lastname}, {$request->firstname}<br/>{$request->barcode}</td>
+								<td>{$request->lastname}, {$request->firstname}<br>{$request->barcode}</td>
 								<td>{if $request->placeHoldWhenAvailable}Yes - {$request->location}{else}No{/if}</td>
 								<td>{if $request->illItem}Yes{else}No{/if}</td>
+								<td>{$request->assignedTo}</td>
 								<td>{$request->statusLabel|translate}</td>
 								<td>{$request->dateCreated|date_format}</td>
 								<td>
@@ -81,9 +83,9 @@
 						<div class="col-sm-8">
 							<div class="input-group">
 								<select name="newStatus" id="newStatus" class="form-control">
-									<option value="unselected"/>Select One</option>
+									<option value="unselected">Select One</option>
 									{foreach from=$availableStatuses item=statusLabel key=status}
-										<option value="{$status}"/>{$statusLabel}</option>
+										<option value="{$status}">{$statusLabel}</option>
 									{/foreach}
 								</select>
 								<span class="btn btn-sm btn-primary input-group-addon" onclick="return VuFind.MaterialsRequest.updateSelectedRequests();">Update Selected Requests</span>
@@ -92,7 +94,7 @@
 					</div>
 					<div class="row">
 						<div class="col-xs-12">
-							<input class="btn btn-sm btn-default" type="submit" name="exportSelected" value="Export Selected To Excel" onclick="return VuFind.MaterialsRequest.exportSelectedRequests();"/>
+							<input class="btn btn-sm btn-default" type="submit" name="exportSelected" value="Export Selected To Excel" onclick="return VuFind.MaterialsRequest.exportSelectedRequests();">
 						</div>
 					</div>
 				</div>
@@ -105,8 +107,16 @@
 
 <script type="text/javascript">
 {literal}
+$(function () {
 	$("#startDate").datepicker();
 	$("#endDate").datepicker();
-	$("#requestedMaterials").tablesorter({cssAsc: 'sortAscHeader', cssDesc: 'sortDescHeader', cssHeader: 'unsortedHeader', widgets:['zebra', 'filter'], headers: { 0: { sorter: false}, 65: {sorter : 'date'}, 6: { sorter: false} } });
+	$("#requestedMaterials").tablesorter({
+		cssAsc: 'sortAscHeader',
+		cssDesc: 'sortDescHeader',
+		cssHeader: 'unsortedHeader',
+		widgets: ['zebra', 'filter'],
+		headers: { 0: {sorter: false}, 10: {sorter : 'date'}, 11: {sorter: false} }
+	});
+});
 {/literal}
 </script>

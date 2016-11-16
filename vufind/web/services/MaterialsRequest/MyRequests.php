@@ -47,12 +47,10 @@ class MaterialsRequest_MyRequests extends MyAccount
 //		global $library;
 		$homeLibrary = Library::getPatronHomeLibrary();
 
-
 		$maxActiveRequests  = isset($homeLibrary) ? $homeLibrary->maxOpenRequests : 5;
 		$maxRequestsPerYear = isset($homeLibrary) ? $homeLibrary->maxRequestsPerYear : 60;
 		$interface->assign('maxActiveRequests', $maxActiveRequests);
 		$interface->assign('maxRequestsPerYear', $maxRequestsPerYear);
-
 
 		$defaultStatus = new MaterialsRequestStatus();
 		$defaultStatus->isDefault = 1;
@@ -65,7 +63,7 @@ class MaterialsRequest_MyRequests extends MyAccount
 		if ($user){
 			$materialsRequests = new MaterialsRequest();
 			$materialsRequests->createdBy = $user->id;
-			$materialsRequests->whereAdd('dateCreated >= UNIX_TIMESTAMP(concat(year(now()), \'-1-1\'))');
+			$materialsRequests->whereAdd('dateCreated >= unix_timestamp(now() - interval 1 year)');
 			$requestsThisYear = $materialsRequests->count();
 			$interface->assign('requestsThisYear', $requestsThisYear);
 
