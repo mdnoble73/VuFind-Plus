@@ -3,8 +3,9 @@
 <div id="main-content" class="col-md-12">
 	<h2>Manage Materials Requests</h2>
 	{if $error}
-		<div class="error">{$error}</div>
-	{else}
+		<div class="alert alert-danger">{$error}</div>
+	{/if}
+	{if $user}
 		<div id="materialsRequestFilters">
 			<fieldset class="fieldset-collapsible">
 				<legend >Filters:</legend>
@@ -27,7 +28,7 @@
 								<input type="checkbox" name="formatFilter[]" value="{$format}" {if in_array($format, $formatFilter)}checked="checked"{/if} class="formatFilter"/>{$formatLabel}<br/>
 							{/foreach}
 						</div>
-						<div><input type="submit" name="submit" value="Update Filters"/></div>
+						<div><input type="submit" name="submit" value="Update Filters"></div>
 					</form>
 				</div>
 			</fieldset>
@@ -75,32 +76,56 @@
 						{/foreach}
 					</tbody>
 				</table>
-				<div id="materialsRequestActions">
-					<div class="row">
-						<div class="col-sm-4">
-							<label for="newStatus">Change status of selected to:</label>
+				{if $user->hasRole('library_material_requests')}
+					<div id="materialsRequestActions">
+						<div class="row form-group">
+							<div class="col-sm-4">
+								<label for="newAssignee" class="control-label">Assign selected to:</label>
+							</div>
+							<div class="col-sm-8">
+								<div class="input-group">
+									{if $assignees}
+										<select name="newAssignee" id="newAssignee" class="form-control">
+											<option value="unselected">Select One</option>
+
+											{foreach from=$assignees item=displayName key=assigneeId}
+												<option value="{$assigneeId}">{$displayName}</option>
+											{/foreach}
+
+										</select>
+										<span class="btn btn-sm btn-primary input-group-addon" onclick="return VuFind.MaterialsRequest.assignSelectedRequests();">Assign Selected Requests</span>
+									{else}
+										<span class="text-warning">No Valid Assignees Found</span>
+									{/if}
+								</div>
+							</div>
 						</div>
-						<div class="col-sm-8">
-							<div class="input-group">
-								<select name="newStatus" id="newStatus" class="form-control">
-									<option value="unselected">Select One</option>
-									{foreach from=$availableStatuses item=statusLabel key=status}
-										<option value="{$status}">{$statusLabel}</option>
-									{/foreach}
-								</select>
-								<span class="btn btn-sm btn-primary input-group-addon" onclick="return VuFind.MaterialsRequest.updateSelectedRequests();">Update Selected Requests</span>
+						<div class="row form-group">
+							<div class="col-sm-4">
+								<label for="newStatus" class="control-label">Change status of selected to:</label>
+							</div>
+							<div class="col-sm-8">
+								<div class="input-group">
+									<select name="newStatus" id="newStatus" class="form-control">
+										<option value="unselected">Select One</option>
+										{foreach from=$availableStatuses item=statusLabel key=status}
+											<option value="{$status}">{$statusLabel}</option>
+										{/foreach}
+									</select>
+									<span class="btn btn-sm btn-primary input-group-addon" onclick="return VuFind.MaterialsRequest.updateSelectedRequests();">Update Selected Requests</span>
+								</div>
+							</div>
+						</div>
+						<div class="row">
+							<div class="col-xs-12">
+								<input class="btn btn-sm btn-default" type="submit" name="exportSelected" value="Export Selected To Excel" onclick="return VuFind.MaterialsRequest.exportSelectedRequests();">
 							</div>
 						</div>
 					</div>
-					<div class="row">
-						<div class="col-xs-12">
-							<input class="btn btn-sm btn-default" type="submit" name="exportSelected" value="Export Selected To Excel" onclick="return VuFind.MaterialsRequest.exportSelectedRequests();">
-						</div>
-					</div>
-				</div>
+				{/if}
 			</form>
 		{else}
-			<div>There are no materials requests that meet your criteria.</div>
+			<div class="alert alert-info">There are no materials requests that meet your criteria.</div>
 		{/if}
 	{/if}
 </div>

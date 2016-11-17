@@ -75,6 +75,19 @@ VuFind.MaterialsRequest = (function(){
 			return false;
 		},
 
+		assignSelectedRequests: function(){
+			var newStatus = $("#newAssignee").val();
+			if (newStatus == "unselected"){
+				alert("Please select a user to assign the requests to.");
+				return false;
+			}
+			var selectedRequests = this.getSelectedRequests(false);
+			if (selectedRequests.length != 0){
+				$("#updateRequests").submit();
+			}
+			return false;
+		},
+
 		getSelectedRequests: function(promptToSelectAll){
 			var selectedRequests = $("input.select:checked").map(function() {
 				return $(this).attr('name') + "=" + $(this).val();
