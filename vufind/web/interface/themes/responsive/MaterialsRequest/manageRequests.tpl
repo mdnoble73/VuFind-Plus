@@ -6,39 +6,95 @@
 		<div class="alert alert-danger">{$error}</div>
 	{/if}
 	{if $user}
-		<div id="materialsRequestFilters">
-			<fieldset class="fieldset-collapsible">
-				<legend >Filters:</legend>
-				<div>
-					<form action="{$path}/MaterialsRequest/ManageRequests" method="get">
-						<div>
-							Statuses to Show: <input type="checkbox" name="selectAllStatusFilter" id="selectAllStatusFilter" onchange="VuFind.toggleCheckboxes('.statusFilter', '#selectAllStatusFilter');"/> <label for="selectAllStatusFilter">Select All</label> <br/>
-							{foreach from=$availableStatuses item=statusLabel key=status}
-								<input type="checkbox" name="statusFilter[]" value="{$status}" {if in_array($status, $statusFilter)}checked="checked"{/if} class="statusFilter"/>{$statusLabel}<br/>
-							{/foreach}
-						</div>
-						<div>
-							Date:
-							<label for="startDate">From</label> <input type="text" id="startDate" name="startDate" value="{$startDate}" size="8"/>
-							<label for="endDate">To</label> <input type="text" id="endDate" name="endDate" value="{$endDate}" size="8"/>
-						</div>
-						<div>
-							Format:<input type="checkbox" name="selectAllFormatFilter" id="selectAllFormatFilter" onchange="VuFind.toggleCheckboxes('.formatFilter', '#selectAllFormatFilter');"/> <label for="selectAllFormatFilter">Select All</label> <br/>
-							{foreach from=$availableFormats item=formatLabel key=format}
-								<input type="checkbox" name="formatFilter[]" value="{$format}" {if in_array($format, $formatFilter)}checked="checked"{/if} class="formatFilter"/>{$formatLabel}<br/>
-							{/foreach}
-						</div>
-						<div><input type="submit" name="submit" value="Update Filters"></div>
-					</form>
+		<div id="materialsRequestFilters" class="accordion">
+			<div class="panel panel-default">
+			<div class="panel-heading">
+				<div class="panel-title collapsed">
+					<a href="#filterPanel" data-toggle="collapse" role="button">
+						Filters
+					</a>
 				</div>
-			</fieldset>
+			</div>
+			<div id="filterPanel" class="panel-collapse collapse">
+				<div class="panel-body">
+
+					<form action="{$path}/MaterialsRequest/ManageRequests" method="get">
+						<fieldset class="fieldset-collapsible">
+							<legend>Statuses to Show:</legend>
+							<div class="form-group checkbox">
+								<label for="selectAllStatusFilter">
+									<input type="checkbox" name="selectAllStatusFilter" id="selectAllStatusFilter" onchange="VuFind.toggleCheckboxes('.statusFilter', '#selectAllStatusFilter');">
+									<strong>Select All</strong>
+								</label>
+							</div>
+							<div class="form-group">
+								{foreach from=$availableStatuses item=statusLabel key=status}
+									<div class="checkbox">
+										<label>
+											<input type="checkbox" name="statusFilter[]" value="{$status}" {if in_array($status, $statusFilter)}checked="checked"{/if} class="statusFilter">{$statusLabel}
+										</label>
+									</div>
+								{/foreach}
+							</div>
+						</fieldset>
+						<fieldset class="form-group fieldset-collapsible">
+							<legend>Date:</legend>
+							<div class="form-group">
+								<label for="startDate">From</label> <input type="text" id="startDate" name="startDate" value="{$startDate}" size="8">
+								<label for="endDate">To</label> <input type="text" id="endDate" name="endDate" value="{$endDate}" size="8">
+							</div>
+						</fieldset>
+						<fieldset class="form-group fieldset-collapsible">
+							<legend>Format:</legend>
+							<div class="form-group checkbox">
+								<label for="selectAllFormatFilter">
+									<input type="checkbox" name="selectAllFormatFilter" id="selectAllFormatFilter" onchange="VuFind.toggleCheckboxes('.formatFilter', '#selectAllFormatFilter');">
+									<strong>Select All</strong>
+								</label>
+							</div>
+							<div class="form-group">
+								{foreach from=$availableFormats item=formatLabel key=format}
+									<div class="checkbox">
+										<label><input type="checkbox" name="formatFilter[]" value="{$format}" {if in_array($format, $formatFilter)}checked="checked"{/if} class="formatFilter">{$formatLabel}</label>
+									</div>
+								{/foreach}
+							</div>
+						</fieldset>
+						<fieldset class="fieldset-collapsible">
+							<legend>Assigned To:</legend>
+							<div class="form-group checkbox">
+								<label for="selectAllAssigneesFilter">
+									<input type="checkbox" name="selectAllAssigneesFilter" id="selectAllAssigneesFilter" onchange="VuFind.toggleCheckboxes('.assigneesFilter', '#selectAllAssigneesFilter');">
+									<strong>Select All</strong>
+								</label>
+							</div>
+							<div class="form-group">
+								{foreach from=$assignees item=displayName key=assigneeId}
+{*									<option value="{$assigneeId}">{$displayName}</option>
+								{/foreach}
+
+								{foreach from=$availableStatuses item=statusLabel key=status}*}
+									<div class="checkbox">
+										<label>
+											<input type="checkbox" name="assigneesFilter[]" value="{$assigneeId}" {if in_array($assigneeId, $assigneesFilter)}checked="checked"{/if} class="assigneesFilter">{$displayName}
+										</label>
+									</div>
+								{/foreach}
+
+							</div>
+						</fieldset>
+						<input type="submit" name="submit" value="Update Filters" class="btn btn-default">
+					</form>
+
+				</div>
+			</div>
 		</div>
 		{if count($allRequests) > 0}
 			<form id="updateRequests" method="post" action="{$path}/MaterialsRequest/ManageRequests" class="form form-horizontal">
 				<table id="requestedMaterials" class="table tablesorter table-striped table-hover">
 					<thead>
 						<tr>
-							<th><input type="checkbox" name="selectAll" id="selectAll" onchange="VuFind.toggleCheckboxes('.select', '#selectAll');"/></th>
+							<th><input type="checkbox" name="selectAll" id="selectAll" onchange="VuFind.toggleCheckboxes('.select', '#selectAll');"></th>
 							<th>Id</th>
 							<th>Title</th>
 							<th>Author</th>

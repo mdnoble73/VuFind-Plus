@@ -67,6 +67,15 @@ class MaterialsRequest_ManageRequests extends Admin_Admin {
 		}
 		$interface->assign('statusFilter', $statusesToShow);
 
+		$assigneesToShow = array();
+		if (isset($_REQUEST['assigneesFilter'])) {
+			$assigneesToShow = $_REQUEST['assigneesFilter'];
+//			$_SESSION['materialsRequestAssigneesFilter'] = $assigneesToShow;
+//		} elseif (!empty($_SESSION['materialsRequestAssigneesFilter'])) {
+//			$assigneesToShow = $_SESSION['materialsRequestAssigneesFilter'];
+		}
+		$interface->assign('assigneesFilter', $assigneesToShow);
+
 		//Process status change if needed
 		if (isset($_REQUEST['newStatus']) && isset($_REQUEST['select']) && $_REQUEST['newStatus'] != 'unselected'){
 			//Look for which titles should be modified
@@ -108,7 +117,29 @@ class MaterialsRequest_ManageRequests extends Admin_Admin {
 		}
 
 		
-		
+		// Assign Requests
+		if (isset($_REQUEST['newAssignee']) && isset($_REQUEST['select']) && $_REQUEST['newAssignee'] != 'unselected'){
+			//Look for which material requests should be modified
+			$selectedRequests = $_REQUEST['select'];
+			$assignee = $_REQUEST['newAssignee'];
+			if (ctype_digit($assignee)) {
+				foreach ($selectedRequests as $requestId => $selected){
+					$materialRequest = new MaterialsRequest();
+					$materialRequest->id = $requestId;
+					if ($materialRequest->find(true)){
+						$materialRequest->assignedTo = $assignee;
+						$materialRequest->dateUpdated = time();
+						$materialRequest->update();
+
+						//TODO: Email Assignee of the request?
+
+					}
+				}
+			} else {
+				$interface->assign('error', 'User to assign the request to was not valid.');
+			}
+		}
+
 		$availableFormats = MaterialsRequest::getFormats();
 		$interface->assign('availableFormats', $availableFormats);
 		$defaultFormatsToShow = array_keys($availableFormats);
@@ -131,7 +162,6 @@ class MaterialsRequest_ManageRequests extends Admin_Admin {
 			$materialsRequests->joinAdd(new MaterialsRequestStatus());
 			$materialsRequests->joinAdd(new User(), 'INNER', 'user', 'createdBy');
 			$materialsRequests->joinAdd(new User(), 'LEFT', 'assignee', 'assignedTo');
-//			$materialsRequests->whereAdd('materials_request.assignedTo = assignee.id');
 			$materialsRequests->selectAdd();
 			$materialsRequests->selectAdd('materials_request.*, description as statusLabel, location.displayName as location, user.firstname, user.lastname, user.' . $configArray['Catalog']['barcodeProperty'] . ' as barcode, assignee.displayName as assignedTo');
 			if ($user->hasRole('library_material_requests')){
@@ -167,6 +197,16 @@ class MaterialsRequest_ManageRequests extends Admin_Admin {
 				$materialsRequests->whereAdd("format in ($formatSql)");
 			}
 
+			if (!empty($assigneesToShow)) {
+				$assigneesSql = '';
+				foreach ($assigneesToShow as $assignee){
+					if (strlen($assigneesSql) > 0) $assigneesSql .= ',';
+					$assigneesSql .= "'{$materialsRequests->escape($assignee)}'";
+				}
+
+				$materialsRequests->whereAdd("assignedTo IN ($assigneesSql)");
+			}
+
 			//Add filtering by date as needed
 			if (isset($_REQUEST['startDate']) && strlen($_REQUEST['startDate']) > 0){
 				$startDate = strtotime($_REQUEST['startDate']);
@@ -179,9 +219,30 @@ class MaterialsRequest_ManageRequests extends Admin_Admin {
 				$interface->assign('endDate', $_REQUEST['endDate']);
 			}
 
-			$materialsRequests->find();
-			while ($materialsRequests->fetch()){
-				$allRequests[] = clone $materialsRequests;
+			if ($materialsRequests->find()) {
+				$allRequests = $materialsRequests->fetchAll();
+			}
+
+			// $assignees used for both set assignee dropdown and filter by assigned To checkboxes
+			// TODO: determine if There is a case where an non-materials request manager can filter.
+			if ($user->hasRole('library_material_requests')) {
+				$role = new Role();
+				if ($role->get('name', 'library_material_requests')) {
+					// Get Available Assignees
+					$materialsRequestManagers = new User();
+
+					require_once ROOT_DIR . '/sys/Administration/UserRoles.php';
+					$userRole         = new UserRoles();
+					$userRole->roleId = $role->roleId;
+
+					$materialsRequestManagers->joinAdd($userRole);
+					$materialsRequestManagers->whereAdd('user.homeLocationId IN (' . implode(', ', $locationsForLibrary) . ')');
+					$assignees = array();
+					if ($materialsRequestManagers->find()) {
+						$assignees = $materialsRequestManagers->fetchAll('id', 'displayName');
+					}
+					$interface->assign('assignees', $assignees);
+				}
 			}
 		}else{
 			$interface->assign('error', "You must be logged in to manage requests.");
@@ -256,9 +317,11 @@ class MaterialsRequest_ManageRequests extends Admin_Admin {
 		}
 		$activeSheet->setCellValueByColumnAndRow($curCol++, $curRow, 'Status');
 		$activeSheet->setCellValueByColumnAndRow($curCol++, $curRow, 'Date Created');
+		$activeSheet->setCellValueByColumnAndRow($curCol++, $curRow, 'Assigned To');
 
 		$numCols = $curCol;
 		//Loop Through The Report Data
+		/** @var MaterialsRequest $request */
 		foreach ($allRequests as $request) {
 			if (array_key_exists($request->id, $selectedRequestIds)){
 				$curRow++;
@@ -305,8 +368,7 @@ class MaterialsRequest_ManageRequests extends Admin_Admin {
 				$activeSheet->setCellValueByColumnAndRow($curCol++, $curRow, $request->about);
 				$activeSheet->setCellValueByColumnAndRow($curCol++, $curRow, $request->comments);
 				$requestUser = new User();
-				$requestUser->id = $request->createdBy;
-				$requestUser->find(true);
+				$requestUser->get($request->createdBy);
 				$activeSheet->setCellValueByColumnAndRow($curCol++, $curRow, $requestUser->lastname . ', ' . $requestUser->firstname);
 				$activeSheet->setCellValueByColumnAndRow($curCol++, $curRow, $requestUser->$configArray['Catalog']['barcodeProperty']);
 				$activeSheet->setCellValueByColumnAndRow($curCol++, $curRow, $requestUser->email);
@@ -330,7 +392,8 @@ class MaterialsRequest_ManageRequests extends Admin_Admin {
 					$activeSheet->setCellValueByColumnAndRow($curCol++, $curRow, $value);
 				}
 				$activeSheet->setCellValueByColumnAndRow($curCol++, $curRow, translate($request->status));
-				$activeSheet->setCellValueByColumnAndRow($curCol, $curRow, date('m/d/Y', $request->dateCreated));
+				$activeSheet->setCellValueByColumnAndRow($curCol++, $curRow, date('m/d/Y', $request->dateCreated));
+				$activeSheet->setCellValueByColumnAndRow($curCol, $curRow, $request->assignedTo);
 			}
 		}
 
