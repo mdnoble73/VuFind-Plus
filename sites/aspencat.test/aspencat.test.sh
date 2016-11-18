@@ -13,6 +13,6 @@ fi
 
 if [[ ( "$1" == "start" ) || ( "$1" == "restart") ]]
 	then
-		/usr/local/vufind-plus/sites/default/solr/bin/solr start -m 4g -p 8180 -s "/data/vufind-plus/aspencat.test/solr_master" -d "/usr/local/vufind-plus/sites/default/solr/jetty"
-		/usr/local/vufind-plus/sites/default/solr/bin/solr start -m 4g -p 8080 -a "-Dsolr.masterport=8180" -s "/data/vufind-plus/aspencat.test/solr_searcher" -d "/usr/local/vufind-plus/sites/default/solr/jetty"
+		/usr/local/vufind-plus/sites/default/solr/bin/solr start -m 3g -p 8180 -s "/data/vufind-plus/aspencat.test/solr_master" -d "/usr/local/vufind-plus/sites/default/solr/jetty"
+		/usr/local/vufind-plus/sites/default/solr/bin/solr start -m 2g -p 8080 -a "-Dsolr.masterport=8180" -s "/data/vufind-plus/aspencat.test/solr_searcher" -d "/usr/local/vufind-plus/sites/default/solr/jetty"
 fi
