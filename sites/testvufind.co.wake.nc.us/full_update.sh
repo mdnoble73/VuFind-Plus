@@ -71,7 +71,7 @@ FILE=$(find /data/vufind-plus/testvufind.co.wake.nc.us/marc_export/ -name *.mrc 
 if [ -n "$FILE" ]
 then
   #check file size
-	MINFILE1SIZE=$((355000000))
+	MINFILE1SIZE=$((353000000))
 	FILE1SIZE=$(wc -c <"$FILE")
 	if [ $FILE1SIZE -ge $MINFILE1SIZE ]; then
 
