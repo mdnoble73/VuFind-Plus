@@ -11,7 +11,7 @@
 # this version emails script output as a round finishes
 EMAIL=mark@marmot.org,pascal@marmot.org
 PIKASERVER=arlington.test
-PIKADBNAME=arlington_pika
+PIKADBNAME=pika
 OUTPUT_FILE="/var/log/vufind-plus/${PIKASERVER}/full_update_output.log"
 
 # Check for conflicting processes currently running
