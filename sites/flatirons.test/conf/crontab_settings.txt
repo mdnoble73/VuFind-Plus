@@ -30,7 +30,7 @@
 #############
 # Continuous Re-Indexing
 @reboot cd /usr/local/vufind-plus/sites/flatirons.test/; ./flatirons.test.sh start
-@reboot /usr/local/vufind-plus/sites/flatirons.test/continuous_partial_reindex.sh
+@reboot sleep 300 && /usr/local/vufind-plus/sites/flatirons.test/continuous_partial_reindex.sh
 
 #####################
 # Daily full update #
