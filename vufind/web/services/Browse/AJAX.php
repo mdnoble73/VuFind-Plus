@@ -32,16 +32,19 @@ class Browse_AJAX extends Action {
 		header ('Content-type: application/json');
 		$method = $_REQUEST['method'];
 		$allowed_methods = array(
-			'getAddBrowseCategoryForm',
-			'createBrowseCategory',
-			'getMoreBrowseResults',
-			'getBrowseCategoryInfo',
-			'getBrowseSubCategoryInfo',
-			'getActiveBrowseCategories'
-			);
+				'getAddBrowseCategoryForm',
+				'createBrowseCategory',
+				'getMoreBrowseResults',
+				'getBrowseCategoryInfo',
+				'getBrowseSubCategoryInfo',
+				'getActiveBrowseCategories',
+				'getSubCategories'
+		);
 		if (in_array($method, $allowed_methods)) {
 			$response = $this->$method();
-		} else $response = array('result'=> false);
+		} else {
+			$response = array('result'=> false);
+		}
 		echo json_encode($response);
 	}
 
@@ -438,6 +441,7 @@ class Browse_AJAX extends Action {
 	 * @return string
 	 */
 	function getSubCategories() {
+		$this->setTextId();
 		$this->getBrowseCategory();
 		if ($this->browseCategory){
 			$subCategories = array();
@@ -468,7 +472,7 @@ class Browse_AJAX extends Action {
 	/**
 	 * Return a list of browse categories that are assigned to the home page for the current library.
 	 *
-	 * TODO: Support loading sub categories.  
+	 * TODO: Support loading sub categories.
 	 */
 	private function getActiveBrowseCategories(){
 		//Figure out which library or location we are looking at
