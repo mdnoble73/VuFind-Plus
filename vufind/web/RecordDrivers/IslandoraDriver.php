@@ -1823,6 +1823,12 @@ abstract class IslandoraDriver extends RecordInterface {
 		$fedoraUtils = FedoraUtils::getInstance();
 
 		$rightsStatements = $this->getModsValues('rightsStatement', 'marmot');
+		foreach ($rightsStatements as $id => $rightsStatement){
+			$rightsStatement = str_replace("\r\n", '<br/>', $rightsStatement);
+			$rightsStatement = str_replace("&#xD;", '<br/>', $rightsStatement);
+			$rightsStatements[$id] = $rightsStatement;
+		}
+
 		$interface->assignAppendUniqueToExisting('rightsStatements', $rightsStatements);
 
 		$rightsHolder = $this->getModsValue('rightsHolder', 'marmot');
