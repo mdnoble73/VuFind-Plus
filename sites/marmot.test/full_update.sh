@@ -3,9 +3,9 @@
 # Should be called once per day.  Will interrupt partial reindexing.
 #
 # At the end of the index will email users with the results.
-EMAIL=root@venus
+EMAIL=root@titan
 PIKASERVER=marmot.test
-PIKADBNAME=vufind
+PIKADBNAME=pika
 OUTPUT_FILE="/var/log/vufind-plus/${PIKASERVER}/full_update_output.log"
 
 # Check if full_update is already running
@@ -73,7 +73,7 @@ rm /data/vufind-plus/${PIKASERVER}/grouped_work_primary_identifiers.sql
 cd /usr/local/vufind-plus/sites/${PIKASERVER}; ./${PIKASERVER}.sh restart
 
 #Extract from ILS
-/root/cron/copySierraExport.sh >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/sites/${PIKASERVER}/copySierraExport.sh >> ${OUTPUT_FILE}
 
 #Extract from Hoopla
 #cd /usr/local/vufind-plus/vufind/cron;./HOOPLA.sh ${PIKASERVER} >> ${OUTPUT_FILE}

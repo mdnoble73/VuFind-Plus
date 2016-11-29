@@ -5,17 +5,13 @@
 ##
 ## to set the current crontab from a file : crontab < crontab_settings.txt
 ##
-## This file supports all instances stored on Marmot's Venus server.
-## We have to consolidate all since we wouldn't want to update cron from multiple files
-##
-## added by pascal. 12-11-2014
 ##################
 
 # !! Please make all changes to the crontab within the git repository system and apply through the above method.
 #
 # ie :
 # git pull origin {current branch}
-# crontab < /usr/local/vufind-plus/sites/marmot.test/conf/crontab_settings.txt
+# crontab < /usr/local/vufind-plus/sites/aspencat.test/conf/crontab_settings.txt
 
 ###################
 # * * * * *  command to execute
@@ -29,22 +25,18 @@
 ## taken from https://en.wikipedia.org/wiki/Cron
 ##############
 
-# backup important bits at 2:10am daily
-10 2 * * * /root/cron/backup 2>&1 >/dev/null
-
 #############
 # On Reboot #
 #############
-# Continuous Re-Indexing for marmot test
-@reboot cd /usr/local/vufind-plus/sites/marmot.test/; ./marmot.test.sh start
-@reboot sleep 300 && /usr/local/vufind-plus/sites/marmot.test/continuous_partial_reindex.sh
+# Continuous Re-Indexing
+@reboot cd /usr/local/vufind-plus/sites/aspencat.test/; ./aspencat.test.sh start
+@reboot sleep 300 && /usr/local/vufind-plus/sites/aspencat.test/continuous_partial_reindex.sh
 
 #####################
 # Daily full update #
 #####################
-# Export lands about 11:50pm.  Set the start for right after that.
-# Set the start for just before midnight
-58 23 * * * cd /usr/local/vufind-plus/sites/marmot.test; ./full_update.sh
+10 01 1-30/3 * * cd /usr/local/vufind-plus/sites/aspencat.test; ./full_update.sh
+# avoid 6pm - 11pm for AspenCat PLB  (PK-288)
 
 ################
 # Pika Cleanup #
@@ -52,35 +44,25 @@
 # Temp Files
 26 * * * * cd /tmp; /bin/rm -rf CURLCOOKIE*
 27 */2 * * * cd /tmp; /bin/rm -rf epb*
-# Cleanup Apache Sessions hourly (to test that it doesn't cause errors)
 0 */1 * * * /usr/sbin/apachectl graceful > /dev/null 2>&1
 
 ###################################
 # Data Extract from other systems #
 ###################################
 # Library supplied covers
-37 */2 * * * /usr/local/vufind-plus/sites/marmot.test/copyCovers.sh
+31 */2 * * * /usr/local/vufind-plus/sites/aspencat.test/copyCovers.sh
 
 ############################################
 # New York Times Bestseller Lists Updating #
 ############################################
-11 7 * * 0 /usr/local/vufind-plus/vufind/cron/updateNYTLists.sh marmot.test
-# update on Sundays at 7:11
-
-###############################
-# Data Extract TO ftp server  #
-###############################
-# sd51 export copy 3.01am on Friday
-01 3 * * 5 /home/cassini/cron/copySD51Export.sh
-#TODO: script only works as root due to mounting of ftp server.
-#TODO: also doesn't have passwords so could be moved into pika code repository
+31 7 * * 0 /usr/local/vufind-plus/vufind/cron/updateNYTLists.sh aspencat.test
+# update on Sundays at 7:37
 
 ##########
 # Cron   #
 ##########
-# Marmot
-7 20 * * * cd /usr/local/vufind-plus/vufind/cron/; java -jar cron.jar marmot.test
-20 0 * * * cd /usr/local/vufind-plus/vufind/cron/; java -jar cron.jar marmot.test DatabaseCleanup
+14 20 * * * cd /usr/local/vufind-plus/vufind/cron/; java -jar cron.jar aspencat.test
+25 0 * * * cd /usr/local/vufind-plus/vufind/cron/; java -jar cron.jar aspencat.test DatabaseCleanup
 
 # Check Apache Solr process and website that it has not stalled.
 */3 * * * * cd /usr/local/vufind-plus/vufind/cron/; ./solrTest.sh

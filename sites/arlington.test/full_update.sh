@@ -10,9 +10,8 @@
 
 # this version emails script output as a round finishes
 EMAIL=mark@marmot.org,pascal@marmot.org
-ILSSERVER=nell.boulderlibrary.org
-PIKASERVER=flatirons.test
-PIKADBNAME=flatirons_pika
+PIKASERVER=arlington.test
+PIKADBNAME=pika
 OUTPUT_FILE="/var/log/vufind-plus/${PIKASERVER}/full_update_output.log"
 
 # Check for conflicting processes currently running
@@ -67,18 +66,14 @@ function checkProhibitedTimes() {
 
 #First make sure that we aren't running at a bad time.  This is really here in case we run manually.
 # since the run in cron is timed to avoid sensitive times.
-# Flatirons has no prohibited times (yet)
+# Arlington has no prohibited times (yet)
 #checkProhibitedTimes "23:50" "00:40"
 
 #Check for any conflicting processes that we shouldn't do a full index during.
 #Since we aren't running in a loop, check in the order they run.
-#checkConflictingProcesses "ITEM_UPDATE_EXTRACT_PIKA_4_Flatirons.exp"
-#checkConflictingProcesses "millennium_export.jar"
-checkConflictingProcesses "overdrive_extract.jar flatirons.test"
-checkConflictingProcesses "reindexer.jar flatirons.test"
-
-#truncate the output file so you don't spend a week debugging an error from a week ago!
-: > $OUTPUT_FILE;
+checkConflictingProcesses "sierra_export.jar arlington.test"
+checkConflictingProcesses "overdrive_extract.jar arlington.test"
+checkConflictingProcesses "reindexer.jar arlington.test"
 
 # Back-up Solr Master Index
 mysqldump ${PIKADBNAME} grouped_work_primary_identifiers > /data/vufind-plus/${PIKASERVER}/grouped_work_primary_identifiers.sql
@@ -86,32 +81,35 @@ sleep 2m
 tar -czf /data/vufind-plus/${PIKASERVER}/solr_master_backup.tar.gz /data/vufind-plus/${PIKASERVER}/solr_master/grouped/index/ /data/vufind-plus/${PIKASERVER}/grouped_work_primary_identifiers.sql >> ${OUTPUT_FILE}
 rm /data/vufind-plus/${PIKASERVER}/grouped_work_primary_identifiers.sql
 
+#truncate the output file so you don't spend a week debugging an error from a week ago!
+: > $OUTPUT_FILE;
+
 #Restart Solr
 cd /usr/local/vufind-plus/sites/${PIKASERVER}; ./${PIKASERVER}.sh restart
 
 #Extract from ILS
-#copy extracts from production servers
-#TODO use scp to copy records from flatirons production server or have them pushed to the test server
-#cd /data/vufind-plus/flatirons.test/marc
-#wget -N --no-verbose http://flc.flatironslibrary.org/BIB_EXTRACT_PIKA.MRC
-#wget -N --no-verbose http://flc.flatironslibrary.org/BIB_HOLDS_EXTRACT_PIKA.TXT
-# --no-verbose Turn off verbose without being completely quiet (use -q for that), which means that error messages and basic information still get printed.
+#Copy extracts from FTP Server
+#/root/cron/copyArlingtonExport.sh >> ${OUTPUT_FILE}
+
+# Get Yesterday's Full Export From Arlington Production Server
+YESTERDAY=$(date -d "yesterday 13:00 " +"%m_%d_%Y")
+scp -Cqp -i /root/.ssh/id_rsa sierraftp@158.59.15.152:/data/vufind-plus/arlington.production/marc_export/pika1.$YESTERDAY.mrc /data/vufind-plus/arlington.test/marc/pika1.mrc >> ${OUTPUT_FILE}
+scp -Cqp -i /root/.ssh/id_rsa sierraftp@158.59.15.152:/data/vufind-plus/arlington.production/marc_export/pika2.$YESTERDAY.mrc /data/vufind-plus/arlington.test/marc/pika2.mrc >> ${OUTPUT_FILE}
+
+#Get the updated volume information
+cd /usr/local/vufind-plus/vufind/cron;
+nice -n -10 java -jar cron.jar ${PIKASERVER} ExportSierraData >> ${OUTPUT_FILE}
 
 #Extract from Hoopla
-#No need to copy on marmot test server
+# (Arlington maintains the Hoopla record set within their ILS)
 #cd /usr/local/vufind-plus/vufind/cron;./HOOPLA.sh ${PIKASERVER} >> ${OUTPUT_FILE}
 
 #Extract Lexile Data
-#No need to copy on marmot test server
-#cd /data/vufind-plus/; curl --remote-name --remote-time --silent --show-error --compressed --time-cond /data/vufind-plus/lexileTitles.txt http://cassini.marmot.org/lexileTitles.txt
+cd /data/vufind-plus/; curl --remote-name --remote-time --silent --show-error --compressed --time-cond /data/vufind-plus/lexileTitles.txt http://cassini.marmot.org/lexileTitles.txt
 
 #Extract AR Data
-#No need to copy on marmot test server
-#cd /data/vufind-plus/accelerated_reader; curl --remote-name --remote-time --silent --show-error --compressed --time-cond /data/vufind-plus/accelerated_reader/RLI-ARDataTAB.txt http://cassini.marmot.org/RLI-ARDataTAB.txt
+cd /data/vufind-plus/accelerated_reader; curl --remote-name --remote-time --silent --show-error --compressed --time-cond /data/vufind-plus/accelerated_reader/RLI-ARDataTAB.txt http://cassini.marmot.org/RLI-ARDataTAB.txt
 
-#Zinio Marc Updates
-/usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh flatirons_sideload/zinio/shared zinio/boulderBroomfield >> ${OUTPUT_FILE}
-/usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh flatirons_sideload/zinio/longmont zinio/longmont >> ${OUTPUT_FILE}
 
 #Do a full extract from OverDrive just once a week to catch anything that doesn't
 #get caught in the regular extract
@@ -123,23 +121,23 @@ then
 fi
 
 # should test for new bib extract file
-/usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh flatirons_marc_export flatirons.test >> ${OUTPUT_FILE}
-
 # should copy old bib extract file
 
 #Validate the export
 cd /usr/local/vufind-plus/vufind/cron; java -server -XX:+UseG1GC -jar cron.jar ${PIKASERVER} ValidateMarcExport >> ${OUTPUT_FILE}
 
 #Full Regroup
-cd /usr/local/vufind-plus/vufind/record_grouping; java -server -XX:+UseG1GC -Xmx6G -jar record_grouping.jar ${PIKASERVER} fullRegroupingNoClear >> ${OUTPUT_FILE}
+cd /usr/local/vufind-plus/vufind/record_grouping; java -server -XX:+UseG1GC -Xmx2G -jar record_grouping.jar ${PIKASERVER} fullRegroupingNoClear >> ${OUTPUT_FILE}
 
 #Full Reindex
-cd /usr/local/vufind-plus/vufind/reindexer; java -server -XX:+UseG1GC -jar reindexer.jar ${PIKASERVER} fullReindex >> ${OUTPUT_FILE}
+cd /usr/local/vufind-plus/vufind/reindexer; java -server -XX:+UseG1GC -Xmx2G -jar reindexer.jar ${PIKASERVER} fullReindex >> ${OUTPUT_FILE}
 
-# Only needed once on venus
+#Remove all ITEM_UPDATE_EXTRACT_PIKA files so continuous_partial_reindex can start fresh
+find /data/vufind-plus/${PIKASERVER}/marc -name 'ITEM_UPDATE_EXTRACT_PIKA*' -delete
+
 # Clean-up Solr Logs
-#find /usr/local/vufind-plus/sites/default/solr/jetty/logs -name "solr_log_*" -mtime +7 -delete
-#find /usr/local/vufind-plus/sites/default/solr/jetty/logs -name "solr_gc_log_*" -mtime +7 -delete
+find /usr/local/vufind-plus/sites/default/solr/jetty/logs -name "solr_log_*" -mtime +7 -delete
+find /usr/local/vufind-plus/sites/default/solr/jetty/logs -name "solr_gc_log_*" -mtime +7 -delete
 
 #Restart Solr
 cd /usr/local/vufind-plus/sites/${PIKASERVER}; ./${PIKASERVER}.sh restart

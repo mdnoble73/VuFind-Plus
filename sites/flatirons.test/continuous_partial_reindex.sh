@@ -8,9 +8,9 @@
 # CONFIGURATION
 # PLEASE SET CONFLICTING PROCESSES AND PROHIBITED TIMES IN FUNCTION CALLS IN SCRIPT MAIN DO LOOP
 # this version emails script output as a round finishes
-EMAIL=root@venus
-PIKASERVER=arlington.test
-OUTPUT_FILE="/var/log/vufind-plus/${PIKASERVER}/extract_and_reindex_output.log"
+EMAIL=root@iapetus
+PIKASERVER=flatirons.test
+OUTPUT_FILE="/var/log/vufind-plus/${PIKASERVER}/continuous_partial_reindex_output.log"
 
 # Check for conflicting processes currently running
 function checkConflictingProcesses() {
@@ -68,17 +68,14 @@ do
 	#####
 	# Check to make sure this is a good time to run.
 	#####
-
-	# Make sure we are not running a Full Record Group/Reindex process
-	hasConflicts=$(checkConflictingProcesses "full_update_arlington_test.sh")
+	hasConflicts=$(checkProhibitedTimes "01:00" "02:45")
 	#If we did get a conflict, restart the loop to make sure that all tests run
 	if (($? != 0)); then
 		continue
 	fi
 
-	# Do not run while the export from Sierra is running to prevent inconsistencies with MARC records
-	# export starts at 10 pm the file is copied to the FTP server at about 11:40
-	hasConflicts=$(checkProhibitedTimes "21:50" "23:40")
+	# Make sure we are not running a Full Record Group/Reindex process
+	hasConflicts=$(checkConflictingProcesses "full_update.sh")
 	#If we did get a conflict, restart the loop to make sure that all tests run
 	if (($? != 0)); then
 		continue
@@ -91,23 +88,19 @@ do
 	#truncate the file
 	: > $OUTPUT_FILE;
 
-	#echo "Starting new extract and index - `date`" > ${OUTPUT_FILE}
-	# reset the output file each round
-
-	#export from sierra (items, holds, and orders)
-	#echo "Starting Sierra Export - `date`" >> ${OUTPUT_FILE}
-	cd /usr/local/vufind-plus/vufind/sierra_export/
-	nice -n -10 java -server -XX:+UseG1GC -jar sierra_export.jar ${PIKASERVER} >> ${OUTPUT_FILE}
+	#export from sierra
+	cd /usr/local/vufind-plus/vufind/sierra_export/;
+	java -server -XX:+UseG1GC -jar sierra_export.jar ${PIKASERVER} >> ${OUTPUT_FILE}
 
 	#export from overdrive
 	#echo "Starting OverDrive Extract - `date`" >> ${OUTPUT_FILE}
 	cd /usr/local/vufind-plus/vufind/overdrive_api_extract/
-	nice -n -10 java -server -XX:+UseG1GC -jar overdrive_extract.jar ${PIKASERVER} >> ${OUTPUT_FILE}
+	java -server -XX:+UseG1GC -jar overdrive_extract.jar ${PIKASERVER} >> ${OUTPUT_FILE}
 
 	#run reindex
 	#echo "Starting Reindexing - `date`" >> ${OUTPUT_FILE}
 	cd /usr/local/vufind-plus/vufind/reindexer
-	nice -n -5 java -server -XX:+UseG1GC -jar reindexer.jar ${PIKASERVER} >> ${OUTPUT_FILE}
+	java -server -XX:+UseG1GC -jar reindexer.jar ${PIKASERVER} >> ${OUTPUT_FILE}
 
 	# add any logic wanted for when to send the emails here. (eg errors only)
 	FILESIZE=$(stat -c%s ${OUTPUT_FILE})
