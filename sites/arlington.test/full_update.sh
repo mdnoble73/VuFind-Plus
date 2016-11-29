@@ -77,6 +77,7 @@ checkConflictingProcesses "reindexer.jar arlington.test"
 
 # Back-up Solr Master Index
 mysqldump ${PIKADBNAME} grouped_work_primary_identifiers > /data/vufind-plus/${PIKASERVER}/grouped_work_primary_identifiers.sql
+sleep 2m
 tar -czf /data/vufind-plus/${PIKASERVER}/solr_master_backup.tar.gz /data/vufind-plus/${PIKASERVER}/solr_master/grouped/index/ /data/vufind-plus/${PIKASERVER}/grouped_work_primary_identifiers.sql >> ${OUTPUT_FILE}
 rm /data/vufind-plus/${PIKASERVER}/grouped_work_primary_identifiers.sql
 
@@ -92,23 +93,22 @@ cd /usr/local/vufind-plus/sites/${PIKASERVER}; ./${PIKASERVER}.sh restart
 
 # Get Yesterday's Full Export From Arlington Production Server
 YESTERDAY=$(date -d "yesterday 13:00 " +"%m_%d_%Y")
-scp -Cqp -i /root/.ssh/id_rsa_arlington sierraftp@158.59.15.152:/data/vufind-plus/arlington.production/marc_export/pika1.$YESTERDAY.mrc /data/vufind-plus/arlington.test/marc/pika1.mrc >> ${OUTPUT_FILE}
-scp -Cqp -i /root/.ssh/id_rsa_arlington sierraftp@158.59.15.152:/data/vufind-plus/arlington.production/marc_export/pika2.$YESTERDAY.mrc /data/vufind-plus/arlington.test/marc/pika2.mrc >> ${OUTPUT_FILE}
+scp -Cqp -i /root/.ssh/id_rsa sierraftp@158.59.15.152:/data/vufind-plus/arlington.production/marc_export/pika1.$YESTERDAY.mrc /data/vufind-plus/arlington.test/marc/pika1.mrc >> ${OUTPUT_FILE}
+scp -Cqp -i /root/.ssh/id_rsa sierraftp@158.59.15.152:/data/vufind-plus/arlington.production/marc_export/pika2.$YESTERDAY.mrc /data/vufind-plus/arlington.test/marc/pika2.mrc >> ${OUTPUT_FILE}
 
 #Get the updated volume information
 cd /usr/local/vufind-plus/vufind/cron;
 nice -n -10 java -jar cron.jar ${PIKASERVER} ExportSierraData >> ${OUTPUT_FILE}
 
 #Extract from Hoopla
-#No need to copy on marmot test server
+# (Arlington maintains the Hoopla record set within their ILS)
 #cd /usr/local/vufind-plus/vufind/cron;./HOOPLA.sh ${PIKASERVER} >> ${OUTPUT_FILE}
 
 #Extract Lexile Data
-#No need to copy on marmot test server
-#cd /data/vufind-plus/; curl --remote-name --remote-time --silent --show-error --compressed --time-cond /data/vufind-plus/lexileTitles.txt http://cassini.marmot.org/lexileTitles.txt
+cd /data/vufind-plus/; curl --remote-name --remote-time --silent --show-error --compressed --time-cond /data/vufind-plus/lexileTitles.txt http://cassini.marmot.org/lexileTitles.txt
 
 #Extract AR Data
-#cd /data/vufind-plus/accelerated_reader; curl --remote-name --remote-time --silent --show-error --compressed --time-cond /data/vufind-plus/accelerated_reader/RLI-ARDataTAB.txt http://cassini.marmot.org/RLI-ARDataTAB.txt
+cd /data/vufind-plus/accelerated_reader; curl --remote-name --remote-time --silent --show-error --compressed --time-cond /data/vufind-plus/accelerated_reader/RLI-ARDataTAB.txt http://cassini.marmot.org/RLI-ARDataTAB.txt
 
 
 #Do a full extract from OverDrive just once a week to catch anything that doesn't
@@ -135,10 +135,9 @@ cd /usr/local/vufind-plus/vufind/reindexer; java -server -XX:+UseG1GC -Xmx2G -ja
 #Remove all ITEM_UPDATE_EXTRACT_PIKA files so continuous_partial_reindex can start fresh
 find /data/vufind-plus/${PIKASERVER}/marc -name 'ITEM_UPDATE_EXTRACT_PIKA*' -delete
 
-# Only needed once on venus
 # Clean-up Solr Logs
-#find /usr/local/vufind-plus/sites/default/solr/jetty/logs -name "solr_log_*" -mtime +7 -delete
-#find /usr/local/vufind-plus/sites/default/solr/jetty/logs -name "solr_gc_log_*" -mtime +7 -delete
+find /usr/local/vufind-plus/sites/default/solr/jetty/logs -name "solr_log_*" -mtime +7 -delete
+find /usr/local/vufind-plus/sites/default/solr/jetty/logs -name "solr_gc_log_*" -mtime +7 -delete
 
 #Restart Solr
 cd /usr/local/vufind-plus/sites/${PIKASERVER}; ./${PIKASERVER}.sh restart

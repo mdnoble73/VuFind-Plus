@@ -60,22 +60,18 @@
 ###########################
 # ftp cmu marc records to ebsco at 1.45am daily (takes about 20min)
 45 1 * * * /home/cassini/cron/cmu.exp
-#todo: confirmed
 #
 # ftp fortlewis marc records to ebsco at 2.05am daily (takes about 20min)
 05 2 * * * /home/cassini/cron/fortlewis.exp
 #
 # ftp adams marc records to ebsco at 2.25am daily (takes about 10min)
 25 2 * * * /home/cassini/cron/adams.exp
-# todo: confirmed
 #
 # ftp adams marc records to ebsco at 2.45am daily
 45 2 * * * /home/cassini/cron/adams_ebrary.exp
-# todo: confirmed
 #
 # ftp hoopla marc records to ebsco at 3.55 (takes about 10min)
 15 4 * * * /home/cassini/cron/hoopla.exp
-#TODO: sent daily, but record set only updates once a month.
 #
 
 ###############################

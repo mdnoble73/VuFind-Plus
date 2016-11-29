@@ -5,7 +5,7 @@
 # At the end of the index will email users with the results.
 EMAIL=root@titan
 PIKASERVER=marmot.test
-PIKADBNAME=vufind
+PIKADBNAME=pika
 OUTPUT_FILE="/var/log/vufind-plus/${PIKASERVER}/full_update_output.log"
 
 # Check if full_update is already running
