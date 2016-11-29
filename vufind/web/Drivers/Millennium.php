@@ -39,8 +39,6 @@ require_once ROOT_DIR . '/Drivers/ScreenScrapingDriver.php';
  */
 class Millennium extends ScreenScrapingDriver
 {
-	public $fixShortBarcodes = true;
-
 	var $statusTranslations = null;
 	var $holdableStatiRegex = null;
 	var $availableStatiRegex = null;
