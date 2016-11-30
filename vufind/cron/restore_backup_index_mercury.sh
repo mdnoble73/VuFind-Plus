@@ -1,5 +1,6 @@
 #!/bin/bash
 # Script restores the nightly index that is saved as tar archive file production in the full_update script
+# This Script is specifically for restoring on the Mercury server
 #
 # Requires .my.cnf settings for mysqldump
 	if [ $# = 2 ];then
@@ -16,7 +17,7 @@
 
 		mv /data/vufind-plus/${PIKASERVER}/solr_master/grouped/index/ /data/vufind-plus/${PIKASERVER}/solr_master/grouped/index_before_restore
 
-		tar -xzvf /data/vufind-plus/${PIKASERVER}/solr_master_backup.tar.gz -C /
+		tar -xzvf /data2/pika/${PIKASERVER}/solr_master_backup.tar.gz -C /
 		# TODO success check
 
 		mysql -p ${PIKADB} < /data/vufind-plus/${PIKASERVER}/grouped_work_primary_identifiers.sql
