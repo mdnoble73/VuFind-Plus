@@ -12,7 +12,7 @@
 	then
 
 		# Stop Solr Index
-		/usr/local/vufind-plus/sites/${PIKASERVER}/${PIKASERVER}.sh stop
+		cd /usr/local/vufind-plus/sites/${PIKASERVER}; ./${PIKASERVER}.sh stop
 
 		mv /data/vufind-plus/${PIKASERVER}/solr_master/grouped/index/ /data/vufind-plus/${PIKASERVER}/solr_master/grouped/index_before_restore
 
@@ -22,7 +22,7 @@
 		mysql -p ${PIKADB} < /data/vufind-plus/${PIKASERVER}/grouped_work_primary_identifiers.sql
 
 		# Start up solr index
-		/usr/local/vufind-plus/sites/${PIKASERVER}/${PIKASERVER}.sh start
+		cd /usr/local/vufind-plus/sites/${PIKASERVER}; ./${PIKASERVER}.sh start
 
 		# Follow up action
 		echo "If restoration was successful, please restart continuous re-indexing and remove folder /data/vufind-plus/${PIKASERVER}/solr_master/grouped/index_before_restore "
