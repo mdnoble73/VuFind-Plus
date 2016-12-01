@@ -1,0 +1,106 @@
+#!/bin/bash
+#
+# backup
+#
+#  create a tar ball on the backup server
+#
+#  Author: Steve Lindemann
+#    Date: 18 May 2006
+#
+#-------------------------------------------------------------------------
+# 18 May 06 - v1.0 - sml - create initial script
+# 02 Aug 07 - v1.1 - sml - chg to use nfs mount to backup server
+# 03 Aug 07 - v1.2 - sml - chg extension from tar.gz to .tgz
+# 10 Aug 07 - v2.0 - sml - updated script to be consistent with others
+# 08 Oct 08 - v2.1 - sml - update to log backup
+# 08 Apr 10 - v2.2 - sml - update to use exclude feature
+# 02 Dec 10 - v2.3 - sml - dump each mysql db seperately
+# 02 Feb 11 - v2.4 - sml - add error code check after tar
+# 24 Feb 12 - v2.4.1 - sml - add econtent getsmart pmda databases
+# 08 Mar 12 - v2.4.2 - sml - added chmod to database dump
+# 05 Apr 12 - v2.4.3 - sml - removed getsmart pmda databases
+# 25 Jul 12 - v2.4.4 - sml - move backup.log to /var/log
+# 16 May 13 - v2.4.5 - sml - add -E to mysqldump
+# 11 Dec 13 - v2.4.6 - sml - rewrote to use logger command
+# 13 Feb 14 - v2.4.7 - sml - updated mysql backup to better handle innodb
+# 24 Nov 14 - v2.5.0 - sml - changed to backup pretty much everything
+#-------------------------------------------------------------------------
+
+#-------------------------------------------------------------------------
+# declare variables
+#-------------------------------------------------------------------------
+HOST=`hostname -s`
+DATE=`date +%y%m%d`
+LOG="logger -t backup -p local5.notice "
+
+#REMOTE="10.1.2.2:/home/backup/venus"
+#LOCAL="/mnt/backup"
+#FILES="/data/vufind-plus/marmot.test/solr_searcher /data/vufind-plus/marmot.test/econtent  /var /home /etc /root /usr /bin /boot /lib /lib64 /opt /sbin"
+#TAROPT="-X /root/cron/exclude.txt --exclude-caches --ignore-failed-read --absolute-names"
+
+DATABASES="pika econtent"
+DUMPOPT1="-u root --events"
+DUMPOPT2="-u root --events --single-transaction"
+
+#-------------------------------------------------------------------------
+# main loop
+#-------------------------------------------------------------------------
+$LOG " "
+$LOG ">> Backup starting <<"
+
+#-------------------------------------------------------------
+#--- backup mysql --------------------------------------------
+#-------------------------------------------------------------
+$LOG "~> purge yesterdays mysql dumps"
+/bin/rm -f /home/mysql.dump/*
+$LOG "~> exit code $?"
+#---
+$LOG "~> dumping mysql database"
+mysqldump $DUMPOPT1 mysql > /home/mysql.dump/mysql.$DATE.mysql.dump
+$LOG "~> exit code $?"
+$LOG "~> change permissions on dump file"
+chmod 400 /home/mysql.dump/mysql.$DATE.mysql.dump
+$LOG "~> exit code $?"
+#---
+for DB in $DATABASES
+do
+  $LOG "~> dumping $DB database"
+  mysqldump $DUMPOPT2 $DB > /home/mysql.dump/$DB.$DATE.mysql.dump
+  $LOG "~> exit code $?"
+  $LOG "~> change permissions on dump file"
+  chmod 400 /home/mysql.dump/$DB.$DATE.mysql.dump
+  $LOG "~> exit code $?"
+done
+
+#-------------------------------------------------------------
+#--- make tarball --------------------------------------------
+#-------------------------------------------------------------
+#$LOG "~> mounting $REMOTE to $LOCAL"
+#mount $REMOTE $LOCAL
+#EXITCODE=$?
+#$LOG "~> exit code $EXITCODE"
+#if [ $EXITCODE -ne 0 ];then
+#  $LOG "!! script terminated abnormally"
+#  exit 1
+#else
+#  $LOG "~> backup filesystem starting"
+#  tar -czf $LOCAL/backup_$HOST.$DATE.tgz $TAROPT $FILES
+#  $LOG "~> exit code $?"
+#  $LOG "~> changing permissions to read-only on backup file"
+#  chmod 400 $LOCAL/backup_$HOST.$DATE.tgz
+#  $LOG "~> exit code $?"
+#  $LOG "~> unmounting $LOCAL"
+#  umount $LOCAL
+#  EXITCODE=$?
+#  $LOG "~> exit code $EXITCODE"
+#  if [ $EXITCODE -ne 0 ];then
+#    $LOG "!! script terminated abnormally"
+#    $LOG "!! $LOCAL needs UNMOUNTED BEFORE the next backup"
+#    exit 2
+#  fi
+#fi
+#-------------------------------------------------------------
+$LOG ">> Backup complete <<"
+exit 0
+#-------------------------------------------------------------------------
+#--- eof ---
