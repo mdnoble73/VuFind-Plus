@@ -33,7 +33,7 @@
 @reboot sleep 300 && /usr/local/vufind-plus/sites/arlington.test/continuous_partial_reindex.sh
 
 # backup important bits at 2:10am daily
-10 2 * * * /root/cron/backup 2>&1 >/dev/null
+10 2 * * * /usr/local/vufind-plus/vufind/cron/nightly_mysql_dump.sh 2>&1 >/dev/null
 
 #####################
 # Daily full update #
