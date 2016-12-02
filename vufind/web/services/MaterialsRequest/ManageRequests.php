@@ -75,6 +75,8 @@ class MaterialsRequest_ManageRequests extends Admin_Admin {
 //			$assigneesToShow = $_SESSION['materialsRequestAssigneesFilter'];
 		}
 		$interface->assign('assigneesFilter', $assigneesToShow);
+		$showUnassigned = !empty($_REQUEST['showUnassigned']) && $_REQUEST['showUnassigned'] == 'on';
+		$interface->assign('showUnassigned', $showUnassigned);
 
 		//Process status change if needed
 		if (isset($_REQUEST['newStatus']) && isset($_REQUEST['select']) && $_REQUEST['newStatus'] != 'unselected'){
@@ -197,14 +199,23 @@ class MaterialsRequest_ManageRequests extends Admin_Admin {
 				$materialsRequests->whereAdd("format in ($formatSql)");
 			}
 
-			if (!empty($assigneesToShow)) {
-				$assigneesSql = '';
-				foreach ($assigneesToShow as $assignee){
-					if (strlen($assigneesSql) > 0) $assigneesSql .= ',';
-					$assigneesSql .= "'{$materialsRequests->escape($assignee)}'";
+			if (!empty($assigneesToShow) || $showUnassigned) {
+				$condition = $assigneesSql = '';
+				if (!empty($assigneesToShow)) {
+					foreach ($assigneesToShow as $assignee) {
+						if (strlen($assigneesSql) > 0) $assigneesSql .= ',';
+						$assigneesSql .= "'{$materialsRequests->escape($assignee)}'";
+					}
+					$assigneesSql = "assignedTo IN ($assigneesSql)";
 				}
-
-				$materialsRequests->whereAdd("assignedTo IN ($assigneesSql)");
+				if ($assigneesSql && $showUnassigned) {
+					$condition = "($assigneesSql OR assignedTo IS NULL)";
+				} elseif ($assigneesSql) {
+					$condition = $assigneesSql;
+				} elseif ($showUnassigned) {
+					$condition = 'assignedTo IS NULL';
+				}
+				$materialsRequests->whereAdd($condition);
 			}
 
 			//Add filtering by date as needed

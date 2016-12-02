@@ -63,6 +63,12 @@
 						<fieldset class="fieldset-collapsible">
 							<legend>Assigned To:</legend>
 							<div class="form-group checkbox">
+								<label for="showUnassigned">
+									<input type="checkbox" name="showUnassigned" id="showUnassigned"{if $showUnassigned} checked{/if}>
+									<strong>Unassigned</strong>
+								</label>
+							</div>
+								<div class="form-group checkbox">
 								<label for="selectAllAssigneesFilter">
 									<input type="checkbox" name="selectAllAssigneesFilter" id="selectAllAssigneesFilter" onchange="VuFind.toggleCheckboxes('.assigneesFilter', '#selectAllAssigneesFilter');">
 									<strong>Select All</strong>
