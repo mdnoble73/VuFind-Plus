@@ -5,7 +5,8 @@
 	if [ $# = 2 ];then
 	PIKASERVER=$1
 	PIKADB=$2
-	echo "Please ensure continuous and full re-indexing are off"
+	echo "Please ensure continuous and full re-indexing are off."
+	echo "You will prompted for the mysqldb password."
 	read -p "Are you sure you want to restore the back up? " -n 1 -r
 	echo    # (optional) move to a new line
 	if [[ $REPLY =~ ^[Yy]$ ]]
