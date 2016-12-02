@@ -124,12 +124,12 @@ class MaterialsRequest_ManageRequests extends Admin_Admin {
 			//Look for which material requests should be modified
 			$selectedRequests = $_REQUEST['select'];
 			$assignee = $_REQUEST['newAssignee'];
-			if (ctype_digit($assignee)) {
+			if (ctype_digit($assignee) || $assignee == 'unassign') {
 				foreach ($selectedRequests as $requestId => $selected){
 					$materialRequest = new MaterialsRequest();
 					$materialRequest->id = $requestId;
 					if ($materialRequest->find(true)){
-						$materialRequest->assignedTo = $assignee;
+						$materialRequest->assignedTo = $assignee == 'unassign' ? 'null' : $assignee;
 						$materialRequest->dateUpdated = time();
 						$materialRequest->update();
 
@@ -209,11 +209,11 @@ class MaterialsRequest_ManageRequests extends Admin_Admin {
 					$assigneesSql = "assignedTo IN ($assigneesSql)";
 				}
 				if ($assigneesSql && $showUnassigned) {
-					$condition = "($assigneesSql OR assignedTo IS NULL)";
+					$condition = "($assigneesSql OR assignedTo IS NULL OR assignedTo = 0)";
 				} elseif ($assigneesSql) {
 					$condition = $assigneesSql;
 				} elseif ($showUnassigned) {
-					$condition = 'assignedTo IS NULL';
+					$condition = '(assignedTo IS NULL OR assignedTo = 0)';
 				}
 				$materialsRequests->whereAdd($condition);
 			}

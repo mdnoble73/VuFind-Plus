@@ -149,6 +149,7 @@
 									{if $assignees}
 										<select name="newAssignee" id="newAssignee" class="form-control">
 											<option value="unselected">Select One</option>
+											<option value="unassign">Un-assign (remove assignee)</option>
 
 											{foreach from=$assignees item=displayName key=assigneeId}
 												<option value="{$assigneeId}">{$displayName}</option>

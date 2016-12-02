@@ -76,8 +76,8 @@ VuFind.MaterialsRequest = (function(){
 		},
 
 		assignSelectedRequests: function(){
-			var newStatus = $("#newAssignee").val();
-			if (newStatus == "unselected"){
+			var newAssignee = $("#newAssignee").val();
+			if (newAssignee == "unselected"){
 				alert("Please select a user to assign the requests to.");
 				return false;
 			}
