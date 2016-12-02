@@ -32,6 +32,9 @@
 @reboot cd /usr/local/vufind-plus/sites/flatirons.test/; ./flatirons.test.sh start
 @reboot sleep 300 && /usr/local/vufind-plus/sites/flatirons.test/continuous_partial_reindex.sh
 
+# backup important bits at 2:10am daily
+10 2 * * * /root/cron/backup 2>&1 >/dev/null
+
 #####################
 # Daily full update #
 #####################
