@@ -15,7 +15,7 @@
 #
 # ie :
 # git pull origin {current branch}
-# crontab < /usr/local/vufind-plus/sites/marmot.test/conf/crontab_settings.txt
+# crontab < /usr/local/vufind-plus/sites/carlx.test/conf/crontab_settings.txt
 
 ###################
 # * * * * *  command to execute
