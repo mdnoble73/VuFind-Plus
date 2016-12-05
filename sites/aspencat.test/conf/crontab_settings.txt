@@ -32,14 +32,17 @@
 @reboot cd /usr/local/vufind-plus/sites/aspencat.test/; ./aspencat.test.sh start
 @reboot sleep 300 && /usr/local/vufind-plus/sites/aspencat.test/continuous_partial_reindex.sh
 
-# backup important bits at 2:10am daily
-10 2 * * * /usr/local/vufind-plus/vufind/cron/nightly_mysql_dump.sh 2>&1 >/dev/null
-
 #####################
 # Daily full update #
 #####################
 10 01 * * * cd /usr/local/vufind-plus/sites/aspencat.test; ./full_update.sh
 # avoid 6pm - 11pm for AspenCat PLB  (PK-288)
+
+######################
+# MySQL Nightly Dump #
+######################
+# backup important bits at 2:10am daily
+10 2 * * * /usr/local/vufind-plus/vufind/cron/nightly_mysql_dump.sh aspencat.test 2>&1 >/dev/null
 
 ################
 # Pika Cleanup #

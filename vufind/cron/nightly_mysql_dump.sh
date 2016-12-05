@@ -26,12 +26,22 @@
 # 24 Nov 14 - v2.5.0 - sml - changed to backup pretty much everything
 #-------------------------------------------------------------------------
 
+if [[ $# -ne 1 ]]; then
+	echo "Please specify the Pika instance"
+	echo "eg: $0 marmot.production"
+else
+PIKASERVER=$1
+
+
 #-------------------------------------------------------------------------
 # declare variables
 #-------------------------------------------------------------------------
-HOST=`hostname -s`
+
+#HOST=`hostname -s`
 DATE=`date +%y%m%d`
-LOG="logger -t backup -p local5.notice "
+LOG="logger -t $0 -p local5.notice "
+
+DUMPFOLDER="/data/vufind-plus/${PIKASERVER}/sql_backup"
 
 #REMOTE="10.1.2.2:/home/backup/venus"
 #LOCAL="/mnt/backup"
@@ -52,14 +62,14 @@ $LOG ">> Backup starting <<"
 #--- backup mysql --------------------------------------------
 #-------------------------------------------------------------
 $LOG "~> purge yesterdays mysql dumps"
-/bin/rm -f /home/mysql.dump/*
+/bin/rm -f $DUMPFOLDER/*
 $LOG "~> exit code $?"
 #---
 $LOG "~> dumping mysql database"
-mysqldump $DUMPOPT1 mysql > /home/mysql.dump/mysql.$DATE.mysql.dump
+mysqldump $DUMPOPT1 mysql > $DUMPFOLDER/mysql.$DATE.mysql.dump
 $LOG "~> exit code $?"
 $LOG "~> change permissions on dump file"
-chmod 400 /home/mysql.dump/mysql.$DATE.mysql.dump
+chmod 400 $DUMPFOLDER/mysql.$DATE.mysql.dump
 $LOG "~> exit code $?"
 #---
 for DB in $DATABASES
@@ -68,7 +78,7 @@ do
   mysqldump $DUMPOPT2 $DB > /home/mysql.dump/$DB.$DATE.mysql.dump
   $LOG "~> exit code $?"
   $LOG "~> change permissions on dump file"
-  chmod 400 /home/mysql.dump/$DB.$DATE.mysql.dump
+  chmod 400 $DUMPFOLDER/mysql.$DATE.mysql.dump
   $LOG "~> exit code $?"
 done
 
@@ -102,5 +112,6 @@ done
 #-------------------------------------------------------------
 $LOG ">> Backup complete <<"
 exit 0
+fi
 #-------------------------------------------------------------------------
 #--- eof ---

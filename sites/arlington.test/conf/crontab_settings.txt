@@ -32,13 +32,16 @@
 @reboot cd /usr/local/vufind-plus/sites/arlington.test/; ./arlington.test.sh start
 @reboot sleep 300 && /usr/local/vufind-plus/sites/arlington.test/continuous_partial_reindex.sh
 
-# backup important bits at 2:10am daily
-10 2 * * * /usr/local/vufind-plus/vufind/cron/nightly_mysql_dump.sh 2>&1 >/dev/null
-
 #####################
 # Daily full update #
 #####################
 00 04 3-30/3 * * cd /usr/local/vufind-plus/sites/arlington.test; ./full_update.sh
+
+######################
+# MySQL Nightly Dump #
+######################
+# backup important bits at 2:10am daily
+10 2 * * * /usr/local/vufind-plus/vufind/cron/nightly_mysql_dump.sh arlington.test 2>&1 >/dev/null
 
 ################
 # Pika Cleanup #

@@ -29,9 +29,6 @@
 ## taken from https://en.wikipedia.org/wiki/Cron
 ##############
 
-# backup important bits at 2:10am daily
-10 2 * * * /usr/local/vufind-plus/vufind/cron/nightly_mysql_dump.sh 2>&1 >/dev/null
-
 #############
 # On Reboot #
 #############
@@ -39,8 +36,11 @@
 @reboot cd /usr/local/vufind-plus/sites/marmot.test/; ./marmot.test.sh start
 @reboot sleep 300 && /usr/local/vufind-plus/sites/marmot.test/continuous_partial_reindex.sh
 
+######################
+# MySQL Nightly Dump #
+######################
 # backup important bits at 2:10am daily
-10 2 * * * /usr/local/vufind-plus/vufind/cron/nightly_mysql_dump.sh 2>&1 >/dev/null
+10 2 * * * /usr/local/vufind-plus/vufind/cron/nightly_mysql_dump.sh marmot.test 2>&1 >/dev/null
 
 #####################
 # Daily full update #
