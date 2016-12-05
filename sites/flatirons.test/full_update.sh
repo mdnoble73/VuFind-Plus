@@ -75,6 +75,7 @@ function checkProhibitedTimes() {
 #checkConflictingProcesses "millennium_export.jar"
 checkConflictingProcesses "overdrive_extract.jar flatirons.test"
 checkConflictingProcesses "reindexer.jar flatirons.test"
+checkConflictingProcesses "sierra_export.jar flatirons.test"
 
 #truncate the output file so you don't spend a week debugging an error from a week ago!
 : > $OUTPUT_FILE;
