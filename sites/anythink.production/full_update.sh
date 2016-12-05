@@ -120,7 +120,7 @@ FILE=$(find /data/vufind-plus/anythink.production/marc -name RLDexport*.mrc -mti
 if [ -n "$FILE" ]
 then
   #check file size
-	MINFILE1SIZE=$((360000000))
+	MINFILE1SIZE=$((345000000))
 	FILE1SIZE=$(wc -c <"$FILE")
 	if [ $FILE1SIZE -ge $MINFILE1SIZE ]; then
 
