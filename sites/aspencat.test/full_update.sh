@@ -5,7 +5,7 @@
 # At the end of the index will email users with the results.
 EMAIL=root@rhea
 PIKASERVER=aspencat.test
-PIKADBNAME=aspencat_vufind
+PIKADBNAME=pika
 OUTPUT_FILE="/var/log/vufind-plus/${PIKASERVER}/full_update_output.log"
 
 # Check for conflicting processes currently running
