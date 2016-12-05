@@ -75,7 +75,7 @@ $LOG "~> exit code $?"
 for DB in $DATABASES
 do
   $LOG "~> dumping $DB database"
-  mysqldump $DUMPOPT2 $DB > /home/mysql.dump/$DB.$DATE.mysql.dump
+  mysqldump $DUMPOPT2 $DB > $DUMPFOLDER/$DB.$DATE.mysql.dump
   $LOG "~> exit code $?"
   $LOG "~> change permissions on dump file"
   chmod 400 $DUMPFOLDER/mysql.$DATE.mysql.dump
