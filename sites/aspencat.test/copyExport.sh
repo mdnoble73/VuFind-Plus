@@ -42,7 +42,7 @@ $LOG "~~ umount $LOCAL"
 umount $LOCAL
 $LOG "~~ exit code " $?
 
-$LOG "~> finished copyAspencatExport.sh"
+$LOG "~> finished copyExport.sh"
 
 #-------------------------------------------------------------------------
 #-- eof --
