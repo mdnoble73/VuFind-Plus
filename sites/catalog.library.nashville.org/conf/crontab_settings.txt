@@ -36,6 +36,12 @@
 # Continuous Re-Indexing
 @reboot cd /usr/local/VuFind-Plus/sites/catalog.library.nashville.org; ./continuous_partial_reindex.sh 
 
+######################
+# MySQL Nightly Dump #
+######################
+# backup important bits at 12:10am daily
+10 0 * * * /usr/local/vufind-plus/vufind/cron/nightly_mysql_dump.sh catalog.library.nashville.org 2>&1 >/dev/null
+
 #####################
 # Daily full update #
 #####################
