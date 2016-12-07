@@ -24,7 +24,7 @@ PIKASITENAME="flatirons.test"
 
 REMOTE="10.1.2.6:/ftp"
 LOCAL="/mnt/ftp"
-SRC="/mnt/ftp/${FTPACCOUNT}"
+SRC="/mnt/ftp/${FTPACCOUNT}/"
 DEST="/data/vufind-plus/${PIKASITENAME}/covers/original"
 LOG="logger -t copyCovers "
 
