@@ -44,6 +44,7 @@
 @reboot cd /usr/local/vufind-plus/sites/testvufind.co.wake.nc.us; ./testvufind.co.wake.nc.us.sh start
 # restart continuous re-indexing on reboot.
 @reboot cd /usr/local/vufind-plus/sites/testvufind.co.wake.nc.us; ./continuous_partial_reindex.sh
+
 #######################
 # VuFind-Plus Cleanup #
 #######################
@@ -55,11 +56,11 @@
 ########################
 15 5 * * * cd /usr/local/vufind-plus/sites/testvufind.co.wake.nc.us; ./full_update.sh
 
-################
-# mySQL Backup #
-################
-# Backup all mySQL databases to /home/mysql.dump
-05 0 * * * cd /root/cron/; ./mySQLBackup
+######################
+# MySQL Nightly Dump #
+######################
+# backup important bits at 12:10am daily
+10 0 * * * /usr/local/vufind-plus/vufind/cron/nightly_mysql_dump.sh testvufind.co.wake.nc.us 2>&1 >/dev/null
 
 ##########
 # Cron   #
