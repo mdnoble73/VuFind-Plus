@@ -118,7 +118,7 @@ FILE=$(find  /data/vufind-plus/opac.marmot.org/marc/ -name fullexport.mrc -mtime
 if [ -n "$FILE" ]
 then
   #check file size
-	MINFILE1SIZE=$((4000000000))
+	MINFILE1SIZE=$((3848000000))
 	FILE1SIZE=$(wc -c <"$FILE")
 	if [ $FILE1SIZE -ge $MINFILE1SIZE ]; then
 
