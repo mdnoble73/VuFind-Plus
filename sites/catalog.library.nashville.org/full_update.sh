@@ -154,7 +154,7 @@ fi
 if [ ${PRODUCTION} == "true" ]; then
         FILE=$(find /data/vufind-plus/catalog.library.nashville.org/marc -name BIB_EXTRACT_PIKA.MRC -mtime -1 | sort -n | tail -1)
 elif [ ${PRODUCTION} == "false" ]; then
-        FILE=$(find /data/vufind-plus/catalog.library.nashville.org/marc -name BIB_EXTRACT_PIKA.MRC -mtime -2 | sort -n | tail -1)
+        FILE=$(find /data/vufind-plus/catalog.library.nashville.org/marc -name BIB_EXTRACT_PIKA.MRC -mtime -4 | sort -n | tail -1)
 fi
 
 if [ -n "$FILE" ]; then
