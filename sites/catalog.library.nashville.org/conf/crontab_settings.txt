@@ -26,10 +26,6 @@
 ## taken from https://en.wikipedia.org/wiki/Cron
 ##############
 
-# backup important bits at 2:10am daily
-# JAMES should look at marmot backup scripts 20150216
-10 2 * * * /root/cron/backup 2>&1 >/dev/null
-
 #############
 # On Reboot #
 #############
