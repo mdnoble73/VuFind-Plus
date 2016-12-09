@@ -43,16 +43,41 @@ class MaterialsRequest_MyRequests extends MyAccount
 			$showOpen  = false;
 		}
 		$interface->assign('showOpen', $showOpen);
-		
+
+//		global $library;
+		$homeLibrary = Library::getPatronHomeLibrary();
+
+		$maxActiveRequests  = isset($homeLibrary) ? $homeLibrary->maxOpenRequests : 5;
+		$maxRequestsPerYear = isset($homeLibrary) ? $homeLibrary->maxRequestsPerYear : 60;
+		$interface->assign('maxActiveRequests', $maxActiveRequests);
+		$interface->assign('maxRequestsPerYear', $maxRequestsPerYear);
+
 		$defaultStatus = new MaterialsRequestStatus();
 		$defaultStatus->isDefault = 1;
-		$defaultStatus->libraryId = Library::getPatronHomeLibrary()->libraryId;
+		$defaultStatus->libraryId = $homeLibrary->libraryId;
 		$defaultStatus->find(true);
 		$interface->assign('defaultStatus', $defaultStatus->id);
 		
 		//Get a list of all materials requests for the user
 		$allRequests = array();
 		if ($user){
+			$materialsRequests = new MaterialsRequest();
+			$materialsRequests->createdBy = $user->id;
+			$materialsRequests->whereAdd('dateCreated >= unix_timestamp(now() - interval 1 year)');
+			$requestsThisYear = $materialsRequests->count();
+			$interface->assign('requestsThisYear', $requestsThisYear);
+
+			$statusQuery = new MaterialsRequestStatus();
+			$statusQuery->libraryId = $homeLibrary->libraryId;
+			$statusQuery->isOpen = 1;
+
+			$materialsRequests = new MaterialsRequest();
+			$materialsRequests->createdBy = $user->id;
+			$materialsRequests->joinAdd($statusQuery);
+			$openRequests = $materialsRequests->count();
+			$interface->assign('openRequests', $openRequests);
+
+
 			$materialsRequests = new MaterialsRequest();
 			$materialsRequests->createdBy = $user->id;
 			$materialsRequests->orderBy('title, dateCreated');
@@ -70,14 +95,10 @@ class MaterialsRequest_MyRequests extends MyAccount
 				$allRequests[] = clone $materialsRequests;
 			}
 		}else{
-			header('Location: ' . $configArray['Site']['path'] . '/MyResearch/Home?followupModule=MaterialsRequest&followupAction=MyRequests');
-			//$interface->assign('error', "You must be logged in to view your requests.");
+			header('Location: ' . $configArray['Site']['path'] . '/MyAccount/Home?followupModule=MaterialsRequest&followupAction=MyRequests');
 		}
 		$interface->assign('allRequests', $allRequests);
 
-		$interface->assign('sidebar', 'MyAccount/account-sidebar.tpl');
-		$interface->setTemplate('myMaterialRequests.tpl');
-		$interface->setPageTitle('My Materials Requests');
-		$interface->display('layout.tpl');
+		$this->display('myMaterialRequests.tpl', 'My Materials Requests');
 	}
 }

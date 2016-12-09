@@ -900,7 +900,7 @@ class OverDriveDriver3 {
 		}else{
 			$tokenData = $this->_connectToPatronAPI($user, $userBarcode, null, false);
 		}
-		return ($tokenData !== false) && ($tokenData !== null);
+		return ($tokenData !== false) && ($tokenData !== null) && !array_key_exists('error', $tokenData);
 	}
 
 	public function updateLendingOptions(){

@@ -33,6 +33,8 @@ if [ $# = 1 ];then
   cd /data
   mkdir vufind-plus
   cd vufind-plus
+  echo "creating accelerated reader data folder"
+  mkdir accelerated_reader
   mkdir $HOST
   cd $HOST
   cp -rp $WD/data_dir_setup/* .
@@ -69,7 +71,7 @@ if [ $# = 1 ];then
   chmod g+w $WD/vufind/web/interface/compile $WD/vufind/web/interface/cache
   #-----------------
   echo "setting up Pika log rotation."
-  cat $WD/install/pika |sed -r 's/\{servername\}/$HOST/' > /etc/logrotate.d/pika
+  cat $WD/install/pika |sed -r "s/\{servername\}/$HOST/" > /etc/logrotate.d/pika
   # The line above updates the log rotation file so that it doesn't need to be manually modifed
   #-----------------
   #echo "setting up Pika log rotation. Note: Servername must be manually set."
@@ -91,7 +93,7 @@ if [ $# = 1 ];then
   #-----------------
   echo "Creating pika system service for $HOST"
 #  cat $WD/sites/default/pika_startup.sh |sed -r 's/\{servername\}/$HOST/' > /etc/init.d/pika.sh
-  cat $WD/sites/default/pika_startup.sh |sed -r 's/\{servername\}/$HOST/'|sed -r 's/mysqld/mariadb/' > /etc/init.d/pika.sh
+  cat $WD/sites/default/pika_startup.sh |sed -r "s/\{servername\}/$HOST/'|sed -r 's/mysqld/mariadb/" > /etc/init.d/pika.sh
   chmod u+x /etc/init.d/pika.sh
 #  CentOS7 version that uses mariadb instead
 

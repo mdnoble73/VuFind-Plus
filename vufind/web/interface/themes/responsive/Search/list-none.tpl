@@ -100,6 +100,11 @@
 		{* javascript call for content at bottom of page*}
 	{/if}
 
+	{if $showDplaLink}
+		{* DPLA Results *}
+		<div id='dplaSearchResultsPlaceholder'></div>
+	{/if}
+
 	{* Display Repeat this search links *}
 	{if strlen($lookfor) > 0 && count($repeatSearchOptions) > 0}
 		<div class='repeatSearchHead'><h4>Try another catalog</h4></div>
@@ -149,7 +154,9 @@
 		{if $showProspectorLink}
 		VuFind.Prospector.getProspectorResults(5, {$prospectorSavedSearchId});
 		{/if}
-
+		{if $showDplaLink}
+		VuFind.DPLA.getDPLAResults('{$lookfor}');
+		{/if}
 		{rdelim});
 </script>
 {/strip}

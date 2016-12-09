@@ -39,8 +39,6 @@ require_once ROOT_DIR . '/Drivers/ScreenScrapingDriver.php';
  */
 class Millennium extends ScreenScrapingDriver
 {
-	public $fixShortBarcodes = true;
-
 	var $statusTranslations = null;
 	var $holdableStatiRegex = null;
 	var $availableStatiRegex = null;
@@ -301,7 +299,13 @@ class Millennium extends ScreenScrapingDriver
 			}else{
 				$user->cat_username = $patronDump['PATRN_NAME'];
 				//When we get the patron dump, we may override the barcode so make sure that we update it here.
-				$user->cat_password = $patronDump['P_BARCODE'];
+				//For self registered cards, the P_BARCODE is not set so we need to use the RECORD_# field
+				if (strlen($patronDump['P_BARCODE']) > 0){
+					$user->cat_password = $patronDump['P_BARCODE'];
+				}else{
+					$user->cat_password = $patronDump['RECORD_#'];
+				}
+
 			}
 
 			$user->phone = isset($patronDump['TELEPHONE']) ? $patronDump['TELEPHONE'] : (isset($patronDump['HOME_PHONE']) ? $patronDump['HOME_PHONE'] : '');

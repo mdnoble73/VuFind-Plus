@@ -615,6 +615,14 @@ class DBMaintenance extends Admin_Admin {
 					),
 				),
 
+				'materialsRequest_update7' => array(
+					'title' => 'Add Assignee Column to Materials Request Table',
+					'description' => 'Column for the id number of the staff member the request is assigned to.',
+					'sql' => array(
+						'ALTER TABLE `materials_request` ADD COLUMN `assignedTo` INT NULL',
+					),
+				),
+
 				'materialsRequestStatus' => array(
 					'title' => 'Materials Request Status Table Creation',
 					'description' => 'Update reading History to include an id table',

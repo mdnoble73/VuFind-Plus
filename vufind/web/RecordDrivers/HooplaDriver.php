@@ -200,4 +200,8 @@ class HooplaRecordDriver extends MarcRecord {
 		}
 		return $bookCoverUrl;
 	}
+
+	function getNumHolds(){
+		return 0;
+	}
 }

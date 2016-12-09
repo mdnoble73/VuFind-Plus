@@ -67,14 +67,14 @@ class MaterialsRequest_NewRequest extends Action
 			$interface->assign('materialsRequest', $request);
 		}
 
-		$interface->assign('showPhoneField', $configArray['MaterialsRequest']['showPhoneField']);
-		$interface->assign('showAgeField', $configArray['MaterialsRequest']['showAgeField']);
-		$interface->assign('showBookTypeField', $configArray['MaterialsRequest']['showBookTypeField']);
-		$interface->assign('showEbookFormatField', $configArray['MaterialsRequest']['showEbookFormatField']);
+		$interface->assign('showPhoneField',        $configArray['MaterialsRequest']['showPhoneField']);
+		$interface->assign('showAgeField',          $configArray['MaterialsRequest']['showAgeField']);
+		$interface->assign('showBookTypeField',     $configArray['MaterialsRequest']['showBookTypeField']);
+		$interface->assign('showEbookFormatField',  $configArray['MaterialsRequest']['showEbookFormatField']);
 		$interface->assign('showEaudioFormatField', $configArray['MaterialsRequest']['showEaudioFormatField']);
-		$interface->assign('showPlaceHoldField', $configArray['MaterialsRequest']['showPlaceHoldField']);
-		$interface->assign('showIllField', $configArray['MaterialsRequest']['showIllField']);
-		$interface->assign('requireAboutField', $configArray['MaterialsRequest']['requireAboutField']);
+		$interface->assign('showPlaceHoldField',    $configArray['MaterialsRequest']['showPlaceHoldField']);
+		$interface->assign('showIllField',          $configArray['MaterialsRequest']['showIllField']);
+		$interface->assign('requireAboutField',     $configArray['MaterialsRequest']['requireAboutField']);
 		
 		$useWorldCat = false;
 		if (isset($configArray['WorldCat']) && isset($configArray['WorldCat']['apiKey'])){
@@ -93,10 +93,6 @@ class MaterialsRequest_NewRequest extends Action
 			$interface->assign('passwordLabel', 'Library Card Number');
 		}
 
-		$interface->setTemplate('new.tpl');
-		$interface->assign('sidebar', 'Search/home-sidebar.tpl');
-		$interface->setPageTitle('Materials Request');
-		
-		$interface->display('layout.tpl');
+		$this->display('new.tpl', 'Materials Request');
 	}
 }

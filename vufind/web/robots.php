@@ -32,6 +32,10 @@ if ($configArray['Site']['isProduction']){
 		echo "\n";
 		//Append the site map index file url
 		echo $siteMap_Url . "\n";
+
+		//Google may want this with a lower case sitemap even though they specify capitalized.  Provide both.
+		$siteMap_Url2 = 'sitemap: ' . $configArray['Site']['url'] . '/sitemaps/' .$fileName;
+		echo $siteMap_Url2 . "\n";
 	}
 }else {
 	echo("User-agent: *\r\nDisallow: /\r\n");

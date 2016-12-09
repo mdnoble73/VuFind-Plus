@@ -305,6 +305,9 @@ public class RecordGroupingProcessor {
 			case "specified":
 				//Use specified format
 				groupingFormat = categoryMap.get(specifiedFormatCategory.toLowerCase());
+				if (groupingFormat == null){
+					groupingFormat = specifiedFormatCategory;
+				}
 				break;
 			default:
 				//get format from item

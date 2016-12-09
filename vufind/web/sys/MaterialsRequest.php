@@ -42,6 +42,7 @@ class MaterialsRequest extends DB_DataObject
 	public $illItem;
 	public $holdPickupLocation;
 	public $bookmobileStop;
+	public $assignedTo;
 
 	//Dynamic properties setup by joins
 	public $numRequests;

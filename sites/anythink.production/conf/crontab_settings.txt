@@ -35,6 +35,12 @@
 # Continuous Re-Indexing
 @reboot cd /usr/local/vufind-plus/sites/anythink.production; ./continuous_partial_reindex.sh
 
+######################
+# MySQL Nightly Dump #
+######################
+# backup important bits at 12:10am daily
+10 0 * * * /usr/local/vufind-plus/vufind/cron/nightly_mysql_dump.sh anythink.production 2>&1 >/dev/null
+
 #####################
 # Daily full update #
 #####################
@@ -58,4 +64,5 @@
 */3 * * * * cd /usr/local/vufind-plus/vufind/cron/; ./solrTest.sh
 
 # Restart apache
-0 0-7 * * * /usr/sbin/apachectl graceful > /dev/null 2>&1
+0 * * * * /usr/sbin/apachectl graceful > /dev/null 2>&1
+2 0-7 * * * /usr/sbin/apachectl restart > /dev/null 2>&1

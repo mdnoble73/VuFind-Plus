@@ -16,25 +16,27 @@ class LDRecordOffer {
 
 	public function getOffers() {
 		$offers = array();
-		foreach ($this->relatedRecord['itemSummary'] as $itemData){
-			if ($itemData['isLibraryItem'] || $itemData['isEContent']) {
-				$offerData = array(
-						"availability" => $this->getOfferAvailability($itemData),
-						'availableDeliveryMethod' => $this->getDeliveryMethod(),
-						"itemOffered" => array(
-								'@type' => 'CreativeWork',
-								'@id' => $this->getOfferLinkUrl(), //URL to the record
-						),
-						"offeredBy" => $this->getLibraryUrl(), //URL to the library that owns the item
-						"price" => '0',
-						"inventoryLevel" => $itemData['availableCopies'],
-				);
-				$locationCode = $itemData['locationCode'];
-				$subLocation = $itemData['subLocation'];
-				if (strlen($locationCode) > 0){
-					$offerData['availableAtOrFrom'] = $this->getBranchUrl($locationCode, $subLocation);
+		if (isset($this->relatedRecord['itemSummary'])){
+			foreach ($this->relatedRecord['itemSummary'] as $itemData){
+				if ($itemData['isLibraryItem'] || $itemData['isEContent']) {
+					$offerData = array(
+							"availability" => $this->getOfferAvailability($itemData),
+							'availableDeliveryMethod' => $this->getDeliveryMethod(),
+							"itemOffered" => array(
+									'@type' => 'CreativeWork',
+									'@id' => $this->getOfferLinkUrl(), //URL to the record
+							),
+							"offeredBy" => $this->getLibraryUrl(), //URL to the library that owns the item
+							"price" => '0',
+							"inventoryLevel" => $itemData['availableCopies'],
+					);
+					$locationCode = $itemData['locationCode'];
+					$subLocation = $itemData['subLocation'];
+					if (strlen($locationCode) > 0){
+						$offerData['availableAtOrFrom'] = $this->getBranchUrl($locationCode, $subLocation);
+					}
+					$offers[] = $offerData;
 				}
-				$offers[] = $offerData;
 			}
 		}
 
