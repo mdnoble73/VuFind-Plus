@@ -192,6 +192,7 @@ class Library extends DB_DataObject
 	public $masqueradeAutomaticTimeoutLength;
 	public $allowMasqueradeMode;
 	public $allowReadingHistoryDisplayInMasqueradeMode;
+	public $newMaterialsRequestSummary;  // (Text at the top of the Materials Request Form.)
 
 	// Use this to set which details will be shown in the the Main Details section of the record view.
 	// You should be able to add options here without needing to change the database.
@@ -554,10 +555,11 @@ class Library extends DB_DataObject
 			'materialsRequestSection'=> array('property'=>'materialsRequestSection', 'type' => 'section', 'label' =>'Materials Request', 'hideInLists' => true,
 					'helpLink'=>'https://docs.google.com/document/d/18Sah0T8sWUextphL5ykg8QEM_YozniSXqOo1nfi6gnc',
 					'properties' => array(
-				'enableMaterialsRequest' => array('property'=>'enableMaterialsRequest', 'type'=>'checkbox', 'label'=>'Enable Pika Materials Request System', 'description'=>'Enable Materials Request functionality so patrons can request items not in the catalog.', 'hideInLists' => true,),
+				'enableMaterialsRequest'      => array('property'=>'enableMaterialsRequest', 'type'=>'checkbox', 'label'=>'Enable Pika Materials Request System', 'description'=>'Enable Materials Request functionality so patrons can request items not in the catalog.', 'hideInLists' => true,),
 				'externalMaterialsRequestUrl' => array('property'=>'externalMaterialsRequestUrl', 'type'=>'text', 'label'=>'External Materials Request URL', 'description'=>'A link to an external Materials Request System to be used instead of the built in Pika system', 'hideInList' => true),
-				'maxRequestsPerYear' => array('property'=>'maxRequestsPerYear', 'type'=>'integer', 'label'=>'Max Requests Per Year', 'description'=>'The maximum number of requests that a user can make within a year', 'hideInLists' => true, 'default' => 60),
-				'maxOpenRequests' => array('property'=>'maxOpenRequests', 'type'=>'integer', 'label'=>'Max Open Requests', 'description'=>'The maximum number of requests that a user can have open at one time', 'hideInLists' => true, 'default' => 5),
+				'maxRequestsPerYear'          => array('property'=>'maxRequestsPerYear', 'type'=>'integer', 'label'=>'Max Requests Per Year', 'description'=>'The maximum number of requests that a user can make within a year', 'hideInLists' => true, 'default' => 60),
+				'maxOpenRequests'             => array('property'=>'maxOpenRequests', 'type'=>'integer', 'label'=>'Max Open Requests', 'description'=>'The maximum number of requests that a user can have open at one time', 'hideInLists' => true, 'default' => 5),
+				'newMaterialsRequestSummary'  => array('property'=>'newMaterialsRequestSummary', 'type'=>'html', 'label'=>'New Request Summary', 'description'=>'Text displayed at the top of Materials Request form to give users important information about the request they submit', 'size'=>'40', 'maxLength' =>'512', 'allowableTags' => '<a><b><em><div><script><span><p><strong><sub><sup>', 'hideInLists' => true),
 			)),
 			'goldrushSection' => array('property'=>'goldrushSection', 'type' => 'section', 'label' =>'Gold Rush', 'hideInLists' => true,
 					'helpLink' => 'https://docs.google.com/document/d/1OfVcwdalgi8YNEqTAXXv7Oye15eQwxGGKX5IIaeuT7U', 'properties' => array(

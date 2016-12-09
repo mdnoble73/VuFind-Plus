@@ -84,6 +84,9 @@ class MaterialsRequest_NewRequest extends Action
 
 		// Set up for User Log in
 		if (isset($library)){
+			$interface->assign('newMaterialsRequestSummary', $library->newMaterialsRequestSummary);
+			//TODO: need to determine that this is always assigned; even if user isn't logged in
+
 			$interface->assign('enableSelfRegistration', $library->enableSelfRegistration);
 			$interface->assign('usernameLabel', $library->loginFormUsernameLabel ? $library->loginFormUsernameLabel : 'Your Name');
 			$interface->assign('passwordLabel', $library->loginFormPasswordLabel ? $library->loginFormPasswordLabel : 'Library Card Number');

@@ -369,6 +369,16 @@ function getLibraryLocationUpdates(){
 			),
 		),
 
+		'library_materials_request_new_request_summary' => array(
+			'title' => 'Library Materials Request - New Request Summary',
+			'description' => 'Add text field that is displayed at the top of Materials Request form to give users important information about the request they submit',
+			'dependencies' => array(),
+			'continueOnError' => true,
+			'sql' => array(
+				"ALTER TABLE `library` ADD COLUMN `newMaterialsRequestSummary` TEXT NULL;",
+			),
+		),
+
 		'library_contact_links' => array(
 			'title' => 'Library Contact Links',
 			'description' => 'Add contact links for Facebook, Twitter and general contact to library config.',

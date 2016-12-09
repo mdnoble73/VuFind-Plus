@@ -3,9 +3,13 @@
 		<h2>{translate text='Materials Request'}</h2>
 		<div id="materialsRequest">
 			<div class="materialsRequestExplanation alert alert-info">
+				{if empty($newMaterialsRequestSummary)}
 				If you cannot find a title in our catalog, you can request the title via this form.
 				Please enter as much information as possible so we can find the exact title you are looking for.
 				For example, if you are looking for a specific season of a TV show, please include that information.
+				{else}
+					{$newMaterialsRequestSummary}
+				{/if}
 			</div>
 			<form id="materialsRequestForm" action="{$path}/MaterialsRequest/Submit" method="post" class="form form-horizontal" role="form">
 				{include file="MaterialsRequest/request-form-fields.tpl"}
