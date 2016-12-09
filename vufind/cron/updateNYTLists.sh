@@ -1,8 +1,8 @@
 #!/bin/bash
 if [[ $# -ne 1 ]]; then
-	echo "Please specify the Pika instance"
-	echo "eg: $0 marmot.production"
-else
-PIKASERVER=$1
-	wget --spider --timeout=30 --no-verbose -i /usr/local/vufind-plus/sites/${PIKASERVER}/NYTimesURLsList.txt
+    echo "Please specify the Pika instance"
+    echo "eg: $0 marmot.production"
+  else
+    PIKASERVER=$1
+    wget --spider --timeout=30 --no-verbose -i /usr/local/vufind-plus/sites/${PIKASERVER}/NYTimesURLsList.txt
 fi
