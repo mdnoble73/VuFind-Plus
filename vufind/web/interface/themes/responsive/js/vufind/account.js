@@ -337,7 +337,7 @@ VuFind.Account = (function(){
 						data = data.result;
 					}
 					VuFind.showMessageWithButtons(data.title, data.modalBody, data.modalButtons);
-				});
+				}).fail(VuFind.ajaxFail);
 			}
 			return false;
 		},
