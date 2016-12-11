@@ -89,7 +89,7 @@
 
 
 		</div>
-        
+
         <div id="footer-container" class="row">
             {include file="footer_responsive.tpl"}
         </div>
@@ -110,6 +110,10 @@
 		{include file="modal_dialog.tpl"}
 
 		{include file="tracking.tpl"}
+
+		{if $semanticData}
+			{include file="jsonld.tpl"}
+		{/if}
 		{/strip}
 	</body>
 </html>

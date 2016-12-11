@@ -80,6 +80,7 @@ checkConflictingProcesses "reindexer.jar"
 
 # Back-up Solr Master Index
 mysqldump ${PIKADBNAME} grouped_work_primary_identifiers > /data/vufind-plus/${PIKASERVER}/grouped_work_primary_identifiers.sql
+sleep 2m
 tar -czf /data/vufind-plus/${PIKASERVER}/solr_master_backup.tar.gz /data/vufind-plus/${PIKASERVER}/solr_master/grouped/index/ /data/vufind-plus/${PIKASERVER}/grouped_work_primary_identifiers.sql >> ${OUTPUT_FILE}
 rm /data/vufind-plus/${PIKASERVER}/grouped_work_primary_identifiers.sql
 
@@ -119,7 +120,7 @@ FILE=$(find /data/vufind-plus/anythink.production/marc -name RLDexport*.mrc -mti
 if [ -n "$FILE" ]
 then
   #check file size
-	MINFILE1SIZE=$((360000000))
+	MINFILE1SIZE=$((311000000))
 	FILE1SIZE=$(wc -c <"$FILE")
 	if [ $FILE1SIZE -ge $MINFILE1SIZE ]; then
 

@@ -305,6 +305,9 @@ public class RecordGroupingProcessor {
 			case "specified":
 				//Use specified format
 				groupingFormat = categoryMap.get(specifiedFormatCategory.toLowerCase());
+				if (groupingFormat == null){
+					groupingFormat = specifiedFormatCategory;
+				}
 				break;
 			default:
 				//get format from item
@@ -1106,6 +1109,7 @@ public class RecordGroupingProcessor {
 		categoryMap.put("audio", "book");
 		categoryMap.put("music", "music");
 		categoryMap.put("movie", "movie");
+		categoryMap.put("movies", "movie");
 	}
 
 

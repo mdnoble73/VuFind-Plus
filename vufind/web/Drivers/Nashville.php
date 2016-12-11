@@ -31,7 +31,7 @@ require_once ROOT_DIR . '/Drivers/Millennium.php';
  *
  * @author Mark Noble <mnoble@turningleaftech.com>
  * @author CJ O'Hara <cj@marmot.org>
- * 
+ *
  * Extended by James Staub based on specific requirements for
  * Nashville Public Library
  *
@@ -43,7 +43,6 @@ class Nashville extends Millennium{
 	 */
 	public function __construct($accountProfile){
 		parent::__construct($accountProfile);
-		$this->fixShortBarcodes = false;
 	}
 
 	/**
@@ -248,7 +247,7 @@ class Nashville extends Millennium{
 
 		//Login to the patron's account
 		$barcode = $this->_getBarcode($user);
-		//Attempt to call new PIN popup form for patron record 1. WebPAC will challenge for barcode/PIN. 
+		//Attempt to call new PIN popup form for patron record 1. WebPAC will challenge for barcode/PIN.
 		//After authentication check succeeds, WebPAC (without any help from us) will replace "1" with the patron record number
 		$curl_url = $this->getVendorOpacUrl() . "/patroninfo/1/newpin";
 		$curl_connection = $this->_curl_connect($curl_url);

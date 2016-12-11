@@ -115,6 +115,16 @@ function getUserUpdates(){
 			),
 		),
 
+		'user_linking_1' => array(
+			'title' => 'Fix User Linking Table Settings',
+			'description' => 'Set Id columns to require a value (can not be null).',
+			'sql' => array(
+				"ALTER TABLE `user_link` 
+				CHANGE COLUMN `primaryAccountId` `primaryAccountId` INT(11) NOT NULL,
+				CHANGE COLUMN `linkedAccountId` `linkedAccountId` INT(11) NOT NULL;",
+			),
+		),
+
 		'user_link_blocking' => array(
 			'title' => 'Setup blocking controls for the linking of user accounts',
 			'description' => 'Setup for the blocking of linking user accounts. Either an account can not link to any account, or a specific account can link to a specific account.',

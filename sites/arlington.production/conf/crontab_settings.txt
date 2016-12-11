@@ -35,6 +35,12 @@
 # Continuous Re-Indexing
 @reboot cd /usr/local/vufind-plus/sites/arlington.production; ./continuous_partial_reindex.sh
 
+######################
+# MySQL Nightly Dump #
+######################
+# backup important bits at 12:10am daily
+5 0 * * * /usr/local/vufind-plus/vufind/cron/nightly_mysql_dump.sh arlington.production 2>&1 >/dev/null
+
 #####################
 # Daily full update #
 #####################
@@ -48,6 +54,11 @@
 7 */3 * * * cd /usr/local/vufind-plus/vufind/cron/; java -jar cron.jar arlington.production
 20 0 * * * cd /usr/local/vufind-plus/vufind/cron/; java -jar cron.jar arlington.production DatabaseCleanup
 0 20 * * * cd /usr/local/vufind-plus/vufind/cron/; java -jar cron.jar arlington.production UpdateReadingHistory
+
+###############################################
+# Copy Original Covers from Marmot FTP Server #
+###############################################
+14 */2 * * * scp -i ~/.ssh/id_rsa_arlington_pika_covers arlington_pika_covers@ftp1.marmot.org:/ftp/arlington_pika_covers/* /data/vufind-plus/arlington.production/covers/original/
 
 ################
 # Pika Cleanup #
@@ -66,7 +77,7 @@
 # mySQL Backup #
 ################
 # Backup all mySQL databases to /home/mysql.dump
-05 0 * * * cd /root/cron/; ./mySQLBackup
+#05 0 * * * cd /root/cron/; ./mySQLBackup
 
 # Check Apache Solr process and website that it has not stalled.
 */3 * * * * cd /usr/local/vufind-plus/vufind/cron/; ./solrTest.sh

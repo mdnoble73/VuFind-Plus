@@ -27,6 +27,7 @@
 
 # backup important bits at 2:15am daily
 15 2 * * * /root/cron/backup 2>&1 >/dev/null
+#TODO: When these servers are virtualized, modify mysql backup to be uniform with other sites
 
 #############
 # On Reboot #
@@ -53,7 +54,7 @@
 26 * * * * cd /tmp; /bin/rm -rf CURLCOOKIE*
 27 */2 * * * cd /tmp; /bin/rm -rf epb*
 # Restart apache
-0 0-6 * * * /usr/sbin/apachectl graceful > /dev/null 2>&1
+0 * * * * /usr/sbin/apachectl restart > /dev/null 2>&1
 
 ############################################
 # New York Times Bestseller Lists Updating #
@@ -68,7 +69,7 @@
 ##########
 # Do cron process which is just Updating Reading History.  Takes about 3.5 hours, start at 7pm
 5 19 * * * cd /usr/local/vufind-plus/vufind/cron/; java -jar cron.jar opac.marmot.org
-20 0 * * * cd /usr/local/vufind-plus/vufind/cron/; java -jar cron.jar opac.marmot.org DatabaseCleanup 
+20 0 * * * cd /usr/local/vufind-plus/vufind/cron/; java -jar cron.jar opac.marmot.org DatabaseCleanup
 # Write reports for schools
 00 6,11,13 * * * cd /usr/local/vufind-plus/vufind/cron; java -jar cron.jar opac.marmot.org SierraReports
 # Process Offline Circs
