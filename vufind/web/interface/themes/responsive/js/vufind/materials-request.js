@@ -46,11 +46,11 @@ VuFind.MaterialsRequest = (function(){
 		},
 
 		showMaterialsRequestDetails: function(id){
-			VuFind.Account.ajaxLightbox(Globals.path + "/MaterialsRequest/AJAX?method=MaterialsRequestDetails&id=" +id, true);
+			return VuFind.Account.ajaxLightbox(Globals.path + "/MaterialsRequest/AJAX?method=MaterialsRequestDetails&id=" +id, true);
 		},
 
 		updateMaterialsRequest: function(id){
-			VuFind.Account.ajaxLightbox(Globals.path + "/MaterialsRequest/AJAX?method=UpdateMaterialsRequest&id=" +id, true);
+			return VuFind.Account.ajaxLightbox(Globals.path + "/MaterialsRequest/AJAX?method=UpdateMaterialsRequest&id=" +id, true);
 		},
 
 		exportSelectedRequests: function(){
@@ -215,7 +215,7 @@ VuFind.MaterialsRequest = (function(){
 				},
 				dataType: 'json',
 				type: 'post'
-			});
+			}).fail(VuFind.ajaxFail);
 			return false;
 		},
 

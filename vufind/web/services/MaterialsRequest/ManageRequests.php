@@ -236,6 +236,7 @@ class MaterialsRequest_ManageRequests extends Admin_Admin {
 
 			// $assignees used for both set assignee dropdown and filter by assigned To checkboxes
 			// TODO: determine if There is a case where an non-materials request manager can filter.
+			// opac_admins w/o materials_request role would expect to filter by assignee
 			if ($user->hasRole('library_material_requests')) {
 				$role = new Role();
 				if ($role->get('name', 'library_material_requests')) {

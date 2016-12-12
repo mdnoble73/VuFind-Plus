@@ -130,8 +130,8 @@
 								<td>{$request->dateCreated|date_format}</td>
 								<td>
 									<div class="btn-group btn-group-vertical btn-group-sm">
-										<a href="#" onclick='VuFind.MaterialsRequest.showMaterialsRequestDetails("{$request->id}")' class="btn btn-sm btn-info">Details</a>
-										<a href="#" onclick='VuFind.MaterialsRequest.updateMaterialsRequest("{$request->id}")' class="btn btn-sm btn-primary">Update&nbsp;Request</a>
+										<button type="button" onclick="VuFind.MaterialsRequest.showMaterialsRequestDetails('{$request->id}')" class="btn btn-sm btn-info">Details</button>
+										<button type="button" onclick="VuFind.MaterialsRequest.updateMaterialsRequest('{$request->id}')" class="btn btn-sm btn-primary">Update&nbsp;Request</button>
 									</div>
 								</td>
 							</tr>
