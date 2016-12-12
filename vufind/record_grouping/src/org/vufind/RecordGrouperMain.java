@@ -35,10 +35,10 @@ public class RecordGrouperMain {
 	private static Logger logger	= Logger.getLogger(RecordGrouperMain.class);
 	private static String serverName;
 
-	public static String groupedWorkTableName = "grouped_work";
-	public static String groupedWorkIdentifiersTableName = "grouped_work_identifiers";
-	public static String groupedWorkIdentifiersRefTableName = "grouped_work_identifiers_ref";
-	public static String groupedWorkPrimaryIdentifiersTableName = "grouped_work_primary_identifiers";
+	static String groupedWorkTableName = "grouped_work";
+	static String groupedWorkIdentifiersTableName = "grouped_work_identifiers";
+	static String groupedWorkIdentifiersRefTableName = "grouped_work_identifiers_ref";
+	private static String groupedWorkPrimaryIdentifiersTableName = "grouped_work_primary_identifiers";
 
 	private static HashMap<String, Long> marcRecordChecksums = new HashMap<>();
 	private static HashMap<String, Long> marcRecordFirstDetectionDates = new HashMap<>();
@@ -50,6 +50,7 @@ public class RecordGrouperMain {
 	private static Long lastGroupingTimeVariableId;
 	private static boolean fullRegrouping = false;
 	private static boolean fullRegroupingNoClear = false;
+	private static boolean validateChecksumsFromDisk = false;
 
 	public static void main(String[] args) {
 		// Get the configuration filename
@@ -365,8 +366,8 @@ public class RecordGrouperMain {
 		}
 	}
 
-	static HashMap<String, String> altNameToOriginalName = new HashMap<>();
-	static TreeMap<String, String> authoritiesWithSpecialHandling = new TreeMap<>();
+	private static HashMap<String, String> altNameToOriginalName = new HashMap<>();
+	private static TreeMap<String, String> authoritiesWithSpecialHandling = new TreeMap<>();
 	private static void addAlternateAuthoritiesForWorkToAuthoritiesFile(HashMap<String, String> currentAuthorities, HashMap<String, String> manualAuthorities, CSVWriter authoritiesWriter, GroupedWorkBase work) {
 		String normalizedAuthor = work.getAuthor();
 		if (normalizedAuthor.length() > 0){
@@ -667,6 +668,17 @@ public class RecordGrouperMain {
 
 			loadIlsChecksums(vufindConn);
 
+			//Determine if we want to validateChecksumsFromDisk
+			try{
+				PreparedStatement getValidateChecksumsFromDiskVariableStmt = vufindConn.prepareStatement("SELECT * FROM variables where name = 'validateChecksumsFromDisk'");
+				ResultSet getValidateChecksumsFromDiskVariableRS = getValidateChecksumsFromDiskVariableStmt.executeQuery();
+				if (getValidateChecksumsFromDiskVariableRS.next()){
+					validateChecksumsFromDisk = getValidateChecksumsFromDiskVariableRS.getString("value").equalsIgnoreCase("true");
+				}
+			}catch (Exception e){
+				logger.error("Error loading validateChecksumsFromDisk value", e);
+				System.exit(1);
+			}
 
 			ArrayList<IndexingProfile> indexingProfiles = new ArrayList<>();
 			try{
@@ -1091,6 +1103,8 @@ public class RecordGrouperMain {
 			TreeSet<String> recordNumbersInExport = new TreeSet<>();
 			TreeSet<String> suppressedRecordNumbersInExport = new TreeSet<>();
 			TreeSet<String> suppressedControlNumbersInExport = new TreeSet<>();
+			TreeSet<String> marcRecordsOverwritten = new TreeSet<>();
+			TreeSet<String> marcRecordsWritten = new TreeSet<>();
 			TreeSet<String> recordNumbersToIndex = new TreeSet<>();
 
 			File[] catalogBibFiles = new File(marcPath).listFiles();
@@ -1119,7 +1133,7 @@ public class RecordGrouperMain {
 										suppressedControlNumbersInExport.add(recordIdentifier.getIdentifier());
 									}else{
 										String recordNumber = recordIdentifier.getIdentifier();
-										boolean marcUpToDate = writeIndividualMarc(existingMarcFiles, individualMarcPath, curBib, recordNumber, curProfile.name, recordGroupingProcessor.getNumCharsInPrefix());
+										boolean marcUpToDate = writeIndividualMarc(existingMarcFiles, individualMarcPath, curBib, recordNumber, curProfile.name, recordGroupingProcessor.getNumCharsInPrefix(), marcRecordsWritten, marcRecordsOverwritten);
 										recordNumbersInExport.add(recordIdentifier.toString());
 										if (!explodeMarcsOnly) {
 											if (!marcUpToDate || fullRegroupingNoClear) {
@@ -1155,10 +1169,13 @@ public class RecordGrouperMain {
 				}
 			}
 
-			writeExistingRecordsFile(configIni, recordNumbersInExport, "record_grouping_ils_bibs_in_export");
-			writeExistingRecordsFile(configIni, suppressedRecordNumbersInExport, "record_grouping_ils_bibs_to_ignore");
-			writeExistingRecordsFile(configIni, suppressedRecordNumbersInExport, "record_grouping_ils_ccontrol_numbers_to_ignore");
-			writeExistingRecordsFile(configIni, recordNumbersToIndex, "record_grouping_ils_bibs_to_index");
+			String profileName = curProfile.name.replaceAll(" ", "_");
+			writeExistingRecordsFile(configIni, recordNumbersInExport, "record_grouping_" + profileName + "_bibs_in_export");
+			writeExistingRecordsFile(configIni, suppressedRecordNumbersInExport, "record_grouping_" + profileName + "_bibs_to_ignore");
+			writeExistingRecordsFile(configIni, suppressedRecordNumbersInExport, "record_grouping_" + profileName + "_ccontrol_numbers_to_ignore");
+			writeExistingRecordsFile(configIni, recordNumbersToIndex, "record_grouping_" + profileName + "_bibs_to_index");
+			writeExistingRecordsFile(configIni, marcRecordsWritten, "record_grouping_" + profileName + "_new_bibs_written");
+			writeExistingRecordsFile(configIni, marcRecordsOverwritten, "record_grouping_" + profileName + "_changed_bibs_written");
 		}
 	}
 
@@ -1284,7 +1301,7 @@ public class RecordGrouperMain {
 
 	private static SimpleDateFormat oo8DateFormat = new SimpleDateFormat("yyMMdd");
 	private static SimpleDateFormat oo5DateFormat = new SimpleDateFormat("yyyyMMdd");
-	private static boolean writeIndividualMarc(HashSet<String> existingMarcFiles, String individualMarcPath, Record marcRecord, String recordNumber, String source, int numCharsInPrefix) {
+	private static boolean writeIndividualMarc(HashSet<String> existingMarcFiles, String individualMarcPath, Record marcRecord, String recordNumber, String source, int numCharsInPrefix, TreeSet<String> marcRecordsWritten, TreeSet<String> marcRecordsOverwritten) {
 		boolean marcRecordUpToDate = false;
 		//Copy the record to the individual marc path
 		if (recordNumber != null){
@@ -1296,8 +1313,31 @@ public class RecordGrouperMain {
 			//If we are doing partial regrouping or full regrouping without clearing the previous results,
 			//Check to see if the record needs to be written before writing it.
 			if (!fullRegrouping){
-				marcRecordUpToDate = existingChecksum != null && existingChecksum.equals(checksum);
-				marcRecordUpToDate = checkIfIndividualMarcFileExists(existingMarcFiles, marcRecordUpToDate, individualFile);
+				boolean checksumUpToDate = existingChecksum != null && existingChecksum.equals(checksum);
+				boolean fileExists = checkIfIndividualMarcFileExists(existingMarcFiles, true, individualFile);
+				marcRecordUpToDate = fileExists && checksumUpToDate;
+				if (!fileExists){
+					marcRecordsWritten.add(recordNumber);
+				}else if (!checksumUpToDate){
+					marcRecordsOverwritten.add(recordNumber);
+				}
+				//Temporary confirmation of CRC
+				if (marcRecordUpToDate && validateChecksumsFromDisk){
+					try {
+						MarcReader marcReader = new MarcPermissiveStreamReader(new FileInputStream(individualFile), true, true);
+						Record recordOnDisk = marcReader.next();
+						Long actualChecksum = getChecksum(recordOnDisk);
+						if (!actualChecksum.equals(checksum)){
+							//checksum in the database is wrong
+							marcRecordUpToDate = false;
+							marcRecordsOverwritten.add(recordNumber);
+						}else{
+							marcRecordUpToDate = true;
+						}
+					} catch (Exception e) {
+						logger.error("Error getting checksum for file", e);
+					}
+				}
 			}
 
 			if (!marcRecordUpToDate){
@@ -1500,7 +1540,7 @@ public class RecordGrouperMain {
 		return ini;
 	}
 
-	public static String cleanIniValue(String value) {
+	private static String cleanIniValue(String value) {
 		if (value == null) {
 			return null;
 		}
@@ -1514,11 +1554,18 @@ public class RecordGrouperMain {
 		return value;
 	}
 
-	public static long getChecksum(Record marcRecord) {
+	private static long getChecksum(Record marcRecord) {
 		CRC32 crc32 = new CRC32();
-		crc32.update(marcRecord.toString().getBytes());
+		String marcRecordContents = marcRecord.toString();
+		//There can be slight differences in how the record length gets calculated between ILS export and what is written
+		//by MARC4J since there can be differences in whitespace and encoding.
+		// Remove the text LEADER
+		// Remove the length of the record
+		// Remove characters in position 12-16 (position of data)
+		marcRecordContents = marcRecordContents.substring(12, 19) + marcRecordContents.substring(24).trim();
+		marcRecordContents = marcRecordContents.replaceAll("\\p{C}", "?");
+		crc32.update(marcRecordContents.getBytes());
 		return crc32.getValue();
 	}
-
 
 }
