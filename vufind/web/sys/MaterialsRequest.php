@@ -8,6 +8,8 @@ require_once 'DB/DataObject/Cast.php';
 class MaterialsRequest extends DB_DataObject
 {
 	public $__table = 'materials_request';   // table name
+
+	// Note: if table column names are changed, data for class MaterialsRequestFieldsToDisplay will need updated.
 	public $id;
 	public $title;
 	public $season;
@@ -43,6 +45,8 @@ class MaterialsRequest extends DB_DataObject
 	public $holdPickupLocation;
 	public $bookmobileStop;
 	public $assignedTo;
+
+
 
 	//Dynamic properties setup by joins
 	public $numRequests;

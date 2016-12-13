@@ -76,10 +76,6 @@
 							</div>
 							<div class="form-group">
 								{foreach from=$assignees item=displayName key=assigneeId}
-{*									<option value="{$assigneeId}">{$displayName}</option>
-								{/foreach}
-
-								{foreach from=$availableStatuses item=statusLabel key=status}*}
 									<div class="checkbox">
 										<label>
 											<input type="checkbox" name="assigneesFilter[]" value="{$assigneeId}" {if in_array($assigneeId, $assigneesFilter)}checked="checked"{/if} class="assigneesFilter">{$displayName}
@@ -101,33 +97,108 @@
 					<thead>
 						<tr>
 							<th><input type="checkbox" name="selectAll" id="selectAll" onchange="VuFind.toggleCheckboxes('.select', '#selectAll');"></th>
-							<th>Id</th>
-							<th>Title</th>
-							<th>Author</th>
-							<th>Format</th>
-							<th>Patron</th>
-							<th>Hold?</th>
-							<th>ILL?</th>
-							<th>Assigned To</th>
-							<th>Status</th>
-							<th>Created</th>
-							<th>&nbsp;</th>
+							{foreach from=$columnsToDisplay item=label}
+								<th>{$label}</th>
+							{/foreach}
+							<th>&nbsp;</th> {* Action Buttons Column *}
 						</tr>
 					</thead>
 					<tbody>
 						{foreach from=$allRequests item=request}
 							<tr>
 								<td><input type="checkbox" name="select[{$request->id}]" class="select"></td>
-								<td>{$request->id}</td>
-								<td>{$request->title}</td>
-								<td>{$request->author}</td>
-								<td>{$request->format}</td>
-								<td>{$request->lastname}, {$request->firstname}<br>{$request->barcode}</td>
-								<td>{if $request->placeHoldWhenAvailable}Yes - {$request->location}{else}No{/if}</td>
-								<td>{if $request->illItem}Yes{else}No{/if}</td>
-								<td>{$request->assignedTo}</td>
-								<td>{$request->statusLabel|translate}</td>
-								<td>{$request->dateCreated|date_format}</td>
+								{foreach from=$columnsToDisplay item=label key=column}
+									{if $column == 'format'}
+										<td>
+											{if in_array($request->format, array_keys($availableFormats))}
+												{assign var="key" value=$request->format}
+												{$availableFormats.$key}
+											{else}
+												{$request->format}
+											{/if}
+										</td>
+									{elseif $column == 'abridged'}
+										<td>{if $request->$column == 1}Yes{elseif $request->$column == 2}N/A{else}No{/if}</td>
+									{elseif $column == 'about' || $column == 'comments'}
+										<td>
+											{if !empty($request->$column)}
+												<textarea cols="30" rows="4" readonly disabled>
+												{* TODO: use truncate modifier? *}
+													{$request->$column}
+											</textarea>
+											{/if}
+										</td>
+									{elseif $column == 'status'}
+										<td>{$request->statusLabel|translate}</td>
+									{elseif $column == 'dateCreated' || $column == 'dateUpdated'}
+										{* Date Columns*}
+										<td>{$request->$column|date_format}</td>
+									{elseif $column == 'createdBy'}
+										<td>{$request->lastname}, {$request->firstname}<br>{$request->barcode}</td>
+
+									{elseif $column == 'emailSent' || $column == 'holdsCreated' || $column == 'illItem'}
+										{* Simple Boolean Columns *}
+										<td>{if $request->$column}Yes{else}No{/if}</td>
+
+									{elseif $column == 'email'}
+										<td>{$request->email}</td>
+									{elseif $column == 'placeHoldWhenAvailable'}
+										<td>{if $request->placeHoldWhenAvailable}Yes - {$request->location}{else}No{/if}</td>
+									{elseif $column == 'holdPickupLocation'}
+										{*TODO: translate hold pickup location *}
+										<td>{$request->holdPickupLocation}</td>
+									{elseif $column == 'bookmobileStop'}
+										{*TODO: ormat this? *}
+										<td>{$request->bookmobileStop}</td>
+									{elseif $column == 'assignedTo'}
+										<td>{$request->assignedTo}</td>
+{*
+									{elseif $column == 'id'}
+										<td>{$request->id}</td>
+									{elseif $column == 'title'}
+										<td>{$request->title}</td>
+									{elseif $column == 'author'}
+										<td>{$request->author}</td>
+									{elseif $column == 'ageLevel'}
+										<td>{$request->ageLevel}</td>
+									{elseif $column == 'isbn'}
+										<td>{$request->isbn}</td>
+									{elseif $column == 'oclcNumber'}
+										<td>{$request->oclcNumber}</td>
+									{elseif $column == 'publisher'}
+										<td>{$request->publisher}</td>
+									{elseif $column == 'publicationYear'}
+										<td>{$request->publicationYear}</td>
+									{elseif $column == 'articleInfo'}
+										<td>{$request->articleInfo}</td>
+									{elseif $column == 'phone'}
+										<td>{$request->phone}</td>
+									{elseif $column == 'season'}
+										<td>{$request->season}</td>
+									{elseif $column == 'magazineTitle'}
+										<td>{$request->magazineTitle}</td>
+									{elseif $column == 'upc'}
+										<td>{$request->upc}</td>
+									{elseif $column == 'issn'}
+										<td>{$request->issn}</td>
+									{elseif $column == 'bookType'}
+										<td>{$request->bookType}</td>
+									{elseif $column == 'subFormat'}
+										<td>{$request->subFormat}</td>
+									{elseif $column == 'magazineDate'}
+										<td>{$request->magazineDate}</td>
+									{elseif $column == 'magazineVolume'}
+										<td>{$request->magazineVolume}</td>
+									{elseif $column == 'magazinePageNumbers'}
+										<td>{$request->magazinePageNumbers}</td>
+									{elseif $column == 'magazineNumber'}
+										<td>{$request->magazineNumber}</td>
+*}
+									{else}
+										{* All columns that can be displayed with out special handling *}
+										<td>{$request->$column}</td>
+									{/if}
+								{/foreach}
 								<td>
 									<div class="btn-group btn-group-vertical btn-group-sm">
 										<button type="button" onclick="VuFind.MaterialsRequest.showMaterialsRequestDetails('{$request->id}')" class="btn btn-sm btn-info">Details</button>

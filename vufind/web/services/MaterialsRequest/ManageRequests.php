@@ -261,6 +261,20 @@ class MaterialsRequest_ManageRequests extends Admin_Admin {
 		}
 		$interface->assign('allRequests', $allRequests);
 
+		$materialsRequestFieldsToDisplay = new MaterialsRequestFieldsToDisplay();
+		//TODO: which library pascal?
+		global $library;
+		$materialsRequestFieldsToDisplay->libraryId = $library->libraryId;
+		$materialsRequestFieldsToDisplay->orderBy('weight');
+//		$materialsRequestFieldsToDisplay->libraryId = $homeLibrary->libraryId;
+		if ($materialsRequestFieldsToDisplay->find()) {
+			$columnsToDisplay = $materialsRequestFieldsToDisplay->fetchAll('columnNameToDisplay', 'labelForColumnToDisplay');
+		} else {
+			// TODO: a default set of columns to display
+			$columnsToDisplay = array();
+		}
+		$interface->assign('columnsToDisplay', $columnsToDisplay);
+
 		if (isset($_REQUEST['exportSelected'])){
 			$this->exportToExcel($_REQUEST['select'], $allRequests);
 		}else{
