@@ -1109,6 +1109,7 @@ public class RecordGroupingProcessor {
 		categoryMap.put("audio", "book");
 		categoryMap.put("music", "music");
 		categoryMap.put("movie", "movie");
+		categoryMap.put("movies", "movie");
 	}
 
 
