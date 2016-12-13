@@ -1048,9 +1048,15 @@ class GroupedWorkDriver extends RecordInterface{
 		return $description;
 	}
 
-	function getBookcoverUrl($size = 'small'){
+	function getBookcoverUrl($size = 'small', $absolutePath = false){
 		global $configArray;
-		$bookCoverUrl = $configArray['Site']['path'] . "/bookcover.php?id={$this->getUniqueID()}&size={$size}&type=grouped_work";
+
+		if ($absolutePath){
+			$bookCoverUrl = $configArray['Site']['url'];
+		}else{
+			$bookCoverUrl = $configArray['Site']['path'];
+		}
+		$bookCoverUrl .= "/bookcover.php?id={$this->getUniqueID()}&size={$size}&type=grouped_work";
 
 		if (isset($this->fields['format_category'])){
 			if (is_array($this->fields['format_category'])){
@@ -2308,6 +2314,7 @@ class GroupedWorkDriver extends RecordInterface{
 				'name' => $this->getTitle(),
 				'author' => $this->getPrimaryAuthor(),
 				'isAccessibleForFree' => true,
+				'image' => $this->getBookcoverUrl('medium', true),
 				'workExample' => $this->getSemanticWorkExamples(),
 		);
 

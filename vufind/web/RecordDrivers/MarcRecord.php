@@ -2126,6 +2126,7 @@ class MarcRecord extends IndexRecord
 				'author' => $this->getPrimaryAuthor(),
 				'bookEdition' => $this->getEdition(),
 				'isAccessibleForFree' => true,
+				'image' => $this->getBookcoverUrl('medium'),
 				"offers" => $linkedDataRecord->getOffers()
 		);
 		return $semanticData;

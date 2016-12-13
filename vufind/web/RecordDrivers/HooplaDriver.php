@@ -176,7 +176,7 @@ class HooplaRecordDriver extends MarcRecord {
 		return $this->filterAndSortMoreDetailsOptions($moreDetailsOptions);
 	}
 
-	function getBookcoverUrl($size = 'small'){
+	function getBookcoverUrl($size = 'small', $absolutePath = false){
 		$id = $this->getUniqueID();
 		$formatCategory = $this->getFormatCategory();
 		if (is_array($formatCategory)){
@@ -185,7 +185,12 @@ class HooplaRecordDriver extends MarcRecord {
 		$formats = $this->getFormat();
 		$format = reset($formats);
 		global $configArray;
-		$bookCoverUrl = $configArray['Site']['coverUrl'] . "/bookcover.php?id={$id}&amp;size={$size}&amp;category=" . urlencode($formatCategory) . "&amp;format=" . urlencode($format) . "&amp;type=hoopla";
+		if ($absolutePath){
+			$bookCoverUrl = $configArray['Site']['url'];
+		}else{
+			$bookCoverUrl = $configArray['Site']['path'];
+		}
+		$bookCoverUrl .= "/bookcover.php?id={$id}&amp;size={$size}&amp;category=" . urlencode($formatCategory) . "&amp;format=" . urlencode($format) . "&amp;type=hoopla";
 		$isbn = $this->getCleanISBN();
 		if ($isbn){
 			$bookCoverUrl .= "&amp;isn={$isbn}";
