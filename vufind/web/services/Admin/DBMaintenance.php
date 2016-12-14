@@ -665,6 +665,24 @@ class DBMaintenance extends Admin_Admin {
 					),
 				),
 
+				'manageMaterialRequestsFieldsToDisplay' => array(
+					'title' => 'Manage Material Requests Fields to Display Table Creation',
+					'description' => 'new table to mange columns displayed in lists of materials requests on the manage page.',
+					'sql' => array(
+						"CREATE TABLE `materials_requests_fields_to_display` ("
+						."  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,"
+						."  `libraryId` int(11) NOT NULL,"
+						."  `columnNameToDisplay` varchar(30) NOT NULL,"
+						."  `labelForColumnToDisplay` varchar(45) NOT NULL,"
+						."  `weight` smallint(2) unsigned NOT NULL DEFAULT '0',"
+						."  PRIMARY KEY (`id`),"
+						."  UNIQUE KEY `columnNameToDisplay` (`columnNameToDisplay`,`libraryId`),"
+						."  KEY `libraryId` (`libraryId`)"
+						.") ENGINE=InnoDB DEFAULT CHARSET=utf8;"
+
+					),
+				),
+
 				'materialsRequestStatus_update1' => array(
 					'title' => 'Materials Request Status Update 1',
 					'description' => 'Material Request Status add library id',
