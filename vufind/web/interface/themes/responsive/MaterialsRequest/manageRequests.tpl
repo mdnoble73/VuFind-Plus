@@ -145,8 +145,9 @@
 									{elseif $column == 'placeHoldWhenAvailable'}
 										<td>{if $request->placeHoldWhenAvailable}Yes - {$request->location}{else}No{/if}</td>
 									{elseif $column == 'holdPickupLocation'}
-										{*TODO: translate hold pickup location *}
-										<td>{$request->holdPickupLocation}</td>
+										<td>
+											{$request->getHoldLocationName($request->holdPickupLocation)}
+										</td>
 									{elseif $column == 'bookmobileStop'}
 										{*TODO: ormat this? *}
 										<td>{$request->bookmobileStop}</td>

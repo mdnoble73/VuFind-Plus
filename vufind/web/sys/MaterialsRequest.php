@@ -127,4 +127,14 @@ class MaterialsRequest extends DB_DataObject
 		MaterialsRequest::$materialsRequestEnabled = $enableMaterialsRequest;
 		return $enableMaterialsRequest;
 	}
+
+	function getHoldLocationName($locationId) {
+		require_once ROOT_DIR . '/Drivers/marmot_inc/Location.php';
+		$holdLocation = new Location();
+		if ($holdLocation->get($locationId)) {
+			return $holdLocation->holdingBranchLabel;
+		}
+		return false;
+	}
+
 }

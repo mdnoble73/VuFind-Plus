@@ -262,16 +262,12 @@ class MaterialsRequest_ManageRequests extends Admin_Admin {
 		$interface->assign('allRequests', $allRequests);
 
 		$materialsRequestFieldsToDisplay = new MaterialsRequestFieldsToDisplay();
-		//TODO: which library pascal?
-		global $library;
-		$materialsRequestFieldsToDisplay->libraryId = $library->libraryId;
+		$materialsRequestFieldsToDisplay->libraryId = $homeLibrary->libraryId;
 		$materialsRequestFieldsToDisplay->orderBy('weight');
-//		$materialsRequestFieldsToDisplay->libraryId = $homeLibrary->libraryId;
 		if ($materialsRequestFieldsToDisplay->find()) {
 			$columnsToDisplay = $materialsRequestFieldsToDisplay->fetchAll('columnNameToDisplay', 'labelForColumnToDisplay');
 		} else {
-			// TODO: a default set of columns to display
-			$columnsToDisplay = array();
+			$columnsToDisplay = $this->defaultColumnsToShow();
 		}
 		$interface->assign('columnsToDisplay', $columnsToDisplay);
 
@@ -280,6 +276,79 @@ class MaterialsRequest_ManageRequests extends Admin_Admin {
 		}else{
 			$this->display('manageRequests.tpl', 'Manage Materials Requests');
 		}
+	}
+
+	function defaultColumnsToShow() {
+		$defaultColumnsToDisplay = array();
+		$i = 0;
+
+		$columnToDisplay = new MaterialsRequestFieldsToDisplay();
+		$columnToDisplay->columnNameToDisplay = 'id';
+		$columnToDisplay->labelForColumnToDisplay = 'Id';
+		$columnToDisplay->weight = $i++;
+		$defaultColumnsToDisplay[] = $columnToDisplay;
+
+		$columnToDisplay = new MaterialsRequestFieldsToDisplay();
+		$columnToDisplay->columnNameToDisplay = 'title';
+		$columnToDisplay->labelForColumnToDisplay = 'Title';
+		$columnToDisplay->weight = $i++;
+		$defaultColumnsToDisplay[] = $columnToDisplay;
+
+		$columnToDisplay = new MaterialsRequestFieldsToDisplay();
+		$columnToDisplay->columnNameToDisplay = 'author';
+		$columnToDisplay->labelForColumnToDisplay = 'Author';
+		$columnToDisplay->weight = $i++;
+		$defaultColumnsToDisplay[] = $columnToDisplay;
+
+		$columnToDisplay = new MaterialsRequestFieldsToDisplay();
+		$columnToDisplay->columnNameToDisplay = 'format';
+		$columnToDisplay->labelForColumnToDisplay = 'Format';
+		$columnToDisplay->weight = $i++;
+		$defaultColumnsToDisplay[] = $columnToDisplay;
+
+		$columnToDisplay = new MaterialsRequestFieldsToDisplay();
+		$columnToDisplay->columnNameToDisplay = 'createdBy';
+		$columnToDisplay->labelForColumnToDisplay = 'Patron';
+		$columnToDisplay->weight = $i++;
+		$defaultColumnsToDisplay[] = $columnToDisplay;
+
+		$columnToDisplay = new MaterialsRequestFieldsToDisplay();
+		$columnToDisplay->columnNameToDisplay = 'holdsCreated';
+		$columnToDisplay->labelForColumnToDisplay = 'Hold?';
+		$columnToDisplay->weight = $i++;
+		$defaultColumnsToDisplay[] = $columnToDisplay;
+
+		$columnToDisplay = new MaterialsRequestFieldsToDisplay();
+		$columnToDisplay->columnNameToDisplay = 'illItem';
+		$columnToDisplay->labelForColumnToDisplay = 'Inter-Library Loan?';
+		$columnToDisplay->weight = $i++;
+		$defaultColumnsToDisplay[] = $columnToDisplay;
+
+		$columnToDisplay = new MaterialsRequestFieldsToDisplay();
+		$columnToDisplay->columnNameToDisplay = 'assignedTo';
+		$columnToDisplay->labelForColumnToDisplay = 'Assigned To';
+		$columnToDisplay->weight = $i++;
+		$defaultColumnsToDisplay[] = $columnToDisplay;
+
+		$columnToDisplay = new MaterialsRequestFieldsToDisplay();
+		$columnToDisplay->columnNameToDisplay = 'status';
+		$columnToDisplay->labelForColumnToDisplay = 'Status';
+		$columnToDisplay->weight = $i++;
+		$defaultColumnsToDisplay[] = $columnToDisplay;
+
+		$columnToDisplay = new MaterialsRequestFieldsToDisplay();
+		$columnToDisplay->columnNameToDisplay = 'dateCreated';
+		$columnToDisplay->labelForColumnToDisplay = 'Created On';
+		$columnToDisplay->weight = $i++;
+		$defaultColumnsToDisplay[] = $columnToDisplay;
+
+		$columnToDisplay = new MaterialsRequestFieldsToDisplay();
+		$columnToDisplay->columnNameToDisplay = 'dateUpdated';
+		$columnToDisplay->labelForColumnToDisplay = 'Updated On';
+		$columnToDisplay->weight = $i++;
+		$defaultColumnsToDisplay[] = $columnToDisplay;
+
+		return $defaultColumnsToDisplay;
 	}
 
 	function exportToExcel($selectedRequestIds, $allRequests){
