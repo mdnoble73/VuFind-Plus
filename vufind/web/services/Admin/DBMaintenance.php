@@ -848,6 +848,14 @@ class DBMaintenance extends Admin_Admin {
 					),
 				),
 
+				'variables_validateChecksumsFromDisk' => array(
+						'title' => 'Variables Validate Checksums from Disk variable',
+						'description' => 'Add a variable to control whether or not we should validate checksums on the disk.',
+						'sql' => array(
+								"INSERT INTO variables (name, value) VALUES ('validateChecksumsFromDisk', 'false')",
+						),
+				),
+
 
 				'utf8_update' => array(
 					'title' => 'Update to UTF-8',

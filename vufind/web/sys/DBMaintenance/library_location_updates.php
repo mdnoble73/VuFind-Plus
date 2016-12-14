@@ -2,7 +2,7 @@
 /**
  * Updates related to library & location configuration for cleanliness
  *
- * @category VuFind-Plus-2014 
+ * @category VuFind-Plus-2014
  * @author Mark Noble <mark@marmot.org>
  * Date: 7/29/14
  * Time: 2:23 PM
@@ -1432,6 +1432,14 @@ function getLibraryLocationUpdates(){
 					'description' => 'Allow display of Reading History in Masquerade Mode for staff users.',
 					'sql' => array(
 						'ALTER TABLE `library` ADD COLUMN `allowReadingHistoryDisplayInMasqueradeMode` TINYINT(1) DEFAULT "0";',
+					)
+			),
+
+			'materials_request_days_to_keep' => array(
+					'title' => 'Library materials request days to keep.',
+					'description' => 'Library Option to control how many days of materials requests should be kept.',
+					'sql' => array(
+							'ALTER TABLE `library` ADD COLUMN `materialsRequestDaysToPreserve` INT(11) DEFAULT "0";',
 					)
 			),
 	);

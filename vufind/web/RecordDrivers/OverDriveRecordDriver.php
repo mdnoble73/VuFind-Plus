@@ -751,12 +751,17 @@ class OverDriveRecordDriver extends RecordInterface {
 		return array();
 	}
 
-	public function getBookcoverUrl($size = 'small'){
+	public function getBookcoverUrl($size = 'small', $absolutePath = false){
 		global $configArray;
-		$coverUrl = $configArray['Site']['url'] . '/bookcover.php?size=' . $size;
-		$coverUrl .= '&id=' . $this->id;
-		$coverUrl .= '&type=overdrive';
-		return $coverUrl;
+		if ($absolutePath){
+			$bookCoverUrl = $configArray['Site']['url'];
+		}else{
+			$bookCoverUrl = $configArray['Site']['path'];
+		}
+		$bookCoverUrl .= '/bookcover.php?size=' . $size;
+		$bookCoverUrl .= '&id=' . $this->id;
+		$bookCoverUrl .= '&type=overdrive';
+		return $bookCoverUrl;
 	}
 
 	public function getCoverUrl($size = 'small'){
@@ -1112,6 +1117,7 @@ class OverDriveRecordDriver extends RecordInterface {
 				'creator' => $this->getAuthor(),
 				'bookEdition' => $this->getEdition(),
 				'isAccessibleForFree' => true,
+				'image' => $this->getBookcoverUrl('medium', true),
 				"offers" => $linkedDataRecord->getOffers()
 		);
 		return $semanticData;
