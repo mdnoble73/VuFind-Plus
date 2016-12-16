@@ -236,6 +236,7 @@ class MaterialsRequest_ManageRequests extends Admin_Admin {
 
 			// $assignees used for both set assignee dropdown and filter by assigned To checkboxes
 			// TODO: determine if There is a case where an non-materials request manager can filter.
+			// opac_admins w/o materials_request role would expect to filter by assignee
 			if ($user->hasRole('library_material_requests')) {
 				$role = new Role();
 				if ($role->get('name', 'library_material_requests')) {
@@ -260,11 +261,37 @@ class MaterialsRequest_ManageRequests extends Admin_Admin {
 		}
 		$interface->assign('allRequests', $allRequests);
 
+		$materialsRequestFieldsToDisplay = new MaterialsRequestFieldsToDisplay();
+		$materialsRequestFieldsToDisplay->libraryId = $homeLibrary->libraryId;
+		$materialsRequestFieldsToDisplay->orderBy('weight');
+		if ($materialsRequestFieldsToDisplay->find() && $materialsRequestFieldsToDisplay->N > 0) {
+			$columnsToDisplay = $materialsRequestFieldsToDisplay->fetchAll('columnNameToDisplay', 'labelForColumnToDisplay');
+		} else {
+			$columnsToDisplay = $this->defaultColumnsToShow();
+		}
+		$interface->assign('columnsToDisplay', $columnsToDisplay);
+
 		if (isset($_REQUEST['exportSelected'])){
 			$this->exportToExcel($_REQUEST['select'], $allRequests);
 		}else{
 			$this->display('manageRequests.tpl', 'Manage Materials Requests');
 		}
+	}
+
+	function defaultColumnsToShow() {
+		return array(
+			'id'           => 'Id',
+			'title'        => 'Title',
+			'author'       => 'Author',
+			'format'       => 'Format',
+			'createdBy'    => 'Patron',
+			'holdsCreated' => 'Hold Placed',
+			'illItem'      => 'Inter-Library Loan',
+			'assignedTo'   => 'Assigned To',
+			'status'       => 'Status',
+			'dateCreated'  => 'Created On',
+			'dateUpdated'  => 'Updated On',
+		);
 	}
 
 	function exportToExcel($selectedRequestIds, $allRequests){

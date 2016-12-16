@@ -102,9 +102,9 @@
 						<div class="form-group">
 							<label class="control-label col-sm-3">Place a hold for me when the item is available</label>
 							<div class="col-sm-9">
-								<label for="placeHoldYes"><input type="radio" name="placeHoldWhenAvailable" value="1" id="placeHoldYes" checked="checked" onclick="VuFind.MaterialsRequest.updateHoldOptions();"/> Yes</label>
+								<label for="placeHoldYes" class="radio-inline"><input type="radio" name="placeHoldWhenAvailable" value="1" id="placeHoldYes" checked="checked" onclick="VuFind.MaterialsRequest.updateHoldOptions();"/> Yes</label>
 								&nbsp;&nbsp;
-								<label for="placeHoldNo"><input type="radio" name="placeHoldWhenAvailable" value="0" id="placeHoldNo" onclick="VuFind.MaterialsRequest.updateHoldOptions();"/> No</label>
+								<label for="placeHoldNo" class="radio-inline"><input type="radio" name="placeHoldWhenAvailable" value="0" id="placeHoldNo" onclick="VuFind.MaterialsRequest.updateHoldOptions();"/> No</label>
 							</div>
 						</div>
 						<div id="pickupLocationField" class="form-group">
@@ -117,6 +117,7 @@
 								</select>
 							</div>
 						</div>
+						{* TODO: never shown *}
 						<div id="bookmobileStopField" style="display:none;" class="form-group">
 							<label for="bookmobileStop" class="control-label col-sm-3">Bookmobile Stop </label>
 							<div class="col-sm-9">
@@ -128,9 +129,9 @@
 						<div id="illInfo">
 							<label class="control-label col-sm-3">Do you want us to borrow from another library if not purchased?</label>
 							<div class="col-sm-9">
-								<input type="radio" name="illItem" value="1" id="illItemYes" checked="checked" />&nbsp;<label for="illItemYes">Yes</label>
+								<label for="illItemYes" class="radio-inline"><input type="radio" name="illItem" value="1" id="illItemYes" checked="checked" />Yes</label>
 								&nbsp;&nbsp;
-								<input type="radio" name="illItem" value="0" id="illItemNo" />&nbsp;<label for="illItemNo">No</label>
+								<label for="illItemNo" class="radio-inline"><input type="radio" name="illItem" value="0" id="illItemNo" />No</label>
 							</div>
 						</div>
 					{/if}
@@ -179,9 +180,9 @@
 			{/if}
 			<div class="form-group formatSpecificField cdAudioField eaudioField playawayField cassetteField">
 				<div class="col-sm-9 col-sm-offset-3">
-					<label for="unabridged"><input type="radio" name="abridged" value="unabridged" id="unabridged" {if $materialsRequest->abridged == 0}checked='checked'{/if}/>Unabridged</label>
-					<label for="abridged"><input type="radio" name="abridged" value="abridged" id="abridged" {if $materialsRequest->abridged == 1}checked='checked'{/if}/>Abridged</label>
-					<label for="na"><input type="radio" name="abridged" value="na" id="na" {if $materialsRequest->abridged == 2}checked='checked'{/if}/>Not Applicable</label>
+					<label for="unabridged" class="radio-inline"><input type="radio" name="abridged" value="unabridged" id="unabridged" {if $materialsRequest->abridged == 0}checked='checked'{/if}/>Unabridged</label>
+					<label for="abridged" class="radio-inline"><input type="radio" name="abridged" value="abridged" id="abridged" {if $materialsRequest->abridged == 1}checked='checked'{/if}/>Abridged</label>
+					<label for="na" class="radio-inline"><input type="radio" name="abridged" value="na" id="na" {if $materialsRequest->abridged == 2}checked='checked'{/if}/>Not Applicable</label>
 				</div>
 			</div>
 			{if $showBookTypeField}

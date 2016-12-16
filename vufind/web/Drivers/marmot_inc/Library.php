@@ -12,6 +12,7 @@ require_once ROOT_DIR . '/sys/Browse/LibraryBrowseCategory.php';
 require_once ROOT_DIR . '/sys/LibraryMoreDetails.php';
 require_once ROOT_DIR . '/sys/LibraryLink.php';
 require_once ROOT_DIR . '/sys/LibraryTopLinks.php';
+require_once ROOT_DIR . '/sys/MaterialsRequestFieldsToDisplay.php';
 
 class Library extends DB_DataObject
 {
@@ -265,6 +266,10 @@ class Library extends DB_DataObject
 		$libraryRecordToIncludeStructure = LibraryRecordToInclude::getObjectStructure();
 		unset($libraryRecordToIncludeStructure['libraryId']);
 		unset($libraryRecordToIncludeStructure['weight']);
+
+		$manageMaterialRequestsFieldsToDisplayStructure = MaterialsRequestFieldsToDisplay::getObjectStructure();
+//		unset($manageMaterialRequestsFieldsToDisplayStructure['libraryId']); //needed?
+		unset($manageMaterialRequestsFieldsToDisplayStructure['weight']);
 
 		global $user;
 		require_once ROOT_DIR . '/sys/ListWidget.php';
@@ -562,6 +567,22 @@ class Library extends DB_DataObject
 				'maxOpenRequests'             => array('property'=>'maxOpenRequests', 'type'=>'integer', 'label'=>'Max Open Requests', 'description'=>'The maximum number of requests that a user can have open at one time', 'hideInLists' => true, 'default' => 5),
 				'newMaterialsRequestSummary'  => array('property'=>'newMaterialsRequestSummary', 'type'=>'html', 'label'=>'New Request Summary', 'description'=>'Text displayed at the top of Materials Request form to give users important information about the request they submit', 'size'=>'40', 'maxLength' =>'512', 'allowableTags' => '<a><b><em><div><script><span><p><strong><sub><sup>', 'hideInLists' => true),
 				'materialsRequestDaysToPreserve' => array('property' => 'materialsRequestDaysToPreserve', 'type'=>'integer', 'label'=>'Delete Request Older than (days)', 'description' => 'The number of days to preserve closed requests.  Requests will be preserved for a minimum of 366 days.  We suggest preserving for at least 395 days.  Setting to a value of 0 will preserve all requests', 'hideInLists' => true, 'default' => 396),
+
+				'materialRequestsFieldsToDisplay' => array(
+					'property'      => 'materialRequestsFieldsToDisplay',
+					'type'          => 'oneToMany',
+					'label'         => 'Fields to display on Manage Materials Request Table',
+					'description'   => 'Fields displayed when materials requests are listed for Managing',
+					'keyThis'       => 'libraryId',
+					'keyOther'      => 'libraryId',
+					'subObjectType' => 'MaterialsRequestFieldsToDisplay',
+					'structure'     => $manageMaterialRequestsFieldsToDisplayStructure,
+					'sortable'      => true,
+					'storeDb'       => true,
+					'allowEdit'     => false,
+					'canEdit'       => false,
+				),
+
 			)),
 			'goldrushSection' => array('property'=>'goldrushSection', 'type' => 'section', 'label' =>'Gold Rush', 'hideInLists' => true,
 					'helpLink' => 'https://docs.google.com/document/d/1OfVcwdalgi8YNEqTAXXv7Oye15eQwxGGKX5IIaeuT7U', 'properties' => array(
@@ -910,8 +931,8 @@ class Library extends DB_DataObject
 			return $this->recordsToInclude;
 		}elseif  ($name == 'browseCategories') {
 			if (!isset($this->browseCategories) && $this->libraryId) {
-				$this->browseCategories = array();
-				$browseCategory = new LibraryBrowseCategory();
+				$this->browseCategories    = array();
+				$browseCategory            = new LibraryBrowseCategory();
 				$browseCategory->libraryId = $this->libraryId;
 				$browseCategory->orderBy('weight');
 				$browseCategory->find();
@@ -920,6 +941,19 @@ class Library extends DB_DataObject
 				}
 			}
 			return $this->browseCategories;
+		}elseif ($name == 'materialRequestsFieldsToDisplay') {
+			if (!isset($this->materialRequestsFieldsToDisplay) && $this->libraryId) {
+				$this->materialRequestsFieldsToDisplay = array();
+				$materialRequestsFieldsToDisplay = new MaterialsRequestFieldsToDisplay();
+				$materialRequestsFieldsToDisplay->libraryId = $this->libraryId;
+				$materialRequestsFieldsToDisplay->orderBy('weight');
+				if ($materialRequestsFieldsToDisplay->find()) {
+					while ($materialRequestsFieldsToDisplay->fetch()) {
+						$this->materialRequestsFieldsToDisplay[$materialRequestsFieldsToDisplay->id] = clone $materialRequestsFieldsToDisplay;
+					}
+				}
+				return $this->materialRequestsFieldsToDisplay;
+			}
 		}elseif ($name == 'patronNameDisplayStyle'){
 			return $this->patronNameDisplayStyle;
 
@@ -945,6 +979,8 @@ class Library extends DB_DataObject
 			$this->libraryTopLinks = $value;
 		}elseif ($name == 'browseCategories') {
 			$this->browseCategories = $value;
+		}elseif ($name == 'materialRequestsFieldsToDisplay') {
+			$this->materialRequestsFieldsToDisplay = $value;
 		}elseif ($name == 'patronNameDisplayStyle'){
 			if ($this->patronNameDisplayStyle != $value){
 				$this->patronNameDisplayStyle = $value;
@@ -1003,6 +1039,7 @@ class Library extends DB_DataObject
 			$this->saveFacets();
 			$this->saveRecordsOwned();
 			$this->saveRecordsToInclude();
+			$this->saveManageMaterialRequestsFieldsToDisplay();
 			$this->saveLibraryLinks();
 			$this->saveLibraryTopLinks();
 			$this->saveBrowseCategories();
@@ -1041,6 +1078,7 @@ class Library extends DB_DataObject
 			$this->saveFacets();
 			$this->saveRecordsOwned();
 			$this->saveRecordsToInclude();
+			$this->saveManageMaterialRequestsFieldsToDisplay();
 			$this->saveLibraryLinks();
 			$this->saveLibraryTopLinks();
 			$this->saveBrowseCategories();
@@ -1178,6 +1216,26 @@ class Library extends DB_DataObject
 		$object->delete();
 		$this->recordsToInclude = array();
 	}
+
+	public function saveManageMaterialRequestsFieldsToDisplay(){
+		if (isset ($this->materialRequestsFieldsToDisplay) && is_array($this->materialRequestsFieldsToDisplay)){
+			/** @var MaterialsRequestFieldsToDisplay $object */
+			foreach ($this->materialRequestsFieldsToDisplay as $object){
+				if (isset($object->deleteOnSave) && $object->deleteOnSave == true){
+					$object->delete();
+				}else{
+					if (isset($object->id) && is_numeric($object->id)){
+						$object->update();
+					}else{
+						$object->libraryId = $this->libraryId;
+						$object->insert();
+					}
+				}
+			}
+			unset($this->materialRequestsFieldsToDisplay);
+		}
+	}
+
 
 	public function saveMoreDetailsOptions(){
 		if (isset ($this->moreDetailsOptions) && is_array($this->moreDetailsOptions)){
