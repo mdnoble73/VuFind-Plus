@@ -13,6 +13,8 @@ require_once ROOT_DIR . '/sys/LibraryMoreDetails.php';
 require_once ROOT_DIR . '/sys/LibraryLink.php';
 require_once ROOT_DIR . '/sys/LibraryTopLinks.php';
 require_once ROOT_DIR . '/sys/MaterialsRequestFieldsToDisplay.php';
+require_once ROOT_DIR . '/sys/MaterialsRequestFormats.php';
+require_once ROOT_DIR . '/sys/MaterialsRequestFormFields.php';
 
 class Library extends DB_DataObject
 {
@@ -224,7 +226,6 @@ class Library extends DB_DataObject
 		'showLexileInfo'           => 'Show Lexile Information'
 	);
 
-
 	function keys() {
 		return array('libraryId', 'subdomain');
 	}
@@ -267,9 +268,17 @@ class Library extends DB_DataObject
 		unset($libraryRecordToIncludeStructure['libraryId']);
 		unset($libraryRecordToIncludeStructure['weight']);
 
-		$manageMaterialRequestsFieldsToDisplayStructure = MaterialsRequestFieldsToDisplay::getObjectStructure();
-//		unset($manageMaterialRequestsFieldsToDisplayStructure['libraryId']); //needed?
-		unset($manageMaterialRequestsFieldsToDisplayStructure['weight']);
+		$manageMaterialsRequestFieldsToDisplayStructure = MaterialsRequestFieldsToDisplay::getObjectStructure();
+		unset($manageMaterialsRequestFieldsToDisplayStructure['libraryId']); //needed?
+		unset($manageMaterialsRequestFieldsToDisplayStructure['weight']);
+
+		$materialsRequestFormatsStructure = MaterialsRequestFormats::getObjectStructure();
+		unset($materialsRequestFormatsStructure['libraryId']); //needed?
+		unset($materialsRequestFormatsStructure['weight']);
+
+		$materialsRequestFormFieldsStructure = MaterialsRequestFormFields::getObjectStructure();
+		unset($materialsRequestFormFieldsStructure['libraryId']); //needed?
+		unset($materialsRequestFormFieldsStructure['weight']);
 
 		global $user;
 		require_once ROOT_DIR . '/sys/ListWidget.php';
@@ -568,15 +577,45 @@ class Library extends DB_DataObject
 				'newMaterialsRequestSummary'  => array('property'=>'newMaterialsRequestSummary', 'type'=>'html', 'label'=>'New Request Summary', 'description'=>'Text displayed at the top of Materials Request form to give users important information about the request they submit', 'size'=>'40', 'maxLength' =>'512', 'allowableTags' => '<a><b><em><div><script><span><p><strong><sub><sup>', 'hideInLists' => true),
 				'materialsRequestDaysToPreserve' => array('property' => 'materialsRequestDaysToPreserve', 'type'=>'integer', 'label'=>'Delete Request Older than (days)', 'description' => 'The number of days to preserve closed requests.  Requests will be preserved for a minimum of 366 days.  We suggest preserving for at least 395 days.  Setting to a value of 0 will preserve all requests', 'hideInLists' => true, 'default' => 396),
 
-				'materialRequestsFieldsToDisplay' => array(
-					'property'      => 'materialRequestsFieldsToDisplay',
+				'materialsRequestFieldsToDisplay' => array(
+					'property'      => 'materialsRequestFieldsToDisplay',
 					'type'          => 'oneToMany',
 					'label'         => 'Fields to display on Manage Materials Request Table',
 					'description'   => 'Fields displayed when materials requests are listed for Managing',
 					'keyThis'       => 'libraryId',
 					'keyOther'      => 'libraryId',
 					'subObjectType' => 'MaterialsRequestFieldsToDisplay',
-					'structure'     => $manageMaterialRequestsFieldsToDisplayStructure,
+					'structure'     => $manageMaterialsRequestFieldsToDisplayStructure,
+					'sortable'      => true,
+					'storeDb'       => true,
+					'allowEdit'     => false,
+					'canEdit'       => false,
+				),
+
+				'materialsRequestFormats' => array(
+					'property'      => 'materialsRequestFormats',
+					'type'          => 'oneToMany',
+					'label'         => 'Formats of Materials that can be Requested',
+					'description'   => 'Determine which material formats are available to patrons for request',
+					'keyThis'       => 'libraryId',
+					'keyOther'      => 'libraryId',
+					'subObjectType' => 'MaterialsRequestFormats',
+					'structure'     => $materialsRequestFormatsStructure,
+					'sortable'      => true,
+					'storeDb'       => true,
+					'allowEdit'     => false,
+					'canEdit'       => false,
+				),
+
+				'materialsRequestFormFields' => array(
+					'property'      => 'materialsRequestFormFields',
+					'type'          => 'oneToMany',
+					'label'         => 'Materials Request Form Fields',
+					'description'   => 'Fields that are displayed in the Materials Request Form',
+					'keyThis'       => 'libraryId',
+					'keyOther'      => 'libraryId',
+					'subObjectType' => 'MaterialsRequestFormFields',
+					'structure'     => $materialsRequestFormFieldsStructure,
 					'sortable'      => true,
 					'storeDb'       => true,
 					'allowEdit'     => false,
@@ -941,22 +980,47 @@ class Library extends DB_DataObject
 				}
 			}
 			return $this->browseCategories;
-		}elseif ($name == 'materialRequestsFieldsToDisplay') {
-			if (!isset($this->materialRequestsFieldsToDisplay) && $this->libraryId) {
-				$this->materialRequestsFieldsToDisplay = array();
-				$materialRequestsFieldsToDisplay = new MaterialsRequestFieldsToDisplay();
-				$materialRequestsFieldsToDisplay->libraryId = $this->libraryId;
-				$materialRequestsFieldsToDisplay->orderBy('weight');
-				if ($materialRequestsFieldsToDisplay->find()) {
-					while ($materialRequestsFieldsToDisplay->fetch()) {
-						$this->materialRequestsFieldsToDisplay[$materialRequestsFieldsToDisplay->id] = clone $materialRequestsFieldsToDisplay;
+		}elseif ($name == 'materialsRequestFieldsToDisplay') {
+			if (!isset($this->materialsRequestFieldsToDisplay) && $this->libraryId) {
+				$this->materialsRequestFieldsToDisplay = array();
+				$materialsRequestFieldsToDisplay = new MaterialsRequestFieldsToDisplay();
+				$materialsRequestFieldsToDisplay->libraryId = $this->libraryId;
+				$materialsRequestFieldsToDisplay->orderBy('weight');
+				if ($materialsRequestFieldsToDisplay->find()) {
+					while ($materialsRequestFieldsToDisplay->fetch()) {
+						$this->materialsRequestFieldsToDisplay[$materialsRequestFieldsToDisplay->id] = clone $materialsRequestFieldsToDisplay;
 					}
 				}
-				return $this->materialRequestsFieldsToDisplay;
+				return $this->materialsRequestFieldsToDisplay;
+			}
+		}elseif ($name == 'materialsRequestFormats') {
+			if (!isset($this->materialsRequestFormats) && $this->libraryId) {
+				$this->materialsRequestFormats = array();
+				$materialsRequestFormats = new MaterialsRequestFormats();
+				$materialsRequestFormats->libraryId = $this->libraryId;
+				$materialsRequestFormats->orderBy('weight');
+				if ($materialsRequestFormats->find()) {
+					while ($materialsRequestFormats->fetch()) {
+						$this->materialsRequestFormats[$materialsRequestFormats->id] = clone $materialsRequestFormats;
+					}
+				}
+				return $this->materialsRequestFormats;
+			}
+		}elseif ($name == 'materialsRequestFormFields') {
+			if (!isset($this->materialsRequestFormFields) && $this->libraryId) {
+				$this->materialsRequestFormFields = array();
+				$materialsRequestFormFields = new MaterialsRequestFormFields();
+				$materialsRequestFormFields->libraryId = $this->libraryId;
+				$materialsRequestFormFields->orderBy('weight');
+				if ($materialsRequestFormFields->find()) {
+					while ($materialsRequestFormFields->fetch()) {
+						$this->materialsRequestFormFields[$materialsRequestFormFields->id] = clone $materialsRequestFormFields;
+					}
+				}
+				return $this->materialsRequestFormFields;
 			}
 		}elseif ($name == 'patronNameDisplayStyle'){
 			return $this->patronNameDisplayStyle;
-
 		}else{
 			return $this->data[$name];
 		}
@@ -979,8 +1043,12 @@ class Library extends DB_DataObject
 			$this->libraryTopLinks = $value;
 		}elseif ($name == 'browseCategories') {
 			$this->browseCategories = $value;
-		}elseif ($name == 'materialRequestsFieldsToDisplay') {
-			$this->materialRequestsFieldsToDisplay = $value;
+		}elseif ($name == 'materialsRequestFieldsToDisplay') {
+			$this->materialsRequestFieldsToDisplay = $value;
+		}elseif ($name == 'materialsRequestFormats') {
+			$this->materialsRequestFormats = $value;
+		}elseif ($name == 'materialsRequestFormFields') {
+			$this->materialsRequestFormFields = $value;
 		}elseif ($name == 'patronNameDisplayStyle'){
 			if ($this->patronNameDisplayStyle != $value){
 				$this->patronNameDisplayStyle = $value;
@@ -1039,7 +1107,9 @@ class Library extends DB_DataObject
 			$this->saveFacets();
 			$this->saveRecordsOwned();
 			$this->saveRecordsToInclude();
-			$this->saveManageMaterialRequestsFieldsToDisplay();
+			$this->saveManagematerialsRequestFieldsToDisplay();
+			$this->saveMaterialsRequestFormats();
+			$this->saveMaterialsRequestFormFields();
 			$this->saveLibraryLinks();
 			$this->saveLibraryTopLinks();
 			$this->saveBrowseCategories();
@@ -1078,7 +1148,9 @@ class Library extends DB_DataObject
 			$this->saveFacets();
 			$this->saveRecordsOwned();
 			$this->saveRecordsToInclude();
-			$this->saveManageMaterialRequestsFieldsToDisplay();
+			$this->saveManagematerialsRequestFieldsToDisplay();
+			$this->saveMaterialsRequestFormats();
+			$this->saveMaterialsRequestFormFields();
 			$this->saveLibraryLinks();
 			$this->saveLibraryTopLinks();
 			$this->saveBrowseCategories();
@@ -1217,14 +1289,14 @@ class Library extends DB_DataObject
 		$this->recordsToInclude = array();
 	}
 
-	public function saveManageMaterialRequestsFieldsToDisplay(){
-		if (isset ($this->materialRequestsFieldsToDisplay) && is_array($this->materialRequestsFieldsToDisplay)){
+	public function saveManagematerialsRequestFieldsToDisplay(){
+		if (isset ($this->materialsRequestFieldsToDisplay) && is_array($this->materialsRequestFieldsToDisplay)){
 			/** @var MaterialsRequestFieldsToDisplay $object */
-			foreach ($this->materialRequestsFieldsToDisplay as $object){
+			foreach ($this->materialsRequestFieldsToDisplay as $object){
 				if (isset($object->deleteOnSave) && $object->deleteOnSave == true){
 					$object->delete();
 				}else{
-					if (isset($object->id) && is_numeric($object->id)){
+					if (isset($object->id) && is_numeric($object->id)){ // (negative ids need processed with insert)
 						$object->update();
 					}else{
 						$object->libraryId = $this->libraryId;
@@ -1232,10 +1304,47 @@ class Library extends DB_DataObject
 					}
 				}
 			}
-			unset($this->materialRequestsFieldsToDisplay);
+			unset($this->materialsRequestFieldsToDisplay);
 		}
 	}
 
+	public function saveMaterialsRequestFormats(){
+		if (isset ($this->materialsRequestFormats) && is_array($this->materialsRequestFormats)){
+			/** @var MaterialsRequestFormats $object */
+			foreach ($this->materialsRequestFormats as $object){
+				if (isset($object->deleteOnSave) && $object->deleteOnSave == true){
+					$object->delete();
+				}else{
+					if (isset($object->id) && is_numeric($object->id)){ // (negative ids need processed with insert)
+						$object->update();
+					}else{
+						$object->libraryId = $this->libraryId;
+						$object->insert();
+					}
+				}
+			}
+			unset($this->materialsRequestFormats);
+		}
+	}
+
+	public function saveMaterialsRequestFormFields(){
+		if (isset ($this->materialsRequestFormFields) && is_array($this->materialsRequestFormFields)){
+			/** @var MaterialsRequestFormFields $object */
+			foreach ($this->materialsRequestFormFields as $object){
+				if (isset($object->deleteOnSave) && $object->deleteOnSave == true){
+					$object->delete();
+				}else{
+					if (isset($object->id) && is_numeric($object->id)){ // (negative ids need processed with insert)
+						$object->update();
+					}else{
+						$object->libraryId = $this->libraryId;
+						$object->insert();
+					}
+				}
+			}
+			unset($this->materialsRequestFormFields);
+		}
+	}
 
 	public function saveMoreDetailsOptions(){
 		if (isset ($this->moreDetailsOptions) && is_array($this->moreDetailsOptions)){

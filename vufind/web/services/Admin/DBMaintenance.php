@@ -665,11 +665,11 @@ class DBMaintenance extends Admin_Admin {
 					),
 				),
 
-				'manageMaterialRequestsFieldsToDisplay' => array(
+				'manageMaterialsRequestFieldsToDisplay' => array(
 					'title' => 'Manage Material Requests Fields to Display Table Creation',
-					'description' => 'new table to mange columns displayed in lists of materials requests on the manage page.',
+					'description' => 'New table to manage columns displayed in lists of materials requests on the manage page.',
 					'sql' => array(
-						"CREATE TABLE `materials_requests_fields_to_display` ("
+						"CREATE TABLE `materials_request_fields_to_display` ("
 						."  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,"
 						."  `libraryId` int(11) NOT NULL,"
 						."  `columnNameToDisplay` varchar(30) NOT NULL,"
@@ -679,6 +679,41 @@ class DBMaintenance extends Admin_Admin {
 						."  UNIQUE KEY `columnNameToDisplay` (`columnNameToDisplay`,`libraryId`),"
 						."  KEY `libraryId` (`libraryId`)"
 						.") ENGINE=InnoDB DEFAULT CHARSET=utf8;"
+					),
+				),
+
+				'materialsRequestFormats' => array(
+					'title' => 'Material Requests Formats Table Creation',
+					'description' => 'New table to manage materials formats that can be requested.',
+					'sql' => array(
+						'CREATE TABLE `materials_request_formats` ('
+						.'`id` INT UNSIGNED NOT NULL AUTO_INCREMENT,'
+						.'`libraryId` INT UNSIGNED NOT NULL,'
+						.' `format` VARCHAR(30) NOT NULL,'
+						.'`formatLabel` VARCHAR(60) NOT NULL,'
+						.'`authorLabel` VARCHAR(45) NOT NULL,'
+						.'`weight` SMALLINT(2) UNSIGNED NOT NULL DEFAULT 0,'
+						."`specialFields` SET('Abridged/Unabridged', 'Article Field', 'Eaudio format', 'Ebook format', 'Season') NULL,"
+						.'PRIMARY KEY (`id`),'
+						.'INDEX `libraryId` (`libraryId` ASC));'
+					),
+				),
+
+				'materialsRequestFormFields' => array(
+					'title' => 'Material Requests Form Fields Table Creation',
+					'description' => 'New table to manage materials request form fields.',
+					'sql' => array(
+						'CREATE TABLE `marmot_vufind`.`materials_request_form_fields` ('
+						.'`id` INT UNSIGNED NOT NULL AUTO_INCREMENT,'
+						.'`libraryId` INT UNSIGNED NOT NULL,'
+						.'`formCategory` VARCHAR(45) NOT NULL,'
+						.'`fieldLabel` VARCHAR(45) NOT NULL,'
+						.'`fieldType` VARCHAR(30) NULL,'
+						.'`weight` SMALLINT(2) UNSIGNED NOT NULL,'
+						.'PRIMARY KEY (`id`),'
+						.'UNIQUE INDEX `id_UNIQUE` (`id` ASC),'
+						.'UNIQUE INDEX `fieldLabel_UNIQUE` (`fieldLabel` ASC),'
+						.'INDEX `librarId` (`libraryId` ASC));'
 
 					),
 				),

@@ -7,7 +7,7 @@
 					<th>Sort</th>
 				{/if}
 				{foreach from=$property.structure item=subProperty}
-					{if in_array($subProperty.type, array('text', 'enum', 'date', 'checkbox', 'integer', 'textarea', 'html')) }
+					{if in_array($subProperty.type, array('text', 'enum', 'date', 'checkbox', 'integer', 'textarea', 'html', 'multiSelect')) }
 						<th>{$subProperty.label}</th>
 					{/if}
 				{/foreach}
@@ -41,6 +41,19 @@
 								</select>
 							{/if}
 						</td>
+					{elseif $subProperty.type == 'multiSelect'}
+						{if $subProperty.listStyle == 'checkboxList'}
+							<td>
+								<div class="checkbox">
+									{*this assumes a simple array, eg list *}
+									{*TODO: check that this really works *}
+									{assign var=subPropValue value=$subObject->$subPropName}
+									{foreach from=$subProperty.values item=propertyName}
+										<input name='{$propName}[]' type="checkbox" value='{$propertyName}' {if is_array($propValue) && in_array($propertyName, $propValue)}checked='checked'{/if}> {$propertyName}<br>
+									{/foreach}
+								</div>
+							</td>
+						{/if}
 					{/if}
 				{/foreach}
 				<td>
