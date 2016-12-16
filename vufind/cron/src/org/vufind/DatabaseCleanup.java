@@ -25,104 +25,74 @@ public class DatabaseCleanup implements IProcessHandler {
 		CronProcessLogEntry processLog = new CronProcessLogEntry(cronEntry.getLogEntryId(), "Database Cleanup");
 		processLog.saveToDatabase(vufindConn, logger);
 
-		//Remove expired sessions
+		removeExpiredSessions(configIni, vufindConn, logger, processLog);
+		removeOldSearches(vufindConn, logger, processLog);
+		removeSpammySearches(vufindConn, logger, processLog);
+		removeLongSearches(vufindConn, logger, processLog);
+		cleanupReadingHistory(vufindConn, logger, processLog);
+		cleanupIndexingReports(configIni, vufindConn, logger, processLog);
+		removeOldMaterialsRequests(vufindConn, logger, processLog);
+
+		processLog.setFinished();
+		processLog.saveToDatabase(vufindConn, logger);
+	}
+
+	private void removeOldMaterialsRequests(Connection vufindConn, Logger logger, CronProcessLogEntry processLog) {
 		try{
-			//Make sure to normalize the time based to be milliseconds, not microseconds
-			long now = new Date().getTime() / 1000;
-			long defaultTimeout = Long.parseLong(Util.cleanIniValue(configIni.get("Session", "lifetime")));
-			long earliestDefaultSessionToKeep = now - defaultTimeout;
-			long numStandardSessionsDeleted = vufindConn.prepareStatement("DELETE FROM session where last_used < " + earliestDefaultSessionToKeep + " and remember_me = 0").executeUpdate();
-			processLog.addNote("Deleted " + numStandardSessionsDeleted + " expired Standard Sessions");
-			processLog.saveToDatabase(vufindConn, logger);
-			long rememberMeTimeout = Long.parseLong(Util.cleanIniValue(configIni.get("Session", "rememberMeLifetime")));
-			long earliestRememberMeSessionToKeep = now - rememberMeTimeout;
-			long numRememberMeSessionsDeleted = vufindConn.prepareStatement("DELETE FROM session where last_used < " + earliestRememberMeSessionToKeep + " and remember_me = 1").executeUpdate();
-			processLog.addNote("Deleted " + numRememberMeSessionsDeleted + " expired Remember Me Sessions");
-			processLog.saveToDatabase(vufindConn, logger);
+			//Get a list of a libraries
+			PreparedStatement librariesListStmt = vufindConn.prepareStatement("SELECT libraryId, materialsRequestDaysToPreserve from library where materialsRequestDaysToPreserve > 0");
+			PreparedStatement libraryLocationsStmt = vufindConn.prepareStatement("SELECT locationId from location where libraryId = ?");
+			PreparedStatement requestToDeleteStmt = vufindConn.prepareStatement("DELETE from materials_request where id = ?");
+
+			ResultSet librariesListRS = librariesListStmt.executeQuery();
+
+			//Loop through libraries
+			while (librariesListRS.next()){
+				//Get the number of days to preserve from the variables table
+				Long libraryId = librariesListRS.getLong("libraryId");
+				Long daysToPreserve = librariesListRS.getLong("materialsRequestDaysToPreserve");
+
+				if (daysToPreserve < 366){
+					daysToPreserve = 366L;
+				}
+
+				//Get a list of locations for the library
+				libraryLocationsStmt.setLong(1, libraryId);
+
+				ResultSet libraryLocationsRS = libraryLocationsStmt.executeQuery();
+				String libraryLocations = "";
+				while (libraryLocationsRS.next()){
+					if (libraryLocations.length() > 0){
+						libraryLocations += ", ";
+					}
+					libraryLocations += libraryLocationsRS.getString("locationId");
+				}
+
+				//Delete records for that library
+				PreparedStatement requestsToDeleteStmt = vufindConn.prepareStatement("SELECT materials_request.id from materials_request INNER JOIN materials_request_status on materials_request.status = materials_request_status.id INNER JOIN user on createdBy = user.id where isOpen = 0 and user.homeLocationId IN (" + libraryLocations + ") AND dateCreated < ?");
+
+				Long now = new Date().getTime() / 1000;
+				Long earliestDateToPreserve = now - (daysToPreserve * 24 * 60 * 60);
+				requestsToDeleteStmt.setLong(1, earliestDateToPreserve);
+
+				ResultSet requestsToDeleteRS = requestsToDeleteStmt.executeQuery();
+				while (requestsToDeleteRS.next()){
+					requestToDeleteStmt.setLong(1, requestsToDeleteRS.getLong(1));
+					int numUpdates = requestToDeleteStmt.executeUpdate();
+					processLog.addUpdates(numUpdates);
+				}
+			}
+			librariesListRS.close();
+			librariesListStmt.close();
 		}catch (SQLException e) {
 			processLog.incErrors();
-			processLog.addNote("Unable to delete expired sessions. " + e.toString());
-			logger.error("Error deleting expired sessions", e);
-			processLog.saveToDatabase(vufindConn, logger);
-		}
-
-		//Remove old searches 
-		try {
-			int rowsRemoved = 0;
-			ResultSet numSearchesRS = vufindConn.prepareStatement("SELECT count(id) from search where created < (CURDATE() - INTERVAL 2 DAY) and saved = 0").executeQuery();
-			numSearchesRS.next();
-			long numSearches = numSearchesRS.getLong(1);
-			long batchSize = 100000;
-			long numBatches = (numSearches / batchSize) + 1;
-			processLog.addNote("Found " + numSearches + " expired searches that need to be removed.  Will process in " + numBatches + " batches");
-			processLog.saveToDatabase(vufindConn, logger);
-			for (int i = 0; i < numBatches; i++){
-				PreparedStatement searchesToRemove = vufindConn.prepareStatement("SELECT id from search where created < (CURDATE() - INTERVAL 2 DAY) and saved = 0 LIMIT 0, " + batchSize, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
-				PreparedStatement removeSearchStmt = vufindConn.prepareStatement("DELETE from search where id = ?");
-				
-				ResultSet searchesToRemoveRs = searchesToRemove.executeQuery();
-				while (searchesToRemoveRs.next()){
-					long curId = searchesToRemoveRs.getLong("id");
-					removeSearchStmt.setLong(1, curId);
-					rowsRemoved += removeSearchStmt.executeUpdate();
-				}
-				processLog.incUpdated();
-				processLog.saveToDatabase(vufindConn, logger);
-			}
-			processLog.addNote("Removed " + rowsRemoved + " expired searches");
-			processLog.saveToDatabase(vufindConn, logger);
-		} catch (SQLException e) {
-			processLog.incErrors();
-			processLog.addNote("Unable to delete expired searches. " + e.toString());
-			logger.error("Error deleting expired searches", e);
-			processLog.saveToDatabase(vufindConn, logger);
-		}
-
-		//Remove spammy searches
-		try {
-			PreparedStatement removeSearchStmt = vufindConn.prepareStatement("DELETE from search_stats_new where phrase like '%http:%' or phrase like '%https:%' or phrase like '%mailto:%'");
-
-			int rowsRemoved = removeSearchStmt.executeUpdate();
-
-			processLog.addNote("Removed " + rowsRemoved + " spammy searches");
-			processLog.incUpdated();
-
-			processLog.saveToDatabase(vufindConn, logger);
-
-			PreparedStatement removeSearchStmt2 = vufindConn.prepareStatement("DELETE from analytics_search where lookfor like '%http:%' or lookfor like '%https:%' or lookfor like '%mailto:%' or length(lookfor) > 256");
-
-			int rowsRemoved2 = removeSearchStmt2.executeUpdate();
-
-			processLog.addNote("Removed " + rowsRemoved2 + " spammy searches");
-			processLog.incUpdated();
-
-			processLog.saveToDatabase(vufindConn, logger);
-		} catch (SQLException e) {
-			processLog.incErrors();
-			processLog.addNote("Unable to delete spammy searches. " + e.toString());
-			logger.error("Error deleting spammy searches", e);
-			processLog.saveToDatabase(vufindConn, logger);
-		}
-
-		//Remove long searches
-		try {
-			PreparedStatement removeSearchStmt = vufindConn.prepareStatement("DELETE from search_stats_new where length(phrase) > 256");
-
-			int rowsRemoved = removeSearchStmt.executeUpdate();
-
-			processLog.addNote("Removed " + rowsRemoved + " long searches");
-			processLog.incUpdated();
-
-			processLog.saveToDatabase(vufindConn, logger);
-		} catch (SQLException e) {
-			processLog.incErrors();
-			processLog.addNote("Unable to delete long searches. " + e.toString());
+			processLog.addNote("Unable to remove old materials requests. " + e.toString());
 			logger.error("Error deleting long searches", e);
 			processLog.saveToDatabase(vufindConn, logger);
 		}
+	}
 
-		cleanupReadingHistory(vufindConn, logger, processLog);
-
+	private void cleanupIndexingReports(Ini configIni, Connection vufindConn, Logger logger, CronProcessLogEntry processLog) {
 		//Remove indexing reports
 		try{
 			//Get the data directory where reports are stored
@@ -172,9 +142,110 @@ public class DatabaseCleanup implements IProcessHandler {
 			logger.error("Error removing old indexing reports", e);
 			processLog.saveToDatabase(vufindConn, logger);
 		}
+	}
 
-		processLog.setFinished();
-		processLog.saveToDatabase(vufindConn, logger);
+	private void removeLongSearches(Connection vufindConn, Logger logger, CronProcessLogEntry processLog) {
+		//Remove long searches
+		try {
+			PreparedStatement removeSearchStmt = vufindConn.prepareStatement("DELETE from search_stats_new where length(phrase) > 256");
+
+			int rowsRemoved = removeSearchStmt.executeUpdate();
+
+			processLog.addNote("Removed " + rowsRemoved + " long searches");
+			processLog.incUpdated();
+
+			processLog.saveToDatabase(vufindConn, logger);
+		} catch (SQLException e) {
+			processLog.incErrors();
+			processLog.addNote("Unable to delete long searches. " + e.toString());
+			logger.error("Error deleting long searches", e);
+			processLog.saveToDatabase(vufindConn, logger);
+		}
+	}
+
+	private void removeSpammySearches(Connection vufindConn, Logger logger, CronProcessLogEntry processLog) {
+		//Remove spammy searches
+		try {
+			PreparedStatement removeSearchStmt = vufindConn.prepareStatement("DELETE from search_stats_new where phrase like '%http:%' or phrase like '%https:%' or phrase like '%mailto:%'");
+
+			int rowsRemoved = removeSearchStmt.executeUpdate();
+
+			processLog.addNote("Removed " + rowsRemoved + " spammy searches");
+			processLog.incUpdated();
+
+			processLog.saveToDatabase(vufindConn, logger);
+
+			PreparedStatement removeSearchStmt2 = vufindConn.prepareStatement("DELETE from analytics_search where lookfor like '%http:%' or lookfor like '%https:%' or lookfor like '%mailto:%' or length(lookfor) > 256");
+
+			int rowsRemoved2 = removeSearchStmt2.executeUpdate();
+
+			processLog.addNote("Removed " + rowsRemoved2 + " spammy searches");
+			processLog.incUpdated();
+
+			processLog.saveToDatabase(vufindConn, logger);
+		} catch (SQLException e) {
+			processLog.incErrors();
+			processLog.addNote("Unable to delete spammy searches. " + e.toString());
+			logger.error("Error deleting spammy searches", e);
+			processLog.saveToDatabase(vufindConn, logger);
+		}
+	}
+
+	private void removeOldSearches(Connection vufindConn, Logger logger, CronProcessLogEntry processLog) {
+		//Remove old searches
+		try {
+			int rowsRemoved = 0;
+			ResultSet numSearchesRS = vufindConn.prepareStatement("SELECT count(id) from search where created < (CURDATE() - INTERVAL 2 DAY) and saved = 0").executeQuery();
+			numSearchesRS.next();
+			long numSearches = numSearchesRS.getLong(1);
+			long batchSize = 100000;
+			long numBatches = (numSearches / batchSize) + 1;
+			processLog.addNote("Found " + numSearches + " expired searches that need to be removed.  Will process in " + numBatches + " batches");
+			processLog.saveToDatabase(vufindConn, logger);
+			for (int i = 0; i < numBatches; i++){
+				PreparedStatement searchesToRemove = vufindConn.prepareStatement("SELECT id from search where created < (CURDATE() - INTERVAL 2 DAY) and saved = 0 LIMIT 0, " + batchSize, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+				PreparedStatement removeSearchStmt = vufindConn.prepareStatement("DELETE from search where id = ?");
+
+				ResultSet searchesToRemoveRs = searchesToRemove.executeQuery();
+				while (searchesToRemoveRs.next()){
+					long curId = searchesToRemoveRs.getLong("id");
+					removeSearchStmt.setLong(1, curId);
+					rowsRemoved += removeSearchStmt.executeUpdate();
+				}
+				processLog.incUpdated();
+				processLog.saveToDatabase(vufindConn, logger);
+			}
+			processLog.addNote("Removed " + rowsRemoved + " expired searches");
+			processLog.saveToDatabase(vufindConn, logger);
+		} catch (SQLException e) {
+			processLog.incErrors();
+			processLog.addNote("Unable to delete expired searches. " + e.toString());
+			logger.error("Error deleting expired searches", e);
+			processLog.saveToDatabase(vufindConn, logger);
+		}
+	}
+
+	private void removeExpiredSessions(Ini configIni, Connection vufindConn, Logger logger, CronProcessLogEntry processLog) {
+		//Remove expired sessions
+		try{
+			//Make sure to normalize the time based to be milliseconds, not microseconds
+			long now = new Date().getTime() / 1000;
+			long defaultTimeout = Long.parseLong(Util.cleanIniValue(configIni.get("Session", "lifetime")));
+			long earliestDefaultSessionToKeep = now - defaultTimeout;
+			long numStandardSessionsDeleted = vufindConn.prepareStatement("DELETE FROM session where last_used < " + earliestDefaultSessionToKeep + " and remember_me = 0").executeUpdate();
+			processLog.addNote("Deleted " + numStandardSessionsDeleted + " expired Standard Sessions");
+			processLog.saveToDatabase(vufindConn, logger);
+			long rememberMeTimeout = Long.parseLong(Util.cleanIniValue(configIni.get("Session", "rememberMeLifetime")));
+			long earliestRememberMeSessionToKeep = now - rememberMeTimeout;
+			long numRememberMeSessionsDeleted = vufindConn.prepareStatement("DELETE FROM session where last_used < " + earliestRememberMeSessionToKeep + " and remember_me = 1").executeUpdate();
+			processLog.addNote("Deleted " + numRememberMeSessionsDeleted + " expired Remember Me Sessions");
+			processLog.saveToDatabase(vufindConn, logger);
+		}catch (SQLException e) {
+			processLog.incErrors();
+			processLog.addNote("Unable to delete expired sessions. " + e.toString());
+			logger.error("Error deleting expired sessions", e);
+			processLog.saveToDatabase(vufindConn, logger);
+		}
 	}
 
 	protected void cleanupReadingHistory(Connection vufindConn, Logger logger, CronProcessLogEntry processLog) {
