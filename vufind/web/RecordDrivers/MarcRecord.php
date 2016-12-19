@@ -1318,6 +1318,15 @@ class MarcRecord extends IndexRecord
 			);
 		}
 
+		$archiveLink = $this->getGroupedWorkDriver()->getArchiveLink();
+		if ($archiveLink != null){
+			$actions[] = array(
+					'title' => 'View Online',
+					'url' => $archiveLink,
+					'requireLogin' => false,
+			);
+		}
+
 		return $actions;
 	}
 

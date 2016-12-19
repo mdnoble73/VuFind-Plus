@@ -1074,6 +1074,37 @@ class GroupedWorkDriver extends RecordInterface{
 		return $configArray['Site']['url'] . '/qrcode.php?type=GroupedWork&id=' . $this->getPermanentId();
 	}
 
+	private $archiveLink = false;
+	function getArchiveLink(){
+		if ($this->archiveLink === false){
+			$this->archiveLink = null;
+			//Check to see if the record is available within the archive
+			global $library;
+			if ($library->enableArchive){
+				/** @var SearchObject_Islandora $searchObject */
+				$searchObject = SearchObjectFactory::initSearchObject('Islandora');
+				$searchObject->init();
+				$searchObject->setDebugging(false, false);
+				$searchObject->setBasicQuery("mods_extension_marmotLocal_externalLink_samePika_link_s:*" . $this->getUniqueID());
+				$searchObject->clearFacets();
+
+				$searchObject->setLimit(1);
+
+				$response = $searchObject->processSearch(true, false, true);
+
+				if ($response && isset($response['response'])) {
+					//Get information about each project
+					if ($searchObject->getResultTotal() > 0) {
+						$firstObjectDriver = RecordDriverFactory::initRecordDriver($response['response']['docs'][0]);
+
+						$this->archiveLink = $firstObjectDriver->getRecordUrl();
+					}
+				}
+			}
+		}
+		return $this->archiveLink;
+	}
+
 	/**
 	 * Get an array of all ISBNs associated with the record (may be empty).
 	 * The primary ISBN is the first entry
