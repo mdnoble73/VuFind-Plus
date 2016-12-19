@@ -1,5 +1,5 @@
 {strip}
-	{if $displayType == 'map' && $page == 1 && $reloadHeader == 1}
+	{if ($displayType == 'map' || $displayType == 'timeline') && $page == 1 && $reloadHeader == 1}
 		<div class="row">
 			<div class="col-sm-6">
 				<form action="/Archive/Results">
@@ -38,12 +38,20 @@
 					<div class="btn-group btn-group-sm" role="group" aria-label="Select Dates" data-toggle="buttons">
 						{if $numObjectsWithUnknownDate}
 							<label class="btn btn-default">
-								<input name="dateFilter" onchange="VuFind.Archive.reloadMapResults('{$exhibitPid|urlencode}', '{$placePid|urlencode}', 0)" type="checkbox" autocomplete="off" value="{$facet.value}">Unknown ({$numObjectsWithUnknownDate})
+								{if $displayType == 'map'}
+									<input name="dateFilter" onchange="VuFind.Archive.reloadMapResults('{$exhibitPid|urlencode}', '{$placePid|urlencode}', 0)" type="checkbox" autocomplete="off" value="{$facet.value}">Unknown ({$numObjectsWithUnknownDate})
+								{elseif $displayType == 'timeline'}
+									<input name="dateFilter" onchange="VuFind.Archive.reloadTimelineResults('{$exhibitPid|urlencode}', 0)" type="checkbox" autocomplete="off" value="{$facet.value}">Unknown ({$numObjectsWithUnknownDate})
+								{/if}
 							</label>
 						{/if}
 						{foreach from=$dateFacetInfo item=facet}
 							<label class="btn btn-default btn-sm">
-								<input name="dateFilter" onchange="VuFind.Archive.reloadMapResults('{$exhibitPid|urlencode}', '{$placePid|urlencode}', 0)" type="checkbox" autocomplete="off" value="{$facet.value}">{$facet.label} ({$facet.count})
+								{if $displayType == 'map'}
+									<input name="dateFilter" onchange="VuFind.Archive.reloadMapResults('{$exhibitPid|urlencode}', '{$placePid|urlencode}', 0)" type="checkbox" autocomplete="off" value="{$facet.value}">{$facet.label} ({$facet.count})
+								{elseif $displayType == 'timeline'}
+									<input name="dateFilter" onchange="VuFind.Archive.reloadTimelineResults('{$exhibitPid|urlencode}', 0)" type="checkbox" autocomplete="off" value="{$facet.value}">{$facet.label} ({$facet.count})
+								{/if}
 							</label>
 						{/foreach}
 					</div>
@@ -66,7 +74,7 @@
 					<a href="{$image.link}" {if $image.title}data-title="{$image.title}"{/if} onclick="return VuFind.Archive.showObjectInPopup('{$image.pid|urlencode}')">
 						<img src="{$image.image}" {if $image.title}alt="{$image.title}"{/if}>
 						<figcaption class="explore-more-category-title">
-							<strong>{$image.title} ({$image.dateCreated})</strong>
+							<strong>{$image.title|truncate:50} ({$image.dateCreated})</strong>
 						</figcaption>
 					</a>
 				</figure>
@@ -79,6 +87,15 @@
 		{* {$recordCount-$recordEnd} more records to load *}
 		{if $recordEnd < $recordCount}
 			<a onclick="return VuFind.Archive.getMoreMapResults('{$exhibitPid|urlencode}', '{$placePid|urlencode}')">
+				<div class="row" id="more-browse-results">
+					<img src="{img filename="browse_more_arrow.png"}" alt="Load More Search Results" title="Load More Search Results">
+				</div>
+			</a>
+		{/if}
+	{elseif $displayType == 'timeline'}
+		{* {$recordCount-$recordEnd} more records to load *}
+		{if $recordEnd < $recordCount}
+			<a onclick="return VuFind.Archive.getMoreTimelineResults('{$exhibitPid|urlencode}')">
 				<div class="row" id="more-browse-results">
 					<img src="{img filename="browse_more_arrow.png"}" alt="Load More Search Results" title="Load More Search Results">
 				</div>

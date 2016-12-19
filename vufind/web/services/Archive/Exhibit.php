@@ -48,6 +48,8 @@ class Archive_Exhibit extends Archive_Object{
 			//Load the options to show
 			$collectionOptionsRaw = $this->recordDriver->getModsValue('collectionOptions', 'marmot');
 			$collectionOptions = explode("\r\n", html_entity_decode($collectionOptionsRaw));
+		}elseif ($pikaCollectionDisplay == 'timeline'){
+			$displayType = 'timeline';
 		}
 		$interface->assign('displayType', $displayType);
 		$this->loadRelatedObjects($displayType);
