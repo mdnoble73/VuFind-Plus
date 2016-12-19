@@ -39,18 +39,18 @@
 						{if $numObjectsWithUnknownDate}
 							<label class="btn btn-default">
 								{if $displayType == 'map'}
-									<input name="dateFilter" onchange="VuFind.Archive.reloadMapResults('{$exhibitPid|urlencode}', '{$placePid|urlencode}', 0)" type="checkbox" autocomplete="off" value="{$facet.value}">Unknown ({$numObjectsWithUnknownDate})
+									<input name="dateFilter" onchange="VuFind.Archive.reloadMapResults('{$exhibitPid|urlencode}', '{$placePid|urlencode}', 0)" type="checkbox" autocomplete="off" value="unknown"><strong>Unknown</strong><br/>({$numObjectsWithUnknownDate})
 								{elseif $displayType == 'timeline'}
-									<input name="dateFilter" onchange="VuFind.Archive.reloadTimelineResults('{$exhibitPid|urlencode}', 0)" type="checkbox" autocomplete="off" value="{$facet.value}">Unknown ({$numObjectsWithUnknownDate})
+									<input name="dateFilter" onchange="VuFind.Archive.reloadTimelineResults('{$exhibitPid|urlencode}', 0)" type="checkbox" autocomplete="off" value="unknown"><strong>Unknown</strong><br/>({$numObjectsWithUnknownDate})
 								{/if}
 							</label>
 						{/if}
 						{foreach from=$dateFacetInfo item=facet}
 							<label class="btn btn-default btn-sm">
 								{if $displayType == 'map'}
-									<input name="dateFilter" onchange="VuFind.Archive.reloadMapResults('{$exhibitPid|urlencode}', '{$placePid|urlencode}', 0)" type="checkbox" autocomplete="off" value="{$facet.value}">{$facet.label} ({$facet.count})
+									<input name="dateFilter" onchange="VuFind.Archive.reloadMapResults('{$exhibitPid|urlencode}', '{$placePid|urlencode}', 0)" type="checkbox" autocomplete="off" value="{$facet.value}"><strong>{$facet.label}</strong><br/>({$facet.count})
 								{elseif $displayType == 'timeline'}
-									<input name="dateFilter" onchange="VuFind.Archive.reloadTimelineResults('{$exhibitPid|urlencode}', 0)" type="checkbox" autocomplete="off" value="{$facet.value}">{$facet.label} ({$facet.count})
+									<input name="dateFilter" onchange="VuFind.Archive.reloadTimelineResults('{$exhibitPid|urlencode}', 0)" type="checkbox" autocomplete="off" value="{$facet.value}"><strong>{$facet.label}</strong><br/>({$facet.count})
 								{/if}
 							</label>
 						{/foreach}

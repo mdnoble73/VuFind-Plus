@@ -583,10 +583,12 @@ class Archive_AJAX extends Action {
 				if (strlen($filter) > 0) {
 					$filter .= ' OR ';
 				}
-				if ($date == '') {
-					$filter .= "mods_originInfo_point_start_qualifier__dateCreated_dt:[* TO *] OR mods_originInfo_point_start_dateCreated_dt:[* TO *] OR mods_originInfo_qualifier_approximate_dateCreated_dt:[* TO *]";
-				} elseif ($date == 'before1880') {
+				if ($date == 'before1880') {
 					$filter .= "mods_originInfo_point_start_qualifier__dateCreated_dt:[* TO 1879-12-31T23:59:59Z] OR mods_originInfo_point_start_dateCreated_dt:[* TO 1879-12-31T23:59:59Z] OR mods_originInfo_qualifier_approximate_dateCreated_dt:[* TO 1879-12-31T23:59:59Z]";
+				} elseif ($date == 'unknown') {
+					$searchObject->addFilter('-mods_originInfo_point_start_qualifier__dateCreated_dt:[* TO *]');
+					$searchObject->addFilter('-mods_originInfo_point_start_dateCreated_dt:[* TO *]');
+					$searchObject->addFilter('-mods_originInfo_qualifier_approximate_dateCreated_dt:[* TO *]');
 				} else {
 					$startYear = substr($date, 0, 4);
 					$endYear = (int)$startYear + 9;
@@ -594,7 +596,10 @@ class Archive_AJAX extends Action {
 				}
 
 			}
-			$searchObject->addFilter($filter);
+			if (strlen($filter)){
+				$searchObject->addFilter($filter);
+			}
+
 		}
 		$searchObject->addFacet('mods_originInfo_point_start_qualifier__dateCreated_dt', 'Date Created');
 		$searchObject->addFacet('mods_originInfo_point_start_dateCreated_dt', 'Date Created 2');
@@ -632,9 +637,9 @@ class Archive_AJAX extends Action {
 		if ($sort == 'title') {
 			$searchObject->setSort('fgs_label_s');
 		} elseif ($sort == 'newest') {
-			$searchObject->setSort('mods_originInfo_point_start_qualifier__dateCreated_dt desc, mods_originInfo_point_start_dateCreated_dt desc,fgs_label_s asc');
+			$searchObject->setSort('mods_originInfo_point_start_qualifier__dateCreated_dt desc, mods_originInfo_point_start_dateCreated_dt desc, mods_originInfo_qualifier_approximate_dateCreated_dt desc,fgs_label_s asc');
 		} elseif ($sort == 'oldest') {
-			$searchObject->setSort('mods_originInfo_point_start_qualifier__dateCreated_dt asc, mods_originInfo_point_start_dateCreated_dt asc,fgs_label_s asc');
+			$searchObject->setSort('mods_originInfo_point_start_qualifier__dateCreated_dt asc, mods_originInfo_point_start_dateCreated_dt asc, mods_originInfo_qualifier_approximate_dateCreated_dt asc,fgs_label_s asc');
 		}
 	}
 
@@ -668,8 +673,49 @@ class Archive_AJAX extends Action {
 							$dateFacetInfo['Unknown'] = array(
 									'label' => 'Unknown',
 									'count' => $facetInfo[1],
-									'value' => $facetInfo[0]
+									'value' => 'unknown'
 							);
+						}
+					}
+				}
+			}
+
+			if (isset($response['facet_counts']['facet_ranges']['mods_originInfo_point_start_dateCreated_dt'])) {
+				$dateCreatedInfo = $response['facet_counts']['facet_ranges']['mods_originInfo_point_start_dateCreated_dt'];
+				if ($dateCreatedInfo['before'] > 0) {
+					if (isset($dateFacetInfo['before'])) {
+						$dateFacetInfo['before']['count'] += $dateCreatedInfo['before'];
+					} else {
+						$dateFacetInfo['before'] = array(
+								'label' => 'Before 1880',
+								'count' => $dateCreatedInfo['before'],
+								'value' => 'before1880'
+						);
+					}
+				}
+				foreach ($dateCreatedInfo['counts'] as $facetInfo) {
+					if (isset($dateFacetInfo[substr($facetInfo[0], 0, 4) . '\'s'])) {
+						$dateFacetInfo[substr($facetInfo[0], 0, 4) . '\'s']['count'] += $facetInfo[1];
+					} else {
+						$dateFacetInfo[substr($facetInfo[0], 0, 4) . '\'s'] = array(
+								'label' => substr($facetInfo[0], 0, 4) . '\'s',
+								'count' => $facetInfo[1],
+								'value' => $facetInfo[0]
+						);
+					}
+				}
+				if (isset($response['facet_counts']['facet_fields']) && count($dateCreatedInfo['counts']) > 0) {
+					foreach ($response['facet_counts']['facet_fields']['mods_originInfo_point_start_dateCreated_dt'] as $facetInfo) {
+						if ($facetInfo[0] == null) {
+							if (isset($dateFacetInfo['Unknown'])) {
+								$dateFacetInfo['Unknown']['count'] += $facetInfo[1];
+							} else {
+								$dateFacetInfo[] = array(
+										'label' => 'Unknown',
+										'count' => $facetInfo[1],
+										'value' => 'unknown'
+								);
+							}
 						}
 					}
 				}
@@ -699,7 +745,7 @@ class Archive_AJAX extends Action {
 						);
 					}
 				}
-				if (isset($response['facet_counts']['facet_fields'])) {
+				if (isset($response['facet_counts']['facet_fields']) && count($dateCreatedInfo['counts']) > 0) {
 					foreach ($response['facet_counts']['facet_fields']['mods_originInfo_qualifier_approximate_dateCreated_dt'] as $facetInfo) {
 						if ($facetInfo[0] == null) {
 							if (isset($dateFacetInfo['Unknown'])) {
@@ -708,47 +754,7 @@ class Archive_AJAX extends Action {
 								$dateFacetInfo[] = array(
 										'label' => 'Unknown',
 										'count' => $facetInfo[1],
-										'value' => $facetInfo[0]
-								);
-							}
-						}
-					}
-				}
-			}
-			if (isset($response['facet_counts']['facet_ranges']['mods_originInfo_qualifier_approximate_dateCreated_dt'])) {
-				$dateCreatedInfo = $response['facet_counts']['facet_ranges']['mods_originInfo_qualifier_approximate_dateCreated_dt'];
-				if ($dateCreatedInfo['before'] > 0) {
-					if (isset($dateFacetInfo['before'])) {
-						$dateFacetInfo['before']['count'] += $dateCreatedInfo['before'];
-					} else {
-						$dateFacetInfo['before'] = array(
-								'label' => 'Before 1880',
-								'count' => $dateCreatedInfo['before'],
-								'value' => 'before1880'
-						);
-					}
-				}
-				foreach ($dateCreatedInfo['counts'] as $facetInfo) {
-					if (isset($dateFacetInfo[substr($facetInfo[0], 0, 4) . '\'s'])) {
-						$dateFacetInfo[substr($facetInfo[0], 0, 4) . '\'s']['count'] += $facetInfo[1];
-					} else {
-						$dateFacetInfo[substr($facetInfo[0], 0, 4) . '\'s'] = array(
-								'label' => substr($facetInfo[0], 0, 4) . '\'s',
-								'count' => $facetInfo[1],
-								'value' => $facetInfo[0]
-						);
-					}
-				}
-				if (isset($response['facet_counts']['facet_fields'])) {
-					foreach ($response['facet_counts']['facet_fields']['mods_originInfo_qualifier_approximate_dateCreated_dt'] as $facetInfo) {
-						if ($facetInfo[0] == null) {
-							if (isset($dateFacetInfo['Unknown'])) {
-								$dateFacetInfo['Unknown']['count'] += $facetInfo[1];
-							} else {
-								$dateFacetInfo[] = array(
-										'label' => 'Unknown',
-										'count' => $facetInfo[1],
-										'value' => $facetInfo[0]
+										'value' => 'unknown'
 								);
 							}
 						}
