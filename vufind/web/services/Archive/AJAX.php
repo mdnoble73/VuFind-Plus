@@ -146,7 +146,7 @@ class Archive_AJAX extends Action {
 					'index' => 'IslandoraRelationshipsById'
 			));
 
-			$searchObject->setLimit(4);
+			$searchObject->setLimit(24);
 
 			$this->setupTimelineSorts($sort, $searchObject);
 			$interface->assign('showThumbnailsSorted', true);
@@ -166,7 +166,7 @@ class Archive_AJAX extends Action {
 				foreach ($response['response']['docs'] as $objectInCollection){
 					/** @var IslandoraDriver $firstObjectDriver */
 					$firstObjectDriver = RecordDriverFactory::initRecordDriver($objectInCollection);
-					$relatedObjects[] = array(
+					$relatedObject = array(
 							'title' => $firstObjectDriver->getTitle(),
 							'description' => $firstObjectDriver->getDescription(),
 							'image' => $firstObjectDriver->getBookcoverUrl('medium'),
@@ -174,6 +174,12 @@ class Archive_AJAX extends Action {
 							'link' => $firstObjectDriver->getRecordUrl(),
 							'pid' => $firstObjectDriver->getUniqueID()
 					);
+					if ($sort == 'dateAdded'){
+						$relatedObject['dateCreated'] = date('M j, Y', strtotime($objectInCollection['fgs_createdDate_dt']));
+					}elseif ($sort == 'dateModified'){
+						$relatedObject['dateCreated'] = date('M j, Y', strtotime($objectInCollection['fgs_lastModifiedDate_dt']));
+					}
+					$relatedObjects[] = $relatedObject;
 					$timer->logTime('Loaded related object');
 				}
 
@@ -249,7 +255,7 @@ class Archive_AJAX extends Action {
 				foreach ($response['response']['docs'] as $objectInCollection){
 					/** @var IslandoraDriver $firstObjectDriver */
 					$firstObjectDriver = RecordDriverFactory::initRecordDriver($objectInCollection);
-					$relatedObjects[] = array(
+					$relatedObject = array(
 							'title' => $firstObjectDriver->getTitle(),
 							'description' => $firstObjectDriver->getDescription(),
 							'image' => $firstObjectDriver->getBookcoverUrl('medium'),
@@ -257,6 +263,12 @@ class Archive_AJAX extends Action {
 							'link' => $firstObjectDriver->getRecordUrl(),
 							'pid' => $firstObjectDriver->getUniqueID()
 					);
+					if ($sort == 'dateAdded'){
+						$relatedObject['dateCreated'] = date('M j, Y', strtotime($objectInCollection['fgs_createdDate_dt']));
+					}elseif ($sort == 'dateModified'){
+						$relatedObject['dateCreated'] = date('M j, Y', strtotime($objectInCollection['fgs_lastModifiedDate_dt']));
+					}
+					$relatedObjects[] = $relatedObject;
 					$timer->logTime('Loaded related object');
 				}
 
@@ -342,7 +354,7 @@ class Archive_AJAX extends Action {
 				foreach ($response['response']['docs'] as $objectInCollection){
 					/** @var IslandoraDriver $firstObjectDriver */
 					$firstObjectDriver = RecordDriverFactory::initRecordDriver($objectInCollection);
-					$relatedObjects[] = array(
+					$relatedObject = array(
 							'title' => $firstObjectDriver->getTitle(),
 							'description' => $firstObjectDriver->getDescription(),
 							'image' => $firstObjectDriver->getBookcoverUrl('medium'),
@@ -350,6 +362,12 @@ class Archive_AJAX extends Action {
 							'link' => $firstObjectDriver->getRecordUrl(),
 							'pid' => $firstObjectDriver->getUniqueID()
 					);
+					if ($sort == 'dateAdded'){
+						$relatedObject['dateCreated'] = date('M j, Y', strtotime($objectInCollection['fgs_createdDate_dt']));
+					}elseif ($sort == 'dateModified'){
+						$relatedObject['dateCreated'] = date('M j, Y', strtotime($objectInCollection['fgs_lastModifiedDate_dt']));
+					}
+					$relatedObjects[] = $relatedObject;
 					$timer->logTime('Loaded related object');
 				}
 				$this->processTimelineData($response, $interface);
@@ -725,6 +743,10 @@ class Archive_AJAX extends Action {
 			$searchObject->setSort('mods_originInfo_qualifier__dateIssued_dt desc,mods_originInfo_point_start_qualifier__dateCreated_dt desc,mods_originInfo_point_start_dateCreated_dt desc,mods_originInfo_qualifier_approximate_dateCreated_dt desc,fgs_label_s asc');
 		} elseif ($sort == 'oldest') {
 			$searchObject->setSort('mods_originInfo_qualifier__dateIssued_dt asc,mods_originInfo_point_start_qualifier__dateCreated_dt asc,mods_originInfo_point_start_dateCreated_dt asc,mods_originInfo_qualifier_approximate_dateCreated_dt asc,fgs_label_s asc');
+		} elseif ($sort == 'dateAdded') {
+			$searchObject->setSort('fgs_createdDate_dt desc,fgs_label_s asc');
+		} elseif ($sort == 'dateModified') {
+			$searchObject->setSort('fgs_lastModifiedDate_dt desc,fgs_label_s asc');
 		}
 	}
 
