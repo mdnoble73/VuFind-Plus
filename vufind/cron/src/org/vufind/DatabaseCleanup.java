@@ -46,6 +46,7 @@ public class DatabaseCleanup implements IProcessHandler {
 
 			ResultSet librariesListRS = librariesListStmt.executeQuery();
 
+			long numDeletions = 0;
 			//Loop through libraries
 			while (librariesListRS.next()){
 				//Get the number of days to preserve from the variables table
@@ -80,10 +81,12 @@ public class DatabaseCleanup implements IProcessHandler {
 					requestToDeleteStmt.setLong(1, requestsToDeleteRS.getLong(1));
 					int numUpdates = requestToDeleteStmt.executeUpdate();
 					processLog.addUpdates(numUpdates);
+					numDeletions += numUpdates;
 				}
 			}
 			librariesListRS.close();
 			librariesListStmt.close();
+			processLog.addNote("Removed " + numDeletions + " old materials requests.");
 		}catch (SQLException e) {
 			processLog.incErrors();
 			processLog.addNote("Unable to remove old materials requests. " + e.toString());
