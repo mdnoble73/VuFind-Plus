@@ -108,6 +108,91 @@ class Archive_AJAX extends Action {
 		}
 	}
 
+	function getRelatedObjectsForScroller(){
+		if (isset($_REQUEST['pid'])){
+			global $interface;
+			global $timer;
+			require_once ROOT_DIR . '/sys/Utils/FedoraUtils.php';
+			$fedoraUtils = FedoraUtils::getInstance();
+			$pid = urldecode($_REQUEST['pid']);
+			$interface->assign('exhibitPid', $pid);
+
+			if (isset($_REQUEST['reloadHeader'])){
+				$interface->assign('reloadHeader', $_REQUEST['reloadHeader']);
+			}else{
+				$interface->assign('reloadHeader', '1');
+			}
+
+			$page = isset($_REQUEST['page']) ? $_REQUEST['page'] : 1;
+			$interface->assign('page', $page);
+
+			$sort = isset($_REQUEST['sort']) ? $_REQUEST['sort'] : 'title';
+			$interface->assign('sort', $sort);
+
+			$displayType = 'scroller';
+			$interface->assign('displayType', $displayType);
+
+			/** @var SearchObject_Islandora $searchObject */
+			$searchObject = SearchObjectFactory::initSearchObject('Islandora');
+			$searchObject->init();
+			$searchObject->setDebugging(false, false);
+			$searchObject->clearHiddenFilters();
+			$searchObject->addHiddenFilter('!RELS_EXT_isViewableByRole_literal_ms', "administrator");
+			$searchObject->clearFilters();
+			$searchObject->clearFacets();
+
+			$searchObject->setSearchTerms(array(
+					'lookfor' => '"' . $pid . '"',
+					'index' => 'IslandoraRelationshipsById'
+			));
+
+			$searchObject->setLimit(4);
+
+			$this->setupTimelineSorts($sort, $searchObject);
+			$interface->assign('showThumbnailsSorted', true);
+
+			$relatedObjects = array();
+			$response = $searchObject->processSearch(true, false);
+			if ($response && isset($response['error'])){
+				$interface->assign('solrError', $response['error']['msg']);
+				$interface->assign('solrLink', $searchObject->getFullSearchUrl());
+			}
+			if ($response && isset($response['response']) && $response['response']['numFound'] > 0) {
+				$summary = $searchObject->getResultSummary();
+				$interface->assign('recordCount', $summary['resultTotal']);
+				$interface->assign('recordStart', $summary['startRecord']);
+				$interface->assign('recordEnd',   $summary['endRecord']);
+
+				foreach ($response['response']['docs'] as $objectInCollection){
+					/** @var IslandoraDriver $firstObjectDriver */
+					$firstObjectDriver = RecordDriverFactory::initRecordDriver($objectInCollection);
+					$relatedObjects[] = array(
+							'title' => $firstObjectDriver->getTitle(),
+							'description' => $firstObjectDriver->getDescription(),
+							'image' => $firstObjectDriver->getBookcoverUrl('medium'),
+							'dateCreated' => $firstObjectDriver->getDateCreated(),
+							'link' => $firstObjectDriver->getRecordUrl(),
+							'pid' => $firstObjectDriver->getUniqueID()
+					);
+					$timer->logTime('Loaded related object');
+				}
+
+				$this->processTimelineData($response, $interface);
+			}
+
+			$interface->assign('relatedObjects', $relatedObjects);
+			return array(
+					'success' => true,
+					'relatedObjects' => $interface->fetch('Archive/relatedObjects.tpl')
+			);
+		}else{
+			return array(
+					'success' => false,
+					'message' => 'You must supply the collection and place to load data for'
+			);
+		}
+	}
+
 	function getRelatedObjectsForTimelineExhibit(){
 		if (isset($_REQUEST['collectionId'])){
 			global $interface;
@@ -630,16 +715,16 @@ class Archive_AJAX extends Action {
 
 	/**
 	 * @param $sort
-	 * @param $searchObject
+	 * @param SearchObject_Islandora $searchObject
 	 */
 	public function setupTimelineSorts($sort, $searchObject)
 	{
 		if ($sort == 'title') {
 			$searchObject->setSort('fgs_label_s');
 		} elseif ($sort == 'newest') {
-			$searchObject->setSort('mods_originInfo_point_start_qualifier__dateCreated_dt desc, mods_originInfo_point_start_dateCreated_dt desc, mods_originInfo_qualifier_approximate_dateCreated_dt desc,fgs_label_s asc');
+			$searchObject->setSort('mods_originInfo_qualifier__dateIssued_dt desc,mods_originInfo_point_start_qualifier__dateCreated_dt desc,mods_originInfo_point_start_dateCreated_dt desc,mods_originInfo_qualifier_approximate_dateCreated_dt desc,fgs_label_s asc');
 		} elseif ($sort == 'oldest') {
-			$searchObject->setSort('mods_originInfo_point_start_qualifier__dateCreated_dt asc, mods_originInfo_point_start_dateCreated_dt asc, mods_originInfo_qualifier_approximate_dateCreated_dt asc,fgs_label_s asc');
+			$searchObject->setSort('mods_originInfo_qualifier__dateIssued_dt asc,mods_originInfo_point_start_qualifier__dateCreated_dt asc,mods_originInfo_point_start_dateCreated_dt asc,mods_originInfo_qualifier_approximate_dateCreated_dt asc,fgs_label_s asc');
 		}
 	}
 

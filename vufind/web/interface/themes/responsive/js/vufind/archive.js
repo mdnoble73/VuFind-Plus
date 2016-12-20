@@ -122,6 +122,17 @@ VuFind.Archive = (function(){
 			});
 		},
 
+		getMoreScrollerResults: function(pid){
+			this.curPage = this.curPage +1;
+			var url = Globals.path + "/Archive/AJAX?method=getRelatedObjectsForScroller&pid=" + pid + "&page=" + this.curPage + "&sort=" + this.sort;
+
+			$.getJSON(url, function(data){
+				if (data.success){
+					$("#nextInsertPoint").replaceWith(data.relatedObjects);
+				}
+			});
+		},
+
 		handleMapClick: function(markerIndex, exhibitPid, placePid, label, redirect){
 			$("#related-objects-for-exhibit").html('<h2>Loading...</h2>');
 			this.archive_info_window.setContent(label);
@@ -182,6 +193,17 @@ VuFind.Archive = (function(){
 			return false;
 		},
 
+		handleCollectionScrollerClick: function(pid){
+			$("#related-objects-for-exhibit").html('<h2>Loading...</h2>');
+
+			$.getJSON(Globals.path + "/Archive/AJAX?method=getRelatedObjectsForScroller&pid=" + pid, function(data){
+				if (data.success){
+					$("#related-objects-for-exhibit").html(data.relatedObjects);
+				}
+			});
+			return false;
+		},
+
 		handleBookClick: function(bookPid, pagePid, bookViewer) {
 			// Load specified page & viewer
 			//Loading message
@@ -233,6 +255,22 @@ VuFind.Archive = (function(){
 			$("input[name=dateFilter]:checked").each(function(){
 				url = url + "&dateFilter[]="+$(this).val();
 			});
+			url = url + "&reloadHeader=" + reloadHeader;
+
+			$.getJSON(url, function(data){
+				if (data.success){
+					if (reloadHeader){
+						$("#related-objects-for-exhibit").html(data.relatedObjects);
+					}else{
+						$("#results").html(data.relatedObjects);
+					}
+				}
+			});
+		},
+
+		reloadScrollerResults: function(pid, reloadHeader){
+			this.curPage = 1;
+			var url = Globals.path + "/Archive/AJAX?method=getRelatedObjectsForScroller&pid=" + pid + "&page=" + this.curPage + "&sort=" + this.sort;
 			url = url + "&reloadHeader=" + reloadHeader;
 
 			$.getJSON(url, function(data){
