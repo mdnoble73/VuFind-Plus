@@ -706,13 +706,12 @@ class DBMaintenance extends Admin_Admin {
 						'CREATE TABLE `marmot_vufind`.`materials_request_form_fields` ('
 						.'`id` INT UNSIGNED NOT NULL AUTO_INCREMENT,'
 						.'`libraryId` INT UNSIGNED NOT NULL,'
-						.'`formCategory` VARCHAR(45) NOT NULL,'
-						.'`fieldLabel` VARCHAR(45) NOT NULL,'
+						.'`formCategory` VARCHAR(55) NOT NULL,'
+						.'`fieldLabel` VARCHAR(255) NOT NULL,'
 						.'`fieldType` VARCHAR(30) NULL,'
 						.'`weight` SMALLINT(2) UNSIGNED NOT NULL,'
 						.'PRIMARY KEY (`id`),'
 						.'UNIQUE INDEX `id_UNIQUE` (`id` ASC),'
-						.'UNIQUE INDEX `fieldLabel_UNIQUE` (`fieldLabel` ASC),'
 						.'INDEX `librarId` (`libraryId` ASC));'
 
 					),

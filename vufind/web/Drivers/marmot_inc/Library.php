@@ -1372,6 +1372,20 @@ class Library extends DB_DataObject
 		$this->moreDetailsOptions = array();
 	}
 
+	public function clearMaterialsRequestFormFields(){
+		$formFields = new MaterialsRequestFormFields();
+		$formFields->libraryId = $this->libraryId;
+		$formFields->delete();
+		$this->materialsRequestFormFields = array();
+	}
+
+	public function clearMaterialsRequestFormats(){
+		$requestFormats = new MaterialsRequestFormats();
+		$requestFormats->libraryId = $this->libraryId;
+		$requestFormats->delete();
+		$this->materialsRequestFormats = array();
+	}
+
 	public function saveFacets(){
 		if (isset ($this->facets) && is_array($this->facets)){
 			/** @var LibraryFacetSetting $facet */

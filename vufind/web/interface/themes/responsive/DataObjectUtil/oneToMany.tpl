@@ -131,6 +131,19 @@
 						newRow += "</select>";
 					{/if}
 					newRow += "</td>";
+				{elseif $subProperty.type == 'multiSelect'}
+					{if $subProperty.listStyle == 'checkboxList'}
+					newRow += '<td>';
+					newRow += '<div class="checkbox">';
+					{*this assumes a simple array, eg list *}
+					{assign var=subPropName value=$subProperty.property}
+					{assign var=subPropValue value=$subObject->$subPropName}
+					{foreach from=$subProperty.values item=propertyName}
+					newRow += '<input name="{$propName}_{$subPropName}[' + numAdditional{$propName} + '][]" type="checkbox" value="{$propertyName}"> {$propertyName}<br>';
+					{/foreach}
+					newRow += '</div>';
+					newRow += '</td>';
+					{/if}
 				{/if}
 			{/foreach}
 			newRow += "</tr>";

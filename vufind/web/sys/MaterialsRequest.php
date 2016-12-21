@@ -71,26 +71,18 @@ class MaterialsRequest extends DB_DataObject
 
 				if ($customFormats->count() == 0 ) {
 					// Default Formats to use when no custom formats are created.
-					$availableFormats = array(
-						'book'       => translate('Book'),
-						'largePrint' => translate('Large Print'),
-						'dvd'        => translate('DVD'),
-						'bluray'     => translate('Blu-ray'),
-						'cdAudio'    => translate('CD Audio Book'),
-						'cdMusic'    => translate('Music CD'),
-						'ebook'      => translate('eBook'),
-						'eaudio'     => translate('eAudio'),
-						'playaway'   => translate('Playaway'),
-						'article'    => translate('Article'),
-						'cassette'   => translate('Cassette'),
-						'vhs'        => translate('VHS'),
-						'other'      => translate('Other'),
-					);
+
+					/** @var MaterialsRequestFormats[] $defaultFormats */
+					$defaultFormats = MaterialsRequestFormats::getDefaultMaterialRequestFormats($homeLibrary->libraryId);
+					$availableFormats = array();
 
 					global $configArray;
-					foreach ($availableFormats as $key => $label){
-						if (isset($configArray['MaterialsRequestFormats'][$key]) && $configArray['MaterialsRequestFormats'][$key] == false){
-							unset($availableFormats[$key]);
+					foreach ($defaultFormats as $index => $materialRequestFormat){
+						$format = $materialRequestFormat->format;
+						if (isset($configArray['MaterialsRequestFormats'][$format]) && $configArray['MaterialsRequestFormats'][$format] == false){
+							// dont add this format
+						} else {
+							$availableFormats[$format] = $materialRequestFormat->formatLabel;
 						}
 					}
 

@@ -138,6 +138,12 @@ class MaterialsRequest_AJAX extends Action{
 								$formFields->orderBy('weight');
 								/** @var MaterialsRequestFormFields[] $fieldsToSortByCategory */
 								$fieldsToSortByCategory = $formFields->fetchAll();
+
+								// If no values set get the defaults.
+								if (empty($fieldsToSortByCategory)) {
+									$fieldsToSortByCategory = $formFields::getDefaultFormFields($staffLibrary->libraryId);
+								}
+
 								// If we use another interface variable that is sorted by category, this should be a method in the Interface class
 								$requestFormFields = array();
 								if ($fieldsToSortByCategory) {

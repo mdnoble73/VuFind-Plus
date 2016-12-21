@@ -23,7 +23,17 @@ class MaterialsRequestFieldsToDisplay extends DB_DataObject
 		$materialsRequest = new MaterialsRequest();
 		$columnNames        = array_keys($materialsRequest->table());
 		$columnToChooseFrom = array_combine($columnNames, $columnNames);
-		//TODO: Redo to exclude special data fields
+
+		//specialFormat Fields get handled specially
+		unset(
+			$columnToChooseFrom['abridged'],
+			$columnToChooseFrom['magazineDate'],
+			$columnToChooseFrom['magazineNumber'],
+			$columnToChooseFrom['magazinePageNumbers'],
+			$columnToChooseFrom['magazineTitle'],
+			$columnToChooseFrom['magazineVolume'],
+			$columnToChooseFrom['season']
+	);
 
 		$structure = array(
 			'id'                      => array('property'=>'id', 'type'=>'label', 'label'=>'Id', 'description'=>'The unique id of this association'),

@@ -46,20 +46,14 @@ class MaterialsRequestFormFields extends DB_DataObject
 		'holdsCreated' => 'Holds Created',
 	  'email'  => 'Email',
 		'phone'  => 'Phone',
-//		'season' => 'season',
-//		'magazineTitle' => 'magazineTitle',
 		'upc' => 'UPC',
 		'issn' => 'ISSN',
 		'bookType' => 'Book Type', // TODO
 	  'subFormat' => 'Sub-format', // TODO
-//		'magazineDate' => 'magazineDate',
-//		'magazineVolume' => 'magazineVolume',
-//		'magazinePageNumbers' => 'magazinePageNumbers',
 		'placeHoldWhenAvailable' => 'Place Hold when Available',
 		'holdPickupLocation' => 'Hold Pick-up Location',
 //		'bookmobileStop' => 'bookmobileStop', // kept with hold pick up location
 		'illItem'        => 'Inter-library Loan Item',
-//		'magazineNumber' => 'magazineNumber',
 		'assignedTo'     => 'Assigned To'
 	);
 
@@ -75,6 +69,111 @@ class MaterialsRequestFormFields extends DB_DataObject
 			'weight'        => array('property' => 'weight', 'type'=>'integer', 'label'=>'Weight', 'description'=>'The sort order of rule', 'default' => 0),
 		);
 		return $structure;
+	}
+
+
+	static function getDefaultFormFields($libraryId = -1) {
+		$defaultFieldsToDisplay = array();
+
+		//This Replicates MyRequest Form structure.
+
+		// Title Information
+		$defaultField = new MaterialsRequestFormFields();
+		$defaultField->libraryId = $libraryId;
+		$defaultField->formCategory = 'Title Information';
+		$defaultField->fieldLabel = 'Format';
+		$defaultField->fieldType = 'format';
+		$defaultField->weight = count($defaultFieldsToDisplay)+1;
+		$defaultFieldsToDisplay[] = $defaultField;
+
+		$defaultField = new MaterialsRequestFormFields();
+		$defaultField->libraryId = $libraryId;
+		$defaultField->formCategory = 'Title Information';
+		$defaultField->fieldLabel = 'Title';
+		$defaultField->fieldType = 'title';
+		$defaultField->weight = count($defaultFieldsToDisplay)+1;
+		$defaultFieldsToDisplay[] = $defaultField;
+
+		$defaultField = new MaterialsRequestFormFields();
+		$defaultField->libraryId = $libraryId;
+		$defaultField->formCategory = 'Title Information';
+		$defaultField->fieldLabel = 'Author';
+		$defaultField->fieldType = 'author';
+		$defaultField->weight = count($defaultFieldsToDisplay)+1;
+		$defaultFieldsToDisplay[] = $defaultField;
+
+
+		// Hold Options
+		$defaultField = new MaterialsRequestFormFields();
+		$defaultField->libraryId = $libraryId;
+		$defaultField->formCategory = 'Hold Options';
+		$defaultField->fieldLabel = 'Place a hold for me when the item is available';
+		$defaultField->fieldType = 'placeHoldWhenAvailable';
+		$defaultField->weight = count($defaultFieldsToDisplay)+1;
+		$defaultFieldsToDisplay[] = $defaultField;
+
+		$defaultField = new MaterialsRequestFormFields();
+		$defaultField->libraryId = $libraryId;
+		$defaultField->formCategory = 'Hold Options';
+		$defaultField->fieldLabel = 'Pick-up Location';
+		$defaultField->fieldType = 'holdPickupLocation';
+		$defaultField->weight = count($defaultFieldsToDisplay)+1;
+		$defaultFieldsToDisplay[] = $defaultField;
+
+		$defaultField = new MaterialsRequestFormFields();
+		$defaultField->libraryId = $libraryId;
+		$defaultField->formCategory = 'Hold Options';
+		$defaultField->fieldLabel = 'Do you want us to borrow from another library if not purchased?';
+		$defaultField->fieldType = 'illItem';
+		$defaultField->weight = count($defaultFieldsToDisplay)+1;
+		$defaultFieldsToDisplay[] = $defaultField;
+
+
+		// Supplemental Details (optional)
+		$defaultField = new MaterialsRequestFormFields();
+		$defaultField->libraryId = $libraryId;
+		$defaultField->formCategory = 'Supplemental Details (optional)';
+		$defaultField->fieldLabel = 'How and/or where did you hear about this title';
+		$defaultField->fieldType = 'about';
+		$defaultField->weight = count($defaultFieldsToDisplay)+1;
+		$defaultFieldsToDisplay[] = $defaultField;
+
+		$defaultField = new MaterialsRequestFormFields();
+		$defaultField->libraryId = $libraryId;
+		$defaultField->formCategory = 'Supplemental Details (optional)';
+		$defaultField->fieldLabel = 'Comments';
+		$defaultField->fieldType = 'comments';
+		$defaultField->weight = count($defaultFieldsToDisplay)+1;
+		$defaultFieldsToDisplay[] = $defaultField;
+
+
+		// Contact Information
+		$defaultField = new MaterialsRequestFormFields();
+		$defaultField->libraryId = $libraryId;
+		$defaultField->formCategory = 'Contact Information';
+		$defaultField->fieldLabel = 'Email';
+		$defaultField->fieldType = 'email';
+		$defaultField->weight = count($defaultFieldsToDisplay)+1;
+		$defaultFieldsToDisplay[] = $defaultField;
+
+		$defaultField = new MaterialsRequestFormFields();
+		$defaultField->libraryId = $libraryId;
+		$defaultField->formCategory = 'Contact Information';
+		$defaultField->fieldLabel = 'Phone';
+		$defaultField->fieldType = 'phone';
+		$defaultField->weight = count($defaultFieldsToDisplay)+1;
+		$defaultFieldsToDisplay[] = $defaultField;
+
+//		$defaultField = new MaterialsRequestFormFields();
+//		$defaultField->libraryId = $libraryId;
+//		$defaultField->formCategory = '';
+//		$defaultField->fieldLabel = '';
+//		$defaultField->fieldType = '';
+//		$defaultField->weight = count($defaultFieldsToDisplay)+1;
+//		$defaultFieldsToDisplay[] = $defaultField;
+
+		return $defaultFieldsToDisplay;
+
 	}
 
 }
