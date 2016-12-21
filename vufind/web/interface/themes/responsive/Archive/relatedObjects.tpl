@@ -1,24 +1,36 @@
 {strip}
-	{if $displayType == 'map' && $page == 1 && $reloadHeader == 1}
+	{if ($displayType == 'map' || $displayType == 'timeline' || $displayType == 'scroller') && $page == 1 && $reloadHeader == 1}
 		<div class="row">
 			<div class="col-sm-6">
-				<form action="/Archive/Results">
-					<div class="input-group">
-						<input type="text" name="lookfor" size="30" title="Enter one or more terms to search for.	Surrounding a term with quotes will limit result to only those that exactly match the term." autocomplete="off" class="form-control" placeholder="Search this collection">
-						<div class="input-group-btn" id="search-actions">
-							<button class="btn btn-default" type="submit">GO</button>
+				{if ($displayType == 'map' || $displayType == 'timeline')}
+					<form action="/Archive/Results">
+						<div class="input-group">
+							<input type="text" name="lookfor" size="30" title="Enter one or more terms to search for.	Surrounding a term with quotes will limit result to only those that exactly match the term." autocomplete="off" class="form-control" placeholder="Search this collection">
+							<div class="input-group-btn" id="search-actions">
+								<button class="btn btn-default" type="submit">GO</button>
+							</div>
+							<input type="hidden" name="islandoraType" value="IslandoraKeyword"/>
+							<input type="hidden" name="filter[]" value='RELS_EXT_isMemberOfCollection_uri_ms:"info:fedora/{$exhibitPid}"'/>
 						</div>
-						<input type="hidden" name="islandoraType" value="IslandoraKeyword"/>
-						<input type="hidden" name="filter[]" value='RELS_EXT_isMemberOfCollection_uri_ms:"info:fedora/{$exhibitPid}"'/>
-					</div>
-				</form>
+					</form>
+				{/if}
 			</div>
 			<div class="col-sm-4 col-sm-offset-2">
 				{* Display information to sort the results (by date or by title *}
-				<select id="results-sort" name="sort" onchange="VuFind.Archive.sort = this.options[this.selectedIndex].value;VuFind.Archive.reloadMapResults('{$exhibitPid|urlencode}', '{$placePid|urlencode}', 0);" class="form-control">
+				<select id="results-sort" name="sort" onchange="VuFind.Archive.sort = this.options[this.selectedIndex].value;
+								{if $displayType == 'map'}
+									VuFind.Archive.reloadMapResults('{$exhibitPid|urlencode}', '{$placePid|urlencode}', 1);
+								{elseif $displayType == 'timeline'}
+									VuFind.Archive.reloadTimelineResults('{$exhibitPid|urlencode}', 1);
+								{elseif $displayType == 'scroller'}
+									VuFind.Archive.reloadScrollerResults('{$exhibitPid|urlencode}', 1);
+								{/if}
+								" class="form-control">
 					<option value="title" {if $sort=='title'}selected="selected"{/if}>{translate text='Sort by ' }Title</option>
 					<option value="newest" {if $sort=='newest'}selected="selected"{/if}>{translate text='Sort by ' }Newest First</option>
 					<option value="oldest" {if $sort=='oldest'}selected="selected"{/if}>{translate text='Sort by ' }Oldest First</option>
+					<option value="dateAdded" {if $sort=='dateAdded'}selected="selected"{/if}>{translate text='Sort by ' }Date Added</option>
+					<option value="dateModified" {if $sort=='dateModified'}selected="selected"{/if}>{translate text='Sort by ' }Date Modified</option>
 				</select>
 			</div>
 		</div>
@@ -26,7 +38,7 @@
 		<div class="row">
 			<div class="col-sm-4">
 				{if $recordCount}
-					{$recordCount} objects for this location.
+					{$recordCount} objects found.
 				{/if}
 			</div>
 		</div>
@@ -38,12 +50,20 @@
 					<div class="btn-group btn-group-sm" role="group" aria-label="Select Dates" data-toggle="buttons">
 						{if $numObjectsWithUnknownDate}
 							<label class="btn btn-default">
-								<input name="dateFilter" onchange="VuFind.Archive.reloadMapResults('{$exhibitPid|urlencode}', '{$placePid|urlencode}', 0)" type="checkbox" autocomplete="off" value="{$facet.value}">Unknown ({$numObjectsWithUnknownDate})
+								{if $displayType == 'map'}
+									<input name="dateFilter" onchange="VuFind.Archive.reloadMapResults('{$exhibitPid|urlencode}', '{$placePid|urlencode}', 0)" type="checkbox" autocomplete="off" value="unknown"><strong>Unknown</strong><br/>({$numObjectsWithUnknownDate})
+								{elseif $displayType == 'timeline'}
+									<input name="dateFilter" onchange="VuFind.Archive.reloadTimelineResults('{$exhibitPid|urlencode}', 0)" type="checkbox" autocomplete="off" value="unknown"><strong>Unknown</strong><br/>({$numObjectsWithUnknownDate})
+								{/if}
 							</label>
 						{/if}
 						{foreach from=$dateFacetInfo item=facet}
 							<label class="btn btn-default btn-sm">
-								<input name="dateFilter" onchange="VuFind.Archive.reloadMapResults('{$exhibitPid|urlencode}', '{$placePid|urlencode}', 0)" type="checkbox" autocomplete="off" value="{$facet.value}">{$facet.label} ({$facet.count})
+								{if $displayType == 'map'}
+									<input name="dateFilter" onchange="VuFind.Archive.reloadMapResults('{$exhibitPid|urlencode}', '{$placePid|urlencode}', 0)" type="checkbox" autocomplete="off" value="{$facet.value}"><strong>{$facet.label}</strong><br/>({$facet.count})
+								{elseif $displayType == 'timeline'}
+									<input name="dateFilter" onchange="VuFind.Archive.reloadTimelineResults('{$exhibitPid|urlencode}', 0)" type="checkbox" autocomplete="off" value="{$facet.value}"><strong>{$facet.label}</strong><br/>({$facet.count})
+								{/if}
 							</label>
 						{/foreach}
 					</div>
@@ -66,7 +86,7 @@
 					<a href="{$image.link}" {if $image.title}data-title="{$image.title}"{/if} onclick="return VuFind.Archive.showObjectInPopup('{$image.pid|urlencode}')">
 						<img src="{$image.image}" {if $image.title}alt="{$image.title}"{/if}>
 						<figcaption class="explore-more-category-title">
-							<strong>{$image.title} ({$image.dateCreated})</strong>
+							<strong>{$image.title|truncate:50} ({$image.dateCreated})</strong>
 						</figcaption>
 					</a>
 				</figure>
@@ -79,6 +99,24 @@
 		{* {$recordCount-$recordEnd} more records to load *}
 		{if $recordEnd < $recordCount}
 			<a onclick="return VuFind.Archive.getMoreMapResults('{$exhibitPid|urlencode}', '{$placePid|urlencode}')">
+				<div class="row" id="more-browse-results">
+					<img src="{img filename="browse_more_arrow.png"}" alt="Load More Search Results" title="Load More Search Results">
+				</div>
+			</a>
+		{/if}
+	{elseif $displayType == 'timeline'}
+		{* {$recordCount-$recordEnd} more records to load *}
+		{if $recordEnd < $recordCount}
+			<a onclick="return VuFind.Archive.getMoreTimelineResults('{$exhibitPid|urlencode}')">
+				<div class="row" id="more-browse-results">
+					<img src="{img filename="browse_more_arrow.png"}" alt="Load More Search Results" title="Load More Search Results">
+				</div>
+			</a>
+		{/if}
+	{elseif $displayType == 'scroller'}
+		{* {$recordCount-$recordEnd} more records to load *}
+		{if $recordEnd < $recordCount}
+			<a onclick="return VuFind.Archive.getMoreScrollerResults('{$exhibitPid|urlencode}')">
 				<div class="row" id="more-browse-results">
 					<img src="{img filename="browse_more_arrow.png"}" alt="Load More Search Results" title="Load More Search Results">
 				</div>

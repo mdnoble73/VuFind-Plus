@@ -1306,7 +1306,12 @@ abstract class IslandoraDriver extends RecordInterface {
 	public function getDateCreated() {
 		$dateCreated = $this->getModsValue('dateCreated', 'mods');
 		if ($dateCreated == ''){
-			return 'Unknown';
+			$dateCreated = $this->getModsValue('dateIssued', 'mods');
+			if ($dateCreated == ''){
+				return 'Unknown';
+			}else{
+				return $dateCreated;
+			}
 		}else{
 			return $dateCreated;
 		}

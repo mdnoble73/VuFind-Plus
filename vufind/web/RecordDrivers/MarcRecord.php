@@ -347,6 +347,9 @@ class MarcRecord extends IndexRecord
 
 		$interface->assign('marcRecord', $this->getMarcRecord());
 
+		$lastMarcModificationTime = MarcLoader::lastModificationTimeForIlsId("{$this->profileType}:{$this->id}");
+		$interface->assign('lastMarcModificationTime', $lastMarcModificationTime);
+
 		$solrRecord = $this->fields;
 		if ($solrRecord) {
 			ksort($solrRecord);
@@ -1314,6 +1317,15 @@ class MarcRecord extends IndexRecord
 					'title' => 'Schedule Item',
 					'url' => '',
 					'onclick' => "return VuFind.Record.showBookMaterial('{$this->getModule()}', '{$this->getId()}');",
+					'requireLogin' => false,
+			);
+		}
+
+		$archiveLink = $this->getGroupedWorkDriver()->getArchiveLink();
+		if ($archiveLink != null){
+			$actions[] = array(
+					'title' => 'View Online',
+					'url' => $archiveLink,
 					'requireLogin' => false,
 			);
 		}

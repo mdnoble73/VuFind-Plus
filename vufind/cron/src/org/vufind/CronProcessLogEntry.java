@@ -45,6 +45,9 @@ public class CronProcessLogEntry {
 	public void incUpdated() {
 		numUpdates++;
 	}
+	public void addUpdates(int updates) {
+		numUpdates += updates;
+	}
 	public void setProcessName(String processName) {
 		this.processName = processName;
 	}

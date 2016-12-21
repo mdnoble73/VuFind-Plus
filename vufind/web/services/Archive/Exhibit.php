@@ -48,6 +48,8 @@ class Archive_Exhibit extends Archive_Object{
 			//Load the options to show
 			$collectionOptionsRaw = $this->recordDriver->getModsValue('collectionOptions', 'marmot');
 			$collectionOptions = explode("\r\n", html_entity_decode($collectionOptionsRaw));
+		}elseif ($pikaCollectionDisplay == 'timeline'){
+			$displayType = 'timeline';
 		}
 		$interface->assign('displayType', $displayType);
 		$this->loadRelatedObjects($displayType);
@@ -102,8 +104,15 @@ class Archive_Exhibit extends Archive_Object{
 					$interface->assign('mapZoom', $mapZoom);
 					$this->recordDriver->getRelatedPlaces();
 					$collectionTemplates[] = $interface->fetch('Archive/browseByMapComponent.tpl');
-				}else if (strpos($option, 'browseCollectionByTitle') === 0 ){
-					$collectionToLoadFromPID = str_replace('browseCollectionByTitle|', '', $option);
+				}else if (strpos($option, 'browseCollectionByTitle') === 0 || strpos($option, 'scroller') === 0 ){
+					$collectionTemplate = 'browse';
+					if (strpos($option, 'browseCollectionByTitle') === 0){
+						$collectionToLoadFromPID = str_replace('browseCollectionByTitle|', '', $option);
+					}else{
+						$collectionTemplate = 'scroller';
+						$collectionToLoadFromPID = str_replace('scroller|', '', $option);
+					}
+
 					$collectionToLoadFromObject = $fedoraUtils->getObject($collectionToLoadFromPID);
 					$collectionDriver = RecordDriverFactory::initRecordDriver($collectionToLoadFromObject);
 
@@ -111,19 +120,28 @@ class Archive_Exhibit extends Archive_Object{
 					$collectionTitles = array();
 					foreach ($collectionObjects as $childPid){
 						$childObject = RecordDriverFactory::initRecordDriver($fedoraUtils->getObject($childPid));
-						$collectionTitles[] = array(
+						$collectionTitle = array(
 								'title' => $childObject->getTitle(),
-								'link' => $childObject->getRecordUrl()
+								'link' => $childObject->getRecordUrl(),
 						);
+						if ($collectionTemplate == 'scroller'){
+							$collectionTitle['image'] = $childObject->getBookcoverUrl('medium');
+							$collectionTitle['onclick'] = "return VuFind.Archive.handleCollectionScrollerClick('{$childObject->getUniqueID()}')";
+						}
+						$collectionTitles[] = $collectionTitle;
 					}
-
 
 					$browseCollectionTitlesData = array(
 						'title' => $collectionToLoadFromObject->label,
 						'collectionTitles' => $collectionTitles,
 					);
 					$interface->assignAppendToExisting('browseCollectionTitlesData', $browseCollectionTitlesData);
-					$collectionTemplates[] = $interface->fetch('Archive/browseCollectionTitles.tpl');
+					if ($collectionTemplate == 'browse'){
+						$collectionTemplates[] = $interface->fetch('Archive/browseCollectionTitles.tpl');
+					}else{
+						$collectionTemplates[] = $interface->fetch('Archive/collectionScroller.tpl');
+					}
+
 				}else if ($option == 'randomImage' ){
 					$randomImagePid = $this->recordDriver->getRandomObject();
 					if ($randomImagePid != null){
