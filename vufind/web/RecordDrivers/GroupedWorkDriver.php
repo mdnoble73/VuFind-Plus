@@ -724,6 +724,7 @@ class GroupedWorkDriver extends RecordInterface{
 			$groupedWorkDetails['full_title'] = $groupedWork->full_title;
 			$groupedWorkDetails['author'] = $groupedWork->author;
 			$groupedWorkDetails['grouping_category'] = $groupedWork->grouping_category;
+			$groupedWorkDetails['lastUpdate'] = date('Y-m-d H:i:sA', $groupedWork->date_updated);
 			$interface->assign('groupedWorkDetails', $groupedWorkDetails);
 		}
 
