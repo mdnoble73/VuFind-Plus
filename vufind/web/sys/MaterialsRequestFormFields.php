@@ -21,17 +21,46 @@ class MaterialsRequestFormFields extends DB_DataObject
 	public $fieldType;
 
 	static $fieldTypeOptions = array(
-		'text'    => 'text',
-		'textbox' => 'textbox',
-		'yes/no'  => 'yes/no',
-		'format'  => 'Format *',
-		'author'  => 'Author *',
-		'ageLevel' => 'Age Level *',
-	  'isbn'    => 'ISBN *',
+//		'text'    => 'text',
+//		'textbox' => 'textarea',
+//		'yes/no'  => 'yes/no',
+		'id'      => 'Request ID Number',
+		'title'   => 'Title',
+		'author'  => 'Author',
+		'format'  => 'Format',
+		'ageLevel' => 'Age Level',
+	  'isbn'     => 'ISBN',
 		'oclcNumber' => 'OCLC Number',
-
-
-
+		'publisher'  => 'Publisher',
+		'publicationYear' => 'Publication Year',
+//		'articleInfo' => 'Article Information',
+//		'abridged' => 'abridged',
+		'about'    => 'About',
+		'comments' => 'Comments',
+		'status'   => 'Status',
+		'dateCreated' => 'Date Created',
+		'createdBy'   => 'Created By',
+		'dateUpdated' => 'dateUpdated',
+		'libraryCardNumber' => 'Library Card Number',
+		'emailSent'   => 'Email Sent',
+		'holdsCreated' => 'Holds Created',
+	  'email'  => 'Email',
+		'phone'  => 'Phone',
+//		'season' => 'season',
+//		'magazineTitle' => 'magazineTitle',
+		'upc' => 'UPC',
+		'issn' => 'ISSN',
+		'bookType' => 'Book Type', // TODO
+	  'subFormat' => 'Sub-format', // TODO
+//		'magazineDate' => 'magazineDate',
+//		'magazineVolume' => 'magazineVolume',
+//		'magazinePageNumbers' => 'magazinePageNumbers',
+		'placeHoldWhenAvailable' => 'Place Hold when Available',
+		'holdPickupLocation' => 'Hold Pick-up Location',
+//		'bookmobileStop' => 'bookmobileStop', // kept with hold pick up location
+		'illItem'        => 'Inter-library Loan Item',
+//		'magazineNumber' => 'magazineNumber',
+		'assignedTo'     => 'Assigned To'
 	);
 
 

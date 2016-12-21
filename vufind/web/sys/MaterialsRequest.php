@@ -60,26 +60,43 @@ class MaterialsRequest extends DB_DataObject
 	}
 
 	static function getFormats(){
-		$availableFormats = array(
-			'book' => translate('Book'),
- 			'largePrint' => translate('Large Print'),
-			'dvd' => translate('DVD'),
-			'bluray' => translate('Blu-ray'),
-			'cdAudio' => translate('CD Audio Book'),
-			'cdMusic' => translate('Music CD'),
-			'ebook' => translate('eBook'),
-			'eaudio' => translate('eAudio'),
-			'playaway' => translate('Playaway'),
-			'article' => translate('Article'),
-			'cassette' => translate('Cassette'),
-			'vhs' => translate('VHS'),
- 			'other' => translate('Other'),
-		);
+		require_once ROOT_DIR . '/sys/MaterialsRequestFormats.php';
+		$availableFormats = array();
+		$customFormats = new MaterialsRequestFormats();
+		global $user;
+		if (isset($user)) {
+			$homeLibrary = $user->getHomeLibrary();
+			if (isset($homeLibrary)) {
+				$customFormats->libraryId = $homeLibrary->libraryId;
 
-		global $configArray;
-		foreach ($availableFormats as $key => $label){
-			if (isset($configArray['MaterialsRequestFormats'][$key]) && $configArray['MaterialsRequestFormats'][$key] == false){
-				unset($availableFormats[$key]);
+				if ($customFormats->count() == 0 ) {
+					// Default Formats to use when no custom formats are created.
+					$availableFormats = array(
+						'book'       => translate('Book'),
+						'largePrint' => translate('Large Print'),
+						'dvd'        => translate('DVD'),
+						'bluray'     => translate('Blu-ray'),
+						'cdAudio'    => translate('CD Audio Book'),
+						'cdMusic'    => translate('Music CD'),
+						'ebook'      => translate('eBook'),
+						'eaudio'     => translate('eAudio'),
+						'playaway'   => translate('Playaway'),
+						'article'    => translate('Article'),
+						'cassette'   => translate('Cassette'),
+						'vhs'        => translate('VHS'),
+						'other'      => translate('Other'),
+					);
+
+					global $configArray;
+					foreach ($availableFormats as $key => $label){
+						if (isset($configArray['MaterialsRequestFormats'][$key]) && $configArray['MaterialsRequestFormats'][$key] == false){
+							unset($availableFormats[$key]);
+						}
+					}
+
+				} else {
+					$availableFormats = $customFormats->fetchAll('format', 'formatLabel');
+				}
 			}
 		}
 

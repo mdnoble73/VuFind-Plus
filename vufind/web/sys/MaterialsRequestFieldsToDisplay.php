@@ -23,6 +23,7 @@ class MaterialsRequestFieldsToDisplay extends DB_DataObject
 		$materialsRequest = new MaterialsRequest();
 		$columnNames        = array_keys($materialsRequest->table());
 		$columnToChooseFrom = array_combine($columnNames, $columnNames);
+		//TODO: Redo to exclude special data fields
 
 		$structure = array(
 			'id'                      => array('property'=>'id', 'type'=>'label', 'label'=>'Id', 'description'=>'The unique id of this association'),

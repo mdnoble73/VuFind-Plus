@@ -46,10 +46,10 @@
 							<td>
 								<div class="checkbox">
 									{*this assumes a simple array, eg list *}
-									{*TODO: check that this really works *}
+									{assign var=subPropName value=$subProperty.property}
 									{assign var=subPropValue value=$subObject->$subPropName}
 									{foreach from=$subProperty.values item=propertyName}
-										<input name='{$propName}[]' type="checkbox" value='{$propertyName}' {if is_array($propValue) && in_array($propertyName, $propValue)}checked='checked'{/if}> {$propertyName}<br>
+										<input name='{$propName}_{$subPropName}[{$subObject->id}][]' type="checkbox" value='{$propertyName}' {if is_array($subPropValue) && in_array($propertyName, $subPropValue)}checked='checked'{/if}> {$propertyName}<br>
 									{/foreach}
 								</div>
 							</td>

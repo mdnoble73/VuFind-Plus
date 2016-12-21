@@ -33,10 +33,32 @@ class MaterialsRequestFormats extends DB_DataObject
 			'format'        => array('property' => 'format', 'type' => 'text', 'label' => 'Format', 'description' => 'internal value for format, please use camelCase and no spaces ie. cdAudio'),
 			'formatLabel'   => array('property' => 'formatLabel', 'type' => 'text', 'label' => 'Format Label', 'description' => 'Label for the format that will be displayed to users.'),
 			'authorLabel'   => array('property' => 'authorLabel', 'type' => 'text', 'label' => 'Author Label', 'description' => 'Label for the author field associated with this format that will be displayed to users.'),
+		  'specialFields' => array('property' => 'specialFields', 'type' => 'multiSelect', 'listStyle' => 'checkboxList', 'label' => 'Special Fields for Format', 'description' => 'Any Special Fields to use with this format', 'values' => self::$materialsRequestFormatsSpecialFieldOptions)
 			//			'libraryId' => array(), // hidden value or internally updated.
 
 		);
 		return $structure;
 	}
 
+	public function fetch(){
+		$return = parent::fetch();
+		if ($return) {
+				$this->specialFields = empty($this->specialFields) ? null : explode(',', $this->specialFields);
+		}
+		return $return;
+	}
+
+	public function insert() {
+		if (is_array($this->specialFields)) {
+			$this->specialFields = implode(',', $this->specialFields);
+		}
+		return parent::insert();
+	}
+
+	public function update() {
+		if (is_array($this->specialFields)) {
+			$this->specialFields = implode(',', $this->specialFields);
+		}
+		return parent::update();
+	}
 }
