@@ -347,6 +347,9 @@ class MarcRecord extends IndexRecord
 
 		$interface->assign('marcRecord', $this->getMarcRecord());
 
+		$lastMarcModificationTime = MarcLoader::lastModificationTimeForIlsId("{$this->profileType}:{$this->id}");
+		$interface->assign('lastMarcModificationTime', $lastMarcModificationTime);
+
 		$solrRecord = $this->fields;
 		if ($solrRecord) {
 			ksort($solrRecord);

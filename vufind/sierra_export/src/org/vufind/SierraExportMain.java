@@ -379,6 +379,7 @@ public class SierraExportMain{
 							String itemId = curItem.getString("id");
 							itemsThatNeedToBeProcessed.add(itemId);
 							lastId = Integer.parseInt(itemId) + 1;
+							logger.debug("   item " + itemId + " changed");
 						}
 						if (numChangedIds >= bufferSize){
 							firstRecordIdToLoad = lastId + 1;
@@ -389,13 +390,8 @@ public class SierraExportMain{
 						logger.info(" - Found no changes");
 						firstRecordIdToLoad += recordOffset;
 					}
-					logger.info(" - " + changedBibs.size() + " bibs have changes (so far)");
 					//If we have the same number of records as the buffer that is ok.  Sierra does not return the correct total anymore
 					moreToRead = (numChangedIds >= bufferSize); // || firstRecordIdToLoad <= 999999999;
-					/*if (changedBibs.size() >= maxRecordsToUpdateDuringExtract){
-						logger.warn(changedBibs.size() + " records changed, halting.  This will result in some changes being skipped!");
-						break;
-					}*/
 				}
 
 				//Get details for each change.  This is a bit slower so we will just load for up to 5 minutes and save the rest for later if needed
@@ -406,7 +402,7 @@ public class SierraExportMain{
 					if (itemData == null) {
 						//This seems to be a normal issue if items get deleted or suppressed.
 						//Manual lookups show that they cannot be found in sierra either.
-						//logger.warn("Could not load item data (result was null) for " + itemId);
+						logger.debug("Could not load item data (result was null) for " + itemId);
 						itemsThatNeedToBeProcessed.remove(itemId);
 					}else if (itemData.has("entries")){
 						JSONObject curItem = itemData.getJSONArray("entries").getJSONObject(0);
@@ -441,6 +437,7 @@ public class SierraExportMain{
 
 						ItemChangeInfo changeInfo = new ItemChangeInfo();
 						String itemIdFull = ".i" + itemId + getCheckDigit(itemId);
+						logger.debug("Loaded changes for item " + itemIdFull);
 
 						changeInfo.setItemId(itemIdFull);
 						changeInfo.setLocation(location);
@@ -483,6 +480,7 @@ public class SierraExportMain{
 				for (String curBibId : changedBibs.keySet()){
 					//Update the marc record
 					updateMarc(individualMarcPath, curBibId, changedBibs.get(curBibId));
+					logger.debug("Updated Bib " + curBibId);
 					//Update the database
 					try {
 						markGroupedWorkForBibAsChangedStmt.setLong(1, updateTime);
