@@ -77,15 +77,17 @@
 										<label class="request_detail_field_label col-sm-3">Page Numbers: </label>
 										<div class=" request_detail_field_value col-sm-9">{$materialsRequest->magazinePageNumbers}</div>
 									</div>
+
+									{* ebook and eaudio use the same database table column subformat *}
 								{elseif $specialField == 'Eaudio format'}
 									<div class=" request_detail_field row">
 										<label class="request_detail_field_label col-sm-3">E-audio format: </label>
-										<div class=" request_detail_field_value col-sm-9">{$materialsRequest->eaudioFormat|translate}</div>
+										<div class=" request_detail_field_value col-sm-9">{$materialsRequest->subFormat|translate}</div>
 									</div>
 								{elseif $specialField == 'Ebook format'}
 									<div class="request_detail_field row">
 										<label class="request_detail_field_label col-sm-3">E-book format: </label>
-										<div class=" request_detail_field_value col-sm-9">{$materialsRequest->ebookFormat|translate}</div>
+										<div class=" request_detail_field_value col-sm-9">{$materialsRequest->subFormat|translate}</div>
 									</div>
 								{elseif $specialField == 'Season'}
 									<div class="request_detail_field row">

@@ -32,7 +32,8 @@ class MaterialsRequest_NewRequest extends Action
 
 	function launch()
 	{
-		global $configArray,
+		global /** @var Location $locationSingleton */
+		$configArray,
 		       $interface,
 		       $user,
 		       $library,
@@ -43,13 +44,24 @@ class MaterialsRequest_NewRequest extends Action
 			if ($user->email != 'notice@salidalibrary.org'){
 				$interface->assign('defaultEmail', $user->email);
 			}
-			$locations = $locationSingleton->getPickupBranches($user, $user->homeLocationId);
 			// TODO: Only show locations for the library the request is going to.
+
+			// Hold Pick-up Locations
+			$locations = $locationSingleton->getPickupBranches($user, $user->homeLocationId);
+
 		}else{
 			$locations = $locationSingleton->getPickupBranches(false, -1);
 		}
-		
-		$interface->assign('pickupLocations', $locations);
+		$pickupLocations = array();
+		foreach ($locations as $curLocation) {
+			$pickupLocations[] = array(
+				'id' => $curLocation->locationId,
+				'displayName' => $curLocation->displayName,
+				'selected' => $curLocation->selected,
+			);
+		}
+		$interface->assign('pickupLocations', $pickupLocations);
+
 		
 		//Get a list of formats to show 
 		$availableFormats = MaterialsRequest::getFormats();
@@ -83,10 +95,65 @@ class MaterialsRequest_NewRequest extends Action
 		}
 		$interface->assign('useWorldCat', $useWorldCat);
 
+		if (isset($library)){
+			// Get the Fields to Display for the form
+			require_once ROOT_DIR . '/sys/MaterialsRequestFormFields.php';
+			$formFields            = new MaterialsRequestFormFields();
+			$formFields->libraryId = $library->libraryId;
+			$usingDefaultFormFields = $formFields->count() == 0;
+			if ($usingDefaultFormFields) {
+				$fieldsToSortByCategory = $formFields::getDefaultFormFields($library->libraryId);
+			} else {
+				$formFields->orderBy('weight');
+				/** @var MaterialsRequestFormFields[] $fieldsToSortByCategory */
+				$fieldsToSortByCategory = $formFields->fetchAll();
+			}
+
+			// If we use another interface variable that is sorted by category, this should be a method in the Interface class
+			$requestFormFields = array();
+			if ($fieldsToSortByCategory) {
+				foreach ($fieldsToSortByCategory as $formField) {
+					if (!array_key_exists($formField->formCategory, $requestFormFields)) {
+						$requestFormFields[$formField->formCategory] = array();
+					}
+					$requestFormFields[$formField->formCategory][] = $formField;
+				}
+			} else {
+				//TODO: Check for sql error & log as an error
+			}
+			$interface->assign('requestFormFields', $requestFormFields);
+
+
+			// Get Author Labels for all Formats
+			$formatsUsingSpecialFields = new MaterialsRequestFormats();
+			$formatsUsingSpecialFields->libraryId = $library->libraryId;
+			$formatAuthorLabels = $specialFieldFormats = array();
+			$usingDefaultFormats = $formatsUsingSpecialFields->count() == 0;
+			if ($usingDefaultFormats) {
+				/** @var MaterialsRequestFormats $formatObj */
+				foreach (MaterialsRequestFormats::getDefaultMaterialRequestFormats() as $formatObj) {
+					$formatAuthorLabels[$formatObj->format] = $formatObj->authorLabel;
+					if (!empty($formatObj->specialFields)) {
+						$specialFieldFormats[$formatObj->format] = $formatObj->specialFields;
+					}
+				}
+			} else {
+				$formatAuthorLabels = $formatsUsingSpecialFields->fetchAll('format', 'authorLabel');
+
+				// Get Formats that use Special Fields
+				$formatsUsingSpecialFields = new MaterialsRequestFormats();
+				$formatsUsingSpecialFields->libraryId = $library->libraryId;
+				$formatsUsingSpecialFields->whereAdd('`specialFields` IS NOT NULL');
+				$specialFieldFormats = $formatsUsingSpecialFields->fetchAll('format', 'specialFields');
+
+			}
+			$interface->assign('formatAuthorLabelsJSON', json_encode($formatAuthorLabels));
+			$interface->assign('specialFieldFormatsJSON', json_encode($specialFieldFormats));
+		}
+
 		// Set up for User Log in
 		if (isset($library)){
 			$interface->assign('newMaterialsRequestSummary', $library->newMaterialsRequestSummary);
-			//TODO: need to determine that this is always assigned; even if user isn't logged in
 
 			$interface->assign('enableSelfRegistration', $library->enableSelfRegistration);
 			$interface->assign('usernameLabel', $library->loginFormUsernameLabel ? $library->loginFormUsernameLabel : 'Your Name');

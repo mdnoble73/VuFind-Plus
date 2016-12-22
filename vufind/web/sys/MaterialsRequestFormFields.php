@@ -80,7 +80,7 @@ class MaterialsRequestFormFields extends DB_DataObject
 		// Title Information
 		$defaultField = new MaterialsRequestFormFields();
 		$defaultField->libraryId = $libraryId;
-		$defaultField->formCategory = 'Title Information';
+		$defaultField->formCategory = 'Material Information';
 		$defaultField->fieldLabel = 'Format';
 		$defaultField->fieldType = 'format';
 		$defaultField->weight = count($defaultFieldsToDisplay)+1;

@@ -114,12 +114,16 @@ class MaterialsRequest_AJAX extends Action{
 						// Format Labels
 						$formats = new MaterialsRequestFormats();
 						$formats->libraryId = $staffLibrary->libraryId;
-						$materialsRequest->joinAdd($formats);
+						$usingDefaultFormats = $formats->count() == 0;
 
 						$materialsRequest->selectAdd();
 						$materialsRequest->selectAdd(
-							'materials_request.*, description as statusLabel, location.displayName as location, materials_request_formats.formatLabel,'
-							.'materials_request_formats.authorLabel, materials_request_formats.specialFields');
+							'materials_request.*, description as statusLabel, location.displayName as location'
+						);
+						if (!$usingDefaultFormats) {
+							$materialsRequest->joinAdd($formats, 'LEFT');
+							$materialsRequest->selectAdd('materials_request_formats.formatLabel,materials_request_formats.authorLabel, materials_request_formats.specialFields');
+						}
 
 						if ($materialsRequest->find(true)) {
 							$canUpdate   = false;
@@ -153,9 +157,6 @@ class MaterialsRequest_AJAX extends Action{
 										}
 										$requestFormFields[$formField->formCategory][] = $formField;
 									}
-								} else {
-									//TODO: Check for sql error & log as an error
-									//TODO:  Fall back to default table order
 								}
 								$interface->assign('requestFormFields', $requestFormFields);
 
@@ -181,16 +182,37 @@ class MaterialsRequest_AJAX extends Action{
 								$interface->assign('availableFormats', $availableFormats);
 
 								// Get Author Labels for all Formats
-								$formatsUsingSpecialFields = new MaterialsRequestFormats();
-								$formatsUsingSpecialFields->libraryId = $staffLibrary->libraryId;
-								$formatAuthorLabels = $formatsUsingSpecialFields->fetchAll('format', 'authorLabel');
-								$interface->assign('formatAuthorLabelsJSON', json_encode($formatAuthorLabels));
+								$formatAuthorLabels = array();
+								if ($usingDefaultFormats) {
+									$defaultFormats = MaterialsRequestFormats::getDefaultMaterialRequestFormats();
+									/** @var MaterialsRequestFormats $format */
+									foreach ($defaultFormats as $format) {
+										// Gather default Author Labels and default special Fields
+										$formatAuthorLabels[$format->format] = $format->authorLabel;
+										if (!empty($format->specialFields)) {
+											$specialFieldFormats[$format->format] = $format->specialFields;
+										}
+										// Get the default values from this request
+										if ($materialsRequest->format == $format->format ){
+											$materialsRequest->formatLabel = $format->formatLabel;
+											$materialsRequest->authorLabel = $format->authorLabel;
+											$materialsRequest->specialFields = $format->specialFields;
+										}
+									}
 
-								// Get Formats that use Special Fields
-								$formatsUsingSpecialFields = new MaterialsRequestFormats();
-								$formatsUsingSpecialFields->libraryId = $staffLibrary->libraryId;
-								$formatsUsingSpecialFields->whereAdd('`specialFields` IS NOT NULL');
-								$specialFieldFormats = $formatsUsingSpecialFields->fetchAll('format', 'specialFields');
+								} else {
+									$formats = new MaterialsRequestFormats();
+									$formats->libraryId = $staffLibrary->libraryId;
+									$formatAuthorLabels = $formats->fetchAll('format', 'authorLabel');
+
+
+									// Get Formats that use Special Fields
+									$formatsUsingSpecialFields = new MaterialsRequestFormats();
+									$formatsUsingSpecialFields->libraryId = $staffLibrary->libraryId;
+									$formatsUsingSpecialFields->whereAdd('`specialFields` IS NOT NULL');
+									$specialFieldFormats = $formatsUsingSpecialFields->fetchAll('format', 'specialFields');
+								}
+								$interface->assign('formatAuthorLabelsJSON', json_encode($formatAuthorLabels));
 								$interface->assign('specialFieldFormatsJSON', json_encode($specialFieldFormats));
 
 								//TODO: Use this configuration options now ?
@@ -267,15 +289,21 @@ class MaterialsRequest_AJAX extends Action{
 		}else {
 			$id = $_REQUEST['id'];
 			if (!empty($id) && ctype_digit($id)) {
-				$requestLibrary = $user->getHomeLibrary(); // staff member's home library
+				$requestLibrary = $user->getHomeLibrary(); // staff member's or patron's home library
 				if (!empty($requestLibrary)) {
 
 					require_once ROOT_DIR . '/sys/MaterialsRequestFormFields.php';
 					$formFields            = new MaterialsRequestFormFields();
 					$formFields->libraryId = $requestLibrary->libraryId;
-					$formFields->orderBy('weight');
-					/** @var MaterialsRequestFormFields[] $fieldsToSortByCategory */
+					$usingDefaultFormFields = $formFields->count() == 0;
+					if ($usingDefaultFormFields) {
+						$fieldsToSortByCategory = $formFields::getDefaultFormFields($requestLibrary->libraryId);
+					} else {
+						$formFields->orderBy('weight');
+						/** @var MaterialsRequestFormFields[] $fieldsToSortByCategory */
 						$fieldsToSortByCategory = $formFields->fetchAll();
+					}
+
 					// If we use another interface variable that is sorted by category, this should be a method in the Interface class
 					$requestFormFields = array();
 						if ($fieldsToSortByCategory) {
@@ -306,15 +334,31 @@ class MaterialsRequest_AJAX extends Action{
 					// Format Labels
 					$formats = new MaterialsRequestFormats();
 					$formats->libraryId = $requestLibrary->libraryId;
-					$materialsRequest->joinAdd($formats);
+					$usingDefaultFormats = $formats->count() == 0;
 
 					$materialsRequest->selectAdd();
 					$materialsRequest->selectAdd(
-						'materials_request.*, description as statusLabel, location.displayName as location, materials_request_formats.formatLabel,'
-						.'materials_request_formats.authorLabel, materials_request_formats.specialFields');
-
+						'materials_request.*, description as statusLabel, location.displayName as location'
+					);
+					if (!$usingDefaultFormats) {
+						$materialsRequest->joinAdd($formats, 'LEFT');
+						$materialsRequest->selectAdd('materials_request_formats.formatLabel,materials_request_formats.authorLabel, materials_request_formats.specialFields');
+					}
 
 					if ($materialsRequest->find(true)) {
+						if ($usingDefaultFormats) {
+							$defaultFormats = MaterialsRequestFormats::getDefaultMaterialRequestFormats();
+							/** @var MaterialsRequestFormats $format */
+							foreach ($defaultFormats as $format) {
+								if ($materialsRequest->format == $format->format ){
+									$materialsRequest->formatLabel = $format->formatLabel;
+									$materialsRequest->authorLabel = $format->authorLabel;
+									$materialsRequest->specialFields = $format->specialFields;
+									break;
+								}
+							}
+						}
+
 						$interface->assign('materialsRequest', $materialsRequest);
 
 						if ($user && $user->hasRole('cataloging') || $user->hasRole('library_material_requests')) {

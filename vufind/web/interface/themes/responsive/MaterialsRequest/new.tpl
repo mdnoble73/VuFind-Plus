@@ -33,6 +33,8 @@
 	</div>
 </div>
 <script type="text/javascript">
+	VuFind.MaterialsRequest.authorLabels = {$formatAuthorLabelsJSON};
+	VuFind.MaterialsRequest.specialFields = {$specialFieldFormatsJSON};
 	VuFind.MaterialsRequest.setFieldVisibility();
 	$("#materialsRequestForm").validate();
 </script>
