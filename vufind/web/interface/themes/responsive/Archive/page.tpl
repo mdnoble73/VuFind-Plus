@@ -7,44 +7,50 @@
 		</h2>
 		<div class="row">
 			<div id="main-content" class="col-xs-12 text-center">
-				<div id="view-toggle" class="btn-group" role="group" data-toggle="buttons">
-					<label class="btn btn-group-small btn-default">
-						<input type="radio" name="pageView" id="view-toggle-pdf" autocomplete="off" onchange="VuFind.Archive.changeActiveBookViewer('pdf', VuFind.Archive.activeBookPage);">
-						View As PDF
-					</label>
-					<label class="btn btn-group-small btn-default">
-						<input type="radio" name="pageView" id="view-toggle-image" autocomplete="off" onchange="VuFind.Archive.changeActiveBookViewer('image', VuFind.Archive.activeBookPage);">
-						View As Image
-					</label>
-					<label class="btn btn-group-small btn-default">
-						<input type="radio" name="pageView" id="view-toggle-transcription" autocomplete="off" onchange="VuFind.Archive.changeActiveBookViewer('transcription', VuFind.Archive.activeBookPage);">
-						View Transcription
-					</label>
-				</div>
+				{if $canView}
+					<div id="view-toggle" class="btn-group" role="group" data-toggle="buttons">
+						<label class="btn btn-group-small btn-default">
+							<input type="radio" name="pageView" id="view-toggle-pdf" autocomplete="off" onchange="VuFind.Archive.changeActiveBookViewer('pdf', VuFind.Archive.activeBookPage);">
+							View As PDF
+						</label>
+						<label class="btn btn-group-small btn-default">
+							<input type="radio" name="pageView" id="view-toggle-image" autocomplete="off" onchange="VuFind.Archive.changeActiveBookViewer('image', VuFind.Archive.activeBookPage);">
+							View As Image
+						</label>
+						<label class="btn btn-group-small btn-default">
+							<input type="radio" name="pageView" id="view-toggle-transcription" autocomplete="off" onchange="VuFind.Archive.changeActiveBookViewer('transcription', VuFind.Archive.activeBookPage);">
+							View Transcription
+						</label>
+					</div>
 
-				<div id="view-pdf" width="100%" height="600px">
-					No PDF loaded
-				</div>
+					<div id="view-pdf" width="100%" height="600px">
+						No PDF loaded
+					</div>
 
-				<div id="view-image" style="display: none">
-					<div class="large-image-wrapper">
-						<div class="large-image-content">
-							<div id="pika-openseadragon" class="openseadragon"></div>
+					<div id="view-image" style="display: none">
+						<div class="large-image-wrapper">
+							<div class="large-image-content">
+								<div id="pika-openseadragon" class="openseadragon"></div>
+							</div>
 						</div>
 					</div>
-				</div>
 
-				<div id="view-transcription" style="display: none" width="100%" height="600px;">
-					No transcription loaded
-				</div>
+					<div id="view-transcription" style="display: none" width="100%" height="600px;">
+						No transcription loaded
+					</div>
+				{else}
+					{include file="Archive/noAccess.tpl"}
+				{/if}
 			</div>
 		</div>
 
-		<div id="download-options">
-			{if $allowRequestsForArchiveMaterials}
-				<a class="btn btn-default" href="{$path}/Archive/RequestCopy?pid={$pid}">Request Copy</a>
-			{/if}
-		</div>
+		{if $canView}
+			<div id="download-options">
+				{if $allowRequestsForArchiveMaterials}
+					<a class="btn btn-default" href="{$path}/Archive/RequestCopy?pid={$pid}">Request Copy</a>
+				{/if}
+			</div>
+		{/if}
 
 		{include file="Archive/metadata.tpl"}
 	</div>
@@ -63,7 +69,9 @@
 	{assign var=pageCounter value=$pageCounter+1}
 
 	$().ready(function(){ldelim}
+		{if $canView}
 		VuFind.Archive.changeActiveBookViewer('{$activeViewer}', '{$page.pid}')
+		{/if}
 		VuFind.Archive.loadExploreMore('{$pid|urlencode}');
 	{rdelim});
 </script>

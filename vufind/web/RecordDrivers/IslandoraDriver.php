@@ -1995,4 +1995,32 @@ abstract class IslandoraDriver extends RecordInterface {
 
 		return $brandingResults;
 	}
+
+	private $viewingRestrictions = null;
+
+	/**
+	 * @return array
+	 */
+	public function getViewingRestrictions() {
+		if ($this->viewingRestrictions == null) {
+			$this->viewingRestrictions = array();
+			$accessLimits = $this->getModsValue('pikaAccessLimits', 'marmot');
+			if ($accessLimits == 'all') {
+				//No restrictions needed, don't check the parent collections
+			}else if ($accessLimits == 'default' || $accessLimits == null) {
+				$parentCollections = $this->getRelatedCollections();
+				foreach ($parentCollections as $collection) {
+					$collectionDriver = $collection['driver'];
+					$accessLimits = $collectionDriver->getViewingRestrictions();
+					if (count($accessLimits) > 0){
+						$this->viewingRestrictions = array_merge($this->viewingRestrictions, $accessLimits);
+					}
+				}
+			}else{
+				$accessLimits = preg_split('/[\r\n,]/', $accessLimits);
+				$this->viewingRestrictions = array_merge($this->viewingRestrictions, $accessLimits);
+			}
+		}
+		return $this->viewingRestrictions;
+	}
 }

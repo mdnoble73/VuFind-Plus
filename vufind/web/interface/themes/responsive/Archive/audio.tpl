@@ -4,16 +4,21 @@
 			{$title|escape}
 		</h2>
 
-		<img src="{$medium_image}" class="img-responsive">
-		<audio width="100%" controls id="player">
-			<source src="{$audioLink}" type="audio/mpeg">
-		</audio>
+		{if $canView}
+			<img src="{$medium_image}" class="img-responsive">
+			<audio width="100%" controls id="player">
+				<source src="{$audioLink}" type="audio/mpeg">
+			</audio>
 
-		<div id="download-options">
-			{if $allowRequestsForArchiveMaterials}
-				<a class="btn btn-default" href="{$path}/Archive/RequestCopy?pid={$pid}">Request Copy</a>
-			{/if}
-		</div>
+
+			<div id="download-options">
+				{if $allowRequestsForArchiveMaterials}
+					<a class="btn btn-default" href="{$path}/Archive/RequestCopy?pid={$pid}">Request Copy</a>
+				{/if}
+			</div>
+		{else}
+			{include file="Archive/noAccess.tpl"}
+		{/if}
 
 		{include file="Archive/metadata.tpl"}
 	</div>

@@ -636,14 +636,20 @@ class User extends DB_DataObject
 		return false;
 	}
 
+	private $homeLibrary = null;
+
+	/**
+	 * @return Library|null
+	 */
 	function getHomeLibrary(){
-		$homeLibrary = Library::getPatronHomeLibrary($this);
-		return $homeLibrary;
+		if ($this->homeLibrary == null){
+			$this->homeLibrary = Library::getPatronHomeLibrary($this);
+		}
+		return $this->homeLibrary;
 	}
 
 	function getHomeLibrarySystemName(){
-		$homeLibrary = Library::getPatronHomeLibrary($this);
-		return $homeLibrary->displayName;
+		return $this->getHomeLibrary()->displayName;
 	}
 
 	public function getNumCheckedOutTotal($includeLinkedUsers = true) {

@@ -3,37 +3,43 @@
 		<h2>
 			{$title|escape}
 		</h2>
-		<div class="large-image-wrapper">
-			<div class="large-image-content">
-				<div id="pika-openseadragon" class="openseadragon"></div>
+
+		{if $canView}
+			<div class="large-image-wrapper">
+				<div class="large-image-content">
+					<div id="pika-openseadragon" class="openseadragon"></div>
+				</div>
 			</div>
-		</div>
 
-		<div id="alternate-image-navigator">
-			<img src="{$front_thumbnail}" class="img-responsive alternate-image" onclick="VuFind.Archive.openSeaDragonViewer.goToPage(0);">
-			<img src="{$back_thumbnail}" class="img-responsive alternate-image" onclick="VuFind.Archive.openSeaDragonViewer.goToPage(1);">
-		</div>
+			<div id="alternate-image-navigator">
+				<img src="{$front_thumbnail}" class="img-responsive alternate-image" onclick="VuFind.Archive.openSeaDragonViewer.goToPage(0);">
+				<img src="{$back_thumbnail}" class="img-responsive alternate-image" onclick="VuFind.Archive.openSeaDragonViewer.goToPage(1);">
+			</div>
 
-		<div id="download-options">
-			{if $anonymousLcDownload || ($user && $verifiedLcDownload)}
-				<a class="btn btn-default" href="/Archive/{$pid}/DownloadLC">Download Large Image</a>
-			{elseif (!$user && $verifiedLcDownload)}
-				<a class="btn btn-default" onclick="return VuFind.Account.followLinkIfLoggedIn(this)" href="/Archive/{$pid}/DownloadLC">Login to Download Large Image</a>
-			{/if}
-			{if $anonymousMasterDownload || ($user && $verifiedMasterDownload)}
-				<a class="btn btn-default" href="/Archive/{$pid}/DownloadOriginal">Download Original Image</a>
-			{elseif (!$user && $verifiedLcDownload)}
-				<a class="btn btn-default" onclick="return VuFind.Account.followLinkIfLoggedIn(this)" href="/Archive/{$pid}/DownloadOriginal">Login to Download Original Image</a>
-			{/if}
-			{if $allowRequestsForArchiveMaterials}
-				<a class="btn btn-default" href="{$path}/Archive/RequestCopy?pid={$pid}">Request Copy</a>
-			{/if}
-		</div>
+			<div id="download-options">
+				{if $anonymousLcDownload || ($user && $verifiedLcDownload)}
+					<a class="btn btn-default" href="/Archive/{$pid}/DownloadLC">Download Large Image</a>
+				{elseif (!$user && $verifiedLcDownload)}
+					<a class="btn btn-default" onclick="return VuFind.Account.followLinkIfLoggedIn(this)" href="/Archive/{$pid}/DownloadLC">Login to Download Large Image</a>
+				{/if}
+				{if $anonymousMasterDownload || ($user && $verifiedMasterDownload)}
+					<a class="btn btn-default" href="/Archive/{$pid}/DownloadOriginal">Download Original Image</a>
+				{elseif (!$user && $verifiedLcDownload)}
+					<a class="btn btn-default" onclick="return VuFind.Account.followLinkIfLoggedIn(this)" href="/Archive/{$pid}/DownloadOriginal">Login to Download Original Image</a>
+				{/if}
+				{if $allowRequestsForArchiveMaterials}
+					<a class="btn btn-default" href="{$path}/Archive/RequestCopy?pid={$pid}">Request Copy</a>
+				{/if}
+			</div>
+		{else}
+			{include file="Archive/noAccess.tpl"}
+		{/if}
 
 		{include file="Archive/metadata.tpl"}
 	</div>
 	<script src="{$path}/js/openseadragon/openseadragon.js" ></script>
 	<script src="{$path}/js/openseadragon/djtilesource.js" ></script>
+	{if $canView}
 	<script type="text/javascript">
 		$(document).ready(function(){ldelim}
 			if (!$('#pika-openseadragon').hasClass('processed')) {ldelim}
@@ -65,6 +71,7 @@
 			{rdelim}
 		{rdelim});
 	</script>
+{/if}
 {* {/strip} *}
 <script type="text/javascript">
 	$().ready(function(){ldelim}
