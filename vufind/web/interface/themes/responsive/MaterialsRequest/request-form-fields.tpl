@@ -89,7 +89,8 @@
 		{if !$new && $useWorldCat}
 			<div class="form-group formatSpecificField bookField largePrintField dvdField blurayField cdAudioField cdMusicField ebookField eAudioField playawayField cassetteField vhsField">
 				<input type="button" id="suggestIdentifiers" value="Find exact match" onclick="return VuFind.MaterialsRequest.getWorldCatIdentifiers();" class="btn btn-primary"/>
-				<img width="88" height="31" alt="Some library data on this site is provided by WorldCat, the world's largest library catalog [WorldCat.org]" src="http://www.oclc.org/developer/sites/default/files/badges/wc_badge1.png">
+				{*<img width="88" height="31" alt="Some library data on this site is provided by WorldCat, the world's largest library catalog [WorldCat.org]" src="http://www.oclc.org/developer/sites/default/files/badges/wc_badge1.png">*}
+				{* Image link no longer valid *}
 			</div>
 		{/if}
 
@@ -121,7 +122,7 @@
 						<div id="bookmobileStopField" style="display:none;" class="form-group">
 							<label for="bookmobileStop" class="control-label col-sm-3">Bookmobile Stop </label>
 							<div class="col-sm-9">
-								<input name="bookmobileStop" id="bookmobileStop" size="50" maxlength="50" class="form-control"/>
+								<input name="bookmobileStop" id="bookmobileStop" size="50" maxlength="50" class="form-control">
 							</div>
 						</div>
 					{/if}

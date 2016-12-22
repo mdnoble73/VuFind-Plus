@@ -92,6 +92,14 @@ class Admin_Libraries extends ObjectEditor
 				'text' => 'Copy Library Facets',
 				'url' => '/Admin/Libraries?id=' . $existingObject->libraryId . '&amp;objectAction=copyFacetsFromLibrary',
 			);
+			$objectActions[] = array(
+				'text' => 'Set Materials Request Update Form To Default',
+				'url' => '/Admin/Libraries?id=' . $existingObject->libraryId . '&amp;objectAction=defaultMaterialsRequestForm',
+			);
+			$objectActions[] = array(
+				'text' => 'Set Materials Request Formats To Default',
+				'url' => '/Admin/Libraries?id=' . $existingObject->libraryId . '&amp;objectAction=defaultMaterialsRequestFormats',
+			);
 		}else{
 			echo("Existing object is null");
 		}
@@ -182,6 +190,37 @@ class Admin_Libraries extends ObjectEditor
 		}
 		$structure = $this->getObjectStructure();
 		header("Location: /Admin/Libraries?objectAction=edit&id=" . $libraryId);
+	}
+
+	function defaultMaterialsRequestForm(){
+		$library = new Library();
+		$libraryId = $_REQUEST['id'];
+		$library->libraryId = $libraryId;
+		if ($library->find(true)){
+			$library->clearMaterialsRequestFormFields();
+
+			$defaultFieldsToDisplay = MaterialsRequestFormFields::getDefaultFormFields($libraryId);
+			$library->materialsRequestFormFields = $defaultFieldsToDisplay;
+			$library->update();
+		}
+		header("Location: /Admin/Libraries?objectAction=edit&id=" . $libraryId);
+		die();
+
+	}
+
+	function defaultMaterialsRequestFormats(){
+		$library = new Library();
+		$libraryId = $_REQUEST['id'];
+		$library->libraryId = $libraryId;
+		if ($library->find(true)){
+			$library->clearMaterialsRequestFormats();
+
+			$defaultMaterialsRequestFormats = MaterialsRequestFormats::getDefaultMaterialRequestFormats($libraryId);
+			$library->materialsRequestFormats = $defaultMaterialsRequestFormats;
+			$library->update();
+		}
+		header("Location: /Admin/Libraries?objectAction=edit&id=" . $libraryId);
+		die();
 	}
 
 	function getInstructions(){

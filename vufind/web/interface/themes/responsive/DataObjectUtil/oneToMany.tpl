@@ -7,7 +7,7 @@
 					<th>Sort</th>
 				{/if}
 				{foreach from=$property.structure item=subProperty}
-					{if in_array($subProperty.type, array('text', 'enum', 'date', 'checkbox', 'integer', 'textarea', 'html')) }
+					{if in_array($subProperty.type, array('text', 'enum', 'date', 'checkbox', 'integer', 'textarea', 'html', 'multiSelect')) }
 						<th>{$subProperty.label}</th>
 					{/if}
 				{/foreach}
@@ -41,6 +41,19 @@
 								</select>
 							{/if}
 						</td>
+					{elseif $subProperty.type == 'multiSelect'}
+						{if $subProperty.listStyle == 'checkboxList'}
+							<td>
+								<div class="checkbox">
+									{*this assumes a simple array, eg list *}
+									{assign var=subPropName value=$subProperty.property}
+									{assign var=subPropValue value=$subObject->$subPropName}
+									{foreach from=$subProperty.values item=propertyName}
+										<input name='{$propName}_{$subPropName}[{$subObject->id}][]' type="checkbox" value='{$propertyName}' {if is_array($subPropValue) && in_array($propertyName, $subPropValue)}checked='checked'{/if}> {$propertyName}<br>
+									{/foreach}
+								</div>
+							</td>
+						{/if}
 					{/if}
 				{/foreach}
 				<td>
@@ -118,6 +131,19 @@
 						newRow += "</select>";
 					{/if}
 					newRow += "</td>";
+				{elseif $subProperty.type == 'multiSelect'}
+					{if $subProperty.listStyle == 'checkboxList'}
+					newRow += '<td>';
+					newRow += '<div class="checkbox">';
+					{*this assumes a simple array, eg list *}
+					{assign var=subPropName value=$subProperty.property}
+					{assign var=subPropValue value=$subObject->$subPropName}
+					{foreach from=$subProperty.values item=propertyName}
+					newRow += '<input name="{$propName}_{$subPropName}[' + numAdditional{$propName} + '][]" type="checkbox" value="{$propertyName}"> {$propertyName}<br>';
+					{/foreach}
+					newRow += '</div>';
+					newRow += '</td>';
+					{/if}
 				{/if}
 			{/foreach}
 			newRow += "</tr>";

@@ -44,6 +44,7 @@ class MaterialsRequest_NewRequest extends Action
 				$interface->assign('defaultEmail', $user->email);
 			}
 			$locations = $locationSingleton->getPickupBranches($user, $user->homeLocationId);
+			// TODO: Only show locations for the library the request is going to.
 		}else{
 			$locations = $locationSingleton->getPickupBranches(false, -1);
 		}
