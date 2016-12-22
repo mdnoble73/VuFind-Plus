@@ -703,7 +703,7 @@ class DBMaintenance extends Admin_Admin {
 					'title' => 'Material Requests Form Fields Table Creation',
 					'description' => 'New table to manage materials request form fields.',
 					'sql' => array(
-						'CREATE TABLE `marmot_vufind`.`materials_request_form_fields` ('
+						'CREATE TABLE `materials_request_form_fields` ('
 						.'`id` INT UNSIGNED NOT NULL AUTO_INCREMENT,'
 						.'`libraryId` INT UNSIGNED NOT NULL,'
 						.'`formCategory` VARCHAR(55) NOT NULL,'
@@ -712,7 +712,7 @@ class DBMaintenance extends Admin_Admin {
 						.'`weight` SMALLINT(2) UNSIGNED NOT NULL,'
 						.'PRIMARY KEY (`id`),'
 						.'UNIQUE INDEX `id_UNIQUE` (`id` ASC),'
-						.'INDEX `librarId` (`libraryId` ASC));'
+						.'INDEX `libraryId` (`libraryId` ASC));'
 
 					),
 				),
