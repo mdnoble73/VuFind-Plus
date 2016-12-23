@@ -909,21 +909,17 @@ public class SierraExportMain{
 	 * @return String the check digit
 	 */
 	public static String getCheckDigit(String basedId) {
-		if (basedId.length() != 7){
-			return "a";
-		}else{
-			int sumOfDigits = 0;
-			for (int i = 0; i < 7; i++){
-				sumOfDigits += (8 - i) * Integer.parseInt(basedId.substring(i, i+1));
-			}
-			int modValue = sumOfDigits % 11;
-			if (modValue == 10){
-				return "x";
-			}else{
-				return Integer.toString(modValue);
-			}
+		int sumOfDigits = 0;
+		for (int i = 0; i < basedId.length(); i++){
+			int multiplier = ((basedId.length() +1 ) - i);
+			sumOfDigits += multiplier * Integer.parseInt(basedId.substring(i, i+1));
 		}
-
+		int modValue = sumOfDigits % 11;
+		if (modValue == 10){
+			return "x";
+		}else{
+			return Integer.toString(modValue);
+		}
 	}
 
 }
