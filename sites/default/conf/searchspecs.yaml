@@ -814,4 +814,6 @@ IslandoraRelationshipsById:
       - [exact, ~]
     - mods_extension_marmotLocal_academicResearch_relatedPersonOrg_entityPid_ms:
       - [exact, ~]
+    - RELS_EXT_isMemberOfCollection_uri_t:
+      - [onephrase, ~]
 
