@@ -1403,6 +1403,14 @@ function getLibraryLocationUpdates(){
 					)
 			),
 
+			'library_claim_authorship_customization' => array(
+					'title' => 'Library Claim Authorship Customization',
+					'description' => 'Allow libraries to customize the text shown above the claim authorship page',
+					'sql' => array(
+							"ALTER TABLE library ADD COLUMN claimAuthorshipHeader MEDIUMTEXT",
+					)
+			),
+
 			'display_pika_logo' => array(
 					'title' => 'Library Option to Display Pika Logo',
 					'description' => 'Allow libraries to show the Pika logo in page footers.',

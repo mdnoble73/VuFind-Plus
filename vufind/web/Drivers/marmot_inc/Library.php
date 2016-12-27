@@ -172,6 +172,7 @@ class Library extends DB_DataObject
 	public $archivePid;
 	public $allowRequestsForArchiveMaterials;
 	public $archiveRequestMaterialsHeader;
+	public $claimAuthorshipHeader;
 	public $archiveRequestEmail;
 	public $hideAllCollectionsFromOtherLibraries;
 	public $collectionsToHide;
@@ -662,6 +663,7 @@ class Library extends DB_DataObject
 					'collectionsToHide' => array('property'=>'collectionsToHide', 'type'=>'textarea', 'label'=>'Collections To Hide', 'description'=>'Specific collections to hide.', 'hideInLists' => true),
 					'allowRequestsForArchiveMaterials' => array('property'=>'allowRequestsForArchiveMaterials', 'type'=>'checkbox', 'label'=>'Allow Requests for Copies of Archive Materials', 'description'=>'Enable to allow requests for copies of your archive materials'),
 					'archiveRequestMaterialsHeader' => array('property'=>'archiveRequestMaterialsHeader', 'type'=>'html', 'label'=>'Archive Request Header Text', 'description'=>'The text to be shown above the form for requests of copies for archive materials'),
+					'claimAuthorshipHeader' => array('property'=>'claimAuthorshipHeader', 'type'=>'html', 'label'=>'Claim Authorship Header Text', 'description'=>'The text to be shown above the form when people try to claim authorship of archive materials'),
 					'archiveRequestEmail' => array('property'=>'archiveRequestEmail', 'type'=>'email', 'label'=>'Email to send archive requests to', 'description'=>'The email address to send requests for archive materials to', 'hideInLists' => true),
 			)),
 

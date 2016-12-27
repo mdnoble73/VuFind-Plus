@@ -83,6 +83,9 @@ abstract class Archive_Object extends Action {
 
 		$interface->assign('canView', $canView);
 
+		$showClaimAuthorship = $this->recordDriver->getShowClaimAuthorship();
+		$interface->assign('showClaimAuthorship', $showClaimAuthorship);
+
 		parent::display($mainContentTemplate, $pageTitle);
 	}
 

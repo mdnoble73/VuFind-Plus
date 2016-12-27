@@ -23,16 +23,19 @@
 			</div>
 		</div>
 
-		{if $canView}
-			<div id="download-options" class="row">
-				<div class="col-xs-12">
+		<div id="download-options" class="row">
+			<div class="col-xs-12">
+				{if $canView}
 					<a class="btn btn-default" href="/Archive/{$pid}/DownloadPDF">Download PDF</a>
-					{if $allowRequestsForArchiveMaterials}
-						<a class="btn btn-default" href="{$path}/Archive/RequestCopy?pid={$pid}">Request Copy</a>
-					{/if}
-				</div>
+				{/if}
+				{if $allowRequestsForArchiveMaterials}
+					<a class="btn btn-default" href="{$path}/Archive/RequestCopy?pid={$pid}">Request Copy</a>
+				{/if}
+				{if $showClaimAuthorship}
+					<a class="btn btn-default" href="{$path}/Archive/ClaimAuthorship?pid={$pid}">Claim Authorship</a>
+				{/if}
 			</div>
-		{/if}
+		</div>
 
 		{include file="Archive/metadata.tpl"}
 	</div>

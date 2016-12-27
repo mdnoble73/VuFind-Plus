@@ -11,28 +11,28 @@
 require_once ROOT_DIR . '/Action.php';
 require_once ROOT_DIR . '/services/Admin/Admin.php';
 require_once ROOT_DIR . '/services/Admin/ObjectEditor.php';
-require_once ROOT_DIR . '/sys/Archive/ArchiveRequest.php';
-class Admin_ArchiveRequests extends ObjectEditor {
+require_once ROOT_DIR . '/sys/Archive/ClaimAuthorshipRequest.php';
+class Admin_AuthorshipClaims extends ObjectEditor {
 	function getObjectType(){
-		return 'ArchiveRequest';
+		return 'ClaimAuthorshipRequest';
 	}
 	function getToolName(){
-		return 'ArchiveRequests';
+		return 'AuthorshipClaims';
 	}
 	function getPageTitle(){
-		return 'Requests for Copies of Archive Materials';
+		return 'Claims of Authorship for Archive Materials';
 	}
 	function getAllObjects(){
 		$list = array();
 
-		$object = new ArchiveRequest();
-		$object->orderBy('dateRequested desc');
+		$object = new ClaimAuthorshipRequest();
 		global $user;
 		if (!$user->hasRole('opacAdmin')){
 			$homeLibrary = $user->getHomeLibrary();
 			$archiveNamespace = $homeLibrary->archiveNamespace;
 			$object->whereAdd("pid LIKE '{$archiveNamespace}:%'");
 		}
+		$object->orderBy('dateRequested desc');
 		$object->find();
 		while ($object->fetch()){
 			$list[$object->id] = clone $object;
@@ -41,10 +41,9 @@ class Admin_ArchiveRequests extends ObjectEditor {
 		return $list;
 	}
 	function getObjectStructure(){
-		return ArchiveRequest::getObjectStructure();
+		return ClaimAuthorshipRequest::getObjectStructure();
 	}
 	function getAllowableRoles(){
-
 		return array('opacAdmin', 'archives');
 	}
 	function getPrimaryKeyColumn(){

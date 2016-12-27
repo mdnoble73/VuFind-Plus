@@ -30,7 +30,7 @@ require_once 'Mail/RFC822.php';
  * @author      Demian Katz <demian.katz@villanova.edu>
  * @access      public
  */
-class VuFindMailer {
+class VuFindMailer extends Mail_RFC822 {
 	protected $settings;      // settings for PEAR Mail object
 
 	/**
@@ -72,20 +72,18 @@ class VuFindMailer {
 	 */
 	public function send($to, $from, $subject, $body, $replyTo = null) {
 		global $logger;
-		// Validate sender and recipient
-		$validator = new Mail_RFC822();
 		//Allow the to address to be split
-		$validator->_splitAddresses($to);
-		foreach($validator->addresses as $tmpAddress){
-			if (!$validator->isValidInetAddress($tmpAddress['address'])) {
+		$this->_splitAddresses($to);
+		foreach($this->addresses as $tmpAddress){
+			if (!$this->isValidInetAddress($tmpAddress['address'])) {
 				return new PEAR_Error('Invalid Recipient Email Address ' . $tmpAddress);
 			}
 		}
 
-		if (!$validator->isValidInetAddress($from)) {
+		if (!$this->isValidInetAddress($from)) {
 			return new PEAR_Error('Invalid Sender Email Address');
 		}
-		
+
 		$headers = array('To' => $to, 'Subject' => $subject,
 		                 'Date' => date('D, d M Y H:i:s O'),
 		                 'Content-Type' => 'text/plain; charset="UTF-8"');

@@ -2023,4 +2023,21 @@ abstract class IslandoraDriver extends RecordInterface {
 		}
 		return $this->viewingRestrictions;
 	}
+
+	private $showClaimAuthorship = null;
+
+	/**
+	 * @return boolean
+	 */
+	public function getShowClaimAuthorship() {
+		if ($this->showClaimAuthorship == null){
+			$showClaimAuthorship = $this->getModsValue('pikaAccessLimits', 'marmot');
+			if ($showClaimAuthorship == null || strcasecmp($showClaimAuthorship, 'no') === 0){
+				$this->showClaimAuthorship = false;
+			}else{
+				$this->showClaimAuthorship = true;
+			}
+		}
+		return $this->showClaimAuthorship;
+	}
 }
