@@ -64,7 +64,7 @@ class MaterialsRequest extends DB_DataObject
 		$availableFormats = array();
 		$customFormats = new MaterialsRequestFormats();
 		global $user;
-		if (isset($user)) {
+		if (!empty($user)) {
 			$homeLibrary = $user->getHomeLibrary();
 			if (isset($homeLibrary)) {
 				$customFormats->libraryId = $homeLibrary->libraryId;

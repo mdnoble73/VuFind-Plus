@@ -423,7 +423,9 @@ class Location extends DB_DataObject
 
 
 		// Add the user id to each pickup location to track multiple linked accounts having the same pick-up location.
- 		$this->pickupUsers[] = $patronProfile->id;
+ 		if ($patronProfile) {
+ 			$this->pickupUsers[] = $patronProfile->id;
+	  }
 
 		//Load the locations and sort them based on the user profile information as well as their physical location.
 		$physicalLocation = $this->getPhysicalLocation();
