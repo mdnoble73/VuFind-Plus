@@ -146,4 +146,34 @@ class MaterialsRequest extends DB_DataObject
 		return false;
 	}
 
+	function getRequestFormFields($libraryId) {
+		require_once ROOT_DIR . '/sys/MaterialsRequestFormFields.php';
+		$formFields            = new MaterialsRequestFormFields();
+		$formFields->libraryId = $libraryId;
+		$formFields->orderBy('weight');
+		/** @var MaterialsRequestFormFields[] $fieldsToSortByCategory */
+		$fieldsToSortByCategory = $formFields->fetchAll();
+
+		// If no values set get the defaults.
+		if (empty($fieldsToSortByCategory)) {
+			$fieldsToSortByCategory = $formFields::getDefaultFormFields($libraryId);
+		}
+
+		// If we use another interface variable that is sorted by category, this should be a method in the Interface class
+		$requestFormFields = array();
+		if ($fieldsToSortByCategory) {
+			foreach ($fieldsToSortByCategory as $formField) {
+				if (!array_key_exists($formField->formCategory, $requestFormFields)) {
+					$requestFormFields[$formField->formCategory] = array();
+				}
+				$requestFormFields[$formField->formCategory][] = $formField;
+			}
+		}
+		return $requestFormFields;
+	}
+
+	function getAuthorLabelsAndSpecialFields($libraryId) {
+		require_once ROOT_DIR . '/sys/MaterialsRequestFormats.php';
+		return MaterialsRequestFormats::getAuthorLabelsAndSpecialFields($libraryId);
+	}
 }

@@ -69,8 +69,8 @@ class MaterialsRequest_NewRequest extends Action
 		
 		//Setup a default title based on the search term
 		$interface->assign('new', true);
-		if (isset($_REQUEST['lookfor']) && strlen ($_REQUEST['lookfor']) > 0){ 
-			$request = new MaterialsRequest();
+		$request = new MaterialsRequest();
+		if (isset($_REQUEST['lookfor']) && strlen ($_REQUEST['lookfor']) > 0){
 			$searchType = isset($_REQUEST['basicType']) ? $_REQUEST['basicType'] : (isset($_REQUEST['type']) ? $_REQUEST['type'] : 'Keyword');
 			if (strcasecmp($searchType, 'author') == 0){
 				$request->author = $_REQUEST['lookfor'];
@@ -97,56 +97,12 @@ class MaterialsRequest_NewRequest extends Action
 
 		if (isset($library)){
 			// Get the Fields to Display for the form
-			require_once ROOT_DIR . '/sys/MaterialsRequestFormFields.php';
-			$formFields            = new MaterialsRequestFormFields();
-			$formFields->libraryId = $library->libraryId;
-			$usingDefaultFormFields = $formFields->count() == 0;
-			if ($usingDefaultFormFields) {
-				$fieldsToSortByCategory = $formFields::getDefaultFormFields($library->libraryId);
-			} else {
-				$formFields->orderBy('weight');
-				/** @var MaterialsRequestFormFields[] $fieldsToSortByCategory */
-				$fieldsToSortByCategory = $formFields->fetchAll();
-			}
-
-			// If we use another interface variable that is sorted by category, this should be a method in the Interface class
-			$requestFormFields = array();
-			if ($fieldsToSortByCategory) {
-				foreach ($fieldsToSortByCategory as $formField) {
-					if (!array_key_exists($formField->formCategory, $requestFormFields)) {
-						$requestFormFields[$formField->formCategory] = array();
-					}
-					$requestFormFields[$formField->formCategory][] = $formField;
-				}
-			} else {
-				//TODO: Check for sql error & log as an error
-			}
+			$requestFormFields = $request->getRequestFormFields($library->libraryId);
 			$interface->assign('requestFormFields', $requestFormFields);
 
+			// Get Author Labels for all Formats and Formats that use Special Fields
+			list($formatAuthorLabels, $specialFieldFormats) = $request->getAuthorLabelsAndSpecialFields($library->libraryId);
 
-			// Get Author Labels for all Formats
-			$formatsUsingSpecialFields = new MaterialsRequestFormats();
-			$formatsUsingSpecialFields->libraryId = $library->libraryId;
-			$formatAuthorLabels = $specialFieldFormats = array();
-			$usingDefaultFormats = $formatsUsingSpecialFields->count() == 0;
-			if ($usingDefaultFormats) {
-				/** @var MaterialsRequestFormats $formatObj */
-				foreach (MaterialsRequestFormats::getDefaultMaterialRequestFormats() as $formatObj) {
-					$formatAuthorLabels[$formatObj->format] = $formatObj->authorLabel;
-					if (!empty($formatObj->specialFields)) {
-						$specialFieldFormats[$formatObj->format] = $formatObj->specialFields;
-					}
-				}
-			} else {
-				$formatAuthorLabels = $formatsUsingSpecialFields->fetchAll('format', 'authorLabel');
-
-				// Get Formats that use Special Fields
-				$formatsUsingSpecialFields = new MaterialsRequestFormats();
-				$formatsUsingSpecialFields->libraryId = $library->libraryId;
-				$formatsUsingSpecialFields->whereAdd('`specialFields` IS NOT NULL');
-				$specialFieldFormats = $formatsUsingSpecialFields->fetchAll('format', 'specialFields');
-
-			}
 			$interface->assign('formatAuthorLabelsJSON', json_encode($formatAuthorLabels));
 			$interface->assign('specialFieldFormatsJSON', json_encode($specialFieldFormats));
 		}

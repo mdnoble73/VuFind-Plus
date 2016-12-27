@@ -154,6 +154,39 @@ class MaterialsRequestFormats extends DB_DataObject
 		return $defaultFormats;
 	}
 
+
+	static function getAuthorLabelsAndSpecialFields($libraryId) {
+		// Format Labels
+		$formats = new self();
+		$formats->libraryId = $libraryId;
+		$usingDefaultFormats = $formats->count() == 0;
+
+		// Get Author Labels for all Formats
+		$specialFieldFormats = $formatAuthorLabels = array();
+		if ($usingDefaultFormats) {
+			$defaultFormats = self::getDefaultMaterialRequestFormats();
+			/** @var MaterialsRequestFormats $format */
+			foreach ($defaultFormats as $format) {
+				// Gather default Author Labels and default special Fields
+				$formatAuthorLabels[$format->format] = $format->authorLabel;
+				if (!empty($format->specialFields)) {
+					$specialFieldFormats[$format->format] = $format->specialFields;
+				}
+			}
+
+		} else {
+			$formatAuthorLabels = $formats->fetchAll('format', 'authorLabel');
+
+			// Get Formats that use Special Fields
+			$formats = new self();
+			$formats->libraryId = $libraryId;
+			$formats->whereAdd('`specialFields` IS NOT NULL');
+			$specialFieldFormats = $formats->fetchAll('format', 'specialFields');
+		}
+
+		return array($formatAuthorLabels, $specialFieldFormats);
+	}
+
 	public function fetch(){
 		$return = parent::fetch();
 		if ($return) {

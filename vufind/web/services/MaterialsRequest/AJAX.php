@@ -136,28 +136,8 @@ class MaterialsRequest_AJAX extends Action{
 								$interface->assign('requestUser', $requestUser);
 
 								// Get the Fields to Display for the form
-								require_once ROOT_DIR . '/sys/MaterialsRequestFormFields.php';
-								$formFields            = new MaterialsRequestFormFields();
-								$formFields->libraryId = $staffLibrary->libraryId;
-								$formFields->orderBy('weight');
-								/** @var MaterialsRequestFormFields[] $fieldsToSortByCategory */
-								$fieldsToSortByCategory = $formFields->fetchAll();
+								$requestFormFields = $materialsRequest->getRequestFormFields($staffLibrary->libraryId);
 
-								// If no values set get the defaults.
-								if (empty($fieldsToSortByCategory)) {
-									$fieldsToSortByCategory = $formFields::getDefaultFormFields($staffLibrary->libraryId);
-								}
-
-								// If we use another interface variable that is sorted by category, this should be a method in the Interface class
-								$requestFormFields = array();
-								if ($fieldsToSortByCategory) {
-									foreach ($fieldsToSortByCategory as $formField) {
-										if (!array_key_exists($formField->formCategory, $requestFormFields)) {
-											$requestFormFields[$formField->formCategory] = array();
-										}
-										$requestFormFields[$formField->formCategory][] = $formField;
-									}
-								}
 								$interface->assign('requestFormFields', $requestFormFields);
 
 								if ($user->hasRole('cataloging')) {
@@ -182,40 +162,24 @@ class MaterialsRequest_AJAX extends Action{
 								$interface->assign('availableFormats', $availableFormats);
 
 								// Get Author Labels for all Formats
-								$formatAuthorLabels = array();
+								list($formatAuthorLabels, $specialFieldFormats) = $materialsRequest->getAuthorLabelsAndSpecialFields($staffLibrary->libraryId);
 								if ($usingDefaultFormats) {
 									$defaultFormats = MaterialsRequestFormats::getDefaultMaterialRequestFormats();
 									/** @var MaterialsRequestFormats $format */
 									foreach ($defaultFormats as $format) {
-										// Gather default Author Labels and default special Fields
-										$formatAuthorLabels[$format->format] = $format->authorLabel;
-										if (!empty($format->specialFields)) {
-											$specialFieldFormats[$format->format] = $format->specialFields;
-										}
-										// Get the default values from this request
+										// Get the default values for this request
 										if ($materialsRequest->format == $format->format ){
 											$materialsRequest->formatLabel = $format->formatLabel;
 											$materialsRequest->authorLabel = $format->authorLabel;
 											$materialsRequest->specialFields = $format->specialFields;
+											break;
 										}
 									}
-
-								} else {
-									$formats = new MaterialsRequestFormats();
-									$formats->libraryId = $staffLibrary->libraryId;
-									$formatAuthorLabels = $formats->fetchAll('format', 'authorLabel');
-
-
-									// Get Formats that use Special Fields
-									$formatsUsingSpecialFields = new MaterialsRequestFormats();
-									$formatsUsingSpecialFields->libraryId = $staffLibrary->libraryId;
-									$formatsUsingSpecialFields->whereAdd('`specialFields` IS NOT NULL');
-									$specialFieldFormats = $formatsUsingSpecialFields->fetchAll('format', 'specialFields');
 								}
+
 								$interface->assign('formatAuthorLabelsJSON', json_encode($formatAuthorLabels));
 								$interface->assign('specialFieldFormatsJSON', json_encode($specialFieldFormats));
 
-								//TODO: Use this configuration options now ?
 								$interface->assign('showPhoneField', $configArray['MaterialsRequest']['showPhoneField']);
 								$interface->assign('showAgeField', $configArray['MaterialsRequest']['showAgeField']);
 								$interface->assign('showBookTypeField', $configArray['MaterialsRequest']['showBookTypeField']);
@@ -291,37 +255,12 @@ class MaterialsRequest_AJAX extends Action{
 			if (!empty($id) && ctype_digit($id)) {
 				$requestLibrary = $user->getHomeLibrary(); // staff member's or patron's home library
 				if (!empty($requestLibrary)) {
-
-					require_once ROOT_DIR . '/sys/MaterialsRequestFormFields.php';
-					$formFields            = new MaterialsRequestFormFields();
-					$formFields->libraryId = $requestLibrary->libraryId;
-					$usingDefaultFormFields = $formFields->count() == 0;
-					if ($usingDefaultFormFields) {
-						$fieldsToSortByCategory = $formFields::getDefaultFormFields($requestLibrary->libraryId);
-					} else {
-						$formFields->orderBy('weight');
-						/** @var MaterialsRequestFormFields[] $fieldsToSortByCategory */
-						$fieldsToSortByCategory = $formFields->fetchAll();
-					}
-
-					// If we use another interface variable that is sorted by category, this should be a method in the Interface class
-					$requestFormFields = array();
-						if ($fieldsToSortByCategory) {
-							foreach ($fieldsToSortByCategory as $formField) {
-								if (!array_key_exists($formField->formCategory, $requestFormFields)) {
-									$requestFormFields[$formField->formCategory] = array();
-								}
-								$requestFormFields[$formField->formCategory][] = $formField;
-							}
-						} else {
-							//TODO: Check for sql error & log as an error
-							//TODO:  Fall back to default table order
-						}
-					$interface->assign('requestFormFields', $requestFormFields);
-
-
 					$materialsRequest = new MaterialsRequest();
 					$materialsRequest->id  = $id;
+
+					$requestFormFields = $materialsRequest->getRequestFormFields($requestLibrary->libraryId);
+					$interface->assign('requestFormFields', $requestFormFields);
+
 
 					// Statuses
 					$statusQuery           = new MaterialsRequestStatus();
