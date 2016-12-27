@@ -35,7 +35,11 @@
 		</div>
 
 		<div id="related-objects-for-exhibit">
-
+			<div id="exhibit-results-loading" class="row" style="display: none">
+				<div class="alert alert-info">
+					Updating results, please wait.
+				</div>
+			</div>
 		</div>
 	</div>
 {/strip}

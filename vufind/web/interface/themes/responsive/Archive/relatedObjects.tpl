@@ -1,5 +1,11 @@
 {strip}
 	{if ($displayType == 'map' || $displayType == 'timeline' || $displayType == 'scroller') && $page == 1 && $reloadHeader == 1}
+		<div id="exhibit-results-loading" class="row" style="display: none">
+			<div class="alert alert-info">
+				Updating results, please wait.
+			</div>
+		</div>
+
 		<div class="row">
 			<div class="col-sm-6">
 				{if ($displayType == 'map' || $displayType == 'timeline')}

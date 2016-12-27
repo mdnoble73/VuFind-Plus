@@ -134,7 +134,7 @@ VuFind.Archive = (function(){
 		},
 
 		handleMapClick: function(markerIndex, exhibitPid, placePid, label, redirect){
-			$("#related-objects-for-exhibit").html('<h2>Loading...</h2>');
+			$("#exhibit-results-loading").show();
 			this.archive_info_window.setContent(label);
 			if (markerIndex >= 0){
 				this.archive_info_window.open(this.archive_map, this.markers[markerIndex]);
@@ -148,6 +148,7 @@ VuFind.Archive = (function(){
 			$.getJSON(Globals.path + "/Archive/AJAX?method=getRelatedObjectsForMappedCollection&collectionId=" + exhibitPid + "&placeId=" + placePid, function(data){
 				if (data.success){
 					$("#related-objects-for-exhibit").html(data.relatedObjects);
+					$("#exhibit-results-loading").hide();
 				}
 			});
 			var stateObj = {
@@ -170,35 +171,24 @@ VuFind.Archive = (function(){
 		},
 
 		handleTimelineClick: function(exhibitPid){
-			$("#related-objects-for-exhibit").html('<h2>Loading...</h2>');
+			$("#exhibit-results-loading").show();
 
 			$.getJSON(Globals.path + "/Archive/AJAX?method=getRelatedObjectsForTimelineExhibit&collectionId=" + exhibitPid, function(data){
 				if (data.success){
 					$("#related-objects-for-exhibit").html(data.relatedObjects);
+					$("#exhibit-results-loading").hide();
 				}
 			});
-			var stateObj = {
-				exhibitPid: exhibitPid,
-				page: "TimelineExhibit"
-			};
-			var newUrl = document.location.origin + document.location.pathname;
-			var currentParameters = VuFind.getQuerystringParameters();
-			if (currentParameters["style"] != undefined){
-				newUrl = VuFind.buildUrl(newUrl, 'style', currentParameters["style"]);
-			}
-			//Push the new url, but only if we aren't going back where we just were.
-			if (document.location.href != newUrl){
-				history.pushState(stateObj, label, newUrl);
-			}
 			return false;
 		},
 
 		handleCollectionScrollerClick: function(pid){
-			$("#related-objects-for-exhibit").html('<h2>Loading...</h2>');
+			$("#exhibit-results-loading").show();
 
 			$.getJSON(Globals.path + "/Archive/AJAX?method=getRelatedObjectsForScroller&pid=" + pid, function(data){
 				if (data.success){
 					$("#related-objects-for-exhibit").html(data.relatedObjects);
+					$("#exhibit-results-loading").hide();
 				}
 			});
 			return false;
@@ -230,6 +220,7 @@ VuFind.Archive = (function(){
 		},
 
 		reloadMapResults: function(exhibitPid, placePid, reloadHeader){
+			$("#exhibit-results-loading").show();
 			this.curPage = 1;
 			var url = Globals.path + "/Archive/AJAX?method=getRelatedObjectsForMappedCollection&collectionId=" + exhibitPid + "&placeId=" + placePid + "&page=" + this.curPage + "&sort=" + this.sort;
 			$("input[name=dateFilter]:checked").each(function(){
@@ -244,12 +235,13 @@ VuFind.Archive = (function(){
 					}else{
 						$("#results").html(data.relatedObjects);
 					}
-
+					$("#exhibit-results-loading").hide();
 				}
 			});
 		},
 
 		reloadTimelineResults: function(exhibitPid, reloadHeader){
+			$("#exhibit-results-loading").show();
 			this.curPage = 1;
 			var url = Globals.path + "/Archive/AJAX?method=getRelatedObjectsForTimelineExhibit&collectionId=" + exhibitPid + "&page=" + this.curPage + "&sort=" + this.sort;
 			$("input[name=dateFilter]:checked").each(function(){
@@ -264,11 +256,13 @@ VuFind.Archive = (function(){
 					}else{
 						$("#results").html(data.relatedObjects);
 					}
+					$("#exhibit-results-loading").hide();
 				}
 			});
 		},
 
 		reloadScrollerResults: function(pid, reloadHeader){
+			$("#exhibit-results-loading").show();
 			this.curPage = 1;
 			var url = Globals.path + "/Archive/AJAX?method=getRelatedObjectsForScroller&pid=" + pid + "&page=" + this.curPage + "&sort=" + this.sort;
 			url = url + "&reloadHeader=" + reloadHeader;
@@ -280,6 +274,7 @@ VuFind.Archive = (function(){
 					}else{
 						$("#results").html(data.relatedObjects);
 					}
+					$("#exhibit-results-loading").hide();
 				}
 			});
 		},
