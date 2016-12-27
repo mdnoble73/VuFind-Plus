@@ -295,8 +295,10 @@ class Archive_Exhibit extends Archive_Object{
 				$interface->assign('maxLat', $maxLat);
 				$interface->assign('minLong', $minLong);
 				$interface->assign('maxLong', $maxLong);
-				$interface->assign('mapCenterLat', $geometricMeanLat / $numPoints);
-				$interface->assign('mapCenterLong', $geometricMeanLong / $numPoints);
+				if ($numPoints > 0){
+					$interface->assign('mapCenterLat', $geometricMeanLat / $numPoints);
+					$interface->assign('mapCenterLong', $geometricMeanLong / $numPoints);
+				}
 
 				if (isset($_REQUEST['placePid'])){
 					$interface->assign('selectedPlace', urldecode($_REQUEST['placePid']));

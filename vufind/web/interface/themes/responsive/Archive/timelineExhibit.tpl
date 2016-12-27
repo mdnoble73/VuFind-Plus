@@ -20,7 +20,11 @@
 	<div class="clear-both"></div>
 
 	<div id="related-objects-for-exhibit">
-		Loading...
+		<div id="exhibit-results-loading" class="row">
+			<div class="alert alert-info">
+				Updating results, please wait.
+			</div>
+		</div>
 	</div>
 
 	{if $repositoryLink && $user && ($user->hasRole('archives') || $user->hasRole('opacAdmin') || $user->hasRole('libraryAdmin'))}

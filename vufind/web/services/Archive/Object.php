@@ -2,7 +2,7 @@
 /**
  * A superclass for Digital Archive Objects
  *
- * @category VuFind-Plus-2014 
+ * @category VuFind-Plus-2014
  * @author Mark Noble <mark@marmot.org>
  * Date: 9/9/2015
  * Time: 4:13 PM
@@ -30,10 +30,58 @@ abstract class Archive_Object extends Action {
 	 */
 	function display($mainContentTemplate, $pageTitle = null) {
 		global $interface;
+		global $user;
 
 		$pageTitle = $pageTitle == null ? $this->archiveObject->label : $pageTitle;
-
 		$interface->assign('breadcrumbText', $pageTitle);
+
+		//Check to see if usage is restricted or not.
+		$viewingRestrictions = $this->recordDriver->getViewingRestrictions();
+		if (count($viewingRestrictions) > 0){
+			$canView = false;
+			$validHomeLibraries = array();
+
+			if ($user && $user->getHomeLibrary()){
+				$validHomeLibraries[] = $user->getHomeLibrary()->subdomain;
+				$linkedAccounts = $user->getLinkedUsers();
+				foreach ($linkedAccounts as $linkedAccount){
+					$validHomeLibraries[] = $linkedAccount->getHomeLibrary()->subdomain;
+				}
+			}
+
+			foreach ($viewingRestrictions as $restriction){
+				$libraryDomain = trim($restriction);
+				if (array_search($libraryDomain, $validHomeLibraries) !== false){
+					//User is valid based on their login
+					$canView = true;
+					break;
+				}
+			}
+
+			if (!$canView){
+				global $locationSingleton;
+				$physicalLocation = $locationSingleton->getPhysicalLocation();
+				if ($physicalLocation){
+					$physicalLibrary = new Library();
+					$physicalLibrary->libraryId = $physicalLocation->libraryId;
+					if ($physicalLibrary->find(true)){
+						$physicalLibrarySubdomain = $physicalLibrary->subdomain;
+						foreach ($viewingRestrictions as $restriction){
+							$libraryDomain = trim($restriction);
+							if ($libraryDomain == $physicalLibrarySubdomain){
+								//User is valid based on their login
+								$canView = true;
+								break;
+							}
+						}
+					}
+				}
+			}
+		}else{
+			$canView = true;
+		}
+
+		$interface->assign('canView', $canView);
 
 		parent::display($mainContentTemplate, $pageTitle);
 	}
