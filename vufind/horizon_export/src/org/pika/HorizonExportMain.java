@@ -30,7 +30,6 @@ public class HorizonExportMain {
 	private static Logger logger = Logger.getLogger(HorizonExportMain.class);
 	private static String serverName; //Pika instance name
 	private static String recordNumberTag = "";
-	private static String marcEncoding;
 	private static String individualMarcPath;
 	private static Connection vufindConn;
 	private static PreparedStatement markGroupedWorkForBibAsChangedStmt;
@@ -50,7 +49,6 @@ public class HorizonExportMain {
 		// Read the base INI file to get information about the server (current directory/conf/config.ini)
 		Ini ini = loadConfigFile("config.ini");
 
-		marcEncoding = ini.get("Reindex", "marcEncoding");
 		recordNumberTag = ini.get("Reindex", "recordNumberTag");
 		individualMarcPath = ini.get("Reindex", "individualMarcPath");
 
@@ -130,7 +128,8 @@ public class HorizonExportMain {
 			logger.debug("Processing " + file.getName());
 			try {
 				FileInputStream marcFileStream = new FileInputStream(file);
-				MarcReader updatesReader = new MarcPermissiveStreamReader(marcFileStream, true, true, marcEncoding);
+				//Record Grouping always writes individual MARC records as UTF8
+				MarcReader updatesReader = new MarcPermissiveStreamReader(marcFileStream, true, true, "UTF8");
 				while (updatesReader.hasNext()) {
 					Record curBib = updatesReader.next();
 					String recordId = getRecordIdFromMarcRecord(curBib);
@@ -195,6 +194,7 @@ public class HorizonExportMain {
 
 			FileOutputStream marcOutputStream = new FileOutputStream(marcFile);
 			MarcStreamWriter updateWriter = new MarcStreamWriter(marcOutputStream);
+			updateWriter.setAllowOversizeEntry(true);
 			updateWriter.write(recordToUpdate);
 			updateWriter.close();
 			marcOutputStream.close();
