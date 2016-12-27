@@ -126,7 +126,8 @@ class Archive_Exhibit extends Archive_Object{
 						);
 						if ($collectionTemplate == 'scroller'){
 							$collectionTitle['image'] = $childObject->getBookcoverUrl('medium');
-							$collectionTitle['onclick'] = "return VuFind.Archive.handleCollectionScrollerClick('{$childObject->getUniqueID()}')";
+							//MDN 12/27/2016 Jordan and I talked today and decided that we would just show the actual object rather than using the scroller as a facet.
+							//$collectionTitle['onclick'] = "return VuFind.Archive.handleCollectionScrollerClick('{$childObject->getUniqueID()}')";
 						}
 						$collectionTitles[] = $collectionTitle;
 					}
