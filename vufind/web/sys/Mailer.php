@@ -77,7 +77,7 @@ class VuFindMailer {
 		//Allow the to address to be split
 		disableErrorHandler();
 		try{
-			//Validate the address list to make sure we don't get an error. 
+			//Validate the address list to make sure we don't get an error.
 			$validator->parseAddressList($to);
 		}catch (Exception $e){
 			return new PEAR_Error('Invalid Recipient Email Address');
