@@ -756,7 +756,7 @@ class Archive_AJAX extends Action {
 	 */
 	public function processTimelineData($response, $interface)
 	{
-		if (count($response['facet_counts']['facet_ranges']) > 0) {
+		if (isset($response['facet_counts']) && count($response['facet_counts']['facet_ranges']) > 0) {
 			$dateFacetInfo = array();
 			if (isset($response['facet_counts']['facet_ranges']['mods_originInfo_point_start_qualifier__dateCreated_dt'])) {
 				$dateCreatedInfo = $response['facet_counts']['facet_ranges']['mods_originInfo_point_start_qualifier__dateCreated_dt'];
