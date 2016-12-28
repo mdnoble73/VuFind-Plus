@@ -77,13 +77,15 @@ class MaterialsRequest_MyRequests extends MyAccount
 			$openRequests = $materialsRequests->count();
 			$interface->assign('openRequests', $openRequests);
 
+			$formats = MaterialsRequest::getFormats();
 
 			$materialsRequests = new MaterialsRequest();
 			$materialsRequests->createdBy = $user->id;
 			$materialsRequests->orderBy('title, dateCreated');
+
 			$statusQuery = new MaterialsRequestStatus();
 			if ($showOpen){
-				$homeLibrary = Library::getPatronHomeLibrary();
+				$homeLibrary = $user->getHomeLibrary();
 				$statusQuery->libraryId = $homeLibrary->libraryId;
 				$statusQuery->isOpen = 1;
 			}
@@ -92,6 +94,9 @@ class MaterialsRequest_MyRequests extends MyAccount
 			$materialsRequests->selectAdd('materials_request.*, description as statusLabel');
 			$materialsRequests->find();
 			while ($materialsRequests->fetch()){
+				if (array_key_exists($materialsRequests->format, $formats)){
+					$materialsRequests->format = $formats[$materialsRequests->format];
+				}
 				$allRequests[] = clone $materialsRequests;
 			}
 		}else{

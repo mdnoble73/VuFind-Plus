@@ -44,7 +44,6 @@ class MaterialsRequest_NewRequest extends Action
 			if ($user->email != 'notice@salidalibrary.org'){
 				$interface->assign('defaultEmail', $user->email);
 			}
-			// TODO: Only show locations for the library the request is going to.
 
 			// Hold Pick-up Locations
 			$locations = $locationSingleton->getPickupBranches($user, $user->homeLocationId);

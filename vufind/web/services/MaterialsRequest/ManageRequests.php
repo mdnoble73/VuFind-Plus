@@ -109,13 +109,9 @@ class MaterialsRequest_ManageRequests extends Admin_Admin {
 								$emailSignature = $staffSettings->materialsRequestEmailSignature;
 							}
 						}
-//						if (empty($replyToAddress)) {
-//							$replyToAddress = $configArray['Site']['email'];
-//							// TODO: setting this could be optional
-//						}
 
 						$body = '*****This is an auto-generated email response. Please do not reply.*****';
-						$body .= "\r\n" . $allStatuses[$statusToSet]->emailTemplate;
+						$body .= "\r\n\r\n" . $allStatuses[$statusToSet]->emailTemplate;
 
 						if (!empty($emailSignature)) {
 							$body .= "\r\n\r\n" .$emailSignature;
@@ -137,7 +133,6 @@ class MaterialsRequest_ManageRequests extends Admin_Admin {
 						}
 						$error = $mail->send($materialRequest->email, $configArray['Site']['email'], "Your Materials Request Update", $body, $replyToAddress);
 						if (PEAR_Singleton::isError($error)) {
-							//TODO: Report Email Error to Staff User
 							$interface->assign('error', $error->message);
 						}
 					}

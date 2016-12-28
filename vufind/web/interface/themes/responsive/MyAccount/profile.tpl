@@ -553,7 +553,7 @@
 											<label for="materialsRequestReplyToAddress" class="control-label">Reply-To Email Address:</label>
 										</div>
 										<div class="col-xs-8">
-											{if $edit == true}{* TODO: set previous value *}
+											{if $edit == true}
 											<input type="text" id="materialsRequestReplyToAddress" name="materialsRequestReplyToAddress" class="form-control multiemail" value="{$user->materialsRequestReplyToAddress}">
 											{else}
 												{$user->materialsRequestReplyToAddress}
@@ -565,7 +565,7 @@
 											<label for="materialsRequestEmailSignature" class="control-label">Email Signature:</label>
 										</div>
 										<div class="col-xs-8">
-											{if $edit == true}{* TODO: set previous value *}
+											{if $edit == true}
 												<textarea id="materialsRequestEmailSignature" name="materialsRequestEmailSignature" class="form-control">{$user->materialsRequestEmailSignature}</textarea>
 											{else}
 												{$user->materialsRequestEmailSignature}
