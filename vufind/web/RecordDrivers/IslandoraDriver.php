@@ -2031,7 +2031,7 @@ abstract class IslandoraDriver extends RecordInterface {
 	 */
 	public function getShowClaimAuthorship() {
 		if ($this->showClaimAuthorship == null){
-			$showClaimAuthorship = $this->getModsValue('pikaAccessLimits', 'marmot');
+			$showClaimAuthorship = $this->getModsValue('showClaimAuthorship', 'marmot');
 			if ($showClaimAuthorship == null || strcasecmp($showClaimAuthorship, 'no') === 0){
 				$this->showClaimAuthorship = false;
 			}else{
