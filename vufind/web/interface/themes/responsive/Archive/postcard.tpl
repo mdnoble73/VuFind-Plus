@@ -16,7 +16,12 @@
 				<img src="{$back_thumbnail}" class="img-responsive alternate-image" onclick="VuFind.Archive.openSeaDragonViewer.goToPage(1);">
 			</div>
 
-			<div id="download-options">
+		{else}
+			{include file="Archive/noAccess.tpl"}
+		{/if}
+
+		<div id="download-options">
+			{if $canView}
 				{if $anonymousLcDownload || ($user && $verifiedLcDownload)}
 					<a class="btn btn-default" href="/Archive/{$pid}/DownloadLC">Download Large Image</a>
 				{elseif (!$user && $verifiedLcDownload)}
@@ -27,13 +32,14 @@
 				{elseif (!$user && $verifiedLcDownload)}
 					<a class="btn btn-default" onclick="return VuFind.Account.followLinkIfLoggedIn(this)" href="/Archive/{$pid}/DownloadOriginal">Login to Download Original Image</a>
 				{/if}
-				{if $allowRequestsForArchiveMaterials}
-					<a class="btn btn-default" href="{$path}/Archive/RequestCopy?pid={$pid}">Request Copy</a>
-				{/if}
-			</div>
-		{else}
-			{include file="Archive/noAccess.tpl"}
-		{/if}
+			{/if}
+			{if $allowRequestsForArchiveMaterials}
+				<a class="btn btn-default" href="{$path}/Archive/RequestCopy?pid={$pid}">Request Copy</a>
+			{/if}
+			{if $showClaimAuthorship}
+				<a class="btn btn-default" href="{$path}/Archive/ClaimAuthorship?pid={$pid}">Claim Authorship</a>
+			{/if}
+		</div>
 
 		{include file="Archive/metadata.tpl"}
 	</div>

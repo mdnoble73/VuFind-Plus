@@ -26,5 +26,5 @@ Object Requested:
 {if $requestedObject}
 {$requestedObject->getTitle()}
 {else}
-Could not load requested object.  Pid is {$requestResult->purpose}
+Could not load requested object.  Pid is {$requestResult->getUniqueID()}
 {/if}

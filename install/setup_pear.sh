@@ -12,6 +12,7 @@ pear install --onlyreqdeps DB_DataObject-1.11.3
 pear install --onlyreqdeps Log
 pear install --onlyreqdeps Pager
 pear install --onlyreqdeps Mail
+pear install --onlyreqdeps Net_SMTP
 pear install --onlyreqdeps HTTP_Request
 pear install --onlyreqdeps XML_Serializer-beta
 pear install --onlyreqdeps File_Marc
@@ -28,5 +29,4 @@ pear install Horde/Horde_Yaml-beta
 #pear install --onlyreqdeps Structures_DataGrid_Renderer_HTMLTable-beta
 #pear install --onlyreqdeps HTTP_Client
 #pear install --onlyreqdeps Mail_Mime
-#pear install --onlyreqdeps Net_SMTP
 #pear install --onlyreqdeps Console_ProgressBar-beta

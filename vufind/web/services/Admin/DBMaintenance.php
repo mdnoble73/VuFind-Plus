@@ -2286,6 +2286,26 @@ class DBMaintenance extends Admin_Admin {
 									) ENGINE=InnoDB  DEFAULT CHARSET=utf8",
 							)
 					),
+
+					'claim_authorship_requests' => array(
+							'title' => 'Claim Authorship Requests',
+							'description' => 'Create a table to store information about the people who are claiming authorship of archive information',
+							'continueOnError' => true,
+							'sql' => array(
+									"CREATE TABLE IF NOT EXISTS claim_authorship_requests (
+									  `id` int(11) NOT NULL AUTO_INCREMENT,
+									  name VARCHAR(100) NOT NULL,
+									  phone VARCHAR(20),
+									  email VARCHAR(100),
+									  message MEDIUMTEXT,
+									  pid VARCHAR(50),
+									  dateRequested INT(11),
+									  PRIMARY KEY (`id`),
+									  INDEX(`pid`),
+									  INDEX(`name`)
+									) ENGINE=InnoDB  DEFAULT CHARSET=utf8",
+							)
+					),
 			)
 		);
 	}
