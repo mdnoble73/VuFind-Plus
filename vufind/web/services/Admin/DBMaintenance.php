@@ -713,6 +713,21 @@ class DBMaintenance extends Admin_Admin {
 						.'PRIMARY KEY (`id`),'
 						.'UNIQUE INDEX `id_UNIQUE` (`id` ASC),'
 						.'INDEX `libraryId` (`libraryId` ASC));'
+					),
+				),
+
+				'staffSettingsTable' => array(
+					'title' => 'Staff Settings Table Creation',
+					'description' => 'New table to contain user settings for staff users.',
+					'sql' => array(
+						'CREATE TABLE `user_staff_settings` ('
+						.'`id` INT UNSIGNED NOT NULL AUTO_INCREMENT,'
+						.'`userId` INT UNSIGNED NOT NULL,'
+						.'`materialsRequestReplyToAddress` VARCHAR(70) NULL,'
+						.'`materialsRequestEmailSignature` TINYTEXT NULL,'
+						.'PRIMARY KEY (`id`),'
+						.'UNIQUE INDEX `userId_UNIQUE` (`userId` ASC),'
+						.'INDEX `userId` (`userId` ASC));'
 
 					),
 				),

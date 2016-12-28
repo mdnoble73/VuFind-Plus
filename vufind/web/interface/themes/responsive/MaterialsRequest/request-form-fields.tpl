@@ -136,6 +136,7 @@
 				{* Readonly Fields *}
 			{elseif $formField->fieldType == 'id'}
 				{if $isAdminUser}
+					{assign var="hasId" value=1}
 					{assign var="materialRequestTableColumnName" value=$formField->fieldType}
 					<div class="request_detail_field row">
 						<label class="control-label col-sm-3">{$formField->fieldLabel}: </label>
@@ -370,6 +371,10 @@
 		{/foreach}
 	</fieldset>
 {/foreach}
+		{* Make Sure Id is always included when set, even if it isn't displayed *}
+		{if !$hasId && !empty($materialsRequest->id)}
+			<input type="hidden" name="id" id="id" value="{$materialsRequest->id}">
+		{/if}
 
 		{* Require User Login *}
 

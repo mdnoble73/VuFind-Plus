@@ -46,8 +46,6 @@ class MaterialsRequest extends DB_DataObject
 	public $bookmobileStop;
 	public $assignedTo;
 
-
-
 	//Dynamic properties setup by joins
 	public $numRequests;
 	public $description;

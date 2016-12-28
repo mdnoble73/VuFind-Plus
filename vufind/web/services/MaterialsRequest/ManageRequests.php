@@ -28,6 +28,9 @@ require_once(ROOT_DIR . '/sys/MaterialsRequestStatus.php');
 
 class MaterialsRequest_ManageRequests extends Admin_Admin {
 
+	/**
+	 *
+	 */
 	function launch()
 	{
 		global $configArray;
@@ -92,10 +95,31 @@ class MaterialsRequest_ManageRequests extends Admin_Admin {
 					$materialRequest->status = $statusToSet;
 					$materialRequest->dateUpdated = time();
 					$materialRequest->update();
-					
+
 					if ($allStatuses[$statusToSet]->sendEmailToPatron == 1 && $materialRequest->email){
+						$replyToAddress = $emailSignature = '';
+						if (!empty($materialRequest->assignedTo)) {
+							require_once ROOT_DIR . '/sys/Account/UserStaffSettings.php';
+							$staffSettings = new UserStaffSettings();
+							$staffSettings->get('userId', $materialRequest->assignedTo);
+							if (!empty($staffSettings->materialsRequestReplyToAddress)) {
+								$replyToAddress = $staffSettings->materialsRequestReplyToAddress;
+							}
+							if (!empty($staffSettings->materialsRequestEmailSignature)) {
+								$emailSignature = $staffSettings->materialsRequestEmailSignature;
+							}
+						}
+//						if (empty($replyToAddress)) {
+//							$replyToAddress = $configArray['Site']['email'];
+//							// TODO: setting this could be optional
+//						}
+
 						$body = '*****This is an auto-generated email response. Please do not reply.*****';
 						$body .= "\r\n" . $allStatuses[$statusToSet]->emailTemplate;
+
+						if (!empty($emailSignature)) {
+							$body .= "\r\n\r\n" .$emailSignature;
+						}
 						
 						//Replace tags with appropriate values 
 						$materialsRequestUser = new User();
@@ -111,8 +135,11 @@ class MaterialsRequest_ManageRequests extends Admin_Admin {
 								$body = str_replace('{' . $fieldName . '}', $fieldValue, $body);
 							}
 						}
-						$materialsRequestUser->find(true);
-						$mail->send($materialRequest->email, $configArray['Site']['email'], "Your Materials Request Update", $body, $configArray['Site']['email']);
+						$error = $mail->send($materialRequest->email, $configArray['Site']['email'], "Your Materials Request Update", $body, $replyToAddress);
+						if (PEAR_Singleton::isError($error)) {
+							//TODO: Report Email Error to Staff User
+							$interface->assign('error', $error->message);
+						}
 					}
 				}
 			}

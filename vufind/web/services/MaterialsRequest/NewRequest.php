@@ -49,18 +49,20 @@ class MaterialsRequest_NewRequest extends Action
 			// Hold Pick-up Locations
 			$locations = $locationSingleton->getPickupBranches($user, $user->homeLocationId);
 
+			$pickupLocations = array();
+			foreach ($locations as $curLocation) {
+				$pickupLocations[] = array(
+					'id' => $curLocation->locationId,
+					'displayName' => $curLocation->displayName,
+					'selected' => $curLocation->selected,
+				);
+			}
+			$interface->assign('pickupLocations', $pickupLocations);
+
 		}else{
-			$locations = $locationSingleton->getPickupBranches(false, -1);
+			$interface->assign('isLoginPage', true);
+//			$locations = $locationSingleton->getPickupBranches(false, -1);
 		}
-		$pickupLocations = array();
-		foreach ($locations as $curLocation) {
-			$pickupLocations[] = array(
-				'id' => $curLocation->locationId,
-				'displayName' => $curLocation->displayName,
-				'selected' => $curLocation->selected,
-			);
-		}
-		$interface->assign('pickupLocations', $pickupLocations);
 
 		
 		//Get a list of formats to show 

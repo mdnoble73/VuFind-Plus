@@ -70,7 +70,6 @@ class MaterialsRequest_Submit extends Action
 			if (!$enableMaterialsRequest){
 				$interface->assign('success', false);
 				$interface->assign('error', 'Sorry, only residents may submit materials requests at this time.');
-				//TODO: Special Format Check
 			}else if ($_REQUEST['format'] == 'article' && $_REQUEST['acceptCopyright'] != 1){
 				$interface->assign('success', false);
 				$interface->assign('error', 'Sorry, you must accept the copyright agreement before submitting a materials request.');
@@ -111,32 +110,40 @@ class MaterialsRequest_Submit extends Action
 					}else{
 						//Materials request can be submitted.
 						$materialsRequest = new MaterialsRequest();
-						$materialsRequest->phone = isset($_REQUEST['phone']) ? strip_tags($_REQUEST['phone']) : '';
-						$materialsRequest->email = isset($_REQUEST['email']) ? strip_tags($_REQUEST['email']) : '';
-						$materialsRequest->title = isset($_REQUEST['title']) ? strip_tags($_REQUEST['title']) : '';
-						$materialsRequest->season = isset($_REQUEST['season']) ? strip_tags($_REQUEST['season']) : '';
-						$materialsRequest->magazineTitle = isset($_REQUEST['magazineTitle']) ? strip_tags($_REQUEST['magazineTitle']) : '';
-						$materialsRequest->magazineDate = isset($_REQUEST['magazineDate']) ? strip_tags($_REQUEST['magazineDate']) : '';
-						$materialsRequest->magazineVolume = isset($_REQUEST['magazineVolume']) ? strip_tags($_REQUEST['magazineVolume']) : '';
-						$materialsRequest->magazineNumber = isset($_REQUEST['magazineNumber']) ? strip_tags($_REQUEST['magazineNumber']) : '';
+						$materialsRequest->phone                = isset($_REQUEST['phone']) ? strip_tags($_REQUEST['phone']) : '';
+						$materialsRequest->email               = isset($_REQUEST['email']) ? strip_tags($_REQUEST['email']) : '';
+						$materialsRequest->title               = isset($_REQUEST['title']) ? strip_tags($_REQUEST['title']) : '';
+						$materialsRequest->season              = isset($_REQUEST['season']) ? strip_tags($_REQUEST['season']) : '';
+						$materialsRequest->magazineTitle       = isset($_REQUEST['magazineTitle']) ? strip_tags($_REQUEST['magazineTitle']) : '';
+						$materialsRequest->magazineDate        = isset($_REQUEST['magazineDate']) ? strip_tags($_REQUEST['magazineDate']) : '';
+						$materialsRequest->magazineVolume      = isset($_REQUEST['magazineVolume']) ? strip_tags($_REQUEST['magazineVolume']) : '';
+						$materialsRequest->magazineNumber      = isset($_REQUEST['magazineNumber']) ? strip_tags($_REQUEST['magazineNumber']) : '';
 						$materialsRequest->magazinePageNumbers = isset($_REQUEST['magazinePageNumbers']) ? strip_tags($_REQUEST['magazinePageNumbers']) : '';
-						$materialsRequest->author = empty($_REQUEST['author']) ? '' : strip_tags($_REQUEST['author']);
-						$materialsRequest->format = empty($_REQUEST['format']) ? '' : strip_tags($_REQUEST['format']);
+						$materialsRequest->author              = empty($_REQUEST['author']) ? '' : strip_tags($_REQUEST['author']);
+						$materialsRequest->ageLevel            = isset($_REQUEST['ageLevel']) ? strip_tags($_REQUEST['ageLevel']) : '';
+						$materialsRequest->bookType            = isset($_REQUEST['bookType']) ? strip_tags($_REQUEST['bookType']) : '';
+						$materialsRequest->isbn                = isset($_REQUEST['isbn']) ? strip_tags($_REQUEST['isbn']) : '';
+						$materialsRequest->upc                 = isset($_REQUEST['upc']) ? strip_tags($_REQUEST['upc']) : '';
+						$materialsRequest->issn                = isset($_REQUEST['issn']) ? strip_tags($_REQUEST['issn']) : '';
+						$materialsRequest->oclcNumber          = isset($_REQUEST['oclcNumber']) ? strip_tags($_REQUEST['oclcNumber']) : '';
+						$materialsRequest->publisher           = empty($_REQUEST['publisher']) ? '' : strip_tags($_REQUEST['publisher']);
+						$materialsRequest->publicationYear     = empty($_REQUEST['publicationYear']) ? '' : strip_tags($_REQUEST['publicationYear']);
+						$materialsRequest->about               = empty($_REQUEST['about']) ? '' : strip_tags($_REQUEST['about']);
+						$materialsRequest->comments            = empty($_REQUEST['comments']) ? '' : strip_tags($_REQUEST['comments']);
+						$materialsRequest->placeHoldWhenAvailable = empty($_REQUEST['placeHoldWhenAvailable']) ? 0: $_REQUEST['placeHoldWhenAvailable'];
+						$materialsRequest->holdPickupLocation   = empty($_REQUEST['holdPickupLocation']) ? '' : $_REQUEST['holdPickupLocation'];
+						$materialsRequest->bookmobileStop       = empty($_REQUEST['bookmobileStop']) ? '' : $_REQUEST['bookmobileStop'];
+						$materialsRequest->illItem              = empty($_REQUEST['illItem']) ? 0 : $_REQUEST['illItem'];
+
+						$materialsRequest->format              = empty($_REQUEST['format']) ? '' : strip_tags($_REQUEST['format']);
 						// TODO: need to look up custom format use
 						if ($materialsRequest->format == 'ebook' && isset($_REQUEST['ebookFormat'])){
 							$materialsRequest->subFormat = strip_tags($_REQUEST['ebookFormat']);
 						}elseif ($materialsRequest->format == 'eaudio' && isset($_REQUEST['eaudioFormat'])){
 							$materialsRequest->subFormat = strip_tags($_REQUEST['eaudioFormat']);
 						}
+						// TODO: Does sub-format store properly
 						$materialsRequest->subFormat = isset($_REQUEST['subFormat']) ? strip_tags($_REQUEST['subFormat']) : '';
-						$materialsRequest->ageLevel = isset($_REQUEST['ageLevel']) ? strip_tags($_REQUEST['ageLevel']) : '';
-						$materialsRequest->bookType = isset($_REQUEST['bookType']) ? strip_tags($_REQUEST['bookType']) : '';
-						$materialsRequest->isbn = isset($_REQUEST['isbn']) ? strip_tags($_REQUEST['isbn']) : '';
-						$materialsRequest->upc = isset($_REQUEST['upc']) ? strip_tags($_REQUEST['upc']) : '';
-						$materialsRequest->issn = isset($_REQUEST['issn']) ? strip_tags($_REQUEST['issn']) : '';
-						$materialsRequest->oclcNumber = isset($_REQUEST['oclcNumber']) ? strip_tags($_REQUEST['oclcNumber']) : '';
-						$materialsRequest->publisher = empty($_REQUEST['publisher']) ? '' : strip_tags($_REQUEST['publisher']);
-						$materialsRequest->publicationYear =  empty($_REQUEST['publicationYear']) ? '' : strip_tags($_REQUEST['publicationYear']);
 						if (isset($_REQUEST['abridged'])){
 							if ($_REQUEST['abridged'] == 'abridged'){
 								$materialsRequest->abridged = 1;
@@ -146,12 +153,6 @@ class MaterialsRequest_Submit extends Action
 								$materialsRequest->abridged = 2; //Not applicable
 							}
 						}
-						$materialsRequest->about = empty($_REQUEST['about']) ? '' : strip_tags($_REQUEST['about']);
-						$materialsRequest->comments = empty($_REQUEST['comments']) ? '' : strip_tags($_REQUEST['comments']);
-						$materialsRequest->placeHoldWhenAvailable = empty($_REQUEST['placeHoldWhenAvailable']) ? 0: $_REQUEST['placeHoldWhenAvailable'];
-						$materialsRequest->holdPickupLocation =  empty($_REQUEST['holdPickupLocation']) ? '' : $_REQUEST['holdPickupLocation'];
-						$materialsRequest->bookmobileStop = empty($_REQUEST['bookmobileStop']) ? '' : $_REQUEST['bookmobileStop'];
-						$materialsRequest->illItem = empty($_REQUEST['illItem']) ? 0 : $_REQUEST['illItem'];
 
 						$defaultStatus = new MaterialsRequestStatus();
 						$defaultStatus->isDefault = 1;
