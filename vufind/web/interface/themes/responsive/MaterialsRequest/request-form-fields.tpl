@@ -24,7 +24,7 @@
 
 				{* Article Fields *}
 				<div class="form-group specialFormatField articleField">
-					<label for="magazineTitle" class="col-sm-3 control-label">Magazine/Journal Title: <span class="requiredIndicator">*</span> </label>
+					<label for="magazineTitle" class="col-sm-3 control-label">Magazine/Journal Title: {*<span class="requiredIndicator">*</span>*} </label>
 					<div class="col-sm-9">
 						<input name="magazineTitle" id="magazineTitle" size="90" maxlength="255" class="required form-control" value="{$materialsRequest->magazineTitle}">
 					</div>
@@ -150,7 +150,7 @@
 				{* Author Field *}
 			{elseif $formField->fieldType == 'author'}
 				<div class="row form-group">
-					<label id="authorFieldLabel" class="control-label col-sm-3" for="author">{$materialsRequest->authorLabel}: <span class="requiredIndicator">*</span></label>
+					<label id="authorFieldLabel" class="control-label col-sm-3" for="author">{$materialsRequest->authorLabel}: {*<span class="requiredIndicator">*</span>*}</label>
 					<div class="request_detail_field_value col-sm-9">
 						<input name="author" id="author" size="90" maxlength="255" class="required form-control" value="{$materialsRequest->author}">
 					</div>
