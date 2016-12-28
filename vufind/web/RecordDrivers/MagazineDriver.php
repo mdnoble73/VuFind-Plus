@@ -8,7 +8,7 @@
  * Date: 12/9/2015
  * Time: 1:47 PM
  */
-require_once ROOT_DIR . '/RecordDrivers/IslandoraDriver.php';
+require_once ROOT_DIR . '/RecordDrivers/BookDriver.php';
 class MagazineDriver extends BookDriver {
 
 	public function getViewAction() {
