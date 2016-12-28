@@ -107,7 +107,7 @@
 						{foreach from=$allRequests item=request}
 							<tr>
 								<td><input type="checkbox" name="select[{$request->id}]" class="select"></td>
-								{foreach from=$columnsToDisplay item=label key=column}
+								{foreach name="columnLoop" from=$columnsToDisplay item=label key=column}
 									{if $column == 'format'}
 										<td>
 											{if in_array($request->format, array_keys($availableFormats))}
@@ -149,7 +149,6 @@
 											{$request->getHoldLocationName($request->holdPickupLocation)}
 										</td>
 									{elseif $column == 'bookmobileStop'}
-										{*TODO: ormat this? *}
 										<td>{$request->bookmobileStop}</td>
 									{elseif $column == 'assignedTo'}
 										<td>{$request->assignedTo}</td>
@@ -200,6 +199,7 @@
 										<td>{$request->$column}</td>
 									{/if}
 								{/foreach}
+								{assign var="foundDateColumns" value=1}
 								<td>
 									<div class="btn-group btn-group-vertical btn-group-sm">
 										<button type="button" onclick="VuFind.MaterialsRequest.showMaterialsRequestDetails('{$request->id}')" class="btn btn-sm btn-info">Details</button>
@@ -264,19 +264,24 @@
 		{/if}
 	{/if}
 </div>
+	{*BBLARG!!*}
 
 <script type="text/javascript">
-{literal}
-$(function () {
+$(function () {ldelim}
 	$("#startDate").datepicker();
 	$("#endDate").datepicker();
-	$("#requestedMaterials").tablesorter({
+	$("#requestedMaterials").tablesorter({ldelim}
 		cssAsc: 'sortAscHeader',
 		cssDesc: 'sortDescHeader',
 		cssHeader: 'unsortedHeader',
 		widgets: ['zebra', 'filter'],
-		headers: { 0: {sorter: false}, 10: {sorter : 'date'}, 11: {sorter: false} }
+		headers: {ldelim}
+			0: {ldelim}sorter: false{rdelim},
+{foreach name=config from=$dateColumns item=columnNumber}
+	{$columnNumber+1}: {ldelim}sorter : 'date'{rdelim}{if !$smarty.foreach.config.last}, {/if}
+{/foreach}
+
+		}
 	});
 });
-{/literal}
 </script>

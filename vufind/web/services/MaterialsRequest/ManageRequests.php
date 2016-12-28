@@ -293,6 +293,15 @@ class MaterialsRequest_ManageRequests extends Admin_Admin {
 		}
 		$interface->assign('columnsToDisplay', $columnsToDisplay);
 
+		// Find Date Columns for Javascript Table sorter
+		$dateColumns = array();
+		foreach (array_keys($columnsToDisplay) as $index => $column) {
+			if (in_array($column, array('dateCreated', 'dateUpdated'))) {
+				$dateColumns[] = $index;
+			}
+		}
+		$interface->assign('dateColumns', $dateColumns); //data gets added within template
+
 		if (isset($_REQUEST['exportSelected'])){
 			$this->exportToExcel($_REQUEST['select'], $allRequests);
 		}else{
