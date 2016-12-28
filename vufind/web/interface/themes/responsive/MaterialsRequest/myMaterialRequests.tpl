@@ -16,21 +16,25 @@
 			You have used <strong>{$requestsThisYear}</strong> of your {$maxRequestsPerYear} yearly materials requests.  We also limit patrons to {$maxActiveRequests} active requests at a time.  You currently have <strong>{$openRequests}</strong> active requests.
 		</div>
 		<div id="materialsRequestFilters">
-			Filters:
-			<form action="{$path}/MaterialsRequest/MyRequests" method="get" class="form">
+			<legend>Filters:</legend>
+			<form action="{$path}/MaterialsRequest/MyRequests" method="get" class="form-inline">
 				<div>
-					<div>
-						Show:
-						<label for="openRequests"><input type="radio" id="openRequests" name="requestsToShow" value="openRequests" {if $showOpen}checked="checked"{/if}/> Open Requests</label>
-						<label for="allRequests"><input type="radio" id="allRequests" name="requestsToShow" value="allRequests" {if !$showOpen}checked="checked"{/if}/> All Requests</label>
+					<div class="form-group">
+						<label class="control-label">Show:</label>
+						<label for="openRequests" class="radio-inline">
+							<input type="radio" id="openRequests" name="requestsToShow" value="openRequests" {if $showOpen}checked="checked"{/if}> Open Requests
+						</label>
+						<label for="allRequests" class="radio-inline">
+							<input type="radio" id="allRequests" name="requestsToShow" value="allRequests" {if !$showOpen}checked="checked"{/if}> All Requests
+						</label>
 					</div>
-					<div>
+					<div class="form-group">
 						<input type="submit" name="submit" value="Update Filters" class="btn btn-sm btn-default">
 					</div>
 				</div>
 			</form>
 		</div>
-		<br/>
+		<br>
 		{if count($allRequests) > 0}
 			<table id="requestedMaterials" class="table table-striped table-condensed tablesorter">
 				<thead>
@@ -62,7 +66,7 @@
 				</tbody>
 			</table>
 		{else}
-			<div>There are no materials requests that meet your criteria.</div>
+			<div class="alert alert-warning">There are no materials requests that meet your criteria.</div>
 		{/if}
 		<div id="createNewMaterialsRequest"><a href="{$path}/MaterialsRequest/NewRequest" class="btn btn-primary btn-sm">Submit a New Materials Request</a></div>
 	{/if}
