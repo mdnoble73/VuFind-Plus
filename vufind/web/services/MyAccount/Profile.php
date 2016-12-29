@@ -29,7 +29,8 @@ class MyAccount_Profile extends MyAccount
 		global $user;
 
 		$ils = $configArray['Catalog']['ils'];
-		$interface->assign('showSMSNoticesInProfile', $ils == 'Sierra');
+		$smsEnabled = $configArray['Catalog']['smsEnabled'];
+		$interface->assign('showSMSNoticesInProfile', $ils == 'Sierra' && $smsEnabled == true);
 
 		if ($user) {
 
