@@ -300,7 +300,7 @@ class MaterialsRequest_AJAX extends Action{
 
 						$interface->assign('materialsRequest', $materialsRequest);
 
-						if ($user && $user->hasRole('cataloging') || $user->hasRole('library_material_requests')) {
+						if ($user && $user->hasRole('cataloging') || $user->hasRole('library_material_requests') || $user->hasRole('opacAdmin')) {
 							$interface->assign('showUserInformation', true);
 							//Load user information
 							$requestUser     = new User();
