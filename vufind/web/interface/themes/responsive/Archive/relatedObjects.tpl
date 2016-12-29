@@ -44,7 +44,7 @@
 		<div class="row">
 			<div class="col-sm-4">
 				{if $recordCount}
-					{$recordCount} objects found.
+					{$recordCount} total objects.
 				{/if}
 			</div>
 		</div>
