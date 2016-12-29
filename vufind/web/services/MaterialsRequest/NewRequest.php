@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- * 
+ *
  * @author Mark Noble <mnoble@turningleaftech.com>
  * @copyright Copyright (C) Anythink Libraries 2012.
  *
@@ -38,7 +38,7 @@ class MaterialsRequest_NewRequest extends Action
 		       $user,
 		       $library,
 		       $locationSingleton;
-		
+
 		if ($user){
 			$interface->assign('defaultPhone', $user->phone);
 			if ($user->email != 'notice@salidalibrary.org'){
@@ -63,11 +63,11 @@ class MaterialsRequest_NewRequest extends Action
 //			$locations = $locationSingleton->getPickupBranches(false, -1);
 		}
 
-		
-		//Get a list of formats to show 
+
+		//Get a list of formats to show
 		$availableFormats = MaterialsRequest::getFormats();
 		$interface->assign('availableFormats', $availableFormats);
-		
+
 		//Setup a default title based on the search term
 		$interface->assign('new', true);
 		$request = new MaterialsRequest();
@@ -78,8 +78,16 @@ class MaterialsRequest_NewRequest extends Action
 			}else{
 				$request->title = $_REQUEST['lookfor'];
 			}
-			$interface->assign('materialsRequest', $request);
 		}
+
+		if ($user) {
+			$request->phone = $user->phone;
+			if ($user->email != 'notice@salidalibrary.org') {
+				$request->email = $user->email;
+			}
+		}
+
+		$interface->assign('materialsRequest', $request);
 
 		$interface->assign('showPhoneField',        $configArray['MaterialsRequest']['showPhoneField']);
 		$interface->assign('showAgeField',          $configArray['MaterialsRequest']['showAgeField']);
@@ -89,7 +97,7 @@ class MaterialsRequest_NewRequest extends Action
 		$interface->assign('showPlaceHoldField',    $configArray['MaterialsRequest']['showPlaceHoldField']);
 		$interface->assign('showIllField',          $configArray['MaterialsRequest']['showIllField']);
 		$interface->assign('requireAboutField',     $configArray['MaterialsRequest']['requireAboutField']);
-		
+
 		$useWorldCat = false;
 		if (isset($configArray['WorldCat']) && isset($configArray['WorldCat']['apiKey'])){
 			$useWorldCat = strlen($configArray['WorldCat']['apiKey']) > 0;
