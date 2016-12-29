@@ -142,6 +142,24 @@ class MaterialsRequestFormats extends DB_DataObject
 		$defaultFormat->weight = count($defaultFormats) + 1;
 		$defaultFormats[] = $defaultFormat;
 
+		$defaultFormat = new MaterialsRequestFormats();
+		$defaultFormat->libraryId = $libraryId;
+		$defaultFormat->format = 'cassette';
+		$defaultFormat->formatLabel = translate('cassette');
+		$defaultFormat->authorLabel = 'Artist / Composer';
+		$defaultFormat->specialFields = array(); // (Abridged/Unabridged,Article Field,Eaudio format,Ebook format,Season')
+		$defaultFormat->weight = count($defaultFormats) + 1;
+		$defaultFormats[] = $defaultFormat;
+
+		$defaultFormat = new MaterialsRequestFormats();
+		$defaultFormat->libraryId = $libraryId;
+		$defaultFormat->format = 'vhs';
+		$defaultFormat->formatLabel = translate('vhs');
+		$defaultFormat->authorLabel = 'Actor / Director';
+		$defaultFormat->specialFields = array(); // (Abridged/Unabridged,Article Field,Eaudio format,Ebook format,Season')
+		$defaultFormat->weight = count($defaultFormats) + 1;
+		$defaultFormats[] = $defaultFormat;
+
 //		$defaultFormat = new MaterialsRequestFormats();
 //		$defaultFormat->libraryId = $libraryId;
 //		$defaultFormat->format = '';

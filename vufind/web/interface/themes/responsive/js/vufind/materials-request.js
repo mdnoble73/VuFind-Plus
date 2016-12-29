@@ -123,7 +123,7 @@ VuFind.MaterialsRequest = (function(){
 					hasSpecialFields = typeof VuFind.MaterialsRequest.specialFields != 'undefined';
 
 			$(".specialFormatField").hide(); // hide all the special fields
-			$(".specialFormatHideField").hide(); // show all the special format hide fields
+			$(".specialFormatHideField").show(); // show all the special format hide fields
 			if (hasSpecialFields){
 				if (VuFind.MaterialsRequest.specialFields[selectedFormat]) {
 					VuFind.MaterialsRequest.specialFields[selectedFormat].forEach(function (specifiedOption) {

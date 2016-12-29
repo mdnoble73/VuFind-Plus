@@ -1,3 +1,4 @@
+/*
 function getWorldCatIdentifiers(){
 	var title = $("#title").val();
 	var author = $("#author").val();
@@ -199,4 +200,4 @@ function materialsRequestLogin(){
 
 function printRequestBody(){
 	$("#request_details_body").printElement();
-}
+} */

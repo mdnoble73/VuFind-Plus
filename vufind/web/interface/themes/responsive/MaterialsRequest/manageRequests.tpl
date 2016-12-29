@@ -1,5 +1,3 @@
-<script type="text/javascript" src="{$path}/services/MaterialsRequest/ajax.js"></script>
-
 <div id="main-content" class="col-md-12">
 	<h2>Manage Materials Requests</h2>
 	{if $error}

@@ -93,7 +93,7 @@ class Admin_Libraries extends ObjectEditor
 				'url' => '/Admin/Libraries?id=' . $existingObject->libraryId . '&amp;objectAction=copyFacetsFromLibrary',
 			);
 			$objectActions[] = array(
-				'text' => 'Set Materials Request Update Form To Default',
+				'text' => 'Set Materials Request Form Structure To Default',
 				'url' => '/Admin/Libraries?id=' . $existingObject->libraryId . '&amp;objectAction=defaultMaterialsRequestForm',
 			);
 			$objectActions[] = array(
