@@ -48,7 +48,7 @@ class MaterialsRequestFormats extends DB_DataObject
 		$defaultFormat->format = 'book';
 		$defaultFormat->formatLabel = translate('Book');
 		$defaultFormat->authorLabel = 'Author';
-		$defaultFormat->specialFields = array('Abridged/Unabridged'); // (Abridged/Unabridged,Article Field,Eaudio format,Ebook format,Season')
+		$defaultFormat->specialFields = array(); // (Abridged/Unabridged,Article Field,Eaudio format,Ebook format,Season')
 		$defaultFormat->weight = count($defaultFormats) + 1;
 		$defaultFormats[] = $defaultFormat;
 
@@ -57,7 +57,7 @@ class MaterialsRequestFormats extends DB_DataObject
 		$defaultFormat->format = 'largePrint';
 		$defaultFormat->formatLabel = translate('Large Print');
 		$defaultFormat->authorLabel = 'Author';
-		$defaultFormat->specialFields = array('Abridged/Unabridged'); // (Abridged/Unabridged,Article Field,Eaudio format,Ebook format,Season')
+		$defaultFormat->specialFields = array(); // (Abridged/Unabridged,Article Field,Eaudio format,Ebook format,Season')
 		$defaultFormat->weight = count($defaultFormats) + 1;
 		$defaultFormats[] = $defaultFormat;
 
@@ -84,7 +84,7 @@ class MaterialsRequestFormats extends DB_DataObject
 		$defaultFormat->format = 'cdAudio';
 		$defaultFormat->formatLabel = translate('CD Audio Book');
 		$defaultFormat->authorLabel = 'Author';
-		$defaultFormat->specialFields = array(); // (Abridged/Unabridged,Article Field,Eaudio format,Ebook format,Season')
+		$defaultFormat->specialFields = array('Abridged/Unabridged'); // (Abridged/Unabridged,Article Field,Eaudio format,Ebook format,Season')
 		$defaultFormat->weight = count($defaultFormats) + 1;
 		$defaultFormats[] = $defaultFormat;
 
@@ -111,7 +111,7 @@ class MaterialsRequestFormats extends DB_DataObject
 		$defaultFormat->format = 'eaudio';
 		$defaultFormat->formatLabel = translate('eAudio');
 		$defaultFormat->authorLabel = 'Author';
-		$defaultFormat->specialFields = array('Eaudio format'); // (Abridged/Unabridged,Article Field,Eaudio format,Ebook format,Season')
+		$defaultFormat->specialFields = array('Eaudio format','Abridged/Unabridged'); // (Abridged/Unabridged,Article Field,Eaudio format,Ebook format,Season')
 		$defaultFormat->weight = count($defaultFormats) + 1;
 		$defaultFormats[] = $defaultFormat;
 
@@ -120,7 +120,7 @@ class MaterialsRequestFormats extends DB_DataObject
 		$defaultFormat->format = 'playaway';
 		$defaultFormat->formatLabel = translate('Playaway');
 		$defaultFormat->authorLabel = 'Author';
-		$defaultFormat->specialFields = array(); // (Abridged/Unabridged,Article Field,Eaudio format,Ebook format,Season')
+		$defaultFormat->specialFields = array('Abridged/Unabridged'); // (Abridged/Unabridged,Article Field,Eaudio format,Ebook format,Season')
 		$defaultFormat->weight = count($defaultFormats) + 1;
 		$defaultFormats[] = $defaultFormat;
 
@@ -138,7 +138,7 @@ class MaterialsRequestFormats extends DB_DataObject
 		$defaultFormat->format = 'cassette';
 		$defaultFormat->formatLabel = translate('Cassette');
 		$defaultFormat->authorLabel = 'Artist / Composer';
-		$defaultFormat->specialFields = array(); // (Abridged/Unabridged,Article Field,Eaudio format,Ebook format,Season')
+		$defaultFormat->specialFields = array('Abridged/Unabridged'); // (Abridged/Unabridged,Article Field,Eaudio format,Ebook format,Season')
 		$defaultFormat->weight = count($defaultFormats) + 1;
 		$defaultFormats[] = $defaultFormat;
 
