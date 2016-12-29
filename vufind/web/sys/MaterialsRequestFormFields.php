@@ -34,13 +34,12 @@ class MaterialsRequestFormFields extends DB_DataObject
 		'publisher'  => 'Publisher',
 		'publicationYear' => 'Publication Year',
 //		'articleInfo' => 'Article Information',
-//		'abridged' => 'abridged',
 		'about'    => 'About',
 		'comments' => 'Comments',
 		'status'   => 'Status',
 		'dateCreated' => 'Date Created',
 		'createdBy'   => 'Created By',
-		'dateUpdated' => 'dateUpdated',
+		'dateUpdated' => 'Date Updated',
 		'libraryCardNumber' => 'Library Card Number',
 		'emailSent'   => 'Email Sent',
 		'holdsCreated' => 'Holds Created',
@@ -48,8 +47,7 @@ class MaterialsRequestFormFields extends DB_DataObject
 		'phone'  => 'Phone',
 		'upc' => 'UPC',
 		'issn' => 'ISSN',
-		'bookType' => 'Book Type', // TODO
-	  'subFormat' => 'Sub-format', // TODO
+		'bookType' => 'Book Type',
 		'placeHoldWhenAvailable' => 'Place Hold when Available',
 		'holdPickupLocation' => 'Hold Pick-up Location',
 		'bookmobileStop' => 'Bookmobile Stop', // kept with hold pick up location
