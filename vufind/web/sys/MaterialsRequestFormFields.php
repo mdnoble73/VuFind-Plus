@@ -52,7 +52,7 @@ class MaterialsRequestFormFields extends DB_DataObject
 	  'subFormat' => 'Sub-format', // TODO
 		'placeHoldWhenAvailable' => 'Place Hold when Available',
 		'holdPickupLocation' => 'Hold Pick-up Location',
-//		'bookmobileStop' => 'bookmobileStop', // kept with hold pick up location
+		'bookmobileStop' => 'Bookmobile Stop', // kept with hold pick up location
 		'illItem'        => 'Inter-library Loan Item',
 		'assignedTo'     => 'Assigned To'
 	);
@@ -101,7 +101,6 @@ class MaterialsRequestFormFields extends DB_DataObject
 		$defaultField->fieldType = 'author';
 		$defaultField->weight = count($defaultFieldsToDisplay)+1;
 		$defaultFieldsToDisplay[] = $defaultField;
-
 
 		// Hold Options
 		$defaultField = new MaterialsRequestFormFields();

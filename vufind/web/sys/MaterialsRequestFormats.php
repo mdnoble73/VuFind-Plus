@@ -217,6 +217,8 @@ class MaterialsRequestFormats extends DB_DataObject
 	public function insert() {
 		if (is_array($this->specialFields)) {
 			$this->specialFields = implode(',', $this->specialFields);
+		}else{
+			$this->specialFields = '';
 		}
 		return parent::insert();
 	}
@@ -224,6 +226,8 @@ class MaterialsRequestFormats extends DB_DataObject
 	public function update($dataObject = false) {
 		if (is_array($this->specialFields)) {
 			$this->specialFields = implode(',', $this->specialFields);
+		}else{
+			$this->specialFields = '';
 		}
 		return parent::update($dataObject);
 	}
