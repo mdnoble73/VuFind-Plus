@@ -40,11 +40,6 @@ class MaterialsRequest_NewRequest extends Action
 		       $locationSingleton;
 
 		if ($user){
-			$interface->assign('defaultPhone', $user->phone);
-			if ($user->email != 'notice@salidalibrary.org'){
-				$interface->assign('defaultEmail', $user->email);
-			}
-
 			// Hold Pick-up Locations
 			$locations = $locationSingleton->getPickupBranches($user, $user->homeLocationId);
 
