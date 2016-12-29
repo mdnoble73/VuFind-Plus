@@ -133,6 +133,38 @@ class MaterialsRequestFormFields extends DB_DataObject
 		$defaultField = new MaterialsRequestFormFields();
 		$defaultField->libraryId = $libraryId;
 		$defaultField->formCategory = 'Supplemental Details (optional)';
+		$defaultField->fieldLabel = 'Age Level';
+		$defaultField->fieldType = 'ageLevel';
+		$defaultField->weight = count($defaultFieldsToDisplay)+1;
+		$defaultFieldsToDisplay[] = $defaultField;
+
+		$defaultField = new MaterialsRequestFormFields();
+		$defaultField->libraryId = $libraryId;
+		$defaultField->formCategory = 'Supplemental Details (optional)';
+		$defaultField->fieldLabel = 'Type';
+		$defaultField->fieldType = 'bookType';
+		$defaultField->weight = count($defaultFieldsToDisplay)+1;
+		$defaultFieldsToDisplay[] = $defaultField;
+
+		$defaultField = new MaterialsRequestFormFields();
+		$defaultField->libraryId = $libraryId;
+		$defaultField->formCategory = 'Supplemental Details (optional)';
+		$defaultField->fieldLabel = 'Publisher';
+		$defaultField->fieldType = 'publisher';
+		$defaultField->weight = count($defaultFieldsToDisplay)+1;
+		$defaultFieldsToDisplay[] = $defaultField;
+
+		$defaultField = new MaterialsRequestFormFields();
+		$defaultField->libraryId = $libraryId;
+		$defaultField->formCategory = 'Supplemental Details (optional)';
+		$defaultField->fieldLabel = 'Publication Year';
+		$defaultField->fieldType = 'publicationYear';
+		$defaultField->weight = count($defaultFieldsToDisplay)+1;
+		$defaultFieldsToDisplay[] = $defaultField;
+
+		$defaultField = new MaterialsRequestFormFields();
+		$defaultField->libraryId = $libraryId;
+		$defaultField->formCategory = 'Supplemental Details (optional)';
 		$defaultField->fieldLabel = 'How and/or where did you hear about this title';
 		$defaultField->fieldType = 'about';
 		$defaultField->weight = count($defaultFieldsToDisplay)+1;
