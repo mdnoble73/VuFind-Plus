@@ -157,7 +157,6 @@ VuFind.MaterialsRequest = (function(){
 			//Update labels as needed
 			if (VuFind.MaterialsRequest.authorLabels){
 				if (VuFind.MaterialsRequest.authorLabels[selectedFormat]) {
-					// console.log('Setting author Label to '+ VuFind.MaterialsRequest.authorLabels[selectedFormat]);
 					$("#authorFieldLabel").html(VuFind.MaterialsRequest.authorLabels[selectedFormat] + ': ');
 				//	TODO: Set when required
 				}
@@ -176,12 +175,6 @@ VuFind.MaterialsRequest = (function(){
 				$("#titleLabel").html("Title <span class='requiredIndicator'>*</span>");
 			}
 
-			//TODO: Adujst on My Request Page
-			// if (hasSpecialFields && VuFind.MaterialsRequest.specialFields[selectedFormat] && (VuFind.MaterialsRequest.specialFields[selectedFormat].indexOf('Ebook format') > -1 || VuFind.MaterialsRequest.specialFields[selectedFormat].indexOf('Eaudio format') > -1)){
-			// 	$("#illInfo,#pickupLocationField").hide();
-			// }else{
-			// 	$("#illInfo,#pickupLocationField").show();
-			// }
 		},
 
 		updateHoldOptions: function(){
@@ -239,8 +232,9 @@ VuFind.MaterialsRequest = (function(){
 			return false;
 		},
 
-		printRequestBody: function(){
-			$("#request_details_body").printElement();
-		}
+		// no uses for this found. plb 12-29-2017
+		// printRequestBody: function(){
+		// 	$("#request_details_body").printElement();
+		// }
 	};
 }(VuFind.MaterialsRequest || {}));

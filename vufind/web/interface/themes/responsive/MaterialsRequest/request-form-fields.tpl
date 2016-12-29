@@ -8,7 +8,7 @@
 			{if $formField->fieldType == 'format'}
 				{assign var="materialRequestTableColumnName" value=$formField->fieldType}
 				<div class="row form-group">
-					<label class="control-label col-sm-3" for="format">{$formField->fieldLabel}: </label>
+					<label class="control-label col-sm-3" for="format">{$formField->fieldLabel}: <span class="requiredIndicator">*</span></label>
 					<div class="request_detail_field_value col-sm-9">
 
 						<select name="format" class="required form-control" id="format" onchange="VuFind.MaterialsRequest.setFieldVisibility();">
@@ -24,7 +24,7 @@
 
 				{* Article Fields *}
 				<div class="form-group specialFormatField articleField">
-					<label for="magazineTitle" class="col-sm-3 control-label">Magazine/Journal Title: {*<span class="requiredIndicator">*</span>*} </label>
+					<label for="magazineTitle" class="col-sm-3 control-label">Magazine/Journal Title: <span class="requiredIndicator">*</span> </label>
 					<div class="col-sm-9">
 						<input name="magazineTitle" id="magazineTitle" size="90" maxlength="255" class="required form-control" value="{$materialsRequest->magazineTitle}">
 					</div>
@@ -101,7 +101,6 @@
 					</div>
 				</div>
 
-				{*TODO: Make Book Type Special Format Field *}
 				{* Book Type Input Fields *}
 			{elseif $formField->fieldType == 'bookType'}
 				{assign var="materialRequestTableColumnName" value=$formField->fieldType}
@@ -152,7 +151,7 @@
 				<div class="row form-group">
 					<label id="authorFieldLabel" class="control-label col-sm-3" for="author">{$materialsRequest->authorLabel}: {*<span class="requiredIndicator">*</span>*}</label>
 					<div class="request_detail_field_value col-sm-9">
-						<input name="author" id="author" size="90" maxlength="255" class="required form-control" value="{$materialsRequest->author}">
+						<input name="author" id="author" size="90" maxlength="255" class="{*required *}form-control" value="{$materialsRequest->author}">
 					</div>
 				</div>
 
@@ -176,7 +175,7 @@
 			$formField->fieldType == 'title'}
 				{assign var="materialRequestTableColumnName" value=$formField->fieldType}
 				<div class="row form-group">
-					<label for="{$materialRequestTableColumnName}" class="control-label col-sm-3">{$formField->fieldLabel}: </label>
+					<label id="titleLabel" for="{$materialRequestTableColumnName}" class="control-label col-sm-3">{$formField->fieldLabel}: <span class='requiredIndicator'>*</span></label>
 					<div class="request_detail_field_value col-sm-9">
 						<input name="{$materialRequestTableColumnName}" id="{$materialRequestTableColumnName}"
 										size="90" maxlength="255"
