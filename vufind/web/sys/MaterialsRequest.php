@@ -11,6 +11,7 @@ class MaterialsRequest extends DB_DataObject
 
 	// Note: if table column names are changed, data for class MaterialsRequestFieldsToDisplay will need updated.
 	public $id;
+//	public $libraryId;
 	public $title;
 	public $season;
 	public $magazineTitle;
@@ -85,6 +86,7 @@ class MaterialsRequest extends DB_DataObject
 					}
 
 				} else {
+					$customFormats->orderBy('weight');
 					$availableFormats = $customFormats->fetchAll('format', 'formatLabel');
 				}
 			}
