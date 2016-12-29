@@ -145,7 +145,7 @@ class MaterialsRequestFormats extends DB_DataObject
 		$defaultFormat = new MaterialsRequestFormats();
 		$defaultFormat->libraryId = $libraryId;
 		$defaultFormat->format = 'cassette';
-		$defaultFormat->formatLabel = translate('cassette');
+		$defaultFormat->formatLabel = translate('Cassette');
 		$defaultFormat->authorLabel = 'Artist / Composer';
 		$defaultFormat->specialFields = array(); // (Abridged/Unabridged,Article Field,Eaudio format,Ebook format,Season')
 		$defaultFormat->weight = count($defaultFormats) + 1;
@@ -154,7 +154,7 @@ class MaterialsRequestFormats extends DB_DataObject
 		$defaultFormat = new MaterialsRequestFormats();
 		$defaultFormat->libraryId = $libraryId;
 		$defaultFormat->format = 'vhs';
-		$defaultFormat->formatLabel = translate('vhs');
+		$defaultFormat->formatLabel = translate('VHS');
 		$defaultFormat->authorLabel = 'Actor / Director';
 		$defaultFormat->specialFields = array(); // (Abridged/Unabridged,Article Field,Eaudio format,Ebook format,Season')
 		$defaultFormat->weight = count($defaultFormats) + 1;
