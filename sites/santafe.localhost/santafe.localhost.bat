@@ -27,7 +27,7 @@ set GC_TUNE=-XX:NewRatio=3 ^
 
 REM Start Solr
 call ..\default\solr\bin\solr.cmd start -p 8187 -m 1g -s "c:\data\vufind-plus\santafe.localhost\solr_master" -d "c:\web\VuFind-Plus\sites\default\solr\jetty"
-call ..\default\solr\bin\solr.cmd start -p 8087 -m 2g -a "-Dsolr.masterport=8186" -s "c:\data\vufind-plus\santafe.localhost\solr_searcher" -d "c:\web\VuFind-Plus\sites\default\solr\jetty"
+call ..\default\solr\bin\solr.cmd start -p 8087 -m 2g -a "-Dsolr.masterport=8187" -s "c:\data\vufind-plus\santafe.localhost\solr_searcher" -d "c:\web\VuFind-Plus\sites\default\solr\jetty"
 goto done
 
 :stop
