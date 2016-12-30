@@ -45,8 +45,8 @@ VuFind.MaterialsRequest = (function(){
 			}
 		},
 
-		showMaterialsRequestDetails: function(id){
-			return VuFind.Account.ajaxLightbox(Globals.path + "/MaterialsRequest/AJAX?method=MaterialsRequestDetails&id=" +id, true);
+		showMaterialsRequestDetails: function(id, staffView){
+			return VuFind.Account.ajaxLightbox(Globals.path + "/MaterialsRequest/AJAX?method=MaterialsRequestDetails&id=" +id + "&staffView=" +staffView, true);
 		},
 
 		updateMaterialsRequest: function(id){

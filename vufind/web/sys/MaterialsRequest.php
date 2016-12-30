@@ -150,7 +150,7 @@ class MaterialsRequest extends DB_DataObject
 		return false;
 	}
 
-	function getRequestFormFields($libraryId) {
+	function getRequestFormFields($libraryId, $isStaffRequest = false) {
 		require_once ROOT_DIR . '/sys/MaterialsRequestFormFields.php';
 		$formFields            = new MaterialsRequestFormFields();
 		$formFields->libraryId = $libraryId;
@@ -161,6 +161,14 @@ class MaterialsRequest extends DB_DataObject
 		// If no values set get the defaults.
 		if (empty($fieldsToSortByCategory)) {
 			$fieldsToSortByCategory = $formFields::getDefaultFormFields($libraryId);
+		}
+
+		if (!$isStaffRequest){
+			foreach ($fieldsToSortByCategory as $fieldKey => $fieldDetails){
+				if (in_array($fieldDetails->fieldType, array('assignedTo','createdBy','libraryCardNumber','id','status'))){
+					unset($fieldsToSortByCategory[$fieldKey]);
+				}
+			}
 		}
 
 		// If we use another interface variable that is sorted by category, this should be a method in the Interface class

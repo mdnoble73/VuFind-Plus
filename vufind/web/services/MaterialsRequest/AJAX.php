@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- * 
+ *
  * @author Mark Noble <mnoble@turningleaftech.com>
  * @copyright Copyright (C) Anythink Libraries 2012.
  *
@@ -29,7 +29,7 @@ require_once ROOT_DIR . '/sys/MaterialsRequestStatus.php';
  * MaterialsRequest AJAX Page, handles returing asynchronous information about Materials Requests.
  */
 class MaterialsRequest_AJAX extends Action{
-	
+
 	function AJAX() {
 	}
 
@@ -45,7 +45,7 @@ class MaterialsRequest_AJAX extends Action{
 			echo "Unknown Method";
 		}
 	}
-	
+
 	function CancelRequest(){
 		global $user;
 		if (!$user){
@@ -136,7 +136,7 @@ class MaterialsRequest_AJAX extends Action{
 								$interface->assign('requestUser', $requestUser);
 
 								// Get the Fields to Display for the form
-								$requestFormFields = $materialsRequest->getRequestFormFields($staffLibrary->libraryId);
+								$requestFormFields = $materialsRequest->getRequestFormFields($staffLibrary->libraryId, true);
 								$interface->assign('requestFormFields', $requestFormFields);
 
 								if ($user->hasRole('cataloging')) {
@@ -257,7 +257,7 @@ class MaterialsRequest_AJAX extends Action{
 		);
 		return $return;
 	}
-	
+
 	function MaterialsRequestDetails(){
 		global $interface;
 		global $user;
@@ -273,7 +273,8 @@ class MaterialsRequest_AJAX extends Action{
 					$materialsRequest = new MaterialsRequest();
 					$materialsRequest->id  = $id;
 
-					$requestFormFields = $materialsRequest->getRequestFormFields($requestLibrary->libraryId);
+					$staffView = $_REQUEST['staffView'];
+					$requestFormFields = $materialsRequest->getRequestFormFields($requestLibrary->libraryId, $staffView);
 					$interface->assign('requestFormFields', $requestFormFields);
 
 
@@ -351,7 +352,7 @@ class MaterialsRequest_AJAX extends Action{
 		);
 		return $return;
 	}
-	
+
 	function GetWorldCatIdentifiers(){
 		$worldCatTitles = $this->GetWorldCatTitles();
 		if ($worldCatTitles['success'] == false){
@@ -368,7 +369,7 @@ class MaterialsRequest_AJAX extends Action{
 							break;
 						}
 					}
-					$title['isbn'] = $identifier; 
+					$title['isbn'] = $identifier;
 				}elseif (isset($title['oclcNumber'])){
 					$identifier = $title['oclcNumber'];
 				}
@@ -385,7 +386,7 @@ class MaterialsRequest_AJAX extends Action{
 			'formattedSuggestions' => $interface->fetch('MaterialsRequest/ajax-suggested-identifiers.tpl')
 		);
 	}
-	
+
 	function GetWorldCatTitles(){
 		global $configArray;
 		if (!isset($_REQUEST['title']) && !isset($_REQUEST['author'])){
@@ -400,7 +401,7 @@ class MaterialsRequest_AJAX extends Action{
 			}
 			if (isset($_REQUEST['author'])){
 				$worldCatUrl .= '+' . urlencode($_REQUEST['author']);
-			} 
+			}
 			if (isset($_REQUEST['format'])){
 				if (in_array($_REQUEST['format'],array('dvd', 'cassette', 'vhs', 'playaway'))){
 					$worldCatUrl .= '+' . urlencode($_REQUEST['format']);
@@ -422,14 +423,14 @@ class MaterialsRequest_AJAX extends Action{
 					'description' => (string)$item->description,
 					'link' => (string)$item->link
 				);
-				
+
 				$oclcChildren = $item->children('oclcterms', TRUE);
 				foreach ($oclcChildren as $child){
 					/** @var SimpleXMLElement $child */
 					if ($child->getName() == 'recordIdentifier'){
 						$curTitle['oclcNumber'] = (string)$child;
 					}
-					
+
 				}
 				$dcChildren = $item->children('dc', TRUE);
 				foreach ($dcChildren as $child){
@@ -438,14 +439,14 @@ class MaterialsRequest_AJAX extends Action{
 						$curTitle[$identifierFields[1]][] = $identifierFields[2];
 					}
 				}
-				
+
 				$contentChildren = $item->children('content', TRUE);
 				foreach ($contentChildren as $child){
 					if ($child->getName() == 'encoded'){
 						$curTitle['citation'] = (string)$child;
 					}
 				}
-				
+
 				if (strlen($curTitle['description']) == 0 && isset($curTitle["ISBN"]) && is_array($curTitle["ISBN"]) && count($curTitle["ISBN"]) > 0){
 					//Get the description from syndetics
 					require_once ROOT_DIR . '/Drivers/marmot_inc/GoDeeperData.php';

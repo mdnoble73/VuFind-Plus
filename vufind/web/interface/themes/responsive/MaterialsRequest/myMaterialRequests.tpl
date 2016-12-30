@@ -56,7 +56,7 @@
 							<td>{$request->statusLabel|translate}</td>
 							<td>{$request->dateCreated|date_format}</td>
 							<td>
-								<a role="button" onclick='VuFind.MaterialsRequest.showMaterialsRequestDetails("{$request->id}")' class="btn btn-info btn-sm">Details</a>
+								<a role="button" onclick='VuFind.MaterialsRequest.showMaterialsRequestDetails("{$request->id}", false)' class="btn btn-info btn-sm">Details</a>
 								{if $request->status == $defaultStatus}
 								<a role="button" onclick="return VuFind.MaterialsRequest.cancelMaterialsRequest('{$request->id}');" class="btn btn-danger btn-sm">Cancel Request</a>
 								{/if}

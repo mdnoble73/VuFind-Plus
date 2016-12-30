@@ -202,6 +202,38 @@ class MaterialsRequestFormFields extends DB_DataObject
 			$defaultFieldsToDisplay[] = $defaultField;
 		}
 
+		$defaultField = new MaterialsRequestFormFields();
+		$defaultField->libraryId = $libraryId;
+		$defaultField->formCategory = 'Staff Information';
+		$defaultField->fieldLabel = 'Request Id';
+		$defaultField->fieldType = 'id';
+		$defaultField->weight = count($defaultFieldsToDisplay) + 1;
+		$defaultFieldsToDisplay[] = $defaultField;
+
+		$defaultField = new MaterialsRequestFormFields();
+		$defaultField->libraryId = $libraryId;
+		$defaultField->formCategory = 'Staff Information';
+		$defaultField->fieldLabel = 'Status';
+		$defaultField->fieldType = 'status';
+		$defaultField->weight = count($defaultFieldsToDisplay) + 1;
+		$defaultFieldsToDisplay[] = $defaultField;
+
+		$defaultField = new MaterialsRequestFormFields();
+		$defaultField->libraryId = $libraryId;
+		$defaultField->formCategory = 'Staff Information';
+		$defaultField->fieldLabel = 'Created By';
+		$defaultField->fieldType = 'createdBy';
+		$defaultField->weight = count($defaultFieldsToDisplay) + 1;
+		$defaultFieldsToDisplay[] = $defaultField;
+
+		$defaultField = new MaterialsRequestFormFields();
+		$defaultField->libraryId = $libraryId;
+		$defaultField->formCategory = 'Staff Information';
+		$defaultField->fieldLabel = 'Library Card';
+		$defaultField->fieldType = 'libraryCardNumber';
+		$defaultField->weight = count($defaultFieldsToDisplay) + 1;
+		$defaultFieldsToDisplay[] = $defaultField;
+
 //		$defaultField = new MaterialsRequestFormFields();
 //		$defaultField->libraryId = $libraryId;
 //		$defaultField->formCategory = '';
