@@ -76,7 +76,7 @@ class MaterialsRequest_NewRequest extends Action
 		}
 
 		if ($user) {
-			$request->phone = $user->phone;
+			$request->phone = str_replace('### TEXT ONLY ', '', $user->phone);
 			if ($user->email != 'notice@salidalibrary.org') {
 				$request->email = $user->email;
 			}
@@ -103,6 +103,23 @@ class MaterialsRequest_NewRequest extends Action
 			// Get the Fields to Display for the form
 			$requestFormFields = $request->getRequestFormFields($library->libraryId);
 			$interface->assign('requestFormFields', $requestFormFields);
+
+			//TODO
+			// Add bookmobile Stop to the pickup locations if that form field is being used.
+			foreach ($requestFormFields as $catagory) {
+				/** @var MaterialsRequestFormFields $formField */
+				foreach ($catagory as $formField) {
+					if ($formField->fieldType == 'bookmobileStop') {
+						$pickupLocations[] = array(
+							'id' => 'bookmobile',
+							'displayName' => $formField->fieldLabel,
+							'selected' => false,
+						);
+						$interface->assign('pickupLocations', $pickupLocations);
+						break 2;
+					}
+				}
+			}
 
 			// Get Author Labels for all Formats and Formats that use Special Fields
 			list($formatAuthorLabels, $specialFieldFormats) = $request->getAuthorLabelsAndSpecialFields($library->libraryId);

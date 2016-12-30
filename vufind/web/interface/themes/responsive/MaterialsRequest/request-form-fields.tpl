@@ -13,6 +13,7 @@
 					<div class="request_detail_field_value col-sm-9">
 
 						<select name="format" class="required form-control" id="format" onchange="VuFind.MaterialsRequest.setFieldVisibility();">
+							{* For New Requests, set the first format as the one selected by default *}
 							{foreach from=$availableFormats item=label key=formatKey}
 								<option value="{$formatKey}"{if $materialsRequest->format==$formatKey} selected='selected'{/if}>{$label}</option>
 							{/foreach}
@@ -307,11 +308,11 @@
 						<div class="request_detail_field_value col-sm-9">
 
 							<label for="{$materialRequestTableColumnName}Yes" class="radio-inline">
-								<input type="radio" name="{$materialRequestTableColumnName}" value="1" id="{$materialRequestTableColumnName}Yes"{if $materialsRequest->$materialRequestTableColumnName == 1} checked="checked"{/if}>Yes
+								<input type="radio" name="{$materialRequestTableColumnName}" value="1" id="{$materialRequestTableColumnName}Yes"{if $materialsRequest->$materialRequestTableColumnName == 1} checked="checked"{/if} onchange="VuFind.MaterialsRequest.updateHoldOptions()">Yes
 							</label>
 							&nbsp;&nbsp;
 							<label for="{$materialRequestTableColumnName}No" class="radio-inline">
-								<input type="radio" name="{$materialRequestTableColumnName}" value="0" id="{$materialRequestTableColumnName}No"{if $materialsRequest->$materialRequestTableColumnName == 0} checked="checked"{/if}>No
+								<input type="radio" name="{$materialRequestTableColumnName}" value="0" id="{$materialRequestTableColumnName}No"{if $materialsRequest->$materialRequestTableColumnName == 0} checked="checked"{/if} onchange="VuFind.MaterialsRequest.updateHoldOptions()">No
 							</label>
 
 						</div>
@@ -319,8 +320,8 @@
 				{/if}
 
 			{elseif $formField->fieldType == 'holdPickupLocation'}
-				{if $showUserInformation || $new} {*TODO: Should patron see ShowUser*}
-					<div class="row form-group ebookHideField eaudioHideField" id="pickupLocationField">
+				{if $showUserInformation || $new} {* Not shown till placeHoldWhenAvailable is set to yes. *}
+					<div id="pickupLocationField" class="row form-group ebookHideField eaudioHideField" style="display: none">
 						<label for="pickupLocation" class="control-label col-sm-3">{$formField->fieldLabel}: </label>
 						<div class=" request_detail_field_value col-sm-9">
 							<select name="holdPickupLocation" id="pickupLocation" onchange="VuFind.MaterialsRequest.updateHoldOptions();" class="form-control">
@@ -330,14 +331,19 @@
 							</select>
 						</div>
 					</div>
-					<div id="bookmobileStopField" class="form-group ebookHideField eaudioHideField ">
-						<label for="bookmobileStop" class="control-label col-sm-3">Bookmobile Stop: </label>
+				{/if}
+			{elseif $formField->fieldType == 'bookmobileStop'}
+				{if $showUserInformation || $new}
+					{assign var="materialRequestTableColumnName" value=$formField->fieldType}
+					{* Book Mobile Stop Field should be hidden by default, gets shown when holdPickUpLocation is set to bookmobile (done by VuFind.MaterialsRequest.updateHoldOptions() *}
+					<div id="bookmobileStopField" class="row form-group ebookHideField eaudioHideField" style="display: none">
+						<label for="{$materialRequestTableColumnName}" class="control-label col-sm-3">{$formField->fieldLabel}: </label>
 						<div class="col-sm-9">
-							<input name="bookmobileStop" id="bookmobileStop" size="50" maxlength="50" class="form-control" value="{$materialsRequest->bookmobileStop}">
+							<input name="{$materialRequestTableColumnName}" id="{$materialRequestTableColumnName}" size="50" maxlength="50" class="form-control" value="{$materialsRequest->$materialRequestTableColumnName}">
 						</div>
 					</div>
-
 				{/if}
+
 			{elseif $formField->fieldType == 'libraryCardNumber'}
 				{if $showUserInformation}
 					{if $barCodeColumn}

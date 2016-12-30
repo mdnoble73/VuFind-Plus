@@ -127,6 +127,7 @@
 						$formField->fieldType == 'magazinePageNumbers' ||
 						$formField->fieldType == 'upc' ||
 						$formField->fieldType == 'issn' ||
+						$formField->fieldType == 'bookmobileStop' ||
 						$formField->fieldType == 'season'}
 						{assign var="materialRequestTableColumnName" value=$formField->fieldType}
 						<div class="request_detail_field row">
@@ -226,7 +227,7 @@
 									<label class="request_detail_field_label col-sm-3">{$formField->fieldLabel}: </label>
 									<div class=" request_detail_field_value col-sm-9">
 										{$materialsRequest->location}
-										{if $materialsRequest->bookmobileStop}{$materialsRequest->bookmobileStop}{/if}
+										{*{if $materialsRequest->bookmobileStop}{$materialsRequest->bookmobileStop}{/if}*}
 									</div>
 								</div>
 							{/if}

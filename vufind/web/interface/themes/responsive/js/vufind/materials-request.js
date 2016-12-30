@@ -124,6 +124,7 @@ VuFind.MaterialsRequest = (function(){
 
 			$(".specialFormatField").hide(); // hide all the special fields
 			$(".specialFormatHideField").show(); // show all the special format hide fields
+			this.updateHoldOptions();
 			if (hasSpecialFields){
 				if (VuFind.MaterialsRequest.specialFields[selectedFormat]) {
 					VuFind.MaterialsRequest.specialFields[selectedFormat].forEach(function (specifiedOption) {
@@ -166,7 +167,7 @@ VuFind.MaterialsRequest = (function(){
 				$("#magazineTitle,#acceptCopyrightYes").addClass('required');
 				$("#acceptCopyrightYes").addClass('required');
 				$("#copyright").show();
-				$("#supplementalDetails").hide(); //TODO: only on my request page
+				$("#supplementalDetails").hide();
 				$("#titleLabel").html("Article Title <span class='requiredIndicator'>*</span>");
 			}else{
 				$("#magazineTitle,#acceptCopyrightYes").removeClass('required');
@@ -178,8 +179,9 @@ VuFind.MaterialsRequest = (function(){
 		},
 
 		updateHoldOptions: function(){
-			var placeHold = $("input[name=placeHoldWhenAvailable]:checked").val();
-			if (placeHold == 1){
+			var placeHold = $("input[name=placeHoldWhenAvailable]:checked").val() == 1 || $("input[name=illItem]:checked").val() == 1;
+			// comparison needed to change placeHold to a boolean
+			if (placeHold){
 				$("#pickupLocationField").show();
 				if ($("#pickupLocation").find("option:selected").val() == 'bookmobile'){
 					$("#bookmobileStopField").show();

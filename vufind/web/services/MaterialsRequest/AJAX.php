@@ -137,90 +137,105 @@ class MaterialsRequest_AJAX extends Action{
 
 								// Get the Fields to Display for the form
 								$requestFormFields = $materialsRequest->getRequestFormFields($staffLibrary->libraryId);
-
 								$interface->assign('requestFormFields', $requestFormFields);
 
 								if ($user->hasRole('cataloging')) {
-									$canUpdate   = true;
+									$canUpdate   = true; // TODO: Cataloging supersedes library_materials_requests??
 									$isAdminUser = true;
 								} elseif ($user->id == $materialsRequest->createdBy) {
 									$canUpdate = true;
-								} else if ($user->hasRole('library_material_requests')) {
+								} elseif ($user->hasRole('library_material_requests')) {
 									//User can update if the home library of the requester is their library
 
 									$requestUserLibrary = $requestUser->getHomeLibrary();
 									$canUpdate          = $requestUserLibrary->libraryId == $staffLibrary->libraryId;
 									$isAdminUser        = true;
 								}
-							} else {
-								$interface->assign('error', 'Sorry, we couldn\'t find this user that made this request.');
-							}
-							if ($canUpdate) {
-								$interface->assign('isAdminUser', $isAdminUser);
-								//Get a list of formats to show
-								$availableFormats = MaterialsRequest::getFormats();
-								$interface->assign('availableFormats', $availableFormats);
+								if ($canUpdate) {
+									$interface->assign('isAdminUser', $isAdminUser);
+									//Get a list of formats to show
+									$availableFormats = MaterialsRequest::getFormats();
+									$interface->assign('availableFormats', $availableFormats);
 
-								// Get Author Labels for all Formats
-								list($formatAuthorLabels, $specialFieldFormats) = $materialsRequest->getAuthorLabelsAndSpecialFields($staffLibrary->libraryId);
-								if ($usingDefaultFormats) {
-									$defaultFormats = MaterialsRequestFormats::getDefaultMaterialRequestFormats();
-									/** @var MaterialsRequestFormats $format */
-									foreach ($defaultFormats as $format) {
-										// Get the default values for this request
-										if ($materialsRequest->format == $format->format ){
-											$materialsRequest->formatLabel = $format->formatLabel;
-											$materialsRequest->authorLabel = $format->authorLabel;
-											$materialsRequest->specialFields = $format->specialFields;
-											break;
+									// Get Author Labels for all Formats
+									list($formatAuthorLabels, $specialFieldFormats) = $materialsRequest->getAuthorLabelsAndSpecialFields($staffLibrary->libraryId);
+									if ($usingDefaultFormats) {
+										$defaultFormats = MaterialsRequestFormats::getDefaultMaterialRequestFormats();
+										/** @var MaterialsRequestFormats $format */
+										foreach ($defaultFormats as $format) {
+											// Get the default values for this request
+											if ($materialsRequest->format == $format->format ){
+												$materialsRequest->formatLabel = $format->formatLabel;
+												$materialsRequest->authorLabel = $format->authorLabel;
+												$materialsRequest->specialFields = $format->specialFields;
+												break;
+											}
 										}
 									}
+
+									$interface->assign('formatAuthorLabelsJSON', json_encode($formatAuthorLabels));
+									$interface->assign('specialFieldFormatsJSON', json_encode($specialFieldFormats));
+
+									$interface->assign('showPhoneField', $configArray['MaterialsRequest']['showPhoneField']);
+									$interface->assign('showAgeField', $configArray['MaterialsRequest']['showAgeField']);
+									$interface->assign('showBookTypeField', $configArray['MaterialsRequest']['showBookTypeField']);
+									$interface->assign('showEbookFormatField', $configArray['MaterialsRequest']['showEbookFormatField']);
+									$interface->assign('showEaudioFormatField', $configArray['MaterialsRequest']['showEaudioFormatField']);
+									$interface->assign('showPlaceHoldField', $configArray['MaterialsRequest']['showPlaceHoldField']);
+									$interface->assign('showIllField', $configArray['MaterialsRequest']['showIllField']);
+									$interface->assign('requireAboutField', $configArray['MaterialsRequest']['requireAboutField']);
+
+									$interface->assign('materialsRequest', $materialsRequest);
+									$interface->assign('showUserInformation', true);
+
+									// Hold Pick-up Locations
+									$location = new Location();
+									$locationList = $location->getPickupBranches($requestUser, $materialsRequest->holdPickupLocation);
+									$pickupLocations = array();
+									foreach ($locationList as $curLocation) {
+										$pickupLocations[] = array(
+											'id' => $curLocation->locationId,
+											'displayName' => $curLocation->displayName,
+											'selected' => $curLocation->selected,
+										);
+									}
+
+									// Add bookmobile Stop to the pickup locations if that form field is being used.
+									foreach ($requestFormFields as $catagory) {
+										/** @var MaterialsRequestFormFields $formField */
+										foreach ($catagory as $formField) {
+											if ($formField->fieldType == 'bookmobileStop') {
+												$pickupLocations[] = array(
+													'id' => 'bookmobile',
+													'displayName' => $formField->fieldLabel,
+													'selected' => $materialsRequest->holdPickupLocation == 'bookmobile',
+												);
+												break 2;
+											}
+										}
+									}
+
+									$interface->assign('pickupLocations', $pickupLocations);
+
+									// Get Statuses
+									$materialsRequestStatus = new MaterialsRequestStatus();
+									$materialsRequestStatus->orderBy('isDefault DESC, isOpen DESC, description ASC');
+									$materialsRequestStatus->libraryId = $staffLibrary->libraryId;
+									$availableStatuses = $materialsRequestStatus->fetchAll('id', 'description');
+									$interface->assign('availableStatuses', $availableStatuses);
+
+									// Get Barcode Column
+									$barCodeColumn = null;
+									if ($accountProfile = $user->getAccountProfile()) {
+										$barCodeColumn = $accountProfile->loginConfiguration == 'name_barcode' ? 'cat_password' : 'cat_username';
+									}
+									$interface->assign('barCodeColumn', $barCodeColumn);
+
+								} else {
+									$interface->assign('error', 'Sorry, you don\'t have permission to update this request.');
 								}
-
-								$interface->assign('formatAuthorLabelsJSON', json_encode($formatAuthorLabels));
-								$interface->assign('specialFieldFormatsJSON', json_encode($specialFieldFormats));
-
-								$interface->assign('showPhoneField', $configArray['MaterialsRequest']['showPhoneField']);
-								$interface->assign('showAgeField', $configArray['MaterialsRequest']['showAgeField']);
-								$interface->assign('showBookTypeField', $configArray['MaterialsRequest']['showBookTypeField']);
-								$interface->assign('showEbookFormatField', $configArray['MaterialsRequest']['showEbookFormatField']);
-								$interface->assign('showEaudioFormatField', $configArray['MaterialsRequest']['showEaudioFormatField']);
-								$interface->assign('showPlaceHoldField', $configArray['MaterialsRequest']['showPlaceHoldField']);
-								$interface->assign('showIllField', $configArray['MaterialsRequest']['showIllField']);
-								$interface->assign('requireAboutField', $configArray['MaterialsRequest']['requireAboutField']);
-
-								$interface->assign('materialsRequest', $materialsRequest);
-								$interface->assign('showUserInformation', true);
-
-								// Hold Pick-up Locations
-								$location = new Location();
-								$locationList = $location->getPickupBranches($requestUser, $materialsRequest->holdPickupLocation);
-								$pickupLocations = array();
-								foreach ($locationList as $curLocation) {
-									$pickupLocations[] = array(
-										'id' => $curLocation->locationId,
-										'displayName' => $curLocation->displayName,
-										'selected' => $curLocation->selected,
-									);
-								}
-								$interface->assign('pickupLocations', $pickupLocations);
-
-								// Get Statuses
-								$materialsRequestStatus = new MaterialsRequestStatus();
-								$materialsRequestStatus->orderBy('isDefault DESC, isOpen DESC, description ASC');
-								$materialsRequestStatus->libraryId = $staffLibrary->libraryId;
-								$availableStatuses = $materialsRequestStatus->fetchAll('id', 'description');
-								$interface->assign('availableStatuses', $availableStatuses);
-
-								// Get Barcode Column
-								$barCodeColumn = null;
-								if ($accountProfile = $user->getAccountProfile()) {
-									$barCodeColumn = $accountProfile->loginConfiguration == 'name_barcode' ? 'cat_password' : 'cat_username';
-								}
-								$interface->assign('barCodeColumn', $barCodeColumn);
-
 							} else {
-								$interface->assign('error', 'Sorry, you don\'t have permission to update this request.');
+								$interface->assign('error', 'Sorry, we couldn\'t find the user that made this request.');
 							}
 						} else {
 							$interface->assign('error', 'Sorry, we couldn\'t find a materials request for that id.');
@@ -332,7 +347,7 @@ class MaterialsRequest_AJAX extends Action{
 		$return = array(
 				'title'        => 'Materials Request Details',
 				'modalBody'    => $interface->fetch('MaterialsRequest/ajax-request-details.tpl'),
-				'modalButtons' => '' //TODO idea: add Update Request button
+				'modalButtons' => '' //TODO idea: add Update Request button (for staff only?)
 		);
 		return $return;
 	}
