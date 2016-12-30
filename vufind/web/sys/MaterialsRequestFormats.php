@@ -231,4 +231,8 @@ class MaterialsRequestFormats extends DB_DataObject
 		}
 		return parent::update($dataObject);
 	}
+
+ public function hasSpecialFieldOption($option) {
+		return in_array($option, $this->specialFields);
+ }
 }
