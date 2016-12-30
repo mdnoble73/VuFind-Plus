@@ -1,5 +1,6 @@
 {strip}
-	{if $user}
+
+<div class="materialsRequestLoggedInFields" {if !$user}style="display:none"{/if}>
 {foreach from=$requestFormFields key=category item=formFields}
 	<fieldset>
 		<legend>{$category}</legend>
@@ -374,10 +375,10 @@
 		{if !$hasId && !empty($materialsRequest->id)}
 			<input type="hidden" name="id" id="id" value="{$materialsRequest->id}">
 		{/if}
-
+</div>
 		{* Require User Login *}
 
-	{elseif $new}
+	{if $new && !$user}
 		<div id="materialsRequestLogin">
 			<fieldset>
 				<legend>{translate text="Login to your account"}</legend>

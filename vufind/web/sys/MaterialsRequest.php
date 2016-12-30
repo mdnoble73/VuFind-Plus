@@ -63,33 +63,37 @@ class MaterialsRequest extends DB_DataObject
 		$availableFormats = array();
 		$customFormats = new MaterialsRequestFormats();
 		global $user;
+		global $library;
+		$requestLibrary = $library;
 		if (!empty($user)) {
 			$homeLibrary = $user->getHomeLibrary();
 			if (isset($homeLibrary)) {
-				$customFormats->libraryId = $homeLibrary->libraryId;
+				$requestLibrary = $homeLibrary;
+			}
+		}
 
-				if ($customFormats->count() == 0 ) {
-					// Default Formats to use when no custom formats are created.
+		$customFormats->libraryId = $requestLibrary->libraryId;
 
-					/** @var MaterialsRequestFormats[] $defaultFormats */
-					$defaultFormats = MaterialsRequestFormats::getDefaultMaterialRequestFormats($homeLibrary->libraryId);
-					$availableFormats = array();
+		if ($customFormats->count() == 0 ) {
+			// Default Formats to use when no custom formats are created.
 
-					global $configArray;
-					foreach ($defaultFormats as $index => $materialRequestFormat){
-						$format = $materialRequestFormat->format;
-						if (isset($configArray['MaterialsRequestFormats'][$format]) && $configArray['MaterialsRequestFormats'][$format] == false){
-							// dont add this format
-						} else {
-							$availableFormats[$format] = $materialRequestFormat->formatLabel;
-						}
-					}
+			/** @var MaterialsRequestFormats[] $defaultFormats */
+			$defaultFormats = MaterialsRequestFormats::getDefaultMaterialRequestFormats($homeLibrary->libraryId);
+			$availableFormats = array();
 
+			global $configArray;
+			foreach ($defaultFormats as $index => $materialRequestFormat){
+				$format = $materialRequestFormat->format;
+				if (isset($configArray['MaterialsRequestFormats'][$format]) && $configArray['MaterialsRequestFormats'][$format] == false){
+					// dont add this format
 				} else {
-					$customFormats->orderBy('weight');
-					$availableFormats = $customFormats->fetchAll('format', 'formatLabel');
+					$availableFormats[$format] = $materialRequestFormat->formatLabel;
 				}
 			}
+
+		} else {
+			$customFormats->orderBy('weight');
+			$availableFormats = $customFormats->fetchAll('format', 'formatLabel');
 		}
 
 		return $availableFormats;
