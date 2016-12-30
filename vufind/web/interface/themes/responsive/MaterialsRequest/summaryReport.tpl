@@ -46,7 +46,7 @@
 
 			<legend>Table</legend>
 
-			<table id="summaryTable" class="tablesorter">
+			<table id="summaryTable" class="tablesorter table table-bordered">
 				<thead>
 					<tr>
 						<th>Date</th>
