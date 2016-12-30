@@ -43,6 +43,12 @@
 							</div>
 						</fieldset>
 						<fieldset class="form-group fieldset-collapsible">
+							<legend>IDs to Show (separated by commas):</legend>
+							<div class="form-group">
+								<label for="idsToShow">IDs</label> <input type="text" id="idsToShow" name="idsToShow" value="{$idsToShow}" size="60">
+							</div>
+						</fieldset>
+						<fieldset class="form-group fieldset-collapsible">
 							<legend>Format:</legend>
 							<div class="form-group checkbox">
 								<label for="selectAllFormatFilter">
@@ -83,6 +89,7 @@
 
 							</div>
 						</fieldset>
+
 						<input type="submit" name="submit" value="Update Filters" class="btn btn-default">
 					</form>
 
