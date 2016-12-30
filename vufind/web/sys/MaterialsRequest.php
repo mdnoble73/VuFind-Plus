@@ -11,7 +11,7 @@ class MaterialsRequest extends DB_DataObject
 
 	// Note: if table column names are changed, data for class MaterialsRequestFieldsToDisplay will need updated.
 	public $id;
-//	public $libraryId;
+	public $libraryId;
 	public $title;
 	public $season;
 	public $magazineTitle;
@@ -21,6 +21,7 @@ class MaterialsRequest extends DB_DataObject
 	public $magazinePageNumbers;
 	public $author;
 	public $format;
+	public $formatId;
 	public $subFormat;
 	public $ageLevel;
 	public $bookType;
@@ -78,7 +79,7 @@ class MaterialsRequest extends DB_DataObject
 			// Default Formats to use when no custom formats are created.
 
 			/** @var MaterialsRequestFormats[] $defaultFormats */
-			$defaultFormats = MaterialsRequestFormats::getDefaultMaterialRequestFormats($homeLibrary->libraryId);
+			$defaultFormats = MaterialsRequestFormats::getDefaultMaterialRequestFormats($requestLibrary->libraryId);
 			$availableFormats = array();
 
 			global $configArray;
@@ -97,6 +98,26 @@ class MaterialsRequest extends DB_DataObject
 		}
 
 		return $availableFormats;
+	}
+
+	public function getFormatObject() {
+		if (!empty($this->libraryId) && !empty($this->format)) {
+			require_once ROOT_DIR . '/sys/MaterialsRequestFormats.php';
+			$format = new MaterialsRequestFormats();
+			$format->format = $this->format;
+			$format->libraryId = $this->libraryId;
+			if ($format->find(1)) {
+				return $format;
+			} else {
+				foreach (MaterialsRequestFormats::getDefaultMaterialRequestFormats($this->libraryId) as $defaultFormat) {
+					if ($this->format == $defaultFormat->format) {
+						return $defaultFormat;
+					}
+
+				}
+			}
+		}
+		return false;
 	}
 
 	static $materialsRequestEnabled = null;
