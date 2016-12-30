@@ -728,7 +728,38 @@ class DBMaintenance extends Admin_Admin {
 						.'PRIMARY KEY (`id`),'
 						.'UNIQUE INDEX `userId_UNIQUE` (`userId` ASC),'
 						.'INDEX `userId` (`userId` ASC));'
+					),
+				),
 
+				'materialsRequestLibraryId' => array(
+					'title' => 'Add LibraryId to Material Requests Table',
+					'description' => 'Add LibraryId column to Materials Request table and populate column for existing requests.',
+					'sql' => array(
+						'ALTER TABLE `materials_request` '
+						.'ADD COLUMN `libraryId` INT UNSIGNED NULL AFTER `id`,'
+						.'ADD COLUMN `formatId` INT UNSIGNED NULL AFTER `format`;',
+
+						'UPDATE  `materials_request`'
+						 .'LEFT JOIN `user` ON (user.id=materials_request.createdBy)'
+						 .'LEFT JOIN `location` ON (location.locationId=user.homeLocationId)'
+						 .'SET materials_request.libraryId = location.libraryId'
+						 .'WHERE materials_request.libraryId IS null'
+						 .'and user.id IS NOT null'
+						 .'and location.libraryId IS not null;',
+
+						'UPDATE `materials_request`'
+						.'LEFT JOIN `location` ON (location.locationId=materials_request.holdPickupLocation) '
+						.'SET materials_request.libraryId = location.libraryId '
+						.' WHERE materials_request.libraryId IS null and location.libraryId IS not null;'
+					),
+				),
+
+				'materialsRequestFixColumns' => array(
+					'title' => 'Change a Couple Column Data-Types for Material Requests Table',
+					'description' => 'Change illitem and holdPickupLocation column data types for Material Requests Table.',
+					'sql' => array(
+						'ALTER TABLE `materials_request` '
+						.'CHANGE COLUMN `illItem` `illItem` TINYINT(4) NULL DEFAULT NULL ;'
 					),
 				),
 
