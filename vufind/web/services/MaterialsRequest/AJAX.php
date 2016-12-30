@@ -273,7 +273,7 @@ class MaterialsRequest_AJAX extends Action{
 					$materialsRequest = new MaterialsRequest();
 					$materialsRequest->id  = $id;
 
-					$staffView = $_REQUEST['staffView'];
+					$staffView = isset($_REQUEST['staffView']) ? $_REQUEST['staffView'] : true;
 					$requestFormFields = $materialsRequest->getRequestFormFields($requestLibrary->libraryId, $staffView);
 					$interface->assign('requestFormFields', $requestFormFields);
 
