@@ -176,13 +176,8 @@ class MaterialsRequest_AJAX extends Action{
 									$interface->assign('formatAuthorLabelsJSON', json_encode($formatAuthorLabels));
 									$interface->assign('specialFieldFormatsJSON', json_encode($specialFieldFormats));
 
-									$interface->assign('showPhoneField', $configArray['MaterialsRequest']['showPhoneField']);
-									$interface->assign('showAgeField', $configArray['MaterialsRequest']['showAgeField']);
-									$interface->assign('showBookTypeField', $configArray['MaterialsRequest']['showBookTypeField']);
 									$interface->assign('showEbookFormatField', $configArray['MaterialsRequest']['showEbookFormatField']);
 									$interface->assign('showEaudioFormatField', $configArray['MaterialsRequest']['showEaudioFormatField']);
-									$interface->assign('showPlaceHoldField', $configArray['MaterialsRequest']['showPlaceHoldField']);
-									$interface->assign('showIllField', $configArray['MaterialsRequest']['showIllField']);
 									$interface->assign('requireAboutField', $configArray['MaterialsRequest']['requireAboutField']);
 
 									$interface->assign('materialsRequest', $materialsRequest);

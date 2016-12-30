@@ -84,13 +84,8 @@ class MaterialsRequest_NewRequest extends Action
 
 		$interface->assign('materialsRequest', $request);
 
-		$interface->assign('showPhoneField',        $configArray['MaterialsRequest']['showPhoneField']);
-		$interface->assign('showAgeField',          $configArray['MaterialsRequest']['showAgeField']);
-		$interface->assign('showBookTypeField',     $configArray['MaterialsRequest']['showBookTypeField']);
 		$interface->assign('showEbookFormatField',  $configArray['MaterialsRequest']['showEbookFormatField']);
 		$interface->assign('showEaudioFormatField', $configArray['MaterialsRequest']['showEaudioFormatField']);
-		$interface->assign('showPlaceHoldField',    $configArray['MaterialsRequest']['showPlaceHoldField']);
-		$interface->assign('showIllField',          $configArray['MaterialsRequest']['showIllField']);
 		$interface->assign('requireAboutField',     $configArray['MaterialsRequest']['requireAboutField']);
 
 		$useWorldCat = false;
@@ -104,7 +99,6 @@ class MaterialsRequest_NewRequest extends Action
 			$requestFormFields = $request->getRequestFormFields($library->libraryId);
 			$interface->assign('requestFormFields', $requestFormFields);
 
-			//TODO
 			// Add bookmobile Stop to the pickup locations if that form field is being used.
 			foreach ($requestFormFields as $catagory) {
 				/** @var MaterialsRequestFormFields $formField */
