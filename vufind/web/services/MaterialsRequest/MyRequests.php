@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- * 
+ *
  * @author Mark Noble <mnoble@turningleaftech.com>
  * @copyright Copyright (C) Anythink Libraries 2012.
  *
@@ -37,7 +37,7 @@ class MaterialsRequest_MyRequests extends MyAccount
 		global $configArray;
 		global $interface;
 		global $user;
-		
+
 		$showOpen = true;
 		if (isset($_REQUEST['requestsToShow']) && $_REQUEST['requestsToShow'] == 'allRequests'){
 			$showOpen  = false;
@@ -57,13 +57,19 @@ class MaterialsRequest_MyRequests extends MyAccount
 		$defaultStatus->libraryId = $homeLibrary->libraryId;
 		$defaultStatus->find(true);
 		$interface->assign('defaultStatus', $defaultStatus->id);
-		
+
 		//Get a list of all materials requests for the user
 		$allRequests = array();
 		if ($user){
 			$materialsRequests = new MaterialsRequest();
 			$materialsRequests->createdBy = $user->id;
 			$materialsRequests->whereAdd('dateCreated >= unix_timestamp(now() - interval 1 year)');
+
+			$statusQueryNotCancelled = new MaterialsRequestStatus();
+			$statusQueryNotCancelled->libraryId = $homeLibrary->libraryId;
+			$statusQueryNotCancelled->isPatronCancel = 0;
+			$materialsRequests->joinAdd($statusQueryNotCancelled);
+
 			$requestsThisYear = $materialsRequests->count();
 			$interface->assign('requestsThisYear', $requestsThisYear);
 
