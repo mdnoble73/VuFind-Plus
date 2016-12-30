@@ -106,7 +106,6 @@
 				{* Book Type Input Fields *}
 			{elseif $formField->fieldType == 'bookType'}
 				{assign var="materialRequestTableColumnName" value=$formField->fieldType}
-				{if $showBookTypeField}
 					<div class="form-group{* specialFormatField*}">
 						<label for="{$materialRequestTableColumnName}" class="control-label col-sm-3">{$formField->fieldLabel}: </label>
 						<div class="col-sm-9">
@@ -118,7 +117,6 @@
 							</select>
 						</div>
 					</div>
-				{/if}
 
 
 				{if !$new && $useWorldCat}
