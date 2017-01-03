@@ -156,6 +156,8 @@ class Archive_Exhibit extends Archive_Object{
 						$collectionTemplates[] = $interface->fetch('Archive/randomImageComponent.tpl');
 					}
 
+				}else if ($option == 'browseAllObjects' ){
+					$collectionTemplates[] = $interface->fetch('Archive/browseCollectionComponent.tpl');
 				}
 
 			}
