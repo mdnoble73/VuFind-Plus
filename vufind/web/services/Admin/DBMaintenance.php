@@ -736,18 +736,18 @@ class DBMaintenance extends Admin_Admin {
 					'description' => 'Add LibraryId column to Materials Request table and populate column for existing requests.',
 					'sql' => array(
 						'ALTER TABLE `materials_request` '
-						.'ADD COLUMN `libraryId` INT UNSIGNED NULL AFTER `id`,'
-						.'ADD COLUMN `formatId` INT UNSIGNED NULL AFTER `format`;',
+						.'ADD COLUMN `libraryId` INT UNSIGNED NULL AFTER `id`, '
+						.'ADD COLUMN `formatId` INT UNSIGNED NULL AFTER `format`; ',
 
 						'UPDATE  `materials_request`'
-						 .'LEFT JOIN `user` ON (user.id=materials_request.createdBy)'
-						 .'LEFT JOIN `location` ON (location.locationId=user.homeLocationId)'
-						 .'SET materials_request.libraryId = location.libraryId'
-						 .'WHERE materials_request.libraryId IS null'
-						 .'and user.id IS NOT null'
+						 .'LEFT JOIN `user` ON (user.id=materials_request.createdBy) '
+						 .'LEFT JOIN `location` ON (location.locationId=user.homeLocationId) '
+						 .'SET materials_request.libraryId = location.libraryId '
+						 .'WHERE materials_request.libraryId IS null '
+						 .'and user.id IS NOT null '
 						 .'and location.libraryId IS not null;',
 
-						'UPDATE `materials_request`'
+						'UPDATE `materials_request` '
 						.'LEFT JOIN `location` ON (location.locationId=materials_request.holdPickupLocation) '
 						.'SET materials_request.libraryId = location.libraryId '
 						.' WHERE materials_request.libraryId IS null and location.libraryId IS not null;'
