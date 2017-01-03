@@ -1922,35 +1922,81 @@ abstract class IslandoraDriver extends RecordInterface {
 		return null;
 	}
 
-	public function getBrandingInformation() {
+	public function getBrandingInformation($loadingCollectionData = false) {
 		require_once ROOT_DIR . '/sys/Utils/FedoraUtils.php';
 		$fedoraUtils = FedoraUtils::getInstance();
 
-		$donor = null;
-		$owner = null;
-		foreach ($this->getProductionTeam() as $person){
+		$brandingResults = array();
+
+		$productionTeam = $this->getProductionTeam();
+		foreach ($productionTeam as $person){
 			if ($person['role'] == 'donor'){
-				$donor = $person;
+				$brandingResults[] = array(
+						'label' => 'Donated by ' . $person['label'],
+						'image' => $person['image'],
+						'link' => $person['link'],
+						'sortIndex' => $loadingCollectionData ? 6 : 2,
+						'pid' => $person['pid']
+				);
 			}elseif ($person['role'] == 'owner'){
-				$owner = $person;
+				$brandingResults[] = array(
+						'label' => 'Owned by ' . $person['label'],
+						'image' => $person['image'],
+						'link' => $person['link'],
+						'sortIndex' => $loadingCollectionData ? 5 : 1,
+						'pid' => $person['pid']
+				);
+			}elseif ($person['role'] == 'funder'){
+				$brandingResults[] = array(
+						'label' => 'Funded by ' . $person['label'],
+						'image' => $person['image'],
+						'link' => $person['link'],
+						'sortIndex' => $loadingCollectionData ? 7 : 3,
+						'pid' => $person['pid']
+				);
 			}elseif ($person['role'] == 'acknowledgement'){
-				$brandingResults[$person['pid']] = array(
+				$brandingResults[] = array(
 						'label' => '',
 						'image' => $person['image'],
 						'link' => $person['link'],
+						'sortIndex' => $loadingCollectionData ? 8 : 4,
+						'pid' => $person['pid']
 				);
 			}
 		}
-		foreach ($this->getRelatedOrganizations() as $organization){
+		$relatedOrganizations = $this->getRelatedOrganizations();
+		foreach ($relatedOrganizations as $organization){
 			if ($organization['role'] == 'donor'){
-				$donor = $organization;
+				$brandingResults[] = array(
+						'label' => 'Donated by ' . $organization['label'],
+						'image' => $organization['image'],
+						'link' => $organization['link'],
+						'sortIndex' => $loadingCollectionData ? 6 : 2,
+						'pid' => $organization['pid']
+				);
 			}elseif ($organization['role'] == 'owner'){
-				$owner = $organization;
+				$brandingResults[] = array(
+						'label' => 'Owned by ' . $organization['label'],
+						'image' => $organization['image'],
+						'link' => $organization['link'],
+						'sortIndex' => $loadingCollectionData ? 5 : 1,
+						'pid' => $organization['pid']
+				);
+			}elseif ($organization['role'] == 'funder'){
+				$brandingResults[] = array(
+						'label' => 'Funded by ' . $organization['label'],
+						'image' => $organization['image'],
+						'link' => $organization['link'],
+						'sortIndex' => $loadingCollectionData ? 7 : 3,
+						'pid' => $organization['pid']
+				);
 			}elseif ($organization['role'] == 'acknowledgement'){
-				$brandingResults[$organization['pid']] = array(
+				$brandingResults[] = array(
 						'label' => '',
 						'image' => $organization['image'],
 						'link' => $organization['link'],
+						'sortIndex' => $loadingCollectionData ? 8 : 4,
+						'pid' => $organization['pid']
 				);
 			}
 		}
@@ -1966,31 +2012,17 @@ abstract class IslandoraDriver extends RecordInterface {
 			}
 		}
 
-		$brandingResults = array();
-		if ($donor != null || $owner != null || $contributingLibrary != null){
-			if ($donor){
-				$brandingResults[$donor['pid']] = array(
-						'label' => 'Donated by ' . $donor['label'],
-						'image' => $donor['image'],
-						'link' => $donor['link'],
-				);
-			}
-			if ($owner){
-				$brandingResults[$owner['pid']] = array(
-						'label' => 'Owned by ' . $owner['label'],
-						'image' => $owner['image'],
-						'link' => $owner['link'],
-				);
-			}
-			if ($contributingLibrary){
-				$contributingLibraryPid = $contributingLibrary->archivePid;
-				$contributingLibraryObject = $fedoraUtils->getObject($contributingLibraryPid);
-				$brandingResults[$contributingLibraryPid] = array(
-						'label' => 'Contributed by ' . $contributingLibrary->displayName,
-						'image' => $fedoraUtils->getObjectImageUrl($contributingLibraryObject, 'medium'),
-						'link' => "/Archive/$contributingLibraryPid/Organization",
-				);
-			}
+
+		if ($contributingLibrary){
+			$contributingLibraryPid = $contributingLibrary->archivePid;
+			$contributingLibraryObject = $fedoraUtils->getObject($contributingLibraryPid);
+			$brandingResults[] = array(
+					'label' => 'Contributed by ' . $contributingLibrary->displayName,
+					'image' => $fedoraUtils->getObjectImageUrl($contributingLibraryObject, 'medium'),
+					'link' => "/Archive/$contributingLibraryPid/Organization",
+					'sortIndex' => 9,
+					'pid' => $contributingLibraryPid
+			);
 		}
 
 		return $brandingResults;
