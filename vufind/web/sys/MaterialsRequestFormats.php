@@ -233,6 +233,6 @@ class MaterialsRequestFormats extends DB_DataObject
 	}
 
  public function hasSpecialFieldOption($option) {
-		return in_array($option, $this->specialFields);
+		return is_array($this->specialFields) && in_array($option, $this->specialFields);
  }
 }
