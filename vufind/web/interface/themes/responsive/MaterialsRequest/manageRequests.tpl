@@ -45,7 +45,7 @@
 						<fieldset class="form-group fieldset-collapsible">
 							<legend>IDs to Show (separated by commas):</legend>
 							<div class="form-group">
-								<label for="idsToShow">IDs</label> <input type="text" id="idsToShow" name="idsToShow" value="{$idsToShow}" size="60">
+								<label for="idsToShow">IDs</label> <input type="text" id="idsToShow" name="idsToShow" value="{$idsToShow}" size="60" class="form-control">
 							</div>
 						</fieldset>
 						<fieldset class="form-group fieldset-collapsible">
