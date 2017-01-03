@@ -134,7 +134,7 @@
 
 				{* Readonly Fields *}
 			{elseif $formField->fieldType == 'id'}
-				{if $isAdminUser}
+				{if $isAdminUser && !$new}
 					{assign var="hasId" value=1}
 					{assign var="materialRequestTableColumnName" value=$formField->fieldType}
 					<div class="request_detail_field row">
