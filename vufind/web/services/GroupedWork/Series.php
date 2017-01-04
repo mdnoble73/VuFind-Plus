@@ -28,6 +28,9 @@ class GroupedWork_Series extends Action
 		global $timer;
 		global $logger;
 
+		// Hide Covers when the user has set that setting on the Search Results Page
+		$this->setShowCovers();
+
 		$id = $_REQUEST['id'];
 
 		require_once ROOT_DIR . '/RecordDrivers/GroupedWorkDriver.php';
