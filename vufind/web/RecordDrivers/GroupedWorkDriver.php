@@ -322,15 +322,8 @@ class GroupedWorkDriver extends RecordInterface{
 
 		//Build the link URL.
 		//If there is only one record for the work we will link straight to that.
-		$relatedRecords = $this->getRelatedRecords();
-		if (count($relatedRecords) == 1){
-			$firstRecord = reset($relatedRecords);
-			/** @var IndexRecord|OverDriveRecordDriver|BaseEContentDriver $driver */
-			$driver = $firstRecord['driver'];
-			$linkUrl = $driver->getLinkUrl();
-		}else{
-			$linkUrl = $this->getLinkUrl() . '?searchId=' . $interface->get_template_vars('searchId') . '&amp;recordIndex=' . $interface->get_template_vars('recordIndex') . '&amp;page='  . $interface->get_template_vars('page');
-		}
+		$linkUrl = $this->getMoreInfoLinkUrl();
+		$linkUrl .= '?searchId=' . $interface->get_template_vars('searchId') . '&amp;recordIndex=' . $interface->get_template_vars('recordIndex') . '&amp;page='  . $interface->get_template_vars('page');
 
 		$interface->assign('summUrl', $linkUrl);
 		$interface->assign('summTitle', $this->getTitleShort());
@@ -649,18 +642,7 @@ class GroupedWorkDriver extends RecordInterface{
 		$id = $this->getUniqueID();
 		$interface->assign('summId', $id);
 
-		// if the grouped work consists of only 1 related item, return the record url, otherwise return the grouped-work url
-		//Rather than loading all related records which can be slow, just get the count
-		$numRelatedRecords = $this->getNumRelatedRecords();
-
-		if ($numRelatedRecords == 1) {
-			//Now that we know that we need more detailed information, load the related record.
-			$relatedRecords = $this->getRelatedRecords(false);
-			$onlyRecord = reset($relatedRecords);
-			$url = $onlyRecord['url'];
-		} else {
-			$url = $this->getLinkUrl();
-		}
+		$url = $this->getMoreInfoLinkUrl();
 
 		$interface->assign('summUrl', $url);
 		$interface->assign('summTitle', $this->getTitleShort());
@@ -1236,20 +1218,28 @@ class GroupedWorkDriver extends RecordInterface{
 		return $upc;
 	}
 
+	private $numRelatedRecords = -1;
 	private function getNumRelatedRecords() {
-		global $solrScope;
+		if ($this->numRelatedRecords == -1){
+			if ($this->relatedRecords != null){
+				$this->numRelatedRecords = count($this->relatedRecords);
+			}else{
+				global $solrScope;
 
-		$relatedRecordFieldName = 'related_record_ids';
-		if ($solrScope){
-			if (isset($this->fields["related_record_ids_$solrScope"])){
-				$relatedRecordFieldName = "related_record_ids_$solrScope";
+				$relatedRecordFieldName = 'related_record_ids';
+				if ($solrScope){
+					if (isset($this->fields["related_record_ids_$solrScope"])){
+						$relatedRecordFieldName = "related_record_ids_$solrScope";
+					}
+				}
+				if (isset($this->fields[$relatedRecordFieldName])){
+					$this->numRelatedRecords = count($this->fields[$relatedRecordFieldName]);
+				}else{
+					$this->numRelatedRecords = 0;
+				}
 			}
 		}
-		if (isset($this->fields[$relatedRecordFieldName])){
-			return count($this->fields[$relatedRecordFieldName]);
-		}else{
-			return 0;
-		}
+		return $this->numRelatedRecords;
 	}
 
 	private $relatedRecords = null;
@@ -2955,5 +2945,21 @@ class GroupedWorkDriver extends RecordInterface{
 			default:
 				return '';
 		}
+	}
+
+	function getMoreInfoLinkUrl() {
+		// if the grouped work consists of only 1 related item, return the record url, otherwise return the grouped-work url
+		//Rather than loading all related records which can be slow, just get the count
+		$numRelatedRecords = $this->getNumRelatedRecords();
+
+		if ($numRelatedRecords == 1) {
+			//Now that we know that we need more detailed information, load the related record.
+			$relatedRecords = $this->getRelatedRecords(false);
+			$onlyRecord = reset($relatedRecords);
+			$url = $onlyRecord['url'];
+		} else {
+			$url = $this->getLinkUrl();
+		}
+		return $url;
 	}
 }
