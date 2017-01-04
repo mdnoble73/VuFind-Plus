@@ -1134,6 +1134,9 @@ class Location extends DB_DataObject
 				$currentHour = strftime ('%H', $today);
 				$openHour = strftime ('%H', strtotime($todaysLibraryHours['open']));
 				$closeHour = strftime ('%H', strtotime($todaysLibraryHours['close']));
+				if ($closeHour == 0 && $closeHour < $openHour){
+					$closeHour = 24;
+				}
 				if ($currentHour < $openHour){
 					$libraryHoursMessage = "The library will be open today from " . $todaysLibraryHours['openFormatted'] . " to " . $todaysLibraryHours['closeFormatted'] . ".";
 				}else if ($currentHour > $closeHour){
