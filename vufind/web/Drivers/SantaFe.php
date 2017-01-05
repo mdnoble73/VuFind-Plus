@@ -31,7 +31,6 @@ require_once ROOT_DIR . '/Drivers/Sierra.php';
  * Marmot Library Network.
  *
  * @author Mark Noble <mnoble@turningleaftech.com>
- * @author CJ O'Hara <cj@marmot.org>
  */
 class SantaFe extends Sierra{
 

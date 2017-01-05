@@ -222,7 +222,6 @@ class Millennium extends ScreenScrapingDriver
 	public function patronLogin($username, $password, $validatedViaSSO) {
 		global $timer;
 		global $configArray;
-		global $logger;
 
 		//Get the barcode property
 		if ($this->accountProfile->loginConfiguration == 'barcode_pin'){
