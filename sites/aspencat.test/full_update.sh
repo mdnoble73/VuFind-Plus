@@ -59,9 +59,9 @@ function checkConflictingProcesses() {
 : > $OUTPUT_FILE;
 
 #Check for any conflicting processes that we shouldn't do a full index during.
-checkConflictingProcesses "koha_export.jar ${PIKASERVER}"
-checkConflictingProcesses "overdrive_extract.jar ${PIKASERVER}"
-checkConflictingProcesses "reindexer.jar ${PIKASERVER}"
+checkConflictingProcesses "koha_export.jar ${PIKASERVER}" >> ${OUTPUT_FILE}
+checkConflictingProcesses "overdrive_extract.jar ${PIKASERVER}" >> ${OUTPUT_FILE}
+checkConflictingProcesses "reindexer.jar ${PIKASERVER}" >> ${OUTPUT_FILE}
 
 # Back-up Solr Master Index
 mysqldump ${PIKADBNAME} grouped_work_primary_identifiers > /data/vufind-plus/${PIKASERVER}/grouped_work_primary_identifiers.sql
@@ -70,7 +70,7 @@ tar -czf /data/vufind-plus/${PIKASERVER}/solr_master_backup.tar.gz /data/vufind-
 rm /data/vufind-plus/${PIKASERVER}/grouped_work_primary_identifiers.sql
 
 #Restart Solr
-cd /usr/local/vufind-plus/sites/${PIKASERVER}; ./${PIKASERVER}.sh restart
+cd /usr/local/vufind-plus/sites/${PIKASERVER}; ./${PIKASERVER}.sh restart >> ${OUTPUT_FILE}
 
 # Copy Export from ILS
 /usr/local/vufind-plus/sites/${PIKASERVER}/copyExport.sh >> ${OUTPUT_FILE}
@@ -117,7 +117,7 @@ cd /usr/local/vufind-plus/vufind/reindexer; nice -n -3 java -server -XX:+UseG1GC
 #find /usr/local/vufind-plus/sites/default/solr/jetty/logs -name "solr_gc_log_*" -mtime +7 -delete
 
 #Restart Solr
-cd /usr/local/vufind-plus/sites/${PIKASERVER}; ./${PIKASERVER}.sh restart
+cd /usr/local/vufind-plus/sites/${PIKASERVER}; ./${PIKASERVER}.sh restart >> ${OUTPUT_FILE}
 
 #Email results
 FILESIZE=$(stat -c%s ${OUTPUT_FILE})

@@ -8,6 +8,8 @@ PIKASERVER=testvufind.co.wake.nc.us
 PIKADBNAME=vufind
 OUTPUT_FILE="/var/log/vufind-plus/${PIKASERVER}/full_update_output.log"
 
+	MINFILE1SIZE=$((346000000))
+
 # Check for conflicting processes currently running
 function checkConflictingProcesses() {
 	#Check to see if the conflict exists.
@@ -30,9 +32,9 @@ function checkConflictingProcesses() {
 : > $OUTPUT_FILE;
 
 #Check for any conflicting processes that we shouldn't do a full index during.
-checkConflictingProcesses "overdrive_extract.jar ${PIKASERVER}"
-checkConflictingProcesses "reindexer.jar ${PIKASERVER}"
-checkConflictingProcesses "horizon_export.jar ${PIKASERVER}"
+checkConflictingProcesses "overdrive_extract.jar ${PIKASERVER}" >> ${OUTPUT_FILE}
+checkConflictingProcesses "reindexer.jar ${PIKASERVER}" >> ${OUTPUT_FILE}
+checkConflictingProcesses "horizon_export.jar ${PIKASERVER}" >> ${OUTPUT_FILE}
 
 # Back-up Solr Master Index
 mysqldump ${PIKADBNAME} grouped_work_primary_identifiers > /data/vufind-plus/${PIKASERVER}/grouped_work_primary_identifiers.sql
@@ -41,7 +43,7 @@ tar -czf /data/vufind-plus/${PIKASERVER}/solr_master_backup.tar.gz /data/vufind-
 rm /data/vufind-plus/${PIKASERVER}/grouped_work_primary_identifiers.sql
 
 #Restart Solr
-cd /usr/local/vufind-plus/sites/${PIKASERVER}; ./${PIKASERVER}.sh restart
+cd /usr/local/vufind-plus/sites/${PIKASERVER}; ./${PIKASERVER}.sh restart >> ${OUTPUT_FILE}
 
 #Extract from ILS
 #/data/vufind-plus/testvufind.co.wake.nc.us/move_export.sh >> ${OUTPUT_FILE}
@@ -72,11 +74,13 @@ FILE=$(find /data/vufind-plus/testvufind.co.wake.nc.us/marc_export/ -name *.mrc 
 if [ -n "$FILE" ]
 then
   #check file size
-	MINFILE1SIZE=$((346000000))
 	FILE1SIZE=$(wc -c <"$FILE")
 	if [ $FILE1SIZE -ge $MINFILE1SIZE ]; then
 
 		echo "Latest export file is " $FILE >> ${OUTPUT_FILE}
+		DIFF=$(($FILE1SIZE - $MINFILE1SIZE))
+		PERCENTABOVE=$((100 * $DIFF / $MINFILE1SIZE))
+		echo "The export file is $PERCENTABOVE (%) larger than the minimum size check." >> ${OUTPUT_FILE}
 
 		#Copy in the latest marc export
 		cp $FILE /data/vufind-plus/testvufind.co.wake.nc.us/marc/vufind.mrc >> ${OUTPUT_FILE}
@@ -107,7 +111,7 @@ find /usr/local/vufind-plus/sites/default/solr/jetty/logs -name "solr_log_*" -mt
 find /usr/local/vufind-plus/sites/default/solr/jetty/logs -name "solr_gc_log_*" -mtime +7 -delete
 
 #Restart Solr
-cd /usr/local/vufind-plus/sites/${PIKASERVER}; ./${PIKASERVER}.sh restart
+cd /usr/local/vufind-plus/sites/${PIKASERVER}; ./${PIKASERVER}.sh restart >> ${OUTPUT_FILE}
 
 #Email results
 FILESIZE=$(stat -c%s ${OUTPUT_FILE})

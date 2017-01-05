@@ -56,9 +56,9 @@ function checkConflictingProcesses() {
 }
 
 #Check for any conflicting processes that we shouldn't do a full index during.
-checkConflictingProcesses "sierra_export.jar ${PIKASERVER}"
-checkConflictingProcesses "overdrive_extract.jar ${PIKASERVER}"
-checkConflictingProcesses "reindexer.jar ${PIKASERVER}"
+checkConflictingProcesses "sierra_export.jar ${PIKASERVER}" >> ${OUTPUT_FILE}
+checkConflictingProcesses "overdrive_extract.jar ${PIKASERVER}" >> ${OUTPUT_FILE}
+checkConflictingProcesses "reindexer.jar ${PIKASERVER}" >> ${OUTPUT_FILE}
 
 #truncate the output file so you don't spend a week debugging an error from a week ago!
 : > $OUTPUT_FILE;
@@ -70,7 +70,7 @@ tar -czf /data/vufind-plus/${PIKASERVER}/solr_master_backup.tar.gz /data/vufind-
 rm /data/vufind-plus/${PIKASERVER}/grouped_work_primary_identifiers.sql
 
 #Restart Solr
-cd /usr/local/vufind-plus/sites/${PIKASERVER}; ./${PIKASERVER}.sh restart
+cd /usr/local/vufind-plus/sites/${PIKASERVER}; ./${PIKASERVER}.sh restart >> ${OUTPUT_FILE}
 
 #Extract from ILS
 /usr/local/vufind-plus/sites/${PIKASERVER}/copySierraExport.sh >> ${OUTPUT_FILE}
@@ -163,7 +163,7 @@ find /usr/local/vufind-plus/sites/default/solr/jetty/logs -name "solr_log_*" -mt
 find /usr/local/vufind-plus/sites/default/solr/jetty/logs -name "solr_gc_log_*" -mtime +7 -delete
 
 #Restart Solr
-cd /usr/local/vufind-plus/sites/${PIKASERVER}; ./${PIKASERVER}.sh restart
+cd /usr/local/vufind-plus/sites/${PIKASERVER}; ./${PIKASERVER}.sh restart >> ${OUTPUT_FILE}
 
 #Email results
 FILESIZE=$(stat -c%s ${OUTPUT_FILE})
