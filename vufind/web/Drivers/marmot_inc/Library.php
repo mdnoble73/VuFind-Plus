@@ -1109,7 +1109,6 @@ class Library extends DB_DataObject
 			$this->saveRecordsOwned();
 			$this->saveRecordsToInclude();
 			$this->saveManagematerialsRequestFieldsToDisplay();
-			$this->saveMaterialsRequestFormats();
 			$this->saveMaterialsRequestFormFields();
 			$this->saveLibraryLinks();
 			$this->saveLibraryTopLinks();
@@ -1126,6 +1125,12 @@ class Library extends DB_DataObject
 
 			}
 		}
+		// Do this last so that everything else can update even if we get an error here
+		$deleteCheck = $this->saveMaterialsRequestFormats();
+		if (PEAR::isError($deleteCheck)) {
+			$ret = false;
+		};
+
 		return $ret;
 	}
 
@@ -1314,7 +1319,13 @@ class Library extends DB_DataObject
 			/** @var MaterialsRequestFormats $object */
 			foreach ($this->materialsRequestFormats as $object){
 				if (isset($object->deleteOnSave) && $object->deleteOnSave == true){
-					$object->delete();
+					$deleteCheck = $object->delete();
+					if (!$deleteCheck) {
+						$errorString = 'Materials Request(s) are present for the format "' . $object->format . '".';
+						$error       = $this->raiseError($errorString, PEAR_LOG_ERR);
+						$error->addUserInfo($errorString);
+						return $error;
+					}
 				}else{
 					if (isset($object->id) && is_numeric($object->id)){ // (negative ids need processed with insert)
 						$object->update();

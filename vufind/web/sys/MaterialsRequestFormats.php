@@ -229,10 +229,74 @@ class MaterialsRequestFormats extends DB_DataObject
 		}else{
 			$this->specialFields = '';
 		}
-		return parent::update($dataObject);
+		$previous = new self();
+		if ($previous->get($this->id)) {
+			if ($this->format != $previous->format) {
+				// Format value has changed; update all related materials requests
+				$materialRequest = new MaterialsRequest();
+				$materialRequest->format = $previous->format;
+				$materialRequest->libraryId = $this->libraryId;
+				if ($materialRequest->count() > 0){
+
+
+					$materialRequest = new MaterialsRequest();
+					$materialRequest->format = $this->format;
+					$materialRequest->whereAdd("`libraryId` = {$this->libraryId} AND `format`='{$previous->format}'");
+
+					if ($materialRequest->update(DB_DATAOBJECT_WHEREADD_ONLY)) {
+						return parent::update($dataObject);
+
+					}
+				} else {
+					return parent::update($dataObject);
+				}
+			} else {
+				return parent::update($dataObject);
+			}
+		}
+	return false;
 	}
 
- public function hasSpecialFieldOption($option) {
+	/**
+	 * Deletes items from table which match current objects variables
+	 *
+	 * Returns the true on success
+	 *
+	 * for example
+	 *
+	 * Designed to be extended
+	 *
+	 * $object = new mytable();
+	 * $object->ID=123;
+	 * echo $object->delete(); // builds a conditon
+	 *
+	 * $object = new mytable();
+	 * $object->whereAdd('age > 12');
+	 * $object->limit(1);
+	 * $object->orderBy('age DESC');
+	 * $object->delete(true); // dont use object vars, use the conditions, limit and order.
+	 *
+	 * @param bool $useWhere (optional) If DB_DATAOBJECT_WHEREADD_ONLY is passed in then
+	 *             we will build the condition only using the whereAdd's.  Default is to
+	 *             build the condition only using the object parameters.
+	 *
+	 * @access public
+	 * @return mixed Int (No. of rows affected) on success, false on failure, 0 on no data affected
+	 */
+	function delete($useWhere = false)
+	{
+
+		$materialRequest = new MaterialsRequest();
+		$materialRequest->format = $this->format;
+		$materialRequest->libraryId = $this->libraryId;
+		if ($materialRequest->count() == 0){
+			return parent::delete($useWhere);
+		}
+		return false;
+
+	}
+
+	public function hasSpecialFieldOption($option) {
 		return is_array($this->specialFields) && in_array($option, $this->specialFields);
  }
 }
