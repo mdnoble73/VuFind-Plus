@@ -2396,6 +2396,7 @@ class Solr implements IndexEngine {
 			unset($result['highlighting']);
 		}
 		$timer->logTime("process highlighting");
+		$memoryWatcher->logMemory('process highlighting');
 
 		return $result;
 	}

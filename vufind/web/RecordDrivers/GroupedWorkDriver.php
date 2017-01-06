@@ -506,6 +506,7 @@ class GroupedWorkDriver extends RecordInterface{
 		global $configArray;
 		global $interface;
 		global $timer;
+		global $memoryWatcher;
 
 		$interface->assign('displayingSearchResults', true);
 		$interface->assign('useUnscopedHoldingsSummary', $useUnscopedHoldingsSummary);
@@ -521,11 +522,13 @@ class GroupedWorkDriver extends RecordInterface{
 		$relatedManifestations = $this->getRelatedManifestations();
 		$interface->assign('relatedManifestations', $relatedManifestations);
 		$timer->logTime("Loaded related manifestations");
+		$memoryWatcher->logMemory("Loaded related manifestations");
 
 		//Build the link URL.
 		//If there is only one record for the work we will link straight to that.
 		$relatedRecords = $this->getRelatedRecords();
 		$timer->logTime("Loaded related records");
+		$memoryWatcher->logMemory("Loaded related records");
 		if (count($relatedRecords) == 1){
 			$firstRecord = reset($relatedRecords);
 			/** @var IndexRecord|OverDriveRecordDriver|BaseEContentDriver $driver */
@@ -553,6 +556,7 @@ class GroupedWorkDriver extends RecordInterface{
 		$lexileInfo = $this->getLexileDisplayString();
 		$interface->assign('summLexileInfo', $lexileInfo);
 		$timer->logTime("Finished assignment of main data");
+		$memoryWatcher->logMemory("Finished assignment of main data");
 
 		// Obtain and assign snippet (highlighting) information:
 		$snippets = $this->getHighlightedSnippets();
@@ -615,6 +619,7 @@ class GroupedWorkDriver extends RecordInterface{
 		//Description
 		$interface->assign('summDescription', $this->getDescriptionFast(true));
 		$timer->logTime('Finished Loading Description');
+		$memoryWatcher->logMemory("Finished Loading Description");
 		if ($this->hasCachedSeries()){
 			$interface->assign('ajaxSeries', false);
 			$interface->assign('summSeries', $this->getSeries(false));
@@ -623,6 +628,7 @@ class GroupedWorkDriver extends RecordInterface{
 			$interface->assign('summSeries', null);
 		}
 		$timer->logTime('Finished Loading Series');
+		$memoryWatcher->logMemory("Finished Loading Series");
 
 		$interface->assign('bookCoverUrl', $this->getBookcoverUrl('small'));
 		$interface->assign('bookCoverUrlMedium', $this->getBookcoverUrl('medium'));
