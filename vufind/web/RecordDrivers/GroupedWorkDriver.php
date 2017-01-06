@@ -1277,6 +1277,7 @@ class GroupedWorkDriver extends RecordInterface{
 
 	private function loadRelatedRecords(){
 		global $timer;
+		global $memoryWatcher;
 		if ($this->relatedRecords == null || isset($_REQUEST['reload'])){
 			$timer->logTime("Starting to load related records for {$this->getUniqueID()}");
 
@@ -1298,17 +1299,17 @@ class GroupedWorkDriver extends RecordInterface{
 				$activePTypes[$library->defaultPType] = $library->defaultPType;
 			}
 			list($scopingInfo, $validRecordIds, $validItemIds) = $this->loadScopingDetails($solrScope);
-
-
 			$timer->logTime("Loaded Scoping Details from the index");
+			$memoryWatcher->logMemory("Loaded scopeing details from the index");
+
 			$recordsFromIndex = $this->loadRecordDetailsFromIndex($validRecordIds);
-
-
 			$timer->logTime("Loaded Record Details from the index");
+			$memoryWatcher->logMemory("Loaded Record Details from the index");
 
 			//Get a list of related items filtered according to scoping
 			$this->loadItemDetailsFromIndex($validItemIds);
 			$timer->logTime("Loaded Item Details from the index");
+			$memoryWatcher->logMemory("Loaded Item Details from the index");
 
 			//Load the work from the database so we can use it in each record diver
 			require_once ROOT_DIR . '/sys/Grouping/GroupedWork.php';
@@ -1321,6 +1322,7 @@ class GroupedWorkDriver extends RecordInterface{
 			foreach ($recordsFromIndex as $recordDetails){
 				$relatedRecord = $this->setupRelatedRecordDetails($recordDetails, $groupedWork, $timer, $scopingInfo, $activePTypes, $searchLocation, $library);
 				$relatedRecords[$relatedRecord['id']] = $relatedRecord;
+				$memoryWatcher->logMemory("Setup related record details for " . $relatedRecord['id']);
 			}
 
 			//Sort the records based on format and then edition
