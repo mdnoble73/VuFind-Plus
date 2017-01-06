@@ -760,6 +760,7 @@ class SearchObject_Solr extends SearchObject_Base
 	public function getResultRecordHTML()
 	{
 		global $interface;
+		global $memoryWatcher;
 		$html = array();
 		if (isset($this->indexResult['response'])) {
 			for ($x = 0; $x < count($this->indexResult['response']['docs']); $x++) {
@@ -779,7 +780,9 @@ class SearchObject_Solr extends SearchObject_Base
 					$html[] = "Unable to find record";
 				}
 				//Free some memory
+				$record = 0;
 				unset($record);
+				$memoryWatcher->logMemory("Finished loading record information for index $x");
 			}
 		}
 		return $html;
