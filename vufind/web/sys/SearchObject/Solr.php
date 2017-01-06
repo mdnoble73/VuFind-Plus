@@ -764,6 +764,7 @@ class SearchObject_Solr extends SearchObject_Base
 		$html = array();
 		if (isset($this->indexResult['response'])) {
 			for ($x = 0; $x < count($this->indexResult['response']['docs']); $x++) {
+				$memoryWatcher->logMemory("Started loading record information for index $x");
 				$current = &$this->indexResult['response']['docs'][$x];
 				if (!$this->debug) {
 					unset($current['explain']);
