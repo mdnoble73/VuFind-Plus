@@ -24,6 +24,9 @@ class MillenniumHolds{
 		//For Encore theme, try with some divs
 		if ($numMatches == 0){
 			$numMatches = preg_match('/<div class="requestResult">(.*?)<\/div>/s', $holdResultPage, $matches);
+			if ($numMatches == 0){
+				$numMatches = preg_match('/<div class="srchhelpText">(.*?)<\/div>/s', $holdResultPage, $matches);
+			}
 		}
 		$itemMatches = preg_match('/Choose one item from the list below/', $holdResultPage);
 
