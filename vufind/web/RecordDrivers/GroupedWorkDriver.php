@@ -522,7 +522,7 @@ class GroupedWorkDriver extends RecordInterface{
 		$relatedManifestations = $this->getRelatedManifestations();
 		$interface->assign('relatedManifestations', $relatedManifestations);
 		$timer->logTime("Loaded related manifestations");
-		$memoryWatcher->logMemory("Loaded related manifestations");
+		$memoryWatcher->logMemory("Loaded related manifestations for {$this->getUniqueID()}");
 
 		//Build the link URL.
 		//If there is only one record for the work we will link straight to that.
@@ -1339,9 +1339,11 @@ class GroupedWorkDriver extends RecordInterface{
 		 */
 	public function getRelatedManifestations() {
 		global $timer;
+		global $memoryWatcher;
 		$timer->logTime("Starting to load related records in getRelatedManifestations");
 		$relatedRecords = $this->getRelatedRecords();
 		$timer->logTime("Finished loading related records in getRelatedManifestations");
+		$memoryWatcher->logMemory("Finished loading related records");
 		//Group the records based on format
 		$relatedManifestations = array();
 		foreach ($relatedRecords as $curRecord){
@@ -1448,6 +1450,7 @@ class GroupedWorkDriver extends RecordInterface{
 			}
 		}
 		$timer->logTime("Finished initial processing of related records");
+		$memoryWatcher->logMemory("Finished initial processing of related records");
 
 		//Check to see if we have applied a format or format category facet
 		$selectedFormat = null;
@@ -1547,6 +1550,7 @@ class GroupedWorkDriver extends RecordInterface{
 			$relatedManifestations[$key] = $manifestation;
 		}
 		$timer->logTime("Finished loading related manifestations");
+		$memoryWatcher->logMemory("Finished loading related manifestations");
 
 		return $relatedManifestations;
 	}
