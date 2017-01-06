@@ -192,6 +192,7 @@ class RecordDriverFactory {
 				enableErrorHandler();
 				$timer->logTime('Loaded record driver for ' . $obj->getUniqueID());
 				global $memoryWatcher;
+				$memoryWatcher->logMemory("Created record driver for {$obj->getUniqueID()}");
 				return $obj;
 			}
 		}
