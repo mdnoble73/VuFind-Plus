@@ -1061,45 +1061,49 @@ class GroupedWorkDriver extends RecordInterface{
 		return $configArray['Site']['url'] . '/qrcode.php?type=GroupedWork&id=' . $this->getPermanentId();
 	}
 
-	static $archiveLinksForWorkIds = array();
 	private $archiveLink = 'unset';
 	function getArchiveLink(){
 		if ($this->archiveLink === 'unset'){
-			$this->archiveLink = null;
-			//Check to see if the record is available within the archive
-			global $library;
-			if ($library->enableArchive){
-				$workId = $this->getUniqueID();
-				if (array_key_exists($workId, GroupedWorkDriver::$archiveLinksForWorkIds)){
-					$this->archiveLink = GroupedWorkDriver::$archiveLinksForWorkIds[$workId];
-				}else{
-					/** @var SearchObject_Islandora $searchObject */
-					$searchObject = SearchObjectFactory::initSearchObject('Islandora');
-					$searchObject->init();
-					$searchObject->disableLogging();
-					$searchObject->setDebugging(false, false);
-					$searchObject->setBasicQuery("mods_extension_marmotLocal_externalLink_samePika_link_s:*" . $workId);
-					$searchObject->clearFacets();
-
-					$searchObject->setLimit(1);
-
-					$response = $searchObject->processSearch(true, false, true);
-
-					if ($response && isset($response['response'])) {
-						//Get information about each project
-						if ($searchObject->getResultTotal() > 0) {
-							$firstObjectDriver = RecordDriverFactory::initRecordDriver($response['response']['docs'][0]);
-
-							$this->archiveLink = $firstObjectDriver->getRecordUrl();
-						}
-					}
-					GroupedWorkDriver::$archiveLinksForWorkIds[$workId] = $this->archiveLink;
-					$searchObject = null;
-					unset($searchObject);
-				}
-			}
+			$this->archiveLink = GroupedWorkDriver::getArchiveLinkForWork($this->getUniqueID());
 		}
 		return $this->archiveLink;
+	}
+
+	static $archiveLinksForWorkIds = array();
+	static function getArchiveLinkForWork($groupedWorkId){
+		//Check to see if the record is available within the archive
+		global $library;
+		$archiveLink = null;
+		if ($library->enableArchive){
+			if (array_key_exists($groupedWorkId, GroupedWorkDriver::$archiveLinksForWorkIds)){
+				$archiveLink = GroupedWorkDriver::$archiveLinksForWorkIds[$groupedWorkId];
+			}else{
+				/** @var SearchObject_Islandora $searchObject */
+				$searchObject = SearchObjectFactory::initSearchObject('Islandora');
+				$searchObject->init();
+				$searchObject->disableLogging();
+				$searchObject->setDebugging(false, false);
+				$searchObject->setBasicQuery("mods_extension_marmotLocal_externalLink_samePika_link_s:*" . $groupedWorkId);
+				$searchObject->clearFacets();
+
+				$searchObject->setLimit(1);
+
+				$response = $searchObject->processSearch(true, false, true);
+
+				if ($response && isset($response['response'])) {
+					//Get information about each project
+					if ($searchObject->getResultTotal() > 0) {
+						$firstObjectDriver = RecordDriverFactory::initRecordDriver($response['response']['docs'][0]);
+
+						$archiveLink = $firstObjectDriver->getRecordUrl();
+					}
+				}
+				GroupedWorkDriver::$archiveLinksForWorkIds[$groupedWorkId] = $archiveLink;
+				$searchObject = null;
+				unset($searchObject);
+			}
+		}
+		return $archiveLink;
 	}
 
 	/**
