@@ -2337,6 +2337,16 @@ class DBMaintenance extends Admin_Admin {
 									) ENGINE=InnoDB  DEFAULT CHARSET=utf8",
 							)
 					),
+
+					'add_search_source_to_saved_searches' => array(
+							'title' => 'Store the Search Source with saved searches',
+							'description' => 'Add column to store a searches\' source in the search table',
+							'continueOnError' => true,
+							'sql' => array(
+									"ALTER TABLE `search` 
+									ADD COLUMN `searchSource` VARCHAR(30) NOT NULL DEFAULT 'local' AFTER `search_object`;",
+							)
+					),
 			)
 		);
 	}

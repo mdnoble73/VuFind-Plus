@@ -6,9 +6,6 @@ require_once 'DB/DataObject.php';
 
 class SearchEntry extends DB_DataObject
 {
-	###START_AUTOCODE
-	/* the code below is auto generated do not remove the above tag */
-
 	public $__table = 'search';													// table name
 	public $id;															// int(11)	not_null primary_key auto_increment
 	public $user_id;												 // int(11)	not_null multiple_key
@@ -16,6 +13,7 @@ class SearchEntry extends DB_DataObject
 	public $saved;													 // int(1) not_null default 0
 	public $search_object;									 // blob
 	public $session_id;											// varchar(128)
+	public $searchSource;
 
 	/**
 	 * Get an array of SearchEntry objects for the specified user.
@@ -70,7 +68,4 @@ class SearchEntry extends DB_DataObject
 		}
 		return $searches;
 	}
-
-	/* the code above is auto generated do not remove the tag below */
-	###END_AUTOCODE
 }
