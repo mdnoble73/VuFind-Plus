@@ -10723,6 +10723,11 @@ fieldset[disabled] .btn-masquerade.active {
     width: 48% !important;
   }
 }
+@media (max-width: 479px) {
+  #browse-category-carousel li {
+    width: 98% !important;
+  }
+}
 #browse-category-picker .jcarousel-control-prev,
 #browse-category-picker .jcarousel-control-next,
 #browse-category-picker .jcarousel-pagination {

@@ -8,6 +8,35 @@ PIKASERVER=aspencat.test
 PIKADBNAME=pika
 OUTPUT_FILE="/var/log/vufind-plus/${PIKASERVER}/full_update_output.log"
 
+# Check if full_update is already running
+#TODO: Verify that the PID file doesn't get log-rotated
+PIDFILE="/var/log/vufind-plus/${PIKASERVER}/full_update.pid"
+if [ -f $PIDFILE ]
+then
+	PID=$(cat $PIDFILE)
+	ps -p $PID > /dev/null 2>&1
+	if [ $? -eq 0 ]
+	then
+		mail -s "Full Extract and Reindexing - ${PIKASERVER}" $EMAIL <<< "$0 is already running"
+		exit 1
+	else
+		## Process not found assume not running
+		echo $$ > $PIDFILE
+		if [ $? -ne 0 ]
+		then
+			mail -s "Full Extract and Reindexing - ${PIKASERVER}" $EMAIL <<< "Could not create PID file for $0"
+			exit 1
+		fi
+	fi
+else
+	echo $$ > $PIDFILE
+	if [ $? -ne 0 ]
+	then
+		mail -s "Full Extract and Reindexing - ${PIKASERVER}" $EMAIL <<< "Could not create PID file for $0"
+		exit 1
+	fi
+fi
+
 # Check for conflicting processes currently running
 function checkConflictingProcesses() {
 	#Check to see if the conflict exists.
@@ -30,9 +59,9 @@ function checkConflictingProcesses() {
 : > $OUTPUT_FILE;
 
 #Check for any conflicting processes that we shouldn't do a full index during.
-checkConflictingProcesses "koha_export.jar ${PIKASERVER}"
-checkConflictingProcesses "overdrive_extract.jar ${PIKASERVER}"
-checkConflictingProcesses "reindexer.jar ${PIKASERVER}"
+checkConflictingProcesses "koha_export.jar ${PIKASERVER}" >> ${OUTPUT_FILE}
+checkConflictingProcesses "overdrive_extract.jar ${PIKASERVER}" >> ${OUTPUT_FILE}
+checkConflictingProcesses "reindexer.jar ${PIKASERVER}" >> ${OUTPUT_FILE}
 
 # Back-up Solr Master Index
 mysqldump ${PIKADBNAME} grouped_work_primary_identifiers > /data/vufind-plus/${PIKASERVER}/grouped_work_primary_identifiers.sql
@@ -41,7 +70,7 @@ tar -czf /data/vufind-plus/${PIKASERVER}/solr_master_backup.tar.gz /data/vufind-
 rm /data/vufind-plus/${PIKASERVER}/grouped_work_primary_identifiers.sql
 
 #Restart Solr
-cd /usr/local/vufind-plus/sites/${PIKASERVER}; ./${PIKASERVER}.sh restart
+cd /usr/local/vufind-plus/sites/${PIKASERVER}; ./${PIKASERVER}.sh restart >> ${OUTPUT_FILE}
 
 # Copy Export from ILS
 /usr/local/vufind-plus/sites/${PIKASERVER}/copyExport.sh >> ${OUTPUT_FILE}
@@ -88,7 +117,7 @@ cd /usr/local/vufind-plus/vufind/reindexer; nice -n -3 java -server -XX:+UseG1GC
 #find /usr/local/vufind-plus/sites/default/solr/jetty/logs -name "solr_gc_log_*" -mtime +7 -delete
 
 #Restart Solr
-cd /usr/local/vufind-plus/sites/${PIKASERVER}; ./${PIKASERVER}.sh restart
+cd /usr/local/vufind-plus/sites/${PIKASERVER}; ./${PIKASERVER}.sh restart >> ${OUTPUT_FILE}
 
 #Email results
 FILESIZE=$(stat -c%s ${OUTPUT_FILE})

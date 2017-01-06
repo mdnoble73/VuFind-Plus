@@ -251,10 +251,38 @@ class ExploreMore {
 				$brandingResults = $archiveDriver->getBrandingInformation();
 				$collections = $archiveDriver->getRelatedCollections();
 				foreach ($collections as $collection){
-					$brandingResults = array_merge($brandingResults, $collection['driver']->getBrandingInformation());
+					$collectionBranding = $collection['driver']->getBrandingInformation(true);
+					$brandingResults = array_merge($brandingResults, $collectionBranding);
 				}
 
 				if (count($brandingResults) > 0){
+					//Sort and filter the acknowledgements
+					$foundDuplicatePids = true;
+					while ($foundDuplicatePids){
+						$foundDuplicatePids = false;
+						$indexToRemove = -1;
+						$keys = array_keys($brandingResults);
+						for ($i = 0; $i < count($brandingResults) - 1; $i++){
+							for ($j = $i + 1; $j < count($brandingResults); $j++ ){
+								if ($brandingResults[$keys[$i]]['pid'] == $brandingResults[$keys[$j]]['pid']){
+									$foundDuplicatePids = true;
+									if ($brandingResults[$keys[$i]]['sortIndex'] > $brandingResults[$keys[$j]]['sortIndex']){
+										$indexToRemove = $i;
+									}else{
+										$indexToRemove = $j;
+									}
+									break;
+								}
+							}
+							if ($foundDuplicatePids) break;
+						}
+						if ($foundDuplicatePids){
+							unset($brandingResults[$keys[$indexToRemove]]);
+						}
+					}
+
+					usort($brandingResults, 'sortBrandingResults');
+
 					$exploreMoreSectionsToShow['acknowledgements'] = array(
 							'title' => 'Acknowledgements',
 							'format' => 'list',
@@ -999,3 +1027,9 @@ class ExploreMore {
 	}
 }
 
+function sortBrandingResults($a, $b){
+	if ($a['sortIndex'] == $b['sortIndex']){
+		return strcasecmp($a['label'], $b['label']);
+	}
+	return ($a['sortIndex'] < $b['sortIndex']) ? -1 : 1;
+}

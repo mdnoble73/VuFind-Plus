@@ -19,22 +19,12 @@
 
 	<div class="clear-both"></div>
 
-	<div id="exhibit-timeline" class="">
-		Timeline goes here
-	</div>
-
-	
-	<div id="related-exhibit-images" class="{if count($relatedImages) >= 18}results-covers home-page-browse-thumbnails{else}browse-thumbnails-few{/if}">
-		{foreach from=$relatedImages item=image}
-			<figure class="browse-thumbnail">
-				<a href="{$image.link}" {if $image.title}data-title="{$image.title}"{/if}>
-					<img src="{$image.image}" {if $image.title}alt="{$image.title}"{/if}>
-				</a>
-				<figcaption class="explore-more-category-title">
-					<strong>{$image.title}</strong>
-				</figcaption>
-			</figure>
-		{/foreach}
+	<div id="related-objects-for-exhibit">
+		<div id="exhibit-results-loading" class="row">
+			<div class="alert alert-info">
+				Updating results, please wait.
+			</div>
+		</div>
 	</div>
 
 	{if $repositoryLink && $user && ($user->hasRole('archives') || $user->hasRole('opacAdmin') || $user->hasRole('libraryAdmin'))}
@@ -67,6 +57,7 @@
 {/strip}
 <script type="text/javascript">
 	$().ready(function(){ldelim}
+		VuFind.Archive.handleTimelineClick('{$pid|urlencode}');
 		VuFind.Archive.loadExploreMore('{$pid|urlencode}');
-		{rdelim});
+	{rdelim});
 </script>

@@ -21,10 +21,12 @@ class Admin_TranslationMaps extends ObjectEditor {
 			$translationMap = new TranslationMap();
 			if ($translationMap->get($id)) {
 				$interface->assign('mapName', $translationMap->name);
+				$interface->assign('additionalObjectActions', $this->getAdditionalObjectActions($translationMap));
 			}
 			$interface->assign('id', $id);
-			$interface->assign('additionalObjectActions', $this->getAdditionalObjectActions($translationMap));
-			$this->display('../Admin/importTranslationMapData.tpl', 'Import Translation Map Data');
+			$shortPageTitle = "Import Translation Map Data";
+			$interface->assign('shortPageTitle', $shortPageTitle);
+			$this->display('../Admin/importTranslationMapData.tpl', $shortPageTitle);
 			exit();
 		}elseif($objectAction == 'doAppend' || $objectAction == 'doReload'){
 			$id = $_REQUEST['id'];
@@ -82,8 +84,8 @@ class Admin_TranslationMaps extends ObjectEditor {
 			$translationMap->id = $id;
 			if ($translationMap->find(true)){
 				$interface->assign('id', $id);
-				$interface->assign('translationMapValues', $translationMap->translationMapValues);
 				$interface->assign('additionalObjectActions', $this->getAdditionalObjectActions($translationMap));
+				$interface->assign('translationMapValues', $translationMap->translationMapValues);
 				$this->display('../Admin/viewTranslationMapAsIni.tpl', 'View Translation Map Data');
 				exit();
 			}else{
@@ -138,14 +140,24 @@ class Admin_TranslationMaps extends ObjectEditor {
 		if ($existingObject && $existingObject->id != ''){
 			$actions[] = array(
 				'text' => 'Load From CSV/INI',
-				'url' => '/Admin/TranslationMaps?objectAction=loadFromFile&id=' . $existingObject->id,
+				'url'  => '/Admin/TranslationMaps?objectAction=loadFromFile&id=' . $existingObject->id,
 			);
 			$actions[] = array(
 				'text' => 'View as INI',
-				'url' => '/Admin/TranslationMaps?objectAction=viewAsINI&id=' . $existingObject->id,
+				'url'  => '/Admin/TranslationMaps?objectAction=viewAsINI&id=' . $existingObject->id,
 			);
 		}
 
 		return $actions;
 	}
+	//TODO Add to ObjectEditor Class
+	function display($mainContentTemplate, $pageTitle, $sidebarTemplate='Search/home-sidebar.tpl') {
+		global $interface;
+		if (!empty($sidebarTemplate)) $interface->assign('sidebar', $sidebarTemplate);
+		$interface->setTemplate($mainContentTemplate);
+		$interface->setPageTitle($pageTitle);
+		$interface->assign('moreDetailsTemplate', 'GroupedWork/moredetails-accordion.tpl');
+		$interface->display('layout.tpl');
+	}
+
 }

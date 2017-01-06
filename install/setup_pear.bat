@@ -9,6 +9,7 @@ pear install --onlyreqdeps DB_DataObject-1.11.3
 pear install --onlyreqdeps Log
 pear install --onlyreqdeps Pager
 pear install --onlyreqdeps Mail
+pear install --onlyreqdeps Net_SMTP
 pear install --onlyreqdeps HTTP_Request
 pear install --onlyreqdeps XML_Serializer-beta
 pear install --onlyreqdeps File_Marc

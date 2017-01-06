@@ -2,7 +2,7 @@
 /**
  * Updates related to library & location configuration for cleanliness
  *
- * @category VuFind-Plus-2014 
+ * @category VuFind-Plus-2014
  * @author Mark Noble <mark@marmot.org>
  * Date: 7/29/14
  * Time: 2:23 PM
@@ -366,6 +366,16 @@ function getLibraryLocationUpdates(){
 			'sql' => array(
 				"ALTER TABLE `library` ADD `maxRequestsPerYear` INT(11) DEFAULT 60;",
 				"ALTER TABLE `library` ADD `maxOpenRequests` INT(11) DEFAULT 5;",
+			),
+		),
+
+		'library_materials_request_new_request_summary' => array(
+			'title' => 'Library Materials Request - New Request Summary',
+			'description' => 'Add text field that is displayed at the top of Materials Request form to give users important information about the request they submit',
+			'dependencies' => array(),
+			'continueOnError' => true,
+			'sql' => array(
+				"ALTER TABLE `library` ADD COLUMN `newMaterialsRequestSummary` TEXT NULL;",
 			),
 		),
 
@@ -1393,6 +1403,14 @@ function getLibraryLocationUpdates(){
 					)
 			),
 
+			'library_claim_authorship_customization' => array(
+					'title' => 'Library Claim Authorship Customization',
+					'description' => 'Allow libraries to customize the text shown above the claim authorship page',
+					'sql' => array(
+							"ALTER TABLE library ADD COLUMN claimAuthorshipHeader MEDIUMTEXT",
+					)
+			),
+
 			'display_pika_logo' => array(
 					'title' => 'Library Option to Display Pika Logo',
 					'description' => 'Allow libraries to show the Pika logo in page footers.',
@@ -1422,6 +1440,14 @@ function getLibraryLocationUpdates(){
 					'description' => 'Allow display of Reading History in Masquerade Mode for staff users.',
 					'sql' => array(
 						'ALTER TABLE `library` ADD COLUMN `allowReadingHistoryDisplayInMasqueradeMode` TINYINT(1) DEFAULT "0";',
+					)
+			),
+
+			'materials_request_days_to_keep' => array(
+					'title' => 'Library materials request days to keep.',
+					'description' => 'Library Option to control how many days of materials requests should be kept.',
+					'sql' => array(
+							'ALTER TABLE `library` ADD COLUMN `materialsRequestDaysToPreserve` INT(11) DEFAULT "0";',
 					)
 			),
 	);

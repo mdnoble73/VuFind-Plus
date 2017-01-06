@@ -107,8 +107,34 @@ VuFind.Archive = (function(){
 			});
 		},
 
+		getMoreTimelineResults: function(exhibitPid){
+			this.curPage = this.curPage +1;
+			var url = Globals.path + "/Archive/AJAX?method=getRelatedObjectsForTimelineExhibit&collectionId=" + exhibitPid + "&page=" + this.curPage + "&sort=" + this.sort;
+			$("input[name=dateFilter]:checked").each(function(){
+				url = url + "&dateFilter[]="+$(this).val();
+			});
+			url = url + "&reloadHeader=0";
+
+			$.getJSON(url, function(data){
+				if (data.success){
+					$("#nextInsertPoint").replaceWith(data.relatedObjects);
+				}
+			});
+		},
+
+		getMoreScrollerResults: function(pid){
+			this.curPage = this.curPage +1;
+			var url = Globals.path + "/Archive/AJAX?method=getRelatedObjectsForScroller&pid=" + pid + "&page=" + this.curPage + "&sort=" + this.sort;
+
+			$.getJSON(url, function(data){
+				if (data.success){
+					$("#nextInsertPoint").replaceWith(data.relatedObjects);
+				}
+			});
+		},
+
 		handleMapClick: function(markerIndex, exhibitPid, placePid, label, redirect){
-			$("#related-objects-for-exhibit").html('<h2>Loading...</h2>');
+			$("#exhibit-results-loading").show();
 			this.archive_info_window.setContent(label);
 			if (markerIndex >= 0){
 				this.archive_info_window.open(this.archive_map, this.markers[markerIndex]);
@@ -122,6 +148,7 @@ VuFind.Archive = (function(){
 			$.getJSON(Globals.path + "/Archive/AJAX?method=getRelatedObjectsForMappedCollection&collectionId=" + exhibitPid + "&placeId=" + placePid, function(data){
 				if (data.success){
 					$("#related-objects-for-exhibit").html(data.relatedObjects);
+					$("#exhibit-results-loading").hide();
 				}
 			});
 			var stateObj = {
@@ -140,6 +167,30 @@ VuFind.Archive = (function(){
 			if (document.location.href != newUrl){
 				history.pushState(stateObj, label, newUrl);
 			}
+			return false;
+		},
+
+		handleTimelineClick: function(exhibitPid){
+			$("#exhibit-results-loading").show();
+
+			$.getJSON(Globals.path + "/Archive/AJAX?method=getRelatedObjectsForTimelineExhibit&collectionId=" + exhibitPid, function(data){
+				if (data.success){
+					$("#related-objects-for-exhibit").html(data.relatedObjects);
+					$("#exhibit-results-loading").hide();
+				}
+			});
+			return false;
+		},
+
+		handleCollectionScrollerClick: function(pid){
+			$("#exhibit-results-loading").show();
+
+			$.getJSON(Globals.path + "/Archive/AJAX?method=getRelatedObjectsForScroller&pid=" + pid, function(data){
+				if (data.success){
+					$("#related-objects-for-exhibit").html(data.relatedObjects);
+					$("#exhibit-results-loading").hide();
+				}
+			});
 			return false;
 		},
 
@@ -169,6 +220,7 @@ VuFind.Archive = (function(){
 		},
 
 		reloadMapResults: function(exhibitPid, placePid, reloadHeader){
+			$("#exhibit-results-loading").show();
 			this.curPage = 1;
 			var url = Globals.path + "/Archive/AJAX?method=getRelatedObjectsForMappedCollection&collectionId=" + exhibitPid + "&placeId=" + placePid + "&page=" + this.curPage + "&sort=" + this.sort;
 			$("input[name=dateFilter]:checked").each(function(){
@@ -183,7 +235,46 @@ VuFind.Archive = (function(){
 					}else{
 						$("#results").html(data.relatedObjects);
 					}
+					$("#exhibit-results-loading").hide();
+				}
+			});
+		},
 
+		reloadTimelineResults: function(exhibitPid, reloadHeader){
+			$("#exhibit-results-loading").show();
+			this.curPage = 1;
+			var url = Globals.path + "/Archive/AJAX?method=getRelatedObjectsForTimelineExhibit&collectionId=" + exhibitPid + "&page=" + this.curPage + "&sort=" + this.sort;
+			$("input[name=dateFilter]:checked").each(function(){
+				url = url + "&dateFilter[]="+$(this).val();
+			});
+			url = url + "&reloadHeader=" + reloadHeader;
+
+			$.getJSON(url, function(data){
+				if (data.success){
+					if (reloadHeader){
+						$("#related-objects-for-exhibit").html(data.relatedObjects);
+					}else{
+						$("#results").html(data.relatedObjects);
+					}
+					$("#exhibit-results-loading").hide();
+				}
+			});
+		},
+
+		reloadScrollerResults: function(pid, reloadHeader){
+			$("#exhibit-results-loading").show();
+			this.curPage = 1;
+			var url = Globals.path + "/Archive/AJAX?method=getRelatedObjectsForScroller&pid=" + pid + "&page=" + this.curPage + "&sort=" + this.sort;
+			url = url + "&reloadHeader=" + reloadHeader;
+
+			$.getJSON(url, function(data){
+				if (data.success){
+					if (reloadHeader){
+						$("#related-objects-for-exhibit").html(data.relatedObjects);
+					}else{
+						$("#results").html(data.relatedObjects);
+					}
+					$("#exhibit-results-loading").hide();
 				}
 			});
 		},

@@ -351,7 +351,7 @@
 
     li {
       // set number items to display in a row based on screen size
-      // default 4 per row, smallest 2 per row, small 3 per row
+      // default 4 per row, small 2 per row, middle 3 per row, tiny 1 per row
       //width: 23% !important;
       width: round(100/@titlesPerRow - 2%) !important;
       @media (max-width: @screen-sm-max) {
@@ -361,6 +361,10 @@
       @media (max-width: @screen-xs-max) {
         //width: 48% !important;
         width: round(100/(@titlesPerRow - 2) - 2%) !important;
+      }
+      @media (max-width: @screen-tn-max) {
+        //width: 48% !important;
+        width: round(100/(@titlesPerRow - 3) - 2%) !important;
       }
       float: left; // retains float left; ul positional is more critical. plb 9-16-2014
     }

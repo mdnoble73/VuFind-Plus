@@ -14,6 +14,35 @@ PIKASERVER=arlington.test
 PIKADBNAME=pika
 OUTPUT_FILE="/var/log/vufind-plus/${PIKASERVER}/full_update_output.log"
 
+# Check if full_update is already running
+#TODO: Verify that the PID file doesn't get log-rotated
+PIDFILE="/var/log/vufind-plus/${PIKASERVER}/full_update.pid"
+if [ -f $PIDFILE ]
+then
+	PID=$(cat $PIDFILE)
+	ps -p $PID > /dev/null 2>&1
+	if [ $? -eq 0 ]
+	then
+		mail -s "Full Extract and Reindexing - ${PIKASERVER}" $EMAIL <<< "$0 is already running"
+		exit 1
+	else
+		## Process not found assume not running
+		echo $$ > $PIDFILE
+		if [ $? -ne 0 ]
+		then
+			mail -s "Full Extract and Reindexing - ${PIKASERVER}" $EMAIL <<< "Could not create PID file for $0"
+			exit 1
+		fi
+	fi
+else
+	echo $$ > $PIDFILE
+	if [ $? -ne 0 ]
+	then
+		mail -s "Full Extract and Reindexing - ${PIKASERVER}" $EMAIL <<< "Could not create PID file for $0"
+		exit 1
+	fi
+fi
+
 # Check for conflicting processes currently running
 function checkConflictingProcesses() {
 	#Check to see if the conflict exists.

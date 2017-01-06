@@ -75,17 +75,19 @@ class VuFindMailer {
 		// Validate sender and recipient
 		$validator = new Mail_RFC822();
 		//Allow the to address to be split
-		$validator->_splitAddresses($to);
-		foreach($validator->addresses as $tmpAddress){
-			if (!$validator->isValidInetAddress($tmpAddress['address'])) {
-				return new PEAR_Error('Invalid Recipient Email Address ' . $tmpAddress);
-			}
+		disableErrorHandler();
+		try{
+			//Validate the address list to make sure we don't get an error.
+			$validator->parseAddressList($to);
+		}catch (Exception $e){
+			return new PEAR_Error('Invalid Recipient Email Address');
 		}
+		enableErrorHandler();
 
 		if (!$validator->isValidInetAddress($from)) {
 			return new PEAR_Error('Invalid Sender Email Address');
 		}
-		
+
 		$headers = array('To' => $to, 'Subject' => $subject,
 		                 'Date' => date('D, d M Y H:i:s O'),
 		                 'Content-Type' => 'text/plain; charset="UTF-8"');

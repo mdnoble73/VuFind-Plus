@@ -45,12 +45,12 @@ VuFind.MaterialsRequest = (function(){
 			}
 		},
 
-		showMaterialsRequestDetails: function(id){
-			VuFind.Account.ajaxLightbox(Globals.path + "/MaterialsRequest/AJAX?method=MaterialsRequestDetails&id=" +id, true);
+		showMaterialsRequestDetails: function(id, staffView){
+			return VuFind.Account.ajaxLightbox(Globals.path + "/MaterialsRequest/AJAX?method=MaterialsRequestDetails&id=" +id + "&staffView=" +staffView, true);
 		},
 
 		updateMaterialsRequest: function(id){
-			VuFind.Account.ajaxLightbox(Globals.path + "/MaterialsRequest/AJAX?method=UpdateMaterialsRequest&id=" +id, true);
+			return VuFind.Account.ajaxLightbox(Globals.path + "/MaterialsRequest/AJAX?method=UpdateMaterialsRequest&id=" +id, true);
 		},
 
 		exportSelectedRequests: function(){
@@ -119,54 +119,69 @@ VuFind.MaterialsRequest = (function(){
 		setFieldVisibility: function(){
 			$(".formatSpecificField").hide();
 			//Get the selected format
-			var selectedFormat = $("#format").find("option:selected").val();
-			$("." + selectedFormat + "Field").show();
+			var selectedFormat = $("#format").find("option:selected").val(),
+					hasSpecialFields = typeof VuFind.MaterialsRequest.specialFields != 'undefined';
 
-			//Update labels as neded
-			var author = $("#author");
-			author.addClass("required");
-			if (selectedFormat == 'bluray' || selectedFormat == 'dvd' || selectedFormat == 'vhs'){
-				$("#authorFieldLabel").html("Actor / Director:");
-				author.removeClass("required");
-			}else if (selectedFormat == 'cdMusic'){
-				$("#authorFieldLabel").html("Artist / Composer <span class='requiredIndicator'>*</span>");
-			}else{
-				$("#authorFieldLabel").html("Author <span class='requiredIndicator'>*</span>");
+			$(".specialFormatField").hide(); // hide all the special fields
+			$(".specialFormatHideField").show(); // show all the special format hide fields
+			this.updateHoldOptions();
+			if (hasSpecialFields){
+				if (VuFind.MaterialsRequest.specialFields[selectedFormat]) {
+					VuFind.MaterialsRequest.specialFields[selectedFormat].forEach(function (specifiedOption) {
+						switch (specifiedOption) {
+							case 'Abridged/Unabridged':
+								$(".abridgedField").show();
+								$(".abridgedHideField").hide();
+								break;
+							case 'Article Field':
+								$(".articleField").show();
+								$(".articleHideField").hide();
+								break;
+							case 'Eaudio format':
+								$(".eaudioField").show();
+								$(".eaudioHideField").hide();
+								break;
+							case 'Ebook format':
+								$(".ebookField").show();
+								$(".ebookHideField").hide();
+								break;
+							case 'Season':
+								$(".seasonField").show();
+								$(".seasonHideField").hide();
+								break;
+						}
+					})
+				}
 			}
 
-			if (selectedFormat == 'article'){
-				$("#magazineTitle").addClass('required');
-				//$("#magazineDate").addClass('required');
-				//$("#magazineVolume").addClass('required');
-				//$("#magazineNumber").addClass('required');
-				//$("#magazinePageNumbers").addClass('required');
-				$("#copyright").show();
+
+			//Update labels as needed
+			if (VuFind.MaterialsRequest.authorLabels){
+				if (VuFind.MaterialsRequest.authorLabels[selectedFormat]) {
+					$("#authorFieldLabel").html(VuFind.MaterialsRequest.authorLabels[selectedFormat] + ': ');
+				//	TODO: Set when required
+				}
+			}
+
+			if ((hasSpecialFields && VuFind.MaterialsRequest.specialFields[selectedFormat] && VuFind.MaterialsRequest.specialFields[selectedFormat].indexOf('Article Field') > -1)){
+				$("#magazineTitle,#acceptCopyrightYes").addClass('required');
 				$("#acceptCopyrightYes").addClass('required');
+				$("#copyright").show();
 				$("#supplementalDetails").hide();
 				$("#titleLabel").html("Article Title <span class='requiredIndicator'>*</span>");
 			}else{
-				$("#magazineTitle").removeClass('required');
-				//$("#magazineDate").removeClass('required');
-				//$("#magazineVolume").removeClass('required');
-				//$("#magazineNumber").removeClass('required');
-				//$("#magazinePageNumbers").removeClass('required');
+				$("#magazineTitle,#acceptCopyrightYes").removeClass('required');
 				$("#copyright").hide();
-				$("#acceptCopyrightYes").removeClass('required');
 				$("#supplementalDetails").show();
 				$("#titleLabel").html("Title <span class='requiredIndicator'>*</span>");
 			}
-			if (selectedFormat == 'ebook' || selectedFormat == 'eaudio'){
-				$("#illInfo").hide();
-				$("#pickupLocationField").hide();
-			}else{
-				$("#illInfo").show();
-				$("#pickupLocationField").show();
-			}
+
 		},
 
 		updateHoldOptions: function(){
-			var placeHold = $("input[name=placeHoldWhenAvailable]:checked").val();
-			if (placeHold == 1){
+			var placeHold = $("input[name=placeHoldWhenAvailable]:checked").val() == 1 || $("input[name=illItem]:checked").val() == 1;
+			// comparison needed to change placeHold to a boolean
+			if (placeHold){
 				$("#pickupLocationField").show();
 				if ($("#pickupLocation").find("option:selected").val() == 'bookmobile'){
 					$("#bookmobileStopField").show();
@@ -215,12 +230,13 @@ VuFind.MaterialsRequest = (function(){
 				},
 				dataType: 'json',
 				type: 'post'
-			});
+			}).fail(VuFind.ajaxFail);
 			return false;
 		},
 
-		printRequestBody: function(){
-			$("#request_details_body").printElement();
-		}
+		// no uses for this found. plb 12-29-2017
+		// printRequestBody: function(){
+		// 	$("#request_details_body").printElement();
+		// }
 	};
 }(VuFind.MaterialsRequest || {}));

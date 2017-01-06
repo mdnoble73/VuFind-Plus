@@ -665,6 +665,104 @@ class DBMaintenance extends Admin_Admin {
 					),
 				),
 
+				'manageMaterialsRequestFieldsToDisplay' => array(
+					'title' => 'Manage Material Requests Fields to Display Table Creation',
+					'description' => 'New table to manage columns displayed in lists of materials requests on the manage page.',
+					'sql' => array(
+						"CREATE TABLE `materials_request_fields_to_display` ("
+						."  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,"
+						."  `libraryId` int(11) NOT NULL,"
+						."  `columnNameToDisplay` varchar(30) NOT NULL,"
+						."  `labelForColumnToDisplay` varchar(45) NOT NULL,"
+						."  `weight` smallint(2) unsigned NOT NULL DEFAULT '0',"
+						."  PRIMARY KEY (`id`),"
+						."  UNIQUE KEY `columnNameToDisplay` (`columnNameToDisplay`,`libraryId`),"
+						."  KEY `libraryId` (`libraryId`)"
+						.") ENGINE=InnoDB DEFAULT CHARSET=utf8;"
+					),
+				),
+
+				'materialsRequestFormats' => array(
+					'title' => 'Material Requests Formats Table Creation',
+					'description' => 'New table to manage materials formats that can be requested.',
+					'sql' => array(
+						'CREATE TABLE `materials_request_formats` ('
+						.'`id` INT UNSIGNED NOT NULL AUTO_INCREMENT,'
+						.'`libraryId` INT UNSIGNED NOT NULL,'
+						.' `format` VARCHAR(30) NOT NULL,'
+						.'`formatLabel` VARCHAR(60) NOT NULL,'
+						.'`authorLabel` VARCHAR(45) NOT NULL,'
+						.'`weight` SMALLINT(2) UNSIGNED NOT NULL DEFAULT 0,'
+						."`specialFields` SET('Abridged/Unabridged', 'Article Field', 'Eaudio format', 'Ebook format', 'Season') NULL,"
+						.'PRIMARY KEY (`id`),'
+						.'INDEX `libraryId` (`libraryId` ASC));'
+					),
+				),
+
+				'materialsRequestFormFields' => array(
+					'title' => 'Material Requests Form Fields Table Creation',
+					'description' => 'New table to manage materials request form fields.',
+					'sql' => array(
+						'CREATE TABLE `materials_request_form_fields` ('
+						.'`id` INT UNSIGNED NOT NULL AUTO_INCREMENT,'
+						.'`libraryId` INT UNSIGNED NOT NULL,'
+						.'`formCategory` VARCHAR(55) NOT NULL,'
+						.'`fieldLabel` VARCHAR(255) NOT NULL,'
+						.'`fieldType` VARCHAR(30) NULL,'
+						.'`weight` SMALLINT(2) UNSIGNED NOT NULL,'
+						.'PRIMARY KEY (`id`),'
+						.'UNIQUE INDEX `id_UNIQUE` (`id` ASC),'
+						.'INDEX `libraryId` (`libraryId` ASC));'
+					),
+				),
+
+				'staffSettingsTable' => array(
+					'title' => 'Staff Settings Table Creation',
+					'description' => 'New table to contain user settings for staff users.',
+					'sql' => array(
+						'CREATE TABLE `user_staff_settings` ('
+						.'`id` INT UNSIGNED NOT NULL AUTO_INCREMENT,'
+						.'`userId` INT UNSIGNED NOT NULL,'
+						.'`materialsRequestReplyToAddress` VARCHAR(70) NULL,'
+						.'`materialsRequestEmailSignature` TINYTEXT NULL,'
+						.'PRIMARY KEY (`id`),'
+						.'UNIQUE INDEX `userId_UNIQUE` (`userId` ASC),'
+						.'INDEX `userId` (`userId` ASC));'
+					),
+				),
+
+				'materialsRequestLibraryId' => array(
+					'title' => 'Add LibraryId to Material Requests Table',
+					'description' => 'Add LibraryId column to Materials Request table and populate column for existing requests.',
+					'sql' => array(
+						'ALTER TABLE `materials_request` '
+						.'ADD COLUMN `libraryId` INT UNSIGNED NULL AFTER `id`, '
+						.'ADD COLUMN `formatId` INT UNSIGNED NULL AFTER `format`; ',
+
+						'UPDATE  `materials_request`'
+						 .'LEFT JOIN `user` ON (user.id=materials_request.createdBy) '
+						 .'LEFT JOIN `location` ON (location.locationId=user.homeLocationId) '
+						 .'SET materials_request.libraryId = location.libraryId '
+						 .'WHERE materials_request.libraryId IS null '
+						 .'and user.id IS NOT null '
+						 .'and location.libraryId IS not null;',
+
+						'UPDATE `materials_request` '
+						.'LEFT JOIN `location` ON (location.locationId=materials_request.holdPickupLocation) '
+						.'SET materials_request.libraryId = location.libraryId '
+						.' WHERE materials_request.libraryId IS null and location.libraryId IS not null;'
+					),
+				),
+
+				'materialsRequestFixColumns' => array(
+					'title' => 'Change a Couple Column Data-Types for Material Requests Table',
+					'description' => 'Change illitem and holdPickupLocation column data types for Material Requests Table.',
+					'sql' => array(
+						'ALTER TABLE `materials_request` '
+						.'CHANGE COLUMN `illItem` `illItem` TINYINT(4) NULL DEFAULT NULL ;'
+					),
+				),
+
 				'materialsRequestStatus_update1' => array(
 					'title' => 'Materials Request Status Update 1',
 					'description' => 'Material Request Status add library id',
@@ -828,6 +926,14 @@ class DBMaintenance extends Admin_Admin {
 						"DELETE FROM variables where name = 'lastPartialReindexFinish'",
 						"ALTER TABLE variables ADD UNIQUE (name)",
 					),
+				),
+
+				'variables_validateChecksumsFromDisk' => array(
+						'title' => 'Variables Validate Checksums from Disk variable',
+						'description' => 'Add a variable to control whether or not we should validate checksums on the disk.',
+						'sql' => array(
+								"INSERT INTO variables (name, value) VALUES ('validateChecksumsFromDisk', 'false')",
+						),
 				),
 
 
@@ -2203,6 +2309,26 @@ class DBMaintenance extends Admin_Admin {
 									  email VARCHAR(100),
 									  format MEDIUMTEXT,
 									  purpose MEDIUMTEXT,
+									  pid VARCHAR(50),
+									  dateRequested INT(11),
+									  PRIMARY KEY (`id`),
+									  INDEX(`pid`),
+									  INDEX(`name`)
+									) ENGINE=InnoDB  DEFAULT CHARSET=utf8",
+							)
+					),
+
+					'claim_authorship_requests' => array(
+							'title' => 'Claim Authorship Requests',
+							'description' => 'Create a table to store information about the people who are claiming authorship of archive information',
+							'continueOnError' => true,
+							'sql' => array(
+									"CREATE TABLE IF NOT EXISTS claim_authorship_requests (
+									  `id` int(11) NOT NULL AUTO_INCREMENT,
+									  name VARCHAR(100) NOT NULL,
+									  phone VARCHAR(20),
+									  email VARCHAR(100),
+									  message MEDIUMTEXT,
 									  pid VARCHAR(50),
 									  dateRequested INT(11),
 									  PRIMARY KEY (`id`),

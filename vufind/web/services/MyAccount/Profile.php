@@ -29,7 +29,8 @@ class MyAccount_Profile extends MyAccount
 		global $user;
 
 		$ils = $configArray['Catalog']['ils'];
-		$interface->assign('showSMSNoticesInProfile', $ils == 'Sierra');
+		$smsEnabled = $configArray['Catalog']['smsEnabled'];
+		$interface->assign('showSMSNoticesInProfile', $ils == 'Sierra' && $smsEnabled == true);
 
 		if ($user) {
 
@@ -106,6 +107,17 @@ class MyAccount_Profile extends MyAccount
 
 				}  elseif ($updateScope == 'userPreference') {
 					$patron->updateUserPreferences();
+				}  elseif ($updateScope == 'staffSettings') {
+
+					$patron->updateUserPreferences(); // update bypass autolog out option
+
+					if (isset($_REQUEST['materialsRequestEmailSignature'])) {
+						$patron->setMaterialsRequestEmailSignature($_REQUEST['materialsRequestEmailSignature']);
+					}
+					if (isset($_REQUEST['materialsRequestReplyToAddress'])) {
+						$patron->setMaterialsRequestReplyToAddress($_REQUEST['materialsRequestReplyToAddress']);
+					}
+						$patron->setStaffSettings();
 				} elseif ($updateScope == 'overdrive') {
 					// overdrive setting keep changing
 					/*	require_once ROOT_DIR . '/Drivers/OverDriveDriverFactory.php';

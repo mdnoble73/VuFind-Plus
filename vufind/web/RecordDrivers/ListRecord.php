@@ -130,4 +130,8 @@ class ListRecord extends IndexRecord
 			return $this->fields['display_description'];
 		}
 	}
+
+	function getMoreInfoLinkUrl() {
+		return $this->getLinkUrl();
+	}
 }

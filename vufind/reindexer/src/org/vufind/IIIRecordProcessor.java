@@ -325,20 +325,17 @@ public abstract class IIIRecordProcessor extends IlsRecordProcessor{
 	 * @param basedId String the base id without checksum
 	 * @return String the check digit
 	 */
-	protected String getCheckDigit(String basedId) {
-		if (basedId.length() != 7){
-			return "a";
+	protected static String getCheckDigit(String basedId) {
+		int sumOfDigits = 0;
+		for (int i = 0; i < basedId.length(); i++){
+			int multiplier = ((basedId.length() +1 ) - i);
+			sumOfDigits += multiplier * Integer.parseInt(basedId.substring(i, i+1));
+		}
+		int modValue = sumOfDigits % 11;
+		if (modValue == 10){
+			return "x";
 		}else{
-			int sumOfDigits = 0;
-			for (int i = 0; i < 7; i++){
-				sumOfDigits += (8 - i) * Integer.parseInt(basedId.substring(i, i+1));
-			}
-			int modValue = sumOfDigits % 11;
-			if (modValue == 10){
-				return "x";
-			}else{
-				return Integer.toString(modValue);
-			}
+			return Integer.toString(modValue);
 		}
 	}
 

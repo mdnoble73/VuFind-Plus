@@ -423,7 +423,9 @@ class Location extends DB_DataObject
 
 
 		// Add the user id to each pickup location to track multiple linked accounts having the same pick-up location.
- 		$this->pickupUsers[] = $patronProfile->id;
+ 		if ($patronProfile) {
+ 			$this->pickupUsers[] = $patronProfile->id;
+	  }
 
 		//Load the locations and sort them based on the user profile information as well as their physical location.
 		$physicalLocation = $this->getPhysicalLocation();
@@ -1132,6 +1134,9 @@ class Location extends DB_DataObject
 				$currentHour = strftime ('%H', $today);
 				$openHour = strftime ('%H', strtotime($todaysLibraryHours['open']));
 				$closeHour = strftime ('%H', strtotime($todaysLibraryHours['close']));
+				if ($closeHour == 0 && $closeHour < $openHour){
+					$closeHour = 24;
+				}
 				if ($currentHour < $openHour){
 					$libraryHoursMessage = "The library will be open today from " . $todaysLibraryHours['openFormatted'] . " to " . $todaysLibraryHours['closeFormatted'] . ".";
 				}else if ($currentHour > $closeHour){

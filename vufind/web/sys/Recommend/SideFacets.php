@@ -269,7 +269,7 @@ class SideFacets implements RecommendationInterface
 					$sideFacets[$facetKey]['list'] = array_slice($facetsList, 0, 5);
 					$sortedList = array();
 					foreach ($facetsList as $key => $value){
-						$sortedList[strtolower($key)] = $value;
+						$sortedList[strtolower($value['display'])] = $value;
 					}
 					ksort($sortedList);
 					$sideFacets[$facetKey]['sortedList'] = $sortedList;

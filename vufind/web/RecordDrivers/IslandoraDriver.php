@@ -1306,7 +1306,12 @@ abstract class IslandoraDriver extends RecordInterface {
 	public function getDateCreated() {
 		$dateCreated = $this->getModsValue('dateCreated', 'mods');
 		if ($dateCreated == ''){
-			return 'Unknown';
+			$dateCreated = $this->getModsValue('dateIssued', 'mods');
+			if ($dateCreated == ''){
+				return 'Unknown';
+			}else{
+				return $dateCreated;
+			}
 		}else{
 			return $dateCreated;
 		}
@@ -1917,35 +1922,81 @@ abstract class IslandoraDriver extends RecordInterface {
 		return null;
 	}
 
-	public function getBrandingInformation() {
+	public function getBrandingInformation($loadingCollectionData = false) {
 		require_once ROOT_DIR . '/sys/Utils/FedoraUtils.php';
 		$fedoraUtils = FedoraUtils::getInstance();
 
-		$donor = null;
-		$owner = null;
-		foreach ($this->getProductionTeam() as $person){
+		$brandingResults = array();
+
+		$productionTeam = $this->getProductionTeam();
+		foreach ($productionTeam as $person){
 			if ($person['role'] == 'donor'){
-				$donor = $person;
+				$brandingResults[] = array(
+						'label' => 'Donated by ' . $person['label'],
+						'image' => $person['image'],
+						'link' => $person['link'],
+						'sortIndex' => $loadingCollectionData ? 6 : 2,
+						'pid' => $person['pid']
+				);
 			}elseif ($person['role'] == 'owner'){
-				$owner = $person;
+				$brandingResults[] = array(
+						'label' => 'Owned by ' . $person['label'],
+						'image' => $person['image'],
+						'link' => $person['link'],
+						'sortIndex' => $loadingCollectionData ? 5 : 1,
+						'pid' => $person['pid']
+				);
+			}elseif ($person['role'] == 'funder'){
+				$brandingResults[] = array(
+						'label' => 'Funded by ' . $person['label'],
+						'image' => $person['image'],
+						'link' => $person['link'],
+						'sortIndex' => $loadingCollectionData ? 7 : 3,
+						'pid' => $person['pid']
+				);
 			}elseif ($person['role'] == 'acknowledgement'){
-				$brandingResults[$person['pid']] = array(
+				$brandingResults[] = array(
 						'label' => '',
 						'image' => $person['image'],
 						'link' => $person['link'],
+						'sortIndex' => $loadingCollectionData ? 8 : 4,
+						'pid' => $person['pid']
 				);
 			}
 		}
-		foreach ($this->getRelatedOrganizations() as $organization){
+		$relatedOrganizations = $this->getRelatedOrganizations();
+		foreach ($relatedOrganizations as $organization){
 			if ($organization['role'] == 'donor'){
-				$donor = $organization;
+				$brandingResults[] = array(
+						'label' => 'Donated by ' . $organization['label'],
+						'image' => $organization['image'],
+						'link' => $organization['link'],
+						'sortIndex' => $loadingCollectionData ? 6 : 2,
+						'pid' => $organization['pid']
+				);
 			}elseif ($organization['role'] == 'owner'){
-				$owner = $organization;
+				$brandingResults[] = array(
+						'label' => 'Owned by ' . $organization['label'],
+						'image' => $organization['image'],
+						'link' => $organization['link'],
+						'sortIndex' => $loadingCollectionData ? 5 : 1,
+						'pid' => $organization['pid']
+				);
+			}elseif ($organization['role'] == 'funder'){
+				$brandingResults[] = array(
+						'label' => 'Funded by ' . $organization['label'],
+						'image' => $organization['image'],
+						'link' => $organization['link'],
+						'sortIndex' => $loadingCollectionData ? 7 : 3,
+						'pid' => $organization['pid']
+				);
 			}elseif ($organization['role'] == 'acknowledgement'){
-				$brandingResults[$organization['pid']] = array(
+				$brandingResults[] = array(
 						'label' => '',
 						'image' => $organization['image'],
 						'link' => $organization['link'],
+						'sortIndex' => $loadingCollectionData ? 8 : 4,
+						'pid' => $organization['pid']
 				);
 			}
 		}
@@ -1961,33 +2012,64 @@ abstract class IslandoraDriver extends RecordInterface {
 			}
 		}
 
-		$brandingResults = array();
-		if ($donor != null || $owner != null || $contributingLibrary != null){
-			if ($donor){
-				$brandingResults[$donor['pid']] = array(
-						'label' => 'Donated by ' . $donor['label'],
-						'image' => $donor['image'],
-						'link' => $donor['link'],
-				);
-			}
-			if ($owner){
-				$brandingResults[$owner['pid']] = array(
-						'label' => 'Owned by ' . $owner['label'],
-						'image' => $owner['image'],
-						'link' => $owner['link'],
-				);
-			}
-			if ($contributingLibrary){
-				$contributingLibraryPid = $contributingLibrary->archivePid;
-				$contributingLibraryObject = $fedoraUtils->getObject($contributingLibraryPid);
-				$brandingResults[$contributingLibraryPid] = array(
-						'label' => 'Contributed by ' . $contributingLibrary->displayName,
-						'image' => $fedoraUtils->getObjectImageUrl($contributingLibraryObject, 'medium'),
-						'link' => "/Archive/$contributingLibraryPid/Organization",
-				);
-			}
+
+		if ($contributingLibrary){
+			$contributingLibraryPid = $contributingLibrary->archivePid;
+			$contributingLibraryObject = $fedoraUtils->getObject($contributingLibraryPid);
+			$brandingResults[] = array(
+					'label' => 'Contributed by ' . $contributingLibrary->displayName,
+					'image' => $fedoraUtils->getObjectImageUrl($contributingLibraryObject, 'medium'),
+					'link' => "/Archive/$contributingLibraryPid/Organization",
+					'sortIndex' => 9,
+					'pid' => $contributingLibraryPid
+			);
 		}
 
 		return $brandingResults;
+	}
+
+	private $viewingRestrictions = null;
+
+	/**
+	 * @return array
+	 */
+	public function getViewingRestrictions() {
+		if ($this->viewingRestrictions == null) {
+			$this->viewingRestrictions = array();
+			$accessLimits = $this->getModsValue('pikaAccessLimits', 'marmot');
+			if ($accessLimits == 'all') {
+				//No restrictions needed, don't check the parent collections
+			}else if ($accessLimits == 'default' || $accessLimits == null) {
+				$parentCollections = $this->getRelatedCollections();
+				foreach ($parentCollections as $collection) {
+					$collectionDriver = $collection['driver'];
+					$accessLimits = $collectionDriver->getViewingRestrictions();
+					if (count($accessLimits) > 0){
+						$this->viewingRestrictions = array_merge($this->viewingRestrictions, $accessLimits);
+					}
+				}
+			}else{
+				$accessLimits = preg_split('/[\r\n,]/', $accessLimits);
+				$this->viewingRestrictions = array_merge($this->viewingRestrictions, $accessLimits);
+			}
+		}
+		return $this->viewingRestrictions;
+	}
+
+	private $showClaimAuthorship = null;
+
+	/**
+	 * @return boolean
+	 */
+	public function getShowClaimAuthorship() {
+		if ($this->showClaimAuthorship == null){
+			$showClaimAuthorship = $this->getModsValue('showClaimAuthorship', 'marmot');
+			if ($showClaimAuthorship == null || strcasecmp($showClaimAuthorship, 'no') === 0){
+				$this->showClaimAuthorship = false;
+			}else{
+				$this->showClaimAuthorship = true;
+			}
+		}
+		return $this->showClaimAuthorship;
 	}
 }

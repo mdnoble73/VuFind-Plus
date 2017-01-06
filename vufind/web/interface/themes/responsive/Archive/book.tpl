@@ -7,42 +7,46 @@
 		</h2>
 		<div class="row">
 			<div id="main-content" class="col-xs-12 text-center">
-				<div id="view-toggle" class="btn-group" role="group" data-toggle="buttons">
-					<label class="btn btn-group-small btn-default">
-						<input type="radio" name="pageView" id="view-toggle-pdf" autocomplete="off" onchange="return VuFind.Archive.handleBookClick('{$pid}', VuFind.Archive.activeBookPage, 'pdf');">
-						{*TODO: set bookPID*}
+				{if $canView}
+					<div id="view-toggle" class="btn-group" role="group" data-toggle="buttons">
+						<label class="btn btn-group-small btn-default">
+							<input type="radio" name="pageView" id="view-toggle-pdf" autocomplete="off" onchange="return VuFind.Archive.handleBookClick('{$pid}', VuFind.Archive.activeBookPage, 'pdf');">
+							{*TODO: set bookPID*}
 
-						View As PDF
-					</label>
-					<label class="btn btn-group-small btn-default">
-						<input type="radio" name="pageView" id="view-toggle-image" autocomplete="off" onchange="return VuFind.Archive.handleBookClick('{$pid}', VuFind.Archive.activeBookPage, 'image');">
+							View As PDF
+						</label>
+						<label class="btn btn-group-small btn-default">
+							<input type="radio" name="pageView" id="view-toggle-image" autocomplete="off" onchange="return VuFind.Archive.handleBookClick('{$pid}', VuFind.Archive.activeBookPage, 'image');">
 
-						View As Image
-					</label>
-					<label class="btn btn-group-small btn-default">
-						<input type="radio" name="pageView" id="view-toggle-transcription" autocomplete="off" onchange="return VuFind.Archive.handleBookClick('{$pid}', VuFind.Archive.activeBookPage, 'transcription');">
+							View As Image
+						</label>
+						<label class="btn btn-group-small btn-default">
+							<input type="radio" name="pageView" id="view-toggle-transcription" autocomplete="off" onchange="return VuFind.Archive.handleBookClick('{$pid}', VuFind.Archive.activeBookPage, 'transcription');">
 
-						View Transcription
-					</label>
-				</div>
+							View Transcription
+						</label>
+					</div>
 
-				<br>
+					<br>
 
-				<div id="view-pdf" width="100%" height="600px" style="display: none">
-					No PDF loaded
-				</div>
+					<div id="view-pdf" width="100%" height="600px" style="display: none">
+						No PDF loaded
+					</div>
 
-				<div id="view-image" style="display: none">
-					<div class="large-image-wrapper">
-						<div class="large-image-content">
-							<div id="pika-openseadragon" class="openseadragon"></div>
+					<div id="view-image" style="display: none">
+						<div class="large-image-wrapper">
+							<div class="large-image-content">
+								<div id="pika-openseadragon" class="openseadragon"></div>
+							</div>
 						</div>
 					</div>
-				</div>
 
-				<div id="view-transcription" style="display: none" width="100%" height="600px;">
-					No transcription loaded
-				</div>
+					<div id="view-transcription" style="display: none" width="100%" height="600px;">
+						No transcription loaded
+					</div>
+				{else}
+					{include file="Archive/noAccess.tpl"}
+				{/if}
 			</div>
 		</div>
 
@@ -54,54 +58,59 @@
 			{if $allowRequestsForArchiveMaterials}
 				<a class="btn btn-default" href="{$path}/Archive/RequestCopy?pid={$pid}">Request Copy</a>
 			{/if}
+			{if $showClaimAuthorship}
+				<a class="btn btn-default" href="{$path}/Archive/ClaimAuthorship?pid={$pid}">Claim Authorship</a>
+			{/if}
 		</div>
 
-		<div class="row">
-			<div class="col-xs-12 text-center">
-				<div class="jcarousel-wrapper" id="book-sections">
-					<a href="#" class="jcarousel-control-prev"{* data-target="-=1"*}><i class="glyphicon glyphicon-chevron-left"></i></a>
-					<a href="#" class="jcarousel-control-next"{* data-target="+=1"*}><i class="glyphicon glyphicon-chevron-right"></i></a>
+		{if $canView}
+			<div class="row">
+				<div class="col-xs-12 text-center">
+					<div class="jcarousel-wrapper" id="book-sections">
+						<a href="#" class="jcarousel-control-prev"{* data-target="-=1"*}><i class="glyphicon glyphicon-chevron-left"></i></a>
+						<a href="#" class="jcarousel-control-next"{* data-target="+=1"*}><i class="glyphicon glyphicon-chevron-right"></i></a>
 
-					<div class="relatedTitlesContainer jcarousel"> {* relatedTitlesContainer used in initCarousels *}
-						<ul>
-							{assign var=pageCounter value=1}
-							{foreach from=$bookContents item=section}
-								{if count($section.pages) == 0}
-									<li class="relatedTitle">
-										<a href="{$section.link}">
-											<figure class="thumbnail">
-												<img src="{$section.cover}" alt="{$section.title|removeTrailingPunctuation|truncate:80:"..."}">
-												<figcaption>{$section.title|removeTrailingPunctuation|truncate:80:"..."}</figcaption>
-											</figure>
-										</a>
-									</li>
-									{assign var=pageCounter value=$pageCounter+1}
-								{else}
-									{foreach from=$section.pages item=page}
+						<div class="relatedTitlesContainer jcarousel"> {* relatedTitlesContainer used in initCarousels *}
+							<ul>
+								{assign var=pageCounter value=1}
+								{foreach from=$bookContents item=section}
+									{if count($section.pages) == 0}
 										<li class="relatedTitle">
-											<a href="{$page.link}?pagePid={$page.pid}" onclick="return VuFind.Archive.handleBookClick('{$pid}', '{$page.pid}', VuFind.Archive.activeBookViewer);">
+											<a href="{$section.link}">
 												<figure class="thumbnail">
-													<img src="{$page.cover}" alt="Page {$pageCounter}">
-													<figcaption>{$pageCounter}</figcaption>
+													<img src="{$section.cover}" alt="{$section.title|removeTrailingPunctuation|truncate:80:"..."}">
+													<figcaption>{$section.title|removeTrailingPunctuation|truncate:80:"..."}</figcaption>
 												</figure>
 											</a>
 										</li>
 										{assign var=pageCounter value=$pageCounter+1}
-									{/foreach}
-								{/if}
-							{/foreach}
-						</ul>
+									{else}
+										{foreach from=$section.pages item=page}
+											<li class="relatedTitle">
+												<a href="{$page.link}?pagePid={$page.pid}" onclick="return VuFind.Archive.handleBookClick('{$pid}', '{$page.pid}', VuFind.Archive.activeBookViewer);">
+													<figure class="thumbnail">
+														<img src="{$page.cover}" alt="Page {$pageCounter}">
+														<figcaption>{$pageCounter}</figcaption>
+													</figure>
+												</a>
+											</li>
+											{assign var=pageCounter value=$pageCounter+1}
+										{/foreach}
+									{/if}
+								{/foreach}
+							</ul>
+						</div>
 					</div>
 				</div>
 			</div>
-		</div>
+		{/if}
 
 		{include file="Archive/metadata.tpl"}
 	</div>
 {/strip}
 <script src="{$path}/js/openseadragon/openseadragon.js" ></script>
 <script src="{$path}/js/openseadragon/djtilesource.js" ></script>
-
+{if $canView}
 <script type="text/javascript">
 	{assign var=pageCounter value=1}
 	{foreach from=$bookContents item=section}
@@ -137,6 +146,11 @@
 		{* Below click events trigger indirectly the handleBookClick function, and properly sets the appropriate button. *}
 		VuFind.Archive.handleBookClick('{$pid}', '{$activePage}', '{$activeViewer}');
 
+	{rdelim});
+</script>
+{/if}
+<script type="text/javascript">
+	$().ready(function(){ldelim}
 		VuFind.Archive.loadExploreMore('{$pid|urlencode}');
 	{rdelim});
 </script>

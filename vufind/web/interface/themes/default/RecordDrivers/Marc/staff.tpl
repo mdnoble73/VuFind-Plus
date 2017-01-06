@@ -32,6 +32,13 @@
 {/if}
 
 {if $marcRecord}
+	<table class="table-striped table table-condensed notranslate">
+		<tr>
+			<th>Last Modification Time</th>
+			<td>{$lastMarcModificationTime|date_format:"%b %d, %Y %r"}</td>
+		</tr>
+	</table>
+
 	<div id="formattedMarcRecord">
 		<h3>MARC Record</h3>
 		<table class="citation" border="0">

@@ -64,7 +64,7 @@
 26 0 * * * cd /tmp; rm -rf CURLCOOKIE*
 27 0 * * * cd /tmp; rm -rf epb*
 # Restart apache
-0 0-6 * * * /usr/sbin/apachectl graceful > /dev/null 2>&1
+0 0-6 * * * /usr/sbin/apachectl restart > /dev/null 2>&1
 
 # CRON for VuFind-Plus (book cover cache cleanup etc.)
 00 20 * * * cd /usr/local/VuFind-Plus/vufind/cron; java -jar cron.jar catalog.library.nashville.org
