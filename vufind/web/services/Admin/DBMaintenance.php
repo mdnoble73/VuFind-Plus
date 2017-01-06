@@ -2403,7 +2403,7 @@ class DBMaintenance extends Admin_Admin {
 	}
 
 	function getAllowableRoles() {
-		return array('userAdmin');
+		return array('userAdmin', 'opacAdmin');
 	}
 
 	private function createUpdatesTable() {
