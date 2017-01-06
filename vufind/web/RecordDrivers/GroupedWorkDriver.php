@@ -1090,7 +1090,8 @@ class GroupedWorkDriver extends RecordInterface{
 						}
 					}
 					GroupedWorkDriver::$archiveLinksForWorkIds[$workId] = $this->archiveLink;
-					$searchObject->close();
+					$searchObject = null;
+					unset($searchObject);
 				}
 			}
 		}

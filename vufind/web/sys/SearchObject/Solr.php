@@ -2231,4 +2231,11 @@ class SearchObject_Solr extends SearchObject_Base
 		parent::setPrimarySearch($flag);
 		$this->indexEngine->isPrimarySearch = $flag;
 	}
+
+	public function __destruct(){
+		if (isset($this->indexEngine)){
+			$this->indexEngine = null;
+			unset($this->indexEngine);
+		}
+	}
 }
