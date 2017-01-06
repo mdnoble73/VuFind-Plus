@@ -1057,31 +1057,40 @@ class GroupedWorkDriver extends RecordInterface{
 		return $configArray['Site']['url'] . '/qrcode.php?type=GroupedWork&id=' . $this->getPermanentId();
 	}
 
-	private $archiveLink = false;
+	static $archiveLinksForWorkIds = array();
+	private $archiveLink = 'unset';
 	function getArchiveLink(){
-		if ($this->archiveLink === false){
+		if ($this->archiveLink === 'unset'){
 			$this->archiveLink = null;
 			//Check to see if the record is available within the archive
 			global $library;
 			if ($library->enableArchive){
-				/** @var SearchObject_Islandora $searchObject */
-				$searchObject = SearchObjectFactory::initSearchObject('Islandora');
-				$searchObject->init();
-				$searchObject->setDebugging(false, false);
-				$searchObject->setBasicQuery("mods_extension_marmotLocal_externalLink_samePika_link_s:*" . $this->getUniqueID());
-				$searchObject->clearFacets();
+				$workId = $this->getUniqueID();
+				if (array_key_exists($workId, GroupedWorkDriver::$archiveLinksForWorkIds)){
+					$this->archiveLink = GroupedWorkDriver::$archiveLinksForWorkIds[$workId];
+				}else{
+					/** @var SearchObject_Islandora $searchObject */
+					$searchObject = SearchObjectFactory::initSearchObject('Islandora');
+					$searchObject->init();
+					$searchObject->disableLogging();
+					$searchObject->setDebugging(false, false);
+					$searchObject->setBasicQuery("mods_extension_marmotLocal_externalLink_samePika_link_s:*" . $workId);
+					$searchObject->clearFacets();
 
-				$searchObject->setLimit(1);
+					$searchObject->setLimit(1);
 
-				$response = $searchObject->processSearch(true, false, true);
+					$response = $searchObject->processSearch(true, false, true);
 
-				if ($response && isset($response['response'])) {
-					//Get information about each project
-					if ($searchObject->getResultTotal() > 0) {
-						$firstObjectDriver = RecordDriverFactory::initRecordDriver($response['response']['docs'][0]);
+					if ($response && isset($response['response'])) {
+						//Get information about each project
+						if ($searchObject->getResultTotal() > 0) {
+							$firstObjectDriver = RecordDriverFactory::initRecordDriver($response['response']['docs'][0]);
 
-						$this->archiveLink = $firstObjectDriver->getRecordUrl();
+							$this->archiveLink = $firstObjectDriver->getRecordUrl();
+						}
 					}
+					GroupedWorkDriver::$archiveLinksForWorkIds[$workId] = $this->archiveLink;
+					$searchObject->close();
 				}
 			}
 		}
