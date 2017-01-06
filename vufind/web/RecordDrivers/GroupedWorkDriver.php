@@ -531,9 +531,7 @@ class GroupedWorkDriver extends RecordInterface{
 		$memoryWatcher->logMemory("Loaded related records");
 		if (count($relatedRecords) == 1){
 			$firstRecord = reset($relatedRecords);
-			/** @var IndexRecord|OverDriveRecordDriver|BaseEContentDriver $driver */
-			$driver = $firstRecord['driver'];
-			$linkUrl = $driver != null ? $driver->getLinkUrl() : '';
+			$linkUrl = $firstRecord['url'];
 		}else{
 			$linkUrl = '/GroupedWork/' . $id . '/Home?searchId=' . $interface->get_template_vars('searchId') . '&amp;recordIndex=' . $interface->get_template_vars('recordIndex') . '&amp;page='  . $interface->get_template_vars('page');
 			if ($useUnscopedHoldingsSummary){
@@ -1300,7 +1298,7 @@ class GroupedWorkDriver extends RecordInterface{
 			}
 			list($scopingInfo, $validRecordIds, $validItemIds) = $this->loadScopingDetails($solrScope);
 			$timer->logTime("Loaded Scoping Details from the index");
-			$memoryWatcher->logMemory("Loaded scopeing details from the index");
+			$memoryWatcher->logMemory("Loaded scoping details from the index");
 
 			$recordsFromIndex = $this->loadRecordDetailsFromIndex($validRecordIds);
 			$timer->logTime("Loaded Record Details from the index");
@@ -2479,6 +2477,7 @@ class GroupedWorkDriver extends RecordInterface{
 	protected function setupRelatedRecordDetails($recordDetails, $groupedWork, $timer, $scopingInfo, $activePTypes, $searchLocation, $library) {
 		//Check to see if we have any volume data for the record
 		require_once ROOT_DIR . '/Drivers/marmot_inc/IlsVolumeInfo.php';
+		global $memoryWatcher;
 		$volumeData = array();
 		$volumeDataDB = new IlsVolumeInfo();
 		$volumeDataDB->recordId = $recordDetails[0];
@@ -2488,6 +2487,8 @@ class GroupedWorkDriver extends RecordInterface{
 				$volumeData[] = clone($volumeDataDB);
 			}
 		}
+		$volumeDataDB = null;
+		unset($volumeDataDB);
 
 		//		list($source) = explode(':', $recordDetails[0], 1); // this does not work for 'overdrive:27770ba9-9e68-410c-902b-de2de8e2b7fe', returns 'overdrive:27770ba9-9e68-410c-902b-de2de8e2b7fe'
 		// when loading book covers.
@@ -2495,6 +2496,7 @@ class GroupedWorkDriver extends RecordInterface{
 		require_once ROOT_DIR . '/RecordDrivers/Factory.php';
 		$recordDriver = RecordDriverFactory::initRecordDriverById($recordDetails[0], $groupedWork);
 		$timer->logTime("Loaded Record Driver for  $recordDetails[0]");
+		$memoryWatcher->logMemory("Loaded Record Driver for  $recordDetails[0]");
 
 		//Setup the base record
 		$relatedRecord = array(
@@ -2537,6 +2539,7 @@ class GroupedWorkDriver extends RecordInterface{
 				'schemaDotOrgBookFormat' => $this->getSchemaOrgBookFormat($recordDetails[1]),
 		);
 		$timer->logTime("Setup base related record");
+		$memoryWatcher->logMemory("Setup base related record");
 
 		//Process the items for the record and add additional information as needed
 		$localShelfLocation = null;
@@ -2765,9 +2768,12 @@ class GroupedWorkDriver extends RecordInterface{
 		ksort($relatedRecord['itemSummary']);
 		ksort($relatedRecord['itemDetails']);
 		$timer->logTime("Setup record items");
+		$memoryWatcher->logMemory("Setup record items");
 
 		$relatedRecord['actions'] = $recordDriver != null ? $recordDriver->getRecordActions($relatedRecord['availableLocally'] || $relatedRecord['availableOnline'], $recordHoldable, $recordBookable, $relatedUrls, $volumeData) : array();
 		$timer->logTime("Loaded actions");
+		$memoryWatcher->logMemory("Loaded actions");
+		$recordDriver = null;
 		return $relatedRecord;
 	}
 

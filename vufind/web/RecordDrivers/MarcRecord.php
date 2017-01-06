@@ -1994,6 +1994,7 @@ class MarcRecord extends IndexRecord
 
 					$this->statusSummary = $this->recordFromIndex;
 
+					$this->statusSummary['driver'] = null;
 					unset($this->statusSummary['driver']);
 				} else {
 					$this->holdings = array();
