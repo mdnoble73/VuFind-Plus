@@ -1264,6 +1264,10 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		if (printFormats.size() == 0){
 			logger.debug("Did not get any formats for print record " + recordInfo.getFullIdentifier() + ", assuming it is a book ");
 			printFormats.add("Book");
+		}else{
+			for(String format: printFormats){
+				logger.debug("    found format " + format);
+			}
 		}
 
 		filterPrintFormats(printFormats);
