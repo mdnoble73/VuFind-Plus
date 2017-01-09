@@ -2340,7 +2340,7 @@ class DBMaintenance extends Admin_Admin {
 
 					'add_search_source_to_saved_searches' => array(
 							'title' => 'Store the Search Source with saved searches',
-							'description' => 'Add column to store a searches\' source in the search table',
+							'description' => 'Add column to store the source for a search in the search table',
 							'continueOnError' => true,
 							'sql' => array(
 									"ALTER TABLE `search` 
