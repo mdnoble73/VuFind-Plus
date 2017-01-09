@@ -66,6 +66,7 @@ class MaterialsRequest_NewRequest extends Action
 		//Setup a default title based on the search term
 		$interface->assign('new', true);
 		$request = new MaterialsRequest();
+		$request->placeHoldWhenAvailable = true; // set the place hold option on by default
 		if (isset($_REQUEST['lookfor']) && strlen ($_REQUEST['lookfor']) > 0){
 			$searchType = isset($_REQUEST['basicType']) ? $_REQUEST['basicType'] : (isset($_REQUEST['type']) ? $_REQUEST['type'] : 'Keyword');
 			if (strcasecmp($searchType, 'author') == 0){
@@ -76,7 +77,7 @@ class MaterialsRequest_NewRequest extends Action
 		}
 
 		if ($user) {
-			$request->phone = str_replace('### TEXT ONLY ', '', $user->phone);
+			$request->phone = str_replace(array('### TEXT ONLY ','### TEXT ONLY'), '', $user->phone);
 			if ($user->email != 'notice@salidalibrary.org') {
 				$request->email = $user->email;
 			}
