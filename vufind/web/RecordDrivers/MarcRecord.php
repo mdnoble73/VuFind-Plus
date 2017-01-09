@@ -1321,7 +1321,7 @@ class MarcRecord extends IndexRecord
 			);
 		}
 
-		$archiveLink = $this->getGroupedWorkDriver()->getArchiveLink();
+		$archiveLink = GroupedWorkDriver::getArchiveLinkForWork($this->getGroupedWorkId());
 		if ($archiveLink != null){
 			$actions[] = array(
 					'title' => 'View Online',
@@ -1994,6 +1994,7 @@ class MarcRecord extends IndexRecord
 
 					$this->statusSummary = $this->recordFromIndex;
 
+					$this->statusSummary['driver'] = null;
 					unset($this->statusSummary['driver']);
 				} else {
 					$this->holdings = array();
