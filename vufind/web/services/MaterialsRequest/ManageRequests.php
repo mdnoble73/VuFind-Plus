@@ -328,7 +328,7 @@ class MaterialsRequest_ManageRequests extends Admin_Admin {
 			'author'       => 'Author',
 			'format'       => 'Format',
 			'createdBy'    => 'Patron',
-			'holdsCreated' => 'Hold Placed',
+			'placeHoldWhenAvailable' => 'Place a Hold',
 			'illItem'      => 'Inter-Library Loan',
 			'assignedTo'   => 'Assigned To',
 			'status'       => 'Status',
