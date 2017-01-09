@@ -960,6 +960,7 @@ public class GroupedWorkIndexer {
 			try {
 				SolrInputDocument inputDocument = groupedWork.getSolrDocument(availableAtLocationBoostValue, ownedByLocationBoostValue);
 				updateServer.add(inputDocument);
+				logger.debug("Updated solr \r\n" + inputDocument.toString());
 
 			} catch (Exception e) {
 				logger.error("Error adding record to solr", e);
