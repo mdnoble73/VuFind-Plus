@@ -1215,10 +1215,23 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 	protected void loadPrintFormatFromBib(RecordInfo recordInfo, Record record) {
 		LinkedHashSet<String> printFormats = getFormatsFromBib(record, recordInfo);
 
+		for(String format: printFormats){
+			logger.debug("Print formats from bib:");
+			logger.debug("    " + format);
+		}
+
 		HashSet<String> translatedFormats = translateCollection("format", printFormats, recordInfo.getRecordIdentifier());
 		HashSet<String> translatedFormatCategories = translateCollection("format_category", printFormats, recordInfo.getRecordIdentifier());
 		recordInfo.addFormats(translatedFormats);
+		for(String format: translatedFormats){
+			logger.debug("Translated formats:");
+			logger.debug("    " + format);
+		}
 		recordInfo.addFormatCategories(translatedFormatCategories);
+		for(String format: translatedFormatCategories){
+			logger.debug("Translated format categories:");
+			logger.debug("    " + format);
+		}
 		Long formatBoost = 0L;
 		HashSet<String> formatBoosts = translateCollection("format_boost", printFormats, recordInfo.getRecordIdentifier());
 		for (String tmpFormatBoost : formatBoosts) {
