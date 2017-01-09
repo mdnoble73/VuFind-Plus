@@ -9,12 +9,14 @@
 			<div id="main-content" class="col-xs-12 text-center">
 				{if $canView}
 					<div id="view-toggle" class="btn-group" role="group" data-toggle="buttons">
+						{if $anonymousMasterDownload || ($user && $verifiedMasterDownload)}
 						<label class="btn btn-group-small btn-default">
 							<input type="radio" name="pageView" id="view-toggle-pdf" autocomplete="off" onchange="return VuFind.Archive.handleBookClick('{$pid}', VuFind.Archive.activeBookPage, 'pdf');">
 							{*TODO: set bookPID*}
 
 							View As PDF
 						</label>
+						{/if}
 						<label class="btn btn-group-small btn-default">
 							<input type="radio" name="pageView" id="view-toggle-image" autocomplete="off" onchange="return VuFind.Archive.handleBookClick('{$pid}', VuFind.Archive.activeBookPage, 'image');">
 
@@ -112,6 +114,9 @@
 <script src="{$path}/js/openseadragon/djtilesource.js" ></script>
 {if $canView}
 <script type="text/javascript">
+	{if !($anonymousMasterDownload || ($user && $verifiedMasterDownload))}
+		VuFind.Archive.allowPDFView = false;
+	{/if}
 	{assign var=pageCounter value=1}
 	{foreach from=$bookContents item=section}
 		VuFind.Archive.pageDetails['{$section.pid}'] = {ldelim}

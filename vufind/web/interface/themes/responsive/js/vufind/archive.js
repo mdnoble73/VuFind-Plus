@@ -11,6 +11,7 @@ VuFind.Archive = (function(){
 		openSeaDragonViewer: null,
 		pageDetails: [],
 		multiPage: false,
+		allowPDFView: true,
 		activeBookViewer: 'jp2',
 		activeBookPage: null,
 		activeBookPid: null,
@@ -52,18 +53,19 @@ VuFind.Archive = (function(){
 			this.activeBookViewer = viewerName;
 			// $('#view-toggle').children(".btn .active").removeClass('active');
 
-			if (viewerName == 'pdf'){
+			if (viewerName == 'pdf' && this.allowPDFView){
 				$('#view-toggle-pdf').prop('checked', true);
 						// .parent('.btn').addClass('active');
 				$("#view-pdf").show();
 				$("#view-image").hide();
 				$("#view-transcription").hide();
-			}else if (viewerName == 'image'){
+			}else if (viewerName == 'image' || (viewerName == 'pdf' && !this.allowPDFView)){
 				$('#view-toggle-image').prop('checked', true);
 						// .parent('.btn').addClass('active');
 				$("#view-image").show();
 				$("#view-pdf").hide();
 				$("#view-transcription").hide();
+				this.activeBookViewer = 'image';
 			}else if (viewerName == 'transcription'){
 				$('#view-toggle-transcription').prop('checked', true);
 					// .parent('.btn').addClass('active');
