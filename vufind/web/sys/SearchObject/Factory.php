@@ -81,6 +81,12 @@ class SearchObjectFactory {
 			case 'WorldCatAdvanced':
 				$type = 'WorldCat';
 				break;
+			case 'islandora' :
+				$type = 'Islandora';
+				break;
+			case 'genealogy' :
+				$type = 'Genealogy';
+				break;
 			default:
 				$type = 'Solr';
 				break;

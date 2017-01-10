@@ -69,6 +69,9 @@ class Archive_Results extends Action {
 		$interface->assign('rssLink',    $searchObject->getRSSUrl());
 		$interface->assign('excelLink',  $searchObject->getExcelUrl());
 
+		// Hide Covers when the user has set that setting on the Search Results Page
+		$this->setShowCovers();
+
 		$timer->logTime('Setup Search');
 
 		// Process Search

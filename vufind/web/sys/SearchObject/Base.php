@@ -180,6 +180,14 @@ abstract class SearchObject_Base
 	}
 
 	/**
+	 * @return string
+	 */
+	public function getSearchSource()
+	{
+		return $this->searchSource;
+	}
+
+	/**
 	 * Does the object already contain the specified filter?
 	 *
 	 * @access  public
@@ -1470,6 +1478,7 @@ abstract class SearchObject_Base
 			$search = new SearchEntry();
 			$search->session_id = session_id();
 			$search->created = date('Y-m-d');
+			$search->searchSource = $this->searchSource;
 			$search->search_object = serialize($this->minify());
 
 			$search->insert();
