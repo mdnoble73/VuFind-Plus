@@ -677,6 +677,8 @@ IslandoraKeyword:
       - [and, ~]
     - mods_extension_marmotLocal_relatedPersonOrg_entityTitle_mt:
       - [and, ~]
+    - mods_extension_marmotLocal_academicResearch_relatedPersonOrg_entityTitle_mt:
+      - [and, ~]
     - mods_extension_marmotLocal_relatedEntity_person_entityTitle_mt:
       - [and, ~]
     - mods_extension_marmotLocal_relatedEntity_place_entityTitle_mt:
@@ -726,6 +728,8 @@ IslandoraKeywordProper:
     - mods_extension_marmotLocal_describedEntity_entityTitle_ms:
       - [exact, ~]
     - mods_extension_marmotLocal_relatedPersonOrg_entityTitle_ms:
+      - [exact, ~]
+    - mods_extension_marmotLocal_academicResearch_relatedPersonOrg_entityTitle_ms:
       - [exact, ~]
     - mods_extension_marmotLocal_relatedEntity_person_entityTitle_ms:
       - [exact, ~]
@@ -808,4 +812,8 @@ IslandoraRelationshipsById:
       - [exact, ~]
     - mods_extension_marmotLocal_relatedObject_ephemera_objectPid_ms:
       - [exact, ~]
+    - mods_extension_marmotLocal_academicResearch_relatedPersonOrg_entityPid_ms:
+      - [exact, ~]
+    - RELS_EXT_isMemberOfCollection_uri_t:
+      - [onephrase, ~]
 

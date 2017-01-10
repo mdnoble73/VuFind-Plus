@@ -760,9 +760,11 @@ class SearchObject_Solr extends SearchObject_Base
 	public function getResultRecordHTML()
 	{
 		global $interface;
+		global $memoryWatcher;
 		$html = array();
 		if (isset($this->indexResult['response'])) {
 			for ($x = 0; $x < count($this->indexResult['response']['docs']); $x++) {
+				$memoryWatcher->logMemory("Started loading record information for index $x");
 				$current = &$this->indexResult['response']['docs'][$x];
 				if (!$this->debug) {
 					unset($current['explain']);
@@ -779,7 +781,9 @@ class SearchObject_Solr extends SearchObject_Base
 					$html[] = "Unable to find record";
 				}
 				//Free some memory
+				$record = 0;
 				unset($record);
+				$memoryWatcher->logMemory("Finished loading record information for index $x");
 			}
 		}
 		return $html;
@@ -2230,5 +2234,12 @@ class SearchObject_Solr extends SearchObject_Base
 	public function setPrimarySearch($flag){
 		parent::setPrimarySearch($flag);
 		$this->indexEngine->isPrimarySearch = $flag;
+	}
+
+	public function __destruct(){
+		if (isset($this->indexEngine)){
+			$this->indexEngine = null;
+			unset($this->indexEngine);
+		}
 	}
 }

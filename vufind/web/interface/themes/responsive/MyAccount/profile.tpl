@@ -437,19 +437,6 @@
 									</div>
 								{/if}
 
-								{if $userIsStaff}
-									<div class="form-group">
-										<div class="col-xs-4"><label for="bypassAutoLogout" class="control-label">{translate text='Bypass Automatic Logout'}:</label></div>
-										<div class="col-xs-8">
-											{if $edit == true}
-												<input type="checkbox" name="bypassAutoLogout" id="bypassAutoLogout" {if $profile->bypassAutoLogout==1}checked='checked'{/if} data-switch="">
-											{else}
-												{if $profile->bypassAutoLogout==0}No{else}Yes{/if}
-											{/if}
-										</div>
-									</div>
-								{/if}
-
 								{if !$offline && $edit == true}
 									<div class="form-group">
 										<div class="col-xs-8 col-xs-offset-4">
@@ -479,15 +466,22 @@
 								</p>
 									<div class="lead">Additional accounts to manage</div>
 									<p>The following accounts can be managed from this account.</p>
+									{*<table class="table table-bordered">*}
+										{*{foreach from=$profile->linkedUsers item=tmpUser} *}{* Show linking for the account currently chosen for display in account settings *}
+											{*<tr><td>{$tmpUser->getNameAndLibraryLabel()}</td><td><button class="btn btn-xs btn-warning" onclick="VuFind.Account.removeLinkedUser({$tmpUser->id});">Remove</button></td> </tr>*}
+											{*{foreachelse}*}
+											{*<tr><td>None</td></tr>*}
+										{*{/foreach}*}
+									{*</table>*}
 									<ul>
-										{foreach from=$profile->linkedUsers item=tmpUser} {* Show linking for the account currently chosen for display in account settings *}
-											<li>{$tmpUser->getNameAndLibraryLabel()} <a href="#" onclick="VuFind.Account.removeLinkedUser({$tmpUser->id});">Remove</a> </li>
+										{foreach from=$profile->linkedUsers item=tmpUser}  {* Show linking for the account currently chosen for display in account settings *}
+											<li>{$tmpUser->getNameAndLibraryLabel()} <button class="btn btn-xs btn-warning" onclick="VuFind.Account.removeLinkedUser({$tmpUser->id});">Remove</button> </li>
 											{foreachelse}
 											<li>None</li>
 										{/foreach}
 									</ul>
 								{if $user->id == $profile->id}{* Only allow account adding for the actual account user is logged in with *}
-									<button class="btn btn-default btn-xs" onclick="VuFind.Account.addAccountLink()">Add an Account</button>
+									<button class="btn btn-primary btn-xs" onclick="VuFind.Account.addAccountLink()">Add an Account</button>
 								{else}
 									<p>Log into this account to add other accounts to it.</p>
 								{/if}
@@ -506,20 +500,89 @@
 				{/if}
 
 				{* Display user roles if the user has any roles*}
-				{if count($profile->roles) > 0}
+				{if $userIsStaff || count($profile->roles) > 0}
 					<div class="panel active">
 						<a data-toggle="collapse" data-parent="#account-settings-accordion" href="#rolesPanel">
 							<div class="panel-heading">
 								<div class="panel-title">
-									Roles
+									Staff Settings
 								</div>
 							</div>
 						</a>
 						<div id="rolesPanel" class="panel-collapse collapse in">
 							<div class="panel-body">
-								{foreach from=$profile->roles item=role}
-									<div class="row"><div class="col-xs-12">{$role}</div></div>
-								{/foreach}
+
+								<div class="row">
+									<div class="col-tn-12 lead">Roles</div>
+								</div>
+								<div class="row">
+									<div class="col-tn-12">
+										<ul>
+											{foreach from=$profile->roles item=role}
+												<li>{$role}</li>
+											{/foreach}
+										</ul>
+									</div>
+								</div>
+
+								<form action="" method="post" class="form-horizontal" id="staffSettingsForm">
+									<input type="hidden" name="updateScope" value="staffSettings">
+
+								{if $userIsStaff}
+									<div class="row">
+										<div class="col-tn-12 lead">Staff Auto Logout Bypass</div>
+									</div>
+									<div class="form-group row">
+										<div class="col-xs-4"><label for="bypassAutoLogout" class="control-label">{translate text='Bypass Automatic Logout'}:</label></div>
+										<div class="col-xs-8">
+											{if $edit == true}
+												<input type="checkbox" name="bypassAutoLogout" id="bypassAutoLogout" {if $profile->bypassAutoLogout==1}checked='checked'{/if} data-switch="">
+											{else}
+												{if $profile->bypassAutoLogout==0}No{else}Yes{/if}
+											{/if}
+										</div>
+									</div>
+								{/if}
+
+								{if $profile->hasRole('library_material_requests')}
+									<div class="row">
+										<div class="lead col-tn-12">Materials Request Management</div>
+									</div>
+									<div class="form-group row">
+										<div class="col-xs-4">
+											<label for="materialsRequestReplyToAddress" class="control-label">Reply-To Email Address:</label>
+										</div>
+										<div class="col-xs-8">
+											{if $edit == true}
+											<input type="text" id="materialsRequestReplyToAddress" name="materialsRequestReplyToAddress" class="form-control multiemail" value="{$user->materialsRequestReplyToAddress}">
+											{else}
+												{$user->materialsRequestReplyToAddress}
+											{/if}
+										</div>
+									</div>
+									<div class="form-group row">
+										<div class="col-xs-4">
+											<label for="materialsRequestEmailSignature" class="control-label">Email Signature:</label>
+										</div>
+										<div class="col-xs-8">
+											{if $edit == true}
+												<textarea id="materialsRequestEmailSignature" name="materialsRequestEmailSignature" class="form-control">{$user->materialsRequestEmailSignature}</textarea>
+											{else}
+												{$user->materialsRequestEmailSignature}
+											{/if}
+										</div>
+									</div>
+								{/if}
+
+
+									{if !$offline && $edit == true}
+										<div class="form-group">
+											<div class="col-xs-8 col-xs-offset-4">
+												<input type="submit" value="Update My Staff Settings" name="updateStaffSettings" class="btn btn-sm btn-primary">
+											</div>
+										</div>
+									{/if}
+								</form>
 							</div>
 						</div>
 					</div>
@@ -529,7 +592,7 @@
 			<script type="text/javascript">
 				{* Initiate any checkbox with a data attribute set to data-switch=""  as a bootstrap switch *}
 				{literal}
-				$(function(){ $('input[type="checkbox"][data-switch]').bootstrapSwitch()})
+				$(function(){ $('input[type="checkbox"][data-switch]').bootstrapSwitch()});
 				{/literal}
 			</script>
 

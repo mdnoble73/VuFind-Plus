@@ -222,7 +222,6 @@ class Millennium extends ScreenScrapingDriver
 	public function patronLogin($username, $password, $validatedViaSSO) {
 		global $timer;
 		global $configArray;
-		global $logger;
 
 		//Get the barcode property
 		if ($this->accountProfile->loginConfiguration == 'barcode_pin'){
@@ -1806,20 +1805,16 @@ class Millennium extends ScreenScrapingDriver
 	 */
 	function getCheckDigit($baseId){
 		$baseId = preg_replace('/\.?[bij]/', '', $baseId);
-		if (strlen($baseId) != 7){
-			return "a";
+		$sumOfDigits = 0;
+		for ($i = 0; $i < strlen($baseId); $i++){
+			$curDigit = substr($baseId, $i, 1);
+			$sumOfDigits += ((strlen($baseId) + 1) - $i) * $curDigit;
+		}
+		$modValue = $sumOfDigits % 11;
+		if ($modValue == 10){
+			return "x";
 		}else{
-			$sumOfDigits = 0;
-			for ($i = 0; $i < 7; $i++){
-				$curDigit = substr($baseId, $i, 1);
-				$sumOfDigits += (8 - $i) * $curDigit;
-			}
-			$modValue = $sumOfDigits % 11;
-			if ($modValue == 10){
-				return "x";
-			}else{
-				return $modValue;
-			}
+			return $modValue;
 		}
 	}
 

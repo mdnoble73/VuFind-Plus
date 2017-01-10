@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- * 
+ *
  * @author Mark Noble <mnoble@turningleaftech.com>
  * @copyright Copyright (C) Anythink Libraries 2012.
  *
@@ -29,7 +29,7 @@ require_once ROOT_DIR . '/sys/MaterialsRequestStatus.php';
  * MaterialsRequest AJAX Page, handles returing asynchronous information about Materials Requests.
  */
 class MaterialsRequest_AJAX extends Action{
-	
+
 	function AJAX() {
 	}
 
@@ -45,7 +45,7 @@ class MaterialsRequest_AJAX extends Action{
 			echo "Unknown Method";
 		}
 	}
-	
+
 	function CancelRequest(){
 		global $user;
 		if (!$user){
@@ -77,122 +77,277 @@ class MaterialsRequest_AJAX extends Action{
 			}
 		}
 	}
-	
+
 	function UpdateMaterialsRequest(){
 		global $interface;
 		global $configArray;
-		
+
 		$useWorldCat = false;
 		if (isset($configArray['WorldCat']) && isset($configArray['WorldCat']['apiKey'])){
 			$useWorldCat = strlen($configArray['WorldCat']['apiKey']) > 0;
 		}
 		$interface->assign('useWorldCat', $useWorldCat);
-		
+
 		if (!isset($_REQUEST['id'])){
 			$interface->assign('error', 'Please provide an id of the materials request to view.');
-		}else{
+		}else {
 			$id = $_REQUEST['id'];
-			$materialsRequest = new MaterialsRequest();
-			$materialsRequest->id = $id;
-			if ($materialsRequest->find(true)){
-				$canUpdate = false;
-				$isAdminUser = false;
-				//Load user information
-				$requestUser = new User();
-				$requestUser->id = $materialsRequest->createdBy;
-				if ($requestUser->find(true)){
-					$interface->assign('requestUser', $requestUser);
-				}
-
+			if (ctype_digit($id)) {
 				global $user;
-				if ($user){
-					if ($user->hasRole('cataloging')){
-						$canUpdate = true;
-						$isAdminUser = true;
-					}elseif ($user->id == $materialsRequest->createdBy){
-						$canUpdate = true;
-					}else if ($user->hasRole('library_material_requests')){
-						//User can update if the home library of the requester is their library
-						$canUpdate = Library::getLibraryForLocation($requestUser->homeLocationId)->libraryId == Library::getLibraryForLocation($user->homeLocationId)->libraryId;
-						$isAdminUser = true;
+				if ($user) {
+					$staffLibrary = $user->getHomeLibrary(); // staff member's home library
+
+					if (!empty($staffLibrary)) {
+
+						// Material Request
+						$materialsRequest     = new MaterialsRequest();
+						$materialsRequest->id = $id;
+
+						// Statuses
+						$statusQuery           = new MaterialsRequestStatus();
+						$materialsRequest->joinAdd($statusQuery);
+
+						// Pick-up Locations
+						$locationQuery = new Location();
+						$materialsRequest->joinAdd($locationQuery, "LEFT");
+
+						// Format Labels
+						$formats = new MaterialsRequestFormats();
+						$formats->libraryId = $staffLibrary->libraryId;
+						$usingDefaultFormats = $formats->count() == 0;
+
+						$materialsRequest->selectAdd();
+						$materialsRequest->selectAdd(
+							'materials_request.*, description as statusLabel, location.displayName as location'
+						);
+						if (!$usingDefaultFormats) {
+							$materialsRequest->joinAdd($formats, 'LEFT');
+							$materialsRequest->selectAdd('materials_request_formats.formatLabel,materials_request_formats.authorLabel, materials_request_formats.specialFields');
+						}
+
+						if ($materialsRequest->find(true)) {
+							$canUpdate   = false;
+							$isAdminUser = false;
+
+							//Load user information
+							$requestUser     = new User();
+							$requestUser->id = $materialsRequest->createdBy;
+							if ($requestUser->find(true)) {
+								$interface->assign('requestUser', $requestUser);
+
+								// Get the Fields to Display for the form
+								$requestFormFields = $materialsRequest->getRequestFormFields($staffLibrary->libraryId, true);
+								$interface->assign('requestFormFields', $requestFormFields);
+
+								if ($user->hasRole('cataloging')) {
+									$canUpdate   = true; // TODO: Cataloging supersedes library_materials_requests??
+									$isAdminUser = true;
+								} elseif ($user->id == $materialsRequest->createdBy) {
+									$canUpdate = true;
+								} elseif ($user->hasRole('library_material_requests')) {
+									//User can update if the home library of the requester is their library
+
+									$requestUserLibrary = $requestUser->getHomeLibrary();
+									$canUpdate          = $requestUserLibrary->libraryId == $staffLibrary->libraryId;
+									$isAdminUser        = true;
+								}
+								if ($canUpdate) {
+									$interface->assign('isAdminUser', $isAdminUser);
+									//Get a list of formats to show
+									$availableFormats = MaterialsRequest::getFormats();
+									$interface->assign('availableFormats', $availableFormats);
+
+									// Get Author Labels for all Formats
+									list($formatAuthorLabels, $specialFieldFormats) = $materialsRequest->getAuthorLabelsAndSpecialFields($staffLibrary->libraryId);
+									if ($usingDefaultFormats) {
+										$defaultFormats = MaterialsRequestFormats::getDefaultMaterialRequestFormats();
+										/** @var MaterialsRequestFormats $format */
+										foreach ($defaultFormats as $format) {
+											// Get the default values for this request
+											if ($materialsRequest->format == $format->format ){
+												$materialsRequest->formatLabel = $format->formatLabel;
+												$materialsRequest->authorLabel = $format->authorLabel;
+												$materialsRequest->specialFields = $format->specialFields;
+												break;
+											}
+										}
+									}
+
+									$interface->assign('formatAuthorLabelsJSON', json_encode($formatAuthorLabels));
+									$interface->assign('specialFieldFormatsJSON', json_encode($specialFieldFormats));
+
+									$interface->assign('showEbookFormatField', $configArray['MaterialsRequest']['showEbookFormatField']);
+									$interface->assign('showEaudioFormatField', $configArray['MaterialsRequest']['showEaudioFormatField']);
+									$interface->assign('requireAboutField', $configArray['MaterialsRequest']['requireAboutField']);
+
+									$interface->assign('materialsRequest', $materialsRequest);
+									$interface->assign('showUserInformation', true);
+
+									// Hold Pick-up Locations
+									$location = new Location();
+									$locationList = $location->getPickupBranches($requestUser, $materialsRequest->holdPickupLocation);
+									$pickupLocations = array();
+									foreach ($locationList as $curLocation) {
+										$pickupLocations[] = array(
+											'id' => $curLocation->locationId,
+											'displayName' => $curLocation->displayName,
+											'selected' => $curLocation->selected,
+										);
+									}
+
+									// Add bookmobile Stop to the pickup locations if that form field is being used.
+									foreach ($requestFormFields as $catagory) {
+										/** @var MaterialsRequestFormFields $formField */
+										foreach ($catagory as $formField) {
+											if ($formField->fieldType == 'bookmobileStop') {
+												$pickupLocations[] = array(
+													'id' => 'bookmobile',
+													'displayName' => $formField->fieldLabel,
+													'selected' => $materialsRequest->holdPickupLocation == 'bookmobile',
+												);
+												break 2;
+											}
+										}
+									}
+
+									$interface->assign('pickupLocations', $pickupLocations);
+
+									// Get Statuses
+									$materialsRequestStatus = new MaterialsRequestStatus();
+									$materialsRequestStatus->orderBy('isDefault DESC, isOpen DESC, description ASC');
+									$materialsRequestStatus->libraryId = $staffLibrary->libraryId;
+									$availableStatuses = $materialsRequestStatus->fetchAll('id', 'description');
+									$interface->assign('availableStatuses', $availableStatuses);
+
+									// Get Barcode Column
+									$barCodeColumn = null;
+									if ($accountProfile = $user->getAccountProfile()) {
+										$barCodeColumn = $accountProfile->loginConfiguration == 'name_barcode' ? 'cat_password' : 'cat_username';
+									}
+									$interface->assign('barCodeColumn', $barCodeColumn);
+
+								} else {
+									$interface->assign('error', 'Sorry, you don\'t have permission to update this request.');
+								}
+							} else {
+								$interface->assign('error', 'Sorry, we couldn\'t find the user that made this request.');
+							}
+						} else {
+							$interface->assign('error', 'Sorry, we couldn\'t find a materials request for that id.');
+						}
+					} else {
+						$interface->assign('error', 'We could not determine your home library.');
 					}
+				} else {
+					$interface->assign('error', 'Please log in to view & edit the materials request.');
 				}
-
-				if ($canUpdate){
-					$interface->assign('isAdminUser', $isAdminUser);
-					//Get a list of formats to show 
-					$availableFormats = MaterialsRequest::getFormats();
-					$interface->assign('availableFormats', $availableFormats);
-		
-					$interface->assign('showPhoneField', $configArray['MaterialsRequest']['showPhoneField']);
-					$interface->assign('showAgeField', $configArray['MaterialsRequest']['showAgeField']);
-					$interface->assign('showBookTypeField', $configArray['MaterialsRequest']['showBookTypeField']);
-					$interface->assign('showEbookFormatField', $configArray['MaterialsRequest']['showEbookFormatField']);
-					$interface->assign('showEaudioFormatField', $configArray['MaterialsRequest']['showEaudioFormatField']);
-					$interface->assign('showPlaceHoldField', $configArray['MaterialsRequest']['showPlaceHoldField']);
-					$interface->assign('showIllField', $configArray['MaterialsRequest']['showIllField']);
-					$interface->assign('requireAboutField', $configArray['MaterialsRequest']['requireAboutField']);
-		
-					$interface->assign('materialsRequest', $materialsRequest);
-					$interface->assign('showUserInformation', true);
-
-				}else{
-					$interface->assign('error', 'Sorry, you don\'t have permission to update this request.');
-				}
-			}else{
-				$interface->assign('error', 'Sorry, we couldn\'t find a materials request for that id.');
+			} else {
+				$interface->assign('error', 'Sorry, invalid id for a materials request.');
 			}
 		}
 		$return = array(
 			'title' => 'Update Materials Request',
 			'modalBody' => $interface->fetch('MaterialsRequest/ajax-update-request.tpl'),
-			'modalButtons' => "<span class='btn btn-primary' onclick='$(\"#materialsRequestUpdateForm\").submit();'>Update Request</span>"
+			'modalButtons' => $interface->get_template_vars('error') == null ?  "<button class='btn btn-primary' onclick='$(\"#materialsRequestUpdateForm\").submit();'>Update Request</button>" : ''
 		);
 		return $return;
 	}
-	
+
 	function MaterialsRequestDetails(){
 		global $interface;
-		
-		if (!isset($_REQUEST['id'])){
+		global $user;
+		if (!isset($_REQUEST['id'])) {
 			$interface->assign('error', 'Please provide an id of the materials request to view.');
-		}else{
+		}elseif (empty($user)) {
+			$interface->assign('error', 'Please log in to view details.');
+		}else {
 			$id = $_REQUEST['id'];
-			$materialsRequest = new MaterialsRequest();
-			$materialsRequest->id = $id;
-			$statusQuery = new MaterialsRequestStatus();
-			$materialsRequest->joinAdd($statusQuery);
-			$locationQuery = new Location();
-			$materialsRequest->joinAdd($locationQuery, "LEFT");
-			$materialsRequest->selectAdd();
-			$materialsRequest->selectAdd('materials_request.*, description as statusLabel, location.displayName as location');
-			if ($materialsRequest->find(true)){
-				$interface->assign('materialsRequest', $materialsRequest);
-				
-				global $user;
-				if ($user && $user->hasRole('cataloging') || $user->hasRole('library_material_requests')){
-					$interface->assign('showUserInformation', true);
-					//Load user information 
-					$requestUser = new User();
-					$requestUser->id = $materialsRequest->createdBy;
-					if ($requestUser->find(true)){
-						$interface->assign('requestUser', $requestUser);
+			if (!empty($id) && ctype_digit($id)) {
+				$requestLibrary = $user->getHomeLibrary(); // staff member's or patron's home library
+				if (!empty($requestLibrary)) {
+					$materialsRequest = new MaterialsRequest();
+					$materialsRequest->id  = $id;
+
+					$staffView = isset($_REQUEST['staffView']) ? $_REQUEST['staffView'] : true;
+					$requestFormFields = $materialsRequest->getRequestFormFields($requestLibrary->libraryId, $staffView);
+					$interface->assign('requestFormFields', $requestFormFields);
+
+
+					// Statuses
+					$statusQuery           = new MaterialsRequestStatus();
+					$materialsRequest->joinAdd($statusQuery);
+
+					// Pick-up Locations
+					$locationQuery = new Location();
+					$materialsRequest->joinAdd($locationQuery, "LEFT");
+
+					// Format Labels
+					$formats = new MaterialsRequestFormats();
+					$formats->libraryId = $requestLibrary->libraryId;
+					$usingDefaultFormats = $formats->count() == 0;
+
+					$materialsRequest->selectAdd();
+					$materialsRequest->selectAdd(
+						'materials_request.*, description as statusLabel, location.displayName as location'
+					);
+					if (!$usingDefaultFormats) {
+						$materialsRequest->joinAdd($formats, 'LEFT');
+						$materialsRequest->selectAdd('materials_request_formats.formatLabel,materials_request_formats.authorLabel, materials_request_formats.specialFields');
 					}
-				}else{
-					$interface->assign('showUserInformation', false);
+
+					if ($materialsRequest->find(true)) {
+						if ($usingDefaultFormats) {
+							$defaultFormats = MaterialsRequestFormats::getDefaultMaterialRequestFormats();
+							/** @var MaterialsRequestFormats $format */
+							foreach ($defaultFormats as $format) {
+								if ($materialsRequest->format == $format->format ){
+									$materialsRequest->formatLabel = $format->formatLabel;
+									$materialsRequest->authorLabel = $format->authorLabel;
+									$materialsRequest->specialFields = $format->specialFields;
+									break;
+								}
+							}
+						}
+
+						$interface->assign('materialsRequest', $materialsRequest);
+
+						if ($user && $user->hasRole('cataloging') || $user->hasRole('library_material_requests') || $user->hasRole('opacAdmin')) {
+							$interface->assign('showUserInformation', true);
+							//Load user information
+							$requestUser     = new User();
+							$requestUser->id = $materialsRequest->createdBy;
+							if ($requestUser->find(true)) {
+								$interface->assign('requestUser', $requestUser);
+
+								// Get Barcode Column
+								$barCodeColumn = null;
+								if ($accountProfile = $requestUser->getAccountProfile()) {
+									$barCodeColumn = $accountProfile->loginConfiguration == 'name_barcode' ? 'cat_password' : 'cat_username';
+								}
+								$interface->assign('barCodeColumn', $barCodeColumn);
+
+							}
+						} else {
+							$interface->assign('showUserInformation', false);
+						}
+					} else {
+						$interface->assign('error', 'Sorry, we couldn\'t find a materials request for that id.');
+					}
+				} else {
+					$interface->assign('error', 'Could not determine your home library.');
 				}
-			}else{
-				$interface->assign('error', 'Sorry, we couldn\'t find a materials request for that id.');
+			} else {
+				$interface->assign('error', 'Invalid Request ID.');
 			}
 		}
 		$return = array(
-				'title' => 'Materials Request Details',
-				'modalBody' => $interface->fetch('MaterialsRequest/ajax-request-details.tpl'),
-				'modalButtons' => ''
+				'title'        => 'Materials Request Details',
+				'modalBody'    => $interface->fetch('MaterialsRequest/ajax-request-details.tpl'),
+				'modalButtons' => '' //TODO idea: add Update Request button (for staff only?)
 		);
 		return $return;
 	}
-	
+
 	function GetWorldCatIdentifiers(){
 		$worldCatTitles = $this->GetWorldCatTitles();
 		if ($worldCatTitles['success'] == false){
@@ -209,7 +364,7 @@ class MaterialsRequest_AJAX extends Action{
 							break;
 						}
 					}
-					$title['isbn'] = $identifier; 
+					$title['isbn'] = $identifier;
 				}elseif (isset($title['oclcNumber'])){
 					$identifier = $title['oclcNumber'];
 				}
@@ -226,7 +381,7 @@ class MaterialsRequest_AJAX extends Action{
 			'formattedSuggestions' => $interface->fetch('MaterialsRequest/ajax-suggested-identifiers.tpl')
 		);
 	}
-	
+
 	function GetWorldCatTitles(){
 		global $configArray;
 		if (!isset($_REQUEST['title']) && !isset($_REQUEST['author'])){
@@ -241,7 +396,7 @@ class MaterialsRequest_AJAX extends Action{
 			}
 			if (isset($_REQUEST['author'])){
 				$worldCatUrl .= '+' . urlencode($_REQUEST['author']);
-			} 
+			}
 			if (isset($_REQUEST['format'])){
 				if (in_array($_REQUEST['format'],array('dvd', 'cassette', 'vhs', 'playaway'))){
 					$worldCatUrl .= '+' . urlencode($_REQUEST['format']);
@@ -263,14 +418,14 @@ class MaterialsRequest_AJAX extends Action{
 					'description' => (string)$item->description,
 					'link' => (string)$item->link
 				);
-				
+
 				$oclcChildren = $item->children('oclcterms', TRUE);
 				foreach ($oclcChildren as $child){
 					/** @var SimpleXMLElement $child */
 					if ($child->getName() == 'recordIdentifier'){
 						$curTitle['oclcNumber'] = (string)$child;
 					}
-					
+
 				}
 				$dcChildren = $item->children('dc', TRUE);
 				foreach ($dcChildren as $child){
@@ -279,14 +434,14 @@ class MaterialsRequest_AJAX extends Action{
 						$curTitle[$identifierFields[1]][] = $identifierFields[2];
 					}
 				}
-				
+
 				$contentChildren = $item->children('content', TRUE);
 				foreach ($contentChildren as $child){
 					if ($child->getName() == 'encoded'){
 						$curTitle['citation'] = (string)$child;
 					}
 				}
-				
+
 				if (strlen($curTitle['description']) == 0 && isset($curTitle["ISBN"]) && is_array($curTitle["ISBN"]) && count($curTitle["ISBN"]) > 0){
 					//Get the description from syndetics
 					require_once ROOT_DIR . '/Drivers/marmot_inc/GoDeeperData.php';

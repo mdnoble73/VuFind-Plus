@@ -8,6 +8,8 @@ PIKASERVER=aspencat.production
 PIKADBNAME=aspencat_pika
 OUTPUT_FILE="/var/log/vufind-plus/${PIKASERVER}/full_update_output.log"
 
+MINFILE1SIZE=$((1017000000))
+
 # Check for conflicting processes currently running
 function checkConflictingProcesses() {
 	#Check to see if the conflict exists.
@@ -36,12 +38,12 @@ checkConflictingProcesses "reindexer.jar ${PIKASERVER}"
 
 # Back-up Solr Master Index
 mysqldump ${PIKADBNAME} grouped_work_primary_identifiers > /data/vufind-plus/${PIKASERVER}/grouped_work_primary_identifiers.sql
-sleep 2m
+sleep 5m
 tar -czf /data2/pika/${PIKASERVER}/solr_master_backup.tar.gz /data/vufind-plus/${PIKASERVER}/solr_master/grouped/index/ >> ${OUTPUT_FILE}
 rm /data/vufind-plus/${PIKASERVER}/grouped_work_primary_identifiers.sql
 
 #Restart Solr
-cd /usr/local/vufind-plus/sites/${PIKASERVER}; ./${PIKASERVER}.sh restart
+cd /usr/local/vufind-plus/sites/${PIKASERVER}; ./${PIKASERVER}.sh restart >> ${OUTPUT_FILE}
 
 # Copy Export from ILS
 /root/cron/copyAspencatExport.sh >> ${OUTPUT_FILE}
@@ -71,11 +73,13 @@ FILE=$(find  /data/vufind-plus/aspencat.production/marc/ -name fullexport.mrc -m
 if [ -n "$FILE" ]
 then
   #check file size
-	MINFILE1SIZE=$((1038000000))
 	FILE1SIZE=$(wc -c <"$FILE")
 	if [ $FILE1SIZE -ge $MINFILE1SIZE ]; then
 
 		echo "Latest export file is " $FILE >> ${OUTPUT_FILE}
+		DIFF=$(($FILE1SIZE - $MINFILE1SIZE))
+		PERCENTABOVE=$((100 * $DIFF / $MINFILE1SIZE))
+		echo "The export file is $PERCENTABOVE (%) larger than the minimum size check." >> ${OUTPUT_FILE}
 
 		#Validate the export
 		cd /usr/local/vufind-plus/vufind/cron; java -server -XX:+UseG1GC -jar cron.jar ${PIKASERVER} ValidateMarcExport >> ${OUTPUT_FILE}
@@ -101,7 +105,7 @@ fi
 #find /usr/local/vufind-plus/sites/default/solr/jetty/logs -name "solr_gc_log_*" -mtime +7 -delete
 
 #Restart Solr
-cd /usr/local/vufind-plus/sites/${PIKASERVER}; ./${PIKASERVER}.sh restart
+cd /usr/local/vufind-plus/sites/${PIKASERVER}; ./${PIKASERVER}.sh restart >> ${OUTPUT_FILE}
 
 #Email results
 FILESIZE=$(stat -c%s ${OUTPUT_FILE})

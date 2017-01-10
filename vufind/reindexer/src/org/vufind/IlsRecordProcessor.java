@@ -1208,26 +1208,30 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 			recordInfo.addFormatCategories(translatedFormatCategories);
 			recordInfo.setFormatBoost(specifiedFormatBoost);
 		} else {
-			LinkedHashSet<String> printFormats = getFormatsFromBib(record, recordInfo);
-
-			HashSet<String> translatedFormats = translateCollection("format", printFormats, recordInfo.getRecordIdentifier());
-			HashSet<String> translatedFormatCategories = translateCollection("format_category", printFormats, recordInfo.getRecordIdentifier());
-			recordInfo.addFormats(translatedFormats);
-			recordInfo.addFormatCategories(translatedFormatCategories);
-			Long formatBoost = 0L;
-			HashSet<String> formatBoosts = translateCollection("format_boost", printFormats, recordInfo.getRecordIdentifier());
-			for (String tmpFormatBoost : formatBoosts) {
-				try {
-					Long tmpFormatBoostLong = Long.parseLong(tmpFormatBoost);
-					if (tmpFormatBoostLong > formatBoost) {
-						formatBoost = tmpFormatBoostLong;
-					}
-				} catch (NumberFormatException e) {
-					logger.warn("Could not load format boost for format " + tmpFormatBoost + " profile " + profileType);
-				}
-			}
-			recordInfo.setFormatBoost(formatBoost);
+			loadPrintFormatFromBib(recordInfo, record);
 		}
+	}
+
+	protected void loadPrintFormatFromBib(RecordInfo recordInfo, Record record) {
+		LinkedHashSet<String> printFormats = getFormatsFromBib(record, recordInfo);
+
+		HashSet<String> translatedFormats = translateCollection("format", printFormats, recordInfo.getRecordIdentifier());
+		HashSet<String> translatedFormatCategories = translateCollection("format_category", printFormats, recordInfo.getRecordIdentifier());
+		recordInfo.addFormats(translatedFormats);
+		recordInfo.addFormatCategories(translatedFormatCategories);
+		Long formatBoost = 0L;
+		HashSet<String> formatBoosts = translateCollection("format_boost", printFormats, recordInfo.getRecordIdentifier());
+		for (String tmpFormatBoost : formatBoosts) {
+			try {
+				Long tmpFormatBoostLong = Long.parseLong(tmpFormatBoost);
+				if (tmpFormatBoostLong > formatBoost) {
+					formatBoost = tmpFormatBoostLong;
+				}
+			} catch (NumberFormatException e) {
+				logger.warn("Could not load format boost for format " + tmpFormatBoost + " profile " + profileType);
+			}
+		}
+		recordInfo.setFormatBoost(formatBoost);
 	}
 
 	protected LinkedHashSet<String> getFormatsFromBib(Record record, RecordInfo recordInfo){

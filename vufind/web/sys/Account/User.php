@@ -174,6 +174,16 @@ class User extends DB_DataObject
 			return $this->getRoles();
 		}elseif ($name == 'linkedUsers'){
 			return $this->getLinkedUsers();
+		}elseif ($name == 'materialsRequestReplyToAddress'){
+			if (!isset($this->materialsRequestReplyToAddress)) {
+				$this->getStaffSettings();
+			}
+			return $this->materialsRequestReplyToAddress;
+		}elseif ($name == 'materialsRequestEmailSignature'){
+			if (!isset($this->materialsRequestEmailSignature)) {
+				$this->getStaffSettings();
+			}
+			return $this->materialsRequestEmailSignature;
 		}else{
 			return $this->data[$name];
 		}
@@ -250,8 +260,31 @@ class User extends DB_DataObject
 			return $this->masqueradingRoles;
 		}
 		return $this->roles;
+	}
 
+	private $materialsRequestReplyToAddress;
+	private $materialsRequestEmailSignature;
 
+	function getStaffSettings(){
+		require_once ROOT_DIR . '/sys/Account/UserStaffSettings.php';
+		$staffSettings = new UserStaffSettings();
+		$staffSettings->get('userId', $this->id);
+		$this->materialsRequestReplyToAddress = $staffSettings->materialsRequestReplyToAddress;
+		$this->materialsRequestEmailSignature = $staffSettings->materialsRequestEmailSignature;
+	}
+
+	function setStaffSettings(){
+		require_once ROOT_DIR . '/sys/Account/UserStaffSettings.php';
+		$staffSettings = new UserStaffSettings();
+		$staffSettings->userId =  $this->id;
+		$doUpdate = $staffSettings->find(true);
+		$staffSettings->materialsRequestReplyToAddress = $this->materialsRequestReplyToAddress;
+		$staffSettings->materialsRequestEmailSignature = $this->materialsRequestEmailSignature;
+		if ($doUpdate) {
+			$staffSettings->update();
+		} else {
+			$staffSettings->insert();
+		}
 	}
 
 	function getBarcode(){
@@ -636,14 +669,20 @@ class User extends DB_DataObject
 		return false;
 	}
 
+	private $homeLibrary = null;
+
+	/**
+	 * @return Library|null
+	 */
 	function getHomeLibrary(){
-		$homeLibrary = Library::getPatronHomeLibrary($this);
-		return $homeLibrary;
+		if ($this->homeLibrary == null){
+			$this->homeLibrary = Library::getPatronHomeLibrary($this);
+		}
+		return $this->homeLibrary;
 	}
 
 	function getHomeLibrarySystemName(){
-		$homeLibrary = Library::getPatronHomeLibrary($this);
-		return $homeLibrary->displayName;
+		return $this->getHomeLibrary()->displayName;
 	}
 
 	public function getNumCheckedOutTotal($includeLinkedUsers = true) {
@@ -1180,5 +1219,21 @@ class User extends DB_DataObject
 
 	public function canMasquerade() {
 		return $this->getMasqueradeLevel() != 'none';
+	}
+
+	/**
+	 * @param mixed $materialsRequestReplyToAddress
+	 */
+	public function setMaterialsRequestReplyToAddress($materialsRequestReplyToAddress)
+	{
+		$this->materialsRequestReplyToAddress = $materialsRequestReplyToAddress;
+	}
+
+	/**
+	 * @param mixed $materialsRequestEmailSignature
+	 */
+	public function setMaterialsRequestEmailSignature($materialsRequestEmailSignature)
+	{
+		$this->materialsRequestEmailSignature = $materialsRequestEmailSignature;
 	}
 }

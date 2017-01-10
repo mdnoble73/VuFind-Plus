@@ -14,6 +14,9 @@ PIKASERVER=arlington.production
 PIKADBNAME=pika
 OUTPUT_FILE="/var/log/vufind-plus/${PIKASERVER}/full_update_output.log"
 
+MINFILE1SIZE=$((650000000))
+MINFILE2SIZE=$((45000000))
+
 # Check for conflicting processes currently running
 function checkConflictingProcesses() {
 	#Check to see if the conflict exists.
@@ -80,6 +83,7 @@ checkConflictingProcesses "reindexer.jar arlington.production"
 
 # Back-up Solr Master Index
 mysqldump ${PIKADBNAME} grouped_work_primary_identifiers > /data/vufind-plus/${PIKASERVER}/grouped_work_primary_identifiers.sql
+sleep 6m
 tar -czf /data/vufind-plus/${PIKASERVER}/solr_master_backup.tar.gz /data/vufind-plus/${PIKASERVER}/solr_master/grouped/index/ /data/vufind-plus/${PIKASERVER}/grouped_work_primary_identifiers.sql >> ${OUTPUT_FILE}
 rm /data/vufind-plus/${PIKASERVER}/grouped_work_primary_identifiers.sql
 
@@ -115,15 +119,20 @@ then
 	if [ -n "$FILE2" ]
 	then
 
-		MINFILE1SIZE=$((650000000))
-		MINFILE2SIZE=$((45000000))
 		FILE1SIZE=$(wc -c <"$FILE1")
 		if [ $FILE1SIZE -ge $MINFILE1SIZE ]; then
 		 FILE2SIZE=$(wc -c <"$FILE2")
 		 if [ $FILE2SIZE -ge $MINFILE2SIZE ]; then
 
 			echo "Latest file (1) is " $FILE1 >> ${OUTPUT_FILE}
+		DIFF=$(($FILE1SIZE - $MINFILE1SIZE))
+		PERCENTABOVE=$((100 * $DIFF / $MINFILE1SIZE))
+		echo "The export file (1) is $PERCENTABOVE (%) larger tshan the minimum size check." >> ${OUTPUT_FILE}
+
 			echo "Latest file (2) is " $FILE2 >> ${OUTPUT_FILE}
+		DIFF=$(($FILE2SIZE - $MINFILE2SIZE))
+		PERCENTABOVE=$((100 * $DIFF / $MINFILE2SIZE))
+		echo "The export file (2) is $PERCENTABOVE (%) larger than the minimum size check." >> ${OUTPUT_FILE}
 
 			# Date For Backup filename
 			TODAY=$(date +"%m_%d_%Y")

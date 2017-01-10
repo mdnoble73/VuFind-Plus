@@ -38,6 +38,9 @@ PIKADBNAME=vufind
 OUTPUT_FILE="/var/log/vufind-plus/${PIKASERVER}/full_update_output.log"
 DAYOFWEEK=$(date +"%u")
 
+# JAMES set MIN 2016 11 03 actual extract size 825177201
+MINFILE1SIZE=$((825000000))
+
 # determine whether this server is production or test
 CONFIG=/usr/local/VuFind-Plus/sites/${PIKASERVER}/conf/config.pwd.ini
 #echo ${CONFIG}
@@ -82,10 +85,10 @@ function checkConflictingProcesses() {
 
 #Check for any conflicting processes that we shouldn't do a full index during.
 #Since we aren't running in a loop, check in the order they run.
-checkConflictingProcesses "ITEM_UPDATE_EXTRACT_PIKA.exp"
-checkConflictingProcesses "millennium_export.jar"
-checkConflictingProcesses "overdrive_extract.jar"
-checkConflictingProcesses "reindexer.jar"
+checkConflictingProcesses "ITEM_UPDATE_EXTRACT_PIKA.exp" >> ${OUTPUT_FILE}
+checkConflictingProcesses "millennium_export.jar" >> ${OUTPUT_FILE}
+checkConflictingProcesses "overdrive_extract.jar" >> ${OUTPUT_FILE}
+checkConflictingProcesses "reindexer.jar" >> ${OUTPUT_FILE}
 
 # truncate the output file so you don't spend a week debugging an error from a week ago!
 : > $OUTPUT_FILE;
@@ -97,7 +100,7 @@ tar -czf /data/vufind-plus/${PIKASERVER}/solr_master_backup.tar.gz /data/vufind-
 rm /data/vufind-plus/${PIKASERVER}/grouped_work_primary_identifiers.sql
 
 #Restart Solr
-cd /usr/local/vufind-plus/sites/${PIKASERVER}; ./${PIKASERVER}.sh restart
+cd /usr/local/vufind-plus/sites/${PIKASERVER}; ./${PIKASERVER}.sh restart >> ${OUTPUT_FILE}
 
 #Extracts from sideloaded eContent; log defined in config.pwd.ini [Sideload]
 # Problems with full_update starting late 201608: James moved sideload.sh
@@ -159,11 +162,12 @@ fi
 
 if [ -n "$FILE" ]; then
         #check file size
-        # JAMES set MIN 2016 11 03 actual extract size 825177201
-        MINFILE1SIZE=$((825000000))
         FILE1SIZE=$(wc -c <"$FILE")
         if [ $FILE1SIZE -ge $MINFILE1SIZE ]; then
                 echo "Latest export file is " $FILE >> ${OUTPUT_FILE}
+		DIFF=$(($FILE1SIZE - $MINFILE1SIZE))
+		PERCENTABOVE=$((100 * $DIFF / $MINFILE1SIZE))
+		echo "The export file is $PERCENTABOVE (%) larger than the minimum size check." >> ${OUTPUT_FILE}
                 #Validate the export
                 cd /usr/local/vufind-plus/vufind/cron; java -server -XX:+UseG1GC -jar cron.jar ${PIKASERVER} ValidateMarcExport >> ${OUTPUT_FILE}
                 #Full Regroup
@@ -189,7 +193,7 @@ find /var/log/vufind-plus/solr -name "solr_log_*" -mtime +7 -delete
 find /var/log/vufind-plus/solr -name "solr_gc_log_*" -mtime +7 -delete
 
 #Restart Solr
-cd /usr/local/vufind-plus/sites/${PIKASERVER}; ./${PIKASERVER}.sh restart
+cd /usr/local/vufind-plus/sites/${PIKASERVER}; ./${PIKASERVER}.sh restart >> ${OUTPUT_FILE}
 
 #Delete Zinio Covers
 cd /usr/local/vufind-plus/vufind/cron; ./zinioDeleteCovers.sh ${PIKASERVER}

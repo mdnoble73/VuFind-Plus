@@ -83,9 +83,17 @@ public class AspencatRecordProcessor extends IlsRecordProcessor {
 
 		HashSet<String> translatedFormats = translateCollection("format", printFormats, recordInfo.getRecordIdentifier());
 
-		if (translatedFormats.size() == 0){
+		//If all formats are book, don't use the format from iType
+		boolean allBook = true;
+		for(String format : translatedFormats){
+			if (!format.equalsIgnoreCase("book")){
+				allBook = false;
+			}
+		}
+
+		if (translatedFormats.size() == 0 || allBook){
 			//We didn't get any formats from the collections, get formats from the base method (007, 008, etc).
-			super.loadPrintFormatInformation(recordInfo, record);
+			super.loadPrintFormatFromBib(recordInfo, record);
 		} else{
 			HashSet<String> translatedFormatCategories = translateCollection("format_category", printFormats, recordInfo.getRecordIdentifier());
 			recordInfo.addFormats(translatedFormats);

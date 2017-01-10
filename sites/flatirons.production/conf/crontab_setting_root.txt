@@ -2,4 +2,4 @@
 # it has permissions to connect to the Millennium server
 
 # Restart apache
-0 0-7 * * * /usr/sbin/apachectl graceful > /dev/null 2>&1
+0 0-7 * * * /usr/sbin/apachectl restart > /dev/null 2>&1

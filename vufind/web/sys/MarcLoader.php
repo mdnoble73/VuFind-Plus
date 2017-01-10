@@ -75,6 +75,47 @@ class MarcLoader{
 
 	/**
 	 * @param string $id       Passed as <type>:<id>
+	 * @return int
+	 */
+	public static function lastModificationTimeForIlsId($id){
+		global $indexingProfiles;
+		if (strpos($id, ':') !== false){
+			$recordInfo = explode(':', $id);
+			$recordType = $recordInfo[0];
+			$ilsId = $recordInfo[1];
+		}else{
+			//Try to infer the indexing profile from the module
+			/** @var IndexingProfile $activeRecordProfile */
+			global $activeRecordProfile;
+			if ($activeRecordProfile){
+				$recordType = $activeRecordProfile->name;
+			}else{
+				$recordType = 'ils';
+			}
+			$ilsId = $id;
+		}
+
+		$shortId = str_replace('.', '', $ilsId);
+		if (strlen($shortId) < 9){
+			$shortId = str_pad($shortId, 9, "0", STR_PAD_LEFT);
+		}
+		$firstChars = substr($shortId, 0, 4);
+		/** @var $indexingProfiles IndexingProfile[] */
+		if (array_key_exists($recordType, $indexingProfiles)){
+			$indexingProfile = $indexingProfiles[$recordType];
+		}else{
+			$indexingProfile = $indexingProfiles['ils'];
+		}
+		$individualName = $indexingProfile->individualMarcPath . "/{$firstChars}/{$shortId}.mrc";
+		if (isset($indexingProfile->individualMarcPath)){
+			return filemtime($individualName);
+		}else{
+			return false;
+		}
+	}
+
+	/**
+	 * @param string $id       Passed as <type>:<id>
 	 * @return boolean
 	 */
 	public static function marcExistsForILSId($id){

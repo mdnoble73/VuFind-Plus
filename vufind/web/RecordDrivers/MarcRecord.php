@@ -347,6 +347,9 @@ class MarcRecord extends IndexRecord
 
 		$interface->assign('marcRecord', $this->getMarcRecord());
 
+		$lastMarcModificationTime = MarcLoader::lastModificationTimeForIlsId("{$this->profileType}:{$this->id}");
+		$interface->assign('lastMarcModificationTime', $lastMarcModificationTime);
+
 		$solrRecord = $this->fields;
 		if ($solrRecord) {
 			ksort($solrRecord);
@@ -1318,6 +1321,15 @@ class MarcRecord extends IndexRecord
 			);
 		}
 
+		$archiveLink = GroupedWorkDriver::getArchiveLinkForWork($this->getGroupedWorkId());
+		if ($archiveLink != null){
+			$actions[] = array(
+					'title' => 'View Online',
+					'url' => $archiveLink,
+					'requireLogin' => false,
+			);
+		}
+
 		return $actions;
 	}
 
@@ -1982,6 +1994,7 @@ class MarcRecord extends IndexRecord
 
 					$this->statusSummary = $this->recordFromIndex;
 
+					$this->statusSummary['driver'] = null;
 					unset($this->statusSummary['driver']);
 				} else {
 					$this->holdings = array();
@@ -2126,6 +2139,7 @@ class MarcRecord extends IndexRecord
 				'author' => $this->getPrimaryAuthor(),
 				'bookEdition' => $this->getEdition(),
 				'isAccessibleForFree' => true,
+				'image' => $this->getBookcoverUrl('medium'),
 				"offers" => $linkedDataRecord->getOffers()
 		);
 		return $semanticData;

@@ -27,6 +27,12 @@ class Admin_ArchiveRequests extends ObjectEditor {
 
 		$object = new ArchiveRequest();
 		$object->orderBy('dateRequested desc');
+		global $user;
+		if (!$user->hasRole('opacAdmin')){
+			$homeLibrary = $user->getHomeLibrary();
+			$archiveNamespace = $homeLibrary->archiveNamespace;
+			$object->whereAdd("pid LIKE '{$archiveNamespace}:%'");
+		}
 		$object->find();
 		while ($object->fetch()){
 			$list[$object->id] = clone $object;
@@ -38,7 +44,8 @@ class Admin_ArchiveRequests extends ObjectEditor {
 		return ArchiveRequest::getObjectStructure();
 	}
 	function getAllowableRoles(){
-		return array('opacAdmin');
+
+		return array('opacAdmin', 'archives');
 	}
 	function getPrimaryKeyColumn(){
 		return 'id';

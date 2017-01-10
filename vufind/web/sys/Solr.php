@@ -233,6 +233,12 @@ class Solr implements IndexEngine {
 		$timer->logTime('Finish Solr Initialization');
 	}
 
+	public function __destruct()
+	{
+		$this->client->disconnect();
+		$this->client = null;
+	}
+
 	public function setDebugging($enableDebug, $enableSolrQueryDebugging) {
 		$this->debug = $enableDebug;
 		$this->debugSolrQuery = $enableDebug && $enableSolrQueryDebugging;
@@ -1258,6 +1264,7 @@ class Solr implements IndexEngine {
 	{
 		// Break apart sort into field name and sort direction (note error
 		// suppression to prevent notice when direction is left blank):
+		$sort = trim($sort);
 		@list($sortField, $sortDirection) = explode(' ', $sort);
 
 		// Default sort order (may be overridden by switch below):
@@ -2389,6 +2396,7 @@ class Solr implements IndexEngine {
 			unset($result['highlighting']);
 		}
 		$timer->logTime("process highlighting");
+		$memoryWatcher->logMemory('process highlighting');
 
 		return $result;
 	}
@@ -2549,7 +2557,7 @@ class Solr implements IndexEngine {
 		//$input = preg_replace('/\\\\(?![&:])/', ' ', $input);
 
 		//Look for any colons that are not identifying fields
-		
+
 
 		return $input;
 	}

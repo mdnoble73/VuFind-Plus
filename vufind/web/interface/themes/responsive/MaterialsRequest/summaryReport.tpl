@@ -1,44 +1,52 @@
-<script type="text/javascript" src="{$path}/services/MaterialsRequest/ajax.js"></script>
-
 	<div id="main-content" class="col-md-12">
 		<h2>Materials Request Summary Report</h2>
 		{if $error}
-			<div class="error">{$error}</div>
+			<div class="alert alert-warning">{$error}</div>
 		{else}
-			<div id="materialsRequestFilters">
-				<fieldset class="fieldset-collapsible">
-				<legend>Filters:</legend>
-					<div>
-						<form action="{$path}/MaterialsRequest/SummaryReport" method="get">
-							<div>
-								<label for="period">Period</label>
-								<select name="period" id="period" onchange="$('#startDate').val('');$('#endDate').val('');";>
+
+
+<legend>Filters</legend>
+
+						<form action="{$path}/MaterialsRequest/SummaryReport" method="get" class="form-inline">
+							<div class="form-group">
+								<label for="period" class="control-label">Period</label>
+								<select name="period" id="period" onchange="$('#startDate').val('');$('#endDate').val('');">
 									<option value="day" {if $period == 'day'}selected="selected"{/if}>Day</option>
 									<option value="week" {if $period == 'week'}selected="selected"{/if}>Week</option>
 									<option value="month" {if $period == 'month'}selected="selected"{/if}>Month</option>
 									<option value="year" {if $period == 'year'}selected="selected"{/if}>Year</option>
 								</select>
 							</div>
-							<div>
+							<div class="form-group">
 								Date:
-								<label for="startDate">From</label> <input type="text" id="startDate" name="startDate" value="{$startDate}" size="8"/>
-								<label for="endDate">To</label> <input type="text" id="endDate" name="endDate" value="{$endDate}" size="8"/>
+									<label for="startDate"> From</label> <input type="text" id="startDate" name="startDate" value="{$startDate}" size="8">
+									<label for="endDate">To</label> <input type="text" id="endDate" name="endDate" value="{$endDate}" size="8">
 							</div>
-							<div><input type="submit" name="submit" value="Update Filters"/></div>
+							<div class="form-group">
+								<input type="submit" name="submit" value="Update Filters" class="btn btn-default">
+							</div>
 						</form>
-					</div>
-				</fieldset>
-			</div>
-			
+
+<br>
+
+
 			{* Display results as graph *}
 			{if $chartPath}
-			<div id="chart">
-				<img src="{$chartPath}" />
+
+				<legend>Chart</legend>
+
+				<div id="chart">
+				<img src="{$chartPath}">
 				</div>
+
+				<br>
 			{/if}
 
 			{* Display results in table*}
-			<table id="summaryTable" class="tablesorter">
+
+			<legend>Table</legend>
+
+			<table id="summaryTable" class="tablesorter table table-bordered">
 				<thead>
 					<tr>
 						<th>Date</th>
@@ -70,7 +78,7 @@
 		{/if}
 		
 		<form action="{$fullPath}" method="get">
-			<input type="submit" id="exportToExcel" name="exportToExcel" value="Export to Excel">
+			<input type="submit" id="exportToExcel" name="exportToExcel" value="Export to Excel"  class="btn btn-default">
 		</form>
 		
 		{* Export to Excel option *}

@@ -4,13 +4,20 @@
 			{$title|escape}
 		</h2>
 
-		<video width="100%" controls poster="{$medium_image}" id="player">
-			<source src="{$videoLink}" type="video/mp4">
-		</video>
+		{if $canView}
+			<video width="100%" controls poster="{$medium_image}" id="player">
+				<source src="{$videoLink}" type="video/mp4">
+			</video>
+		{else}
+			{include file="Archive/noAccess.tpl"}
+		{/if}
 
 		<div id="download-options">
 			{if $allowRequestsForArchiveMaterials}
 				<a class="btn btn-default" href="{$path}/Archive/RequestCopy?pid={$pid}">Request Copy</a>
+			{/if}
+			{if $showClaimAuthorship}
+				<a class="btn btn-default" href="{$path}/Archive/ClaimAuthorship?pid={$pid}">Claim Authorship</a>
 			{/if}
 		</div>
 

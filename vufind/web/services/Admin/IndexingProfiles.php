@@ -13,6 +13,36 @@ require_once ROOT_DIR . '/services/Admin/Admin.php';
 require_once ROOT_DIR . '/services/Admin/ObjectEditor.php';
 require_once ROOT_DIR . '/sys/Indexing/IndexingProfile.php';
 class Admin_IndexingProfiles extends ObjectEditor {
+	function launch()
+	{
+		global $interface;
+		$objectAction = isset($_REQUEST['objectAction']) ? $_REQUEST['objectAction'] : null;
+		if ($objectAction == 'viewMarcFiles') {
+			$id = $_REQUEST['id'];
+			$interface->assign('id', $id);
+			$files = array();
+			$indexProfile = new IndexingProfile();
+			if ($indexProfile->get($id) && !empty($indexProfile->marcPath)) {
+
+				$marcPath = $indexProfile->marcPath;
+				if ($handle = opendir($marcPath)) {
+					while (false !== ($entry = readdir($handle))) {
+						if ($entry != "." && $entry != "..") {
+							$files[$entry] = filectime($marcPath . DIR_SEP . $entry);
+						}
+					}
+					closedir($handle);
+					$interface->assign('files', $files);
+					$interface->assign('IndexProfileName', $indexProfile->name);
+					$this->display('marcFiles.tpl', 'Marc Files');
+				}
+			}
+		} else {
+			parent::launch();
+		}
+	}
+
+
 	function getObjectType(){
 		return 'IndexingProfile';
 	}
@@ -57,6 +87,28 @@ class Admin_IndexingProfiles extends ObjectEditor {
 
 	function getInstructions(){
 		return 'For more information about indexing profiles, see the <a href="https://docs.google.com/document/d/1OA_HKMmgf4nm2l3ckojHiTHnlbo4dKMNnec3wCtGsLk">online documentation</a>.';
+	}
+
+	function getAdditionalObjectActions($existingObject){
+		$actions = array();
+		if ($existingObject && $existingObject->id != ''){
+			$actions[] = array(
+				'text' => 'View MARC files',
+				'url' => '/Admin/IndexingProfiles?objectAction=viewMarcFiles&id=' . $existingObject->id,
+			);
+		}
+
+		return $actions;
+	}
+
+	//TODO Add to ObjectEditor Class
+	function display($mainContentTemplate, $pageTitle, $sidebarTemplate='Search/home-sidebar.tpl') {
+		global $interface;
+		if (!empty($sidebarTemplate)) $interface->assign('sidebar', $sidebarTemplate);
+		$interface->setTemplate($mainContentTemplate);
+		$interface->setPageTitle($pageTitle);
+		$interface->assign('moreDetailsTemplate', 'GroupedWork/moredetails-accordion.tpl');
+		$interface->display('layout.tpl');
 	}
 
 }

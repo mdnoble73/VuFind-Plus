@@ -6,24 +6,34 @@
 			<div class="error">{$error}</div>
 		{else}
 			<div id="materialsRequestFilters">
-				<fieldset class="fieldset-collapsible">
-					<legend>Filters:</legend>
-					<div>
-						<form action="{$path}/MaterialsRequest/UserReport" method="get">
-							<div>
-								Statuses to Show: <input type="checkbox" name="selectAllStatusFilter" id="selectAllStatusFilter" onclick="VuFind.toggleCheckboxes('.statusFilter', '#selectAllStatusFilter');"/> <label for="selectAllStatusFilter">Select All</label> <br/>
-								{foreach from=$availableStatuses item=statusLabel key=status}
-									<input type="checkbox" name="statusFilter[]" value="{$status}" {if in_array($status, $statusFilter)}checked="checked"{/if} class="statusFilter"/>{$statusLabel}<br/>
-								{/foreach}
+				<legend>Filters</legend>
+
+				<form action="{$path}/MaterialsRequest/UserReport" method="get">
+					<fieldset class="fieldset-collapsible">
+						<legend>Statuses to Show:</legend>
+						<div class="form-group checkbox">
+							<label for="selectAllStatusFilter">
+								<input type="checkbox" name="selectAllStatusFilter" id="selectAllStatusFilter" onclick="VuFind.toggleCheckboxes('.statusFilter', '#selectAllStatusFilter');">
+								<strong>Select All</strong>
+							</label>
+						</div>
+						{foreach from=$availableStatuses item=statusLabel key=status}
+							<div class="checkbox">
+								<label>
+									<input type="checkbox" name="statusFilter[]" value="{$status}" {if in_array($status, $statusFilter)}checked="checked"{/if} class="statusFilter">{$statusLabel}
+								</label>
 							</div>
-							<div><input type="submit" name="submit" value="Update Filters"/></div>
-						</form>
-					</div>
-				</fieldset>
+						{/foreach}
+						<div><input type="submit" name="submit" value="Update Filters" class="btn btn-default"></div>
+					</fieldset>
+				</form>
 			</div>
-			
+
+
+			<legend>Table</legend>
+
 			{* Display results in table*}
-			<table id="summaryTable" class="tablesorter">
+			<table id="summaryTable" class="tablesorter table table-bordered">
 				<thead>
 					<tr>
 						<th>Last Name</th>
@@ -48,9 +58,9 @@
 				</tbody>
 			</table>
 		{/if}
-		
+
 		<form action="{$fullPath}" method="get">
-			<input type="submit" id="exportToExcel" name="exportToExcel" value="Export to Excel">
+			<input type="submit" id="exportToExcel" name="exportToExcel" value="Export to Excel" class="btn btn-default">
 		</form>
 		
 		{* Export to Excel option *}
