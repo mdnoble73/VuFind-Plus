@@ -52,7 +52,6 @@ VuFind.Archive = (function(){
 		changeActiveBookViewer: function(viewerName, pagePid){
 			this.activeBookViewer = viewerName;
 			// $('#view-toggle').children(".btn .active").removeClass('active');
-
 			if (viewerName == 'pdf' && this.allowPDFView){
 				$('#view-toggle-pdf').prop('checked', true);
 						// .parent('.btn').addClass('active');
@@ -322,6 +321,15 @@ VuFind.Archive = (function(){
 			}
 			this.activeBookPage = pid;
 			// console.log('Page: '+ this.activeBookPage, 'Active Viewer : '+ this.activeBookViewer);
+			if (this.pageDetails[pid]['transcript'] == ''){
+				$('#view-toggle-transcription').parent().hide();
+				if (this.activeBookViewer == 'transcription') {
+					this.changeActiveBookViewer('image', pid);
+					return false;
+				}
+			}else{
+				$('#view-toggle-transcription').parent().show();
+			}
 
 			if (this.activeBookViewer == 'pdf') {
 				// console.log('PDF View called');
