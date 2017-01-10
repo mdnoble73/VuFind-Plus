@@ -701,6 +701,10 @@ IslandoraKeyword:
       - [and, ~]
     - mods_extension_marmotLocal_hasTranscription_transcriber_entityTitle_mt:
       - [and, ~]
+    - mods_extension_marmotLocal_migratedIdentifier_mt:
+      - [onephrase, 1000]
+    - mods_extension_marmotLocal_migratedFileName_mt:
+      - [onephrase, 1000]
 
 IslandoraKeywordProper:
   QueryFields:
@@ -755,6 +759,10 @@ IslandoraKeywordProper:
       - [exact, ~]
     - mods_extension_marmotLocal_hasTranscription_transcriber_entityTitle_ms:
       - [exact, ~]
+    - mods_extension_marmotLocal_migratedIdentifier_ms:
+      - [exact, 1000]
+    - mods_extension_marmotLocal_migratedFileName_ms:
+      - [onephrase, 1000]
 
 IslandoraSubject:
   QueryFields:
