@@ -35,6 +35,18 @@ abstract class Archive_Object extends Action {
 		$pageTitle = $pageTitle == null ? $this->archiveObject->label : $pageTitle;
 		$interface->assign('breadcrumbText', $pageTitle);
 
+		// Set Search Navigation
+		// Retrieve User Search History
+		$interface->assign('lastsearch', isset($_SESSION['lastSearchURL']) ?
+		$_SESSION['lastSearchURL'] : false);
+
+		//Get Next/Previous Links
+		$searchSource = isset($_REQUEST['searchSource']) ? $_REQUEST['searchSource'] : 'islandora';
+		//TODO: What if it ain't islandora? (direct navigation to archive object page)
+		$searchObject = SearchObjectFactory::initSearchObject('Islandora');
+		$searchObject->init($searchSource);
+		$searchObject->getNextPrevLinks();
+
 		//Check to see if usage is restricted or not.
 		$viewingRestrictions = $this->recordDriver->getViewingRestrictions();
 		if (count($viewingRestrictions) > 0){

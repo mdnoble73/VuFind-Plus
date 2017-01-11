@@ -349,7 +349,12 @@ abstract class IslandoraDriver extends RecordInterface {
 		$interface->assign('summId', $id);
 		$interface->assign('summTitle', $this->getTitle());
 		$interface->assign('module', $this->getModule());
-		$interface->assign('summUrl', $this->getLinkUrl());
+
+		$linkUrl = $this->getLinkUrl();
+		$linkUrl .= '?searchId=' . $interface->get_template_vars('searchId') . '&amp;recordIndex=' . $interface->get_template_vars('recordIndex') . '&amp;page='  . $interface->get_template_vars('page');
+
+		$interface->assign('summUrl', $linkUrl);
+//		$interface->assign('summUrl', $this->getLinkUrl());
 		$interface->assign('summDescription', $this->getDescription());
 		$interface->assign('summFormat', $this->getFormat());
 
