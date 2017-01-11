@@ -97,7 +97,16 @@
 				{/if}
 			</div>
 		</div>
-		<div id="related-exhibit-images" class="{if $showThumbnailsSorted && count($relatedImages) >= 18}row{elseif count($relatedImages) >= 18}results-covers home-page-browse-thumbnails{else}browse-thumbnails-few{/if}">
+		<div id="related-exhibit-images" class="
+			{if $showThumbnailsSorted && count($relatedImages) >= 18}
+				row
+			{elseif count($relatedImages) > 18}
+				results-covers home-page-browse-thumbnails
+			{elseif count($relatedImages) > 8}
+				browse-thumbnails-medium
+			{else}
+				browse-thumbnails-few
+			{/if}">
 			{foreach from=$relatedImages item=image}
 				{if $showThumbnailsSorted && count($relatedImages) >= 18}<div class="col-xs-6 col-sm-4 col-md-3">{/if}
 					<figure class="{if $showThumbnailsSorted && count($relatedImages) >= 18}browse-thumbnail-sorted{else}browse-thumbnail{/if}">
