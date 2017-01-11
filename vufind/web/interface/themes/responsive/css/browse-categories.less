@@ -220,6 +220,7 @@
     column-count:         6;
   }
 }
+//Browse thumbnails if we have 1-8 objects
 .browse-thumbnails-few {
   @media(min-width: 0){
     -webkit-column-count: 1;
@@ -241,6 +242,35 @@
     -webkit-column-count: 2;
     -moz-column-count:    2;
     column-count:         2;
+  }
+}
+//Browse thumbnails if we have 9-18 objects
+.browse-thumbnails-medium {
+  @media(min-width: 0){
+    -webkit-column-count: 1;
+    -moz-column-count:    1;
+    column-count:         1;
+  }
+  //three columns works to this size because of content shuffling at @screen-sm-min
+	@media(min-width: @screen-xs-min){
+		-webkit-column-count: 2;
+		-moz-column-count:    2;
+		column-count:         2;
+	}
+	@media(min-width: @screen-sm-min){
+    -webkit-column-count: 2;
+    -moz-column-count:    2;
+    column-count:         2;
+  }
+  @media(min-width: @screen-md-min){
+    -webkit-column-count: 3;
+    -moz-column-count:    3;
+    column-count:         3;
+  }
+  @media(min-width: @screen-lg-min){
+    -webkit-column-count: 4;
+    -moz-column-count:    4;
+    column-count:         4;
   }
 }
 .home-page-browse-grid {
