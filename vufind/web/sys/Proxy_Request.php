@@ -50,7 +50,7 @@ class Proxy_Request extends HTTP_Request
         }
 
         // Send the request via the parent class
-        parent::sendRequest($saveBody);
+        return parent::sendRequest($saveBody);
     }
 }
 

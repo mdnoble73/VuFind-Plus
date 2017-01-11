@@ -180,6 +180,22 @@ abstract class SearchObject_Base
 	}
 
 	/**
+	 * @return string
+	 */
+	public function getSearchSource()
+	{
+		return $this->searchSource;
+	}
+
+	/**
+	 * @return array
+	 */
+	public function getHiddenFilters()
+	{
+		return $this->hiddenFilters;
+	}
+
+	/**
 	 * Does the object already contain the specified filter?
 	 *
 	 * @access  public
@@ -1470,6 +1486,7 @@ abstract class SearchObject_Base
 			$search = new SearchEntry();
 			$search->session_id = session_id();
 			$search->created = date('Y-m-d');
+			$search->searchSource = $this->searchSource;
 			$search->search_object = serialize($this->minify());
 
 			$search->insert();
@@ -2130,12 +2147,12 @@ public function getNextPrevLinks(){
 		global $interface;
 		global $timer;
 		//Setup next and previous links based on the search results.
-		if (isset($_REQUEST['searchId']) && isset($_REQUEST['recordIndex'])){
+		if (isset($_REQUEST['searchId']) && isset($_REQUEST['recordIndex']) && ctype_digit($_REQUEST['searchId']) && ctype_digit($_REQUEST['recordIndex'])){
 			//rerun the search
 			$s = new SearchEntry();
 			$s->id = $_REQUEST['searchId'];
 			$interface->assign('searchId', $_REQUEST['searchId']);
-			$currentPage = isset($_REQUEST['page']) ? $_REQUEST['page'] : 1;
+			$currentPage = isset($_REQUEST['page']) && ctype_digit($_REQUEST['page']) ? $_REQUEST['page'] : 1;
 			$interface->assign('page', $currentPage);
 
 			$s->find();
@@ -2187,7 +2204,7 @@ public function getNextPrevLinks(){
 							}
 
 							//Convert back to 1 based index
-							if (isset($previousRecord)){
+							if (isset($previousRecord)) {
 								$interface->assign('previousIndex', $currentResultIndex - 1 + 1);
 								$interface->assign('previousTitle', $previousRecord['title_display']);
 								if (strpos($previousRecord['id'], 'list') === 0){
@@ -2270,6 +2287,7 @@ class minSO
 {
 	public $t = array();
 	public $f = array();
+	public $hf = array();
 	public $id, $i, $s, $r, $ty, $sr;
 
 	/**
@@ -2322,7 +2340,11 @@ class minSO
 		//      it would be a nightmare to maintain.
 		$this->f = $searchObject->getFilters();
 
-		//Minify sort
+
+		// Add Hidden Filters if Present
+		if (method_exists($searchObject, 'getHiddenFilters')) {
+			$this->hf = $searchObject->getHiddenFilters();
+		}
 
 	}
 } //End of minso object (not SearchObject_Base)

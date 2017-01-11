@@ -76,3 +76,34 @@
 		</div>
 	{/if}
 </div>
+{* Embedded Javascript For this Page *}
+<script type="text/javascript">
+	$(function(){ldelim}
+		if ($('#horizontal-menu-bar-container').is(':visible')) {ldelim}
+			$('#home-page-search').show();  {*// Always show the searchbox for search results in mobile views.*}
+			{rdelim}
+
+{*  TODO: Show DPLA results on archive page?
+		{if $showDplaLink}
+		VuFind.DPLA.getDPLAResults('{$lookfor}');
+		{/if}
+*}
+
+		{*{include file="Search/results-displayMode-js.tpl"}*}
+		{if !$onInternalIP}
+		{*if (!Globals.opac &&VuFind.hasLocalStorage()){ldelim}*}
+		{*var temp = window.localStorage.getItem('searchResultsDisplayMode');*}
+		{*if (VuFind.Searches.displayModeClasses.hasOwnProperty(temp)) VuFind.Searches.displayMode = temp; *}{* if stored value is empty or a bad value, fall back on default setting ("null" returned when not set) *}
+		{*else VuFind.Searches.displayMode = '{$displayMode}';*}
+		{*{rdelim}*}
+		{*else*}
+		{* Because content is served on the page, have to set the mode that was used, even if the user didn't choose the mode. *}
+		VuFind.Searches.displayMode = '{$displayMode}';
+		{else}
+		VuFind.Searches.displayMode = '{$displayMode}';
+		Globals.opac = 1; {* set to true to keep opac browsers from storing browse mode *}
+		{/if}
+		$('#'+VuFind.Searches.displayMode).parent('label').addClass('active'); {* show user which one is selected *}
+
+		{rdelim});
+</script>

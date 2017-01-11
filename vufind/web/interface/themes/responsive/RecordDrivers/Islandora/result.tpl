@@ -1,6 +1,9 @@
 {strip}
 <div id="record{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}" class="resultsList row">
+	{if $showCovers}
+
 	<div class="col-xs-12 col-sm-3 col-md-3 col-lg-2 text-center">
+		{*TODO: show covers *}
 		{if $user->disableCoverArt != 1}
 			{*<div class='descriptionContent{$summShortId|escape}' style='display:none'>{$summDescription}</div>*}
 			<a href="{$summUrl}">
@@ -8,12 +11,12 @@
 			</a>
 		{/if}
 	</div>
-
+{/if}
 	{if isset($summExplain)}
 		<div class="hidden" id="scoreExplanationValue{$summId|escape}">{$summExplain}</div>
 	{/if}
 
-	<div class="col-xs-12 col-sm-9 col-md-9 col-lg-10">
+	<div class="{if !$showCovers}col-xs-12 col-sm-12 col-md-12 col-lg-12{else}col-xs-12 col-sm-9 col-md-9 col-lg-10{/if}col-xs-12 col-sm-9 col-md-9 col-lg-10">
 		<div class="row">
 			<div class="col-xs-12">
 				<span class="result-index">{$resultIndex})</span>&nbsp;

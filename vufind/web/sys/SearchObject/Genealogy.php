@@ -154,7 +154,7 @@ class SearchObject_Genealogy extends SearchObject_Base
 	public function init()
 	{
 		// Call the standard initialization routine in the parent:
-		parent::init();
+		parent::init('genealogy');
 
 		//********************
 		// Check if we have a saved search to restore -- if restored successfully,
