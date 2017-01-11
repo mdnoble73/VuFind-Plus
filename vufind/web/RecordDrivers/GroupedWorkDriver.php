@@ -981,7 +981,7 @@ class GroupedWorkDriver extends RecordInterface{
 		if ($this->fastDescription != null){
 			return $this->fastDescription;
 		}
-		if (isset($this->fields['display_description']) && strlen($this->fields['display_description']) > 0){
+		if (isset($this->fields['display_description'])){
 			$this->fastDescription = $this->fields['display_description'];
 		}else{
 			$relatedRecords = $this->getRelatedRecords(false);
