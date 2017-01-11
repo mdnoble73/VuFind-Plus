@@ -532,6 +532,7 @@ class GroupedWorkDriver extends RecordInterface{
 		if (count($relatedRecords) == 1){
 			$firstRecord = reset($relatedRecords);
 			$linkUrl = $firstRecord['url'];
+			$linkUrl .=  '?searchId=' . $interface->get_template_vars('searchId') . '&amp;recordIndex=' . $interface->get_template_vars('recordIndex') . '&amp;page='  . $interface->get_template_vars('page');
 		}else{
 			$linkUrl = '/GroupedWork/' . $id . '/Home?searchId=' . $interface->get_template_vars('searchId') . '&amp;recordIndex=' . $interface->get_template_vars('recordIndex') . '&amp;page='  . $interface->get_template_vars('page');
 			if ($useUnscopedHoldingsSummary){
