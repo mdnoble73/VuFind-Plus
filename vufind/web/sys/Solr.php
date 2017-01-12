@@ -980,6 +980,7 @@ class Solr implements IndexEngine {
 			}
 
 			$values['exact'] = str_replace(':', '\\:', $lookfor);
+			$values['exact_quoted'] = '"' . $lookfor . '"';
 			$values['and'] = $andQuery;
 			$values['or'] = $orQuery;
 			$singleWordRemoval = "";
@@ -1013,7 +1014,8 @@ class Solr implements IndexEngine {
 					'and' => $lookfor,
 					'or' => $lookfor,
 					'proximal' => $lookfor,
-					'single_word_removal' => $onephrase
+					'single_word_removal' => $onephrase,
+					'exact_quoted' => '"' . $lookfor . '"',
 			);
 		}
 
@@ -1077,7 +1079,19 @@ class Solr implements IndexEngine {
 		// If we received a field spec that wasn't defined in the YAML file,
 		// let's try simply passing it along to Solr.
 		if ($ss === false) {
-			return $field . ':(' . $lookfor . ')';
+			$allFields = $this->_loadValidFields();
+			if (in_array($field, $allFields)){
+				return $field . ':(' . $lookfor . ')';
+			}
+			$dynamicFields = $this->_loadDynamicFields();
+			global $solrScope;
+			foreach ($dynamicFields as $dynamicField){
+				if ($dynamicField . $solrScope == $field){
+					return $field . ':(' . $lookfor . ')';
+				}
+			}
+			//Not a search by field
+			return '"' . $field . ':' . $lookfor . '"';
 		}
 
 		// Munge the user query in a few different ways:
