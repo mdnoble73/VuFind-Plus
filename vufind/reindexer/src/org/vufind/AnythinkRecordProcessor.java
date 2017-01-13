@@ -69,7 +69,7 @@ public class AnythinkRecordProcessor extends IlsRecordProcessor {
 		boolean available = false;
 		String status = itemInfo.getStatusCode();
 		String availableStatus = "is";
-		if (availableStatus.indexOf(status.charAt(0)) >= 0) {
+		if (status.equals("i") || status.equals("s")) {
 			available = true;
 		}
 		return available;
