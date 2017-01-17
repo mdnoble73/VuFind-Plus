@@ -648,6 +648,8 @@ IslandoraTitle:
       - [and, 500]
     - fgs_label_t:
       - [onephrase, 1200]
+    - PID:
+      - [exact, 1000]
 
 IslandoraKeyword:
   QueryFields:
@@ -670,7 +672,6 @@ IslandoraKeyword:
       - [and, 25]
     - PID:
       - [exact, 1000]
-      - [and, 100]
     - mods_extension_marmotLocal_hasCreator_entityTitle_mt:
       - [and, ~]
     - mods_extension_marmotLocal_describedEntity_entityTitle_mt:
