@@ -38,6 +38,22 @@ class Archive_Exhibit extends Archive_Object{
 			$interface->assign('description', $description);
 		}
 
+		// Set Exhibit Navigation
+		if (!empty($_SESSION['ExhibitContext'])) {
+			// This means we are coming from another Exhibit; or return from an Object View?
+		}
+
+		$_SESSION['ExhibitContext'] = $this->recordDriver->getUniqueID(); // Set Exhibit object ID
+		if (!empty($_REQUEST['placePid'])) { // May never be actually set here.
+			// Add the place PID to the session if this is a Map Exhibit
+			$_SESSION['placePid'] =  $_REQUEST['placePid'];
+		} else {
+			$_SESSION['placePid'] = null;
+			$_SESSION['placeLabel'] = null;
+		}
+
+
+
 		$displayType = 'basic';
 		if ($pikaCollectionDisplay == 'map'){
 			$displayType = 'map';
@@ -198,6 +214,18 @@ class Archive_Exhibit extends Archive_Object{
 		$mappedPlaces = array();
 		$unmappedPlaces = array();
 		$response = $searchObject->processSearch(true, false);
+		$summary = $searchObject->getResultSummary();
+		$recordIndex = $summary['startRecord'];
+		$page = $summary['page'];
+		$interface->assign('page', $page);
+
+//			// Add Collection Navigation Links
+		$searchObject->close(); // Trigger save search
+		$lastExhibitObjectsSearch = $searchObject->getSearchId(); // Have to save the search first.
+
+		$_SESSION['exhibitSearchId'] = $lastExhibitObjectsSearch;
+
+//		$interface->assign('collectionSearchId', $lastExhibitObjectsSearch);
 		$timer->logTime('Did initial search for related objects');
 		if ($response && $response['response']['numFound'] > 0) {
 			if ($displayType == 'map' || $displayType == 'custom') {
@@ -312,6 +340,7 @@ class Archive_Exhibit extends Archive_Object{
 				//Load related objects
 				$allObjectsAreCollections = true;
 				foreach ($response['response']['docs'] as $objectInCollection){
+					//TODO: Determine if I am using the right value for record Index
 					/** @var IslandoraDriver $firstObjectDriver */
 					$firstObjectDriver = RecordDriverFactory::initRecordDriver($objectInCollection);
 					$relatedImages[$firstObjectDriver->getUniqueID()] = array(
@@ -319,22 +348,27 @@ class Archive_Exhibit extends Archive_Object{
 							'title' => $firstObjectDriver->getTitle(),
 							'description' => $firstObjectDriver->getDescription(),
 							'image' => $firstObjectDriver->getBookcoverUrl('medium'),
+//							'link' => $firstObjectDriver->getRecordUrl() ."?collectionSearchId=" . $lastExhibitObjectsSearch . '&recordIndex=' .$recordIndex, // saved search version
 							'link' => $firstObjectDriver->getRecordUrl(),
+							'recordIndex' => $recordIndex++
 					);
+
 					if (!($firstObjectDriver instanceof CollectionDriver)){
 						$allObjectsAreCollections = false;
 					}
 					$timer->logTime('Loaded related object');
 				}
 				$interface->assign('showWidgetView', $allObjectsAreCollections);
-				$summary = $searchObject->getResultSummary();
+//				$summary = $searchObject->getResultSummary();
 				$interface->assign('recordCount', $summary['resultTotal']);
 				$interface->assign('recordStart', $summary['startRecord']);
 				$interface->assign('recordEnd',   $summary['endRecord']);
 
 				//Check the MODS for the collection to see if it has information about ordering
+				// Likely used for Exhibits that have 1 page.
+				// Might be for Exhibit of Exhibits
 				$sortingInfo = $this->recordDriver->getModsValues('collectionOrder', 'marmot');
-				if (count($sortingInfo) > 0){
+				if (count($sortingInfo) > 0 && $sortingInfo != array('')){
 					$sortedImages = array();
 					foreach ($sortingInfo as $curSortSection){
 						$pid = $this->recordDriver->getModsValue('objectPid', 'marmot', $curSortSection);
@@ -345,7 +379,9 @@ class Archive_Exhibit extends Archive_Object{
 					}
 					//Add any images that weren't specifically sorted
 					$relatedImages = $sortedImages + $relatedImages;
+					//TODO: set navigation order
 				}
+
 				$interface->assign('relatedImages', $relatedImages);
 			}
 		}

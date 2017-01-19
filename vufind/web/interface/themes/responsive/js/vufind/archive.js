@@ -421,15 +421,41 @@ VuFind.Archive = (function(){
 			return false;
 		},
 
-		showObjectInPopup: function(pid){
+		setForExhibitNavigation : function (recordIndex, page) {
+			var date = new Date();
+			date.setTime(date.getTime() + (1 /*days*/ * 24 * 60 * 60 * 1000));
+			expires = "; expires=" + date.toGMTString();
+			if (typeof recordIndex != 'undefined') {
+				document.cookie = encodeURIComponent('recordIndex') + "=" + encodeURIComponent(recordIndex) + expires + "; path=/";
+			}
+			if (typeof page != 'undefined') {
+				document.cookie = encodeURIComponent('page') + "=" + encodeURIComponent(page) + expires + "; path=/";
+			}
+		},
+
+		showObjectInPopup: function(pid, recordIndex, page){
 			var url = Globals.path + "/Archive/AJAX?id=" + encodeURI(pid) + "&method=getObjectInfo";
+					// (typeof collectionSearchId == 'undefined' ? '' : '&collectionSearchId=' + encodeURI(collectionSearchId)) +
+					// (typeof recordIndex == 'undefined' ? '' : '&recordIndex=' + encodeURI(recordIndex));
 			VuFind.loadingMessage();
+			this.setForExhibitNavigation(recordIndex, page);
+
 			$.getJSON(url, function(data){
 				VuFind.showMessageWithButtons(data.title, data.modalBody, data.modalButtons);
 			}).fail(VuFind.ajaxFail);
 			return false;
 		},
 
+		// showObjectInPopup: function(pid, returnId){
+		// 	var url = Globals.path + "/Archive/AJAX?id=" + encodeURI(pid) + "&method=getObjectInfo" +
+		// 			(typeof returnId == 'undefined' ? '' : '&returnTo=' + encodeURI(returnId));
+		// 	VuFind.loadingMessage();
+		// 	$.getJSON(url, function(data){
+		// 		VuFind.showMessageWithButtons(data.title, data.modalBody, data.modalButtons);
+		// 	}).fail(VuFind.ajaxFail);
+		// 	return false;
+		// },
+		//
 		/**
 		 * All this is doing is updating a URL so the patron can download a clipped portion of the image
 		 * not needed for our basic implementation

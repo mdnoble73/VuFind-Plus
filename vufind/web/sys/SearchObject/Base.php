@@ -195,6 +195,14 @@ abstract class SearchObject_Base
 		return $this->hiddenFilters;
 	}
 
+//	/**
+//	 * @return array
+//	 */
+//	public function getFacetConfig()
+//	{
+//		return $this->facetConfig;
+//	}
+
 	/**
 	 * Does the object already contain the specified filter?
 	 *
@@ -2288,6 +2296,7 @@ class minSO
 	public $t = array();
 	public $f = array();
 	public $hf = array();
+	public $fc = array();
 	public $id, $i, $s, $r, $ty, $sr;
 
 	/**
@@ -2346,5 +2355,11 @@ class minSO
 			$this->hf = $searchObject->getHiddenFilters();
 		}
 
+		// Add Facet Configurations if Present
+		if (method_exists($searchObject, 'getFacetConfig')) {
+			$this->fc = $searchObject->getFacetConfig();
+		}
+
+		// TODO: Add any other data needed to restore Islandora searches
 	}
 } //End of minso object (not SearchObject_Base)

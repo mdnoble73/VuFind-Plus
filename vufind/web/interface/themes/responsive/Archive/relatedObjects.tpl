@@ -89,7 +89,7 @@
 		{foreach from=$relatedObjects item=image}
 			{if $showThumbnailsSorted}<div class="col-xs-6 col-sm-4 col-md-3">{/if}
 				<figure class="{if $showThumbnailsSorted}browse-thumbnail-sorted{else}browse-thumbnail{/if}">
-					<a href="{$image.link}" {if $image.title}data-title="{$image.title}"{/if} onclick="return VuFind.Archive.showObjectInPopup('{$image.pid|urlencode}')">
+					<a href="{$image.link}" {if $image.title}data-title="{$image.title}"{/if} onclick="return VuFind.Archive.showObjectInPopup('{$image.pid|urlencode}'{if $image.recordIndex},{$image.recordIndex}{if $page},{$page}{/if}{/if})">
 						<img src="{$image.image}" {if $image.title}alt="{$image.title}"{/if}>
 						<figcaption class="explore-more-category-title">
 							<strong>{$image.title|truncate:50} ({$image.dateCreated})</strong>

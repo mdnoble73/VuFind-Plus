@@ -64,7 +64,7 @@ class Archive_Results extends Action {
 
 		// Set Interface Variables
 		//   Those we can construct BEFORE the search is executed
-		$interface->setPageTitle('Archive Search Results');
+//		$interface->setPageTitle('Archive Search Results');
 		$interface->assign('sortList',   $searchObject->getSortList());
 		$interface->assign('rssLink',    $searchObject->getRSSUrl());
 		$interface->assign('excelLink',  $searchObject->getExcelUrl());
@@ -184,6 +184,11 @@ class Archive_Results extends Action {
 		// Save the URL of this search to the session so we can return to it easily:
 		$_SESSION['lastSearchURL'] = $searchObject->renderSearchUrl();
 
+		// clear Exhibit Navigation
+		if (!empty($_SESSION['ExhibitContext'])) {
+			unset($_SESSION['ExhibitContext'], $_SESSION['placePid'], $_SESSION['placeLabel']);
+		}
+
 		//Setup explore more
 		$showExploreMoreBar = true;
 		if (isset($_REQUEST['page']) && $_REQUEST['page'] > 1){
@@ -197,8 +202,10 @@ class Archive_Results extends Action {
 
 		// Done, display the page
 		$interface->assign('sectionLabel', 'Local Digital Archive Results');
-		$interface->setTemplate($searchObject->getResultTotal() ? 'list.tpl' : 'list-none.tpl'); // main search results content
-		$interface->assign('sidebar', 'Search/results-sidebar.tpl');
-		$interface->display('layout.tpl');
+//		$interface->setTemplate($searchObject->getResultTotal() ? 'list.tpl' : 'list-none.tpl'); // main search results content
+//		$interface->assign('sidebar', 'Search/results-sidebar.tpl');
+//		$interface->display('layout.tpl');
+
+		$this->display($searchObject->getResultTotal() ? 'list.tpl' : 'list-none.tpl','Archive Search Results', 'Search/results-sidebar.tpl');
 	} // End launch()
 }

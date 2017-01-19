@@ -1568,42 +1568,161 @@ class SearchObject_Islandora extends SearchObject_Base
 		$this->applyStandardFilters = $flag;
 	}
 
-	public function getNextPrevLinks(){
+	/**
+	 * @return array
+	 */
+	public function getFacetConfig()
+	{
+		return $this->facetConfig;
+	}
+
+// Original Version
+//	public function getNextPrevLinks(){
+//		global $interface;
+//		global $timer;
+//		//Setup next and previous links based on the search results.
+//		if (isset($_REQUEST['searchId']) && isset($_REQUEST['recordIndex']) && ctype_digit($_REQUEST['searchId']) && ctype_digit($_REQUEST['recordIndex'])){
+//
+//			//rerun the search
+//			$interface->assign('searchId', $_REQUEST['searchId']);
+//			$currentPage = isset($_REQUEST['page']) && ctype_digit($_REQUEST['page']) ? $_REQUEST['page'] : 1;
+//			$interface->assign('page', $currentPage);
+//
+//			$s = new SearchEntry();
+//			if ($s->get($_REQUEST['searchId'])){
+//				$minSO = unserialize($s->search_object);
+//				$searchObject = SearchObjectFactory::deminify($minSO);
+//				$searchObject->setPage($currentPage);
+//				//Run the search
+//				$result = $searchObject->processSearch(true, false, false);
+//
+//				//Check to see if we need to run a search for the next or previous page
+//				$currentResultIndex = $_REQUEST['recordIndex'] - 1;
+//				$recordsPerPage = $searchObject->getLimit();
+//				$adjustedResultIndex = $currentResultIndex - ($recordsPerPage * ($currentPage -1));
+//
+//				if (($currentResultIndex) % $recordsPerPage == 0 && $currentResultIndex > 0){
+//					//Need to run a search for the previous page
+//					$interface->assign('previousPage', $currentPage - 1);
+//					$previousSearchObject = clone $searchObject;
+//					$previousSearchObject->setPage($currentPage - 1);
+//					$previousSearchObject->processSearch(true, false, false);
+//					$previousResults = $previousSearchObject->getResultRecordSet();
+//				}else if (($currentResultIndex + 1) % $recordsPerPage == 0 && ($currentResultIndex + 1) < $searchObject->getResultTotal()){
+//					//Need to run a search for the next page
+//					$nextSearchObject = clone $searchObject;
+//					$interface->assign('nextPage', $currentPage + 1);
+//					$nextSearchObject->setPage($currentPage + 1);
+//					$nextSearchObject->processSearch(true, false, false);
+//					$nextResults = $nextSearchObject->getResultRecordSet();
+//				}
+//
+//				if (PEAR_Singleton::isError($result)) {
+//					//If we get an error excuting the search, just eat it for now.
+//				}else{
+//					if ($searchObject->getResultTotal() < 1) {
+//						//No results found
+//					}else{
+//						$recordSet = $searchObject->getResultRecordSet();
+//						//Record set is 0 based, but we are passed a 1 based index
+//						if ($currentResultIndex > 0){
+//							if (isset($previousResults)){
+//								$previousRecord = $previousResults[count($previousResults) -1];
+//							}else{
+//								$previousId = $adjustedResultIndex - 1;
+//								if (isset($recordSet[$previousId])){
+//									$previousRecord = $recordSet[$previousId];
+//								}
+//							}
+//
+//							//Convert back to 1 based index
+//							if (isset($previousRecord)) {
+//								$interface->assign('previousIndex', $currentResultIndex - 1 + 1);
+//								if (key_exists('PID', $previousRecord)) {
+//									$interface->assign('previousType', 'Archive');
+//									$interface->assign('previousUrl', $previousRecord['url']);
+//									$interface->assign('previousTitle', $previousRecord['fgs_label_s']);
+//								}
+//							}
+//						}
+//						if ($currentResultIndex + 1 < $searchObject->getResultTotal()){
+//
+//							if (isset($nextResults)){
+//								$nextRecord = $nextResults[0];
+//							}else{
+//								$nextRecordIndex = $adjustedResultIndex + 1;
+//								if (isset($recordSet[$nextRecordIndex])){
+//									$nextRecord = $recordSet[$nextRecordIndex];
+//								}
+//							}
+//							//Convert back to 1 based index
+//							$interface->assign('nextIndex', $currentResultIndex + 1 + 1);
+//							if (isset($nextRecord)) {
+//								if (key_exists('PID', $nextRecord)) {
+//									$interface->assign('nextType', 'Archive');
+//									$interface->assign('nextUrl', $nextRecord['url']);
+//									$interface->assign('nextTitle', $nextRecord['fgs_label_s']);
+//								}
+//							}
+//						}
+//
+//					}
+//				}
+//			}
+//			$timer->logTime('Got next/previous links');
+//		}
+//	}
+
+	// Second Attempt to handle Exhibit Navigation
+	public function getNextPrevLinks($searchId=null, $recordIndex=null, $page=null, $preventQueryModification = false){
 		global $interface;
 		global $timer;
 		//Setup next and previous links based on the search results.
-		if (isset($_REQUEST['searchId']) && isset($_REQUEST['recordIndex']) && ctype_digit($_REQUEST['searchId']) && ctype_digit($_REQUEST['recordIndex'])){
-
+		if (is_null($searchId)) {
+			if (isset($_REQUEST['searchId']) && ctype_digit($_REQUEST['searchId'])) {
+				$searchId = $_REQUEST['searchId'];
+			}
+		}
+		if (is_null($recordIndex)) {
+			if (isset($_REQUEST['recordIndex']) && ctype_digit($_REQUEST['recordIndex'])) {
+				$recordIndex = $_REQUEST['recordIndex'];
+			} else {
+				$recordIndex = 0; // TODO: what is a good default value
+			}
+		}
+			if ($searchId) {
 			//rerun the search
-			$interface->assign('searchId', $_REQUEST['searchId']);
-			$currentPage = isset($_REQUEST['page']) && ctype_digit($_REQUEST['page']) ? $_REQUEST['page'] : 1;
-			$interface->assign('page', $currentPage);
+			$interface->assign('searchId',$searchId);
+			if (is_null($page)) {
+				$page = isset($_REQUEST['page']) && ctype_digit($_REQUEST['page']) ? $_REQUEST['page'] : 1;
+			}
+			$interface->assign('page', $page);
 
 			$s = new SearchEntry();
-			if ($s->get($_REQUEST['searchId'])){
+			if ($s->get($searchId)){
 				$minSO = unserialize($s->search_object);
 				$searchObject = SearchObjectFactory::deminify($minSO);
-				$searchObject->setPage($currentPage);
+				$searchObject->setPage($page);
 				//Run the search
-				$result = $searchObject->processSearch(true, false, false);
+				$result = $searchObject->processSearch(true, false, $preventQueryModification); // prevent query modification needed for Map Exhibits
 
 				//Check to see if we need to run a search for the next or previous page
-				$currentResultIndex = $_REQUEST['recordIndex'] - 1;
+				$currentResultIndex = $recordIndex - 1;
 				$recordsPerPage = $searchObject->getLimit();
-				$adjustedResultIndex = $currentResultIndex - ($recordsPerPage * ($currentPage -1));
+				$adjustedResultIndex = $currentResultIndex - ($recordsPerPage * ($page -1));
 
 				if (($currentResultIndex) % $recordsPerPage == 0 && $currentResultIndex > 0){
 					//Need to run a search for the previous page
-					$interface->assign('previousPage', $currentPage - 1);
+					$interface->assign('previousPage', $page - 1);
 					$previousSearchObject = clone $searchObject;
-					$previousSearchObject->setPage($currentPage - 1);
+					$previousSearchObject->setPage($page - 1);
 					$previousSearchObject->processSearch(true, false, false);
 					$previousResults = $previousSearchObject->getResultRecordSet();
 				}else if (($currentResultIndex + 1) % $recordsPerPage == 0 && ($currentResultIndex + 1) < $searchObject->getResultTotal()){
 					//Need to run a search for the next page
 					$nextSearchObject = clone $searchObject;
-					$interface->assign('nextPage', $currentPage + 1);
-					$nextSearchObject->setPage($currentPage + 1);
+					$interface->assign('nextPage', $page + 1);
+					$nextSearchObject->setPage($page + 1);
 					$nextSearchObject->processSearch(true, false, false);
 					$nextResults = $nextSearchObject->getResultRecordSet();
 				}
@@ -1664,6 +1783,7 @@ class SearchObject_Islandora extends SearchObject_Base
 		}
 	}
 
+
 	public function deminify($minified)
 	{
 		// Clean the object
@@ -1678,6 +1798,7 @@ class SearchObject_Islandora extends SearchObject_Base
 		$this->searchType   = $minified->ty;
 		$this->sort         = $minified->sr;
 		$this->hiddenFilters= $minified->hf;
+		$this->facetConfig  = $minified->fc;
 
 		// Search terms, we need to expand keys
 		$tempTerms = $minified->t;
