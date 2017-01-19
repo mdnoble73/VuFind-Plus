@@ -39,20 +39,7 @@ class Archive_Exhibit extends Archive_Object{
 		}
 
 		// Set Exhibit Navigation
-		if (!empty($_SESSION['ExhibitContext'])) {
-			// This means we are coming from another Exhibit; or return from an Object View?
-		}
-
-		$_SESSION['ExhibitContext'] = $this->recordDriver->getUniqueID(); // Set Exhibit object ID
-		if (!empty($_REQUEST['placePid'])) { // May never be actually set here.
-			// Add the place PID to the session if this is a Map Exhibit
-			$_SESSION['placePid'] =  $_REQUEST['placePid'];
-		} else {
-			$_SESSION['placePid'] = null;
-			$_SESSION['placeLabel'] = null;
-		}
-
-
+		$this->startExhibitContext();
 
 		$displayType = 'basic';
 		if ($pikaCollectionDisplay == 'map'){
@@ -383,6 +370,19 @@ class Archive_Exhibit extends Archive_Object{
 
 				$interface->assign('relatedImages', $relatedImages);
 			}
+		}
+	}
+
+	private function startExhibitContext()
+	{
+		$_SESSION['ExhibitContext']   = $this->recordDriver->getUniqueID(); // Set Exhibit object ID
+		$_COOKIE['exhibitNavigation'] = true; // Make sure exhibit context isn't cleared when loading the exhibit
+		if (!empty($_REQUEST['placePid'])) { // May never be actually set here.
+			// Add the place PID to the session if this is a Map Exhibit
+			$_SESSION['placePid'] = $_REQUEST['placePid'];
+		} else {
+			$_SESSION['placePid']   = null;
+			$_SESSION['placeLabel'] = null;
 		}
 	}
 }

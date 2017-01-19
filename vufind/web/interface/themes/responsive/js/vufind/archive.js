@@ -2,6 +2,11 @@
  * Created by mark on 12/10/2015.
  */
 VuFind.Archive = (function(){
+	var date = new Date();
+	date.setTime(date.getTime() + (1 /*days*/ * 24 * 60 * 60 * 1000));
+	expires = "; expires=" + date.toGMTString();
+	document.cookie = encodeURIComponent('exhibitNavigation') + "=" + encodeURIComponent(0) + expires + "; path=/";
+
 	return {
 		archive_map: null,
 		archive_info_window: null,
@@ -431,6 +436,7 @@ VuFind.Archive = (function(){
 			if (typeof page != 'undefined') {
 				document.cookie = encodeURIComponent('page') + "=" + encodeURIComponent(page) + expires + "; path=/";
 			}
+			document.cookie = encodeURIComponent('exhibitNavigation') + "=" + encodeURIComponent(1) + expires + "; path=/";
 		},
 
 		showObjectInPopup: function(pid, recordIndex, page){

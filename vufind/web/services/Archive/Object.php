@@ -39,45 +39,15 @@ abstract class Archive_Object extends Action {
 		// Retrieve User Search History
 		//Get Next/Previous Links
 
-		if (!empty($_SESSION['ExhibitContext']) and $this->recordDriver->getUniqueID() != $_SESSION['ExhibitContext']/* && get_class($this) !== 'Archive_Exhibit'*/) {
-			$interface->assign('isFromExhibit', true);
-
-			// Return to Exhibit URLs
-			$exhibitObject = RecordDriverFactory::initRecordDriver(array('PID' => $_SESSION['ExhibitContext']));
-			$exhibitUrl = $exhibitObject->getLinkUrl();
-			$exhibitName = $exhibitObject->getTitle();
-			$isMapExhibit = !empty($_SESSION['placePid']);
-			if ($isMapExhibit) {
-				$exhibitUrl .= '?style=map&placePid=' . urlencode($_SESSION['placePid']);
-				if (!empty($_SESSION['placeLabel'])) {
-					$exhibitName .= ' - '. $_SESSION['placeLabel'];
-				}
-			}
-			$interface->assign('lastCollection', $exhibitUrl);
-			$interface->assign('collectionName', $exhibitName);
-
-			if (!empty($_SESSION['exhibitSearchId'])) {
-				$recordIndex = isset($_COOKIE['recordIndex']) ? $_COOKIE['recordIndex'] : null;
-				$page = isset($_COOKIE['page']) ?$_COOKIE['page'] : null;
-				// Restore Islandora Search
-				/** @var SearchObject_Islandora $searchObject */
-				$searchObject = SearchObjectFactory::initSearchObject('Islandora');
-				$searchObject->init('islandora');
-				$searchObject->getNextPrevLinks($_SESSION['exhibitSearchId'], $recordIndex, $page, $isMapExhibit);
-				// pass page and record index info
-			}
-
-
+		$isExhibitContext = !empty($_SESSION['ExhibitContext']) and $this->recordDriver->getUniqueID() != $_SESSION['ExhibitContext'];
+		if ($isExhibitContext && empty($_COOKIE['exhibitNavigation'])) {
+			$isExhibitContext = false;
+			$this->endExhibitContext();
 		}
-
- 		if (isset($_SESSION['lastSearchURL'])) {
-			$interface->assign('lastsearch', isset($_SESSION['lastSearchURL']) ? $_SESSION['lastSearchURL'] : false);
-			$searchSource = isset($_REQUEST['searchSource']) ? $_REQUEST['searchSource'] : 'islandora';
-			//TODO: What if it ain't islandora? (direct navigation to archive object page)
-			/** @var SearchObject_Islandora $searchObject */
-			$searchObject = SearchObjectFactory::initSearchObject('Islandora');
-			$searchObject->init($searchSource);
-			$searchObject->getNextPrevLinks();
+		if ($isExhibitContext) {
+			$this->setExhibitNavigation($interface);
+		} elseif (isset($_SESSION['lastSearchURL'])) {
+			$this->setArchiveSearchNavigation();
 		}
 
 		//Check to see if usage is restricted or not.
@@ -309,6 +279,57 @@ abstract class Archive_Object extends Action {
 			$interface->assign('anonymousLcDownload', $anonymousLcDownload);
 			$interface->assign('verifiedLcDownload', $verifiedLcDownload);
 		}
+	}
+
+	private function endExhibitContext()
+	{
+		$_SESSION['ExhibitContext']  = null;
+		$_SESSION['exhibitSearchId'] = null;
+		$_SESSION['placePid']        = null;
+	}
+
+	private function setExhibitNavigation()
+	{
+		global $interface;
+
+		$interface->assign('isFromExhibit', true);
+
+		// Return to Exhibit URLs
+		$exhibitObject = RecordDriverFactory::initRecordDriver(array('PID' => $_SESSION['ExhibitContext']));
+		$exhibitUrl    = $exhibitObject->getLinkUrl();
+		$exhibitName   = $exhibitObject->getTitle();
+		$isMapExhibit  = !empty($_SESSION['placePid']);
+		if ($isMapExhibit) {
+			$exhibitUrl .= '?style=map&placePid=' . urlencode($_SESSION['placePid']);
+			if (!empty($_SESSION['placeLabel'])) {
+				$exhibitName .= ' - ' . $_SESSION['placeLabel'];
+			}
+		}
+		$interface->assign('lastCollection', $exhibitUrl);
+		$interface->assign('collectionName', $exhibitName);
+
+		if (!empty($_SESSION['exhibitSearchId'])) {
+			$recordIndex = isset($_COOKIE['recordIndex']) ? $_COOKIE['recordIndex'] : null;
+			$page        = isset($_COOKIE['page']) ? $_COOKIE['page'] : null;
+			// Restore Islandora Search
+			/** @var SearchObject_Islandora $searchObject */
+			$searchObject = SearchObjectFactory::initSearchObject('Islandora');
+			$searchObject->init('islandora');
+			$searchObject->getNextPrevLinks($_SESSION['exhibitSearchId'], $recordIndex, $page, $isMapExhibit);
+			// pass page and record index info
+		}
+	}
+
+	private function setArchiveSearchNavigation()
+	{
+		global $interface;
+		$interface->assign('lastsearch', isset($_SESSION['lastSearchURL']) ? $_SESSION['lastSearchURL'] : false);
+		$searchSource = isset($_REQUEST['searchSource']) ? $_REQUEST['searchSource'] : 'islandora';
+		//TODO: What if it ain't islandora? (direct navigation to archive object page)
+		/** @var SearchObject_Islandora $searchObject */
+		$searchObject = SearchObjectFactory::initSearchObject('Islandora');
+		$searchObject->init($searchSource);
+		$searchObject->getNextPrevLinks();
 	}
 
 }
