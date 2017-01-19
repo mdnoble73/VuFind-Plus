@@ -22,6 +22,11 @@ require_once ROOT_DIR . '/Action.php';
 
 class History extends Action {
 	var $catalog;
+	private  static $searchSourceLabels = array(
+		'local' => 'Catalog',
+		'islandora' => 'Archive',
+		'genealogy' => 'Genealogy'
+	);
 
 	function launch()
 	{
@@ -55,6 +60,11 @@ class History extends Action {
 				// descriptions in the filter box.
 				$searchObject->activateAllFacets();
 
+				$searchSourceLabel = $searchObject->getSearchSource();
+				if (array_key_exists($searchSourceLabel, self::$searchSourceLabels)) {
+					$searchSourceLabel = self::$searchSourceLabels[$searchSourceLabel];
+				}
+
 				$newItem = array(
 					'id'          => $search->id,
 					'time'        => date("g:ia, jS M y", $searchObject->getStartTime()),
@@ -63,7 +73,7 @@ class History extends Action {
 					'description' => $searchObject->displayQuery(),
 					'filters'     => $searchObject->getFilterList(),
 					'hits'        => number_format($searchObject->getResultTotal()),
-					'source'      => $searchObject->getSearchSource(), // TODO : translate to user-friendly terms
+					'source'      => $searchSourceLabel,
 					'speed'       => round($searchObject->getQuerySpeed(), 2)."s",
 					// Size is purely for debugging. Not currently displayed in the template.
 					// It's the size of the serialized, minified search in the database.

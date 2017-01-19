@@ -13,7 +13,6 @@ class SearchEntry extends DB_DataObject
 	public $saved;													 // int(1) not_null default 0
 	public $search_object;									 // blob
 	public $session_id;											// varchar(128)
-	public $searchSource;
 
 	/**
 	 * Get an array of SearchEntry objects for the specified user.
