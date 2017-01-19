@@ -48,7 +48,7 @@ abstract class Archive_Object extends Action {
 			$exhibitName = $exhibitObject->getTitle();
 			$isMapExhibit = !empty($_SESSION['placePid']);
 			if ($isMapExhibit) {
-				$exhibitUrl .= '?style=map&placePid=' . $_SESSION['placePid'];
+				$exhibitUrl .= '?style=map&placePid=' . urlencode($_SESSION['placePid']);
 				if (!empty($_SESSION['placeLabel'])) {
 					$exhibitName .= ' - '. $_SESSION['placeLabel'];
 				}
