@@ -70,7 +70,7 @@ abstract class Archive_Object extends Action {
 
 		}
 
-		if (isset($_SESSION['lastSearchURL'])) {
+ 		if (isset($_SESSION['lastSearchURL'])) {
 			$interface->assign('lastsearch', isset($_SESSION['lastSearchURL']) ? $_SESSION['lastSearchURL'] : false);
 			$searchSource = isset($_REQUEST['searchSource']) ? $_REQUEST['searchSource'] : 'islandora';
 			//TODO: What if it ain't islandora? (direct navigation to archive object page)
