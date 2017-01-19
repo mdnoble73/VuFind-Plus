@@ -1700,9 +1700,11 @@ class SearchObject_Islandora extends SearchObject_Base
 
 			$s = new SearchEntry();
 			if ($s->get($searchId)){
-				$minSO = unserialize($s->search_object);
+				$minSO        = unserialize($s->search_object);
+				/** @var SearchObject_Islandora $searchObject */
 				$searchObject = SearchObjectFactory::deminify($minSO);
 				$searchObject->setPage($page);
+				$searchObject->setLimit(24); // Assume 24 for Archive Searches; or // TODO: Add pagelimit to saved search?
 				//Run the search
 				$result = $searchObject->processSearch(true, false, $preventQueryModification); // prevent query modification needed for Map Exhibits
 
@@ -1716,14 +1718,14 @@ class SearchObject_Islandora extends SearchObject_Base
 					$interface->assign('previousPage', $page - 1);
 					$previousSearchObject = clone $searchObject;
 					$previousSearchObject->setPage($page - 1);
-					$previousSearchObject->processSearch(true, false, false);
+					$previousSearchObject->processSearch(true, false, $preventQueryModification);
 					$previousResults = $previousSearchObject->getResultRecordSet();
 				}else if (($currentResultIndex + 1) % $recordsPerPage == 0 && ($currentResultIndex + 1) < $searchObject->getResultTotal()){
 					//Need to run a search for the next page
 					$nextSearchObject = clone $searchObject;
 					$interface->assign('nextPage', $page + 1);
 					$nextSearchObject->setPage($page + 1);
-					$nextSearchObject->processSearch(true, false, false);
+					$nextSearchObject->processSearch(true, false, $preventQueryModification);
 					$nextResults = $nextSearchObject->getResultRecordSet();
 				}
 
