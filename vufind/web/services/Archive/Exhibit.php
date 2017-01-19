@@ -340,7 +340,6 @@ class Archive_Exhibit extends Archive_Object{
 				//Load related objects
 				$allObjectsAreCollections = true;
 				foreach ($response['response']['docs'] as $objectInCollection){
-					//TODO: Determine if I am using the right value for record Index
 					/** @var IslandoraDriver $firstObjectDriver */
 					$firstObjectDriver = RecordDriverFactory::initRecordDriver($objectInCollection);
 					$relatedImages[$firstObjectDriver->getUniqueID()] = array(

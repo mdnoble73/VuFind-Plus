@@ -254,6 +254,14 @@ class Archive_AJAX extends Action {
 				$interface->assign('recordCount', $summary['resultTotal']);
 				$interface->assign('recordStart', $summary['startRecord']);
 				$interface->assign('recordEnd',   $summary['endRecord']);
+				$recordIndex = $summary['startRecord'];
+				$page = $summary['page'];
+				$interface->assign('page', $page);
+
+				// Save the search with Map query and filters
+				$searchObject->close(); // Trigger save search
+				$lastExhibitObjectsSearch = $searchObject->getSearchId(); // Have to save the search first.
+				$_SESSION['exhibitSearchId'] = $lastExhibitObjectsSearch;
 
 				foreach ($response['response']['docs'] as $objectInCollection){
 					/** @var IslandoraDriver $firstObjectDriver */
@@ -264,7 +272,8 @@ class Archive_AJAX extends Action {
 							'image' => $firstObjectDriver->getBookcoverUrl('medium'),
 							'dateCreated' => $firstObjectDriver->getDateCreated(),
 							'link' => $firstObjectDriver->getRecordUrl(),
-							'pid' => $firstObjectDriver->getUniqueID()
+							'pid' => $firstObjectDriver->getUniqueID(),
+							'recordIndex' => $recordIndex++
 					);
 					if ($sort == 'dateAdded'){
 						$relatedObject['dateCreated'] = date('M j, Y', strtotime($objectInCollection['fgs_createdDate_dt']));
@@ -441,21 +450,12 @@ class Archive_AJAX extends Action {
 		$fedoraUtils = FedoraUtils::getInstance();
 
 		$pid = urldecode($_REQUEST['id']);
-		$collectionSearchId = null;
-		if (!empty($_REQUEST['collectionSearchId'])) {
-			$collectionSearchId = urldecode($_REQUEST['collectionSearchId']);
-		}
-		$recordIndex = null;
-		if (!empty($_REQUEST['recordIndex'])) {
-			$recordIndex = urldecode($_REQUEST['recordIndex']);
-		}
 		$interface->assign('pid', $pid);
 		$archiveObject = $fedoraUtils->getObject($pid);
 		$recordDriver = RecordDriverFactory::initRecordDriver($archiveObject);
 		$interface->assign('recordDriver', $recordDriver);
 
 		$url = $recordDriver->getLinkUrl();
-//		$url = $recordDriver->getLinkUrl() . ($collectionSearchId ? "?collectionSearchId=$collectionSearchId" . ($recordIndex ? "&recordIndex=$recordIndex" : '' ) : '' );
 		$interface->assign('url', $url);
 		$interface->assign('description', $recordDriver->getDescription());
 		$interface->assign('image', $recordDriver->getBookcoverUrl('medium'));
