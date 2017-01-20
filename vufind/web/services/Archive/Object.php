@@ -45,7 +45,7 @@ abstract class Archive_Object extends Action {
 			$this->endExhibitContext();
 		}
 		if ($isExhibitContext) {
-			$this->setExhibitNavigation($interface);
+			$this->setExhibitNavigation();
 		} elseif (isset($_SESSION['lastSearchURL'])) {
 			$this->setArchiveSearchNavigation();
 		}

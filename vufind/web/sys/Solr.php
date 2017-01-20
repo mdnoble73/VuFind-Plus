@@ -2449,6 +2449,10 @@ class Solr implements IndexEngine {
 			}
 		}
 
+		if ($newWords == array()) {
+			$newWords[0] = ''; //Always return at least one value
+		}
+
 		return $newWords;
 	}
 
