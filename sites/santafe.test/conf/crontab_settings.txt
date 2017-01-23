@@ -55,7 +55,7 @@
 # Data Extract from other systems #
 ###################################
 # Library supplied covers
-53 5 * * * /usr/local/vufind-plus/sites/santafe.test/copyCovers.sh
+29 5 * * * /usr/local/vufind-plus/sites/santafe.test/copyCovers.sh
 
 ############################################
 # New York Times Bestseller Lists Updating #
