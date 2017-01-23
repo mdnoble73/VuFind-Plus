@@ -148,7 +148,7 @@ VuFind.Archive = (function(){
 
 			if (redirect != "undefined" && redirect === true){
 				var newUrl = VuFind.buildUrl(document.location.origin + document.location.pathname, 'placePid', placePid);
-				var newUrl = VuFind.buildUrl(newUrl, 'style', 'map');
+				newUrl = VuFind.buildUrl(newUrl, 'style', 'map');
 				document.location.href = newUrl;
 			}
 			$.getJSON(Globals.path + "/Archive/AJAX?method=getRelatedObjectsForMappedCollection&collectionId=" + exhibitPid + "&placeId=" + placePid, function(data){
@@ -167,7 +167,7 @@ VuFind.Archive = (function(){
 			var newUrl = VuFind.buildUrl(document.location.origin + document.location.pathname, 'placePid', placePid);
 			var currentParameters = VuFind.getQuerystringParameters();
 			if (currentParameters["style"] != undefined){
-				var newUrl = VuFind.buildUrl(newUrl, 'style', currentParameters["style"]);
+				newUrl = VuFind.buildUrl(newUrl, 'style', currentParameters["style"]);
 			}
 			//Push the new url, but only if we aren't going back where we just were.
 			if (document.location.href != newUrl){

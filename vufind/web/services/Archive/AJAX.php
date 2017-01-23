@@ -469,9 +469,6 @@ class Archive_AJAX extends Action {
 		$interface->assign('image', $recordDriver->getBookcoverUrl('medium'));
 
 		return array(
-				'title' => "<a href='$url'>{$recordDriver->getTitle()}</a>",
-				'modalBody' => $interface->fetch('Archive/archivePopup.tpl'),
-				'modalButtons' => "<a href='$url'><button class='modal-buttons btn btn-primary'>More Info</button></a>"
 		);
 	}
 
