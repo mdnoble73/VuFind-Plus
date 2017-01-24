@@ -120,6 +120,10 @@ cd /usr/local/vufind-plus/sites/${PIKASERVER}; ./${PIKASERVER}.sh restart
 #Copy extracts from FTP Server
 #/root/cron/copysantafeExport.sh >> ${OUTPUT_FILE}
 
+# OneClick digital Marc Updates
+/usr/local/vufind-plus/sites/santafe.test/moveFullExport.sh santafe/oneclickdigital oneclickdigital >> ${OUTPUT_FILE}
+
+
 # Get Yesterday's Full Export From santafe Production Server
 YESTERDAY=$(date -d "yesterday 13:00 " +"%m_%d_%Y")
 scp -Cqp -i /root/.ssh/id_rsa sierraftp@158.59.15.152:/data/vufind-plus/santafe.production/marc_export/pika1.$YESTERDAY.mrc /data/vufind-plus/santafe.test/marc/pika1.mrc >> ${OUTPUT_FILE}
