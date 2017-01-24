@@ -2215,12 +2215,21 @@ public function getNextPrevLinks(){
 							if (isset($previousRecord)) {
 								$interface->assign('previousIndex', $currentResultIndex - 1 + 1);
 								$interface->assign('previousTitle', $previousRecord['title_display']);
-								if (strpos($previousRecord['id'], 'list') === 0){
+								if ($previousRecord['recordtype'] == 'grouped_work'){
+									$groupedWork = New GroupedWorkDriver($previousRecord);
+									$relatedRecords = $groupedWork->getRelatedRecords();
+									if (count($relatedRecords) == 1) {
+										$previousRecord = reset($relatedRecords);
+										$interface->assign('previousId', $previousRecord['driver']->getId());
+										list($previousType) = explode('/', trim($previousRecord['url'], '/'));
+										$interface->assign('previousType', $previousType);
+									} else {
+										$interface->assign('previousType', 'GroupedWork');
+										$interface->assign('previousId', $previousRecord['id']);
+									}
+								} elseif (strpos($previousRecord['id'], 'list') === 0){
 									$interface->assign('previousType', 'MyAccount/MyList');
 									$interface->assign('previousId', str_replace('list', '', $previousRecord['id']));
-								}else if ($previousRecord['recordtype'] == 'grouped_work'){
-									$interface->assign('previousType', 'GroupedWork');
-									$interface->assign('previousId', $previousRecord['id']);
 								}else{
 									$interface->assign('previousType', 'Record');
 									$interface->assign('previousId', $previousRecord['id']);
@@ -2241,12 +2250,21 @@ public function getNextPrevLinks(){
 							$interface->assign('nextIndex', $currentResultIndex + 1 + 1);
 							if (isset($nextRecord)){
 								$interface->assign('nextTitle', $nextRecord['title_display']);
-								if (strpos($nextRecord['id'], 'list') === 0){
+								if ($nextRecord['recordtype'] == 'grouped_work'){
+									$groupedWork = New GroupedWorkDriver($nextRecord);
+									$relatedRecords = $groupedWork->getRelatedRecords();
+									if (count($relatedRecords) == 1) {
+										$nextRecord = reset($relatedRecords);
+										$interface->assign('nextId', $nextRecord['driver']->getId());
+										list($nextType) = explode('/', trim($nextRecord['url'], '/'));
+										$interface->assign('nextType', $nextType);
+									} else {
+										$interface->assign('nextType', 'GroupedWork');
+										$interface->assign('nextId', $nextRecord['id']);
+									}
+								} elseif (strpos($nextRecord['id'], 'list') === 0){
 									$interface->assign('nextType', 'MyAccount/MyList');
 									$interface->assign('nextId', str_replace('list', '', $nextRecord['id']));
-								}else if ($nextRecord['recordtype'] == 'grouped_work'){
-									$interface->assign('nextType', 'GroupedWork');
-									$interface->assign('nextId', $nextRecord['id']);
 								}else{
 									$interface->assign('nextType', 'Record');
 									$interface->assign('nextId', $nextRecord['id']);
