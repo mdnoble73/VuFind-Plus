@@ -2216,6 +2216,7 @@ public function getNextPrevLinks(){
 								$interface->assign('previousIndex', $currentResultIndex - 1 + 1);
 								$interface->assign('previousTitle', $previousRecord['title_display']);
 								if ($previousRecord['recordtype'] == 'grouped_work'){
+									require_once ROOT_DIR . '/RecordDrivers/GroupedWorkDriver.php';
 									$groupedWork = New GroupedWorkDriver($previousRecord);
 									$relatedRecords = $groupedWork->getRelatedRecords();
 									if (count($relatedRecords) == 1) {
@@ -2251,6 +2252,7 @@ public function getNextPrevLinks(){
 							if (isset($nextRecord)){
 								$interface->assign('nextTitle', $nextRecord['title_display']);
 								if ($nextRecord['recordtype'] == 'grouped_work'){
+									require_once ROOT_DIR . '/RecordDrivers/GroupedWorkDriver.php';
 									$groupedWork = New GroupedWorkDriver($nextRecord);
 									$relatedRecords = $groupedWork->getRelatedRecords();
 									if (count($relatedRecords) == 1) {
