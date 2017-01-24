@@ -2221,8 +2221,8 @@ public function getNextPrevLinks(){
 									$relatedRecords = $groupedWork->getRelatedRecords();
 									if (count($relatedRecords) == 1) {
 										$previousRecord = reset($relatedRecords);
-										$interface->assign('previousId', $previousRecord['driver']->getId());
-										list($previousType) = explode('/', trim($previousRecord['url'], '/'));
+										list($previousType, $previousId) = explode('/', trim($previousRecord['url'], '/'));
+										$interface->assign('previousId', $previousId);
 										$interface->assign('previousType', $previousType);
 									} else {
 										$interface->assign('previousType', 'GroupedWork');
@@ -2257,8 +2257,8 @@ public function getNextPrevLinks(){
 									$relatedRecords = $groupedWork->getRelatedRecords();
 									if (count($relatedRecords) == 1) {
 										$nextRecord = reset($relatedRecords);
-										$interface->assign('nextId', $nextRecord['driver']->getId());
-										list($nextType) = explode('/', trim($nextRecord['url'], '/'));
+										list($nextType, $nextId) = explode('/', trim($nextRecord['url'], '/'));
+										$interface->assign('nextId', $nextId);
 										$interface->assign('nextType', $nextType);
 									} else {
 										$interface->assign('nextType', 'GroupedWork');
