@@ -52,5 +52,4 @@
 				</div>
 			</div>
 		</div>
-{debug}
 	</div>
