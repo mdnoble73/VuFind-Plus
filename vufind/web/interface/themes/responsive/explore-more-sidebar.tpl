@@ -3,9 +3,24 @@
 	{if $showMoreLikeThisInExplore}
 		{include file="GroupedWork/exploreMoreLikeThis.tpl"}
 	{/if}
+{if $exploreMoreSections}
+<div id="explore-more-menu" class="sidebar-links">
+	<div class="panel-group{* accordion*}" id="explore-more-accordion">
 
-	{foreach from=$exploreMoreSections item=section}
-		<div class="sectionHeader">{$section.title}</div>
+	{foreach from=$exploreMoreSections item=section key=sectionId}
+		<div id="exploreMoreSideBar-{$sectionId}Panel" class="panel{if true} active{/if}">{* TODO: implement config switch *}
+
+			{* Clickable header for my account section *}
+			<a data-toggle="collapse"{* data-parent="#explore-more-accordion"*} href="#exploreMoreSideBar-{$sectionId}PanelBody">{* TODO: set for each section *}
+				<div class="panel-heading">
+					<div class="panel-title">
+						{$section.title}
+					</div>
+				</div>
+			</a>
+
+			<div id="exploreMoreSideBar-{$sectionId}PanelBody" class="panel-collapse collapse{if true} in{/if}">
+				<div class="panel-body">
 
 		{if $section.format == 'scroller'}
 			{* JCarousel with related titles *}
@@ -28,6 +43,7 @@
 					</ul>
 				</div>
 			</div>
+
 		{elseif $section.format == 'subsections'}
 			{foreach from=$section.values item=section}
 				<div class="section">
@@ -111,7 +127,16 @@
 				</div>
 			{/foreach}
 		{/if}
+
+				</div>
+			</div>
+		</div>
 	{/foreach}
+
+	</div>
+</div>
+{/if}
+
 
 	{* Related Articles Widget *}
 	{if $relatedArticles}
@@ -140,3 +165,16 @@
 		</div>
 	{/foreach}
 {/strip}
+{* Initialize accordion heading styling (Required due to being loaded via AJAX)
+*}
+{literal}
+<script type="application/javascript">
+	$('.panel')
+			.on('show.bs.collapse', function () {
+				$(this).addClass('active');
+			})
+			.on('hide.bs.collapse', function () {
+				$(this).removeClass('active');
+			});
+</script>
+{/literal}
