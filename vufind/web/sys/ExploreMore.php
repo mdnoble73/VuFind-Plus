@@ -68,7 +68,8 @@ class ExploreMore {
 					if (count($this->relatedCollections) > 0){
 						$exploreMoreSectionsToShow['relatedCollections'] = array(
 								'title' => 'Related Archive Collections',
-								'format' => 'list',
+								'format' => 'textOnlyList',
+//								'format' => 'list',
 								'values' => $this->relatedCollections
 						);
 					}
@@ -87,7 +88,7 @@ class ExploreMore {
 				if (count($this->relatedCollections) > 0){
 					$exploreMoreSectionsToShow['relatedCollections'] = array(
 							'title' => 'Related Archive Collections',
-							'format' => 'list',
+							'format' => 'textOnlyList',
 							'values' => $this->relatedCollections
 					);
 				}

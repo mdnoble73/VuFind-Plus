@@ -11,7 +11,7 @@
 		<div id="exploreMoreSideBar-{$sectionId}Panel" class="panel{if true} active{/if}">{* TODO: implement config switch *}
 
 			{* Clickable header for my account section *}
-			<a data-toggle="collapse"{* data-parent="#explore-more-accordion"*} href="#exploreMoreSideBar-{$sectionId}PanelBody">{* TODO: set for each section *}
+			<a data-toggle="collapse"{* data-parent="#explore-more-accordion"*} href="#exploreMoreSideBar-{$sectionId}PanelBody">
 				<div class="panel-heading">
 					<div class="panel-title">
 						{$section.title}
@@ -97,7 +97,7 @@
 						{$value.label}
 					</a>
 					{if $value.linkingReason}
-						&nbsp;<img src="/images/silk/help.png" title="{$value.linkingReason|escape}"/>
+						&nbsp;<img src="/images/silk/help.png" title="{$value.linkingReason|escape}">
 					{/if}
 				</li>
 			{/foreach}
@@ -122,7 +122,7 @@
 						{/if}
 					</a>
 					{if $value.linkingReason}
-						&nbsp;<img src="/images/silk/help.png" title="{$value.linkingReason|escape}"/>
+						&nbsp;<img src="/images/silk/help.png" title="{$value.linkingReason|escape}">
 					{/if}
 				</div>
 			{/foreach}
