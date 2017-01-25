@@ -125,6 +125,7 @@ class Archive_Home extends Action{
 		$interface->assign('showExploreMore', false);
 		$interface->assign('relatedContentTypes', $relatedContentTypes);
 
-		parent::display('home.tpl', 'Colorado Digital Collection');
+		global $library;
+		parent::display('home.tpl', $library->displayName . ' Digital Collection');
 	}
 }
