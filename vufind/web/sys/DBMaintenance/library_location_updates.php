@@ -1450,5 +1450,22 @@ function getLibraryLocationUpdates(){
 							'ALTER TABLE `library` ADD COLUMN `materialsRequestDaysToPreserve` INT(11) DEFAULT "0";',
 					)
 			),
+
+			'explore_more_configuration' => array(
+					'title' => 'Library option to configure display of Archive Explore More Side bar.',
+					'description' => 'Library option to configure display of Archive Explore More Side bar.',
+					'sql' => array(
+							'CREATE TABLE `library_archive_explore_more_bar` ('.
+		  					'`id` INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,'.
+								'`libraryId` INT(11) NOT NULL,'.
+ 				  			'`section` VARCHAR(45) DEFAULT NULL,'.
+								'`displayName` VARCHAR(45) DEFAULT NULL,'.
+								'`openByDefault` TINYINT(1) UNSIGNED NOT NULL DEFAULT \'1\','.
+								'`weight` INT(11) NOT NULL DEFAULT \'0\','.
+								'PRIMARY KEY (`id`),'.
+								'KEY `LibraryIdIndex` (`libraryId`)'.
+							') ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;',
+					)
+			),
 	);
 }
