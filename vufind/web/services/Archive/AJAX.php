@@ -374,8 +374,6 @@ class Archive_AJAX extends Action {
 				$interface->assign('recordStart', $summary['startRecord']);
 				$interface->assign('recordEnd',   $summary['endRecord']);
 				$recordIndex = $summary['startRecord'];
-				$page = $summary['page'];
-				$interface->assign('page', $page);
 
 				// Save the search with Map query and filters
 				$searchObject->close(); // Trigger save search
@@ -446,6 +444,14 @@ class Archive_AJAX extends Action {
 			$interface->assign('relatedArticles', $ebscoMatches);
 		}
 
+		global $library;
+		$exploreMoreSettings = $library->exploreMoreBar;
+		if (empty($exploreMoreSettings)) {
+			$exploreMoreSettings = ArchiveExploreMoreBar::getDefaultArchiveExploreMoreOptions();
+		}
+		$interface->assign('exploreMoreSettings', $exploreMoreSettings);
+		$interface->assign('archiveSections', ArchiveExploreMoreBar::$archiveSections);
+
 		return array(
 				'success' => true,
 				'exploreMore' => $interface->fetch('explore-more-sidebar.tpl')
@@ -468,7 +474,11 @@ class Archive_AJAX extends Action {
 		$interface->assign('description', $recordDriver->getDescription());
 		$interface->assign('image', $recordDriver->getBookcoverUrl('medium'));
 
+		$urlStr = "<a href=\"$url\" onclick='VuFind.Archive.setForExhibitNavigation({$_COOKIE['recordIndex']},{$_COOKIE['page']})'>";
 		return array(
+			'title' => "{$urlStr}{$recordDriver->getTitle()}</a>",
+			'modalBody' => $interface->fetch('Archive/archivePopup.tpl'),
+			'modalButtons' => "{$urlStr}<button class='modal-buttons btn btn-primary'>More Info</button></a>"
 		);
 	}
 
