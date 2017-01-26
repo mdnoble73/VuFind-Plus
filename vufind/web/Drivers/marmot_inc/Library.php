@@ -476,6 +476,17 @@ class Library extends DB_DataObject
 						'storeDb' => true,
 						'allowEdit' => true,
 						'canEdit' => true,
+						'additionalOneToManyActions' => array(
+							array(
+								'text' => 'Copy Library Facets',
+								'url' => '/Admin/Libraries?id=$id&amp;objectAction=copyFacetsFromLibrary',
+							),
+							array(
+								'text' => 'Reset Facets To Default',
+								'url' => '/Admin/Libraries?id=$id&amp;objectAction=resetFacetsToDefault',
+								'class' => 'btn-warning',
+							),
+						)
 					),
 				)),
 
@@ -535,6 +546,13 @@ class Library extends DB_DataObject
 						'storeDb' => true,
 						'allowEdit' => true,
 						'canEdit' => true,
+						'additionalOneToManyActions' => array(
+							0 => array(
+								'text' => 'Reset More Details To Default',
+								'url' => '/Admin/Libraries?id=$id&amp;objectAction=resetMoreDetailsToDefault',
+								'class' => 'btn-warning',
+							)
+						)
 				),
 			)),
 
@@ -609,6 +627,13 @@ class Library extends DB_DataObject
 					'storeDb'       => true,
 					'allowEdit'     => false,
 					'canEdit'       => false,
+					'additionalOneToManyActions' => array(
+						0 => array(
+							'text' => 'Set Materials Request Formats To Default',
+							'url' => '/Admin/Libraries?id=$id&amp;objectAction=defaultMaterialsRequestFormats',
+							'class' => 'btn-warning',
+						)
+					)
 				),
 
 				'materialsRequestFormFields' => array(
@@ -624,6 +649,13 @@ class Library extends DB_DataObject
 					'storeDb'       => true,
 					'allowEdit'     => false,
 					'canEdit'       => false,
+					'additionalOneToManyActions' => array(
+						0 => array(
+							'text' => 'Set Materials Request Form Structure To Default',
+							'url' => '/Admin/Libraries?id=$id&amp;objectAction=defaultMaterialsRequestForm',
+								'class' => 'btn-warning',
+						)
+					)
 				),
 
 			)),
