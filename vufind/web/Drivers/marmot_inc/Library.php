@@ -277,6 +277,10 @@ class Library extends DB_DataObject
 		unset($materialsRequestFormatsStructure['libraryId']); //needed?
 		unset($materialsRequestFormatsStructure['weight']);
 
+		$archiveExploreMoreBarStructure = ArchiveExploreMoreBar::getObjectStructure();
+		unset($materialsRequestFormatsStructure['libraryId']); //needed?
+		unset($materialsRequestFormatsStructure['weight']);
+
 		$materialsRequestFormFieldsStructure = MaterialsRequestFormFields::getObjectStructure();
 		unset($materialsRequestFormFieldsStructure['libraryId']); //needed?
 		unset($materialsRequestFormFieldsStructure['weight']);
@@ -664,6 +668,23 @@ class Library extends DB_DataObject
 					'archiveRequestMaterialsHeader' => array('property'=>'archiveRequestMaterialsHeader', 'type'=>'html', 'label'=>'Archive Request Header Text', 'description'=>'The text to be shown above the form for requests of copies for archive materials'),
 					'claimAuthorshipHeader' => array('property'=>'claimAuthorshipHeader', 'type'=>'html', 'label'=>'Claim Authorship Header Text', 'description'=>'The text to be shown above the form when people try to claim authorship of archive materials'),
 					'archiveRequestEmail' => array('property'=>'archiveRequestEmail', 'type'=>'email', 'label'=>'Email to send archive requests to', 'description'=>'The email address to send requests for archive materials to', 'hideInLists' => true),
+
+					'exploreMoreBar' => array(
+						'property'      => 'exploreMoreBar',
+						'type'          => 'oneToMany',
+						'label'         => 'Archive Explore More Bar Configuration',
+						'description'   => 'Control the order of Explore More Sections and if they are open by default',
+						'keyThis'       => 'libraryId',
+						'keyOther'      => 'libraryId',
+						'subObjectType' => 'ArchiveExploreMoreBar',
+						'structure'     => $archiveExploreMoreBarStructure,
+						'sortable'      => true,
+						'storeDb'       => true,
+						'allowEdit'     => false,
+						'canEdit'       => false,
+					),
+
+
 			)),
 
 			'edsSection' => array('property'=>'edsSection', 'type' => 'section', 'label' =>'EBSCO EDS', 'hideInLists' => true, 'properties' => array(
@@ -1020,6 +1041,19 @@ class Library extends DB_DataObject
 				}
 				return $this->materialsRequestFormFields;
 			}
+		}elseif ($name == 'exploreMoreBar') {
+			if (!isset($this->exploreMoreBar) && $this->libraryId) {
+				$this->exploreMoreBar = array();
+				$exploreMoreBar = new ArchiveExploreMoreBar();
+				$exploreMoreBar->libraryId = $this->libraryId;
+				$exploreMoreBar->orderBy('weight');
+				if ($exploreMoreBar->find()) {
+					while ($exploreMoreBar->fetch()) {
+						$this->exploreMoreBar[$exploreMoreBar->id] = clone $exploreMoreBar;
+					}
+				}
+				return $this->exploreMoreBar;
+			}
 		}elseif ($name == 'patronNameDisplayStyle'){
 			return $this->patronNameDisplayStyle;
 		}else{
@@ -1050,6 +1084,8 @@ class Library extends DB_DataObject
 			$this->materialsRequestFormats = $value;
 		}elseif ($name == 'materialsRequestFormFields') {
 			$this->materialsRequestFormFields = $value;
+		}elseif ($name == 'exploreMoreBar') {
+			$this->exploreMoreBar = $value;
 		}elseif ($name == 'patronNameDisplayStyle'){
 			if ($this->patronNameDisplayStyle != $value){
 				$this->patronNameDisplayStyle = $value;
@@ -1114,6 +1150,7 @@ class Library extends DB_DataObject
 			$this->saveLibraryTopLinks();
 			$this->saveBrowseCategories();
 			$this->saveMoreDetailsOptions();
+			$this->saveExploreMoreBar();
 		}
 		if ($this->patronNameDisplayStyleChanged){
 			$libraryLocations = new Location();
@@ -1161,6 +1198,7 @@ class Library extends DB_DataObject
 			$this->saveLibraryTopLinks();
 			$this->saveBrowseCategories();
 			$this->saveMoreDetailsOptions();
+			$this->saveExploreMoreBar();
 		}
 		return $ret;
 	}
@@ -1356,6 +1394,31 @@ class Library extends DB_DataObject
 			}
 			unset($this->materialsRequestFormFields);
 		}
+	}
+
+	private function saveOneToManyOptions($oneToManySettings) {
+		foreach ($oneToManySettings as $object){
+			if (isset($object->deleteOnSave) && $object->deleteOnSave == true){
+				$object->delete();
+			}else{
+				if (isset($object->id) && is_numeric($object->id)){ // (negative ids need processed with insert)
+					$object->update();
+				}else{
+					$object->libraryId = $this->libraryId;
+					$object->insert();
+				}
+			}
+		}
+
+	}
+
+	private function saveExploreMoreBar()
+	{
+		if (isset ($this->exploreMoreBar) && is_array($this->exploreMoreBar)){
+			$this->saveOneToManyOptions($this->exploreMoreBar);
+			unset($this->exploreMoreBar);
+		}
+
 	}
 
 	public function saveMoreDetailsOptions(){
