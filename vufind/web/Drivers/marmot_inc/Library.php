@@ -682,6 +682,13 @@ class Library extends DB_DataObject
 						'storeDb'       => true,
 						'allowEdit'     => false,
 						'canEdit'       => false,
+						'additionalOneToManyActions' => array(
+							0 => array(
+								'text'  => 'Set Archive Explore More Options To Default',
+								'url'   => '/Admin/Libraries?id=$id&amp;objectAction=defaultArchiveExploreMoreOptions',
+								'class' => 'btn-warning',
+							)
+						)
 					),
 
 
@@ -1326,13 +1333,17 @@ class Library extends DB_DataObject
 		$oneToManyDBObject->delete();
 
 	}
-	private function saveExploreMoreBar()
-	{
+
+	private function saveExploreMoreBar() {
 		if (isset ($this->exploreMoreBar) && is_array($this->exploreMoreBar)){
 			$this->saveOneToManyOptions($this->exploreMoreBar);
 			unset($this->exploreMoreBar);
 		}
+	}
 
+	public function clearExploreMoreBar(){
+		$this->clearOneToManyOptions('ArchiveExploreMoreBar');
+		$this->exploreMoreBar = array();
 	}
 
 	public function saveMoreDetailsOptions(){

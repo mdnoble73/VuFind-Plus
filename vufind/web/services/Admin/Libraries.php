@@ -100,6 +100,10 @@ class Admin_Libraries extends ObjectEditor
 				'text' => 'Set Materials Request Formats To Default',
 				'url' => '/Admin/Libraries?id=' . $existingObject->libraryId . '&amp;objectAction=defaultMaterialsRequestFormats',
 			);
+//			$objectActions[] = array(
+//				'text' => 'Set Archive Explore More Options To Default',
+//				'url' => '/Admin/Libraries?id=' . $existingObject->libraryId . '&amp;objectAction=defaultArchiveExploreMoreOptions',
+//			);
 		}else{
 			echo("Existing object is null");
 		}
@@ -217,6 +221,19 @@ class Admin_Libraries extends ObjectEditor
 
 			$defaultMaterialsRequestFormats = MaterialsRequestFormats::getDefaultMaterialRequestFormats($libraryId);
 			$library->materialsRequestFormats = $defaultMaterialsRequestFormats;
+			$library->update();
+		}
+		header("Location: /Admin/Libraries?objectAction=edit&id=" . $libraryId);
+		die();
+	}
+
+	function defaultArchiveExploreMoreOptions(){
+		$library = new Library();
+		$libraryId = $_REQUEST['id'];
+		$library->libraryId = $libraryId;
+		if ($library->find(true)){
+			$library->clearExploreMoreBar();
+			$library->exploreMoreBar = ArchiveExploreMoreBar::getDefaultArchiveExploreMoreOptions($libraryId);
 			$library->update();
 		}
 		header("Location: /Admin/Libraries?objectAction=edit&id=" . $libraryId);

@@ -6,20 +6,29 @@
 {if $exploreMoreSections}
 <div id="explore-more-menu" class="sidebar-links">
 	<div class="panel-group{* accordion*}" id="explore-more-accordion">
+		{foreach from=$exploreMoreSettings item=exploreMoreSection}
+			{assign var="sectionId" value=$exploreMoreSection->section}
+			{if ($exploreMoreSections[$sectionId])}
+				{assign var="section" value=$exploreMoreSections[$sectionId]}
 
-	{foreach from=$exploreMoreSections item=section key=sectionId}
-		<div id="exploreMoreSideBar-{$sectionId}Panel" class="panel{if true} active{/if}">{* TODO: implement config switch *}
+
+		<div id="exploreMoreSideBar-{$sectionId}Panel" class="panel{if $exploreMoreSection->openByDefault} active{/if}">{* TODO: implement config switch *}
 
 			{* Clickable header for my account section *}
 			<a data-toggle="collapse"{* data-parent="#explore-more-accordion"*} href="#exploreMoreSideBar-{$sectionId}PanelBody">
 				<div class="panel-heading">
 					<div class="panel-title">
-						{$section.title}
+						{if empty($exploreMoreSection->displayName)}
+							{$archiveSections[$sectionId]}
+						{else}
+							{$exploreMoreSection->displayName}
+						{/if}
+						{*{$section.title}*}
 					</div>
 				</div>
 			</a>
 
-			<div id="exploreMoreSideBar-{$sectionId}PanelBody" class="panel-collapse collapse{if true} in{/if}">
+			<div id="exploreMoreSideBar-{$sectionId}PanelBody" class="panel-collapse collapse{if $exploreMoreSection->openByDefault} in{/if}">
 				<div class="panel-body">
 
 		{if $section.format == 'scroller'}
@@ -131,6 +140,7 @@
 				</div>
 			</div>
 		</div>
+			{/if}
 	{/foreach}
 
 	</div>

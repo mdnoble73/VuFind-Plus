@@ -16,6 +16,7 @@ class ExploreMore {
 	 * @param IndexRecord $recordDriver
 	 */
 	function loadExploreMoreSidebar($activeSection, $recordDriver){
+		//TODO: remove title from $exploreMoreSectionsToShow array
 		global $interface;
 		global $configArray;
 
@@ -49,7 +50,7 @@ class ExploreMore {
 					}
 
 					$exploreMoreSectionsToShow['parentBook'] = array(
-							'title' => 'Entire Book',
+//							'title' => 'Entire Book',
 							'format' => 'list',
 							'values' => array(
 									array(
@@ -72,7 +73,7 @@ class ExploreMore {
 					);
 					if (count($this->relatedCollections) > 0){
 						$exploreMoreSectionsToShow['relatedCollections'] = array(
-								'title' => 'Related Archive Collections',
+//								'title' => 'Related Archive Collections',
 								'format' => 'textOnlyList',
 //								'format' => 'list',
 								'values' => $this->relatedCollections
@@ -97,7 +98,7 @@ class ExploreMore {
 				);
 				if (count($this->relatedCollections) > 0){
 					$exploreMoreSectionsToShow['relatedCollections'] = array(
-							'title' => 'Related Archive Collections',
+//							'title' => 'Related Archive Collections',
 							'format' => 'textOnlyList',
 							'values' => $this->relatedCollections
 					);
@@ -108,7 +109,7 @@ class ExploreMore {
 			$relatedPikaContent = $archiveDriver->getRelatedPikaContent();
 			if (count($relatedPikaContent) > 0){
 				$exploreMoreSectionsToShow['linkedCatalogRecords'] = array(
-						'title' => 'Librarian Picks',
+//						'title' => 'Librarian Picks',
 						'format' => 'scroller',
 						'values' => $relatedPikaContent
 				);
@@ -147,7 +148,7 @@ class ExploreMore {
 				$exactEntityMatches = $this->loadExactEntityMatches(array(), $curSubject);
 				if (count($exactEntityMatches) > 0){
 					$exploreMoreSectionsToShow['exactEntityMatches'] = array(
-							'title' => 'Related People, Places &amp; Events',
+//							'title' => 'Related People, Places &amp; Events',
 							'format' => 'list',
 							'values' => usort($exactEntityMatches, 'ExploreMore::sortRelatedEntities')
 					);
@@ -171,7 +172,7 @@ class ExploreMore {
 				if (isset($relatedArchiveEntities['people'])){
 					usort($relatedArchiveEntities['people'], 'ExploreMore::sortRelatedEntities');
 					$exploreMoreSectionsToShow['relatedPeople'] = array(
-							'title' => 'Associated People',
+//							'title' => 'Associated People',
 							'format' => 'textOnlyList',
 							'values' => $relatedArchiveEntities['people']
 					);
@@ -179,7 +180,7 @@ class ExploreMore {
 				if (isset($relatedArchiveEntities['places'])){
 					usort($relatedArchiveEntities['places'], 'ExploreMore::sortRelatedEntities');
 					$exploreMoreSectionsToShow['relatedPlaces'] = array(
-							'title' => 'Associated Places',
+//							'title' => 'Associated Places',
 							'format' => 'textOnlyList',
 							'values' => $relatedArchiveEntities['places']
 					);
@@ -187,7 +188,7 @@ class ExploreMore {
 				if (isset($relatedArchiveEntities['organizations'])){
 					usort($relatedArchiveEntities['organizations'], 'ExploreMore::sortRelatedEntities');
 					$exploreMoreSectionsToShow['relatedOrganizations'] = array(
-							'title' => 'Associated Organizations',
+//							'title' => 'Associated Organizations',
 							'format' => 'textOnlyList',
 							'values' => $relatedArchiveEntities['organizations']
 					);
@@ -195,7 +196,7 @@ class ExploreMore {
 				if (isset($relatedArchiveEntities['events'])){
 					usort($relatedArchiveEntities['events'], 'ExploreMore::sortRelatedEntities');
 					$exploreMoreSectionsToShow['relatedEvents'] = array(
-							'title' => 'Associated Events',
+//							'title' => 'Associated Events',
 							'format' => 'textOnlyList',
 							'values' => $relatedArchiveEntities['events']
 					);
@@ -208,7 +209,7 @@ class ExploreMore {
 		$relatedArchiveContent = $this->getRelatedArchiveObjects($quotedSearchTerm, $searchSubjectsOnly, $driver);
 		if (count($relatedArchiveContent) > 0) {
 			$exploreMoreSectionsToShow['relatedArchiveData'] = array(
-					'title' => 'From the Archive',
+//					'title' => 'From the Archive',
 					'format' => 'subsections',
 					'values' => $relatedArchiveContent
 			);
@@ -218,7 +219,7 @@ class ExploreMore {
 			$relatedWorks = $this->getRelatedWorks($quotedSubjectsForSearching, $relatedPikaContent);
 			if ($relatedWorks['numFound'] > 0){
 				$exploreMoreSectionsToShow['relatedCatalog'] = array(
-						'title' => 'More From the Catalog',
+//						'title' => 'More From the Catalog',
 						'format' => 'scrollerWithLink',
 						'values' => $relatedWorks['values'],
 						'link' => $relatedWorks['link'],
@@ -236,7 +237,7 @@ class ExploreMore {
 			if (count($relatedSubjects) > 0){
 				usort($relatedSubjects, 'ExploreMore::sortRelatedEntities');
 				$exploreMoreSectionsToShow['relatedSubjects'] = array(
-						'title' => 'Related Subjects',
+//						'title' => 'Related Subjects',
 						'format' => 'textOnlyList',
 						'values' => $relatedSubjects
 				);
@@ -250,7 +251,7 @@ class ExploreMore {
 				$dplaResults = $dpla->getDPLAResults('"' . $archiveDriver->getTitle() . '"');
 				if (count($dplaResults)){
 					$exploreMoreSectionsToShow['dpla'] = array(
-							'title' => 'Digital Public Library of America',
+//							'title' => 'Digital Public Library of America',
 							'format' => 'scrollerWithLink',
 							'values' => $dplaResults,
 							'link' => 'http://dp.la/search?q=' . urlencode('"' . $archiveDriver->getTitle() . '"'),
@@ -295,7 +296,7 @@ class ExploreMore {
 					usort($brandingResults, 'sortBrandingResults');
 
 					$exploreMoreSectionsToShow['acknowledgements'] = array(
-							'title' => 'Acknowledgements',
+//							'title' => 'Acknowledgements',
 							'format' => 'list',
 							'values' => $brandingResults,
 							'showTitles' => true,
