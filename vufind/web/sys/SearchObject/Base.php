@@ -29,6 +29,9 @@ require_once ROOT_DIR . '/sys/Recommend/RecommendationFactory.php';
  */
 abstract class SearchObject_Base
 {
+	// Parsed query
+	protected $query = null;
+
 	// SEARCH PARAMETERS
 	// RSS feed?
 	protected $view = null;
@@ -1119,6 +1122,7 @@ abstract class SearchObject_Base
 	public function getRawSuggestions() {return $this->suggestions;}
 	public function getResultTotal()    {return $this->resultsTotal;}
 	public function getSearchId()       {return $this->searchId;}
+	public function getQuery()          {return $this->query;}
 	public function getSearchTerms()    {return $this->searchTerms;}
 	public function getSearchType()     {return $this->searchType;}
 	public function getSort()           {return $this->sort;}
@@ -1415,6 +1419,7 @@ abstract class SearchObject_Base
 		$this->purge();
 
 		// Most values will transfer without changes
+		$this->query        = $minified->q;
 		$this->searchId     = $minified->id;
 		$this->initTime     = $minified->i;
 		$this->queryTime    = $minified->s;
@@ -2336,6 +2341,7 @@ class minSO
 		$this->r  = $searchObject->getResultTotal();
 		$this->ty = $searchObject->getSearchType();
 		$this->sr = $searchObject->getSort();
+		$this->q  = $searchObject->getQuery();
 
 		// Search terms, we'll shorten keys
 		$tempTerms = $searchObject->getSearchTerms();

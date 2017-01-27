@@ -29,9 +29,6 @@ require_once ROOT_DIR . '/RecordDrivers/Factory.php';
  */
 class SearchObject_Islandora extends SearchObject_Base
 {
-	// SOLR QUERY
-	// Parsed query
-	private $query = null;
 	// Publicly viewable version
 	private $publicQuery = null;
 	// Facets

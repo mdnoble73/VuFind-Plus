@@ -30,9 +30,6 @@ require_once ROOT_DIR . '/Drivers/marmot_inc/Location.php';
  */
 class SearchObject_Solr extends SearchObject_Base
 {
-	// SOLR QUERY
-	// Parsed query
-	private $query = null;
 	// Publicly viewable version
 	private $publicQuery = null;
 	// Facets

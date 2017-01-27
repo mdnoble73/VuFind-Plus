@@ -10267,10 +10267,6 @@ a.browse-thumbnail-sorted.active {
     border: none;
   }
 }
-#explore-more-body {
-  margin-left: -15px;
-  padding-left: 10px;
-}
 #explore-more-body .sectionHeader {
   text-transform: uppercase;
   font-weight: bold;

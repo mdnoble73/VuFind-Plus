@@ -976,7 +976,11 @@ class Solr implements IndexEngine {
 			if (count($tokenized) > 1){
 				$values['proximal'] = $values['onephrase'] . '~10';
 			}else{
-				$values['proximal'] = $tokenized[0];
+				if (!array_key_exists(0, $tokenized)){
+					$values['proximal'] = '';
+				}else{
+					$values['proximal'] = $tokenized[0];
+				}
 			}
 
 			$values['exact'] = str_replace(':', '\\:', $lookfor);
