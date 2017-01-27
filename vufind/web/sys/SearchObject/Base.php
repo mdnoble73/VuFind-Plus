@@ -1419,7 +1419,9 @@ abstract class SearchObject_Base
 		$this->purge();
 
 		// Most values will transfer without changes
-		$this->query        = $minified->q;
+		if (isset($minified->q)){
+			$this->query        = $minified->q;
+		}
 		$this->searchId     = $minified->id;
 		$this->initTime     = $minified->i;
 		$this->queryTime    = $minified->s;
