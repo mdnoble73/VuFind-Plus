@@ -186,8 +186,7 @@ function jsEntityEncode(str)
 }
 function resetSearch(){
 	$('input[type="text"]').val('');
-	$("option:selected").removeAttr("selected");
-	// $("#illustrated_-1").click();
+	$("option:selected").removeAttr("selected").parent().change();
 	$('.delete').not('#delete_link_0').each(function () {
 		deleteGroupJS(this);
 	})
