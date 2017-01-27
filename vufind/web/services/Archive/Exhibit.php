@@ -299,12 +299,21 @@ class Archive_Exhibit extends Archive_Object{
 									$maxLong = $mappedPlace['longitude'];
 								}
 
-								$mappedPlaces[] = $mappedPlace;
+								if (array_key_exists($mappedPlace['pid'], $mappedPlaces)){
+									$mappedPlaces[$mappedPlace['pid']]['count'] += $mappedPlace['count'];
+								}else{
+									$mappedPlaces[$mappedPlace['pid']] = $mappedPlace;
+								}
+
 								if (count($mappedPlaces) == 1){
 									$interface->assign('selectedPlace', $mappedPlace['pid']);
 								}
 							}else{
-								$unmappedPlaces[] = $mappedPlace;
+								if (array_key_exists($mappedPlace['pid'], $unmappedPlaces)) {
+									$unmappedPlaces[$mappedPlace['pid']]['count'] += $mappedPlace['count'];
+								}else{
+									$unmappedPlaces[$mappedPlace['pid']] = $mappedPlace;
+								}
 							}
 						}
 					}
