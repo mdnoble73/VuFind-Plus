@@ -12,7 +12,7 @@
 				{assign var="section" value=$exploreMoreSections[$sectionId]}
 
 
-		<div id="exploreMoreSideBar-{$sectionId}Panel" class="panel{if $exploreMoreSection->openByDefault} active{/if}">{* TODO: implement config switch *}
+		<div id="exploreMoreSideBar-{$sectionId}Panel" class="panel{if $exploreMoreSection->openByDefault} active{/if}">
 
 			{* Clickable header for my account section *}
 			<a data-toggle="collapse"{* data-parent="#explore-more-accordion"*} href="#exploreMoreSideBar-{$sectionId}PanelBody">
@@ -23,7 +23,6 @@
 						{else}
 							{$exploreMoreSection->displayName}
 						{/if}
-						{*{$section.title}*}
 					</div>
 				</div>
 			</a>
