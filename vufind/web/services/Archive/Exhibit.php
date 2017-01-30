@@ -38,9 +38,6 @@ class Archive_Exhibit extends Archive_Object{
 			$interface->assign('description', $description);
 		}
 
-		// Set Exhibit Navigation
-		$this->startExhibitContext();
-
 		$displayType = 'basic';
 		if ($pikaCollectionDisplay == 'map'){
 			$displayType = 'map';
@@ -90,14 +87,21 @@ class Archive_Exhibit extends Archive_Object{
 
 		// Determine what type of page to show
 		if ($displayType == 'basic'){
+			// Set Exhibit Navigation
+			$this->startExhibitContext();
 			$this->display('exhibit.tpl');
 		} else if ($displayType == 'timeline'){
+			// Set Exhibit Navigation
+			$this->startExhibitContext();
 			$this->display('timelineExhibit.tpl');
 		} else if ($displayType == 'map'){
 			//Get a list of related places for the object by searching solr to find all objects
+			// Set Exhibit Navigation
+			$this->startExhibitContext();
 			$this->recordDriver->getRelatedPlaces();
 			$this->display('mapExhibit.tpl');
 		} else if ($displayType == 'custom'){
+			$this->endExhibitContext();
 			$collectionTemplates = array();
 			foreach ($collectionOptions as $option){
 				if ($option == 'searchCollection'){
@@ -307,6 +311,7 @@ class Archive_Exhibit extends Archive_Object{
 
 								if (count($mappedPlaces) == 1){
 									$interface->assign('selectedPlace', $mappedPlace['pid']);
+									$_SESSION['placePid'] = $mappedPlace['pid'];
 								}
 							}else{
 								if (array_key_exists($mappedPlace['pid'], $unmappedPlaces)) {
@@ -329,6 +334,7 @@ class Archive_Exhibit extends Archive_Object{
 
 				if (isset($_REQUEST['placePid'])){
 					$interface->assign('selectedPlace', urldecode($_REQUEST['placePid']));
+					$_SESSION['placePid'] = $_REQUEST['placePid'];
 				}
 				$interface->assign('mappedPlaces', $mappedPlaces);
 				$interface->assign('unmappedPlaces', $unmappedPlaces);

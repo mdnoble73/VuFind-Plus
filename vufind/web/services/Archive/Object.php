@@ -281,7 +281,7 @@ abstract class Archive_Object extends Action {
 		}
 	}
 
-	private function endExhibitContext()
+	protected function endExhibitContext()
 	{
 		$_SESSION['ExhibitContext']  = null;
 		$_SESSION['exhibitSearchId'] = null;
