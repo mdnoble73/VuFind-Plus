@@ -10112,6 +10112,45 @@ a.browse-thumbnail-sorted.active {
     border-radius: 3px;
   }
 }
+.search-results-navigation {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-orient: horizontal;
+  -webkit-box-direction: normal;
+      -ms-flex-direction: row;
+          flex-direction: row;
+  -webkit-box-pack: center;
+      -ms-flex-pack: center;
+          justify-content: center;
+  -webkit-box-align: center;
+      -ms-flex-align: center;
+          align-items: center;
+}
+.search-results-navigation .previous {
+  -webkit-box-flex: 1;
+      -ms-flex-positive: 1;
+          flex-grow: 1;
+  cursor: pointer;
+  white-space: nowrap;
+  text-align: right;
+}
+.search-results-navigation .return {
+  -webkit-box-flex: 3;
+      -ms-flex-positive: 3;
+          flex-grow: 3;
+  white-space: normal;
+  text-align: center;
+  padding-left: 2px;
+  padding-right: 2px;
+}
+.search-results-navigation .next {
+  white-space: nowrap;
+  cursor: pointer;
+  -webkit-box-flex: 1;
+      -ms-flex-positive: 1;
+          flex-grow: 1;
+}
 .graph-bar {
   background-color: #088ec6;
 }
