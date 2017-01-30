@@ -800,7 +800,7 @@ class Archive_AJAX extends Action {
 			if (isset($response['facet_counts']['facet_ranges']['mods_originInfo_point_start_qualifier__dateCreated_dt'])) {
 				$dateCreatedInfo = $response['facet_counts']['facet_ranges']['mods_originInfo_point_start_qualifier__dateCreated_dt'];
 				if ($dateCreatedInfo['before'] > 0) {
-					$dateFacetInfo['Before 1880'] = array(
+					$dateFacetInfo['1870'] = array(
 							'label' => 'Before 1880',
 							'count' => $dateCreatedInfo['before'],
 							'value' => 'before1880'
@@ -829,10 +829,10 @@ class Archive_AJAX extends Action {
 			if (isset($response['facet_counts']['facet_ranges']['mods_originInfo_point_start_dateCreated_dt'])) {
 				$dateCreatedInfo = $response['facet_counts']['facet_ranges']['mods_originInfo_point_start_dateCreated_dt'];
 				if ($dateCreatedInfo['before'] > 0) {
-					if (isset($dateFacetInfo['before'])) {
-						$dateFacetInfo['before']['count'] += $dateCreatedInfo['before'];
+					if (isset($dateFacetInfo['1870'])) {
+						$dateFacetInfo['1870']['count'] += $dateCreatedInfo['before'];
 					} else {
-						$dateFacetInfo['before'] = array(
+						$dateFacetInfo['1870'] = array(
 								'label' => 'Before 1880',
 								'count' => $dateCreatedInfo['before'],
 								'value' => 'before1880'
@@ -870,10 +870,10 @@ class Archive_AJAX extends Action {
 			if (isset($response['facet_counts']['facet_ranges']['mods_originInfo_qualifier_approximate_dateCreated_dt'])) {
 				$dateCreatedInfo = $response['facet_counts']['facet_ranges']['mods_originInfo_qualifier_approximate_dateCreated_dt'];
 				if ($dateCreatedInfo['before'] > 0) {
-					if (isset($dateFacetInfo['before'])) {
-						$dateFacetInfo['before']['count'] += $dateCreatedInfo['before'];
+					if (isset($dateFacetInfo['1870'])) {
+						$dateFacetInfo['1870']['count'] += $dateCreatedInfo['before'];
 					} else {
-						$dateFacetInfo['before'] = array(
+						$dateFacetInfo['1870'] = array(
 								'label' => 'Before 1880',
 								'count' => $dateCreatedInfo['before'],
 								'value' => 'before1880'
@@ -897,7 +897,7 @@ class Archive_AJAX extends Action {
 							if (isset($dateFacetInfo['Unknown'])) {
 								$dateFacetInfo['Unknown']['count'] += $facetInfo[1];
 							} else {
-								$dateFacetInfo[] = array(
+								$dateFacetInfo['Unknown'] = array(
 										'label' => 'Unknown',
 										'count' => $facetInfo[1],
 										'value' => 'unknown'
@@ -907,6 +907,8 @@ class Archive_AJAX extends Action {
 					}
 				}
 			}
+
+			ksort($dateFacetInfo);
 
 			$interface->assign('dateFacetInfo', $dateFacetInfo);
 		}
