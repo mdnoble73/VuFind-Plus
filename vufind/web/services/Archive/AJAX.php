@@ -244,6 +244,25 @@ class Archive_AJAX extends Action {
 			$searchObject->addFilter("RELS_EXT_isMemberOfCollection_uri_ms:\"info:fedora/{$pid}\"");
 			$searchObject->clearFacets();
 			//Add filtering based on date filters
+			$timeLineSetUp = false;
+			if (!empty($_SESSION['ExhibitContext']) && $_SESSION['ExhibitContext'] == $pid) {
+
+				if (!empty($_REQUEST['dateFilter'])) {
+					$_SESSION['dateFilter'] = $_REQUEST['dateFilter']; // store applied date filters
+				} elseif (!empty($_SESSION['dateFilter'])) {
+					// Collect Time Range Info
+
+					$this->setupTimelineFacetsAndFilters($searchObject);
+					$response = $searchObject->processSearch(true, false);
+					$this->processTimelineData($response, $interface);
+					$timeLineSetUp = true;
+					$summary = $searchObject->getResultSummary();
+					$interface->assign('recordCount', $summary['resultTotal']);
+					$interface->assign('updateTimeLine', true);
+
+					$_REQUEST['dateFilter'] = $_SESSION['dateFilter']; // restore date filter
+				}
+			}
 			$this->setupTimelineFacetsAndFilters($searchObject);
 
 			$searchObject->setLimit(24);
@@ -259,7 +278,9 @@ class Archive_AJAX extends Action {
 			}
 			if ($response && isset($response['response']) && $response['response']['numFound'] > 0) {
 				$summary = $searchObject->getResultSummary();
-				$interface->assign('recordCount', $summary['resultTotal']);
+				if (!$timeLineSetUp) {
+					$interface->assign('recordCount', $summary['resultTotal']);
+				}
 				$interface->assign('recordStart', $summary['startRecord']);
 				$interface->assign('recordEnd',   $summary['endRecord']);
 				$recordIndex = $summary['startRecord'];
@@ -292,7 +313,9 @@ class Archive_AJAX extends Action {
 					$timer->logTime('Loaded related object');
 				}
 
-				$this->processTimelineData($response, $interface);
+				if (!$timeLineSetUp){
+					$this->processTimelineData($response, $interface);
+				}
 			}
 
 			$interface->assign('relatedObjects', $relatedObjects);
@@ -323,6 +346,7 @@ class Archive_AJAX extends Action {
 			}
 
 			$placeId = urldecode($_REQUEST['placeId']);
+			@session_start();
 			$_SESSION['placePid'] =  $placeId;
 			$interface->assign('placePid', $placeId);
 
@@ -720,6 +744,7 @@ class Archive_AJAX extends Action {
 	public function setupTimelineFacetsAndFilters($searchObject)
 	{
 		if (isset($_REQUEST['dateFilter'])) {
+
 			$filter = '';
 			foreach ($_REQUEST['dateFilter'] as $date) {
 				if (strlen($filter) > 0) {

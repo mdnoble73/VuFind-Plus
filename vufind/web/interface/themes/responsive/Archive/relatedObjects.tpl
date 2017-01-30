@@ -49,7 +49,7 @@
 			</div>
 		</div>
 
-		{if $recordEnd < $recordCount}
+		{if $recordEnd < $recordCount || $updateTimeLine}
 			{* Display selection of date ranges *}
 			<div class="row">
 				<div class="col-xs-12">
@@ -64,18 +64,18 @@
 							</label>
 						{/if}
 						{foreach from=$dateFacetInfo item=facet}
-							<label class="btn btn-default btn-sm">
+							<label class="btn btn-default btn-sm{if !empty($smarty.request.dateFilter) && in_array($facet.value, $smarty.request.dateFilter)} active{/if}">
 								{if $displayType == 'map'}
 									<input name="dateFilter" onchange="VuFind.Archive.reloadMapResults('{$exhibitPid|urlencode}', '{$placePid|urlencode}', 0)" type="checkbox" autocomplete="off" value="{$facet.value}"><strong>{$facet.label}</strong><br/>({$facet.count})
 								{elseif $displayType == 'timeline'}
-									<input name="dateFilter" onchange="VuFind.Archive.reloadTimelineResults('{$exhibitPid|urlencode}', 0)" type="checkbox" autocomplete="off" value="{$facet.value}"><strong>{$facet.label}</strong><br/>({$facet.count})
+									<input name="dateFilter" onchange="VuFind.Archive.reloadTimelineResults('{$exhibitPid|urlencode}', 0)" type="checkbox" autocomplete="off" value="{$facet.value}"{if !empty($smarty.request.dateFilter) && in_array($facet.value, $smarty.request.dateFilter)} checked="checked"{/if}><strong>{$facet.label}</strong><br/>({$facet.count})
 								{/if}
 							</label>
 						{/foreach}
 					</div>
 				</div>
-			{/if}
-		</div>
+			</div>
+		{/if}
 
 		<div class="clearer"></div>
 		<div id="results">
@@ -139,6 +139,4 @@
 		{/if}
 	{/if}
 	</div>
-
-
 {/strip}

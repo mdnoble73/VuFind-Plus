@@ -286,6 +286,7 @@ abstract class Archive_Object extends Action {
 		$_SESSION['ExhibitContext']  = null;
 		$_SESSION['exhibitSearchId'] = null;
 		$_SESSION['placePid']        = null;
+		$_SESSION['dateFilter']      = null;
 	}
 
 	private function setExhibitNavigation()
