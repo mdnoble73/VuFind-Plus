@@ -9,8 +9,7 @@
 		<em><a href="{$lastCollection}" title="{$collectionName}">{$collectionName|truncate:30:"..."|escape}</a></em> <span class="divider">&raquo;</span>
 	{/if}
 <em title="{$breadcrumbText}">{$breadcrumbText|truncate:30:"..."|escape}</em> <span class="divider">&raquo;</span>
-{/if}
-{if $subTemplate!=""}
-<em>{$subTemplate|replace:'view-':''|replace:'.tpl':''|replace:'../MyResearch/':''|capitalize|translate}</em> 
+{elseif $subTemplate!=""}
+	<em>{$subTemplate|replace:'view-':''|replace:'.tpl':''|replace:'../MyResearch/':''|capitalize|translate}</em>
 {/if}
 {/strip}
