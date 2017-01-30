@@ -8429,7 +8429,7 @@ hr.menu {
 }
 #header-container {
   padding-top: 0;
-  height: 134px;
+  height: 115px;
   background-color: #EFEFEF;
   background: -webkit-linear-gradient(top, #EFEFEF, #EFEFEF 85%, #EFEFEF);
   background: linear-gradient(to bottom, #EFEFEF, #EFEFEF 85%, #EFEFEF);
@@ -8450,7 +8450,7 @@ hr.menu {
   text-align: center;
   text-shadow: 1px 1px #fff;
   vertical-align: middle;
-  line-height: 126px !important;
+  line-height: 107px !important;
   border-bottom: 4px solid #EFEFEF;
   color: #8b8b8b !important;
 }
@@ -10700,12 +10700,6 @@ fieldset[disabled] .btn-masquerade.active {
 .btn-masquerade .badge {
   color: #ebccff;
   background-color: #fff;
-}
-#header-container {
-  background-image: url('/interface/themes/basalt/images/header_background.png');
-}
-#header-logo {
-  margin-top: 20px;
 }
 .header-button {
   border: 0;
