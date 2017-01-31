@@ -19,6 +19,7 @@ class ExploreMore {
 		//TODO: remove title from $exploreMoreSectionsToShow array
 		global $interface;
 		global $configArray;
+		global $timer;
 
 		if (isset($configArray['Islandora']) && isset($configArray['Islandora']['solrUrl'])) {
 			require_once ROOT_DIR . '/sys/Utils/FedoraUtils.php';
@@ -80,10 +81,12 @@ class ExploreMore {
 						);
 					}
 				}
+				$timer->logTime("Loaded table of contents");
 			}elseif ($recordDriver instanceof BookDriver || $recordDriver instanceof CompoundDriver){
 				if ($recordDriver->getFormat() != 'Postcard'){
 					/** @var CompoundDriver $bookDriver */
 					$exploreMoreSectionsToShow = $this->setupTableOfContentsForBook($recordDriver, $exploreMoreSectionsToShow, true);
+					$timer->logTime("Loaded table of contents for book");
 				}
 			}
 
@@ -103,6 +106,7 @@ class ExploreMore {
 							'values' => $this->relatedCollections
 					);
 				}
+				$timer->logTime("Loaded related collections for archive object");
 			}
 
 			//Find content from the catalog that is directly related to the object or collection based on linked data
@@ -114,6 +118,7 @@ class ExploreMore {
 						'values' => $relatedPikaContent
 				);
 			}
+			$timer->logTime("Loaded related Pika content");
 
 			//Find other entities
 		}
@@ -154,6 +159,7 @@ class ExploreMore {
 					);
 				}
 			}
+			$timer->logTime("Loaded related entities");
 		}
 
 		//Always load ebsco even if we are already in that section

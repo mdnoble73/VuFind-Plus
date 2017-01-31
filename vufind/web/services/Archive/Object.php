@@ -314,6 +314,9 @@ abstract class Archive_Object extends Action {
 			if (!empty($_SESSION['placeLabel'])) {
 				$exhibitName .= ' - ' . $_SESSION['placeLabel'];
 			}
+			$logger->log("Navigating from a map exhibit", PEAR_LOG_DEBUG);
+		}else{
+			$logger->log("Navigating from a NON map exhibit", PEAR_LOG_DEBUG);
 		}
 		$interface->assign('lastCollection', $exhibitUrl);
 		$interface->assign('collectionName', $exhibitName);

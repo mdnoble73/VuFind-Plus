@@ -146,5 +146,5 @@
 <script type="text/javascript">
 	$().ready(function(){ldelim}
 		VuFind.Archive.loadExploreMore('{$pid|urlencode}');
-		{rdelim});
+	{rdelim});
 </script>
