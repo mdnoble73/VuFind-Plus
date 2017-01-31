@@ -177,6 +177,7 @@ class Archive_Exhibit extends Archive_Object{
 	function loadRelatedObjects($displayType){
 		global $interface;
 		global $timer;
+		global $logger;
 		$fedoraUtils = FedoraUtils::getInstance();
 		/** @var SearchObject_Islandora $searchObject */
 		$searchObject = SearchObjectFactory::initSearchObject('Islandora');
@@ -213,8 +214,6 @@ class Archive_Exhibit extends Archive_Object{
 //			// Add Collection Navigation Links
 		$searchObject->close(); // Trigger save search
 		$lastExhibitObjectsSearch = $searchObject->getSearchId(); // Have to save the search first.
-
-		$_SESSION['exhibitSearchId'] = $lastExhibitObjectsSearch;
 
 //		$interface->assign('collectionSearchId', $lastExhibitObjectsSearch);
 		$timer->logTime('Did initial search for related objects');
@@ -339,6 +338,9 @@ class Archive_Exhibit extends Archive_Object{
 				$interface->assign('mappedPlaces', $mappedPlaces);
 				$interface->assign('unmappedPlaces', $unmappedPlaces);
 			}else{
+				$_SESSION['exhibitSearchId'] = $lastExhibitObjectsSearch;
+				$logger->log("Setting exhibit search id to $lastExhibitObjectsSearch", PEAR_LOG_DEBUG);
+
 				//Load related objects
 				$allObjectsAreCollections = true;
 				foreach ($response['response']['docs'] as $objectInCollection){
@@ -390,12 +392,16 @@ class Archive_Exhibit extends Archive_Object{
 
 	private function startExhibitContext()
 	{
+		global $logger;
+
 		$_SESSION['ExhibitContext']   = $this->recordDriver->getUniqueID(); // Set Exhibit object ID
 		$_COOKIE['exhibitNavigation'] = true; // Make sure exhibit context isn't cleared when loading the exhibit
 		if (!empty($_REQUEST['placePid'])) { // May never be actually set here.
 			// Add the place PID to the session if this is a Map Exhibit
 			$_SESSION['placePid'] = $_REQUEST['placePid'];
+			$logger->log("Starting exhibit context " . $this->recordDriver->getUniqueID() . " place {$_SESSION['placePid']}", PEAR_LOG_DEBUG);
 		} else {
+			$logger->log("Starting exhibit context " . $this->recordDriver->getUniqueID() . " no place", PEAR_LOG_DEBUG);
 			$_SESSION['placePid']   = null;
 			$_SESSION['placeLabel'] = null;
 		}

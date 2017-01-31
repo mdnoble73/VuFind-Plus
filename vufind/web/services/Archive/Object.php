@@ -283,14 +283,18 @@ abstract class Archive_Object extends Action {
 
 	protected function endExhibitContext()
 	{
+		global $logger;
+		$logger->log("Ending exhibit context", PEAR_LOG_DEBUG);
 		$_SESSION['ExhibitContext']  = null;
 		$_SESSION['exhibitSearchId'] = null;
 		$_SESSION['placePid']        = null;
+		$_SESSION['placeLabel']        = null;
 	}
 
 	private function setExhibitNavigation()
 	{
 		global $interface;
+		global $logger;
 
 		$interface->assign('isFromExhibit', true);
 
@@ -317,12 +321,14 @@ abstract class Archive_Object extends Action {
 			$searchObject->init('islandora');
 			$searchObject->getNextPrevLinks($_SESSION['exhibitSearchId'], $recordIndex, $page, $isMapExhibit);
 			// pass page and record index info
+			$logger->log("Setting exhibit navigation for exhibit {$_SESSION['ExhibitContext']} from search id {$_SESSION['exhibitSearchId']}", PEAR_LOG_DEBUG);
 		}
 	}
 
 	private function setArchiveSearchNavigation()
 	{
 		global $interface;
+		global $logger;
 		$interface->assign('lastsearch', isset($_SESSION['lastSearchURL']) ? $_SESSION['lastSearchURL'] : false);
 		$searchSource = isset($_REQUEST['searchSource']) ? $_REQUEST['searchSource'] : 'islandora';
 		//TODO: What if it ain't islandora? (direct navigation to archive object page)
@@ -330,6 +336,7 @@ abstract class Archive_Object extends Action {
 		$searchObject = SearchObjectFactory::initSearchObject('Islandora');
 		$searchObject->init($searchSource);
 		$searchObject->getNextPrevLinks();
+		$logger->log("Setting search navigation for archive search", PEAR_LOG_DEBUG);
 	}
 
 }

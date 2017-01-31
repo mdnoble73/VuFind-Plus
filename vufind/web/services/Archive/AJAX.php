@@ -114,6 +114,7 @@ class Archive_AJAX extends Action {
 		if (isset($_REQUEST['pid'])){
 			global $interface;
 			global $timer;
+			global $logger;
 			require_once ROOT_DIR . '/sys/Utils/FedoraUtils.php';
 			$fedoraUtils = FedoraUtils::getInstance();
 			$pid = urldecode($_REQUEST['pid']);
@@ -172,6 +173,7 @@ class Archive_AJAX extends Action {
 				$searchObject->close(); // Trigger save search
 				$lastExhibitObjectsSearch = $searchObject->getSearchId(); // Have to save the search first.
 				$_SESSION['exhibitSearchId'] = $lastExhibitObjectsSearch;
+				$logger->log("Setting exhibit search id to $lastExhibitObjectsSearch", PEAR_LOG_DEBUG);
 
 				foreach ($response['response']['docs'] as $objectInCollection){
 					/** @var IslandoraDriver $firstObjectDriver */
@@ -214,6 +216,7 @@ class Archive_AJAX extends Action {
 		if (isset($_REQUEST['collectionId'])){
 			global $interface;
 			global $timer;
+			global $logger;
 			require_once ROOT_DIR . '/sys/Utils/FedoraUtils.php';
 			$fedoraUtils = FedoraUtils::getInstance();
 			$pid = urldecode($_REQUEST['collectionId']);
@@ -270,6 +273,7 @@ class Archive_AJAX extends Action {
 				$searchObject->close(); // Trigger save search
 				$lastExhibitObjectsSearch = $searchObject->getSearchId(); // Have to save the search first.
 				$_SESSION['exhibitSearchId'] = $lastExhibitObjectsSearch;
+				$logger->log("Setting exhibit search id to $lastExhibitObjectsSearch", PEAR_LOG_DEBUG);
 
 				foreach ($response['response']['docs'] as $objectInCollection){
 					/** @var IslandoraDriver $firstObjectDriver */
@@ -312,6 +316,7 @@ class Archive_AJAX extends Action {
 		if (isset($_REQUEST['collectionId']) && isset($_REQUEST['placeId'])){
 			global $interface;
 			global $timer;
+			global $logger;
 			require_once ROOT_DIR . '/sys/Utils/FedoraUtils.php';
 			$fedoraUtils = FedoraUtils::getInstance();
 			$pid = urldecode($_REQUEST['collectionId']);
@@ -323,12 +328,14 @@ class Archive_AJAX extends Action {
 			}
 
 			$placeId = urldecode($_REQUEST['placeId']);
+			$logger->log("Setting place information for context $placeId", PEAR_LOG_DEBUG);
 			$_SESSION['placePid'] =  $placeId;
 			$interface->assign('placePid', $placeId);
 
 			/** @var FedoraObject $placeObject */
 			$placeObject = $fedoraUtils->getObject($placeId);
 			$_SESSION['placeLabel'] = $placeObject->label;
+			$logger->log("Setting place label for context $placeObject->label", PEAR_LOG_DEBUG);
 
 			$interface->assign('displayType', 'map');
 
@@ -379,6 +386,7 @@ class Archive_AJAX extends Action {
 				$searchObject->close(); // Trigger save search
 				$lastExhibitObjectsSearch = $searchObject->getSearchId(); // Have to save the search first.
 				$_SESSION['exhibitSearchId'] = $lastExhibitObjectsSearch;
+				$logger->log("Setting exhibit search id to $lastExhibitObjectsSearch", PEAR_LOG_DEBUG);
 
 				foreach ($response['response']['docs'] as $objectInCollection){
 					/** @var IslandoraDriver $firstObjectDriver */
