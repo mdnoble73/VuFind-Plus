@@ -328,6 +328,8 @@ abstract class Archive_Object extends Action {
 			$searchObject->getNextPrevLinks($_SESSION['exhibitSearchId'], $recordIndex, $page, $isMapExhibit);
 			// pass page and record index info
 			$logger->log("Setting exhibit navigation for exhibit {$_SESSION['ExhibitContext']} from search id {$_SESSION['exhibitSearchId']}", PEAR_LOG_DEBUG);
+		}else{
+			$logger->log("Exhibit search id was not provided", PEAR_LOG_DEBUG);
 		}
 	}
 
