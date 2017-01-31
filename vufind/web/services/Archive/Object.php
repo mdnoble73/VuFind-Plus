@@ -31,6 +31,7 @@ abstract class Archive_Object extends Action {
 	function display($mainContentTemplate, $pageTitle = null) {
 		global $interface;
 		global $user;
+		global $logger;
 
 		$pageTitle = $pageTitle == null ? $this->archiveObject->label : $pageTitle;
 		$interface->assign('breadcrumbText', $pageTitle);
@@ -45,9 +46,13 @@ abstract class Archive_Object extends Action {
 			$this->endExhibitContext();
 		}
 		if ($isExhibitContext) {
+			$logger->log("In exhibit context, setting exhibit navigation", PEAR_LOG_DEBUG);
 			$this->setExhibitNavigation();
 		} elseif (isset($_SESSION['lastSearchURL'])) {
+			$logger->log("In search context, setting search navigation", PEAR_LOG_DEBUG);
 			$this->setArchiveSearchNavigation();
+		} else {
+			$logger->log("Not in any context, not setting navigation", PEAR_LOG_DEBUG);
 		}
 
 		//Check to see if usage is restricted or not.
