@@ -916,14 +916,26 @@ abstract class IslandoraDriver extends RecordInterface {
 						$isProductionTeam = strlen($entityRole) > 0 && !in_array(strtolower($entityRole), IslandoraDriver::$nonProductionTeamRoles);
 						$entityInfo['link']= '/Archive/' . $entityPid . '/Person';
 						if ($isProductionTeam){
-							$this->productionTeam[$entityPid] = $entityInfo;
+							if (array_key_exists($entityPid, $this->productionTeam)){
+								$this->productionTeam[$entityPid]['role'] .= ', ' . $entityInfo['role'];
+							}else{
+								$this->productionTeam[$entityPid] = $entityInfo;
+							}
 						}else{
-							$this->relatedPeople[$entityPid] = $entityInfo;
+							if (array_key_exists($entityPid, $this->relatedPeople)){
+								$this->relatedPeople[$entityPid]['role'] .= ', ' .$entityInfo['role'];
+							}else{
+								$this->relatedPeople[$entityPid] = $entityInfo;
+							}
 						}
 
 					}elseif ($entityType == 'organization'){
 						$entityInfo['link']= '/Archive/' . $entityPid . '/Organization';
-						$this->relatedOrganizations[$entityPid] = $entityInfo;
+						if (array_key_exists($entityPid, $this->relatedOrganizations)){
+							$this->relatedOrganizations[$entityPid]['role'] .= ', ' .$entityInfo['role'];
+						}else{
+							$this->relatedOrganizations[$entityPid] = $entityInfo;
+						}
 					}
 				}
 
@@ -944,7 +956,11 @@ abstract class IslandoraDriver extends RecordInterface {
 
 					);
 					$entityInfo['link']= '/Archive/' . $entityPid . '/Event';
-					$this->relatedEvents[(string)$entityPid] = $entityInfo;
+					if (array_key_exists($entityPid, $this->relatedEvents)){
+						$this->relatedEvents[$entityPid]['role'] .= ', ' . $entityInfo['role'];
+					}else{
+						$this->relatedEvents[$entityPid] = $entityInfo;
+					}
 				}
 
 				$entities = $this->getModsValues('relatedPlace', 'marmot', null, true);
@@ -1175,7 +1191,7 @@ abstract class IslandoraDriver extends RecordInterface {
 					$objectPid = trim($this->getModsValue('objectPid', 'marmot', $relatedObjectSnippets));
 					if (strlen($objectPid) > 0){
 						$numObjects++;
-						$relatedObjectPIDs .= $objectPid;
+						$relatedObjectPIDs[] = $objectPid;
 					}
 				}
 
@@ -1184,7 +1200,7 @@ abstract class IslandoraDriver extends RecordInterface {
 				$searchObject->init();
 				$searchObject->setSort('fgs_label_s');
 				$searchObject->setLimit($numObjects);
-				$searchObject->setQueryIDs();
+				$searchObject->setQueryIDs($relatedObjectPIDs);
 				$response = $searchObject->processSearch(true, false, true);
 				if ($response && $response['response']['numFound'] > 0) {
 					foreach ($response['response']['docs'] as $doc) {
@@ -1263,25 +1279,24 @@ abstract class IslandoraDriver extends RecordInterface {
 						}
 					}
 
-					//TODO: Add the role of the user
-					$objectInfo = array(
-							'pid' => $entityDriver->getUniqueID(),
-							'label' => $entityDriver->getTitle(),
-							'description' => $entityDriver->getTitle(),
-							'image' => $entityDriver->getBookcoverUrl('medium'),
-							'link' => $entityDriver->getRecordUrl(),
-							'role' => $role,
-							'driver' => $entityDriver
-					);
 					if ($entityDriver instanceof EventDriver) {
-						$this->relatedEvents[$objectInfo['pid']] = $objectInfo;
+						$this->addRelatedEntityToArrays($entityDriver->getUniqueID(), $entityDriver->getTitle(), 'event', '', $role);
 					}elseif ($entityDriver instanceof PersonDriver){
-						$this->relatedPeople[$objectInfo['pid']] = $objectInfo;
+						$this->addRelatedEntityToArrays($entityDriver->getUniqueID(), $entityDriver->getTitle(), 'person', '', $role);
 					}elseif ($entityDriver instanceof OrganizationDriver){
-						$this->relatedOrganizations[$objectInfo['pid']] = $objectInfo;
+						$this->addRelatedEntityToArrays($entityDriver->getUniqueID(), $entityDriver->getTitle(), 'organization', '', $role);
 					}elseif ($entityDriver instanceof PlaceDriver){
-						$this->relatedPlaces[$objectInfo['pid']] = $objectInfo;
+						$this->addRelatedEntityToArrays($entityDriver->getUniqueID(), $entityDriver->getTitle(), 'place', '', $role);
 					}else{
+						$objectInfo = array(
+								'pid' => $entityDriver->getUniqueID(),
+								'label' => $entityDriver->getTitle(),
+								'description' => $entityDriver->getTitle(),
+								'image' => $entityDriver->getBookcoverUrl('medium'),
+								'link' => $entityDriver->getRecordUrl(),
+								'role' => $role,
+								'driver' => $entityDriver
+						);
 						$this->directlyRelatedObjects['objects'][$objectInfo['pid']] = $objectInfo;
 						$this->directlyRelatedObjects['numFound']++;
 					}
@@ -1321,20 +1336,40 @@ abstract class IslandoraDriver extends RecordInterface {
 		if ($entityType == 'person'){
 			$entityInfo['link']= '/Archive/' . $pid . '/Person';
 			if (strlen($role) > 0 && !in_array(strtolower($role), IslandoraDriver::$nonProductionTeamRoles)){
-				$this->productionTeam[$pid.$role] = $entityInfo;
+				if (array_key_exists($pid, $this->productionTeam)){
+					$this->productionTeam[$pid]['role'] .= ', ' . $entityInfo['role'];
+				}else{
+					$this->productionTeam[$pid] = $entityInfo;
+				}
 			}else{
-				$this->relatedPeople[$pid.$role] = $entityInfo;
+				if (array_key_exists($pid, $this->relatedPeople)){
+					$this->relatedPeople[$pid]['role'] .= ', ' . $entityInfo['role'];
+				}else{
+					$this->relatedPeople[$pid] = $entityInfo;
+				}
 			}
 
 		}elseif ($entityType == 'place'){
 			$entityInfo['link']= '/Archive/' . $pid . '/Place';
-			$this->relatedPlaces[$pid.$role] = $entityInfo;
+			if (array_key_exists($pid, $this->relatedPlaces)){
+				$this->relatedPlaces[$pid]['role'] .= ', ' . $entityInfo['role'];
+			}else{
+				$this->relatedPlaces[$pid] = $entityInfo;
+			}
 		}elseif ($entityType == 'event'){
 			$entityInfo['link']= '/Archive/' . $pid . '/Event';
-			$this->relatedEvents[$pid.$role] = $entityInfo;
+			if (array_key_exists($pid, $this->relatedEvents)){
+				$this->relatedEvents[$pid]['role'] .= ', ' . $entityInfo['role'];
+			}else{
+				$this->relatedEvents[$pid] = $entityInfo;
+			}
 		}elseif ($entityType == 'organization'){
 			$entityInfo['link']= '/Archive/' . $pid . '/Organization';
-			$this->relatedOrganizations[$pid.$role] = $entityInfo;
+			if (array_key_exists($pid, $this->relatedOrganizations)){
+				$this->relatedOrganizations[$pid]['role'] .= ', ' . $entityInfo['role'];
+			}else{
+				$this->relatedOrganizations[$pid] = $entityInfo;
+			}
 		}else{
 			//Need to check the actual content model
 			$fedoraObject = $fedoraUtils->getObject($entityInfo['pid']);
@@ -1342,20 +1377,40 @@ abstract class IslandoraDriver extends RecordInterface {
 			if ($recordDriver instanceof PersonDriver){
 				$entityInfo['link']= '/Archive/' . $pid . '/Person';
 				if (strlen($role) > 0 && !in_array(strtolower($role), IslandoraDriver::$nonProductionTeamRoles)){
-					$this->productionTeam[$pid.$role] = $entityInfo;
+					if (array_key_exists($pid, $this->productionTeam)){
+						$this->productionTeam[$pid]['role'] .= ', ' . $entityInfo['role'];
+					}else{
+						$this->productionTeam[$pid] = $entityInfo;
+					}
 				}else{
-					$this->relatedPeople[$pid.$role] = $entityInfo;
+					if (array_key_exists($pid, $this->relatedPeople)){
+						$this->relatedPeople[$pid]['role'] .= ', ' . $entityInfo['role'];
+					}else{
+						$this->relatedPeople[$pid] = $entityInfo;
+					}
 				}
 
 			}elseif ($recordDriver instanceof PlaceDriver){
 				$entityInfo['link']= '/Archive/' . $pid . '/Place';
-				$this->relatedPlaces[$pid.$role] = $entityInfo;
+				if (array_key_exists($pid, $this->relatedPlaces)){
+					$this->relatedPlaces[$pid]['role'] .= ', ' . $entityInfo['role'];
+				}else{
+					$this->relatedPlaces[$pid] = $entityInfo;
+				}
 			}elseif ($recordDriver instanceof EventDriver){
 				$entityInfo['link']= '/Archive/' . $pid . '/Event';
-				$this->relatedEvents[$pid.$role] = $entityInfo;
+				if (array_key_exists($pid, $this->relatedEvents)){
+					$this->relatedEvents[$pid]['role'] .= ', ' . $entityInfo['role'];
+				}else{
+					$this->relatedEvents[$pid] = $entityInfo;
+				}
 			}elseif ($recordDriver instanceof OrganizationDriver){
 				$entityInfo['link']= '/Archive/' . $pid . '/Organization';
-				$this->relatedOrganizations[$pid.$role] = $entityInfo;
+				if (array_key_exists($pid, $this->relatedOrganizations)){
+					$this->relatedOrganizations[$pid]['role'] .= ', ' . $entityInfo['role'];
+				}else{
+					$this->relatedOrganizations[$pid] = $entityInfo;
+				}
 			}
 		}
 	}
@@ -1493,16 +1548,32 @@ abstract class IslandoraDriver extends RecordInterface {
 		usort($relatedPlaces, 'ExploreMore::sortRelatedEntities');
 
 		//Do final assignment
-		$interface->assignAppendToExisting('relatedEvents', $relatedEvents);
-		$interface->assignAppendToExisting('relatedPeople', $relatedPeople);
-		$interface->assignAppendToExisting('productionTeam', $productionTeam);
-		$interface->assignAppendToExisting('relatedOrganizations', $relatedOrganizations);
-		$interface->assignAppendToExisting('relatedPlaces', $relatedPlaces);
+		$interface->assign('relatedEvents', $this->mergeEntities($interface->getVariable('relatedEvents'), $relatedEvents));
+		$interface->assign('relatedPeople', $this->mergeEntities($interface->getVariable('relatedPeople'), $relatedPeople));
+		$interface->assign('productionTeam', $this->mergeEntities($interface->getVariable('productionTeam'), $productionTeam));
+		$interface->assign('relatedOrganizations', $this->mergeEntities($interface->getVariable('relatedOrganizations'), $relatedOrganizations));
+		$interface->assign('relatedPlaces', $this->mergeEntities($interface->getVariable('relatedPlaces'), $relatedPlaces));
 
 		$repositoryLink = $configArray['Islandora']['repositoryUrl'] . '/islandora/object/' . $this->getUniqueID();
 		$interface->assign('repositoryLink', $repositoryLink);
 	}
 
+	private function mergeEntities($array1, $array2){
+		if ($array1 == null){
+			return $array2;
+		}elseif ($array2 == null){
+			return $array1;
+		}else{
+			foreach ($array2 as $entityInfo){
+				$pid = $entityInfo['pid'];
+				if (array_key_exists($pid, $array1)){
+					$array1[$pid]['role'] .= ', ' . $entityInfo['role'];
+				}else{
+					$array1[$pid] = $entityInfo;
+				}
+			}
+		}
+	}
 	private function loadTranscription() {
 		global $interface;
 		$transcriptions = $this->getModsValues('hasTranscription', 'marmot');
