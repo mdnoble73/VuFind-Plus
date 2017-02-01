@@ -36,7 +36,7 @@ abstract class IslandoraDriver extends RecordInterface {
 			$this->title = $this->archiveObject->label;
 		}elseif (is_array($recordData)){
 			$this->pid = $recordData['PID'];
-			$this->title = $recordData['fgs_label_s'];
+			$this->title = isset($recordData['fgs_label_s']) ? $recordData['fgs_label_s'] : (isset($recordData['dc.title']) ? $recordData['dc.title'] : "");
 		}else{
 			$this->pid = $recordData;
 		}
