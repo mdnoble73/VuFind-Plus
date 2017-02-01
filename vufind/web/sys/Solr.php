@@ -393,8 +393,8 @@ class Solr implements IndexEngine {
 				$record = $result['response']['docs'][0];
 				$memCache->set("solr_record_{$id}_{$solrScope}", $record, 0, $configArray['Caching']['solr_record']);
 			}else{
-				global $logger;
-				$logger->log("Unable to find record $id in Solr", PEAR_LOG_ERR);
+				//global $logger;
+				//$logger->log("Unable to find record $id in Solr", PEAR_LOG_ERR);
 				PEAR_Singleton::raiseError("Record not found $id");
 			}
 		}
@@ -491,7 +491,7 @@ class Solr implements IndexEngine {
 			if (PEAR_Singleton::isError($result)) {
 				PEAR_Singleton::raiseError($result);
 			}else{
-				$this->_process($this->client->getResponseBody());
+				$result = $this->_process($this->client->getResponseBody());
 			}
 			foreach ($result['response']['docs'] as $record){
 				$records[$record['id']] = $record;

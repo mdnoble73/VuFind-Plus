@@ -688,6 +688,7 @@ class ExploreMore {
 	}
 
 	function loadExploreMoreContent(){
+		global $timer;
 		require_once ROOT_DIR . '/sys/ArchiveSubject.php';
 		$archiveSubjects = new ArchiveSubject();
 		$subjectsToIgnore = array();
@@ -697,6 +698,7 @@ class ExploreMore {
 			$subjectsToRestrict = array_flip(explode("\r\n", strtolower($archiveSubjects->subjectsToRestrict)));
 		}
 		$this->getRelatedCollections();
+		$timer->logTime("Loaded related collections");
 		$relatedSubjects = array();
 		$numSubjectsAdded = 0;
 		if (strlen($this->archiveObject->label) > 0) {
@@ -731,12 +733,16 @@ class ExploreMore {
 			$numSubjectsAdded++;
 		}
 		$relatedSubjects = array_slice($relatedSubjects, 0, 8);
+		$timer->logTime("Loaded subjects");
 
 		$exploreMore = new ExploreMore();
 
 		$exploreMore->loadEbscoOptions('archive', array(), implode($relatedSubjects, " or "));
+		$timer->logTime("Loaded EBSCO options");
+
 		$searchTerm = implode(" OR ", $relatedSubjects);
 		$exploreMore->getRelatedArchiveObjects($searchTerm);
+		$timer->logTime("Loaded related archive objects");
 	}
 
 	/**
@@ -775,6 +781,7 @@ class ExploreMore {
 	 * @return array
 	 */
 	public function getRelatedArchiveObjects($searchTerm, $searchSubjectsOnly, $archiveDriver = null) {
+		global $timer;
 		$relatedArchiveContent = array();
 
 		require_once ROOT_DIR . '/sys/Utils/FedoraUtils.php';
@@ -855,6 +862,7 @@ class ExploreMore {
 				}
 			}
 		}
+		$timer->logTime('Loaded related archive objects');
 		return $relatedArchiveContent;
 	}
 
@@ -866,6 +874,7 @@ class ExploreMore {
 	 * @return array
 	 */
 	public function getRelatedArchiveEntities($archiveDriver){
+		global $timer;
 		$directlyRelatedPeople = $archiveDriver->getRelatedPeople();
 		$directlyRelatedPlaces = $archiveDriver->getRelatedPlaces();
 		$directlyRelatedOrganizations = $archiveDriver->getRelatedOrganizations();
@@ -923,6 +932,7 @@ class ExploreMore {
 		if (count($relatedEvents) > 0){
 			$relatedEntities['events'] = $relatedEvents;
 		}
+		$timer->logTime('Loaded related entities');
 		return $relatedEntities;
 	}
 

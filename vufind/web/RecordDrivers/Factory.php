@@ -41,6 +41,8 @@ class RecordDriverFactory {
 		global $configArray;
 		global $timer;
 
+		$timer->logTime("Strarting to load record driver");
+
 		// Determine driver path based on record type:
 		if (is_object($record) && $record instanceof AbstractFedoraObject){
 			require_once ROOT_DIR . '/sys/Islandora/IslandoraObjectCache.php';
@@ -152,7 +154,7 @@ class RecordDriverFactory {
 					$islandoraObjectCache->insert();
 				}
 			}
-			$timer->logTime('Found Driver for archive object from solr doc ' . $driver);
+			$timer->logTime("Found Driver for archive object from solr doc {$record['PID']} " . $driver);
 		}else{
 			$driver = ucwords($record['recordtype']) . 'Record';
 			$path = "{$configArray['Site']['local']}/RecordDrivers/{$driver}.php";
@@ -182,9 +184,11 @@ class RecordDriverFactory {
 		if ($path) {
 			require_once $path;
 			if (class_exists($driver)) {
+				$timer->logTime("Error loading record driver");
 				disableErrorHandler();
 				/** @var RecordInterface $obj */
 				$obj = new $driver($record);
+				$timer->logTime("Initialized Driver");
 				if (PEAR_Singleton::isError($obj)) {
 					global $logger;
 					$logger->log("Error loading record driver", PEAR_LOG_DEBUG);
