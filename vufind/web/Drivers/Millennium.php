@@ -310,7 +310,11 @@ class Millennium extends ScreenScrapingDriver
 			$user->phone = isset($patronDump['TELEPHONE']) ? $patronDump['TELEPHONE'] : (isset($patronDump['HOME_PHONE']) ? $patronDump['HOME_PHONE'] : '');
 			$user->email = isset($patronDump['EMAIL_ADDR']) ? $patronDump['EMAIL_ADDR'] : '';
 			$user->patronType = $patronDump['P_TYPE'];
-			$user->web_note = isset($patronDump['WEB_NOTE']) ? $patronDump['WEB_NOTE'] : '';
+			if (isset($configArray['OPAC']['webNoteField'])){
+				$user->web_note = isset($patronDump[$configArray['OPAC']['webNoteField']]) ? $patronDump[$configArray['OPAC']['webNoteField']] : '';
+			}else{
+				$user->web_note = isset($patronDump['WEB_NOTE']) ? $patronDump['WEB_NOTE'] : '';
+			}
 
 			//Setup home location
 			$location = null;

@@ -114,6 +114,7 @@ class Archive_AJAX extends Action {
 		if (isset($_REQUEST['pid'])){
 			global $interface;
 			global $timer;
+			global $logger;
 			require_once ROOT_DIR . '/sys/Utils/FedoraUtils.php';
 			$fedoraUtils = FedoraUtils::getInstance();
 			$pid = urldecode($_REQUEST['pid']);
@@ -172,6 +173,7 @@ class Archive_AJAX extends Action {
 				$searchObject->close(); // Trigger save search
 				$lastExhibitObjectsSearch = $searchObject->getSearchId(); // Have to save the search first.
 				$_SESSION['exhibitSearchId'] = $lastExhibitObjectsSearch;
+				$logger->log("Setting exhibit search id to $lastExhibitObjectsSearch", PEAR_LOG_DEBUG);
 
 				foreach ($response['response']['docs'] as $objectInCollection){
 					/** @var IslandoraDriver $firstObjectDriver */
@@ -214,6 +216,7 @@ class Archive_AJAX extends Action {
 		if (isset($_REQUEST['collectionId'])){
 			global $interface;
 			global $timer;
+			global $logger;
 			require_once ROOT_DIR . '/sys/Utils/FedoraUtils.php';
 			$fedoraUtils = FedoraUtils::getInstance();
 			$pid = urldecode($_REQUEST['collectionId']);
@@ -291,6 +294,7 @@ class Archive_AJAX extends Action {
 				$searchObject->close(); // Trigger save search
 				$lastExhibitObjectsSearch = $searchObject->getSearchId(); // Have to save the search first.
 				$_SESSION['exhibitSearchId'] = $lastExhibitObjectsSearch;
+				$logger->log("Setting exhibit search id to $lastExhibitObjectsSearch", PEAR_LOG_DEBUG);
 
 				foreach ($response['response']['docs'] as $objectInCollection){
 					/** @var IslandoraDriver $firstObjectDriver */
@@ -335,6 +339,7 @@ class Archive_AJAX extends Action {
 		if (isset($_REQUEST['collectionId']) && isset($_REQUEST['placeId'])){
 			global $interface;
 			global $timer;
+			global $logger;
 			require_once ROOT_DIR . '/sys/Utils/FedoraUtils.php';
 			$fedoraUtils = FedoraUtils::getInstance();
 			$pid = urldecode($_REQUEST['collectionId']);
@@ -346,6 +351,7 @@ class Archive_AJAX extends Action {
 			}
 
 			$placeId = urldecode($_REQUEST['placeId']);
+			$logger->log("Setting place information for context $placeId", PEAR_LOG_DEBUG);
 			@session_start();
 			$_SESSION['placePid'] =  $placeId;
 			$interface->assign('placePid', $placeId);
@@ -353,6 +359,7 @@ class Archive_AJAX extends Action {
 			/** @var FedoraObject $placeObject */
 			$placeObject = $fedoraUtils->getObject($placeId);
 			$_SESSION['placeLabel'] = $placeObject->label;
+			$logger->log("Setting place label for context $placeObject->label", PEAR_LOG_DEBUG);
 
 			$interface->assign('displayType', 'map');
 
@@ -403,6 +410,7 @@ class Archive_AJAX extends Action {
 				$searchObject->close(); // Trigger save search
 				$lastExhibitObjectsSearch = $searchObject->getSearchId(); // Have to save the search first.
 				$_SESSION['exhibitSearchId'] = $lastExhibitObjectsSearch;
+				$logger->log("Setting exhibit search id to $lastExhibitObjectsSearch", PEAR_LOG_DEBUG);
 
 				foreach ($response['response']['docs'] as $objectInCollection){
 					/** @var IslandoraDriver $firstObjectDriver */
@@ -448,6 +456,7 @@ class Archive_AJAX extends Action {
 			);
 		}
 		global $interface;
+		global $timer;
 		require_once ROOT_DIR . '/sys/Utils/FedoraUtils.php';
 		$fedoraUtils = FedoraUtils::getInstance();
 		$pid = urldecode($_REQUEST['id']);
@@ -455,11 +464,12 @@ class Archive_AJAX extends Action {
 		$archiveObject = $fedoraUtils->getObject($pid);
 		$recordDriver = RecordDriverFactory::initRecordDriver($archiveObject);
 		$interface->assign('recordDriver', $recordDriver);
+		$timer->logTime("Loaded record driver for main object");
 
 		require_once ROOT_DIR . '/sys/ExploreMore.php';
 		$exploreMore = new ExploreMore();
 		$exploreMore->loadExploreMoreSidebar('archive', $recordDriver);
-
+		$timer->logTime("Called loadExploreMoreSidebar");
 
 		$relatedSubjects = $recordDriver->getAllSubjectHeadings();
 
@@ -467,6 +477,7 @@ class Archive_AJAX extends Action {
 		if (count($ebscoMatches) > 0){
 			$interface->assign('relatedArticles', $ebscoMatches);
 		}
+		$timer->logTime("Loaded Ebsco options");
 
 		global $library;
 		$exploreMoreSettings = $library->exploreMoreBar;
@@ -475,6 +486,7 @@ class Archive_AJAX extends Action {
 		}
 		$interface->assign('exploreMoreSettings', $exploreMoreSettings);
 		$interface->assign('archiveSections', ArchiveExploreMoreBar::$archiveSections);
+		$timer->logTime("Loaded Settings");
 
 		return array(
 				'success' => true,

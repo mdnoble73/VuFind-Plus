@@ -35,5 +35,16 @@ function getIslandoraUpdates() {
 							"ALTER TABLE islandora_object_cache ADD COLUMN lastUpdate INT(11) DEFAULT 0",
 					),
 			),
+
+			'islandora_cover_cache' => array(
+					'title' => 'Islandora Cover Caching',
+					'description' => 'Caching for Islandora to cover information for the object to limit the times we need to load data',
+					'sql' => array(
+							"ALTER TABLE islandora_object_cache ADD COLUMN smallCoverUrl VARCHAR (255) DEFAULT ''",
+							"ALTER TABLE islandora_object_cache ADD COLUMN mediumCoverUrl VARCHAR (255) DEFAULT ''",
+							"ALTER TABLE islandora_object_cache ADD COLUMN largeCoverUrl VARCHAR (255) DEFAULT ''",
+							"ALTER TABLE islandora_object_cache ADD COLUMN originalCoverUrl VARCHAR (255) DEFAULT ''",
+					),
+			),
 	);
 }
