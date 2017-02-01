@@ -311,6 +311,7 @@ abstract class Archive_Object extends Action {
 		$exhibitObject = RecordDriverFactory::initRecordDriver(array('PID' => $_SESSION['ExhibitContext']));
 		$exhibitUrl    = $exhibitObject->getLinkUrl();
 		$exhibitName   = $exhibitObject->getTitle();
+		//TODO: getting name for collections
 		$isMapExhibit  = !empty($_SESSION['placePid']);
 		if ($isMapExhibit) {
 			$exhibitUrl .= '?style=map&placePid=' . urlencode($_SESSION['placePid']);

@@ -6,6 +6,7 @@ VuFind.Archive = (function(){
 	date.setTime(date.getTime() + (1 /*days*/ * 24 * 60 * 60 * 1000));
 	expires = "; expires=" + date.toGMTString();
 	document.cookie = encodeURIComponent('exhibitNavigation') + "=" + encodeURIComponent(0) + expires + "; path=/";
+	document.cookie = encodeURIComponent('collectionPid') + "=" + encodeURIComponent('') + expires + "; path=/";
 
 	return {
 		archive_map: null,
