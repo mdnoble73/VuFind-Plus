@@ -426,7 +426,7 @@ VuFind.Archive = (function(){
 			return false;
 		},
 
-		setForExhibitNavigation : function (recordIndex, page) {
+		setForExhibitNavigation : function (recordIndex, page, collectionPid) {
 			var date = new Date();
 			date.setTime(date.getTime() + (1 /*days*/ * 24 * 60 * 60 * 1000));
 			expires = "; expires=" + date.toGMTString();
@@ -435,6 +435,9 @@ VuFind.Archive = (function(){
 			}
 			if (typeof page != 'undefined') {
 				document.cookie = encodeURIComponent('page') + "=" + encodeURIComponent(page) + expires + "; path=/";
+			}
+			if (typeof collectionPid != 'undefined') {
+				document.cookie = encodeURIComponent('collectionPid') + "=" + encodeURIComponent(collectionPid) + expires + "; path=/";
 			}
 			document.cookie = encodeURIComponent('exhibitNavigation') + "=" + encodeURIComponent(1) + expires + "; path=/";
 		},

@@ -289,7 +289,10 @@ abstract class Archive_Object extends Action {
 		$_SESSION['dateFilter']      = null;
 	}
 
-	private function setExhibitNavigation()
+	/**
+	 *
+	 */
+	protected function setExhibitNavigation()
 	{
 		global $interface;
 
@@ -309,7 +312,14 @@ abstract class Archive_Object extends Action {
 		$interface->assign('lastCollection', $exhibitUrl);
 		$interface->assign('collectionName', $exhibitName);
 
-		if (!empty($_SESSION['exhibitSearchId'])) {
+		if (!empty($_COOKIE['collectionPid'])) {
+			$fedoraUtils = FedoraUtils::getInstance();
+			$collectionToLoadFromObject = $fedoraUtils->getObject($_COOKIE['collectionPid']);
+			/** @var CollectionDriver $collectionDriver */
+			$collectionDriver = RecordDriverFactory::initRecordDriver($collectionToLoadFromObject);
+			$collectionDriver->getNextPrevLinks($this->pid);
+
+		} elseif (!empty($_SESSION['exhibitSearchId'])) {
 			$recordIndex = isset($_COOKIE['recordIndex']) ? $_COOKIE['recordIndex'] : null;
 			$page        = isset($_COOKIE['page']) ? $_COOKIE['page'] : null;
 			// Restore Islandora Search

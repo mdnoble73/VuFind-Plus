@@ -101,7 +101,8 @@ class Archive_Exhibit extends Archive_Object{
 			$this->recordDriver->getRelatedPlaces();
 			$this->display('mapExhibit.tpl');
 		} else if ($displayType == 'custom'){
-			$this->endExhibitContext();
+//			$this->endExhibitContext();
+			$this->startExhibitContext();
 			$collectionTemplates = array();
 			foreach ($collectionOptions as $option){
 				if ($option == 'searchCollection'){
@@ -140,11 +141,14 @@ class Archive_Exhibit extends Archive_Object{
 					}
 
 					$browseCollectionTitlesData = array(
+						'collectionPid' => $collectionToLoadFromObject,
 						'title' => $collectionToLoadFromObject->label,
 						'collectionTitles' => $collectionTitles,
 					);
 					$interface->assignAppendToExisting('browseCollectionTitlesData', $browseCollectionTitlesData);
 					if ($collectionTemplate == 'browse'){
+						// TODO: determine exhibit navigation
+						$interface->assign('isCollectionOnExhibitPage', true); // only needed for the fetch below
 						$collectionTemplates[] = $interface->fetch('Archive/browseCollectionTitles.tpl');
 					}else{
 						$collectionTemplates[] = $interface->fetch('Archive/collectionScroller.tpl');
