@@ -61,6 +61,7 @@
 
   .thumbnail{
     height: 175px;
+    background-color: transparent;
   }
 
   .relatedTitlesContainer {
@@ -186,7 +187,9 @@
 
   .jcarousel-control-prev, .jcarousel-control-next {
     height: 100%;
-    background: @content-bg;
+    //background: @content-bg;
+    //background-color: @explore-more-sidebar-body-bg-color;
+    background-color: transparent;
     color: @explore-more-bar-label-bg-color;
     z-index: 2; // keep above carousel content
     box-shadow: white 0px 0px 0px 0px;
@@ -203,6 +206,12 @@
   }
   .jcarousel-control-next {
     right: 2px;
+  }
+
+  // Acordion Styling
+  .panel-body {
+    background-color: transparent;
+    //background-color: @explore-more-sidebar-body-bg-color; // override standard accordion background color
   }
 
 }
