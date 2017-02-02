@@ -129,6 +129,7 @@ class Archive_Exhibit extends Archive_Object{
 					foreach ($collectionObjects as $childPid){
 						$childObject = RecordDriverFactory::initRecordDriver($fedoraUtils->getObject($childPid));
 						$collectionTitle = array(
+								'pid' => $childPid,
 								'title' => $childObject->getTitle(),
 								'link' => $childObject->getRecordUrl(),
 						);

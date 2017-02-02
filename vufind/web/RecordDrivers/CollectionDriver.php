@@ -57,6 +57,8 @@ class CollectionDriver extends IslandoraDriver {
 		$collectionChildren = $this->getChildren();
 		$currentCollectionItemIndex = array_search($currentCollectionItemPID, $collectionChildren);
 		if ($currentCollectionItemIndex !== false) {
+			$interface->assign('collectionPid', $this->pid);// TODO: used?
+			$interface->assign('page', 1); // Value ignored for collections at this time
 
 			// Previous Collection Item
 			if ($currentCollectionItemIndex > 0) {
@@ -70,6 +72,7 @@ class CollectionDriver extends IslandoraDriver {
 					$interface->assign('previousType', 'Archive');
 					$interface->assign('previousUrl', $previousRecord->getLinkUrl());
 					$interface->assign('previousTitle', $previousRecord->getTitle());
+//					$interface->assign('previousCollectionItemPid', $previousCollectionItemPid);
 				}
 			}
 
@@ -84,6 +87,8 @@ class CollectionDriver extends IslandoraDriver {
 						$interface->assign('nextType', 'Archive');
 						$interface->assign('nextUrl', $nextRecord->getLinkUrl());
 						$interface->assign('nextTitle', $nextRecord->getTitle());
+						$interface->assign('nextPage', 1); // Value ignored for collections at this time
+//						$interface->assign('nextCollectionItemPid', $nextCollectionItemPid);
 				}
 			}
 

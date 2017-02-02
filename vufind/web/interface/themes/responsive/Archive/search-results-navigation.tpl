@@ -5,7 +5,7 @@
 		{if $isFromExhibit}
 			<div id="previousRecordLink" class="previous">
 				{if isset($previousUrl)}
-					<a href="{$previousUrl}" onclick="VuFind.Archive.setForExhibitNavigation({$previousIndex}{if $previousPage},{$previousPage}{elseif $page},{$page}{/if})" title="{if !$previousTitle}{translate text='Previous'}{else}{$previousTitle|truncate:180:"..."|escape:'html'}{/if}">
+					<a href="{$previousUrl}" onclick="VuFind.Archive.setForExhibitNavigation({$previousIndex}{if $previousPage},{$previousPage}{elseif $page},{$page}{/if}{if $collectionPid},'{$collectionPid}'{/if})" title="{if !$previousTitle}{translate text='Previous'}{else}{$previousTitle|truncate:180:"..."|escape:'html'}{/if}">
 						<span class="glyphicon glyphicon-chevron-left"></span> Prev
 					</a>
 				{/if}
@@ -17,7 +17,7 @@
 			</div>
 			<div id="nextRecordLink" class="next">
 				{if isset($nextUrl)}
-					<a href="{$nextUrl}" onclick="VuFind.Archive.setForExhibitNavigation({$nextIndex}{if $nextPage},{$nextPage}{elseif $page},{$page}{/if})" title="{if !$nextTitle}{translate text='Next'}{else}{$nextTitle|truncate:180:"..."|escape:'html'}{/if}">
+					<a href="{$nextUrl}" onclick="VuFind.Archive.setForExhibitNavigation({$nextIndex}{if $nextPage},{$nextPage}{elseif $page},{$page}{/if}{if $collectionPid},'{$collectionPid}'{/if})" title="{if !$nextTitle}{translate text='Next'}{else}{$nextTitle|truncate:180:"..."|escape:'html'}{/if}">
 						Next <span class="glyphicon glyphicon-chevron-right"></span>
 					</a>
 				{/if}
