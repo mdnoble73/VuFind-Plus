@@ -325,6 +325,9 @@ abstract class Archive_Object extends Action {
 		//TODO: rename to template vars exhibitName and exhibitUrl;  does it affect other navigation contexts
 		$interface->assign('lastCollection', $exhibitUrl);
 		$interface->assign('collectionName', $exhibitName);
+		if (!empty($_COOKIE['exhibitInAExhibitParentPid']) && $_COOKIE['exhibitInAExhibitParentPid'] == $_SESSION['ExhibitContext']) {
+			$_COOKIE['exhibitInAExhibitParentPid'] = null;
+		}
 
 		if (!empty($_COOKIE['exhibitInAExhibitParentPid'])) {
 			$parentExhibitObject = RecordDriverFactory::initRecordDriver(array('PID' => $_COOKIE['exhibitInAExhibitParentPid']));
