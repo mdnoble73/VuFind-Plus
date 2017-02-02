@@ -425,7 +425,7 @@ abstract class IslandoraDriver extends RecordInterface {
 	}
 
 	public function getTitle() {
-		if ($this->title === null){
+		if (empty($this->title)){
 			$this->title = $this->getArchiveObject()->label;
 		}
 

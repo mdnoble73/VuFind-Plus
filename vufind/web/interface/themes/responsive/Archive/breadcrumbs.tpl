@@ -5,7 +5,7 @@
 	<a href="{$path}/Archive/Home">Local Digital Archive</a> <span class="divider">&raquo;</span>
 {/if}
 {if $breadcrumbText}
-	{if $isFromExhibit && $action != 'Exhibit' && $lastCollection && $collectionName}
+	{if $isFromExhibit && $action != 'Exhibit' && $lastCollection}
 		<em><a href="{$lastCollection}" title="{$collectionName}">{$collectionName|truncate:30:"..."|escape}</a></em> <span class="divider">&raquo;</span>
 	{/if}
 <em title="{$breadcrumbText}">{$breadcrumbText|truncate:30:"..."|escape}</em> <span class="divider">&raquo;</span>
