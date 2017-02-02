@@ -137,6 +137,10 @@ class Archive_Exhibit extends Archive_Object{
 							$collectionTitle['image'] = $childObject->getBookcoverUrl('medium');
 							//MDN 12/27/2016 Jordan and I talked today and decided that we would just show the actual object rather than using the scroller as a facet.
 							//$collectionTitle['onclick'] = "return VuFind.Archive.handleCollectionScrollerClick('{$childObject->getUniqueID()}')";
+							if ($childObject->getViewAction() == 'Exhibit') {
+								// Always an Exhibit?
+								$collectionTitle['isExhibit'] = true;
+							}
 						}
 						$collectionTitles[] = $collectionTitle;
 					}
@@ -409,6 +413,11 @@ class Archive_Exhibit extends Archive_Object{
 			$logger->log("Starting exhibit context " . $this->recordDriver->getUniqueID() . " no place", PEAR_LOG_DEBUG);
 			$_SESSION['placePid']   = null;
 			$_SESSION['placeLabel'] = null;
+		}
+		if (!empty($_COOKIE['exhibitInAExhibitParentPid'])) {
+			$_SESSION['exhibitInAExhibitParentPid'] = $_COOKIE['exhibitInAExhibitParentPid'];
+		} else {
+			$_SESSION['exhibitInAExhibitParentPid'] = null;
 		}
 	}
 }

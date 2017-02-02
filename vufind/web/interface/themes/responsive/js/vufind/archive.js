@@ -7,6 +7,7 @@ VuFind.Archive = (function(){
 	expires = "; expires=" + date.toGMTString();
 	document.cookie = encodeURIComponent('exhibitNavigation') + "=" + encodeURIComponent(0) + expires + "; path=/";
 	document.cookie = encodeURIComponent('collectionPid') + "=" + encodeURIComponent('') + expires + "; path=/";
+	// document.cookie = encodeURIComponent('exhibitInAExhibitParentPid') + "=" + encodeURIComponent('') + expires + "; path=/";
 
 	return {
 		archive_map: null,
@@ -425,6 +426,13 @@ VuFind.Archive = (function(){
 				$('#randomImagePlaceholder').html(data.image);
 			}).fail(VuFind.ajaxFail);
 			return false;
+		},
+
+		setForExhibitInAExhibitNavigation : function (exhibitInAExhibitParentPid) {
+			var date = new Date();
+			date.setTime(date.getTime() + (1 /*days*/ * 24 * 60 * 60 * 1000));
+			expires = "; expires=" + date.toGMTString();
+			document.cookie = encodeURIComponent('exhibitInAExhibitParentPid') + "=" + encodeURIComponent(exhibitInAExhibitParentPid) + expires + "; path=/";
 		},
 
 		setForExhibitNavigation : function (recordIndex, page, collectionPid) {

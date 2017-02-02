@@ -18,7 +18,7 @@
 								<li class="explore-more-option">
 									<figure class="thumbnail" title="{$titleInfo.title|escape}">
 										<div class="explore-more-image">
-											<a href='{$titleInfo.link}' {if $titleInfo.onclick}onclick="{$titleInfo.onclick}"{/if}>
+											<a href='{$titleInfo.link}'{if $titleInfo.isExhibit} onclick="VuFind.Archive.setForExhibitInAExhibitNavigation('{$browseCollectionTitlesData.collectionPid}')" {/if} {*{if $titleInfo.onclick}onclick="{$titleInfo.onclick}"{/if}*}>
 												<img src="{$titleInfo.image}" alt="{$titleInfo.title|escape}">
 											</a>
 										</div>

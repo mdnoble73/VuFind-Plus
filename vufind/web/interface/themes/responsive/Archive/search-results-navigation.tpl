@@ -14,6 +14,19 @@
 				{if $lastCollection}
 					<a href="{$lastCollection}">Return to <strong>{$collectionName}</strong> Collection</a>
 				{/if}
+{*				{literal}
+<script type="text/javascript">
+	$(function(){
+		$(window).on('beforeunload', function(e){
+			console.log(e, 'current URL', e.currentTarget.document.URL, 'next? target:', e.target.URL);
+			if (e.target.URL == e.currentTarget.document.URL) { // page is reloading
+				VuFind.Archive.setForExhibitNavigation({/literal}{$previousIndex + 1}{if $page},{$page}{/if}{if $collectionPid},'{$collectionPid}'{/if}{literal});
+			}
+			return 'Pause before reloading'
+		});
+	})
+</script>
+				{/literal} *}
 			</div>
 			<div id="nextRecordLink" class="next">
 				{if isset($nextUrl)}

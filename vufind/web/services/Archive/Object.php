@@ -295,6 +295,7 @@ abstract class Archive_Object extends Action {
 		$_SESSION['placePid']        = null;
 		$_SESSION['placeLabel']      = null;
 		$_SESSION['dateFilter']      = null;
+		$_COOKIE['exhibitInAExhibitParentPid'] = null;
 	}
 
 	/**
@@ -311,7 +312,6 @@ abstract class Archive_Object extends Action {
 		$exhibitObject = RecordDriverFactory::initRecordDriver(array('PID' => $_SESSION['ExhibitContext']));
 		$exhibitUrl    = $exhibitObject->getLinkUrl();
 		$exhibitName   = $exhibitObject->getTitle();
-		//TODO: getting name for collections
 		$isMapExhibit  = !empty($_SESSION['placePid']);
 		if ($isMapExhibit) {
 			$exhibitUrl .= '?style=map&placePid=' . urlencode($_SESSION['placePid']);
@@ -322,8 +322,17 @@ abstract class Archive_Object extends Action {
 		}else{
 			$logger->log("Navigating from a NON map exhibit", PEAR_LOG_DEBUG);
 		}
+		//TODO: rename to template vars exhibitName and exhibitUrl;  does it affect other navigation contexts
 		$interface->assign('lastCollection', $exhibitUrl);
 		$interface->assign('collectionName', $exhibitName);
+
+		if (!empty($_COOKIE['exhibitInAExhibitParentPid'])) {
+			$parentExhibitObject = RecordDriverFactory::initRecordDriver(array('PID' => $_COOKIE['exhibitInAExhibitParentPid']));
+			$parentExhibitUrl = $parentExhibitObject->getLinkUrl();
+			$parentExhibitName = $parentExhibitObject->getTitle();
+			$interface->assign('parentExhibitUrl', $parentExhibitUrl);
+			$interface->assign('parentExhibitName', $parentExhibitName);
+		}
 
 		if (!empty($_COOKIE['collectionPid'])) {
 			$fedoraUtils = FedoraUtils::getInstance();

@@ -5,6 +5,9 @@
 	<a href="{$path}/Archive/Home">Local Digital Archive</a> <span class="divider">&raquo;</span>
 {/if}
 {if $breadcrumbText}
+	{if $isFromExhibit && $parentExhibitUrl}
+			<em><a href="{$parentExhibitUrl}" title="{$parentExhibitName}">{$parentExhibitName|truncate:30:"..."|escape}</a></em> <span class="divider">&raquo;</span>
+	{/if}
 	{if $isFromExhibit && $action != 'Exhibit' && $lastCollection}
 		<em><a href="{$lastCollection}" title="{$collectionName}">{$collectionName|truncate:30:"..."|escape}</a></em> <span class="divider">&raquo;</span>
 	{/if}
