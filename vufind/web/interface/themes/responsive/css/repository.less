@@ -180,8 +180,7 @@
   .jcarousel {
     .thumbnail {
       margin-bottom: 0;
-      //height:175px;
-      height:200px; // increased for adams department names can show.  Negative effect elesewhere? (if so, do overide on adams theme only)
+      height:175px;
       border: 0 solid white;
     }
   }
@@ -214,7 +213,14 @@
     background-color: transparent;
     //background-color: @explore-more-sidebar-body-bg-color; // override standard accordion background color
   }
+}
 
+.exhibitPage.exploreMoreBar {
+  .jcarousel {
+    .thumbnail {
+      height: 200px; // increased for adams department names can show.  Negative effect elesewhere? (if so, do overide on adams theme only)
+    }
+  }
 }
 
 #relatedProjectScroller .thumbnail, #relatedContentTypesContainer .thumbnail{

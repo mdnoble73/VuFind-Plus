@@ -1,6 +1,6 @@
 {strip}
 	<div class="nopadding col-sm-12">
-		<div class="exploreMoreBar row">
+		<div class="exhibitPage exploreMoreBar row">{* exhibitPage class overides some exploreMoreBar css*}
 			{*<div class="label-left">*}
 			<div class="label-top">
 				<div class="exploreMoreBarLabel"><div class="archiveComponentHeader">Browse All</div></div>

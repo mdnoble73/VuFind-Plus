@@ -10451,7 +10451,7 @@ a.browse-thumbnail-sorted.active {
 .exploreMoreBar .jcarousel .thumbnail,
 #book-sections .jcarousel .thumbnail {
   margin-bottom: 0;
-  height: 200px;
+  height: 175px;
   border: 0 solid white;
 }
 #explore-more-body .jcarousel-control-prev,
@@ -10514,6 +10514,9 @@ a.browse-thumbnail-sorted.active {
 .exploreMoreBar .panel-body,
 #book-sections .panel-body {
   background-color: transparent;
+}
+.exhibitPage.exploreMoreBar .jcarousel .thumbnail {
+  height: 200px;
 }
 #relatedProjectScroller .thumbnail,
 #relatedContentTypesContainer .thumbnail {
