@@ -1195,26 +1195,28 @@ abstract class IslandoraDriver extends RecordInterface {
 					}
 				}
 
-				/** @var SearchObject_Islandora $searchObject */
-				$searchObject = SearchObjectFactory::initSearchObject('Islandora');
-				$searchObject->init();
-				$searchObject->setSort('fgs_label_s');
-				$searchObject->setLimit($numObjects);
-				$searchObject->setQueryIDs($relatedObjectPIDs);
-				$response = $searchObject->processSearch(true, false, true);
-				if ($response && $response['response']['numFound'] > 0) {
-					foreach ($response['response']['docs'] as $doc) {
-						$entityDriver = RecordDriverFactory::initRecordDriver($doc);
-						$objectInfo = array(
-								'pid' => $entityDriver->getUniqueID(),
-								'label' => $entityDriver->getTitle(),
-								'description' => $entityDriver->getTitle(),
-								'image' => $entityDriver->getBookcoverUrl('medium'),
-								'link' => $entityDriver->getRecordUrl(),
-								'driver' => $entityDriver
-						);
-						$this->directlyRelatedObjects['objects'][$objectInfo['pid']] = $objectInfo;
-						$this->directlyRelatedObjects['numFound']++;
+				if (count($relatedObjectPIDs) > 0) {
+					/** @var SearchObject_Islandora $searchObject */
+					$searchObject = SearchObjectFactory::initSearchObject('Islandora');
+					$searchObject->init();
+					$searchObject->setSort('fgs_label_s');
+					$searchObject->setLimit($numObjects);
+					$searchObject->setQueryIDs($relatedObjectPIDs);
+					$response = $searchObject->processSearch(true, false, true);
+					if ($response && $response['response']['numFound'] > 0) {
+						foreach ($response['response']['docs'] as $doc) {
+							$entityDriver = RecordDriverFactory::initRecordDriver($doc);
+							$objectInfo = array(
+									'pid' => $entityDriver->getUniqueID(),
+									'label' => $entityDriver->getTitle(),
+									'description' => $entityDriver->getTitle(),
+									'image' => $entityDriver->getBookcoverUrl('medium'),
+									'link' => $entityDriver->getRecordUrl(),
+									'driver' => $entityDriver
+							);
+							$this->directlyRelatedObjects['objects'][$objectInfo['pid']] = $objectInfo;
+							$this->directlyRelatedObjects['numFound']++;
+						}
 					}
 				}
 				$searchObject = null;
