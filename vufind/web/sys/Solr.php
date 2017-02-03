@@ -472,7 +472,7 @@ class Solr implements IndexEngine {
 			$idString = 'ids=';
 			foreach ($tmpIds as $id){
 				if (strlen($idString) > 4){
-					$idString .= '&';
+					$idString .= ',';
 				}
 				$idString .= $id;
 			}
