@@ -38,6 +38,8 @@
 ###################################
 # Accelerated Reader data
 45 22 * * * /home/cassini/cron/copyAcceleratedReaderData.exp
+# Retrieve Hoopla Marc
+03 20 * * * /usr/local/vufind-plus/vufind/cron/HOOPLA.sh
 
 ###############################
 # Data Extract TO ftp server  #
