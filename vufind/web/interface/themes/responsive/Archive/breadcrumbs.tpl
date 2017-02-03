@@ -6,12 +6,12 @@
 {/if}
 {if $breadcrumbText}
 	{if $isFromExhibit && $parentExhibitUrl}
-			<em><a href="{$parentExhibitUrl}" title="{$parentExhibitName}">{$parentExhibitName|truncate:30:"..."|escape}</a></em> <span class="divider">&raquo;</span>
+			<em><a href="{$parentExhibitUrl}" title="{$parentExhibitName|escape}">{$parentExhibitName|truncate:30:"..."|escape}</a></em> <span class="divider">&raquo;</span>
 	{/if}
 	{if $isFromExhibit && $action != 'Exhibit' && $lastCollection}
-		<em><a href="{$lastCollection}" title="{$collectionName}">{$collectionName|truncate:30:"..."|escape}</a></em> <span class="divider">&raquo;</span>
+		<em><a href="{$lastCollection}" title="{$collectionName|escape}">{$collectionName|truncate:30:"..."|escape}</a></em> <span class="divider">&raquo;</span>
 	{/if}
-<em title="{$breadcrumbText}">{$breadcrumbText|truncate:30:"..."|escape}</em> <span class="divider">&raquo;</span>
+<em title="{$breadcrumbText|escape}">{$breadcrumbText|truncate:30:"..."|escape}</em> <span class="divider">&raquo;</span>
 {elseif $subTemplate!=""}
 	<em>{$subTemplate|replace:'view-':''|replace:'.tpl':''|replace:'../MyResearch/':''|capitalize|translate}</em>
 {/if}

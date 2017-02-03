@@ -72,7 +72,6 @@ class CollectionDriver extends IslandoraDriver {
 					$interface->assign('previousType', 'Archive');
 					$interface->assign('previousUrl', $previousRecord->getLinkUrl());
 					$interface->assign('previousTitle', $previousRecord->getTitle());
-//					$interface->assign('previousCollectionItemPid', $previousCollectionItemPid);
 				}
 			}
 
@@ -88,7 +87,6 @@ class CollectionDriver extends IslandoraDriver {
 						$interface->assign('nextUrl', $nextRecord->getLinkUrl());
 						$interface->assign('nextTitle', $nextRecord->getTitle());
 						$interface->assign('nextPage', 1); // Value ignored for collections at this time
-//						$interface->assign('nextCollectionItemPid', $nextCollectionItemPid);
 				}
 			}
 

@@ -322,21 +322,31 @@ abstract class Archive_Object extends Action {
 		}else{
 			$logger->log("Navigating from a NON map exhibit", PEAR_LOG_DEBUG);
 		}
+
 		//TODO: rename to template vars exhibitName and exhibitUrl;  does it affect other navigation contexts
+
 		$interface->assign('lastCollection', $exhibitUrl);
 		$interface->assign('collectionName', $exhibitName);
+		$isExhibit = get_class($this) == 'Archive_Exhibit';
 		if (!empty($_COOKIE['exhibitInAExhibitParentPid']) && $_COOKIE['exhibitInAExhibitParentPid'] == $_SESSION['ExhibitContext']) {
 			$_COOKIE['exhibitInAExhibitParentPid'] = null;
 		}
 
 		if (!empty($_COOKIE['exhibitInAExhibitParentPid'])) {
+			/** @var CollectionDriver $parentExhibitObject */
 			$parentExhibitObject = RecordDriverFactory::initRecordDriver(array('PID' => $_COOKIE['exhibitInAExhibitParentPid']));
-			$parentExhibitUrl = $parentExhibitObject->getLinkUrl();
-			$parentExhibitName = $parentExhibitObject->getTitle();
+			$parentExhibitUrl    = $parentExhibitObject->getLinkUrl();
+			$parentExhibitName   = $parentExhibitObject->getTitle();
 			$interface->assign('parentExhibitUrl', $parentExhibitUrl);
 			$interface->assign('parentExhibitName', $parentExhibitName);
-		}
 
+			if ($isExhibit) { // If this is a child exhibit page
+				//
+				$interface->assign('lastCollection', $parentExhibitUrl);
+				$interface->assign('collectionName', $parentExhibitName);
+				$parentExhibitObject->getNextPrevLinks($this->pid);
+			}
+		}
 		if (!empty($_COOKIE['collectionPid'])) {
 			$fedoraUtils = FedoraUtils::getInstance();
 			$collectionToLoadFromObject = $fedoraUtils->getObject($_COOKIE['collectionPid']);
@@ -344,7 +354,7 @@ abstract class Archive_Object extends Action {
 			$collectionDriver = RecordDriverFactory::initRecordDriver($collectionToLoadFromObject);
 			$collectionDriver->getNextPrevLinks($this->pid);
 
-		} elseif (!empty($_SESSION['exhibitSearchId'])) {
+		} elseif (!empty($_SESSION['exhibitSearchId']) && !$isExhibit) {
 			$recordIndex = isset($_COOKIE['recordIndex']) ? $_COOKIE['recordIndex'] : null;
 			$page        = isset($_COOKIE['page']) ? $_COOKIE['page'] : null;
 			// Restore Islandora Search
