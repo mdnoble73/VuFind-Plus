@@ -90,11 +90,16 @@ abstract class IslandoraDriver extends RecordInterface {
 			}
 		}
 
+		$archiveObject = $this->getArchiveObject();
+		if ($archiveObject == null){
+			return $this->getPlaceholderImage();
+		}
+
 		$objectUrl = $configArray['Islandora']['objectUrl'];
 		if ($size == 'small'){
-			if ($this->getArchiveObject()->getDatastream('SC') != null){
+			if ($archiveObject->getDatastream('SC') != null){
 				$cachedData->smallCoverUrl = $objectUrl . '/' . $this->getUniqueID() . '/datastream/SC/view';
-			}elseif ($this->getArchiveObject()->getDatastream('TN') != null){
+			}elseif ($archiveObject->getDatastream('TN') != null){
 				$cachedData->smallCoverUrl = $objectUrl . '/' . $this->getUniqueID() . '/datastream/TN/view';
 			}else{
 				//return a placeholder
@@ -104,11 +109,11 @@ abstract class IslandoraDriver extends RecordInterface {
 			return $cachedData->smallCoverUrl;
 
 		}elseif ($size == 'medium'){
-			if ($this->getArchiveObject()->getDatastream('MC') != null){
+			if ($archiveObject->getDatastream('MC') != null){
 				$cachedData->mediumCoverUrl = $objectUrl . '/' . $this->getUniqueID() . '/datastream/MC/view';
-			}elseif ($this->getArchiveObject()->getDatastream('PREVIEW') != null) {
+			}elseif ($archiveObject->getDatastream('PREVIEW') != null) {
 				$cachedData->mediumCoverUrl = $objectUrl . '/' . $this->getUniqueID() . '/datastream/PREVIEW/view';
-			}elseif ($this->getArchiveObject()->getDatastream('TN') != null){
+			}elseif ($archiveObject->getDatastream('TN') != null){
 				$cachedData->mediumCoverUrl = $objectUrl . '/' . $this->getUniqueID() . '/datastream/TN/view';
 			}else{
 				$cachedData->mediumCoverUrl = $this->getPlaceholderImage();
@@ -116,13 +121,13 @@ abstract class IslandoraDriver extends RecordInterface {
 			$cachedData->update();
 			return $cachedData->mediumCoverUrl;
 		}elseif ($size == 'large'){
-			if ($this->getArchiveObject()->getDatastream('JPG') != null){
+			if ($archiveObject->getDatastream('JPG') != null){
 				$cachedData->largeCoverUrl = $objectUrl . '/' . $this->getUniqueID() . '/datastream/JPG/view';
-			}elseif ($this->getArchiveObject()->getDatastream('LC') != null) {
+			}elseif ($archiveObject->getDatastream('LC') != null) {
 				$cachedData->largeCoverUrl = $objectUrl . '/' . $this->getUniqueID() . '/datastream/LC/view';
-			}elseif ($this->getArchiveObject()->getDatastream('PREVIEW') != null) {
+			}elseif ($archiveObject->getDatastream('PREVIEW') != null) {
 				$cachedData->largeCoverUrl = $objectUrl . '/' . $this->getUniqueID() . '/datastream/PREVIEW/view';
-			}elseif ($this->getArchiveObject()->getDatastream('OBJ') != null && ($this->archiveObject->getDatastream('OBJ')->mimetype == 'image/jpg' || $this->archiveObject->getDatastream('OBJ')->mimetype == 'image/jpeg')) {
+			}elseif ($archiveObject->getDatastream('OBJ') != null && ($this->archiveObject->getDatastream('OBJ')->mimetype == 'image/jpg' || $this->archiveObject->getDatastream('OBJ')->mimetype == 'image/jpeg')) {
 				$cachedData->largeCoverUrl = $objectUrl . '/' . $this->getUniqueID() . '/datastream/OBJ/view';
 			}else{
 				$cachedData->largeCoverUrl = $this->getPlaceholderImage();
@@ -130,7 +135,7 @@ abstract class IslandoraDriver extends RecordInterface {
 			$cachedData->update();
 			return $cachedData->largeCoverUrl;
 		}elseif ($size == 'original'){
-			if ($this->getArchiveObject()->getDatastream('OBJ') != null) {
+			if ($archiveObject->getDatastream('OBJ') != null) {
 				return $objectUrl . '/' . $this->getUniqueID() . '/datastream/OBJ/view';
 			}
 		}else{
