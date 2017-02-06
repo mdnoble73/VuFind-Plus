@@ -768,10 +768,11 @@ class Archive_AJAX extends Action {
 					$searchObject->addFilter('-mods_originInfo_point_start_qualifier__dateCreated_dt:[* TO *]');
 					$searchObject->addFilter('-mods_originInfo_point_start_dateCreated_dt:[* TO *]');
 					$searchObject->addFilter('-mods_originInfo_qualifier_approximate_dateCreated_dt:[* TO *]');
+					$searchObject->addFilter('-mods_originInfo_dateCreated_dt:[* TO *]');
 				} else {
 					$startYear = substr($date, 0, 4);
 					$endYear = (int)$startYear + 9;
-					$filter .= "mods_originInfo_point_start_qualifier__dateCreated_dt:[$date TO $endYear-12-31T23:59:59Z] OR mods_originInfo_point_start_dateCreated_dt:[$date TO $endYear-12-31T23:59:59Z] OR mods_originInfo_qualifier_approximate_dateCreated_dt:[$date TO $endYear-12-31T23:59:59Z]";
+					$filter .= "mods_originInfo_dateCreated_dt:[$date TO $endYear-12-31T23:59:59Z] OR mods_originInfo_point_start_qualifier__dateCreated_dt:[$date TO $endYear-12-31T23:59:59Z] OR mods_originInfo_point_start_dateCreated_dt:[$date TO $endYear-12-31T23:59:59Z] OR mods_originInfo_qualifier_approximate_dateCreated_dt:[$date TO $endYear-12-31T23:59:59Z]";
 				}
 
 			}
