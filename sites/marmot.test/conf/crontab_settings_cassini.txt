@@ -19,6 +19,7 @@
 #
 # ie :
 # git pull origin {current branch}
+# su cassini
 # crontab < /usr/local/vufind-plus/sites/marmot.test/conf/crontab_settings_cassini.txt
 
 ###################
@@ -39,7 +40,7 @@
 # Accelerated Reader data
 45 22 * * * /home/cassini/cron/copyAcceleratedReaderData.exp
 # Retrieve Hoopla Marc
-03 20 * * * /usr/local/vufind-plus/vufind/cron/HOOPLA.sh
+03 20 * * * /usr/local/vufind-plus/vufind/cron/HOOPLA.sh marmot.test
 
 ###############################
 # Data Extract TO ftp server  #
