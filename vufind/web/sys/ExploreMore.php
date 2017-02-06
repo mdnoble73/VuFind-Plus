@@ -67,7 +67,6 @@ class ExploreMore {
 					$exploreMoreSectionsToShow = $this->setupTableOfContentsForBook($parentDriver, $exploreMoreSectionsToShow, false);
 
 					$this->relatedCollections = $parentDriver->getRelatedCollections();
-					// TODO: Only Add All if there is one other related collection
 					$this->relatedCollections['all'] = array(
 						'label' => 'See All Digital Archive Collections',
 						'link' => '/Archive/Home'
@@ -75,8 +74,7 @@ class ExploreMore {
 					if (count($this->relatedCollections) > 0){
 						$exploreMoreSectionsToShow['relatedCollections'] = array(
 //								'title' => 'Related Archive Collections',
-								'format' => 'textOnlyList',
-//								'format' => 'list',
+								'format' => 'list',
 								'values' => $this->relatedCollections
 						);
 					}
@@ -94,7 +92,6 @@ class ExploreMore {
 			$archiveDriver = $recordDriver;
 			if (!isset($this->relatedCollections)){
 				$this->relatedCollections = $archiveDriver->getRelatedCollections();
-				// TODO: Only Add All if there is one other related collection
 				$this->relatedCollections['all'] = array(
 					'label' => 'See All Digital Archive Collections',
 					'link' => '/Archive/Home'
@@ -102,7 +99,7 @@ class ExploreMore {
 				if (count($this->relatedCollections) > 0){
 					$exploreMoreSectionsToShow['relatedCollections'] = array(
 //							'title' => 'Related Archive Collections',
-							'format' => 'textOnlyList',
+							'format' => 'list',
 							'values' => $this->relatedCollections
 					);
 				}
