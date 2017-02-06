@@ -93,7 +93,7 @@ do
 	#####
 	# Start of the actual indexing code
 	#####
-+
+
 	#truncate the file
 	: > $OUTPUT_FILE;
 
