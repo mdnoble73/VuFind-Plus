@@ -70,7 +70,7 @@ do
 	#####
 
 	# Make sure we are not running a Full Record Group/Reindex process
-	hasConflicts=$(checkConflictingProcesses "full_update_arlington_production.sh")
+	hasConflicts=$(checkConflictingProcesses "full_update.sh")
 	#If we did get a conflict, restart the loop to make sure that all tests run
 	if (($? != 0)); then
 		continue
@@ -93,7 +93,7 @@ do
 	#####
 	# Start of the actual indexing code
 	#####
-
++
 	#truncate the file
 	: > $OUTPUT_FILE;
 
