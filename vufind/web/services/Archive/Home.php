@@ -126,7 +126,17 @@ class Archive_Home extends Action{
 		}
 		$interface->assign('showExploreMore', false);
 		$interface->assign('relatedContentTypes', $relatedContentTypes);
+		$this->endExhibitContext();
 
 		parent::display('home.tpl', $library->displayName . ' Digital Collection');
 	}
+
+	protected function endExhibitContext()
+	{
+		$_SESSION['ExhibitContext']  = null;
+		$_SESSION['exhibitSearchId'] = null;
+		$_SESSION['placePid']        = null;
+		$_SESSION['dateFilter']      = null;
+	}
+
 }

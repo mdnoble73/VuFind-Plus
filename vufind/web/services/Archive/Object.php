@@ -31,6 +31,7 @@ abstract class Archive_Object extends Action {
 	function display($mainContentTemplate, $pageTitle = null) {
 		global $interface;
 		global $user;
+		global $logger;
 
 		$pageTitle = $pageTitle == null ? $this->archiveObject->label : $pageTitle;
 		$interface->assign('breadcrumbText', $pageTitle);
@@ -45,9 +46,13 @@ abstract class Archive_Object extends Action {
 			$this->endExhibitContext();
 		}
 		if ($isExhibitContext) {
+			$logger->log("In exhibit context, setting exhibit navigation", PEAR_LOG_DEBUG);
 			$this->setExhibitNavigation();
 		} elseif (isset($_SESSION['lastSearchURL'])) {
+			$logger->log("In search context, setting search navigation", PEAR_LOG_DEBUG);
 			$this->setArchiveSearchNavigation();
+		} else {
+			$logger->log("Not in any context, not setting navigation", PEAR_LOG_DEBUG);
 		}
 
 		//Check to see if usage is restricted or not.
@@ -281,16 +286,25 @@ abstract class Archive_Object extends Action {
 		}
 	}
 
-	private function endExhibitContext()
+	protected function endExhibitContext()
 	{
+		global $logger;
+		$logger->log("Ending exhibit context", PEAR_LOG_DEBUG);
 		$_SESSION['ExhibitContext']  = null;
 		$_SESSION['exhibitSearchId'] = null;
 		$_SESSION['placePid']        = null;
+		$_SESSION['placeLabel']      = null;
+		$_SESSION['dateFilter']      = null;
+		$_COOKIE['exhibitInAExhibitParentPid'] = null;
 	}
 
-	private function setExhibitNavigation()
+	/**
+	 *
+	 */
+	protected function setExhibitNavigation()
 	{
 		global $interface;
+		global $logger;
 
 		$interface->assign('isFromExhibit', true);
 
@@ -304,11 +318,43 @@ abstract class Archive_Object extends Action {
 			if (!empty($_SESSION['placeLabel'])) {
 				$exhibitName .= ' - ' . $_SESSION['placeLabel'];
 			}
+			$logger->log("Navigating from a map exhibit", PEAR_LOG_DEBUG);
+		}else{
+			$logger->log("Navigating from a NON map exhibit", PEAR_LOG_DEBUG);
 		}
+
+		//TODO: rename to template vars exhibitName and exhibitUrl;  does it affect other navigation contexts
+
 		$interface->assign('lastCollection', $exhibitUrl);
 		$interface->assign('collectionName', $exhibitName);
+		$isExhibit = get_class($this) == 'Archive_Exhibit';
+		if (!empty($_COOKIE['exhibitInAExhibitParentPid']) && $_COOKIE['exhibitInAExhibitParentPid'] == $_SESSION['ExhibitContext']) {
+			$_COOKIE['exhibitInAExhibitParentPid'] = null;
+		}
 
-		if (!empty($_SESSION['exhibitSearchId'])) {
+		if (!empty($_COOKIE['exhibitInAExhibitParentPid'])) {
+			/** @var CollectionDriver $parentExhibitObject */
+			$parentExhibitObject = RecordDriverFactory::initRecordDriver(array('PID' => $_COOKIE['exhibitInAExhibitParentPid']));
+			$parentExhibitUrl    = $parentExhibitObject->getLinkUrl();
+			$parentExhibitName   = $parentExhibitObject->getTitle();
+			$interface->assign('parentExhibitUrl', $parentExhibitUrl);
+			$interface->assign('parentExhibitName', $parentExhibitName);
+
+			if ($isExhibit) { // If this is a child exhibit page
+				//
+				$interface->assign('lastCollection', $parentExhibitUrl);
+				$interface->assign('collectionName', $parentExhibitName);
+				$parentExhibitObject->getNextPrevLinks($this->pid);
+			}
+		}
+		if (!empty($_COOKIE['collectionPid'])) {
+			$fedoraUtils = FedoraUtils::getInstance();
+			$collectionToLoadFromObject = $fedoraUtils->getObject($_COOKIE['collectionPid']);
+			/** @var CollectionDriver $collectionDriver */
+			$collectionDriver = RecordDriverFactory::initRecordDriver($collectionToLoadFromObject);
+			$collectionDriver->getNextPrevLinks($this->pid);
+
+		} elseif (!empty($_SESSION['exhibitSearchId']) && !$isExhibit) {
 			$recordIndex = isset($_COOKIE['recordIndex']) ? $_COOKIE['recordIndex'] : null;
 			$page        = isset($_COOKIE['page']) ? $_COOKIE['page'] : null;
 			// Restore Islandora Search
@@ -317,12 +363,16 @@ abstract class Archive_Object extends Action {
 			$searchObject->init('islandora');
 			$searchObject->getNextPrevLinks($_SESSION['exhibitSearchId'], $recordIndex, $page, $isMapExhibit);
 			// pass page and record index info
+			$logger->log("Setting exhibit navigation for exhibit {$_SESSION['ExhibitContext']} from search id {$_SESSION['exhibitSearchId']}", PEAR_LOG_DEBUG);
+		}else{
+			$logger->log("Exhibit search id was not provided", PEAR_LOG_DEBUG);
 		}
 	}
 
 	private function setArchiveSearchNavigation()
 	{
 		global $interface;
+		global $logger;
 		$interface->assign('lastsearch', isset($_SESSION['lastSearchURL']) ? $_SESSION['lastSearchURL'] : false);
 		$searchSource = isset($_REQUEST['searchSource']) ? $_REQUEST['searchSource'] : 'islandora';
 		//TODO: What if it ain't islandora? (direct navigation to archive object page)
@@ -330,6 +380,7 @@ abstract class Archive_Object extends Action {
 		$searchObject = SearchObjectFactory::initSearchObject('Islandora');
 		$searchObject->init($searchSource);
 		$searchObject->getNextPrevLinks();
+		$logger->log("Setting search navigation for archive search", PEAR_LOG_DEBUG);
 	}
 
 }

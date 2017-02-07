@@ -10112,6 +10112,45 @@ a.browse-thumbnail-sorted.active {
     border-radius: 3px;
   }
 }
+.search-results-navigation {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-orient: horizontal;
+  -webkit-box-direction: normal;
+      -ms-flex-direction: row;
+          flex-direction: row;
+  -webkit-box-pack: center;
+      -ms-flex-pack: center;
+          justify-content: center;
+  -webkit-box-align: center;
+      -ms-flex-align: center;
+          align-items: center;
+}
+.search-results-navigation .previous {
+  -webkit-box-flex: 1;
+      -ms-flex-positive: 1;
+          flex-grow: 1;
+  cursor: pointer;
+  white-space: nowrap;
+  text-align: right;
+}
+.search-results-navigation .return {
+  -webkit-box-flex: 3;
+      -ms-flex-positive: 3;
+          flex-grow: 3;
+  white-space: normal;
+  text-align: center;
+  padding-left: 2px;
+  padding-right: 2px;
+}
+.search-results-navigation .next {
+  white-space: nowrap;
+  cursor: pointer;
+  -webkit-box-flex: 1;
+      -ms-flex-positive: 1;
+          flex-grow: 1;
+}
 .graph-bar {
   background-color: #088ec6;
 }
@@ -10291,6 +10330,7 @@ a.browse-thumbnail-sorted.active {
 }
 #explore-more-body .thumbnail {
   height: 175px;
+  background-color: transparent;
 }
 #explore-more-body .relatedTitlesContainer {
   height: 175px;
@@ -10404,7 +10444,7 @@ a.browse-thumbnail-sorted.active {
 .exploreMoreBar .jcarousel-control-next,
 #book-sections .jcarousel-control-next {
   height: 100%;
-  background: #fff;
+  background-color: transparent;
   color: #00a4e3;
   z-index: 2;
   box-shadow: white 0px 0px 0px 0px;
@@ -10446,6 +10486,16 @@ a.browse-thumbnail-sorted.active {
 .exploreMoreBar .jcarousel-control-next,
 #book-sections .jcarousel-control-next {
   right: 2px;
+}
+#explore-more-body .panel-body,
+#relatedProjectScroller .panel-body,
+#relatedContentTypesContainer .panel-body,
+.exploreMoreBar .panel-body,
+#book-sections .panel-body {
+  background-color: transparent;
+}
+.exhibitPage.exploreMoreBar .jcarousel .thumbnail {
+  height: 200px;
 }
 #relatedProjectScroller .thumbnail,
 #relatedContentTypesContainer .thumbnail {

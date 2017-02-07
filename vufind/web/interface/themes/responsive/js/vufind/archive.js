@@ -6,6 +6,8 @@ VuFind.Archive = (function(){
 	date.setTime(date.getTime() + (1 /*days*/ * 24 * 60 * 60 * 1000));
 	expires = "; expires=" + date.toGMTString();
 	document.cookie = encodeURIComponent('exhibitNavigation') + "=" + encodeURIComponent(0) + expires + "; path=/";
+	document.cookie = encodeURIComponent('collectionPid') + "=" + encodeURIComponent('') + expires + "; path=/";
+	// document.cookie = encodeURIComponent('exhibitInAExhibitParentPid') + "=" + encodeURIComponent('') + expires + "; path=/";
 
 	return {
 		archive_map: null,
@@ -426,7 +428,14 @@ VuFind.Archive = (function(){
 			return false;
 		},
 
-		setForExhibitNavigation : function (recordIndex, page) {
+		setForExhibitInAExhibitNavigation : function (exhibitInAExhibitParentPid) {
+			var date = new Date();
+			date.setTime(date.getTime() + (1 /*days*/ * 24 * 60 * 60 * 1000));
+			expires = "; expires=" + date.toGMTString();
+			document.cookie = encodeURIComponent('exhibitInAExhibitParentPid') + "=" + encodeURIComponent(exhibitInAExhibitParentPid) + expires + "; path=/";
+		},
+
+		setForExhibitNavigation : function (recordIndex, page, collectionPid) {
 			var date = new Date();
 			date.setTime(date.getTime() + (1 /*days*/ * 24 * 60 * 60 * 1000));
 			expires = "; expires=" + date.toGMTString();
@@ -435,6 +444,9 @@ VuFind.Archive = (function(){
 			}
 			if (typeof page != 'undefined') {
 				document.cookie = encodeURIComponent('page') + "=" + encodeURIComponent(page) + expires + "; path=/";
+			}
+			if (typeof collectionPid != 'undefined') {
+				document.cookie = encodeURIComponent('collectionPid') + "=" + encodeURIComponent(collectionPid) + expires + "; path=/";
 			}
 			document.cookie = encodeURIComponent('exhibitNavigation') + "=" + encodeURIComponent(1) + expires + "; path=/";
 		},

@@ -2295,6 +2295,28 @@ public function getNextPrevLinks(){
 	public function setPrimarySearch($flag){
 		$this->isPrimarySearch = $flag;
 	}
+
+	public function convertBasicToAdvancedSearch(){
+
+		$searchTerms = $this->searchTerms;
+		$searchString = $searchTerms[0]['lookfor'];
+		$searchIndex = $searchTerms[0]['index'];
+
+		$this->searchTerms = array(
+				array(
+					'group' => array(
+							0 => array(
+								'field' => $searchIndex,
+								'lookfor' => $searchString,
+								'bool' => 'AND'
+							)
+					),
+					'join' => 'AND'
+				)
+		);
+
+		$this->searchType = 'advanced';
+	}
 }//End of SearchObject_Base
 
 /**
