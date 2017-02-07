@@ -830,15 +830,20 @@ class SearchObject_Islandora extends SearchObject_Base
 			}
 		}
 		foreach ($this->filterList as $field => $filter) {
-			foreach ($filter as $value) {
-				// Special case -- allow trailing wildcards:
-				if (substr($value, -1) == '*') {
-					$filterQuery[] = "$field:$value";
-				} elseif (preg_match('/\\A\\[.*?\\sTO\\s.*?]\\z/', $value)){
-					$filterQuery[] = "$field:$value";
-				} else {
-					if (!empty($value)){
-						$filterQuery[] = "$field:\"$value\"";
+			if (is_numeric($field)){
+				//This is a complex filter with ANDs and/or ORs
+				$filterQuery[] = $filter[0];
+			}else{
+				foreach ($filter as $value) {
+					// Special case -- allow trailing wildcards:
+					if (substr($value, -1) == '*') {
+						$filterQuery[] = "$field:$value";
+					} elseif (preg_match('/\\A\\[.*?\\sTO\\s.*?]\\z/', $value)){
+						$filterQuery[] = "$field:$value";
+					} else {
+						if (!empty($value)){
+							$filterQuery[] = "$field:\"$value\"";
+						}
 					}
 				}
 			}

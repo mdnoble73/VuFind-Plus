@@ -250,20 +250,11 @@ class Archive_AJAX extends Action {
 			$timeLineSetUp = false;
 			if (!empty($_SESSION['ExhibitContext']) && $_SESSION['ExhibitContext'] == $pid) {
 
-				if (!empty($_REQUEST['dateFilter'])) {
+				if (!empty($_REQUEST['dateFilter']) && $_REQUEST['dateFilter'] != 'all') {
 					$_SESSION['dateFilter'] = $_REQUEST['dateFilter']; // store applied date filters
-				} elseif (!empty($_SESSION['dateFilter'])) {
-					// Collect Time Range Info
-
-					$this->setupTimelineFacetsAndFilters($searchObject);
-					$response = $searchObject->processSearch(true, false);
-					$this->processTimelineData($response, $interface);
-					$timeLineSetUp = true;
-					$summary = $searchObject->getResultSummary();
-					$interface->assign('recordCount', $summary['resultTotal']);
-					$interface->assign('updateTimeLine', true);
-
-					$_REQUEST['dateFilter'] = $_SESSION['dateFilter']; // restore date filter
+				} else {
+					// Clear time data
+					unset($_SESSION['dateFilter']);
 				}
 			}
 			$this->setupTimelineFacetsAndFilters($searchObject);
@@ -751,32 +742,24 @@ class Archive_AJAX extends Action {
 	}
 
 	/**
-	 * @param $searchObject
+	 * @param SearchObject_Islandora $searchObject
 	 */
 	public function setupTimelineFacetsAndFilters($searchObject)
 	{
-		if (isset($_REQUEST['dateFilter'])) {
+		if (isset($_REQUEST['dateFilter']) && $_REQUEST['dateFilter'] != 'all') {
 
 			$filter = '';
-			foreach ($_REQUEST['dateFilter'] as $date) {
-				if (strlen($filter) > 0) {
-					$filter .= ' OR ';
-				}
-				if ($date == 'before1880') {
-					$filter .= "mods_originInfo_point_start_qualifier__dateCreated_dt:[* TO 1879-12-31T23:59:59Z] OR mods_originInfo_point_start_dateCreated_dt:[* TO 1879-12-31T23:59:59Z] OR mods_originInfo_qualifier_approximate_dateCreated_dt:[* TO 1879-12-31T23:59:59Z] OR mods_originInfo_qualifier_questionable_dateCreated_dt:[* TO 1879-12-31T23:59:59Z]";
-				} elseif ($date == 'unknown') {
-					$searchObject->addFilter('-mods_originInfo_point_start_qualifier__dateCreated_dt:[* TO *]');
-					$searchObject->addFilter('-mods_originInfo_point_start_dateCreated_dt:[* TO *]');
-					$searchObject->addFilter('-mods_originInfo_qualifier_approximate_dateCreated_dt:[* TO *]');
-					$searchObject->addFilter('-mods_originInfo_dateCreated_dt:[* TO *]');
-					$searchObject->addFilter('-mods_originInfo_qualifier_questionable_dateCreated_dt:[* TO *]');
-				} else {
-					$startYear = substr($date, 0, 4);
-					$endYear = (int)$startYear + 9;
-					$filter .= "mods_originInfo_dateCreated_dt:[$date TO $endYear-12-31T23:59:59Z] OR mods_originInfo_point_start_qualifier__dateCreated_dt:[$date TO $endYear-12-31T23:59:59Z] OR mods_originInfo_point_start_dateCreated_dt:[$date TO $endYear-12-31T23:59:59Z] OR mods_originInfo_qualifier_approximate_dateCreated_dt:[$date TO $endYear-12-31T23:59:59Z] OR mods_originInfo_qualifier_questionable_dateCreated_dt:[$date TO $endYear-12-31T23:59:59Z]";
-				}
-
+			$date = $_REQUEST['dateFilter'];
+			if ($date == 'before1880') {
+				$filter .= "(mods_originInfo_dateCreated_dt:[* TO 1879-12-31T23:59:59Z] OR mods_originInfo_point_start_qualifier__dateCreated_dt:[* TO 1879-12-31T23:59:59Z] OR mods_originInfo_point_start_dateCreated_dt:[* TO 1879-12-31T23:59:59Z] OR mods_originInfo_qualifier_approximate_dateCreated_dt:[* TO 1879-12-31T23:59:59Z] OR mods_originInfo_qualifier_questionable_dateCreated_dt:[* TO 1879-12-31T23:59:59Z])";
+			} elseif ($date == 'unknown') {
+				$filter .= '(-mods_originInfo_dateCreated_dt:[* TO *] AND -mods_originInfo_point_start_qualifier__dateCreated_dt:[* TO *] AND -mods_originInfo_point_start_dateCreated_dt:[* TO *] AND -mods_originInfo_qualifier_approximate_dateCreated_dt:[* TO *] AND -mods_originInfo_qualifier_questionable_dateCreated_dt:[* TO *])';
+			} else {
+				$startYear = substr($date, 0, 4);
+				$endYear = (int)$startYear + 9;
+				$filter .= "(mods_originInfo_dateCreated_dt:[$date TO $endYear-12-31T23:59:59Z] OR mods_originInfo_point_start_qualifier__dateCreated_dt:[$date TO $endYear-12-31T23:59:59Z] OR mods_originInfo_point_start_dateCreated_dt:[$date TO $endYear-12-31T23:59:59Z] OR mods_originInfo_qualifier_approximate_dateCreated_dt:[$date TO $endYear-12-31T23:59:59Z] OR mods_originInfo_qualifier_questionable_dateCreated_dt:[$date TO $endYear-12-31T23:59:59Z])";
 			}
+
 			if (strlen($filter)){
 				$searchObject->addFilter($filter);
 			}
@@ -979,13 +962,14 @@ class Archive_AJAX extends Action {
 				$totalFound += $dateFacet['count'];
 			}
 			$numUnknown = $response['response']['numFound'] - $totalFound;
-			if ($numUnknown > 0){
+			/*if ($numUnknown > 0){
 				$dateFacetInfo['Unknown'] = array(
 						'label' => 'Unknown',
 						'count' => $numUnknown,
 						'value' => 'unknown'
 				);
-			}
+			}*/
+			$interface->assign('numObjectsWithUnknownDate', $numUnknown);
 
 			ksort($dateFacetInfo);
 
