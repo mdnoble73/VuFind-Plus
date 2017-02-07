@@ -108,9 +108,9 @@ class MaterialsRequest_SummaryReport extends Admin_Admin {
 			$periodData[$periodStart->getTimestamp()] = array();
 			//Determine how many requests were created
 			$materialsRequest = new MaterialsRequest();
-			$materialsRequest->joinAdd(new User(), 'INNER', 'user');
+			$materialsRequest->joinAdd(new User(), 'INNER', 'user', 'createdBy');
 			$materialsRequest->selectAdd();
-			$materialsRequest->selectAdd('COUNT(id) as numRequests');
+			$materialsRequest->selectAdd('COUNT(materials_request.id) as numRequests');
 			$materialsRequest->whereAdd('dateCreated >= ' . $periodStart->getTimestamp() . ' AND dateCreated < ' . $periodEnd->getTimestamp());
 			if ($user->hasRole('library_material_requests')){
 				//Need to limit to only requests submitted for the user's home location
@@ -133,7 +133,7 @@ class MaterialsRequest_SummaryReport extends Admin_Admin {
 			//Get a list of all requests by the status of the request
 			$materialsRequest = new MaterialsRequest();
 			$materialsRequest->joinAdd(new MaterialsRequestStatus());
-			$materialsRequest->joinAdd(new User(), 'INNER', 'user');
+			$materialsRequest->joinAdd(new User(), 'INNER', 'user', 'createdBy');
 			$materialsRequest->selectAdd();
 			$materialsRequest->selectAdd('COUNT(materials_request.id) as numRequests,description');
 			$materialsRequest->whereAdd('dateUpdated >= ' . $periodStart->getTimestamp() . ' AND dateUpdated < ' . $periodEnd->getTimestamp());
