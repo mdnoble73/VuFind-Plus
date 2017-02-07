@@ -1,3 +1,5 @@
+{if 0} {* Hide Collection Navigation *}
+
 {strip}
 	{* Navigate search results from within the full record views *}
 	<div class="search-results-navigation">
@@ -60,3 +62,4 @@
 		{/if}
 	</div>
 {/strip}
+{/if}
