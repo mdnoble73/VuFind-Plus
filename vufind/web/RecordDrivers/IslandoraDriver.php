@@ -2199,6 +2199,11 @@ abstract class IslandoraDriver extends RecordInterface {
 			);
 		}
 
+		$collections = $this->getRelatedCollections();
+		foreach ($collections as $collection){
+			$collectionBranding = $collection['driver']->getBrandingInformation(true);
+			$brandingResults = array_merge($brandingResults, $collectionBranding);
+		}
 		return $brandingResults;
 	}
 

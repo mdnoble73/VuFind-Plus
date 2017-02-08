@@ -266,12 +266,7 @@ class ExploreMore {
 				}
 			}else{
 				//Display donor and contributor information
-				$brandingResults = $archiveDriver->getBrandingInformation();
-				$collections = $archiveDriver->getRelatedCollections();
-				foreach ($collections as $collection){
-					$collectionBranding = $collection['driver']->getBrandingInformation(true);
-					$brandingResults = array_merge($brandingResults, $collectionBranding);
-				}
+				$brandingResults = $archiveDriver->getBrandingInformation(false);
 
 				if (count($brandingResults) > 0){
 					//Sort and filter the acknowledgements
