@@ -9911,7 +9911,8 @@ a.browse-thumbnail-sorted.active {
   padding: 3px 0;
   margin-top: 20px;
 }
-.facetTitle {
+.facetTitle,
+.exploreMoreTitle {
   background-color: #e8e8e8;
   background: -webkit-linear-gradient(top, #e8e8e8, #d7d7d7);
   background: linear-gradient(to bottom, #e8e8e8, #d7d7d7);
@@ -10764,10 +10765,12 @@ fieldset[disabled] .btn-masquerade.active {
   background: -webkit-linear-gradient(top, #B5192B 0%, #D82538 100%);
   background: linear-gradient(to bottom, #B5192B 0%, #D82538 100%);
 }
-.facetTitle {
+.facetTitle,
+.exploreMoreTitle {
   background: #f8f8f8;
 }
-.facetTitle:hover {
+.facetTitle:hover,
+.exploreMoreTitle:hover {
   background-color: #9d162b;
   background: -webkit-linear-gradient(left center, #9d162b 0%, #d81f3c 100%);
   background: linear-gradient(left center, #9d162b 0%, #d81f3c 100%);

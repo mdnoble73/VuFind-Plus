@@ -9911,7 +9911,8 @@ a.browse-thumbnail-sorted.active {
   padding: 3px 0;
   margin-top: 20px;
 }
-.facetTitle {
+.facetTitle,
+.exploreMoreTitle {
   background-color: #e8e8e8;
   background: -webkit-linear-gradient(top, #e8e8e8, #d7d7d7);
   background: linear-gradient(to bottom, #e8e8e8, #d7d7d7);
@@ -10751,10 +10752,12 @@ fieldset[disabled] .btn-masquerade.active {
   color: #ebccff;
   background-color: #fff;
 }
-.facetTitle {
+.facetTitle,
+.exploreMoreTitle {
   background: #f8f8f8;
 }
-.facetTitle:hover {
+.facetTitle:hover,
+.exploreMoreTitle:hover {
   background-color: #df3737;
   background: -moz-linear-gradient(left center, #951529 0%, #df3737 100%);
   color: #fff;

@@ -9914,7 +9914,8 @@ a.browse-thumbnail-sorted.active {
   padding: 3px 0;
   margin-top: 20px;
 }
-.facetTitle {
+.facetTitle,
+.exploreMoreTitle {
   background-color: #e8e8e8;
   background: -webkit-linear-gradient(top, #e8e8e8, #d7d7d7);
   background: linear-gradient(to bottom, #e8e8e8, #d7d7d7);
@@ -11226,7 +11227,8 @@ span.results-sort-label {
   border-bottom: 1px solid #C0C0C0;
 }
 /* Facet headings - left menu search results */
-.facetTitle {
+.facetTitle,
+.exploreMoreTitle {
   background-color: #e4e4e4;
   background: #e4e4e4;
   color: #292929;

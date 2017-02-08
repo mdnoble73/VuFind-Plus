@@ -16,14 +16,12 @@
 
 			{* Clickable header for my account section *}
 			<a data-toggle="collapse"{* data-parent="#explore-more-accordion"*} href="#exploreMoreSideBar-{$sectionId}PanelBody">
-				<div class="panel-heading">
-					<div class="panel-title">
-						{if empty($exploreMoreSection->displayName)}
-							{$archiveSections[$sectionId]}
-						{else}
-							{$exploreMoreSection->displayName}
-						{/if}
-					</div>
+				<div class="panel-title exploreMoreTitle">
+					{if empty($exploreMoreSection->displayName)}
+						{$archiveSections[$sectionId]}
+					{else}
+						{$exploreMoreSection->displayName}
+					{/if}
 				</div>
 			</a>
 

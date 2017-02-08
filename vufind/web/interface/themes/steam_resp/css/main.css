@@ -9911,7 +9911,8 @@ a.browse-thumbnail-sorted.active {
   padding: 3px 0;
   margin-top: 20px;
 }
-.facetTitle {
+.facetTitle,
+.exploreMoreTitle {
   background-color: #e8e8e8;
   background: -webkit-linear-gradient(top, #e8e8e8, #d7d7d7);
   background: linear-gradient(to bottom, #e8e8e8, #d7d7d7);
@@ -10843,7 +10844,8 @@ fieldset[disabled] .btn-masquerade.active {
   background: -webkit-linear-gradient(top, #646510, #494A0C) repeat scroll 0 0 rgba(0, 0, 0, 0);
   background: linear-gradient(to bottom, #646510, #494A0C) repeat scroll 0 0 rgba(0, 0, 0, 0);
 }
-.facetTitle:hover {
+.facetTitle:hover,
+.exploreMoreTitle:hover {
   text-decoration: underline;
 }
 #explore-more-body .panel-body a {

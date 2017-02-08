@@ -2097,7 +2097,7 @@ abstract class IslandoraDriver extends RecordInterface {
 
 		$productionTeam = $this->getProductionTeam();
 		foreach ($productionTeam as $person){
-			if ($person['role'] == 'donor'){
+			if (stripos($person['role'], 'donor') !== false){
 				$brandingResults[] = array(
 						'label' => 'Donated by ' . $person['label'],
 						'image' => $person['image'],
@@ -2105,7 +2105,7 @@ abstract class IslandoraDriver extends RecordInterface {
 						'sortIndex' => $loadingCollectionData ? 6 : 2,
 						'pid' => $person['pid']
 				);
-			}elseif ($person['role'] == 'owner'){
+			}elseif (stripos($person['role'], 'owner') !== false){
 				$brandingResults[] = array(
 						'label' => 'Owned by ' . $person['label'],
 						'image' => $person['image'],
@@ -2113,7 +2113,7 @@ abstract class IslandoraDriver extends RecordInterface {
 						'sortIndex' => $loadingCollectionData ? 5 : 1,
 						'pid' => $person['pid']
 				);
-			}elseif ($person['role'] == 'funder'){
+			}elseif (stripos($person['role'], 'funder') !== false){
 				$brandingResults[] = array(
 						'label' => 'Funded by ' . $person['label'],
 						'image' => $person['image'],
@@ -2121,7 +2121,7 @@ abstract class IslandoraDriver extends RecordInterface {
 						'sortIndex' => $loadingCollectionData ? 7 : 3,
 						'pid' => $person['pid']
 				);
-			}elseif ($person['role'] == 'acknowledgement'){
+			}elseif (stripos($person['role'], 'acknowledgement') !== false){
 				$brandingResults[] = array(
 						'label' => '',
 						'image' => $person['image'],
@@ -2133,7 +2133,7 @@ abstract class IslandoraDriver extends RecordInterface {
 		}
 		$relatedOrganizations = $this->getRelatedOrganizations();
 		foreach ($relatedOrganizations as $organization){
-			if ($organization['role'] == 'donor'){
+			if (stripos($organization['role'],'donor') !== false){
 				$brandingResults[] = array(
 						'label' => 'Donated by ' . $organization['label'],
 						'image' => $organization['image'],
@@ -2141,7 +2141,7 @@ abstract class IslandoraDriver extends RecordInterface {
 						'sortIndex' => $loadingCollectionData ? 6 : 2,
 						'pid' => $organization['pid']
 				);
-			}elseif ($organization['role'] == 'owner'){
+			}elseif (stripos($organization['role'], 'owner') !== false){
 				$brandingResults[] = array(
 						'label' => 'Owned by ' . $organization['label'],
 						'image' => $organization['image'],
@@ -2149,7 +2149,7 @@ abstract class IslandoraDriver extends RecordInterface {
 						'sortIndex' => $loadingCollectionData ? 5 : 1,
 						'pid' => $organization['pid']
 				);
-			}elseif ($organization['role'] == 'funder'){
+			}elseif (stripos($organization['role'], 'funder') !== false){
 				$brandingResults[] = array(
 						'label' => 'Funded by ' . $organization['label'],
 						'image' => $organization['image'],
@@ -2157,7 +2157,7 @@ abstract class IslandoraDriver extends RecordInterface {
 						'sortIndex' => $loadingCollectionData ? 7 : 3,
 						'pid' => $organization['pid']
 				);
-			}elseif ($organization['role'] == 'acknowledgement'){
+			}elseif (stripos($organization['role'], 'acknowledgement') !== false){
 				$brandingResults[] = array(
 						'label' => '',
 						'image' => $organization['image'],
