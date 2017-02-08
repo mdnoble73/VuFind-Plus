@@ -99,6 +99,22 @@ class MaterialsRequest_SummaryReport extends Admin_Admin {
 		//Status 2
 		//Status 3
 		$periodData = array();
+
+		$locationsToRestrictTo = '';
+		if ($user->hasRole('library_material_requests')){
+			//Need to limit to only requests submitted for the user's home location
+			$userHomeLibrary = Library::getPatronHomeLibrary();
+			$locations = new Location();
+			$locations->libraryId = $userHomeLibrary->libraryId;
+			$locations->find();
+			$locationsForLibrary = array();
+			while ($locations->fetch()){
+				$locationsForLibrary[] = $locations->locationId;
+			}
+			$locationsToRestrictTo = implode(', ', $locationsForLibrary);
+
+		}
+
 		for ($i = 0; $i < count($periods) - 1; $i++){
 			/** @var DateTime $periodStart */
 			$periodStart = clone $periods[$i];
@@ -112,19 +128,10 @@ class MaterialsRequest_SummaryReport extends Admin_Admin {
 			$materialsRequest->selectAdd();
 			$materialsRequest->selectAdd('COUNT(materials_request.id) as numRequests');
 			$materialsRequest->whereAdd('dateCreated >= ' . $periodStart->getTimestamp() . ' AND dateCreated < ' . $periodEnd->getTimestamp());
-			if ($user->hasRole('library_material_requests')){
-				//Need to limit to only requests submitted for the user's home location
-				$userHomeLibrary = Library::getPatronHomeLibrary();
-				$locations = new Location();
-				$locations->libraryId = $userHomeLibrary->libraryId;
-				$locations->find();
-				$locationsForLibrary = array();
-				while ($locations->fetch()){
-					$locationsForLibrary[] = $locations->locationId;
-				}
-
-				$materialsRequest->whereAdd('user.homeLocationId IN (' . implode(', ', $locationsForLibrary) . ')');
+			if ($locationsToRestrictTo != ''){
+				$materialsRequest->whereAdd('user.homeLocationId IN (' . $locationsToRestrictTo . ')');
 			}
+
 			$materialsRequest->find();
 			while ($materialsRequest->fetch()){
 				$periodData[$periodStart->getTimestamp()]['Created'] = $materialsRequest->numRequests;
