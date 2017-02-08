@@ -103,10 +103,14 @@ class RecordDriverFactory {
 			require_once ROOT_DIR . '/sys/Islandora/IslandoraObjectCache.php';
 			$islandoraObjectCache = new IslandoraObjectCache();
 			$islandoraObjectCache->pid = $record['PID'];
+			$hasExistingCache = false;
+			$driver = '';
 			if ($islandoraObjectCache->find(true) && !isset($_REQUEST['reload'])){
 				$driver = $islandoraObjectCache->driverName;
 				$path = $islandoraObjectCache->driverPath;
-			}else {
+				$hasExistingCache = true;
+			}
+			if (empty($driver)){
 				if (!isset($record['RELS_EXT_hasModel_uri_s'])){
 					//print_r($record);
 					PEAR_Singleton::raiseError('Unable to load Driver for ' . $record['PID'] . " model did not exist");
@@ -146,12 +150,18 @@ class RecordDriverFactory {
 					//print_r($record);
 					PEAR_Singleton::raiseError('Unable to load Driver for ' . $recordType . " ($normalizedRecordType)");
 				}else{
-					$islandoraObjectCache = new IslandoraObjectCache();
-					$islandoraObjectCache->pid = $record['PID'];
+					if (!$hasExistingCache){
+						$islandoraObjectCache = new IslandoraObjectCache();
+						$islandoraObjectCache->pid = $record['PID'];
+					}
 					$islandoraObjectCache->driverName = $driver;
 					$islandoraObjectCache->driverPath = $path;
 					$islandoraObjectCache->title = $record['fgs_label_s'];
-					$islandoraObjectCache->insert();
+					if (!$hasExistingCache) {
+						$islandoraObjectCache->insert();
+					}else{
+						$islandoraObjectCache->update();
+					}
 				}
 			}
 			$timer->logTime("Found Driver for archive object from solr doc {$record['PID']} " . $driver);
