@@ -77,6 +77,10 @@ class Archive_Home extends Action{
 		$searchObject->addFacet('mods_genre_s');
 		$searchObject->setLimit(1);
 		$searchObject->setSort('fgs_label_s');
+
+		if ($library->hideAllCollectionsFromOtherLibraries){
+			$searchObject->addHiddenFilter('PID', $library->archiveNamespace . '*');
+		}
 		$timer->logTime('Setup Search');
 
 		$response = $searchObject->processSearch(true, true);

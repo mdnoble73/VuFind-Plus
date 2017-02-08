@@ -71,10 +71,12 @@ class ExploreMore {
 						'label' => 'See All Digital Archive Collections',
 						'link' => '/Archive/Home'
 					);
-					if (count($this->relatedCollections) > 0){
+
+					if (count($this->relatedCollections) > 1){ //Don't show if the only link is back to the All Collections page
+						$displayType = count($this->relatedCollections) > 3 ? 'textOnlyList' : 'list';
 						$exploreMoreSectionsToShow['relatedCollections'] = array(
 //								'title' => 'Related Archive Collections',
-								'format' => 'list',
+								'format' => $displayType,
 								'values' => $this->relatedCollections
 						);
 					}
@@ -96,10 +98,11 @@ class ExploreMore {
 					'label' => 'See All Digital Archive Collections',
 					'link' => '/Archive/Home'
 				);
-				if (count($this->relatedCollections) > 0){
+				if (count($this->relatedCollections) > 1){ //Don't show if the only link is back to the All Collections page
+					$displayType = count($this->relatedCollections) > 3 ? 'textOnlyList' : 'list';
 					$exploreMoreSectionsToShow['relatedCollections'] = array(
 //							'title' => 'Related Archive Collections',
-							'format' => 'list',
+							'format' => $displayType,
 							'values' => $this->relatedCollections
 					);
 				}
