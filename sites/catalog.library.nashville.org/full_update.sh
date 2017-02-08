@@ -39,7 +39,9 @@ OUTPUT_FILE="/var/log/vufind-plus/${PIKASERVER}/full_update_output.log"
 DAYOFWEEK=$(date +"%u")
 
 # JAMES set MIN 2016 11 03 actual extract size 825177201
-MINFILE1SIZE=$((825000000))
+# JAMES set MIN 2017 01 31 actual extract size 823662098
+# JAMES set MIN 2017 02 01 actual extract size 817883489
+MINFILE1SIZE=$((817800000))
 
 # determine whether this server is production or test
 CONFIG=/usr/local/VuFind-Plus/sites/${PIKASERVER}/conf/config.pwd.ini

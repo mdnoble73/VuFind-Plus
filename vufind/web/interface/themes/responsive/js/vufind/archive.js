@@ -104,7 +104,7 @@ VuFind.Archive = (function(){
 			this.curPage = this.curPage +1;
 			var url = Globals.path + "/Archive/AJAX?method=getRelatedObjectsForMappedCollection&collectionId=" + exhibitPid + "&placeId=" + placePid + "&page=" + this.curPage + "&sort=" + this.sort;
 			$("input[name=dateFilter]:checked").each(function(){
-				url = url + "&dateFilter[]="+$(this).val();
+				url = url + "&dateFilter="+$(this).val();
 			});
 			url = url + "&reloadHeader=0";
 
@@ -119,7 +119,7 @@ VuFind.Archive = (function(){
 			this.curPage = this.curPage +1;
 			var url = Globals.path + "/Archive/AJAX?method=getRelatedObjectsForTimelineExhibit&collectionId=" + exhibitPid + "&page=" + this.curPage + "&sort=" + this.sort;
 			$("input[name=dateFilter]:checked").each(function(){
-				url = url + "&dateFilter[]="+$(this).val();
+				url = url + "&dateFilter="+$(this).val();
 			});
 			url = url + "&reloadHeader=0";
 
@@ -232,7 +232,7 @@ VuFind.Archive = (function(){
 			this.curPage = 1;
 			var url = Globals.path + "/Archive/AJAX?method=getRelatedObjectsForMappedCollection&collectionId=" + exhibitPid + "&placeId=" + placePid + "&page=" + this.curPage + "&sort=" + this.sort;
 			$("input[name=dateFilter]:checked").each(function(){
-				url = url + "&dateFilter[]="+$(this).val();
+				url = url + "&dateFilter="+$(this).val();
 			});
 			url = url + "&reloadHeader=" + reloadHeader;
 
@@ -253,7 +253,7 @@ VuFind.Archive = (function(){
 			this.curPage = 1;
 			var url = Globals.path + "/Archive/AJAX?method=getRelatedObjectsForTimelineExhibit&collectionId=" + exhibitPid + "&page=" + this.curPage + "&sort=" + this.sort;
 			$("input[name=dateFilter]:checked").each(function(){
-				url = url + "&dateFilter[]="+$(this).val();
+				url = url + "&dateFilter="+$(this).val();
 			});
 			url = url + "&reloadHeader=" + reloadHeader;
 

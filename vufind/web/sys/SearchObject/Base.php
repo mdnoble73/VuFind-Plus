@@ -165,6 +165,10 @@ abstract class SearchObject_Base
 	 */
 	protected function parseFilter($filter)
 	{
+		if ((strpos($filter, ' AND ') !== FALSE) || (strpos($filter, ' OR ') !== FALSE)){
+			//This is a complex filter that does not need parsing
+			return array('', $filter);
+		}
 		// Split the string
 		$temp = explode(':', $filter);
 		// $field is the first value
@@ -240,6 +244,9 @@ abstract class SearchObject_Base
 	{
 		// Extract field and value from URL string:
 		list($field, $value) = $this->parseFilter($newFilter);
+		if ($field == ''){
+			$field = count($this->filterList);
+		}
 
 		$searchLibrary = Library::getActiveLibrary();
 		global $locationSingleton;
