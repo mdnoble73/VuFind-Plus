@@ -85,7 +85,7 @@
 55 2 1 * * /home/cassini/cron/western_goldrush.exp /data/vufind-plus/marmot.test/split_marc/western_goldrush.marc
 #
 # sftp ccu goldrush marc records to coalliance.org at 2.55 (use 20 min interval)
-55 2 1 * * /home/cassini/cron/ccu_goldrush.exp /data/vufind-plus/marmot.test/split_marc/western_goldrush.marc
+55 2 1 * * /home/cassini/cron/ccu_goldrush.exp /data/vufind-plus/marmot.test/split_marc/ccu_goldrush.marc
 #
 # sftp cmu goldrush marc records to coalliance.org at 3.15 (use 20 min interval)
 35 3 1 * * /home/cassini/cron/cmu_goldrush.exp /data/vufind-plus/marmot.test/split_marc/cmu_goldrush.marc
