@@ -29,8 +29,9 @@
 }
 #explore-more-body{
 
-  margin-left: floor(-@grid-gutter-width / 2); // undo padding of parent #sidebar-content with negative margin
-  padding-left: @padding-small-horizontal; // add smaller padding
+  // No longer needed now that an accordion is in place
+  //margin-left: floor(-@grid-gutter-width / 2); // undo padding of parent #sidebar-content with negative margin
+  //padding-left: @padding-small-horizontal; // add smaller padding
 
   .sectionHeader {
     text-transform: uppercase;
@@ -60,6 +61,7 @@
 
   .thumbnail{
     height: 175px;
+    background-color: transparent;
   }
 
   .relatedTitlesContainer {
@@ -185,7 +187,9 @@
 
   .jcarousel-control-prev, .jcarousel-control-next {
     height: 100%;
-    background: @content-bg;
+    //background: @content-bg;
+    //background-color: @explore-more-sidebar-body-bg-color;
+    background-color: transparent;
     color: @explore-more-bar-label-bg-color;
     z-index: 2; // keep above carousel content
     box-shadow: white 0px 0px 0px 0px;
@@ -204,6 +208,19 @@
     right: 2px;
   }
 
+  // Acordion Styling
+  .panel-body {
+    background-color: transparent;
+    //background-color: @explore-more-sidebar-body-bg-color; // override standard accordion background color
+  }
+}
+
+.exhibitPage.exploreMoreBar {
+  .jcarousel {
+    .thumbnail {
+      height: 200px; // increased for adams department names can show.  Negative effect elesewhere? (if so, do overide on adams theme only)
+    }
+  }
 }
 
 #relatedProjectScroller .thumbnail, #relatedContentTypesContainer .thumbnail{

@@ -15,7 +15,7 @@ PIKADBNAME=pika
 OUTPUT_FILE="/var/log/vufind-plus/${PIKASERVER}/full_update_output.log"
 
 MINFILE1SIZE=$((650000000))
-MINFILE2SIZE=$((45000000))
+MINFILE2SIZE=$((588000000))
 
 # Check for conflicting processes currently running
 function checkConflictingProcesses() {

@@ -39,7 +39,9 @@ OUTPUT_FILE="/var/log/vufind-plus/${PIKASERVER}/full_update_output.log"
 DAYOFWEEK=$(date +"%u")
 
 # JAMES set MIN 2016 11 03 actual extract size 825177201
-MINFILE1SIZE=$((825000000))
+# JAMES set MIN 2017 01 31 actual extract size 823662098
+# JAMES set MIN 2017 02 01 actual extract size 817883489
+MINFILE1SIZE=$((817800000))
 
 # determine whether this server is production or test
 CONFIG=/usr/local/VuFind-Plus/sites/${PIKASERVER}/conf/config.pwd.ini
@@ -100,7 +102,7 @@ tar -czf /data/vufind-plus/${PIKASERVER}/solr_master_backup.tar.gz /data/vufind-
 rm /data/vufind-plus/${PIKASERVER}/grouped_work_primary_identifiers.sql
 
 #Restart Solr
-cd /usr/local/vufind-plus/sites/${PIKASERVER}; ./${PIKASERVER}.sh restart >> ${OUTPUT_FILE}
+cd /usr/local/vufind-plus/sites/${PIKASERVER}; ./${PIKASERVER}.sh restart
 
 #Extracts from sideloaded eContent; log defined in config.pwd.ini [Sideload]
 # Problems with full_update starting late 201608: James moved sideload.sh
@@ -193,7 +195,7 @@ find /var/log/vufind-plus/solr -name "solr_log_*" -mtime +7 -delete
 find /var/log/vufind-plus/solr -name "solr_gc_log_*" -mtime +7 -delete
 
 #Restart Solr
-cd /usr/local/vufind-plus/sites/${PIKASERVER}; ./${PIKASERVER}.sh restart >> ${OUTPUT_FILE}
+cd /usr/local/vufind-plus/sites/${PIKASERVER}; ./${PIKASERVER}.sh restart
 
 #Delete Zinio Covers
 cd /usr/local/vufind-plus/vufind/cron; ./zinioDeleteCovers.sh ${PIKASERVER}

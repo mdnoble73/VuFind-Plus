@@ -39,9 +39,9 @@ class Archive_Page extends Archive_Object{
 		if ($pageObject->getDataStream('PDF') != null){
 			$page['pdf'] = $objectUrl . '/' . $page['pid'] . '/datastream/PDF/view';
 		}
-		if ($pageObject->getDataStream('HOCR') != null){
+		if ($pageObject->getDataStream('HOCR') != null && $pageObject->getDataStream('HOCR')->size > 1){
 			$page['transcript'] = $objectUrl . '/' . $page['pid'] . '/datastream/HOCR/view';
-		}elseif ($pageObject->getDataStream('OCR') != null){
+		}elseif ($pageObject->getDataStream('OCR') != null && $pageObject->getDataStream('OCR')->size > 1){
 			$page['transcript'] = $objectUrl . '/' . $page['pid'] . '/datastream/OCR/view';
 		}else{
 			$mods = $fedoraUtils->getModsData($pageObject);

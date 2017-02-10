@@ -35,7 +35,7 @@
 #####################
 # Daily full update #
 #####################
-00 04 3-30/3 * * cd /usr/local/vufind-plus/sites/santafe.test; ./full_update.sh
+00 04 * * * cd /usr/local/vufind-plus/sites/santafe.test; ./full_update.sh
 
 ######################
 # MySQL Nightly Dump #
@@ -55,7 +55,7 @@
 # Data Extract from other systems #
 ###################################
 # Library supplied covers
-53 5 * * * /usr/local/vufind-plus/sites/santafe.test/copyCovers.sh
+29 5 * * * /usr/local/vufind-plus/sites/santafe.test/copyCovers.sh
 
 ############################################
 # New York Times Bestseller Lists Updating #

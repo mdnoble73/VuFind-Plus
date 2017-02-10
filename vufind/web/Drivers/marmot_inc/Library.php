@@ -277,6 +277,10 @@ class Library extends DB_DataObject
 		unset($materialsRequestFormatsStructure['libraryId']); //needed?
 		unset($materialsRequestFormatsStructure['weight']);
 
+		$archiveExploreMoreBarStructure = ArchiveExploreMoreBar::getObjectStructure();
+		unset($materialsRequestFormatsStructure['libraryId']); //needed?
+		unset($materialsRequestFormatsStructure['weight']);
+
 		$materialsRequestFormFieldsStructure = MaterialsRequestFormFields::getObjectStructure();
 		unset($materialsRequestFormFieldsStructure['libraryId']); //needed?
 		unset($materialsRequestFormFieldsStructure['weight']);
@@ -472,6 +476,17 @@ class Library extends DB_DataObject
 						'storeDb' => true,
 						'allowEdit' => true,
 						'canEdit' => true,
+						'additionalOneToManyActions' => array(
+							array(
+								'text' => 'Copy Library Facets',
+								'url' => '/Admin/Libraries?id=$id&amp;objectAction=copyFacetsFromLibrary',
+							),
+							array(
+								'text' => 'Reset Facets To Default',
+								'url' => '/Admin/Libraries?id=$id&amp;objectAction=resetFacetsToDefault',
+								'class' => 'btn-warning',
+							),
+						)
 					),
 				)),
 
@@ -531,6 +546,13 @@ class Library extends DB_DataObject
 						'storeDb' => true,
 						'allowEdit' => true,
 						'canEdit' => true,
+						'additionalOneToManyActions' => array(
+							0 => array(
+								'text' => 'Reset More Details To Default',
+								'url' => '/Admin/Libraries?id=$id&amp;objectAction=resetMoreDetailsToDefault',
+								'class' => 'btn-warning',
+							)
+						)
 				),
 			)),
 
@@ -605,6 +627,13 @@ class Library extends DB_DataObject
 					'storeDb'       => true,
 					'allowEdit'     => false,
 					'canEdit'       => false,
+					'additionalOneToManyActions' => array(
+						0 => array(
+							'text' => 'Set Materials Request Formats To Default',
+							'url' => '/Admin/Libraries?id=$id&amp;objectAction=defaultMaterialsRequestFormats',
+							'class' => 'btn-warning',
+						)
+					)
 				),
 
 				'materialsRequestFormFields' => array(
@@ -620,6 +649,13 @@ class Library extends DB_DataObject
 					'storeDb'       => true,
 					'allowEdit'     => false,
 					'canEdit'       => false,
+					'additionalOneToManyActions' => array(
+						0 => array(
+							'text' => 'Set Materials Request Form Structure To Default',
+							'url' => '/Admin/Libraries?id=$id&amp;objectAction=defaultMaterialsRequestForm',
+								'class' => 'btn-warning',
+						)
+					)
 				),
 
 			)),
@@ -664,6 +700,30 @@ class Library extends DB_DataObject
 					'archiveRequestMaterialsHeader' => array('property'=>'archiveRequestMaterialsHeader', 'type'=>'html', 'label'=>'Archive Request Header Text', 'description'=>'The text to be shown above the form for requests of copies for archive materials'),
 					'claimAuthorshipHeader' => array('property'=>'claimAuthorshipHeader', 'type'=>'html', 'label'=>'Claim Authorship Header Text', 'description'=>'The text to be shown above the form when people try to claim authorship of archive materials'),
 					'archiveRequestEmail' => array('property'=>'archiveRequestEmail', 'type'=>'email', 'label'=>'Email to send archive requests to', 'description'=>'The email address to send requests for archive materials to', 'hideInLists' => true),
+
+					'exploreMoreBar' => array(
+						'property'      => 'exploreMoreBar',
+						'type'          => 'oneToMany',
+						'label'         => 'Archive Explore More Bar Configuration',
+						'description'   => 'Control the order of Explore More Sections and if they are open by default',
+						'keyThis'       => 'libraryId',
+						'keyOther'      => 'libraryId',
+						'subObjectType' => 'ArchiveExploreMoreBar',
+						'structure'     => $archiveExploreMoreBarStructure,
+						'sortable'      => true,
+						'storeDb'       => true,
+						'allowEdit'     => false,
+						'canEdit'       => false,
+						'additionalOneToManyActions' => array(
+							0 => array(
+								'text'  => 'Set Archive Explore More Options To Default',
+								'url'   => '/Admin/Libraries?id=$id&amp;objectAction=defaultArchiveExploreMoreOptions',
+								'class' => 'btn-warning',
+							)
+						)
+					),
+
+
 			)),
 
 			'edsSection' => array('property'=>'edsSection', 'type' => 'section', 'label' =>'EBSCO EDS', 'hideInLists' => true, 'properties' => array(
@@ -1020,6 +1080,19 @@ class Library extends DB_DataObject
 				}
 				return $this->materialsRequestFormFields;
 			}
+		}elseif ($name == 'exploreMoreBar') {
+			if (!isset($this->exploreMoreBar) && $this->libraryId) {
+				$this->exploreMoreBar = array();
+				$exploreMoreBar = new ArchiveExploreMoreBar();
+				$exploreMoreBar->libraryId = $this->libraryId;
+				$exploreMoreBar->orderBy('weight');
+				if ($exploreMoreBar->find()) {
+					while ($exploreMoreBar->fetch()) {
+						$this->exploreMoreBar[$exploreMoreBar->id] = clone $exploreMoreBar;
+					}
+				}
+				return $this->exploreMoreBar;
+			}
 		}elseif ($name == 'patronNameDisplayStyle'){
 			return $this->patronNameDisplayStyle;
 		}else{
@@ -1050,6 +1123,8 @@ class Library extends DB_DataObject
 			$this->materialsRequestFormats = $value;
 		}elseif ($name == 'materialsRequestFormFields') {
 			$this->materialsRequestFormFields = $value;
+		}elseif ($name == 'exploreMoreBar') {
+			$this->exploreMoreBar = $value;
 		}elseif ($name == 'patronNameDisplayStyle'){
 			if ($this->patronNameDisplayStyle != $value){
 				$this->patronNameDisplayStyle = $value;
@@ -1114,6 +1189,7 @@ class Library extends DB_DataObject
 			$this->saveLibraryTopLinks();
 			$this->saveBrowseCategories();
 			$this->saveMoreDetailsOptions();
+			$this->saveExploreMoreBar();
 		}
 		if ($this->patronNameDisplayStyleChanged){
 			$libraryLocations = new Location();
@@ -1161,155 +1237,77 @@ class Library extends DB_DataObject
 			$this->saveLibraryTopLinks();
 			$this->saveBrowseCategories();
 			$this->saveMoreDetailsOptions();
+			$this->saveExploreMoreBar();
 		}
 		return $ret;
 	}
 
 	public function saveBrowseCategories(){
 		if (isset ($this->browseCategories) && is_array($this->browseCategories)){
-			/** @var LibraryBrowseCategory[] $browseCategories */
-			foreach ($this->browseCategories as $libraryBrowseCategory){
-				if (isset($libraryBrowseCategory->deleteOnSave) && $libraryBrowseCategory->deleteOnSave == true){
-					$libraryBrowseCategory->delete();
-				}else{
-					if (isset($libraryBrowseCategory->id) && is_numeric($libraryBrowseCategory->id)){
-						$libraryBrowseCategory->update();
-					}else{
-						$libraryBrowseCategory->libraryId = $this->libraryId;
-						$libraryBrowseCategory->insert();
-					}
-				}
-			}
+			$this->saveOneToManyOptions($this->browseCategories);
 			unset($this->browseCategories);
 		}
 	}
 
 	public function clearBrowseCategories(){
-		$browseCategories = new LibraryBrowseCategory();
-		$browseCategories->libraryId = $this->libraryId;
-		$browseCategories->delete();
+		$this->clearOneToManyOptions('LibraryBrowseCategory');
 		$this->browseCategories = array();
 	}
 
 	public function saveLibraryLinks(){
 		if (isset ($this->libraryLinks) && is_array($this->libraryLinks)){
-			/** @var LibraryLink[] $libraryLinks */
-			foreach ($this->libraryLinks as $libraryLink){
-				if (isset($libraryLink->deleteOnSave) && $libraryLink->deleteOnSave == true){
-					$libraryLink->delete();
-				}else{
-					if (isset($libraryLink->id) && is_numeric($libraryLink->id)){
-						$libraryLink->update();
-					}else{
-						$libraryLink->libraryId = $this->libraryId;
-						$libraryLink->insert();
-					}
-				}
-			}
+			$this->saveOneToManyOptions($this->libraryLinks);
 			unset($this->libraryLinks);
 		}
 	}
 
 	public function clearLibraryLinks(){
-		$libraryLinks = new LibraryLink();
-		$libraryLinks->libraryId = $this->libraryId;
-		$libraryLinks->delete();
+		$this->clearOneToManyOptions('LibraryLink');
 		$this->libraryLinks = array();
 	}
 
 	public function saveLibraryTopLinks(){
 		if (isset ($this->libraryTopLinks) && is_array($this->libraryTopLinks)){
-			/** @var LibraryTopLinks[] $libraryTopLinks */
-			foreach ($this->libraryTopLinks as $libraryLink){
-				if (isset($libraryLink->deleteOnSave) && $libraryLink->deleteOnSave == true){
-					$libraryLink->delete();
-				}else{
-					if (isset($libraryLink->id) && is_numeric($libraryLink->id)){
-						$libraryLink->update();
-					}else{
-						$libraryLink->libraryId = $this->libraryId;
-						$libraryLink->insert();
-					}
-				}
-			}
+			$this->saveOneToManyOptions($this->libraryTopLinks);
 			unset($this->libraryTopLinks);
 		}
 	}
 
 	public function clearLibraryTopLinks(){
-		$libraryTopLinks = new LibraryTopLinks();
-		$libraryTopLinks->libraryId = $this->libraryId;
-		$libraryTopLinks->delete();
+		$this->clearOneToManyOptions('LibraryTopLinks');
 		$this->libraryTopLinks = array();
 	}
 
 	public function saveRecordsOwned(){
 		if (isset ($this->recordsOwned) && is_array($this->recordsOwned)){
-			/** @var LibraryRecordOwned $object */
-			foreach ($this->recordsOwned as $object){
-				if (isset($object->deleteOnSave) && $object->deleteOnSave == true){
-					$object->delete();
-				}else{
-					if (isset($object->id) && is_numeric($object->id)){
-						$object->update();
-					}else{
-						$object->libraryId = $this->libraryId;
-						$object->insert();
-					}
-				}
-			}
+			$this->saveOneToManyOptions($this->recordsOwned);
 			unset($this->recordsOwned);
 		}
 	}
 
 	public function clearRecordsOwned(){
-		$object = new LibraryRecordOwned();
-		$object->libraryId = $this->libraryId;
-		$object->delete();
+		$this->clearOneToManyOptions('LibraryRecordOwned');
 		$this->recordsOwned = array();
 	}
 
 	public function saveRecordsToInclude(){
 		if (isset ($this->recordsToInclude) && is_array($this->recordsToInclude)){
-			/** @var LibraryRecordOwned $object */
-			foreach ($this->recordsToInclude as $object){
-				if (isset($object->deleteOnSave) && $object->deleteOnSave == true){
-					$object->delete();
-				}else{
-					if (isset($object->id) && is_numeric($object->id)){
-						$object->update();
-					}else{
-						$object->libraryId = $this->libraryId;
-						$object->insert();
-					}
-				}
-			}
+			$this->saveOneToManyOptions($this->recordsToInclude);
 			unset($this->recordsToInclude);
 		}
 	}
 
 	public function clearRecordsToInclude(){
-		$object = new LibraryRecordToInclude();
-		$object->libraryId = $this->libraryId;
-		$object->delete();
+		$this->clearOneToManyOptions('LibraryRecordToInclude');
+//		$object = new LibraryRecordToInclude();
+//		$object->libraryId = $this->libraryId;
+//		$object->delete();
 		$this->recordsToInclude = array();
 	}
 
 	public function saveManagematerialsRequestFieldsToDisplay(){
 		if (isset ($this->materialsRequestFieldsToDisplay) && is_array($this->materialsRequestFieldsToDisplay)){
-			/** @var MaterialsRequestFieldsToDisplay $object */
-			foreach ($this->materialsRequestFieldsToDisplay as $object){
-				if (isset($object->deleteOnSave) && $object->deleteOnSave == true){
-					$object->delete();
-				}else{
-					if (isset($object->id) && is_numeric($object->id)){ // (negative ids need processed with insert)
-						$object->update();
-					}else{
-						$object->libraryId = $this->libraryId;
-						$object->insert();
-					}
-				}
-			}
+			$this->saveOneToManyOptions($this->materialsRequestFieldsToDisplay);
 			unset($this->materialsRequestFieldsToDisplay);
 		}
 	}
@@ -1341,104 +1339,82 @@ class Library extends DB_DataObject
 
 	public function saveMaterialsRequestFormFields(){
 		if (isset ($this->materialsRequestFormFields) && is_array($this->materialsRequestFormFields)){
-			/** @var MaterialsRequestFormFields $object */
-			foreach ($this->materialsRequestFormFields as $object){
-				if (isset($object->deleteOnSave) && $object->deleteOnSave == true){
-					$object->delete();
-				}else{
-					if (isset($object->id) && is_numeric($object->id)){ // (negative ids need processed with insert)
-						$object->update();
-					}else{
-						$object->libraryId = $this->libraryId;
-						$object->insert();
-					}
-				}
-			}
+			$this->saveOneToManyOptions($this->materialsRequestFormFields);
 			unset($this->materialsRequestFormFields);
 		}
 	}
 
-	public function saveMoreDetailsOptions(){
-		if (isset ($this->moreDetailsOptions) && is_array($this->moreDetailsOptions)){
-			/** @var LibraryMoreDetails $options */
-			foreach ($this->moreDetailsOptions as $options){
-				if (isset($options->deleteOnSave) && $options->deleteOnSave == true){
-					$options->delete();
+	private function saveOneToManyOptions($oneToManySettings) {
+		foreach ($oneToManySettings as $oneToManyDBObject){
+			if (isset($oneToManyDBObject->deleteOnSave) && $oneToManyDBObject->deleteOnSave == true){
+				$oneToManyDBObject->delete();
+			}else{
+				if (isset($oneToManyDBObject->id) && is_numeric($oneToManyDBObject->id)){ // (negative ids need processed with insert)
+					$oneToManyDBObject->update();
 				}else{
-					if (isset($options->id) && is_numeric($options->id)){
-						$options->update();
-					}else{
-						$options->libraryId = $this->libraryId;
-						$options->insert();
-					}
+					$oneToManyDBObject->libraryId = $this->libraryId;
+					$oneToManyDBObject->insert();
 				}
 			}
+		}
+	}
+
+	private function clearOneToManyOptions($oneToManyDBObjectClassName) {
+		$oneToManyDBObject = new $oneToManyDBObjectClassName();
+		$oneToManyDBObject->libraryId = $this->libraryId;
+		$oneToManyDBObject->delete();
+
+	}
+
+	private function saveExploreMoreBar() {
+		if (isset ($this->exploreMoreBar) && is_array($this->exploreMoreBar)){
+			$this->saveOneToManyOptions($this->exploreMoreBar);
+			unset($this->exploreMoreBar);
+		}
+	}
+
+	public function clearExploreMoreBar(){
+		$this->clearOneToManyOptions('ArchiveExploreMoreBar');
+		$this->exploreMoreBar = array();
+	}
+
+	public function saveMoreDetailsOptions(){
+		if (isset ($this->moreDetailsOptions) && is_array($this->moreDetailsOptions)){
+			$this->saveOneToManyOptions($this->moreDetailsOptions);
 			unset($this->moreDetailsOptions);
 		}
 	}
 
 	public function clearMoreDetailsOptions(){
-		$options = new LibraryMoreDetails();
-		$options->libraryId = $this->libraryId;
-		$options->delete();
+		$this->clearOneToManyOptions('LibraryMoreDetails');
 		$this->moreDetailsOptions = array();
 	}
 
 	public function clearMaterialsRequestFormFields(){
-		$formFields = new MaterialsRequestFormFields();
-		$formFields->libraryId = $this->libraryId;
-		$formFields->delete();
+		$this->clearOneToManyOptions('MaterialsRequestFormFields');
 		$this->materialsRequestFormFields = array();
 	}
 
 	public function clearMaterialsRequestFormats(){
-		$requestFormats = new MaterialsRequestFormats();
-		$requestFormats->libraryId = $this->libraryId;
-		$requestFormats->delete();
+		$this->clearOneToManyOptions('MaterialsRequestFormats');
 		$this->materialsRequestFormats = array();
 	}
 
 	public function saveFacets(){
 		if (isset ($this->facets) && is_array($this->facets)){
-			/** @var LibraryFacetSetting $facet */
-			foreach ($this->facets as $facet){
-				if (isset($facet->deleteOnSave) && $facet->deleteOnSave == true){
-					$facet->delete();
-				}else{
-					if (isset($facet->id) && is_numeric($facet->id)){
-						$facet->update();
-					}else{
-						$facet->libraryId = $this->libraryId;
-						$facet->insert();
-					}
-				}
-			}
+			$this->saveOneToManyOptions($this->facets);
 			unset($this->facets);
 		}
 	}
 
 	public function clearFacets(){
-		$facets = new LibraryFacetSetting();
-		$facets->libraryId = $this->libraryId;
-		$facets->delete();
+		$this->clearOneToManyOptions('LibraryFacetSetting');
 		$this->facets = array();
 	}
 
 	public function saveHolidays(){
 		if (isset ($this->holidays) && is_array($this->holidays)){
-			/** @var Holiday $holiday */
-			foreach ($this->holidays as $holiday){
-				if (isset($holiday->deleteOnSave) && $holiday->deleteOnSave == true){
-					$holiday->delete();
-				}else{
-					if (isset($holiday->id) && is_numeric($holiday->id)){
-						$holiday->update();
-					}else{
-						$holiday->libraryId = $this->libraryId;
-						$holiday->insert();
-					}
-				}
-			}
+			$this->saveOneToManyOptions($this->holidays);
 			unset($this->holidays);
 		}
 	}

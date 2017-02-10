@@ -29,6 +29,9 @@ require_once ROOT_DIR . '/sys/Recommend/RecommendationFactory.php';
  */
 abstract class SearchObject_Base
 {
+	// Parsed query
+	protected $query = null;
+
 	// SEARCH PARAMETERS
 	// RSS feed?
 	protected $view = null;
@@ -162,6 +165,10 @@ abstract class SearchObject_Base
 	 */
 	protected function parseFilter($filter)
 	{
+		if ((strpos($filter, ' AND ') !== FALSE) || (strpos($filter, ' OR ') !== FALSE)){
+			//This is a complex filter that does not need parsing
+			return array('', $filter);
+		}
 		// Split the string
 		$temp = explode(':', $filter);
 		// $field is the first value
@@ -178,6 +185,30 @@ abstract class SearchObject_Base
 		// Send back the results:
 		return array($field, $value);
 	}
+
+	/**
+	 * @return string
+	 */
+	public function getSearchSource()
+	{
+		return $this->searchSource;
+	}
+
+	/**
+	 * @return array
+	 */
+	public function getHiddenFilters()
+	{
+		return $this->hiddenFilters;
+	}
+
+//	/**
+//	 * @return array
+//	 */
+//	public function getFacetConfig()
+//	{
+//		return $this->facetConfig;
+//	}
 
 	/**
 	 * Does the object already contain the specified filter?
@@ -213,6 +244,9 @@ abstract class SearchObject_Base
 	{
 		// Extract field and value from URL string:
 		list($field, $value) = $this->parseFilter($newFilter);
+		if ($field == ''){
+			$field = count($this->filterList);
+		}
 
 		$searchLibrary = Library::getActiveLibrary();
 		global $locationSingleton;
@@ -1095,6 +1129,7 @@ abstract class SearchObject_Base
 	public function getRawSuggestions() {return $this->suggestions;}
 	public function getResultTotal()    {return $this->resultsTotal;}
 	public function getSearchId()       {return $this->searchId;}
+	public function getQuery()          {return $this->query;}
 	public function getSearchTerms()    {return $this->searchTerms;}
 	public function getSearchType()     {return $this->searchType;}
 	public function getSort()           {return $this->sort;}
@@ -1391,6 +1426,9 @@ abstract class SearchObject_Base
 		$this->purge();
 
 		// Most values will transfer without changes
+		if (isset($minified->q)){
+			$this->query        = $minified->q;
+		}
 		$this->searchId     = $minified->id;
 		$this->initTime     = $minified->i;
 		$this->queryTime    = $minified->s;
@@ -1470,6 +1508,7 @@ abstract class SearchObject_Base
 			$search = new SearchEntry();
 			$search->session_id = session_id();
 			$search->created = date('Y-m-d');
+			$search->searchSource = $this->searchSource;
 			$search->search_object = serialize($this->minify());
 
 			$search->insert();
@@ -2130,12 +2169,12 @@ public function getNextPrevLinks(){
 		global $interface;
 		global $timer;
 		//Setup next and previous links based on the search results.
-		if (isset($_REQUEST['searchId']) && isset($_REQUEST['recordIndex'])){
+		if (isset($_REQUEST['searchId']) && isset($_REQUEST['recordIndex']) && ctype_digit($_REQUEST['searchId']) && ctype_digit($_REQUEST['recordIndex'])){
 			//rerun the search
 			$s = new SearchEntry();
 			$s->id = $_REQUEST['searchId'];
 			$interface->assign('searchId', $_REQUEST['searchId']);
-			$currentPage = isset($_REQUEST['page']) ? $_REQUEST['page'] : 1;
+			$currentPage = isset($_REQUEST['page']) && ctype_digit($_REQUEST['page']) ? $_REQUEST['page'] : 1;
 			$interface->assign('page', $currentPage);
 
 			$s->find();
@@ -2187,15 +2226,25 @@ public function getNextPrevLinks(){
 							}
 
 							//Convert back to 1 based index
-							if (isset($previousRecord)){
+							if (isset($previousRecord)) {
 								$interface->assign('previousIndex', $currentResultIndex - 1 + 1);
 								$interface->assign('previousTitle', $previousRecord['title_display']);
-								if (strpos($previousRecord['id'], 'list') === 0){
+								if ($previousRecord['recordtype'] == 'grouped_work'){
+									require_once ROOT_DIR . '/RecordDrivers/GroupedWorkDriver.php';
+									$groupedWork = New GroupedWorkDriver($previousRecord);
+									$relatedRecords = $groupedWork->getRelatedRecords();
+									if (count($relatedRecords) == 1) {
+										$previousRecord = reset($relatedRecords);
+										list($previousType, $previousId) = explode('/', trim($previousRecord['url'], '/'));
+										$interface->assign('previousId', $previousId);
+										$interface->assign('previousType', $previousType);
+									} else {
+										$interface->assign('previousType', 'GroupedWork');
+										$interface->assign('previousId', $previousRecord['id']);
+									}
+								} elseif (strpos($previousRecord['id'], 'list') === 0){
 									$interface->assign('previousType', 'MyAccount/MyList');
 									$interface->assign('previousId', str_replace('list', '', $previousRecord['id']));
-								}else if ($previousRecord['recordtype'] == 'grouped_work'){
-									$interface->assign('previousType', 'GroupedWork');
-									$interface->assign('previousId', $previousRecord['id']);
 								}else{
 									$interface->assign('previousType', 'Record');
 									$interface->assign('previousId', $previousRecord['id']);
@@ -2216,12 +2265,22 @@ public function getNextPrevLinks(){
 							$interface->assign('nextIndex', $currentResultIndex + 1 + 1);
 							if (isset($nextRecord)){
 								$interface->assign('nextTitle', $nextRecord['title_display']);
-								if (strpos($nextRecord['id'], 'list') === 0){
+								if ($nextRecord['recordtype'] == 'grouped_work'){
+									require_once ROOT_DIR . '/RecordDrivers/GroupedWorkDriver.php';
+									$groupedWork = New GroupedWorkDriver($nextRecord);
+									$relatedRecords = $groupedWork->getRelatedRecords();
+									if (count($relatedRecords) == 1) {
+										$nextRecord = reset($relatedRecords);
+										list($nextType, $nextId) = explode('/', trim($nextRecord['url'], '/'));
+										$interface->assign('nextId', $nextId);
+										$interface->assign('nextType', $nextType);
+									} else {
+										$interface->assign('nextType', 'GroupedWork');
+										$interface->assign('nextId', $nextRecord['id']);
+									}
+								} elseif (strpos($nextRecord['id'], 'list') === 0){
 									$interface->assign('nextType', 'MyAccount/MyList');
 									$interface->assign('nextId', str_replace('list', '', $nextRecord['id']));
-								}else if ($nextRecord['recordtype'] == 'grouped_work'){
-									$interface->assign('nextType', 'GroupedWork');
-									$interface->assign('nextId', $nextRecord['id']);
 								}else{
 									$interface->assign('nextType', 'Record');
 									$interface->assign('nextId', $nextRecord['id']);
@@ -2242,6 +2301,28 @@ public function getNextPrevLinks(){
 	 */
 	public function setPrimarySearch($flag){
 		$this->isPrimarySearch = $flag;
+	}
+
+	public function convertBasicToAdvancedSearch(){
+
+		$searchTerms = $this->searchTerms;
+		$searchString = $searchTerms[0]['lookfor'];
+		$searchIndex = $searchTerms[0]['index'];
+
+		$this->searchTerms = array(
+				array(
+					'group' => array(
+							0 => array(
+								'field' => $searchIndex,
+								'lookfor' => $searchString,
+								'bool' => 'AND'
+							)
+					),
+					'join' => 'AND'
+				)
+		);
+
+		$this->searchType = 'advanced';
 	}
 }//End of SearchObject_Base
 
@@ -2270,6 +2351,8 @@ class minSO
 {
 	public $t = array();
 	public $f = array();
+	public $hf = array();
+	public $fc = array();
 	public $id, $i, $s, $r, $ty, $sr;
 
 	/**
@@ -2289,6 +2372,7 @@ class minSO
 		$this->r  = $searchObject->getResultTotal();
 		$this->ty = $searchObject->getSearchType();
 		$this->sr = $searchObject->getSort();
+		$this->q  = $searchObject->getQuery();
 
 		// Search terms, we'll shorten keys
 		$tempTerms = $searchObject->getSearchTerms();
@@ -2322,7 +2406,17 @@ class minSO
 		//      it would be a nightmare to maintain.
 		$this->f = $searchObject->getFilters();
 
-		//Minify sort
 
+		// Add Hidden Filters if Present
+		if (method_exists($searchObject, 'getHiddenFilters')) {
+			$this->hf = $searchObject->getHiddenFilters();
+		}
+
+		// Add Facet Configurations if Present
+		if (method_exists($searchObject, 'getFacetConfig')) {
+			$this->fc = $searchObject->getFacetConfig();
+		}
+
+		// TODO: Add any other data needed to restore Islandora searches
 	}
 } //End of minso object (not SearchObject_Base)

@@ -15,6 +15,7 @@ class Archive_Home extends Action{
 	function launch() {
 		global $interface;
 		global $timer;
+		global $library;
 
 		//Get a list of all available projects
 		/** @var SearchObject_Islandora $searchObject */
@@ -28,6 +29,7 @@ class Archive_Home extends Action{
 		$searchObject->addHiddenFilter('!mods_extension_marmotLocal_pikaOptions_includeInPika_ms', "no");
 		$searchObject->addHiddenFilter('!mods_extension_marmotLocal_pikaOptions_showInSearchResults_ms', "no");
 		$searchObject->addHiddenFilter('mods_extension_marmotLocal_pikaOptions_showOnPikaArchiveHomepage_ms', "yes");
+		$searchObject->addHiddenFilter('RELS_EXT_isMemberOfCollection_uri_ms', "info\\:fedora/{$library->archiveNamespace}\\:*");
 		$searchObject->setLimit(50);
 		$searchObject->setSort('fgs_label_s');
 		$timer->logTime('Setup Search');
@@ -75,6 +77,10 @@ class Archive_Home extends Action{
 		$searchObject->addFacet('mods_genre_s');
 		$searchObject->setLimit(1);
 		$searchObject->setSort('fgs_label_s');
+
+		if ($library->hideAllCollectionsFromOtherLibraries){
+			$searchObject->addHiddenFilter('PID', $library->archiveNamespace . '*');
+		}
 		$timer->logTime('Setup Search');
 
 		$response = $searchObject->processSearch(true, true);
@@ -124,7 +130,17 @@ class Archive_Home extends Action{
 		}
 		$interface->assign('showExploreMore', false);
 		$interface->assign('relatedContentTypes', $relatedContentTypes);
+		$this->endExhibitContext();
 
-		parent::display('home.tpl', 'Colorado Digital Collection');
+		parent::display('home.tpl', $library->displayName . ' Digital Collection');
 	}
+
+	protected function endExhibitContext()
+	{
+		$_SESSION['ExhibitContext']  = null;
+		$_SESSION['exhibitSearchId'] = null;
+		$_SESSION['placePid']        = null;
+		$_SESSION['dateFilter']      = null;
+	}
+
 }

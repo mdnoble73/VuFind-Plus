@@ -55,5 +55,3 @@ class SessionInterface {
 	// Something to keep in mind though.
 	static public function gc($sess_maxlifetime) { }
 }
-
-?>

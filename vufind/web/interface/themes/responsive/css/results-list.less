@@ -76,7 +76,7 @@
 //  margin-top: 20px;
 //}
 
-.facetTitle{
+.facetTitle, .exploreMoreTitle{
   background-color: #e8e8e8;
   background: linear-gradient(to bottom, #e8e8e8, #d7d7d7);
   color: #555555;
@@ -298,3 +298,28 @@
 //.modal .related-manifestations-header {
 //  display: none;
 //}
+
+.search-results-navigation {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items:center;
+  .previous {
+    flex-grow: 1;
+    cursor: pointer;
+    white-space: nowrap;
+    text-align: right
+  }
+  .return {
+    flex-grow: 3;
+    white-space: normal;
+    text-align: center;
+    padding-left: 2px;
+    padding-right: 2px;
+  }
+  .next {
+    white-space: nowrap;
+    cursor: pointer;
+    flex-grow: 1;
+  }
+}

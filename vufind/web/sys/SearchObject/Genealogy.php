@@ -30,9 +30,6 @@ require_once ROOT_DIR . '/Drivers/marmot_inc/Location.php';
  */
 class SearchObject_Genealogy extends SearchObject_Base
 {
-	// SOLR QUERY
-	// Parsed query
-	private $query = null;
 	// Publicly viewable version
 	private $publicQuery = null;
 	// Facets
@@ -154,7 +151,7 @@ class SearchObject_Genealogy extends SearchObject_Base
 	public function init()
 	{
 		// Call the standard initialization routine in the parent:
-		parent::init();
+		parent::init('genealogy');
 
 		//********************
 		// Check if we have a saved search to restore -- if restored successfully,

@@ -19,9 +19,6 @@
  */
 
 require_once ROOT_DIR . '/services/MyAccount/MyAccount.php';
-
-require_once 'Structures/DataGrid.php';
-
 class Fines extends MyAccount
 {
 	private $currency_symbol = '$';

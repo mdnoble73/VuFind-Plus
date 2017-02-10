@@ -1,3 +1,4 @@
+{strip}
 <div id="main-content" class="col-md-12">
 	<h2>Manage Materials Requests</h2>
 	{if $error}
@@ -148,7 +149,7 @@
 									{elseif $column == 'email'}
 										<td>{$request->email}</td>
 									{elseif $column == 'placeHoldWhenAvailable'}
-										<td>{if $request->placeHoldWhenAvailable}Yes - {$request->location}{else}No{/if}</td>
+										<td>{if $request->$column}Yes{if $request->location} - {$request->location}{/if}{else}No{/if}</td>
 									{elseif $column == 'holdPickupLocation'}
 										<td>
 											{$request->getHoldLocationName($request->holdPickupLocation)}
@@ -204,7 +205,6 @@
 										<td>{$request->$column}</td>
 									{/if}
 								{/foreach}
-								{assign var="foundDateColumns" value=1}
 								<td>
 									<div class="btn-group btn-group-vertical btn-group-sm">
 										<button type="button" onclick="VuFind.MaterialsRequest.showMaterialsRequestDetails('{$request->id}', true)" class="btn btn-sm btn-info">Details</button>
@@ -269,7 +269,7 @@
 		{/if}
 	{/if}
 </div>
-	{*BBLARG!!*}
+{/strip}
 
 <script type="text/javascript">
 $(function () {ldelim}

@@ -3,9 +3,30 @@
 	{if $showMoreLikeThisInExplore}
 		{include file="GroupedWork/exploreMoreLikeThis.tpl"}
 	{/if}
+{if $exploreMoreSections}
+<div id="explore-more-menu" class="sidebar-links">
+	<div class="panel-group{* accordion*}" id="explore-more-accordion">
+		{foreach from=$exploreMoreSettings item=exploreMoreSection}
+			{assign var="sectionId" value=$exploreMoreSection->section}
+			{if ($exploreMoreSections[$sectionId])}
+				{assign var="section" value=$exploreMoreSections[$sectionId]}
 
-	{foreach from=$exploreMoreSections item=section}
-		<div class="sectionHeader">{$section.title}</div>
+
+		<div id="exploreMoreSideBar-{$sectionId}Panel" class="panel{if $exploreMoreSection->openByDefault} active{/if}">
+
+			{* Clickable header for my account section *}
+			<a data-toggle="collapse"{* data-parent="#explore-more-accordion"*} href="#exploreMoreSideBar-{$sectionId}PanelBody">
+				<div class="panel-title exploreMoreTitle">
+					{if empty($exploreMoreSection->displayName)}
+						{$archiveSections[$sectionId]}
+					{else}
+						{$exploreMoreSection->displayName}
+					{/if}
+				</div>
+			</a>
+
+			<div id="exploreMoreSideBar-{$sectionId}PanelBody" class="panel-collapse collapse{if $exploreMoreSection->openByDefault} in{/if}">
+				<div class="panel-body">
 
 		{if $section.format == 'scroller'}
 			{* JCarousel with related titles *}
@@ -28,6 +49,7 @@
 					</ul>
 				</div>
 			</div>
+
 		{elseif $section.format == 'subsections'}
 			{foreach from=$section.values item=section}
 				<div class="section">
@@ -81,7 +103,7 @@
 						{$value.label}
 					</a>
 					{if $value.linkingReason}
-						&nbsp;<img src="/images/silk/help.png" title="{$value.linkingReason|escape}"/>
+						&nbsp;<img src="/images/silk/help.png" title="{$value.linkingReason|escape}">
 					{/if}
 				</li>
 			{/foreach}
@@ -106,12 +128,22 @@
 						{/if}
 					</a>
 					{if $value.linkingReason}
-						&nbsp;<img src="/images/silk/help.png" title="{$value.linkingReason|escape}"/>
+						&nbsp;<img src="/images/silk/help.png" title="{$value.linkingReason|escape}">
 					{/if}
 				</div>
 			{/foreach}
 		{/if}
+
+				</div>
+			</div>
+		</div>
+			{/if}
 	{/foreach}
+
+	</div>
+</div>
+{/if}
+
 
 	{* Related Articles Widget *}
 	{if $relatedArticles}
@@ -140,3 +172,16 @@
 		</div>
 	{/foreach}
 {/strip}
+{* Initialize accordion heading styling (Required due to being loaded via AJAX)
+*}
+{literal}
+<script type="application/javascript">
+	$('.panel')
+			.on('show.bs.collapse', function () {
+				$(this).addClass('active');
+			})
+			.on('hide.bs.collapse', function () {
+				$(this).removeClass('active');
+			});
+</script>
+{/literal}

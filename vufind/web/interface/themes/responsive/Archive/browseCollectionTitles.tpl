@@ -5,8 +5,8 @@
 				<div class="archiveComponentBox">
 					<div class="archiveComponentHeader">{$browseCollectionTitlesData.title}</div>
 					<div class="archiveComponentLinks row">
-						{foreach from=$browseCollectionTitlesData.collectionTitles item=titleInfo}
-							<div class="col-xs-6"><a href="{$titleInfo.link}">{$titleInfo.title}</a></div>
+						{foreach from=$browseCollectionTitlesData.collectionTitles item=titleInfo key=indexNumber}
+							<div class="col-tn-6"><a href="{$titleInfo.link}"{if $isCollectionOnExhibitPage && $browseCollectionTitlesData.collectionPid} onclick="VuFind.Archive.setForExhibitNavigation({$indexNumber}, 1, '{$browseCollectionTitlesData.collectionPid}')"{/if}>{$titleInfo.title}</a></div>
 						{/foreach}
 					</div>
 				</div>

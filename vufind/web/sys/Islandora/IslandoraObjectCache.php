@@ -19,4 +19,8 @@ class IslandoraObjectCache  extends DB_DataObject{
 	public $latitude;
 	public $longitude;
 	public $lastUpdate;
+
+	public $smallCoverUrl;
+	public $mediumCoverUrl;
+	public $largeCoverUrl;
 }

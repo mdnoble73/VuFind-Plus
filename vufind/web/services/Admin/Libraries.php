@@ -80,26 +80,30 @@ class Admin_Libraries extends ObjectEditor
 	function getAdditionalObjectActions($existingObject){
 		$objectActions = array();
 		if ($existingObject != null){
-			$objectActions[] = array(
-				'text' => 'Reset Facets To Default',
-				'url' => '/Admin/Libraries?id=' . $existingObject->libraryId . '&amp;objectAction=resetFacetsToDefault',
-			);
-			$objectActions[] = array(
-					'text' => 'Reset More Details To Default',
-					'url' => '/Admin/Libraries?id=' . $existingObject->libraryId . '&amp;objectAction=resetMoreDetailsToDefault',
-			);
-			$objectActions[] = array(
-				'text' => 'Copy Library Facets',
-				'url' => '/Admin/Libraries?id=' . $existingObject->libraryId . '&amp;objectAction=copyFacetsFromLibrary',
-			);
-			$objectActions[] = array(
-				'text' => 'Set Materials Request Form Structure To Default',
-				'url' => '/Admin/Libraries?id=' . $existingObject->libraryId . '&amp;objectAction=defaultMaterialsRequestForm',
-			);
-			$objectActions[] = array(
-				'text' => 'Set Materials Request Formats To Default',
-				'url' => '/Admin/Libraries?id=' . $existingObject->libraryId . '&amp;objectAction=defaultMaterialsRequestFormats',
-			);
+//			$objectActions[] = array(
+//				'text' => 'Reset Facets To Default',
+//				'url' => '/Admin/Libraries?id=' . $existingObject->libraryId . '&amp;objectAction=resetFacetsToDefault',
+//			);
+//			$objectActions[] = array(
+//					'text' => 'Reset More Details To Default',
+//					'url' => '/Admin/Libraries?id=' . $existingObject->libraryId . '&amp;objectAction=resetMoreDetailsToDefault',
+//			);
+//			$objectActions[] = array(
+//				'text' => 'Copy Library Facets',
+//				'url' => '/Admin/Libraries?id=' . $existingObject->libraryId . '&amp;objectAction=copyFacetsFromLibrary',
+//			);
+//			$objectActions[] = array(
+//				'text' => 'Set Materials Request Form Structure To Default',
+//				'url' => '/Admin/Libraries?id=' . $existingObject->libraryId . '&amp;objectAction=defaultMaterialsRequestForm',
+//			);
+//			$objectActions[] = array(
+//				'text' => 'Set Materials Request Formats To Default',
+//				'url' => '/Admin/Libraries?id=' . $existingObject->libraryId . '&amp;objectAction=defaultMaterialsRequestFormats',
+//			);
+//			$objectActions[] = array(
+//				'text' => 'Set Archive Explore More Options To Default',
+//				'url' => '/Admin/Libraries?id=' . $existingObject->libraryId . '&amp;objectAction=defaultArchiveExploreMoreOptions',
+//			);
 		}else{
 			echo("Existing object is null");
 		}
@@ -217,6 +221,19 @@ class Admin_Libraries extends ObjectEditor
 
 			$defaultMaterialsRequestFormats = MaterialsRequestFormats::getDefaultMaterialRequestFormats($libraryId);
 			$library->materialsRequestFormats = $defaultMaterialsRequestFormats;
+			$library->update();
+		}
+		header("Location: /Admin/Libraries?objectAction=edit&id=" . $libraryId);
+		die();
+	}
+
+	function defaultArchiveExploreMoreOptions(){
+		$library = new Library();
+		$libraryId = $_REQUEST['id'];
+		$library->libraryId = $libraryId;
+		if ($library->find(true)){
+			$library->clearExploreMoreBar();
+			$library->exploreMoreBar = ArchiveExploreMoreBar::getDefaultArchiveExploreMoreOptions($libraryId);
 			$library->update();
 		}
 		header("Location: /Admin/Libraries?objectAction=edit&id=" . $libraryId);

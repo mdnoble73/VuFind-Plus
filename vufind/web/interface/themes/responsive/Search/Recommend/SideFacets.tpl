@@ -40,7 +40,6 @@
 									{include file="Search/Recommend/dropDownFacet.tpl" cluster=$cluster title=$title name=$name}
 								{else}
 									{include file="Search/Recommend/standardFacet.tpl" cluster=$cluster title=$title name=$name}
-
 								{/if}
 							</div>
 						</div>

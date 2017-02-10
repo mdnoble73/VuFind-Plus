@@ -2,7 +2,7 @@
 /**
  * Base class for Advanced Searches
  *
- * @category VuFind-Plus 
+ * @category VuFind-Plus
  * @author Mark Noble <mark@marmot.org>
  * Date: 6/27/13
  * Time: 10:10 AM
@@ -34,17 +34,17 @@ abstract class Search_AdvancedBase extends Action{
 					// Retrieve the search details
 					$minSO = unserialize($search->search_object);
 					$savedSearch = SearchObjectFactory::deminify($minSO);
-					// Make sure it's an advanced search
-					if ($savedSearch->getSearchType() == 'advanced') {
-						// Activate facets so we get appropriate descriptions
-						// in the filter list:
-						$savedSearch->activateAllFacets('Advanced');
-						return $savedSearch;
-					} else {
-						$interface->assign('editErr', 'notAdvanced');
+					// Make sure it's an advanced search or convert it to advanced
+					if ($savedSearch->getSearchType() == 'basic') {
+						$savedSearch->convertBasicToAdvancedSearch();
 					}
-					// No permissions
+					// Activate facets so we get appropriate descriptions
+					// in the filter list:
+					$savedSearch->activateAllFacets('Advanced');
+					return $savedSearch;
+
 				} else {
+					// No permissions
 					$interface->assign('editErr', 'noRights');
 				}
 				// Not found
