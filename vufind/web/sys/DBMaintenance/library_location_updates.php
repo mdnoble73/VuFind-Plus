@@ -610,6 +610,33 @@ function getLibraryLocationUpdates(){
 			),
 		),
 
+		'library_archive_search_facets' => array(
+			'title' => 'Library Archive Search Facets',
+			'description' => 'Create Library Archive Search Facets table to allow library admins to customize their own facets for archive searches. ',
+			'continueOnError' => true,
+			'sql' => array(
+				"CREATE TABLE IF NOT EXISTS `library_archive_search_facet_setting` (" .
+				"`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY, " .
+				"`libraryId` INT NOT NULL, " .
+				"`displayName` VARCHAR(50) NOT NULL, " .
+				"`facetName` VARCHAR(80) NOT NULL, " .
+				"weight INT NOT NULL DEFAULT '0', " .
+				"numEntriesToShowByDefault INT NOT NULL DEFAULT '5', " .
+				"showAsDropDown TINYINT NOT NULL DEFAULT '0', " .
+				"sortMode ENUM ('alphabetically', 'num_results') NOT NULL DEFAULT 'num_results', " .
+				"showAboveResults TINYINT NOT NULL DEFAULT '0', " .
+				"showInResults TINYINT NOT NULL DEFAULT '1', " .
+				"showInAuthorResults TINYINT NOT NULL DEFAULT '1', " .
+				"showInAdvancedSearch TINYINT NOT NULL DEFAULT '1', " .
+				"`collapseByDefault` TINYINT DEFAULT '0', " .
+				"`useMoreFacetPopup` TINYINT DEFAULT '1', " .
+				"PRIMARY KEY (`id`)," .
+				"UNIQUE KEY `libraryFacet` (`libraryId`,`facetName`)," .
+				"KEY `libraryId` (`libraryId`)" .
+				") ENGINE = InnoDB DEFAULT CHARSET=utf8 ",
+			),
+		),
+
 		'library_facets_1' => array(
 			'title' => 'Library Facets Update 1',
 			'description' => 'Add index to library facets. ',

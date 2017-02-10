@@ -6,6 +6,7 @@ require_once 'DB/DataObject.php';
 require_once 'DB/DataObject/Cast.php';
 require_once ROOT_DIR . '/Drivers/marmot_inc/Holiday.php';
 require_once ROOT_DIR . '/Drivers/marmot_inc/LibraryFacetSetting.php';
+require_once ROOT_DIR . '/Drivers/marmot_inc/LibraryArchiveSearchFacetSetting.php';
 require_once ROOT_DIR . '/sys/Indexing/LibraryRecordOwned.php';
 require_once ROOT_DIR . '/sys/Indexing/LibraryRecordToInclude.php';
 require_once ROOT_DIR . '/sys/Browse/LibraryBrowseCategory.php';
@@ -245,6 +246,16 @@ class Library extends DB_DataObject
 		unset($facetSettingStructure['numEntriesToShowByDefault']);
 		unset($facetSettingStructure['showAsDropDown']);
 		//unset($facetSettingStructure['sortMode']);
+
+		$archiveSearchfacetSettingStructure = LibraryArchiveSearchFacetSetting::getObjectStructure();
+		unset($archiveSearchfacetSettingStructure['weight']);
+		unset($archiveSearchfacetSettingStructure['libraryId']);
+		unset($archiveSearchfacetSettingStructure['numEntriesToShowByDefault']);
+		unset($archiveSearchfacetSettingStructure['showAsDropDown']);
+		unset($archiveSearchfacetSettingStructure['showAboveResults']);
+		unset($archiveSearchfacetSettingStructure['showInAdvancedSearch']);
+		unset($archiveSearchfacetSettingStructure['showInAuthorResults']);
+		//unset($archiveSearchfacetSettingStructure['sortMode']);
 
 		$libraryMoreDetailsStructure = LibraryMoreDetails::getObjectStructure();
 		unset($libraryMoreDetailsStructure['weight']);
@@ -723,7 +734,32 @@ class Library extends DB_DataObject
 						)
 					),
 
-
+					'archiveSearchFacets' => array(
+						'property' => 'archiveSearchFacets',
+						'type' => 'oneToMany',
+						'label' => 'Archive Search Facets',
+						'description' => 'A list of facets to display in archive search results',
+						'helpLink' => 'https://docs.google.com/document/d/1DIOZ-HCqnrBAMFwAomqwI4xv41bALk0Z1Z2fMrhQ3wY',
+						'keyThis' => 'libraryId',
+						'keyOther' => 'libraryId',
+						'subObjectType' => 'LibraryArchiveSearchFacetSetting',
+						'structure' => $archiveSearchfacetSettingStructure,
+						'sortable' => true,
+						'storeDb' => true,
+						'allowEdit' => true,
+						'canEdit' => true,
+						'additionalOneToManyActions' => array(
+							array(
+								'text' => 'Copy Library Archive Search Facets',
+								'url' => '/Admin/Libraries?id=$id&amp;objectAction=copyArchiveSearchFacetsFromLibrary',
+							),
+							array(
+								'text' => 'Reset Archive Search Facets To Default',
+								'url' => '/Admin/Libraries?id=$id&amp;objectAction=resetArchiveSearchFacetsToDefault',
+								'class' => 'btn-warning',
+							),
+						)
+					),
 			)),
 
 			'edsSection' => array('property'=>'edsSection', 'type' => 'section', 'label' =>'EBSCO EDS', 'hideInLists' => true, 'properties' => array(
@@ -982,6 +1018,18 @@ class Library extends DB_DataObject
 				}
 			}
 			return $this->facets;
+		}elseif ($name == "archiveSearchFacets") {
+			if (!isset($this->archiveSearchFacets) && $this->libraryId){
+				$this->archiveSearchFacets = array();
+				$facet = new LibraryArchiveSearchFacetSetting();
+				$facet->libraryId = $this->libraryId;
+				$facet->orderBy('weight');
+				$facet->find();
+				while($facet->fetch()){
+					$this->archiveSearchFacets[$facet->id] = clone($facet);
+				}
+			}
+			return $this->archiveSearchFacets;
 		}elseif ($name == 'libraryLinks'){
 			if (!isset($this->libraryLinks) && $this->libraryId){
 				$this->libraryLinks = array();
@@ -1107,6 +1155,8 @@ class Library extends DB_DataObject
 			$this->moreDetailsOptions = $value;
 		}elseif ($name == "facets") {
 			$this->facets = $value;
+		}elseif ($name == "archiveSearchFacets") {
+			$this->archiveSearchFacets = $value;
 		}elseif ($name == 'libraryLinks'){
 			$this->libraryLinks = $value;
 		}elseif ($name == 'recordsOwned'){
@@ -1181,6 +1231,7 @@ class Library extends DB_DataObject
 		if ($ret !== FALSE ){
 			$this->saveHolidays();
 			$this->saveFacets();
+			$this->saveArchiveSearchFacets();
 			$this->saveRecordsOwned();
 			$this->saveRecordsToInclude();
 			$this->saveManagematerialsRequestFieldsToDisplay();
@@ -1228,6 +1279,7 @@ class Library extends DB_DataObject
 		if ($ret !== FALSE ){
 			$this->saveHolidays();
 			$this->saveFacets();
+			$this->saveArchiveSearchFacets();
 			$this->saveRecordsOwned();
 			$this->saveRecordsToInclude();
 			$this->saveManagematerialsRequestFieldsToDisplay();
@@ -1407,9 +1459,21 @@ class Library extends DB_DataObject
 		}
 	}
 
+	public function saveArchiveSearchFacets(){
+		if (isset ($this->archiveSearchFacets) && is_array($this->archiveSearchFacets)){
+			$this->saveOneToManyOptions($this->archiveSearchFacets);
+			unset($this->archiveSearchFacets);
+		}
+	}
+
 	public function clearFacets(){
 		$this->clearOneToManyOptions('LibraryFacetSetting');
 		$this->facets = array();
+	}
+
+	public function clearArchiveSearchFacets(){
+		$this->clearOneToManyOptions('LibraryArchiveSearchFacetSetting');
+		$this->archiveSearchfacets = array();
 	}
 
 	public function saveHolidays(){
@@ -1581,6 +1645,21 @@ class Library extends DB_DataObject
 		$defaultFacets[] = $facet;
 
 		return $defaultFacets;
+	}
+
+	static function getDefaultArchiveSearchFacets($libraryId = -1) {
+		$defaultFacets = array();
+		$defaultFacetsList = LibraryArchiveSearchFacetSetting::$defaultFacetList;
+		foreach ($defaultFacetsList as $facetName => $facetDisplayName){
+			$facet = new LibraryArchiveSearchFacetSetting();
+			$facet->setupSideFacet($facetName, $facetDisplayName, false);
+			$facet->libraryId = $libraryId;
+			$facet->weight = count($defaultFacets) + 1;
+			$defaultFacets[] = $facet;
+		}
+
+		return $defaultFacets;
+
 	}
 
 	public function getNumLocationsForLibrary(){

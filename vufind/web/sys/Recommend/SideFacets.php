@@ -51,9 +51,36 @@ class SideFacets implements RecommendationInterface
 		$checkboxSection = isset($params[1]) ? $params[1] : false;
 		$iniName = isset($params[2]) ? $params[2] : 'facets';
 
-		if ($searchObject->getSearchType() == 'genealogy' || $searchObject->getSearchType() == 'islandora'){
-			$config = getExtraConfigArray($iniName);
+		if ($searchObject->getSearchType() == 'genealogy') {
+			$config           = getExtraConfigArray($iniName);
 			$this->mainFacets = isset($config[$mainSection]) ? $config[$mainSection] : array();
+		} elseif ($searchObject->getSearchType() == 'islandora'){
+			$searchLibrary = Library::getActiveLibrary();
+			$hasArchiveSearchLibraryFacets = ($searchLibrary != null && (count($searchLibrary->archiveSearchFacets) > 0));
+			if ($hasArchiveSearchLibraryFacets){
+				$facets = $searchLibrary->archiveSearchFacets;
+			}else{
+				$facets = Library::getDefaultArchiveSearchFacets();
+			}
+
+			$this->facetSettings = array();
+			$this->mainFacets = array();
+
+			foreach ($facets as $facet){
+				$facetName = $facet->facetName;
+
+				//Figure out if the facet should be included
+				if ($mainSection == 'Results'){
+					if ($facet->showInResults == 1 && $facet->showAboveResults == 0){
+						$this->facetSettings[$facetName] = $facet;
+						$this->mainFacets[$facetName] = $facet->displayName;
+					}elseif ($facet->showInAdvancedSearch == 1 && $facet->showAboveResults == 0){
+						$this->facetSettings[$facetName] = $facet->displayName;
+					}
+				}
+			}
+
+
 		}else{
 			$searchLibrary = Library::getActiveLibrary();
 			global $locationSingleton;
@@ -175,19 +202,19 @@ class SideFacets implements RecommendationInterface
 		$searchLibrary = Library::getSearchLibrary();
 
 		//Do additional processing of facets for non-genealogy searches
-		if ($this->searchObject->getSearchType() != 'genealogy' && $this->searchObject->getSearchType() != 'islandora'){
-			foreach ($sideFacets as $facetKey => $facet){
+		if ($this->searchObject->getSearchType() != 'genealogy'/* && $this->searchObject->getSearchType() != 'islandora'*/) {
+			foreach ($sideFacets as $facetKey => $facet) {
 
 				$facetSetting = $this->facetSettings[$facetKey];
 
 				//Do special processing of facets
-				if (preg_match('/time_since_added/i', $facetKey)){
-					$timeSinceAddedFacet = $this->updateTimeSinceAddedFacet($facet);
+				if (preg_match('/time_since_added/i', $facetKey)) {
+					$timeSinceAddedFacet   = $this->updateTimeSinceAddedFacet($facet);
 					$sideFacets[$facetKey] = $timeSinceAddedFacet;
-				}elseif ($facetKey == 'rating_facet'){
-					$userRatingFacet = $this->updateUserRatingsFacet($facet);
+				} elseif ($facetKey == 'rating_facet') {
+					$userRatingFacet       = $this->updateUserRatingsFacet($facet);
 					$sideFacets[$facetKey] = $userRatingFacet;
-				}elseif ($facetKey == 'available_at'){
+				} elseif ($facetKey == 'available_at') {
 					//Mangle the availability facets
 					$oldFacetValues = $sideFacets['available_at']['list'];
 					ksort($oldFacetValues);
@@ -195,19 +222,19 @@ class SideFacets implements RecommendationInterface
 					$filters = $this->searchObject->getFilterList();
 					//print_r($filters);
 					$appliedAvailability = array();
-					foreach ($filters as $appliedFilters){
-						foreach ($appliedFilters as $filter){
-							if ($filter['field'] == 'available_at'){
+					foreach ($filters as $appliedFilters) {
+						foreach ($appliedFilters as $filter) {
+							if ($filter['field'] == 'available_at') {
 								$appliedAvailability[$filter['value']] = $filter['removalUrl'];
 							}
 						}
 					}
 
 					$availableAtFacets = array();
-					foreach ($oldFacetValues as $facetKey2 => $facetInfo){
-						if (strlen($facetKey2) > 1){
+					foreach ($oldFacetValues as $facetKey2 => $facetInfo) {
+						if (strlen($facetKey2) > 1) {
 							$sortIndicator = substr($facetKey2, 0, 1);
-							if ($sortIndicator >= '1' && $sortIndicator <= '4'){
+							if ($sortIndicator >= '1' && $sortIndicator <= '4') {
 								$availableAtFacets[$facetKey2] = $facetInfo;
 							}
 						}
@@ -215,11 +242,11 @@ class SideFacets implements RecommendationInterface
 
 					$includeAnyLocationFacet = $this->searchObject->getFacetSetting("Availability", "includeAnyLocationFacet");
 					$includeAnyLocationFacet = ($includeAnyLocationFacet == '' || $includeAnyLocationFacet == 'true');
-					if ($searchLibrary){
+					if ($searchLibrary) {
 						$includeAnyLocationFacet = $searchLibrary->showAvailableAtAnyLocation;
 					}
 					//print_r ("includeAnyLocationFacet = $includeAnyLocationFacet");
-					if ($includeAnyLocationFacet){
+					if ($includeAnyLocationFacet) {
 						$anyLocationLabel = $this->searchObject->getFacetSetting("Availability", "anyLocationLabel");
 						//print_r ("anyLocationLabel = $anyLocationLabel");
 						$availableAtFacets['*'] = array(
@@ -233,35 +260,35 @@ class SideFacets implements RecommendationInterface
 					}
 
 					$sideFacets['available_at']['list'] = $availableAtFacets;
-				}else{
+				} else {
 					//Do other handling of the display
-					if ($facetSetting->sortMode == 'alphabetically'){
+					if ($facetSetting->sortMode == 'alphabetically') {
 						asort($sideFacets[$facetKey]['list']);
 					}
-					if ($facetSetting->numEntriesToShowByDefault > 0){
+					if ($facetSetting->numEntriesToShowByDefault > 0) {
 						$sideFacets[$facetKey]['valuesToShow'] = $facetSetting->numEntriesToShowByDefault;
 					}
-					if ($facetSetting->showAsDropDown){
+					if ($facetSetting->showAsDropDown) {
 						$sideFacets[$facetKey]['showAsDropDown'] = $facetSetting->showAsDropDown;
 					}
-					if ($facetSetting->useMoreFacetPopup && count($sideFacets[$facetKey]['list']) > 12){
+					if ($facetSetting->useMoreFacetPopup && count($sideFacets[$facetKey]['list']) > 12) {
 						$sideFacets[$facetKey]['showMoreFacetPopup'] = true;
-						$facetsList = $sideFacets[$facetKey]['list'];
-						$sideFacets[$facetKey]['list'] = array_slice($facetsList, 0, 5);
-						$sortedList = array();
-						foreach ($facetsList as $key => $value){
+						$facetsList                                  = $sideFacets[$facetKey]['list'];
+						$sideFacets[$facetKey]['list']               = array_slice($facetsList, 0, 5);
+						$sortedList                                  = array();
+						foreach ($facetsList as $key => $value) {
 							$sortedList[strtolower($key)] = $value;
 						}
 						ksort($sortedList);
 						$sideFacets[$facetKey]['sortedList'] = $sortedList;
-					}else{
+					} else {
 						$sideFacets[$facetKey]['showMoreFacetPopup'] = false;
 					}
 				}
 				$sideFacets[$facetKey]['collapseByDefault'] = $facetSetting->collapseByDefault;
 			}
 		}else{
-			//Process genealogy & islandora to add more facet popup
+			//Process genealogy to add more facet popup
 			foreach ($sideFacets as $facetKey => $facet){
 				if (count($sideFacets[$facetKey]['list']) > 12){
 					$sideFacets[$facetKey]['showMoreFacetPopup'] = true;

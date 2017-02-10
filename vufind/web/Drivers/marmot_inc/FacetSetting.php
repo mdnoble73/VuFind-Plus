@@ -73,12 +73,12 @@ abstract class FacetSetting extends DB_DataObject {
 		return $availableFacets;
 	}
 
-	static function getObjectStructure(){
+	static function getObjectStructure($availableFacets = null){
 
 		$structure = array(
 			'id' => array('property'=>'id', 'type'=>'label', 'label'=>'Id', 'description'=>'The unique id of this association'),
 			'weight' => array('property'=>'weight', 'type'=>'integer', 'label'=>'Weight', 'description'=>'The sort order of the book store', 'default' => 0),
-			'facetName' => array('property'=>'facetName', 'type'=>'enum', 'label'=>'Facet', 'values' => LibraryFacetSetting::getAvailableFacets(), 'description'=>'The facet to include'),
+			'facetName' => array('property'=>'facetName', 'type'=>'enum', 'label'=>'Facet', 'values' => empty($availableFacets) ? self::getAvailableFacets() : $availableFacets, 'description'=>'The facet to include'),
 			'displayName' => array('property'=>'displayName', 'type'=>'text', 'label'=>'Display Name', 'description'=>'The full name of the facet for display to the user'),
 			'numEntriesToShowByDefault' => array('property'=>'numEntriesToShowByDefault', 'type'=>'integer', 'label'=>'Num Entries', 'description'=>'The number of values to show by default.', 'default' => '5'),
 			'showAsDropDown' => array('property' => 'showAsDropDown', 'type' => 'checkbox', 'label' => 'Drop Down?', 'description'=>'Whether or not the facets should be shown in a drop down list', 'default'=>'0'),

@@ -202,10 +202,6 @@ class Archive_Results extends Action {
 
 		// Done, display the page
 		$interface->assign('sectionLabel', 'Local Digital Archive Results');
-//		$interface->setTemplate($searchObject->getResultTotal() ? 'list.tpl' : 'list-none.tpl'); // main search results content
-//		$interface->assign('sidebar', 'Search/results-sidebar.tpl');
-//		$interface->display('layout.tpl');
-
 		$this->display($searchObject->getResultTotal() ? 'list.tpl' : 'list-none.tpl','Archive Search Results', 'Search/results-sidebar.tpl');
 	} // End launch()
 }
