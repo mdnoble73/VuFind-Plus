@@ -7,6 +7,9 @@ log_user 0 ; # do NOT send screens to stdout
 # James Staub
 # Nashville Public Library
 
+# 20170127 :
+# + removed ITEM STATUS p
+
 # 20150619 :
 # + rewrite of order record rules for new workflow. Exclude bibs with no order records whose CODE3 != s [SUPPRESSED]
 # + fix mistake in rule 4 for online titles; before fix, few if any online titles were being extracted
@@ -147,7 +150,7 @@ send "B"
 
 expect "Find BIBLIOGRAPHIC records that satisfy the following conditions"
 
-# 1. ITEM  STATUS  matches  "[-!bcdfopqrst]"
+# 1. ITEM  STATUS  matches  "[-!bcdfoqrst]"
 
 expect "? Other Types"
 send "?"
@@ -214,15 +217,6 @@ send "24"
 #expect "Enter boolean condition"
 send "="
 send "o"
-#expect "Enter action ( A for AND, O for OR, S to START search )"
-send "O"
-
-#expect "Enter code in front of desired field"
-#expect "24 STATUS:"
-send "24"
-#expect "Enter boolean condition"
-send "="
-send "p"
 #expect "Enter action ( A for AND, O for OR, S to START search )"
 send "O"
 
