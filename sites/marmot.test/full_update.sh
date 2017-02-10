@@ -125,10 +125,15 @@ cd /usr/local/vufind-plus/sites/${PIKASERVER}; ./${PIKASERVER}.sh restart
 # Colorado State Gov Docs Marc Updates
 /usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh cologovdocs colorado_gov_docs >> ${OUTPUT_FILE}
 
-#Lynda.com Marc Updates
-# (EVLD, Vail)
+# Lynda.com Marc Updates (recieved on marmot ftp server)
+/usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh lynda.com/evld lynda/evld/merge
+/usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh lynda.com/vail lynda/vail/merge
+/usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh lynda.com/telluride lynda/telluride/merge
+
+
 #Extracts for sideloaded eContent; settings defined in config.pwd.ini [Sideload]
-cd /usr/local/vufind-plus/vufind/cron; ./sideload.sh ${PIKASERVER}
+#cd /usr/local/vufind-plus/vufind/cron; ./sideload.sh ${PIKASERVER}
+# No sideloads loaded via this script at this time. pascal 2-9-2017
 
 # Merge Lynda.com Records
 /usr/local/vufind-plus/vufind/cron/mergeSideloadMarc.sh lynda/evld >> ${OUTPUT_FILE}
