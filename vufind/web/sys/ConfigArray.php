@@ -294,7 +294,7 @@ function updateConfigForScoping($configArray) {
 		//Trim off test indicator when doing lookups for library/location
 		if (substr($tempSubdomain, -1) == '2' || substr($tempSubdomain, -1) == '3'){
 			$subdomainsToTest[] = substr($tempSubdomain, 0, -1);
-		}elseif (substr($tempSubdomain, -1) == 't' || substr($tempSubdomain, -1) == 'd'){
+		}elseif (substr($tempSubdomain, -1) == 't' || substr($tempSubdomain, -1) == 'd' || substr($tempSubdomain, -1) == 'x'){
 			$subdomainsToTest[] = substr($tempSubdomain, 0, -1);
 		}
 	}
