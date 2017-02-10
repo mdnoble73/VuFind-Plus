@@ -70,7 +70,7 @@ tar -czf /data/vufind-plus/${PIKASERVER}/solr_master_backup.tar.gz /data/vufind-
 rm /data/vufind-plus/${PIKASERVER}/grouped_work_primary_identifiers.sql
 
 #Restart Solr
-cd /usr/local/vufind-plus/sites/${PIKASERVER}; ./${PIKASERVER}.sh restart >> ${OUTPUT_FILE}
+cd /usr/local/vufind-plus/sites/${PIKASERVER}; ./${PIKASERVER}.sh restart
 
 #Extract from ILS
 /usr/local/vufind-plus/sites/${PIKASERVER}/copySierraExport.sh >> ${OUTPUT_FILE}
@@ -125,10 +125,15 @@ cd /usr/local/vufind-plus/sites/${PIKASERVER}; ./${PIKASERVER}.sh restart >> ${O
 # Colorado State Gov Docs Marc Updates
 /usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh cologovdocs colorado_gov_docs >> ${OUTPUT_FILE}
 
-#Lynda.com Marc Updates
-# (EVLD, Vail)
+# Lynda.com Marc Updates (recieved on marmot ftp server)
+/usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh lynda.com/evld lynda/evld/merge
+/usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh lynda.com/vail lynda/vail/merge
+/usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh lynda.com/telluride lynda/telluride/merge
+
+
 #Extracts for sideloaded eContent; settings defined in config.pwd.ini [Sideload]
-cd /usr/local/vufind-plus/vufind/cron; ./sideload.sh ${PIKASERVER}
+#cd /usr/local/vufind-plus/vufind/cron; ./sideload.sh ${PIKASERVER}
+# No sideloads loaded via this script at this time. pascal 2-9-2017
 
 # Merge Lynda.com Records
 /usr/local/vufind-plus/vufind/cron/mergeSideloadMarc.sh lynda/evld >> ${OUTPUT_FILE}
@@ -163,7 +168,7 @@ find /usr/local/vufind-plus/sites/default/solr/jetty/logs -name "solr_log_*" -mt
 find /usr/local/vufind-plus/sites/default/solr/jetty/logs -name "solr_gc_log_*" -mtime +7 -delete
 
 #Restart Solr
-cd /usr/local/vufind-plus/sites/${PIKASERVER}; ./${PIKASERVER}.sh restart >> ${OUTPUT_FILE}
+cd /usr/local/vufind-plus/sites/${PIKASERVER}; ./${PIKASERVER}.sh restart
 
 #Email results
 FILESIZE=$(stat -c%s ${OUTPUT_FILE})

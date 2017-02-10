@@ -233,6 +233,12 @@ class Solr implements IndexEngine {
 		$timer->logTime('Finish Solr Initialization');
 	}
 
+	public function __destruct()
+	{
+		$this->client->disconnect();
+		$this->client = null;
+	}
+
 	public function setDebugging($enableDebug, $enableSolrQueryDebugging) {
 		$this->debug = $enableDebug;
 		$this->debugSolrQuery = $enableDebug && $enableSolrQueryDebugging;
@@ -387,8 +393,8 @@ class Solr implements IndexEngine {
 				$record = $result['response']['docs'][0];
 				$memCache->set("solr_record_{$id}_{$solrScope}", $record, 0, $configArray['Caching']['solr_record']);
 			}else{
-				global $logger;
-				$logger->log("Unable to find record $id in Solr", PEAR_LOG_ERR);
+				//global $logger;
+				//$logger->log("Unable to find record $id in Solr", PEAR_LOG_ERR);
 				PEAR_Singleton::raiseError("Record not found $id");
 			}
 		}
@@ -466,7 +472,7 @@ class Solr implements IndexEngine {
 			$idString = 'ids=';
 			foreach ($tmpIds as $id){
 				if (strlen($idString) > 4){
-					$idString .= '&';
+					$idString .= ',';
 				}
 				$idString .= $id;
 			}
@@ -485,7 +491,7 @@ class Solr implements IndexEngine {
 			if (PEAR_Singleton::isError($result)) {
 				PEAR_Singleton::raiseError($result);
 			}else{
-				$this->_process($this->client->getResponseBody());
+				$result = $this->_process($this->client->getResponseBody());
 			}
 			foreach ($result['response']['docs'] as $record){
 				$records[$record['id']] = $record;
@@ -970,10 +976,15 @@ class Solr implements IndexEngine {
 			if (count($tokenized) > 1){
 				$values['proximal'] = $values['onephrase'] . '~10';
 			}else{
-				$values['proximal'] = $tokenized[0];
+				if (!array_key_exists(0, $tokenized)){
+					$values['proximal'] = '';
+				}else{
+					$values['proximal'] = $tokenized[0];
+				}
 			}
 
 			$values['exact'] = str_replace(':', '\\:', $lookfor);
+			$values['exact_quoted'] = '"' . $lookfor . '"';
 			$values['and'] = $andQuery;
 			$values['or'] = $orQuery;
 			$singleWordRemoval = "";
@@ -1007,7 +1018,8 @@ class Solr implements IndexEngine {
 					'and' => $lookfor,
 					'or' => $lookfor,
 					'proximal' => $lookfor,
-					'single_word_removal' => $onephrase
+					'single_word_removal' => $onephrase,
+					'exact_quoted' => '"' . $lookfor . '"',
 			);
 		}
 
@@ -1071,7 +1083,19 @@ class Solr implements IndexEngine {
 		// If we received a field spec that wasn't defined in the YAML file,
 		// let's try simply passing it along to Solr.
 		if ($ss === false) {
-			return $field . ':(' . $lookfor . ')';
+			$allFields = $this->_loadValidFields();
+			if (in_array($field, $allFields)){
+				return $field . ':(' . $lookfor . ')';
+			}
+			$dynamicFields = $this->_loadDynamicFields();
+			global $solrScope;
+			foreach ($dynamicFields as $dynamicField){
+				if ($dynamicField . $solrScope == $field){
+					return $field . ':(' . $lookfor . ')';
+				}
+			}
+			//Not a search by field
+			return '"' . $field . ':' . $lookfor . '"';
 		}
 
 		// Munge the user query in a few different ways:
@@ -1159,7 +1183,7 @@ class Solr implements IndexEngine {
 				$that = $this;
 				if (isset($params['lookfor']) && !$forDisplay){
 					$lookfor = preg_replace_callback(
-						'/(\\w+):([\\w\\d\\s"]+?)\\s?(?<=\b)(AND|OR|AND NOT|OR NOT|\\)|$)(?=\b)/',
+						'/([\\w-]+):([\\w\\d\\s"-]+?)\\s?(?<=\b)(AND|OR|AND NOT|OR NOT|\\)|$)(?=\b)/',
 						function ($matches) use($that){
 							$field = $matches[1];
 							$lookfor = $matches[2];
@@ -2390,6 +2414,7 @@ class Solr implements IndexEngine {
 			unset($result['highlighting']);
 		}
 		$timer->logTime("process highlighting");
+		$memoryWatcher->logMemory('process highlighting');
 
 		return $result;
 	}

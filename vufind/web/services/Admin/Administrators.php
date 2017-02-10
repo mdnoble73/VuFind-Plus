@@ -92,7 +92,7 @@ class Admin_Administrators extends ObjectEditor
 			header("Location: {$configArray['Site']['path']}/Admin/{$this->getToolName()}");
 			die();
 		}else{
-			$interface->assign('error', 'Could not find a user with that barcode.');
+			$interface->assign('error', 'Could not find a user with that barcode. (The user needs to have logged in at least once.)');
 			$interface->setTemplate('addAdministrator.tpl');
 		}
 	}

@@ -5,6 +5,7 @@
 		<div id="mobileHeader" class="col-tn-12 col-xs-12">
 
 			<div id="mobileHeader-myAccountFines">
+				{assign var="totalFines" value=$user->getTotalFines()}
 				{if $totalFines > 0 || ($showExpirationWarnings && $user->expireClose)}
 					{* $totalFines is calculated in menu.tpl *}
 					{if $showEcommerceLink && $totalFines > $minimumFineAmount}

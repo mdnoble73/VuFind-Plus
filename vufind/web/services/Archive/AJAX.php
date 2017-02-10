@@ -79,6 +79,7 @@ class Archive_AJAX extends Action {
 				$interface->assign('recordStart', $summary['startRecord']);
 				$interface->assign('recordEnd',   $summary['endRecord']);
 
+				$recordIndex = $summary['startRecord'];
 				foreach ($response['response']['docs'] as $objectInCollection){
 					/** @var IslandoraDriver $firstObjectDriver */
 					$firstObjectDriver = RecordDriverFactory::initRecordDriver($objectInCollection);
@@ -88,7 +89,8 @@ class Archive_AJAX extends Action {
 							'image' => $firstObjectDriver->getBookcoverUrl('medium'),
 							'dateCreated' => $firstObjectDriver->getDateCreated(),
 							'link' => $firstObjectDriver->getRecordUrl(),
-							'pid' => $firstObjectDriver->getUniqueID()
+							'pid' => $firstObjectDriver->getUniqueID(),
+							'recordIndex' => $recordIndex++
 					);
 					$timer->logTime('Loaded related object');
 				}
@@ -112,6 +114,7 @@ class Archive_AJAX extends Action {
 		if (isset($_REQUEST['pid'])){
 			global $interface;
 			global $timer;
+			global $logger;
 			require_once ROOT_DIR . '/sys/Utils/FedoraUtils.php';
 			$fedoraUtils = FedoraUtils::getInstance();
 			$pid = urldecode($_REQUEST['pid']);
@@ -162,6 +165,15 @@ class Archive_AJAX extends Action {
 				$interface->assign('recordCount', $summary['resultTotal']);
 				$interface->assign('recordStart', $summary['startRecord']);
 				$interface->assign('recordEnd',   $summary['endRecord']);
+				$recordIndex = $summary['startRecord'];
+				$page = $summary['page'];
+				$interface->assign('page', $page);
+
+				// Save the search with Map query and filters
+				$searchObject->close(); // Trigger save search
+				$lastExhibitObjectsSearch = $searchObject->getSearchId(); // Have to save the search first.
+				$_SESSION['exhibitSearchId'] = $lastExhibitObjectsSearch;
+				$logger->log("Setting exhibit search id to $lastExhibitObjectsSearch", PEAR_LOG_DEBUG);
 
 				foreach ($response['response']['docs'] as $objectInCollection){
 					/** @var IslandoraDriver $firstObjectDriver */
@@ -172,7 +184,8 @@ class Archive_AJAX extends Action {
 							'image' => $firstObjectDriver->getBookcoverUrl('medium'),
 							'dateCreated' => $firstObjectDriver->getDateCreated(),
 							'link' => $firstObjectDriver->getRecordUrl(),
-							'pid' => $firstObjectDriver->getUniqueID()
+							'pid' => $firstObjectDriver->getUniqueID(),
+							'recordIndex' => $recordIndex++
 					);
 					if ($sort == 'dateAdded'){
 						$relatedObject['dateCreated'] = date('M j, Y', strtotime($objectInCollection['fgs_createdDate_dt']));
@@ -203,6 +216,7 @@ class Archive_AJAX extends Action {
 		if (isset($_REQUEST['collectionId'])){
 			global $interface;
 			global $timer;
+			global $logger;
 			require_once ROOT_DIR . '/sys/Utils/FedoraUtils.php';
 			$fedoraUtils = FedoraUtils::getInstance();
 			$pid = urldecode($_REQUEST['collectionId']);
@@ -233,6 +247,16 @@ class Archive_AJAX extends Action {
 			$searchObject->addFilter("RELS_EXT_isMemberOfCollection_uri_ms:\"info:fedora/{$pid}\"");
 			$searchObject->clearFacets();
 			//Add filtering based on date filters
+			$timeLineSetUp = false;
+			if (!empty($_SESSION['ExhibitContext']) && $_SESSION['ExhibitContext'] == $pid) {
+
+				if (!empty($_REQUEST['dateFilter']) && $_REQUEST['dateFilter'] != 'all') {
+					$_SESSION['dateFilter'] = $_REQUEST['dateFilter']; // store applied date filters
+				} else {
+					// Clear time data
+					unset($_SESSION['dateFilter']);
+				}
+			}
 			$this->setupTimelineFacetsAndFilters($searchObject);
 
 			$searchObject->setLimit(24);
@@ -248,9 +272,20 @@ class Archive_AJAX extends Action {
 			}
 			if ($response && isset($response['response']) && $response['response']['numFound'] > 0) {
 				$summary = $searchObject->getResultSummary();
-				$interface->assign('recordCount', $summary['resultTotal']);
+				if (!$timeLineSetUp) {
+					$interface->assign('recordCount', $summary['resultTotal']);
+				}
 				$interface->assign('recordStart', $summary['startRecord']);
 				$interface->assign('recordEnd',   $summary['endRecord']);
+				$recordIndex = $summary['startRecord'];
+				$page = $summary['page'];
+				$interface->assign('page', $page);
+
+				// Save the search with Map query and filters
+				$searchObject->close(); // Trigger save search
+				$lastExhibitObjectsSearch = $searchObject->getSearchId(); // Have to save the search first.
+				$_SESSION['exhibitSearchId'] = $lastExhibitObjectsSearch;
+				$logger->log("Setting exhibit search id to $lastExhibitObjectsSearch", PEAR_LOG_DEBUG);
 
 				foreach ($response['response']['docs'] as $objectInCollection){
 					/** @var IslandoraDriver $firstObjectDriver */
@@ -261,7 +296,8 @@ class Archive_AJAX extends Action {
 							'image' => $firstObjectDriver->getBookcoverUrl('medium'),
 							'dateCreated' => $firstObjectDriver->getDateCreated(),
 							'link' => $firstObjectDriver->getRecordUrl(),
-							'pid' => $firstObjectDriver->getUniqueID()
+							'pid' => $firstObjectDriver->getUniqueID(),
+							'recordIndex' => $recordIndex++
 					);
 					if ($sort == 'dateAdded'){
 						$relatedObject['dateCreated'] = date('M j, Y', strtotime($objectInCollection['fgs_createdDate_dt']));
@@ -272,7 +308,9 @@ class Archive_AJAX extends Action {
 					$timer->logTime('Loaded related object');
 				}
 
-				$this->processTimelineData($response, $interface);
+				if (!$timeLineSetUp){
+					$this->processTimelineData($response, $interface);
+				}
 			}
 
 			$interface->assign('relatedObjects', $relatedObjects);
@@ -292,6 +330,7 @@ class Archive_AJAX extends Action {
 		if (isset($_REQUEST['collectionId']) && isset($_REQUEST['placeId'])){
 			global $interface;
 			global $timer;
+			global $logger;
 			require_once ROOT_DIR . '/sys/Utils/FedoraUtils.php';
 			$fedoraUtils = FedoraUtils::getInstance();
 			$pid = urldecode($_REQUEST['collectionId']);
@@ -303,9 +342,15 @@ class Archive_AJAX extends Action {
 			}
 
 			$placeId = urldecode($_REQUEST['placeId']);
+			$logger->log("Setting place information for context $placeId", PEAR_LOG_DEBUG);
+			@session_start();
+			$_SESSION['placePid'] =  $placeId;
+			$interface->assign('placePid', $placeId);
+
 			/** @var FedoraObject $placeObject */
 			$placeObject = $fedoraUtils->getObject($placeId);
-			$interface->assign('placePid', $placeId);
+			$_SESSION['placeLabel'] = $placeObject->label;
+			$logger->log("Setting place label for context $placeObject->label", PEAR_LOG_DEBUG);
 
 			$interface->assign('displayType', 'map');
 
@@ -350,6 +395,13 @@ class Archive_AJAX extends Action {
 				$interface->assign('recordCount', $summary['resultTotal']);
 				$interface->assign('recordStart', $summary['startRecord']);
 				$interface->assign('recordEnd',   $summary['endRecord']);
+				$recordIndex = $summary['startRecord'];
+
+				// Save the search with Map query and filters
+				$searchObject->close(); // Trigger save search
+				$lastExhibitObjectsSearch = $searchObject->getSearchId(); // Have to save the search first.
+				$_SESSION['exhibitSearchId'] = $lastExhibitObjectsSearch;
+				$logger->log("Setting exhibit search id to $lastExhibitObjectsSearch", PEAR_LOG_DEBUG);
 
 				foreach ($response['response']['docs'] as $objectInCollection){
 					/** @var IslandoraDriver $firstObjectDriver */
@@ -360,7 +412,8 @@ class Archive_AJAX extends Action {
 							'image' => $firstObjectDriver->getBookcoverUrl('medium'),
 							'dateCreated' => $firstObjectDriver->getDateCreated(),
 							'link' => $firstObjectDriver->getRecordUrl(),
-							'pid' => $firstObjectDriver->getUniqueID()
+							'pid' => $firstObjectDriver->getUniqueID(),
+							'recordIndex' => $recordIndex++
 					);
 					if ($sort == 'dateAdded'){
 						$relatedObject['dateCreated'] = date('M j, Y', strtotime($objectInCollection['fgs_createdDate_dt']));
@@ -394,6 +447,7 @@ class Archive_AJAX extends Action {
 			);
 		}
 		global $interface;
+		global $timer;
 		require_once ROOT_DIR . '/sys/Utils/FedoraUtils.php';
 		$fedoraUtils = FedoraUtils::getInstance();
 		$pid = urldecode($_REQUEST['id']);
@@ -401,11 +455,12 @@ class Archive_AJAX extends Action {
 		$archiveObject = $fedoraUtils->getObject($pid);
 		$recordDriver = RecordDriverFactory::initRecordDriver($archiveObject);
 		$interface->assign('recordDriver', $recordDriver);
+		$timer->logTime("Loaded record driver for main object");
 
 		require_once ROOT_DIR . '/sys/ExploreMore.php';
 		$exploreMore = new ExploreMore();
 		$exploreMore->loadExploreMoreSidebar('archive', $recordDriver);
-
+		$timer->logTime("Called loadExploreMoreSidebar");
 
 		$relatedSubjects = $recordDriver->getAllSubjectHeadings();
 
@@ -413,6 +468,16 @@ class Archive_AJAX extends Action {
 		if (count($ebscoMatches) > 0){
 			$interface->assign('relatedArticles', $ebscoMatches);
 		}
+		$timer->logTime("Loaded Ebsco options");
+
+		global $library;
+		$exploreMoreSettings = $library->exploreMoreBar;
+		if (empty($exploreMoreSettings)) {
+			$exploreMoreSettings = ArchiveExploreMoreBar::getDefaultArchiveExploreMoreOptions();
+		}
+		$interface->assign('exploreMoreSettings', $exploreMoreSettings);
+		$interface->assign('archiveSections', ArchiveExploreMoreBar::$archiveSections);
+		$timer->logTime("Loaded Settings");
 
 		return array(
 				'success' => true,
@@ -431,15 +496,16 @@ class Archive_AJAX extends Action {
 		$recordDriver = RecordDriverFactory::initRecordDriver($archiveObject);
 		$interface->assign('recordDriver', $recordDriver);
 
-		$url =  $recordDriver->getLinkUrl();
+		$url = $recordDriver->getLinkUrl();
 		$interface->assign('url', $url);
 		$interface->assign('description', $recordDriver->getDescription());
 		$interface->assign('image', $recordDriver->getBookcoverUrl('medium'));
 
+		$urlStr = "<a href=\"$url\" onclick='VuFind.Archive.setForExhibitNavigation({$_COOKIE['recordIndex']},{$_COOKIE['page']})'>";
 		return array(
-				'title' => "<a href='$url'>{$recordDriver->getTitle()}</a>",
-				'modalBody' => $interface->fetch('Archive/archivePopup.tpl'),
-				'modalButtons' => "<a href='$url'><button class='modal-buttons btn btn-primary'>More Info</button></a>"
+			'title' => "{$urlStr}{$recordDriver->getTitle()}</a>",
+			'modalBody' => $interface->fetch('Archive/archivePopup.tpl'),
+			'modalButtons' => "{$urlStr}<button class='modal-buttons btn btn-primary'>More Info</button></a>"
 		);
 	}
 
@@ -676,29 +742,24 @@ class Archive_AJAX extends Action {
 	}
 
 	/**
-	 * @param $searchObject
+	 * @param SearchObject_Islandora $searchObject
 	 */
 	public function setupTimelineFacetsAndFilters($searchObject)
 	{
-		if (isset($_REQUEST['dateFilter'])) {
-			$filter = '';
-			foreach ($_REQUEST['dateFilter'] as $date) {
-				if (strlen($filter) > 0) {
-					$filter .= ' OR ';
-				}
-				if ($date == 'before1880') {
-					$filter .= "mods_originInfo_point_start_qualifier__dateCreated_dt:[* TO 1879-12-31T23:59:59Z] OR mods_originInfo_point_start_dateCreated_dt:[* TO 1879-12-31T23:59:59Z] OR mods_originInfo_qualifier_approximate_dateCreated_dt:[* TO 1879-12-31T23:59:59Z]";
-				} elseif ($date == 'unknown') {
-					$searchObject->addFilter('-mods_originInfo_point_start_qualifier__dateCreated_dt:[* TO *]');
-					$searchObject->addFilter('-mods_originInfo_point_start_dateCreated_dt:[* TO *]');
-					$searchObject->addFilter('-mods_originInfo_qualifier_approximate_dateCreated_dt:[* TO *]');
-				} else {
-					$startYear = substr($date, 0, 4);
-					$endYear = (int)$startYear + 9;
-					$filter .= "mods_originInfo_point_start_qualifier__dateCreated_dt:[$date TO $endYear-12-31T23:59:59Z] OR mods_originInfo_point_start_dateCreated_dt:[$date TO $endYear-12-31T23:59:59Z] OR mods_originInfo_qualifier_approximate_dateCreated_dt:[$date TO $endYear-12-31T23:59:59Z]";
-				}
+		if (isset($_REQUEST['dateFilter']) && $_REQUEST['dateFilter'] != 'all') {
 
+			$filter = '';
+			$date = $_REQUEST['dateFilter'];
+			if ($date == 'before1880') {
+				$filter .= "(mods_originInfo_dateCreated_dt:[* TO 1879-12-31T23:59:59Z] OR mods_originInfo_point_start_qualifier__dateCreated_dt:[* TO 1879-12-31T23:59:59Z] OR mods_originInfo_point_start_dateCreated_dt:[* TO 1879-12-31T23:59:59Z] OR mods_originInfo_qualifier_approximate_dateCreated_dt:[* TO 1879-12-31T23:59:59Z] OR mods_originInfo_qualifier_questionable_dateCreated_dt:[* TO 1879-12-31T23:59:59Z])";
+			} elseif ($date == 'unknown') {
+				$filter .= '(-mods_originInfo_dateCreated_dt:[* TO *] AND -mods_originInfo_point_start_qualifier__dateCreated_dt:[* TO *] AND -mods_originInfo_point_start_dateCreated_dt:[* TO *] AND -mods_originInfo_qualifier_approximate_dateCreated_dt:[* TO *] AND -mods_originInfo_qualifier_questionable_dateCreated_dt:[* TO *])';
+			} else {
+				$startYear = substr($date, 0, 4);
+				$endYear = (int)$startYear + 9;
+				$filter .= "(mods_originInfo_dateCreated_dt:[$date TO $endYear-12-31T23:59:59Z] OR mods_originInfo_point_start_qualifier__dateCreated_dt:[$date TO $endYear-12-31T23:59:59Z] OR mods_originInfo_point_start_dateCreated_dt:[$date TO $endYear-12-31T23:59:59Z] OR mods_originInfo_qualifier_approximate_dateCreated_dt:[$date TO $endYear-12-31T23:59:59Z] OR mods_originInfo_qualifier_questionable_dateCreated_dt:[$date TO $endYear-12-31T23:59:59Z])";
 			}
+
 			if (strlen($filter)){
 				$searchObject->addFilter($filter);
 			}
@@ -707,8 +768,11 @@ class Archive_AJAX extends Action {
 		$searchObject->addFacet('mods_originInfo_point_start_qualifier__dateCreated_dt', 'Date Created');
 		$searchObject->addFacet('mods_originInfo_point_start_dateCreated_dt', 'Date Created 2');
 		$searchObject->addFacet('mods_originInfo_qualifier_approximate_dateCreated_dt', 'Date Created 3');
+		$searchObject->addFacet('mods_originInfo_dateCreated_dt', 'Date Created 4');
+		$searchObject->addFacet('mods_originInfo_qualifier_questionable_dateCreated_dt', 'Date Created 5');
+
 		$searchObject->addFacetOptions(array(
-				'facet.range' => array('mods_originInfo_point_start_qualifier__dateCreated_dt', 'mods_originInfo_point_start_dateCreated_dt', 'mods_originInfo_qualifier_approximate_dateCreated_dt'),
+				'facet.range' => array('mods_originInfo_point_start_qualifier__dateCreated_dt', 'mods_originInfo_dateCreated_dt', 'mods_originInfo_point_start_dateCreated_dt', 'mods_originInfo_qualifier_approximate_dateCreated_dt', 'mods_originInfo_qualifier_questionable_dateCreated_dt'),
 				'facet.range.1' => 'mods_originInfo_point_start_dateCreated_dt',
 				'f.mods_originInfo_point_start_qualifier__dateCreated_dt.facet.missing' => 'true',
 				'f.mods_originInfo_point_start_qualifier__dateCreated_dt.facet.range.start' => '1880-01-01T00:00:00Z',
@@ -716,6 +780,18 @@ class Archive_AJAX extends Action {
 				'f.mods_originInfo_point_start_qualifier__dateCreated_dt.facet.range.hardend' => 'true',
 				'f.mods_originInfo_point_start_qualifier__dateCreated_dt.facet.range.gap' => '+10YEAR',
 				'f.mods_originInfo_point_start_qualifier__dateCreated_dt.facet.range.other' => 'all',
+				'f.mods_originInfo_dateCreated_dt.facet.missing' => 'true',
+				'f.mods_originInfo_dateCreated_dt.facet.range.start' => '1880-01-01T00:00:00Z',
+				'f.mods_originInfo_dateCreated_dt.facet.range.end' => 'NOW/YEAR',
+				'f.mods_originInfo_dateCreated_dt.facet.range.hardend' => 'true',
+				'f.mods_originInfo_dateCreated_dt.facet.range.gap' => '+10YEAR',
+				'f.mods_originInfo_dateCreated_dt.facet.range.other' => 'all',
+				'f.mods_originInfo_qualifier_questionable_dateCreated_dt.facet.missing' => 'true',
+				'f.mods_originInfo_qualifier_questionable_dateCreated_dt.facet.range.start' => '1880-01-01T00:00:00Z',
+				'f.mods_originInfo_qualifier_questionable_dateCreated_dt.facet.range.end' => 'NOW/YEAR',
+				'f.mods_originInfo_qualifier_questionable_dateCreated_dt.facet.range.hardend' => 'true',
+				'f.mods_originInfo_qualifier_questionable_dateCreated_dt.facet.range.gap' => '+10YEAR',
+				'f.mods_originInfo_qualifier_questionable_dateCreated_dt.facet.range.other' => 'all',
 				'f.mods_originInfo_point_start_dateCreated_dt.facet.missing' => 'true',
 				'f.mods_originInfo_point_start_dateCreated_dt.facet.range.start' => '1880-01-01T00:00:00Z',
 				'f.mods_originInfo_point_start_dateCreated_dt.facet.range.end' => 'NOW/YEAR',
@@ -740,9 +816,9 @@ class Archive_AJAX extends Action {
 		if ($sort == 'title') {
 			$searchObject->setSort('fgs_label_s');
 		} elseif ($sort == 'newest') {
-			$searchObject->setSort('mods_originInfo_qualifier__dateIssued_dt desc,mods_originInfo_point_start_qualifier__dateCreated_dt desc,mods_originInfo_point_start_dateCreated_dt desc,mods_originInfo_qualifier_approximate_dateCreated_dt desc,fgs_label_s asc');
+			$searchObject->setSort('mods_originInfo_qualifier__dateIssued_dt desc,mods_originInfo_point_start_qualifier__dateCreated_dt desc,mods_originInfo_dateCreated_dt desc,mods_originInfo_point_start_dateCreated_dt desc,mods_originInfo_qualifier_approximate_dateCreated_dt desc, mods_originInfo_qualifier_questionable_dateCreated_dt desc,fgs_label_s asc');
 		} elseif ($sort == 'oldest') {
-			$searchObject->setSort('mods_originInfo_qualifier__dateIssued_dt asc,mods_originInfo_point_start_qualifier__dateCreated_dt asc,mods_originInfo_point_start_dateCreated_dt asc,mods_originInfo_qualifier_approximate_dateCreated_dt asc,fgs_label_s asc');
+			$searchObject->setSort('mods_originInfo_qualifier__dateIssued_dt asc,mods_originInfo_point_start_qualifier__dateCreated_dt asc,mods_originInfo_dateCreated_dt asc,mods_originInfo_point_start_dateCreated_dt asc,mods_originInfo_qualifier_approximate_dateCreated_dt asc, mods_originInfo_qualifier_questionable_dateCreated_dt asc,fgs_label_s asc');
 		} elseif ($sort == 'dateAdded') {
 			$searchObject->setSort('fgs_createdDate_dt desc,fgs_label_s asc');
 		} elseif ($sort == 'dateModified') {
@@ -761,7 +837,7 @@ class Archive_AJAX extends Action {
 			if (isset($response['facet_counts']['facet_ranges']['mods_originInfo_point_start_qualifier__dateCreated_dt'])) {
 				$dateCreatedInfo = $response['facet_counts']['facet_ranges']['mods_originInfo_point_start_qualifier__dateCreated_dt'];
 				if ($dateCreatedInfo['before'] > 0) {
-					$dateFacetInfo['Before 1880'] = array(
+					$dateFacetInfo['1870'] = array(
 							'label' => 'Before 1880',
 							'count' => $dateCreatedInfo['before'],
 							'value' => 'before1880'
@@ -774,15 +850,30 @@ class Archive_AJAX extends Action {
 							'value' => $facetInfo[0]
 					);
 				}
-				if (isset($response['facet_counts']['facet_fields']) && count($dateCreatedInfo['counts']) > 0) {
-					foreach ($response['facet_counts']['facet_fields']['mods_originInfo_point_start_qualifier__dateCreated_dt'] as $facetInfo) {
-						if ($facetInfo[0] == null) {
-							$dateFacetInfo['Unknown'] = array(
-									'label' => 'Unknown',
-									'count' => $facetInfo[1],
-									'value' => 'unknown'
-							);
-						}
+			}
+
+			if (isset($response['facet_counts']['facet_ranges']['mods_originInfo_dateCreated_dt'])) {
+				$dateCreatedInfo = $response['facet_counts']['facet_ranges']['mods_originInfo_dateCreated_dt'];
+				if ($dateCreatedInfo['before'] > 0) {
+					if (isset($dateFacetInfo['1870'])) {
+						$dateFacetInfo['1870']['count'] += $dateCreatedInfo['before'];
+					} else {
+						$dateFacetInfo['1870'] = array(
+								'label' => 'Before 1880',
+								'count' => $dateCreatedInfo['before'],
+								'value' => 'before1880'
+						);
+					}
+				}
+				foreach ($dateCreatedInfo['counts'] as $facetInfo) {
+					if (isset($dateFacetInfo[substr($facetInfo[0], 0, 4) . '\'s'])) {
+						$dateFacetInfo[substr($facetInfo[0], 0, 4) . '\'s']['count'] += $facetInfo[1];
+					} else {
+						$dateFacetInfo[substr($facetInfo[0], 0, 4) . '\'s'] = array(
+								'label' => substr($facetInfo[0], 0, 4) . '\'s',
+								'count' => $facetInfo[1],
+								'value' => $facetInfo[0]
+						);
 					}
 				}
 			}
@@ -790,10 +881,10 @@ class Archive_AJAX extends Action {
 			if (isset($response['facet_counts']['facet_ranges']['mods_originInfo_point_start_dateCreated_dt'])) {
 				$dateCreatedInfo = $response['facet_counts']['facet_ranges']['mods_originInfo_point_start_dateCreated_dt'];
 				if ($dateCreatedInfo['before'] > 0) {
-					if (isset($dateFacetInfo['before'])) {
-						$dateFacetInfo['before']['count'] += $dateCreatedInfo['before'];
+					if (isset($dateFacetInfo['1870'])) {
+						$dateFacetInfo['1870']['count'] += $dateCreatedInfo['before'];
 					} else {
-						$dateFacetInfo['before'] = array(
+						$dateFacetInfo['1870'] = array(
 								'label' => 'Before 1880',
 								'count' => $dateCreatedInfo['before'],
 								'value' => 'before1880'
@@ -809,21 +900,6 @@ class Archive_AJAX extends Action {
 								'count' => $facetInfo[1],
 								'value' => $facetInfo[0]
 						);
-					}
-				}
-				if (isset($response['facet_counts']['facet_fields']) && count($dateCreatedInfo['counts']) > 0) {
-					foreach ($response['facet_counts']['facet_fields']['mods_originInfo_point_start_dateCreated_dt'] as $facetInfo) {
-						if ($facetInfo[0] == null) {
-							if (isset($dateFacetInfo['Unknown'])) {
-								$dateFacetInfo['Unknown']['count'] += $facetInfo[1];
-							} else {
-								$dateFacetInfo[] = array(
-										'label' => 'Unknown',
-										'count' => $facetInfo[1],
-										'value' => 'unknown'
-								);
-							}
-						}
 					}
 				}
 			}
@@ -831,10 +907,10 @@ class Archive_AJAX extends Action {
 			if (isset($response['facet_counts']['facet_ranges']['mods_originInfo_qualifier_approximate_dateCreated_dt'])) {
 				$dateCreatedInfo = $response['facet_counts']['facet_ranges']['mods_originInfo_qualifier_approximate_dateCreated_dt'];
 				if ($dateCreatedInfo['before'] > 0) {
-					if (isset($dateFacetInfo['before'])) {
-						$dateFacetInfo['before']['count'] += $dateCreatedInfo['before'];
+					if (isset($dateFacetInfo['1870'])) {
+						$dateFacetInfo['1870']['count'] += $dateCreatedInfo['before'];
 					} else {
-						$dateFacetInfo['before'] = array(
+						$dateFacetInfo['1870'] = array(
 								'label' => 'Before 1880',
 								'count' => $dateCreatedInfo['before'],
 								'value' => 'before1880'
@@ -852,22 +928,50 @@ class Archive_AJAX extends Action {
 						);
 					}
 				}
-				if (isset($response['facet_counts']['facet_fields']) && count($dateCreatedInfo['counts']) > 0) {
-					foreach ($response['facet_counts']['facet_fields']['mods_originInfo_qualifier_approximate_dateCreated_dt'] as $facetInfo) {
-						if ($facetInfo[0] == null) {
-							if (isset($dateFacetInfo['Unknown'])) {
-								$dateFacetInfo['Unknown']['count'] += $facetInfo[1];
-							} else {
-								$dateFacetInfo[] = array(
-										'label' => 'Unknown',
-										'count' => $facetInfo[1],
-										'value' => 'unknown'
-								);
-							}
-						}
+			}
+
+			if (isset($response['facet_counts']['facet_ranges']['mods_originInfo_qualifier_questionable_dateCreated_dt'])) {
+				$dateCreatedInfo = $response['facet_counts']['facet_ranges']['mods_originInfo_qualifier_questionable_dateCreated_dt'];
+				if ($dateCreatedInfo['before'] > 0) {
+					if (isset($dateFacetInfo['1870'])) {
+						$dateFacetInfo['1870']['count'] += $dateCreatedInfo['before'];
+					} else {
+						$dateFacetInfo['1870'] = array(
+								'label' => 'Before 1880',
+								'count' => $dateCreatedInfo['before'],
+								'value' => 'before1880'
+						);
+					}
+				}
+				foreach ($dateCreatedInfo['counts'] as $facetInfo) {
+					if (isset($dateFacetInfo[substr($facetInfo[0], 0, 4) . '\'s'])) {
+						$dateFacetInfo[substr($facetInfo[0], 0, 4) . '\'s']['count'] += $facetInfo[1];
+					} else {
+						$dateFacetInfo[substr($facetInfo[0], 0, 4) . '\'s'] = array(
+								'label' => substr($facetInfo[0], 0, 4) . '\'s',
+								'count' => $facetInfo[1],
+								'value' => $facetInfo[0]
+						);
 					}
 				}
 			}
+
+			//Figure out how many unknown dates there are
+			$totalFound = 0;
+			foreach($dateFacetInfo as $dateFacet){
+				$totalFound += $dateFacet['count'];
+			}
+			$numUnknown = $response['response']['numFound'] - $totalFound;
+			/*if ($numUnknown > 0){
+				$dateFacetInfo['Unknown'] = array(
+						'label' => 'Unknown',
+						'count' => $numUnknown,
+						'value' => 'unknown'
+				);
+			}*/
+			$interface->assign('numObjectsWithUnknownDate', $numUnknown);
+
+			ksort($dateFacetInfo);
 
 			$interface->assign('dateFacetInfo', $dateFacetInfo);
 		}

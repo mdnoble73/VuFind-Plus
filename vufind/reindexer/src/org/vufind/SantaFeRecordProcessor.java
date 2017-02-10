@@ -46,5 +46,31 @@ public class SantaFeRecordProcessor extends IIIRecordProcessor {
 		return false;
 	}
 
+	protected boolean isBibSuppressed(Record record) {
+		DataField field907 = (DataField)record.getVariableField("907");
+		if (field907 != null){
+			Subfield suppressionSubfield = field907.getSubfield('c');
+			if (suppressionSubfield != null){
+				String bCode3 = suppressionSubfield.getData().toLowerCase().trim();
+				if (bCode3.matches("^[dns]$")){
+					logger.debug("Bib record is suppressed due to bcode3 " + bCode3);
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
+	protected boolean isItemSuppressed(DataField curItem) {
+		Subfield icode2Subfield = curItem.getSubfield(iCode2Subfield);
+		if (icode2Subfield != null && useICode2Suppression) {
+			String icode2 = icode2Subfield.getData().toLowerCase().trim();
+			String status = curItem.getSubfield(statusSubfieldIndicator).getData();
+
+			//Suppress based on combination of status and icode2
+
+		}
+		return super.isItemSuppressed(curItem);
+	}
 
 }

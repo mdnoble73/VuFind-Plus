@@ -1,5 +1,7 @@
 {strip}
 	<div class="col-xs-12">
+		{* Search Navigation *}
+		{include file="Archive/search-results-navigation.tpl"}
 		<h2>
 			{$title|escape}
 		</h2>

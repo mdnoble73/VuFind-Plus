@@ -65,7 +65,7 @@ class MaterialsRequest_UserReport extends Admin_Admin {
 
 		//Get a list of users that have requests open
 		$materialsRequest = new MaterialsRequest();
-		$materialsRequest->joinAdd(new User());
+		$materialsRequest->joinAdd(array('createdBy', new User(), 'id'));
 		$materialsRequest->joinAdd(new MaterialsRequestStatus());
 		$materialsRequest->selectAdd();
 		$materialsRequest->selectAdd('COUNT(materials_request.id) as numRequests');
@@ -93,12 +93,12 @@ class MaterialsRequest_UserReport extends Admin_Admin {
 		$materialsRequest->find();
 
 		$userData = array();
+		$barcodeProperty = $configArray['Catalog']['barcodeProperty'];
 		while ($materialsRequest->fetch()){
 			if (!array_key_exists($materialsRequest->userId, $userData)){
 				$userData[$materialsRequest->userId] = array();
 				$userData[$materialsRequest->userId]['firstName'] = $materialsRequest->firstName;
 				$userData[$materialsRequest->userId]['lastName'] = $materialsRequest->lastName;
-				$barcodeProperty = $configArray['Catalog']['barcodeProperty'];
 				$userData[$materialsRequest->userId]['barcode'] = $materialsRequest->$barcodeProperty;
 				$userData[$materialsRequest->userId]['totalRequests'] = 0;
 				$userData[$materialsRequest->userId]['requestsByStatus'] = array();
@@ -122,10 +122,12 @@ class MaterialsRequest_UserReport extends Admin_Admin {
 			$this->exportToExcel($userData, $statuses);
 		}
 
-		$interface->setTemplate('userReport.tpl');
-		$interface->setPageTitle('Materials Request User Report');
-		$interface->assign('sidebar', 'MyAccount/account-sidebar.tpl');
-		$interface->display('layout.tpl');
+//		$interface->setTemplate('userReport.tpl');
+//		$interface->setPageTitle('Materials Request User Report');
+//		$interface->assign('sidebar', 'MyAccount/account-sidebar.tpl');
+//		$interface->display('layout.tpl');
+
+		$this->display('userReport.tpl', 'Materials Request User Report');
 	}
 
 	function exportToExcel($userData, $statuses){

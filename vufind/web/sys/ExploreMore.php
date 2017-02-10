@@ -16,8 +16,10 @@ class ExploreMore {
 	 * @param IndexRecord $recordDriver
 	 */
 	function loadExploreMoreSidebar($activeSection, $recordDriver){
+		//TODO: remove title from $exploreMoreSectionsToShow array
 		global $interface;
 		global $configArray;
+		global $timer;
 
 		if (isset($configArray['Islandora']) && isset($configArray['Islandora']['solrUrl'])) {
 			require_once ROOT_DIR . '/sys/Utils/FedoraUtils.php';
@@ -49,7 +51,7 @@ class ExploreMore {
 					}
 
 					$exploreMoreSectionsToShow['parentBook'] = array(
-							'title' => 'Entire Book',
+//							'title' => 'Entire Book',
 							'format' => 'list',
 							'values' => array(
 									array(
@@ -65,18 +67,26 @@ class ExploreMore {
 					$exploreMoreSectionsToShow = $this->setupTableOfContentsForBook($parentDriver, $exploreMoreSectionsToShow, false);
 
 					$this->relatedCollections = $parentDriver->getRelatedCollections();
-					if (count($this->relatedCollections) > 0){
+					$this->relatedCollections['all'] = array(
+						'label' => 'See All Digital Archive Collections',
+						'link' => '/Archive/Home'
+					);
+
+					if (count($this->relatedCollections) > 1){ //Don't show if the only link is back to the All Collections page
+						$displayType = count($this->relatedCollections) > 3 ? 'textOnlyList' : 'list';
 						$exploreMoreSectionsToShow['relatedCollections'] = array(
-								'title' => 'Related Archive Collections',
-								'format' => 'list',
+//								'title' => 'Related Archive Collections',
+								'format' => $displayType,
 								'values' => $this->relatedCollections
 						);
 					}
 				}
+				$timer->logTime("Loaded table of contents");
 			}elseif ($recordDriver instanceof BookDriver || $recordDriver instanceof CompoundDriver){
 				if ($recordDriver->getFormat() != 'Postcard'){
 					/** @var CompoundDriver $bookDriver */
 					$exploreMoreSectionsToShow = $this->setupTableOfContentsForBook($recordDriver, $exploreMoreSectionsToShow, true);
+					$timer->logTime("Loaded table of contents for book");
 				}
 			}
 
@@ -84,24 +94,31 @@ class ExploreMore {
 			$archiveDriver = $recordDriver;
 			if (!isset($this->relatedCollections)){
 				$this->relatedCollections = $archiveDriver->getRelatedCollections();
-				if (count($this->relatedCollections) > 0){
+				$this->relatedCollections['all'] = array(
+					'label' => 'See All Digital Archive Collections',
+					'link' => '/Archive/Home'
+				);
+				if (count($this->relatedCollections) > 1){ //Don't show if the only link is back to the All Collections page
+					$displayType = count($this->relatedCollections) > 3 ? 'textOnlyList' : 'list';
 					$exploreMoreSectionsToShow['relatedCollections'] = array(
-							'title' => 'Related Archive Collections',
-							'format' => 'list',
+//							'title' => 'Related Archive Collections',
+							'format' => $displayType,
 							'values' => $this->relatedCollections
 					);
 				}
+				$timer->logTime("Loaded related collections for archive object");
 			}
 
 			//Find content from the catalog that is directly related to the object or collection based on linked data
 			$relatedPikaContent = $archiveDriver->getRelatedPikaContent();
 			if (count($relatedPikaContent) > 0){
 				$exploreMoreSectionsToShow['linkedCatalogRecords'] = array(
-						'title' => 'Librarian Picks',
+//						'title' => 'Librarian Picks',
 						'format' => 'scroller',
 						'values' => $relatedPikaContent
 				);
 			}
+			$timer->logTime("Loaded related Pika content");
 
 			//Find other entities
 		}
@@ -136,12 +153,13 @@ class ExploreMore {
 				$exactEntityMatches = $this->loadExactEntityMatches(array(), $curSubject);
 				if (count($exactEntityMatches) > 0){
 					$exploreMoreSectionsToShow['exactEntityMatches'] = array(
-							'title' => 'Related People, Places &amp; Events',
+//							'title' => 'Related People, Places &amp; Events',
 							'format' => 'list',
 							'values' => usort($exactEntityMatches, 'ExploreMore::sortRelatedEntities')
 					);
 				}
 			}
+			$timer->logTime("Loaded related entities");
 		}
 
 		//Always load ebsco even if we are already in that section
@@ -160,7 +178,7 @@ class ExploreMore {
 				if (isset($relatedArchiveEntities['people'])){
 					usort($relatedArchiveEntities['people'], 'ExploreMore::sortRelatedEntities');
 					$exploreMoreSectionsToShow['relatedPeople'] = array(
-							'title' => 'Associated People',
+//							'title' => 'Associated People',
 							'format' => 'textOnlyList',
 							'values' => $relatedArchiveEntities['people']
 					);
@@ -168,7 +186,7 @@ class ExploreMore {
 				if (isset($relatedArchiveEntities['places'])){
 					usort($relatedArchiveEntities['places'], 'ExploreMore::sortRelatedEntities');
 					$exploreMoreSectionsToShow['relatedPlaces'] = array(
-							'title' => 'Associated Places',
+//							'title' => 'Associated Places',
 							'format' => 'textOnlyList',
 							'values' => $relatedArchiveEntities['places']
 					);
@@ -176,7 +194,7 @@ class ExploreMore {
 				if (isset($relatedArchiveEntities['organizations'])){
 					usort($relatedArchiveEntities['organizations'], 'ExploreMore::sortRelatedEntities');
 					$exploreMoreSectionsToShow['relatedOrganizations'] = array(
-							'title' => 'Associated Organizations',
+//							'title' => 'Associated Organizations',
 							'format' => 'textOnlyList',
 							'values' => $relatedArchiveEntities['organizations']
 					);
@@ -184,7 +202,7 @@ class ExploreMore {
 				if (isset($relatedArchiveEntities['events'])){
 					usort($relatedArchiveEntities['events'], 'ExploreMore::sortRelatedEntities');
 					$exploreMoreSectionsToShow['relatedEvents'] = array(
-							'title' => 'Associated Events',
+//							'title' => 'Associated Events',
 							'format' => 'textOnlyList',
 							'values' => $relatedArchiveEntities['events']
 					);
@@ -197,7 +215,7 @@ class ExploreMore {
 		$relatedArchiveContent = $this->getRelatedArchiveObjects($quotedSearchTerm, $searchSubjectsOnly, $driver);
 		if (count($relatedArchiveContent) > 0) {
 			$exploreMoreSectionsToShow['relatedArchiveData'] = array(
-					'title' => 'From the Archive',
+//					'title' => 'From the Archive',
 					'format' => 'subsections',
 					'values' => $relatedArchiveContent
 			);
@@ -207,7 +225,7 @@ class ExploreMore {
 			$relatedWorks = $this->getRelatedWorks($quotedSubjectsForSearching, $relatedPikaContent);
 			if ($relatedWorks['numFound'] > 0){
 				$exploreMoreSectionsToShow['relatedCatalog'] = array(
-						'title' => 'More From the Catalog',
+//						'title' => 'More From the Catalog',
 						'format' => 'scrollerWithLink',
 						'values' => $relatedWorks['values'],
 						'link' => $relatedWorks['link'],
@@ -225,7 +243,7 @@ class ExploreMore {
 			if (count($relatedSubjects) > 0){
 				usort($relatedSubjects, 'ExploreMore::sortRelatedEntities');
 				$exploreMoreSectionsToShow['relatedSubjects'] = array(
-						'title' => 'Related Subjects',
+//						'title' => 'Related Subjects',
 						'format' => 'textOnlyList',
 						'values' => $relatedSubjects
 				);
@@ -239,7 +257,7 @@ class ExploreMore {
 				$dplaResults = $dpla->getDPLAResults('"' . $archiveDriver->getTitle() . '"');
 				if (count($dplaResults)){
 					$exploreMoreSectionsToShow['dpla'] = array(
-							'title' => 'Digital Public Library of America',
+//							'title' => 'Digital Public Library of America',
 							'format' => 'scrollerWithLink',
 							'values' => $dplaResults,
 							'link' => 'http://dp.la/search?q=' . urlencode('"' . $archiveDriver->getTitle() . '"'),
@@ -248,12 +266,7 @@ class ExploreMore {
 				}
 			}else{
 				//Display donor and contributor information
-				$brandingResults = $archiveDriver->getBrandingInformation();
-				$collections = $archiveDriver->getRelatedCollections();
-				foreach ($collections as $collection){
-					$collectionBranding = $collection['driver']->getBrandingInformation(true);
-					$brandingResults = array_merge($brandingResults, $collectionBranding);
-				}
+				$brandingResults = $archiveDriver->getBrandingInformation(false);
 
 				if (count($brandingResults) > 0){
 					//Sort and filter the acknowledgements
@@ -284,7 +297,7 @@ class ExploreMore {
 					usort($brandingResults, 'sortBrandingResults');
 
 					$exploreMoreSectionsToShow['acknowledgements'] = array(
-							'title' => 'Acknowledgements',
+//							'title' => 'Acknowledgements',
 							'format' => 'list',
 							'values' => $brandingResults,
 							'showTitles' => true,
@@ -670,6 +683,7 @@ class ExploreMore {
 	}
 
 	function loadExploreMoreContent(){
+		global $timer;
 		require_once ROOT_DIR . '/sys/ArchiveSubject.php';
 		$archiveSubjects = new ArchiveSubject();
 		$subjectsToIgnore = array();
@@ -679,6 +693,7 @@ class ExploreMore {
 			$subjectsToRestrict = array_flip(explode("\r\n", strtolower($archiveSubjects->subjectsToRestrict)));
 		}
 		$this->getRelatedCollections();
+		$timer->logTime("Loaded related collections");
 		$relatedSubjects = array();
 		$numSubjectsAdded = 0;
 		if (strlen($this->archiveObject->label) > 0) {
@@ -713,12 +728,16 @@ class ExploreMore {
 			$numSubjectsAdded++;
 		}
 		$relatedSubjects = array_slice($relatedSubjects, 0, 8);
+		$timer->logTime("Loaded subjects");
 
 		$exploreMore = new ExploreMore();
 
 		$exploreMore->loadEbscoOptions('archive', array(), implode($relatedSubjects, " or "));
+		$timer->logTime("Loaded EBSCO options");
+
 		$searchTerm = implode(" OR ", $relatedSubjects);
 		$exploreMore->getRelatedArchiveObjects($searchTerm);
+		$timer->logTime("Loaded related archive objects");
 	}
 
 	/**
@@ -757,6 +776,7 @@ class ExploreMore {
 	 * @return array
 	 */
 	public function getRelatedArchiveObjects($searchTerm, $searchSubjectsOnly, $archiveDriver = null) {
+		global $timer;
 		$relatedArchiveContent = array();
 
 		require_once ROOT_DIR . '/sys/Utils/FedoraUtils.php';
@@ -837,6 +857,7 @@ class ExploreMore {
 				}
 			}
 		}
+		$timer->logTime('Loaded related archive objects');
 		return $relatedArchiveContent;
 	}
 
@@ -848,6 +869,7 @@ class ExploreMore {
 	 * @return array
 	 */
 	public function getRelatedArchiveEntities($archiveDriver){
+		global $timer;
 		$directlyRelatedPeople = $archiveDriver->getRelatedPeople();
 		$directlyRelatedPlaces = $archiveDriver->getRelatedPlaces();
 		$directlyRelatedOrganizations = $archiveDriver->getRelatedOrganizations();
@@ -905,6 +927,7 @@ class ExploreMore {
 		if (count($relatedEvents) > 0){
 			$relatedEntities['events'] = $relatedEvents;
 		}
+		$timer->logTime('Loaded related entities');
 		return $relatedEntities;
 	}
 

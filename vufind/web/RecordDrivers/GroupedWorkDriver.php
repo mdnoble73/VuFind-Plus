@@ -506,6 +506,7 @@ class GroupedWorkDriver extends RecordInterface{
 		global $configArray;
 		global $interface;
 		global $timer;
+		global $memoryWatcher;
 
 		$interface->assign('displayingSearchResults', true);
 		$interface->assign('useUnscopedHoldingsSummary', $useUnscopedHoldingsSummary);
@@ -521,16 +522,17 @@ class GroupedWorkDriver extends RecordInterface{
 		$relatedManifestations = $this->getRelatedManifestations();
 		$interface->assign('relatedManifestations', $relatedManifestations);
 		$timer->logTime("Loaded related manifestations");
+		$memoryWatcher->logMemory("Loaded related manifestations for {$this->getUniqueID()}");
 
 		//Build the link URL.
 		//If there is only one record for the work we will link straight to that.
 		$relatedRecords = $this->getRelatedRecords();
 		$timer->logTime("Loaded related records");
+		$memoryWatcher->logMemory("Loaded related records");
 		if (count($relatedRecords) == 1){
 			$firstRecord = reset($relatedRecords);
-			/** @var IndexRecord|OverDriveRecordDriver|BaseEContentDriver $driver */
-			$driver = $firstRecord['driver'];
-			$linkUrl = $driver != null ? $driver->getLinkUrl() : '';
+			$linkUrl = $firstRecord['url'];
+			$linkUrl .=  '?searchId=' . $interface->get_template_vars('searchId') . '&amp;recordIndex=' . $interface->get_template_vars('recordIndex') . '&amp;page='  . $interface->get_template_vars('page');
 		}else{
 			$linkUrl = '/GroupedWork/' . $id . '/Home?searchId=' . $interface->get_template_vars('searchId') . '&amp;recordIndex=' . $interface->get_template_vars('recordIndex') . '&amp;page='  . $interface->get_template_vars('page');
 			if ($useUnscopedHoldingsSummary){
@@ -553,6 +555,7 @@ class GroupedWorkDriver extends RecordInterface{
 		$lexileInfo = $this->getLexileDisplayString();
 		$interface->assign('summLexileInfo', $lexileInfo);
 		$timer->logTime("Finished assignment of main data");
+		$memoryWatcher->logMemory("Finished assignment of main data");
 
 		// Obtain and assign snippet (highlighting) information:
 		$snippets = $this->getHighlightedSnippets();
@@ -615,6 +618,7 @@ class GroupedWorkDriver extends RecordInterface{
 		//Description
 		$interface->assign('summDescription', $this->getDescriptionFast(true));
 		$timer->logTime('Finished Loading Description');
+		$memoryWatcher->logMemory("Finished Loading Description");
 		if ($this->hasCachedSeries()){
 			$interface->assign('ajaxSeries', false);
 			$interface->assign('summSeries', $this->getSeries(false));
@@ -623,6 +627,7 @@ class GroupedWorkDriver extends RecordInterface{
 			$interface->assign('summSeries', null);
 		}
 		$timer->logTime('Finished Loading Series');
+		$memoryWatcher->logMemory("Finished Loading Series");
 
 		$interface->assign('bookCoverUrl', $this->getBookcoverUrl('small'));
 		$interface->assign('bookCoverUrlMedium', $this->getBookcoverUrl('medium'));
@@ -977,7 +982,7 @@ class GroupedWorkDriver extends RecordInterface{
 		if ($this->fastDescription != null){
 			return $this->fastDescription;
 		}
-		if (isset($this->fields['display_description']) && strlen($this->fields['display_description']) > 0){
+		if (isset($this->fields['display_description'])){
 			$this->fastDescription = $this->fields['display_description'];
 		}else{
 			$relatedRecords = $this->getRelatedRecords(false);
@@ -1057,18 +1062,29 @@ class GroupedWorkDriver extends RecordInterface{
 		return $configArray['Site']['url'] . '/qrcode.php?type=GroupedWork&id=' . $this->getPermanentId();
 	}
 
-	private $archiveLink = false;
+	private $archiveLink = 'unset';
 	function getArchiveLink(){
-		if ($this->archiveLink === false){
-			$this->archiveLink = null;
-			//Check to see if the record is available within the archive
-			global $library;
-			if ($library->enableArchive){
+		if ($this->archiveLink === 'unset'){
+			$this->archiveLink = GroupedWorkDriver::getArchiveLinkForWork($this->getUniqueID());
+		}
+		return $this->archiveLink;
+	}
+
+	static $archiveLinksForWorkIds = array();
+	static function getArchiveLinkForWork($groupedWorkId){
+		//Check to see if the record is available within the archive
+		global $library;
+		$archiveLink = null;
+		if ($library->enableArchive){
+			if (array_key_exists($groupedWorkId, GroupedWorkDriver::$archiveLinksForWorkIds)){
+				$archiveLink = GroupedWorkDriver::$archiveLinksForWorkIds[$groupedWorkId];
+			}else{
 				/** @var SearchObject_Islandora $searchObject */
 				$searchObject = SearchObjectFactory::initSearchObject('Islandora');
 				$searchObject->init();
+				$searchObject->disableLogging();
 				$searchObject->setDebugging(false, false);
-				$searchObject->setBasicQuery("mods_extension_marmotLocal_externalLink_samePika_link_s:*" . $this->getUniqueID());
+				$searchObject->setBasicQuery("mods_extension_marmotLocal_externalLink_samePika_link_s:*" . $groupedWorkId);
 				$searchObject->clearFacets();
 
 				$searchObject->setLimit(1);
@@ -1080,12 +1096,15 @@ class GroupedWorkDriver extends RecordInterface{
 					if ($searchObject->getResultTotal() > 0) {
 						$firstObjectDriver = RecordDriverFactory::initRecordDriver($response['response']['docs'][0]);
 
-						$this->archiveLink = $firstObjectDriver->getRecordUrl();
+						$archiveLink = $firstObjectDriver->getRecordUrl();
 					}
 				}
+				GroupedWorkDriver::$archiveLinksForWorkIds[$groupedWorkId] = $archiveLink;
+				$searchObject = null;
+				unset($searchObject);
 			}
 		}
-		return $this->archiveLink;
+		return $archiveLink;
 	}
 
 	/**
@@ -1261,6 +1280,7 @@ class GroupedWorkDriver extends RecordInterface{
 
 	private function loadRelatedRecords(){
 		global $timer;
+		global $memoryWatcher;
 		if ($this->relatedRecords == null || isset($_REQUEST['reload'])){
 			$timer->logTime("Starting to load related records for {$this->getUniqueID()}");
 
@@ -1282,17 +1302,17 @@ class GroupedWorkDriver extends RecordInterface{
 				$activePTypes[$library->defaultPType] = $library->defaultPType;
 			}
 			list($scopingInfo, $validRecordIds, $validItemIds) = $this->loadScopingDetails($solrScope);
-
-
 			$timer->logTime("Loaded Scoping Details from the index");
+			$memoryWatcher->logMemory("Loaded scoping details from the index");
+
 			$recordsFromIndex = $this->loadRecordDetailsFromIndex($validRecordIds);
-
-
 			$timer->logTime("Loaded Record Details from the index");
+			$memoryWatcher->logMemory("Loaded Record Details from the index");
 
 			//Get a list of related items filtered according to scoping
 			$this->loadItemDetailsFromIndex($validItemIds);
 			$timer->logTime("Loaded Item Details from the index");
+			$memoryWatcher->logMemory("Loaded Item Details from the index");
 
 			//Load the work from the database so we can use it in each record diver
 			require_once ROOT_DIR . '/sys/Grouping/GroupedWork.php';
@@ -1305,6 +1325,7 @@ class GroupedWorkDriver extends RecordInterface{
 			foreach ($recordsFromIndex as $recordDetails){
 				$relatedRecord = $this->setupRelatedRecordDetails($recordDetails, $groupedWork, $timer, $scopingInfo, $activePTypes, $searchLocation, $library);
 				$relatedRecords[$relatedRecord['id']] = $relatedRecord;
+				$memoryWatcher->logMemory("Setup related record details for " . $relatedRecord['id']);
 			}
 
 			//Sort the records based on format and then edition
@@ -1323,9 +1344,11 @@ class GroupedWorkDriver extends RecordInterface{
 		 */
 	public function getRelatedManifestations() {
 		global $timer;
+		global $memoryWatcher;
 		$timer->logTime("Starting to load related records in getRelatedManifestations");
 		$relatedRecords = $this->getRelatedRecords();
 		$timer->logTime("Finished loading related records in getRelatedManifestations");
+		$memoryWatcher->logMemory("Finished loading related records");
 		//Group the records based on format
 		$relatedManifestations = array();
 		foreach ($relatedRecords as $curRecord){
@@ -1432,6 +1455,7 @@ class GroupedWorkDriver extends RecordInterface{
 			}
 		}
 		$timer->logTime("Finished initial processing of related records");
+		$memoryWatcher->logMemory("Finished initial processing of related records");
 
 		//Check to see if we have applied a format or format category facet
 		$selectedFormat = null;
@@ -1531,6 +1555,7 @@ class GroupedWorkDriver extends RecordInterface{
 			$relatedManifestations[$key] = $manifestation;
 		}
 		$timer->logTime("Finished loading related manifestations");
+		$memoryWatcher->logMemory("Finished loading related manifestations");
 
 		return $relatedManifestations;
 	}
@@ -2457,6 +2482,7 @@ class GroupedWorkDriver extends RecordInterface{
 	protected function setupRelatedRecordDetails($recordDetails, $groupedWork, $timer, $scopingInfo, $activePTypes, $searchLocation, $library) {
 		//Check to see if we have any volume data for the record
 		require_once ROOT_DIR . '/Drivers/marmot_inc/IlsVolumeInfo.php';
+		global $memoryWatcher;
 		$volumeData = array();
 		$volumeDataDB = new IlsVolumeInfo();
 		$volumeDataDB->recordId = $recordDetails[0];
@@ -2466,6 +2492,8 @@ class GroupedWorkDriver extends RecordInterface{
 				$volumeData[] = clone($volumeDataDB);
 			}
 		}
+		$volumeDataDB = null;
+		unset($volumeDataDB);
 
 		//		list($source) = explode(':', $recordDetails[0], 1); // this does not work for 'overdrive:27770ba9-9e68-410c-902b-de2de8e2b7fe', returns 'overdrive:27770ba9-9e68-410c-902b-de2de8e2b7fe'
 		// when loading book covers.
@@ -2473,6 +2501,7 @@ class GroupedWorkDriver extends RecordInterface{
 		require_once ROOT_DIR . '/RecordDrivers/Factory.php';
 		$recordDriver = RecordDriverFactory::initRecordDriverById($recordDetails[0], $groupedWork);
 		$timer->logTime("Loaded Record Driver for  $recordDetails[0]");
+		$memoryWatcher->logMemory("Loaded Record Driver for  $recordDetails[0]");
 
 		//Setup the base record
 		$relatedRecord = array(
@@ -2515,6 +2544,7 @@ class GroupedWorkDriver extends RecordInterface{
 				'schemaDotOrgBookFormat' => $this->getSchemaOrgBookFormat($recordDetails[1]),
 		);
 		$timer->logTime("Setup base related record");
+		$memoryWatcher->logMemory("Setup base related record");
 
 		//Process the items for the record and add additional information as needed
 		$localShelfLocation = null;
@@ -2743,9 +2773,12 @@ class GroupedWorkDriver extends RecordInterface{
 		ksort($relatedRecord['itemSummary']);
 		ksort($relatedRecord['itemDetails']);
 		$timer->logTime("Setup record items");
+		$memoryWatcher->logMemory("Setup record items");
 
 		$relatedRecord['actions'] = $recordDriver != null ? $recordDriver->getRecordActions($relatedRecord['availableLocally'] || $relatedRecord['availableOnline'], $recordHoldable, $recordBookable, $relatedUrls, $volumeData) : array();
 		$timer->logTime("Loaded actions");
+		$memoryWatcher->logMemory("Loaded actions");
+		$recordDriver = null;
 		return $relatedRecord;
 	}
 

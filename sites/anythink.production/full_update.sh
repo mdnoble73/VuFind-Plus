@@ -14,7 +14,7 @@ PIKASERVER=anythink.production
 PIKADBNAME=pika
 OUTPUT_FILE="/var/log/vufind-plus/${PIKASERVER}/full_update_output.log"
 
-MINFILE1SIZE=$((310000000))
+MINFILE1SIZE=$((304000000))
 
 # Check for conflicting processes currently running
 function checkConflictingProcesses() {
@@ -87,7 +87,7 @@ tar -czf /data/vufind-plus/${PIKASERVER}/solr_master_backup.tar.gz /data/vufind-
 rm /data/vufind-plus/${PIKASERVER}/grouped_work_primary_identifiers.sql
 
 #Restart Solr
-cd /usr/local/vufind-plus/sites/${PIKASERVER}; ./${PIKASERVER}.sh restart >> ${OUTPUT_FILE}
+cd /usr/local/vufind-plus/sites/${PIKASERVER}; ./${PIKASERVER}.sh restart
 
 #Extract from ILS is done automatically
 
@@ -158,7 +158,7 @@ find /usr/local/vufind-plus/sites/default/solr/jetty/logs -name "solr_log_*" -mt
 find /usr/local/vufind-plus/sites/default/solr/jetty/logs -name "solr_gc_log_*" -mtime +7 -delete
 
 #Restart Solr
-cd /usr/local/vufind-plus/sites/${PIKASERVER}; ./${PIKASERVER}.sh restart >> ${OUTPUT_FILE}
+cd /usr/local/vufind-plus/sites/${PIKASERVER}; ./${PIKASERVER}.sh restart
 
 #Email results
 FILESIZE=$(stat -c%s ${OUTPUT_FILE})

@@ -1,5 +1,10 @@
 {strip}
 <div class="col-xs-12">
+	{if $parentExhibitUrl}
+		{* Search/Archive Navigation for Exhibits within an exhibit *}
+		{include file="Archive/search-results-navigation.tpl"}
+	{/if}
+
 	{if $main_image}
 		<div class="main-project-image">
 			<img src="{$main_image}" class="img-responsive" usemap="#map">
@@ -146,5 +151,5 @@
 <script type="text/javascript">
 	$().ready(function(){ldelim}
 		VuFind.Archive.loadExploreMore('{$pid|urlencode}');
-		{rdelim});
+	{rdelim});
 </script>

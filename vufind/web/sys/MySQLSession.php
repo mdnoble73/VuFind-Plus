@@ -4,15 +4,19 @@ require_once 'SessionInterface.php';
 require_once ROOT_DIR . '/services/MyResearch/lib/Session.php';
 
 class MySQLSession extends SessionInterface {
+	static $sessionStartTime;
 	static public function read($sess_id) {
+		global $logger;
 		$s = new Session();
 		$s->session_id = $sess_id;
 
 		$cookieData = '';
 		$saveNewSession = false;
+		$curTime = time();
+		$logger->log("Loading session for " . $_SERVER['REQUEST_URI'] . " $curTime", PEAR_LOG_DEBUG);
 		if ($s->find(true)) {
 			//First check to see if the session expired
-			$curTime = time();
+			MySQLSession::$sessionStartTime = $curTime;
 			if ($s->remember_me == 1){
 				$sessionExpirationTime = $s->last_used + self::$rememberMeLifetime;
 			}else{
@@ -38,7 +42,7 @@ class MySQLSession extends SessionInterface {
 		if ($saveNewSession){
 			$s->session_id = $sess_id;
 			//There is no active session, we need to create a new one.
-			$s->last_used = time();
+			$s->last_used = $curTime;
 			// in date format - easier to read
 			$s->created = date('Y-m-d h:i:s');
 			if (isset($_SESSION['rememberMe']) && $_SESSION['rememberMe'] == true){
@@ -52,10 +56,20 @@ class MySQLSession extends SessionInterface {
 	}
 
 	static public function write($sess_id, $data) {
+		global $logger;
 		$s = new Session();
 		$s->session_id = $sess_id;
 		if ($s->find(true)) {
-			$s->data = $data;
+			//$logger->log("Saving session for " . $_SERVER['REQUEST_URI'] . " {$s->last_used}, " . MySQLSession::$sessionStartTime, PEAR_LOG_DEBUG);
+			if ($s->last_used != MySQLSession::$sessionStartTime){
+				$logger->log("Not Writing Session data because another process wrote to it already", PEAR_LOG_DEBUG);
+				return true;
+			}
+			if ($s->data != $data) {
+				$s->data = $data;
+				$s->last_used = time();
+				$logger->log("Writing Session data {$s->last_used} " . print_r($data, true), PEAR_LOG_DEBUG);
+			}
 			if (isset($_SESSION['rememberMe']) && ($_SESSION['rememberMe'] == true || $_SESSION['rememberMe'] === "true")){
 				$s->remember_me = 1;
 				setcookie(session_name(),session_id(),time()+self::$rememberMeLifetime,'/');

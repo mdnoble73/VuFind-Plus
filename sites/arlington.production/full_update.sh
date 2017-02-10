@@ -15,7 +15,7 @@ PIKADBNAME=pika
 OUTPUT_FILE="/var/log/vufind-plus/${PIKASERVER}/full_update_output.log"
 
 MINFILE1SIZE=$((650000000))
-MINFILE2SIZE=$((45000000))
+MINFILE2SIZE=$((588000000))
 
 # Check for conflicting processes currently running
 function checkConflictingProcesses() {
@@ -83,6 +83,7 @@ checkConflictingProcesses "reindexer.jar arlington.production"
 
 # Back-up Solr Master Index
 mysqldump ${PIKADBNAME} grouped_work_primary_identifiers > /data/vufind-plus/${PIKASERVER}/grouped_work_primary_identifiers.sql
+sleep 6m
 tar -czf /data/vufind-plus/${PIKASERVER}/solr_master_backup.tar.gz /data/vufind-plus/${PIKASERVER}/solr_master/grouped/index/ /data/vufind-plus/${PIKASERVER}/grouped_work_primary_identifiers.sql >> ${OUTPUT_FILE}
 rm /data/vufind-plus/${PIKASERVER}/grouped_work_primary_identifiers.sql
 

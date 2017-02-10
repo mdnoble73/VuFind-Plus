@@ -70,7 +70,7 @@ do
 	#####
 
 	# Make sure we are not running a Full Record Group/Reindex process
-	hasConflicts=$(checkConflictingProcesses "full_update_arlington_production.sh")
+	hasConflicts=$(checkConflictingProcesses "full_update.sh")
 	#If we did get a conflict, restart the loop to make sure that all tests run
 	if (($? != 0)); then
 		continue
@@ -83,12 +83,12 @@ do
 	if (($? != 0)); then
 		continue
 	fi
-	# Complete prohibited time is 9:30pm to 0:30am
-	hasConflicts=$(checkProhibitedTimes "00:00" "00:00")
-	#If we did get a conflict, restart the loop to make sure that all tests run
-	if (($? != 0)); then
-		continue
-	fi
+#	# Complete prohibited time is 9:30pm to 0:30am
+#	hasConflicts=$(checkProhibitedTimes "00:00" "00:00")
+#	#If we did get a conflict, restart the loop to make sure that all tests run
+#	if (($? != 0)); then
+#		continue
+#	fi
 
 	#####
 	# Start of the actual indexing code

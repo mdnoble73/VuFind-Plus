@@ -184,3 +184,10 @@ function jsEntityEncode(str)
 	var new_str = str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
 	return new_str;
 }
+function resetSearch(){
+	$('input[type="text"]').val('');
+	$("option:selected").removeAttr("selected").parent().change();
+	$('.delete').not('#delete_link_0').each(function () {
+		deleteGroupJS(this);
+	})
+}

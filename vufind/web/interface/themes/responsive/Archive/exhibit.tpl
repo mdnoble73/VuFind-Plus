@@ -1,5 +1,10 @@
 {strip}
 <div class="col-xs-12">
+	{if $parentExhibitUrl}
+	{* Search/Archive Navigation for Exhibits within an exhibit *}
+	{include file="Archive/search-results-navigation.tpl"}
+	{/if}
+
 	{if $main_image}
 		<div class="main-project-image">
 			<img src="{$main_image}" class="img-responsive" usemap="#map">
@@ -97,11 +102,20 @@
 				{/if}
 			</div>
 		</div>
-		<div id="related-exhibit-images" class="{if $showThumbnailsSorted && count($relatedImages) >= 18}row{elseif count($relatedImages) >= 18}results-covers home-page-browse-thumbnails{else}browse-thumbnails-few{/if}">
+		<div id="related-exhibit-images" class="
+			{if $showThumbnailsSorted && count($relatedImages) >= 18}
+				row
+			{elseif count($relatedImages) > 18}
+				results-covers home-page-browse-thumbnails
+			{elseif count($relatedImages) > 8}
+				browse-thumbnails-medium
+			{else}
+				browse-thumbnails-few
+			{/if}">
 			{foreach from=$relatedImages item=image}
 				{if $showThumbnailsSorted && count($relatedImages) >= 18}<div class="col-xs-6 col-sm-4 col-md-3">{/if}
 					<figure class="{if $showThumbnailsSorted && count($relatedImages) >= 18}browse-thumbnail-sorted{else}browse-thumbnail{/if}">
-						<a href="{$image.link}" {if $image.title}data-title="{$image.title}"{/if} onclick="return VuFind.Archive.showObjectInPopup('{$image.pid|urlencode}')">
+						<a href="{$image.link}" {if $image.title}data-title="{$image.title}"{/if} onclick="return VuFind.Archive.showObjectInPopup('{$image.pid|urlencode}'{if $image.recordIndex},{$image.recordIndex}{if $page},{$page}{/if}{/if})">
 							<img src="{$image.image}" {if $image.title}alt="{$image.title}"{/if}>
 							<figcaption class="explore-more-category-title">
 								<strong>{$image.title}</strong>

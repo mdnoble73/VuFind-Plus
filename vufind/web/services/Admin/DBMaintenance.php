@@ -2337,6 +2337,16 @@ class DBMaintenance extends Admin_Admin {
 									) ENGINE=InnoDB  DEFAULT CHARSET=utf8",
 							)
 					),
+
+					'add_search_source_to_saved_searches' => array(
+							'title' => 'Store the Search Source with saved searches',
+							'description' => 'Add column to store the source for a search in the search table',
+							'continueOnError' => true,
+							'sql' => array(
+									"ALTER TABLE `search` 
+									ADD COLUMN `searchSource` VARCHAR(30) NOT NULL DEFAULT 'local' AFTER `search_object`;",
+							)
+					),
 			)
 		);
 	}
@@ -2403,7 +2413,7 @@ class DBMaintenance extends Admin_Admin {
 	}
 
 	function getAllowableRoles() {
-		return array('userAdmin');
+		return array('userAdmin', 'opacAdmin');
 	}
 
 	private function createUpdatesTable() {

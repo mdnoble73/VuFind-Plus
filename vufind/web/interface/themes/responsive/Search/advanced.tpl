@@ -116,6 +116,7 @@
 					<div id="searchHolder"></div>
 
 					<button class="btn btn-default" onclick="addGroup();return false;"><span class="glyphicon glyphicon-plus"></span>&nbsp;{translate text="add_search_group"}</button>
+					<button class="btn btn-default" onclick="resetSearch();return false;"><span class="glyphicon glyphicon-remove-sign"></span>&nbsp;{translate text="Clear Search"}</button>
 					{* addGroup() returns the variable nextGroupNumber so the return false is necessary *}
 					<input type="submit" name="submit" value="{translate text="Find"}" class="btn btn-primary pull-right">
 					<br><br>
