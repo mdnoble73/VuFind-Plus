@@ -145,6 +145,49 @@ class Admin_Libraries extends ObjectEditor
 			global $interface;
 			$interface->assign('allLibraries', $allLibraries);
 			$interface->assign('id', $libraryId);
+			$interface->assign('facetType', 'search');
+			$interface->assign('objectAction', 'copyFacetsFromLibrary');
+			$interface->setTemplate('../Admin/copyLibraryFacets.tpl');
+		}
+	}
+
+	function copyArchiveSearchFacetsFromLibrary(){
+		$libraryId = $_REQUEST['id'];
+		if (isset($_REQUEST['submit'])){
+			$library = new Library();
+			$library->libraryId = $libraryId;
+			$library->find(true);
+			$library->clearArchiveSearchFacets();
+
+			$libraryToCopyFromId = $_REQUEST['libraryToCopyFrom'];
+			$libraryToCopyFrom = new Library();
+			$libraryToCopyFrom->libraryId = $libraryToCopyFromId;
+			$library->find(true);
+
+			$facetsToCopy = $libraryToCopyFrom->archiveSearchFacets;
+			foreach ($facetsToCopy as $facetKey => $facet){
+				$facet->libraryId = $libraryId;
+				$facet->id = null;
+				$facetsToCopy[$facetKey] = $facet;
+			}
+			$library->facets = $facetsToCopy;
+			$library->update();
+			header("Location: /Admin/Libraries?objectAction=edit&id=" . $libraryId);
+		}else{
+			//Prompt user for the library to copy from
+			$allLibraries = $this->getAllObjects();
+
+			unset($allLibraries[$libraryId]);
+			foreach ($allLibraries as $key => $library){
+				if (count($library->archiveSearchFacets) == 0){
+					unset($allLibraries[$key]);
+				}
+			}
+			global $interface;
+			$interface->assign('allLibraries', $allLibraries);
+			$interface->assign('id', $libraryId);
+			$interface->assign('facetType', 'archive search');
+			$interface->assign('objectAction', 'copyArchiveSearchFacetsFromLibrary');
 			$interface->setTemplate('../Admin/copyLibraryFacets.tpl');
 		}
 	}
@@ -164,6 +207,24 @@ class Admin_Libraries extends ObjectEditor
 			$_REQUEST['objectAction'] = 'edit';
 		}
 		$structure = $this->getObjectStructure();
+		header("Location: /Admin/Libraries?objectAction=edit&id=" . $libraryId);
+	}
+
+	function resetArchiveSearchFacetsToDefault(){
+		$library = new Library();
+		$libraryId = $_REQUEST['id'];
+		$library->libraryId = $libraryId;
+		if ($library->find(true)){
+			$library->clearArchiveSearchFacets();
+
+			$defaultFacets = Library::getDefaultArchiveSearchFacets($libraryId);
+
+			$library->archiveSearchFacets = $defaultFacets;
+			$library->update();
+
+			$_REQUEST['objectAction'] = 'edit';
+		}
+		$structure = $this->getObjectStructure(); //TODO: Needed?
 		header("Location: /Admin/Libraries?objectAction=edit&id=" . $libraryId);
 	}
 
