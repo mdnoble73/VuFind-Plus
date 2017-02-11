@@ -245,7 +245,7 @@ abstract class SearchObject_Base
 		// Extract field and value from URL string:
 		list($field, $value) = $this->parseFilter($newFilter);
 		if ($field == ''){
-			$field = count($this->filterList);
+			$field = count($this->filterList) + 1;
 		}
 
 		$searchLibrary = Library::getActiveLibrary();
@@ -255,62 +255,64 @@ abstract class SearchObject_Base
 		global $solrScope;
 
 		// Check for duplicates -- if it's not in the array, we can add it
-		if (!$this->hasFilter($newFilter)) {
-			if ($field == 'literary-form'){
-				$field = 'literary_form';
-			}else if ($field == 'literary-form-full'){
-				$field = 'literary_form_full';
-			}else if ($field == 'target-audience'){
-				$field = 'target_audience';
-			}else if ($field == 'target-audience-full'){
-				$field = 'target_audience_full';
-			}
-
-			//See if the filter should be localized
-			if (isset($searchLibrary)){
-				if ($field == 'time_since_added'){
-					$field = 'local_time_since_added_' . $searchLibrary->subdomain;
-				}elseif ($field == 'itype'){
-					$field = 'itype_' . $searchLibrary->subdomain;
-				}elseif ($field == 'detailed_location'){
-					$field = 'detailed_location_' . $searchLibrary->subdomain;
+		if (!$this->hasFilter($field)) {
+			if (!is_numeric($field)){
+				if (strcmp($field, 'literary-form') === 0){
+					$field = 'literary_form';
+				}else if (strcmp($field, 'literary-form-full') == 0){
+					$field = 'literary_form_full';
+				}else if (strcmp($field, 'target-audience') == 0){
+					$field = 'target_audience';
+				}else if (strcmp($field, 'target-audience-full') == 0){
+					$field = 'target_audience_full';
 				}
-			}
 
-			if ($solrScope){
-				if ($field == 'availability_toggle'){
-					$field = 'availability_toggle_' . $solrScope;
-				}elseif ($field == 'format'){
-					$field = 'format_' . $solrScope;
-				}elseif ($field == 'format_category'){
-					$field = 'format_category_' . $solrScope;
-				}elseif ($field == 'econtent_source'){
-					$field = 'econtent_source_' . $solrScope;
-				}elseif ($field == 'econtent_protection_type'){
-					$field = 'econtent_protection_type_' . $solrScope;
-				}elseif ($field == 'collection' || $field == 'collection_group'){
-					$field = 'collection_' . $solrScope;
-				}elseif ($field == 'detailed_location' || $field == 'detailed_location'){
-					$field = 'detailed_location_' . $solrScope;
-				}elseif ($field == 'owning_location' || $field == 'owning_location'){
-					$field = 'owning_location_' . $solrScope;
-				}elseif ($field == 'owning_system' || $field == 'owning_system'){
-					$field = 'owning_system_' . $solrScope;
-				}elseif ($field == 'available_at' || $field == 'available_at'){
-					$field = 'available_at_' . $solrScope;
+				//See if the filter should be localized
+				if (isset($searchLibrary)){
+					if (strcmp($field, 'time_since_added') === 0){
+						$field = 'local_time_since_added_' . $searchLibrary->subdomain;
+					}elseif (strcmp($field, 'itype') === 0){
+						$field = 'itype_' . $searchLibrary->subdomain;
+					}elseif (strcmp($field, 'detailed_location') === 0){
+						$field = 'detailed_location_' . $searchLibrary->subdomain;
+					}
 				}
-			}
 
-			if (isset($userLocation)){
-				if ($field == 'availability_toggle'){
-					$field = 'availability_toggle_' . $userLocation->code;
+				if ($solrScope){
+					if (strcmp($field, 'availability_toggle') == 0){
+						$field = 'availability_toggle_' . $solrScope;
+					}elseif (strcmp($field, 'format') == 0){
+						$field = 'format_' . $solrScope;
+					}elseif (strcmp($field, 'format_category') == 0){
+						$field = 'format_category_' . $solrScope;
+					}elseif (strcmp($field, 'econtent_source') == 0){
+						$field = 'econtent_source_' . $solrScope;
+					}elseif (strcmp($field, 'econtent_protection_type') == 0){
+						$field = 'econtent_protection_type_' . $solrScope;
+					}elseif ((strcmp($field, 'collection') == 0) || (strcmp($field, 'collection_group') == 0)){
+						$field = 'collection_' . $solrScope;
+					}elseif ((strcmp($field, 'detailed_location') == 0) || (strcmp($field, 'detailed_location') == 0)){
+						$field = 'detailed_location_' . $solrScope;
+					}elseif ((strcmp($field, 'owning_location') == 0) || (strcmp($field, 'owning_location') == 0)){
+						$field = 'owning_location_' . $solrScope;
+					}elseif ((strcmp($field, 'owning_system') == 0) || (strcmp($field, 'owning_system') == 0)){
+						$field = 'owning_system_' . $solrScope;
+					}elseif ((strcmp($field, 'available_at') == 0) || (strcmp($field, 'available_at') == 0)){
+						$field = 'available_at_' . $solrScope;
+					}
 				}
-			}
-			if (isset($searchLocation)){
-				if ($field == 'time_since_added' && $searchLocation->restrictSearchByLocation){
-					$field = 'local_time_since_added_' . $searchLocation->code;
-				}elseif ($field == 'availability_toggle'){
-					$field = 'availability_toggle_' . $searchLocation->code;
+
+				if (isset($userLocation)){
+					if (strcmp($field, 'availability_toggle') == 0){
+						$field = 'availability_toggle_' . $userLocation->code;
+					}
+				}
+				if (isset($searchLocation)){
+					if ((strcmp($field, 'time_since_added') == 0) && $searchLocation->restrictSearchByLocation){
+						$field = 'local_time_since_added_' . $searchLocation->code;
+					}elseif (strcmp($field, 'availability_toggle') == 0){
+						$field = 'availability_toggle_' . $searchLocation->code;
+					}
 				}
 			}
 
@@ -907,7 +909,11 @@ abstract class SearchObject_Base
 					}elseif (preg_match('/^\\(.*?\\)$/', $value)){
 						$params[] = "filter[]=$field:$value";
 					}else{
-						$params[] = "filter[]=" . urlencode("$field:\"$value\"");
+						if (is_numeric($field)) {
+							$params[] = "filter[]=" . urlencode($value);
+						}else{
+							$params[] = "filter[]=" . urlencode("$field:\"$value\"");
+						}
 					}
 				}
 			}
