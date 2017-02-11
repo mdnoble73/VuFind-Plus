@@ -630,7 +630,6 @@ function getLibraryLocationUpdates(){
 				"showInAdvancedSearch TINYINT NOT NULL DEFAULT '1', " .
 				"`collapseByDefault` TINYINT DEFAULT '0', " .
 				"`useMoreFacetPopup` TINYINT DEFAULT '1', " .
-				"PRIMARY KEY (`id`)," .
 				"UNIQUE KEY `libraryFacet` (`libraryId`,`facetName`)," .
 				"KEY `libraryId` (`libraryId`)" .
 				") ENGINE = InnoDB DEFAULT CHARSET=utf8 ",
