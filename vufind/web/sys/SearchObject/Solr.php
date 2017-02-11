@@ -1280,7 +1280,7 @@ class SearchObject_Solr extends SearchObject_Base
 		//Remove any empty filters if we get them
 		//(typically happens when a subdomain has a function disabled that is enabled in the main scope)
 		foreach ($this->filterList as $field => $filter) {
-			if (empty ($field)){
+			if ($field === ''){
 				unset($this->filterList[$field]);
 			}
 		}
@@ -1319,7 +1319,11 @@ class SearchObject_Solr extends SearchObject_Base
 						}elseif ($isAvailableAt){
 							$filterQuery['available_at'] = "$field:\"$value\"";
 						}else{
-							$filterQuery[] = "$field:\"$value\"";
+							if (is_numeric($field)){
+								$filterQuery[] = $value;
+							}else {
+								$filterQuery[] = "$field:\"$value\"";
+							}
 						}
 					}
 				}
