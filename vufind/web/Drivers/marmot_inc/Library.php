@@ -1654,12 +1654,12 @@ class Library extends DB_DataObject
 			$facet = new LibraryArchiveSearchFacetSetting();
 			$facet->setupSideFacet($facetName, $facetDisplayName, false);
 			$facet->libraryId = $libraryId;
+			$facet->collapseByDefault = true;
 			$facet->weight = count($defaultFacets) + 1;
 			$defaultFacets[] = $facet;
 		}
 
 		return $defaultFacets;
-
 	}
 
 	public function getNumLocationsForLibrary(){
