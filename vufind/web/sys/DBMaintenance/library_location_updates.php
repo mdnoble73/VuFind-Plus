@@ -1400,6 +1400,26 @@ function getLibraryLocationUpdates(){
 					)
 			),
 
+			'library_archive_material_request_form_configurations' => array(
+					'title' => 'Configure Display of Archive Copy Request Form',
+					'description' => 'Updates to allow library admins the set which fields are display and which are required.',
+					'sql' => array(
+							'ALTER TABLE `library` '
+								.'ADD COLUMN `archiveRequestFieldName` TINYINT(1) NULL,'
+								.'ADD COLUMN `archiveRequestFieldAddress` TINYINT(1) NULL AFTER `archiveRequestFieldName`,'
+								.'ADD COLUMN `archiveRequestFieldAddress2` TINYINT(1) NULL AFTER `archiveRequestFieldAddress`,'
+								.'ADD COLUMN `archiveRequestFieldCity` TINYINT(1) NULL AFTER `archiveRequestFieldAddress2`,'
+								.'ADD COLUMN `archiveRequestFieldState` TINYINT(1) NULL AFTER `archiveRequestFieldCity`,'
+								.'ADD COLUMN `archiveRequestFieldZip` TINYINT(1) NULL AFTER `archiveRequestFieldState`,'
+								.'ADD COLUMN `archiveRequestFieldCountry` TINYINT(1) NULL AFTER `archiveRequestFieldZip`,'
+								.'ADD COLUMN `archiveRequestFieldPhone` TINYINT(1) NULL AFTER `archiveRequestFieldCountry`,'
+								.'ADD COLUMN `archiveRequestFieldAlternatePhone` TINYINT(1) NULL AFTER `archiveRequestFieldPhone`,'
+//								.'ADD COLUMN `archiveRequestFieldEmail` TINYINT(1) NULL AFTER `archiveRequestFieldAlternatePhone`,' //TODO Change below if keep email
+								.'ADD COLUMN `archiveRequestFieldFormat` TINYINT(1) NULL AFTER `archiveRequestFieldAlternatePhone`,'
+								.'ADD COLUMN `archiveRequestFieldPurpose` TINYINT(1) NULL AFTER `archiveRequestFieldFormat`;',
+					)
+			),
+
 			'library_archive_pid' => array(
 					'title' => 'Library Archive PID',
 					'description' => 'Setup a link from Pika to the archive',

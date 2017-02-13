@@ -3,10 +3,12 @@
 	<div class="page">
 		{if $requestSubmitted}
 			{if $error}
+				<div class="alert alert-danger">
 				<p>There was an error submitting your request.</p>
 				<p>{$error}</p>
+				</div>
 			{else}
-				<p>Your request was submitted successfully.  The library will contact you with more information soon.</p>
+				<p class="alert alert-success">Your request was submitted successfully.  The library will contact you with more information soon.</p>
 			{/if}
 		{else}
 			{if $archiveRequestMaterialsHeader}
