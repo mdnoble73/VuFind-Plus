@@ -241,7 +241,7 @@
 						{/if}
 						<div class="related-objects results-covers home-page-browse-thumbnails">
 							{foreach from=$directlyRelatedObjects.objects item=image}
-								<figure class="browse-thumbnail">
+								<figure class="browse-thumbnail-sorted">
 									<a href="{$image.link}" {if $image.label}data-title="{$image.label|urlencode}"{/if}>
 										<img src="{$image.image}" {if $image.label}alt="{$image.label|urlencode}"{/if}>
 									</a>
