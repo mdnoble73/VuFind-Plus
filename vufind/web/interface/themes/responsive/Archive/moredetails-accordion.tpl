@@ -239,19 +239,7 @@
 								<pre>{$solrLinkDebug}</pre>
 							</div>
 						{/if}
-						<div class="related-objects results-covers home-page-browse-thumbnails">
-							{foreach from=$directlyRelatedObjects.objects item=image}
-								<figure class="browse-thumbnail-sorted">
-									<a href="{$image.link}" {if $image.label}data-title="{$image.label|urlencode}"{/if}>
-										<img src="{$image.image}" {if $image.label}alt="{$image.label|urlencode}"{/if}>
-									</a>
-									<figcaption class="explore-more-category-title">
-										<strong>{$image.label}</strong>
-									</figcaption>
-								</figure>
-							{/foreach}
-							<span id="additional-related-objects"></span>
-						</div>
+						{include file="accordion-items.tpl" relatedItems=$directlyRelatedObjects.objects}
 					</div>
 				</div>
 			</div>
@@ -379,30 +367,7 @@
 								{/if}
 							{/foreach}
 						{/if}
-
-						{foreach from=$relatedPeople item=entity}
-							<div class="relatedPerson row">
-								<div class="col-tn-2">
-									{if $entity.image}
-										<a href="{$entity.link}" {if $entity.label}data-title="{$entity.label|urlencode}"{/if}>
-											<img src="{$entity.image}" {if $entity.label}alt="{$entity.label|urlencode}"{/if} class="img-responsive img-thumbnail">
-										</a>
-									{/if}
-								</div>
-								<div class="col-tn-10">
-									<a href='{$entity.link}'>
-										{$entity.label}
-									</a>
-									{if $entity.role}
-										&nbsp;({$entity.role})
-									{/if}
-									{if $entity.note}
-										&nbsp;- {$entity.note}
-									{/if}
-								</div>
-							</div>
-						{/foreach}
-
+						{include file="accordion-items.tpl" relatedItems=$relatedPeople}
 					</div>
 				</div>
 			</div>
@@ -419,20 +384,7 @@
 				</a>
 				<div id="relatedOrganizationsPanelBody" class="panel-collapse collapse in{*toggle on for open*}">
 					<div class="panel-body">
-
-						{foreach from=$relatedOrganizations item=entity}
-							<a href='{$entity.link}'>
-								{$entity.label}
-							</a>
-							{if $entity.role}
-								&nbsp;({$entity.role})
-							{/if}
-							{if $entity.note}
-								&nbsp;- {$entity.note}
-							{/if}
-							<br>
-						{/foreach}
-
+						{include file="accordion-items.tpl" relatedItems=$relatedOrganizations}
 					</div>
 				</div>
 			</div>
@@ -452,20 +404,7 @@
 						{if $mapsKey && $relatedPlaces.centerX && $relatedPlaces.centerY}
 							<iframe width="100%" height="" frameborder="0" style="border:0" src="https://www.google.com/maps/embed/v1/place?q={$relatedPlaces.centerX|escape}%2C%20{$relatedPlaces.centerX|escape}&key={$mapsKey}" allowfullscreen></iframe>
 						{/if}
-
-						{foreach from=$relatedPlaces item=entity}
-							<a href='{$entity.link}'>
-								{$entity.label}
-							</a>
-							{if $entity.role}
-								&nbsp;({$entity.role})
-							{/if}
-							{if $entity.note}
-								&nbsp;- {$entity.note}
-							{/if}
-							<br>
-						{/foreach}
-
+						{include file="accordion-items.tpl" relatedItems=$relatedPlaces}
 					</div>
 				</div>
 			</div>
@@ -482,20 +421,7 @@
 				</a>
 				<div id="relatedEventsPanelBody" class="panel-collapse collapse in{*toggle on for open*}">
 					<div class="panel-body">
-
-						{foreach from=$relatedEvents item=entity}
-							<a href='{$entity.link}'>
-								{$entity.label}
-							</a>
-							{if $entity.role}
-								&nbsp;({$entity.role})
-							{/if}
-							{if $entity.note}
-								&nbsp;- {$entity.note}
-							{/if}
-							<br>
-						{/foreach}
-
+						{include file="accordion-items.tpl" relatedItems=$relatedEvents}
 					</div>
 				</div>
 			</div>

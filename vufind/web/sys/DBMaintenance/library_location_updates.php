@@ -1428,6 +1428,14 @@ function getLibraryLocationUpdates(){
 					)
 			),
 
+			'library_archive_related_objects_display_mode' => array(
+					'title' => 'Archive More Details Related Objects Display Mode',
+					'description' => 'Add Library Configuration option for the display of Related Objects & Entities in the More Details Accordion.',
+					'sql' => array(
+							'ALTER TABLE `library` ADD COLUMN `archiveMoreDetailsRelatedObjectsOrEntitiesDisplayMode` VARCHAR(15) NULL;',
+					)
+			),
+
 			'library_location_availability_toggle_updates' => array(
 					'title' => 'Library and Location Availability Updates',
 					'description' => 'Add the ability to show available online and control what goes into the toggles',

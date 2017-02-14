@@ -537,11 +537,21 @@ class Archive_AJAX extends Action {
 			$secondaryDriver->loadMetadata();
 		}
 
+		$this->setMoreDetailsDisplayMode();
+
 		$metadata = $interface->fetch('Archive/moredetails-accordion.tpl');
 		return array(
 				'success' => true,
 				'metadata' => $metadata,
 		);
+	}
+
+	private function setMoreDetailsDisplayMode(){
+		// Set Display Mode for More Details Accordion Related Objects and Entities sections
+		global $library, $interface;
+		$displayMode = empty($library->archiveMoreDetailsRelatedObjectsOrEntitiesDisplayMode) ? 'tiled' : $library->archiveMoreDetailsRelatedObjectsOrEntitiesDisplayMode;
+		$interface->assign('archiveMoreDetailsRelatedObjectsOrEntitiesDisplayMode', $displayMode);
+
 	}
 
 	public function getNextRandomObject(){
@@ -629,6 +639,8 @@ class Archive_AJAX extends Action {
 		$directlyRelatedObjects = $recordDriver->getDirectlyRelatedArchiveObjects();
 
 		$interface->assign('directlyRelatedObjects', $directlyRelatedObjects);
+
+		$this->setMoreDetailsDisplayMode();
 
 		return array(
 				'success' => true,

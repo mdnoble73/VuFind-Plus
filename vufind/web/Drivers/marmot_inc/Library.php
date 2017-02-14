@@ -214,6 +214,8 @@ class Library extends DB_DataObject
 	public $archiveRequestFieldFormat;
 	public $archiveRequestFieldPurpose;
 
+	public $archiveMoreDetailsRelatedObjectsOrEntitiesDisplayMode;
+
 
 	// Use this to set which details will be shown in the the Main Details section of the record view.
 	// You should be able to add options here without needing to change the database.
@@ -244,6 +246,11 @@ class Library extends DB_DataObject
 	);
 
 	static $archiveRequestFormFieldOptions = array('Hidden', 'Optional', 'Required');
+
+	static $archiveMoreDetailsDisplayModeOptions = array(
+		'tiled' => 'Tiled',
+		'list'  => 'List',
+	);
 
 	function keys() {
 		return array('libraryId', 'subdomain');
@@ -724,6 +731,12 @@ class Library extends DB_DataObject
 					'archivePid' => array('property'=>'archivePid', 'type'=>'text', 'label'=>'Organization PID for Library', 'description'=>'A link to a representation of the library in the archive', 'hideInLists' => true, 'maxLength' => 50, 'size'=>'50'),
 					'hideAllCollectionsFromOtherLibraries' => array('property'=>'hideAllCollectionsFromOtherLibraries', 'type'=>'checkbox', 'label'=>'Hide Collections from Other Libraries', 'description'=>'Whether or not collections created by other libraries is shown in Pika.', 'hideInLists' => true, 'default' => 0),
 					'collectionsToHide' => array('property'=>'collectionsToHide', 'type'=>'textarea', 'label'=>'Collections To Hide', 'description'=>'Specific collections to hide.', 'hideInLists' => true),
+
+					'archiveMoreDetailsSection' => array('property'=>'archiveMoreDetailsSection', 'type' => 'section', 'label' => 'Archive More Details ', 'hideInLists' => true,
+					                                     /* 'helpLink'=>'https://docs.google.com/document/d/1ZZsoKW2NOfGMad36BkWeF5ROqH5Wyg5up3eIhki5Lec',*/ 'properties' => array(
+							'archiveMoreDetailsRelatedObjectsOrEntitiesDisplayMode' => array('property' => 'archiveMoreDetailsRelatedObjectsOrEntitiesDisplayMode', 'label' => 'Related Object/Entity Sections Display Mode', 'type' => 'enum', 'values' => self::$archiveMoreDetailsDisplayModeOptions, 'default' => 'tiled', 'description' => 'How related objects and entities will be displayed in the More Details accordion on Archive pages.'),
+
+						)),
 
 					'archiveRequestSection' => array('property'=>'archiveRequestSection', 'type' => 'section', 'label' =>'Archive Copy Requests ', 'hideInLists' => true,
 					                            /* 'helpLink'=>'https://docs.google.com/document/d/1ZZsoKW2NOfGMad36BkWeF5ROqH5Wyg5up3eIhki5Lec',*/ 'properties' => array(
