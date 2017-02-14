@@ -1,7 +1,6 @@
 {strip}
 	{* This uses the same CSS as the Full Record View accordions (all id=more-details-accordion)  *}
 	<div id="more-details-accordion" class="panel-group">
-
 		{if $description}
 			<div class="panel active{*toggle on for open*}" id="descriptionPanel">
 				<a href="#descriptionPanelBody" data-toggle="collapse">
@@ -239,7 +238,7 @@
 								<pre>{$solrLinkDebug}</pre>
 							</div>
 						{/if}
-						{include file="accordion-items.tpl" relatedItems=$directlyRelatedObjects.objects}
+						{include file="Archive/accordion-items.tpl" relatedItems=$directlyRelatedObjects.objects}
 					</div>
 				</div>
 			</div>
@@ -367,7 +366,7 @@
 								{/if}
 							{/foreach}
 						{/if}
-						{include file="accordion-items.tpl" relatedItems=$relatedPeople}
+						{include file="Archive/accordion-items.tpl" relatedItems=$relatedPeople}
 					</div>
 				</div>
 			</div>
@@ -384,7 +383,7 @@
 				</a>
 				<div id="relatedOrganizationsPanelBody" class="panel-collapse collapse in{*toggle on for open*}">
 					<div class="panel-body">
-						{include file="accordion-items.tpl" relatedItems=$relatedOrganizations}
+						{include file="Archive/accordion-items.tpl" relatedItems=$relatedOrganizations}
 					</div>
 				</div>
 			</div>
@@ -404,7 +403,7 @@
 						{if $mapsKey && $relatedPlaces.centerX && $relatedPlaces.centerY}
 							<iframe width="100%" height="" frameborder="0" style="border:0" src="https://www.google.com/maps/embed/v1/place?q={$relatedPlaces.centerX|escape}%2C%20{$relatedPlaces.centerX|escape}&key={$mapsKey}" allowfullscreen></iframe>
 						{/if}
-						{include file="accordion-items.tpl" relatedItems=$relatedPlaces}
+						{include file="Archive/accordion-items.tpl" relatedItems=$relatedPlaces}
 					</div>
 				</div>
 			</div>
@@ -421,7 +420,7 @@
 				</a>
 				<div id="relatedEventsPanelBody" class="panel-collapse collapse in{*toggle on for open*}">
 					<div class="panel-body">
-						{include file="accordion-items.tpl" relatedItems=$relatedEvents}
+						{include file="Archive/accordion-items.tpl" relatedItems=$relatedEvents}
 					</div>
 				</div>
 			</div>
