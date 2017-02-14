@@ -242,6 +242,9 @@ abstract class SearchObject_Base
 	 */
 	public function addFilter($newFilter)
 	{
+		if (strlen($newFilter) == 0){
+			return;
+		}
 		// Extract field and value from URL string:
 		list($field, $value) = $this->parseFilter($newFilter);
 		if ($field == ''){
