@@ -40,8 +40,10 @@
 ######################
 # MySQL Nightly Dump #
 ######################
-# backup important bits at 2:10am daily
+# backup database at 2:10am daily
 10 2 * * * /usr/local/vufind-plus/vufind/cron/nightly_mysql_dump.sh santafe.production 2>&1 >/dev/null
+# backup to backup server at 2:15am daily
+15 2 * * * /root/cron/backup 2>&1 >/dev/null
 
 ################
 # Pika Cleanup #
