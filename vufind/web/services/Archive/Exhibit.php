@@ -122,6 +122,7 @@ class Archive_Exhibit extends Archive_Object{
 					}
 
 					$collectionToLoadFromObject = $fedoraUtils->getObject($collectionToLoadFromPID);
+					/** @var CollectionDriver|BookDriver $collectionDriver */
 					$collectionDriver = RecordDriverFactory::initRecordDriver($collectionToLoadFromObject);
 
 					$collectionObjects = $collectionDriver->getChildren();

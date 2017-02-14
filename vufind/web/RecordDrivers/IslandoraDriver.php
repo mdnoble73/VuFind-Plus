@@ -2056,6 +2056,29 @@ abstract class IslandoraDriver extends RecordInterface {
 					$this->childObjects[] = $subCollectionPid;
 				}
 			}
+
+			//Also check isMemberOf for pages within a book
+			$searchObject = SearchObjectFactory::initSearchObject('Islandora');
+			$searchObject->init();
+			$searchObject->setLimit(100);
+			$searchObject->setSort('fgs_label_s');
+			$searchObject->setSearchTerms(array(
+					'lookfor' => '"info:fedora/' . $this->getUniqueID() .'"',
+					'index' => 'RELS_EXT_isMemberOf_uri_mt'
+			));
+			$searchObject->addFieldsToReturn(array('RELS_EXT_isMemberOf_uri_mt'));
+
+			$searchObject->clearHiddenFilters();
+			$searchObject->addHiddenFilter('!RELS_EXT_isViewableByRole_literal_ms', "administrator");
+			$searchObject->clearFilters();
+			$searchObject->setApplyStandardFilters(false);
+			$response = $searchObject->processSearch(true, false, true);
+			if ($response && $response['response']['numFound'] > 0) {
+				foreach ($response['response']['docs'] as $doc) {
+					$subCollectionPid = $doc['PID'];
+					$this->childObjects[] = $subCollectionPid;
+				}
+			}
 		}
 		return $this->childObjects;
 	}
