@@ -985,7 +985,12 @@ abstract class IslandoraDriver extends RecordInterface {
 					if ($significance){
 						$entityInfo['role'] = ucfirst($significance);
 					}
-					$entityInfo['link']= '/Archive/' . $entityPid . '/Place';
+					$entityInfo['link'] = '/Archive/' . $entityPid . '/Place';
+					require_once ROOT_DIR . '/RecordDrivers/PlaceDriver.php';
+
+					$archiveDriver = new PlaceDriver($entityPid);
+					$entityInfo['image'] = $archiveDriver->getBookcoverUrl('medium');
+
 					$this->relatedPlaces[$entityInfo['pid']] = $entityInfo;
 				}
 			}
