@@ -899,6 +899,22 @@ function getLibraryLocationUpdates(){
 			),
 		),
 
+		'archive_more_details_customization' => array(
+			'title' => 'Archive More Details Customization',
+			'description' => 'Setup tables to allow customization of more details in archive full record views',
+			'sql' => array(
+				"CREATE TABLE library_archive_more_details (
+						id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+						libraryId INT(11) NOT NULL DEFAULT -1,
+						weight INT NOT NULL DEFAULT 0,
+						section VARCHAR(25) NOT NULL,
+						collapseByDefault TINYINT(1),
+						INDEX (libraryId)
+					)",
+
+			),
+		),
+
 		'availability_toggle_customization' => array(
 			'title' => 'Availability Toggle Customization',
 			'description' => 'Add the ability to customize the labels for the availability toggles',
