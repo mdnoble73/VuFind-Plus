@@ -61,6 +61,10 @@ class Archive_Exhibit extends Archive_Object{
 
 		if ($this->archiveObject->getDatastream('TN') != null) {
 			$interface->assign('thumbnail', $configArray['Islandora']['objectUrl'] . "/{$this->pid}/datastream/TN/view");
+			list($fullMagazineURL) = $this->recordDriver->getModsValues('thumbnailURL', 'marmot');
+			if (!empty($fullMagazineURL)) {
+				$interface->assign('fullMagazineURL', $fullMagazineURL);
+			}
 		}
 
 		//Get a list of sub collections to for searching
@@ -361,7 +365,6 @@ class Archive_Exhibit extends Archive_Object{
 							'title' => $firstObjectDriver->getTitle(),
 							'description' => $firstObjectDriver->getDescription(),
 							'image' => $firstObjectDriver->getBookcoverUrl('medium'),
-//							'link' => $firstObjectDriver->getRecordUrl() ."?collectionSearchId=" . $lastExhibitObjectsSearch . '&recordIndex=' .$recordIndex, // saved search version
 							'link' => $firstObjectDriver->getRecordUrl(),
 							'recordIndex' => $recordIndex++
 					);
