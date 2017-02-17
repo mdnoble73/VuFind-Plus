@@ -439,6 +439,59 @@ class Archive_AJAX extends Action {
 		}
 	}
 
+	function getFacetValuesForExhibit(){
+		if (!isset($_REQUEST['id'])){
+			return array(
+					'success' => false,
+					'message' => 'You must supply the id to load facet data for'
+			);
+		}
+		if (!isset($_REQUEST['facetName'])){
+			return array(
+					'success' => false,
+					'message' => 'You must supply the facetName to load facet data for'
+			);
+		}
+
+		global $interface;
+		$pid = urldecode($_REQUEST['id']);
+		$facetName = urldecode($_REQUEST['facetName']);
+		$interface->assign('exhibitPid', $pid);
+		/** @var SearchObject_Islandora $searchObject */
+		$searchObject = SearchObjectFactory::initSearchObject('Islandora');
+		$searchObject->init();
+		$searchObject->setDebugging(false, false);
+		$searchObject->clearHiddenFilters();
+		$searchObject->addHiddenFilter('!RELS_EXT_isViewableByRole_literal_ms', "administrator");
+		$searchObject->clearFilters();
+		$searchObject->addFilter("RELS_EXT_isMemberOfCollection_uri_ms:\"info:fedora/{$pid}\"");
+		$searchObject->clearFacets();
+		$searchObject->addFacet($facetName);
+
+		$searchObject->setLimit(1);
+
+		$searchObject->setSort('fgs_label_s');
+		$interface->assign('showThumbnailsSorted', true);
+
+		$facetValues = array();
+		$response = $searchObject->processSearch(true, false);
+		if ($response && isset($response['error'])){
+			$interface->assign('solrError', $response['error']['msg']);
+			$interface->assign('solrLink', $searchObject->getFullSearchUrl());
+		}
+		if ($response['facet_counts'] && isset($response['facet_counts']['facet_fields'][$facetName])){
+			$facetFieldData = $response['facet_counts']['facet_fields'][$facetName];
+			foreach ($facetFieldData as $field){
+
+			}
+		}
+
+		$results = array(
+				'modalBody' => $interface->fetch("Archive/"),
+		);
+		return json_encode($results);
+	}
+
 	function getExploreMoreContent(){
 		if (!isset($_REQUEST['id'])){
 			return array(

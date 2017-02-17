@@ -61,7 +61,7 @@ class Archive_Exhibit extends Archive_Object{
 
 		if ($this->archiveObject->getDatastream('TN') != null) {
 			$interface->assign('thumbnail', $configArray['Islandora']['objectUrl'] . "/{$this->pid}/datastream/TN/view");
-			list($fullMagazineURL) = $this->recordDriver->getModsValues('thumbnailURL', 'marmot');
+			$fullMagazineURL = $this->recordDriver->getModsValue('thumbnailURL', 'marmot');
 			if (!empty($fullMagazineURL)) {
 				$interface->assign('fullMagazineURL', $fullMagazineURL);
 			}
@@ -179,6 +179,13 @@ class Archive_Exhibit extends Archive_Object{
 
 				}else if ($option == 'browseAllObjects' ){
 					$collectionTemplates[] = $interface->fetch('Archive/browseCollectionComponent.tpl');
+				}else if (strpos($option, 'browseFilter') === 0 ){
+					$filterOptions = explode('|', $option);
+					$browseFilterFacetName = $filterOptions[1];
+					$browseFilterLabel = $filterOptions[2];
+					$interface->assign('browseFilterLabel', $browseFilterLabel);
+					$interface->assign('browseFilterFacetName', $browseFilterFacetName);
+					$collectionTemplates[] = $interface->fetch('Archive/browseFilterComponent.tpl');
 				}
 
 			}
