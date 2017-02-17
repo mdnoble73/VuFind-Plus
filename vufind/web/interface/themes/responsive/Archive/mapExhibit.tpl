@@ -18,9 +18,9 @@
 	<div class="lead row">
 		<div class="col-xs-12">
 			{if $thumbnail && !$main_image}
-			{if $fullMagazineURL}<a href="{$fullMagazineURL}">{/if}
+			{if $exhibitThumbnailURL}<a href="{$exhibitThumbnailURL}">{/if}
 				<img src="{$thumbnail}" class="img-responsive thumbnail exhibit-thumbnail">
-			{if $fullMagazineURL}</a>{/if}
+			{if $exhibitThumbnailURL}</a>{/if}
 			{/if}
 			{$description}
 		</div>

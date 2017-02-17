@@ -61,11 +61,15 @@ class Archive_Exhibit extends Archive_Object{
 
 		if ($this->archiveObject->getDatastream('TN') != null) {
 			$interface->assign('thumbnail', $configArray['Islandora']['objectUrl'] . "/{$this->pid}/datastream/TN/view");
-			list($fullMagazineURL) = $this->recordDriver->getModsValues('thumbnailURL', 'marmot');
-			if (!empty($fullMagazineURL)) {
-				$interface->assign('fullMagazineURL', $fullMagazineURL);
+			$temp = $this->recordDriver->getModsValues('thumbnailURL', 'marmot');
+			if (!empty($temp)) {
+				list($exhibitThumbnailURL) = $temp;
+				if (!empty($exhibitThumbnailURL)) {
+					$interface->assign('exhibitThumbnailURL', $exhibitThumbnailURL);
+				}
 			}
 		}
+
 
 		//Get a list of sub collections to for searching
 		$subCollections = $this->recordDriver->getSubCollections();
