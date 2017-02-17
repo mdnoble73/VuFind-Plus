@@ -10694,9 +10694,9 @@ a.browse-thumbnail-sorted.active {
   border: 0 solid white;
   position: relative;
   display: block;
+  padding: 4px 0;
 }
 .related-objects .browse-thumbnail-sorted a img {
-  height: 125px;
   width: 100%;
   position: absolute;
   top: 62px;
@@ -10704,6 +10704,9 @@ a.browse-thumbnail-sorted.active {
       -ms-transform: translate(-50%, -50%);
           transform: translate(-50%, -50%);
   left: 50%;
+}
+.related-objects .browse-thumbnail-sorted a img :not(#relatedOrganizationsPanelBody) {
+  height: 125px;
 }
 .related-objects .browse-thumbnail-sorted figcaption {
   margin-top: 4px;
