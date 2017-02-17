@@ -10700,6 +10700,7 @@ a.browse-thumbnail-sorted.active {
   padding: 4px 0;
 }
 .related-objects .browse-thumbnail-sorted a img {
+  max-height: 125px;
   width: 100%;
   position: absolute;
   top: 62px;
