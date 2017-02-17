@@ -81,7 +81,7 @@ public class RecordGrouperMain {
 					"5) Only run record grouping cleanup\n" +
 					"   record_grouping.jar <pika_site_name> runPostGroupingCleanup\n" +
 					"6) Only explode records into individual records (no grouping)\n" +
-					"   record_grouping.jar <pika_site_name> explodeMarcRecords");
+					"   record_grouping.jar <pika_site_name> explodeMarcs");
 			System.exit(1);
 		}
 
