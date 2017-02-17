@@ -135,6 +135,7 @@ cd /data/vufind-plus/accelerated_reader; curl --remote-name --remote-time --sile
 
 #OneClick Digital Marc Updates
 /usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh flatirons_sideload/oneclickdigital/longmont oneclickdigital/longmont >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh flatirons_sideload/oneclickdigital/loveland oneclickdigital/loveland >> ${OUTPUT_FILE}
 
 #Ebrary Marc Updates
 /usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh flatirons_sideload/ebrary/boulder ebrary/bpl >> ${OUTPUT_FILE}
