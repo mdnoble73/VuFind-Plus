@@ -559,8 +559,264 @@ abstract class IslandoraDriver extends RecordInterface {
 		}
 	}
 
+	public function getBaseMoreDetailsOptions($isbn_ignored = null){
+		global $interface;
+		global $configArray;
+		$moreDetailsOptions = array();
+
+		$description = html_entity_decode($this->getDescription());
+		$description = str_replace("\r\n", '<br>', $description);
+		$description = str_replace("&#xD;", '<br>', $description);
+		if (strlen($description)){
+			$interface->assign('description', $description);
+			$moreDetailsOptions['description'] = array(
+				'label' => 'Description',
+				'body' => $description,
+				'hideByDefault' => false,
+			);
+		}
+
+		$this->loadTranscription(); //TODO: refactor to return value rather than set interface var
+		if (count($interface->getVariable('transcription'))) {
+			$moreDetailsOptions['transcription'] = array(
+				'label' => 'Transcription',
+				'body' => $interface->fetch('Archive/transcriptionSection.tpl'),
+				'hideByDefault' => false,
+			);
+		}
+
+		if ($this->loadCorrespondenceInfo()) {
+			$moreDetailsOptions['correspondence'] = array(
+				'label' => 'Correspondence Information',
+				'body' => $interface->fetch('Archive/correspondenceInfoSection.tpl'),
+				'hideByDefault' => false
+			);
+		}
+
+		if ($this->loadAcademicResearchData()) {
+			$moreDetailsOptions['academicResearch'] = array(
+				'label' => 'Research Information',
+				'body' => $interface->fetch('Archive/academicResearchSection.tpl'),
+				'hideByDefault' => false
+			);
+		}
+
+		$directlyRelatedObjects = $this->getDirectlyRelatedArchiveObjects();
+		$existingValue = $interface->getVariable('directlyRelatedObjects');
+		if ($existingValue != null){
+			$directlyRelatedObjects['numFound'] += $existingValue['numFound'];
+			$directlyRelatedObjects['objects'] = array_merge($existingValue['objects'], $directlyRelatedObjects['objects']);
+		}
+		if ($directlyRelatedObjects['numFound'] > 0) {
+			$interface->assign('directlyRelatedObjects', $directlyRelatedObjects);
+			$moreDetailsOptions['relatedObjects'] = array(
+				'label' => 'Related Objects',
+				'body' => $interface->fetch('Archive/relatedObjectsSection.tpl'),
+				'hideByDefault' => false
+			);
+		}
+
+		$this->loadLinkedData();
+		if (count($interface->getVariable('obituaries'))) {
+			$moreDetailsOptions['obituaries'] = array(
+				'label' => 'Obituaries',
+				'body' => $interface->fetch('Archive/obituariesSection.tpl'),
+				'hideByDefault' => false
+			);
+		}
+		if (count($interface->getVariable('genealogyData'))) { //TODO: May need a more extensive check
+			$moreDetailsOptions['burialDetails'] = array(
+				'label' => 'Burial Details',
+				'body' => $interface->fetch('Archive/burialDetailsSection.tpl'),
+				'hideByDefault' => false
+			);
+		}
+
+		$contextNotes = $this->getModsValue('contextNotes', 'marmot');
+		if (strlen($contextNotes)) {
+			$moreDetailsOptions['contextNotes'] = array(
+				'label' => 'Context Notes',
+				'body'  => $contextNotes,
+				'hideByDefault' => false
+			);
+		}
+
+		$relatedEvents = $this->getRelatedEvents();
+		$relatedPeople = $this->getRelatedPeople();
+		$productionTeam = $this->getProductionTeam();
+		$relatedOrganizations = $this->getRelatedOrganizations();
+		$relatedPlaces = $this->getRelatedPlaces();
+
+		//Sort all the related information
+		usort($relatedEvents, 'ExploreMore::sortRelatedEntities');
+		usort($relatedPeople, 'ExploreMore::sortRelatedEntities');
+		usort($productionTeam, 'ExploreMore::sortRelatedEntities');
+		usort($relatedOrganizations, 'ExploreMore::sortRelatedEntities');
+		usort($relatedPlaces, 'ExploreMore::sortRelatedEntities');
+
+		//Do final assignment
+		$temp                 = $this->mergeEntities($interface->getVariable('relatedPeople'), $relatedPeople);
+		$interface->assign('relatedPeople', $temp);
+		// Marriage data comes from getLinkedData()
+		if ($temp || count($interface->getVariable('marriages'))){
+			$moreDetailsOptions['relatedPeople'] = array(
+				'label' => 'Related People',
+				'body' => $interface->fetch('Archive/relatedPeopleSection.tpl'),
+				'hideByDefault' => false
+			);
+		}
+
+		if ($relatedOrganizations) {
+			$interface->assign('relatedItems', $this->mergeEntities($interface->getVariable('relatedOrganizations'), $relatedOrganizations));
+			$moreDetailsOptions['relatedOrganizations'] = array(
+				'label' => 'Related Organizations',
+				'body' => $interface->fetch('Archive/accordion-items.tpl'),
+				'hideByDefault' => false
+			);
+		}
+
+		$relatedPlaces = $this->mergeEntities($interface->getVariable('relatedPlaces'), $relatedPlaces);
+		if ($relatedPlaces && $this->getType() != 'event') {
+			$interface->assign('relatedPlaces', $relatedPlaces);
+			$moreDetailsOptions['relatedPlaces'] = array(
+				'label' => 'Related Places',
+				'body' => $interface->fetch('Archive/relatedPlacesSection.tpl'),
+				'hideByDefault' => false
+			);
+		}
+
+		$relatedEvents = $this->mergeEntities($interface->getVariable('relatedEvents'), $relatedEvents);
+		if ($relatedEvents /*&& $recordDriver->getType() != 'event'*/) {
+			$interface->assign('relatedItems', $relatedEvents);
+			$moreDetailsOptions['relatedEvents'] = array(
+				'label' => 'Related Events',
+				'body' => $interface->fetch('Archive/accordion-items.tpl'),
+				'hideByDefault' => false
+			);
+		}
+
+		if ($this->loadMilitaryServiceData()) {
+			$moreDetailsOptions['militaryService'] = array(
+				'label' => 'Military Service',
+				'body' => $interface->fetch('Archive/militaryServiceSection.tpl'),
+				'hideByDefault' => false
+			);
+		}
+
+		$this->loadNotes();
+		if (count($interface->getVariable('notes'))) {
+			$moreDetailsOptions['notes'] = array(
+				'label' => 'Notes',
+				'body' => $interface->fetch('Archive/notesSection.tpl'),
+				'hideByDefault' => false
+			);
+		}
+
+		//		$this->formattedSubjects = $this->getAllSubjectsWithLinks();
+//		$interface->assignAppendToExisting('subjects', $this->formattedSubjects);
+
+		$interface->assignAppendToExisting('subjects', $this->getAllSubjectsWithLinks());
+		if (count($interface->getVariable('subjects'))) {
+			$moreDetailsOptions['subject'] = array(
+				'label' => 'Subject',
+				'body' => $interface->fetch('Archive/subjectsSection.tpl'),
+				'hideByDefault' => false
+			);
+		}
+
+		$productionTeam  = $this->mergeEntities($interface->getVariable('productionTeam'), $productionTeam);
+		if ($productionTeam) {
+			$interface->assign('productionTeam', $productionTeam);
+			$moreDetailsOptions['acknowledgements'] = array(
+				'label' => 'Acknowledgements',
+				'body' => $interface->fetch('Archive/acknowledgementsSection.tpl'),
+				'hideByDefault' => false
+			);
+		}
+
+		$visibleLinks = $this->getVisibleLinks();
+		$interface->assignAppendToExisting('externalLinks', $visibleLinks);
+		if (count($interface->getVariable('externalLinks'))) {
+			$moreDetailsOptions['externalLinks'] = array(
+				'label' => 'Links',
+				'body' => $interface->fetch('Archive/acknowledgementsSection.tpl'),
+				'hideByDefault' => false
+			);
+		}
+
+		if ($this->loadRecordInfo()) {
+			$moreDetailsOptions['moreDetails'] = array(
+				'label' => 'More Details',
+				'body' => $interface->fetch('Archive/moreDetailsSection.tpl'),
+				'hideByDefault' => false
+			);
+		}
+
+		$this->loadRightsStatements();
+		if (count($interface->getVariable('rightsStatements'))) {
+			$moreDetailsOptions['rightsStatements'] = array(
+				'label' => 'Rights Statements',
+				'body' => $interface->fetch('Archive/rightsStatementsSection.tpl'),
+				'hideByDefault' => false
+			);
+		}
+
+		$repositoryLink = $configArray['Islandora']['repositoryUrl'] . '/islandora/object/' . $this->getUniqueID();
+		$interface->assign('repositoryLink', $repositoryLink);
+		global $user;
+		if($user && ($user->hasRole('archives') || $user->hasRole('opacAdmin') || $user->hasRole('libraryAdmin'))) {
+			$moreDetailsOptions['staffView'] = array(
+				'label' => 'Staff View',
+				'body' => $interface->fetch('Archive/moreDetailsSection.tpl'),
+				'hideByDefault' => false
+			);
+		}
+
+		//Do the filtering and sorting here so subclasses can use this directly
+		return $this->filterAndSortMoreDetailsOptions($moreDetailsOptions);
+	}
+
 	public function getMoreDetailsOptions() {
-		// TODO: Implement getMoreDetailsOptions() method.
+		//Load more details options
+		$moreDetailsOptions = $this->getBaseMoreDetailsOptions();
+
+		return $moreDetailsOptions;
+		// Doesn't need filtered twice.
+//		return $this->filterAndSortMoreDetailsOptions($moreDetailsOptions);
+	}
+
+	public function filterAndSortMoreDetailsOptions($allOptions) {
+		global $library;
+
+		$useDefault = true;
+		$moreDetailsFilters = array();
+		if ($library && count($library->archiveMoreDetailsOptions) > 0){
+			$useDefault = false;
+			/** @var LibraryArchiveMoreDetails $option */
+			foreach ($library->archiveMoreDetailsOptions as $option){
+				$moreDetailsFilters[$option->section] = $option->collapseByDefault ? 'closed' : 'open';
+			}
+		}
+
+		if ($useDefault){
+			/** @var LibraryArchiveMoreDetails[] $defaultDetailsFilters */
+			$defaultDetailsFilters = LibraryArchiveMoreDetails::getDefaultOptions($library->libraryId);
+//			$moreDetailsFilters = RecordInterface::getDefaultMoreDetailsOptions();
+			foreach ($defaultDetailsFilters as $filter) {
+				$moreDetailsFilters[$filter->section] = $filter->collapseByDefault ? 'closed' : 'open';
+			}
+
+		}
+
+		$filteredMoreDetailsOptions = array();
+		foreach ($moreDetailsFilters as $option => $initialState){
+			if (array_key_exists($option, $allOptions)){
+				$detailOptions = $allOptions[$option];
+				$detailOptions['openByDefault'] = $initialState == 'open';
+				$filteredMoreDetailsOptions[$option] = $detailOptions;
+			}
+		}
+		return $filteredMoreDetailsOptions;
 	}
 
 	public function getItemActions($itemInfo) {
@@ -1504,7 +1760,7 @@ abstract class IslandoraDriver extends RecordInterface {
 		return null;
 	}
 
-	public function loadMetadata(){
+/*	public function loadMetadata(){
 		global $interface;
 		global $configArray;
 
@@ -1568,7 +1824,7 @@ abstract class IslandoraDriver extends RecordInterface {
 
 		$repositoryLink = $configArray['Islandora']['repositoryUrl'] . '/islandora/object/' . $this->getUniqueID();
 		$interface->assign('repositoryLink', $repositoryLink);
-	}
+	}*/
 
 	private function mergeEntities($array1, $array2){
 		if ($array1 == null){
@@ -1704,6 +1960,7 @@ abstract class IslandoraDriver extends RecordInterface {
 			}
 		}
 		$interface->assign('hasCorrespondenceInfo', $hasCorrespondenceInfo);
+		return $hasCorrespondenceInfo;
 	}
 
 	private function loadAcademicResearchData() {
@@ -1787,6 +2044,7 @@ abstract class IslandoraDriver extends RecordInterface {
 
 		}
 		$interface->assign('hasAcademicResearchData', $hasAcademicResearchData);
+		return $hasAcademicResearchData;
 	}
 
 	public function loadLinkedData(){
@@ -1906,7 +2164,8 @@ abstract class IslandoraDriver extends RecordInterface {
 		require_once ROOT_DIR . '/sys/Utils/FedoraUtils.php';
 		$fedoraUtils = FedoraUtils::getInstance();
 
-		$interface->assign('hasMilitaryService', false);
+		$hasMilitaryService = false;
+		$interface->assign('hasMilitaryService', $hasMilitaryService);
 		$militaryService = $this->getModsValue('militaryService', 'marmot');
 		if (strlen($militaryService) > 0){
 			/** @var SimpleXMLElement $record */
@@ -1921,9 +2180,11 @@ abstract class IslandoraDriver extends RecordInterface {
 						'conflictLink' => '/Archive/' . $militaryConflict . '/Event',
 				);
 				$interface->assign('militaryRecord', $militaryRecord);
-				$interface->assign('hasMilitaryService', true);
+				$hasMilitaryService = true;
 			}
 		}
+		$interface->assign('hasMilitaryService', $hasMilitaryService);
+		return $hasMilitaryService;
 	}
 
 	private function loadNotes() {
@@ -1943,8 +2204,9 @@ abstract class IslandoraDriver extends RecordInterface {
 	private function loadRecordInfo() {
 		global $interface;
 		$recordInfo = $this->getModsValue('identifier', 'recordInfo');
+		$hasRecordInfo = false;
 		if (strlen($recordInfo)){
-			$interface->assign('hasRecordInfo', true);
+			$hasRecordInfo = true;
 			$recordOrigin = $this->getModsValue('recordOrigin', 'mods', $recordInfo);
 			$interface->assign('recordOrigin', $recordOrigin);
 
@@ -1954,6 +2216,7 @@ abstract class IslandoraDriver extends RecordInterface {
 			$recordChangeDate = $this->getModsValue('recordChangeDate', 'mods', $recordInfo);
 			$interface->assign('recordChangeDate', $recordChangeDate);
 		}
+		$interface->assign('hasRecordInfo', $hasRecordInfo);
 
 		$identifier = $this->getModsValues('identifier', 'mods');
 		$interface->assignAppendToExisting('identifier', FedoraUtils::cleanValues($identifier));
@@ -1992,6 +2255,8 @@ abstract class IslandoraDriver extends RecordInterface {
 
 		$shelfLocator = $this->getModsValues('shelfLocator', 'mods');
 		$interface->assign('shelfLocator', FedoraUtils::cleanValues($shelfLocator));
+
+		return $hasRecordInfo;
 	}
 
 	private function loadRightsStatements() {

@@ -522,8 +522,8 @@ class Archive_AJAX extends Action {
 		$recordDriver = RecordDriverFactory::initRecordDriver($archiveObject);
 		$interface->assign('recordDriver', $recordDriver);
 
-		$recordDriver->loadMetadata();
-
+		$this->setMoreDetailsDisplayMode();
+		//TODO: Not sure what this code blocks ending effect is to be
 		if (array_key_exists('secondaryId', $_REQUEST)){
 			$secondaryId = urldecode($_REQUEST['secondaryId']);
 
@@ -534,10 +534,10 @@ class Archive_AJAX extends Action {
 			/** @var IslandoraDriver $secondaryDriver */
 			$secondaryDriver = RecordDriverFactory::initRecordDriver($secondaryObject);
 
-			$secondaryDriver->loadMetadata();
+			$secondaryDriver->getMoreDetailsOptions();
 		}
+		$interface->assign('moreDetailsOptions', $recordDriver->getMoreDetailsOptions());
 
-		$this->setMoreDetailsDisplayMode();
 
 		$metadata = $interface->fetch('Archive/moredetails-accordion.tpl');
 		return array(
