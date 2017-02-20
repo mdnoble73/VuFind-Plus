@@ -11,6 +11,7 @@ require_once ROOT_DIR . '/sys/Indexing/LibraryRecordOwned.php';
 require_once ROOT_DIR . '/sys/Indexing/LibraryRecordToInclude.php';
 require_once ROOT_DIR . '/sys/Browse/LibraryBrowseCategory.php';
 require_once ROOT_DIR . '/sys/LibraryMoreDetails.php';
+require_once ROOT_DIR . '/sys/LibraryArchiveMoreDetails.php';
 require_once ROOT_DIR . '/sys/LibraryLink.php';
 require_once ROOT_DIR . '/sys/LibraryTopLinks.php';
 require_once ROOT_DIR . '/sys/MaterialsRequestFieldsToDisplay.php';
@@ -284,6 +285,10 @@ class Library extends DB_DataObject
 		$libraryMoreDetailsStructure = LibraryMoreDetails::getObjectStructure();
 		unset($libraryMoreDetailsStructure['weight']);
 		unset($libraryMoreDetailsStructure['libraryId']);
+
+		$libraryArchiveMoreDetailsStructure = LibraryArchiveMoreDetails::getObjectStructure();
+		unset($libraryArchiveMoreDetailsStructure['weight']);
+		unset($libraryArchiveMoreDetailsStructure['libraryId']);
 
 		$libraryLinksStructure = LibraryLink::getObjectStructure();
 		unset($libraryLinksStructure['weight']);
@@ -580,7 +585,7 @@ class Library extends DB_DataObject
 						'sortable' => true,
 						'storeDb' => true,
 						'allowEdit' => true,
-						'canEdit' => true,
+						'canEdit' => false,
 						'additionalOneToManyActions' => array(
 							0 => array(
 								'text' => 'Reset More Details To Default',
@@ -736,6 +741,27 @@ class Library extends DB_DataObject
 					                                     /* 'helpLink'=>'https://docs.google.com/document/d/1ZZsoKW2NOfGMad36BkWeF5ROqH5Wyg5up3eIhki5Lec',*/ 'properties' => array(
 							'archiveMoreDetailsRelatedObjectsOrEntitiesDisplayMode' => array('property' => 'archiveMoreDetailsRelatedObjectsOrEntitiesDisplayMode', 'label' => 'Related Object/Entity Sections Display Mode', 'type' => 'enum', 'values' => self::$archiveMoreDetailsDisplayModeOptions, 'default' => 'tiled', 'description' => 'How related objects and entities will be displayed in the More Details accordion on Archive pages.'),
 
+							'archiveMoreDetailsOptions' => array(
+								'property' => 'archiveMoreDetailsOptions',
+								'type' => 'oneToMany',
+								'label' => 'More Details Configuration',
+								'description' => 'Configuration for the display of the More Details accordion for archive object views',
+								'keyThis' => 'libraryId',
+								'keyOther' => 'libraryId',
+								'subObjectType' => 'LibraryArchiveMoreDetails',
+								'structure' => $libraryArchiveMoreDetailsStructure,
+								'sortable' => true,
+								'storeDb' => true,
+								'allowEdit' => true,
+								'canEdit' => false,
+								'additionalOneToManyActions' => array(
+									0 => array(
+										'text' => 'Reset Archive More Details To Default',
+										'url' => '/Admin/Libraries?id=$id&amp;objectAction=resetArchiveMoreDetailsToDefault',
+										'class' => 'btn-warning',
+									)
+								)
+							),
 						)),
 
 					'archiveRequestSection' => array('property'=>'archiveRequestSection', 'type' => 'section', 'label' =>'Archive Copy Requests ', 'hideInLists' => true,
@@ -756,9 +782,8 @@ class Library extends DB_DataObject
 							'archiveRequestFieldCountry'        => array('property'=>'archiveRequestFieldCountry',        'type'=>'enum', 'values'=> self::$archiveRequestFormFieldOptions, 'default'=> 1, 'label'=>'Copy Request Field : Country', 'description'=>'Should this field be hidden, or displayed as an optional field or a required field'),
 							'archiveRequestFieldPhone'          => array('property'=>'archiveRequestFieldPhone',          'type'=>'enum', 'values'=> self::$archiveRequestFormFieldOptions, 'default'=> 2, 'label'=>'Copy Request Field : Phone', 'description'=>'Should this field be hidden, or displayed as an optional field or a required field'),
 							'archiveRequestFieldAlternatePhone' => array('property'=>'archiveRequestFieldAlternatePhone', 'type'=>'enum', 'values'=> self::$archiveRequestFormFieldOptions, 'default'=> 1, 'label'=>'Copy Request Field : Alternate Phone', 'description'=>'Should this field be hidden, or displayed as an optional field or a required field'),
-//							'archiveRequestFieldEmail'          => array('property'=>'archiveRequestFieldEmail',          'type'=>'enum', 'values'=> self::$archiveRequestFormFieldOptions, 'default'=> 2, 'label'=>'Copy Request Field : Email Address', 'description'=>'Should this field be hidden, or displayed as an optional field or a required field'),
-							'archiveRequestFieldFormat'          => array('property'=>'archiveRequestFieldFormat',      'type'=>'enum', 'values'=> self::$archiveRequestFormFieldOptions, 'default'=> 1, 'label'=>'Copy Request Field : Format', 'description'=>'Should this field be hidden, or displayed as an optional field or a required field'),
-							'archiveRequestFieldPurpose'          => array('property'=>'archiveRequestFieldPurpose',      'type'=>'enum', 'values'=> self::$archiveRequestFormFieldOptions, 'default'=> 2, 'label'=>'Copy Request Field : Purpose', 'description'=>'Should this field be hidden, or displayed as an optional field or a required field'),
+							'archiveRequestFieldFormat'         => array('property'=>'archiveRequestFieldFormat',         'type'=>'enum', 'values'=> self::$archiveRequestFormFieldOptions, 'default'=> 1, 'label'=>'Copy Request Field : Format', 'description'=>'Should this field be hidden, or displayed as an optional field or a required field'),
+							'archiveRequestFieldPurpose'        => array('property'=>'archiveRequestFieldPurpose',        'type'=>'enum', 'values'=> self::$archiveRequestFormFieldOptions, 'default'=> 2, 'label'=>'Copy Request Field : Purpose', 'description'=>'Should this field be hidden, or displayed as an optional field or a required field'),
 
 						)),
 
@@ -1056,6 +1081,18 @@ class Library extends DB_DataObject
 				}
 			}
 			return $this->moreDetailsOptions;
+		}elseif ($name == "archiveMoreDetailsOptions") {
+			if (!isset($this->archiveMoreDetailsOptions) && $this->libraryId){
+				$this->archiveMoreDetailsOptions = array();
+				$moreDetailsOptions = new LibraryArchiveMoreDetails();
+				$moreDetailsOptions->libraryId = $this->libraryId;
+				$moreDetailsOptions->orderBy('weight');
+				$moreDetailsOptions->find();
+				while($moreDetailsOptions->fetch()){
+					$this->archiveMoreDetailsOptions[$moreDetailsOptions->id] = clone($moreDetailsOptions);
+				}
+			}
+			return $this->archiveMoreDetailsOptions;
 		}elseif ($name == "facets") {
 			if (!isset($this->facets) && $this->libraryId){
 				$this->facets = array();
@@ -1203,6 +1240,8 @@ class Library extends DB_DataObject
 			$this->holidays = $value;
 		}elseif ($name == "moreDetailsOptions") {
 			$this->moreDetailsOptions = $value;
+		}elseif ($name == "archiveMoreDetailsOptions") {
+			$this->archiveMoreDetailsOptions = $value;
 		}elseif ($name == "facets") {
 			$this->facets = $value;
 		}elseif ($name == "archiveSearchFacets") {
@@ -1290,6 +1329,7 @@ class Library extends DB_DataObject
 			$this->saveLibraryTopLinks();
 			$this->saveBrowseCategories();
 			$this->saveMoreDetailsOptions();
+			$this->saveArchiveMoreDetailsOptions();
 			$this->saveExploreMoreBar();
 		}
 		if ($this->patronNameDisplayStyleChanged){
@@ -1487,9 +1527,21 @@ class Library extends DB_DataObject
 		}
 	}
 
+	public function saveArchiveMoreDetailsOptions(){
+		if (isset ($this->archiveMoreDetailsOptions) && is_array($this->archiveMoreDetailsOptions)){
+			$this->saveOneToManyOptions($this->archiveMoreDetailsOptions);
+			unset($this->archiveMoreDetailsOptions);
+		}
+	}
+
 	public function clearMoreDetailsOptions(){
 		$this->clearOneToManyOptions('LibraryMoreDetails');
 		$this->moreDetailsOptions = array();
+	}
+
+	public function clearArchiveMoreDetailsOptions(){
+		$this->clearOneToManyOptions('LibraryArchiveMoreDetails');
+		$this->archiveMoreDetailsOptions = array();
 	}
 
 	public function clearMaterialsRequestFormFields(){

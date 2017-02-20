@@ -453,8 +453,17 @@ class Archive_AJAX extends Action {
 			);
 		}
 
-		global $interface;
 		$pid = urldecode($_REQUEST['id']);
+
+		//get a list of all collections and books within the main exhibit so we can find all related data.
+		require_once ROOT_DIR . '/sys/Utils/FedoraUtils.php';
+		$fedoraUtils = FedoraUtils::getInstance();
+		$exhibitObject = $fedoraUtils->getObject($pid);
+		/** @var IslandoraDriver $exhibitDriver */
+		$exhibitDriver = RecordDriverFactory::initRecordDriver($exhibitObject);
+		$childContainers = $exhibitDriver->getPIDsOfChildContainers();
+
+		global $interface;
 		$facetName = urldecode($_REQUEST['facetName']);
 		$interface->assign('exhibitPid', $pid);
 		/** @var SearchObject_Islandora $searchObject */
@@ -464,14 +473,22 @@ class Archive_AJAX extends Action {
 		$searchObject->clearHiddenFilters();
 		$searchObject->addHiddenFilter('!RELS_EXT_isViewableByRole_literal_ms', "administrator");
 		$searchObject->clearFilters();
-		$searchObject->addFilter("RELS_EXT_isMemberOfCollection_uri_ms:\"info:fedora/{$pid}\"");
+
+		$collectionFilter = "";
+		foreach ($childContainers as $childPID){
+			if (strlen($collectionFilter > 0)){
+				$collectionFilter .= " OR ";
+			}
+			$collectionFilter .= "RELS_EXT_isMemberOfCollection_uri_ms:\"info:fedora/{$childPID}\" OR RELS_EXT_isMemberOf_uri_mt:\"info:fedora /{$childPID}\"";
+		}
+		$searchObject->addHiddenFilter("",$collectionFilter);
 		$searchObject->clearFacets();
 		$searchObject->addFacet($facetName);
+		$searchObject->addFacetOptions(array(
+				'facet.sort' => 'index'
+		));
 
 		$searchObject->setLimit(1);
-
-		$searchObject->setSort('fgs_label_s');
-		$interface->assign('showThumbnailsSorted', true);
 
 		$facetValues = array();
 		$response = $searchObject->processSearch(true, false);
@@ -482,14 +499,20 @@ class Archive_AJAX extends Action {
 		if ($response['facet_counts'] && isset($response['facet_counts']['facet_fields'][$facetName])){
 			$facetFieldData = $response['facet_counts']['facet_fields'][$facetName];
 			foreach ($facetFieldData as $field){
-
+				$searchLink = $searchObject->renderLinkWithFilter("$facetName:$field[0]");
+				$facetValues[] = array(
+						'display' => $field[0],
+						'url' => $searchLink,
+						'count' => $field[1]
+				);
 			}
 		}
 
+		$interface->assign('facetValues', $facetValues);
 		$results = array(
-				'modalBody' => $interface->fetch("Archive/"),
+				'modalBody' => $interface->fetch("Archive/browseFacetPopup.tpl"),
 		);
-		return json_encode($results);
+		return $results;
 	}
 
 	function getExploreMoreContent(){
@@ -575,8 +598,8 @@ class Archive_AJAX extends Action {
 		$recordDriver = RecordDriverFactory::initRecordDriver($archiveObject);
 		$interface->assign('recordDriver', $recordDriver);
 
-		$recordDriver->loadMetadata();
-
+		$this->setMoreDetailsDisplayMode();
+		//TODO: Not sure what this code blocks ending effect is to be
 		if (array_key_exists('secondaryId', $_REQUEST)){
 			$secondaryId = urldecode($_REQUEST['secondaryId']);
 
@@ -587,10 +610,10 @@ class Archive_AJAX extends Action {
 			/** @var IslandoraDriver $secondaryDriver */
 			$secondaryDriver = RecordDriverFactory::initRecordDriver($secondaryObject);
 
-			$secondaryDriver->loadMetadata();
+			$secondaryDriver->getMoreDetailsOptions();
 		}
+		$interface->assign('moreDetailsOptions', $recordDriver->getMoreDetailsOptions());
 
-		$this->setMoreDetailsDisplayMode();
 
 		$metadata = $interface->fetch('Archive/moredetails-accordion.tpl');
 		return array(
