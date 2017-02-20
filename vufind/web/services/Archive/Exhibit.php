@@ -61,9 +61,9 @@ class Archive_Exhibit extends Archive_Object{
 
 		if ($this->archiveObject->getDatastream('TN') != null) {
 			$interface->assign('thumbnail', $configArray['Islandora']['objectUrl'] . "/{$this->pid}/datastream/TN/view");
-			$fullMagazineURL = $this->recordDriver->getModsValue('thumbnailURL', 'marmot');
-			if (!empty($fullMagazineURL)) {
-				$interface->assign('fullMagazineURL', $fullMagazineURL);
+			$exhibitThumbnailURL = $this->recordDriver->getModsValue('thumbnailURL', 'marmot');
+			if (!empty($exhibitThumbnailURL)) {
+				$interface->assign('exhibitThumbnailURL', $exhibitThumbnailURL);
 			}
 		}
 
