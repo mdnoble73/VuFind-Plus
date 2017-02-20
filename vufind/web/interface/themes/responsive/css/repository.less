@@ -426,3 +426,35 @@
     padding-top: 129.5%; /* ratio of 11:8.5*/
   }
 }
+.related-objects {
+  .browse-thumbnail-sorted {
+    a {
+      img {
+        :not(#relatedOrganizationsPanelBody) {
+          height: 125px;
+        }
+        max-height: 125px;
+        width: 100%;
+        position: absolute;
+        top: 62px;
+        transform: translate(-50%, -50%);
+        left: 50%;
+      }
+    }
+    border: 0 solid white;
+    position: relative;
+    display: block;
+    padding: 4px 0;
+    figcaption {
+      margin-top: 4px;
+      margin-bottom: 4px;
+      font-weight: 100;
+      overflow-x: hidden;
+      position: absolute;
+      top: 130px;
+      width: 100%;
+      text-align: center;
+
+    }
+  }
+}

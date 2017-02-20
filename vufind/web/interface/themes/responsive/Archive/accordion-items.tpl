@@ -23,10 +23,10 @@
 					<figcaption class="explore-more-category-title">
 						<strong>{$image.label}</strong>
 						{if $image.role}
-							&nbsp;({$image.role})
+							&nbsp; ({$image.role})
 						{/if}
 						{if $image.note}
-							&nbsp;- {$image.note}
+							&nbsp; - {$image.note}
 						{/if}
 
 					</figcaption>
