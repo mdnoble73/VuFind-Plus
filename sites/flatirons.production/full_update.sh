@@ -114,6 +114,7 @@ scp flatirons_sideload@ftp1.marmot.org:/ftp/flatirons_sideload/ebrary/broomfield
 
 #OneClick Digit Marc Updates
 scp flatirons_sideload@ftp1.marmot.org:/ftp/flatirons_sideload/oneclickdigital/longmont/*.mrc /data/vufind-plus/oneclickdigital/longmont/marc/ >> ${OUTPUT_FILE}
+scp flatirons_sideload@ftp1.marmot.org:/ftp/flatirons_sideload/oneclickdigital/loveland/*.mrc /data/vufind-plus/oneclickdigital/loveland/marc/ >> ${OUTPUT_FILE}
 
 
 #Do a full extract from OverDrive just once a week to catch anything that doesn't

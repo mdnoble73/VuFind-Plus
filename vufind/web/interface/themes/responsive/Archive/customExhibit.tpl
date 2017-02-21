@@ -18,7 +18,9 @@
 
 	<div class="lead row">
 		{if $thumbnail && !$main_image}
+			{if $exhibitThumbnailURL}<a href="{$exhibitThumbnailURL}">{/if}
 			<img src="{$thumbnail}" class="img-responsive thumbnail exhibit-thumbnail">
+			{if $exhibitThumbnailURL}</a>{/if}
 		{/if}
 		{$description}
 		<div class="clear-both"></div>

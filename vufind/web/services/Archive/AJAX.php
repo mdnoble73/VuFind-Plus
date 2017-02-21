@@ -439,6 +439,82 @@ class Archive_AJAX extends Action {
 		}
 	}
 
+	function getFacetValuesForExhibit(){
+		if (!isset($_REQUEST['id'])){
+			return array(
+					'success' => false,
+					'message' => 'You must supply the id to load facet data for'
+			);
+		}
+		if (!isset($_REQUEST['facetName'])){
+			return array(
+					'success' => false,
+					'message' => 'You must supply the facetName to load facet data for'
+			);
+		}
+
+		$pid = urldecode($_REQUEST['id']);
+
+		//get a list of all collections and books within the main exhibit so we can find all related data.
+		require_once ROOT_DIR . '/sys/Utils/FedoraUtils.php';
+		$fedoraUtils = FedoraUtils::getInstance();
+		$exhibitObject = $fedoraUtils->getObject($pid);
+		/** @var IslandoraDriver $exhibitDriver */
+		$exhibitDriver = RecordDriverFactory::initRecordDriver($exhibitObject);
+		$childContainers = $exhibitDriver->getPIDsOfChildContainers();
+
+		global $interface;
+		$facetName = urldecode($_REQUEST['facetName']);
+		$interface->assign('exhibitPid', $pid);
+		/** @var SearchObject_Islandora $searchObject */
+		$searchObject = SearchObjectFactory::initSearchObject('Islandora');
+		$searchObject->init();
+		$searchObject->setDebugging(false, false);
+		$searchObject->clearHiddenFilters();
+		$searchObject->addHiddenFilter('!RELS_EXT_isViewableByRole_literal_ms', "administrator");
+		$searchObject->clearFilters();
+
+		$collectionFilter = "";
+		foreach ($childContainers as $childPID){
+			if (strlen($collectionFilter > 0)){
+				$collectionFilter .= " OR ";
+			}
+			$collectionFilter .= "RELS_EXT_isMemberOfCollection_uri_ms:\"info:fedora/{$childPID}\" OR RELS_EXT_isMemberOf_uri_mt:\"info:fedora /{$childPID}\"";
+		}
+		$searchObject->addHiddenFilter("",$collectionFilter);
+		$searchObject->clearFacets();
+		$searchObject->addFacet($facetName);
+		$searchObject->addFacetOptions(array(
+				'facet.sort' => 'index'
+		));
+
+		$searchObject->setLimit(1);
+
+		$facetValues = array();
+		$response = $searchObject->processSearch(true, false);
+		if ($response && isset($response['error'])){
+			$interface->assign('solrError', $response['error']['msg']);
+			$interface->assign('solrLink', $searchObject->getFullSearchUrl());
+		}
+		if ($response['facet_counts'] && isset($response['facet_counts']['facet_fields'][$facetName])){
+			$facetFieldData = $response['facet_counts']['facet_fields'][$facetName];
+			foreach ($facetFieldData as $field){
+				$searchLink = $searchObject->renderLinkWithFilter("$facetName:$field[0]");
+				$facetValues[] = array(
+						'display' => $field[0],
+						'url' => $searchLink,
+						'count' => $field[1]
+				);
+			}
+		}
+
+		$interface->assign('facetValues', $facetValues);
+		$results = array(
+				'modalBody' => $interface->fetch("Archive/browseFacetPopup.tpl"),
+		);
+		return $results;
+	}
+
 	function getExploreMoreContent(){
 		if (!isset($_REQUEST['id'])){
 			return array(
@@ -522,8 +598,8 @@ class Archive_AJAX extends Action {
 		$recordDriver = RecordDriverFactory::initRecordDriver($archiveObject);
 		$interface->assign('recordDriver', $recordDriver);
 
-		$recordDriver->loadMetadata();
-
+		$this->setMoreDetailsDisplayMode();
+		//TODO: Not sure what this code blocks ending effect is to be
 		if (array_key_exists('secondaryId', $_REQUEST)){
 			$secondaryId = urldecode($_REQUEST['secondaryId']);
 
@@ -534,14 +610,24 @@ class Archive_AJAX extends Action {
 			/** @var IslandoraDriver $secondaryDriver */
 			$secondaryDriver = RecordDriverFactory::initRecordDriver($secondaryObject);
 
-			$secondaryDriver->loadMetadata();
+			$secondaryDriver->getMoreDetailsOptions();
 		}
+		$interface->assign('moreDetailsOptions', $recordDriver->getMoreDetailsOptions());
+
 
 		$metadata = $interface->fetch('Archive/moredetails-accordion.tpl');
 		return array(
 				'success' => true,
 				'metadata' => $metadata,
 		);
+	}
+
+	private function setMoreDetailsDisplayMode(){
+		// Set Display Mode for More Details Accordion Related Objects and Entities sections
+		global $library, $interface;
+		$displayMode = empty($library->archiveMoreDetailsRelatedObjectsOrEntitiesDisplayMode) ? 'tiled' : $library->archiveMoreDetailsRelatedObjectsOrEntitiesDisplayMode;
+		$interface->assign('archiveMoreDetailsRelatedObjectsOrEntitiesDisplayMode', $displayMode);
+
 	}
 
 	public function getNextRandomObject(){
@@ -629,6 +715,8 @@ class Archive_AJAX extends Action {
 		$directlyRelatedObjects = $recordDriver->getDirectlyRelatedArchiveObjects();
 
 		$interface->assign('directlyRelatedObjects', $directlyRelatedObjects);
+
+		$this->setMoreDetailsDisplayMode();
 
 		return array(
 				'success' => true,

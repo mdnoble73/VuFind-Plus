@@ -952,7 +952,7 @@ class UserAPI extends Action {
 			if (isset($_REQUEST['campus'])){
 				$pickupBranch=trim($_REQUEST['campus']);
 			}else{
-				$pickupBranch = $patron->homeLocationId;
+				$pickupBranch = $patron->homeLocationCode;
 			}
 			$holdMessage = $this->getCatalogConnection()->placeHold($patron, $bibId, $pickupBranch);
 			return $holdMessage;
@@ -972,7 +972,7 @@ class UserAPI extends Action {
 			if (isset($_REQUEST['campus'])){
 				$pickupBranch=trim($_REQUEST['campus']);
 			}else{
-				$pickupBranch = $patron->homeLocationId;
+				$pickupBranch = $patron->homeLocationCode;
 			}
 			$holdMessage = $this->getCatalogConnection()->placeItemHold($patron, $bibId, $itemId, $pickupBranch);
 			return $holdMessage;

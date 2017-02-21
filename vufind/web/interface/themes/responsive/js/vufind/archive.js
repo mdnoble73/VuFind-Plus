@@ -451,6 +451,15 @@ VuFind.Archive = (function(){
 			document.cookie = encodeURIComponent('exhibitNavigation') + "=" + encodeURIComponent(1) + expires + "; path=/";
 		},
 
+		showBrowseFilterPopup: function(exhibitPid, facetName, title){
+			var url = Globals.path + "/Archive/AJAX?id=" + encodeURI(exhibitPid) + "&method=getFacetValuesForExhibit&facetName=" + encodeURI(facetName);
+			VuFind.loadingMessage();
+			$.getJSON(url, function(data){
+				VuFind.showMessage(title, data.modalBody);
+			}).fail(VuFind.ajaxFail);
+			return false;
+		},
+
 		showObjectInPopup: function(pid, recordIndex, page){
 			var url = Globals.path + "/Archive/AJAX?id=" + encodeURI(pid) + "&method=getObjectInfo";
 					// (typeof collectionSearchId == 'undefined' ? '' : '&collectionSearchId=' + encodeURI(collectionSearchId)) +

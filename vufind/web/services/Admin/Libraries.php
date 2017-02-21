@@ -257,6 +257,25 @@ class Admin_Libraries extends ObjectEditor
 		header("Location: /Admin/Libraries?objectAction=edit&id=" . $libraryId);
 	}
 
+	function resetArchiveMoreDetailsToDefault(){
+		$library = new Library();
+		$libraryId = $_REQUEST['id'];
+		$library->libraryId = $libraryId;
+		if ($library->find(true)){
+			$library->clearArchiveMoreDetailsOptions();
+
+			require_once ROOT_DIR . '/sys/LibraryArchiveMoreDetails.php';
+			$defaultArchiveMoreDetailsOptions = LibraryArchiveMoreDetails::getDefaultOptions($libraryId);
+
+			$library->archiveMoreDetailsOptions = $defaultArchiveMoreDetailsOptions;
+			$library->update();
+
+			$_REQUEST['objectAction'] = 'edit';
+		}
+		$structure = $this->getObjectStructure();
+		header("Location: /Admin/Libraries?objectAction=edit&id=" . $libraryId);
+	}
+
 	function defaultMaterialsRequestForm(){
 		$library = new Library();
 		$libraryId = $_REQUEST['id'];

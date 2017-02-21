@@ -61,6 +61,10 @@ class Archive_Exhibit extends Archive_Object{
 
 		if ($this->archiveObject->getDatastream('TN') != null) {
 			$interface->assign('thumbnail', $configArray['Islandora']['objectUrl'] . "/{$this->pid}/datastream/TN/view");
+			$exhibitThumbnailURL = $this->recordDriver->getModsValue('thumbnailURL', 'marmot');
+			if (!empty($exhibitThumbnailURL)) {
+				$interface->assign('exhibitThumbnailURL', $exhibitThumbnailURL);
+			}
 		}
 
 		//Get a list of sub collections to for searching
@@ -122,6 +126,7 @@ class Archive_Exhibit extends Archive_Object{
 					}
 
 					$collectionToLoadFromObject = $fedoraUtils->getObject($collectionToLoadFromPID);
+					/** @var CollectionDriver|BookDriver $collectionDriver */
 					$collectionDriver = RecordDriverFactory::initRecordDriver($collectionToLoadFromObject);
 
 					$collectionObjects = $collectionDriver->getChildren();
@@ -174,6 +179,13 @@ class Archive_Exhibit extends Archive_Object{
 
 				}else if ($option == 'browseAllObjects' ){
 					$collectionTemplates[] = $interface->fetch('Archive/browseCollectionComponent.tpl');
+				}else if (strpos($option, 'browseFilter') === 0 ){
+					$filterOptions = explode('|', $option);
+					$browseFilterFacetName = $filterOptions[1];
+					$browseFilterLabel = $filterOptions[2];
+					$interface->assign('browseFilterLabel', $browseFilterLabel);
+					$interface->assign('browseFilterFacetName', $browseFilterFacetName);
+					$collectionTemplates[] = $interface->fetch('Archive/browseFilterComponent.tpl');
 				}
 
 			}
@@ -360,7 +372,6 @@ class Archive_Exhibit extends Archive_Object{
 							'title' => $firstObjectDriver->getTitle(),
 							'description' => $firstObjectDriver->getDescription(),
 							'image' => $firstObjectDriver->getBookcoverUrl('medium'),
-//							'link' => $firstObjectDriver->getRecordUrl() ."?collectionSearchId=" . $lastExhibitObjectsSearch . '&recordIndex=' .$recordIndex, // saved search version
 							'link' => $firstObjectDriver->getRecordUrl(),
 							'recordIndex' => $recordIndex++
 					);

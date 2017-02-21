@@ -899,6 +899,22 @@ function getLibraryLocationUpdates(){
 			),
 		),
 
+		'archive_more_details_customization' => array(
+			'title' => 'Archive More Details Customization',
+			'description' => 'Setup tables to allow customization of more details in archive full record views',
+			'sql' => array(
+				"CREATE TABLE library_archive_more_details (
+						id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+						libraryId INT(11) NOT NULL DEFAULT -1,
+						weight INT NOT NULL DEFAULT 0,
+						section VARCHAR(25) NOT NULL,
+						collapseByDefault TINYINT(1),
+						INDEX (libraryId)
+					)",
+
+			),
+		),
+
 		'availability_toggle_customization' => array(
 			'title' => 'Availability Toggle Customization',
 			'description' => 'Add the ability to customize the labels for the availability toggles',
@@ -1400,11 +1416,38 @@ function getLibraryLocationUpdates(){
 					)
 			),
 
+			'library_archive_material_request_form_configurations' => array(
+					'title' => 'Configure Display of Archive Copy Request Form',
+					'description' => 'Updates to allow library admins the set which fields are display and which are required.',
+					'sql' => array(
+							'ALTER TABLE `library` '
+								.'ADD COLUMN `archiveRequestFieldName` TINYINT(1) NULL,'
+								.'ADD COLUMN `archiveRequestFieldAddress` TINYINT(1) NULL AFTER `archiveRequestFieldName`,'
+								.'ADD COLUMN `archiveRequestFieldAddress2` TINYINT(1) NULL AFTER `archiveRequestFieldAddress`,'
+								.'ADD COLUMN `archiveRequestFieldCity` TINYINT(1) NULL AFTER `archiveRequestFieldAddress2`,'
+								.'ADD COLUMN `archiveRequestFieldState` TINYINT(1) NULL AFTER `archiveRequestFieldCity`,'
+								.'ADD COLUMN `archiveRequestFieldZip` TINYINT(1) NULL AFTER `archiveRequestFieldState`,'
+								.'ADD COLUMN `archiveRequestFieldCountry` TINYINT(1) NULL AFTER `archiveRequestFieldZip`,'
+								.'ADD COLUMN `archiveRequestFieldPhone` TINYINT(1) NULL AFTER `archiveRequestFieldCountry`,'
+								.'ADD COLUMN `archiveRequestFieldAlternatePhone` TINYINT(1) NULL AFTER `archiveRequestFieldPhone`,'
+								.'ADD COLUMN `archiveRequestFieldFormat` TINYINT(1) NULL AFTER `archiveRequestFieldAlternatePhone`,'
+								.'ADD COLUMN `archiveRequestFieldPurpose` TINYINT(1) NULL AFTER `archiveRequestFieldFormat`;',
+					)
+			),
+
 			'library_archive_pid' => array(
 					'title' => 'Library Archive PID',
 					'description' => 'Setup a link from Pika to the archive',
 					'sql' => array(
 							'ALTER TABLE library ADD COLUMN archivePid VARCHAR(50)',
+					)
+			),
+
+			'library_archive_related_objects_display_mode' => array(
+					'title' => 'Archive More Details Related Objects Display Mode',
+					'description' => 'Add Library Configuration option for the display of Related Objects & Entities in the More Details Accordion.',
+					'sql' => array(
+							'ALTER TABLE `library` ADD COLUMN `archiveMoreDetailsRelatedObjectsOrEntitiesDisplayMode` VARCHAR(15) NULL;',
 					)
 			),
 
