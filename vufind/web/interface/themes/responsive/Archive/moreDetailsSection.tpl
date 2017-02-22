@@ -38,16 +38,6 @@
 		</div>
 	{/if}
 
-	{* Date Created *}
-	{if $postcardPublisherNumber}
-		<div class="row">
-			<div class="result-label col-sm-4">Postcard Publisher Number: </div>
-			<div class="result-value col-sm-8">
-				{$postcardPublisherNumber}
-			</div>
-		</div>
-	{/if}
-
 	{if $physicalExtents || $physicalLocation || $shelfLocator}
 
 		{* Physical Description *}

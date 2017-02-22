@@ -7,49 +7,31 @@
 			</div>
 		</div>
 	{/if}
-	{if $datePostmarked}
+	{if $postmarks}
 		<div class="row">
-			<div class="result-label col-sm-4">Date Postmarked: </div>
+			<div class="result-label col-sm-4">Postmark: </div>
 			<div class="result-value col-sm-8">
-				{$datePostmarked}
+				{foreach from=$postmarks item=postmark}
+					{if $postmark.datePostmarked}
+						{$postmark.datePostmarked}
+					{/if}
+					{if $postmark.postmarkLocation}
+						{if $postmark.datePostmarked} ({/if}
+						{if $postmark.postmarkLocation.link}
+							<a href='{$postmark.postmarkLocation.link}'>
+								{$postmark.postmarkLocation.label}
+							</a>
+						{else}
+							{$postmark.postmarkLocation.label}
+						{/if}
+						{if $postmark.datePostmarked}){/if}
+					{/if}
+					<br/>
+				{/foreach}
 			</div>
 		</div>
 	{/if}
-	{if $postmarkLocation}
-		<div class="relatedPlace row">
-			<div class="result-label col-sm-4">
-				Postmark Location:
-			</div>
-			<div class="result-value col-sm-8">
-				{if $postMarkLocation.link}
-					<a href='{$postMarkLocation.link}'>
-						{$postMarkLocation.label}
-					</a>
-				{else}
-					{$postMarkLocation.label}
-				{/if}
-				{if $postMarkLocation.role}
-					&nbsp;({$postMarkLocation.role})
-				{/if}
-			</div>
-		</div>
-	{/if}
-	{if $postmarkLocation}
-		<div class="relatedPlace row">
-			<div class="result-label col-sm-4">
-				Postmark Location:
-			</div>
-			<div class="result-value col-sm-8">
-				{if $postMarkLocation.link}
-					<a href='{$postMarkLocation.link}'>
-						{$postMarkLocation.label}
-					</a>
-				{else}
-					{$postMarkLocation.label}
-				{/if}
-			</div>
-		</div>
-	{/if}
+
 	{if $correspondenceRecipient}
 		<div class="relatedPlace row">
 			<div class="result-label col-sm-4">
@@ -63,6 +45,15 @@
 				{else}
 					{$correspondenceRecipient.label}
 				{/if}
+			</div>
+		</div>
+	{/if}
+
+	{if $postcardPublisherNumber}
+		<div class="row">
+			<div class="result-label col-sm-4">Postcard Publisher Number: </div>
+			<div class="result-value col-sm-8">
+				{$postcardPublisherNumber}
 			</div>
 		</div>
 	{/if}

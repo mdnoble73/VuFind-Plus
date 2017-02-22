@@ -576,8 +576,9 @@ abstract class IslandoraDriver extends RecordInterface {
 			);
 		}
 
-		$this->loadTranscription(); //TODO: refactor to return value rather than set interface var
-		if (count($interface->getVariable('transcription'))) {
+		//This call loads transcriptions and also assigns to the interface
+		$transcriptions = $this->loadTranscription();
+		if (count($transcriptions)) {
 			$moreDetailsOptions['transcription'] = array(
 				'label' => 'Transcription',
 				'body' => $interface->fetch('Archive/transcriptionSection.tpl'),
@@ -767,7 +768,7 @@ abstract class IslandoraDriver extends RecordInterface {
 		if($user && ($user->hasRole('archives') || $user->hasRole('opacAdmin') || $user->hasRole('libraryAdmin'))) {
 			$moreDetailsOptions['staffView'] = array(
 				'label' => 'Staff View',
-				'body' => $interface->fetch('Archive/moreDetailsSection.tpl'),
+				'body' => $interface->fetch('Archive/staffViewSection.tpl'),
 				'hideByDefault' => false
 			);
 		}
@@ -1842,12 +1843,17 @@ abstract class IslandoraDriver extends RecordInterface {
 			}
 		}
 	}
+
+	private $transcriptions = null;
 	private function loadTranscription() {
 		global $interface;
-		$transcriptions = $this->getModsValues('hasTranscription', 'marmot');
-		if ($transcriptions){
+		if ($this->transcriptions == null){
+
+		}
+		$this->transcriptions = $this->getModsValues('hasTranscription', 'marmot');
+		if ($this->transcriptions){
 			$transcriptionInfo = array();
-			foreach ($transcriptions as $transcription){
+			foreach ($this->transcriptions as $transcription){
 				$transcriptionText = $this->getModsValue('transcriptionText', 'marmot', $transcription);
 				$transcriptionText = str_replace("\r\n", '<br/>', $transcriptionText);
 				$transcriptionText = str_replace("&#xD;", '<br/>', $transcriptionText);
@@ -1886,7 +1892,9 @@ abstract class IslandoraDriver extends RecordInterface {
 			if (count($transcriptionInfo) > 0){
 				$interface->assign('transcription',$transcriptionInfo);
 			}
+			$this->transcriptions = $transcriptionInfo;
 		}
+		return $this->transcriptions;
 	}
 
 	private function loadCorrespondenceInfo() {
@@ -1902,40 +1910,55 @@ abstract class IslandoraDriver extends RecordInterface {
 				$interface->assign('includesStamp', true);
 				$hasCorrespondenceInfo = true;
 			}
-			$datePostmarked = $this->getModsValue('datePostmarked', 'marmot', $correspondence);
-			if ($datePostmarked){
-				$interface->assign('datePostmarked', $datePostmarked);
-				$hasCorrespondenceInfo = true;
-			}
-			$relatedPlace = $this->getModsValue('entityPlace', 'marmot', $correspondence);
-			if ($relatedPlace){
-				$placePid = $this->getModsValue('entityPid', 'marmot', $relatedPlace);
+
+			//Load postmark information
+			$postmarkDetails = $this->getModsValues('relatedPlace', 'marmot', $correspondence);
+			$postmarks = array();
+			foreach ($postmarkDetails as $postmarkDetail){
+				$datePostmarked = $this->getModsValue('datePostmarked', 'marmot', $postmarkDetail);
+				$postmarkDate = DateTime::createFromFormat('Y-m-d', $datePostmarked);
+				if ($postmarkDate != false) {
+					$datePostmarked = $postmarkDate->format('m/d/Y');
+				}
+				$placePid = $this->getModsValue('entityPid', 'marmot', $postmarkDetail);
+				$validEntity = false;
+				$postmarkLocation = null;
 				if ($placePid){
 					$postMarkLocationObject = $fedoraUtils->getObject($placePid);
 					if ($postMarkLocationObject){
 						$postMarkLocationDriver = RecordDriverFactory::initRecordDriver($postMarkLocationObject);
-						$interface->assign('postMarkLocation', array(
+						$postmarkLocation = array(
 								'link' => $postMarkLocationDriver->getRecordUrl(),
 								'label' => $postMarkLocationDriver->getTitle(),
 								'role' => 'Postmark Location'
-						));
-						$hasCorrespondenceInfo = true;
-					}
-				}else{
-					$placeTitle = $this->getModsValue('entityTitle', 'marmot', $relatedPlace);
-					if ($placeTitle){
-						$interface->assign('postMarkLocation', array(
-								'label' => $placeTitle,
-								'role' => 'Postmark Location'
-						));
-						$hasCorrespondenceInfo = true;
+						);
+						$validEntity = true;
 					}
 				}
+				if (!$validEntity){
+					$placeTitle = $this->getModsValue('entityTitle', 'marmot', $postmarkDetail);
+					if ($placeTitle){
+						$postmarkLocation = array(
+								'label' => $placeTitle,
+								'role' => 'Postmark Location'
+						);
+
+					}
+				}
+				$postmarks[] = array(
+						'datePostmarked' => $datePostmarked,
+						'postmarkLocation' => $postmarkLocation
+				);
+			}
+			if (count($postmarks) > 0) {
+				$interface->assign('postmarks', $postmarks);
+				$hasCorrespondenceInfo = true;
 			}
 
 			$relatedPerson = $this->getModsValue('relatedPersonOrg', 'marmot', $correspondence);
 			if ($relatedPerson){
 				$personPid = $this->getModsValue('entityPid', 'marmot', $relatedPerson);
+				$validPerson = false;
 				if ($personPid){
 					$correspondenceRecipientObject = $fedoraUtils->getObject($personPid);
 					if ($correspondenceRecipientObject){
@@ -1945,9 +1968,11 @@ abstract class IslandoraDriver extends RecordInterface {
 								'label' => $correspondenceRecipientDriver->getTitle(),
 								'role' => 'Correspondence Recipient'
 						));
+						$validPerson = true;
 						$hasCorrespondenceInfo = true;
 					}
-				}else{
+				}
+				if (!$validPerson){
 					$personTitle = $this->getModsValue('entityTitle', 'marmot', $relatedPerson);
 					if ($personTitle){
 						$interface->assign('correspondenceRecipient', array(
@@ -1957,6 +1982,12 @@ abstract class IslandoraDriver extends RecordInterface {
 						$hasCorrespondenceInfo = true;
 					}
 				}
+			}
+
+			$postcardPublisherNumber = $this->getModsValue('postcardPublisherNumber', 'marmot');
+			if ($postcardPublisherNumber){
+				$interface->assign('postcardPublisherNumber', $postcardPublisherNumber);
+				$hasCorrespondenceInfo = true;
 			}
 		}
 		$interface->assign('hasCorrespondenceInfo', $hasCorrespondenceInfo);
@@ -2251,12 +2282,10 @@ abstract class IslandoraDriver extends RecordInterface {
 		$physicalLocation = $this->getModsValues('physicalLocation', 'mods');
 		$interface->assign('physicalLocation', $physicalLocation);
 
-		$interface->assign('postcardPublisherNumber', $this->getModsValue('postcardPublisherNumber', 'marmot'));
-
 		$shelfLocator = $this->getModsValues('shelfLocator', 'mods');
 		$interface->assign('shelfLocator', FedoraUtils::cleanValues($shelfLocator));
 
-		return $hasRecordInfo;
+		return true;
 	}
 
 	private function loadRightsStatements() {
