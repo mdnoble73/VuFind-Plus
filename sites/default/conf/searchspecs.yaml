@@ -750,6 +750,12 @@ IslandoraKeyword:
       - [exact, ~]
     - RELS_EXT_isMemberOfCollection_uri_t:
       - [onephrase, ~]
+    - mods_extension_marmotLocal_art_material_aatID_ms:
+      - [exact, ~]
+    - mods_extension_marmotLocal_art_stylePeriodSet_aatID_ms:
+      - [exact, ~]
+    - mods_extension_marmotLocal_art_techniqueSet_aatID_ms:
+      - [exact, ~]
 
 IslandoraKeywordProper:
   QueryFields:
@@ -852,6 +858,12 @@ IslandoraKeywordProper:
       - [exact, ~]
     - RELS_EXT_isMemberOfCollection_uri_t:
       - [onephrase, ~]
+    - mods_extension_marmotLocal_art_material_aatID_ms:
+      - [exact, ~]
+    - mods_extension_marmotLocal_art_stylePeriodSet_aatID_ms:
+      - [exact, ~]
+    - mods_extension_marmotLocal_art_techniqueSet_aatID_ms:
+      - [exact, ~]
 
 IslandoraSubject:
   QueryFields:
