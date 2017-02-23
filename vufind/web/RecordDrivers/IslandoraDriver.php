@@ -1224,13 +1224,15 @@ abstract class IslandoraDriver extends RecordInterface {
 					$entityTitle = $this->getModsValue('entityTitle', 'marmot', $entity);
 					$relationshipNote = $this->getModsValue('relationshipNote', 'marmot', $entity);
 					$entityRole = $this->getModsAttribute('role', $entity);
+					require_once ROOT_DIR . '/RecordDrivers/EventDriver.php';
+					$archiveDriver = new EventDriver($entityPid);
 					$entityInfo = array(
 							'pid' => $entityPid,
 							'label' => $entityTitle,
 							'role' => $entityRole,
 							'note' => $relationshipNote,
-
 					);
+					$entityInfo['image'] = $archiveDriver->getBookcoverUrl('medium');
 					$entityInfo['link']= '/Archive/' . $entityPid . '/Event';
 					if (array_key_exists($entityPid, $this->relatedEvents)){
 						$this->relatedEvents[$entityPid]['role'] .= ', ' . $entityInfo['role'];
