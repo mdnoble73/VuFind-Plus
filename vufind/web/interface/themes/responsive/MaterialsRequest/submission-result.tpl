@@ -11,11 +11,11 @@
 					Your request for <b>{$materialsRequest->title}</b> by <b>{$materialsRequest->author}</b> was submitted successfully.
 				</div>
 				<div id="materialsRequestSummary" class="alert alert-info">
-					You have used <strong>{$requestsThisYear}</strong> of your {$maxRequestsPerYear} yearly materials requests.  We also limit patrons to {$maxActiveRequests} active requests at a time.  You currently have <strong>{$openRequests}</strong> active requests.
+					You have used <strong>{$requestsThisYear}</strong> of your {$maxRequestsPerYear} yearly {translate text='materials request'}s.  We also limit patrons to {$maxActiveRequests} active {translate text='materials_request_short'}s at a time.  You currently have <strong>{$openRequests}</strong> active {translate text='materials_request_short'}s.
 				</div>
 
 				<p>
-					<a role="button" class="btn btn-primary" href="{$accountPageLink}">See My Requests</a>
+					<a role="button" class="btn btn-primary" href="{$accountPageLink}">See My {translate text='Materials_Request_alt'}s</a>
 				</p>
 			</div>
 		{/if}

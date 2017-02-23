@@ -137,6 +137,6 @@ class MaterialsRequest_NewRequest extends Action
 			$interface->assign('passwordLabel', 'Library Card Number');
 		}
 
-		$this->display('new.tpl', 'Materials Request');
+		$this->display('new.tpl', translate('Materials_Request_alt'));
 	}
 }
