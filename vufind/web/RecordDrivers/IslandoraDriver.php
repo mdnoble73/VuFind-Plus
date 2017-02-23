@@ -754,12 +754,18 @@ abstract class IslandoraDriver extends RecordInterface {
 		if (count($interface->getVariable('externalLinks'))) {
 			$moreDetailsOptions['externalLinks'] = array(
 				'label' => 'Links',
-				'body' => $interface->fetch('Archive/acknowledgementsSection.tpl'),
+				'body' => $interface->fetch('Archive/externalLinksSection.tpl'),
 				'hideByDefault' => false
 			);
 		}
 
 		if ($this->loadRecordInfo()) {
+			$moreDetailsOptions['details'] = array(
+					'label' => 'Details',
+					'body' => $interface->fetch('Archive/detailsSection.tpl'),
+					'hideByDefault' => false
+			);
+
 			$moreDetailsOptions['moreDetails'] = array(
 				'label' => 'More Details',
 				'body' => $interface->fetch('Archive/moreDetailsSection.tpl'),
@@ -1222,7 +1228,7 @@ abstract class IslandoraDriver extends RecordInterface {
 						continue;
 					}
 					$entityTitle = $this->getModsValue('entityTitle', 'marmot', $entity);
-					$relationshipNote = $this->getModsValue('relationshipNote', 'marmot', $entity);
+					$relationshipNote = $this->getModsValue('entityRelationshipNote', 'marmot', $entity);
 					$entityRole = $this->getModsAttribute('role', $entity);
 					require_once ROOT_DIR . '/RecordDrivers/EventDriver.php';
 					$archiveDriver = new EventDriver($entityPid);
@@ -1470,11 +1476,17 @@ abstract class IslandoraDriver extends RecordInterface {
 			if (count($relatedObjects) > 0){
 				$numObjects = 0;
 				$relatedObjectPIDs = array();
+				$objectNotes = array();
+				$objectLabels = array();
 				foreach ($relatedObjects as $relatedObjectSnippets){
 					$objectPid = trim($this->getModsValue('objectPid', 'marmot', $relatedObjectSnippets));
+					$objectLabel = trim($this->getModsValue('objectPid', 'marmot', $relatedObjectSnippets));
+					$relationshipNote = trim($this->getModsValue('objectRelationshipNote', 'marmot', $relatedObjectSnippets));
 					if (strlen($objectPid) > 0){
 						$numObjects++;
 						$relatedObjectPIDs[] = $objectPid;
+						$objectNotes[$objectPid] = $relationshipNote;
+						$objectLabels[$objectPid] = $objectLabel;
 					}
 				}
 
@@ -1491,11 +1503,12 @@ abstract class IslandoraDriver extends RecordInterface {
 							$entityDriver = RecordDriverFactory::initRecordDriver($doc);
 							$objectInfo = array(
 									'pid' => $entityDriver->getUniqueID(),
-									'label' => $entityDriver->getTitle(),
+									'label' => $objectLabels[$entityDriver->getUniqueID()] ? $objectLabels[$entityDriver->getUniqueID()] : $entityDriver->getTitle(),
 									'description' => $entityDriver->getTitle(),
 									'image' => $entityDriver->getBookcoverUrl('medium'),
 									'link' => $entityDriver->getRecordUrl(),
-									'driver' => $entityDriver
+									'driver' => $entityDriver,
+									'note' => $objectNotes[$entityDriver->getUniqueID()]
 							);
 							$this->directlyRelatedObjects['objects'][$objectInfo['pid']] = $objectInfo;
 							$this->directlyRelatedObjects['numFound']++;

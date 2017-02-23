@@ -18,7 +18,8 @@ class LibraryArchiveMoreDetails extends DB_DataObject{
 
 	static $moreDetailsOptions = array(
   'description' => 'Description',
-  'transcription' => 'Transcription',
+	'details' => 'Details',
+	'transcription' => 'Transcription',
   'correspondence' => 'Correspondence Information',
   'academicResearch' => 'Academic Research Information',
 	'artworkDetails' => 'Art Information',
@@ -32,7 +33,7 @@ class LibraryArchiveMoreDetails extends DB_DataObject{
   'education' => 'Education',
   'militaryService' => 'Military Service',
   'notes' => 'Notes',
-  'subject' => 'Subject',
+  'subject' => 'Subjects',
   'acknowledgements' => 'Acknowledgements', //production Team
   'externalLinks' => 'Links',
   'moreDetails' => 'More Details',
@@ -75,6 +76,13 @@ class LibraryArchiveMoreDetails extends DB_DataObject{
 		$defaultOption = new LibraryArchiveMoreDetails();
 		$defaultOption->libraryId = $libraryId;
 		$defaultOption->section = 'description';
+		$defaultOption->collapseByDefault = false;
+		$defaultOption->weight = count($defaultOptions) + 101;
+		$defaultOptions[] = $defaultOption;
+
+		$defaultOption = new LibraryArchiveMoreDetails();
+		$defaultOption->libraryId = $libraryId;
+		$defaultOption->section = 'details';
 		$defaultOption->collapseByDefault = false;
 		$defaultOption->weight = count($defaultOptions) + 101;
 		$defaultOptions[] = $defaultOption;

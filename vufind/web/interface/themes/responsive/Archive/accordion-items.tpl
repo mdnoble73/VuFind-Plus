@@ -28,7 +28,6 @@
 						{if $image.note}
 							&nbsp; - {$image.note}
 						{/if}
-
 					</figcaption>
 				</figure>
 			{/foreach}
