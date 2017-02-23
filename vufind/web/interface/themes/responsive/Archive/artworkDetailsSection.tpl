@@ -33,7 +33,7 @@
 	{/if}
 	{if $techniques}
 		<div class="row">
-			<div class="result-label col-sm-4">Technique: </div>
+			<div class="result-label col-sm-4">Techniques: </div>
 			<div class="result-value col-sm-8">
 				{foreach from=$techniques item="technique"}
 					{if $technique.link}<a href="{$technique.link}">{/if}
