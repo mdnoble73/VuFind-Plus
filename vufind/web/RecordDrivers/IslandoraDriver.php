@@ -2443,16 +2443,34 @@ abstract class IslandoraDriver extends RecordInterface {
 
 		$interface->assignAppendUniqueToExisting('rightsStatements', $rightsStatements);
 
-		$rightsHolder = $this->getModsValues('rightsHolder', 'marmot');
-		if (!empty($rightsHolder)) {
+		$rightsEffectiveDate = $this->getModsValue('rightsEffectiveDate', 'marmot');
+		$formattedDate = DateTime::createFromFormat('Y-m-d', $rightsEffectiveDate);
+		if ($formattedDate != false) {
+			$rightsEffectiveDate = $formattedDate->format('m/d/Y');
+		}
+		$interface->assign('rightsEffectiveDate', $rightsEffectiveDate);
+
+		$rightsExpirationDate = $this->getModsValue('rightsExpirationDate', 'marmot');
+		$formattedDate = DateTime::createFromFormat('Y-m-d', $rightsExpirationDate);
+		if ($formattedDate != false) {
+			$rightsExpirationDate = $formattedDate->format('m/d/Y');
+		}
+		$interface->assign('rightsExpirationDate', $rightsExpirationDate);
+
+		$rightsHolders = $this->getModsValues('rightsHolder', 'marmot');
+		$rightsHolderData = array();
+		foreach ($rightsHolders as $rightsHolder) {
 			$rightsHolderPid = $this->getModsValue('entityPid', 'marmot', $rightsHolder);
 			$rightsHolderTitle = $this->getModsValue('entityTitle', 'marmot', $rightsHolder);
 			if ($rightsHolderPid) {
-				$interface->assign('rightsHolderTitle', $rightsHolderTitle);
 				$rightsHolderObj = RecordDriverFactory::initRecordDriver($fedoraUtils->getObject($rightsHolderPid));
-				$interface->assign('rightsHolderLink', $rightsHolderObj->getRecordUrl());
+				$rightsHolderData[] = array(
+						'label' => $rightsHolderTitle,
+						'link' => $rightsHolderObj->getRecordUrl()
+				);
 			}
 		}
+		$interface->assign('rightsHolders', $rightsHolderData);
 
 		$rightsCreator = $this->getModsValue('rightsCreator', 'marmot');
 		if (!empty($rightsCreator)) {
