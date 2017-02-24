@@ -49,6 +49,13 @@ class Archive_AJAX extends Action {
 			$sort = isset($_REQUEST['sort']) ? $_REQUEST['sort'] : 'title';
 			$interface->assign('sort', $sort);
 
+			if (isset($_REQUEST['reloadHeader'])){
+				$interface->assign('reloadHeader', $_REQUEST['reloadHeader']);
+			}else{
+				$interface->assign('reloadHeader', '0');
+			}
+
+
 			$displayType = 'basic';
 			$interface->assign('displayType', $displayType);
 
@@ -64,7 +71,10 @@ class Archive_AJAX extends Action {
 
 			$searchObject->setLimit(24);
 
-			$searchObject->setSort('fgs_label_s');
+//			$searchObject->setSort('fgs_label_s');
+			$this->setupTimelineSorts($sort, $searchObject);
+			//TODO: Do these sorts work for a basic exhibit?
+
 			$interface->assign('showThumbnailsSorted', true);
 
 			$relatedObjects = array();

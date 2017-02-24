@@ -93,6 +93,7 @@ class Archive_Exhibit extends Archive_Object{
 		if ($displayType == 'basic'){
 			// Set Exhibit Navigation
 			$this->startExhibitContext();
+			$interface->assign('exhibitPid', $this->pid); // Enables sorting function on exhibit page
 			$this->display('exhibit.tpl');
 		} else if ($displayType == 'timeline'){
 			// Set Exhibit Navigation

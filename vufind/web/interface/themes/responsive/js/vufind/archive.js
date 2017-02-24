@@ -88,14 +88,26 @@ VuFind.Archive = (function(){
 			viewer.addHandler("animationfinish", this.update_clip);
 		},
 
-		getMoreExhibitResults: function(exhibitPid){
+		getMoreExhibitResults: function(exhibitPid, reloadHeader){
 			this.curPage = this.curPage +1;
+			if (typeof reloadHeader == 'undefined') {
+				reloadHeader = 0;
+			}
+			if (reloadHeader) {
+				$("#exhibit-results-loading").show();
+				this.curPage = 1;
+			}
 			var url = Globals.path + "/Archive/AJAX?method=getRelatedObjectsForExhibit&collectionId=" + exhibitPid + "&page=" + this.curPage + "&sort=" + this.sort;
-			url = url + "&reloadHeader=0";
+			url = url + "&reloadHeader=" + reloadHeader;
 
 			$.getJSON(url, function(data){
 				if (data.success){
-					$("#nextInsertPoint").replaceWith(data.relatedObjects);
+					if (reloadHeader){
+						$("#related-objects-for-exhibit").hide().html(data.relatedObjects).fadeIn('slow');
+					}else{
+						$("#nextInsertPoint").hide().replaceWith(data.relatedObjects).fadeIn('slow');
+					}
+					$("#exhibit-results-loading").hide();
 				}
 			});
 		},
