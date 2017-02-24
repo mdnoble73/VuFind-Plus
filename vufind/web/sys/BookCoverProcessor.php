@@ -69,6 +69,10 @@ class BookCoverProcessor{
 			if ($this->getSideLoadedCover($this->type.':'.$this->id)) {
 				return;
 			}
+		} elseif (stripos($this->type, 'odilo') !== false){
+			if ($this->getSideLoadedCover($this->type.':'.$this->id)) {
+				return;
+			}
 		} elseif (stripos($this->type, 'Zinio') !== false){
 			if ($this->getZinioCover($this->type.':'.$this->id)) {
 				return;
@@ -1050,6 +1054,10 @@ class BookCoverProcessor{
 						return true;
 					}
 				} elseif (stripos($relatedRecord['source'], 'lynda') !== false){
+					if ($this->getSideLoadedCover($relatedRecord['id'])) {
+						return true;
+					}
+				} elseif (stripos($relatedRecord['source'], 'Odilo') !== false){
 					if ($this->getSideLoadedCover($relatedRecord['id'])) {
 						return true;
 					}
