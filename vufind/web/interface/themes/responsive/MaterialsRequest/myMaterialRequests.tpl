@@ -8,12 +8,12 @@
 
 	{include file="MyAccount/availableHoldsNotice.tpl"}
 
-	<h2>My Materials Requests</h2>
+	<h2>My {translate text='Materials_Request_alt'}s</h2>
 	{if $error}
 		<div class="alert alert-danger">{$error}</div>
 	{else}
 		<div id="materialsRequestSummary" class="alert alert-info">
-			You have used <strong>{$requestsThisYear}</strong> of your {$maxRequestsPerYear} yearly materials requests.  We also limit patrons to {$maxActiveRequests} active requests at a time.  You currently have <strong>{$openRequests}</strong> active requests.
+			You have used <strong>{$requestsThisYear}</strong> of your {$maxRequestsPerYear} yearly {translate text='materials request'}s.  We also limit patrons to {$maxActiveRequests} active {translate text='materials_request_short'}s at a time.  You currently have <strong>{$openRequests}</strong> active {translate text='materials_request_short'}s.
 		</div>
 		<div id="materialsRequestFilters">
 			<legend>Filters:</legend>
@@ -22,10 +22,11 @@
 					<div class="form-group">
 						<label class="control-label">Show:</label>
 						<label for="openRequests" class="radio-inline">
-							<input type="radio" id="openRequests" name="requestsToShow" value="openRequests" {if $showOpen}checked="checked"{/if}> Open Requests
+							{*<input type="radio" id="openRequests" name="requestsToShow" value="openRequests" {if $showOpen}checked="checked"{/if}> Open {translate text='materials_request_short'|capitalize}s*}
+							<input type="radio" id="openRequests" name="requestsToShow" value="openRequests" {if $showOpen}checked="checked"{/if}> Open {'materials_request_short'|translate|capitalize}s
 						</label>
 						<label for="allRequests" class="radio-inline">
-							<input type="radio" id="allRequests" name="requestsToShow" value="allRequests" {if !$showOpen}checked="checked"{/if}> All Requests
+							<input type="radio" id="allRequests" name="requestsToShow" value="allRequests" {if !$showOpen}checked="checked"{/if}> All {'materials_request_short'|translate|capitalize}s
 						</label>
 					</div>
 					<div class="form-group">
@@ -58,7 +59,7 @@
 							<td>
 								<a role="button" onclick='VuFind.MaterialsRequest.showMaterialsRequestDetails("{$request->id}", false)' class="btn btn-info btn-sm">Details</a>
 								{if $request->status == $defaultStatus}
-								<a role="button" onclick="return VuFind.MaterialsRequest.cancelMaterialsRequest('{$request->id}');" class="btn btn-danger btn-sm">Cancel Request</a>
+								<a role="button" onclick="return VuFind.MaterialsRequest.cancelMaterialsRequest('{$request->id}');" class="btn btn-danger btn-sm">Cancel {'materials_request_short'|translate|capitalize}</a>
 								{/if}
 							</td>
 						</tr>
@@ -66,9 +67,9 @@
 				</tbody>
 			</table>
 		{else}
-			<div class="alert alert-warning">There are no materials requests that meet your criteria.</div>
+			<div class="alert alert-warning">There are no {translate text='materials request'}s that meet your criteria.</div>
 		{/if}
-		<div id="createNewMaterialsRequest"><a href="{$path}/MaterialsRequest/NewRequest" class="btn btn-primary btn-sm">Submit a New Materials Request</a></div>
+		<div id="createNewMaterialsRequest"><a href="{$path}/MaterialsRequest/NewRequest" class="btn btn-primary btn-sm">Submit a New {translate text='Materials_Request_alt'}</a></div>
 	{/if}
 </div>
 <script type="text/javascript">

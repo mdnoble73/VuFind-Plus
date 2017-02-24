@@ -245,7 +245,8 @@ abstract class Archive_Object extends Action {
 			}
 		}
 
-		$title = $this->archiveObject->label;
+		$title = $this->recordDriver->getFullTitle();
+
 		$interface->assign('title', $title);
 		$interface->setPageTitle($title);
 

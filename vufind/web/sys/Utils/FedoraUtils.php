@@ -257,17 +257,18 @@ class FedoraUtils {
 	 * @param $tag
 	 * @param $namespace
 	 * @param $snippet - The snippet of XML to load from
+	 * @param $includeTag - whether or not the surrounding tag should be included
 	 *
 	 * @return string
 	 */
-	public function getModsValue($tag, $namespace = null, $snippet){
+	public function getModsValue($tag, $namespace = null, $snippet, $includeTag = false){
 		if ($namespace == null){
 			if (preg_match("/<{$tag}(?=[\\s>]).*?>(.*?)<\\/$tag>/s", $snippet, $matches)){
-				return $matches[1];
+				return $includeTag ? $matches[0] : $matches[1];
 			}
 		}else{
 			if (preg_match("/<(?:$namespace:)?{$tag}(?=[\\s>]).*?>(.*?)<\\/(?:$namespace:)?$tag>/s", $snippet, $matches)){
-				return $matches[1];
+				return $includeTag ? $matches[0] : $matches[1];
 			}
 		}
 		return '';

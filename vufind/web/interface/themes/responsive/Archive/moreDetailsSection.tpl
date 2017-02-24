@@ -1,33 +1,5 @@
 {strip}
 
-	{* Date Created *}
-	{if $dateCreated}
-		<div class="row">
-			<div class="result-label col-sm-4">Created: </div>
-			<div class="result-value col-sm-8">
-				{$dateCreated}
-			</div>
-		</div>
-	{/if}
-
-	{if $dateIssued}
-		<div class="row">
-			<div class="result-label col-sm-4">Issued: </div>
-			<div class="result-value col-sm-8">
-				{$dateIssued}
-			</div>
-		</div>
-	{/if}
-
-	{if $language}
-		<div class="row">
-			<div class="result-label col-sm-4">Language: </div>
-			<div class="result-value col-sm-8">
-				{$language}
-			</div>
-		</div>
-	{/if}
-
 	{* Local Identifier *}
 	{if count($identifier) > 0}
 		<div class="row">
@@ -38,59 +10,99 @@
 		</div>
 	{/if}
 
-	{* Date Created *}
-	{if $postcardPublisherNumber}
+	{* Physical Description *}
+	{if !empty($physicalExtents)}
 		<div class="row">
-			<div class="result-label col-sm-4">Postcard Publisher Number: </div>
+			<div class="result-label col-sm-4">Physical Description: </div>
 			<div class="result-value col-sm-8">
-				{$postcardPublisherNumber}
+				{foreach from=$physicalExtents item=extent}
+					{if $extent}
+						<div>{$extent}</div>
+					{/if}
+				{/foreach}
 			</div>
 		</div>
 	{/if}
 
-	{if $physicalExtents || $physicalLocation || $shelfLocator}
-
-		{* Physical Description *}
-		{if !empty($physicalExtents)}
-			<div class="row">
-				<div class="result-label col-sm-4">Physical Description: </div>
-				<div class="result-value col-sm-8">
-					{foreach from=$physicalExtents item=extent}
-						{if $extent}
-							<div>{$extent}</div>
-						{/if}
-					{/foreach}
-				</div>
+	{* Physical Location *}
+	{if !empty($physicalLocation)}
+		<div class="row">
+			<div class="result-label col-sm-4">Located at: </div>
+			<div class="result-value col-sm-8">
+				{foreach from=$physicalLocation item=location}
+					{if $location}
+						<div>{$location}</div>
+					{/if}
+				{/foreach}
 			</div>
-		{/if}
+		</div>
+	{/if}
 
-		{* Physical Location *}
-		{if !empty($physicalLocation)}
-			<div class="row">
-				<div class="result-label col-sm-4">Located at: </div>
-				<div class="result-value col-sm-8">
-					{foreach from=$physicalLocation item=location}
-						{if $location}
-							<div>{$location}</div>
-						{/if}
-					{/foreach}
-				</div>
+	{* Shelf Locator *}
+	{if !empty($shelfLocator)}
+		<div class="row">
+			<div class="result-label col-sm-4">Shelf Locator: </div>
+			<div class="result-value col-sm-8">
+				{foreach from=$shelfLocator item=location}
+					{if $location}
+						<div>{$location}</div>
+					{/if}
+				{/foreach}
 			</div>
-		{/if}
+		</div>
+	{/if}
 
-		{* Shelf Locator *}
-		{if !empty($shelfLocator)}
-			<div class="row">
-				<div class="result-label col-sm-4">Shelf Locator: </div>
-				<div class="result-value col-sm-8">
-					{foreach from=$shelfLocator item=location}
-						{if $location}
-							<div>{$location}</div>
-						{/if}
-					{/foreach}
-				</div>
+	<div class="row">
+		<div class="result-label col-sm-4">Item PID: </div>
+		<div class="result-value col-sm-8">
+			{$pid}
+		</div>
+	</div>
+
+	<div class="row">
+		<div class="result-label col-sm-4">Collection PID: </div>
+		<div class="result-value col-sm-8">
+			{foreach from=$collectionInfo item="collection"}
+				<a href="{$collection.link}">{$collection.pid}</a> ({$collection.label})<br/>
+			{/foreach}
+		</div>
+	</div>
+
+	{* Migration inforamation *}
+	{if $migratedFileName}
+		<div class="row">
+			<div class="result-label col-sm-4">Migrated Filename: </div>
+			<div class="result-value col-sm-8">
+				{$migratedFileName}
 			</div>
-		{/if}
+		</div>
+	{/if}
+
+	{if $migratedIdentifier}
+		<div class="row">
+			<div class="result-label col-sm-4">Migrated Identifier: </div>
+			<div class="result-value col-sm-8">
+				{$migratedIdentifier}
+			</div>
+		</div>
+	{/if}
+
+	{if $contextNotes}
+		<div class="row">
+			<div class="result-label col-sm-4">Migration Context Notes: </div>
+			<div class="result-value col-sm-8">
+				{$contextNotes}
+			</div>
+		</div>
+	{/if}
+
+	{if $relationshipNotes}
+		<div class="row">
+			<div class="result-label col-sm-4">Migration Relationship Notes: </div>
+			<div class="result-value col-sm-8">
+				{$relationshipNotes}
+			</div>
+		</div>
 	{/if}
 
 	{* Record Origin Info *}

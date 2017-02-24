@@ -89,7 +89,7 @@ class MaterialsRequest_AJAX extends Action{
 		$interface->assign('useWorldCat', $useWorldCat);
 
 		if (!isset($_REQUEST['id'])){
-			$interface->assign('error', 'Please provide an id of the materials request to view.');
+			$interface->assign('error', 'Please provide an id of the '. translate('materials request') .' to view.');
 		}else {
 			$id = $_REQUEST['id'];
 			if (ctype_digit($id)) {
@@ -227,22 +227,22 @@ class MaterialsRequest_AJAX extends Action{
 									$interface->assign('barCodeColumn', $barCodeColumn);
 
 								} else {
-									$interface->assign('error', 'Sorry, you don\'t have permission to update this request.');
+									$interface->assign('error', 'Sorry, you don\'t have permission to update this '. translate('materials request') .'.');
 								}
 							} else {
-								$interface->assign('error', 'Sorry, we couldn\'t find the user that made this request.');
+								$interface->assign('error', 'Sorry, we couldn\'t find the user that made this '. translate('materials request') .'.');
 							}
 						} else {
-							$interface->assign('error', 'Sorry, we couldn\'t find a materials request for that id.');
+							$interface->assign('error', 'Sorry, we couldn\'t find a '. translate('materials request') .' for that id.');
 						}
 					} else {
 						$interface->assign('error', 'We could not determine your home library.');
 					}
 				} else {
-					$interface->assign('error', 'Please log in to view & edit the materials request.');
+					$interface->assign('error', 'Please log in to view & edit the '. translate('materials request') .'.');
 				}
 			} else {
-				$interface->assign('error', 'Sorry, invalid id for a materials request.');
+				$interface->assign('error', 'Sorry, invalid id for a '. translate('materials request') .'.');
 			}
 		}
 		$return = array(
@@ -257,7 +257,7 @@ class MaterialsRequest_AJAX extends Action{
 		global $interface;
 		global $user;
 		if (!isset($_REQUEST['id'])) {
-			$interface->assign('error', 'Please provide an id of the materials request to view.');
+			$interface->assign('error', 'Please provide an id of the '. translate('materials request') .' to view.');
 		}elseif (empty($user)) {
 			$interface->assign('error', 'Please log in to view details.');
 		}else {
@@ -331,7 +331,7 @@ class MaterialsRequest_AJAX extends Action{
 							$interface->assign('showUserInformation', false);
 						}
 					} else {
-						$interface->assign('error', 'Sorry, we couldn\'t find a materials request for that id.');
+						$interface->assign('error', 'Sorry, we couldn\'t find a '. translate('materials request') .' for that id.');
 					}
 				} else {
 					$interface->assign('error', 'Could not determine your home library.');
@@ -341,7 +341,7 @@ class MaterialsRequest_AJAX extends Action{
 			}
 		}
 		$return = array(
-				'title'        => 'Materials Request Details',
+				'title'        => translate('Materials_Request_alt') . ' Details',
 				'modalBody'    => $interface->fetch('MaterialsRequest/ajax-request-details.tpl'),
 				'modalButtons' => '' //TODO idea: add Update Request button (for staff only?)
 		);

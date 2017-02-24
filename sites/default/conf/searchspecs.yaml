@@ -702,6 +702,8 @@ IslandoraKeyword:
       - [and, ~]
     - mods_extension_marmotLocal_hasTranscription_transcriber_entityTitle_mt:
       - [and, ~]
+    - mods_identifier_identifier_mt:
+      - [onephrase, 4000]
     - mods_extension_marmotLocal_migratedIdentifier_mt:
       - [onephrase, 4000]
     - mods_extension_marmotLocal_migratedFileName_mt:
@@ -750,6 +752,12 @@ IslandoraKeyword:
       - [exact, ~]
     - RELS_EXT_isMemberOfCollection_uri_t:
       - [onephrase, ~]
+    - mods_extension_marmotLocal_art_material_aatID_ms:
+      - [exact, ~]
+    - mods_extension_marmotLocal_art_stylePeriodSet_aatID_ms:
+      - [exact, ~]
+    - mods_extension_marmotLocal_art_techniqueSet_aatID_ms:
+      - [exact, ~]
 
 IslandoraKeywordProper:
   QueryFields:
@@ -804,6 +812,8 @@ IslandoraKeywordProper:
       - [exact, ~]
     - mods_extension_marmotLocal_hasTranscription_transcriber_entityTitle_ms:
       - [exact, ~]
+    - mods_identifier_identifier_mt:
+      - [onephrase, 4000]
     - mods_extension_marmotLocal_migratedIdentifier_ms:
       - [exact, 4000]
     - mods_extension_marmotLocal_migratedFileName_ms:
@@ -852,6 +862,12 @@ IslandoraKeywordProper:
       - [exact, ~]
     - RELS_EXT_isMemberOfCollection_uri_t:
       - [onephrase, ~]
+    - mods_extension_marmotLocal_art_material_aatID_ms:
+      - [exact, ~]
+    - mods_extension_marmotLocal_art_stylePeriodSet_aatID_ms:
+      - [exact, ~]
+    - mods_extension_marmotLocal_art_techniqueSet_aatID_ms:
+      - [exact, ~]
 
 IslandoraSubject:
   QueryFields:

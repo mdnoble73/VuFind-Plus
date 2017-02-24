@@ -51,7 +51,7 @@ class MaterialsRequest_Submit extends Action
 		if (!$user){
 			$user = UserAccount::login();
 			if ($user == null){
-				$interface->assign('error', 'Sorry, we could not log you in.  Please enter a valid barcode and pin number submit a materials request.');
+				$interface->assign('error', 'Sorry, we could not log you in.  Please enter a valid barcode and pin number submit a '. translate('materials request') .'.');
 				$processForm = false;
 			}
 		}
@@ -69,10 +69,10 @@ class MaterialsRequest_Submit extends Action
 			}
 			if (!$enableMaterialsRequest){
 				$interface->assign('success', false);
-				$interface->assign('error', 'Sorry, only residents may submit materials requests at this time.');
+				$interface->assign('error', 'Sorry, only residents may submit '. translate('materials request') .'s at this time.');
 			}else if ($_REQUEST['format'] == 'article' && $_REQUEST['acceptCopyright'] != 1){
 				$interface->assign('success', false);
-				$interface->assign('error', 'Sorry, you must accept the copyright agreement before submitting a materials request.');
+				$interface->assign('error', 'Sorry, you must accept the copyright agreement before submitting a '. translate('materials request') .'.');
 			}else{
 				//Check to see how many active materials request results the user has already.
 				$materialsRequest = new MaterialsRequest();
@@ -91,7 +91,8 @@ class MaterialsRequest_Submit extends Action
 
 				if ($materialsRequest->N >= $maxActiveRequests){
 					$interface->assign('success', false);
-					$interface->assign('error', "You've already reached your maximum limit of $maxActiveRequests requests open at one time. Once we've processed your existing requests, you'll be able to submit again. To check the status of your current requests, visit your <a href='{$accountPageLink}'>account</a>.");
+					$materialsRequestString = translate('materials_request_short');
+					$interface->assign('error', "You've already reached your maximum limit of $maxActiveRequests '. translate('materials request') .'s open at one time. Once we've processed your existing {$materialsRequestString}s, you'll be able to submit again. To check the status of your current {$materialsRequestString}s, visit your <a href='{$accountPageLink}'>account</a>.");
 				}else{
 					//Check the total number of requests created this year
 					$materialsRequest = new MaterialsRequest();
@@ -105,7 +106,8 @@ class MaterialsRequest_Submit extends Action
 					$interface->assign('requestsThisYear', $requestsThisYear);
 					if ($requestsThisYear >= $maxRequestsPerYear){
 						$interface->assign('success', false);
-						$interface->assign('error', "You've already reached your maximum limit of $maxRequestsPerYear requests per year. To check the status of your current requests, visit your <a href='{$accountPageLink}'>account page</a>.");
+						$materialsRequestString = translate('materials_request_short');
+						$interface->assign('error', "You've already reached your maximum limit of $maxRequestsPerYear '. translate('materials request') .'s per year. To check the status of your current {$materialsRequestString}s, visit your <a href='{$accountPageLink}'>account page</a>.");
 					}else{
 						//Materials request can be submitted.
 						$materialsRequest = new MaterialsRequest();
@@ -169,7 +171,7 @@ class MaterialsRequest_Submit extends Action
 							$defaultStatus->libraryId = $homeLibrary->libraryId;
 							if (!$defaultStatus->find(true)) {
 								$interface->assign('success', false);
-								$interface->assign('error', 'There was an error submitting your materials request, could not determine the default status.');
+								$interface->assign('error', 'There was an error submitting your '. translate('materials request') .', could not determine the default status.');
 							} else {
 								$materialsRequest->status      = $defaultStatus->id;
 								$materialsRequest->dateCreated = time();
@@ -184,7 +186,7 @@ class MaterialsRequest_Submit extends Action
 									$interface->assign('openRequests', ++$openRequests);
 								} else {
 									$interface->assign('success', false);
-									$interface->assign('error', 'There was an error submitting your materials request.');
+									$interface->assign('error', 'There was an error submitting your '. translate('materials request') .'.');
 								}
 							}
 						}
