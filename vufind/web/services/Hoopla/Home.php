@@ -41,8 +41,7 @@ class Hoopla_Home extends Action{
 		$recordDriver = new HooplaRecordDriver($this->id);
 
 		if (!$recordDriver->isValid()){
-			$interface->setTemplate('../Record/invalidRecord.tpl');
-			$interface->display('layout.tpl');
+			$this->display('../Record/invalidRecord.tpl', 'Invalid Record');
 			die();
 		}else{
 			$interface->assign('recordDriver', $recordDriver);
