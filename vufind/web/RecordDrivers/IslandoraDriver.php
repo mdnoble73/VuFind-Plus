@@ -661,6 +661,7 @@ abstract class IslandoraDriver extends RecordInterface {
 		$productionTeam = $this->getProductionTeam();
 		$relatedOrganizations = $this->getRelatedOrganizations();
 		$relatedPlaces = $this->getRelatedPlaces();
+		$creators = $this->getCreators();
 
 		//Sort all the related information
 		usort($relatedEvents, 'ExploreMore::sortRelatedEntities');
@@ -668,6 +669,7 @@ abstract class IslandoraDriver extends RecordInterface {
 		usort($productionTeam, 'ExploreMore::sortRelatedEntities');
 		usort($relatedOrganizations, 'ExploreMore::sortRelatedEntities');
 		usort($relatedPlaces, 'ExploreMore::sortRelatedEntities');
+		usort($creators, 'ExploreMore::sortRelatedEntities');
 
 		//Do final assignment
 		$temp                 = $this->mergeEntities($interface->getVariable('relatedPeople'), $relatedPeople);
@@ -760,6 +762,9 @@ abstract class IslandoraDriver extends RecordInterface {
 		}
 
 		if ($this->loadRecordInfo()) {
+			$temp                 = $this->mergeEntities($interface->getVariable('creators'), $creators);
+			$interface->assign('creators', $temp);
+
 			$moreDetailsOptions['details'] = array(
 					'label' => 'Details',
 					'body' => $interface->fetch('Archive/detailsSection.tpl'),
@@ -947,16 +952,17 @@ abstract class IslandoraDriver extends RecordInterface {
 	 * @param $tag
 	 * @param $namespace
 	 * @param $snippet - The snippet of XML to load from
+	 * @param $includeTag - whether or not the surrounding tag should be included
 	 *
 	 * @return string
 	 */
-	public function getModsValue($tag, $namespace = null, $snippet = null){
+	public function getModsValue($tag, $namespace = null, $snippet = null, $includeTag = false){
 		if ($snippet == null){
 			$modsData = $this->getModsData();
 		}else{
 			$modsData = $snippet;
 		}
-		return FedoraUtils::getInstance()->getModsValue($tag, $namespace, $modsData);
+		return FedoraUtils::getInstance()->getModsValue($tag, $namespace, $modsData, $includeTag);
 	}
 
 	/**
@@ -1073,6 +1079,7 @@ abstract class IslandoraDriver extends RecordInterface {
 		return $this->relatedCollections;
 	}
 
+	protected $creators = array();
 	protected $relatedPeople = array();
 	protected $productionTeam = array();
 	protected $relatedPlaces = array();
@@ -1122,7 +1129,7 @@ abstract class IslandoraDriver extends RecordInterface {
 					$relationshipNote = $this->getModsValue('relationshipNote', 'marmot', $entity);
 					$entityType = $this->getModsAttribute('type', $entity);
 					$entityRole = $this->getModsAttribute('role', $entity);
-					$this->addRelatedEntityToArrays($entityPid, $entityTitle, $entityType, $relationshipNote, $entityRole);
+					$this->addRelatedEntityToArrays($entityPid, $entityTitle, $entityType, $relationshipNote, $entityRole, true);
 				}
 
 				$entities = $this->getModsValues('describedEntity', 'marmot', null, true);
@@ -1296,6 +1303,13 @@ abstract class IslandoraDriver extends RecordInterface {
 			$this->loadRelatedEntities();
 		}
 		return $this->productionTeam;
+	}
+
+	public function getCreators(){
+		if ($this->creators == null){
+			$this->loadRelatedEntities();
+		}
+		return $this->creators;
 	}
 
 	public function getRelatedPlaces(){
@@ -1606,7 +1620,7 @@ abstract class IslandoraDriver extends RecordInterface {
 		return $this->directlyRelatedObjects;
 	}
 
-	private function addRelatedEntityToArrays($pid, $entityName, $entityType, $note, $role) {
+	private function addRelatedEntityToArrays($pid, $entityName, $entityType, $note, $role, $isCreator = false) {
 		if (strlen($pid) == 0 || strpos($pid, ':') === false){
 			return;
 		}
@@ -1633,6 +1647,13 @@ abstract class IslandoraDriver extends RecordInterface {
 		);
 		if ($entityType == 'person'){
 			$entityInfo['link']= '/Archive/' . $pid . '/Person';
+			if ($isCreator) {
+				if (array_key_exists($pid, $this->creators)){
+					$this->creators[$pid]['role'] .= ', ' . $entityInfo['role'];
+				}else{
+					$this->creators[$pid] = $entityInfo;
+				}
+			}
 			if (strlen($role) > 0 && !in_array(strtolower($role), IslandoraDriver::$nonProductionTeamRoles)){
 				if (array_key_exists($pid, $this->productionTeam)){
 					$this->productionTeam[$pid]['role'] .= ', ' . $entityInfo['role'];
@@ -1663,6 +1684,13 @@ abstract class IslandoraDriver extends RecordInterface {
 			}
 		}elseif ($entityType == 'organization'){
 			$entityInfo['link']= '/Archive/' . $pid . '/Organization';
+			if ($isCreator) {
+				if (array_key_exists($pid, $this->creators)){
+					$this->creators[$pid]['role'] .= ', ' . $entityInfo['role'];
+				}else{
+					$this->creators[$pid] = $entityInfo;
+				}
+			}
 			if (array_key_exists($pid, $this->relatedOrganizations)){
 				$this->relatedOrganizations[$pid]['role'] .= ', ' . $entityInfo['role'];
 			}else{
@@ -1674,6 +1702,13 @@ abstract class IslandoraDriver extends RecordInterface {
 			$recordDriver = RecordDriverFactory::initRecordDriver($fedoraObject);
 			if ($recordDriver instanceof PersonDriver){
 				$entityInfo['link']= '/Archive/' . $pid . '/Person';
+				if ($isCreator) {
+					if (array_key_exists($pid, $this->creators)){
+						$this->creators[$pid]['role'] .= ', ' . $entityInfo['role'];
+					}else{
+						$this->creators[$pid] = $entityInfo;
+					}
+				}
 				if (strlen($role) > 0 && !in_array(strtolower($role), IslandoraDriver::$nonProductionTeamRoles)){
 					if (array_key_exists($pid, $this->productionTeam)){
 						$this->productionTeam[$pid]['role'] .= ', ' . $entityInfo['role'];
@@ -1704,6 +1739,13 @@ abstract class IslandoraDriver extends RecordInterface {
 				}
 			}elseif ($recordDriver instanceof OrganizationDriver){
 				$entityInfo['link']= '/Archive/' . $pid . '/Organization';
+				if ($isCreator) {
+					if (array_key_exists($pid, $this->creators)){
+						$this->creators[$pid]['role'] .= ', ' . $entityInfo['role'];
+					}else{
+						$this->creators[$pid] = $entityInfo;
+					}
+				}
 				if (array_key_exists($pid, $this->relatedOrganizations)){
 					$this->relatedOrganizations[$pid]['role'] .= ', ' . $entityInfo['role'];
 				}else{
@@ -1751,12 +1793,13 @@ abstract class IslandoraDriver extends RecordInterface {
 			$dateCreated = $this->getModsValue('dateIssued', 'mods');
 			if ($dateCreated == ''){
 				return 'Unknown';
-			}else{
-				return $dateCreated;
 			}
-		}else{
-			return $dateCreated;
 		}
+		$formattedDate = DateTime::createFromFormat('Y-m-d', $dateCreated);
+		if ($formattedDate != false) {
+			$dateCreated = $formattedDate->format('m/d/Y');
+		}
+		return $dateCreated;
 	}
 
 	public function getFormat(){
@@ -2241,13 +2284,19 @@ abstract class IslandoraDriver extends RecordInterface {
 	private function loadNotes() {
 		global $interface;
 		$notes = array();
-		$generalNotes = $this->getModsValue('note', 'mods');
-		if (strlen($generalNotes) > 0){
-			$notes[] = array(
-					'label' => 'General Notes',
-					'body' => $generalNotes
-			);
+		$generalNotes = $this->getModsValues('note', 'mods', null, true);
+		foreach ($generalNotes as $tmpNote) {
+			if (preg_match('~xmlns:mods="http://www.loc.gov/mods/v3"~', $tmpNote)) {
+				$noteValue = $this->getModsValue('note', 'mods', $tmpNote);
+				if (strlen($noteValue) > 0) {
+					$notes[] = array(
+							'label' => 'General Notes',
+							'body' => $noteValue
+					);
+				}
+			}
 		}
+
 		$personNotes = $this->getModsValue('personNotes', 'marmot');
 		if (strlen($personNotes) > 0){
 			$notes[] = array(
@@ -2262,20 +2311,7 @@ abstract class IslandoraDriver extends RecordInterface {
 					'body' => $citationNotes
 			);
 		}
-		$contextNotes = $this->getModsValue('contextNotes', 'marmot');
-		if (strlen($contextNotes)) {
-			$notes[] = array(
-					'label' => 'Context Notes',
-					'body' => $contextNotes
-			);
-		}
-		$relationshipNotes = $this->getModsValue('relationshipNotes', 'marmot');
-		if (strlen($contextNotes)) {
-			$notes[] = array(
-					'label' => 'Relationship Notes',
-					'body' => $relationshipNotes
-			);
-		}
+
 		$interface->assignAppendToExisting('notes', $notes);
 	}
 
@@ -2301,10 +2337,47 @@ abstract class IslandoraDriver extends RecordInterface {
 
 		$originInfo = $this->getModsValue('originInfo', 'mods');
 		if (strlen($originInfo)){
-			$dateCreated = $this->getModsValue('dateCreated', 'mods', $originInfo);
+			$datesCreated = $this->getModsValues('dateCreated', 'mods', $originInfo, true);
+			$dateCreated = '';
+			foreach ($datesCreated as $dateCreatedTag){
+				$dateCreatedValue = $this->getModsValue('dateCreated', 'mods', $dateCreatedTag);
+				$formattedDate = DateTime::createFromFormat('Y-m-d', $dateCreatedValue);
+				if ($formattedDate != false) {
+					$dateCreatedValue = $formattedDate->format('m/d/Y');
+				}
+				$point = $this->getModsAttribute('point', $dateCreatedTag);
+				$qualifier = $this->getModsAttribute('qualifier', $dateCreatedTag);
+
+				if ($point == null || $point == 'start'){
+					$dateCreated = $dateCreatedValue;
+					if ($qualifier){
+						$dateCreated .= " ({$qualifier})";
+					}
+				}else{
+					$dateCreated .= " - " . $dateCreatedValue;
+					if ($qualifier){
+						$dateCreated .= " ({$qualifier})";
+					}
+				}
+			}
+
 			$interface->assign('dateCreated', $dateCreated);
 
-			$dateIssued = $this->getModsValue('dateIssued', 'mods', $originInfo);
+			$dateIssuedTag = $this->getModsValue('dateIssued', 'mods', $originInfo, true);
+			$dateIssued = '';
+			if ($dateIssuedTag){
+				$dateIssuedValue = $this->getModsValue('dateIssued', 'mods', $dateIssuedTag);
+				$formattedDate = DateTime::createFromFormat('Y-m-d', $dateIssuedValue);
+				if ($formattedDate != false) {
+					$dateIssuedValue = $formattedDate->format('m/d/Y');
+				}
+				$qualifier = $this->getModsAttribute('qualifier', $dateIssuedTag);
+				$dateIssued = $dateIssuedValue;
+				if ($qualifier){
+					$dateIssued .= " ({$qualifier})";
+				}
+			}
+
 			$interface->assign('dateIssued', $dateIssued);
 		}
 
@@ -2316,10 +2389,15 @@ abstract class IslandoraDriver extends RecordInterface {
 		foreach ($physicalDescriptions as $physicalDescription){
 			$extent = $this->getModsValue('extent', 'mods', $physicalDescription);
 			$form = $this->getModsValue('form', 'mods', $physicalDescription);
+			$note = $this->getModsValue('note', 'mods', $physicalDescription);
 			if (empty($extent)){
 				$extent = $form;
+			}elseif (!empty($form) && !empty($note)){
+				$extent .= " ($form, $note)";
 			}elseif (!empty($form)){
 				$extent .= " ($form)";
+			}elseif (!empty($note)){
+				$extent .= " ($note)";
 			}
 			$physicalExtents[] = $extent;
 
@@ -2331,6 +2409,22 @@ abstract class IslandoraDriver extends RecordInterface {
 
 		$shelfLocator = $this->getModsValues('shelfLocator', 'mods');
 		$interface->assign('shelfLocator', FedoraUtils::cleanValues($shelfLocator));
+
+		$collections = $this->getRelatedCollections();
+		$interface->assign('collectionInfo', $collections);
+
+		//Load migration information
+		$migratedFileName = $this->getModsValue('migratedFileName', 'marmot');
+		$interface->assign('migratedFileName', $migratedFileName);
+
+		$migratedIdentifier = $this->getModsValue('migratedIdentifier', 'marmot');
+		$interface->assign('migratedIdentifier', FedoraUtils::cleanValue($migratedIdentifier));
+
+		$migrationContextNotes = $this->getModsValue('contextNotes', 'marmot');
+		$interface->assign('contextNotes', FedoraUtils::cleanValue($migrationContextNotes));
+
+		$relationshipNotes = $this->getModsValue('relationshipNotes', 'marmot');
+		$interface->assign('relationshipNotes', FedoraUtils::cleanValue($relationshipNotes));
 
 		return true;
 	}
@@ -2349,7 +2443,7 @@ abstract class IslandoraDriver extends RecordInterface {
 
 		$interface->assignAppendUniqueToExisting('rightsStatements', $rightsStatements);
 
-		$rightsHolder = $this->getModsValue('rightsHolder', 'marmot');
+		$rightsHolder = $this->getModsValues('rightsHolder', 'marmot');
 		if (!empty($rightsHolder)) {
 			$rightsHolderPid = $this->getModsValue('entityPid', 'marmot', $rightsHolder);
 			$rightsHolderTitle = $this->getModsValue('entityTitle', 'marmot', $rightsHolder);
