@@ -93,7 +93,7 @@ class Archive_AJAX extends Action {
 				foreach ($response['response']['docs'] as $objectInCollection){
 					/** @var IslandoraDriver $firstObjectDriver */
 					$firstObjectDriver = RecordDriverFactory::initRecordDriver($objectInCollection);
-					$relatedObjects[] = array(
+					$relatedObject = array(
 							'title' => $firstObjectDriver->getTitle(),
 							'description' => $firstObjectDriver->getDescription(),
 							'image' => $firstObjectDriver->getBookcoverUrl('medium'),
@@ -102,6 +102,12 @@ class Archive_AJAX extends Action {
 							'pid' => $firstObjectDriver->getUniqueID(),
 							'recordIndex' => $recordIndex++
 					);
+					if ($sort == 'dateAdded'){
+						$relatedObject['dateCreated'] = date('M j, Y', strtotime($objectInCollection['fgs_createdDate_dt']));
+					}elseif ($sort == 'dateModified'){
+						$relatedObject['dateCreated'] = date('M j, Y', strtotime($objectInCollection['fgs_lastModifiedDate_dt']));
+					}
+					$relatedObjects[] = $relatedObject;
 					$timer->logTime('Loaded related object');
 				}
 
