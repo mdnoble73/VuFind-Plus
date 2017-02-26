@@ -696,6 +696,8 @@ class Archive_AJAX extends Action {
 			$pageObject = $fedoraUtils->getObject($objectPid);
 			$mods = $fedoraUtils->getModsData($pageObject);
 			$transcript = $fedoraUtils->getModsValue('transcriptionText', 'marmot', $mods);
+			$transcript = str_replace("\r\n", '<br/>', $transcript);
+			$transcript = str_replace("&#xD;", '<br>', $transcript);
 			if (strlen($transcript) > 0){
 				return array(
 						'success' => true,
