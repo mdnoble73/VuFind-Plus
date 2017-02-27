@@ -2391,18 +2391,20 @@ abstract class IslandoraDriver extends RecordInterface {
 				if ($formattedDate != false) {
 					$dateCreatedValue = $formattedDate->format('m/d/Y');
 				}
-				$point = $this->getModsAttribute('point', $dateCreatedTag);
-				$qualifier = $this->getModsAttribute('qualifier', $dateCreatedTag);
+				if ($dateCreatedValue){
+					$point = $this->getModsAttribute('point', $dateCreatedTag);
+					$qualifier = $this->getModsAttribute('qualifier', $dateCreatedTag);
 
-				if ($point == null || $point == 'start'){
-					$dateCreated = $dateCreatedValue;
-					if ($qualifier){
-						$dateCreated .= " ({$qualifier})";
-					}
-				}else{
-					$dateCreated .= " - " . $dateCreatedValue;
-					if ($qualifier){
-						$dateCreated .= " ({$qualifier})";
+					if ($point == null || $point == 'start'){
+						$dateCreated = $dateCreatedValue;
+						if ($qualifier){
+							$dateCreated .= " ({$qualifier})";
+						}
+					}else{
+						$dateCreated .= " - " . $dateCreatedValue;
+						if ($qualifier){
+							$dateCreated .= " ({$qualifier})";
+						}
 					}
 				}
 			}
@@ -2899,9 +2901,11 @@ abstract class IslandoraDriver extends RecordInterface {
 				$type = $this->getModsValue('measurementType', 'marmot', $measurementsSection);
 				$unit = $this->getModsValue('measurementUnit', 'marmot', $measurementsSection);
 				$number = $this->getModsValue('measurementNumber', 'marmot', $measurementsSection);
-				$label = "$type: $number $unit";
-				if ($label){
-					$measurements[] = $label;
+				if ($type || $unit || $number){
+					$label = "$type: $number $unit";
+					if ($label){
+						$measurements[] = $label;
+					}
 				}
 			}
 			if (count($measurements) > 0){
@@ -2938,7 +2942,9 @@ abstract class IslandoraDriver extends RecordInterface {
 					}else{
 						$latitude = $this->getModsValue('latitude', 'marmot', $installationsSection);
 						$longitude = $this->getModsValue('longitude', 'marmot', $installationsSection);
-						$label .= " ($latitude, $longitude)";
+						if ($latitude || $longitude){
+							$label .= " ($latitude, $longitude)";
+						}
 					}
 				}
 
