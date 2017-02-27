@@ -106,31 +106,29 @@
 	{/if}
 
 	{* Record Origin Info *}
-	{if $hasRecordInfo}
-		{if $recordOrigin}
-			<div class="row">
-				<div class="result-label col-sm-4">Entered By: </div>
-				<div class="result-value col-sm-8">
-					{$recordOrigin}
-				</div>
+	{if $recordOrigin}
+		<div class="row">
+			<div class="result-label col-sm-4">Entered By: </div>
+			<div class="result-value col-sm-8">
+				{$recordOrigin}
 			</div>
-		{/if}
-		{if $recordCreationDate}
-			<div class="row">
-				<div class="result-label col-sm-4">Entered On: </div>
-				<div class="result-value col-sm-8">
-					{$recordCreationDate}
-				</div>
+		</div>
+	{/if}
+	{if $recordCreationDate}
+		<div class="row">
+			<div class="result-label col-sm-4">Entered On: </div>
+			<div class="result-value col-sm-8">
+				{$recordCreationDate}
 			</div>
-		{/if}
-		{if $recordChangeDate}
-			<div class="row">
-				<div class="result-label col-sm-4">Last Changed: </div>
-				<div class="result-value col-sm-8">
-					{$recordChangeDate}
-				</div>
+		</div>
+	{/if}
+	{if $recordChangeDate}
+		<div class="row">
+			<div class="result-label col-sm-4">Last Changed: </div>
+			<div class="result-value col-sm-8">
+				{$recordChangeDate}
 			</div>
-		{/if}
+		</div>
 	{/if}
 
 {/strip}

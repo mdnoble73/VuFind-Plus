@@ -3,7 +3,7 @@
 		<div class="row">
 			<div class="result-label col-sm-4">Research Type: </div>
 			<div class="result-value col-sm-8">
-				{$researchType}
+				{implode subject=$researchType}
 			</div>
 		</div>
 	{/if}

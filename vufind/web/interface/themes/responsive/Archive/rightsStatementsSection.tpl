@@ -2,13 +2,16 @@
 	{foreach from=$rightsStatements item=rightsStatement}
 		<div class="rightsStatement">{$rightsStatement}</div>
 	{/foreach}
+	{if $limitationsNotes}
+		<div><em>{$limitationsNotes}</em></div>
+	{/if}
 
-	{if $rightsHolder}
+	{if $rightsHolders}
 		<div>
 			<em>Rights held by&nbsp;
-				{foreach from=$rightsHolder item="rightsHolder" name="rightsHolders"}
+				{foreach from=$rightsHolders item="rightsHolder" name="rightsHolders"}
 					{if $smarty.foreach.rightsHolders.iteration > 1}, {/if}
-					<a href="{$rightsHolder.link}">{$rightsHolder.label}</a>
+					{if $rightsHolder.link}<a href="{$rightsHolder.link}">{/if}{$rightsHolder.label}{if $rightsHolder.link}</a>{/if}
 				{/foreach}
 			</em>
 		</div>
@@ -19,4 +22,5 @@
 	{if $rightsEffectiveDate || $rightsExpirationDate}
 		<div><em>{if $rightsEffectiveDate}Rights statement effective {$rightsEffectiveDate}.  {/if}{if $rightsEffectiveDate}Rights statement expires {$rightsExpirationDate}.  {/if}</em></div>
 	{/if}
+
 {/strip}
