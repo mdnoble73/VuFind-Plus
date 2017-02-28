@@ -59,6 +59,7 @@
 
 	{foreach from=$unlinkedEntities item="unlinkedEntity"}
 		<div class="row">
+			<div class="result-label col-sm-4">{$unlinkedEntity.role|translate|ucwords}: </div>
 			<div class="result-value col-sm-8">
 				{$unlinkedEntity.label}
 			</div>

@@ -87,7 +87,7 @@
 								{/if}
 							</label>
 						{/foreach}
-						{if $numObjectsWithUnknownDate}
+						{if $numObjectsWithUnknownDate > 0}
 							<div class="btn-group btn-group-sm" role="group" aria-label="Unknown Date" data-toggle="buttons">
 								<label class="btn btn-default btn-sm{if !empty($smarty.request.dateFilter) && in_array('unknown', $smarty.request.dateFilter)} active{/if}">
 									{if $displayType == 'map'}

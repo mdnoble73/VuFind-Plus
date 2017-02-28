@@ -783,7 +783,10 @@ abstract class IslandoraDriver extends RecordInterface {
 			$interface->assign('creators', $temp);
 
 			$interface->assign('unlinkedEntities', $this->unlinkedEntities);
-			if (count($interface->getVariable('creators')) || $this->hasDetails  || count($interface->getVariable('marriages') || count($this->unlinkedEntities))){
+			if ((count($interface->getVariable('creators')) > 0)
+					|| $this->hasDetails
+					|| (count($interface->getVariable('marriages')) > 0)
+					|| (count($this->unlinkedEntities) > 0)){
 				$moreDetailsOptions['details'] = array(
 						'label' => 'Details',
 						'body' => $interface->fetch('Archive/detailsSection.tpl'),
@@ -1085,9 +1088,11 @@ abstract class IslandoraDriver extends RecordInterface {
 						$parentObject = $fedoraUtils->getObject($collectionInfo['object']['value']);
 						/** @var IslandoraDriver $parentDriver */
 						$parentDriver = RecordDriverFactory::initRecordDriver($parentObject);
-						$this->relatedCollections = $parentDriver->getRelatedCollections();
-						if (count($this->relatedCollections) != 0){
-							break;
+						if ($parentDriver){
+							$this->relatedCollections = $parentDriver->getRelatedCollections();
+							if (count($this->relatedCollections) != 0){
+								break;
+							}
 						}
 					}
 				}
@@ -2368,6 +2373,7 @@ abstract class IslandoraDriver extends RecordInterface {
 	private $hasDetails;
 	private function loadRecordInfo() {
 		global $interface;
+		$this->hasDetails = false;
 		$recordInfo = $this->getModsValue('identifier', 'recordInfo');
 		if (strlen($recordInfo)){
 			$recordOrigin = $this->getModsValue('recordOrigin', 'mods', $recordInfo);
@@ -2570,46 +2576,19 @@ abstract class IslandoraDriver extends RecordInterface {
 			$searchObject->init();
 			$searchObject->setLimit(100);
 			$searchObject->setSort('fgs_label_s');
-			$searchObject->setSearchTerms(array(
-					'lookfor' => '"info:fedora/' . $this->getUniqueID() .'"',
-					'index' => 'RELS_EXT_isMemberOfCollection_uri_mt'
-			));
+			$searchObject->setBasicQuery('RELS_EXT_isMemberOfCollection_uri_mt:"info:fedora/' . $this->getUniqueID() .'" OR RELS_EXT_isMemberOf_uri_mt:"info:fedora/' . $this->getUniqueID() .'"');
 			$searchObject->addFieldsToReturn(array('RELS_EXT_isMemberOfCollection_uri_mt'));
 
 			$searchObject->clearHiddenFilters();
 			$searchObject->addHiddenFilter('!RELS_EXT_isViewableByRole_literal_ms', "administrator");
-			$searchObject->addHiddenFilter('RELS_EXT_hasModel_uri_s', "(info\:fedora/islandora\:collectionCModel OR info\:fedora/islandora\:bookCModel)");
+			$searchObject->addHiddenFilter('RELS_EXT_hasModel_uri_s', "(info\:fedora/islandora\:collectionCModel)");
 			$searchObject->clearFilters();
 			$searchObject->setApplyStandardFilters(false);
 			$response = $searchObject->processSearch(true, false, true);
 			if ($response && $response['response']['numFound'] > 0) {
 				foreach ($response['response']['docs'] as $doc) {
 					$subCollectionPid = $doc['PID'];
-					$this->pidsOfChildContainers[] = $subCollectionPid;
-				}
-			}
-
-			//Also check isMemberOf for pages within a book
-			$searchObject = SearchObjectFactory::initSearchObject('Islandora');
-			$searchObject->init();
-			$searchObject->setLimit(100);
-			$searchObject->setSort('fgs_label_s');
-			$searchObject->setSearchTerms(array(
-					'lookfor' => '"info:fedora/' . $this->getUniqueID() .'"',
-					'index' => 'RELS_EXT_isMemberOf_uri_mt'
-			));
-			$searchObject->addFieldsToReturn(array('RELS_EXT_isMemberOf_uri_mt'));
-
-			$searchObject->clearHiddenFilters();
-			$searchObject->addHiddenFilter('!RELS_EXT_isViewableByRole_literal_ms', "administrator");
-			$searchObject->addHiddenFilter('RELS_EXT_hasModel_uri_s', "(info\:fedora/islandora\:collectionCModel OR info\:fedora/islandora\:bookCModel)");
-			$searchObject->clearFilters();
-			$searchObject->setApplyStandardFilters(false);
-			$response = $searchObject->processSearch(true, false, true);
-			if ($response && $response['response']['numFound'] > 0) {
-				foreach ($response['response']['docs'] as $doc) {
-					$subCollectionPid = $doc['PID'];
-					$this->pidsOfChildContainers[] = $subCollectionPid;
+					$this->pidsOfChildContainers[$subCollectionPid] = $subCollectionPid;
 				}
 			}
 
