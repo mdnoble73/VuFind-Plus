@@ -782,7 +782,8 @@ abstract class IslandoraDriver extends RecordInterface {
 			$temp                 = $this->mergeEntities($interface->getVariable('creators'), $creators);
 			$interface->assign('creators', $temp);
 
-			if (count($interface->getVariable('creators')) || $this->hasDetails  || count($interface->getVariable('marriages'))){
+			$interface->assign('unlinkedEntities', $this->unlinkedEntities);
+			if (count($interface->getVariable('creators')) || $this->hasDetails  || count($interface->getVariable('marriages') || count($this->unlinkedEntities))){
 				$moreDetailsOptions['details'] = array(
 						'label' => 'Details',
 						'body' => $interface->fetch('Archive/detailsSection.tpl'),
@@ -1102,6 +1103,7 @@ abstract class IslandoraDriver extends RecordInterface {
 	protected $relatedPeople = array();
 	protected $productionTeam = array();
 	protected $relatedPlaces = array();
+	protected $unlinkedEntities = array();
 	protected $relatedEvents = array();
 	protected $relatedOrganizations = array();
 	protected $brandingEntities = array();
@@ -1635,12 +1637,12 @@ abstract class IslandoraDriver extends RecordInterface {
 
 	private function addRelatedEntityToArrays($pid, $entityName, $entityType, $note, $role, $isCreator = false) {
 		$fedoraUtils = FedoraUtils::getInstance();
-		$validObject = true;
 		if (strlen($pid) == 0 || strpos($pid, ':') === false){
 			//This is an object with just a title
-			$imageUrl = $fedoraUtils->getPlaceholderImage($entityType);
-			$pid = $entityName;
-			$validObject = false;
+			$this->unlinkedEntities[] = array(
+				'role' => $role,
+				'label' => $entityName
+			);
 		}else{
 			if ($entityType == '' && strlen($pid)){
 				//Get the type based on the pid
@@ -1656,118 +1658,118 @@ abstract class IslandoraDriver extends RecordInterface {
 				$imageUrl = $fedoraUtils->getObjectImageUrl($fedoraUtils->getObject($pid), 'medium', $entityType);
 			}
 
-		}
-		$entityInfo = array(
-				'pid' => $pid,
-				'label' => $entityName,
-				'note' => $note,
-				'role' => $role,
-				'image' => $imageUrl,
-		);
+			$entityInfo = array(
+					'pid' => $pid,
+					'label' => $entityName,
+					'note' => $note,
+					'role' => $role,
+					'image' => $imageUrl,
+			);
 
-		if (!in_array($entityType, array('person', 'organization', 'event', 'place')) && $validObject){
-			//Need to check the actual content model
-			$fedoraObject = $fedoraUtils->getObject($entityInfo['pid']);
-			$recordDriver = RecordDriverFactory::initRecordDriver($fedoraObject);
-			if ($recordDriver instanceof PersonDriver) {
-				$entityType = 'person';
-			}elseif ($recordDriver instanceof PlaceDriver){
-				$entityType = 'place';
-			}elseif ($recordDriver instanceof EventDriver){
-				$entityType = 'event';
-			}elseif ($recordDriver instanceof OrganizationDriver){
-				$entityType = 'organization';
-			}
-		}
-		if ($entityType == 'person'){
-			$entityInfo['link']= '/Archive/' . $pid . '/Person';
-			if ($isCreator) {
-				if (array_key_exists($pid, $this->creators)){
-					$this->creators[$pid]['role'] .= ', ' . $entityInfo['role'];
-				}else{
-					$this->creators[$pid] = $entityInfo;
+			if (!in_array($entityType, array('person', 'organization', 'event', 'place'))){
+				//Need to check the actual content model
+				$fedoraObject = $fedoraUtils->getObject($entityInfo['pid']);
+				$recordDriver = RecordDriverFactory::initRecordDriver($fedoraObject);
+				if ($recordDriver instanceof PersonDriver) {
+					$entityType = 'person';
+				}elseif ($recordDriver instanceof PlaceDriver){
+					$entityType = 'place';
+				}elseif ($recordDriver instanceof EventDriver){
+					$entityType = 'event';
+				}elseif ($recordDriver instanceof OrganizationDriver){
+					$entityType = 'organization';
 				}
 			}
-			if (strlen($role) > 0 && !in_array(strtolower($role), IslandoraDriver::$nonProductionTeamRoles)) {
-				if (array_key_exists($pid, $this->productionTeam)) {
-					$this->productionTeam[$pid]['role'] .= ', ' . $entityInfo['role'];
-				} else {
-					$this->productionTeam[$pid] = $entityInfo;
+			if ($entityType == 'person'){
+				$entityInfo['link']= '/Archive/' . $pid . '/Person';
+				if ($isCreator) {
+					if (array_key_exists($pid, $this->creators)){
+						$this->creators[$pid]['role'] .= ', ' . $entityInfo['role'];
+					}else{
+						$this->creators[$pid] = $entityInfo;
+					}
 				}
-			}elseif (strlen($role) > 0 && in_array(strtolower($role), IslandoraDriver::$brandingRoles)){
-				if ($role == 'owner'){
-					$entityInfo['sortIndex'] = 1;
-					$entityInfo['label'] = 'Owned by ' . $entityInfo['label'];
-				}elseif ($role == 'donor'){
-					$entityInfo['sortIndex'] = 2;
-					$entityInfo['label'] = 'Donated by ' . $entityInfo['label'];
-				}elseif ($role == 'funder'){
-					$entityInfo['label'] = 'Funded by ' . $entityInfo['label'];
-					$entityInfo['sortIndex'] = 3;
-				}elseif ($role == 'acknowledgement'){
-					$entityInfo['label'] = '';
-					$entityInfo['sortIndex'] = 4;
-				}
-				if (array_key_exists($pid, $this->brandingEntities)){
-					$this->brandingEntities[$pid]['role'] .= ', ' . $entityInfo['role'];
+				if (strlen($role) > 0 && !in_array(strtolower($role), IslandoraDriver::$nonProductionTeamRoles)) {
+					if (array_key_exists($pid, $this->productionTeam)) {
+						$this->productionTeam[$pid]['role'] .= ', ' . $entityInfo['role'];
+					} else {
+						$this->productionTeam[$pid] = $entityInfo;
+					}
+				}elseif (strlen($role) > 0 && in_array(strtolower($role), IslandoraDriver::$brandingRoles)){
+					if ($role == 'owner'){
+						$entityInfo['sortIndex'] = 1;
+						$entityInfo['label'] = 'Owned by ' . $entityInfo['label'];
+					}elseif ($role == 'donor'){
+						$entityInfo['sortIndex'] = 2;
+						$entityInfo['label'] = 'Donated by ' . $entityInfo['label'];
+					}elseif ($role == 'funder'){
+						$entityInfo['label'] = 'Funded by ' . $entityInfo['label'];
+						$entityInfo['sortIndex'] = 3;
+					}elseif ($role == 'acknowledgement'){
+						$entityInfo['label'] = '';
+						$entityInfo['sortIndex'] = 4;
+					}
+					if (array_key_exists($pid, $this->brandingEntities)){
+						$this->brandingEntities[$pid]['role'] .= ', ' . $entityInfo['role'];
+					}else{
+						$this->brandingEntities[$pid] = $entityInfo;
+					}
 				}else{
-					$this->brandingEntities[$pid] = $entityInfo;
+					if (array_key_exists($pid, $this->relatedPeople)){
+						$this->relatedPeople[$pid]['role'] .= ', ' . $entityInfo['role'];
+					}else{
+						$this->relatedPeople[$pid] = $entityInfo;
+					}
 				}
-			}else{
-				if (array_key_exists($pid, $this->relatedPeople)){
-					$this->relatedPeople[$pid]['role'] .= ', ' . $entityInfo['role'];
-				}else{
-					$this->relatedPeople[$pid] = $entityInfo;
-				}
-			}
 
-		}elseif ($entityType == 'place'){
-			$entityInfo['link']= '/Archive/' . $pid . '/Place';
-			if (array_key_exists($pid, $this->relatedPlaces)){
-				$this->relatedPlaces[$pid]['role'] .= ', ' . $entityInfo['role'];
-			}else{
-				$this->relatedPlaces[$pid] = $entityInfo;
-			}
-		}elseif ($entityType == 'event'){
-			$entityInfo['link']= '/Archive/' . $pid . '/Event';
-			if (array_key_exists($pid, $this->relatedEvents)){
-				$this->relatedEvents[$pid]['role'] .= ', ' . $entityInfo['role'];
-			}else{
-				$this->relatedEvents[$pid] = $entityInfo;
-			}
-		}elseif ($entityType == 'organization'){
-			$entityInfo['link']= '/Archive/' . $pid . '/Organization';
-			if ($isCreator) {
-				if (array_key_exists($pid, $this->creators)){
-					$this->creators[$pid]['role'] .= ', ' . $entityInfo['role'];
+			}elseif ($entityType == 'place'){
+				$entityInfo['link']= '/Archive/' . $pid . '/Place';
+				if (array_key_exists($pid, $this->relatedPlaces)){
+					$this->relatedPlaces[$pid]['role'] .= ', ' . $entityInfo['role'];
 				}else{
-					$this->creators[$pid] = $entityInfo;
+					$this->relatedPlaces[$pid] = $entityInfo;
 				}
-			}
-			if (strlen($role) > 0 && in_array(strtolower($role), IslandoraDriver::$brandingRoles)){
-				if ($role == 'owner'){
-					$entityInfo['sortIndex'] = 1;
-					$entityInfo['label'] = 'Owned by ' . $entityInfo['label'];
-				}elseif ($role == 'donor'){
-					$entityInfo['sortIndex'] = 2;
-					$entityInfo['label'] = 'Donated by ' . $entityInfo['label'];
-				}elseif ($role == 'funder'){
-					$entityInfo['label'] = 'Funded by ' . $entityInfo['label'];
-					$entityInfo['sortIndex'] = 3;
-				}elseif ($role == 'acknowledgement'){
-					$entityInfo['label'] = '';
-					$entityInfo['sortIndex'] = 4;
-				}
-				if (array_key_exists($pid, $this->brandingEntities)){
-					$this->brandingEntities[$pid]['role'] .= ', ' . $entityInfo['role'];
+			}elseif ($entityType == 'event'){
+				$entityInfo['link']= '/Archive/' . $pid . '/Event';
+				if (array_key_exists($pid, $this->relatedEvents)){
+					$this->relatedEvents[$pid]['role'] .= ', ' . $entityInfo['role'];
 				}else{
-					$this->brandingEntities[$pid] = $entityInfo;
+					$this->relatedEvents[$pid] = $entityInfo;
 				}
-			}else{
-				if (array_key_exists($pid, $this->relatedOrganizations)){
-					$this->relatedOrganizations[$pid]['role'] .= ', ' . $entityInfo['role'];
+			}elseif ($entityType == 'organization'){
+				$entityInfo['link']= '/Archive/' . $pid . '/Organization';
+				if ($isCreator) {
+					if (array_key_exists($pid, $this->creators)){
+						$this->creators[$pid]['role'] .= ', ' . $entityInfo['role'];
+					}else{
+						$this->creators[$pid] = $entityInfo;
+					}
+				}
+				if (strlen($role) > 0 && in_array(strtolower($role), IslandoraDriver::$brandingRoles)){
+					if ($role == 'owner'){
+						$entityInfo['sortIndex'] = 1;
+						$entityInfo['label'] = 'Owned by ' . $entityInfo['label'];
+					}elseif ($role == 'donor'){
+						$entityInfo['sortIndex'] = 2;
+						$entityInfo['label'] = 'Donated by ' . $entityInfo['label'];
+					}elseif ($role == 'funder'){
+						$entityInfo['label'] = 'Funded by ' . $entityInfo['label'];
+						$entityInfo['sortIndex'] = 3;
+					}elseif ($role == 'acknowledgement'){
+						$entityInfo['label'] = '';
+						$entityInfo['sortIndex'] = 4;
+					}
+					if (array_key_exists($pid, $this->brandingEntities)){
+						$this->brandingEntities[$pid]['role'] .= ', ' . $entityInfo['role'];
+					}else{
+						$this->brandingEntities[$pid] = $entityInfo;
+					}
 				}else{
-					$this->relatedOrganizations[$pid] = $entityInfo;
+					if (array_key_exists($pid, $this->relatedOrganizations)){
+						$this->relatedOrganizations[$pid]['role'] .= ', ' . $entityInfo['role'];
+					}else{
+						$this->relatedOrganizations[$pid] = $entityInfo;
+					}
 				}
 			}
 		}

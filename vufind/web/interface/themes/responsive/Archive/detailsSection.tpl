@@ -57,4 +57,12 @@
 		</div>
 	{/if}
 
+	{foreach from=$unlinkedEntities item="unlinkedEntity"}
+		<div class="row">
+			<div class="result-value col-sm-8">
+				{$unlinkedEntity.label}
+			</div>
+		</div>
+	{/foreach}
+
 {/strip}
