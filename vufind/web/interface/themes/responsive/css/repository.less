@@ -437,7 +437,7 @@
         width: 100%;
         position: absolute;
         top: 62px;
-        transform: translate(-50%, -50%);
+        transform: translate3d(-50%, -50%, 0); //3d needed to work in chrome (when columns are being used)
         left: 50%;
       }
     }
@@ -445,6 +445,15 @@
     position: relative;
     display: block;
     padding: 4px 0;
+
+    // Fix display for chrome
+    //-webkit-column-break-inside: avoid;
+    page-break-inside: avoid;
+    break-inside: avoid;
+
+    overflow: visible;
+
+
     figcaption {
       margin-top: 4px;
       margin-bottom: 4px;
