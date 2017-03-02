@@ -2697,6 +2697,7 @@ abstract class IslandoraDriver extends RecordInterface {
 
 	public function getBrandingInformation() {
 		if (!$this->loadedBrandingFromCollection){
+			$this->loadRelatedEntities();
 			$this->loadedBrandingFromCollection = true;
 
 			//Get the contributing institution
@@ -2724,7 +2725,7 @@ abstract class IslandoraDriver extends RecordInterface {
 				}else{
 					$imageUrl = $fedoraUtils->getObjectImageUrl($fedoraUtils->getObject($contributingLibraryPid), 'medium');
 				}
-				$brandingResults[] = array(
+				$this->brandingEntities[$contributingLibraryPid] = array(
 						'label' => 'Contributed by ' . $islandoraCache->title,
 						'image' => $imageUrl,
 						'link' => "/Archive/$contributingLibraryPid/Organization",
