@@ -148,7 +148,24 @@ class Archive_Exhibit extends Archive_Object{
 								$collectionTitle['isExhibit'] = true;
 							}
 						}
-						$collectionTitles[] = $collectionTitle;
+						$collectionTitles[$childPid] = $collectionTitle;
+					}
+
+					//Check the MODS for the collection to see if it has information about ordering
+					// Likely used for Exhibits that have 1 page.
+					// Might be for Exhibit of Exhibits
+					$sortingInfo = $collectionDriver->getModsValue('collectionOrder', 'marmot');
+					if ($sortingInfo){
+						$sortingInfo = explode("&#xD;\n", $sortingInfo);
+						$sortedImages = array();
+						foreach ($sortingInfo as $sortingPid){
+							if (array_key_exists($sortingPid, $collectionTitles)){
+								$sortedImages[] = $collectionTitles[$sortingPid];
+								unset($collectionTitles[$sortingPid]);
+							}
+						}
+						//Add any images that weren't specifically sorted
+						$collectionTitles = $sortedImages + $collectionTitles;
 					}
 
 					$browseCollectionTitlesData = array(
@@ -394,14 +411,14 @@ class Archive_Exhibit extends Archive_Object{
 				//Check the MODS for the collection to see if it has information about ordering
 				// Likely used for Exhibits that have 1 page.
 				// Might be for Exhibit of Exhibits
-				$sortingInfo = $this->recordDriver->getModsValues('collectionOrder', 'marmot');
-				if (count($sortingInfo) > 0 && $sortingInfo != array('')){
+				$sortingInfo = $this->recordDriver->getModsValue('collectionOrder', 'marmot');
+				if ($sortingInfo){
+					$sortingInfo = explode('&#xD;\n', $sortingInfo);
 					$sortedImages = array();
-					foreach ($sortingInfo as $curSortSection){
-						$pid = $this->recordDriver->getModsValue('objectPid', 'marmot', $curSortSection);
-						if (array_key_exists($pid, $relatedImages)){
-							$sortedImages[] = $relatedImages[$pid];
-							unset($relatedImages[$pid]);
+					foreach ($sortingInfo as $sortingPid){
+						if (array_key_exists($sortingPid, $relatedImages)){
+							$sortedImages[] = $relatedImages[$sortingPid];
+							unset($relatedImages[$sortingPid]);
 						}
 					}
 					//Add any images that weren't specifically sorted
