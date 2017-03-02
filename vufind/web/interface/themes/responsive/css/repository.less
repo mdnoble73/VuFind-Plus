@@ -426,6 +426,7 @@
     padding-top: 129.5%; /* ratio of 11:8.5*/
   }
 }
+
 .related-objects {
   .browse-thumbnail-sorted {
     a {
@@ -441,17 +442,17 @@
         left: 50%;
       }
     }
+    //min-block-size: 210px;
     border: 0 solid white;
     position: relative;
-    display: block;
     padding: 4px 0;
-
-    // Fix display for chrome
-    //-webkit-column-break-inside: avoid;
-    page-break-inside: avoid;
-    break-inside: avoid;
-
     overflow: visible;
+
+    //display: block;
+
+    // Needed fix to make column display work correctly in firefox
+    display: inline-block;
+    width: 100%;
 
 
     figcaption {
@@ -465,5 +466,17 @@
       text-align: center;
 
     }
+  }
+  .browse-thumbnail-sorted {
+    /* autoprefixer: off */
+    //autoprefixer adds the page-break-inside: which breaks display on firefox.
+    // Fix display for chrome
+    -webkit-column-break-inside: avoid;
+    -moz-column-break-inside:avoid;
+    column-break-inside:avoid;
+    //page-break-inside: avoid;
+    break-inside: avoid;
+    break-inside: avoid-column;
+
   }
 }
