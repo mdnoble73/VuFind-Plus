@@ -167,19 +167,22 @@ EOQ;
 				$page['pdf'] = $objectUrl . '/' . $page['pid'] . '/datastream/PDF/view';
 			}
 			//Get MODS before the HOCR or OCR
-			$modsForParent = $fedoraUtils->getModsData($pageObject);
-			$transcript = $fedoraUtils->getModsValue('transcriptionText', 'marmot', $modsForParent);
+			$modsForPage = $fedoraUtils->getModsData($pageObject);
+			$transcript = $fedoraUtils->getModsValue('transcriptionText', 'marmot', $modsForPage);
 			if (strlen($transcript) > 0){
 				$page['transcript'] = 'mods:' . $page['pid'];
 			}else{
-				$parentObject = $this->getArchiveObject();
 				$hasTranscript = false;
-				if ($parentObject != null){
-					$modsForParent = $fedoraUtils->getModsData($parentObject);
-					$transcript = $fedoraUtils->getModsValue('transcriptionText', 'marmot', $modsForParent);
-					if (strlen($transcript) > 0) {
-						$page['transcript'] = 'mods:' . $parentObject->id;
-						$hasTranscript = true;
+				$parents = $pageObject->getParents();
+				foreach ($parents as $parent) {
+					$parentObject = $fedoraUtils->getObject($parent);
+					if ($parentObject != null) {
+						$modsForParent = $fedoraUtils->getModsData($parentObject);
+						$transcript = $fedoraUtils->getModsValue('transcriptionText', 'marmot', $modsForParent);
+						if (strlen($transcript) > 0) {
+							$page['transcript'] = 'mods:' . $parentObject->id;
+							$hasTranscript = true;
+						}
 					}
 				}
 				if (!$hasTranscript) {
