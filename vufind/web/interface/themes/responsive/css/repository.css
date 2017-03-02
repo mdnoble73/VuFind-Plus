@@ -391,16 +391,13 @@
 .related-objects .browse-thumbnail-sorted {
   border: 0 solid white;
   position: relative;
-  display: block;
   padding: 4px 0;
-  page-break-inside: avoid;
-  -webkit-column-break-inside: avoid;
-          break-inside: avoid;
   overflow: visible;
+  display: inline-block;
+  width: 100%;
 }
 .related-objects .browse-thumbnail-sorted a img {
   max-height: 125px;
-  width: 100%;
   position: absolute;
   top: 62px;
   -webkit-transform: translate3d(-50%, -50%, 0);
@@ -419,4 +416,12 @@
   top: 130px;
   width: 100%;
   text-align: center;
+}
+.related-objects .browse-thumbnail-sorted {
+  /* autoprefixer: off */
+  -webkit-column-break-inside: avoid;
+  -moz-column-break-inside: avoid;
+  column-break-inside: avoid;
+  break-inside: avoid;
+  break-inside: avoid-column;
 }
