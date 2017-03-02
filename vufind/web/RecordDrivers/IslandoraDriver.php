@@ -1223,13 +1223,16 @@ abstract class IslandoraDriver extends RecordInterface {
 					if (strlen($entityPid) == 0) {
 						$entityTitle = '';
 
+						$hasAddressInfo = false;
 						$addressStreetNumber = FedoraUtils::cleanValue($this->getModsValue('addressStreetNumber', 'marmot', $entity));
 						if ($addressStreetNumber){
 							$entityTitle .= $addressStreetNumber;
+							$hasAddressInfo = true;
 						}
 						$addressStreet = FedoraUtils::cleanValue($this->getModsValue('addressStreet', 'marmot', $entity));
 						if ($addressStreet){
 							$entityTitle .= ' ' . $addressStreet;
+							$hasAddressInfo = true;
 						}
 						$address2 = FedoraUtils::cleanValue($this->getModsValue('address2', 'marmot', $entity));
 						if ($address2){
@@ -1237,6 +1240,7 @@ abstract class IslandoraDriver extends RecordInterface {
 								$entityTitle .= '<br/>';
 							}
 							$entityTitle .= $address2;
+							$hasAddressInfo = true;
 						}
 						$addressCity = FedoraUtils::cleanValue($this->getModsValue('addressCity', 'marmot', $entity));
 						if ($addressCity){
@@ -1244,6 +1248,7 @@ abstract class IslandoraDriver extends RecordInterface {
 								$entityTitle .= '<br/>';
 							}
 							$entityTitle .= $addressCity;
+							$hasAddressInfo = true;
 						}
 						$addressState = FedoraUtils::cleanValue($this->getModsValue('addressState', 'marmot', $entity));
 						if ($addressCity){
@@ -1253,10 +1258,12 @@ abstract class IslandoraDriver extends RecordInterface {
 								$entityTitle .= '<br/>';
 							}
 							$entityTitle .= $addressState;
+							$hasAddressInfo = true;
 						}
 						$addressZipCode = FedoraUtils::cleanValue($this->getModsValue('addressZipCode', 'marmot', $entity));
 						if ($addressZipCode){
 							$entityTitle .= ' ' . $addressZipCode;
+							$hasAddressInfo = true;
 						}
 						$addressCounty = FedoraUtils::cleanValue($this->getModsValue('addressCounty', 'marmot', $entity));
 						if ($addressCounty){
@@ -1264,7 +1271,9 @@ abstract class IslandoraDriver extends RecordInterface {
 								$entityTitle .= '<br/>';
 							}
 							$entityTitle .= $addressCounty;
+							$hasAddressInfo = true;
 						}
+						//Country defaults to USA, don't set $hasAddressInfo = true;
 						$addressCountry = FedoraUtils::cleanValue($this->getModsValue('addressCountry', 'marmot', $entity));
 						if ($addressCountry){
 							if (strlen($entityTitle) > 0){
@@ -1278,6 +1287,11 @@ abstract class IslandoraDriver extends RecordInterface {
 								$entityTitle .= '<br/>';
 							}
 							$entityTitle .= $addressOtherRegion;
+							$hasAddressInfo = true;
+						}
+
+						if (!$hasAddressInfo){
+							$entityTitle = '';
 						}
 
 						$latitude = $this->getModsValue('latitude', 'marmot', $entity);
