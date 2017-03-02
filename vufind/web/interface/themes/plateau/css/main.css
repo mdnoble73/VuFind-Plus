@@ -10696,7 +10696,6 @@ a.browse-thumbnail-sorted.active {
 }
 .related-objects .browse-thumbnail-sorted a img {
   max-height: 125px;
-  width: 100%;
   position: absolute;
   top: 62px;
   -webkit-transform: translate3d(-50%, -50%, 0);
