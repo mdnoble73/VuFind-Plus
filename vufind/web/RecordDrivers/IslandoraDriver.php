@@ -1514,7 +1514,7 @@ abstract class IslandoraDriver extends RecordInterface {
 				$objectLabels = array();
 				foreach ($relatedObjects as $relatedObjectSnippets){
 					$objectPid = trim($this->getModsValue('objectPid', 'marmot', $relatedObjectSnippets));
-					$objectLabel = trim($this->getModsValue('objectPid', 'marmot', $relatedObjectSnippets));
+					$objectLabel = trim($this->getModsValue('objectTitle', 'marmot', $relatedObjectSnippets));
 					$relationshipNote = trim($this->getModsValue('objectRelationshipNote', 'marmot', $relatedObjectSnippets));
 					if (strlen($objectPid) > 0){
 						$numObjects++;
