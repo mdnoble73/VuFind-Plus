@@ -297,6 +297,10 @@
   position: relative;
   width: 100%;
 }
+.archiveComponentContainer .archiveComponent .archiveComponentBody a,
+.archiveComponentContainer .archiveComponent .archiveComponentBody a:visited {
+  color: white;
+}
 .archiveComponentContainer .archiveComponent .archiveComponentBody .archiveComponentBox {
   padding: 10px;
   position: absolute;
@@ -389,14 +393,18 @@
   position: relative;
   display: block;
   padding: 4px 0;
+  page-break-inside: avoid;
+  -webkit-column-break-inside: avoid;
+          break-inside: avoid;
+  overflow: visible;
 }
 .related-objects .browse-thumbnail-sorted a img {
   max-height: 125px;
   width: 100%;
   position: absolute;
   top: 62px;
-  -webkit-transform: translate(-50%, -50%);
-          transform: translate(-50%, -50%);
+  -webkit-transform: translate3d(-50%, -50%, 0);
+          transform: translate3d(-50%, -50%, 0);
   left: 50%;
 }
 .related-objects .browse-thumbnail-sorted a img :not(#relatedOrganizationsPanelBody) {

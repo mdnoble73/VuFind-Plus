@@ -186,6 +186,9 @@ class Archive_Exhibit extends Archive_Object{
 					$browseFilterLabel = $filterOptions[2];
 					$interface->assign('browseFilterLabel', $browseFilterLabel);
 					$interface->assign('browseFilterFacetName', $browseFilterFacetName);
+					$browseFilterImage = isset($filterOptions[3]) ? $filterOptions[3] : "/interface/themes/responsive/images/search_component.png";
+					$interface->assign('browseFilterImage', $browseFilterImage);
+
 					$collectionTemplates[] = $interface->fetch('Archive/browseFilterComponent.tpl');
 				}
 

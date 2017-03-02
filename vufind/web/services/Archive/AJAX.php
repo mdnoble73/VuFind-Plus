@@ -483,7 +483,6 @@ class Archive_AJAX extends Action {
 		$exhibitObject = $fedoraUtils->getObject($pid);
 		/** @var IslandoraDriver $exhibitDriver */
 		$exhibitDriver = RecordDriverFactory::initRecordDriver($exhibitObject);
-		$childContainers = $exhibitDriver->getPIDsOfChildContainers();
 
 		global $interface;
 		$facetName = urldecode($_REQUEST['facetName']);
@@ -496,22 +495,10 @@ class Archive_AJAX extends Action {
 		$searchObject->addHiddenFilter('!RELS_EXT_isViewableByRole_literal_ms', "administrator");
 		$searchObject->clearFilters();
 
-		$collectionFilter = "RELS_EXT_isMemberOfCollection_uri_ms:(";
-		$index = 0;
-		foreach ($childContainers as $childPID){
-			if ($index > 0){
-				$collectionFilter .= " OR ";
-			}
-			$collectionFilter .= "\"info:fedora/{$childPID}\"";
-			$index++;
-		}
-		$collectionFilter .= ")";
-		$searchObject->setBasicQuery($collectionFilter);
+		$collectionFilter = "ancestors_ms:\"$pid\"";
+		$searchObject->addFilter($collectionFilter);
 		$searchObject->clearFacets();
 		$searchObject->addFacet($facetName);
-		$searchObject->addFacetOptions(array(
-				'facet.sort' => 'index'
-		));
 
 		$searchObject->setLimit(1);
 
@@ -525,12 +512,13 @@ class Archive_AJAX extends Action {
 			$facetFieldData = $response['facet_counts']['facet_fields'][$facetName];
 			foreach ($facetFieldData as $field){
 				$searchLink = $searchObject->renderLinkWithFilter("$facetName:$field[0]");
-				$facetValues[] = array(
+				$facetValues[$field[0]] = array(
 						'display' => $field[0],
 						'url' => $searchLink,
 						'count' => $field[1]
 				);
 			}
+			ksort($facetValues);
 		}
 
 		$interface->assign('facetValues', $facetValues);
