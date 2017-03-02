@@ -14,6 +14,8 @@ PIKASERVER=santafe.production
 PIKADBNAME=pika
 OUTPUT_FILE="/var/log/vufind-plus/${PIKASERVER}/full_update_output.log"
 
+MINFILE1SIZE=$((346000000))
+
 # Check if full_update is already running
 #TODO: Verify that the PID file doesn't get log-rotated
 PIDFILE="/var/log/vufind-plus/${PIKASERVER}/full_update.pid"
@@ -116,19 +118,9 @@ rm /data/vufind-plus/${PIKASERVER}/grouped_work_primary_identifiers.sql
 #Restart Solr
 cd /usr/local/vufind-plus/sites/${PIKASERVER}; ./${PIKASERVER}.sh restart
 
-#Extract from ILS
-#Copy extracts from FTP Server
-/usr/local/vufind-plus/sites/santafe.production/moveFullExport.sh santafe/sierra_export santafe.production >> ${OUTPUT_FILE}
-
-
 # OneClick digital Marc Updates
 /usr/local/vufind-plus/sites/santafe.production/moveFullExport.sh santafe/oneclickdigital oneclickdigital >> ${OUTPUT_FILE}
 
-
-# Get Yesterday's Full Export From santafe Production Server
-#YESTERDAY=$(date -d "yesterday 13:00 " +"%m_%d_%Y")
-#scp -Cqp -i /root/.ssh/id_rsa sierraftp@158.59.15.152:/data/vufind-plus/santafe.production/marc_export/pika1.$YESTERDAY.mrc /data/vufind-plus/santafe.production/marc/pika1.mrc >> ${OUTPUT_FILE}
-#scp -Cqp -i /root/.ssh/id_rsa sierraftp@158.59.15.152:/data/vufind-plus/santafe.production/marc_export/pika2.$YESTERDAY.mrc /data/vufind-plus/santafe.production/marc/pika2.mrc >> ${OUTPUT_FILE}
 
 #Get the updated volume information
 cd /usr/local/vufind-plus/vufind/cron;
@@ -153,17 +145,47 @@ then
 	nice -n -10 java -jar overdrive_extract.jar ${PIKASERVER} fullReload >> ${OUTPUT_FILE}
 fi
 
-# should test for new bib extract file
-# should copy old bib extract file
 
-#Validate the export
-cd /usr/local/vufind-plus/vufind/cron; java -server -XX:+UseG1GC -jar cron.jar ${PIKASERVER} ValidateMarcExport >> ${OUTPUT_FILE}
+#Extract from ILS
+#Copy extracts from FTP Server
+mount 10.1.2.6:/ftp/santafe /mnt/ftp
+FILE1=$(find /mnt/ftp/ -name pika*.mrc -mtime -1 | sort -n | tail -1)
 
-#Full Regroup
-cd /usr/local/vufind-plus/vufind/record_grouping; java -server -XX:+UseG1GC -Xmx2G -jar record_grouping.jar ${PIKASERVER} fullRegroupingNoClear >> ${OUTPUT_FILE}
+if [ -n "$FILE1" ]
+then
+		FILE1SIZE=$(wc -c <"$FILE1")
+		if [ $FILE1SIZE -ge $MINFILE1SIZE ]; then
 
-#Full Reindex
-cd /usr/local/vufind-plus/vufind/reindexer; java -server -XX:+UseG1GC -Xmx2G -jar reindexer.jar ${PIKASERVER} fullReindex >> ${OUTPUT_FILE}
+			echo "Latest file is " $FILE1 >> ${OUTPUT_FILE}
+			DIFF=$(($FILE1SIZE - $MINFILE1SIZE))
+			PERCENTABOVE=$((100 * $DIFF / $MINFILE1SIZE))
+			echo "The export file is $PERCENTABOVE (%) larger than the minimum size check." >> ${OUTPUT_FILE}
+
+			cp $FILE1 /data/vufind-plus/${PIKASERVER}/marc/fullexport.mrc
+
+			#Delete full exports older than a week
+			find /mnt/ftp/ -name pika*.mrc -mtime +7 -delete
+			umount /mnt/ftp
+
+			#Validate the export
+			cd /usr/local/vufind-plus/vufind/cron; java -server -XX:+UseG1GC -jar cron.jar ${PIKASERVER} ValidateMarcExport >> ${OUTPUT_FILE}
+
+			#Full Regroup
+			cd /usr/local/vufind-plus/vufind/record_grouping; java -server -XX:+UseG1GC -Xmx2G -jar record_grouping.jar ${PIKASERVER} fullRegroupingNoClear >> ${OUTPUT_FILE}
+
+			#Full Reindex
+			cd /usr/local/vufind-plus/vufind/reindexer; java -server -XX:+UseG1GC -Xmx2G -jar reindexer.jar ${PIKASERVER} fullReindex >> ${OUTPUT_FILE}
+
+		else
+			umount /mnt/ftp
+			echo $FILE1 " size " $FILE1SIZE "is less than minimum size :" $MINFILE1SIZE "; Export was not moved to data directory." >> ${OUTPUT_FILE}
+		fi
+
+else
+	umount /mnt/ftp
+	echo "Did not find a Sierra export file from the last 24 hours." >> ${OUTPUT_FILE}
+fi
+
 
 #Remove all ITEM_UPDATE_EXTRACT_PIKA files so continuous_partial_reindex can start fresh
 find /data/vufind-plus/${PIKASERVER}/marc -name 'ITEM_UPDATE_EXTRACT_PIKA*' -delete

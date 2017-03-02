@@ -116,19 +116,9 @@ rm /data/vufind-plus/${PIKASERVER}/grouped_work_primary_identifiers.sql
 #Restart Solr
 cd /usr/local/vufind-plus/sites/${PIKASERVER}; ./${PIKASERVER}.sh restart
 
-#Extract from ILS
-#Copy extracts from FTP Server
-/usr/local/vufind-plus/sites/santafe.test/moveFullExport.sh santafe/sierra_export santafe.test >> ${OUTPUT_FILE}
-
-
 # OneClick digital Marc Updates
 /usr/local/vufind-plus/sites/santafe.test/moveFullExport.sh santafe/oneclickdigital oneclickdigital >> ${OUTPUT_FILE}
 
-
-# Get Yesterday's Full Export From santafe Production Server
-#YESTERDAY=$(date -d "yesterday 13:00 " +"%m_%d_%Y")
-#scp -Cqp -i /root/.ssh/id_rsa sierraftp@158.59.15.152:/data/vufind-plus/santafe.production/marc_export/pika1.$YESTERDAY.mrc /data/vufind-plus/santafe.test/marc/pika1.mrc >> ${OUTPUT_FILE}
-#scp -Cqp -i /root/.ssh/id_rsa sierraftp@158.59.15.152:/data/vufind-plus/santafe.production/marc_export/pika2.$YESTERDAY.mrc /data/vufind-plus/santafe.test/marc/pika2.mrc >> ${OUTPUT_FILE}
 
 #Get the updated volume information
 cd /usr/local/vufind-plus/vufind/cron;
@@ -153,8 +143,13 @@ then
 	nice -n -10 java -jar overdrive_extract.jar ${PIKASERVER} fullReload >> ${OUTPUT_FILE}
 fi
 
-# should test for new bib extract file
-# should copy old bib extract file
+#Extract from ILS
+#Copy extracts from FTP Server
+mount 10.1.2.6:/ftp/santafe /mnt/ftp
+FILE1=$(find /mnt/ftp/ -name pika*.mrc -mtime -1 | sort -n | tail -1)
+cp $FILE1 /data/vufind-plus/${PIKASERVER}/marc/fullexport.mrc
+umount /mnt/ftp
+
 
 #Validate the export
 cd /usr/local/vufind-plus/vufind/cron; java -server -XX:+UseG1GC -jar cron.jar ${PIKASERVER} ValidateMarcExport >> ${OUTPUT_FILE}

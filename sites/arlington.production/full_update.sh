@@ -125,14 +125,14 @@ then
 		 if [ $FILE2SIZE -ge $MINFILE2SIZE ]; then
 
 			echo "Latest file (1) is " $FILE1 >> ${OUTPUT_FILE}
-		DIFF=$(($FILE1SIZE - $MINFILE1SIZE))
-		PERCENTABOVE=$((100 * $DIFF / $MINFILE1SIZE))
-		echo "The export file (1) is $PERCENTABOVE (%) larger tshan the minimum size check." >> ${OUTPUT_FILE}
+			DIFF=$(($FILE1SIZE - $MINFILE1SIZE))
+			PERCENTABOVE=$((100 * $DIFF / $MINFILE1SIZE))
+			echo "The export file (1) is $PERCENTABOVE (%) larger than the minimum size check." >> ${OUTPUT_FILE}
 
 			echo "Latest file (2) is " $FILE2 >> ${OUTPUT_FILE}
-		DIFF=$(($FILE2SIZE - $MINFILE2SIZE))
-		PERCENTABOVE=$((100 * $DIFF / $MINFILE2SIZE))
-		echo "The export file (2) is $PERCENTABOVE (%) larger than the minimum size check." >> ${OUTPUT_FILE}
+			DIFF=$(($FILE2SIZE - $MINFILE2SIZE))
+			PERCENTABOVE=$((100 * $DIFF / $MINFILE2SIZE))
+			echo "The export file (2) is $PERCENTABOVE (%) larger than the minimum size check." >> ${OUTPUT_FILE}
 
 			# Date For Backup filename
 			TODAY=$(date +"%m_%d_%Y")
