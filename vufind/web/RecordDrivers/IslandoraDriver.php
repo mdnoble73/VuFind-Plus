@@ -1643,11 +1643,13 @@ abstract class IslandoraDriver extends RecordInterface {
 	private function addRelatedEntityToArrays($pid, $entityName, $entityType, $note, $role, $isCreator = false) {
 		$fedoraUtils = FedoraUtils::getInstance();
 		if (strlen($pid) == 0 || strpos($pid, ':') === false){
-			//This is an object with just a title
-			$this->unlinkedEntities[] = array(
-				'role' => $role,
-				'label' => $entityName
-			);
+			if (strlen($entityName) > 0) {
+				//This is an object with just a title
+				$this->unlinkedEntities[] = array(
+						'role' => $role,
+						'label' => $entityName
+				);
+			}
 		}else{
 			if ($entityType == '' && strlen($pid)){
 				//Get the type based on the pid
