@@ -71,7 +71,10 @@ public class SantaFeRecordProcessor extends IIIRecordProcessor {
 			if ((icode2.equals("2") || icode2.equals("3")) && status.equals("f")){
 				logger.debug("Item record is suppressed due to icode2 / status");
 				return true;
-			}else if (icode2.equals("d") && (status.equals("b") || status.equals("s") || status.equals("m") || status.equals("r") || status.equals("z"))){
+			}else if (icode2.equals("d") && (status.equals("$") || status.equals("s") || status.equals("m") || status.equals("r") || status.equals("z"))){
+				logger.debug("Item record is suppressed due to icode2 / status");
+				return true;
+			}else if (icode2.equals("x") && status.equals("n")){
 				logger.debug("Item record is suppressed due to icode2 / status");
 				return true;
 			}else if (icode2.equals("c")){
