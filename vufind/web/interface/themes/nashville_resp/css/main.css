@@ -10653,6 +10653,12 @@ a.browse-thumbnail-sorted.active {
   display: block;
   padding-top: 64%;
 }
+.browseFilterContainer .archiveComponentHeader {
+  padding-top: 5%;
+  font-size: 28px;
+  text-align: center;
+  text-transform: uppercase;
+}
 #pdfContainer {
   border: 1px solid lightgrey;
   margin: 10px;

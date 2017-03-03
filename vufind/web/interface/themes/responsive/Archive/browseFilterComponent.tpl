@@ -1,6 +1,6 @@
 {strip}
 	<div class="archiveComponentContainer nopadding col-sm-12 col-md-6">
-		<div class="archiveComponent">
+		<div class="archiveComponent browseFilterContainer">
 			<div class="archiveComponentBody">
 				<div class="archiveComponentBox">
 					<a href="#" onclick="return VuFind.Archive.showBrowseFilterPopup('{$pid}', '{$browseFilterFacetName}', '{$browseFilterLabel}')">
