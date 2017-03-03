@@ -461,6 +461,75 @@ class Archive_AJAX extends Action {
 		}
 	}
 
+	function getEntityFacetValuesForExhibit(){
+		if (!isset($_REQUEST['id'])){
+			return array(
+					'success' => false,
+					'message' => 'You must supply the id to load facet data for'
+			);
+		}
+		if (!isset($_REQUEST['facetName'])){
+			return array(
+					'success' => false,
+					'message' => 'You must supply the facetName to load facet data for'
+			);
+		}
+
+		$pid = urldecode($_REQUEST['id']);
+
+		//get a list of all collections and books within the main exhibit so we can find all related data.
+		require_once ROOT_DIR . '/sys/Utils/FedoraUtils.php';
+		$fedoraUtils = FedoraUtils::getInstance();
+		$exhibitObject = $fedoraUtils->getObject($pid);
+		/** @var IslandoraDriver $exhibitDriver */
+		$exhibitDriver = RecordDriverFactory::initRecordDriver($exhibitObject);
+
+		global $interface;
+		$facetName = urldecode($_REQUEST['facetName']);
+		$interface->assign('exhibitPid', $pid);
+		/** @var SearchObject_Islandora $searchObject */
+		$searchObject = SearchObjectFactory::initSearchObject('Islandora');
+		$searchObject->init();
+		$searchObject->setDebugging(false, false);
+		$searchObject->clearHiddenFilters();
+		$searchObject->addHiddenFilter('!RELS_EXT_isViewableByRole_literal_ms', "administrator");
+		$searchObject->clearFilters();
+
+		$collectionFilter = "ancestors_ms:\"$pid\"";
+		$searchObject->addFilter($collectionFilter);
+		$searchObject->clearFacets();
+		$searchObject->addFacet($facetName);
+
+		$searchObject->setLimit(1);
+
+		$facetValues = array();
+		$response = $searchObject->processSearch(true, false);
+		if ($response && isset($response['error'])){
+			$interface->assign('solrError', $response['error']['msg']);
+			$interface->assign('solrLink', $searchObject->getFullSearchUrl());
+		}
+		if (isset($response['facet_counts']) && isset($response['facet_counts']['facet_fields'][$facetName])){
+			$facetFieldData = $response['facet_counts']['facet_fields'][$facetName];
+			foreach ($facetFieldData as $field){
+				$entityDriver = RecordDriverFactory::initIslandoraDriverFromPid($field[0]);
+				if (!PEAR_Singleton::isError($entityDriver)){
+					$facetValues[$entityDriver->getTitle()] = array(
+							'display' => $entityDriver->getTitle(),
+							'url' => $entityDriver->getRecordUrl(),
+							'count' => $field[1]
+					);
+				}
+			}
+			ksort($facetValues);
+		}
+
+		$interface->assign('facetValues', $facetValues);
+		$results = array(
+				'modalBody' => $interface->fetch("Archive/browseFacetPopup.tpl"),
+		);
+		return $results;
+	}
+
 	function getFacetValuesForExhibit(){
 		if (!isset($_REQUEST['id'])){
 			return array(

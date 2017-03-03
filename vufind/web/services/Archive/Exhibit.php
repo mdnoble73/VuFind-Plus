@@ -197,7 +197,7 @@ class Archive_Exhibit extends Archive_Object{
 
 				}else if ($option == 'browseAllObjects' ){
 					$collectionTemplates[] = $interface->fetch('Archive/browseCollectionComponent.tpl');
-				}else if (strpos($option, 'browseFilter') === 0 ){
+				}else if ((strpos($option, 'browseFilter') === 0) || strpos($option, 'browseEntityFilter') === 0 ){
 					$filterOptions = explode('|', $option);
 					$browseFilterFacetName = $filterOptions[1];
 					$browseFilterLabel = $filterOptions[2];
@@ -206,7 +206,12 @@ class Archive_Exhibit extends Archive_Object{
 					$browseFilterImage = isset($filterOptions[3]) ? $filterOptions[3] : "/interface/themes/responsive/images/search_component.png";
 					$interface->assign('browseFilterImage', $browseFilterImage);
 
-					$collectionTemplates[] = $interface->fetch('Archive/browseFilterComponent.tpl');
+					if (strpos($option, 'browseEntityFilter') === 0){
+						$collectionTemplates[] = $interface->fetch('Archive/browseEntityFilterComponent.tpl');
+					}else{
+						$collectionTemplates[] = $interface->fetch('Archive/browseFilterComponent.tpl');
+					}
+
 				}
 
 			}
