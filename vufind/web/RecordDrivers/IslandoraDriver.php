@@ -1145,7 +1145,9 @@ abstract class IslandoraDriver extends RecordInterface {
 				$militaryConflict = $this->getModsValue('militaryConflict', 'marmot');
 				if ($militaryConflict){
 					$militaryConflictTitle = FedoraUtils::getInstance()->getObjectLabel($militaryConflict);
-					$this->addRelatedEntityToArrays($militaryConflict, $militaryConflictTitle, '', '', '');
+					if ($militaryConflictTitle != 'Invalid Object'){
+						$this->addRelatedEntityToArrays($militaryConflict, $militaryConflictTitle, '', '', '');
+					}
 				}
 
 				$creators = $this->getModsValues('hasCreator', 'marmot', null, true);
