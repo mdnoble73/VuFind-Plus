@@ -610,6 +610,32 @@ function getLibraryLocationUpdates(){
 			),
 		),
 
+		'library_archive_search_facets' => array(
+			'title' => 'Library Archive Search Facets',
+			'description' => 'Create Library Archive Search Facets table to allow library admins to customize their own facets for archive searches. ',
+			'continueOnError' => true,
+			'sql' => array(
+				"CREATE TABLE IF NOT EXISTS `library_archive_search_facet_setting` (" .
+				"`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY, " .
+				"`libraryId` INT NOT NULL, " .
+				"`displayName` VARCHAR(50) NOT NULL, " .
+				"`facetName` VARCHAR(80) NOT NULL, " .
+				"weight INT NOT NULL DEFAULT '0', " .
+				"numEntriesToShowByDefault INT NOT NULL DEFAULT '5', " .
+				"showAsDropDown TINYINT NOT NULL DEFAULT '0', " .
+				"sortMode ENUM ('alphabetically', 'num_results') NOT NULL DEFAULT 'num_results', " .
+				"showAboveResults TINYINT NOT NULL DEFAULT '0', " .
+				"showInResults TINYINT NOT NULL DEFAULT '1', " .
+				"showInAuthorResults TINYINT NOT NULL DEFAULT '1', " .
+				"showInAdvancedSearch TINYINT NOT NULL DEFAULT '1', " .
+				"`collapseByDefault` TINYINT DEFAULT '0', " .
+				"`useMoreFacetPopup` TINYINT DEFAULT '1', " .
+				"UNIQUE KEY `libraryFacet` (`libraryId`,`facetName`)," .
+				"KEY `libraryId` (`libraryId`)" .
+				") ENGINE = InnoDB DEFAULT CHARSET=utf8 ",
+			),
+		),
+
 		'library_facets_1' => array(
 			'title' => 'Library Facets Update 1',
 			'description' => 'Add index to library facets. ',
@@ -870,6 +896,22 @@ function getLibraryLocationUpdates(){
 					collapseByDefault TINYINT(1),
 					INDEX (locationId)
 				)"
+			),
+		),
+
+		'archive_more_details_customization' => array(
+			'title' => 'Archive More Details Customization',
+			'description' => 'Setup tables to allow customization of more details in archive full record views',
+			'sql' => array(
+				"CREATE TABLE library_archive_more_details (
+						id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+						libraryId INT(11) NOT NULL DEFAULT -1,
+						weight INT NOT NULL DEFAULT 0,
+						section VARCHAR(25) NOT NULL,
+						collapseByDefault TINYINT(1),
+						INDEX (libraryId)
+					)",
+
 			),
 		),
 
@@ -1374,11 +1416,38 @@ function getLibraryLocationUpdates(){
 					)
 			),
 
+			'library_archive_material_request_form_configurations' => array(
+					'title' => 'Configure Display of Archive Copy Request Form',
+					'description' => 'Updates to allow library admins the set which fields are display and which are required.',
+					'sql' => array(
+							'ALTER TABLE `library` '
+								.'ADD COLUMN `archiveRequestFieldName` TINYINT(1) NULL,'
+								.'ADD COLUMN `archiveRequestFieldAddress` TINYINT(1) NULL AFTER `archiveRequestFieldName`,'
+								.'ADD COLUMN `archiveRequestFieldAddress2` TINYINT(1) NULL AFTER `archiveRequestFieldAddress`,'
+								.'ADD COLUMN `archiveRequestFieldCity` TINYINT(1) NULL AFTER `archiveRequestFieldAddress2`,'
+								.'ADD COLUMN `archiveRequestFieldState` TINYINT(1) NULL AFTER `archiveRequestFieldCity`,'
+								.'ADD COLUMN `archiveRequestFieldZip` TINYINT(1) NULL AFTER `archiveRequestFieldState`,'
+								.'ADD COLUMN `archiveRequestFieldCountry` TINYINT(1) NULL AFTER `archiveRequestFieldZip`,'
+								.'ADD COLUMN `archiveRequestFieldPhone` TINYINT(1) NULL AFTER `archiveRequestFieldCountry`,'
+								.'ADD COLUMN `archiveRequestFieldAlternatePhone` TINYINT(1) NULL AFTER `archiveRequestFieldPhone`,'
+								.'ADD COLUMN `archiveRequestFieldFormat` TINYINT(1) NULL AFTER `archiveRequestFieldAlternatePhone`,'
+								.'ADD COLUMN `archiveRequestFieldPurpose` TINYINT(1) NULL AFTER `archiveRequestFieldFormat`;',
+					)
+			),
+
 			'library_archive_pid' => array(
 					'title' => 'Library Archive PID',
 					'description' => 'Setup a link from Pika to the archive',
 					'sql' => array(
 							'ALTER TABLE library ADD COLUMN archivePid VARCHAR(50)',
+					)
+			),
+
+			'library_archive_related_objects_display_mode' => array(
+					'title' => 'Archive More Details Related Objects Display Mode',
+					'description' => 'Add Library Configuration option for the display of Related Objects & Entities in the More Details Accordion.',
+					'sql' => array(
+							'ALTER TABLE `library` ADD COLUMN `archiveMoreDetailsRelatedObjectsOrEntitiesDisplayMode` VARCHAR(15) NULL;',
 					)
 			),
 

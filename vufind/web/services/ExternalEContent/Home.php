@@ -59,8 +59,7 @@ class ExternalEContent_Home extends Action{
 		$recordDriver = RecordDriverFactory::initRecordDriverById('external_econtent:' . $subType . ':'. $this->id);
 
 		if (!$recordDriver->isValid()){
-			$interface->setTemplate('../Record/invalidRecord.tpl');
-			$interface->display('layout.tpl');
+			$this->display('../Record/invalidRecord.tpl', 'Invalid Record');
 			die();
 		}else{
 			$interface->assign('recordDriver', $recordDriver);

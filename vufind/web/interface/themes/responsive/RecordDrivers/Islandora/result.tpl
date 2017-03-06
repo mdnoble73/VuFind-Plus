@@ -84,7 +84,7 @@
 		{/if}
 
 		<div class="row well-small">
-			<div class="col-xs-12 result-value" id="descriptionValue{$summId|escape}">{$summDescription|highlight|truncate_html:450:"..."}</div>
+			<div class="col-xs-12 result-value" id="descriptionValue{$summId|escape}">{$summDescription|highlight|html_entity_decode|truncate_html:450:"..."|strip_tags|htmlentities}</div>
 		</div>
 
 		<div class="row">

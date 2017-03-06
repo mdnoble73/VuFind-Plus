@@ -322,6 +322,10 @@
       position: relative;
       width:    100%;
 
+      a, a:visited{
+        color: white;
+      }
+
       .archiveComponentBox{
         padding: 10px;
         position: absolute;
@@ -398,6 +402,13 @@
   }
 }
 
+.browseFilterContainer .archiveComponentHeader{
+  padding-top: 5%;
+  font-size: 28px;
+  text-align: center;
+  text-transform: uppercase;
+}
+
 #pdfContainer{
   border: 1px solid lightgrey;
   margin: 10px;
@@ -424,5 +435,59 @@
     content:     "";
     display:     block;
     padding-top: 129.5%; /* ratio of 11:8.5*/
+  }
+}
+
+.related-objects {
+  .browse-thumbnail-sorted {
+    a {
+      img {
+        :not(#relatedOrganizationsPanelBody) {
+          height: 125px;
+        }
+        max-height: 125px;
+        //width: 100%;
+        position: absolute;
+        top: 62px;
+        transform: translate3d(-50%, -50%, 0); //3d needed to work in chrome (when columns are being used)
+        left: 50%;
+      }
+    }
+    //min-block-size: 210px;
+    border: 0 solid white;
+    position: relative;
+    padding: 4px 0;
+    overflow: visible;
+
+    //display: block;
+
+    // Needed fix to make column display work correctly in firefox
+    display: inline-block;
+    width: 100%;
+
+
+    figcaption {
+      margin-top: 4px;
+      margin-bottom: 4px;
+      font-weight: 100;
+      overflow-x: hidden;
+      position: absolute;
+      top: 130px;
+      width: 100%;
+      text-align: center;
+
+    }
+  }
+  .browse-thumbnail-sorted {
+    /* autoprefixer: off */
+    //autoprefixer adds the page-break-inside: which breaks display on firefox.
+    // Fix display for chrome
+    -webkit-column-break-inside: avoid;
+    -moz-column-break-inside:avoid;
+    column-break-inside:avoid;
+    //page-break-inside: avoid;
+    break-inside: avoid;
+    break-inside: avoid-column;
+
   }
 }

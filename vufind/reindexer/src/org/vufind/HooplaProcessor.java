@@ -91,27 +91,6 @@ public class HooplaProcessor extends MarcRecordProcessor {
 		}
 		groupedWork.addEditions(editions);
 
-		//Load Languages
-		Set <String> languages = getFieldList(record, "008[35-37]:041a:041d:041j");
-		HashSet<String> translatedLanguages = indexer.translateSystemCollection("language", languages, identifier);
-		String primaryLanguage = null;
-		for (String language : languages){
-			if (primaryLanguage == null){
-				primaryLanguage = indexer.translateSystemValue("language", language, identifier);
-			}
-			String languageBoost = indexer.translateSystemValue("language_boost", language, identifier);
-			if (languageBoost != null){
-				Long languageBoostVal = Long.parseLong(languageBoost);
-				groupedWork.setLanguageBoost(languageBoostVal);
-			}
-			String languageBoostEs = indexer.translateSystemValue("language_boost_es", language, identifier);
-			if (languageBoostEs != null){
-				Long languageBoostVal = Long.parseLong(languageBoostEs);
-				groupedWork.setLanguageBoostSpanish(languageBoostVal);
-			}
-		}
-		groupedWork.setLanguages(translatedLanguages);
-
 		//Load publication details
 		//Load publishers
 		Set<String> publishers = this.getPublishers(record);
@@ -144,7 +123,11 @@ public class HooplaProcessor extends MarcRecordProcessor {
 		recordInfo.setPhysicalDescription(physicalDescription);
 		recordInfo.setPublicationDate(publicationDate);
 		recordInfo.setPublisher(publisher);
-		recordInfo.setPrimaryLanguage(primaryLanguage);
+
+		//Load Languages
+		HashSet<RecordInfo> records = new HashSet<>();
+		records.add(recordInfo);
+		loadLanguageDetails(groupedWork, record, records, identifier);
 
 		//For Hoopla, we just have a single item always
 		ItemInfo itemInfo = new ItemInfo();

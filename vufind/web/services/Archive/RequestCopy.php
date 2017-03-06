@@ -15,14 +15,11 @@ class Archive_RequestCopy extends Action{
 		global $configArray;
 		global $interface;
 
-		$archiveRequestFields = ArchiveRequest::getObjectStructure();
-
 		if (!isset($_REQUEST['pid'])) {
 			PEAR_Singleton::raiseError('No id provided, you must select which object you want a copy of');
 		}
 
 		$pid = $_REQUEST['pid'];
-		$archiveRequestFields['pid']['default'] = $pid;
 
 		require_once ROOT_DIR . '/sys/Utils/FedoraUtils.php';
 		$archiveObject = FedoraUtils::getInstance()->getObject($pid);
@@ -37,6 +34,8 @@ class Archive_RequestCopy extends Action{
 		if (!$owningLibrary->find(true) || $owningLibrary->N != 1){
 			PEAR_Singleton::raiseError('Could not determine which library owns this object, cannot request a copy.');
 		}
+		$archiveRequestFields = $owningLibrary->getArchiveRequestFormStructure();
+		$archiveRequestFields['pid']['default'] = $pid; // add pid to the form
 
 		if (isset($_REQUEST['submit'])) {
 			if (isset($configArray['ReCaptcha']['privateKey'])){

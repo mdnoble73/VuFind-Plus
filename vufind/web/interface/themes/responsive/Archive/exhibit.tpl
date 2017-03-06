@@ -26,7 +26,10 @@
 			</script>
 		{else}
 			{if $thumbnail && !$main_image}
+				{if $exhibitThumbnailURL}<a href="{$exhibitThumbnailURL}">{/if}
 				<img src="{$thumbnail}" class="img-responsive thumbnail exhibit-thumbnail">
+				{if $exhibitThumbnailURL}</a>{/if}
+
 			{/if}
 		{/if}
 		{$description}
@@ -68,7 +71,14 @@
 		</div>
 	{else}
 		{* Standard View a la Browse Categories*}
-		<div class="row">
+		<div id="related-objects-for-exhibit">
+			<div id="exhibit-results-loading" class="row" style="display: none">
+				<div class="alert alert-info">
+					Updating results, please wait.
+				</div>
+			</div>
+
+			<div class="row">
 
 			<div class="col-sm-6">
 				<form action="/Archive/Results">
@@ -77,21 +87,24 @@
 						<div class="input-group-btn" id="search-actions">
 							<button class="btn btn-default" type="submit">GO</button>
 						</div>
-						<input type="hidden" name="islandoraType" value="IslandoraKeyword"/>
+						<input type="hidden" name="islandoraType" value="IslandoraKeyword">
 						{if count($subCollections) > 0}
-						<input type="hidden" name="filter[]" value='RELS_EXT_isMemberOfCollection_uri_ms:"info:fedora/{$pid}"{foreach from=$subCollections item=subCollectionPID} OR RELS_EXT_isMemberOfCollection_uri_ms:"info:fedora/{$subCollectionPID}"{/foreach}'/>
+						<input type="hidden" name="filter[]" value='RELS_EXT_isMemberOfCollection_uri_ms:"info:fedora/{$pid}"{foreach from=$subCollections item=subCollectionPID} OR RELS_EXT_isMemberOfCollection_uri_ms:"info:fedora/{$subCollectionPID}"{/foreach}'>
 						{else}
-						<input type="hidden" name="filter[]" value='RELS_EXT_isMemberOfCollection_uri_ms:"info:fedora/{$pid}"'/>
+						<input type="hidden" name="filter[]" value='RELS_EXT_isMemberOfCollection_uri_ms:"info:fedora/{$pid}"'>
 						{/if}
 					</div>
 				</form>
 			</div>
 			<div class="col-sm-4 col-sm-offset-2">
 				{* Display information to sort the results (by date or by title *}
-				<select id="results-sort" name="sort" onchange="VuFind.Archive.sort = this.options[this.selectedIndex].value;VuFind.Archive.reloadMapResults('{$exhibitPid|urlencode}', '{$placePid|urlencode}', 0);" class="form-control">
+				<select id="results-sort" name="sort" onchange="VuFind.Archive.sort = this.options[this.selectedIndex].value;VuFind.Archive.getMoreExhibitResults('{$exhibitPid|urlencode}', 1);" class="form-control">
 					<option value="title" {if $sort=='title'}selected="selected"{/if}>{translate text='Sort by ' }Title</option>
 					<option value="newest" {if $sort=='newest'}selected="selected"{/if}>{translate text='Sort by ' }Newest First</option>
 					<option value="oldest" {if $sort=='oldest'}selected="selected"{/if}>{translate text='Sort by ' }Oldest First</option>
+					{* Added these two options to basic exhibit page. pascal 2-24-2017 *}
+					<option value="dateAdded" {if $sort=='dateAdded'}selected="selected"{/if}>{translate text='Sort by ' }Date Added</option>
+					<option value="dateModified" {if $sort=='dateModified'}selected="selected"{/if}>{translate text='Sort by ' }Date Modified</option>
 				</select>
 			</div>
 		</div>
@@ -135,6 +148,7 @@
 				</div>
 			</a>
 		{/if}
+		</div>
 		</div>
 	{/if}
 

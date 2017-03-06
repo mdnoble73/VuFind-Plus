@@ -88,14 +88,26 @@ VuFind.Archive = (function(){
 			viewer.addHandler("animationfinish", this.update_clip);
 		},
 
-		getMoreExhibitResults: function(exhibitPid){
+		getMoreExhibitResults: function(exhibitPid, reloadHeader){
 			this.curPage = this.curPage +1;
+			if (typeof reloadHeader == 'undefined') {
+				reloadHeader = 0;
+			}
+			if (reloadHeader) {
+				$("#exhibit-results-loading").show();
+				this.curPage = 1;
+			}
 			var url = Globals.path + "/Archive/AJAX?method=getRelatedObjectsForExhibit&collectionId=" + exhibitPid + "&page=" + this.curPage + "&sort=" + this.sort;
-			url = url + "&reloadHeader=0";
+			url = url + "&reloadHeader=" + reloadHeader;
 
 			$.getJSON(url, function(data){
 				if (data.success){
-					$("#nextInsertPoint").replaceWith(data.relatedObjects);
+					if (reloadHeader){
+						$("#related-objects-for-exhibit").hide().html(data.relatedObjects).fadeIn('slow');
+					}else{
+						$("#nextInsertPoint").hide().replaceWith(data.relatedObjects).fadeIn('slow');
+					}
+					$("#exhibit-results-loading").hide();
 				}
 			});
 		},
@@ -449,6 +461,24 @@ VuFind.Archive = (function(){
 				document.cookie = encodeURIComponent('collectionPid') + "=" + encodeURIComponent(collectionPid) + expires + "; path=/";
 			}
 			document.cookie = encodeURIComponent('exhibitNavigation') + "=" + encodeURIComponent(1) + expires + "; path=/";
+		},
+
+		showBrowseEntityFilterPopup: function(exhibitPid, facetName, title){
+			var url = Globals.path + "/Archive/AJAX?id=" + encodeURI(exhibitPid) + "&method=getEntityFacetValuesForExhibit&facetName=" + encodeURI(facetName);
+			VuFind.loadingMessage();
+			$.getJSON(url, function(data){
+				VuFind.showMessage(title, data.modalBody);
+			}).fail(VuFind.ajaxFail);
+			return false;
+		},
+
+		showBrowseFilterPopup: function(exhibitPid, facetName, title){
+			var url = Globals.path + "/Archive/AJAX?id=" + encodeURI(exhibitPid) + "&method=getFacetValuesForExhibit&facetName=" + encodeURI(facetName);
+			VuFind.loadingMessage();
+			$.getJSON(url, function(data){
+				VuFind.showMessage(title, data.modalBody);
+			}).fail(VuFind.ajaxFail);
+			return false;
 		},
 
 		showObjectInPopup: function(pid, recordIndex, page){

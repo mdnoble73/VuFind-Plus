@@ -95,6 +95,17 @@ class GroupedWorkDriver extends RecordInterface{
 		$edition = str_replace('second', '2', $edition);
 		$edition = str_replace('third', '3', $edition);
 		$edition = str_replace('fourth', '4', $edition);
+		$edition = str_replace('fifth', '5', $edition);
+		$edition = str_replace('sixth', '6', $edition);
+		$edition = str_replace('seventh', '7', $edition);
+		$edition = str_replace('eighth', '8', $edition);
+		$edition = str_replace('ninth', '9', $edition);
+		$edition = str_replace('tenth', '10', $edition);
+		$edition = str_replace('eleventh', '11', $edition);
+		$edition = str_replace('twelfth', '12', $edition);
+		$edition = str_replace('thirteenth', '13', $edition);
+		$edition = str_replace('fourteenth', '14', $edition);
+		$edition = str_replace('fifteenth', '15', $edition);
 		$edition = preg_replace('/\D/', '', $edition);
 		return $edition;
 	}

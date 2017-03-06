@@ -2,7 +2,7 @@
 /**
  * Catalog Driver for Aspencat libraries based on Koha
  *
- * @category VuFind-Plus-2014 
+ * @category VuFind-Plus-2014
  * @author Mark Noble <mark@marmot.org>
  * Date: 10/3/14
  * Time: 5:51 PM
@@ -533,10 +533,6 @@ class Aspencat implements DriverInterface{
 								$user->myLocation1Id  = ($location->nearbyLocation1 > 0) ? $location->nearbyLocation1 : $location->locationId;
 								$user->myLocation2Id  = ($location->nearbyLocation2 > 0) ? $location->nearbyLocation2 : $location->locationId;
 
-								//Get display names that aren't stored
-								$user->homeLocationCode = $location->code;
-								$user->homeLocation     = $location->displayName;
-
 								//Get display name for preferred location 1
 								$myLocation1 = new Location();
 								$myLocation1->locationId = $user->myLocation1Id;
@@ -551,6 +547,12 @@ class Aspencat implements DriverInterface{
 									$user->myLocation2 = $myLocation2->displayName;
 								}
 							}
+						}
+
+						if (isset($location)){
+							//Get display names that aren't stored
+							$user->homeLocationCode = $location->code;
+							$user->homeLocation     = $location->displayName;
 						}
 
 						$user->expires = $userFromDb['dateexpiry']; //TODO: format is year-month-day; millennium is month-day-year; needs converting??

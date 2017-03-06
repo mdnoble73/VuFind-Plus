@@ -76,11 +76,14 @@
 				</tbody>
 			</table>
 		{/if}
-		
-		<form action="{$fullPath}" method="get">
+
+		<form action="{$path}/MaterialsRequest/SummaryReport" method="get">
+			<input type="hidden" name="period" value="{$period}"/>
+			<input type="hidden" name="startDate" value="{$startDate}"/>
+			<input type="hidden" name="endDate" value="{$endDate}"/>
 			<input type="submit" id="exportToExcel" name="exportToExcel" value="Export to Excel"  class="btn btn-default">
 		</form>
-		
+
 		{* Export to Excel option *}
 	</div>
 

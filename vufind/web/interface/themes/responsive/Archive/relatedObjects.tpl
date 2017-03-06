@@ -1,5 +1,5 @@
 {strip}
-	{if ($displayType == 'map' || $displayType == 'timeline' || $displayType == 'scroller') && $page == 1 && $reloadHeader == 1}
+	{if ($displayType == 'map' || $displayType == 'timeline' || $displayType == 'scroller' || $displayType == 'basic') && $page == 1 && $reloadHeader == 1}
 		<div id="exhibit-results-loading" class="row" style="display: none">
 			<div class="alert alert-info">
 				Updating results, please wait.
@@ -19,6 +19,21 @@
 							<input type="hidden" name="filter[]" value='RELS_EXT_isMemberOfCollection_uri_ms:"info:fedora/{$exhibitPid}"'/>
 						</div>
 					</form>
+				{elseif $displayType == 'basic'}
+					<form action="/Archive/Results">
+						<div class="input-group">
+							<input type="text" name="lookfor" size="30" title="Enter one or more terms to search for.	Surrounding a term with quotes will limit result to only those that exactly match the term." autocomplete="off" class="form-control" placeholder="Search this collection">
+							<div class="input-group-btn" id="search-actions">
+								<button class="btn btn-default" type="submit">GO</button>
+							</div>
+							<input type="hidden" name="islandoraType" value="IslandoraKeyword">
+							{if count($subCollections) > 0}
+								<input type="hidden" name="filter[]" value='RELS_EXT_isMemberOfCollection_uri_ms:"info:fedora/{$exhibitPid}"{foreach from=$subCollections item=subCollectionPID} OR RELS_EXT_isMemberOfCollection_uri_ms:"info:fedora/{$subCollectionPID}"{/foreach}'>
+							{else}
+								<input type="hidden" name="filter[]" value='RELS_EXT_isMemberOfCollection_uri_ms:"info:fedora/{$exhibitPid}"'>
+							{/if}
+						</div>
+					</form>
 				{/if}
 			</div>
 			<div class="col-sm-4 col-sm-offset-2">
@@ -30,6 +45,8 @@
 									VuFind.Archive.reloadTimelineResults('{$exhibitPid|urlencode}', 1);
 								{elseif $displayType == 'scroller'}
 									VuFind.Archive.reloadScrollerResults('{$exhibitPid|urlencode}', 1);
+								{elseif $displayType == 'basic'}
+												VuFind.Archive.getMoreExhibitResults('{$exhibitPid|urlencode}', 1);
 								{/if}
 								" class="form-control">
 					<option value="title" {if $sort=='title'}selected="selected"{/if}>{translate text='Sort by ' }Title</option>
@@ -49,9 +66,8 @@
 			</div>
 		</div>
 
-		{if $recordEnd < $recordCount || $updateTimeLine}
+		{if $displayType != 'basic' && ($recordEnd < $recordCount || $updateTimeLine)}
 			{* Display selection of date ranges *}
-			<div class="row">
 			<div class="row">
 				<div class="col-xs-12">
 					<div class="btn-group btn-group-sm" role="group" aria-label="Select Dates" data-toggle="buttons">
@@ -71,7 +87,7 @@
 								{/if}
 							</label>
 						{/foreach}
-						{if $numObjectsWithUnknownDate}
+						{if $numObjectsWithUnknownDate > 0}
 							<div class="btn-group btn-group-sm" role="group" aria-label="Unknown Date" data-toggle="buttons">
 								<label class="btn btn-default btn-sm{if !empty($smarty.request.dateFilter) && in_array('unknown', $smarty.request.dateFilter)} active{/if}">
 									{if $displayType == 'map'}

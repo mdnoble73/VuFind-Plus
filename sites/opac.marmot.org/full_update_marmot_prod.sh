@@ -82,7 +82,10 @@ cd /usr/local/vufind-plus/vufind/cron;./GetHooplaFromMarmot.sh >> ${OUTPUT_FILE}
 /usr/local/vufind-plus/sites/opac.marmot.org/moveFullExport.sh western/kanopy kanopy/western >> ${OUTPUT_FILE}
 
 # Learning Express Marc Updates
-/usr/local/vufind-plus/sites/opac.marmot.org/moveFullExport.sh budwerner/learning_express learning_express/steamboatsprings >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh budwerner/learning_express learning_express/steamboatsprings/merge >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh budwerner/learning_express/deletes learning_express/steamboatsprings/deletes >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh garfield/learning_express learning_express/garfield/merge >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh garfield/learning_express/deletes learning_express/garfield/deletes >> ${OUTPUT_FILE}
 
 # OneClick digital Marc Updates
 /usr/local/vufind-plus/sites/opac.marmot.org/moveFullExport.sh englewood/oneclickdigital oneclickdigital/englewood >> ${OUTPUT_FILE}
@@ -90,10 +93,19 @@ cd /usr/local/vufind-plus/vufind/cron;./GetHooplaFromMarmot.sh >> ${OUTPUT_FILE}
 # Colorado State Gov Docs Marc Updates
 /usr/local/vufind-plus/sites/opac.marmot.org/moveFullExport.sh cologovdocs colorado_gov_docs >> ${OUTPUT_FILE}
 
-#Lynda.com Marc Updates
-# (EVLD, Vail)
+# Lynda.com Marc Updates (recieved on marmot ftp server)
+/usr/local/vufind-plus/sites/opac.marmot.org/moveFullExport.sh lynda.com/evld lynda/evld/merge
+/usr/local/vufind-plus/sites/opac.marmot.org/moveFullExport.sh lynda.com/vail lynda/vail/merge
+/usr/local/vufind-plus/sites/opac.marmot.org/moveFullExport.sh lynda.com/telluride lynda/telluride/merge
+
 #Extracts for sideloaded eContent; settings defined in config.pwd.ini [Sideload]
-cd /usr/local/vufind-plus/vufind/cron; ./sideload.sh ${PIKASERVER}
+#cd /usr/local/vufind-plus/vufind/cron; ./sideload.sh ${PIKASERVER}
+# No sideloads loaded via this script at this time. pascal 2-9-2017
+
+# Merge Learning Express Records
+/usr/local/vufind-plus/vufind/cron/mergeSideloadMarc.sh learning_express/steamboatsprings >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/vufind/cron/mergeSideloadMarc.sh learning_express/garfield >> ${OUTPUT_FILE}
+
 
 # Merge Lynda.com Records
 /usr/local/vufind-plus/vufind/cron/mergeSideloadMarc.sh lynda/evld >> ${OUTPUT_FILE}

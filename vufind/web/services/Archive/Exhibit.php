@@ -61,6 +61,10 @@ class Archive_Exhibit extends Archive_Object{
 
 		if ($this->archiveObject->getDatastream('TN') != null) {
 			$interface->assign('thumbnail', $configArray['Islandora']['objectUrl'] . "/{$this->pid}/datastream/TN/view");
+			$exhibitThumbnailURL = $this->recordDriver->getModsValue('thumbnailURL', 'marmot');
+			if (!empty($exhibitThumbnailURL)) {
+				$interface->assign('exhibitThumbnailURL', $exhibitThumbnailURL);
+			}
 		}
 
 		//Get a list of sub collections to for searching
@@ -89,6 +93,7 @@ class Archive_Exhibit extends Archive_Object{
 		if ($displayType == 'basic'){
 			// Set Exhibit Navigation
 			$this->startExhibitContext();
+			$interface->assign('exhibitPid', $this->pid); // Enables sorting function on exhibit page
 			$this->display('exhibit.tpl');
 		} else if ($displayType == 'timeline'){
 			// Set Exhibit Navigation
@@ -122,6 +127,7 @@ class Archive_Exhibit extends Archive_Object{
 					}
 
 					$collectionToLoadFromObject = $fedoraUtils->getObject($collectionToLoadFromPID);
+					/** @var CollectionDriver|BookDriver $collectionDriver */
 					$collectionDriver = RecordDriverFactory::initRecordDriver($collectionToLoadFromObject);
 
 					$collectionObjects = $collectionDriver->getChildren();
@@ -142,7 +148,24 @@ class Archive_Exhibit extends Archive_Object{
 								$collectionTitle['isExhibit'] = true;
 							}
 						}
-						$collectionTitles[] = $collectionTitle;
+						$collectionTitles[$childPid] = $collectionTitle;
+					}
+
+					//Check the MODS for the collection to see if it has information about ordering
+					// Likely used for Exhibits that have 1 page.
+					// Might be for Exhibit of Exhibits
+					$sortingInfo = $collectionDriver->getModsValue('collectionOrder', 'marmot');
+					if ($sortingInfo){
+						$sortingInfo = explode("&#xD;\n", $sortingInfo);
+						$sortedImages = array();
+						foreach ($sortingInfo as $sortingPid){
+							if (array_key_exists($sortingPid, $collectionTitles)){
+								$sortedImages[] = $collectionTitles[$sortingPid];
+								unset($collectionTitles[$sortingPid]);
+							}
+						}
+						//Add any images that weren't specifically sorted
+						$collectionTitles = $sortedImages + $collectionTitles;
 					}
 
 					$browseCollectionTitlesData = array(
@@ -174,6 +197,21 @@ class Archive_Exhibit extends Archive_Object{
 
 				}else if ($option == 'browseAllObjects' ){
 					$collectionTemplates[] = $interface->fetch('Archive/browseCollectionComponent.tpl');
+				}else if ((strpos($option, 'browseFilter') === 0) || strpos($option, 'browseEntityFilter') === 0 ){
+					$filterOptions = explode('|', $option);
+					$browseFilterFacetName = $filterOptions[1];
+					$browseFilterLabel = $filterOptions[2];
+					$interface->assign('browseFilterLabel', $browseFilterLabel);
+					$interface->assign('browseFilterFacetName', $browseFilterFacetName);
+					$browseFilterImage = isset($filterOptions[3]) ? $filterOptions[3] : "/interface/themes/responsive/images/search_component.png";
+					$interface->assign('browseFilterImage', $browseFilterImage);
+
+					if (strpos($option, 'browseEntityFilter') === 0){
+						$collectionTemplates[] = $interface->fetch('Archive/browseEntityFilterComponent.tpl');
+					}else{
+						$collectionTemplates[] = $interface->fetch('Archive/browseFilterComponent.tpl');
+					}
+
 				}
 
 			}
@@ -360,7 +398,6 @@ class Archive_Exhibit extends Archive_Object{
 							'title' => $firstObjectDriver->getTitle(),
 							'description' => $firstObjectDriver->getDescription(),
 							'image' => $firstObjectDriver->getBookcoverUrl('medium'),
-//							'link' => $firstObjectDriver->getRecordUrl() ."?collectionSearchId=" . $lastExhibitObjectsSearch . '&recordIndex=' .$recordIndex, // saved search version
 							'link' => $firstObjectDriver->getRecordUrl(),
 							'recordIndex' => $recordIndex++
 					);
@@ -379,14 +416,14 @@ class Archive_Exhibit extends Archive_Object{
 				//Check the MODS for the collection to see if it has information about ordering
 				// Likely used for Exhibits that have 1 page.
 				// Might be for Exhibit of Exhibits
-				$sortingInfo = $this->recordDriver->getModsValues('collectionOrder', 'marmot');
-				if (count($sortingInfo) > 0 && $sortingInfo != array('')){
+				$sortingInfo = $this->recordDriver->getModsValue('collectionOrder', 'marmot');
+				if ($sortingInfo){
+					$sortingInfo = explode('&#xD;\n', $sortingInfo);
 					$sortedImages = array();
-					foreach ($sortingInfo as $curSortSection){
-						$pid = $this->recordDriver->getModsValue('objectPid', 'marmot', $curSortSection);
-						if (array_key_exists($pid, $relatedImages)){
-							$sortedImages[] = $relatedImages[$pid];
-							unset($relatedImages[$pid]);
+					foreach ($sortingInfo as $sortingPid){
+						if (array_key_exists($sortingPid, $relatedImages)){
+							$sortedImages[] = $relatedImages[$sortingPid];
+							unset($relatedImages[$sortingPid]);
 						}
 					}
 					//Add any images that weren't specifically sorted

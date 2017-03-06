@@ -61,8 +61,13 @@
 
 		<form action="{$fullPath}" method="get">
 			<input type="submit" id="exportToExcel" name="exportToExcel" value="Export to Excel" class="btn btn-default">
+			{foreach from=$availableStatuses item=statusLabel key=status}
+				{if in_array($status, $statusFilter)}
+					<input type="hidden" name="statusFilter[]" value="{$status}">
+				{/if}
+			{/foreach}
 		</form>
-		
+
 		{* Export to Excel option *}
 	</div>
 

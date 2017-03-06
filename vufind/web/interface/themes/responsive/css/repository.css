@@ -297,6 +297,10 @@
   position: relative;
   width: 100%;
 }
+.archiveComponentContainer .archiveComponent .archiveComponentBody a,
+.archiveComponentContainer .archiveComponent .archiveComponentBody a:visited {
+  color: white;
+}
 .archiveComponentContainer .archiveComponent .archiveComponentBody .archiveComponentBox {
   padding: 10px;
   position: absolute;
@@ -358,6 +362,12 @@
   display: block;
   padding-top: 64%;
 }
+.browseFilterContainer .archiveComponentHeader {
+  padding-top: 5%;
+  font-size: 28px;
+  text-align: center;
+  text-transform: uppercase;
+}
 #pdfContainer {
   border: 1px solid lightgrey;
   margin: 10px;
@@ -383,4 +393,41 @@
   display: block;
   padding-top: 129.5%;
   /* ratio of 11:8.5*/
+}
+.related-objects .browse-thumbnail-sorted {
+  border: 0 solid white;
+  position: relative;
+  padding: 4px 0;
+  overflow: visible;
+  display: inline-block;
+  width: 100%;
+}
+.related-objects .browse-thumbnail-sorted a img {
+  max-height: 125px;
+  position: absolute;
+  top: 62px;
+  -webkit-transform: translate3d(-50%, -50%, 0);
+          transform: translate3d(-50%, -50%, 0);
+  left: 50%;
+}
+.related-objects .browse-thumbnail-sorted a img :not(#relatedOrganizationsPanelBody) {
+  height: 125px;
+}
+.related-objects .browse-thumbnail-sorted figcaption {
+  margin-top: 4px;
+  margin-bottom: 4px;
+  font-weight: 100;
+  overflow-x: hidden;
+  position: absolute;
+  top: 130px;
+  width: 100%;
+  text-align: center;
+}
+.related-objects .browse-thumbnail-sorted {
+  /* autoprefixer: off */
+  -webkit-column-break-inside: avoid;
+  -moz-column-break-inside: avoid;
+  column-break-inside: avoid;
+  break-inside: avoid;
+  break-inside: avoid-column;
 }

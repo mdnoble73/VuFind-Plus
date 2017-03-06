@@ -117,10 +117,6 @@ class LibrarySolution extends ScreenScrapingDriver {
 						$user->myLocation1Id  = ($location->nearbyLocation1 > 0) ? $location->nearbyLocation1 : $location->locationId;
 						$user->myLocation2Id  = ($location->nearbyLocation2 > 0) ? $location->nearbyLocation2 : $location->locationId;
 
-						//Get display names that aren't stored
-						$user->homeLocationCode = $location->code;
-						$user->homeLocation     = $location->displayName;
-
 						//Get display name for preferred location 1
 						$myLocation1             = new Location();
 						$myLocation1->locationId = $user->myLocation1Id;
@@ -135,6 +131,12 @@ class LibrarySolution extends ScreenScrapingDriver {
 							$user->myLocation2 = $myLocation2->displayName;
 						}
 					}
+				}
+
+				if (isset($location)){
+					//Get display names that aren't stored
+					$user->homeLocationCode = $location->code;
+					$user->homeLocation     = $location->displayName;
 				}
 
 				$user->expires = $accountSummary->patron->cardExpirationDate;

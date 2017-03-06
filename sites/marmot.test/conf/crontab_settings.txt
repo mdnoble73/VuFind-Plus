@@ -39,8 +39,10 @@
 ######################
 # MySQL Nightly Dump #
 ######################
-# backup important bits at 2:10am daily
-10 2 * * * /usr/local/vufind-plus/vufind/cron/nightly_mysql_dump.sh marmot.test 2>&1 >/dev/null
+# backup important bits at 11:10pm daily
+10 23 * * * /usr/local/vufind-plus/vufind/cron/nightly_mysql_dump.sh marmot.test 2>&1 >/dev/null
+# backup to backup server at 11:25pm daily
+25 23 * * * /root/cron/backup 2>&1 >/dev/null
 
 #####################
 # Daily full update #
