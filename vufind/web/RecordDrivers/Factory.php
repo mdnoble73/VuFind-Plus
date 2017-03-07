@@ -233,7 +233,7 @@ class RecordDriverFactory {
 		global $timer;
 
 		if ($record == null){
-			PEAR_Singleton::raiseError('Unable to load Driver for null object in initIslandoraDriverFromObject');
+			return null;
 		}
 
 		require_once ROOT_DIR . '/sys/Islandora/IslandoraObjectCache.php';
