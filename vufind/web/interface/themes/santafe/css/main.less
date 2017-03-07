@@ -96,3 +96,22 @@
   border-radius: 4px;
 
 }
+
+@media (min-width: @screen-sm) and (max-width: @screen-md-max) {
+  #header-logo {
+    max-width: 475px;
+  }
+  #header-container {
+    height: 140px;
+  }
+}
+@media (max-width: @screen-tn-max) {
+  #header-container {
+    height: auto;
+  }
+}
+//@media (min-width: @screen-sm)/* and (max-width: @screen-sm-max)*/ {
+//  #header-logo {
+//    max-width: 475px;
+//  }
+//}
