@@ -60,7 +60,7 @@ cd /usr/local/vufind-plus/vufind/cron;./GetHooplaFromMarmot.sh >> ${OUTPUT_FILE}
 /usr/local/vufind-plus/sites/opac.marmot.org/moveFullExport.sh western/ebrary ebrary/western >> ${OUTPUT_FILE}
 
 #Adams Ebrary DDA files
-/usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh adams/ebrary/DDA ebrary/adams/dda/merge >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/sites/opac.marmot.org/moveFullExport.sh adams/ebrary/DDA ebrary/adams/dda/merge >> ${OUTPUT_FILE}
 /usr/local/vufind-plus/vufind/cron/mergeSideloadMarc.sh ebrary/adams/dda >> ${OUTPUT_FILE}
 
 # CCU Ebsco Marc Updates
@@ -70,7 +70,8 @@ cd /usr/local/vufind-plus/vufind/cron;./GetHooplaFromMarmot.sh >> ${OUTPUT_FILE}
 /usr/local/vufind-plus/sites/opac.marmot.org/moveFullExport.sh cmc/ebsco ebsco/cmc >> ${OUTPUT_FILE}
 
 # Fort Lewis Ebsco Academic Marc Updates
-/usr/local/vufind-plus/sites/opac.marmot.org/moveFullExport.sh fortlewis_sideload/EBSCO_Academic ebsco/fortlewis >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/sites/opac.marmot.org/moveFullExport.sh fortlewis_sideload/EBSCO_Academic ebsco/fortlewis/merge >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/sites/opac.marmot.org/moveFullExport.sh fortlewis_sideload/EBSCO_Academic/deletes ebsco/fortlewis/deletes >> ${OUTPUT_FILE}
 
 # Western Oxford Reference Marc Updates
 /usr/local/vufind-plus/sites/opac.marmot.org/moveFullExport.sh western/oxfordReference oxfordReference/western >> ${OUTPUT_FILE}
@@ -82,10 +83,10 @@ cd /usr/local/vufind-plus/vufind/cron;./GetHooplaFromMarmot.sh >> ${OUTPUT_FILE}
 /usr/local/vufind-plus/sites/opac.marmot.org/moveFullExport.sh western/kanopy kanopy/western >> ${OUTPUT_FILE}
 
 # Learning Express Marc Updates
-/usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh budwerner/learning_express learning_express/steamboatsprings/merge >> ${OUTPUT_FILE}
-/usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh budwerner/learning_express/deletes learning_express/steamboatsprings/deletes >> ${OUTPUT_FILE}
-/usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh garfield/learning_express learning_express/garfield/merge >> ${OUTPUT_FILE}
-/usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh garfield/learning_express/deletes learning_express/garfield/deletes >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/sites/opac.marmot.org/moveFullExport.sh budwerner/learning_express learning_express/steamboatsprings/merge >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/sites/opac.marmot.org/moveFullExport.sh budwerner/learning_express/deletes learning_express/steamboatsprings/deletes >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/sites/opac.marmot.org/moveFullExport.sh garfield/learning_express learning_express/garfield/merge >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/sites/opac.marmot.org/moveFullExport.sh garfield/learning_express/deletes learning_express/garfield/deletes >> ${OUTPUT_FILE}
 
 # OneClick digital Marc Updates
 /usr/local/vufind-plus/sites/opac.marmot.org/moveFullExport.sh englewood/oneclickdigital oneclickdigital/englewood >> ${OUTPUT_FILE}
@@ -111,6 +112,9 @@ cd /usr/local/vufind-plus/vufind/cron;./GetHooplaFromMarmot.sh >> ${OUTPUT_FILE}
 /usr/local/vufind-plus/vufind/cron/mergeSideloadMarc.sh lynda/evld >> ${OUTPUT_FILE}
 /usr/local/vufind-plus/vufind/cron/mergeSideloadMarc.sh lynda/vail >> ${OUTPUT_FILE}
 /usr/local/vufind-plus/vufind/cron/mergeSideloadMarc.sh lynda/telluride >> ${OUTPUT_FILE}
+
+#Merge EBSCO records
+/usr/local/vufind-plus/vufind/cron/mergeSideloadMarc.sh ebsco/fortlewis >> ${OUTPUT_FILE}
 
 #Extract Lexile Data
 cd /data/vufind-plus/; curl --remote-name --remote-time --silent --show-error --compressed --time-cond /data/vufind-plus/lexileTitles.txt http://cassini.marmot.org/lexileTitles.txt

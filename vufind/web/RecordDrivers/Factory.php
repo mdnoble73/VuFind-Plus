@@ -232,6 +232,10 @@ class RecordDriverFactory {
 		global $configArray;
 		global $timer;
 
+		if ($record == null){
+			return null;
+		}
+
 		require_once ROOT_DIR . '/sys/Islandora/IslandoraObjectCache.php';
 		$islandoraObjectCache = new IslandoraObjectCache();
 		$islandoraObjectCache->pid = $record->id;

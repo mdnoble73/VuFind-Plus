@@ -512,7 +512,7 @@ class Archive_AJAX extends Action {
 			$facetFieldData = $response['facet_counts']['facet_fields'][$facetName];
 			foreach ($facetFieldData as $field){
 				$entityDriver = RecordDriverFactory::initIslandoraDriverFromPid($field[0]);
-				if (!PEAR_Singleton::isError($entityDriver)){
+				if (!PEAR_Singleton::isError($entityDriver) && $entityDriver != null){
 					$facetValues[$entityDriver->getTitle()] = array(
 							'display' => $entityDriver->getTitle(),
 							'url' => $entityDriver->getRecordUrl(),
