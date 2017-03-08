@@ -139,7 +139,9 @@ cd /data/vufind-plus/accelerated_reader; curl --remote-name --remote-time --sile
 
 #Ebrary Marc Updates
 /usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh flatirons_sideload/ebrary/boulder ebrary/bpl >> ${OUTPUT_FILE}
-#TODO: set up merge & delete
+/usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh flatirons_sideload/ebrary/boulder/deletes ebrary/bpl/deletes >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/vufind/cron/mergeSideloadMarc.sh ebrary/bpl >> ${OUTPUT_FILE}
+
 /usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh flatirons_sideload/ebrary/broomfield ebrary/mde >> ${OUTPUT_FILE}
 
 #Do a full extract from OverDrive just once a week to catch anything that doesn't
