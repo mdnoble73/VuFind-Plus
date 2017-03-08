@@ -38,7 +38,8 @@ if [ $# = 2 ] || [ $# = 3 ];then
     DIR+="/$LOCATION"
     echo "Creating $DIR"
     mkdir "$DIR"
-    LIBRARY+="/$LOCATION"
+    LIBRARY+="\/$LOCATION"
+   # escape directory slash for sed replacement
   fi
 
   echo "The Side Load Data Directory is: $DIR"
@@ -49,7 +50,8 @@ if [ $# = 2 ] || [ $# = 3 ];then
 
   #edit the merge configuration file
   echo "Update mergeConfig.ini file"
-  sed -i "s/SIDELOADCOLLECTION/$COLLECTION/; s/LIBRARY/$LIBRARY/" $DIR/mergeConfig.ini
+  sed -i "s/SIDELOADCOLLECTION/$COLLECTION/g" $DIR/mergeConfig.ini
+  sed -i "s/LIBRARY/$LIBRARY/g" $DIR/mergeConfig.ini
 
 else
   echo ""
