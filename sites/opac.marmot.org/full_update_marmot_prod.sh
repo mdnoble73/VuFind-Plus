@@ -100,8 +100,7 @@ cd /usr/local/vufind-plus/vufind/cron;./GetHooplaFromMarmot.sh >> ${OUTPUT_FILE}
 /usr/local/vufind-plus/sites/opac.marmot.org/moveFullExport.sh lynda.com/telluride lynda/telluride/merge
 
 #Extracts for sideloaded eContent; settings defined in config.pwd.ini [Sideload]
-#cd /usr/local/vufind-plus/vufind/cron; ./sideload.sh ${PIKASERVER}
-# No sideloads loaded via this script at this time. pascal 2-9-2017
+cd /usr/local/vufind-plus/vufind/cron; ./sideload.sh ${PIKASERVER}
 
 # Merge Learning Express Records
 /usr/local/vufind-plus/vufind/cron/mergeSideloadMarc.sh learning_express/steamboatsprings >> ${OUTPUT_FILE}
