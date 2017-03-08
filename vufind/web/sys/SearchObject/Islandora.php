@@ -1545,6 +1545,17 @@ class SearchObject_Islandora extends SearchObject_Base
 			}
 			$filters[] = $filter;
 		}
+		if ($library->objectsToHide){
+			$objectsToHide = explode("\r\n", $library->objectsToHide);
+			$filter = '';
+			foreach ($objectsToHide as $objectPID){
+				if (strlen($filter) > 0){
+					$filter .= ' AND ';
+				}
+				$filter .= "!PID:\"$objectPID\"";
+			}
+			$filters[] = $filter;
+		}
 		$filters[] = "!PID:islandora\\:*";
 		$filters[] = "!PID:demo\\:*";
 		$filters[] = "!PID:testCollection\\:*";
