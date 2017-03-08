@@ -89,7 +89,7 @@ var VuFind = (function(){
 
 				// Adjust Browse Category Carousels
 				if (jcarousel.is('#browse-category-carousel')){
-					
+
 					// set the number of categories to show; if there aren't enough categories, show all the categories instead
 					if (width > 1000) {
 						numItemsToShow = Math.min(5, numCategories);
@@ -130,8 +130,8 @@ var VuFind = (function(){
 
 				//console.log(Carousel, 'num to show', numItemsToShow, 'width', width);
 				if (numItemsToShow >= numCategories){
-					$('.jcarousel-control-prev', wrapper).hide();
-					$('.jcarousel-control-next', wrapper).hide();
+					$(this).offsetParent().children('.jcarousel-control-prev').hide();
+					$(this).offsetParent().children('.jcarousel-control-next').hide();
 				}
 
 			})
