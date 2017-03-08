@@ -1556,7 +1556,9 @@ class SearchObject_Islandora extends SearchObject_Base
 			}
 			$filters[] = $filter;
 		}
-		$filters[] = "!PID:islandora\\:*";
+		if ($library->archiveNamespace != 'islandora'){
+			$filters[] = "!PID:islandora\\:*";
+		}
 		$filters[] = "!PID:demo\\:*";
 		$filters[] = "!PID:testCollection\\:*";
 		$filters[] = "!PID:marmot\\:*";
@@ -1564,7 +1566,12 @@ class SearchObject_Islandora extends SearchObject_Base
 		$filters[] = "!PID:mandala\\:*";
 		$filters[] = "!RELS_EXT_hasModel_uri_s:info\\:fedora/ir\\:citationCModel";
 
-		$filters[] = "!mods_extension_marmotLocal_pikaOptions_includeInPika_ms:no";
+		global $configArray;
+		if ($configArray['Site']['isProduction']) {
+			$filters[] = "!mods_extension_marmotLocal_pikaOptions_includeInPika_ms:(no OR testOnly)";
+		}else{
+			$filters[] = "!mods_extension_marmotLocal_pikaOptions_includeInPika_ms:no";
+		}
 		return $filters;
 	}
 
