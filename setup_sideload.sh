@@ -10,7 +10,7 @@ LIBRARY=$2
 
 DIR=/data/vufind-plus
 
-if [ $# = 2 OR $# = 3 ];then
+if [ $# = 2 ] || [ $# = 3 ];then
   echo ""
   echo "The Side Load Collection is: $COLLECTION"
   echo "The Library is: $LIBRARY"
@@ -38,15 +38,18 @@ if [ $# = 2 OR $# = 3 ];then
     DIR+="/$LOCATION"
     echo "Creating $DIR"
     mkdir "$DIR"
+    LIBRARY+="/$LOCATION"
   fi
 
   echo "The Side Load Data Directory is: $DIR"
 
 	#copy sideload data dir structure to path
+	echo "Copying template data directories"
   cp -r /usr/local/vufind-plus/data_dir_setup/sideload_data_dir_template/* $DIR
 
   #edit the merge configuration file
-  cat $DIR/mergeConfig.ini|sed -r "s/SIDELOADCOLLECTION/$COLLECTION/"|sed -r "s/LIBRARY/$LIBRARY/" > $DIR/mergeConfig.ini
+  echo "Update mergeConfig.ini file"
+  sed -i "s/SIDELOADCOLLECTION/$COLLECTION/; s/LIBRARY/$LIBRARY/" $DIR/mergeConfig.ini
 
 else
   echo ""
