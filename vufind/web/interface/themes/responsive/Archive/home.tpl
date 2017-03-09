@@ -41,7 +41,7 @@
 			{if count($relatedProjectsOther) > 0}
 				<div class="row">
 					<div class="col-xs-12">
-						<h3>More Collections in the Archive</h3>
+						<h3>More collections from the archive</h3>
 						<div id="relatedProjectOtherScroller" class="jcarousel-wrapper">
 							<a href="#" class="jcarousel-control-prev"><i class="glyphicon glyphicon-chevron-left"></i></a>
 							<a href="#" class="jcarousel-control-next"><i class="glyphicon glyphicon-chevron-right"></i></a>
