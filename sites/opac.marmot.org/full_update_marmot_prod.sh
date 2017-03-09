@@ -89,7 +89,8 @@ cd /usr/local/vufind-plus/vufind/cron;./GetHooplaFromMarmot.sh >> ${OUTPUT_FILE}
 /usr/local/vufind-plus/sites/opac.marmot.org/moveFullExport.sh garfield/learning_express/deletes learning_express/garfield/deletes >> ${OUTPUT_FILE}
 
 # OneClick digital Marc Updates
-/usr/local/vufind-plus/sites/opac.marmot.org/moveFullExport.sh englewood/oneclickdigital oneclickdigital/englewood >> ${OUTPUT_FILE}
+#/usr/local/vufind-plus/sites/opac.marmot.org/moveFullExport.sh englewood/oneclickdigital oneclickdigital/englewood >> ${OUTPUT_FILE}
+
 
 # Colorado State Gov Docs Marc Updates
 /usr/local/vufind-plus/sites/opac.marmot.org/moveFullExport.sh cologovdocs colorado_gov_docs >> ${OUTPUT_FILE}
@@ -106,11 +107,13 @@ cd /usr/local/vufind-plus/vufind/cron; ./sideload.sh ${PIKASERVER}
 /usr/local/vufind-plus/vufind/cron/mergeSideloadMarc.sh learning_express/steamboatsprings >> ${OUTPUT_FILE}
 /usr/local/vufind-plus/vufind/cron/mergeSideloadMarc.sh learning_express/garfield >> ${OUTPUT_FILE}
 
-
 # Merge Lynda.com Records
 /usr/local/vufind-plus/vufind/cron/mergeSideloadMarc.sh lynda/evld >> ${OUTPUT_FILE}
 /usr/local/vufind-plus/vufind/cron/mergeSideloadMarc.sh lynda/vail >> ${OUTPUT_FILE}
 /usr/local/vufind-plus/vufind/cron/mergeSideloadMarc.sh lynda/telluride >> ${OUTPUT_FILE}
+
+# Merge OneClick digital Records
+/usr/local/vufind-plus/vufind/cron/mergeSideloadMarc.sh oneclickdigital/englewood >> ${OUTPUT_FILE}
 
 #Merge EBSCO records
 /usr/local/vufind-plus/vufind/cron/mergeSideloadMarc.sh ebsco/fortlewis >> ${OUTPUT_FILE}

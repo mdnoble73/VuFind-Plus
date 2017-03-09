@@ -125,7 +125,7 @@ cd /usr/local/vufind-plus/sites/${PIKASERVER}; ./${PIKASERVER}.sh restart
 #/usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh {ftpdir} learning_express/vail >> ${OUTPUT_FILE}
 
 # OneClick digital Marc Updates
-/usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh englewood/oneclickdigital oneclickdigital/englewood >> ${OUTPUT_FILE}
+#/usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh englewood/oneclickdigital oneclickdigital/englewood >> ${OUTPUT_FILE}
 
 # Colorado State Gov Docs Marc Updates
 /usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh cologovdocs colorado_gov_docs >> ${OUTPUT_FILE}
@@ -134,6 +134,9 @@ cd /usr/local/vufind-plus/sites/${PIKASERVER}; ./${PIKASERVER}.sh restart
 /usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh lynda.com/evld lynda/evld/merge
 /usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh lynda.com/vail lynda/vail/merge
 /usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh lynda.com/telluride lynda/telluride/merge
+
+# Merge OneClick digital Records
+/usr/local/vufind-plus/vufind/cron/mergeSideloadMarc.sh oneclickdigital/englewood >> ${OUTPUT_FILE}
 
 
 #Extracts for sideloaded eContent; settings defined in config.pwd.ini [Sideload]
