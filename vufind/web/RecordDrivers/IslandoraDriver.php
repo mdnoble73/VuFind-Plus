@@ -2562,7 +2562,7 @@ abstract class IslandoraDriver extends RecordInterface {
 					$validRightsHolder = true;
 				}
 			}
-			if (!$validRightsHolder){
+			if ($validRightsHolder){
 				$rightsHolderData[] = array(
 						'label' => $rightsHolderTitle,
 				);
