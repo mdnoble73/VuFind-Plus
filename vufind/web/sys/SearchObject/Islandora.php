@@ -1564,6 +1564,8 @@ class SearchObject_Islandora extends SearchObject_Base
 		$filters[] = "!PID:marmot\\:*";
 		$filters[] = "!PID:ssb\\:*";
 		$filters[] = "!PID:mandala\\:*";
+		$filters[] = "!RELS_EXT_hasModel_uri_s:info\\:fedora/islandora\\:newspaperIssueCModel";
+		$filters[] = "!RELS_EXT_hasModel_uri_s:info\\:fedora/ir\\:thesisCModel";
 		$filters[] = "!RELS_EXT_hasModel_uri_s:info\\:fedora/ir\\:citationCModel";
 
 		global $configArray;

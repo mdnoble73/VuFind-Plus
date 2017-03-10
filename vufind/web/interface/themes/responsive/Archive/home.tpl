@@ -14,7 +14,7 @@
 			{if count($relatedProjectsLibrary) > 0}
 				<div class="row">
 					<div class="col-xs-12">
-						<h3>Collections from {$libraryName}</h3>
+						<h3><a href="{$libraryProjectsUrl}">Collections from {$libraryName}</a></h3>
 						<div id="relatedProjectScroller" class="jcarousel-wrapper">
 							<a href="#" class="jcarousel-control-prev"><i class="glyphicon glyphicon-chevron-left"></i></a>
 							<a href="#" class="jcarousel-control-next"><i class="glyphicon glyphicon-chevron-right"></i></a>
@@ -41,7 +41,7 @@
 			{if count($relatedProjectsOther) > 0}
 				<div class="row">
 					<div class="col-xs-12">
-						<h3>More collections from the archive</h3>
+						<h3><a href="{$otherProjectsUrl}">More collections from the archive</a></h3>
 						<div id="relatedProjectOtherScroller" class="jcarousel-wrapper">
 							<a href="#" class="jcarousel-control-prev"><i class="glyphicon glyphicon-chevron-left"></i></a>
 							<a href="#" class="jcarousel-control-next"><i class="glyphicon glyphicon-chevron-right"></i></a>

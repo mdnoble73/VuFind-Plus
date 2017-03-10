@@ -29,11 +29,6 @@ class Archive_Home extends Action{
 		$searchObject = SearchObjectFactory::initSearchObject('Islandora');
 		$searchObject->init();
 		$searchObject->setDebugging(false, false);
-		$searchObject->clearHiddenFilters();
-		$searchObject->addHiddenFilter('fedora_datastreams_ms', 'MODS');
-		$searchObject->addHiddenFilter('!RELS_EXT_isViewableByRole_literal_ms', "administrator");
-		$searchObject->addHiddenFilter('!mods_extension_marmotLocal_pikaOptions_includeInPika_ms', "no");
-		$searchObject->addHiddenFilter('!mods_extension_marmotLocal_pikaOptions_showInSearchResults_ms', "no");
 		$searchObject->addFacet('mods_genre_s');
 		$searchObject->setLimit(1);
 		$searchObject->setSort('fgs_label_s');
@@ -56,10 +51,6 @@ class Archive_Home extends Action{
 				$searchObject2 = SearchObjectFactory::initSearchObject('Islandora');
 				$searchObject2->init();
 				$searchObject2->setDebugging(false, false);
-				$searchObject2->clearHiddenFilters();
-				$searchObject2->addHiddenFilter('!RELS_EXT_isViewableByRole_literal_ms', "administrator");
-				$searchObject2->addHiddenFilter('!mods_extension_marmotLocal_pikaOptions_includeInPika_ms', "no");
-				$searchObject2->addHiddenFilter('!mods_extension_marmotLocal_pikaOptions_showInSearchResults_ms', "no");
 				$searchObject2->clearFilters();
 				$searchObject2->addFilter("mods_genre_s:{$genre[0]}");
 				$response2 = $searchObject2->processSearch(true, false);
@@ -119,17 +110,11 @@ class Archive_Home extends Action{
 		$searchObject = SearchObjectFactory::initSearchObject('Islandora');
 		$searchObject->init();
 		$searchObject->setDebugging(false, false);
-		$searchObject->clearHiddenFilters();
-		$searchObject->addHiddenFilter('fedora_datastreams_ms', 'MODS');
-		$searchObject->addHiddenFilter('RELS_EXT_hasModel_uri_s', '*collectionCModel');
-		$searchObject->addHiddenFilter('!RELS_EXT_isViewableByRole_literal_ms', "administrator");
-		$searchObject->addHiddenFilter('!mods_extension_marmotLocal_pikaOptions_includeInPika_ms', "no");
-		$searchObject->addHiddenFilter('!mods_extension_marmotLocal_pikaOptions_showInSearchResults_ms', "no");
-		$searchObject->addHiddenFilter('mods_extension_marmotLocal_pikaOptions_showOnPikaArchiveHomepage_ms', "yes");
+		$searchObject->addFilter('mods_extension_marmotLocal_pikaOptions_showOnPikaArchiveHomepage_ms:yes');
 		if ($libraryProjects){
-			$searchObject->addHiddenFilter('RELS_EXT_isMemberOfCollection_uri_ms', "info\\:fedora/{$library->archiveNamespace}\\:*");
+			$searchObject->addFilter("RELS_EXT_isMemberOfCollection_uri_ms:info\\:fedora/{$library->archiveNamespace}\\:*");
 		}else{
-			$searchObject->addHiddenFilter('!RELS_EXT_isMemberOfCollection_uri_ms', "info\\:fedora/{$library->archiveNamespace}\\:*");
+			$searchObject->addFilter("!RELS_EXT_isMemberOfCollection_uri_ms:info\\:fedora/{$library->archiveNamespace}\\:*");
 		}
 
 		$searchObject->setLimit(50);
@@ -141,6 +126,12 @@ class Archive_Home extends Action{
 			PEAR_Singleton::raiseError($response->getMessage());
 		}
 		$timer->logTime('Process Search for collections');
+
+		if ($libraryProjects){
+			$interface->assign('libraryProjectsUrl', $searchObject->renderSearchUrl());
+		}else{
+			$interface->assign('otherProjectsUrl', $searchObject->renderSearchUrl());
+		}
 
 		$relatedProjects = array();
 		if ($response && isset($response['response'])) {
