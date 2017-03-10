@@ -1119,7 +1119,7 @@ abstract class IslandoraDriver extends RecordInterface {
 	protected $brandingEntities = array();
 	private $loadedRelatedEntities = false;
 	private $loadedBrandingFromCollection = false;
-	private static $nonProductionTeamRoles = array('attendee', 'artist', 'child', 'correspondence recipient', 'employee', 'interviewee', 'member', 'parade marshal', 'parent', 'participant', 'president', 'rodeo royalty', 'described', 'author', 'sibling', 'spouse', 'pictured' );
+	private static $nonProductionTeamRoles = array('attendee', 'artist', 'child', 'correspondence recipient', 'employee', 'interviewee', 'member', 'parade marshal', 'parent', 'participant', 'president', 'rodeo royalty', 'described', 'author', 'sibling', 'spouse', 'pictured', 'student' );
 	private static $brandingRoles = array('donor', 'owner', 'funder', 'acknowledgement');
 	public function loadRelatedEntities(){
 		if ($this->loadedRelatedEntities == false){
@@ -2562,7 +2562,7 @@ abstract class IslandoraDriver extends RecordInterface {
 					$validRightsHolder = true;
 				}
 			}
-			if (!$validRightsHolder){
+			if ($validRightsHolder){
 				$rightsHolderData[] = array(
 						'label' => $rightsHolderTitle,
 				);

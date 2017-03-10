@@ -106,6 +106,9 @@ scp flatirons_sideload@ftp1.marmot.org:/ftp/flatirons_sideload/zinio/longmont/*.
 
 #Ebrary Marc Updates
 scp flatirons_sideload@ftp1.marmot.org:/ftp/flatirons_sideload/ebrary/boulder/*.mrc /data/vufind-plus/ebrary/bpl/marc/ >> ${OUTPUT_FILE}
+scp flatirons_sideload@ftp1.marmot.org:/ftp/flatirons_sideload/ebrary/boulder/deletes.*.mrc /data/vufind-plus/ebrary/bpl/deletes/marc/ >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/vufind/cron/mergeSideloadMarc.sh ebrary/bpl >> ${OUTPUT_FILE}
+
 scp flatirons_sideload@ftp1.marmot.org:/ftp/flatirons_sideload/ebrary/broomfield/*.mrc /data/vufind-plus/ebrary/mde/marc/ >> ${OUTPUT_FILE}
 
 # Possible curl version; if I can figure out how to implement the --time-condition check on a range of files
