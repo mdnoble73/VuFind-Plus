@@ -19,6 +19,8 @@ class Archive_Audio  extends Archive_Object{
 
 		if ($this->archiveObject->getDatastream('PROXY_MP3') != null) {
 			$interface->assign('audioLink', $configArray['Islandora']['objectUrl'] . "/{$this->pid}/datastream/PROXY_MP3/view");
+		}elseif ($this->archiveObject->getDatastream('OBJ') != null) {
+			$interface->assign('audioLink', $configArray['Islandora']['objectUrl'] . "/{$this->pid}/datastream/OBJ/view");
 		}
 
 		$interface->assign('showExploreMore', true);
