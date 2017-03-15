@@ -310,7 +310,7 @@
 .archiveComponentContainer{
   .archiveComponent {
     border: 1px solid lightgrey;
-    color: @menu-bar-color;
+    color: @archiveComponent-color;
     font-size: @browse-category-font-size;
     margin: 10px;
 
@@ -320,7 +320,7 @@
     }
     a, a:visited{
       .archiveComponentHeader {
-        color: white;
+        color: @archiveComponent-color;
       }
     }
 
@@ -345,8 +345,8 @@
           align-items: center;
         }
         .archiveComponentControls,.archiveComponentSearchControls{
-
-          background-color: @menu-bar-background-color;
+          color: @archiveComponent-color;
+          background-color: @archiveComponentControl-background-color;
           padding: 10px 0;
           min-height: 110px;
           .archiveComponentHeader {
@@ -356,7 +356,7 @@
 
         #searchComponentForm{
           background-color: white;
-          border: 1px solid darken(@menu-bar-background-color, 10%);
+          border: 1px solid darken(@archiveComponentControl-background-color, 10%);
           padding: 3px;
           margin-left: 5px;
         }

@@ -10599,7 +10599,7 @@ a.browse-thumbnail-sorted.active {
 }
 .archiveComponentContainer .archiveComponent {
   border: 1px solid lightgrey;
-  color: #FFF;
+  color: #6b6b6b;
   font-size: 20px;
   margin: 10px;
 }
@@ -10609,7 +10609,7 @@ a.browse-thumbnail-sorted.active {
 }
 .archiveComponentContainer .archiveComponent a .archiveComponentHeader,
 .archiveComponentContainer .archiveComponent a:visited .archiveComponentHeader {
-  color: white;
+  color: #6b6b6b;
 }
 .archiveComponentContainer .archiveComponent .archiveComponentBody {
   margin-left: 0;
@@ -10637,7 +10637,8 @@ a.browse-thumbnail-sorted.active {
 }
 .archiveComponentContainer .archiveComponent .archiveComponentBody .archiveComponentBox .archiveComponentControls,
 .archiveComponentContainer .archiveComponent .archiveComponentBody .archiveComponentBox .archiveComponentSearchControls {
-  background-color: #a3a60f;
+  color: #6b6b6b;
+  background-color: #FFF;
   padding: 10px 0;
   min-height: 110px;
 }
@@ -10647,7 +10648,7 @@ a.browse-thumbnail-sorted.active {
 }
 .archiveComponentContainer .archiveComponent .archiveComponentBody .archiveComponentBox #searchComponentForm {
   background-color: white;
-  border: 1px solid #75770b;
+  border: 1px solid #e6e6e6;
   padding: 3px;
   margin-left: 5px;
 }
