@@ -87,6 +87,9 @@
     font-weight: bold;
     text-transform: uppercase;
     white-space: nowrap; // multiple word labels need to stay on the same line
+    @media (max-width: @screen-tn-max) {
+      white-space: normal;
+    }
   }
 
   // Explore More Bar Label on the Left Hand Side
@@ -307,8 +310,6 @@
 .archiveComponentContainer{
   .archiveComponent {
     border: 1px solid lightgrey;
-    background-color: @menu-bar-background-color;
-    background: linear-gradient(90deg, white, white 120px, @menu-bar-background-color 121px, @menu-bar-background-color);
     color: @menu-bar-color;
     font-size: @browse-category-font-size;
     margin: 10px;
@@ -317,32 +318,41 @@
       width: 100%;
       text-align: center;
     }
-
-    .archiveComponentBody{
-      position: relative;
-      width:    100%;
-
-      a, a:visited{
+    a, a:visited{
+      .archiveComponentHeader {
         color: white;
       }
+    }
+
+    .archiveComponentBody{
+      margin-left: 0;
+      margin-right: 0;
 
       .archiveComponentBox{
-        padding: 10px;
-        position: absolute;
-        top:      0;
-        left:     0;
-        bottom:   0;
-        right:    0;
 
-        .archiveComponentImage{
-          position: absolute;
+        .archiveComponentIconContainer{
+          padding-left: 0;
+          padding-top: 4px;
+          padding-right: 0;
 
         }
 
+        .archiveComponentImage{
+          .center-block();
+        }
+
         .archiveComponentControls{
-          position: absolute;
-          left: 130px;
-          overflow: hidden;
+          display: flex;
+          align-items: center;
+        }
+        .archiveComponentControls,.archiveComponentSearchControls{
+
+          background-color: @menu-bar-background-color;
+          padding: 10px 0;
+          min-height: 110px;
+          .archiveComponentHeader {
+            height: auto;
+          }
         }
 
         #searchComponentForm{
@@ -375,16 +385,11 @@
 
           #refreshRandomImage{
             position: absolute;
-            right: 10px;
-            top: 55px;
+            right: 20px;
+            top: 65px;
           }
         }
       }
-    }
-    .archiveComponentBody:before{
-      content:     "";
-      display:     block;
-      padding-top: 32%; /* ratio of 2:1*/
     }
   }
 }
@@ -393,7 +398,14 @@
   .archiveComponent.horizontalComponent{
     background-color: @menu-bar-background-color;
     background: linear-gradient(@menu-bar-background-color, @menu-bar-background-color 45px, white 46px, white);
-
+    .archiveComponentBox {
+      padding: 20px 10px 10px;
+      position: absolute;
+      top:      0;
+      left:     0;
+      bottom:   0;
+      right:    0;
+    }
     .archiveComponentBody:before{
       content:     "";
       display:     block;
@@ -402,8 +414,19 @@
   }
 }
 
+#exhibit-map {
+  text-align: center;
+  figcaption {
+    color: white;
+  }
+  img {
+    width: 95%;
+    max-width: 270px;
+  }
+}
 .browseFilterContainer .archiveComponentHeader{
   padding-top: 5%;
+  padding-bottom: 5%;
   font-size: 28px;
   text-align: center;
   text-transform: uppercase;
@@ -489,5 +512,11 @@
     break-inside: avoid;
     break-inside: avoid-column;
 
+  }
+}
+// this is an additional rule that could be added to the base
+.lead {
+  @media (max-width: @screen-xs-max) {
+    font-size: 18px;
   }
 }

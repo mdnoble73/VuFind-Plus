@@ -5074,6 +5074,7 @@ button.close {
 }
 .modal.fade .modal-dialog {
   -webkit-transform: translate(0, -25%);
+  -ms-transform: translate(0, -25%);
   transform: translate(0, -25%);
   -webkit-transition: -webkit-transform 0.3s ease-out;
   transition: -webkit-transform 0.3s ease-out;
@@ -5082,6 +5083,7 @@ button.close {
 }
 .modal.in .modal-dialog {
   -webkit-transform: translate(0, 0);
+  -ms-transform: translate(0, 0);
   transform: translate(0, 0);
 }
 .modal-dialog {
@@ -7962,6 +7964,7 @@ fieldset[disabled] .datepicker table tr td span.active.disabled:hover.active {
   bottom: -25px;
   left: 50%;
   -webkit-transform: translate(-50%, 0);
+      -ms-transform: translate(-50%, 0);
           transform: translate(-50%, 0);
   margin: 0;
 }
@@ -8040,6 +8043,7 @@ fieldset[disabled] .datepicker table tr td span.active.disabled:hover.active {
   vertical-align: text-top;
   text-align: center;
   -webkit-transform: scale(0.6);
+      -ms-transform: scale(0.6);
           transform: scale(0.6);
   margin-top: -1px;
   margin-bottom: -1px;
@@ -8612,8 +8616,10 @@ hr.menu {
   display: inline-block;
   white-space: nowrap;
   -webkit-transform: rotate(-90deg) translateX(-100%);
+      -ms-transform: rotate(-90deg) translateX(-100%);
           transform: rotate(-90deg) translateX(-100%);
   -webkit-transform-origin: 0 0;
+      -ms-transform-origin: 0 0;
           transform-origin: 0 0;
 }
 .rotated-text-inner:after {
@@ -10120,21 +10126,26 @@ a.browse-thumbnail-sorted.active {
 }
 .search-results-navigation {
   display: -webkit-box;
+  display: -webkit-flex;
   display: -ms-flexbox;
   display: flex;
   -webkit-box-orient: horizontal;
   -webkit-box-direction: normal;
+  -webkit-flex-direction: row;
       -ms-flex-direction: row;
           flex-direction: row;
   -webkit-box-pack: center;
+  -webkit-justify-content: center;
       -ms-flex-pack: center;
           justify-content: center;
   -webkit-box-align: center;
+  -webkit-align-items: center;
       -ms-flex-align: center;
           align-items: center;
 }
 .search-results-navigation .previous {
   -webkit-box-flex: 1;
+  -webkit-flex-grow: 1;
       -ms-flex-positive: 1;
           flex-grow: 1;
   cursor: pointer;
@@ -10143,6 +10154,7 @@ a.browse-thumbnail-sorted.active {
 }
 .search-results-navigation .return {
   -webkit-box-flex: 3;
+  -webkit-flex-grow: 3;
       -ms-flex-positive: 3;
           flex-grow: 3;
   white-space: normal;
@@ -10154,6 +10166,7 @@ a.browse-thumbnail-sorted.active {
   white-space: nowrap;
   cursor: pointer;
   -webkit-box-flex: 1;
+  -webkit-flex-grow: 1;
       -ms-flex-positive: 1;
           flex-grow: 1;
 }
@@ -10356,6 +10369,11 @@ a.browse-thumbnail-sorted.active {
   text-transform: uppercase;
   white-space: nowrap;
 }
+@media (max-width: 479px) {
+  .exploreMoreBar .exploreMoreBarLabel {
+    white-space: normal;
+  }
+}
 .exploreMoreBar .label-left {
   float: left;
   width: 40px;
@@ -10369,8 +10387,10 @@ a.browse-thumbnail-sorted.active {
 .exploreMoreBar .label-left .exploreMoreBarLabel {
   position: absolute;
   -webkit-transform: rotate(-90deg) translateX(-100%);
+      -ms-transform: rotate(-90deg) translateX(-100%);
           transform: rotate(-90deg) translateX(-100%);
   -webkit-transform-origin: 0 0;
+      -ms-transform-origin: 0 0;
           transform-origin: 0 0;
   padding-right: 10px;
   padding-left: 5px;
@@ -10417,6 +10437,7 @@ a.browse-thumbnail-sorted.active {
   position: absolute;
   top: 62px;
   -webkit-transform: translate(-50%, -50%);
+      -ms-transform: translate(-50%, -50%);
           transform: translate(-50%, -50%);
   left: 50%;
 }
@@ -10573,9 +10594,6 @@ a.browse-thumbnail-sorted.active {
 }
 .archiveComponentContainer .archiveComponent {
   border: 1px solid lightgrey;
-  background-color: #F16530;
-  background: -webkit-linear-gradient(left, white, white 120px, #F16530 121px, #F16530);
-  background: linear-gradient(90deg, white, white 120px, #F16530 121px, #F16530);
   color: #FFF;
   font-size: 20px;
   margin: 10px;
@@ -10584,29 +10602,43 @@ a.browse-thumbnail-sorted.active {
   width: 100%;
   text-align: center;
 }
-.archiveComponentContainer .archiveComponent .archiveComponentBody {
-  position: relative;
-  width: 100%;
-}
-.archiveComponentContainer .archiveComponent .archiveComponentBody a,
-.archiveComponentContainer .archiveComponent .archiveComponentBody a:visited {
+.archiveComponentContainer .archiveComponent a .archiveComponentHeader,
+.archiveComponentContainer .archiveComponent a:visited .archiveComponentHeader {
   color: white;
 }
-.archiveComponentContainer .archiveComponent .archiveComponentBody .archiveComponentBox {
-  padding: 10px;
-  position: absolute;
-  top: 0;
-  left: 0;
-  bottom: 0;
-  right: 0;
+.archiveComponentContainer .archiveComponent .archiveComponentBody {
+  margin-left: 0;
+  margin-right: 0;
+}
+.archiveComponentContainer .archiveComponent .archiveComponentBody .archiveComponentBox .archiveComponentIconContainer {
+  padding-left: 0;
+  padding-top: 4px;
+  padding-right: 0;
 }
 .archiveComponentContainer .archiveComponent .archiveComponentBody .archiveComponentBox .archiveComponentImage {
-  position: absolute;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
 }
 .archiveComponentContainer .archiveComponent .archiveComponentBody .archiveComponentBox .archiveComponentControls {
-  position: absolute;
-  left: 130px;
-  overflow: hidden;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-align: center;
+  -webkit-align-items: center;
+      -ms-flex-align: center;
+          align-items: center;
+}
+.archiveComponentContainer .archiveComponent .archiveComponentBody .archiveComponentBox .archiveComponentControls,
+.archiveComponentContainer .archiveComponent .archiveComponentBody .archiveComponentBox .archiveComponentSearchControls {
+  background-color: #F16530;
+  padding: 10px 0;
+  min-height: 110px;
+}
+.archiveComponentContainer .archiveComponent .archiveComponentBody .archiveComponentBox .archiveComponentControls .archiveComponentHeader,
+.archiveComponentContainer .archiveComponent .archiveComponentBody .archiveComponentBox .archiveComponentSearchControls .archiveComponentHeader {
+  height: auto;
 }
 .archiveComponentContainer .archiveComponent .archiveComponentBody .archiveComponentBox #searchComponentForm {
   background-color: white;
@@ -10634,27 +10666,40 @@ a.browse-thumbnail-sorted.active {
 }
 .archiveComponentContainer .archiveComponent .archiveComponentBody .archiveComponentBox .archiveComponentRandomImage #refreshRandomImage {
   position: absolute;
-  right: 10px;
-  top: 55px;
-}
-.archiveComponentContainer .archiveComponent .archiveComponentBody:before {
-  content: "";
-  display: block;
-  padding-top: 32%;
-  /* ratio of 2:1*/
+  right: 20px;
+  top: 65px;
 }
 .archiveComponentContainer .archiveComponent.horizontalComponent {
   background-color: #F16530;
   background: -webkit-linear-gradient(#F16530, #F16530 45px, white 46px, white);
   background: linear-gradient(#F16530, #F16530 45px, white 46px, white);
 }
+.archiveComponentContainer .archiveComponent.horizontalComponent .archiveComponentBox {
+  padding: 20px 10px 10px;
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+}
 .archiveComponentContainer .archiveComponent.horizontalComponent .archiveComponentBody:before {
   content: "";
   display: block;
   padding-top: 64%;
 }
+#exhibit-map {
+  text-align: center;
+}
+#exhibit-map figcaption {
+  color: white;
+}
+#exhibit-map img {
+  width: 95%;
+  max-width: 270px;
+}
 .browseFilterContainer .archiveComponentHeader {
   padding-top: 5%;
+  padding-bottom: 5%;
   font-size: 28px;
   text-align: center;
   text-transform: uppercase;
@@ -10721,6 +10766,11 @@ a.browse-thumbnail-sorted.active {
   column-break-inside: avoid;
   break-inside: avoid;
   break-inside: avoid-column;
+}
+@media (max-width: 767px) {
+  .lead {
+    font-size: 18px;
+  }
 }
 .editor .panel-group .panel-body > .form-group > .controls {
   overflow-x: auto;
@@ -11274,8 +11324,7 @@ span.results-sort-label {
   border-bottom: 1px solid #C0C0C0;
 }
 /* Facet headings - left menu search results */
-.facetTitle,
-.exploreMoreTitle {
+.facetTitle {
   background-color: #e4e4e4;
   background: #e4e4e4;
   color: #292929;
