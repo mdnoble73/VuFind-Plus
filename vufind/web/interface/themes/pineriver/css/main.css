@@ -10680,12 +10680,20 @@ a.browse-thumbnail-sorted.active {
   background: linear-gradient(#7AB92C, #7AB92C 45px, white 46px, white);
 }
 .archiveComponentContainer .archiveComponent.horizontalComponent .archiveComponentBox {
-  padding: 20px 10px 10px;
+  padding: 10px;
   position: absolute;
   top: 0;
   left: 0;
   bottom: 0;
   right: 0;
+}
+@media (min-width: 768px) {
+  .archiveComponentContainer .archiveComponent.horizontalComponent .archiveComponentBox {
+    padding: 20px 10px 10px;
+  }
+}
+.archiveComponentContainer .archiveComponent.horizontalComponent .archiveComponentBody {
+  min-height: 225px;
 }
 .archiveComponentContainer .archiveComponent.horizontalComponent .archiveComponentBody:before {
   content: "";
