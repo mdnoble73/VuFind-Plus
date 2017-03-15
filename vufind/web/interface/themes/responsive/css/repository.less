@@ -334,7 +334,6 @@
           padding-left: 0;
           padding-top: 4px;
           padding-right: 0;
-
         }
 
         .archiveComponentImage{
@@ -393,23 +392,29 @@
     }
   }
 }
-
+// For Horizontal Components
 .archiveComponentContainer{
   .archiveComponent.horizontalComponent{
     background-color: @menu-bar-background-color;
     background: linear-gradient(@menu-bar-background-color, @menu-bar-background-color 45px, white 46px, white);
     .archiveComponentBox {
-      padding: 20px 10px 10px;
+      padding: 10px;
+      @media (min-width: @screen-sm) {
+        padding: 20px 10px 10px;
+      }
       position: absolute;
       top:      0;
       left:     0;
       bottom:   0;
       right:    0;
     }
-    .archiveComponentBody:before{
-      content:     "";
-      display:     block;
-      padding-top: 64%;
+    .archiveComponentBody {
+      min-height:225px;
+      &:before {
+        content: "";
+        display: block;
+        padding-top: 64%;
+      }
     }
   }
 }
