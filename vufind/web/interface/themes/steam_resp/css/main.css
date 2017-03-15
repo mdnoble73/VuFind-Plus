@@ -10973,3 +10973,11 @@ fieldset[disabled] .btn-masquerade.active {
 .glyphicon-chevron-right:before {
   content: "\e258";
 }
+@media (min-width: 992px) {
+  #exhibitMainImageContainer {
+    left: 58.33333333%;
+  }
+  #exhibitMainDescriptionContainer {
+    right: 41.66666667%;
+  }
+}
