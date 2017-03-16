@@ -10702,7 +10702,7 @@ a.browse-thumbnail-sorted.active {
   }
 }
 .archiveComponentContainer .archiveComponent.horizontalComponent .archiveComponentBody {
-  min-height: 225px;
+  min-height: 250px;
 }
 .archiveComponentContainer .archiveComponent.horizontalComponent .archiveComponentBody:before {
   content: "";
