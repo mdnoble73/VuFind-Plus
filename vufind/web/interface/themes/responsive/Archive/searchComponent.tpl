@@ -1,10 +1,13 @@
 {strip}
 	<div class="archiveComponentContainer nopadding col-sm-12 col-md-6">
 		<div class="archiveComponent">
-			<div class="archiveComponentBody">
+			<div class="row archiveComponentBody">
 				<div class="archiveComponentBox">
-					<img src="{$searchComponentImage}" width="100" height="100" alt="Search" class="archiveComponentImage">
-					<div class="archiveComponentControls">
+
+					<div class="hidden-tn hidden-xs hidden-sm col-md-4 archiveComponentIconContainer">
+						<img src="{$searchComponentImage}" width="100" height="100" alt="Search" class="archiveComponentImage">
+					</div>
+					<div class="col-tn-12 col-md-8 archiveComponentSearchControls">
 						<div class="archiveComponentHeader">Search This Collection</div>
 						<form action="/Archive/Results" id="searchComponentForm">
 							<div class="input-group">
@@ -12,11 +15,11 @@
 								<div class="input-group-btn" id="search-actions">
 									<button class="btn btn-default" type="submit">GO</button>
 								</div>
-								<input type="hidden" name="islandoraType" value="IslandoraKeyword"/>
+								<input type="hidden" name="islandoraType" value="IslandoraKeyword">
 								{if count($subCollections) > 0}
-									<input type="hidden" name="filter[]" value='RELS_EXT_isMemberOfCollection_uri_ms:"info:fedora/{$pid}"{foreach from=$subCollections item=subCollectionPID} OR RELS_EXT_isMemberOfCollection_uri_ms:"info:fedora/{$subCollectionPID}"{/foreach}'/>
+									<input type="hidden" name="filter[]" value='RELS_EXT_isMemberOfCollection_uri_ms:"info:fedora/{$pid}"{foreach from=$subCollections item=subCollectionPID} OR RELS_EXT_isMemberOfCollection_uri_ms:"info:fedora/{$subCollectionPID}"{/foreach}'>
 								{else}
-									<input type="hidden" name="filter[]" value='RELS_EXT_isMemberOfCollection_uri_ms:"info:fedora/{$pid}"'/>
+									<input type="hidden" name="filter[]" value='RELS_EXT_isMemberOfCollection_uri_ms:"info:fedora/{$pid}"'>
 								{/if}
 							</div>
 						</form>
