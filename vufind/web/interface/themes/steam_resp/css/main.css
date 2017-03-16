@@ -10448,6 +10448,7 @@ a.browse-thumbnail-sorted.active {
 }
 #explore-more-body .jcarousel .thumbnail,
 #relatedProjectScroller .jcarousel .thumbnail,
+#relatedProjectOtherScroller .jcarousel .thumbnail,
 #relatedContentTypesContainer .jcarousel .thumbnail,
 .exploreMoreBar .jcarousel .thumbnail,
 #book-sections .jcarousel .thumbnail {
@@ -10457,11 +10458,13 @@ a.browse-thumbnail-sorted.active {
 }
 #explore-more-body .jcarousel-control-prev,
 #relatedProjectScroller .jcarousel-control-prev,
+#relatedProjectOtherScroller .jcarousel-control-prev,
 #relatedContentTypesContainer .jcarousel-control-prev,
 .exploreMoreBar .jcarousel-control-prev,
 #book-sections .jcarousel-control-prev,
 #explore-more-body .jcarousel-control-next,
 #relatedProjectScroller .jcarousel-control-next,
+#relatedProjectOtherScroller .jcarousel-control-next,
 #relatedContentTypesContainer .jcarousel-control-next,
 .exploreMoreBar .jcarousel-control-next,
 #book-sections .jcarousel-control-next {
@@ -10473,11 +10476,13 @@ a.browse-thumbnail-sorted.active {
 }
 #explore-more-body .jcarousel-control-prev:focus,
 #relatedProjectScroller .jcarousel-control-prev:focus,
+#relatedProjectOtherScroller .jcarousel-control-prev:focus,
 #relatedContentTypesContainer .jcarousel-control-prev:focus,
 .exploreMoreBar .jcarousel-control-prev:focus,
 #book-sections .jcarousel-control-prev:focus,
 #explore-more-body .jcarousel-control-next:focus,
 #relatedProjectScroller .jcarousel-control-next:focus,
+#relatedProjectOtherScroller .jcarousel-control-next:focus,
 #relatedContentTypesContainer .jcarousel-control-next:focus,
 .exploreMoreBar .jcarousel-control-next:focus,
 #book-sections .jcarousel-control-next:focus {
@@ -10485,11 +10490,13 @@ a.browse-thumbnail-sorted.active {
 }
 #explore-more-body .jcarousel-control-prev .glyphicon,
 #relatedProjectScroller .jcarousel-control-prev .glyphicon,
+#relatedProjectOtherScroller .jcarousel-control-prev .glyphicon,
 #relatedContentTypesContainer .jcarousel-control-prev .glyphicon,
 .exploreMoreBar .jcarousel-control-prev .glyphicon,
 #book-sections .jcarousel-control-prev .glyphicon,
 #explore-more-body .jcarousel-control-next .glyphicon,
 #relatedProjectScroller .jcarousel-control-next .glyphicon,
+#relatedProjectOtherScroller .jcarousel-control-next .glyphicon,
 #relatedContentTypesContainer .jcarousel-control-next .glyphicon,
 .exploreMoreBar .jcarousel-control-next .glyphicon,
 #book-sections .jcarousel-control-next .glyphicon {
@@ -10497,6 +10504,7 @@ a.browse-thumbnail-sorted.active {
 }
 #explore-more-body .jcarousel-control-prev,
 #relatedProjectScroller .jcarousel-control-prev,
+#relatedProjectOtherScroller .jcarousel-control-prev,
 #relatedContentTypesContainer .jcarousel-control-prev,
 .exploreMoreBar .jcarousel-control-prev,
 #book-sections .jcarousel-control-prev {
@@ -10504,6 +10512,7 @@ a.browse-thumbnail-sorted.active {
 }
 #explore-more-body .jcarousel-control-next,
 #relatedProjectScroller .jcarousel-control-next,
+#relatedProjectOtherScroller .jcarousel-control-next,
 #relatedContentTypesContainer .jcarousel-control-next,
 .exploreMoreBar .jcarousel-control-next,
 #book-sections .jcarousel-control-next {
@@ -10511,6 +10520,7 @@ a.browse-thumbnail-sorted.active {
 }
 #explore-more-body .panel-body,
 #relatedProjectScroller .panel-body,
+#relatedProjectOtherScroller .panel-body,
 #relatedContentTypesContainer .panel-body,
 .exploreMoreBar .panel-body,
 #book-sections .panel-body {
@@ -10973,11 +10983,21 @@ fieldset[disabled] .btn-masquerade.active {
 .glyphicon-chevron-right:before {
   content: "\e258";
 }
-@media (min-width: 992px) {
-  #exhibitMainImageContainer {
-    left: 58.33333333%;
-  }
+.lead.row {
+  margin-left: auto;
+}
+.exhibit-thumbnail {
+  float: right;
+}
+@media (max-width: 700px) {
   #exhibitMainDescriptionContainer {
-    right: 41.66666667%;
+    display: block;
+    clear: both;
+  }
+  .exhibit-thumbnail {
+    float: none;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
   }
 }
