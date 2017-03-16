@@ -10786,6 +10786,9 @@ a.browse-thumbnail-sorted.active {
   break-inside: avoid;
   break-inside: avoid-column;
 }
+.lead {
+  font-weight: normal !important;
+}
 @media (max-width: 767px) {
   .lead {
     font-size: 18px;

@@ -16,16 +16,14 @@
 		{$title|escape}
 	</h2>
 
-	<div class="lead row">
+	<div class="row">
 		{if $thumbnail && !$main_image}
-			<div id="exhibitMainImageContainer" class="col-tn-12 col-md-5 col-lg-5">
 			{if $exhibitThumbnailURL}<a href="{$exhibitThumbnailURL}">{/if}
-			<img src="{$thumbnail}" class="img-responsive thumbnail center-block">
+			<img src="{$thumbnail}" class="img-responsive exhibit-thumbnail">
 			{if $exhibitThumbnailURL}</a>{/if}
-			</div>
-			<div id="exhibitMainDescriptionContainer" class="col-tn-12 col-md-7 col-lg-7">
+			<span id="exhibitMainDescriptionContainer" class="lead">
 				{$description}
-			</div>
+			</span>
 		{else}
 			{$description}
 		{/if}
