@@ -110,7 +110,10 @@ class Archive_Exhibit extends Archive_Object{
 			$this->startExhibitContext();
 			$collectionTemplates = array();
 			foreach ($collectionOptions as $option){
-				if ($option == 'searchCollection'){
+				if (strpos($option, 'searchCollection') === 0){
+					$filterOptions = explode('|', $option);
+					$browseFilterImage = isset($filterOptions[1]) ? $filterOptions[1] : "/interface/themes/responsive/images/search_component.png";
+					$interface->assign('searchComponentImage', $browseFilterImage);
 					$collectionTemplates[] = $interface->fetch('Archive/searchComponent.tpl');
 				}else if ($option == 'googleMap'){
 					$mapZoom = $this->recordDriver->getModsValue('mapZoomLevel', 'marmot');
