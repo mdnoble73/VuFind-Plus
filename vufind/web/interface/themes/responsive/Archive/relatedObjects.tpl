@@ -27,11 +27,6 @@
 								<button class="btn btn-default" type="submit">GO</button>
 							</div>
 							<input type="hidden" name="islandoraType" value="IslandoraKeyword">
-							{if count($subCollections) > 0}
-								<input type="hidden" name="filter[]" value='RELS_EXT_isMemberOfCollection_uri_ms:"info:fedora/{$exhibitPid}"{foreach from=$subCollections item=subCollectionPID} OR RELS_EXT_isMemberOfCollection_uri_ms:"info:fedora/{$subCollectionPID}"{/foreach}'>
-							{else}
-								<input type="hidden" name="filter[]" value='RELS_EXT_isMemberOfCollection_uri_ms:"info:fedora/{$exhibitPid}"'>
-							{/if}
 						</div>
 					</form>
 				{/if}
