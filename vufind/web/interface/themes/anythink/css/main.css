@@ -10632,6 +10632,7 @@ a.browse-thumbnail-sorted.active {
   display: block;
   margin-left: auto;
   margin-right: auto;
+  max-width: 100%;
 }
 .archiveComponentContainer .archiveComponent .archiveComponentBody .archiveComponentBox .archiveComponentControls {
   display: -webkit-box;
