@@ -372,7 +372,7 @@ abstract class SearchObject_Base
 	protected function getFacetLabel($field)
 	{
 		return isset($this->facetConfig[$field]) ?
-		$this->facetConfig[$field] : ucwords(str_replace("_"," ",$field));
+		$this->facetConfig[$field] : ucwords(str_replace("_"," ",translate($field)));
 	}
 
 	/**
