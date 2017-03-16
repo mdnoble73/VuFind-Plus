@@ -3,7 +3,7 @@
 		<div class="archiveComponent">
 			<div class="archiveComponentBody">
 				<div class="archiveComponentBox">
-					<img src="{$path}/interface/themes/responsive/images/search_component.png" width="100" height="100" alt="Search" class="archiveComponentImage">
+					<img src="{$searchComponentImage}" width="100" height="100" alt="Search" class="archiveComponentImage">
 					<div class="archiveComponentControls">
 						<div class="archiveComponentHeader">Search This Collection</div>
 						<form action="/Archive/Results" id="searchComponentForm">
