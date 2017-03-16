@@ -1541,7 +1541,7 @@ class SearchObject_Islandora extends SearchObject_Base
 				if (strlen($filter) > 0){
 					$filter .= ' AND ';
 				}
-				$filter .= "!RELS_EXT_isMemberOfCollection_uri_ms:\"info:fedora/{$collection}\"";
+				$filter .= "!ancestors_ms:\"{$collection}\"";
 			}
 			$filters[] = $filter;
 		}
