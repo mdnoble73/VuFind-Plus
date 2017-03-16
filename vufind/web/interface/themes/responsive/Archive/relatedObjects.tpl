@@ -27,6 +27,7 @@
 								<button class="btn btn-default" type="submit">GO</button>
 							</div>
 							<input type="hidden" name="islandoraType" value="IslandoraKeyword">
+							<input type="hidden" name="filter[]" value='ancestors_ms:"{$exhibitPid}"'>
 						</div>
 					</form>
 				{/if}
