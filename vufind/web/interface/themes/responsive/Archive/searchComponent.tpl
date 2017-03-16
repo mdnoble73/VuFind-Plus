@@ -4,7 +4,7 @@
 			<div class="row archiveComponentBody">
 				<div class="archiveComponentBox">
 					<div class="hidden-tn hidden-xs hidden-sm col-md-4 archiveComponentIconContainer">
-					<img src="{$path}/interface/themes/responsive/images/search_component.png" width="100" height="100" alt="Search" class="archiveComponentImage">
+					<img src="{$searchComponentImage}" width="100" height="100" alt="Search" class="archiveComponentImage">
 					</div>
 					<div class="col-tn-12 col-md-8 archiveComponentSearchControls">
 						<div class="archiveComponentHeader">Search This Collection</div>
