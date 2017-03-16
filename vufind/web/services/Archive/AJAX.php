@@ -115,10 +115,6 @@ class Archive_AJAX extends Action {
 
 			//Get a list of sub collections to use for searching
 			$exhibitObject = $fedoraUtils->getObject($pid);
-			/** @var IslandoraDriver $exhibitDriver */
-			$exhibitDriver = RecordDriverFactory::initRecordDriver($exhibitObject);
-			$subCollections = $exhibitDriver->getSubCollections();
-			$interface->assign('subCollections', $subCollections);
 
 			$interface->assign('relatedObjects', $relatedObjects);
 			return array(

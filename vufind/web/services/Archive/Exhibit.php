@@ -67,10 +67,6 @@ class Archive_Exhibit extends Archive_Object{
 			}
 		}
 
-		//Get a list of sub collections to for searching
-		$subCollections = $this->recordDriver->getSubCollections();
-		$interface->assign('subCollections', $subCollections);
-
 		$interface->assign('showExploreMore', true);
 
 		$imageMapPID = $this->recordDriver->getModsValue('imageMapPID', 'marmot');
