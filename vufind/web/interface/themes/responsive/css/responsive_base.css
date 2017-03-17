@@ -10608,6 +10608,7 @@ a.browse-thumbnail-sorted.active {
   display: block;
   margin-left: auto;
   margin-right: auto;
+  max-width: 100%;
 }
 .archiveComponentContainer .archiveComponent .archiveComponentBody .archiveComponentBox .archiveComponentControls {
   display: -webkit-box;
@@ -10676,7 +10677,7 @@ a.browse-thumbnail-sorted.active {
   }
 }
 .archiveComponentContainer .archiveComponent.horizontalComponent .archiveComponentBody {
-  min-height: 225px;
+  min-height: 250px;
 }
 .archiveComponentContainer .archiveComponent.horizontalComponent .archiveComponentBody:before {
   content: "";
@@ -10762,6 +10763,9 @@ a.browse-thumbnail-sorted.active {
   column-break-inside: avoid;
   break-inside: avoid;
   break-inside: avoid-column;
+}
+.lead {
+  font-weight: normal !important;
 }
 @media (max-width: 767px) {
   .lead {
