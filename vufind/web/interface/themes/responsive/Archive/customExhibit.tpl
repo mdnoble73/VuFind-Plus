@@ -16,13 +16,17 @@
 		{$title|escape}
 	</h2>
 
-	<div class="lead row">
+	<div class="row">
 		{if $thumbnail && !$main_image}
 			{if $exhibitThumbnailURL}<a href="{$exhibitThumbnailURL}">{/if}
-			<img src="{$thumbnail}" class="img-responsive thumbnail exhibit-thumbnail">
+			<img src="{$thumbnail}" class="img-responsive exhibit-thumbnail">
 			{if $exhibitThumbnailURL}</a>{/if}
+			<span id="exhibitMainDescriptionContainer" class="lead">
+				{$description}
+			</span>
+		{else}
+			{$description}
 		{/if}
-		{$description}
 		<div class="clear-both"></div>
 	</div>
 
