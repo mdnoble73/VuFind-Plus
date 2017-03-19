@@ -1148,11 +1148,18 @@ class SearchObject_Islandora extends SearchObject_Base
 			// and each value currently used for that field
 			$translate = in_array($field, $this->translatedFacets);
 			$lookupPid = in_array($field, $this->pidFacets);
+			$namespaceLookup = $field == 'namespace_s';
 			foreach ($values as $value) {
 				// Add to the list unless it's in the list of fields to skip:
 				if (!in_array($field, $skipList)) {
 					$facetLabel = $this->getFacetLabel($field);
-					if ($lookupPid) {
+					if ($namespaceLookup){
+						$tmpLibrary = new Library();
+						$tmpLibrary->archiveNamespace = $value;
+						if ($tmpLibrary->find(true)){
+							$display = $tmpLibrary->displayName;
+						}
+					}elseif ($lookupPid) {
 						$pid = str_replace('info:fedora/', '', $value);
 						$display = $fedoraUtils->getObjectLabel($pid);
 						if ($display == 'Invalid Object'){
@@ -1227,13 +1234,20 @@ class SearchObject_Islandora extends SearchObject_Base
 			// Should we translate values for the current facet?
 			$translate = in_array($field, $this->translatedFacets);
 			$lookupPid = in_array($field, $this->pidFacets);
+			$namespaceLookup = $field == 'namespace_s';
 
 			// Loop through values:
 			foreach ($data as $facet) {
 				// Initialize the array of data about the current facet:
 				$currentSettings = array();
 				$currentSettings['value'] = $facet[0];
-				if ($lookupPid) {
+				if ($namespaceLookup){
+					$tmpLibrary = new Library();
+					$tmpLibrary->archiveNamespace = $facet[0];
+					if ($tmpLibrary->find(true)){
+						$currentSettings['display'] = $tmpLibrary->displayName;
+					}
+				}elseif ($lookupPid) {
 					$pid = str_replace('info:fedora/', '', $facet[0]);
 					$currentSettings['display'] = $fedoraUtils->getObjectLabel($pid);
 					if ($currentSettings['display'] == 'Invalid Object'){
