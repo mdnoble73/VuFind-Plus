@@ -56,19 +56,19 @@
 00 6 * * * cd /usr/local/vufind-plus/vufind/cron; java -jar cron.jar marmot.test SierraReports
 
 # Split Marc Records for export to other systems
-00 1 * * * cd /usr/local/vufind-plus/vufind/cron; java -jar cron.jar marmot.test SplitMarcExport
+#00 1 * * * cd /usr/local/vufind-plus/vufind/cron; java -jar cron.jar marmot.test SplitMarcExport
 
 ###########################
 # Export of data to EBSCO #
 ###########################
 # ftp cmu marc records to ebsco at 1.45am daily (takes about 20min)
-45 1 * * * /home/cassini/cron/cmu.exp
+#45 1 * * * /home/cassini/cron/cmu.exp
 #
 # ftp fortlewis marc records to ebsco at 2.05am daily (takes about 20min)
-05 2 * * * /home/cassini/cron/fortlewis.exp
+#05 2 * * * /home/cassini/cron/fortlewis.exp
 #
 # ftp adams marc records to ebsco at 2.25am daily (takes about 10min)
-25 2 * * * /home/cassini/cron/adams.exp
+#25 2 * * * /home/cassini/cron/adams.exp
 #
 # ftp adams marc records to ebsco at 2.45am daily
 45 2 * * * /home/cassini/cron/adams_ebrary.exp

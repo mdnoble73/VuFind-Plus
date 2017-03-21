@@ -45,12 +45,6 @@
 #
 
 #--------------------------------------------------------------
-# fix permissions at 12.59am before running marc_send script (as steve)
-# don't need this anymore since we are running the script at root
-#59 0 * * * chown root:steve /ftp/sierra/*
-#
-
-#--------------------------------------------------------------
 # purge /ftp directory at 1.30am daily
 30 1 * * * /root/cron/purge_ftp_dir
 #
@@ -87,6 +81,48 @@
 # get marc records from AspenCat/CLIC at 11pm daily
 #0 23 * * * /root/cron/marc_get aspencat
 #--------------------------------------------------------------
+
+###########################
+# Export of data to EBSCO #
+###########################
+# ftp cmu marc records to ebsco at 1.45am daily (takes about 20min)
+45 1 * * * /root/cron/cmu.exp
+#
+# ftp fortlewis marc records to ebsco at 2.05am daily (takes about 20min)
+05 2 * * * /root/cron/fortlewis.exp
+#
+# ftp adams marc records to ebsco at 2.25am daily (takes about 10min)
+25 2 * * * /root/cron/adams.exp
+
+#
+#TODO: send adams ebrary
+# ftp adams marc records to ebsco at 2.45am daily
+#45 2 * * * /root/cron/adams_ebrary.exp
+
+#TODO: send hoopla
+# ftp hoopla marc records to ebsco at 3.55 (takes about 10min)
+#15 4 * * * /root/cron/hoopla.exp
+#
+
+###############################
+# Export of data to Gold Rush #
+###############################
+# send goldrush on the first of the month
+# sftp western goldrush marc records to coalliance.org at 2.35 (use 20 min interval)
+55 2 1 * * /root/cron/western_goldrush.exp /data/vufind-plus/marmot.ftp/split_marc/western_goldrush.marc
+#
+# sftp ccu goldrush marc records to coalliance.org at 2.55 (use 20 min interval)
+55 2 1 * * /root/cron/ccu_goldrush.exp /data/vufind-plus/marmot.ftp/split_marc/ccu_goldrush.marc
+#
+# sftp cmu goldrush marc records to coalliance.org at 3.15 (use 20 min interval)
+35 3 1 * * /root/cron/cmu_goldrush.exp /data/vufind-plus/marmot.ftp/split_marc/cmu_goldrush.marc
+#
+# sftp fort lewis goldrush marc records to coalliance.org at 3.35 (use 20 min interval)
+55 3 1 * * /root/cron/ftlewis_goldrush.exp /data/vufind-plus/marmot.ftp/split_marc/fortlewis_goldrush.marc
+#-----------
+
+
+
 #
 #---eof---
 
