@@ -118,7 +118,7 @@
 35 3 1 * * /root/cron/cmu_goldrush.exp /data/vufind-plus/marmot.ftp/split_marc/cmu_goldrush.marc
 #
 # sftp fort lewis goldrush marc records to coalliance.org at 3.35 (use 20 min interval)
-55 3 1 * * /root/cron/ftlewis_goldrush.exp /data/vufind-plus/marmot.ftp/split_marc/fortlewis_goldrush.marc
+55 3 1 * * /root/cron/fortlewis_goldrush.exp /data/vufind-plus/marmot.ftp/split_marc/fortlewis_goldrush.marc
 #-----------
 
 
