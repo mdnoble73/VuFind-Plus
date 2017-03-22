@@ -141,8 +141,7 @@ cd /usr/local/vufind-plus/sites/${PIKASERVER}; ./${PIKASERVER}.sh restart
 
 
 #Extracts for sideloaded eContent; settings defined in config.pwd.ini [Sideload]
-#cd /usr/local/vufind-plus/vufind/cron; ./sideload.sh ${PIKASERVER}
-# No sideloads loaded via this script at this time. pascal 2-9-2017
+cd /usr/local/vufind-plus/vufind/cron; ./sideload.sh ${PIKASERVER}
 
 # Merge Learning Express Records
 /usr/local/vufind-plus/vufind/cron/mergeSideloadMarc.sh learning_express/steamboatsprings >> ${OUTPUT_FILE}
