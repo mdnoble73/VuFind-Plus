@@ -25,6 +25,24 @@ class Archive_Home extends Action{
 			$interface->assign('relatedProjectsOther', $relatedProjects);
 		}
 
+		$archiveName = $library->displayName;
+		//Get the archive name from islnadora
+		/** @var SearchObject_Islandora $searchObject */
+		$searchObject = SearchObjectFactory::initSearchObject('Islandora');
+		$searchObject->init();
+		$searchObject->setDebugging(false, false);
+		$searchObject->clearFacets();
+		$searchObject->clearFilters();
+		$searchObject->clearHiddenFilters();
+		$searchObject->setBasicQuery("RELS_EXT_isMemberOfCollection_uri_ms:\"info:fedora/islandora:root\" AND PID:{$library->archiveNamespace}*");
+		$searchObject->setApplyStandardFilters(false);
+		$response = $searchObject->processSearch(true, false, true);
+		if ($response && isset($response['response']) && $response['response']['numFound'] > 0){
+			$firstObject = reset($response['response']['docs']);
+			$archiveName = $firstObject['fgs_label_s'];
+		}
+		$interface->assign('archiveName', $archiveName);
+
 		//Get a list of content types and count the number of objects per content type
 		$searchObject = SearchObjectFactory::initSearchObject('Islandora');
 		$searchObject->init();
