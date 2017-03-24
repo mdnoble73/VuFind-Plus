@@ -29,6 +29,11 @@
 ## taken from https://en.wikipedia.org/wiki/Cron
 ##############
 
+##########################
+# Check for Hoopla updates
+##########################
+03 12 * * * cd /usr/local/vufind-plus/vufind/cron;./HOOPLA.sh marmot.ftp
+
 ## -- uncomment all times when in production --##
 #--------------------------------------------------------------
 # check for new files in /ftp at 12:00am everyday
@@ -99,9 +104,8 @@
 # ftp adams marc records to ebsco at 2.45am daily
 #45 2 * * * /root/cron/adams_ebrary.exp
 
-#TODO: send hoopla
-# ftp hoopla marc records to ebsco at 3.55 (takes about 10min)
-#15 4 * * * /root/cron/hoopla.exp
+# ftp hoopla marc records to ebsco at 4.15 on the 10th (takes about 10min)
+15 4 10 * * /root/cron/hoopla.exp
 #
 
 ###############################
