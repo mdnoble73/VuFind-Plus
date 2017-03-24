@@ -99,8 +99,9 @@
 # ftp adams marc records to ebsco at 2.25am daily (takes about 10min)
 25 2 * * * /root/cron/adams.exp
 
+#Fetch adams ebrary from pika production server
+02 2 * * * scp pascal@10.1.2.11:/data/vufind-plus/ebrary/adams/marc/*.mrc /data/vufind-plus/ebrary/adams/marc/
 #
-#TODO: send adams ebrary
 # ftp adams marc records to ebsco at 2.45am daily
 #45 2 * * * /root/cron/adams_ebrary.exp
 
