@@ -16,6 +16,7 @@ class GroupedWorkDriver extends RecordInterface{
 	protected $fields;
 	protected $scopingEnabled = true;
 	public $isValid = true;
+
 	/**
 	 * These are captions corresponding with Solr fields for use when displaying
 	 * snippets.
@@ -55,6 +56,7 @@ class GroupedWorkDriver extends RecordInterface{
 	{
 		if (is_string($indexFields)){
 			$id = $indexFields;
+			$id = str_replace('groupedWork:', '', $id);
 			//Just got a record id, let's load the full record from Solr
 			// Setup Search Engine Connection
 			$searchObject = SearchObjectFactory::initSearchObject();
@@ -83,6 +85,10 @@ class GroupedWorkDriver extends RecordInterface{
 			$this->snippet = $configArray['Index']['enableSnippets'];
 			$this->snippetCaptions = isset($searchSettings['Snippet_Captions']) && is_array($searchSettings['Snippet_Captions']) ? $searchSettings['Snippet_Captions'] : array();
 		}
+	}
+
+	public function isValid(){
+		return $this->isValid;
 	}
 
 	public function getSolrField($fieldName){
