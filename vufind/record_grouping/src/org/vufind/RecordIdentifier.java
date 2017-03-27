@@ -24,7 +24,7 @@ public class RecordIdentifier {
 
 	private String myString = null;
 	public String toString(){
-		if (myString == null){
+		if (myString == null && type != null && identifier != null){
 			myString = type + ":" + identifier.toUpperCase();
 		}
 		return myString;
