@@ -43,6 +43,11 @@ class Hoopla_Home extends Action{
 		if (!$recordDriver->isValid()){
 			$this->display('../Record/invalidRecord.tpl', 'Invalid Record');
 			die();
+		}
+		$groupedWork = $recordDriver->getGroupedWorkDriver();
+		if (is_null($groupedWork) || !$groupedWork->isValid()){  // initRecordDriverById itself does a validity check and returns null if not.
+			$this->display('../Record/invalidRecord.tpl', 'Invalid Record');
+			die();
 		}else{
 			$interface->assign('recordDriver', $recordDriver);
 

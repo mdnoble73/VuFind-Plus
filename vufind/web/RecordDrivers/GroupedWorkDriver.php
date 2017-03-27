@@ -1335,14 +1335,15 @@ class GroupedWorkDriver extends RecordInterface{
 			require_once ROOT_DIR . '/sys/Grouping/GroupedWork.php';
 			$groupedWork = new GroupedWork();
 			$groupedWork->permanent_id = $this->getUniqueID();
-			$groupedWork->find(true);
-
-			//Generate record information based on the information we have in the index
 			$relatedRecords = array();
-			foreach ($recordsFromIndex as $recordDetails){
-				$relatedRecord = $this->setupRelatedRecordDetails($recordDetails, $groupedWork, $timer, $scopingInfo, $activePTypes, $searchLocation, $library);
-				$relatedRecords[$relatedRecord['id']] = $relatedRecord;
-				$memoryWatcher->logMemory("Setup related record details for " . $relatedRecord['id']);
+			//This will be false if the record is old
+			if ($groupedWork->find(true)){
+				//Generate record information based on the information we have in the index
+				foreach ($recordsFromIndex as $recordDetails){
+					$relatedRecord = $this->setupRelatedRecordDetails($recordDetails, $groupedWork, $timer, $scopingInfo, $activePTypes, $searchLocation, $library);
+					$relatedRecords[$relatedRecord['id']] = $relatedRecord;
+					$memoryWatcher->logMemory("Setup related record details for " . $relatedRecord['id']);
+				}
 			}
 
 			//Sort the records based on format and then edition

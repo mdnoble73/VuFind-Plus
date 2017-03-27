@@ -1609,15 +1609,19 @@ class MarcRecord extends IndexRecord
 				'openByDefault' => true
 		);
 		//Other editions if applicable (only if we aren't the only record!)
-		$relatedRecords = $this->getGroupedWorkDriver()->getRelatedRecords();
-		if (count($relatedRecords) > 1) {
-			$interface->assign('relatedManifestations', $this->getGroupedWorkDriver()->getRelatedManifestations());
-			$moreDetailsOptions['otherEditions'] = array(
-					'label' => 'Other Editions and Formats',
-					'body' => $interface->fetch('GroupedWork/relatedManifestations.tpl'),
-					'hideByDefault' => false
-			);
+		$groupedWorkDriver = $this->getGroupedWorkDriver();
+		if ($groupedWorkDriver != null){
+			$relatedRecords = $groupedWorkDriver->getRelatedRecords();
+			if (count($relatedRecords) > 1) {
+				$interface->assign('relatedManifestations', $groupedWorkDriver->getRelatedManifestations());
+				$moreDetailsOptions['otherEditions'] = array(
+						'label' => 'Other Editions and Formats',
+						'body' => $interface->fetch('GroupedWork/relatedManifestations.tpl'),
+						'hideByDefault' => false
+				);
+			}
 		}
+
 		$moreDetailsOptions['moreDetails'] = array(
 				'label' => 'More Details',
 				'body' => $interface->fetch('Record/view-more-details.tpl'),

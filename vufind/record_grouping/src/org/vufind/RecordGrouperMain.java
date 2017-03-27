@@ -1207,7 +1207,7 @@ public class RecordGrouperMain {
 											}
 											if (primaryIdentifiersInDatabase.remove(fullId) == null){
 												//This should only happen for newly added records
-												logger.debug("Did not find " + fullId + " in primaryIdentifiersInDatabase");
+												//logger.debug("Did not find " + fullId + " in primaryIdentifiersInDatabase");
 											}
 										}
 										lastRecordProcessed = recordNumber;
