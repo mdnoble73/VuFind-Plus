@@ -22,6 +22,55 @@ VuFind.Archive = (function(){
 		activeBookViewer: 'jp2',
 		activeBookPage: null,
 		activeBookPid: null,
+
+		// Archive Collection Display Mode (different from search)
+		// curPage: 1, //TODO: can use the above variable as well
+		displayMode: 'list', // default display Mode for collections //TODO: update
+		displayModeClasses: { // browse mode to css class correspondence //TODO: update
+			covers: 'home-page-browse-thumbnails',
+			list: ''
+		},
+
+		getPreferredDisplayMode: function(){
+			if (!Globals.opac && VuFind.hasLocalStorage()){
+				temp = window.localStorage.getItem('archiveCollectionDisplayMode');
+				if (VuFind.Archive.displayModeClasses.hasOwnProperty(temp)) {
+					VuFind.Archive.displayMode = temp; // if stored value is empty or a bad value, fall back on default setting ("null" is returned from local storage when not set)
+					// $('input[name="view"]','#searchForm').val(VuFind.Archive.displayMode); // set the user's preferred search view mode on the search box.
+				}
+			}
+		},
+
+		toggleDisplayMode : function(selectedMode){
+			var mode = this.displayModeClasses.hasOwnProperty(selectedMode) ? selectedMode : this.displayMode; // check that selected mode is a valid option
+					// searchBoxView = $('input[name="view"]','#searchForm'), // display mode variable associated with the search box
+					// paramString = VuFind.replaceQueryParam('page', '', VuFind.replaceQueryParam('view',mode)); // set view in url and unset page variable
+			this.displayMode = mode; // set the mode officially
+			this.curPage = 1; // reset js page counting
+			// if (searchBoxView) searchBoxView.val(this.displayMode); // set value in search form, if present
+			if (!Globals.opac && VuFind.hasLocalStorage() ) { // store setting in browser if not an opac computer
+				window.localStorage.setItem('archiveCollectionDisplayMode', this.displayMode);
+			}
+			if (mode == 'list') $('#hideSearchCoversSwitch').show(); else $('#hideSearchCoversSwitch').hide();
+			this.ajaxReloadCallback()
+		},
+
+		ajaxReloadCallback: function () {
+			// Placeholder for the function that will be call when the display mode is toggled.
+			console.log('Empty ajaxReloadCallback Called');
+		},
+
+		toggleShowCovers: function(showCovers){
+			VuFind.Account.showCovers = showCovers;
+			// var paramString = VuFind.replaceQueryParam('showCovers', this.showCovers ? 'on': 'off'); // set variable
+			if (!Globals.opac && VuFind.hasLocalStorage()) { // store setting in browser if not an opac computer
+				window.localStorage.setItem('showCovers', this.showCovers ? 'on' : 'off');
+			}
+			this.ajaxReloadCallback()
+			// location.replace(location.pathname + paramString); // reloads page without adding entry to history
+		},
+
+
 		openSeadragonViewerSettings: function(){
 			return {
 				"id": "pika-openseadragon",
@@ -97,7 +146,7 @@ VuFind.Archive = (function(){
 				$("#exhibit-results-loading").show();
 				this.curPage = 1;
 			}
-			var url = Globals.path + "/Archive/AJAX?method=getRelatedObjectsForExhibit&collectionId=" + exhibitPid + "&page=" + this.curPage + "&sort=" + this.sort;
+			var url = Globals.path + "/Archive/AJAX?method=getRelatedObjectsForExhibit&collectionId=" + exhibitPid + "&page=" + this.curPage + "&sort=" + this.sort + '&archiveCollectionView=' + this.displayMode + '&showCovers=' + VuFind.Account.showCovers;
 			url = url + "&reloadHeader=" + reloadHeader;
 
 			$.getJSON(url, function(data){
@@ -284,7 +333,7 @@ VuFind.Archive = (function(){
 		reloadScrollerResults: function(pid, reloadHeader){
 			$("#exhibit-results-loading").show();
 			this.curPage = 1;
-			var url = Globals.path + "/Archive/AJAX?method=getRelatedObjectsForScroller&pid=" + pid + "&page=" + this.curPage + "&sort=" + this.sort;
+			var url = Globals.path + "/Archive/AJAX?method=getRelatedObjectsForScroller&pid=" + pid + "&page=" + this.curPage + "&sort=" + this.sort + '&view=' + this.displayMode + '&showCovers=' + VuFind.Account.showCovers;
 			url = url + "&reloadHeader=" + reloadHeader;
 
 			$.getJSON(url, function(data){
@@ -611,7 +660,5 @@ VuFind.Archive = (function(){
 		},
 
 	}
-
-
 
 }(VuFind.Archive || {}));

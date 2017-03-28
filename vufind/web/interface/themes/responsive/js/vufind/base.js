@@ -79,6 +79,7 @@ var VuFind = (function(){
 			carouselClass = carouselClass || '.jcarousel';
 			var jcarousel = $(carouselClass),
 					wrapper   = jcarousel.parents('.jcarousel-wrapper');
+			console.log('init Carousels called for ', jcarousel);
 
 			jcarousel.on('jcarousel:reload jcarousel:create', function() {
 
@@ -86,6 +87,8 @@ var VuFind = (function(){
 						width          = Carousel.innerWidth(),
 						numCategories  = Carousel.jcarousel('items').length || 1,
 						numItemsToShow = 1;
+
+				console.log('carousel reload or create event called for ', Carousel);
 
 				// Adjust Browse Category Carousels
 				if (jcarousel.is('#browse-category-carousel')){
@@ -208,6 +211,13 @@ var VuFind = (function(){
 		//getQueryParameterValue: function (parameterName) {
 		//	return location.search.split(parameterName + '=')[1].split('&')[0]
 		//},
+
+		replaceQueryParam : function (param, newValue, search) {
+			if (typeof search == 'undefined') search = location.search;
+			var regex = new RegExp("([?;&])" + param + "[^&;]*[;&]?"),
+					query = search.replace(regex, "$1").replace(/&$/, '');
+			return newValue ? (query.length > 2 ? query + "&" : "?") + param + "=" + newValue : query;
+		},
 
 		getSelectedTitles: function(){
 			var selectedTitles = $("input.titleSelect:checked ").map(function() {
