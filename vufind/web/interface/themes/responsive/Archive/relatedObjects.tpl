@@ -101,6 +101,11 @@
 
 		<div class="clearer"></div>
 		<div id="results">
+
+		{if $displayType == 'scroller' || $displayType == 'basic'}
+			{include file="Archive/archiveCollections-displayMode-toggle.tpl"}
+		{/if}
+
 	{/if}
 
 	{if $solrError}
@@ -108,16 +113,8 @@
 		<a href="{$solrLink}">Link to solr query</a>
 	{/if}
 
-	{if $displayType == 'scroller' || $displayType == 'basic'}
-		{include file="Archive/archiveCollections-displayMode-toggle.tpl"}
-	{/if}
-
-	{*TODO: Modify this below *}
 	{if $recordSet}
 		{include file="Archive/list-list.tpl"}
-{*		{foreach from=$recordSet item=record}
-			{$record}
-		{/foreach}*}
 	{else}
 		<div id="related-exhibit-images" {*TODO: check if really needed*} class="{if $showThumbnailsSorted}row{else}results-covers home-page-browse-thumbnails{/if}">
 		{foreach from=$relatedObjects item=image}

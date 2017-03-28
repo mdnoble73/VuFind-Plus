@@ -162,8 +162,12 @@ class Archive_AJAX extends Action {
 			$displayType = 'scroller';
 			$interface->assign('displayType', $displayType);
 
+
+			$this->setShowCovers();
+			$displayMode = $this->setCoversDisplayMode();
+
 			/** @var SearchObject_Islandora $searchObject */
-			$searchObject = SearchObjectFactory::initSearchObject('Islandora');
+ 			$searchObject = SearchObjectFactory::initSearchObject('Islandora');
 			$searchObject->init();
 			$searchObject->setDebugging(false, false);
 			$searchObject->clearHiddenFilters();
@@ -191,21 +195,27 @@ class Archive_AJAX extends Action {
 				$summary = $searchObject->getResultSummary();
 				$interface->assign('recordCount', $summary['resultTotal']);
 				$interface->assign('recordStart', $summary['startRecord']);
-				$interface->assign('recordEnd',   $summary['endRecord']);
+				$interface->assign('recordEnd', $summary['endRecord']);
 				$recordIndex = $summary['startRecord'];
-				$page = $summary['page'];
+				$page        = $summary['page'];
 				$interface->assign('page', $page);
+
+				if ($displayMode == 'list') {
+					$recordSet = $searchObject->getResultRecordHTML();
+					$interface->assign('recordSet', $recordSet);
+				}
 
 				// Save the search with Map query and filters
 				$searchObject->close(); // Trigger save search
-				$lastExhibitObjectsSearch = $searchObject->getSearchId(); // Have to save the search first.
+				$lastExhibitObjectsSearch    = $searchObject->getSearchId(); // Have to save the search first.
 				$_SESSION['exhibitSearchId'] = $lastExhibitObjectsSearch;
 				$logger->log("Setting exhibit search id to $lastExhibitObjectsSearch", PEAR_LOG_DEBUG);
 
-				foreach ($response['response']['docs'] as $objectInCollection){
-					/** @var IslandoraDriver $firstObjectDriver */
-					$firstObjectDriver = RecordDriverFactory::initRecordDriver($objectInCollection);
-					$relatedObject = array(
+				if ($displayMode == 'covers') {
+					foreach ($response['response']['docs'] as $objectInCollection) {
+						/** @var IslandoraDriver $firstObjectDriver */
+						$firstObjectDriver = RecordDriverFactory::initRecordDriver($objectInCollection);
+						$relatedObject     = array(
 							'title' => $firstObjectDriver->getTitle(),
 							'description' => $firstObjectDriver->getDescription(),
 							'image' => $firstObjectDriver->getBookcoverUrl('medium'),
@@ -213,23 +223,22 @@ class Archive_AJAX extends Action {
 							'link' => $firstObjectDriver->getRecordUrl(),
 							'pid' => $firstObjectDriver->getUniqueID(),
 							'recordIndex' => $recordIndex++
-					);
-					if ($sort == 'dateAdded'){
-						$relatedObject['dateCreated'] = date('M j, Y', strtotime($objectInCollection['fgs_createdDate_dt']));
-					}elseif ($sort == 'dateModified'){
-						$relatedObject['dateCreated'] = date('M j, Y', strtotime($objectInCollection['fgs_lastModifiedDate_dt']));
+						);
+						if ($sort == 'dateAdded') {
+							$relatedObject['dateCreated'] = date('M j, Y', strtotime($objectInCollection['fgs_createdDate_dt']));
+						} elseif ($sort == 'dateModified') {
+							$relatedObject['dateCreated'] = date('M j, Y', strtotime($objectInCollection['fgs_lastModifiedDate_dt']));
+						}
+						$relatedObjects[] = $relatedObject;
+						$timer->logTime('Loaded related object');
 					}
-					$relatedObjects[] = $relatedObject;
-					$timer->logTime('Loaded related object');
 				}
+
 
 				$this->processTimelineData($response, $interface);
 			}
 
 			$interface->assign('relatedObjects', $relatedObjects);
-
-			$this->setShowCovers();
-			$this->setCoversDisplayMode();
 
 			return array(
 					'success' => true,

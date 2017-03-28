@@ -333,7 +333,7 @@ VuFind.Archive = (function(){
 		reloadScrollerResults: function(pid, reloadHeader){
 			$("#exhibit-results-loading").show();
 			this.curPage = 1;
-			var url = Globals.path + "/Archive/AJAX?method=getRelatedObjectsForScroller&pid=" + pid + "&page=" + this.curPage + "&sort=" + this.sort + '&view=' + this.displayMode + '&showCovers=' + VuFind.Account.showCovers;
+			var url = Globals.path + "/Archive/AJAX?method=getRelatedObjectsForScroller&pid=" + pid + "&page=" + this.curPage + "&sort=" + this.sort + '&archiveCollectionView=' + this.displayMode + '&showCovers=' + VuFind.Account.showCovers;
 			url = url + "&reloadHeader=" + reloadHeader;
 
 			$.getJSON(url, function(data){
