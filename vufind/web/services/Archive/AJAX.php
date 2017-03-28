@@ -656,10 +656,13 @@ class Archive_AJAX extends Action {
 		$interface->assign('image', $recordDriver->getBookcoverUrl('medium'));
 
 		$urlStr = "<a href=\"$url\" onclick='VuFind.Archive.setForExhibitNavigation({$_COOKIE['recordIndex']},{$_COOKIE['page']})'>";
+		$escapedPid = urlencode($pid);
+		$addToFavoritesLabel = translate('Add to favorites');
+		$addToFavoritesButton = "<button onclick=\"return VuFind.Archive.showSaveToListForm(this, '$escapedPid');\" class=\"modal-buttons btn btn-primary\" style='float: left'>$addToFavoritesLabel</button>";
 		return array(
 			'title' => "{$urlStr}{$recordDriver->getTitle()}</a>",
 			'modalBody' => $interface->fetch('Archive/archivePopup.tpl'),
-			'modalButtons' => "{$urlStr}<button class='modal-buttons btn btn-primary'>More Info</button></a>"
+			'modalButtons' => "$addToFavoritesButton{$urlStr}<button class='modal-buttons btn btn-primary'>More Info</button></a>"
 		);
 	}
 
