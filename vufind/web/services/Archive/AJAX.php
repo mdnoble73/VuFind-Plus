@@ -919,13 +919,13 @@ class Archive_AJAX extends Action {
 			$filter = '';
 			$date = $_REQUEST['dateFilter'];
 			if ($date == 'before1880') {
-				$filter .= "(dateCreated:[* TO 1879-12-31T23:59:59Z])";
+				$filter .= "dateCreated:[* TO 1879-12-31T23:59:59Z]";
 			} elseif ($date == 'unknown') {
-				$filter .= '(-dateCreated:[* TO *])';
+				$filter .= '-dateCreated:[* TO *]';
 			} else {
 				$startYear = substr($date, 0, 4);
 				$endYear = (int)$startYear + 9;
-				$filter .= "(dateCreated:[$date TO $endYear-12-31T23:59:59Z])";
+				$filter .= "dateCreated:[$date TO $endYear-12-31T23:59:59Z]";
 			}
 
 			if (strlen($filter)){
