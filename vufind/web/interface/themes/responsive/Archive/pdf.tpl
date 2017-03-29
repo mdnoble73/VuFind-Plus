@@ -12,8 +12,8 @@
 					<div id="pdfContainer">
 						<div id="pdfContainerBody">
 							<div id="pdfComponentBox">
-								<object type="pdf" data="{$pdf}" id="view-pdf">
-									<embed type="application/pdf" src="{$pdf}">
+								<object type="pdf" data="{$pdf}" id="view-pdf" class="book-pdf">
+									<embed type="application/pdf" src="{$pdf}" class="book-pdf">
 								</object>
 							</div>
 						</div>
