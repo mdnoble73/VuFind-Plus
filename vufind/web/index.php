@@ -85,7 +85,7 @@ global $library;
 if ($configArray['System']['systemMessage']){
 	$interface->assign('systemMessage', $configArray['System']['systemMessage']);
 }else if ($configArray['Catalog']['offline']){
-	$interface->assign('systemMessage', "The circulation system is currently offline.  Access to account information and availability is limited.");
+	$interface->assign('systemMessage', "<p class='alert alert-warning'><strong>The circulation system is currently offline.</strong>  Access to account information and availability is limited.</p>");
 }else{
 	if ($library && strlen($library->systemMessage) > 0){
 		$interface->assign('systemMessage', $library->systemMessage);
