@@ -34,13 +34,35 @@
 		$('#'+VuFind.Archive.displayMode).parent('label').addClass('active'); {* show user which one is selected *}
 
 			VuFind.Archive.ajaxReloadCallback = function(){ldelim}
-				{if $displayType == 'scroller'}
-				VuFind.Archive.reloadScrollerResults('{$exhibitPid|urlencode}', 1);
+				{if $displayType == 'map'}
+				VuFind.Archive.reloadMapResults('{$exhibitPid|urlencode}', '{$placePid|urlencode}', 0);
+				{elseif $displayType == 'timeline'}
+				VuFind.Archive.reloadTimelineResults('{$exhibitPid|urlencode}', 0);
+				{elseif $displayType == 'scroller'}
+				VuFind.Archive.reloadScrollerResults('{$exhibitPid|urlencode}', 0);
+				{elseif $displayType == 'basic'}
+				VuFind.Archive.getMoreExhibitResults('{$exhibitPid|urlencode}', 1);
 				{else}
 				VuFind.Archive.getMoreExhibitResults('{$exhibitPid|urlencode}', 1);
 				{/if}
-				console.log('Defined ajaxReload function called.');
 			{rdelim};
 
+{*
+
+			VuFind.Archive.ajaxReloadCallback = function(){ldelim}
+				{if $displayType == 'map'}
+				VuFind.Archive.reloadMapResults('{$exhibitPid|urlencode}', '{$placePid|urlencode}', 1);
+				{elseif $displayType == 'timeline'}
+				VuFind.Archive.reloadTimelineResults('{$exhibitPid|urlencode}', 1);
+				{elseif $displayType == 'scroller'}
+				VuFind.Archive.reloadScrollerResults('{$exhibitPid|urlencode}', 1);
+				{elseif $displayType == 'basic'}
+				VuFind.Archive.getMoreExhibitResults('{$exhibitPid|urlencode}', 1);
+				{else}
+				VuFind.Archive.getMoreExhibitResults('{$exhibitPid|urlencode}', 1);
+				{/if}
+			{rdelim};
+
+*}
 	{rdelim});
 </script>

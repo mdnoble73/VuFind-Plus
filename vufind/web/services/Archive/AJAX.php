@@ -55,7 +55,6 @@ class Archive_AJAX extends Action {
 				$interface->assign('reloadHeader', '0');
 			}
 
-
 			$displayType = 'basic';
 			$interface->assign('displayType', $displayType);
 
@@ -78,8 +77,6 @@ class Archive_AJAX extends Action {
 			$this->setupTimelineSorts($sort, $searchObject);
 			//TODO: Do these sorts work for a basic exhibit?
 
-			$interface->assign('showThumbnailsSorted', true);
-
 			$relatedObjects = array();
 			$response = $searchObject->processSearch(true, false);
 			if ($response && isset($response['error'])){
@@ -97,6 +94,7 @@ class Archive_AJAX extends Action {
 					$recordSet = $searchObject->getResultRecordHTML();
 					$interface->assign('recordSet', $recordSet);
 				} else {
+					$interface->assign('showThumbnailsSorted', true);
 					foreach ($response['response']['docs'] as $objectInCollection) {
 						/** @var IslandoraDriver $firstObjectDriver */
 						$firstObjectDriver = RecordDriverFactory::initRecordDriver($objectInCollection);
@@ -161,7 +159,6 @@ class Archive_AJAX extends Action {
 
 			$displayType = 'scroller';
 			$interface->assign('displayType', $displayType);
-
 
 			$this->setShowCovers();
 			$displayMode = $this->setCoversDisplayMode();
@@ -276,6 +273,9 @@ class Archive_AJAX extends Action {
 			$displayType = 'timeline';
 			$interface->assign('displayType', $displayType);
 
+			$this->setShowCovers();
+			$displayMode = $this->setCoversDisplayMode();
+
 			/** @var SearchObject_Islandora $searchObject */
 			$searchObject = SearchObjectFactory::initSearchObject('Islandora');
 			$searchObject->init();
@@ -320,16 +320,23 @@ class Archive_AJAX extends Action {
 				$page = $summary['page'];
 				$interface->assign('page', $page);
 
+				if ($displayMode == 'list') {
+					$recordSet = $searchObject->getResultRecordHTML();
+					$interface->assign('recordSet', $recordSet);
+				}
+
+
 				// Save the search with Map query and filters
 				$searchObject->close(); // Trigger save search
 				$lastExhibitObjectsSearch = $searchObject->getSearchId(); // Have to save the search first.
 				$_SESSION['exhibitSearchId'] = $lastExhibitObjectsSearch;
 				$logger->log("Setting exhibit search id to $lastExhibitObjectsSearch", PEAR_LOG_DEBUG);
 
-				foreach ($response['response']['docs'] as $objectInCollection){
-					/** @var IslandoraDriver $firstObjectDriver */
-					$firstObjectDriver = RecordDriverFactory::initRecordDriver($objectInCollection);
-					$relatedObject = array(
+				if ($displayMode == 'covers') {
+					foreach ($response['response']['docs'] as $objectInCollection) {
+						/** @var IslandoraDriver $firstObjectDriver */
+						$firstObjectDriver = RecordDriverFactory::initRecordDriver($objectInCollection);
+						$relatedObject     = array(
 							'title' => $firstObjectDriver->getTitle(),
 							'description' => $firstObjectDriver->getDescription(),
 							'image' => $firstObjectDriver->getBookcoverUrl('medium'),
@@ -337,14 +344,15 @@ class Archive_AJAX extends Action {
 							'link' => $firstObjectDriver->getRecordUrl(),
 							'pid' => $firstObjectDriver->getUniqueID(),
 							'recordIndex' => $recordIndex++
-					);
-					if ($sort == 'dateAdded'){
-						$relatedObject['dateCreated'] = date('M j, Y', strtotime($objectInCollection['fgs_createdDate_dt']));
-					}elseif ($sort == 'dateModified'){
-						$relatedObject['dateCreated'] = date('M j, Y', strtotime($objectInCollection['fgs_lastModifiedDate_dt']));
+						);
+						if ($sort == 'dateAdded') {
+							$relatedObject['dateCreated'] = date('M j, Y', strtotime($objectInCollection['fgs_createdDate_dt']));
+						} elseif ($sort == 'dateModified') {
+							$relatedObject['dateCreated'] = date('M j, Y', strtotime($objectInCollection['fgs_lastModifiedDate_dt']));
+						}
+						$relatedObjects[] = $relatedObject;
+						$timer->logTime('Loaded related object');
 					}
-					$relatedObjects[] = $relatedObject;
-					$timer->logTime('Loaded related object');
 				}
 
 				if (!$timeLineSetUp){
@@ -401,6 +409,9 @@ class Archive_AJAX extends Action {
 			$sort = isset($_REQUEST['sort']) ? $_REQUEST['sort'] : 'title';
 			$interface->assign('sort', $sort);
 
+			$this->setShowCovers();
+			$displayMode = $this->setCoversDisplayMode();
+
 			/** @var SearchObject_Islandora $searchObject */
 			$searchObject = SearchObjectFactory::initSearchObject('Islandora');
 			$searchObject->init();
@@ -436,16 +447,22 @@ class Archive_AJAX extends Action {
 				$interface->assign('recordEnd',   $summary['endRecord']);
 				$recordIndex = $summary['startRecord'];
 
+				if ($displayMode == 'list') {
+					$recordSet = $searchObject->getResultRecordHTML();
+					$interface->assign('recordSet', $recordSet);
+				}
+
 				// Save the search with Map query and filters
 				$searchObject->close(); // Trigger save search
 				$lastExhibitObjectsSearch = $searchObject->getSearchId(); // Have to save the search first.
 				$_SESSION['exhibitSearchId'] = $lastExhibitObjectsSearch;
 				$logger->log("Setting exhibit search id to $lastExhibitObjectsSearch", PEAR_LOG_DEBUG);
 
-				foreach ($response['response']['docs'] as $objectInCollection){
-					/** @var IslandoraDriver $firstObjectDriver */
-					$firstObjectDriver = RecordDriverFactory::initRecordDriver($objectInCollection);
-					$relatedObject = array(
+				if ($displayMode == 'covers') {
+					foreach ($response['response']['docs'] as $objectInCollection) {
+						/** @var IslandoraDriver $firstObjectDriver */
+						$firstObjectDriver = RecordDriverFactory::initRecordDriver($objectInCollection);
+						$relatedObject     = array(
 							'title' => $firstObjectDriver->getTitle(),
 							'description' => $firstObjectDriver->getDescription(),
 							'image' => $firstObjectDriver->getBookcoverUrl('medium'),
@@ -453,14 +470,15 @@ class Archive_AJAX extends Action {
 							'link' => $firstObjectDriver->getRecordUrl(),
 							'pid' => $firstObjectDriver->getUniqueID(),
 							'recordIndex' => $recordIndex++
-					);
-					if ($sort == 'dateAdded'){
-						$relatedObject['dateCreated'] = date('M j, Y', strtotime($objectInCollection['fgs_createdDate_dt']));
-					}elseif ($sort == 'dateModified'){
-						$relatedObject['dateCreated'] = date('M j, Y', strtotime($objectInCollection['fgs_lastModifiedDate_dt']));
+						);
+						if ($sort == 'dateAdded') {
+							$relatedObject['dateCreated'] = date('M j, Y', strtotime($objectInCollection['fgs_createdDate_dt']));
+						} elseif ($sort == 'dateModified') {
+							$relatedObject['dateCreated'] = date('M j, Y', strtotime($objectInCollection['fgs_lastModifiedDate_dt']));
+						}
+						$relatedObjects[] = $relatedObject;
+						$timer->logTime('Loaded related object');
 					}
-					$relatedObjects[] = $relatedObject;
-					$timer->logTime('Loaded related object');
 				}
 				$this->processTimelineData($response, $interface);
 			}
@@ -950,6 +968,7 @@ class Archive_AJAX extends Action {
 			}
 
 			if (strlen($filter)){
+				$filter = trim($filter, '()');
 				$searchObject->addFilter($filter);
 			}
 

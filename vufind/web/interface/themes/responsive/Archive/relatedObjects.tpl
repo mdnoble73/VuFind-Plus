@@ -99,12 +99,11 @@
 			</div>
 		{/if}
 
+		{include file="Archive/archiveCollections-displayMode-toggle.tpl"}
+
 		<div class="clearer"></div>
 		<div id="results">
 
-		{if $displayType == 'scroller' || $displayType == 'basic'}
-			{include file="Archive/archiveCollections-displayMode-toggle.tpl"}
-		{/if}
 
 	{/if}
 
@@ -116,7 +115,7 @@
 	{if $recordSet}
 		{include file="Archive/list-list.tpl"}
 	{else}
-		<div id="related-exhibit-images" {*TODO: check if really needed*} class="{if $showThumbnailsSorted}row{else}results-covers home-page-browse-thumbnails{/if}">
+		<div id="related-exhibit-images" class="{if $showThumbnailsSorted}row{else}results-covers home-page-browse-thumbnails{/if}">
 		{foreach from=$relatedObjects item=image}
 			{if $showThumbnailsSorted}<div class="col-xs-6 col-sm-4 col-md-3">{/if}
 				<figure class="{if $showThumbnailsSorted}browse-thumbnail-sorted{else}browse-thumbnail{/if}">

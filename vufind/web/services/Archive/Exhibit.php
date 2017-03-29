@@ -52,7 +52,6 @@ class Archive_Exhibit extends Archive_Object{
 			$displayType = 'timeline';
 		}
 		$interface->assign('displayType', $displayType);
-		$this->setShowCovers();
 		$this->loadRelatedObjects($displayType);
 		$timer->logTime('Loaded Related Objects');
 

@@ -291,7 +291,7 @@ VuFind.Archive = (function(){
 		reloadMapResults: function(exhibitPid, placePid, reloadHeader){
 			$("#exhibit-results-loading").show();
 			this.curPage = 1;
-			var url = Globals.path + "/Archive/AJAX?method=getRelatedObjectsForMappedCollection&collectionId=" + exhibitPid + "&placeId=" + placePid + "&page=" + this.curPage + "&sort=" + this.sort;
+			var url = Globals.path + "/Archive/AJAX?method=getRelatedObjectsForMappedCollection&collectionId=" + exhibitPid + "&placeId=" + placePid + "&page=" + this.curPage + "&sort=" + this.sort + '&archiveCollectionView=' + this.displayMode + '&showCovers=' + VuFind.Account.showCovers;
 			$("input[name=dateFilter]:checked").each(function(){
 				url = url + "&dateFilter="+$(this).val();
 			});
@@ -312,7 +312,7 @@ VuFind.Archive = (function(){
 		reloadTimelineResults: function(exhibitPid, reloadHeader){
 			$("#exhibit-results-loading").show();
 			this.curPage = 1;
-			var url = Globals.path + "/Archive/AJAX?method=getRelatedObjectsForTimelineExhibit&collectionId=" + exhibitPid + "&page=" + this.curPage + "&sort=" + this.sort;
+			var url = Globals.path + "/Archive/AJAX?method=getRelatedObjectsForTimelineExhibit&collectionId=" + exhibitPid + "&page=" + this.curPage + "&sort=" + this.sort + '&archiveCollectionView=' + this.displayMode + '&showCovers=' + VuFind.Account.showCovers;
 			$("input[name=dateFilter]:checked").each(function(){
 				url = url + "&dateFilter="+$(this).val();
 			});
