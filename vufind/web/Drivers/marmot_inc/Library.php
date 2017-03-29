@@ -179,6 +179,7 @@ class Library extends DB_DataObject
 	public $hideAllCollectionsFromOtherLibraries;
 	public $collectionsToHide;
 	public $objectsToHide;
+	public $defaultArchiveCollectionBrowseMode;
 	public $showLCSubjects; // Library of Congress Subjects
 	public $showBisacSubjects;
 	public $showFastAddSubjects;
@@ -738,6 +739,8 @@ class Library extends DB_DataObject
 					'hideAllCollectionsFromOtherLibraries' => array('property'=>'hideAllCollectionsFromOtherLibraries', 'type'=>'checkbox', 'label'=>'Hide Collections from Other Libraries', 'description'=>'Whether or not collections created by other libraries is shown in Pika.', 'hideInLists' => true, 'default' => 0),
 					'collectionsToHide' => array('property'=>'collectionsToHide', 'type'=>'textarea', 'label'=>'Collections To Hide', 'description'=>'Specific collections to hide.', 'hideInLists' => true),
 					'objectsToHide' => array('property'=>'objectsToHide', 'type'=>'textarea', 'label'=>'Objects To Hide', 'description'=>'Specific objects to hide.', 'hideInLists' => true),
+					'defaultArchiveCollectionBrowseMode' => array('property' => 'defaultArchiveCollectionBrowseMode', 'type' => 'enum', 'label'=>'Default Viewing Mode for Archive Collections (Exhibits)', 'description' => 'Sets how archive collections will be displayed by default when users haven\'t chosen a mode themselves.', 'hideInLists' => true,
+					                             'values'=> array('covers' => 'Show Covers', 'list' => 'Show List'), 'default' => 'covers'),
 
 					'archiveMoreDetailsSection' => array('property'=>'archiveMoreDetailsSection', 'type' => 'section', 'label' => 'Archive More Details ', 'hideInLists' => true,
 					                                     /* 'helpLink'=>'https://docs.google.com/document/d/1ZZsoKW2NOfGMad36BkWeF5ROqH5Wyg5up3eIhki5Lec',*/ 'properties' => array(
