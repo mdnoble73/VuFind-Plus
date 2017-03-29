@@ -49,6 +49,9 @@
 			{if $showClaimAuthorship}
 				<a class="btn btn-default" href="{$path}/Archive/ClaimAuthorship?pid={$pid}">Claim Authorship</a>
 			{/if}
+			{if $showFavorites == 1}
+				<a onclick="return VuFind.Archive.showSaveToListForm(this, '{$pid|escape}');" class="btn btn-default ">{translate text='Add to favorites'}</a>
+			{/if}
 		</div>
 
 		{include file="Archive/metadata.tpl"}

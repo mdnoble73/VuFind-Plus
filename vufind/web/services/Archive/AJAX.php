@@ -695,10 +695,13 @@ class Archive_AJAX extends Action {
 		$interface->assign('image', $recordDriver->getBookcoverUrl('medium'));
 
 		$urlStr = "<a href=\"$url\" onclick='VuFind.Archive.setForExhibitNavigation({$_COOKIE['recordIndex']},{$_COOKIE['page']})'>";
+		$escapedPid = urlencode($pid);
+		$addToFavoritesLabel = translate('Add to favorites');
+		$addToFavoritesButton = "<button onclick=\"return VuFind.Archive.showSaveToListForm(this, '$escapedPid');\" class=\"modal-buttons btn btn-primary\" style='float: left'>$addToFavoritesLabel</button>";
 		return array(
 			'title' => "{$urlStr}{$recordDriver->getTitle()}</a>",
 			'modalBody' => $interface->fetch('Archive/archivePopup.tpl'),
-			'modalButtons' => "{$urlStr}<button class='modal-buttons btn btn-primary'>More Info</button></a>"
+			'modalButtons' => "$addToFavoritesButton{$urlStr}<button class='modal-buttons btn btn-primary'>More Info</button></a>"
 		);
 	}
 
@@ -958,13 +961,13 @@ class Archive_AJAX extends Action {
 			$filter = '';
 			$date = $_REQUEST['dateFilter'];
 			if ($date == 'before1880') {
-				$filter .= "(dateCreated:[* TO 1879-12-31T23:59:59Z])";
+				$filter .= "dateCreated:[* TO 1879-12-31T23:59:59Z]";
 			} elseif ($date == 'unknown') {
-				$filter .= '(-dateCreated:[* TO *])';
+				$filter .= '-dateCreated:[* TO *]';
 			} else {
 				$startYear = substr($date, 0, 4);
 				$endYear = (int)$startYear + 9;
-				$filter .= "(dateCreated:[$date TO $endYear-12-31T23:59:59Z])";
+				$filter .= "dateCreated:[$date TO $endYear-12-31T23:59:59Z]";
 			}
 
 			if (strlen($filter)){
