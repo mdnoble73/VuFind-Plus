@@ -114,7 +114,6 @@
 		</div>
 		{include file="Archive/archiveCollections-displayMode-toggle.tpl"}
 
-		{*TODO: Change below for switching mode *}
 		{if $recordSet}
 			{include file="Archive/list-list.tpl"}
 		{else}

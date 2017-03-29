@@ -47,22 +47,5 @@
 				{/if}
 			{rdelim};
 
-{*
-
-			VuFind.Archive.ajaxReloadCallback = function(){ldelim}
-				{if $displayType == 'map'}
-				VuFind.Archive.reloadMapResults('{$exhibitPid|urlencode}', '{$placePid|urlencode}', 1);
-				{elseif $displayType == 'timeline'}
-				VuFind.Archive.reloadTimelineResults('{$exhibitPid|urlencode}', 1);
-				{elseif $displayType == 'scroller'}
-				VuFind.Archive.reloadScrollerResults('{$exhibitPid|urlencode}', 1);
-				{elseif $displayType == 'basic'}
-				VuFind.Archive.getMoreExhibitResults('{$exhibitPid|urlencode}', 1);
-				{else}
-				VuFind.Archive.getMoreExhibitResults('{$exhibitPid|urlencode}', 1);
-				{/if}
-			{rdelim};
-
-*}
 	{rdelim});
 </script>
