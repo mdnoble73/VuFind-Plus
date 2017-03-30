@@ -1073,4 +1073,36 @@ class Archive_AJAX extends Action {
 		$interface->assign('displayMode', $displayMode);
 		return $displayMode;
 	}
+
+	public function clearCache(){
+		if (!isset($_REQUEST['id'])){
+			return array(
+					'success' => false,
+					'message' => 'You must supply the id to clear cached data for.'
+			);
+		}
+		$id = $_REQUEST['id'];
+
+		require_once ROOT_DIR . '/sys/Islandora/IslandoraObjectCache.php';
+		$objectCache = new IslandoraObjectCache();
+		$objectCache->pid = $id;
+		if ($objectCache->find(true)){
+			if ($objectCache->delete()){
+				return array(
+						'success' => false,
+						'message' => 'Cached data was removed for this object.'
+				);
+			}else{
+				return array(
+						'success' => false,
+						'message' => 'Could not delete cached data.'
+				);
+			}
+		}else{
+			return array(
+					'success' => false,
+					'message' => 'Cached data does not exist for that id.'
+			);
+		}
+	}
 }
