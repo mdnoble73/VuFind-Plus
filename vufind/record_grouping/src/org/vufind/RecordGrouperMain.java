@@ -1334,8 +1334,9 @@ public class RecordGrouperMain {
 			}
 			overDriveRecordRS.close();
 
+			//This is no longer needed because we do cleanup differently now (get a list of everything in the database and then cleanup anything that isn't in the API anymore
 			if (!fullRegrouping){
-				PreparedStatement deletedRecordStmt;
+				/*PreparedStatement deletedRecordStmt;
 				if (lastGroupingTime == null || fullRegroupingNoClear){
 					deletedRecordStmt = econtentConnection.prepareStatement("SELECT overdriveId FROM overdrive_api_products WHERE deleted = 1",  ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 				}else{
@@ -1348,7 +1349,7 @@ public class RecordGrouperMain {
 					String overdriveId = recordsToDelete.getString("overdriveId");
 					primaryIdentifier.setValue("overdrive", overdriveId);
 					recordGroupingProcessor.deletePrimaryIdentifier(primaryIdentifier);
-				}
+				}*/
 			}else{
 				writeExistingRecordsFile(configIni, recordNumbersInExport, "record_grouping_overdrive_records_in_export");
 			}
