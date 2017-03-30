@@ -176,12 +176,16 @@
 *}
 {literal}
 <script type="application/javascript">
-	$('.panel')
+	$('#explore-more-menu .panel')
 			.on('show.bs.collapse', function () {
-				$(this).addClass('active');
+				$(this).addClass('active')
 			})
 			.on('hide.bs.collapse', function () {
 				$(this).removeClass('active');
-			});
+			})
+			.one('shown.bs.collapse', function () {
+		VuFind.initCarousels( $(this).children('.panel-collapse.in').find('.jcarousel') );
+	});
+
 </script>
 {/literal}

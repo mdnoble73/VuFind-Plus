@@ -12,15 +12,6 @@ var VuFind = (function(){
 
 		$("#modalDialog").modal({show:false});
 
-		//var panels = $('.panel');
-		//panels.on('show.bs.collapse', function () {
-		//	$(this).addClass('active');
-		//});
-		//
-		//panels.on('hide.bs.collapse', function () {
-		//	$(this).removeClass('active');
-		//});
-
 		$('.panel')
 				.on('show.bs.collapse', function () {
 					$(this).addClass('active');
@@ -79,7 +70,7 @@ var VuFind = (function(){
 			carouselClass = carouselClass || '.jcarousel';
 			var jcarousel = $(carouselClass),
 					wrapper   = jcarousel.parents('.jcarousel-wrapper');
-			console.log('init Carousels called for ', jcarousel);
+			// console.log('init Carousels called for ', jcarousel);
 
 			jcarousel.on('jcarousel:reload jcarousel:create', function() {
 
@@ -88,7 +79,7 @@ var VuFind = (function(){
 						numCategories  = Carousel.jcarousel('items').length || 1,
 						numItemsToShow = 1;
 
-				console.log('carousel reload or create event called for ', Carousel);
+				// console.log('carousel reload or create event called for ', Carousel);
 
 				// Adjust Browse Category Carousels
 				if (jcarousel.is('#browse-category-carousel')){

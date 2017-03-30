@@ -344,7 +344,7 @@ VuFind.Archive = (function(){
 			$.getJSON(Globals.path + "/Archive/AJAX?id=" + encodeURI(pid) + "&method=getExploreMoreContent", function(data){
 				if (data.success){
 					$("#explore-more-body").html(data.exploreMore);
-					VuFind.initCarousels("#explore-more-body .jcarousel");
+					VuFind.initCarousels("#explore-more-body .panel-collapse.in .jcarousel"); // Only initialize browse categories in open accordions
 				}
 			}).fail(VuFind.ajaxFail);
 		},
