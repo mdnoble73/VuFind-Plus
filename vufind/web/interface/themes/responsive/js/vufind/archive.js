@@ -124,6 +124,19 @@ VuFind.Archive = (function(){
 			return this.loadPage(pagePid);
 		},
 
+		clearCache:function(id){
+			var url = Globals.path + "/Archive/AJAX?id=" + encodeURI(id) + "&method=clearCache";
+			VuFind.loadingMessage();
+			$.getJSON(url, function(data){
+				if (data.success) {
+					VuFind.showMessage("Cache Cleared Successfully", data.message, 2000); // auto-close after 2 seconds.
+				} else {
+					VuFind.showMessage("Error", data.message);
+				}
+			}).fail(VuFind.ajaxFail);
+			return false;
+		},
+
 		initializeOpenSeadragon: function(viewer){
 			viewer.addHandler("open", this.update_clip);
 			viewer.addHandler("animationfinish", this.update_clip);
