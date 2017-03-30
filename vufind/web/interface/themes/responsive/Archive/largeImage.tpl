@@ -39,7 +39,7 @@
 				{/if}
 				{if $anonymousMasterDownload || ($user && $verifiedMasterDownload)}
 					<a class="btn btn-default" href="/Archive/{$pid}/DownloadOriginal">Download Original Image</a>
-				{elseif (!$user && $verifiedLcDownload)}
+				{elseif (!$user && $verifiedMasterDownload)}
 					<a class="btn btn-default" onclick="return VuFind.Account.followLinkIfLoggedIn(this)" href="/Archive/{$pid}/DownloadOriginal">Login to Download Original Image</a>
 				{/if}
 			{/if}

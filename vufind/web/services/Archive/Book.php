@@ -47,6 +47,12 @@ class Archive_Book extends Archive_Object{
 			$interface->assign('activeViewer', 'image');
 		}
 
+		if ($this->archiveObject->getDatastream('PDF') != null){
+			$interface->assign('hasPdf', true);
+		}else{
+			$interface->assign('hasPdf', false);
+		}
+
 		// Display Page
 		$this->display('book.tpl');
 	}

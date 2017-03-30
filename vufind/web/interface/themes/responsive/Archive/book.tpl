@@ -58,6 +58,12 @@
 			<a class="btn btn-default" href="/Archive/{$pid}/DownloadPDF">Download Book As PDF</a>
 			<a class="btn btn-default" href="/Archive/{$activePage}/DownloadPDF" id="downloadPageAsPDF">Download Page As PDF</a>
 			*}
+			<br/>
+			{if $hasPdf && ($anonymousMasterDownload || ($user && $verifiedMasterDownload))}
+				<a class="btn btn-default" href="/Archive/{$pid}/DownloadPDF">Download PDF</a>
+			{elseif ($hasPdf && !$user && $verifiedMasterDownload)}
+				<a class="btn btn-default" onclick="return VuFind.Account.followLinkIfLoggedIn(this)" href="/Archive/{$pid}/DownloadPDF">Login to Download PDF</a>
+			{/if}
 			{if $allowRequestsForArchiveMaterials}
 				<a class="btn btn-default" href="{$path}/Archive/RequestCopy?pid={$pid}">Request Copy</a>
 			{/if}
