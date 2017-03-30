@@ -1057,18 +1057,19 @@ class Archive_AJAX extends Action {
 
 	private function setCoversDisplayMode()
 	{
-		global $interface;
+		global $interface,
+		$library;
 		if (!empty($_REQUEST['archiveCollectionView'])) {
 			$displayMode = $_REQUEST['archiveCollectionView'];
 		} elseif (!empty($_SESSION['archiveCollectionDisplayMode'])) {
 			$displayMode = $_SESSION['archiveCollectionDisplayMode'];
-		} elseif (0) {
-			//TODO: look-up library default value
+		} elseif (!empty($library->defaultArchiveCollectionBrowseMode)) {
+			$displayMode = $library->defaultArchiveCollectionBrowseMode;
 		} else {
 			$displayMode = 'covers'; // Pika default mode is covers
 		}
-		$_SESSION['archiveCollectionDisplayMode'] = $displayMode;
 
+		$_SESSION['archiveCollectionDisplayMode'] = $displayMode;
 		$interface->assign('displayMode', $displayMode);
 		return $displayMode;
 	}

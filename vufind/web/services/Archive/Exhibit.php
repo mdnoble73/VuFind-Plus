@@ -389,7 +389,7 @@ class Archive_Exhibit extends Archive_Object{
 
 				$displayMode = $this->archiveCollectionDisplayMode();
 				$this->setShowCovers();
-				if ($displayType == 'basic' && $displayMode == 'list') {
+				if ($displayMode == 'list') {
 					$recordSet = $searchObject->getResultRecordHTML();
 					$interface->assign('recordSet', $recordSet);
 
