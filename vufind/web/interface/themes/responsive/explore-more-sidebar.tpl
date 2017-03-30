@@ -40,8 +40,8 @@
 							<li class="relatedTitle">
 								<a href="{$title.link}">
 									<figure class="thumbnail">
-										<img src="{$title.image}" alt="{$title.label|removeTrailingPunctuation|truncate:50:"..."}">
-										<figcaption>{$title.label|removeTrailingPunctuation|truncate:50:"..."}</figcaption>
+										<img src="{$title.image}" alt="{$title.label|removeTrailingPunctuation|truncate:40:"..."}">
+										<figcaption>{$title.label|removeTrailingPunctuation|truncate:40:"..."}</figcaption>
 									</figure>
 								</a>
 							</li>
@@ -74,8 +74,8 @@
 							<li class="relatedTitle">
 								<a href="{$title.link}">
 									<figure class="thumbnail">
-										<img src="{$title.image}" alt="{$title.label|removeTrailingPunctuation|truncate:50:"..."}">
-										<figcaption>{$title.label|removeTrailingPunctuation|truncate:50:"..."}</figcaption>
+										<img src="{$title.image}" alt="{$title.label|removeTrailingPunctuation|truncate:40:"..."}">
+										<figcaption>{$title.label|removeTrailingPunctuation|truncate:40:"..."}</figcaption>
 									</figure>
 								</a>
 							</li>
