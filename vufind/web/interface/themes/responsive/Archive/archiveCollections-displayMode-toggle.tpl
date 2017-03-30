@@ -22,7 +22,7 @@
 		if (!Globals.opac && VuFind.hasLocalStorage()) {ldelim} {* store setting in browser if not an opac computer *}
 			VuFind.Account.showCovers = {if $showCovers}true{else}false{/if};
 			window.localStorage.setItem('showCovers', VuFind.Account.showCovers ? 'on' : 'off');
-			console.log('Set showcovers to '+ VuFind.Account.showCovers);
+{*			console.log('Set showcovers to '+ VuFind.Account.showCovers); *}
 		{rdelim}
 		{if !$onInternalIP}
 		{* Because content is served on the page, have to set the mode that was used, even if the user didn't choose the mode. *}
