@@ -72,7 +72,7 @@
 	{assign var=pageCounter value=1}
 	VuFind.Archive.pageDetails['{$page.pid}'] = {ldelim}
 		pid: '{$page.pid}',
-		pdf: '{$page.pdf}',
+		pdf: {if $anonymousMasterDownload || ($user && $verifiedMasterDownload)}'{$page.pdf}'{else}''{/if},
 		jp2: '{$page.jp2}',
 		transcript: '{$page.transcript}'
 	{rdelim};

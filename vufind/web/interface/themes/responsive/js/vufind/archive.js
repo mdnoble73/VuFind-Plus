@@ -453,15 +453,23 @@ VuFind.Archive = (function(){
 				//VuFind.Archive.openSeaDragonViewer.viewport.fitVertically(true);
 			}
 			if (pageChanged && this.multiPage){
+				var imageOnlyShown = true;
 				if (this.pageDetails[pid]['transcript'] == ''){
 					$('#view-toggle-transcription').parent().hide();
 				}else{
 					$('#view-toggle-transcription').parent().show();
+					imageOnlyShown = false;
 				}
 				if (this.pageDetails[pid]['pdf'] == ''){
 					$('#view-toggle-pdf').parent().hide();
 				}else{
 					$('#view-toggle-pdf').parent().show();
+					imageOnlyShown = false;
+				}
+				if (imageOnlyShown){
+					$('#view-toggle-image').parent().hide();
+				}else{
+					$('#view-toggle-image').parent().show();
 				}
 
 				this.loadMetadata(this.activeBookPid, pid);

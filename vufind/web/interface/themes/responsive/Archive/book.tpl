@@ -132,14 +132,14 @@
 		VuFind.Archive.pageDetails['{$section.pid}'] = {ldelim}
 			pid: '{$section.pid}',
 			title: "{$section.title|escape:javascript}",
-			pdf: '{$section.pdf}'
+			pdf: {if $anonymousMasterDownload || ($user && $verifiedMasterDownload)}'{$section.pdf}'{else}''{/if}
 		{rdelim};
 
 		{foreach from=$section.pages item=page}
 			VuFind.Archive.pageDetails['{$page.pid}'] = {ldelim}
 				pid: '{$page.pid}',
 				title: 'Page {$pageCounter}',
-				pdf: '{$page.pdf}',
+				pdf: {if $anonymousMasterDownload || ($user && $verifiedMasterDownload)}'{$page.pdf}'{else}''{/if},
 				jp2: '{$page.jp2}',
 				transcript: '{$page.transcript}',
 				index: '{$pageCounter}'
