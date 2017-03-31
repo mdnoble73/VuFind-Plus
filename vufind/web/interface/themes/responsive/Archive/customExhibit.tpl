@@ -18,6 +18,7 @@
 	</h2>
 
 	<div class="row">
+		<div class="col-tn-12">
 		{if $thumbnail && !$main_image}
 			{if $exhibitThumbnailURL}<a href="{$exhibitThumbnailURL}">{/if}
 			<img src="{$thumbnail}" class="img-responsive exhibit-thumbnail">
@@ -28,6 +29,7 @@
 		{else}
 			{$description}
 		{/if}
+		</div>
 		<div class="clear-both"></div>
 	</div>
 
