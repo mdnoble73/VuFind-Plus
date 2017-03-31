@@ -53,7 +53,7 @@
 #############################################
 # New York Times Best seller Lists Updating #
 #############################################
-07 7 * * 0 /usr/local/vufind-plus/vufind/cron/updateNYTLists.sh catalog.library.nashville.org
+07 7 * * 0 /usr/local/vufind-plus/vufind/cron/updateNYTLists.sh nashville.production
 # update on Sundays at 7:07
 
 ################
@@ -67,15 +67,12 @@
 0 0-6 * * * /usr/sbin/apachectl restart > /dev/null 2>&1
 
 # CRON for VuFind-Plus (book cover cache cleanup etc.)
-00 20 * * * cd /usr/local/VuFind-Plus/vufind/cron; java -jar cron.jar catalog.library.nashville.org
-20 0 * * * cd /usr/local/VuFind-Plus/vufind/cron; java -jar cron.jar catalog.library.nashville.org DatabaseCleanup
+00 20 * * * cd /usr/local/VuFind-Plus/vufind/cron; java -jar cron.jar nashville.production
+20 0 * * * cd /usr/local/VuFind-Plus/vufind/cron; java -jar cron.jar nashville.production DatabaseCleanup
 
 ###################################
 # Data Extract from other systems #
 ###################################
-
-# SCHOOL copy files from ftp drop spot 
-5 * * * * expect /usr/local/vufind-plus/vufind/library_solution_export/SCHOOLDATA.exp
 
 # Library supplied covers
 # JAMES should institute library-supplied covers workflow for Nashville 20150216
@@ -84,7 +81,7 @@
 # Every 10 minutes. fixed 11-14-2014 plb. (previously every hour 10 past the hour)
 
 # SIDELOADED ECONTENT MARC triggered HERE (and commented out in full_update.sh)
-0 22 * * * cd /usr/local/vufind-plus/vufind/cron; ./sideload.sh catalog.library.nashville.org
+0 22 * * * cd /usr/local/vufind-plus/vufind/cron; ./sideload.sh nashville.production
 
 # Download Lexile and AR files triggered in full_update.sh
 
@@ -92,8 +89,8 @@
 # hacks to keep things afloat until Sparky increases RAM
 # RAM was increased to 32G 2015 09 11; JAMES is keeping these lines commented out here for emergencies
 #################################
-#25 23 * * * rm -rf /data/pika/nashville.production/covers/small; rm -rf /data/pika/nashville.production/covers/medium; rm -rf /data/pika/nashville.production/covers/large; mkdir -m 775 /data/vufind-plus/catalog.library.nashville.org/covers/small; mkdir -m 775 /data/vufind-plus/catalog.library.nashville.org/covers/medium; mkdir -m 775 /data/vufind-plus/catalog.library.nashville.org/covers/large; chown root:apache /data/vufind-plus/catalog.library.nashville.org/covers/small; chown root:apache /data/pika/nashville.production/covers/medium; chown root:apache /data/pika/nashville.production/covers/large'
-#10 * * * * cd /usr/local/vufind-plus/sites/catalog.library.nashville.org; ./pika_restart.sh
+#25 23 * * * rm -rf /data/pika/nashville.production/covers/small; rm -rf /data/pika/nashville.production/covers/medium; rm -rf /data/pika/nashville.production/covers/large; mkdir -m 775 /data/pika/nashville.production/covers/small; mkdir -m 775 /data/pika/nashville.production/covers/medium; mkdir -m 775 /data/pika/nashville.production/covers/large; chown root:apache /data/pika/nashville.production/covers/small; chown root:apache /data/pika/nashville.production/covers/medium; chown root:apache /data/pika/nashville.production/covers/large'
+#10 * * * * cd /usr/local/vufind-plus/sites/nashville.production; ./pika_restart.sh
 
 # Check Apache Solr process and website that it has not stalled.
 */3 6-23 * * * cd /usr/local/vufind-plus/vufind/cron/; ./solrTest.sh
