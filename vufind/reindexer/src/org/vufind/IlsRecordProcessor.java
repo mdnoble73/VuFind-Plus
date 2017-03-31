@@ -1356,6 +1356,15 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		if (printFormats.contains("MusicRecording") && printFormats.contains("CompactDisc")){
 			printFormats.remove("CompactDisc");
 		}
+		if (printFormats.contains("MusicRecording") && printFormats.contains("SoundDisc")){
+			printFormats.remove("SoundDisc");
+		}
+		if (printFormats.contains("CD") && printFormats.contains("SoundDisc")){
+			printFormats.remove("CD");
+		}
+		if (printFormats.contains("CompactDisc") && printFormats.contains("SoundDisc")){
+			printFormats.remove("CompactDisc");
+		}
 		if (printFormats.contains("Kinect") || printFormats.contains("XBox360")  || printFormats.contains("Xbox360")
 				|| printFormats.contains("XBoxOne") || printFormats.contains("PlayStation")
 				|| printFormats.contains("PlayStation3") || printFormats.contains("PlayStation4")
