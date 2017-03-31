@@ -33,9 +33,9 @@
 # this version emails script output as a round finishes
 EMAIL=james.staub@nashville.gov,Mark.Noble@nashville.gov,Pascal.Brammeier@nashville.gov
 ILSSERVER=waldo.library.nashville.org
-PIKASERVER=catalog.library.nashville.org
+PIKASERVER=nashville.production
 PIKADBNAME=vufind
-OUTPUT_FILE="/var/log/vufind-plus/${PIKASERVER}/full_update_output.log"
+OUTPUT_FILE="/var/log/pika/${PIKASERVER}/full_update_output.log"
 DAYOFWEEK=$(date +"%u")
 
 # JAMES set MIN 2016 11 03 actual extract size 825177201
@@ -96,10 +96,10 @@ checkConflictingProcesses "reindexer.jar" >> ${OUTPUT_FILE}
 : > $OUTPUT_FILE;
 
 # Back-up Solr Master Index
-mysqldump ${PIKADBNAME} grouped_work_primary_identifiers > /data/vufind-plus/${PIKASERVER}/grouped_work_primary_identifiers.sql
+mysqldump ${PIKADBNAME} grouped_work_primary_identifiers > /data/pika/${PIKASERVER}/grouped_work_primary_identifiers.sql
 sleep 2m
-tar -czf /data/vufind-plus/${PIKASERVER}/solr_master_backup.tar.gz /data/vufind-plus/${PIKASERVER}/solr_master/grouped/index/ /data/vufind-plus/${PIKASERVER}/grouped_work_primary_identifiers.sql >> ${OUTPUT_FILE}
-rm /data/vufind-plus/${PIKASERVER}/grouped_work_primary_identifiers.sql
+tar -czf /data/pika/${PIKASERVER}/solr_master_backup.tar.gz /data/pika/${PIKASERVER}/solr_master/grouped/index/ /data/pika/${PIKASERVER}/grouped_work_primary_identifiers.sql >> ${OUTPUT_FILE}
+rm /data/pika/${PIKASERVER}/grouped_work_primary_identifiers.sql
 
 #Restart Solr
 cd /usr/local/vufind-plus/sites/${PIKASERVER}; ./${PIKASERVER}.sh restart
@@ -125,12 +125,12 @@ if [ ${PRODUCTION} == "false" ]; then
 #	$ chmod 700 .ssh
 #	$ chmod 640 authorized_keys
 #
-	cd /data/vufind-plus/catalog.library.nashville.org/marc/; 
+	cd /data/pika/nashville.production/marc/;
 	cp BIB_EXTRACT_PIKA.MRC BIB_EXTRACT_PIKA.SAV
-	scp -p -i /home/vufind/.ssh/id_rsa vufind@catalog.library.nashville.org:/data/vufind-plus/catalog.library.nashville.org/marc/BIB_EXTRACT_PIKA.MRC ./;
+	scp -p -i /home/vufind/.ssh/id_rsa vufind@catalog.library.nashville.org:/data/pika/nashville.production/marc/BIB_EXTRACT_PIKA.MRC ./;
 	chown vufind:vufind BIB_EXTRACT_PIKA.MRC
 	chmod 664 BIB_EXTRACT_PIKA.MRC
-	scp -p -i /home/vufind/.ssh/id_rsa vufind@catalog.library.nashville.org:/data/vufind-plus/catalog.library.nashville.org/marc/BIB_HOLDS_EXTRACT_PIKA.TXT ./;
+	scp -p -i /home/vufind/.ssh/id_rsa vufind@catalog.library.nashville.org:/data/pika/nashville.production/marc/BIB_HOLDS_EXTRACT_PIKA.TXT ./;
 	chown vufind:vufind BIB_HOLDS_EXTRACT_PIKA.TXT
 	chmod 664 BIB_HOLDS_EXTRACT_PIKA.TXT
 elif [ ${PRODUCTION} == "true" ]; then
@@ -140,12 +140,12 @@ elif [ ${PRODUCTION} == "true" ]; then
 fi
 
 #Extract Lexile Data
-#cd /data/vufind-plus/; wget -N --no-verbose http://cassini.marmot.org/lexileTitles.txt
-cd /data/vufind-plus/; curl --remote-name --remote-time --silent --show-error --compressed --time-cond /data/vufind-plus/lexileTitles.txt http://cassini.marmot.org/lexileTitles.txt
+#cd /data/pika/; wget -N --no-verbose http://cassini.marmot.org/lexileTitles.txt
+cd /data/pika/; curl --remote-name --remote-time --silent --show-error --compressed --time-cond /data/pika/lexileTitles.txt http://cassini.marmot.org/lexileTitles.txt
 
 #Extract AR Data
-#cd /data/vufind-plus/accelerated_reader; wget -N --no-verbose http://cassini.marmot.org/RLI-ARDataTAB.txt
-cd /data/vufind-plus/accelerated_reader; curl --remote-name --remote-time --silent --show-error --compressed --time-cond /data/vufind-plus/accelerated_reader/RLI-ARDataTAB.txt http://cassini.marmot.org/RLI-ARDataTAB.txt
+#cd /data/pika/accelerated_reader; wget -N --no-verbose http://cassini.marmot.org/RLI-ARDataTAB.txt
+cd /data/pika/accelerated_reader; curl --remote-name --remote-time --silent --show-error --compressed --time-cond /data/pika/accelerated_reader/RLI-ARDataTAB.txt http://cassini.marmot.org/RLI-ARDataTAB.txt
 
 #Do a full extract from OverDrive just once a week to catch anything that doesn't
 #get caught in the regular extract
@@ -157,9 +157,9 @@ fi
 
 # Test for new bib extract file
 if [ ${PRODUCTION} == "true" ]; then
-        FILE=$(find /data/vufind-plus/catalog.library.nashville.org/marc -name BIB_EXTRACT_PIKA.MRC -mtime -1 | sort -n | tail -1)
+        FILE=$(find /data/pika/nashville.production/marc -name BIB_EXTRACT_PIKA.MRC -mtime -1 | sort -n | tail -1)
 elif [ ${PRODUCTION} == "false" ]; then
-        FILE=$(find /data/vufind-plus/catalog.library.nashville.org/marc -name BIB_EXTRACT_PIKA.MRC -mtime -4 | sort -n | tail -1)
+        FILE=$(find /data/pika/nashville.production/marc -name BIB_EXTRACT_PIKA.MRC -mtime -4 | sort -n | tail -1)
 fi
 
 if [ -n "$FILE" ]; then
@@ -187,12 +187,12 @@ else
 fi
 
 #Remove all ITEM_UPDATE_EXTRACT_PIKA files so continuous_partial_reindex can start fresh
-find /data/vufind-plus/catalog.library.nashville.org/marc -name 'ITEM_UPDATE_EXTRACT_PIKA*' -delete
+find /data/pika/nashville.production/marc -name 'ITEM_UPDATE_EXTRACT_PIKA*' -delete
 
 # Clean-up Solr Logs
-# (/usr/local/vufind-plus/sites/default/solr/jetty/logs is a symbolic link to /var/log/vufind-plus/solr)
-find /var/log/vufind-plus/solr -name "solr_log_*" -mtime +7 -delete
-find /var/log/vufind-plus/solr -name "solr_gc_log_*" -mtime +7 -delete
+# (/usr/local/vufind-plus/sites/default/solr/jetty/logs is a symbolic link to /var/log/pika/solr)
+find /var/log/pika/solr -name "solr_log_*" -mtime +7 -delete
+find /var/log/pika/solr -name "solr_gc_log_*" -mtime +7 -delete
 
 #Restart Solr
 cd /usr/local/vufind-plus/sites/${PIKASERVER}; ./${PIKASERVER}.sh restart
