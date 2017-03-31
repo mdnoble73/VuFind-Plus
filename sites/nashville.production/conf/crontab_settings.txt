@@ -30,13 +30,13 @@
 # On Reboot #
 #############
 # Continuous Re-Indexing
-@reboot cd /usr/local/VuFind-Plus/sites/catalog.library.nashville.org; ./continuous_partial_reindex.sh 
+@reboot cd /usr/local/VuFind-Plus/sites/nashville.production; ./continuous_partial_reindex.sh
 
 ######################
 # MySQL Nightly Dump #
 ######################
 # backup important bits at 12:10am daily
-10 0 * * * /usr/local/vufind-plus/vufind/cron/nightly_mysql_dump.sh catalog.library.nashville.org 2>&1 >/dev/null
+10 0 * * * /usr/local/vufind-plus/vufind/cron/nightly_mysql_dump.sh nashville.production 2>&1 >/dev/null
 
 #####################
 # Daily full update #
@@ -44,11 +44,8 @@
 # Set the start for 10:25PM
 # Criteria for start time:
 # Have both the library and schools closed for business? M-Th 8PM; F 6PM; Sat-Sun 5PM
-# Has the nightly schools extract completed? 9:45PM-ish
-# Has the nightly schools extract been zipped? 10:02PM-ish
-# Has the nightly schools extract been delivered to limitless@catalog.library.nashville.org? 10:03PM-ish
-# Has the weekly RHEL package update been completed? 10:10-10:25PM-ish 
-25 22 * * * cd /usr/local/vufind-plus/sites/catalog.library.nashville.org; ./full_update.sh
+# Has the weekly RHEL package update been completed? 10:10-10:25PM-ish
+25 22 * * * cd /usr/local/vufind-plus/sites/nashville.production; ./full_update.sh
 
 #############################################
 # New York Times Best seller Lists Updating #
