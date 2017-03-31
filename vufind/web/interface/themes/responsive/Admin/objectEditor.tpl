@@ -17,7 +17,7 @@
 		</p>
 		<div class="btn-group">
 			{foreach from=$additionalObjectActions item=action}
-				<a class="btn btn-default btn-sm" href='{$action.url}'>{$action.text}</a>
+				<a class="btn btn-default btn-sm"{if $action.url} href='{$action.url}'{/if}{if $action.onclick} onclick="{$action.onclick}"{/if}>{$action.text}</a>
 			{/foreach}
 		</div>
 		{include file="DataObjectUtil/objectEditForm.tpl"}
