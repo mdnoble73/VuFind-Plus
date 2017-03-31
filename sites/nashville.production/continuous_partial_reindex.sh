@@ -18,9 +18,8 @@
 # PLEASE SET CONFLICTING PROCESSES AND PROHIBITED TIMES IN FUNCTION CALLS IN SCRIPT MAIN DO LOOP
 # this version emails script output as a round finishes
 EMAIL=James.Staub@nashville.gov,Mark.Noble@nashville.gov,Pascal.Brammeier@nashville.gov
-PIKASERVER=catalog.library.nashville.org
-ILSSERVER=waldo.library.nashville.org
-OUTPUT_FILE="/var/log/vufind-plus/${PIKASERVER}/continuous_partial_reindex_output.log"
+PIKASERVER=nashville.production
+OUTPUT_FILE="/var/log/pika/${PIKASERVER}/continuous_partial_reindex_output.log"
 
 # Check for conflicting processes currently running
 function checkConflictingProcesses() {
@@ -62,15 +61,6 @@ do
 	#echo "Starting new extract and index - `date`" > ${OUTPUT_FILE}
 	# reset the output file each round
 
-	#run expect script to extract from Millennium
-	cd /usr/local/vufind-plus/vufind/millennium_export/
-	./ITEM_UPDATE_EXTRACT_PIKA.exp ${PIKASERVER} ${ILSSERVER}
-
-	#process the export from Millennium to give Pika what it needs
-	#echo "Starting Millennium Export - `date`" >> ${OUTPUT_FILE}
-	cd /usr/local/vufind-plus/vufind/millennium_export/
-	nice -n -10 java -server -XX:+UseG1GC -jar millennium_export.jar ${PIKASERVER} >> ${OUTPUT_FILE}
-
 	#export from overdrive
 	#echo "Starting OverDrive Extract - `date`" >> ${OUTPUT_FILE}
 	cd /usr/local/vufind-plus/vufind/overdrive_api_extract/
@@ -78,8 +68,8 @@ do
 
 	#process the export from Library.Solution to give Pika what it needs
 	#echo "Starting Millennium Export - `date`" >> ${OUTPUT_FILE}
-	cd /usr/local/vufind-plus/vufind/library_solution_export/
-	nice -n -10 java -server -XX:+UseG1GC -jar library_solution_export.jar ${PIKASERVER} >> ${OUTPUT_FILE}
+	cd /usr/local/vufind-plus/vufind/carlx_export/
+	nice -n -10 java -server -XX:+UseG1GC -jar carlx_export.jar ${PIKASERVER} >> ${OUTPUT_FILE}
 
 	#run reindex
 	#echo "Starting Reindexing - `date`" >> ${OUTPUT_FILE}
