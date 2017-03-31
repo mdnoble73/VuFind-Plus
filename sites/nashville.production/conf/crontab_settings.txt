@@ -30,13 +30,13 @@
 # On Reboot #
 #############
 # Continuous Re-Indexing
-@reboot cd /usr/local/VuFind-Plus/sites/catalog.library.nashville.org; ./continuous_partial_reindex.sh 
+@reboot cd /usr/local/VuFind-Plus/sites/nashville.production; ./continuous_partial_reindex.sh
 
 ######################
 # MySQL Nightly Dump #
 ######################
 # backup important bits at 12:10am daily
-10 0 * * * /usr/local/vufind-plus/vufind/cron/nightly_mysql_dump.sh catalog.library.nashville.org 2>&1 >/dev/null
+10 0 * * * /usr/local/vufind-plus/vufind/cron/nightly_mysql_dump.sh nashville.production 2>&1 >/dev/null
 
 #####################
 # Daily full update #
@@ -44,16 +44,13 @@
 # Set the start for 10:25PM
 # Criteria for start time:
 # Have both the library and schools closed for business? M-Th 8PM; F 6PM; Sat-Sun 5PM
-# Has the nightly schools extract completed? 9:45PM-ish
-# Has the nightly schools extract been zipped? 10:02PM-ish
-# Has the nightly schools extract been delivered to limitless@catalog.library.nashville.org? 10:03PM-ish
-# Has the weekly RHEL package update been completed? 10:10-10:25PM-ish 
-25 22 * * * cd /usr/local/vufind-plus/sites/catalog.library.nashville.org; ./full_update.sh
+# Has the weekly RHEL package update been completed? 10:10-10:25PM-ish
+25 22 * * * cd /usr/local/vufind-plus/sites/nashville.production; ./full_update.sh
 
 #############################################
 # New York Times Best seller Lists Updating #
 #############################################
-07 7 * * 0 /usr/local/vufind-plus/vufind/cron/updateNYTLists.sh catalog.library.nashville.org
+07 7 * * 0 /usr/local/vufind-plus/vufind/cron/updateNYTLists.sh nashville.production
 # update on Sundays at 7:07
 
 ################
@@ -67,15 +64,12 @@
 0 0-6 * * * /usr/sbin/apachectl restart > /dev/null 2>&1
 
 # CRON for VuFind-Plus (book cover cache cleanup etc.)
-00 20 * * * cd /usr/local/VuFind-Plus/vufind/cron; java -jar cron.jar catalog.library.nashville.org
-20 0 * * * cd /usr/local/VuFind-Plus/vufind/cron; java -jar cron.jar catalog.library.nashville.org DatabaseCleanup
+00 20 * * * cd /usr/local/VuFind-Plus/vufind/cron; java -jar cron.jar nashville.production
+20 0 * * * cd /usr/local/VuFind-Plus/vufind/cron; java -jar cron.jar nashville.production DatabaseCleanup
 
 ###################################
 # Data Extract from other systems #
 ###################################
-
-# SCHOOL copy files from ftp drop spot 
-5 * * * * expect /usr/local/vufind-plus/vufind/library_solution_export/SCHOOLDATA.exp
 
 # Library supplied covers
 # JAMES should institute library-supplied covers workflow for Nashville 20150216
@@ -84,7 +78,7 @@
 # Every 10 minutes. fixed 11-14-2014 plb. (previously every hour 10 past the hour)
 
 # SIDELOADED ECONTENT MARC triggered HERE (and commented out in full_update.sh)
-0 22 * * * cd /usr/local/vufind-plus/vufind/cron; ./sideload.sh catalog.library.nashville.org
+0 22 * * * cd /usr/local/vufind-plus/vufind/cron; ./sideload.sh nashville.production
 
 # Download Lexile and AR files triggered in full_update.sh
 
@@ -92,8 +86,8 @@
 # hacks to keep things afloat until Sparky increases RAM
 # RAM was increased to 32G 2015 09 11; JAMES is keeping these lines commented out here for emergencies
 #################################
-#25 23 * * * rm -rf /data/pika/nashville.production/covers/small; rm -rf /data/pika/nashville.production/covers/medium; rm -rf /data/pika/nashville.production/covers/large; mkdir -m 775 /data/vufind-plus/catalog.library.nashville.org/covers/small; mkdir -m 775 /data/vufind-plus/catalog.library.nashville.org/covers/medium; mkdir -m 775 /data/vufind-plus/catalog.library.nashville.org/covers/large; chown root:apache /data/vufind-plus/catalog.library.nashville.org/covers/small; chown root:apache /data/pika/nashville.production/covers/medium; chown root:apache /data/pika/nashville.production/covers/large'
-#10 * * * * cd /usr/local/vufind-plus/sites/catalog.library.nashville.org; ./pika_restart.sh
+#25 23 * * * rm -rf /data/pika/nashville.production/covers/small; rm -rf /data/pika/nashville.production/covers/medium; rm -rf /data/pika/nashville.production/covers/large; mkdir -m 775 /data/pika/nashville.production/covers/small; mkdir -m 775 /data/pika/nashville.production/covers/medium; mkdir -m 775 /data/pika/nashville.production/covers/large; chown root:apache /data/pika/nashville.production/covers/small; chown root:apache /data/pika/nashville.production/covers/medium; chown root:apache /data/pika/nashville.production/covers/large'
+#10 * * * * cd /usr/local/vufind-plus/sites/nashville.production; ./pika_restart.sh
 
 # Check Apache Solr process and website that it has not stalled.
 */3 6-23 * * * cd /usr/local/vufind-plus/vufind/cron/; ./solrTest.sh
