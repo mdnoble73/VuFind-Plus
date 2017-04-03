@@ -1088,6 +1088,10 @@ class Archive_AJAX extends Action {
 		$objectCache->pid = $id;
 		if ($objectCache->find(true)){
 			if ($objectCache->delete()){
+				/** @var Memcache $memCache */
+				global $memCache;
+				$memCache->delete('islandora_object_valid_in_pika_' . $id);
+
 				return array(
 						'success' => false,
 						'message' => 'Cached data was removed for this object.'
