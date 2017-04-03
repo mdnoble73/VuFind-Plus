@@ -501,10 +501,11 @@ public class RecordGroupingProcessor {
 	private void addPrimaryIdentifierForWorkToDB(long groupedWorkId, RecordIdentifier primaryIdentifier) {
 		//Optimized to not delete and remove the primary identifier if it hasn't changed.  Just updates the grouped_work_id.
 		try {
-			//This statement will either add the primary key or update the work id if it already exits
+			//This statement will either add the primary key or update the work id if it already exists
+			//Note, we can not lower case this because we depend on the actual identifier later
 			addPrimaryIdentifierForWorkStmt.setLong(1, groupedWorkId);
-			addPrimaryIdentifierForWorkStmt.setString(2, primaryIdentifier.getType().toLowerCase());
-			addPrimaryIdentifierForWorkStmt.setString(3, primaryIdentifier.getIdentifier().toLowerCase());
+			addPrimaryIdentifierForWorkStmt.setString(2, primaryIdentifier.getType());
+			addPrimaryIdentifierForWorkStmt.setString(3, primaryIdentifier.getIdentifier());
 			addPrimaryIdentifierForWorkStmt.executeUpdate();
 			ResultSet primaryIdentifierRS = addPrimaryIdentifierForWorkStmt.getGeneratedKeys();
 			primaryIdentifierRS.next();
