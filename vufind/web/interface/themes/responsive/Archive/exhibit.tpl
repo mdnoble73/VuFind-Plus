@@ -17,6 +17,7 @@
 	</h2>
 
 	<div class="lead row">
+		<div class="col-tn-12">
 		{if $hasImageMap}
 			{$imageMap}
 			<script type="text/javascript">
@@ -34,6 +35,7 @@
 			{/if}
 		{/if}
 		{$description}
+		</div>
 	</div>
 
 	<div class="clear-both"></div>
