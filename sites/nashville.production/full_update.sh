@@ -120,6 +120,17 @@ then
 	nice -n -10 java -jar overdrive_extract.jar ${PIKASERVER} fullReload >> ${OUTPUT_FILE}
 fi
 
+#TODO Min file size check
+#Validate the export
+cd /usr/local/vufind-plus/vufind/cron; java -server -XX:+UseG1GC -jar cron.jar ${PIKASERVER} ValidateMarcExport >> ${OUTPUT_FILE}
+#Full Regroup
+cd /usr/local/vufind-plus/vufind/record_grouping;
+java -server -XX:+UseG1GC -Xmx6G -jar record_grouping.jar ${PIKASERVER} fullRegroupingNoClear >> ${OUTPUT_FILE}
+#Full Reindex
+#cd /usr/local/vufind-plus/vufind/reindexer; nice -n -3 java -jar reindexer.jar ${PIKASERVER} fullReindex >> ${OUTPUT_FILE}
+cd /usr/local/vufind-plus/vufind/reindexer;
+java -server -XX:+UseG1GC -Xmx6G -jar reindexer.jar ${PIKASERVER} fullReindex >> ${OUTPUT_FILE}
+
 # Clean-up Solr Logs
 # (/usr/local/vufind-plus/sites/default/solr/jetty/logs is a symbolic link to /var/log/pika/solr)
 find /var/log/pika/solr -name "solr_log_*" -mtime +7 -delete
