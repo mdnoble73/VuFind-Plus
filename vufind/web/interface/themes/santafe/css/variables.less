@@ -3,8 +3,13 @@
 @santafe-background-blue: #45BCD2;
 @santafe-footer-darkgray: #32393F;
 
+@santafe-easier-to-read-white: #FFF;
+@santafe-easier-to-read-black: #000;
+
 @body-bg-resp: @santafe-background-blue;
-@content-bg: @santafe-off-white;
+
+@text-color: @santafe-easier-to-read-black;
+@body-text-color: @santafe-easier-to-read-black;
 
 @header-buttons-background-color: @santefe-light-blue;
 @header-bottom-border-color: @santafe-background-blue;
@@ -17,7 +22,7 @@
 @btn-primary-bg: @santefe-light-blue;
 
 @menu-bar-background-color: @santefe-light-blue;
-@menu-bar-selected-background-color: @santafe-background-blue;
+@menu-bar-selected-background-color: saturate(@santafe-background-blue, 10%);
 
 
 // set opened accordions color
@@ -26,11 +31,13 @@
 @header-top-color: @santafe-off-white; //Top color for background gradient in header
 @header-middle-color: @santafe-off-white; //middle color for background gradient in header @80% of header height from bottom
 @header-bottom-color: @santafe-off-white; //Bottom color for background gradient in header
+//@header-middle-color: @santafe-easier-to-read-white; //middle color for background gradient in header @80% of header height from bottom
+//@header-bottom-color: @santafe-easier-to-read-white; //Bottom color for background gradient in header
 
-@category1MainColor: @santafe-off-white;
-@categoryLineColor: @santafe-off-white;
-@categoryLineShadow: @santafe-off-white;
-@selectedCategoryBorderColor: @santafe-off-white;
+@category1MainColor: @content-bg;
+@categoryLineColor: @category1MainColor;
+@categoryLineShadow: @category1MainColor;
+@selectedCategoryBorderColor: @category1MainColor;
 
 // set all browse category colors to the first color to remove lightening of successive categories. plb 9-17-2014*/
 @category2MainColor: @category1MainColor;
@@ -47,9 +54,8 @@
 @browse-label-line-color: @santafe-background-blue;
 
 @breadcrumb-bg: @content-bg;
-//@breadcrumb-bg: red;
-@browse-header-background-color: @content-bg;
-@browseCarouselControlBackgroundColor: @content-bg;
+@browse-header-background-color: @category1MainColor;
+@browseCarouselControlBackgroundColor:@category1MainColor;
 @browseCarouselControlColor: @santafe-background-blue;
 
 // Selected Category color to give a highlighted appearance
