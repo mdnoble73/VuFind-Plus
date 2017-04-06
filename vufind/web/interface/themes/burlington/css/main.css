@@ -10917,7 +10917,8 @@ fieldset[disabled] .btn-masquerade.active {
   box-shadow: 2px 2px 5px #fff;
 }
 h1,
-h2 {
+h2,
+h3 {
   color: #BC321F;
 }
 #browse-label {
