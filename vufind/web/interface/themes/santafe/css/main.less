@@ -9,7 +9,6 @@
 
 #header-container{
   height: 190px;
-  border-bottom: 3px solid #ccc;
 }
 #horizontal-search-label,
 #home-page-search-label,
@@ -45,8 +44,7 @@
     border: none;
     background-color: @selectedCategoryColor;
     background: @selectedCategoryColor;
-    //background: linear-gradient(to bottom, @selectedCategoryColor 0%, @selectedCategoryColor 75%, @content-bg 75%, @content-bg 80%, #CCCCCC 80%, @content-bg 100%);
-    background: linear-gradient(to bottom, @selectedCategoryColor 0%, @selectedCategoryColor 75%, @browse-header-background-color 75%, @browse-header-background-color 80%, #CCCCCC 80%, @browse-header-background-color 100%);
+    background: linear-gradient(to bottom, @selectedCategoryColor 0%, @selectedCategoryColor 75%, @content-bg 75%, @content-bg 80%, #CCCCCC 80%, @content-bg 100%);
     div {
       color: #fff;
     }
@@ -74,7 +72,7 @@
   // indicator dots at bottom of browse category carousel
   .jcarousel-pagination a {
     &.active {
-      //background: @santefe-light-blue;
+      background: @santefe-light-blue;
       // keep shadowing in place on active item
       .box-shadow(0 0 2px #4E443C);
     }
@@ -83,6 +81,10 @@
   }
 }
 
+//// Button Styling
+//.btn-primary {
+//  .button-variant(#FFF, @primaryButtonBackgroundColor, darken(@primaryButtonBackgroundColor, 5%));
+//}
 
 #footer-container {
   background-color: @santafe-footer-darkgray;
@@ -113,23 +115,3 @@
 //    max-width: 475px;
 //  }
 //}
-
-
-#horizontal-search-wrapper {
-  //border-bottom: 8px solid @santafe-background-blue;
-  border-bottom: 3px solid #ccc;
-}
-
-
-#home-breadcrumb {
-  font-weight: 700;
-  font-size: initial;
-}
-
-#more-details-accordion .panel-body {
-  font-size: 12px;
-  color: #333;
-  background-color: transparent;
-  border: 1px solid #c5c5c5;
-  border-top: none;
-}
