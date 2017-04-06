@@ -5,7 +5,7 @@
 			<img id='prospectorMan' src='{$path}/interface/themes/responsive/images/prospector_man.png'/>
 
 			<div id='prospectorSearchResultsTitle'>In Prospector</div>
-			<div id='prospectorSearchResultsNote'>Did you know that you can request items through Prospector and they will be delivered to your local library for pickup?</div>
+			<div id='prospectorSearchResultsNote'>Request items from other Prospector libraries to be delivered to your local library for pickup.</div>
 			<div class='clearfix'>&nbsp;</div>
 		</div>
 		{if $prospectorResults}
@@ -24,7 +24,7 @@
 		{/if}
 		<div id='prospectorSearchResultsFooter'>
 			<div id='moreResultsFromProspector'>
-				<button class="btn btn-sm btn-info" onclick="window.open ('{$prospectorLink}', 'child'); return false">See all Results in Prospector</button>
+				<button class="btn btn-sm btn-info" onclick="window.open ('{$prospectorLink}', 'child'); return false">See more results in Prospector</button>
 			</div>
 			<div class='clearfix'>&nbsp;</div>
 		</div>
