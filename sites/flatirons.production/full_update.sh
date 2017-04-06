@@ -102,7 +102,6 @@ cd /data/vufind-plus/accelerated_reader; curl --remote-name --remote-time --sile
 
 #Zinio Marc Updates
 scp flatirons_sideload@ftp1.marmot.org:/ftp/flatirons_sideload/zinio/shared/*.mrc /data/vufind-plus/zinio/boulderBroomfield/marc/ >> ${OUTPUT_FILE}
-scp flatirons_sideload@ftp1.marmot.org:/ftp/flatirons_sideload/zinio/longmont/*.mrc /data/vufind-plus/zinio/longmont/marc/ >> ${OUTPUT_FILE}
 
 #Ebrary Marc Updates
 scp flatirons_sideload@ftp1.marmot.org:/ftp/flatirons_sideload/ebrary/boulder/*.mrc /data/vufind-plus/ebrary/bpl/marc/ >> ${OUTPUT_FILE}
