@@ -163,6 +163,7 @@ class CatalogConnection
 	 */
 	public function patronLogin($username, $password, $parentAccount = null, $validatedViaSSO = false) {
 		global $timer;
+		global $logger;
 		global $configArray;
 
 		//Get the barcode property
@@ -197,10 +198,12 @@ class CatalogConnection
 					//We have a good user account for additional processing
 				} else {
 					$timer->logTime("offline patron login failed due to invalid name");
+					$logger->log("offline patron login failed due to invalid name", PEAR_LOG_INFO);
 					return null;
 				}
 			} else {
 				$timer->logTime("offline patron login failed because we haven't seen this user before");
+				$logger->log("offline patron login failed because we haven't seen this user before", PEAR_LOG_INFO);
 				return null;
 			}
 		}else {
@@ -523,7 +526,7 @@ class CatalogConnection
 				if ($driverHasReadingHistory && $this->checkFunction('doReadingHistoryAction')){
 					//First run delete all
 					$result = $this->driver->doReadingHistoryAction($patron, 'deleteAll', $selectedTitles);
-					
+
 					$result = $this->driver->doReadingHistoryAction($patron, $action, $selectedTitles);
 				}
 
