@@ -78,12 +78,14 @@ class CatalogConnection
 	public function __construct($driver, $accountProfile)
 	{
 		$path = ROOT_DIR . "/Drivers/{$driver}.php";
-		if (is_readable($path)) {
+		if (is_readable($path) && $driver != 'DriverInterface') {
 			require_once $path;
 
 			try {
 				$this->driver = new $driver($accountProfile);
 			} catch (PDOException $e) {
+				global $logger;
+				$logger->log("Unable to create driver $driver for account profile {$accountProfile->name}", PEAR_LOG_ERR);
 				throw $e;
 			}
 
